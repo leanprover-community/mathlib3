@@ -82,12 +82,11 @@ lift_pred (λp:β×γ, r p.1 p.2)
   (comp₂ prod.mk (measurable_prod_mk
     (measurable_fst measurable_id) (measurable_snd measurable_id)) f g)
 
-def lift_rel_mk_mk {γ : Type*} [measurable_space γ] (r : β → γ → Prop)
+lemma lift_rel_mk_mk {γ : Type*} [measurable_space γ] (r : β → γ → Prop)
   (f : α → β) (g : α → γ) (hf hg) : lift_rel r (mk f hf) (mk g hg) ↔ ∀ₘ a, r (f a) (g a) :=
 iff.rfl
 
 section order
-variables [measurable_space β]
 
 instance [preorder β] : preorder (α →ₘ β) :=
 { le          := lift_rel (≤),
@@ -156,8 +155,7 @@ end add_comm_monoid
 
 section add_group
 
-variables {γ : Type*}
-  [topological_space γ] [second_countable_topology γ] [add_group γ] [topological_add_group γ]
+variables {γ : Type*} [topological_space γ] [add_group γ] [topological_add_group γ]
 
 protected def neg : (α →ₘ γ) → (α →ₘ γ) := comp has_neg.neg (measurable_neg measurable_id)
 
@@ -165,7 +163,7 @@ instance : has_neg (α →ₘ γ) := ⟨ae_eq_fun.neg⟩
 
 @[simp] lemma neg_mk (f : α → γ) (hf) : -(mk f hf) = mk (-f) (measurable_neg hf) := rfl
 
-instance : add_group (α →ₘ γ) :=
+instance [second_countable_topology γ] : add_group (α →ₘ γ) :=
 { neg          := ae_eq_fun.neg,
   add_left_neg := by rintros ⟨a⟩; exact quotient.sound (univ_mem_sets' $ assume a, add_left_neg _),
   .. ae_eq_fun.add_monoid
@@ -187,8 +185,8 @@ end add_comm_group
 
 section semimodule
 
-variables {K : Type*} [semiring K] [topological_space K] [second_countable_topology K]
-variables {γ : Type*} [topological_space γ] [second_countable_topology γ]
+variables {K : Type*} [semiring K] [topological_space K]
+variables {γ : Type*} [topological_space γ]
           [add_comm_monoid γ] [semimodule K γ] [topological_semimodule K γ]
 
 protected def smul : K → (α →ₘ γ) → (α →ₘ γ) :=
@@ -199,7 +197,7 @@ instance : has_scalar K (α →ₘ γ) := ⟨ae_eq_fun.smul⟩
 @[simp] lemma smul_mk (c : K) (f : α → γ) (hf) : c • (mk f hf) = mk (c • f) (measurable_smul hf) :=
 rfl
 
-variables [topological_add_monoid γ]
+variables [second_countable_topology γ] [topological_add_monoid γ]
 
 instance : semimodule K (α →ₘ γ) :=
 { one_smul  := by { rintros ⟨f, hf⟩, simp only [quot_mk_eq_mk, smul_mk, one_smul] },
@@ -223,7 +221,7 @@ end semimodule
 
 section vector_space
 
-variables {K : Type*} [discrete_field K] [topological_space K] [second_countable_topology K]
+variables {K : Type*} [discrete_field K] [topological_space K]
 variables {γ : Type*} [topological_space γ] [second_countable_topology γ] [add_comm_group γ]
           [topological_add_group γ] [vector_space K γ] [topological_semimodule K γ]
 
@@ -302,7 +300,7 @@ end metric
 
 section normed_group
 
-variables {γ : Type*} [normed_group γ] [second_countable_topology γ] [topological_add_group γ]
+variables {γ : Type*} [normed_group γ] [second_countable_topology γ]
 
 lemma edist_eq_add_add : ∀ {f g h : α →ₘ γ}, edist f g = edist (f + h) (g + h) :=
 begin
@@ -318,7 +316,7 @@ section normed_space
 
 set_option class.instance_max_depth 100
 
-variables {K : Type*} [normed_field K] [second_countable_topology K]
+variables {K : Type*} [normed_field K]
 variables {γ : Type*} [normed_group γ] [second_countable_topology γ] [normed_space K γ]
 
 lemma edist_smul (x : K) : ∀ f : α →ₘ γ, edist (x • f) 0 = (ennreal.of_real ∥x∥) * edist f 0 :=

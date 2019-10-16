@@ -53,7 +53,7 @@ import analysis.asymptotics analysis.calculus.tangent_cone
 open filter asymptotics continuous_linear_map set
 
 noncomputable theory
-local attribute [instance, priority 0] classical.decidable_inhabited classical.prop_decidable
+local attribute [instance, priority 10] classical.decidable_inhabited classical.prop_decidable
 
 set_option class.instance_max_depth 90
 
@@ -800,6 +800,8 @@ end continuous
 
 section bilinear_map
 variables {b : E × F → G} {u : set (E × F) }
+
+open normed_field
 
 lemma is_bounded_bilinear_map.has_fderiv_at (h : is_bounded_bilinear_map 𝕜 b) (p : E × F) :
   has_fderiv_at b (h.deriv p) p :=

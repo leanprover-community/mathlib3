@@ -111,7 +111,7 @@ variable  {α : Type u}
 variables (p q : Prop)
 variable  (s : α → Prop)
 
-local attribute [instance, priority 1] classical.prop_decidable
+local attribute [instance, priority 10] classical.prop_decidable
 theorem not_not_eq : (¬ ¬ p) = p := propext not_not
 theorem not_and_eq : (¬ (p ∧ q)) = (¬ p ∨ ¬ q) := propext not_and_distrib
 theorem not_or_eq : (¬ (p ∨ q)) = (¬ p ∧ ¬ q) := propext not_or_distrib
@@ -397,7 +397,7 @@ local_context >>= case_some_hyp_aux s cont
   `safe_core s ps cfg opt` negates the goal, normalizes hypotheses
   (by splitting conjunctions, eliminating existentials, pushing negations inwards,
   and calling `simp` with the supplied lemmas `s`), and then tries `contradiction`.
-  
+
   If this fails, it will create an SMT state and repeatedly use `ematch`
   (using `ematch` lemmas in the environment, universally quantified assumptions,
   and the supplied lemmas `ps`) and congruence closure.
@@ -432,7 +432,7 @@ do when_tracing `auto.finish (trace "entering safe_core" >> trace_state),
 
 /--
   `clarify` is `safe_core`, but with the `(opt : case_option)`
-  parameter fixed at `case_option.at_most_one`. 
+  parameter fixed at `case_option.at_most_one`.
 -/
 meta def clarify (s : simp_lemmas × list name) (ps : list pexpr)
   (cfg : auto_config := {}) : tactic unit := safe_core s ps cfg case_option.at_most_one
@@ -481,13 +481,13 @@ local postfix *:9001 := many
   `clarify [h1,...,hn] using [e1,...,en]` negates the goal, normalizes hypotheses
   (by splitting conjunctions, eliminating existentials, pushing negations inwards,
   and calling `simp` with the supplied lemmas `h1,...,hn`), and then tries `contradiction`.
-  
+
   If this fails, it will create an SMT state and repeatedly use `ematch`
   (using `ematch` lemmas in the environment, universally quantified assumptions,
   and the supplied lemmas `e1,...,en`) and congruence closure.
 
   `clarify` is complete for propositional logic.
-  
+
   Either of the supplied simp lemmas or the supplied ematch lemmas are optional.
 
   `clarify` will fail if it produces more than one goal.
@@ -501,13 +501,13 @@ do s ← mk_simp_set ff [] hs,
   `safe [h1,...,hn] using [e1,...,en]` negates the goal, normalizes hypotheses
   (by splitting conjunctions, eliminating existentials, pushing negations inwards,
   and calling `simp` with the supplied lemmas `h1,...,hn`), and then tries `contradiction`.
-  
+
   If this fails, it will create an SMT state and repeatedly use `ematch`
   (using `ematch` lemmas in the environment, universally quantified assumptions,
   and the supplied lemmas `e1,...,en`) and congruence closure.
 
   `safe` is complete for propositional logic.
-  
+
   Either of the supplied simp lemmas or the supplied ematch lemmas are optional.
 
   `safe` ignores the number of goals it produces, and should never fail.
@@ -521,13 +521,13 @@ do s ← mk_simp_set ff [] hs,
   `finish [h1,...,hn] using [e1,...,en]` negates the goal, normalizes hypotheses
   (by splitting conjunctions, eliminating existentials, pushing negations inwards,
   and calling `simp` with the supplied lemmas `h1,...,hn`), and then tries `contradiction`.
-  
+
   If this fails, it will create an SMT state and repeatedly use `ematch`
   (using `ematch` lemmas in the environment, universally quantified assumptions,
   and the supplied lemmas `e1,...,en`) and congruence closure.
 
   `finish` is complete for propositional logic.
-  
+
   Either of the supplied simp lemmas or the supplied ematch lemmas are optional.
 
   `finish` will fail if it does not close the goal.

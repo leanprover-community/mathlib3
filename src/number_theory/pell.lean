@@ -376,7 +376,7 @@ section
   by refine @modeq.trans _ _ 0 _ _ (by rw add_comm; exact (xn_modeq_x2n_sub _ h).symm);
      rw [show 4*n = 2*n + 2*n, from right_distrib 2 2 n, nat.add_sub_assoc h']; apply xn_modeq_x2n_add
 
-  theorem eq_of_xn_modeq_lem1 {i n} (npos : n > 0) : Π {j}, i < j → j < n → xn i % xn n < xn j % xn n
+  theorem eq_of_xn_modeq_lem1 {i n} : Π {j}, i < j → j < n → xn i % xn n < xn j % xn n
   | 0     ij _  := absurd ij (nat.not_lt_zero _)
   | (j+1) ij jn :=
      suffices xn j % xn n < xn (j + 1) % xn n, from
@@ -410,7 +410,7 @@ section
         rw nat.sub_sub_self k2n at t,
         exact t.trans (modeq.modeq_zero_iff.2 $ dvd_refl _).symm },
     (lt_trichotomy j n).elim
-    (λ (jn : j < n), eq_of_xn_modeq_lem1 npos ij (lt_of_le_of_ne jn jnn)) $ λo, o.elim
+    (λ (jn : j < n), eq_of_xn_modeq_lem1 ij (lt_of_le_of_ne jn jnn)) $ λo, o.elim
     (λ (jn : j = n), by {
       cases jn,
       apply int.lt_of_coe_nat_lt_coe_nat,

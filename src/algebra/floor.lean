@@ -104,7 +104,7 @@ lemma floor_eq_iff {r : α} {z : ℤ} :
 by rw [←le_floor, ←int.cast_one, ←int.cast_add, ←floor_lt,
 int.lt_add_one_iff, le_antisymm_iff, and.comm]
 
-lemma floor_ring_unique [linear_ordered_ring α] (inst1 inst2 : floor_ring α) :
+lemma floor_ring_unique {α} [linear_ordered_ring α] (inst1 inst2 : floor_ring α) :
   @floor _ _ inst1 = @floor _ _ inst2 :=
 begin
   ext v,
@@ -254,8 +254,11 @@ begin
   refl
 end
 
-theorem nat_ceil_lt_add_one {a : α} (a_nonneg : 0 ≤ a) [decidable (↑(nat_ceil a) < a + 1)] :
-  ↑(nat_ceil a) < a + 1 :=
+theorem nat_ceil_lt_add_one {a : α} (a_nonneg : 0 ≤ a) [decidable ((nat_ceil a : α) < a + 1)] :
+  (nat_ceil a : α) < a + 1 :=
 lt_nat_ceil.1 $ by rw (
   show nat_ceil (a + 1) = nat_ceil a + 1, by exact_mod_cast (nat_ceil_add_nat a_nonneg 1));
   apply nat.lt_succ_self
+
+lemma lt_of_nat_ceil_lt {x : α} {n : ℕ} (h : nat_ceil x < n) : x < n :=
+lt_of_le_of_lt (le_nat_ceil x) (by exact_mod_cast h)

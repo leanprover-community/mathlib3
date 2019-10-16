@@ -111,7 +111,7 @@ section monoid
   theorem divp_assoc (a b : α) (u : units α) : a * b /ₚ u = a * (b /ₚ u) :=
   mul_assoc _ _ _
 
-  @[simp] theorem divp_inv (x : α) (u : units α) : a /ₚ u⁻¹ = a * u := rfl
+  @[simp] theorem divp_inv (u : units α) : a /ₚ u⁻¹ = a * u := rfl
 
   @[simp] theorem divp_mul_cancel (a : α) (u : units α) : a /ₚ u * u = a :=
   (mul_assoc _ _ _).trans $ by rw [units.inv_mul, mul_one]
@@ -149,10 +149,3 @@ theorem divp_mul_divp (x y : α) (ux uy : units α) :
 by rw [← divp_divp_eq_divp_mul, divp_assoc, mul_comm x, divp_assoc, mul_comm]
 
 end comm_monoid
-
-section group
-  variables [group α]
-
-  instance : has_lift α (units α) :=
-  ⟨λ a, ⟨a, a⁻¹, mul_inv_self _, inv_mul_self _⟩⟩
-end group

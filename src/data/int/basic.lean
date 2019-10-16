@@ -19,6 +19,7 @@ meta instance : has_to_format ℤ := ⟨λ z, int.rec_on z (λ k, ↑k) (λ k, "
 meta instance : has_reflect ℤ := by tactic.mk_has_reflect_instance
 
 attribute [simp] int.coe_nat_add int.coe_nat_mul int.coe_nat_zero int.coe_nat_one int.coe_nat_succ
+attribute [simp] int.of_nat_eq_coe
 
 @[simp] theorem add_def {a b : ℤ} : int.add a b = a + b := rfl
 @[simp] theorem mul_def {a b : ℤ} : int.mul a b = a * b := rfl
@@ -162,6 +163,9 @@ by simp [neg_succ_of_nat_eq]
 
 lemma nat_abs_ne_zero_of_ne_zero {z : ℤ} (hz : z ≠ 0) : z.nat_abs ≠ 0 :=
 λ h, hz $ int.eq_zero_of_nat_abs_eq_zero h
+
+@[simp] lemma nat_abs_eq_zero {a : ℤ} : a.nat_abs = 0 ↔ a = 0 :=
+⟨int.eq_zero_of_nat_abs_eq_zero, λ h, h.symm ▸ rfl⟩
 
 /- /  -/
 
@@ -759,12 +763,22 @@ by rw [to_nat_eq_max, max_eq_left h]
 theorem le_to_nat (a : ℤ) : a ≤ to_nat a :=
 by rw [to_nat_eq_max]; apply le_max_left
 
-@[simp] theorem to_nat_le (a : ℤ) (n : ℕ) : to_nat a ≤ n ↔ a ≤ n :=
+@[simp] theorem to_nat_le {a : ℤ} {n : ℕ} : to_nat a ≤ n ↔ a ≤ n :=
 by rw [(coe_nat_le_coe_nat_iff _ _).symm, to_nat_eq_max, max_le_iff];
    exact and_iff_left (coe_zero_le _)
 
+@[simp] theorem lt_to_nat {n : ℕ} {a : ℤ} : n < to_nat a ↔ (n : ℤ) < a :=
+le_iff_le_iff_lt_iff_lt.1 to_nat_le
+
 theorem to_nat_le_to_nat {a b : ℤ} (h : a ≤ b) : to_nat a ≤ to_nat b :=
 by rw to_nat_le; exact le_trans h (le_to_nat b)
+
+theorem to_nat_lt_to_nat {a b : ℤ} (hb : 0 < b) : to_nat a < to_nat b ↔ a < b :=
+⟨λ h, begin cases a, exact lt_to_nat.1 h, exact lt_trans (neg_succ_of_nat_lt_zero a) hb, end,
+ λ h, begin rw lt_to_nat, cases a, exact h, exact hb end⟩
+
+theorem lt_of_to_nat_lt {a b : ℤ} (h : to_nat a < to_nat b) : a < b :=
+(to_nat_lt_to_nat $ lt_to_nat.1 $ lt_of_le_of_lt (nat.zero_le _) h).1 h
 
 def to_nat' : ℤ → option ℕ
 | (n : ℕ) := some n
@@ -794,22 +808,20 @@ lemma units_inv_eq_self (u : units ℤ) : u⁻¹ = u :=
 @[simp] lemma bodd_two : bodd 2 = ff := rfl
 
 @[simp] lemma bodd_sub_nat_nat (m n : ℕ) : bodd (sub_nat_nat m n) = bxor m.bodd n.bodd :=
-by apply sub_nat_nat_elim m n (λ m n i, bodd i = bxor m.bodd n.bodd);
-   intros i m; simp [bodd]; cases i.bodd; cases m.bodd; refl
+by apply sub_nat_nat_elim m n (λ m n i, bodd i = bxor m.bodd n.bodd); intros;
+  simp [bodd, -of_nat_eq_coe]
 
 @[simp] lemma bodd_neg_of_nat (n : ℕ) : bodd (neg_of_nat n) = n.bodd :=
 by cases n; simp; refl
 
 @[simp] lemma bodd_neg (n : ℤ) : bodd (-n) = bodd n :=
-by cases n; unfold has_neg.neg; simp [int.coe_nat_eq, int.neg, bodd]
+by cases n; simp [has_neg.neg, int.coe_nat_eq, int.neg, bodd, -of_nat_eq_coe]
 
 @[simp] lemma bodd_add (m n : ℤ) : bodd (m + n) = bxor (bodd m) (bodd n) :=
-by cases m with m m; cases n with n n; unfold has_add.add; simp [int.add, bodd];
-   cases m.bodd; cases n.bodd; refl
+by cases m with m m; cases n with n n; unfold has_add.add; simp [int.add, bodd, -of_nat_eq_coe]
 
 @[simp] lemma bodd_mul (m n : ℤ) : bodd (m * n) = bodd m && bodd n :=
-by cases m with m m; cases n with n n; unfold has_mul.mul; simp [int.mul, bodd];
-   cases m.bodd; cases n.bodd; refl
+by cases m with m m; cases n with n n; unfold has_mul.mul; simp [int.mul, bodd, -of_nat_eq_coe]
 
 theorem bodd_add_div2 : ∀ n, cond (bodd n) 1 0 + 2 * div2 n = n
 | (n : ℕ) :=
@@ -1048,7 +1060,7 @@ protected def cast : ℤ → α
 | (n : ℕ) := n
 | -[1+ n] := -(n+1)
 
-@[priority 0] instance cast_coe : has_coe ℤ α := ⟨int.cast⟩
+@[priority 10] instance cast_coe : has_coe ℤ α := ⟨int.cast⟩
 
 @[simp, squash_cast] theorem cast_zero : ((0 : ℤ) : α) = 0 := rfl
 

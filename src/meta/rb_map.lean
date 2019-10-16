@@ -25,7 +25,7 @@ end rb_set
 
 namespace rb_map
 
-meta def find_def {α β} [has_lt α] (x : β) (m : rb_map α β) (k : α) :=
+meta def find_def {α β} (x : β) (m : rb_map α β) (k : α) :=
 (m.find k).get_or_else x
 
 meta def insert_cons {α β} [has_lt α] (k : α) (x : β) (m : rb_map α (list β)) : rb_map α (list β) :=

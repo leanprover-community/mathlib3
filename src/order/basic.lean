@@ -114,7 +114,7 @@ theorem monotone_id : @monotone α α _ _ id := assume x y h, h
 
 theorem monotone_const {b : β} : monotone (λ(a:α), b) := assume x y h, le_refl b
 
-theorem monotone_comp {f : α → β} {g : β → γ} (m_f : monotone f) (m_g : monotone g) :
+protected theorem monotone.comp {g : β → γ} {f : α → β} (m_g : monotone g) (m_f : monotone f) :
   monotone (g ∘ f) :=
 assume a b h, m_g (m_f h)
 
@@ -547,6 +547,11 @@ theorem directed_comp {ι} (f : ι → β) (g : β → α) :
 theorem directed_mono {s : α → α → Prop} {ι} (f : ι → α)
   (H : ∀ a b, r a b → s a b) (h : directed r f) : directed s f :=
 λ a b, let ⟨c, h₁, h₂⟩ := h a b in ⟨c, H _ _ h₁, H _ _ h₂⟩
+
+/-- A monotone function on a linear order is directed. -/
+lemma directed_of_mono {ι} [decidable_linear_order ι] (f : ι → α)
+  (H : ∀ i j, i ≤ j → f i ≼ f j) : directed (≼) f :=
+λ a b, ⟨max a b, H _ _ (le_max_left _ _), H _ _ (le_max_right _ _)⟩
 
 class directed_order (α : Type u) extends preorder α :=
 (directed : ∀ i j : α, ∃ k, i ≤ k ∧ j ≤ k)

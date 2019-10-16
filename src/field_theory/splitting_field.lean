@@ -118,7 +118,7 @@ is_noetherian_ring.irreducible_induction_on (f.map i)
 
 section UFD
 
-local attribute [instance, priority 0] principal_ideal_domain.to_unique_factorization_domain
+local attribute [instance, priority 10] principal_ideal_domain.to_unique_factorization_domain
 local infix ` ~ᵤ ` : 50 := associated
 
 open unique_factorization_domain associates

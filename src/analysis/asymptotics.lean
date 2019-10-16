@@ -447,6 +447,8 @@ end
 section
 variables [has_norm β] [normed_field γ]
 
+open normed_field
+
 theorem is_O_const_one (c : β) (l : filter α) :
   is_O (λ x : α, c) (λ x, (1 : γ)) l :=
 begin
@@ -586,7 +588,7 @@ theorem is_O_one_of_tendsto {f : α → β} {l : filter α} {y : β}
 begin
   have Iy : ∥y∥ < ∥y∥ + 1 := lt_add_one _,
   refine ⟨∥y∥ + 1, lt_of_le_of_lt (norm_nonneg _) Iy, _⟩,
-  simp only [mul_one, norm_one],
+  simp only [mul_one, normed_field.norm_one],
   have : tendsto (λx, ∥f x∥) l (nhds ∥y∥) :=
     (continuous_norm.tendsto _).comp h,
   exact this (ge_mem_nhds Iy)

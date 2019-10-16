@@ -13,7 +13,7 @@ open lattice set linear_map submodule
 
 namespace finsupp
 
-local attribute [instance, priority 10] classical.prop_decidable
+open_locale classical
 
 variables {α : Type*} {M : Type*} {R : Type*}
 variables [ring R] [add_comm_group M] [module R M]

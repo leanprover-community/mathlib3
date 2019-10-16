@@ -16,6 +16,9 @@ reserve infixr ` ⟹ `:40
 
 variables {α β}
 
+/-- Graph of a function as a relation. -/
+def function.graph' (f : α → β) : rel α β := λ x y, f x = y
+
 namespace rel
 
 variables (r : rel α β)
@@ -74,6 +77,19 @@ def core (s : set β) := {x | ∀ ⦃y⦄, r x y → y ∈ s}
 def restrict (s : set α) : rel α β :=
 λ x y, x ∈ s ∧ r x y
 
+/-- Pullback of a relation by a pair of functions.-/
+def comap₂ (f : α → β) (g : γ → δ) (r : rel β δ) : rel α γ := function.bicompl r f g
+
+/-- Pullback of a relation. -/
+protected def comap (f : α → β) (r : rel β β) : rel α α := r.comap₂ f f
+
+/-- Pushforward of a relation by a pair of functions. -/
+def map₂ (f : α → β) (g : γ → δ) (r : rel α γ) : rel β δ :=
+(function.graph' g).comp $ r.comp (function.graph' f).conv
+
+/-- Pushforward of a relation -/
+protected def map (f : α → β) (r : rel α α) : rel β β := r.map₂ f f
+
 /-- Lift a pair of relations to a relation on functions. -/
 def lift_fun (rac : rel α γ) (rbd : rel β δ) : rel (α → β) (γ → δ) :=
 λ f g, ∀⦃x y⦄, rac x y → rbd (f x) (g y)
@@ -86,7 +102,5 @@ def lift_fun_rev (rac : rel α γ) (rbd : rel β δ) : rel (α → β) (γ → �
 
 end rel
 
-/-- Graph of a function as a relation. -/
-def function.graph' (f : α → β) : rel α β := λ x y, f x = y
-
+/-- Graph of a function as a set in `α × β`. -/
 def function.graph (f : α → β) : set (α × β) := (function.graph' f).graph

@@ -4,6 +4,48 @@ universes u v w x
 
 variables {α : Type u} {β : Type v} {γ : Type w} {δ : Type x}
 
+namespace function
+
+variable (α)
+
+lemma graph'_id : function.graph' (@id α) = rel.id α := rfl
+
+variables {α} (g : β → γ) (f : α → β)
+
+lemma graph'_right_unique : (function.graph' f).right_unique :=
+λ x y₁ y₂ h₁ h₂, h₁.symm.trans h₂
+
+lemma graph'_left_total : (function.graph' f).left_total :=
+λ x, ⟨f x, rfl⟩
+
+lemma graph'_comp (g : β → γ) (f : α → β) :
+  function.graph' (g ∘ f) = rel.comp (function.graph' g) (function.graph' f) :=
+by ext x z; symmetry; apply exists_eq_right'
+
+theorem graph'_mk (f : α → β) (x : α) : graph' f x (f x) := eq.refl (f x)
+
+theorem graph'_inj : function.injective $ @function.graph' α β :=
+assume f g h, funext $ assume x,
+show graph' f x (g x),
+from h.symm ▸ graph'_mk g x
+
+lemma graph_def (f : α → β) : function.graph f = { x : α × β | f x.1 = x.2 } := rfl
+
+variable {f}
+
+lemma injective.graph'_left_unique (h : injective f) : (graph' f).left_unique :=
+λ x₁ x₂ y h₁ h₂, h (eq.trans h₁ h₂.symm)
+
+lemma graph'_left_unique_iff_injective : (graph' f).left_unique ↔ injective f :=
+⟨λ h x₁ x₂ hx, h hx rfl, injective.graph'_left_unique⟩
+
+lemma surjective.graph'_right_total (h : surjective f) : (graph' f).right_total := h
+
+lemma graph'_right_total_iff_surjective : (graph' f).right_total ↔ surjective f := iff.rfl
+
+end function
+
+
 namespace rel
 
 -- Even if we mark it with `@[extensionality]`, `ext` won't use it.
@@ -18,37 +60,37 @@ lemma conv_def (x : α) (y : β) : r.conv y x ↔ r x y := iff.rfl
 lemma conv_inj : function.injective (@rel.conv α β) :=
 λ r r' h, congr_arg rel.conv h
 
-local infixr ` ∘ ` := rel.comp
+local infixr ` ∘r `:80 := rel.comp
 
-lemma comp_mk {x y z} (hyz : rbc y z) (hxy : rab x y) : (rbc ∘ rab) x z :=
+lemma comp_mk {x y z} (hyz : rbc y z) (hxy : rab x y) : (rbc ∘r rab) x z :=
 ⟨y, ⟨hyz, hxy⟩⟩
 
 variables (rbc rab)
 
-lemma comp_assoc: (rcd ∘ rbc) ∘ rab = rcd ∘ rbc ∘ rab :=
+lemma comp_assoc: (rcd ∘r rbc) ∘r rab = rcd ∘r rbc ∘r rab :=
 ext $ assume x w,
   ⟨λ ⟨y, ⟨⟨z, ⟨hzw, hyz⟩⟩, hxy⟩⟩, comp_mk hzw (comp_mk hyz hxy),
    λ ⟨z, ⟨hzw, ⟨y, ⟨hyz, hxy⟩⟩⟩⟩, ⟨y, ⟨⟨z, ⟨hzw, hyz⟩⟩, hxy⟩⟩⟩
 
-@[simp] lemma comp_id : r ∘ (rel.id α) = r :=
+@[simp] lemma comp_id : r ∘r (rel.id α) = r :=
 by { ext, apply exists_eq_right' }
 
-@[simp] lemma id_comp : (rel.id β) ∘ r = r :=
+@[simp] lemma id_comp : (rel.id β) ∘r r = r :=
 by { ext, apply exists_eq_left }
 
 lemma iff_eq_id : (↔) = (rel.id Prop) := by funext; apply iff_eq_eq
 
-@[simp] lemma comp_iff (r : rel Prop α) : r ∘ (↔) = r :=
+@[simp] lemma comp_iff (r : rel Prop α) : r ∘r (↔) = r :=
 iff_eq_id.symm ▸ comp_id r
 
-@[simp] lemma iff_comp (r : rel α Prop) : (↔) ∘ r = r :=
+@[simp] lemma iff_comp (r : rel α Prop) : (↔) ∘r r = r :=
 iff_eq_id.symm ▸ id_comp r
 
 @[simp] lemma conv_id : (rel.id α).conv = rel.id α :=
 by { ext x y, apply eq_comm }
 
 @[simp] lemma conv_comp (r : rel β γ) (s : rel α β) :
-  (r ∘ s).conv = s.conv ∘ r.conv :=
+  (r ∘r s).conv = s.conv ∘r r.conv :=
 by { ext x z, simp only [comp, conv_def, and.comm] }
 
 lemma diag_conv (r : rel α α) : r.conv.diag = r.diag := rfl
@@ -80,7 +122,7 @@ by ext y; simp [rel.image, set.mem_singleton_iff, exists_prop, exists_eq_left]
 @[simp] lemma image_id (s : set α) : image (rel.id α) s = s :=
 by { ext x, simp only [mem_image, rel.id, exists_prop, exists_eq_right] }
 
-@[simp] lemma image_comp (s : set α) : image (rbc ∘ rab) s = image rbc (image rab s) :=
+@[simp] lemma image_comp (s : set α) : image (rbc ∘r rab) s = image rbc (image rab s) :=
 set.subset.antisymm
   (λ z ⟨x, ⟨xs, ⟨y, ⟨hyz, hxy⟩⟩⟩⟩, ⟨y, ⟨⟨x, ⟨xs, hxy⟩⟩, hyz⟩⟩)
   (λ z ⟨y, ⟨⟨x, ⟨xs, hxy⟩⟩, hyz⟩⟩, ⟨x, ⟨xs, ⟨y, ⟨hyz, hxy⟩⟩⟩⟩)
@@ -99,7 +141,7 @@ r.conv.image_singleton y
 lemma preimage_id (s : set α) : (rel.id α).preimage s = s :=
 by simp only [preimage, conv_id, image_id]
 
-lemma preimage_comp (s : set γ) : (rbc ∘ rab).preimage s = rab.preimage (rbc.preimage s) :=
+lemma preimage_comp (s : set γ) : (rbc ∘r rab).preimage s = rab.preimage (rbc.preimage s) :=
 by simp only [preimage, conv_comp, image_comp]
 
 lemma preimage_univ : r.preimage set.univ = r.dom :=
@@ -113,7 +155,7 @@ lemma core_univ : r.core set.univ = set.univ := set.ext (by simp [mem_core])
 lemma core_id (s : set α) : (rel.id α).core s = s :=
 by simp [core, rel.id]
 
-lemma core_comp (s : set γ) : (rbc ∘ rab).core s = rab.core (rbc.core s) :=
+lemma core_comp (s : set γ) : (rbc ∘r rab).core s = rab.core (rbc.core s) :=
 set.subset.antisymm
   (λ x h y hxy z hyz, h ⟨y, ⟨hyz, hxy⟩⟩)
   (λ x h z ⟨y, ⟨hyz, hxy⟩⟩, h hxy hyz)
@@ -238,46 +280,37 @@ lemma right_total.rel_exists (hr : r.right_total) :
   ((r ⟹ (rel.conv implies)) ⟹ (rel.conv implies)) (λp, ∃i, p i) (λq, ∃i, q i) :=
 assume p q Hrel ⟨b, qb⟩, let ⟨a, hab⟩ := hr b in ⟨a, Hrel hab qb⟩
 
+lemma comap₂_def (f : α → β) (g : γ → δ) (r : rel β δ) (x y) :
+  r.comap₂ f g x y = r (f x) (g y) := rfl
+
+lemma comap₂_comap₂ {α₁ α₂ α₃ β₁ β₂ β₃ : Type*}
+  (f₂ : α₂ → α₃) (f₁ : α₁ → α₂) (g₂ : β₂ → β₃) (g₁ : β₁ → β₂) (r : rel α₃ β₃) :
+  (r.comap₂ f₂ g₂).comap₂ f₁ g₁ = r.comap₂ (f₂ ∘ f₁) (g₂ ∘ g₁) :=
+rfl
+
+lemma comap_def (f : α → β) (r : rel β β) (x y : α) : r.comap f x y = r (f x) (f y) := rfl
+
+lemma comap_comap (g : β → γ) (f : α → β) (r : rel γ γ) :
+  (r.comap g).comap f = r.comap (g ∘ f) :=
+rfl
+
+lemma map₂_def (f : α → β) (g : γ → δ) (r : rel α γ) (x y) :
+  r.map₂ f g x y ↔ ∃ a c, f a = x ∧ g c = y ∧ r a c :=
+⟨λ ⟨c, hc, a, hr, ha⟩, ⟨a, c, ha, hc, hr⟩,
+  λ ⟨a, c, ha, hc, hr⟩, ⟨c, hc, a, hr, ha⟩⟩
+
+lemma map₂_map₂ {α₁ α₂ α₃ β₁ β₂ β₃ : Type*}
+  (f₂ : α₂ → α₃) (f₁ : α₁ → α₂) (g₂ : β₂ → β₃) (g₁ : β₁ → β₂) (r : rel α₁ β₁) :
+  (r.map₂ f₁ g₁).map₂ f₂ g₂ = r.map₂ (f₂ ∘ f₁) (g₂ ∘ g₁) :=
+by simp only [map₂, function.graph'_comp g₂ g₁, function.graph'_comp f₂ f₁,
+              conv_comp, rel.comp_assoc]
+
+lemma map_def (f : α → β) (r : rel α α) (x y : β) :
+  r.map f x y ↔ ∃ a b, f a = x ∧ f b = y ∧ r a b :=
+r.map₂_def f f x y
+
+lemma map_map (g : β → γ) (f : α → β) (r : rel α α) :
+  (r.map f).map g = r.map (g ∘ f) :=
+r.map₂_map₂ g f g f
+
 end rel
-
-namespace function
-
-variable (α)
-
-lemma graph'_id : function.graph' (@id α) = rel.id α := rfl
-
-variables {α} (g : β → γ) (f : α → β)
-
-lemma graph'_right_unique : (function.graph' f).right_unique :=
-λ x y₁ y₂ h₁ h₂, h₁.symm.trans h₂
-
-lemma graph'_left_total : (function.graph' f).left_total :=
-λ x, ⟨f x, rfl⟩
-
-lemma graph'_comp (g : β → γ) (f : α → β) :
-  function.graph' (g ∘ f) = rel.comp (function.graph' g) (function.graph' f) :=
-by ext x z; symmetry; apply exists_eq_right'
-
-theorem graph'_mk (f : α → β) (x : α) : graph' f x (f x) := eq.refl (f x)
-
-theorem graph'_inj : function.injective $ @function.graph' α β :=
-assume f g h, funext $ assume x,
-show graph' f x (g x),
-from h.symm ▸ graph'_mk g x
-
-lemma graph_def (f : α → β) : function.graph f = { x : α × β | f x.1 = x.2 } := rfl
-
-variable {f}
-
-lemma injective.graph'_left_unique (h : injective f) : (graph' f).left_unique :=
-λ x₁ x₂ y h₁ h₂, h (eq.trans h₁ h₂.symm)
-
-lemma graph'_left_unique_iff_injective : (graph' f).left_unique ↔ injective f :=
-⟨λ h x₁ x₂ hx, h hx rfl, injective.graph'_left_unique⟩
-
-lemma surjective.graph'_right_total (h : surjective f) : (graph' f).right_total := h
-
-lemma graph'_right_total_iff_surjective : (graph' f).right_total ↔ surjective f := iff.rfl
-
-end function
-

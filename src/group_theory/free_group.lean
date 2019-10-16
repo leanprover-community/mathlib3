@@ -129,14 +129,14 @@ refl_trans_gen.single
 
 /-- Church-Rosser theorem for word reduction: If `w1 w2 w3` are words such that `w1` reduces to `w2`
 and `w3` respectively, then there is a word `w4` such that `w2` and `w3` reduce to `w4` respectively. -/
-theorem church_rosser : red L₁ L₂ → red L₁ L₃ → join red L₂ L₃ :=
-rel.church_rosser (assume a b c hab hac,
+theorem church_rosser : join (flip red) ≤ join (@red α) :=
+rel.church_rosser $ assume b c ⟨a, hac, hab⟩,
 match b, c, red.step.diamond hab hac rfl with
-| b, _, or.inl rfl           := ⟨b, by refl, by refl⟩
-| b, c, or.inr ⟨d, hbd, hcd⟩ := ⟨d, refl_gen.single hbd, hcd.to_red⟩
-end)
+| b, _, or.inl rfl           := ⟨b, show red b b, by refl, by refl⟩
+| b, c, or.inr ⟨d, hbd, hcd⟩ := ⟨d, hcd.to_red, refl_gen.single hbd⟩
+end
 
-lemma cons_cons {p} : red L₁ L₂ → red (p :: L₁) (p :: L₂) :=
+lemma cons_cons {p : α × bool} : (red ⟹ red).diag (list.cons p) :=
 refl_trans_gen_lift (list.cons p) (assume a b, step.cons)
 
 lemma cons_cons_iff (p) : red (p :: L₁) (p :: L₂) ↔ red L₁ L₂ :=
@@ -156,7 +156,7 @@ iff.intro
       { exact (ih rfl rfl).head h₁₂ },
       { exact (cons_cons h).tail step.cons_bnot_rev } }
   end
-  cons_cons
+  (λ h, cons_cons h)
 
 lemma append_append_left_iff : ∀L, red (L ++ L₁) (L ++ L₂) ↔ red L₁ L₂
 | []       := iff.refl _
@@ -201,8 +201,8 @@ iff.intro
   (assume h,
     have h₁ : red ((x, bnot b) :: (x, b) :: L) [(x, bnot b)], from cons_cons h,
     have h₂ : red ((x, bnot b) :: (x, b) :: L) L, from refl_trans_gen.single step.cons_bnot_rev,
-    let ⟨L', h₁, h₂⟩ := church_rosser h₁ h₂ in
-    by rw [singleton_iff] at h₁; subst L'; assumption)
+    let ⟨L', h₁', h₂'⟩ := church_rosser _ _ ⟨_, h₂, h₁⟩ in
+    by rw [singleton_iff] at h₂'; subst L'; assumption)
   (assume h, (cons_cons h).tail step.cons_bnot)
 
 theorem red_iff_irreducible {x1 b1 x2 b2} (h : (x1, b1) ≠ (x2, b2)) :
@@ -235,9 +235,9 @@ begin
     { exact cons_cons h₁ },
     have h₂ : red ((x1, bnot b1) :: (x1, b1) :: L₃) L₃,
     { exact step.cons_bnot_rev.to_red },
-    rcases church_rosser h₁ h₂ with ⟨L', h₁, h₂⟩,
-    rw [red_iff_irreducible H1] at h₁,
-    rwa [h₁] at h₂ }
+    rcases church_rosser _ _ ⟨_, h₂, h₁⟩ with ⟨L', h₁, h₂⟩,
+    rw [red_iff_irreducible H1] at h₂,
+    rwa [h₂] at h₁ }
 end
 
 theorem step.sublist (H : red.step L₁ L₂) : L₂ <+ L₁ :=
@@ -246,7 +246,8 @@ by cases H; simp; constructor; constructor; refl
 /-- If `w₁ w₂` are words such that `w₁` reduces to `w₂`, then `w₂` is a sublist of `w₁`. -/
 theorem sublist : red L₁ L₂ → L₂ <+ L₁ :=
 refl_trans_gen_of_transitive_reflexive
-  (λl, list.sublist.refl l) (λa b c hab hbc, list.sublist.trans hbc hab) (λa b, red.step.sublist)
+  (λl, list.sublist.refl l) (λa b c hab hbc, list.sublist.trans hbc hab)
+  (λa b, red.step.sublist) L₁ L₂
 
 theorem sizeof_of_step : ∀ {L₁ L₂ : list (α × bool)}, step L₁ L₂ → L₂.sizeof < L₁.sizeof
 | _ _ (@step.bnot _ L1 L2 x b) :=
@@ -286,10 +287,10 @@ end
 end red
 
 theorem equivalence_join_red : equivalence (join (@red α)) :=
-equivalence_join_refl_trans_gen $ assume a b c hab hac,
+equivalence_join_refl_trans_gen $ assume b c ⟨a, hac, hab⟩,
 (match b, c, red.step.diamond hab hac rfl with
-| b, _, or.inl rfl           := ⟨b, by refl, by refl⟩
-| b, c, or.inr ⟨d, hbd, hcd⟩ := ⟨d, refl_gen.single hbd, refl_trans_gen.single hcd⟩
+| b, _, or.inl rfl           := ⟨b, by unfold rel.conv flip; refl, by refl⟩
+| b, c, or.inr ⟨d, hbd, hcd⟩ := ⟨d, refl_trans_gen.single hcd, refl_gen.single hbd⟩
 end)
 
 theorem join_red_of_step (h : red.step L₁ L₂) : join red L₁ L₂ :=
@@ -298,10 +299,10 @@ join_of_single reflexive_refl_trans_gen h.to_red
 theorem eqv_gen_step_iff_join_red : eqv_gen red.step L₁ L₂ ↔ join red L₁ L₂ :=
 iff.intro
   (assume h,
-    have eqv_gen (join red) L₁ L₂ := eqv_gen_mono (assume a b, join_red_of_step) h,
+    have eqv_gen (join red) L₁ L₂ := eqv_gen_mono (assume a b, join_red_of_step) L₁ L₂ h,
     (eqv_gen_iff_of_equivalence $ equivalence_join_red).1 this)
-  (join_of_equivalence (eqv_gen.is_equivalence _) $ assume a b,
-    refl_trans_gen_of_equivalence (eqv_gen.is_equivalence _) eqv_gen.rel)
+  (join_of_equivalence (eqv_gen.is_equivalence _)
+    (refl_trans_gen_of_equivalence (eqv_gen.is_equivalence _) eqv_gen.rel) L₁ L₂)
 
 end free_group
 
@@ -362,7 +363,7 @@ calc (mk L₁ = mk L₂) ↔ eqv_gen red.step L₁ L₂ : iff.intro (quot.exact 
 /-- The canonical injection from the type to the free group is an injection. -/
 theorem of.inj {x y : α} (H : of x = of y) : x = y :=
 let ⟨L₁, hx, hy⟩ := red.exact.1 H in
-by simp [red.singleton_iff] at hx hy; cc
+by simp [red.singleton_iff, rel.conv_def] at hx hy; cc
 
 section to_group
 
@@ -728,13 +729,13 @@ theorem reduce.idem : reduce (reduce L) = reduce L :=
 eq.symm $ reduce.min reduce.red
 
 theorem reduce.step.eq (H : red.step L₁ L₂) : reduce L₁ = reduce L₂ :=
-let ⟨L₃, HR13, HR23⟩ := red.church_rosser reduce.red (reduce.red.head H) in
+let ⟨L₃, HR23, HR13⟩ := red.church_rosser _ _ ⟨_, reduce.red.head H, reduce.red⟩ in
 (reduce.min HR13).trans (reduce.min HR23).symm
 
 /-- If a word reduces to another word, then they have
 a common maximal reduction. -/
 theorem reduce.eq_of_red (H : red L₁ L₂) : reduce L₁ = reduce L₂ :=
-let ⟨L₃, HR13, HR23⟩ := red.church_rosser reduce.red (red.trans H reduce.red) in
+let ⟨L₃, HR23, HR13⟩ := red.church_rosser _ _ ⟨_, red.trans H reduce.red, reduce.red⟩ in
 (reduce.min HR13).trans (reduce.min HR23).symm
 
 /-- If two words correspond to the same element in
@@ -743,13 +744,13 @@ reduction. This is the proof that the function that
 sends an element of the free group to its maximal
 reduction is well-defined. -/
 theorem reduce.sound (H : mk L₁ = mk L₂) : reduce L₁ = reduce L₂ :=
-let ⟨L₃, H13, H23⟩ := red.exact.1 H in
+let ⟨L₃, H23, H13⟩ := red.exact.1 H in
 (reduce.eq_of_red H13).trans (reduce.eq_of_red H23).symm
 
 /-- If two words have a common maximal reduction,
 then they correspond to the same element in the free group. -/
 theorem reduce.exact (H : reduce L₁ = reduce L₂) : mk L₁ = mk L₂ :=
-red.exact.2 ⟨reduce L₂, H ▸ reduce.red, reduce.red⟩
+red.exact.2 ⟨reduce L₂, reduce.red, H ▸ reduce.red⟩
 
 /-- A word and its maximal reduction correspond to
 the same element of the free group. -/

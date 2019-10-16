@@ -3,7 +3,23 @@ Copyright (c) 2018 Johannes Hölzl. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johannes Hölzl
 -/
-import logic.rel.defs tactic.basic
+import logic.rel.lattice tactic.basic
+
+/-!
+# Closures of relations
+
+## Main definitions
+
+We define three closures of a relation `r : rel α α`:
+
+* `refl_trans_gen` : reflexive transitive closure
+* `refl_gen` : reflexive closure
+* `trans_gen` : transitive closure
+
+We also provide various constructors for these closures (e.g., `head`,
+`tail`), different induction principles, and some lemmas converting,
+e.g., from `refl_gen` to `refl_trans_gen`.
+-/
 
 universes u v
 
@@ -200,13 +216,16 @@ begin
   { rcases h with rfl | h, {refl}, {exact h.to_refl} }
 end
 
-lemma refl_trans_gen_lift {p : β → β → Prop} {a b : α} (f : α → β)
-  (h : ∀a b, r a b → p (f a) (f b)) (hab : refl_trans_gen r a b) : refl_trans_gen p (f a) (f b) :=
-hab.trans_induction_on (assume a, refl) (assume a b, refl_trans_gen.single ∘ h _ _) (assume a b c _ _, trans)
+lemma refl_trans_gen_lift {p : rel β β} (f : α → β)
+  (h : (r ⟹ p).diag f) : ((refl_trans_gen r) ⟹  (refl_trans_gen p)).diag f :=
+assume a b hab,
+hab.trans_induction_on
+  (assume a, refl)
+  (assume a b h', refl_trans_gen.single $ h h')
+  (assume a b c _ _, trans)
 
-lemma refl_trans_gen_mono {p : α → α → Prop} :
-  (∀a b, r a b → p a b) → refl_trans_gen r a b → refl_trans_gen p a b :=
-refl_trans_gen_lift id
+lemma refl_trans_gen_mono : monotone (@refl_trans_gen α) :=
+λ r p h, refl_trans_gen_lift id h
 
 lemma refl_trans_gen_eq_self (refl : reflexive r) (trans : transitive r) :
   refl_trans_gen r = r :=
@@ -226,30 +245,33 @@ lemma refl_trans_gen_idem :
   refl_trans_gen (refl_trans_gen r) = refl_trans_gen r :=
 refl_trans_gen_eq_self reflexive_refl_trans_gen transitive_refl_trans_gen
 
-lemma refl_trans_gen_lift' {p : β → β → Prop} {a b : α} (f : α → β)
-  (h : ∀a b, r a b → refl_trans_gen p (f a) (f b)) (hab : refl_trans_gen r a b) : refl_trans_gen p (f a) (f b) :=
-by simpa [refl_trans_gen_idem] using refl_trans_gen_lift f h hab
+lemma refl_trans_gen_lift' {p : rel β β} (f : α → β)
+  (h : (r ⟹ (refl_trans_gen p)).diag f) : ((refl_trans_gen r) ⟹ (refl_trans_gen p)).diag f :=
+λ a b hab, by simpa [refl_trans_gen_idem] using refl_trans_gen_lift f h hab
 
-lemma refl_trans_gen_closed {p : α → α → Prop} :
-  (∀ a b, r a b → refl_trans_gen p a b) → refl_trans_gen r a b → refl_trans_gen p a b :=
+lemma refl_trans_gen_closed {p : rel α α} :
+  (r ≤ refl_trans_gen p) → (refl_trans_gen r ≤ refl_trans_gen p) :=
 refl_trans_gen_lift' id
 
 end refl_trans_gen
 
-def join (r : α → α → Prop) : α → α → Prop := λa b, ∃c, r a c ∧ r b c
+/-- Two elements `x, y` are related by `r.join`, if there exists an element `z` such that
+both `x` and `y` are related to `z` by `r`. -/
+def join (r : rel α β) : rel α α := r.conv.comp r
 
 section join
 open refl_trans_gen refl_gen
 
 lemma church_rosser
-  (h : ∀a b c, r a b → r a c → ∃d, refl_gen r b d ∧ refl_trans_gen r c d)
-  (hab : refl_trans_gen r a b) (hac : refl_trans_gen r a c) : join (refl_trans_gen r) b c :=
+  (h : r.conv.join ≤ rel.comp (rel.conv $ refl_trans_gen r) (refl_gen r)) :
+  (rel.conv (refl_trans_gen r)).join ≤ join (refl_trans_gen r) :=
 begin
+  rintros b c ⟨a, hac, hab⟩,
   induction hab,
-  case refl_trans_gen.refl { exact ⟨c, hac, refl⟩ },
+  case refl_trans_gen.refl { exact ⟨c, refl, hac⟩ },
   case refl_trans_gen.tail : d e had hde ih {
     clear hac had a,
-    rcases ih with ⟨b, hdb, hcb⟩,
+    rcases ih with ⟨b, hcb, hdb⟩,
     have : ∃a, refl_trans_gen r e a ∧ refl_gen r b a,
     { clear hcb, induction hdb,
       case refl_trans_gen.refl { exact ⟨e, refl, refl_gen.single hde⟩ },
@@ -257,51 +279,55 @@ begin
         rcases ih with ⟨a, hea, hfa⟩,
         cases hfa with _ hfa,
         { exact ⟨b, hea.tail hfb, refl_gen.refl⟩ },
-        { rcases h _ _ _ hfb hfa with ⟨c, hbc, hac⟩,
+        { rcases h _ _ ⟨_, hfa, hfb⟩ with ⟨c, hac, hbc⟩,
           exact ⟨c, hea.trans hac, hbc⟩ } } },
     rcases this with ⟨a, hea, hba⟩, cases hba with _ hba,
-    { exact ⟨b, hea, hcb⟩ },
-    { exact ⟨a, hea, hcb.tail hba⟩ } }
+    { exact ⟨b, hcb, hea⟩ },
+    { exact ⟨a, hcb.tail hba, hea⟩ } }
 end
 
 lemma join_of_single (h : reflexive r) (hab : r a b) : join r a b :=
-⟨b, hab, h b⟩
+⟨b, h b, hab⟩
 
 lemma symmetric_join : symmetric (join r) :=
-assume a b ⟨c, hac, hcb⟩, ⟨c, hcb, hac⟩
+assume a b ⟨c, hbc, hac⟩, ⟨c, hac, hbc⟩
 
 lemma reflexive_join (h : reflexive r) : reflexive (join r) :=
 assume a, ⟨a, h a, h a⟩
 
-lemma transitive_join (ht : transitive r) (h : ∀a b c, r a b → r a c → join r b c) :
+lemma transitive_join (ht : transitive r) (h : r.conv.join ≤ r.join) :
   transitive (join r) :=
-assume a b c ⟨x, hax, hbx⟩ ⟨y, hby, hcy⟩,
-let ⟨z, hxz, hyz⟩ := h b x y hbx hby in
-⟨z, ht hax hxz, ht hcy hyz⟩
+assume a b c ⟨x, hbx, hax⟩ ⟨y, hcy, hby⟩,
+let ⟨z, hyz, hxz⟩ := h x y ⟨b, hby, hbx⟩ in
+⟨z, ht hcy hyz, ht hax hxz⟩
 
-lemma equivalence_join (hr : reflexive r)  (ht : transitive r) (h : ∀a b c, r a b → r a c → join r b c) :
+lemma equivalence_join (hr : reflexive r)  (ht : transitive r) (h : r.conv.join ≤ r.join) :
   equivalence (join r) :=
 ⟨reflexive_join hr, symmetric_join, transitive_join ht h⟩
 
 lemma equivalence_join_refl_trans_gen
-  (h : ∀a b c, r a b → r a c → ∃d, refl_gen r b d ∧ refl_trans_gen r c d) :
+  (h : r.conv.join ≤ rel.comp (rel.conv $ refl_trans_gen r) (refl_gen r)) :
   equivalence (join (refl_trans_gen r)) :=
-equivalence_join reflexive_refl_trans_gen transitive_refl_trans_gen (assume a b c, church_rosser h)
+equivalence_join reflexive_refl_trans_gen transitive_refl_trans_gen (church_rosser h)
 
-lemma join_of_equivalence {r' : α → α → Prop} (hr : equivalence r)
-  (h : ∀a b, r' a b → r a b) : join r' a b → r a b
-| ⟨c, hac, hbc⟩ := hr.2.2 (h _ _ hac) (hr.2.1 $ h _ _ hbc)
+lemma join_of_transitive_symmetric {r' : rel α α} (ht : transitive r) (hs : symmetric r) :
+  r' ≤ r → join r' ≤ r :=
+assume h a b ⟨c, hbc, hac⟩, ht (h _ _ hac) (hs $ h _ _ hbc)
 
-lemma refl_trans_gen_of_transitive_reflexive {r' : α → α → Prop} (hr : reflexive r) (ht : transitive r)
-  (h : ∀a b, r' a b → r a b) (h' : refl_trans_gen r' a b) : r a b :=
+lemma join_of_equivalence {r' : rel α α} (hr : equivalence r) : r' ≤ r → join r' ≤ r :=
+join_of_transitive_symmetric hr.2.2 hr.2.1
+
+lemma refl_trans_gen_of_transitive_reflexive {r' : rel α α} (hr : reflexive r) (ht : transitive r) :
+  r' ≤ r → refl_trans_gen r' ≤ r :=
 begin
+  intros h a b h',
   induction h' with b c hab hbc ih,
   { exact hr _ },
   { exact ht ih (h _ _ hbc) }
 end
 
-lemma refl_trans_gen_of_equivalence {r' : α → α → Prop} (hr : equivalence r) :
-  (∀a b, r' a b → r a b) → refl_trans_gen r' a b → r a b :=
+lemma refl_trans_gen_of_equivalence {r' : rel α α} (hr : equivalence r) :
+  r' ≤ r → refl_trans_gen r' ≤ r :=
 refl_trans_gen_of_transitive_reflexive hr.1 hr.2.2
 
 end join
@@ -320,9 +346,9 @@ iff.intro
   end
   (eqv_gen.rel a b)
 
-lemma eqv_gen_mono {r p : α → α → Prop}
-  (hrp : ∀a b, r a b → p a b) (h : eqv_gen r a b) : eqv_gen p a b :=
+lemma eqv_gen_mono : monotone (@eqv_gen α) :=
 begin
+  intros r p hrp a b h,
   induction h,
   case eqv_gen.rel : a b h { exact eqv_gen.rel _ _ (hrp _ _ h) },
   case eqv_gen.refl : { exact eqv_gen.refl _ },

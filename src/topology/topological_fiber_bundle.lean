@@ -23,6 +23,8 @@ fiber bundle and projection.
 
 ## Main definitions
 
+`bundle_trivialization F p` : structure extending local homeomorphisms, defining a local
+                  trivialization of a topological space `Z` with projection `p` and fiber `F`.
 `is_topological_fiber_bundle F p` : Prop saying that the map `p` between topological spaces is a
                   fiber bundle with fiber `F`.
 
@@ -52,7 +54,7 @@ Given these data, one can construct the fiber bundle. The intrinsic canonical ma
 construction is the following. The fiber above x is the disjoint union of F over all trivializations,
 modulo the gluing identifications: one gets a fiber which is isomorphic to F, but non-canonically
 (each choice of one of the trivializations around x gives such an isomorphism). Given a
-trivialization over a set `s`, one gets an isomorphism between `s × F` and `π⁻¹ s`, by using
+trivialization over a set `s`, one gets an isomorphism between `s × F` and `proj^{-1} s`, by using
 the identification corresponding to this trivialization. One chooses the topology on the bundle that
 makes all of these into homeomorphisms.
 
@@ -100,78 +102,120 @@ variables {ι : Type*} {B : Type*} {F : Type*}
 
 open topological_space set
 
-section is_topological_fiber_bundle
+section topological_fiber_bundle
 
 variables {Z : Type*} [topological_space B] [topological_space Z]
   [topological_space F] (proj : Z → B)
 
 variable (F)
 
+/-- A structure extending local homeomorphisms, defining a local trivialization of a projection
+`proj : Z → B` with fiber `F`, as a local homeomorphism between `Z` and `B × F`. -/
+structure bundle_trivialization extends local_homeomorph Z (B × F) :=
+(base_set      : set B)
+(open_base_set : is_open base_set)
+(source_eq     : source = proj ⁻¹' base_set)
+(target_eq     : target = set.prod base_set univ)
+(proj_to_fun   : ∀ p ∈ source, (to_fun p).1 = proj p)
+
 /-- A topological fiber bundle with fiber F over a base B is a space projecting on B for which the
 fibers are all homeomorphic to F, such that the local situation around each point is a direct
-product. We do not register the continuity of `proj` in the definition, as it follows from the
-other conditions. -/
+product. -/
 def is_topological_fiber_bundle : Prop :=
-  ∀x:B, ∃e: local_homeomorph Z (B × F), ∃o:set B, x ∈ o ∧ is_open o ∧ e.source = proj⁻¹' o ∧
-  e.target = set.prod o univ ∧ (∀p ∈ e.source, (e.to_fun p).1 = proj p)
+∀ x : Z, ∃e : bundle_trivialization F proj, x ∈ e.source
 
 variables {F} {proj}
 
-/-- The projection from a topological fiber bundle to its base is continuous. -/
-lemma is_topological_fiber_bundle.continuous_proj (h : is_topological_fiber_bundle F proj) :
-  continuous proj :=
+/-- In the domain of a bundle trivialization, the projection is continuous-/
+lemma bundle_trivialization.continuous_at_proj (e : bundle_trivialization F proj) {x : Z}
+  (ex : x ∈ e.source) : continuous_at proj x :=
 begin
-  suffices : ∀x, continuous_at proj x, by rwa continuous_iff_continuous_at,
-  assume x s hs,
+  assume s hs,
   rw mem_nhds_sets_iff at hs,
   rcases hs with ⟨t, st, t_open, xt⟩,
-  rcases h (proj x) with ⟨e, o, xo, o_open, e_source, e_target, hproj⟩,
-  let u := o ∩ t,
-  have u_open : is_open u := is_open_inter o_open t_open,
-  have xu : proj x ∈ u := ⟨xo, xt⟩,
-  /- u is a small enough open neighborhood of `proj x`, contained in a trivialization domain o.
+  rw e.source_eq at ex,
+  let u := e.base_set ∩ t,
+  have u_open : is_open u := is_open_inter e.open_base_set t_open,
+  have xu : proj x ∈ u := ⟨ex, xt⟩,
+  /- Take a small enough open neighborhood u of `proj x`, contained in a trivialization domain o.
     One should show that its preimage is open. -/
   suffices : is_open (proj ⁻¹' u),
   { have : proj ⁻¹' u ∈ nhds x := mem_nhds_sets this xu,
     apply filter.mem_sets_of_superset this,
     exact preimage_mono (subset.trans (inter_subset_right _ _) st) },
   -- to do this, rewrite `proj ⁻¹' u` in terms of the trivialization, and use its continuity.
-  have : proj ⁻¹' u = e.source ∩ e.to_fun ⁻¹' (set.prod u univ),
+  have : proj ⁻¹' u = e.to_fun ⁻¹' (set.prod u univ) ∩ e.source,
   { ext p,
     split,
     { assume h,
       have : p ∈ e.source,
-      { rw e_source,
-        have : u ⊆ o := inter_subset_left _ _,
+      { rw e.source_eq,
+        have : u ⊆ e.base_set := inter_subset_left _ _,
         exact preimage_mono this h },
-      simp [this, hproj],
-      exact h },
-    { rintros ⟨h_source, h⟩,
-      simpa [h_source, hproj] using h } },
-  rw this,
+      simp [this, e.proj_to_fun, h.1, h.2] },
+    { rintros ⟨h, h_source⟩,
+      simpa [e.proj_to_fun, h_source] using h } },
+  rw [this, inter_comm],
   exact continuous_on.preimage_open_of_open e.continuous_to_fun e.open_source
     (is_open_prod u_open is_open_univ)
+end
+
+/-- The projection from a topological fiber bundle to its base is continuous. -/
+lemma is_topological_fiber_bundle.continuous_proj (h : is_topological_fiber_bundle F proj) :
+  continuous proj :=
+begin
+  rw continuous_iff_continuous_at,
+  assume x,
+  rcases h x with ⟨e, ex⟩,
+  exact e.continuous_at_proj ex
+end
+
+/-- The projection from a topological fiber bundle to its base is an open map. -/
+lemma is_topological_fiber_bundle.is_open_map_proj (h : is_topological_fiber_bundle F proj) :
+  is_open_map proj :=
+begin
+  assume s hs,
+  rw is_open_iff_forall_mem_open,
+  assume x xs,
+  rw mem_image_eq at xs,
+  rcases xs with ⟨y, ys, yx⟩,
+  rcases h y with ⟨e, he⟩,
+  refine ⟨proj '' (s ∩ e.source), image_subset _ (inter_subset_left _ _), _, ⟨y, ⟨ys, he⟩, yx⟩⟩,
+  have : ∀z ∈ s ∩ e.source, prod.fst (e.to_fun z) = proj z := λz hz, e.proj_to_fun z hz.2,
+  rw [← image_congr this, image_comp],
+  have : is_open (e.to_fun '' (s ∩ e.source)) :=
+    e.to_local_homeomorph.image_open_of_open (is_open_inter hs e.to_local_homeomorph.open_source)
+    (inter_subset_right _ _),
+  exact is_open_map_fst _ this
 end
 
 /-- The first projection in a product is a topological fiber bundle. -/
 lemma is_topological_fiber_bundle_fst : is_topological_fiber_bundle F (prod.fst : B × F → B) :=
 begin
-  assume x,
-  refine ⟨local_homeomorph.refl _, univ, mem_univ _, is_open_univ, rfl, _, λp hp, rfl⟩,
-  symmetry,
-  exact sep_univ
+  let F : bundle_trivialization F (prod.fst : B × F → B) :=
+  { base_set      := univ,
+    open_base_set := is_open_univ,
+    source_eq     := rfl,
+    target_eq     := by simp,
+    proj_to_fun   := by simp,
+     ..local_homeomorph.refl _ },
+  exact λx, ⟨F, by simp⟩
 end
 
+/-- The second projection in a product is a topological fiber bundle. -/
 lemma is_topological_fiber_bundle_snd : is_topological_fiber_bundle F (prod.snd : F × B → B) :=
 begin
-  assume x,
-  refine ⟨(homeomorph.prod_comm F B).to_local_homeomorph, univ, mem_univ _, is_open_univ, rfl, _,
-          λp hp, rfl⟩,
-  symmetry,
-  exact sep_univ
+  let F : bundle_trivialization F (prod.snd : F × B → B) :=
+  { base_set      := univ,
+    open_base_set := is_open_univ,
+    source_eq     := rfl,
+    target_eq     := by simp,
+    proj_to_fun   := λp, by { simp, refl },
+     ..(homeomorph.prod_comm F B).to_local_homeomorph },
+  exact λx, ⟨F, by simp⟩
 end
 
-end is_topological_fiber_bundle
+end topological_fiber_bundle
 
 /-- Core data defining a locally trivial topological bundle with fiber `F` over a topological
 space `B`. Note that "bundle" is used in its mathematical sense. This is the (computer science)
@@ -199,6 +243,7 @@ attribute [simp] topological_fiber_bundle_core.mem_base_set_at
 namespace topological_fiber_bundle_core
 
 variables [topological_space B] [topological_space F] (Z : topological_fiber_bundle_core ι B F)
+
 include Z
 
 def index := ι
@@ -212,7 +257,7 @@ instance (x : B) : topological_space (Z.fiber x) := by { dsimp [fiber], apply_in
 /-- Total space of a topological bundle created from core. It is equal to `Σ x : B, F`, but as it is
 not marked as reducible, typeclass inference will not infer the wrong topology, and will use the
 instance `topological_fiber_bundle_core.to_topological_space` with the right topology. -/
-def total_space := Σ x : B, Z.fiber x
+def total_space := B × F
 
 @[simp] def proj : Z.total_space → B := λp, p.1
 
@@ -224,7 +269,7 @@ def triv_change (i j : ι) : local_homeomorph (B × F) (B × F) :=
   inv_fun    := λp, ⟨p.1, Z.coord_change j i p.1 p.2⟩,
   map_source := λp hp, by simpa using hp,
   map_target := λp hp, by simpa using hp,
-  left_inv := begin
+  left_inv   := begin
     assume p hx,
     rcases p with ⟨x, v⟩,
     simp only [prod_mk_mem_set_prod_eq, mem_inter_eq, and_true, mem_univ] at hx,
@@ -232,7 +277,7 @@ def triv_change (i j : ι) : local_homeomorph (B × F) (B × F) :=
     { exact hx.1 },
     { simp [hx] }
   end,
-  right_inv := begin
+  right_inv  := begin
     assume p hx,
     rcases p with ⟨x, v⟩,
     simp only [prod_mk_mem_set_prod_eq, mem_inter_eq, and_true, mem_univ] at hx,
@@ -269,7 +314,7 @@ def local_triv' (i : ι) : local_equiv Z.total_space (B × F) :=
     by simpa only [set.mem_preimage, and_true, set.mem_univ, set.prod_mk_mem_set_prod_eq] using hp,
   map_target := λp hp,
     by simpa only [set.mem_preimage, and_true, set.mem_univ, set.mem_prod] using hp,
-  left_inv := begin
+  left_inv   := begin
     assume p hx,
     rcases p with ⟨x, v⟩,
     change x ∈ Z.base_set i at hx,
@@ -295,10 +340,10 @@ by refl
   p ∈ (Z.local_triv' i).target ↔ p.1 ∈ Z.base_set i :=
 by { erw [mem_prod], simp }
 
-@[simp] lemma local_triv'_to_fun_fst (i : ι) (p : Z.total_space) :
+@[simp] lemma local_triv'_fst (i : ι) (p : Z.total_space) :
   ((Z.local_triv' i).to_fun p).1 = p.1 := rfl
 
-@[simp] lemma local_triv'_inv_fun_fst (i : ι) (p : B × F) :
+@[simp] lemma local_triv'_inv_fst (i : ι) (p : B × F) :
   ((Z.local_triv' i).inv_fun p).1 = p.1 := rfl
 
 /-- The composition of two local trivializations is the trivialization change Z.triv_change i j. -/
@@ -320,7 +365,7 @@ end
 that all the local trivialization are continuous. -/
 instance to_topological_space : topological_space Z.total_space :=
 topological_space.generate_from $ ⋃ (i : ι) (s : set (B × F)) (s_open : is_open s),
-  {(Z.local_triv' i).source ∩ (Z.local_triv' i).to_fun ⁻¹' s}
+  {(Z.local_triv' i).source ∩ (Z.local_triv' i).to_fun ⁻¹' s }
 
 lemma open_source' (i : ι) : is_open (Z.local_triv' i).source :=
 begin
@@ -329,7 +374,7 @@ begin
   refine ⟨i, set.prod (Z.base_set i) univ, is_open_prod (Z.is_open_base_set i) (is_open_univ), _⟩,
   ext p,
   simp only [set.mem_preimage, and_true, set.mem_inter_eq, set.mem_univ,
-             topological_fiber_bundle_core.local_triv'_to_fun_fst, iff_self, set.mem_prod, and_self,
+             topological_fiber_bundle_core.local_triv'_fst, iff_self, set.mem_prod, and_self,
              topological_fiber_bundle_core.mem_local_triv'_source]
 end
 
@@ -353,7 +398,10 @@ def local_triv (i : ι) : local_homeomorph Z.total_space (B × F) :=
     simp only [exists_prop, mem_Union, mem_singleton_iff] at ht,
     rcases ht with ⟨j, s, s_open, ts⟩,
     rw ts,
-    let f := (Z.local_triv' i).symm.trans (Z.local_triv' j),
+    simp only [local_equiv.right_inv, preimage_inter, local_equiv.left_inv],
+    let e := Z.local_triv' i,
+    let e' := Z.local_triv' j,
+    let f := e.symm.trans e',
     have : is_open (f.source ∩ f.to_fun ⁻¹' s),
     { rw [local_equiv.eq_on_source_preimage (Z.local_triv'_trans i j)],
       exact (continuous_on_open_iff (Z.triv_change i j).open_source).1
@@ -375,10 +423,10 @@ by refl
   p ∈ (Z.local_triv i).target ↔ p.1 ∈ Z.base_set i :=
 by { erw [mem_prod], simp }
 
-@[simp] lemma local_triv_to_fun_fst (i : ι) (p : Z.total_space) :
+@[simp] lemma local_triv_fst (i : ι) (p : Z.total_space) :
   ((Z.local_triv i).to_fun p).1 = p.1 := rfl
 
-@[simp] lemma local_triv_inv_fun_fst (i : ι) (p : B × F) :
+@[simp] lemma local_triv_symm_fst (i : ι) (p : B × F) :
   ((Z.local_triv i).inv_fun p).1 = p.1 := rfl
 
 /-- The composition of two local trivializations is the trivialization change Z.triv_change i j. -/
@@ -386,13 +434,43 @@ lemma local_triv_trans (i j : ι) :
   (Z.local_triv i).symm.trans (Z.local_triv j) ≈ Z.triv_change i j :=
 Z.local_triv'_trans i j
 
+/-- Extended version of the local trivialization, as a bundle trivialization -/
+def local_triv_ext (i : ι) : bundle_trivialization F Z.proj :=
+{ base_set      := Z.base_set i,
+  open_base_set := Z.is_open_base_set i,
+  source_eq     := rfl,
+  target_eq     := rfl,
+  proj_to_fun   := λp hp, by simp,
+  ..Z.local_triv i }
+
 /-- A topological fiber bundle constructed from core is indeed a topological fiber bundle. -/
 theorem is_topological_fiber_bundle : is_topological_fiber_bundle F Z.proj :=
-λx, ⟨Z.local_triv (Z.index_at x), Z.base_set (Z.index_at x), Z.mem_base_set_at x,
-     Z.is_open_base_set _, rfl, rfl, by simp⟩
+λx, ⟨Z.local_triv_ext (Z.index_at (Z.proj x)), by simp [local_triv_ext]⟩
 
 /-- The projection on the base of a topological bundle created from core is continuous -/
 lemma continuous_proj : continuous Z.proj :=
 Z.is_topological_fiber_bundle.continuous_proj
+
+/-- The projection on the base of a topological bundle created from core is an open map -/
+lemma is_open_map_proj : is_open_map Z.proj :=
+Z.is_topological_fiber_bundle.is_open_map_proj
+
+def local_triv_at (p : Z.total_space) : local_homeomorph Z.total_space (B × F) :=
+  Z.local_triv (Z.index_at (Z.proj p))
+
+@[simp] lemma mem_local_triv_at_source (p : Z.total_space) : p ∈ (Z.local_triv_at p).source :=
+by simp [local_triv_at]
+
+@[simp] lemma local_triv_at_fst (p q : Z.total_space) :
+  ((Z.local_triv_at p).to_fun q).1 = q.1 := rfl
+
+@[simp] lemma local_triv_at_symm_fst (p : Z.total_space) (q : B × F) :
+  ((Z.local_triv_at p).inv_fun q).1 = q.1 := rfl
+
+def local_triv_at_ext (p : Z.total_space) : bundle_trivialization F Z.proj :=
+  Z.local_triv_ext (Z.index_at (Z.proj p))
+
+@[simp] lemma local_triv_at_ext_to_local_homeomorph (p : Z.total_space) :
+  (Z.local_triv_at_ext p).to_local_homeomorph = Z.local_triv_at p := rfl
 
 end topological_fiber_bundle_core

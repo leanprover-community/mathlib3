@@ -1152,6 +1152,8 @@ Four linters are provided by default:
 3. `dup_namespce` checks whether a namespace is duplicated in the name of a declaration
 4. `illegal_constant` checks whether ≥/> is used in the declaration
 
+The command `#list_linters` prints a list of the names of all available linters.
+
 You can append a `-` to any command (e.g. `#lint_mathlib-`) to omit the slow tests (4).
 
 You can append `only name1 name2 ...` to any command to run a subset of linters.

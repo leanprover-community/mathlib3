@@ -19,6 +19,8 @@ Four linters are provided by default:
 3. `dup_namespce` checks whether a namespace is duplicated in the name of a declaration
 4. `illegal_constant` checks whether ≥/> is used in the declaration
 
+The command `#list_linters` prints a list of the names of all available linters.
+
 You can append a `-` to any command (e.g. `#lint_mathlib-`) to omit the slow tests (4).
 
 You can append `only name1 name2 ...` to any command to run a subset of linters.
@@ -275,9 +277,9 @@ meta def lint_all (slow : bool := tt) (restrict_to : option (list string) := non
   lint_aux l (λ t, print_decls_sorted <$> fold_over_with_cond_sorted l t)
     "in all imported files (including this one)" slow checks
 
-#check tactic.interactive.apply
-
-meta def parse_only_names : parser (option (list string)) :=
+/-- parses the word "only" followed by a sequence of identifiers, and turns those identifiers into
+strings. Otherwise returns `none`. -/
+private meta def parse_only_names : parser (option (list string)) :=
 optional $ list.map name.to_string <$> ((only_flag >>= guardb) *> ident_*)
 
 /-- The command `#lint` at the bottom of a file will warn you about some common mistakes
@@ -305,6 +307,7 @@ do b ← optional (tk "-"),
    s ← lint_all b.is_none restrict_to,
    trace s
 
+/-- The command `#list_linters` prints a list of all available linters. -/
 @[user_command] meta def list_linters (_ : parse $ tk "#list_linters") : parser unit :=
 linter_attr.get_cache >>= list.mmap' (λ lnt, trace lnt.name)
 

@@ -51,22 +51,24 @@ namespace tactic
 
 open interactive lean.parser category_theory
 
-meta def reassoc_axiom (n : name) (n' : name := n.append_suffix "_assoc") : tactic unit :=
-do d ← get_decl n,
-   let ls := d.univ_params.map level.param,
-   let c := @expr.const tt n ls,
-   (vs,t) ← infer_type c >>= mk_local_pis,
+meta def get_cat_inst : expr → tactic expr
+| `(@category_struct.comp _ %%struct_inst _ _ _ _ _) := pure struct_inst
+| _ := failed
+
+meta def prove_reassoc (h : expr) : tactic (expr × expr) :=
+do
+   (vs,t) ← infer_type h >>= mk_local_pis,
    (vs',t) ← whnf t >>= mk_local_pis,
    let vs := vs ++ vs',
    (lhs,rhs) ← match_eq t,
-   `(@category_struct.comp _ %%struct_inst _ _ _ _ _) ← pure lhs,
+   struct_inst ← get_cat_inst lhs <|> get_cat_inst rhs <|> fail "no composition found in statement",
    `(@has_hom.hom _ %%hom_inst %%X %%Y) ← infer_type lhs,
    C ← infer_type X,
    X' ← mk_local' `X' binder_info.implicit C,
    ft ← to_expr ``(@has_hom.hom _ %%hom_inst %%Y %%X'),
    f' ← mk_local_def `f' ft,
    t' ← to_expr ``(@category_struct.comp _ %%struct_inst _ _ _%%lhs %%f' = @category_struct.comp _ %%struct_inst _ _ _ %%rhs %%f'),
-   let c' := c.mk_app vs,
+   let c' := h.mk_app vs,
    (_,pr) ← solve_aux t' (rewrite_target c'; reflexivity),
    pr ← instantiate_mvars pr,
    let s := simp_lemmas.mk,
@@ -77,6 +79,13 @@ do d ← get_decl n,
    pr' ← mk_eq_mp pr' pr,
    t'' ← pis (vs ++ [X',f']) t'',
    pr' ← lambdas (vs ++ [X',f']) pr',
+   pure (t'',pr')
+
+meta def reassoc_axiom (n : name) (n' : name := n.append_suffix "_assoc") : tactic unit :=
+do d ← get_decl n,
+   let ls := d.univ_params.map level.param,
+   let c := @expr.const tt n ls,
+   (t'',pr') ← prove_reassoc c,
    add_decl $ declaration.thm n' d.univ_params t'' (pure pr'),
    copy_attribute `simp n tt n'
 
@@ -100,7 +109,7 @@ meta def reassoc_attr : user_attribute unit (option name) :=
   descr := "create a companion lemma for associativity-aware rewriting",
   parser := optional ident,
   after_set := some (λ n _ _,
-    do some n' ← reassoc_attr.get_param n | reassoc_axiom n,
+    do some n' ← reassoc_attr.get_param n | reassoc_axiom n (n.append_suffix "_assoc"),
        reassoc_axiom n $ n.get_prefix ++ n' ) }
 
 /--
@@ -117,5 +126,19 @@ do n ← ident,
    of_tactic' $
    do n ← resolve_constant n,
       reassoc_axiom n
+
+namespace interactive
+
+setup_tactic_parser
+
+meta def reassoc (del : parse (tk "!")?) (ns : parse ident*) : tactic unit :=
+do ns.mmap' (λ n,
+   do h ← get_local n,
+      (t,pr) ← prove_reassoc h,
+      assertv n t pr,
+      when del.is_some (tactic.clear h) )
+
+end interactive
+
 
 end tactic

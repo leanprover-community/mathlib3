@@ -77,7 +77,7 @@ do env ← get_env,
    return $ env.decl_filter_map (process_declaration hs)
 
 meta def apply_and_solve (close_goals : bool) (discharger : tactic unit) (e : expr) :=
-(apply e <|> (symmetry >> apply e)) >>
+apply e >>
 (done <|>
  solve_by_elim
  { all_goals := tt, discharger := discharger } <|>

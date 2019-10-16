@@ -5,12 +5,12 @@ Authors: Floris van Doorn
 -/
 import tactic.core
 /-!
-  # sanity_check command
+  # lint command
   This file defines the following user commands to spot common mistakes in the code.
-  * `#sanity_check`: check all declarations in the current file
-  * `#sanity_check_mathlib`: check all declarations in mathlib (so excluding core or other projects,
+  * `#lint`: check all declarations in the current file
+  * `#lint_mathlib`: check all declarations in mathlib (so excluding core or other projects,
     and also excluding the current file)
-  * `#sanity_check_all`: check all declarations in the environment (the current file and all
+  * `#lint_all`: check all declarations in the environment (the current file and all
     imported files)
 
   Currently this will check for
@@ -19,32 +19,32 @@ import tactic.core
   3. whether a namespace is duplicated in the name of a declaration
   4. whether ≥/> is used in the declaration
 
-  You can append a `-` to any command (e.g. `#sanity_check_mathlib-`) to omit the slow tests (4).
+  You can append a `-` to any command (e.g. `#lint_mathlib-`) to omit the slow tests (4).
 
   You can customize the performed checks like this:
   ```
   meta def my_check (d : declaration) : tactic (option string) :=
   return $ if d.to_name = `foo then some "gotcha!" else none
-  run_cmd sanity_check tt [(my_check, "found nothing", "found something")] >>= trace
+  run_cmd lint tt [(my_check, "found nothing", "found something")] >>= trace
   ```
 
   ## Tags
-  sanity check, sanity_check, cleanup, command, tactic
+  sanity check, lint, cleanup, command, tactic
 -/
 
 universe variable u
 open expr tactic native
 
-reserve notation `#sanity_check`
-reserve notation `#sanity_check_mathlib`
-reserve notation `#sanity_check_all`
+reserve notation `#lint`
+reserve notation `#lint_mathlib`
+reserve notation `#lint_all`
 
 @[user_attribute]
-meta def sanity_skip_attr : user_attribute :=
-{ name := "sanity_skip",
-  descr := "Do not report this declaration in any of the tests of `#sanity_check`" }
+meta def nolint_attr : user_attribute :=
+{ name := "nolint",
+  descr := "Do not report this declaration in any of the tests of `#lint`" }
 
-attribute [sanity_skip] imp_intro
+attribute [nolint] imp_intro
   classical.dec classical.dec_pred classical.dec_rel classical.dec_eq
 
 setup_tactic_parser
@@ -163,27 +163,27 @@ return $ let illegal := [`gt, `ge] in if d.type.contains_constant (λ n, n ∈ i
   then some "the type contains ≥/>. Use ≤/< instead."
   else none
 
-/- The quick checks of `#sanity_check` -/
+/- The quick checks of `#lint` -/
 meta def quick_checks : list ((declaration → tactic (option string)) × string × string) :=
 [ (unused_arguments, "No unused arguments", "UNUSED ARGUMENTS"),
   (incorrect_def_lemma, "All declarations correctly marked as def/lemma", "INCORRECT DEF/LEMMA"),
   (dup_namespace, "No declarations have a duplicate namespace", "DUPLICATED NAMESPACES IN NAME")]
 
-/- The slow checks of `#sanity_check`. They are not executed with `#sanity_check-` -/
+/- The slow checks of `#lint`. They are not executed with `#lint-` -/
 meta def slow_checks : list ((declaration → tactic (option string)) × string × string) :=
 [ (illegal_constants_in_statement, "No illegal constants in declarations",
     "ILLEGAL CONSTANTS IN DECLARATIONS")]
 
-/- The default checks of `#sanity_check`. Depends on whether `slow` is true -/
+/- The default checks of `#lint`. Depends on whether `slow` is true -/
 meta def default_checks (slow : bool := tt) :
   list ((declaration → tactic (option string)) × string × string) :=
 quick_checks ++ if slow then slow_checks else []
 
-/-- The common denominator of `#sanity_check[|mathlib|all]`.
+/-- The common denominator of `#lint[|mathlib|all]`.
   The different commands have different configurations for `l`, `printer` and `where_desc`.
   If `slow` is false, doesn't do the checks that take a lot of time.
   By setting `checks` you can customize which checks are performed. -/
-meta def sanity_check_aux (l : list declaration)
+meta def lint_aux (l : list declaration)
   (printer : (declaration → tactic (option string)) → tactic format)
   (where_desc : string) (slow : bool)
   (checks : list ((declaration → tactic (option string)) × string × string)) : tactic format := do
@@ -195,71 +195,71 @@ meta def sanity_check_aux (l : list declaration)
   else format!"/- {warning_string}: -/" ++ f ++ "\n\n") s,
   return $ if slow then s else s ++ "/- (slow tests skipped) -/\n"
 
-/-- Return the message printed by `#sanity_check`. -/
-meta def sanity_check (slow : bool := tt)
+/-- Return the message printed by `#lint`. -/
+meta def lint (slow : bool := tt)
   (checks : list ((declaration → tactic (option string)) × string × string) :=
     default_checks slow) : tactic format := do
   e ← get_env,
   l ← e.mfilter (λ d,
     if e.in_current_file' d.to_name ∧ ¬ d.to_name.is_internal ∧ ¬ d.is_auto_generated e
-    then bnot <$> has_attribute' `sanity_skip d.to_name else return ff),
-  sanity_check_aux l (λ t, print_decls <$> fold_over_with_cond l t)
+    then bnot <$> has_attribute' `nolint d.to_name else return ff),
+  lint_aux l (λ t, print_decls <$> fold_over_with_cond l t)
     "in the current file" slow checks
 
-/-- Return the message printed by `#sanity_check_mathlib`. -/
-meta def sanity_check_mathlib (slow : bool := tt)
+/-- Return the message printed by `#lint_mathlib`. -/
+meta def lint_mathlib (slow : bool := tt)
   (checks : list ((declaration → tactic (option string)) × string × string) :=
     default_checks slow) : tactic format := do
   e ← get_env,
   ml ← get_mathlib_dir,
-  /- note: we don't separate out some of these tests in `sanity_check_aux` because that causes a
+  /- note: we don't separate out some of these tests in `lint_aux` because that causes a
     performance hit. That is also the reason for the current formulation using if then else. -/
   l ← e.mfilter (λ d,
     if e.is_prefix_of_file ml d.to_name ∧ ¬ d.to_name.is_internal ∧ ¬ d.is_auto_generated e
-    then bnot <$> has_attribute' `sanity_skip d.to_name else return ff),
+    then bnot <$> has_attribute' `nolint d.to_name else return ff),
   let ml' := ml.length,
-  sanity_check_aux l (λ t, print_decls_sorted_mathlib ml' <$> fold_over_with_cond_sorted l t)
+  lint_aux l (λ t, print_decls_sorted_mathlib ml' <$> fold_over_with_cond_sorted l t)
     "in mathlib (only in imported files)" slow checks
 
-/-- Return the message printed by `#sanity_check_all`. -/
-meta def sanity_check_all (slow : bool := tt)
+/-- Return the message printed by `#lint_all`. -/
+meta def lint_all (slow : bool := tt)
   (checks : list ((declaration → tactic (option string)) × string × string) :=
     default_checks slow) : tactic format := do
   e ← get_env,
   l ← e.mfilter (λ d, if ¬ d.to_name.is_internal ∧ ¬ d.is_auto_generated e
-    then bnot <$> has_attribute' `sanity_skip d.to_name else return ff),
-  sanity_check_aux l (λ t, print_decls_sorted <$> fold_over_with_cond_sorted l t)
+    then bnot <$> has_attribute' `nolint d.to_name else return ff),
+  lint_aux l (λ t, print_decls_sorted <$> fold_over_with_cond_sorted l t)
     "in all imported files (including this one)" slow checks
 
-/-- The command `#sanity_check` at the bottom of a file will warn you about some common mistakes
+/-- The command `#lint` at the bottom of a file will warn you about some common mistakes
   in that file. -/
-@[user_command] meta def sanity_check_cmd (_ : parse $ tk "#sanity_check") : parser unit :=
-do b ← optional (tk "-"), s ← sanity_check b.is_none, trace s
+@[user_command] meta def lint_cmd (_ : parse $ tk "#lint") : parser unit :=
+do b ← optional (tk "-"), s ← lint b.is_none, trace s
 
-/-- The command `#sanity_check_mathlib` checks all of mathlib for certain mistakes. -/
-@[user_command] meta def sanity_check_mathlib_cmd (_ : parse $ tk "#sanity_check_mathlib") :
+/-- The command `#lint_mathlib` checks all of mathlib for certain mistakes. -/
+@[user_command] meta def lint_mathlib_cmd (_ : parse $ tk "#lint_mathlib") :
   parser unit :=
-do b ← optional (tk "-"), s ← sanity_check_mathlib b.is_none, trace s
+do b ← optional (tk "-"), s ← lint_mathlib b.is_none, trace s
 
-/-- The command `#sanity_check_mathlib` checks all of mathlib for certain mistakes. -/
-@[user_command] meta def sanity_check_all_cmd (_ : parse $ tk "#sanity_check_all") :
+/-- The command `#lint_mathlib` checks all of mathlib for certain mistakes. -/
+@[user_command] meta def lint_all_cmd (_ : parse $ tk "#lint_all") :
   parser unit :=
-do b ← optional (tk "-"), s ← sanity_check_all b.is_none, trace s
+do b ← optional (tk "-"), s ← lint_all b.is_none, trace s
 
 /-- Use sanity check as a hole command. Note: In a large file, there might be some delay between
   choosing the option and the information appearing -/
-@[hole_command] meta def sanity_check_hole_cmd : hole_command :=
+@[hole_command] meta def lint_hole_cmd : hole_command :=
 { name := "Sanity Check",
   descr := "Sanity check: Find common mistakes in current file.",
-  action := λ es, do s ← sanity_check, return [(s.to_string,"")] }
+  action := λ es, do s ← lint, return [(s.to_string,"")] }
 
 -- set_option profiler true
--- run_cmd sanity_check
--- run_cmd sanity_check_mathlib
--- run_cmd sanity_check_all
--- #sanity_check
--- #sanity_check_mathlib
--- #sanity_check_all
--- #sanity_check-
--- #sanity_check_mathlib-
--- #sanity_check_all-
+-- run_cmd lint
+-- run_cmd lint_mathlib
+-- run_cmd lint_all
+-- #lint
+-- #lint_mathlib
+-- #lint_all
+-- #lint-
+-- #lint_mathlib-
+-- #lint_all-

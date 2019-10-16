@@ -1,4 +1,4 @@
-import tactic.sanity_check
+import tactic.lint
 
 def foo1 (n m : ℕ) : ℕ := n + 1
 def foo2 (n m : ℕ) : m = m := by refl
@@ -35,18 +35,18 @@ run_cmd do
   guard $ l4.length = 1,
   guard $ ∃(x ∈ l4), (x : declaration × _).1.to_name = `foo.foo,
   -- guard $ ∃(x ∈ l4), (x : declaration × _).1.to_name = `foo4,
-  s ← sanity_check ff,
+  s ← lint ff,
   guard $ "/- (slow tests skipped) -/\n".is_suffix_of s.to_string,
-  s2 ← sanity_check tt,
+  s2 ← lint tt,
   guard $ s.to_string ≠ s2.to_string,
   skip
 
-/- check customizability and sanity_skip -/
-@[sanity_skip] def bar.foo : (if 3 = 3 then 1 else 2) = 1 := if_pos (by refl)
+/- check customizability and nolint -/
+@[nolint] def bar.foo : (if 3 = 3 then 1 else 2) = 1 := if_pos (by refl)
 
 meta def dummy_check (d : declaration) : tactic (option string) :=
 return $ if d.to_name.last = "foo" then some "gotcha!" else none
 
 run_cmd do
-  s ← sanity_check tt [(dummy_check, "found nothing", "found something")],
+  s ← lint tt [(dummy_check, "found nothing", "found something")],
   guard $ "/- found something: -/\n#print foo.foo /- gotcha! -/\n\n".is_suffix_of s.to_string

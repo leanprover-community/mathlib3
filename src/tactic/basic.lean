@@ -16,7 +16,7 @@ import
   tactic.replacer
   tactic.restate_axiom
   tactic.rewrite
-  tactic.sanity_check
+  tactic.lint
   tactic.simpa
   tactic.simps
   tactic.split_ifs

@@ -1137,13 +1137,13 @@ Here too, the `reassoc` attribute can be used instead. It works well when combin
 ```lean
 attribute [simp, reassoc] some_class.bar
 ```
-### sanity_check
+### lint
 User commands to spot common mistakes in the code
 
-* `#sanity_check`: check all declarations in the current file
-* `#sanity_check_mathlib`: check all declarations in mathlib (so excluding core or other projects,
+* `#lint`: check all declarations in the current file
+* `#lint_mathlib`: check all declarations in mathlib (so excluding core or other projects,
   and also excluding the current file)
-* `#sanity_check_all`: check all declarations in the environment (the current file and all
+* `#lint_all`: check all declarations in the environment (the current file and all
   imported files)
 
 Currently this will check for
@@ -1153,13 +1153,13 @@ Currently this will check for
 3. whether a namespace is duplicated in the name of a declaration
 4. whether ≥/> is used in the declaration
 
-You can append a `-` to any command (e.g. `#sanity_check_mathlib-`) to omit the slow tests (4).
+You can append a `-` to any command (e.g. `#lint_mathlib-`) to omit the slow tests (4).
 
 You can customize the performed checks like this:
 ```lean
 meta def my_check (d : declaration) : tactic (option string) :=
 return $ if d.to_name = `foo then some "gotcha!" else none
-run_cmd sanity_check tt [(my_check, "found nothing", "found something")] >>= trace
+run_cmd lint tt [(my_check, "found nothing", "found something")] >>= trace
 ```
 
 ### lift

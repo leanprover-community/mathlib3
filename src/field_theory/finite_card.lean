@@ -25,4 +25,14 @@ have hn : n > 0, from or.resolve_left (nat.eq_zero_or_pos n)
 theorem card' : ∃ (p : ℕ) (n : ℕ+), nat.prime p ∧ fintype.card α = p^(n : ℕ) :=
 let ⟨p, hc⟩ := char_p.exists α in ⟨p, @finite_field.card α _ _ p hc⟩
 
+@[simp] lemma cast_card_eq_zero {α : Type u} [discrete_field α] [fintype α] :
+  (fintype.card α : α) = 0 :=
+begin
+  rcases char_p.exists α with ⟨p, _char_p⟩, resetI,
+  rcases card α p with ⟨n, hp, hn⟩,
+  simp only [char_p.cast_eq_zero_iff α p, hn],
+  conv { congr, rw [← nat.pow_one p] },
+  exact nat.pow_dvd_pow _ n.2,
+end
+
 end finite_field

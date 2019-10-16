@@ -106,6 +106,8 @@ begin
   sorry
 end
 
+variable (α)
+
 lemma sum_pow_units (i : ℕ) :
   univ.sum (λ (x : units α), (x^i : α)) =
   if (fintype.card α - 1) ∣ i then fintype.card α - 1 else 0 :=
@@ -136,40 +138,39 @@ begin
     { rcases H with ⟨d, rfl⟩,
       have aux : (λ (i:ℕ), ((a : α) ^ ((q - 1) * d)) ^ i) = λ i, 1,
       { funext i, rw [pow_mul, pow_card_sub_one_eq_one _ (units.ne_zero _), one_pow, one_pow], },
-      rw [geom_series_def, aux, sum_const, card_range, add_monoid.smul_one],
-      sorry },
+      rw [geom_series_def, aux, sum_const, card_range, add_monoid.smul_one,
+        nat.cast_sub, nat.cast_one],
+      exact le_trans hq (nat.pred_le _), },
     { rw classical.or_iff_not_imp_right at key, apply key, contrapose! H,
-      rw ← card_units,
-      sorry }
+      rw [← card_units, ← order_of_eq_card_of_forall_mem_gpowers ha],
+      apply order_of_dvd_of_pow_eq_one,
+      rwa [units.ext_iff, units.coe_pow, units.coe_one, ← sub_eq_zero], }
   end
 end
 
 lemma sum_pow_lt_card_sub_one (i : ℕ) (h : i < fintype.card α - 1) :
   univ.sum (λ x, x^i) = (0:α) :=
 begin
+  let q := fintype.card α,
+  have hq : 0 < q - 1,
+  { rw [← card_units, fintype.card_pos_iff],
+    exact ⟨1⟩ },
   by_cases hi : i = 0,
-  { simp only [hi, add_monoid.smul_one, sum_const, pow_zero],
-    rcases char_p.exists α with ⟨p, _char_p⟩, resetI,
-    rw char_p.cast_eq_zero_iff α p,
+  { rcases char_p.exists α with ⟨p, _char_p⟩, resetI,
     rcases card α p with ⟨n, hp, hn⟩,
-    rw [card_univ, hn],
-    conv { congr, rw [← nat.pow_one p] }, exact nat.pow_dvd_pow _ n.2 },
-  cases is_cyclic.exists_generator (units α) with a ha,
-  suffices : (1:α) * univ.sum (λ x, x^i) = a^i * univ.sum (λ x, x^i),
-  { rw [← sub_eq_zero, ← sub_mul] at this,
-    replace := eq_zero_or_eq_zero_of_mul_eq_zero this,
-    rw classical.or_iff_not_imp_left at this,
-    apply this,
-    rw [sub_eq_zero, eq_comm],
-    replace ha := order_of_eq_card_of_forall_mem_gpowers ha,
-    rw card_units at ha,
-    rw ← ha at h,
-    have foo := nat.find_min _ h, push_neg at foo,
-    sorry },
-  { rw [one_mul, mul_sum],
-    symmetry,
-    apply sum_bij (λ x _, (a : α) * x) (λ _ _, mem_univ _),
-    all_goals {sorry} }
+    simp only [hi, add_monoid.smul_one, sum_const, pow_zero, card_univ, cast_card_eq_zero], },
+  rw [← sum_sdiff (subset_univ (finset.singleton (0:α))), sum_singleton,
+    zero_pow (nat.pos_of_ne_zero hi), add_zero],
+  have := sum_pow_units α i,
+  have not_dvd_i : ¬fintype.card α - 1 ∣ i,
+  { rintro ⟨d, rfl⟩, apply hi, rw nat.mul_eq_zero, right, contrapose! h,
+    conv { congr, rw ← mul_one (q-1), },
+    rw mul_le_mul_left hq, exact nat.pos_of_ne_zero h },
+  rw if_neg not_dvd_i at this,
+  conv_rhs {rw ← this}, symmetry,
+  refine sum_bij (λ x _, x) (λ _ _, by simp) (λ _ _, rfl) (λ _ _ _ _, units.ext_iff.mpr) _,
+  { intros, refine ⟨units.mk0 b _, mem_univ _, rfl⟩,
+    simpa only [true_and, mem_sdiff, mem_univ, mem_singleton] using H, },
 end
 
 end
@@ -183,7 +184,38 @@ lemma sum_mv_polynomial_eq_zero (f : mv_polynomial σ α)
   (h : f.total_degree < (fintype.card α - 1) * fintype.card σ) :
   univ.sum (λ x, f.eval x) = (0:α) :=
 begin
-  sorry
+  let q := fintype.card α,
+  have hq : 0 < q - 1,
+  { rw [← card_units, fintype.card_pos_iff],
+    exact ⟨1⟩ },
+  rcases char_p.exists α with ⟨p, _char_p⟩, resetI,
+  rcases card α p with ⟨n, hp, hn⟩,
+  simp only [eval, eval₂, finsupp.sum, id.def],
+  rw [sum_comm, sum_eq_zero],
+  intros d hd,
+  rw [← mul_sum, mul_eq_zero], right,
+  simp [finsupp.prod],
+  -- by_cases hd' : d.support = ∅,
+  -- { have : 0 < fintype.card σ,
+  --   { contrapose! h, rw nat.le_zero_iff at h, rw [h, mul_zero], exact zero_le _ },
+  --   simp only [hd', add_monoid.smul_one, sum_const, prod_empty, card_univ, add_monoid.smul_one,
+  --     cast_card_eq_zero, sum_const, nat.cast_pow, fintype.card_fun, prod_empty, zero_pow this], },
+  obtain ⟨i, hi⟩ : ∃ i, d i < q - 1,
+  { contrapose! h, sorry },
+  suffices claim : (univ.filter (λ (x : σ → α), ∀ j, j ≠ i → x j = 0)).sum (λ x, x i ^ d i) *
+    (univ.filter (λ (x : σ → α), x i = 0)).sum
+    (λ (x : σ → α), (univ \ finset.singleton i).prod (λ j, x j ^ d j)) = 0,
+  { sorry },
+  { rw mul_eq_zero, left,
+    conv_rhs {rw ← sum_pow_lt_card_sub_one α (d i) hi},
+    refine sum_bij (λ x _, x i) (λ _ _, mem_univ _) (λ _ _, rfl) _ _,
+    { intros x y hx hy H, rw mem_filter at hx hy,
+      funext j, by_cases hj : j = i, {rwa hj},
+      rw [hx.2 _ hj, hy.2 _ hj], },
+    { intros a ha,
+      refine ⟨λ j, if j = i then a else 0, _, (if_pos rfl).symm⟩,
+      rw mem_filter,
+      exact ⟨mem_univ _, λ j hj, dif_neg hj⟩ } }
 end
 
 -- move this

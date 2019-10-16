@@ -18,6 +18,7 @@ The class `emetric_space` therefore extends `uniform_space` (and `topological_sp
 
 import data.real.nnreal data.real.ennreal
 import topology.uniform_space.separation topology.uniform_space.uniform_embedding
+import topology.bases
 open lattice set filter classical
 noncomputable theory
 

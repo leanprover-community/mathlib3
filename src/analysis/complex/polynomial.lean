@@ -3,7 +3,7 @@ Copyright (c) 2019 Chris Hughes All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Chris Hughes
 -/
-import data.polynomial topology.instances.polynomial analysis.complex.exponential
+import data.polynomial topology.algebra.polynomial analysis.complex.exponential
 
 open complex polynomial metric filter is_absolute_value set lattice
 

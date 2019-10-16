@@ -801,6 +801,8 @@ end continuous
 section bilinear_map
 variables {b : E × F → G} {u : set (E × F) }
 
+open normed_field
+
 lemma is_bounded_bilinear_map.has_fderiv_at (h : is_bounded_bilinear_map 𝕜 b) (p : E × F) :
   has_fderiv_at b (h.deriv p) p :=
 begin

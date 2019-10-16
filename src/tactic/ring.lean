@@ -390,7 +390,7 @@ meta def eval : expr → ring_m (horner_expr × expr)
     (e', p) ← lift $ norm_num.derive e,
     lift $ e'.to_rat,
     return (const e', p)) <|> eval_atom e
-| `(%%e₁ / %%e₂) := do
+| `(@has_div.div _ division_ring_has_div %%e₁ %%e₂) := do
   e₂' ← lift $ mk_app ``has_inv.inv [e₂],
   e ← lift $ mk_app ``has_mul.mul [e₁, e₂'],
   (e', p) ← eval e,

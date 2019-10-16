@@ -59,7 +59,6 @@ when at least one test is positive.
 If `is_fast` is false, this test will be omitted from `#lint-`.
 -/
 meta structure linter :=
-(name : string)
 (test : declaration → tactic (option string))
 (no_errors_found : string)
 (errors_found : string)
@@ -67,7 +66,7 @@ meta structure linter :=
 
 /-- Create a list of all linters defined with the `@[linter]` attribute -/
 meta def get_linters (l : list name) : tactic (list linter) :=
-l.mmap (λ n, mk_const n >>= eval_expr linter)
+l.mmap (λ n, mk_const n >>= eval_expr linter <|> fail format!"invalid linter: {n}")
 
 @[user_attribute]
 meta def linter_attr : user_attribute (list linter) unit :=
@@ -154,8 +153,7 @@ meta def unused_arguments (d : declaration) : tactic (option string) := do
   return $ some $ ns.to_string_aux tt
 
 @[linter] meta def linter.unused_arguments : linter :=
-{ name := "unused_arguments",
-  test := unused_arguments,
+{ test := unused_arguments,
   no_errors_found := "No unused arguments",
   errors_found := "UNUSED ARGUMENTS" }
 
@@ -172,9 +170,8 @@ meta def incorrect_def_lemma (d : declaration) : tactic (option string) := do
     else if (d.is_definition : bool) then "is a def, should be a lemma/theorem"
     else "is a lemma/theorem, should be a def"
 
-@[linter] meta def linter.incorrect_def_lemma : linter :=
-{ name := "def_lemma",
-  test := incorrect_def_lemma,
+@[linter] meta def linter.def_lemma : linter :=
+{ test := incorrect_def_lemma,
   no_errors_found := "All declarations correctly marked as def/lemma",
   errors_found := "INCORRECT DEF/LEMMA" }
 
@@ -186,8 +183,7 @@ return $ let nm := d.to_name.components in if nm.chain' (≠) ∨ is_inst then n
   some $ "The namespace `" ++ s ++ "` is duplicated in the name"
 
 @[linter] meta def linter.dup_namespace : linter :=
-{ name := "dup_namespace",
-  test := dup_namespace,
+{ test := dup_namespace,
   no_errors_found := "No declarations have a duplicate namespace",
   errors_found := "DUPLICATED NAMESPACES IN NAME" }
 
@@ -212,15 +208,14 @@ return $ let illegal := [`gt, `ge] in if d.type.contains_constant (λ n, n ∈ i
   else none
 
 @[linter] meta def linter.illegal_constants : linter :=
-{ name := "illegal_constants",
-  test := illegal_constants_in_statement,
+{ test := illegal_constants_in_statement,
   no_errors_found := "No illegal constants in declarations",
   errors_found := "ILLEGAL CONSTANTS IN DECLARATIONS",
   is_fast := ff }
 
 /-- Reports definitions and constants that are missing doc strings -/
 meta def doc_blame_report_defn : declaration → tactic (option string)
-| (declaration.defn n _ _ _ _ _) := doc_string n >> return none <|> return "definition missing doc string"
+| (declaration.defn n _ _ _ _ _) := doc_string n >> return none <|> return "def missing doc string"
 | (declaration.cnst n _ _ _) := doc_string n >> return none <|> return "constant missing doc string"
 | _ := return none
 
@@ -230,30 +225,25 @@ meta def doc_blame_report_thm : declaration → tactic (option string)
 | _ := return none
 
 /-- A linter for checking definition doc strings -/
-@[linter] meta def doc_blame : linter :=
-{ name := "doc_blame",
-  test := doc_blame_report_defn,
+@[linter] meta def linter.doc_blame : linter :=
+{ test := doc_blame_report_defn,
   no_errors_found := "No definitions are missing documentation.",
   errors_found := "DEFINITIONS ARE MISSING DOCUMENTATION STRINGS" }
 
-/-- A linter for checking theorem doc strings -/
-@[linter] meta def doc_blame_thm : linter :=
-{ name := "doc_blame_thm",
-  test := doc_blame_report_thm,
+/-- A linter for checking theorem doc strings. This is not in the default linter set. -/
+meta def linter.doc_blame_thm : linter :=
+{ test := doc_blame_report_thm,
   no_errors_found := "No theorems are missing documentation.",
   errors_found := "THEOREMS ARE MISSING DOCUMENTATION STRINGS",
   is_fast := ff }
 
-
-meta def get_checks (slow : bool := tt) (restrict_to : option (list string)) :
+meta def get_checks (slow : bool) (extra : list name) (use_only : bool) :
   tactic (list ((declaration → tactic (option string)) × string × string)) :=
-do linter_list ← if slow then linter_attr.get_cache
-                         else list.filter (λ ltr, ltr.is_fast) <$> linter_attr.get_cache,
-   let linter_list := match restrict_to with
-     | some l := linter_list.filter (λ ltr, ltr.name ∈ l)
-     | none := linter_list
-   end,
-   return $ linter_list.map $ λ ⟨_, f, s1, s2, _⟩, ⟨f, s1, s2⟩
+do linter_list ← if use_only then return extra else list.append extra <$> attribute.get_instances `linter,
+--   let linter_list := linter_list.remove_dups, --if use_only then linter_list.filter (λ nm, nm ∈ extra) else linter_list.insert_list extra,
+   linter_list ← get_linters linter_list.erase_dup,
+   let linter_list := if slow then linter_list else linter_list.filter (λ l, l.is_fast),
+   return $ linter_list.map $ λ ⟨f, s1, s2, _⟩, ⟨f, s1, s2⟩
 
 /-- The common denominator of `#lint[|mathlib|all]`.
   The different commands have different configurations for `l`, `printer` and `where_desc`.
@@ -272,8 +262,9 @@ meta def lint_aux (l : list declaration)
   return $ if slow then s else s ++ "/- (slow tests skipped) -/\n"
 
 /-- Return the message printed by `#lint`. -/
-meta def lint (slow : bool := tt) (restrict_to : option (list string) := none) : tactic format := do
-  checks ← get_checks slow restrict_to,
+meta def lint (slow : bool := tt) (extra : list name := [])
+  (use_only : bool := ff) : tactic format := do
+  checks ← get_checks slow extra use_only,
   e ← get_env,
   l ← e.mfilter (λ d,
     if e.in_current_file' d.to_name ∧ ¬ d.to_name.is_internal ∧ ¬ d.is_auto_generated e
@@ -282,8 +273,9 @@ meta def lint (slow : bool := tt) (restrict_to : option (list string) := none) :
     "in the current file" slow checks
 
 /-- Return the message printed by `#lint_mathlib`. -/
-meta def lint_mathlib (slow : bool := tt) (restrict_to : option (list string) := none) : tactic format := do
-  checks ← get_checks slow restrict_to,
+meta def lint_mathlib (slow : bool := tt) (extra : list name := [])
+  (use_only : bool := ff) : tactic format := do
+  checks ← get_checks slow extra use_only,
   e ← get_env,
   ml ← get_mathlib_dir,
   /- note: we don't separate out some of these tests in `lint_aux` because that causes a
@@ -296,47 +288,51 @@ meta def lint_mathlib (slow : bool := tt) (restrict_to : option (list string) :=
     "in mathlib (only in imported files)" slow checks
 
 /-- Return the message printed by `#lint_all`. -/
-meta def lint_all (slow : bool := tt) (restrict_to : option (list string) := none) : tactic format := do
-  checks ← get_checks slow restrict_to,
+meta def lint_all (slow : bool := tt) (extra : list name := [])
+  (use_only : bool := ff) : tactic format := do
+  checks ← get_checks slow extra use_only,
   e ← get_env,
   l ← e.mfilter (λ d, if ¬ d.to_name.is_internal ∧ ¬ d.is_auto_generated e
     then bnot <$> has_attribute' `nolint d.to_name else return ff),
   lint_aux l (λ t, print_decls_sorted <$> fold_over_with_cond_sorted l t)
     "in all imported files (including this one)" slow checks
 
-/-- parses the word "only" followed by a sequence of identifiers, and turns those identifiers into
-strings. Otherwise returns `none`. -/
-private meta def parse_only_names : parser (option (list string)) :=
-optional $ list.map name.to_string <$> ((only_flag >>= guardb) *> ident_*)
+/-- Parses either a sequence of identifiers, -/
+private meta def parse_lint_additions : parser (bool × list name) :=
+prod.mk <$> only_flag <*> (list.map (name.append `linter) <$> ident_*)
 
 /-- The command `#lint` at the bottom of a file will warn you about some common mistakes
   in that file. -/
 @[user_command] meta def lint_cmd (_ : parse $ tk "#lint") : parser unit :=
 do b ← optional (tk "-"),
-   restrict_to ← parse_only_names,
-   trace restrict_to.is_some,
-   s ← lint b.is_none restrict_to,
+   (use_only, extra) ← parse_lint_additions,
+   s ← lint b.is_none extra use_only,
    trace s
 
 /-- The command `#lint_mathlib` checks all of mathlib for certain mistakes. -/
 @[user_command] meta def lint_mathlib_cmd (_ : parse $ tk "#lint_mathlib") :
   parser unit :=
 do b ← optional (tk "-"),
-   restrict_to ← parse_only_names,
-   s ← lint_mathlib b.is_none restrict_to,
+   (use_only, extra) ← parse_lint_additions,
+   s ← lint_mathlib b.is_none extra use_only,
    trace s
 
 /-- The command `#lint_mathlib` checks all of mathlib for certain mistakes. -/
 @[user_command] meta def lint_all_cmd (_ : parse $ tk "#lint_all") :
   parser unit :=
 do b ← optional (tk "-"),
-   restrict_to ← parse_only_names,
-   s ← lint_all b.is_none restrict_to,
+   (use_only, extra) ← parse_lint_additions,
+   s ← lint_all b.is_none extra use_only,
    trace s
 
 /-- The command `#list_linters` prints a list of all available linters. -/
 @[user_command] meta def list_linters (_ : parse $ tk "#list_linters") : parser unit :=
-linter_attr.get_cache >>= list.mmap' (λ lnt, trace lnt.name)
+do env ← get_env,
+   lint_attrs ← name_set.of_list <$> attribute.get_instances `linter,
+   let ns := env.decl_filter_map
+     (λ dcl, if (dcl.to_name.get_prefix = `linter) && (dcl.type = `(linter)) then some dcl.to_name else none),
+   trace "Available linters:\n  linters marked with (*) are in the default lint set\n",
+   ns.mmap' $ λ n, trace $ n.pop_prefix.to_string ++ if lint_attrs.contains n then " (*)" else ""
 
 /-- Use `lint` as a hole command. Note: In a large file, there might be some delay between
   choosing the option and the information appearing -/
@@ -356,3 +352,4 @@ linter_attr.get_cache >>= list.mmap' (λ lnt, trace lnt.name)
 -- #lint-
 -- #lint_mathlib-
 -- #lint_all-
+-- #list_linters

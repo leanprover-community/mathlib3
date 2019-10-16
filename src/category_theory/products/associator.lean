@@ -15,9 +15,9 @@ open category_theory
 
 namespace category_theory.prod
 
-variables (C : Type u₁) [𝒞 : category.{v₁+1} C]
-          (D : Type u₂) [𝒟 : category.{v₂+1} D]
-          (E : Type u₃) [ℰ : category.{v₃+1} E]
+variables (C : Type u₁) [𝒞 : category.{v₁} C]
+          (D : Type u₂) [𝒟 : category.{v₂} D]
+          (E : Type u₃) [ℰ : category.{v₃} E]
 include 𝒞 𝒟 ℰ
 
 def associator : ((C × D) × E) ⥤ (C × (D × E)) :=

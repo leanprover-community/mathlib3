@@ -45,7 +45,7 @@ begin
     nonempty_interior_of_Union_of_closed (λn, is_closed_closure) A,
   have : ∃C, 0 ≤ C ∧ ∀y, ∃x, dist (f x) y ≤ (1/2) * ∥y∥ ∧ ∥x∥ ≤ C * ∥y∥,
   { rcases this with ⟨n, a, ε, ⟨εpos, H⟩⟩,
-    rcases exists_one_lt_norm 𝕜 with ⟨c, hc⟩,
+    rcases normed_field.exists_one_lt_norm 𝕜 with ⟨c, hc⟩,
     refine ⟨(ε/2)⁻¹ * ∥c∥ * 2 * n, _, λy, _⟩,
     { refine mul_nonneg (mul_nonneg (mul_nonneg _ (norm_nonneg _)) (by norm_num)) _,
       refine inv_nonneg.2 (div_nonneg' (le_of_lt εpos) (by norm_num)),
@@ -83,7 +83,7 @@ begin
           ∥f (d⁻¹ • x) - y∥ = ∥d⁻¹ • f x - (d⁻¹ * d) • y∥ :
             by rwa [lin.smul, inv_mul_cancel, one_smul]
           ... = ∥d⁻¹ • (f x - d • y)∥ : by rw [mul_smul, smul_sub]
-          ... = ∥d∥⁻¹ * ∥f x - d • y∥ : by rw [norm_smul, norm_inv]
+          ... = ∥d∥⁻¹ * ∥f x - d • y∥ : by rw [norm_smul, normed_field.norm_inv]
           ... ≤ ∥d∥⁻¹ * (2 * δ) : begin
               apply mul_le_mul_of_nonneg_left I,
               rw inv_nonneg,
@@ -94,7 +94,7 @@ begin
           ... = (1/2) * ∥y∥ : by ring,
         rw ← dist_eq_norm at J,
         have 𝕜 : ∥d⁻¹ • x∥ ≤ (ε / 2)⁻¹ * ∥c∥ * 2 * ↑n * ∥y∥ := calc
-          ∥d⁻¹ • x∥ = ∥d∥⁻¹ * ∥x₁ - x₂∥ : by rw [norm_smul, norm_inv]
+          ∥d⁻¹ • x∥ = ∥d∥⁻¹ * ∥x₁ - x₂∥ : by rw [norm_smul, normed_field.norm_inv]
           ... ≤ ((ε / 2)⁻¹ * ∥c∥ * ∥y∥) * (n + n) : begin
               refine mul_le_mul dinv _ (norm_nonneg _) _,
               { exact le_trans (norm_triangle_sub) (add_le_add (le_of_lt hx₁) (le_of_lt hx₂)) },

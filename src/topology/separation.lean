@@ -6,7 +6,7 @@ Authors: Johannes Hölzl, Mario Carneiro
 Separation properties of topological spaces.
 -/
 
-import topology.order
+import topology.subset_properties
 
 open set filter lattice
 local attribute [instance] classical.prop_decidable -- TODO: use "open_locale classical"
@@ -194,12 +194,12 @@ lim_eq nhds_neq_bot (le_refl _)
 lim_eq begin rw [closure_eq_nhds] at h, exact h end inf_le_left
 end lim
 
-instance t2_space_discrete [topological_space α] [discrete_topology α] : t2_space α :=
+instance t2_space_discrete {α : Type*} [topological_space α] [discrete_topology α] : t2_space α :=
 { t2 := assume x y hxy, ⟨{x}, {y}, is_open_discrete _, is_open_discrete _, mem_insert _ _, mem_insert _ _,
   eq_empty_iff_forall_not_mem.2 $ by intros z hz;
     cases eq_of_mem_singleton hz.1; cases eq_of_mem_singleton hz.2; cc⟩ }
 
-private lemma separated_by_f
+private lemma separated_by_f {α : Type*} {β : Type*}
   [tα : topological_space α] [tβ : topological_space β] [t2_space β]
   (f : α → β) (hf : tα ≤ tβ.induced f) {x y : α} (h : f x ≠ f y) :
   ∃u v : set α, is_open u ∧ is_open v ∧ x ∈ u ∧ y ∈ v ∧ u ∩ v = ∅ :=
@@ -207,22 +207,90 @@ let ⟨u, v, uo, vo, xu, yv, uv⟩ := t2_separation h in
 ⟨f ⁻¹' u, f ⁻¹' v, hf _ ⟨u, uo, rfl⟩, hf _ ⟨v, vo, rfl⟩, xu, yv,
   by rw [←preimage_inter, uv, preimage_empty]⟩
 
-instance {p : α → Prop} [t : topological_space α] [t2_space α] : t2_space (subtype p) :=
+instance {α : Type*} {p : α → Prop} [t : topological_space α] [t2_space α] : t2_space (subtype p) :=
 ⟨assume x y h,
   separated_by_f subtype.val (le_refl _) (mt subtype.eq h)⟩
 
-instance [t₁ : topological_space α] [t2_space α] [t₂ : topological_space β] [t2_space β] :
-  t2_space (α × β) :=
+instance {α : Type*} {β : Type*} [t₁ : topological_space α] [t2_space α]
+  [t₂ : topological_space β] [t2_space β] : t2_space (α × β) :=
 ⟨assume ⟨x₁,x₂⟩ ⟨y₁,y₂⟩ h,
   or.elim (not_and_distrib.mp (mt prod.ext_iff.mpr h))
     (λ h₁, separated_by_f prod.fst inf_le_left h₁)
     (λ h₂, separated_by_f prod.snd inf_le_right h₂)⟩
 
-instance Pi.t2_space {β : α → Type v} [t₂ : Πa, topological_space (β a)] [Πa, t2_space (β a)] :
+instance Pi.t2_space {α : Type*} {β : α → Type v} [t₂ : Πa, topological_space (β a)] [Πa, t2_space (β a)] :
   t2_space (Πa, β a) :=
 ⟨assume x y h,
   let ⟨i, hi⟩ := not_forall.mp (mt funext h) in
   separated_by_f (λz, z i) (infi_le _ i) hi⟩
+
+lemma is_closed_diagonal [t2_space α] : is_closed {p:α×α | p.1 = p.2} :=
+is_closed_iff_nhds.mpr $ assume ⟨a₁, a₂⟩ h, eq_of_nhds_neq_bot $ assume : nhds a₁ ⊓ nhds a₂ = ⊥, h $
+  let ⟨t₁, ht₁, t₂, ht₂, (h' : t₁ ∩ t₂ ⊆ ∅)⟩ :=
+    by rw [←empty_in_sets_eq_bot, mem_inf_sets] at this; exact this in
+  begin
+    change t₁ ∈ nhds a₁ at ht₁,
+    change t₂ ∈ nhds a₂ at ht₂,
+    rw [nhds_prod_eq, ←empty_in_sets_eq_bot],
+    apply filter.sets_of_superset,
+    apply inter_mem_inf_sets (prod_mem_prod ht₁ ht₂) (mem_principal_sets.mpr (subset.refl _)),
+    exact assume ⟨x₁, x₂⟩ ⟨⟨hx₁, hx₂⟩, (heq : x₁ = x₂)⟩,
+      show false, from @h' x₁ ⟨hx₁, heq.symm ▸ hx₂⟩
+  end
+
+variables [topological_space β]
+
+lemma is_closed_eq [t2_space α] {f g : β → α}
+  (hf : continuous f) (hg : continuous g) : is_closed {x:β | f x = g x} :=
+continuous_iff_is_closed.mp (hf.prod_mk hg) _ is_closed_diagonal
+
+lemma diagonal_eq_range_diagonal_map {α : Type*} : {p:α×α | p.1 = p.2} = range (λx, (x,x)) :=
+ext $ assume p, iff.intro
+  (assume h, ⟨p.1, prod.ext_iff.2 ⟨rfl, h⟩⟩)
+  (assume ⟨x, hx⟩, show p.1 = p.2, by rw ←hx)
+
+lemma prod_subset_compl_diagonal_iff_disjoint {α : Type*} {s t : set α} :
+  set.prod s t ⊆ - {p:α×α | p.1 = p.2} ↔ s ∩ t = ∅ :=
+by rw [eq_empty_iff_forall_not_mem, subset_compl_comm,
+       diagonal_eq_range_diagonal_map, range_subset_iff]; simp
+
+lemma compact_compact_separated [t2_space α] {s t : set α}
+  (hs : compact s) (ht : compact t) (hst : s ∩ t = ∅) :
+  ∃u v : set α, is_open u ∧ is_open v ∧ s ⊆ u ∧ t ⊆ v ∧ u ∩ v = ∅ :=
+by simp only [prod_subset_compl_diagonal_iff_disjoint.symm] at ⊢ hst;
+   exact generalized_tube_lemma hs ht is_closed_diagonal hst
+
+lemma closed_of_compact [t2_space α] (s : set α) (hs : compact s) : is_closed s :=
+is_open_compl_iff.mpr $ is_open_iff_forall_mem_open.mpr $ assume x hx,
+  let ⟨u, v, uo, vo, su, xv, uv⟩ :=
+    compact_compact_separated hs (compact_singleton : compact {x})
+      (by rwa [inter_comm, ←subset_compl_iff_disjoint, singleton_subset_iff]) in
+  have v ⊆ -s, from
+    subset_compl_comm.mp (subset.trans su (subset_compl_iff_disjoint.mpr uv)),
+⟨v, this, vo, by simpa using xv⟩
+
+lemma locally_compact_of_compact_nhds [t2_space α] (h : ∀ x : α, ∃ s, s ∈ nhds x ∧ compact s) :
+  locally_compact_space α :=
+⟨assume x n hn,
+  let ⟨u, un, uo, xu⟩ := mem_nhds_sets_iff.mp hn in
+  let ⟨k, kx, kc⟩ := h x in
+  -- K is compact but not necessarily contained in N.
+  -- K \ U is again compact and doesn't contain x, so
+  -- we may find open sets V, W separating x from K \ U.
+  -- Then K \ W is a compact neighborhood of x contained in U.
+  let ⟨v, w, vo, wo, xv, kuw, vw⟩ :=
+    compact_compact_separated compact_singleton (compact_diff kc uo)
+      (by rw [singleton_inter_eq_empty]; exact λ h, h.2 xu) in
+  have wn : -w ∈ nhds x, from
+   mem_nhds_sets_iff.mpr
+     ⟨v, subset_compl_iff_disjoint.mpr vw, vo, singleton_subset_iff.mp xv⟩,
+  ⟨k - w,
+   filter.inter_mem_sets kx wn,
+   subset.trans (diff_subset_comm.mp kuw) un,
+   compact_diff kc wo⟩⟩
+
+instance locally_compact_of_compact [t2_space α] [compact_space α] : locally_compact_space α :=
+locally_compact_of_compact_nhds (assume x, ⟨univ, mem_nhds_sets is_open_univ trivial, compact_univ⟩)
 
 end separation
 
@@ -271,11 +339,18 @@ theorem normal_separation [normal_space α] (s t : set α)
   ∃ u v, is_open u ∧ is_open v ∧ s ⊆ u ∧ t ⊆ v ∧ disjoint u v :=
 normal_space.normal s t H1 H2 H3
 
-variable (α)
 instance normal_space.regular_space [normal_space α] : regular_space α :=
 { regular := λ s x hs hxs, let ⟨u, v, hu, hv, hsu, hxv, huv⟩ := normal_separation s {x} hs is_closed_singleton
       (λ _ ⟨hx, hy⟩, hxs $ set.mem_of_eq_of_mem (set.eq_of_mem_singleton hy).symm hx) in
     ⟨u, hu, hsu, filter.empty_in_sets_eq_bot.1 $ filter.mem_inf_sets.2
       ⟨v, mem_nhds_sets hv (set.singleton_subset_iff.1 hxv), u, filter.mem_principal_self u, set.inter_comm u v ▸ huv⟩⟩ }
+
+-- We can't make this an instance because it could cause an instance loop.
+lemma normal_of_compact_t2 [compact_space α] [t2_space α] : normal_space α :=
+begin
+  refine ⟨assume s t hs ht st, _⟩,
+  simp only [disjoint_iff],
+  exact compact_compact_separated (compact_of_closed hs) (compact_of_closed ht) st.eq_bot
+end
 
 end normality

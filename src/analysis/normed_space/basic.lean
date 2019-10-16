@@ -249,7 +249,7 @@ instance normed_ring.to_normed_group [β : normed_ring α] : normed_group α := 
 lemma norm_mul_le {α : Type*} [normed_ring α] (a b : α) : (∥a*b∥) ≤ (∥a∥) * (∥b∥) :=
 normed_ring.norm_mul _ _
 
-lemma norm_pow_le {α : Type*} [normed_ring α] (a : α) : ∀ {n : ℕ}, n > 0 → ∥a^n∥ ≤ ∥a∥^n
+lemma norm_pow_le {α : Type*} [normed_ring α] (a : α) : ∀ {n : ℕ}, 0 < n → ∥a^n∥ ≤ ∥a∥^n
 | 1 h := by simp
 | (n+2) h :=
   le_trans (norm_mul_le a (a^(n+1)))
@@ -305,26 +305,26 @@ instance normed_top_ring [normed_ring α] : topological_ring α :=
     have ∀ e : α, -e - -x = -(e - x), by intro; simp,
     by simp only [this, norm_neg]; apply lim_norm ⟩
 
-section normed_field
 
 class normed_field (α : Type*) extends has_norm α, discrete_field α, metric_space α :=
 (dist_eq : ∀ x y, dist x y = norm (x - y))
-(norm_mul : ∀ a b, norm (a * b) = norm a * norm b)
+(norm_mul' : ∀ a b, norm (a * b) = norm a * norm b)
 
 class nondiscrete_normed_field (α : Type*) extends normed_field α :=
 (non_trivial : ∃x:α, 1<∥x∥)
 
 instance normed_field.to_normed_ring [i : normed_field α] : normed_ring α :=
-{ norm_mul := by finish [i.norm_mul], ..i }
+{ norm_mul := by finish [i.norm_mul'], ..i }
 
+namespace normed_field
 @[simp] lemma norm_one {α : Type*} [normed_field α] : ∥(1 : α)∥ = 1 :=
 have  ∥(1 : α)∥ * ∥(1 : α)∥ = ∥(1 : α)∥ * 1, by calc
- ∥(1 : α)∥ * ∥(1 : α)∥ = ∥(1 : α) * (1 : α)∥ : by rw normed_field.norm_mul
+ ∥(1 : α)∥ * ∥(1 : α)∥ = ∥(1 : α) * (1 : α)∥ : by rw normed_field.norm_mul'
                   ... = ∥(1 : α)∥ * 1 : by simp,
 eq_of_mul_eq_mul_left (ne_of_gt ((norm_pos_iff _).2 (by simp))) this
 
 @[simp] lemma norm_mul [normed_field α] (a b : α) : ∥a * b∥ = ∥a∥ * ∥b∥ :=
-normed_field.norm_mul a b
+normed_field.norm_mul' a b
 
 instance normed_field.is_monoid_hom_norm [normed_field α] : is_monoid_hom (norm : α → ℝ) :=
 { map_one := norm_one, map_mul := norm_mul }
@@ -370,14 +370,14 @@ end
 instance : normed_field ℝ :=
 { norm := λ x, abs x,
   dist_eq := assume x y, rfl,
-  norm_mul := abs_mul }
+  norm_mul' := abs_mul }
 
 instance : nondiscrete_normed_field ℝ :=
 { non_trivial := ⟨2, by { unfold norm, rw abs_of_nonneg; norm_num }⟩ }
+end normed_field
 
 lemma real.norm_eq_abs (r : ℝ) : norm r = abs r := rfl
 
-end normed_field
 
 @[simp] lemma norm_norm [normed_group α] (x : α) : ∥∥x∥∥ = ∥x∥ :=
 by rw [real.norm_eq_abs, abs_of_nonneg (norm_nonneg _)]
@@ -440,6 +440,8 @@ tendsto_smul tendsto_const_nhds
 instance normed_space.topological_vector_space : topological_vector_space α E :=
 { continuous_smul := continuous_iff_continuous_at.2 $ λp, tendsto_smul
     (continuous_iff_continuous_at.1 continuous_fst _) (continuous_iff_continuous_at.1 continuous_snd _) }
+
+open normed_field
 
 /-- If there is a scalar `c` with `∥c∥>1`, then any element can be moved by scalar multiplication to
 any shell of width `∥c∥`. Also recap information on the norm of the rescaling element that shows
@@ -536,7 +538,7 @@ namespace complex
 instance : normed_field ℂ :=
 { norm := complex.abs,
   dist_eq := λ _ _, rfl,
-  norm_mul := complex.abs_mul,
+  norm_mul' := complex.abs_mul,
   .. complex.discrete_field }
 
 instance : nondiscrete_normed_field ℂ :=
@@ -554,7 +556,7 @@ by rw [norm_real, real.norm_eq_abs]
 suffices ∥((n : ℝ) : ℂ)∥ = _root_.abs n, by simpa,
 by rw [norm_real, real.norm_eq_abs]
 
-lemma norm_int_of_nonneg {n : ℤ} (hn : n ≥ 0) : ∥(n : ℂ)∥ = n :=
+lemma norm_int_of_nonneg {n : ℤ} (hn : 0 ≤ n) : ∥(n : ℂ)∥ = n :=
 by rw [norm_int, _root_.abs_of_nonneg]; exact int.cast_nonneg.2 hn
 
 end complex

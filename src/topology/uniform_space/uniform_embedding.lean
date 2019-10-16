@@ -6,6 +6,7 @@ Authors: Johannes Hölzl, Sébastien Gouëzel, Patrick Massot
 Uniform embeddings of uniform spaces. Extension of uniform continuous functions.
 -/
 import topology.uniform_space.cauchy topology.uniform_space.separation
+import topology.dense_embedding
 
 open filter topological_space lattice set classical
 open_locale classical
@@ -133,7 +134,7 @@ have ∀b', (b, b') ∈ t → b' ∈ closure (e '' {a' | (a, a') ∈ s}),
 ⟨a, (nhds b).sets_of_superset (mem_nhds_left b htu) this⟩
 
 lemma uniform_embedding_subtype_emb (p : α → Prop) {e : α → β} (ue : uniform_embedding e)
-  (de : dense_embedding e) : uniform_embedding (de.subtype_emb p) :=
+  (de : dense_embedding e) : uniform_embedding (dense_embedding.subtype_emb p e) :=
 { comap_uniformity := by simp [comap_comap_comp, (∘), dense_embedding.subtype_emb,
            uniformity_subtype, ue.comap_uniformity.symm],
   inj := (de.subtype p).inj }
@@ -300,13 +301,13 @@ lemma uniform_extend_subtype [complete_space γ]
   ∃c, tendsto f (comap e (nhds b)) (nhds c) :=
 have de : dense_embedding e,
   from he.dense_embedding hd,
-have de' : dense_embedding (de.subtype_emb p),
+have de' : dense_embedding (dense_embedding.subtype_emb p e),
   by exact de.subtype p,
-have ue' : uniform_embedding (de.subtype_emb p),
+have ue' : uniform_embedding (dense_embedding.subtype_emb p e),
   from uniform_embedding_subtype_emb _ he de,
 have b ∈ closure (e '' {x | p x}),
   from (closure_mono $ mono_image $ hp) (mem_of_nhds hb),
-let ⟨c, (hc : tendsto (f ∘ subtype.val) (comap (de.subtype_emb p) (nhds ⟨b, this⟩)) (nhds c))⟩ :=
+let ⟨c, (hc : tendsto (f ∘ subtype.val) (comap (dense_embedding.subtype_emb p e) (nhds ⟨b, this⟩)) (nhds c))⟩ :=
   uniformly_extend_exists ue'.to_uniform_inducing de'.dense hf _ in
 begin
   rw [nhds_subtype_eq_comap] at hc,

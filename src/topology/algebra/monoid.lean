@@ -8,7 +8,7 @@ Theory of topological monoids.
 TODO: generalize `topological_monoid` and `topological_add_monoid` to semigroups, or add a type class
 `topological_operator α (*)`.
 -/
-import topology.constructions
+import topology.constructions topology.continuous_on
 import algebra.pi_instances
 
 open classical set lattice filter topological_space
@@ -104,7 +104,14 @@ attribute [instance] prod.topological_add_monoid
 end
 
 section
-variables [topological_space α] [comm_monoid α] [topological_monoid α]
+variables [topological_space α] [comm_monoid α]
+
+@[to_additive]
+lemma is_submonoid.mem_nhds_one (β : set α) [is_submonoid β] (oβ : is_open β) :
+  β ∈ nhds (1 : α) :=
+mem_nhds_sets_iff.2 ⟨β, (by refl), oβ, is_submonoid.one_mem _⟩
+
+variable [topological_monoid α]
 
 @[to_additive]
 lemma tendsto_multiset_prod {f : γ → β → α} {x : filter β} {a : γ → α} (s : multiset γ) :
@@ -126,11 +133,6 @@ by { rcases s with ⟨l⟩, simp, exact continuous_list_prod l }
 lemma continuous_finset_prod [topological_space β] {f : γ → β → α} (s : finset γ) :
   (∀c∈s, continuous (f c)) → continuous (λa, s.prod (λc, f c a)) :=
 continuous_multiset_prod _
-
-@[to_additive]
-lemma is_submonoid.mem_nhds_one (β : set α) [is_submonoid β] (oβ : is_open β) :
-  β ∈ nhds (1 : α) :=
-mem_nhds_sets_iff.2 ⟨β, (by refl), oβ, is_submonoid.one_mem _⟩
 
 end
 

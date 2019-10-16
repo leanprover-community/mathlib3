@@ -57,6 +57,8 @@ variables {𝕜} {x y : E} {s t : set E}
 section tangent_cone
 /- This section is devoted to the properties of the tangent cone. -/
 
+open normed_field
+
 lemma tangent_cone_univ : tangent_cone_at 𝕜 univ x = univ :=
 begin
   refine univ_subset_iff.1 (λy hy, _),

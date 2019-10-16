@@ -666,6 +666,9 @@ le_antisymm (max_eq_right_of_lt h ▸ degree_add_le _ _) $ degree_le_degree $
     exact mt leading_coeff_eq_zero.1 (ne_zero_of_degree_gt h)
   end
 
+lemma degree_add_C (hp : 0 < degree p) : degree (p + C a) = degree p :=
+add_comm (C a) p ▸ degree_add_eq_of_degree_lt $ lt_of_le_of_lt degree_C_le hp
+
 lemma degree_add_eq_of_leading_coeff_add_ne_zero (h : leading_coeff p + leading_coeff q ≠ 0) :
   degree (p + q) = max p.degree q.degree :=
 le_antisymm (degree_add_le _ _) $
@@ -1303,6 +1306,9 @@ eval₂.is_ring_hom (C ∘ f)
 @[simp] lemma degree_neg (p : polynomial α) : degree (-p) = degree p :=
 by unfold degree; rw support_neg
 
+@[simp] lemma nat_degree_neg (p : polynomial α) : nat_degree (-p) = nat_degree p :=
+by simp [nat_degree]
+
 @[simp] lemma nat_degree_int_cast (n : ℤ) : nat_degree (n : polynomial α) = 0 :=
 by simp [int_cast_eq_C]
 
@@ -1888,8 +1894,28 @@ begin
   exact (classical.some_spec (exists_finset_roots hp0)).1
 end
 
+lemma card_roots' {p : polynomial α} (hp0 : p ≠ 0) : p.roots.card ≤ nat_degree p :=
+with_bot.coe_le_coe.1 (le_trans (card_roots hp0) (le_of_eq $ degree_eq_nat_degree hp0))
+
+lemma card_roots_sub_C {p : polynomial α} {a : α} (hp0 : 0 < degree p) :
+  ((p - C a).roots.card : with_bot ℕ) ≤ degree p :=
+calc ((p - C a).roots.card : with_bot ℕ) ≤ degree (p - C a) :
+  card_roots $ mt sub_eq_zero.1 $ λ h, not_le_of_gt hp0 $ h.symm ▸ degree_C_le
+... = degree p : by rw [sub_eq_add_neg, ← C_neg]; exact degree_add_C hp0
+
+lemma card_roots_sub_C' {p : polynomial α} {a : α} (hp0 : 0 < degree p) :
+  (p - C a).roots.card ≤ nat_degree p :=
+with_bot.coe_le_coe.1 (le_trans (card_roots_sub_C hp0) (le_of_eq $ degree_eq_nat_degree
+  (λ h, by simp [*, lt_irrefl] at *)))
+
 @[simp] lemma mem_roots (hp : p ≠ 0) : a ∈ p.roots ↔ is_root p a :=
 by unfold roots; rw dif_neg hp; exact (classical.some_spec (exists_finset_roots hp)).2 _
+
+@[simp] lemma mem_roots_sub_C {p : polynomial α} {a x : α} (hp0 : 0 < degree p) :
+  x ∈ (p - C a).roots ↔ p.eval x = a :=
+(mem_roots (show p - C a ≠ 0, from mt sub_eq_zero.1 $ λ h,
+    not_le_of_gt hp0 $ h.symm ▸ degree_C_le)).trans
+  (by rw [is_root.def, eval_sub, eval_C, sub_eq_zero])
 
 lemma card_roots_X_pow_sub_C {n : ℕ} (hn : 0 < n) (a : α) :
   (roots ((X : polynomial α) ^ n - C a)).card ≤ n :=

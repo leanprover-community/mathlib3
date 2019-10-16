@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Sébastien Gouëzel
 -/
 
-import data.equiv.local_equiv topology.constructions
+import data.equiv.local_equiv topology.continuous_on topology.homeomorph
 
 /-!
 # Local homeomorphisms

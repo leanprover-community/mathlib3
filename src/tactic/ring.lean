@@ -501,7 +501,7 @@ end
   `ring!` will use a more aggressive reducibility setting to identify atoms. -/
 meta def ring (red : parse (tk "!")?) (SOP : parse ring.mode) (loc : parse location) : tactic unit :=
 match loc with
-| interactive.loc.ns [none] := ring1 red
+| interactive.loc.ns [none] := instantiate_mvars_in_target >> ring1 red
 | _ := failed
 end <|>
 do ns ← loc.get_locals,

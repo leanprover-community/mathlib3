@@ -18,7 +18,7 @@ instance [has_add α] : has_add (completion α) := ⟨completion.map₂ (+)⟩
 
 -- TODO: switch sides once #1103 is fixed
 @[elim_cast]
-lemma coe_zero [has_zero α] : 0 = ((0 : α) : completion α) := rfl
+lemma uniform_space.completion.coe_zero [has_zero α] : 0 = ((0 : α) : completion α) := rfl
 end group
 
 namespace uniform_space.completion
@@ -73,7 +73,7 @@ have hf : uniform_continuous f, from uniform_continuous_of_continuous hf,
     (continuous_add (continuous_extension.comp continuous_fst) (continuous_extension.comp continuous_snd)))
   (assume a b, by rw_mod_cast [extension_coe hf, extension_coe hf, extension_coe hf, is_add_hom.map_add f]) }
 
-lemma is_add_group_hom_map [add_group β] [uniform_add_group β]
+lemma is_add_group_hom_map
   {f : α → β} [is_add_group_hom f] (hf : continuous f) : is_add_group_hom (completion.map f) :=
 (is_add_group_hom_extension  ((continuous_coe _).comp hf) : _)
 

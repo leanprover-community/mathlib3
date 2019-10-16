@@ -11,7 +11,7 @@ import data.zmod.basic algebra.module
 
 universes u v
 
-/-- The generator of the kernel of the unique homomorphism ℤ → α for a semiring α -/
+/-- The generator of the kernel of the unique homomorphism ℕ → α for a semiring α -/
 class char_p (α : Type u) [semiring α] (p : ℕ) : Prop :=
 (cast_eq_zero_iff : ∀ x:ℕ, (x:α) = 0 ↔ p ∣ x)
 

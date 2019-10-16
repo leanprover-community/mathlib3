@@ -25,7 +25,7 @@ manifolds as manifolds for which the changes of coordinates are C^∞.
           when (E, H) is a model with corners (registered as a type class
           instance), this is the groupoid of local homeos of H which are of class
           C^n over the normed field 𝕜, when read in E.
-`smooth_manifold_with_corners 𝕜 E H I M` :
+`smooth_manifold_with_corners 𝕜 E H M` :
           a type class saying that the manifold M, modelled on the space H, has C^∞ changes of
           coordinates with respect to the model with corners (E, H). This is a type class, in which
           E, H and I are outparam. This means that later on one can say that f is smooth from M to
@@ -37,7 +37,7 @@ As a specific example of a model with corners, we have
 to define `n`-dimensional real manifolds with boundary.
 
 We introduce shortcuts for the most common notions of smooth `n`-dimensional real manifolds, with
-or without boundaries. The incantation to call such spaces are respectively
+or without boundaries. The incantations to call such spaces are respectively
   `variables {n : ℕ} {M : Type*} [topological_space M] [manifold (euclidean_space n)]
   [smooth_real_manifold n M]
   include n`

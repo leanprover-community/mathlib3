@@ -380,6 +380,8 @@ def eval (f : σ → α) : mv_polynomial σ α → α := eval₂ id f
 
 @[simp] lemma eval_zero : (0 : mv_polynomial σ α).eval f = 0 := eval₂_zero _ _
 
+@[simp] lemma eval_one : (1 : mv_polynomial σ α).eval f = 1 := eval₂_one _ _
+
 @[simp] lemma eval_add : (p + q).eval f = p.eval f + q.eval f := eval₂_add _ _
 
 lemma eval_monomial : (monomial s a).eval f = a * s.prod (λn e, f n ^ e) :=
@@ -390,6 +392,8 @@ eval₂_monomial _ _
 @[simp] lemma eval_X : ∀ n, (X n).eval f = f n := eval₂_X _ _
 
 @[simp] lemma eval_mul : (p * q).eval f = p.eval f * q.eval f := eval₂_mul _ _
+
+@[simp] lemma eval_pow (n:ℕ) : (p^n).eval f = (p.eval f)^n := eval₂_pow _ _
 
 instance eval.is_semiring_hom : is_semiring_hom (eval f) :=
 eval₂.is_semiring_hom _ _
@@ -621,7 +625,7 @@ begin
   exact finset.sup_le (assume s hs, multiset.card_le_of_le $ finset.le_sup hs)
 end
 
-lemma total_degree_C (a : α) : (C a : mv_polynomial σ α).total_degree = 0 :=
+@[simp] lemma total_degree_C (a : α) : (C a : mv_polynomial σ α).total_degree = 0 :=
 nat.eq_zero_of_le_zero $ finset.sup_le $ assume n hn,
   have _ := finsupp.support_single_subset hn,
   begin
@@ -630,11 +634,19 @@ nat.eq_zero_of_le_zero $ finset.sup_le $ assume n hn,
     exact le_refl _
   end
 
-lemma total_degree_zero : (0 : mv_polynomial σ α).total_degree = 0 :=
+@[simp] lemma total_degree_zero : (0 : mv_polynomial σ α).total_degree = 0 :=
 by rw [← C_0]; exact total_degree_C (0 : α)
 
-lemma total_degree_one : (1 : mv_polynomial σ α).total_degree = 0 :=
+@[simp] lemma total_degree_one : (1 : mv_polynomial σ α).total_degree = 0 :=
 total_degree_C (1 : α)
+
+@[simp] lemma total_degree_X {α} [nonzero_comm_ring α] (s : σ) :
+  (X s : mv_polynomial σ α).total_degree = 1 :=
+begin
+  rw [total_degree, X, monomial, finsupp.support_single_ne_zero one_ne_zero],
+  simp only [finset.sup, sum_single_index, finset.insert_empty_eq_singleton,
+    finset.fold_singleton, lattice.sup_bot_eq],
+end
 
 lemma total_degree_add (a b : mv_polynomial σ α) :
   (a + b).total_degree ≤ max a.total_degree b.total_degree :=
@@ -647,7 +659,7 @@ finset.sup_le $ assume n hn,
     { exact le_max_right_of_le (finset.le_sup this) }
   end
 
-lemma total_degree_mul (a b : mv_polynomial σ α) :
+lemma total_degree_mul_le (a b : mv_polynomial σ α) :
   (a * b).total_degree ≤ a.total_degree + b.total_degree :=
 finset.sup_le $ assume n hn,
   have _ := finsupp.support_mul a b hn,
@@ -660,31 +672,58 @@ finset.sup_le $ assume n hn,
     { assume a b₁ b₂, refl }
   end
 
-lemma total_degree_list_prod :
+lemma total_degree_pow_le (a : mv_polynomial σ α) (n : ℕ) :
+  (a^n).total_degree ≤ n * a.total_degree :=
+begin
+  induction n with n ih,
+  { simp only [nat.nat_zero_eq_zero, zero_mul, pow_zero, total_degree_one] },
+  rw pow_succ,
+  calc total_degree (a * a ^ n) ≤ a.total_degree + (a^n).total_degree : total_degree_mul_le _ _
+    ... ≤ a.total_degree + n * a.total_degree : add_le_add_left ih _
+    ... = (n+1) * a.total_degree : by rw [add_mul, one_mul, add_comm]
+end
+
+lemma total_degree_list_prod_le :
   ∀(s : list (mv_polynomial σ α)), s.prod.total_degree ≤ (s.map mv_polynomial.total_degree).sum
 | []        := by rw [@list.prod_nil (mv_polynomial σ α) _, total_degree_one]; refl
 | (p :: ps) :=
   begin
     rw [@list.prod_cons (mv_polynomial σ α) _, list.map, list.sum_cons],
-    exact le_trans (total_degree_mul _ _) (add_le_add_left (total_degree_list_prod ps) _)
+    exact le_trans (total_degree_mul_le _ _) (add_le_add_left (total_degree_list_prod_le ps) _)
   end
 
-lemma total_degree_multiset_prod (s : multiset (mv_polynomial σ α)) :
+lemma total_degree_multiset_prod_le (s : multiset (mv_polynomial σ α)) :
   s.prod.total_degree ≤ (s.map mv_polynomial.total_degree).sum :=
 begin
   refine quotient.induction_on s (assume l, _),
   rw [multiset.quot_mk_to_coe, multiset.coe_prod, multiset.coe_map, multiset.coe_sum],
-  exact total_degree_list_prod l
+  exact total_degree_list_prod_le l
 end
 
-lemma total_degree_finset_prod {ι : Type*}
+lemma total_degree_finset_prod_le {ι : Type*}
   (s : finset ι) (f : ι → mv_polynomial σ α) :
   (s.prod f).total_degree ≤ s.sum (λi, (f i).total_degree) :=
 begin
-  refine le_trans (total_degree_multiset_prod _) _,
+  refine le_trans (total_degree_multiset_prod_le _) _,
   rw [multiset.map_map],
   refl
 end
+
+-- TODO
+-- @[simp] lemma total_degree_mul {α} [integral_domain α] (a b : mv_polynomial σ α) :
+--   (a * b).total_degree = a.total_degree + b.total_degree :=
+-- le_antisymm (total_degree_mul_le a b)
+-- begin
+--   sorry
+-- end
+
+-- @[simp] lemma total_degree_pow {α} [integral_domain α] (a : mv_polynomial σ α) (n : ℕ) :
+--   (a^n).total_degree = n * a.total_degree :=
+-- begin
+--   induction n with n ih,
+--   { simp only [nat.nat_zero_eq_zero, zero_mul, pow_zero, total_degree_one] },
+--   { rw [pow_succ, total_degree_mul, ih, nat.succ_mul, add_comm] },
+-- end
 
 end total_degree
 
@@ -810,6 +849,20 @@ lemma map_sub : (p - q).map f = p.map f - q.map f := is_ring_hom.map_sub _
 @[simp] lemma map_neg : (-p).map f = -(p.map f) := is_ring_hom.map_neg _
 
 end map
+
+section total_degree
+
+@[simp] lemma total_degree_neg (a : mv_polynomial σ α) :
+  (-a).total_degree = a.total_degree :=
+by simp only [total_degree, finsupp.support_neg]
+
+lemma total_degree_sub (a b : mv_polynomial σ α) :
+  (a - b).total_degree ≤ max a.total_degree b.total_degree :=
+calc (a - b).total_degree = (a + -b).total_degree                : by rw sub_eq_add_neg
+                      ... ≤ max a.total_degree (-b).total_degree : total_degree_add a (-b)
+                      ... = max a.total_degree b.total_degree    : by rw total_degree_neg
+
+end total_degree
 
 end comm_ring
 

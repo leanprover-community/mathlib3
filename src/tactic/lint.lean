@@ -1,35 +1,33 @@
 /-
 Copyright (c) 2019 Floris van Doorn. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Authors: Floris van Doorn
+Authors: Floris van Doorn, Robert Y. Lewis
 -/
 import tactic.core
 /-!
-  # lint command
-  This file defines the following user commands to spot common mistakes in the code.
-  * `#lint`: check all declarations in the current file
-  * `#lint_mathlib`: check all declarations in mathlib (so excluding core or other projects,
-    and also excluding the current file)
-  * `#lint_all`: check all declarations in the environment (the current file and all
-    imported files)
+# lint command
+This file defines the following user commands to spot common mistakes in the code.
+* `#lint`: check all declarations in the current file
+* `#lint_mathlib`: check all declarations in mathlib (so excluding core or other projects,
+  and also excluding the current file)
+* `#lint_all`: check all declarations in the environment (the current file and all
+  imported files)
 
-  Currently this will check for
-  1. unused arguments in declarations,
-  2. whether a declaration is incorrectly marked as a def/lemma,
-  3. whether a namespace is duplicated in the name of a declaration
-  4. whether ≥/> is used in the declaration
+Four linters are provided by default:
+1. `unused_arguments` checks for unused arguments in declarations
+2. `def_lemma` checks whether a declaration is incorrectly marked as a def/lemma
+3. `dup_namespce` checks whether a namespace is duplicated in the name of a declaration
+4. `illegal_constant` checks whether ≥/> is used in the declaration
 
-  You can append a `-` to any command (e.g. `#lint_mathlib-`) to omit the slow tests (4).
+You can append a `-` to any command (e.g. `#lint_mathlib-`) to omit the slow tests (4).
 
-  You can customize the performed checks like this:
-  ```
-  meta def my_check (d : declaration) : tactic (option string) :=
-  return $ if d.to_name = `foo then some "gotcha!" else none
-  run_cmd lint tt [(my_check, "found nothing", "found something")] >>= trace
-  ```
+You can append `only name1 name2 ...` to any command to run a subset of linters.
+`#lint only unused_arguments`
 
-  ## Tags
-  sanity check, lint, cleanup, command, tactic
+You can add custom linters by defining a term of type `linter` and tagging it with `@[linter]`.
+
+## Tags
+sanity check, lint, cleanup, command, tactic
 -/
 
 universe variable u
@@ -48,6 +46,16 @@ meta def nolint_attr : user_attribute :=
 attribute [nolint] imp_intro
   classical.dec classical.dec_pred classical.dec_rel classical.dec_eq
 
+/--
+A linting test for the `#lint` command.
+
+`name` is the name of the test; it is used when doing restricted testing with `lint only name name2`
+
+`no_errors_found` is the message printed when all tests are negative, and `errors_found` is printed
+when at least one test is positive.
+
+If `is_fast` is false, this test will be omitted from `#lint-`.
+-/
 meta structure linter :=
 (name : string)
 (test : declaration → tactic (option string))
@@ -55,6 +63,7 @@ meta structure linter :=
 (errors_found : string)
 (is_fast : bool := tt)
 
+/-- Create a list of all linters defined with the `@[linter]` attribute -/
 meta def get_linters (l : list name) : tactic (list linter) :=
 l.mmap (λ n, mk_const n >>= eval_expr linter)
 
@@ -269,13 +278,14 @@ meta def lint_all (slow : bool := tt) (restrict_to : option (list string) := non
 #check tactic.interactive.apply
 
 meta def parse_only_names : parser (option (list string)) :=
-optional $ list.map name.to_string <$> (only_flag *> ident_*)
+optional $ list.map name.to_string <$> ((only_flag >>= guardb) *> ident_*)
 
 /-- The command `#lint` at the bottom of a file will warn you about some common mistakes
   in that file. -/
 @[user_command] meta def lint_cmd (_ : parse $ tk "#lint") : parser unit :=
 do b ← optional (tk "-"),
    restrict_to ← parse_only_names,
+   trace restrict_to.is_some,
    s ← lint b.is_none restrict_to,
    trace s
 

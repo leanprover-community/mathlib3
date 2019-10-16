@@ -1146,21 +1146,18 @@ User commands to spot common mistakes in the code
 * `#lint_all`: check all declarations in the environment (the current file and all
   imported files)
 
-Currently this will check for
-
-1. unused arguments in declarations,
-2. whether a declaration is incorrectly marked as a def/lemma,
-3. whether a namespace is duplicated in the name of a declaration
-4. whether ≥/> is used in the declaration
+Four linters are provided by default:
+1. `unused_arguments` checks for unused arguments in declarations
+2. `def_lemma` checks whether a declaration is incorrectly marked as a def/lemma
+3. `dup_namespce` checks whether a namespace is duplicated in the name of a declaration
+4. `illegal_constant` checks whether ≥/> is used in the declaration
 
 You can append a `-` to any command (e.g. `#lint_mathlib-`) to omit the slow tests (4).
 
-You can customize the performed checks like this:
-```lean
-meta def my_check (d : declaration) : tactic (option string) :=
-return $ if d.to_name = `foo then some "gotcha!" else none
-run_cmd lint tt [(my_check, "found nothing", "found something")] >>= trace
-```
+You can append `only name1 name2 ...` to any command to run a subset of linters.
+`#lint only unused_arguments`
+
+You can add custom linters by defining a term of type `linter` and tagging it with `@[linter]`.
 
 ### lift
 
@@ -1195,12 +1192,12 @@ Lift an expression to another type.
 
 ### import_private
 
-`import_private foo from bar` finds a private declaration `foo` in the same file as `bar` and creates a 
-local notation to refer to it. 
-    
+`import_private foo from bar` finds a private declaration `foo` in the same file as `bar` and creates a
+local notation to refer to it.
+
 `import_private foo`, looks for `foo` in all (imported) files.
 
-When possible, make `foo` non-private rather than using this feature. 
+When possible, make `foo` non-private rather than using this feature.
 
 ### default_dec_tac'
 

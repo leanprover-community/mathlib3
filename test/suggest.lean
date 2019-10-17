@@ -5,7 +5,7 @@
 import tactic.suggest
 
 /- Turn off trace messages so they don't pollute the test build: -/
-set_option trace.silence_suggest true
+-- set_option trace.silence_suggest true
 
 open tactic
 
@@ -60,7 +60,7 @@ end
 
 example (A B : Prop) (a : A) (b : unit → B) : A ∧ B :=
 begin
-  (do s ← suggest, guard $ "refine ⟨a, _⟩" ∈ s),
+  (do s ← suggest, guard $ s.head = "refine ⟨a, _⟩"),
   refine ⟨a, _⟩,
   replace b := b (),
   (do s ← suggest, guard $ s.head = "exact b"),

@@ -47,6 +47,7 @@ no longer than num.
 meta def suggest (num : ℕ := 50) (discharger : tactic unit := done) : tactic (list string) :=
 do (g::gs) ← get_goals,
    t ← infer_type g,
+   hyps ← local_context,
 
    -- Make sure that `solve_by_elim` doesn't just solve the goal immediately:
    (do
@@ -63,25 +64,24 @@ do (g::gs) ← get_goals,
      trace format!"Found {defs.length} relevant lemmas:",
      trace $ defs.map (λ ⟨d, n, m, l⟩, (n, m.to_string))),
 
-   -- PROJECT it would be better to sort not just by `num_goals`, but by the pair
-   -- `(num_goals, -num_hyps_used)`, where `num_hyps_used` is a putative function that
-   -- counts numbers of appearances of local hypotheses in `result`.
-
    -- Filter out the lemmas that cannot be used with refine
    let results_with_num_goals := (mllist.of_list defs).mfilter_map
    (λ d, lock_tactic_state $ do
      apply_declaration ff discharger d,
      ng ← num_goals,
+     g ← instantiate_mvars g,
+     let nh := (hyps.filter(λ h : expr, h.occurs g)).length, -- number of local hypotheses used
      state ← read,
-     return ((d, state), ng)),
+     return ((d, state), (ng, nh))),
    -- Get the first num elements of the successful lemmas
    L ← results_with_num_goals.take num,
-   let L := L.qsort(λ d₁ d₂, d₁.2 ≤ d₂.2),
+   -- Sort by number of remaining goals, then by number of hypotheses used.
+   let L := L.qsort(λ d₁ d₂, d₁.2.1 < d₂.2.1 ∨ (d₁.2.1 = d₂.2.1 ∧ d₁.2.2 ≥ d₂.2.2)),
    -- Print the first num successful lemmas
    if L.length = 0 then do
-    fail "There are no applicable lemmas or theorems"
+     fail "There are no applicable lemmas or theorems"
    else
-    print_messages g (is_trace_enabled_for `silence_suggest) (L.map (λ d, d.1.2)))
+     print_messages g (is_trace_enabled_for `silence_suggest) (L.map (λ d, d.1.2)))
 
 end tactic
 

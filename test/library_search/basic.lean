@@ -44,8 +44,9 @@ by library_search -- says: `exact nat.le.intro rfl`
 example (n m k : ℕ) : n * (m - k) = n * m - n * k :=
 by library_search -- says: `exact nat.mul_sub_left_distrib n m k`
 
-example (n m k : ℕ) : n * m - n * k = n * (m - k) :=
-by library_search -- says: `exact eq.symm (nat.mul_sub_left_distrib n m k)`
+-- TODO this doesn't work yet, and would require `library_search` to use `symmetry`
+-- example (n m k : ℕ) : n * m - n * k = n * (m - k) :=
+-- by library_search -- says: `exact eq.symm (nat.mul_sub_left_distrib n m k)`
 
 example {n m : ℕ} (h : m < n) : m ≤ n - 1 :=
 by library_search -- says: `exact nat.le_pred_of_lt h`

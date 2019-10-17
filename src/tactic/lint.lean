@@ -13,20 +13,27 @@ This file defines the following user commands to spot common mistakes in the cod
 * `#lint_all`: check all declarations in the environment (the current file and all
   imported files)
 
-Four linters are provided by default:
+Five linters are run by default:
 1. `unused_arguments` checks for unused arguments in declarations
 2. `def_lemma` checks whether a declaration is incorrectly marked as a def/lemma
 3. `dup_namespce` checks whether a namespace is duplicated in the name of a declaration
 4. `illegal_constant` checks whether ≥/> is used in the declaration
+5. `doc_blame` checks for missing doc strings on definitions and constants.
+
+A sixth linter, `doc_blame_thm`, checks for missing doc strings on lemmas and theorems.
+This is not run by default.
 
 The command `#list_linters` prints a list of the names of all available linters.
 
 You can append a `-` to any command (e.g. `#lint_mathlib-`) to omit the slow tests (4).
 
-You can append `only name1 name2 ...` to any command to run a subset of linters.
+You can append `only name1 name2 ...` to any command to run a subset of linters, e.g.
 `#lint only unused_arguments`
 
-You can add custom linters by defining a term of type `linter` and tagging it with `@[linter]`.
+You can add custom linters by defining a term of type `linter` in the `linter` namespace.
+A linter defined with the name `linter.my_new_check` can be run with `#lint my_new_check`
+or `lint only my_new_check`.
+If you add the attribute `@[linter]` to `linter.my_new_check` it will run by default.
 
 ## Tags
 sanity check, lint, cleanup, command, tactic
@@ -40,6 +47,9 @@ reserve notation `#lint_mathlib`
 reserve notation `#lint_all`
 reserve notation `#list_linters`
 
+run_cmd tactic.skip -- apparently doc strings can't come directly after `reserve notation`
+
+/-- Defines the user attribute `nolint` for skipping `#lint` -/
 @[user_attribute]
 meta def nolint_attr : user_attribute :=
 { name := "nolint",
@@ -51,7 +61,8 @@ attribute [nolint] imp_intro
 /--
 A linting test for the `#lint` command.
 
-`name` is the name of the test; it is used when doing restricted testing with `lint only name name2`
+`test` defines a test to perform on every declaration. It should never fail. Returning `none`
+signifies a passing test. Returning `some msg` reports a failing test with error `msg`.
 
 `no_errors_found` is the message printed when all tests are negative, and `errors_found` is printed
 when at least one test is positive.
@@ -64,17 +75,22 @@ meta structure linter :=
 (errors_found : string)
 (is_fast : bool := tt)
 
-/-- Create a list of all linters defined with the `@[linter]` attribute -/
+/-- Takes a list of names that resolve to declarations of type `linter`,
+and produces a list of linters. -/
 meta def get_linters (l : list name) : tactic (list linter) :=
 l.mmap (λ n, mk_const n >>= eval_expr linter <|> fail format!"invalid linter: {n}")
 
+/-- Defines the user attribute `linter` for adding a linter to the default set.
+Linters should be defined in the `linter` namespace.
+A linter `linter.my_new_linter` is referred to as `my_new_linter` (without the `linter` namespace)
+when used in `#lint`.
+-/
 @[user_attribute]
-meta def linter_attr : user_attribute (list linter) unit :=
+meta def linter_attr : user_attribute unit unit :=
 { name := "linter",
   descr := "Use this declaration as a linting test in #lint",
   after_set := some $ λ nm _ _,
-                mk_const nm >>= infer_type >>= unify `(linter),
-  cache_cfg := ⟨get_linters, []⟩ }
+                mk_const nm >>= infer_type >>= unify `(linter) }
 
 setup_tactic_parser
 universe variable v
@@ -135,7 +151,7 @@ if l = [] then none else
 let l2 := check_unused_arguments_aux [] 1 d.type.pi_arity d.type in
 (l.filter $ λ n, n ∈ l2).reverse
 
-/- Check for unused arguments, and print them with their position, variable name, type and whether
+/-- Check for unused arguments, and print them with their position, variable name, type and whether
   the argument is a duplicate.
   See also `check_unused_arguments`.
   This tactic additionally filters out all unused arguments of type `parse _` -/
@@ -152,12 +168,13 @@ meta def unused_arguments (d : declaration) : tactic (option string) := do
     (if ds.countp (λ b', b.type = b'.type) ≥ 2 then " (duplicate)" else "")) <$> pp b),
   return $ some $ ns.to_string_aux tt
 
+/-- A linter object for checking for unused arguments. This is in the default linter set. -/
 @[linter] meta def linter.unused_arguments : linter :=
 { test := unused_arguments,
   no_errors_found := "No unused arguments",
   errors_found := "UNUSED ARGUMENTS" }
 
-/-- Checks whether the correct declaration constructor (definition of theorem) by comparing it
+/-- Checks whether the correct declaration constructor (definition or theorem) by comparing it
   to its sort. Instances will not be printed -/
 meta def incorrect_def_lemma (d : declaration) : tactic (option string) := do
   e ← get_env,
@@ -170,6 +187,8 @@ meta def incorrect_def_lemma (d : declaration) : tactic (option string) := do
     else if (d.is_definition : bool) then "is a def, should be a lemma/theorem"
     else "is a lemma/theorem, should be a def"
 
+/-- A linter for checking whether the correct declaration constructor (definition or theorem)
+has been used. -/
 @[linter] meta def linter.def_lemma : linter :=
 { test := incorrect_def_lemma,
   no_errors_found := "All declarations correctly marked as def/lemma",
@@ -182,6 +201,7 @@ return $ let nm := d.to_name.components in if nm.chain' (≠) ∨ is_inst then n
   else let s := (nm.find $ λ n, nm.count n ≥ 2).iget.to_string in
   some $ "The namespace `" ++ s ++ "` is duplicated in the name"
 
+/-- A linter for checking whether a declaration has a namespace twice consecutively in its name. -/
 @[linter] meta def linter.dup_namespace : linter :=
 { test := dup_namespace,
   no_errors_found := "No declarations have a duplicate namespace",
@@ -207,6 +227,7 @@ return $ let illegal := [`gt, `ge] in if d.type.contains_constant (λ n, n ∈ i
   then some "the type contains ≥/>. Use ≤/< instead."
   else none
 
+/-- A linter for checking whether illegal constants (≥, >) appear in a declaration's type. -/
 @[linter] meta def linter.illegal_constants : linter :=
 { test := illegal_constants_in_statement,
   no_errors_found := "No illegal constants in declarations",
@@ -237,6 +258,11 @@ meta def linter.doc_blame_thm : linter :=
   errors_found := "THEOREMS ARE MISSING DOCUMENTATION STRINGS",
   is_fast := ff }
 
+/-- `get_checks slow extra use_only` produces a list of linters.
+`extras` is a list of names that should resolve to declarations with type `linter`.
+If `use_only` is true, it only uses the linters in `extra`.
+Otherwise, it uses all linters in the environment tagged with `@[linter]`.
+If `slow` is false, it filters the linter list to only use fast tests. -/
 meta def get_checks (slow : bool) (extra : list name) (use_only : bool) :
   tactic (list ((declaration → tactic (option string)) × string × string)) :=
 do linter_list ← if use_only then return extra else list.append extra <$> attribute.get_instances `linter,
@@ -296,39 +322,36 @@ meta def lint_all (slow : bool := tt) (extra : list name := [])
   lint_aux l (λ t, print_decls_sorted <$> fold_over_with_cond_sorted l t)
     "in all imported files (including this one)" slow checks
 
-/-- Parses either a sequence of identifiers, -/
+/-- Parses an optional `only`, followed by a sequence of zero or more identifiers.
+Prepends `linter.` to each of these identifiers. -/
 private meta def parse_lint_additions : parser (bool × list name) :=
 prod.mk <$> only_flag <*> (list.map (name.append `linter) <$> ident_*)
+
+/-- The common denominator of `lint_cmd`, `lint_mathlib_cmd`, `lint_all_cmd` -/
+private meta def lint_cmd_aux (scope : bool → list name → bool → tactic format) : parser unit :=
+do b ← optional (tk "-"),
+   (use_only, extra) ← parse_lint_additions,
+   s ← scope b.is_none extra use_only,
+   trace s
 
 /-- The command `#lint` at the bottom of a file will warn you about some common mistakes
   in that file. -/
 @[user_command] meta def lint_cmd (_ : parse $ tk "#lint") : parser unit :=
-do b ← optional (tk "-"),
-   (use_only, extra) ← parse_lint_additions,
-   s ← lint b.is_none extra use_only,
-   trace s
+lint_cmd_aux @lint
 
 /-- The command `#lint_mathlib` checks all of mathlib for certain mistakes. -/
-@[user_command] meta def lint_mathlib_cmd (_ : parse $ tk "#lint_mathlib") :
-  parser unit :=
-do b ← optional (tk "-"),
-   (use_only, extra) ← parse_lint_additions,
-   s ← lint_mathlib b.is_none extra use_only,
-   trace s
+@[user_command] meta def lint_mathlib_cmd (_ : parse $ tk "#lint_mathlib") : parser unit :=
+lint_cmd_aux @lint_mathlib
 
 /-- The command `#lint_mathlib` checks all of mathlib for certain mistakes. -/
-@[user_command] meta def lint_all_cmd (_ : parse $ tk "#lint_all") :
-  parser unit :=
-do b ← optional (tk "-"),
-   (use_only, extra) ← parse_lint_additions,
-   s ← lint_all b.is_none extra use_only,
-   trace s
+@[user_command] meta def lint_all_cmd (_ : parse $ tk "#lint_all") : parser unit :=
+lint_cmd_aux @lint_all
 
 /-- The command `#list_linters` prints a list of all available linters. -/
 @[user_command] meta def list_linters (_ : parse $ tk "#list_linters") : parser unit :=
 do env ← get_env,
-   let ns := env.decl_filter_map
-     (λ dcl, if (dcl.to_name.get_prefix = `linter) && (dcl.type = `(linter)) then some dcl.to_name else none),
+let ns := env.decl_filter_map $ λ dcl,
+    if (dcl.to_name.get_prefix = `linter) && (dcl.type = `(linter)) then some dcl.to_name else none,
    trace "Available linters:\n  linters marked with (*) are in the default lint set\n",
    ns.mmap' $ λ n, do
      b ← has_attribute' `linter n,

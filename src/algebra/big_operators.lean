@@ -504,6 +504,21 @@ begin
     { simp only [mem_image], rintro ⟨⟨_, hm⟩, _, rfl⟩, exact ha hm } }
 end
 
+lemma sum_mul_sum {ι₁ : Type*} {ι₂ : Type*} (s₁ : finset ι₁) (s₂ : finset ι₂)
+  (f₁ : ι₁ → β) (f₂ : ι₂ → β) :
+  s₁.sum f₁ * s₂.sum f₂ = (s₁.product s₂).sum (λ p, f₁ p.1 * f₂ p.2) :=
+by { rw [sum_product, sum_mul, sum_congr rfl], intros, rw mul_sum }
+
+@[move_cast]
+lemma nat_cast_prod (f : α → ℕ) :
+  ((s.prod f : ℕ) : β) = s.prod (λ i, (f i : β)) :=
+(finset.prod_hom _).symm
+
+@[move_cast]
+lemma nat_cast_sum (f : α → ℕ) :
+  ((s.sum f : ℕ) : β) = s.sum (λ i, (f i : β)) :=
+(finset.sum_hom _).symm
+
 end comm_semiring
 
 section integral_domain /- add integral_semi_domain to support nat and ennreal -/

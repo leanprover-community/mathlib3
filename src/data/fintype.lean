@@ -179,6 +179,20 @@ def of_subsingleton (a : α) [subsingleton α] : fintype α :=
 lemma card_eq_sum_ones {α} [fintype α] : fintype.card α = (finset.univ : finset α).sum (λ _, 1) :=
 finset.card_eq_sum_ones _
 
+section
+open_locale classical
+
+@[to_additive]
+lemma prod_extend_by_one [comm_monoid α] {ι} [fintype ι] (s : finset ι) (f : ι → α) :
+  univ.prod (λ i, if i ∈ s then f i else 1) = s.prod f :=
+begin
+  rw [← prod_sdiff (subset_univ s), prod_eq_one, one_mul, prod_congr rfl],
+  { intros i hi, exact dif_pos hi },
+  { intros i hi, rw mem_sdiff at hi, exact dif_neg hi.2 }
+end
+
+end
+
 end fintype
 
 lemma finset.card_univ [fintype α] : (finset.univ : finset α).card = fintype.card α :=

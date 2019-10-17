@@ -20,7 +20,7 @@ Assuming that a goal `g` has been (partially) solved in the tactic_state `l`,
 this function prepares a string of the form `exact ...` or `refine ...` (possibly with underscores)
 that will reproduce that result.
 -/
-meta def message (l : tactic_state) (g : expr) : tactic string :=
+meta def message (g : expr) (l : tactic_state) : tactic string :=
 do s ← read,
    write l,
    r ← tactic_statement g,
@@ -29,14 +29,10 @@ do s ← read,
 
 /--
 Runs through the list of tactic_states in which the goal `g` has been (partially) solved,
-and prints an `exact ...` or `refine ...` message for each one.
+and generates an `exact ...` or `refine ...` message for each one.
 -/
-meta def print_messages (g : expr) (silent : bool) : list tactic_state → tactic (list string)
-| []      := return []
-| (l::ls) := do r ← message l g,
-                if ¬ silent then trace r else skip,
-                rs ← print_messages ls,
-                return (r :: rs)
+meta def messages (g : expr) (L : list tactic_state) : tactic (list string) :=
+L.mmap (message g)
 
 declare_trace silence_suggest -- Turn off `exact/refine ...` trace messages
 declare_trace suggest         -- Trace a list of all relevant lemmas
@@ -81,14 +77,12 @@ do (g::gs) ← get_goals,
    -- Sort by number of remaining goals, then by number of hypotheses used.
    let L := L.qsort(λ d₁ d₂, d₁.2.1 < d₂.2.1 ∨ (d₁.2.1 = d₂.2.1 ∧ d₁.2.2 ≥ d₂.2.2)),
    -- Print the first num successful lemmas
-   if L.length = 0 then
-     fail "There are no applicable lemmas or theorems"
-   else
-     print_messages g (is_trace_enabled_for `silence_suggest) (L.map (λ d, d.1.2)))
+   messages g (L.map (λ d, d.1.2)))
 
 end tactic
 
 namespace tactic.interactive
+open tactic
 open interactive
 open lean.parser
 
@@ -104,6 +98,14 @@ For performance reasons `suggest` uses monadic lazy lists (`mllist`). This means
 `suggest` might miss some results if `num` is not large enough. However, because
 `suggest` uses monadic lazy lists, smaller values of `num` run faster than larger values.
 -/
-meta def suggest (n : parse (with_desc "n" small_nat)) : tactic unit := tactic.suggest n >> tactic.skip
+meta def suggest (n : parse (with_desc "n" small_nat)) : tactic unit :=
+do L ← tactic.suggest n,
+  if is_trace_enabled_for `silence_suggest then
+    if L.length = 0 then
+      fail "There are no applicable declarations"
+    else
+      L.mmap trace >> skip
+  else
+    skip
 
 end tactic.interactive

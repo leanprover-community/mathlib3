@@ -13,29 +13,30 @@ namespace tactic
 
 open tactic.library_search
 
-/--This function prints either the `exact` or `refine` tactics with the corresponding
-lemma/theorem with inputs for a specific tactic_state-/
-meta def message (l : decl_data × tactic_state) (g : expr) : tactic string :=
+/--
+Assuming that a goal `g` has been (partially) solved in the tactic_state `l`,
+this function prepares a string of the form `exact ...` or `refine ...` (possibly with underscores)
+that will reproduce that result.
+-/
+meta def message (l : tactic_state) (g : expr) : tactic string :=
 do s ← read,
-   write l.2,
+   write l,
    r ← tactic_statement g,
    write s,
    return r
 
-/--Runs through the list of tactic_states and prints an `exact` or `refine` message for each one-/
-meta def print_messages (g : expr) (silent : bool) : list (decl_data × tactic_state) → tactic (list string)
+/--
+Runs through the list of tactic_states in which the goal `g` has been (partially) solved,
+and prints an `exact ...` or `refine ...` message for each one.
+-/
+meta def print_messages (g : expr) (silent : bool) : list tactic_state → tactic (list string)
 | []      := return []
 | (l::ls) := do r ← message l g,
                 if ¬ silent then trace r else skip,
                 rs ← print_messages ls,
                 return (r :: rs)
 
-/-- Returns a monadic lazy list of declaration data -/
-meta def get_mldefs (defs : list decl_data) : mllist tactic decl_data :=
-mllist.of_list defs
-
-
-declare_trace silence_suggest -- Turn off `exact ...` trace message
+declare_trace silence_suggest -- Turn off `exact/refine ...` trace messages
 declare_trace suggest         -- Trace a list of all relevant lemmas
 
 /-- The main suggest tactic, this is very similar to the main library_search function. It returns
@@ -59,15 +60,13 @@ do (g::gs) ← get_goals,
    when (is_trace_enabled_for `suggest) $ (do
      trace format!"Found {defs.length} relevant lemmas:",
      trace $ defs.map (λ ⟨d, n, m, l⟩, (n, m.to_string))),
-   -- Turn defs into an mllist
-   let mldefs := get_mldefs defs,
 
   --  -- PROJECT it would be better to sort not just by `num_goals`, but by the pair
   --  -- `(num_goals, -num_hyps_used)`, where `num_hyps_used` is a putative function that
   --  -- counts numbers of appearances of local hypotheses in `result`.
 
    -- Filter out the lemmas that cannot be used with refine
-   let results_with_num_goals := mldefs.mfilter_map
+   let results_with_num_goals := (mllist.of_list defs).mfilter_map
    (λ d, lock_tactic_state $ do
      apply_declaration ff discharger d,
      ng ← num_goals,
@@ -80,7 +79,7 @@ do (g::gs) ← get_goals,
    if L.length = 0 then do
     fail "There are no applicable lemmas or theorems"
    else
-    print_messages g (is_trace_enabled_for `silence_suggest) (L.map (λ d, d.1)))
+    print_messages g (is_trace_enabled_for `silence_suggest) (L.map (λ d, d.1.2)))
 
 end tactic
 

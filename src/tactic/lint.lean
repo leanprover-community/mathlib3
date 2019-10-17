@@ -264,11 +264,10 @@ If `use_only` is true, it only uses the linters in `extra`.
 Otherwise, it uses all linters in the environment tagged with `@[linter]`.
 If `slow` is false, it filters the linter list to only use fast tests. -/
 meta def get_checks (slow : bool) (extra : list name) (use_only : bool) :
-  tactic (list ((declaration → tactic (option string)) × string × string)) :=
+  tactic (list linter) :=
 do linter_list ← if use_only then return extra else list.append extra <$> attribute.get_instances `linter,
    linter_list ← get_linters linter_list.erase_dup,
-   let linter_list := if slow then linter_list else linter_list.filter (λ l, l.is_fast),
-   return $ linter_list.map $ λ ⟨f, s1, s2, _⟩, ⟨f, s1, s2⟩
+   return $ if slow then linter_list else linter_list.filter (λ l, l.is_fast)
 
 /-- The common denominator of `#lint[|mathlib|all]`.
   The different commands have different configurations for `l`, `printer` and `where_desc`.
@@ -276,11 +275,10 @@ do linter_list ← if use_only then return extra else list.append extra <$> attr
   By setting `checks` you can customize which checks are performed. -/
 meta def lint_aux (l : list declaration)
   (printer : (declaration → tactic (option string)) → tactic format)
-  (where_desc : string) (slow : bool)
-  (checks : list ((declaration → tactic (option string)) × string × string)) : tactic format := do
+  (where_desc : string) (slow : bool) (checks : list linter) : tactic format := do
   let s : format := "/- Note: This command is still in development. -/\n",
   let s := s ++ format!"/- Checking {l.length} declarations {where_desc} -/\n\n",
-  s ← checks.mfoldl (λ s ⟨tac, ok_string, warning_string⟩, show tactic format, from do
+  s ← checks.mfoldl (λ s ⟨tac, ok_string, warning_string, _⟩, show tactic format, from do
     f ← printer tac,
     return $ s ++ if f.is_nil then format!"/- OK: {ok_string}. -/\n"
   else format!"/- {warning_string}: -/" ++ f ++ "\n\n") s,

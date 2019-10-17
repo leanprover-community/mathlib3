@@ -487,7 +487,7 @@ begin
     exact fe_cont _ (by simp [hx, h hx, e.map_target (h hx)]) }
 end
 
-/-- Continuity within a set at a point can be read under leftt composition with a local
+/-- Continuity within a set at a point can be read under left composition with a local
 homeomorphism if a neighborhood of the initial point is sent to the source of the local
 homeomorphism-/
 lemma continuous_within_at_iff_continuous_within_at_comp_left
@@ -507,7 +507,7 @@ begin
     exact this.congr (λy hy, by simp [e.left_inv hy.2]) (by simp [e.left_inv hx]) }
 end
 
-/-- Continuity at a point can be read under leftt composition with a local homeomorphism if a
+/-- Continuity at a point can be read under left composition with a local homeomorphism if a
 neighborhood of the initial point is sent to the source of the local homeomorphism-/
 lemma continuous_at_iff_continuous_at_comp_left
   {f : γ → α} {x : γ} (h : f ⁻¹' e.source ∈ nhds x) :

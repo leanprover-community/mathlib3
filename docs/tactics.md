@@ -298,20 +298,20 @@ import tactic.find
 #find (_ : ℕ) + _ = _ + _
 ```
 
-### refine_list
+### suggest
 
-`refine_list` lists possible usages of the `refine` tactic and leaves the tactic state unchanged.
+`suggest` lists possible usages of the `refine` tactic and leaves the tactic state unchanged.
 It is intended as a complement of the search function in your editor, the `#find` tactic, and `library_search`.
 
-`refine_list` takes an optional natural number `num` as input and returns the first `num` (or less, if all possibilities are exhausted) possibilities ordered by length of lemma names. The default for `num` is `50`.
+`suggest` takes an optional natural number `num` as input and returns the first `num` (or less, if all possibilities are exhausted) possibilities ordered by length of lemma names. The default for `num` is `50`.
 
-For performance reasons `refine_list` uses monadic lazy lists (`mllist`). This means that `refine_list` might miss some results if `num` is not large enough. However, because `refine_list` uses monadic lazy lists, smaller values of `num` run faster than larger values.
+For performance reasons `suggest` uses monadic lazy lists (`mllist`). This means that `suggest` might miss some results if `num` is not large enough. However, because `suggest` uses monadic lazy lists, smaller values of `num` run faster than larger values.
 
-An example of `refine_list` in action,
+An example of `suggest` in action,
 
 ```lean
 example (n : nat) : n < n + 1 :=
-begin refine_list, sorry end
+begin suggest, sorry end
 ```
 
 prints the list,

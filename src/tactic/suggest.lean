@@ -1,17 +1,16 @@
 -- Copyright (c) 2019 Lucas Allen. All rights reserved.
 -- Released under Apache 2.0 license as described in the file LICENSE.
--- Authors: Lucas Allen
+-- Authors: Lucas Allen and Scott Morrison
 
 import tactic.library_search
 import data.mllist
 
-/-
-`refine_list` is an extension of `library_search` which lists some applicable lemmas and theorems.
+/-!
+`suggest` is an extension of `library_search` which lists some applicable lemmas and theorems.
 -/
 
 namespace tactic
 
---list_refine uses some functions from library_search
 open tactic.library_search
 
 /--This function prints either the `exact` or `refine` tactics with the corresponding
@@ -36,20 +35,20 @@ meta def get_mldefs (defs : list decl_data) : mllist tactic decl_data :=
 mllist.of_list defs
 
 
-declare_trace silence_refine_list -- Turn off `exact ...` trace message
-declare_trace refine_list         -- Trace a list of all relevant lemmas
+declare_trace silence_suggest -- Turn off `exact ...` trace message
+declare_trace suggest         -- Trace a list of all relevant lemmas
 
-/-- The main refine_list tactic, this is very similar to the main library_search function. It returns
+/-- The main suggest tactic, this is very similar to the main library_search function. It returns
 a list of strings consisting of possible applications of the refine tactic. The length of the list is
 no longer than num.-/
-meta def refine_list (num : ℕ := 50) (discharger : tactic unit := done) : tactic (list string) :=
+meta def suggest (num : ℕ := 50) (discharger : tactic unit := done) : tactic (list string) :=
 do (g::gs) ← get_goals,
    t ← infer_type g,
 
    -- Make sure that `solve_by_elim` doesn't just solve the goal immediately:
    (do
        r ← lock_tactic_state (solve_by_elim { discharger := discharger } >> tactic_statement g),
-       when (¬ is_trace_enabled_for `silence_refine_list) $ tactic.trace r,
+       when (¬ is_trace_enabled_for `silence_suggest) $ tactic.trace r,
        return $ [to_string r]) <|>
    -- Otherwise, let's actually try applying library lemmas.
    (do
@@ -57,7 +56,7 @@ do (g::gs) ← get_goals,
    defs ← library_defs (head_symbol t),
    -- Sort by length; people like short proofs
    let defs := defs.qsort(λ d₁ d₂, d₁.l ≤ d₂.l),
-   when (is_trace_enabled_for `refine_list) $ (do
+   when (is_trace_enabled_for `suggest) $ (do
      trace format!"Found {defs.length} relevant lemmas:",
      trace $ defs.map (λ ⟨d, n, m, l⟩, (n, m.to_string))),
    -- Turn defs into an mllist
@@ -81,23 +80,23 @@ do (g::gs) ← get_goals,
    if L.length = 0 then do
     fail "There are no applicable lemmas or theorems"
    else
-    print_messages g (is_trace_enabled_for `silence_refine_list) (L.map (λ d, d.1)))
+    print_messages g (is_trace_enabled_for `silence_suggest) (L.map (λ d, d.1)))
 
 end tactic
 
 namespace interactive
 /--
-`refine_list` lists possible usages of the `refine`
+`suggest` lists possible usages of the `exact` or `refine`
 tactic and leaves the tactic state unchanged. It is intended as a complement of the search
 function in your editor, the `#find` tactic, and `library_search`.
 
-`refine_list` takes an optional natural number `num` as input and returns the first `num`
+`suggest` takes an optional natural number `num` as input and returns the first `num`
 (or less, if all possibilities are exhausted) possibilities ordered by length of lemma names.
 The default for `num` is `50`.
-For performance reasons `refine_list` uses monadic lazy lists (`mllist`). This means that
-`refine_list` might miss some results if `num` is not large enough. However, because
-`refine_list` uses monadic lazy lists, smaller values of `num` run faster than larger values.
+For performance reasons `suggest` uses monadic lazy lists (`mllist`). This means that
+`suggest` might miss some results if `num` is not large enough. However, because
+`suggest` uses monadic lazy lists, smaller values of `num` run faster than larger values.
 -/
-meta def refine_list := tactic.refine_list
+meta def suggest := tactic.suggest
 
 end interactive

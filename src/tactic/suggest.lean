@@ -39,9 +39,11 @@ meta def print_messages (g : expr) (silent : bool) : list tactic_state → tacti
 declare_trace silence_suggest -- Turn off `exact/refine ...` trace messages
 declare_trace suggest         -- Trace a list of all relevant lemmas
 
-/-- The main suggest tactic, this is very similar to the main library_search function. It returns
+/--
+The main `suggest` tactic, which is very similar to the main `library_search` function. It returns
 a list of strings consisting of possible applications of the refine tactic. The length of the list is
-no longer than num.-/
+no longer than num.
+-/
 meta def suggest (num : ℕ := 50) (discharger : tactic unit := done) : tactic (list string) :=
 do (g::gs) ← get_goals,
    t ← infer_type g,
@@ -61,9 +63,9 @@ do (g::gs) ← get_goals,
      trace format!"Found {defs.length} relevant lemmas:",
      trace $ defs.map (λ ⟨d, n, m, l⟩, (n, m.to_string))),
 
-  --  -- PROJECT it would be better to sort not just by `num_goals`, but by the pair
-  --  -- `(num_goals, -num_hyps_used)`, where `num_hyps_used` is a putative function that
-  --  -- counts numbers of appearances of local hypotheses in `result`.
+   -- PROJECT it would be better to sort not just by `num_goals`, but by the pair
+   -- `(num_goals, -num_hyps_used)`, where `num_hyps_used` is a putative function that
+   -- counts numbers of appearances of local hypotheses in `result`.
 
    -- Filter out the lemmas that cannot be used with refine
    let results_with_num_goals := (mllist.of_list defs).mfilter_map

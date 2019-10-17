@@ -429,6 +429,17 @@ finset.induction_on s (by simp)
     ... ≤ (insert a s).sum (λ a, card (t a)) :
     by rw sum_insert has; exact add_le_add_left ih _)
 
+theorem card_eq_sum_card_image [decidable_eq β] (f : α → β) (s : finset α) :
+  s.card = (s.image f).sum (λ a, (s.filter (λ x, f x = a)).card) :=
+by letI := classical.dec_eq α; exact
+calc s.card = ((s.image f).bind (λ a, s.filter (λ x, f x = a))).card :
+  congr_arg _ (finset.ext.2 $ λ x,
+    ⟨λ hs, mem_bind.2 ⟨f x, mem_image_of_mem _ hs,
+      mem_filter.2 ⟨hs, rfl⟩⟩,
+    λ h, let ⟨a, ha₁, ha₂⟩ := mem_bind.1 h in by convert filter_subset s ha₂⟩)
+... = (s.image f).sum (λ a, (s.filter (λ x, f x = a)).card) :
+  card_bind (by simp [disjoint_left, finset.ext] {contextual := tt})
+
 lemma gsmul_sum [add_comm_group β] {f : α → β} {s : finset α} (z : ℤ) :
   gsmul z (s.sum f) = s.sum (λa, gsmul z (f a)) :=
 (finset.sum_hom (gsmul z)).symm
@@ -612,6 +623,14 @@ end linear_ordered_comm_ring
   (s : finset α) (t : Π a, finset (δ a)) :
   (s.pi t).card = s.prod (λ a, card (t a)) :=
 multiset.card_pi _ _
+
+theorem card_le_mul_card_image [decidable_eq β] {f : α → β} (s : finset α)
+  (n : ℕ) (hn : ∀ a ∈ s.image f, (s.filter (λ x, f x = a)).card ≤ n) :
+  s.card ≤ n * (s.image f).card :=
+calc s.card = (s.image f).sum (λ a, (s.filter (λ x, f x = a)).card) :
+  card_eq_sum_card_image _ _
+... ≤ (s.image f).sum (λ _, n) : sum_le_sum hn
+... = _ : by simp [mul_comm]
 
 @[simp] lemma prod_range_id_eq_fact (n : ℕ) : ((range n.succ).erase 0).prod (λ x, x) = nat.fact n :=
 calc ((range n.succ).erase 0).prod (λ x, x) = (range n).prod nat.succ :

@@ -209,7 +209,7 @@ begin
   rw [sum_comm, sum_eq_zero],
   intros d hd,
   rw [← mul_sum, mul_eq_zero], right,
-  simp [finsupp.prod],
+  simp only [finsupp.prod],
   obtain ⟨i, hi⟩ : ∃ i, d i < q - 1,
   { contrapose! h,
     refine le_trans _ (finset.le_sup hd),

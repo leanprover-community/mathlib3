@@ -101,6 +101,6 @@ For performance reasons `suggest` uses monadic lazy lists (`mllist`). This means
 `suggest` might miss some results if `num` is not large enough. However, because
 `suggest` uses monadic lazy lists, smaller values of `num` run faster than larger values.
 -/
-meta def suggest := tactic.suggest
+meta def suggest : tactic unit := tactic.suggest >> tactic.skip
 
 end tactic.interactive

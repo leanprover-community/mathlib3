@@ -226,7 +226,7 @@ meta def doc_blame_report_thm : declaration → tactic (option string)
 
 /-- A linter for checking definition doc strings -/
 @[linter] meta def linter.doc_blame : linter :=
-{ test := doc_blame_report_defn,
+{ test := λ d, mcond (bnot <$> has_attribute' `instance d.to_name) (doc_blame_report_defn d) (return none),
   no_errors_found := "No definitions are missing documentation.",
   errors_found := "DEFINITIONS ARE MISSING DOCUMENTATION STRINGS" }
 
@@ -240,7 +240,6 @@ meta def linter.doc_blame_thm : linter :=
 meta def get_checks (slow : bool) (extra : list name) (use_only : bool) :
   tactic (list ((declaration → tactic (option string)) × string × string)) :=
 do linter_list ← if use_only then return extra else list.append extra <$> attribute.get_instances `linter,
---   let linter_list := linter_list.remove_dups, --if use_only then linter_list.filter (λ nm, nm ∈ extra) else linter_list.insert_list extra,
    linter_list ← get_linters linter_list.erase_dup,
    let linter_list := if slow then linter_list else linter_list.filter (λ l, l.is_fast),
    return $ linter_list.map $ λ ⟨f, s1, s2, _⟩, ⟨f, s1, s2⟩
@@ -328,11 +327,12 @@ do b ← optional (tk "-"),
 /-- The command `#list_linters` prints a list of all available linters. -/
 @[user_command] meta def list_linters (_ : parse $ tk "#list_linters") : parser unit :=
 do env ← get_env,
-   lint_attrs ← name_set.of_list <$> attribute.get_instances `linter,
    let ns := env.decl_filter_map
      (λ dcl, if (dcl.to_name.get_prefix = `linter) && (dcl.type = `(linter)) then some dcl.to_name else none),
    trace "Available linters:\n  linters marked with (*) are in the default lint set\n",
-   ns.mmap' $ λ n, trace $ n.pop_prefix.to_string ++ if lint_attrs.contains n then " (*)" else ""
+   ns.mmap' $ λ n, do
+     b ← has_attribute' `linter n,
+     trace $ n.pop_prefix.to_string ++ if b then " (*)" else ""
 
 /-- Use `lint` as a hole command. Note: In a large file, there might be some delay between
   choosing the option and the information appearing -/

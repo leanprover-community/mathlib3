@@ -5,9 +5,12 @@ Authors: Chris Hughes, Joey van Langen, Casper Putz
 -/
 
 import data.equiv.algebra
-import algebra.char_p
+import data.polynomial
 import data.zmod.basic
+import algebra.char_p
+import algebra.geom_sum
 import linear_algebra.basis
+import group_theory.order_of_element
 
 /-!
 # Finite fields
@@ -28,12 +31,13 @@ Throughout most of this file, K denotes a finite field with q elements.
 -/
 
 variables {K : Type*} [discrete_field K] [fintype K]
+variables {R : Type*} [integral_domain R] [decidable_eq R]
+local notation `q` := fintype.card K
 
 section
 
 open function finset polynomial nat
 
-variables {R : Type*} [integral_domain R] [decidable_eq R]
 variables (S : set (units R)) [is_subgroup S] [fintype S]
 
 lemma card_nth_roots_subgroup_units {n : ℕ} (hn : 0 < n) (a : S) :
@@ -44,6 +48,7 @@ card_le_card_of_inj_on (λ a, ((a : units R) : R))
 
 open_locale classical
 
+/-- A finite subgroup of the units of an integral domain is cyclic. -/
 instance subgroup_units_cyclic : is_cyclic S :=
 is_cyclic_of_card_pow_eq_one_le
   (λ n hn, le_trans (card_nth_roots_subgroup_units S hn 1) (card_nth_roots _ _))
@@ -51,12 +56,10 @@ is_cyclic_of_card_pow_eq_one_le
 end
 
 namespace finite_field
-variables {K : Type u} [discrete_field K] [fintype K]
-local notation `q` := fintype.card K
+open function finset polynomial
 
 /-- Every finite integral domain is a field. -/
-def field_of_integral_domain [fintype R] [decidable_eq R] [integral_domain R] :
-  discrete_field R :=
+def field_of_integral_domain [fintype R] : discrete_field R :=
 { has_decidable_eq := by apply_instance,
   inv := λ a, if h : a = 0 then 0
     else fintype.bij_inv (show function.bijective (* a),
@@ -68,9 +71,7 @@ def field_of_integral_domain [fintype R] [decidable_eq R] [integral_domain R] :
   inv_zero := dif_pos rfl,
   ..show integral_domain R, by apply_instance }
 
-section
-open function finset polynomial
-
+/-- The units of a finite field are finite. -/
 instance : fintype (units K) :=
 by haveI := set_fintype {a : K | a ≠ 0}; exact
 fintype.of_equiv _ (equiv.units_equiv_ne_zero K).symm
@@ -87,6 +88,7 @@ begin
   congr, ext, simp [classical.em]
 end
 
+/-- The units of a finite field form a cyclic group. -/
 instance : is_cyclic (units K) :=
 by haveI := set_fintype (@set.univ (units K)); exact
 let ⟨g, hg⟩ := is_cyclic.exists_generator (@set.univ (units K)) in
@@ -152,6 +154,29 @@ begin
   end
 end
 
+theorem card (p : ℕ) [char_p K p] : ∃ (n : ℕ+), nat.prime p ∧ q = p^(n : ℕ) :=
+have hp : nat.prime p, from char_p.char_is_prime K p,
+have V : vector_space (zmodp p hp) K, from {..zmod.to_module'},
+let ⟨n, h⟩ := @vector_space.card_fintype _ _ _ _ V _ _ in
+have hn : n > 0, from or.resolve_left (nat.eq_zero_or_pos n)
+  (assume h0 : n = 0,
+  have q = 1, by rw[←nat.pow_zero (fintype.card _), ←h0]; exact h,
+  have (1 : K) = 0, from (fintype.card_le_one_iff.mp (le_of_eq this)) 1 0,
+  absurd this one_ne_zero),
+⟨⟨n, hn⟩, hp, fintype.card_fin p ▸ h⟩
+
+theorem card' : ∃ (p : ℕ) (n : ℕ+), nat.prime p ∧ q = p^(n : ℕ) :=
+let ⟨p, hc⟩ := char_p.exists K in ⟨p, @finite_field.card K _ _ p hc⟩
+
+@[simp] lemma cast_card_eq_zero : (q : K) = 0 :=
+begin
+  rcases char_p.exists K with ⟨p, _char_p⟩, resetI,
+  rcases card K p with ⟨n, hp, hn⟩,
+  simp only [char_p.cast_eq_zero_iff K p, hn],
+  conv { congr, rw [← nat.pow_one p] },
+  exact nat.pow_dvd_pow _ n.2,
+end
+
 /-- The sum of x^i as x ranges over a finite field of cardinality q is equal to 0 if i < q-1. -/
 lemma sum_pow_lt_card_sub_one (i : ℕ) (h : i < q - 1) :
   univ.sum (λ x, x^i) = (0:K) :=
@@ -175,31 +200,6 @@ begin
   refine sum_bij (λ x _, x) (λ _ _, by simp) (λ _ _, rfl) (λ _ _ _ _, units.ext_iff.mpr) _,
   { intros, refine ⟨units.mk0 b _, mem_univ _, rfl⟩,
     simpa only [true_and, mem_sdiff, mem_univ, mem_singleton] using H, },
-end
-
-end
-
-theorem card (p : ℕ) [char_p K p] : ∃ (n : ℕ+), nat.prime p ∧ q = p^(n : ℕ) :=
-have hp : nat.prime p, from char_p.char_is_prime K p,
-have V : vector_space (zmodp p hp) K, from {..zmod.to_module'},
-let ⟨n, h⟩ := @vector_space.card_fintype _ _ _ _ V _ _ in
-have hn : n > 0, from or.resolve_left (nat.eq_zero_or_pos n)
-  (assume h0 : n = 0,
-  have q = 1, by rw[←nat.pow_zero (fintype.card _), ←h0]; exact h,
-  have (1 : K) = 0, from (fintype.card_le_one_iff.mp (le_of_eq this)) 1 0,
-  absurd this one_ne_zero),
-⟨⟨n, hn⟩, hp, fintype.card_fin p ▸ h⟩
-
-theorem card' : ∃ (p : ℕ) (n : ℕ+), nat.prime p ∧ q = p^(n : ℕ) :=
-let ⟨p, hc⟩ := char_p.exists K in ⟨p, @finite_field.card K _ _ p hc⟩
-
-@[simp] lemma cast_card_eq_zero : (q : K) = 0 :=
-begin
-  rcases char_p.exists K with ⟨p, _char_p⟩, resetI,
-  rcases card K p with ⟨n, hp, hn⟩,
-  simp only [char_p.cast_eq_zero_iff K p, hn],
-  conv { congr, rw [← nat.pow_one p] },
-  exact nat.pow_dvd_pow _ n.2,
 end
 
 end finite_field

@@ -6,8 +6,6 @@ Authors: Johan Commelin
 
 import data.mv_polynomial
 import algebra.pi_instances
-import algebra.geom_sum
-import group_theory.order_of_element
 import field_theory.finite.basic
 
 /-!
@@ -38,6 +36,7 @@ open mv_polynomial function finset
 
 variables {K : Type*} [discrete_field K] [fintype K]
 variables {σ : Type*} [fintype σ] [decidable_eq σ]
+local notation `q` := fintype.card K
 
 lemma sum_mv_polynomial_eq_zero (f : mv_polynomial σ K)
   (h : f.total_degree < (q - 1) * fintype.card σ) :

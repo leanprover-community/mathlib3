@@ -28,7 +28,7 @@ manifolds as manifolds for which the changes of coordinates are C^∞.
 `smooth_manifold_with_corners 𝕜 E H M` :
           a type class saying that the manifold M, modelled on the space H, has C^∞ changes of
           coordinates with respect to the model with corners (E, H). This is a type class, in which
-          E, H and I are outparam. This means that later on one can say that f is smooth from M to
+          E and H are outparam. This means that later on one can say that f is smooth from M to
           M' over 𝕜, and Lean with fetch by itself the smooth structures on M and M' (and E, H,
           E', H').
 

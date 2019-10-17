@@ -35,6 +35,7 @@ is_cyclic_of_card_pow_eq_one_le
 end
 
 namespace finite_field
+local notation `q` := fintype.card α
 
 def field_of_integral_domain [fintype α] [decidable_eq α] [integral_domain α] :
   discrete_field α :=
@@ -74,8 +75,7 @@ by haveI := set_fintype (@set.univ (units α)); exact
 let ⟨g, hg⟩ := is_cyclic.exists_generator (@set.univ (units α)) in
 ⟨⟨g, λ x, let ⟨n, hn⟩ := hg ⟨x, trivial⟩ in ⟨n, by rw [← is_subgroup.coe_gpow, hn]; refl⟩⟩⟩
 
-lemma prod_univ_units_id_eq_neg_one :
-  univ.prod (λ x, x) = (-1 : units α) :=
+lemma prod_univ_units_id_eq_neg_one : univ.prod (λ x, x) = (-1 : units α) :=
 have ((@univ (units α) _).erase (-1)).prod (λ x, x) = 1,
 from prod_involution (λ x _, x⁻¹) (by simp)
   (λ a, by simp [units.inv_eq_self_iff] {contextual := tt})
@@ -84,19 +84,15 @@ from prod_involution (λ x _, x⁻¹) (by simp)
 by rw [← insert_erase (mem_univ (-1 : units α)), prod_insert (not_mem_erase _ _),
     this, mul_one]
 
-lemma pow_card_sub_one_eq_one (a : α) (ha : a ≠ 0) :
-  a ^ (q - 1) = 1 :=
-calc a ^ (q - 1) = (units.mk0 a ha ^ (q - 1) : units α) :
-    by rw [units.coe_pow, units.mk0_val]
-  ... = 1 : by rw [← card_units, pow_card_eq_one]; refl
+lemma pow_card_sub_one_eq_one (a : α) (ha : a ≠ 0) : a ^ (q - 1) = 1 :=
+calc a ^ (q - 1) = (units.mk0 a ha ^ (q - 1) : units α) : by rw [units.coe_pow, units.mk0_val]
+             ... = 1 : by rw [← card_units, pow_card_eq_one]; refl
 
 variable (α)
 
 lemma sum_pow_units (i : ℕ) :
-  univ.sum (λ (x : units α), (x^i : α)) =
-  if (q - 1) ∣ i then q - 1 else 0 :=
+  univ.sum (λ (x : units α), (x^i : α)) = if (q - 1) ∣ i then q - 1 else 0 :=
 begin
-  let q := q,
   have hq : 0 < q - 1,
   { rw [← card_units, fintype.card_pos_iff],
     exact ⟨1⟩ },
@@ -139,7 +135,6 @@ end
 lemma sum_pow_lt_card_sub_one (i : ℕ) (h : i < q - 1) :
   univ.sum (λ x, x^i) = (0:α) :=
 begin
-  let q := q,
   have hq : 0 < q - 1,
   { rw [← card_units, fintype.card_pos_iff],
     exact ⟨1⟩ },
@@ -168,11 +163,18 @@ open mv_polynomial function finset
 
 variables [discrete_field α] [fintype α] {σ : Type*} [fintype σ] [decidable_eq σ]
 
+-- move this
+lemma sum_mul_sum {ι₁ : Type*} {ι₂ : Type*} (s₁ : finset ι₁) (s₂ : finset ι₂)
+  (f₁ : ι₁ → α) (f₂ : ι₂ → α) :
+  s₁.sum f₁ * s₂.sum f₂ = (s₁.product s₂).sum (λ p, f₁ p.1 * f₂ p.2) :=
+begin
+  sorry
+end
+
 lemma sum_mv_polynomial_eq_zero (f : mv_polynomial σ α)
   (h : f.total_degree < (q - 1) * fintype.card σ) :
   univ.sum (λ x, f.eval x) = (0:α) :=
 begin
-  let q := q,
   have hq : 0 < q - 1,
   { rw [← card_units, fintype.card_pos_iff],
     exact ⟨1⟩ },
@@ -183,11 +185,6 @@ begin
   intros d hd,
   rw [← mul_sum, mul_eq_zero], right,
   simp [finsupp.prod],
-  -- by_cases hd' : d.support = ∅,
-  -- { have : 0 < fintype.card σ,
-  --   { contrapose! h, rw nat.le_zero_iff at h, rw [h, mul_zero], exact zero_le _ },
-  --   simp only [hd', add_monoid.smul_one, sum_const, prod_empty, card_univ, add_monoid.smul_one,
-  --     cast_card_eq_zero, sum_const, nat.cast_pow, fintype.card_fun, prod_empty, zero_pow this], },
   obtain ⟨i, hi⟩ : ∃ i, d i < q - 1,
   { contrapose! h,
     refine le_trans _ (finset.le_sup hd),
@@ -200,9 +197,16 @@ begin
   suffices claim : (univ.filter (λ (x : σ → α), ∀ j, j ≠ i → x j = 0)).sum (λ x, x i ^ d i) *
     (univ.filter (λ (x : σ → α), x i = 0)).sum
     (λ (x : σ → α), (univ \ finset.singleton i).prod (λ j, x j ^ d j)) = 0,
-  { sorry },
+  { rw sum_mul_sum at claim, rw ← claim, symmetry,
+    refine sum_bij (λ p _ j, if j = i then p.1 j else p.2 j) (λ _ _, mem_univ _) _ _ _,
+    { rintros ⟨x,y⟩ hxy, rw [mem_product, mem_filter, mem_filter] at hxy,
+      sorry -- is this even true??
+      -- simp at hxy,
+      -- simp,
+       },
+      all_goals { sorry } },
   { rw mul_eq_zero, left,
-    conv_rhs {rw ← sum_pow_lt_card_sub_one α (d i) hi},
+    conv_rhs {rw ← sum_pow_lt_card_sub_one (d i) hi},
     refine sum_bij (λ x _, x i) (λ _ _, mem_univ _) (λ _ _, rfl) _ _,
     { intros x y hx hy H, rw mem_filter at hx hy,
       funext j, by_cases hj : j = i, {rwa hj},
@@ -212,6 +216,12 @@ begin
       rw mem_filter,
       exact ⟨mem_univ _, λ j hj, dif_neg hj⟩ } }
 end
+
+-- move this
+@[move_cast]
+lemma cast_prod {ι : Type*} (s : finset ι) (f : ι → ℕ) :
+  s.prod (λ i, (f i : α)) = ((s.prod f : ℕ) : α) :=
+finset.prod_hom _
 
 -- move this
 @[move_cast]
@@ -237,7 +247,6 @@ theorem char_dvd_card_solutions (p : nat.primes) [char_p α p]
   (h : (s.sum $ λ i, (f i).total_degree) < fintype.card σ) :
   (p:ℕ) ∣ fintype.card {x : σ → α // ∀ i ∈ s, (f i).eval x = 0} :=
 begin
-  let q := q,
   have hq : 0 < q - 1,
   { rw [← card_units, fintype.card_pos_iff],
     exact ⟨1⟩ },

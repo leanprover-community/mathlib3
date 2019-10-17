@@ -89,6 +89,9 @@ do (g::gs) ← get_goals,
 end tactic
 
 namespace tactic.interactive
+open interactive
+open lean.parser
+
 /--
 `suggest` lists possible usages of the `exact` or `refine`
 tactic and leaves the tactic state unchanged. It is intended as a complement of the search
@@ -101,6 +104,6 @@ For performance reasons `suggest` uses monadic lazy lists (`mllist`). This means
 `suggest` might miss some results if `num` is not large enough. However, because
 `suggest` uses monadic lazy lists, smaller values of `num` run faster than larger values.
 -/
-meta def suggest : tactic unit := tactic.suggest >> tactic.skip
+meta def suggest (n : parse (with_desc "n" small_nat)) : tactic unit := tactic.suggest n >> tactic.skip
 
 end tactic.interactive

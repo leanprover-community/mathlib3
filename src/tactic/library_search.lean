@@ -76,22 +76,29 @@ meta def library_defs (hs : name) : tactic (list decl_data) :=
 do env ← get_env,
    return $ env.decl_filter_map (process_declaration hs)
 
+/-- Fail if the target contains a metavariable. -/
+meta def no_mvars_in_target : tactic unit :=
+do t ← target,
+   guard t.list_meta_vars.empty
+
+/--
+Apply the lemma `e`, then attempt to close all goals using `solve_by_elim { discharger := discharger }`,
+failing if `close_goals = tt` and there are any goals remaining.
+-/
 meta def apply_and_solve (close_goals : bool) (discharger : tactic unit) (e : expr) : tactic unit :=
 apply e >>
+-- run `solve_by_elim` on each propositional goal separately, not worrying if it ever fails
+try (any_goals (propositional_goal >> no_mvars_in_target >> solve_by_elim { discharger := discharger })) >>
+-- now, if any goals remain, run `solve_by_elim` on them all together
 (done <|>
- solve_by_elim
- { all_goals := tt, discharger := discharger } <|>
- (if ¬ close_goals then
-    do ng ← num_goals,
-       if ng = 1 then
-         -- solve_by_elim has already tried everything
-         skip
-       else
-         -- run solve_by_elim on each goal separately, not worrying if it ever fails
-         try (any_goals (propositional_goal >> solve_by_elim { discharger := discharger }))
-  else
-    failed))
+  solve_by_elim { all_goals := tt, discharger := discharger } <|>
+  -- and fail unless `close_goals = ff`
+  guard ¬ close_goals)
 
+/--
+Apply the declaration `d` (or the forward and backward implications separately, if it is an `iff`),
+and then attempt to solve the goal using `solve_by_elim`.
+-/
 meta def apply_declaration (close_goals : bool) (discharger : tactic unit) (d : decl_data) : tactic unit :=
 let tac := apply_and_solve close_goals discharger in
 do (e, t) ← decl_mk_const d.d,
@@ -104,9 +111,16 @@ do (e, t) ← decl_mk_const d.d,
       (do l ← iff_mpr_core e t, tac l)
    end
 
+/--
+Replace any metavariables in the expression with underscores, in preparation for printing
+`refine ...` statements.
+-/
 meta def replace_mvars (e : expr) : expr :=
 e.replace (λ e' _, if e'.is_mvar then some (unchecked_cast pexpr.mk_placeholder) else none)
 
+/--
+Construct a `refine ...` or `exact ...` string which would construct `g`.
+-/
 meta def tactic_statement (g : expr) : tactic string :=
 do g ← instantiate_mvars g,
    g ← head_beta g,

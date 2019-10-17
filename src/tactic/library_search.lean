@@ -85,6 +85,10 @@ do t ← target,
 Apply the lemma `e`, then attempt to close all goals using `solve_by_elim { discharger := discharger }`,
 failing if `close_goals = tt` and there are any goals remaining.
 -/
+-- Implementation note: as this is used by both `library_search` and `suggest`,
+-- we first run `solve_by_elim` separately on a subset of the goals, whether or not `close_goals` is set,
+-- and then if `close_goals = tt`, require that `solve_by_elim { all_goals := tt }` succeeds
+-- on the remaining goals.
 meta def apply_and_solve (close_goals : bool) (discharger : tactic unit) (e : expr) : tactic unit :=
 apply e >>
 -- run `solve_by_elim` on each propositional goal separately, not worrying if it ever fails

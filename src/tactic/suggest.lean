@@ -86,7 +86,7 @@ do (g::gs) ← get_goals,
 
 end tactic
 
-namespace interactive
+namespace tactic.interactive
 /--
 `suggest` lists possible usages of the `exact` or `refine`
 tactic and leaves the tactic state unchanged. It is intended as a complement of the search
@@ -101,4 +101,4 @@ For performance reasons `suggest` uses monadic lazy lists (`mllist`). This means
 -/
 meta def suggest := tactic.suggest
 
-end interactive
+end tactic.interactive

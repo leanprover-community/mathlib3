@@ -299,7 +299,7 @@ begin
   { rw [← char_p.cast_eq_zero_iff K, ← this],
     apply sum_mv_polynomial_eq_zero,
     calc F.total_degree ≤ s.sum (λ i, (1 - (f i)^(q-1)).total_degree) :
-      total_degree_finset_prod_le s _
+      total_degree_finset_prod s _
       ... ≤ s.sum (λ i, (q - 1) * (f i).total_degree) :
       begin
         apply sum_le_sum,

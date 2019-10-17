@@ -659,7 +659,7 @@ finset.sup_le $ assume n hn,
     { exact le_max_right_of_le (finset.le_sup this) }
   end
 
-lemma total_degree_mul_le (a b : mv_polynomial σ α) :
+lemma total_degree_mul (a b : mv_polynomial σ α) :
   (a * b).total_degree ≤ a.total_degree + b.total_degree :=
 finset.sup_le $ assume n hn,
   have _ := finsupp.support_mul a b hn,
@@ -678,33 +678,33 @@ begin
   induction n with n ih,
   { simp only [nat.nat_zero_eq_zero, zero_mul, pow_zero, total_degree_one] },
   rw pow_succ,
-  calc total_degree (a * a ^ n) ≤ a.total_degree + (a^n).total_degree : total_degree_mul_le _ _
+  calc total_degree (a * a ^ n) ≤ a.total_degree + (a^n).total_degree : total_degree_mul _ _
     ... ≤ a.total_degree + n * a.total_degree : add_le_add_left ih _
     ... = (n+1) * a.total_degree : by rw [add_mul, one_mul, add_comm]
 end
 
-lemma total_degree_list_prod_le :
+lemma total_degree_list_prod :
   ∀(s : list (mv_polynomial σ α)), s.prod.total_degree ≤ (s.map mv_polynomial.total_degree).sum
 | []        := by rw [@list.prod_nil (mv_polynomial σ α) _, total_degree_one]; refl
 | (p :: ps) :=
   begin
     rw [@list.prod_cons (mv_polynomial σ α) _, list.map, list.sum_cons],
-    exact le_trans (total_degree_mul_le _ _) (add_le_add_left (total_degree_list_prod_le ps) _)
+    exact le_trans (total_degree_mul _ _) (add_le_add_left (total_degree_list_prod ps) _)
   end
 
-lemma total_degree_multiset_prod_le (s : multiset (mv_polynomial σ α)) :
+lemma total_degree_multiset_prod (s : multiset (mv_polynomial σ α)) :
   s.prod.total_degree ≤ (s.map mv_polynomial.total_degree).sum :=
 begin
   refine quotient.induction_on s (assume l, _),
   rw [multiset.quot_mk_to_coe, multiset.coe_prod, multiset.coe_map, multiset.coe_sum],
-  exact total_degree_list_prod_le l
+  exact total_degree_list_prod l
 end
 
-lemma total_degree_finset_prod_le {ι : Type*}
+lemma total_degree_finset_prod {ι : Type*}
   (s : finset ι) (f : ι → mv_polynomial σ α) :
   (s.prod f).total_degree ≤ s.sum (λi, (f i).total_degree) :=
 begin
-  refine le_trans (total_degree_multiset_prod_le _) _,
+  refine le_trans (total_degree_multiset_prod _) _,
   rw [multiset.map_map],
   refl
 end

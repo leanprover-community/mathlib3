@@ -76,7 +76,7 @@ meta def library_defs (hs : name) : tactic (list decl_data) :=
 do env ← get_env,
    return $ env.decl_filter_map (process_declaration hs)
 
-meta def apply_and_solve (close_goals : bool) (discharger : tactic unit) (e : expr) :=
+meta def apply_and_solve (close_goals : bool) (discharger : tactic unit) (e : expr) : tactic unit :=
 apply e >>
 (done <|>
  solve_by_elim

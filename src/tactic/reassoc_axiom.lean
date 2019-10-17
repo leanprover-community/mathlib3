@@ -55,6 +55,10 @@ meta def get_cat_inst : expr → tactic expr
 | `(@category_struct.comp _ %%struct_inst _ _ _ _ _) := pure struct_inst
 | _ := failed
 
+/-- (internals for `@[reassoc]`)
+Given a lemma of the form `f ≫ g = h`, proves a new lemma of the form `h : ∀ {W} (k), f ≫ (g ≫ k) = h ≫ k`,
+and returns the type and proof of this lemma.
+-/
 meta def prove_reassoc (h : expr) : tactic (expr × expr) :=
 do
    (vs,t) ← infer_type h >>= mk_local_pis,

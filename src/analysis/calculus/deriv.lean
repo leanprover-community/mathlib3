@@ -117,17 +117,17 @@ theorem has_fderiv_within_at.lim (h : has_fderiv_within_at f f' s x)
   (cdlim : tendsto (λ (n : ℕ), c n • d n) at_top (nhds v)) :
   tendsto (λn, c n • (f (x + d n) - f x)) at_top (nhds (f' v)) :=
 begin
-  have at_top_is_finer : at_top ≤ comap (λ (n : ℕ), x + d n) (nhds_within (x + 0) s),
-  { rw [← tendsto_iff_comap, nhds_within, tendsto_inf],
+  have at_top_is_finer : at_top ≤ comap (λ (n : ℕ), x + d n) (nhds_within x s),
+  { conv in (nhds_within x s) { rw ← add_zero x },
+    rw [← tendsto_iff_comap, nhds_within, tendsto_inf],
     split,
     { apply tendsto_add tendsto_const_nhds (tangent_cone_at.lim_zero clim cdlim) },
     { rwa tendsto_principal } },
-  rw add_zero at at_top_is_finer,
   have : is_o (λ y, f y - f x - f' (y - x)) (λ y, y - x) (nhds_within x s) := h,
   have : is_o (λ n:ℕ, f (x + d n) - f x - f' ((x + d n) - x)) (λ n, (x + d n)  - x)
     ((nhds_within x s).comap (λn, x+ d n)) := is_o.comp this _,
   have : is_o (λ n:ℕ, f (x + d n) - f x - f' (d n)) d
-    ((nhds_within x s).comap (λn, x + d n)) := by simpa using this,
+    ((nhds_within x s).comap (λn, x + d n)) := by simpa,
   have : is_o (λn:ℕ, f (x + d n) - f x - f' (d n)) d at_top :=
     is_o.mono at_top_is_finer this,
   have : is_o (λn:ℕ, c n • (f (x + d n) - f x - f' (d n))) (λn, c n • d n) at_top :=
@@ -1014,8 +1014,9 @@ theorem has_fderiv_within_at.comp {g : F → G} {g' : F →L[𝕜] G} {t : set F
   has_fderiv_within_at (g ∘ f) (g'.comp f') s x :=
 begin
   apply has_fderiv_at_filter.comp _ (has_fderiv_at_filter.mono hg _) hf,
-  apply le_trans hf.continuous_within_at.tendsto_nhds_within_image (nhds_within_mono _ _),
-  rwa image_subset_iff
+  calc map f (nhds_within x s)
+      ≤ nhds_within (f x) (f '' s) : hf.continuous_within_at.tendsto_nhds_within_image
+  ... ≤ nhds_within (f x) t        : nhds_within_mono _ (image_subset_iff.mpr hst)
 end
 
 /-- The chain rule. -/
@@ -1221,12 +1222,8 @@ lemma has_fderiv_within_at.image_tangent_cone_subset {x : E} (h : has_fderiv_wit
 begin
   rw image_subset_iff,
   rintros v ⟨c, d, dtop, clim, cdlim⟩,
-  refine ⟨c, (λn, f (x + d n) - f x), _, clim, _⟩,
-  show {n : ℕ | f x + (f (x + d n) - f x) ∈ f '' s} ∈ at_top,
-  { apply mem_sets_of_superset dtop,
-    simp [-mem_image, mem_image_of_mem] {contextual := tt} },
-  show tendsto (λ (n : ℕ), c n • (f (x + d n) - f x)) at_top (nhds (f' v)),
-  { apply h.lim dtop clim cdlim, }
+  refine ⟨c, (λn, f (x + d n) - f x), mem_sets_of_superset dtop _, clim, h.lim dtop clim cdlim⟩,
+  simp [-mem_image, mem_image_of_mem] {contextual := tt}
 end
 
 /-- If a set has the unique differentiability property at a point x, then the image of this set
@@ -1262,12 +1259,9 @@ begin
     ... = closure (f' '' (closure (submodule.span 𝕜 (tangent_cone_at 𝕜 s x) : set E))) : by rw hs.1
     ... ⊆ closure (closure (f' '' (submodule.span 𝕜 (tangent_cone_at 𝕜 s x) : set E))) :
       closure_mono (image_closure_subset_closure_image f'.cont)
-    ... ⊆  closure (submodule.span 𝕜 (tangent_cone_at 𝕜 (f '' s) (f x)) : set F) : begin
-      rw closure_closure,
-      apply closure_mono,
-      rw image_subset_iff,
-      exact B
-    end
+    ... = closure (f' '' (submodule.span 𝕜 (tangent_cone_at 𝕜 s x) : set E)) : closure_closure
+    ... ⊆ closure (submodule.span 𝕜 (tangent_cone_at 𝕜 (f '' s) (f x)) : set F) :
+      closure_mono (image_subset_iff.mpr B)
 end
 
 end tangent_cone

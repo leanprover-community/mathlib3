@@ -445,7 +445,7 @@ begin
     rw ← this at f_cont,
     have : e.source ∈ nhds (e.inv_fun x) := mem_nhds_sets e.open_source (e.map_target h),
     rw [← continuous_within_at_inter this, inter_comm],
-    apply continuous_within_at.comp f_cont
+    exact continuous_within_at.comp f_cont
       ((e.continuous_at_to_fun (e.map_target h)).continuous_within_at) (inter_subset_right _ _) },
   { assume fe_cont,
     have : continuous_within_at ((f ∘ e.to_fun) ∘ e.inv_fun) (s ∩ e.target) x,
@@ -487,7 +487,7 @@ begin
     exact fe_cont _ (by simp [hx, h hx, e.map_target (h hx)]) }
 end
 
-/-- Continuity within a set at a point can be read under right composition with a local
+/-- Continuity within a set at a point can be read under leftt composition with a local
 homeomorphism if a neighborhood of the initial point is sent to the source of the local
 homeomorphism-/
 lemma continuous_within_at_iff_continuous_within_at_comp_left
@@ -507,7 +507,7 @@ begin
     exact this.congr (λy hy, by simp [e.left_inv hy.2]) (by simp [e.left_inv hx]) }
 end
 
-/-- Continuity at a point can be read under right composition with a local homeomorphism if a
+/-- Continuity at a point can be read under leftt composition with a local homeomorphism if a
 neighborhood of the initial point is sent to the source of the local homeomorphism-/
 lemma continuous_at_iff_continuous_at_comp_left
   {f : γ → α} {x : γ} (h : f ⁻¹' e.source ∈ nhds x) :
@@ -541,7 +541,7 @@ end
 end continuity
 
 /-- If a local homeomorphism has source and target equal to univ, then it induces a homeomorphism
-between the whole spaces, expressed through the following definition. -/
+between the whole spaces, expressed in this definition. -/
 def to_homeomorph_of_source_eq_univ_target_eq_univ (h : e.source = (univ : set α))
   (h' : e.target = univ) : homeomorph α β :=
 { to_fun := e.to_fun,

@@ -38,23 +38,28 @@ declare_trace silence_suggest -- Turn off `exact/refine ...` trace messages
 declare_trace suggest         -- Trace a list of all relevant lemmas
 
 /--
-The main `suggest` tactic, which is very similar to the main `library_search` function. It returns
-a list of strings consisting of possible applications of the refine tactic. The length of the list is
-no longer than num.
+The main `suggest` tactic, which is very similar to the main `library_search` function.
+It returns a list of pairs `(state, message)` consisting of
+* `state`, a tactic state resulting from the successful application of a declaration from the library, and
+* `message`, a string of the form `refine ...` or `exact ...` which will reproduce that tactic state.
 -/
-meta def suggest (num : ℕ := 50) (discharger : tactic unit := done) : tactic (list string) :=
-do (g::gs) ← get_goals,
-   t ← infer_type g,
+meta def suggest (n : ℕ := 50) (discharger : tactic unit := done) : tactic (list (tactic_state × string)) :=
+do [g] ← get_goals | fail "`suggest` should be called with exactly one goal",
+
    hyps ← local_context,
 
    -- Make sure that `solve_by_elim` doesn't just solve the goal immediately:
    (do
-       r ← lock_tactic_state (solve_by_elim { discharger := discharger } >> tactic_statement g),
-       when (¬ is_trace_enabled_for `silence_suggest) $ tactic.trace r,
-       return $ [to_string r]) <|>
+    r ← lock_tactic_state
+      (do solve_by_elim { discharger := discharger },
+          s ← read,
+          m ← tactic_statement g,
+          return (s, m)),
+    return $ [r]) <|>
    -- Otherwise, let's actually try applying library lemmas.
    (do
    -- Collect all definitions with the correct head symbol
+   t ← infer_type g,
    defs ← library_defs (head_symbol t),
    -- Sort by length; people like short proofs
    let defs := defs.qsort(λ d₁ d₂, d₁.l ≤ d₂.l),
@@ -72,12 +77,12 @@ do (g::gs) ← get_goals,
      let nh := hyps.countp(λ h, h.occurs g), -- number of local hypotheses used
      state ← read,
      return ((d, state), (ng, nh))),
-   -- Get the first num elements of the successful lemmas
-   L ← results.take num,
+   -- Get the first n elements of the successful lemmas
+   L ← results.take n,
    -- Sort by number of remaining goals, then by number of hypotheses used.
    let L := L.qsort(λ d₁ d₂, d₁.2.1 < d₂.2.1 ∨ (d₁.2.1 = d₂.2.1 ∧ d₁.2.2 ≥ d₂.2.2)),
-   -- Print the first num successful lemmas
-   messages g (L.map (λ d, d.1.2)))
+   -- Generate messages for the successful applications
+   L.mmap (λ d, do m ← message g d.1.2, return (d.1.2, m)))
 
 end tactic
 
@@ -85,6 +90,7 @@ namespace tactic.interactive
 open tactic
 open interactive
 open lean.parser
+local postfix `?`:9001 := optional
 
 /--
 `suggest` lists possible usages of the `exact` or `refine`
@@ -98,13 +104,13 @@ For performance reasons `suggest` uses monadic lazy lists (`mllist`). This means
 `suggest` might miss some results if `num` is not large enough. However, because
 `suggest` uses monadic lazy lists, smaller values of `num` run faster than larger values.
 -/
-meta def suggest (n : parse (with_desc "n" small_nat)) : tactic unit :=
-do L ← tactic.suggest n,
+meta def suggest (n : parse (with_desc "n" small_nat)?) : tactic unit :=
+do L ← tactic.suggest (n.get_or_else 50),
   if is_trace_enabled_for `silence_suggest then
     if L.length = 0 then
       fail "There are no applicable declarations"
     else
-      L.mmap trace >> skip
+      L.mmap (λ p, trace p.2) >> skip
   else
     skip
 

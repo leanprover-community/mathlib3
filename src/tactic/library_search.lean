@@ -171,6 +171,7 @@ do [g] ← get_goals | fail "`library_search` should be called with exactly one 
 
    -- If something worked, prepare a string to print.
    r ← tactic_statement g,
+   -- TODO printing should only be done by the interactive tactic
    when (¬ is_trace_enabled_for `silence_library_search) $ tactic.trace r,
    return $ to_string r
 

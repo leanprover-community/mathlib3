@@ -64,17 +64,18 @@ do (g::gs) ← get_goals,
      trace format!"Found {defs.length} relevant lemmas:",
      trace $ defs.map (λ ⟨d, n, m, l⟩, (n, m.to_string))),
 
-   -- Filter out the lemmas that cannot be used with refine
-   let results_with_num_goals := (mllist.of_list defs).mfilter_map
+   -- Try applying each lemma against the goal,
+   -- then record the number of remaining goals, and number of local hypotheses used.
+   let results := (mllist.of_list defs).mfilter_map
    (λ d, lock_tactic_state $ do
      apply_declaration ff discharger d,
      ng ← num_goals,
      g ← instantiate_mvars g,
-     let nh := (hyps.filter(λ h : expr, h.occurs g)).length, -- number of local hypotheses used
+     let nh := hyps.countp(λ h, h.occurs g), -- number of local hypotheses used
      state ← read,
      return ((d, state), (ng, nh))),
    -- Get the first num elements of the successful lemmas
-   L ← results_with_num_goals.take num,
+   L ← results.take num,
    -- Sort by number of remaining goals, then by number of hypotheses used.
    let L := L.qsort(λ d₁ d₂, d₁.2.1 < d₂.2.1 ∨ (d₁.2.1 = d₂.2.1 ∧ d₁.2.2 ≥ d₂.2.2)),
    -- Print the first num successful lemmas

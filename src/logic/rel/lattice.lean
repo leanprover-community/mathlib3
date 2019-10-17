@@ -53,12 +53,6 @@ assume p q Hrel,
 ⟨hr.1.rel_exists $ lift_fun_mono_right r @iff.mp _ _ Hrel,
   hr.2.rel_exists $ lift_fun_mono_right r @iff.mpr _ _ Hrel⟩
 
-lemma left_unique_of_rel_eq {eq' : rel β β} (h : (r ⟹ r ⟹ iff) eq eq') : left_unique r :=
-assume x₁ x₂ y h₁ h₂, (h h₁ h₂).mpr $ (h h₁ h₁).mp rfl
-
-lemma right_unique_of_rel_eq {eq' : rel α α} (h : (r ⟹ r ⟹ iff) eq' eq) : right_unique r :=
-assume x y₁ y₂ h₁ h₂, (h h₁ h₂).mp $ (h h₁ h₁).mpr rfl
-
 variable (r)
 
 lemma image_mono : monotone r.image := assume s t h y ⟨x, xs, rxy⟩, ⟨x, h xs, rxy⟩
@@ -73,6 +67,9 @@ le_antisymm
   (λ y ⟨x, xst, rxy⟩, xst.elim (λ xs, or.inl ⟨x, ⟨xs, rxy⟩⟩) (λ xt, or.inr ⟨x, ⟨xt, rxy⟩⟩))
   (r.image_mono.map_sup s t)
 
+lemma image_subset_range (s : set α) : r.image s ⊆ r.range :=
+r.image_univ ▸ r.image_subset s.subset_univ
+
 lemma preimage_mono : monotone r.preimage := r.conv.image_mono
 
 lemma preimage_subset : ((⊆) ⟹ (⊆)).diag r.preimage :=
@@ -84,20 +81,8 @@ r.conv.image_inter s t
 lemma preimage_union (s t : set β) : r.preimage (s ∪ t) = r.preimage s ∪ r.preimage t :=
 image_union _ s t
 
-variable {r}
-
-lemma left_unique.image_inter (h : left_unique r) (s t : set α) :
-  r.image (s ∩ t) = r.image s ∩ r.image t :=
-le_antisymm (r.image_inter s t) $
-assume y ⟨⟨x, xs, hxy⟩, ⟨x', x't, hx'y⟩⟩,
-have x = x', from h hxy hx'y,
-⟨x, ⟨xs, this.symm ▸ x't⟩, hxy⟩
-
-lemma right_unique.preimage_inter (h : right_unique r) (s t : set β) :
-  r.preimage (s ∩ t) = r.preimage s ∩ r.preimage t :=
-h.conv.image_inter s t
-
-variable (r)
+lemma preimage_subset_dom (s : set β) : r.preimage s ⊆ r.dom :=
+r.preimage_univ ▸ r.preimage_subset s.subset_univ
 
 lemma core_mono : monotone r.core := assume s t h x h' y rxy, h $ h' rxy
 
@@ -112,5 +97,36 @@ r.core_mono.map_sup s t
 
 theorem core_preimage_gc : galois_connection (image r) (core r) :=
 image_subset_iff _
+
+variable {r}
+
+lemma left_unique.image_inter (h : left_unique r) (s t : set α) :
+  r.image (s ∩ t) = r.image s ∩ r.image t :=
+le_antisymm (r.image_inter s t) $
+assume y ⟨⟨x, xs, hxy⟩, ⟨x', x't, hx'y⟩⟩,
+have x = x', from h hxy hx'y,
+⟨x, ⟨xs, this.symm ▸ x't⟩, hxy⟩
+
+namespace right_unique
+
+variables (h : right_unique r) (s t : set β)
+include h
+
+lemma preimage_inter : r.preimage (s ∩ t) = r.preimage s ∩ r.preimage t :=
+h.conv.image_inter s t
+
+theorem preimage_subset_core : r.preimage s ⊆ r.core s :=
+assume x ⟨y, hy, hxy⟩ y' hxy', set.mem_of_eq_of_mem (h hxy hxy').symm hy
+
+theorem preimage_eq : r.preimage s = r.core s ∩ r.dom :=
+le_antisymm
+  (set.subset_inter (h.preimage_subset_core s) (r.preimage_subset_dom s))
+  (λ x ⟨hc, y, hxy⟩, ⟨y, hc hxy, hxy⟩)
+
+theorem core_eq : r.core s = r.preimage s ∪ -r.dom :=
+by rw [h.preimage_eq s, set.union_distrib_right, set.union_compl_self, set.inter_univ,
+  set.union_eq_self_of_subset_right (r.compl_dom_subset_core s)]
+
+end right_unique
 
 end rel

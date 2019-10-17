@@ -42,6 +42,8 @@ from h.symm ▸ graph'_mk g x
 
 lemma graph_def (f : α → β) : function.graph f = { x : α × β | f x.1 = x.2 } := rfl
 
+lemma mem_graph {f : α → β} {x y} : (x, y) ∈ function.graph f ↔ f x = y := iff.rfl
+
 variable {f}
 
 lemma injective.graph'_left_unique (h : injective f) : (graph' f).left_unique :=
@@ -114,9 +116,9 @@ lemma graph_of_graph (s : set (α × β)) : (of_graph s).graph = s := function.u
 
 lemma of_graph_graph : of_graph r.graph = r := function.curry_uncurry' r
 
-lemma codom_conv : r.conv.codom = r.dom := rfl
+lemma range_conv : r.conv.range = r.dom := rfl
 
-lemma dom_conv : r.conv.dom = r.codom := rfl
+lemma dom_conv : r.conv.dom = r.range := rfl
 
 lemma image_def (s : set α) : image r s = {y | ∃ x ∈ s, r x y} := rfl
 
@@ -138,7 +140,7 @@ set.subset.antisymm
   (λ z ⟨x, ⟨xs, ⟨y, ⟨hyz, hxy⟩⟩⟩⟩, ⟨y, ⟨⟨x, ⟨xs, hxy⟩⟩, hyz⟩⟩)
   (λ z ⟨y, ⟨⟨x, ⟨xs, hxy⟩⟩, hyz⟩⟩, ⟨x, ⟨xs, ⟨y, ⟨hyz, hxy⟩⟩⟩⟩)
 
-lemma image_univ : r.image set.univ = r.codom := by { ext y, simp [mem_image, codom] }
+lemma image_univ : r.image set.univ = r.range := by { ext y, simp [mem_image, range] }
 
 lemma mem_preimage (x : α) (s : set β) : x ∈ preimage r s ↔ ∃ y ∈ s, r x y :=
 iff.rfl
@@ -287,6 +289,12 @@ assume p q Hrel ⟨a, pa⟩, let ⟨b, hab⟩ := hr a in ⟨b, Hrel hab pa⟩
 lemma right_total.rel_exists (hr : r.right_total) :
   ((r ⟹ (rel.conv implies)) ⟹ (rel.conv implies)) (λp, ∃i, p i) (λq, ∃i, q i) :=
 assume p q Hrel ⟨b, qb⟩, let ⟨a, hab⟩ := hr b in ⟨a, Hrel hab qb⟩
+
+lemma left_unique_of_rel_eq {eq' : rel β β} (h : (r ⟹ r ⟹ iff) eq eq') : left_unique r :=
+assume x₁ x₂ y h₁ h₂, (h h₁ h₂).mpr $ (h h₁ h₁).mp rfl
+
+lemma right_unique_of_rel_eq {eq' : rel α α} (h : (r ⟹ r ⟹ iff) eq' eq) : right_unique r :=
+assume x y₁ y₂ h₁ h₂, (h h₁ h₂).mp $ (h h₁ h₁).mpr rfl
 
 lemma comap₂_def (f : α → β) (g : γ → δ) (r : rel β δ) (x y) :
   r.comap₂ f g x y = r (f x) (g y) := rfl

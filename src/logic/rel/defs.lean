@@ -6,7 +6,7 @@ Authors: Jeremy Avigad, Johannes Hölzl, Yury Kudryashov
 import logic.function
 
 /-!
-# Definitions of a relation, (co)domain, (pre)image etc.
+# Definitions of a relation, its domain, range, (pre)image of a set etc.
 
 In this file we define `rel α β` to be `α → β → Prop`, and define:
 
@@ -20,6 +20,11 @@ In this file we define `rel α β` to be `α → β → Prop`, and define:
 * two ways to lift a pair of relations to a relation on functions.
 
 We prove no properties in this file to avoid circular `import`s.
+
+## Notation
+
+`r₁ ⟹ r₂` is used for the following relation on functions:
+`(r₁ ⟹ r₂) f g ↔ ∀ x y, r₁ x y → r₂ (f x) (f y)`
 -/
 
 universes u v w x
@@ -55,7 +60,7 @@ def diag (r : rel α α) : α → Prop := λ x, r x x
 
 /-- A relation is `left_total`, if its domain is `univ`. -/
 def left_total := ∀a, ∃b, r a b
-/-- A relation is `right_total`, if its codomain is `univ`. -/
+/-- A relation is `right_total`, if its range is `univ`. -/
 def right_total := ∀b, ∃a, r a b
 /-- A relation is `bi_total`, it it is both `left_total` and `right_total`. -/
 def bi_total := left_total r ∧ right_total r
@@ -78,8 +83,8 @@ def of_graph (s : set (α × β)) : rel α β := function.curry s
 /-- Domain of a relation -/
 def dom : set α := {x | ∃ y, r x y}
 
-/-- Codomain of a relation. TODO: codomain or range? -/
-def codom : set β := {y | ∃ x, r x y}
+/-- Range of a relation. -/
+def range : set β := {y | ∃ x, r x y}
 
 /-- Image of a set under a relation -/
 def image (s : set α) : set β := {y | ∃ x ∈ s, r x y}

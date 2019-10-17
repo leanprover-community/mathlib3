@@ -85,6 +85,9 @@ do
    pr' ← lambdas (vs ++ [X',f']) pr',
    pure (t'',pr')
 
+/-- (implementation for `@[reassoc]`)
+Given a declaration named `n` of the form `f ≫ g = h`, proves a new lemma named `n'` of the form `∀ {W} (k), f ≫ (g ≫ k) = h ≫ k`.
+-/
 meta def reassoc_axiom (n : name) (n' : name := n.append_suffix "_assoc") : tactic unit :=
 do d ← get_decl n,
    let ls := d.univ_params.map level.param,

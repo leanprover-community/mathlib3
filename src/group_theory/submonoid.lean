@@ -168,6 +168,10 @@ end is_submonoid
 instance subtype.monoid {s : set α} [is_submonoid s] : monoid s :=
 by subtype_instance
 
+@[to_additive add_comm_monoid]
+instance subtype.comm_monoid {α} [comm_monoid α] {s : set α} [is_submonoid s] : comm_monoid s :=
+by subtype_instance
+
 @[simp, to_additive]
 lemma is_submonoid.coe_one [is_submonoid s] : ((1 : s) : α) = 1 := rfl
 

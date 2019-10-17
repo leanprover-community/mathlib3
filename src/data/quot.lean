@@ -74,6 +74,7 @@ protected def map' (f : α → β) (h : ((@setoid.r _ sa) ⟹ (@setoid.r _ sb)).
   quotient sa → quotient sb :=
 quotient.map f h
 
+/-- A version of `quotient.map₂` using curly braces and unification. -/
 protected def map₂' (f : α → β → γ)
   (h : ((@setoid.r _ sa) ⟹ (@setoid.r _ sb) ⟹ (@setoid.r _ sc)).diag f) :
   quotient sa → quotient sb → quotient sc :=

@@ -79,7 +79,7 @@ do (g::gs) ← get_goals,
    -- Sort by number of remaining goals, then by number of hypotheses used.
    let L := L.qsort(λ d₁ d₂, d₁.2.1 < d₂.2.1 ∨ (d₁.2.1 = d₂.2.1 ∧ d₁.2.2 ≥ d₂.2.2)),
    -- Print the first num successful lemmas
-   if L.length = 0 then do
+   if L.length = 0 then 
      fail "There are no applicable lemmas or theorems"
    else
      print_messages g (is_trace_enabled_for `silence_suggest) (L.map (λ d, d.1.2)))

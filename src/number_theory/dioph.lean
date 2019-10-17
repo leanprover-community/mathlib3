@@ -557,7 +557,7 @@ section
   cast (congr_arg dioph $ set.ext $ λv, (pfun.dom_iff_graph _ _).symm) (ex1_dioph d)
 
   theorem dioph_fn_iff_pfun (f : (α → ℕ) → ℕ) : dioph_fn f = @dioph_pfun α f :=
-  by refine congr_arg dioph (set.ext $ λv, _); exact pfun.lift_graph.symm
+  by refine congr_arg dioph (set.ext $ λv, _); exact pfun.mem_lift_graph.symm
 
   theorem abs_poly_dioph (p : poly α) : dioph_fn (λv, (p v).nat_abs) :=
   by refine of_no_dummies _ ((p.remap some - poly.proj none) * (p.remap some + poly.proj none)) (λv, _);

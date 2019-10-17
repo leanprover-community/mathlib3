@@ -78,8 +78,14 @@ do env ← get_env,
 
 /-- Fail if the target contains a metavariable. -/
 meta def no_mvars_in_target : tactic unit :=
-do t ← target,
-   guard t.list_meta_vars.empty
+expr.has_meta_var <$> target >>= guardb ∘ bnot
+
+/-
+Fail unless the goal is "safe", i.e. propositional, and does not include any metavariables.
+If a goal is "safe", discharging it does not affect the provability of any other goals.
+-/
+meta def safe : tactic unit :=
+propositional_goal >> no_mvars_in_target
 
 /--
 Apply the lemma `e`, then attempt to close all goals using `solve_by_elim { discharger := discharger }`,
@@ -93,18 +99,16 @@ meta def apply_and_solve (close_goals : bool) (discharger : tactic unit) (e : ex
 apply e >>
 -- Phase 1
 -- Run `solve_by_elim` on each "safe" goal separately, not worrying about failures.
--- A goal is "safe" if it is propositional, and does not include an metavariables,
--- and consequently no other goal can depend on which solution we provide.
 -- (We only attempt the "safe" goals in this way in Phase 1. In Phase 2 we will do
 -- backtracking search across all goals, allowing us to guess solutions that involve data, or
 -- unify metavariables, but only as long as we can finish all goals.)
-try (any_goals (propositional_goal >> no_mvars_in_target >> solve_by_elim { discharger := discharger })) >>
+try (any_goals (safe >> solve_by_elim { discharger := discharger })) >>
 -- Phase 2
 (done <|>
   -- If there were any goals that we did not attempt solving in the first phase
   -- (because they weren't propositional, or contained a metavariable)
   -- as a second phase we attempt to solve all remaining goals at once (with backtracking across goals).
-  any_goals (success_if_fail (propositional_goal >> no_mvars_in_target)) >>
+  any_goals (success_if_fail safe) >>
   solve_by_elim { all_goals := tt, discharger := discharger } <|>
   -- and fail unless `close_goals = ff`
   guard ¬ close_goals)

@@ -5,7 +5,7 @@
 import tactic.suggest
 
 /- Turn off trace messages so they don't pollute the test build: -/
--- set_option trace.silence_suggest true
+set_option trace.silence_suggest true
 
 open tactic
 

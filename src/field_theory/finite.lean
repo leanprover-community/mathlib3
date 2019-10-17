@@ -58,7 +58,7 @@ instance : fintype (units α) :=
 by haveI := set_fintype {a : α | a ≠ 0}; exact
 fintype.of_equiv _ (equiv.units_equiv_ne_zero α).symm
 
-lemma card_units : fintype.card (units α) = fintype.card α - 1 :=
+lemma card_units : fintype.card (units α) = q - 1 :=
 begin
   rw [eq_comm, nat.sub_eq_iff_eq_add (fintype.card_pos_iff.2 ⟨(0 : α)⟩)],
   haveI := set_fintype {a : α | a ≠ 0},
@@ -85,55 +85,39 @@ by rw [← insert_erase (mem_univ (-1 : units α)), prod_insert (not_mem_erase _
     this, mul_one]
 
 lemma pow_card_sub_one_eq_one (a : α) (ha : a ≠ 0) :
-  a ^ (fintype.card α - 1) = 1 :=
-calc a ^ (fintype.card α - 1) = (units.mk0 a ha ^ (fintype.card α - 1) : units α) :
+  a ^ (q - 1) = 1 :=
+calc a ^ (q - 1) = (units.mk0 a ha ^ (q - 1) : units α) :
     by rw [units.coe_pow, units.mk0_val]
   ... = 1 : by rw [← card_units, pow_card_eq_one]; refl
-
--- move this to is_cyclic
-lemma pow_inj_of_generator {α : Type u} [fintype α] [group α]
-  (a : α) (ha : ∀ (x : α), x ∈ gpowers a) {i j : ℕ}
-  (hi : i < fintype.card α) (hj : j < fintype.card α) (h : a ^ i = a ^ j) : i = j :=
-begin
-  sorry
-end
-
--- move this to is_cyclic
-lemma exists_pow {α : Type u} [fintype α] [group α]
-  (a : α) (ha : ∀ (x : α), x ∈ gpowers a) (b : α) :
-  ∃ i ∈ range (fintype.card α), b = a^i :=
-begin
-  sorry
-end
 
 variable (α)
 
 lemma sum_pow_units (i : ℕ) :
   univ.sum (λ (x : units α), (x^i : α)) =
-  if (fintype.card α - 1) ∣ i then fintype.card α - 1 else 0 :=
+  if (q - 1) ∣ i then q - 1 else 0 :=
 begin
-  let q := fintype.card α,
+  let q := q,
   have hq : 0 < q - 1,
   { rw [← card_units, fintype.card_pos_iff],
     exact ⟨1⟩ },
   cases is_cyclic.exists_generator (units α) with a ha,
-  calc univ.sum (λ (x : units α), (x^i : α)) = (range (q - 1)).sum (λ k, ((a^k)^i : α)) :
+  calc univ.sum (λ (x : units α), (x^i : α)) = (range (order_of a)).sum (λ k, ((a^k)^i : α)) :
   begin
     symmetry,
     refine sum_bij (λ i hi, a^i) (λ _ _, mem_univ _) (λ _ _, by rw units.coe_pow) _ _,
-    { intros i j hi hj h, rw [mem_range, ← card_units] at hi hj,
-      exact pow_inj_of_generator a ha hi hj h, },
-    { intros x hx, cases ha x with i hi,
-      simpa only [card_units, q, exists_prop, mem_range] using exists_pow a ha x, }
+    { intros i j hi hj h, rw [mem_range] at hi hj,
+      exact pow_injective_of_lt_order_of a hi hj h, },
+    { intros x hx, specialize ha x,
+      rwa [mem_gpowers_iff_mem_range_order_of, mem_image] at ha,
+      rcases ha with ⟨i, hi, rfl⟩, exact ⟨i, hi, rfl⟩ }
   end
     ... = geom_series (a^i : α) (q-1) :
-  by { apply sum_congr rfl, intros k hk, rw [← pow_mul, mul_comm, pow_mul] }
+  begin
+    rw [order_of_eq_card_of_forall_mem_gpowers ha, card_units],
+    apply sum_congr rfl, intros k hk, rw [← pow_mul, mul_comm, pow_mul]
+  end
     ... = if (q - 1) ∣ i then q - 1 else 0 :
   begin
-    have key := geom_sum_mul (a^i : α) (q-1),
-    have hai : (a^i : α) ≠ 0, { rw ← units.coe_pow, apply units.ne_zero },
-    rw [pow_card_sub_one_eq_one _ hai, sub_self] at key,
-    replace key := eq_zero_or_eq_zero_of_mul_eq_zero key,
     split_ifs with H H,
     { rcases H with ⟨d, rfl⟩,
       have aux : (λ (i:ℕ), ((a : α) ^ ((q - 1) * d)) ^ i) = λ i, 1,
@@ -141,17 +125,21 @@ begin
       rw [geom_series_def, aux, sum_const, card_range, add_monoid.smul_one,
         nat.cast_sub, nat.cast_one],
       exact le_trans hq (nat.pred_le _), },
-    { rw classical.or_iff_not_imp_right at key, apply key, contrapose! H,
+    { have key := geom_sum_mul (a^i : α) (q-1),
+      have hai : (a^i : α) ≠ 0, { rw ← units.coe_pow, apply units.ne_zero },
+      rw [pow_card_sub_one_eq_one _ hai, sub_self] at key,
+      replace key := eq_zero_or_eq_zero_of_mul_eq_zero key,
+      rw classical.or_iff_not_imp_right at key, apply key, contrapose! H,
       rw [← card_units, ← order_of_eq_card_of_forall_mem_gpowers ha],
       apply order_of_dvd_of_pow_eq_one,
       rwa [units.ext_iff, units.coe_pow, units.coe_one, ← sub_eq_zero], }
   end
 end
 
-lemma sum_pow_lt_card_sub_one (i : ℕ) (h : i < fintype.card α - 1) :
+lemma sum_pow_lt_card_sub_one (i : ℕ) (h : i < q - 1) :
   univ.sum (λ x, x^i) = (0:α) :=
 begin
-  let q := fintype.card α,
+  let q := q,
   have hq : 0 < q - 1,
   { rw [← card_units, fintype.card_pos_iff],
     exact ⟨1⟩ },
@@ -162,7 +150,7 @@ begin
   rw [← sum_sdiff (subset_univ (finset.singleton (0:α))), sum_singleton,
     zero_pow (nat.pos_of_ne_zero hi), add_zero],
   have := sum_pow_units α i,
-  have not_dvd_i : ¬fintype.card α - 1 ∣ i,
+  have not_dvd_i : ¬q - 1 ∣ i,
   { rintro ⟨d, rfl⟩, apply hi, rw nat.mul_eq_zero, right, contrapose! h,
     conv { congr, rw ← mul_one (q-1), },
     rw mul_le_mul_left hq, exact nat.pos_of_ne_zero h },
@@ -181,10 +169,10 @@ open mv_polynomial function finset
 variables [discrete_field α] [fintype α] {σ : Type*} [fintype σ] [decidable_eq σ]
 
 lemma sum_mv_polynomial_eq_zero (f : mv_polynomial σ α)
-  (h : f.total_degree < (fintype.card α - 1) * fintype.card σ) :
+  (h : f.total_degree < (q - 1) * fintype.card σ) :
   univ.sum (λ x, f.eval x) = (0:α) :=
 begin
-  let q := fintype.card α,
+  let q := q,
   have hq : 0 < q - 1,
   { rw [← card_units, fintype.card_pos_iff],
     exact ⟨1⟩ },
@@ -249,7 +237,7 @@ theorem char_dvd_card_solutions (p : nat.primes) [char_p α p]
   (h : (s.sum $ λ i, (f i).total_degree) < fintype.card σ) :
   (p:ℕ) ∣ fintype.card {x : σ → α // ∀ i ∈ s, (f i).eval x = 0} :=
 begin
-  let q := fintype.card α,
+  let q := q,
   have hq : 0 < q - 1,
   { rw [← card_units, fintype.card_pos_iff],
     exact ⟨1⟩ },

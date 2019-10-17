@@ -1,6 +1,8 @@
--- Copyright (c) 2019 Lucas Allen. All rights reserved.
--- Released under Apache 2.0 license as described in the file LICENSE.
--- Authors: Lucas Allen and Scott Morrison
+/-
+Copyright (c) 2019 Lucas Allen. All rights reserved.
+Released under Apache 2.0 license as described in the file LICENSE.
+Authors: Lucas Allen and Scott Morrison
+-/
 
 import tactic.library_search
 import data.mllist
@@ -79,14 +81,14 @@ do (g::gs) ← get_goals,
    -- Sort by number of remaining goals, then by number of hypotheses used.
    let L := L.qsort(λ d₁ d₂, d₁.2.1 < d₂.2.1 ∨ (d₁.2.1 = d₂.2.1 ∧ d₁.2.2 ≥ d₂.2.2)),
    -- Print the first num successful lemmas
-   if L.length = 0 then do
+   if L.length = 0 then
      fail "There are no applicable lemmas or theorems"
    else
      print_messages g (is_trace_enabled_for `silence_suggest) (L.map (λ d, d.1.2)))
 
 end tactic
 
-namespace interactive
+namespace tactic.interactive
 /--
 `suggest` lists possible usages of the `exact` or `refine`
 tactic and leaves the tactic state unchanged. It is intended as a complement of the search
@@ -99,6 +101,6 @@ For performance reasons `suggest` uses monadic lazy lists (`mllist`). This means
 `suggest` might miss some results if `num` is not large enough. However, because
 `suggest` uses monadic lazy lists, smaller values of `num` run faster than larger values.
 -/
-meta def suggest := tactic.suggest
+meta def suggest : tactic unit := tactic.suggest >> tactic.skip
 
-end interactive
+end tactic.interactive

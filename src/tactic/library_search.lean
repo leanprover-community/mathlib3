@@ -139,8 +139,7 @@ meta def tactic_statement (g : expr) : tactic string :=
 do g ← instantiate_mvars g,
    g ← head_beta g,
    r ← pp (replace_mvars g),
-   r ← pure $ if g.has_meta_var then sformat!"refine {r}" else sformat!"exact {r}",
-   return r
+   if g.has_meta_var then return (sformat!"refine {r}") else return (sformat!"exact {r}")
 
 end library_search
 

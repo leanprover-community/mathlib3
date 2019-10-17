@@ -91,10 +91,20 @@ failing if `close_goals = tt` and there are any goals remaining.
 -- on the remaining goals.
 meta def apply_and_solve (close_goals : bool) (discharger : tactic unit) (e : expr) : tactic unit :=
 apply e >>
--- run `solve_by_elim` on each propositional goal separately, not worrying if it ever fails
+-- Phase 1
+-- Run `solve_by_elim` on each "safe" goal separately, not worrying about failures.
+-- A goal is "safe" if it is propositional, and does not include an metavariables,
+-- and consequently no other goal can depend on which solution we provide.
+-- (We only attempt the "safe" goals in this way in Phase 1. In Phase 2 we will do
+-- backtracking search across all goals, allowing us to guess solutions that involve data, or
+-- unify metavariables, but only as long as we can finish all goals.)
 try (any_goals (propositional_goal >> no_mvars_in_target >> solve_by_elim { discharger := discharger })) >>
--- now, if any goals remain, run `solve_by_elim` on them all together
+-- Phase 2
 (done <|>
+  -- If there were any goals that we did not attempt solving in the first phase
+  -- (because they weren't propositional, or contained a metavariable)
+  -- as a second phase we attempt to solve all remaining goals at once (with backtracking across goals).
+  any_goals (success_if_fail (propositional_goal >> no_mvars_in_target)) >>
   solve_by_elim { all_goals := tt, discharger := discharger } <|>
   -- and fail unless `close_goals = ff`
   guard ¬ close_goals)

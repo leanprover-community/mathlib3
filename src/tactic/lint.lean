@@ -27,6 +27,9 @@ The command `#list_linters` prints a list of the names of all available linters.
 
 You can append a `-` to any command (e.g. `#lint_mathlib-`) to omit the slow tests (4).
 
+You can append a sequence of linter names to any command to run extra tests, in addition to the
+default ones. e.g. `#lint doc_blame_thm` will run all default tests and `doc_blame_thm`.
+
 You can append `only name1 name2 ...` to any command to run a subset of linters, e.g.
 `#lint only unused_arguments`
 

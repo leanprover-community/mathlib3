@@ -140,6 +140,7 @@ setup_tactic_parser
 
 /-- `reassoc h`, for assumption `h : x ≫ y = z ≫ x`, creates a new assumption `h : ∀ {W} (f : Z ⟶ W), x ≫ y ≫ f = z ≫ x ≫ f`.
     `reassoc! h`, does the same but deletes the initial `h` assumption.
+(You can also add the attribute `@[reassoc]` to lemmas to generate new declarations generalized in this way.)
 -/
 meta def reassoc (del : parse (tk "!")?) (ns : parse ident*) : tactic unit :=
 do ns.mmap' (λ n,

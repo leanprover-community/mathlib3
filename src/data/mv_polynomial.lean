@@ -709,22 +709,6 @@ begin
   refl
 end
 
--- TODO
--- @[simp] lemma total_degree_mul {α} [integral_domain α] (a b : mv_polynomial σ α) :
---   (a * b).total_degree = a.total_degree + b.total_degree :=
--- le_antisymm (total_degree_mul_le a b)
--- begin
---   sorry
--- end
-
--- @[simp] lemma total_degree_pow {α} [integral_domain α] (a : mv_polynomial σ α) (n : ℕ) :
---   (a^n).total_degree = n * a.total_degree :=
--- begin
---   induction n with n ih,
---   { simp only [nat.nat_zero_eq_zero, zero_mul, pow_zero, total_degree_one] },
---   { rw [pow_succ, total_degree_mul, ih, nat.succ_mul, add_comm] },
--- end
-
 end total_degree
 
 end comm_semiring

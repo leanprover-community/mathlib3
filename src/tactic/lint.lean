@@ -336,15 +336,20 @@ do b ← optional (tk "-"),
    trace s
 
 /-- The command `#lint` at the bottom of a file will warn you about some common mistakes
-  in that file. -/
+in that file. Usage: `#lint`, `#lint linter_1 linter_2`, `#lint only linter_1 linter_2`.
+Use the command `#list_linters` to see all available linters. -/
 @[user_command] meta def lint_cmd (_ : parse $ tk "#lint") : parser unit :=
 lint_cmd_aux @lint
 
-/-- The command `#lint_mathlib` checks all of mathlib for certain mistakes. -/
+/-- The command `#lint_mathlib` checks all of mathlib for certain mistakes.
+Usage: `#lint_mathlib`, `#lint_mathlib linter_1 linter_2`, `#lint_mathlib only linter_1 linter_2`.
+Use the command `#list_linters` to see all available linters. -/
 @[user_command] meta def lint_mathlib_cmd (_ : parse $ tk "#lint_mathlib") : parser unit :=
 lint_cmd_aux @lint_mathlib
 
-/-- The command `#lint_mathlib` checks all of mathlib for certain mistakes. -/
+/-- The command `#lint_mathlib` checks all of mathlib for certain mistakes.
+Usage: `#lint_all`, `#lint_all linter_1 linter_2`, `#lint_all only linter_1 linter_2`.
+Use the command `#list_linters` to see all available linters. -/
 @[user_command] meta def lint_all_cmd (_ : parse $ tk "#lint_all") : parser unit :=
 lint_cmd_aux @lint_all
 

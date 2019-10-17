@@ -672,7 +672,7 @@ finset.sup_le $ assume n hn,
     { assume a b₁ b₂, refl }
   end
 
-lemma total_degree_pow_le (a : mv_polynomial σ α) (n : ℕ) :
+lemma total_degree_pow (a : mv_polynomial σ α) (n : ℕ) :
   (a^n).total_degree ≤ n * a.total_degree :=
 begin
   induction n with n ih,

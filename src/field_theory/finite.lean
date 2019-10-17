@@ -305,7 +305,7 @@ begin
         apply sum_le_sum,
         intros i hi,
         refine le_trans (total_degree_sub _ _)
-          (le_trans _ (total_degree_pow_le _ _)),
+          (le_trans _ (total_degree_pow _ _)),
         simp only [max_eq_right, nat.zero_le, total_degree_one]
       end
       ... = (q - 1) * (s.sum $ λ i, (f i).total_degree) : mul_sum.symm

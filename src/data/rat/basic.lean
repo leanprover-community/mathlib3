@@ -632,7 +632,7 @@ section meta_fns
 
 /--
 `rat.mk_numeral q` embeds `q` as a numeral expression inside a type with 0, 1, +, -, and /.
-`type`: an expression representing the target type
+`type`: an expression representing the target type. This must live in Type 0.
 `has_zero`, `has_one`, `has_add`: expressions of the type `has_zero %%type`, etc.
  -/
 meta def rat.mk_numeral (type has_zero has_one has_add has_neg has_div : expr) : ℚ → expr

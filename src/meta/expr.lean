@@ -135,7 +135,7 @@ end level
 
 /--
 `nat.mk_numeral n` embeds `n` as a numeral expression inside a type with 0, 1, and +.
-`type`: an expression representing the target type
+`type`: an expression representing the target type. This must live in Type 0.
 `has_zero`, `has_one`, `has_add`: expressions of the type `has_zero %%type`, etc.
  -/
 meta def nat.mk_numeral (type has_zero has_one has_add : expr) : ℕ → expr :=
@@ -148,7 +148,7 @@ nat.binary_rec z
 
 /--
 `int.mk_numeral z` embeds `z` as a numeral expression inside a type with 0, 1, +, and -.
-`type`: an expression representing the target type
+`type`: an expression representing the target type. This must live in Type 0.
 `has_zero`, `has_one`, `has_add`, `has_neg`: expressions of the type `has_zero %%type`, etc.
  -/
 meta def int.mk_numeral (type has_zero has_one has_add has_neg : expr) : ℤ → expr

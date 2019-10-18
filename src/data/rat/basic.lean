@@ -627,3 +627,45 @@ begin
 end
 
 end rat
+
+section meta_fns
+
+/--
+`rat.mk_numeral q` embeds `q` as a numeral expression inside a type with 0, 1, +, -, and /.
+`type`: an expression representing the target type
+`has_zero`, `has_one`, `has_add`: expressions of the type `has_zero %%type`, etc.
+ -/
+meta def rat.mk_numeral (type has_zero has_one has_add has_neg has_div : expr) : ℚ → expr
+| ⟨num, denom, _, _⟩ :=
+  let nume := num.mk_numeral type has_zero has_one has_add has_neg in
+  if denom = 1 then nume else
+    let dene := denom.mk_numeral type has_zero has_one has_add in
+    `(@has_div.div.{0} %%type %%has_div %%nume %%dene)
+
+/-- `rat.reflect q` represents the rational number `q` as a numeral expression of type `ℚ`. -/
+meta def rat.reflect : ℚ → expr :=
+rat.mk_numeral `(ℚ) `((by apply_instance : has_zero ℚ))
+         `((by apply_instance : has_one ℚ))`((by apply_instance : has_add ℚ))
+         `((by apply_instance : has_neg ℚ)) `(by apply_instance : has_div ℚ)
+
+section
+local attribute [semireducible] reflected
+meta instance : has_reflect ℚ := rat.reflect
+end
+
+/-- Turns an expression into a rational number, assuming it is only built up from
+  0, 1, bit0, bit1, +, -, *, /, ⁻¹  -/
+meta def expr.to_rat : expr → option ℚ
+| `(0 : ℚ) := some 0
+| `(1 : ℚ) := some 1
+| `(bit0 %%q) := (*) 2 <$> q.to_rat
+| `(bit1 %%q) := (+) 1 <$> (*) 2 <$> q.to_rat
+| `(%%a + %%b : ℚ) := (+) <$> a.to_rat <*> b.to_rat
+| `(%%a - %%b : ℚ) := has_sub.sub <$> a.to_rat <*> b.to_rat
+| `(%%a * %%b : ℚ) := (*) <$> a.to_rat <*> b.to_rat
+| `(%%a / %%b : ℚ) := (/) <$> a.to_rat <*> b.to_rat
+| `(-(%%a) : ℚ) := has_neg.neg <$> a.to_rat
+| `((%%a)⁻¹ : ℚ) := has_inv.inv <$> a.to_rat
+| _ := none
+
+end meta_fns

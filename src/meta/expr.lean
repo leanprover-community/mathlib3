@@ -131,16 +131,32 @@ meta def nonzero : level → bool
 
 end level
 
-namespace expr
-open tactic
+/- converting between expressions and numerals -/
 
-/-- Apply a function to each constant (inductive type, defined function etc) in an expression. -/
-protected meta def apply_replacement_fun (f : name → name) (e : expr) : expr :=
-e.replace $ λ e d,
-  match e with
-  | expr.const n ls := some $ expr.const (f n) ls
-  | _ := none
-  end
+/--
+`nat.mk_numeral n` embeds `n` as a numeral expression inside a type with 0, 1, and +.
+`type`: an expression representing the target type
+`has_zero`, `has_one`, `has_add`: expressions of the type `has_zero %%type`, etc.
+ -/
+meta def nat.mk_numeral (type has_zero has_one has_add : expr) : ℕ → expr :=
+let z : expr := `(@has_zero.zero.{0} %%type %%has_zero),
+    o : expr := `(@has_one.one.{0} %%type %%has_one) in
+nat.binary_rec z
+  (λ b n e, if n = 0 then o else
+    if b then `(@bit1.{0} %%type %%has_one %%has_add %%e)
+    else `(@bit0.{0} %%type %%has_add %%e))
+
+/--
+`int.mk_numeral z` embeds `z` as a numeral expression inside a type with 0, 1, +, and -.
+`type`: an expression representing the target type
+`has_zero`, `has_one`, `has_add`, `has_neg`: expressions of the type `has_zero %%type`, etc.
+ -/
+meta def int.mk_numeral (type has_zero has_one has_add has_neg : expr) : ℤ → expr
+| (int.of_nat n) := n.mk_numeral type has_zero has_one has_add
+| -[1+n] := let ne := (n+1).mk_numeral type has_zero has_one has_add in
+            `(@has_neg.neg.{0} %%type %%has_neg %%ne)
+
+namespace expr
 
 /-- Turns an expression into a positive natural number, assuming it is only built up from
   `has_one.one`, `bit0` and `bit1`. -/
@@ -161,6 +177,19 @@ protected meta def to_nat : expr → option ℕ
 protected meta def to_int : expr → option ℤ
 | `(has_neg.neg %%e) := do n ← e.to_nat, some (-n)
 | e                  := coe <$> e.to_nat
+
+end expr
+
+namespace expr
+open tactic
+
+/-- Apply a function to each constant (inductive type, defined function etc) in an expression. -/
+protected meta def apply_replacement_fun (f : name → name) (e : expr) : expr :=
+e.replace $ λ e d,
+  match e with
+  | expr.const n ls := some $ expr.const (f n) ls
+  | _ := none
+  end
 
 /-- Tests whether an expression is a meta-variable. -/
 meta def is_mvar : expr → bool

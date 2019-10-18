@@ -631,9 +631,12 @@ end rat
 section meta_fns
 
 /--
-`rat.mk_numeral q` embeds `q` as a numeral expression inside a type with 0, 1, +, -, and /.
+`rat.mk_numeral q` embeds `q` as a numeral expression inside a type with 0, 1, +, -, and /
+
 `type`: an expression representing the target type. This must live in Type 0.
 `has_zero`, `has_one`, `has_add`: expressions of the type `has_zero %%type`, etc.
+
+This function is similar to `expr.of_rat` but takes more hypotheses and is not tactic valued.
  -/
 meta def rat.mk_numeral (type has_zero has_one has_add has_neg has_div : expr) : ℚ → expr
 | ⟨num, denom, _, _⟩ :=
@@ -653,19 +656,50 @@ local attribute [semireducible] reflected
 meta instance : has_reflect ℚ := rat.reflect
 end
 
-/-- Turns an expression into a rational number, assuming it is only built up from
-  0, 1, bit0, bit1, +, -, *, /, ⁻¹  -/
-meta def expr.to_rat : expr → option ℚ
-| `(0 : ℚ) := some 0
-| `(1 : ℚ) := some 1
+/-- Evaluates an expression as a rational number,
+if that expression represents a numeral or the quotient of two numerals. -/
+protected meta def expr.to_pos_rat : expr → option ℚ
+| `(%%e₁ / %%e₂) := do m ← e₁.to_nat, n ← e₂.to_nat, some (rat.mk m n)
+| e              := do n ← e.to_nat, return (rat.of_int n)
+
+/-- Evaluates an expression as a rational number,
+if that expression represents a numeral, the quotient of two numerals,
+the negation of a numeral, or the negation of the quotient of two numerals. -/
+protected meta def expr.to_rat : expr → option ℚ
+| `(has_neg.neg %%e) := do q ← e.to_pos_rat, some (-q)
+| e                  := e.to_pos_rat
+
+/-- Evaluates an expression into a rational number, if that expression is built up from
+  numerals, +, -, *, /, ⁻¹  -/
+protected meta def expr.eval_rat : expr → option ℚ
+| `(has_zero.zero _) := some 0
+| `(has_one.one _) := some 1
 | `(bit0 %%q) := (*) 2 <$> q.to_rat
 | `(bit1 %%q) := (+) 1 <$> (*) 2 <$> q.to_rat
-| `(%%a + %%b : ℚ) := (+) <$> a.to_rat <*> b.to_rat
-| `(%%a - %%b : ℚ) := has_sub.sub <$> a.to_rat <*> b.to_rat
-| `(%%a * %%b : ℚ) := (*) <$> a.to_rat <*> b.to_rat
-| `(%%a / %%b : ℚ) := (/) <$> a.to_rat <*> b.to_rat
-| `(-(%%a) : ℚ) := has_neg.neg <$> a.to_rat
-| `((%%a)⁻¹ : ℚ) := has_inv.inv <$> a.to_rat
+| `(%%a + %%b) := (+) <$> a.to_rat <*> b.to_rat
+| `(%%a - %%b) := has_sub.sub <$> a.to_rat <*> b.to_rat
+| `(%%a * %%b) := (*) <$> a.to_rat <*> b.to_rat
+| `(%%a / %%b) := (/) <$> a.to_rat <*> b.to_rat
+| `(-(%%a)) := has_neg.neg <$> a.to_rat
+| `((%%a)⁻¹) := has_inv.inv <$> a.to_rat
 | _ := none
+
+/-- `rat.mk_numeral q` embeds `q` as a numeral expression inside `α`.
+Lean will try to infer the correct type classes on `α`, and the tactic will fail if it cannot.
+This function is similar to `rat.mk_numeral` but it takes fewer hypotheses and is tactic valued.
+-/
+protected meta def expr.of_rat (α : expr) : ℚ → tactic expr
+| ⟨(n:ℕ), d, h, c⟩   := do
+  e₁ ← expr.of_nat α n,
+  if d = 1 then return e₁ else
+  do e₂ ← expr.of_nat α d,
+  tactic.mk_app ``has_div.div [e₁, e₂]
+| ⟨-[1+n], d, h, c⟩ := do
+  e₁ ← expr.of_nat α (n+1),
+  e ← (if d = 1 then return e₁ else do
+    e₂ ← expr.of_nat α d,
+    tactic.mk_app ``has_div.div [e₁, e₂]),
+  tactic.mk_app ``has_neg.neg [e]
+
 
 end meta_fns

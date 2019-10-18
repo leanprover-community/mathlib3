@@ -43,9 +43,8 @@ It returns a list of pairs `(state, message)` consisting of
 * `state`, a tactic state resulting from the successful application of a declaration from the library, and
 * `message`, a string of the form `refine ...` or `exact ...` which will reproduce that tactic state.
 -/
-meta def suggest (n : ℕ := 50) (discharger : tactic unit := done) : tactic (list (tactic_state × string)) :=
+meta def suggest (limit : option ℕ := none) (discharger : tactic unit := done) : tactic (list (tactic_state × string)) :=
 do [g] ← get_goals | fail "`suggest` should be called with exactly one goal",
-
    hyps ← local_context,
 
    -- Make sure that `solve_by_elim` doesn't just solve the goal immediately:
@@ -78,7 +77,7 @@ do [g] ← get_goals | fail "`suggest` should be called with exactly one goal",
      state ← read,
      return ((d, state), (ng, nh))),
    -- Get the first n elements of the successful lemmas
-   L ← results.take n,
+   L ← if h : limit.is_some then results.take (option.get h) else results.force,
    -- Sort by number of remaining goals, then by number of hypotheses used.
    let L := L.qsort(λ d₁ d₂, d₁.2.1 < d₂.2.1 ∨ (d₁.2.1 = d₂.2.1 ∧ d₁.2.2 ≥ d₂.2.2)),
    -- Generate messages for the successful applications

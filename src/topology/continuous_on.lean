@@ -23,7 +23,7 @@ equipped with the subspace topology.
 open set filter
 
 variables {α : Type*} {β : Type*} {γ : Type*}
-variables [topological_space α] [topological_space β] [topological_space γ]
+variables [topological_space α]
 
 /-- The "neighborhood within" filter. Elements of `nhds_within a s` are sets containing the
 intersection of `s` and a neighborhood of `a`. -/
@@ -49,6 +49,10 @@ begin
   rintros ⟨u, openu, au, hu⟩,
   exact ⟨u, λ x xu xs, hu ⟨xu, xs⟩, openu, au⟩
 end
+
+lemma mem_nhds_within_of_mem_nhds {s t : set α} {a : α} (h : s ∈ nhds a) :
+  s ∈ nhds_within a t :=
+mem_inf_sets_of_left h
 
 theorem self_mem_nhds_within {a : α} {s : set α} : s ∈ nhds_within a s :=
 begin
@@ -152,6 +156,26 @@ theorem principal_subtype {α : Type*} (s : set α) (t : set {x // x ∈ s}) :
   principal t = comap subtype.val (principal (subtype.val '' t)) :=
 by rw comap_principal; rw set.preimage_image_eq; apply subtype.val_injective
 
+lemma mem_closure_iff_nhds_within_ne_bot {s : set α} {x : α} :
+  x ∈ closure s ↔ nhds_within x s ≠ ⊥ :=
+begin
+  split,
+  { assume hx,
+    rw ← forall_sets_neq_empty_iff_neq_bot,
+    assume o ho,
+    rw mem_nhds_within at ho,
+    rcases ho with ⟨u, u_open, xu, hu⟩,
+    rw mem_closure_iff at hx,
+    exact subset_ne_empty hu (hx u u_open xu) },
+  { assume h,
+    rw mem_closure_iff,
+    rintros u u_open xu,
+    have : u ∩ s ∈ nhds_within x s,
+    { rw mem_nhds_within,
+      exact ⟨u, u_open, xu, subset.refl _⟩ },
+    exact forall_sets_neq_empty_iff_neq_bot.2 h (u ∩ s) this }
+end
+
 /-
 nhds_within and subtypes
 -/
@@ -180,6 +204,8 @@ theorem tendsto_nhds_within_iff_subtype {s : set α} {a : α} (h : a ∈ s) (f :
   tendsto f (nhds_within a s) l ↔ tendsto (function.restrict f s) (nhds ⟨a, h⟩) l :=
 by rw [tendsto, tendsto, function.restrict, nhds_within_eq_map_subtype_val h,
     ←(@filter.map_map _ _ _ _ subtype.val)]
+
+variables [topological_space β] [topological_space γ]
 
 /-- A function between topological spaces is continuous at a point `x₀` within a subset `s`
 if `f x` tends to `f x₀` when `x` tends to `x₀` while staying within `s`. -/
@@ -265,6 +291,11 @@ lemma continuous_within_at_inter {f : α → β} {s t : set α} {x : α} (h : t 
   continuous_within_at f (s ∩ t) x ↔ continuous_within_at f s x :=
 by simp [continuous_within_at, nhds_within_restrict' s h]
 
+lemma continuous_within_at.mem_closure_image  {f : α → β} {s : set α} {x : α}
+  (h : continuous_within_at f s x) (hx : x ∈ closure s) : f x ∈ closure (f '' s) :=
+mem_closure_of_tendsto (mem_closure_iff_nhds_within_ne_bot.1 hx) h $
+mem_sets_of_superset self_mem_nhds_within (subset_preimage_image f s)
+
 lemma continuous_on.congr_mono {f g : α → β} {s s₁ : set α} (h : continuous_on f s)
   (h' : ∀x ∈ s₁, g x = f x) (h₁ : s₁ ⊆ s) : continuous_on g s₁ :=
 begin
@@ -280,6 +311,10 @@ begin
   finish
 end
 
+lemma continuous_on.congr {f g : α → β} {s : set α} (h : continuous_on f s)
+  (h' : ∀x ∈ s, g x = f x) : continuous_on g s :=
+h.congr_mono h' (subset.refl _)
+
 lemma continuous_at.continuous_within_at {f : α → β} {s : set α} {x : α} (h : continuous_at f x) :
   continuous_within_at f s x :=
 continuous_within_at.mono ((continuous_within_at_univ f x).2 h) (subset_univ _)
@@ -292,11 +327,11 @@ begin
 end
 
 lemma continuous_within_at.comp {g : β → γ} {f : α → β} {s : set α} {t : set β} {x : α}
-  (hg : continuous_within_at g t (f x)) (hf : continuous_within_at f s x) (h : f '' s ⊆ t) :
+  (hg : continuous_within_at g t (f x)) (hf : continuous_within_at f s x) (h : s ⊆ f ⁻¹' t) :
   continuous_within_at (g ∘ f) s x :=
 begin
   have : tendsto f (principal s) (principal t),
-    by { rw tendsto_principal_principal, exact λx hx, h (mem_image_of_mem _ hx) },
+    by { rw tendsto_principal_principal, exact λx hx, h hx },
   have : tendsto f (nhds_within x s) (principal t) :=
     tendsto_le_left lattice.inf_le_right this,
   have : tendsto f (nhds_within x s) (nhds_within (f x) t) :=
@@ -305,9 +340,9 @@ begin
 end
 
 lemma continuous_on.comp {g : β → γ} {f : α → β} {s : set α} {t : set β}
-  (hg : continuous_on g t) (hf : continuous_on f s) (h : f '' s ⊆ t) :
+  (hg : continuous_on g t) (hf : continuous_on f s) (h : s ⊆ f ⁻¹' t) :
   continuous_on (g ∘ f) s :=
-λx hx, continuous_within_at.comp (hg _ (h (mem_image_of_mem _ hx))) (hf x hx) h
+λx hx, continuous_within_at.comp (hg _ (h hx)) (hf x hx) h
 
 lemma continuous_on.mono {f : α → β} {s t : set α} (hf : continuous_on f s) (h : t ⊆ s)  :
   continuous_on f t :=
@@ -323,16 +358,36 @@ end
 lemma continuous.comp_continuous_on {g : β → γ} {f : α → β} {s : set α}
   (hg : continuous g) (hf : continuous_on f s) :
   continuous_on (g ∘ f) s :=
-hg.continuous_on.comp hf (subset_univ _)
+hg.continuous_on.comp hf subset_preimage_univ
 
 lemma continuous_within_at.preimage_mem_nhds_within {f : α → β} {x : α} {s : set α} {t : set β}
   (h : continuous_within_at f s x) (ht : t ∈ nhds (f x)) : f ⁻¹' t ∈ nhds_within x s :=
 h ht
 
+lemma continuous_within_at.preimage_mem_nhds_within' {f : α → β} {x : α} {s : set α} {t : set β}
+  (h : continuous_within_at f s x) (ht : t ∈ nhds_within (f x) (f '' s)) :
+  f ⁻¹' t ∈ nhds_within x s :=
+begin
+  rw mem_nhds_within at ht,
+  rcases ht with ⟨u, u_open, fxu, hu⟩,
+  have : f ⁻¹' u ∩ s ∈ nhds_within x s :=
+    filter.inter_mem_sets (h (mem_nhds_sets u_open fxu)) self_mem_nhds_within,
+  apply mem_sets_of_superset this,
+  calc f ⁻¹' u ∩ s
+    ⊆ f ⁻¹' u ∩ f ⁻¹' (f '' s) : inter_subset_inter_right _ (subset_preimage_image f s)
+    ... = f ⁻¹' (u ∩ f '' s) : rfl
+    ... ⊆ f ⁻¹' t : preimage_mono hu
+end
+
 lemma continuous_within_at.congr_of_mem_nhds_within {f f₁ : α → β} {s : set α} {x : α}
   (h : continuous_within_at f s x) (h₁ : {y | f₁ y = f y} ∈ nhds_within x s) (hx : f₁ x = f x) :
   continuous_within_at f₁ s x :=
 by rwa [continuous_within_at, filter.tendsto, hx, filter.map_cong h₁]
+
+lemma continuous_within_at.congr {f f₁ : α → β} {s : set α} {x : α}
+  (h : continuous_within_at f s x) (h₁ : ∀y∈s, f₁ y = f y) (hx : f₁ x = f x) :
+  continuous_within_at f₁ s x :=
+h.congr_of_mem_nhds_within (mem_sets_of_superset self_mem_nhds_within h₁) hx
 
 lemma continuous_on_const {s : set α} {c : β} : continuous_on (λx, c) s :=
 continuous_const.continuous_on

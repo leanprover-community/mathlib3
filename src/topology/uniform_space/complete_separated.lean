@@ -8,6 +8,7 @@ Theory of complete separated uniform spaces.
 This file is for elementary lemmas that depend on both Cauchy filters and separation.
 -/
 import topology.uniform_space.cauchy topology.uniform_space.separation
+import topology.dense_embedding
 
 open filter
 variables {α : Type*}

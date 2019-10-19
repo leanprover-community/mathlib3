@@ -688,6 +688,17 @@ begin
     exact lt_of_le_of_lt this (lt_add_of_pos_right _ zero_lt_one) }
 end
 
+/-- A version of `cauchy_seq_iff_le_tendsto_0.2` that doesn't assume `0 ≤ b n`. -/
+lemma cauchy_seq_of_le_tendsto_0 {s : ℕ → α} (b : ℕ → ℝ)
+  (h : ∀ n m N : ℕ, N ≤ n → N ≤ m → dist (s n) (s m) ≤ b N) (h₀ : tendsto b at_top (nhds 0)) :
+  cauchy_seq s :=
+metric.cauchy_seq_iff.2 $ λ ε ε0,
+  (metric.tendsto_at_top.1 h₀ ε ε0).imp $ λ N hN m n hm hn,
+  calc dist (s m) (s n) ≤ b N : h m n N hm hn
+                    ... ≤ abs (b N) : le_abs_self _
+                    ... = dist (b N) 0 : by rw real.dist_0_eq_abs; refl
+                    ... < ε : (hN _ (le_refl N))
+
 /-- Yet another metric characterization of Cauchy sequences on integers. This one is often the
 most efficient. -/
 lemma cauchy_seq_iff_le_tendsto_0 {s : ℕ → α} : cauchy_seq s ↔ ∃ b : ℕ → ℝ,
@@ -720,12 +731,7 @@ lemma cauchy_seq_iff_le_tendsto_0 {s : ℕ → α} : cauchy_seq s ↔ ∃ b : �
   rintro _ ⟨⟨m', n'⟩, ⟨hm', hn'⟩, rfl⟩,
   exact le_of_lt (hN _ _ (le_trans hn hm') (le_trans hn hn'))
   end,
-λ ⟨b, _, b_bound, b_lim⟩, metric.cauchy_seq_iff.2 $ λ ε ε0,
-  (metric.tendsto_at_top.1 b_lim ε ε0).imp $ λ N hN m n hm hn,
-  calc dist (s m) (s n) ≤ b N : b_bound m n N hm hn
-                    ... ≤ abs (b N) : le_abs_self _
-                    ... = dist (b N) 0 : by rw real.dist_0_eq_abs; refl
-                    ... < ε : (hN _ (le_refl N)) ⟩
+λ ⟨b, _, b_bound, b_lim⟩, cauchy_seq_of_le_tendsto_0 b b_bound b_lim⟩
 
 end cauchy_seq
 

@@ -90,7 +90,8 @@ inductive rel (r : α → β → Prop) : option α → option β → Prop
 | some {a b} : r a b → rel (some a) (some b)
 | none {}    : rel none none
 
-def {u v} traverse {F : Type u → Type v} [applicative F] {α β : Type*} (f : α → F β) : option α → F (option β)
+protected def {u v} traverse {F : Type u → Type v} [applicative F] {α β : Type*} (f : α → F β) :
+  option α → F (option β)
 | none := pure none
 | (some x) := some <$> f x
 

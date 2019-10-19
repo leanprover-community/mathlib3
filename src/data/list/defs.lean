@@ -526,7 +526,8 @@ def mmap_filter {m : Type → Type v} [monad m] {α β} (f : α → m (option β
 | (h :: t) := do b ← f h, t' ← t.mmap_filter, return $
   match b with none := t' | (some x) := x::t' end
 
-def traverse {F : Type u → Type v} [applicative F] {α β : Type*} (f : α → F β) : list α → F (list β)
+protected def traverse {F : Type u → Type v} [applicative F] {α β : Type*} (f : α → F β) :
+  list α → F (list β)
 | [] := pure []
 | (x :: xs) := list.cons <$> f x <*> traverse xs
 

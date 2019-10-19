@@ -105,6 +105,9 @@ is_open_and (is_open_lt continuous_const continuous_id) (is_open_lt continuous_i
 lemma is_open_Iio {a : α} : is_open (Iio a) :=
 is_open_lt continuous_id continuous_const
 
+lemma is_open_Ioi {a : α} : is_open (Ioi a) :=
+is_open_lt continuous_const continuous_id
+
 end linear_order
 
 section decidable_linear_order

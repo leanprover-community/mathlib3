@@ -1482,15 +1482,17 @@ finset.induction_on s (λ _, bot_le) (λ n s hns ih H,
   by simp only [mem_insert, or_imp_distrib, forall_and_distrib, forall_eq] at H;
      simp only [sup_insert]; exact sup_le H.1 (ih H.2))
 
-lemma sup_le_iff {a : α} : s.sup f ≤ a ↔ (∀b ∈ s, f b ≤ a) :=
+@[simp] lemma sup_le_iff {a : α} : s.sup f ≤ a ↔ (∀b ∈ s, f b ≤ a) :=
 iff.intro (assume h b hb, le_trans (le_sup hb) h) sup_le
 
 lemma sup_mono (h : s₁ ⊆ s₂) : s₁.sup f ≤ s₂.sup f :=
 sup_le $ assume b hb, le_sup (h hb)
 
-lemma sup_lt [is_total α (≤)] {a : α} : (⊥ < a) → (∀b ∈ s, f b < a) → s.sup f < a :=
+@[simp] lemma sup_lt_iff [is_total α (≤)] {a : α} (ha : ⊥ < a) :
+  s.sup f < a ↔ (∀b ∈ s, f b < a) :=
 by letI := classical.dec_eq β; from
-finset.induction_on s (by simp) (by simp {contextual := tt})
+⟨ λh b hb, lt_of_le_of_lt (le_sup hb) h,
+  finset.induction_on s (by simp [ha]) (by simp {contextual := tt}) ⟩
 
 lemma comp_sup_eq_sup_comp [is_total α (≤)] {γ : Type} [semilattice_sup_bot γ]
   (g : α → γ) (mono_g : monotone g) (bot : g ⊥ = ⊥) : g (s.sup f) = s.sup (g ∘ f) :=

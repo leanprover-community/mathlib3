@@ -347,7 +347,7 @@ Use the command `#list_linters` to see all available linters. -/
 @[user_command] meta def lint_mathlib_cmd (_ : parse $ tk "#lint_mathlib") : parser unit :=
 lint_cmd_aux @lint_mathlib
 
-/-- The command `#lint_mathlib` checks all of mathlib for certain mistakes.
+/-- The command `#lint_all` checks all imported files for certain mistakes.
 Usage: `#lint_all`, `#lint_all linter_1 linter_2`, `#lint_all only linter_1 linter_2`.
 Use the command `#list_linters` to see all available linters. -/
 @[user_command] meta def lint_all_cmd (_ : parse $ tk "#lint_all") : parser unit :=

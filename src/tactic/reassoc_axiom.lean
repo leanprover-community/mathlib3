@@ -51,6 +51,7 @@ namespace tactic
 
 open interactive lean.parser category_theory
 
+/-- From an expression `f ≫ g`, extract the expression representing the category instance. -/
 meta def get_cat_inst : expr → tactic expr
 | `(@category_struct.comp _ %%struct_inst _ _ _ _ _) := pure struct_inst
 | _ := failed

@@ -34,6 +34,7 @@ end adjunction
 
 namespace monad
 
+-- We can't use `@[simps]` here because it can't cope with `let` statements.
 def comparison [is_right_adjoint R] : D ⥤ algebra ((left_adjoint R) ⋙ R) :=
 let h := (is_right_adjoint.adj R) in
 { obj := λ X,

@@ -37,24 +37,38 @@ L.mmap (message g)
 declare_trace silence_suggest -- Turn off `exact/refine ...` trace messages
 declare_trace suggest         -- Trace a list of all relevant lemmas
 
+/-- An `application` records the result of a successful application of a library lemma. -/
+meta structure application :=
+(state     : tactic_state)
+(script    : string)
+(decl      : option declaration)
+(num_goals : ℕ)
+(hyps_used : ℕ)
+
 /--
-The main `suggest` tactic, which is very similar to the main `library_search` function.
-It returns a list of pairs `(state, message)` consisting of
-* `state`, a tactic state resulting from the successful application of a declaration from the library, and
-* `message`, a string of the form `refine ...` or `exact ...` which will reproduce that tactic state.
+The core `suggest` tactic. It attempts to apply a declaration from the library, then solve
+new goals using `solve_by_elim`.
+
+It returns a list of `application`s consisting of fields:
+* `state`, a tactic state resulting from the successful application of a declaration from the library,
+* `script`, a string of the form `refine ...` or `exact ...` which will reproduce that tactic state,
+* `decl`, an `option declaration` indicating the declaration that was applied (or none, if `solve_by_elim` succeeded),
+* `num_goals`, the number of remaining goals, and
+* `hyps_used`, the number of local hypotheses used in the solution.
 -/
-meta def suggest (limit : option ℕ := none) (discharger : tactic unit := done) : tactic (list (tactic_state × string)) :=
-do [g] ← get_goals | fail "`suggest` should be called with exactly one goal",
+meta def suggest_core (discharger : tactic unit := done) :
+-- TODO just return an mllist!
+  tactic (mllist tactic application) :=
+focus1 $
+do [g] ← get_goals,
    hyps ← local_context,
 
    -- Make sure that `solve_by_elim` doesn't just solve the goal immediately:
-   (do
-    r ← lock_tactic_state
-      (do solve_by_elim { discharger := discharger },
+   (lock_tactic_state (do solve_by_elim { discharger := discharger },
           s ← read,
           m ← tactic_statement g,
-          return (s, m)),
-    return $ [r]) <|>
+          g ← instantiate_mvars g,
+          return $ mllist.of_list [⟨s, m, none, 0, hyps.countp(λ h, h.occurs g)⟩])) <|>
    -- Otherwise, let's actually try applying library lemmas.
    (do
    -- Collect all definitions with the correct head symbol
@@ -68,20 +82,31 @@ do [g] ← get_goals | fail "`suggest` should be called with exactly one goal",
 
    -- Try applying each lemma against the goal,
    -- then record the number of remaining goals, and number of local hypotheses used.
-   let results := (mllist.of_list defs).mfilter_map
+   return $ (mllist.of_list defs).mfilter_map
    (λ d, lock_tactic_state $ do
      apply_declaration ff discharger d,
      ng ← num_goals,
      g ← instantiate_mvars g,
-     let nh := hyps.countp(λ h, h.occurs g), -- number of local hypotheses used
      state ← read,
-     return ((d, state), (ng, nh))),
+     m ← message g state,
+     return
+     { application .
+       state := state,
+       decl := d.d,
+       script := m,
+       num_goals := ng,
+       hyps_used := hyps.countp(λ h, h.occurs g) }))
+
+meta def suggest (limit : option ℕ := none) (discharger : tactic unit := done) : tactic (list application) :=
+do results ← suggest_core discharger,
    -- Get the first n elements of the successful lemmas
    L ← if h : limit.is_some then results.take (option.get h) else results.force,
    -- Sort by number of remaining goals, then by number of hypotheses used.
-   let L := L.qsort(λ d₁ d₂, d₁.2.1 < d₂.2.1 ∨ (d₁.2.1 = d₂.2.1 ∧ d₁.2.2 ≥ d₂.2.2)),
-   -- Generate messages for the successful applications
-   L.mmap (λ d, do m ← message g d.1.2, return (d.1.2, m)))
+   return $ L.qsort(λ d₁ d₂, d₁.num_goals < d₂.num_goals ∨ (d₁.num_goals = d₂.num_goals ∧ d₁.hyps_used ≥ d₂.hyps_used))
+
+meta def suggest_scripts (limit : option ℕ := none) (discharger : tactic unit := done) : tactic (list string) :=
+do L ← suggest limit discharger,
+   return $ L.map application.script
 
 end tactic
 
@@ -92,8 +117,9 @@ open lean.parser
 local postfix `?`:9001 := optional
 
 /--
-`suggest` lists possible usages of the `exact` or `refine`
-tactic and leaves the tactic state unchanged. It is intended as a complement of the search
+`suggest` tries to apply suitable theorems/defs from the library, and generates
+a list of `exact ...` or `refine ...` scripts that could be used at this step.
+It leaves the tactic state unchanged. It is intended as a complement of the search
 function in your editor, the `#find` tactic, and `library_search`.
 
 `suggest` takes an optional natural number `num` as input and returns the first `num`
@@ -104,12 +130,12 @@ For performance reasons `suggest` uses monadic lazy lists (`mllist`). This means
 `suggest` uses monadic lazy lists, smaller values of `num` run faster than larger values.
 -/
 meta def suggest (n : parse (with_desc "n" small_nat)?) : tactic unit :=
-do L ← tactic.suggest (n.get_or_else 50),
+do L ← tactic.suggest_scripts (n.get_or_else 50),
   if is_trace_enabled_for `silence_suggest then
     if L.length = 0 then
       fail "There are no applicable declarations"
     else
-      L.mmap (λ p, trace p.2) >> skip
+      L.mmap trace >> skip
   else
     skip
 

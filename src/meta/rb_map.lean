@@ -35,28 +35,29 @@ end rb_set
 
 namespace rb_map
 
-/-- `find_def default m key` returns the value corresponding to `key` in `m`, if it exists.
+/-- `find_def default m k` returns the value corresponding to `k` in `m`, if it exists.
 Otherwise it returns `default`. -/
-meta def find_def {α β} (default : β) (m : rb_map α β) (key : α) :=
-(m.find key).get_or_else default
+meta def find_def {key value} (default : value) (m : rb_map key value) (k : key) :=
+(m.find k).get_or_else default
 
 /-- `insert_cons k x m` adds `x` to the list corresponding to key `k`. -/
-meta def insert_cons {α β} [has_lt α] (key : α) (x : β) (m : rb_map α (list β)) :
-  rb_map α (list β) :=
-m.insert key (x :: m.find_def [] key)
+meta def insert_cons {key value} [has_lt key] (k : key) (x : value) (m : rb_map key (list value)) :
+  rb_map key (list value) :=
+m.insert k (x :: m.find_def [] k)
 
 /-- `ifind m key` returns the value corresponding to `key` in `m`, if it exists.
-Otherwise it returns the default value of `β`. -/
-meta def ifind {α β} [inhabited β] (m : rb_map α β) (key : α) : β :=
-(m.find key).iget
+Otherwise it returns the default value of `value`. -/
+meta def ifind {key value} [inhabited value] (m : rb_map key value) (k : key) : value :=
+(m.find k).iget
 
 /-- `zfind m key` returns the value corresponding to `key` in `m`, if it exists.
 Otherwise it returns 0. -/
-meta def zfind {α β} [has_zero β] (m : rb_map α β) (key : α) : β :=
-(m.find key).get_or_else 0
+meta def zfind {key value} [has_zero value] (m : rb_map key value) (k : key) : value :=
+(m.find k).get_or_else 0
 
 /-- Returns the pointwise sum of `m1` and `m2`, treating nonexistent values as 0. -/
-meta def add {α β} [has_add β] [has_zero β] [decidable_eq β] (m1 m2 : rb_map α β) : rb_map α β :=
+meta def add {key value} [has_add value] [has_zero value] [decidable_eq value]
+  (m1 m2 : rb_map key value) : rb_map key value :=
 m1.fold m2
   (λ n v m,
    let nv := v + m2.zfind n in
@@ -76,8 +77,8 @@ meta def mmap {key val val'} [has_lt key] [decidable_rel ((<) : key → key → 
 rb_map.of_list <$> s.to_list.mmap (λ ⟨a,b⟩, prod.mk a <$> f b)
 
 /-- `scale b m` multiplies every value in `m` by `b`. -/
-meta def scale {α β} [has_lt α] [decidable_rel ((<) : α → α → Prop)] [has_mul β]
-  (b : β) (m : rb_map α β) : rb_map α β :=
+meta def scale {key value} [has_lt key] [decidable_rel ((<) : key → key → Prop)] [has_mul value]
+  (b : value) (m : rb_map key value) : rb_map key value :=
 m.map ((*) b)
 
 section

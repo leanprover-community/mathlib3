@@ -47,6 +47,8 @@ begin
     (@int.cast_lt ℝ _ (abs (a - b)) 1).1 $ by simpa using h)
 end
 
+theorem int.dist_eq (x y : ℤ) : dist x y = abs (x - y) := rfl
+
 theorem uniform_continuous_of_rat : uniform_continuous (coe : ℚ → ℝ) :=
 uniform_continuous_comap
 

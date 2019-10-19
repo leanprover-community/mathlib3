@@ -113,9 +113,11 @@ instance multiplicative.is_group_hom [add_group α] [add_group β] (f : α → �
   @is_group_hom (multiplicative α) (multiplicative β) _ _ f :=
 { map_mul := @is_add_hom.map_add α β _ _ f _ }
 
+/-- Reinterpret `f : α →+ β` as `multiplicative α →* multiplicative β`. -/
 def multiplicative.monoid_hom [add_group α] [add_group β] (f : α →+ β) :
   multiplicative α →* multiplicative β :=
 ⟨f.1, f.2, f.3⟩
 
+/-- Reinterpret `f : α →* β` as `additive α →+ additive β`. -/
 def additive.add_monoid_hom [group α] [group β] (f : α →* β) : additive α →+ additive β :=
 ⟨f.1, f.2, f.3⟩

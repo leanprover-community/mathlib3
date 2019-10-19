@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Lucas Allen
 -/
 
-import tactic.suggest
+import tactic.basic
 
 /- Turn off trace messages so they don't pollute the test build: -/
 set_option trace.silence_suggest true

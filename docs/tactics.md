@@ -271,33 +271,6 @@ However, it will work, producing the identity function, if one replaces have by 
 * `exactI`: `resetI` followed by `exact`. Like `exact`, but uses all
   variables in the context for typeclass inference.
 
-### library_search
-
-`library_search` is a tactic to identify existing lemmas in the library. It tries to close the
-current goal by applying a lemma from the library, then discharging any new goals using
-`solve_by_elim`.
-
-Typical usage is:
-```
-example (n m k : ℕ) : n * (m - k) = n * m - n * k :=
-by library_search -- exact nat.mul_sub_left_distrib n m k
-```
-
-`library_search` prints a trace message showing the proof it found, shown above as a comment.
-Typically you will then copy and paste this proof, replacing the call to `library_search`.
-
-### find
-
-The `find` command from `tactic.find` allows to find lemmas using
-pattern matching. For instance:
-
-```lean
-import tactic.find
-
-#find _ + _ = _ + _
-#find (_ : ℕ) + _ = _ + _
-```
-
 ### suggest
 
 `suggest` lists possible usages of the `refine` tactic and leaves the tactic state unchanged.
@@ -324,6 +297,33 @@ refine gt_iff_lt.mp _
 refine nat.lt.step _
 refine lt_of_not_ge _
 ...
+```
+
+### library_search
+
+`library_search` is a tactic to identify existing lemmas in the library. It tries to close the
+current goal by applying a lemma from the library, then discharging any new goals using
+`solve_by_elim`.
+
+Typical usage is:
+```
+example (n m k : ℕ) : n * (m - k) = n * m - n * k :=
+by library_search -- exact nat.mul_sub_left_distrib n m k
+```
+
+`library_search` prints a trace message showing the proof it found, shown above as a comment.
+Typically you will then copy and paste this proof, replacing the call to `library_search`.
+
+### find
+
+The `find` command from `tactic.find` allows to find lemmas using
+pattern matching. For instance:
+
+```lean
+import tactic.find
+
+#find _ + _ = _ + _
+#find (_ : ℕ) + _ = _ + _
 ```
 
 ### solve_by_elim

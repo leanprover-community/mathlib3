@@ -4,12 +4,11 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Scott Morrison
 -/
 import data.nat.basic
-import tactic.library_search
 
 /- Turn off trace messages so they don't pollute the test build: -/
 set_option trace.silence_library_search true
 /- For debugging purposes, we can display the list of lemmas: -/
--- set_option trace.library_search true
+-- set_option trace.suggest true
 
 namespace test.library_search
 

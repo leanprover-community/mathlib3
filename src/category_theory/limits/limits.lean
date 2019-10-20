@@ -403,7 +403,7 @@ section limit
 /-- `has_limit F` represents a particular chosen limit of the diagram `F`. -/
 class has_limit (F : J ⥤ C) :=
 (cone : cone F)
-(is_limit : is_limit cone . tactic.apply_instance)
+(is_limit : is_limit cone)
 
 variables (J C)
 
@@ -662,7 +662,7 @@ section colimit
 /-- `has_colimit F` represents a particular chosen colimit of the diagram `F`. -/
 class has_colimit (F : J ⥤ C) :=
 (cocone : cocone F)
-(is_colimit : is_colimit cocone . tactic.apply_instance)
+(is_colimit : is_colimit cocone)
 
 variables (J C)
 

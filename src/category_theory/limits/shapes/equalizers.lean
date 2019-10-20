@@ -182,6 +182,32 @@ abbreviation equalizer.lift {W : C} (k : W ⟶ X) (h : k ≫ f = k ≫ g) : W �
 limit.lift (parallel_pair f g) (fork.of_ι k h)
 end
 
+
+@[simp] lemma cone_parallel_pair_left (s : limits.cone (parallel_pair f g)) : (s.π).app zero ≫ f = (s.π).app one :=
+begin
+  conv { to_lhs, congr, skip, rw ←parallel_pair_map_left f g, },
+  rw s.w,
+end
+@[simp] lemma cone_parallel_pair_right (s : limits.cone (parallel_pair f g)) : (s.π).app zero ≫ g = (s.π).app one :=
+begin
+  conv { to_lhs, congr, skip, rw ←parallel_pair_map_right f g, },
+  rw s.w,
+end
+
+-- TODO squeeze_simp, and diagnose the `erw`s.
+-- TODO colimit version
+instance : has_limit (parallel_pair f f) :=
+{ cone := cone.of_fork $ fork.of_ι (𝟙 _) (by simp),
+  is_limit :=
+  { lift := λ s, s.π.app _,
+    fac' := λ s j,
+    begin
+      cases j,
+      { dsimp, simp, erw [category.comp_id], },
+      { dsimp, simp, erw [←category.assoc, category.comp_id, cone_parallel_pair_left], }
+    end,
+    uniq' := λ s m w, begin convert w zero, dsimp, simp, erw [category.comp_id], end } }
+
 section
 variables [has_colimit (parallel_pair f g)]
 

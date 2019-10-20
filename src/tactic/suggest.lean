@@ -246,7 +246,7 @@ do L ← suggest limit discharger,
    return $ L.map application.script
 
 /--
-Returns a string of the form `exact ...`, which closes the current goal (and closes the goal).
+Returns a string of the form `exact ...`, which closes the current goal.
 -/
 meta def library_search (discharger : tactic unit := done) : tactic string :=
 (suggest_core discharger).mfirst (λ a, do guard (a.num_goals = 0), write a.state, return a.script)

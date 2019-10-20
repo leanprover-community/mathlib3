@@ -3,7 +3,6 @@ import
   tactic.cache
   tactic.converter.interactive
   tactic.core
-  tactic.doc_blame
   tactic.ext
   tactic.generalize_proofs
   tactic.interactive
@@ -16,7 +15,7 @@ import
   tactic.replacer
   tactic.restate_axiom
   tactic.rewrite
-  tactic.sanity_check
+  tactic.lint
   tactic.simpa
   tactic.simps
   tactic.split_ifs

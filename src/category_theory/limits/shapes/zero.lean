@@ -44,8 +44,8 @@ attribute [simp, reassoc] has_zero_morphisms.zero_comp
 /-- A category "has a zero object" if it has an object which is both initial and terminal. -/
 class has_zero_object :=
 (zero : C)
-(unique_to : ∀ X : C, unique (zero ⟶ X))
-(unique_from : ∀ X : C, unique (X ⟶ zero))
+(unique_to : Π X : C, unique (zero ⟶ X))
+(unique_from : Π X : C, unique (X ⟶ zero))
 
 variables [has_zero_object.{v} C]
 

@@ -56,9 +56,10 @@ abbreviation kernel.lift {W : C} (k : W ⟶ X) (h : k ≫ f = 0) : W ⟶ kernel 
 limit.lift (parallel_pair f 0) (fork.of_ι k (by simpa))
 
 lemma kernel.ι_zero_is_iso [has_limit (parallel_pair (0 : X ⟶ Y) 0)] : is_iso (kernel.ι (0 : X ⟶ Y)) :=
--- Use the known instance : has_limit (parallel_pair f f)?
--- How exactly? We need to know we can change which `has_limit` we're using.
-sorry
+begin
+  apply limit_cone_parallel_pair_self_is_iso,
+  apply limit.is_limit,
+end
 end
 
 section

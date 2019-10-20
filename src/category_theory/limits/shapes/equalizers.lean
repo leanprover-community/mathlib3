@@ -183,30 +183,48 @@ limit.lift (parallel_pair f g) (fork.of_ι k h)
 end
 
 
-@[simp] lemma cone_parallel_pair_left (s : limits.cone (parallel_pair f g)) : (s.π).app zero ≫ f = (s.π).app one :=
+@[simp] lemma cone_parallel_pair_left (s : limits.cone (parallel_pair f g)) :
+  (s.π).app zero ≫ f = (s.π).app one :=
 begin
   conv { to_lhs, congr, skip, rw ←parallel_pair_map_left f g, },
   rw s.w,
 end
-@[simp] lemma cone_parallel_pair_right (s : limits.cone (parallel_pair f g)) : (s.π).app zero ≫ g = (s.π).app one :=
+@[simp] lemma cone_parallel_pair_right (s : limits.cone (parallel_pair f g)) :
+  (s.π).app zero ≫ g = (s.π).app one :=
 begin
   conv { to_lhs, congr, skip, rw ←parallel_pair_map_right f g, },
   rw s.w,
 end
 
+def cone_parallel_pair_self : cone (parallel_pair f f) :=
+{ X := X,
+  π :=
+  { app := λ j, match j with | zero := 𝟙 X | one := f end }}
+
+@[simp] lemma cone_parallel_pair_self_π_app_zero : (cone_parallel_pair_self f).π.app zero = 𝟙 X :=
+rfl
+
 -- TODO squeeze_simp, and diagnose the `erw`s.
--- TODO colimit version
-instance : has_limit (parallel_pair f f) :=
-{ cone := cone.of_fork $ fork.of_ι (𝟙 _) (by simp),
-  is_limit :=
-  { lift := λ s, s.π.app _,
-    fac' := λ s j,
-    begin
-      cases j,
-      { dsimp, simp, erw [category.comp_id], },
-      { dsimp, simp, erw [←category.assoc, category.comp_id, cone_parallel_pair_left], }
-    end,
-    uniq' := λ s m w, begin convert w zero, dsimp, simp, erw [category.comp_id], end } }
+def is_limit_cone_parallel_pair_self : is_limit (cone_parallel_pair_self f) :=
+{ lift := λ s, s.π.app zero,
+  fac' := λ s j,
+  begin
+    cases j,
+    { dsimp, erw [category.comp_id], },
+    { dsimp [cone_parallel_pair_self], simp, }
+  end,
+  uniq' := λ s m w, begin convert w zero, dsimp, erw [category.comp_id], end }
+
+def limit_cone_parallel_pair_self_is_iso (c : cone (parallel_pair f f)) (h : is_limit c) :
+  is_iso (c.π.app zero) :=
+begin
+  let c' := cone_parallel_pair_self f,
+  have z : c ≅ c', sorry,
+  have t : c.π.app zero = z.hom.hom ≫ c'.π.app zero, sorry,
+  replace t : c.π.app zero = z.hom.hom, sorry,
+  rw t,
+  sorry
+end
 
 section
 variables [has_colimit (parallel_pair f g)]

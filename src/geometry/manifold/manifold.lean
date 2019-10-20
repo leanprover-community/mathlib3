@@ -301,6 +301,7 @@ class manifold (H : Type*) [topological_space H] (M : Type*) [topological_space 
 (chart_mem_atlas  : ∀x, chart_at x ∈ atlas)
 
 export manifold
+attribute [simp] mem_chart_source chart_mem_atlas
 
 section manifold
 

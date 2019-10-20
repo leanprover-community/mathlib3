@@ -195,7 +195,8 @@ theorem exists_sub_mem [fintype ι] {f : ι → ideal R}
 begin
   have : ∃ φ : ι → R, (∀ i, φ i - 1 ∈ f i) ∧ (∀ i j, i ≠ j → φ i ∈ f j),
   { have := exists_sub_one_mem_and_mem (finset.univ : finset ι) (λ i _ j _ hij, hf i j hij),
-    choose φ hφ, use λ i, φ i (finset.mem_univ i),
+    choose φ hφ,
+    existsi λ i, φ i (finset.mem_univ i),
     exact ⟨λ i, (hφ i _).1, λ i j hij, (hφ i _).2 j (finset.mem_univ j) hij.symm⟩ },
   rcases this with ⟨φ, hφ1, hφ2⟩,
   use finset.univ.sum (λ i, g i * φ i),

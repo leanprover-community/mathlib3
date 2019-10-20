@@ -73,7 +73,7 @@ have hf : uniform_continuous f, from uniform_continuous_of_continuous hf,
     (continuous_add (continuous_extension.comp continuous_fst) (continuous_extension.comp continuous_snd)))
   (assume a b, by rw_mod_cast [extension_coe hf, extension_coe hf, extension_coe hf, is_add_hom.map_add f]) }
 
-lemma is_add_group_hom_map [add_group β] [uniform_add_group β]
+lemma is_add_group_hom_map
   {f : α → β} [is_add_group_hom f] (hf : continuous f) : is_add_group_hom (completion.map f) :=
 (is_add_group_hom_extension  ((continuous_coe _).comp hf) : _)
 

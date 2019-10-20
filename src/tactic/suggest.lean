@@ -21,6 +21,8 @@ open native
 
 namespace suggest
 
+/-- compute the head symbol of an expression, but normalise `>` to `<` and `≥` to `≤` -/
+-- We may want to tweak this further?
 meta def head_symbol : expr → name
 | (expr.pi _ _ _ t) := head_symbol t
 | (expr.app f _) := head_symbol f
@@ -33,21 +35,36 @@ meta def head_symbol : expr → name
   end
 | _ := `_
 
+/--
+A declaration can match the head symbol of the current goal in four possible ways:
+* `ex`  : an exact match
+* `mp`  : the declaration returns an `iff`, and the right hand side matches the goal
+* `mpr` : the declaration returns an `iff`, and the left hand side matches the goal
+* `both`: the declaration returns an `iff`, and the both sides match the goal
+-/
 inductive head_symbol_match
 | ex | mp | mpr | both
 
 open head_symbol_match
 
+/-- a textual representation of a `head_symbol_match`, for trace debugging. -/
 def head_symbol_match.to_string : head_symbol_match → string
 | ex   := "exact"
 | mp   := "iff.mp"
 | mpr  := "iff.mpr"
 | both := "iff.mp and iff.mpr"
 
+/--
+When we are determining if a given declaration is potentially relevant for the current goal,
+we compute `unfold_head_symbol` on the head symbol of the declaration, producing a list of names.
+We consider the declaration potentially relevant if the head symbol of the goal appears in this list.
+-/
+-- This is a hack.
 meta def unfold_head_symbol : name → list name
 | `false := [`not, `false]
 | n      := [n]
 
+/-- Determine if, and in which way, a given expression matches the specified head symbol. -/
 meta def match_head_symbol (hs : name) : expr → option head_symbol_match
 | (expr.pi _ _ _ t) := match_head_symbol t
 | `(%%a ↔ %%b)      := if `iff = hs then some ex else
@@ -68,6 +85,10 @@ meta structure decl_data :=
 (m : head_symbol_match)
 (l : ℕ) -- cached length of name
 
+/--
+Generate a `decl_data` from the given declaration if
+it matches the head symbol `hs` for the current goal.
+-/
 -- We used to check here for private declarations, or declarations with certain suffixes.
 -- It turns out `apply` is so fast, it's better to just try them all.
 meta def process_declaration (hs : name) (d : declaration) : option decl_data :=

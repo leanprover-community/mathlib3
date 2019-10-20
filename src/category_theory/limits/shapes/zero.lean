@@ -51,35 +51,25 @@ variables [has_zero_object.{v} C]
 
 variables {C}
 
-/-- We allow writing `0` to indicate the zero object in any category with a zero object. -/
-instance [has_zero_object.{v} C] : has_zero C :=
+/--
+Construct a `has_zero C` for a category with a zero object.
+This can not be a global instance as it will trigger for every `has_zero C` typeclass search.
+-/
+def has_zero_of_has_zero_object [has_zero_object.{v} C] : has_zero C :=
 { zero := has_zero_object.zero.{v} C }
+
+local attribute [instance] has_zero_of_has_zero_object
 
 attribute [instance] has_zero_object.unique_to has_zero_object.unique_from
 
 namespace has_zero_object
--- We now make some preliminary definitions in preparation for constructing an instance of
--- `has_zero_morphisms C`. They can all be private, as public versions have provided by the
--- `has_zero_morphisms` typeclass.
-
-private def zero_morphism (X Y : C) :=
-inhabited.default (X ⟶ 0) ≫ inhabited.default (0 ⟶ Y)
-
-private def hom_has_zero {X Y : C} : has_zero (X ⟶ Y) :=
-{ zero := zero_morphism X Y }
-
-local attribute [instance] hom_has_zero -- in a moment these will be provided by `has_zero_morphism`
-
-private lemma zero_morphism_comp {X Y Z : C} (f : Y ⟶ Z) : (0 : X ⟶ Y) ≫ f = (0 : X ⟶ Z) :=
-by { dsimp [has_zero.zero, zero_morphism], rw [category.assoc], congr, }
-private lemma comp_zero_morphism {X Y Z : C} (f : X ⟶ Y) : f ≫ (0 : Y ⟶ Z) = (0 : X ⟶ Z) :=
-by { dsimp [has_zero.zero, zero_morphism], rw [←category.assoc], congr, }
-
--- in a moment these will be deprecated by `has_zero_morphism.zero_comp` and `has_zero_morphism.comp_zero`.
-local attribute [simp] zero_morphism_comp comp_zero_morphism
 
 /-- A category with a zero object has zero morphisms. -/
-instance : has_zero_morphisms.{v} C := {}
+instance : has_zero_morphisms.{v} C :=
+{ has_zero := λ X Y,
+  { zero := inhabited.default (X ⟶ 0) ≫ inhabited.default (0 ⟶ Y) },
+  zero_comp' := λ X Y Z f, by { dunfold has_zero.zero, rw category.assoc, congr, },
+  comp_zero' := λ X Y Z f, by { dunfold has_zero.zero, rw ←category.assoc, congr, }}
 
 /-- A zero object is in particular initial. -/
 instance has_initial_of_has_zero_object : has_initial.{v} C :=

@@ -55,27 +55,26 @@ variables {C}
 Construct a `has_zero C` for a category with a zero object.
 This can not be a global instance as it will trigger for every `has_zero C` typeclass search.
 -/
-def has_zero_of_has_zero_object [has_zero_object.{v} C] : has_zero C :=
+def zero_of_zero_object [has_zero_object.{v} C] : has_zero C :=
 { zero := has_zero_object.zero.{v} C }
 
-local attribute [instance] has_zero_of_has_zero_object
-
-attribute [instance] has_zero_object.unique_to has_zero_object.unique_from
+local attribute [instance] zero_of_zero_object
+local attribute [instance] has_zero_object.unique_to has_zero_object.unique_from
 
 namespace has_zero_object
 
 /-- A category with a zero object has zero morphisms. -/
-instance : has_zero_morphisms.{v} C :=
+def zero_morphisms_of_zero_object : has_zero_morphisms.{v} C :=
 { has_zero := λ X Y,
   { zero := inhabited.default (X ⟶ 0) ≫ inhabited.default (0 ⟶ Y) },
   zero_comp' := λ X Y Z f, by { dunfold has_zero.zero, rw category.assoc, congr, },
   comp_zero' := λ X Y Z f, by { dunfold has_zero.zero, rw ←category.assoc, congr, }}
 
 /-- A zero object is in particular initial. -/
-instance has_initial_of_has_zero_object : has_initial.{v} C :=
+def has_initial_of_has_zero_object : has_initial.{v} C :=
 has_initial_of_unique 0
 /-- A zero object is in particular terminal. -/
-instance has_terminal_of_has_zero_object : has_terminal.{v} C :=
+def has_terminal_of_has_zero_object : has_terminal.{v} C :=
 has_terminal_of_unique 0
 
 end has_zero_object

@@ -80,6 +80,4 @@ class has_kernels :=
 class has_cokernels :=
 (has_colimit : Π {X Y : C}, has_colimit (parallel_pair f 0))
 
-attribute [instance] has_equalizers.has_limits_of_shape has_coequalizers.has_colimits_of_shape
-
 end category_theory.limits

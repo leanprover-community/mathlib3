@@ -122,6 +122,11 @@ theorem geom_sum [division_ring α] {x : α} (h : x ≠ 1) (n : ℕ) :
 have x - 1 ≠ 0, by simp [*, -sub_eq_add_neg, sub_eq_iff_eq_add] at *,
 by rw [← geom_sum_mul, mul_div_cancel _ this]
 
+theorem geom_sum_Ico [division_ring α] {x : α} (hx : x ≠ 1) {m n : ℕ} (hmn : m ≤ n) :
+  (finset.Ico m n).sum (λ i, x ^ i) = (x ^ n - x ^ m) / (x - 1) :=
+by simp only [sum_Ico_eq_sub _ hmn, (geom_series_def _ _).symm, geom_sum hx, div_sub_div_same,
+  sub_sub_sub_cancel_right]
+
 lemma geom_sum_inv [division_ring α] {x : α} (hx1 : x ≠ 1) (hx0 : x ≠ 0) (n : ℕ) :
   (geom_series x⁻¹ n) = (x - 1)⁻¹ * (x - x⁻¹ ^ n * x) :=
 have h₁ : x⁻¹ ≠ 1, by rwa [inv_eq_one_div, ne.def, div_eq_iff_mul_eq hx0, one_mul],

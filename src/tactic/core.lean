@@ -106,7 +106,7 @@ do nm ← mk_fresh_name,
    return $ `user__ ++ nm.pop_prefix.sanitize_name ++ `user__
 
 
-/-- Checks whether n' has attribute n. -/
+/-- `has_attribute n n'` checks whether n' has attribute n. -/
 meta def has_attribute' : name → name → tactic bool | n n' :=
 succeeds (has_attribute n n')
 

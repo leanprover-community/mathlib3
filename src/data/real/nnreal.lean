@@ -12,6 +12,7 @@ open lattice
 
 open_locale classical
 
+/-- Nonnegative real numbers. -/
 def nnreal := {r : ℝ // 0 ≤ r}
 localized "notation ` ℝ≥0 ` := nnreal" in nnreal
 

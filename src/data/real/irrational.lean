@@ -12,7 +12,7 @@ open rat real multiplicity
 def irrational (x : ℝ) := ¬ ∃ q : ℚ, x = q
 
 theorem irr_nrt_of_notint_nrt {x : ℝ} (n : ℕ) (m : ℤ)
-  (hxr : x ^ n = m) (hv : ¬ ∃ y : ℤ, x = y) (hnpos : n > 0) :
+  (hxr : x ^ n = m) (hv : ¬ ∃ y : ℤ, x = y) (hnpos : 0 < n) :
   irrational x
 | ⟨q, e⟩ := begin
   rw [e, ← cast_pow] at hxr, cases q with N D P C,

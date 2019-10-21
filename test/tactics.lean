@@ -3,7 +3,8 @@ Copyright (c) 2018 Simon Hudon. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Simon Hudon, Scott Morrison
 -/
-import tactic.interactive tactic.finish tactic.ext
+
+import tactic.interactive tactic.finish tactic.ext tactic.lift tactic.apply
 
 example (m n p q : nat) (h : m + n = p) : true :=
 begin
@@ -233,6 +234,46 @@ by {have : α₁, have : α₂, have : α₃, swap, swap,
 
 end swap
 
+section lift
+
+example (n m k x z u : ℤ) (hn : 0 < n) (hk : 0 ≤ k + n) (hu : 0 ≤ u) (h : k + n = 2 + x) :
+  k + n = m + x :=
+begin
+  lift n to ℕ using le_of_lt hn,
+    guard_target (k + ↑n = m + x), guard_hyp hn := (0 : ℤ) < ↑n,
+  lift m to ℕ,
+    guard_target (k + ↑n = ↑m + x), tactic.swap, guard_target (0 ≤ m), tactic.swap,
+    tactic.num_goals >>= λ n, guard (n = 2),
+  lift (k + n) to ℕ using hk with l hl,
+    guard_hyp l := ℕ, guard_hyp hl := ↑l = k + ↑n, guard_target (↑l = ↑m + x),
+    tactic.success_if_fail (tactic.get_local `hk),
+  lift x to ℕ with y hy,
+    guard_hyp y := ℕ, guard_hyp hy := ↑y = x, guard_target (↑l = ↑m + x),
+  lift z to ℕ with w,
+    guard_hyp w := ℕ, tactic.success_if_fail (tactic.get_local `z),
+  lift u to ℕ using hu with u rfl hu,
+    guard_hyp hu := (0 : ℤ) ≤ ↑u,
+  all_goals { admit }
+end
+
+instance can_lift_unit : can_lift unit unit :=
+⟨id, λ x, true, λ x _, ⟨x, rfl⟩⟩
+
+/- test whether new instances of `can_lift` are added as simp lemmas -/
+run_cmd do l ← can_lift_attr.get_cache, guard (`can_lift_unit ∈ l)
+
+/- test error messages -/
+example (n : ℤ) (hn : 0 < n) : true :=
+begin
+  success_if_fail_with_msg {lift n to ℕ using hn} "lift tactic failed. The type of\n  hn\nis
+  0 < n\nbut it is expected to be\n  0 ≤ n",
+  success_if_fail_with_msg {lift (n : option ℤ) to ℕ}
+    "Failed to find a lift from option ℤ to ℕ. Provide an instance of\n  can_lift (option ℤ) ℕ",
+  trivial
+end
+
+end lift
+
 private meta def get_exception_message (t : lean.parser unit) : lean.parser string
 | s := match t s with
        | result.success a s' := result.success "No exception" s
@@ -254,3 +295,52 @@ do
 -- a VM check error, and instead catch the error gracefully and just
 -- run and succeed silently.
 test_parser1
+
+section is_eta_expansion
+/- test the is_eta_expansion tactic -/
+open function tactic
+structure equiv (α : Sort*) (β : Sort*) :=
+(to_fun    : α → β)
+(inv_fun   : β → α)
+(left_inv  : left_inverse inv_fun to_fun)
+(right_inv : right_inverse inv_fun to_fun)
+
+infix ` ≃ `:25 := equiv
+
+protected def my_rfl {α} : α ≃ α :=
+⟨id, λ x, x, λ x, rfl, λ x, rfl⟩
+
+def eta_expansion_test : ℕ × ℕ := ((1,0).1,(1,0).2)
+run_cmd do e ← get_env, x ← e.get `eta_expansion_test,
+  let v := (x.value.get_app_args).drop 2,
+  let nms := [`prod.fst, `prod.snd],
+  guard $ expr.is_eta_expansion_test (nms.zip v) = some `((1, 0))
+
+def eta_expansion_test2 : ℕ ≃ ℕ :=
+⟨my_rfl.to_fun, my_rfl.inv_fun, λ x, rfl, λ x, rfl⟩
+
+run_cmd do e ← get_env, x ← e.get `eta_expansion_test2,
+  let v := (x.value.get_app_args).drop 2,
+  projs ← e.get_projections `equiv,
+  b ← expr.is_eta_expansion_aux x.value (projs.zip v),
+  guard $ b = some `(@my_rfl ℕ)
+
+run_cmd do e ← get_env, x1 ← e.get `eta_expansion_test, x2 ← e.get `eta_expansion_test2,
+  b1 ← expr.is_eta_expansion x1.value,
+  b2 ← expr.is_eta_expansion x2.value,
+  guard $ b1 = some `((1, 0)) ∧ b2 = some `(@my_rfl ℕ)
+
+structure my_str (n : ℕ) := (x y : ℕ)
+
+def dummy : my_str 3 := ⟨3, 1, 1⟩
+def wrong_param : my_str 2 := ⟨2, dummy.1, dummy.2⟩
+def right_param : my_str 3 := ⟨3, dummy.1, dummy.2⟩
+
+run_cmd do e ← get_env,
+  x ← e.get `wrong_param, o ← x.value.is_eta_expansion,
+  guard o.is_none,
+  x ← e.get `right_param, o ← x.value.is_eta_expansion,
+  guard $ o = some `(dummy)
+
+
+end is_eta_expansion

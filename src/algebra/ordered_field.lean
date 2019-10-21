@@ -8,7 +8,7 @@ import algebra.ordered_ring algebra.field
 section linear_ordered_field
 variables {α : Type*} [linear_ordered_field α] {a b c d : α}
 
-def div_pos := @div_pos_of_pos_of_pos
+lemma div_pos : 0 < a → 0 < b → 0 < a / b := div_pos_of_pos_of_pos
 
 lemma inv_pos {a : α} : 0 < a → 0 < a⁻¹ :=
 by rw [inv_eq_one_div]; exact div_pos zero_lt_one
@@ -49,6 +49,10 @@ by rw [mul_comm, lt_div_iff hc]
 lemma div_le_iff_of_neg (hc : c < 0) : b / c ≤ a ↔ a * c ≤ b :=
 ⟨mul_le_of_div_le_of_neg hc, div_le_of_mul_le_of_neg hc⟩
 
+lemma le_div_iff_of_neg (hc : c < 0) : a ≤ b / c ↔ b ≤ a * c :=
+by rw [← neg_neg c, mul_neg_eq_neg_mul_symm, div_neg _ (ne_of_gt (neg_pos.2 hc)), le_neg,
+    div_le_iff (neg_pos.2 hc), neg_mul_eq_neg_mul_symm]
+
 lemma div_lt_iff (hc : 0 < c) : b / c < a ↔ b < a * c :=
 lt_iff_lt_of_le_iff_le (le_div_iff hc)
 
@@ -77,13 +81,16 @@ lt_iff_lt_of_le_iff_le (inv_le_inv hb ha)
 lemma inv_lt (ha : 0 < a) (hb : 0 < b) : a⁻¹ < b ↔ b⁻¹ < a :=
 lt_iff_lt_of_le_iff_le (le_inv hb ha)
 
+lemma one_div_lt (ha : 0 < a) (hb : 0 < b) : 1 / a < b ↔ 1 / b < a :=
+(one_div_eq_inv a).symm ▸ (one_div_eq_inv b).symm ▸ inv_lt ha hb
+
 lemma lt_inv (ha : 0 < a) (hb : 0 < b) : a < b⁻¹ ↔ b < a⁻¹ :=
 lt_iff_lt_of_le_iff_le (inv_le hb ha)
 
 lemma one_div_lt_one_div (ha : 0 < a) (hb : 0 < b) : 1 / a < 1 / b ↔ b < a :=
 lt_iff_lt_of_le_iff_le (one_div_le_one_div hb ha)
 
-def div_nonneg := @div_nonneg_of_nonneg_of_pos
+lemma div_nonneg : 0 ≤ a → 0 < b → 0 ≤ a / b := div_nonneg_of_nonneg_of_pos
 
 lemma div_lt_div_right (hc : 0 < c) : a / c < b / c ↔ a < b :=
 ⟨lt_imp_lt_of_le_imp_le (λ h, div_le_div_of_le_of_pos h hc),
@@ -121,7 +128,7 @@ lemma half_pos {a : α} (h : 0 < a) : 0 < a / 2 := div_pos h two_pos
 
 lemma one_half_pos : (0:α) < 1 / 2 := half_pos zero_lt_one
 
-def half_lt_self := @div_two_lt_of_pos
+lemma half_lt_self : 0 < a → a / 2 < a := div_two_lt_of_pos
 
 lemma one_half_lt_one : (1 / 2 : α) < 1 := half_lt_self zero_lt_one
 
@@ -198,16 +205,16 @@ end nat
 section
 variables {α : Type*} [discrete_linear_ordered_field α] (a b c : α)
 
-lemma inv_pos' {a : α} : 0 < a⁻¹ ↔ 0 < a :=
+@[simp] lemma inv_pos' {a : α} : 0 < a⁻¹ ↔ 0 < a :=
 ⟨by rw [inv_eq_one_div]; exact pos_of_one_div_pos, inv_pos⟩
 
-lemma inv_neg' {a : α} : a⁻¹ < 0 ↔ a < 0 :=
+@[simp] lemma inv_neg' {a : α} : a⁻¹ < 0 ↔ a < 0 :=
 ⟨by rw [inv_eq_one_div]; exact neg_of_one_div_neg, inv_lt_zero⟩
 
-lemma inv_nonneg {a : α} : 0 ≤ a⁻¹ ↔ 0 ≤ a :=
+@[simp] lemma inv_nonneg {a : α} : 0 ≤ a⁻¹ ↔ 0 ≤ a :=
 le_iff_le_iff_lt_iff_lt.2 inv_neg'
 
-lemma inv_nonpos {a : α} : a⁻¹ ≤ 0 ↔ a ≤ 0 :=
+@[simp] lemma inv_nonpos {a : α} : a⁻¹ ≤ 0 ↔ a ≤ 0 :=
 le_iff_le_iff_lt_iff_lt.2 inv_pos'
 
 lemma abs_inv : abs a⁻¹ = (abs a)⁻¹ :=

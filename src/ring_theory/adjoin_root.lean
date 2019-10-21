@@ -8,23 +8,25 @@ Adjoining roots of polynomials
 
 import data.polynomial ring_theory.principal_ideal_domain
 
+noncomputable theory
+
 universes u v w
 
 variables {α : Type u} {β : Type v} {γ : Type w}
 
 open polynomial ideal
 
-def adjoin_root [comm_ring α] [decidable_eq α] (f : polynomial α) : Type u :=
+def adjoin_root [comm_ring α] (f : polynomial α) : Type u :=
 ideal.quotient (span {f} : ideal (polynomial α))
 
 namespace adjoin_root
 
 section comm_ring
-variables [comm_ring α] [decidable_eq α] (f : polynomial α)
+variables [comm_ring α] (f : polynomial α)
 
 instance : comm_ring (adjoin_root f) := ideal.quotient.comm_ring _
 
-noncomputable instance : decidable_eq (adjoin_root f) := classical.dec_eq _
+instance : decidable_eq (adjoin_root f) := classical.dec_eq _
 
 variable {f}
 
@@ -65,7 +67,6 @@ ideal.quotient.lift _ (eval₂ i x) $ λ g H,
 begin
   simp [mem_span_singleton] at H,
   cases H with y H,
-  dsimp at H,
   rw [H, eval₂_mul],
   simp [h]
 end

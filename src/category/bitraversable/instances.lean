@@ -1,7 +1,35 @@
+/-
+Copyright (c) 2019 Simon Hudon. All rights reserved.
+Released under Apache 2.0 license as described in the file LICENSE.
+Author(s): Simon Hudon
+-/
+
 import category.bitraversable.basic
        category.bitraversable.lemmas
        category.traversable.lemmas
        tactic.solve_by_elim
+
+/-!
+# bitraversable instances
+
+## Instances
+
+ * prod
+ * sum
+ * const
+ * flip
+ * bicompl
+ * bicompr
+
+## References
+
+ * Hackage: https://hackage.haskell.org/package/base-4.12.0.0/docs/Data-Bitraversable.html
+
+## Tags
+
+traversable bitraversable functor bifunctor applicative
+
+-/
 
 universes u v w
 
@@ -48,18 +76,18 @@ def flip.bitraverse {α α' β β'} (f : α → F α') (f' : β → F β') : fli
 instance bitraversable.flip : bitraversable (flip t) :=
 { bitraverse := @flip.bitraverse t _ }
 
-variables [is_lawful_bitraversable t]
 open is_lawful_bitraversable
-instance is_lawful_bitraversable.flip  : is_lawful_bitraversable (flip t)  :=
+instance is_lawful_bitraversable.flip [is_lawful_bitraversable t]
+  : is_lawful_bitraversable (flip t)  :=
 by constructor; introsI; casesm is_lawful_bitraversable t; apply_assumption
 
 open bitraversable functor
 
-@[priority 0]
+@[priority 10]
 instance bitraversable.traversable {α} : traversable (t α) :=
 { traverse := @tsnd t _ _ }
 
-@[priority 0]
+@[priority 10]
 instance bitraversable.is_lawful_traversable [is_lawful_bitraversable t] {α} :
   is_lawful_traversable (t α) :=
 by { constructor; introsI; simp [traverse,comp_tsnd] with functor_norm,

@@ -10,7 +10,7 @@ noncomputable theory
 open set topological_space metric
 
 namespace nnreal
-local notation ` ℝ≥0 ` := nnreal
+open_locale nnreal
 
 instance : topological_space ℝ≥0 := infer_instance
 

@@ -5,6 +5,7 @@ Authors: Jeremy Avigad, Leonardo de Moura, Floris van Doorn, Amelia Livingston
 -/
 
 import algebra.group
+import tactic.norm_cast
 
 /-!
 # Properties and homomorphisms of semirings and rings
@@ -16,30 +17,34 @@ and the plan is to slowly remove them from mathlib.
 
 ## Main definitions
 
-semiring_hom, is_semiring_hom (deprecated), is_ring_hom (deprecated), nonzero_comm_semiring,
+is_semiring_hom (deprecated), is_ring_hom (deprecated), ring_hom, nonzero_comm_semiring,
 nonzero_comm_ring, domain
 
 ## Notations
 
-→+* for bundled semiring homs (also use for ring homs)
+→+* for bundled ring homs (also use for semiring homs)
 
 ## Implementation notes
 
 There's a coercion from bundled homs to fun, and the canonical
 notation is to use the bundled hom as a function via this coercion.
 
-There is no `ring_hom` -- the idea is that `semiring_hom` is used.
-The constructor for `ring_hom` needs a proof of `map_zero`, `map_one` and
-`map_add` as well as `map_mul`; a separate constructor `semiring_hom.mk'`
-will construct ring homs (i.e. semiring homs between additive commutative groups) from
-monoid homs given only a proof that addition is preserved.
+There is no `semiring_hom` -- the idea is that `ring_hom` is used.
+The constructor for a `ring_hom` between semirings needs a proof of `map_zero`, `map_one` and
+`map_add` as well as `map_mul`; a separate constructor `ring_hom.mk'` will construct ring homs
+between rings from monoid homs given only a proof that addition is preserved.
+
+
+Throughout the section on `ring_hom` implicit `{}` brackets are often used instead of type class `[]` brackets.
+This is done when the instances can be inferred because they are implicit arguments to the type `ring_hom`.
+When they can be inferred from the type it is faster to use this method than to use type class inference.
 
 ## Tags
 
-is_ring_hom, is_semiring_hom, ring_hom, semiring, comm_semiring, ring, comm_ring, domain,
-integral_domain, nonzero_comm_semiring, nonzero_comm_ring, units
+is_ring_hom, is_semiring_hom, ring_hom, semiring_hom, semiring, comm_semiring, ring, comm_ring,
+domain, integral_domain, nonzero_comm_semiring, nonzero_comm_ring, units
 -/
-universes u v
+universes u v w
 variable {α : Type u}
 
 section
@@ -125,7 +130,7 @@ instance [semiring α] : semiring (with_zero α) :=
 attribute [refl] dvd_refl
 attribute [trans] dvd.trans
 
-/-- Predicate for semiring homomorphisms (deprecated -- use the bundled `semiring_hom` version). -/
+/-- Predicate for semiring homomorphisms (deprecated -- use the bundled `ring_hom` version). -/
 class is_semiring_hom {α : Type u} {β : Type v} [semiring α] [semiring β] (f : α → β) : Prop :=
 (map_zero : f 0 = 0)
 (map_one : f 1 = 1)
@@ -228,9 +233,30 @@ section comm_ring
   theorem dvd_add_right {a b c : α} (h : a ∣ b) : a ∣ b + c ↔ a ∣ c :=
   (dvd_add_iff_right h).symm
 
+/-- An element a divides the sum a + b if and only if a divides b.-/
+@[simp] lemma dvd_add_self_left {a b : α} :
+  a ∣ a + b ↔ a ∣ b :=
+dvd_add_right (dvd_refl a)
+
+/-- An element a divides the sum b + a if and only if a divides b.-/
+@[simp] lemma dvd_add_self_right {a b : α} :
+  a ∣ b + a ↔ a ∣ b :=
+dvd_add_left (dvd_refl a)
+
+/-- Vieta's formula for a quadratic equation, relating the coefficients of the polynomial with
+  its roots. This particular version states that if we have a root `x` of a monic quadratic
+  polynomial, then there is another root `y` such that `x + y` is negative the `a_1` coefficient
+  and `x * y` is the `a_0` coefficient. -/
+lemma Vieta_formula_quadratic {b c x : α} (h : x * x - b * x + c = 0) :
+  ∃ y : α, y * y - b * y + c = 0 ∧ x + y = b ∧ x * y = c :=
+begin
+  have : c = b * x - x * x, { apply eq_of_sub_eq_zero, simpa using h },
+  use b - x, simp [left_distrib, mul_comm, this],
+end
+
 end comm_ring
 
-/-- Predicate for ring homomorphisms (deprecated -- use the bundled `semiring_hom` version). -/
+/-- Predicate for ring homomorphisms (deprecated -- use the bundled `ring_hom` version). -/
 class is_ring_hom {α : Type u} {β : Type v} [ring α] [ring β] (f : α → β) : Prop :=
 (map_one : f 1 = 1)
 (map_mul : ∀ {x y}, f (x * y) = f x * f y)
@@ -241,7 +267,7 @@ namespace is_ring_hom
 variables {β : Type v} [ring α] [ring β]
 
 /-- A map of rings that is a semiring homomorphism is also a ring homomorphism. -/
-def of_semiring (f : α → β) [H : is_semiring_hom f] : is_ring_hom f := {..H}
+lemma of_semiring (f : α → β) [H : is_semiring_hom f] : is_ring_hom f := {..H}
 
 variables (f : α → β) [is_ring_hom f] {x y : α}
 
@@ -280,56 +306,98 @@ end is_ring_hom
 set_option old_structure_cmd true
 
 /-- Bundled semiring homomorphisms; use this for bundled ring homomorphisms too. -/
-structure semiring_hom (α : Type*) (β : Type*) [semiring α] [semiring β]
+structure ring_hom (α : Type*) (β : Type*) [semiring α] [semiring β]
   extends monoid_hom α β, add_monoid_hom α β
 
-infixr ` →+* `:25 := semiring_hom
+infixr ` →+* `:25 := ring_hom
 
-instance {α : Type*} {β : Type*} [semiring α] [semiring β] : has_coe_to_fun (α →+* β) :=
-⟨_, semiring_hom.to_fun⟩
+instance {α : Type*} {β : Type*} {rα : semiring α} {rβ : semiring β} : has_coe_to_fun (α →+* β) :=
+⟨_, ring_hom.to_fun⟩
 
-namespace semiring_hom
+instance {α : Type*} {β : Type*} {rα : semiring α} {rβ : semiring β} : has_coe (α →+* β) (α →* β) :=
+⟨ring_hom.to_monoid_hom⟩
 
-variables {β : Type v} [semiring α] [semiring β]
-variables (f : α →+* β) {x y : α}
+instance {α : Type*} {β : Type*} {rα : semiring α} {rβ : semiring β} : has_coe (α →+* β) (α →+ β) :=
+⟨ring_hom.to_add_monoid_hom⟩
 
-@[extensionality] theorem ext (f g : α →+* β) (h : (f : α → β) = g) : f = g :=
+@[squash_cast] lemma coe_monoid_hom {α : Type*} {β : Type*} {rα : semiring α} {rβ : semiring β} (f : α →+* β) (a : α) :
+  ((f : α →* β) : α → β) a = (f : α → β) a := rfl
+@[squash_cast] lemma coe_add_monoid_hom {α : Type*} {β : Type*} {rα : semiring α} {rβ : semiring β} (f : α →+* β) (a : α) :
+  ((f : α →+ β) : α → β) a = (f : α → β) a := rfl
+
+namespace ring_hom
+
+variables {β : Type v} {γ : Type w} [rα : semiring α] [rβ : semiring β]
+
+include rα rβ
+
+/-- Interpret `f : α → β` with `is_semiring_hom f` as a ring homomorphism. -/
+def of (f : α → β) [is_semiring_hom f] : α →+* β :=
+{ to_fun := f,
+  .. monoid_hom.of f,
+  .. add_monoid_hom.of f }
+
+@[simp] lemma coe_of (f : α → β) [is_semiring_hom f] : ⇑(of f) = f := rfl
+
+variables (f : α →+* β) {x y : α} {rα rβ}
+
+theorem coe_inj ⦃f g : α →+* β⦄ (h : (f : α → β) = g) : f = g :=
 by cases f; cases g; cases h; refl
 
-/-- Semiring homomorphisms map zero to zero. -/
+@[extensionality] theorem ext ⦃f g : α →+* β⦄ (h : ∀ x, f x = g x) : f = g :=
+coe_inj (funext h)
+
+theorem ext_iff {f g : α →+* β} : f = g ↔ ∀ x, f x = g x :=
+⟨λ h x, h ▸ rfl, λ h, ext h⟩
+
+/-- Ring homomorphisms map zero to zero. -/
 @[simp] lemma map_zero (f : α →+* β) : f 0 = 0 := f.map_zero'
 
-/-- Semiring homomorphisms map one to one. -/
+/-- Ring homomorphisms map one to one. -/
 @[simp] lemma map_one (f : α →+* β) : f 1 = 1 := f.map_one'
 
-/-- Semiring homomorphisms preserve addition. -/
+/-- Ring homomorphisms preserve addition. -/
 @[simp] lemma map_add (f : α →+* β) (a b : α) : f (a + b) = f a + f b := f.map_add' a b
 
-/-- Semiring homomorphisms preserve multiplication. -/
+/-- Ring homomorphisms preserve multiplication. -/
 @[simp] lemma map_mul (f : α →+* β) (a b : α) : f (a * b) = f a * f b := f.map_mul' a b
 
-instance {α : Type*} {β : Type*} [semiring α] [semiring β] (f : α →+* β) :
-  is_semiring_hom f :=
+instance (f : α →+* β) : is_semiring_hom f :=
 { map_zero := f.map_zero,
   map_one := f.map_one,
   map_add := f.map_add,
   map_mul := f.map_mul }
 
-/-- A semiring homomorphism of rings is a ring homomorphism. -/
-instance {α γ} [ring α] [ring γ] {g : α →+* γ} : is_ring_hom g :=
+omit rα rβ
+
+instance {α γ} [ring α] [ring γ] (g : α →+* γ) : is_ring_hom g :=
 is_ring_hom.of_semiring g
 
-/-- The identity map from a semiring to itself. -/
+/-- The identity ring homomorphism from a semiring to itself. -/
 def id (α : Type*) [semiring α] : α →+* α :=
 by refine {to_fun := id, ..}; intros; refl
 
-/-- Composition of semiring homomorphisms is a semiring homomorphism. -/
-def comp {γ} [semiring γ] (hnp : β →+* γ) (hmn : α →+* β) : α →+* γ :=
+include rα
+
+@[simp] lemma id_apply : ring_hom.id α x = x := rfl
+
+variable {rγ : semiring γ}
+include rβ rγ
+
+/-- Composition of ring homomorphisms is a ring homomorphism. -/
+def comp (hnp : β →+* γ) (hmn : α →+* β) : α →+* γ :=
 { to_fun := hnp ∘ hmn,
   map_zero' := by simp,
   map_one' := by simp,
   map_add' := λ x y, by simp,
   map_mul' := λ x y, by simp}
+
+@[simp] lemma coe_comp (hnp : β →+* γ) (hmn : α →+* β) : (hnp.comp hmn : α → γ) = hnp ∘ hmn := rfl
+
+@[simp] lemma comp_apply (hnp : β →+* γ) (hmn : α →+* β) (x : α) : (hnp.comp hmn : α → γ) x =
+  (hnp (hmn x)) := rfl
+
+omit rα rβ rγ
 
 /-- Ring homomorphisms preserve additive inverse. -/
 @[simp] theorem map_neg {α β} [ring α] [ring β] (f : α →+* β) (x : α) : f (-x) = -(f x) :=
@@ -339,7 +407,9 @@ eq_neg_of_add_eq_zero $ by rw [←f.map_add, neg_add_self, f.map_zero]
 @[simp] theorem map_sub {α β} [ring α] [ring β] (f : α →+* β) (x y : α) :
   f (x - y) = (f x) - (f y) := by simp
 
-/-- Makes a ring homomomorphism from a proof that the monoid homomorphism preserves addition. -/
+include rα
+
+/-- Makes a ring homomorphism from a monoid homomorphism of rings which preserves addition. -/
 def mk' {γ} [ring γ] (f : α →* γ) (map_add : ∀ a b : α, f (a + b) = f a + f b) : α →+* γ :=
 { to_fun := f,
   map_zero' := add_self_iff_eq_zero.1 $ by rw [←map_add, add_zero],
@@ -347,7 +417,7 @@ def mk' {γ} [ring γ] (f : α →* γ) (map_add : ∀ a b : α, f (a + b) = f a
   map_mul' := f.map_mul,
   map_add' := map_add }
 
-end semiring_hom
+end ring_hom
 
 /-- Predicate for commutative semirings in which zero does not equal one. -/
 class nonzero_comm_semiring (α : Type*) extends comm_semiring α, zero_ne_one_class α
@@ -405,6 +475,9 @@ section domain
 
   @[simp] theorem zero_eq_mul {a b : α} : 0 = a * b ↔ a = 0 ∨ b = 0 :=
   by rw [eq_comm, mul_eq_zero]
+
+  lemma mul_self_eq_zero {α} [domain α] {x : α} : x * x = 0 ↔ x = 0 := by simp
+  lemma zero_eq_mul_self {α} [domain α] {x : α} : 0 = x * x ↔ x = 0 := by simp
 
 /-- The product of two nonzero elements of a domain is nonzero. -/
   theorem mul_ne_zero' {a b : α} (h₁ : a ≠ 0) (h₂ : b ≠ 0) : a * b ≠ 0 :=

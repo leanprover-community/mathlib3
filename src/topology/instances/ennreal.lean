@@ -8,10 +8,10 @@ Extended non-negative reals
 import topology.instances.nnreal data.real.ennreal
 noncomputable theory
 open classical set lattice filter metric
-local attribute [instance] prop_decidable
+open_locale classical
 variables {α : Type*} {β : Type*} {γ : Type*}
 
-local notation `∞` := (⊤ : ennreal)
+open_locale ennreal
 
 namespace ennreal
 variables {a b c d : ennreal} {r p q : nnreal}
@@ -334,6 +334,9 @@ begin
     exact (finset.sum_le_sum $ assume a ha, hf a h) }
 end
 
+section priority
+-- for some reason the next proof fails without changing the priority of this instance
+local attribute [instance, priority 1000] classical.prop_decidable
 lemma mul_Sup {s : set ennreal} {a : ennreal} : a * Sup s = ⨆i∈s, a * i :=
 begin
   by_cases hs : ∀x∈s, x = (0:ennreal),
@@ -354,6 +357,7 @@ begin
         (ennreal.tendsto_mul_right (tendsto_id' inf_le_left) (or.inl s₁))),
     rw [this.symm, Sup_image] }
 end
+end priority
 
 lemma mul_supr {ι : Sort*} {f : ι → ennreal} {a : ennreal} : a * supr f = ⨆i, a * f i :=
 by rw [← Sup_range, mul_Sup, supr_range]

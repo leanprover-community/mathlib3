@@ -9,12 +9,12 @@ Theory of topological rings with uniform structure.
 import topology.algebra.group_completion topology.algebra.ring
 
 open classical set lattice filter topological_space add_comm_group
-local attribute [instance] classical.prop_decidable
+open_locale classical
 noncomputable theory
 
 namespace uniform_space.completion
 open dense_inducing uniform_space function
-variables (α : Type*) [ring α] [uniform_space α] [uniform_add_group α] [topological_ring α]
+variables (α : Type*) [ring α] [uniform_space α]
 
 instance : has_one (completion α) := ⟨(1:α)⟩
 
@@ -24,12 +24,14 @@ instance : has_mul (completion α) :=
 @[elim_cast]
 lemma coe_one : ((1 : α) : completion α) = 1 := rfl
 
-variables {α}
+variables {α} [topological_ring α]
 
 @[move_cast]
 lemma coe_mul (a b : α) : ((a * b : α) : completion α) = a * b :=
 ((dense_inducing_coe.prod dense_inducing_coe).extend_eq_of_cont
   ((continuous_coe α).comp continuous_mul') (a, b)).symm
+
+variables [uniform_add_group α]
 
 lemma continuous_mul' : continuous (λ p : completion α × completion α, p.1 * p.2) :=
 begin
@@ -120,7 +122,7 @@ instance top_ring_compl : topological_ring (completion α) :=
   continuous_neg := continuous_neg' }
 
 instance is_ring_hom_map : is_ring_hom (completion.map f) :=
-completion.is_ring_hom_extension $ (continuous_coe β).comp hf
+(completion.is_ring_hom_extension $ (continuous_coe β).comp hf : _)
 
 variables (R : Type*) [comm_ring R] [uniform_space R] [uniform_add_group R] [topological_ring R]
 

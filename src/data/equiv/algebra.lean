@@ -1,7 +1,7 @@
 /-
 Copyright (c) 2018 Johannes Hölzl. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Authors: Johannes Hölzl
+Authors: Johannes Hölzl, Callum Sutton
 -/
 
 import data.equiv.basic algebra.field
@@ -9,13 +9,15 @@ import data.equiv.basic algebra.field
 /-!
 # equivs in the algebraic hierarchy
 
-The role of this file is twofold. In the first part there are theorems of the following
-form: if α has a group structure and α ≃ β then β has a group structure, and
+In the first part there are theorems of the following
+form: if `α` has a group structure and `α ≃ β` then `β` has a group structure, and
 similarly for monoids, semigroups, rings, integral domains, fields and so on.
 
-In the second part there are extensions of equiv called add_equiv,
-mul_equiv, and ring_equiv, which are datatypes representing isomorphisms
-of add_monoids/add_groups, monoids/groups and rings.
+In the second part there are extensions of `equiv` called `add_equiv`,
+`mul_equiv`, and `ring_equiv`, which are datatypes representing
+isomorphisms of add_monoids/add_groups, monoids/groups and rings. We
+also introduce the corresponding groups of automorphisms `add_aut`,
+`mul_aut`, and `ring_aut`.
 
 ## Notations
 
@@ -24,16 +26,17 @@ notation when treating the isomorphisms as maps.
 
 ## Implementation notes
 
-Bundling structures means that many things turn into definitions, meaning that to_additive
-cannot do much work for us, and conversely that we have to do a lot of naming for it.
+The fields for `mul_equiv`, `add_equiv`, and `ring_equiv` now avoid
+the unbundled `is_mul_hom` and `is_add_hom`, as these are deprecated.
 
-The fields for mul_equiv and add_equiv now avoid the unbundled `is_mul_hom` and `is_add_hom`,
-as these are deprecated. However ring_equiv still relies on `is_ring_hom`; this should
-be rewritten in future.
+Definition of multiplication in the groups of automorphisms agrees
+with function composition, multiplication in `equiv.perm`, and
+multiplication in `category_theory.End`, not with
+`category_theory.comp`.
 
 ## Tags
 
-equiv, mul_equiv, add_equiv, ring_equiv
+equiv, mul_equiv, add_equiv, ring_equiv, mul_aut, add_aut, ring_aut
 -/
 
 universes u v w x
@@ -44,43 +47,42 @@ namespace equiv
 section group
 variables [group α]
 
+@[to_additive]
 protected def mul_left (a : α) : α ≃ α :=
 { to_fun    := λx, a * x,
   inv_fun   := λx, a⁻¹ * x,
   left_inv  := assume x, show a⁻¹ * (a * x) = x, from inv_mul_cancel_left a x,
   right_inv := assume x, show a * (a⁻¹ * x) = x, from mul_inv_cancel_left a x }
 
-attribute [to_additive equiv.add_left._proof_1] equiv.mul_left._proof_1
-attribute [to_additive equiv.add_left._proof_2] equiv.mul_left._proof_2
-attribute [to_additive equiv.add_left] equiv.mul_left
-
+@[to_additive]
 protected def mul_right (a : α) : α ≃ α :=
 { to_fun    := λx, x * a,
   inv_fun   := λx, x * a⁻¹,
   left_inv  := assume x, show (x * a) * a⁻¹ = x, from mul_inv_cancel_right x a,
   right_inv := assume x, show (x * a⁻¹) * a = x, from inv_mul_cancel_right x a }
 
-attribute [to_additive equiv.add_right._proof_1] equiv.mul_right._proof_1
-attribute [to_additive equiv.add_right._proof_2] equiv.mul_right._proof_2
-attribute [to_additive equiv.add_right] equiv.mul_right
-
+@[to_additive]
 protected def inv (α) [group α] : α ≃ α :=
 { to_fun    := λa, a⁻¹,
   inv_fun   := λa, a⁻¹,
   left_inv  := assume a, inv_inv a,
   right_inv := assume a, inv_inv a }
 
-attribute [to_additive equiv.neg._proof_1] equiv.inv._proof_1
-attribute [to_additive equiv.neg._proof_2] equiv.inv._proof_2
-attribute [to_additive equiv.neg] equiv.inv
+end group
 
-def units_equiv_ne_zero (α : Type*) [field α] : units α ≃ {a : α | a ≠ 0} :=
+section field
+
+variables (α) [field α]
+
+def units_equiv_ne_zero : units α ≃ {a : α | a ≠ 0} :=
 ⟨λ a, ⟨a.1, units.ne_zero _⟩, λ a, units.mk0 _ a.2, λ ⟨_, _, _, _⟩, units.ext rfl, λ ⟨_, _⟩, rfl⟩
 
-@[simp] lemma coe_units_equiv_ne_zero [field α] (a : units α) :
+variable {α}
+
+@[simp] lemma coe_units_equiv_ne_zero (a : units α) :
   ((units_equiv_ne_zero α a) : α) = a := rfl
 
-end group
+end field
 
 section instances
 
@@ -223,57 +225,42 @@ end equiv
 
 set_option old_structure_cmd true
 
-/-- mul_equiv α β is the type of an equiv α ≃ β which preserves multiplication. -/
-structure mul_equiv (α β : Type*) [has_mul α] [has_mul β] extends α ≃ β :=
-(map_mul' : ∀ x y : α, to_fun (x * y) = to_fun x * to_fun y)
-
 /-- add_equiv α β is the type of an equiv α ≃ β which preserves addition. -/
 structure add_equiv (α β : Type*) [has_add α] [has_add β] extends α ≃ β :=
 (map_add' : ∀ x y : α, to_fun (x + y) = to_fun x + to_fun y)
 
-attribute [to_additive add_equiv] mul_equiv
-attribute [to_additive add_equiv.cases_on] mul_equiv.cases_on
-attribute [to_additive add_equiv.has_sizeof_inst] mul_equiv.has_sizeof_inst
-attribute [to_additive add_equiv.inv_fun] mul_equiv.inv_fun
-attribute [to_additive add_equiv.left_inv] mul_equiv.left_inv
-attribute [to_additive add_equiv.mk] mul_equiv.mk
-attribute [to_additive add_equiv.mk.inj] mul_equiv.mk.inj
-attribute [to_additive add_equiv.mk.inj_arrow] mul_equiv.mk.inj_arrow
-attribute [to_additive add_equiv.mk.inj_eq] mul_equiv.mk.inj_eq
-attribute [to_additive add_equiv.mk.sizeof_spec] mul_equiv.mk.sizeof_spec
-attribute [to_additive add_equiv.map_add'] mul_equiv.map_mul'
-attribute [to_additive add_equiv.no_confusion] mul_equiv.no_confusion
-attribute [to_additive add_equiv.no_confusion_type] mul_equiv.no_confusion_type
-attribute [to_additive add_equiv.rec] mul_equiv.rec
-attribute [to_additive add_equiv.rec_on] mul_equiv.rec_on
-attribute [to_additive add_equiv.right_inv] mul_equiv.right_inv
-attribute [to_additive add_equiv.sizeof] mul_equiv.sizeof
-attribute [to_additive add_equiv.to_equiv] mul_equiv.to_equiv
-attribute [to_additive add_equiv.to_fun] mul_equiv.to_fun
+/-- `mul_equiv α β` is the type of an equiv `α ≃ β` which preserves multiplication. -/
+@[to_additive "`add_equiv α β` is the type of an equiv `α ≃ β` which preserves addition."]
+structure mul_equiv (α β : Type*) [has_mul α] [has_mul β] extends α ≃ β :=
+(map_mul' : ∀ x y : α, to_fun (x * y) = to_fun x * to_fun y)
 
 infix ` ≃* `:25 := mul_equiv
 infix ` ≃+ `:25 := add_equiv
 
 namespace mul_equiv
 
-@[to_additive add_equiv.has_coe_to_fun]
+@[to_additive]
 instance {α β} [has_mul α] [has_mul β] : has_coe_to_fun (α ≃* β) := ⟨_, mul_equiv.to_fun⟩
 
 variables [has_mul α] [has_mul β] [has_mul γ]
 
 /-- A multiplicative isomorphism preserves multiplication (canonical form). -/
-def map_mul (f : α ≃* β) :  ∀ x y : α, f (x * y) = f x * f y := f.map_mul'
+@[to_additive]
+lemma map_mul (f : α ≃* β) :  ∀ x y : α, f (x * y) = f x * f y := f.map_mul'
 
 /-- A multiplicative isomorphism preserves multiplication (deprecated). -/
+@[to_additive]
 instance (h : α ≃* β) : is_mul_hom h := ⟨h.map_mul⟩
 
 /-- The identity map is a multiplicative isomorphism. -/
-@[refl] def refl (α : Type*) [has_mul α] : α ≃* α :=
+@[refl, to_additive]
+def refl (α : Type*) [has_mul α] : α ≃* α :=
 { map_mul' := λ _ _,rfl,
 ..equiv.refl _}
 
 /-- The inverse of an isomorphism is an isomorphism. -/
-@[symm] def symm (h : α ≃* β) : β ≃* α :=
+@[symm, to_additive]
+def symm (h : α ≃* β) : β ≃* α :=
 { map_mul' := λ n₁ n₂, function.injective_of_left_inverse h.left_inv begin
     show h.to_equiv (h.to_equiv.symm (n₁ * n₂)) =
       h ((h.to_equiv.symm n₁) * (h.to_equiv.symm n₂)),
@@ -282,151 +269,143 @@ instance (h : α ≃* β) : is_mul_hom h := ⟨h.map_mul⟩
    rw [h.to_equiv.apply_symm_apply, h.to_equiv.apply_symm_apply, h.to_equiv.apply_symm_apply], end,
   ..h.to_equiv.symm}
 
-@[simp] theorem to_equiv_symm (f : α ≃* β) : f.symm.to_equiv = f.to_equiv.symm := rfl
+@[simp, to_additive]
+theorem to_equiv_symm (f : α ≃* β) : f.symm.to_equiv = f.to_equiv.symm := rfl
 
 /-- Transitivity of multiplication-preserving isomorphisms -/
-@[trans] def trans (h1 : α ≃* β) (h2 : β ≃* γ) : (α ≃* γ) :=
+@[trans, to_additive]
+def trans (h1 : α ≃* β) (h2 : β ≃* γ) : (α ≃* γ) :=
 { map_mul' := λ x y, show h2 (h1 (x * y)) = h2 (h1 x) * h2 (h1 y),
     by rw [h1.map_mul, h2.map_mul],
   ..h1.to_equiv.trans h2.to_equiv }
 
 /-- e.right_inv in canonical form -/
-@[simp] def apply_symm_apply (e : α ≃* β) : ∀ (y : β), e (e.symm y) = y :=
-equiv.apply_symm_apply (e.to_equiv)
+@[simp, to_additive]
+lemma apply_symm_apply (e : α ≃* β) : ∀ (y : β), e (e.symm y) = y :=
+e.to_equiv.apply_symm_apply
 
 /-- e.left_inv in canonical form -/
-@[simp] def symm_apply_apply (e : α ≃* β) : ∀ (x : α), e.symm (e x) = x :=
+@[simp, to_additive]
+lemma symm_apply_apply (e : α ≃* β) : ∀ (x : α), e.symm (e x) = x :=
 equiv.symm_apply_apply (e.to_equiv)
 
 /-- a multiplicative equiv of monoids sends 1 to 1 (and is hence a monoid isomorphism) -/
-@[simp] def map_one {α β} [monoid α] [monoid β] (h : α ≃* β) : h 1 = 1 :=
+@[simp, to_additive]
+lemma map_one {α β} [monoid α] [monoid β] (h : α ≃* β) : h 1 = 1 :=
 by rw [←mul_one (h 1), ←h.apply_symm_apply 1, ←h.map_mul, one_mul]
 
+@[to_additive]
+lemma map_eq_one_iff {α β} [monoid α] [monoid β] (h : α ≃* β) (x : α) :
+  h x = 1 ↔ x = 1 :=
+h.map_one ▸ h.to_equiv.apply_eq_iff_eq x 1
+
+@[to_additive]
+lemma map_ne_one_iff {α β} [monoid α] [monoid β] (h : α ≃* β) (x : α) :
+  h x ≠ 1 ↔ x ≠ 1 :=
+⟨mt (h.map_eq_one_iff x).2, mt (h.map_eq_one_iff x).1⟩
+
 /-- A multiplicative bijection between two monoids is an isomorphism. -/
+@[to_additive to_add_monoid_hom]
 def to_monoid_hom {α β} [monoid α] [monoid β] (h : α ≃* β) : (α →* β) :=
 { to_fun := h,
   map_mul' := h.map_mul,
   map_one' := h.map_one }
 
+/-- A multiplicative equivalence of groups preserves inversion. -/
+@[to_additive]
+lemma map_inv {α β} [group α] [group β] (h : α ≃* β) (x : α) : h x⁻¹ = (h x)⁻¹ :=
+h.to_monoid_hom.map_inv x
+
 /-- A multiplicative bijection between two monoids is a monoid hom
   (deprecated -- use to_monoid_hom). -/
+@[to_additive is_add_monoid_hom]
 instance is_monoid_hom {α β} [monoid α] [monoid β] (h : α ≃* β) : is_monoid_hom h :=
 ⟨h.map_one⟩
 
 /-- A multiplicative bijection between two groups is a group hom
   (deprecated -- use to_monoid_hom). -/
+@[to_additive is_add_group_hom]
 instance is_group_hom {α β} [group α] [group β] (h : α ≃* β) :
   is_group_hom h := { map_mul := h.map_mul }
 
+/-- Two multiplicative isomorphisms agree if they are defined by the
+    same underlying function. -/
+@[extensionality, to_additive
+  "Two additive isomorphisms agree if they are defined by the same underlying function."]
+lemma ext {α β : Type*} [has_mul α] [has_mul β]
+  {f g : mul_equiv α β} (h : ∀ x, f x = g x) : f = g :=
+begin
+  have h₁ := equiv.ext f.to_equiv g.to_equiv h,
+  cases f, cases g, congr,
+  { exact (funext h) },
+  { exact congr_arg equiv.inv_fun h₁ }
+end
+
+attribute [extensionality] add_equiv.ext
+
 end mul_equiv
 
-namespace add_equiv
+/-- An additive equivalence of additive groups preserves subtraction. -/
+lemma add_equiv.map_sub {α β} [add_group α] [add_group β] (h : α ≃+ β) (x y : α) :
+  h (x - y) = h x - h y :=
+h.to_add_monoid_hom.map_sub x y
 
-variables [has_add α] [has_add β] [has_add γ]
 
-/-- An additive isomorphism preserves addition (canonical form). -/
-def map_add (f : α ≃+ β) :  ∀ x y : α, f (x + y) = f x + f y := f.map_add'
+/-- The group of multiplicative automorphisms. -/
+@[to_additive "The group of additive automorphisms."]
+def mul_aut (α : Type u) [has_mul α] := α ≃* α
 
-attribute [to_additive add_equiv.map_add] mul_equiv.map_mul
-attribute [to_additive add_equiv.map_add.equations._eqn_1] mul_equiv.map_mul.equations._eqn_1
+namespace mul_aut
 
-/-- A additive isomorphism preserves multiplication (deprecated). -/
-instance (h : α ≃+ β) : is_add_hom h := ⟨h.map_add⟩
+variables (α) [has_mul α]
 
-/-- The identity map is an additive isomorphism. -/
-@[refl] def refl (α : Type*) [has_add α] : α ≃+ α :=
-{ map_add' := λ _ _,rfl,
-..equiv.refl _}
+/--
+The group operation on multiplicative automorphisms is defined by
+`λ g h, mul_equiv.trans h g`.
+This means that multiplication agrees with composition, `(g*h)(x) = g (h x)`.
+-/
+instance : group (mul_aut α) :=
+by refine_struct
+{ mul := λ g h, mul_equiv.trans h g,
+  one := mul_equiv.refl α,
+  inv := mul_equiv.symm };
+intros; ext; try { refl }; apply equiv.left_inv
 
-attribute [to_additive add_equiv.refl] mul_equiv.refl
-attribute [to_additive add_equiv.refl._proof_1] mul_equiv.refl._proof_1
-attribute [to_additive add_equiv.refl._proof_2] mul_equiv.refl._proof_2
-attribute [to_additive add_equiv.refl._proof_3] mul_equiv.refl._proof_3
-attribute [to_additive add_equiv.refl.equations._eqn_1] mul_equiv.refl.equations._eqn_1
+/-- Monoid hom from the group of multiplicative automorphisms to the group of permutations. -/
+def to_perm : mul_aut α →* equiv.perm α :=
+by refine_struct { to_fun := mul_equiv.to_equiv }; intros; refl
 
-/-- The inverse of an isomorphism is an isomorphism. -/
-@[symm] def symm (h : α ≃+ β) : β ≃+ α :=
-{ map_add' := λ n₁ n₂, function.injective_of_left_inverse h.left_inv begin
-    show h.to_equiv (h.to_equiv.symm (n₁ + n₂)) =
-      h ((h.to_equiv.symm n₁) + (h.to_equiv.symm n₂)),
-   rw h.map_add,
-   show _ = h.to_equiv (_) + h.to_equiv (_),
-   rw [h.to_equiv.apply_symm_apply, h.to_equiv.apply_symm_apply, h.to_equiv.apply_symm_apply], end,
-  ..h.to_equiv.symm}
+end mul_aut
 
-attribute [to_additive add_equiv.symm] mul_equiv.symm
-attribute [to_additive add_equiv.symm._proof_1] mul_equiv.symm._proof_1
-attribute [to_additive add_equiv.symm._proof_2] mul_equiv.symm._proof_2
-attribute [to_additive add_equiv.symm._proof_3] mul_equiv.symm._proof_3
-attribute [to_additive add_equiv.symm.equations._eqn_1] mul_equiv.symm.equations._eqn_1
+namespace add_aut
 
-@[simp] theorem to_equiv_symm (f : α ≃+ β) : f.symm.to_equiv = f.to_equiv.symm := rfl
+variables (α) [has_add α]
 
-attribute [to_additive add_equiv.to_equiv_symm] mul_equiv.to_equiv_symm
+/--
+The group operation on additive automorphisms is defined by
+`λ g h, mul_equiv.trans h g`.
+This means that multiplication agrees with composition, `(g*h)(x) = g (h x)`.
+-/
+instance group : group (add_aut α) :=
+by refine_struct
+{ mul := λ g h, add_equiv.trans h g,
+  one := add_equiv.refl α,
+  inv := add_equiv.symm };
+intros; ext; try { refl }; apply equiv.left_inv
 
-/-- Transitivity of addition-preserving isomorphisms -/
-@[trans] def trans (h1 : α ≃+ β) (h2 : β ≃+ γ) : (α ≃+ γ) :=
-{ map_add' := λ x y, show h2 (h1 (x + y)) = h2 (h1 x) + h2 (h1 y),
-    by rw [h1.map_add, h2.map_add],
-  ..h1.to_equiv.trans h2.to_equiv }
+/-- Monoid hom from the group of multiplicative automorphisms to the group of permutations. -/
+def to_perm : add_aut α →* equiv.perm α :=
+by refine_struct { to_fun := add_equiv.to_equiv }; intros; refl
 
-attribute [to_additive add_equiv.trans] mul_equiv.trans
-attribute [to_additive add_equiv.trans._proof_1] mul_equiv.trans._proof_1
-attribute [to_additive add_equiv.trans._proof_2] mul_equiv.trans._proof_2
-attribute [to_additive add_equiv.trans._proof_3] mul_equiv.trans._proof_3
-attribute [to_additive add_equiv.trans.equations._eqn_1] mul_equiv.trans.equations._eqn_1
+end add_aut
 
-/-- e.right_inv in canonical form -/
-def apply_symm_apply (e : α ≃+ β) : ∀ (y : β), e (e.symm y) = y :=
-equiv.apply_symm_apply (e.to_equiv)
-
-attribute [to_additive add_equiv.apply_symm_apply] mul_equiv.apply_symm_apply
-attribute [to_additive add_equiv.apply_symm_apply.equations._eqn_1] mul_equiv.apply_symm_apply.equations._eqn_1
-
-/-- e.left_inv in canonical form -/
-def symm_apply_apply (e : α ≃+ β) : ∀ (x : α), e.symm (e x) = x :=
-equiv.symm_apply_apply (e.to_equiv)
-
-attribute [to_additive add_equiv.symm_apply_apply] mul_equiv.symm_apply_apply
-attribute [to_additive add_equiv.symm_apply_apply.equations._eqn_1] mul_equiv.symm_apply_apply.equations._eqn_1
-
-/-- an additive equiv of monoids sends 0 to 0 (and is hence an  `add_monoid` isomorphism) -/
-def map_zero {α β} [add_monoid α] [add_monoid β] (h : α ≃+ β) : h 0 = 0 :=
-by rw [←add_zero (h 0), ←h.apply_symm_apply 0, ←h.map_add, zero_add]
-
-attribute [to_additive add_equiv.map_zero] mul_equiv.map_one
-attribute [to_additive add_equiv.map_zero.equations._eqn_1] mul_equiv.map_one.equations._eqn_1
-
-/-- An additive bijection between two add_monoids is an isomorphism. -/
-def to_add_monoid_hom {α β} [add_monoid α] [add_monoid β] (h : α ≃+ β) : (α →+ β) :=
-{ to_fun := h,
-  map_add' := h.map_add,
-  map_zero' := h.map_zero }
-
-attribute [to_additive add_equiv.to_add_monoid_hom] mul_equiv.to_monoid_hom
-attribute [to_additive add_equiv.to_add_monoid_hom._proof_1] mul_equiv.to_monoid_hom._proof_1
-attribute [to_additive add_equiv.to_add_monoid_hom.equations._eqn_1]
-  mul_equiv.to_monoid_hom.equations._eqn_1
-
-/-- an additive bijection between two add_monoids is an add_monoid hom
-(deprecated -- use to_add_monoid_hom) -/
-instance is_add_monoid_hom {α β} [add_monoid α] [add_monoid β] (h : α ≃+ β) : is_add_monoid_hom h :=
-⟨h.map_zero⟩
-
-attribute [to_additive add_equiv.is_add_monoid_hom] mul_equiv.is_monoid_hom
-attribute [to_additive add_equiv.is_add_monoid_hom.equations._eqn_1]
-  mul_equiv.is_monoid_hom.equations._eqn_1
-
-/-- An additive bijection between two add_groups is an add_group hom
-  (deprecated -- use to_monoid_hom). -/
-instance is_add_group_hom {α β} [add_group α] [add_group β] (h : α ≃+ β) :
-  is_add_group_hom h := { map_add := h.map_add }
-
-attribute [to_additive add_equiv.is_add_group_hom] mul_equiv.is_group_hom
-attribute [to_additive add_equiv.is_add_group_hom.equations._eqn_1]
-  mul_equiv.is_group_hom.equations._eqn_1
-
-end add_equiv
+/-- A group is isomorphic to its group of units. -/
+def to_units (α) [group α] : α ≃* units α :=
+{ to_fun := λ x, ⟨x, x⁻¹, mul_inv_self _, inv_mul_self _⟩,
+  inv_fun := coe,
+  left_inv := λ x, rfl,
+  right_inv := λ u, units.ext rfl,
+  map_mul' := λ x y, units.ext rfl }
 
 namespace units
 
@@ -434,50 +413,160 @@ variables [monoid α] [monoid β] [monoid γ]
 (f : α → β) (g : β → γ) [is_monoid_hom f] [is_monoid_hom g]
 
 def map_equiv (h : α ≃* β) : units α ≃* units β :=
-{ to_fun := map h,
-  inv_fun := map h.symm,
+{ inv_fun := map h.symm.to_monoid_hom,
   left_inv := λ u, ext $ h.left_inv u,
   right_inv := λ u, ext $ h.right_inv u,
-  map_mul' := λ a b, units.ext $ h.map_mul a b}
+  .. map h.to_monoid_hom }
 
 end units
 
-structure ring_equiv (α β : Type*) [ring α] [ring β] extends α ≃ β :=
-(hom : is_ring_hom to_fun)
+/- (semi)ring equivalence. -/
+structure ring_equiv (α β : Type*) [has_mul α] [has_add α] [has_mul β] [has_add β]
+  extends α ≃ β, α ≃* β, α ≃+ β
 
-infix ` ≃r `:25 := ring_equiv
+infix ` ≃+* `:25 := ring_equiv
 
 namespace ring_equiv
 
-variables [ring α] [ring β] [ring γ]
+section basic
 
-instance (h : α ≃r β) : is_ring_hom h.to_equiv := h.hom
-instance ring_equiv.is_ring_hom' (h : α ≃r β) : is_ring_hom h.to_fun := h.hom
+variables [has_mul α] [has_add α] [has_mul β] [has_add β] [has_mul γ] [has_add γ]
 
-def to_mul_equiv (e : α ≃r β) : α ≃* β :=
-{ map_mul' := e.hom.map_mul, .. e.to_equiv }
+instance : has_coe_to_fun (α ≃+* β) := ⟨_, ring_equiv.to_fun⟩
 
-def to_add_equiv (e : α ≃r β) : α ≃+ β :=
-{ map_add' := e.hom.map_add, .. e.to_equiv }
+instance has_coe_to_mul_equiv : has_coe (α ≃+* β) (α ≃* β) := ⟨ring_equiv.to_mul_equiv⟩
 
-protected def refl (α : Type*) [ring α] : α ≃r α :=
-{ hom := is_ring_hom.id, .. equiv.refl α }
+instance has_coe_to_add_equiv : has_coe (α ≃+* β) (α ≃+ β) := ⟨ring_equiv.to_add_equiv⟩
 
-protected def symm {α β : Type*} [ring α] [ring β] (e : α ≃r β) : β ≃r α :=
-{ hom := { map_one := e.to_mul_equiv.symm.map_one,
-           map_mul := e.to_mul_equiv.symm.map_mul,
-           map_add := e.to_add_equiv.symm.map_add },
-  .. e.to_equiv.symm }
+@[squash_cast] lemma coe_mul_equiv (f : α ≃+* β) (a : α) :
+  (f : α ≃* β) a = f a := rfl
 
-protected def trans {α β γ : Type*} [ring α] [ring β] [ring γ]
-  (e₁ : α ≃r β) (e₂ : β ≃r γ) : α ≃r γ :=
-{ hom := is_ring_hom.comp _ _, .. e₁.to_equiv.trans e₂.to_equiv  }
+@[squash_cast] lemma coe_add_equiv (f : α ≃+* β) (a : α) :
+  (f : α ≃+ β) a = f a := rfl
 
-instance symm.is_ring_hom {e : α ≃r β} : is_ring_hom e.to_equiv.symm := hom e.symm
+variable (α)
 
-@[simp] lemma to_equiv_symm (e : α ≃r β) : e.symm.to_equiv = e.to_equiv.symm := rfl
+/-- The identity map is a ring isomorphism. -/
+@[refl] protected def refl : α ≃+* α := { .. mul_equiv.refl α, .. add_equiv.refl α }
 
-@[simp] lemma to_equiv_symm_apply (e : α ≃r β) (x : β) :
-  e.symm.to_equiv x = e.to_equiv.symm x := rfl
+variables {α}
+
+/-- The inverse of a ring isomorphism is a ring isomorphis. -/
+@[symm] protected def symm (e : α ≃+* β) : β ≃+* α :=
+{ .. e.to_mul_equiv.symm, .. e.to_add_equiv.symm }
+
+/-- Transitivity of `ring_equiv`. -/
+@[trans] protected def trans (e₁ : α ≃+* β) (e₂ : β ≃+* γ) : α ≃+* γ :=
+{ .. (e₁.to_mul_equiv.trans e₂.to_mul_equiv), .. (e₁.to_add_equiv.trans e₂.to_add_equiv) }
+
+@[simp] lemma apply_symm_apply (e : α ≃+* β) : ∀ x, e (e.symm x) = x := e.to_equiv.apply_symm_apply
+@[simp] lemma symm_apply_apply (e : α ≃+* β) : ∀ x, e.symm (e x) = x := e.to_equiv.symm_apply_apply
+
+lemma image_eq_preimage (e : α ≃+* β) (s : set α) : e '' s = e.symm ⁻¹' s :=
+e.to_equiv.image_eq_preimage s
+
+end basic
+
+section
+
+variables [semiring α] [semiring β] (f : α ≃+* β) (x y : α)
+
+/-- A ring isomorphism preserves multiplication. -/
+lemma map_mul : f (x * y) = f x * f y := f.map_mul' x y
+
+/-- A ring isomorphism sends one to one. -/
+lemma map_one : f 1 = 1 := (f : α ≃* β).map_one
+
+/-- A ring isomorphism preserves addition. -/
+lemma map_add : f (x + y) = f x + f y := f.map_add' x y
+
+/-- A ring isomorphism sends zero to zero. -/
+lemma map_zero : f 0 = 0 := (f : α ≃+ β).map_zero
+
+end
+
+section
+
+variables [ring α] [ring β] (f : α ≃+* β) (x y : α)
+
+lemma map_neg : f (-x) = -f x := (f : α ≃+ β).map_neg x
+
+lemma map_sub : f (x - y) = f x - f y := (f : α ≃+ β).map_sub x y
+
+lemma map_neg_one : f (-1) = -1 := f.map_one ▸ f.map_neg 1
+
+end
+
+section semiring_hom
+
+variables [semiring α] [semiring β]
+
+/-- Reinterpret a ring equivalence as a ring homomorphism. -/
+def to_ring_hom (e : α ≃+* β) : α →+* β :=
+{ .. e.to_mul_equiv.to_monoid_hom, .. e.to_add_equiv.to_add_monoid_hom }
+
+/-- Interpret an equivalence `f : α ≃ β` as a ring equivalence `α ≃+* β`. -/
+def of (e : α ≃ β) [is_semiring_hom e] : α ≃+* β :=
+{ .. e, .. monoid_hom.of e, .. add_monoid_hom.of e }
+
+instance (e : α ≃+* β) : is_semiring_hom e := e.to_ring_hom.is_semiring_hom
+
+end semiring_hom
+
+section ring_hom
+
+variables [ring α] [ring β]
+
+/-- Interpret an equivalence `f : α ≃ β` as a ring equivalence `α ≃+* β`. -/
+def of' (e : α ≃ β) [is_ring_hom e] : α ≃+* β :=
+{ .. e, .. monoid_hom.of e, .. add_monoid_hom.of e }
+
+instance (e : α ≃+* β) : is_ring_hom e := e.to_ring_hom.is_ring_hom
+
+end ring_hom
+
+/-- Two ring isomorphisms agree if they are defined by the
+    same underlying function. -/
+@[extensionality] lemma ext {R S : Type*} [has_mul R] [has_add R] [has_mul S] [has_add S]
+  {f g : R ≃+* S} (h : ∀ x, f x = g x) : f = g :=
+begin
+  have h₁ := equiv.ext f.to_equiv g.to_equiv h,
+  cases f, cases g, congr,
+  { exact (funext h) },
+  { exact congr_arg equiv.inv_fun h₁ }
+end
 
 end ring_equiv
+
+/-- The group of ring automorphisms. -/
+def ring_aut (R : Type u) [has_mul R] [has_add R] := ring_equiv R R
+
+namespace ring_aut
+
+variables (R : Type u) [has_mul R] [has_add R]
+
+/--
+The group operation on automorphisms of a ring is defined by
+λ g h, ring_equiv.trans h g.
+This means that multiplication agrees with composition, (g*h)(x) = g (h x) .
+-/
+instance : group (ring_aut R) :=
+by refine_struct
+{ mul := λ g h, ring_equiv.trans h g,
+  one := ring_equiv.refl R,
+  inv := ring_equiv.symm };
+intros; ext; try { refl }; apply equiv.left_inv
+
+/-- Monoid homomorphism from ring automorphisms to additive automorphisms. -/
+def to_add_aut : ring_aut R →* add_aut R :=
+by refine_struct { to_fun := ring_equiv.to_add_equiv }; intros; refl
+
+/-- Monoid homomorphism from ring automorphisms to multiplicative automorphisms. -/
+def to_mul_aut : ring_aut R →* mul_aut R :=
+by refine_struct { to_fun := ring_equiv.to_mul_equiv }; intros; refl
+
+/-- Monoid homomorphism from ring automorphisms to permutations. -/
+def to_perm : ring_aut R →* equiv.perm R :=
+by refine_struct { to_fun := ring_equiv.to_equiv }; intros; refl
+
+end ring_aut

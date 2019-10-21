@@ -11,7 +11,7 @@ import topology.bounded_continuous_function topology.metric_space.gluing
 topology.metric_space.hausdorff_distance
 
 noncomputable theory
-local attribute [instance, priority 0] classical.prop_decidable
+open_locale classical
 universes u v w
 
 open classical lattice set function topological_space filter metric quotient
@@ -66,7 +66,7 @@ section constructions
 variables {α : Type u} {β : Type v}
 [metric_space α] [compact_space α] [nonempty α] [metric_space β] [compact_space β] [nonempty β]
 {f : prod_space_fun α β} {x y z t : α ⊕ β}
-local attribute [instance, priority 0] inhabited_of_nonempty'
+local attribute [instance, priority 10] inhabited_of_nonempty'
 
 private lemma max_var_bound : dist x y ≤ max_var α β := calc
   dist x y ≤ diam (univ : set (α ⊕ β)) :

@@ -14,11 +14,7 @@ open tactic
 namespace omega
 namespace int
 
-local notation x ` =* ` y := form.eq x y
-local notation x ` ≤* ` y := form.le x y
-local notation `¬* ` p   := form.not p
-local notation p ` ∨* ` q := form.or p q
-local notation p ` ∧* ` q := form.and p q
+open_locale omega.int
 
 run_cmd mk_simp_attr `sugar
 attribute [sugar]
@@ -27,6 +23,7 @@ attribute [sugar]
   or_false false_or
   and_true true_and
   ge gt mul_add add_mul
+  one_mul mul_one
   mul_comm sub_eq_add_neg
   classical.imp_iff_not_or
   classical.iff_iff_not_or_and_or_not

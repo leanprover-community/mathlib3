@@ -213,7 +213,7 @@ instance fintype_map {α β} [decidable_eq β] :
 theorem finite_map {α β} {s : set α} :
   ∀ (f : α → β), finite s → finite (f <$> s) := finite_image
 
-def fintype_of_fintype_image [decidable_eq β] (s : set α)
+def fintype_of_fintype_image (s : set α)
   {f : α → β} {g} (I : is_partial_inv f g) [fintype (f '' s)] : fintype s :=
 fintype_of_finset ⟨_, @multiset.nodup_filter_map β α g _
   (@injective_of_partial_inv_right _ _ f g I) (f '' s).to_finset.2⟩ $ λ a,
@@ -329,6 +329,14 @@ begin
   exact finite_subset ‹finite s› this
 end
 
+lemma exists_min [decidable_linear_order β] (s : set α) (f : α → β) (h1 : finite s)
+  (h : nonempty s) : ∃ a, a ∈ s ∧ ∀ b ∈ s, f a ≤ f b :=
+begin
+  have := (finite.to_finset h1).exists_min f,
+  simp at this ⊢, unfreezeI, rcases h with ⟨⟨x, hx⟩⟩,
+  exact this x hx
+end
+
 end set
 
 namespace finset
@@ -344,7 +352,7 @@ by simp [set.ext_iff]
 @[simp] lemma coe_to_finset {s : set α} {hs : set.finite s} : ↑(hs.to_finset) = s :=
 by simp [set.ext_iff]
 
-@[simp] lemma coe_to_finset' [decidable_eq α] (s : set α) [fintype s] : (↑s.to_finset : set α) = s :=
+@[simp] lemma coe_to_finset' (s : set α) [fintype s] : (↑s.to_finset : set α) = s :=
 by ext; simp
 
 end finset
@@ -383,14 +391,14 @@ let ⟨n, hn⟩ := finset.exists_nat_subset_range h.to_finset in
 have n ∈ finset.range n, from finset.subset_iff.mpr hn $ by simp,
 by simp * at *
 
-lemma not_injective_nat_fintype [fintype α] [decidable_eq α] {f : ℕ → α} : ¬ injective f :=
+lemma not_injective_nat_fintype [fintype α] {f : ℕ → α} : ¬ injective f :=
 assume (h : injective f),
 have finite (f '' univ),
   from finite_subset (finset.finite_to_set $ fintype.elems α) (assume a h, fintype.complete a),
 have finite (univ : set ℕ), from finite_of_finite_image (set.inj_on_of_injective _ h) this,
 infinite_univ_nat this
 
-lemma not_injective_int_fintype [fintype α] [decidable_eq α] {f : ℤ → α} : ¬ injective f :=
+lemma not_injective_int_fintype [fintype α] {f : ℤ → α} : ¬ injective f :=
 assume hf,
 have injective (f ∘ (coe : ℕ → ℤ)), from injective_comp hf $ assume i j, int.of_nat_inj,
 not_injective_nat_fintype this
@@ -470,7 +478,7 @@ suffices f '' (f ⁻¹' ↑s) = ↑s, by simpa,
 
 end preimage
 
-@[to_additive finset.sum_preimage]
+@[to_additive]
 lemma prod_preimage [comm_monoid β] (f : α → γ) (s : finset γ)
   (hf : set.bij_on f (f ⁻¹' ↑s) ↑s) (g : γ → β) :
   (preimage s (set.inj_on_of_bij_on hf)).prod (g ∘ f) = s.prod g :=

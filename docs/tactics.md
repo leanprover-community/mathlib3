@@ -113,6 +113,10 @@ rcases h with ⟨patt⟩
 
  The syntax `obtain ⟨patt⟩ : type := proof` is also supported.
 
+ If `⟨patt⟩` is omitted, `rcases` will try to infer the pattern.
+
+ If `type` is omitted, `:= proof` is required.
+
 
 ### simpa
 
@@ -163,11 +167,25 @@ they are only meant to be used on small, straightforward problems.
 * safe:    splits freely, finishes off whatever subgoals it can, and leaves the rest
 
 All accept an optional list of simplifier rules, typically definitions that should be expanded.
-(The equations and identities should not refer to the local context.)
+(The equations and identities should not refer to the local context.) All also accept an optional list of `ematch` lemmas, which must be preceded by `using`.
+
+### abel
+
+Evaluate expressions in the language of *additive*, commutative monoids and groups.
+It attempts to prove the goal outright if there is no `at`
+specifier and the target is an equality, but if this
+fails, it falls back to rewriting all monoid expressions into a normal form.
+If there is an `at` specifier, it rewrites the given target into a normal form.
+```lean
+example {α : Type*} {a b : α} [add_comm_monoid α] : a + (b + a) = a + a + b := by abel
+example {α : Type*} {a b : α} [add_comm_group α] : (a + b) - ((b + a) + a) = -a := by abel
+example {α : Type*} {a b : α} [add_comm_group α] (hyp : a + a - a = b - b) : a = 0 :=
+by { abel at hyp, exact hyp }
+```
 
 ### ring
 
-Evaluate expressions in the language of (semi-)rings.
+Evaluate expressions in the language of *commutative* (semi)rings.
 Based on [Proving Equalities in a Commutative Ring Done Right in Coq](http://www.cs.ru.nl/~freek/courses/tt-2014/read/10.1.1.61.3041.pdf) by Benjamin Grégoire and Assia Mahboubi.
 
 ### congr'
@@ -252,6 +270,34 @@ However, it will work, producing the identity function, if one replaces have by 
 
 * `exactI`: `resetI` followed by `exact`. Like `exact`, but uses all
   variables in the context for typeclass inference.
+
+### suggest
+
+`suggest` lists possible usages of the `refine` tactic and leaves the tactic state unchanged.
+It is intended as a complement of the search function in your editor, the `#find` tactic, and `library_search`.
+
+`suggest` takes an optional natural number `num` as input and returns the first `num` (or less, if all possibilities are exhausted) possibilities ordered by length of lemma names. The default for `num` is `50`.
+
+For performance reasons `suggest` uses monadic lazy lists (`mllist`). This means that `suggest` might miss some results if `num` is not large enough. However, because `suggest` uses monadic lazy lists, smaller values of `num` run faster than larger values.
+
+An example of `suggest` in action,
+
+```lean
+example (n : nat) : n < n + 1 :=
+begin suggest, sorry end
+```
+
+prints the list,
+
+```lean
+exact nat.lt.base n
+exact nat.lt_succ_self n
+refine not_le.mp _
+refine gt_iff_lt.mp _
+refine nat.lt.step _
+refine lt_of_not_ge _
+...
+```
 
 ### library_search
 
@@ -683,23 +729,42 @@ end
 after `fin_cases p; simp`, there are three goals, `f 0`, `f 1`, and `f 2`.
 
 ### conv
-The `conv` tactic is built-in to lean. Currently mathlib additionally provides
+The `conv` tactic is built-in to lean. Inside `conv` blocks mathlib currently
+additionally provides
    * `erw`,
-   * `ring` and `ring2`, and
-   * `norm_num`
-inside `conv` blocks. Also, as a shorthand `conv_lhs` and `conv_rhs`
-are provided, so that
+   * `ring` and `ring2`,
+   * `norm_num`, and
+   * `conv` (within another `conv`).
+Using `conv` inside a `conv` block allows the user to return to the previous
+state of the outer `conv` block after it is finished. Thus you can continue
+editing an expression without having to start a new `conv` block and re-scoping
+everything. For example:
+```lean
+example (a b c d : ℕ) (h₁ : b = c) (h₂ : a + c = a + d) : a + b = a + d :=
+by conv {
+  to_lhs,
+  conv {
+    congr, skip,
+    rw h₁,
+  },
+  rw h₂,
+}
 ```
+Without `conv` the above example would need to be proved using two successive
+`conv` blocks each beginning with `to_lhs`.
+
+Also, as a shorthand `conv_lhs` and `conv_rhs` are provided, so that
+```lean
 example : 0 + 0 = 0 :=
 begin
-  conv_lhs {simp}
+  conv_lhs { simp }
 end
 ```
 just means
-```
+```lean
 example : 0 + 0 = 0 :=
 begin
-  conv {to_lhs, simp}
+  conv { to_lhs, simp }
 end
 ```
 and likewise for `to_rhs`.
@@ -1045,6 +1110,8 @@ open_locale namespace1 namespace2 ...
 ```
 localized "attribute [simp] le_refl" in le
 ```
+* Warning 1: as a limitation on user commands, you cannot put `open_locale` directly after your imports. You have to write another command first (e.g. `open`, `namespace`, `universe variables`, `noncomputable theory`, `run_cmd tactic.skip`, ...).
+* Warning 2: You have to fully specify the names used in localized notation, so that the localized notation also works when the appropriate namespaces are not opened.
 
 ### swap
 
@@ -1053,3 +1120,152 @@ localized "attribute [simp] le_refl" in le
 ### rotate
 
 `rotate` moves the first goal to the back. `rotate n` will do this `n` times.
+
+### The `reassoc` attribute
+
+The `reassoc` attribute can be applied to a lemma
+
+```lean
+@[reassoc]
+lemma some_lemma : foo ≫ bar = baz := ...
+```
+
+and produce
+
+```lean
+lemma some_lemma_assoc {Y : C} (f : X ⟶ Y) : foo ≫ bar ≫ f = baz ≫ f := ...
+```
+
+The name of the produced lemma can be specified with `@[reassoc other_lemma_name]`. If
+`simp` is added first, the generated lemma will also have the `simp` attribute.
+
+### The `reassoc_axiom` command
+
+When declaring a class of categories, the axioms can be reformulated to be more amenable
+to manipulation in right associated expressions:
+
+```lean
+class some_class (C : Type) [category C] :=
+(foo : Π X : C, X ⟶ X)
+(bar : ∀ {X Y : C} (f : X ⟶ Y), foo X ≫ f = f ≫ foo Y)
+
+reassoc_axiom some_class.bar
+```
+
+The above will produce:
+
+```lean
+lemma some_class.bar_assoc {Z : C} (g : Y ⟶ Z) :
+  foo X ≫ f ≫ g = f ≫ foo Y ≫ g := ...
+```
+
+Here too, the `reassoc` attribute can be used instead. It works well when combined with
+`simp`:
+
+```lean
+attribute [simp, reassoc] some_class.bar
+```
+### lint
+User commands to spot common mistakes in the code
+
+* `#lint`: check all declarations in the current file
+* `#lint_mathlib`: check all declarations in mathlib (so excluding core or other projects,
+  and also excluding the current file)
+* `#lint_all`: check all declarations in the environment (the current file and all
+  imported files)
+
+Five linters are run by default:
+1. `unused_arguments` checks for unused arguments in declarations
+2. `def_lemma` checks whether a declaration is incorrectly marked as a def/lemma
+3. `dup_namespce` checks whether a namespace is duplicated in the name of a declaration
+4. `illegal_constant` checks whether ≥/> is used in the declaration
+5. `doc_blame` checks for missing doc strings on definitions and constants.
+
+A sixth linter, `doc_blame_thm`, checks for missing doc strings on lemmas and theorems.
+This is not run by default.
+
+The command `#list_linters` prints a list of the names of all available linters.
+
+You can append a `-` to any command (e.g. `#lint_mathlib-`) to omit the slow tests (4).
+
+You can append a sequence of linter names to any command to run extra tests, in addition to the
+default ones. e.g. `#lint doc_blame_thm` will run all default tests and `doc_blame_thm`.
+
+You can append `only name1 name2 ...` to any command to run a subset of linters, e.g.
+`#lint only unused_arguments`
+
+You can add custom linters by defining a term of type `linter` in the `linter` namespace.
+A linter defined with the name `linter.my_new_check` can be run with `#lint my_new_check`
+or `lint only my_new_check`.
+If you add the attribute `@[linter]` to `linter.my_new_check` it will run by default.
+
+### lift
+
+Lift an expression to another type.
+* Usage: `'lift' expr 'to' expr ('using' expr)? ('with' id (id id?)?)?`.
+* If `n : ℤ` and `hn : n ≥ 0` then the tactic `lift n to ℕ using hn` creates a new
+  constant of type `ℕ`, also named `n` and replaces all occurrences of the old variable `(n : ℤ)`
+  with `↑n` (where `n` in the new variable). It will remove `n` and `hn` from the context.
+  + So for example the tactic `lift n to ℕ using hn` transforms the goal
+    `n : ℤ, hn : n ≥ 0, h : P n ⊢ n = 3` to `n : ℕ, h : P ↑n ⊢ ↑n = 3`
+    (here `P` is some term of type `ℤ → Prop`).
+* The argument `using hn` is optional, the tactic `lift n to ℕ` does the same, but also creates a
+  new subgoal that `n ≥ 0` (where `n` is the old variable).
+  + So for example the tactic `lift n to ℕ` transforms the goal
+    `n : ℤ, h : P n ⊢ n = 3` to two goals
+    `n : ℕ, h : P ↑n ⊢ ↑n = 3` and `n : ℤ, h : P n ⊢ n ≥ 0`.
+* You can also use `lift n to ℕ using e` where `e` is any expression of type `n ≥ 0`.
+* Use `lift n to ℕ with k` to specify the name of the new variable.
+* Use `lift n to ℕ with k hk` to also specify the name of the equality `↑k = n`. In this case, `n`
+  will remain in the context. You can use `rfl` for the name of `hk` to substitute `n` away
+  (i.e. the default behavior).
+* You can also use `lift e to ℕ with k hk` where `e` is any expression of type `ℤ`.
+  In this case, the `hk` will always stay in the context, but it will be used to rewrite `e` in
+  all hypotheses and the target.
+  + So for example the tactic `lift n + 3 to ℕ using hn with k hk` transforms the goal
+    `n : ℤ, hn : n + 3 ≥ 0, h : P (n + 3) ⊢ n + 3 = 2 * n` to the goal
+    `n : ℤ, k : ℕ, hk : ↑k = n + 3, h : P ↑k ⊢ ↑k = 2 * n`.
+* The tactic `lift n to ℕ using h` will remove `h` from the context. If you want to keep it,
+  specify it again as the third argument to `with`, like this: `lift n to ℕ using h with n rfl h`.
+* More generally, this can lift an expression from `α` to `β` assuming that there is an instance
+  of `can_lift α β`. In this case the proof obligation is specified by `can_lift.cond`.
+
+### import_private
+
+`import_private foo from bar` finds a private declaration `foo` in the same file as `bar` and creates a
+local notation to refer to it.
+
+`import_private foo`, looks for `foo` in all (imported) files.
+
+When possible, make `foo` non-private rather than using this feature.
+
+### default_dec_tac'
+
+`default_dec_tac'` is a replacement for the core tactic `default_dec_tac`, fixing a bug. This
+bug is often indicated by a message `nested exception message: tactic failed, there are no goals to be solved`,and solved by appending `using_well_founded wf_tacs` to the recursive definition.
+See also additional documentation of `using_well_founded` in
+[docs/extras/well_founded_recursion.md](extras/well_founded_recursion.md).
+
+### simps
+
+* The `@[simps]` attribute automatically derives lemmas specifying the projections of the declaration.
+* Example:
+  ```lean
+  @[simps] def refl (α) : α ≃ α := ⟨id, id, λ x, rfl, λ x, rfl⟩
+  ```
+  derives two simp-lemmas:
+  ```lean
+  @[simp] lemma refl_to_fun (α) : (refl α).to_fun = id
+  @[simp] lemma refl_inv_fun (α) : (refl α).inv_fun = id
+  ```
+* It does not derive simp-lemmas for the prop-valued projections.
+* It will automatically reduce newly created beta-redexes, but not unfold any definitions.
+* If one of the fields itself is a structure, this command will recursively create
+  simp-lemmas for all fields in that structure.
+* If one of the values is an eta-expanded structure, we will eta-reduce this structure.
+* You can use `@[simps lemmas_only]` to derive the lemmas, but not mark them
+  as simp-lemmas.
+* If one of the projections is marked as a coercion, the generated lemmas do *not* use this
+  coercion.
+* If one of the fields is a partially applied constructor, we will eta-expand it
+  (this likely never happens).

@@ -12,7 +12,7 @@ noncomputable theory
 open function set encodable
 
 open classical (hiding some)
-local attribute [instance] prop_decidable
+open_locale classical
 universes u v w
 variables {α : Type u} {β : Type v} {γ : Type w}
 
@@ -51,6 +51,20 @@ lemma countable_iff_exists_surjective [ne : inhabited α] {s : set α} :
     have := inv_fun_eq (hf hx), dsimp at this ⊢,
     simp [this, hx]
   end⟩⟩⟩
+
+/--
+A non-empty set is countable iff there exists a surjection from the
+natural numbers onto the subtype induced by the set.
+-/
+lemma countable_iff_exists_surjective_to_subtype {s : set α} (hs : s ≠ ∅) :
+  countable s ↔ ∃ f : ℕ → s, surjective f :=
+have inhabited s, from ⟨classical.choice (coe_nonempty_iff_ne_empty.mpr hs)⟩,
+have countable s → ∃ f : ℕ → s, surjective f, from assume ⟨h⟩,
+  by exactI ⟨λ n, (decode s n).iget, λ a, ⟨encode a, by simp [encodek]⟩⟩,
+have (∃ f : ℕ → s, surjective f) → countable s, from assume ⟨f, fsurj⟩,
+  ⟨⟨inv_fun f, option.some ∘ f,
+    by intro h; simp [(inv_fun_eq (fsurj h) : f (inv_fun f h) = h)]⟩⟩,
+by split; assumption
 
 def countable.to_encodable {s : set α} : countable s → encodable s :=
 classical.choice

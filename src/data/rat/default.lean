@@ -7,6 +7,7 @@ import data.rat.basic
 import data.rat.order
 import data.rat.cast
 import data.rat.floor
+import data.rat.meta
 /-!
 # Default Imports to Work With Rational Numbers
 -/

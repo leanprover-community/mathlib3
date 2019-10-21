@@ -1482,15 +1482,17 @@ finset.induction_on s (λ _, bot_le) (λ n s hns ih H,
   by simp only [mem_insert, or_imp_distrib, forall_and_distrib, forall_eq] at H;
      simp only [sup_insert]; exact sup_le H.1 (ih H.2))
 
-lemma sup_le_iff {a : α} : s.sup f ≤ a ↔ (∀b ∈ s, f b ≤ a) :=
+@[simp] lemma sup_le_iff {a : α} : s.sup f ≤ a ↔ (∀b ∈ s, f b ≤ a) :=
 iff.intro (assume h b hb, le_trans (le_sup hb) h) sup_le
 
 lemma sup_mono (h : s₁ ⊆ s₂) : s₁.sup f ≤ s₂.sup f :=
 sup_le $ assume b hb, le_sup (h hb)
 
-lemma sup_lt [is_total α (≤)] {a : α} : (⊥ < a) → (∀b ∈ s, f b < a) → s.sup f < a :=
+@[simp] lemma sup_lt_iff [is_total α (≤)] {a : α} (ha : ⊥ < a) :
+  s.sup f < a ↔ (∀b ∈ s, f b < a) :=
 by letI := classical.dec_eq β; from
-finset.induction_on s (by simp) (by simp {contextual := tt})
+⟨ λh b hb, lt_of_le_of_lt (le_sup hb) h,
+  finset.induction_on s (by simp [ha]) (by simp {contextual := tt}) ⟩
 
 lemma comp_sup_eq_sup_comp [is_total α (≤)] {γ : Type} [semilattice_sup_bot γ]
   (g : α → γ) (mono_g : monotone g) (bot : g ⊥ = ⊥) : g (s.sup f) = s.sup (g ∘ f) :=
@@ -1917,24 +1919,39 @@ multiset.Ico.mem
 theorem eq_empty_of_le {n m : ℕ} (h : m ≤ n) : Ico n m = ∅ :=
 eq_of_veq $ multiset.Ico.eq_zero_of_le h
 
-@[simp] theorem self_eq_empty {n : ℕ} : Ico n n = ∅ :=
+@[simp] theorem self_eq_empty (n : ℕ) : Ico n n = ∅ :=
 eq_empty_of_le $ le_refl n
 
 @[simp] theorem eq_empty_iff {n m : ℕ} : Ico n m = ∅ ↔ m ≤ n :=
 iff.trans val_eq_zero.symm multiset.Ico.eq_zero_iff
+
+theorem subset_iff {m₁ n₁ m₂ n₂ : ℕ} (hmn : m₁ < n₁) :
+  Ico m₁ n₁ ⊆ Ico m₂ n₂ ↔ (m₂ ≤ m₁ ∧ n₁ ≤ n₂) :=
+begin
+  simp only [subset_iff, mem],
+  refine ⟨λ h, ⟨_, _⟩, _⟩,
+  { exact (h ⟨le_refl _, hmn⟩).1 },
+  { refine le_of_pred_lt (@h (pred n₁) ⟨le_pred_of_lt hmn, pred_lt _⟩).2,
+    exact ne_of_gt (lt_of_le_of_lt (nat.zero_le m₁) hmn) },
+  { rintros ⟨hm, hn⟩ k ⟨hmk, hkn⟩,
+    exact ⟨le_trans hm hmk, lt_of_lt_of_le hkn hn⟩ }
+end
 
 lemma union_consecutive {n m l : ℕ} (hnm : n ≤ m) (hml : m ≤ l) :
   Ico n m ∪ Ico m l = Ico n l :=
 by rw [← to_finset, ← to_finset, ← multiset.to_finset_add,
   multiset.Ico.add_consecutive hnm hml, to_finset]
 
-@[simp] lemma inter_consecutive {n m l : ℕ} : Ico n m ∩ Ico m l = ∅ :=
+@[simp] lemma inter_consecutive (n m l : ℕ) : Ico n m ∩ Ico m l = ∅ :=
 begin
   rw [← to_finset, ← to_finset, ← multiset.to_finset_inter, multiset.Ico.inter_consecutive],
   simp,
 end
 
-@[simp] theorem succ_singleton {n : ℕ} : Ico n (n+1) = {n} :=
+lemma disjoint_consecutive (n m l : ℕ) : disjoint (Ico n m) (Ico m l) :=
+le_of_eq $ inter_consecutive n m l
+
+@[simp] theorem succ_singleton (n : ℕ) : Ico n (n+1) = {n} :=
 eq_of_veq $ multiset.Ico.succ_singleton
 
 theorem succ_top {n m : ℕ} (h : n ≤ m) : Ico n (m + 1) = insert m (Ico n m) :=

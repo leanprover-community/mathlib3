@@ -272,23 +272,27 @@ do linter_list ← if use_only then return extra else list.append extra <$> attr
    linter_list ← get_linters linter_list.erase_dup,
    return $ if slow then linter_list else linter_list.filter (λ l, l.is_fast)
 
+/-- If `verbose` is true, return `old ++ new`, else return `old`. -/
+private meta def append_when (verbose : bool) (old new : format) : format :=
+cond verbose (old ++ new) old
+
 /-- The common denominator of `#lint[|mathlib|all]`.
   The different commands have different configurations for `l`, `printer` and `where_desc`.
   If `slow` is false, doesn't do the checks that take a lot of time.
   By setting `checks` you can customize which checks are performed. -/
 meta def lint_aux (l : list declaration)
   (printer : (declaration → tactic (option string)) → tactic format)
-  (where_desc : string) (slow : bool) (checks : list linter) : tactic format := do
-  let s : format := "/- Note: This command is still in development. -/\n",
-  let s := s ++ format!"/- Checking {l.length} declarations {where_desc} -/\n\n",
+  (where_desc : string) (slow verbose : bool) (checks : list linter) : tactic format := do
+  let s : format := append_when verbose format.nil "/- Note: This command is still in development. -/\n",
+  let s := append_when verbose s format!"/- Checking {l.length} declarations {where_desc} -/\n\n",
   s ← checks.mfoldl (λ s ⟨tac, ok_string, warning_string, _⟩, show tactic format, from do
     f ← printer tac,
-    return $ s ++ if f.is_nil then format!"/- OK: {ok_string}. -/\n"
-  else format!"/- {warning_string}: -/" ++ f ++ "\n\n") s,
-  return $ if slow then s else s ++ "/- (slow tests skipped) -/\n"
+    if f.is_nil then return $ append_when verbose s format!"/- OK: {ok_string}. -/\n"
+    else return $ s ++ format!"/- {warning_string}: -/" ++ f ++ "\n\n") s,
+  return $ if slow then s else append_when verbose s "/- (slow tests skipped) -/\n"
 
 /-- Return the message printed by `#lint`. -/
-meta def lint (slow : bool := tt) (extra : list name := [])
+meta def lint (slow : bool := tt) (verbose : bool := tt) (extra : list name := [])
   (use_only : bool := ff) : tactic format := do
   checks ← get_checks slow extra use_only,
   e ← get_env,
@@ -296,10 +300,10 @@ meta def lint (slow : bool := tt) (extra : list name := [])
     if e.in_current_file' d.to_name ∧ ¬ d.to_name.is_internal ∧ ¬ d.is_auto_generated e
     then bnot <$> has_attribute' `nolint d.to_name else return ff),
   lint_aux l (λ t, print_decls <$> fold_over_with_cond l t)
-    "in the current file" slow checks
+    "in the current file" slow verbose checks
 
 /-- Return the message printed by `#lint_mathlib`. -/
-meta def lint_mathlib (slow : bool := tt) (extra : list name := [])
+meta def lint_mathlib (slow : bool := tt) (verbose : bool := tt) (extra : list name := [])
   (use_only : bool := ff) : tactic format := do
   checks ← get_checks slow extra use_only,
   e ← get_env,
@@ -311,17 +315,17 @@ meta def lint_mathlib (slow : bool := tt) (extra : list name := [])
     then bnot <$> has_attribute' `nolint d.to_name else return ff),
   let ml' := ml.length,
   lint_aux l (λ t, print_decls_sorted_mathlib ml' <$> fold_over_with_cond_sorted l t)
-    "in mathlib (only in imported files)" slow checks
+    "in mathlib (only in imported files)" slow verbose checks
 
 /-- Return the message printed by `#lint_all`. -/
-meta def lint_all (slow : bool := tt) (extra : list name := [])
+meta def lint_all (slow : bool := tt) (verbose : bool := tt) (extra : list name := [])
   (use_only : bool := ff) : tactic format := do
   checks ← get_checks slow extra use_only,
   e ← get_env,
   l ← e.mfilter (λ d, if ¬ d.to_name.is_internal ∧ ¬ d.is_auto_generated e
     then bnot <$> has_attribute' `nolint d.to_name else return ff),
   lint_aux l (λ t, print_decls_sorted <$> fold_over_with_cond_sorted l t)
-    "in all imported files (including this one)" slow checks
+    "in all imported files (including this one)" slow verbose checks
 
 /-- Parses an optional `only`, followed by a sequence of zero or more identifiers.
 Prepends `linter.` to each of these identifiers. -/
@@ -329,11 +333,12 @@ private meta def parse_lint_additions : parser (bool × list name) :=
 prod.mk <$> only_flag <*> (list.map (name.append `linter) <$> ident_*)
 
 /-- The common denominator of `lint_cmd`, `lint_mathlib_cmd`, `lint_all_cmd` -/
-private meta def lint_cmd_aux (scope : bool → list name → bool → tactic format) : parser unit :=
-do b ← optional (tk "-"),
+private meta def lint_cmd_aux (scope : bool → bool → list name → bool → tactic format) : parser unit :=
+do silent ← optional (tk "!"),
+   fast_only ← optional (tk "-"),
    (use_only, extra) ← parse_lint_additions,
-   s ← scope b.is_none extra use_only,
-   trace s
+   s ← scope fast_only.is_none silent.is_none extra use_only,
+   when (¬ s.is_nil) $ trace s
 
 /-- The command `#lint` at the bottom of a file will warn you about some common mistakes
 in that file. Usage: `#lint`, `#lint linter_1 linter_2`, `#lint only linter_1 linter_2`.

@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Simon Hudon, Scott Morrison
 -/
 
-import tactic.interactive tactic.finish tactic.ext tactic.lift tactic.apply
+import tactic.interactive tactic.finish tactic.ext tactic.lift tactic.apply tactic.reassoc_axiom
 
 example (m n p q : nat) (h : m + n = p) : true :=
 begin
@@ -285,3 +285,17 @@ do
 -- a VM check error, and instead catch the error gracefully and just
 -- run and succeed silently.
 test_parser1
+
+section category_theory
+open category_theory
+variables {C : Type} [category.{1} C]
+
+example (X Y Z W : C) (x : X ⟶ Y) (y : Y ⟶ Z) (z z' : Z ⟶ W) (w : X ⟶ Z)
+  (h : x ≫ y = w)
+  (h' : y ≫ z = y ≫ z') :
+  x ≫ y ≫ z = w ≫ z' :=
+begin
+  rw [h',reassoc_of h],
+end
+
+end category_theory

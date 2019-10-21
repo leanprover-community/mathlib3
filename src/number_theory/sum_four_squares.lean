@@ -26,9 +26,10 @@ calc 2 * 2 * m = (x - y)^2 + (x + y)^2 : by rw [mul_assoc, h]; ring
 ... = 2 * 2 * (((x - y) / 2) ^ 2 + ((x + y) / 2) ^ 2) :
   by simp [mul_add, _root_.pow_succ, mul_comm, mul_assoc, mul_left_comm]
 
-lemma exists_sum_two_squares_add_one_eq_k {p : ℕ} (hp : p.prime) (hp1 : p % 2 = 1) :
+lemma exists_sum_two_squares_add_one_eq_k {p : ℕ} (hp : p.prime) :
   ∃ (a b : ℤ) (k : ℕ), a^2 + b^2 + 1 = k * p ∧ k < p :=
-let ⟨a, b, hab⟩ := zmodp.sum_two_squares_of_odd hp hp1 (-1) in
+hp.eq_two_or_odd.elim (λ hp2, hp2.symm ▸ ⟨1, 0, 1, rfl, dec_trivial⟩) $ λ hp1,
+let ⟨a, b, hab⟩ := zmodp.sum_two_squares hp (-1) in
 have hab' : (p : ℤ) ∣ a.val_min_abs ^ 2 + b.val_min_abs ^ 2 + 1,
   from (zmodp.eq_zero_iff_dvd_int hp _).1 $ by simpa [eq_neg_iff_add_eq_zero] using hab,
 let ⟨k, hk⟩ := hab' in
@@ -96,10 +97,10 @@ let ⟨x, hx⟩ := h01 in let ⟨y, hy⟩ := h23 in
     simpa [finset.sum_eq_multiset_sum, fin4univ, multiset.sum_cons, f]
   end⟩
 
-private lemma odd_prime_sum_four_squares {p : ℕ} (hp : p.prime) (hp2 : p%2 = 1) :
+private lemma prime_sum_four_squares {p : ℕ} (hp : p.prime) :
   ∃ a b c d : ℤ, a^2 + b^2 + c^2 + d^2 = p :=
 have hm : ∃ m < p, 0 < m ∧ ∃ a b c d : ℤ, a^2 + b^2 + c^2 + d^2 = m * p,
-  from let ⟨a, b, k, hk⟩ := exists_sum_two_squares_add_one_eq_k hp hp2 in
+  from let ⟨a, b, k, hk⟩ := exists_sum_two_squares_add_one_eq_k hp in
   ⟨k, hk.2, nat.pos_of_ne_zero $
     (λ hk0, by rw [hk0, int.coe_nat_zero, zero_mul] at hk;
       exact ne_of_gt (show a^2 + b^2 + 1 > 0, from add_pos_of_nonneg_of_pos
@@ -198,9 +199,7 @@ lemma sum_four_squares : ∀ n : ℕ, ∃ a b c d : ℕ, a^2 + b^2 + c^2 + d^2 =
 have hm : (min_fac n).prime := min_fac_prime dec_trivial,
 have n / min_fac n < n := factors_lemma,
 let ⟨a, b, c, d, h₁⟩ := show ∃ a b c d : ℤ, a^2 + b^2 + c^2 + d^2 = min_fac n,
-  from or.cases_on hm.eq_two_or_odd
-    (λ h2, h2.symm ▸ ⟨1, 1, 0, 0, rfl⟩)
-    (odd_prime_sum_four_squares hm) in
+  from prime_sum_four_squares hm in
 let ⟨w, x, y, z, h₂⟩ := sum_four_squares (n / min_fac n) in
 ⟨(a * x - b * w - c * z + d * y).nat_abs,
  (a * y + b * z - c * w - d * x).nat_abs,

@@ -95,7 +95,7 @@ instance concrete_category.types : concrete_category (Type u) :=
 -/
 class has_forget₂ (C D : Type (u+1)) [concrete_category C] [concrete_category D] :=
 (forget₂ : C ⥤ D)
-(forget_comp : forget₂ ⋙ (forget D) = forget C)
+(forget_comp : forget₂ ⋙ (forget D) = forget C . obviously)
 
 /-- The forgetful functor `C ⥤ D` between concrete categories for which we have an instance
 `has_forget₂ C `. -/

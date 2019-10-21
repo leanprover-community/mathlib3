@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Scott Morrison, Johannes Hölzl, Yury Kudryashov
 -/
 
-import algebra.category.Mon.basic
+import algebra.category.Group
 import category_theory.fully_faithful
 import algebra.ring
 import data.int.basic
@@ -65,7 +65,12 @@ instance bundled_hom : bundled_hom @ring_hom :=
 instance : concrete_category SemiRing := infer_instance
 
 instance has_forget_to_Mon : has_forget₂ SemiRing Mon :=
-bundled_hom.mk_has_forget₂ @semiring.to_monoid (λ R₁ R₂ f, f.to_monoid_hom) (λ _ _ _, rfl)
+bundled_hom.mk_has_forget₂ @semiring.to_monoid (λ R₁ R₂, ring_hom.to_monoid_hom) (λ _ _ _, rfl)
+instance has_forget_to_AddCommMon : has_forget₂ SemiRing AddCommMon :=
+-- can't use bundled_hom.mk_has_forget₂, since AddCommMon is an induced category
+{ forget₂ :=
+  { obj := λ R, AddCommMon.of R,
+    map := λ R₁ R₂ f, ring_hom.to_add_monoid_hom f } }
 
 end SemiRing
 
@@ -86,6 +91,11 @@ instance (R : Ring) : ring R := R.str
 instance : concrete_category Ring := infer_instance
 
 instance has_forget_to_SemiRing : has_forget₂ Ring SemiRing := infer_instance
+instance has_forget_to_AddCommGroup : has_forget₂ Ring AddCommGroup :=
+-- can't use bundled_hom.mk_has_forget₂, since AddCommGroup is an induced category
+{ forget₂ :=
+  { obj := λ R, AddCommGroup.of R,
+    map := λ R₁ R₂ f, ring_hom.to_add_monoid_hom f } }
 
 end Ring
 

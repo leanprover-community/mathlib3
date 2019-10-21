@@ -276,6 +276,59 @@ lemma prod_range_succ' (f : ℕ → β) :
 | (n + 1) := by rw [prod_range_succ (λ m, f (nat.succ m)), mul_assoc, ← prod_range_succ'];
                  exact prod_range_succ _ _
 
+lemma sum_Ico_add {δ : Type*} [add_comm_monoid δ] (f : ℕ → δ) (m n k : ℕ) :
+  (Ico m n).sum (λ l, f (k + l)) = (Ico (m + k) (n + k)).sum f :=
+Ico.image_add m n k ▸ eq.symm $ sum_image $ λ x hx y hy h, nat.add_left_cancel h
+
+@[to_additive]
+lemma prod_Ico_add (f : ℕ → β) (m n k : ℕ) :
+  (Ico m n).prod (λ l, f (k + l)) = (Ico (m + k) (n + k)).prod f :=
+Ico.image_add m n k ▸ eq.symm $ prod_image $ λ x hx y hy h, nat.add_left_cancel h
+
+@[to_additive]
+lemma prod_Ico_consecutive (f : ℕ → β) {m n k : ℕ} (hmn : m ≤ n) (hnk : n ≤ k) :
+  (Ico m n).prod f * (Ico n k).prod f = (Ico m k).prod f :=
+Ico.union_consecutive hmn hnk ▸ eq.symm $ prod_union $ Ico.disjoint_consecutive m n k
+
+@[to_additive]
+lemma prod_range_mul_prod_Ico (f : ℕ → β) {m n : ℕ} (h : m ≤ n) :
+  (range m).prod f * (Ico m n).prod f = (range n).prod f :=
+Ico.zero_bot m ▸ Ico.zero_bot n ▸ prod_Ico_consecutive f (nat.zero_le m) h
+
+@[to_additive sum_Ico_eq_add_neg]
+lemma prod_Ico_eq_div {δ : Type*} [comm_group δ] (f : ℕ → δ) {m n : ℕ} (h : m ≤ n) :
+  (Ico m n).prod f = (range n).prod f * ((range m).prod f)⁻¹ :=
+eq_mul_inv_iff_mul_eq.2 $ by rw [mul_comm]; exact prod_range_mul_prod_Ico f h
+
+lemma sum_Ico_eq_sub {δ : Type*} [add_comm_group δ] (f : ℕ → δ) {m n : ℕ} (h : m ≤ n) :
+  (Ico m n).sum f = (range n).sum f - (range m).sum f :=
+sum_Ico_eq_add_neg f h
+
+@[to_additive]
+lemma prod_Ico_eq_prod_range (f : ℕ → β) (m n : ℕ) :
+  (Ico m n).prod f = (range (n - m)).prod (λ l, f (m + l)) :=
+begin
+  by_cases h : m ≤ n,
+  { rw [← Ico.zero_bot, prod_Ico_add, zero_add, nat.sub_add_cancel h] },
+  { replace h : n ≤ m :=  le_of_not_ge h,
+     rw [Ico.eq_empty_of_le h, nat.sub_eq_zero_of_le h, range_zero, prod_empty, prod_empty] }
+end
+
+@[to_additive]
+lemma prod_range_zero (f : ℕ → β) :
+ (range 0).prod f = 1 :=
+by rw [range_zero, prod_empty]
+
+lemma prod_range_one (f : ℕ → β) :
+  (range 1).prod f = f 0 :=
+by { rw [range_one], apply @prod_singleton ℕ β 0 f }
+
+lemma sum_range_one {δ : Type*} [add_comm_monoid δ] (f : ℕ → δ) :
+  (range 1).sum f = f 0 :=
+by { rw [range_one], apply @sum_singleton ℕ δ 0 f }
+
+attribute [to_additive finset.sum_range_one] prod_range_one
+
 @[simp] lemma prod_const (b : β) : s.prod (λ a, b) = b ^ s.card :=
 by haveI := classical.dec_eq α; exact
 finset.induction_on s rfl (λ a s has ih,
@@ -332,7 +385,7 @@ finset.strong_induction_on s
         prod_insert (not_mem_erase _ _), ih', mul_one, h₁ x hx])
 
 @[to_additive]
-lemma prod_eq_one [comm_monoid β] {f : α → β} {s : finset α} (h : ∀x∈s, f x = 1) : s.prod f = 1 :=
+lemma prod_eq_one {f : α → β} {s : finset α} (h : ∀x∈s, f x = 1) : s.prod f = 1 :=
 calc s.prod f = s.prod (λx, 1) : finset.prod_congr rfl h
   ... = 1 : finset.prod_const_one
 
@@ -413,6 +466,17 @@ finset.induction_on s (by simp)
     by rw bind_insert; exact finset.card_union_le _ _
     ... ≤ (insert a s).sum (λ a, card (t a)) :
     by rw sum_insert has; exact add_le_add_left ih _)
+
+theorem card_eq_sum_card_image [decidable_eq β] (f : α → β) (s : finset α) :
+  s.card = (s.image f).sum (λ a, (s.filter (λ x, f x = a)).card) :=
+by letI := classical.dec_eq α; exact
+calc s.card = ((s.image f).bind (λ a, s.filter (λ x, f x = a))).card :
+  congr_arg _ (finset.ext.2 $ λ x,
+    ⟨λ hs, mem_bind.2 ⟨f x, mem_image_of_mem _ hs,
+      mem_filter.2 ⟨hs, rfl⟩⟩,
+    λ h, let ⟨a, ha₁, ha₂⟩ := mem_bind.1 h in by convert filter_subset s ha₂⟩)
+... = (s.image f).sum (λ a, (s.filter (λ x, f x = a)).card) :
+  card_bind (by simp [disjoint_left, finset.ext] {contextual := tt})
 
 lemma gsmul_sum [add_comm_group β] {f : α → β} {s : finset α} (z : ℤ) :
   gsmul z (s.sum f) = s.sum (λa, gsmul z (f a)) :=
@@ -540,12 +604,13 @@ by rwa sum_singleton at this
 end ordered_comm_monoid
 
 section canonically_ordered_monoid
-variables [decidable_eq α] [canonically_ordered_monoid β] [@decidable_rel β (≤)]
+variables [decidable_eq α] [canonically_ordered_monoid β]
 
 lemma sum_le_sum_of_subset (h : s₁ ⊆ s₂) : s₁.sum f ≤ s₂.sum f :=
 sum_le_sum_of_subset_of_nonneg h $ assume x h₁ h₂, zero_le _
 
-lemma sum_le_sum_of_ne_zero (h : ∀x∈s₁, f x ≠ 0 → x ∈ s₂) : s₁.sum f ≤ s₂.sum f :=
+lemma sum_le_sum_of_ne_zero [@decidable_rel β (≤)] (h : ∀x∈s₁, f x ≠ 0 → x ∈ s₂) :
+  s₁.sum f ≤ s₂.sum f :=
 calc s₁.sum f = (s₁.filter (λx, f x = 0)).sum f + (s₁.filter (λx, f x ≠ 0)).sum f :
     by rw [←sum_union, filter_union_filter_neg_eq];
        exact disjoint_filter (assume _ h n_h, n_h h)
@@ -597,6 +662,14 @@ end linear_ordered_comm_ring
   (s.pi t).card = s.prod (λ a, card (t a)) :=
 multiset.card_pi _ _
 
+theorem card_le_mul_card_image [decidable_eq β] {f : α → β} (s : finset α)
+  (n : ℕ) (hn : ∀ a ∈ s.image f, (s.filter (λ x, f x = a)).card ≤ n) :
+  s.card ≤ n * (s.image f).card :=
+calc s.card = (s.image f).sum (λ a, (s.filter (λ x, f x = a)).card) :
+  card_eq_sum_card_image _ _
+... ≤ (s.image f).sum (λ _, n) : sum_le_sum hn
+... = _ : by simp [mul_comm]
+
 @[simp] lemma prod_range_id_eq_fact (n : ℕ) : ((range n.succ).erase 0).prod (λ x, x) = nat.fact n :=
 calc ((range n.succ).erase 0).prod (λ x, x) = (range n).prod nat.succ :
 eq.symm (prod_bij (λ x _, nat.succ x)
@@ -610,44 +683,6 @@ eq.symm (prod_bij (λ x _, nat.succ x)
 
 end finset
 
-section geom_sum
-open finset
-
-theorem geom_sum_mul_add [semiring α] (x : α) :
-  ∀ (n : ℕ), ((range n).sum (λ i, (x+1)^i)) * x + 1 = (x+1)^n
-| 0     := by simp
-| (n+1) := calc (range (n + 1)).sum (λi, (x + 1) ^ i) * x + 1 =
-        (x + 1)^n * x + (((range n).sum (λ i, (x+1)^i)) * x + 1) :
-    by simp [range_add_one, add_mul]
-  ... = (x + 1)^n * x + (x + 1)^n :
-    by rw geom_sum_mul_add n
-  ... = (x + 1) ^ (n + 1) :
-    by simp [pow_add, mul_add]
-
-theorem geom_sum_mul [ring α] (x : α) (n : ℕ) :
-  ((range n).sum (λ i, x^i)) * (x-1) = x^n-1 :=
-have _ := geom_sum_mul_add (x-1) n,
-by rw [sub_add_cancel] at this; rw [← this, add_sub_cancel]
-
-theorem geom_sum [division_ring α] {x : α} (h : x ≠ 1) (n : ℕ) :
-  (range n).sum (λ i, x^i) = (x^n-1)/(x-1) :=
-have x - 1 ≠ 0, by simp [*, -sub_eq_add_neg, sub_eq_iff_eq_add] at *,
-by rw [← geom_sum_mul, mul_div_cancel _ this]
-
-lemma geom_sum_inv [division_ring α] {x : α} (hx1 : x ≠ 1) (hx0 : x ≠ 0) (n : ℕ) :
-  (range n).sum (λ m, x⁻¹ ^ m) = (x - 1)⁻¹ * (x - x⁻¹ ^ n * x) :=
-have h₁ : x⁻¹ ≠ 1, by rwa [inv_eq_one_div, ne.def, div_eq_iff_mul_eq hx0, one_mul],
-have h₂ : x⁻¹ - 1 ≠ 0, from mt sub_eq_zero.1 h₁,
-have h₃ : x - 1 ≠ 0, from mt sub_eq_zero.1 hx1,
-have h₄ : x * x⁻¹ ^ n = x⁻¹ ^ n * x,
-  from nat.cases_on n (by simp)
-  (λ _, by conv { to_rhs, rw [pow_succ', mul_assoc, inv_mul_cancel hx0, mul_one] };
-    rw [pow_succ, ← mul_assoc, mul_inv_cancel hx0, one_mul]),
-by rw [geom_sum h₁, div_eq_iff_mul_eq h₂, ← domain.mul_left_inj h₃,
-    ← mul_assoc, ← mul_assoc, mul_inv_cancel h₃];
-  simp [mul_add, add_mul, mul_inv_cancel hx0, mul_assoc, h₄]
-
-end geom_sum
 
 namespace finset
 section gauss_sum

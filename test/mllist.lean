@@ -42,3 +42,14 @@ run_cmd
     let y := x.mfilter_map half_or_fail,
     z ← y.take 10,
     guard $ z.length = 10)
+
+run_cmd
+(do let R : mllist tactic ℕ := mllist.range,
+    let S := R.mfilter_map (λ n, do guard $ n = 5, return n),
+    n ← R.head,
+    guard $ n = 0)
+
+run_cmd
+(do let R : mllist tactic ℕ := mllist.range,
+    n ← R.mfirst (λ n, do guard $ n = 5, return n),
+    guard $ n = 5)

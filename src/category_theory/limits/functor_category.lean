@@ -25,7 +25,7 @@ by convert ←nat_trans.congr_app (c.π.naturality f).symm k; apply id_comp
   (F.map f).app k ≫ (c.ι.app j').app k = (c.ι.app j).app k :=
 by convert ←nat_trans.congr_app (c.ι.naturality f) k; apply comp_id
 
-@[simp] def functor_category_limit_cone [has_limits_of_shape J C] (F : J ⥤ K ⥤ C) :
+@[simps] def functor_category_limit_cone [has_limits_of_shape J C] (F : J ⥤ K ⥤ C) :
   cone F :=
 { X := F.flip ⋙ lim,
   π :=
@@ -34,7 +34,7 @@ by convert ←nat_trans.congr_app (c.ι.naturality f) k; apply comp_id
       naturality' := λ j j' f,
         by ext k; convert (limit.w (F.flip.obj k) _).symm using 1; apply id_comp } }
 
-@[simp] def functor_category_colimit_cocone [has_colimits_of_shape J C] (F : J ⥤ K ⥤ C) :
+@[simps] def functor_category_colimit_cocone [has_colimits_of_shape J C] (F : J ⥤ K ⥤ C) :
   cocone F :=
 { X := F.flip ⋙ colim,
   ι :=

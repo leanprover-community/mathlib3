@@ -959,7 +959,7 @@ variables [add_monoid β] {v v' : α' →₀ β}
   (v + v').subtype_domain p = v.subtype_domain p + v'.subtype_domain p :=
 ext $ λ _, rfl
 
-instance subtype_domain.is_add_monoid_hom [add_monoid β] :
+instance subtype_domain.is_add_monoid_hom :
   is_add_monoid_hom (subtype_domain p : (α →₀ β) → subtype p →₀ β) :=
 { map_add := λ _ _, subtype_domain_add, map_zero := subtype_domain_zero }
 

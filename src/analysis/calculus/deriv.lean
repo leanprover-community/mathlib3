@@ -106,38 +106,54 @@ section derivative_uniqueness
 We prove that the definitions `unique_diff_within_at` and `unique_diff_on` indeed imply the
 uniqueness of the derivative. -/
 
+/-- If a function f has a derivative f' at x, a rescaled version of f around x converges to f', i.e.,
+`n (f (x + (1/n) v) - f x)` converges to `f' v`. More generally, if `c n` tends to infinity and
+`c n * d n` tends to `v`, then `c n * (f (x + d n) - f x)` tends to `f' v`. This lemma expresses
+this fact, for functions having a derivative within a set. Its specific formulation is useful for
+tangent cone related discussions. -/
+theorem has_fderiv_within_at.lim (h : has_fderiv_within_at f f' s x)
+  {c : ℕ → 𝕜} {d : ℕ → E} {v : E} (dtop : {n : ℕ | x + d n ∈ s} ∈ (at_top : filter ℕ))
+  (clim : tendsto (λ (n : ℕ), ∥c n∥) at_top at_top)
+  (cdlim : tendsto (λ (n : ℕ), c n • d n) at_top (nhds v)) :
+  tendsto (λn, c n • (f (x + d n) - f x)) at_top (nhds (f' v)) :=
+begin
+  have at_top_is_finer : at_top ≤ comap (λ (n : ℕ), x + d n) (nhds_within x s),
+  { conv in (nhds_within x s) { rw ← add_zero x },
+    rw [← tendsto_iff_comap, nhds_within, tendsto_inf],
+    split,
+    { apply tendsto_add tendsto_const_nhds (tangent_cone_at.lim_zero clim cdlim) },
+    { rwa tendsto_principal } },
+  have : is_o (λ y, f y - f x - f' (y - x)) (λ y, y - x) (nhds_within x s) := h,
+  have : is_o (λ n:ℕ, f (x + d n) - f x - f' ((x + d n) - x)) (λ n, (x + d n)  - x)
+    ((nhds_within x s).comap (λn, x+ d n)) := is_o.comp this _,
+  have : is_o (λ n:ℕ, f (x + d n) - f x - f' (d n)) d
+    ((nhds_within x s).comap (λn, x + d n)) := by simpa,
+  have : is_o (λn:ℕ, f (x + d n) - f x - f' (d n)) d at_top :=
+    is_o.mono at_top_is_finer this,
+  have : is_o (λn:ℕ, c n • (f (x + d n) - f x - f' (d n))) (λn, c n • d n) at_top :=
+    is_o_smul this,
+  have : is_o (λn:ℕ, c n • (f (x + d n) - f x - f' (d n))) (λn, (1:ℝ)) at_top :=
+    this.trans_is_O (is_O_one_of_tendsto cdlim),
+  have L1 : tendsto (λn:ℕ, c n • (f (x + d n) - f x - f' (d n))) at_top (nhds 0) :=
+    is_o_one_iff.1 this,
+  have L2 : tendsto (λn:ℕ, f' (c n • d n)) at_top (nhds (f' v)) :=
+    tendsto.comp f'.cont.continuous_at cdlim,
+  have L3 : tendsto (λn:ℕ, (c n • (f (x + d n) - f x - f' (d n)) +  f' (c n • d n)))
+            at_top (nhds (0 + f' v)) :=
+    tendsto_add L1 L2,
+  have : (λn:ℕ, (c n • (f (x + d n) - f x - f' (d n)) +  f' (c n • d n)))
+          = (λn: ℕ, c n • (f (x + d n) - f x)),
+    by { ext n, simp [smul_add] },
+  rwa [this, zero_add] at L3
+end
+
 /-- `unique_diff_within_at` achieves its goal: it implies the uniqueness of the derivative. -/
 theorem unique_diff_within_at.eq (H : unique_diff_within_at 𝕜 s x)
   (h : has_fderiv_within_at f f' s x) (h₁ : has_fderiv_within_at f f₁' s x) : f' = f₁' :=
 begin
   have A : ∀y ∈ tangent_cone_at 𝕜 s x, f' y = f₁' y,
-  { assume y hy,
-    rcases hy with ⟨c, d, hd, hc, ylim⟩,
-    have at_top_is_finer : at_top ≤ comap (λ (n : ℕ), x + d n) (nhds_within (x + 0) s),
-    { rw [←tendsto_iff_comap, nhds_within, tendsto_inf],
-      split,
-      { apply tendsto_add tendsto_const_nhds (tangent_cone_at.lim_zero hc ylim) },
-      { rwa tendsto_principal } },
-    rw add_zero at at_top_is_finer,
-    have : is_o (λ y, f₁' (y - x) - f' (y - x)) (λ y, y - x) (nhds_within x s),
-      by simpa using h.sub h₁,
-    have : is_o (λ n:ℕ, f₁' ((x + d n) - x) - f' ((x + d n) - x)) (λ n, (x + d n)  - x)
-      ((nhds_within x s).comap (λn, x+ d n)) := is_o.comp this _,
-    have L1 : is_o (λ n:ℕ, f₁' (d n) - f' (d n)) d
-      ((nhds_within x s).comap (λn, x + d n)) := by simpa using this,
-    have L2 : is_o (λn:ℕ, f₁' (d n) - f' (d n)) d at_top :=
-      is_o.mono at_top_is_finer L1,
-    have L3 : is_o (λn:ℕ, c n • (f₁' (d n) - f' (d n))) (λn, c n • d n) at_top :=
-      is_o_smul L2,
-    have L4 : is_o (λn:ℕ, c n • (f₁' (d n) - f' (d n))) (λn, (1:ℝ)) at_top :=
-      L3.trans_is_O (is_O_one_of_tendsto ylim),
-    have L : tendsto (λn:ℕ, c n • (f₁' (d n) - f' (d n))) at_top (nhds 0) :=
-      is_o_one_iff.1 L4,
-    have L' : tendsto (λ (n : ℕ), c n • (f₁' (d n) - f' (d n))) at_top (nhds (f₁' y - f' y)),
-    { simp only [smul_sub, (continuous_linear_map.map_smul _ _ _).symm],
-      apply tendsto_sub ((f₁'.continuous.tendsto _).comp ylim) ((f'.continuous.tendsto _).comp ylim) },
-    have : f₁' y - f' y = 0 := tendsto_nhds_unique (by simp) L' L,
-    exact (sub_eq_zero_iff_eq.1 this).symm },
+  { rintros y ⟨c, d, dtop, clim, cdlim⟩,
+    exact tendsto_nhds_unique (by simp) (h.lim dtop clim cdlim) (h₁.lim dtop clim cdlim) },
   have B : ∀y ∈ submodule.span 𝕜 (tangent_cone_at 𝕜 s x), f' y = f₁' y,
   { assume y hy,
     apply submodule.span_induction hy,
@@ -273,6 +289,11 @@ lemma differentiable_within_at_inter (ht : t ∈ nhds x) :
 by simp only [differentiable_within_at, has_fderiv_within_at, has_fderiv_at_filter,
     nhds_within_restrict' s ht]
 
+lemma differentiable_within_at_inter' (ht : t ∈ nhds_within x s) :
+  differentiable_within_at 𝕜 f (s ∩ t) x ↔ differentiable_within_at 𝕜 f s x :=
+by simp only [differentiable_within_at, has_fderiv_within_at, has_fderiv_at_filter,
+    nhds_within_restrict'' s ht]
+
 lemma differentiable_at.differentiable_within_at
   (h : differentiable_at 𝕜 f x) : differentiable_within_at 𝕜 f s x :=
 (differentiable_within_at_univ.2 h).mono (subset_univ _)
@@ -381,6 +402,10 @@ lemma differentiable_within_at.congr_mono (h : differentiable_within_at 𝕜 f s
   (ht : ∀x ∈ t, f₁ x = f x) (hx : f₁ x = f x) (h₁ : t ⊆ s) : differentiable_within_at 𝕜 f₁ t x :=
 (has_fderiv_within_at.congr_mono h.has_fderiv_within_at ht hx h₁).differentiable_within_at
 
+lemma differentiable_within_at.congr (h : differentiable_within_at 𝕜 f s x)
+  (ht : ∀x ∈ s, f₁ x = f x) (hx : f₁ x = f x) : differentiable_within_at 𝕜 f₁ s x :=
+differentiable_within_at.congr_mono h ht hx (subset.refl _)
+
 lemma differentiable_within_at.congr_of_mem_nhds_within
   (h : differentiable_within_at 𝕜 f s x) (h₁ : {y | f₁ y = f y} ∈ nhds_within x s)
   (hx : f₁ x = f x) : differentiable_within_at 𝕜 f₁ s x :=
@@ -389,6 +414,10 @@ lemma differentiable_within_at.congr_of_mem_nhds_within
 lemma differentiable_on.congr_mono (h : differentiable_on 𝕜 f s) (h' : ∀x ∈ t, f₁ x = f x)
   (h₁ : t ⊆ s) : differentiable_on 𝕜 f₁ t :=
 λ x hx, (h x (h₁ hx)).congr_mono h' (h' x hx) h₁
+
+lemma differentiable_on.congr (h : differentiable_on 𝕜 f s) (h' : ∀x ∈ s, f₁ x = f x) :
+  differentiable_on 𝕜 f₁ s :=
+λ x hx, (h x hx).congr h' (h' x hx)
 
 lemma differentiable_at.congr_of_mem_nhds (h : differentiable_at 𝕜 f x)
   (hL : {y | f₁ y = f y} ∈ nhds x) : differentiable_at 𝕜 f₁ x :=
@@ -801,6 +830,8 @@ end continuous
 section bilinear_map
 variables {b : E × F → G} {u : set (E × F) }
 
+open normed_field
+
 lemma is_bounded_bilinear_map.has_fderiv_at (h : is_bounded_bilinear_map 𝕜 b) (p : E × F) :
   has_fderiv_at b (h.deriv p) p :=
 begin
@@ -978,12 +1009,15 @@ begin
   exact eq₁.tri eq₃
 end
 
-theorem has_fderiv_within_at.comp {g : F → G} {g' : F →L[𝕜] G}
-  (hg : has_fderiv_within_at g g' (f '' s) (f x))
-  (hf : has_fderiv_within_at f f' s x) :
+theorem has_fderiv_within_at.comp {g : F → G} {g' : F →L[𝕜] G} {t : set F}
+  (hg : has_fderiv_within_at g g' t (f x)) (hf : has_fderiv_within_at f f' s x) (hst : s ⊆ f ⁻¹' t) :
   has_fderiv_within_at (g ∘ f) (g'.comp f') s x :=
-(has_fderiv_at_filter.mono hg
-  hf.continuous_within_at.tendsto_nhds_within_image).comp x hf
+begin
+  apply has_fderiv_at_filter.comp _ (has_fderiv_at_filter.mono hg _) hf,
+  calc map f (nhds_within x s)
+      ≤ nhds_within (f x) (f '' s) : hf.continuous_within_at.tendsto_nhds_within_image
+  ... ≤ nhds_within (f x) t        : nhds_within_mono _ (image_subset_iff.mpr hst)
+end
 
 /-- The chain rule. -/
 theorem has_fderiv_at.comp {g : F → G} {g' : F →L[𝕜] G}
@@ -996,16 +1030,16 @@ theorem has_fderiv_at.comp_has_fderiv_within_at {g : F → G} {g' : F →L[𝕜]
   has_fderiv_within_at (g ∘ f) (g'.comp f') s x :=
 begin
   rw ← has_fderiv_within_at_univ at hg,
-  exact has_fderiv_within_at.comp x (hg.mono (subset_univ _)) hf
+  exact has_fderiv_within_at.comp x hg hf subset_preimage_univ
 end
 
 lemma differentiable_within_at.comp {g : F → G} {t : set F}
   (hg : differentiable_within_at 𝕜 g t (f x)) (hf : differentiable_within_at 𝕜 f s x)
-  (h : f '' s ⊆ t) : differentiable_within_at 𝕜 (g ∘ f) s x :=
+  (h : s ⊆ f ⁻¹' t) : differentiable_within_at 𝕜 (g ∘ f) s x :=
 begin
   rcases hf with ⟨f', hf'⟩,
   rcases hg with ⟨g', hg'⟩,
-  exact ⟨continuous_linear_map.comp g' f', (hg'.mono h).comp x hf'⟩
+  exact ⟨continuous_linear_map.comp g' f', hg'.comp x hf' h⟩
 end
 
 lemma differentiable_at.comp {g : F → G}
@@ -1015,13 +1049,12 @@ lemma differentiable_at.comp {g : F → G}
 
 lemma fderiv_within.comp {g : F → G} {t : set F}
   (hg : differentiable_within_at 𝕜 g t (f x)) (hf : differentiable_within_at 𝕜 f s x)
-  (h : f '' s ⊆ t) (hxs : unique_diff_within_at 𝕜 s x) :
+  (h : s ⊆ f ⁻¹' t) (hxs : unique_diff_within_at 𝕜 s x) :
   fderiv_within 𝕜 (g ∘ f) s x =
     continuous_linear_map.comp (fderiv_within 𝕜 g t (f x)) (fderiv_within 𝕜 f s x) :=
 begin
   apply has_fderiv_within_at.fderiv_within _ hxs,
-  apply has_fderiv_within_at.comp x _ (hf.has_fderiv_within_at),
-  apply hg.has_fderiv_within_at.mono h
+  exact has_fderiv_within_at.comp x (hg.has_fderiv_within_at) (hf.has_fderiv_within_at) h
 end
 
 lemma fderiv.comp {g : F → G}
@@ -1033,9 +1066,9 @@ begin
 end
 
 lemma differentiable_on.comp {g : F → G} {t : set F}
-  (hg : differentiable_on 𝕜 g t) (hf : differentiable_on 𝕜 f s) (st : f '' s ⊆ t) :
+  (hg : differentiable_on 𝕜 g t) (hf : differentiable_on 𝕜 f s) (st : s ⊆ f ⁻¹' t) :
   differentiable_on 𝕜 (g ∘ f) s :=
-λx hx, differentiable_within_at.comp x (hg (f x) (st (mem_image_of_mem _ hx))) (hf x hx) st
+λx hx, differentiable_within_at.comp x (hg (f x) (st hx)) (hf x hx) st
 
 lemma differentiable.comp {g : F → G} (hg : differentiable 𝕜 g) (hf : differentiable 𝕜 f) :
   differentiable 𝕜 (g ∘ f) :=
@@ -1174,3 +1207,61 @@ begin
 end
 
 end
+
+section tangent_cone
+
+variables {𝕜 : Type*} [nondiscrete_normed_field 𝕜]
+{E : Type*} [normed_group E] [normed_space 𝕜 E]
+{F : Type*} [normed_group F] [normed_space 𝕜 F]
+{f : E → F} {s : set E} {f' : E →L[𝕜] F}
+
+/-- The image of a tangent cone under the differential of a map is included in the tangent cone to
+the image. -/
+lemma has_fderiv_within_at.image_tangent_cone_subset {x : E} (h : has_fderiv_within_at f f' s x) :
+  f' '' (tangent_cone_at 𝕜 s x) ⊆ tangent_cone_at 𝕜 (f '' s) (f x) :=
+begin
+  rw image_subset_iff,
+  rintros v ⟨c, d, dtop, clim, cdlim⟩,
+  refine ⟨c, (λn, f (x + d n) - f x), mem_sets_of_superset dtop _, clim, h.lim dtop clim cdlim⟩,
+  simp [-mem_image, mem_image_of_mem] {contextual := tt}
+end
+
+/-- If a set has the unique differentiability property at a point x, then the image of this set
+under a map with onto derivative has also the unique differentiability property at the image point.
+-/
+lemma has_fderiv_within_at.unique_diff_within_at {x : E} (h : has_fderiv_within_at f f' s x)
+  (hs : unique_diff_within_at 𝕜 s x) (h' : closure (range f') = univ) :
+  unique_diff_within_at 𝕜 (f '' s) (f x) :=
+begin
+  have A : ∀v ∈ tangent_cone_at 𝕜 s x, f' v ∈ tangent_cone_at 𝕜 (f '' s) (f x),
+  { assume v hv,
+    have := h.image_tangent_cone_subset,
+    rw image_subset_iff at this,
+    exact this hv },
+  have B : ∀v ∈ (submodule.span 𝕜 (tangent_cone_at 𝕜 s x) : set E),
+    f' v ∈ (submodule.span 𝕜 (tangent_cone_at 𝕜 (f '' s) (f x)) : set F),
+  { assume v hv,
+    apply submodule.span_induction hv,
+    { exact λ w hw, submodule.subset_span (A w hw) },
+    { simp },
+    { assume w₁ w₂ hw₁ hw₂,
+      rw continuous_linear_map.map_add,
+      exact submodule.add_mem (submodule.span 𝕜 (tangent_cone_at 𝕜 (f '' s) (f x))) hw₁ hw₂ },
+    { assume a w hw,
+      rw continuous_linear_map.map_smul,
+      exact submodule.smul_mem (submodule.span 𝕜 (tangent_cone_at 𝕜 (f '' s) (f x))) _ hw } },
+  rw [unique_diff_within_at, ← univ_subset_iff],
+  split,
+  show f x ∈ closure (f '' s), from h.continuous_within_at.mem_closure_image hs.2,
+  show univ ⊆ closure ↑(submodule.span 𝕜 (tangent_cone_at 𝕜 (f '' s) (f x))), from calc
+    univ ⊆ closure (range f') : univ_subset_iff.2 h'
+    ... = closure (f' '' univ) : by rw image_univ
+    ... = closure (f' '' (closure (submodule.span 𝕜 (tangent_cone_at 𝕜 s x) : set E))) : by rw hs.1
+    ... ⊆ closure (closure (f' '' (submodule.span 𝕜 (tangent_cone_at 𝕜 s x) : set E))) :
+      closure_mono (image_closure_subset_closure_image f'.cont)
+    ... = closure (f' '' (submodule.span 𝕜 (tangent_cone_at 𝕜 s x) : set E)) : closure_closure
+    ... ⊆ closure (submodule.span 𝕜 (tangent_cone_at 𝕜 (f '' s) (f x)) : set F) :
+      closure_mono (image_subset_iff.mpr B)
+end
+
+end tangent_cone

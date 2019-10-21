@@ -108,15 +108,15 @@ def cofork.of_π {P : C} (π : Y ⟶ P) (w : f ≫ π = g ≫ π) : cofork f g :
 
 def fork.ι (t : fork f g) := t.π.app zero
 def cofork.π (t : cofork f g) := t.ι.app one
-def fork.condition (t : fork f g) : (fork.ι t) ≫ f = (fork.ι t) ≫ g :=
+lemma fork.condition (t : fork f g) : (fork.ι t) ≫ f = (fork.ι t) ≫ g :=
 begin
   erw [t.w left, ← t.w right], refl
 end
-def cofork.condition (t : cofork f g) : f ≫ (cofork.π t) = g ≫ (cofork.π t) :=
+lemma cofork.condition (t : cofork f g) : f ≫ (cofork.π t) = g ≫ (cofork.π t) :=
 begin
   erw [t.w left, ← t.w right], refl
 end
-
+ 
 def cone.of_fork
   {F : walking_parallel_pair.{v} ⥤ C} (t : fork (F.map left) (F.map right)) : cone F :=
 { X := t.X,

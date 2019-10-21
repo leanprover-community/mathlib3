@@ -487,6 +487,8 @@ namespace func
 /- Definitions for using lists as finite
    representations of functions with domain ℕ. -/
 
+def neg [has_neg α] (as : list α) := as.map (λ a, -a)
+
 variables [inhabited α] [inhabited β]
 
 @[simp] def set (a : α) : list α → ℕ → list α
@@ -502,8 +504,6 @@ variables [inhabited α] [inhabited β]
 
 def equiv (as1 as2 : list α) : Prop :=
 ∀ (m : nat), get m as1 = get m as2
-
-def neg [has_neg α] (as : list α) := as.map (λ a, -a)
 
 @[simp] def pointwise (f : α → β → γ) : list α → list β → list γ
 | []      []      := []
@@ -525,5 +525,10 @@ def mmap_filter {m : Type → Type v} [monad m] {α β} (f : α → m (option β
 | []       := return []
 | (h :: t) := do b ← f h, t' ← t.mmap_filter, return $
   match b with none := t' | (some x) := x::t' end
+
+protected def traverse {F : Type u → Type v} [applicative F] {α β : Type*} (f : α → F β) :
+  list α → F (list β)
+| [] := pure []
+| (x :: xs) := list.cons <$> f x <*> traverse xs
 
 end list

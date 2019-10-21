@@ -17,11 +17,6 @@ import data.int.basic data.list.basic
 universes u v
 variable {α : Type u}
 
-@[simp] theorem inv_one [division_ring α] : (1⁻¹ : α) = 1 := by rw [inv_eq_one_div, one_div_one]
-
-@[simp] theorem inv_inv' [discrete_field α] {a:α} : a⁻¹⁻¹ = a :=
-by rw [inv_eq_one_div, inv_eq_one_div, div_div_eq_mul_div, one_mul, div_one]
-
 /-- The power operation in a monoid. `a^n = a*a*...*a` n times. -/
 def monoid.pow [monoid α] (a : α) : ℕ → α
 | 0     := 1
@@ -195,7 +190,7 @@ def gsmul (n : ℤ) (a : β) : β :=
 
 @[priority 10] instance group.has_pow : has_pow α ℤ := ⟨gpow⟩
 
-localized "infix ` • `:70 := gsmul" in group
+localized "infix ` • `:70 := gsmul" in add_group
 localized "infix ` •ℕ `:70 := add_monoid.smul" in smul
 localized "infix ` •ℤ `:70 := gsmul" in smul
 
@@ -233,6 +228,13 @@ open nat
 
 theorem gpow_neg_one (x : α) : x ^ (-1:ℤ) = x⁻¹ := congr_arg has_inv.inv $ pow_one x
 theorem neg_one_gsmul (x : β) : (-1:ℤ) • x = -x := congr_arg has_neg.neg $ add_monoid.one_smul x
+
+theorem gsmul_one [has_one β] (n : ℤ) : n • (1 : β) = n :=
+begin
+cases n,
+  { rw [gsmul_of_nat, add_monoid.smul_one, int.cast_of_nat] },
+  { rw [gsmul_neg_succ, add_monoid.smul_one, int.cast_neg_succ_of_nat, nat.cast_succ] }
+end
 
 theorem inv_gpow (a : α) : ∀n:ℤ, a⁻¹ ^ n = (a ^ n)⁻¹
 | (n : ℕ) := inv_pow a n

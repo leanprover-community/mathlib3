@@ -127,6 +127,12 @@ lt_of_le_of_lt (nat.zero_le _) h
 lemma le_pred_of_lt {n m : ℕ} (h : m < n) : m ≤ n - 1 :=
 nat.sub_le_sub_right h 1
 
+lemma le_of_pred_lt {m n : ℕ} : pred m < n → m ≤ n :=
+match m with
+| 0 := le_of_lt
+| m+1 := id
+end
+
 /-- This ensures that `simp` succeeds on `pred (n + 1) = n`. -/
 @[simp] lemma pred_one_add (n : ℕ) : pred (1 + n) = n :=
 by rw [add_comm, add_one, pred_succ]

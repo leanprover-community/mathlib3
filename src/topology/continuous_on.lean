@@ -21,13 +21,14 @@ equipped with the subspace topology.
 -/
 
 open set filter
+open_locale topological_space
 
 variables {α : Type*} {β : Type*} {γ : Type*}
 variables [topological_space α]
 
 /-- The "neighborhood within" filter. Elements of `nhds_within a s` are sets containing the
 intersection of `s` and a neighborhood of `a`. -/
-def nhds_within (a : α) (s : set α) : filter α := nhds a ⊓ principal s
+def nhds_within (a : α) (s : set α) : filter α := 𝓝 a ⊓ principal s
 
 theorem nhds_within_eq (a : α) (s : set α) :
   nhds_within a s = ⨅ t ∈ {t : set α | a ∈ t ∧ is_open t}, principal (t ∩ s) :=
@@ -37,7 +38,7 @@ begin
   simp only [inf_principal]
 end
 
-theorem nhds_within_univ (a : α) : nhds_within a set.univ = nhds a :=
+theorem nhds_within_univ (a : α) : nhds_within a set.univ = 𝓝 a :=
 by rw [nhds_within, principal_univ, lattice.inf_top_eq]
 
 theorem mem_nhds_within (t : set α) (a : α) (s : set α) :
@@ -50,7 +51,7 @@ begin
   exact ⟨u, λ x xu xs, hu ⟨xu, xs⟩, openu, au⟩
 end
 
-lemma mem_nhds_within_of_mem_nhds {s t : set α} {a : α} (h : s ∈ nhds a) :
+lemma mem_nhds_within_of_mem_nhds {s t : set α} {a : α} (h : s ∈ 𝓝 a) :
   s ∈ nhds_within a t :=
 mem_inf_sets_of_left h
 
@@ -61,7 +62,7 @@ begin
   exact univ_mem_sets
 end
 
-theorem inter_mem_nhds_within (s : set α) {t : set α} {a : α} (h : t ∈ nhds a) :
+theorem inter_mem_nhds_within (s : set α) {t : set α} {a : α} (h : t ∈ 𝓝 a) :
   s ∩ t ∈ nhds_within a s :=
 inter_mem_sets (mem_inf_sets_of_right (mem_principal_self s)) (mem_inf_sets_of_left h)
 
@@ -74,7 +75,7 @@ le_antisymm
   (lattice.le_inf lattice.inf_le_left (le_principal_iff.mpr (inter_mem_sets self_mem_nhds_within h)))
   (lattice.inf_le_inf (le_refl _) (principal_mono.mpr (set.inter_subset_left _ _)))
 
-theorem nhds_within_restrict' {a : α} (s : set α) {t : set α} (h : t ∈ nhds a) :
+theorem nhds_within_restrict' {a : α} (s : set α) {t : set α} (h : t ∈ 𝓝 a) :
   nhds_within a s = nhds_within a (s ∩ t) :=
 nhds_within_restrict'' s $ mem_inf_sets_of_left h
 
@@ -97,7 +98,7 @@ theorem nhds_within_eq_nhds_within {a : α} {s t u : set α}
 by rw [nhds_within_restrict t h₀ h₁, nhds_within_restrict u h₀ h₁, h₂]
 
 theorem nhds_within_eq_of_open {a : α} {s : set α} (h₀ : a ∈ s) (h₁ : is_open s) :
-  nhds_within a s = nhds a :=
+  nhds_within a s = 𝓝 a :=
 by rw [←nhds_within_univ]; apply nhds_within_eq_nhds_within h₀ h₁;
      rw [set.univ_inter, set.inter_self]
 
@@ -148,7 +149,7 @@ theorem tendsto_nhds_within_mono_right {f : β → α} {l : filter β}
 tendsto_le_right (nhds_within_mono a hst) h
 
 theorem tendsto_nhds_within_of_tendsto_nhds {f : α → β} {a : α}
-    {s : set α} {l : filter β} (h : tendsto f (nhds a) l) :
+    {s : set α} {l : filter β} (h : tendsto f (𝓝 a) l) :
   tendsto f (nhds_within a s) l :=
 by rw [←nhds_within_univ] at h; exact tendsto_nhds_within_mono_left (set.subset_univ _) h
 
@@ -190,7 +191,7 @@ theorem nhds_within_subtype (s : set α) (a : {x // x ∈ s}) (t : set {x // x �
 filter_eq $ by ext u; rw mem_nhds_within_subtype
 
 theorem nhds_within_eq_map_subtype_val {s : set α} {a : α} (h : a ∈ s) :
-  nhds_within a s = map subtype.val (nhds ⟨a, h⟩) :=
+  nhds_within a s = map subtype.val (𝓝 ⟨a, h⟩) :=
 have h₀ : s ∈ nhds_within a s,
   by { rw [mem_nhds_within], existsi set.univ, simp [set.diff_eq] },
 have h₁ : ∀ y ∈ s, ∃ x, @subtype.val _ s x = y,
@@ -201,7 +202,7 @@ begin
 end
 
 theorem tendsto_nhds_within_iff_subtype {s : set α} {a : α} (h : a ∈ s) (f : α → β) (l : filter β) :
-  tendsto f (nhds_within a s) l ↔ tendsto (function.restrict f s) (nhds ⟨a, h⟩) l :=
+  tendsto f (nhds_within a s) l ↔ tendsto (function.restrict f s) (𝓝 ⟨a, h⟩) l :=
 by rw [tendsto, tendsto, function.restrict, nhds_within_eq_map_subtype_val h,
     ←(@filter.map_map _ _ _ _ subtype.val)]
 
@@ -210,7 +211,7 @@ variables [topological_space β] [topological_space γ]
 /-- A function between topological spaces is continuous at a point `x₀` within a subset `s`
 if `f x` tends to `f x₀` when `x` tends to `x₀` while staying within `s`. -/
 def continuous_within_at (f : α → β) (s : set α) (x : α) : Prop :=
-tendsto f (nhds_within x s) (nhds (f x))
+tendsto f (nhds_within x s) (𝓝 (f x))
 
 /-- A function between topological spaces is continuous on a subset `s`
 when it's continuous at every point of `s` within `s`. -/
@@ -272,7 +273,7 @@ theorem nhds_within_le_comap {x : α} {s : set α} {f : α → β} (ctsf : conti
 map_le_iff_le_comap.1 ctsf.tendsto_nhds_within_image
 
 theorem continuous_within_at_iff_ptendsto_res (f : α → β) {x : α} {s : set α} :
-  continuous_within_at f s x ↔ ptendsto (pfun.res f s) (nhds x) (nhds (f x)) :=
+  continuous_within_at f s x ↔ ptendsto (pfun.res f s) (𝓝 x) (𝓝 (f x)) :=
 tendsto_iff_ptendsto _ _ _ _
 
 lemma continuous_iff_continuous_on_univ {f : α → β} : continuous f ↔ continuous_on f univ :=
@@ -287,7 +288,7 @@ lemma continuous_within_at_inter' {f : α → β} {s t : set α} {x : α} (h : t
   continuous_within_at f (s ∩ t) x ↔ continuous_within_at f s x :=
 by simp [continuous_within_at, nhds_within_restrict'' s h]
 
-lemma continuous_within_at_inter {f : α → β} {s t : set α} {x : α} (h : t ∈ nhds x) :
+lemma continuous_within_at_inter {f : α → β} {s t : set α} {x : α} (h : t ∈ 𝓝 x) :
   continuous_within_at f (s ∩ t) x ↔ continuous_within_at f s x :=
 by simp [continuous_within_at, nhds_within_restrict' s h]
 
@@ -320,7 +321,7 @@ lemma continuous_at.continuous_within_at {f : α → β} {s : set α} {x : α} (
 continuous_within_at.mono ((continuous_within_at_univ f x).2 h) (subset_univ _)
 
 lemma continuous_within_at.continuous_at {f : α → β} {s : set α} {x : α}
-  (h : continuous_within_at f s x) (hs : s ∈ nhds x) : continuous_at f x :=
+  (h : continuous_within_at f s x) (hs : s ∈ 𝓝 x) : continuous_at f x :=
 begin
   have : s = univ ∩ s, by rw univ_inter,
   rwa [this, continuous_within_at_inter hs, continuous_within_at_univ] at h
@@ -361,7 +362,7 @@ lemma continuous.comp_continuous_on {g : β → γ} {f : α → β} {s : set α}
 hg.continuous_on.comp hf subset_preimage_univ
 
 lemma continuous_within_at.preimage_mem_nhds_within {f : α → β} {x : α} {s : set α} {t : set β}
-  (h : continuous_within_at f s x) (ht : t ∈ nhds (f x)) : f ⁻¹' t ∈ nhds_within x s :=
+  (h : continuous_within_at f s x) (ht : t ∈ 𝓝 (f x)) : f ⁻¹' t ∈ nhds_within x s :=
 h ht
 
 lemma continuous_within_at.preimage_mem_nhds_within' {f : α → β} {x : α} {s : set α} {t : set β}

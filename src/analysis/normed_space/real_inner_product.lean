@@ -44,6 +44,7 @@ The Coq code is available at the following address: http://www.lri.fr/~sboldo/el
 noncomputable theory
 
 open real set lattice
+open_locale topological_space
 
 universes u v w
 
@@ -238,10 +239,10 @@ begin
     let w : ℕ → K := λ n, classical.some (h n),
     exact ⟨w, λ n, classical.some_spec (h n)⟩,
   rcases exists_seq with ⟨w, hw⟩,
-  have norm_tendsto : tendsto (λ n, ∥u - w n∥) at_top (nhds δ),
-    have h : tendsto (λ n:ℕ, δ) at_top (nhds δ),
+  have norm_tendsto : tendsto (λ n, ∥u - w n∥) at_top (𝓝 δ),
+    have h : tendsto (λ n:ℕ, δ) at_top (𝓝 δ),
       exact tendsto_const_nhds,
-    have h' : tendsto (λ n:ℕ, δ + 1 / (n + 1)) at_top (nhds δ),
+    have h' : tendsto (λ n:ℕ, δ + 1 / (n + 1)) at_top (𝓝 δ),
       convert tendsto_add h tendsto_one_div_add_at_top_nhds_0_nat, simp only [add_zero],
     exact tendsto_of_tendsto_of_tendsto_of_le_of_le h h'
       (by { rw mem_at_top_sets, use 0, assume n hn, exact δ_le _ })
@@ -304,16 +305,16 @@ begin
       ... = 8 * δ * div + 4 * div * div : by ring,
     exact add_nonneg (mul_nonneg (mul_nonneg (by norm_num) zero_le_δ) (le_of_lt nat.one_div_pos_of_nat))
       (mul_nonneg (mul_nonneg (by norm_num) (le_of_lt nat.one_div_pos_of_nat)) (le_of_lt nat.one_div_pos_of_nat)),
-    -- third goal : `tendsto (λ (n : ℕ), sqrt (b n)) at_top (nhds 0)`
+    -- third goal : `tendsto (λ (n : ℕ), sqrt (b n)) at_top (𝓝 0)`
     apply tendsto.comp,
     { convert continuous_sqrt.continuous_at, exact sqrt_zero.symm },
-    have eq₁ : tendsto (λ (n : ℕ), 8 * δ * (1 / (n + 1))) at_top (nhds (0:ℝ)),
+    have eq₁ : tendsto (λ (n : ℕ), 8 * δ * (1 / (n + 1))) at_top (𝓝 (0:ℝ)),
       convert tendsto_mul (@tendsto_const_nhds _ _ _ (8 * δ) _) tendsto_one_div_add_at_top_nhds_0_nat,
       simp only [mul_zero],
-    have : tendsto (λ (n : ℕ), (4:ℝ) * (1 / (n + 1))) at_top (nhds (0:ℝ)),
+    have : tendsto (λ (n : ℕ), (4:ℝ) * (1 / (n + 1))) at_top (𝓝 (0:ℝ)),
       convert tendsto_mul (@tendsto_const_nhds _ _ _ (4:ℝ) _) tendsto_one_div_add_at_top_nhds_0_nat,
       simp only [mul_zero],
-    have eq₂ : tendsto (λ (n : ℕ), (4:ℝ) * (1 / (n + 1)) * (1 / (n + 1))) at_top (nhds (0:ℝ)),
+    have eq₂ : tendsto (λ (n : ℕ), (4:ℝ) * (1 / (n + 1)) * (1 / (n + 1))) at_top (𝓝 (0:ℝ)),
       convert tendsto_mul this tendsto_one_div_add_at_top_nhds_0_nat,
       simp only [mul_zero],
     convert tendsto_add eq₁ eq₂, simp only [add_zero],
@@ -323,7 +324,7 @@ begin
   use v, use hv,
   have h_cont : continuous (λ v, ∥u - v∥) :=
     continuous.comp continuous_norm (continuous_sub continuous_const continuous_id),
-  have : tendsto (λ n, ∥u - w n∥) at_top (nhds ∥u - v∥),
+  have : tendsto (λ n, ∥u - w n∥) at_top (𝓝 ∥u - v∥),
     convert (tendsto.comp h_cont.continuous_at w_tendsto),
   exact tendsto_nhds_unique at_top_ne_bot this norm_tendsto,
   exact subtype.mem _

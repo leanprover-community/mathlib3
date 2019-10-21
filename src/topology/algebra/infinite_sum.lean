@@ -22,6 +22,7 @@ import logic.function algebra.big_operators data.set.lattice data.finset
 
 noncomputable theory
 open lattice finset filter function classical
+open_locale topological_space
 local attribute [instance] classical.prop_decidable -- TODO: use "open_locale classical"
 
 def option.cases_on' {α β} : option α → β → (α → β) → β
@@ -43,7 +44,7 @@ This is based on Mario Carneiro's infinite sum in Metamath.
 For the definition or many statements, α does not need to be a topological monoid. We only add
 this assumption later, for the lemmas where it is relevant.
 -/
-def has_sum (f : β → α) (a : α) : Prop := tendsto (λs:finset β, s.sum f) at_top (nhds a)
+def has_sum (f : β → α) (a : α) : Prop := tendsto (λs:finset β, s.sum f) at_top (𝓝 a)
 
 /-- `summable f` means that `f` has some (infinite) sum. Use `tsum` to get the value. -/
 def summable (f : β → α) : Prop := ∃a, has_sum f a
@@ -89,7 +90,7 @@ have ∀x y, j x = j y → x = y,
   by rwa [h₁, h₁] at this,
 have (λs:finset γ, s.sum (f ∘ j)) = (λs:finset β, s.sum f) ∘ (λs:finset γ, s.image j),
   from funext $ assume s, (sum_image $ assume x _ y _, this x y).symm,
-show tendsto (λs:finset γ, s.sum (f ∘ j)) at_top (nhds a),
+show tendsto (λs:finset γ, s.sum (f ∘ j)) at_top (𝓝 a),
    by rw [this]; apply hf.comp (tendsto_finset_image_at_top_at_top h₂)
 
 lemma has_sum_iff_has_sum_of_iso {j : γ → β} (i : β → γ)
@@ -106,11 +107,11 @@ lemma has_sum_hom (g : α → γ) [add_comm_monoid γ] [topological_space γ]
   has_sum (g ∘ f) (g a) :=
 have (λs:finset β, s.sum (g ∘ f)) = g ∘ (λs:finset β, s.sum f),
   from funext $ assume s, sum_hom g,
-show tendsto (λs:finset β, s.sum (g ∘ f)) at_top (nhds (g a)),
+show tendsto (λs:finset β, s.sum (g ∘ f)) at_top (𝓝 (g a)),
   by rw [this]; exact tendsto.comp (continuous_iff_continuous_at.mp h₃ a) hf
 
 lemma tendsto_sum_nat_of_has_sum {f : ℕ → α} (h : has_sum f a) :
-  tendsto (λn:ℕ, (range n).sum f) at_top (nhds a) :=
+  tendsto (λn:ℕ, (range n).sum f) at_top (𝓝 a) :=
 suffices map (λ (n : ℕ), sum (range n) f) at_top ≤ map (λ (s : finset ℕ), sum s f) at_top,
   from le_trans this h,
 assume s (hs : {t : finset ℕ | t.sum f ∈ s} ∈ at_top),
@@ -161,7 +162,7 @@ mem_at_top_sets.mpr $ exists.intro fsts $ assume bs (hbs : fsts ⊆ bs),
     set.ne_empty_iff_exists_mem.mpr $ exists.intro cs' $
     by simp [sum_eq, this]; { intros b hb, simp [cs', hb, finset.subset_union_right] },
   have tendsto (λp:(Πb:β, finset (γ b)), bs.sum (λb, (p b).sum (λc, f ⟨b, c⟩)))
-      (⨅b (h : b ∈ bs), at_top.comap (λp, p b)) (nhds (bs.sum g)),
+      (⨅b (h : b ∈ bs), at_top.comap (λp, p b)) (𝓝 (bs.sum g)),
     from tendsto_finset_sum bs $
       assume c hc, tendsto_infi' c $ tendsto_infi' hc $ by apply tendsto.comp (hf c) tendsto_comap,
   have bs.sum g ∈ s,
@@ -492,7 +493,7 @@ lemma summable_iff_cauchy : summable f ↔ cauchy (map (λ (s : finset β), sum 
 variable [uniform_add_group α]
 
 lemma summable_iff_vanishing :
-  summable f ↔ ∀ e ∈ nhds (0:α), (∃s:finset β, ∀t, disjoint t s → t.sum f ∈ e) :=
+  summable f ↔ ∀ e ∈ 𝓝 (0:α), (∃s:finset β, ∀t, disjoint t s → t.sum f ∈ e) :=
 begin
   simp only [summable_iff_cauchy, cauchy_map_iff, and_iff_right at_top_ne_bot,
     prod_at_top_at_top_eq, uniformity_eq_comap_nhds_zero α, tendsto_comap_iff, (∘)],

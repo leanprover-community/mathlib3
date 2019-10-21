@@ -71,6 +71,7 @@ local attribute [instance, priority 10] classical.decidable_inhabited classical.
 universes u v w
 
 open set
+open_locale topological_space
 
 variables {𝕜 : Type*} [nondiscrete_normed_field 𝕜]
 {E : Type u} [normed_group E] [normed_space 𝕜 E]
@@ -220,7 +221,7 @@ end
 The iterated differential within a set `s` at a point `x` is not modified if one intersects
 `s` with a neighborhood of `x`.
 -/
-lemma iterated_fderiv_within_inter (hu : u ∈ nhds x) (xs : x ∈ s)
+lemma iterated_fderiv_within_inter (hu : u ∈ 𝓝 x) (xs : x ∈ s)
   (hs : unique_diff_on 𝕜 s) :
   iterated_fderiv_within 𝕜 n f (s ∩ u) x = iterated_fderiv_within 𝕜 n f s x :=
 begin

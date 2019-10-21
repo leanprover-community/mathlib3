@@ -42,7 +42,7 @@ finer, coarser, induced topology, coinduced topology
 -/
 
 open set filter lattice classical
-open_locale classical
+open_locale classical topological_space
 
 universes u v w
 
@@ -102,7 +102,7 @@ begin
   letI := topological_space.mk_of_nhds n,
   refine le_antisymm (assume s hs, _) (assume s hs, _),
   { have h₀ : {b | s ∈ n b} ⊆ s := assume b hb, mem_pure_sets.1 $ h₀ b hb,
-    have h₁ : {b | s ∈ n b} ∈ nhds a,
+    have h₁ : {b | s ∈ n b} ∈ 𝓝 a,
     { refine mem_nhds_sets (assume b (hb : s ∈ n b), _) hs,
       rcases h₁ hb with ⟨t, ht, hts, h⟩,
       exact mem_sets_of_superset ht h },
@@ -226,7 +226,7 @@ le_antisymm
 
 lemma eq_bot_of_singletons_open {t : topological_space α} (h : ∀ x, t.is_open {x}) : t = ⊥ :=
 bot_unique  $ le_of_nhds_le_nhds $ assume x,
-  have nhds x ≤ pure x, from nhds_le_of_le (mem_singleton _) (h x) (by simp),
+  have 𝓝 x ≤ pure x, from nhds_le_of_le (mem_singleton _) (h x) (by simp),
   le_trans this (@pure_le_nhds _ ⊥ x)
 
 end lattice
@@ -499,10 +499,10 @@ continuous_iff_le_induced.2 $ bot_le
 lemma continuous_top {t : tspace α} : cont t ⊤ f :=
 continuous_iff_coinduced_le.2 $ le_top
 
-/- nhds in the induced topology -/
+/- 𝓝 in the induced topology -/
 
 theorem mem_nhds_induced [T : topological_space α] (f : β → α) (a : β) (s : set β) :
-  s ∈ @nhds β (topological_space.induced f T) a ↔ ∃ u ∈ nhds (f a), f ⁻¹' u ⊆ s :=
+  s ∈ @nhds β (topological_space.induced f T) a ↔ ∃ u ∈ 𝓝 (f a), f ⁻¹' u ⊆ s :=
 begin
   simp only [nhds_sets, is_open_induced_iff, exists_prop, set.mem_set_of_eq],
   split,
@@ -513,16 +513,16 @@ begin
 end
 
 theorem nhds_induced [T : topological_space α] (f : β → α) (a : β) :
-  @nhds β (topological_space.induced f T) a = comap f (nhds (f a)) :=
+  @nhds β (topological_space.induced f T) a = comap f (𝓝 (f a)) :=
 filter_eq $ by ext s; rw mem_nhds_induced; rw mem_comap_sets
 
 lemma induced_iff_nhds_eq [tα : topological_space α] [tβ : topological_space β] (f : β → α) :
-tβ = tα.induced f ↔ ∀ b, nhds b = comap f (nhds $ f b) :=
+tβ = tα.induced f ↔ ∀ b, 𝓝 b = comap f (𝓝 $ f b) :=
 ⟨λ h a, h.symm ▸ nhds_induced f a, λ h, eq_of_nhds_eq_nhds $ λ x, by rw [h, nhds_induced]⟩
 
 theorem map_nhds_induced_of_surjective [T : topological_space α]
     {f : β → α} (hf : function.surjective f) (a : β) :
-  map f (@nhds β (topological_space.induced f T) a) = nhds (f a) :=
+  map f (@nhds β (topological_space.induced f T) a) = 𝓝 (f a) :=
 by rw [nhds_induced, map_comap_of_surjective hf]
 
 end constructions
@@ -539,28 +539,28 @@ iff.refl _
 theorem is_open_induced {s : set β} (h : is_open s) : (induced f t).is_open (f ⁻¹' s) :=
 ⟨s, h, rfl⟩
 
-lemma map_nhds_induced_eq {a : α} (h : range f ∈ nhds (f a)) :
-  map f (@nhds α (induced f t) a) = nhds (f a) :=
+lemma map_nhds_induced_eq {a : α} (h : range f ∈ 𝓝 (f a)) :
+  map f (@nhds α (induced f t) a) = 𝓝 (f a) :=
 by rw [nhds_induced, filter.map_comap h]
 
 lemma closure_induced [t : topological_space β] {f : α → β} {a : α} {s : set α}
   (hf : ∀x y, f x = f y → x = y) :
   a ∈ @closure α (topological_space.induced f t) s ↔ f a ∈ closure (f '' s) :=
-have comap f (nhds (f a) ⊓ principal (f '' s)) ≠ ⊥ ↔ nhds (f a) ⊓ principal (f '' s) ≠ ⊥,
+have comap f (𝓝 (f a) ⊓ principal (f '' s)) ≠ ⊥ ↔ 𝓝 (f a) ⊓ principal (f '' s) ≠ ⊥,
   from ⟨assume h₁ h₂, h₁ $ h₂.symm ▸ comap_bot,
     assume h,
     forall_sets_neq_empty_iff_neq_bot.mp $
       assume s₁ ⟨s₂, hs₂, (hs : f ⁻¹' s₂ ⊆ s₁)⟩,
-      have f '' s ∈ nhds (f a) ⊓ principal (f '' s),
+      have f '' s ∈ 𝓝 (f a) ⊓ principal (f '' s),
         from mem_inf_sets_of_right $ by simp [subset.refl],
-      have s₂ ∩ f '' s ∈ nhds (f a) ⊓ principal (f '' s),
+      have s₂ ∩ f '' s ∈ 𝓝 (f a) ⊓ principal (f '' s),
         from inter_mem_sets hs₂ this,
       let ⟨b, hb₁, ⟨a, ha, ha₂⟩⟩ := inhabited_of_mem_sets h this in
       ne_empty_of_mem $ hs $ by rwa [←ha₂] at hb₁⟩,
 calc a ∈ @closure α (topological_space.induced f t) s
     ↔ (@nhds α (topological_space.induced f t) a) ⊓ principal s ≠ ⊥ : by rw [closure_eq_nhds]; refl
-  ... ↔ comap f (nhds (f a)) ⊓ principal (f ⁻¹' (f '' s)) ≠ ⊥ : by rw [nhds_induced, preimage_image_eq _ hf]
-  ... ↔ comap f (nhds (f a) ⊓ principal (f '' s)) ≠ ⊥ : by rw [comap_inf, ←comap_principal]
+  ... ↔ comap f (𝓝 (f a)) ⊓ principal (f ⁻¹' (f '' s)) ≠ ⊥ : by rw [nhds_induced, preimage_image_eq _ hf]
+  ... ↔ comap f (𝓝 (f a) ⊓ principal (f '' s)) ≠ ⊥ : by rw [comap_inf, ←comap_principal]
   ... ↔ _ : by rwa [closure_eq_nhds]
 
 end induced

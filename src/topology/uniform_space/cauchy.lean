@@ -12,7 +12,7 @@ open_locale classical
 variables {α : Type*} {β : Type*} [uniform_space α]
 universe u
 
-open_locale uniformity
+open_locale uniformity topological_space
 
 /-- A filter `f` is Cauchy if for every entourage `r`, there exists an
   `s ∈ f` such that `s × s ⊆ r`. This is a generalization of Cauchy
@@ -20,7 +20,7 @@ open_locale uniformity
   cofinitely many of the `a n` is Cauchy iff `a` is a Cauchy sequence. -/
 def cauchy (f : filter α) := f ≠ ⊥ ∧ filter.prod f f ≤ (𝓤 α)
 
-def is_complete (s : set α) := ∀f, cauchy f → f ≤ principal s → ∃x∈s, f ≤ nhds x
+def is_complete (s : set α) := ∀f, cauchy f → f ≤ principal s → ∃x∈s, f ≤ 𝓝 x
 
 lemma cauchy_iff {f : filter α} :
   cauchy f ↔ (f ≠ ⊥ ∧ (∀ s ∈ 𝓤 α, ∃t∈f.sets, set.prod t t ⊆ s)) :=
@@ -33,9 +33,9 @@ by rw [cauchy, (≠), map_eq_bot_iff, prod_map_map_eq]; refl
 lemma cauchy_downwards {f g : filter α} (h_c : cauchy f) (hg : g ≠ ⊥) (h_le : g ≤ f) : cauchy g :=
 ⟨hg, le_trans (filter.prod_mono h_le h_le) h_c.right⟩
 
-lemma cauchy_nhds {a : α} : cauchy (nhds a) :=
+lemma cauchy_nhds {a : α} : cauchy (𝓝 a) :=
 ⟨nhds_neq_bot,
-  calc filter.prod (nhds a) (nhds a) =
+  calc filter.prod (𝓝 a) (𝓝 a) =
     (𝓤 α).lift (λs:set (α×α), (𝓤 α).lift' (λt:set(α×α),
       set.prod {y : α | (y, a) ∈ s} {y : α | (a, y) ∈ t})) : nhds_nhds_eq_uniformity_uniformity_prod
     ... ≤ (𝓤 α).lift' (λs:set (α×α), comp_rel s s) :
@@ -51,7 +51,7 @@ cauchy_downwards cauchy_nhds
   (pure_le_nhds a)
 
 lemma le_nhds_of_cauchy_adhp {f : filter α} {x : α} (hf : cauchy f)
-  (adhs : f ⊓ nhds x ≠ ⊥) : f ≤ nhds x :=
+  (adhs : f ⊓ 𝓝 x ≠ ⊥) : f ≤ 𝓝 x :=
 have ∀s∈f.sets, x ∈ closure s,
 begin
   intros s hs,
@@ -83,11 +83,11 @@ calc f ≤ f.lift' (λs:set α, {y | x ∈ closure s ∧ y ∈ closure s}) :
   end
   ... = (𝓤 α).lift' (λs:set (α×α), {y | (x, y) ∈ s}) :
     by rw [←uniformity_eq_uniformity_closure]
-  ... = nhds x :
+  ... = 𝓝 x :
     by rw [nhds_eq_uniformity]
 
 lemma le_nhds_iff_adhp_of_cauchy {f : filter α} {x : α} (hf : cauchy f) :
-  f ≤ nhds x ↔ f ⊓ nhds x ≠ ⊥ :=
+  f ≤ 𝓝 x ↔ f ⊓ 𝓝 x ≠ ⊥ :=
 ⟨assume h, (inf_of_le_left h).symm ▸ hf.left,
 le_nhds_of_cauchy_adhp hf⟩
 
@@ -120,7 +120,7 @@ iff.trans (and_iff_right (map_ne_bot at_top_ne_bot)) (prod_map_at_top_eq u u ▸
 /-- A complete space is defined here using uniformities. A uniform space
   is complete if every Cauchy filter converges. -/
 class complete_space (α : Type u) [uniform_space α] : Prop :=
-(complete : ∀{f:filter α}, cauchy f → ∃x, f ≤ nhds x)
+(complete : ∀{f:filter α}, cauchy f → ∃x, f ≤ 𝓝 x)
 
 lemma complete_univ {α : Type u} [uniform_space α] [complete_space α] :
   is_complete (univ : set α) :=
@@ -155,26 +155,26 @@ lemma complete_space_of_is_complete_univ (h : is_complete (univ : set α)) : com
 ⟨λ f hf, let ⟨x, _, hx⟩ := h f hf ((@principal_univ α).symm ▸ le_top) in ⟨x, hx⟩⟩
 
 lemma cauchy_iff_exists_le_nhds [complete_space α] {l : filter α} (hl : l ≠ ⊥) :
-  cauchy l ↔ (∃x, l ≤ nhds x) :=
+  cauchy l ↔ (∃x, l ≤ 𝓝 x) :=
 ⟨complete_space.complete, assume ⟨x, hx⟩, cauchy_downwards cauchy_nhds hl hx⟩
 
 lemma cauchy_map_iff_exists_tendsto [complete_space α] {l : filter β} {f : β → α}
-  (hl : l ≠ ⊥) : cauchy (l.map f) ↔ (∃x, tendsto f l (nhds x)) :=
+  (hl : l ≠ ⊥) : cauchy (l.map f) ↔ (∃x, tendsto f l (𝓝 x)) :=
 cauchy_iff_exists_le_nhds (map_ne_bot hl)
 
 /-- A Cauchy sequence in a complete space converges -/
 theorem cauchy_seq_tendsto_of_complete [semilattice_sup β] [complete_space α]
-  {u : β → α} (H : cauchy_seq u) : ∃x, tendsto u at_top (nhds x) :=
+  {u : β → α} (H : cauchy_seq u) : ∃x, tendsto u at_top (𝓝 x) :=
 complete_space.complete H
 
 /-- If `K` is a complete subset, then any cauchy sequence in `K` converges to a point in `K` -/
 lemma cauchy_seq_tendsto_of_is_complete [semilattice_sup β] {K : set α} (h₁ : is_complete K)
-  {u : β → α} (h₂ : ∀ n, u n ∈ K) (h₃ : cauchy_seq u) : ∃ v ∈ K, tendsto u at_top (nhds v) :=
+  {u : β → α} (h₂ : ∀ n, u n ∈ K) (h₃ : cauchy_seq u) : ∃ v ∈ K, tendsto u at_top (𝓝 v) :=
 h₁ _ h₃ $ le_principal_iff.2 $ mem_map_sets_iff.2 ⟨univ, univ_mem_sets,
   by { simp only [image_univ], rintros _ ⟨n, rfl⟩, exact h₂ n }⟩
 
 theorem le_nhds_lim_of_cauchy {α} [uniform_space α] [complete_space α]
-  [inhabited α] {f : filter α} (hf : cauchy f) : f ≤ nhds (lim f) :=
+  [inhabited α] {f : filter α} (hf : cauchy f) : f ≤ 𝓝 (lim f) :=
 lim_spec (complete_space.complete hf)
 
 lemma is_complete_of_is_closed [complete_space α] {s : set α}

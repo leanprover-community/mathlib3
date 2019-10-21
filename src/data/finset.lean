@@ -1172,6 +1172,28 @@ begin
   exact ⟨a, a.2, ha₂.symm⟩,
 end
 
+lemma inj_on_of_surj_on_of_card_le {s : finset α} {t : finset β}
+  (f : Π a ∈ s, β) (hf : ∀ a ha, f a ha ∈ t)
+  (hsurj : ∀ b ∈ t, ∃ a ha, b = f a ha)
+  (hst : card s ≤ card t)
+  ⦃a₁ a₂⦄ (ha₁ ha₂) (ha₁a₂: f a₁ ha₁ = f a₂ ha₂) : a₁ = a₂ :=
+by haveI : inhabited {x // x ∈ s} := ⟨⟨a₁, ha₁⟩⟩; exact
+let f' : {x // x ∈ s} → {x // x ∈ t} := λ x, ⟨f x.1 x.2, hf x.1 x.2⟩ in
+let g : {x // x ∈ t} → {x // x ∈ s} :=
+  @function.surj_inv _ _ f'
+    (λ x, let ⟨y, hy₁, hy₂⟩ := hsurj x.1 x.2 in ⟨⟨y, hy₁⟩, subtype.eq hy₂.symm⟩) in
+have hg : function.injective g, from function.injective_surj_inv _,
+have hsg : function.surjective g, from λ x,
+  let ⟨y, hy⟩ := surj_on_of_inj_on_of_card_le (λ (x : {x // x ∈ t}) (hx : x ∈ t.attach), g x)
+    (λ x _, show (g x) ∈ s.attach, from mem_attach _ _)
+    (λ x y _ _ hxy, hg hxy) (by simpa) x (mem_attach _ _) in
+  ⟨y, hy.snd.symm⟩,
+have hif : function.injective f',
+  from function.injective_of_has_left_inverse
+    ⟨g, function.left_inverse_of_surjective_of_right_inverse hsg
+      (function.right_inverse_surj_inv _)⟩,
+subtype.ext.1 (@hif ⟨a₁, ha₁⟩ ⟨a₂, ha₂⟩ (subtype.eq ha₁a₂))
+
 end card
 
 section bind
@@ -1919,7 +1941,7 @@ multiset.Ico.mem
 theorem eq_empty_of_le {n m : ℕ} (h : m ≤ n) : Ico n m = ∅ :=
 eq_of_veq $ multiset.Ico.eq_zero_of_le h
 
-@[simp] theorem self_eq_empty (n : ℕ) : Ico n n = ∅ :=
+@[simp] theorem self_eq_empty {n : ℕ} : Ico n n = ∅ :=
 eq_empty_of_le $ le_refl n
 
 @[simp] theorem eq_empty_iff {n m : ℕ} : Ico n m = ∅ ↔ m ≤ n :=
@@ -1930,16 +1952,13 @@ lemma union_consecutive {n m l : ℕ} (hnm : n ≤ m) (hml : m ≤ l) :
 by rw [← to_finset, ← to_finset, ← multiset.to_finset_add,
   multiset.Ico.add_consecutive hnm hml, to_finset]
 
-@[simp] lemma inter_consecutive (n m l : ℕ) : Ico n m ∩ Ico m l = ∅ :=
+@[simp] lemma inter_consecutive {n m l : ℕ} : Ico n m ∩ Ico m l = ∅ :=
 begin
   rw [← to_finset, ← to_finset, ← multiset.to_finset_inter, multiset.Ico.inter_consecutive],
   simp,
 end
 
-lemma disjoint_consecutive (n m l : ℕ) : disjoint (Ico n m) (Ico m l) :=
-le_of_eq $ inter_consecutive n m l
-
-@[simp] theorem succ_singleton (n : ℕ) : Ico n (n+1) = {n} :=
+@[simp] theorem succ_singleton {n : ℕ} : Ico n (n+1) = {n} :=
 eq_of_veq $ multiset.Ico.succ_singleton
 
 theorem succ_top {n m : ℕ} (h : n ≤ m) : Ico n (m + 1) = insert m (Ico n m) :=

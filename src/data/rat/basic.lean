@@ -684,7 +684,7 @@ protected meta def expr.eval_rat : expr → option ℚ
 | `((%%a)⁻¹) := has_inv.inv <$> a.to_rat
 | _ := none
 
-/-- `expr.of_rat α q` embeds `q` as a numeral expression inside `α`.
+/-- `expr.of_rat α q` embeds `q` as a numeral expression inside the type `α`.
 Lean will try to infer the correct type classes on `α`, and the tactic will fail if it cannot.
 This function is similar to `rat.mk_numeral` but it takes fewer hypotheses and is tactic valued.
 -/

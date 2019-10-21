@@ -4,9 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Neil Strickland, Yury Kudryashov
 -/
 
-import data.equiv.algebra algebra.group_power
-  group_theory.submonoid group_theory.subgroup
-  ring_theory.subring
+import algebra.semiconj group_theory.submonoid group_theory.subgroup ring_theory.subring
 
 /-!
 # Commuting pairs of elements in monoids
@@ -19,20 +17,28 @@ import data.equiv.algebra algebra.group_power
 
 We prove that `centralizer` and `set_centralilzer` are submonoid/subgroups/subrings depending on the available structures, and provide operations on `commute _ _`.
 
-E.g., if `a`, `b`, and c are elements of a ring, and
-that `hb : commute a b` and `hc : commute a c`.  Then
-`hb.pow_left 5` proves `commute (a ^ 5) b` and
-`(hb.pow 2).add (hb.mul hc)` proves `commute a (b ^ 2 + b * c)`.
+E.g., if `a`, `b`, and c are elements of a semiring, and that `hb :
+commute a b` and `hc : commute a c`.  Then `hb.pow_left 5` proves
+`commute (a ^ 5) b` and `(hb.pow_right 2).add_right (hb.mul_right hc)`
+proves `commute a (b ^ 2 + b * c)`.
 
 Lean does not immediately recognise these terms as equations,
 so for rewriting we need syntax like `rw [(hb.pow_left 5).eq]`
 rather than just `rw [hb.pow_left 5]`.
+
+## Implementation details
+
+Most of the proofs come from the properties of `semiconj_by`.
 -/
 
 /-- Two elements commute, if `a * b = b * a`. -/
-def commute {S : Type*} [has_mul S] (a b : S) : Prop := a * b = b * a
+def commute {S : Type*} [has_mul S] (a b : S) : Prop := semiconj_by a b b
+
+open_locale smul
 
 namespace commute
+
+section has_mul
 
 variables {S : Type*} [has_mul S]
 
@@ -43,15 +49,179 @@ protected theorem eq {a b : S} (h : commute a b) : a * b = b * a := h
 @[refl, simp] protected theorem refl (a : S) : commute a a := eq.refl (a * a)
 
 /-- If `a` commutes with `b`, then `b` commutes with `a`. -/
-@[symm]  theorem symm {a b : S} (h : commute a b) : commute b a :=
+@[symm] protected theorem symm {a b : S} (h : commute a b) : commute b a :=
 eq.symm h
 
-protected theorem symm_iff {a b : S} : commute a b ↔ commute b a := ⟨commute.symm, commute.symm⟩
+protected theorem symm_iff {a b : S} : commute a b ↔ commute b a :=
+⟨commute.symm, commute.symm⟩
+
+end has_mul
+
+section semigroup
+
+variables {S : Type*} [semigroup S] {a b c : S}
+
+/-- If `a` commutes with both `b` and `c`, then it commutes with their product. -/
+@[simp] theorem mul_right (hab : commute a b) (hac : commute a c) :
+  commute a (b * c) :=
+hab.mul_right hac
+
+/-- If both `a` and `b` commute with `c`, then their product commutes with `c`. -/
+@[simp] theorem mul_left (hac : commute a c) (hbc : commute b c) :
+  commute (a * b) c :=
+hac.mul_left hbc
+
+end semigroup
+
+protected theorem all {S : Type*} [comm_semigroup S] (a b : S) : commute a b := mul_comm a b
+
+section monoid
+
+variables {M : Type*} [monoid M]
+
+@[simp] theorem one_right (a : M) : commute a 1 := semiconj_by.one_right a
+@[simp] theorem one_left (a : M) : commute 1 a := semiconj_by.one_left a
+
+@[simp] theorem units_inv_right {a : M} {u : units M} : commute a u → commute a ↑u⁻¹ :=
+semiconj_by.units_inv_right
+
+@[simp] theorem units_inv_right_iff {a : M} {u : units M} : commute a ↑u⁻¹ ↔ commute a u :=
+semiconj_by.units_inv_right_iff
+
+@[simp] theorem units_inv_left {u : units M} {a : M} : commute ↑u a → commute ↑u⁻¹ a :=
+semiconj_by.units_inv_symm_left
+
+@[simp] theorem units_inv_left_iff {u : units M} {a : M}: commute ↑u⁻¹ a ↔ commute ↑u a :=
+semiconj_by.units_inv_symm_left_iff
+
+@[simp] protected theorem map {N : Type*} [monoid N] (f : M →* N) {a b : M} :
+  commute a b → commute (f a) (f b) :=
+semiconj_by.map f
+
+variables {a b : M} (hab : commute a b) (m n : ℕ)
+
+@[simp] theorem pow_right : commute a (b ^ n) := hab.pow_right n
+@[simp] theorem pow_left : commute (a ^ n) b := (hab.symm.pow_right n).symm
+@[simp] theorem pow_pow : commute (a ^ m) (b ^ n) := (hab.pow_left m).pow_right n
+
+variable (a)
+
+@[simp] theorem self_pow : commute a (a ^ n) := (commute.refl a).pow_right n
+@[simp] theorem pow_self : commute (a ^ n) a := (commute.refl a).pow_left n
+@[simp] theorem pow_pow_self : commute (a ^ n) (a ^ m) := (commute.refl a).pow_pow n m
+
+variables {u₁ u₂ : units M}
+
+theorem units_coe : commute u₁ u₂ → commute (u₁ : M) u₂ := semiconj_by.units_coe
+theorem units_of_coe : commute (u₁ : M) u₂ → commute u₁ u₂ := semiconj_by.units_of_coe
+theorem units_coe_iff : commute (u₁ : M) u₂ ↔ commute u₁ u₂ := semiconj_by.units_coe_iff
+
+end monoid
+
+section group
+
+variables {G : Type*} [group G] {a b : G}
+
+@[simp] theorem inv_right : commute a b → commute a b⁻¹ := semiconj_by.inv_right
+@[simp] theorem inv_right_iff : commute a b⁻¹ ↔ commute a b := semiconj_by.inv_right_iff
+
+@[simp] theorem inv_left :  commute a b → commute a⁻¹ b := semiconj_by.inv_symm_left
+@[simp] theorem inv_left_iff : commute a⁻¹ b ↔ commute a b := semiconj_by.inv_symm_left_iff
+
+theorem inv_inv : commute a b → commute a⁻¹ b⁻¹ := semiconj_by.inv_inv_symm
+@[simp] theorem inv_inv_iff : commute a⁻¹ b⁻¹ ↔ commute a b := semiconj_by.inv_inv_symm_iff
+
+section
+
+variables (hab : commute a b) (m n : ℤ)
+include hab
+
+@[simp] theorem gpow_right : commute a (b ^ m) := hab.gpow_right m
+@[simp] theorem gpow_left : commute (a ^ m) b := (hab.symm.gpow_right m).symm
+@[simp] theorem gpow_gpow : commute (a ^ m) (b ^ n) := (hab.gpow_right n).gpow_left m
+
+end
+
+variables (a) (m n : ℤ)
+
+@[simp] theorem self_gpow : commute a (a ^ n) := (commute.refl a).gpow_right n
+@[simp] theorem gpow_self : commute (a ^ n) a := (commute.refl a).gpow_left n
+@[simp] theorem gpow_gpow_self : commute (a ^ m) (a ^ n) := (commute.refl a).gpow_gpow m n
+
+end group
+
+section semiring
+
+variables {A : Type*}
+
+@[simp] theorem zero_right [mul_zero_class A] (a : A) : commute a 0 := semiconj_by.zero_right a
+@[simp] theorem zero_left [mul_zero_class A] (a : A) : commute 0 a := semiconj_by.zero_left a a
+
+@[simp] theorem add_right [distrib A] {a b c : A} :
+  commute a b → commute a c → commute a (b + c) :=
+semiconj_by.add_right
+
+@[simp] theorem add_left [distrib A] {a b c : A} :
+  commute a c → commute b c → commute (a + b) c :=
+semiconj_by.add_left
+
+variables [semiring A] {a b : A} (hab : commute a b) (m n : ℕ)
+
+@[simp] theorem smul_right : commute a (n •ℕ b) := hab.smul_right n
+@[simp] theorem smul_left : commute (n •ℕ a) b := hab.smul_left n
+@[simp] theorem smul_smul : commute (m •ℕ a) (n •ℕ b) := hab.smul_smul m n
+
+variable (a)
+
+@[simp] theorem self_smul : commute a (n •ℕ a) := (commute.refl a).smul_right n
+@[simp] theorem smul_self : commute (n •ℕ a) a := (commute.refl a).smul_left n
+@[simp] theorem self_smul_smul : commute (m •ℕ a) (n •ℕ a) := (commute.refl a).smul_smul m n
+
+@[simp] theorem cast_nat_right : commute a (n : A) := semiconj_by.cast_nat_right a n
+@[simp] theorem cast_nat_left : commute (n : A) a := semiconj_by.cast_nat_left n a
+
+end semiring
+
+section ring
+
+variables {R : Type*} [ring R] {a b c : R}
+
+@[simp] theorem neg_right : commute a b → commute a (- b) := semiconj_by.neg_right
+@[simp] theorem neg_right_iff : commute a (-b) ↔ commute a b := semiconj_by.neg_right_iff
+
+@[simp] theorem neg_left : commute a b → commute (- a) b := semiconj_by.neg_left
+@[simp] theorem neg_left_iff : commute (-a) b ↔ commute a b := semiconj_by.neg_left_iff
+
+@[simp] theorem neg_one_right (a : R) : commute a (-1) := semiconj_by.neg_one_right a
+@[simp] theorem neg_one_left (a : R): commute (-1) a := semiconj_by.neg_one_left a
+
+@[simp] theorem sub_right : commute a b → commute a c → commute a (b - c) := semiconj_by.sub_right
+@[simp] theorem sub_left : commute a c → commute b c → commute (a - b) c := semiconj_by.sub_left
+
+variables (hab : commute a b) (m n : ℤ)
+
+@[simp] theorem gsmul_right : commute a (m •ℤ b) := hab.gsmul_right m
+@[simp] theorem gsmul_left : commute (m •ℤ a) b := hab.gsmul_left m
+@[simp] theorem gsmul_gsmul : commute (m •ℤ a) (n •ℤ b) := hab.gsmul_gsmul m n
+
+@[simp] theorem self_gsmul : commute a (n •ℤ a) := (commute.refl a).gsmul_right n
+@[simp] theorem gsmul_self : commute (n •ℤ a) a := (commute.refl a).gsmul_left n
+@[simp] theorem self_gsmul_gsmul : commute (m •ℤ a) (n •ℤ a) := (commute.refl a).gsmul_gsmul m n
+
+variable (a)
+
+@[simp] theorem cast_int_right : commute a (n : R) :=
+by rw [← gsmul_one n]; exact (commute.one_right a).gsmul_right n
+
+@[simp] theorem cast_int_left : commute (n : R) a := (commute.cast_int_right a n).symm
+
+end ring
 
 end commute
 
+
 -- Definitions and trivial theorems about them
-section defs
+section centralizer
 
 variables {S : Type*} [has_mul S]
 
@@ -80,133 +250,7 @@ protected theorem set.centralizer_decreasing {s t : set S} (h : s ⊆ t) :
   t.centralizer ⊆ s.centralizer :=
 s.centralizer_eq.symm ▸ t.centralizer_eq.symm ▸ set.bInter_subset_bInter_left h
 
-end defs
-
-namespace commute
-
-section semigroup
-
-variables {S : Type*} [semigroup S] {a b c : S}
-
-/-- If `a` commutes with both `b` and `c`, then it commutes with their product. -/
-@[simp] theorem mul_right (hab : commute a b) (hac : commute a c) :
-  commute a (b * c) :=
-by dunfold commute; assoc_rw [hab.eq, hac.eq]
-
-/-- If both `a` and `b` commute with `c`, then their product commutes with `c`. -/
-@[simp] theorem mul_left (hac : commute a c) (hbc : commute b c) :
-  commute (a * b) c :=
-(hac.symm.mul_right hbc.symm).symm
-
-end semigroup
-
-protected theorem all {S : Type*} [comm_semigroup S] (a b : S) : commute a b := mul_comm a b
-
-section monoid
-
-variables {M : Type*} [monoid M]
-
-@[simp] theorem one_right (a : M) : commute a 1 :=
-by rw [commute, one_mul, mul_one]
-
-@[simp] theorem one_left (a : M) : commute 1 a := (commute.one_right a).symm
-
-@[simp] theorem units_inv_right {a : M} {u : units M} (h : commute a u) : commute a ↑u⁻¹ :=
-calc a * ↑u⁻¹ = ↑u⁻¹ * u * a * ↑u⁻¹ : by rw [units.inv_mul, one_mul]
-          ... = ↑u⁻¹ * a * u * ↑u⁻¹ : by assoc_rw [h.eq]
-          ... = ↑u⁻¹ * a            : units.mul_inv_cancel_right _ u
-
-@[simp] theorem units_inv_right_iff {a : M} {u : units M} : commute a ↑u⁻¹ ↔ commute a u :=
-⟨units_inv_right, units_inv_right⟩
-
-@[simp] theorem units_inv_left {u : units M} {a : M} (h : commute ↑u a) : commute ↑u⁻¹ a :=
-h.symm.units_inv_right.symm
-
-@[simp] theorem units_inv_left_iff {u : units M} {a : M}: commute ↑u⁻¹ a ↔ commute ↑u a :=
-⟨units_inv_left, units_inv_left⟩
-
-@[simp] protected theorem map {N : Type*} [monoid N] (f : M →* N) {a b : M} (h : commute a b) :
-  commute (f a) (f b) :=
-by rw [commute, ← f.map_mul, h.eq, f.map_mul]
-
-theorem units_coe {u₁ u₂ : units M} (h : commute u₁ u₂) : commute (u₁ : M) u₂ :=
-h.map $ units.coe_hom M
-
-end monoid
-
-section group
-
-variables {G : Type*} [group G]
-
-@[simp] theorem inv_right {a b : G} (h : commute a b) : commute a b⁻¹ :=
-@units_inv_right G _ a (to_units G b) h
-
-@[simp] theorem inv_right_iff {a b : G} : commute a b⁻¹ ↔ commute a b :=
-@units_inv_right_iff G _ a (to_units G b)
-
-@[simp] theorem inv_left {a b : G} (h : commute a b) : commute a⁻¹ b :=
-h.symm.inv_right.symm
-
-@[simp] theorem inv_left_iff {a b : G} : commute a⁻¹ b ↔ commute a b :=
-@units_inv_left_iff G _ (to_units G a) b
-
-theorem inv_inv {a b : G} (hab : commute a b) : commute a⁻¹ b⁻¹ :=
-hab.inv_left.inv_right
-
-@[simp] theorem inv_inv_iff {a b : G} : commute a⁻¹ b⁻¹ ↔ commute a b :=
-inv_left_iff.trans inv_right_iff
-
-end group
-
-section semiring
-
-variables {A : Type*}
-
-@[simp] theorem zero_right [mul_zero_class A] (a : A) : commute a 0 :=
-by rw [commute, mul_zero, zero_mul]
-@[simp] theorem zero_left [mul_zero_class A] (a : A) : commute 0 a := (commute.zero_right a).symm
-
-@[simp] theorem add_right [distrib A] {a b c : A} (hab : commute a b) (hac : commute a c) :
-  commute a (b + c) :=
-by rw [commute, mul_add, add_mul, hab.eq, hac.eq]
-
-@[simp] theorem add_left [distrib A] {a b c : A} (hac : commute a c) (hbc : commute b c) :
-  commute (a + b) c :=
-(hac.symm.add_right hbc.symm).symm
-
-end semiring
-
-section ring
-
-variables {R : Type*} [ring R]
-
-@[simp] theorem neg_right {a b : R} (hab : commute a b) : commute a (- b) :=
-by rw [commute, ← neg_mul_eq_mul_neg, hab.eq, neg_mul_eq_neg_mul_symm ]
-
-@[simp] theorem neg_right_iff {a b : R} : commute a (-b) ↔ commute a b :=
-⟨λ h, neg_neg b ▸ h.neg_right, neg_right⟩
-
-@[simp] theorem neg_left {a b : R} (hab : commute a b) : commute (- a) b :=
-hab.symm.neg_right.symm
-
-@[simp] theorem neg_left_iff {a b : R} : commute (-a) b ↔ commute a b :=
-⟨λ h, neg_neg a ▸ h.neg_left, neg_left⟩
-
-@[simp] theorem neg_one_right (a : R) : commute a (-1) := (commute.one_right a).neg_right
-@[simp] theorem neg_one_left (a : R): commute (-1) a := (commute.neg_one_right a).symm
-
-@[simp] theorem sub_right {a b c : R} (hab : commute a b) (hac : commute a c) :
-  commute a (b - c) :=
-hab.add_right hac.neg_right
-
-@[simp] theorem sub_left {a b c : R} (hac : commute a c) (hbc : commute b c) :
-  commute (a - b) c :=
-(hac.symm.sub_right hbc.symm).symm
-
-end ring
-
-
-end commute
+end centralizer
 
 section monoid
 
@@ -229,6 +273,14 @@ lemma centralizer.inter_units_is_subgroup : is_subgroup { x : units M | commute 
 { one_mem := commute.one_right a,
   mul_mem := λ _ _, commute.mul_right,
   inv_mem := λ _, commute.units_inv_right }
+
+theorem commute.list_prod_right {a : M} {l : list M} (h : ∀ x ∈ l, commute a x) :
+  commute a l.prod :=
+is_submonoid.list_prod_mem (λ x hx, mem_centralizer.2 (h x hx))
+
+theorem commute.list_prod_left {l : list M} {a : M} (h : ∀ x ∈ l, commute x a) :
+  commute l.prod a :=
+(commute.list_prod_right (λ x hx, (h x hx).symm)).symm
 
 end monoid
 
@@ -287,112 +339,18 @@ end ring
 
 namespace commute
 
-section monoid
-
-variables {M : Type*} [monoid M] {a b : M} (hab : commute a b) (n m : ℕ)
-
-@[simp] theorem pow_right : commute a (b ^ n) := is_submonoid.pow_mem (mem_centralizer.2 hab)
-@[simp] theorem pow_left : commute (a ^ n) b := (hab.symm.pow_right n).symm
-@[simp] theorem pow_pow : commute (a ^ n) (b ^ m) := commute.pow_right (commute.pow_left hab n) m
-
-theorem list_prod_right {a : M} {l : list M} (h : ∀ x ∈ l, commute a x) :
-  commute a l.prod :=
-is_submonoid.list_prod_mem (λ x hx, mem_centralizer.2 (h x hx))
-
-theorem list_prod_left {l : list M} {a : M} (h : ∀ x ∈ l, commute x a) :
-  commute l.prod a :=
-(commute.list_prod_right (λ x hx, (h x hx).symm)).symm
-
-section
-
-include hab
-
-protected theorem mul_pow : ∀ (n : ℕ), (a * b) ^ n = a ^ n * b ^ n
+protected theorem mul_pow {M : Type*} [monoid M] {a b : M} (hab : commute a b) :
+  ∀ (n : ℕ), (a * b) ^ n = a ^ n * b ^ n
 | 0 := by simp only [pow_zero, mul_one]
 | (n + 1) := by simp only [pow_succ, mul_pow n];
                 assoc_rw [(hab.symm.pow_right n).eq]; rw [mul_assoc]
 
-end
-
-variable (a)
-
-@[simp] theorem self_pow : commute a (a ^ n) := (commute.refl a).pow_right n
-@[simp] theorem pow_self : commute (a ^ n) a := (commute.refl a).pow_left n
-@[simp] theorem pow_pow_self : commute (a ^ n) (a ^ m) := (commute.refl a).pow_pow n m
-
-end monoid
-
-section group
-
-variables {G : Type*} [group G] {a b : G} (hab : commute a b) (n m : ℤ)
-
-@[simp] theorem gpow_right : commute a (b ^ n) := is_subgroup.gpow_mem (mem_centralizer.2 hab)
-@[simp] theorem gpow_left : commute (a ^ n) b := (hab.symm.gpow_right n).symm
-@[simp] theorem gpow_gpow : commute (a ^ n) (b ^ m) := (hab.gpow_right m).gpow_left n
-
-variable (a)
-
-@[simp] theorem self_gpow : commute a (a ^ n) := (commute.refl a).gpow_right n
-@[simp] theorem gpow_self : commute (a ^ n) a := (commute.refl a).gpow_left n
-@[simp] theorem gpow_gpow_self : commute (a ^ n) (a ^ m) := (commute.refl a).gpow_gpow n m
-
-include hab
-
-protected theorem mul_gpow : ∀ (n : ℤ), (a * b) ^ n = a ^ n * b ^ n
-| (int.of_nat n) := hab.mul_pow n
-| (int.neg_succ_of_nat n) :=
+protected theorem mul_gpow {G : Type*} [group G] {a b : G} (hab : commute a b) :
+  ∀ (n : ℤ), (a * b) ^ n = a ^ n * b ^ n
+| (n : ℕ) := hab.mul_pow n
+| -[1+n] :=
     by { simp only [gpow_neg_succ, hab.mul_pow, mul_inv_rev],
          exact (hab.pow_pow n.succ n.succ).inv_inv.symm.eq }
-
-end group
-
-section semiring
-
-variables {A : Type*} [semiring A] {a b : A} (hab : commute a b) (n m : ℕ)
-
-open_locale add_monoid
-
-@[simp] theorem smul_right : commute a (n • b) := is_add_submonoid.smul_mem (mem_centralizer.2 hab)
-
-@[simp] theorem smul_left : commute (n • a) b := (hab.symm.smul_right n).symm
-@[simp] theorem smul_smul : commute (n • a) (m • b) := (hab.smul_left n).smul_right m
-
-variable (a)
-
-@[simp] theorem self_smul : commute a (n • a) := (commute.refl a).smul_right n
-@[simp] theorem smul_self : commute (n • a) a := (commute.refl a).smul_left n
-@[simp] theorem self_smul_smul : commute (n • a) (m • a) := (commute.refl a).smul_smul n m
-
-@[simp] theorem cast_nat_right : commute a (n : A) :=
-by rw [← add_monoid.smul_one n]; exact (commute.one_right a).smul_right n
-
-@[simp] theorem cast_nat_left : commute (n : A) a :=
-(cast_nat_right a n).symm
-
-end semiring
-
-section ring
-
-variables {R : Type*} [ring R] {a b : R} (hab : commute a b) (n m : ℤ)
-
-open_locale add_group
-
-@[simp] theorem gsmul_right : commute a (n • b) := is_add_subgroup.gsmul_mem (mem_centralizer.2 hab)
-@[simp] theorem gsmul_left : commute (n • a) b := (hab.symm.gsmul_right n).symm
-@[simp] theorem gsmul_gsmul : commute (n • a) (m • b) := (hab.gsmul_left n).gsmul_right m
-
-@[simp] theorem self_gsmul : commute a (n • a) := (commute.refl a).gsmul_right n
-@[simp] theorem gsmul_self : commute (n • a) a := (commute.refl a).gsmul_left n
-@[simp] theorem self_gsmul_gsmul : commute (n • a) (m • a) := (commute.refl a).gsmul_gsmul n m
-
-variable (a)
-
-@[simp] theorem cast_int_right : commute a (n : R) :=
-by rw [← gsmul_one n]; exact (commute.one_right a).gsmul_right n
-
-@[simp] theorem cast_int_left : commute (n : R) a := (commute.cast_int_right a n).symm
-
-end ring
 
 end commute
 

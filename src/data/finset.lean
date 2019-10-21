@@ -1925,6 +1925,18 @@ eq_empty_of_le $ le_refl n
 @[simp] theorem eq_empty_iff {n m : ℕ} : Ico n m = ∅ ↔ m ≤ n :=
 iff.trans val_eq_zero.symm multiset.Ico.eq_zero_iff
 
+theorem subset_iff {m₁ n₁ m₂ n₂ : ℕ} (hmn : m₁ < n₁) :
+  Ico m₁ n₁ ⊆ Ico m₂ n₂ ↔ (m₂ ≤ m₁ ∧ n₁ ≤ n₂) :=
+begin
+  simp only [subset_iff, mem],
+  refine ⟨λ h, ⟨_, _⟩, _⟩,
+  { exact (h ⟨le_refl _, hmn⟩).1 },
+  { refine le_of_pred_lt (@h (pred n₁) ⟨le_pred_of_lt hmn, pred_lt _⟩).2,
+    exact ne_of_gt (lt_of_le_of_lt (nat.zero_le m₁) hmn) },
+  { rintros ⟨hm, hn⟩ k ⟨hmk, hkn⟩,
+    exact ⟨le_trans hm hmk, lt_of_lt_of_le hkn hn⟩ }
+end
+
 lemma union_consecutive {n m l : ℕ} (hnm : n ≤ m) (hml : m ≤ l) :
   Ico n m ∪ Ico m l = Ico n l :=
 by rw [← to_finset, ← to_finset, ← multiset.to_finset_add,

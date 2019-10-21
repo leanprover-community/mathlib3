@@ -445,10 +445,10 @@ protected lemma div_eq_zero_iff {a b : ℕ} (hb : 0 < b) : a / b = 0 ↔ a < b :
 ⟨λ h, by rw [← mod_add_div a b, h, mul_zero, add_zero]; exact mod_lt _ hb,
   λ h, by rw [← nat.mul_left_inj hb, ← @add_left_cancel_iff _ _ (a % b), mod_add_div,
     mod_eq_of_lt h, mul_zero, add_zero]⟩
-    
+
 lemma mul_div_le_mul_div_assoc (a b c : ℕ) : a * (b / c) ≤ (a * b) / c :=
 if hc0 : c = 0 then by simp [hc0]
-else if hbc : b < c then 
+else if hbc : b < c then
   by simp [(nat.div_eq_zero_iff (nat.pos_of_ne_zero hc0)).2 hbc]
 else (le_div_iff_mul_le _ _ (nat.pos_of_ne_zero hc0)).2
   (by rw [mul_assoc]; exact mul_le_mul_left _ (div_mul_le_self _ _))
@@ -456,13 +456,10 @@ else (le_div_iff_mul_le _ _ (nat.pos_of_ne_zero hc0)).2
 lemma div_mul_div_le_div (a b c : ℕ) : ((a / c) * b) / a ≤ b / c :=
 if ha0 : a = 0 then by simp [ha0]
 else calc a / c * b / a ≤ b * a / c / a :
-    nat.div_le_div_right (by rw [mul_comm]; 
+    nat.div_le_div_right (by rw [mul_comm];
         exact mul_div_le_mul_div_assoc _ _ _)
-  ... = b / c : by rw [nat.div_div_eq_div_mul, mul_comm b, mul_comm c, 
+  ... = b / c : by rw [nat.div_div_eq_div_mul, mul_comm b, mul_comm c,
       nat.mul_div_mul _ _ (nat.pos_of_ne_zero ha0)]
-lemma eq_zero_of_le_div {a b : ℕ} (hb : 2 ≤ b) (h : a ≤ a / b) : a = 0 :=
-eq_zero_of_mul_le hb $
-  by rw mul_comm; exact (nat.le_div_iff_mul_le' (lt_of_lt_of_le dec_trivial hb)).1 h
 
 lemma eq_zero_of_le_half {a : ℕ} (h : a ≤ a / 2) : a = 0 :=
 eq_zero_of_le_div (le_refl _) h

@@ -292,10 +292,11 @@ open polynomial matrix
 variables {α : Type v} [decidable_eq α] [integral_domain α]
 variables [decidable_eq n]
 
+/-- The characteristic polynomial of the matrix M. -/
 def charpoly (M : matrix n n α) : polynomial α :=
 det (diagonal (λ _:n, (X : polynomial α)) - (λ i j, C (M i j)))
 
-namespace char_polynomial
+namespace charpoly
 
 variables (M : matrix n n α)
 
@@ -309,17 +310,45 @@ begin
   exact eval_zero
 end
 
+--TODO: move
+instance coeff_is_add_monoid_hom (n : ℕ) : is_add_monoid_hom (λ f, coeff f n : polynomial α → α) :=
+{ map_zero := coeff_zero _,
+  map_add := λ p q, coeff_add _ _ _}
+
+lemma coeff_sum {ι : Type*} (s : finset ι) (f : ι → polynomial α) (n : ℕ) :
+  coeff (s.sum f) n = s.sum (λ i:ι, coeff (f i) n) := eq.symm $ finset.sum_hom (λ g, coeff g n)
+
+--TODO: move
+instance leading_coeff_is_monoid_hom :
+  is_monoid_hom (leading_coeff : polynomial α → α) :=
+{ map_mul := leading_coeff_mul,
+  map_one := leading_coeff_one }
+
 lemma constant_coeff : coeff (charpoly M) 0 = (-1) ^ fintype.card n * det M :=
 by rw [coeff_zero_eq_eval_zero, eval, diagonal_zero, zero_sub, det_neg]
 
-lemma degree_prod_le {ι : Type*} (s : finset ι) (f : ι → polynomial α) (g : ι → with_bot ℕ)
-  (h : ∀ i ∈ s, degree (f i) ≤ g i) : degree (s.prod f) ≤ s.sum g := sorry
+lemma degree_sum_le {ι : Type*} [decidable_eq ι] (s : finset ι) (f : ι → polynomial α) (b : with_bot ℕ) :
+  (∀ i ∈ s, degree (f i) ≤ b) → degree (s.sum f) ≤ b :=
+finset.induction_on s
+  (by { intro _, rw [finset.sum_empty, degree_zero], exact lattice.bot_le })
+  (by { intros i s his h hi, rw [finset.sum_insert his],
+    exact le_trans (degree_add_le _ _) (max_le (hi i $ finset.mem_insert_self _ _) (h $ λ x hx, hi x $ finset.mem_insert_of_mem hx)) })
 
-lemma degree_sum_le {ι : Type*} (s : finset ι) (f : ι → polynomial α) (b : with_bot ℕ)
-  (h : ∀ i ∈ s, degree (f i) ≤ b) : degree (s.sum f) ≤ b := sorry
+--TODO: (re)move
+instance with_bot.coe_is_add_monoid_hom : is_add_monoid_hom (λ n : ℕ, (n : with_bot ℕ)) :=
+{ map_zero := with_bot.coe_zero,
+  map_add := with_bot.coe_add }
 
+--TODO: move
 lemma with_bot.coe_sum {ι : Type*} (s : finset ι) (f : ι → ℕ) :
-  (↑(s.sum f) : with_bot ℕ) = s.sum (λ x, ↑(f x)) := sorry
+  (↑(s.sum f) : with_bot ℕ) = s.sum (λ x, ↑(f x)) :=
+eq.symm $ finset.sum_hom (λ n : ℕ, (n : with_bot ℕ))
+
+lemma degree_prod {ι : Type*} [decidable_eq ι] (s : finset ι) (f : ι → polynomial α) :
+  degree (s.prod f) = s.sum (λ i, degree (f i)) :=
+finset.induction_on s
+  (by { rw [finset.sum_empty, finset.prod_empty, degree_one] })
+  (by { intros i s hs h, rw [finset.sum_insert hs, finset.prod_insert hs, degree_mul_eq, h] })
 
 lemma degree_det_le {M : matrix n n (polynomial α)} {b : ℕ} (hM : ∀ i j, degree (M i j) ≤ b) :
   degree (det M) ≤ ↑(fintype.card n * b) :=
@@ -328,103 +357,67 @@ begin
   intros p hp,
   rw [degree_mul_eq],
   rw [show degree ↑(equiv.perm.sign p : ℤ) = 0,
-    { refine @degree_eq_zero_of_is_unit α _ _ ↑(equiv.perm.sign p : ℤ) _,
-    sorry
-      /-have : (equiv.perm.sign p : ℤ) = 1 ∨ (equiv.perm.sign p : ℤ) = -1,
-        { rw [←units.coe_one, ←units.coe_neg, ←units.ext_iff, ←units.ext_iff],
-          exact int.units_eq_one_or (equiv.perm.sign p) },
-      cases this with h h,
-      { rw [h, int.cast_one, degree_one] },
-      { rw [h, int.cast_neg, int.cast_one, ←@degree_one α, ←degree_neg] }-/ }],
+    { apply @degree_eq_zero_of_is_unit α,
+      apply is_unit_of_mul_one,
+      rw [←int.cast_mul, ←units.coe_mul, ←pow_two, int.units_pow_two, units.coe_one, int.cast_one]}],
   rw [zero_add, ←nat.cast_id (fintype.card n), ←add_monoid.smul_eq_mul],
   change _ ≤ ↑(add_monoid.smul (finset.card finset.univ) b),
-  rw [←finset.sum_const, with_bot.coe_sum],
-  exact degree_prod_le _ _ _ (λ _ _, hM _ _),
+  rw [←finset.sum_const, with_bot.coe_sum, degree_prod],
+  exact finset.sum_le_sum (λ _ _, hM _ _)
 end
 
+--TODO: move
+lemma with_bot.zero_le_one : (0 : with_bot ℕ) ≤ (1 : with_bot ℕ) :=
+by { rw [←with_bot.coe_one, ←with_bot.coe_zero, with_bot.coe_le_coe], exact zero_le_one }
 
+lemma degree_le_aux (i j : n) (a : α) : degree (ite (i = j) X 0 + -C a) ≤ 1 :=
+begin
+  split_ifs,
+  { rw [←sub_eq_add_neg, degree_X_sub_C], exact le_refl _ },
+  { rw [zero_add, degree_neg], refine le_trans degree_C_le with_bot.zero_le_one }
+end
 
-lemma coeff_sum {ι : Type*} (s : finset ι) (f : ι → polynomial α) (n : ℕ) :
-  coeff (s.sum f) n = s.sum (λ i:ι, coeff (f i) n) := sorry
-
-lemma degree_prod {ι : Type*} (s : finset ι) (f : ι → polynomial α) :
-  degree (s.prod f) = s.sum (λ i, degree (f i)) := sorry
-
---TODO: move and define leading_coeff to be a monoid_hom?
-instance leading_coeff_is_monoid_hom :
-  is_monoid_hom (leading_coeff : polynomial α → α) :=
-{ map_mul := leading_coeff_mul,
-  map_one := leading_coeff_one }
+lemma degree_le : degree (charpoly M) ≤ fintype.card n :=
+by { rw [←mul_one (fintype.card n)], exact degree_det_le (λ _ _, degree_le_aux _ _ _) }
 
 --TODO: move
 lemma with_bot.nat_cast_eq_coe (n : ℕ) : (nat.cast n : with_bot ℕ) = ↑n :=
 nat.rec_on n rfl (λ m hm,
   by { rw [nat.succ_eq_add_one, with_bot.coe_add, with_bot.coe_one, ←hm], exact nat.cast_add_one _ })
 
-lemma degree_aux :
-  charpoly M = (charpoly M - X ^ fintype.card n) + X ^ fintype.card n ∧
-  degree (charpoly M - X ^ fintype.card n) < degree ((X : polynomial α) ^ fintype.card n) :=
-⟨by { rw [add_comm, add_sub, add_comm, ←add_sub, sub_self, add_zero] },
-begin
-  sorry/-rw [charpoly, det, ←finset.insert_erase $ finset.mem_univ (equiv.refl n),
-    finset.sum_insert (finset.not_mem_erase _ _), equiv.perm.sign_refl, units.coe_one, int.cast_one, one_mul],
-  conv_lhs { congr, congr, congr, congr, skip, funext, rw [equiv.refl_apply, diagonal], dsimp,
-    rw [if_pos rfl, ←sub_eq_add_neg] },
-  rw [add_comm, ←add_sub],-/
-end⟩
-
-lemma degree' : degree (charpoly M) = fintype.card n :=
-begin
-  rw [charpoly, det, ←finset.insert_erase $ finset.mem_univ (equiv.refl n),
-    finset.sum_insert (finset.not_mem_erase _ _), equiv.perm.sign_refl, units.coe_one, int.cast_one, one_mul, add_comm],
-  conv_lhs { congr, congr, skip, congr, skip, funext, rw [equiv.refl_apply, diagonal], dsimp,
-    rw [if_pos rfl, ←sub_eq_add_neg] },
-  convert degree_add_eq_of_degree_lt _,
-  { simp only [degree_prod, degree_X_sub_C, finset.sum_const, add_monoid.smul_one],
-    exact eq.symm (with_bot.nat_cast_eq_coe _) },
-  { sorry
-
-   }
-end
-
-lemma degree : degree (charpoly M) = fintype.card n :=
-begin
-  rw [←degree_X_pow (fintype.card n), (degree_aux M).1],
-  exact degree_add_eq_of_degree_lt (degree_aux M).2
-end
-
-lemma monic : monic (charpoly M) :=
-begin
-  rw [monic.def, (degree_aux M).1],
-  convert leading_coeff_add_of_degree_lt (degree_aux M).2,
-  exact eq.symm (leading_coeff_X_pow _)
-end
-
-/-
 lemma degree_eq_aux (s : finset n) :
   degree (s.prod (λ i, diagonal (λ _:n, X) (equiv.refl n i) i - C (M (equiv.refl n i) i))) = s.card :=
 begin
   rw [←with_bot.nat_cast_eq_coe, ←show _ = nat.cast _, from add_monoid.smul_one s.card, ←finset.sum_const],
-  rw [degree_prod],
-  congr,
-  funext j,
-  rw [equiv.refl_apply, diagonal],
+  simp only [degree_prod, equiv.refl_apply, diagonal, if_pos rfl, degree_X_sub_C]
+end
+
+lemma degree_lt_aux {p : equiv.perm n} {s : finset n} {j : n} (hj : j ∈ s) (hp : p j ≠ j) :
+  degree (s.prod (λ i, diagonal (λ _:n, X) (p i) i + -C (M (p i) i))) < s.card :=
+begin
+  rw [←finset.insert_erase hj, finset.prod_insert (finset.not_mem_erase _ _), degree_mul_eq, diagonal],
   dsimp,
-  rw [if_pos rfl, ←sub_eq_add_neg, degree_X_sub_C]
+  rw [if_neg hp, zero_add, degree_neg],
+  by_cases hMj : M (p j) j = 0,
+  { rw [hMj, C_0, degree_zero, with_bot.bot_add], exact with_bot.bot_lt_coe _ },
+  { rw [degree_C hMj, zero_add, degree_prod],
+    refine lt_of_le_of_lt (finset.sum_le_sum (λ i _, show degree (ite (p i = i) X 0 + -C (M (p i) i)) ≤ 1, from _)) _,
+    exact degree_le_aux _ _ _,
+    { rw [finset.sum_const, show _ = nat.cast _, from add_monoid.smul_one _,
+        finset.card_insert_of_not_mem (finset.not_mem_erase _ _), with_bot.nat_cast_eq_coe, with_bot.coe_lt_coe],
+        exact nat.lt_succ_self _ } }
 end
 
 lemma coeff_aux {s : finset n} (hs : s.card > 0) :
-  coeff (s.prod (λ i, diagonal (λ _:n, X) (equiv.refl n i) i - C (M (equiv.refl n i) i))) s.card = 1 :=
+  coeff (s.prod (λ i, diagonal (λ _:n, X) (equiv.refl n i) i + -C (M (equiv.refl n i) i))) s.card = 1 :=
 suffices h : leading_coeff (s.prod (λ i, diagonal (λ _:n, X) (equiv.refl n i) i - C (M (equiv.refl n i) i))) = 1,
 { unfold leading_coeff at h,
   convert h,
   rw [←with_bot.coe_eq_coe, ←degree_eq_nat_degree],
   { symmetry, exact degree_eq_aux _ _ },
-  { refine @ne_zero_of_degree_gt _ _ _ _ 0 _,
-    rw [diagonal, degree_prod], dsimp,
-    conv_rhs { congr, skip, funext, rw [if_pos rfl, ←sub_eq_add_neg, degree_X_sub_C] },
-    rw [finset.sum_const, show _ = nat.cast _, from add_monoid.smul_one _, with_bot.nat_cast_eq_coe],
-    rwa [←with_bot.coe_zero, with_bot.coe_lt_coe] } },
+  { rw [ne.def, finset.prod_eq_zero_iff, not_exists], intro j, rw [not_exists], intro hj,
+    dsimp [diagonal], rw [if_pos rfl, ←sub_eq_add_neg, ←degree_eq_bot, degree_X_sub_C],
+    exact dec_trivial } },
 begin
   rw [←finset.prod_hom leading_coeff, ←@finset.prod_const_one _ _ s, diagonal],
   congr,
@@ -435,68 +428,9 @@ begin
   apply_instance
 end
 
-lemma degree_lt_aux {p : equiv.perm n} {s : finset n} {j : n} (hj : j ∈ s) (hp : p j ≠ j) :
-  degree (s.prod (λ i, diagonal (λ _:n, X) (p i) i - C (M (p i) i))) < s.card :=
+lemma coeff_n (hn : fintype.card n > 0) : coeff (charpoly M) (fintype.card n) = 1 :=
 begin
-  have : finset.singleton j ⊆ s,
-    { rw [finset.subset_iff], intros _ h, rw [finset.mem_singleton] at h, rwa [h] },
-  have hf : s = finset.singleton j ∪ (s \ finset.singleton j), from
-    eq.symm (finset.union_sdiff_of_subset this),
-  rw [hf, finset.prod_union (finset.inter_sdiff_self _ _), degree_mul_eq, finset.prod_singleton, diagonal],
-  dsimp,
-  rw [if_neg hp, zero_add, degree_neg],
-  by_cases hMj : M (p j) j = 0,
-  { rw [hMj, C_0, degree_zero, with_bot.bot_add], exact with_bot.bot_lt_coe _ },
-  { rw [degree_C hMj, zero_add],
-    refine lt_of_le_of_lt (degree_prod_le (s \ finset.singleton j) _ (λ _, 1) _) _,
-    { intros i hi, split_ifs,
-      { rw [←sub_eq_add_neg, degree_X_sub_C], exact le_refl _ },
-      { rw [zero_add, degree_neg],
-        refine le_trans degree_C_le _,
-        rw [←with_bot.coe_one, ←with_bot.coe_zero, with_bot.coe_le_coe],
-        exact zero_le_one } },
-    { rw [finset.sum_const, show _ = nat.cast _, from add_monoid.smul_one _,
-        with_bot.nat_cast_eq_coe _, with_bot.coe_lt_coe],
-      refine finset.card_lt_card _,
-      rw [finset.ssubset_iff],
-      existsi j,
-      split,
-      { rw [finset.mem_sdiff, not_and, not_not, finset.mem_singleton], intro, refl },
-      { rw [finset.insert_eq], dsimp, rw[←hf], exact finset.subset.refl _ } } }
-end
-
-lemma degree_le : degree (char_polynomial M) ≤ fintype.card n :=
-suffices h : degree (char_polynomial M) ≤ finset.univ.sum (λ i:n, 1),
-  { rw [finset.sum_const, add_monoid.smul_one] at h, rwa [←with_bot.nat_cast_eq_coe] },
-begin
-  convert degree_sum_le _ _ _ _,
-  intros i hi,
-  rw [degree_mul_eq],
-  rw [show degree ↑(equiv.perm.sign i : ℤ) = 0,
-    { have : (equiv.perm.sign i : ℤ) = 1 ∨ (equiv.perm.sign i : ℤ) = -1,
-        { rw [←units.coe_one, ←units.coe_neg, ←units.ext_iff, ←units.ext_iff],
-          exact int.units_eq_one_or (equiv.perm.sign i) },
-      cases this with h h,
-      { rw [h, int.cast_one, degree_one] },
-      { rw [h, int.cast_neg, int.cast_one, ←@degree_one α, ←degree_neg] } }],
-  rw [zero_add],
-  refine degree_prod_le _ _ _ _,
-  intros j hj,
-  rw [diagonal],
-  dsimp,
-  split_ifs,
-  { rw [←sub_eq_add_neg, degree_X_sub_C], exact le_refl _ },
-  { rw [zero_add, degree_neg],
-    by_cases hM :  M (i j) j = 0,
-    { rw [hM, C_0, degree_zero], exact le_of_lt (with_bot.bot_lt_coe _) },
-    { rw [degree_C hM, ←with_bot.coe_zero, ←with_bot.coe_one, with_bot.coe_le_coe],
-      exact le_of_lt nat.zero_lt_one } }
-end
-
-lemma coeff_n (hn : fintype.card n > 0) : coeff (char_polynomial M) (fintype.card n) = 1 :=
-begin
-  unfold char_polynomial,
-  unfold det,
+  unfold charpoly det,
   rw [coeff_sum],
   rw [←show finset.univ.sum (λ i, ite (equiv.refl n = i) (1:α) 0) = 1,
     { rw [←finset.sum_subset (finset.subset_univ (finset.singleton (equiv.refl n))) _],
@@ -505,7 +439,7 @@ begin
   congr,
   ext p,
   rw [int_cast_eq_C, coeff_C_mul],
-  dsimp, conv_lhs {congr, skip, congr, congr, skip, funext, rw [←sub_eq_add_neg]},
+  dsimp,
   split_ifs,
   { unfold fintype.card,
     rw [←h, coeff_aux M hn, equiv.perm.sign_refl, mul_one, units.coe_one, int.cast_one] },
@@ -515,27 +449,26 @@ begin
     rw [coeff_eq_zero_of_degree_lt (degree_lt_aux M (finset.mem_univ j) hj), mul_zero] }
 end
 
-lemma degree (hn : fintype.card n > 0) : degree (char_polynomial M) = fintype.card n :=
-le_antisymm (degree_le M)
-  (le_of_not_gt (λ h, begin
-    apply @one_ne_zero α,
+lemma degree (hn : fintype.card n > 0) : degree (charpoly M) = fintype.card n :=
+le_antisymm (degree_le _)
+  (le_of_not_gt (λ h, one_ne_zero $ begin
     rw [←coeff_n M hn],
     apply coeff_eq_zero_of_degree_lt,
     assumption end))
 
-lemma ne_zero (hn : fintype.card n > 0) : char_polynomial M ≠ 0 :=
+lemma ne_zero (hn : fintype.card n > 0) : charpoly M ≠ 0 :=
 begin
   apply @ne_zero_of_degree_gt _ _ _ _ ↑(fintype.card n - 1),
   rw [degree M hn, with_bot.coe_lt_coe],
   exact nat.pred_lt (nat.pos_iff_ne_zero.mp hn)
 end
 
-lemma monic (hn : fintype.card n > 0) : monic (char_polynomial M) :=
+lemma monic (hn : fintype.card n > 0) : monic (charpoly M) :=
 begin
   unfold monic leading_coeff,
   convert coeff_n M hn,
   rw [←with_bot.coe_eq_coe, ←degree_eq_nat_degree (ne_zero M hn)],
   exact degree M hn
 end
--/
-end char_polynomial
+
+end charpoly

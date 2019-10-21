@@ -3,31 +3,14 @@ Copyright (c) 2019 Chris Hughes. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Chris Hughes
 
-A proof of that every natural number is the sum of four square numbers.
+The main result in this file is `sum_four_squares`,
+  a proof that every natural number is the sum of four square numbers.
 -/
 import data.zmod.basic field_theory.finite group_theory.perm.sign
 
 open finset polynomial finite_field equiv
 
-lemma add_even_of_add_square_even {m x y : ℤ} (h : 2 * m = x^2 + y^2) : (x + y) % 2 = 0 :=
-have hzmod : ∀ x y : zmod 2, x ^ 2 + y ^ 2 = 0 → x + y = 0, from dec_trivial,
-have (x : zmod 2)^2 + (y : zmod 2)^2 = 0,
-  by simpa [show (2 : zmod 2) = 0, from rfl, eq_comm] using congr_arg (coe : ℤ → zmod 2) h,
-show x + y ≡ 0 [ZMOD 2], from (zmod.eq_iff_modeq_int' (show 2 > 0, from dec_trivial)).1 $
-by simpa using hzmod _ _ this
-
-lemma sub_even_of_add_square_even {m x y : ℤ} (h : 2 * m = x^2 + y^2) : (x - y) % 2 = 0 :=
-add_even_of_add_square_even (show 2 * m = x^2 + (-y)^2, by simpa)
-
-private lemma sum_two_squares_of_two_mul_sum_two_squares {m x y : ℤ} (h : 2 * m = x^2 + y^2) :
-  m = ((x - y) / 2) ^ 2 + ((x + y) / 2) ^ 2 :=
-(domain.mul_left_inj (show (2*2 : ℤ) ≠ 0, from dec_trivial)).1 $
-calc 2 * 2 * m = (x - y)^2 + (x + y)^2 : by rw [mul_assoc, h]; ring
-... = (2 * ((x - y) / 2))^2 + (2 * ((x + y) / 2))^2 :
-  by rw [int.mul_div_cancel' ((int.dvd_iff_mod_eq_zero _ _).2 (sub_even_of_add_square_even h)),
-    int.mul_div_cancel' ((int.dvd_iff_mod_eq_zero _ _).2 (add_even_of_add_square_even h))]
-... = 2 * 2 * (((x - y) / 2) ^ 2 + ((x + y) / 2) ^ 2) :
-  by simp [mul_add, pow_succ, mul_comm, mul_assoc, mul_left_comm]
+namespace nat
 
 private lemma sum_four_squares_of_two_mul_sum_four_squares {m a b c d : ℤ}
   (h : a^2 + b^2 + c^2 + d^2 = 2 * m) : ∃ w x y z, w^2 + x^2 + y^2 + z^2 = m :=
@@ -45,8 +28,8 @@ have h23 : 2 ∣ f (σ 2) ^ 2 + f (σ 3) ^ 2,
 let ⟨x, hx⟩ := h01 in let ⟨y, hy⟩ := h23 in
 ⟨(f (σ 0) - f (σ 1)) / 2, (f (σ 0) + f (σ 1)) / 2, (f (σ 2) - f (σ 3)) / 2, (f (σ 2) + f (σ 3)) / 2,
   begin
-    rw [← sum_two_squares_of_two_mul_sum_two_squares hx.symm, add_assoc,
-      ← sum_two_squares_of_two_mul_sum_two_squares hy.symm,
+    rw [← int.sum_two_squares_of_two_mul_sum_two_squares hx.symm, add_assoc,
+      ← int.sum_two_squares_of_two_mul_sum_two_squares hy.symm,
       ← domain.mul_left_inj (show (2 : ℤ) ≠ 0, from dec_trivial), ← h, mul_add, ← hx, ← hy],
     have : univ.sum (λ x, f (σ x)^2) = univ.sum (λ x, f x^2),
     { conv_rhs { rw finset.sum_univ_perm σ } },
@@ -54,18 +37,11 @@ let ⟨x, hx⟩ := h01 in let ⟨y, hy⟩ := h23 in
     simpa [finset.sum_eq_multiset_sum, fin4univ, multiset.sum_cons, f]
   end⟩
 
-lemma neg_one_sum_two_squares_mod_p {p : ℕ} (hp : p.prime) : ∃ a b : zmodp p hp, a^2 + b^2 + 1 = 0 :=
-hp.eq_two_or_odd.elim (λ hp2, by subst hp2; exact dec_trivial) $ λ hp2,
-let ⟨a, b, hab⟩ := @exists_root_sum_quadratic _ _ _
-  (-X^2 : polynomial (zmodp p hp)) (X^2 - C (-1)) (by simp)
-  (degree_X_pow_sub_C dec_trivial _) (by simp *) in
-⟨a, b, by simpa using hab⟩
-
 lemma exists_sum_two_squares_add_one_eq_k {p : ℕ} (hp : p.prime) (hp1 : p % 2 = 1) :
   ∃ (a b : ℤ) (k : ℕ), a^2 + b^2 + 1 = k * p ∧ k < p :=
-let ⟨a, b, hab⟩ := neg_one_sum_two_squares_mod_p hp in
+let ⟨a, b, hab⟩ := zmodp.sum_two_squares_of_odd hp hp1 (-1) in
 have hab' : (p : ℤ) ∣ a.val_min_abs ^ 2 + b.val_min_abs ^ 2 + 1,
-  from (zmodp.eq_zero_iff_dvd_int hp _).1 $ by simpa using hab,
+  from (zmodp.eq_zero_iff_dvd_int hp _).1 $ by simpa [eq_neg_iff_add_eq_zero] using hab,
 let ⟨k, hk⟩ := hab' in
 have hk0 : 0 ≤ k, from nonneg_of_mul_nonneg_left
   (by rw ← hk; exact (add_nonneg (add_nonneg (pow_two_nonneg _) (pow_two_nonneg _)) zero_le_one))
@@ -75,7 +51,7 @@ have hk0 : 0 ≤ k, from nonneg_of_mul_nonneg_left
   lt_of_mul_lt_mul_left
     (calc p * k.nat_abs = a.val_min_abs.nat_abs ^ 2 + b.val_min_abs.nat_abs ^ 2 + 1 :
         by rw [← int.coe_nat_inj', int.coe_nat_add, int.coe_nat_add, nat.pow_two, nat.pow_two,
-          int.nat_abs_mul_self, int.nat_abs_mul_self,← pow_two, ← pow_two,
+          int.nat_abs_mul_self, int.nat_abs_mul_self, ← _root_.pow_two, ← _root_.pow_two,
           int.coe_nat_one, hk, int.coe_nat_mul, int.nat_abs_of_nonneg hk0]
       ... ≤ (p / 2) ^ 2 + (p / 2)^2 + 1 :
         add_le_add
@@ -108,7 +84,7 @@ have hm : ∃ m < p, 0 < m ∧ ∃ a b c d : ℤ, a^2 + b^2 + c^2 + d^2 = m * p,
     (λ hk0, by rw [hk0, int.coe_nat_zero, zero_mul] at hk;
       exact ne_of_gt (show a^2 + b^2 + 1 > 0, from add_pos_of_nonneg_of_pos
         (add_nonneg (pow_two_nonneg _) (pow_two_nonneg _)) zero_lt_one) hk.1),
-    a, b, 1, 0, by simpa [pow_two] using hk.1⟩,
+    a, b, 1, 0, by simpa [_root_.pow_two] using hk.1⟩,
 let m := nat.find hm in
 let ⟨a, b, c, d, (habcd : a^2 + b^2 + c^2 + d^2 = m * p)⟩ := (nat.find_spec hm).snd.2 in
 have hm0 : 0 < m, from (nat.find_spec hm).snd.1,
@@ -130,7 +106,7 @@ m.mod_two_eq_zero_or_one.elim
           y := (c : zmod mp).val_min_abs, z := (d : zmod mp).val_min_abs in
       have hnat_abs : w^2 + x^2 + y^2 + z^2 =
           (w.nat_abs^2 + x.nat_abs^2 + y.nat_abs ^2 + z.nat_abs ^ 2 : ℕ),
-        by simp [pow_two],
+        by simp [_root_.pow_two],
       have hwxyzlt : w^2 + x^2 + y^2 + z^2 < m^2,
         from calc w^2 + x^2 + y^2 + z^2
             = (w.nat_abs^2 + x.nat_abs^2 + y.nat_abs ^2 + z.nat_abs ^ 2 : ℕ) : hnat_abs
@@ -140,13 +116,13 @@ m.mod_two_eq_zero_or_one.elim
             (nat.pow_le_pow_of_le_left (zmod.nat_abs_val_min_abs_le _) _))
             (nat.pow_le_pow_of_le_left (zmod.nat_abs_val_min_abs_le _) _))
             (nat.pow_le_pow_of_le_left (zmod.nat_abs_val_min_abs_le _) _)
-        ... = 4 * (m / 2 : ℕ) ^ 2 : by simp [pow_two, bit0, bit1, mul_add, add_mul]
+        ... = 4 * (m / 2 : ℕ) ^ 2 : by simp [_root_.pow_two, bit0, bit1, mul_add, add_mul]
         ... < 4 * (m / 2 : ℕ) ^ 2 + ((4 * (m / 2) : ℕ) * (m % 2 : ℕ) + (m % 2 : ℕ)^2) :
-          (lt_add_iff_pos_right _).2 (by rw [hm2, int.coe_nat_one, one_pow, mul_one];
+          (lt_add_iff_pos_right _).2 (by rw [hm2, int.coe_nat_one, _root_.one_pow, mul_one];
             exact add_pos_of_nonneg_of_pos (int.coe_nat_nonneg _) zero_lt_one)
         ... = m ^ 2 : by conv_rhs {rw [← nat.mod_add_div m 2]};
           simp [-nat.mod_add_div, mul_add, add_mul, bit0, bit1, mul_comm, mul_assoc, mul_left_comm,
-            pow_add],
+            _root_.pow_add],
       have hwxyzabcd : ((w^2 + x^2 + y^2 + z^2 : ℤ) : zmod mp) =
           ((a^2 + b^2 + c^2 + d^2 : ℤ) : zmod mp),
         by simp [w, x, y, z, pow_two],
@@ -182,7 +158,7 @@ m.mod_two_eq_zero_or_one.elim
           (int.coe_nat_pos.2 hm0),
       have hnm : n.nat_abs < mp,
         from int.coe_nat_lt.1 (lt_of_mul_lt_mul_left
-          (by rw [int.nat_abs_of_nonneg hn_nonneg, ← hn, ← pow_two]; exact hwxyzlt)
+          (by rw [int.nat_abs_of_nonneg hn_nonneg, ← hn, ← _root_.pow_two]; exact hwxyzlt)
           (int.coe_nat_nonneg mp)),
       have hstuv : s^2 + t^2 + u^2 + v^2 = n.nat_abs * p,
         from (domain.mul_left_inj (show (m^2 : ℤ) ≠ 0, from pow_ne_zero 2
@@ -217,3 +193,5 @@ let ⟨w, x, y, z, h₂⟩ := sum_four_squares (n / min_fac n) in
     simp [nat.pow_two, int.coe_nat_add, int.nat_abs_mul_self'],
     ring,
   end⟩
+
+end nat

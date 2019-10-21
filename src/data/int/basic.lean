@@ -1234,3 +1234,16 @@ int.decidable_le_le P _ _
 end decidable
 
 end int
+
+section ring_hom
+
+variables {α : Type*} {β : Type*} [ring α] [ring β]
+
+lemma is_ring_hom.map_int_cast (f : α → β) [is_ring_hom f] (n : ℤ) : f n = n :=
+int.eq_cast (λ n : ℤ, f n) (by simp [is_ring_hom.map_one f])
+  (by simp [is_ring_hom.map_add f]) _
+
+lemma ring_hom.map_int_cast (f : α →+* β) (n : ℤ) : f n = n :=
+is_ring_hom.map_int_cast _ _
+
+end ring_hom

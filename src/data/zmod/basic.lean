@@ -440,3 +440,29 @@ instance : discrete_field (zmodp p hp) :=
   ..zmodp.has_inv hp }
 
 end zmodp
+
+namespace int
+
+lemma add_even_of_add_square_even {x y : ℤ} (h : (x^2 + y^2) % 2 = 0) : (x + y) % 2 = 0 :=
+let ⟨m, hm⟩ := (int.dvd_iff_mod_eq_zero _ _).2 h in
+have hzmod : ∀ x y : zmod 2, x ^ 2 + y ^ 2 = 0 → x + y = 0, from dec_trivial,
+have (x : zmod 2)^2 + (y : zmod 2)^2 = 0,
+  by simpa [show (2 : zmod 2) = 0, from rfl, eq_comm] using congr_arg (coe : ℤ → zmod 2) hm.symm,
+show x + y ≡ 0 [ZMOD 2], from (zmod.eq_iff_modeq_int' (show 2 > 0, from dec_trivial)).1 $
+by simpa using hzmod _ _ this
+
+lemma sub_even_of_add_square_even {x y : ℤ} (h : (x^2 + y^2) % 2 = 0) : (x - y) % 2 = 0 :=
+add_even_of_add_square_even (show (x^2 + (-y)^2) % 2 = 0, by simpa using h)
+
+lemma sum_two_squares_of_two_mul_sum_two_squares {m x y : ℤ} (h : 2 * m =  x^2 + y^2) :
+  m = ((x - y) / 2) ^ 2 + ((x + y) / 2) ^ 2 :=
+have (x^2 + y^2) % 2 = 0, by simp [h.symm],
+(domain.mul_left_inj (show (2*2 : ℤ) ≠ 0, from dec_trivial)).1 $
+calc 2 * 2 * m = (x - y)^2 + (x + y)^2 : by rw [mul_assoc, h]; ring
+... = (2 * ((x - y) / 2))^2 + (2 * ((x + y) / 2))^2 :
+  by rw [int.mul_div_cancel' ((int.dvd_iff_mod_eq_zero _ _).2 (sub_even_of_add_square_even this)),
+    int.mul_div_cancel' ((int.dvd_iff_mod_eq_zero _ _).2 (add_even_of_add_square_even this))]
+... = 2 * 2 * (((x - y) / 2) ^ 2 + ((x + y) / 2) ^ 2) :
+  by simp [mul_add, _root_.pow_succ, mul_comm, mul_assoc, mul_left_comm]
+
+end int

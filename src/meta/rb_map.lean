@@ -40,11 +40,6 @@ Otherwise it returns `default`. -/
 meta def find_def {key value} (default : value) (m : rb_map key value) (k : key) :=
 (m.find k).get_or_else default
 
-/-- `insert_cons k x m` adds `x` to the list corresponding to key `k`. -/
-meta def insert_cons {key value} [has_lt key] (k : key) (x : value) (m : rb_map key (list value)) :
-  rb_map key (list value) :=
-m.insert k (x :: m.find_def [] k)
-
 /-- `ifind m key` returns the value corresponding to `key` in `m`, if it exists.
 Otherwise it returns the default value of `value`. -/
 meta def ifind {key value} [inhabited value] (m : rb_map key value) (k : key) : value :=

@@ -271,6 +271,34 @@ However, it will work, producing the identity function, if one replaces have by 
 * `exactI`: `resetI` followed by `exact`. Like `exact`, but uses all
   variables in the context for typeclass inference.
 
+### suggest
+
+`suggest` lists possible usages of the `refine` tactic and leaves the tactic state unchanged.
+It is intended as a complement of the search function in your editor, the `#find` tactic, and `library_search`.
+
+`suggest` takes an optional natural number `num` as input and returns the first `num` (or less, if all possibilities are exhausted) possibilities ordered by length of lemma names. The default for `num` is `50`.
+
+For performance reasons `suggest` uses monadic lazy lists (`mllist`). This means that `suggest` might miss some results if `num` is not large enough. However, because `suggest` uses monadic lazy lists, smaller values of `num` run faster than larger values.
+
+An example of `suggest` in action,
+
+```lean
+example (n : nat) : n < n + 1 :=
+begin suggest, sorry end
+```
+
+prints the list,
+
+```lean
+exact nat.lt.base n
+exact nat.lt_succ_self n
+refine not_le.mp _
+refine gt_iff_lt.mp _
+refine nat.lt.step _
+refine lt_of_not_ge _
+...
+```
+
 ### library_search
 
 `library_search` is a tactic to identify existing lemmas in the library. It tries to close the

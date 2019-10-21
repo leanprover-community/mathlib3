@@ -567,14 +567,7 @@ begin
       exact λx hx, lt_of_le_of_lt (s.le_max' h x hx) (nat.lt_succ_self _) }},
   rcases this with ⟨N, hN⟩,
   refine ⟨N, λn hn, _⟩,
-  have : ∀n, n ≥ N → dist (f N) (f n) ≤ (Ico N n).sum d,
-  { apply nat.le_induction,
-    { simp },
-    { assume n hn hrec,
-      calc dist (f N) (f (n+1)) ≤ dist (f N) (f n) + d n : dist_triangle _ _ _
-        ... ≤ (Ico N n).sum d + d n : add_le_add hrec (le_refl _)
-        ... = (Ico N (n+1)).sum d : by rw [succ_top hn, sum_insert, add_comm]; simp }},
-  calc dist (f n) (f N) ≤ (Ico N n).sum d : by rw dist_comm; apply this n hn
+  calc dist (f n) (f N) ≤ (Ico N n).sum d : by rw dist_comm; apply dist_le_Ico_sum_dist f hn
     ... < ε : hs _ (finset.disjoint_iff_ne.2
                      (λa ha b hb, ne_of_gt (lt_of_lt_of_le (hN _ hb) (mem.1 ha).1)))
 end

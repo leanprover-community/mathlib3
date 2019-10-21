@@ -1816,9 +1816,8 @@ suffices card (t \ s) = card ((t \ s) ∪ s) - card s, by rwa sdiff_union_of_sub
 by rw [card_disjoint_union sdiff_disjoint, nat.add_sub_cancel]
 
 lemma disjoint_filter {s : finset α} {p q : α → Prop} [decidable_pred p] [decidable_pred q] :
-    (∀x, p x → ¬ q x) → disjoint (s.filter p) (s.filter q) :=
-assume h, by simp only [disjoint_iff_ne, mem_filter]; rintros a ⟨_, ha⟩ b ⟨_, hb⟩ eq;
-rw [eq] at ha; exact h _ ha hb
+    disjoint (s.filter p) (s.filter q) ↔ (∀ x ∈ s, p x → ¬ q x) :=
+by split; simp [disjoint_left] {contextual := tt}
 
 end disjoint
 
@@ -1941,7 +1940,7 @@ multiset.Ico.mem
 theorem eq_empty_of_le {n m : ℕ} (h : m ≤ n) : Ico n m = ∅ :=
 eq_of_veq $ multiset.Ico.eq_zero_of_le h
 
-@[simp] theorem self_eq_empty {n : ℕ} : Ico n n = ∅ :=
+@[simp] theorem self_eq_empty (n : ℕ) : Ico n n = ∅ :=
 eq_empty_of_le $ le_refl n
 
 @[simp] theorem eq_empty_iff {n m : ℕ} : Ico n m = ∅ ↔ m ≤ n :=
@@ -1952,13 +1951,16 @@ lemma union_consecutive {n m l : ℕ} (hnm : n ≤ m) (hml : m ≤ l) :
 by rw [← to_finset, ← to_finset, ← multiset.to_finset_add,
   multiset.Ico.add_consecutive hnm hml, to_finset]
 
-@[simp] lemma inter_consecutive {n m l : ℕ} : Ico n m ∩ Ico m l = ∅ :=
+@[simp] lemma inter_consecutive (n m l : ℕ) : Ico n m ∩ Ico m l = ∅ :=
 begin
   rw [← to_finset, ← to_finset, ← multiset.to_finset_inter, multiset.Ico.inter_consecutive],
   simp,
 end
 
-@[simp] theorem succ_singleton {n : ℕ} : Ico n (n+1) = {n} :=
+lemma disjoint_consecutive (n m l : ℕ) : disjoint (Ico n m) (Ico m l) :=
+le_of_eq $ inter_consecutive n m l
+
+@[simp] theorem succ_singleton (n : ℕ) : Ico n (n+1) = {n} :=
 eq_of_veq $ multiset.Ico.succ_singleton
 
 theorem succ_top {n m : ℕ} (h : n ≤ m) : Ico n (m + 1) = insert m (Ico n m) :=

@@ -135,41 +135,23 @@ namespace zmodp
 
 open finite_field
 
-lemma sum_two_squares_of_odd {p : ℕ} (hp : p.prime) (hp2 : p % 2 = 1) (x : zmodp p hp) :
+lemma sum_two_squares {p : ℕ} (hp : p.prime) (x : zmodp p hp) :
   ∃ a b : zmodp p hp, a^2 + b^2 = x :=
+hp.eq_two_or_odd.elim (λ hp2, by resetI; subst hp2; revert x; exact dec_trivial) $ λ hp2,
 let ⟨a, b, hab⟩ := @exists_root_sum_quadratic _ _ _
   (X^2 : polynomial (zmodp p hp)) (X^2 - C x) (by simp)
   (degree_X_pow_sub_C dec_trivial _) (by simp *) in
 ⟨a, b, by simpa only [eval_add, eval_pow, eval_neg, eval_X, eval_sub, eval_C,
     (add_sub_assoc _ _ _).symm, sub_eq_zero] using hab⟩
 
-lemma sum_two_squares {p : ℕ} (hp : p.prime) (x : zmodp p hp) (h2x : 2 ∣ (x - 1)) :
-  ∃ a b : zmodp p hp, a^2 + b^2 = x :=
-hp.eq_two_or_odd.elim (λ hp2, by resetI; subst hp2; revert x; exact dec_trivial)
-  (λ hp2, sum_two_squares_of_odd _ hp2 _)
-
 end zmodp
 
 namespace char_p
 
-lemma sum_two_squares_of_odd {α : Type*} [integral_domain α] {n : ℕ+} [char_p α n]
-  (hn2 : (n : ℕ) % 2 = 1) (x : ℤ) : ∃ a b : ℕ, (a^2 + b^2 : α) = x :=
-let ⟨a, b, hab⟩ := zmodp.sum_two_squares_of_odd (show nat.prime n,
-  from (char_p.char_is_prime_or_zero α _).resolve_right (nat.pos_iff_ne_zero.1 n.2)) hn2 x in
-⟨a.val, b.val, begin
-  have := congr_arg (zmod.cast : zmod n → α) hab,
-  rw [← zmod.cast_val a, ← zmod.cast_val b] at this,
-  simpa only [is_ring_hom.map_add (zmod.cast : zmod n → α),
-    is_semiring_hom.map_pow (zmod.cast : zmod n → α),
-    is_semiring_hom.map_nat_cast (zmod.cast : zmod n → α),
-    is_ring_hom.map_int_cast (zmod.cast : zmod n → α)]
-end⟩
-
-lemma sum_two_squares {α : Type*} [integral_domain α] {n : ℕ+} [char_p α n]
-  (hn2 : (n : ℕ) % 2 = 1) (x : ℤ) (h2x : 2 ∣ (x - 1 : zmod n)) :
+lemma sum_two_squares {α : Type*} [integral_domain α] {n : ℕ+} [char_p α n] (x : ℤ) :
   ∃ a b : ℕ, (a^2 + b^2 : α) = x :=
 let ⟨a, b, hab⟩ := zmodp.sum_two_squares (show nat.prime n,
-  from (char_p.char_is_prime_or_zero α _).resolve_right (nat.pos_iff_ne_zero.1 n.2)) x h2x in
+  from (char_p.char_is_prime_or_zero α _).resolve_right (nat.pos_iff_ne_zero.1 n.2)) x in
 ⟨a.val, b.val, begin
   have := congr_arg (zmod.cast : zmod n → α) hab,
   rw [← zmod.cast_val a, ← zmod.cast_val b] at this,

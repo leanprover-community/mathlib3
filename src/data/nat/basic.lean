@@ -452,10 +452,8 @@ eq_zero_of_mul_le hb $
 
 lemma mul_div_le_mul_div_assoc (a b c : ℕ) : a * (b / c) ≤ (a * b) / c :=
 if hc0 : c = 0 then by simp [hc0]
-else if hbc : b < c then
-  by simp [(nat.div_eq_zero_iff (nat.pos_of_ne_zero hc0)).2 hbc]
-else (le_div_iff_mul_le _ _ (nat.pos_of_ne_zero hc0)).2
-  (by rw [mul_assoc]; exact mul_le_mul_left _ (div_mul_le_self _ _))
+else (nat.le_div_iff_mul_le _ _ (nat.pos_of_ne_zero hc0)).2
+  (by rw [mul_assoc]; exact mul_le_mul_left _ (nat.div_mul_le_self _ _))
 
 lemma div_mul_div_le_div (a b c : ℕ) : ((a / c) * b) / a ≤ b / c :=
 if ha0 : a = 0 then by simp [ha0]

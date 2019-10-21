@@ -1172,6 +1172,8 @@ begin
   exact ⟨a, a.2, ha₂.symm⟩,
 end
 
+open function
+
 lemma inj_on_of_surj_on_of_card_le {s : finset α} {t : finset β}
   (f : Π a ∈ s, β) (hf : ∀ a ha, f a ha ∈ t)
   (hsurj : ∀ b ∈ t, ∃ a ha, b = f a ha)
@@ -1181,18 +1183,18 @@ lemma inj_on_of_surj_on_of_card_le {s : finset α} {t : finset β}
 by haveI : inhabited {x // x ∈ s} := ⟨⟨a₁, ha₁⟩⟩; exact
 let f' : {x // x ∈ s} → {x // x ∈ t} := λ x, ⟨f x.1 x.2, hf x.1 x.2⟩ in
 let g : {x // x ∈ t} → {x // x ∈ s} :=
-  @function.surj_inv _ _ f'
+  @surj_inv _ _ f'
     (λ x, let ⟨y, hy₁, hy₂⟩ := hsurj x.1 x.2 in ⟨⟨y, hy₁⟩, subtype.eq hy₂.symm⟩) in
-have hg : function.injective g, from function.injective_surj_inv _,
-have hsg : function.surjective g, from λ x,
+have hg : injective g, from function.injective_surj_inv _,
+have hsg : surjective g, from λ x,
   let ⟨y, hy⟩ := surj_on_of_inj_on_of_card_le (λ (x : {x // x ∈ t}) (hx : x ∈ t.attach), g x)
     (λ x _, show (g x) ∈ s.attach, from mem_attach _ _)
     (λ x y _ _ hxy, hg hxy) (by simpa) x (mem_attach _ _) in
   ⟨y, hy.snd.symm⟩,
-have hif : function.injective f',
-  from function.injective_of_has_left_inverse
-    ⟨g, function.left_inverse_of_surjective_of_right_inverse hsg
-      (function.right_inverse_surj_inv _)⟩,
+have hif : injective f',
+  from injective_of_has_left_inverse
+    ⟨g, left_inverse_of_surjective_of_right_inverse hsg
+      (right_inverse_surj_inv _)⟩,
 subtype.ext.1 (@hif ⟨a₁, ha₁⟩ ⟨a₂, ha₂⟩ (subtype.eq ha₁a₂))
 
 end card

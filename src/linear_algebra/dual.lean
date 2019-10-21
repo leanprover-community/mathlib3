@@ -78,7 +78,8 @@ variables {B : ι → V} (h : is_basis K B)
 
 include de h
 
-/-- Maps a vector to its dual representation. -/
+/-- The linear map from a vector space equipped with basis to its dual vector space,
+taking basis elements to corresponding dual basis elements. -/
 def to_dual : V →ₗ[K] module.dual K V :=
 h.constr $ λ v, h.constr $ λ w, if w = v then 1 else 0
 

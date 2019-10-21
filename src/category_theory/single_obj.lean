@@ -124,9 +124,12 @@ namespace units
 
 variables (α : Type u) [monoid α]
 
+/--
+The units in a monoid are (multiplicatively) equivalent to
+the automorphisms of `star` when we think of the monoid as a single-object category. -/
 def to_Aut : units α ≃* Aut (single_obj.star α) :=
 (units.map_equiv (single_obj.to_End α)).trans $
-  Aut.units_End_eqv_Aut _
+  Aut.units_End_equiv_Aut _
 
 @[simp] lemma to_Aut_hom (x : units α) : (to_Aut α x).hom = single_obj.to_End α x := rfl
 @[simp] lemma to_Aut_inv (x : units α) :

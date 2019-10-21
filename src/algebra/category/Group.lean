@@ -6,6 +6,7 @@ Authors: Johan Commelin
 
 import algebra.punit_instances
 import algebra.category.Mon.basic
+import category_theory.endomorphism
 
 /-!
 # Category instances for group, add_group, comm_group, and add_comm_group.
@@ -84,3 +85,85 @@ instance has_forget_to_CommMon : has_forget₂ CommGroup CommMon :=
 induced_category.has_forget₂ (λ G : CommGroup, CommMon.of G)
 
 end CommGroup
+
+
+variables {X Y : Type u}
+
+section
+variables [group X] [group Y]
+
+/-- Build an isomorphism in the category `Group` from a `mul_equiv` between `group`s. -/
+@[to_additive add_equiv.to_AddGroup_iso "Build an isomorphism in the category `AddGroup` from a `add_equiv` between `add_group`s."]
+def mul_equiv.to_Group_iso (e : X ≃* Y) : Group.of X ≅ Group.of Y :=
+{ hom := e.to_monoid_hom,
+  inv := e.symm.to_monoid_hom }
+
+@[simp, to_additive add_equiv.to_AddGroup_iso_hom]
+lemma mul_equiv.to_Group_iso_hom {e : X ≃* Y} : e.to_Group_iso.hom = e.to_monoid_hom := rfl
+@[simp, to_additive add_equiv.to_AddGroup_iso_inv]
+lemma mul_equiv.to_Group_iso_inv {e : X ≃* Y} : e.to_Group_iso.inv = e.symm.to_monoid_hom := rfl
+end
+
+section
+variables [comm_group X] [comm_group Y]
+
+/-- Build an isomorphism in the category `CommGroup` from a `mul_equiv` between `comm_group`s. -/
+@[to_additive add_equiv.to_AddCommGroup_iso "Build an isomorphism in the category `AddCommGroup` from a `add_equiv` between `add_comm_group`s."]
+def mul_equiv.to_CommGroup_iso (e : X ≃* Y) : CommGroup.of X ≅ CommGroup.of Y :=
+{ hom := e.to_monoid_hom,
+  inv := e.symm.to_monoid_hom }
+
+@[simp, to_additive add_equiv.to_AddCommGroup_iso_hom]
+lemma mul_equiv.to_CommGroup_iso_hom {e : X ≃* Y} : e.to_CommGroup_iso.hom = e.to_monoid_hom := rfl
+@[simp, to_additive add_equiv.to_AddCommGroup_iso_inv]
+lemma mul_equiv.to_CommGroup_iso_inv {e : X ≃* Y} : e.to_CommGroup_iso.inv = e.symm.to_monoid_hom := rfl
+end
+
+namespace category_theory.iso
+
+/-- Build a `mul_equiv` from an isomorphism in the category `Group`. -/
+@[to_additive AddGroup_iso_to_add_equiv "Build an `add_equiv` from an isomorphism in the category `AddGroup`."]
+def Group_iso_to_mul_equiv {X Y : Group.{u}} (i : X ≅ Y) : X ≃* Y :=
+{ to_fun    := i.hom,
+  inv_fun   := i.inv,
+  left_inv  := by tidy,
+  right_inv := by tidy,
+  map_mul'  := by tidy }.
+
+/-- Build a `mul_equiv` from an isomorphism in the category `CommGroup`. -/
+@[to_additive AddCommGroup_iso_to_add_equiv "Build an `add_equiv` from an isomorphism in the category `AddCommGroup`."]
+def CommGroup_iso_to_mul_equiv {X Y : CommGroup.{u}} (i : X ≅ Y) : X ≃* Y :=
+{ to_fun    := i.hom,
+  inv_fun   := i.inv,
+  left_inv  := by tidy,
+  right_inv := by tidy,
+  map_mul'  := by tidy }.
+
+end category_theory.iso
+
+/-- multiplicative equivalences between `group`s are the same as (isomorphic to) isomorphisms in `Group` -/
+@[to_additive add_equiv_iso_AddGroup_iso "additive equivalences between `add_group`s are the same as (isomorphic to) isomorphisms in `AddGroup`"]
+def mul_equiv_iso_Group_iso {X Y : Type u} [group X] [group Y] :
+  (X ≃* Y) ≅ (Group.of X ≅ Group.of Y) :=
+{ hom := λ e, e.to_Group_iso,
+  inv := λ i, i.Group_iso_to_mul_equiv, }
+
+/-- multiplicative equivalences between `comm_group`s are the same as (isomorphic to) isomorphisms in `CommGroup` -/
+@[to_additive add_equiv_iso_AddCommGroup_iso "additive equivalences between `add_comm_group`s are the same as (isomorphic to) isomorphisms in `AddCommGroup`"]
+def mul_equiv_iso_CommGroup_iso {X Y : Type u} [comm_group X] [comm_group Y] :
+  (X ≃* Y) ≅ (CommGroup.of X ≅ CommGroup.of Y) :=
+{ hom := λ e, e.to_CommGroup_iso,
+  inv := λ i, i.CommGroup_iso_to_mul_equiv, }
+
+namespace category_theory.Aut
+
+/-- The (bundled) group of automorphisms of a type is isomorphic to the (bundled) group of permutations. -/
+def iso_perm {α : Type u} : Group.of (Aut α) ≅ Group.of (equiv.perm α) :=
+{ hom := ⟨λ g, g.to_equiv, (by tidy), (by tidy)⟩,
+  inv := ⟨λ g, g.to_iso, (by tidy), (by tidy)⟩ }
+
+/-- The (unbundled) group of automorphisms of a type is `mul_equiv` to the (unbundled) group of permutations. -/
+def mul_equiv_perm {α : Type u} : Aut α ≃* equiv.perm α :=
+iso_perm.Group_iso_to_mul_equiv
+
+end category_theory.Aut

@@ -304,12 +304,25 @@ lemma map_ne_one_iff {α β} [monoid α] [monoid β] (h : α ≃* β) (x : α) :
   h x ≠ 1 ↔ x ≠ 1 :=
 ⟨mt (h.map_eq_one_iff x).2, mt (h.map_eq_one_iff x).1⟩
 
-/-- A multiplicative bijection between two monoids is an isomorphism. -/
+/--
+Extract the forward direction of a multiplicative equivalence
+as a multiplication preserving function.
+-/
 @[to_additive to_add_monoid_hom]
 def to_monoid_hom {α β} [monoid α] [monoid β] (h : α ≃* β) : (α →* β) :=
 { to_fun := h,
   map_mul' := h.map_mul,
   map_one' := h.map_one }
+
+@[simp, to_additive]
+lemma to_monoid_hom_apply_symm_to_monoid_hom_apply {α β} [monoid α] [monoid β] (e : α ≃* β) :
+  ∀ (y : β), e.to_monoid_hom (e.symm.to_monoid_hom y) = y :=
+e.to_equiv.apply_symm_apply
+
+@[simp, to_additive]
+lemma symm_to_monoid_hom_apply_to_monoid_hom_apply {α β} [monoid α] [monoid β] (e : α ≃* β) :
+  ∀ (x : α), e.symm.to_monoid_hom (e.to_monoid_hom x) = x :=
+equiv.symm_apply_apply (e.to_equiv)
 
 /-- A multiplicative equivalence of groups preserves inversion. -/
 @[to_additive]
@@ -510,6 +523,16 @@ def of (e : α ≃ β) [is_semiring_hom e] : α ≃+* β :=
 { .. e, .. monoid_hom.of e, .. add_monoid_hom.of e }
 
 instance (e : α ≃+* β) : is_semiring_hom e := e.to_ring_hom.is_semiring_hom
+
+@[simp]
+lemma to_ring_hom_apply_symm_to_ring_hom_apply {α β} [semiring α] [semiring β] (e : α ≃+* β) :
+  ∀ (y : β), e.to_ring_hom (e.symm.to_ring_hom y) = y :=
+e.to_equiv.apply_symm_apply
+
+@[simp]
+lemma symm_to_ring_hom_apply_to_ring_hom_apply {α β} [semiring α] [semiring β] (e : α ≃+* β) :
+  ∀ (x : α), e.symm.to_ring_hom (e.to_ring_hom x) = x :=
+equiv.symm_apply_apply (e.to_equiv)
 
 end semiring_hom
 

@@ -132,6 +132,21 @@ lemma dist_le_range_sum_dist (f : ℕ → α) (n : ℕ) :
   dist (f 0) (f n) ≤ (finset.range n).sum (λ i, dist (f i) (f (i + 1))) :=
 finset.Ico.zero_bot n ▸ dist_le_Ico_sum_dist f (nat.zero_le n)
 
+/-- A version of `dist_le_Ico_sum_dist` with each intermediate distance replaced
+with an upper estimate. -/
+lemma dist_le_Ico_sum_of_dist_le {f : ℕ → α} {m n} (hmn : m ≤ n)
+  {d : ℕ → ℝ} (hd : ∀ {k}, m ≤ k → k < n → dist (f k) (f (k + 1)) ≤ d k) :
+  dist (f m) (f n) ≤ (finset.Ico m n).sum d :=
+le_trans (dist_le_Ico_sum_dist f hmn) $
+finset.sum_le_sum $ λ k hk, hd (finset.Ico.mem.1 hk).1 (finset.Ico.mem.1 hk).2
+
+/-- A version of `dist_le_range_sum_dist` with each intermediate distance replaced
+with an upper estimate. -/
+lemma dist_le_range_sum_of_dist_le {f : ℕ → α} (n : ℕ)
+  {d : ℕ → ℝ} (hd : ∀ {k}, k < n → dist (f k) (f (k + 1)) ≤ d k) :
+  dist (f 0) (f n) ≤ (finset.range n).sum d :=
+finset.Ico.zero_bot n ▸ dist_le_Ico_sum_of_dist_le (zero_le n) (λ _ _, hd)
+
 theorem swap_dist : function.swap (@dist α _) = dist :=
 by funext x y; exact dist_comm _ _
 

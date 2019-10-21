@@ -240,8 +240,6 @@ calc a / b = ((range (a / b).succ).erase 0).card :
 
 lemma nat.mul_div_le_mul_div_assoc (a b c : ℕ) : a * (b / c) ≤ (a * b) / c :=
 if hc0 : c = 0 then by simp [hc0]
-else if hbc : b < c then
-  by simp [(nat.div_eq_zero_iff (nat.pos_of_ne_zero hc0)).2 hbc]
 else (nat.le_div_iff_mul_le _ _ (nat.pos_of_ne_zero hc0)).2
   (by rw [mul_assoc]; exact mul_le_mul_left _ (nat.div_mul_le_self _ _))
 
@@ -276,12 +274,21 @@ else
       (λ ⟨b₁, b₂⟩ h, ⟨⟨b₁, b₂⟩,
         by revert h; simp {contextual := tt}⟩)
 
-lemma eisenstein {p q : ℕ} (hp2 : p % 2 = 1) (hq2 : q % 2 = 1) :
+lemma add_sum_mul_div_eq_mul {p q : ℕ} (hp2 : p % 2 = 1) (hq2 : q % 2 = 1) :
   ((range (p / 2).succ).erase 0).sum (λ a, (a * q) / p) +
   ((range (q / 2).succ).erase 0).sum (λ a, (a * p) / q) =
   (p / 2) * (q / 2) :=
+have hswap : ((((range (q / 2).succ).erase 0).product ((range (p / 2).succ).erase 0)).filter
+    (λ x : ℕ × ℕ, x.2 * q ≤ x.1 * p)).card =
+  ((((range (p / 2).succ).erase 0).product ((range (q / 2).succ).erase 0)).filter
+    (λ x : ℕ × ℕ, x.1 * q ≤ x.2 * p)).card :=
+  card_congr (λ x _, prod.swap x)
+    (λ ⟨_, _⟩, by simp {contextual := tt})
+    (λ ⟨_, _⟩ ⟨_, _⟩, by simp {contextual := tt})
+    (λ ⟨x₁, x₂⟩ h, ⟨⟨x₂, x₁⟩, by revert h; simp {contextual := tt}⟩),
+have hdisj :
 begin
-  rw [sum_range_eq_card_lt, sum_range_eq_card_lt, ← card_disjoint_union],
+  rw [sum_range_eq_card_lt, sum_range_eq_card_lt, hswap, ← card_disjoint_union],
 
 
 end

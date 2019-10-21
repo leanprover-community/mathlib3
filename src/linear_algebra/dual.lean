@@ -273,7 +273,7 @@ variables {K : Type u} {V : Type v} {ι : Type w} [dι : decidable_eq ι]
 variables [discrete_field K] [add_comm_group V] [vector_space K V]
 variables {e : ι → V} {ε : ι → dual K V} (h : dual_pair e ε)
 
-include dι h
+include h
 
 /-- The coefficients of `v` on the basis `e` -/
 def coeffs (v : V) : ι →₀ K :=
@@ -284,7 +284,7 @@ def coeffs (v : V) : ι →₀ K :=
 
 @[simp] lemma coeffs_apply (v : V) (i : ι) : h.coeffs v i = ε i v := rfl
 
-omit dι h
+omit h
 private def help_tcs : has_scalar K V := mul_action.to_has_scalar _ _
 
 local attribute [instance] help_tcs
@@ -293,7 +293,7 @@ local attribute [instance] help_tcs
 This is a convenient abbreviation for `finsupp.total _ V K e l` -/
 def lc (e : ι → V) (l : ι →₀ K) : V := l.sum (λ (i : ι) (a : K), a • (e i))
 
-include dι h
+include h
 
 lemma dual_lc (l : ι →₀ K) (i : ι) : ε i (dual_pair.lc e l) = l i :=
 begin

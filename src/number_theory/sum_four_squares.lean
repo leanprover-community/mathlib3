@@ -7,35 +7,24 @@ The main result in this file is `sum_four_squares`,
   a proof that every natural number is the sum of four square numbers.
 -/
 import data.zmod.basic field_theory.finite group_theory.perm.sign
+import data.int.parity
 
 open finset polynomial finite_field equiv
 
-namespace nat
+namespace int
 
-private lemma sum_four_squares_of_two_mul_sum_four_squares {m a b c d : ℤ}
-  (h : a^2 + b^2 + c^2 + d^2 = 2 * m) : ∃ w x y z, w^2 + x^2 + y^2 + z^2 = m :=
-have ∀ f : fin 4 → zmod 2, (f 0)^2 + (f 1)^2 + (f 2)^2 + (f 3)^2 = 0 →
-    ∃ i : (fin 4), (f i)^2 + f (swap i 0 1)^2 = 0 ∧ f (swap i 0 2)^2 + f (swap i 0 3)^2 = 0,
-  from dec_trivial,
-let f : fin 4 → ℤ := vector.nth (a::b::c::d::vector.nil) in
-let ⟨i, hσ⟩ := this (coe ∘ f) (by rw [← @zero_mul (zmod 2) _ m, ← show ((2 : ℤ) : zmod 2) = 0, from rfl,
-  ← int.cast_mul, ← h]; simp only [int.cast_add, int.cast_pow]; refl) in
-let σ := swap i 0 in
-have h01 : 2 ∣ f (σ 0) ^ 2 + f (σ 1) ^ 2,
-  from (@zmod.eq_zero_iff_dvd_int 2 _).1 $ by simpa [σ] using hσ.1,
-have h23 : 2 ∣ f (σ 2) ^ 2 + f (σ 3) ^ 2,
-  from (@zmod.eq_zero_iff_dvd_int 2 _).1 $ by simpa using hσ.2,
-let ⟨x, hx⟩ := h01 in let ⟨y, hy⟩ := h23 in
-⟨(f (σ 0) - f (σ 1)) / 2, (f (σ 0) + f (σ 1)) / 2, (f (σ 2) - f (σ 3)) / 2, (f (σ 2) + f (σ 3)) / 2,
-  begin
-    rw [← int.sum_two_squares_of_two_mul_sum_two_squares hx.symm, add_assoc,
-      ← int.sum_two_squares_of_two_mul_sum_two_squares hy.symm,
-      ← domain.mul_left_inj (show (2 : ℤ) ≠ 0, from dec_trivial), ← h, mul_add, ← hx, ← hy],
-    have : univ.sum (λ x, f (σ x)^2) = univ.sum (λ x, f x^2),
-    { conv_rhs { rw finset.sum_univ_perm σ } },
-    have fin4univ : (univ : finset (fin 4)).1 = 0::1::2::3::0, from dec_trivial,
-    simpa [finset.sum_eq_multiset_sum, fin4univ, multiset.sum_cons, f]
-  end⟩
+lemma sum_two_squares_of_two_mul_sum_two_squares {m x y : ℤ} (h : 2 * m =  x^2 + y^2) :
+  m = ((x - y) / 2) ^ 2 + ((x + y) / 2) ^ 2 :=
+have (x^2 + y^2).even, by simp [h.symm, even_mul],
+have hxaddy : (x + y).even, by simpa [pow_two] with parity_simps,
+have hxsuby : (x - y).even, by simpa [pow_two] with parity_simps,
+have (x^2 + y^2) % 2 = 0, by simp [h.symm],
+(domain.mul_left_inj (show (2*2 : ℤ) ≠ 0, from dec_trivial)).1 $
+calc 2 * 2 * m = (x - y)^2 + (x + y)^2 : by rw [mul_assoc, h]; ring
+... = (2 * ((x - y) / 2))^2 + (2 * ((x + y) / 2))^2 :
+  by rw [int.mul_div_cancel' hxsuby, int.mul_div_cancel' hxaddy]
+... = 2 * 2 * (((x - y) / 2) ^ 2 + ((x + y) / 2) ^ 2) :
+  by simp [mul_add, _root_.pow_succ, mul_comm, mul_assoc, mul_left_comm]
 
 lemma exists_sum_two_squares_add_one_eq_k {p : ℕ} (hp : p.prime) (hp1 : p % 2 = 1) :
   ∃ (a b : ℤ) (k : ℕ), a^2 + b^2 + 1 = k * p ∧ k < p :=
@@ -74,7 +63,38 @@ have hk0 : 0 ≤ k, from nonneg_of_mul_nonneg_left
       end)
     (show 0 ≤ p, from nat.zero_le _)⟩
 
+end int
+
+namespace nat
+
+open int
+
 open_locale classical
+
+private lemma sum_four_squares_of_two_mul_sum_four_squares {m a b c d : ℤ}
+  (h : a^2 + b^2 + c^2 + d^2 = 2 * m) : ∃ w x y z, w^2 + x^2 + y^2 + z^2 = m :=
+have ∀ f : fin 4 → zmod 2, (f 0)^2 + (f 1)^2 + (f 2)^2 + (f 3)^2 = 0 →
+    ∃ i : (fin 4), (f i)^2 + f (swap i 0 1)^2 = 0 ∧ f (swap i 0 2)^2 + f (swap i 0 3)^2 = 0,
+  from dec_trivial,
+let f : fin 4 → ℤ := vector.nth (a::b::c::d::vector.nil) in
+let ⟨i, hσ⟩ := this (coe ∘ f) (by rw [← @zero_mul (zmod 2) _ m, ← show ((2 : ℤ) : zmod 2) = 0, from rfl,
+  ← int.cast_mul, ← h]; simp only [int.cast_add, int.cast_pow]; refl) in
+let σ := swap i 0 in
+have h01 : 2 ∣ f (σ 0) ^ 2 + f (σ 1) ^ 2,
+  from (@zmod.eq_zero_iff_dvd_int 2 _).1 $ by simpa [σ] using hσ.1,
+have h23 : 2 ∣ f (σ 2) ^ 2 + f (σ 3) ^ 2,
+  from (@zmod.eq_zero_iff_dvd_int 2 _).1 $ by simpa using hσ.2,
+let ⟨x, hx⟩ := h01 in let ⟨y, hy⟩ := h23 in
+⟨(f (σ 0) - f (σ 1)) / 2, (f (σ 0) + f (σ 1)) / 2, (f (σ 2) - f (σ 3)) / 2, (f (σ 2) + f (σ 3)) / 2,
+  begin
+    rw [← int.sum_two_squares_of_two_mul_sum_two_squares hx.symm, add_assoc,
+      ← int.sum_two_squares_of_two_mul_sum_two_squares hy.symm,
+      ← domain.mul_left_inj (show (2 : ℤ) ≠ 0, from dec_trivial), ← h, mul_add, ← hx, ← hy],
+    have : univ.sum (λ x, f (σ x)^2) = univ.sum (λ x, f x^2),
+    { conv_rhs { rw finset.sum_univ_perm σ } },
+    have fin4univ : (univ : finset (fin 4)).1 = 0::1::2::3::0, from dec_trivial,
+    simpa [finset.sum_eq_multiset_sum, fin4univ, multiset.sum_cons, f]
+  end⟩
 
 private lemma odd_prime_sum_four_squares {p : ℕ} (hp : p.prime) (hp2 : p%2 = 1) :
   ∃ a b c d : ℤ, a^2 + b^2 + c^2 + d^2 = p :=
@@ -170,8 +190,6 @@ m.mod_two_eq_zero_or_one.elim
             by simp only [hs.symm, ht.symm, hu.symm, hv.symm]; ring
           ... = _ : by rw [hn, habcd, int.nat_abs_of_nonneg hn_nonneg]; dsimp [mp]; ring,
       false.elim $ nat.find_min hm hnm ⟨lt_trans hnm hmp, hn0, s, t, u, v, hstuv⟩)
-
-open nat
 
 lemma sum_four_squares : ∀ n : ℕ, ∃ a b c d : ℕ, a^2 + b^2 + c^2 + d^2 = n
 | 0 := ⟨0, 0, 0, 0, rfl⟩

@@ -73,7 +73,7 @@ open int
 open_locale classical
 
 private lemma sum_four_squares_of_two_mul_sum_four_squares {m a b c d : ℤ}
-  (h : a^2 + b^2 + c^2 + d^2 = 2 * m) : ∃ w x y z, w^2 + x^2 + y^2 + z^2 = m :=
+  (h : a^2 + b^2 + c^2 + d^2 = 2 * m) : ∃ w x y z : ℤ, w^2 + x^2 + y^2 + z^2 = m :=
 have ∀ f : fin 4 → zmod 2, (f 0)^2 + (f 1)^2 + (f 2)^2 + (f 3)^2 = 0 →
     ∃ i : (fin 4), (f i)^2 + f (swap i 0 1)^2 = 0 ∧ f (swap i 0 2)^2 + f (swap i 0 3)^2 = 0,
   from dec_trivial,

@@ -260,8 +260,8 @@ have hq0 : (q : zmodp p hp) ≠ 0, by rwa [← nat.cast_zero, ne.def, zmodp.eq_i
             zero_mod, mod_eq_of_lt (lt_of_le_of_lt hxp (nat.div_lt_self hp.pos (lt_succ_self _)))]))).1 $
 have h₁ : disjoint ((range (succ (p * q / 2))).filter (coprime (p * q)))
       (filter (λ x, ¬coprime q x) (filter (coprime p) (range (succ (p * q / 2))))),
-  by {rw [finset.filter_filter], apply finset.disjoint_filter,
-      rintros _ hpq ⟨_, hq⟩, exact hq (coprime.coprime_mul_left hpq)},
+  by {rw [finset.filter_filter], apply finset.disjoint_filter.2,
+      rintros _ _ hpq ⟨_, hq⟩, exact hq (coprime.coprime_mul_left hpq)},
 calc ((((range ((p * q) / 2).succ).filter (coprime (p * q))).prod (λ x, x) : ℕ) : zmodp p hp)
      * (q ^ (p / 2) * ((range (p / 2).succ).erase 0).prod (λ x, x) : zmodp p hp)
    = (((range (succ (p * q / 2))).filter (coprime (p * q)) ∪

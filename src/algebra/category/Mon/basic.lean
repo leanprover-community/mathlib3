@@ -16,6 +16,28 @@ We introduce the bundled categories:
 * `CommMon`
 * `AddCommMon`
 along with the relevant forgetful functors between them.
+
+## Implementation notes
+
+### Note [locally reducible category instances]
+
+We make SemiRing (and the other categories) locally reducible in order
+to define its instances. This is because writing, for example,
+
+  instance : concrete_category SemiRing := by { delta SemiRing, apply_instance }
+
+results in an instance of the form `id (bundled_hom.concrete_category _)`
+and this `id`, not being [reducible], prevents a later instance search
+(once SemiRing is no longer reducible) from seeing that the morphisms of
+SemiRing are really semiring morphisms (`→+*`), and therefore have a coercion
+to functions, for example. It's especially important that the `has_coe_to_sort`
+instance not contain an extra `id` as we want the `semiring ↥R` instance to
+also apply to `semiring R.α` (it seems to be impractical to guarantee that
+we always access `R.α` through the coercion rather than directly).
+
+TODO: Probably @[derive] should be able to create instances of the
+required form (without `id`), and then we could use that instead of
+this obscure `local attribute [reducible]` method.
 -/
 
 universes u v
@@ -62,7 +84,7 @@ def of (M : Type u) [comm_monoid M] : CommMon := bundled.of M
 local attribute [reducible] CommMon
 
 @[to_additive]
-instance : has_coe_to_sort Mon := infer_instance
+instance : has_coe_to_sort CommMon := infer_instance
 
 @[to_additive add_comm_monoid]
 instance (M : CommMon) : comm_monoid M := M.str

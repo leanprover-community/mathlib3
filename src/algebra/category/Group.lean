@@ -16,6 +16,10 @@ We introduce the bundled categories:
 * `CommGroup`
 * `AddCommGroup`
 along with the relevant forgetful functors between them, and to the bundled monoid categories.
+
+## Implementation notes
+
+See the note [locally reducible category instances].
 -/
 
 universes u v

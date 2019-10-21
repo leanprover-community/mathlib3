@@ -11,6 +11,7 @@ namespace nat
 
 /-- Modular equality. `modeq n a b`, or `a ≡ b [MOD n]`, means
   that `a - b` is a multiple of `n`. -/
+@[derive decidable]
 def modeq (n a b : ℕ) := a % n = b % n
 
 notation a ` ≡ `:50 b ` [MOD `:50 n `]`:0 := modeq n a b
@@ -23,8 +24,6 @@ variables {n m a b c d : ℕ}
 @[symm] protected theorem symm : a ≡ b [MOD n] → b ≡ a [MOD n] := eq.symm
 
 @[trans] protected theorem trans : a ≡ b [MOD n] → b ≡ c [MOD n] → a ≡ c [MOD n] := eq.trans
-
-instance : decidable (a ≡ b [MOD n]) := by unfold modeq; apply_instance
 
 theorem modeq_zero_iff : a ≡ 0 [MOD n] ↔ n ∣ a :=
 by rw [modeq, zero_mod, dvd_iff_mod_eq_zero]

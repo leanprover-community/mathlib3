@@ -120,7 +120,7 @@ by cases x; simp [is_some]; exact ⟨_, rfl⟩
 @[simp] theorem not_is_some {a : option α} : is_some a = ff ↔ a.is_none = tt :=
 by cases a; simp
 
-lemma eq_some_iff_get_eq {o : option α} {a : α} : 
+lemma eq_some_iff_get_eq {o : option α} {a : α} :
   o = some a ↔ ∃ h : o.is_some, option.get h = a :=
 by cases o; simp
 

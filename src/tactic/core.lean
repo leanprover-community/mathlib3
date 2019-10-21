@@ -106,7 +106,7 @@ do nm ← mk_fresh_name,
    return $ `user__ ++ nm.pop_prefix.sanitize_name ++ `user__
 
 
-/-- Checks whether n' has attribute n. -/
+/-- `has_attribute n n'` checks whether n' has attribute n. -/
 meta def has_attribute' : name → name → tactic bool | n n' :=
 succeeds (has_attribute n n')
 
@@ -124,6 +124,16 @@ do e ← tactic.get_env,
      (λ d s, if environment.in_current_file' e d.to_name
              then s.insert d.to_name d else s),
    pure xs
+
+/-- If `{nm}_{n}` doesn't exist in the environment, returns that, otherwise tries `{nm}_{n+1}` -/
+meta def get_unused_decl_name_aux (e : environment) (nm : name) : ℕ → tactic name | n :=
+let nm' := nm.append_suffix ("_" ++ to_string n) in
+if e.contains nm' then get_unused_decl_name_aux (n+1) else return nm'
+
+/-- Return a name which doesn't already exist in the environment. If `nm` doesn't exist, it
+  returns that, otherwise it tries nm_2, nm_3, ... -/
+meta def get_unused_decl_name (nm : name) : tactic name :=
+get_env >>= λ e, if e.contains nm then get_unused_decl_name_aux e nm 2 else return nm
 
 /--
 Returns a pair (e, t), where `e ← mk_const d.to_name`, and `t = d.type`
@@ -523,24 +533,28 @@ meta def metavariables : tactic (list expr) :=
 do r ← result,
    pure (r.list_meta_vars)
 
+/-- Fail if the target contains a metavariable. -/
+meta def no_mvars_in_target : tactic unit :=
+expr.has_meta_var <$> target >>= guardb ∘ bnot
+
 /-- Succeeds only if the current goal is a proposition. -/
 meta def propositional_goal : tactic unit :=
-do goals ← get_goals,
-   p ← is_proof goals.head,
-   guard p
+do g :: _ ← get_goals,
+   is_proof g >>= guardb
 
 /-- Succeeds only if we can construct an instance showing the
     current goal is a subsingleton type. -/
 meta def subsingleton_goal : tactic unit :=
-do goals ← get_goals,
-   ty ← infer_type goals.head >>= instantiate_mvars,
+do g :: _ ← get_goals,
+   ty ← infer_type g >>= instantiate_mvars,
    to_expr ``(subsingleton %%ty) >>= mk_instance >> skip
 
-/-- Succeeds only if the current goal is "terminal", in the sense
-    that no other goals depend on it. -/
+/--
+Succeeds only if the current goal is "terminal",
+in the sense that no other goals depend on it
+(except possibly through shared metavariables; see `independent_goal`).
+-/
 meta def terminal_goal : tactic unit :=
--- We can't merely test for subsingletons, as sometimes in the presence of metavariables
--- `propositional_goal` succeeds while `subsingleton_goal` does not.
 propositional_goal <|> subsingleton_goal <|>
 do g₀ :: _ ← get_goals,
    mvars ← (λ L, list.erase L g₀) <$> metavariables,
@@ -550,6 +564,12 @@ do g₀ :: _ ← get_goals,
      monad.whenb d $
        pp t >>= λ s, fail ("The current goal is not terminal: " ++ s.to_string ++ " depends on it.")
 
+/--
+Succeeds only if the current goal is "independent", in the sense
+that no other goals depend on it, even through shared meta-variables.
+-/
+meta def independent_goal : tactic unit :=
+no_mvars_in_target >> terminal_goal
 
 meta def triv' : tactic unit := do c ← mk_const `trivial, exact c reducible
 
@@ -664,6 +684,18 @@ meta def choose : expr → list name → tactic unit
   v ← get_unused_name >>= choose1 h n,
   choose v ns
 
+/--
+Instantiates metavariables that appear in the current goal.
+-/
+meta def instantiate_mvars_in_target : tactic unit :=
+target >>= instantiate_mvars >>= change
+
+/--
+Instantiates metavariables in all goals.
+-/
+meta def instantiate_mvars_in_goals : tactic unit :=
+all_goals $ instantiate_mvars_in_target
+
 /-- This makes sure that the execution of the tactic does not change the tactic state.
     This can be helpful while using rewrite, apply, or expr munging.
     Remember to instantiate your metavariables before you're done! -/
@@ -718,6 +750,15 @@ instance : monad id :=
      let out := format.to_string format!"{{ {fs} }",
      return [(out,"")] }
 
+/-- Like `resolve_name` except when the list of goals is
+    empty. In that situation `resolve_name` fails whereas
+    `resolve_name'` simply proceeds on a dummy goal -/
+meta def resolve_name' (n : name) : tactic pexpr :=
+do [] ← get_goals | resolve_name n,
+   g ← mk_mvar,
+   set_goals [g],
+   resolve_name n <* set_goals []
+
 meta def strip_prefix' (n : name) : list string → name → tactic name
 | s name.anonymous := pure $ s.foldl (flip name.mk_string) name.anonymous
 | s (name.mk_string a p) :=
@@ -727,11 +768,15 @@ meta def strip_prefix' (n : name) : list string → name → tactic name
             then pure n'
             else strip_prefix' (a :: s) p }
      <|> strip_prefix' (a :: s) p
-| s (name.mk_numeral a p) := interaction_monad.failed
+| s n@(name.mk_numeral a p) := pure $ s.foldl (flip name.mk_string) n
 
 meta def strip_prefix : name → tactic name
-| n@(name.mk_string a a_1) := strip_prefix' n [a] a_1
-| _ := interaction_monad.failed
+| n@(name.mk_string a a_1) :=
+  if (`_private).is_prefix_of n
+    then let n' := n.update_prefix name.anonymous in
+            n' <$ resolve_name' n' <|> pure n
+    else strip_prefix' n [a] a_1
+| n := pure n
 
 meta def local_binding_info : expr → binder_info
 | (expr.local_const _ _ bi _) := bi
@@ -981,8 +1026,10 @@ attribute [higher_order map_comp_pure] map_pure
 private meta def tactic.use_aux (h : pexpr) : tactic unit :=
 (focus1 (refine h >> done)) <|> (fconstructor >> tactic.use_aux)
 
-meta def tactic.use (l : list pexpr) : tactic unit :=
-focus1 $ l.mmap' $ λ h, tactic.use_aux h <|> fail format!"failed to instantiate goal with {h}"
+protected meta def use (l : list pexpr) : tactic unit :=
+focus1 $ seq (l.mmap' $ λ h, tactic.use_aux h <|> fail format!"failed to instantiate goal with {h}")
+              instantiate_mvars_in_target
+
 
 meta def clear_aux_decl_aux : list expr → tactic unit
 | []     := skip
@@ -1145,6 +1192,101 @@ do e ← get_env,
 meta def is_in_mathlib (n : name) : tactic bool :=
 do ml ← get_mathlib_dir, e ← get_env, return $ e.is_prefix_of_file ml n
 
+/-- auxiliary function for apply_under_pis -/
+private meta def apply_under_pis_aux (func arg : pexpr) : ℕ → expr → pexpr
+| n (expr.pi nm bi tp bd) := expr.pi nm bi (pexpr.of_expr tp) (apply_under_pis_aux (n+1) bd)
+| n _ :=
+  let vars := ((list.range n).reverse.map (@expr.var ff)),
+      bd := vars.foldl expr.app arg.mk_explicit in
+  func bd
+
+/--
+Assumes `pi_expr` is of the form `Π x1 ... xn, _`.
+Creates a pexpr of the form `Π x1 ... xn, func (arg x1 ... xn)`.
+All arguments (implicit and explicit) to `arg` should be supplied. -/
+meta def apply_under_pis (func arg : pexpr) (pi_expr : expr) : pexpr :=
+apply_under_pis_aux func arg 0 pi_expr
+
+/--
+Tries to derive instances by unfolding the newly introduced type and applying type class resolution.
+
+For example,
+```
+@[derive ring] def new_int : Type := ℤ
+```
+adds an instance `ring new_int`, defined to be the instance of `ring ℤ` found by `apply_instance`.
+
+Multiple instances can be added with `@[derive [ring, module ℝ]]`.
+
+This derive handler applies only to declarations made using `def`, and will fail on such a
+declaration if it is unable to derive an instance. It is run with higher priority than the built-in
+handlers, which will fail on `def`s.
+-/
+@[derive_handler, priority 2000] meta def delta_instance : derive_handler :=
+λ cls new_decl_name,
+do env ← get_env,
+if env.is_inductive new_decl_name then return ff else
+do new_decl_type ← declaration.type <$> get_decl new_decl_name,
+   new_decl_pexpr ← resolve_name new_decl_name,
+   tgt ← to_expr $ apply_under_pis cls new_decl_pexpr new_decl_type,
+   (_, inst) ← solve_aux tgt
+     (intros >> reset_instance_cache >> delta_target [new_decl_name]  >> apply_instance >> done),
+   inst ← instantiate_mvars inst,
+   tgt ← instantiate_mvars tgt,
+   nm ← get_unused_decl_name $ new_decl_name ++
+     match cls with
+     -- the postfix is needed because we can't protect this name. using nm.last directly can
+     -- conflict with open namespaces
+     | (expr.const nm _) := (nm.last ++ "_1" : string)
+     | _ := "inst"
+     end,
+   add_decl $ mk_definition nm inst.collect_univ_params tgt inst,
+   set_basic_attribute `instance nm tt,
+   return tt
+
+/-- `find_private_decl n none` finds a private declaration named `n` in any of the imported files.
+
+`find_private_decl n (some m)` finds a private declaration named `n` in the same file where a declaration named `m`
+can be found.  -/
+meta def find_private_decl (n : name) (fr : option name) : tactic name :=
+do env ← get_env,
+   fn ← option_t.run (do
+         fr ← option_t.mk (return fr),
+         d ← monad_lift $ get_decl fr,
+         option_t.mk (return $ env.decl_olean d.to_name) ),
+   let p : string → bool :=
+     match fn with
+     | (some fn) := λ x, fn = x
+     | none := λ _, tt
+     end,
+   let xs := env.decl_filter_map (λ d,
+     do fn ← env.decl_olean d.to_name,
+        guard ((`_private).is_prefix_of d.to_name ∧ p fn ∧ d.to_name.update_prefix name.anonymous = n),
+        pure d.to_name),
+   match xs with
+   | [n] := pure n
+   | [] := fail "no such private found"
+   | _ := fail "many matches found"
+   end
+
+open lean.parser interactive
+
+/-- `import_private foo from bar` finds a private declaration `foo` in the same file as `bar`
+    and creates a local notation to refer to it.
+
+    `import_private foo`, looks for `foo` in all imported files. -/
+@[user_command]
+meta def import_private_cmd (_ : parse $ tk "import_private") : lean.parser unit :=
+do n  ← ident,
+   fr ← optional (tk "from" *> ident),
+   n ← find_private_decl n fr,
+   c ← resolve_constant n,
+   d ← get_decl n,
+   let c := @expr.const tt c d.univ_levels,
+   new_n ← new_aux_decl_name,
+   add_decl $ declaration.defn new_n d.univ_params d.type c reducibility_hints.abbrev d.is_trusted,
+   let new_not := sformat!"local notation `{n.update_prefix name.anonymous}` := {new_n}",
+   emit_command_here $ new_not,
+   skip .
 
 end tactic
-open tactic

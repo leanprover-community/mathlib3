@@ -13,6 +13,13 @@ variables {α : Sort*} {p : α → Prop}
   (∀ x, q x) ↔ (∀ a b, q ⟨a, b⟩) :=
 ⟨assume h a b, h ⟨a, b⟩, assume h ⟨a, b⟩, h a b⟩
 
+/-- An alternative version of `subtype.forall`. This one is useful if Lean cannot figure out `q`
+  when using `subtype.forall` from right to left. -/
+theorem subtype.forall' {q : ∀x, p x → Prop} :
+  (∀ x h, q x h) ↔ (∀ x : {a // p a}, q x.1 x.2) :=
+(@subtype.forall _ _ (λ x, q x.1 x.2)).symm
+
+
 @[simp] theorem subtype.exists {q : {a // p a} → Prop} :
   (∃ x, q x) ↔ (∃ a b, q ⟨a, b⟩) :=
 ⟨assume ⟨⟨a, b⟩, h⟩, ⟨a, b, h⟩, assume ⟨a, b, h⟩, ⟨⟨a, b⟩, h⟩⟩

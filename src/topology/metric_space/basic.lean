@@ -113,6 +113,40 @@ lemma dist_triangle4_right (x₁ y₁ x₂ y₂ : α) :
   dist x₁ y₁ ≤ dist x₁ x₂ + dist y₁ y₂ + dist x₂ y₂ :=
 by rw [add_right_comm, dist_comm y₁]; apply dist_triangle4
 
+/-- The triangle (polygon) inequality for sequences of points; `finset.Ico` version. -/
+lemma dist_le_Ico_sum_dist (f : ℕ → α) {m n} (h : m ≤ n) :
+  dist (f m) (f n) ≤ (finset.Ico m n).sum (λ i, dist (f i) (f (i + 1))) :=
+begin
+  revert n,
+  apply nat.le_induction,
+  { simp only [finset.sum_empty, finset.Ico.self_eq_empty, dist_self] },
+  { assume n hn hrec,
+    calc dist (f m) (f (n+1)) ≤ dist (f m) (f n) + dist _ _ : dist_triangle _ _ _
+      ... ≤ (finset.Ico m n).sum _ + _ : add_le_add hrec (le_refl _)
+      ... = (finset.Ico m (n+1)).sum _ :
+        by rw [finset.Ico.succ_top hn, finset.sum_insert, add_comm]; simp }
+end
+
+/-- The triangle (polygon) inequality for sequences of points; `finset.range` version. -/
+lemma dist_le_range_sum_dist (f : ℕ → α) (n : ℕ) :
+  dist (f 0) (f n) ≤ (finset.range n).sum (λ i, dist (f i) (f (i + 1))) :=
+finset.Ico.zero_bot n ▸ dist_le_Ico_sum_dist f (nat.zero_le n)
+
+/-- A version of `dist_le_Ico_sum_dist` with each intermediate distance replaced
+with an upper estimate. -/
+lemma dist_le_Ico_sum_of_dist_le {f : ℕ → α} {m n} (hmn : m ≤ n)
+  {d : ℕ → ℝ} (hd : ∀ {k}, m ≤ k → k < n → dist (f k) (f (k + 1)) ≤ d k) :
+  dist (f m) (f n) ≤ (finset.Ico m n).sum d :=
+le_trans (dist_le_Ico_sum_dist f hmn) $
+finset.sum_le_sum $ λ k hk, hd (finset.Ico.mem.1 hk).1 (finset.Ico.mem.1 hk).2
+
+/-- A version of `dist_le_range_sum_dist` with each intermediate distance replaced
+with an upper estimate. -/
+lemma dist_le_range_sum_of_dist_le {f : ℕ → α} (n : ℕ)
+  {d : ℕ → ℝ} (hd : ∀ {k}, k < n → dist (f k) (f (k + 1)) ≤ d k) :
+  dist (f 0) (f n) ≤ (finset.range n).sum d :=
+finset.Ico.zero_bot n ▸ dist_le_Ico_sum_of_dist_le (zero_le n) (λ _ _, hd)
+
 theorem swap_dist : function.swap (@dist α _) = dist :=
 by funext x y; exact dist_comm _ _
 
@@ -139,6 +173,7 @@ abs_of_nonneg dist_nonneg
 theorem eq_of_forall_dist_le {x y : α} (h : ∀ε, ε > 0 → dist x y ≤ ε) : x = y :=
 eq_of_dist_eq_zero (eq_of_le_of_forall_le_of_dense dist_nonneg h)
 
+/-- Distance as a nonnegative real number. -/
 def nndist (a b : α) : nnreal := ⟨dist a b, dist_nonneg⟩
 
 /--Express `nndist` in terms of `edist`-/
@@ -475,24 +510,37 @@ def metric_space.replace_uniformity {α} [U : uniform_space α] (m : metric_spac
   uniformity_dist    := H.trans (metric_space.uniformity_dist α) }
 
 /-- One gets a metric space from an emetric space if the edistance
-is everywhere finite. We set it up so that the edist and the uniformity are
-defeq in the metric space and the emetric space -/
-
-def emetric_space.to_metric_space {α : Type u} [e : emetric_space α] (h : ∀x y: α, edist x y ≠ ⊤) :
+is everywhere finite, by pushing the edistance to reals. We set it up so that the edist and the
+uniformity are defeq in the metric space and the emetric space. In this definition, the distance
+is given separately, to be able to prescribe some expression which is not defeq to the push-forward
+of the edistance to reals. -/
+def emetric_space.to_metric_space_of_dist {α : Type u} [e : emetric_space α]
+  (dist : α → α → ℝ)
+  (edist_ne_top : ∀x y: α, edist x y ≠ ⊤)
+  (h : ∀x y, dist x y = ennreal.to_real (edist x y)) :
   metric_space α :=
 let m : metric_space α :=
-{ dist               := λx y, ennreal.to_real (edist x y),
-  eq_of_dist_eq_zero := λx y hxy, by simpa [dist, ennreal.to_real_eq_zero_iff, h x y] using hxy,
-  dist_self          := λx, by simp,
-  dist_comm          := λx y, by simp [emetric_space.edist_comm],
+{ dist := dist,
+  eq_of_dist_eq_zero := λx y hxy, by simpa [h, ennreal.to_real_eq_zero_iff, edist_ne_top x y] using hxy,
+  dist_self          := λx, by simp [h],
+  dist_comm          := λx y, by simp [h, emetric_space.edist_comm],
   dist_triangle      := λx y z, begin
-    rw [← ennreal.to_real_add (h _ _) (h _ _), ennreal.to_real_le_to_real (h _ _)],
+    simp only [h],
+    rw [← ennreal.to_real_add (edist_ne_top _ _) (edist_ne_top _ _),
+        ennreal.to_real_le_to_real (edist_ne_top _ _)],
     { exact edist_triangle _ _ _ },
-    { simp [ennreal.add_eq_top, h] }
+    { simp [ennreal.add_eq_top, edist_ne_top] }
   end,
-  edist              := λx y, edist x y,
-  edist_dist         := λx y, by simp [ennreal.of_real_to_real, h] } in
+  edist := λx y, edist x y,
+  edist_dist := λx y, by simp [h, ennreal.of_real_to_real, edist_ne_top] } in
 metric_space.replace_uniformity m (by rw [uniformity_edist, uniformity_edist']; refl)
+
+/-- One gets a metric space from an emetric space if the edistance
+is everywhere finite, by pushing the edistance to reals. We set it up so that the edist and the
+uniformity are defeq in the metric space and the emetric space. -/
+def emetric_space.to_metric_space {α : Type u} [e : emetric_space α] (h : ∀x y: α, edist x y ≠ ⊤) :
+  metric_space α :=
+emetric_space.to_metric_space_of_dist (λx y, ennreal.to_real (edist x y)) h (λx y, rfl)
 
 section real
 
@@ -836,36 +884,35 @@ section pi
 open finset lattice
 variables {π : β → Type*} [fintype β] [∀b, metric_space (π b)]
 
-instance has_dist_pi : has_dist (Πb, π b) :=
-⟨λf g, ((finset.sup univ (λb, nndist (f b) (g b)) : nnreal) : ℝ)⟩
+/-- A finite product of metric spaces is a metric space, with the sup distance. -/
+instance metric_space_pi : metric_space (Πb, π b) :=
+begin
+  /- we construct the instance from the emetric space instance to avoid checking again that the
+  uniformity is the same as the product uniformity, but we register nevertheless a nice formula
+  for the distance -/
+  refine emetric_space.to_metric_space_of_dist
+    (λf g, ((sup univ (λb, nndist (f b) (g b)) : nnreal) : ℝ)) _ _,
+  show ∀ (x y : Π (b : β), π b), edist x y ≠ ⊤,
+  { assume x y,
+    rw ← lt_top_iff_ne_top,
+    have : (⊥ : ennreal) < ⊤ := ennreal.coe_lt_top,
+    simp [edist, this],
+    assume b,
+    rw lt_top_iff_ne_top,
+    exact edist_ne_top (x b) (y b) },
+  show ∀ (x y : Π (b : β), π b), ↑(sup univ (λ (b : β), nndist (x b) (y b))) =
+    ennreal.to_real (sup univ (λ (b : β), edist (x b) (y b))),
+  { assume x y,
+    have : sup univ (λ (b : β), edist (x b) (y b)) = ↑(sup univ (λ (b : β), nndist (x b) (y b))),
+    { simp [edist_nndist],
+      refine eq.symm (comp_sup_eq_sup_comp _ _ _),
+      exact (assume x y h, ennreal.coe_le_coe.2 h), refl },
+    rw this,
+    refl }
+end
 
 lemma dist_pi_def (f g : Πb, π b) :
-  dist f g = (finset.sup univ (λb, nndist (f b) (g b)) : nnreal) := rfl
-
-instance metric_space_pi : metric_space (Πb, π b) :=
-{ dist := dist,
-  dist_self := assume f, (nnreal.coe_eq_zero _).2 $ bot_unique $ finset.sup_le $ by simp,
-  dist_comm := assume f g, nnreal.eq_iff.2 $ by congr; ext a; exact nndist_comm _ _,
-  dist_triangle := assume f g h, show dist f h ≤ (dist f g) + (dist g h), from
-    begin
-      simp only [dist_pi_def, (nnreal.coe_add _ _).symm, nnreal.coe_le.symm,
-        finset.sup_le_iff],
-      assume b hb,
-      exact le_trans (nndist_triangle _ (g b) _) (add_le_add (le_sup hb) (le_sup hb))
-    end,
-  eq_of_dist_eq_zero := assume f g eq0,
-    begin
-      simp only [dist_pi_def, nnreal.coe_eq_zero, nnreal.bot_eq_zero.symm, eq_bot_iff,
-        finset.sup_le_iff] at eq0,
-      exact (funext $ assume b, eq_of_nndist_eq_zero $ bot_unique $ eq0 b $ mem_univ b),
-    end,
-  edist := λ f g, finset.sup univ (λb, edist (f b) (g b)),
-  edist_dist := assume x y, begin
-    have A : sup univ (λ (b : β), ((nndist (x b) (y b)) : ennreal)) = ↑(sup univ (λ (b : β), nndist (x b) (y b))),
-    { refine eq.symm (comp_sup_eq_sup_comp _ _ _),
-      exact (assume x y h, ennreal.coe_le_coe.2 h), refl },
-    simp [dist, edist_nndist, ennreal.of_real, A]
-  end }
+  dist f g = (sup univ (λb, nndist (f b) (g b)) : nnreal) := rfl
 
 end pi
 

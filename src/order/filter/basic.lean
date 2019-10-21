@@ -127,6 +127,10 @@ finite.induction_on hf
     have h₂ : (⋂x∈is, s x) ∈ f, from hi $ assume a ha, hs _ $ by simp only [ha, mem_insert_iff, or_true],
     by simp [inter_mem_sets h₁ h₂])
 
+lemma Inter_mem_sets_of_fintype {β : Type v} {s : β → set α} [fintype β] (h : ∀i, s i ∈ f) :
+  (⋂i, s i) ∈ f :=
+by simpa using Inter_mem_sets finite_univ (λi hi, h i)
+
 lemma exists_sets_subset_iff : (∃t ∈ f, t ⊆ s) ↔ s ∈ f :=
 ⟨assume ⟨t, ht, ts⟩, mem_sets_of_superset ht ts, assume hs, ⟨s, hs, subset.refl _⟩⟩
 
@@ -545,6 +549,24 @@ begin
   exact hx xt
 end
 
+@[simp] lemma infi_principal_finset {ι : Type w} (s : finset ι) (f : ι → set α) :
+  (⨅i∈s, principal (f i)) = principal (⋂i∈s, f i) :=
+begin
+  ext t,
+  simp [mem_infi_sets_finset],
+  split,
+  { rintros ⟨p, hp, ht⟩,
+    calc (⋂ (i : ι) (H : i ∈ s), f i) ≤ (⋂ (i : ι) (H : i ∈ s), p i) :
+      infi_le_infi (λi, infi_le_infi (λhi, mem_principal_sets.1 (hp i hi)))
+    ... ≤ t : ht },
+  { assume h,
+    exact ⟨f, λi hi, subset.refl _, h⟩ }
+end
+
+@[simp] lemma infi_principal_fintype {ι : Type w} [fintype ι] (f : ι → set α) :
+  (⨅i, principal (f i)) = principal (⋂i, f i) :=
+by simpa using infi_principal_finset finset.univ f
+
 end lattice
 
 section map
@@ -641,14 +663,14 @@ section
 protected def monad : monad filter := { map := @filter.map }
 
 local attribute [instance] filter.monad
-protected def is_lawful_monad : is_lawful_monad filter :=
+protected lemma is_lawful_monad : is_lawful_monad filter :=
 { id_map     := assume α f, filter_eq rfl,
-  pure_bind  := assume α β a f, by simp only [bind, Sup_image, image_singleton,
+  pure_bind  := assume α β a f, by simp only [has_bind.bind, pure, bind, Sup_image, image_singleton,
     join_principal_eq_Sup, lattice.Sup_singleton, map_principal, eq_self_iff_true],
   bind_assoc := assume α β γ f m₁ m₂, filter_eq rfl,
   bind_pure_comp_eq_map := assume α β f x, filter_eq $
-    by simp only [bind, join, map, preimage, principal, set.subset_univ, eq_self_iff_true,
-      function.comp_app, mem_set_of_eq, singleton_subset_iff] }
+    by simp only [has_bind.bind, pure, functor.map, bind, join, map, preimage, principal,
+      set.subset_univ, eq_self_iff_true, function.comp_app, mem_set_of_eq, singleton_subset_iff] }
 end
 
 instance : applicative filter := { map := @filter.map, seq := @filter.seq }

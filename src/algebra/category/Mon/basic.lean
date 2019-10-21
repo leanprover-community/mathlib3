@@ -96,3 +96,7 @@ instance : concrete_category CommMon := infer_instance
 instance has_forget_to_Mon : has_forget₂ CommMon Mon := infer_instance
 
 end CommMon
+
+-- We verify that the coercions of morphisms to functions work correctly:
+example {R S : Mon}     (f : R ⟶ S) : (R : Type) → (S : Type) := f
+example {R S : CommMon} (f : R ⟶ S) : (R : Type) → (S : Type) := f

@@ -53,5 +53,5 @@ meta def linter.dummy_linter : linter :=
   errors_found := "found something" }
 
 run_cmd do
-  s ← lint tt [`linter.dummy_linter] tt,
+  s ← lint tt tt [`linter.dummy_linter] tt,
   guard $ "/- found something: -/\n#print foo.foo /- gotcha! -/\n\n".is_suffix_of s.to_string

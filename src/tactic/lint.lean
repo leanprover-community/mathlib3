@@ -27,6 +27,9 @@ The command `#list_linters` prints a list of the names of all available linters.
 
 You can append a `-` to any command (e.g. `#lint_mathlib-`) to omit the slow tests (4).
 
+You can append a `!` to any command (e.g. `#lint_mathlib!`) to run a silent lint
+that suppresses the output of passing checks.
+
 You can append a sequence of linter names to any command to run extra tests, in addition to the
 default ones. e.g. `#lint doc_blame_thm` will run all default tests and `doc_blame_thm`.
 
@@ -37,6 +40,8 @@ You can add custom linters by defining a term of type `linter` in the `linter` n
 A linter defined with the name `linter.my_new_check` can be run with `#lint my_new_check`
 or `lint only my_new_check`.
 If you add the attribute `@[linter]` to `linter.my_new_check` it will run by default.
+
+Adding the attribute `@[nolint]` to a declaration omits it from all linter checks.
 
 ## Tags
 sanity check, lint, cleanup, command, tactic
@@ -279,6 +284,7 @@ cond verbose (old ++ new) old
 /-- The common denominator of `#lint[|mathlib|all]`.
   The different commands have different configurations for `l`, `printer` and `where_desc`.
   If `slow` is false, doesn't do the checks that take a lot of time.
+  If `verbose` is false, it will suppress messages from passing checks.
   By setting `checks` you can customize which checks are performed. -/
 meta def lint_aux (l : list declaration)
   (printer : (declaration → tactic (option string)) → tactic format)
@@ -342,18 +348,21 @@ do silent ← optional (tk "!"),
 
 /-- The command `#lint` at the bottom of a file will warn you about some common mistakes
 in that file. Usage: `#lint`, `#lint linter_1 linter_2`, `#lint only linter_1 linter_2`.
+`#lint!` will suppress the output of passing checks.
 Use the command `#list_linters` to see all available linters. -/
 @[user_command] meta def lint_cmd (_ : parse $ tk "#lint") : parser unit :=
 lint_cmd_aux @lint
 
 /-- The command `#lint_mathlib` checks all of mathlib for certain mistakes.
 Usage: `#lint_mathlib`, `#lint_mathlib linter_1 linter_2`, `#lint_mathlib only linter_1 linter_2`.
+`#lint_mathlib!` will suppress the output of passing checks.
 Use the command `#list_linters` to see all available linters. -/
 @[user_command] meta def lint_mathlib_cmd (_ : parse $ tk "#lint_mathlib") : parser unit :=
 lint_cmd_aux @lint_mathlib
 
 /-- The command `#lint_all` checks all imported files for certain mistakes.
 Usage: `#lint_all`, `#lint_all linter_1 linter_2`, `#lint_all only linter_1 linter_2`.
+`#lint_all!` will suppress the output of passing checks.
 Use the command `#list_linters` to see all available linters. -/
 @[user_command] meta def lint_all_cmd (_ : parse $ tk "#lint_all") : parser unit :=
 lint_cmd_aux @lint_all

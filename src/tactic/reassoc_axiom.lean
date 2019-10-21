@@ -152,5 +152,14 @@ do ns.mmap' (λ n,
 
 end interactive
 
+def calculated_Prop {α} (β : Prop) (hh : α) := β
+
+meta def derive_reassoc_proof : tactic unit :=
+do `(calculated_Prop %%v %%h) ← target,
+   (t,pr) ← prove_reassoc h,
+   unify v t,
+   exact pr
 
 end tactic
+
+def category_theory.reassoc_of {α} (hh : α) {β} (x : tactic.calculated_Prop β hh . tactic.derive_reassoc_proof) : β := x

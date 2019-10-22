@@ -94,7 +94,7 @@ instance limit_π_is_ring_hom (F : J ⥤ CommRing.{u}) (j) :
   map_mul := λ x y, by { simp only [types.types_limit_π], refl },
   map_add := λ x y, by { simp only [types.types_limit_π], refl } }
 
-namespace CommRing_has_limits
+namespace CommRing
 -- The next two definitions are used in the construction of `has_limits CommRing`.
 -- After that, the limits should be constructed using the generic limits API,
 -- e.g. `limit F`, `limit.cone F`, and `limit.is_limit F`.

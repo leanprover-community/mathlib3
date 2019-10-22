@@ -1172,6 +1172,31 @@ begin
   exact ⟨a, a.2, ha₂.symm⟩,
 end
 
+open function
+
+lemma inj_on_of_surj_on_of_card_le {s : finset α} {t : finset β}
+  (f : Π a ∈ s, β) (hf : ∀ a ha, f a ha ∈ t)
+  (hsurj : ∀ b ∈ t, ∃ a ha, b = f a ha)
+  (hst : card s ≤ card t)
+  ⦃a₁ a₂⦄ (ha₁ : a₁ ∈ s) (ha₂ : a₂ ∈ s) 
+  (ha₁a₂: f a₁ ha₁ = f a₂ ha₂) : a₁ = a₂ :=
+by haveI : inhabited {x // x ∈ s} := ⟨⟨a₁, ha₁⟩⟩; exact
+let f' : {x // x ∈ s} → {x // x ∈ t} := λ x, ⟨f x.1 x.2, hf x.1 x.2⟩ in
+let g : {x // x ∈ t} → {x // x ∈ s} :=
+  @surj_inv _ _ f'
+    (λ x, let ⟨y, hy₁, hy₂⟩ := hsurj x.1 x.2 in ⟨⟨y, hy₁⟩, subtype.eq hy₂.symm⟩) in
+have hg : injective g, from function.injective_surj_inv _,
+have hsg : surjective g, from λ x,
+  let ⟨y, hy⟩ := surj_on_of_inj_on_of_card_le (λ (x : {x // x ∈ t}) (hx : x ∈ t.attach), g x)
+    (λ x _, show (g x) ∈ s.attach, from mem_attach _ _)
+    (λ x y _ _ hxy, hg hxy) (by simpa) x (mem_attach _ _) in
+  ⟨y, hy.snd.symm⟩,
+have hif : injective f',
+  from injective_of_has_left_inverse
+    ⟨g, left_inverse_of_surjective_of_right_inverse hsg
+      (right_inverse_surj_inv _)⟩,
+subtype.ext.1 (@hif ⟨a₁, ha₁⟩ ⟨a₂, ha₂⟩ (subtype.eq ha₁a₂))
+
 end card
 
 section bind
@@ -1924,6 +1949,18 @@ eq_empty_of_le $ le_refl n
 
 @[simp] theorem eq_empty_iff {n m : ℕ} : Ico n m = ∅ ↔ m ≤ n :=
 iff.trans val_eq_zero.symm multiset.Ico.eq_zero_iff
+
+theorem subset_iff {m₁ n₁ m₂ n₂ : ℕ} (hmn : m₁ < n₁) :
+  Ico m₁ n₁ ⊆ Ico m₂ n₂ ↔ (m₂ ≤ m₁ ∧ n₁ ≤ n₂) :=
+begin
+  simp only [subset_iff, mem],
+  refine ⟨λ h, ⟨_, _⟩, _⟩,
+  { exact (h ⟨le_refl _, hmn⟩).1 },
+  { refine le_of_pred_lt (@h (pred n₁) ⟨le_pred_of_lt hmn, pred_lt _⟩).2,
+    exact ne_of_gt (lt_of_le_of_lt (nat.zero_le m₁) hmn) },
+  { rintros ⟨hm, hn⟩ k ⟨hmk, hkn⟩,
+    exact ⟨le_trans hm hmk, lt_of_lt_of_le hkn hn⟩ }
+end
 
 lemma union_consecutive {n m l : ℕ} (hnm : n ≤ m) (hml : m ≤ l) :
   Ico n m ∪ Ico m l = Ico n l :=

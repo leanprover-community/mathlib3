@@ -112,6 +112,10 @@ units.ext h
 | (n : ℕ) := by simp only [gpow_coe_nat, units.coe_pow, h, pow_right]
 | -[1+n] := by simp only [gpow_neg_succ, units.coe_pow, units_inv_right, h, pow_right]
 
+/-- `a` semiconjugates `x` to `a * x * a⁻¹`. -/
+lemma units_conj_mk (a : units M) (x : M) : semiconj_by ↑a x (a * x * ↑a⁻¹) :=
+by unfold semiconj_by; rw [units.inv_mul_cancel_right]
+
 end monoid
 
 section group
@@ -135,6 +139,10 @@ h.inv_right.inv_symm_left
 
 lemma inv_inv_symm_iff : semiconj_by a⁻¹ y⁻¹ x⁻¹ ↔ semiconj_by a x y :=
 inv_right_iff.trans inv_symm_left_iff
+
+/-- `a` semiconjugates `x` to `a * x * a⁻¹`. -/
+lemma conj_mk (a x : G) : semiconj_by a x (a * x * a⁻¹) :=
+by unfold semiconj_by; rw [inv_mul_cancel_right]
 
 @[simp] lemma gpow_right (h : semiconj_by a x y) : ∀ m : ℤ, semiconj_by a (x^m) (y^m)
 | (n : ℕ) := h.pow_right n

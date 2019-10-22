@@ -31,7 +31,7 @@ variables {J : Type u} [small_category J]
 
 instance comm_ring_obj (F : J ⥤ CommRing.{u}) (j) :
   comm_ring ((F ⋙ forget CommRing).obj j) :=
-by { dsimp, apply_instance }
+by { change comm_ring (F.obj j), apply_instance }
 
 instance sections_submonoid (F : J ⥤ CommRing.{u}) :
   is_submonoid (F ⋙ forget CommRing).sections :=

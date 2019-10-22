@@ -13,7 +13,7 @@ Introduces notations
     (I would like a better arrow here, unfortunately ⇒ (`\functor`) is taken by core.)
 -/
 
-import category_theory.category
+import category_theory.category tactic.reassoc_axiom
 
 namespace category_theory
 
@@ -41,7 +41,7 @@ infixr ` ⥤ `:26 := functor       -- type as \func --
 restate_axiom functor.map_id'
 attribute [simp] functor.map_id
 restate_axiom functor.map_comp'
-attribute [simp] functor.map_comp
+attribute [simp, reassoc] functor.map_comp
 
 namespace functor
 

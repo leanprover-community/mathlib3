@@ -130,6 +130,7 @@ begin
 end
 
 end CommRing_has_limits
+open CommRing_has_limits
 
 /-- The category of commutative rings has all limits. -/
 instance CommRing_has_limits : has_limits.{u} CommRing.{u} :=

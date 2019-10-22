@@ -38,10 +38,11 @@ a problem for the manifold applications, but should probably be refactored at so
 def euclidean_space (n : ℕ) : Type := (fin n → ℝ)
 
 /--
-The half-space in ℝ^n, used to model manifolds with boundary. The definition is a little bit
-convoluted as one can not require `0 ≤ x 0`: if n = 0, then there is no 0 in `fin n`...
+The half-space in ℝ^n, used to model manifolds with boundary. We only define it when `1 ≤ n`, as the
+definition only makes sense in this case.
 -/
-def euclidean_half_space (n : ℕ) : Type := {x : euclidean_space n // ∀i:fin n, i.val = 0 → 0 ≤ x i}
+def euclidean_half_space (n : ℕ) [has_zero (fin n)] : Type :=
+{x : euclidean_space n // 0 ≤ x 0}
 
 /--
 The quadrant in ℝ^n, used to model manifolds with corners, made of all vectors with nonnegative
@@ -57,15 +58,15 @@ variable {n : ℕ}
 instance : vector_space ℝ (euclidean_space n) := by apply_instance
 instance : normed_group (euclidean_space n) := by apply_instance
 instance : normed_space ℝ (euclidean_space n) := by apply_instance
-instance : topological_space (euclidean_half_space n) := by apply_instance
+instance [has_zero (fin n)] : topological_space (euclidean_half_space n) := by apply_instance
 instance : topological_space (euclidean_quadrant n) := by apply_instance
 instance : finite_dimensional ℝ (euclidean_space n) := by apply_instance
 
 @[simp] lemma findim_euclidean_space : finite_dimensional.findim ℝ (euclidean_space n) = n :=
 by simp
 
-lemma range_half_space (n : ℕ) :
-  range (λx : euclidean_half_space n, x.val) = {y | ∀i:fin n, i.val = 0 → 0 ≤ y i } :=
+lemma range_half_space (n : ℕ) [has_zero (fin n)] :
+  range (λx : euclidean_half_space n, x.val) = {y | 0 ≤ y 0 } :=
 by simp
 
 lemma range_quadrant (n : ℕ) :
@@ -78,11 +79,10 @@ end
 Definition of the model with corners (euclidean_space n, euclidean_half_space n), used as a
 model for manifolds with boundary.
 -/
-def model_with_corners_euclidean_half_space (n : ℕ) :
+def model_with_corners_euclidean_half_space (n : ℕ) [has_zero (fin n)] :
   model_with_corners ℝ (euclidean_space n) (euclidean_half_space n) :=
 { to_fun     := λx, x.val,
-  inv_fun    := λx, ⟨λi, if h : i.val = 0 then max (x i) 0 else x i,
-                    λi, by { by_cases h : i.val = 0; simp [h, le_refl] } ⟩,
+  inv_fun    := λx, ⟨λi, if h : i = 0 then max (x i) 0 else x i, by simp [le_refl]⟩,
   source     := univ,
   target     := range (λx : euclidean_half_space n, x.val),
   map_source := λx hx, by simpa [-mem_range, mem_range_self] using x.property,
@@ -90,16 +90,14 @@ def model_with_corners_euclidean_half_space (n : ℕ) :
   left_inv   := λ⟨xval, xprop⟩ hx, begin
     rw subtype.mk_eq_mk,
     ext1 i,
-    by_cases hi : i.val = 0,
-    simp [hi, xprop i hi],
-    simp [hi],
+    by_cases hi : i = 0;
+    simp [hi, xprop]
   end,
   right_inv := λx hx, begin
-    rw range_half_space at hx,
+    simp [range_half_space] at hx,
     ext1 i,
-    by_cases hi : i.val = 0,
-    { simp [hi, hx i hi] },
-    { simp [hi] }
+    by_cases hi : i = 0;
+    simp [hi, hx]
   end,
   source_eq   := rfl,
   unique_diff := begin
@@ -107,19 +105,19 @@ def model_with_corners_euclidean_half_space (n : ℕ) :
     `unique_diff_on_convex`: it suffices to check that it is convex and with nonempty interior. -/
     rw range_half_space,
     apply unique_diff_on_convex,
-    show convex {y : euclidean_space n | ∀ (i : fin n), i.val = 0 → 0 ≤ y i},
-    { assume x y a b hx hy ha hb hab i hi,
-      simpa using add_le_add (mul_nonneg' ha (hx i hi)) (mul_nonneg' hb (hy i hi)) },
-    show interior {y : euclidean_space n | ∀ (i : fin n), i.val = 0 → 0 ≤ y i} ≠ ∅,
+    show convex {y : euclidean_space n | 0 ≤ y 0},
+    { assume x y a b hx hy ha hb hab,
+      simpa using add_le_add (mul_nonneg' ha hx) (mul_nonneg' hb hy) },
+    show interior {y : euclidean_space n | 0 ≤ y 0} ≠ ∅,
     { rw ne_empty_iff_exists_mem,
       use (λi, 1),
       rw mem_interior,
       refine ⟨(pi (univ : set (fin n)) (λi, (Ioi 0 : set ℝ))), _,
         is_open_set_pi finite_univ (λa ha, is_open_Ioi), _⟩,
-      { assume x hx i hi,
+      { assume x hx,
         simp [pi] at hx,
-        exact le_of_lt (hx i) },
-      { simp [pi],
+        exact le_of_lt (hx 0) },
+      { simp only [pi, forall_prop_of_true, mem_univ, mem_Ioi],
         assume i,
         exact zero_lt_one } }
   end,
@@ -128,10 +126,10 @@ def model_with_corners_euclidean_half_space (n : ℕ) :
     apply continuous_subtype_mk,
     apply continuous_pi,
     assume i,
-    by_cases h : i.val = 0,
+    by_cases h : i = 0,
     { simp only [h, dif_pos],
       have : continuous (λx:ℝ, max x 0) := continuous_max continuous_id continuous_const,
-      exact this.comp (continuous_apply i) },
+      exact this.comp (continuous_apply 0) },
     { simp [h],
       exact continuous_apply i }
   end }
@@ -176,7 +174,7 @@ def model_with_corners_euclidean_quadrant (n : ℕ) :
       { assume x hx i,
         simp [pi] at hx,
         exact le_of_lt (hx i) },
-      { simp [pi],
+      { simp only [pi, forall_prop_of_true, mem_univ, mem_Ioi],
         assume i,
         exact zero_lt_one } }
   end,
@@ -204,8 +202,8 @@ def Icc_left_chart (x y : ℝ) [h : lt_class x y] :
   local_homeomorph (Icc x y) (euclidean_half_space 1) :=
 { source := {z : Icc x y | z.val < y},
   target := {z : euclidean_half_space 1 | z.val 0 < y - x},
-  to_fun := λ(z : Icc x y), ⟨λi, z.val - x, λi hi, sub_nonneg.mpr z.property.1⟩,
-  inv_fun := λz, ⟨min (z.val 0 + x) y, by simp [le_refl, z.property 0 rfl, le_of_lt h]⟩,
+  to_fun := λ(z : Icc x y), ⟨λi, z.val - x, sub_nonneg.mpr z.property.1⟩,
+  inv_fun := λz, ⟨min (z.val 0 + x) y, by simp [le_refl, z.property, le_of_lt h]⟩,
   map_source := by simp,
   map_target := by { simp, assume z hz, left, linarith },
   left_inv := by { rintros ⟨z, hz⟩ h'z, simp at hz h'z, simp [hz, h'z] },
@@ -252,8 +250,8 @@ def Icc_right_chart (x y : ℝ) [h : lt_class x y] :
   local_homeomorph (Icc x y) (euclidean_half_space 1) :=
 { source := {z : Icc x y | x < z.val},
   target := {z : euclidean_half_space 1 | z.val 0 < y - x},
-  to_fun := λ(z : Icc x y), ⟨λi, y - z.val, λi hi, sub_nonneg.mpr  z.property.2⟩,
-  inv_fun := λz, ⟨max (y - z.val 0) x, by simp [le_refl, z.property 0 rfl, le_of_lt h]⟩,
+  to_fun := λ(z : Icc x y), ⟨λi, y - z.val, sub_nonneg.mpr z.property.2⟩,
+  inv_fun := λz, ⟨max (y - z.val 0) x, by simp [le_refl, z.property, le_of_lt h]⟩,
   map_source := by simp,
   map_target := by { simp, assume z hz, left, linarith },
   left_inv := by { rintros ⟨z, hz⟩ h'z, simp at hz h'z, simp [hz, h'z] },
@@ -338,9 +336,9 @@ begin
         refine unique_diff_on.inter (model_with_corners.unique_diff _) _,
         exact model_with_corners.continuous_inv_fun _ _ (local_homeomorph.open_source _) },
       { assume z hz,
-        simp [-mem_range, range_half_space, model_with_corners_euclidean_half_space, fin.val_zero,
+        simp [-mem_range, range_half_space, model_with_corners_euclidean_half_space,
               local_equiv.trans_source, he, he', Icc_left_chart, Icc_right_chart] at hz,
-        have A : 0 ≤ z 0 := hz.2 0 rfl,
+        have A : 0 ≤ z 0 := hz.2,
         have B : x ≤ y + -z 0,
           by { have := hz.1.1.1, linarith },
         have C : y + (-x + -z 0) = ((λ (i : fin 1), y + -x) + -z) 0,
@@ -355,9 +353,9 @@ begin
         refine unique_diff_on.inter (model_with_corners.unique_diff _) _,
         exact model_with_corners.continuous_inv_fun _ _ (local_homeomorph.open_source _) },
       { assume z hz,
-        simp [-mem_range, range_half_space, model_with_corners_euclidean_half_space, fin.val_zero,
+        simp [-mem_range, range_half_space, model_with_corners_euclidean_half_space,
               local_equiv.trans_source, he, he', Icc_left_chart, Icc_right_chart] at hz,
-        have A : 0 ≤ z 0 := hz.2 0 rfl,
+        have A : 0 ≤ z 0 := hz.2,
         have B : x + z 0 ≤ y,
           by { have := hz.1.1.1, linarith },
         have C : y + (-x + -z 0) = ((λ (i : fin 1), y + -x) + -z) 0,

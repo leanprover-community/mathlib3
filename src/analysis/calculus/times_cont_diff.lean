@@ -455,7 +455,7 @@ begin
   have A : continuous (λq : (E →L[𝕜] F) × E, q.1 q.2) := is_bounded_bilinear_map_apply.continuous,
   have B : continuous_on (λp : E × E, (fderiv_within 𝕜 f s p.1, p.2)) (set.prod s univ),
   { apply continuous_on.prod _ continuous_snd.continuous_on,
-    exact continuous_on.comp (h.continuous_on_fderiv_within hn) continuous_fst.continuous_on
+    refine continuous_on.comp (h.continuous_on_fderiv_within hn) continuous_fst.continuous_on
       (prod_subset_preimage_fst _ _) },
   exact A.comp_continuous_on B
 end
@@ -629,6 +629,10 @@ begin
     assume n, apply Itop }
 end
 
+lemma times_cont_diff_on_const {n : with_top ℕ} {c : F} {s : set E} (hs : unique_diff_on 𝕜 s) :
+  times_cont_diff_on 𝕜 n (λx : E, c) s :=
+times_cont_diff_const.times_cont_diff_on hs
+
 /--
 Linear functions are C^∞.
 -/
@@ -788,6 +792,14 @@ begin
 end
 
 /--
+The composition of a C^n function on domain with a C^n function is C^n.
+-/
+lemma times_cont_diff.comp_times_cont_diff_on {n : with_top ℕ} {s : set E} {g : F → G} {f : E → F}
+  (hg : times_cont_diff 𝕜 n g) (hf : times_cont_diff_on 𝕜 n f s) (hs : unique_diff_on 𝕜 s) :
+  times_cont_diff_on 𝕜 n (g ∘ f) s :=
+(times_cont_diff_on_univ.2 hg).comp hf hs subset_preimage_univ
+
+/--
 The composition of `C^n` functions is `C^n`.
 -/
 lemma times_cont_diff.comp {n : with_top ℕ} {g : F → G} {f : E → F}
@@ -805,9 +817,8 @@ lemma times_cont_diff_on_fderiv_within_apply {m n : with_top  ℕ} {s : set E}
 begin
   have U : unique_diff_on 𝕜 (set.prod s (univ : set E)) :=
     hs.prod unique_diff_on_univ,
-  have A : times_cont_diff_on 𝕜 m (λp : (E →L[𝕜] F) × E, p.1 p.2) univ,
-  { rw times_cont_diff_on_univ,
-    apply is_bounded_bilinear_map.times_cont_diff,
+  have A : times_cont_diff 𝕜 m (λp : (E →L[𝕜] F) × E, p.1 p.2),
+  { apply is_bounded_bilinear_map.times_cont_diff,
     exact is_bounded_bilinear_map_apply },
   have B : times_cont_diff_on 𝕜 m
     (λ (p : E × E), ((fderiv_within 𝕜 f s p.fst), p.snd)) (set.prod s univ),
@@ -820,7 +831,7 @@ begin
     { apply times_cont_diff.times_cont_diff_on _ U,
       apply is_bounded_linear_map.times_cont_diff,
       apply is_bounded_linear_map.snd } },
-  apply times_cont_diff_on.comp A B U (subset_univ _),
+  exact A.comp_times_cont_diff_on B U
 end
 
 /--
@@ -834,3 +845,69 @@ begin
   rw [← fderiv_within_univ, ← univ_prod_univ],
   exact times_cont_diff_on_fderiv_within_apply hf unique_diff_on_univ hmn
 end
+
+/--
+The sum of two C^n functions on a domain is C^n.
+-/
+lemma times_cont_diff_on.add {n : with_top ℕ} {s : set E} {f g : E → F}
+  (hf : times_cont_diff_on 𝕜 n f s) (hg : times_cont_diff_on 𝕜 n g s) (hs : unique_diff_on 𝕜 s) :
+  times_cont_diff_on 𝕜 n (λx, f x + g x) s :=
+begin
+  have : times_cont_diff 𝕜 n (λp : F × F, p.1 + p.2),
+  { apply is_bounded_linear_map.times_cont_diff,
+    exact is_bounded_linear_map.add is_bounded_linear_map.fst is_bounded_linear_map.snd },
+  exact this.comp_times_cont_diff_on (hf.prod hg hs) hs
+end
+
+/--
+The sum of two C^n functions is C^n.
+-/
+lemma times_cont_diff.add {n : with_top ℕ} {f g : E → F}
+  (hf : times_cont_diff 𝕜 n f) (hg : times_cont_diff 𝕜 n g) : times_cont_diff 𝕜 n (λx, f x + g x) :=
+begin
+  have : times_cont_diff 𝕜 n (λp : F × F, p.1 + p.2),
+  { apply is_bounded_linear_map.times_cont_diff,
+    exact is_bounded_linear_map.add is_bounded_linear_map.fst is_bounded_linear_map.snd },
+  exact this.comp (hf.prod hg)
+end
+
+/--
+The opposite of a C^n function on a domain is C^n.
+-/
+lemma times_cont_diff_on.neg {n : with_top ℕ} {s : set E} {f : E → F}
+  (hf : times_cont_diff_on 𝕜 n f s) (hs : unique_diff_on 𝕜 s) :
+  times_cont_diff_on 𝕜 n (λx, -f x) s :=
+begin
+  have : times_cont_diff 𝕜 n (λp : F, -p),
+  { apply is_bounded_linear_map.times_cont_diff,
+    exact is_bounded_linear_map.neg is_bounded_linear_map.id },
+  exact this.comp_times_cont_diff_on hf hs
+end
+
+/--
+The opposite of a C^n function is C^n.
+-/
+lemma times_cont_diff.neg {n : with_top ℕ} {f : E → F} (hf : times_cont_diff 𝕜 n f) :
+  times_cont_diff 𝕜 n (λx, -f x) :=
+begin
+  have : times_cont_diff 𝕜 n (λp : F, -p),
+  { apply is_bounded_linear_map.times_cont_diff,
+    exact is_bounded_linear_map.neg is_bounded_linear_map.id },
+  exact this.comp hf
+end
+
+/--
+The difference of two C^n functions on a domain is C^n.
+-/
+lemma times_cont_diff_on.sub {n : with_top ℕ} {s : set E} {f g : E → F}
+  (hf : times_cont_diff_on 𝕜 n f s) (hg : times_cont_diff_on 𝕜 n g s) (hs : unique_diff_on 𝕜 s) :
+  times_cont_diff_on 𝕜 n (λx, f x - g x) s :=
+hf.add (hg.neg hs) hs
+
+/--
+The difference of two C^n functions is C^n.
+-/
+lemma times_cont_diff.sub {n : with_top ℕ} {f g : E → F}
+  (hf : times_cont_diff 𝕜 n f) (hg : times_cont_diff 𝕜 n g) :
+  times_cont_diff 𝕜 n (λx, f x - g x) :=
+hf.add hg.neg

@@ -104,6 +104,23 @@ begin
   rw [this, map_top (submodule.subtype S), range_subtype],
 end
 
+instance finite_dimensional_fintype_fun {ι : Type*} [fintype ι] :
+  finite_dimensional K (ι → K) :=
+begin
+  rw [finite_dimensional_iff_dim_lt_omega, dim_fun'],
+  exact nat_lt_omega _
+end
+
+@[simp] lemma findim_fintype_fun_eq_card {ι : Type v} [fintype ι] :
+  findim K (ι → K) = fintype.card ι :=
+begin
+  have : vector_space.dim K (ι → K) = fintype.card ι := dim_fun',
+  rwa [← findim_eq_dim, nat_cast_inj] at this,
+end
+
+@[simp] lemma findim_fin_fun {n : ℕ} : findim K (fin n → K) = n :=
+by simp
+
 end finite_dimensional
 
 namespace linear_map

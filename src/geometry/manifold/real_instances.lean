@@ -1,0 +1,377 @@
+/-
+Copyright (c) 2019 Sébastien Gouëzel. All rights reserved.
+Released under Apache 2.0 license as described in the file LICENSE.
+Authors: Sébastien Gouëzel
+-/
+
+import geometry.manifold.smooth_manifold_with_corners linear_algebra.finite_dimensional
+
+/-!
+# Constructing examples of manifolds over ℝ
+
+We introduce the necessary bits to be able to define manifolds modelled over ℝ^n, boundaryless
+or with boundary or with corners. As a concrete example, we construct explicitly the manifold with
+boundary structure on the real interval [x, y].
+
+More specifically, we introduce
+* `euclidean_space n` for a model vector space of dimension `n`.
+* `model_with_corners ℝ (euclidean_space n) (euclidean_half_space n)` for the model space used
+to define `n`-dimensional real manifolds with boundary
+* `model_with_corners ℝ (euclidean_space n) (euclidean_quadrant n)` for the model space used
+to define `n`-dimensional real manifolds with corners
+
+## Implementation notes
+
+The manifold structure on the interval [x, y] = Icc x y requires the assumption `x < y`. We
+introduce a dummy class `lt_class x y` for this, to make such an assumption available to typeclass
+search. This should hopefully not be necessary any more in Lean 4.
+-/
+
+noncomputable theory
+open set
+
+/--
+The space ℝ^n. Note that the name is slightly misleading, as we only need a normed space
+structure on ℝ^n, but the one we use here is the sup norm and not the euclidean one -- this is not
+a problem for the manifold applications, but should probably be refactored at some point.
+-/
+def euclidean_space (n : ℕ) : Type := (fin n → ℝ)
+
+/--
+The half-space in ℝ^n, used to model manifolds with boundary. The definition is a little bit
+convoluted as one can not require `0 ≤ x 0`: if n = 0, then there is no 0 in `fin n`...
+-/
+def euclidean_half_space (n : ℕ) : Type := {x : euclidean_space n // ∀i:fin n, i.val = 0 → 0 ≤ x i}
+
+/--
+The quadrant in ℝ^n, used to model manifolds with corners, made of all vectors with nonnegative
+coordinates.
+-/
+def euclidean_quadrant (n : ℕ) : Type := {x : euclidean_space n // ∀i:fin n, 0 ≤ x i}
+
+section
+/- Register class instances for euclidean space and half-space and quadrant -/
+local attribute [reducible] euclidean_space euclidean_half_space euclidean_quadrant
+variable {n : ℕ}
+
+instance : vector_space ℝ (euclidean_space n) := by apply_instance
+instance : normed_group (euclidean_space n) := by apply_instance
+instance : normed_space ℝ (euclidean_space n) := by apply_instance
+instance : topological_space (euclidean_half_space n) := by apply_instance
+instance : topological_space (euclidean_quadrant n) := by apply_instance
+instance : finite_dimensional ℝ (euclidean_space n) := by apply_instance
+
+@[simp] lemma findim_euclidean_space : finite_dimensional.findim ℝ (euclidean_space n) = n :=
+by simp
+
+lemma range_half_space (n : ℕ) :
+  range (λx : euclidean_half_space n, x.val) = {y | ∀i:fin n, i.val = 0 → 0 ≤ y i } :=
+by simp
+
+lemma range_quadrant (n : ℕ) :
+  range (λx : euclidean_quadrant n, x.val) = {y | ∀i:fin n, 0 ≤ y i } :=
+by simp
+
+end
+
+/--
+Definition of the model with corners (euclidean_space n, euclidean_half_space n), used as a
+model for manifolds with boundary.
+-/
+def model_with_corners_euclidean_half_space (n : ℕ) :
+  model_with_corners ℝ (euclidean_space n) (euclidean_half_space n) :=
+{ to_fun     := λx, x.val,
+  inv_fun    := λx, ⟨λi, if h : i.val = 0 then max (x i) 0 else x i,
+                    λi, by { by_cases h : i.val = 0; simp [h, le_refl] } ⟩,
+  source     := univ,
+  target     := range (λx : euclidean_half_space n, x.val),
+  map_source := λx hx, by simpa [-mem_range, mem_range_self] using x.property,
+  map_target := λx hx, mem_univ _,
+  left_inv   := λ⟨xval, xprop⟩ hx, begin
+    rw subtype.mk_eq_mk,
+    ext1 i,
+    by_cases hi : i.val = 0,
+    simp [hi, xprop i hi],
+    simp [hi],
+  end,
+  right_inv := λx hx, begin
+    rw range_half_space at hx,
+    ext1 i,
+    by_cases hi : i.val = 0,
+    { simp [hi, hx i hi] },
+    { simp [hi] }
+  end,
+  source_eq   := rfl,
+  unique_diff := begin
+    /- To check that the half-space has the unique differentiability property, we use the criterion
+    `unique_diff_on_convex`: it suffices to check that it is convex and with nonempty interior. -/
+    rw range_half_space,
+    apply unique_diff_on_convex,
+    show convex {y : euclidean_space n | ∀ (i : fin n), i.val = 0 → 0 ≤ y i},
+    { assume x y a b hx hy ha hb hab i hi,
+      simpa using add_le_add (mul_nonneg' ha (hx i hi)) (mul_nonneg' hb (hy i hi)) },
+    show interior {y : euclidean_space n | ∀ (i : fin n), i.val = 0 → 0 ≤ y i} ≠ ∅,
+    { rw ne_empty_iff_exists_mem,
+      use (λi, 1),
+      rw mem_interior,
+      refine ⟨(pi (univ : set (fin n)) (λi, (Ioi 0 : set ℝ))), _,
+        is_open_set_pi finite_univ (λa ha, is_open_Ioi), _⟩,
+      { assume x hx i hi,
+        simp [pi] at hx,
+        exact le_of_lt (hx i) },
+      { simp [pi],
+        assume i,
+        exact zero_lt_one } }
+  end,
+  continuous_to_fun  := continuous_subtype_val,
+  continuous_inv_fun := begin
+    apply continuous_subtype_mk,
+    apply continuous_pi,
+    assume i,
+    by_cases h : i.val = 0,
+    { simp only [h, dif_pos],
+      have : continuous (λx:ℝ, max x 0) := continuous_max continuous_id continuous_const,
+      exact this.comp (continuous_apply i) },
+    { simp [h],
+      exact continuous_apply i }
+  end }
+
+/--
+Definition of the model with corners (euclidean_space n, euclidean_quadrant n), used as a
+model for manifolds with corners -/
+def model_with_corners_euclidean_quadrant (n : ℕ) :
+  model_with_corners ℝ (euclidean_space n) (euclidean_quadrant n) :=
+{ to_fun     := λx, x.val,
+  inv_fun    := λx, ⟨λi, max (x i) 0,
+                    λi, by simp [le_refl]⟩,
+  source     := univ,
+  target     := range (λx : euclidean_quadrant n, x.val),
+  map_source := λx hx, by simpa [-mem_range, mem_range_self] using x.property,
+  map_target := λx hx, mem_univ _,
+  left_inv   := λ⟨xval, xprop⟩ hx, begin
+    rw subtype.mk_eq_mk,
+    ext1 i,
+    simp [xprop i]
+  end,
+  right_inv := λx hx, begin
+    rw range_quadrant at hx,
+    ext1 i,
+    simp [hx i]
+  end,
+  source_eq   := rfl,
+  unique_diff := begin
+    /- To check that the quadrant has the unique differentiability property, we use the criterion
+    `unique_diff_on_convex`: it suffices to check that it is convex and with nonempty interior. -/
+    rw range_quadrant,
+    apply unique_diff_on_convex,
+    show convex {y : euclidean_space n | ∀ (i : fin n), 0 ≤ y i},
+    { assume x y a b hx hy ha hb hab i,
+      simpa using add_le_add (mul_nonneg' ha (hx i)) (mul_nonneg' hb (hy i)) },
+    show interior {y : euclidean_space n | ∀ (i : fin n), 0 ≤ y i} ≠ ∅,
+    { rw ne_empty_iff_exists_mem,
+      use (λi, 1),
+      rw mem_interior,
+      refine ⟨(pi (univ : set (fin n)) (λi, (Ioi 0 : set ℝ))), _,
+        is_open_set_pi finite_univ (λa ha, is_open_Ioi), _⟩,
+      { assume x hx i,
+        simp [pi] at hx,
+        exact le_of_lt (hx i) },
+      { simp [pi],
+        assume i,
+        exact zero_lt_one } }
+  end,
+  continuous_to_fun  := continuous_subtype_val,
+  continuous_inv_fun := begin
+    apply continuous_subtype_mk,
+    apply continuous_pi,
+    assume i,
+    have : continuous (λx:ℝ, max x 0) := continuous_max continuous_id continuous_const,
+    exact this.comp (continuous_apply i)
+  end }
+
+/--
+Dummy class to make an assumption such as `x < y` available to typeclass search. Such an
+assumption is used to define a manifold structure on [x, y] when `x < y`. Should be fixed in Lean 4.
+-/
+def lt_class {α : Type*} [has_lt α] (x y : α) : Prop := x < y
+attribute [class] lt_class
+
+/--
+The left chart for the topological space [x, y], defined on [x,y) and sending x to 0 in
+`euclidean_half_space 1`.
+-/
+def Icc_left_chart (x y : ℝ) [h : lt_class x y] :
+  local_homeomorph (Icc x y) (euclidean_half_space 1) :=
+{ source := {z : Icc x y | z.val < y},
+  target := {z : euclidean_half_space 1 | z.val 0 < y - x},
+  to_fun := λ(z : Icc x y), ⟨λi, z.val - x, λi hi, sub_nonneg.mpr z.property.1⟩,
+  inv_fun := λz, ⟨min (z.val 0 + x) y, by simp [le_refl, z.property 0 rfl, le_of_lt h]⟩,
+  map_source := by simp,
+  map_target := by { simp, assume z hz, left, linarith },
+  left_inv := by { rintros ⟨z, hz⟩ h'z, simp at hz h'z, simp [hz, h'z] },
+  right_inv := begin
+    rintros ⟨z, hz⟩ h'z,
+    rw subtype.mk_eq_mk,
+    funext,
+    simp at hz h'z,
+    have A : x + z 0 ≤ y, by linarith,
+    rw subsingleton.elim i 0,
+    simp [A],
+  end,
+  open_source := begin
+    have : is_open {z : ℝ | z < y} := is_open_Iio,
+    exact continuous_subtype_val _ this
+  end,
+  open_target := begin
+    have : is_open {z : ℝ | z < y - x} := is_open_Iio,
+    have : is_open {z : fin 1 → ℝ | z 0 < y - x} :=
+      (continuous_apply 0) _ this,
+    exact continuous_subtype_val _ this
+  end,
+  continuous_to_fun := begin
+    apply continuous.continuous_on,
+    apply continuous_subtype_mk,
+    have : continuous (λ (z : ℝ) (i : fin 1), z - x) :=
+      continuous_sub (continuous_pi (λi, continuous_id)) continuous_const,
+    exact continuous.comp this continuous_subtype_val,
+  end,
+  continuous_inv_fun := begin
+    apply continuous.continuous_on,
+    apply continuous_subtype_mk,
+    have A : continuous (λ z : ℝ, min (z + x) y) :=
+      continuous_min (continuous_add continuous_id continuous_const) continuous_const,
+    have B : continuous (λz : fin 1 → ℝ, z 0) := continuous_apply 0,
+    exact (A.comp B).comp continuous_subtype_val
+  end }
+
+/--
+The right chart for the topological space [x, y], defined on (x,y] and sending y to 0 in
+`euclidean_half_space 1`.
+-/
+def Icc_right_chart (x y : ℝ) [h : lt_class x y] :
+  local_homeomorph (Icc x y) (euclidean_half_space 1) :=
+{ source := {z : Icc x y | x < z.val},
+  target := {z : euclidean_half_space 1 | z.val 0 < y - x},
+  to_fun := λ(z : Icc x y), ⟨λi, y - z.val, λi hi, sub_nonneg.mpr  z.property.2⟩,
+  inv_fun := λz, ⟨max (y - z.val 0) x, by simp [le_refl, z.property 0 rfl, le_of_lt h]⟩,
+  map_source := by simp,
+  map_target := by { simp, assume z hz, left, linarith },
+  left_inv := by { rintros ⟨z, hz⟩ h'z, simp at hz h'z, simp [hz, h'z] },
+  right_inv := begin
+    rintros ⟨z, hz⟩ h'z,
+    rw subtype.mk_eq_mk,
+    funext,
+    simp at hz h'z,
+    have A : x ≤ y + -z 0, by linarith,
+    rw subsingleton.elim i 0,
+    simp [A],
+  end,
+  open_source := begin
+    have : is_open {z : ℝ | x < z} := is_open_Ioi,
+    exact continuous_subtype_val _ this
+  end,
+  open_target := begin
+    have : is_open {z : ℝ | z < y - x} := is_open_Iio,
+    have : is_open {z : fin 1 → ℝ | z 0 < y - x} :=
+      (continuous_apply 0) _ this,
+    exact continuous_subtype_val _ this
+  end,
+  continuous_to_fun := begin
+    apply continuous.continuous_on,
+    apply continuous_subtype_mk,
+    have : continuous (λ (z : ℝ) (i : fin 1), y - z) :=
+      continuous_sub continuous_const (continuous_pi (λi, continuous_id)),
+    exact continuous.comp this continuous_subtype_val,
+  end,
+  continuous_inv_fun := begin
+    apply continuous.continuous_on,
+    apply continuous_subtype_mk,
+    have A : continuous (λ z : ℝ, max (y - z) x) :=
+      continuous_max (continuous_sub continuous_const continuous_id) continuous_const,
+    have B : continuous (λz : fin 1 → ℝ, z 0) := continuous_apply 0,
+    exact (A.comp B).comp continuous_subtype_val
+  end }
+
+/--
+Manifold with boundary structure on [x, y], using only two charts.
+-/
+instance Icc_manifold (x y : ℝ) [h : lt_class x y] : manifold (euclidean_half_space 1) (Icc x y) :=
+{ atlas := {Icc_left_chart x y, Icc_right_chart x y},
+  chart_at := λz, if z.val < y then Icc_left_chart x y else Icc_right_chart x y,
+  mem_chart_source := λz, begin
+    by_cases h' : z.val < y,
+    { simp only [h', if_true],
+      exact h' },
+    { simp only [h', if_false],
+      apply lt_of_lt_of_le h,
+      simpa using h' }
+  end,
+  chart_mem_atlas := λz, by { by_cases h' : z.val < y; simp [h'] } }
+
+/--
+The manifold structure on [x, y] is smooth.
+-/
+instance Icc_smooth_manifold (x y : ℝ) [lt_class x y] :
+  smooth_manifold_with_corners (model_with_corners_euclidean_half_space 1) (Icc x y) :=
+begin
+  have M : times_cont_diff_on ℝ ⊤ (λz : fin 1 → ℝ, (λi : fin 1, y - x) - z) univ,
+  { rw times_cont_diff_on_univ,
+    exact times_cont_diff.sub times_cont_diff_const times_cont_diff_id },
+  haveI : has_groupoid (Icc x y) (times_cont_diff_groupoid ⊤ (model_with_corners_euclidean_half_space 1)) :=
+  begin
+    apply has_groupoid_of_pregroupoid,
+    assume e e' he he',
+    simp [atlas] at he he',
+    /- We need to check that any composition of two charts gives a C^∞ function. Each chart can be
+    either the left chart or the right chart, leaving 4 possibilities that we handle successively.
+    -/
+    cases he; cases he',
+    { -- e = right chart, e' = right chart
+      have : e.symm.trans e' ∈ times_cont_diff_groupoid ⊤ (model_with_corners_euclidean_half_space 1),
+      { rw [he', ← he],
+        apply symm_trans_mem_times_cont_diff_groupoid },
+      rw [times_cont_diff_groupoid, mem_groupoid_of_pregroupoid] at this,
+      exact this.1 },
+    { -- e = right chart, e' = left chart
+      apply M.congr_mono _ _ (subset_univ _),
+      { rw inter_comm,
+        refine unique_diff_on.inter (model_with_corners.unique_diff _) _,
+        exact model_with_corners.continuous_inv_fun _ _ (local_homeomorph.open_source _) },
+      { assume z hz,
+        simp [-mem_range, range_half_space, model_with_corners_euclidean_half_space, fin.val_zero,
+              local_equiv.trans_source, he, he', Icc_left_chart, Icc_right_chart] at hz,
+        have A : 0 ≤ z 0 := hz.2 0 rfl,
+        have B : x ≤ y + -z 0,
+          by { have := hz.1.1.1, linarith },
+        have C : y + (-x + -z 0) = ((λ (i : fin 1), y + -x) + -z) 0,
+          by { change y + (-x - z 0) = (y - x) - z 0, ring },
+        ext i,
+        rw subsingleton.elim i 0,
+        simpa [model_with_corners_euclidean_half_space, he', he, Icc_left_chart, Icc_right_chart,
+              fin.val_zero, A, B] } },
+    { -- e = left chart, e' = right chart
+      apply M.congr_mono _ _ (subset_univ _),
+      { rw inter_comm,
+        refine unique_diff_on.inter (model_with_corners.unique_diff _) _,
+        exact model_with_corners.continuous_inv_fun _ _ (local_homeomorph.open_source _) },
+      { assume z hz,
+        simp [-mem_range, range_half_space, model_with_corners_euclidean_half_space, fin.val_zero,
+              local_equiv.trans_source, he, he', Icc_left_chart, Icc_right_chart] at hz,
+        have A : 0 ≤ z 0 := hz.2 0 rfl,
+        have B : x + z 0 ≤ y,
+          by { have := hz.1.1.1, linarith },
+        have C : y + (-x + -z 0) = ((λ (i : fin 1), y + -x) + -z) 0,
+          by { change y + (-x - z 0) = (y - x) - z 0, ring },
+        ext i,
+        rw subsingleton.elim i 0,
+        simpa [model_with_corners_euclidean_half_space, he', he, Icc_left_chart, Icc_right_chart,
+              fin.val_zero, A, B] } },
+    { -- e = left chart, e' = left chart
+      have : e.symm.trans e' ∈ times_cont_diff_groupoid ⊤ (model_with_corners_euclidean_half_space 1),
+      { rw [he', ← he],
+        apply symm_trans_mem_times_cont_diff_groupoid },
+      rw [times_cont_diff_groupoid, mem_groupoid_of_pregroupoid] at this,
+      exact this.1 },
+  end,
+  constructor
+end

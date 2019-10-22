@@ -4,15 +4,19 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Sébastien Gouëzel
 -/
 
-import analysis.calculus.times_cont_diff geometry.manifold.manifold linear_algebra.finite_dimensional
+import analysis.calculus.times_cont_diff geometry.manifold.manifold
 
 /-!
 # Smooth manifolds (possibly with boundary or corners)
 
 A smooth manifold is a manifold modelled on a normed vector space, or a subset like a
 half-space (to get manifolds with boundaries) for which the change of coordinates are smooth maps.
-We define the groupoid of smooth maps (with regularity n : with_top ℕ), and then define smooth
-manifolds as manifolds for which the changes of coordinates are C^∞.
+We define a model with corners as a map I : H → E embedding nicely the topological space H in the
+vector space E. Given such a model of corners I on (H, E), we define the groupoid of local
+homeomorphisms of H which are smooth when read in E (for any regularity n : with_top ℕ).
+With this groupoid at hand and the general machinery of manifolds, we thus get the notion of C^n
+manifold with respect to any model with corners I on (H, E). We also introduce a specific type
+class for C^∞ manifolds as these are the most commonly used.
 
 ## Main definitions
 
@@ -30,11 +34,15 @@ manifolds as manifolds for which the changes of coordinates are C^∞.
           coordinates with respect to the model with corners I on (𝕜, E, H). This type class is just
           a shortcut for `has_groupoid M (times_cont_diff_groupoid ⊤ I)`
 
-As a specific example of a model with corners, we define
-`model_with_corners ℝ (euclidean_space n) (euclidean_half_space n)` for the model space used
-to define `n`-dimensional real manifolds with boundary.
+As specific examples of models with corners, we define (in the file `real_instances.lean`)
+* `euclidean_space n` for a model vector space of dimension `n`.
+* `model_with_corners ℝ (euclidean_space n) (euclidean_half_space n)` for the model space used
+to define `n`-dimensional real manifolds with boundary and
+* `model_with_corners ℝ (euclidean_space n) (euclidean_quadrant n)` for the model space used
+to define `n`-dimensional real manifolds with corners
 
-To invoke an `n`-dimensional real manifold one could use
+With these definitions at hand, to invoke an `n`-dimensional real manifold without boundary,
+one could use
 
   `variables {n : ℕ} {M : Type*} [topological_space M] [manifold (euclidean_space n)]
    [smooth_manifold_with_corners (model_with_corners_self ℝ (euclidean_space n)) M]`.
@@ -93,7 +101,6 @@ real and complex manifolds).
 -/
 
 noncomputable theory
-local attribute [instance, priority 10] classical.decidable_inhabited classical.prop_decidable
 
 universes u v w u' v' w'
 
@@ -104,7 +111,7 @@ section model_with_corners
 /-- A structure containing informations on the way a space H embeds in a
 model vector space E over the field 𝕜. This is all what is needed to
 define a smooth manifold with model space H, and model vector space E.
-We register it as a type class-/
+-/
 structure model_with_corners (𝕜 : Type*) [nondiscrete_normed_field 𝕜]
   (E : Type*) [normed_group E] [normed_space 𝕜 E] (H : Type*) [topological_space H]
   extends local_equiv H E :=
@@ -224,7 +231,7 @@ class model_with_corners.boundaryless {𝕜 : Type*} [nondiscrete_normed_field �
 /-- The trivial model with corners has no boundary -/
 instance model_with_corners_self_range (𝕜 : Type*) [nondiscrete_normed_field 𝕜]
   (E : Type*) [normed_group E] [normed_space 𝕜 E] : (model_with_corners_self 𝕜 E).boundaryless :=
-⟨ by simp ⟩
+⟨by simp⟩
 
 /-- If two model with corners are boundaryless, their product also is -/
 instance model_with_corners.range_eq_univ_prod {𝕜 : Type u} [nondiscrete_normed_field 𝕜]
@@ -244,13 +251,17 @@ end boundaryless
 
 section times_cont_diff_groupoid
 
+variables {m n : with_top ℕ} {𝕜 : Type*} [nondiscrete_normed_field 𝕜]
+{E : Type*} [normed_group E] [normed_space 𝕜 E]
+{H : Type*} [topological_space H]
+(I : model_with_corners 𝕜 E H)
+{M : Type*} [topological_space M]
+
+variable (n)
 /-- Given a model with corners (E, H), we define the groupoid of C^n transformations of H as the
 maps that are C^n when read in E through I. -/
-def times_cont_diff_groupoid (n : with_top ℕ) {𝕜 : Type*} [nondiscrete_normed_field 𝕜]
-  {E : Type*} [normed_group E] [normed_space 𝕜 E] {H : Type*} [topological_space H]
-  (I : model_with_corners 𝕜 E H) :
-  structure_groupoid H :=
-groupoid_of_pregroupoid
+def times_cont_diff_groupoid : structure_groupoid H :=
+pregroupoid.groupoid
 { property := λf s, times_cont_diff_on 𝕜 n (I.to_fun ∘ f ∘ I.inv_fun) (I.inv_fun ⁻¹' s ∩ range I.to_fun),
   comp     := λf g u v hf hg huv, begin
     have A : unique_diff_on 𝕜 (I.inv_fun ⁻¹' (u ∩ (f ⁻¹' v)) ∩ range (I.to_fun)),
@@ -259,9 +270,7 @@ groupoid_of_pregroupoid
       by { ext x, simp },
     rw this,
     apply times_cont_diff_on.comp hg _ A,
-    { change I.inv_fun ⁻¹' (u ∩ (f ⁻¹' v)) ∩ (range (I.to_fun)) ⊆
-        I.to_fun ∘ f ∘ I.inv_fun ⁻¹' ((I.inv_fun ⁻¹' v) ∩ (range (I.to_fun))),
-      rintros x ⟨hx1, hx2⟩,
+    { rintros x ⟨hx1, hx2⟩,
       simp at ⊢ hx1,
       exact ⟨hx1.2, (f (I.inv_fun x)), rfl⟩ },
     { refine hf.mono _ A,
@@ -286,11 +295,9 @@ groupoid_of_pregroupoid
     rw ← hx at ⊢ hy1,
     simp at ⊢ hy1,
     rcases H x hy1 with ⟨v, v_open, xv, hv⟩,
-    have : (set.inter (I.inv_fun ⁻¹' set.inter u v) (range (I.to_fun)))
-      = (set.inter (I.inv_fun ⁻¹' u) (range (I.to_fun)) ∩ I.inv_fun ⁻¹' v),
-    { change ((I.inv_fun ⁻¹' (u ∩ v)) ∩ (range (I.to_fun)))
+    have : ((I.inv_fun ⁻¹' (u ∩ v)) ∩ (range (I.to_fun)))
         = ((I.inv_fun ⁻¹' u) ∩ (range (I.to_fun)) ∩ I.inv_fun ⁻¹' v),
-      rw [preimage_inter, inter_assoc, inter_assoc],
+    { rw [preimage_inter, inter_assoc, inter_assoc],
       congr' 1,
       rw inter_comm },
     rw this at hv,
@@ -307,10 +314,9 @@ groupoid_of_pregroupoid
     rw fg _ hy1
   end }
 
+variable {n}
 /-- Inclusion of the groupoid of C^n local diffeos in the groupoid of C^m local diffeos when m ≤ n -/
-lemma times_cont_diff_groupoid_le {n m : with_top ℕ} {𝕜 : Type*} [nondiscrete_normed_field 𝕜]
-  {E : Type*} [normed_group E] [normed_space 𝕜 E] {H : Type*} [topological_space H]
-  (I : model_with_corners 𝕜 E H) (h : m ≤ n) :
+lemma times_cont_diff_groupoid_le (h : m ≤ n) :
   times_cont_diff_groupoid n I ≤ times_cont_diff_groupoid m I :=
 begin
   rw [times_cont_diff_groupoid, times_cont_diff_groupoid],
@@ -321,13 +327,13 @@ end
 
 /-- The groupoid of 0-times continuously differentiable maps is just the groupoid of all
 local homeomorphisms -/
-lemma times_cont_diff_groupoid_zero_eq {𝕜 : Type*} [nondiscrete_normed_field 𝕜]
-  {E : Type*} [normed_group E] [normed_space 𝕜 E] {H : Type*} [topological_space H]
-  (I : model_with_corners 𝕜 E H) :
+lemma times_cont_diff_groupoid_zero_eq :
   times_cont_diff_groupoid 0 I = continuous_groupoid H :=
 begin
   apply le_antisymm lattice.le_top,
   assume u hu,
+  -- we have to check that every local homeomorphism belongs to `times_cont_diff_groupoid 0 I`,
+  -- by unfolding its definition
   change u ∈ times_cont_diff_groupoid 0 I,
   rw [times_cont_diff_groupoid, mem_groupoid_of_pregroupoid],
   simp only [times_cont_diff_on_zero],
@@ -340,6 +346,34 @@ begin
       _ (subset_univ _),
     apply continuous_on.comp u.continuous_inv_fun I.continuous_inv_fun.continuous_on
       (inter_subset_left _ _) },
+end
+
+variable (n)
+/-- An identity local homeomorphism belongs to the C^n groupoid. -/
+lemma of_set_mem_times_cont_diff_groupoid {s : set H} (hs : is_open s) :
+  local_homeomorph.of_set s hs ∈ times_cont_diff_groupoid n I :=
+begin
+  rw [times_cont_diff_groupoid, mem_groupoid_of_pregroupoid],
+  suffices h : times_cont_diff_on 𝕜 n (I.to_fun ∘ I.inv_fun) (I.inv_fun ⁻¹' s ∩ range I.to_fun),
+    by simp [h],
+  have : times_cont_diff_on 𝕜 n id (univ : set E) :=
+    times_cont_diff_id.times_cont_diff_on is_open_univ.unique_diff_on,
+  apply this.congr_mono _ _ (subset_univ _),
+  { rw inter_comm,
+    exact I.unique_diff.inter (I.continuous_inv_fun s hs) },
+  { assume x hx,
+    simp [hx.2] }
+end
+
+/-- The composition of a local homeomorphism from H to M and its inverse belongs to
+the C^n groupoid. -/
+lemma symm_trans_mem_times_cont_diff_groupoid (e : local_homeomorph M H) :
+  e.symm.trans e ∈ times_cont_diff_groupoid n I :=
+begin
+  have : e.symm.trans e ≈ local_homeomorph.of_set e.target e.open_target :=
+    local_homeomorph.trans_symm_self _,
+  exact structure_groupoid.eq_on_source _ _ _
+    (of_set_mem_times_cont_diff_groupoid n I e.open_target) this
 end
 
 end times_cont_diff_groupoid
@@ -359,87 +393,3 @@ instance model_space_smooth {𝕜 : Type*} [nondiscrete_normed_field 𝕜]
   {E : Type*} [normed_group E] [normed_space 𝕜 E] {H : Type*} [topological_space H]
   {I : model_with_corners 𝕜 E H} :
   smooth_manifold_with_corners I H := {}
-
-/-- the space ℝ^n. Note that the name is slightly misleading, as we only need a normed space
-structure on ℝ^n, but the one we use here is the sup norm and not the euclidean one -- this is not
-a problem for the manifold applications, but should probably be refactored at some point. -/
-def euclidean_space (n : ℕ) : Type := (fin n → ℝ)
-/-- the half-space in ℝ^n, used to model manifolds with boundary. The definition is a little bit
-convoluted as one can not require `0 ≤ x 0`: if n=0, then there is no 0 in `fin n`...-/
-def euclidean_half_space (n : ℕ) : Type := {x : euclidean_space n // ∀i:fin n, i.val = 0 → 0 ≤ x i}
-
-section
-/- Register class instances for euclidean space and half-space -/
-local attribute [reducible] euclidean_space euclidean_half_space
-variable {n : ℕ}
-
-instance : vector_space ℝ (euclidean_space n) := by apply_instance
-instance : normed_group (euclidean_space n) := by apply_instance
-instance : normed_space ℝ (euclidean_space n) := by apply_instance
-instance : topological_space (euclidean_half_space n) := by apply_instance
-
-end
-
-lemma range_half_space (n : ℕ) :
-  range (λx : euclidean_half_space n, x.val) = {y | ∀i:fin n, i.val = 0 → 0 ≤ y i } :=
-by simp [euclidean_half_space]
-
-/-- Definition of the model with corners (euclidean_space n, euclidean_half_space n), used as a
-model for manifolds with boundary -/
-def model_with_corners_euclidean_half_space (n : ℕ) :
-  model_with_corners ℝ (euclidean_space n) (euclidean_half_space n) :=
-{ to_fun     := λx, x.val,
-  inv_fun    := λx, ⟨λi, if h : i.val = 0 then max (x i) 0 else x i,
-                    λi, by { by_cases h : i.val = 0; simp [h, le_refl] } ⟩,
-  source     := univ,
-  target     := range (λx : euclidean_half_space n, x.val),
-  map_source := λx hx, by simpa [-mem_range, mem_range_self] using x.property,
-  map_target := λx hx, mem_univ _,
-  left_inv   := λ⟨xval, xprop⟩ hx, begin
-    rw subtype.mk_eq_mk,
-    ext1 i,
-    by_cases hi : i.val = 0,
-    simp [hi, xprop i hi],
-    simp [hi],
-  end,
-  right_inv := λx hx, begin
-    rw range_half_space at hx,
-    ext1 i,
-    by_cases hi : i.val = 0,
-    { simp [hi, hx i hi] },
-    { simp [hi] }
-  end,
-  source_eq   := rfl,
-  unique_diff := begin
-    /- To check that the half-space has the unique differentiability property, we use the criterion
-    `unique_diff_on_convex`: it suffices to check that it is convex and with nonempty interior. -/
-    rw range_half_space,
-    apply unique_diff_on_convex,
-    show convex {y : euclidean_space n | ∀ (i : fin n), i.val = 0 → 0 ≤ y i},
-    { assume x y a b hx hy ha hb hab i hi,
-      simpa using add_le_add (mul_nonneg' ha (hx i hi)) (mul_nonneg' hb (hy i hi)) },
-    show interior {y : euclidean_space n | ∀ (i : fin n), i.val = 0 → 0 ≤ y i} ≠ ∅,
-    { rw ne_empty_iff_exists_mem,
-      use (λi, 1),
-      rw mem_interior,
-      refine ⟨(pi (univ : set (fin n)) (λi, (Ioi 0 : set ℝ))), _,
-        is_open_set_pi finite_univ (λa ha, is_open_Ioi), _⟩,
-      { assume x hx i hi,
-        simp [pi] at hx,
-        exact le_of_lt (hx i) },
-      { simp [pi],
-        assume i,
-        exact zero_lt_one } }
-  end,
-  continuous_to_fun  := continuous_subtype_val,
-  continuous_inv_fun := begin
-    apply continuous_subtype_mk,
-    apply continuous_pi,
-    assume i,
-    by_cases h : i.val = 0,
-    { simp only [h, dif_pos],
-      have : continuous (λx:ℝ, max x 0) := continuous_max continuous_id continuous_const,
-      exact this.comp (continuous_apply i) },
-    { simp [h],
-      exact continuous_apply i }
-  end }

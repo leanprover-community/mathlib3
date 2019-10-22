@@ -1,7 +1,10 @@
-import ring_theory.algebra data.matrix
+import ring_theory.algebra
 import linear_algebra.finite_dimensional linear_algebra.matrix linear_algebra.determinant
 import ring_theory.polynomial ring_theory.integral_closure ring_theory.adjoin
 import algebra.big_operators
+import field_theory.minimal_polynomial
+
+import ring_theory.ideals --for local_ring
 
 universes u v w
 
@@ -112,7 +115,7 @@ end field_norm
 
 end field_extension
 
-section
+/-section
 
 open polynomial
 
@@ -277,13 +280,195 @@ begin
 sorry
 end
 
-end minimal_polynomial
+end minimal_polynomial-/
 
 section adjoin
 
 open polynomial algebra minimal_polynomial vector_space
 
-variables (α : Type u) [discrete_field α]
+variables (K : Type u) {L : Type v} [discrete_field K] [discrete_field L] [algebra K L]
+
+lemma mem_adjoin_of_mem {s : set L} {a : L} (h : a ∈ s) : a ∈ adjoin K s :=
+subalgebra.mem_coe.mp $ set.mem_of_mem_of_subset h algebra.subset_adjoin
+
+lemma mem_adjoin_singleton (a : L) : a ∈ adjoin K ({a} : set L) :=
+mem_adjoin_of_mem K (set.mem_singleton a)
+
+lemma pow_mem_adjoin_of_mem {s : set L} {a : L} (h : a ∈ s) {n : ℕ} : a^n ∈ (adjoin K s) :=
+subalgebra.mem_coe.mp $ is_submonoid.pow_mem $ mem_adjoin_of_mem K h
+
+lemma aeval_mem_adjoin {a : L} {p : polynomial K} : polynomial.aeval K L a p ∈ adjoin K ({a} : set L) :=
+by { rw [adjoin_singleton_eq_range], exact set.mem_range_self _ }
+
+set_option class.instance_max_depth 40
+noncomputable def adjoin_basis {a : L} (ha : is_integral K a)
+  (i : fin $ nat_degree $ minimal_polynomial ha) : adjoin K ({a} : set L) :=
+⟨polynomial.aeval K L a (finsupp.single i.val (1:K)), aeval_mem_adjoin K⟩
+
+lemma is_basis_adjoin_basis {a : L} (ha : is_integral K a) : is_basis K (adjoin_basis K ha) :=
+begin
+  split,
+  { rw [linear_independent_iff],
+    assume f hf,
+    rw [finsupp.total_apply] at hf,
+    replace hf := congr_arg subtype.val hf,
+    unfold finsupp.sum at hf,
+    rw [←finset.sum_hom (subtype.val : _ → L)] at hf,
+    { conv_lhs at hf { congr, skip, funext, rw [algebra.smul_def, algebra_map] },
+      unfold algebra.to_fun at hf,
+      conv_lhs at hf { congr, skip, funext, rw [subtype_val.is_monoid_hom.map_mul], dsimp },
+      change f.sum (λ i b, algebra_map L b * a^i.val) = 0 at hf,
+      have : ∀ j:ℕ, (λ (i:ℕ) (b:K), algebra_map L b * a^i) j 0 = 0,
+        { intro _, dsimp, rw [algebra.map_zero, zero_mul] },
+      rw [←finsupp.sum_map_domain_index this] at hf,
+      { let v := @fin.val (nat_degree $ minimal_polynomial ha),
+        let p := f.map_domain v,
+        have hpd : ¬degree (minimal_polynomial ha) ≤ degree p, from not_le_of_lt (by
+        { have : ∀ n ≥ nat_degree (minimal_polynomial ha), coeff p n = 0,
+          { intros n hd,
+            apply finsupp.map_domain_notin_range f n,
+            intro hn,
+            rw [set.mem_range] at hn,
+            cases hn with y hy,
+            exact (not_lt_of_le hd) (hy ▸ y.is_lt) },
+          sorry }),
+        have hp : p = 0, from classical.by_contradiction
+          (λ hn0, hpd $ minimal_polynomial.degree_le_of_ne_zero ha hn0 hf),
+        have h : p = (finsupp.map_domain v) 0, { rwa [hp, finsupp.map_domain_zero] },
+        rwa [function.injective.eq_iff (finsupp.injective_map_domain _)] at h,
+        exact λ x y, (fin.ext_iff x y).mpr },
+      { assume _ _ _, simp only [algebra.map_add, add_mul] } },
+      { sorry } },
+  { rw [submodule.eq_top_iff'],
+      intro g,
+      rw [←set.image_univ, finsupp.mem_span_iff_total],
+      have hg : g.val ∈ (aeval K L a).range,
+        { convert g.property, symmetry, exact adjoin_singleton_eq_range K a },
+      cases set.mem_range.mp hg with l hl,
+      --let p := l %ₘ (minimal_polynomial ha),
+      have hp : aeval K L a (l %ₘ minimal_polynomial ha) = g.val,
+        { rwa [mod_by_monic_eq_sub_mul_div _ (minimal_polynomial.monic ha), (aeval K L a).map_sub,
+            (aeval K L a).map_mul, minimal_polynomial.aeval ha, zero_mul, sub_zero] },
+      have hd : degree (l %ₘ minimal_polynomial ha) < degree (minimal_polynomial ha), from
+        degree_mod_by_monic_lt _ (minimal_polynomial.monic ha) (minimal_polynomial.ne_zero ha),
+      have hs : (l %ₘ minimal_polynomial ha).support.to_set ⊆ {n | n < nat_degree (minimal_polynomial ha)},
+        { rw [set.subset_def],
+          assume n,
+          rw [finset.to_set, finset.set_of_mem, finset.mem_coe, finsupp.mem_support_to_fun,
+            set.mem_set_of_eq, ←with_bot.coe_lt_coe, ←degree_eq_nat_degree (ne_zero ha)],
+          assume hn,
+          refine lt_of_le_of_lt (le_of_not_lt _) hd,
+          revert hn,
+          contrapose,
+          rw [ne.def, not_not, not_not],
+          exact coeff_eq_zero_of_degree_lt },
+      have hv : set.bij_on fin.val (fin.val ⁻¹' (l %ₘ minimal_polynomial ha).support.to_set)
+        ((l %ₘ minimal_polynomial ha).support.to_set),
+        { sorry },--{ assume _ _ _ _ _, rwa [fin.ext_iff] },
+      rw [finsupp.supported_univ],
+      existsi [(l %ₘ minimal_polynomial ha).comap_domain fin.val (set.inj_on_of_bij_on hv), submodule.mem_top],
+      rw [finsupp.total_apply],
+      --change ((l %ₘ minimal_polynomial α hb).comap_domain fin.val _).sum (λ i, (λ a, _)) = g,
+      --change ((l %ₘ minimal_polynomial α hb).comap_domain fin.val _).sum
+      --  (λ j c, ((λ (i:ℕ), (λ (a:α), _)) ∘ (@fin.val (nat_degree (minimal_polynomial α hb)))) j c) = g,
+      --conv_lhs { congr, skip, funext,
+      --  rw [show a • subtype.mk (b^i.val) (pow_mem_adjoin α b i.val) = (λ j c, c • subtype.mk (b^j.val) (pow_mem_adjoin α b j.val)) i a,
+      --    begin dsimp, end], }
+      --convert finsupp.sum_comap_domain _ _ (λ (i:ℕ) (b:K), b • _) hv,
+
+
+   }
+end
+
+
+
+
+
+
+
+/-
+set_option class.instance_max_depth 40
+noncomputable def adjoin_basis {a : L} (ha : is_integral K a)
+  (i : fin $ nat_degree $ minimal_polynomial ha) : (adjoin K ({a} : set L)) :=
+subtype.mk (a^i.val) (pow_mem_adjoin_of_mem K (set.mem_singleton a))
+
+lemma is_basis_adjoin_basis2 {a : L} (ha : is_integral K a) : is_basis K (adjoin_basis K ha) :=
+begin
+  split,
+  { rw [linear_independent_iff],
+    assume f hf,
+    rw [finsupp.total_apply] at hf,
+    replace hf := congr_arg subtype.val hf,
+    unfold finsupp.sum at hf,
+    rw [←finset.sum_hom (subtype.val : _ → L)] at hf,
+    { conv_lhs at hf { congr, skip, funext, rw [algebra.smul_def, algebra_map] },
+      unfold algebra.to_fun at hf,
+      conv_lhs at hf { congr, skip, funext, rw [subtype_val.is_monoid_hom.map_mul], dsimp },
+      change f.sum (λ i b, algebra_map L b * a^i.val) = 0 at hf,
+      have : ∀ j:ℕ, (λ (i:ℕ) (b:K), algebra_map L b * a^i) j 0 = 0,
+        { intro _, dsimp, rw [algebra.map_zero, zero_mul] },
+      rw [←finsupp.sum_map_domain_index this] at hf,
+      { let v := @fin.val (nat_degree $ minimal_polynomial ha),
+        let p := f.map_domain v,
+        have hpd : ¬degree (minimal_polynomial ha) ≤ degree p, from not_le_of_lt (by
+        { have : ∀ n ≥ nat_degree (minimal_polynomial ha), coeff p n = 0,
+          { intros n hd,
+            apply finsupp.map_domain_notin_range f n,
+            intro hn,
+            rw [set.mem_range] at hn,
+            cases hn with y hy,
+            exact (not_lt_of_le hd) (hy ▸ y.is_lt) },
+          sorry }),
+        have hp : p = 0, from classical.by_contradiction
+          (λ hn0, hpd $ minimal_polynomial.degree_le_of_ne_zero ha hn0 hf),
+        have h : p = (finsupp.map_domain v) 0, { rwa [hp, finsupp.map_domain_zero] },
+        rwa [function.injective.eq_iff (finsupp.injective_map_domain _)] at h,
+        exact λ x y, (fin.ext_iff x y).mpr },
+      { assume _ _ _, simp only [algebra.map_add, add_mul] } },
+      { sorry } },
+  { rw [submodule.eq_top_iff'],
+      intro g,
+      rw [←set.image_univ, finsupp.mem_span_iff_total],
+      have hg : g.val ∈ (aeval K L a).range,
+        { convert g.property, symmetry, exact adjoin_singleton_eq_range K a },
+      cases set.mem_range.mp hg with l hl,
+      --let p := l %ₘ (minimal_polynomial ha),
+      have hp : aeval K L a (l %ₘ minimal_polynomial ha) = g.val,
+        { rwa [mod_by_monic_eq_sub_mul_div _ (minimal_polynomial.monic ha), (aeval K L a).map_sub,
+            (aeval K L a).map_mul, minimal_polynomial.aeval ha, zero_mul, sub_zero] },
+      have hd : degree (l %ₘ minimal_polynomial ha) < degree (minimal_polynomial ha), from
+        degree_mod_by_monic_lt _ (minimal_polynomial.monic ha) (minimal_polynomial.ne_zero ha),
+      have hs : (l %ₘ minimal_polynomial ha).support.to_set ⊆ {n | n < nat_degree (minimal_polynomial ha)},
+        { rw [set.subset_def],
+          assume n,
+          rw [finset.to_set, finset.set_of_mem, finset.mem_coe, finsupp.mem_support_to_fun,
+            set.mem_set_of_eq, ←with_bot.coe_lt_coe, ←degree_eq_nat_degree (ne_zero ha)],
+          assume hn,
+          refine lt_of_le_of_lt (le_of_not_lt _) hd,
+          revert hn,
+          contrapose,
+          rw [ne.def, not_not, not_not],
+          exact coeff_eq_zero_of_degree_lt },
+      have hv : set.bij_on fin.val (fin.val ⁻¹' (l %ₘ minimal_polynomial ha).support.to_set)
+        ((l %ₘ minimal_polynomial ha).support.to_set),
+        { sorry },--{ assume _ _ _ _ _, rwa [fin.ext_iff] },
+      rw [finsupp.supported_univ],
+      existsi [(l %ₘ minimal_polynomial ha).comap_domain fin.val (set.inj_on_of_bij_on hv), submodule.mem_top],
+      rw [finsupp.total_apply],
+      --change ((l %ₘ minimal_polynomial α hb).comap_domain fin.val _).sum (λ i, (λ a, _)) = g,
+      --change ((l %ₘ minimal_polynomial α hb).comap_domain fin.val _).sum
+      --  (λ j c, ((λ (i:ℕ), (λ (a:α), _)) ∘ (@fin.val (nat_degree (minimal_polynomial α hb)))) j c) = g,
+      --conv_lhs { congr, skip, funext,
+      --  rw [show a • subtype.mk (b^i.val) (pow_mem_adjoin α b i.val) = (λ j c, c • subtype.mk (b^j.val) (pow_mem_adjoin α b j.val)) i a,
+      --    begin dsimp, end], }
+      --convert finsupp.sum_comap_domain _ _ (λ (i:ℕ) (b:K), b • _) hv,
+
+
+   }
+end
+-/
+
+/-variables (α : Type u) [discrete_field α]
 variables {β : Type v} [discrete_field β] [field_extension α β]
 variables (b : β) (hb : is_integral α b)
 
@@ -390,7 +575,7 @@ calc dim α (adjoin α {b} : subalgebra α β)
   ... = cardinal.lift.{0 v} (cardinal.mk $ fin $ nat_degree $ minimal_polynomial α hb) :
     eq.symm (is_basis.mk_eq_dim $ basis_adjoin α b hb)
   ... = ↑(nat_degree $ minimal_polynomial α hb) : cardinal.lift_mk_fin _
-
+-/
 end adjoin
 
 

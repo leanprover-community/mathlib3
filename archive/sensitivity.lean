@@ -1,4 +1,16 @@
 /-
+Copyright (c) 2019 Reid Barton, Johan Commelin, Jesse Han, Chris Hughes, Robert Y. Lewis, and Patrick Massot. All rights reserved.
+Released under Apache 2.0 license as described in the file LICENSE.
+Authors: Reid Barton, Johan Commelin, Jesse Han, Chris Hughes, Robert Y. Lewis, and Patrick Massot
+-/
+
+import tactic.fin_cases
+import tactic.apply_fun
+import linear_algebra.finite_dimensional
+import linear_algebra.dual
+import analysis.normed_space.basic
+
+/-!
 A formalization of Hao Huang's sensitivity theorem: in the hypercube of
 dimension n ≥ 1, if one colors more than half the vertices then at least one
 vertex has at least √n colored neighbors.
@@ -12,12 +24,10 @@ by Leonardo de Moura at Microsoft Research, and his collaborators
 (https://leanprover.github.io/people/),
 and using Lean's user maintained mathematics library
 (https://github.com/leanprover-community/mathlib).
+
+The project was developed at https://github.com/leanprover-community/lean-sensitivity
+and is now archived at https://github.com/leanprover-community/mathlib/blob/master/archive/sensitivity.lean
 -/
-import tactic.fin_cases
-import tactic.apply_fun
-import linear_algebra.finite_dimensional
-import linear_algebra.dual
-import analysis.normed_space.basic
 
 -- The next two lines assert we do not want to give a constructive proof,
 -- but rather use classical logic.
@@ -66,7 +76,7 @@ variable {n}
 lemma succ_n_eq (p q : Q (n+1)) : p = q ↔ (p 0 = q 0 ∧ π p = π q) :=
 begin
   split,
-  { intro h, rw h, exact ⟨rfl, rfl⟩, },
+  { rintro rfl, exact ⟨rfl, rfl⟩, },
   { rintros ⟨h₀, h⟩,
     ext x,
     by_cases hx : x = 0,

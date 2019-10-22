@@ -41,6 +41,8 @@ attribute [simp] has_zero_morphisms.comp_zero
 restate_axiom has_zero_morphisms.zero_comp'
 attribute [simp, reassoc] has_zero_morphisms.zero_comp
 
+-- FIXME define is_initial and is_terminal, and define `has_zero_object` in terms of these
+
 /-- A category "has a zero object" if it has an object which is both initial and terminal. -/
 class has_zero_object :=
 (zero : C)

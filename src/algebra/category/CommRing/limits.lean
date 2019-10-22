@@ -94,11 +94,15 @@ instance limit_π_is_ring_hom (F : J ⥤ CommRing.{u}) (j) :
   map_mul := λ x y, by { simp only [types.types_limit_π], refl },
   map_add := λ x y, by { simp only [types.types_limit_π], refl } }
 
-namespace CommRing
+namespace CommRing_has_limits
 -- The next two definitions are used in the construction of `has_limits CommRing`.
 -- After that, the limits should be constructed using the generic limits API,
 -- e.g. `limit F`, `limit.cone F`, and `limit.is_limit F`.
 
+/--
+Construction of a limit cone in `CommRing`.
+(Internal use only; use the limits API.)
+-/
 def limit (F : J ⥤ CommRing.{u}) : cone F :=
 { X := ⟨limit (F ⋙ forget _), by apply_instance⟩,
   π :=
@@ -106,6 +110,10 @@ def limit (F : J ⥤ CommRing.{u}) : cone F :=
     naturality' := λ j j' f,
       ring_hom.coe_inj ((limit.cone (F ⋙ forget _)).π.naturality f) } }
 
+/--
+Witness that the limit cone in `CommRing` is a limit cone.
+(Internal use only; use the limits API.)
+-/
 def limit_is_limit (F : J ⥤ CommRing.{u}) : is_limit (limit F) :=
 begin
   refine is_limit.of_faithful
@@ -121,12 +129,14 @@ begin
     erw (s.π.app j).map_add, refl }
 end
 
-end CommRing
+end CommRing_has_limits
 
 /-- The category of commutative rings has all limits. -/
 instance CommRing_has_limits : has_limits.{u} CommRing.{u} :=
 { has_limits_of_shape := λ J 𝒥,
-  { has_limit := λ F, by exactI { cone := limit F, is_limit := limit_is_limit F } } }
+  { has_limit := λ F, by exactI
+    { cone     := limit F,
+      is_limit := limit_is_limit F } } }
 
 /--
 The forgetful functor from commutative rings to types preserves all limits. (That is, the underlying

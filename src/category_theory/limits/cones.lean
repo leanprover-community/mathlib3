@@ -60,10 +60,18 @@ end functor
 section
 variables (J C)
 
+/--
+Functorially associated to each functor `J ⥤ C`, we have the `C`-presheaf consisting of
+cones with a given cone point.
+-/
 @[simps] def cones : (J ⥤ C) ⥤ (Cᵒᵖ ⥤ Type v) :=
 { obj := functor.cones,
   map := λ F G f, whisker_left (const J).op (yoneda.map f) }
 
+/--
+Contravariantly associated to each functor `J ⥤ C`, we have the `C`-copresheaf consisting of
+cocones with a given cocone point.
+-/
 @[simps] def cocones : (J ⥤ C)ᵒᵖ ⥤ (C ⥤ Type v) :=
 { obj := λ F, functor.cocones (unop F),
   map := λ F G f, whisker_left (const J) (coyoneda.map f) }

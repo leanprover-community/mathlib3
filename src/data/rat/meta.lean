@@ -43,7 +43,7 @@ meta def rat.mk_numeral (type has_zero has_one has_add has_neg has_div : expr) :
     `(@has_div.div.{0} %%type %%has_div %%nume %%dene)
 
 /-- `rat.reflect q` represents the rational number `q` as a numeral expression of type `ℚ`. -/
-meta def rat.reflect : ℚ → expr :=
+protected meta def rat.reflect : ℚ → expr :=
 rat.mk_numeral `(ℚ) `((by apply_instance : has_zero ℚ))
          `((by apply_instance : has_one ℚ))`((by apply_instance : has_add ℚ))
          `((by apply_instance : has_neg ℚ)) `(by apply_instance : has_div ℚ)

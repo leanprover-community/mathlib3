@@ -51,5 +51,4 @@ welcomed.
 * Simon Hudon (@cipher1024): all
 * Chris Hughes (@ChrisHughes24): group theory, ring theory, field theory
 * Robert Y. Lewis (@robertylewis): all
-* Patrick Massot (@patrickmassot): documentation, topology
 * Scott Morrison (@semorrison): category theory

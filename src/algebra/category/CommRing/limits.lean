@@ -121,7 +121,7 @@ begin
     erw (s.π.app j).map_add, refl }
 end
 
-end CommRing_has_limits
+end CommRing
 open CommRing_has_limits
 
 /-- The category of commutative rings has all limits. -/

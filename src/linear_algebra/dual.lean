@@ -2,25 +2,57 @@
 Copyright (c) 2019 Johan Commelin. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johan Commelin, Fabian Glöckle
-
-Dual vector spaces, the spaces of linear functionals to the base field, including the dual basis
-isomorphism and evaluation isomorphism in the finite-dimensional case.
 -/
 import linear_algebra.tensor_product
 import linear_algebra.finite_dimensional
 import tactic.apply_fun
 noncomputable theory
 
+/-!
+# Dual vector spaces
+
+The dual space of an R-module M is the R-module of linear maps `M → R`.
+
+## Main definitions
+
+* `dual R M` defines the dual space of M over R.
+* Given a basis for a K-vector space `V`, `is_basis.to_dual` produces a map from `V` to `dual K V`.
+* Given families of vectors `e` and `ε`, `dual_pair e ε` states that these families have the
+  characteristic properties of a basis and a dual.
+
+## Main results
+
+* `to_dual_equiv` : the dual space is linearly equivalent to the primal space.
+* `dual_pair.is_basis` and `dual_pair.eq_dual`: if `e` and `ε` form a dual pair, `e` is a basis and
+  `ε` is its dual basis.
+
+## Notation
+
+We sometimes use `V'` as local notation for `dual K V`.
+
+## Implementation details
+
+Because of unresolved type class issues, the following local instance can be of use:
+
+```
+private def help_tcs : has_scalar K V := mul_action.to_has_scalar _ _
+local attribute [instance] help_tcs
+```
+-/
+
 namespace module
 variables (R : Type*) (M : Type*)
 variables [comm_ring R] [add_comm_group M] [module R M]
 
+/-- The dual space of an R-module M is the R-module of linear maps `M → R`. -/
 @[derive [add_comm_group, module R]] def dual := M →ₗ[R] R
 
 namespace dual
 
 instance : has_coe_to_fun (dual R M) := ⟨_, linear_map.to_fun⟩
 
+/-- Maps a module M to the dual of the dual of M. See `vector_space.eval_range` and
+`vector_space.eval_equiv`. -/
 def eval : M →ₗ[R] (dual R (dual R M)) := linear_map.id.flip
 
 lemma eval_apply (v : M) (a : dual R M) : (eval R M v) a = a v :=
@@ -45,6 +77,8 @@ variables {B : ι → V} (h : is_basis K B)
 
 include de h
 
+/-- The linear map from a vector space equipped with basis to its dual vector space,
+taking basis elements to corresponding dual basis elements. -/
 def to_dual : V →ₗ[K] module.dual K V :=
 h.constr $ λ v, h.constr $ λ w, if w = v then 1 else 0
 
@@ -55,6 +89,7 @@ lemma to_dual_apply (i j : ι) :
 def to_dual_flip (v : V) : (V →ₗ[K] K) := (linear_map.flip h.to_dual).to_fun v
 
 omit de h
+/-- Evaluation of finitely supported functions at a fixed point `i`, as a `K`-linear map. -/
 def eval_finsupp_at (i : ι) : (ι →₀ K) →ₗ[K] K :=
 { to_fun := λ f, f i,
   add := by intros; rw finsupp.add_apply,
@@ -103,7 +138,6 @@ begin
   intro f,
   rw linear_map.mem_range,
   let lin_comb : ι →₀ K := finsupp.on_finset fin.elems (λ i, f.to_fun (B i)) _,
-  --let emb := embedding.subtype B,
   { use finsupp.total ι V K B lin_comb,
     apply h.ext,
     { intros i,
@@ -115,6 +149,7 @@ begin
     apply fin.complete }
 end
 
+/-- Maps a basis for `V` to a basis for the dual space. -/
 def dual_basis : ι → dual K V := λ i, h.to_dual (B i)
 
 theorem dual_lin_independent : linear_independent K h.dual_basis :=
@@ -124,6 +159,7 @@ begin
   exact disjoint_bot_right
 end
 
+/-- A vector space is linearly equivalent to its dual space. -/
 def to_dual_equiv [fintype ι] : V ≃ₗ[K] (dual K V) :=
 linear_equiv.of_bijective h.to_dual h.to_dual_ker h.to_dual_range
 
@@ -205,6 +241,7 @@ begin
   apply_instance
 end
 
+/-- A vector space is linearly equivalent to the dual of its dual space. -/
 def eval_equiv (h : dim K V < omega) : V ≃ₗ[K] dual K (dual K V) :=
 linear_equiv.of_bijective (eval K V) eval_ker (eval_range h)
 
@@ -217,7 +254,6 @@ open vector_space module module.dual linear_map function
 universes u v w
 variables {K : Type u} {V : Type v} {ι : Type w} [decidable_eq ι]
 variables [discrete_field K] [add_comm_group V] [vector_space K V]
-          [decidable_eq V] [decidable_eq (ι → V)] [decidable_eq $ dual K V]
 
 local notation `V'` := dual K V
 
@@ -231,17 +267,14 @@ end dual_pair
 
 namespace dual_pair
 
-local attribute [instance, priority 1] classical.prop_decidable
-
 open vector_space module module.dual linear_map function
 
 universes u v w
 variables {K : Type u} {V : Type v} {ι : Type w} [dι : decidable_eq ι]
 variables [discrete_field K] [add_comm_group V] [vector_space K V]
-          [decidable_eq V] [dιv : decidable_eq (ι → V)] [decidable_eq $ dual K V]
 variables {e : ι → V} {ε : ι → dual K V} (h : dual_pair e ε)
 
-include dι dιv h
+include h
 
 /-- The coefficients of `v` on the basis `e` -/
 def coeffs (v : V) : ι →₀ K :=
@@ -249,21 +282,17 @@ def coeffs (v : V) : ι →₀ K :=
   support := by { haveI := h.finite v, exact {i : ι | ε i v ≠ 0}.to_finset },
   mem_support_to_fun := by {intro i, rw set.mem_to_finset, exact iff.rfl } }
 
+
+@[simp] lemma coeffs_apply (v : V) (i : ι) : h.coeffs v i = ε i v := rfl
+
 omit h
-
-@[simp]
-lemma coeffs_apply (v : V) (i : ι) : h.coeffs v i = ε i v := rfl
-
 private def help_tcs : has_scalar K V := mul_action.to_has_scalar _ _
 
 local attribute [instance] help_tcs
 
-omit dι dιv
-
-/-- linear combinations of elements of `e` -/
+/-- linear combinations of elements of `e`.
+This is a convenient abbreviation for `finsupp.total _ V K e l` -/
 def lc (e : ι → V) (l : ι →₀ K) : V := l.sum (λ (i : ι) (a : K), a • (e i))
-
-include dι dιv
 
 include h
 
@@ -298,10 +327,11 @@ begin
   rcases (finsupp.mem_span_iff_total _).mp hmem with ⟨l, supp_l, sum_l⟩,
   change dual_pair.lc e l = x at sum_l,
   rw finsupp.mem_supported' at supp_l,
-  by_contradiction i_not,
+  apply classical.by_contradiction,
+  intro i_not,
   apply hi,
   rw ← sum_l,
-  simpa [h.dual_lc] using supp_l i i_not,
+  simpa [h.dual_lc] using supp_l i i_not
 end
 
 lemma is_basis : is_basis K e :=
@@ -318,7 +348,6 @@ begin
     rw [← set.image_univ, finsupp.mem_span_iff_total],
     exact ⟨h.coeffs v, by simp, h.decomposition v⟩ },
 end
-omit h
 
 lemma eq_dual : ε = is_basis.dual_basis h.is_basis :=
 begin

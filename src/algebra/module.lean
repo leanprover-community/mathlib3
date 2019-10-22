@@ -430,7 +430,7 @@ begin
     rw [add_smul, add_smul, one_smul, ih, one_smul] }
 end
 
-@[simp] lemma finset.sum_const' {α : Type*} {R : Type*} [ring R] {β : Type*}
+lemma finset.sum_const' {α : Type*} (R : Type*) [ring R] {β : Type*}
   [add_comm_group β] [module R β] {s : finset α} (b : β) :
   finset.sum s (λ (a : α), b) = (finset.card s : R) • b :=
 by rw [finset.sum_const, ← module.smul_eq_smul]; refl

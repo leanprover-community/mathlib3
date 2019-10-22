@@ -106,7 +106,7 @@ end
 
 section
 
-variables {ι : Type w} [decidable_eq ι] [fintype ι] [decidable_eq V]
+variables {ι : Type w} [fintype ι] [decidable_eq V]
 variables {b : ι → V} (h : is_basis K b)
 include h
 

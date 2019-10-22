@@ -221,16 +221,8 @@ lemma prod_bij {s : finset α} {t : finset γ} {f : α → β} {g : γ → β}
   (i : Πa∈s, γ) (hi : ∀a ha, i a ha ∈ t) (h : ∀a ha, f a = g (i a ha))
   (i_inj : ∀a₁ a₂ ha₁ ha₂, i a₁ ha₁ = i a₂ ha₂ → a₁ = a₂) (i_surj : ∀b∈t, ∃a ha, b = i a ha) :
   s.prod f = t.prod g :=
-by haveI := classical.prop_decidable; exact
-calc s.prod f = s.attach.prod (λx, f x.val) : prod_attach.symm
-  ... = s.attach.prod (λx, g (i x.1 x.2)) : prod_congr rfl $ assume x hx, h _ _
-  ... = (s.attach.image $ λx:{x // x ∈ s}, i x.1 x.2).prod g :
-    (prod_image $ assume (a₁:{x // x ∈ s}) _ a₂ _ eq, subtype.eq $ i_inj a₁.1 a₂.1 a₁.2 a₂.2 eq).symm
-  ... = t.prod g :
-      prod_subset
-        (by simp only [subset_iff, mem_image, mem_attach]; rintro _ ⟨⟨_, _⟩, _, rfl⟩; solve_by_elim)
-        (assume b hb hb1, false.elim $ hb1 $ by rcases i_surj b hb with ⟨a, ha, rfl⟩;
-          exact mem_image.2 ⟨⟨_, _⟩, mem_attach _ _, rfl⟩)
+congr_arg multiset.prod
+  (multiset.map_eq_map_of_bij_of_nodup f g s.2 t.2 i hi h i_inj i_surj)
 
 @[to_additive]
 lemma prod_bij_ne_one {s : finset α} {t : finset γ} {f : α → β} {g : γ → β}

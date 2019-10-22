@@ -7,7 +7,7 @@ Authors: Lucas Allen
 import tactic.basic
 
 /- Turn off trace messages so they don't pollute the test build: -/
-set_option trace.silence_suggest true
+-- set_option trace.silence_suggest true
 
 open tactic
 
@@ -67,4 +67,10 @@ begin
   replace b := b (),
   (do s ← suggest_scripts, guard $ s.head = "exact b"),
   exact b,
+end
+
+example {a b c : ℕ} (h₁ : a ≤ b) (h₂ : b ≤ c) : a ≤ c :=
+begin
+  (do s ← suggest_scripts, guard $ s.head = "exact le_trans h₁ h₂"),
+  exact le_trans h₁ h₂
 end

@@ -34,7 +34,7 @@ meta def solve_by_elim_aux (discharger : tactic unit) (asms : tactic (list expr)
               (discharger >> solve_by_elim_aux n)
 
 meta structure by_elim_opt :=
-  (all_goals : bool := ff)
+  (backtrack_all_goals : bool := ff)
   (discharger : tactic unit := done)
   (assumptions : tactic (list expr) := mk_assumption_set false [] [])
   (max_rep : ℕ := 3)
@@ -42,7 +42,7 @@ meta structure by_elim_opt :=
 meta def solve_by_elim (opt : by_elim_opt := { }) : tactic unit :=
 do
   tactic.fail_if_no_goals,
-  (if opt.all_goals then id else focus1) $
+  (if opt.backtrack_all_goals then id else focus1) $
     solve_by_elim_aux opt.discharger opt.assumptions opt.max_rep
 
 open interactive lean.parser interactive.types
@@ -96,9 +96,12 @@ optional arguments:
 - discharger: a subsidiary tactic to try at each step (e.g. `cc` may be helpful)
 - max_rep: number of attempts at discharging generated sub-goals
 -/
-meta def solve_by_elim (all_goals : parse $ (tk "*")?) (no_dflt : parse only_flag) (hs : parse simp_arg_list)  (attr_names : parse with_ident_list) (opt : by_elim_opt := { }) : tactic unit :=
+meta def solve_by_elim (all_goals : parse $ (tk "*")?) (no_dflt : parse only_flag) (hs : parse simp_arg_list) (attr_names : parse with_ident_list) (opt : by_elim_opt := { }) : tactic unit :=
 do asms ← mk_assumption_set no_dflt hs attr_names,
-   tactic.solve_by_elim { all_goals := all_goals.is_some, assumptions := return asms, ..opt }
+   tactic.solve_by_elim
+   { backtrack_all_goals := all_goals.is_some ∨ opt.backtrack_all_goals,
+     assumptions := return asms,
+     ..opt }
 end interactive
 
 end tactic

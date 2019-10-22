@@ -102,3 +102,9 @@ begin
   repeat { split },
   solve_by_elim*,
 end
+
+example {a b c : ℕ} (h₁ : a ≤ b) (h₂ : b ≤ c) : a ≤ c :=
+begin
+  apply le_trans,
+  solve_by_elim { backtrack_all_goals := true },
+end

@@ -208,7 +208,7 @@ by tidy
 @[simp] lemma comp_left (a b c : over X) (f : a ⟶ b) (g : b ⟶ c) :
   (f ≫ g).left = f.left ≫ g.left := rfl
 
-@[simp] lemma w {A B : over X} (f : A ⟶ B) : f.left ≫ B.hom = A.hom :=
+@[simp, reassoc] lemma w {A B : over X} (f : A ⟶ B) : f.left ≫ B.hom = A.hom :=
 by have := f.w; tidy
 
 def mk {X Y : T} (f : Y ⟶ X) : over X :=

@@ -4,5 +4,5 @@
 _cache
 __pycache__
 all.lean
-sanity_check_mathlib.lean
+lint_mathlib.lean
 *.depend

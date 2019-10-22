@@ -12,10 +12,11 @@ import analysis.calculus.times_cont_diff geometry.manifold.manifold
 A smooth manifold is a manifold modelled on a normed vector space, or a subset like a
 half-space (to get manifolds with boundaries) for which the change of coordinates are smooth maps.
 We define a model with corners as a map I : H → E embedding nicely the topological space H in the
-vector space E. Given such a model of corners I on (H, E), we define the groupoid of local
+vector space E (or more precisely as a structure containing all the relevant properties).
+Given such a model with corners I on (E, H), we define the groupoid of local
 homeomorphisms of H which are smooth when read in E (for any regularity n : with_top ℕ).
 With this groupoid at hand and the general machinery of manifolds, we thus get the notion of C^n
-manifold with respect to any model with corners I on (H, E). We also introduce a specific type
+manifold with respect to any model with corners I on (E, H). We also introduce a specific type
 class for C^∞ manifolds as these are the most commonly used.
 
 ## Main definitions

@@ -265,7 +265,7 @@ typeclass inference -/
 
 instance (x : B) : topological_space (Z.fiber x) := by { dsimp [fiber], apply_instance }
 
-/-- Total space of a topological bundle created from core. It is equal to `Σ x : B, F`, but as it is
+/-- Total space of a topological bundle created from core. It is equal to `B × F`, but as it is
 not marked as reducible, typeclass inference will not infer the wrong topology, and will use the
 instance `topological_fiber_bundle_core.to_topological_space` with the right topology. -/
 @[nolint] def total_space := B × F
@@ -487,5 +487,3 @@ def local_triv_at_ext (p : Z.total_space) : bundle_trivialization F Z.proj :=
   (Z.local_triv_at_ext p).to_local_homeomorph = Z.local_triv_at p := rfl
 
 end topological_fiber_bundle_core
-
-#lint

@@ -180,8 +180,10 @@ end
 
 abbreviation equalizer.lift {W : C} (k : W ⟶ X) (h : k ≫ f = k ≫ g) : W ⟶ equalizer f g :=
 limit.lift (parallel_pair f g) (fork.of_ι k h)
-end
 
+lemma equalizer.ι_mono : mono (equalizer.ι f g) :=
+{ right_cancellation := λ Z h k w, begin sorry end }
+end
 
 @[simp] lemma cone_parallel_pair_left (s : limits.cone (parallel_pair f g)) : (s.π).app zero ≫ f = (s.π).app one :=
 begin
@@ -193,6 +195,8 @@ begin
   conv { to_lhs, congr, skip, rw ←parallel_pair_map_right f g, },
   rw s.w,
 end
+
+-- TODO actually, do `is_limit` versions first.
 
 -- TODO squeeze_simp, and diagnose the `erw`s.
 -- TODO colimit version

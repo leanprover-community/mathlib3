@@ -455,7 +455,7 @@ begin
   have A : continuous (λq : (E →L[𝕜] F) × E, q.1 q.2) := is_bounded_bilinear_map_apply.continuous,
   have B : continuous_on (λp : E × E, (fderiv_within 𝕜 f s p.1, p.2)) (set.prod s univ),
   { apply continuous_on.prod _ continuous_snd.continuous_on,
-    refine continuous_on.comp (h.continuous_on_fderiv_within hn) continuous_fst.continuous_on
+    exact continuous_on.comp (h.continuous_on_fderiv_within hn) continuous_fst.continuous_on
       (prod_subset_preimage_fst _ _) },
   exact A.comp_continuous_on B
 end

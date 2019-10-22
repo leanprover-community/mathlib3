@@ -320,7 +320,7 @@ begin
     -- trans
     { exact eq.trans r_ih_h r_ih_k },
     -- map
-    { rw cocone.naturality_bundled, },
+    { rw cocone.naturality_concrete, },
     -- zero
     { erw is_ring_hom.map_zero ⇑((s.ι).app r), refl },
     -- one

@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Scott Morrison, Johannes Hölzl, Yury Kudryashov
 -/
 
-import algebra.category.Mon.basic
+import algebra.category.Group
 import category_theory.fully_faithful
 import algebra.ring
 import data.int.basic
@@ -18,6 +18,11 @@ We introduce the bundled categories:
 * `CommSemiRing`
 * `CommRing`
 along with the relevant forgetful functors between them.
+
+## Implementation notes
+
+See the note [locally reducible category instances].
+
 -/
 
 universes u v
@@ -25,96 +30,105 @@ universes u v
 open category_theory
 
 /-- The category of semirings. -/
-@[reducible] def SemiRing : Type (u+1) := bundled semiring
+def SemiRing : Type (u+1) := bundled semiring
 
 namespace SemiRing
 
 /-- Construct a bundled SemiRing from the underlying type and typeclass. -/
 def of (R : Type u) [semiring R] : SemiRing := bundled.of R
 
+local attribute [reducible] SemiRing
+
+instance : has_coe_to_sort SemiRing := infer_instance
+
 instance (R : SemiRing) : semiring R := R.str
 
 instance bundled_hom : bundled_hom @ring_hom :=
 ⟨@ring_hom.to_fun, @ring_hom.id, @ring_hom.comp, @ring_hom.coe_inj⟩
 
-instance has_forget_to_Mon : has_forget₂ SemiRing.{u} Mon.{u} :=
-bundled_hom.mk_has_forget₂ @semiring.to_monoid (λ R₁ R₂ f, f.to_monoid_hom) (λ _ _ _, rfl)
+instance : concrete_category SemiRing := infer_instance
+
+instance has_forget_to_Mon : has_forget₂ SemiRing Mon :=
+bundled_hom.mk_has_forget₂ @semiring.to_monoid (λ R₁ R₂, ring_hom.to_monoid_hom) (λ _ _ _, rfl)
+instance has_forget_to_AddCommMon : has_forget₂ SemiRing AddCommMon :=
+-- can't use bundled_hom.mk_has_forget₂, since AddCommMon is an induced category
+{ forget₂ :=
+  { obj := λ R, AddCommMon.of R,
+    map := λ R₁ R₂ f, ring_hom.to_add_monoid_hom f } }
 
 end SemiRing
 
 /-- The category of rings. -/
-@[reducible] def Ring : Type (u+1) := bundled ring
+def Ring : Type (u+1) := induced_category SemiRing (bundled.map @ring.to_semiring)
 
 namespace Ring
-
-instance (R : Ring) : ring R := R.str
 
 /-- Construct a bundled Ring from the underlying type and typeclass. -/
 def of (R : Type u) [ring R] : Ring := bundled.of R
 
-instance bundled_hom : bundled_hom _ :=
-SemiRing.bundled_hom.full_subcategory @ring.to_semiring
+local attribute [reducible] Ring
 
-instance has_forget_to_SemiRing : has_forget₂ Ring.{u} SemiRing.{u} :=
-SemiRing.bundled_hom.full_subcategory_has_forget₂ _
+instance : has_coe_to_sort Ring := infer_instance
+
+instance (R : Ring) : ring R := R.str
+
+instance : concrete_category Ring := infer_instance
+
+instance has_forget_to_SemiRing : has_forget₂ Ring SemiRing := infer_instance
+instance has_forget_to_AddCommGroup : has_forget₂ Ring AddCommGroup :=
+-- can't use bundled_hom.mk_has_forget₂, since AddCommGroup is an induced category
+{ forget₂ :=
+  { obj := λ R, AddCommGroup.of R,
+    map := λ R₁ R₂ f, ring_hom.to_add_monoid_hom f } }
 
 end Ring
 
 /-- The category of commutative semirings. -/
-@[reducible] def CommSemiRing : Type (u+1) := bundled comm_semiring
+def CommSemiRing : Type (u+1) := induced_category SemiRing (bundled.map comm_semiring.to_semiring)
 
 namespace CommSemiRing
-
-instance (R : CommSemiRing) : comm_semiring R := R.str
 
 /-- Construct a bundled CommSemiRing from the underlying type and typeclass. -/
 def of (R : Type u) [comm_semiring R] : CommSemiRing := bundled.of R
 
-instance bundled_hom : bundled_hom _ :=
-SemiRing.bundled_hom.full_subcategory @comm_semiring.to_semiring
+local attribute [reducible] CommSemiRing
 
-instance has_forget_to_SemiRing : has_forget₂ CommSemiRing.{u} SemiRing.{u} :=
-bundled_hom.full_subcategory_has_forget₂ _ _
+instance : has_coe_to_sort CommSemiRing := infer_instance
+
+instance (R : CommSemiRing) : comm_semiring R := R.str
+
+instance : concrete_category CommSemiRing := infer_instance
+
+instance has_forget_to_SemiRing : has_forget₂ CommSemiRing SemiRing := infer_instance
 
 /-- The forgetful functor from commutative rings to (multiplicative) commutative monoids. -/
-instance has_forget_to_CommMon : has_forget₂ CommSemiRing.{u} CommMon.{u} :=
-bundled_hom.mk_has_forget₂
-  @comm_semiring.to_comm_monoid
-  (λ R₁ R₂ f, f.to_monoid_hom)
-  (by intros; refl)
+instance has_forget_to_CommMon : has_forget₂ CommSemiRing CommMon :=
+has_forget₂.mk'
+  (λ R : CommSemiRing, CommMon.of R) (λ R, rfl)
+  (λ R₁ R₂ f, f.to_monoid_hom) (by tidy)
 
 end CommSemiRing
 
 /-- The category of commutative rings. -/
-@[reducible] def CommRing : Type (u+1) := bundled comm_ring
+def CommRing : Type (u+1) := induced_category Ring (bundled.map comm_ring.to_ring)
 
 namespace CommRing
-
-instance (R : CommRing) : comm_ring R := R.str
 
 /-- Construct a bundled CommRing from the underlying type and typeclass. -/
 def of (R : Type u) [comm_ring R] : CommRing := bundled.of R
 
-instance bundled_hom : bundled_hom _ :=
-Ring.bundled_hom.full_subcategory @comm_ring.to_ring
+local attribute [reducible] CommRing
 
-@[simp] lemma id_eq (R : CommRing) : 𝟙 R = ring_hom.id R := rfl
-@[simp] lemma comp_eq {R₁ R₂ R₃ : CommRing} (f : R₁ ⟶ R₂) (g : R₂ ⟶ R₃) :
-  f ≫ g = g.comp f := rfl
+instance : has_coe_to_sort CommRing := infer_instance
 
-@[simp] lemma forget_obj_eq_coe {R : CommRing} : (forget CommRing).obj R = R := rfl
-@[simp] lemma forget_map_eq_coe {R₁ R₂ : CommRing} (f : R₁ ⟶ R₂) :
-  (forget CommRing).map f = f :=
-rfl
+instance (R : CommRing) : comm_ring R := R.str
 
-instance has_forget_to_Ring : has_forget₂ CommRing.{u} Ring.{u} :=
-by apply bundled_hom.full_subcategory_has_forget₂
+instance : concrete_category CommRing := infer_instance
+
+instance has_forget_to_Ring : has_forget₂ CommRing Ring := infer_instance
 
 /-- The forgetful functor from commutative rings to (multiplicative) commutative monoids. -/
-instance has_forget_to_CommSemiRing : has_forget₂ CommRing.{u} CommSemiRing.{u} :=
-bundled_hom.mk_has_forget₂
-  @comm_ring.to_comm_semiring
-  (λ _ _, id)
-  (by intros; refl)
+instance has_forget_to_CommSemiRing : has_forget₂ CommRing CommSemiRing :=
+has_forget₂.mk' (λ R : CommRing, CommSemiRing.of R) (λ R, rfl) (λ R₁ R₂ f, f) (by tidy)
 
 end CommRing

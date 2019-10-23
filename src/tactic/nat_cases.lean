@@ -89,6 +89,7 @@ do
   | (some (lb, lb_prf), some (ub, ub_prf)) := return (lb, lb_prf, ub, ub_prf)
   end
 
+#check list.Ico.trichotomy
 /--
 Performs case analysis on the variable `n`, giving
 1. a case for `n < a`,
@@ -99,7 +100,7 @@ If `use_linarith = tt`, we try to discharge the first two goals by calling `lina
 -/
 meta def nat_cases_ineq (n : name) (a b : ℕ) (use_linarith : bool) : tactic unit :=
 do n ← get_local n,
-   v ← to_expr ``(nat.Ico_trichotomy %%n %%`(a) %%`(b)),
+   v ← to_expr ``(list.Ico.trichotomy %%n %%`(a) %%`(b)),
    t ← infer_type v,
    h ← assertv `h t v,
    [(_, [h₁], _), (_, [h₂], _)] ← cases_core h,
@@ -107,6 +108,10 @@ do n ← get_local n,
    [(_, [h₃], _), (_, [h₄], _)] ← cases_core h₂,
    (guard use_linarith >> `[linarith]) <|> rotate_left 1,
    fin_cases_at none h₄
+
+meta def cases_of_bound (hl hu : expr) : tactic unit :=
+to_expr ``(list.Ico.mem.2 ⟨%%hl, %%hu⟩) >>= note_anon >>= fin_cases_at none
+
 
 /--
 Performs case analysis on the expression `n`,
@@ -117,21 +122,22 @@ Assuming an upper bound is found,
 meta def nat_cases (n : expr) : tactic unit :=
 do
    (a, a_prf, b, b_prf) ← get_bounds n,
-   v ← to_expr ``(nat.Ico_trichotomy %%n %%`(a) %%`(b)),
-   t ← infer_type v,
-   h ← assertv `h t v,
-   [(_, [h₁], _), (_, [h₂], _)] ← cases_core h,
-   exfalso,
-   to_expr ``(not_lt_of_ge %%a_prf %%h₁) >>= exact,
-   [(_, [h₃], _), (_, [h₄], _)] ← cases_core h₂,
-   exfalso,
-   to_expr ``(not_lt_of_ge %%h₃ %%b_prf) >>= exact,
-   fin_cases_at none h₄
+   cases_of_bound a_prf b_prf
+  --  v ← to_expr ``(nat.Ico_trichotomy %%n %%`(a) %%`(b)),
+  --  t ← infer_type v,
+  --  h ← assertv `h t v,
+  --  [(_, [h₁], _), (_, [h₂], _)] ← cases_core h,
+  --  exfalso,
+  --  to_expr ``(not_lt_of_ge %%a_prf %%h₁) >>= exact,
+  --  [(_, [h₃], _), (_, [h₄], _)] ← cases_core h₂,
+  --  exfalso,
+  --  to_expr ``(not_lt_of_ge %%h₃ %%b_prf) >>= exact,
+  --  fin_cases_at none h₄
 
 namespace interactive
 
 /--
-Perform case analysis on an natural number variable,
+Perform case analysis on a natural number variable,
 by looking for a upper bound (and optional lower bound),
 and produces a separate case for each allowed value.
 -/

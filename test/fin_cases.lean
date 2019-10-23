@@ -84,3 +84,10 @@ begin
   fin_cases *,
   all_goals { assumption }
 end
+
+example (n : ℕ) (h : n % 3 ∈ [0,1]) : true :=
+begin
+  fin_cases h,
+  guard_hyp h := n % 3 = 0, trivial,
+  guard_hyp h := n % 3 = 1, trivial,
+end

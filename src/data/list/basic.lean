@@ -4601,7 +4601,7 @@ For any natural numbers n, a, and b, one of the following holds:
 2. n ≥ b
 3. n ∈ Ico a b
 -/
-lemma nat.Ico_trichotomy (n a b : ℕ) : n < a ∨ n ≥ b ∨ n ∈ Ico a b :=
+lemma trichotomy (n a b : ℕ) : n < a ∨ n ≥ b ∨ n ∈ Ico a b :=
 begin
   by_cases h₁ : n < a,
   { left, exact h₁ },

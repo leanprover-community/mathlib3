@@ -36,6 +36,9 @@ by nat_cases n; simp
 example (n : ℕ) (w₁ : 2 < n) (w₂ : 4 ≥ n) : n = 3 ∨ n = 4 :=
 by nat_cases n; simp
 
+example (n : ℕ) (w₁ : n % 3 < 1) : n % 3 = 0 :=
+by { nat_cases n % 3, assumption }
+
 /-
 Sadly, this one doesn't work, reporting:
   `deep recursion was detected at 'expression equality test'`

@@ -628,7 +628,7 @@ begin
 end
 
 /-- Dedekind's linear independence of characters -/
-theorem linear_independent_monoid_hom (G : Type*) [monoid G] (L : Type*) [field L] :
+theorem linear_independent_monoid_hom (G : Type*) [monoid G] (L : Type*) [integral_domain L] :
   linear_independent L (subtype.val : { f : G → L // is_monoid_hom f } → (G → L)) :=
 by letI := classical.dec_eq { f : G → L // is_monoid_hom f };
    letI : mul_action L L := distrib_mul_action.to_mul_action L L;

@@ -55,7 +55,7 @@ end
 
 /-- Evaluates an expression as a rational number,
 if that expression represents a numeral or the quotient of two numerals. -/
-protected meta def expr.to_pos_rat : expr → option ℚ
+protected meta def expr.to_nonneg_rat : expr → option ℚ
 | `(%%e₁ / %%e₂) := do m ← e₁.to_nat, n ← e₂.to_nat, some (rat.mk m n)
 | e              := do n ← e.to_nat, return (rat.of_int n)
 
@@ -63,8 +63,8 @@ protected meta def expr.to_pos_rat : expr → option ℚ
 if that expression represents a numeral, the quotient of two numerals,
 the negation of a numeral, or the negation of the quotient of two numerals. -/
 protected meta def expr.to_rat : expr → option ℚ
-| `(has_neg.neg %%e) := do q ← e.to_pos_rat, some (-q)
-| e                  := e.to_pos_rat
+| `(has_neg.neg %%e) := do q ← e.to_nonneg_rat, some (-q)
+| e                  := e.to_nonneg_rat
 
 /-- Evaluates an expression into a rational number, if that expression is built up from
   numerals, +, -, *, /, ⁻¹  -/

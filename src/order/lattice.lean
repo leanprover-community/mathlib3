@@ -248,6 +248,7 @@ end semilattice_inf
 /- Lattices -/
 
 /-- A lattice is a join-semilattice which is also a meet-semilattice. -/
+-- TODO(lint): Fix double namespace issue
 @[nolint] class lattice (α : Type u) extends semilattice_sup α, semilattice_inf α
 
 section lattice

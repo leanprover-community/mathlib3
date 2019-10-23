@@ -429,14 +429,7 @@ lemma has_groupoid_of_pregroupoid (PG : pregroupoid H)
   (h : ∀{e e' : local_homeomorph M H}, e ∈ atlas H M → e' ∈ atlas H M
     → PG.property (e.symm ≫ₕ e').to_fun (e.symm ≫ₕ e').source) :
   has_groupoid M (PG.groupoid) :=
-begin
-  constructor,
-  assume e e' he he',
-  rw mem_groupoid_of_pregroupoid,
-  split,
-  { exact h he he' },
-  { exact h he' he },
-end
+⟨assume e e' he he', (mem_groupoid_of_pregroupoid PG _).mpr ⟨h he he', h he' he⟩⟩
 
 /-- The trivial manifold structure on the model space is compatible with any groupoid -/
 instance has_groupoid_model_space (H : Type*) [topological_space H] (G : structure_groupoid H) :

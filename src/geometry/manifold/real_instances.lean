@@ -315,7 +315,8 @@ begin
   have M : times_cont_diff_on ℝ ⊤ (λz : fin 1 → ℝ, (λi : fin 1, y - x) - z) univ,
   { rw times_cont_diff_on_univ,
     exact times_cont_diff.sub times_cont_diff_const times_cont_diff_id },
-  haveI : has_groupoid (Icc x y) (times_cont_diff_groupoid ⊤ (model_with_corners_euclidean_half_space 1)) :=
+  haveI : has_groupoid (Icc x y)
+          (times_cont_diff_groupoid ⊤ (model_with_corners_euclidean_half_space 1)) :=
   begin
     apply has_groupoid_of_pregroupoid,
     assume e e' he he',
@@ -323,13 +324,10 @@ begin
     /- We need to check that any composition of two charts gives a C^∞ function. Each chart can be
     either the left chart or the right chart, leaving 4 possibilities that we handle successively.
     -/
-    cases he; cases he',
+    rcases he with rfl | rfl; rcases he' with rfl | rfl,
     { -- e = right chart, e' = right chart
-      have : e.symm.trans e' ∈ times_cont_diff_groupoid ⊤ (model_with_corners_euclidean_half_space 1),
-      { rw [he', ← he],
-        apply symm_trans_mem_times_cont_diff_groupoid },
-      rw [times_cont_diff_groupoid, mem_groupoid_of_pregroupoid] at this,
-      exact this.1 },
+      refine ((mem_groupoid_of_pregroupoid _ _).mpr _).1,
+      exact symm_trans_mem_times_cont_diff_groupoid _ _ _ },
     { -- e = right chart, e' = left chart
       apply M.congr_mono _ _ (subset_univ _),
       { rw inter_comm,
@@ -337,16 +335,14 @@ begin
         exact model_with_corners.continuous_inv_fun _ _ (local_homeomorph.open_source _) },
       { assume z hz,
         simp [-mem_range, range_half_space, model_with_corners_euclidean_half_space,
-              local_equiv.trans_source, he, he', Icc_left_chart, Icc_right_chart] at hz,
+              local_equiv.trans_source, Icc_left_chart, Icc_right_chart] at hz,
         have A : 0 ≤ z 0 := hz.2,
-        have B : x ≤ y + -z 0,
-          by { have := hz.1.1.1, linarith },
+        have B : x ≤ y + -z 0, by { have := hz.1.1.1, linarith },
         have C : y + (-x + -z 0) = ((λ (i : fin 1), y + -x) + -z) 0,
           by { change y + (-x - z 0) = (y - x) - z 0, ring },
         ext i,
         rw subsingleton.elim i 0,
-        simpa [model_with_corners_euclidean_half_space, he', he, Icc_left_chart, Icc_right_chart,
-              fin.val_zero, A, B] } },
+        simpa [model_with_corners_euclidean_half_space, Icc_left_chart, Icc_right_chart, A, B] } },
     { -- e = left chart, e' = right chart
       apply M.congr_mono _ _ (subset_univ _),
       { rw inter_comm,
@@ -354,22 +350,17 @@ begin
         exact model_with_corners.continuous_inv_fun _ _ (local_homeomorph.open_source _) },
       { assume z hz,
         simp [-mem_range, range_half_space, model_with_corners_euclidean_half_space,
-              local_equiv.trans_source, he, he', Icc_left_chart, Icc_right_chart] at hz,
+              local_equiv.trans_source, Icc_left_chart, Icc_right_chart] at hz,
         have A : 0 ≤ z 0 := hz.2,
-        have B : x + z 0 ≤ y,
-          by { have := hz.1.1.1, linarith },
+        have B : x + z 0 ≤ y, by { have := hz.1.1.1, linarith },
         have C : y + (-x + -z 0) = ((λ (i : fin 1), y + -x) + -z) 0,
           by { change y + (-x - z 0) = (y - x) - z 0, ring },
         ext i,
         rw subsingleton.elim i 0,
-        simpa [model_with_corners_euclidean_half_space, he', he, Icc_left_chart, Icc_right_chart,
-              fin.val_zero, A, B] } },
+        simpa [model_with_corners_euclidean_half_space, Icc_left_chart, Icc_right_chart, A, B] } },
     { -- e = left chart, e' = left chart
-      have : e.symm.trans e' ∈ times_cont_diff_groupoid ⊤ (model_with_corners_euclidean_half_space 1),
-      { rw [he', ← he],
-        apply symm_trans_mem_times_cont_diff_groupoid },
-      rw [times_cont_diff_groupoid, mem_groupoid_of_pregroupoid] at this,
-      exact this.1 },
+      refine ((mem_groupoid_of_pregroupoid _ _).mpr _).1,
+      exact symm_trans_mem_times_cont_diff_groupoid _ _ _ }
   end,
   constructor
 end

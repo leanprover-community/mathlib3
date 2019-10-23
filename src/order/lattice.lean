@@ -248,7 +248,7 @@ end semilattice_inf
 /- Lattices -/
 
 /-- A lattice is a join-semilattice which is also a meet-semilattice. -/
-class lattice (α : Type u) extends semilattice_sup α, semilattice_inf α
+@[nolint] class lattice (α : Type u) extends semilattice_sup α, semilattice_inf α
 
 section lattice
 variables {α : Type u} [lattice α] {a b c d : α}
@@ -267,7 +267,7 @@ le_antisymm (by finish) (by finish)
 theorem sup_inf_self : a ⊔ (a ⊓ b) = a :=
 le_antisymm (by finish) (by finish)
 
-theorem lattice.ext {α} {A B : lattice α}
+theorem ext {α} {A B : lattice α}
   (H : ∀ x y : α, (by haveI := A; exact x ≤ y) ↔ x ≤ y) : A = B :=
 begin
   have SS : @lattice.to_semilattice_sup α A =

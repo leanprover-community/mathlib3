@@ -202,10 +202,20 @@ have succ_chain (⋃₀ chain_closure) = (⋃₀ chain_closure),
   from (chain_closure_succ_fixpoint_iff chain_closure_closure).mpr rfl,
 h₃ this.symm
 
+end chain
+end zorn
+
+section zorn
+open zorn
+variables {α : Type u} {r : α → α → Prop} {c c₁ c₂ : set α}
+local infix ` ≺ `:50  := r
+local notation `chain` := chain r
+
 /-- Zorn's lemma
 
 If every chain has an upper bound, then there is a maximal element -/
-theorem zorn (h : ∀c, chain c → ∃ub, ∀a∈c, a ≺ ub) (trans : ∀{a b c}, a ≺ b → b ≺ c → a ≺ c) :
+theorem zorn
+  (h : ∀c, chain c → ∃ub, ∀a∈c, a ≺ ub) (trans : ∀{a b c}, a ≺ b → b ≺ c → a ≺ c) :
   ∃m, ∀a, m ≺ a → a ≺ m :=
 have ∃ub, ∀a∈max_chain, a ≺ ub,
   from h _ $ max_chain_spec.left,
@@ -218,8 +228,9 @@ let ⟨ub, (hub : ∀a∈max_chain, a ≺ ub)⟩ := this in
     max_chain_spec.right $ ⟨insert a max_chain, this, ssubset_insert h⟩,
   hub a this⟩
 
-end chain
-
+end zorn
+namespace zorn
+open zorn
 theorem zorn_partial_order {α : Type u} [partial_order α]
   (h : ∀c:set α, @chain α (≤) c → ∃ub, ∀a∈c, a ≤ ub) : ∃m:α, ∀a, m ≤ a → a = m :=
 let ⟨m, hm⟩ := @zorn α (≤) h (assume a b c, le_trans) in

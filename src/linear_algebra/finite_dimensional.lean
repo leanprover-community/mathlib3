@@ -113,7 +113,7 @@ include h
 lemma fg_of_finite_basis : submodule.fg (⊤ : submodule K V) :=
 ⟨ finset.univ.image b, by {convert h.2, simp} ⟩
 
-def finite_dimensional_of_finite_basis : finite_dimensional K V :=
+lemma finite_dimensional_of_finite_basis : finite_dimensional K V :=
 finite_dimensional.of_fg $ fg_of_finite_basis h
 
 lemma dim_eq_card : dim K V = fintype.card ι :=

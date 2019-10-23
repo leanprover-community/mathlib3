@@ -40,7 +40,7 @@ def algebra.is_algebraic : Prop := ∀ x : A, is_algebraic R x
 variables {R A}
 
 /-- A subalgebra is algebraic if and only if it is algebraic an algebra. -/
-def subalgebra.is_algebraic_iff (S : subalgebra R A) :
+lemma subalgebra.is_algebraic_iff (S : subalgebra R A) :
   S.is_algebraic ↔ @algebra.is_algebraic R S _ _ (by convert S.algebra) :=
 begin
   delta algebra.is_algebraic subalgebra.is_algebraic,

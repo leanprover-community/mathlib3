@@ -1573,7 +1573,7 @@ instance : has_div ordinal := ⟨ordinal.div⟩
 @[simp] theorem div_zero (a : ordinal) : a / 0 = 0 := dif_pos rfl
 
 -- TODO This should be a theorem but Lean fails to synthesize the placeholder
-def div_def (a) {b : ordinal} (h : b ≠ 0) :
+@[nolint] def div_def (a) {b : ordinal} (h : b ≠ 0) :
   a / b = omin {o | a < b * succ o} _ := dif_neg h
 
 theorem lt_mul_succ_div (a) {b : ordinal} (h : b ≠ 0) : a < b * succ (a / b) :=
@@ -1749,7 +1749,7 @@ begin
 end
 
 -- TODO This should be a theorem but Lean fails to synthesize the placeholders
-def ord_eq_min (α : Type u) : ord (mk α) =
+@[nolint] def ord_eq_min (α : Type u) : ord (mk α) =
   @ordinal.min _ _ (λ i:{r // is_well_order α r}, ⟦⟨α, i.1, i.2⟩⟧) := rfl
 
 theorem ord_eq (α) : ∃ (r : α → α → Prop) [wo : is_well_order α r],

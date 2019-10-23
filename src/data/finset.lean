@@ -1819,9 +1819,8 @@ suffices card (t \ s) = card ((t \ s) ∪ s) - card s, by rwa sdiff_union_of_sub
 by rw [card_disjoint_union sdiff_disjoint, nat.add_sub_cancel]
 
 lemma disjoint_filter {s : finset α} {p q : α → Prop} [decidable_pred p] [decidable_pred q] :
-    (∀x, p x → ¬ q x) → disjoint (s.filter p) (s.filter q) :=
-assume h, by simp only [disjoint_iff_ne, mem_filter]; rintros a ⟨_, ha⟩ b ⟨_, hb⟩ eq;
-rw [eq] at ha; exact h _ ha hb
+    disjoint (s.filter p) (s.filter q) ↔ (∀ x ∈ s, p x → ¬ q x) :=
+by split; simp [disjoint_left] {contextual := tt}
 
 end disjoint
 

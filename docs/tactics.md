@@ -728,6 +728,20 @@ end
 ```
 after `fin_cases p; simp`, there are three goals, `f 0`, `f 1`, and `f 2`.
 
+### nat_cases
+`nat_cases n` searches for upper and lower bounds on a ℕ variable `n`, and if an
+upper bound is found, splits into separate cases for each possible value of `n`.
+
+As an example, in
+```
+example (n : ℕ) (w₁ : n ≥ 3) (w₂ : n < 5) : n = 3 ∨ n = 4 :=
+begin
+  nat_cases n,
+  all_goals {simp}
+end
+```
+after `nat_cases n`, the goals are `3 = 3 ∨ 3 = 4` and `4 = 3 ∨ 4 = 4`.
+
 ### conv
 The `conv` tactic is built-in to lean. Inside `conv` blocks mathlib currently
 additionally provides

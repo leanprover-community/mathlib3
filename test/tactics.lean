@@ -180,6 +180,21 @@ example : tfae [] := begin
   tfae_finish,
 end
 
+variables P Q R : Prop
+
+example : tfae [P, Q, R] :=
+begin
+  have : P → Q := sorry, have : Q → R := sorry, have : R → P := sorry,
+  --have : R → Q := sorry, -- uncommenting this makes the proof fail
+  tfae_finish
+end
+
+example : tfae [P, Q, R] :=
+begin
+  have : P ↔ Q := sorry, have : Q ↔ R := sorry,
+  tfae_finish -- the success or failure of this tactic is nondeterministic!
+end
+
 end tfae
 
 section clear_aux_decl

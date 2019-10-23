@@ -82,6 +82,23 @@ theorem linear_independent_iff : linear_independent R v ↔
   ∀l, finsupp.total ι M R v l = 0 → l = 0 :=
 by simp [linear_independent, linear_map.ker_eq_bot']
 
+theorem linear_independent_iff' : linear_independent R v ↔
+  ∀ s : finset ι, ∀ g : ι → R, s.sum (λ i, g i • v i) = 0 → ∀ i ∈ s, g i = 0 :=
+by classical; exact linear_independent_iff.trans
+⟨λ hf s g hg, have h : _ := hf ⟨s.filter (λ i, g i ≠ 0), λ i, if i ∈ s then g i else 0,
+    λ i, by simp only [finset.mem_filter]; split_ifs; cc⟩ $ calc
+          (s.filter (λ i, g i ≠ 0)).sum (λ i, (if i ∈ s then g i else 0) • v i)
+        = s.sum (λ i, (if i ∈ s then g i else 0) • v i) : finset.sum_subset (finset.filter_subset _)
+            (λ i his hni, by rw [finset.mem_filter, eq_true_intro his, true_and, not_not] at hni;
+              rw [if_pos his, hni, zero_smul])
+    ... = s.sum (λ i, g i • v i) : finset.sum_congr rfl $ λ i his, by rw if_pos his
+    ... = 0 : hg,
+  have hse : s.filter (λ i, g i ≠ 0) = ∅, from congr_arg finsupp.support h,
+  λ i his, classical.by_contradiction $ λ hngi0, finset.not_mem_empty i $ hse ▸
+    finset.mem_filter.2 ⟨his, hngi0⟩,
+λ hf l hl, finsupp.ext $ λ i, classical.by_contradiction $ λ hni, hni $ hf _ _ hl _ $
+  finsupp.mem_support_iff.2 hni⟩
+
 lemma linear_independent_empty_type (h : ¬ nonempty ι) : linear_independent R v :=
 begin
  rw [linear_independent_iff],
@@ -609,6 +626,56 @@ begin
       { rw [set.range_comp, span_image],
         apply linear_map.map_le_range } } }
 end
+
+/-- Dedekind's linear independence of characters -/
+theorem linear_independent_monoid_hom (G : Type*) [monoid G] (L : Type*) [field L] :
+  linear_independent L (subtype.val : { f : G → L // is_monoid_hom f } → (G → L)) :=
+by letI := classical.dec_eq { f : G → L // is_monoid_hom f };
+   letI : mul_action L L := distrib_mul_action.to_mul_action L L;
+exact linear_independent_iff'.2
+(λ s, finset.induction_on s (λ g hg i, false.elim) $ λ a s has ih g hg,
+have h1 : ∀ i ∈ s, (g i • i.1 : G → L) = g i • a.1, from λ i his, funext $ λ x,
+  eq_of_sub_eq_zero $ ih (λ j, g j * j.1 x - g j * a.1 x)
+    (funext $ λ y, calc
+          s.sum (λ i, (g i * i.1 x - g i * a.1 x) • i.1) y
+        = s.sum (λ i, (g i * i.1 x - g i * a.1 x) * i.1 y) : pi.finset_sum_apply _ _ _
+    ... = s.sum (λ i, g i * i.1 x * i.1 y - g i * a.1 x * i.1 y) : finset.sum_congr rfl
+      (λ _ _, sub_mul _ _ _)
+    ... = s.sum (λ i, g i * i.1 x * i.1 y) - s.sum (λ i, g i * a.1 x * i.1 y) :
+      finset.sum_sub_distrib
+    ... = (g a * a.1 x * a.1 y + s.sum (λ i, g i * i.1 x * i.1 y))
+          - (g a * a.1 x * a.1 y + s.sum (λ i, g i * a.1 x * i.1 y)) :
+      (add_sub_add_left_eq_sub _ _ _).symm
+    ... = (insert a s).sum (λ i, g i * i.1 x * i.1 y) - (insert a s).sum (λ i, g i * a.1 x * i.1 y):
+      by rw [finset.sum_insert has, finset.sum_insert has]
+    ... = (insert a s).sum (λ i, g i * i.1 (x * y)) - (insert a s).sum (λ i, a.1 x * (g i * i.1 y)):
+      congr (congr_arg has_sub.sub (finset.sum_congr rfl $ λ i _,
+          by rw [@@is_monoid_hom.map_mul _ _ i.1 i.2, mul_assoc]))
+        (finset.sum_congr rfl $ λ _ _, by rw [mul_assoc, mul_left_comm])
+    ... = (insert a s).sum (λ i, g i • i.1) (x * y) - a.1 x * (insert a s).sum (λ i, g i • i.1) y :
+      by rw [pi.finset_sum_apply, pi.finset_sum_apply, finset.mul_sum]; refl
+    ... = 0 - a.1 x * 0 : by rw hg; refl
+    ... = 0 : by rw [mul_zero, sub_zero])
+    i
+    his,
+have h2 : ∀ i : { f : G → L // is_monoid_hom f }, i ∈ s → ∃ y, i.1 y ≠ a.1 y,
+  from λ i his, classical.by_contradiction $ λ h,
+    have hia : i = a, from subtype.eq $ funext $ λ y, classical.by_contradiction $ λ hy, h ⟨y, hy⟩,
+    has $ hia ▸ his,
+have h3 : ∀ i ∈ s, g i = 0, from λ i his, let ⟨y, hy⟩ := h2 i his in
+  have h : g i • i.1 y = g i • a.1 y, from congr_fun (h1 i his) y,
+  or.resolve_right (mul_eq_zero.1 $ by rw [mul_sub, sub_eq_zero]; exact h) (sub_ne_zero_of_ne hy),
+have h4 : g a = 0, from calc
+      g a
+    = g a * 1 : (mul_one _).symm
+... = (g a • a.1) 1 : by rw ← a.2.2; refl
+... = (insert a s).sum (λ i, g i • i.1) 1 : begin
+    rw finset.sum_eq_single a,
+    { intros i his hia, rw finset.mem_insert at his, rw [h3 i (his.resolve_left hia), zero_smul] },
+    { intros haas, exfalso, apply haas, exact finset.mem_insert_self a s }
+  end
+... = 0 : by rw hg; refl,
+(finset.forall_mem_insert _ _ _).2 ⟨h4, h3⟩)
 
 lemma le_of_span_le_span {s t u: set M} (zero_ne_one : (0 : R) ≠ 1)
   (hl : linear_independent R (subtype.val : u → M )) (hsu : s ⊆ u) (htu : t ⊆ u)

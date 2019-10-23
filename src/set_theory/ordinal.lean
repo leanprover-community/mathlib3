@@ -1748,7 +1748,7 @@ begin
   exact ordinal.min_le (λ i:ι α, ⟦⟨α, i.1, i.2⟩⟧) ⟨_, _⟩
 end
 
--- TODO This should be a theorem but Lean fails to synthesize the placeholders
+-- TODO(lint): This should be a theorem but Lean fails to synthesize the placeholders
 @[nolint] def ord_eq_min (α : Type u) : ord (mk α) =
   @ordinal.min _ _ (λ i:{r // is_well_order α r}, ⟦⟨α, i.1, i.2⟩⟧) := rfl
 

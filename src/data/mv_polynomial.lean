@@ -124,11 +124,13 @@ hom_eq_hom f id hf is_semiring_hom.id hC hX p
 
 section coeff
 
-def tmp.coe : has_coe_to_fun (mv_polynomial σ α) := by delta mv_polynomial; apply_instance
+section
+-- While setting up `coeff`, we make `mv_polynomial` reducible so we can treat it as a function.
+local attribute [reducible] mv_polynomial
 
-local attribute [instance] tmp.coe
-
+/-- The coefficient of the monomial `m` in the multi-variable polynomial `p`. -/
 def coeff (m : σ →₀ ℕ) (p : mv_polynomial σ α) : α := p m
+end
 
 lemma ext (p q : mv_polynomial σ α) :
   (∀ m, coeff m p = coeff m q) → p = q := ext
@@ -279,6 +281,7 @@ p.sum (λs a, f a * s.prod (λn e, g n ^ e))
 @[simp] lemma eval₂_zero : (0 : mv_polynomial σ α).eval₂ f g = 0 :=
 finsupp.sum_zero_index
 
+section
 variables [is_semiring_hom f]
 
 @[simp] lemma eval₂_add : (p + q).eval₂ f g = p.eval₂ f g + q.eval₂ f g :=
@@ -331,6 +334,7 @@ instance eval₂.is_semiring_hom : is_semiring_hom (eval₂ f g) :=
   map_one := eval₂_one _ _,
   map_add := λ p q, eval₂_add _ _,
   map_mul := λ p q, eval₂_mul _ _ }
+end
 
 lemma eval₂_comp_left {γ} [comm_semiring γ]
   (k : β → γ) [is_semiring_hom k]
@@ -355,6 +359,8 @@ begin
   apply h hi,
   rwa finsupp.mem_support_iff at hc
 end
+
+variables [is_semiring_hom f]
 
 @[simp] lemma eval₂_prod (s : finset γ) (p : γ → mv_polynomial σ α) :
   eval₂ f g (s.prod p) = s.prod (λ x, eval₂ f g $ p x) :=
@@ -407,10 +413,12 @@ end eval
 
 section map
 variables [comm_semiring β]
-variables (f : α → β) [is_semiring_hom f]
+variables (f : α → β)
 
 /-- `map f p` maps a polynomial `p` across a ring hom `f` -/
 def map : mv_polynomial σ α → mv_polynomial σ β := eval₂ (C ∘ f) X
+
+variables [is_semiring_hom f]
 
 @[simp] theorem map_monomial (s : σ →₀ ℕ) (a : α) : map f (monomial s a) = monomial s (f a) :=
 (eval₂_monomial _ _).trans monomial_eq.symm
@@ -500,6 +508,11 @@ section degrees
 
 section comm_semiring
 
+/--
+The maximal degrees of each variable in a multi-variable polynomial, expressed as a multiset.
+
+(For example, `degrees (x^2 * y + y^3)` would be `{x, x, y, y, y}`.)
+-/
 def degrees (p : mv_polynomial σ α) : multiset σ :=
 p.support.sup (λs:σ →₀ ℕ, s.to_multiset)
 
@@ -776,7 +789,7 @@ mv_polynomial.induction_on x
 (λ p n hp, by { rw [eval₂_mul, eval₂_X, hp], exact (is_ring_hom.map_mul f).symm })
 
 /-- Ring homomorphisms out of integer polynomials on a type `σ` are the same as
-functiosn out of the the type `σ`, -/
+functions out of the type `σ`, -/
 def hom_equiv : (mv_polynomial σ ℤ →+* β) ≃ (σ → β) :=
 { to_fun := λ f, ⇑f ∘ X,
   inv_fun := λ f, ring_hom.of (eval₂ (λ n : ℤ, (n : β)) f),
@@ -816,6 +829,7 @@ end comm_ring
 section rename
 variables {α} [comm_semiring α]
 
+/-- Rename all the variables in a multivariable polynomial. -/
 def rename (f : β → γ) : mv_polynomial β α → mv_polynomial γ α :=
 eval₂ C (X ∘ f)
 
@@ -962,6 +976,7 @@ variables (α) [comm_ring α]
 
 set_option class.instance_max_depth 40
 
+/-- The ring isomorphism between multivariable polynomials in no variables and the ground ring. -/
 def pempty_ring_equiv : mv_polynomial pempty α ≃+* α :=
 { to_fun    := mv_polynomial.eval₂ id $ pempty.elim,
   inv_fun   := C,
@@ -970,6 +985,10 @@ def pempty_ring_equiv : mv_polynomial pempty α ≃+* α :=
   map_mul'  := λ _ _, eval₂_mul _ _,
   map_add'  := λ _ _, eval₂_add _ _ }
 
+/--
+The ring isomorphism between multivariable polynomials in a single variable and
+polynomials over the ground ring.
+-/
 def punit_ring_equiv : mv_polynomial punit α ≃+* polynomial α :=
 { to_fun    := eval₂ polynomial.C (λu:punit, polynomial.X),
   inv_fun   := polynomial.eval₂ mv_polynomial.C (X punit.star),
@@ -989,6 +1008,7 @@ def punit_ring_equiv : mv_polynomial punit α ≃+* polynomial α :=
   map_mul'  := λ _ _, eval₂_mul _ _,
   map_add'  := λ _ _, eval₂_add _ _ }
 
+/-- The ring isomorphism between multivariable polynomials induced by an equivalence of the variables.  -/
 def ring_equiv_of_equiv (e : β ≃ γ) : mv_polynomial β α ≃+* mv_polynomial γ α :=
 { to_fun    := rename e,
   inv_fun   := rename e.symm,
@@ -997,6 +1017,7 @@ def ring_equiv_of_equiv (e : β ≃ γ) : mv_polynomial β α ≃+* mv_polynomia
   map_mul'  := rename_mul e,
   map_add'  := rename_add e }
 
+/-- The ring isomorphism between multivariable polynomials induced by a ring isomorphism of the ground ring. -/
 def ring_equiv_congr [comm_ring γ] (e : α ≃+* γ) : mv_polynomial β α ≃+* mv_polynomial β γ :=
 { to_fun    := map e,
   inv_fun   := map e.symm,
@@ -1017,6 +1038,13 @@ variables (β γ δ)
 instance ring_on_sum : ring (mv_polynomial (β ⊕ γ) α) := by apply_instance
 instance ring_on_iter : ring (mv_polynomial β (mv_polynomial γ α)) := by apply_instance
 
+/--
+The function from multivariable polynomials in a sum of two types,
+to multivariable polynomials in one of the types,
+with coefficents in multivariable polynomials in the other type.
+
+See `sum_ring_equiv` for the ring isomorphism.
+-/
 def sum_to_iter : mv_polynomial (β ⊕ γ) α → mv_polynomial β (mv_polynomial γ α) :=
 eval₂ (C ∘ C) (λbc, sum.rec_on bc X (C ∘ X))
 
@@ -1036,6 +1064,13 @@ eval₂_X _ _ (sum.inl b)
 lemma sum_to_iter_Xr (c : γ) : sum_to_iter α β γ (X (sum.inr c)) = C (X c) :=
 eval₂_X _ _ (sum.inr c)
 
+/--
+The function from multivariable polynomials in one type,
+with coefficents in multivariable polynomials in another type,
+to multivariable polynomials in the sum of the two types.
+
+See `sum_ring_equiv` for the ring isomorphism.
+-/
 def iter_to_sum : mv_polynomial β (mv_polynomial γ α) → mv_polynomial (β ⊕ γ) α :=
 eval₂ (eval₂ C (X ∘ sum.inr)) (X ∘ sum.inl)
 
@@ -1055,6 +1090,7 @@ eval₂_X _ _ _
 lemma iter_to_sum_C_X (c : γ) : iter_to_sum α β γ (C (X c)) = X (sum.inr c) :=
 eq.trans (eval₂_C _ _ (X c)) (eval₂_X _ _ _)
 
+/-- A helper function for `sum_ring_equiv`. -/
 def mv_polynomial_equiv_mv_polynomial [comm_ring δ]
   (f : mv_polynomial β α → mv_polynomial γ δ) (hf : is_semiring_hom f)
   (g : mv_polynomial γ δ → mv_polynomial β α) (hg : is_semiring_hom g)
@@ -1069,6 +1105,11 @@ def mv_polynomial_equiv_mv_polynomial [comm_ring δ]
   map_mul'  := hf.map_mul,
   map_add'  := hf.map_add }
 
+/--
+The ring isomorphism between multivariable polynomials in a sum of two types,
+and multivariable polynomials in one of the types,
+with coefficents in multivariable polynomials in the other type.
+-/
 def sum_ring_equiv : mv_polynomial (β ⊕ γ) α ≃+* mv_polynomial β (mv_polynomial γ α) :=
 begin
   apply @mv_polynomial_equiv_mv_polynomial α (β ⊕ γ) _ _ _ _
@@ -1104,11 +1145,19 @@ instance polynomial_ring : ring (polynomial (mv_polynomial β α)) :=
 instance polynomial_ring2 : ring (mv_polynomial β (polynomial α)) :=
 by apply_instance
 
+/--
+The ring isomorphism between multivariable polynomials in `option β` and
+polynomials with coefficients in `mv_polynomial β α`.
+-/
 def option_equiv_left : mv_polynomial (option β) α ≃+* polynomial (mv_polynomial β α) :=
 (ring_equiv_of_equiv α $ (equiv.option_equiv_sum_punit β).trans (equiv.sum_comm _ _)).trans $
 (sum_ring_equiv α _ _).trans $
 punit_ring_equiv _
 
+/--
+The ring isomorphism between multivariable polynomials in `option β` and
+multivariable polynomials with coefficients in polynomials.
+-/
 def option_equiv_right : mv_polynomial (option β) α ≃+* mv_polynomial β (polynomial α) :=
 (ring_equiv_of_equiv α $ equiv.option_equiv_sum_punit.{0} β).trans $
 (sum_ring_equiv α β unit).trans $

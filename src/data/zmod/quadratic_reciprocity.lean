@@ -7,9 +7,6 @@ import field_theory.finite data.zmod.basic data.nat.parity
 
 open function finset nat finite_field zmodp
 
-@[to_additive] lemma finset.prod_eq_multiset_prod {α β : Type*} [comm_monoid β] (s : finset α)
-  (f : α → β) : s.prod f = (s.1.map f).prod := rfl
-
 namespace zmodp
 
 variables {p q : ℕ} (hp : nat.prime p) (hq : nat.prime q)
@@ -138,7 +135,7 @@ multiset.map_eq_map_of_bij_of_nodup _ _ (finset.nodup _) (finset.nodup _)
   (λ x _, (a * x : zmodp p hp).val_min_abs.nat_abs) hmem (λ _ _, rfl)
   (inj_on_of_surj_on_of_card_le _ hmem hsurj (le_refl _)) hsurj
 
-private lemma gauss_lemma_aux {p : ℕ} (hp : p.prime) (hp2 : p % 2 = 1) {a : ℕ}
+private lemma gauss_lemma_aux₁ {p : ℕ} (hp : p.prime) (hp2 : p % 2 = 1) {a : ℕ}
   (hpa : (a : zmodp p hp) ≠ 0) :
   (a^(p / 2) * (p / 2).fact : zmodp p hp) =
   (-1)^(((range (p / 2).succ).erase 0).filter
@@ -174,7 +171,7 @@ calc (a ^ (p / 2) * (p / 2).fact : zmodp p hp) =
       range_map_val_min_abs_nat_abs_eq_range_map_id hp a hpa,
       ← finset.prod_eq_multiset_prod, prod_range_id_eq_fact]
 
-lemma gauss_lemma {p : ℕ} (hp : p.prime) (hp2 : p % 2 = 1) {a : ℕ}
+private lemma gauss_lemma_aux₂ {p : ℕ} (hp : p.prime) (hp2 : p % 2 = 1) {a : ℕ}
   (hpa : (a : zmodp p hp) ≠ 0) :
   (a^(p / 2) : zmodp p hp) = (-1)^(((range (p / 2).succ).erase 0).filter
     (λ x : ℕ, p / 2 < (a * x : zmodp p hp).val)).card :=
@@ -182,9 +179,9 @@ lemma gauss_lemma {p : ℕ} (hp : p.prime) (hp2 : p % 2 = 1) {a : ℕ}
     (show ((p / 2).fact : zmodp p hp) ≠ 0,
       by rw [ne.def, zmodp.eq_zero_iff_dvd_nat, hp.dvd_fact, not_le];
           exact nat.div_lt_self hp.pos dec_trivial)).1 $
-  by simpa using gauss_lemma_aux _ hp2 hpa
+  by simpa using gauss_lemma_aux₁ _ hp2 hpa
 
-lemma eisenstein_criterion_aux {p : ℕ} (hp : p.prime) (hp2 : p % 2 = 1) {a : ℕ}
+private lemma eisenstein_lemma_aux₁ {p : ℕ} (hp : p.prime) (hp2 : p % 2 = 1) {a : ℕ}
   (hap : (a : zmodp p hp) ≠ 0) :
   ((((range (p / 2).succ).erase 0).sum (λ x, a * x) : ℕ) : zmod 2) =
     (((range (p / 2).succ).erase 0).filter
@@ -214,7 +211,7 @@ calc ((((range (p / 2).succ).erase 0).sum (λ x, a * x) : ℕ) : zmod 2)
       ← finset.sum_eq_multiset_sum];
     simp [sum_nat_cast]) rfl
 
-lemma eisenstein_criterion {p : ℕ} (hp : p.prime) (hp2 : p % 2 = 1) {a : ℕ} (ha2 : a % 2 = 1)
+private lemma eisenstein_lemma_aux₂ {p : ℕ} (hp : p.prime) (hp2 : p % 2 = 1) {a : ℕ} (ha2 : a % 2 = 1)
   (hap : (a : zmodp p hp) ≠ 0) :
   (((range (p / 2).succ).erase 0).filter
     ((λ x : ℕ, p / 2 < (a * x : zmodp p hp).val))).card
@@ -222,7 +219,7 @@ lemma eisenstein_criterion {p : ℕ} (hp : p.prime) (hp2 : p % 2 = 1) {a : ℕ} 
 have ha2 : (a : zmod 2) = (1 : ℕ), from zmod.eq_iff_modeq_nat.2 ha2,
 (@zmod.eq_iff_modeq_nat 2 _ _).1 $ sub_eq_zero.1 $
   by simpa [finset.mul_sum.symm, mul_comm, ha2, sum_nat_cast, add_neg_eq_iff_eq_add.symm,
-    zmod.neg_eq_self_mod_two] using eq.symm (eisenstein_criterion_aux hp hp2 hap)
+    zmod.neg_eq_self_mod_two] using eq.symm (eisenstein_lemma_aux₁ hp hp2 hap)
 
 lemma div_eq_filter_card {a b c : ℕ} (hb0 : 0 < b) (hc : a / b ≤ c) : a / b =
   (((range c.succ).erase 0).filter (λ x, x * b ≤ a)).card :=
@@ -234,7 +231,9 @@ calc a / b = ((range (a / b).succ).erase 0).card :
       from λ h, le_trans (by rwa [le_div_iff_mul_le _ _ hb0]) hc,
     by simp [lt_succ_iff, le_div_iff_mul_le _ _ hb0]; tauto
 
-lemma sum_range_eq_card_lt {p q : ℕ} :
+/-- The given sum is the number of integers point in the triangle formed by the diagonal of the
+  rectangle `(0, p/2) × (0, q/2)`  -/
+private lemma sum_range_eq_card_lt {p q : ℕ} :
   ((range (p / 2).succ).erase 0).sum (λ a, (a * q) / p) =
   ((((range (p / 2).succ).erase 0).product ((range (q / 2).succ).erase 0)).filter
   (λ x : ℕ × ℕ, x.2 * p ≤ x.1 * q)).card :=
@@ -257,7 +256,10 @@ else
       (λ ⟨b₁, b₂⟩ h, ⟨⟨b₁, b₂⟩,
         by revert h; simp {contextual := tt}⟩)
 
-lemma add_sum_mul_div_eq_mul {p q : ℕ} (hp : p.prime) (hq0 : (q : zmodp p hp) ≠ 0) :
+/-- Each of the sums in this lemma is the cardinality of the set integer points in each of the
+  two triangles formed by the diagonal of the rectangle `(0, p/2) × (0, q/2)`. Adding them
+  gives the number of points in the rectangle. -/
+private lemma sum_mul_div_add_sum_mul_div_eq_mul {p q : ℕ} (hp : p.prime) (hq0 : (q : zmodp p hp) ≠ 0) :
   ((range (p / 2).succ).erase 0).sum (λ a, (a * q) / p) +
   ((range (q / 2).succ).erase 0).sum (λ a, (a * p) / q) =
   (p / 2) * (q / 2) :=
@@ -321,13 +323,14 @@ lemma legendre_sym_eq_one_or_neg_one (a : ℕ) (hp : nat.prime p) (ha : (a : zmo
   legendre_sym a p hp = -1 ∨ legendre_sym a p hp = 1 :=
 by unfold legendre_sym; split_ifs; simp * at *
 
-lemma legendre_sym_eq_pow_card {a : ℕ} (hp1 : p % 2 = 1) (ha0 : (a : zmodp p hp) ≠ 0) :
-  legendre_sym a p hp =
-  (-1) ^ (((range (p / 2).succ).erase 0).filter
+/-- Gauss' lemma. The legendre symbol can be computed by considering the number of naturals less
+  than `p/2` such that `(a * x) % p > p / 2` -/
+lemma gauss_lemma {a : ℕ} (hp1 : p % 2 = 1) (ha0 : (a : zmodp p hp) ≠ 0) :
+  legendre_sym a p hp = (-1) ^ (((range (p / 2).succ).erase 0).filter
     (λ x : ℕ, p / 2 < (a * x : zmodp p hp).val)).card :=
 have (legendre_sym a p hp : zmodp p hp) = (((-1)^(((range (p / 2).succ).erase 0).filter
     (λ x : ℕ, p / 2 < (a * x : zmodp p hp).val)).card : ℤ) : zmodp p hp),
-  by rw [legendre_sym_eq_pow, gauss_lemma hp hp1 ha0]; simp,
+  by rw [legendre_sym_eq_pow, gauss_lemma_aux₂ hp hp1 ha0]; simp,
 begin
   cases legendre_sym_eq_one_or_neg_one a hp ha0;
   cases @neg_one_pow_eq_or ℤ _  (((range (p / 2).succ).erase 0).filter
@@ -340,20 +343,19 @@ lemma legendre_sym_eq_one_iff {a : ℕ} (ha0 : (a : zmodp p hp) ≠ 0) :
   legendre_sym a p hp = 1 ↔ (∃ b : zmodp p hp, b ^ 2 = a) :=
 by rw [legendre_sym]; split_ifs; finish
 
+lemma eisenstein_lemma (hp1 : p % 2 = 1) {a : ℕ} (ha1 : a % 2 = 1) (ha0 : (a : zmodp p hp) ≠ 0) :
+  legendre_sym a p hp = (-1)^((range (p / 2).succ).erase 0).sum (λ x, (x * a) / p) :=
+by rw [neg_one_pow_eq_pow_mod_two, gauss_lemma hp hp1 ha0, neg_one_pow_eq_pow_mod_two,
+    show _ = _, from eisenstein_lemma_aux₂ hp hp1 ha1 ha0]
+
 theorem quadratic_reciprocity (hp1 : p % 2 = 1) (hq1 : q % 2 = 1) (hpq : p ≠ q) :
   legendre_sym p q hq * legendre_sym q p hp = (-1) ^ ((p / 2) * (q / 2)) :=
-by rw [← add_sum_mul_div_eq_mul _ (zmodp.prime_ne_zero hp hq hpq), _root_.pow_add,
-    neg_one_pow_eq_pow_mod_two, @neg_one_pow_eq_pow_mod_two _ _ (sum _ _),
-    ← show _ = _, from eisenstein_criterion hp hp1 hq1
-      (zmodp.prime_ne_zero hp hq hpq),
-    ← show _ = _, from eisenstein_criterion hq hq1 hp1
-      (zmodp.prime_ne_zero hq hp hpq.symm),
-    legendre_sym_eq_pow_card _ hq1 (zmodp.prime_ne_zero hq hp hpq.symm),
-    legendre_sym_eq_pow_card _ hp1 (zmodp.prime_ne_zero hp hq hpq),
-    ← neg_one_pow_eq_pow_mod_two, ← neg_one_pow_eq_pow_mod_two, mul_comm]
+have hpq0 : (p : zmodp q hq) ≠ 0, from zmodp.prime_ne_zero _ hp hpq.symm,
+have hqp0 : (q : zmodp p hp) ≠ 0, from zmodp.prime_ne_zero _ hq hpq,
+by rw [eisenstein_lemma _ hq1 hp1 hpq0, eisenstein_lemma _ hp1 hq1 hqp0,
+  ← _root_.pow_add, sum_mul_div_add_sum_mul_div_eq_mul _ hpq0, mul_comm]
 
-lemma legendre_sym_two (hp1 : p % 2 = 1) : legendre_sym 2 p hp =
-  (-1) ^ (p / 4 + p / 2) :=
+lemma legendre_sym_two (hp1 : p % 2 = 1) : legendre_sym 2 p hp = (-1) ^ (p / 4 + p / 2) :=
 have hp2 : p ≠ 2, from mt (congr_arg (% 2)) (by simp [hp1]),
 have hp22 : p / 2 / 2 = _ := div_eq_filter_card (show 0 < 2, from dec_trivial)
   (nat.div_le_self (p / 2) 2),
@@ -379,7 +381,7 @@ have hunion :
     exact filter_congr (λ x hx, by simp [hx2 _ hx, lt_or_le, mul_comm])
   end,
 begin
-  rw [legendre_sym_eq_pow_card _ hp1 (prime_ne_zero hp prime_two hp2),
+  rw [gauss_lemma _ hp1 (prime_ne_zero hp prime_two hp2),
     neg_one_pow_eq_pow_mod_two, @neg_one_pow_eq_pow_mod_two _ _ (p / 4 + p / 2)],
   refine congr_arg2 _ rfl ((@zmod.eq_iff_modeq_nat 2 _ _).1 _),
   rw [show 4 = 2 * 2, from rfl, ← nat.div_div_eq_div_mul, hp22, nat.cast_add,
@@ -408,7 +410,7 @@ end
 
 lemma exists_pow_two_eq_prime_iff_of_mod_four_eq_one (hp1 : p % 4 = 1) (hq1 : q % 2 = 1) :
   (∃ a : zmodp p hp, a ^ 2 = q) ↔ ∃ b : zmodp q hq, b ^ 2 = p :=
-if hpq : p = q then by subst hpq else
+if hpq : p = q then by resetI; subst hpq else
 have h1 : ((p / 2) * (q / 2)) % 2 = 0,
   from (dvd_iff_mod_eq_zero _ _).1
     (dvd_mul_of_dvd_left ((dvd_iff_mod_eq_zero _ _).2 $

@@ -201,7 +201,23 @@ from classical.by_cases
     (prod_congr rfl $ λ b hb, h₀ b hb $ by rintro rfl; cc).trans $
       prod_const_one.trans (h₁ this).symm)
 
-@[simp, to_additive] lemma prod_ite [decidable_eq α] (s : finset α) (a : α) (b : β) :
+@[to_additive] lemma prod_ite [comm_monoid γ] {s : finset α}
+  {p : α → Prop} {h : decidable_pred p} (f g : α → γ) (h : γ → β) :
+  s.prod (λ x, h (if p x then f x else g x)) =
+  (s.filter p).prod (λ x, h (f x)) * (s.filter (λ x, ¬ p x)).prod (λ x, h (g x)) :=
+by letI := classical.dec_eq α; exact
+calc s.prod (λ x, h (if p x then f x else g x))
+    = (s.filter p ∪ s.filter (λ x, ¬ p x)).prod (λ x, h (if p x then f x else g x)) :
+  by rw [filter_union_filter_neg_eq]
+... = (s.filter p).prod (λ x, h (if p x then f x else g x)) *
+    (s.filter (λ x, ¬ p x)).prod (λ x, h (if p x then f x else g x)) :
+  prod_union (by simp [disjoint_right] {contextual := tt})
+... = (s.filter p).prod (λ x, h (f x)) * (s.filter (λ x, ¬ p x)).prod (λ x, h (g x)) :
+  congr_arg2 _
+    (prod_congr rfl (by simp {contextual := tt}))
+    (prod_congr rfl (by simp {contextual := tt}))
+
+@[simp, to_additive] lemma prod_ite_eq [decidable_eq α] (s : finset α) (a : α) (b : β) :
   s.prod (λ x, (ite (a = x) b 1)) = ite (a ∈ s) b 1 :=
 begin
   rw ←finset.prod_filter,
@@ -502,14 +518,14 @@ lemma mul_sum : b * s.sum f = s.sum (λx, b * f x) :=
 @[simp] lemma sum_mul_boole [decidable_eq α] (s : finset α) (f : α → β) (a : α) :
   s.sum (λ x, (f x * ite (a = x) 1 0)) = ite (a ∈ s) (f a) 0 :=
 begin
-  convert sum_ite s a (f a),
+  convert sum_ite_eq s a (f a),
   funext,
   split_ifs with h; simp [h],
 end
 @[simp] lemma sum_boole_mul [decidable_eq α] (s : finset α) (f : α → β) (a : α) :
   s.sum (λ x, (ite (a = x) 1 0) * f x) = ite (a ∈ s) (f a) 0 :=
 begin
-  convert sum_ite s a (f a),
+  convert sum_ite_eq s a (f a),
   funext,
   split_ifs with h; simp [h],
 end

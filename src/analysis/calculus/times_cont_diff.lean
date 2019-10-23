@@ -872,7 +872,7 @@ begin
 end
 
 /--
-The opposite of a C^n function on a domain is C^n.
+The negative of a C^n function on a domain is C^n.
 -/
 lemma times_cont_diff_on.neg {n : with_top ℕ} {s : set E} {f : E → F}
   (hf : times_cont_diff_on 𝕜 n f s) (hs : unique_diff_on 𝕜 s) :
@@ -885,7 +885,7 @@ begin
 end
 
 /--
-The opposite of a C^n function is C^n.
+The negative of a C^n function is C^n.
 -/
 lemma times_cont_diff.neg {n : with_top ℕ} {f : E → F} (hf : times_cont_diff 𝕜 n f) :
   times_cont_diff 𝕜 n (λx, -f x) :=

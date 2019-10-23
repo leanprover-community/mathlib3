@@ -26,19 +26,37 @@ section induced
 
 -/
 
-variables {C : Type u₁} {D : Type u₂} [𝒟 : category.{v} D]
+/-
+It looks odd to make D an explicit argument of `induced_category`,
+when it is determined by the argument F anyways. The reason to make D
+explicit is in order to control its syntactic form, so that instances
+like `induced_category.has_forget₂` (elsewhere) refer to the correct
+form of D. This is used to set up several algebraic categories like
+
+  def CommMon : Type (u+1) := induced_category Mon (bundled.map @comm_monoid.to_monoid)
+  -- not `induced_category (bundled monoid) (bundled.map @comm_monoid.to_monoid)`,
+  -- even though `Mon = bundled monoid`!
+-/
+
+variables {C : Type u₁} (D : Type u₂) [𝒟 : category.{v} D]
 include 𝒟
 variables (F : C → D)
 include F
 
 def induced_category : Type u₁ := C
 
-instance induced_category.category : category.{v} (induced_category F) :=
+variables {D}
+
+instance induced_category.has_coe_to_sort [has_coe_to_sort D] :
+  has_coe_to_sort (induced_category D F) :=
+⟨_, λ c, ↥(F c)⟩
+
+instance induced_category.category : category.{v} (induced_category D F) :=
 { hom  := λ X Y, F X ⟶ F Y,
   id   := λ X, 𝟙 (F X),
   comp := λ _ _ _ f g, f ≫ g }
 
-def induced_functor : induced_category F ⥤ D :=
+def induced_functor : induced_category D F ⥤ D :=
 { obj := F, map := λ x y f, f }
 
 @[simp] lemma induced_functor.obj {X} : (induced_functor F).obj X = F X := rfl

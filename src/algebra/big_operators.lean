@@ -613,7 +613,7 @@ lemma sum_le_sum_of_ne_zero [@decidable_rel β (≤)] (h : ∀x∈s₁, f x ≠ 
   s₁.sum f ≤ s₂.sum f :=
 calc s₁.sum f = (s₁.filter (λx, f x = 0)).sum f + (s₁.filter (λx, f x ≠ 0)).sum f :
     by rw [←sum_union, filter_union_filter_neg_eq];
-       exact disjoint_filter (assume _ h n_h, n_h h)
+       exact disjoint_filter.2 (assume _ _ h n_h, n_h h)
   ... ≤ s₂.sum f : add_le_of_nonpos_of_le'
       (sum_nonpos $ by simp only [mem_filter, and_imp]; exact λ _ _, le_of_eq)
       (sum_le_sum_of_subset $ by simpa only [subset_iff, mem_filter, and_imp])

@@ -5,13 +5,15 @@ Author: Scott Morrison
 
 Case bashing on natural numbers.
 
-`nat_cases a ≤ n < b` breaks into the following cases:
-`n < a`, one case `n = k` for each `a ≤ k < b`, and `n ≥ b`
-
 `nat_cases n`
 1) inspects hypotheses looking for "easy" upper and lower bounds on `n`,
 2) calls `nat_cases a ≤ n < b` with appropriate values of `a` and `b`,
-3) calls `linarith` to discharge the `n < a` and `n ≥ b` cases.
+3) discharges the `n < a` and `n ≥ b` cases using the previously found bounds.
+
+`nat_cases a ≤ n < b` breaks into the following cases:
+`n < a`, one case `n = k` for each `a ≤ k < b`, and `n ≥ b`,
+and then attempts to use `linarith` to discharge the inequalities.
+
 -/
 import tactic.fin_cases
 import tactic.linarith
@@ -38,7 +40,7 @@ begin
   { right,
     by_cases h₂ : n ∈ Ico a b,
     { right, simp only [Ico.mem] at *, cases h₂, split; assumption },
-    { left,  simp only  [Ico.mem, not_and, not_lt] at *, exact h₂ h₁ }}
+    { left,  simp only [Ico.mem, not_and, not_lt] at *, exact h₂ h₁ }}
 end
 
 namespace tactic

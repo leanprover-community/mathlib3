@@ -11,7 +11,7 @@ in favor of the "Peano" natural numbers `nat`, and the purpose of this
 collection of theorems is to show the equivalence of the different approaches.
 -/
 
-import data.pnat data.bool data.vector data.bitvec
+import data.vector data.bitvec
 
 /-- The type of positive binary numbers.
 
@@ -160,9 +160,9 @@ section
   | 0           := 0
   | (num.pos p) := cast_pos_num p
 
-  @[priority 0] instance pos_num_coe : has_coe pos_num α := ⟨cast_pos_num⟩
+  @[priority 10] instance pos_num_coe : has_coe pos_num α := ⟨cast_pos_num⟩
 
-  @[priority 0] instance num_nat_coe : has_coe num α := ⟨cast_num⟩
+  @[priority 10] instance num_nat_coe : has_coe num α := ⟨cast_num⟩
 
   instance : has_repr pos_num := ⟨λ n, repr (n : ℕ)⟩
   instance : has_repr num := ⟨λ n, repr (n : ℕ)⟩
@@ -396,13 +396,13 @@ namespace znum
 end znum
 
 namespace pos_num
-  
+
   def divmod_aux (d : pos_num) (q r : num) : num × num :=
   match num.of_znum' (num.sub' r (num.pos d)) with
   | some r' := (num.bit1 q, r')
   | none    := (num.bit0 q, r)
   end
-  
+
   def divmod (d : pos_num) : pos_num → num × num
   | (bit0 n) := let (q, r₁) := divmod n in
     divmod_aux d q (num.bit0 r₁)
@@ -419,7 +419,7 @@ namespace pos_num
   | some n' := (r.div2 + num.pos b, n')
   | none := (r.div2, n)
   end
-    
+
   def sqrt_aux : pos_num → num → num → num
   | b@(bit0 b') r n := let (r', n') := sqrt_aux1 b r n in sqrt_aux b' r' n'
   | b@(bit1 b') r n := let (r', n') := sqrt_aux1 b r n in sqrt_aux b' r' n'
@@ -504,7 +504,7 @@ section
   | (znum.pos p) := p
   | (znum.neg p) := -p
 
-  @[priority 0] instance znum_coe : has_coe znum α := ⟨cast_znum⟩
+  @[priority 10] instance znum_coe : has_coe znum α := ⟨cast_znum⟩
 
   instance : has_repr znum := ⟨λ n, repr (n : ℤ)⟩
 end

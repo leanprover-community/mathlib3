@@ -7,6 +7,9 @@ Authors: Mario Carneiro
 universe u
 variables {α : Type u}
 
+@[simp] lemma ge_iff_le [preorder α] {a b : α} : a ≥ b ↔ b ≤ a := iff.refl _
+@[simp] lemma gt_iff_lt [preorder α] {a b : α} : a > b ↔ b < a := iff.refl _
+
 lemma not_le_of_lt [preorder α] {a b : α} (h : a < b) : ¬ b ≤ a :=
 (le_not_le_of_lt h).right
 
@@ -52,25 +55,6 @@ match le_total a b with
 | or.inl h := ⟨_, h, le_refl _⟩
 | or.inr h := ⟨_, le_refl _, h⟩
 end
-
-lemma lt_iff_lt_of_strict_mono {β} [linear_order α] [preorder β]
-  (f : α → β) (H : ∀ a b, a < b → f a < f b) {a b} :
-  f a < f b ↔ a < b :=
-⟨λ h, ((lt_trichotomy b a)
-  .resolve_left $ λ h', lt_asymm h $ H _ _ h')
-  .resolve_left $ λ e, ne_of_gt h $ congr_arg _ e, H _ _⟩
-
-lemma le_iff_le_of_strict_mono {β} [linear_order α] [preorder β]
-  (f : α → β) (H : ∀ a b, a < b → f a < f b) {a b} :
-  f a ≤ f b ↔ a ≤ b :=
-⟨λ h, le_of_not_gt $ λ h', not_le_of_lt (H b a h') h,
- λ h, (lt_or_eq_of_le h).elim (λ h', le_of_lt (H _ _ h')) (λ h', h' ▸ le_refl _)⟩
-
-lemma injective_of_strict_mono {β} [linear_order α] [preorder β]
-  (f : α → β) (H : ∀ a b, a < b → f a < f b) : function.injective f
-| a b e := ((lt_trichotomy a b)
-  .resolve_left $ λ h, ne_of_lt (H _ _ h) e)
-  .resolve_right $ λ h, ne_of_gt (H _ _ h) e
 
 lemma lt_imp_lt_of_le_imp_le {β} [linear_order α] [preorder β] {a b : α} {c d : β}
   (H : a ≤ b → c ≤ d) (h : d < c) : b < a :=
@@ -160,7 +144,15 @@ lemma lt_trichotomy [decidable_linear_order α] (a b : α) : a < b ∨ a = b ∨
 lemma lt_or_gt_of_ne [decidable_linear_order α] {a b : α} (h : a ≠ b) : a < b ∨ b < a :=
 (lt_trichotomy a b).imp_right $ λ h', h'.resolve_left h
 
-lemma ne_iff_lt_or_gt [decidable_linear_order α] {a b : α} : a ≠ b ↔ a < b ∨ a > b :=
+def lt_by_cases [decidable_linear_order α] (x y : α) {P : Sort*}
+  (h₁ : x < y → P) (h₂ : x = y → P) (h₃ : y < x → P) : P :=
+begin
+  by_cases h : x < y, { exact h₁ h },
+  by_cases h' : y < x, { exact h₃ h' },
+  apply h₂, apply le_antisymm; apply le_of_not_gt; assumption
+end
+
+lemma ne_iff_lt_or_gt [decidable_linear_order α] {a b : α} : a ≠ b ↔ a < b ∨ b < a :=
 ⟨lt_or_gt_of_ne, λo, o.elim ne_of_lt ne_of_gt⟩
 
 lemma le_imp_le_of_lt_imp_lt {β} [preorder α] [decidable_linear_order β]
@@ -174,6 +166,9 @@ lemma le_imp_le_iff_lt_imp_lt {β} [linear_order α] [decidable_linear_order β]
 lemma le_iff_le_iff_lt_iff_lt {β} [decidable_linear_order α] [decidable_linear_order β]
   {a b : α} {c d : β} : (a ≤ b ↔ c ≤ d) ↔ (b < a ↔ d < c) :=
 ⟨lt_iff_lt_of_le_iff_le, λ H, not_lt.symm.trans $ iff.trans (not_congr H) $ not_lt⟩
+
+lemma min_le_max [decidable_linear_order α] (a b : α) : min a b ≤ max a b :=
+le_trans (min_le_left a b) (le_max_left a b)
 
 end decidable
 
@@ -209,12 +204,6 @@ theorem compares.inj [preorder α] {o₁} :
 | lt a b h₁ h₂ := h₁.eq_lt.2 h₂
 | eq a b h₁ h₂ := h₁.eq_eq.2 h₂
 | gt a b h₁ h₂ := h₁.eq_gt.2 h₂
-
-theorem compares_of_strict_mono {β} [linear_order α] [preorder β]
-  (f : α → β) (H : ∀ a b, a < b → f a < f b) {a b} : ∀ {o}, compares o (f a) (f b) ↔ compares o a b
-| lt := lt_iff_lt_of_strict_mono f H
-| eq := ⟨λ h, injective_of_strict_mono _ H h, congr_arg _⟩
-| gt := lt_iff_lt_of_strict_mono f H
 
 theorem swap_or_else (o₁ o₂) : (or_else o₁ o₂).swap = or_else o₁.swap o₂.swap :=
 by cases o₁; try {refl}; cases o₂; refl

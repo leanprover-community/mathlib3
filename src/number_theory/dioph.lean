@@ -3,7 +3,7 @@ Copyright (c) 2017 Mario Carneiro. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Mario Carneiro
 -/
-import number_theory.pell data.set data.pfun
+import number_theory.pell data.pfun
 
 universe u
 
@@ -109,8 +109,11 @@ namespace vector3
 @[pattern] def cons {α} {n} (a : α) (v : vector3 α n) : vector3 α (succ n) :=
 λi, by {refine i.cases' _ _, exact a, exact v}
 
+/- We do not want to make the following notation global, because then these expressions will be
+overloaded, and only the expected type will be able to disambiguate the meaning. Worse: Lean will
+try to insert a coercion from `vector3 α _` to `list α`, if a list is expected. -/
+localized "notation `[` l:(foldr `, ` (h t, vector3.cons h t) nil `]`) := l" in vector3
 notation a :: b := cons a b
-notation `[` l:(foldr `, ` (h t, cons h t) nil `]`) := l
 
 @[simp] theorem cons_fz {α} {n} (a : α) (v : vector3 α n) : (a :: v) fz = a := rfl
 @[simp] theorem cons_fs {α} {n} (a : α) (v : vector3 α n) (i) : (a :: v) (fs i) = v i := rfl
@@ -161,7 +164,7 @@ rfl
 def append {α} {m} (v : vector3 α m) {n} (w : vector3 α n) : vector3 α (n+m) :=
 nat.rec_on m (λ_, w) (λm IH v, v.cons_elim $ λa t, @fin2.cases' (n+m) (λ_, α) a (IH t)) v
 
-infix ` +-+ `:65 := append
+local infix ` +-+ `:65 := vector3.append
 
 @[simp] theorem append_nil {α} {n} (w : vector3 α n) : [] +-+ w = w := rfl
 
@@ -204,7 +207,9 @@ end
 
 end vector3
 
+section vector3
 open vector3
+open_locale vector3
 
 /-- "Curried" exists, i.e. ∃ x1 ... xn, f [x1, ..., xn] -/
 def vector_ex {α} : Π k, (vector3 α k → Prop) → Prop
@@ -254,6 +259,7 @@ end
 theorem vector_allp.imp {α} {p q : α → Prop} (h : ∀ x, p x → q x)
   {n} {v : vector3 α n} (al : vector_allp p v) : vector_allp q v :=
 (vector_allp_iff_forall _ _).2 (λi, h _ $ (vector_allp_iff_forall _ _).1 al _)
+end vector3
 
 /-- `list_all p l` is equivalent to `∀ a ∈ l, p a`, but unfolds directly to a conjunction,
   i.e. `list_all p [0, 1, 2] = p 0 ∧ p 1 ∧ p 2`. -/
@@ -305,10 +311,10 @@ parameter {α : Type u}
 instance : has_coe_to_fun (poly α) := ⟨_, λ f, f.1⟩
 
 /-- The underlying function of a `poly` is a polynomial -/
-def isp (f : poly α) : is_poly f := f.2
+lemma isp (f : poly α) : is_poly f := f.2
 
 /-- Extensionality for `poly α` -/
-def ext {f g : poly α} (e : ∀x, f x = g x) : f = g :=
+lemma ext {f g : poly α} (e : ∀x, f x = g x) : f = g :=
 subtype.eq (funext e)
 
 /-- Construct a `poly` given an extensionally equivalent `poly`. -/
@@ -369,7 +375,7 @@ instance : comm_ring (poly α) := by refine
   mul  := (*),
   one  := 1, .. }; {intros, exact ext (λx, by simp [mul_add, mul_left_comm, mul_comm])}
 
-def induction {C : poly α → Prop}
+lemma induction {C : poly α → Prop}
   (H1 : ∀i, C (proj i)) (H2 : ∀n, C (const n))
   (H3 : ∀f g, C f → C g → C (f - g))
   (H4 : ∀f g, C f → C g → C (f * g)) (f : poly α) : C f :=
@@ -449,7 +455,6 @@ def dioph {α : Type u} (S : set (α → ℕ)) : Prop :=
 namespace dioph
 section
   variables {α β γ : Type u}
-
   theorem ext {S S' : set (α → ℕ)} (d : dioph S) (H : ∀v, S v ↔ S' v) : dioph S' :=
   eq.rec d $ show S = S', from set.ext H
 
@@ -579,7 +584,8 @@ end
 
 section
   variables {α β γ : Type}
-
+  open vector3
+  open_locale vector3
   theorem dioph_fn_vec_comp1 {n} {S : set (vector3 ℕ (succ n))} (d : dioph S) {f : (vector3 ℕ n) → ℕ} (df : dioph_fn f) :
     dioph (λv : vector3 ℕ n, S (cons (f v) v)) :=
   ext (dioph_fn_comp1 (reindex_dioph d (none :: some)) df) $ λv, by rw [
@@ -621,19 +627,19 @@ section
   by simp; exact ⟨proj_dioph none, (vector_allp_iff_forall _ _).2 $ λi,
     reindex_dioph_fn ((vector_allp_iff_forall _ _).1 dg _) _⟩
 
-  local notation x ` D∧ `:35 y := and_dioph x y
-  local notation x ` D∨ `:35 y := or_dioph x y
+  localized "notation x ` D∧ `:35 y := dioph.and_dioph x y" in dioph
+  localized "notation x ` D∨ `:35 y := dioph.or_dioph x y" in dioph
 
-  local notation `D∃`:30 := vec_ex1_dioph
+  localized "notation `D∃`:30 := dioph.vec_ex1_dioph" in dioph
 
-  local prefix `&`:max := of_nat'
+  localized "prefix `&`:max := of_nat'" in dioph
   theorem proj_dioph_of_nat {n : ℕ} (m : ℕ) [is_lt m n] : dioph_fn (λv : vector3 ℕ n, v &m) :=
   proj_dioph &m
-  local prefix `D&`:100 := proj_dioph_of_nat
+  localized "prefix `D&`:100 := dioph.proj_dioph_of_nat" in dioph
 
   theorem const_dioph (n : ℕ) : dioph_fn (const (α → ℕ) n) :=
   abs_poly_dioph (poly.const n)
-  local prefix `D.`:100 := const_dioph
+  localized "prefix `D.`:100 := dioph.const_dioph" in dioph
 
   variables {f g : (α → ℕ) → ℕ} (df : dioph_fn f) (dg : dioph_fn g)
   include df dg
@@ -650,26 +656,26 @@ section
   dioph_comp2 df dg $ of_no_dummies _ (poly.proj &0 - poly.proj &1)
     (λv, (int.coe_nat_eq_coe_nat_iff _ _).symm.trans
     ⟨@sub_eq_zero_of_eq ℤ _ (v &0) (v &1), eq_of_sub_eq_zero⟩)
-  local infix ` D= `:50 := eq_dioph
+  localized "infix ` D= `:50 := dioph.eq_dioph" in dioph
 
   theorem add_dioph : dioph_fn (λv, f v + g v) :=
   dioph_fn_comp2 df dg $ abs_poly_dioph (poly.proj &0 + poly.proj &1)
-  local infix ` D+ `:80 := add_dioph
+  localized "infix ` D+ `:80 := dioph.add_dioph" in dioph
 
   theorem mul_dioph : dioph_fn (λv, f v * g v) :=
   dioph_fn_comp2 df dg $ abs_poly_dioph (poly.proj &0 * poly.proj &1)
-  local infix ` D* `:90 := mul_dioph
+  localized "infix ` D* `:90 := dioph.mul_dioph" in dioph
 
   theorem le_dioph : dioph (λv, f v ≤ g v) :=
   dioph_comp2 df dg $ ext (D∃2 $ D&1 D+ D&0 D= D&2) (λv, ⟨λ⟨x, hx⟩, le.intro hx, le.dest⟩)
-  local infix ` D≤ `:50 := le_dioph
+  localized "infix ` D≤ `:50 := dioph.le_dioph" in dioph
 
   theorem lt_dioph : dioph (λv, f v < g v) := df D+ (D. 1) D≤ dg
-  local infix ` D< `:50 := lt_dioph
+  localized "infix ` D< `:50 := dioph.lt_dioph" in dioph
 
   theorem ne_dioph : dioph (λv, f v ≠ g v) :=
   ext (df D< dg D∨ dg D< df) $ λv, ne_iff_lt_or_gt.symm
-  local infix ` D≠ `:50 := ne_dioph
+  localized "infix ` D≠ `:50 := dioph.ne_dioph" in dioph
 
   theorem sub_dioph : dioph_fn (λv, f v - g v) :=
   dioph_fn_comp2 df dg $ (dioph_fn_vec _).2 $
@@ -685,11 +691,11 @@ section
     { exact or.inr ⟨yz, nat.sub_eq_zero_of_le yz⟩ },
     { exact or.inl (nat.sub_add_cancel zy).symm },
   end⟩
-  local infix ` D- `:80 := sub_dioph
+  localized "infix ` D- `:80 := dioph.sub_dioph" in dioph
 
   theorem dvd_dioph : dioph (λv, f v ∣ g v) :=
   dioph_comp (D∃2 $ D&2 D= D&1 D* D&0) [f, g] (by exact ⟨df, dg⟩)
-  local infix ` D∣ `:50 := dvd_dioph
+  localized "infix ` D∣ `:50 := dioph.dvd_dioph" in dioph
 
   theorem mod_dioph : dioph_fn (λv, f v % g v) :=
   have dioph (λv : vector3 ℕ 3, (v &2 = 0 ∨ v &0 < v &2) ∧ ∃ (x : ℕ), v &0 + v &2 * x = v &1),
@@ -698,11 +704,11 @@ section
   show ((y = 0 ∨ z < y) ∧ ∃ c, z + y * c = x) ↔ x % y = z, from
   ⟨λ⟨h, c, hc⟩, begin rw ← hc; simp; cases h with x0 hl, rw [x0, mod_zero], exact mod_eq_of_lt hl end,
   λe, by rw ← e; exact ⟨or_iff_not_imp_left.2 $ λh, mod_lt _ (nat.pos_of_ne_zero h), x / y, mod_add_div _ _⟩⟩
-  local infix ` D% `:80 := mod_dioph
+  localized "infix ` D% `:80 := dioph.mod_dioph" in dioph
 
   theorem modeq_dioph {h : (α → ℕ) → ℕ} (dh : dioph_fn h) : dioph (λv, f v ≡ g v [MOD h v]) :=
   df D% dh D= dg D% dh
-  local notation `D≡` := modeq_dioph
+  localized "notation `D≡` := dioph.modeq_dioph" in dioph
 
   theorem div_dioph : dioph_fn (λv, f v / g v) :=
   have dioph (λv : vector3 ℕ 3, v &2 = 0 ∧ v &0 = 0 ∨ v &0 * v &2 ≤ v &1 ∧ v &1 < (v &0 + 1) * v &2),
@@ -715,7 +721,7 @@ section
     (λypos, iff.trans ⟨λo, o.resolve_left $ λ⟨h1, _⟩, ne_of_gt ypos h1, or.inr⟩
       (le_antisymm_iff.trans $ and_congr (nat.le_div_iff_mul_le _ _ ypos) $
         iff.trans ⟨lt_succ_of_le, le_of_lt_succ⟩ (div_lt_iff_lt_mul _ _ ypos)).symm)
-  local infix ` D/ `:80 := div_dioph
+  localized "infix ` D/ `:80 := dioph.div_dioph" in dioph
 
   omit df dg
   open pell

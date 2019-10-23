@@ -5,7 +5,8 @@ Authors: Jeremy Avigad
 
 Extends `tendsto` to relations and partial functions.
 -/
-import .basic
+import order.filter.basic
+import data.pfun
 
 universes u v w
 namespace filter
@@ -98,7 +99,7 @@ def rcomap' (r : rel α β) (f : filter β) : filter α :=
                                            (set.inter_subset_inter ha₂ hb₂)⟩ }
 
 @[simp]
-def mem_rcomap' (r : rel α β) (l : filter β) (s : set α) :
+lemma mem_rcomap' (r : rel α β) (l : filter β) (s : set α) :
   s ∈ l.rcomap' r ↔ ∃ t ∈ l, rel.preimage r t ⊆ s :=
 iff.refl _
 
@@ -147,7 +148,7 @@ def pmap (f : α →. β) (l : filter α) : filter β :=
 filter.rmap f.graph' l
 
 @[simp]
-def mem_pmap (f : α →. β) (l : filter α) (s : set β) : s ∈ l.pmap f ↔ f.core s ∈ l :=
+lemma mem_pmap (f : α →. β) (l : filter α) (s : set β) : s ∈ l.pmap f ↔ f.core s ∈ l :=
 iff.refl _
 
 def ptendsto (f : α →. β) (l₁ : filter α) (l₂ : filter β) := l₁.pmap f ≤ l₂

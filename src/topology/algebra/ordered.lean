@@ -6,13 +6,12 @@ Authors: Johannes Hölzl, Mario Carneiro
 Theory of ordered topology.
 -/
 import order.liminf_limsup
-import algebra.big_operators algebra.group algebra.pi_instances
-import data.set.intervals data.equiv.algebra
+import data.set.intervals
 import topology.algebra.group
-import topology.constructions topology.uniform_space.uniform_embedding topology.uniform_space.separation
+import topology.constructions
 
 open classical set lattice filter topological_space
-local attribute [instance] classical.prop_decidable
+local attribute [instance] classical.prop_decidable -- TODO: use "open_locale classical"
 
 universes u v w
 variables {α : Type u} {β : Type v} {γ : Type w}
@@ -106,15 +105,17 @@ is_open_and (is_open_lt continuous_const continuous_id) (is_open_lt continuous_i
 lemma is_open_Iio {a : α} : is_open (Iio a) :=
 is_open_lt continuous_id continuous_const
 
+lemma is_open_Ioi {a : α} : is_open (Ioi a) :=
+is_open_lt continuous_const continuous_id
+
 end linear_order
 
 section decidable_linear_order
-variables [topological_space α] [decidable_linear_order α] [t : ordered_topology α]
-  [topological_space β] {f g : β → α}
+variables [topological_space α] [decidable_linear_order α] [t : ordered_topology α] {f g : β → α}
 include t
 
 section
-variables (hf : continuous f) (hg : continuous g)
+variables [topological_space β] (hf : continuous f) (hg : continuous g)
 include hf hg
 
 lemma frontier_le_subset_eq : frontier {b | f b ≤ g b} ⊆ {b | f b = g b} :=
@@ -144,20 +145,22 @@ end
 lemma tendsto_max {b : filter β} {a₁ a₂ : α} (hf : tendsto f b (nhds a₁)) (hg : tendsto g b (nhds a₂)) :
   tendsto (λb, max (f b) (g b)) b (nhds (max a₁ a₂)) :=
 show tendsto ((λp:α×α, max p.1 p.2) ∘ (λb, (f b, g b))) b (nhds (max a₁ a₂)),
-  from (hf.prod_mk hg).comp
+  from tendsto.comp
     begin
       rw [←nhds_prod_eq],
       from continuous_iff_continuous_at.mp (continuous_max continuous_fst continuous_snd) _
     end
+    (hf.prod_mk hg)
 
 lemma tendsto_min {b : filter β} {a₁ a₂ : α} (hf : tendsto f b (nhds a₁)) (hg : tendsto g b (nhds a₂)) :
   tendsto (λb, min (f b) (g b)) b (nhds (min a₁ a₂)) :=
 show tendsto ((λp:α×α, min p.1 p.2) ∘ (λb, (f b, g b))) b (nhds (min a₁ a₂)),
-  from (hf.prod_mk hg).comp
+  from tendsto.comp
     begin
       rw [←nhds_prod_eq],
       from continuous_iff_continuous_at.mp (continuous_min continuous_fst continuous_snd) _
     end
+    (hf.prod_mk hg)
 
 end decidable_linear_order
 
@@ -269,7 +272,16 @@ theorem induced_orderable_topology' {α : Type u} {β : Type v}
 begin
   letI := induced f ta,
   refine ⟨eq_of_nhds_eq_nhds (λ a, _)⟩,
-  rw [nhds_induced_eq_comap, nhds_generate_from, @nhds_eq_orderable β _ _], apply le_antisymm,
+  rw [nhds_induced, nhds_generate_from, @nhds_eq_orderable β _ _],
+  apply le_antisymm,
+  { refine le_infi (λ s, le_infi $ λ hs, le_principal_iff.2 _),
+    rcases hs with ⟨ab, b, rfl|rfl⟩,
+    { exact mem_comap_sets.2 ⟨{x | f b < x},
+        mem_inf_sets_of_left $ mem_infi_sets _ $ mem_infi_sets (hf.2 ab) $ mem_principal_self _,
+        λ x, hf.1⟩ },
+    { exact mem_comap_sets.2 ⟨{x | x < f b},
+        mem_inf_sets_of_right $ mem_infi_sets _ $ mem_infi_sets (hf.2 ab) $ mem_principal_self _,
+        λ x, hf.1⟩ } },
   { rw [← map_le_iff_le_comap],
     refine le_inf _ _; refine le_infi (λ x, le_infi $ λ h, le_principal_iff.2 _); simp,
     { rcases H₁ h with ⟨b, ab, xb⟩,
@@ -278,14 +290,6 @@ begin
     { rcases H₂ h with ⟨b, ab, xb⟩,
       refine mem_infi_sets _ (mem_infi_sets ⟨ab, b, or.inr rfl⟩ (mem_principal_sets.2 _)),
       exact λ c hc, lt_of_lt_of_le (hf.2 hc) xb } },
-  refine le_infi (λ s, le_infi $ λ hs, le_principal_iff.2 _),
-  rcases hs with ⟨ab, b, rfl|rfl⟩,
-  { exact mem_comap_sets.2 ⟨{x | f b < x},
-      mem_inf_sets_of_left $ mem_infi_sets _ $ mem_infi_sets (hf.2 ab) $ mem_principal_self _,
-      λ x, hf.1⟩ },
-  { exact mem_comap_sets.2 ⟨{x | x < f b},
-      mem_inf_sets_of_right $ mem_infi_sets _ $ mem_infi_sets (hf.2 ab) $ mem_principal_self _,
-      λ x, hf.1⟩ }
 end
 
 theorem induced_orderable_topology {α : Type u} {β : Type v}
@@ -379,7 +383,7 @@ iff.intro
 
 lemma order_separated {a₁ a₂ : α} (h : a₁ < a₂) :
   ∃u v : set α, is_open u ∧ is_open v ∧ a₁ ∈ u ∧ a₂ ∈ v ∧ (∀b₁∈u, ∀b₂∈v, b₁ < b₂) :=
-match dense_or_discrete h with
+match dense_or_discrete a₁ a₂ with
 | or.inl ⟨a, ha₁, ha₂⟩ := ⟨{a' | a' < a}, {a' | a < a'}, is_open_gt' a, is_open_lt' a, ha₁, ha₂,
     assume b₁ h₁ b₂ h₂, lt_trans h₁ h₂⟩
 | or.inr ⟨h₁, h₂⟩ := ⟨{a | a < a₂}, {a | a₁ < a}, is_open_gt' a₂, is_open_lt' a₁, h, h,
@@ -406,7 +410,7 @@ instance orderable_topology.regular_space : regular_space α :=
       from by_cases
         (assume h : ∃l, l < a,
           let ⟨l, hl, h⟩ := h₂ h in
-          match dense_or_discrete hl with
+          match dense_or_discrete l a with
           | or.inl ⟨b, hb₁, hb₂⟩ := ⟨{a | a < b}, is_open_gt' _,
               assume c hcs hca, show c < b,
                 from lt_of_not_ge $ assume hbc, h c (lt_of_lt_of_le hb₁ hbc) (le_of_lt hca) hcs,
@@ -423,7 +427,7 @@ instance orderable_topology.regular_space : regular_space α :=
       from by_cases
         (assume h : ∃u, u > a,
           let ⟨u, hu, h⟩ := h₁ h in
-          match dense_or_discrete hu with
+          match dense_or_discrete a u with
           | or.inl ⟨b, hb₁, hb₂⟩ := ⟨{a | b < a}, is_open_lt' _,
               assume c hcs hca, show c > b,
                 from lt_of_not_ge $ assume hbc, h c (le_of_lt hca) (lt_of_le_of_lt hbc hb₂) hcs,
@@ -453,7 +457,7 @@ funext $ assume f, map_eq_comap_of_inverse (funext neg_neg) (funext neg_neg)
 
 section topological_add_group
 
-variables [topological_space α] [ordered_comm_group α] [orderable_topology α] [topological_add_group α]
+variables [topological_space α] [ordered_comm_group α] [topological_add_group α]
 
 lemma neg_preimage_closure {s : set α} : (λr:α, -r) ⁻¹' closure s = closure ((λr:α, -r) '' s) :=
 have (λr:α, -r) ∘ (λr:α, -r) = id, from funext neg_neg,
@@ -560,13 +564,13 @@ lemma is_lub_of_is_glb_of_tendsto : ∀ {f : α → β} {s : set α} {a : α} {b
 lemma mem_closure_of_is_lub {a : α} {s : set α} (ha : is_lub s a) (hs : s ≠ ∅) : a ∈ closure s :=
 by rw closure_eq_nhds; exact nhds_principal_ne_bot_of_is_lub ha hs
 
-lemma mem_of_is_lub_of_is_closed {a : α} {s : set α} (ha : is_lub s a) (hs : s ≠ ∅) (sc : is_closed s): a ∈ s :=
+lemma mem_of_is_lub_of_is_closed {a : α} {s : set α} (ha : is_lub s a) (hs : s ≠ ∅) (sc : is_closed s) : a ∈ s :=
 by rw ←closure_eq_of_is_closed sc; exact mem_closure_of_is_lub ha hs
 
 lemma mem_closure_of_is_glb {a : α} {s : set α} (ha : is_glb s a) (hs : s ≠ ∅) : a ∈ closure s :=
 by rw closure_eq_nhds; exact nhds_principal_ne_bot_of_is_glb ha hs
 
-lemma mem_of_is_glb_of_is_closed {a : α} {s : set α} (ha : is_glb s a) (hs : s ≠ ∅) (sc : is_closed s): a ∈ s :=
+lemma mem_of_is_glb_of_is_closed {a : α} {s : set α} (ha : is_glb s a) (hs : s ≠ ∅) (sc : is_closed s) : a ∈ s :=
 by rw ←closure_eq_of_is_closed sc; exact mem_closure_of_is_glb ha hs
 
 /-- A compact set is bounded below -/
@@ -714,7 +718,7 @@ end
 /-- A continuous monotone function sends indexed infimum to indexed infimum in conditionally complete
 lattices, under a boundedness assumption. -/
 lemma cinfi_of_cinfi_of_monotone_of_continuous {f : α → β} {g : γ → α}
-  (Mf : continuous f) (Cf : monotone f) (H : bdd_below (range g)): f (infi g) = infi (f ∘ g) :=
+  (Mf : continuous f) (Cf : monotone f) (H : bdd_below (range g)) : f (infi g) = infi (f ∘ g) :=
 by rw [infi, cInf_of_cInf_of_monotone_of_continuous Mf Cf
   (λ h, range_eq_empty.1 h ‹_›) H, ← range_comp]; refl
 
@@ -788,7 +792,7 @@ is_cobounded_of_is_bounded (map_ne_bot hf) (is_bounded_under_ge_of_tendsto h)
 end ordered_topology
 
 section conditionally_complete_linear_order
-variables [conditionally_complete_linear_order α] [topological_space α] [orderable_topology α]
+variables [conditionally_complete_linear_order α]
 
 theorem lt_mem_sets_of_Limsup_lt {f : filter α} {b} (h : f.is_bounded (≤)) (l : f.Limsup < b) :
   {a | a < b} ∈ f :=
@@ -798,7 +802,9 @@ mem_sets_of_superset h $ assume a hac, lt_of_le_of_lt hac hcb
 
 theorem gt_mem_sets_of_Liminf_gt : ∀ {f : filter α} {b}, f.is_bounded (≥) → f.Liminf > b →
   {a | a > b} ∈ f :=
-@lt_mem_sets_of_Limsup_lt (order_dual α) _ _ _
+@lt_mem_sets_of_Limsup_lt (order_dual α) _
+
+variables [topological_space α] [orderable_topology α]
 
 /-- If the liminf and the limsup of a filter coincide, then this filter converges to
 their common value, at least if the filter is eventually bounded above and below. -/
@@ -813,7 +819,7 @@ theorem Limsup_nhds (a : α) : Limsup (nhds a) = a :=
 cInf_intro (ne_empty_iff_exists_mem.2 $ is_bounded_le_nhds a)
   (assume a' (h : {n : α | n ≤ a'} ∈ nhds a), show a ≤ a', from @mem_of_nhds α _ a _ h)
   (assume b (hba : a < b), show ∃c (h : {n : α | n ≤ c} ∈ nhds a), c < b, from
-    match dense_or_discrete hba with
+    match dense_or_discrete a b with
     | or.inl ⟨c, hac, hcb⟩ := ⟨c, ge_mem_nhds hac, hcb⟩
     | or.inr ⟨_, h⟩        := ⟨a, (nhds a).sets_of_superset (gt_mem_nhds hba) h, hba⟩
     end)
@@ -839,6 +845,28 @@ theorem Limsup_eq_of_le_nhds : ∀ {f : filter α} {a : α}, f ≠ ⊥ → f ≤
 @Liminf_eq_of_le_nhds (order_dual α) _ _ _
 
 end conditionally_complete_linear_order
+
+section complete_linear_order
+variables [complete_linear_order α] [topological_space α] [orderable_topology α]
+-- In complete_linear_order, the above theorems take a simpler form
+
+/-- If the liminf and the limsup of a function coincide, then the limit of the function
+exists and has the same value -/
+theorem tendsto_of_liminf_eq_limsup {f : filter β} {u : β → α} {a : α}
+  (h : liminf f u = a ∧ limsup f u = a) : tendsto u f (nhds a) :=
+  le_nhds_of_Limsup_eq_Liminf is_bounded_le_of_top is_bounded_ge_of_bot h.2 h.1
+
+/-- If a function has a limit, then its limsup coincides with its limit-/
+theorem limsup_eq_of_tendsto {f : filter β} {u : β → α} {a : α} (hf : f ≠ ⊥)
+  (h : tendsto u f (nhds a)) : limsup f u = a :=
+  Limsup_eq_of_le_nhds (map_ne_bot hf) h
+
+/-- If a function has a limit, then its liminf coincides with its limit-/
+theorem liminf_eq_of_tendsto {f : filter β} {u : β → α} {a : α} (hf : f ≠ ⊥)
+  (h : tendsto u f (nhds a)) : liminf f u = a :=
+  Liminf_eq_of_le_nhds (map_ne_bot hf) h
+
+end complete_linear_order
 
 end liminf_limsup
 

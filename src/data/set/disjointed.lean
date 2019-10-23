@@ -7,7 +7,7 @@ Disjointed sets
 -/
 import data.set.lattice data.nat.basic tactic.wlog
 open set classical lattice
-local attribute [instance] prop_decidable
+open_locale classical
 
 universes u v w x
 variables {α : Type u} {β : Type v} {γ : Type w} {ι : Sort x}
@@ -38,6 +38,15 @@ lemma disjoint_disjointed {f : ℕ → set α} : pairwise (disjoint on disjointe
   rintro a ⟨⟨h₁, _⟩, h₂, h₃⟩, simp at h₃,
   exact h₃ _ (lt_of_le_of_ne h' h) h₁
 end
+
+lemma disjoint_disjointed' {f : ℕ → set α} :
+  ∀ i j, i ≠ j → (disjointed f i) ∩ (disjointed f j) = ∅ :=
+begin
+  assume i j hij, have := @disjoint_disjointed _ f i j hij,
+  rw [function.on_fun, disjoint_iff] at this, exact this
+end
+
+lemma disjointed_subset {f : ℕ → set α} {n : ℕ} : disjointed f n ⊆ f n := inter_subset_left _ _
 
 lemma Union_lt_succ {f : ℕ → set α} {n} : (⋃i < nat.succ n, f i) = f n ∪ (⋃i < n, f i) :=
 ext $ λ a, by simp [nat.lt_succ_iff_lt_or_eq, or_and_distrib_right, exists_or_distrib, or_comm]

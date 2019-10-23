@@ -26,20 +26,20 @@ def of_subtype {p : α → Prop} [decidable_pred p] (f : perm (subtype p)) : per
     by simp; split_ifs at *; simp * at *⟩
 
 instance of_subtype.is_group_hom {p : α → Prop} [decidable_pred p] : is_group_hom (@of_subtype α p _) :=
-⟨λ f g, equiv.ext _ _ $ λ x, begin
+{ map_mul := λ f g, equiv.ext _ _ $ λ x, begin
   rw [of_subtype, of_subtype, of_subtype],
   by_cases h : p x,
   { have h₁ : p (f (g ⟨x, h⟩)), from (f (g ⟨x, h⟩)).2,
     have h₂ : p (g ⟨x, h⟩), from (g ⟨x, h⟩).2,
     simp [h, h₁, h₂] },
   { simp [h] }
-end⟩
+end }
 
 @[simp] lemma of_subtype_one (p : α → Prop) [decidable_pred p] : @of_subtype α p _ 1 = 1 :=
-is_group_hom.one of_subtype
+is_group_hom.map_one of_subtype
 
 lemma eq_inv_iff_eq {f : perm α} {x y : α} : x = f⁻¹ y ↔ f x = y :=
-by conv {to_lhs, rw [← injective.eq_iff f.bijective.1, apply_inv_self]}
+by conv {to_lhs, rw [← injective.eq_iff f.injective, apply_inv_self]}
 
 lemma inv_eq_iff_eq {f : perm α} {x y : α} : f⁻¹ x = y ↔ x = f y :=
 by rw [eq_comm, eq_inv_iff_eq, eq_comm]
@@ -55,8 +55,8 @@ lemma disjoint_comm {f g : perm α} : disjoint f g ↔ disjoint g f :=
 lemma disjoint_mul_comm {f g : perm α} (h : disjoint f g) : f * g = g * f :=
 equiv.ext _ _ $ λ x, (h x).elim
   (λ hf, (h (g x)).elim (λ hg, by simp [mul_apply, hf, hg])
-    (λ hg, by simp [mul_apply, hf, g.bijective.1 hg]))
-  (λ hg, (h (f x)).elim (λ hf, by simp [mul_apply, f.bijective.1 hf, hg])
+    (λ hg, by simp [mul_apply, hf, g.injective hg]))
+  (λ hg, (h (f x)).elim (λ hf, by simp [mul_apply, f.injective hf, hg])
     (λ hf, by simp [mul_apply, hf, hg]))
 
 @[simp] lemma disjoint_one_left (f : perm α) : disjoint 1 f := λ _, or.inl rfl
@@ -135,7 +135,7 @@ lemma gpow_apply_eq_of_apply_apply_eq_self {f : perm α} {x : α} (hffx : f (f x
   ∀ i : ℤ, (f ^ i) x = x ∨ (f ^ i) x = f x
 | (n : ℕ) := pow_apply_eq_of_apply_apply_eq_self hffx n
 | -[1+ n] :=
-  by rw [gpow_neg_succ, inv_eq_iff_eq, ← injective.eq_iff f.bijective.1, ← mul_apply, ← pow_succ,
+  by rw [gpow_neg_succ, inv_eq_iff_eq, ← injective.eq_iff f.injective, ← mul_apply, ← pow_succ,
     eq_comm, inv_eq_iff_eq, ← mul_apply, ← pow_succ', @eq_comm _ x, or.comm];
   exact pow_apply_eq_of_apply_apply_eq_self hffx _
 
@@ -178,7 +178,7 @@ let ⟨⟨x, hx⟩, ⟨y, hy⟩, hxy⟩ := h in
 lemma ne_and_ne_of_swap_mul_apply_ne_self {f : perm α} {x y : α}
   (hy : (swap x (f x) * f) y ≠ y) : f y ≠ y ∧ y ≠ x :=
 begin
-  simp only [swap_apply_def, mul_apply, injective.eq_iff f.bijective.1] at *,
+  simp only [swap_apply_def, mul_apply, injective.eq_iff f.injective] at *,
   by_cases h : f y = x,
   { split; intro; simp * at * },
   { split_ifs at hy; cc }
@@ -291,7 +291,7 @@ lemma sign_bij_aux_inj {n : ℕ} {f : perm (fin n)} : ∀ a b : Σ a : fin n, fi
   rw mem_fin_pairs_lt at *,
   have : ¬b₁ < b₂ := not_lt_of_ge (le_of_lt hb),
   split_ifs at h;
-  simp [*, injective.eq_iff f.bijective.1, sigma.mk.inj_eq] at *
+  simp [*, injective.eq_iff f.injective, sigma.mk.inj_eq] at *
 end
 
 lemma sign_bij_aux_surj {n : ℕ} {f : perm (fin n)} : ∀ a ∈ fin_pairs_lt n,
@@ -303,7 +303,7 @@ then ⟨⟨f⁻¹ a₁, f⁻¹ a₂⟩, mem_fin_pairs_lt.2 hxa,
     rw [apply_inv_self, apply_inv_self, dif_pos (mem_fin_pairs_lt.1 ha)]⟩
 else ⟨⟨f⁻¹ a₂, f⁻¹ a₁⟩, mem_fin_pairs_lt.2 $ lt_of_le_of_ne
   (le_of_not_gt hxa) $ λ h,
-    by simpa [mem_fin_pairs_lt, (f⁻¹).bijective.1 h, lt_irrefl] using ha,
+    by simpa [mem_fin_pairs_lt, (f⁻¹).injective h, lt_irrefl] using ha,
   by dsimp [sign_bij_aux];
     rw [apply_inv_self, apply_inv_self,
       dif_neg (not_lt_of_ge (le_of_lt (mem_fin_pairs_lt.1 ha)))]⟩
@@ -316,7 +316,7 @@ lemma sign_bij_aux_mem {n : ℕ} {f : perm (fin n)}: ∀ a : Σ a : fin n, fin n
   { exact mem_fin_pairs_lt.2 h },
   { exact mem_fin_pairs_lt.2
     (lt_of_le_of_ne (le_of_not_gt h)
-      (λ h, ne_of_lt (mem_fin_pairs_lt.1 ha) (f.bijective.1 h.symm))) }
+      (λ h, ne_of_lt (mem_fin_pairs_lt.1 ha) (f.injective h.symm))) }
 end
 
 @[simp] lemma sign_aux_inv {n : ℕ} (f : perm (fin n)) : sign_aux f⁻¹ = sign_aux f :=
@@ -347,8 +347,8 @@ begin
   { rw [dif_neg h, inv_apply_self, inv_apply_self, if_pos (le_of_lt hab)],
     by_cases h₁ : f (g b) ≤ f (g a),
     { have : f (g b) ≠ f (g a),
-      { rw [ne.def, injective.eq_iff f.bijective.1,
-          injective.eq_iff g.bijective.1];
+      { rw [ne.def, injective.eq_iff f.injective,
+          injective.eq_iff g.injective];
         exact ne_of_lt hab },
       rw [if_pos h₁, if_neg (not_le_of_gt  (lt_of_le_of_ne h₁ this))],
       refl },
@@ -356,7 +356,7 @@ begin
       refl } }
 end
 
-instance sign_aux.is_group_hom {n : ℕ} : is_group_hom (@sign_aux n) := ⟨sign_aux_mul⟩
+instance sign_aux.is_group_hom {n : ℕ} : is_group_hom (@sign_aux n) := { map_mul := sign_aux_mul }
 
 private lemma sign_aux_swap_zero_one {n : ℕ} (hn : 2 ≤ n) :
   sign_aux (swap (⟨0, lt_of_lt_of_le dec_trivial hn⟩ : fin n)
@@ -412,7 +412,7 @@ by rw [this, one_def, equiv.trans_refl, equiv.symm_trans, ← one_def,
     have : (e.symm.trans (swap x (f x) * f)).trans e =
       (swap (e x) (e (f x))) * (e.symm.trans f).trans e,
       from equiv.ext _ _ (λ z, by rw ← equiv.symm_trans_swap_trans; simp [mul_def]),
-    have hefx : e x ≠ e (f x), from mt (injective.eq_iff e.bijective.1).1 hfx,
+    have hefx : e x ≠ e (f x), from mt (injective.eq_iff e.injective).1 hfx,
     rw [if_neg hfx, ← sign_aux_eq_sign_aux2 _ _ e hy, this, sign_aux_mul, sign_aux_swap hefx],
     simp }
 end
@@ -441,7 +441,7 @@ begin
   { rw [← sign_aux_eq_sign_aux2 _ _ e (λ _ _, hs _), ← sign_aux_eq_sign_aux2 _ _ e (λ _ _, hs _),
       ← sign_aux_eq_sign_aux2 _ _ e (λ _ _, hs _), hfg, sign_aux_mul] },
   { assume x y hxy,
-    have hexy : e x ≠ e y, from mt (injective.eq_iff e.bijective.1).1 hxy,
+    have hexy : e x ≠ e y, from mt (injective.eq_iff e.injective).1 hxy,
     rw [← sign_aux_eq_sign_aux2 _ _ e (λ _ _, hs _), equiv.symm_trans_swap_trans, sign_aux_swap hexy] }
 end
 
@@ -451,23 +451,23 @@ permutations, `-1` for odd permutations. It is the unique surjective group homom
 def sign [fintype α] (f : perm α) := sign_aux3 f mem_univ
 
 instance sign.is_group_hom [fintype α] : is_group_hom (@sign α _ _) :=
-⟨λ f g, (sign_aux3_mul_and_swap f g _ mem_univ).1⟩
+{ map_mul := λ f g, (sign_aux3_mul_and_swap f g _ mem_univ).1 }
 
 section sign
 
 variable [fintype α]
 
 @[simp] lemma sign_mul (f g : perm α) : sign (f * g) = sign f * sign g :=
-is_group_hom.mul sign _ _
+is_mul_hom.map_mul sign _ _
 
 @[simp] lemma sign_one : (sign (1 : perm α)) = 1 :=
-is_group_hom.one sign
+is_group_hom.map_one sign
 
 @[simp] lemma sign_refl : sign (equiv.refl α) = 1 :=
-is_group_hom.one sign
+is_group_hom.map_one sign
 
 @[simp] lemma sign_inv (f : perm α) : sign f⁻¹ = sign f :=
-by rw [is_group_hom.inv sign, int.units_inv_eq_self]; apply_instance
+by rw [is_group_hom.map_inv sign, int.units_inv_eq_self]; apply_instance
 
 lemma sign_swap {x y : α} (h : x ≠ y) : sign (swap x y) = -1 :=
 (sign_aux3_mul_and_swap 1 1 _ mem_univ).2 x y h
@@ -501,13 +501,13 @@ have h₁ : l.map sign = list.repeat (-1) l.length :=
   list.eq_repeat.2 ⟨by simp, λ u hu,
   let ⟨g, hg⟩ := list.mem_map.1 hu in
   hg.2 ▸ sign_eq_of_is_swap (hl _ hg.1)⟩,
-by rw [← list.prod_repeat, ← h₁, ← is_group_hom.prod (@sign α _ _)]
+by rw [← list.prod_repeat, ← h₁, ← is_group_hom.map_prod (@sign α _ _)]
 
 lemma sign_surjective (hα : 1 < fintype.card α) : function.surjective (sign : perm α → units ℤ) :=
 λ a, (int.units_eq_one_or a).elim
   (λ h, ⟨1, by simp [h]⟩)
   (λ h, let ⟨x⟩ := fintype.card_pos_iff.1 (lt_trans zero_lt_one hα) in
-    let ⟨y, hxy⟩ := fintype.exists_ne_of_card_gt_one hα x in
+    let ⟨y, hxy⟩ := fintype.exists_ne_of_one_lt_card hα x in
     ⟨swap y x, by rw [sign_swap hxy, h]⟩ )
 
 lemma eq_sign_of_surjective_hom {s : perm α → units ℤ}
@@ -522,14 +522,14 @@ have ∀ {f}, is_swap f → s f = -1 :=
   have ∀ a ∈ l.map s, a = (1 : units ℤ) := λ a ha,
     let ⟨g, hg⟩ := list.mem_map.1 ha in hg.2 ▸ this _ (hl.2 _ hg.1),
   have s l.prod = 1,
-    by rw [is_group_hom.prod s, list.eq_repeat'.2 this, list.prod_repeat, one_pow],
+    by rw [is_group_hom.map_prod s, list.eq_repeat'.2 this, list.prod_repeat, one_pow],
   by rw [hl.1, hg] at this;
     exact absurd this dec_trivial),
 funext $ λ f,
 let ⟨l, hl₁, hl₂⟩ := trunc.out (trunc_swap_factors f) in
 have hsl : ∀ a ∈ l.map s, a = (-1 : units ℤ) := λ a ha,
   let ⟨g, hg⟩ := list.mem_map.1 ha in hg.2 ▸  this (hl₂ _ hg.1),
-by rw [← hl₁, is_group_hom.prod s, list.eq_repeat'.2 hsl, list.length_map,
+by rw [← hl₁, is_group_hom.map_prod s, list.eq_repeat'.2 hsl, list.length_map,
      list.prod_repeat, sign_prod_list_swap hl₂]
 
 lemma sign_subtype_perm (f : perm α) {p : α → Prop} [decidable_pred p]
@@ -540,7 +540,7 @@ have hl' : ∀ g' ∈ l.1.map of_subtype, is_swap g' :=
   let ⟨g, hg⟩ := list.mem_map.1 hg' in
   hg.2 ▸ is_swap_of_subtype (l.2.2 _ hg.1),
 have hl'₂ : (l.1.map of_subtype).prod = f,
-  by rw [← is_group_hom.prod of_subtype l.1, l.2.1, of_subtype_subtype_perm _ h₂],
+  by rw [← is_group_hom.map_prod of_subtype l.1, l.2.1, of_subtype_subtype_perm _ h₂],
 by conv {congr, rw ← l.2.1, skip, rw ← hl'₂};
   rw [sign_prod_list_swap l.2.2, sign_prod_list_swap hl', list.length_map]
 
@@ -566,7 +566,7 @@ calc sign f = sign (@subtype_perm _ f (λ x, f x ≠ x) (by simp)) :
   sign_eq_sign_of_equiv _ _
     (equiv.of_bijective
       (show function.bijective (λ x : {x // f x ≠ x},
-        (⟨i x.1 x.2, have f (f x) ≠ f x, from mt (λ h, f.bijective.1 h) x.2,
+        (⟨i x.1 x.2, have f (f x) ≠ f x, from mt (λ h, f.injective h) x.2,
           by rw [← h _ x.2 this]; exact mt (hi _ _ this x.2) x.2⟩ : {y // g y ≠ y})),
         from ⟨λ ⟨x, hx⟩ ⟨y, hy⟩ h, subtype.eq (hi _ _ _ _ (subtype.mk.inj h)),
           λ ⟨y, hy⟩, let ⟨x, hfx, hx⟩ := hg y hy in ⟨⟨x, hfx⟩, subtype.eq hx⟩⟩))
@@ -604,10 +604,10 @@ lemma is_cycle_swap_mul_aux₁ : ∀ (n : ℕ) {b x : α} {f : perm α}
     have f b ≠ b ∧ b ≠ x, from ne_and_ne_of_swap_mul_apply_ne_self hb,
     have hb' : (swap x (f x) * f) (f⁻¹ b) ≠ f⁻¹ b,
       by rw [mul_apply, apply_inv_self, swap_apply_of_ne_of_ne this.2 (ne.symm hfbx),
-          ne.def, ← injective.eq_iff f.bijective.1, apply_inv_self];
+          ne.def, ← injective.eq_iff f.injective, apply_inv_self];
         exact this.1,
     let ⟨i, hi⟩ := is_cycle_swap_mul_aux₁ n hb'
-      (f.bijective.1 $
+      (f.injective $
         by rw [apply_inv_self];
         rwa [pow_succ, mul_apply] at h) in
     ⟨i + 1, by rw [add_comm, gpow_add, mul_apply, hi, gpow_one, mul_apply, apply_inv_self,
@@ -655,7 +655,7 @@ end
 lemma is_cycle_swap_mul {f : perm α} (hf : is_cycle f) {x : α}
   (hx : f x ≠ x) (hffx : f (f x) ≠ x) : is_cycle (swap x (f x) * f) :=
 ⟨f x, by simp only [swap_apply_def, mul_apply];
-        split_ifs; simp [injective.eq_iff f.bijective.1] at *; cc,
+        split_ifs; simp [injective.eq_iff f.injective] at *; cc,
   λ y hy,
   let ⟨i, hi⟩ := exists_gpow_eq_of_is_cycle hf hx (ne_and_ne_of_swap_mul_apply_ne_self hy).1 in
   have hi : (f ^ (i - 1)) (f x) = y, from
@@ -701,10 +701,10 @@ end equiv.perm
 lemma finset.prod_univ_perm [fintype α] [comm_monoid β] {f : α → β} (σ : perm α) :
   (univ : finset α).prod f = univ.prod (λ z, f (σ z)) :=
 eq.symm $ prod_bij (λ z _, σ z) (λ _ _, mem_univ _) (λ _ _, rfl)
-  (λ _ _ _ _ H, σ.bijective.1 H) (λ b _, ⟨σ⁻¹ b, mem_univ _, by simp⟩)
+  (λ _ _ _ _ H, σ.injective H) (λ b _, ⟨σ⁻¹ b, mem_univ _, by simp⟩)
 
 lemma finset.sum_univ_perm [fintype α] [add_comm_monoid β] {f : α → β} (σ : perm α) :
   (univ : finset α).sum f = univ.sum (λ z, f (σ z)) :=
 @finset.prod_univ_perm _ (multiplicative β) _ _ f σ
 
-attribute [to_additive finset.sum_univ_perm] finset.prod_univ_perm
+attribute [to_additive] finset.prod_univ_perm

@@ -6,11 +6,13 @@ Author: Simon Hudon
 Functors with two arguments
 -/
 
-import data.sum
+import logic.function data.sum
        category.basic category.functor
        tactic.basic
 
 universes u₀ u₁ u₂ v₀ v₁ v₂
+
+open function
 
 class bifunctor (F : Type u₀ → Type u₁ → Type u₂) :=
 (bimap : Π {α α' β β'}, (α → α') → (β → β') → F α β → F α' β')
@@ -78,12 +80,6 @@ attribute [functor_norm] bimap_bimap comp_snd comp_fst
   snd_comp_snd snd_comp_fst fst_comp_snd fst_comp_fst bimap_comp_bimap
   bimap_id_id fst_id snd_id
 
-def bicompl (F : Type* → Type* → Type*) (G : Type* → Type*) (H : Type* → Type*) (α β) :=
-F (G α) (H β)
-
-def bicompr (F : Type* → Type*) (G : Type* → Type* → Type*) (α β) :=
-F (G α β)
-
 end bifunctor
 open functor
 instance : bifunctor prod :=
@@ -112,11 +108,11 @@ by refine { .. }; intros; cases x; refl
 
 open bifunctor functor
 
-@[priority 0]
+@[priority 10]
 instance bifunctor.functor {α} : functor (F α) :=
 { map := λ _ _, snd }
 
-@[priority 0]
+@[priority 10]
 instance bifunctor.is_lawful_functor [is_lawful_bifunctor F] {α} : is_lawful_functor (F α) :=
 by refine {..}; intros; simp [functor.map] with functor_norm
 

@@ -11,21 +11,20 @@ filters and the topology. In particular, we
 * define the sequential closure of a set and prove that it's contained in the closure,
 * define a type class "sequential_space" in which closure and sequential closure agree,
 * define sequential continuity and show that it coincides with continuity in sequential spaces,
-* provide an instance that shows that every metric space is a sequential space.
+* provide an instance that shows that every first-countable (and in particular metric) space is a sequential space.
 
 TODO:
-* There should be an instance that associates a sequential space with a first countable space.
 * Sequential compactness should be handled here.
 -/
 
-import topology.basic topology.metric_space.basic
-import analysis.specific_limits
+import topology.basic
+import topology.bases
 
 open set filter
 
 variables {α : Type*} {β : Type*}
 
-local notation f `⟶` limit := tendsto f at_top (nhds limit)
+local notation f ` ⟶ ` limit := tendsto f at_top (nhds limit)
 
 /- Statements about sequences in general topological spaces. -/
 section topological_space
@@ -33,7 +32,7 @@ variables [topological_space α] [topological_space β]
 
 /-- A sequence converges in the sence of topological spaces iff the associated statement for filter
 holds. -/
-@[simp] lemma topological_space.seq_tendsto_iff {x : ℕ → α} {limit : α} :
+lemma topological_space.seq_tendsto_iff {x : ℕ → α} {limit : α} :
   tendsto x at_top (nhds limit) ↔
     ∀ U : set α, limit ∈ U → is_open U → ∃ n0 : ℕ, ∀ n ≥ n0, (x n) ∈ U :=
 iff.intro
@@ -133,7 +132,7 @@ lemma continuous.to_sequentially_continuous {f : α → β} (_ : continuous f) :
   sequentially_continuous f :=
 assume x limit (_ : x ⟶ limit),
 have tendsto f (nhds limit) (nhds (f limit)), from continuous.tendsto ‹continuous f› limit,
-show (f ∘ x) ⟶ (f limit), from tendsto.comp ‹(x ⟶ limit)› this
+show (f ∘ x) ⟶ (f limit), from tendsto.comp this ‹(x ⟶ limit)›
 
 /-- In a sequential space, continuity and sequential continuity coincide. -/
 lemma continuous_iff_sequentially_continuous {f : α → β} [sequential_space α] :
@@ -150,54 +149,45 @@ iff.intro
         show f p ∈ A, from
           mem_of_is_closed_sequential ‹is_closed A› ‹∀ n, f (x n) ∈ A› ‹(f∘x ⟶ f p)›)
 
-
 end topological_space
 
-/- Statements about sequences in metric spaces -/
-namespace metric
-variable [metric_space α]
-variables {ε : ℝ}
+namespace topological_space
 
--- necessary for the next instance
-set_option eqn_compiler.zeta true
-/-- Show that every metric space is sequential. -/
-instance : sequential_space α :=
+namespace first_countable_topology
+
+/-- Every first-countable space is sequential. -/
+instance [topological_space α] [first_countable_topology α] : sequential_space α :=
 ⟨show ∀ M, sequential_closure M = closure M, from assume M,
   suffices closure M ⊆ sequential_closure M,
     from set.subset.antisymm (sequential_closure_subset_closure M) this,
-  assume (p : α) (_ : p ∈ closure M),
-  -- we construct a sequence in α, with values in M, that converges to p
-  -- the first step is to use (p ∈ closure M) ↔ "all nhds of p contain elements of M" on metric
-  -- balls
-  have ∀ n : ℕ, ball p ((1:ℝ)/((n+1):ℝ)) ∩ M ≠ ∅ := assume n : ℕ,
-    mem_closure_iff.mp ‹p ∈ (closure M)› (ball p ((1:ℝ)/((n+1):ℝ))) (is_open_ball)
-    (mem_ball_self $ one_div_pos_of_pos $ add_pos_of_nonneg_of_pos (nat.cast_nonneg n) zero_lt_one),
+  -- For every p ∈ closure M, we need to construct a sequence x in M that converges to p:
+  assume (p : α) (hp : p ∈ closure M),
+  -- Since we are in a first-countable space, there exists a monotonically decreasing
+  -- sequence g of sets generating the neighborhood filter around p:
+  exists.elim (mono_seq_of_has_countable_basis _
+    (nhds_generated_countable p)) $ assume g ⟨gmon, gbasis⟩,
+  -- (g i) is a neighborhood of p and hence intersects M.
+  -- Via choice we obtain the sequence x such that (x i).val ∈ g i ∩ M:
+  have x : ∀ i, g i ∩ M,
+  { rw mem_closure_iff_nhds at hp,
+    intro i, apply classical.choice, rw coe_nonempty_iff_ne_empty,
+    apply hp, rw gbasis, rw ← le_principal_iff, apply lattice.infi_le_of_le i _, apply le_refl _ },
+  -- It remains to show that x converges to p. Intuitively this is the case
+  -- because x i ∈ g i, and the g i get "arbitrarily small" around p. Formally:
+  have gssnhds : ∀ s ∈ nhds p, ∃ i, g i ⊆ s,
+  { intro s, rw gbasis, rw mem_infi,
+    { simp, intros i hi, use i, assumption },
+    { apply directed_of_mono, intros, apply principal_mono.mpr, apply gmon, assumption },
+    { apply_instance } },
+  -- For the sequence (x i) we can now show that a) it lies in M, and b) converges to p.
+  ⟨λ i, (x i).val, by intro i; simp [(x i).property.right],
+    begin
+      rw tendsto_at_top', intros s nhdss,
+      rcases gssnhds s nhdss with ⟨i, hi⟩,
+      use i, intros j hij, apply hi, apply gmon _ _ hij,
+      simp [(x j).property.left]
+    end⟩⟩
 
-  -- from this, construct a "sequence of hypothesis" h, (h n) := _ ∈ {x // x ∈ ball (1/n+1) p ∩ M}
-  let h := λ n : ℕ, (classical.indefinite_description _ (set.exists_mem_of_ne_empty (this n))),
-  -- and the actual sequence
-      x := λ n : ℕ, (h n).val in
+end first_countable_topology
 
-  -- now we construct the promised sequence and show the claim
-  show ∃ x : ℕ → α, (∀ n : ℕ, ((x n) ∈ M)) ∧ (x ⟶ p), from
-    ⟨x, assume n,
-        have (x n) ∈ ball p ((1:ℝ)/((n+1):ℝ)) ∩ M := (h n).property, this.2,
-        suffices ∀ ε > 0, ∃ n0 : ℕ, ∀ n ≥ n0, dist (x n) p < ε,
-          by simpa only [metric.tendsto_at_top],
-        assume ε _,
-        -- we apply that 1/n converges to zero to the fact that (x n) ∈ ball p ε
-        have ∀ ε > 0, ∃ n0 : ℕ, ∀ n ≥ n0, dist (1 / (↑n + 1)) (0:ℝ) < ε :=
-          metric.tendsto_at_top.mp tendsto_one_div_add_at_top_nhds_0_nat,
-        let ⟨n0, hn0⟩ := this ε ‹ε > 0› in
-        show ∃ n0 : ℕ, ∀ n ≥ n0, dist (x n) p < ε, from
-          ⟨n0, assume n ngtn0,
-            calc dist (x n) p < (1:ℝ)/↑(n+1) : (h n).property.1
-              ... = abs ((1:ℝ)/↑(n+1)) :
-                eq.symm $ abs_of_nonneg $ div_nonneg' zero_le_one $ nat.cast_nonneg _
-              ... = abs ((1:ℝ)/↑(n+1) - 0) : by simp
-              ... = dist ((1:ℝ)/↑(n+1)) 0 : eq.symm $ real.dist_eq ((1:ℝ)/↑(n+1)) 0
-              ... < ε : hn0 n ‹n ≥ n0›⟩⟩⟩
-
-set_option eqn_compiler.zeta false
-
-end metric
+end topological_space

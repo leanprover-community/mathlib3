@@ -16,7 +16,7 @@ the statement. "Baire" is however in the docstring of all the theorems, to facil
 -/
 import topology.metric_space.basic analysis.specific_limits
 noncomputable theory
-local attribute [instance] classical.prop_decidable
+open_locale classical
 
 open filter lattice encodable set
 
@@ -164,7 +164,7 @@ begin
   have yball : ∀n, y ∈ closed_ball (c n) (r n),
   { assume n,
     refine mem_of_closed_of_tendsto (by simp) ylim is_closed_ball _,
-    simp only [filter.mem_at_top_sets, nonempty_of_inhabited, set.mem_preimage_eq],
+    simp only [filter.mem_at_top_sets, nonempty_of_inhabited, set.mem_preimage],
     exact ⟨n, λm hm, I n m hm (mem_closed_ball_self (le_of_lt (rpos m)))⟩ },
   split,
   show ∀n, y ∈ f n,

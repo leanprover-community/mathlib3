@@ -44,6 +44,12 @@ mt (assume h, hf h)
 def injective.decidable_eq [decidable_eq β] (I : injective f) : decidable_eq α
 | a b := decidable_of_iff _ I.eq_iff
 
+lemma injective.of_comp {γ : Sort w} {g : γ → α} (I : injective (f ∘ g)) : injective g :=
+λ x y h, I $ show f (g x) = f (g y), from congr_arg f h
+
+lemma surjective.of_comp {γ : Sort w} {g : γ → α} (S : surjective (f ∘ g)) : surjective f :=
+λ y, let ⟨x, h⟩ := S y in ⟨g x, h⟩
+
 instance decidable_eq_pfun (p : Prop) [decidable p] (α : p → Type*)
   [Π hp, decidable_eq (α hp)] : decidable_eq (Π hp, α hp)
 | f g := decidable_of_iff (∀ hp, f hp = g hp) funext_iff.symm
@@ -88,7 +94,7 @@ theorem right_inverse.comp {γ} {f : α → β} {g : β → α} {h : β → γ} 
   (hf : right_inverse f g) (hh : right_inverse h i) : right_inverse (h ∘ f) (g ∘ i) :=
 left_inverse.comp hh hf
 
-local attribute [instance] classical.prop_decidable
+local attribute [instance, priority 10] classical.prop_decidable
 
 /-- We can use choice to construct explicitly a partial inverse for
   a given injective function `f`. -/
@@ -113,7 +119,7 @@ end
 section inv_fun
 variables {α : Type u} [inhabited α] {β : Sort v} {f : α → β} {s : set α} {a : α} {b : β}
 
-local attribute [instance] classical.prop_decidable
+local attribute [instance, priority 10] classical.prop_decidable
 
 /-- Construct the inverse for a function `f` on domain `s`. -/
 noncomputable def inv_fun_on (f : α → β) (s : set α) (b : β) : α :=
@@ -218,8 +224,57 @@ end update
 lemma uncurry_def {α β γ} (f : α → β → γ) : uncurry f = (λp, f p.1 p.2) :=
 funext $ assume ⟨a, b⟩, rfl
 
+-- `uncurry'` is the version of `uncurry` with correct definitional reductions
+def uncurry' {α β γ} (f : α → β → γ) := λ p : α × β, f p.1 p.2
+
+@[simp]
+lemma curry_uncurry' {α : Type*} {β : Type*} {γ : Type*} (f : α → β → γ) : curry (uncurry' f) = f :=
+by funext ; refl
+
+@[simp]
+lemma uncurry'_curry {α : Type*} {β : Type*} {γ : Type*} (f : α × β → γ) : uncurry' (curry f) = f :=
+by { funext, simp [curry, uncurry', prod.mk.eta] }
+
 def restrict {α β} (f : α → β) (s : set α) : subtype s → β := λ x, f x.val
 
-theorem restrict_eq {α β} (f : α → β) (s : set α): function.restrict f s = f ∘ (@subtype.val _ s) := rfl
+theorem restrict_eq {α β} (f : α → β) (s : set α) : function.restrict f s = f ∘ (@subtype.val _ s) := rfl
+
+section bicomp
+variables {α : Type*} {β : Type*} {γ : Type*} {δ : Type*} {ε : Type*}
+
+def bicompl (f : γ → δ → ε) (g : α → γ) (h : β → δ) (a b) :=
+f (g a) (h b)
+
+def bicompr (f : γ → δ) (g : α → β → γ) (a b) :=
+f (g a b)
+
+-- Suggested local notation:
+local notation f `∘₂` g := bicompr f g
+
+lemma uncurry_bicompr (f : α → β → γ) (g : γ → δ) :
+  uncurry (g ∘₂ f) = (g ∘ uncurry f) :=
+funext $ λ ⟨p, q⟩, rfl
+
+lemma uncurry'_bicompr (f : α → β → γ) (g : γ → δ) :
+  uncurry' (g ∘₂ f) = (g ∘ uncurry' f) := rfl
+end bicomp
+
+/-- A function is involutive, if `f ∘ f = id`. -/
+def involutive {α} (f : α → α) : Prop := ∀ x, f (f x) = x
+
+lemma involutive_iff_iter_2_eq_id {α} {f : α → α} : involutive f ↔ (f^[2] = id) :=
+funext_iff.symm
+
+namespace involutive
+variables {α : Sort u} {f : α → α} (h : involutive f)
+
+protected lemma left_inverse : left_inverse f f := h
+protected lemma right_inverse : right_inverse f f := h
+
+protected lemma injective : injective f := injective_of_left_inverse h.left_inverse
+protected lemma surjective : surjective f := λ x, ⟨f x, h x⟩
+protected lemma bijective : bijective f := ⟨h.injective, h.surjective⟩
+
+end involutive
 
 end function

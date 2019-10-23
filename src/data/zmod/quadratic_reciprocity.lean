@@ -29,7 +29,7 @@ hp.eq_two_or_odd.elim
     λ hx, have 2 * (p / 2) ∣ n * (p / 2),
         by rw [two_mul_odd_div_two hp1, ← card_units_zmodp hp, ← order_of_eq_card_of_forall_mem_gpowers hg];
         exact order_of_dvd_of_pow_eq_one (by rwa [pow_mul, hn]),
-      let ⟨m, hm⟩ := dvd_of_mul_dvd_mul_right (nat.div_pos hp.ge_two dec_trivial) this in
+      let ⟨m, hm⟩ := dvd_of_mul_dvd_mul_right (nat.div_pos hp.two_le dec_trivial) this in
       ⟨g ^ m, by rwa [← pow_mul, mul_comm, ← hm]⟩⟩)
 
 lemma euler_criterion {a : zmodp p hp} (ha : a ≠ 0) :
@@ -147,7 +147,7 @@ finset.ext.2 $ λ x,
     exact calc 2 * m + (q - 1) * p ≤ 2 * (p / 2) + (q - 1) * p :
       add_le_add_right ((mul_le_mul_left dec_trivial).2 (le_of_lt_succ (mem_range.1 (by simp * at *)))) _
     ... < _ : begin rw [two_mul_odd_div_two hp1, nat.mul_sub_right_distrib, one_mul],
-        rw [← nat.sub_add_comm hp.pos, nat.add_sub_cancel' (le_mul_of_ge_one_left' (nat.zero_le _) hq.pos), mul_comm],
+        rw [← nat.sub_add_comm hp.pos, nat.add_sub_cancel' (le_mul_of_one_le_left' (nat.zero_le _) hq.pos), mul_comm],
         exact lt_add_of_pos_right _ dec_trivial
       end,
   end,
@@ -166,9 +166,9 @@ calc (range (q / 2)).prod (λ n, ((range p).erase 0).prod (+ p * n)) *
   by simp only [prod_image (λ _ _ _ _ h, add_right_cancel h)]; refl
 ... = ((range (q / 2)).bind (λ x, (erase (range p) 0).image (+ p * x))
          ∪ (erase (range (succ (p / 2))) 0).image (+ q / 2 * p)).prod (λ x, x) :
-  have h₁ : finset.bind (range (q / 2)) (λ x, ((range p).erase 0).image (+ p * x)) ∩
-      image (+ q / 2 * p) (erase (range (succ (p / 2))) 0) = ∅ :=
-    eq_empty_iff_forall_not_mem.2 $ λ x, begin
+  have h₁ : disjoint (finset.bind (range (q / 2)) (λ x, ((range p).erase 0).image (+ p * x)))
+      (image (+ q / 2 * p) (erase (range (succ (p / 2))) 0)) :=
+    disjoint_iff.2 $ eq_empty_iff_forall_not_mem.2 $ λ x, begin
       suffices : ∀ a, a ≠ 0 → a ≤ p / 2 → a + q / 2 * p = x → ∀ b, b < q / 2 →
         ∀ c, c ≠ 0 → c < p → ¬c + p * b = x,
       { simpa [lt_succ_iff] },
@@ -180,13 +180,14 @@ calc (range (q / 2)).prod (λ n, ((range p).erase 0).prod (+ p * n)) *
       exact lt_irrefl _ hbq
     end,
   have h₂ : ∀ x, x ∈ range (q / 2) → ∀ y, y ∈ range (q / 2) → x ≠ y →
-      (erase (range p) 0).image (+ p * x) ∩ image (+ p * y) (erase (range p) 0) = ∅ :=
+      disjoint (image (+p * x) (erase (range p) 0)) (image (+ p * y) (erase (range p) 0)) :=
     λ x hx y hy hxy, begin
-      suffices : ∀ z a, a ≠ 0 → a < p → a + p * x = z → ∀ b, b ≠ 0 → b < p → b + p * y ≠ z,
-      { simpa [finset.ext] },
-      assume z a ha0 hap ha b hb0 hbp hb,
+      suffices : ∀ z a, a ≠ 0 → a < p → a + p * x = z →
+                 ∀ bpy b, b ≠ 0 → b < p → b + p * y = bpy → z ≠ bpy,
+      { simpa [disjoint_iff_ne] },
+      assume z a ha0 hap ha bpy b hb0 hbp hb hzb,
       have : (a + p * x) / p = (b + p * y) / p,
-      { rw [ha, hb] },
+      { rw [ha, hb, hzb] },
       rw [nat.add_mul_div_left _ _ hp.pos, nat.add_mul_div_left _ _ hp.pos,
         (nat.div_eq_zero_iff hp.pos).2 hap, (nat.div_eq_zero_iff hp.pos).2 hbp] at this,
       simpa [hxy]
@@ -257,9 +258,10 @@ have hq0 : (q : zmodp p hp) ≠ 0, by rwa [← nat.cast_zero, ne.def, zmodp.eq_i
           assume x hx0 hxp,
           by rwa [← @nat.cast_zero (zmodp p hp), zmodp.eq_iff_modeq_nat, nat.modeq,
             zero_mod, mod_eq_of_lt (lt_of_le_of_lt hxp (nat.div_lt_self hp.pos (lt_succ_self _)))]))).1 $
-have h₁ : (range (succ (p * q / 2))).filter (coprime (p * q)) ∩
-      filter (λ x, ¬coprime q x) (filter (coprime p) (range (succ (p * q / 2)))) = ∅,
-  by have := @coprime.coprime_mul_left p q; simp [finset.ext, *] at * {contextual := tt},
+have h₁ : disjoint ((range (succ (p * q / 2))).filter (coprime (p * q)))
+      (filter (λ x, ¬coprime q x) (filter (coprime p) (range (succ (p * q / 2))))),
+  by {rw [finset.filter_filter], apply finset.disjoint_filter.2,
+      rintros _ _ hpq ⟨_, hq⟩, exact hq (coprime.coprime_mul_left hpq)},
 calc ((((range ((p * q) / 2).succ).filter (coprime (p * q))).prod (λ x, x) : ℕ) : zmodp p hp)
      * (q ^ (p / 2) * ((range (p / 2).succ).erase 0).prod (λ x, x) : zmodp p hp)
    = (((range (succ (p * q / 2))).filter (coprime (p * q)) ∪
@@ -298,10 +300,10 @@ have hpqpnat : (((⟨p * q, mul_pos hp.pos hq.pos⟩ : ℕ+) : ℕ) : ℤ) = (p 
 have hpqpnat' : ((⟨p * q, mul_pos hp.pos hq.pos⟩ : ℕ+) : ℕ) = p * q, by simp,
 have hpq1 : ((⟨p * q, mul_pos hp.pos hq.pos⟩ : ℕ+) : ℕ) % 2 = 1,
   from nat.odd_mul_odd hp1 hq1,
-have hpq1' : p * q > 1, from one_lt_mul hp.pos hq.gt_one,
+have hpq1' : p * q > 1, from one_lt_mul hp.pos hq.one_lt,
 have hhq0 : ∀ a : ℕ, coprime q a → a ≠ 0,
   from λ a, imp_not_comm.1 $ by simp [hq.coprime_iff_not_dvd] {contextual := tt},
-have hpq0 : 0 < p * q / 2, from nat.div_pos (succ_le_of_lt $ one_lt_mul hp.pos hq.gt_one) dec_trivial,
+have hpq0 : 0 < p * q / 2, from nat.div_pos (succ_le_of_lt $ one_lt_mul hp.pos hq.one_lt) dec_trivial,
 have hinj : ∀ a₁ a₂ : ℕ,
     a₁ ∈ (range (p * q / 2).succ).filter (coprime (p * q)) →
     a₂ ∈ (range (p * q / 2).succ).filter (coprime (p * q)) →
@@ -432,7 +434,7 @@ calc ((((range (p / 2).succ).erase 0).prod (λ x, (x : zmodp p hp)) ^ 2)) * (-1)
   begin
     rw ← prod_union,
     { exact finset.prod_congr (by simp [finset.ext, -not_lt, -not_le]; tauto) (λ _ _, rfl) },
-    { simp [finset.ext, -not_lt, - not_le]; tauto }
+    { apply disjoint_filter.2, tauto }
   end
 ... = -1 : by simp
 
@@ -483,7 +485,7 @@ def legendre_sym (a p : ℕ) (hp : nat.prime p) : ℤ :=
 if (a : zmodp p hp) = 0 then 0 else if ∃ b : zmodp p hp, b ^ 2 = a then 1 else -1
 
 lemma legendre_sym_eq_pow (a p : ℕ) (hp : nat.prime p) : (legendre_sym a p hp : zmodp p hp) = (a ^ (p / 2)) :=
-if ha : (a : zmodp p hp) = 0 then by simp [*, legendre_sym, _root_.zero_pow (nat.div_pos hp.ge_two (succ_pos 1))]
+if ha : (a : zmodp p hp) = 0 then by simp [*, legendre_sym, _root_.zero_pow (nat.div_pos hp.two_le (succ_pos 1))]
 else
 (nat.prime.eq_two_or_odd hp).elim
   (λ hp2, begin subst hp2,

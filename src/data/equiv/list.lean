@@ -6,7 +6,7 @@ Author: Mario Carneiro
 Additional equiv and encodable instances for lists and finsets.
 -/
 import data.equiv.denumerable data.nat.pairing order.order_iso
-  data.vector2 data.array.lemmas data.fintype
+  data.array.lemmas data.fintype
 
 open nat list
 
@@ -244,6 +244,13 @@ end finset
 end denumerable
 
 namespace equiv
+
+/-- The type lists on unit is canonically equivalent to the natural numbers. -/
+def list_unit_equiv : list unit ≃ ℕ :=
+{ to_fun := list.length,
+  inv_fun := list.repeat (),
+  left_inv := λ u, list.injective_length (by simp),
+  right_inv := λ n, list.length_repeat () n }
 
 def list_nat_equiv_nat : list ℕ ≃ ℕ := denumerable.eqv _
 

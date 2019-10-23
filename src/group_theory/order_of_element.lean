@@ -149,7 +149,7 @@ lemma sum_card_order_of_eq_card_pow_eq_one {n : ℕ} (hn : 0 < n) :
   ((finset.range n.succ).filter (∣ n)).sum (λ m, (finset.univ.filter (λ a : α, order_of a = m)).card)
   = (finset.univ.filter (λ a : α, a ^ n = 1)).card :=
 calc ((finset.range n.succ).filter (∣ n)).sum (λ m, (finset.univ.filter (λ a : α, order_of a = m)).card)
-    = _ : (finset.card_bind (by simp [finset.ext]; cc)).symm
+    = _ : (finset.card_bind (by { intros, apply finset.disjoint_filter.2, cc })).symm
 ... = _ : congr_arg finset.card (finset.ext.2 (begin
   assume a,
   suffices : order_of a ≤ n ∧ order_of a ∣ n ↔ a ^ n = 1,
@@ -185,7 +185,7 @@ by rw [order_eq_card_gpowers, fintype.card_eq_one_iff];
 ⟨λ h, by conv { to_lhs, rw [← pow_one a, ← h, pow_order_of_eq_one] }, λ h, by simp [h]⟩
 
 section classical
-local attribute [instance] classical.prop_decidable
+open_locale classical
 open quotient_group
 
 /- TODO: use cardinal theory, introduce `card : set α → ℕ`, or setup decidability for cosets -/
@@ -374,7 +374,7 @@ le_antisymm
             pow_order_of_eq_one, one_gpow]⟩⟩) (λ _ _ h, subtype.eq (subtype.mk.inj h))
     ... = (univ.filter (λ b : α, b ^ order_of a = 1)).card : set.card_fintype_of_finset _ _)
 
-local notation `φ` := nat.totient
+open_locale nat -- use φ for nat.totient
 
 private lemma card_order_of_eq_totient_aux₁ :
   ∀ {d : ℕ}, d ∣ fintype.card α → 0 < (univ.filter (λ a : α, order_of a = d)).card →

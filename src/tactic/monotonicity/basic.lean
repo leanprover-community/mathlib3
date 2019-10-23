@@ -1,5 +1,9 @@
-
-import tactic.basic
+/-
+Copyright (c) 2019 Simon Hudon. All rights reserved.
+Released under Apache 2.0 license as described in the file LICENSE.
+Author: Simon Hudon
+-/
+import tactic.core
 import category.basic
 import algebra.order_functions
 import algebra.order
@@ -7,7 +11,7 @@ import meta.rb_map
 
 namespace tactic.interactive
 open tactic list
-open lean lean.parser  interactive
+open lean lean.parser interactive
 open interactive.types
 
 structure mono_cfg :=
@@ -105,7 +109,7 @@ meta instance : has_to_format mono_selection :=
 | mono_selection.both := "both"
 end ⟩
 
-meta def side : parser mono_selection :=
+meta def side : lean.parser mono_selection :=
 with_desc "expecting 'left', 'right' or 'both' (default)" $
 do some n ← optional ident | pure mono_selection.both,
    if n = `left then pure $ mono_selection.left
@@ -118,7 +122,7 @@ open function
 
 @[user_attribute]
 meta def monotonicity.attr : user_attribute
-  (native.rb_map mono_key (list name))
+  (native.rb_lmap mono_key (name))
   (option mono_key × mono_selection) :=
 { name  := `mono
 , descr := "monotonicity of function `f` wrt relations `R₀` and `R₁`: R₀ x y → R₁ (f x) (f y)"
@@ -128,8 +132,8 @@ meta def monotonicity.attr : user_attribute
     do ps ← ls.mmap monotonicity.attr.get_param,
        let ps := ps.filter_map prod.fst,
        pure $ (ps.zip ls).foldl
-         (flip $ uncurry native.rb_map.insert_cons)
-         (native.rb_map.mk mono_key _)  }
+         (flip $ uncurry (λ k n m, m.insert k n))
+         (native.rb_lmap.mk mono_key _)  }
 , after_set := some $ λ n prio p,
   do { (none,v) ← monotonicity.attr.get_param n | pure (),
        k ← monotoncity.check n prio p,

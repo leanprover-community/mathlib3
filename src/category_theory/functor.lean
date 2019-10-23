@@ -13,8 +13,7 @@ Introduces notations
     (I would like a better arrow here, unfortunately ⇒ (`\functor`) is taken by core.)
 -/
 
-import category_theory.category
-import tactic.tidy
+import category_theory.category tactic.reassoc_axiom
 
 namespace category_theory
 
@@ -29,7 +28,7 @@ The axiom `map_id_lemma` expresses preservation of identities, and
 `map_comp_lemma` expresses functoriality.
 -/
 structure functor (C : Type u₁) [category.{v₁} C] (D : Type u₂) [category.{v₂} D] :
-  Type (max u₁ v₁ u₂ v₂) :=
+  Type (max v₁ v₂ u₁ u₂) :=
 (obj       : C → D)
 (map       : Π {X Y : C}, (X ⟶ Y) → ((obj X) ⟶ (obj Y)))
 (map_id'   : ∀ (X : C), map (𝟙 X) = 𝟙 (obj X) . obviously)
@@ -42,7 +41,7 @@ infixr ` ⥤ `:26 := functor       -- type as \func --
 restate_axiom functor.map_id'
 attribute [simp] functor.map_id
 restate_axiom functor.map_comp'
-attribute [simp] functor.map_comp
+attribute [simp, reassoc] functor.map_comp
 
 namespace functor
 
@@ -50,15 +49,17 @@ section
 variables (C : Type u₁) [𝒞 : category.{v₁} C]
 include 𝒞
 
-/-- `functor.id C` is the identity functor on a category `C`. -/
+/-- `𝟭 C` is the identity functor on a category `C`. -/
 protected def id : C ⥤ C :=
 { obj := λ X, X,
   map := λ _ _ f, f }
 
+notation `𝟭` := functor.id
+
 variable {C}
 
-@[simp] lemma id_obj (X : C) : (functor.id C).obj X = X := rfl
-@[simp] lemma id_map {X Y : C} (f : X ⟶ Y) : (functor.id C).map f = f := rfl
+@[simp] lemma id_obj (X : C) : (𝟭 C).obj X = X := rfl
+@[simp] lemma id_map {X Y : C} (f : X ⟶ Y) : (𝟭 C).map f = f := rfl
 end
 
 section
@@ -79,6 +80,15 @@ infixr ` ⋙ `:80 := comp
 @[simp] lemma comp_obj (F : C ⥤ D) (G : D ⥤ E) (X : C) : (F ⋙ G).obj X = G.obj (F.obj X) := rfl
 @[simp] lemma comp_map (F : C ⥤ D) (G : D ⥤ E) (X Y : C) (f : X ⟶ Y) :
   (F ⋙ G).map f = G.map (F.map f) := rfl
+
+omit ℰ
+
+-- These are not simp lemmas because rewriting along equalities between functors
+-- is not necessarily a good idea.
+-- Natural isomorphisms are also provided in `whiskering.lean`.
+protected lemma comp_id (F : C ⥤ D) : F ⋙ (𝟭 D) = F := by cases F; refl
+protected lemma id_comp (F : C ⥤ D) : (𝟭 C) ⋙ F = F := by cases F; refl
+
 end
 
 section

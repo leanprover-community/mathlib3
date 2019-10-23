@@ -39,22 +39,12 @@ def mzip_with'  (f : α → β → F γ) : list α → list β → F punit
 | [] _ := pure punit.star
 | _ [] := pure punit.star
 
-protected def option.traverse {α β : Type*} (f : α → F β) : option α → F (option β)
-| none := pure none
-| (some x) := some <$> f x
-
-protected def list.traverse {α β : Type*} (f : α → F β) : list α → F (list β)
-| [] := pure []
-| (x :: xs) := list.cons <$> f x <*> list.traverse xs
-
 variables [is_lawful_applicative F]
 
 attribute [functor_norm] seq_assoc pure_seq_eq_map
 
 @[simp] theorem pure_id'_seq (x : F α) : pure (λx, x) <*> x = x :=
 pure_id_seq x
-
-variables  [is_lawful_applicative F]
 
 attribute [functor_norm] seq_assoc pure_seq_eq_map
 
@@ -137,6 +127,29 @@ def list.mmap_accuml (f : β' → α → m' (β' × γ')) : β' → list α → 
      pure (a'',y :: ys)
 
 end monad
+
+section
+variables {m : Type u → Type u} [monad m] [is_lawful_monad m]
+
+lemma mjoin_map_map {α β : Type u} (f : α → β) (a : m (m α)) :
+  mjoin (functor.map f <$> a) = f <$> (mjoin a) :=
+by simp only [mjoin, (∘), id.def,
+  (bind_pure_comp_eq_map _ _ _).symm, bind_assoc, map_bind, pure_bind]
+
+lemma mjoin_map_mjoin {α : Type u} (a : m (m (m α))) :
+  mjoin (mjoin <$> a) = mjoin (mjoin a) :=
+by simp only [mjoin, (∘), id.def,
+  map_bind, (bind_pure_comp_eq_map _ _ _).symm, bind_assoc, pure_bind]
+
+@[simp] lemma mjoin_map_pure {α : Type u} (a : m α) :
+  mjoin (pure <$> a) = a :=
+by simp only [mjoin, (∘), id.def,
+  map_bind, (bind_pure_comp_eq_map _ _ _).symm, bind_assoc, pure_bind, bind_pure]
+
+@[simp] lemma mjoin_pure {α : Type u} (a : m α) : mjoin (pure a) = a :=
+is_lawful_monad.pure_bind a id
+
+end
 
 section alternative
 variables {F : Type → Type v} [alternative F]

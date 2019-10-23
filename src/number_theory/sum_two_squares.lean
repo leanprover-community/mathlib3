@@ -7,7 +7,7 @@ Proof of Fermat's theorem on the sum of two squares. Every prime congruent to 1 
 of two squares
 -/
 
-import data.gaussian_int data.zmod.quadratic_reciprocity ring_theory.principal_ideal_domain
+import data.zsqrtd.gaussian_int data.zmod.quadratic_reciprocity ring_theory.principal_ideal_domain
 
 open gaussian_int principal_ideal_domain zsqrtd
 
@@ -24,7 +24,7 @@ have hpk : p ∣ k.val ^ 2 + 1,
   by rw [← zmodp.eq_zero_iff_dvd_nat hp]; simp *,
 have hkmul : (k.val ^ 2 + 1 : ℤ[i]) = ⟨k.val, 1⟩ * ⟨k.val, -1⟩ :=
   by simp [_root_.pow_two, zsqrtd.ext],
-have hpne1 : p ≠ 1, from (ne_of_lt (hp.gt_one)).symm,
+have hpne1 : p ≠ 1, from (ne_of_lt (hp.one_lt)).symm,
 have hkltp : 1 + k.val * k.val < p * p,
   from calc 1 + k.val * k.val ≤ k.val + k.val * k.val :
     add_le_add_right (nat.pos_of_ne_zero
@@ -47,7 +47,7 @@ have hpk₂ : ¬ (p : ℤ[i]) ∣ ⟨k.val, 1⟩ :=
           by simpa [hx0] using congr_arg zsqrtd.im hx),
 have hpu : ¬ is_unit (p : ℤ[i]), from mt norm_eq_one_iff.2 $
   by rw [norm_nat_cast, int.nat_abs_mul, nat.mul_eq_one_iff];
-  exact λ h, (ne_of_lt hp.gt_one).symm h.1,
+  exact λ h, (ne_of_lt hp.one_lt).symm h.1,
 let ⟨y, hy⟩ := hpk in
 have hpi : ¬ irreducible (p : ℤ[i]),
   from mt irreducible_iff_prime.1

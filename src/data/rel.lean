@@ -5,18 +5,16 @@ Authors: Jeremy Avigad
 
 Operations on set-valued functions, aka partial multifunctions, aka relations.
 -/
-import tactic.ext tactic.interactive data.set.lattice order.complete_lattice
+import tactic.basic data.set.lattice order.complete_lattice
 
 variables {α : Type*} {β : Type*} {γ : Type*}
 
-def rel (α : Type*) (β : Type*):= α → β → Prop
+@[derive lattice.complete_lattice]
+def rel (α : Type*) (β : Type*) := α → β → Prop
 
 namespace rel
 
 variables {δ : Type*} (r : rel α β)
-
-instance : lattice.complete_lattice (rel α β) :=
-by unfold rel; apply_instance
 
 def inv : rel β α := flip r
 
@@ -146,7 +144,7 @@ lemma core_union (s t : set β) : r.core (s ∪ t) ⊇ r.core s ∪ r.core t :=
 
 lemma core_univ : r.core set.univ = set.univ := set.ext (by simp [mem_core])
 
-lemma core_id (s : set α): core (@eq α) s = s :=
+lemma core_id (s : set α) : core (@eq α) s = s :=
 by simp [core]
 
 lemma core_comp (s : rel β γ) (t : set γ) :

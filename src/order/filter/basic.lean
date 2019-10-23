@@ -6,14 +6,12 @@ Authors: Johannes Hölzl, Jeremy Avigad
 Theory of filters on sets.
 -/
 import order.galois_connection order.zorn
-import data.set.finite data.list data.pfun
-import algebra.pi_instances
-import category.applicative
+import data.set.finite
 open lattice set
 
 universes u v w x y
 
-local attribute [instance] classical.prop_decidable
+open_locale classical
 
 namespace lattice
 variables {α : Type u} {ι : Sort v}
@@ -53,7 +51,7 @@ open set lattice
 
 section order
 variables {α : Type u} (r : α → α → Prop)
-local infix `≼` : 50 := r
+local infix ` ≼ ` : 50 := r
 
 lemma directed_on_Union {r} {ι : Sort v} {f : ι → set α} (hd : directed (⊆) f)
   (h : ∀x, directed_on r (f x)) : directed_on r (⋃x, f x) :=
@@ -110,7 +108,7 @@ f.sets_of_superset
 lemma inter_mem_sets : ∀{s t}, s ∈ f → t ∈ f → s ∩ t ∈ f :=
 f.inter_sets
 
-lemma univ_mem_sets' (h : ∀ a, a ∈ s): s ∈ f :=
+lemma univ_mem_sets' (h : ∀ a, a ∈ s) : s ∈ f :=
 mem_sets_of_superset univ_mem_sets (assume x _, h x)
 
 lemma mp_sets (hs : s ∈ f) (h : {x | x ∈ s → x ∈ t} ∈ f) : t ∈ f :=
@@ -128,6 +126,10 @@ finite.induction_on hf
     have h₁ : s i ∈ f, from hs i (by simp),
     have h₂ : (⋂x∈is, s x) ∈ f, from hi $ assume a ha, hs _ $ by simp only [ha, mem_insert_iff, or_true],
     by simp [inter_mem_sets h₁ h₂])
+
+lemma Inter_mem_sets_of_fintype {β : Type v} {s : β → set α} [fintype β] (h : ∀i, s i ∈ f) :
+  (⋂i, s i) ∈ f :=
+by simpa using Inter_mem_sets finite_univ (λi hi, h i)
 
 lemma exists_sets_subset_iff : (∃t ∈ f, t ⊆ s) ↔ s ∈ f :=
 ⟨assume ⟨t, ht, ts⟩, mem_sets_of_superset ht ts, assume hs, ⟨s, hs, subset.refl _⟩⟩
@@ -198,7 +200,7 @@ end join
 section lattice
 
 instance : partial_order (filter α) :=
-{ le            := λf g, g.sets ⊆ f.sets,
+{ le            := λf g, ∀ ⦃U : set α⦄, U ∈ g → U ∈ f,
   le_antisymm   := assume a b h₁ h₂, filter_eq $ subset.antisymm h₂ h₁,
   le_refl       := assume a, subset.refl _,
   le_trans      := assume a b c h₁ h₂, subset.trans h₂ h₁ }
@@ -214,7 +216,7 @@ inductive generate_sets (g : set (set α)) : set α → Prop
 
 /-- `generate g` is the smallest filter containing the sets `g`. -/
 def generate (g : set (set α)) : filter α :=
-{ sets             := {s | generate_sets g s},
+{ sets             := generate_sets g,
   univ_sets        := generate_sets.univ,
   sets_of_superset := assume x y, generate_sets.superset,
   inter_sets       := assume s t, generate_sets.inter }
@@ -241,7 +243,7 @@ show u ∈ (filter.mk_of_closure s hs).sets ↔ u ∈ (generate s).sets, from hs
 def gi_generate (α : Type*) :
   @galois_insertion (set (set α)) (order_dual (filter α)) _ _ filter.generate filter.sets :=
 { gc        := assume s f, sets_iff_generate,
-  le_l_u    := assume f u, generate_sets.basic,
+  le_l_u    := assume f u h, generate_sets.basic h,
   choice    := λs hs, filter.mk_of_closure s (le_antisymm hs $ sets_iff_generate.1 $ le_refl _),
   choice_eq := assume s hs, mk_of_closure_sets }
 
@@ -412,7 +414,7 @@ subset.antisymm
   (show u ≤ infi f, from le_infi $ assume i, le_supr (λi, (f i).sets) i)
   (Union_subset $ assume i, infi_le f i)
 
-lemma mem_infi {f : ι → filter α} (h : directed (≥) f) (ne : nonempty ι) (s):
+lemma mem_infi {f : ι → filter α} (h : directed (≥) f) (ne : nonempty ι) (s) :
   s ∈ infi f ↔ s ∈ ⋃ i, (f i).sets :=
 show  s  ∈ (infi f).sets ↔ s ∈ ⋃ i, (f i).sets, by rw infi_sets_eq h ne
 
@@ -434,7 +436,7 @@ begin
   apply_instance
 end
 
-lemma mem_infi_finite {f : ι → filter α} (s):
+lemma mem_infi_finite {f : ι → filter α} (s) :
   s ∈ infi f ↔ s ∈ ⋃t:finset (plift ι), (⨅i∈t, f (plift.down i)).sets :=
 show  s ∈ (infi f).sets ↔ s ∈ ⋃t:finset (plift ι), (⨅i∈t, f (plift.down i)).sets,
 by rw infi_sets_eq_finite
@@ -547,6 +549,24 @@ begin
   exact hx xt
 end
 
+@[simp] lemma infi_principal_finset {ι : Type w} (s : finset ι) (f : ι → set α) :
+  (⨅i∈s, principal (f i)) = principal (⋂i∈s, f i) :=
+begin
+  ext t,
+  simp [mem_infi_sets_finset],
+  split,
+  { rintros ⟨p, hp, ht⟩,
+    calc (⋂ (i : ι) (H : i ∈ s), f i) ≤ (⋂ (i : ι) (H : i ∈ s), p i) :
+      infi_le_infi (λi, infi_le_infi (λhi, mem_principal_sets.1 (hp i hi)))
+    ... ≤ t : ht },
+  { assume h,
+    exact ⟨f, λi hi, subset.refl _, h⟩ }
+end
+
+@[simp] lemma infi_principal_fintype {ι : Type w} [fintype ι] (f : ι → set α) :
+  (⨅i, principal (f i)) = principal (⋂i, f i) :=
+by simpa using infi_principal_finset finset.univ f
+
 end lattice
 
 section map
@@ -611,8 +631,8 @@ def cofinite : filter α :=
     by simp only [compl_inter, finite_union, ht, hs, mem_set_of_eq] }
 
 lemma cofinite_ne_bot (hi : set.infinite (@set.univ α)) : @cofinite α ≠ ⊥ :=
-forall_sets_neq_empty_iff_neq_bot.mp 
-  $ λ s hs hn, by change set.finite _ at hs; 
+forall_sets_neq_empty_iff_neq_bot.mp
+  $ λ s hs hn, by change set.finite _ at hs;
     rw [hn, set.compl_empty] at hs; exact hi hs
 
 /-- The monadic bind operation on filter is defined the usual way in terms of `map` and `join`.
@@ -643,14 +663,14 @@ section
 protected def monad : monad filter := { map := @filter.map }
 
 local attribute [instance] filter.monad
-protected def is_lawful_monad : is_lawful_monad filter :=
+protected lemma is_lawful_monad : is_lawful_monad filter :=
 { id_map     := assume α f, filter_eq rfl,
-  pure_bind  := assume α β a f, by simp only [bind, Sup_image, image_singleton,
+  pure_bind  := assume α β a f, by simp only [has_bind.bind, pure, bind, Sup_image, image_singleton,
     join_principal_eq_Sup, lattice.Sup_singleton, map_principal, eq_self_iff_true],
   bind_assoc := assume α β γ f m₁ m₂, filter_eq rfl,
   bind_pure_comp_eq_map := assume α β f x, filter_eq $
-    by simp only [bind, join, map, preimage, principal, set.subset_univ, eq_self_iff_true,
-      function.comp_app, mem_set_of_eq, singleton_subset_iff] }
+    by simp only [has_bind.bind, pure, functor.map, bind, join, map, preimage, principal,
+      set.subset_univ, eq_self_iff_true, function.comp_app, mem_set_of_eq, singleton_subset_iff] }
 end
 
 instance : applicative filter := { map := @filter.map, seq := @filter.seq }
@@ -841,10 +861,10 @@ begin
   suffices : (∀ (A : set α) (B : set β), B ∈ F → f ⁻¹' B ⊆ A → x ∈ A) ↔
     ∀ (B : set β), B ∈ F → f x ∈ B,
   by simp only [mem_sInter, mem_Inter, mem_comap_sets, this, and_imp, mem_comap_sets, exists_prop, mem_sInter,
-    iff_self, mem_Inter, mem_preimage_eq, exists_imp_distrib],
+    iff_self, mem_Inter, mem_preimage, exists_imp_distrib],
   split,
   { intros h U U_in,
-    simpa only [set.subset.refl, forall_prop_of_true, mem_preimage_eq] using h (f ⁻¹' U) U U_in },
+    simpa only [set.subset.refl, forall_prop_of_true, mem_preimage] using h (f ⁻¹' U) U U_in },
   { intros h V U U_in f_U_V,
     exact f_U_V (h U U_in) },
 end
@@ -857,7 +877,7 @@ begin
   intros  m₁ m₂ h s hs,
   show {x | m₁ x ∈ s} ∈ f,
   filter_upwards [h, hs],
-  simp only [subset_def, mem_preimage_eq, mem_set_of_eq, forall_true_iff] {contextual := tt}
+  simp only [subset_def, mem_preimage, mem_set_of_eq, forall_true_iff] {contextual := tt}
 end,
 le_antisymm (this m₁ m₂ h) (this m₂ m₁ $ mem_sets_of_superset h $ assume x, eq.symm)
 
@@ -894,7 +914,7 @@ begin
   refine le_antisymm
     (le_inf (map_mono inf_le_left) (map_mono inf_le_right))
     (assume s hs, _),
-  simp only [map, mem_inf_sets, exists_prop, mem_map, mem_preimage_eq, mem_inf_sets] at hs ⊢,
+  simp only [map, mem_inf_sets, exists_prop, mem_map, mem_preimage, mem_inf_sets] at hs ⊢,
   rcases hs with ⟨t₁, h₁, t₂, h₂, hs⟩,
   refine ⟨m '' (t₁ ∩ t), _, m '' (t₂ ∩ t), _, _⟩,
   { filter_upwards [h₁, htf] assume a h₁ h₂, mem_image_of_mem _ ⟨h₁, h₂⟩ },
@@ -952,7 +972,7 @@ iff.intro
   (assume ⟨t, s, ht, hs, hts⟩, ⟨m '' s, image_mem_map hs, t, ht, assume f ⟨a, has, eq⟩, eq ▸ hts _ has⟩)
 
 lemma seq_mem_seq_sets {f : filter (α → β)} {g : filter α} {s : set (α → β)} {t : set α}
-  (hs : s ∈ f) (ht : t ∈ g): s.seq t ∈ f.seq g :=
+  (hs : s ∈ f) (ht : t ∈ g) : s.seq t ∈ f.seq g :=
 ⟨s, hs, t, ht, assume f hf a ha, ⟨f, hf, a, ha, rfl⟩⟩
 
 lemma le_seq {f : filter (α → β)} {g : filter α} {h : filter β}
@@ -1145,7 +1165,7 @@ by simp only [tendsto, map_id, forall_true_iff] {contextual := tt}
 lemma tendsto_id {x : filter α} : tendsto id x x := tendsto_id' $ le_refl x
 
 lemma tendsto.comp {f : α → β} {g : β → γ} {x : filter α} {y : filter β} {z : filter γ}
-  (hf : tendsto f x y) (hg : tendsto g y z) : tendsto (g ∘ f) x z :=
+  (hg : tendsto g y z) (hf : tendsto f x y) : tendsto (g ∘ f) x z :=
 calc map (g ∘ f) x = map g (map f x) : by rw [map_map]
   ... ≤ map g y : map_mono hf
   ... ≤ z : hg
@@ -1173,7 +1193,7 @@ map_comap_le
 
 lemma tendsto_comap_iff {f : α → β} {g : β → γ} {a : filter α} {c : filter γ} :
   tendsto f a (c.comap g) ↔ tendsto (g ∘ f) a c :=
-⟨assume h, h.comp tendsto_comap, assume h, map_le_iff_le_comap.mp $ by rwa [map_map]⟩
+⟨assume h, tendsto_comap.comp h, assume h, map_le_iff_le_comap.mp $ by rwa [map_map]⟩
 
 lemma tendsto_comap'_iff {m : α → β} {f : filter α} {g : filter β} {i : γ → α}
   (h : range i ∈ f) : tendsto (m ∘ i) (comap i f) g ↔ tendsto m f g :=
@@ -1240,7 +1260,7 @@ begin
   revert h₀ h₁, simp only [tendsto_def, mem_inf_principal],
   intros h₀ h₁ s hs,
   apply mem_sets_of_superset (inter_mem_sets (h₀ s hs) (h₁ s hs)),
-  rintros x ⟨hp₀, hp₁⟩, dsimp,
+  rintros x ⟨hp₀, hp₁⟩, simp only [mem_preimage],
   by_cases h : p x,
   { rw if_pos h, exact hp₀ h },
   rw if_neg h, exact hp₁ h
@@ -1251,13 +1271,13 @@ section prod
 variables {s : set α} {t : set β} {f : filter α} {g : filter β}
 /- The product filter cannot be defined using the monad structure on filters. For example:
 
-  F := do {x <- seq, y <- top, return (x, y)}
+  F := do {x ← seq, y ← top, return (x, y)}
   hence:
-    s ∈ F  <->  ∃n, [n..∞] × univ ⊆ s
+    s ∈ F  ↔  ∃n, [n..∞] × univ ⊆ s
 
-  G := do {y <- top, x <- seq, return (x, y)}
+  G := do {y ← top, x ← seq, return (x, y)}
   hence:
-    s ∈ G  <->  ∀i:ℕ, ∃n, [n..∞] × {i} ⊆ s
+    s ∈ G  ↔  ∀i:ℕ, ∃n, [n..∞] × {i} ⊆ s
 
   Now ⋃i, [i..∞] × {i}  is in G but not in F.
 
@@ -1328,7 +1348,7 @@ le_antisymm
       calc set.prod (m₁ '' s₁) (m₂ '' s₂) = (λp:α₁×α₂, (m₁ p.1, m₂ p.2)) '' set.prod s₁ s₂ :
           set.prod_image_image_eq
         ... ⊆ _ : by rwa [image_subset_iff])
-  ((tendsto_fst.comp (le_refl _)).prod_mk (tendsto_snd.comp (le_refl _)))
+  ((tendsto.comp (le_refl _) tendsto_fst).prod_mk (tendsto.comp (le_refl _) tendsto_snd))
 
 lemma map_prod (m : α × β → γ) (f : filter α) (g : filter β) :
   map m (f.prod g) = (f.map (λa b, m (a, b))).seq g :=
@@ -1452,6 +1472,10 @@ end
 lemma tendsto_at_top_at_top [nonempty α] [semilattice_sup α] [preorder β] (f : α → β) :
   tendsto f at_top at_top ↔ ∀ b : β, ∃ i : α, ∀ a : α, i ≤ a → b ≤ f a :=
 iff.trans tendsto_infi $ forall_congr $ assume b, tendsto_at_top_principal
+
+lemma tendsto_at_top_at_bot [nonempty α] [decidable_linear_order α] [preorder β] (f : α → β) :
+  tendsto f at_top at_bot ↔ ∀ (b : β), ∃ (i : α), ∀ (a : α), i ≤ a → b ≥ f a :=
+@tendsto_at_top_at_top α (order_dual β) _ _ _ f
 
 lemma tendsto_finset_image_at_top_at_top {i : β → γ} {j : γ → β} (h : ∀x, j (i x) = x) :
   tendsto (λs:finset γ, s.image j) at_top at_top :=
@@ -1602,7 +1626,7 @@ lemma ultrafilter_bind {f : filter α} (hf : is_ultrafilter f) {m : α → filte
   (hm : ∀ a, is_ultrafilter (m a)) : is_ultrafilter (f.bind m) :=
 begin
   simp only [ultrafilter_iff_compl_mem_iff_not_mem] at ⊢ hf hm, intro s,
-  dsimp [bind, join, map],
+  dsimp [bind, join, map, preimage],
   simp only [hm], apply hf
 end
 
@@ -1706,27 +1730,27 @@ instance ultrafilter.monad : monad ultrafilter := { map := @ultrafilter.map }
 
 noncomputable def hyperfilter : filter α := ultrafilter_of cofinite
 
-lemma hyperfilter_le_cofinite (hi : set.infinite (@set.univ α)) : @hyperfilter α ≤ cofinite := 
+lemma hyperfilter_le_cofinite (hi : set.infinite (@set.univ α)) : @hyperfilter α ≤ cofinite :=
 (ultrafilter_of_spec (cofinite_ne_bot hi)).1
 
-lemma is_ultrafilter_hyperfilter (hi : set.infinite (@set.univ α)) : is_ultrafilter (@hyperfilter α) := 
+lemma is_ultrafilter_hyperfilter (hi : set.infinite (@set.univ α)) : is_ultrafilter (@hyperfilter α) :=
 (ultrafilter_of_spec (cofinite_ne_bot hi)).2
 
 theorem nmem_hyperfilter_of_finite (hi : set.infinite (@set.univ α)) {s : set α} (hf : set.finite s) :
   s ∉ @hyperfilter α :=
-λ hy, 
-have hx : -s ∉ hyperfilter := 
+λ hy,
+have hx : -s ∉ hyperfilter :=
   λ hs, (ultrafilter_iff_compl_mem_iff_not_mem.mp (is_ultrafilter_hyperfilter hi) s).mp hs hy,
 have ht : -s ∈ cofinite.sets := by show -s ∈ {s | _}; rwa [set.mem_set_of_eq, lattice.neg_neg],
 hx $ hyperfilter_le_cofinite hi ht
 
 theorem compl_mem_hyperfilter_of_finite (hi : set.infinite (@set.univ α)) {s : set α} (hf : set.finite s) :
   -s ∈ @hyperfilter α :=
-(ultrafilter_iff_compl_mem_iff_not_mem.mp (is_ultrafilter_hyperfilter hi) s).mpr $ 
+(ultrafilter_iff_compl_mem_iff_not_mem.mp (is_ultrafilter_hyperfilter hi) s).mpr $
 nmem_hyperfilter_of_finite hi hf
 
 theorem mem_hyperfilter_of_finite_compl (hi : set.infinite (@set.univ α)) {s : set α} (hf : set.finite (-s)) :
-  s ∈ @hyperfilter α := 
+  s ∈ @hyperfilter α :=
 have h : _ := compl_mem_hyperfilter_of_finite hi hf,
 by rwa [lattice.neg_neg] at h
 

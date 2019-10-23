@@ -21,12 +21,12 @@ generalizations:
 * Archimedean fields
 
 -/
-import logic.function topology.metric_space.basic topology.algebra.uniform_group
+import topology.metric_space.basic topology.algebra.uniform_group
        topology.algebra.ring tactic.linarith
 
 noncomputable theory
 open classical set lattice filter topological_space metric
-local attribute [instance] prop_decidable
+open_locale classical
 
 universes u v w
 variables {α : Type u} {β : Type v} {γ : Type w}
@@ -60,7 +60,7 @@ let ⟨ε,ε0, hε⟩ := mem_nhds_iff.1 ht in
 let ⟨q, h⟩ := exists_rat_near x ε0 in
 ne_empty_iff_exists_mem.2 ⟨_, hε (mem_ball'.2 h), q, rfl⟩
 
-theorem embedding_of_rat : embedding (coe : ℚ → ℝ) := dense_embedding_of_rat.embedding
+theorem embedding_of_rat : embedding (coe : ℚ → ℝ) := dense_embedding_of_rat.to_embedding
 
 theorem continuous_of_rat : continuous (coe : ℚ → ℝ) := uniform_continuous_of_rat.continuous
 
@@ -71,9 +71,9 @@ let ⟨δ, δ0, Hδ⟩ := rat_add_continuous_lemma abs ε0 in
 
 -- TODO(Mario): Find a way to use rat_add_continuous_lemma
 theorem rat.uniform_continuous_add : uniform_continuous (λp : ℚ × ℚ, p.1 + p.2) :=
-uniform_embedding_of_rat.uniform_continuous_iff.2 $ by simp [(∘)]; exact
-((uniform_continuous_fst.comp uniform_continuous_of_rat).prod_mk
-  (uniform_continuous_snd.comp uniform_continuous_of_rat)).comp real.uniform_continuous_add
+uniform_embedding_of_rat.to_uniform_inducing.uniform_continuous_iff.2 $ by simp [(∘)]; exact
+real.uniform_continuous_add.comp ((uniform_continuous_of_rat.comp uniform_continuous_fst).prod_mk
+  (uniform_continuous_of_rat.comp uniform_continuous_snd))
 
 theorem real.uniform_continuous_neg : uniform_continuous (@has_neg.neg ℝ _) :=
 metric.uniform_continuous_iff.2 $ λ ε ε0, ⟨_, ε0, λ a b h,
@@ -148,12 +148,12 @@ tendsto_of_uniform_continuous_subtype
 
 lemma real.continuous_inv' : continuous (λa:{r:ℝ // r ≠ 0}, a.val⁻¹) :=
 continuous_iff_continuous_at.mpr $ assume ⟨r, hr⟩,
-  (continuous_iff_continuous_at.mp continuous_subtype_val _).comp (real.tendsto_inv hr)
+  tendsto.comp (real.tendsto_inv hr) (continuous_iff_continuous_at.mp continuous_subtype_val _)
 
 lemma real.continuous_inv [topological_space α] {f : α → ℝ} (h : ∀a, f a ≠ 0) (hf : continuous f) :
   continuous (λa, (f a)⁻¹) :=
 show continuous ((has_inv.inv ∘ @subtype.val ℝ (λr, r ≠ 0)) ∘ λa, ⟨f a, h a⟩),
-  from (continuous_subtype_mk _ hf).comp real.continuous_inv'
+  from real.continuous_inv'.comp (continuous_subtype_mk _ hf)
 
 lemma real.uniform_continuous_mul_const {x : ℝ} : uniform_continuous ((*) x) :=
 metric.uniform_continuous_iff.2 $ λ ε ε0, begin
@@ -165,11 +165,10 @@ metric.uniform_continuous_iff.2 $ λ ε ε0, begin
 end
 
 lemma real.uniform_continuous_mul (s : set (ℝ × ℝ))
-  {r₁ r₂ : ℝ} (r₁0 : 0 < r₁) (r₂0 : 0 < r₂)
-  (H : ∀ x ∈ s, abs (x : ℝ × ℝ).1 < r₁ ∧ abs x.2 < r₂) :
+  {r₁ r₂ : ℝ} (H : ∀ x ∈ s, abs (x : ℝ × ℝ).1 < r₁ ∧ abs x.2 < r₂) :
   uniform_continuous (λp:s, p.1.1 * p.1.2) :=
 metric.uniform_continuous_iff.2 $ λ ε ε0,
-let ⟨δ, δ0, Hδ⟩ := rat_mul_continuous_lemma abs ε0 r₁0 r₂0 in
+let ⟨δ, δ0, Hδ⟩ := rat_mul_continuous_lemma abs ε0 in
 ⟨δ, δ0, λ a b h,
   let ⟨h₁, h₂⟩ := max_lt_iff.1 h in Hδ (H _ a.2).1 (H _ b.2).2 h₁ h₂⟩
 
@@ -178,8 +177,6 @@ continuous_iff_continuous_at.2 $ λ ⟨a₁, a₂⟩,
 tendsto_of_uniform_continuous_subtype
   (real.uniform_continuous_mul
     ({x | abs x < abs a₁ + 1}.prod {x | abs x < abs a₂ + 1})
-    (lt_of_le_of_lt (abs_nonneg _) (lt_add_one _))
-    (lt_of_le_of_lt (abs_nonneg _) (lt_add_one _))
     (λ x, id))
   (mem_nhds_sets
     (is_open_prod
@@ -194,8 +191,8 @@ instance : topological_semiring ℝ := by apply_instance
 
 lemma rat.continuous_mul : continuous (λp : ℚ × ℚ, p.1 * p.2) :=
 embedding_of_rat.continuous_iff.2 $ by simp [(∘)]; exact
-((continuous_fst.comp continuous_of_rat).prod_mk
-  (continuous_snd.comp continuous_of_rat)).comp real.continuous_mul
+real.continuous_mul.comp ((continuous_of_rat.comp continuous_fst).prod_mk
+  (continuous_of_rat.comp continuous_snd))
 
 instance : topological_ring ℚ :=
 { continuous_mul := rat.continuous_mul, ..rat.topological_add_group }

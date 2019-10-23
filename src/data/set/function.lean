@@ -23,7 +23,7 @@ image_subset_iff.symm
 theorem maps_to_of_eq_on {f1 f2 : α → β} {a : set α} {b : set β} (h₁ : eq_on f1 f2 a)
     (h₂ : maps_to f1 a b) :
   maps_to f2 a b :=
-λ x h, by rw [mem_preimage_eq, ← h₁ _ h]; exact h₂ h
+λ x h, by rw [mem_preimage, ← h₁ _ h]; exact h₂ h
 
 theorem maps_to_comp {g : β → γ} {f : α → β} {a : set α} {b : set β} {c : set γ}
    (h₁ : maps_to g b c) (h₂ : maps_to f a b) : maps_to (g ∘ f) a c :=
@@ -62,18 +62,26 @@ theorem inj_on_of_eq_on {f1 f2 : α → β} {a : set α} (h₁ : eq_on f1 f2 a)
   inj_on f2 a :=
 λ _ _ h₁' h₂' heq, by apply h₂ h₁' h₂'; rw [h₁, heq, ←h₁]; repeat {assumption}
 
-theorem inj_on_comp {g : β → γ} {f : α → β} {a : set α} {b : set β}
-    (h₁ : maps_to f a b) (h₂ : inj_on g b) (h₃: inj_on f a) :
-  inj_on (g ∘ f) a :=
-λ _ _ h₁' h₂' heq,
-by apply h₃ h₁' h₂'; apply h₂; repeat {apply h₁, assumption}; assumption
-
 theorem inj_on_of_inj_on_of_subset {f : α → β} {a b : set α} (h₁ : inj_on f b) (h₂ : a ⊆ b) :
   inj_on f a :=
 λ _ _ h₁' h₂' heq, h₁ (h₂ h₁') (h₂ h₂') heq
 
 lemma injective_iff_inj_on_univ {f : α → β} : injective f ↔ inj_on f univ :=
 iff.intro (λ h _ _ _ _ heq, h heq) (λ h _ _ heq, h trivial trivial heq)
+
+lemma inj_on_of_injective {α β : Type*} {f : α → β} (s : set α) (h : injective f) :
+  inj_on f s :=
+inj_on_of_inj_on_of_subset (injective_iff_inj_on_univ.1 h) (subset_univ s)
+
+theorem inj_on_comp {g : β → γ} {f : α → β} {a : set α} {b : set β}
+    (h₁ : maps_to f a b) (h₂ : inj_on g b) (h₃: inj_on f a) :
+  inj_on (g ∘ f) a :=
+λ _ _ h₁' h₂' heq,
+by apply h₃ h₁' h₂'; apply h₂; repeat {apply h₁, assumption}; assumption
+
+lemma inj_on_comp_of_injective_left {g : β → γ} {f : α → β} {a : set α} (hg : injective g)
+  (hf : inj_on f a) : inj_on (g ∘ f) a :=
+inj_on_comp (maps_to_univ _ _) (injective_iff_inj_on_univ.mp hg) hf
 
 lemma inj_on_iff_injective {f : α → β} {s : set α} : inj_on f s ↔ injective (λ x:s, f x.1) :=
 ⟨λ H a b h, subtype.eq $ H a.2 b.2 h,
@@ -86,6 +94,13 @@ begin
   rw ← image_comp,
   ext,
   simp [A] {contextual := tt}
+end
+
+lemma inj_on_preimage {f : α → β} {B : set (set β)} (hB : B ⊆ powerset (range f)) :
+  inj_on (preimage f) B :=
+begin
+  intros s t hs ht hst,
+  rw [←image_preimage_eq_of_subset (hB hs), ←image_preimage_eq_of_subset (hB ht), hst]
 end
 
 lemma subset_image_iff {s : set α} {t : set β} (f : α → β) :
@@ -228,7 +243,7 @@ calc
 @[reducible] def right_inv_on (g : β → α) (f : α → β) (b : set β) : Prop :=
 left_inv_on f g b
 
-theorem right_inv_on_of_eq_on_left {g1 g2 : β → α} {f : α → β} {a : set α} {b : set β}
+theorem right_inv_on_of_eq_on_left {g1 g2 : β → α} {f : α → β} {b : set β}
   (h₁ : eq_on g1 g2 b) (h₂ : right_inv_on g1 f b) : right_inv_on g2 f b :=
 left_inv_on_of_eq_on_right h₁ h₂
 
@@ -276,5 +291,9 @@ left_inv_on g f a ∧ right_inv_on g f b
 theorem bij_on_of_inv_on {g : β → α} {f : α → β} {a : set α} {b : set β} (h₁ : maps_to f a b)
   (h₂ : maps_to g b a) (h₃ : inv_on g f a b) : bij_on f a b :=
 ⟨h₁, inj_on_of_left_inv_on h₃.left, surj_on_of_right_inv_on h₂ h₃.right⟩
+
+lemma range_restrict {α : Type*} {β : Type*} (f : α → β) (p : set α) :
+  range (restrict f p) = f '' (p : set α) :=
+by { ext x, simp [restrict], refl }
 
 end set

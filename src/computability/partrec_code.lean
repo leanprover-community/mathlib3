@@ -558,6 +558,7 @@ def evaln : ∀ k : ℕ, code → ℕ → option ℕ
   x ← evaln (k+1) cf (mkpair a m),
   if x = 0 then pure m else
   evaln k (rfind' cf) (mkpair a (m+1)))
+using_well_founded wf_tacs
 
 theorem evaln_bound : ∀ {k c n x}, x ∈ evaln k c n → n < k
 | 0     c n x h := by simp [evaln] at h; cases h
@@ -808,7 +809,7 @@ private lemma evaln_map (k c n) :
 begin
   by_cases kn : n < k,
   { simp [list.nth_range kn] },
-  { rw list.nth_ge_len,
+  { rw list.nth_len_le,
     { cases e : evaln k c n, {refl},
       exact kn.elim (evaln_bound e) },
     simpa using kn }
@@ -888,19 +889,23 @@ theorem eval_part : partrec₂ eval :=
 
 theorem fixed_point
   {f : code → code} (hf : computable f) : ∃ c : code, eval (f c) = eval c :=
-begin
-  let g : ℕ → ℕ →. ℕ := λ x y,
-    roption.bind (eval (of_nat code x) x) (λ b, eval (of_nat code b) y),
-  have : partrec₂ g :=
-    (eval_part.comp ((computable.of_nat _).comp fst) fst).bind
-    (eval_part.comp ((computable.of_nat _).comp snd) (snd.comp fst)).to₂,
-  rcases exists_code.1 this with ⟨cg, eg⟩,
-  have := hf.comp (curry_prim.comp (primrec.const cg) primrec.id).to_comp,
-  rcases exists_code.1 this with ⟨cF, eF⟩,
-  refine ⟨curry cg (encode cF), funext $ λ n, _⟩,
-  have := congr_fun eF (encode cF), simp at this,
-  simp [eg, this, roption.map_id', g]
-end
+let g (x y : ℕ) : roption ℕ :=
+  eval (of_nat code x) x >>= λ b, eval (of_nat code b) y in
+have partrec₂ g :=
+  (eval_part.comp ((computable.of_nat _).comp fst) fst).bind
+  (eval_part.comp ((computable.of_nat _).comp snd) (snd.comp fst)).to₂,
+let ⟨cg, eg⟩ := exists_code.1 this in
+have eg' : ∀ a n, eval cg (mkpair a n) = roption.map encode (g a n) :=
+  by simp [eg],
+let F (x : ℕ) : code := f (curry cg x) in
+have computable F :=
+  hf.comp (curry_prim.comp (primrec.const cg) primrec.id).to_comp,
+let ⟨cF, eF⟩ := exists_code.1 this in
+have eF' : eval cF (encode cF) = roption.some (encode (F (encode cF))),
+  by simp [eF],
+⟨curry cg (encode cF), funext (λ n,
+  show eval (f (curry cg (encode cF))) n = eval (curry cg (encode cF)) n,
+  by simp [eg', eF', roption.map_id', g])⟩
 
 theorem fixed_point₂
   {f : code → ℕ →. ℕ} (hf : partrec₂ f) : ∃ c : code, eval c = f c :=

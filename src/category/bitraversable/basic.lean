@@ -2,15 +2,38 @@
 Copyright (c) 2018 Simon Hudon. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Author: Simon Hudon
-
-Functors with two arguments
 -/
 
-import data.sum
-       category.basic category.functor
+import category.functor
        category.bifunctor
        category.traversable.basic
        tactic.basic
+
+/-!
+# Bitraversable type class
+
+Type class for traversing bifunctors. The concepts and laws are taken from
+https://hackage.haskell.org/package/base-4.12.0.0/docs/Data-Bitraversable.html
+
+Simple examples of `bitraversable` are `prod` and `sum`. A more elaborate example is
+to define an a-list as:
+
+```
+def alist (key val : Type) := list (key × val)
+```
+
+Then we can use `f : key → io key'` and `g : val → io val'` to manipulate the `alist`'s key
+and value respectively with `bitraverse f g : alist key val → io (alist key' val')`
+
+## Main definitions
+  * bitraversable - exposes the `bitraverse` function
+  * is_lawful_bitraversable - laws similar to is_lawful_traversable
+
+## Tags
+
+traversable bitraversable iterator functor bifunctor applicative
+
+-/
 
 universes u
 

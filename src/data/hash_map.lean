@@ -3,7 +3,11 @@ Copyright (c) 2017 Microsoft Corporation. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Leonardo de Moura, Mario Carneiro
 -/
-import data.list.basic data.pnat data.array.lemmas
+import data.list.basic data.pnat.basic data.array.lemmas
+   logic.basic algebra.group
+   data.list.defs data.nat.basic data.option.basic
+   data.bool data.prod
+import tactic.finish data.sigma.basic
 
 universes u v w
 
@@ -223,13 +227,13 @@ theorem valid.replace_aux (a : α) (b : β a) : Π (l : list (Σ a, β a)), a �
 | (⟨a', b'⟩::t) := begin
   by_cases e : a' = a,
   { subst a',
-    suffices : ∃ u w (b'' : β a),
-      sigma.mk a b' :: t = u ++ ⟨a, b''⟩ :: w ∧
+    suffices : ∃ (u w : list Σ a, β a) (b'' : β a),
+      (sigma.mk a b') :: t = u ++ ⟨a, b''⟩ :: w ∧
       replace_aux a b (⟨a, b'⟩ :: t) = u ++ ⟨a, b⟩ :: w, {simpa},
     refine ⟨[], t, b', _⟩, simp [replace_aux] },
   { suffices : ∀ (x : β a) (_ : sigma.mk a x ∈ t), ∃ u w (b'' : β a),
-      sigma.mk a' b' :: t = u ++ ⟨a, b''⟩ :: w ∧
-      sigma.mk a' b' :: replace_aux a b t = u ++ ⟨a, b⟩ :: w,
+      (sigma.mk a' b') :: t = u ++ ⟨a, b''⟩ :: w ∧
+      (sigma.mk a' b') :: (replace_aux a b t) = u ++ ⟨a, b⟩ :: w,
     { simpa [replace_aux, ne.symm e, e] },
     intros x m,
     have IH : ∀ (x : β a) (_ : sigma.mk a x ∈ t), ∃ u w (b'' : β a),
@@ -278,11 +282,12 @@ theorem valid.erase_aux (a : α) : Π (l : list (Σ a, β a)), a ∈ l.map sigma
   by_cases e : a' = a,
   { subst a',
     simpa [erase_aux, and_comm] using show ∃ u w (x : β a),
-      t = u ++ w ∧ sigma.mk a b' :: t = u ++ ⟨a, x⟩ :: w, from ⟨[], t, b', by simp⟩ },
+      t = u ++ w ∧ (sigma.mk a b') :: t = u ++ ⟨a, x⟩ :: w,
+      from ⟨[], t, b', by simp⟩ },
   { simp [erase_aux, e, ne.symm e],
     suffices : ∀ (b : β a) (_ : sigma.mk a b ∈ t), ∃ u w (x : β a),
-      sigma.mk a' b' :: t = u ++ ⟨a, x⟩ :: w ∧
-      sigma.mk a' b' :: erase_aux a t = u ++ w,
+      (sigma.mk a' b') :: t = u ++ ⟨a, x⟩ :: w ∧
+      (sigma.mk a' b') :: (erase_aux a t) = u ++ w,
     { simpa [replace_aux, ne.symm e, e] },
     intros b m,
     have IH : ∀ (x : β a) (_ : sigma.mk a x ∈ t), ∃ u w (x : β a),
@@ -318,7 +323,7 @@ structure hash_map (α : Type u) [decidable_eq α] (β : α → Type v) :=
 /-- Construct an empty hash map with buffer size `nbuckets` (default 8). -/
 def mk_hash_map {α : Type u} [decidable_eq α] {β : α → Type v} (hash_fn : α → nat) (nbuckets := 8) : hash_map α β :=
 let n := if nbuckets = 0 then 8 else nbuckets in
-let nz : n > 0 := by abstract { cases nbuckets, {simp, tactic.comp_val}, simp [if_pos, nat.succ_ne_zero], apply nat.zero_lt_succ} in
+let nz : n > 0 := by abstract { cases nbuckets; simp [if_pos, nat.succ_ne_zero] } in
 { hash_fn  := hash_fn,
   size     := 0,
   nbuckets := ⟨n, nz⟩,

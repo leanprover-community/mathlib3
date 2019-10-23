@@ -6,7 +6,7 @@ Authors: Robert Y. Lewis
 Integer power operation on fields.
 -/
 
-import algebra.group_power tactic.wlog
+import algebra.group_power algebra.ordered_field tactic.wlog
 
 universe u
 
@@ -49,6 +49,13 @@ pow_zero a
 lemma fpow_add {a : α} (ha : a ≠ 0) (z1 z2 : ℤ) : a ^ (z1 + z2) = a ^ z1 * a ^ z2 :=
 begin simp only [fpow_eq_gpow ha], rw ← units.coe_mul, congr, apply gpow_add end
 
+@[simp] lemma one_fpow : ∀(i : ℤ), (1 : α) ^ i = 1
+| (int.of_nat n) := _root_.one_pow n
+| -[1+n]         := show 1/(1 ^ (n+1) : α) = 1, by simp
+
+@[simp] lemma fpow_one (a : α) : a^(1:ℤ) = a :=
+pow_one a
+
 end field_power
 
 namespace is_field_hom
@@ -61,7 +68,7 @@ lemma map_fpow {α β : Type*} [discrete_field α] [discrete_field β] (f : α �
 end is_field_hom
 
 section discrete_field_power
-open int nat
+open int
 variables {α : Type u} [discrete_field α]
 
 lemma zero_fpow : ∀ z : ℤ, z ≠ 0 → (0 : α) ^ z = 0
@@ -76,6 +83,24 @@ lemma fpow_neg (a : α) : ∀ n : ℤ, a ^ (-n) = 1 / a ^ n
 lemma fpow_sub {a : α} (ha : a ≠ 0) (z1 z2 : ℤ) : a ^ (z1 - z2) = a ^ z1 / a ^ z2 :=
 by rw [sub_eq_add_neg, fpow_add ha, fpow_neg, ←div_eq_mul_one_div]
 
+lemma fpow_mul (a : α) (i j : ℤ) : a ^ (i * j) = (a ^ i) ^ j :=
+begin
+  by_cases a = 0,
+  { subst h,
+    have : ¬ i = 0 → ¬ j = 0 → ¬ i * j = 0, begin rw [mul_eq_zero, not_or_distrib], exact and.intro end,
+    by_cases hi : i = 0; by_cases hj : j = 0;
+      simp [hi, hj, zero_fpow i, zero_fpow j, zero_fpow _ (this _ _), one_fpow] },
+  rw [fpow_eq_gpow h, fpow_eq_gpow h, fpow_eq_gpow (units.ne_zero _), units.mk0_coe],
+  fapply congr_arg coe _, -- TODO: uh oh
+  exact gpow_mul (units.mk0 a h) i j
+end
+
+lemma mul_fpow (a b : α) : ∀(i : ℤ), (a * b) ^ i = (a ^ i) * (b ^ i)
+| (int.of_nat n) := _root_.mul_pow a b n
+| -[1+n] :=
+  by rw [fpow_neg_succ_of_nat, fpow_neg_succ_of_nat, fpow_neg_succ_of_nat,
+      mul_pow, div_mul_div, one_mul]
+
 end discrete_field_power
 
 section ordered_field_power
@@ -83,11 +108,11 @@ open int
 
 variables {α : Type u} [discrete_linear_ordered_field α]
 
-lemma fpow_nonneg_of_nonneg {a : α} (ha : a ≥ 0) : ∀ (z : ℤ), a ^ z ≥ 0
+lemma fpow_nonneg_of_nonneg {a : α} (ha : 0 ≤ a) : ∀ (z : ℤ), 0 ≤ a ^ z
 | (of_nat n) := pow_nonneg ha _
 | -[1+n] := div_nonneg' zero_le_one $ pow_nonneg ha _
 
-lemma fpow_pos_of_pos {a : α} (ha : a > 0) : ∀ (z : ℤ), a ^ z > 0
+lemma fpow_pos_of_pos {a : α} (ha : 0 < a) : ∀ (z : ℤ), 0 < a ^ z
 | (of_nat n) := pow_pos ha _
 | -[1+n] := div_pos zero_lt_one $ pow_pos ha _
 
@@ -111,7 +136,7 @@ begin
     repeat { apply pow_pos (lt_of_lt_of_le zero_lt_one hx) } }
 end
 
-lemma pow_le_max_of_min_le {x : α} (hx : x ≥ 1) {a b c : ℤ} (h : min a b ≤ c) :
+lemma pow_le_max_of_min_le {x : α} (hx : 1 ≤ x) {a b c : ℤ} (h : min a b ≤ c) :
       x ^ (-c) ≤ max (x ^ (-a)) (x ^ (-b)) :=
 begin
   wlog hle : a ≤ b,
@@ -123,17 +148,17 @@ begin
   simpa only [max_eq_left hfle]
 end
 
-lemma fpow_le_one_of_nonpos {p : α} (hp : p ≥ 1) {z : ℤ} (hz : z ≤ 0) : p ^ z ≤ 1 :=
+lemma fpow_le_one_of_nonpos {p : α} (hp : 1 ≤ p) {z : ℤ} (hz : z ≤ 0) : p ^ z ≤ 1 :=
 calc p ^ z ≤ p ^ 0 : fpow_le_of_le hp hz
           ... = 1        : by simp
 
-lemma fpow_ge_one_of_nonneg {p : α} (hp : p ≥ 1) {z : ℤ} (hz : z ≥ 0) : p ^ z ≥ 1 :=
+lemma one_le_fpow_of_nonneg {p : α} (hp : 1 ≤ p) {z : ℤ} (hz : 0 ≤ z) : 1 ≤ p ^ z :=
 calc p ^ z ≥ p ^ 0 : fpow_le_of_le hp hz
           ... = 1        : by simp
 
 end ordered_field_power
 
-lemma one_lt_pow {α} [linear_ordered_semiring α] {p : α} (hp : p > 1) : ∀ {n : ℕ}, 1 ≤ n → 1 < p ^ n
+lemma one_lt_pow {α} [linear_ordered_semiring α] {p : α} (hp : 1 < p) : ∀ {n : ℕ}, 1 ≤ n → 1 < p ^ n
 | 1 h := by simp; assumption
 | (k+2) h :=
   begin
@@ -145,6 +170,6 @@ lemma one_lt_pow {α} [linear_ordered_semiring α] {p : α} (hp : p > 1) : ∀ {
     { apply le_of_lt (lt_trans zero_lt_one hp) }
   end
 
-lemma one_lt_fpow {α}  [discrete_linear_ordered_field α] {p : α} (hp : p > 1) :
-  ∀ z : ℤ, z > 0 → 1 < p ^ z
+lemma one_lt_fpow {α}  [discrete_linear_ordered_field α] {p : α} (hp : 1 < p) :
+  ∀ z : ℤ, 0 < z → 1 < p ^ z
 | (int.of_nat n) h := one_lt_pow hp (nat.succ_le_of_lt (int.lt_of_coe_nat_lt_coe_nat h))

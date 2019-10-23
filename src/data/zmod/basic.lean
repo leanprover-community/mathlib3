@@ -2,8 +2,32 @@
 Copyright (c) 2018 Chris Hughes. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Author: Chris Hughes
+
+# zmod and zmodp
+
+Definition of the integers mod n, and the field structure on the integers mod p.
+
+There are two types defined, `zmod n`, which is for integers modulo a positive nat `n : ℕ+`.
+`zmodp` is the type of integers modulo a prime number, for which a field structure is defined.
+
+## Definitions
+
+`val` is inherited from `fin` and returns the least natural number in the equivalence class
+
+`val_min_abs` returns the integer closest to zero in the equivalence class.
+
+A coercion `cast` is defined from `zmod n` into any semiring. This is a semiring hom if the ring has
+characteristic dividing `n`
+
+## Implentation notes
+
+`zmod` and `zmodp` are implemented as different types so that the field instance for `zmodp` can be
+synthesized. This leads to a lot of code duplication and most of the functions and theorems for
+`zmod` are restated for `zmodp`
+
 -/
-import data.int.modeq data.int.gcd data.fintype data.pnat
+
+import data.int.modeq data.int.gcd data.fintype data.pnat.basic tactic.ring
 
 open nat nat.modeq int
 
@@ -101,6 +125,20 @@ begin
     show (a % n + ((0 + (1 % n)) % n)) % n = (a + 1) % n,
     rw [zero_add, nat.mod_mod],
     exact nat.modeq.modeq_add (nat.mod_mod a n) (nat.mod_mod 1 n) }
+end
+
+lemma neg_val' {m : pnat} (n : zmod m) : (-n).val = (m - n.val) % m :=
+have ((-n).val + n.val) % m = (m - n.val + n.val) % m,
+  by { rw [←add_val, add_left_neg, nat.sub_add_cancel (le_of_lt n.is_lt), nat.mod_self], refl },
+(nat.mod_eq_of_lt (fin.is_lt _)).symm.trans (nat.modeq.modeq_add_cancel_right rfl this)
+
+lemma neg_val {m : pnat} (n : zmod m) : (-n).val = if n = 0 then 0 else m - n.val :=
+begin
+  rw neg_val',
+  by_cases h : n = 0; simp [h],
+  cases n with n nlt; cases n; dsimp, { contradiction },
+  rw nat.mod_eq_of_lt,
+  apply nat.sub_lt m.2 (nat.succ_pos _),
 end
 
 lemma mk_eq_cast {n : ℕ+} {a : ℕ} (h : a < n) : (⟨a, h⟩ : zmod n) = (a : zmod n) :=
@@ -227,6 +265,52 @@ def units_equiv_coprime {n : ℕ+} : units (zmod n) ≃ {x : zmod n // nat.copri
   left_inv := λ ⟨_, _, _, _⟩, units.ext rfl,
   right_inv := λ ⟨_, _⟩, rfl }
 
+/-- `val_min_abs x` returns the integer in the same equivalence class as `x` that is closest to `0`,
+  The result will be in the interval `(-n/2, n/2]` -/
+def val_min_abs {n : ℕ+} (x : zmod n) : ℤ :=
+if x.val ≤ n / 2 then x.val else x.val - n
+
+@[simp] lemma coe_val_min_abs {n : ℕ+} (x : zmod n) :
+  (x.val_min_abs : zmod n) = x :=
+by simp [zmod.val_min_abs]; split_ifs; simp
+
+lemma nat_abs_val_min_abs_le {n : ℕ+} (x : zmod n) : x.val_min_abs.nat_abs ≤ n / 2 :=
+have (x.val - n : ℤ) ≤ 0, from sub_nonpos.2 $ int.coe_nat_le.2 $ le_of_lt x.2,
+begin
+  rw zmod.val_min_abs,
+  split_ifs with h,
+  { exact h },
+  { rw [← int.coe_nat_le, int.of_nat_nat_abs_of_nonpos this, neg_sub],
+    conv_lhs { congr, rw [coe_coe, ← nat.mod_add_div n 2, int.coe_nat_add, int.coe_nat_mul,
+      int.coe_nat_bit0, int.coe_nat_one] },
+    rw ← sub_nonneg,
+    suffices : (0 : ℤ) ≤ x.val - ((n % 2 : ℕ) + (n / 2 : ℕ)),
+    { exact le_trans this (le_of_eq $ by ring) },
+    exact sub_nonneg.2 (by rw [← int.coe_nat_add, int.coe_nat_le];
+      exact calc (n : ℕ) % 2 + n / 2 ≤ 1 + n / 2 :
+        add_le_add (nat.le_of_lt_succ (nat.mod_lt _ dec_trivial)) (le_refl _)
+        ... ≤ x.val : by rw add_comm; exact nat.succ_le_of_lt (lt_of_not_ge h)) }
+end
+
+@[simp] lemma val_min_abs_zero {n : ℕ+} : (0 : zmod n).val_min_abs = 0 :=
+by simp [zmod.val_min_abs]
+
+@[simp] lemma val_min_abs_eq_zero {n : ℕ+} (x : zmod n) :
+  x.val_min_abs = 0 ↔ x = 0 :=
+⟨λ h, begin
+  dsimp [zmod.val_min_abs] at h,
+  split_ifs at h,
+  { exact fin.eq_of_veq (by simp * at *) },
+  { exact absurd h (mt sub_eq_zero.1 (ne_of_lt $ int.coe_nat_lt.2 x.2)) }
+end, λ hx0, hx0.symm ▸ zmod.val_min_abs_zero⟩
+
+section
+variables {α : Type*} [has_zero α] [has_one α] [has_add α] {n : ℕ+}
+
+def cast : zmod n → α := nat.cast ∘ fin.val
+
+end
+
 end zmod
 
 def zmodp (p : ℕ) (hp : prime p) : Type := zmod ⟨p, hp.pos⟩
@@ -247,7 +331,7 @@ lemma mul_val : ∀ a b : zmodp p hp, (a * b).val = (a.val * b.val) % p
 | ⟨_, _⟩ ⟨_, _⟩ := rfl
 
 @[simp] lemma one_val : (1 : zmodp p hp).val = 1 :=
-nat.mod_eq_of_lt hp.gt_one
+nat.mod_eq_of_lt hp.one_lt
 
 @[simp] lemma zero_val : (0 : zmodp p hp).val = 0 := rfl
 
@@ -294,7 +378,7 @@ instance : fintype (zmodp p hp) := @zmod.fintype ⟨p, hp.pos⟩
 
 instance decidable_eq : decidable_eq (zmodp p hp) := fin.decidable_eq _
 
-instance (n : ℕ+) : has_repr (zmodp p hp) := fin.has_repr _
+instance : has_repr (zmodp p hp) := fin.has_repr _
 
 @[simp] lemma card_zmodp : fintype.card (zmodp p hp) = p :=
 @zmod.card_zmod ⟨p, hp.pos⟩
@@ -305,6 +389,27 @@ lemma le_div_two_iff_lt_neg {p : ℕ} (hp : prime p) (hp1 : p % 2 = 1)
 
 lemma ne_neg_self (hp1 : p % 2 = 1) {a : zmodp p hp} (ha : a ≠ 0) : a ≠ -a :=
 @zmod.ne_neg_self ⟨p, hp.pos⟩ hp1 _ ha
+
+variable {hp}
+
+/-- `val_min_abs x` returns the integer in the same equivalence class as `x` that is closest to `0`,
+  The result will be in the interval `(-n/2, n/2]` -/
+def val_min_abs (x : zmodp p hp) : ℤ := zmod.val_min_abs x
+
+@[simp] lemma coe_val_min_abs (x : zmodp p hp) :
+  (x.val_min_abs : zmodp p hp) = x :=
+zmod.coe_val_min_abs x
+
+lemma nat_abs_val_min_abs_le (x : zmodp p hp) : x.val_min_abs.nat_abs ≤ p / 2 :=
+zmod.nat_abs_val_min_abs_le x
+
+@[simp] lemma val_min_abs_zero : (0 : zmodp p hp).val_min_abs = 0 :=
+zmod.val_min_abs_zero
+
+@[simp] lemma val_min_abs_eq_zero (x : zmodp p hp) : x.val_min_abs = 0 ↔ x = 0 :=
+zmod.val_min_abs_eq_zero x
+
+variable (hp)
 
 lemma prime_ne_zero {q : ℕ} (hq : prime q) (hpq : p ≠ q) : (q : zmodp p hp) ≠ 0 :=
 by rwa [← nat.cast_zero, ne.def, zmodp.eq_iff_modeq_nat, nat.modeq.modeq_zero_iff,
@@ -324,7 +429,7 @@ end
 
 instance : discrete_field (zmodp p hp) :=
 { zero_ne_one := fin.ne_of_vne $ show 0 ≠ 1 % p,
-    by rw nat.mod_eq_of_lt hp.gt_one;
+    by rw nat.mod_eq_of_lt hp.one_lt;
       exact zero_ne_one,
   mul_inv_cancel := mul_inv_cancel_aux hp,
   inv_mul_cancel := λ a, by rw mul_comm; exact mul_inv_cancel_aux hp _,

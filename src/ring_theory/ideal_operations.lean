@@ -9,6 +9,7 @@ More operations on modules and ideals.
 import ring_theory.ideals data.nat.choose order.zorn
 import linear_algebra.tensor_product
 import data.equiv.algebra
+import ring_theory.algebra_operations
 
 universes u v w x
 
@@ -107,15 +108,15 @@ theorem smul_mono_right (h : N ≤ P) : I • N ≤ I • P :=
 smul_mono (le_refl I) h
 
 variables (I J N P)
-theorem smul_bot : I • (⊥ : submodule R M) = ⊥ :=
+@[simp] theorem smul_bot : I • (⊥ : submodule R M) = ⊥ :=
 eq_bot_iff.2 $ smul_le.2 $ λ r hri s hsb,
 (submodule.mem_bot R).2 $ ((submodule.mem_bot R).1 hsb).symm ▸ smul_zero r
 
-theorem bot_smul : (⊥ : ideal R) • N = ⊥ :=
+@[simp] theorem bot_smul : (⊥ : ideal R) • N = ⊥ :=
 eq_bot_iff.2 $ smul_le.2 $ λ r hrb s hsi,
 (submodule.mem_bot R).2 $ ((submodule.mem_bot R).1 hrb).symm ▸ zero_smul _ s
 
-theorem top_smul : (⊤ : ideal R) • N = N :=
+@[simp] theorem top_smul : (⊤ : ideal R) • N = N :=
 le_antisymm smul_le_right $ λ r hri, one_smul R r ▸ smul_mem_smul mem_top hri
 
 theorem smul_sup : I • (N ⊔ P) = I • N ⊔ I • P :=
@@ -194,7 +195,8 @@ theorem exists_sub_mem [fintype ι] {f : ι → ideal R}
 begin
   have : ∃ φ : ι → R, (∀ i, φ i - 1 ∈ f i) ∧ (∀ i j, i ≠ j → φ i ∈ f j),
   { have := exists_sub_one_mem_and_mem (finset.univ : finset ι) (λ i _ j _ hij, hf i j hij),
-    choose φ hφ, use λ i, φ i (finset.mem_univ i),
+    choose φ hφ,
+    existsi λ i, φ i (finset.mem_univ i),
     exact ⟨λ i, (hφ i _).1, λ i j hij, (hφ i _).2 j (finset.mem_univ j) hij.symm⟩ },
   rcases this with ⟨φ, hφ1, hφ2⟩,
   use finset.univ.sum (λ i, g i * φ i),
@@ -230,9 +232,10 @@ theorem bijective_quotient_inf_to_pi_quotient [fintype ι] {f : ι → ideal R}
 /-- Chinese Remainder Theorem. Eisenbud Ex.2.6. Similar to Atiyah-Macdonald 1.10 and Stacks 00DT -/
 noncomputable def quotient_inf_ring_equiv_pi_quotient [fintype ι] (f : ι → ideal R)
   (hf : ∀ i j, i ≠ j → f i ⊔ f j = ⊤) :
-  (⨅ i, f i).quotient ≃r Π i, (f i).quotient :=
-{ hom := is_ring_hom_quotient_inf_to_pi_quotient f,
-  .. equiv.of_bijective (bijective_quotient_inf_to_pi_quotient hf) }
+  (⨅ i, f i).quotient ≃+* Π i, (f i).quotient :=
+by haveI : is_ring_hom (equiv.of_bijective (bijective_quotient_inf_to_pi_quotient hf)) :=
+  is_ring_hom_quotient_inf_to_pi_quotient f;
+    exact ring_equiv.of (equiv.of_bijective (bijective_quotient_inf_to_pi_quotient hf))
 
 end chinese_remainder
 
@@ -303,12 +306,20 @@ theorem sup_mul : (I ⊔ J) * K = I * K ⊔ J * K :=
 submodule.sup_smul I J K
 variables {I J K}
 
+lemma pow_le_pow {m n : ℕ} (h : m ≤ n) :
+  I^n ≤ I^m :=
+begin
+  cases nat.exists_eq_add_of_le h with k hk,
+  rw [hk, pow_add],
+  exact le_trans (mul_le_inf) (lattice.inf_le_left)
+end
+
 def radical (I : ideal R) : ideal R :=
 { carrier := { r | ∃ n : ℕ, r ^ n ∈ I },
   zero := ⟨1, (pow_one (0:R)).symm ▸ I.zero_mem⟩,
   add := λ x y ⟨m, hxmi⟩ ⟨n, hyni⟩, ⟨m + n,
     (add_pow x y (m + n)).symm ▸ I.sum_mem $
-    show ∀ c ∈ finset.range (nat.succ (m + n)), x ^ c * y ^ (m + n - c) * (choose (m + n) c) ∈ I,
+    show ∀ c ∈ finset.range (nat.succ (m + n)), x ^ c * y ^ (m + n - c) * (nat.choose (m + n) c) ∈ I,
     from λ c hc, or.cases_on (le_total c m)
       (λ hcm, I.mul_mem_right $ I.mul_mem_left $ nat.add_comm n m ▸ (nat.add_sub_assoc hcm n).symm ▸
         (pow_add y n (m-c)).symm ▸ I.mul_mem_right hyni)
@@ -379,22 +390,12 @@ have is_prime m, from ⟨by rintro rfl; rw radical_top at hrm; exact hrm trivial
     refine m.add_mem (m.mul_mem_right hpm) (m.add_mem (m.mul_mem_left hfm) (m.mul_mem_left hxym))⟩⟩,
 hrm $ this.radical.symm ▸ (Inf_le ⟨him, this⟩ : Inf {J : ideal R | I ≤ J ∧ is_prime J} ≤ m) hr
 
-instance : comm_semiring (ideal R) :=
-{ mul := (*),
-  mul_assoc := ideal.mul_assoc,
-  zero_mul := bot_mul,
-  mul_zero := mul_bot,
-  one := ⊤,
-  one_mul := top_mul,
-  mul_one := mul_top,
-  left_distrib := mul_sup,
-  right_distrib := sup_mul,
-  mul_comm := ideal.mul_comm,
-  .. submodule.add_comm_monoid }
+instance : comm_semiring (ideal R) := submodule.comm_semiring
 
 @[simp] lemma add_eq_sup : I + J = I ⊔ J := rfl
 @[simp] lemma zero_eq_bot : (0 : ideal R) = ⊥ := rfl
-@[simp] lemma one_eq_top : (1 : ideal R) = ⊤ := rfl
+@[simp] lemma one_eq_top : (1 : ideal R) = ⊤ :=
+by erw [submodule.one_eq_map_top, submodule.map_id]
 
 variables (I)
 theorem radical_pow (n : ℕ) (H : n > 0) : radical (I^n) = radical I :=
@@ -480,6 +481,12 @@ theorem comap_radical : comap f (radical K) = radical (comap f K) :=
 le_antisymm (λ r ⟨n, hfrnk⟩, ⟨n, show f (r ^ n) ∈ K,
   from (is_semiring_hom.map_pow f r n).symm ▸ hfrnk⟩)
 (λ r ⟨n, hfrnk⟩, ⟨n, is_semiring_hom.map_pow f r n ▸ hfrnk⟩)
+
+@[simp] lemma map_quotient_self :
+  map (quotient.mk I) I = ⊥ :=
+lattice.eq_bot_iff.2 $ ideal.map_le_iff_le_comap.2 $ λ x hx,
+(submodule.mem_bot I.quotient).2 $ ideal.quotient.eq_zero_iff_mem.2 hx
+
 variables {I J K L}
 
 theorem map_inf_le : map f (I ⊓ J) ≤ map f I ⊓ map f J :=
@@ -547,17 +554,56 @@ end map_and_comap
 
 end ideal
 
+namespace is_ring_hom
+
+variables {R : Type u} {S : Type v} (f : R → S) [comm_ring R]
+
+section comm_ring
+variables [comm_ring S] [is_ring_hom f]
+
+def ker : ideal R := ideal.comap f ⊥
+
+/-- An element is in the kernel if and only if it maps to zero.-/
+lemma mem_ker {r} : r ∈ ker f ↔ f r = 0 :=
+by rw [ker, ideal.mem_comap, submodule.mem_bot]
+
+lemma ker_eq : ((ker f) : set R) = is_add_group_hom.ker f := rfl
+
+lemma inj_iff_ker_eq_bot : function.injective f ↔ ker f = ⊥ :=
+by rw [←submodule.ext'_iff, ker_eq]; exact is_add_group_hom.inj_iff_trivial_ker f
+
+lemma ker_eq_bot_iff_eq_zero : ker f = ⊥ ↔ ∀ x, f x = 0 → x = 0 :=
+by rw [←submodule.ext'_iff, ker_eq]; exact is_add_group_hom.trivial_ker_iff_eq_zero f
+
+lemma injective_iff : function.injective f ↔ ∀ x, f x = 0 → x = 0 :=
+is_add_group_hom.injective_iff f
+
+end comm_ring
+
+/-- If the target is not the zero ring, then one is not in the kernel.-/
+lemma not_one_mem_ker [nonzero_comm_ring S] [is_ring_hom f] : (1:R) ∉ ker f :=
+by { rw [mem_ker, is_ring_hom.map_one f], exact one_ne_zero }
+
+/-- The kernel of a homomorphism to an integral domain is a prime ideal.-/
+lemma ker_is_prime [integral_domain S] [is_ring_hom f] :
+  (ker f).is_prime :=
+⟨by { rw [ne.def, ideal.eq_top_iff_one], exact not_one_mem_ker f },
+λ x y, by simpa only [mem_ker, is_ring_hom.map_mul f] using eq_zero_or_eq_zero_of_mul_eq_zero⟩
+
+end is_ring_hom
+
 namespace submodule
 
 variables {R : Type u} {M : Type v}
 variables [comm_ring R] [add_comm_group M] [module R M]
-variables (I J : ideal R) (N P : submodule R M)
+
+-- It is even a semialgebra. But those aren't in mathlib yet.
 
 instance : semimodule (ideal R) (submodule R M) :=
 { smul_add := smul_sup,
   add_smul := sup_smul,
   mul_smul := smul_assoc,
-  one_smul := top_smul,
+  one_smul := by simp,
   zero_smul := bot_smul,
   smul_zero := smul_bot }
 

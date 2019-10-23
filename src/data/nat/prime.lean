@@ -5,7 +5,7 @@ Authors: Leonardo de Moura, Jeremy Avigad, Mario Carneiro
 
 Prime numbers.
 -/
-import data.nat.sqrt data.nat.gcd data.list.basic data.list.perm
+import data.nat.sqrt data.nat.gcd data.list.basic data.list.perm tactic.wlog
 open bool subtype
 
 namespace nat
@@ -13,22 +13,22 @@ open decidable
 
 /-- `prime p` means that `p` is a prime number, that is, a natural number
   at least 2 whose only divisors are `p` and `1`. -/
-def prime (p : ℕ) := p ≥ 2 ∧ ∀ m ∣ p, m = 1 ∨ m = p
+def prime (p : ℕ) := 2 ≤ p ∧ ∀ m ∣ p, m = 1 ∨ m = p
 
-theorem prime.ge_two {p : ℕ} : prime p → p ≥ 2 := and.left
+theorem prime.two_le {p : ℕ} : prime p → 2 ≤ p := and.left
 
-theorem prime.gt_one {p : ℕ} : prime p → p > 1 := prime.ge_two
+theorem prime.one_lt {p : ℕ} : prime p → 1 < p := prime.two_le
 
 lemma prime.ne_one {p : ℕ} (hp : p.prime) : p ≠ 1 :=
-ne.symm $ (ne_of_lt hp.gt_one)
+ne.symm $ (ne_of_lt hp.one_lt)
 
-theorem prime_def_lt {p : ℕ} : prime p ↔ p ≥ 2 ∧ ∀ m < p, m ∣ p → m = 1 :=
+theorem prime_def_lt {p : ℕ} : prime p ↔ 2 ≤ p ∧ ∀ m < p, m ∣ p → m = 1 :=
 and_congr_right $ λ p2, forall_congr $ λ m,
 ⟨λ h l d, (h d).resolve_right (ne_of_lt l),
  λ h d, (decidable.lt_or_eq_of_le $
    le_of_dvd (le_of_succ_le p2) d).imp_left (λ l, h l d)⟩
 
-theorem prime_def_lt' {p : ℕ} : prime p ↔ p ≥ 2 ∧ ∀ m, 2 ≤ m → m < p → ¬ m ∣ p :=
+theorem prime_def_lt' {p : ℕ} : prime p ↔ 2 ≤ p ∧ ∀ m, 2 ≤ m → m < p → ¬ m ∣ p :=
 prime_def_lt.trans $ and_congr_right $ λ p2, forall_congr $ λ m,
 ⟨λ h m2 l d, not_lt_of_ge m2 ((h l d).symm ▸ dec_trivial),
 λ h l d, begin
@@ -38,7 +38,7 @@ prime_def_lt.trans $ and_congr_right $ λ p2, forall_congr $ λ m,
   { exact (h dec_trivial l).elim d }
 end⟩
 
-theorem prime_def_le_sqrt {p : ℕ} : prime p ↔ p ≥ 2 ∧
+theorem prime_def_le_sqrt {p : ℕ} : prime p ↔ 2 ≤ p ∧
   ∀ m, 2 ≤ m → m ≤ sqrt p → ¬ m ∣ p :=
 prime_def_lt'.trans $ and_congr_right $ λ p2,
 ⟨λ a m m2 l, a m m2 $ lt_of_le_of_lt l $ sqrt_lt_self p2,
@@ -70,8 +70,8 @@ assume hn : n = 0,
 have h2 : ¬ prime 0, from dec_trivial,
 h2 (hn ▸ h)
 
-theorem prime.pos {p : ℕ} (pp : prime p) : p > 0 :=
-lt_of_succ_lt pp.gt_one
+theorem prime.pos {p : ℕ} (pp : prime p) : 0 < p :=
+lt_of_succ_lt pp.one_lt
 
 theorem not_prime_zero : ¬ prime 0 := dec_trivial
 
@@ -81,8 +81,8 @@ theorem prime_two : prime 2 := dec_trivial
 
 theorem prime_three : prime 3 := dec_trivial
 
-theorem prime.pred_pos {p : ℕ} (pp : prime p) : pred p > 0 :=
-lt_pred_iff.2 pp.gt_one
+theorem prime.pred_pos {p : ℕ} (pp : prime p) : 0 < pred p :=
+lt_pred_iff.2 pp.one_lt
 
 theorem succ_pred_prime {p : ℕ} (pp : prime p) : succ (pred p) = p :=
 succ_pred_eq_of_pos pp.pos
@@ -90,18 +90,18 @@ succ_pred_eq_of_pos pp.pos
 theorem dvd_prime {p m : ℕ} (pp : prime p) : m ∣ p ↔ m = 1 ∨ m = p :=
 ⟨λ d, pp.2 m d, λ h, h.elim (λ e, e.symm ▸ one_dvd _) (λ e, e.symm ▸ dvd_refl _)⟩
 
-theorem dvd_prime_ge_two {p m : ℕ} (pp : prime p) (H : m ≥ 2) : m ∣ p ↔ m = p :=
+theorem dvd_prime_two_le {p m : ℕ} (pp : prime p) (H : 2 ≤ m) : m ∣ p ↔ m = p :=
 (dvd_prime pp).trans $ or_iff_right_of_imp $ not.elim $ ne_of_gt H
 
 theorem prime.not_dvd_one {p : ℕ} (pp : prime p) : ¬ p ∣ 1
-| d := (not_le_of_gt pp.gt_one) $ le_of_dvd dec_trivial d
+| d := (not_le_of_gt pp.one_lt) $ le_of_dvd dec_trivial d
 
 theorem not_prime_mul {a b : ℕ} (a1 : 1 < a) (b1 : 1 < b) : ¬ prime (a * b) :=
 λ h, ne_of_lt (nat.mul_lt_mul_of_pos_left b1 (lt_of_succ_lt a1)) $
-by simpa using (dvd_prime_ge_two h a1).1 (dvd_mul_right _ _)
+by simpa using (dvd_prime_two_le h a1).1 (dvd_mul_right _ _)
 
 section min_fac
-  private lemma min_fac_lemma (n k : ℕ) (h : ¬ k * k > n) :
+  private lemma min_fac_lemma (n k : ℕ) (h : ¬ n < k * k) :
     sqrt n - k < sqrt n + 2 - k :=
   (nat.sub_lt_sub_right_iff $ le_sqrt.2 $ le_of_not_gt h).2 $
   nat.lt_add_of_pos_right dec_trivial
@@ -132,10 +132,10 @@ section min_fac
     by simp [min_fac, this]; congr
 
   private def min_fac_prop (n k : ℕ) :=
-    k ≥ 2 ∧ k ∣ n ∧ ∀ m ≥ 2, m ∣ n → k ≤ m
+    2 ≤ k ∧ k ∣ n ∧ ∀ m, 2 ≤ m → m ∣ n → k ≤ m
 
-  theorem min_fac_aux_has_prop {n : ℕ} (n2 : n ≥ 2) (nd2 : ¬ 2 ∣ n) :
-    ∀ k i, k = 2*i+3 → (∀ m ≥ 2, m ∣ n → k ≤ m) → min_fac_prop n (min_fac_aux n k)
+  theorem min_fac_aux_has_prop {n : ℕ} (n2 : 2 ≤ n) (nd2 : ¬ 2 ∣ n) :
+    ∀ k i, k = 2*i+3 → (∀ m, 2 ≤ m → m ∣ n → k ≤ m) → min_fac_prop n (min_fac_aux n k)
   | k := λ i e a, begin
     rw min_fac_aux,
     by_cases h : n < k*k; simp [h],
@@ -143,7 +143,7 @@ section min_fac
         prime_def_le_sqrt.2 ⟨n2, λ m m2 l d,
           not_lt_of_ge l $ lt_of_lt_of_le (sqrt_lt.2 h) (a m m2 d)⟩,
       from ⟨n2, dvd_refl _, λ m m2 d, le_of_eq
-        ((dvd_prime_ge_two pp m2).1 d).symm⟩ },
+        ((dvd_prime_two_le pp m2).1 d).symm⟩ },
     have k2 : 2 ≤ k, { subst e, exact dec_trivial },
     by_cases dk : k ∣ n; simp [dk],
     { exact ⟨k2, dk, a⟩ },
@@ -180,21 +180,21 @@ section min_fac
   let ⟨f2, fd, a⟩ := min_fac_has_prop n1 in
   prime_def_lt'.2 ⟨f2, λ m m2 l d, not_le_of_gt l (a m m2 (dvd_trans d fd))⟩
 
-  theorem min_fac_le_of_dvd {n : ℕ} : ∀ {m : ℕ}, m ≥ 2 → m ∣ n → min_fac n ≤ m :=
+  theorem min_fac_le_of_dvd {n : ℕ} : ∀ {m : ℕ}, 2 ≤ m → m ∣ n → min_fac n ≤ m :=
   by by_cases n1 : n = 1;
     [exact λ m m2 d, n1.symm ▸ le_trans dec_trivial m2,
      exact (min_fac_has_prop n1).2.2]
 
-  theorem min_fac_pos (n : ℕ) : min_fac n > 0 :=
+  theorem min_fac_pos (n : ℕ) : 0 < min_fac n :=
   by by_cases n1 : n = 1;
      [exact n1.symm ▸ dec_trivial, exact (min_fac_prime n1).pos]
 
-  theorem min_fac_le {n : ℕ} (H : n > 0) : min_fac n ≤ n :=
+  theorem min_fac_le {n : ℕ} (H : 0 < n) : min_fac n ≤ n :=
   le_of_dvd H (min_fac_dvd n)
 
-  theorem prime_def_min_fac {p : ℕ} : prime p ↔ p ≥ 2 ∧ min_fac p = p :=
-  ⟨λ pp, ⟨pp.ge_two,
-    let ⟨f2, fd, a⟩ := min_fac_has_prop $ ne_of_gt pp.gt_one in
+  theorem prime_def_min_fac {p : ℕ} : prime p ↔ 2 ≤ p ∧ min_fac p = p :=
+  ⟨λ pp, ⟨pp.two_le,
+    let ⟨f2, fd, a⟩ := min_fac_has_prop $ ne_of_gt pp.one_lt in
     ((dvd_prime pp).1 fd).resolve_left (ne_of_gt f2)⟩,
    λ ⟨p2, e⟩, e ▸ min_fac_prime (ne_of_gt p2)⟩
 
@@ -209,26 +209,26 @@ section min_fac
   instance decidable_prime (p : ℕ) : decidable (prime p) :=
   decidable_of_iff' _ prime_def_min_fac
 
-  theorem not_prime_iff_min_fac_lt {n : ℕ} (n2 : n ≥ 2) : ¬ prime n ↔ min_fac n < n :=
+  theorem not_prime_iff_min_fac_lt {n : ℕ} (n2 : 2 ≤ n) : ¬ prime n ↔ min_fac n < n :=
   (not_congr $ prime_def_min_fac.trans $ and_iff_right n2).trans $
     (lt_iff_le_and_ne.trans $ and_iff_right $ min_fac_le $ le_of_succ_le n2).symm
 
 end min_fac
 
-theorem exists_dvd_of_not_prime {n : ℕ} (n2 : n ≥ 2) (np : ¬ prime n) :
+theorem exists_dvd_of_not_prime {n : ℕ} (n2 : 2 ≤ n) (np : ¬ prime n) :
   ∃ m, m ∣ n ∧ m ≠ 1 ∧ m ≠ n :=
-⟨min_fac n, min_fac_dvd _, ne_of_gt (min_fac_prime (ne_of_gt n2)).gt_one,
+⟨min_fac n, min_fac_dvd _, ne_of_gt (min_fac_prime (ne_of_gt n2)).one_lt,
   ne_of_lt $ (not_prime_iff_min_fac_lt n2).1 np⟩
 
-theorem exists_dvd_of_not_prime2 {n : ℕ} (n2 : n ≥ 2) (np : ¬ prime n) :
-  ∃ m, m ∣ n ∧ m ≥ 2 ∧ m < n :=
-⟨min_fac n, min_fac_dvd _, (min_fac_prime (ne_of_gt n2)).ge_two,
+theorem exists_dvd_of_not_prime2 {n : ℕ} (n2 : 2 ≤ n) (np : ¬ prime n) :
+  ∃ m, m ∣ n ∧ 2 ≤ m ∧ m < n :=
+⟨min_fac n, min_fac_dvd _, (min_fac_prime (ne_of_gt n2)).two_le,
   (not_prime_iff_min_fac_lt n2).1 np⟩
 
-theorem exists_prime_and_dvd {n : ℕ} (n2 : n ≥ 2) : ∃ p, prime p ∧ p ∣ n :=
+theorem exists_prime_and_dvd {n : ℕ} (n2 : 2 ≤ n) : ∃ p, prime p ∧ p ∣ n :=
 ⟨min_fac n, min_fac_prime (ne_of_gt n2), min_fac_dvd _⟩
 
-theorem exists_infinite_primes (n : ℕ) : ∃ p, p ≥ n ∧ prime p :=
+theorem exists_infinite_primes (n : ℕ) : ∃ p, n ≤ p ∧ prime p :=
 let p := min_fac (fact n + 1) in
 have f1 : fact n + 1 ≠ 1, from ne_of_gt $ succ_lt_succ $ fact_pos _,
 have pp : prime p, from min_fac_prime f1,
@@ -244,7 +244,7 @@ lemma prime.eq_two_or_odd {p : ℕ} (hp : prime p) : p = 2 ∨ p % 2 = 1 :=
   or.inr
 
 theorem factors_lemma {k} : (k+2) / min_fac (k+2) < k+2 :=
-div_lt_self dec_trivial (min_fac_prime dec_trivial).gt_one
+div_lt_self dec_trivial (min_fac_prime dec_trivial).one_lt
 
 /-- `factors n` is the prime factorization of `n`, listed in increasing order. -/
 def factors : ℕ → list ℕ
@@ -278,7 +278,7 @@ lemma prod_factors : ∀ {n}, 0 < n → list.prod (factors n) = n
 
 theorem prime.coprime_iff_not_dvd {p n : ℕ} (pp : prime p) : coprime p n ↔ ¬ p ∣ n :=
 ⟨λ co d, pp.not_dvd_one $ co.dvd_of_dvd_mul_left (by simp [d]),
- λ nd, coprime_of_dvd $ λ m m2 mp, ((dvd_prime_ge_two pp m2).1 mp).symm ▸ nd⟩
+ λ nd, coprime_of_dvd $ λ m m2 mp, ((dvd_prime_two_le pp m2).1 mp).symm ▸ nd⟩
 
 theorem prime.dvd_iff_not_coprime {p n : ℕ} (pp : prime p) : p ∣ n ↔ ¬ coprime p n :=
 iff_not_comm.2 pp.coprime_iff_not_dvd
@@ -327,7 +327,7 @@ theorem prime.coprime_pow_of_not_dvd {p m a : ℕ} (pp : prime p) (h : ¬ p ∣ 
 (pp.coprime_iff_not_dvd.2 h).symm.pow_right _
 
 theorem coprime_primes {p q : ℕ} (pp : prime p) (pq : prime q) : coprime p q ↔ p ≠ q :=
-pp.coprime_iff_not_dvd.trans $ not_congr $ dvd_prime_ge_two pq pp.ge_two
+pp.coprime_iff_not_dvd.trans $ not_congr $ dvd_prime_two_le pq pp.two_le
 
 theorem coprime_pow_primes {p q : ℕ} (n m : ℕ) (pp : prime p) (pq : prime q) (h : p ≠ q) :
   coprime (p^n) (q^m) :=
@@ -420,5 +420,19 @@ show p^k*p ∣ m ∨ p^l*p ∣ n, from
   hpd5.elim
     (assume : p ∣ m / p ^ k, or.inl $ mul_dvd_of_dvd_div hpm this)
     (assume : p ∣ n / p ^ l, or.inr $ mul_dvd_of_dvd_div hpn this)
+
+/-- The type of prime numbers -/
+def primes := {p : ℕ // p.prime}
+
+namespace primes
+
+instance : has_repr nat.primes := ⟨λ p, repr p.val⟩
+
+instance coe_nat  : has_coe nat.primes ℕ  := ⟨subtype.val⟩
+
+theorem coe_nat_inj (p q : nat.primes) : (p : ℕ) = (q : ℕ) → p = q :=
+λ h, subtype.eq h
+
+end primes
 
 end nat

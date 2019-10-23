@@ -3,13 +3,17 @@ Copyright (c) 2014 Jeremy Avigad. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jeremy Avigad, Mario Carneiro
 -/
-import tactic.interactive logic.basic data.sum data.set.basic algebra.order
+import logic.basic data.sum data.set.basic algebra.order
 open function
 
 /- TODO: automatic construction of dual definitions / theorems -/
 
 universes u v w
 variables {α : Type u} {β : Type v} {γ : Type w} {r : α → α → Prop}
+
+protected noncomputable def classical.decidable_linear_order [I : linear_order α] :
+  decidable_linear_order α :=
+{ decidable_le := classical.dec_rel _, ..I }
 
 theorem ge_of_eq [preorder α] {a b : α} : a = b → a ≥ b :=
 λ h, h ▸ le_refl a
@@ -37,7 +41,7 @@ theorem is_total_preorder.swap (r) [is_total_preorder α r] : is_total_preorder 
 theorem is_linear_order.swap (r) [is_linear_order α r] : is_linear_order α (swap r) :=
 {..@is_partial_order.swap α r _, ..@is_total.swap α r _}
 
-def antisymm_of_asymm (r) [is_asymm α r] : is_antisymm α r :=
+lemma antisymm_of_asymm (r) [is_asymm α r] : is_antisymm α r :=
 ⟨λ x y h₁ h₂, (asymm h₁ h₂).elim⟩
 
 /- Convert algebraic structure style to explicit relation style typeclasses -/
@@ -110,7 +114,7 @@ theorem monotone_id : @monotone α α _ _ id := assume x y h, h
 
 theorem monotone_const {b : β} : monotone (λ(a:α), b) := assume x y h, le_refl b
 
-theorem monotone_comp {f : α → β} {g : β → γ} (m_f : monotone f) (m_g : monotone g) :
+protected theorem monotone.comp {g : β → γ} {f : α → β} (m_g : monotone g) (m_f : monotone f) :
   monotone (g ∘ f) :=
 assume a b h, m_g (m_f h)
 
@@ -121,6 +125,10 @@ begin
   { refl },
   { transitivity, assumption, exact hf _ }
 end
+
+lemma reflect_lt {α β} [linear_order α] [preorder β] {f : α → β} (hf : monotone f)
+  {x x' : α} (h : f x < f x') : x < x' :=
+by { rw [← not_le], intro h', apply not_le_of_lt h, exact hf h' }
 
 end monotone
 
@@ -148,6 +156,8 @@ instance (α : Type*) [decidable_linear_order α] : decidable_linear_order (orde
   decidable_lt := show decidable_rel (λa b:α, b < a), by apply_instance,
   .. order_dual.linear_order α }
 
+instance : Π [inhabited α], inhabited (order_dual α) := id
+
 end order_dual
 
 /- order instances on the function space -/
@@ -161,7 +171,7 @@ instance pi.partial_order {ι : Type u} {α : ι → Type v} [∀i, partial_orde
 { le_antisymm := λf g h1 h2, funext (λb, le_antisymm (h1 b) (h2 b)),
   ..pi.preorder }
 
-theorem comp_le_comp_left_of_monotone [preorder α] [preorder β] [preorder γ]
+theorem comp_le_comp_left_of_monotone [preorder α] [preorder β]
   {f : β → α} {g h : γ → β} (m_f : monotone f) (le_gh : g ≤ h) : has_le.le.{max w u} (f ∘ g) (f ∘ h) :=
 assume x, m_f (le_gh x)
 
@@ -176,40 +186,44 @@ assume a a' h, m h b
 
 end monotone
 
-def preorder.lift {α β} [preorder β] (f : α → β) : preorder α :=
+def preorder.lift {α β} (f : α → β) (i : preorder β) : preorder α :=
+by exactI
 { le := λx y, f x ≤ f y,
   le_refl := λ a, le_refl _,
   le_trans := λ a b c, le_trans,
   lt := λx y, f x < f y,
   lt_iff_le_not_le := λ a b, lt_iff_le_not_le }
 
-def partial_order.lift {α β} [partial_order β]
-  (f : α → β) (inj : injective f) : partial_order α :=
-{ le_antisymm := λ a b h₁ h₂, inj (le_antisymm h₁ h₂), .. preorder.lift f }
+def partial_order.lift {α β} (f : α → β) (inj : injective f) (i : partial_order β) :
+  partial_order α :=
+by exactI
+{ le_antisymm := λ a b h₁ h₂, inj (le_antisymm h₁ h₂), .. preorder.lift f (by apply_instance) }
 
-def linear_order.lift {α β} [linear_order β]
-  (f : α → β) (inj : injective f) : linear_order α :=
-{ le_total := λx y, le_total (f x) (f y), .. partial_order.lift f inj }
+def linear_order.lift {α β} (f : α → β) (inj : injective f) (i : linear_order β) :
+  linear_order α :=
+by exactI
+{ le_total := λx y, le_total (f x) (f y), .. partial_order.lift f inj (by apply_instance) }
 
-def decidable_linear_order.lift {α β} [decidable_linear_order β]
-  (f : α → β) (inj : injective f) : decidable_linear_order α :=
+def decidable_linear_order.lift {α β} (f : α → β) (inj : injective f)
+  (i : decidable_linear_order β) : decidable_linear_order α :=
+by exactI
 { decidable_le := λ x y, show decidable (f x ≤ f y), by apply_instance,
   decidable_lt := λ x y, show decidable (f x < f y), by apply_instance,
   decidable_eq := λ x y, decidable_of_iff _ ⟨@inj x y, congr_arg f⟩,
-  .. linear_order.lift f inj }
+  .. linear_order.lift f inj (by apply_instance) }
 
-instance subtype.preorder {α} [preorder α] (p : α → Prop) : preorder (subtype p) :=
-preorder.lift subtype.val
+instance subtype.preorder {α} [i : preorder α] (p : α → Prop) : preorder (subtype p) :=
+preorder.lift subtype.val i
 
-instance subtype.partial_order {α} [partial_order α] (p : α → Prop) : partial_order (subtype p) :=
-partial_order.lift subtype.val $ λ x y, subtype.eq'
+instance subtype.partial_order {α} [i : partial_order α] (p : α → Prop) : partial_order (subtype p) :=
+partial_order.lift subtype.val subtype.val_injective i
 
-instance subtype.linear_order {α} [linear_order α] (p : α → Prop) : linear_order (subtype p) :=
-linear_order.lift subtype.val $ λ x y, subtype.eq'
+instance subtype.linear_order {α} [i : linear_order α] (p : α → Prop) : linear_order (subtype p) :=
+linear_order.lift subtype.val subtype.val_injective i
 
-instance subtype.decidable_linear_order {α} [decidable_linear_order α] (p : α → Prop) :
+instance subtype.decidable_linear_order {α} [i : decidable_linear_order α] (p : α → Prop) :
   decidable_linear_order (subtype p) :=
-decidable_linear_order.lift subtype.val $ λ x y, subtype.eq'
+decidable_linear_order.lift subtype.val subtype.val_injective i
 
 instance prod.has_le (α : Type u) (β : Type v) [has_le α] [has_le β] : has_le (α × β) :=
 ⟨λp q, p.1 ≤ q.1 ∧ p.2 ≤ q.2⟩
@@ -220,6 +234,9 @@ instance prod.preorder (α : Type u) (β : Type v) [preorder α] [preorder β] :
     ⟨le_trans hac hce, le_trans hbd hdf⟩,
   .. prod.has_le α β }
 
+/-- The pointwise partial order on a product.
+    (The lexicographic ordering is defined in order/lexicographic.lean, and the instances are
+    available via the type synonym `lex α β = α × β`.) -/
 instance prod.partial_order (α : Type u) (β : Type v) [partial_order α] [partial_order β] :
   partial_order (α × β) :=
 { le_antisymm := assume ⟨a, b⟩ ⟨c, d⟩ ⟨hac, hbd⟩ ⟨hca, hdb⟩,
@@ -269,13 +286,26 @@ lemma eq_of_le_of_forall_ge_of_dense [linear_order α] [densely_ordered α] {a�
   (h₁ : a₂ ≤ a₁) (h₂ : ∀a₃<a₁, a₂ ≥ a₃) : a₁ = a₂ :=
 le_antisymm (le_of_forall_ge_of_dense h₂) h₁
 
-lemma dense_or_discrete [linear_order α] {a₁ a₂ : α} (h : a₁ < a₂) :
+lemma dense_or_discrete [linear_order α] (a₁ a₂ : α) :
   (∃a, a₁ < a ∧ a < a₂) ∨ ((∀a>a₁, a ≥ a₂) ∧ (∀a<a₂, a ≤ a₁)) :=
 classical.or_iff_not_imp_left.2 $ assume h,
   ⟨assume a ha₁, le_of_not_gt $ assume ha₂, h ⟨a, ha₁, ha₂⟩,
     assume a ha₂, le_of_not_gt $ assume ha₁, h ⟨a, ha₁, ha₂⟩⟩
 
-section
+lemma trans_trichotomous_left [is_trans α r] [is_trichotomous α r] {a b c : α} :
+  ¬r b a → r b c → r a c :=
+begin
+  intros h₁ h₂, rcases trichotomous_of r a b with h₃|h₃|h₃,
+  exact trans h₃ h₂, rw h₃, exact h₂, exfalso, exact h₁ h₃
+end
+
+lemma trans_trichotomous_right [is_trans α r] [is_trichotomous α r] {a b c : α} :
+  r a b → ¬r c b → r a c :=
+begin
+  intros h₁ h₂, rcases trichotomous_of r b c with h₃|h₃|h₃,
+  exact trans h₁ h₃, rw ←h₃, exact h₁, exfalso, exact h₂ h₃
+end
+
 variables {s : β → β → Prop} {t : γ → γ → Prop}
 
 theorem is_irrefl_of_is_asymm [is_asymm α r] : is_irrefl α r :=
@@ -387,6 +417,10 @@ instance is_well_order.is_trans {α} (r : α → α → Prop) [is_well_order α 
 instance is_well_order.is_irrefl {α} (r : α → α → Prop) [is_well_order α r] : is_irrefl α r := by apply_instance
 instance is_well_order.is_asymm {α} (r : α → α → Prop) [is_well_order α r] : is_asymm α r := by apply_instance
 
+noncomputable def decidable_linear_order_of_is_well_order (r : α → α → Prop) [is_well_order α r] :
+  decidable_linear_order α :=
+by { haveI := linear_order_of_STO' r, exact classical.DLO α }
+
 instance empty_relation.is_well_order [subsingleton α] : is_well_order α empty_relation :=
 { trichotomous := λ a b, or.inr $ or.inl $ subsingleton.elim _ _,
   irrefl       := λ a, id,
@@ -424,28 +458,78 @@ instance prod.lex.is_well_order [is_well_order α r] [is_well_order β s] : is_w
   end,
   wf := prod.lex_wf (is_well_order.wf r) (is_well_order.wf s) }
 
-theorem well_founded.has_min {α} {r : α → α → Prop} (H : well_founded r)
+/-- An unbounded or cofinal set -/
+def unbounded (r : α → α → Prop) (s : set α) : Prop := ∀ a, ∃ b ∈ s, ¬ r b a
+/-- A bounded or final set -/
+def bounded (r : α → α → Prop) (s : set α) : Prop := ∃a, ∀ b ∈ s, r b a
+
+@[simp] lemma not_bounded_iff {r : α → α → Prop} (s : set α) : ¬bounded r s ↔ unbounded r s :=
+begin
+  classical,
+  simp only [bounded, unbounded, not_forall, not_exists, exists_prop, not_and, not_not]
+end
+
+@[simp] lemma not_unbounded_iff {r : α → α → Prop} (s : set α) : ¬unbounded r s ↔ bounded r s :=
+by { classical, rw [not_iff_comm, not_bounded_iff] }
+
+namespace well_founded
+theorem has_min {α} {r : α → α → Prop} (H : well_founded r)
   (p : set α) : p ≠ ∅ → ∃ a ∈ p, ∀ x ∈ p, ¬ r x a :=
-by haveI := classical.prop_decidable; exact
+by classical; exact
 not_imp_comm.1 (λ he, set.eq_empty_iff_forall_not_mem.2 $ λ a,
 acc.rec_on (H.apply a) $ λ a H IH h,
 he ⟨_, h, λ y, imp_not_comm.1 (IH y)⟩)
 
 /-- The minimum element of a nonempty set in a well-founded order -/
-noncomputable def well_founded.min {α} {r : α → α → Prop} (H : well_founded r)
+noncomputable def min {α} {r : α → α → Prop} (H : well_founded r)
   (p : set α) (h : p ≠ ∅) : α :=
 classical.some (H.has_min p h)
 
-theorem well_founded.min_mem {α} {r : α → α → Prop} (H : well_founded r)
+theorem min_mem {α} {r : α → α → Prop} (H : well_founded r)
   (p : set α) (h : p ≠ ∅) : H.min p h ∈ p :=
 let ⟨h, _⟩ := classical.some_spec (H.has_min p h) in h
 
-theorem well_founded.not_lt_min {α} {r : α → α → Prop} (H : well_founded r)
+theorem not_lt_min {α} {r : α → α → Prop} (H : well_founded r)
   (p : set α) (h : p ≠ ∅) {x} (xp : x ∈ p) : ¬ r x (H.min p h) :=
 let ⟨_, h'⟩ := classical.some_spec (H.has_min p h) in h' _ xp
 
+open set
+protected noncomputable def sup {α} {r : α → α → Prop} (wf : well_founded r) (s : set α)
+  (h : bounded r s) : α :=
+wf.min { x | ∀a ∈ s, r a x } (ne_empty_iff_exists_mem.mpr h)
+
+protected lemma lt_sup {α} {r : α → α → Prop} (wf : well_founded r) {s : set α} (h : bounded r s)
+  {x} (hx : x ∈ s) : r x (wf.sup s h) :=
+min_mem wf { x | ∀a ∈ s, r a x } (ne_empty_iff_exists_mem.mpr h) x hx
+
+section
+open_locale classical
+protected noncomputable def succ {α} {r : α → α → Prop} (wf : well_founded r) (x : α) : α :=
+if h : ∃y, r x y then wf.min { y | r x y } (ne_empty_iff_exists_mem.mpr h) else x
+
+protected lemma lt_succ {α} {r : α → α → Prop} (wf : well_founded r) {x : α} (h : ∃y, r x y) :
+  r x (wf.succ x) :=
+by { rw [well_founded.succ, dif_pos h], apply min_mem }
+end
+
+protected lemma lt_succ_iff {α} {r : α → α → Prop} [wo : is_well_order α r] {x : α} (h : ∃y, r x y)
+  (y : α) : r y (wo.wf.succ x) ↔ r y x ∨ y = x :=
+begin
+  split,
+  { intro h', have : ¬r x y,
+    { intro hy, rw [well_founded.succ, dif_pos] at h',
+      exact wo.wf.not_lt_min _ (ne_empty_iff_exists_mem.mpr h) hy h' },
+    rcases trichotomous_of r x y with hy | hy | hy,
+    exfalso, exact this hy,
+    right, exact hy.symm,
+    left, exact hy },
+  rintro (hy | rfl), exact trans hy (wo.wf.lt_succ h), exact wo.wf.lt_succ h
+end
+
+end well_founded
+
 variable (r)
-local infix `≼` : 50 := r
+local infix ` ≼ ` : 50 := r
 
 /-- A family of elements of α is directed (with respect to a relation `≼` on α)
   if there is a member of the family `≼`-above any pair in the family.  -/
@@ -464,4 +548,10 @@ theorem directed_mono {s : α → α → Prop} {ι} (f : ι → α)
   (H : ∀ a b, r a b → s a b) (h : directed r f) : directed s f :=
 λ a b, let ⟨c, h₁, h₂⟩ := h a b in ⟨c, H _ _ h₁, H _ _ h₂⟩
 
-end
+/-- A monotone function on a linear order is directed. -/
+lemma directed_of_mono {ι} [decidable_linear_order ι] (f : ι → α)
+  (H : ∀ i j, i ≤ j → f i ≼ f j) : directed (≼) f :=
+λ a b, ⟨max a b, H _ _ (le_max_left _ _), H _ _ (le_max_right _ _)⟩
+
+class directed_order (α : Type u) extends preorder α :=
+(directed : ∀ i j : α, ∃ k, i ≤ k ∧ j ≤ k)

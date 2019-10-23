@@ -4,8 +4,6 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johan Commelin
 -/
 
-import logic.basic
-
 universes u v w
 
 variables {α : Sort u} {β : Sort v} {γ : Sort w}
@@ -18,6 +16,11 @@ attribute [class] unique
 instance punit.unique : unique punit.{u} :=
 { default := punit.star,
   uniq := λ x, punit_eq x _ }
+
+instance fin.unique : unique (fin 1) :=
+{ default := 0,
+  uniq := λ ⟨n, hn⟩, fin.eq_of_veq 
+    (nat.eq_zero_of_le_zero (nat.le_of_lt_succ hn)) }
 
 namespace unique
 open function
@@ -33,6 +36,12 @@ lemma eq_default (a : α) : a = default α := uniq _ a
 lemma default_eq (a : α) : default α = a := (uniq _ a).symm
 
 instance : subsingleton α := ⟨λ a b, by rw [eq_default a, eq_default b]⟩
+
+lemma forall_iff {p : α → Prop} : (∀ a, p a) ↔ p (default α) :=
+⟨λ h, h _, λ h x, by rwa [unique.eq_default x]⟩
+
+lemma exists_iff {p : α → Prop} : Exists p ↔ p (default α) :=
+⟨λ ⟨a, ha⟩, eq_default a ▸ ha, exists.intro (default α)⟩
 
 end
 
@@ -52,4 +61,3 @@ def of_surjective {f : α → β} (hf : surjective f) [unique α] : unique β :=
   end }
 
 end unique
-

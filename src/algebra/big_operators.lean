@@ -202,7 +202,7 @@ from classical.by_cases
       prod_const_one.trans (h₁ this).symm)
 
 @[to_additive] lemma prod_ite [comm_monoid γ] {s : finset α}
-  {p : α → Prop} {h : decidable_pred p} (f g : α → γ) (h : γ → β) :
+  {p : α → Prop} {hp : decidable_pred p} (f g : α → γ) (h : γ → β) :
   s.prod (λ x, h (if p x then f x else g x)) =
   (s.filter p).prod (λ x, h (f x)) * (s.filter (λ x, ¬ p x)).prod (λ x, h (g x)) :=
 by letI := classical.dec_eq α; exact

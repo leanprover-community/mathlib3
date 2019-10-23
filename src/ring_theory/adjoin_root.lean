@@ -8,22 +8,25 @@ Adjoining roots of polynomials
 
 import data.polynomial ring_theory.principal_ideal_domain
 
+noncomputable theory
+
 universes u v w
 
 variables {α : Type u} {β : Type v} {γ : Type w}
 
-namespace adjoin_root
 open polynomial ideal
 
-section comm_ring
-variables [comm_ring α] [decidable_eq α] (f : polynomial α)
-
-def adjoin_root (f : polynomial α) : Type u :=
+def adjoin_root [comm_ring α] (f : polynomial α) : Type u :=
 ideal.quotient (span {f} : ideal (polynomial α))
+
+namespace adjoin_root
+
+section comm_ring
+variables [comm_ring α] (f : polynomial α)
 
 instance : comm_ring (adjoin_root f) := ideal.quotient.comm_ring _
 
-noncomputable instance : decidable_eq (adjoin_root f) := classical.dec_eq _
+instance : decidable_eq (adjoin_root f) := classical.dec_eq _
 
 variable {f}
 
@@ -64,7 +67,6 @@ ideal.quotient.lift _ (eval₂ i x) $ λ g H,
 begin
   simp [mem_span_singleton] at H,
   cases H with y H,
-  dsimp at H,
   rw [H, eval₂_mul],
   simp [h]
 end
@@ -91,10 +93,7 @@ instance is_maximal_span : is_maximal (span {f} : ideal (polynomial α)) :=
 principal_ideal_domain.is_maximal_of_irreducible ‹irreducible f›
 
 noncomputable instance field : discrete_field (adjoin_root f) :=
-{ has_decidable_eq := by apply_instance,
-  inv_zero := by convert dif_pos rfl,
-  ..adjoin_root.comm_ring f,
-  ..ideal.quotient.field (span {f} : ideal (polynomial α)) }
+ideal.quotient.field (span {f} : ideal (polynomial α))
 
 instance : is_field_hom (coe : α → adjoin_root f) := by apply_instance
 

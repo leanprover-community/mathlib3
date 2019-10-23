@@ -12,7 +12,7 @@ noncomputable theory
 open function set encodable
 
 open classical (hiding some)
-local attribute [instance] prop_decidable
+open_locale classical
 universes u v w
 variables {α : Type u} {β : Type v} {γ : Type w}
 
@@ -52,6 +52,20 @@ lemma countable_iff_exists_surjective [ne : inhabited α] {s : set α} :
     simp [this, hx]
   end⟩⟩⟩
 
+/--
+A non-empty set is countable iff there exists a surjection from the
+natural numbers onto the subtype induced by the set.
+-/
+lemma countable_iff_exists_surjective_to_subtype {s : set α} (hs : s ≠ ∅) :
+  countable s ↔ ∃ f : ℕ → s, surjective f :=
+have inhabited s, from ⟨classical.choice (coe_nonempty_iff_ne_empty.mpr hs)⟩,
+have countable s → ∃ f : ℕ → s, surjective f, from assume ⟨h⟩,
+  by exactI ⟨λ n, (decode s n).iget, λ a, ⟨encode a, by simp [encodek]⟩⟩,
+have (∃ f : ℕ → s, surjective f) → countable s, from assume ⟨f, fsurj⟩,
+  ⟨⟨inv_fun f, option.some ∘ f,
+    by intro h; simp [(inv_fun_eq (fsurj h) : f (inv_fun f h) = h)]⟩⟩,
+by split; assumption
+
 def countable.to_encodable {s : set α} : countable s → encodable s :=
 classical.choice
 
@@ -60,6 +74,20 @@ lemma countable_encodable' (s : set α) [H : encodable s] : countable s :=
 
 lemma countable_encodable [encodable α] (s : set α) : countable s :=
 ⟨by apply_instance⟩
+
+lemma exists_surjective_of_countable {s : set α} (hs : s ≠ ∅) (hc : countable s) :
+  ∃f:ℕ → α, s = range f :=
+begin
+  rcases ne_empty_iff_exists_mem.1 hs with ⟨x, hx⟩,
+  letI : encodable s := countable.to_encodable hc,
+  letI : inhabited s := ⟨⟨x, hx⟩⟩,
+  have : countable (univ : set s) := countable_encodable _,
+  rcases countable_iff_exists_surjective.1 this with ⟨g, hg⟩,
+  have : range g = univ := univ_subset_iff.1 hg,
+  use subtype.val ∘ g,
+  rw [range_comp, this],
+  simp
+end
 
 @[simp] lemma countable_empty : countable (∅ : set α) :=
 ⟨⟨λ x, x.2.elim, λ n, none, λ x, x.2.elim⟩⟩
@@ -138,5 +166,42 @@ have trunc (encodable (Π (a : α), s a)), from
   @encodable.fintype_pi α _ _ _ (assume a, (hs a).to_encodable),
 trunc.induction_on this $ assume h,
 @countable_range _ _ h _
+
+lemma countable_prod {s : set α} {t : set β} (hs : countable s) (ht : countable t) :
+  countable (set.prod s t) :=
+begin
+  haveI : encodable s := hs.to_encodable,
+  haveI : encodable t := ht.to_encodable,
+  haveI : encodable (s × t) := by apply_instance,
+  have : range (λp, ⟨p.1, p.2⟩ : s × t → α × β) = set.prod s t,
+  { ext z,
+    rcases z with ⟨x, y⟩,
+    simp only [exists_prop, set.mem_range, set_coe.exists, prod.mk.inj_iff,
+               set.prod_mk_mem_set_prod_eq, subtype.coe_mk, prod.exists],
+    split,
+    { rintros ⟨x', x's, y', y't, x'x, y'y⟩,
+      simp [x'x.symm, y'y.symm, x's, y't] },
+    { rintros ⟨xs, yt⟩,
+      exact ⟨x, xs, y, yt, rfl, rfl⟩ }},
+  rw ← this,
+  exact countable_range _
+end
+
+section enumerate
+
+/-- Enumerate elements in a countable set.-/
+def enumerate_countable {s : set α} (h : countable s) (default : α) : ℕ → α :=
+assume n, match @encodable.decode s (h.to_encodable) n with
+        | (some y) := y
+        | (none)   := default
+        end
+
+lemma subset_range_enumerate {s : set α} (h : countable s) (default : α) :
+   s ⊆ range (enumerate_countable h default) :=
+assume x hx,
+⟨@encodable.encode s h.to_encodable ⟨x, hx⟩,
+by simp [enumerate_countable, encodable.encodek]⟩
+
+end enumerate
 
 end set

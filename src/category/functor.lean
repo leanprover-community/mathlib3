@@ -5,7 +5,7 @@ Author: Simon Hudon
 
 Standard identity and composition functors
 -/
-import tactic.ext tactic.cache category.basic
+import tactic.ext tactic.lint category.basic
 
 universe variables u v w
 
@@ -42,7 +42,7 @@ def id.mk {α : Sort u} : α → id α := id
 
 namespace functor
 
-def const (α : Type*) (β : Type*) := α
+@[nolint] def const (α : Type*) (β : Type*) := α
 
 @[pattern] def const.mk {α β} (x : α) : const α β := x
 
@@ -54,7 +54,7 @@ namespace const
 
 protected lemma ext {α β} {x y : const α β} (h : x.run = y.run) : x = y := h
 
-protected def map {γ α β} (f : α → β) (x : const γ β) : const γ α := x
+@[nolint] protected def map {γ α β} (f : α → β) (x : const γ β) : const γ α := x
 
 instance {γ} : functor (const γ) :=
 { map := @const.map γ }
@@ -106,6 +106,9 @@ instance : functor (comp F G) := { map := @comp.map F G _ _ }
 @[functor_norm] lemma map_mk {α β} (h : α → β) (x : F (G α)) :
   h <$> comp.mk x = comp.mk ((<$>) h <$> x) := rfl
 
+@[simp] protected lemma run_map {α β} (h : α → β) (x : comp F G α) :
+  (h <$> x).run = (<$>) h <$> x.run := rfl
+
 variables [is_lawful_functor F] [is_lawful_functor G]
 variables {α β γ : Type v}
 
@@ -115,9 +118,6 @@ protected lemma id_map : ∀ (x : comp F G α), comp.map id x = x
 protected lemma comp_map (g' : α → β) (h : β → γ) : ∀ (x : comp F G α),
            comp.map (h ∘ g') x = comp.map h (comp.map g' x)
 | (comp.mk x) := by simp [comp.map, functor.map_comp_map g' h] with functor_norm
-
-@[simp] protected lemma run_map (h : α → β) (x : comp F G α) :
-  (h <$> x).run = (<$>) h <$> x.run := rfl
 
 instance : is_lawful_functor (comp F G) :=
 { id_map := @comp.id_map F G _ _ _ _,

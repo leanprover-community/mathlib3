@@ -8,10 +8,10 @@ Probability mass function -- discrete probability measures
 import topology.instances.nnreal topology.instances.ennreal topology.algebra.infinite_sum
 noncomputable theory
 variables {α : Type*} {β : Type*} {γ : Type*}
-local attribute [instance] classical.prop_decidable
+open_locale classical
 
 /-- Probability mass functions, i.e. discrete probability measures -/
-def {u} pmf (α : Type u) : Type u := { f : α → nnreal // is_sum f 1 }
+def {u} pmf (α : Type u) : Type u := { f : α → nnreal // has_sum f 1 }
 
 namespace pmf
 
@@ -20,26 +20,26 @@ instance : has_coe_to_fun (pmf α) := ⟨λp, α → nnreal, λp a, p.1 a⟩
 @[extensionality] protected lemma ext : ∀{p q : pmf α}, (∀a, p a = q a) → p = q
 | ⟨f, hf⟩ ⟨g, hg⟩ eq :=  subtype.eq $ funext eq
 
-lemma is_sum_coe_one (p : pmf α) : is_sum p 1 := p.2
+lemma has_sum_coe_one (p : pmf α) : has_sum p 1 := p.2
 
-lemma has_sum_coe (p : pmf α) : has_sum p := has_sum_spec p.is_sum_coe_one
+lemma summable_coe (p : pmf α) : summable p := summable_spec p.has_sum_coe_one
 
-@[simp] lemma tsum_coe (p : pmf α) : (∑a, p a) = 1 := tsum_eq_is_sum p.is_sum_coe_one
+@[simp] lemma tsum_coe (p : pmf α) : (∑a, p a) = 1 := tsum_eq_has_sum p.has_sum_coe_one
 
 def support (p : pmf α) : set α := {a | p.1 a ≠ 0}
 
-def pure (a : α) : pmf α := ⟨λa', if a' = a then 1 else 0, is_sum_ite_eq _ _⟩
+def pure (a : α) : pmf α := ⟨λa', if a' = a then 1 else 0, has_sum_ite_eq _ _⟩
 
 @[simp] lemma pure_apply (a a' : α) : pure a a' = (if a' = a then 1 else 0) := rfl
 
 instance [inhabited α] : inhabited (pmf α) := ⟨pure (default α)⟩
 
 lemma coe_le_one (p : pmf α) (a : α) : p a ≤ 1 :=
-is_sum_le (by intro b; split_ifs; simp [h]; exact le_refl _) (is_sum_ite_eq a (p a)) p.2
+has_sum_le (by intro b; split_ifs; simp [h]; exact le_refl _) (has_sum_ite_eq a (p a)) p.2
 
-protected lemma bind.has_sum (p : pmf α) (f : α → pmf β) (b : β) : has_sum (λa:α, p a * f a b) :=
+protected lemma bind.summable (p : pmf α) (f : α → pmf β) (b : β) : summable (λa:α, p a * f a b) :=
 begin
-  refine nnreal.has_sum_of_le (assume a, _) p.has_sum_coe,
+  refine nnreal.summable_of_le (assume a, _) p.summable_coe,
   suffices : p a * f a b ≤ p a * 1, { simpa },
   exact mul_le_mul_of_nonneg_left ((f a).coe_le_one _) (p a).2
 end
@@ -47,17 +47,17 @@ end
 def bind (p : pmf α) (f : α → pmf β) : pmf β :=
 ⟨λb, (∑a, p a * f a b),
   begin
-    simp [ennreal.is_sum_coe.symm, (ennreal.tsum_coe (bind.has_sum p f _)).symm],
-    rw [is_sum_iff_of_has_sum ennreal.has_sum, ennreal.tsum_comm],
-    simp [ennreal.mul_tsum, (ennreal.tsum_coe (f _).has_sum_coe),
-      ennreal.tsum_coe p.has_sum_coe]
+    simp [ennreal.has_sum_coe.symm, (ennreal.tsum_coe (bind.summable p f _)).symm],
+    rw [has_sum_iff_of_summable ennreal.summable, ennreal.tsum_comm],
+    simp [ennreal.mul_tsum, (ennreal.tsum_coe (f _).summable_coe),
+      ennreal.tsum_coe p.summable_coe]
   end⟩
 
 @[simp] lemma bind_apply (p : pmf α) (f : α → pmf β) (b : β) : p.bind f b = (∑a, p a * f a b) := rfl
 
 lemma coe_bind_apply (p : pmf α) (f : α → pmf β) (b : β) :
   (p.bind f b : ennreal) = (∑a, p a * f a b) :=
-eq.trans (ennreal.tsum_coe $ bind.has_sum p f b).symm $ by simp
+eq.trans (ennreal.tsum_coe $ bind.summable p f b).symm $ by simp
 
 @[simp] lemma pure_bind (a : α) (f : α → pmf β) : (pure a).bind f = f a :=
 have ∀b a', ite (a' = a) 1 0 * f a' b = ite (a' = a) (f a b) 0, from
@@ -109,12 +109,12 @@ def of_multiset (s : multiset α) (hs : s ≠ 0) : pmf α :=
     by rw [← nnreal.eq_iff, nnreal.coe_one, ← this, nnreal.sum_coe]; simp,
   begin
     rw ← this,
-    apply is_sum_sum_of_ne_finset_zero,
+    apply has_sum_sum_of_ne_finset_zero,
     simp {contextual := tt},
   end⟩
 
 def of_fintype [fintype α] (f : α → nnreal) (h : finset.univ.sum f = 1) : pmf α :=
-⟨f, h ▸ is_sum_sum_of_ne_finset_zero (by simp)⟩
+⟨f, h ▸ has_sum_sum_of_ne_finset_zero (by simp)⟩
 
 def bernoulli (p : nnreal) (h : p ≤ 1) : pmf bool :=
 of_fintype (λb, cond b p (1 - p)) (nnreal.eq $ by simp [h])

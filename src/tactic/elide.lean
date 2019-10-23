@@ -1,4 +1,4 @@
-import logic.basic tactic.basic
+import logic.basic tactic.core
 
 namespace tactic
 namespace elide

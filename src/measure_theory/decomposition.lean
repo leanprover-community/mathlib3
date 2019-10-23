@@ -11,10 +11,10 @@ TODO:
 -/
 import measure_theory.measure_space
 
-local attribute [instance, priority 0] classical.prop_decidable
+open set lattice filter
+open_locale classical
 
 namespace measure_theory
-open set lattice filter
 
 variables {α : Type*} [measurable_space α] {μ ν : measure α}
 
@@ -56,7 +56,7 @@ begin
   { assume s hs hm,
     refine tendsto_sub _ _;
       refine (nnreal.tendsto_coe.2 $
-        (tendsto_measure_Union hs hm).comp $ ennreal.tendsto_to_nnreal $ @ne_top_of_lt _ _ _ ⊤ _),
+        (ennreal.tendsto_to_nnreal $ @ne_top_of_lt _ _ _ ⊤ _).comp $ tendsto_measure_Union hs hm),
     exact hμ _,
     exact hν _ },
 
@@ -65,11 +65,11 @@ begin
   { assume s hs hm,
     refine tendsto_sub _ _;
       refine (nnreal.tendsto_coe.2 $
-        (tendsto_measure_Inter hs hm _).comp $ ennreal.tendsto_to_nnreal $ @ne_top_of_lt _ _ _ ⊤ _),
-    exact ⟨0, hμ _⟩,
+        (ennreal.tendsto_to_nnreal $ @ne_top_of_lt _ _ _ ⊤ _).comp $ tendsto_measure_Inter hs hm _),
     exact hμ _,
-    exact ⟨0, hν _⟩,
-    exact hν _ },
+    exact ⟨0, hμ _⟩,
+    exact hν _,
+    exact ⟨0, hν _⟩ },
 
   have bdd_c : bdd_above c,
   { use (μ univ).to_nnreal,

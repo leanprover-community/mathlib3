@@ -183,7 +183,7 @@ tries to determine the type of an expression (since it returns a
 `tactic expr`, it must be chained with either `>>=` or `←`, as explained
 above).
 Next `tactic.unify` which, modulo a couple of optional parameters, takes
-two expressions and succeeds if and only if they are definitionaly equal.
+two expressions and succeeds if and only if they are definitionally equal.
 The first piece of the assumption tactic is a helper function searching
 an expression sharing the type of some expression `e` in a list of
 expressions, returning the first match (or failing if nothing matches).
@@ -240,8 +240,8 @@ do
   l.mmap (λ h, tactic.infer_type h >>= tactic.trace),
   return ()
 ```
-The last line is a bit silly, it's there because what we get from the
-previous line has type `list (tactic unit)`, so it cannot be the final
+The last line is a bit silly: it's there because what we get from the
+previous line has type `list unit`, so it cannot be the final
 piece of our do block. Hence we add `return ()` where `()` is the
 only term of type `unit`. One can also use the tactic `skip` to achieve
 the same goal. This special case is so common that we actually have a
@@ -327,7 +327,7 @@ meta example : (parse ident) = name := rfl
 
 The next improvement to this tactic offers the opportunity to name the new
 local assumption (which is currently named `this`). Such names are
-traditionaly introduced by the token `with`, followed by the desired identifier.
+traditionally introduced by the token `with`, followed by the desired identifier.
 The "followed by" is expressed by the `seq_right` combinator (there is again
 a monad lurking here), with notation `*>`. Parsing a token is introduced by
 `lean.parser.tk` followed by a string which must be taken from a
@@ -381,7 +381,7 @@ for using the second optional argument of `«have»` which is the expected type
 ```lean
 open interactive (loc.ns)
 open interactive.types (texpr location)
-meta def mul_left (q : parse texpr) : parse location → tactic unit
+meta def tactic.interactive.mul_left (q : parse texpr) : parse location → tactic unit
 | (loc.ns [some h]) := do
    e ← tactic.i_to_expr q,
    H ← get_local h,
@@ -403,7 +403,7 @@ one if the tactic name is followed by `!`. This is the opportunity to use
 `when` which is the monadic version of `ite` (with else branch doing nothing).
 See [category/combinators.lean](https://github.com/leanprover/lean/blob/master/library/init/category/combinators.lean) in core library for other variations on this idea.
 ```lean
-meta def mul_left_bis (clear_hyp : parse (optional $ tk "!")) (q : parse texpr) :
+meta def tactic.interactive.mul_left_bis (clear_hyp : parse (optional $ tk "!")) (q : parse texpr) :
 parse location → tactic unit
 | (loc.ns [some h]) := do
    e ← tactic.i_to_expr q,
@@ -434,14 +434,26 @@ This section is a direct compilation of messages from Mario on Zulip.
 * ``` ``(my pexpr) ``` constructs a pre-expression at parse time, resolving in the current (of the tactic) namespace
 * ```` ```(my pexpr) ```` constructs a pexpr, but defers resolution to run time (of the tactic), meaning that any references will be resolved in the namespace of the begin end block of the user, rather than the tactic itself
 * `%%`: This is called anti-quotation, and is supported in all the expr and pexpr quoting expressions `` `(expr) ``, ``` ``(pexpr) ```, ```` ```(pexpr) ````, as well as `` `[tacs] ``. Wherever an expression is expected inside one of these quoting constructs, you can use `%%e` instead, where `e` has type `expr` in the outer context of the tactic, and it will be spliced into the constructed expr/pexpr/etc. For example, if `a b : expr` then  `` `(%%a + %%b) `` is of type `expr`
+* The `reflect` function turns a term `t : T` into an `expr` that reflects `t`, if Lean can infer an instance `reflected t`. This can be used, for example, to refer to local variables from a tactic definition inside a quotation, using `%%(reflect n)`. As an example, we could write
+    ```
+    meta def assert_ge_zero (n : ℕ) : tactic unit :=
+    do v ← to_expr ``(nat.zero_le %%(reflect n)),
+       t ← infer_type v,
+       assertv `h t v,
+       skip
+    ```
+    If you just wrote `n` directly here you'd get a "unexpected local in quotation expression" error.
 * `` `[tac...] `` is exactly the same as `begin tac... end` in the sense that it parses tac... using the interactive mode parser, but instead of evaluating the tactic to produce a term, it just wraps up the list of tactics as a single tactic of type tactic unit. This is useful for writing "macros" or light-weight tactic writing
 
 
-Also worth mentioning are expr pattern matches, which have the same syntax
+Also worth mentioning are `expr` pattern matches, which have the same syntax
 like `` `(%%a + %%b) ``. These can be used in the pattern position of a match or on
 the left side of a `←` in do notation, and will destruct an expression and
 bind the antiquoted variables.
 For example, if `e` is an expression then `` do `(%%a = %%b) ← return e, ... `` will check that `e` is an equality, and bind the LHS and RHS to `a` and `b` (of type `expr`), and if it is not an equality the tactic will fail.
+
+(It's worth noting that this sort of pattern matching works at a syntactic level. Sometimes
+it is more flexible to use unification, instead.)
 
 ## Mario's monadic symbols cheat sheet
 

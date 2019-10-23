@@ -58,12 +58,12 @@ tendsto_of_uniform_continuous_subtype
 
 lemma continuous_inv' : continuous (λa:{r:ℂ // r ≠ 0}, a.val⁻¹) :=
 continuous_iff_continuous_at.mpr $ assume ⟨r, hr⟩,
-  (continuous_iff_continuous_at.mp continuous_subtype_val _).comp (tendsto_inv hr)
+  tendsto.comp (tendsto_inv hr) (continuous_iff_continuous_at.mp continuous_subtype_val _)
 
 lemma continuous_inv {α} [topological_space α] {f : α → ℂ} (h : ∀a, f a ≠ 0) (hf : continuous f) :
   continuous (λa, (f a)⁻¹) :=
 show continuous ((has_inv.inv ∘ @subtype.val ℂ (λr, r ≠ 0)) ∘ λa, ⟨f a, h a⟩),
-  from (continuous_subtype_mk _ hf).comp continuous_inv'
+  from continuous_inv'.comp (continuous_subtype_mk _ hf)
 
 lemma uniform_continuous_mul_const {x : ℂ} : uniform_continuous ((*) x) :=
 metric.uniform_continuous_iff.2 $ λ ε ε0, begin
@@ -75,11 +75,10 @@ metric.uniform_continuous_iff.2 $ λ ε ε0, begin
 end
 
 lemma uniform_continuous_mul (s : set (ℂ × ℂ))
-  {r₁ r₂ : ℝ} (r₁0 : 0 < r₁) (r₂0 : 0 < r₂)
-  (H : ∀ x ∈ s, abs (x : ℂ × ℂ).1 < r₁ ∧ abs x.2 < r₂) :
+  {r₁ r₂ : ℝ} (H : ∀ x ∈ s, abs (x : ℂ × ℂ).1 < r₁ ∧ abs x.2 < r₂) :
   uniform_continuous (λp:s, p.1.1 * p.1.2) :=
 metric.uniform_continuous_iff.2 $ λ ε ε0,
-let ⟨δ, δ0, Hδ⟩ := rat_mul_continuous_lemma abs ε0 r₁0 r₂0 in
+let ⟨δ, δ0, Hδ⟩ := rat_mul_continuous_lemma abs ε0 in
 ⟨δ, δ0, λ a b h,
   let ⟨h₁, h₂⟩ := max_lt_iff.1 h in Hδ (H _ a.2).1 (H _ b.2).2 h₁ h₂⟩
 
@@ -88,8 +87,6 @@ continuous_iff_continuous_at.2 $ λ ⟨a₁, a₂⟩,
 tendsto_of_uniform_continuous_subtype
   (uniform_continuous_mul
     ({x | abs x < abs a₁ + 1}.prod {x | abs x < abs a₂ + 1})
-    (lt_of_le_of_lt (abs_nonneg _) (lt_add_one _))
-    (lt_of_le_of_lt (abs_nonneg _) (lt_add_one _))
     (λ x, id))
   (mem_nhds_sets
     (is_open_prod
@@ -127,8 +124,8 @@ def real_prod_homeo : homeomorph ℂ (ℝ × ℝ) :=
   continuous_inv_fun := show continuous (λ p : ℝ × ℝ, complex.mk p.1 p.2),
     by simp only [mk_eq_add_mul_I]; exact
     continuous_add
-      (continuous_fst.comp continuous_of_real)
-      (continuous_mul (continuous_snd.comp continuous_of_real) continuous_const) }
+      (continuous_of_real.comp continuous_fst)
+      (continuous_mul (continuous_of_real.comp continuous_snd) continuous_const) }
 
 instance : proper_space ℂ :=
 ⟨λx r, begin

@@ -108,7 +108,7 @@ instance [Π i, add_monoid (β i)] : add_monoid (Π₀ i, β i) :=
   add_zero  := λ f, ext $ λ i, by simp only [add_apply, zero_apply, add_zero] }
 
 instance [Π i, add_monoid (β i)] {i : ι} : is_add_monoid_hom (λ g : Π₀ i : ι, β i, g i) :=
-by refine_struct {..}; simp
+{ map_add := λ _ _, add_apply, map_zero := zero_apply }
 
 instance [Π i, add_group (β i)] : has_neg (Π₀ i, β i) :=
 ⟨λ f, f.map_range (λ _, has_neg.neg) (λ _, neg_zero)⟩
@@ -207,7 +207,7 @@ ext $ λ i, by simp only [add_apply, subtype_domain_apply]
 
 instance subtype_domain.is_add_monoid_hom [Π i, add_monoid (β i)] {p : ι → Prop} [decidable_pred p] :
   is_add_monoid_hom (subtype_domain p : (Π₀ i : ι, β i) → Π₀ i : subtype p, β i) :=
-by refine_struct {..}; simp
+{ map_add := λ _ _, subtype_domain_add, map_zero := subtype_domain_zero }
 
 @[simp] lemma subtype_domain_neg [Π i, add_group (β i)] {p : ι → Prop} [decidable_pred p] {v : Π₀ i, β i} :
   (- v).subtype_domain p = - v.subtype_domain p :=
@@ -383,7 +383,7 @@ ext $ λ i, by simp only [neg_apply, mk_apply]; split_ifs; [refl, rw neg_zero]
 ext $ λ i, by simp only [sub_apply, mk_apply]; split_ifs; [refl, rw sub_zero]
 
 instance [Π i, add_group (β i)] {s : finset ι} : is_add_group_hom (@mk ι β _ _ s) :=
-⟨λ _ _, mk_add⟩
+{ map_add := λ _ _, mk_add }
 
 section
 local attribute [instance] to_module
@@ -559,6 +559,13 @@ support_zip_with
   support (-f) = support f :=
 by ext i; simp
 
+local attribute [instance] dfinsupp.to_module
+
+lemma support_smul {γ : Type w} [ring γ] [Π i, add_comm_group (β i)] [Π i, module γ (β i)]
+  [Π (i : ι), decidable_pred (eq (0 : β i))]
+  {b : γ} {v : Π₀ i, β i} : (b • v).support ⊆ v.support :=
+λ x, by simp [dfinsupp.mem_support_iff, not_imp_not] {contextual := tt}
+
 instance [decidable_eq ι] [Π i, has_zero (β i)] [Π i, decidable_eq (β i)] : decidable_eq (Π₀ i, β i) :=
 assume f g, decidable_of_iff (f.support = g.support ∧ (∀i∈f.support, f i = g i))
   ⟨assume ⟨h₁, h₂⟩, ext $ assume i,
@@ -572,20 +579,19 @@ section prod_and_sum
 
 variables {γ : Type w}
 
--- [to_additive dfinsupp.sum] for dfinsupp.prod doesn't work, the equation lemmas are not generated
+-- [to_additive sum] for dfinsupp.prod doesn't work, the equation lemmas are not generated
 /-- `sum f g` is the sum of `g i (f i)` over the support of `f`. -/
 def sum [Π i, has_zero (β i)] [Π i, decidable_pred (eq (0 : β i))] [add_comm_monoid γ]
   (f : Π₀ i, β i) (g : Π i, β i → γ) : γ :=
 f.support.sum (λi, g i (f i))
 
 /-- `prod f g` is the product of `g i (f i)` over the support of `f`. -/
-@[to_additive dfinsupp.sum]
+@[to_additive]
 def prod [Π i, has_zero (β i)] [Π i, decidable_pred (eq (0 : β i))] [comm_monoid γ]
   (f : Π₀ i, β i) (g : Π i, β i → γ) : γ :=
 f.support.prod (λi, g i (f i))
-attribute [to_additive dfinsupp.sum.equations._eqn_1] dfinsupp.prod.equations._eqn_1
 
-@[to_additive dfinsupp.sum_map_range_index]
+@[to_additive]
 lemma prod_map_range_index {β₁ : ι → Type v₁} {β₂ : ι → Type v₂}
   [Π i, has_zero (β₁ i)] [Π i, has_zero (β₂ i)]
   [Π i, decidable_pred (eq (0 : β₁ i))] [Π i, decidable_pred (eq (0 : β₂ i))] [comm_monoid γ]
@@ -602,12 +608,12 @@ begin
     simp [h1] }
 end
 
-@[to_additive dfinsupp.sum_zero_index]
+@[to_additive]
 lemma prod_zero_index [Π i, add_comm_monoid (β i)] [Π i, decidable_pred (eq (0 : β i))] [comm_monoid γ]
   {h : Π i, β i → γ} : (0 : Π₀ i, β i).prod h = 1 :=
 rfl
 
-@[to_additive dfinsupp.sum_single_index]
+@[to_additive]
 lemma prod_single_index [Π i, has_zero (β i)] [Π i, decidable_pred (eq (0 : β i))] [comm_monoid γ]
   {i : ι} {b : β i} {h : Π i, β i → γ} (h_zero : h i 0 = 1) :
   (single i b).prod h = h i b :=
@@ -617,7 +623,7 @@ begin
   { simp [dfinsupp.prod, support_single_ne_zero h] }
 end
 
-@[to_additive dfinsupp.sum_neg_index]
+@[to_additive]
 lemma prod_neg_index [Π i, add_group (β i)] [Π i, decidable_pred (eq (0 : β i))] [comm_monoid γ]
   {g : Π₀ i, β i} {h : Π i, β i → γ} (h0 : ∀i, h i 0 = 1) :
   (-g).prod h = g.prod (λi b, h i (- b)) :=
@@ -657,7 +663,7 @@ finset.sum_add_distrib
   f.sum (λi b, - h i b) = - f.sum h :=
 finset.sum_hom (@has_neg.neg γ _)
 
-@[to_additive dfinsupp.sum_add_index]
+@[to_additive]
 lemma prod_add_index [Π i, add_comm_monoid (β i)] [Π i, decidable_pred (eq (0 : β i))]
   [comm_monoid γ] {f g : Π₀ i, β i}
   {h : Π i, β i → γ} (h_zero : ∀i, h i 0 = 1) (h_add : ∀i b₁ b₂, h i (b₁ + b₂) = h i b₁ * h i b₂) :
@@ -697,24 +703,24 @@ by simp [@sum_add_index ι β _ γ _ _ _ f (-g) h h_zero h_add];
 simp [@sum_neg_index ι β _ γ _ _ _ g h h_zero, h_neg];
 simp [@sum_neg ι β _ γ _ _ _ g h]
 
-@[to_additive dfinsupp.sum_finset_sum_index]
+@[to_additive]
 lemma prod_finset_sum_index {γ : Type w} {α : Type x}
   [Π i, add_comm_monoid (β i)] [Π i, decidable_pred (eq (0 : β i))]
   [comm_monoid γ] [decidable_eq α]
   {s : finset α} {g : α → Π₀ i, β i}
-  {h : Π i, β i → γ} (h_zero : ∀i, h i 0 = 1) (h_add : ∀i b₁ b₂, h i (b₁ + b₂) = h i b₁ * h i b₂):
+  {h : Π i, β i → γ} (h_zero : ∀i, h i 0 = 1) (h_add : ∀i b₁ b₂, h i (b₁ + b₂) = h i b₁ * h i b₂) :
   s.prod (λi, (g i).prod h) = (s.sum g).prod h :=
 finset.induction_on s
   (by simp [prod_zero_index])
   (by simp [prod_add_index, h_zero, h_add] {contextual := tt})
 
-@[to_additive dfinsupp.sum_sum_index]
+@[to_additive]
 lemma prod_sum_index  {ι₁ : Type u₁} [decidable_eq ι₁] {β₁ : ι₁ → Type v₁}
   [Π i₁, has_zero (β₁ i₁)] [Π i, decidable_pred (eq (0 : β₁ i))]
   [Π i, add_comm_monoid (β i)] [Π i, decidable_pred (eq (0 : β i))]
   [comm_monoid γ]
   {f : Π₀ i₁, β₁ i₁} {g : Π i₁, β₁ i₁ → Π₀ i, β i}
-  {h : Π i, β i → γ} (h_zero : ∀i, h i 0 = 1) (h_add : ∀i b₁ b₂, h i (b₁ + b₂) = h i b₁ * h i b₂):
+  {h : Π i, β i → γ} (h_zero : ∀i, h i 0 = 1) (h_add : ∀i b₁ b₂, h i (b₁ + b₂) = h i b₁ * h i b₂) :
   (f.sum g).prod h = f.prod (λi b, (g i b).prod h) :=
 (prod_finset_sum_index h_zero h_add).symm
 
@@ -728,7 +734,7 @@ begin
   all_goals { intros, simp }
 end
 
-@[to_additive dfinsupp.sum_subtype_domain_index]
+@[to_additive]
 lemma prod_subtype_domain_index [Π i, has_zero (β i)] [Π i, decidable_pred (eq (0 : β i))]
   [comm_monoid γ] {v : Π₀ i, β i} {p : ι → Prop} [decidable_pred p]
   {h : Π i, β i → γ} (hp : ∀x∈v.support, p x) :

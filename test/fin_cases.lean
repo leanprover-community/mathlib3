@@ -1,6 +1,11 @@
+/-
+Copyright (c) 2018 Scott Morrison. All rights reserved.
+Released under Apache 2.0 license as described in the file LICENSE.
+Authors: Scott Morrison
+-/
 import tactic.fin_cases
 import data.nat.prime
-import group_theory.perm
+import group_theory.perm.sign
 import tactic.norm_num
 
 example (f : ℕ → Prop) (p : fin 3) (h0 : f 0) (h1 : f 1) (h2 : f 2) : f p.val :=
@@ -49,7 +54,7 @@ begin
 end
 
  -- testing that `with` arguments are elaborated with respect to the expected type:
-example (x : ℤ) (h : x ∈ ([2,3] : list ℤ)) : x = 2 ∨ x = 3:=
+example (x : ℤ) (h : x ∈ ([2,3] : list ℤ)) : x = 2 ∨ x = 3 :=
 begin
   fin_cases h with [2,3],
   all_goals { simp }

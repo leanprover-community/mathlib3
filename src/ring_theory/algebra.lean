@@ -6,23 +6,24 @@ Authors: Kenny Lau
 Algebra over Commutative Ring (under category)
 -/
 
-import data.polynomial
-import linear_algebra.multivariate_polynomial
+import data.polynomial data.mv_polynomial
+import data.complex.basic
 import linear_algebra.tensor_product
 import ring_theory.subring
+
+noncomputable theory
 
 universes u v w u₁ v₁
 
 open lattice
-
-local infix ` ⊗ `:100 := tensor_product
+open_locale tensor_product
 
 /-- The category of R-algebras where R is a commutative
 ring is the under category R ↓ CRing. In the categorical
 setting we have a forgetful functor R-Alg ⥤ R-Mod.
 However here it extends module in order to preserve
 definitional equality in certain cases. -/
-class algebra (R : Type u) (A : Type v) [comm_ring R] [ring A] extends module R A :=
+class algebra (R : Type u) (A : Type v) [comm_ring R] [ring A] extends has_scalar R A :=
 (to_fun : R → A) [hom : is_ring_hom to_fun]
 (commutes' : ∀ r x, x * to_fun r = to_fun r * x)
 (smul_def' : ∀ r x, r • x = to_fun r * x)
@@ -38,12 +39,7 @@ variables {R : Type u} {S : Type v} {A : Type w}
 variables [comm_ring R] [comm_ring S] [ring A] [algebra R A]
 
 /-- The codomain of an algebra. -/
-instance : module R A := infer_instance
 instance : has_scalar R A := infer_instance
-
-instance {F : Type u} {K : Type v} [discrete_field F] [ring K] [algebra F K] :
-  vector_space F K :=
-@vector_space.mk F _ _ _ algebra.module
 
 include R
 
@@ -73,12 +69,6 @@ variables {R A}
 /-- Creating an algebra from a morphism in CRing. -/
 def of_ring_hom (i : R → S) (hom : is_ring_hom i) : algebra R S :=
 { smul := λ c x, i c * x,
-  smul_zero := λ x, mul_zero (i x),
-  smul_add := λ r x y, mul_add (i r) x y,
-  add_smul := λ r s x, show i (r + s) * x = _, by rw [hom.3, add_mul],
-  mul_smul := λ r s x, show i (r * s) * x = _, by rw [hom.2, mul_assoc],
-  one_smul := λ x, show i 1 * x = _, by rw [hom.1, one_mul],
-  zero_smul := λ x, show i 0 * x = _, by rw [@@is_ring_hom.map_zero _ _ i hom, zero_mul],
   to_fun := i,
   commutes' := λ _ _, mul_comm _ _,
   smul_def' := λ c x, rfl }
@@ -100,16 +90,29 @@ by rw [smul_def, smul_def, left_comm]
   (r • x) * y = r • (x * y) :=
 by rw [smul_def, smul_def, mul_assoc]
 
+instance to_module : module R A :=
+{ one_smul := by simp [smul_def],
+  mul_smul := by simp [smul_def, mul_assoc],
+  smul_add := by simp [smul_def, mul_add],
+  smul_zero := by simp [smul_def],
+  add_smul := by simp [smul_def, add_mul],
+  zero_smul := by simp [smul_def] }
+
+omit R
+instance {F : Type u} {K : Type v} [discrete_field F] [ring K] [algebra F K] :
+  vector_space F K :=
+@vector_space.mk F _ _ _ algebra.to_module
+
 /-- R[X] is the generator of the category R-Alg. -/
-instance polynomial (R : Type u) [comm_ring R] [decidable_eq R] : algebra R (polynomial R) :=
+instance polynomial (R : Type u) [comm_ring R] : algebra R (polynomial R) :=
 { to_fun := polynomial.C,
   commutes' := λ _ _, mul_comm _ _,
   smul_def' := λ c p, (polynomial.C_mul' c p).symm,
   .. polynomial.module }
 
 /-- The algebra of multivariate polynomials. -/
-instance mv_polynomial (R : Type u) [comm_ring R] [decidable_eq R]
-  (ι : Type v) [decidable_eq ι] : algebra R (mv_polynomial ι R) :=
+instance mv_polynomial (R : Type u) [comm_ring R]
+  (ι : Type v) : algebra R (mv_polynomial ι R) :=
 { to_fun := mv_polynomial.C,
   commutes' := λ _ _, mul_comm _ _,
   smul_def' := λ c p, (mv_polynomial.C_mul' c p).symm,
@@ -128,7 +131,7 @@ linear_map.mk₂ R (*)
   (λ x y z, mul_add x y z)
   (λ c x y, by rw [smul_def, smul_def, left_comm])
 
-set_option class.instance_max_depth 37
+set_option class.instance_max_depth 39
 def lmul_left (r : A) : A →ₗ A :=
 lmul R A r
 
@@ -143,27 +146,29 @@ variables {R A}
 
 end algebra
 
+set_option old_structure_cmd true
 /-- Defining the homomorphism in the category R-Alg. -/
-structure alg_hom {R : Type u} (A : Type v) (B : Type w)
-  [comm_ring R] [ring A] [ring B] [algebra R A] [algebra R B] :=
-(to_fun : A → B) [hom : is_ring_hom to_fun]
+structure alg_hom (R : Type u) (A : Type v) (B : Type w)
+  [comm_ring R] [ring A] [ring B] [algebra R A] [algebra R B] extends ring_hom A B :=
 (commutes' : ∀ r : R, to_fun (algebra_map A r) = algebra_map B r)
 
-infixr ` →ₐ `:25 := alg_hom
-notation A ` →ₐ[`:25 R `] ` B := @alg_hom R A B _ _ _ _ _
+infixr ` →ₐ `:25 := alg_hom _
+notation A ` →ₐ[`:25 R `] ` B := alg_hom R A B
 
 namespace alg_hom
 
 variables {R : Type u} {A : Type v} {B : Type w} {C : Type u₁} {D : Type v₁}
-variables [comm_ring R] [ring A] [ring B] [ring C] [ring D]
-variables [algebra R A] [algebra R B] [algebra R C] [algebra R D]
-include R
+variables {rR : comm_ring R} {rA : ring A} {rB : ring B} {rC : ring C} {rD : ring D}
+variables {aA : algebra R A} {aB : algebra R B} {aC : algebra R C} {aD : algebra R D}
+include R rR rA rB aA aB
 
-instance : has_coe_to_fun (A →ₐ[R] B) := ⟨λ _, A → B, to_fun⟩
+instance : has_coe_to_fun (A →ₐ[R] B) := ⟨_, λ f, f.to_fun⟩
+
+instance : has_coe (A →ₐ[R] B) (A →+* B) := ⟨alg_hom.to_ring_hom⟩
 
 variables (φ : A →ₐ[R] B)
 
-instance : is_ring_hom ⇑φ := hom φ
+instance : is_ring_hom ⇑φ := ring_hom.is_ring_hom φ.to_ring_hom
 
 @[extensionality]
 theorem ext {φ₁ φ₂ : A →ₐ[R] B} (H : ∀ x, φ₁ x = φ₂ x) : φ₁ = φ₂ :=
@@ -193,7 +198,7 @@ is_ring_hom.map_one _
 def to_linear_map : A →ₗ B :=
 { to_fun := φ,
   add := φ.map_add,
-  smul := λ c x, by rw [algebra.smul_def, φ.map_mul, φ.commutes c, algebra.smul_def] }
+  smul := λ (c : R) x, by rw [algebra.smul_def, φ.map_mul, φ.commutes c, algebra.smul_def] }
 
 @[simp] lemma to_linear_map_apply (p : A) : φ.to_linear_map p = φ p := rfl
 
@@ -201,24 +206,39 @@ theorem to_linear_map_inj {φ₁ φ₂ : A →ₐ[R] B} (H : φ₁.to_linear_map
 ext $ λ x, show φ₁.to_linear_map x = φ₂.to_linear_map x, by rw H
 
 variables (R A)
+omit rB aB
+variables [rR] [rA] [aA]
 protected def id : A →ₐ[R] A :=
-{ to_fun := id, commutes' := λ _, rfl }
-variables {R A}
+{ commutes' := λ _, rfl,
+  ..ring_hom.id A  }
+variables {R A rR rA aA}
+
+@[simp] lemma id_to_linear_map :
+  (alg_hom.id R A).to_linear_map = @linear_map.id R A _ _ _ := rfl
 
 @[simp] lemma id_apply (p : A) : alg_hom.id R A p = p := rfl
 
-def comp (φ₁ : B →ₐ[R] C) (φ₂ : A →ₐ[R] B) : A →ₐ C :=
-{ to_fun := φ₁ ∘ φ₂,
-  commutes' := λ r, by rw [function.comp_apply, φ₂.commutes, φ₁.commutes] }
+include rB rC aB aC
+
+def comp (φ₁ : B →ₐ[R] C) (φ₂ : A →ₐ[R] B) : A →ₐ[R] C :=
+{ commutes' := λ r : R, by rw [← φ₁.commutes, ← φ₂.commutes]; refl,
+  .. φ₁.to_ring_hom.comp ↑φ₂ }
+
+@[simp] lemma comp_to_linear_map (f : A →ₐ[R] B) (g : B →ₐ[R] C) :
+  (g.comp f).to_linear_map = g.to_linear_map.comp f.to_linear_map := rfl
 
 @[simp] lemma comp_apply (φ₁ : B →ₐ[R] C) (φ₂ : A →ₐ[R] B) (p : A) :
   φ₁.comp φ₂ p = φ₁ (φ₂ p) := rfl
+
+omit rC aC
 
 @[simp] theorem comp_id : φ.comp (alg_hom.id R A) = φ :=
 ext $ λ x, rfl
 
 @[simp] theorem id_comp : (alg_hom.id R B).comp φ = φ :=
 ext $ λ x, rfl
+
+include rC aC rD aD
 
 theorem comp_assoc (φ₁ : C →ₐ[R] D) (φ₂ : B →ₐ[R] C) (φ₃ : A →ₐ[R] B) :
   (φ₁.comp φ₂).comp φ₃ = φ₁.comp (φ₂.comp φ₃) :=
@@ -240,27 +260,22 @@ instance comap.ring : ring (comap R S A) := _inst_3
 instance comap.comm_ring (R : Type u) (S : Type v) (A : Type w)
   [comm_ring R] [comm_ring S] [comm_ring A] [algebra R S] [algebra S A] :
   comm_ring (comap R S A) := _inst_8
-instance comap.module : module S (comap R S A) := _inst_5.to_module
-instance comap.has_scalar : has_scalar S (comap R S A) := _inst_5.to_module.to_has_scalar
+instance comap.module : module S (comap R S A) := show module S A, by apply_instance
+instance comap.has_scalar : has_scalar S (comap R S A) := show has_scalar S A, by apply_instance
+
+set_option class.instance_max_depth 40
 
 /-- R ⟶ S induces S-Alg ⥤ R-Alg -/
 instance comap.algebra : algebra R (comap R S A) :=
 { smul := λ r x, (algebra_map S r • x : A),
-  smul_add := λ _ _ _, smul_add _ _ _,
-  add_smul := λ _ _ _, by simp only [algebra.map_add]; from add_smul _ _ _,
-  mul_smul := λ _ _ _, by simp only [algebra.map_mul]; from mul_smul _ _ _,
-  one_smul := λ _, by simp only [algebra.map_one]; from one_smul _ _,
-  zero_smul := λ _, by simp only [algebra.map_zero]; from zero_smul _ _,
-  smul_zero := λ _, smul_zero _,
   to_fun := (algebra_map A : S → A) ∘ algebra_map S,
   hom := by letI : is_ring_hom (algebra_map A) := _inst_5.hom; apply_instance,
   commutes' := λ r x, algebra.commutes _ _,
   smul_def' := λ _ _, algebra.smul_def _ _ }
 
 def to_comap : S →ₐ[R] comap R S A :=
-{ to_fun := (algebra_map A : S → A),
-  hom := _inst_5.hom,
-  commutes' := λ r, rfl }
+{ commutes' := λ r, rfl,
+  ..ring_hom.of (algebra_map A : S → A) }
 
 theorem to_comap_apply (x) : to_comap R S A x = (algebra_map A : S → A) x := rfl
 
@@ -275,9 +290,8 @@ include R
 
 /-- R ⟶ S induces S-Alg ⥤ R-Alg -/
 def comap : algebra.comap R S A →ₐ[R] algebra.comap R S B :=
-{ to_fun := φ,
-  hom := alg_hom.is_ring_hom _,
-  commutes' := λ r, φ.commutes (algebra_map S r) }
+{ commutes' := λ r, φ.commutes (algebra_map S r)
+  ..φ }
 
 end alg_hom
 
@@ -285,18 +299,17 @@ namespace polynomial
 
 variables (R : Type u) (A : Type v)
 variables [comm_ring R] [comm_ring A] [algebra R A]
-variables [decidable_eq R] (x : A)
+variables (x : A)
 
 /-- A → Hom[R-Alg](R[X],A) -/
 def aeval : polynomial R →ₐ[R] A :=
-{ to_fun := eval₂ (algebra_map A) x,
-  hom := ⟨eval₂_one _ x, λ _ _, eval₂_mul _ x, λ _ _, eval₂_add _ x⟩,
-  commutes' := λ r, eval₂_C _ _ }
+{ commutes' := λ r, eval₂_C _ _,
+  ..ring_hom.of (eval₂ (algebra_map A) x) }
 
 theorem aeval_def (p : polynomial R) : aeval R A x p = eval₂ (algebra_map A) x p := rfl
 
 instance aeval.is_ring_hom : is_ring_hom (aeval R A x) :=
-alg_hom.hom _
+by apply_instance
 
 theorem eval_unique (φ : polynomial R →ₐ[R] A) (p) :
   φ p = eval₂ (algebra_map A) (φ X) p :=
@@ -315,20 +328,19 @@ namespace mv_polynomial
 
 variables (R : Type u) (A : Type v)
 variables [comm_ring R] [comm_ring A] [algebra R A]
-variables [decidable_eq R] [decidable_eq A] (σ : set A)
+variables (σ : set A)
 
 /-- (ι → A) → Hom[R-Alg](R[ι],A) -/
 def aeval : mv_polynomial σ R →ₐ[R] A :=
-{ to_fun := eval₂ (algebra_map A) subtype.val,
-  hom := ⟨eval₂_one _ _, λ _ _, eval₂_mul _ _, λ _ _, eval₂_add _ _⟩,
-  commutes' := λ r, eval₂_C _ _ _ }
+{ commutes' := λ r, eval₂_C _ _ _
+  ..ring_hom.of (eval₂ (algebra_map A) subtype.val) }
 
 theorem aeval_def (p : mv_polynomial σ R) : aeval R A σ p = eval₂ (algebra_map A) subtype.val p := rfl
 
 instance aeval.is_ring_hom : is_ring_hom (aeval R A σ) :=
-alg_hom.hom _
+by apply_instance
 
-variables (ι : Type w) [decidable_eq ι]
+variables (ι : Type w)
 
 theorem eval_unique (φ : mv_polynomial ι R →ₐ[R] A) (p) :
   φ p = eval₂ (algebra_map A) (φ ∘ X) p :=
@@ -342,6 +354,15 @@ begin
 end
 
 end mv_polynomial
+
+namespace complex
+
+instance algebra_over_reals : algebra ℝ ℂ :=
+algebra.of_ring_hom coe $ by constructor; intros; simp [one_re]
+
+instance : has_scalar ℝ ℂ := { smul := λ r c, ↑r * c}
+
+end complex
 
 structure subalgebra (R : Type u) (A : Type v)
   [comm_ring R] [ring A] [algebra R A] : Type v :=
@@ -374,18 +395,12 @@ variables (S : subalgebra R A)
 
 instance : is_subring (S : set A) := S.subring
 instance : ring S := @@subtype.ring _ S.is_subring
-instance (R : Type u) (A : Type v) [comm_ring R] [comm_ring A]
-  [algebra R A] (S : subalgebra R A) : comm_ring S := @@subtype.comm_ring _ S.is_subring
+instance (R : Type u) (A : Type v) {rR : comm_ring R} [comm_ring A]
+  {aA : algebra R A} (S : subalgebra R A) : comm_ring S := @@subtype.comm_ring _ S.is_subring
 
 instance algebra : algebra R S :=
 { smul := λ (c:R) x, ⟨c • x.1,
     by rw algebra.smul_def; exact @@is_submonoid.mul_mem _ S.2.2 (S.3 ⟨c, rfl⟩) x.2⟩,
-  smul_add := λ c x y, subtype.eq $ by apply _inst_3.1.1.2,
-  add_smul := λ c x y, subtype.eq $ by apply _inst_3.1.1.3,
-  mul_smul := λ c x y, subtype.eq $ by apply _inst_3.1.1.4,
-  one_smul := λ x, subtype.eq $ by apply _inst_3.1.1.5,
-  zero_smul := λ x, subtype.eq $ by apply _inst_3.1.1.6,
-  smul_zero := λ x, subtype.eq $ by apply _inst_3.1.1.7,
   to_fun := λ r, ⟨algebra_map A r, S.range_le ⟨r, rfl⟩⟩,
   hom := ⟨subtype.eq $ algebra.map_one R A, λ x y, subtype.eq $ algebra.map_mul A x y,
     λ x y, subtype.eq $ algebra.map_add A x y⟩,
@@ -397,9 +412,7 @@ instance to_algebra (R : Type u) (A : Type v) [comm_ring R] [comm_ring A]
 algebra.of_subring _
 
 def val : S →ₐ[R] A :=
-{ to_fun := subtype.val,
-  hom := ⟨rfl, λ _ _, rfl, λ _ _, rfl⟩,
-  commutes' := λ r, rfl }
+by refine_struct { to_fun := subtype.val }; intros; refl
 
 def to_submodule : submodule R A :=
 { carrier := S.carrier,
@@ -407,7 +420,10 @@ def to_submodule : submodule R A :=
   add := λ x y hx hy, (⟨x, hx⟩ + ⟨y, hy⟩ : S).2,
   smul := λ c x hx, (algebra.smul_def c x).symm ▸ (⟨algebra_map A c, S.range_le ⟨c, rfl⟩⟩ * ⟨x, hx⟩:S).2 }
 
-instance to_submodule.is_subring : is_subring (S.to_submodule : set A) := S.2
+instance coe_to_submodule : has_coe (subalgebra R A) (submodule R A) :=
+⟨to_submodule⟩
+
+instance to_submodule.is_subring : is_subring ((S : submodule R A) : set A) := S.2
 
 instance : partial_order (subalgebra R A) :=
 { le := λ S T, S.carrier ≤ T.carrier,
@@ -421,6 +437,8 @@ def comap {R : Type u} {S : Type v} {A : Type w}
 { carrier := (iSB : set A),
   subring := iSB.is_subring,
   range_le := λ a ⟨r, hr⟩, hr ▸ iSB.range_le ⟨_, rfl⟩ }
+
+set_option class.instance_max_depth 48
 
 def under {R : Type u} {A : Type v} [comm_ring R] [comm_ring A]
   {i : algebra R A} (S : subalgebra R A)
@@ -456,7 +474,7 @@ instance id : algebra R R :=
 algebra.of_ring_hom id $ by apply_instance
 
 def of_id : R →ₐ A :=
-{ to_fun := algebra_map A, commutes' := λ _, rfl }
+{ commutes' := λ _, rfl, .. ring_hom.of (algebra_map A) }
 variables {R}
 
 theorem of_id_apply (r) : of_id R A r = algebra_map A r := rfl
@@ -467,7 +485,7 @@ def adjoin (s : set A) : subalgebra R A :=
   range_le := le_trans (set.subset_union_left _ _) ring.subset_closure }
 variables {R}
 
-protected def gc : galois_connection (adjoin R : set A → subalgebra R A) coe :=
+protected lemma gc : galois_connection (adjoin R : set A → subalgebra R A) coe :=
 λ s S, ⟨λ H, le_trans (le_trans (set.subset_union_right _ _) ring.subset_closure) H,
 λ H, ring.closure_subset $ set.union_subset S.range_le H⟩
 
@@ -488,9 +506,7 @@ theorem mem_top {x : A} : x ∈ (⊤ : subalgebra R A) :=
 ring.mem_closure $ or.inr trivial
 
 def to_top : A →ₐ[R] (⊤ : subalgebra R A) :=
-{ to_fun := λ x, ⟨x, mem_top⟩,
-  hom := ⟨rfl, λ _ _, rfl, λ _ _, rfl⟩,
-  commutes' := λ _, rfl }
+by refine_struct { to_fun := λ x, (⟨x, mem_top⟩ : (⊤ : subalgebra R A)) }; intros; refl
 
 end algebra
 
@@ -503,12 +519,13 @@ def alg_hom_int
   {R : Type u} [comm_ring R] [algebra ℤ R]
   {S : Type v} [comm_ring S] [algebra ℤ S]
   (f : R → S) [is_ring_hom f] : R →ₐ[ℤ] S :=
-{ to_fun := f, hom := by apply_instance,
-  commutes' := λ i, int.induction_on i (by rw [algebra.map_zero, algebra.map_zero, is_ring_hom.map_zero f])
+{ commutes' := λ i, by change (ring_hom.of f).to_fun with f; exact
+    int.induction_on i (by rw [algebra.map_zero, algebra.map_zero, is_ring_hom.map_zero f])
       (λ i ih, by rw [algebra.map_add, algebra.map_add, algebra.map_one, algebra.map_one];
         rw [is_ring_hom.map_add f, is_ring_hom.map_one f, ih])
       (λ i ih, by rw [algebra.map_sub, algebra.map_sub, algebra.map_one, algebra.map_one];
-        rw [is_ring_hom.map_sub f, is_ring_hom.map_one f, ih]) }
+        rw [is_ring_hom.map_sub f, is_ring_hom.map_one f, ih]),
+  ..ring_hom.of f }
 
 /-- CRing ⥤ ℤ-Alg -/
 instance algebra_int : algebra ℤ R :=
@@ -525,5 +542,24 @@ def subalgebra_of_subring (S : set R) [is_subring S] : subalgebra ℤ R :=
 @[simp] lemma mem_subalgebra_of_subring {x : R} {S : set R} [is_subring S] :
   x ∈ subalgebra_of_subring S ↔ x ∈ S :=
 iff.rfl
+
+section span_int
+open submodule
+
+lemma span_int_eq_add_group_closure (s : set R) :
+  ↑(span ℤ s) = add_group.closure s :=
+set.subset.antisymm (λ x hx, span_induction hx
+  (λ _, add_group.mem_closure)
+  (is_add_submonoid.zero_mem _)
+  (λ a b ha hb, is_add_submonoid.add_mem ha hb)
+  (λ n a ha, by { erw [show n • a = gsmul n a, from (gsmul_eq_mul a n).symm],
+    exact is_add_subgroup.gsmul_mem ha}))
+  (add_group.closure_subset subset_span)
+
+@[simp] lemma span_int_eq (s : set R) [is_add_subgroup s] :
+  (↑(span ℤ s) : set R) = s :=
+by rw [span_int_eq_add_group_closure, add_group.closure_add_subgroup]
+
+end span_int
 
 end int

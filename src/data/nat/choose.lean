@@ -5,82 +5,9 @@ Authors: Chris Hughes
 Mostly based on Jeremy Avigad's choose file in lean 2
 -/
 import data.nat.basic data.nat.prime
-import algebra.big_operators
+import algebra.big_operators algebra.commute
 
 open nat
-
-def choose : ℕ → ℕ → ℕ
-| _             0 := 1
-| 0       (k + 1) := 0
-| (n + 1) (k + 1) := choose n k + choose n (succ k)
-
-@[simp] lemma choose_zero_right (n : ℕ) : choose n 0 = 1 := by cases n; refl
-
-@[simp] lemma choose_zero_succ (k : ℕ) : choose 0 (succ k) = 0 := rfl
-
-lemma choose_succ_succ (n k : ℕ) : choose (succ n) (succ k) = choose n k + choose n (succ k) := rfl
-
-lemma choose_eq_zero_of_lt : ∀ {n k}, n < k → choose n k = 0
-| _             0 hk := absurd hk dec_trivial
-| 0       (k + 1) hk := choose_zero_succ _
-| (n + 1) (k + 1) hk :=
-  have hnk : n < k, from lt_of_succ_lt_succ hk,
-  have hnk1 : n < k + 1, from lt_of_succ_lt hk,
-  by rw [choose_succ_succ, choose_eq_zero_of_lt hnk, choose_eq_zero_of_lt hnk1]
-
-@[simp] lemma choose_self (n : ℕ) : choose n n = 1 :=
-by induction n; simp [*, choose, choose_eq_zero_of_lt (lt_succ_self _)]
-
-@[simp] lemma choose_succ_self (n : ℕ) : choose n (succ n) = 0 :=
-choose_eq_zero_of_lt (lt_succ_self _)
-
-@[simp] lemma choose_one_right (n : ℕ) : choose n 1 = n :=
-by induction n; simp [*, choose]
-
-lemma choose_pos : ∀ {n k}, k ≤ n → 0 < choose n k
-| 0             _ hk := by rw [eq_zero_of_le_zero hk]; exact dec_trivial
-| (n + 1)       0 hk := by simp; exact dec_trivial
-| (n + 1) (k + 1) hk := by rw choose_succ_succ;
-    exact add_pos_of_pos_of_nonneg (choose_pos (le_of_succ_le_succ hk)) (nat.zero_le _)
-
-
-lemma succ_mul_choose_eq : ∀ n k, succ n * choose n k = choose (succ n) (succ k) * succ k
-| 0             0 := dec_trivial
-| 0       (k + 1) := by simp [choose]
-| (n + 1)       0 := by simp
-| (n + 1) (k + 1) :=
-  by rw [choose_succ_succ (succ n) (succ k), add_mul, ←succ_mul_choose_eq, mul_succ,
-  ←succ_mul_choose_eq, add_right_comm, ←mul_add, ←choose_succ_succ, ←succ_mul]
-
-lemma choose_mul_fact_mul_fact : ∀ {n k}, k ≤ n → choose n k * fact k * fact (n - k) = fact n
-| 0              _ hk := by simp [eq_zero_of_le_zero hk]
-| (n + 1)        0 hk := by simp
-| (n + 1) (succ k) hk :=
-begin
-  cases lt_or_eq_of_le hk with hk₁ hk₁,
-  { have h : choose n k * fact (succ k) * fact (n - k) = succ k * fact n :=
-      by rw ← choose_mul_fact_mul_fact (le_of_succ_le_succ hk);
-      simp [fact_succ, mul_comm, mul_left_comm],
-    have h₁ : fact (n - k) = (n - k) * fact (n - succ k) :=
-      by rw [← succ_sub_succ, succ_sub (le_of_lt_succ hk₁), fact_succ],
-    have h₂ : choose n (succ k) * fact (succ k) * ((n - k) * fact (n - succ k)) = (n - k) * fact n :=
-      by rw ← choose_mul_fact_mul_fact (le_of_lt_succ hk₁);
-      simp [fact_succ, mul_comm, mul_left_comm, mul_assoc],
-    have h₃ : k * fact n ≤ n * fact n := mul_le_mul_right _ (le_of_succ_le_succ hk),
-  rw [choose_succ_succ, add_mul, add_mul, succ_sub_succ, h, h₁, h₂, ← add_one, add_mul, nat.mul_sub_right_distrib,
-      fact_succ, ← nat.add_sub_assoc h₃, add_assoc, ← add_mul, nat.add_sub_cancel_left, add_comm] },
-  { simp [hk₁, mul_comm, choose, nat.sub_self] }
-end
-
-theorem choose_eq_fact_div_fact {n k : ℕ} (hk : k ≤ n) : choose n k = fact n / (fact k * fact (n - k)) :=
-begin
-  have : fact n = choose n k * (fact k * fact (n - k)) :=
-    by rw ← mul_assoc; exact (choose_mul_fact_mul_fact hk).symm,
-  exact (nat.div_eq_of_eq_mul_left (mul_pos (fact_pos _) (fact_pos _)) this).symm
-end
-
-theorem fact_mul_fact_dvd_fact {n k : ℕ} (hk : k ≤ n) : fact k * fact (n - k) ∣ fact n :=
-by rw [←choose_mul_fact_mul_fact hk, mul_assoc]; exact dvd_mul_left _ _
 
 lemma nat.prime.dvd_choose {p k : ℕ} (hk : 0 < k) (hkp : k < p) (hp : prime p) : p ∣ choose p k :=
 have h₁ : p ∣ fact p, from hp.dvd_fact.2 (le_refl _),
@@ -92,29 +19,47 @@ by rw [← choose_mul_fact_mul_fact (le_of_lt hkp), mul_assoc, hp.dvd_mul, hp.dv
 section binomial
 open finset
 
-variables {α : Type*} [comm_semiring α] (x y : α)
+variables {α : Type*}
 
-/-- The binomial theorem -/
-theorem add_pow :
-  ∀ n : ℕ, (x + y) ^ n = (range (succ n)).sum (λ m, x ^ m * y ^ (n - m) * choose n m)
-| 0        := by simp [range_succ]
-| (succ n) :=
-have h₁ : x * (x ^ n * y ^ (n - n) * choose n n) =
-    x ^ succ n * y ^ (succ n - succ n) * choose (succ n) (succ n),
-  by simp [_root_.pow_succ, mul_assoc, mul_comm, mul_left_comm],
-have  h₂ : y * (x^0 * y^(n - 0) * choose n 0) = x^0 * y^(succ n - 0) * choose (succ n) 0,
-  by simp [_root_.pow_succ, mul_assoc, mul_comm, mul_left_comm],
-have h₃ : (range n).sum (λ m, x * (x ^ m * y ^ (n - m) * choose n m) + y *
-    (x ^ succ m * y ^ (n - succ m) * choose n (succ m))) =
-    (range n).sum (λ m, x ^ succ m * y ^ (succ n - succ m) * ↑(choose (succ n) (succ m))),
-  from finset.sum_congr rfl $ λ m hm,
-    begin
-      simp only [mul_assoc, mul_left_comm y, mul_left_comm (y ^ (n - succ m)), mul_comm y],
-      rw [← _root_.pow_succ', add_one, ← succ_sub (mem_range.1 hm)],
-      simp [choose_succ_succ, mul_comm, mul_assoc, mul_left_comm, add_mul, mul_add, _root_.pow_succ]
-    end,
-by rw [_root_.pow_succ, add_pow, add_mul, finset.mul_sum, finset.mul_sum, sum_range_succ, sum_range_succ',
-    sum_range_succ, sum_range_succ', add_assoc, ← add_assoc ((range n).sum _),
-    ← finset.sum_add_distrib, h₁, h₂, h₃]
+/-- A version of the binomial theorem for noncommutative semirings. -/
+theorem commute.add_pow [semiring α] {x y : α} (h : commute x y) (n : ℕ) :
+  (x + y) ^ n = (range (succ n)).sum (λ m, x ^ m * y ^ (n - m) * choose n m) :=
+begin
+  let t : ℕ → ℕ → α := λ n i, x ^ i * (y ^ (n - i)) * (choose n i),
+  change (x + y) ^ n = (range n.succ).sum (t n),
+  have h_first : ∀ n, t n 0 = y ^ n :=
+    λ n, by { dsimp [t], rw[choose_zero_right, nat.cast_one, mul_one, one_mul] },
+  have h_last : ∀ n, t n n.succ = 0 :=
+    λ n, by { dsimp [t], rw [choose_succ_self, nat.cast_zero, mul_zero] },
+  have h_middle : ∀ (n i : ℕ), (i ∈ finset.range n.succ) →
+   ((t n.succ) ∘ nat.succ) i = x * (t n i) + y * (t n i.succ) :=
+  begin
+    intros n i h_mem,
+    have h_le : i ≤ n := nat.le_of_lt_succ (finset.mem_range.mp h_mem),
+    dsimp [t],
+    rw [choose_succ_succ, nat.cast_add, mul_add],
+    congr' 1,
+    { rw[pow_succ x, succ_sub_succ, mul_assoc, mul_assoc, mul_assoc] },
+    { rw[← mul_assoc y, ← mul_assoc y, (h.symm.pow_right i.succ).eq],
+      by_cases h_eq : i = n,
+      { rw [h_eq, choose_succ_self, nat.cast_zero, mul_zero, mul_zero] },
+      { rw[succ_sub (lt_of_le_of_ne h_le h_eq)],
+        rw[pow_succ y, mul_assoc, mul_assoc, mul_assoc, mul_assoc] } }
+  end,
+  induction n with n ih,
+  { rw [_root_.pow_zero, sum_range_succ, range_zero, sum_empty, add_zero],
+    dsimp [t], rw [choose_self, nat.cast_one, mul_one, mul_one] },
+  { rw[sum_range_succ', h_first],
+    rw[finset.sum_congr rfl (h_middle n), finset.sum_add_distrib, add_assoc],
+    rw[pow_succ (x + y), ih, add_mul, finset.mul_sum, finset.mul_sum],
+    congr' 1,
+    rw[finset.sum_range_succ', finset.sum_range_succ, h_first, h_last,
+       mul_zero, zero_add, _root_.pow_succ] }
+end
+
+/-- The binomial theorem-/
+theorem add_pow [comm_semiring α] (x y : α) (n : ℕ) :
+  (x + y) ^ n = (range (succ n)).sum (λ m, x ^ m * y ^ (n - m) * choose n m) :=
+(commute.all x y).add_pow n
 
 end binomial

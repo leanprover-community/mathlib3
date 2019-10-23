@@ -1,3 +1,8 @@
 *.olean
 /_target
 /leanpkg.path
+_cache
+__pycache__
+all.lean
+lint_mathlib.lean
+*.depend

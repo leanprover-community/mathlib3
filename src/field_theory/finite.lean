@@ -3,7 +3,7 @@ Copyright (c) 2018 Chris Hughes. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Chris Hughes
 -/
-import group_theory.order_of_element data.nat.totient data.polynomial data.equiv.algebra
+import group_theory.order_of_element data.polynomial data.equiv.algebra
 
 universes u v
 variables {α : Type u} {β : Type v}
@@ -29,19 +29,64 @@ end
 
 namespace finite_field
 
-def field_of_integral_domain [fintype α] [decidable_eq α] [integral_domain α] : 
+def field_of_integral_domain [fintype α] [decidable_eq α] [integral_domain α] :
   discrete_field α :=
 { has_decidable_eq := by apply_instance,
   inv := λ a, if h : a = 0 then 0
-    else fintype.bij_inv (show function.bijective (* a), 
+    else fintype.bij_inv (show function.bijective (* a),
       from fintype.injective_iff_bijective.1 $ λ _ _, (domain.mul_right_inj h).1) 1,
-  inv_mul_cancel := λ a ha, show dite _ _ _ * a = _, by rw dif_neg ha; 
+  inv_mul_cancel := λ a ha, show dite _ _ _ * a = _, by rw dif_neg ha;
     exact fintype.right_inverse_bij_inv (show function.bijective (* a), from _) 1,
-  mul_inv_cancel :=  λ a ha, show a * dite _ _ _ = _, by rw [dif_neg ha, mul_comm]; 
+  mul_inv_cancel :=  λ a ha, show a * dite _ _ _ = _, by rw [dif_neg ha, mul_comm];
     exact fintype.right_inverse_bij_inv (show function.bijective (* a), from _) 1,
   inv_zero := dif_pos rfl,
   ..show integral_domain α, by apply_instance }
 
+section polynomial
+
+variables [fintype α] [integral_domain α]
+
+open finset polynomial
+
+/-- The cardinality of a field is at most n times the cardinality of the image of a degree n
+  polnyomial -/
+lemma card_image_polynomial_eval [decidable_eq α] {p : polynomial α} (hp : 0 < p.degree) :
+  fintype.card α ≤ nat_degree p * (univ.image (λ x, eval x p)).card :=
+finset.card_le_mul_card_image _ _
+  (λ a _, calc _ = (p - C a).roots.card : congr_arg card
+    (by simp [finset.ext, mem_roots_sub_C hp, -sub_eq_add_neg])
+    ... ≤ _ : card_roots_sub_C' hp)
+
+/-- If `f` and `g` are quadratic polynomials, then the `f.eval a + g.eval b = 0` has a solution. -/
+lemma exists_root_sum_quadratic {f g : polynomial α} (hf2 : degree f = 2)
+  (hg2 : degree g = 2) (hα : fintype.card α % 2 = 1) : ∃ a b, f.eval a + g.eval b = 0 :=
+by letI := classical.dec_eq α; exact
+suffices ¬ disjoint (univ.image (λ x : α, eval x f)) (univ.image (λ x : α, eval x (-g))),
+begin
+  simp only [disjoint_left, mem_image] at this,
+  push_neg at this,
+  rcases this with ⟨x, ⟨a, _, ha⟩, ⟨b, _, hb⟩⟩,
+  exact ⟨a, b, by rw [ha, ← hb, eval_neg, neg_add_self]⟩
+end,
+assume hd : disjoint _ _,
+lt_irrefl (2 * ((univ.image (λ x : α, eval x f)) ∪ (univ.image (λ x : α, eval x (-g)))).card) $
+calc 2 * ((univ.image (λ x : α, eval x f)) ∪ (univ.image (λ x : α, eval x (-g)))).card
+    ≤ 2 * fintype.card α : nat.mul_le_mul_left _ (finset.card_le_of_subset (subset_univ _))
+... = fintype.card α + fintype.card α : two_mul _
+... < nat_degree f * (univ.image (λ x : α, eval x f)).card +
+      nat_degree (-g) * (univ.image (λ x : α, eval x (-g))).card :
+    add_lt_add_of_lt_of_le
+      (lt_of_le_of_ne
+        (card_image_polynomial_eval (by rw hf2; exact dec_trivial))
+        (mt (congr_arg (%2)) (by simp [nat_degree_eq_of_degree_eq_some hf2, hα])))
+      (card_image_polynomial_eval (by rw [degree_neg, hg2]; exact dec_trivial))
+... = 2 * (univ.image (λ x : α, eval x f) ∪ univ.image (λ x : α, eval x (-g))).card :
+  by rw [card_disjoint_union hd]; simp [nat_degree_eq_of_degree_eq_some hf2,
+    nat_degree_eq_of_degree_eq_some hg2, bit0, mul_add]
+
+end polynomial
+
+section
 variables [field α] [fintype α]
 
 instance [decidable_eq α] : fintype (units α) :=
@@ -74,5 +119,13 @@ from prod_involution (λ x _, x⁻¹) (by simp)
   (by simp),
 by rw [← insert_erase (mem_univ (-1 : units α)), prod_insert (not_mem_erase _ _),
     this, mul_one]
+
+end
+
+lemma pow_card_sub_one_eq_one [discrete_field α] [fintype α] (a : α) (ha : a ≠ 0) :
+  a ^ (fintype.card α - 1) = 1 :=
+calc a ^ (fintype.card α - 1) = (units.mk0 a ha ^ (fintype.card α - 1) : units α) :
+    by rw [units.coe_pow, units.mk0_val]
+  ... = 1 : by rw [← card_units, pow_card_eq_one]; refl
 
 end finite_field

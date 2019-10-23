@@ -7,7 +7,7 @@ A computable model of hereditarily finite sets with atoms
 (ZFA without infinity). This is useful for calculations in naive
 set theory.
 -/
-import tactic.interactive data.list.basic
+import tactic.interactive data.list.basic data.sigma
 
 variables {α : Type*}
 
@@ -240,7 +240,7 @@ local attribute [-simp] add_comm add_assoc
 open well_founded_tactics
 
 theorem sizeof_pos {b} (l : lists' α b) : 0 < sizeof l :=
-by cases l; {unfold_sizeof, trivial_nat_lt}
+by cases l; unfold_sizeof; trivial_nat_lt
 
 theorem lt_sizeof_cons' {b} (a : lists' α b) (l) :
   sizeof (⟨b, a⟩ : lists α) < sizeof (lists'.cons' a l) :=

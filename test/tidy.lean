@@ -1,7 +1,8 @@
--- Copyright (c) 2018 Scott Morrison. All rights reserved.
--- Released under Apache 2.0 license as described in the file LICENSE.
--- Authors: Scott Morrison
-
+/-
+Copyright (c) 2018 Scott Morrison. All rights reserved.
+Released under Apache 2.0 license as described in the file LICENSE.
+Authors: Scott Morrison
+-/
 import tactic.tidy
 
 open tactic
@@ -17,7 +18,7 @@ begin
   induction x,
   refl
 end
-def tidy_test_1 (a : string): ∀ x : unit, x = unit.star :=
+def tidy_test_1 (a : string) : ∀ x : unit, x = unit.star :=
 begin
   tidy -- intros x, exact dec_trivial
 end

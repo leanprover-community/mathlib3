@@ -11,10 +11,21 @@ universes u v w
 variables {α : Type*} {β : Type*} {γ : Type*}
   {r : α → α → Prop} {s : β → β → Prop} {t : γ → γ → Prop}
 
+/-- An increasing function is injective -/
+lemma injective_of_increasing (r : α → α → Prop) (s : β → β → Prop) [is_trichotomous α r]
+  [is_irrefl β s] (f : α → β) (hf : ∀{x y}, r x y → s (f x) (f y)) : injective f :=
+begin
+  intros x y hxy,
+  rcases trichotomous_of r x y with h | h | h,
+  have := hf h, rw hxy at this, exfalso, exact irrefl_of s (f y) this,
+  exact h,
+  have := hf h, rw hxy at this, exfalso, exact irrefl_of s (f y) this
+end
+
 structure order_embedding {α β : Type*} (r : α → α → Prop) (s : β → β → Prop) extends α ↪ β :=
 (ord : ∀ {a b}, r a b ↔ s (to_embedding a) (to_embedding b))
 
-infix ` ≼o `:50 := order_embedding
+infix ` ≼o `:25 := order_embedding
 
 /-- the induced order on a subtype is an embedding under the natural inclusion. -/
 definition subtype.order_embedding {X : Type*} (r : X → X → Prop) (p : X → Prop) :
@@ -137,7 +148,7 @@ def lt_embedding_of_le_embedding [preorder α] [preorder β]
   inj := f.inj,
   ord := by intros; simp [lt_iff_le_not_le,f.ord] }
 
-theorem nat_lt [is_strict_order α r] (f : ℕ → α) (H : ∀ n:ℕ, r (f n) (f (n+1))) :
+def nat_lt [is_strict_order α r] (f : ℕ → α) (H : ∀ n:ℕ, r (f n) (f (n+1))) :
   ((<) : ℕ → ℕ → Prop) ≼o r :=
 of_monotone f $ λ a b h, begin
   induction b with b IH, {exact (nat.not_lt_zero _ h).elim},
@@ -146,11 +157,12 @@ of_monotone f $ λ a b h, begin
   { subst b, apply H }
 end
 
-theorem nat_gt [is_strict_order α r] (f : ℕ → α) (H : ∀ n:ℕ, r (f (n+1)) (f n)) :
+def nat_gt [is_strict_order α r] (f : ℕ → α) (H : ∀ n:ℕ, r (f (n+1)) (f n)) :
   ((>) : ℕ → ℕ → Prop) ≼o r :=
 by haveI := is_strict_order.swap r; exact rsymm (nat_lt f H)
 
-theorem well_founded_iff_no_descending_seq [is_strict_order α r] : well_founded r ↔ ¬ nonempty (((>) : ℕ → ℕ → Prop) ≼o r) :=
+theorem well_founded_iff_no_descending_seq [is_strict_order α r] :
+  well_founded r ↔ ¬ nonempty (((>) : ℕ → ℕ → Prop) ≼o r) :=
 ⟨λ ⟨h⟩ ⟨⟨f, o⟩⟩,
   suffices ∀ a, acc r a → ∀ n, a ≠ f n, from this (f 0) (h _) 0 rfl,
   λ a ac, begin
@@ -184,7 +196,7 @@ instance fin.lt.is_well_order (n) : is_well_order (fin n) (<) :=
 structure order_iso {α β : Type*} (r : α → α → Prop) (s : β → β → Prop) extends α ≃ β :=
 (ord : ∀ {a b}, r a b ↔ s (to_equiv a) (to_equiv b))
 
-infix ` ≃o `:50 := order_iso
+infix ` ≃o `:25 := order_iso
 
 namespace order_iso
 
@@ -194,9 +206,13 @@ def to_order_embedding (f : r ≃o s) : r ≼o s :=
 instance : has_coe (r ≃o s) (r ≼o s) := ⟨to_order_embedding⟩
 
 theorem coe_coe_fn (f : r ≃o s) : ((f : r ≼o s) : α → β) = f := rfl
+@[simp] lemma to_equiv_to_fun (f : r ≃o s) (x : α) : f.to_equiv.to_fun x = f x := rfl
 
 theorem ord' : ∀ (f : r ≃o s) {a b}, r a b ↔ s (f a) (f b)
 | ⟨f, o⟩ := @o
+
+lemma ord'' {r : α → α → Prop} {s : β → β → Prop} (f : r ≃o s) {x y : α} :
+    r x y ↔ s ((↑f : r ≼o s) x) ((↑f : r ≼o s) y) := f.ord'
 
 @[simp] theorem coe_fn_mk (f : α ≃ β) (o) :
   (@order_iso.mk _ _ r s f o : α → β) = f := rfl
@@ -224,10 +240,10 @@ rfl
 @[simp] theorem trans_apply : ∀ (f : r ≃o s) (g : s ≃o t) (a : α), (f.trans g) a = g (f a)
 | ⟨f₁, o₁⟩ ⟨f₂, o₂⟩ a := equiv.trans_apply _ _ _
 
-@[simp] theorem apply_inverse_apply : ∀ (e : r ≃o s) (x : β), e (e.symm x) = x
+@[simp] theorem apply_symm_apply : ∀ (e : r ≃o s) (x : β), e (e.symm x) = x
 | ⟨f₁, o₁⟩ x := by simp
 
-@[simp] theorem inverse_apply_apply : ∀ (e : r ≃o s) (x : α), e.symm (e x) = x
+@[simp] theorem symm_apply_apply : ∀ (e : r ≃o s) (x : α), e.symm (e x) = x
 | ⟨f₁, o₁⟩ x := by simp
 
 /-- Any equivalence lifts to an order isomorphism between `s` and its preimage. -/
@@ -239,14 +255,14 @@ noncomputable def of_surjective (f : r ≼o s) (H : surjective f) : r ≃o s :=
 @[simp] theorem of_surjective_coe (f : r ≼o s) (H) : (of_surjective f H : α → β) = f :=
 by delta of_surjective; simp
 
-theorem sum_lex_congr {α₁ α₂ β₁ β₂ r₁ r₂ s₁ s₂}
+def sum_lex_congr {α₁ α₂ β₁ β₂ r₁ r₂ s₁ s₂}
   (e₁ : @order_iso α₁ α₂ r₁ r₂) (e₂ : @order_iso β₁ β₂ s₁ s₂) :
   sum.lex r₁ s₁ ≃o sum.lex r₂ s₂ :=
 ⟨equiv.sum_congr e₁.to_equiv e₂.to_equiv, λ a b,
  by cases e₁ with f hf; cases e₂ with g hg;
     cases a; cases b; simp [hf, hg]⟩
 
-theorem prod_lex_congr {α₁ α₂ β₁ β₂ r₁ r₂ s₁ s₂}
+def prod_lex_congr {α₁ α₂ β₁ β₂ r₁ r₂ s₁ s₂}
   (e₁ : @order_iso α₁ α₂ r₁ r₂) (e₂ : @order_iso β₁ β₂ s₁ s₂) :
   prod.lex r₁ s₁ ≃o prod.lex r₂ s₂ :=
 ⟨equiv.prod_congr e₁.to_equiv e₂.to_equiv,  λ a b, begin
@@ -261,7 +277,7 @@ theorem prod_lex_congr {α₁ α₂ β₁ β₂ r₁ r₂ s₁ s₂}
   { generalize e : f b₁ = fb₁,
     intro h, cases h with _ _ _ _ h _ _ _ h,
     { subst e, left, exact hf.2 h },
-    { have := f.bijective.1 e, subst b₁,
+    { have := f.injective e, subst b₁,
       right, exact hg.2 h } }
 end⟩
 

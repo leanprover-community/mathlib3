@@ -11,7 +11,7 @@ Case bashing on natural numbers.
 `nat_cases n`
 1) inspects hypotheses looking for "easy" upper and lower bounds on `n`,
 2) calls `nat_cases a ≤ n < b` with appropriate values of `a` and `b`,
-3) call `linarith` to discharge the `n < a` and `n ≥ b` cases.
+3) calls `linarith` to discharge the `n < a` and `n ≥ b` cases.
 -/
 import tactic.fin_cases
 import tactic.linarith
@@ -76,8 +76,8 @@ do nlb ← try_core $ gives_lower_bound n e,
 
 meta def get_bounds (n : expr) : tactic (ℕ × expr × ℕ × expr) :=
 do
-  -- TODO start with `n ≥ 0` as a lower bound.
-  let initial_bounds : option (ℕ × expr) × option (ℕ × expr) := (some (0, sorry), none),
+  zero_le ← to_expr ``(zero_le %%n),
+  let initial_bounds : option (ℕ × expr) × option (ℕ × expr) := (some (0, zero_le), none),
   lc ← local_context,
   r ← lc.mfoldl (update_bounds n) initial_bounds,
   match r with
@@ -98,10 +98,32 @@ do n ← get_local n,
    (guard use_linarith >> `[linarith]) <|> rotate_left 1,
    fin_cases_at none h₄
 
+meta def nat_cases (n : expr) : tactic unit :=
+do
+(a, a_prf, b, b_prf) ← get_bounds n,
+    trace a,
+    trace b,
+   v ← to_expr ``(nat.Ico_trichotomy %%n %%`(a) %%`(b)),
+   t ← infer_type v,
+   h ← assertv `h t v,
+
+   [(_, [h₁], _), (_, [h₂], _)] ← cases_core h,
+   target >>= trace,
+   exact a_prf,
+  --  g ← by_contradiction,
+  --  linarith.prove_false_by_linarith {} none [a_prf, b_prf, g] <|> rotate_left 1,
+   [(_, [h₃], _), (_, [h₄], _)] ← cases_core h₂,
+   target >>= trace,
+   exact b_prf,
+  --  g ← by_contradiction,
+  --  linarith.prove_false_by_linarith {} none [a_prf, b_prf, g] <|> rotate_left 1,
+   fin_cases_at none h₄
+
+
 namespace interactive
 
 meta def nat_cases : parse texpr → tactic unit
-| e := nat_cases_ineq `n 3 7 ff
+| e := to_expr e >>= tactic.nat_cases
 
 end interactive
 

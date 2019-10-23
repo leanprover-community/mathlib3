@@ -9,7 +9,7 @@ Parts of the formalization are based on "Ultrafilters and Topology"
 by Marius Stekelenburg, particularly section 5.
 -/
 
-import topology.continuity
+import topology.bases topology.dense_embedding
 
 noncomputable theory
 
@@ -23,7 +23,7 @@ section ultrafilter
 
 /-- Basis for the topology on `ultrafilter α`. -/
 def ultrafilter_basis (α : Type u) : set (set (ultrafilter α)) :=
-{t | ∃ (s : set α), t = {u | s ∈ u.val.sets}}
+{t | ∃ (s : set α), t = {u | s ∈ u.val}}
 
 variables {α : Type u}
 
@@ -43,12 +43,12 @@ lemma ultrafilter_basis_is_basis :
 
 /-- The basic open sets for the topology on ultrafilters are open. -/
 lemma ultrafilter_is_open_basic (s : set α) :
-  is_open {u : ultrafilter α | s ∈ u.val.sets} :=
+  is_open {u : ultrafilter α | s ∈ u.val} :=
 topological_space.is_open_of_is_topological_basis ultrafilter_basis_is_basis ⟨s, rfl⟩
 
 /-- The basic open sets for the topology on ultrafilters are also closed. -/
 lemma ultrafilter_is_closed_basic (s : set α) :
-  is_closed {u : ultrafilter α | s ∈ u.val.sets} :=
+  is_closed {u : ultrafilter α | s ∈ u.val} :=
 begin
   change is_open (- _),
   convert ultrafilter_is_open_basic (-s),
@@ -62,7 +62,7 @@ lemma ultrafilter_converges_iff {u : ultrafilter (ultrafilter α)} {x : ultrafil
   u.val ≤ nhds x ↔ x = mjoin u :=
 begin
   rw [eq_comm, ultrafilter.eq_iff_val_le_val],
-  change u.val ≤ nhds x ↔ x.val.sets ⊆ {a | {v : ultrafilter α | a ∈ v.val.sets} ∈ u.val.sets},
+  change u.val ≤ nhds x ↔ x.val.sets ⊆ {a | {v : ultrafilter α | a ∈ v.val} ∈ u.val},
   simp only [topological_space.nhds_generate_from, lattice.le_infi_iff, ultrafilter_basis,
     le_principal_iff],
   split; intro h,
@@ -86,7 +86,7 @@ begin
   simp only [comap_infi, comap_principal],
   intros s hs,
   rw ←le_principal_iff,
-  refine lattice.infi_le_of_le {u | s ∈ u.val.sets} _,
+  refine lattice.infi_le_of_le {u | s ∈ u.val} _,
   refine lattice.infi_le_of_le ⟨hs, ⟨s, rfl⟩⟩ _,
   rw principal_mono,
   intros a ha,
@@ -98,26 +98,31 @@ section embedding
 lemma ultrafilter_pure_injective : function.injective (pure : α → ultrafilter α) :=
 begin
   intros x y h,
-  have : {x} ∈ (pure x : ultrafilter α).val.sets := singleton_mem_pure_sets,
+  have : {x} ∈ (pure x : ultrafilter α).val := singleton_mem_pure_sets,
   rw h at this,
   exact (mem_singleton_iff.mp (mem_pure_sets.mp this)).symm
 end
 
 open topological_space
 
-/-- `pure : α → ultrafilter α` defines a dense embedding of `α` in `ultrafilter α`. -/
-lemma dense_embedding_pure : @dense_embedding _ _ ⊤ _ (pure : α → ultrafilter α) :=
-by letI : topological_space α := ⊤; exact
-dense_embedding.mk' pure continuous_top
+/-- `pure : α → ultrafilter α` defines a dense inducing of `α` in `ultrafilter α`. -/
+lemma dense_inducing_pure : @dense_inducing _ _ ⊥ _ (pure : α → ultrafilter α) :=
+by letI : topological_space α := ⊥; exact
+dense_inducing.mk' pure continuous_bot
   (assume x, mem_closure_iff_ultrafilter.mpr
      ⟨x.map ultrafilter.pure, range_mem_map,
       ultrafilter_converges_iff.mpr (bind_pure x).symm⟩)
-  ultrafilter_pure_injective
   (assume a s as,
-     ⟨{u | s ∈ u.val.sets},
+     ⟨{u | s ∈ u.val},
       mem_nhds_sets (ultrafilter_is_open_basic s) (mem_pure_sets.mpr (mem_of_nhds as)),
       assume b hb, mem_pure_sets.mp hb⟩)
 
+-- The following refined version will never be used
+
+/-- `pure : α → ultrafilter α` defines a dense embedding of `α` in `ultrafilter α`. -/
+lemma dense_embedding_pure : @dense_embedding _ _ ⊥ _ (pure : α → ultrafilter α) :=
+by letI : topological_space α := ⊥ ;
+exact { inj := ultrafilter_pure_injective, ..dense_inducing_pure }
 end embedding
 
 section extension
@@ -132,12 +137,18 @@ variables {γ : Type*} [topological_space γ]
 /-- The extension of a function `α → γ` to a function `ultrafilter α → γ`.
   When `γ` is a compact Hausdorff space it will be continuous. -/
 def ultrafilter.extend (f : α → γ) : ultrafilter α → γ :=
-by letI : topological_space α := ⊤; exact dense_embedding_pure.extend f
+by letI : topological_space α := ⊥; exact dense_inducing_pure.extend f
+
+variables [t2_space γ]
 
 lemma ultrafilter_extend_extends (f : α → γ) : ultrafilter.extend f ∘ pure = f :=
-by letI : topological_space α := ⊤; exact funext dense_embedding_pure.extend_e_eq
+begin
+  letI : topological_space α := ⊥,
+  letI : discrete_topology α := ⟨rfl⟩,
+  exact funext (dense_inducing_pure.extend_eq_of_cont continuous_of_discrete_topology)
+end
 
-variables [t2_space γ] [compact_space γ]
+variables  [compact_space γ]
 
 lemma continuous_ultrafilter_extend (f : α → γ) : continuous (ultrafilter.extend f) :=
 have ∀ (b : ultrafilter α), ∃ c, tendsto f (comap ultrafilter.pure (nhds b)) (nhds c) := assume b,
@@ -146,9 +157,9 @@ have ∀ (b : ultrafilter α), ∃ c, tendsto f (comap ultrafilter.pure (nhds b)
     (by rw [le_principal_iff]; exact univ_mem_sets) in
   ⟨c, le_trans (map_mono (ultrafilter_comap_pure_nhds _)) h⟩,
 begin
-  letI : topological_space α := ⊤,
+  letI : topological_space α := ⊥,
   letI : normal_space γ := normal_of_compact_t2,
-  exact dense_embedding_pure.continuous_extend this
+  exact dense_inducing_pure.continuous_extend this
 end
 
 /-- The value of `ultrafilter.extend f` on an ultrafilter `b` is the
@@ -168,8 +179,8 @@ lemma ultrafilter_extend_eq_iff {f : α → γ} {b : ultrafilter α} {c : γ} :
    rw ultrafilter_extend_extends,
    exact le_refl _
  end,
- assume h, by letI : topological_space α := ⊤; exact
-   dense_embedding_pure.extend_eq (le_trans (map_mono (ultrafilter_comap_pure_nhds _)) h)⟩
+ assume h, by letI : topological_space α := ⊥; exact
+   dense_inducing_pure.extend_eq (le_trans (map_mono (ultrafilter_comap_pure_nhds _)) h)⟩
 
 end extension
 
@@ -208,7 +219,7 @@ def stone_cech_unit (x : α) : stone_cech α := ⟦pure x⟧
   not be an embedding, for example if α is not Hausdorff.) -/
 lemma stone_cech_unit_dense : closure (range (@stone_cech_unit α _)) = univ :=
 begin
-  convert quotient_dense_of_dense (eq_univ_iff_forall.mp dense_embedding_pure.closure_range),
+  convert quotient_dense_of_dense (eq_univ_iff_forall.mp dense_inducing_pure.closure_range),
   rw [←range_comp], refl
 end
 
@@ -257,12 +268,13 @@ begin
   apply quotient.sound,
   intros γ tγ h₁ h₂ f hf,
   resetI,
-  change stone_cech_extend hf ⟦x⟧ = stone_cech_extend hf ⟦y⟧,
-  refine tendsto_nhds_unique u.1 _ _,
-  { exact stone_cech_extend hf },
-  all_goals
-  { refine le_trans (map_mono _) ((continuous_stone_cech_extend hf).tendsto _),
-    assumption }
+  let ff := stone_cech_extend hf,
+  change ff ⟦x⟧ = ff ⟦y⟧,
+  have lim : ∀ z : ultrafilter α, g ≤ nhds ⟦z⟧ → tendsto ff g (nhds (ff ⟦z⟧)) :=
+  assume z gz,
+    calc map ff g ≤ map ff (nhds ⟦z⟧) : map_mono gz
+              ... ≤ nhds (ff ⟦z⟧) : (continuous_stone_cech_extend hf).tendsto _,
+  exact tendsto_nhds_unique u.1 (lim x gx) (lim y gy)
 end
 
 instance stone_cech.compact_space : compact_space (stone_cech α) :=

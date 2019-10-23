@@ -1,5 +1,6 @@
 import tactic data.stream.basic data.set.basic data.finset data.multiset
        category.traversable.derive
+
 open tactic
 
 universe u
@@ -113,6 +114,15 @@ begin
   trivial
 end
 
+-- Test `simp only [exists_prop]` gets applied after choosing.
+-- Because of this simp, we need a non-rfl goal
+example (h : ∀ n, ∃ k ≥ 0, n = k) : ∀ x : ℕ, 1 = 1 :=
+begin
+  choose u hu using h,
+  guard_hyp hu := ∀ n, u n ≥ 0 ∧ n = u n,
+  intro, refl
+end
+
 /- refine_struct -/
 section refine_struct
 
@@ -129,6 +139,34 @@ begin
 end
 
 end refine_struct
+
+meta example : true :=
+begin
+   success_if_fail { let := compact_relation },
+   trivial
+end
+
+import_private compact_relation from tactic.coinduction
+
+meta example : true :=
+begin
+  let := compact_relation,
+  trivial
+end
+
+meta example : true :=
+begin
+   success_if_fail { let := elim_gen_sum_aux },
+   trivial
+end
+
+import_private elim_gen_sum_aux
+
+meta example : true :=
+begin
+  let := elim_gen_sum_aux,
+  trivial
+end
 
 /- traversable -/
 open tactic.interactive
@@ -167,3 +205,25 @@ meta structure meta_struct (α : Type u) : Type u :=
   (z : list α)
   (k : list (list α))
   (w : expr)
+
+/- tests of has_sep on finset -/
+
+
+example {α} (s : finset α) (p : α → Prop) [decidable_pred p] : {x ∈ s | p x} = s.filter p :=
+by simp
+
+example {α} (s : finset α) (p : α → Prop) [decidable_pred p] :
+  {x ∈ s | p x} = @finset.filter α p (λ _, classical.prop_decidable _) s :=
+by simp
+
+section
+open_locale classical
+
+example {α} (s : finset α) (p : α → Prop) : {x ∈ s | p x} = s.filter p :=
+by simp
+
+example (n m k : ℕ) : {x ∈ finset.range n | x < m ∨ x < k } =
+  {x ∈ finset.range n | x < m } ∪ {x ∈ finset.range n | x < k } :=
+by simp [finset.filter_or]
+
+end

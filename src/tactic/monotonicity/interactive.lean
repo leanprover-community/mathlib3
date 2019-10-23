@@ -1,4 +1,8 @@
-
+/-
+Copyright (c) 2019 Simon Hudon. All rights reserved.
+Released under Apache 2.0 license as described in the file LICENSE.
+Author: Simon Hudon
+-/
 import tactic.monotonicity.basic
 import category.basic
 import category.traversable
@@ -6,7 +10,7 @@ import category.traversable.derive
 
 import data.dlist
 import logic.basic
-import tactic.basic
+import tactic.core
 
 variables {a b c p : Prop}
 
@@ -375,7 +379,7 @@ meta def find_rule (ls : list name) : mono_law → tactic (list expr)
 
 universes u v
 
-lemma apply_rel {α : Sort u} (R : α → α → Sort v) {x y : α}
+def apply_rel {α : Sort u} (R : α → α → Sort v) {x y : α}
   (x' y' : α)
   (h : R x y)
   (hx : x = x')

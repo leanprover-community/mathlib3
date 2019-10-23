@@ -1,19 +1,21 @@
 /-
 Copyright (c) 2018 Mario Carneiro. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Authors: Mario Carneiro
+Authors: Mario Carneiro, Floris van Doorn
 
 The (classical) real numbers ℝ. This is a direct construction
 from Cauchy sequences.
 -/
 import order.conditionally_complete_lattice data.real.cau_seq_completion
-  algebra.big_operators algebra.archimedean order.bounds
+  algebra.archimedean order.bounds
 
 def real := @cau_seq.completion.Cauchy ℚ _ _ _ abs _
 notation `ℝ` := real
 
 namespace real
 open cau_seq cau_seq.completion
+
+variables {x y : ℝ}
 
 def of_rat (x : ℚ) : ℝ := of_rat x
 
@@ -120,7 +122,7 @@ instance : ordered_cancel_comm_monoid ℝ := by apply_instance
 instance : ordered_comm_monoid ℝ        := by apply_instance
 instance : domain ℝ                     := by apply_instance
 
-local attribute [instance] classical.prop_decidable
+open_locale classical
 
 noncomputable instance : discrete_linear_ordered_field ℝ :=
 { decidable_le := by apply_instance,
@@ -157,7 +159,7 @@ open rat
 @[simp] theorem of_rat_eq_cast : ∀ x : ℚ, of_rat x = x :=
 eq_cast of_rat rfl of_rat_add of_rat_mul
 
-theorem le_mk_of_forall_le {x : ℝ} {f : cau_seq ℚ abs} :
+theorem le_mk_of_forall_le {f : cau_seq ℚ abs} :
   (∃ i, ∀ j ≥ i, x ≤ f j) → x ≤ mk f :=
 quotient.induction_on x $ λ g h, le_of_not_lt $
 λ ⟨K, K0, hK⟩,
@@ -285,9 +287,13 @@ theorem Sup_le (S : set ℝ) (h₁ : ∃ x, x ∈ S) (h₂ : ∃ x, ∀ y ∈ S,
 by simp [Sup, h₁, h₂]; exact
 classical.some_spec (exists_sup S h₁ h₂) y
 
+section
+-- this proof times out without this
+local attribute [instance, priority 1000] classical.prop_decidable
 theorem lt_Sup (S : set ℝ) (h₁ : ∃ x, x ∈ S) (h₂ : ∃ x, ∀ y ∈ S, y ≤ x)
   {y} : y < Sup S ↔ ∃ z ∈ S, y < z :=
 by simpa [not_forall] using not_congr (@Sup_le S h₁ h₂ y)
+end
 
 theorem le_Sup (S : set ℝ) (h₂ : ∃ x, ∀ y ∈ S, y ≤ x) {x} (xS : x ∈ S) : x ≤ Sup S :=
 (Sup_le S ⟨_, xS⟩ h₂).1 (le_refl _) _ xS
@@ -313,9 +319,13 @@ begin
   { exact le_neg.2 (H _ hz) }
 end
 
+section
+-- this proof times out without this
+local attribute [instance, priority 1000] classical.prop_decidable
 theorem Inf_lt (S : set ℝ) (h₁ : ∃ x, x ∈ S) (h₂ : ∃ x, ∀ y ∈ S, x ≤ y)
   {y} : Inf S < y ↔ ∃ z ∈ S, z < y :=
 by simpa [not_forall] using not_congr (@le_Inf S h₁ h₂ y)
+end
 
 theorem Inf_le (S : set ℝ) (h₂ : ∃ x, ∀ y ∈ S, x ≤ y) {x} (xS : x ∈ S) : Inf S ≤ x :=
 (le_Inf S ⟨_, xS⟩ h₂).1 (le_refl _) _ xS
@@ -352,6 +362,10 @@ theorem Sup_empty : lattice.Sup (∅ : set ℝ) = 0 := dif_neg $ by simp
 
 theorem Sup_of_not_bdd_above {s : set ℝ} (hs : ¬ bdd_above s) : lattice.Sup s = 0 :=
 dif_neg $ assume h, hs h.2
+
+theorem Sup_univ : real.Sup set.univ = 0 :=
+real.Sup_of_not_bdd_above $ λ h,
+Exists.dcases_on h $ λ x h', not_le_of_lt (lt_add_one _) $ h' (x + 1) $ set.mem_univ _
 
 theorem Inf_empty : lattice.Inf (∅ : set ℝ) = 0 :=
 show Inf ∅ = 0, by simp [Inf]; exact Sup_empty
@@ -473,29 +487,29 @@ classical.some_spec (sqrt_exists (le_max_left 0 x))
 /-quotient.induction_on x $ λ f,
 by rcases sqrt_aux_converges f with ⟨hf, _, x0, xf, rfl⟩; exact ⟨x0, xf⟩-/
 
-theorem sqrt_eq_zero_of_nonpos {x : ℝ} (h : x ≤ 0) : sqrt x = 0 :=
+theorem sqrt_eq_zero_of_nonpos (h : x ≤ 0) : sqrt x = 0 :=
 eq_zero_of_mul_self_eq_zero $ (sqrt_prop x).2.trans $ max_eq_left h
 
 theorem sqrt_nonneg (x : ℝ) : 0 ≤ sqrt x := (sqrt_prop x).1
 
-@[simp] theorem mul_self_sqrt {x : ℝ} (h : 0 ≤ x) : sqrt x * sqrt x = x :=
+@[simp] theorem mul_self_sqrt (h : 0 ≤ x) : sqrt x * sqrt x = x :=
 (sqrt_prop x).2.trans (max_eq_right h)
 
-@[simp] theorem sqrt_mul_self {x : ℝ} (h : 0 ≤ x) : sqrt (x * x) = x :=
+@[simp] theorem sqrt_mul_self (h : 0 ≤ x) : sqrt (x * x) = x :=
 (mul_self_inj_of_nonneg (sqrt_nonneg _) h).1 (mul_self_sqrt (mul_self_nonneg _))
 
-theorem sqrt_eq_iff_mul_self_eq {x y : ℝ} (hx : 0 ≤ x) (hy : 0 ≤ y) :
+theorem sqrt_eq_iff_mul_self_eq (hx : 0 ≤ x) (hy : 0 ≤ y) :
   sqrt x = y ↔ y * y = x :=
 ⟨λ h, by rw [← h, mul_self_sqrt hx],
  λ h, by rw [← h, sqrt_mul_self hy]⟩
 
-@[simp] theorem sqr_sqrt {x : ℝ} (h : 0 ≤ x) : sqrt x ^ 2 = x :=
+@[simp] theorem sqr_sqrt (h : 0 ≤ x) : sqrt x ^ 2 = x :=
 by rw [pow_two, mul_self_sqrt h]
 
-@[simp] theorem sqrt_sqr {x : ℝ} (h : 0 ≤ x) : sqrt (x ^ 2) = x :=
+@[simp] theorem sqrt_sqr (h : 0 ≤ x) : sqrt (x ^ 2) = x :=
 by rw [pow_two, sqrt_mul_self h]
 
-theorem sqrt_eq_iff_sqr_eq {x y : ℝ} (hx : 0 ≤ x) (hy : 0 ≤ y) :
+theorem sqrt_eq_iff_sqr_eq (hx : 0 ≤ x) (hy : 0 ≤ y) :
   sqrt x = y ↔ y ^ 2 = x :=
 by rw [pow_two, sqrt_eq_iff_mul_self_eq hx hy]
 
@@ -514,25 +528,63 @@ by simpa using sqrt_mul_self (le_refl _)
 @[simp] theorem sqrt_one : sqrt 1 = 1 :=
 by simpa using sqrt_mul_self zero_le_one
 
-@[simp] theorem sqrt_le {x y : ℝ} (hx : 0 ≤ x) (hy : 0 ≤ y) : sqrt x ≤ sqrt y ↔ x ≤ y :=
+@[simp] theorem sqrt_le (hx : 0 ≤ x) (hy : 0 ≤ y) : sqrt x ≤ sqrt y ↔ x ≤ y :=
 by rw [mul_self_le_mul_self_iff (sqrt_nonneg _) (sqrt_nonneg _),
        mul_self_sqrt hx, mul_self_sqrt hy]
 
-@[simp] theorem sqrt_lt {x y : ℝ} (hx : 0 ≤ x) (hy : 0 ≤ y) : sqrt x < sqrt y ↔ x < y :=
+@[simp] theorem sqrt_lt (hx : 0 ≤ x) (hy : 0 ≤ y) : sqrt x < sqrt y ↔ x < y :=
 lt_iff_lt_of_le_iff_le (sqrt_le hy hx)
 
-@[simp] theorem sqrt_inj {x y : ℝ} (hx : 0 ≤ x) (hy : 0 ≤ y) : sqrt x = sqrt y ↔ x = y :=
+lemma sqrt_le_sqrt (h : x ≤ y) : sqrt x ≤ sqrt y :=
+begin
+  rw [mul_self_le_mul_self_iff (sqrt_nonneg _) (sqrt_nonneg _), (sqrt_prop _).2, (sqrt_prop _).2],
+  exact max_le_max (le_refl _) h
+end
+
+lemma sqrt_le_left (hy : 0 ≤ y) : sqrt x ≤ y ↔ x ≤ y ^ 2 :=
+begin
+  rw [mul_self_le_mul_self_iff (sqrt_nonneg _) hy, pow_two],
+  cases le_total 0 x with hx hx,
+  { rw [mul_self_sqrt hx] },
+  { have h1 : 0 ≤ y * y := mul_nonneg hy hy,
+    have h2 : x ≤ y * y := le_trans hx h1,
+    simp [sqrt_eq_zero_of_nonpos, hx, h1, h2] }
+end
+
+/- note: if you want to conclude `x ≤ sqrt y`, then use `le_sqrt_of_sqr_le`.
+   if you have `x > 0`, consider using `le_sqrt'` -/
+lemma le_sqrt (hx : 0 ≤ x) (hy : 0 ≤ y) : x ≤ sqrt y ↔ x ^ 2 ≤ y :=
+by rw [mul_self_le_mul_self_iff hx (sqrt_nonneg _), pow_two, mul_self_sqrt hy]
+
+lemma le_sqrt' (hx : 0 < x) : x ≤ sqrt y ↔ x ^ 2 ≤ y :=
+begin
+  rw [mul_self_le_mul_self_iff (le_of_lt hx) (sqrt_nonneg _), pow_two],
+  cases le_total 0 y with hy hy,
+  { rw [mul_self_sqrt hy] },
+  { have h1 : 0 < x * x := mul_pos hx hx,
+    have h2 : ¬x * x ≤ y := not_le_of_lt (lt_of_le_of_lt hy h1),
+    simp [sqrt_eq_zero_of_nonpos, hy, h1, h2] }
+end
+
+lemma le_sqrt_of_sqr_le (h : x ^ 2 ≤ y) : x ≤ sqrt y :=
+begin
+  cases lt_or_ge 0 x with hx hx,
+  { rwa [le_sqrt' hx] },
+  { exact le_trans hx (sqrt_nonneg y) }
+end
+
+@[simp] theorem sqrt_inj (hx : 0 ≤ x) (hy : 0 ≤ y) : sqrt x = sqrt y ↔ x = y :=
 by simp [le_antisymm_iff, hx, hy]
 
-@[simp] theorem sqrt_eq_zero {x : ℝ} (h : 0 ≤ x) : sqrt x = 0 ↔ x = 0 :=
+@[simp] theorem sqrt_eq_zero (h : 0 ≤ x) : sqrt x = 0 ↔ x = 0 :=
 by simpa using sqrt_inj h (le_refl _)
 
-theorem sqrt_eq_zero' {x : ℝ} : sqrt x = 0 ↔ x ≤ 0 :=
+theorem sqrt_eq_zero' : sqrt x = 0 ↔ x ≤ 0 :=
 (le_total x 0).elim
   (λ h, by simp [h, sqrt_eq_zero_of_nonpos])
   (λ h, by simp [h]; simp [le_antisymm_iff, h])
 
-@[simp] theorem sqrt_pos {x : ℝ} : 0 < sqrt x ↔ 0 < x :=
+@[simp] theorem sqrt_pos : 0 < sqrt x ↔ 0 < x :=
 lt_iff_lt_of_le_iff_le (iff.trans
   (by simp [le_antisymm_iff, sqrt_nonneg]) sqrt_eq_zero')
 
@@ -546,7 +598,7 @@ begin
         sqrt_eq_zero'.2 hx, zero_mul] }
 end
 
-@[simp] theorem sqrt_mul {x : ℝ} (hx : 0 ≤ x) (y : ℝ) : sqrt (x * y) = sqrt x * sqrt y :=
+@[simp] theorem sqrt_mul (hx : 0 ≤ x) (y : ℝ) : sqrt (x * y) = sqrt x * sqrt y :=
 by rw [mul_comm, sqrt_mul' _ hx, mul_comm]
 
 @[simp] theorem sqrt_inv (x : ℝ) : sqrt x⁻¹ = (sqrt x)⁻¹ :=
@@ -556,7 +608,7 @@ by rw [mul_comm, sqrt_mul' _ hx, mul_comm]
     ← mul_self_inj_of_nonneg (sqrt_nonneg _) (le_of_lt $ inv_pos $ sqrt_pos.2 h),
     mul_self_sqrt (le_of_lt $ inv_pos h), ← mul_inv', mul_self_sqrt (le_of_lt h)])
 
-@[simp] theorem sqrt_div {x : ℝ} (hx : 0 ≤ x) (y : ℝ) : sqrt (x / y) = sqrt x / sqrt y :=
+@[simp] theorem sqrt_div (hx : 0 ≤ x) (y : ℝ) : sqrt (x / y) = sqrt x / sqrt y :=
 by rw [division_def, sqrt_mul hx, sqrt_inv]; refl
 
 attribute [irreducible] real.le

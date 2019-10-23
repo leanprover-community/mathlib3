@@ -1572,7 +1572,7 @@ instance : has_div ordinal := ⟨ordinal.div⟩
 
 @[simp] theorem div_zero (a : ordinal) : a / 0 = 0 := dif_pos rfl
 
--- TODO This should be a theorem but Lean fails to synthesize the placeholder
+-- TODO(lint): This should be a theorem but Lean fails to synthesize the placeholder
 @[nolint] def div_def (a) {b : ordinal} (h : b ≠ 0) :
   a / b = omin {o | a < b * succ o} _ := dif_neg h
 

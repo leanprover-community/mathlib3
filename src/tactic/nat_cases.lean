@@ -120,19 +120,8 @@ Assuming an upper bound is found,
 `nat_cases` produces a separate case for each allowed value of `n`.
 -/
 meta def nat_cases (n : expr) : tactic unit :=
-do
-   (a, a_prf, b, b_prf) ← get_bounds n,
+do (a, a_prf, b, b_prf) ← get_bounds n,
    cases_of_bound a_prf b_prf
-  --  v ← to_expr ``(nat.Ico_trichotomy %%n %%`(a) %%`(b)),
-  --  t ← infer_type v,
-  --  h ← assertv `h t v,
-  --  [(_, [h₁], _), (_, [h₂], _)] ← cases_core h,
-  --  exfalso,
-  --  to_expr ``(not_lt_of_ge %%a_prf %%h₁) >>= exact,
-  --  [(_, [h₃], _), (_, [h₄], _)] ← cases_core h₂,
-  --  exfalso,
-  --  to_expr ``(not_lt_of_ge %%h₃ %%b_prf) >>= exact,
-  --  fin_cases_at none h₄
 
 namespace interactive
 

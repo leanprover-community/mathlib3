@@ -21,28 +21,6 @@ import data.nat.basic
 
 open list
 
-/--
-This is true reflexively, by the definition of `≤` on ℕ, but it's still useful to have,
-to convince Lean to change the syntactic type.
--/
-lemma nat.add_one_le_iff {a b : ℕ} : a + 1 ≤ b ↔ a < b := iff.refl _
-
-/--
-For any natural numbers n, a, and b, one of the following holds:
-1. n < a
-2. n ≥ b
-3. n ∈ Ico a b
--/
-lemma nat.Ico_trichotomy (n a b : ℕ) : n < a ∨ n ≥ b ∨ n ∈ Ico a b :=
-begin
-  by_cases h₁ : n < a,
-  { left, exact h₁ },
-  { right,
-    by_cases h₂ : n ∈ Ico a b,
-    { right, simp only [Ico.mem] at *, cases h₂, split; assumption },
-    { left,  simp only [Ico.mem, not_and, not_lt] at *, exact h₂ h₁ }}
-end
-
 namespace tactic
 open lean.parser
 open interactive interactive.types expr

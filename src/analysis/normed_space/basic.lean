@@ -378,9 +378,28 @@ end normed_field
 
 lemma real.norm_eq_abs (r : ℝ) : norm r = abs r := rfl
 
-
 @[simp] lemma norm_norm [normed_group α] (x : α) : ∥∥x∥∥ = ∥x∥ :=
 by rw [real.norm_eq_abs, abs_of_nonneg (norm_nonneg _)]
+
+instance : normed_ring ℤ :=
+{ norm := λ n, ∥(n : ℝ)∥,
+  norm_mul := λ m n, le_of_eq $ by simp only [norm, int.cast_mul, abs_mul],
+  dist_eq := λ m n, by simp only [int.dist_eq, norm, int.cast_sub] }
+
+@[elim_cast] lemma int.norm_cast_real (m : ℤ) : ∥(m : ℝ)∥ = ∥m∥ := rfl
+
+instance : normed_field ℚ :=
+{ norm := λ r, ∥(r : ℝ)∥,
+  norm_mul' := λ r₁ r₂, by simp only [norm, rat.cast_mul, abs_mul],
+  dist_eq := λ r₁ r₂, by simp only [rat.dist_eq, norm, rat.cast_sub] }
+
+instance : nondiscrete_normed_field ℚ :=
+{ non_trivial := ⟨2, by { unfold norm, rw abs_of_nonneg; norm_num }⟩ }
+
+@[elim_cast, simp] lemma rat.norm_cast_real (r : ℚ) : ∥(r : ℝ)∥ = ∥r∥ := rfl
+
+@[elim_cast, simp] lemma int.norm_cast_rat (m : ℤ) : ∥(m : ℚ)∥ = ∥m∥ :=
+by rw [← rat.norm_cast_real, ← int.norm_cast_real]; congr' 1; norm_cast
 
 section normed_space
 

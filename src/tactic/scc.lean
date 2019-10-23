@@ -23,6 +23,14 @@ namespace closure
 meta def mk_closure {α} : (closure → tactic α) → tactic α :=
 using_new_ref (expr_map.mk _)
 
+meta def to_tactic_format (cl : closure) : tactic format :=
+do m ← read_ref cl,
+   let l := m.to_list,
+   fmt ← l.mmap $ λ ⟨x,y,p⟩, pformat!"({x}, {y}) : {infer_type p}",
+   pure $ to_fmt fmt
+
+meta instance : has_to_tactic_format closure := ⟨ to_tactic_format ⟩
+
 meta def root' (cl : closure) : expr → tactic (expr × expr) | e :=
 do m ← read_ref cl,
    match m.find e with
@@ -56,6 +64,9 @@ do (r,p₀) ← root cl e₀,
    is_def_eq r r',
    p₁ ← mk_app ``iff.symm [p₁],
    mk_app ``iff.trans [p₀,p₁]
+
+meta def prove_impl (cl : closure) (e₀ e₁ : expr) : tactic expr :=
+cl.prove_eqv e₀ e₁ >>= iff_mp
 
 meta def is_eqv (cl : closure) (e₀ e₁ : expr) : tactic bool :=
 do (r,p₀) ← root cl e₀,
@@ -93,37 +104,43 @@ parameter g : expr_map (list $ expr × expr)
 parameter visit : ref $ expr_map bool
 parameter cl : closure
 
+meta def merge_path (path : list (expr × expr)) (e : expr) : tactic unit :=
+do p₀ ← cl.prove_impl e $ path.head.fst,
+   (_,ls) ← path.mmap_accuml (λ p p',
+     prod.mk <$> mk_mapp ``implies.trans [none,p'.1,none,p,p'.2] <*> pure p) p₀,
+   (_,rs) ← path.mmap_accumr (λ p p',
+     prod.mk <$> mk_mapp ``implies.trans [none,none,none,p.2,p'] <*> pure p') p₀,
+   ps ← mzip_with (λ p₀ p₁, mk_app ``iff.intro [p₀,p₁]) ls.tail rs.init,
+   ps.mmap' cl.merge
+
+meta def collapse' : list (expr × expr) → list (expr × expr) → expr → tactic unit
+| acc [] v := merge_path acc v
+| acc ((x,pr) :: xs) v :=
+  do b ← cl.is_eqv x v,
+     let acc' := (x,pr)::acc,
+     if b
+       then merge_path acc' v
+       else collapse' acc' xs v
+
+meta def collapse : list (expr × expr) → expr → tactic unit :=
+collapse' []
+
 meta def dfs_at :
-  expr ⊕ list (expr × expr × expr) →
-  tactic (option $ list (expr × expr) × expr × list (expr × expr × expr))
-| (sum.inl v) :=
+  list (expr × expr) →
+  expr →
+  tactic unit
+| vs v :=
 do m ← read_ref visit,
    match m.find v with
-   | (some tt) := pure none
-   | (some ff) :=
-     do es ← g.find v,
-        pure $ some ([],v,es.map (prod.mk v))
+   | (some tt) := pure ()
+   | (some ff) := collapse vs v
    | none :=
      do modify_ref visit $ λ m, m.insert v ff,
-        es ← g.find v,
-        x ← dfs_at (sum.inr $ es.map $ prod.mk v),
+        ns ← g.find v,
+        ns.mmap' $ λ ⟨w,e⟩, dfs_at ((v,e) :: vs) w,
         modify_ref visit $ λ m, m.insert v tt,
-        some (path,e,es') ← pure x | pure none,
-        if e = v then do
-          p₀ ← mk_mapp ``id [e],
-          (_,ls) ← path.mmap_accuml (λ p p',
-            prod.mk <$> mk_mapp ``implies.trans [none,p'.1,none,p,p'.2] <*> pure p) p₀,
-          (_,rs) ← path.mmap_accumr (λ p p',
-            prod.mk <$> mk_mapp ``implies.trans [none,none,none,p.2,p'] <*> pure p') p₀,
-          ps ← mzip_with (λ p₀ p₁, mk_app ``iff.intro [p₀,p₁]) ls.tail rs.init,
-          ps.mmap' cl.merge,
-          dfs_at $ sum.inr es'
-        else pure x
+        pure ()
    end
-| (sum.inr []) := pure none
-| (sum.inr ((v,v',p) :: es)) :=
-do some (path,e,es') ← dfs_at (sum.inl v') | dfs_at (sum.inr es),
-   pure $ some ((v,p)::path, e, es ++ es')
 
 end scc
 
@@ -133,7 +150,7 @@ using_new_ref (expr_map.mk bool) $ λ visit,
 do ls ← local_context,
    ls.mmap' $ λ l, try (g.add_edge l),
    m ← read_ref g,
-   m.to_list.mmap' $ λ ⟨v,_⟩, impl_graph.dfs_at m visit cl (sum.inl v),
+   m.to_list.mmap $ λ ⟨v,_⟩, impl_graph.dfs_at m visit cl [] v,
    pure m
 
 end impl_graph

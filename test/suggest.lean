@@ -6,9 +6,6 @@ Authors: Lucas Allen
 
 import tactic.basic
 
-/- Turn off trace messages so they don't pollute the test build: -/
-set_option trace.silence_suggest true
-
 open tactic
 
 -- `suggest` fails if there are no goals.
@@ -67,4 +64,14 @@ begin
   replace b := b (),
   (do s ← suggest_scripts, guard $ s.head = "exact b"),
   exact b,
+end
+
+-- Verify that `suggest` focuses on the first goal when there are multiple goals.
+example (a b c d e f : ℕ) (hab : a ≤ b) (hbc : b ≤ c) (hde : d ≤ e) (hef : e ≤ f) :
+  a ≤ c ∧ d ≤ f :=
+begin
+  split,
+  (do s ← suggest_scripts, guard $ s.head = "exact le_trans hab hbc"),
+  exact le_trans hab hbc,
+  exact le_trans hde hef
 end

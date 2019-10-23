@@ -89,7 +89,6 @@ do
   | (some (lb, lb_prf), some (ub, ub_prf)) := return (lb, lb_prf, ub, ub_prf)
   end
 
-#check list.Ico.trichotomy
 /--
 Performs case analysis on the variable `n`, giving
 1. a case for `n < a`,

@@ -169,7 +169,9 @@ meta def compute_transfer : list rule_data → list expr → expr → tactic (ex
   return (b, pr, ms ++ mss.join)
 
 end transfer
+
 open transfer
+
 meta def tactic.transfer (ds : list name) : tactic unit := do
   rds ← analyse_decls ds,
   tgt ← target,

@@ -1172,6 +1172,31 @@ begin
   exact ⟨a, a.2, ha₂.symm⟩,
 end
 
+open function
+
+lemma inj_on_of_surj_on_of_card_le {s : finset α} {t : finset β}
+  (f : Π a ∈ s, β) (hf : ∀ a ha, f a ha ∈ t)
+  (hsurj : ∀ b ∈ t, ∃ a ha, b = f a ha)
+  (hst : card s ≤ card t)
+  ⦃a₁ a₂⦄ (ha₁ : a₁ ∈ s) (ha₂ : a₂ ∈ s) 
+  (ha₁a₂: f a₁ ha₁ = f a₂ ha₂) : a₁ = a₂ :=
+by haveI : inhabited {x // x ∈ s} := ⟨⟨a₁, ha₁⟩⟩; exact
+let f' : {x // x ∈ s} → {x // x ∈ t} := λ x, ⟨f x.1 x.2, hf x.1 x.2⟩ in
+let g : {x // x ∈ t} → {x // x ∈ s} :=
+  @surj_inv _ _ f'
+    (λ x, let ⟨y, hy₁, hy₂⟩ := hsurj x.1 x.2 in ⟨⟨y, hy₁⟩, subtype.eq hy₂.symm⟩) in
+have hg : injective g, from function.injective_surj_inv _,
+have hsg : surjective g, from λ x,
+  let ⟨y, hy⟩ := surj_on_of_inj_on_of_card_le (λ (x : {x // x ∈ t}) (hx : x ∈ t.attach), g x)
+    (λ x _, show (g x) ∈ s.attach, from mem_attach _ _)
+    (λ x y _ _ hxy, hg hxy) (by simpa) x (mem_attach _ _) in
+  ⟨y, hy.snd.symm⟩,
+have hif : injective f',
+  from injective_of_has_left_inverse
+    ⟨g, left_inverse_of_surjective_of_right_inverse hsg
+      (right_inverse_surj_inv _)⟩,
+subtype.ext.1 (@hif ⟨a₁, ha₁⟩ ⟨a₂, ha₂⟩ (subtype.eq ha₁a₂))
+
 end card
 
 section bind
@@ -1794,9 +1819,8 @@ suffices card (t \ s) = card ((t \ s) ∪ s) - card s, by rwa sdiff_union_of_sub
 by rw [card_disjoint_union sdiff_disjoint, nat.add_sub_cancel]
 
 lemma disjoint_filter {s : finset α} {p q : α → Prop} [decidable_pred p] [decidable_pred q] :
-    (∀x, p x → ¬ q x) → disjoint (s.filter p) (s.filter q) :=
-assume h, by simp only [disjoint_iff_ne, mem_filter]; rintros a ⟨_, ha⟩ b ⟨_, hb⟩ eq;
-rw [eq] at ha; exact h _ ha hb
+    disjoint (s.filter p) (s.filter q) ↔ (∀ x ∈ s, p x → ¬ q x) :=
+by split; simp [disjoint_left] {contextual := tt}
 
 end disjoint
 

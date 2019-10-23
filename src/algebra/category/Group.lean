@@ -16,6 +16,10 @@ We introduce the bundled categories:
 * `CommGroup`
 * `AddCommGroup`
 along with the relevant forgetful functors between them, and to the bundled monoid categories.
+
+## Implementation notes
+
+See the note [locally reducible category instances].
 -/
 
 universes u v
@@ -23,54 +27,60 @@ universes u v
 open category_theory
 
 /-- The category of groups and group morphisms. -/
-@[reducible, to_additive AddGroup]
-def Group : Type (u+1) := bundled group
+@[to_additive AddGroup]
+def Group : Type (u+1) := induced_category Mon (bundled.map group.to_monoid)
 
 namespace Group
-
-@[to_additive add_group]
-instance (G : Group) : group G := G.str
 
 /-- Construct a bundled Group from the underlying type and typeclass. -/
 @[to_additive] def of (X : Type u) [group X] : Group := bundled.of X
 
+local attribute [reducible] Group
+
 @[to_additive]
-instance bundled_hom : bundled_hom _ :=
-Mon.bundled_hom.full_subcategory @group.to_monoid
+instance : has_coe_to_sort Group := infer_instance
+
+@[to_additive add_group]
+instance (G : Group) : group G := G.str
 
 @[to_additive]
 instance : has_one Group := ⟨Group.of punit⟩
 
+@[to_additive]
+instance : concrete_category Group := infer_instance
+
 @[to_additive has_forget_to_AddMon]
-instance has_forget_to_Mon : has_forget₂ Group.{u} Mon.{u} :=
-Mon.bundled_hom.full_subcategory_has_forget₂ _
+instance has_forget_to_Mon : has_forget₂ Group Mon := infer_instance
 
 end Group
 
 
 /-- The category of commutative groups and group morphisms. -/
-@[reducible, to_additive AddCommGroup]
-def CommGroup : Type (u+1) := bundled comm_group
+@[to_additive AddCommGroup]
+def CommGroup : Type (u+1) := induced_category Group (bundled.map comm_group.to_group)
 
 namespace CommGroup
-
-@[to_additive add_comm_group]
-instance (G : CommGroup) : comm_group G := G.str
 
 /-- Construct a bundled CommGroup from the underlying type and typeclass. -/
 @[to_additive] def of (G : Type u) [comm_group G] : CommGroup := bundled.of G
 
-@[to_additive] instance : bundled_hom _ :=
-Group.bundled_hom.full_subcategory @comm_group.to_group
+local attribute [reducible] CommGroup
 
-@[to_additive has_forget_to_AddGroup]
-instance has_forget_to_Group : has_forget₂ CommGroup.{u} Group.{u} :=
-Group.bundled_hom.full_subcategory_has_forget₂ _
+@[to_additive]
+instance : has_coe_to_sort CommGroup := infer_instance
 
-@[to_additive has_forget_to_AddCommMon]
-instance has_forget_to_CommMon : has_forget₂ CommGroup.{u} CommMon.{u} :=
-CommMon.bundled_hom.full_subcategory_has_forget₂ comm_group.to_comm_monoid
+@[to_additive add_comm_group]
+instance (G : CommGroup) : comm_group G := G.str
 
 @[to_additive] instance : has_one CommGroup := ⟨CommGroup.of punit⟩
+
+@[to_additive] instance : concrete_category CommGroup := infer_instance
+
+@[to_additive has_forget_to_AddGroup]
+instance has_forget_to_Group : has_forget₂ CommGroup Group := infer_instance
+
+@[to_additive has_forget_to_AddCommMon]
+instance has_forget_to_CommMon : has_forget₂ CommGroup CommMon :=
+induced_category.has_forget₂ (λ G : CommGroup, CommMon.of G)
 
 end CommGroup

@@ -229,12 +229,12 @@ begin
   { apply subset.antisymm (inter_subset_inter (inter_subset_left _ _) (subset.refl _)),
     exact λ y ⟨ys, yv⟩, ⟨⟨ys, vu yv⟩, yv⟩ },
   have : iterated_fderiv_within 𝕜 n f (s ∩ v) x = iterated_fderiv_within 𝕜 n f s x :=
-    iterated_fderiv_within_inter_open xv v_open xs (unique_diff_on_inter hs v_open),
+    iterated_fderiv_within_inter_open xv v_open xs (hs.inter v_open),
   rw ← this,
   have : iterated_fderiv_within 𝕜 n f ((s ∩ u) ∩ v) x = iterated_fderiv_within 𝕜 n f (s ∩ u) x,
   { refine iterated_fderiv_within_inter_open xv v_open ⟨xs, mem_of_nhds hu⟩ _,
     rw A,
-    exact unique_diff_on_inter hs v_open },
+    exact hs.inter v_open },
   rw A at this,
   rw ← this
 end
@@ -455,10 +455,8 @@ begin
   have A : continuous (λq : (E →L[𝕜] F) × E, q.1 q.2) := is_bounded_bilinear_map_apply.continuous,
   have B : continuous_on (λp : E × E, (fderiv_within 𝕜 f s p.1, p.2)) (set.prod s univ),
   { apply continuous_on.prod _ continuous_snd.continuous_on,
-    refine continuous_on.comp (h.continuous_on_fderiv_within hn) continuous_fst.continuous_on (λx hx, _),
-    simp at hx,
-    rcases hx with ⟨y, hy⟩,
-    exact hy },
+    exact continuous_on.comp (h.continuous_on_fderiv_within hn) continuous_fst.continuous_on
+      (prod_subset_preimage_fst _ _) },
   exact A.comp_continuous_on B
 end
 
@@ -542,14 +540,14 @@ begin
     refine ⟨u, u_open, xu,_⟩,
     apply continuous_on.congr_mono (hu.1 m hm) (λy hy, _) (subset.refl _),
     symmetry,
-    exact iterated_fderiv_within_inter_open hy.2 u_open hy.1 (unique_diff_on_inter hs u_open) },
+    exact iterated_fderiv_within_inter_open hy.2 u_open hy.1 (hs.inter u_open) },
   { assume m hm,
     apply differentiable_on_of_locally_differentiable_on (λx hx, _),
     rcases h x hx with ⟨u, u_open, xu, hu⟩,
     refine ⟨u, u_open, xu,_⟩,
     apply differentiable_on.congr_mono (hu.2 m hm) (λy hy, _) (subset.refl _),
     symmetry,
-    exact iterated_fderiv_within_inter_open hy.2 u_open hy.1 (unique_diff_on_inter hs u_open) }
+    exact iterated_fderiv_within_inter_open hy.2 u_open hy.1 (hs.inter u_open) }
 end
 
 /--
@@ -692,11 +690,11 @@ begin
     rw times_cont_diff_on_zero at hf ⊢,
     apply continuous_on.comp this hf (subset_univ _) },
   { rw times_cont_diff_on_succ at hf ⊢,
-    refine ⟨differentiable_on.comp hg.differentiable_on hf.1 (subset_univ _), _⟩,
+    refine ⟨differentiable_on.comp hg.differentiable_on hf.1 subset_preimage_univ, _⟩,
     let Φ : (E →L[𝕜] F) → (E →L[𝕜] G) := λu, continuous_linear_map.comp (hg.to_continuous_linear_map) u,
     have : ∀x∈s, fderiv_within 𝕜 (g ∘ f) s x = Φ (fderiv_within 𝕜 f s x),
     { assume x hx,
-      rw [fderiv_within.comp x _ (hf.1 x hx) (subset_univ _) (hs x hx),
+      rw [fderiv_within.comp x _ (hf.1 x hx) subset_preimage_univ (hs x hx),
           fderiv_within_univ, hg.fderiv],
       rw differentiable_within_at_univ,
       exact hg.differentiable_at },
@@ -755,7 +753,7 @@ The composition of `C^n` functions on domains is `C^n`.
 -/
 lemma times_cont_diff_on.comp {n : with_top ℕ} {s : set E} {t : set F} {g : F → G} {f : E → F}
   (hg : times_cont_diff_on 𝕜 n g t) (hf : times_cont_diff_on 𝕜 n f s) (hs : unique_diff_on 𝕜 s)
-  (st : f '' s ⊆ t) : times_cont_diff_on 𝕜 n (g ∘ f) s :=
+  (st : s ⊆ f ⁻¹' t) : times_cont_diff_on 𝕜 n (g ∘ f) s :=
 begin
   tactic.unfreeze_local_instances,
   induction n using with_top.nat_induction with n IH Itop generalizing E F G,
@@ -774,7 +772,7 @@ begin
       continuous_linear_map.comp (fderiv_within 𝕜 g t (f x)) (fderiv_within 𝕜 f s x),
     { assume x hx,
       apply fderiv_within.comp x _ (hf.1 x hx) st (hs x hx),
-      exact hg.1 _ (st (mem_image_of_mem _ hx)) },
+      exact hg.1 _ (st hx) },
     apply times_cont_diff_on.congr _ hs this,
     have A : times_cont_diff_on 𝕜 n (λx, fderiv_within 𝕜 g t (f x)) s :=
       IH hg.2 (times_cont_diff_on_succ.2 hf).of_succ hs st,
@@ -816,11 +814,9 @@ begin
   { apply times_cont_diff_on.prod _ _ U,
     { have I : times_cont_diff_on 𝕜 m (λ (x : E), fderiv_within 𝕜 f s x) s :=
         times_cont_diff_on_fderiv_within hf hmn,
-      have J : times_cont_diff_on 𝕜 m (λ (x : E × E), x.1) (set.prod s univ),
-      { apply times_cont_diff.times_cont_diff_on _ U,
-        apply is_bounded_linear_map.times_cont_diff,
-        apply is_bounded_linear_map.fst },
-      exact times_cont_diff_on.comp I J U (fst_image_prod_subset _ _) },
+      have J : times_cont_diff_on 𝕜 m (λ (x : E × E), x.1) (set.prod s univ) :=
+        times_cont_diff_fst.times_cont_diff_on U,
+      exact times_cont_diff_on.comp I J U (prod_subset_preimage_fst _ _) },
     { apply times_cont_diff.times_cont_diff_on _ U,
       apply is_bounded_linear_map.times_cont_diff,
       apply is_bounded_linear_map.snd } },

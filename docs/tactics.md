@@ -271,6 +271,34 @@ However, it will work, producing the identity function, if one replaces have by 
 * `exactI`: `resetI` followed by `exact`. Like `exact`, but uses all
   variables in the context for typeclass inference.
 
+### suggest
+
+`suggest` lists possible usages of the `refine` tactic and leaves the tactic state unchanged.
+It is intended as a complement of the search function in your editor, the `#find` tactic, and `library_search`.
+
+`suggest` takes an optional natural number `num` as input and returns the first `num` (or less, if all possibilities are exhausted) possibilities ordered by length of lemma names. The default for `num` is `50`.
+
+For performance reasons `suggest` uses monadic lazy lists (`mllist`). This means that `suggest` might miss some results if `num` is not large enough. However, because `suggest` uses monadic lazy lists, smaller values of `num` run faster than larger values.
+
+An example of `suggest` in action,
+
+```lean
+example (n : nat) : n < n + 1 :=
+begin suggest, sorry end
+```
+
+prints the list,
+
+```lean
+exact nat.lt.base n
+exact nat.lt_succ_self n
+refine not_le.mp _
+refine gt_iff_lt.mp _
+refine nat.lt.step _
+refine lt_of_not_ge _
+...
+```
+
 ### library_search
 
 `library_search` is a tactic to identify existing lemmas in the library. It tries to close the
@@ -1137,30 +1165,63 @@ Here too, the `reassoc` attribute can be used instead. It works well when combin
 ```lean
 attribute [simp, reassoc] some_class.bar
 ```
-### sanity_check
+
+### The reassoc_of function
+
+`reassoc_of h` takes local assumption `h` and add a ` ≫ f` term on the right of both sides of the equality.
+Instead of creating a new assumption from the result, `reassoc_of h` stands for the proof of that reassociated
+statement. This prevents poluting the local context with complicated assumptions used only once or twice.
+
+In the following, assumption `h` is needed in a reassociated form. Instead of proving it as a new goal and adding it as 
+an assumption, we use `reassoc_of h` as a rewrite rule which works just as well.
+
+```lean
+example (X Y Z W : C) (x : X ⟶ Y) (y : Y ⟶ Z) (z z' : Z ⟶ W) (w : X ⟶ Z)
+  (h : x ≫ y = w)
+  (h' : y ≫ z = y ≫ z') :
+  x ≫ y ≫ z = w ≫ z' :=
+begin
+  -- reassoc_of h : ∀ {X' : C} (f : W ⟶ X'), x ≫ y ≫ f = w ≫ f
+  rw [h',reassoc_of h],
+end
+```
+
+Although `reassoc_of` is not a tactic or a meta program, its type is generated 
+through meta-programming to make it usable inside normal expressions.
+
+### lint
 User commands to spot common mistakes in the code
 
-* `#sanity_check`: check all declarations in the current file
-* `#sanity_check_mathlib`: check all declarations in mathlib (so excluding core or other projects,
+* `#lint`: check all declarations in the current file
+* `#lint_mathlib`: check all declarations in mathlib (so excluding core or other projects,
   and also excluding the current file)
-* `#sanity_check_all`: check all declarations in the environment (the current file and all
+* `#lint_all`: check all declarations in the environment (the current file and all
   imported files)
 
-Currently this will check for
+Five linters are run by default:
+1. `unused_arguments` checks for unused arguments in declarations
+2. `def_lemma` checks whether a declaration is incorrectly marked as a def/lemma
+3. `dup_namespce` checks whether a namespace is duplicated in the name of a declaration
+4. `illegal_constant` checks whether ≥/> is used in the declaration
+5. `doc_blame` checks for missing doc strings on definitions and constants.
 
-1. unused arguments in declarations,
-2. whether a declaration is incorrectly marked as a def/lemma,
-3. whether a namespace is duplicated in the name of a declaration
-4. whether ≥/> is used in the declaration
+A sixth linter, `doc_blame_thm`, checks for missing doc strings on lemmas and theorems.
+This is not run by default.
 
-You can append a `-` to any command (e.g. `#sanity_check_mathlib-`) to omit the slow tests (4).
+The command `#list_linters` prints a list of the names of all available linters.
 
-You can customize the performed checks like this:
-```lean
-meta def my_check (d : declaration) : tactic (option string) :=
-return $ if d.to_name = `foo then some "gotcha!" else none
-run_cmd sanity_check tt [(my_check, "found nothing", "found something")] >>= trace
-```
+You can append a `-` to any command (e.g. `#lint_mathlib-`) to omit the slow tests (4).
+
+You can append a sequence of linter names to any command to run extra tests, in addition to the
+default ones. e.g. `#lint doc_blame_thm` will run all default tests and `doc_blame_thm`.
+
+You can append `only name1 name2 ...` to any command to run a subset of linters, e.g.
+`#lint only unused_arguments`
+
+You can add custom linters by defining a term of type `linter` in the `linter` namespace.
+A linter defined with the name `linter.my_new_check` can be run with `#lint my_new_check`
+or `lint only my_new_check`.
+If you add the attribute `@[linter]` to `linter.my_new_check` it will run by default.
 
 ### lift
 
@@ -1195,12 +1256,12 @@ Lift an expression to another type.
 
 ### import_private
 
-`import_private foo from bar` finds a private declaration `foo` in the same file as `bar` and creates a 
-local notation to refer to it. 
-    
+`import_private foo from bar` finds a private declaration `foo` in the same file as `bar` and creates a
+local notation to refer to it.
+
 `import_private foo`, looks for `foo` in all (imported) files.
 
-When possible, make `foo` non-private rather than using this feature. 
+When possible, make `foo` non-private rather than using this feature.
 
 ### default_dec_tac'
 

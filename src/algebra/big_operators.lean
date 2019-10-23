@@ -276,7 +276,45 @@ lemma prod_range_succ' (f : ℕ → β) :
 | (n + 1) := by rw [prod_range_succ (λ m, f (nat.succ m)), mul_assoc, ← prod_range_succ'];
                  exact prod_range_succ _ _
 
-@[to_additive finset.sum_range_zero]
+lemma sum_Ico_add {δ : Type*} [add_comm_monoid δ] (f : ℕ → δ) (m n k : ℕ) :
+  (Ico m n).sum (λ l, f (k + l)) = (Ico (m + k) (n + k)).sum f :=
+Ico.image_add m n k ▸ eq.symm $ sum_image $ λ x hx y hy h, nat.add_left_cancel h
+
+@[to_additive]
+lemma prod_Ico_add (f : ℕ → β) (m n k : ℕ) :
+  (Ico m n).prod (λ l, f (k + l)) = (Ico (m + k) (n + k)).prod f :=
+Ico.image_add m n k ▸ eq.symm $ prod_image $ λ x hx y hy h, nat.add_left_cancel h
+
+@[to_additive]
+lemma prod_Ico_consecutive (f : ℕ → β) {m n k : ℕ} (hmn : m ≤ n) (hnk : n ≤ k) :
+  (Ico m n).prod f * (Ico n k).prod f = (Ico m k).prod f :=
+Ico.union_consecutive hmn hnk ▸ eq.symm $ prod_union $ Ico.disjoint_consecutive m n k
+
+@[to_additive]
+lemma prod_range_mul_prod_Ico (f : ℕ → β) {m n : ℕ} (h : m ≤ n) :
+  (range m).prod f * (Ico m n).prod f = (range n).prod f :=
+Ico.zero_bot m ▸ Ico.zero_bot n ▸ prod_Ico_consecutive f (nat.zero_le m) h
+
+@[to_additive sum_Ico_eq_add_neg]
+lemma prod_Ico_eq_div {δ : Type*} [comm_group δ] (f : ℕ → δ) {m n : ℕ} (h : m ≤ n) :
+  (Ico m n).prod f = (range n).prod f * ((range m).prod f)⁻¹ :=
+eq_mul_inv_iff_mul_eq.2 $ by rw [mul_comm]; exact prod_range_mul_prod_Ico f h
+
+lemma sum_Ico_eq_sub {δ : Type*} [add_comm_group δ] (f : ℕ → δ) {m n : ℕ} (h : m ≤ n) :
+  (Ico m n).sum f = (range n).sum f - (range m).sum f :=
+sum_Ico_eq_add_neg f h
+
+@[to_additive]
+lemma prod_Ico_eq_prod_range (f : ℕ → β) (m n : ℕ) :
+  (Ico m n).prod f = (range (n - m)).prod (λ l, f (m + l)) :=
+begin
+  by_cases h : m ≤ n,
+  { rw [← Ico.zero_bot, prod_Ico_add, zero_add, nat.sub_add_cancel h] },
+  { replace h : n ≤ m :=  le_of_not_ge h,
+     rw [Ico.eq_empty_of_le h, nat.sub_eq_zero_of_le h, range_zero, prod_empty, prod_empty] }
+end
+
+@[to_additive]
 lemma prod_range_zero (f : ℕ → β) :
  (range 0).prod f = 1 :=
 by rw [range_zero, prod_empty]
@@ -575,7 +613,7 @@ lemma sum_le_sum_of_ne_zero [@decidable_rel β (≤)] (h : ∀x∈s₁, f x ≠ 
   s₁.sum f ≤ s₂.sum f :=
 calc s₁.sum f = (s₁.filter (λx, f x = 0)).sum f + (s₁.filter (λx, f x ≠ 0)).sum f :
     by rw [←sum_union, filter_union_filter_neg_eq];
-       exact disjoint_filter (assume _ h n_h, n_h h)
+       exact disjoint_filter.2 (assume _ _ h n_h, n_h h)
   ... ≤ s₂.sum f : add_le_of_nonpos_of_le'
       (sum_nonpos $ by simp only [mem_filter, and_imp]; exact λ _ _, le_of_eq)
       (sum_le_sum_of_subset $ by simpa only [subset_iff, mem_filter, and_imp])

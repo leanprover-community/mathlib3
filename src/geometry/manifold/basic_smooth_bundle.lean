@@ -9,7 +9,7 @@ import topology.topological_fiber_bundle geometry.manifold.smooth_manifold_with_
 # Basic smooth bundles
 
 In general, a smooth bundle is a bundle over a smooth manifold, whose fiber is a manifold, and
-for which the coordinates change are smooth. In this definition, there are charts involved at
+for which the coordinate changes are smooth. In this definition, there are charts involved at
 several places: in the manifold structure of the base, in the manifold structure of the fibers, and
 in the local trivializations. This makes it a complicated object in general. There is however a
 specific situation where things are much simpler: when the fiber is a vector space (no need for
@@ -17,7 +17,7 @@ charts for the fibers), and when the local trivializations of the bundle and the
 coincide. Then everything is expressed in terms of the charts of the base, making for a much
 simpler overall structure, which is easier to manipulate formally.
 
-Most natural vector bundle in differential geometry are of this form:
+Most vector bundles that naturally occur in differential geometry are of this form:
 the tangent bundle, the cotangent bundle, differential forms (used to define de Rham cohomology)
 and the bundle of Riemannian metrics. Therefore, it is worth defining a specific constructor for
 this kind of bundle, that we call basic smooth bundles.
@@ -154,7 +154,7 @@ begin
 end
 
 /-- The total space of a basic smooth bundle is endowed with a manifold structure, where the charts
-are in bijection with the chart of the basis. -/
+are in bijection with the charts of the basis. -/
 instance to_manifold : manifold (H × F) Z.to_topological_fiber_bundle_core.total_space :=
 { atlas := ⋃(e : local_homeomorph M H) (he : e ∈ atlas H M), {Z.chart e he},
   chart_at := λp, Z.chart (chart_at H p.1) (chart_mem_atlas H p.1),

@@ -104,6 +104,26 @@ begin
   rw [this, map_top (submodule.subtype S), range_subtype],
 end
 
+/-- The vector space of functions on a fintype has finite dimension. -/
+instance finite_dimensional_fintype_fun {ι : Type*} [fintype ι] :
+  finite_dimensional K (ι → K) :=
+begin
+  rw [finite_dimensional_iff_dim_lt_omega, dim_fun'],
+  exact nat_lt_omega _
+end
+
+/-- The vector space of functions on a fintype ι has findim equal to the cardinality of ι. -/
+@[simp] lemma findim_fintype_fun_eq_card {ι : Type v} [fintype ι] :
+  findim K (ι → K) = fintype.card ι :=
+begin
+  have : vector_space.dim K (ι → K) = fintype.card ι := dim_fun',
+  rwa [← findim_eq_dim, nat_cast_inj] at this,
+end
+
+/-- The vector space of functions on `fin n` has findim equal to `n`. -/
+@[simp] lemma findim_fin_fun {n : ℕ} : findim K (fin n → K) = n :=
+by simp
+
 section
 
 variables {ι : Type w} [fintype ι] [decidable_eq V]
@@ -113,7 +133,7 @@ include h
 lemma fg_of_finite_basis : submodule.fg (⊤ : submodule K V) :=
 ⟨ finset.univ.image b, by {convert h.2, simp} ⟩
 
-def finite_dimensional_of_finite_basis : finite_dimensional K V :=
+lemma finite_dimensional_of_finite_basis : finite_dimensional K V :=
 finite_dimensional.of_fg $ fg_of_finite_basis h
 
 lemma dim_eq_card : dim K V = fintype.card ι :=

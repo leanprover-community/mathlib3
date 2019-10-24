@@ -1165,6 +1165,30 @@ Here too, the `reassoc` attribute can be used instead. It works well when combin
 ```lean
 attribute [simp, reassoc] some_class.bar
 ```
+
+### The reassoc_of function
+
+`reassoc_of h` takes local assumption `h` and add a ` ≫ f` term on the right of both sides of the equality.
+Instead of creating a new assumption from the result, `reassoc_of h` stands for the proof of that reassociated
+statement. This prevents poluting the local context with complicated assumptions used only once or twice.
+
+In the following, assumption `h` is needed in a reassociated form. Instead of proving it as a new goal and adding it as 
+an assumption, we use `reassoc_of h` as a rewrite rule which works just as well.
+
+```lean
+example (X Y Z W : C) (x : X ⟶ Y) (y : Y ⟶ Z) (z z' : Z ⟶ W) (w : X ⟶ Z)
+  (h : x ≫ y = w)
+  (h' : y ≫ z = y ≫ z') :
+  x ≫ y ≫ z = w ≫ z' :=
+begin
+  -- reassoc_of h : ∀ {X' : C} (f : W ⟶ X'), x ≫ y ≫ f = w ≫ f
+  rw [h',reassoc_of h],
+end
+```
+
+Although `reassoc_of` is not a tactic or a meta program, its type is generated 
+through meta-programming to make it usable inside normal expressions.
+
 ### lint
 User commands to spot common mistakes in the code
 

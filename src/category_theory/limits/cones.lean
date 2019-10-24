@@ -60,10 +60,18 @@ end functor
 section
 variables (J C)
 
+/--
+Functorially associated to each functor `J ⥤ C`, we have the `C`-presheaf consisting of
+cones with a given cone point.
+-/
 @[simps] def cones : (J ⥤ C) ⥤ (Cᵒᵖ ⥤ Type v) :=
 { obj := functor.cones,
   map := λ F G f, whisker_left (const J).op (yoneda.map f) }
 
+/--
+Contravariantly associated to each functor `J ⥤ C`, we have the `C`-copresheaf consisting of
+cocones with a given cocone point.
+-/
 @[simps] def cocones : (J ⥤ C)ᵒᵖ ⥤ (C ⥤ Type v) :=
 { obj := λ F, functor.cocones (unop F),
   map := λ F G f, whisker_left (const J) (coyoneda.map f) }
@@ -131,13 +139,17 @@ rfl
 
 -- We now prove a lemma about naturality of cones over functors into bundled categories.
 section
+
 omit 𝒞
-variables {m : Type v → Type v} (hom : Π ⦃α β⦄ (Iα : m α) (Iβ : m β), Type v) [S : bundled_hom hom]
-include S
+variables {J' : Type u} [small_category J']
+variables {C' : Type (u+1)} [𝒞' : concrete_category C']
+include 𝒞'
 
-local attribute [instance] bundled_hom.has_coe_to_fun
+local attribute [instance] concrete_category.has_coe_to_sort
+local attribute [instance] concrete_category.has_coe_to_fun
 
-@[simp] lemma naturality_bundled {G : J ⥤ bundled m} (s : cone G) {j j' : J} (f : j ⟶ j') (x : s.X) :
+/-- Naturality of a cone over functors to a concrete category. -/
+@[simp] lemma naturality_concrete {G : J' ⥤ C'} (s : cone G) {j j' : J'} (f : j ⟶ j') (x : s.X) :
    (G.map f) ((s.π.app j) x) = (s.π.app j') x :=
 begin
   convert congr_fun (congr_arg (λ k : s.X ⟶ G.obj j', (k : s.X → G.obj j')) (s.π.naturality f).symm) x;
@@ -175,12 +187,15 @@ rfl
 -- We now prove a lemma about naturality of cocones over functors into bundled categories.
 section
 omit 𝒞
-variables {m : Type v → Type v} (hom : Π ⦃α β⦄ (Iα : m α) (Iβ : m β), Type v) [S : bundled_hom hom]
-include S
+variables {J' : Type u} [small_category J']
+variables {C' : Type (u+1)} [𝒞' : concrete_category C']
+include 𝒞'
 
-local attribute [instance] bundled_hom.has_coe_to_fun
+local attribute [instance] concrete_category.has_coe_to_sort
+local attribute [instance] concrete_category.has_coe_to_fun
 
-@[simp] lemma naturality_bundled {G : J ⥤ bundled m} (s : cocone G) {j j' : J} (f : j ⟶ j') (x : G.obj j) :
+/-- Naturality of a cocone over functors into a concrete category. -/
+@[simp] lemma naturality_concrete {G : J' ⥤ C'} (s : cocone G) {j j' : J'} (f : j ⟶ j') (x : G.obj j) :
   (s.ι.app j') ((G.map f) x) = (s.ι.app j) x :=
 begin
   convert congr_fun (congr_arg (λ k : G.obj j ⟶ s.X, (k : G.obj j → s.X)) (s.ι.naturality f)) x;

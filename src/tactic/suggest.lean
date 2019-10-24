@@ -192,16 +192,16 @@ declare_trace suggest         -- Trace a list of all relevant lemmas
 -- down to an `mllist tactic application`.
 private meta def suggest_core' (discharger : tactic unit := done) :
   tactic (mllist tactic application) :=
-focus1 $
-do [g] ← get_goals,
+do g :: _ ← get_goals,
    hyps ← local_context,
 
    -- Make sure that `solve_by_elim` doesn't just solve the goal immediately:
-   (lock_tactic_state (do solve_by_elim { discharger := discharger },
-          s ← read,
-          m ← tactic_statement g,
-          g ← instantiate_mvars g,
-          return $ mllist.of_list [⟨s, m, none, 0, hyps.countp(λ h, h.occurs g)⟩])) <|>
+   (lock_tactic_state (do
+     focus1 $ solve_by_elim { discharger := discharger },
+     s ← read,
+     m ← tactic_statement g,
+     g ← instantiate_mvars g,
+     return $ mllist.of_list [⟨s, m, none, 0, hyps.countp(λ h, h.occurs g)⟩])) <|>
    -- Otherwise, let's actually try applying library lemmas.
    (do
    -- Collect all definitions with the correct head symbol
@@ -216,7 +216,9 @@ do [g] ← get_goals,
    -- Try applying each lemma against the goal,
    -- then record the number of remaining goals, and number of local hypotheses used.
    return $ (mllist.of_list defs).mfilter_map
-   (λ d, lock_tactic_state $ do
+   -- (This tactic block is only executed when we evaluate the mllist,
+   -- so we need to do the `focus1` here.)
+   (λ d, lock_tactic_state $ focus1 $ do
      apply_declaration ff discharger d,
      ng ← num_goals,
      g ← instantiate_mvars g,

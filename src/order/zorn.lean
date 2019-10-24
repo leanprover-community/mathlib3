@@ -205,7 +205,9 @@ h₃ this.symm
 /-- Zorn's lemma
 
 If every chain has an upper bound, then there is a maximal element -/
-theorem zorn (h : ∀c, chain c → ∃ub, ∀a∈c, a ≺ ub) (trans : ∀{a b c}, a ≺ b → b ≺ c → a ≺ c) :
+-- TODO(lint): rename to exists_maximal_of_chains_bounded
+@[nolint] theorem zorn
+  (h : ∀c, chain c → ∃ub, ∀a∈c, a ≺ ub) (trans : ∀{a b c}, a ≺ b → b ≺ c → a ≺ c) :
   ∃m, ∀a, m ≺ a → a ≺ m :=
 have ∃ub, ∀a∈max_chain, a ≺ ub,
   from h _ $ max_chain_spec.left,

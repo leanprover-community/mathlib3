@@ -70,6 +70,7 @@ example {a b c : ℕ} (h₁ : a ≤ b) (h₂ : b ≤ c) : a ≤ c :=
 begin
   (do s ← suggest_scripts, guard $ s.head = "exact le_trans h₁ h₂"),
   exact le_trans h₁ h₂
+end
 
 -- Verify that `suggest` focuses on the first goal when there are multiple goals.
 example (a b c d e f : ℕ) (hab : a ≤ b) (hbc : b ≤ c) (hde : d ≤ e) (hef : e ≤ f) :

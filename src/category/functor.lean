@@ -5,7 +5,7 @@ Author: Simon Hudon
 
 Standard identity and composition functors
 -/
-import tactic.ext tactic.sanity_check category.basic
+import tactic.ext tactic.lint category.basic
 
 universe variables u v w
 
@@ -42,7 +42,7 @@ def id.mk {α : Sort u} : α → id α := id
 
 namespace functor
 
-@[sanity_skip] def const (α : Type*) (β : Type*) := α
+@[nolint] def const (α : Type*) (β : Type*) := α
 
 @[pattern] def const.mk {α β} (x : α) : const α β := x
 
@@ -54,7 +54,7 @@ namespace const
 
 protected lemma ext {α β} {x y : const α β} (h : x.run = y.run) : x = y := h
 
-@[sanity_skip] protected def map {γ α β} (f : α → β) (x : const γ β) : const γ α := x
+@[nolint] protected def map {γ α β} (f : α → β) (x : const γ β) : const γ α := x
 
 instance {γ} : functor (const γ) :=
 { map := @const.map γ }

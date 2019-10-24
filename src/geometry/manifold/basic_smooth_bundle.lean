@@ -57,7 +57,6 @@ Smooth fiber bundle, vector bundle, tangent space, tangent bundle
 -/
 
 noncomputable theory
-local attribute [instance, priority 10] classical.decidable_inhabited classical.prop_decidable
 
 universe u
 

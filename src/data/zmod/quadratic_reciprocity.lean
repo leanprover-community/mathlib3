@@ -4,6 +4,25 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Chris Hughes
 -/
 import field_theory.finite data.zmod.basic data.nat.parity
+/-
+# Quadratic reciprocity.
+
+This file contains results about quadratic residues modulo a prime number.
+
+The main results are the law of quadratic reciprocity, `quadratic_reciprocity`, as well as the
+interpretations in terms of existence of square roots depending on the congruence mod 4,
+`exists_pow_two_eq_prime_iff_of_mod_four_eq_one`, and
+`exists_pow_two_eq_prime_iff_of_mod_four_eq_three`.
+
+Also proven are conditions for `-1` and `2` to be a square modulo a prime,
+`exists_pow_two_eq_neg_one_iff_mod_four_ne_three` and
+`exists_pow_two_eq_two_iff`
+
+## Implementation notes
+
+The proof of quadratic reciprocity implemented uses Gauss' lemma and Eisenstein's lemma
+-/
+
 
 open function finset nat finite_field zmodp
 
@@ -259,7 +278,8 @@ else
 /-- Each of the sums in this lemma is the cardinality of the set integer points in each of the
   two triangles formed by the diagonal of the rectangle `(0, p/2) × (0, q/2)`. Adding them
   gives the number of points in the rectangle. -/
-private lemma sum_mul_div_add_sum_mul_div_eq_mul {p q : ℕ} (hp : p.prime) (hq0 : (q : zmodp p hp) ≠ 0) :
+private lemma sum_mul_div_add_sum_mul_div_eq_mul {p q : ℕ} (hp : p.prime)
+  (hq0 : (q : zmodp p hp) ≠ 0) :
   ((range (p / 2).succ).erase 0).sum (λ a, (a * q) / p) +
   ((range (q / 2).succ).erase 0).sum (λ a, (a * p) / q) =
   (p / 2) * (q / 2) :=

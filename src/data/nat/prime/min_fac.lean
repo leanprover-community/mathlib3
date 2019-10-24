@@ -27,11 +27,8 @@ begin
       -- replace with `nat_cases` when it arrives
       replace a : n / min_fac n ∈ [0,1] := list.Ico.mem.mpr ⟨zero_le _, a⟩,
       fin_cases a,
-      { have : n = 0 := eq_zero_of_div_eq_zero a d (min_fac_pos _), exact ne_of_gt pos this },
-      { have : n = min_fac n := (eq_of_dvd_quot_one d a).symm,
-        have : prime n := nat.prime_def_min_fac.2 ⟨h, this.symm⟩,
-        contradiction }
-       },
+      { exact ne_of_gt pos (eq_zero_of_div_eq_zero a d (min_fac_pos _)) },
+      { exact np (nat.prime_def_min_fac.2 ⟨h, (eq_of_dvd_quot_one d a)⟩) } },
     exact div_dvd_of_dvd d,
   }
 end

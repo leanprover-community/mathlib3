@@ -9,7 +9,7 @@ import topology.topological_fiber_bundle geometry.manifold.smooth_manifold_with_
 # Basic smooth bundles
 
 In general, a smooth bundle is a bundle over a smooth manifold, whose fiber is a manifold, and
-for which the coordinates change are smooth. In this definition, there are charts involved at
+for which the coordinate changes are smooth. In this definition, there are charts involved at
 several places: in the manifold structure of the base, in the manifold structure of the fibers, and
 in the local trivializations. This makes it a complicated object in general. There is however a
 specific situation where things are much simpler: when the fiber is a vector space (no need for

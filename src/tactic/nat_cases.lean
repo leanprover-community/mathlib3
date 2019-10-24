@@ -18,8 +18,9 @@ and then attempts to use `linarith` to discharge the inequalities.
 import tactic.fin_cases
 import tactic.linarith
 import data.nat.basic
+import data.set.intervals.fintype
 
-open list
+open set
 
 namespace tactic
 open lean.parser
@@ -121,6 +122,35 @@ Assuming an upper bound is found,
 meta def nat_cases (n : expr) : tactic unit :=
 do (a, a_prf, b, b_prf) ← get_bounds n,
    cases_of_bound a_prf b_prf
+
+def set_elems {α} [decidable_eq α] (s : set α) [fintype s] : finset α :=
+(fintype.elems s).image subtype.val
+
+lemma mem_set_elems {α} [decidable_eq α] (s : set α) [fintype s] {a : α} (h : a ∈ s) :
+  a ∈ set_elems s :=
+finset.mem_image.2 ⟨⟨a, h⟩, fintype.complete _, rfl⟩
+
+section
+setup_tactic_parser
+open tactic
+
+meta def interactive.interval_cases_using (hl hu : parse ident) : tactic unit :=
+do [hl, hu] ← [hl, hu].mmap get_local,
+   to_expr ``(mem_set_elems (Ico _ _) ⟨%%hl, %%hu⟩) >>= note_anon >>= fin_cases_at none
+
+end
+
+example (n : ℕ) (h1 : 4 ≤ n) (h2 : n < 10) : n < 20 :=
+begin
+  interval_cases_using h1 h2,
+  all_goals {norm_num}
+end
+
+example (z : ℤ) (h1 : z ≥ -3) (h2 : z < 2) : z < 20 :=
+begin
+  interval_cases_using h1 h2,
+  all_goals {norm_num}
+end
 
 namespace interactive
 

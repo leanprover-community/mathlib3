@@ -45,7 +45,7 @@ Then we use this machinery to construct the tangent bundle of a smooth manifold.
 `tangent_bundle I M`     : the total space of `tangent_bundle_core I M`. It is itself a
                            smooth manifold over the model with corners `I.tangent`, the product of
                            `I` and the trivial model with corners on `E`.
-`tangent_space_at I x`   : the tangent space to M at x
+`tangent_space I x`      : the tangent space to M at x
 `tangent_bundle_proj I M`: the projection from the tangent bundle to the base manifold
 
 ## TODO
@@ -462,19 +462,21 @@ def tangent_bundle_core : basic_smooth_bundle_core I M E :=
 /-- The tangent bundle to a smooth manifold, as a plain type. -/
 def tangent_bundle := (tangent_bundle_core I M).to_topological_fiber_bundle_core.total_space
 
-/-- The projection from the tangent bundle of a smooth manifold to the manifold. -/
-def tangent_bundle_proj : tangent_bundle I M → M :=
+/-- The projection from the tangent bundle of a smooth manifold to the manifold. As the tangent
+bundle is represented internally as a product type, the notation `p.1` also works for the projection
+of the point `p`. -/
+def tangent_bundle.proj : tangent_bundle I M → M :=
 (tangent_bundle_core I M).to_topological_fiber_bundle_core.proj
 
 variable {M}
 
 /-- The tangent space at a point of the manifold M. It is just E. -/
-def tangent_space_at (x : M) : Type* :=
+def tangent_space (x : M) : Type* :=
 (tangent_bundle_core I M).to_topological_fiber_bundle_core.fiber x
 
 section tangent_bundle_instances
 
-/- In general, the definition of tangent_bundle and tangent_space_at are not reducible, so that type
+/- In general, the definition of tangent_bundle and tangent_space are not reducible, so that type
 class inference does not pick wrong instances. In this section, we record the right instances for
 them, noting in particular that the tangent bundle is a smooth manifold. -/
 variable (M)
@@ -484,26 +486,26 @@ instance : topological_space (tangent_bundle I M) := by apply_instance
 instance : manifold (H × E) (tangent_bundle I M) := by apply_instance
 instance : smooth_manifold_with_corners I.tangent (tangent_bundle I M) := by apply_instance
 
-local attribute [reducible] tangent_space_at topological_fiber_bundle_core.fiber
+local attribute [reducible] tangent_space topological_fiber_bundle_core.fiber
 
 variables {M} (x : M)
 
-instance : topological_vector_space 𝕜 (tangent_space_at I x) := by apply_instance
-instance : topological_space (tangent_space_at I x) := by apply_instance
-instance : add_comm_group (tangent_space_at I x) := by apply_instance
-instance : topological_add_group (tangent_space_at I x) := by apply_instance
-instance : vector_space 𝕜 (tangent_space_at I x) := by apply_instance
+instance : topological_vector_space 𝕜 (tangent_space I x) := by apply_instance
+instance : topological_space (tangent_space I x) := by apply_instance
+instance : add_comm_group (tangent_space I x) := by apply_instance
+instance : topological_add_group (tangent_space I x) := by apply_instance
+instance : vector_space 𝕜 (tangent_space I x) := by apply_instance
 
 end tangent_bundle_instances
 
 variable (M)
 
 /-- The tangent bundle projection on the basis is a continuous map. -/
-lemma tangent_bundle_proj_continuous : continuous (tangent_bundle_proj I M) :=
+lemma tangent_bundle_proj_continuous : continuous (tangent_bundle.proj I M) :=
 topological_fiber_bundle_core.continuous_proj _
 
 /-- The tangent bundle projection on the basis is an open map. -/
-lemma tangent_bundle_proj_open : is_open_map (tangent_bundle_proj I M) :=
+lemma tangent_bundle_proj_open : is_open_map (tangent_bundle.proj I M) :=
 topological_fiber_bundle_core.is_open_map_proj _
 
 /-- In the tangent bundle to the model space, the charts are just the identity-/

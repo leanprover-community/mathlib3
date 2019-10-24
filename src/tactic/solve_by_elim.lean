@@ -7,6 +7,15 @@ import tactic.core
 
 namespace tactic
 
+/--
+Builds a collection of lemmas for use in the backtracking search in `solve_by_elim`.
+
+* By default, it includes all local hypotheses, along with `rfl`, `trivial`, `congr_fun` and `congr_arg`.
+* The flag `no_dflt` removes these.
+* The argument `hs` is a list of `simp_arg_type`s,
+  and can be used to add, or remove, lemmas or expressions from the set.
+* The argument `attr : list name` adds all lemmas tagged with one of a specified list of attributes.
+-/
 meta def mk_assumption_set (no_dflt : bool) (hs : list simp_arg_type) (attr : list name) : tactic (list expr) :=
 do (hs, gex, hex, all_hyps) ← decode_simp_arg_list hs,
    hs ← hs.mmap i_to_expr_for_apply,
@@ -27,18 +36,40 @@ do (hs, gex, hex, all_hyps) ← decode_simp_arg_list hs,
     return $ hs.append (ctx.filter (λ h, h.local_uniq_name ∉ hex)) -- remove local exceptions
    else return hs
 
+/--
+The internal implementation of `solve_by_elim`, with a limiting counter.
+-/
 meta def solve_by_elim_aux (discharger : tactic unit) (asms : tactic (list expr))  : ℕ → tactic unit
 | 0 := done
 | (n+1) := done <|>
               (apply_assumption asms $ solve_by_elim_aux n) <|>
               (discharger >> solve_by_elim_aux n)
 
+/--
+Configuration options for `solve_by_elim`.
+
+* By default `solve_by_elim` operates only on the first goal,
+  but with `backtrack_all_goals := true`, it operates on all goals at once,
+  backtracking across goals as needed,
+  and only succeeds if it dischargers all goals.
+* `discharger` specifies a tactic to try discharge subgoals
+  (this is only attempted on subgoals for which no lemma applies successfully).
+* `assumptions` generates the list of lemmas to use in the backtracking search.
+* `max_rep` bounds the depth of the search.
+-/
 meta structure by_elim_opt :=
   (backtrack_all_goals : bool := ff)
   (discharger : tactic unit := done)
   (assumptions : tactic (list expr) := mk_assumption_set false [] [])
   (max_rep : ℕ := 3)
 
+/--
+`solve_by_elim` repeatedly tries `apply`ing a lemma
+from the list of assumptions (passed via the `by_elim_opt` argument),
+recursively operating on any generated subgoals.
+It succeeds only if it discharges the first goal
+(or with `backtrack_all_goals := tt`, if it discharges all goals.)
+-/
 meta def solve_by_elim (opt : by_elim_opt := { }) : tactic unit :=
 do
   tactic.fail_if_no_goals,
@@ -69,13 +100,13 @@ meta def apply_assumption
 tactic.apply_assumption asms tac
 
 /--
-`solve_by_elim` calls `apply_assumption` on the main goal to find an assumption whose head matches
-and then repeatedly calls `apply_assumption` on the generated subgoals until no subgoals remain,
+`solve_by_elim` calls `apply` on the main goal to find an assumption whose head matches
+and then repeatedly calls `apply` on the generated subgoals until no subgoals remain,
 performing at most `max_rep` recursive steps.
 
-`solve_by_elim` discharges the current goal or fails
+`solve_by_elim` discharges the current goal or fails.
 
-`solve_by_elim` performs back-tracking if `apply_assumption` chooses an unproductive assumption
+`solve_by_elim` performs back-tracking if `apply_assumption` chooses an unproductive assumption.
 
 By default, the assumptions passed to apply_assumption are the local context, `rfl`, `trivial`, `congr_fun` and
 `congr_arg`.

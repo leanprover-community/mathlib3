@@ -6,13 +6,18 @@ Authors: Scott Morrison
 import data.set.intervals
 import data.fintype
 
-namespace set
+/-!
+# fintype instances for intervals
 
-local attribute [simp] list.mem_range
+We provide `fintype` instances for `Ico l u`, for `l u : ℕ`, and for `l u : ℤ`.
+-/
+
+namespace set
 
 lemma mem_Ico_iff_mem_list_Ico {l u n : ℕ} : n ∈ Ico l u ↔ n ∈ list.Ico l u :=
 by simp
 
+-- Can we use `finset.Ico` here?
 instance Ico_ℕ_fintype (l u : ℕ) : fintype (Ico l u) :=
 fintype.of_list
   ((list.Ico l u).attach.map (λ v, ⟨v, mem_Ico_iff_mem_list_Ico.mpr v.2⟩))
@@ -38,5 +43,10 @@ begin
     subtype.mk_eq_mk, subtype.exists, subtype.coe_mk, coe_coe],
   exact ⟨(x - l).to_nat, by simpa [hl], by simp [hl]⟩,
 end
+
+-- TODO other useful instances:
+-- pnat
+-- fin n
+-- zmod
 
 end set

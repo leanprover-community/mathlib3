@@ -29,8 +29,7 @@ begin
       fin_cases a,
       { exact ne_of_gt pos (eq_zero_of_div_eq_zero a d (min_fac_pos _)) },
       { exact np (nat.prime_def_min_fac.2 ⟨h, (eq_of_dvd_quot_one d a)⟩) } },
-    exact div_dvd_of_dvd d,
-  }
+    exact div_dvd_of_dvd d, }
 end
 
 end nat

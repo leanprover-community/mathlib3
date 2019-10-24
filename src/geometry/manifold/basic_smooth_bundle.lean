@@ -17,7 +17,7 @@ charts for the fibers), and when the local trivializations of the bundle and the
 coincide. Then everything is expressed in terms of the charts of the base, making for a much
 simpler overall structure, which is easier to manipulate formally.
 
-Most natural vector bundle in differential geometry are of this form:
+Most vector bundles that naturally occur in differential geometry are of this form:
 the tangent bundle, the cotangent bundle, differential forms (used to define de Rham cohomology)
 and the bundle of Riemannian metrics. Therefore, it is worth defining a specific constructor for
 this kind of bundle, that we call basic smooth bundles.

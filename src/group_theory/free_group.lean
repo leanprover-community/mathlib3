@@ -560,8 +560,7 @@ prod.of
 instance sum.is_group_hom : is_group_hom (@sum α _) :=
 prod.is_group_hom
 
--- TODO(lint): This should probably be renamed `sum.mul`
-@[simp, nolint] lemma sum.sum : sum (x * y) = sum x + sum y :=
+@[simp] lemma sum.mul : sum (x * y) = sum x + sum y :=
 prod.mul
 
 @[simp] lemma sum.one : sum (1:free_group α) = 0 :=

@@ -19,11 +19,11 @@ lemma min_fac_le_div {n : ℕ} (pos : 0 < n) (np : ¬ prime n) : min_fac n ≤ n
 begin
   by_cases h : n = 1,
   { subst h, simp, },
-  { replace h : 2 ≤ n := le_of_not_gt (λ hgt, h $ le_antisymm (nat.le_pred_of_lt hgt) (nat.succ_le_of_lt pos),
+  { replace h : 2 ≤ n := le_of_not_gt (λ hgt, h $ le_antisymm (nat.le_pred_of_lt hgt) (nat.succ_le_of_lt pos)),
     have d : min_fac n ∣ n := min_fac_dvd n,
     apply min_fac_le_of_dvd,
     { by_contradiction,
-      simp at a,
+      rw [not_le] at a,
       -- replace with `nat_cases` when it arrives
       replace a : n / min_fac n ∈ [0,1] := list.Ico.mem.mpr ⟨zero_le _, a⟩,
       fin_cases a,

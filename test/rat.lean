@@ -1,6 +1,7 @@
 import data.rat.meta
 
-run_cmd guard $ (reflect (3/15 : ℚ) : expr) = `((3/15 : ℚ))
+run_cmd let q : ℚ := 3/15 in
+guard $ (reflect q : expr) = `((1/5 : ℚ))
 
 constants (α : Type) (h : field α)
 

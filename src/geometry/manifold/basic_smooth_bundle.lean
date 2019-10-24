@@ -154,7 +154,7 @@ begin
 end
 
 /-- The total space of a basic smooth bundle is endowed with a manifold structure, where the charts
-are in bijection with the chart of the basis. -/
+are in bijection with the charts of the basis. -/
 instance to_manifold : manifold (H × F) Z.to_topological_fiber_bundle_core.total_space :=
 { atlas := ⋃(e : local_homeomorph M H) (he : e ∈ atlas H M), {Z.chart e he},
   chart_at := λp, Z.chart (chart_at H p.1) (chart_mem_atlas H p.1),

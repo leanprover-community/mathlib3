@@ -206,7 +206,7 @@ h₃ this.symm
 
 If every chain has an upper bound, then there is a maximal element -/
 -- TODO(lint): rename to exists_maximal_of_chains_bounded
-@[nolint] theorem zorn
+@[nolint] theorem exists_maximal_of_chains_bounded
   (h : ∀c, chain c → ∃ub, ∀a∈c, a ≺ ub) (trans : ∀{a b c}, a ≺ b → b ≺ c → a ≺ c) :
   ∃m, ∀a, m ≺ a → a ≺ m :=
 have ∃ub, ∀a∈max_chain, a ≺ ub,
@@ -224,7 +224,7 @@ end chain
 
 theorem zorn_partial_order {α : Type u} [partial_order α]
   (h : ∀c:set α, @chain α (≤) c → ∃ub, ∀a∈c, a ≤ ub) : ∃m:α, ∀a, m ≤ a → a = m :=
-let ⟨m, hm⟩ := @zorn α (≤) h (assume a b c, le_trans) in
+let ⟨m, hm⟩ := @exists_maximal_of_chains_bounded α (≤) h (assume a b c, le_trans) in
 ⟨m, assume a ha, le_antisymm (hm a ha) ha⟩
 
 theorem zorn_partial_order₀ {α : Type u} [partial_order α] (s : set α)

@@ -62,9 +62,9 @@ universe u
 
 open topological_space set
 
-/-- Bundled smooth bundle core with basis the smooth manifold M over the model with corner I, and
-fiber the normed vector space F over 𝕜, which is trivial in the charts of M. This structure
-registers the changes in the fibers when one changes coordinate charts in the base. -/
+/-- Core structure used to create a smooth bundle above M (a manifold over the model with
+corner I) with fiber the normed vector space F over 𝕜, which is trivial in the chart domains of M.
+This structure registers the changes in the fibers when one changes coordinate charts in the base. -/
 structure basic_smooth_bundle_core {𝕜 : Type*} [nondiscrete_normed_field 𝕜]
 {E : Type u} [normed_group E] [normed_space 𝕜 E]
 {H : Type*} [topological_space H] (I : model_with_corners 𝕜 E H)
@@ -121,7 +121,7 @@ def to_topological_fiber_bundle_core : topological_fiber_bundle_core (atlas H M)
     { rintros ⟨x, v⟩ hx,
       simp at hx,
       simp only [prod_mk_mem_set_prod_eq, and_true, mem_univ, mem_preimage,
-                 local_homeomorph.trans_to_local_equiv, local_homeomorph.symm_to_local_equiv ],
+                 local_homeomorph.trans_to_local_equiv, local_homeomorph.symm_to_local_equiv],
       apply mem_image_of_mem,
       simp [local_equiv.trans_source, i.1.map_source hx.1, hx.1, hx.2] },
     convert continuous_on.comp A C' D,
@@ -146,8 +146,8 @@ by { ext p, simp [chart, local_equiv.trans_source] }
   (Z.chart e he).target = set.prod e.target univ :=
 begin
   simp only [chart, local_equiv.trans_target, local_homeomorph.prod_to_local_equiv, id.def,
-             local_equiv.refl_inv_fun, local_homeomorph.trans_to_local_equiv, local_equiv.refl_target,
-             local_homeomorph.refl_local_equiv, local_equiv.prod_target, local_homeomorph.prod_inv_fun],
+        local_equiv.refl_inv_fun, local_homeomorph.trans_to_local_equiv, local_equiv.refl_target,
+        local_homeomorph.refl_local_equiv, local_equiv.prod_target, local_homeomorph.prod_inv_fun],
   ext p,
   split;
   simp [e.map_target] {contextual := tt}
@@ -159,7 +159,10 @@ instance to_manifold : manifold (H × F) Z.to_topological_fiber_bundle_core.tota
 { atlas := ⋃(e : local_homeomorph M H) (he : e ∈ atlas H M), {Z.chart e he},
   chart_at := λp, Z.chart (chart_at H p.1) (chart_mem_atlas H p.1),
   mem_chart_source := λp, by simp [mem_chart_source],
-  chart_mem_atlas := λp, by { simp, exact ⟨chart_at H p.1, chart_mem_atlas H p.1, rfl⟩ } }
+  chart_mem_atlas := λp, begin
+    simp only [mem_Union, mem_singleton_iff, chart_mem_atlas],
+    exact ⟨chart_at H p.1, chart_mem_atlas H p.1, rfl⟩
+  end }
 
 lemma mem_atlas_iff (f : local_homeomorph Z.to_topological_fiber_bundle_core.total_space (H × F)) :
   f ∈ atlas (H × F) Z.to_topological_fiber_bundle_core.total_space ↔
@@ -205,7 +208,7 @@ begin
              set.prod (range I.to_fun) (range (id : F → F)) := prod_range_range_eq.symm,
       simp at this,
       ext p,
-      simp [-mem_range, J, local_equiv.trans_source, chart, model_with_corners.prod,
+      squeeze_simp [-mem_range, J, local_equiv.trans_source, chart, model_with_corners.prod,
             local_equiv.trans_target, this],
       split,
       { tauto },
@@ -328,7 +331,6 @@ def tangent_bundle_core : basic_smooth_bundle_core I M E :=
     { apply filter.mem_sets_of_superset A,
       assume y hy,
       rw ← model_with_corners.image at hy,
-      simp at hy,
       rcases hy with ⟨z, hz⟩,
       simp [local_equiv.trans_source] at hz,
       simp [hz.2.symm, hz.1] },

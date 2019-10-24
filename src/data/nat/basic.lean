@@ -452,6 +452,13 @@ protected lemma div_eq_zero_iff {a b : ℕ} (hb : 0 < b) : a / b = 0 ↔ a < b :
   λ h, by rw [← nat.mul_left_inj hb, ← @add_left_cancel_iff _ _ (a % b), mod_add_div,
     mod_eq_of_lt h, mul_zero, add_zero]⟩
 
+lemma eq_zero_of_div_eq_zero {a b : ℕ} (h : a / b = 0) (w : b ∣ a) (hb : 0 < b) : a = 0 :=
+begin
+  rcases w with ⟨w, rfl⟩,
+  rw mul_div_right _ hb at h,
+  subst h, simp,
+end
+
 lemma eq_zero_of_le_div {a b : ℕ} (hb : 2 ≤ b) (h : a ≤ a / b) : a = 0 :=
 eq_zero_of_mul_le hb $
   by rw mul_comm; exact (nat.le_div_iff_mul_le' (lt_of_lt_of_le dec_trivial hb)).1 h

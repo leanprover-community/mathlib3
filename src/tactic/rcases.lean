@@ -220,21 +220,26 @@ with rcases.continue : listΠ (rcases_patt × expr) → tactic goals
 -- top-level `cases` tactic, so there is no more work to do for it.
 | (_ :: l) := rcases.continue l
 
-meta def rcases (p : pexpr) (ids : listΣ (listΠ rcases_patt)) : tactic unit :=
-do e ← i_to_expr p,
-  if e.is_local_constant then
-    focus1 (rcases_core ids e >>= set_goals)
-  else do
-    x ← mk_fresh_name,
-    n ← revert_kdependencies e semireducible,
-    (tactic.generalize e x)
-    <|>
-    (do t ← infer_type e,
-        tactic.assertv x t e,
-        get_local x >>= tactic.revert,
-        return ()),
-    h ← tactic.intro1,
-    focus1 (rcases_core ids h >>= set_goals)
+meta def rcases (h : option name) (p : pexpr) (ids : listΣ (listΠ rcases_patt)) : tactic unit :=
+do e ← match h with
+       | some h :=
+         do x   ← get_unused_name,
+            interactive.generalize h () (p, x),
+            get_local x
+       | none := i_to_expr p
+   if e.is_local_constant then
+     focus1 (rcases_core ids e >>= set_goals)
+   else do
+     x ← mk_fresh_name,
+     n ← revert_kdependencies e semireducible,
+     (tactic.generalize e x)
+     <|>
+     (do t ← infer_type e,
+         tactic.assertv x t e,
+         get_local x >>= tactic.revert,
+         return ()),
+     h ← tactic.intro1,
+     focus1 (rcases_core ids h >>= set_goals)
 
 meta def rintro (ids : listΠ rcases_patt) : tactic unit :=
 do l ← ids.mmap (λ id, do
@@ -347,16 +352,17 @@ meta def rcases_parse_depth : parser nat :=
 do o ← (tk ":" *> small_nat)?, pure $ o.get_or_else 5
 
 precedence `?`:max
-meta def rcases_parse : parser (pexpr × (listΣ (listΠ rcases_patt) ⊕ nat)) :=
-with_desc "('?' expr (: n)?) | (expr (with patt_list)?)" $
+meta def rcases_parse : parser (pexpr × ((option name × listΣ (listΠ rcases_patt)) ⊕ nat)) :=
+with_desc "('?' expr (: n)?) | ((h :)? expr (with patt_list)?)" $
 do hint ← (tk "?")?,
-  p ← texpr,
-  match hint with
-  | none := do
-    ids ← (tk "with" *> rcases_patt_parse_list)?,
-    pure (p, sum.inl $ rcases_patt_inverted.invert_list (ids.get_or_else [default _]))
-  | some _ := do depth ← rcases_parse_depth, pure (p, sum.inr depth)
-  end
+   p ← texpr,
+   match hint with
+   | none := do
+     (h,p) ← (do { expr.local_const h _ _ _ ← pure p, tk ":", prod.mk (some h) <$> texpr } <|> pure (none,p)),
+     ids ← (tk "with" *> rcases_patt_parse_list)?,
+     pure (p, sum.inl (h, rcases_patt_inverted.invert_list (ids.get_or_else [default _])))
+   | some _ := do depth ← rcases_parse_depth, pure (p, sum.inr depth)
+   end
 
 meta def rintro_parse : parser (listΠ rcases_patt ⊕ nat) :=
 with_desc "('?' (: n)?) | patt_list" $
@@ -404,7 +410,7 @@ pattern that would produce this case splitting. The default maximum depth is 5,
 but this can be modified with `rcases? e : n`.
 -/
 meta def rcases : parse rcases_parse → tactic unit
-| (p, sum.inl ids) := tactic.rcases p ids
+| (p, sum.inl (h, ids)) := tactic.rcases h p ids
 | (p, sum.inr depth) := do
   patt ← tactic.rcases_hint p depth,
   pe ← pp p,
@@ -457,14 +463,14 @@ is equivalent to
 -/
 meta def obtain : interactive.parse obtain_parse → tactic unit
 | (pat, tp, some val) :=
-  tactic.rcases ``(%%val : %%(tp.get_or_else pexpr.mk_placeholder)) $
+  tactic.rcases none ``(%%val : %%(tp.get_or_else pexpr.mk_placeholder)) $
     rcases_patt_inverted.invert_list (pat.get_or_else [default _])
 | (pat, some tp, none) :=
   do nm ← mk_fresh_name,
     e ← to_expr tp >>= assert nm,
     (g :: gs) ← get_goals,
     set_goals gs,
-    tactic.rcases ``(%%e) $ rcases_patt_inverted.invert_list (pat.get_or_else [default _]),
+    tactic.rcases none ``(%%e) $ rcases_patt_inverted.invert_list (pat.get_or_else [default _]),
     gs ← get_goals,
     set_goals (g::gs)
 | (pat, none, none) :=

@@ -46,7 +46,7 @@ end
 @[simp] theorem not_even_bit1 (n : nat) : ¬ even (bit1 n) :=
 by simp [bit1] with parity_simps
 
-@[parity_simps] theorem even_sub {m n : nat} (h : m ≥ n) : even (m - n) ↔ (even m ↔ even n) :=
+@[parity_simps] theorem even_sub {m n : nat} (h : n ≤ m) : even (m - n) ↔ (even m ↔ even n) :=
 begin
   conv { to_rhs, rw [←nat.sub_add_cancel h, even_add] },
   by_cases h : even n; simp [h]

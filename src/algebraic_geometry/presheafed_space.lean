@@ -3,7 +3,7 @@ Copyright (c) 2019 Scott Morrison. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Scott Morrison
 -/
-import topology.Top.presheaf
+import topology.sheaves.presheaf
 
 /-!
 # Presheafed spaces
@@ -23,7 +23,7 @@ open topological_space
 open opposite
 open category_theory.category category_theory.functor
 
-variables (C : Type u) [𝒞 : category.{v+1} C]
+variables (C : Type u) [𝒞 : category.{v} C]
 include 𝒞
 
 local attribute [tidy] tactic.op_induction'
@@ -67,7 +67,7 @@ end
 
 def id (X : PresheafedSpace.{v} C) : hom X X :=
 { f := 𝟙 (X : Top.{v}),
-  c := ((functor.left_unitor _).inv) ≫ (whisker_right (nat_trans.op (opens.map_id _).hom) _) }
+  c := ((functor.left_unitor _).inv) ≫ (whisker_right (nat_trans.op (opens.map_id (X.to_Top)).hom) _) }
 
 def comp (X Y Z : PresheafedSpace.{v} C) (α : hom X Y) (β : hom Y Z) : hom X Z :=
 { f := α.f ≫ β.f,
@@ -131,7 +131,7 @@ instance {X Y : PresheafedSpace.{v} C} : has_coe (X ⟶ Y) (X.to_Top ⟶ Y.to_To
 
 lemma id_c (X : PresheafedSpace.{v} C) :
   ((𝟙 X) : X ⟶ X).c =
-  (((functor.left_unitor _).inv) ≫ (whisker_right (nat_trans.op (opens.map_id _).hom) _)) := rfl
+  (((functor.left_unitor _).inv) ≫ (whisker_right (nat_trans.op (opens.map_id (X.to_Top)).hom) _)) := rfl
 
 -- Implementation note: this harmless looking lemma causes deterministic timeouts,
 -- but happily we can survive without it.
@@ -160,7 +160,7 @@ variables {C}
 
 namespace category_theory
 
-variables {D : Type u} [𝒟 : category.{v+1} D]
+variables {D : Type u} [𝒟 : category.{v} D]
 include 𝒟
 
 local attribute [simp] presheaf.pushforward
@@ -209,7 +209,7 @@ def on_presheaf {F G : C ⥤ D} (α : F ⟶ G) : G.map_presheaf ⟶ F.map_preshe
 { app := λ X,
   { f := 𝟙 _,
     c := whisker_left X.𝒪 α ≫ ((functor.left_unitor _).inv) ≫
-           (whisker_right (nat_trans.op (opens.map_id _).hom) _) },
+           (whisker_right (nat_trans.op (opens.map_id X.to_Top).hom) _) },
   naturality' := λ X Y f,
   begin
     ext1, swap,

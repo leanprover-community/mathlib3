@@ -10,7 +10,7 @@ import data.nat.basic data.nat.prime algebra.group_power
 /-- `ℕ+` is the type of positive natural numbers. It is defined as a subtype,
   and the VM representation of `ℕ+` is the same as `ℕ` because the proof
   is not stored. -/
-def pnat := {n : ℕ // n > 0}
+def pnat := {n : ℕ // 0 < n}
 notation `ℕ+` := pnat
 
 instance coe_pnat_nat : has_coe ℕ+ ℕ := ⟨subtype.val⟩
@@ -20,7 +20,7 @@ namespace nat
 
 /-- Convert a natural number to a positive natural number. The
   positivity assumption is inferred by `dec_trivial`. -/
-def to_pnat (n : ℕ) (h : n > 0 . tactic.exact_dec_trivial) : ℕ+ := ⟨n, h⟩
+def to_pnat (n : ℕ) (h : 0 < n . tactic.exact_dec_trivial) : ℕ+ := ⟨n, h⟩
 
 /-- Write a successor as an element of `ℕ+`. -/
 def succ_pnat (n : ℕ) : ℕ+ := ⟨succ n, succ_pos n⟩
@@ -35,7 +35,7 @@ theorem succ_pnat_inj {n m : ℕ} : succ_pnat n = succ_pnat m → n = m :=
 def to_pnat' (n : ℕ) : ℕ+ := succ_pnat (pred n)
 
 @[simp] theorem to_pnat'_coe : ∀ (n : ℕ),
- ((to_pnat' n) : ℕ) = ite (n > 0) n 1
+ ((to_pnat' n) : ℕ) = ite (0 < n) n 1
 | 0 := rfl
 | (m + 1) := by {rw [if_pos (succ_pos m)], refl}
 
@@ -68,7 +68,7 @@ instance : decidable_eq ℕ+ := λ (a b : ℕ+), by apply_instance
 instance : decidable_linear_order ℕ+ :=
 subtype.decidable_linear_order _
 
-@[simp] theorem pos (n : ℕ+) : (n : ℕ) > 0 := n.2
+@[simp] theorem pos (n : ℕ+) : 0 < (n : ℕ) := n.2
 
 theorem eq {m n : ℕ+} : (m : ℕ) = n → m = n := subtype.eq
 
@@ -98,7 +98,7 @@ instance : add_right_cancel_semigroup ℕ+ :=
 
 @[simp] theorem ne_zero (n : ℕ+) : (n : ℕ) ≠ 0 := ne_of_gt n.2
 
-@[simp] theorem to_pnat'_coe {n : ℕ} : n > 0 → (n.to_pnat' : ℕ) = n := succ_pred_eq_of_pos
+@[simp] theorem to_pnat'_coe {n : ℕ} : 0 < n → (n.to_pnat' : ℕ) = n := succ_pred_eq_of_pos
 
 @[simp] theorem coe_to_pnat' (n : ℕ+) : (n : ℕ).to_pnat' = n := eq (to_pnat'_coe n.pos)
 
@@ -114,7 +114,7 @@ instance : comm_monoid ℕ+ :=
 @[simp] theorem mul_coe (m n : ℕ+) : ((m * n : ℕ+) : ℕ) = m * n := rfl
 instance coe_mul_hom : is_monoid_hom (coe : ℕ+ → ℕ) :=
  {map_one := one_coe, map_mul := mul_coe}
- 
+
 @[simp] lemma coe_bit0 (a : ℕ+) : ((bit0 a : ℕ+) : ℕ) = bit0 (a : ℕ) := rfl
 @[simp] lemma coe_bit1 (a : ℕ+) : ((bit1 a : ℕ+) : ℕ) = bit1 (a : ℕ) := rfl
 
@@ -144,7 +144,7 @@ instance : distrib ℕ+ :=
 -/
 instance : has_sub ℕ+ := ⟨λ a b, to_pnat' (a - b : ℕ)⟩
 
-theorem sub_coe (a b : ℕ+) : ((a - b : ℕ+) : ℕ) = ite (a > b) (a - b : ℕ) 1 :=
+theorem sub_coe (a b : ℕ+) : ((a - b : ℕ+) : ℕ) = ite (b < a) (a - b : ℕ) 1 :=
 begin
   change ((to_pnat' ((a : ℕ) - (b :  ℕ)) : ℕ)) =
     ite ((a : ℕ) > (b : ℕ)) ((a : ℕ) - (b : ℕ)) 1,

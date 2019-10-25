@@ -2,6 +2,11 @@
 Copyright (c) 2018 Robert Y. Lewis. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Author: Robert Y. Lewis
+-/
+
+import tactic.ring data.nat.gcd data.list.basic meta.rb_map data.tree
+
+/-!
 
 A tactic for discharging linear arithmetic goals using Fourier-Motzkin elimination.
 
@@ -10,8 +15,6 @@ A tactic for discharging linear arithmetic goals using Fourier-Motzkin eliminati
 @TODO: investigate storing comparisons in a list instead of a set, for possible efficiency gains
 @TODO: delay proofs of denominator normalization and nat casting until after contradiction is found
 -/
-
-import tactic.ring data.nat.gcd data.list.basic meta.rb_map
 
 meta def nat.to_pexpr : ℕ → pexpr
 | 0 := ``(0)
@@ -64,7 +67,7 @@ neg_of_neg_pos (by simpa)
 
 lemma mul_nonpos {α} [ordered_ring α] {a b : α} (ha : a ≤ 0) (hb : b > 0) : b * a ≤ 0 :=
 have (-b)*a ≥ 0, from mul_nonneg_of_nonpos_of_nonpos (le_of_lt (neg_neg_of_pos hb)) ha,
-nonpos_of_neg_nonneg (by simp at this; exact this)
+(by simpa)
 
 lemma mul_eq {α} [ordered_semiring α] {a b : α} (ha : a = 0) (hb : b > 0) : b * a = 0 :=
 by simp *
@@ -540,16 +543,6 @@ meta def is_numeric : expr → option ℚ
 | `(%%e1 / %%e2) := (/) <$> is_numeric e1 <*> is_numeric e2
 | `(-%%e) := rat.neg <$> is_numeric e
 | e := e.to_rat
-
-inductive {u} tree (α : Type u) : Type u
-| nil {} : tree
-| node : α → tree → tree → tree
-
-def tree.repr {α} [has_repr α] : tree α → string
-| tree.nil := "nil"
-| (tree.node a t1 t2) := "tree.node " ++ repr a ++ " (" ++ tree.repr t1 ++ ") (" ++ tree.repr t2 ++ ")"
-
-instance {α} [has_repr α] : has_repr (tree α) := ⟨tree.repr⟩
 
 meta def find_cancel_factor : expr → ℕ × tree ℕ
 | `(%%e1 + %%e2) :=

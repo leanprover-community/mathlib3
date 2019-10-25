@@ -70,7 +70,7 @@ section general_ring
 /- Properties that hold for non-necessarily commutative rings. -/
 
 variables
-{α : Type*} [ring α] [topological_space α]
+{α : Type*} [ring α]
 {β : Type*} [topological_space β] [add_comm_group β]
 {γ : Type*} [topological_space γ] [add_comm_group γ]
 {δ : Type*} [topological_space δ] [add_comm_group δ]
@@ -131,23 +131,23 @@ instance : has_add (β →L[α] γ) :=
 ⟨λ f g, ⟨f + g, continuous_add f.2 g.2⟩⟩
 
 @[simp] lemma add_apply : (f + g) x = f x + g x := rfl
-@[simp, move_cast] lemma coe_add : ((f + g) : β →ₗ[α] γ) = (f : β →ₗ[α] γ) + g := rfl
-@[simp, move_cast] lemma coe_add' : ((f + g) : β → γ) = (f : β → γ) + g := rfl
+@[simp, move_cast] lemma coe_add : (((f + g) : β →L[α] γ) : β →ₗ[α] γ) = (f : β →ₗ[α] γ) + g := rfl
+@[move_cast] lemma coe_add' : (((f + g) : β →L[α] γ) : β → γ) = (f : β → γ) + g := rfl
 
 instance : has_neg (β →L[α] γ) := ⟨λ f, ⟨-f, continuous_neg f.2⟩⟩
 
 @[simp] lemma neg_apply : (-f) x = - (f x) := rfl
 
-@[simp, move_cast] lemma coe_neg : ((-f) : β →ₗ[α] γ) = -(f : β →ₗ[α] γ) := rfl
-@[simp, move_cast] lemma coe_neg' : ((-f) : β → γ) = -(f : β → γ) := rfl
+@[simp, move_cast] lemma coe_neg : (((-f) : β →L[α] γ) : β →ₗ[α] γ) = -(f : β →ₗ[α] γ) := rfl
+@[move_cast] lemma coe_neg' : (((-f) : β →L[α] γ) : β → γ) = -(f : β → γ) := rfl
 
 instance : add_comm_group (β →L[α] γ) :=
 by refine {zero := 0, add := (+), neg := has_neg.neg, ..};
    intros; ext; simp
 
 @[simp] lemma sub_apply (x : β) : (f - g) x = f x - g x := rfl
-@[simp, move_cast] lemma coe_sub : ((f - g) : β →ₗ[α] γ) = (f : β →ₗ[α] γ) - g := rfl
-@[simp, move_cast] lemma coe_sub' : ((f - g) : β → γ) = (f : β → γ) - g := rfl
+@[simp, move_cast] lemma coe_sub : (((f - g) : β →L[α] γ) : β →ₗ[α] γ) = (f : β →ₗ[α] γ) - g := rfl
+@[simp, move_cast] lemma coe_sub' : (((f - g) : β →L[α] γ) : β → γ) = (f : β → γ) - g := rfl
 
 end add
 
@@ -182,7 +182,7 @@ section comm_ring
 variables
 {α : Type*} [comm_ring α] [topological_space α]
 {β : Type*} [topological_space β] [add_comm_group β]
-{γ : Type*} [topological_space γ] [add_comm_group γ] [topological_add_group γ]
+{γ : Type*} [topological_space γ] [add_comm_group γ]
 [module α β] [module α γ] [topological_module α γ]
 
 instance : has_scalar α (β →L[α] γ) :=
@@ -191,8 +191,16 @@ instance : has_scalar α (β →L[α] γ) :=
 variables (c : α) (f g : β →L[α] γ) (x y z : β)
 
 @[simp] lemma smul_apply : (c • f) x = c • (f x) := rfl
-@[simp, move_cast] lemma coe_apply : ((c • f) : β →ₗ[α] γ) = c • (f : β →ₗ[α] γ) := rfl
-@[simp, move_cast] lemma coe_apply' : ((c • f) : β → γ) = c • (f : β → γ) := rfl
+@[simp, move_cast] lemma coe_apply : (((c • f) : β →L[α] γ) : β →ₗ[α] γ) = c • (f : β →ₗ[α] γ) := rfl
+@[move_cast] lemma coe_apply' : (((c • f) : β →L[α] γ) : β → γ) = c • (f : β → γ) := rfl
+
+/-- Associating to a scalar-valued linear map and an element of `γ` the
+`γ`-valued linear map obtained by multiplying the two (a.k.a. tensoring by `γ`) -/
+def scalar_prod_space_iso (c : β →L[α] α) (f : γ) : β →L[α] γ :=
+{ cont := continuous_smul c.2 continuous_const,
+  ..c.to_linear_map.scalar_prod_space_iso f }
+
+variable [topological_add_group γ]
 
 instance : module α (β →L[α] γ) :=
 { smul_zero := λ _, ext $ λ _, smul_zero _,
@@ -213,12 +221,6 @@ instance : algebra α (γ →L[α] γ) :=
 { to_fun    := λ c, c • 1,
   smul_def' := λ _ _, rfl,
   commutes' := λ _ _, ext $ λ _, map_smul _ _ _ }
-
-/-- Associating to a scalar-valued linear map and an element of `γ` the
-`γ`-valued linear map obtained by multiplying the two (a.k.a. tensoring by `γ`) -/
-def scalar_prod_space_iso (c : β →L[α] α) (f : γ) : β →L[α] γ :=
-{ cont := continuous_smul c.2 continuous_const,
-  ..c.to_linear_map.scalar_prod_space_iso f }
 
 end comm_ring
 

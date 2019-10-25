@@ -10,7 +10,7 @@ import algebra.pi_instances
 
 universes u v
 variables {α : Type u} (β : Type v) (φ : filter α)
-local attribute [instance] classical.prop_decidable
+open_locale classical
 
 namespace filter
 

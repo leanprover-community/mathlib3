@@ -17,11 +17,12 @@ The class `emetric_space` therefore extends `uniform_space` (and `topological_sp
 -/
 
 import data.real.nnreal data.real.ennreal
-import topology.uniform_space.separation topology.uniform_space.uniform_embedding
+import topology.uniform_space.separation topology.uniform_space.uniform_embedding topology.uniform_space.pi
+import topology.bases
 open lattice set filter classical
 noncomputable theory
 
-local notation `𝓤` := uniformity
+open_locale uniformity
 
 universes u v w
 variables {α : Type u} {β : Type v} {γ : Type w}
@@ -250,13 +251,12 @@ def emetric_space.induced {α β} (f : α → β) (hf : function.injective f)
   end }
 
 /-- Emetric space instance on subsets of emetric spaces -/
-instance {p : α → Prop} [t : emetric_space α] : emetric_space (subtype p) :=
+instance {α : Type*} {p : α → Prop} [t : emetric_space α] : emetric_space (subtype p) :=
 t.induced subtype.val (λ x y, subtype.eq)
 
 /-- The extended distance on a subset of an emetric space is the restriction of
 the original distance, by definition -/
-theorem subtype.edist_eq {p : α → Prop} [t : emetric_space α] (x y : subtype p) :
-  edist x y = edist x.1 y.1 := rfl
+theorem subtype.edist_eq {p : α → Prop} (x y : subtype p) : edist x y = edist x.1 y.1 := rfl
 
 /-- The product of two emetric spaces, with the max distance, is an extended
 metric spaces. We make sure that the uniform structure thus constructed is the one
@@ -307,7 +307,16 @@ instance emetric_space_pi [∀b, emetric_space (π b)] : emetric_space (Πb, π 
       have eq1 : sup univ (λ (b : β), edist (f b) (g b)) ≤ 0 := le_of_eq eq0,
       simp only [finset.sup_le_iff] at eq1,
       exact (funext $ assume b, eq_of_edist_eq_zero $ bot_unique $ eq1 b $ mem_univ b),
-    end }
+    end,
+  to_uniform_space := Pi.uniform_space _,
+  uniformity_edist := begin
+    simp only [Pi.uniformity, emetric_space.uniformity_edist, comap_infi, gt_iff_lt, preimage_set_of_eq,
+          comap_principal],
+    rw infi_comm, congr, funext ε,
+    rw infi_comm, congr, funext εpos,
+    change 0 < ε at εpos,
+    simp [ext_iff, εpos]
+  end }
 
 end pi
 

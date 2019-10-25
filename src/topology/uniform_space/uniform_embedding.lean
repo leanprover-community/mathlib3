@@ -6,10 +6,11 @@ Authors: Johannes Hölzl, Sébastien Gouëzel, Patrick Massot
 Uniform embeddings of uniform spaces. Extension of uniform continuous functions.
 -/
 import topology.uniform_space.cauchy topology.uniform_space.separation
+import topology.dense_embedding
 
 open filter topological_space lattice set classical
-local attribute [instance, priority 0] prop_decidable
-local notation `𝓤` := uniformity
+open_locale classical
+open_locale uniformity
 
 section
 variables {α : Type*} {β : Type*} {γ : Type*}
@@ -19,7 +20,7 @@ universe u
 structure uniform_inducing (f : α → β) : Prop :=
 (comap_uniformity : comap (λx:α×α, (f x.1, f x.2)) (𝓤 β) = 𝓤 α)
 
-def uniform_inducing.mk' {f : α → β} (h : ∀ s, s ∈ 𝓤 α ↔
+lemma uniform_inducing.mk' {f : α → β} (h : ∀ s, s ∈ 𝓤 α ↔
     ∃ t ∈ 𝓤 β, ∀ x y : α, (f x, f y) ∈ t → (x, y) ∈ s) : uniform_inducing f :=
 ⟨by simp [eq_comm, filter.ext_iff, subset_def, h]⟩
 
@@ -133,7 +134,7 @@ have ∀b', (b, b') ∈ t → b' ∈ closure (e '' {a' | (a, a') ∈ s}),
 ⟨a, (nhds b).sets_of_superset (mem_nhds_left b htu) this⟩
 
 lemma uniform_embedding_subtype_emb (p : α → Prop) {e : α → β} (ue : uniform_embedding e)
-  (de : dense_embedding e) : uniform_embedding (de.subtype_emb p) :=
+  (de : dense_embedding e) : uniform_embedding (dense_embedding.subtype_emb p e) :=
 { comap_uniformity := by simp [comap_comap_comp, (∘), dense_embedding.subtype_emb,
            uniformity_subtype, ue.comap_uniformity.symm],
   inj := (de.subtype p).inj }
@@ -274,18 +275,13 @@ section uniform_extension
 
 variables {α : Type*} {β : Type*} {γ : Type*}
           [uniform_space α] [uniform_space β] [uniform_space γ]
-          [separated γ]
           {e : β → α}
           (h_e : uniform_inducing e)
           (h_dense : dense_range e)
           {f : β → γ}
           (h_f : uniform_continuous f)
-include h_f
 
 local notation `ψ` := (h_e.dense_inducing h_dense).extend f
-
-lemma uniformly_extend_of_ind (b : β) : ψ (e b) = f b :=
-dense_inducing.extend_e_eq _ b (continuous_iff_continuous_at.1 h_f.continuous b)
 
 lemma uniformly_extend_exists [complete_space γ] (a : α) :
   ∃c, tendsto f (comap e (nhds a)) (nhds c) :=
@@ -296,6 +292,46 @@ have cauchy (comap e (nhds a)), from
 have cauchy (map f (comap e (nhds a))), from
   cauchy_map h_f this,
 complete_space.complete this
+
+lemma uniform_extend_subtype [complete_space γ]
+  {p : α → Prop} {e : α → β} {f : α → γ} {b : β} {s : set α}
+  (hf : uniform_continuous (λx:subtype p, f x.val))
+  (he : uniform_embedding e) (hd : ∀x:β, x ∈ closure (range e))
+  (hb : closure (e '' s) ∈ nhds b) (hs : is_closed s) (hp : ∀x∈s, p x) :
+  ∃c, tendsto f (comap e (nhds b)) (nhds c) :=
+have de : dense_embedding e,
+  from he.dense_embedding hd,
+have de' : dense_embedding (dense_embedding.subtype_emb p e),
+  by exact de.subtype p,
+have ue' : uniform_embedding (dense_embedding.subtype_emb p e),
+  from uniform_embedding_subtype_emb _ he de,
+have b ∈ closure (e '' {x | p x}),
+  from (closure_mono $ mono_image $ hp) (mem_of_nhds hb),
+let ⟨c, (hc : tendsto (f ∘ subtype.val) (comap (dense_embedding.subtype_emb p e) (nhds ⟨b, this⟩)) (nhds c))⟩ :=
+  uniformly_extend_exists ue'.to_uniform_inducing de'.dense hf _ in
+begin
+  rw [nhds_subtype_eq_comap] at hc,
+  simp [comap_comap_comp] at hc,
+  change (tendsto (f ∘ @subtype.val α p) (comap (e ∘ @subtype.val α p) (nhds b)) (nhds c)) at hc,
+  rw [←comap_comap_comp, tendsto_comap'_iff] at hc,
+  exact ⟨c, hc⟩,
+  exact ⟨_, hb, assume x,
+    begin
+      change e x ∈ (closure (e '' s)) → x ∈ range subtype.val,
+      rw [←closure_induced, closure_eq_nhds, mem_set_of_eq, (≠), nhds_induced, ← de.to_dense_inducing.nhds_eq_comap],
+      change x ∈ {x | nhds x ⊓ principal s ≠ ⊥} → x ∈ range subtype.val,
+      rw [←closure_eq_nhds, closure_eq_of_is_closed hs],
+      exact assume hxs, ⟨⟨x, hp x hxs⟩, rfl⟩,
+      exact de.inj
+    end⟩
+end
+
+variables [separated γ]
+
+lemma uniformly_extend_of_ind (b : β) : ψ (e b) = f b :=
+dense_inducing.extend_e_eq _ b (continuous_iff_continuous_at.1 h_f.continuous b)
+
+include h_f
 
 lemma uniformly_extend_spec [complete_space γ] (a : α) :
   tendsto f (comap e (nhds a)) (nhds (ψ a)) :=
@@ -348,39 +384,4 @@ show preimage (λp:(α×α), (ψ p.1, ψ p.2)) d ∈ 𝓤 α,
   have (a, b) ∈ s, from @this (a, b) ⟨ha₁, hb₁⟩,
   hs_comp $ show (ψ x₁, ψ x₂) ∈ comp_rel s (comp_rel s s),
     from ⟨a, ha₂, ⟨b, this, hb₂⟩⟩
-
-omit h_f
-
-lemma uniform_extend_subtype [complete_space γ]
-  {p : α → Prop} {e : α → β} {f : α → γ} {b : β} {s : set α}
-  (hf : uniform_continuous (λx:subtype p, f x.val))
-  (he : uniform_embedding e) (hd : ∀x:β, x ∈ closure (range e))
-  (hb : closure (e '' s) ∈ nhds b) (hs : is_closed s) (hp : ∀x∈s, p x) :
-  ∃c, tendsto f (comap e (nhds b)) (nhds c) :=
-have de : dense_embedding e,
-  from he.dense_embedding hd,
-have de' : dense_embedding (de.subtype_emb p),
-  by exact de.subtype p,
-have ue' : uniform_embedding (de.subtype_emb p),
-  from uniform_embedding_subtype_emb _ he de,
-have b ∈ closure (e '' {x | p x}),
-  from (closure_mono $ mono_image $ hp) (mem_of_nhds hb),
-let ⟨c, (hc : tendsto (f ∘ subtype.val) (comap (de.subtype_emb p) (nhds ⟨b, this⟩)) (nhds c))⟩ :=
-  uniformly_extend_exists ue'.to_uniform_inducing de'.dense hf _ in
-begin
-  rw [nhds_subtype_eq_comap] at hc,
-  simp [comap_comap_comp] at hc,
-  change (tendsto (f ∘ @subtype.val α p) (comap (e ∘ @subtype.val α p) (nhds b)) (nhds c)) at hc,
-  rw [←comap_comap_comp, tendsto_comap'_iff] at hc,
-  exact ⟨c, hc⟩,
-  exact ⟨_, hb, assume x,
-    begin
-      change e x ∈ (closure (e '' s)) → x ∈ range subtype.val,
-      rw [←closure_induced, closure_eq_nhds, mem_set_of_eq, (≠), nhds_induced, ← de.to_dense_inducing.nhds_eq_comap],
-      change x ∈ {x | nhds x ⊓ principal s ≠ ⊥} → x ∈ range subtype.val,
-      rw [←closure_eq_nhds, closure_eq_of_is_closed hs],
-      exact assume hxs, ⟨⟨x, hp x hxs⟩, rfl⟩,
-      exact de.inj
-    end⟩
-end
 end uniform_extension

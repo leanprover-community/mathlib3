@@ -179,7 +179,7 @@ end isometric
 
 /-- An isometry induces an isometric isomorphism between the source space and the
 range of the isometry. -/
-lemma isometry.isometric_on_range [emetric_space α] [emetric_space β] {f : α → β} (h : isometry f) :
+def isometry.isometric_on_range [emetric_space α] [emetric_space β] {f : α → β} (h : isometry f) :
   α ≃ᵢ range f :=
 { isometry_to_fun := λx y,
   begin
@@ -205,12 +205,13 @@ begin
   refl
 end
 
-namespace Kuratowski_embedding
-/- In this section, we show that any separable metric space can be embedded isometrically
-in ℓ^∞(ℝ) -/
-
 @[reducible] def ℓ_infty_ℝ : Type := bounded_continuous_function ℕ ℝ
 open bounded_continuous_function metric topological_space
+
+namespace Kuratowski_embedding
+
+/- In this section, we show that any separable metric space can be embedded isometrically
+in ℓ^∞(ℝ) -/
 
 variables {f g : ℓ_infty_ℝ} {n : ℕ} {C : ℝ} [metric_space α] (x : ℕ → α) (a b : α)
 
@@ -278,13 +279,16 @@ begin
     /- Use embedding_of_subset to construct the desired isometry -/
     exact ⟨embedding_of_subset x, embedding_of_subset_isometry x this⟩ }
 end
+end Kuratowski_embedding
+
+open topological_space Kuratowski_embedding
 
 /-- The Kuratowski embedding is an isometric embedding of a separable metric space in ℓ^∞(ℝ) -/
 def Kuratowski_embedding (α : Type u) [metric_space α] [separable_space α] : α → ℓ_infty_ℝ :=
-  classical.some (exists_isometric_embedding α)
+  classical.some (Kuratowski_embedding.exists_isometric_embedding α)
 
 /-- The Kuratowski embedding is an isometry -/
-lemma Kuratowski_embedding_isometry (α : Type u) [metric_space α] [separable_space α] :
+protected lemma Kuratowski_embedding.isometry (α : Type u) [metric_space α] [separable_space α] :
   isometry (Kuratowski_embedding α) :=
 classical.some_spec (exists_isometric_embedding α)
 
@@ -298,7 +302,5 @@ begin
     have A : Kuratowski_embedding α x ∈ range (Kuratowski_embedding α) := ⟨x, by simp⟩,
     apply ne_empty_of_mem A },
   { rw ← image_univ,
-    exact compact_image compact_univ (Kuratowski_embedding_isometry α).continuous },
+    exact compact_image compact_univ (Kuratowski_embedding.isometry α).continuous },
 end⟩
-
-end Kuratowski_embedding --namespace

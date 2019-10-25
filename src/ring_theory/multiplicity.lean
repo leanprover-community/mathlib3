@@ -136,7 +136,7 @@ eq_some_iff.2 (by simpa)
 lemma eq_top_iff_not_finite {a b : α} : multiplicity a b = ⊤ ↔ ¬ finite a b :=
 roption.eq_none_iff'
 
-local attribute [instance, priority 0] classical.prop_decidable
+open_locale classical
 
 lemma multiplicity_le_multiplicity_iff {a b c d : α} : multiplicity a b ≤ multiplicity c d ↔
   (∀ n : ℕ, a ^ n ∣ b → c ^ n ∣ d) :=
@@ -185,7 +185,7 @@ lemma finite_int_iff {a b : ℤ} : finite a b ↔ (a.nat_abs ≠ 1 ∧ b ≠ 0) 
 begin
   have := int.nat_abs_eq a,
   have := @int.nat_abs_ne_zero_of_ne_zero b,
-  rw [finite_int_iff_nat_abs_finite, finite_nat_iff, nat.pos_iff_ne_zero'],
+  rw [finite_int_iff_nat_abs_finite, finite_nat_iff, nat.pos_iff_ne_zero],
   split; finish
 end
 
@@ -201,7 +201,7 @@ section comm_ring
 
 variables [comm_ring α] [decidable_rel ((∣) : α → α → Prop)]
 
-local attribute [instance, priority 0] classical.prop_decidable
+open_locale classical
 
 @[simp] protected lemma neg (a b : α) : multiplicity a (-b) = multiplicity a b :=
 roption.ext' (by simp only [multiplicity]; conv in (_ ∣ - _) {rw dvd_neg})
@@ -322,7 +322,7 @@ have hsucc : ¬p ^ ((get (multiplicity p a) ((finite_mul_iff hp).1 h).1 +
 by rw [← enat.coe_inj, enat.coe_get, eq_some_iff];
   exact ⟨hdiv, hsucc⟩
 
-local attribute [instance, priority 0] classical.prop_decidable
+open_locale classical
 
 protected lemma mul {p a b : α} (hp : prime p) :
   multiplicity p (a * b) = multiplicity p a + multiplicity p b :=

@@ -9,14 +9,14 @@ import data.real.nnreal order.bounds data.set.intervals tactic.norm_num
 noncomputable theory
 open classical set lattice
 
-local attribute [instance] prop_decidable
+open_locale classical
 variables {α : Type*} {β : Type*}
 
 /-- The extended nonnegative real numbers. This is usually denoted [0, ∞],
   and is relevant as the codomain of a measure. -/
 def ennreal := with_top nnreal
 
-local notation `∞` := (⊤ : ennreal)
+localized "notation `∞` := (⊤ : ennreal)" in ennreal
 
 namespace ennreal
 variables {a b c d : ennreal} {r p q : nnreal}

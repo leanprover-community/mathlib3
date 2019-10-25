@@ -23,7 +23,7 @@ import topology.instances.ennreal
 noncomputable theory
 
 open classical set lattice filter finset function
-local attribute [instance] prop_decidable
+open_locale classical
 
 universes u v w x
 

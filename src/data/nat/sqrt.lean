@@ -14,7 +14,7 @@ namespace nat
 theorem sqrt_aux_dec {b} (h : b ≠ 0) : shiftr b 2 < b :=
 begin
   simp [shiftr_eq_div_pow],
-  apply (nat.div_lt_iff_lt_mul' (dec_trivial : 4 > 0)).2,
+  apply (nat.div_lt_iff_lt_mul' (dec_trivial : 0 < 4)).2,
   have := nat.mul_lt_mul_of_pos_left
     (dec_trivial : 1 < 4) (nat.pos_of_ne_zero h),
   rwa mul_one at this
@@ -158,12 +158,12 @@ theorem le_three_of_sqrt_eq_one {n : ℕ} (h : sqrt n = 1) : n ≤ 3 :=
 le_of_lt_succ $ (@sqrt_lt n 2).1 $
 by rw [h]; exact dec_trivial
 
-theorem sqrt_lt_self {n : ℕ} (h : n > 1) : sqrt n < n :=
+theorem sqrt_lt_self {n : ℕ} (h : 1 < n) : sqrt n < n :=
 sqrt_lt.2 $ by
   have := nat.mul_lt_mul_of_pos_left h (lt_of_succ_lt h);
   rwa [mul_one] at this
 
-theorem sqrt_pos {n : ℕ} : sqrt n > 0 ↔ n > 0 := le_sqrt
+theorem sqrt_pos {n : ℕ} : 0 < sqrt n ↔ 0 < n := le_sqrt
 
 theorem sqrt_add_eq (n : ℕ) {a : ℕ} (h : a ≤ n + n) : sqrt (n*n + a) = n :=
 le_antisymm

@@ -374,11 +374,11 @@ section comm_monoid
 open list
 variable [comm_monoid α]
 
-@[to_additive list.sum_eq_of_perm]
+@[to_additive]
 lemma prod_eq_of_perm {l₁ l₂ : list α} (h : perm l₁ l₂) : prod l₁ = prod l₂ :=
 by induction h; simp [*, mul_left_comm]
 
-@[to_additive list.sum_reverse]
+@[to_additive]
 lemma prod_reverse (l : list α) : prod l.reverse = prod l :=
 prod_eq_of_perm $ reverse_perm l
 

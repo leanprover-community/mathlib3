@@ -2,51 +2,48 @@
 Copyright (c) 2018 Mario Carneiro. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Mario Carneiro
+-/
+
+import tactic.ring data.num.lemmas data.tree
+import tactic.converter.interactive
+
+/-!
+# ring2
 
 An experimental variant on the `ring` tactic that uses computational
 reflection instead of proof generation. Useful for kernel benchmarking.
 -/
-import tactic.ring data.num.lemmas
-import tactic.converter.interactive
 
-namespace tactic.ring2
+namespace tree
 
-@[derive has_reflect]
-inductive {u} tree (α : Type u) : Type u
-| nil {} : tree
-| node : α → tree → tree → tree
-
-def tree.get {α} [has_zero α] : pos_num → tree α → α
-| _                tree.nil            := 0
-| pos_num.one      (tree.node a t₁ t₂) := a
-| (pos_num.bit0 n) (tree.node a t₁ t₂) := t₁.get n
-| (pos_num.bit1 n) (tree.node a t₁ t₂) := t₂.get n
-
-def tree.of_rbnode {α} : rbnode α → tree α
-| rbnode.leaf               := tree.nil
-| (rbnode.red_node l a r)   :=
-  tree.node a (tree.of_rbnode l) (tree.of_rbnode r)
-| (rbnode.black_node l a r) :=
-  tree.node a (tree.of_rbnode l) (tree.of_rbnode r)
-
-def tree.index_of {α} (lt : α → α → Prop) [decidable_rel lt]
-  (x : α) : tree α → option pos_num
-| tree.nil := none
-| (tree.node a t₁ t₂) :=
-  match cmp_using lt x a with
-  | ordering.lt := pos_num.bit0 <$> tree.index_of t₁
-  | ordering.eq := some pos_num.one
-  | ordering.gt := pos_num.bit1 <$> tree.index_of t₂
-  end
-
-meta def tree.reflect' (u : level) (α : expr) : tree expr → expr
+/-- `(reflect' t u α)` quasiquotes a tree `(t: tree expr)` of quoted
+values of type `α` at level `u` into an `expr` which reifies to a `tree α`
+containing the reifications of the `expr`s from the original `t`. -/
+protected meta def reflect' (u : level) (α : expr) : tree expr → expr
 | tree.nil := (expr.const ``tree.nil [u] : expr) α
 | (tree.node a t₁ t₂) :=
   (expr.const ``tree.node [u] : expr) α a t₁.reflect' t₂.reflect'
 
+/-- Returns an element indexed by `n`, or zero if `n` isn't a valid index.
+See `tree.get`. -/
+protected def get_or_zero {α} [has_zero α] (t : tree α) (n : pos_num) : α :=
+  t.get_or_else n 0
+
+end tree
+
+namespace tactic.ring2
+
+/-- A reflected/meta representation of an expression in a commutative
+semiring. This representation is a direct translation of such
+expressions - see `horner_expr` for a normal form. -/
 @[derive has_reflect]
 inductive csring_expr
+/- (atom n) is an opaque element of the csring. For example,
+a local variable in the context. n indexes into a storage
+of such atoms - a `tree α`. -/
 | atom : pos_num → csring_expr
+/- (const n) is technically the csring's one, added n times.
+Or the zero if n is 0. -/
 | const : num → csring_expr
 | add : csring_expr → csring_expr → csring_expr
 | mul : csring_expr → csring_expr → csring_expr
@@ -54,8 +51,11 @@ inductive csring_expr
 
 namespace csring_expr
 
+/-- Evaluates a reflected `csring_expr` into an element of the
+original `comm_semiring` type `α`, retrieving opaque elements
+(atoms) from the tree `t`. -/
 def eval {α} [comm_semiring α] (t : tree α) : csring_expr → α
-| (atom n)  := @tree.get _ ⟨0⟩ n t
+| (atom n)  := t.get_or_zero n
 | (const n) := n
 | (add x y) := eval x + eval y
 | (mul x y) := eval x * eval y
@@ -63,13 +63,24 @@ def eval {α} [comm_semiring α] (t : tree α) : csring_expr → α
 
 end csring_expr
 
+/-- An efficient representation of expressions in a commutative
+semiring using the sparse Horner normal form. This type admits
+non-optimal instantiations (e.g. `P` can be represented as `P+0+0`),
+so to get good performance out of it, care must be taken to maintain
+an optimal, *canonical* form. -/
 @[derive decidable_eq]
 inductive horner_expr
+/- (const n) is a constant n in the csring, similarly to the same
+constructor in `csring_expr`. This one, however, can be negative. -/
 | const : znum → horner_expr
+/- (horner a x n b) is a*xⁿ + b, where x is the x-th atom
+in the atom tree. -/
 | horner : horner_expr → pos_num → num → horner_expr → horner_expr
 
 namespace horner_expr
 
+/-- True iff the `horner_expr` argument is a valid `csring_expr`.
+For that to be the case, all its constants must be non-negative. -/
 def is_cs : horner_expr → Prop
 | (const n) := ∃ m:num, n = m.to_znum
 | (horner a x n b) := is_cs a ∧ is_cs b
@@ -77,15 +88,18 @@ def is_cs : horner_expr → Prop
 instance : has_zero horner_expr := ⟨const 0⟩
 instance : has_one horner_expr := ⟨const 1⟩
 
+/-- Represent a `csring_expr.atom` in Horner form. -/
 def atom (n : pos_num) : horner_expr := horner 1 n 1 0
 
-def repr : horner_expr → string
+def to_string : horner_expr → string
 | (const n) := _root_.repr n
 | (horner a x n b) :=
-    "(" ++ repr a ++ ") * x" ++ _root_.repr x ++ "^"
-        ++ _root_.repr n ++ " + " ++ repr b
-instance : has_repr horner_expr := ⟨repr⟩
+    "(" ++ to_string a ++ ") * x" ++ _root_.repr x ++ "^"
+        ++ _root_.repr n ++ " + " ++ to_string b
+instance : has_to_string horner_expr := ⟨to_string⟩
 
+/-- Alternative constructor for (horner a x n b) which maintains canonical
+form by simplifying special cases of `a`. -/
 def horner' (a : horner_expr)
   (x : pos_num) (n : num) (b : horner_expr) : horner_expr :=
 match a with
@@ -168,8 +182,8 @@ def mul_aux (a₁ x₁ n₁ b₁) (A₁ B₁ : horner_expr → horner_expr) :
   end
 
 def mul : horner_expr → horner_expr → horner_expr
-| (const n₁)              := mul_const n₁
-| e₁@(horner a₁ x₁ n₁ b₁) := mul_aux a₁ x₁ n₁ b₁ (mul a₁) (mul b₁).
+| (const n₁)           := mul_const n₁
+| (horner a₁ x₁ n₁ b₁) := mul_aux a₁ x₁ n₁ b₁ (mul a₁) (mul b₁).
 /-begin
   induction e₁ with n₁ a₁ x₁ n₁ b₁ A₁ B₁ generalizing e₂,
   { exact mul_const n₁ e₂ },
@@ -200,6 +214,7 @@ end
 
 def inv (e : horner_expr) : horner_expr := 0
 
+/-- Brings expressions into Horner normal form. -/
 def of_csexpr : csring_expr → horner_expr
 | (csring_expr.atom n)  := atom n
 | (csring_expr.const n) := const n.to_znum
@@ -207,12 +222,13 @@ def of_csexpr : csring_expr → horner_expr
 | (csring_expr.mul x y) := (of_csexpr x).mul (of_csexpr y)
 | (csring_expr.pow x n) := (of_csexpr x).pow n
 
+/-- Evaluates a reflected `horner_expr` - see `csring_expr.eval`. -/
 def cseval {α} [comm_semiring α] (t : tree α) : horner_expr → α
 | (const n)        := n.abs
-| (horner a x n b) := tactic.ring.horner (cseval a) (t.get x) n (cseval b)
+| (horner a x n b) := tactic.ring.horner (cseval a) (t.get_or_zero x) n (cseval b)
 
 theorem cseval_atom {α} [comm_semiring α] (t : tree α)
-  (n : pos_num) : (atom n).is_cs ∧ cseval t (atom n) = t.get n :=
+  (n : pos_num) : (atom n).is_cs ∧ cseval t (atom n) = t.get_or_zero n :=
 ⟨⟨⟨1, rfl⟩, ⟨0, rfl⟩⟩, (tactic.ring.horner_atom _).symm⟩
 
 theorem cseval_add_const {α} [comm_semiring α] (t : tree α)
@@ -234,7 +250,7 @@ end
 theorem cseval_horner' {α} [comm_semiring α] (t : tree α)
   (a x n b) (h₁ : is_cs a) (h₂ : is_cs b) :
   (horner' a x n b).is_cs ∧ cseval t (horner' a x n b) =
-    tactic.ring.horner (cseval t a) (t.get x) n (cseval t b) :=
+    tactic.ring.horner (cseval t a) (t.get_or_zero x) n (cseval t b) :=
 begin
   cases a with n₁ a₁ x₁ n₁ b₁; simp [horner']; split_ifs,
   { simp! [*, tactic.ring.horner] },
@@ -375,6 +391,9 @@ theorem cseval_pow {α} [comm_semiring α] (t : tree α)
     simp * }
 end
 
+/-- For any given tree `t` of atoms and any reflected expression `r`,
+the Horner form of `r` is a valid csring expression, and under `t`,
+the Horner form evaluates to the same thing as `r`. -/
 theorem cseval_of_csexpr {α} [comm_semiring α] (t : tree α) :
   ∀ (r : csring_expr), (of_csexpr r).is_cs ∧ cseval t (of_csexpr r) = r.eval t
 | (csring_expr.atom n)  := cseval_atom _ _
@@ -393,11 +412,18 @@ theorem cseval_of_csexpr {α} [comm_semiring α] (t : tree α) :
 
 end horner_expr
 
+/-- The main proof-by-reflection theorem. Given reflected csring expressions
+`r₁` and `r₂` plus a storage `t` of atoms, if both expressions go to the
+same Horner normal form, then the original non-reflected expressions are
+equal. `H` follows from kernel reduction and is therefore `rfl`. -/
 theorem correctness {α} [comm_semiring α] (t : tree α) (r₁ r₂ : csring_expr)
   (H : horner_expr.of_csexpr r₁ = horner_expr.of_csexpr r₂) :
   r₁.eval t = r₂.eval t :=
 by repeat {rw ← (horner_expr.cseval_of_csexpr t _).2}; rw H
 
+/-- Reflects a csring expression into a `csring_expr`, together
+with a dlist of atoms, i.e. opaque variables over which the
+expression is a polynomial. -/
 meta def reflect_expr : expr → csring_expr × dlist expr
 | `(%%e₁ + %%e₂) :=
   let (r₁, l₁) := reflect_expr e₁, (r₂, l₂) := reflect_expr e₂ in
@@ -423,6 +449,11 @@ meta def reflect_expr : expr → csring_expr × dlist expr
   | none := (csring_expr.atom 1, dlist.singleton e)
   end
 
+/-- In the output of `reflect_expr`, `atom`s are initialized with incorrect indices.
+The indices cannot be computed until the whole tree is built, so another pass over
+the expressions is needed - this is what `replace` does. The computation (expressed
+in the state monad) fixes up `atom`s to match their positions in the atom tree.
+The initial state is a list of all atom occurrences in the goal, left-to-right. -/
 meta def csring_expr.replace (t : tree expr) : csring_expr → state_t (list expr) option csring_expr
 | (csring_expr.atom _)  := do e ← get,
   p ← monad_lift (t.index_of (<) e.head),
@@ -448,7 +479,8 @@ local postfix `?`:9001 := optional
   of proof generation. -/
 meta def ring2 : tactic unit :=
 do `[repeat {rw ← nat.pow_eq_pow}],
-  `(%%e₁ = %%e₂) ← target,
+  `(%%e₁ = %%e₂) ← target
+  | fail "ring2 tactic failed: the goal is not an equality",
   α ← infer_type e₁,
   expr.sort (level.succ u) ← infer_type α,
   let (r₁, l₁) := reflect_expr e₁,
@@ -461,10 +493,10 @@ do `[repeat {rw ← nat.pow_eq_pow}],
   let er₁ : expr := reflect r₁,
   let er₂ : expr := reflect r₂,
   cs ← mk_app ``comm_semiring [α] >>= mk_instance,
-  e ← to_expr ```(correctness %%se %%er₁ %%er₂ rfl)
-    <|> fail ("ring2 tactic failed, using abstract equality:\n"
-      ++ repr (horner_expr.of_csexpr r₁) ++
-      "\n  =?=\n" ++ repr (horner_expr.of_csexpr r₂)),
+  e ← to_expr ``(correctness %%se %%er₁ %%er₂ rfl)
+    <|> fail ("ring2 tactic failed, cannot show equality:\n"
+      ++ to_string (horner_expr.of_csexpr r₁) ++
+      "\n  =?=\n" ++ to_string (horner_expr.of_csexpr r₂)),
   tactic.exact e
 
 end interactive

@@ -11,7 +11,7 @@ import data.zmod.basic algebra.module
 
 universes u v
 
-/-- The generator of the kernel of the unique homomorphism ℤ → α for a semiring α -/
+/-- The generator of the kernel of the unique homomorphism ℕ → α for a semiring α -/
 class char_p (α : Type u) [semiring α] (p : ℕ) : Prop :=
 (cast_eq_zero_iff : ∀ x:ℕ, (x:α) = 0 ↔ p ∣ x)
 
@@ -122,10 +122,10 @@ lemma cast_eq_mod (p : ℕ) [char_p α p] (k : ℕ) : (k : α) = (k % p : ℕ) :
 calc (k : α) = ↑(k % p + p * (k / p)) : by rw [nat.mod_add_div]
          ... = ↑(k % p)               : by simp[cast_eq_zero]
 
-theorem char_ne_zero_of_fintype (p : ℕ) [hc : char_p α p] [fintype α] [decidable_eq α] : p ≠ 0 :=
+theorem char_ne_zero_of_fintype (p : ℕ) [hc : char_p α p] [fintype α] : p ≠ 0 :=
 assume h : p = 0,
 have char_zero α := @char_p_to_char_zero α _ (h ▸ hc),
-absurd (@nat.cast_injective α _ _ this) (@set.not_injective_nat_fintype α _ _ _)
+absurd (@nat.cast_injective α _ _ this) (@set.not_injective_nat_fintype α _ _)
 
 end
 
@@ -164,7 +164,7 @@ match p, hc with
 | (m+2), hc := or.inl (@char_is_prime_of_ge_two α _ (m+2) hc (nat.le_add_left 2 m))
 end
 
-theorem char_is_prime [fintype α] [decidable_eq α] (p : ℕ) [char_p α p] : nat.prime p :=
+theorem char_is_prime [fintype α] (p : ℕ) [char_p α p] : nat.prime p :=
 or.resolve_right (char_is_prime_or_zero α p) (char_ne_zero_of_fintype α p)
 
 end integral_domain

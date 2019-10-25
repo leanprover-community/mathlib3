@@ -4,6 +4,14 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Nathaniel Thomas, Jeremy Avigad, Johannes Hölzl, Mario Carneiro
 
 Modules over a ring.
+
+## Implemetation notes
+
+
+Throughout the `linear_map` section implicit `{}` brackets are often used instead of type class `[]` brackets.
+This is done when the instances can be inferred because they are implicit arguments to the type `linear_map`.
+When they can be inferred from the type it is faster to use this method than to use type class inference
+
 -/
 
 import algebra.ring algebra.big_operators group_theory.subgroup group_theory.group_action
@@ -128,10 +136,10 @@ notation β ` →ₗ[`:25 α:25 `] `:0 γ:0 := linear_map α β γ
 
 namespace linear_map
 
-variables [ring α] [add_comm_group β] [add_comm_group γ] [add_comm_group δ]
-variables [module α β] [module α γ] [module α δ]
+variables {rα : ring α} {gβ : add_comm_group β} {gγ : add_comm_group γ} {gδ : add_comm_group δ}
+variables {mβ : module α β} {mγ : module α γ} {mδ : module α δ}
 variables (f g : β →ₗ[α] γ)
-include α
+include α mβ mγ
 
 instance : has_coe_to_fun (β →ₗ[α] γ) := ⟨_, to_fun⟩
 
@@ -165,9 +173,14 @@ by simp [map_neg, map_add]
   f (t.sum g) = t.sum (λi, f (g i)) :=
 (finset.sum_hom f).symm
 
+include mδ
+
 def comp (f : γ →ₗ[α] δ) (g : β →ₗ[α] γ) : β →ₗ[α] δ := ⟨f ∘ g, by simp, by simp⟩
 
 @[simp] lemma comp_apply (f : γ →ₗ[α] δ) (g : β →ₗ[α] γ) (x : β) : f.comp g x = f (g x) := rfl
+
+omit mγ mδ
+variables [rα] [gβ] [mβ]
 
 def id : β →ₗ[α] β := ⟨id, by simp, by simp⟩
 
@@ -407,3 +420,17 @@ def is_add_group_hom.to_linear_map [add_comm_group α] [add_comm_group β]
   smul := λ i x, int.induction_on i (by rw [zero_smul, zero_smul, is_add_group_hom.map_zero f])
     (λ i ih, by rw [add_smul, add_smul, is_add_hom.map_add f, ih, one_smul, one_smul])
     (λ i ih, by rw [sub_smul, sub_smul, is_add_group_hom.map_sub f, ih, one_smul, one_smul]) }
+
+lemma module.smul_eq_smul {R : Type*} [ring R] {β : Type*} [add_comm_group β] [module R β]
+  (n : ℕ) (b : β) : n • b = (n : R) • b :=
+begin
+  induction n with n ih,
+  { rw [nat.cast_zero, zero_smul, zero_smul] },
+  { change (n + 1) • b = (n + 1 : R) • b,
+    rw [add_smul, add_smul, one_smul, ih, one_smul] }
+end
+
+lemma finset.sum_const' {α : Type*} (R : Type*) [ring R] {β : Type*}
+  [add_comm_group β] [module R β] {s : finset α} (b : β) :
+  finset.sum s (λ (a : α), b) = (finset.card s : R) • b :=
+by rw [finset.sum_const, ← module.smul_eq_smul]; refl

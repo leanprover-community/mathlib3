@@ -14,7 +14,7 @@ variables {C : Type u₁} [𝒞 : category.{v₁} C]
 include 𝒞
 
 class monad (T : C ⥤ C) :=
-(η : functor.id _ ⟶ T)
+(η : 𝟭 _ ⟶ T)
 (μ : T ⋙ T ⟶ T)
 (assoc' : ∀ X : C, T.map (nat_trans.app μ X) ≫ μ.app _ = μ.app (T.obj X) ≫ μ.app _ . obviously)
 (left_unit' : ∀ X : C, η.app (T.obj X) ≫ μ.app _ = 𝟙 _  . obviously)

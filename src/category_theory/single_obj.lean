@@ -1,15 +1,19 @@
-import category_theory.endomorphism category_theory.groupoid category_theory.Cat
-import data.equiv.algebra algebra.Mon.basic
-import tactic.find
-
-/-!
+/-
 Copyright (c) 2019 Yury Kudryashov. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Yury Kudryashov
+-/
 
+import category_theory.endomorphism
+import category_theory.groupoid
+import category_theory.category.Cat
+import data.equiv.algebra
+import algebra.category.Mon.basic
+
+/-!
 # Single-object category
 
-Single object category with a given monoid of endomorphisms.  It is defined to faciliate transfering
+Single object category with a given monoid of endomorphisms.  It is defined to facilitate transfering
 some definitions and lemmas (e.g., conjugacy etc.) from category theory to monoids and groups.
 
 ## Main definitions
@@ -64,46 +68,71 @@ protected def star : single_obj α := unit.star
 
 /-- The endomorphisms monoid of the only object in `single_obj α` is equivalent to the original
      monoid α. -/
-def to_End_equiv [monoid α] : End (single_obj.star α) ≃* α := mul_equiv.refl α
+def to_End [monoid α] : α ≃* End (single_obj.star α) :=
+{ map_mul' := λ x y, rfl,
+  .. equiv.refl α }
 
-/-- Reinterpret an element of a monoid as an element of the endomorphisms monoid of the only object
-    in the `single_obj α` category. -/
-def to_End {α} [monoid α] (x : α) : End (single_obj.star α) := x
-
-lemma to_End_def [monoid α] (x : α) : to_End x = x := rfl
+lemma to_End_def [monoid α] (x : α) : to_End α x = x := rfl
 
 /-- There is a 1-1 correspondence between monoid homomorphisms `α → β` and functors between the
     corresponding single-object categories. It means that `single_obj` is a fully faithful
     functor. -/
-def map_hom_equiv (α : Type u) (β : Type v) [monoid α] [monoid β] :
-  { f : α → β // is_monoid_hom f } ≃ (single_obj α) ⥤ (single_obj β) :=
+def map_hom (α : Type u) (β : Type v) [monoid α] [monoid β] :
+  (α →* β) ≃ (single_obj α) ⥤ (single_obj β) :=
 { to_fun := λ f,
   { obj := id,
-    map := λ _ _, f.1,
-    map_id' := λ _, f.2.map_one,
-    map_comp' := λ _ _ _ x y, @is_mul_hom.map_mul _ _ _ _ _ f.2.1 y x },
-  inv_fun := λ f, ⟨@functor.map _ _ _ _ f (single_obj.star α) (single_obj.star α),
-    { map_mul := λ x y, f.map_comp y x, map_one := f.map_id _ }⟩,
-  left_inv := λ ⟨f, hf⟩, rfl,
-  right_inv := assume f, by rcases f; obviously }
+    map := λ _ _, ⇑f,
+    map_id' := λ _, f.map_one,
+    map_comp' := λ _ _ _ x y, f.map_mul y x },
+  inv_fun := λ f,
+    { to_fun := @functor.map _ _ _ _ f (single_obj.star α) (single_obj.star α),
+      map_one' := f.map_id _,
+      map_mul' := λ x y, f.map_comp y x },
+  left_inv := λ ⟨f, h₁, h₂⟩, rfl,
+  right_inv := λ f, by cases f; obviously }
 
-/-- Reinterpret a monoid homomorphism `f : α → β` as a functor `(single_obj α) ⥤ (single_obj β)`.
-See also `map_hom_equiv` for an equivalence between these types. -/
-@[reducible] def map_hom {α : Type u} {β : Type v} [monoid α] [monoid β]
-  (f : α → β) [hf : is_monoid_hom f] :
-  (single_obj α) ⥤ (single_obj β) :=
-map_hom_equiv α β ⟨f, hf⟩
+lemma map_hom_id (α : Type u) [monoid α] : map_hom α α (monoid_hom.id α) = 𝟭 _ := rfl
 
-lemma map_hom_id {α : Type u} [monoid α] : map_hom (@id α) = 𝟭 _ := rfl
-
-lemma map_hom_comp {α : Type u} {β : Type v} [monoid α] [monoid β] (f : α → β) [is_monoid_hom f]
-  {γ : Type w} [monoid γ] (g : β → γ) [is_monoid_hom g] :
-  map_hom f ⋙ map_hom g = map_hom (g ∘ f) :=
+lemma map_hom_comp {α : Type u} {β : Type v} [monoid α] [monoid β] (f : α →* β)
+  {γ : Type w} [monoid γ] (g : β →* γ) :
+  map_hom α γ (g.comp f) = map_hom α β f ⋙ map_hom β γ g :=
 rfl
 
 end single_obj
 
 end category_theory
+
+open category_theory
+
+namespace monoid_hom
+
+/-- Reinterpret a monoid homomorphism `f : α → β` as a functor `(single_obj α) ⥤ (single_obj β)`.
+See also `category_theory.single_obj.map_hom` for an equivalence between these types. -/
+@[reducible] def to_functor {α : Type u} {β : Type v} [monoid α] [monoid β] (f : α →* β) :
+  (single_obj α) ⥤ (single_obj β) :=
+single_obj.map_hom α β f
+
+@[simp] lemma id_to_functor (α : Type u) [monoid α] : (id α).to_functor = 𝟭 _ := rfl
+@[simp] lemma comp_to_functor {α : Type u} {β : Type v} [monoid α] [monoid β] (f : α →* β)
+  {γ : Type w} [monoid γ] (g : β →* γ) :
+  (g.comp f).to_functor = f.to_functor ⋙ g.to_functor :=
+rfl
+
+end monoid_hom
+
+namespace units
+
+variables (α : Type u) [monoid α]
+
+def to_Aut : units α ≃* Aut (single_obj.star α) :=
+(units.map_equiv (single_obj.to_End α)).trans $
+  Aut.units_End_eqv_Aut _
+
+@[simp] lemma to_Aut_hom (x : units α) : (to_Aut α x).hom = single_obj.to_End α x := rfl
+@[simp] lemma to_Aut_inv (x : units α) :
+  (to_Aut α x).inv = single_obj.to_End α (x⁻¹ : units α) :=
+rfl
+end units
 
 namespace Mon
 
@@ -112,13 +141,13 @@ open category_theory
 /-- The fully faithful functor from `Mon` to `Cat`. -/
 def to_Cat : Mon ⥤ Cat :=
 { obj := λ x, Cat.of (single_obj x),
-  map := λ x y f, single_obj.map_hom f }
+  map := λ x y f, single_obj.map_hom x y f }
 
 instance to_Cat_full : full to_Cat :=
-{ preimage := λ x y, (single_obj.map_hom_equiv x y).inv_fun,
-  witness' := λ x y, (single_obj.map_hom_equiv x y).right_inv }
+{ preimage := λ x y, (single_obj.map_hom x y).inv_fun,
+  witness' := λ x y, by apply equiv.right_inv }
 
 instance to_Cat_faithful : faithful to_Cat :=
-{ injectivity' := λ x y, (single_obj.map_hom_equiv x y).injective }
+{ injectivity' := λ x y, by apply equiv.injective }
 
 end Mon

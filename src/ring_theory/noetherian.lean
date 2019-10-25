@@ -295,8 +295,7 @@ lemma well_founded_submodule_gt (α β) [ring α] [add_comm_group β] [module α
 is_noetherian_iff_well_founded.mp
 
 lemma finite_of_linear_independent {α β} [nonzero_comm_ring α] [add_comm_group β] [module α β]
-  [decidable_eq α] [decidable_eq β] [is_noetherian α β] {s : set β}
-  (hs : linear_independent α (subtype.val : s → β)) : s.finite :=
+  [is_noetherian α β] {s : set β} (hs : linear_independent α (subtype.val : s → β)) : s.finite :=
 begin
   refine classical.by_contradiction (λ hf, order_embedding.well_founded_iff_no_descending_seq.1
     (well_founded_submodule_gt α β) ⟨_⟩),
@@ -392,7 +391,7 @@ instance is_noetherian_ring_range {R} [comm_ring R] {S} [comm_ring S] (f : R →
   (λ ⟨x, y, hy⟩, ⟨y, subtype.eq hy⟩) _
 
 theorem is_noetherian_ring_of_ring_equiv (R) [comm_ring R] {S} [comm_ring S]
-  (f : R ≃r S) [is_noetherian_ring R] : is_noetherian_ring S :=
+  (f : R ≃+* S) [is_noetherian_ring R] : is_noetherian_ring S :=
 is_noetherian_ring_of_surjective R S f.1 f.to_equiv.surjective
 
 namespace is_noetherian_ring

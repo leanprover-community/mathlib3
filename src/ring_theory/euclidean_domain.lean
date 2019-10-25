@@ -5,7 +5,7 @@ Authors: Mario Carneiro, Chris Hughes
 -/
 import algebra.associated algebra.euclidean_domain ring_theory.ideals
 noncomputable theory
-local attribute [instance] classical.dec
+open_locale classical
 open euclidean_domain set ideal
 
 theorem span_gcd {α} [euclidean_domain α] (x y : α) :

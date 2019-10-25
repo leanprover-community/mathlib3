@@ -12,11 +12,7 @@ import tactic.omega.nat.form
 namespace omega
 namespace nat
 
-local notation x ` =* ` y := form.eq x y
-local notation x ` ≤* ` y := form.le x y
-local notation `¬* ` p   := form.not p
-local notation p ` ∨* ` q := form.or p q
-local notation p ` ∧* ` q := form.and p q
+open_locale omega.nat
 
 @[simp] def dnf_core : form → list clause
 | (p ∨* q) := (dnf_core p) ++ (dnf_core q)
@@ -78,7 +74,7 @@ def terms.vars : list term → list bool
 | []      := []
 | (t::ts) := bools.or (term.vars t) (terms.vars ts)
 
-local notation as ` {` m ` ↦ ` a `}` := list.func.set a as m
+open_locale list.func -- get notation for list.func.set
 
 def nonneg_consts_core : nat → list bool → list term
 | _ [] := []

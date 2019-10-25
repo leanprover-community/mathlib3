@@ -40,8 +40,7 @@ variables [fintype k] [fintype l] [fintype m] [fintype n]
 variables [decidable_eq k] [decidable_eq l] [decidable_eq m] [decidable_eq n]
 variables {α : Type v}
 
-local infix ` ⬝ `:70 := matrix.mul
-local postfix `ᵀ` : 1500 := transpose
+open_locale matrix
 
 /-- `to_matrix` returns a matrix containing ones and zeros. `f.to_matrix i j` is `1` if
   `f i = some j` and `0` otherwise -/

@@ -33,7 +33,7 @@ localized "notation `ω` := hyperreal.omega" in hyperreal
 
 lemma epsilon_eq_inv_omega : ε = ω⁻¹ := rfl
 
-lemma inv_epsilon_eq_omega : ε⁻¹ = ω := @inv_inv' _ _ ω
+lemma inv_epsilon_eq_omega : ε⁻¹ = ω := inv_inv' ω
 
 lemma epsilon_pos : 0 < ε :=
 have h0' : {n : ℕ | ¬ n > 0} = {0} :=

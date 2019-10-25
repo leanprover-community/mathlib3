@@ -12,6 +12,11 @@ namespace category_theory
 variables {C : Type u₁} [𝒞 : category.{v₁} C] {D : Type u₂} [𝒟 : category.{v₂} D]
 include 𝒞 𝒟
 
+/--
+A functor `F : C ⥤ D` is full if for each `X Y : C`, `F.map` is surjective.
+In fact, we use a constructive definition, so the `full F` typeclass contains data,
+specifying a particular preimage of each `f : F.obj X ⟶ F.obj Y`.
+-/
 class full (F : C ⥤ D) :=
 (preimage : ∀ {X Y : C} (f : (F.obj X) ⟶ (F.obj Y)), X ⟶ Y)
 (witness' : ∀ {X Y : C} (f : (F.obj X) ⟶ (F.obj Y)), F.map (preimage f) = f . obviously)
@@ -19,15 +24,18 @@ class full (F : C ⥤ D) :=
 restate_axiom full.witness'
 attribute [simp] full.witness
 
+/-- A functor `F : C ⥤ D` is faithful if for each `X Y : C`, `F.map` is injective.-/
 class faithful (F : C ⥤ D) : Prop :=
 (injectivity' : ∀ {X Y : C}, function.injective (@functor.map _ _ _ _ F X Y) . obviously)
 
 restate_axiom faithful.injectivity'
 
 namespace functor
-def injectivity (F : C ⥤ D) [faithful F] {X Y : C} : function.injective $ @functor.map _ _ _ _ F X Y :=
+lemma injectivity (F : C ⥤ D) [faithful F] {X Y : C} :
+  function.injective $ @functor.map _ _ _ _ F X Y :=
 faithful.injectivity F
 
+/-- The specified preimage of a morphism under a full functor. -/
 def preimage (F : C ⥤ D) [full F] {X Y : C} (f : F.obj X ⟶ F.obj Y) : X ⟶ Y :=
 full.preimage.{v₁ v₂} f
 @[simp] lemma image_preimage (F : C ⥤ D) [full F] {X Y : C} (f : F.obj X ⟶ F.obj Y) :
@@ -36,6 +44,17 @@ by unfold preimage; obviously
 end functor
 
 variables {F : C ⥤ D} [full F] [faithful F] {X Y Z : C}
+
+@[simp] lemma preimage_id : F.preimage (𝟙 (F.obj X)) = 𝟙 X :=
+F.injectivity (by simp)
+@[simp] lemma preimage_comp (f : F.obj X ⟶ F.obj Y) (g : F.obj Y ⟶ F.obj Z) :
+  F.preimage (f ≫ g) = F.preimage f ≫ F.preimage g :=
+F.injectivity (by simp)
+@[simp] lemma preimage_map (f : X ⟶ Y) :
+  F.preimage (F.map f) = f :=
+F.injectivity (by simp)
+
+/-- If `F : C ⥤ D` is fully faithful, every isomorphism `F.obj X ≅ F.obj Y` has a preimage. -/
 def preimage_iso (f : (F.obj X) ≅ (F.obj Y)) : X ≅ Y :=
 { hom := F.preimage f.hom,
   inv := F.preimage f.inv,
@@ -46,15 +65,8 @@ def preimage_iso (f : (F.obj X) ≅ (F.obj Y)) : X ≅ Y :=
   (preimage_iso f).hom = F.preimage f.hom := rfl
 @[simp] lemma preimage_iso_inv (f : (F.obj X) ≅ (F.obj Y)) :
   (preimage_iso f).inv = F.preimage (f.inv) := rfl
-
-@[simp] lemma preimage_id : F.preimage (𝟙 (F.obj X)) = 𝟙 X :=
-F.injectivity (by simp)
-@[simp] lemma preimage_comp (f : F.obj X ⟶ F.obj Y) (g : F.obj Y ⟶ F.obj Z) :
-  F.preimage (f ≫ g) = F.preimage f ≫ F.preimage g :=
-F.injectivity (by simp)
-@[simp] lemma preimage_map (f : X ⟶ Y) :
-  F.preimage (F.map f) = f :=
-F.injectivity (by simp)
+@[simp] lemma preimage_iso_map_iso (f : X ≅ Y) : preimage_iso (F.map_iso f) = f :=
+by tidy
 
 variables (F)
 def is_iso_of_fully_faithful (f : X ⟶ Y) [is_iso (F.map f)] : is_iso f :=
@@ -72,7 +84,7 @@ include 𝒞
 instance full.id : full (𝟭 C) :=
 { preimage := λ _ _ f, f }
 
-instance : faithful (𝟭 C) := by obviously
+instance faithful.id : faithful (𝟭 C) := by obviously
 
 variables {D : Type u₂} [𝒟 : category.{v₂} D] {E : Type u₃} [ℰ : category.{v₃} E]
 include 𝒟 ℰ
@@ -96,7 +108,7 @@ variables (F G)
 /-- “Divide” a functor by a faithful functor. -/
 protected def faithful.div (F : C ⥤ E) (G : D ⥤ E) [faithful G]
   (obj : C → D) (h_obj : ∀ X, G.obj (obj X) = F.obj X)
-  (map : ∀ {X Y}, (X ⟶ Y) → (obj X ⟶ obj Y))
+  (map : Π {X Y}, (X ⟶ Y) → (obj X ⟶ obj Y))
   (h_map : ∀ {X Y} {f : X ⟶ Y}, G.map (map f) == F.map f) :
   C ⥤ D :=
 { obj := obj,
@@ -123,7 +135,7 @@ protected def faithful.div (F : C ⥤ E) (G : D ⥤ E) [faithful G]
 
 lemma faithful.div_comp (F : C ⥤ E) [faithful F] (G : D ⥤ E) [faithful G]
   (obj : C → D) (h_obj : ∀ X, G.obj (obj X) = F.obj X)
-  (map : ∀ {X Y}, (X ⟶ Y) → (obj X ⟶ obj Y))
+  (map : Π {X Y}, (X ⟶ Y) → (obj X ⟶ obj Y))
   (h_map : ∀ {X Y} {f : X ⟶ Y}, G.map (map f) == F.map f) :
   (faithful.div F G obj @h_obj @map @h_map) ⋙ G = F :=
 begin
@@ -140,7 +152,7 @@ end
 
 lemma faithful.div_faithful (F : C ⥤ E) [faithful F] (G : D ⥤ E) [faithful G]
   (obj : C → D) (h_obj : ∀ X, G.obj (obj X) = F.obj X)
-  (map : ∀ {X Y}, (X ⟶ Y) → (obj X ⟶ obj Y))
+  (map : Π {X Y}, (X ⟶ Y) → (obj X ⟶ obj Y))
   (h_map : ∀ {X Y} {f : X ⟶ Y}, G.map (map f) == F.map f) :
   faithful (faithful.div F G obj @h_obj @map @h_map) :=
 (faithful.div_comp F G _ h_obj _ @h_map).faithful_of_comp

@@ -57,13 +57,13 @@ infi_le_infi $ assume s, infi_le_infi $ assume hs, hg s hs
 
 lemma map_lift_eq {m : β → γ} (hg : monotone g) : map m (f.lift g) = f.lift (map m ∘ g) :=
 have monotone (map m ∘ g),
-  from monotone_comp hg monotone_map,
+  from monotone_map.comp hg,
 filter_eq $ set.ext $
   by simp only [mem_lift_sets, hg, @mem_lift_sets _ _ f _ this, exists_prop, forall_const, mem_map, iff_self, function.comp_app]
 
 lemma comap_lift_eq {m : γ → β} (hg : monotone g) : comap m (f.lift g) = f.lift (comap m ∘ g) :=
 have monotone (comap m ∘ g),
-  from monotone_comp hg monotone_comap,
+  from monotone_comap.comp hg,
 filter_eq $ set.ext begin
   simp only [hg, @mem_lift_sets _ _ f _ this, comap, mem_lift_sets, mem_set_of_eq, exists_prop,
     function.comp_apply],
@@ -216,26 +216,26 @@ le_antisymm (lift'_mono' $ assume s hs, le_of_eq $ hh s hs) (lift'_mono' $ assum
 
 lemma map_lift'_eq {m : β → γ} (hh : monotone h) : map m (f.lift' h) = f.lift' (image m ∘ h) :=
 calc map m (f.lift' h) = f.lift (map m ∘ principal ∘ h) :
-    map_lift_eq $ monotone_comp hh monotone_principal
+    map_lift_eq $ monotone_principal.comp hh
   ... = f.lift' (image m ∘ h) : by simp only [(∘), filter.lift', map_principal, eq_self_iff_true]
 
 lemma map_lift'_eq2 {g : set β → set γ} {m : α → β} (hg : monotone g) :
   (map m f).lift' g = f.lift' (g ∘ image m) :=
-map_lift_eq2 $ monotone_comp hg monotone_principal
+map_lift_eq2 $ monotone_principal.comp hg
 
 theorem comap_lift'_eq {m : γ → β} (hh : monotone h) :
   comap m (f.lift' h) = f.lift' (preimage m ∘ h) :=
 calc comap m (f.lift' h) = f.lift (comap m ∘ principal ∘ h) :
-    comap_lift_eq $ monotone_comp hh monotone_principal
+    comap_lift_eq $ monotone_principal.comp hh
   ... = f.lift' (preimage m ∘ h) : by simp only [(∘), filter.lift', comap_principal, eq_self_iff_true]
 
 theorem comap_lift'_eq2 {m : β → α} {g : set β → set γ} (hg : monotone g) :
   (comap m f).lift' g = f.lift' (g ∘ preimage m) :=
-comap_lift_eq2 $ monotone_comp hg monotone_principal
+comap_lift_eq2 $ monotone_principal.comp hg
 
 lemma lift'_principal {s : set α} (hh : monotone h) :
   (principal s).lift' h = principal (h s) :=
-lift_principal $ monotone_comp hh monotone_principal
+lift_principal $ monotone_principal.comp hh
 
 lemma principal_le_lift' {t : set β} (hh : ∀s∈f.sets, t ⊆ h s) :
   principal t ≤ f.lift' h :=
@@ -249,13 +249,13 @@ lemma lift_lift'_assoc {g : set α → set β} {h : set β → filter γ}
   (hg : monotone g) (hh : monotone h) :
   (f.lift' g).lift h = f.lift (λs, h (g s)) :=
 calc (f.lift' g).lift h = f.lift (λs, (principal (g s)).lift h) :
-    lift_assoc (monotone_comp hg monotone_principal)
+    lift_assoc (monotone_principal.comp hg)
   ... = f.lift (λs, h (g s)) : by simp only [lift_principal, hh, eq_self_iff_true]
 
 lemma lift'_lift'_assoc {g : set α → set β} {h : set β → set γ}
   (hg : monotone g) (hh : monotone h) :
   (f.lift' g).lift' h = f.lift' (λs, h (g s)) :=
-lift_lift'_assoc hg (monotone_comp hh monotone_principal)
+lift_lift'_assoc hg (monotone_principal.comp hh)
 
 lemma lift'_lift_assoc {g : set α → filter β} {h : set β → set γ}
   (hg : monotone g) : (f.lift g).lift' h = f.lift (λs, (g s).lift' h) :=
@@ -269,8 +269,8 @@ lemma lift_lift'_same_eq_lift' {g : set α → set α → set β}
   (hg₁ : ∀s, monotone (λt, g s t)) (hg₂ : ∀t, monotone (λs, g s t)) :
   f.lift (λs, f.lift' (g s)) = f.lift' (λs, g s s) :=
 lift_lift_same_eq_lift
-  (assume s, monotone_comp monotone_id $ monotone_comp (hg₁ s) monotone_principal)
-  (assume t, monotone_comp (hg₂ t) monotone_principal)
+  (assume s, monotone_principal.comp (hg₁ s))
+  (assume t, monotone_principal.comp (hg₂ t))
 
 lemma lift'_inf_principal_eq {h : set α → set β} {s : set β} :
   f.lift' h ⊓ principal s = f.lift' (λt, h t ∩ s) :=
@@ -288,7 +288,7 @@ le_antisymm
 
 lemma lift'_neq_bot_iff (hh : monotone h) : (f.lift' h ≠ ⊥) ↔ (∀s∈f.sets, h s ≠ ∅) :=
 calc (f.lift' h ≠ ⊥) ↔ (∀s∈f.sets, principal (h s) ≠ ⊥) :
-    lift_neq_bot_iff (monotone_comp hh monotone_principal)
+    lift_neq_bot_iff (monotone_principal.comp hh)
   ... ↔ (∀s∈f.sets, h s ≠ ∅) : by simp only [principal_eq_bot_iff, iff_self, ne.def, principal_eq_bot_iff]
 
 @[simp] lemma lift'_id {f : filter α} : f.lift' id = f :=

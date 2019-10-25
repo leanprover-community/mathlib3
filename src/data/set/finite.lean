@@ -75,7 +75,11 @@ theorem finite_mem_finset (s : finset α) : finite {a | a ∈ s} :=
 theorem finite.of_fintype [fintype α] (s : set α) : finite s :=
 by classical; exact ⟨set_fintype s⟩
 
-instance decidable_mem_of_fintype [decidable_eq α] (s : set α) [fintype s] (a) : decidable (a ∈ s) :=
+/-- Membership of a subset of a finite type is decidable.
+
+Using this as an instance leads to potential loops with `subtype.fintype` under certain decidability
+assumptions, so it should only be declared a local instance. -/
+def decidable_mem_of_fintype [decidable_eq α] (s : set α) [fintype s] (a) : decidable (a ∈ s) :=
 decidable_of_iff _ mem_to_finset
 
 instance fintype_empty : fintype (∅ : set α) :=
@@ -117,9 +121,15 @@ lemma card_image_of_injective (s : set α) [fintype s]
   fintype.card (f '' s) = fintype.card s :=
 card_image_of_inj_on $ λ _ _ _ _ h, H h
 
+section
+
+local attribute [instance] decidable_mem_of_fintype
+
 instance fintype_insert [decidable_eq α] (a : α) (s : set α) [fintype s] : fintype (insert a s : set α) :=
 if h : a ∈ s then by rwa [insert_eq, union_eq_self_of_subset_left (singleton_subset_iff.2 h)]
 else fintype_insert' _ h
+
+end
 
 @[simp] theorem finite_insert (a : α) {s : set α} : finite s → finite (insert a s)
 | ⟨h⟩ := ⟨@set.fintype_insert _ (classical.dec_eq α) _ _ h⟩
@@ -213,7 +223,7 @@ instance fintype_map {α β} [decidable_eq β] :
 theorem finite_map {α β} {s : set α} :
   ∀ (f : α → β), finite s → finite (f <$> s) := finite_image
 
-def fintype_of_fintype_image [decidable_eq β] (s : set α)
+def fintype_of_fintype_image (s : set α)
   {f : α → β} {g} (I : is_partial_inv f g) [fintype (f '' s)] : fintype s :=
 fintype_of_finset ⟨_, @multiset.nodup_filter_map β α g _
   (@injective_of_partial_inv_right _ _ f g I) (f '' s).to_finset.2⟩ $ λ a,
@@ -352,7 +362,7 @@ by simp [set.ext_iff]
 @[simp] lemma coe_to_finset {s : set α} {hs : set.finite s} : ↑(hs.to_finset) = s :=
 by simp [set.ext_iff]
 
-@[simp] lemma coe_to_finset' [decidable_eq α] (s : set α) [fintype s] : (↑s.to_finset : set α) = s :=
+@[simp] lemma coe_to_finset' (s : set α) [fintype s] : (↑s.to_finset : set α) = s :=
 by ext; simp
 
 end finset
@@ -391,14 +401,14 @@ let ⟨n, hn⟩ := finset.exists_nat_subset_range h.to_finset in
 have n ∈ finset.range n, from finset.subset_iff.mpr hn $ by simp,
 by simp * at *
 
-lemma not_injective_nat_fintype [fintype α] [decidable_eq α] {f : ℕ → α} : ¬ injective f :=
+lemma not_injective_nat_fintype [fintype α] {f : ℕ → α} : ¬ injective f :=
 assume (h : injective f),
 have finite (f '' univ),
   from finite_subset (finset.finite_to_set $ fintype.elems α) (assume a h, fintype.complete a),
 have finite (univ : set ℕ), from finite_of_finite_image (set.inj_on_of_injective _ h) this,
 infinite_univ_nat this
 
-lemma not_injective_int_fintype [fintype α] [decidable_eq α] {f : ℤ → α} : ¬ injective f :=
+lemma not_injective_int_fintype [fintype α] {f : ℤ → α} : ¬ injective f :=
 assume hf,
 have injective (f ∘ (coe : ℕ → ℤ)), from injective_comp hf $ assume i j, int.of_nat_inj,
 not_injective_nat_fintype this
@@ -451,6 +461,19 @@ begin
     { exact ih c hcs hbc } }
 end
 
+section
+
+local attribute [instance, priority 1] classical.prop_decidable
+
+lemma to_finset_card {α : Type*} [fintype α] (H : set α) :
+  H.to_finset.card = fintype.card H :=
+multiset.card_map subtype.val finset.univ.val
+
+lemma to_finset_inter {α : Type*} [fintype α] (s t : set α) [decidable_eq α] :
+  (s ∩ t).to_finset = s.to_finset ∩ t.to_finset :=
+by ext; simp
+
+end
 end set
 
 namespace finset
@@ -497,3 +520,17 @@ calc
   ... = s.prod g : by rw image_preimage
 
 end finset
+
+lemma fintype.exists_max [fintype α] [nonempty α]
+  {β : Type*} [decidable_linear_order β] (f : α → β) :
+  ∃ x₀ : α, ∀ x, f x ≤ f x₀ :=
+begin
+  obtain ⟨y, hy⟩ : ∃ y, y ∈ (set.range f).to_finset,
+  { haveI := classical.inhabited_of_nonempty ‹nonempty α›,
+    exact ⟨f (default α), set.mem_to_finset.mpr $ set.mem_range_self _⟩ },
+  rcases finset.max_of_mem hy with ⟨y₀, h⟩,
+  rcases set.mem_to_finset.1 (finset.mem_of_max h) with ⟨x₀, rfl⟩,
+  use x₀,
+  intro x,
+  apply finset.le_max_of_mem (set.mem_to_finset.mpr $ set.mem_range_self x) h
+end

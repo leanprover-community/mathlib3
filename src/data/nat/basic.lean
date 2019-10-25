@@ -53,6 +53,14 @@ lemma succ_le_iff {m n : ℕ} : succ m ≤ n ↔ m < n :=
 lemma lt_iff_add_one_le {m n : ℕ} : m < n ↔ m + 1 ≤ n :=
 by rw succ_le_iff
 
+-- Just a restatement of `nat.lt_succ_iff` using `+1`.
+lemma lt_add_one_iff {a b : ℕ} : a < b + 1 ↔ a ≤ b :=
+nat.lt_succ_iff
+
+-- A flipped version of `lt_add_one_iff`.
+lemma lt_one_add_iff {a b : ℕ} : a < 1 + b ↔ a ≤ b :=
+by simp only [add_comm, nat.lt_succ_iff]
+
 theorem of_le_succ {n m : ℕ} (H : n ≤ m.succ) : n ≤ m ∨ n = m.succ :=
 (lt_or_eq_of_le H).imp le_of_lt_succ id
 
@@ -105,6 +113,9 @@ end
 
 theorem pred_eq_of_eq_succ {m n : ℕ} (H : m = n.succ) : m.pred = n := by simp [H]
 
+@[simp] lemma pred_eq_succ_iff {n m : ℕ} : pred n = succ m ↔ n = m + 2 :=
+by cases n; split; rintro ⟨⟩; refl
+
 theorem pred_sub (n m : ℕ) : pred n - m = pred (n - m) :=
 by rw [← sub_one, nat.sub_sub, one_add]; refl
 
@@ -116,14 +127,18 @@ lt_of_le_of_lt (nat.zero_le _) h
 lemma le_pred_of_lt {n m : ℕ} (h : m < n) : m ≤ n - 1 :=
 nat.sub_le_sub_right h 1
 
+lemma le_of_pred_lt {m n : ℕ} : pred m < n → m ≤ n :=
+match m with
+| 0 := le_of_lt
+| m+1 := id
+end
+
 /-- This ensures that `simp` succeeds on `pred (n + 1) = n`. -/
 @[simp] lemma pred_one_add (n : ℕ) : pred (1 + n) = n :=
 by rw [add_comm, add_one, pred_succ]
 
 theorem pos_iff_ne_zero : 0 < n ↔ n ≠ 0 :=
 ⟨ne_of_gt, nat.pos_of_ne_zero⟩
-
-theorem pos_iff_ne_zero' : 0 < n ↔ n ≠ 0 := pos_iff_ne_zero
 
 lemma one_lt_iff_ne_zero_and_ne_one : ∀ {n : ℕ}, 1 < n ↔ n ≠ 0 ∧ n ≠ 1
 | 0     := dec_trivial
@@ -438,6 +453,19 @@ protected lemma div_eq_zero_iff {a b : ℕ} (hb : 0 < b) : a / b = 0 ↔ a < b :
 lemma eq_zero_of_le_div {a b : ℕ} (hb : 2 ≤ b) (h : a ≤ a / b) : a = 0 :=
 eq_zero_of_mul_le hb $
   by rw mul_comm; exact (nat.le_div_iff_mul_le' (lt_of_lt_of_le dec_trivial hb)).1 h
+
+lemma mul_div_le_mul_div_assoc (a b c : ℕ) : a * (b / c) ≤ (a * b) / c :=
+if hc0 : c = 0 then by simp [hc0]
+else (nat.le_div_iff_mul_le _ _ (nat.pos_of_ne_zero hc0)).2
+  (by rw [mul_assoc]; exact mul_le_mul_left _ (nat.div_mul_le_self _ _))
+
+lemma div_mul_div_le_div (a b c : ℕ) : ((a / c) * b) / a ≤ b / c :=
+if ha0 : a = 0 then by simp [ha0]
+else calc a / c * b / a ≤ b * a / c / a :
+    nat.div_le_div_right (by rw [mul_comm];
+        exact mul_div_le_mul_div_assoc _ _ _)
+  ... = b / c : by rw [nat.div_div_eq_div_mul, mul_comm b, mul_comm c,
+      nat.mul_div_mul _ _ (nat.pos_of_ne_zero ha0)]
 
 lemma eq_zero_of_le_half {a : ℕ} (h : a ≤ a / 2) : a = 0 :=
 eq_zero_of_le_div (le_refl _) h
@@ -858,7 +886,7 @@ theorem size_pos {n : ℕ} : 0 < size n ↔ 0 < n :=
 by rw lt_size; refl
 
 theorem size_eq_zero {n : ℕ} : size n = 0 ↔ n = 0 :=
-by have := @size_pos n; simp [pos_iff_ne_zero'] at this;
+by have := @size_pos n; simp [pos_iff_ne_zero] at this;
    exact not_iff_not.1 this
 
 theorem size_pow {n : ℕ} : size (2^n) = n+1 :=

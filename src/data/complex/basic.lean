@@ -122,9 +122,9 @@ ext_iff.2 $ by simp
 @[simp] lemma conj_conj (z : ℂ) : conj (conj z) = z :=
 ext_iff.2 $ by simp
 
-lemma conj_bijective : function.bijective conj :=
-⟨function.injective_of_has_left_inverse ⟨conj, conj_conj⟩,
- function.surjective_of_has_right_inverse ⟨conj, conj_conj⟩⟩
+lemma conj_involutive : function.involutive conj := conj_conj
+
+lemma conj_bijective : function.bijective conj := conj_involutive.bijective
 
 lemma conj_inj {z w : ℂ} : conj z = conj w ↔ z = w :=
 conj_bijective.1.eq_iff

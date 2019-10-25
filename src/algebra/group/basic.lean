@@ -5,7 +5,7 @@ Authors: Jeremy Avigad, Simon Hudon, Mario Carneiro
 
 Various multiplicative and additive structures.
 -/
-import algebra.group.to_additive
+import algebra.group.to_additive logic.function
 
 universe u
 variable {α : Type u}
@@ -140,8 +140,6 @@ section add_group
 
   local attribute [simp] sub_eq_add_neg
 
-  def sub_sub_cancel := @sub_sub_self
-
   @[simp] lemma sub_left_inj : a - b = a - c ↔ b = c :=
   (add_left_inj _).trans neg_inj'
 
@@ -186,6 +184,8 @@ end add_group
 
 section add_comm_group
   variables [add_comm_group α] {a b c : α}
+
+  lemma sub_sub_cancel (a b : α) : a - (a - b) = b := sub_sub_self a b
 
   lemma sub_eq_neg_add (a b : α) : a - b = -b + a :=
   add_comm _ _
@@ -241,3 +241,6 @@ section add_monoid
   show 0+0+1=(1:α), by rw [zero_add, zero_add]
 
 end add_monoid
+
+@[to_additive]
+lemma inv_involutive {α} [group α] : function.involutive (has_inv.inv : α → α) := inv_inv

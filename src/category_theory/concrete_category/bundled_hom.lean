@@ -29,9 +29,9 @@ structure bundled_hom :=
 (id : Π {α : Type u} (I : c α), hom I I)
 (comp : Π {α β γ : Type u} (Iα : c α) (Iβ : c β) (Iγ : c γ),
   hom Iβ Iγ → hom Iα Iβ → hom Iα Iγ)
-(hom_ext : Π {α β : Type u} (Iα : c α) (Iβ : c β), function.injective (to_fun Iα Iβ) . obviously)
-(id_to_fun : Π {α : Type u} (I : c α), to_fun I I (id I) = _root_.id . obviously)
-(comp_to_fun : Π {α β γ : Type u} (Iα : c α) (Iβ : c β) (Iγ : c γ)
+(hom_ext : ∀ {α β : Type u} (Iα : c α) (Iβ : c β), function.injective (to_fun Iα Iβ) . obviously)
+(id_to_fun : ∀ {α : Type u} (I : c α), to_fun I I (id I) = _root_.id . obviously)
+(comp_to_fun : ∀ {α β γ : Type u} (Iα : c α) (Iβ : c β) (Iγ : c γ)
   (f : hom Iα Iβ) (g : hom Iβ Iγ),
   to_fun Iα Iγ (comp Iα Iβ Iγ g f) = (to_fun Iβ Iγ g) ∘ (to_fun Iα Iβ f) . obviously)
 
@@ -64,54 +64,16 @@ instance concrete_category : concrete_category (bundled c) :=
               map_comp' := by intros; erw 𝒞.comp_to_fun; refl },
   forget_faithful := { injectivity' := by intros; apply 𝒞.hom_ext } }
 
-/-- Usually a bundled hom structure already has a coercion to function
-that works with different universes. So we don't use this as an instance. -/
-def has_coe_to_fun {X Y : bundled c} : has_coe_to_fun (X ⟶ Y) :=
-{ F   := λ f, X → Y,
-  coe := λ f, (forget _).map f }
-
-local attribute [instance] has_coe_to_fun
-
-@[simp] lemma coe_id {X : bundled c} : ((𝟙 X) : X → X) = _root_.id :=
-(forget _).map_id X
-@[simp] lemma coe_comp {X Y Z : bundled c} (f : X ⟶ Y) (g : Y ⟶ Z) (x : X) :
-  (f ≫ g) x = g (f x) :=
-congr_fun ((forget _).map_comp _ _) x
-
-section full_subcategory
-
-variables {hom} (𝒞) {d : Type u → Type u} (obj : ∀ ⦃α⦄, d α → c α)
-include obj
-
-/--
-Construct a `bundled_hom` representing a full subcategory of a given `bundled_hom` category. The
-corresponding `category` and `concrete_category` instances agree with
-`induced_category (bundled.map @obj)`.
--/
-protected def full_subcategory : bundled_hom (λ α β (Iα : d α) (Iβ : d β), hom (obj Iα) (obj Iβ)) :=
-{ to_fun := by intros; apply 𝒞.to_fun; assumption,
-  id := by intros; apply 𝒞.id,
-  comp := by intros; apply 𝒞.comp; assumption,
-  hom_ext := by intros; apply 𝒞.hom_ext,
-  id_to_fun := by intros; apply 𝒞.id_to_fun,
-  comp_to_fun := by intros; apply 𝒞.comp_to_fun }
-
-def full_subcategory_has_forget :
-  @has_forget (bundled d) (bundled c)
-    (by haveI := 𝒞.full_subcategory obj; apply_instance) (by apply_instance) :=
-induced_category.has_forget (bundled.map @obj)
-
-end full_subcategory
-
 variables {hom}
+local attribute [instance] concrete_category.has_coe_to_fun
 
-/-- A version of `has_forget.mk'` for categories defined using `@bundled_hom`. -/
-def mk_has_forget {d : Type u → Type u} {hom_d : Π ⦃α β : Type u⦄ (Iα : d α) (Iβ : d β), Type u}
-  [bundled_hom hom_d] (obj : ∀ ⦃α⦄, c α → d α)
-  (map : ∀ {X Y : bundled c}, (X ⟶ Y) → ((bundled.map obj X) ⟶ (bundled.map obj Y)))
+/-- A version of `has_forget₂.mk'` for categories defined using `@bundled_hom`. -/
+def mk_has_forget₂ {d : Type u → Type u} {hom_d : Π ⦃α β : Type u⦄ (Iα : d α) (Iβ : d β), Type u}
+  [bundled_hom hom_d] (obj : Π ⦃α⦄, c α → d α)
+  (map : Π {X Y : bundled c}, (X ⟶ Y) → ((bundled.map obj X) ⟶ (bundled.map obj Y)))
   (h_map : ∀ {X Y : bundled c} (f : X ⟶ Y), (map f : X → Y) = f)
-  : has_forget (bundled c) (bundled d) :=
-has_forget.mk'
+  : has_forget₂ (bundled c) (bundled d) :=
+has_forget₂.mk'
   (bundled.map @obj)
   (λ _, rfl)
   @map

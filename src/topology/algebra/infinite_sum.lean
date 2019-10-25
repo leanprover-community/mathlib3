@@ -231,7 +231,7 @@ has_sum_of_has_sum $ assume u, exists.intro (ii u) $
       by simp [mem_bind]; existsi i h; simp [h, hi, this],
     by rw [hji h] at this; exact hnc this,
   calc (u ∪ jj v).sum g = (jj v).sum g : (sum_subset (subset_union_right _ _) this).symm
-    ... = v.sum _ : sum_bind $ by intros x hx y hy hxy; by_cases f x = 0; by_cases f y = 0; simp [*]
+    ... = v.sum _ : sum_bind $ by intros x _ y _ _; by_cases f x = 0; by_cases f y = 0; simp [*]; cc
     ... = v.sum f : sum_congr rfl $ by intros x hx; by_cases f x = 0; simp [*]
 
 lemma has_sum_iff_has_sum_of_ne_zero : has_sum f a ↔ has_sum g a :=
@@ -502,9 +502,8 @@ begin
     rcases h e he with ⟨⟨s₁, s₂⟩, h⟩,
     use [s₁ ∪ s₂],
     assume t ht,
-    have : (s₁ ∪ s₂) ∩ t = ∅ := finset.disjoint_iff_inter_eq_empty.1 ht.symm,
     specialize h (s₁ ∪ s₂, (s₁ ∪ s₂) ∪ t) ⟨le_sup_left, le_sup_left_of_le le_sup_right⟩,
-    simpa only [finset.sum_union this, add_sub_cancel'] using h },
+    simpa only [finset.sum_union ht.symm, add_sub_cancel'] using h },
   { assume h e he,
     rcases exists_nhds_half_neg he with ⟨d, hd, hde⟩,
     rcases h d hd with ⟨s, h⟩,
@@ -568,14 +567,7 @@ begin
       exact λx hx, lt_of_le_of_lt (s.le_max' h x hx) (nat.lt_succ_self _) }},
   rcases this with ⟨N, hN⟩,
   refine ⟨N, λn hn, _⟩,
-  have : ∀n, n ≥ N → dist (f N) (f n) ≤ (Ico N n).sum d,
-  { apply nat.le_induction,
-    { simp },
-    { assume n hn hrec,
-      calc dist (f N) (f (n+1)) ≤ dist (f N) (f n) + d n : dist_triangle _ _ _
-        ... ≤ (Ico N n).sum d + d n : add_le_add hrec (le_refl _)
-        ... = (Ico N (n+1)).sum d : by rw [succ_top hn, sum_insert, add_comm]; simp }},
-  calc dist (f n) (f N) ≤ (Ico N n).sum d : by rw dist_comm; apply this n hn
+  calc dist (f n) (f N) ≤ (Ico N n).sum d : by rw dist_comm; apply dist_le_Ico_sum_dist f hn
     ... < ε : hs _ (finset.disjoint_iff_ne.2
                      (λa ha b hb, ne_of_gt (lt_of_lt_of_le (hN _ hb) (mem.1 ha).1)))
 end

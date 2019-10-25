@@ -46,13 +46,13 @@ namespace adjunction
 
 restate_axiom hom_equiv_unit'
 restate_axiom hom_equiv_counit'
-attribute [simp, priority 1] hom_equiv_unit hom_equiv_counit
+attribute [simp, priority 10] hom_equiv_unit hom_equiv_counit
 
 section
 
 variables {F : C ⥤ D} {G : D ⥤ C} (adj : F ⊣ G) {X' X : C} {Y Y' : D}
 
-@[simp, priority 1] lemma hom_equiv_naturality_left_symm (f : X' ⟶ X) (g : X ⟶ G.obj Y) :
+@[simp, priority 10] lemma hom_equiv_naturality_left_symm (f : X' ⟶ X) (g : X ⟶ G.obj Y) :
   (adj.hom_equiv X' Y).symm (f ≫ g) = F.map f ≫ (adj.hom_equiv X Y).symm g :=
 by rw [hom_equiv_counit, F.map_comp, assoc, adj.hom_equiv_counit.symm]
 
@@ -60,7 +60,7 @@ by rw [hom_equiv_counit, F.map_comp, assoc, adj.hom_equiv_counit.symm]
   (adj.hom_equiv X' Y) (F.map f ≫ g) = f ≫ (adj.hom_equiv X Y) g :=
 by rw [← equiv.eq_symm_apply]; simp [-hom_equiv_unit]
 
-@[simp, priority 1] lemma hom_equiv_naturality_right (f : F.obj X ⟶ Y) (g : Y ⟶ Y') :
+@[simp, priority 10] lemma hom_equiv_naturality_right (f : F.obj X ⟶ Y) (g : Y ⟶ Y') :
   (adj.hom_equiv X Y') (f ≫ g) = (adj.hom_equiv X Y) f ≫ G.map g :=
 by rw [hom_equiv_unit, G.map_comp, ← assoc, ←hom_equiv_unit]
 
@@ -117,7 +117,7 @@ namespace core_hom_equiv
 
 restate_axiom hom_equiv_naturality_left_symm'
 restate_axiom hom_equiv_naturality_right'
-attribute [simp, priority 1] hom_equiv_naturality_left_symm hom_equiv_naturality_right
+attribute [simp, priority 10] hom_equiv_naturality_left_symm hom_equiv_naturality_right
 
 variables {F : C ⥤ D} {G : D ⥤ C} (adj : core_hom_equiv F G) {X' X : C} {Y Y' : D}
 
@@ -134,8 +134,8 @@ end core_hom_equiv
 structure core_unit_counit (F : C ⥤ D) (G : D ⥤ C) :=
 (unit : 𝟭 C ⟶ F.comp G)
 (counit : G.comp F ⟶ 𝟭 D)
-(left_triangle' : whisker_right unit F ≫ whisker_left F counit = nat_trans.id _ . obviously)
-(right_triangle' : whisker_left G unit ≫ whisker_right counit G = nat_trans.id _ . obviously)
+(left_triangle' : whisker_right unit F ≫ (functor.associator F G F).hom ≫ whisker_left F counit = nat_trans.id (𝟭 C ⋙ F) . obviously)
+(right_triangle' : whisker_left G unit ≫ (functor.associator G F G).inv ≫ whisker_right counit G = nat_trans.id (G ⋙ 𝟭 C) . obviously)
 
 namespace core_unit_counit
 
@@ -176,13 +176,19 @@ def mk_of_unit_counit (adj : core_unit_counit F G) : F ⊣ G :=
       change F.map (_ ≫ _) ≫ _ = _,
       rw [F.map_comp, assoc, ←functor.comp_map, adj.counit.naturality, ←assoc],
       convert id_comp _ f,
-      exact congr_arg (λ t : nat_trans _ _, t.app _) adj.left_triangle
+      have t := congr_arg (λ t : nat_trans _ _, t.app _) adj.left_triangle,
+      dsimp at t,
+      simp only [id_comp] at t,
+      exact t,
     end,
     right_inv := λ g, begin
       change _ ≫ G.map (_ ≫ _) = _,
       rw [G.map_comp, ←assoc, ←functor.comp_map, ←adj.unit.naturality, assoc],
       convert comp_id _ g,
-      exact congr_arg (λ t : nat_trans _ _, t.app _) adj.right_triangle
+      have t := congr_arg (λ t : nat_trans _ _, t.app _) adj.right_triangle,
+      dsimp at t,
+      simp only [id_comp] at t,
+      exact t,
   end },
   .. adj }
 
@@ -281,8 +287,9 @@ open adjunction
 namespace equivalence
 
 def to_adjunction (e : C ≌ D) : e.functor ⊣ e.inverse :=
-mk_of_unit_counit ⟨e.unit, e.counit, by { ext, exact e.functor_unit_comp X },
-  by { ext, exact e.unit_inverse_comp X }⟩
+mk_of_unit_counit ⟨e.unit, e.counit,
+  by { ext, dsimp, simp only [id_comp], exact e.functor_unit_comp X, },
+  by { ext, dsimp, simp only [id_comp], exact e.unit_inverse_comp X, }⟩
 
 end equivalence
 

@@ -24,7 +24,7 @@ The formalization is mostly based on the books:
   I. M. James: Topologies and Uniformities
 A major difference is that this formalization is heavily based on the filter library.
 -/
-import order.filter.basic order.filter.lift topology.constructions
+import order.filter.basic order.filter.lift topology.separation
 
 open set lattice filter classical
 open_locale classical
@@ -232,7 +232,7 @@ calc (𝓤 α).lift' (λd, comp_rel d (comp_rel d d)) =
   end
   ... ≤ (𝓤 α).lift (λs, (𝓤 α).lift' (λt:set(α×α), comp_rel s t)) :
     lift_mono' $ assume s hs, @uniformity_lift_le_comp α _ _ (principal ∘ comp_rel s) $
-      monotone_comp (monotone_comp_rel monotone_const monotone_id) monotone_principal
+      monotone_principal.comp (monotone_comp_rel monotone_const monotone_id)
   ... = (𝓤 α).lift' (λs:set(α×α), comp_rel s s) :
     lift_lift'_same_eq_lift'
       (assume s, monotone_comp_rel monotone_const monotone_id)
@@ -299,7 +299,7 @@ lemma lift_nhds_left {x : α} {g : set α → filter β} (hg : monotone g) :
 eq.trans
   begin
     rw [nhds_eq_uniformity],
-    exact (filter.lift_assoc $ monotone_comp monotone_preimage $ monotone_comp monotone_preimage monotone_principal)
+    exact (filter.lift_assoc $ monotone_principal.comp $ monotone_preimage.comp monotone_preimage )
   end
   (congr_arg _ $ funext $ assume s, filter.lift_principal hg)
 
@@ -308,7 +308,7 @@ lemma lift_nhds_right {x : α} {g : set α → filter β} (hg : monotone g) :
 calc (nhds x).lift g = (𝓤 α).lift (λs:set (α×α), g {y | (x, y) ∈ s}) : lift_nhds_left hg
   ... = ((@prod.swap α α) <$> (𝓤 α)).lift (λs:set (α×α), g {y | (x, y) ∈ s}) : by rw [←uniformity_eq_symm]
   ... = (𝓤 α).lift (λs:set (α×α), g {y | (x, y) ∈ image prod.swap s}) :
-    map_lift_eq2 $ monotone_comp monotone_preimage hg
+    map_lift_eq2 $ hg.comp monotone_preimage
   ... = _ : by simp [image_swap_eq_preimage_swap]
 
 lemma nhds_nhds_eq_uniformity_uniformity_prod {a b : α} :
@@ -322,7 +322,7 @@ begin
   apply congr_arg, funext s,
   rw [lift_nhds_left],
   refl,
-  exact monotone_comp (monotone_prod monotone_const monotone_id) monotone_principal,
+  exact monotone_principal.comp (monotone_prod monotone_const monotone_id),
   exact (monotone_lift' monotone_const $ monotone_lam $
     assume x, monotone_prod monotone_id monotone_const)
 end

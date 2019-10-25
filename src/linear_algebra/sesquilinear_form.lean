@@ -4,22 +4,22 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Author: Andreas Swerdlow
 -/
 
-import algebra.module ring_theory.maps 
+import algebra.module ring_theory.maps
 
 /-!
 # Sesquilinear form
 
-This file defines a bilinear form over a module. The definition requires a ring antiautomorphism 
-on the scalar ring, which comes from the file ring_theory.involution. Basic ideas such as 
-orthogonality are also introduced.    
+This file defines a bilinear form over a module. The definition requires a ring antiautomorphism
+on the scalar ring, which comes from the file ring_theory.involution. Basic ideas such as
+orthogonality are also introduced.
 
-A sesquilinear form on an R-module V, is a function from V x V to R, that is linear in the first argument
+A sesquilinear form on an R-module M, is a function from M x M to R, that is linear in the first argument
 and antilinear in the second, with respect to an antiautomorphism on R (an antiisomorphism from R to R).
- 
+
 ## Notations
 
-Given any term S of type sesq_form, due to a coercion, can use the notation B x y to 
-refer to the function field, ie. S x y = S.bilin x y.  
+Given any term S of type sesq_form, due to a coercion, can use the notation S x y to
+refer to the function field, ie. S x y = S.bilin x y.
 
 ## References
 
@@ -27,7 +27,7 @@ refer to the function field, ie. S x y = S.bilin x y.
 
 ## Tags
 
-Sesquilinear form, 
+Sesquilinear form,
 -/
 
 open ring_anti_equiv
@@ -35,55 +35,56 @@ open ring_anti_equiv
 universes u v
 
 /-- A sesquilinear form over a module  -/
-structure sesq_form (α : Type u) (β : Type v) [ring α] (I : ring_anti_equiv α α) [add_comm_group β] [module α β] := 
-(sesq : β → β → α)
-(sesq_add_left : ∀ (x y z : β), sesq (x + y) z = sesq x z + sesq y z)
-(sesq_smul_left : ∀ (a : α) (x y : β), sesq (a • x) y = a * (sesq x y))
-(sesq_add_right : ∀ (x y z : β), sesq x (y + z) = sesq x y + sesq x z)
-(sesq_smul_right : ∀ (a : α) (x y : β), sesq x (a • y) = (I a) * (sesq x y))  
+structure sesq_form (R : Type u) (M : Type v) [ring R] (I : ring_anti_equiv R R) [add_comm_group M] [module R M] :=
+(sesq : M → M → R)
+(sesq_add_left : ∀ (x y z : M), sesq (x + y) z = sesq x z + sesq y z)
+(sesq_smul_left : ∀ (a : R) (x y : M), sesq (a • x) y = a * (sesq x y))
+(sesq_add_right : ∀ (x y z : M), sesq x (y + z) = sesq x y + sesq x z)
+(sesq_smul_right : ∀ (a : R) (x y : M), sesq x (a • y) = (I a) * (sesq x y))
 
 namespace sesq_form
 
-variables {α : Type u} {β : Type v} [ring α] [add_comm_group β] [module α β] {I : ring_anti_equiv α α} {S : sesq_form α β I}
+section general_ring
+variables {R : Type u} {M : Type v} [ring R] [add_comm_group M] [module R M] {I : ring_anti_equiv R R} {S : sesq_form R M I}
 
-instance : has_coe_to_fun (sesq_form α β I) :=
+instance : has_coe_to_fun (sesq_form R M I) :=
 ⟨_, λ S, S.sesq⟩
 
-lemma add_left (x y z : β) : S (x + y) z = S x z + S y z := sesq_add_left S x y z
+lemma add_left (x y z : M) : S (x + y) z = S x z + S y z := sesq_add_left S x y z
 
-lemma smul_left (a : α) (x y : β) : S (a • x) y = a * (S x y) := sesq_smul_left S a x y 
+lemma smul_left (a : R) (x y : M) : S (a • x) y = a * (S x y) := sesq_smul_left S a x y
 
-lemma add_right (x y z : β) : S x (y + z) = S x y + S x z := sesq_add_right S x y z
+lemma add_right (x y z : M) : S x (y + z) = S x y + S x z := sesq_add_right S x y z
 
-lemma smul_right (a : α) (x y : β) : S x (a • y) = (I a) * (S x y) := sesq_smul_right S a x y
+lemma smul_right (a : R) (x y : M) : S x (a • y) = (I a) * (S x y) := sesq_smul_right S a x y
 
-lemma zero_left (x : β) :
-S 0 x = 0 := by {rw [←@zero_smul α _ _ _ _ (0 : β), smul_left, zero_mul]}
+lemma zero_left (x : M) :
+S 0 x = 0 := by {rw [←@zero_smul R _ _ _ _ (0 : M), smul_left, zero_mul]}
 
-lemma zero_right (x : β) :
-S x 0 = 0 := by rw [←@zero_smul _ _ _ _ _ (0 : β), smul_right, map_zero, ring.zero_mul]
+lemma zero_right (x : M) :
+S x 0 = 0 := by rw [←@zero_smul _ _ _ _ _ (0 : M), smul_right, map_zero, ring.zero_mul]
 
-lemma neg_left (x y : β) :
-S (-x) y = -(S x y) := by rw [←@neg_one_smul α _ _, smul_left, neg_one_mul]
+lemma neg_left (x y : M) :
+S (-x) y = -(S x y) := by rw [←@neg_one_smul R _ _, smul_left, neg_one_mul]
 
-lemma neg_right (x y : β) :
-S x (-y) = -(S x y) := by rw [←@neg_one_smul α _ _, smul_right, map_neg_one, neg_one_mul]
+lemma neg_right (x y : M) :
+S x (-y) = -(S x y) := by rw [←@neg_one_smul R _ _, smul_right, map_neg_one, neg_one_mul]
 
-lemma sub_left (x y z : β) :
+lemma sub_left (x y z : M) :
 S (x - y) z = S x z - S y z := by rw [sub_eq_add_neg, add_left, neg_left]; refl
 
-lemma sub_right (x y z : β) :
-S x (y - z) = S x y - S x z := by rw [sub_eq_add_neg, add_right, neg_right]; refl 
+lemma sub_right (x y z : M) :
+S x (y - z) = S x y - S x z := by rw [sub_eq_add_neg, add_right, neg_right]; refl
 
-variable {D : sesq_form α β I}  
-@[extensionality] lemma ext (H : ∀ (x y : β), S x y = D x y) : S = D := by {cases S, cases D, congr, funext, exact H _ _} 
+variable {D : sesq_form R M I}
+@[extensionality] lemma ext (H : ∀ (x y : M), S x y = D x y) : S = D := by {cases S, cases D, congr, funext, exact H _ _}
 
-instance : add_comm_group (sesq_form α β I) :=
+instance : add_comm_group (sesq_form R M I) :=
 { add := λ S D, { sesq := λ x y, S x y + D x y,
                   sesq_add_left := λ x y z, by {rw add_left, rw add_left, simp},
-                  sesq_smul_left := λ a x y, by {rw [smul_left, smul_left, mul_add]}, 
+                  sesq_smul_left := λ a x y, by {rw [smul_left, smul_left, mul_add]},
                   sesq_add_right := λ x y z, by {rw add_right, rw add_right, simp},
-                  sesq_smul_right := λ a x y, by {rw [smul_right, smul_right, mul_add]} }, 
+                  sesq_smul_right := λ a x y, by {rw [smul_right, smul_right, mul_add]} },
   add_assoc := by {intros, ext, unfold coe_fn has_coe_to_fun.coe sesq coe_fn has_coe_to_fun.coe sesq, rw add_assoc},
   zero := { sesq := λ x y, 0,
             sesq_add_left := λ x y z, (add_zero 0).symm,
@@ -92,7 +93,7 @@ instance : add_comm_group (sesq_form α β I) :=
             sesq_smul_right := λ a x y, (mul_zero (I a)).symm },
   zero_add := by {intros, ext, unfold coe_fn has_coe_to_fun.coe sesq, rw zero_add},
   add_zero := by {intros, ext, unfold coe_fn has_coe_to_fun.coe sesq, rw add_zero},
-  neg := λ S, { sesq := λ x y, - (S.1 x y), 
+  neg := λ S, { sesq := λ x y, - (S.1 x y),
                 sesq_add_left := λ x y z, by rw [sesq_add_left, neg_add],
                 sesq_smul_left := λ a x y, by rw [sesq_smul_left, mul_neg_eq_neg_mul_symm],
                 sesq_add_right := λ x y z, by rw [sesq_add_right, neg_add],
@@ -100,11 +101,21 @@ instance : add_comm_group (sesq_form α β I) :=
   add_left_neg := by {intros, ext, unfold coe_fn has_coe_to_fun.coe sesq, rw neg_add_self},
   add_comm := by {intros, ext, unfold coe_fn has_coe_to_fun.coe sesq, rw add_comm} }
 
-section 
+/-- The proposition that two elements of a sesquilinear form space are orthogonal -/
+def is_ortho (S : sesq_form R M I) (x y : M) : Prop :=
+S x y = 0
 
-variables {χ : Type*} [comm_ring χ] [module χ β] {J : ring_anti_equiv χ χ} (F : sesq_form χ β J) (f : β → β)
+lemma ortho_zero (x : M) :
+is_ortho S (0 : M) x := zero_left x
 
-instance to_module : module χ (sesq_form χ β J) := 
+end general_ring
+
+section comm_ring
+
+variables {R : Type*} [comm_ring R] {M : Type v} [add_comm_group M] [module R M]
+  {J : ring_anti_equiv R R} (F : sesq_form R M J) (f : M → M)
+
+instance to_module : module R (sesq_form R M J) :=
 { smul := λ c S, { sesq := λ x y, c * S x y,
                     sesq_add_left := λ x y z, by {unfold coe_fn has_coe_to_fun.coe sesq, rw [sesq_add_left, left_distrib]},
                     sesq_smul_left := λ a x y, by {unfold coe_fn has_coe_to_fun.coe sesq, rw [sesq_smul_left, ←mul_assoc, mul_comm c, mul_assoc]},
@@ -117,20 +128,15 @@ instance to_module : module χ (sesq_form χ β J) :=
   zero_smul := λ S, by {ext, unfold coe_fn has_coe_to_fun.coe sesq, rw zero_mul},
   smul_zero := λ S, by {ext, unfold coe_fn has_coe_to_fun.coe sesq, rw mul_zero} }
 
-end 
+end comm_ring
 
-/-- The proposition that two elements of a sesquilinear form space are orthogonal -/
-def is_ortho (S : sesq_form α β I) (x y : β) : Prop :=
-S x y = 0
+section domain
 
-lemma ortho_zero (x : β) :
-is_ortho S (0 : β) x := zero_left x
+variables {R : Type*} [domain R]
+  {M : Type v} [add_comm_group M] [module R M]
+  {K : ring_anti_equiv R R} {G : sesq_form R M K}
 
-section
-
-variables {γ : Type*} [domain γ] [module γ β] {K : ring_anti_equiv γ γ} {G : sesq_form γ β K}
-
-theorem ortho_smul_left {x y : β} {a : γ} (ha : a ≠ 0) :
+theorem ortho_smul_left {x y : M} {a : R} (ha : a ≠ 0) :
 (is_ortho G x y) ↔ (is_ortho G (a • x) y) :=
 begin
   dunfold is_ortho,
@@ -142,7 +148,7 @@ begin
     { exact H }}
 end
 
-theorem ortho_smul_right {x y : β} {a : γ} (ha : a ≠ 0) :
+theorem ortho_smul_right {x y : M} {a : R} (ha : a ≠ 0) :
 (is_ortho G x y) ↔ (is_ortho G x (a • y)) :=
 begin
   dunfold is_ortho,
@@ -154,7 +160,7 @@ begin
     { exact H }}
 end
 
-end
+end domain
 
 end sesq_form
 
@@ -162,16 +168,16 @@ namespace refl_sesq_form
 
 open refl_sesq_form sesq_form
 
-variables {α : Type*} {β : Type*} [ring α] [add_comm_group β] [module α β] {I : ring_anti_equiv α α} {S : sesq_form α β I}
+variables {R : Type*} {M : Type*} [ring R] [add_comm_group M] [module R M] {I : ring_anti_equiv R R} {S : sesq_form R M I}
 
 /-- The proposition that a sesquilinear form is reflexive -/
-def is_refl (S : sesq_form α β I) : Prop := ∀ (x y : β), S x y = 0 → S y x = 0
+def is_refl (S : sesq_form R M I) : Prop := ∀ (x y : M), S x y = 0 → S y x = 0
 
 variable (H : is_refl S)
 
-lemma eq_zero : ∀ {x y : β}, S x y = 0 → S y x = 0 := λ x y, H x y
+lemma eq_zero : ∀ {x y : M}, S x y = 0 → S y x = 0 := λ x y, H x y
 
-lemma ortho_sym {x y : β} :
+lemma ortho_sym {x y : M} :
 is_ortho S x y ↔ is_ortho S y x := ⟨eq_zero H, eq_zero H⟩
 
 end refl_sesq_form
@@ -180,20 +186,20 @@ namespace sym_sesq_form
 
 open sym_sesq_form sesq_form
 
-variables {α : Type*} {β : Type*} [ring α] [add_comm_group β] [module α β] {I : ring_anti_equiv α α} {S : sesq_form α β I}
+variables {R : Type*} {M : Type*} [ring R] [add_comm_group M] [module R M] {I : ring_anti_equiv R R} {S : sesq_form R M I}
 
 /-- The proposition that a sesquilinear form is symmetric -/
-def is_sym (S : sesq_form α β I) : Prop := ∀ (x y : β), I (S x y) = S y x
+def is_sym (S : sesq_form R M I) : Prop := ∀ (x y : M), I (S x y) = S y x
 
 variable (H : is_sym S)
 include H
 
-lemma sym (x y : β) : I (S x y) = S y x := H x y 
+lemma sym (x y : M) : I (S x y) = S y x := H x y
 
-lemma is_refl : refl_sesq_form.is_refl S := λ x y H1, by rw [←H, map_zero_iff, H1] 
+lemma is_refl : refl_sesq_form.is_refl S := λ x y H1, by rw [←H, map_zero_iff, H1]
 
-lemma ortho_sym {x y : β} :
-is_ortho S x y ↔ is_ortho S y x := refl_sesq_form.ortho_sym (is_refl H) 
+lemma ortho_sym {x y : M} :
+is_ortho S x y ↔ is_ortho S y x := refl_sesq_form.ortho_sym (is_refl H)
 
 end sym_sesq_form
 
@@ -201,17 +207,17 @@ namespace alt_sesq_form
 
 open alt_sesq_form sesq_form
 
-variables {α : Type*} {β : Type*} [ring α] [add_comm_group β] [module α β] {I : ring_anti_equiv α α} {S : sesq_form α β I}
+variables {R : Type*} {M : Type*} [ring R] [add_comm_group M] [module R M] {I : ring_anti_equiv R R} {S : sesq_form R M I}
 
 /-- The proposition that a sesquilinear form is alternating -/
-def is_alt (S : sesq_form α β I) : Prop := ∀ (x : β), S x x = 0
+def is_alt (S : sesq_form R M I) : Prop := ∀ (x : M), S x x = 0
 
 variable (H : is_alt S)
 include H
 
-lemma self_eq_zero (x : β) : S x x = 0 := H x
+lemma self_eq_zero (x : M) : S x x = 0 := H x
 
-lemma neg (x y : β) :
+lemma neg (x y : M) :
 - S x y = S y x :=
 begin
   have H1 : S (x + y) (x + y) = 0,

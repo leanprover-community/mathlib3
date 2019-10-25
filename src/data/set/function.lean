@@ -243,7 +243,7 @@ calc
 @[reducible] def right_inv_on (g : β → α) (f : α → β) (b : set β) : Prop :=
 left_inv_on f g b
 
-theorem right_inv_on_of_eq_on_left {g1 g2 : β → α} {f : α → β} {a : set α} {b : set β}
+theorem right_inv_on_of_eq_on_left {g1 g2 : β → α} {f : α → β} {b : set β}
   (h₁ : eq_on g1 g2 b) (h₂ : right_inv_on g1 f b) : right_inv_on g2 f b :=
 left_inv_on_of_eq_on_right h₁ h₂
 

@@ -168,11 +168,11 @@ le_antisymm
    end)
 
 -- TODO: prove similar statements when `m` is group homomorphism etc.
-def pointwise_mul_map_is_monoid_hom [is_monoid_hom m] : is_monoid_hom (map m) :=
+lemma pointwise_mul_map_is_monoid_hom [is_monoid_hom m] : is_monoid_hom (map m) :=
 { map_one := map_pointwise_one m,
   map_mul := λ _ _, map_pointwise_mul m }
 
-def pointwise_add_map_is_add_monoid_hom {α : Type*} {β : Type*} [add_monoid α] [add_monoid β]
+lemma pointwise_add_map_is_add_monoid_hom {α : Type*} {β : Type*} [add_monoid α] [add_monoid β]
   (m : α → β) [is_add_monoid_hom m] : is_add_monoid_hom (map m) :=
 { map_zero := map_pointwise_zero m,
   map_add := λ _ _, map_pointwise_add m }

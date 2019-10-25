@@ -70,7 +70,7 @@ begin
       rw [dist_eq_norm, sub_zero],
       exact lt_of_le_of_lt ha (half_lt_self ε_pos) },
     simpa using this },
-  rcases exists_one_lt_norm 𝕜 with ⟨c, hc⟩,
+  rcases normed_field.exists_one_lt_norm 𝕜 with ⟨c, hc⟩,
   refine ⟨δ⁻¹ * ∥c∥, mul_pos (inv_pos δ_pos) (lt_trans zero_lt_one hc), (λx, _)⟩,
   by_cases h : x = 0,
   { simp only [h, norm_zero, mul_zero, continuous_linear_map.map_zero], },
@@ -78,9 +78,9 @@ begin
     calc ∥f x∥
       = ∥f ((d⁻¹ * d) • x)∥ : by rwa [inv_mul_cancel, one_smul]
       ... = ∥d∥⁻¹ * ∥f (d • x)∥ :
-        by rw [mul_smul, map_smul, norm_smul, norm_inv]
+        by rw [mul_smul, map_smul, norm_smul, normed_field.norm_inv]
       ... ≤ ∥d∥⁻¹ * 1 :
-        mul_le_mul_of_nonneg_left (H dxle) (by { rw ← norm_inv, exact norm_nonneg _ })
+        mul_le_mul_of_nonneg_left (H dxle) (by { rw ← normed_field.norm_inv, exact norm_nonneg _ })
       ... ≤ δ⁻¹ * ∥c∥ * ∥x∥ : by { rw mul_one, exact dinv } }
 end
 

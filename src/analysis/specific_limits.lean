@@ -5,7 +5,7 @@ Authors: Johannes Hölzl
 
 A collection of specific limit computations.
 -/
-import analysis.normed_space.basic
+import analysis.normed_space.basic algebra.geom_sum
 import topology.instances.ennreal
 
 noncomputable theory
@@ -95,6 +95,7 @@ have r + -1 ≠ 0,
 have tendsto (λn, (r ^ n - 1) * (r - 1)⁻¹) at_top (nhds ((0 - 1) * (r - 1)⁻¹)),
   from tendsto_mul
     (tendsto_sub (tendsto_pow_at_top_nhds_0_of_lt_1 h₁ h₂) tendsto_const_nhds) tendsto_const_nhds,
+have (λ n, (range n).sum (λ i, r ^ i)) = (λ n, geom_series r n) := rfl,
 (has_sum_iff_tendsto_nat_of_nonneg (pow_nonneg h₁) _).mpr $
   by simp [neg_inv, geom_sum, div_eq_mul_inv, *] at *
 

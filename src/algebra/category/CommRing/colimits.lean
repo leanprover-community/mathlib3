@@ -6,6 +6,14 @@ Authors: Scott Morrison
 import algebra.category.CommRing.basic
 import category_theory.limits.limits
 
+/-!
+# The category of commutative rings has all colimits.
+
+This file uses a "pre-automated" approach, just as for `Mon/colimits.lean`.
+It is a very uniform approach, that conceivably could be synthesised directly
+by a tactic that analyses the shape of `comm_ring` and `ring_hom`.
+-/
+
 universes u v
 
 open category_theory
@@ -14,6 +22,7 @@ open category_theory.limits
 -- [ROBOT VOICE]:
 -- You should pretend for now that this file was automatically generated.
 -- It follows the same template as colimits in Mon.
+-- Note that this means this file does not meet documentation standards.
 /-
 `#print comm_ring` says:
 
@@ -44,7 +53,7 @@ variables {J : Type v} [small_category J] (F : J ⥤ CommRing.{v})
 
 inductive prequotient
 -- There's always `of`
-| of : Π (j : J) (x : (F.obj j).α), prequotient
+| of : Π (j : J) (x : F.obj j), prequotient
 -- Then one generator for each operation
 | zero {} : prequotient
 | one {} : prequotient
@@ -60,13 +69,13 @@ inductive relation : prequotient F → prequotient F → Prop
 | symm : Π (x y) (h : relation x y), relation y x
 | trans : Π (x y z) (h : relation x y) (k : relation y z), relation x z
 -- There's always a `map` relation
-| map : Π (j j' : J) (f : j ⟶ j') (x : (F.obj j).α), relation (of j' (F.map f x)) (of j x)
+| map : Π (j j' : J) (f : j ⟶ j') (x : F.obj j), relation (of j' (F.map f x)) (of j x)
 -- Then one relation per operation, describing the interaction with `of`
 | zero : Π (j), relation (of j 0) zero
 | one : Π (j), relation (of j 1) one
-| neg : Π (j) (x : (F.obj j).α), relation (of j (-x)) (neg (of j x))
-| add : Π (j) (x y : (F.obj j).α), relation (of j (x + y)) (add (of j x) (of j y))
-| mul : Π (j) (x y : (F.obj j).α), relation (of j (x * y)) (mul (of j x) (of j y))
+| neg : Π (j) (x : F.obj j), relation (of j (-x)) (neg (of j x))
+| add : Π (j) (x y : F.obj j), relation (of j (x + y)) (add (of j x) (of j y))
+| mul : Π (j) (x y : F.obj j), relation (of j (x * y)) (mul (of j x) (of j y))
 -- Then one relation per argument of each operation
 | neg_1 : Π (x x') (r : relation x x'), relation (neg x) (neg x')
 | add_1 : Π (x x' y) (r : relation x x'), relation (add x y) (add x' y)
@@ -263,7 +272,7 @@ instance : comm_ring (colimit_type F) :=
 
 def colimit : CommRing := CommRing.of (colimit_type F)
 
-def cocone_fun (j : J) (x : (F.obj j).α) : colimit_type F :=
+def cocone_fun (j : J) (x : F.obj j) : colimit_type F :=
 quot.mk _ (of j x)
 
 def cocone_morphism (j : J) : F.obj j ⟶ colimit F :=
@@ -311,7 +320,7 @@ begin
     -- trans
     { exact eq.trans r_ih_h r_ih_k },
     -- map
-    { rw cocone.naturality_bundled, },
+    { rw cocone.naturality_concrete, },
     -- zero
     { erw is_ring_hom.map_zero ⇑((s.ι).app r), refl },
     -- one
@@ -357,41 +366,12 @@ begin
   }
 end
 
-instance desc_fun_is_morphism (s : cocone F) : is_ring_hom (desc_fun F s) :=
-{ map_one := rfl,
-  map_add := λ x y,
-  begin
-    induction x, induction y,
-    refl,
-    refl,
-    refl,
-  end,
-  map_mul := λ x y,
-  begin
-    induction x, induction y,
-    refl,
-    refl,
-    refl,
-  end, }
-
 @[simp] def desc_morphism (s : cocone F) : colimit F ⟶ s.X :=
 { to_fun := desc_fun F s,
   map_one' := rfl,
   map_zero' := rfl,
-  map_add' := λ x y,
-  begin
-    induction x, induction y,
-    refl,
-    refl,
-    refl,
-  end,
-  map_mul' := λ x y,
-  begin
-    induction x, induction y,
-    refl,
-    refl,
-    refl,
-  end }
+  map_add' := λ x y, by { induction x; induction y; refl },
+  map_mul' := λ x y, by { induction x; induction y; refl }, }
 
 def colimit_is_colimit : is_colimit (colimit_cocone F) :=
 { desc := λ s, desc_morphism F s,

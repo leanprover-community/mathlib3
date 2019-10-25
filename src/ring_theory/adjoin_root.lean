@@ -16,13 +16,13 @@ variables {α : Type u} {β : Type v} {γ : Type w}
 
 open polynomial ideal
 
-def adjoin_root [comm_ring α] [decidable_eq α] (f : polynomial α) : Type u :=
+def adjoin_root [comm_ring α] (f : polynomial α) : Type u :=
 ideal.quotient (span {f} : ideal (polynomial α))
 
 namespace adjoin_root
 
 section comm_ring
-variables [comm_ring α] [decidable_eq α] (f : polynomial α)
+variables [comm_ring α] (f : polynomial α)
 
 instance : comm_ring (adjoin_root f) := ideal.quotient.comm_ring _
 

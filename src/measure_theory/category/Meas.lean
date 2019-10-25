@@ -35,6 +35,7 @@ namespace Meas
 
 instance (X : Meas) : measurable_space X := X.str
 
+/-- Construct a bundled `Meas` from the underlying type and the typeclass. -/
 def of (α : Type u) [measurable_space α] : Meas := ⟨α⟩
 
 instance unbundled_hom : unbundled_hom @measurable := ⟨@measurable_id, @measurable.comp⟩
@@ -85,8 +86,8 @@ def Integral : monad.algebra Measure :=
 
 end Meas
 
-instance Top.has_forget_to_Meas : has_forget Top.{u} Meas.{u} :=
-bundled_hom.mk_has_forget
+instance Top.has_forget_to_Meas : has_forget₂ Top.{u} Meas.{u} :=
+bundled_hom.mk_has_forget₂
   @measure_theory.borel
   (λ X Y f, ⟨f.1, measure_theory.measurable_of_continuous f.2⟩)
   (by intros; refl)

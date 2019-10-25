@@ -86,8 +86,12 @@ is_add_subgroup.of_add_neg s zero_mem (λ x y hx hy, sub_mem hx hy)
 @[to_additive]
 instance is_subgroup.inter (s₁ s₂ : set α) [is_subgroup s₁] [is_subgroup s₂] :
   is_subgroup (s₁ ∩ s₂) :=
-{ inv_mem := λ x hx, ⟨is_subgroup.inv_mem hx.1, is_subgroup.inv_mem hx.2⟩,
-  ..is_submonoid.inter s₁ s₂ }
+{ inv_mem := λ x hx, ⟨is_subgroup.inv_mem hx.1, is_subgroup.inv_mem hx.2⟩ }
+
+@[to_additive]
+instance is_subgroup.Inter {ι : Sort*} (s : ι → set α) [h : ∀ y : ι, is_subgroup (s y)] :
+  is_subgroup (set.Inter s) :=
+{ inv_mem := λ x h, set.mem_Inter.2 $ λ y, is_subgroup.inv_mem (set.mem_Inter.1 h y) }
 
 @[to_additive is_add_subgroup_Union_of_directed]
 lemma is_subgroup_Union_of_directed {ι : Type*} [hι : nonempty ι]

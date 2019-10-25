@@ -2,22 +2,38 @@
 Copyright (c) 2018 Alexander Bentkamp. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Alexander Bentkamp
+-/
+import algebra.pi_instances
 
-Basic properties of holors.
+/-!
+# Basic properties of holors
 
 Holors are indexed collections of tensor coefficients. Confusingly,
 they are often called tensors in physics and in the neural network
 community.
 
+A holor is simply a multidimensional array of values. The size of a
+holor is specified by a `list ℕ`, whose length is called the dimension
+of the holor.
+
+The tensor product of `x₁ : holor α ds₁` and `x₂ : holor α ds₂` is the
+holor given by `(x₁ ⊗ x₂) (i₁ ++ i₂) = x₁ i₁ * x₂ i₂`. A holor is "of
+rank at most 1" if it is a tensor product of one-dimensional holors.
+The CP rank of a holor `x` is the smallest N such that `x` is the sum
+of N holors of rank at most 1.
+
 Based on the tensor library found in https://www.isa-afp.org/entries/Deep_Learning.html.
+
+## References
+
+* https://en.wikipedia.org/wiki/Tensor_rank_decomposition
 -/
-import algebra.pi_instances
 
 universes u
 
 open list
 
-/-- `holor_index ds` is the type of valid index tuples to identify an entry of a holor of dimenstions `ds` -/
+/-- `holor_index ds` is the type of valid index tuples to identify an entry of a holor of dimensions `ds` -/
 def holor_index (ds : list ℕ) : Type := { is : list ℕ // forall₂ (<) is ds}
 
 namespace holor_index
@@ -91,8 +107,7 @@ instance [ring α] : module α (holor α ds) := pi.module α
 
 instance [discrete_field α] : vector_space α (holor α ds) := ⟨α, holor α ds⟩
 
-/- tensor product -/
-
+/-- The tensor product of two holors. -/
 def mul [s : has_mul α] (x : holor α ds₁) (y : holor α ds₂) : holor α (ds₁ ++ ds₂) :=
   λ t, x (t.take) * y (t.drop)
 
@@ -153,6 +168,7 @@ by simp [mul, has_scalar.smul, holor_index.take, holor_index.drop]
 def slice (x : holor α (d :: ds)) (i : ℕ) (h : i < d) : holor α ds :=
   (λ is : holor_index ds, x ⟨ i :: is.1, forall₂.cons h is.2⟩)
 
+/-- The 1-dimensional "unit" holor with 1 in the `j`th position. -/
 def unit_vec [monoid α] [add_monoid α] (d : ℕ) (j : ℕ) : holor α [d] :=
   λ ti, if ti.1 = [j] then 1 else 0
 
@@ -225,12 +241,16 @@ end
 
 /- CP rank -/
 
+/-- `cprank_max1 x` means `x` has CP rank at most 1, that is,
+  it is the tensor product of 1-dimensional holors. -/
 inductive cprank_max1 [has_mul α]: Π {ds}, holor α ds → Prop
 | nil (x : holor α []) :
     cprank_max1 x
 | cons {d} {ds} (x : holor α [d]) (y : holor α ds) :
     cprank_max1 y → cprank_max1 (x ⊗ y)
 
+/-- `cprank_max N x` means `x` has CP rank at most `N`, that is,
+  it can be written as the sum of N holors of rank at most 1. -/
 inductive cprank_max [has_mul α] [add_monoid α] : ℕ → Π {ds}, holor α ds → Prop
 | zero {ds} :
     cprank_max 0 (0 : holor α ds)
@@ -312,6 +332,8 @@ begin
   exact h_cprank_max_sum,
 end
 
+/-- The CP rank of a holor `x`: the smallest N such that
+  `x` can be written as the sum of N holors of rank at most 1. -/
 noncomputable def cprank [ring α] (x : holor α ds) : nat :=
 @nat.find (λ n, cprank_max n x) (classical.dec_pred _) ⟨ds.prod, cprank_max_upper_bound x⟩
 

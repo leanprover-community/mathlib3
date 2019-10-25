@@ -227,6 +227,7 @@ do e ← match h with
             interactive.generalize h () (p, x),
             get_local x
        | none := i_to_expr p
+       end,
    if e.is_local_constant then
      focus1 (rcases_core ids e >>= set_goals)
    else do

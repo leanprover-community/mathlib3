@@ -3,8 +3,14 @@ Copyright (c) 2019 Chris Hughes. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Chris Hughes
 
+## Lagrange's four square theorem
+
 The main result in this file is `sum_four_squares`,
-  a proof that every natural number is the sum of four square numbers.
+a proof that every natural number is the sum of four square numbers.
+
+# Implementation Notes
+
+The proof used is close to Lagrange's original proof.
 -/
 import data.zmod.basic field_theory.finite group_theory.perm.sign
 import data.int.parity

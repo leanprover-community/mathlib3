@@ -452,13 +452,6 @@ protected lemma div_eq_zero_iff {a b : ℕ} (hb : 0 < b) : a / b = 0 ↔ a < b :
   λ h, by rw [← nat.mul_left_inj hb, ← @add_left_cancel_iff _ _ (a % b), mod_add_div,
     mod_eq_of_lt h, mul_zero, add_zero]⟩
 
-lemma eq_zero_of_div_eq_zero {a b : ℕ} (h : a / b = 0) (w : b ∣ a) (hb : 0 < b) : a = 0 :=
-begin
-  rcases w with ⟨w, rfl⟩,
-  rw mul_div_right _ hb at h,
-  subst h, simp,
-end
-
 lemma eq_zero_of_le_div {a b : ℕ} (hb : 2 ≤ b) (h : a ≤ a / b) : a = 0 :=
 eq_zero_of_mul_le hb $
   by rw mul_comm; exact (nat.le_div_iff_mul_le' (lt_of_lt_of_le dec_trivial hb)).1 h
@@ -1178,12 +1171,10 @@ lemma dvd_of_pow_dvd {p k m : ℕ} (hk : 1 ≤ k) (hpk : p^k ∣ m) : p ∣ m :=
 by rw ←nat.pow_one p; exact pow_dvd_of_le_of_pow_dvd hk hpk
 
 lemma eq_of_dvd_quot_one {a b : ℕ} (w : a ∣ b) (h : b / a = 1) : a = b :=
-begin
-  rcases w with ⟨b, rfl⟩,
-  rw [nat.mul_comm, nat.mul_div_cancel] at h,
-  { simp [h] },
-  { by_contradiction, simp * at * }
-end
+by rw [←nat.div_mul_cancel w, h, one_mul]
+
+lemma eq_of_dvd_quot_zero {a b : ℕ} (w : a ∣ b)  (h : b / a = 0) : b = 0 :=
+by rw [←nat.div_mul_cancel w, h, zero_mul]
 
 lemma div_le_div_left {a b c : ℕ} (h₁ : c ≤ b) (h₂ : 0 < c) : a / b ≤ a / c :=
 (nat.le_div_iff_mul_le _ _ h₂).2 $

@@ -116,6 +116,8 @@ def Group_iso_to_mul_equiv {X Y : Group.{u}} (i : X ≅ Y) : X ≃* Y :=
   right_inv := by tidy,
   map_mul'  := by tidy }.
 
+attribute [simps] Group_iso_to_mul_equiv AddGroup_iso_to_add_equiv
+
 /-- Build a `mul_equiv` from an isomorphism in the category `CommGroup`. -/
 @[to_additive AddCommGroup_iso_to_add_equiv "Build an `add_equiv` from an isomorphism in the category `AddCommGroup`."]
 def CommGroup_iso_to_mul_equiv {X Y : CommGroup.{u}} (i : X ≅ Y) : X ≃* Y :=
@@ -124,6 +126,8 @@ def CommGroup_iso_to_mul_equiv {X Y : CommGroup.{u}} (i : X ≅ Y) : X ≃* Y :=
   left_inv  := by tidy,
   right_inv := by tidy,
   map_mul'  := by tidy }.
+
+attribute [simps] CommGroup_iso_to_mul_equiv AddCommGroup_iso_to_add_equiv
 
 end category_theory.iso
 

@@ -68,7 +68,7 @@ fintype_of_eq_finset_to_set (finset.Ico l u) $
 
 instance Ico_ℤ_fintype (l u : ℤ) : fintype (Ico l u) :=
 fintype_of_eq_finset_to_set (finset.Ico_int l u) $
-  set.ext (λ n, begin simp only [finset.mem_to_set, mem_Ico, finset.Ico_int.mem], end)
+  set.ext (λ n, by { simp only [finset.mem_to_set, mem_Ico, finset.Ico_int.mem], })
 
 -- TODO other useful instances: pnat, fin n, zmod?
 

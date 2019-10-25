@@ -5,6 +5,7 @@ Authors: Scott Morrison
 -/
 import data.set.intervals
 import data.fintype
+import tactic
 
 /-!
 # fintype instances for intervals
@@ -12,37 +13,62 @@ import data.fintype
 We provide `fintype` instances for `Ico l u`, for `l u : ℕ`, and for `l u : ℤ`.
 -/
 
+universe u
+
+namespace finset
+
+@[simp] lemma mem_to_set {α : Type u} {s : finset α} {a : α} : a ∈ s.to_set ↔ a ∈ s :=
+by { dsimp [finset.to_set], simp, }
+
+def Ico_int (l u : ℤ) : finset ℤ :=
+(finset.range (u - l).to_nat).map
+  { to_fun := λ n, n + l,
+    inj := λ n m h, by simpa using h }
+
+namespace Ico_int
+
+@[simp] lemma mem {n m l : ℤ} : l ∈ Ico_int n m ↔ n ≤ l ∧ l < m :=
+begin
+  dsimp [Ico_int],
+  simp only [int.lt_to_nat, exists_prop, mem_range, add_comm, function.embedding.coe_fn_mk, mem_map],
+  split,
+  { rintro ⟨a, ⟨h, rfl⟩⟩,
+    exact ⟨int.le.intro rfl, lt_sub_iff_add_lt'.mp h⟩ },
+  { rintro ⟨h₁, h₂⟩,
+    use (l - n).to_nat,
+    split; simp [h₁, h₂], }
+end
+
+end Ico_int
+
+end finset
+
 namespace set
 
-lemma mem_Ico_iff_mem_list_Ico {l u n : ℕ} : n ∈ Ico l u ↔ n ∈ list.Ico l u :=
-by simp
+-- `T` is an explicit argument for readability at the call site.
+def fintype_of_eq_finset_to_set {α : Type u} {S : set α} (T : finset α) (h : S = T.to_set) : fintype S :=
+{ elems := T.attach.map
+  { to_fun := λ v, ⟨v.1, begin rw h, simp only [finset.mem_to_set], exact v.2, end⟩,
+    inj := λ a b h, subtype.ext.2 (by simpa using h) },
+  complete := λ v,
+  begin
+    simp only [finset.mem_attach, finset.mem_map, exists_prop_of_true],
+    use v.1,
+    have t := v.2,
+    conv at t { congr, skip, rw h, },
+    simp only [finset.mem_to_set] at t,
+    use t,
+    apply subtype.ext.2,
+    refl,
+  end }
 
--- Can we use `finset.Ico` here?
 instance Ico_ℕ_fintype (l u : ℕ) : fintype (Ico l u) :=
-fintype.of_list
-  ((list.Ico l u).attach.map (λ v, ⟨v, mem_Ico_iff_mem_list_Ico.mpr v.2⟩))
-  (λ x, begin
-          simp only [list.mem_map, list.mem_attach, true_and, subtype.exists],
-          exact ⟨x, mem_Ico_iff_mem_list_Ico.mp x.2, subtype.ext.2 rfl⟩,
-        end)
+fintype_of_eq_finset_to_set (finset.Ico l u) $
+  set.ext (λ n, by { simp only [finset.mem_to_set, mem_Ico, finset.Ico.mem], })
 
 instance Ico_ℤ_fintype (l u : ℤ) : fintype (Ico l u) :=
-let ls : list (Ico l u) :=
-(list.range (u - l).to_nat).attach.map (λ n,
-  ⟨(n : ℤ) + l,
-   begin
-     cases n,
-     simp only [add_comm, le_add_iff_nonneg_right, mem_Ico],
-     simp only [list.mem_range, int.lt_to_nat] at n_property,
-     exact ⟨trivial, lt_sub_iff_add_lt'.mp n_property⟩,
-   end⟩) in
-fintype.mk ls.to_finset
-begin
-  rintro ⟨x, ⟨hl, hu⟩⟩,
-  simp only [list.mem_map, list.mem_to_finset, list.mem_attach,
-    subtype.mk_eq_mk, subtype.exists, subtype.coe_mk, coe_coe],
-  exact ⟨(x - l).to_nat, by simpa [hl], by simp [hl]⟩,
-end
+fintype_of_eq_finset_to_set (finset.Ico_int l u) $
+  set.ext (λ n, begin simp only [finset.mem_to_set, mem_Ico, finset.Ico_int.mem], end)
 
 -- TODO other useful instances: pnat, fin n, zmod?
 

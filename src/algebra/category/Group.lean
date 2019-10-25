@@ -89,35 +89,21 @@ end CommGroup
 
 variables {X Y : Type u}
 
-section
-variables [group X] [group Y]
-
 /-- Build an isomorphism in the category `Group` from a `mul_equiv` between `group`s. -/
 @[to_additive add_equiv.to_AddGroup_iso "Build an isomorphism in the category `AddGroup` from a `add_equiv` between `add_group`s."]
-def mul_equiv.to_Group_iso (e : X ≃* Y) : Group.of X ≅ Group.of Y :=
+def mul_equiv.to_Group_iso [group X] [group Y] (e : X ≃* Y) : Group.of X ≅ Group.of Y :=
 { hom := e.to_monoid_hom,
   inv := e.symm.to_monoid_hom }
 
-@[simp, to_additive add_equiv.to_AddGroup_iso_hom]
-lemma mul_equiv.to_Group_iso_hom {e : X ≃* Y} : e.to_Group_iso.hom = e.to_monoid_hom := rfl
-@[simp, to_additive add_equiv.to_AddGroup_iso_inv]
-lemma mul_equiv.to_Group_iso_inv {e : X ≃* Y} : e.to_Group_iso.inv = e.symm.to_monoid_hom := rfl
-end
-
-section
-variables [comm_group X] [comm_group Y]
+attribute [simps] mul_equiv.to_Group_iso add_equiv.to_AddGroup_iso
 
 /-- Build an isomorphism in the category `CommGroup` from a `mul_equiv` between `comm_group`s. -/
-@[to_additive add_equiv.to_AddCommGroup_iso "Build an isomorphism in the category `AddCommGroup` from a `add_equiv` between `add_comm_group`s."]
-def mul_equiv.to_CommGroup_iso (e : X ≃* Y) : CommGroup.of X ≅ CommGroup.of Y :=
+@[simps, to_additive add_equiv.to_AddCommGroup_iso "Build an isomorphism in the category `AddCommGroup` from a `add_equiv` between `add_comm_group`s."]
+def mul_equiv.to_CommGroup_iso [comm_group X] [comm_group Y] (e : X ≃* Y) : CommGroup.of X ≅ CommGroup.of Y :=
 { hom := e.to_monoid_hom,
   inv := e.symm.to_monoid_hom }
 
-@[simp, to_additive add_equiv.to_AddCommGroup_iso_hom]
-lemma mul_equiv.to_CommGroup_iso_hom {e : X ≃* Y} : e.to_CommGroup_iso.hom = e.to_monoid_hom := rfl
-@[simp, to_additive add_equiv.to_AddCommGroup_iso_inv]
-lemma mul_equiv.to_CommGroup_iso_inv {e : X ≃* Y} : e.to_CommGroup_iso.inv = e.symm.to_monoid_hom := rfl
-end
+attribute [simps] mul_equiv.to_CommGroup_iso add_equiv.to_AddCommGroup_iso
 
 namespace category_theory.iso
 

@@ -178,7 +178,7 @@ universe u
 -- (In this order the proofs are handled by `obviously`.)
 
 /-- equivalences (between types in the same universe) are the same as (isomorphic to) isomorphisms of types -/
-def equiv_iso_iso {X Y : Type u} : (X ≃ Y) ≅ (X ≅ Y) :=
+@[simps] def equiv_iso_iso {X Y : Type u} : (X ≃ Y) ≅ (X ≅ Y) :=
 { hom := λ e, e.to_iso,
   inv := λ i, i.to_equiv, }
 
@@ -187,7 +187,5 @@ def equiv_iso_iso {X Y : Type u} : (X ≃ Y) ≅ (X ≅ Y) :=
 def equiv_equiv_iso (X Y : Type u) : (X ≃ Y) ≃ (X ≅ Y) :=
 (equiv_iso_iso).to_equiv
 
-@[simp] lemma equiv_iso_iso_hom {X Y : Type u} (e : X ≃ Y) : equiv_iso_iso.hom e = e.to_iso := rfl
-@[simp] lemma equiv_iso_iso_inv {X Y : Type u} (e : X ≅ Y) : equiv_iso_iso.inv e = e.to_equiv := rfl
 @[simp] lemma equiv_equiv_iso_hom {X Y : Type u} (e : X ≃ Y) : (equiv_equiv_iso X Y) e = e.to_iso := rfl
 @[simp] lemma equiv_equiv_iso_inv {X Y : Type u} (e : X ≅ Y) : (equiv_equiv_iso X Y).symm e = e.to_equiv := rfl

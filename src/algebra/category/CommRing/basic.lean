@@ -138,29 +138,15 @@ namespace ring_equiv
 
 variables {X Y : Type u}
 
-section
-variables [ring X] [ring Y]
-
 /-- Build an isomorphism in the category `Ring` from a `ring_equiv` between `ring`s. -/
-def to_Ring_iso (e : X ≃+* Y) : Ring.of X ≅ Ring.of Y :=
+@[simps] def to_Ring_iso [ring X] [ring Y] (e : X ≃+* Y) : Ring.of X ≅ Ring.of Y :=
 { hom := e.to_ring_hom,
   inv := e.symm.to_ring_hom }
-
-@[simp] lemma to_Ring_iso_hom {e : X ≃+* Y} : e.to_Ring_iso.hom = e.to_ring_hom := rfl
-@[simp] lemma to_Ring_iso_inv {e : X ≃+* Y} : e.to_Ring_iso.inv = e.symm.to_ring_hom := rfl
-end
-
-section
-variables [comm_ring X] [comm_ring Y]
 
 /-- Build an isomorphism in the category `CommRing` from a `ring_equiv` between `comm_ring`s. -/
-def to_CommRing_iso (e : X ≃+* Y) : CommRing.of X ≅ CommRing.of Y :=
+@[simps] def to_CommRing_iso [comm_ring X] [comm_ring Y] (e : X ≃+* Y) : CommRing.of X ≅ CommRing.of Y :=
 { hom := e.to_ring_hom,
   inv := e.symm.to_ring_hom }
-
-@[simp] lemma to_CommRing_iso_hom {e : X ≃+* Y} : e.to_CommRing_iso.hom = e.to_ring_hom := rfl
-@[simp] lemma to_CommRing_iso_inv {e : X ≃+* Y} : e.to_CommRing_iso.inv = e.symm.to_ring_hom := rfl
-end
 
 end ring_equiv
 

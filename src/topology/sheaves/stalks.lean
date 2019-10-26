@@ -95,13 +95,9 @@ begin
   simp only [colim.ι_map_assoc, colimit.ι_pre_assoc,
              whisker_right_app, category.assoc],
   dsimp,
-  -- FIXME A simp lemma which unfortunately doesn't fire:
-  erw [category_theory.functor.map_id],
-  erw [category.id_comp],
-  erw [category.id_comp],
-  erw [category.id_comp],
-  erw [colimit.ι_pre],
-  erw [colimit.ι_pre],
+  -- FIXME: Some of these are simp lemmas, but don't fire successfully:
+  erw [category_theory.functor.map_id, category.id_comp, category.id_comp, category.id_comp,
+       colimit.ι_pre, colimit.ι_pre],
   refl,
 end
 

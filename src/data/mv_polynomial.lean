@@ -1029,6 +1029,7 @@ def ring_equiv_congr [comm_ring γ] (e : α ≃+* γ) : mv_polynomial β α ≃+
     have (e ∘ e.symm) = id,
     { ext a, exact e.apply_symm_apply a },
     by simp only [map_map, this, map_id],
+-- inserting `by exact` prevents a `deterministic timeout` error
   map_mul'  := by exact map_mul _,
   map_add'  := by exact map_add _ }
 

@@ -27,6 +27,7 @@ local attribute [tidy] tactic.case_bash
 /--
 We characterise `F.cones` objectwise for a functor `F` on the walking pair.
 -/
+@[simps]
 def walking_pair_cones_equiv {Q : C} (F : discrete walking_pair.{v} ⥤ C) :
   F.cones.obj (op Q) ≅ ((Q ⟶ F.obj left) : Type v) × ((Q ⟶ F.obj right) : Type v) :=
 { hom := λ c, (c.app left, c.app right),
@@ -56,13 +57,35 @@ def nat_iso
   (I : is_binary_product.{v} (F.obj left) (F.obj right) P) :
     yoneda.obj P ≅ F.cones :=
 begin
-  -- Is there a cheaper way to do this?
+  -- Is there a cheaper way to do this? I feel like we're reproving some part of Yoneda.
   have n₁' : Π (Q Q' : C) (f : Q ⟶ Q') (g : Q' ⟶ P), ((I.hom_iso Q).hom (f ≫ g)).1 = f ≫ ((I.hom_iso Q').hom g).1 :=
     λ Q Q' f g, by rw [I.naturality₁, category.assoc, ←I.naturality₁],
   have n₂' : Π (Q Q' : C) (f : Q ⟶ Q') (g : Q' ⟶ P), ((I.hom_iso Q).hom (f ≫ g)).2 = f ≫ ((I.hom_iso Q').hom g).2 :=
     λ Q Q' f g, by rw [I.naturality₂, category.assoc, ←I.naturality₂],
   exact nat_iso.of_components (λ Q, ((I.hom_iso (unop Q)) ≪≫ (walking_pair_cones_equiv F).symm)) (by tidy)
-end
+end.
+
+def of_nat_iso (X Y P : C) (i : yoneda.obj P ≅ (pair X Y).cones) : is_binary_product.{v} X Y P :=
+{ hom_iso := λ Q, i.app (op Q) ≪≫ (walking_pair_cones_equiv (pair X Y)),
+  naturality₁ := λ Q f,
+  begin
+    -- Similarly here.
+    have n := congr_fun (i.hom.naturality f.op) (𝟙 _),
+    dsimp at n,
+    simp only [category.comp_id] at n,
+    simp only [function.comp_app, types_comp, iso.trans_hom],
+    rw n,
+    simp,
+  end,
+  naturality₂ := λ Q f,
+  begin
+    have n := congr_fun (i.hom.naturality f.op) (𝟙 _),
+    dsimp at n,
+    simp only [category.comp_id] at n,
+    simp only [function.comp_app, types_comp, iso.trans_hom],
+    rw n,
+    simp,
+  end, }
 
 section
 variables {X Y P : C} (I : is_binary_product.{v} X Y P)
@@ -76,31 +99,12 @@ def is_limit : is_limit (cone I) :=
 is_limit.of_nat_iso (nat_iso I)
 end
 
-/-- Helper function for `is_binary_product.of_is_limit`. -/
-@[simps] def of_is_limit.iso {X Y : C} {c : limits.cone (pair X Y)} (h : limits.is_limit c) (Q : C) :
-  (Q ⟶ c.X) ≅ (Q ⟶ X) × (Q ⟶ Y) :=
-{ hom := λ f, (f ≫ c.π.app left, f ≫ c.π.app right),
-  inv := λ p, h.lift (binary_fan.mk p.1 p.2),
-  hom_inv_id' :=
-  begin
-    -- TODO how to make this less terrible?
-    ext1,
-    dsimp,
-    symmetry,
-    convert h.uniq _ _ _,
-    swap 3, { dsimp, exact x },
-    { dsimp, refl, },
-    { dsimp, refl, },
-    intro j, cases j; refl,
-  end,
-  inv_hom_id' := by ext; simp }
-
 /--
 Construct an `is_binary_product` from a generic `is_limit`.
 -/
 def of_is_limit {X Y : C} {c : limits.cone (pair X Y)} (h : limits.is_limit c) :
   is_binary_product.{v} X Y c.X :=
-{ hom_iso := λ Q, of_is_limit.iso h Q }
+of_nat_iso X Y c.X (is_limit.nat_iso h)
 
 end is_binary_product
 

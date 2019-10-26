@@ -136,16 +136,16 @@ theorem card_of_subtype {p : α → Prop} (s : finset α)
 by rw ← subtype_card s H; congr
 
 /-- Construct a fintype from a finset with the same elements. -/
-def fintype_of_finset {p : set α} (s : finset α) (H : ∀ x, x ∈ s ↔ x ∈ p) : fintype p :=
+def of_finset {p : set α} (s : finset α) (H : ∀ x, x ∈ s ↔ x ∈ p) : fintype p :=
 fintype.subtype s H
 
-@[simp] theorem card_fintype_of_finset {p : set α} (s : finset α) (H : ∀ x, x ∈ s ↔ x ∈ p) :
-  @fintype.card p (fintype_of_finset s H) = s.card :=
+@[simp] theorem card_of_finset {p : set α} (s : finset α) (H : ∀ x, x ∈ s ↔ x ∈ p) :
+  @fintype.card p (of_finset s H) = s.card :=
 fintype.subtype_card s H
 
-theorem card_fintype_of_finset' {p : set α} (s : finset α)
+theorem card_of_finset' {p : set α} (s : finset α)
   (H : ∀ x, x ∈ s ↔ x ∈ p) [fintype p] : fintype.card p = s.card :=
-by rw ← card_fintype_of_finset s H; congr
+by rw ← card_of_finset s H; congr
 
 /-- If `f : α → β` is a bijection and `α` is a fintype, then `β` is also a fintype. -/
 def of_bijective [fintype α] (f : α → β) (H : function.bijective f) : fintype β :=

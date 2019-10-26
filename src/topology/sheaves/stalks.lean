@@ -81,6 +81,8 @@ begin
   erw [category_theory.functor.map_id],
 end
 
+-- This proof is sadly not at all robust:
+-- having to use `erw` at all is a bad sign.
 @[simp] lemma comp (ℱ : X.presheaf C) (f : X ⟶ Y) (g : Y ⟶ Z) (x : X) :
   ℱ.stalk_pushforward C (f ≫ g) x =
   ((f _* ℱ).stalk_pushforward C g (f x)) ≫ (ℱ.stalk_pushforward C f x) :=
@@ -97,6 +99,10 @@ begin
   erw [category_theory.functor.map_id],
   erw [category.id_comp],
   erw [category.id_comp],
+  erw [category.id_comp],
+  erw [colimit.ι_pre],
+  erw [colimit.ι_pre],
+  refl,
 end
 
 end stalk_pushforward

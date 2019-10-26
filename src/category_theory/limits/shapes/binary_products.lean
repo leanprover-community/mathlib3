@@ -69,10 +69,14 @@ def binary_cofan.mk {P : C} (ι₁ : X ⟶ P) (ι₂ : Y ⟶ P) : binary_cofan X
 { X := P,
   ι := { app := λ j, walking_pair.cases_on j ι₁ ι₂ }}
 
+@[simp] lemma binary_fan.mk_X {P : C} (π₁ : P ⟶ X) (π₂ : P ⟶ Y) :
+  (binary_fan.mk π₁ π₂).X = P := rfl
 @[simp] lemma binary_fan.mk_π_app_left {P : C} (π₁ : P ⟶ X) (π₂ : P ⟶ Y) :
   (binary_fan.mk π₁ π₂).π.app walking_pair.left = π₁ := rfl
 @[simp] lemma binary_fan.mk_π_app_right {P : C} (π₁ : P ⟶ X) (π₂ : P ⟶ Y) :
   (binary_fan.mk π₁ π₂).π.app walking_pair.right = π₂ := rfl
+@[simp] lemma binary_cofan.mk_X {P : C} (ι₁ : X ⟶ P) (ι₂ : Y ⟶ P) :
+  (binary_cofan.mk ι₁ ι₂).X = P := rfl
 @[simp] lemma binary_cofan.mk_π_app_left {P : C} (ι₁ : X ⟶ P) (ι₂ : Y ⟶ P) :
   (binary_cofan.mk ι₁ ι₂).ι.app walking_pair.left = ι₁ := rfl
 @[simp] lemma binary_cofan.mk_π_app_right {P : C} (ι₁ : X ⟶ P) (ι₂ : Y ⟶ P) :
@@ -81,8 +85,8 @@ def binary_cofan.mk {P : C} (ι₁ : X ⟶ P) (ι₂ : Y ⟶ P) : binary_cofan X
 abbreviation prod (X Y : C) [has_limit (pair X Y)] := limit (pair X Y)
 abbreviation coprod (X Y : C) [has_colimit (pair X Y)] := colimit (pair X Y)
 
-notation X `⨯`:20 Y:20 := prod X Y
-notation X `⨿`:20 Y:20 := coprod X Y
+notation X ` ⨯ `:20 Y:20 := prod X Y
+notation X ` ⨿ `:20 Y:20 := coprod X Y
 
 abbreviation prod.fst {X Y : C} [has_limit (pair X Y)] : X ⨯ Y ⟶ X :=
 limit.π (pair X Y) walking_pair.left
@@ -119,11 +123,15 @@ instance [has_finite_products.{v} C] : has_binary_products.{v} C :=
 instance [has_finite_coproducts.{v} C] : has_binary_coproducts.{v} C :=
 { has_colimits_of_shape := by apply_instance }
 
+variables {C}
+
 section
 
 variables {C} [has_binary_products.{v} C]
 
 local attribute [tidy] tactic.case_bash
+
+-- TODO The `@[simp] def`s below should probably instead have appropriate simp lemmas written.
 
 /-- The braiding isomorphism which swaps a binary product. -/
 @[simps] def prod.braiding (P Q : C) : P ⨯ Q ≅ Q ⨯ P :=

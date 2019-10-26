@@ -1,0 +1,144 @@
+/-
+Copyright (c) 2019 Scott Morrison. All rights reserved.
+Released under Apache 2.0 license as described in the file LICENSE.
+Authors: Scott Morrison
+-/
+import category_theory.limits.shapes.binary_products
+
+/-!
+Constructing binary products from specified objects, and characterisations of the morphisms
+out them.
+-/
+
+universes v u
+
+open category_theory
+open opposite
+
+namespace category_theory.limits
+
+variables {C : Type u} [𝒞 : category.{v} C]
+include 𝒞
+
+open walking_pair
+
+local attribute [tidy] tactic.case_bash
+
+/--
+We characterise `F.cones` objectwise for a functor `F` on the walking pair.
+-/
+def walking_pair_cones_equiv {Q : C} (F : discrete walking_pair.{v} ⥤ C) :
+  F.cones.obj (op Q) ≅ ((Q ⟶ F.obj left) : Type v) × ((Q ⟶ F.obj right) : Type v) :=
+{ hom := λ c, (c.app left, c.app right),
+  inv := λ f, { app := λ j, walking_pair.cases_on j f.1 f.2 } }
+
+-- -- TODO move to isomorphisms.lean, and fill in the rest
+-- instance {α β : Type u} : has_coe_to_fun (α ≅ β) :=
+-- ⟨_, λ f : α ≅ β, f.hom⟩
+
+/--
+`is_binary_product X Y P` asserts that there is an isomorphism of hom-spaces
+`(Q ⟶ P) ≅ (Q ⟶ X) × (Q ⟶ Y)`, natural in `Q`.
+-/
+structure is_binary_product (X Y P : C) :=
+(hom_iso : Π (Q : C), (Q ⟶ P) ≅ (Q ⟶ X) × (Q ⟶ Y))
+(naturality₁ : Π (Q : C) (f : Q ⟶ P), ((hom_iso Q).hom f).1 = f ≫ ((hom_iso P).hom (𝟙 P)).1 . obviously)
+(naturality₂ : Π (Q : C) (f : Q ⟶ P), ((hom_iso Q).hom f).2 = f ≫ ((hom_iso P).hom (𝟙 P)).2 . obviously)
+
+namespace is_binary_product
+
+/--
+If `P` is a binary product indexed by a functor `F`,
+then `F.cones` is representable by `P`.
+-/
+def nat_iso
+  {P : C} {F : discrete walking_pair.{v} ⥤ C}
+  (I : is_binary_product.{v} (F.obj left) (F.obj right) P) :
+    yoneda.obj P ≅ F.cones :=
+begin
+  -- Is there a cheaper way to do this?
+  have n₁' : Π (Q Q' : C) (f : Q ⟶ Q') (g : Q' ⟶ P), ((I.hom_iso Q).hom (f ≫ g)).1 = f ≫ ((I.hom_iso Q').hom g).1 :=
+    λ Q Q' f g, by rw [I.naturality₁, category.assoc, ←I.naturality₁],
+  have n₂' : Π (Q Q' : C) (f : Q ⟶ Q') (g : Q' ⟶ P), ((I.hom_iso Q).hom (f ≫ g)).2 = f ≫ ((I.hom_iso Q').hom g).2 :=
+    λ Q Q' f g, by rw [I.naturality₂, category.assoc, ←I.naturality₂],
+  exact nat_iso.of_components (λ Q, ((I.hom_iso (unop Q)) ≪≫ (walking_pair_cones_equiv F).symm)) (by tidy)
+end
+
+section
+variables {X Y P : C} (I : is_binary_product.{v} X Y P)
+
+/-- The `cone` associated to a binary product. -/
+def cone : cone (pair X Y) :=
+is_limit.of_nat_iso.limit_cone (nat_iso I)
+
+/-- The witness that the `cone` associated to a binary product is a limit cone. -/
+def is_limit : is_limit (cone I) :=
+is_limit.of_nat_iso (nat_iso I)
+end
+
+/-- Helper function for `is_binary_product.of_is_limit`. -/
+@[simps] def of_is_limit.iso {X Y : C} {c : limits.cone (pair X Y)} (h : limits.is_limit c) (Q : C) :
+  (Q ⟶ c.X) ≅ (Q ⟶ X) × (Q ⟶ Y) :=
+{ hom := λ f, (f ≫ c.π.app left, f ≫ c.π.app right),
+  inv := λ p, h.lift (binary_fan.mk p.1 p.2),
+  hom_inv_id' :=
+  begin
+    -- TODO how to make this less terrible?
+    ext1,
+    dsimp,
+    symmetry,
+    convert h.uniq _ _ _,
+    swap 3, { dsimp, exact x },
+    { dsimp, refl, },
+    { dsimp, refl, },
+    intro j, cases j; refl,
+  end,
+  inv_hom_id' := by ext; simp }
+
+/--
+Construct an `is_binary_product` from a generic `is_limit`.
+-/
+def of_is_limit {X Y : C} {c : limits.cone (pair X Y)} (h : limits.is_limit c) :
+  is_binary_product.{v} X Y c.X :=
+{ hom_iso := λ Q, of_is_limit.iso h Q }
+
+end is_binary_product
+
+namespace has_binary_products
+
+/--
+Show that `C` has binary products by
+providing a function `prod : C → C → C`,
+and for all `X Y : C`, and all other objects `Q : C`,
+providing an isomorphism `(Q ⟶ prod X Y) ≅ (Q ⟶ X) × (Q ⟶ Y)`
+which is natural in `Q`.
+-/
+def mk' (prod : C → C → C) (I : Π X Y, is_binary_product.{v} X Y (prod X Y)) :
+  has_binary_products.{v} C :=
+{ has_limits_of_shape :=
+  has_limits_of_shape.of_nat_iso (λ F,
+    ⟨_, is_binary_product.nat_iso (I (F.obj left) (F.obj right))⟩) }
+
+-- We verify that this construction allows us to easily build binary products in `Type`.
+example : has_binary_products.{v} (Type v) :=
+mk' (λ X Y, X × Y) (λ X Y,
+  { hom_iso := (λ Q,
+    { hom := λ f, (λ q, (f q).1, λ q, (f q).2),
+      inv := λ p q, (p.1 q, p.2 q) }) })
+
+/--
+If a category has specified binary products,
+we can construct `is_binary_product.{v} X Y (X ⨯ Y)` for each `X` and `Y`.
+-/
+def prod_is_binary_product [has_binary_products.{v} C] (X Y : C) : is_binary_product.{v} X Y (X ⨯ Y) :=
+-- An alternative proof here could just be:
+-- is_binary_product.of_is_limit (limit.is_limit _)
+{ hom_iso := λ Q,
+  { hom := λ f, (f ≫ prod.fst, f ≫ prod.snd),
+    inv := λ p, prod.lift p.1 p.2, } }
+
+end has_binary_products
+
+-- TODO give alternative proofs about the braiding, to see how usable this is?
+
+end category_theory.limits

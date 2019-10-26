@@ -71,7 +71,8 @@ def id (X : PresheafedSpace.{v} C) : hom X X :=
 
 def comp (X Y Z : PresheafedSpace.{v} C) (α : hom X Y) (β : hom Y Z) : hom X Z :=
 { f := α.f ≫ β.f,
-  c := β.c ≫ (whisker_left (opens.map β.f).op α.c) }
+  -- `by exact _` prevents a `deterministic timeout` error (I don't understand why)
+  c := by exact β.c ≫ (whisker_left (opens.map β.f).op α.c) }
 
 variables (C)
 

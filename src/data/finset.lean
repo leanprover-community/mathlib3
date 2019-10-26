@@ -1914,7 +1914,7 @@ end
 
 end decidable_linear_order
 
-/- Ico (a closed openinterval) -/
+/- Ico (a closed open interval) -/
 variables {n m l : ℕ}
 
 /-- `Ico n m` is the set of natural numbers `n ≤ k < m`. -/
@@ -2037,6 +2037,30 @@ have ∀k, (k < m ∧ (l ≤ k → m ≤ k)) ↔ (k < m ∧ k < l) :=
 by ext k; by_cases n ≤ k; simp [h, this]
 
 end Ico
+
+-- TODO We don't yet attempt to reproduce the entire interface for `Ico` for `Ico_ℤ`.
+
+/-- `Ico_ℤ l u` is the set of integers `l ≤ k < u`. -/
+def Ico_ℤ (l u : ℤ) : finset ℤ :=
+(finset.range (u - l).to_nat).map
+  { to_fun := λ n, n + l,
+    inj := λ n m h, by simpa using h }
+
+namespace Ico_ℤ
+
+@[simp] lemma mem {n m l : ℤ} : l ∈ Ico_ℤ n m ↔ n ≤ l ∧ l < m :=
+begin
+  dsimp [Ico_ℤ],
+  simp only [int.lt_to_nat, exists_prop, mem_range, add_comm, function.embedding.coe_fn_mk, mem_map],
+  split,
+  { rintro ⟨a, ⟨h, rfl⟩⟩,
+    exact ⟨int.le.intro rfl, lt_sub_iff_add_lt'.mp h⟩ },
+  { rintro ⟨h₁, h₂⟩,
+    use (l - n).to_nat,
+    split; simp [h₁, h₂], }
+end
+
+end Ico_ℤ
 
 end finset
 

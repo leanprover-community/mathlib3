@@ -140,8 +140,6 @@ by rw [add_comm, add_one, pred_succ]
 theorem pos_iff_ne_zero : 0 < n ↔ n ≠ 0 :=
 ⟨ne_of_gt, nat.pos_of_ne_zero⟩
 
-theorem pos_iff_ne_zero' : 0 < n ↔ n ≠ 0 := pos_iff_ne_zero
-
 lemma one_lt_iff_ne_zero_and_ne_one : ∀ {n : ℕ}, 1 < n ↔ n ≠ 0 ∧ n ≠ 1
 | 0     := dec_trivial
 | 1     := dec_trivial
@@ -888,7 +886,7 @@ theorem size_pos {n : ℕ} : 0 < size n ↔ 0 < n :=
 by rw lt_size; refl
 
 theorem size_eq_zero {n : ℕ} : size n = 0 ↔ n = 0 :=
-by have := @size_pos n; simp [pos_iff_ne_zero'] at this;
+by have := @size_pos n; simp [pos_iff_ne_zero] at this;
    exact not_iff_not.1 this
 
 theorem size_pow {n : ℕ} : size (2^n) = n+1 :=

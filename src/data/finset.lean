@@ -242,6 +242,12 @@ ssubset_iff.mpr ⟨a, h, subset.refl _⟩
     { rw [insert_val, ndinsert_of_not_mem m] }
   end) nd
 
+/--
+To prove a proposition about an arbitrary `finset α`,
+it suffices to prove it for the empty `finset`,
+and to show that if it holds for some `finset α`,
+then it holds for the `finset` obtained by inserting a new element.
+-/
 @[elab_as_eliminator] protected theorem induction_on {α : Type*} {p : finset α → Prop} [decidable_eq α]
   (s : finset α) (h₁ : p ∅) (h₂ : ∀ ⦃a : α⦄ {s : finset α}, a ∉ s → p s → p (insert a s)) : p s :=
 finset.induction h₁ h₂ s

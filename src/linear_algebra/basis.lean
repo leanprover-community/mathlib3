@@ -627,15 +627,29 @@ begin
 end
 
 /-- Dedekind's linear independence of characters -/
+-- See, for example, Keith Conrad's note https://kconrad.math.uconn.edu/blurbs/galoistheory/linearchar.pdf
 theorem linear_independent_monoid_hom (G : Type*) [monoid G] (L : Type*) [integral_domain L] :
   @linear_independent _ L (G → L) (λ f, f : (G →* L) → (G → L)) _ _ _ :=
 by letI := classical.dec_eq (G →* L);
    letI : mul_action L L := distrib_mul_action.to_mul_action L L;
+-- We prove linear independence by showing that only the trivial linear combination vanishes.
 exact linear_independent_iff'.2
+-- To do this, we use `finset` induction,
 (λ s, finset.induction_on s (λ g hg i, false.elim) $ λ a s has ih g hg,
-have h1 : ∀ i ∈ s, (g i • i : G → L) = g i • a, from λ i his, funext $ λ x,
+-- Here
+-- * `a` is a new character we will insert into the `finset` of characters `s`,
+-- * `ih` is the fact that only the trivial linear combination of characters in `s` is zero
+-- * `hg` is the fact that `g` are the coefficients of a linear combination summing to zero
+-- and it remains to prove that `g` vanishes on `insert a s`.
+
+-- We now make the key calculation:
+-- For any character `i` in the original `finset`, we have `g i • i = g i • a` as functions on the monoid `G`.
+have h1 : ∀ i ∈ s, (g i • i : G → L) = g i • a, from λ i his, funext $ λ x : G,
+  -- We prove these expressions are equal by showing
+  -- the differences of their values on each monoid element `x` is zero
   eq_of_sub_eq_zero $ ih (λ j, g j * j x - g j * a x)
-    (funext $ λ y, calc
+    (funext $ λ y : G, calc
+    -- After that, it's just a chase scene.
           s.sum (λ i, ((g i * i x - g i * a x) • i : G → L)) y
         = s.sum (λ i, (g i * i x - g i * a x) * i y) : pi.finset_sum_apply _ _ _
     ... = s.sum (λ i, g i * i x * i y - g i * a x * i y) : finset.sum_congr rfl
@@ -655,13 +669,18 @@ have h1 : ∀ i ∈ s, (g i • i : G → L) = g i • a, from λ i his, funext 
     ... = 0 : by rw [mul_zero, sub_zero])
     i
     his,
+-- On the other hand, since `a` is not already in `s`, for any character `i ∈ s`
+-- there is some element of the monoid on which it differs from `a`.
 have h2 : ∀ i : G →* L, i ∈ s → ∃ y, i y ≠ a y, from λ i his,
   classical.by_contradiction $ λ h,
   have hia : i = a, from monoid_hom.ext $ λ y, classical.by_contradiction $ λ hy, h ⟨y, hy⟩,
   has $ hia ▸ his,
+-- From these two facts we deduce that `g` actually vanishes on `s`,
 have h3 : ∀ i ∈ s, g i = 0, from λ i his, let ⟨y, hy⟩ := h2 i his in
   have h : g i • i y = g i • a y, from congr_fun (h1 i his) y,
   or.resolve_right (mul_eq_zero.1 $ by rw [mul_sub, sub_eq_zero]; exact h) (sub_ne_zero_of_ne hy),
+-- And so, using the fact that the linear combination over `s` and over `insert a s` both vanish,
+-- we deduce that `g a = 0`.
 have h4 : g a = 0, from calc
   g a = g a * 1 : (mul_one _).symm
   ... = (g a • a : G → L) 1 : by rw ← a.map_one; refl
@@ -671,6 +690,7 @@ have h4 : g a = 0, from calc
       { intros haas, exfalso, apply haas, exact finset.mem_insert_self a s }
     end
   ... = 0 : by rw hg; refl,
+-- Now we're done; the last two facts together imply that `g` vanishes on every element of `insert a s`.
 (finset.forall_mem_insert _ _ _).2 ⟨h4, h3⟩)
 
 lemma le_of_span_le_span {s t u: set M} (zero_ne_one : (0 : R) ≠ 1)

@@ -242,6 +242,12 @@ ssubset_iff.mpr ⟨a, h, subset.refl _⟩
     { rw [insert_val, ndinsert_of_not_mem m] }
   end) nd
 
+/--
+To prove a proposition about an arbitrary `finset α`,
+it suffices to prove it for the empty `finset`,
+and to show that if it holds for some `finset α`,
+then it holds for the `finset` obtained by inserting a new element.
+-/
 @[elab_as_eliminator] protected theorem induction_on {α : Type*} {p : finset α → Prop} [decidable_eq α]
   (s : finset α) (h₁ : p ∅) (h₂ : ∀ ⦃a : α⦄ {s : finset α}, a ∉ s → p s → p (insert a s)) : p s :=
 finset.induction h₁ h₂ s
@@ -1178,7 +1184,7 @@ lemma inj_on_of_surj_on_of_card_le {s : finset α} {t : finset β}
   (f : Π a ∈ s, β) (hf : ∀ a ha, f a ha ∈ t)
   (hsurj : ∀ b ∈ t, ∃ a ha, b = f a ha)
   (hst : card s ≤ card t)
-  ⦃a₁ a₂⦄ (ha₁ : a₁ ∈ s) (ha₂ : a₂ ∈ s) 
+  ⦃a₁ a₂⦄ (ha₁ : a₁ ∈ s) (ha₂ : a₂ ∈ s)
   (ha₁a₂: f a₁ ha₁ = f a₂ ha₂) : a₁ = a₂ :=
 by haveI : inhabited {x // x ∈ s} := ⟨⟨a₁, ha₁⟩⟩; exact
 let f' : {x // x ∈ s} → {x // x ∈ t} := λ x, ⟨f x.1 x.2, hf x.1 x.2⟩ in

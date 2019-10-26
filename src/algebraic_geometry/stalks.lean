@@ -55,11 +55,13 @@ begin
   op_induction U,
   cases U,
   simp only [colim.ι_map_assoc, colimit.ι_pre_assoc, colimit.ι_pre,
-    whisker_left.app, whisker_right.app,
+    whisker_left_app, whisker_right_app,
     assoc, id_comp, map_id, map_comp],
   dsimp,
   simp only [map_id, assoc],
   -- FIXME Why doesn't simp do this:
+  erw [category_theory.functor.map_id],
+  erw [category_theory.functor.map_id],
   erw [id_comp, id_comp],
 end
 end stalk_map

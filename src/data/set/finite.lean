@@ -22,29 +22,6 @@ def finite (s : set α) : Prop := nonempty (fintype s)
 /-- A set is infinite if it is not finite. -/
 def infinite (s : set α) : Prop := ¬ finite s
 
-/-- Construct a fintype from a finset with the same elements. -/
-def fintype_of_finset {p : set α} (s : finset α) (H : ∀ x, x ∈ s ↔ x ∈ p) : fintype p :=
-fintype.subtype s H
-
-@[simp] theorem card_fintype_of_finset {p : set α} (s : finset α) (H : ∀ x, x ∈ s ↔ x ∈ p) :
-  @fintype.card p (fintype_of_finset s H) = s.card :=
-fintype.subtype_card s H
-
-theorem card_fintype_of_finset' {p : set α} (s : finset α)
-  (H : ∀ x, x ∈ s ↔ x ∈ p) [fintype p] : fintype.card p = s.card :=
-by rw ← card_fintype_of_finset s H; congr
-
-/-- Construct a finset enumerating a set `s`, given a `fintype` instance.  -/
-def to_finset (s : set α) [fintype s] : finset α :=
-⟨(@finset.univ s _).1.map subtype.val,
- multiset.nodup_map (λ a b, subtype.eq) finset.univ.2⟩
-
-@[simp] theorem mem_to_finset {s : set α} [fintype s] {a : α} : a ∈ s.to_finset ↔ a ∈ s :=
-by simp [to_finset]
-
-@[simp] theorem mem_to_finset_val {s : set α} [fintype s] {a : α} : a ∈ s.to_finset.1 ↔ a ∈ s :=
-mem_to_finset
-
 noncomputable instance finite.fintype {s : set α} (h : finite s) : fintype s :=
 classical.choice h
 

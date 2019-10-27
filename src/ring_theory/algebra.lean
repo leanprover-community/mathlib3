@@ -151,8 +151,7 @@ instance module.endomorphism_algebra (R : Type u) (M : Type v)
 { to_fun    := (λ r, r • linear_map.id),
   hom       := by apply is_ring_hom.mk; intros; ext; simp [mul_smul, add_smul],
   commutes' := by intros; ext; simp,
-  smul_def' := by intros; ext; simp,
-}
+  smul_def' := by intros; ext; simp }
 
 set_option old_structure_cmd true
 /-- Defining the homomorphism in the category R-Alg. -/

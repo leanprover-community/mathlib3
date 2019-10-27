@@ -64,19 +64,19 @@ quotient.lift (λ x, ⟦f x⟧) $ assume x y h₁, quot.sound $ h h₁
 /-- Map a function `f : α → β → γ` that sends equivalent elements to equivalent elements
 to a function `f : quotient sa → quotient sb → quotient sc`.
 Useful to define binary operations on quotients. -/
-protected def map₂ (f : α → β → γ) (h : ((≈) ⇒ (≈) ⇒ (≈)).diag f) :
+protected def map₂ (f : α → β → γ) (h : ((≈) ⇒ (≈) ⇒ (≈)) f f) :
   quotient sa → quotient sb → quotient sc :=
 quotient.lift₂ (λ x y, ⟦f x y⟧) (λ x₁ y₁ x₂ y₂ h₁ h₂, quot.sound $ h h₁ h₂)
 
 variables {sa sb sc}
 
-protected def map' (f : α → β) (h : ((@setoid.r _ sa) ⇒ (@setoid.r _ sb)).diag f) :
+protected def map' (f : α → β) (h : ((@setoid.r _ sa) ⇒ (@setoid.r _ sb)) f f) :
   quotient sa → quotient sb :=
 quotient.map f h
 
 /-- A version of `quotient.map₂` using curly braces and unification. -/
 protected def map₂' (f : α → β → γ)
-  (h : ((@setoid.r _ sa) ⇒ (@setoid.r _ sb) ⇒ (@setoid.r _ sc)).diag f) :
+  (h : ((@setoid.r _ sa) ⇒ (@setoid.r _ sb) ⇒ (@setoid.r _ sc)) f f) :
   quotient sa → quotient sb → quotient sc :=
 quotient.map₂ f h
 

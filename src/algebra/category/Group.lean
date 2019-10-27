@@ -76,6 +76,14 @@ instance (G : CommGroup) : comm_group G := G.str
 
 @[to_additive] instance : concrete_category CommGroup := infer_instance
 
+@[to_additive,extensionality] lemma ext (G H : CommGroup) (f₁ f₂ : G ⟶ H) (w : ∀ x, f₁ x = f₂ x): f₁ = f₂ :=
+begin
+  ext1, apply w
+end
+
+-- TODO `to_additive` should copy `@[extensionality]`.
+attribute [extensionality] AddCommGroup.ext
+
 @[to_additive has_forget_to_AddGroup]
 instance has_forget_to_Group : has_forget₂ CommGroup Group := infer_instance
 

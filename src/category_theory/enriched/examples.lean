@@ -3,7 +3,15 @@ import algebra.category.Group.monoidal
 
 universes u
 
-namespace category_theory
+open category_theory
+
+
+namespace AddCommGroup
+
+instance : concrete_monoidal_category AddCommGroup.{u} :=
+{ lax_monoidal :=
+  { ε := λ _, sorry,
+    μ := begin end }}
 
 example : enriched_over AddCommGroup.{u} AddCommGroup.{u} :=
 { e_hom := λ X Y, AddCommGroup.of (X ⟶ Y),
@@ -14,4 +22,4 @@ example : enriched_over AddCommGroup.{u} AddCommGroup.{u} :=
 -- TODO modules over a ring are enriched over themselves
 -- TODO deduce from this that they are enriched over AddCommGroup
 
-end category_theory
+end AddCommGroup

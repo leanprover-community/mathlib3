@@ -320,8 +320,8 @@ def comp (hnp : N →* P) (hmn : M →* N) : M →* P :=
 
 /-- Composition of monoid homomorphisms is associative. -/
 @[to_additive] lemma comp_assoc {Q : Type*} [monoid Q] (f : M →* N) (g : N →* P) (h : P →* Q) :
-  (h.comp g).comp f = h.comp (g.comp f) :=
-rfl
+  (h.comp g).comp f = h.comp (g.comp f) := rfl
+
 omit mP
 variables [mM] [mN]
 

@@ -104,9 +104,6 @@ by induction n with n ih; [refl, rw [list.repeat_succ, list.prod_cons, ih]]; ref
 @[simp] lemma units.coe_pow (u : units α) (n : ℕ) : ((u ^ n : units α) : α) = u ^ n :=
 by induction n; simp [*, pow_succ]
 
-@[simp] lemma add_units.coe_smul (u : add_units β) (n : ℕ) : ((n • u : add_units β) : β) = n • u :=
-by induction n; simp [*, succ_smul]
-
 end monoid
 
 namespace is_monoid_hom
@@ -445,8 +442,8 @@ theorem is_semiring_hom.map_pow {β} [semiring α] [semiring β]
 by induction n with n ih; [exact is_semiring_hom.map_one f,
   rw [pow_succ, pow_succ, is_semiring_hom.map_mul f, ih]]
 
-lemma ring_hom.map_pow {β} [semiring α] [semiring β] (f : α →+* β) (a : α) :
-  ∀(n : ℕ), f (a ^ n) = (f a) ^ n :=
+lemma ring_hom.map_pow {β} [semiring α] [semiring β] (f : α →+* β) (a) :
+  ∀ n : ℕ, f (a ^ n) = (f a) ^ n :=
 monoid_hom.map_pow f.to_monoid_hom a
 
 theorem neg_one_pow_eq_or {R} [ring R] : ∀ n : ℕ, (-1 : R)^n = 1 ∨ (-1 : R)^n = -1

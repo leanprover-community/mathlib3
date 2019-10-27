@@ -260,8 +260,18 @@ instance centralizer.is_submonoid : is_submonoid (centralizer a) :=
 { one_mem := commute.one_right a,
   mul_mem := λ _ _, commute.mul_right }
 
+def centralizer.submonoid : submonoid M :=
+{ carrier := centralizer a,
+  one_mem' := commute.one_right a,
+  mul_mem' := λ _ _, commute.mul_right }
+
 instance set.centralizer.is_submonoid : is_submonoid s.centralizer :=
 by rw s.centralizer_eq; apply_instance
+
+def set.centralizer.submonoid : submonoid M :=
+{ carrier := s.centralizer,
+  one_mem' := λ _ _, commute.one_right _,
+  mul_mem' := λ _ _ h1 h2 a h, commute.mul_right (h1 a h) $ h2 a h }
 
 @[simp] theorem monoid.centralizer_closure : (monoid.closure s).centralizer = s.centralizer :=
 set.subset.antisymm
@@ -310,8 +320,18 @@ instance centralizer.is_add_submonoid : is_add_submonoid (centralizer a) :=
 { zero_mem := commute.zero_right a,
   add_mem := λ _ _, commute.add_right }
 
+def centralizer.add_submonoid : add_submonoid A :=
+{ carrier := centralizer a,
+  zero_mem' := commute.zero_right a,
+  add_mem' := λ _ _, commute.add_right }
+
 instance set.centralizer.is_add_submonoid : is_add_submonoid s.centralizer :=
 by rw s.centralizer_eq; apply_instance
+
+def set.centralizer.add_submonoid : add_submonoid A :=
+{ carrier := s.centralizer,
+  zero_mem' := λ _ _, commute.zero_right _,
+  add_mem' := λ _ _ h1 h2 a h, commute.add_right (h1 a h) $ h2 a h }
 
 @[simp] lemma add_monoid.centralizer_closure : (add_monoid.closure s).centralizer = s.centralizer :=
 set.subset.antisymm

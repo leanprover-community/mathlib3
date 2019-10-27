@@ -6,7 +6,7 @@ Authors: Kenny Lau, Mario Carneiro, Johannes, Hölzl, Chris Hughes
 Units (i.e., invertible elements) of a multiplicative monoid.
 -/
 
-import tactic.basic algebra.group.to_additive logic.function
+import tactic.basic logic.function
 
 universe u
 variable {α : Type u}
@@ -17,35 +17,23 @@ structure units (α : Type u) [monoid α] :=
 (val_inv : val * inv = 1)
 (inv_val : inv * val = 1)
 
-structure add_units (α : Type u) [add_monoid α] :=
-(val : α)
-(inv : α)
-(val_inv : val + inv = 0)
-(inv_val : inv + val = 0)
-
-attribute [to_additive add_units] units
-
 namespace units
 variables [monoid α] {a b c : units α}
 
-@[to_additive] instance : has_coe (units α) α := ⟨val⟩
+instance : has_coe (units α) α := ⟨val⟩
 
-@[extensionality, to_additive] theorem ext : function.injective (coe : units α → α)
+@[extensionality] theorem ext : function.injective (coe : units α → α)
 | ⟨v, i₁, vi₁, iv₁⟩ ⟨v', i₂, vi₂, iv₂⟩ e :=
   by change v = v' at e; subst v'; congr;
       simpa only [iv₂, vi₁, one_mul, mul_one] using mul_assoc i₂ v i₁
 
-attribute [extensionality] add_units.ext
-
-@[to_additive] theorem ext_iff {a b : units α} : a = b ↔ (a : α) = b :=
-
+theorem ext_iff {a b : units α} : a = b ↔ (a : α) = b :=
 ext.eq_iff.symm
 
---weird error when I to_additive this
 instance [decidable_eq α] : decidable_eq (units α)
 | a b := decidable_of_iff' _ ext_iff
 
-@[to_additive] protected def mul (u₁ u₂ : units α) : units α :=
+protected def mul (u₁ u₂ : units α) : units α :=
 ⟨u₁.val * u₂.val, u₂.inv * u₁.inv,
   have u₁.val * (u₂.val * u₂.inv) * u₁.inv = 1,
     by rw [u₂.val_inv]; rw [mul_one, u₁.val_inv],
@@ -54,59 +42,59 @@ instance [decidable_eq α] : decidable_eq (units α)
     by rw [u₁.inv_val]; rw [mul_one, u₂.inv_val],
   by simpa only [mul_assoc]⟩
 
-@[to_additive] protected def inv' (u : units α) : units α :=
+protected def inv' (u : units α) : units α :=
 ⟨u.inv, u.val, u.inv_val, u.val_inv⟩
 
-@[to_additive] instance : has_mul (units α) := ⟨units.mul⟩
-@[to_additive] instance : has_one (units α) := ⟨⟨1, 1, mul_one 1, one_mul 1⟩⟩
-@[to_additive] instance : has_inv (units α) := ⟨units.inv'⟩
+instance : has_mul (units α) := ⟨units.mul⟩
+instance : has_one (units α) := ⟨⟨1, 1, mul_one 1, one_mul 1⟩⟩
+instance : has_inv (units α) := ⟨units.inv'⟩
 
 variables (a b)
-@[simp, to_additive] lemma coe_mul : (↑(a * b) : α) = a * b := rfl
-@[simp, to_additive] lemma coe_one : ((1 : units α) : α) = 1 := rfl
-@[to_additive] lemma val_coe : (↑a : α) = a.val := rfl
-@[to_additive] lemma coe_inv : ((a⁻¹ : units α) : α) = a.inv := rfl
-@[simp, to_additive] lemma inv_mul : (↑a⁻¹ * a : α) = 1 := inv_val _
-@[simp, to_additive] lemma mul_inv : (a * ↑a⁻¹ : α) = 1 := val_inv _
+@[simp] lemma coe_mul : (↑(a * b) : α) = a * b := rfl
+@[simp] lemma coe_one : ((1 : units α) : α) = 1 := rfl
+lemma val_coe : (↑a : α) = a.val := rfl
+lemma coe_inv : ((a⁻¹ : units α) : α) = a.inv := rfl
+@[simp] lemma inv_mul : (↑a⁻¹ * a : α) = 1 := inv_val _
+@[simp] lemma mul_inv : (a * ↑a⁻¹ : α) = 1 := val_inv _
 
-@[simp, to_additive] lemma mul_inv_cancel_left (a : units α) (b : α) : (a:α) * (↑a⁻¹ * b) = b :=
+@[simp] lemma mul_inv_cancel_left (a : units α) (b : α) : (a:α) * (↑a⁻¹ * b) = b :=
 by rw [← mul_assoc, mul_inv, one_mul]
 
-@[simp, to_additive] lemma inv_mul_cancel_left (a : units α) (b : α) : (↑a⁻¹:α) * (a * b) = b :=
+@[simp] lemma inv_mul_cancel_left (a : units α) (b : α) : (↑a⁻¹:α) * (a * b) = b :=
 by rw [← mul_assoc, inv_mul, one_mul]
 
-@[simp, to_additive] lemma mul_inv_cancel_right (a : α) (b : units α) : a * b * ↑b⁻¹ = a :=
+@[simp] lemma mul_inv_cancel_right (a : α) (b : units α) : a * b * ↑b⁻¹ = a :=
 by rw [mul_assoc, mul_inv, mul_one]
 
-@[simp, to_additive] lemma inv_mul_cancel_right (a : α) (b : units α) : a * ↑b⁻¹ * b = a :=
+@[simp] lemma inv_mul_cancel_right (a : α) (b : units α) : a * ↑b⁻¹ * b = a :=
 by rw [mul_assoc, inv_mul, mul_one]
 
-@[to_additive add_group] instance : group (units α) :=
+instance : group (units α) :=
 by refine {mul := (*), one := 1, inv := has_inv.inv, ..};
   { intros, apply ext, simp only [coe_mul, coe_one,
       mul_assoc, one_mul, mul_one, inv_mul] }
 
-@[to_additive add_comm_group] instance {α} [comm_monoid α] : comm_group (units α) :=
+instance {α} [comm_monoid α] : comm_group (units α) :=
 { mul_comm := λ u₁ u₂, ext $ mul_comm _ _, ..units.group }
 
-@[to_additive] instance [has_repr α] : has_repr (units α) := ⟨repr ∘ val⟩
+instance [has_repr α] : has_repr (units α) := ⟨repr ∘ val⟩
 
-@[simp, to_additive] theorem mul_left_inj (a : units α) {b c : α} : (a:α) * b = a * c ↔ b = c :=
+@[simp] theorem mul_left_inj (a : units α) {b c : α} : (a:α) * b = a * c ↔ b = c :=
 ⟨λ h, by simpa only [inv_mul_cancel_left] using congr_arg ((*) ↑(a⁻¹ : units α)) h, congr_arg _⟩
 
-@[simp, to_additive] theorem mul_right_inj (a : units α) {b c : α} : b * a = c * a ↔ b = c :=
+@[simp] theorem mul_right_inj (a : units α) {b c : α} : b * a = c * a ↔ b = c :=
 ⟨λ h, by simpa only [mul_inv_cancel_right] using congr_arg (* ↑(a⁻¹ : units α)) h, congr_arg _⟩
 
-@[to_additive] theorem eq_mul_inv_iff_mul_eq {a b : α} : a = b * ↑c⁻¹ ↔ a * c = b :=
+theorem eq_mul_inv_iff_mul_eq {a b : α} : a = b * ↑c⁻¹ ↔ a * c = b :=
 ⟨λ h, by rw [h, inv_mul_cancel_right], λ h, by rw [← h, mul_inv_cancel_right]⟩
 
-@[to_additive] theorem eq_inv_mul_iff_mul_eq {a c : α} : a = ↑b⁻¹ * c ↔ ↑b * a = c :=
+theorem eq_inv_mul_iff_mul_eq {a c : α} : a = ↑b⁻¹ * c ↔ ↑b * a = c :=
 ⟨λ h, by rw [h, mul_inv_cancel_left], λ h, by rw [← h, inv_mul_cancel_left]⟩
 
-@[to_additive] theorem inv_mul_eq_iff_eq_mul {b c : α} : ↑a⁻¹ * b = c ↔ b = a * c :=
+theorem inv_mul_eq_iff_eq_mul {b c : α} : ↑a⁻¹ * b = c ↔ b = a * c :=
 ⟨λ h, by rw [← h, mul_inv_cancel_left], λ h, by rw [h, inv_mul_cancel_left]⟩
 
-@[to_additive] theorem mul_inv_eq_iff_eq_mul {a c : α} : a * ↑b⁻¹ = c ↔ a = c * b :=
+theorem mul_inv_eq_iff_eq_mul {a c : α} : a * ↑b⁻¹ = c ↔ a = c * b :=
 ⟨λ h, by rw [← h, inv_mul_cancel_right], λ h, by rw [h, mul_inv_cancel_right]⟩
 
 end units
@@ -114,7 +102,7 @@ end units
 theorem nat.units_eq_one (u : units ℕ) : u = 1 :=
 units.ext $ nat.eq_one_of_dvd_one ⟨u.inv, u.val_inv.symm⟩
 
-@[to_additive] def units.mk_of_mul_eq_one [comm_monoid α] (a b : α) (hab : a * b = 1) : units α :=
+def units.mk_of_mul_eq_one [comm_monoid α] (a b : α) (hab : a * b = 1) : units α :=
 ⟨a, b, hab, (mul_comm b a).trans hab⟩
 
 

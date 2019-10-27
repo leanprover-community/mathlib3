@@ -73,21 +73,21 @@ section coset_submonoid
 open submonoid
 variables [monoid α] (s : submonoid α)
 
---@[to_additive mem_own_left_add_coset]
+@[to_additive mem_own_left_add_coset]
 lemma mem_own_left_coset (a : α) : a ∈ a *l s :=
 suffices a * 1 ∈ a *l s, by simpa,
 mem_left_coset a (one_mem s)
 
---@[to_additive mem_own_right_add_coset]
+@[to_additive mem_own_right_add_coset]
 lemma mem_own_right_coset (a : α) : a ∈ (s : set α) *r a :=
 suffices 1 * a ∈ (s : set α) *r a, by simpa,
 mem_right_coset a (one_mem s)
 
---@[to_additive mem_left_add_coset_left_add_coset]
+@[to_additive mem_left_add_coset_left_add_coset]
 lemma mem_left_coset_left_coset {a : α} (ha : a *l s = s) : a ∈ s :=
 by rw [←submonoid.mem_coe, ←ha]; exact mem_own_left_coset s a
 
---@[to_additive mem_right_add_coset_right_add_coset]
+@[to_additive mem_right_add_coset_right_add_coset]
 lemma mem_right_coset_right_coset {a : α} (ha : (s : set α) *r a = s) : a ∈ s :=
 by rw [←submonoid.mem_coe, ←ha]; exact mem_own_right_coset s a
 

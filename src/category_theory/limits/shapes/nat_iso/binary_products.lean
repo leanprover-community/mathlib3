@@ -33,10 +33,6 @@ def walking_pair_cones_equiv {Q : C} (F : discrete walking_pair.{v} ⥤ C) :
 { hom := λ c, (c.app left, c.app right),
   inv := λ f, { app := λ j, walking_pair.cases_on j f.1 f.2 } }
 
--- -- TODO move to isomorphisms.lean, and fill in the rest
--- instance {α β : Type u} : has_coe_to_fun (α ≅ β) :=
--- ⟨_, λ f : α ≅ β, f.hom⟩
-
 /--
 `is_binary_product X Y P` asserts that there is an isomorphism of hom-spaces
 `(Q ⟶ P) ≅ (Q ⟶ X) × (Q ⟶ Y)`, natural in `Q`.

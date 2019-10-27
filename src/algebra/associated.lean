@@ -13,8 +13,7 @@ open lattice
 /-- is unit -/
 def is_unit [monoid α] (a : α) : Prop := ∃u:units α, a = u
 
-@[simp]
-lemma is_unit_unit [monoid α] (u : units α) : is_unit (u : α) := ⟨u, rfl⟩
+@[simp] lemma is_unit_unit [monoid α] (u : units α) : is_unit (u : α) := ⟨u, rfl⟩
 
 theorem is_unit.mk0 [division_ring α] (x : α) (hx : x ≠ 0) : is_unit x := is_unit_unit (units.mk0 x hx)
 

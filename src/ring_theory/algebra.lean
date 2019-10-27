@@ -146,6 +146,13 @@ variables {R A}
 
 end algebra
 
+instance module.endomorphism_algebra (R : Type u) (M : Type v)
+  [comm_ring R] [add_comm_group M] [module R M] : algebra R (M →ₗ[R] M) :=
+{ to_fun    := (λ r, r • linear_map.id),
+  hom       := by apply is_ring_hom.mk; intros; ext; simp [mul_smul, add_smul],
+  commutes' := by intros; ext; simp,
+  smul_def' := by intros; ext; simp }
+
 set_option old_structure_cmd true
 /-- Defining the homomorphism in the category R-Alg. -/
 structure alg_hom (R : Type u) (A : Type v) (B : Type w)

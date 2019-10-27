@@ -25,6 +25,10 @@ monoid_hom.mk'
 
 @[simp] lemma coe_map (f : α →* β) (x : units α) : ↑(map f x) = f x := rfl
 
+@[simp] lemma coe_map' (f : α → β) [is_monoid_hom f] (x : units α) :
+  ↑((map' f : units α → units β) x) = f x :=
+rfl
+
 @[simp] lemma map_comp (f : α →* β) (g : β →* γ) : map (g.comp f) = (map g).comp (map f) := rfl
 
 variables (α)

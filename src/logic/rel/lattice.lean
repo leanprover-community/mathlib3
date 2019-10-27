@@ -59,9 +59,8 @@ assume p q Hrel,
 
 variable (r)
 
-lemma image_mono : monotone r.image := assume s t h y ⟨x, xs, rxy⟩, ⟨x, h xs, rxy⟩
-
-lemma image_subset : ((⊆) ⇒ (⊆)).diag r.image := r.image_mono
+/-- A version of `rel.image_subset` that can be easily used with `monotone.*` functions. -/
+lemma image_mono : monotone r.image := r.image_subset
 
 lemma image_inter (s t : set α) : r.image (s ∩ t) ⊆ r.image s ∩ r.image t :=
 r.image_mono.map_inf s t
@@ -74,10 +73,8 @@ le_antisymm
 lemma image_subset_range (s : set α) : r.image s ⊆ r.range :=
 r.image_univ ▸ r.image_subset s.subset_univ
 
+/-- A version of `rel.preimage_subset` that can be easily used with `monotone.*` functions. -/
 lemma preimage_mono : monotone r.preimage := r.flip.image_mono
-
-lemma preimage_subset : ((⊆) ⇒ (⊆)).diag r.preimage :=
-r.flip.image_subset
 
 lemma preimage_inter (s t : set β) : r.preimage (s ∩ t) ⊆ r.preimage s ∩ r.preimage t :=
 r.flip.image_inter s t

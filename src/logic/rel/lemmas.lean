@@ -122,6 +122,10 @@ lemma dom_flip : r.flip.dom = r.range := rfl
 
 lemma image_def (s : set α) : image r s = {y | ∃ x ∈ s, r x y} := rfl
 
+/-- `r.image` preserves the `⊆` relation. -/
+lemma image_subset : ((⊆) ⇒ (⊆)) r.image r.image :=
+assume s t h y ⟨x, xs, rxy⟩, ⟨x, h xs, rxy⟩
+
 variable {r}
 
 lemma mem_image (y : β) (s : set α) : y ∈ image r s ↔ ∃ x ∈ s, r x y :=
@@ -159,6 +163,10 @@ by simp only [preimage, flip_comp, image_comp]
 
 lemma preimage_univ : r.preimage set.univ = r.dom :=
 r.flip.image_univ
+
+/-- `r.preimage` preserves the `⊆` relation. -/
+lemma preimage_subset : ((⊆) ⇒ (⊆)) r.preimage r.preimage :=
+r.flip.image_subset
 
 lemma mem_core (x : α) (s : set β) : x ∈ core r s ↔ ∀ y, r x y → y ∈ s :=
 iff.rfl

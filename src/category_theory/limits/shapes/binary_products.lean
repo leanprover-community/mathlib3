@@ -123,8 +123,6 @@ instance [has_finite_products.{v} C] : has_binary_products.{v} C :=
 instance [has_finite_coproducts.{v} C] : has_binary_coproducts.{v} C :=
 { has_colimits_of_shape := by apply_instance }
 
-variables {C}
-
 section
 
 variables {C} [has_binary_products.{v} C]

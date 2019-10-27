@@ -208,7 +208,7 @@ begin
              set.prod (range I.to_fun) (range (id : F → F)) := prod_range_range_eq.symm,
       simp at this,
       ext p,
-      squeeze_simp [-mem_range, J, local_equiv.trans_source, chart, model_with_corners.prod,
+      simp [-mem_range, J, local_equiv.trans_source, chart, model_with_corners.prod,
             local_equiv.trans_target, this],
       split,
       { tauto },

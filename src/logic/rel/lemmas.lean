@@ -201,19 +201,19 @@ rel.ext $ λ f g, ⟨λ hfg y x hxy, hfg hxy, λ hfg x y hxy, hfg hxy⟩
 
 lemma rel_id : (rac ⇒ rac) id id := λ x y, id
 
-lemma rel_imp : ((↔) ⇒ ((↔)  ⇒ (↔))).diag implies :=
+lemma rel_imp : ((↔) ⇒ ((↔)  ⇒ (↔))) implies implies :=
 assume p q h r s l, imp_congr h l
 
-lemma rel_not : ((↔) ⇒ (↔)).diag not :=
+lemma rel_not : ((↔) ⇒ (↔)) not not :=
 assume p q h, not_congr h
 
-lemma rel_and : ((↔) ⇒ (↔) ⇒ (↔)).diag (∧) :=
+lemma rel_and : ((↔) ⇒ (↔) ⇒ (↔)) (∧) (∧) :=
 assume a b h₁ c d h₂, and_congr h₁ h₂
 
-lemma rel_or : ((↔) ⇒ (↔) ⇒ (↔)).diag (∨) :=
+lemma rel_or : ((↔) ⇒ (↔) ⇒ (↔)) (∨) (∨) :=
 assume a b h₁ c d h₂, or_congr h₁ h₂
 
-lemma rel_iff : ((↔) ⇒ (↔) ⇒ (↔)).diag (↔) :=
+lemma rel_iff : ((↔) ⇒ (↔) ⇒ (↔)) (↔) (↔) :=
 assume a b h₁ c d h₂, iff_congr h₁ h₂
 
 lemma rel_comp {α α' β β' γ γ' : Type*} {ra : rel α α'} {rb : rel β β'} {rc : rel γ γ'} :

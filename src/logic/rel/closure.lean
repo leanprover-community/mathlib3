@@ -217,7 +217,7 @@ begin
 end
 
 lemma refl_trans_gen_lift {p : rel β β} (f : α → β)
-  (h : (r ⇒ p).diag f) : ((refl_trans_gen r) ⇒  (refl_trans_gen p)).diag f :=
+  (h : (r ⇒ p) f f) : ((refl_trans_gen r) ⇒  (refl_trans_gen p)) f f :=
 assume a b hab,
 hab.trans_induction_on
   (assume a, refl)
@@ -246,7 +246,7 @@ lemma refl_trans_gen_idem :
 refl_trans_gen_eq_self reflexive_refl_trans_gen transitive_refl_trans_gen
 
 lemma refl_trans_gen_lift' {p : rel β β} (f : α → β)
-  (h : (r ⇒ (refl_trans_gen p)).diag f) : ((refl_trans_gen r) ⇒ (refl_trans_gen p)).diag f :=
+  (h : (r ⇒ (refl_trans_gen p)) f f) : ((refl_trans_gen r) ⇒ (refl_trans_gen p)) f f :=
 λ a b hab, by simpa [refl_trans_gen_idem] using refl_trans_gen_lift f h hab
 
 lemma refl_trans_gen_closed {p : rel α α} :

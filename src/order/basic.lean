@@ -108,7 +108,7 @@ variables [preorder α] [preorder β] [preorder γ] [preorder δ] [preorder ε]
 
 /-- A function between preorders is monotone if
   `a ≤ b` implies `f a ≤ f b`. -/
-def monotone (f : α → β) := ((≤) ⇒ (≤)).diag f
+def monotone (f : α → β) := ((≤) ⇒ (≤)) f f
 
 theorem monotone_id : @monotone α α _ _ id := assume x y h, h
 

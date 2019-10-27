@@ -84,7 +84,8 @@ by apply le_antisymm; finish
 theorem sup_le_sup (h₁ : a ≤ b) (h₂ : c ≤ d) : a ⊔ c ≤ b ⊔ d :=
 by finish
 
-theorem sup_mono : ((≤) ⇒ (≤) ⇒ (≤)).diag ((⊔) : α → α → α) :=
+/-- The function `⊔` is monotone in both arguments, see also `sup_le_sup`. -/
+theorem sup_mono : ((≤) ⇒ (≤) ⇒ (≤)) ((⊔) : α → _) (⊔) :=
 λ a b h₁ c d h₂, sup_le_sup h₁ h₂
 
 theorem sup_le_sup_left (h₁ : a ≤ b) (c) : c ⊔ a ≤ c ⊔ b :=
@@ -143,7 +144,7 @@ begin
 end
 
 lemma directed_of_sup {β : Type*} {r : rel β β} {f : α → β}
-  (hf : ((≤) ⇒ r).diag f) : directed r f :=
+  (hf : ((≤) ⇒ r) f f) : directed r f :=
 assume x y, ⟨x ⊔ y, hf le_sup_left, hf le_sup_right⟩
 
 lemma monotone_sup {α β : Type*} [preorder α] [semilattice_sup β]
@@ -198,7 +199,8 @@ by apply le_antisymm; finish
 theorem inf_le_inf (h₁ : a ≤ b) (h₂ : c ≤ d) : a ⊓ c ≤ b ⊓ d :=
 by finish
 
-theorem inf_mono : ((≤) ⇒ (≤) ⇒ (≤)).diag ((⊓) : α → α → α) :=
+/-- The function `⊓` is monotone in both arguments, see also `inf_le_inf`. -/
+theorem inf_mono : ((≤) ⇒ (≤) ⇒ (≤)) ((⊓) : α → _) (⊓) :=
 λ a b h₁ c d h₂, inf_le_inf h₁ h₂
 
 theorem le_of_inf_eq (h : a ⊓ b = a) : a ≤ b :=

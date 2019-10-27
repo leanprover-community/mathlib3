@@ -131,6 +131,29 @@ meta def nonzero : level → bool
 
 end level
 
+/-- The type of binders containing a name, the binding info and the binding type -/
+@[derive decidable_eq]
+meta structure binder :=
+  (name : name)
+  (info : binder_info)
+  (type : expr)
+
+namespace binder
+/-- Turn a binder into a string. Uses expr.to_string for the type. -/
+protected meta def to_string (b : binder) : string :=
+let (l, r) := b.info.brackets in
+l ++ b.name.to_string ++ " : " ++ b.type.to_string ++ r
+
+open tactic
+meta instance : inhabited binder := ⟨⟨default _, default _, default _⟩⟩
+meta instance : has_to_string binder := ⟨ binder.to_string ⟩
+meta instance : has_to_format binder := ⟨ λ b, b.to_string ⟩
+meta instance : has_to_tactic_format binder :=
+⟨ λ b, let (l, r) := b.info.brackets in
+  (λ e, l ++ b.name.to_string ++ " : " ++ e ++ r) <$> pp b.type ⟩
+
+end binder
+
 /- converting between expressions and numerals -/
 
 /--
@@ -285,6 +308,30 @@ then the term is applied to the remaining terms -/
 meta def instantiate_lambdas_or_apps : list expr → expr → expr
 | (e'::es) (lam n bi t e) := instantiate_lambdas_or_apps es (e.instantiate_var e')
 | es       e              := mk_app e es
+
+/-- Get the codomain/target of a pi-type. Doesn't Instantiate bound variables. -/
+meta def pi_codomain : expr → expr
+| (pi n bi d b) := pi_codomain b
+| e             := e
+
+/-- Auxilliary defintion for `pi_binders`. -/
+meta def pi_binders_aux : list binder → expr → list binder × expr
+| es (pi n bi d b) := pi_binders_aux (⟨n, bi, d⟩::es) b
+| es e             := (es, e)
+
+/-- Get the binders and codomain of a pi-type. Doesn't Instantiate bound variables. -/
+meta def pi_binders (e : expr) : list binder × expr :=
+let (es, e) := pi_binders_aux [] e in (es.reverse, e)
+
+/-- Auxilliary defintion for `get_app_fn_args`. -/
+meta def get_app_fn_args_aux : list expr → expr → expr × list expr
+| r (app f a) := get_app_fn_args_aux (a::r) f
+| r e         := (e, r)
+
+/-- A combination of `get_app_fn` and `get_app_args`: lists both the
+  function and its arguments of an application -/
+meta def get_app_fn_args : expr → expr × list expr :=
+get_app_fn_args_aux []
 
 end expr
 
@@ -477,26 +524,3 @@ meta def univ_levels (d : declaration) : list level :=
 d.univ_params.map level.param
 
 end declaration
-
-/-- The type of binders containing a name, the binding info and the binding type -/
-@[derive decidable_eq]
-meta structure binder :=
-  (name : name)
-  (info : binder_info)
-  (type : expr)
-
-namespace binder
-/-- Turn a binder into a string. Uses expr.to_string for the type. -/
-protected meta def to_string (b : binder) : string :=
-let (l, r) := b.info.brackets in
-l ++ b.name.to_string ++ " : " ++ b.type.to_string ++ r
-
-open tactic
-meta instance : inhabited binder := ⟨⟨default _, default _, default _⟩⟩
-meta instance : has_to_string binder := ⟨ binder.to_string ⟩
-meta instance : has_to_format binder := ⟨ λ b, b.to_string ⟩
-meta instance : has_to_tactic_format binder :=
-⟨ λ b, let (l, r) := b.info.brackets in
-  (λ e, l ++ b.name.to_string ++ " : " ++ e ++ r) <$> pp b.type ⟩
-
-end binder

@@ -29,13 +29,6 @@ meta def to_implicit_binder : expr → expr
 | (pi n _ d b) := pi n binder_info.implicit d b
 | e  := e
 
-meta def get_app_fn_args_aux : list expr → expr → expr × list expr
-| r (app f a) := get_app_fn_args_aux (a::r) f
-| r e         := (e, r)
-
-meta def get_app_fn_args : expr → expr × list expr :=
-get_app_fn_args_aux []
-
 end expr
 
 namespace tactic

@@ -113,6 +113,40 @@ lemma dist_triangle4_right (x₁ y₁ x₂ y₂ : α) :
   dist x₁ y₁ ≤ dist x₁ x₂ + dist y₁ y₂ + dist x₂ y₂ :=
 by rw [add_right_comm, dist_comm y₁]; apply dist_triangle4
 
+/-- The triangle (polygon) inequality for sequences of points; `finset.Ico` version. -/
+lemma dist_le_Ico_sum_dist (f : ℕ → α) {m n} (h : m ≤ n) :
+  dist (f m) (f n) ≤ (finset.Ico m n).sum (λ i, dist (f i) (f (i + 1))) :=
+begin
+  revert n,
+  apply nat.le_induction,
+  { simp only [finset.sum_empty, finset.Ico.self_eq_empty, dist_self] },
+  { assume n hn hrec,
+    calc dist (f m) (f (n+1)) ≤ dist (f m) (f n) + dist _ _ : dist_triangle _ _ _
+      ... ≤ (finset.Ico m n).sum _ + _ : add_le_add hrec (le_refl _)
+      ... = (finset.Ico m (n+1)).sum _ :
+        by rw [finset.Ico.succ_top hn, finset.sum_insert, add_comm]; simp }
+end
+
+/-- The triangle (polygon) inequality for sequences of points; `finset.range` version. -/
+lemma dist_le_range_sum_dist (f : ℕ → α) (n : ℕ) :
+  dist (f 0) (f n) ≤ (finset.range n).sum (λ i, dist (f i) (f (i + 1))) :=
+finset.Ico.zero_bot n ▸ dist_le_Ico_sum_dist f (nat.zero_le n)
+
+/-- A version of `dist_le_Ico_sum_dist` with each intermediate distance replaced
+with an upper estimate. -/
+lemma dist_le_Ico_sum_of_dist_le {f : ℕ → α} {m n} (hmn : m ≤ n)
+  {d : ℕ → ℝ} (hd : ∀ {k}, m ≤ k → k < n → dist (f k) (f (k + 1)) ≤ d k) :
+  dist (f m) (f n) ≤ (finset.Ico m n).sum d :=
+le_trans (dist_le_Ico_sum_dist f hmn) $
+finset.sum_le_sum $ λ k hk, hd (finset.Ico.mem.1 hk).1 (finset.Ico.mem.1 hk).2
+
+/-- A version of `dist_le_range_sum_dist` with each intermediate distance replaced
+with an upper estimate. -/
+lemma dist_le_range_sum_of_dist_le {f : ℕ → α} (n : ℕ)
+  {d : ℕ → ℝ} (hd : ∀ {k}, k < n → dist (f k) (f (k + 1)) ≤ d k) :
+  dist (f 0) (f n) ≤ (finset.range n).sum d :=
+finset.Ico.zero_bot n ▸ dist_le_Ico_sum_of_dist_le (zero_le n) (λ _ _, hd)
+
 theorem swap_dist : function.swap (@dist α _) = dist :=
 by funext x y; exact dist_comm _ _
 
@@ -139,6 +173,7 @@ abs_of_nonneg dist_nonneg
 theorem eq_of_forall_dist_le {x y : α} (h : ∀ε, ε > 0 → dist x y ≤ ε) : x = y :=
 eq_of_dist_eq_zero (eq_of_le_of_forall_le_of_dense dist_nonneg h)
 
+/-- Distance as a nonnegative real number. -/
 def nndist (a b : α) : nnreal := ⟨dist a b, dist_nonneg⟩
 
 /--Express `nndist` in terms of `edist`-/

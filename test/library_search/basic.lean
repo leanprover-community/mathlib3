@@ -4,12 +4,11 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Scott Morrison
 -/
 import data.nat.basic
-import tactic.library_search
 
 /- Turn off trace messages so they don't pollute the test build: -/
 set_option trace.silence_library_search true
 /- For debugging purposes, we can display the list of lemmas: -/
--- set_option trace.library_search true
+-- set_option trace.suggest true
 
 namespace test.library_search
 
@@ -39,10 +38,14 @@ example (a b : ℕ) : a + b = b + a :=
 by library_search -- says: `exact add_comm a b`
 
 example {a b : ℕ} : a ≤ a + b :=
-by library_search -- says: `exact le_add_right a b`
+by library_search -- says: `exact nat.le.intro rfl`
 
 example (n m k : ℕ) : n * (m - k) = n * m - n * k :=
 by library_search -- says: `exact nat.mul_sub_left_distrib n m k`
+
+-- TODO this doesn't work yet, and would require `library_search` to use `symmetry`
+-- example (n m k : ℕ) : n * m - n * k = n * (m - k) :=
+-- by library_search -- says: `exact eq.symm (nat.mul_sub_left_distrib n m k)`
 
 example {n m : ℕ} (h : m < n) : m ≤ n - 1 :=
 by library_search -- says: `exact nat.le_pred_of_lt h`

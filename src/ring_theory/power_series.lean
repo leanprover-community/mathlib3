@@ -164,14 +164,14 @@ end
 protected lemma mul_one : φ * 1 = φ :=
 ext $ λ n,
 begin
-  rw [coeff_mul, finset.sum_eq_single (n, (0 : σ →₀ ℕ))];
-  simp [mem_antidiagonal_support, coeff_one],
-  show ∀ (i j : σ →₀ ℕ), i + j = n → (i = n → j ≠ 0) →
-    (coeff α i) φ * (if (j = 0) then 1 else 0) = 0,
-  intros i j hij h,
-  rw [if_neg, mul_zero],
-  contrapose! h,
-  simpa [h] using hij,
+  rw [coeff_mul, finset.sum_eq_single (n, (0 : σ →₀ ℕ))],
+  rotate,
+  { rintros ⟨i, j⟩ hij h,
+    rw [coeff_one, if_neg, mul_zero],
+    rw mem_antidiagonal_support at hij,
+    contrapose! h,
+    simpa [h] using hij },
+  all_goals { simp [mem_antidiagonal_support, coeff_one] }
 end
 
 protected lemma mul_add (φ₁ φ₂ φ₃ : mv_power_series σ α) :

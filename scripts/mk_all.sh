@@ -15,10 +15,10 @@ do
 done
 
 cd $DIR/../src/
-cat <<EOT > sanity_check_mathlib.lean
+cat <<EOT > lint_mathlib.lean
 import all
 
 open nat -- need to do something before running a command
 
-#sanity_check_mathlib
+#lint_mathlib
 EOT

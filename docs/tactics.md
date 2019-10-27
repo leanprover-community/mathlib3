@@ -271,6 +271,34 @@ However, it will work, producing the identity function, if one replaces have by 
 * `exactI`: `resetI` followed by `exact`. Like `exact`, but uses all
   variables in the context for typeclass inference.
 
+### suggest
+
+`suggest` lists possible usages of the `refine` tactic and leaves the tactic state unchanged.
+It is intended as a complement of the search function in your editor, the `#find` tactic, and `library_search`.
+
+`suggest` takes an optional natural number `num` as input and returns the first `num` (or less, if all possibilities are exhausted) possibilities ordered by length of lemma names. The default for `num` is `50`.
+
+For performance reasons `suggest` uses monadic lazy lists (`mllist`). This means that `suggest` might miss some results if `num` is not large enough. However, because `suggest` uses monadic lazy lists, smaller values of `num` run faster than larger values.
+
+An example of `suggest` in action,
+
+```lean
+example (n : nat) : n < n + 1 :=
+begin suggest, sorry end
+```
+
+prints the list,
+
+```lean
+exact nat.lt.base n
+exact nat.lt_succ_self n
+refine not_le.mp _
+refine gt_iff_lt.mp _
+refine nat.lt.step _
+refine lt_of_not_ge _
+...
+```
+
 ### library_search
 
 `library_search` is a tactic to identify existing lemmas in the library. It tries to close the
@@ -1137,6 +1165,30 @@ Here too, the `reassoc` attribute can be used instead. It works well when combin
 ```lean
 attribute [simp, reassoc] some_class.bar
 ```
+
+### The reassoc_of function
+
+`reassoc_of h` takes local assumption `h` and add a ` ≫ f` term on the right of both sides of the equality.
+Instead of creating a new assumption from the result, `reassoc_of h` stands for the proof of that reassociated
+statement. This prevents poluting the local context with complicated assumptions used only once or twice.
+
+In the following, assumption `h` is needed in a reassociated form. Instead of proving it as a new goal and adding it as 
+an assumption, we use `reassoc_of h` as a rewrite rule which works just as well.
+
+```lean
+example (X Y Z W : C) (x : X ⟶ Y) (y : Y ⟶ Z) (z z' : Z ⟶ W) (w : X ⟶ Z)
+  (h : x ≫ y = w)
+  (h' : y ≫ z = y ≫ z') :
+  x ≫ y ≫ z = w ≫ z' :=
+begin
+  -- reassoc_of h : ∀ {X' : C} (f : W ⟶ X'), x ≫ y ≫ f = w ≫ f
+  rw [h',reassoc_of h],
+end
+```
+
+Although `reassoc_of` is not a tactic or a meta program, its type is generated 
+through meta-programming to make it usable inside normal expressions.
+
 ### lint
 User commands to spot common mistakes in the code
 

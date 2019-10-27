@@ -164,6 +164,9 @@ e.symm ▸ ⟨(l₁++l₂ : list α), quot.sound perm_middle⟩
 theorem eq_zero_of_forall_not_mem {s : multiset α} : (∀x, x ∉ s) → s = 0 :=
 quot.induction_on s $ λ l H, by rw eq_nil_iff_forall_not_mem.mpr H; refl
 
+theorem eq_zero_iff_forall_not_mem {s : multiset α} : s = 0 ↔ ∀ a, a ∉ s :=
+⟨λ h, h.symm ▸ λ _, not_false, eq_zero_of_forall_not_mem⟩
+
 theorem exists_mem_of_ne_zero {s : multiset α} : s ≠ 0 → ∃ a : α, a ∈ s :=
 quot.induction_on s $ assume l hl,
   match l, hl with
@@ -2374,6 +2377,23 @@ theorem mem_sub_of_nodup [decidable_eq α] {a : α} {s t : multiset α} (d : nod
   by refine count_eq_zero.1 _ h; rw [count_sub a s t, nat.sub_eq_zero_iff_le];
      exact le_trans (nodup_iff_count_le_one.1 d _) (count_pos.2 h')⟩,
  λ ⟨h₁, h₂⟩, or.resolve_right (mem_add.1 $ mem_of_le (le_sub_add _ _) h₁) h₂⟩
+
+lemma map_eq_map_of_bij_of_nodup (f : α → γ) (g : β → γ) {s : multiset α} {t : multiset β}
+  (hs : s.nodup) (ht : t.nodup) (i : Πa∈s, β)
+  (hi : ∀a ha, i a ha ∈ t) (h : ∀a ha, f a = g (i a ha))
+  (i_inj : ∀a₁ a₂ ha₁ ha₂, i a₁ ha₁ = i a₂ ha₂ → a₁ = a₂)
+  (i_surj : ∀b∈t, ∃a ha, b = i a ha) :
+  s.map f = t.map g :=
+have t = s.attach.map (λ x, i x.1 x.2),
+  from (nodup_ext ht (nodup_map
+      (show function.injective (λ x : {x // x ∈ s}, i x.1 x.2), from λ x y hxy,
+        subtype.eq (i_inj x.1 y.1 x.2 y.2 hxy))
+      (nodup_attach.2 hs))).2
+    (λ x, by simp only [mem_map, true_and, subtype.exists, eq_comm, mem_attach];
+      exact ⟨i_surj _, λ ⟨y, hy⟩, hy.snd.symm ▸ hi _ _⟩),
+calc s.map f = s.pmap  (λ x _, f x) (λ _, id) : by rw [pmap_eq_map]
+... = s.attach.map (λ x, f x.1) : by rw [pmap_eq_map_attach]
+... = t.map g : by rw [this, multiset.map_map]; exact map_congr (λ x _, h _ _)
 
 section
 variable [decidable_eq α]

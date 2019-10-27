@@ -533,24 +533,28 @@ meta def metavariables : tactic (list expr) :=
 do r ← result,
    pure (r.list_meta_vars)
 
+/-- Fail if the target contains a metavariable. -/
+meta def no_mvars_in_target : tactic unit :=
+expr.has_meta_var <$> target >>= guardb ∘ bnot
+
 /-- Succeeds only if the current goal is a proposition. -/
 meta def propositional_goal : tactic unit :=
-do goals ← get_goals,
-   p ← is_proof goals.head,
-   guard p
+do g :: _ ← get_goals,
+   is_proof g >>= guardb
 
 /-- Succeeds only if we can construct an instance showing the
     current goal is a subsingleton type. -/
 meta def subsingleton_goal : tactic unit :=
-do goals ← get_goals,
-   ty ← infer_type goals.head >>= instantiate_mvars,
+do g :: _ ← get_goals,
+   ty ← infer_type g >>= instantiate_mvars,
    to_expr ``(subsingleton %%ty) >>= mk_instance >> skip
 
-/-- Succeeds only if the current goal is "terminal", in the sense
-    that no other goals depend on it. -/
+/--
+Succeeds only if the current goal is "terminal",
+in the sense that no other goals depend on it
+(except possibly through shared metavariables; see `independent_goal`).
+-/
 meta def terminal_goal : tactic unit :=
--- We can't merely test for subsingletons, as sometimes in the presence of metavariables
--- `propositional_goal` succeeds while `subsingleton_goal` does not.
 propositional_goal <|> subsingleton_goal <|>
 do g₀ :: _ ← get_goals,
    mvars ← (λ L, list.erase L g₀) <$> metavariables,
@@ -560,6 +564,12 @@ do g₀ :: _ ← get_goals,
      monad.whenb d $
        pp t >>= λ s, fail ("The current goal is not terminal: " ++ s.to_string ++ " depends on it.")
 
+/--
+Succeeds only if the current goal is "independent", in the sense
+that no other goals depend on it, even through shared meta-variables.
+-/
+meta def independent_goal : tactic unit :=
+no_mvars_in_target >> terminal_goal
 
 meta def triv' : tactic unit := do c ← mk_const `trivial, exact c reducible
 

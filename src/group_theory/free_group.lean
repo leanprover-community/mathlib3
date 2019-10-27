@@ -136,7 +136,7 @@ match b, c, red.step.diamond hab hac rfl with
 | b, c, or.inr ⟨d, hbd, hcd⟩ := ⟨d, hcd.to_red, refl_gen.single hbd⟩
 end
 
-lemma cons_cons {p : α × bool} : (red ⟹ red).diag (list.cons p) :=
+lemma cons_cons {p : α × bool} : (red ⇒ red).diag (list.cons p) :=
 refl_trans_gen_lift (list.cons p) (assume a b, step.cons)
 
 lemma cons_cons_iff (p) : red (p :: L₁) (p :: L₂) ↔ red L₁ L₂ :=
@@ -201,7 +201,7 @@ iff.intro
   (assume h,
     have h₁ : red ((x, bnot b) :: (x, b) :: L) [(x, bnot b)], from cons_cons h,
     have h₂ : red ((x, bnot b) :: (x, b) :: L) L, from refl_trans_gen.single step.cons_bnot_rev,
-    let ⟨L', h₁', h₂'⟩ := church_rosser _ _ ⟨_, h₂, h₁⟩ in
+    let ⟨L', h₁', h₂'⟩ := church_rosser ⟨_, h₂, h₁⟩ in
     by rw [singleton_iff] at h₂'; subst L'; assumption)
   (assume h, (cons_cons h).tail step.cons_bnot)
 
@@ -235,7 +235,7 @@ begin
     { exact cons_cons h₁ },
     have h₂ : red ((x1, bnot b1) :: (x1, b1) :: L₃) L₃,
     { exact step.cons_bnot_rev.to_red },
-    rcases church_rosser _ _ ⟨_, h₂, h₁⟩ with ⟨L', h₁, h₂⟩,
+    rcases church_rosser ⟨_, h₂, h₁⟩ with ⟨L', h₁, h₂⟩,
     rw [red_iff_irreducible H1] at h₂,
     rwa [h₂] at h₁ }
 end
@@ -289,7 +289,7 @@ end red
 theorem equivalence_join_red : equivalence (join (@red α)) :=
 equivalence_join_refl_trans_gen $ assume b c ⟨a, hac, hab⟩,
 (match b, c, red.step.diamond hab hac rfl with
-| b, _, or.inl rfl           := ⟨b, by unfold rel.conv flip; refl, by refl⟩
+| b, _, or.inl rfl           := ⟨b, by unfold rel.flip flip; refl, by refl⟩
 | b, c, or.inr ⟨d, hbd, hcd⟩ := ⟨d, refl_trans_gen.single hcd, refl_gen.single hbd⟩
 end)
 
@@ -301,8 +301,8 @@ iff.intro
   (assume h,
     have eqv_gen (join red) L₁ L₂ := eqv_gen_mono (assume a b, join_red_of_step) L₁ L₂ h,
     (eqv_gen_iff_of_equivalence $ equivalence_join_red).1 this)
-  (join_of_equivalence (eqv_gen.is_equivalence _)
-    (refl_trans_gen_of_equivalence (eqv_gen.is_equivalence _) eqv_gen.rel) L₁ L₂)
+  (λ h, join_of_equivalence (eqv_gen.is_equivalence _)
+    (refl_trans_gen_of_equivalence (eqv_gen.is_equivalence _) eqv_gen.rel) h)
 
 end free_group
 
@@ -363,7 +363,7 @@ calc (mk L₁ = mk L₂) ↔ eqv_gen red.step L₁ L₂ : iff.intro (quot.exact 
 /-- The canonical injection from the type to the free group is an injection. -/
 theorem of.inj {x y : α} (H : of x = of y) : x = y :=
 let ⟨L₁, hx, hy⟩ := red.exact.1 H in
-by simp [red.singleton_iff, rel.conv_def] at hx hy; cc
+by simp [red.singleton_iff, rel.flip_def] at hx hy; cc
 
 section to_group
 
@@ -729,13 +729,13 @@ theorem reduce.idem : reduce (reduce L) = reduce L :=
 eq.symm $ reduce.min reduce.red
 
 theorem reduce.step.eq (H : red.step L₁ L₂) : reduce L₁ = reduce L₂ :=
-let ⟨L₃, HR23, HR13⟩ := red.church_rosser _ _ ⟨_, reduce.red.head H, reduce.red⟩ in
+let ⟨L₃, HR23, HR13⟩ := red.church_rosser ⟨_, reduce.red.head H, reduce.red⟩ in
 (reduce.min HR13).trans (reduce.min HR23).symm
 
 /-- If a word reduces to another word, then they have
 a common maximal reduction. -/
 theorem reduce.eq_of_red (H : red L₁ L₂) : reduce L₁ = reduce L₂ :=
-let ⟨L₃, HR23, HR13⟩ := red.church_rosser _ _ ⟨_, red.trans H reduce.red, reduce.red⟩ in
+let ⟨L₃, HR23, HR13⟩ := red.church_rosser ⟨_, red.trans H reduce.red, reduce.red⟩ in
 (reduce.min HR13).trans (reduce.min HR23).symm
 
 /-- If two words correspond to the same element in

@@ -133,19 +133,19 @@ begin
 end
 
 theorem tendsto_iff_rtendsto (l₁ : filter α) (l₂ : filter β) (f : α → β) :
-  tendsto f l₁ l₂ ↔ rtendsto (function.graph' f) l₁ l₂ :=
-by { simp [tendsto_def, function.graph', rtendsto_def, rel.core, set.preimage] }
+  tendsto f l₁ l₂ ↔ rtendsto (function.to_rel f) l₁ l₂ :=
+by { simp [tendsto_def, function.to_rel, rtendsto_def, rel.core, set.preimage] }
 
 theorem tendsto_iff_rtendsto' (l₁ : filter α) (l₂ : filter β) (f : α → β) :
-  tendsto f l₁ l₂ ↔ rtendsto' (function.graph' f) l₁ l₂ :=
-by { simp [tendsto_def, function.graph', rtendsto'_def, rel.preimage_def, set.preimage] }
+  tendsto f l₁ l₂ ↔ rtendsto' (function.to_rel f) l₁ l₂ :=
+by { simp [tendsto_def, function.to_rel, rtendsto'_def, rel.preimage_def, set.preimage] }
 
 /-
 Partial functions.
 -/
 
 def pmap (f : α →. β) (l : filter α) : filter β :=
-filter.rmap f.graph' l
+filter.rmap f.to_rel l
 
 @[simp]
 lemma mem_pmap (f : α →. β) (l : filter α) (s : set β) : s ∈ l.pmap f ↔ f.core s ∈ l :=
@@ -158,7 +158,7 @@ theorem ptendsto_def (f : α →. β) (l₁ : filter α) (l₂ : filter β) :
 iff.refl _
 
 theorem ptendsto_iff_rtendsto (l₁ : filter α) (l₂ : filter β) (f : α →. β) :
-  ptendsto f l₁ l₂ ↔ rtendsto f.graph' l₁ l₂ :=
+  ptendsto f l₁ l₂ ↔ rtendsto f.to_rel l₁ l₂ :=
 iff.refl _
 
 theorem pmap_res (l : filter α) (s : set α) (f : α → β) :
@@ -182,9 +182,9 @@ theorem tendsto_iff_ptendsto_univ (l₁ : filter α) (l₂ : filter β) (f : α 
 by { rw ← tendsto_iff_ptendsto, simp [principal_univ] }
 
 def pcomap' (f : α →. β) (l : filter β) : filter α :=
-filter.rcomap' f.graph' l
+filter.rcomap' f.to_rel l
 
-def ptendsto' (f : α →. β) (l₁ : filter α) (l₂ : filter β) := l₁ ≤ l₂.rcomap' f.graph'
+def ptendsto' (f : α →. β) (l₁ : filter α) (l₂ : filter β) := l₁ ≤ l₂.rcomap' f.to_rel
 
 theorem ptendsto'_def (f : α →. β) (l₁ : filter α) (l₂ : filter β) :
   ptendsto' f l₁ l₂ ↔ ∀ s ∈ l₂, f.preimage s ∈ l₁ :=

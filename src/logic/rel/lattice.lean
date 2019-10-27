@@ -13,24 +13,28 @@ or in the proof.
 -/
 universes u v w x
 
-attribute [derive lattice.complete_lattice] rel
+/-- Relations `rel α β` form a complete lattice. -/
+instance rel.lattice.complete_lattice (α : Type u) (β : Type v) :
+  lattice.complete_lattice (rel α β) :=
+{ le := λ r r', ∀ ⦃x y⦄, r x y → r' x y,
+  .. (show lattice.complete_lattice (α → β → Prop), by apply_instance) }
 
 namespace rel
 
 variables {α : Type u} {β : Type v} {γ : Type w} {δ : Type x} {r : rel α β}
 
-lemma lift_fun_mono : ((≥) ⟹ (≤) ⟹ (≤)).diag (@lift_fun α β γ δ) :=
+lemma lift_fun_mono : ((≥) ⇒ (≤) ⇒ (≤)).diag (@lift_fun α β γ δ) :=
 assume rac₁ rac₂ hac rbd₁ rbd₂ hbd f g hfg x y hxy,
-hbd _ _ $ hfg $ hac _ _ hxy
+hbd $ hfg $ hac hxy
 
 lemma lift_fun_mono_right (r : rel α γ) : monotone (@lift_fun α β γ δ r) :=
 lift_fun_mono (le_refl r)
 
-lemma lift_fun_mono_left (r : rel β δ) : ((≥) ⟹ (≤)).diag (λ r', @lift_fun α β γ δ r' r) :=
+lemma lift_fun_mono_left (r : rel β δ) : ((≥) ⇒ (≤)).diag (λ r', @lift_fun α β γ δ r' r) :=
 assume rac₁ rac₂ hac, lift_fun_mono hac (le_refl r)
 
 lemma inf_rel_rel (rac : rel α γ) (rbd₁ rbd₂ : rel β δ) :
-  (rac ⟹ rbd₁) ⊓ (rac ⟹ rbd₂) = (rac ⟹ (rbd₁ ⊓ rbd₂)) :=
+  (rac ⇒ rbd₁) ⊓ (rac ⇒ rbd₂) = (rac ⇒ (rbd₁ ⊓ rbd₂)) :=
 le_antisymm
   (λ f g ⟨h₁, h₂⟩ x z hxz, ⟨h₁ hxz, h₂ hxz⟩)
   (monotone.map_inf rac.lift_fun_mono_right rbd₁ rbd₂)
@@ -38,26 +42,26 @@ le_antisymm
 lemma inf_le_ge [partial_order α] : ((≤) ⊓ (≥)) = rel.id α :=
 ext $ λ x y, le_antisymm_iff.symm
 
-lemma inf_rel_le_ge [partial_order β] : (r ⟹ ((≤) : rel β β)) ⊓ (r ⟹ (≥)) = (r ⟹ (rel.id β)) :=
+lemma inf_rel_le_ge [partial_order β] : (r ⇒ ((≤) : rel β β)) ⊓ (r ⇒ (≥)) = (r ⇒ (rel.id β)) :=
 by rw [inf_rel_rel r (≤) (≥), inf_le_ge]
 
 lemma bi_total.rel_forall (hr : r.bi_total) :
-  ((r ⟹ (↔)) ⟹ (↔)) (λp, ∀ i, p i) (λq, ∀j, q j) :=
+  ((r ⇒ (↔)) ⇒ (↔)) (λp, ∀ i, p i) (λq, ∀j, q j) :=
 assume p q Hrel,
-⟨hr.2.rel_forall $ lift_fun_mono_right r @iff.mp _ _ Hrel,
-  hr.1.rel_forall $ lift_fun_mono_right r @iff.mpr _ _ Hrel⟩
+⟨hr.2.rel_forall $ lift_fun_mono_right r @iff.mp Hrel,
+  hr.1.rel_forall $ lift_fun_mono_right r @iff.mpr Hrel⟩
 
 lemma bi_total.rel_exists (hr : r.bi_total) :
-  ((r ⟹ (↔)) ⟹ (↔)) (λp, ∃ i, p i) (λq, ∃j, q j) :=
+  ((r ⇒ (↔)) ⇒ (↔)) (λp, ∃ i, p i) (λq, ∃j, q j) :=
 assume p q Hrel,
-⟨hr.1.rel_exists $ lift_fun_mono_right r @iff.mp _ _ Hrel,
-  hr.2.rel_exists $ lift_fun_mono_right r @iff.mpr _ _ Hrel⟩
+⟨hr.1.rel_exists $ lift_fun_mono_right r @iff.mp Hrel,
+  hr.2.rel_exists $ lift_fun_mono_right r @iff.mpr Hrel⟩
 
 variable (r)
 
 lemma image_mono : monotone r.image := assume s t h y ⟨x, xs, rxy⟩, ⟨x, h xs, rxy⟩
 
-lemma image_subset : ((⊆) ⟹ (⊆)).diag r.image := r.image_mono
+lemma image_subset : ((⊆) ⇒ (⊆)).diag r.image := r.image_mono
 
 lemma image_inter (s t : set α) : r.image (s ∩ t) ⊆ r.image s ∩ r.image t :=
 r.image_mono.map_inf s t
@@ -70,13 +74,13 @@ le_antisymm
 lemma image_subset_range (s : set α) : r.image s ⊆ r.range :=
 r.image_univ ▸ r.image_subset s.subset_univ
 
-lemma preimage_mono : monotone r.preimage := r.conv.image_mono
+lemma preimage_mono : monotone r.preimage := r.flip.image_mono
 
-lemma preimage_subset : ((⊆) ⟹ (⊆)).diag r.preimage :=
-r.conv.image_subset
+lemma preimage_subset : ((⊆) ⇒ (⊆)).diag r.preimage :=
+r.flip.image_subset
 
 lemma preimage_inter (s t : set β) : r.preimage (s ∩ t) ⊆ r.preimage s ∩ r.preimage t :=
-r.conv.image_inter s t
+r.flip.image_inter s t
 
 lemma preimage_union (s t : set β) : r.preimage (s ∪ t) = r.preimage s ∪ r.preimage t :=
 image_union _ s t
@@ -113,7 +117,7 @@ variables (h : right_unique r) (s t : set β)
 include h
 
 lemma preimage_inter : r.preimage (s ∩ t) = r.preimage s ∩ r.preimage t :=
-h.conv.image_inter s t
+h.flip.image_inter s t
 
 theorem preimage_subset_core : r.preimage s ⊆ r.core s :=
 assume x ⟨y, hy, hxy⟩ y' hxy', set.mem_of_eq_of_mem (h hxy hxy').symm hy

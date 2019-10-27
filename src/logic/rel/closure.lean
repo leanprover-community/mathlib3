@@ -217,7 +217,7 @@ begin
 end
 
 lemma refl_trans_gen_lift {p : rel β β} (f : α → β)
-  (h : (r ⟹ p).diag f) : ((refl_trans_gen r) ⟹  (refl_trans_gen p)).diag f :=
+  (h : (r ⇒ p).diag f) : ((refl_trans_gen r) ⇒  (refl_trans_gen p)).diag f :=
 assume a b hab,
 hab.trans_induction_on
   (assume a, refl)
@@ -246,7 +246,7 @@ lemma refl_trans_gen_idem :
 refl_trans_gen_eq_self reflexive_refl_trans_gen transitive_refl_trans_gen
 
 lemma refl_trans_gen_lift' {p : rel β β} (f : α → β)
-  (h : (r ⟹ (refl_trans_gen p)).diag f) : ((refl_trans_gen r) ⟹ (refl_trans_gen p)).diag f :=
+  (h : (r ⇒ (refl_trans_gen p)).diag f) : ((refl_trans_gen r) ⇒ (refl_trans_gen p)).diag f :=
 λ a b hab, by simpa [refl_trans_gen_idem] using refl_trans_gen_lift f h hab
 
 lemma refl_trans_gen_closed {p : rel α α} :
@@ -257,14 +257,14 @@ end refl_trans_gen
 
 /-- Two elements `x, y` are related by `r.join`, if there exists an element `z` such that
 both `x` and `y` are related to `z` by `r`. -/
-def join (r : rel α β) : rel α α := r.conv.comp r
+def join (r : rel α β) : rel α α := r.flip.comp r
 
 section join
 open refl_trans_gen refl_gen
 
 lemma church_rosser
-  (h : r.conv.join ≤ rel.comp (rel.conv $ refl_trans_gen r) (refl_gen r)) :
-  (rel.conv (refl_trans_gen r)).join ≤ join (refl_trans_gen r) :=
+  (h : r.flip.join ≤ rel.comp (rel.flip $ refl_trans_gen r) (refl_gen r)) :
+  (rel.flip (refl_trans_gen r)).join ≤ join (refl_trans_gen r) :=
 begin
   rintros b c ⟨a, hac, hab⟩,
   induction hab,
@@ -279,7 +279,7 @@ begin
         rcases ih with ⟨a, hea, hfa⟩,
         cases hfa with _ hfa,
         { exact ⟨b, hea.tail hfb, refl_gen.refl⟩ },
-        { rcases h _ _ ⟨_, hfa, hfb⟩ with ⟨c, hac, hbc⟩,
+        { rcases h ⟨_, hfa, hfb⟩ with ⟨c, hac, hbc⟩,
           exact ⟨c, hea.trans hac, hbc⟩ } } },
     rcases this with ⟨a, hea, hba⟩, cases hba with _ hba,
     { exact ⟨b, hcb, hea⟩ },
@@ -295,24 +295,24 @@ assume a b ⟨c, hbc, hac⟩, ⟨c, hac, hbc⟩
 lemma reflexive_join (h : reflexive r) : reflexive (join r) :=
 assume a, ⟨a, h a, h a⟩
 
-lemma transitive_join (ht : transitive r) (h : r.conv.join ≤ r.join) :
+lemma transitive_join (ht : transitive r) (h : r.flip.join ≤ r.join) :
   transitive (join r) :=
 assume a b c ⟨x, hbx, hax⟩ ⟨y, hcy, hby⟩,
-let ⟨z, hyz, hxz⟩ := h x y ⟨b, hby, hbx⟩ in
+let ⟨z, hyz, hxz⟩ := h ⟨b, hby, hbx⟩ in
 ⟨z, ht hcy hyz, ht hax hxz⟩
 
-lemma equivalence_join (hr : reflexive r)  (ht : transitive r) (h : r.conv.join ≤ r.join) :
+lemma equivalence_join (hr : reflexive r)  (ht : transitive r) (h : r.flip.join ≤ r.join) :
   equivalence (join r) :=
 ⟨reflexive_join hr, symmetric_join, transitive_join ht h⟩
 
 lemma equivalence_join_refl_trans_gen
-  (h : r.conv.join ≤ rel.comp (rel.conv $ refl_trans_gen r) (refl_gen r)) :
+  (h : r.flip.join ≤ rel.comp (rel.flip $ refl_trans_gen r) (refl_gen r)) :
   equivalence (join (refl_trans_gen r)) :=
 equivalence_join reflexive_refl_trans_gen transitive_refl_trans_gen (church_rosser h)
 
 lemma join_of_transitive_symmetric {r' : rel α α} (ht : transitive r) (hs : symmetric r) :
   r' ≤ r → join r' ≤ r :=
-assume h a b ⟨c, hbc, hac⟩, ht (h _ _ hac) (hs $ h _ _ hbc)
+assume h a b ⟨c, hbc, hac⟩, ht (h hac) (hs $ h hbc)
 
 lemma join_of_equivalence {r' : rel α α} (hr : equivalence r) : r' ≤ r → join r' ≤ r :=
 join_of_transitive_symmetric hr.2.2 hr.2.1
@@ -323,7 +323,7 @@ begin
   intros h a b h',
   induction h' with b c hab hbc ih,
   { exact hr _ },
-  { exact ht ih (h _ _ hbc) }
+  { exact ht ih (h hbc) }
 end
 
 lemma refl_trans_gen_of_equivalence {r' : rel α α} (hr : equivalence r) :

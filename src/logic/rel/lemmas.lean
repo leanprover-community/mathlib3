@@ -19,26 +19,26 @@ namespace function
 
 variable (α)
 
-lemma graph'_id : function.graph' (@id α) = rel.id α := rfl
+lemma to_rel_id : function.to_rel (@id α) = rel.id α := rfl
 
 variables {α} (g : β → γ) (f : α → β)
 
-lemma graph'_right_unique : (function.graph' f).right_unique :=
+lemma to_rel_right_unique : (function.to_rel f).right_unique :=
 λ x y₁ y₂ h₁ h₂, h₁.symm.trans h₂
 
-lemma graph'_left_total : (function.graph' f).left_total :=
+lemma to_rel_left_total : (function.to_rel f).left_total :=
 λ x, ⟨f x, rfl⟩
 
-lemma graph'_comp (g : β → γ) (f : α → β) :
-  function.graph' (g ∘ f) = rel.comp (function.graph' g) (function.graph' f) :=
+lemma to_rel_comp (g : β → γ) (f : α → β) :
+  function.to_rel (g ∘ f) = rel.comp (function.to_rel g) (function.to_rel f) :=
 by ext x z; symmetry; apply exists_eq_right'
 
-theorem graph'_mk (f : α → β) (x : α) : graph' f x (f x) := eq.refl (f x)
+theorem to_rel_mk (f : α → β) (x : α) : to_rel f x (f x) := eq.refl (f x)
 
-theorem graph'_inj : function.injective $ @function.graph' α β :=
+theorem to_rel_inj : function.injective $ @function.to_rel α β :=
 assume f g h, funext $ assume x,
-show graph' f x (g x),
-from h.symm ▸ graph'_mk g x
+show to_rel f x (g x),
+from h.symm ▸ to_rel_mk g x
 
 lemma graph_def (f : α → β) : function.graph f = { x : α × β | f x.1 = x.2 } := rfl
 
@@ -46,15 +46,15 @@ lemma mem_graph {f : α → β} {x y} : (x, y) ∈ function.graph f ↔ f x = y 
 
 variable {f}
 
-lemma injective.graph'_left_unique (h : injective f) : (graph' f).left_unique :=
+lemma injective.to_rel_left_unique (h : injective f) : (to_rel f).left_unique :=
 λ x₁ x₂ y h₁ h₂, h (eq.trans h₁ h₂.symm)
 
-lemma graph'_left_unique_iff_injective : (graph' f).left_unique ↔ injective f :=
-⟨λ h x₁ x₂ hx, h hx rfl, injective.graph'_left_unique⟩
+lemma to_rel_left_unique_iff_injective : (to_rel f).left_unique ↔ injective f :=
+⟨λ h x₁ x₂ hx, h hx rfl, injective.to_rel_left_unique⟩
 
-lemma surjective.graph'_right_total (h : surjective f) : (graph' f).right_total := h
+lemma surjective.to_rel_right_total (h : surjective f) : (to_rel f).right_total := h
 
-lemma graph'_right_total_iff_surjective : (graph' f).right_total ↔ surjective f := iff.rfl
+lemma to_rel_right_total_iff_surjective : (to_rel f).right_total ↔ surjective f := iff.rfl
 
 end function
 
@@ -66,12 +66,12 @@ lemma ext {r r' : rel α β} (h : ∀ x y, r x y ↔ r' x y) : r = r' := by ext;
 
 variables (r : rel α β) (rcd : rel γ δ) {rbc : rel β γ} {rab : rel α β}
 
-lemma conv_def (x : α) (y : β) : r.conv y x ↔ r x y := iff.rfl
+lemma flip_def (x : α) (y : β) : r.flip y x ↔ r x y := iff.rfl
 
-@[simp] lemma conv_conv : r.conv.conv = r := rfl
+@[simp] lemma flip_flip : r.flip.flip = r := rfl
 
-lemma conv_inj : function.injective (@rel.conv α β) :=
-λ r r' h, congr_arg rel.conv h
+lemma flip_inj : function.injective (@rel.flip α β) :=
+λ r r' h, congr_arg rel.flip h
 
 local infixr ` ∘r `:80 := rel.comp
 
@@ -99,14 +99,14 @@ iff_eq_id.symm ▸ comp_id r
 @[simp] lemma iff_comp (r : rel α Prop) : (↔) ∘r r = r :=
 iff_eq_id.symm ▸ id_comp r
 
-@[simp] lemma conv_id : (rel.id α).conv = rel.id α :=
+@[simp] lemma flip_id : (rel.id α).flip = rel.id α :=
 by { ext x y, apply eq_comm }
 
-@[simp] lemma conv_comp (r : rel β γ) (s : rel α β) :
-  (r ∘r s).conv = s.conv ∘r r.conv :=
-by { ext x z, simp only [comp, conv_def, and.comm] }
+@[simp] lemma flip_comp (r : rel β γ) (s : rel α β) :
+  (r ∘r s).flip = s.flip ∘r r.flip :=
+by { ext x z, simp only [comp, flip_def, and.comm] }
 
-lemma diag_conv (r : rel α α) : r.conv.diag = r.diag := rfl
+lemma diag_flip (r : rel α α) : r.flip.diag = r.diag := rfl
 
 lemma mem_graph {x : α × β} : x ∈ r.graph ↔ r x.fst x.snd := iff.rfl
 
@@ -116,9 +116,9 @@ lemma graph_of_graph (s : set (α × β)) : (of_graph s).graph = s := function.u
 
 lemma of_graph_graph : of_graph r.graph = r := function.curry_uncurry' r
 
-lemma range_conv : r.conv.range = r.dom := rfl
+lemma range_flip : r.flip.range = r.dom := rfl
 
-lemma dom_conv : r.conv.dom = r.range := rfl
+lemma dom_flip : r.flip.dom = r.range := rfl
 
 lemma image_def (s : set α) : image r s = {y | ∃ x ∈ s, r x y} := rfl
 
@@ -149,16 +149,16 @@ lemma preimage_def (s : set β) : preimage r s = {x | ∃ y ∈ s, r x y} :=
 rfl
 
 lemma preimage_singleton (y : β) : r.preimage {y} = set_of (flip r y) :=
-r.conv.image_singleton y
+r.flip.image_singleton y
 
 lemma preimage_id (s : set α) : (rel.id α).preimage s = s :=
-by simp only [preimage, conv_id, image_id]
+by simp only [preimage, flip_id, image_id]
 
 lemma preimage_comp (s : set γ) : (rbc ∘r rab).preimage s = rab.preimage (rbc.preimage s) :=
-by simp only [preimage, conv_comp, image_comp]
+by simp only [preimage, flip_comp, image_comp]
 
 lemma preimage_univ : r.preimage set.univ = r.dom :=
-r.conv.image_univ
+r.flip.image_univ
 
 lemma mem_core (x : α) (s : set β) : x ∈ core r s ↔ ∀ y, r x y → y ∈ s :=
 iff.rfl
@@ -188,28 +188,28 @@ iff.intro
 
 variables (rac : rel α γ) (rbd : rel β δ)
 
-lemma conv_rel : (rac ⟹ rbd).conv = (rac.conv ⟹ rbd.conv) :=
+lemma flip_rel : (rac ⇒ rbd).flip = (rac.flip ⇒ rbd.flip) :=
 rel.ext $ λ f g, ⟨λ hfg y x hxy, hfg hxy, λ hfg x y hxy, hfg hxy⟩
 
-lemma rel_id : (rac ⟹ rac) id id := λ x y, id
+lemma rel_id : (rac ⇒ rac) id id := λ x y, id
 
-lemma rel_imp : ((↔) ⟹ ((↔)  ⟹ (↔))).diag implies :=
+lemma rel_imp : ((↔) ⇒ ((↔)  ⇒ (↔))).diag implies :=
 assume p q h r s l, imp_congr h l
 
-lemma rel_not : ((↔) ⟹ (↔)).diag not :=
+lemma rel_not : ((↔) ⇒ (↔)).diag not :=
 assume p q h, not_congr h
 
-lemma rel_and : ((↔) ⟹ (↔) ⟹ (↔)).diag (∧) :=
+lemma rel_and : ((↔) ⇒ (↔) ⇒ (↔)).diag (∧) :=
 assume a b h₁ c d h₂, and_congr h₁ h₂
 
-lemma rel_or : ((↔) ⟹ (↔) ⟹ (↔)).diag (∨) :=
+lemma rel_or : ((↔) ⇒ (↔) ⇒ (↔)).diag (∨) :=
 assume a b h₁ c d h₂, or_congr h₁ h₂
 
-lemma rel_iff : ((↔) ⟹ (↔) ⟹ (↔)).diag (↔) :=
+lemma rel_iff : ((↔) ⇒ (↔) ⇒ (↔)).diag (↔) :=
 assume a b h₁ c d h₂, iff_congr h₁ h₂
 
 lemma rel_comp {α α' β β' γ γ' : Type*} {ra : rel α α'} {rb : rel β β'} {rc : rel γ γ'} :
-  ((rb ⟹ rc) ⟹ (ra ⟹ rb) ⟹ (ra ⟹ rc)) (@function.comp α β γ) (@function.comp α' β' γ') :=
+  ((rb ⇒ rc) ⇒ (ra ⇒ rb) ⇒ (ra ⇒ rc)) (@function.comp α β γ) (@function.comp α' β' γ') :=
 assume g₁ g₂ hg f₁ f₂ hf x₁ x₂ hx, hg (hf hx)
 
 variables {r}
@@ -226,13 +226,13 @@ lemma bi_unique_id : bi_unique (rel.id α) := ⟨left_unique_id α, right_unique
 
 variable {α}
 
-lemma left_total.conv (h : r.left_total) : r.conv.right_total := h
-lemma right_total.conv (h : r.right_total) : r.conv.left_total := h
-lemma bi_total.conv (h : r.bi_total) : r.conv.bi_total := and.symm h
+lemma left_total.flip (h : r.left_total) : r.flip.right_total := h
+lemma right_total.flip (h : r.right_total) : r.flip.left_total := h
+lemma bi_total.flip (h : r.bi_total) : r.flip.bi_total := and.symm h
 
-lemma left_unique.conv (h : r.left_unique) : r.conv.right_unique := λ a b c hab, h hab
-lemma right_unique.conv (h : r.right_unique) : r.conv.left_unique := λ a b c hab, h hab
-lemma bi_unique.conv (h : r.bi_unique) : r.conv.bi_unique := ⟨h.2.conv, h.1.conv⟩
+lemma left_unique.flip (h : r.left_unique) : r.flip.right_unique := λ a b c hab, h hab
+lemma right_unique.flip (h : r.right_unique) : r.flip.left_unique := λ a b c hab, h hab
+lemma bi_unique.flip (h : r.bi_unique) : r.flip.bi_unique := ⟨h.2.flip, h.1.flip⟩
 
 variables {rbc rab}
 
@@ -247,7 +247,7 @@ end
 
 lemma right_total.comp (hbc : rbc.right_total) (hab : rab.right_total) :
   (rbc.comp rab).right_total :=
-by simpa only [conv_comp, conv_conv] using (hab.conv.comp hbc.conv).conv
+by simpa only [flip_comp, flip_flip] using (hab.flip.comp hbc.flip).flip
 
 lemma bi_total.comp (hbc : rbc.bi_total) (hab : rab.bi_total) : (rbc.comp rab).bi_total :=
 ⟨hbc.1.comp hab.1, hbc.2.comp hab.2⟩
@@ -263,37 +263,37 @@ end
 
 lemma right_unique.comp (hbc : rbc.right_unique) (hab : rab.right_unique) :
   (rbc.comp rab).right_unique :=
-by simpa only [conv_comp, conv_conv] using (hab.conv.comp hbc.conv).conv
+by simpa only [flip_comp, flip_flip] using (hab.flip.comp hbc.flip).flip
 
 lemma bi_unique.comp (hbc : rbc.bi_unique) (hab : rab.bi_unique) : (rbc.comp rab).bi_unique :=
 ⟨hbc.1.comp hab.1, hbc.2.comp hab.2⟩
 
-lemma bi_unique.rel_eq (hr : r.bi_unique) : (r ⟹ r ⟹ (↔)) (=) (=) :=
+lemma bi_unique.rel_eq (hr : r.bi_unique) : (r ⇒ r ⇒ (↔)) (=) (=) :=
 assume x y h₁ x' y' h₂,
 iff.intro
   begin intro h, subst h, exact hr.right h₁ h₂ end
   begin intro h, subst h, exact hr.left h₁ h₂ end
 
 lemma left_total.rel_forall (hr : r.left_total) :
-  ((r ⟹ (rel.conv implies)) ⟹ (rel.conv implies)) (λp, ∀i, p i) (λq, ∀i, q i) :=
+  ((r ⇒ (rel.flip implies)) ⇒ (rel.flip implies)) (λp, ∀i, p i) (λq, ∀i, q i) :=
 assume p q Hrel H a, let ⟨b, Rab⟩ := hr a in Hrel Rab (H b)
 
 lemma right_total.rel_forall (hr : r.right_total) :
-  ((r ⟹ implies) ⟹ implies) (λp, ∀i, p i) (λq, ∀i, q i) :=
+  ((r ⇒ implies) ⇒ implies) (λp, ∀i, p i) (λq, ∀i, q i) :=
 assume p q Hrel H b, let ⟨a, Rab⟩ := hr b in Hrel Rab (H a)
 
 lemma left_total.rel_exists (hr : r.left_total) :
-  ((r ⟹ implies) ⟹ implies) (λp, ∃i, p i) (λq, ∃i, q i) :=
+  ((r ⇒ implies) ⇒ implies) (λp, ∃i, p i) (λq, ∃i, q i) :=
 assume p q Hrel ⟨a, pa⟩, let ⟨b, hab⟩ := hr a in ⟨b, Hrel hab pa⟩
 
 lemma right_total.rel_exists (hr : r.right_total) :
-  ((r ⟹ (rel.conv implies)) ⟹ (rel.conv implies)) (λp, ∃i, p i) (λq, ∃i, q i) :=
+  ((r ⇒ (rel.flip implies)) ⇒ (rel.flip implies)) (λp, ∃i, p i) (λq, ∃i, q i) :=
 assume p q Hrel ⟨b, qb⟩, let ⟨a, hab⟩ := hr b in ⟨a, Hrel hab qb⟩
 
-lemma left_unique_of_rel_eq {eq' : rel β β} (h : (r ⟹ r ⟹ iff) eq eq') : left_unique r :=
+lemma left_unique_of_rel_eq {eq' : rel β β} (h : (r ⇒ r ⇒ iff) eq eq') : left_unique r :=
 assume x₁ x₂ y h₁ h₂, (h h₁ h₂).mpr $ (h h₁ h₁).mp rfl
 
-lemma right_unique_of_rel_eq {eq' : rel α α} (h : (r ⟹ r ⟹ iff) eq' eq) : right_unique r :=
+lemma right_unique_of_rel_eq {eq' : rel α α} (h : (r ⇒ r ⇒ iff) eq' eq) : right_unique r :=
 assume x y₁ y₂ h₁ h₂, (h h₁ h₂).mp $ (h h₁ h₁).mpr rfl
 
 lemma comap₂_def (f : α → β) (g : γ → δ) (r : rel β δ) (x y) :
@@ -318,8 +318,8 @@ lemma map₂_def (f : α → β) (g : γ → δ) (r : rel α γ) (x y) :
 lemma map₂_map₂ {α₁ α₂ α₃ β₁ β₂ β₃ : Type*}
   (f₂ : α₂ → α₃) (f₁ : α₁ → α₂) (g₂ : β₂ → β₃) (g₁ : β₁ → β₂) (r : rel α₁ β₁) :
   (r.map₂ f₁ g₁).map₂ f₂ g₂ = r.map₂ (f₂ ∘ f₁) (g₂ ∘ g₁) :=
-by simp only [map₂, function.graph'_comp g₂ g₁, function.graph'_comp f₂ f₁,
-              conv_comp, rel.comp_assoc]
+by simp only [map₂, function.to_rel_comp g₂ g₁, function.to_rel_comp f₂ f₁,
+              flip_comp, rel.comp_assoc]
 
 lemma map_def (f : α → β) (r : rel α α) (x y : β) :
   r.map f x y ↔ ∃ a b, f a = x ∧ f b = y ∧ r a b :=

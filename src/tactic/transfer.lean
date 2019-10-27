@@ -17,11 +17,11 @@ namespace transfer
 where `u` is a list of universe parameters, `x` is a list of dependent variables, and `R` is a
 relation.  Then this rule will translate `t₁` (depending on `u` and `x`) into `t₂`.  `u` and `x`
 will be called parameters. When `R` is a relation on functions lifted from `S` and `R` the variables
-bound by `S` are called arguments. `R` is generally constructed using `⟹` (i.e. `rel.lift_fun`).
+bound by `S` are called arguments. `R` is generally constructed using `⇒` (i.e. `rel.lift_fun`).
 
 As example:
 
-  rel_eq : (R ⟹ R ⟹ iff) eq t
+  rel_eq : (R ⇒ R ⇒ iff) eq t
 
 transfer will match this rule when it sees:
 

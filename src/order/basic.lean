@@ -108,7 +108,7 @@ variables [preorder α] [preorder β] [preorder γ] [preorder δ] [preorder ε]
 
 /-- A function between preorders is monotone if
   `a ≤ b` implies `f a ≤ f b`. -/
-def monotone (f : α → β) := ((≤) ⟹ (≤)).diag f
+def monotone (f : α → β) := ((≤) ⇒ (≤)).diag f
 
 theorem monotone_id : @monotone α α _ _ id := assume x y h, h
 
@@ -119,12 +119,12 @@ protected theorem monotone.comp {g : β → γ} {f : α → β} (m_g : monotone 
 assume a b h, m_g (m_f h)
 
 theorem monotone_bicompl {f : γ → δ → ε} {g : α → γ} {h : β → δ}
-  (m_f : ((≤) ⟹ (≤) ⟹ (≤)).diag f) (m_g : monotone g) (m_h : monotone h) :
-  ((≤) ⟹ (≤) ⟹ (≤)).diag (function.bicompl f g h) :=
+  (m_f : ((≤) ⇒ (≤) ⇒ (≤)).diag f) (m_g : monotone g) (m_h : monotone h) :
+  ((≤) ⇒ (≤) ⇒ (≤)).diag (function.bicompl f g h) :=
 assume x₁ x₂ hx y₁ y₂ hy, m_f (m_g hx) (m_h hy)
 
 theorem monotone_bicompl_diag {f : β → γ → δ} {g : α → β} {h : α → γ}
-  (m_f : ((≤) ⟹ (≤) ⟹ (≤)).diag f) (m_g : monotone g) (m_h : monotone h) :
+  (m_f : ((≤) ⇒ (≤) ⇒ (≤)).diag f) (m_g : monotone g) (m_h : monotone h) :
   monotone (λ x, f (g x) (h x)) :=
 assume x₁ x₂ hx, m_f (m_g hx) (m_h hx)
 

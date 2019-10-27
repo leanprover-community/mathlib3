@@ -9,7 +9,7 @@ import logic.rel.defs
 
 universes u v w
 
-variables {α : Type u} {β : Type v} {γ : Type w}
+variables {α : Sort u} {β : Sort v} {γ : Sort w}
 
 namespace setoid
 
@@ -36,7 +36,7 @@ quot.hrec_on qa (λ a, quot.hrec_on qb (f a) (λ b₁ b₂ pb, cb pb)) $ λ a₁
 
 /-- Map a function `f : α → β` such that `ra x y` implies `rb (f x) (f y)`
 to a map `quot ra → quot rb`. -/
-protected def map (f : α → β) (h : (ra ⟹ rb) f f) : quot ra → quot rb :=
+protected def map (f : α → β) (h : (ra ⇒ rb) f f) : quot ra → quot rb :=
 quot.lift (λ x, ⟦f x⟧) $ assume x y (h₁ : ra x y), quot.sound $ h h₁
 
 /-- If `ra` is a subrelation of `ra'`, then we have a natural map `quot ra → quot ra'`. -/
@@ -58,25 +58,25 @@ quot.hrec_on₂ qa qb f
 
 /-- Map a function `f : α → β` that sends equivalent elements to equivalent elements
 to a function `quotient sa → quotient sb`. Useful to define unary operations on quotients. -/
-protected def map (f : α → β) (h : ((≈) ⟹ (≈)) f f) : quotient sa → quotient sb :=
+protected def map (f : α → β) (h : ((≈) ⇒ (≈)) f f) : quotient sa → quotient sb :=
 quotient.lift (λ x, ⟦f x⟧) $ assume x y h₁, quot.sound $ h h₁
 
 /-- Map a function `f : α → β → γ` that sends equivalent elements to equivalent elements
 to a function `f : quotient sa → quotient sb → quotient sc`.
 Useful to define binary operations on quotients. -/
-protected def map₂ (f : α → β → γ) (h : ((≈) ⟹ (≈) ⟹ (≈)).diag f) :
+protected def map₂ (f : α → β → γ) (h : ((≈) ⇒ (≈) ⇒ (≈)).diag f) :
   quotient sa → quotient sb → quotient sc :=
 quotient.lift₂ (λ x y, ⟦f x y⟧) (λ x₁ y₁ x₂ y₂ h₁ h₂, quot.sound $ h h₁ h₂)
 
 variables {sa sb sc}
 
-protected def map' (f : α → β) (h : ((@setoid.r _ sa) ⟹ (@setoid.r _ sb)).diag f) :
+protected def map' (f : α → β) (h : ((@setoid.r _ sa) ⇒ (@setoid.r _ sb)).diag f) :
   quotient sa → quotient sb :=
 quotient.map f h
 
 /-- A version of `quotient.map₂` using curly braces and unification. -/
 protected def map₂' (f : α → β → γ)
-  (h : ((@setoid.r _ sa) ⟹ (@setoid.r _ sb) ⟹ (@setoid.r _ sc)).diag f) :
+  (h : ((@setoid.r _ sa) ⇒ (@setoid.r _ sb) ⇒ (@setoid.r _ sc)).diag f) :
   quotient sa → quotient sb → quotient sc :=
 quotient.map₂ f h
 

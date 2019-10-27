@@ -2659,7 +2659,7 @@ lemma right_unique_forall₂ (hr : r.right_unique) : rel.right_unique (forall₂
 lemma bi_unique_forall₂ (hr : r.bi_unique) : rel.bi_unique (forall₂ r) :=
 ⟨left_unique_forall₂ hr.1, right_unique_forall₂ hr.2⟩
 
-theorem forall₂_length_eq {R : rel α β} : ((forall₂ R) ⟹ (=)) length length
+theorem forall₂_length_eq {R : rel α β} : ((forall₂ R) ⇒ (=)) length length
 | _ _ forall₂.nil          := rfl
 | _ _ (forall₂.cons h₁ h₂) := congr_arg succ (forall₂_length_eq h₂)
 
@@ -2679,12 +2679,12 @@ theorem forall₂_iff_zip {R : rel α β} {l₁ l₂} : forall₂ R l₁ l₂ �
     exact forall₂.cons (h₂ $ or.inl rfl) (IH h₁ $ λ a b h, h₂ $ or.inr h) }
 end⟩
 
-theorem forall₂_take {R : rel α β} : ∀ n, ((forall₂ R) ⟹ (forall₂ R)) (take n) (take n)
+theorem forall₂_take {R : rel α β} : ∀ n, ((forall₂ R) ⇒ (forall₂ R)) (take n) (take n)
 | 0 l₁ l₂ h := by simp only [forall₂.nil, take]
 | (n+1) _ _ (forall₂.nil) := by simp only [forall₂.nil, take_nil]
 | (n+1) _ _ (forall₂.cons h₁ h₂) := by simp [and.intro h₁ h₂, forall₂_take n h₂]
 
-theorem forall₂_drop {R : rel α β} : ∀ n, ((forall₂ R) ⟹ (forall₂ R)) (drop n) (drop n)
+theorem forall₂_drop {R : rel α β} : ∀ n, ((forall₂ R) ⇒ (forall₂ R)) (drop n) (drop n)
 | 0 _ _ h := by simp only [drop, h]
 | (n+1) _ _ (forall₂.nil) := by simp only [forall₂.nil, drop]
 | (n+1) _ _ (forall₂.cons h₁ h₂) := by simp [and.intro h₁ h₂, forall₂_drop n h₂]
@@ -2699,36 +2699,36 @@ theorem forall₂_drop_append {R : rel α β} (l : list α) (l₁ : list β) (l�
 have h': forall₂ R (drop (length l₁) l) (drop (length l₁) (l₁ ++ l₂)), from forall₂_drop (length l₁) h,
 by rwa [drop_left] at h'
 
-lemma rel_mem (hr : r.bi_unique) : (r ⟹ forall₂ r ⟹ iff) (∈) (∈)
+lemma rel_mem (hr : r.bi_unique) : (r ⇒ forall₂ r ⇒ iff) (∈) (∈)
 | a b h [] [] forall₂.nil := by simp only [not_mem_nil]
 | a b h (a'::as) (b'::bs) (forall₂.cons h₁ h₂) := rel.rel_or (hr.rel_eq h h₁) (rel_mem h h₂)
 
-lemma rel_map : ((r ⟹ p) ⟹ forall₂ r ⟹ forall₂ p) map map
+lemma rel_map : ((r ⇒ p) ⇒ forall₂ r ⇒ forall₂ p) map map
 | f g h [] [] forall₂.nil := forall₂.nil
 | f g h (a::as) (b::bs) (forall₂.cons h₁ h₂) := forall₂.cons (h h₁) (rel_map @h h₂)
 
-lemma rel_append : (forall₂ r ⟹ forall₂ r ⟹ forall₂ r) append append
+lemma rel_append : (forall₂ r ⇒ forall₂ r ⇒ forall₂ r) append append
 | [] [] h l₁ l₂ hl := hl
 | (a::as) (b::bs) (forall₂.cons h₁ h₂) l₁ l₂ hl := forall₂.cons h₁ (rel_append h₂ hl)
 
-lemma rel_join : (forall₂ (forall₂ r) ⟹ forall₂ r) join join
+lemma rel_join : (forall₂ (forall₂ r) ⇒ forall₂ r) join join
 | [] [] forall₂.nil := forall₂.nil
 | (a::as) (b::bs) (forall₂.cons h₁ h₂) := rel_append h₁ (rel_join h₂)
 
-lemma rel_bind : (forall₂ r ⟹ (r ⟹ forall₂ p) ⟹ forall₂ p) list.bind list.bind :=
+lemma rel_bind : (forall₂ r ⇒ (r ⇒ forall₂ p) ⇒ forall₂ p) list.bind list.bind :=
 assume a b h₁ f g h₂, rel_join (rel_map @h₂ h₁)
 
-lemma rel_foldl : ((p ⟹ r ⟹ p) ⟹ p ⟹ forall₂ r ⟹ p) foldl foldl
+lemma rel_foldl : ((p ⇒ r ⇒ p) ⇒ p ⇒ forall₂ r ⇒ p) foldl foldl
 | f g hfg _ _ h _ _ forall₂.nil := h
 | f g hfg x y hxy _ _ (forall₂.cons hab hs) := rel_foldl @hfg (hfg hxy hab) hs
 
-lemma rel_foldr : ((r ⟹ p ⟹ p) ⟹ p ⟹ forall₂ r ⟹ p) foldr foldr
+lemma rel_foldr : ((r ⇒ p ⇒ p) ⇒ p ⇒ forall₂ r ⇒ p) foldr foldr
 | f g hfg _ _ h _ _ forall₂.nil := h
 | f g hfg x y hxy _ _ (forall₂.cons hab hs) := hfg hab (rel_foldr @hfg hxy hs)
 
 lemma rel_filter {p : α → Prop} {q : β → Prop} [decidable_pred p] [decidable_pred q]
-  (hpq : (r ⟹ (↔)) p q) :
-  (forall₂ r ⟹ forall₂ r) (filter p) (filter q)
+  (hpq : (r ⇒ (↔)) p q) :
+  (forall₂ r ⇒ forall₂ r) (filter p) (filter q)
 | _ _ forall₂.nil := forall₂.nil
 | (a::as) (b::bs) (forall₂.cons h₁ h₂) :=
   begin
@@ -2748,7 +2748,7 @@ begin
   { rw filter_map_cons_some _ _ _ eq },
 end
 
-lemma rel_filter_map : ((r ⟹ option.rel p) ⟹ forall₂ r ⟹ forall₂ p) filter_map filter_map
+lemma rel_filter_map : ((r ⇒ option.rel p) ⇒ forall₂ r ⇒ forall₂ p) filter_map filter_map
 | f g hfg _ _ forall₂.nil := forall₂.nil
 | f g hfg (a::as) (b::bs) (forall₂.cons h₁ h₂) :=
   by rw [filter_map_cons, filter_map_cons];
@@ -2759,7 +2759,7 @@ lemma rel_filter_map : ((r ⟹ option.rel p) ⟹ forall₂ r ⟹ forall₂ p) fi
 
 @[to_additive]
 lemma rel_prod [monoid α] [monoid β]
-  (h : r 1 1) (hf : (r ⟹ r ⟹ r) (*) (*)) : (forall₂ r ⟹ r) prod prod :=
+  (h : r 1 1) (hf : (r ⇒ r ⇒ r) (*) (*)) : (forall₂ r ⇒ r) prod prod :=
 rel_foldl hf h
 
 end forall₂
@@ -2781,7 +2781,7 @@ end
 theorem mem_sections_length {L : list (list α)} {f} (h : f ∈ sections L) : length f = length L :=
 forall₂_length_eq (mem_sections.1 h)
 
-lemma rel_sections {r : α → β → Prop} : (forall₂ (forall₂ r) ⟹ forall₂ (forall₂ r)) sections sections
+lemma rel_sections {r : α → β → Prop} : (forall₂ (forall₂ r) ⇒ forall₂ (forall₂ r)) sections sections
 | _ _ forall₂.nil := forall₂.cons forall₂.nil forall₂.nil
 | _ _ (forall₂.cons h₀ h₁) :=
   rel_bind (rel_sections h₁) (assume _ _ hl, rel_map (assume _ _ ha, forall₂.cons ha hl) h₀)
@@ -4009,7 +4009,7 @@ section nodup
 @[simp] theorem nodup_cons {a : α} {l : list α} : nodup (a::l) ↔ a ∉ l ∧ nodup l :=
 by simp only [nodup, pairwise_cons, forall_mem_ne]
 
-lemma rel_nodup {r : rel α β} (hr : r.bi_unique) : (forall₂ r ⟹ (↔)) nodup nodup
+lemma rel_nodup {r : rel α β} (hr : r.bi_unique) : (forall₂ r ⇒ (↔)) nodup nodup
 | _ _ forall₂.nil      := by simp only [nodup_nil]
 | _ _ (forall₂.cons hab h) :=
   by simpa only [nodup_cons] using rel.rel_and (rel.rel_not (rel_mem hr hab h)) (rel_nodup h)

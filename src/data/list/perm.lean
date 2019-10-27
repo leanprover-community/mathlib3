@@ -233,12 +233,12 @@ begin
   split,
   { exact assume ⟨l₂, h₂₃, h₁₂⟩, perm_comp_forall₂ h₁₂ h₂₃ },
   { assume h, rcases h with ⟨l₂, h₂₃, h₁₂⟩,
-    have : forall₂ r.conv l₂ l₁, from h₁₂.flip,
+    have : forall₂ r.flip l₂ l₁, from h₁₂.flip,
     rcases perm_comp_forall₂ h₂₃.symm this with ⟨l', h₁, h₃⟩,
     exact ⟨l', h₃.flip, h₁.symm⟩ }
 end
 
-lemma rel_perm_imp (hr : r.right_unique) : (forall₂ r ⟹ forall₂ r ⟹ implies) perm perm :=
+lemma rel_perm_imp (hr : r.right_unique) : (forall₂ r ⇒ forall₂ r ⇒ implies) perm perm :=
 assume a b h₁ c d h₂ h,
 have ((forall₂ r ∘r perm) ∘r flip (forall₂ r)) b d, from rel.comp_mk (rel.comp_mk h₂ h) h₁,
 have (perm ∘r (forall₂ r ∘r flip (forall₂ r))) b d,
@@ -247,10 +247,10 @@ let ⟨b', hbd, ⟨c', hcb, hbc⟩⟩ := this in
 have b' = b, from right_unique_forall₂ @hr hcb hbc,
 this ▸ hbd
 
-lemma rel_perm (hr : r.bi_unique) : (forall₂ r ⟹ forall₂ r ⟹ (↔)) perm perm :=
+lemma rel_perm (hr : r.bi_unique) : (forall₂ r ⇒ forall₂ r ⇒ (↔)) perm perm :=
 assume a b hab c d hcd, iff.intro
   (rel_perm_imp hr.2 hab hcd)
-  (rel_perm_imp hr.1.conv hab.flip hcd.flip)
+  (rel_perm_imp hr.1.flip hab.flip hcd.flip)
 
 end rel
 

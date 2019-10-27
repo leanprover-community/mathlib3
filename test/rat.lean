@@ -1,4 +1,4 @@
-import data.rat.meta
+import data.rat.meta_defs
 
 run_cmd let q : ℚ := 3/15 in
 guard $ (reflect q : expr) = `((1/5 : ℚ))

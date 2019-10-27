@@ -131,8 +131,6 @@ variables {C} [has_binary_products.{v} C]
 
 local attribute [tidy] tactic.case_bash
 
--- TODO The `@[simp] def`s below should probably instead have appropriate simp lemmas written.
-
 /-- The braiding isomorphism which swaps a binary product. -/
 @[simps] def prod.braiding (P Q : C) : P ⨯ Q ≅ Q ⨯ P :=
 { hom := prod.lift prod.snd prod.fst,

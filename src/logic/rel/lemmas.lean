@@ -61,7 +61,7 @@ end function
 
 namespace rel
 
--- Even if we mark it with `@[extensionality]`, `ext` won't use it.
+-- Even if we mark it with `@[extensionality]`, `ext` will use `funext`.
 lemma ext {r r' : rel α β} (h : ∀ x y, r x y ↔ r' x y) : r = r' := by ext; apply h
 
 variables (r : rel α β) (rcd : rel γ δ) {rbc : rel β γ} {rab : rel α β}

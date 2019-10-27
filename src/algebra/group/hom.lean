@@ -293,11 +293,11 @@ instance (f : M →* N) : is_monoid_hom (f : M → N) :=
 { map_mul := f.map_mul,
   map_one := f.map_one }
 
+omit mN mM
+
 @[to_additive is_add_group_hom]
 instance (f : G →* H) : is_group_hom (f : G → H) :=
 { map_mul := f.map_mul }
-
-omit mN mM
 
 /-- The identity map from a monoid to itself. -/
 @[to_additive]

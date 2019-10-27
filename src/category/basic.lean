@@ -39,14 +39,6 @@ def mzip_with'  (f : α → β → F γ) : list α → list β → F punit
 | [] _ := pure punit.star
 | _ [] := pure punit.star
 
-protected def option.traverse {α β : Type*} (f : α → F β) : option α → F (option β)
-| none := pure none
-| (some x) := some <$> f x
-
-protected def list.traverse {α β : Type*} (f : α → F β) : list α → F (list β)
-| [] := pure []
-| (x :: xs) := list.cons <$> f x <*> list.traverse xs
-
 variables [is_lawful_applicative F]
 
 attribute [functor_norm] seq_assoc pure_seq_eq_map

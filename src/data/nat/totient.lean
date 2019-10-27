@@ -60,7 +60,7 @@ calc ((range n.succ).filter (∣ n)).sum φ
                 hb.2 ▸ coprime_div_gcd_div_gcd (hb.2.symm ▸ hd0)⟩,
           hb.2 ▸ nat.mul_div_cancel' (gcd_dvd_right _ _)⟩))
 ... = ((filter (∣ n) (range n.succ)).bind (λ d, (range n).filter (λ m, gcd n m = d))).card :
-  (card_bind (by intros; apply disjoint_filter; cc)).symm
+  (card_bind (by intros; apply disjoint_filter.2; cc)).symm
 ... = (range n).card :
   congr_arg card (finset.ext.2 (λ m, ⟨by finish,
     λ hm, have h : m < n, from mem_range.1 hm,

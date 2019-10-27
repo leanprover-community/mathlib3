@@ -23,7 +23,7 @@ universes v₁ u₁ u₂ -- declare the `v`'s first; see `category_theory.catego
 variables {C : Type u₁} [𝒞 : category.{v₁} C]
 include 𝒞
 
-def yoneda : C ⥤ (Cᵒᵖ ⥤ Type v₁) :=
+@[simps] def yoneda : C ⥤ (Cᵒᵖ ⥤ Type v₁) :=
 { obj := λ X,
   { obj := λ Y, unop Y ⟶ X,
     map := λ Y Y' f g, f.unop ≫ g,
@@ -31,7 +31,7 @@ def yoneda : C ⥤ (Cᵒᵖ ⥤ Type v₁) :=
     map_id' := λ Y, begin ext1, dsimp, erw [category.id_comp] end },
   map := λ X X' f, { app := λ Y g, g ≫ f } }
 
-def coyoneda : Cᵒᵖ ⥤ (C ⥤ Type v₁) :=
+@[simps] def coyoneda : Cᵒᵖ ⥤ (C ⥤ Type v₁) :=
 { obj := λ X,
   { obj := λ Y, unop X ⟶ Y,
     map := λ Y Y' f g, g ≫ f,
@@ -42,11 +42,6 @@ def coyoneda : Cᵒᵖ ⥤ (C ⥤ Type v₁) :=
   map_id' := λ X, begin ext1, ext1, dsimp, erw [category.id_comp] end }
 
 namespace yoneda
-@[simp] lemma obj_obj (X : C) (Y : Cᵒᵖ) : (yoneda.obj X).obj Y = (unop Y ⟶ X) := rfl
-@[simp] lemma obj_map (X : C) {Y Y' : Cᵒᵖ} (f : Y ⟶ Y') :
-  (yoneda.obj X).map f = λ g, f.unop ≫ g := rfl
-@[simp] lemma map_app {X X' : C} (f : X ⟶ X') (Y : Cᵒᵖ) :
-  (yoneda.map f).app Y = λ g, g ≫ f := rfl
 
 lemma obj_map_id {X Y : C} (f : op X ⟶ op Y) :
   ((@yoneda C _).obj X).map f (𝟙 X) = ((@yoneda C _).map f.unop).app (op Y) (𝟙 Y) :=
@@ -86,12 +81,6 @@ is_iso_of_fully_faithful yoneda f
 end yoneda
 
 namespace coyoneda
-
-@[simp] lemma obj_obj (X : Cᵒᵖ) (Y : C) : (coyoneda.obj X).obj Y = (unop X ⟶ Y) := rfl
-@[simp] lemma obj_map {X' X : C} (f : X' ⟶ X) (Y : Cᵒᵖ) :
-  (coyoneda.obj Y).map f = λ g, g ≫ f := rfl
-@[simp] lemma map_app (X : C) {Y Y' : Cᵒᵖ} (f : Y ⟶ Y') :
-  (coyoneda.map f).app X = λ g, f.unop ≫ g := rfl
 
 @[simp] lemma naturality {X Y : Cᵒᵖ} (α : coyoneda.obj X ⟶ coyoneda.obj Y)
   {Z Z' : C} (f : Z' ⟶ Z) (h : unop X ⟶ Z') : (α.app Z' h) ≫ f = α.app Z (h ≫ f) :=

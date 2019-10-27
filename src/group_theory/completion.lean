@@ -1,4 +1,4 @@
-import ring_theory.localization2
+import ring_theory.localization2 tactic.default
 
 variables (X : Type*) [comm_monoid X]
           {Y : Type*} [comm_monoid Y] {Z : Type*} [comm_monoid Z]
@@ -12,25 +12,34 @@ namespace completion
 instance top_coe : has_coe X top := ⟨λ x, ⟨x, set.mem_univ x⟩⟩
 
 def of : X →* completion X := localization.monoid_hom.of top
-def r : X × X → X × X → Prop := λ x y, (⊤ : submonoid X).r (x.1, x.2) (y.1, y.2)
 
-#exit
-@[elab_as_eliminator, reducible]
-def lift₁ {β : Type*} (f : X × X → β) (H : ∀ (a b : X × X), r X a b → f a = f b) :
-  completion X → β :=
-localization.lift₁ top (λ x, f (x.1, (x.2 : X))) $ λ x y, H (x.1, x.2) (y.1, y.2)
+def rel : con (X × X) :=
+⟨λ x y, (⊤ : submonoid X).r (x.1, x.2) (y.1, y.2),
+ ⟨λ x, con.refl _ _, λ _ _ h, con.symm _ h, λ _ _ _ h1, con.trans _ h1⟩,
+ λ _ _ _ _ h1 h2, con.mul _ h1 h2⟩
 
 variables {X}
+
+lemma rel_iff {x y : X × top} : (⊤ : submonoid X).r x y ↔ rel X (x.1, x.2) (y.1, y.2) :=
+by rcases x with ⟨_, _, _⟩; rcases y with ⟨_, _, _⟩; refl
+
+@[elab_as_eliminator, reducible]
+def lift {β : Type*} (f : X × X → β) (H : ∀ (a b : X × X), rel X a b → f a = f b) :
+  completion X → β :=
+λ x, con.lift_on x (λ x : X × top, f (x.1, (x.2 : X))) $
+  λ x y h, H (x.1, x.2) (y.1, y.2) $ rel_iff.1 h
+
 def mk (x y : X) : completion X := localization.mk x y
-@[simp] lemma top_coe_mul {x y : X} : (((x*y) : X) : top) = (x : top) * (y : top) := rfl
-@[simp] lemma top_coe_apply (x : X) : ((x : top) : X) = x := rfl
-lemma top_coe_inj {x y : X} (h : (x : top) = y) : x = y :=
-by rw [←top_coe_apply x, ←top_coe_apply y, h]
+--@[simp] lemma top_coe_mul {x y : X} : (((x*y) : X) : top) = (x : top) * (y : top) := rfl
+--@[simp] lemma top_coe_apply (x : X) : ((x : top) : X) = x := rfl
+--lemma top_coe_inj {x y : X} (h : (x : top) = y) : x = y :=
+--by rw [←top_coe_apply x, ←top_coe_apply y, h]
 
-@[simp] lemma mk_mul_mk (x y s t : X) :
-  mk x s * mk y t = mk (x * y) (s * t) := rfl
+--@[simp] lemma mk_mul_mk (x y s t : X) :
+--  mk x s * mk y t = mk (x * y) (s * t) := rfl
 
-@[elab_as_eliminator]
+--@[elab_as_eliminator]
+/-
 theorem ind {p : completion X → Prop} (H : ∀ (y : X × X), p (mk y.1 y.2))
   (x : completion X) : p x :=
 by {apply localization.ind, intro y, convert H (y.1, (y.2 : X)), cases y, cases y_snd, refl}
@@ -38,10 +47,13 @@ by {apply localization.ind, intro y, convert H (y.1, (y.2 : X)), cases y, cases 
 @[elab_as_eliminator]
 theorem induction_on {p : completion X → Prop} (x : completion X)
   (H : ∀ (y : X × X), p (mk y.1 y.2)) : p x := ind H x
+-/
 
 instance : has_inv (completion X) :=
-⟨lift₁ X (λ x, (mk x.2 x.1)) $
-λ a b ⟨w, hw⟩, con.eq.2 $ ⟨w, by {dsimp at hw ⊢, rw [mul_comm a.2, mul_comm b.2, hw]}⟩⟩
+⟨lift (λ (x : X × X), (mk x.2 x.1)) $
+λ a b h, --localization.eq'.2 $ ⟨w, by {dsimp at hw ⊢, rw [mul_comm a.2, mul_comm b.2, hw]}
+by {simp, erw localization.eq, intros c hc, specialize h c hc, }
+⟩
 
 def inv : completion X →* completion X :=
 ⟨λ x, x⁻¹, rfl, λ x y, by rcases x; rcases y; refl⟩

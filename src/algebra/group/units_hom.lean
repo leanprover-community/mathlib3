@@ -9,9 +9,8 @@ import algebra.group.units algebra.group.hom
 
 universes u v w
 
-variables {α : Type u} {β : Type v} {γ : Type w} [monoid α] [monoid β] [monoid γ]
-
 namespace units
+variables {α : Type u} {β : Type v} {γ : Type w} [monoid α] [monoid β] [monoid γ]
 
 def map (f : α →* β) : units α →* units β :=
 monoid_hom.mk'
@@ -26,8 +25,7 @@ monoid_hom.mk'
 
 @[simp] lemma coe_map (f : α →* β) (x : units α) : ↑(map f x) = f x := rfl
 
-@[simp]
-lemma map_comp (f : α →* β) (g : β →* γ) : map (g.comp f) = (map g).comp (map f) := rfl
+@[simp] lemma map_comp (f : α →* β) (g : β →* γ) : map (g.comp f) = (map g).comp (map f) := rfl
 
 variables (α)
 @[simp] lemma map_id : map (monoid_hom.id α) = monoid_hom.id (units α) :=

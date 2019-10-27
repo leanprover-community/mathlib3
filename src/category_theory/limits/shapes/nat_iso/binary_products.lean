@@ -65,27 +65,13 @@ begin
   exact nat_iso.of_components (λ Q, ((I.hom_iso (unop Q)) ≪≫ (walking_pair_cones_equiv F).symm)) (by tidy)
 end.
 
+/--
+If `P` represents `(pair X Y).cones, then `P` is a binary product of `X` and `Y`.
+-/
 def of_nat_iso (X Y P : C) (i : yoneda.obj P ≅ (pair X Y).cones) : is_binary_product.{v} X Y P :=
 { hom_iso := λ Q, i.app (op Q) ≪≫ (walking_pair_cones_equiv (pair X Y)),
-  naturality₁ := λ Q f,
-  begin
-    -- Similarly here.
-    have n := congr_fun (i.hom.naturality f.op) (𝟙 _),
-    dsimp at n,
-    simp only [category.comp_id] at n,
-    simp only [function.comp_app, types_comp, iso.trans_hom],
-    rw n,
-    simp,
-  end,
-  naturality₂ := λ Q f,
-  begin
-    have n := congr_fun (i.hom.naturality f.op) (𝟙 _),
-    dsimp at n,
-    simp only [category.comp_id] at n,
-    simp only [function.comp_app, types_comp, iso.trans_hom],
-    rw n,
-    simp,
-  end, }
+  naturality₁ := λ Q f, by simp [yoneda.naturality_id f i.hom],
+  naturality₂ := λ Q f, by simp [yoneda.naturality_id f i.hom], }
 
 section
 variables {X Y P : C} (I : is_binary_product.{v} X Y P)

@@ -56,6 +56,11 @@ instance induced_category.category : category.{v} (induced_category D F) :=
   id   := λ X, 𝟙 (F X),
   comp := λ _ _ _ f g, f ≫ g }
 
+@[extensionality] lemma induced_category.ext
+  {X Y : induced_category D F} (f₁ f₂ : X ⟶ Y)
+  (w : (f₁ : F (X : C) ⟶ F (Y : C)) = (f₂ : F (X : C) ⟶ F (Y : C))) : f₁ = f₂ :=
+w
+
 def induced_functor : induced_category D F ⥤ D :=
 { obj := F, map := λ x y f, f }
 
@@ -77,6 +82,11 @@ variables (Z : C → Prop)
 
 instance full_subcategory : category.{v} {X : C // Z X} :=
 induced_category.category subtype.val
+
+@[extensionality] lemma full_subcategory.ext
+  {X Y : {X : C // Z X}} (f₁ f₂ : X ⟶ Y)
+  (w : (f₁ : X.val ⟶ Y.val) = (f₂ : X.val ⟶ Y.val)) : f₁ = f₂ :=
+w
 
 def full_subcategory_inclusion : {X : C // Z X} ⥤ C :=
 induced_functor subtype.val

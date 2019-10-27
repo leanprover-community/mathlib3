@@ -1,7 +1,6 @@
 -- Copyright (c) 2019 Scott Morrison. All rights reserved.
 -- Released under Apache 2.0 license as described in the file LICENSE.
 -- Authors: Scott Morrison
-import category_theory.enriched.basic
 import category_theory.concrete_category
 import category_theory.monoidal.types
 import category_theory.monoidal.functorial
@@ -46,6 +45,9 @@ variables {V}
 def forget.μ {X Y : V} (x : (forget V).obj X) (y : (forget V).obj Y) : (forget V).obj (X ⊗ Y) :=
 (forget.lax.{v} V).μ X Y (by { fsplit, rintros ⟨⟩, exact x, exact y, tidy, })
 
+/--
+Convert a morphism from the monoidal unit of `V` to `X` into a term of the underlying type of `X`.
+-/
 def as_term {X : V} (f : 𝟙_ V ⟶ X) : (forget V).obj X := (forget V).map f (forget.ε V)
 -- If `forget V` is represented by some object `R`, then we could construct
 --   def of_term {X : V} (x : (forget V).obj X) : R ⟶ X := sorry
@@ -79,51 +81,5 @@ example : enriched_over (Type u) (Type u) :=
   e_comp := λ X Y Z p, p.val (limits.walking_pair.left) ≫ p.val (limits.walking_pair.right), -- that was ugly...
   e_hom_forget := λ X Y, equiv.refl _ }
 
-instance enriched_category_of_enriched_over [enriched_over.{v} V C] : enriched_category V C :=
-{ hom  := enriched_over.e_hom V,
-  id   := enriched_over.e_id V,
-  comp := enriched_over.e_comp V,
-  id_comp' := λ X Y,
-  begin
-    -- Use faithfulness of the forgetful functor to turn this into a question in `C`.
-    apply (forget V).injectivity,
-    ext,
-    simp only [functor_to_types.map_comp],
-    -- Transport the goal backwards through `e_hom_forget`, to obtain an equation in `C`.
-    apply (enriched_over.e_hom_forget V X Y).injective,
-    -- ... which hopefully just comes down to `id_comp`.
-
-    -- We first transport `x` through `λ_ (enriched_over.e_hom V X Y`.
-    -- We really need a tactic to handle the next four lines:
-    have t := congr_fun (((forget V).map_iso (λ_ (enriched_over.e_hom V X Y))).hom_inv_id) x,
-    simp only [functor.map_iso_hom, functor.map_iso_inv, types_id, types_comp, id.def, function.comp_app] at t,
-    generalize_hyp : (forget V).map ((λ_ (enriched_over.e_hom V X Y)).hom) x = y at t,
-    subst t,
-
-    simp only [functor_to_types.inv_hom_id],
-
-    -- This is not really how I want to proceed, but okay:
-    convert category.id_comp C _,
-    rw ←enriched_over.e_id_forget V C X,
-    rw enriched_over.e_comp_forget V C,
-    simp,
-
-    congr,
-    dsimp [as_term],
-    rw ←functor_to_types.map_comp,
-
-    -- move the λ_ to the rhs, and then use left_unitality?
-
-    -- We next transport `y` through `e_hom_forget`:
-    -- have t := (enriched_over.e_hom_forget V X Y).left_inv y,
-    -- generalize_hyp : (enriched_over.e_hom_forget V X Y).to_fun y = f at t,
-    -- subst t,
-
-    -- simp,
-    -- ...
-
-  end,
-  comp_id' := sorry,
-  assoc' := sorry, }
 
 end category_theory

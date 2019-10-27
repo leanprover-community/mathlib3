@@ -489,8 +489,8 @@ def has_limit_of_iso {F G : J ⥤ C} [has_limit F] (α : F ≅ G) : has_limit G 
   { lift := λ s, limit.lift F ((cones.postcompose α.inv).obj s),
     fac' := λ s j,
     begin
-      rw [cones.postcompose_obj_π, nat_trans.comp_app, limit.cone_π],
-      rw [category.assoc_symm, limit.lift_π], simp
+      rw [cones.postcompose_obj_π, nat_trans.comp_app, limit.cone_π, ←category.assoc, limit.lift_π],
+      simp
     end,
     uniq' := λ s m w,
     begin

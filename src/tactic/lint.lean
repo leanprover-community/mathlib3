@@ -387,16 +387,3 @@ let ns := env.decl_filter_map $ λ dcl,
 { name := "Lint",
   descr := "Lint: Find common mistakes in current file.",
   action := λ es, do s ← lint, return [(s.to_string,"")] }
-
--- set_option profiler true
--- run_cmd lint
--- run_cmd lint_mathlib
--- run_cmd lint_all
--- #lint
--- #lint only unused_arguments dup_namespace
--- #lint_mathlib
--- #lint_all
--- #lint-
--- #lint_mathlib-
--- #lint_all-
--- #list_linters

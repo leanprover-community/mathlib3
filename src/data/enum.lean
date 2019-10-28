@@ -48,7 +48,7 @@ of_nodup_list xs.erase_dup (by simp *) (list.nodup_erase_dup _)
 
 /-- create an exhaustive list of the values of a given type -/
 def to_list (α) [fin_enum α] : list α :=
-(fin.enum (card α)).map (equiv α).symm
+(list.fin_range (card α)).map (equiv α).symm
 
 open function
 
@@ -79,7 +79,7 @@ instance sum {β} [fin_enum α] [fin_enum β] : fin_enum (α ⊕ β) :=
 of_list ( (to_list α).map sum.inl ++ (to_list β).map sum.inr ) (λ x, by cases x; simp)
 
 instance fin {n} : fin_enum (fin n) :=
-of_list (fin.enum _) (by simp)
+of_list (list.fin_range _) (by simp)
 
 instance quotient.enum [fin_enum α] (s : setoid α)
   [decidable_rel ((≈) : α → α → Prop)] : fin_enum (quotient s) :=

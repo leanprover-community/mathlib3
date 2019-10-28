@@ -220,6 +220,10 @@ with rcases.continue : listΠ (rcases_patt × expr) → tactic goals
 -- top-level `cases` tactic, so there is no more work to do for it.
 | (_ :: l) := rcases.continue l
 
+/-- `rcases h e pat` performs case distinction on `e` using `pat` to 
+name the arising new variables and assumptions. If `h` is `some` name, 
+a new assumption `h : e = pat` will relate the expression `e` with the 
+current pattern. -/
 meta def rcases (h : option name) (p : pexpr) (ids : listΣ (listΠ rcases_patt)) : tactic unit :=
 do e ← match h with
        | some h :=
@@ -353,6 +357,8 @@ meta def rcases_parse_depth : parser nat :=
 do o ← (tk ":" *> small_nat)?, pure $ o.get_or_else 5
 
 precedence `?`:max
+
+/-- syntax for a `rcases` pattern: `('?' expr (: n)?) | ((h :)? expr (with patt_list)?)`  -/
 meta def rcases_parse : parser (pexpr × ((option name × listΣ (listΠ rcases_patt)) ⊕ nat)) :=
 with_desc "('?' expr (: n)?) | ((h :)? expr (with patt_list)?)" $
 do hint ← (tk "?")?,

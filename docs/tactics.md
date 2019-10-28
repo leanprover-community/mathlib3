@@ -1293,3 +1293,4 @@ See also additional documentation of `using_well_founded` in
   coercion.
 * If one of the fields is a partially applied constructor, we will eta-expand it
   (this likely never happens).
+* `@[simps]` reduces let-expressions where necessary.

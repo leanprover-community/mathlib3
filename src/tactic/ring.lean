@@ -390,12 +390,17 @@ meta def eval : expr → ring_m (horner_expr × expr)
     (e', p) ← lift $ norm_num.derive e,
     lift $ e'.to_rat,
     return (const e', p)) <|> eval_atom e
-| `(@has_div.div _ division_ring_has_div %%e₁ %%e₂) := do
-  e₂' ← lift $ mk_app ``has_inv.inv [e₂],
-  e ← lift $ mk_app ``has_mul.mul [e₁, e₂'],
-  (e', p) ← eval e,
-  p' ← ring_m.mk_app ``unfold_div ``division_ring [e₁, e₂, e', p],
-  return (e', p')
+| e@`(@has_div.div _ %%inst %%e₁ %%e₂) := mcond
+  (succeeds (do
+    inst' ← ring_m.mk_app ``division_ring_has_div ``division_ring [],
+    lift $ is_def_eq inst inst'))
+  (do
+    e₂' ← lift $ mk_app ``has_inv.inv [e₂],
+    e ← lift $ mk_app ``has_mul.mul [e₁, e₂'],
+    (e', p) ← eval e,
+    p' ← ring_m.mk_app ``unfold_div ``division_ring [e₁, e₂, e', p],
+    return (e', p'))
+  (eval_atom e)
 | e@`(@has_pow.pow _ _ %%P %%e₁ %%e₂) := do
   (e₂', p₂) ← eval e₂,
   match e₂'.e.to_nat, P with

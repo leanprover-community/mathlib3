@@ -18,8 +18,8 @@ The following linters are run by default:
 2. `def_lemma` checks whether a declaration is incorrectly marked as a def/lemma.
 3. `dup_namespce` checks whether a namespace is duplicated in the name of a declaration.
 4. `illegal_constant` checks whether ≥/> is used in the declaration.
-5. `doc_blame` checks for missing doc strings on definitions and constants.
-6. `instance_priority` checks that instances that always apply have priority below default.
+5. `instance_priority` checks that instances that always apply have priority below default.
+6. `doc_blame` checks for missing doc strings on definitions and constants.
 
 Another linter, `doc_blame_thm`, checks for missing doc strings on lemmas and theorems.
 This is not run by default.
@@ -179,7 +179,7 @@ meta def unused_arguments (d : declaration) : tactic (option string) := do
   return $ some $ ns.to_string_aux tt
 
 /-- A linter object for checking for unused arguments. This is in the default linter set. -/
-@[linter] meta def linter.unused_arguments : linter :=
+@[linter, priority 1500] meta def linter.unused_arguments : linter :=
 { test := unused_arguments,
   no_errors_found := "No unused arguments",
   errors_found := "UNUSED ARGUMENTS" }
@@ -201,7 +201,7 @@ meta def incorrect_def_lemma (d : declaration) : tactic (option string) := do
 
 /-- A linter for checking whether the correct declaration constructor (definition or theorem)
 has been used. -/
-@[linter] meta def linter.def_lemma : linter :=
+@[linter, priority 1490] meta def linter.def_lemma : linter :=
 { test := incorrect_def_lemma,
   no_errors_found := "All declarations correctly marked as def/lemma",
   errors_found := "INCORRECT DEF/LEMMA" }
@@ -214,7 +214,7 @@ return $ let nm := d.to_name.components in if nm.chain' (≠) ∨ is_inst then n
   some $ "The namespace `" ++ s ++ "` is duplicated in the name"
 
 /-- A linter for checking whether a declaration has a namespace twice consecutively in its name. -/
-@[linter] meta def linter.dup_namespace : linter :=
+@[linter, priority 1480] meta def linter.dup_namespace : linter :=
 { test := dup_namespace,
   no_errors_found := "No declarations have a duplicate namespace",
   errors_found := "DUPLICATED NAMESPACES IN NAME" }
@@ -240,7 +240,7 @@ return $ let illegal := [`gt, `ge] in if d.type.contains_constant (λ n, n ∈ i
   else none
 
 /-- A linter for checking whether illegal constants (≥, >) appear in a declaration's type. -/
-@[linter] meta def linter.illegal_constants : linter :=
+@[linter, priority 1470] meta def linter.illegal_constants : linter :=
 { test := illegal_constants_in_statement,
   no_errors_found := "No illegal constants in declarations",
   errors_found := "ILLEGAL CONSTANTS IN DECLARATIONS",
@@ -270,7 +270,7 @@ meta def instance_priority (d : declaration) : tactic (option string) := do
 
 /-- A linter object for checking instance priorities of instances that always apply.
   This is in the default linter set. -/
-@[linter] meta def linter.instance_priority : linter :=
+@[linter, priority 1460] meta def linter.instance_priority : linter :=
 { test := instance_priority,
   no_errors_found := "All instance priorities are good",
   errors_found := "DANGEROUS INSTANCE PRIORITIES.\n The following instances always apply, and therefore should have a priority < 1000" }
@@ -287,7 +287,7 @@ meta def doc_blame_report_thm : declaration → tactic (option string)
 | _ := return none
 
 /-- A linter for checking definition doc strings -/
-@[linter] meta def linter.doc_blame : linter :=
+@[linter, priority 1450] meta def linter.doc_blame : linter :=
 { test := λ d, mcond (bnot <$> has_attribute' `instance d.to_name) (doc_blame_report_defn d) (return none),
   no_errors_found := "No definitions are missing documentation.",
   errors_found := "DEFINITIONS ARE MISSING DOCUMENTATION STRINGS" }

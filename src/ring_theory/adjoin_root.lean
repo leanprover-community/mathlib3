@@ -110,39 +110,32 @@ end field
 
 section algebra
 
-variables (R : Type*) [comm_ring R] [comm_ring α] [algebra R α] (f : polynomial α) [comm_ring β]
-  [algebra R β]
+variables [comm_ring α] (f : polynomial α) [comm_ring β] [algebra α β]
 
-instance : algebra R (adjoin_root f) :=
+instance : algebra α (adjoin_root f) :=
 algebra.of_ring_hom (of ∘ algebra_map _) (is_ring_hom.comp _ _)
 
-def aof : α →ₐ[R] adjoin_root f :=
-{ commutes' := λ _, rfl, ..ring_hom.of of }
-
-lemma aof_eq_of : ⇑(@aof α R _ _ _ f) = of := rfl
-
-def amk : polynomial α →ₐ[R] adjoin_root f :=
+def amk : polynomial α →ₐ[α] adjoin_root f :=
 { commutes' := λ _, rfl, ..ring_hom.of mk }
 
-lemma amk_eq_mk : ⇑(@amk α R _ _ _ f) = mk := rfl
+lemma amk_eq_mk : ⇑(amk f) = mk := rfl
 
-variables (i : α →ₐ[R] β) [is_ring_hom i] (a : β) (h : f.eval₂ i a = 0)
+variables (a : β) (h : f.eval₂ (algebra_map β) a = 0)
 
-def alift : adjoin_root f →ₐ[R] β :=
-{ commutes' := λ _, show lift i a h (of _) = _, by rw [lift_of, i.commutes],
-  ..ring_hom.of (lift i a h) }
+def alift : adjoin_root f →ₐ[α] β :=
+{ commutes' := λ _, show lift _ a h (of _) = _, by rw [lift_of]; refl,
+  ..ring_hom.of (lift (algebra_map β) a h) }
 
-variables {R i a h}
+variables {a h}
 
-@[simp] lemma alift_amk {g : polynomial α} : alift R f i a h
-  ((amk R f : polynomial α →ₐ[R] adjoin_root f) g) = g.eval₂ i a :=
+@[simp] lemma alift_mk {g : polynomial α} : alift f a h (mk g) = g.eval₂ (algebra_map β) a :=
 @lift_mk _ _ _ f _ _ _ a h g
 
-@[simp] lemma alift_root : alift R f i a h root = a :=
+@[simp] lemma alift_root : alift f a h root = a :=
 @lift_root _ _ _  f _ _ _ _ h
 
-@[simp] lemma alift_aof {x : α} : alift R f i a h ((aof R f : α →ₐ[R] adjoin_root f) x) = i x :=
-by show lift i a h (ideal.quotient.mk _ (C x)) = i x;
+@[simp] lemma alift_of {x : α} : alift f a h (of x) = algebra_map β x :=
+by show lift (algebra_map β) a h (ideal.quotient.mk _ (C x)) = algebra_map β x;
   convert ideal.quotient.lift_mk; simp
 
 end algebra

@@ -85,7 +85,7 @@ theorem sup_le_sup (h₁ : a ≤ b) (h₂ : c ≤ d) : a ⊔ c ≤ b ⊔ d :=
 by finish
 
 /-- The function `⊔` is monotone in both arguments, see also `sup_le_sup`. -/
-theorem sup_mono : ((≤) ⇒ (≤) ⇒ (≤)) ((⊔) : α → _) (⊔) :=
+theorem sup_mono : ((≤) ⇒ (≤) ⇒ (≤)) ((⊔) : α → α → α) (⊔) :=
 λ a b h₁ c d h₂, sup_le_sup h₁ h₂
 
 theorem sup_le_sup_left (h₁ : a ≤ b) (c) : c ⊔ a ≤ c ⊔ b :=
@@ -200,7 +200,7 @@ theorem inf_le_inf (h₁ : a ≤ b) (h₂ : c ≤ d) : a ⊓ c ≤ b ⊓ d :=
 by finish
 
 /-- The function `⊓` is monotone in both arguments, see also `inf_le_inf`. -/
-theorem inf_mono : ((≤) ⇒ (≤) ⇒ (≤)) ((⊓) : α → _) (⊓) :=
+theorem inf_mono : ((≤) ⇒ (≤) ⇒ (≤)) ((⊓) : α → α → α) (⊓) :=
 λ a b h₁ c d h₂, inf_le_inf h₁ h₂
 
 theorem le_of_inf_eq (h : a ⊓ b = a) : a ≤ b :=

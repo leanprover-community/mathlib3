@@ -115,7 +115,7 @@ def range : set β := {y | ∃ x, r x y}
 /-- Image of a set under a relation -/
 def image (s : set α) : set β := {y | ∃ x ∈ s, r x y}
 
-/-- Preimage of a set under a relation `r`. Same as the image of `s` under `r.inv` -/
+/-- Preimage of a set under a relation `r`. Same as the image of `s` under `r.flip` -/
 def preimage (s : set β) : set α := r.flip.image s
 
 /-- Core of a set `s : set β` w.r.t `r : rel α β` is the set of `x : α` that are related *only* to elements of `s`. -/

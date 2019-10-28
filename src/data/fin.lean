@@ -651,10 +651,4 @@ mem_find_iff.2 ⟨hi, λ j hj, le_of_eq $ h i j hi hj⟩
 
 end find
 
-def enum (n : ℕ) : list (fin n) :=
-list.of_fn id
-
-@[simp] lemma mem_enum {n} (x : fin n) : x ∈ enum n :=
-by simp [enum,list.mem_of_fn_id]; existsi x.1; simp [fin.is_lt]
-
 end fin

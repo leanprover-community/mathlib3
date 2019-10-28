@@ -450,6 +450,9 @@ do e ← instantiate_mvars e,
       `eq e,
     return (e', pr)
 
+/-- This version of `derive` does not fail when the input is already a numeral -/
+meta def derive' : expr → tactic (expr × expr) := derive1 derive
+
 end norm_num
 
 namespace tactic.interactive

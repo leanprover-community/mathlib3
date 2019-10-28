@@ -12,7 +12,7 @@ In this file we define `rel α β` to be `α → β → Prop`, and define:
 
 * the graph of a function `f : α → β` (both as a relation and as a set in `α × β`);
 * the graph of a relation;
-* the (co)domain of a relation;
+* the domain and range of a relation;
 * the (pre)image of a set by a relation;
 * the converse relation (aka `flip`), and the diagonal of a relation;
 * (co)map₂, (co)map;

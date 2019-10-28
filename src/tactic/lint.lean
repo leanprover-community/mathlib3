@@ -303,12 +303,13 @@ meta def linter.doc_blame_thm : linter :=
 `extras` is a list of names that should resolve to declarations with type `linter`.
 If `use_only` is true, it only uses the linters in `extra`.
 Otherwise, it uses all linters in the environment tagged with `@[linter]`.
-If `slow` is false, it filters the linter list to only use fast tests. -/
+If `slow` is false, it only uses the fast default tests. -/
 meta def get_checks (slow : bool) (extra : list name) (use_only : bool) :
-  tactic (list linter) :=
-do linter_list ← if use_only then return extra else list.append extra <$> attribute.get_instances `linter,
-   linter_list ← get_linters linter_list.erase_dup,
-   return $ if slow then linter_list else linter_list.filter (λ l, l.is_fast)
+  tactic (list linter) := do
+  default ← if use_only then return [] else attribute.get_instances `linter >>= get_linters,
+  let default := if slow then default else default.filter (λ l, l.is_fast),
+  linter_list ← list.append default <$> get_linters extra,
+  return linter_list
 
 /-- If `verbose` is true, return `old ++ new`, else return `old`. -/
 private meta def append_when (verbose : bool) (old new : format) : format :=

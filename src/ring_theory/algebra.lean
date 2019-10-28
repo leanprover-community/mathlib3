@@ -256,17 +256,20 @@ end alg_hom
 namespace algebra
 
 variables (R : Type u) (S : Type v) (A : Type w)
-variables [comm_ring R] [comm_ring S] [ring A] [algebra R S] [algebra S A]
 include R S A
 
 /-- `comap R S A` is a type alias for `A`, and has an R-algebra structure defined on it
   when `algebra R S` and `algebra S A`. -/
 /- This is done to avoid a type class search with meta-variables `algebra R ?m_1` and 
-  `algebra ?m_1 A -/
-def comap : Type w := A
+    `algebra ?m_1 A -/
+/- The `nolint` attribute is added because it has unused arguments `R` and `S`, but these are necessary for synthesizing the
+     appropriate type classes -/
+@[nolint] def comap : Type w := A
 def comap.to_comap : A → comap R S A := id
 def comap.of_comap : comap R S A → A := id
+
 omit R S A
+variables [comm_ring R] [comm_ring S] [ring A] [algebra R S] [algebra S A]
 
 instance comap.ring : ring (comap R S A) := _inst_3
 instance comap.comm_ring (R : Type u) (S : Type v) (A : Type w)

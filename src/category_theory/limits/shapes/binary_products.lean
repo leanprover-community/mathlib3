@@ -120,14 +120,13 @@ instance [has_finite_coproducts.{v} C] : has_binary_coproducts.{v} C :=
 { has_colimits_of_shape := by apply_instance }
 
 section
--- TODO The `@[simp] def`s below should probably instead have appropriate simp lemmas written.
 
 variables {C} [has_binary_products.{v} C]
 
 local attribute [tidy] tactic.case_bash
 
 /-- The braiding isomorphism which swaps a binary product. -/
-@[simp] def prod.braiding (P Q : C) : P ⨯ Q ≅ Q ⨯ P :=
+@[simps] def prod.braiding (P Q : C) : P ⨯ Q ≅ Q ⨯ P :=
 { hom := prod.lift prod.snd prod.fst,
   inv := prod.lift prod.snd prod.fst }
 
@@ -137,7 +136,7 @@ local attribute [tidy] tactic.case_bash
 by tidy
 
 /-- The associator isomorphism for binary products. -/
-@[simp] def prod.associator
+@[simps] def prod.associator
   (P Q R : C) : (P ⨯ Q) ⨯ R ≅ P ⨯ (Q ⨯ R) :=
 { hom :=
   prod.lift
@@ -151,13 +150,13 @@ by tidy
 variables [has_terminal.{v} C]
 
 /-- The left unitor isomorphism for binary products with the terminal object. -/
-@[simp] def prod.left_unitor
+@[simps] def prod.left_unitor
   (P : C) : ⊤_ C ⨯ P ≅ P :=
 { hom := prod.snd,
   inv := prod.lift (terminal.from P) (𝟙 _) }
 
 /-- The right unitor isomorphism for binary products with the terminal object. -/
-@[simp] def prod.right_unitor
+@[simps] def prod.right_unitor
   (P : C) : P ⨯ ⊤_ C ≅ P :=
 { hom := prod.fst,
   inv := prod.lift (𝟙 _) (terminal.from P) }
@@ -169,7 +168,7 @@ variables {C} [has_binary_coproducts.{v} C]
 local attribute [tidy] tactic.case_bash
 
 /-- The braiding isomorphism which swaps a binary coproduct. -/
-@[simp] def coprod.braiding (P Q : C) : P ⨿ Q ≅ Q ⨿ P :=
+@[simps] def coprod.braiding (P Q : C) : P ⨿ Q ≅ Q ⨿ P :=
 { hom := coprod.desc coprod.inr coprod.inl,
   inv := coprod.desc coprod.inr coprod.inl }
 
@@ -179,7 +178,7 @@ local attribute [tidy] tactic.case_bash
 by tidy
 
 /-- The associator isomorphism for binary coproducts. -/
-@[simp] def coprod.associator
+@[simps] def coprod.associator
   (P Q R : C) : (P ⨿ Q) ⨿ R ≅ P ⨿ (Q ⨿ R) :=
 { hom :=
   coprod.desc
@@ -193,13 +192,13 @@ by tidy
 variables [has_initial.{v} C]
 
 /-- The left unitor isomorphism for binary coproducts with the initial object. -/
-@[simp] def coprod.left_unitor
+@[simps] def coprod.left_unitor
   (P : C) : ⊥_ C ⨿ P ≅ P :=
 { hom := coprod.desc (initial.to P) (𝟙 _),
   inv := coprod.inr }
 
 /-- The right unitor isomorphism for binary coproducts with the initial object. -/
-@[simp] def coprod.right_unitor
+@[simps] def coprod.right_unitor
   (P : C) : P ⨿ ⊥_ C ≅ P :=
 { hom := coprod.desc (𝟙 _) (initial.to P),
   inv := coprod.inl }

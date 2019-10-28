@@ -758,6 +758,9 @@ theorem to_nat_eq_max : ∀ (a : ℤ), (to_nat a : ℤ) = max a 0
 @[simp] theorem to_nat_of_nonneg {a : ℤ} (h : 0 ≤ a) : (to_nat a : ℤ) = a :=
 by rw [to_nat_eq_max, max_eq_left h]
 
+@[simp] lemma to_nat_sub_of_le (a b : ℤ) (h : b ≤ a) : (to_nat (a + -b) : ℤ) = a + - b :=
+int.to_nat_of_nonneg (sub_nonneg_of_le h)
+
 @[simp] theorem to_nat_coe_nat (n : ℕ) : to_nat ↑n = n := rfl
 
 theorem le_to_nat (a : ℤ) : a ≤ to_nat a :=

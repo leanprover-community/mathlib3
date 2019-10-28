@@ -9,23 +9,13 @@ import data.equiv.basic
 import data.finset
 import data.fintype
 
-/--
+/-!
 Type class for finitely enumerable types. The property is stronger
 than`fintype in that it assigns each element a rank in a finite
 enumeration.
 -/
 
 open finset (hiding singleton)
-
-namespace fin
-
-def enum (n : ℕ) : list (fin n) :=
-list.of_fn id
-
-@[simp] lemma mem_enum {n} (x : fin n) : x ∈ enum n :=
-by simp [enum,list.mem_of_fn_id]; existsi x.1; simp [fin.is_lt]
-
-end fin
 
 class fin_enum (α : Sort*) :=
 (card : ℕ)
@@ -38,6 +28,7 @@ namespace fin_enum
 
 variables {α : Type*}
 
+/-- transport a `fin_enum` instance across an equivalence -/
 def of_equiv (α) {β} [fin_enum α] (h : β ≃ α) : fin_enum β :=
 { card := card α,
   equiv := h.trans (equiv α),

@@ -14,6 +14,11 @@ example {α} [linear_ordered_field α] (a b c : α) :
 example {α} [linear_ordered_field α] (a b c : α) :
   b ^ 2 - 4 * c * a = -(4 * c * a) + b ^ 2 := by ring
 example (x : ℚ) : x ^ (2 + 2) = x^4 := by ring
+example {α} [comm_ring α] (x : α) : x ^ 2 = x * x := by ring
+example {α} [linear_ordered_field α] (a b c : α) :
+  b ^ 2 - 4 * c * a = -(4 * c * a) + b ^ 2 := by ring
+example {α} [linear_ordered_field α] (a b c: α) :
+  b ^ 2 - 4 * a * c = 4 * a * 0 + b * b - 4 * a * c := by ring
 example (a n s: ℕ) : a * (n - s) = (n - s) * a := by ring
 
 example (x y z : ℚ) (hx : x ≠ 0) (hy : y ≠ 0) (hz : z ≠ 0) :

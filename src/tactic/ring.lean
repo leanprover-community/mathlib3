@@ -78,13 +78,13 @@ open horner_expr
 meta def horner_expr.to_string : horner_expr → string
 | (const e) := to_string e
 | (xadd e a x (_, n) b) :=
-    "(" ++ a.to_string ++ ") * (" ++ to_string x ++ ")^"
+    "(" ++ a.to_string ++ ") * (" ++ to_string x.1 ++ ")^"
         ++ to_string n ++ " + " ++ b.to_string
 
 meta def horner_expr.pp : horner_expr → tactic format
 | (const e) := pp e
 | (xadd e a x (_, n) b) := do
-  pa ← a.pp, pb ← b.pp, px ← pp x,
+  pa ← a.pp, pb ← b.pp, px ← pp x.1,
   return $ "(" ++ pa ++ ") * (" ++ px ++ ")^" ++ to_string n ++ " + " ++ pb
 
 meta instance : has_to_tactic_format horner_expr := ⟨horner_expr.pp⟩
@@ -320,7 +320,7 @@ meta def eval_pow : horner_expr → expr × ℕ → ring_m (horner_expr × expr)
   let N : expr := expr.const `nat [],
   match b.e.to_nat with
   | some 0 := do
-    (n', h₁) ← lift $ mk_app ``has_mul.mul [n.1, m.1] >>= norm_num,
+    (n', h₁) ← lift $ mk_app ``has_mul.mul [n.1, m.1] >>= norm_num.derive',
     (a', h₂) ← eval_pow a m,
     α0 ← lift $ expr.of_nat c.α 0,
     return (xadd' c a' x (n', n.2 * m.2) (const α0),

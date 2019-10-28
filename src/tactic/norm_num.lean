@@ -85,14 +85,19 @@ meta def eval_pow (simp : expr → tactic (expr × expr)) : expr → tactic (exp
   e ← mk_app ``monoid.pow [e₁, e₂],
   (e', p) ← simp e,
   p' ← mk_app ``norm_num.pow_bit0_helper [e₁, e', e₂, p],
-  e'' ← to_expr ``(%%e' * %%e'),
-  return (e'', p')
+  e'' ← mk_app ``has_mul.mul [e', e'],
+  (e'', p₂) ← simp e'',
+  p'' ← mk_eq_trans p' p₂,
+  return (e'', p'')
 | `(monoid.pow %%e₁ (bit1 %%e₂)) := do
   e ← mk_app ``monoid.pow [e₁, e₂],
   (e', p) ← simp e,
   p' ← mk_app ``norm_num.pow_bit1_helper [e₁, e', e₂, p],
-  e'' ← to_expr ``(%%e' * %%e' * %%e₁),
-  return (e'', p')
+  e'' ← mk_app ``has_mul.mul [e', e'],
+  e'' ← mk_app ``has_mul.mul [e'', e₁],
+  (e'', p₂) ← simp e'',
+  p'' ← mk_eq_trans p' p₂,
+  return (e'', p'')
 | `(nat.pow %%e₁ %%e₂) := do
   p₁ ← mk_app ``nat.pow_eq_pow [e₁, e₂] >>= mk_eq_symm,
   e ← mk_app ``monoid.pow [e₁, e₂],

@@ -131,7 +131,6 @@ of_list
 instance psigma.fin_enum {β : α → Type*} [fin_enum α] [∀ a, fin_enum (β a)] :
   fin_enum (Σ' a, β a) :=
 fin_enum.of_equiv _ (equiv.psigma_equiv_sigma _)
---   (by intro x; cases x; simp)
 
 instance psigma.fin_enum_prop_left {α : Prop} {β : α → Type*} [∀ a, fin_enum (β a)] [decidable α] :
   fin_enum (Σ' a, β a) :=

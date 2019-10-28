@@ -402,8 +402,8 @@ meta def eval : expr → ring_m (horner_expr × expr)
     return (e', p'))
   (eval_atom e)
 | e@`(@has_pow.pow _ _ %%P %%e₁ %%e₂) := do
-  (e₂', p₂) ← eval e₂,
-  match e₂'.e.to_nat, P with
+  (e₂', p₂) ← lift $ norm_num.derive e₂,
+  match e₂'.to_nat, P with
   | some k, `(monoid.has_pow) := do
     (e₁', p₁) ← eval e₁,
     (e', p') ← eval_pow e₁' (e₂, k),

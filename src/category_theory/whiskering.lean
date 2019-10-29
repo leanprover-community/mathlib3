@@ -10,69 +10,43 @@ namespace category_theory
 universes u₁ v₁ u₂ v₂ u₃ v₃ u₄ v₄
 
 section
-variables (C : Type u₁) [𝒞 : category.{v₁} C]
-          (D : Type u₂) [𝒟 : category.{v₂} D]
-          (E : Type u₃) [ℰ : category.{v₃} E]
+variables {C : Type u₁} [𝒞 : category.{v₁} C]
+          {D : Type u₂} [𝒟 : category.{v₂} D]
+          {E : Type u₃} [ℰ : category.{v₃} E]
 include 𝒞 𝒟 ℰ
 
-def whiskering_left : (C ⥤ D) ⥤ ((D ⥤ E) ⥤ (C ⥤ E)) :=
+@[simps] def whisker_left (F : C ⥤ D) {G H : D ⥤ E} (α : G ⟶ H) : (F ⋙ G) ⟶ (F ⋙ H) :=
+{ app := λ c, α.app (F.obj c),
+  naturality' := by intros X Y f; rw [functor.comp_map, functor.comp_map, α.naturality] }
+
+@[simps] def whisker_right {G H : C ⥤ D} (α : G ⟶ H) (F : D ⥤ E) : (G ⋙ F) ⟶ (H ⋙ F) :=
+{ app := λ c, F.map (α.app c),
+  naturality' := by intros X Y f;
+    rw [functor.comp_map, functor.comp_map, ←F.map_comp, ←F.map_comp, α.naturality] }
+
+variables (C D E)
+
+@[simps] def whiskering_left : (C ⥤ D) ⥤ ((D ⥤ E) ⥤ (C ⥤ E)) :=
 { obj := λ F,
   { obj := λ G, F ⋙ G,
-    map := λ G H α,
-    { app := λ c, α.app (F.obj c),
-      naturality' := by intros X Y f; rw [functor.comp_map, functor.comp_map, α.naturality] } },
+    map := λ G H α, whisker_left F α },
   map := λ F G τ,
   { app := λ H,
     { app := λ c, H.map (τ.app c),
       naturality' := λ X Y f, begin dsimp, rw [←H.map_comp, ←H.map_comp, ←τ.naturality] end },
     naturality' := λ X Y f, begin ext1, dsimp, rw [f.naturality] end } }
 
-def whiskering_right : (D ⥤ E) ⥤ ((C ⥤ D) ⥤ (C ⥤ E)) :=
+@[simps] def whiskering_right : (D ⥤ E) ⥤ ((C ⥤ D) ⥤ (C ⥤ E)) :=
 { obj := λ H,
   { obj := λ F, F ⋙ H,
-    map := λ _ _ α,
-    { app := λ c, H.map (α.app c),
-      naturality' := by intros X Y f;
-        rw [functor.comp_map, functor.comp_map, ←H.map_comp, ←H.map_comp, α.naturality] } },
+    map := λ _ _ α, whisker_right α H },
   map := λ G H τ,
   { app := λ F,
     { app := λ c, τ.app (F.obj c),
       naturality' := λ X Y f, begin dsimp, rw [τ.naturality] end },
     naturality' := λ X Y f, begin ext1, dsimp, rw [←nat_trans.naturality] end } }
 
-variables {C} {D} {E}
-
-def whisker_left (F : C ⥤ D) {G H : D ⥤ E} (α : G ⟶ H) : (F ⋙ G) ⟶ (F ⋙ H) :=
-((whiskering_left C D E).obj F).map α
-
-@[simp] lemma whiskering_left_obj_obj (F : C ⥤ D) (G : D ⥤ E) :
-  ((whiskering_left C D E).obj F).obj G = F ⋙ G :=
-rfl
-@[simp] lemma whiskering_left_obj_map (F : C ⥤ D) {G H : D ⥤ E} (α : G ⟶ H) :
-  ((whiskering_left C D E).obj F).map α = whisker_left F α :=
-rfl
-@[simp] lemma whiskering_left_map_app_app {F G : C ⥤ D} (τ : F ⟶ G) (H : D ⥤ E) (c) :
-  (((whiskering_left C D E).map τ).app H).app c = H.map (τ.app c) :=
-rfl
-@[simp] lemma whisker_left.app (F : C ⥤ D) {G H : D ⥤ E} (α : G ⟶ H) (X : C) :
-  (whisker_left F α).app X = α.app (F.obj X) :=
-rfl
-
-def whisker_right {G H : C ⥤ D} (α : G ⟶ H) (F : D ⥤ E) : (G ⋙ F) ⟶ (H ⋙ F) :=
-((whiskering_right C D E).obj F).map α
-
-@[simp] lemma whiskering_right_obj_obj (G : C ⥤ D) (F : D ⥤ E) :
-  ((whiskering_right C D E).obj F).obj G = G ⋙ F :=
-rfl
-@[simp] lemma whiskering_right_obj_map {G H : C ⥤ D} (α : G ⟶ H) (F : D ⥤ E) :
-  ((whiskering_right C D E).obj F).map α = whisker_right α F :=
-rfl
-@[simp] lemma whiskering_right_map_app_app (F : C ⥤ D) {G H : D ⥤ E} (τ : G ⟶ H) (c) :
-  (((whiskering_right C D E).map τ).app F).app c = τ.app (F.obj c) :=
-rfl
-@[simp] lemma whisker_right.app {G H : C ⥤ D} (α : G ⟶ H) (F : D ⥤ E) (X : C) :
-   (whisker_right α F).app X = F.map (α.app X) :=
-rfl
+variables {C D E}
 
 @[simp] lemma whisker_left_id (F : C ⥤ D) {G : D ⥤ E} :
   whisker_left F (nat_trans.id G) = nat_trans.id (F.comp G) :=
@@ -98,6 +72,7 @@ rfl
 
 def iso_whisker_left (F : C ⥤ D) {G H : D ⥤ E} (α : G ≅ H) : (F ⋙ G) ≅ (F ⋙ H) :=
 ((whiskering_left C D E).obj F).map_iso α
+
 @[simp] lemma iso_whisker_left_hom (F : C ⥤ D) {G H : D ⥤ E} (α : G ≅ H) :
   (iso_whisker_left F α).hom = whisker_left F α.hom :=
 rfl
@@ -107,6 +82,7 @@ rfl
 
 def iso_whisker_right {G H : C ⥤ D} (α : G ≅ H) (F : D ⥤ E) : (G ⋙ F) ≅ (H ⋙ F) :=
 ((whiskering_right C D E).obj F).map_iso α
+
 @[simp] lemma iso_whisker_right_hom {G H : C ⥤ D} (α : G ≅ H) (F : D ⥤ E) :
   (iso_whisker_right α F).hom = whisker_right α.hom F :=
 rfl

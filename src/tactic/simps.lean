@@ -34,8 +34,8 @@ meta def simps_add_projection (nm : name) (type lhs rhs : expr) (args : list exp
   If `todo` is non-empty, it will generate exactly the names in `todo`. -/
 meta def simps_add_projections : ∀(e : environment) (nm : name) (suffix : string)
   (type lhs rhs : expr) (args : list expr) (univs : list name)
-  (add_simp must_be_str last_nm : bool) (todo : list string), tactic unit
-| e nm suffix type lhs rhs args univs add_simp must_be_str last_nm todo := do
+  (add_simp must_be_str short_nm : bool) (todo : list string), tactic unit
+| e nm suffix type lhs rhs args univs add_simp must_be_str short_nm todo := do
   (type_args, tgt) ← mk_local_pis_whnf type,
   tgt ← whnf tgt,
   let new_args := args ++ type_args,
@@ -75,10 +75,10 @@ meta def simps_add_projections : ∀(e : environment) (nm : name) (suffix : stri
           when ((¬ b ∧ todo = []) ∨ (todo ≠ [] ∧ new_todo ≠ [])) $ do
             -- cannot use `mk_app` here, since the resulting application might still be a function.
             new_lhs ← mk_mapp proj $ (params ++ [lhs_ap]).map some,
-            let new_suffix := if last_nm then "_" ++ proj.last else
+            let new_suffix := if short_nm then "_" ++ proj.last else
               suffix ++ "_" ++ proj.last,
             simps_add_projections e nm new_suffix new_type new_lhs new_rhs new_args univs
-              add_simp ff last_nm new_todo
+              add_simp ff short_nm new_todo
     else do
       when must_be_str $
         fail "Invalid `simps` attribute. Body is not a constructor application",
@@ -94,25 +94,25 @@ meta def simps_add_projections : ∀(e : environment) (nm : name) (suffix : stri
 
 /-- `simps_tac` derives simp-lemmas for all (nested) non-Prop projections of the declaration.
   If `todo` is non-empty, it will generate exactly the names in `todo`.
-  If `last_nm` is true, the generated names will only use the last projection name.
+  If `short_nm` is true, the generated names will only use the last projection name.
   -/
-meta def simps_tac (nm : name) (add_simp : bool) (last_nm : bool := ff)
+meta def simps_tac (nm : name) (add_simp : bool) (short_nm : bool := ff)
   (todo : list string := []) : tactic unit := do
   e ← get_env,
   d ← e.get nm,
   let lhs : expr := const d.to_name (d.univ_params.map level.param),
   let todo := todo.erase_dup.map $ λ proj, "_" ++ proj,
-  simps_add_projections e nm "" d.type lhs d.value [] d.univ_params add_simp tt last_nm todo
+  simps_add_projections e nm "" d.type lhs d.value [] d.univ_params add_simp tt short_nm todo
 
 reserve notation `lemmas_only`
-reserve notation `last_name`
+reserve notation `short_name`
 setup_tactic_parser
 
 /-- The parser for simps. Pattern: `'lemmas_only'? ident*` -/
 meta def simps_parser : parser (bool × bool × list string) :=
 /- note: we currently don't check whether the user has written a nonsense namespace as arguments. -/
 prod.mk <$> (option.is_none <$> (tk "lemmas_only")?) <*>
-(prod.mk <$> (option.is_some <$> (tk "last_name")?) <*> many (name.last <$> ident))
+(prod.mk <$> (option.is_some <$> (tk "short_name")?) <*> many (name.last <$> ident))
 
 
 /--
@@ -138,9 +138,9 @@ prod.mk <$> (option.is_none <$> (tk "lemmas_only")?) <*>
 * If one of the values is an eta-expanded structure, we will eta-reduce this structure.
 * You can use `@[simps lemmas_only]` to derive the lemmas, but not mark them
   as simp-lemmas.
-* You can use `@[simps last_name]` to only use the name of the last projection for the name of the
+* You can use `@[simps short_name]` to only use the name of the last projection for the name of the
   generated lemmas.
-* The precise syntax is `('simps' 'lemmas_only'? 'last_name'? ident*)`.
+* The precise syntax is `('simps' 'lemmas_only'? 'short_name'? ident*)`.
 * If one of the projections is marked as a coercion, the generated lemmas do *not* use this
   coercion.
 * `@[simps]` reduces let-expressions where necessary.
@@ -152,5 +152,5 @@ prod.mk <$> (option.is_none <$> (tk "lemmas_only")?) <*>
   descr := "Automatically derive lemmas specifying the projections of this declaration.",
   parser := simps_parser,
   after_set := some $
-    λ n _ _, do (add_simp, last_nm, todo) ← simps_attr.get_param n,
-      simps_tac n add_simp last_nm todo }
+    λ n _ _, do (add_simp, short_nm, todo) ← simps_attr.get_param n,
+      simps_tac n add_simp short_nm todo }

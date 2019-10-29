@@ -1303,9 +1303,9 @@ See also additional documentation of `using_well_founded` in
 * If one of the values is an eta-expanded structure, we will eta-reduce this structure.
 * You can use `@[simps lemmas_only]` to derive the lemmas, but not mark them
   as simp-lemmas.
-* You can use `@[simps last_name]` to only use the name of the last projection for the name of the
+* You can use `@[simps short_name]` to only use the name of the last projection for the name of the
   generated lemmas.
-* The precise syntax is `('simps' 'lemmas_only'? 'last_name'? ident*)`.
+* The precise syntax is `('simps' 'lemmas_only'? 'short_name'? ident*)`.
 * If one of the projections is marked as a coercion, the generated lemmas do *not* use this
   coercion.
 * `@[simps]` reduces let-expressions where necessary.

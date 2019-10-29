@@ -222,9 +222,9 @@ run_cmd do
   guard $ d1.type =ₐ d2.type,
   skip
 
-/- check last_name option -/
-@[simps last_name] def last_name1 : (ℕ × ℕ) × ℕ × ℕ := ((1, 2), 3, 4)
+/- check short_name option -/
+@[simps short_name] def short_name1 : (ℕ × ℕ) × ℕ × ℕ := ((1, 2), 3, 4)
 run_cmd do
   e ← get_env,
-  e.get `last_name1_fst, e.get `last_name1_fst_2,
-  e.get `last_name1_snd, e.get `last_name1_snd_2
+  e.get `short_name1_fst, e.get `short_name1_fst_2,
+  e.get `short_name1_snd, e.get `short_name1_snd_2

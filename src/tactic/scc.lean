@@ -73,6 +73,8 @@ do m ← read_ref cl,
 
 meta instance : has_to_tactic_format closure := ⟨ to_tactic_format ⟩
 
+/-- `(n,r,p) ← root cl e` returns `r` the root of the tree that `e` is a part of (which might be itself)
+along with `p` a proof of `e ↔ r` and `n`, the preorder numbering of the root. -/
 meta def root (cl : closure) : expr → tactic (ℕ × expr × expr) | e :=
 do m ← read_ref cl,
    match m.find e with
@@ -95,6 +97,12 @@ do p₂ ← mk_app ``iff.symm [p₀],
    p ← mk_app ``iff.trans [p,p₁],
    modify_ref cl $ λ m, m.insert e₀ $ sum.inr (e₁,p)
 
+/-- `merge cl p`, with `p` a proof of `e₀ ↔ e₁` for some `e₀` and `e₁`, 
+merges the trees of `e₀` and `e₁` and keeps the root with the smallest preorder
+number as the root. This ensures that, in the depth-first traversal of the graph,
+when encountering an edge going into vertex whose equivalence class includes 
+a vertex that originated the current search, that vertex will be the root of 
+the corresponding tree. -/
 meta def merge (cl : closure) (p : expr) : tactic unit :=
 do `(%%e₀ ↔ %%e₁) ← infer_type p >>= instantiate_mvars,
    (n₂,e₂,p₂) ← root cl e₀,
@@ -108,6 +116,8 @@ do `(%%e₀ ↔ %%e₁) ← infer_type p >>= instantiate_mvars,
 meta def assign_preorder (cl : closure) (e : expr) : tactic unit :=
 modify_ref cl $ λ m, m.insert e (sum.inl m.size)
 
+/-- `prove_eqv cl e₀ e₁` construct a proof of equivalence of `e₀` and `e₁` if
+they are equivalent -/
 meta def prove_eqv (cl : closure) (e₀ e₁ : expr) : tactic expr :=
 do (_,r,p₀) ← root cl e₀,
    (_,r',p₁) ← root cl e₁,
@@ -115,9 +125,11 @@ do (_,r,p₀) ← root cl e₀,
    p₁ ← mk_app ``iff.symm [p₁],
    mk_app ``iff.trans [p₀,p₁]
 
+/-- `prove_impl cl e₀ e₁` construct a proof of `e₀ -> e₁` if they are equivalent -/
 meta def prove_impl (cl : closure) (e₀ e₁ : expr) : tactic expr :=
 cl.prove_eqv e₀ e₁ >>= iff_mp
 
+/-- `is_eqv cl e₀ e₁` checks whether `e₀` and `e₁` are equivalent without building a proof -/
 meta def is_eqv (cl : closure) (e₀ e₁ : expr) : tactic bool :=
 do (_,r,p₀) ← root cl e₀,
    (_,r',p₁) ← root cl e₁,
@@ -125,14 +137,17 @@ do (_,r,p₀) ← root cl e₀,
 
 end closure
 
+/-- mutable graphs between local propositions that imply each other with the proof of implication -/
 @[reducible]
 meta def impl_graph := ref (expr_map (list $ expr × expr))
 
+/-- create a local `impl_graph` -/
 meta def with_impl_graph {α} : (impl_graph → tactic α) → tactic α :=
 using_new_ref (expr_map.mk (list $ expr × expr))
 
 namespace impl_graph
 
+/-- `add_edge g p`, with `p` a proof of `v₀ → v₁` or `v₀ ↔ v₁`, add an edge in the implication graph -/
 meta def add_edge (g : impl_graph) : expr → tactic unit | p :=
 do t ← infer_type p,
    match t with
@@ -154,6 +169,10 @@ parameter g : expr_map (list $ expr × expr)
 parameter visit : ref $ expr_map bool
 parameter cl : closure
 
+/-- `merge_path path e`, where `path` and `e` forms a cycle with proofs of implication between
+consecutive vertices. The proofs are compiled into proofs of equivalences and added to the closure
+structure. `e` and the first vertex of `path` do not have to be the same but they have to be 
+in the same equivalence class. -/
 meta def merge_path (path : list (expr × expr)) (e : expr) : tactic unit :=
 do p₁ ← cl.prove_impl e path.head.fst,
    p₂ ← mk_mapp ``id [e],
@@ -175,6 +194,10 @@ meta def collapse' : list (expr × expr) → list (expr × expr) → expr → ta
        then merge_path acc' v
        else collapse' acc' xs v
 
+/-- `collapse path v`, where `v` is a vertex that originated the current search 
+(or a vertex in the same equivalence class as the one that originated the current search).
+It or its equivalent should be found in `path`. Since the vertices following `v` in the path 
+form a cycle with `v`, they can all be added to an equivalence class. -/
 meta def collapse : list (expr × expr) → expr → tactic unit :=
 collapse' []
 
@@ -213,6 +236,7 @@ do m ← read_ref visit,
 
 end scc
 
+/-- Use the local assumptions to create a set of equivalence classes. -/
 meta def mk_scc (cl : closure) : tactic (expr_map (list (expr × expr))) :=
 with_impl_graph $ λ g,
 using_new_ref (expr_map.mk bool) $ λ visit,

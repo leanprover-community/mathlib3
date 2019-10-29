@@ -222,10 +222,13 @@ do (declaration.defn _ _ _ d _ _) ← get_decl n,
    e' ← to_expr e,
    guard (d =ₐ e') <|> trace d >> failed
 
-meta def to_implicit : expr → expr
-| (expr.local_const uniq n bi t) := expr.local_const uniq n binder_info.implicit t
-| e := e
+/-- `pis loc_consts f` is used to create a pi expression whose body is `f`.
+`loc_consts` should be a list of local constants. The function will abstract these local
+constants from `f` and bind them with pi binders.
 
+For example, if `a, b` are local constants with types `Ta, Tb`,
+``pis [a, b] `(f a b)`` will return the expression
+`Π (a : Ta) (b : Tb), f a b` -/
 meta def pis : list expr → expr → tactic expr
 | (e@(expr.local_const uniq pp info _) :: es) f := do
   t ← infer_type e,
@@ -233,6 +236,13 @@ meta def pis : list expr → expr → tactic expr
   pure $ expr.pi pp info t (expr.abstract_local f' uniq)
 | _ f := pure f
 
+/-- `lambdas loc_consts f` is used to create a lambda expression whose body is `f`.
+`loc_consts` should be a list of local constants. The function will abstract these local
+constants from `f` and bind them with lambda binders.
+
+For example, if `a, b` are local constants with types `Ta, Tb`,
+``lambdas [a, b] `(f a b)`` will return the expression
+`λ (a : Ta) (b : Tb), f a b` -/
 meta def lambdas : list expr → expr → tactic expr
 | (e@(expr.local_const uniq pp info _) :: es) f := do
   t ← infer_type e,
@@ -240,8 +250,11 @@ meta def lambdas : list expr → expr → tactic expr
   pure $ expr.lam pp info t (expr.abstract_local f' uniq)
 | _ f := pure f
 
+/-- Given `elab_def`, a tactic to solve the current goal,
+`extract_def n trusted elab_def` will create an auxiliary definition named `n` and use it
+to close the goal. If `trusted` is false, it will be a meta definition. -/
 meta def extract_def (n : name) (trusted : bool) (elab_def : tactic unit) : tactic unit :=
-do cxt ← list.map to_implicit <$> local_context,
+do cxt ← list.map expr.to_implicit <$> local_context,
    t ← target,
    (eqns,d) ← solve_aux t elab_def,
    d ← instantiate_mvars d,
@@ -251,6 +264,7 @@ do cxt ← list.map to_implicit <$> local_context,
    add_decl $ declaration.defn n univ t' d' (reducibility_hints.regular 1 tt) trusted,
    applyc n
 
+/-- Attempts to close the goal with `dec_trivial`. -/
 meta def exact_dec_trivial : tactic unit := `[exact dec_trivial]
 
 /-- Runs a tactic for a result, reverting the state after completion -/
@@ -565,9 +579,10 @@ do h ← get_local hyp,
    let repl_tp := tp.replace (λ a n, if a = olde then some newe else none),
    change_core repl_tp (some h)
 
+/-- Returns a list of all metavariables in the current partial proof. This can differ from
+the list of goals, since the goals can be manually edited. -/
 meta def metavariables : tactic (list expr) :=
-do r ← result,
-   pure (r.list_meta_vars)
+expr.list_meta_vars <$> result
 
 /-- Fail if the target contains a metavariable. -/
 meta def no_mvars_in_target : tactic unit :=

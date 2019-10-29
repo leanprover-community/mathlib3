@@ -224,6 +224,11 @@ meta def is_sort : expr → bool
 | (sort _) := tt
 | e         := ff
 
+/-- If `e` is a local constant, `to_implicit e` changes the binder info of `e` to `implicit`. -/
+meta def to_implicit : expr → expr
+| (expr.local_const uniq n bi t) := expr.local_const uniq n binder_info.implicit t
+| e := e
+
 /-- Returns a list of all local constants in an expression (without duplicates). -/
 meta def list_local_consts (e : expr) : list expr :=
 e.fold [] (λ e' _ es, if e'.is_local_constant then insert e' es else es)

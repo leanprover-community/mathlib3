@@ -289,7 +289,7 @@ meta def instantiate_lambdas : list expr → expr → expr
 | (e'::es) (lam n bi t e) := instantiate_lambdas es (e.instantiate_var e')
 | _        e              := e
 
-/-- `instantiate_lambdas_or_apps es e` Instantiate lambdas in `e` by expressions from `es`.
+/-- `instantiate_lambdas_or_apps es e` instantiates lambdas in `e` by expressions from `es`.
 If the length of `es` is larger than the number of lambdas in `e`,
 then the term is applied to the remaining terms.
 Also reduces head let-expressions in `e`, including those after instantiating all lambdas. -/

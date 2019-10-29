@@ -972,9 +972,7 @@ instance rename.is_ring_hom
 
 section equiv
 
-variables (α) [comm_ring α]
-
-set_option class.instance_max_depth 40
+variables (α) [comm_semiring α]
 
 /-- The ring isomorphism between multivariable polynomials in no variables and the ground ring. -/
 def pempty_ring_equiv : mv_polynomial pempty α ≃+* α :=
@@ -1018,7 +1016,7 @@ def ring_equiv_of_equiv (e : β ≃ γ) : mv_polynomial β α ≃+* mv_polynomia
   map_add'  := rename_add e }
 
 /-- The ring isomorphism between multivariable polynomials induced by a ring isomorphism of the ground ring. -/
-def ring_equiv_congr [comm_ring γ] (e : α ≃+* γ) : mv_polynomial β α ≃+* mv_polynomial β γ :=
+def ring_equiv_congr [comm_semiring γ] (e : α ≃+* γ) : mv_polynomial β α ≃+* mv_polynomial β γ :=
 { to_fun    := map e,
   inv_fun   := map e.symm,
   left_inv  := assume p,
@@ -1034,9 +1032,6 @@ def ring_equiv_congr [comm_ring γ] (e : α ≃+* γ) : mv_polynomial β α ≃+
 
 section
 variables (β γ δ)
-
-instance ring_on_sum : ring (mv_polynomial (β ⊕ γ) α) := by apply_instance
-instance ring_on_iter : ring (mv_polynomial β (mv_polynomial γ α)) := by apply_instance
 
 /--
 The function from multivariable polynomials in a sum of two types,
@@ -1074,12 +1069,8 @@ See `sum_ring_equiv` for the ring isomorphism.
 def iter_to_sum : mv_polynomial β (mv_polynomial γ α) → mv_polynomial (β ⊕ γ) α :=
 eval₂ (eval₂ C (X ∘ sum.inr)) (X ∘ sum.inl)
 
-section
-
 instance is_semiring_hom_iter_to_sum : is_semiring_hom (iter_to_sum α β γ) :=
 eval₂.is_semiring_hom _ _
-
-end
 
 lemma iter_to_sum_C_C (a : α) : iter_to_sum α β γ (C (C a)) = C a :=
 eq.trans (eval₂_C _ _ (C a)) (eval₂_C _ _ _)
@@ -1091,7 +1082,7 @@ lemma iter_to_sum_C_X (c : γ) : iter_to_sum α β γ (C (X c)) = X (sum.inr c) 
 eq.trans (eval₂_C _ _ (X c)) (eval₂_X _ _ _)
 
 /-- A helper function for `sum_ring_equiv`. -/
-def mv_polynomial_equiv_mv_polynomial [comm_ring δ]
+def mv_polynomial_equiv_mv_polynomial [comm_semiring δ]
   (f : mv_polynomial β α → mv_polynomial γ δ) (hf : is_semiring_hom f)
   (g : mv_polynomial γ δ → mv_polynomial β α) (hg : is_semiring_hom g)
   (hfgC : ∀a, f (g (C a)) = C a)
@@ -1135,15 +1126,6 @@ begin
   { apply mv_polynomial.is_semiring_hom_sum_to_iter α β γ },
   { apply mv_polynomial.is_semiring_hom_iter_to_sum α β γ }
 end
-
-instance option_ring : ring (mv_polynomial (option β) α) :=
-mv_polynomial.ring
-
-instance polynomial_ring : ring (polynomial (mv_polynomial β α)) :=
-@comm_ring.to_ring _ polynomial.comm_ring
-
-instance polynomial_ring2 : ring (mv_polynomial β (polynomial α)) :=
-by apply_instance
 
 /--
 The ring isomorphism between multivariable polynomials in `option β` and

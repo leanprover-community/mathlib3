@@ -213,6 +213,23 @@ section min_fac
   (not_congr $ prime_def_min_fac.trans $ and_iff_right n2).trans $
     (lt_iff_le_and_ne.trans $ and_iff_right $ min_fac_le $ le_of_succ_le n2).symm
 
+  lemma min_fac_le_div {n : ℕ} (pos : 0 < n) (np : ¬ prime n) : min_fac n ≤ n / min_fac n :=
+  match min_fac_dvd n with
+  | ⟨0, h0⟩     := absurd pos $ by rw [h0, mul_zero]; exact dec_trivial
+  | ⟨1, h1⟩     :=
+    begin
+      rw mul_one at h1,
+      rw [prime_def_min_fac, not_and_distrib, ← h1, eq_self_iff_true, not_true, or_false, not_le] at np,
+      rw [le_antisymm (le_of_lt_succ np) (succ_le_of_lt pos), min_fac_one, nat.div_one]
+    end
+  | ⟨(x+2), hx⟩ :=
+    begin
+      conv_rhs { congr, rw hx },
+      rw [nat.mul_div_cancel_left _ (min_fac_pos _)],
+      exact min_fac_le_of_dvd dec_trivial ⟨min_fac n, by rwa mul_comm⟩
+    end
+  end
+
 end min_fac
 
 theorem exists_dvd_of_not_prime {n : ℕ} (n2 : 2 ≤ n) (np : ¬ prime n) :

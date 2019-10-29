@@ -14,6 +14,38 @@ of implications.
 import tactic.tauto
 import category.basic data.sum
 
+/-!
+# Strongly Connected Components
+
+This file defines tactics to construct proofs of equivalences between a set of mutually equivalent 
+propositions. The tactics use implications transitively to find sets of equivalent propositions.
+
+## Implementation notes
+
+The tactics uses a strongly connected components algorithm on a graph where propositions are vertices
+and edges are proofs that the source implies the target. The strongly connected components are therefore
+sets of propositions that are each equivalent to each other.
+
+The resulting strongly connected components are encoded in a disjoint set data structure to facilitate
+the construction of proof of equivalence between two arbitrary members of an equivalence class.
+
+## Possible generalizations
+
+Instead of reasoning about implications and equivalence, we could generalize the machinery to
+reason about arbitrary partial orders.
+
+## References
+
+ * Tarjan, R. E. (1972), "Depth-first search and linear graph algorithms",
+   SIAM Journal on Computing, 1 (2): 146–160, doi:10.1137/0201010
+ * Dijkstra, Edsger (1976), A Discipline of Programming, NJ: Prentice Hall, Ch. 25.
+ * https://en.wikipedia.org/wiki/Disjoint-set_data_structure
+
+## Tags
+
+graphs, tactic, strongly connected components, disjoint sets
+-/
+
 namespace tactic
 
 /--
@@ -210,10 +242,9 @@ data structure using path compression. This is a compact
 representation that allows us, after the fact, construct a proof of
 equivalence between any two members of an equivalence class.
 
-Tarjan, R. E. (1972), "Depth-first search and linear graph algorithms",
-SIAM Journal on Computing, 1 (2): 146–160, doi:10.1137/0201010
-
-Dijkstra, Edsger (1976), A Discipline of Programming, NJ: Prentice Hall, Ch. 25.
+ * Tarjan, R. E. (1972), "Depth-first search and linear graph algorithms",
+   SIAM Journal on Computing, 1 (2): 146–160, doi:10.1137/0201010
+ * Dijkstra, Edsger (1976), A Discipline of Programming, NJ: Prentice Hall, Ch. 25.
 -/
 meta def dfs_at :
   list (expr × expr) → expr → tactic unit

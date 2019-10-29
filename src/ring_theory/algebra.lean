@@ -370,6 +370,13 @@ end
 
 end mv_polynomial
 
+namespace rat
+
+instance algebra_rat {α} [field α] [char_zero α] : algebra ℚ α :=
+algebra.of_ring_hom rat.cast (by apply_instance)
+
+end rat
+
 namespace complex
 
 instance algebra_over_reals : algebra ℝ ℂ :=

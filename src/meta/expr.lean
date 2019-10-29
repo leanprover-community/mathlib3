@@ -112,11 +112,16 @@ meta def length : name → ℕ
 | (mk_numeral n p)        := p.length
 | anonymous               := "[anonymous]".length
 
-/-- checks whether `nm` has a prefix (including itself) such that P is true -/
+/-- Checks whether `nm` has a prefix (including itself) such that P is true -/
 def has_prefix (P : name → bool) : name → bool
 | anonymous := ff
 | (mk_string s nm)  := P (mk_string s nm) ∨ has_prefix nm
 | (mk_numeral s nm) := P (mk_numeral s nm) ∨ has_prefix nm
+
+/-- Appends `'` to the end of a name. -/
+meta def add_prime : name → name
+| (name.mk_string s p) := name.mk_string (s ++ "'") p
+| n := (name.mk_string "x'" n)
 
 end name
 

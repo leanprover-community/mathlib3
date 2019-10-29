@@ -298,7 +298,8 @@ do to_remove ← hs.mfilter $ λ h, do {
   to_remove.mmap' (λ h, try (clear h)),
   return (¬ to_remove.empty ∨ goal_simplified)
 
-meta def simp_bottom_up' (post : expr → tactic (expr × expr)) (e : expr) (cfg : simp_config := {}) : tactic (expr × expr) :=
+meta def simp_bottom_up' (post : expr → tactic (expr × expr)) (e : expr) (cfg : simp_config := {}) :
+  tactic (expr × expr) :=
 prod.snd <$> simplify_bottom_up () (λ _, (<$>) (prod.mk ()) ∘ post) e cfg
 
 meta structure instance_cache :=
@@ -423,6 +424,7 @@ do h' ← assert h p,
    set_goals [g₁],
    return (h', gs)
 
+/-- `var_names e` returns a list of the unique names of the initial pi bindings in `e`. -/
 meta def var_names : expr → list name
 | (expr.pi n _ _ b) := n :: var_names b
 | _ := []
@@ -507,6 +509,9 @@ meta def apply_rules (hs : list pexpr) (n : nat) : tactic unit :=
 do l ← build_list_expr_for_apply hs,
    iterate_at_most_on_subgoals n (assumption <|> apply_list_expr l)
 
+/-- `replace h p` elaborates the pexpr `p`, clears the existing hypothesis named `h` from the local
+context, and adds a new hypothesis named `h`. The type of this hypothesis is the type of `p`.
+Fails if there is nothing named `h` in the local context. -/
 meta def replace (h : name) (p : pexpr) : tactic unit :=
 do h' ← get_local h,
    p ← to_expr p,
@@ -622,6 +627,8 @@ that no other goals depend on it, even through shared meta-variables.
 meta def independent_goal : tactic unit :=
 no_mvars_in_target >> terminal_goal
 
+/-- `triv'` tries to close the first goal with the proof `trivial : true`. Unlike `triv`,
+it only unfolds reducible definitions, so it sometimes fails faster. -/
 meta def triv' : tactic unit := do c ← mk_const `trivial, exact c reducible
 
 variable {α : Type}
@@ -633,12 +640,15 @@ private meta def iterate_aux (t : tactic α) : list α → tactic (list α)
 meta def iterate' (t : tactic α) : tactic (list α) :=
 list.reverse <$> iterate_aux t []
 
-/-- Like iterate', but fail if the tactic does not succeed at least once. -/
+/-- Apply a tactic as many times as possible, collecting the results in a list.
+Fail if the tactic does not succeed at least once. -/
 meta def iterate1 (t : tactic α) : tactic (α × list α) :=
 do r ← decorate_ex "iterate1 failed: tactic did not succeed" t,
    L ← iterate' t,
    return (r, L)
 
+/-- Introduces one or more variables and returns the new local constants.
+Fails if `intro` cannot be applied. -/
 meta def intros1 : tactic (list expr) :=
 iterate1 intro1 >>= λ p, return (p.1 :: p.2)
 
@@ -1008,16 +1018,14 @@ sum.inr : ℕ → ℤ ⊕ ℕ
      trace (format.join ts).to_string,
      return [(out,"")] }
 
+/-- Makes the declaration `classical.prop_decidable` available to type class inference.
+This asserts that all propositions are decidable, but does not have computational content. -/
 meta def classical : tactic unit :=
 do h ← get_unused_name `_inst,
    mk_const `classical.prop_decidable >>= note h none,
    reset_instance_cache
 
 open expr
-
-meta def add_prime : name → name
-| (name.mk_string s p) := name.mk_string (s ++ "'") p
-| n := (name.mk_string "x'" n)
 
 meta def mk_comp (v : expr) : expr → tactic expr
 | (app f e) :=
@@ -1067,7 +1075,7 @@ form `f ∘ g = h` for reasoning about higher-order functions.",
          intros, applyc ``_root_.funext, intro1, applyc lmm; assumption },
        pr ← instantiate_mvars pr,
        lmm' ← higher_order_attr.get_param lmm,
-       lmm' ← (flip name.update_prefix lmm.get_prefix <$> lmm') <|> pure (add_prime lmm),
+       lmm' ← (flip name.update_prefix lmm.get_prefix <$> lmm') <|> pure lmm.add_prime,
        add_decl $ declaration.thm lmm' lvls t' (pure pr),
        copy_attribute `simp lmm tt lmm',
        copy_attribute `functor_norm lmm tt lmm' }
@@ -1077,15 +1085,28 @@ attribute [higher_order map_comp_pure] map_pure
 private meta def tactic.use_aux (h : pexpr) : tactic unit :=
 (focus1 (refine h >> done)) <|> (fconstructor >> tactic.use_aux)
 
+/-- Similar to `existsi`, `use l` will use entries in `l` to instantiate existential obligations
+at the beginning of a target. Unlike `existsi`, the pexprs in `l` are elaborated with respect to
+the expected type.
+
+```
+example : ∃ x : ℤ, x = x :=
+by tactic.use ``(42)
+```
+
+See the doc string for `tactic.interactive.use` for more information.
+ -/
 protected meta def use (l : list pexpr) : tactic unit :=
 focus1 $ seq (l.mmap' $ λ h, tactic.use_aux h <|> fail format!"failed to instantiate goal with {h}")
               instantiate_mvars_in_target
 
-
+/-- `clear_aux_decl_aux l` clears all expressions in `l` that represent aux decls from the
+local context. -/
 meta def clear_aux_decl_aux : list expr → tactic unit
 | []     := skip
 | (e::l) := do cond e.is_aux_decl (tactic.clear e) skip, clear_aux_decl_aux l
 
+/-- `clear_aux_decl` clears all expressions from the local context that represent aux decls. -/
 meta def clear_aux_decl : tactic unit :=
 local_context >>= clear_aux_decl_aux
 
@@ -1122,6 +1143,11 @@ do tgt   ← infer_type h,
 
 precedence `setup_tactic_parser`:0
 
+/-- `setup_tactic_parser_cmd` is a user command that opens the namespaces used in writing
+interactive tactics, and declares the local postfix notation `?` for `optional` and `*` for `many`.
+It does *not* use the `namespace` command, so it will typically be used after
+`namespace tactic.interactive`.
+-/
 @[user_command]
 meta def setup_tactic_parser_cmd (_ : interactive.parse $ tk "setup_tactic_parser") : lean.parser unit :=
 emit_code_here "
@@ -1155,8 +1181,10 @@ end
 
 open lean interactive
 
+/-- A type alias for `tactic format`, standing for "pretty print format". -/
 meta def pformat := tactic format
 
+/-- `mk` lifts `fmt : format` to the tactic monad (`pformat`). -/
 meta def pformat.mk (fmt : format) : pformat := pure fmt
 
 meta def to_pfmt {α} [has_to_tactic_format α] (x : α) : pformat :=

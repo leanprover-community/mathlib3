@@ -192,6 +192,9 @@ by rw [ceil, neg_le, le_floor, int.cast_neg, neg_le_neg_iff]
 theorem lt_ceil {x : α} {z : ℤ} : z < ⌈x⌉ ↔ (z:α) < x :=
 lt_iff_lt_of_le_iff_le ceil_le
 
+theorem ceil_le_floor_add_one (x : α) : ⌈x⌉ ≤ ⌊x⌋ + 1 :=
+by rw [ceil_le, int.cast_add, int.cast_one]; exact le_of_lt (lt_floor_add_one x)
+
 theorem le_ceil (x : α) : x ≤ ⌈x⌉ :=
 ceil_le.1 (le_refl _)
 

@@ -204,7 +204,23 @@ from classical.by_cases
     (prod_congr rfl $ λ b hb, h₀ b hb $ by rintro rfl; cc).trans $
       prod_const_one.trans (h₁ this).symm)
 
-@[simp, to_additive] lemma prod_ite [decidable_eq α] (s : finset α) (a : α) (b : β) :
+@[to_additive] lemma prod_ite [comm_monoid γ] {s : finset α}
+  {p : α → Prop} {hp : decidable_pred p} (f g : α → γ) (h : γ → β) :
+  s.prod (λ x, h (if p x then f x else g x)) =
+  (s.filter p).prod (λ x, h (f x)) * (s.filter (λ x, ¬ p x)).prod (λ x, h (g x)) :=
+by letI := classical.dec_eq α; exact
+calc s.prod (λ x, h (if p x then f x else g x))
+    = (s.filter p ∪ s.filter (λ x, ¬ p x)).prod (λ x, h (if p x then f x else g x)) :
+  by rw [filter_union_filter_neg_eq]
+... = (s.filter p).prod (λ x, h (if p x then f x else g x)) *
+    (s.filter (λ x, ¬ p x)).prod (λ x, h (if p x then f x else g x)) :
+  prod_union (by simp [disjoint_right] {contextual := tt})
+... = (s.filter p).prod (λ x, h (f x)) * (s.filter (λ x, ¬ p x)).prod (λ x, h (g x)) :
+  congr_arg2 _
+    (prod_congr rfl (by simp {contextual := tt}))
+    (prod_congr rfl (by simp {contextual := tt}))
+
+@[simp, to_additive] lemma prod_ite_eq [decidable_eq α] (s : finset α) (a : α) (b : β) :
   s.prod (λ x, (ite (a = x) b 1)) = ite (a ∈ s) b 1 :=
 begin
   rw ←finset.prod_filter,
@@ -224,16 +240,8 @@ lemma prod_bij {s : finset α} {t : finset γ} {f : α → β} {g : γ → β}
   (i : Πa∈s, γ) (hi : ∀a ha, i a ha ∈ t) (h : ∀a ha, f a = g (i a ha))
   (i_inj : ∀a₁ a₂ ha₁ ha₂, i a₁ ha₁ = i a₂ ha₂ → a₁ = a₂) (i_surj : ∀b∈t, ∃a ha, b = i a ha) :
   s.prod f = t.prod g :=
-by haveI := classical.prop_decidable; exact
-calc s.prod f = s.attach.prod (λx, f x.val) : prod_attach.symm
-  ... = s.attach.prod (λx, g (i x.1 x.2)) : prod_congr rfl $ assume x hx, h _ _
-  ... = (s.attach.image $ λx:{x // x ∈ s}, i x.1 x.2).prod g :
-    (prod_image $ assume (a₁:{x // x ∈ s}) _ a₂ _ eq, subtype.eq $ i_inj a₁.1 a₂.1 a₁.2 a₂.2 eq).symm
-  ... = t.prod g :
-      prod_subset
-        (by simp only [subset_iff, mem_image, mem_attach]; rintro _ ⟨⟨_, _⟩, _, rfl⟩; solve_by_elim)
-        (assume b hb hb1, false.elim $ hb1 $ by rcases i_surj b hb with ⟨a, ha, rfl⟩;
-          exact mem_image.2 ⟨⟨_, _⟩, mem_attach _ _, rfl⟩)
+congr_arg multiset.prod
+  (multiset.map_eq_map_of_bij_of_nodup f g s.2 t.2 i hi h i_inj i_surj)
 
 @[to_additive]
 lemma prod_bij_ne_one {s : finset α} {t : finset γ} {f : α → β} {g : γ → β}
@@ -279,7 +287,45 @@ lemma prod_range_succ' (f : ℕ → β) :
 | (n + 1) := by rw [prod_range_succ (λ m, f (nat.succ m)), mul_assoc, ← prod_range_succ'];
                  exact prod_range_succ _ _
 
-@[to_additive finset.sum_range_zero]
+lemma sum_Ico_add {δ : Type*} [add_comm_monoid δ] (f : ℕ → δ) (m n k : ℕ) :
+  (Ico m n).sum (λ l, f (k + l)) = (Ico (m + k) (n + k)).sum f :=
+Ico.image_add m n k ▸ eq.symm $ sum_image $ λ x hx y hy h, nat.add_left_cancel h
+
+@[to_additive]
+lemma prod_Ico_add (f : ℕ → β) (m n k : ℕ) :
+  (Ico m n).prod (λ l, f (k + l)) = (Ico (m + k) (n + k)).prod f :=
+Ico.image_add m n k ▸ eq.symm $ prod_image $ λ x hx y hy h, nat.add_left_cancel h
+
+@[to_additive]
+lemma prod_Ico_consecutive (f : ℕ → β) {m n k : ℕ} (hmn : m ≤ n) (hnk : n ≤ k) :
+  (Ico m n).prod f * (Ico n k).prod f = (Ico m k).prod f :=
+Ico.union_consecutive hmn hnk ▸ eq.symm $ prod_union $ Ico.disjoint_consecutive m n k
+
+@[to_additive]
+lemma prod_range_mul_prod_Ico (f : ℕ → β) {m n : ℕ} (h : m ≤ n) :
+  (range m).prod f * (Ico m n).prod f = (range n).prod f :=
+Ico.zero_bot m ▸ Ico.zero_bot n ▸ prod_Ico_consecutive f (nat.zero_le m) h
+
+@[to_additive sum_Ico_eq_add_neg]
+lemma prod_Ico_eq_div {δ : Type*} [comm_group δ] (f : ℕ → δ) {m n : ℕ} (h : m ≤ n) :
+  (Ico m n).prod f = (range n).prod f * ((range m).prod f)⁻¹ :=
+eq_mul_inv_iff_mul_eq.2 $ by rw [mul_comm]; exact prod_range_mul_prod_Ico f h
+
+lemma sum_Ico_eq_sub {δ : Type*} [add_comm_group δ] (f : ℕ → δ) {m n : ℕ} (h : m ≤ n) :
+  (Ico m n).sum f = (range n).sum f - (range m).sum f :=
+sum_Ico_eq_add_neg f h
+
+@[to_additive]
+lemma prod_Ico_eq_prod_range (f : ℕ → β) (m n : ℕ) :
+  (Ico m n).prod f = (range (n - m)).prod (λ l, f (m + l)) :=
+begin
+  by_cases h : m ≤ n,
+  { rw [← Ico.zero_bot, prod_Ico_add, zero_add, nat.sub_add_cancel h] },
+  { replace h : n ≤ m :=  le_of_not_ge h,
+     rw [Ico.eq_empty_of_le h, nat.sub_eq_zero_of_le h, range_zero, prod_empty, prod_empty] }
+end
+
+@[to_additive]
 lemma prod_range_zero (f : ℕ → β) :
  (range 0).prod f = 1 :=
 by rw [range_zero, prod_empty]
@@ -467,14 +513,14 @@ lemma mul_sum : b * s.sum f = s.sum (λx, b * f x) :=
 @[simp] lemma sum_mul_boole [decidable_eq α] (s : finset α) (f : α → β) (a : α) :
   s.sum (λ x, (f x * ite (a = x) 1 0)) = ite (a ∈ s) (f a) 0 :=
 begin
-  convert sum_ite s a (f a),
+  convert sum_ite_eq s a (f a),
   funext,
   split_ifs with h; simp [h],
 end
 @[simp] lemma sum_boole_mul [decidable_eq α] (s : finset α) (f : α → β) (a : α) :
   s.sum (λ x, (ite (a = x) 1 0) * f x) = ite (a ∈ s) (f a) 0 :=
 begin
-  convert sum_ite s a (f a),
+  convert sum_ite_eq s a (f a),
   funext,
   split_ifs with h; simp [h],
 end
@@ -578,7 +624,7 @@ lemma sum_le_sum_of_ne_zero [@decidable_rel β (≤)] (h : ∀x∈s₁, f x ≠ 
   s₁.sum f ≤ s₂.sum f :=
 calc s₁.sum f = (s₁.filter (λx, f x = 0)).sum f + (s₁.filter (λx, f x ≠ 0)).sum f :
     by rw [←sum_union, filter_union_filter_neg_eq];
-       exact disjoint_filter (assume _ h n_h, n_h h)
+       exact disjoint_filter.2 (assume _ _ h n_h, n_h h)
   ... ≤ s₂.sum f : add_le_of_nonpos_of_le'
       (sum_nonpos $ by simp only [mem_filter, and_imp]; exact λ _ _, le_of_eq)
       (sum_le_sum_of_subset $ by simpa only [subset_iff, mem_filter, and_imp])

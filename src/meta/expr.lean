@@ -416,11 +416,11 @@ meta def is_eta_expansion_test : list (name × expr) → option expr
 
 /-- Checks whether there is an expression `e` such that for all *non-propositional* elements
   `(nm, val)` in the list `val = e ... nm` where `...` denotes the same list of parameters for all
-  applications. Also checks whether the resulting expression unifies with the given one -/
-meta def is_eta_expansion_aux (val : expr) (l : list (name × expr)) : tactic (option expr) :=
+  applications. Also checks whether the resulting expression unifies with `given` -/
+meta def is_eta_expansion_aux (given : expr) (l : list (name × expr)) : tactic (option expr) :=
 do l' ← l.mfilter (λ⟨proj, val⟩, bnot <$> is_proof val),
   match is_eta_expansion_test l' with
-  | some e := option.map (λ _, e) <$> try_core (unify e val)
+  | some e := option.map (λ _, e) <$> try_core (unify e given)
   | none   := return none
   end
 

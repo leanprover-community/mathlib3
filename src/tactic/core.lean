@@ -1096,8 +1096,9 @@ and fails otherwise.
 meta def {u} success_if_fail_with_msg {α : Type u} (t : tactic α) (msg : string) : tactic unit :=
 λ s, match t s with
 | (interaction_monad.result.exception msg' _ s') :=
-  if msg = (msg'.iget ()).to_string then result.success () s
-  else mk_exception "failure messages didn't match" none s
+  let expected_msg := (msg'.iget ()).to_string in
+  if msg = expected_msg then result.success () s
+  else mk_exception format!"failure messages didn't match. Expected:\n{expected_msg}" none s
 | (interaction_monad.result.success a s) :=
    mk_exception "success_if_fail_with_msg combinator failed, given tactic succeeded" none s
 end

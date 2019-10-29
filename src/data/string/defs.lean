@@ -15,8 +15,14 @@ def split_on (c : char) (s : string) : list string :=
 def is_prefix_of (x y : string) : bool :=
 x.to_list.is_prefix_of y.to_list
 
+/-- Tests whether the first string is a suffix of the second string -/
 def is_suffix_of (x y : string) : bool :=
 x.to_list.is_suffix_of y.to_list
+
+/-- `get_rest s t` returns `some s'` if `s = t ++ s'`.
+  If `t` is not a prefix of `s`, returns `none` -/
+def get_rest (s t : string) : option string :=
+list.as_string <$> s.to_list.get_rest t.to_list
 
 /-- Removes the first `n` elements from the string `s` -/
 def popn (s : string) (n : nat) : string :=

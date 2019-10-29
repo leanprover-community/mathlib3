@@ -333,6 +333,28 @@ meta def get_app_fn_args_aux : list expr → expr → expr × list expr
 meta def get_app_fn_args : expr → expr × list expr :=
 get_app_fn_args_aux []
 
+/-- `drop_pis es e` instantiates the pis in `e` with the expressions from `es`. -/
+meta def drop_pis : list expr → expr → tactic expr
+| (list.cons v vs) (pi n bi d b) := do
+  t ← infer_type v,
+  guard (t =ₐ d),
+  drop_pis vs (b.instantiate_var v)
+| [] e := return e
+| _  _ := failed
+
+/-- `mk_op_lst op empty [x1, x2, ...]` is defined as `op x1 (op x2 ...)`.
+  Returns `empty` if the list is empty. -/
+meta def mk_op_lst (op : expr) (empty : expr) : list expr → expr
+| []        := empty
+| [e]       := e
+| (e :: es) := op e $ mk_op_lst es
+
+/-- `mk_and_lst [x1, x2, ...]` is defined as `x1 ∧ (x2 ∧ ...)`, or `true` if the list is empty. -/
+meta def mk_and_lst : list expr → expr := mk_op_lst `(and) `(true)
+
+/-- `mk_or_lst [x1, x2, ...]` is defined as `x1 ∨ (x2 ∨ ...)`, or `false` if the list is empty. -/
+meta def mk_or_lst : list expr → expr := mk_op_lst `(or) `(false)
+
 end expr
 
 namespace environment

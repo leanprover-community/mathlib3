@@ -9,12 +9,18 @@ namespace expr
 open tactic
 
 attribute [derive has_reflect] binder_info
+
+/-- Given an expr `α` representing a type with numeral structure,
+`of_nat α n` creates the `α`-valued numeral expression corresponding to `n`. -/
 protected meta def of_nat (α : expr) : ℕ → tactic expr :=
 nat.binary_rec
   (tactic.mk_mapp ``has_zero.zero [some α, none])
   (λ b n tac, if n = 0 then mk_mapp ``has_one.one [some α, none] else
     do e ← tac, tactic.mk_app (cond b ``bit1 ``bit0) [e])
 
+/-- Given an expr `α` representing a type with numeral structure,
+`of_nat α n` creates the `α`-valued numeral expression corresponding to `n`.
+The output is either a numeral or the negation of a numeral. -/
 protected meta def of_int (α : expr) : ℤ → tactic expr
 | (n : ℕ) := expr.of_nat α n
 | -[1+ n] := do
@@ -32,7 +38,7 @@ args.mfoldr (λarg i:expr, do
       else (const `and [] : expr) t i)
   inner
 
-/- only traverses the direct descendents -/
+/-- `traverse f e` applies the monadic function `f` to the direct descendants of `e`. -/
 meta def {u} traverse {m : Type → Type u} [applicative m]
   {elab elab' : bool} (f : expr elab → m (expr elab')) :
   expr elab → m (expr elab')
@@ -47,6 +53,8 @@ meta def {u} traverse {m : Type → Type u} [applicative m]
  | (elet n e₀ e₁ e₂) := elet n <$> f e₀ <*> f e₁ <*> f e₂
  | (macro mac es) := macro mac <$> list.traverse f es
 
+/-- `mfoldl f a e` folds the monadic function `f` over the subterms of the expression `e`,
+with initial value `a`. -/
 meta def mfoldl {α : Type} {m} [monad m] (f : α → expr → m α) : α → expr → m α
 | x e := prod.snd <$> (state_t.run (e.traverse $ λ e',
     (get >>= monad_lift ∘ flip f e' >>= put) $> e') x : m _)
@@ -56,6 +64,8 @@ end expr
 namespace interaction_monad
 open result
 
+/-- `get_result tac` returns the result state of applying `tac` to the current state.
+Note that it does not update the current state. -/
 meta def get_result {σ α} (tac : interaction_monad σ α) :
   interaction_monad σ (interaction_monad.result σ α) | s :=
 match tac s with
@@ -68,6 +78,8 @@ end interaction_monad
 namespace lean.parser
 open lean interaction_monad.result
 
+/-- `of_tactic' tac` lifts the tactic `tac` into the parser monad.
+This replaces `of_tactic` in core, which has a buggy implementation. -/
 meta def of_tactic' {α} (tac : tactic α) : parser α :=
 do r ← of_tactic (interaction_monad.get_result tac),
 match r with
@@ -75,17 +87,20 @@ match r with
 | (exception f pos _) := exception f pos
 end
 
--- Override the builtin `lean.parser.of_tactic` coe, which is broken.
--- (See test/tactics.lean for a failure case.)
+/-- Override the builtin `lean.parser.of_tactic` coe, which is broken.
+(See test/tactics.lean for a failure case.) -/
 @[priority 2000]
 meta instance has_coe' {α} : has_coe (tactic α) (parser α) :=
 ⟨of_tactic'⟩
 
+/-- `emit_command_here str` behaves as if the string `str` were placed as a user command at the
+current line. -/
 meta def emit_command_here (str : string) : lean.parser string :=
 do (_, left) ← with_input command_like str,
    return left
 
--- Emit a source code string at the location being parsed.
+/-- `emit_code_here str` behaves as if the string `str` were placed at the current location in
+source code. -/
 meta def emit_code_here : string → lean.parser unit
 | str := do left ← emit_command_here str,
             if left.length = 0 then return ()
@@ -95,6 +110,8 @@ end lean.parser
 
 namespace format
 
+/-- `intercalate x [a, b, c]` produces the format object `a.x.b.x.c`,
+where `.` represents `format.join`. -/
 meta def intercalate (x : format) : list format → format :=
 format.join ∘ list.intersperse x
 
@@ -102,15 +119,18 @@ end format
 
 namespace tactic
 
+/-- `eval_expr' α e` attempts to evaluate the expression `e` in the type `α`.
+This is a variant of `eval_expr` in core. Due to unexplained behavior in the VM, in rare
+situations the latter will fail but the former will succeed. -/
 meta def eval_expr' (α : Type*) [_inst_1 : reflected α] (e : expr) : tactic α :=
 mk_app ``id [e] >>= eval_expr α
 
--- `mk_fresh_name` returns identifiers starting with underscores,
--- which are not legal when emitted by tactic programs. Turn the
--- useful source of random names provided by `mk_fresh_name` into
--- names which are usable by tactic programs.
---
--- The returned name has four components which are all strings.
+/-- `mk_fresh_name` returns identifiers starting with underscores,
+which are not legal when emitted by tactic programs. Turn the
+useful source of random names provided by `mk_fresh_name` into
+names which are usable by tactic programs.
+
+-- The returned name has four components which are all strings.-/
 meta def mk_user_fresh_name : tactic name :=
 do nm ← mk_fresh_name,
    return $ `user__ ++ nm.pop_prefix.sanitize_name ++ `user__
@@ -128,6 +148,8 @@ has_attribute' `simp
 meta def is_instance : name → tactic bool :=
 has_attribute' `instance
 
+/-- Returns a dictionary mapping names to their corresponding declarations.
+Covers all declarations from the current file. -/
 meta def local_decls : tactic (name_map declaration) :=
 do e ← tactic.get_env,
    let xs := e.fold native.mk_rb_map
@@ -162,40 +184,43 @@ do subst ← d.univ_params.mmap $ λ u, prod.mk u <$> mk_meta_univ,
    let e : expr := expr.const d.to_name (prod.snd <$> subst),
    return (e, d.type.instantiate_univ_params subst)
 
+-- TODO: I don't know exactly what this does. It's only used in the following declaration.
 meta def simp_lemmas_from_file : tactic name_set :=
 do s ← local_decls,
    let s := s.map (expr.list_constant ∘ declaration.value),
    xs ← s.to_list.mmap ((<$>) name_set.of_list ∘ mfilter tactic.is_simp_lemma ∘ name_set.to_list ∘ prod.snd),
    return $ name_set.filter (λ x, ¬ s.contains x) (xs.foldl name_set.union mk_name_set)
 
+-- TODO: I don't know exactly what this does, and it doesn't seem to be used anywhere.
 meta def file_simp_attribute_decl (attr : name) : tactic unit :=
 do s ← simp_lemmas_from_file,
    trace format!"run_cmd mk_simp_attr `{attr}",
    let lmms := format.join $ list.intersperse " " $ s.to_list.map to_fmt,
    trace format!"local attribute [{attr}] {lmms}"
 
+/-- `mk_local n` reates a dummy local variable with name `n`.
+The type of this local constant is a constant with name `n`, so it is very unlikely to be
+a meaningful expression. -/
 meta def mk_local (n : name) : expr :=
 expr.local_const n n binder_info.default (expr.const n [])
 
-meta def local_def_value (e : expr) : tactic expr := do
+/-- `local_def_value e` returns the value of the expression `e`, assuming that `e` has been defined
+locally using a `let` expression. Otherwise it fails. -/
+meta def local_def_value (e : expr) : tactic expr :=
 do (v,_) ← solve_aux `(true) (do
          (expr.elet n t v _) ← (revert e >> target)
            | fail format!"{e} is not a local definition",
          return v),
    return v
 
+/- TODO: this is not used anywhere in the library, and I suspect it should elaborate `e` with respect
+to the expected type. -/
+/-- `check_defn n e` elaborates the pre-expression `e`,
+and succeeds if this is alpha-equivalent to the value of the declaration with name `n`. -/
 meta def check_defn (n : name) (e : pexpr) : tactic unit :=
 do (declaration.defn _ _ _ d _ _) ← get_decl n,
    e' ← to_expr e,
    guard (d =ₐ e') <|> trace d >> failed
-
--- meta def compile_eqn (n : name) (univ : list name) (args : list expr) (val : expr) (num : ℕ) : tactic unit :=
--- do let lhs := (expr.const n $ univ.map level.param).mk_app args,
---    stmt ← mk_app `eq [lhs,val],
---    let vs := stmt.list_local_const,
---    let stmt := stmt.pis vs,
---    (_,pr) ← solve_aux stmt (tactic.intros >> reflexivity),
---    add_decl $ declaration.thm (n <.> "equations" <.> to_string (format!"_eqn_{num}")) univ stmt (pure pr)
 
 meta def to_implicit : expr → expr
 | (expr.local_const uniq n bi t) := expr.local_const uniq n binder_info.implicit t

@@ -188,7 +188,7 @@ meta def unused_arguments (d : declaration) : tactic (option string) := do
   to its sort. Instances will not be printed. -/
 /- This test is not very quick: maybe we can speed-up testing that something is a proposition?
   This takes almost all of the execution time. -/
-meta def incorrect_def_lemma (d : declaration) : tactic (option string) := do
+meta def incorrect_def_lemma (d : declaration) : tactic (option string) :=
   if d.is_constant ∨ d.is_axiom
   then return none else do
     is_instance_d ← is_instance d.to_name,
@@ -255,9 +255,9 @@ meta def instance_priority (d : declaration) : tactic (option string) := do
   prio ← has_attribute `instance nm,
   /- return `none` if `d` is has low priority -/
   if prio < 1000 then return none else do
-  let (fn, args) := d.type.pi_codomain.get_app_fn_args,
+  let (fn, args) := d.type.unsafe_pi_codomain.get_app_fn_args,
   cls ← get_decl fn.const_name,
-  let (pi_args, _) := cls.type.pi_binders,
+  let (pi_args, _) := cls.type.unsafe_pi_binders,
   guard (args.length = pi_args.length),
   /- List all the arguments of the class that block type-class inference from firing
     (if they are metavariables). These are all the arguments except instance-arguments and
@@ -308,8 +308,7 @@ meta def get_checks (slow : bool) (extra : list name) (use_only : bool) :
   tactic (list linter) := do
   default ← if use_only then return [] else attribute.get_instances `linter >>= get_linters,
   let default := if slow then default else default.filter (λ l, l.is_fast),
-  linter_list ← list.append default <$> get_linters extra,
-  return linter_list
+  list.append default <$> get_linters extra
 
 /-- If `verbose` is true, return `old ++ new`, else return `old`. -/
 private meta def append_when (verbose : bool) (old new : format) : format :=

@@ -1080,6 +1080,12 @@ begin
   rw [nth_le_map_rev f, nth_le_map_rev g], congr, exact h
 end
 
+theorem list.map_injective {α β} (f : α → β)
+  (hf : function.injective f) : function.injective (list.map f)
+| [] [] _ := rfl
+| (a :: l₁) (b :: l₂) e :=
+  by injection e with e₁ e₂; rw [hf e₁, list.map_injective e₂]
+
 theorem map_concat (f : α → β) (a : α) (l : list α) : map f (concat l a) = concat (map f l) (f a) :=
 by induction l; [refl, simp only [*, concat_eq_append, cons_append, map, map_append]]; split; refl
 

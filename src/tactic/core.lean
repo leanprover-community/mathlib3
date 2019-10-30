@@ -527,9 +527,13 @@ meta def mk_iff_mp_app (iffmp : name) : expr → (nat → expr) → option expr
 | `(%%a ↔ %%b) f := some $ @expr.const tt iffmp [] a b (f 0)
 | _ f := none
 
+/-- `iff_mp_core e ty` assumes that `ty` is the type of `e`.
+If `ty` has the shape `Π ..., A ↔ B`, returns an expression whose type is `Π ..., A → B` -/
 meta def iff_mp_core (e ty: expr) : option expr :=
 mk_iff_mp_app `iff.mp ty (λ_, e)
 
+/-- `iff_mpr_core e ty` assumes that `ty` is the type of `e`.
+If `ty` has the shape `Π ..., A ↔ B`, returns an expression whose type is `Π ..., B → A` -/
 meta def iff_mpr_core (e ty: expr) : option expr :=
 mk_iff_mp_app `iff.mpr ty (λ_, e)
 
@@ -553,9 +557,16 @@ meta def apply_iff (e : expr) : tactic (list (name × expr)) :=
 let ap e := tactic.apply e {new_goals := new_goals.non_dep_only} in
 ap e <|> (iff_mp e >>= ap) <|> (iff_mpr e >>= ap)
 
+/-- `symm_apply e cfg` tries `apply e cfg`, and if this fails, calls `symmetry` and tries again. -/
 meta def symm_apply (e : expr) (cfg : apply_cfg := {}) : tactic (list (name × expr)) :=
 tactic.apply e cfg <|> (symmetry >> tactic.apply e cfg)
 
+/-- `apply_assumption` searches for terms in the local context that can be applied to make progress
+on the goal. If the goal is symmetric, it tries each goal in both directions. If this fails, it will
+call `exfalso` and repeat. Optional arguments:
+
+ * `asms` controls which expressions are applied. Defaults to `local_context`
+ * `tac` is called after a successful application. Defaults to `skip` -/
 meta def apply_assumption
   (asms : tactic (list expr) := local_context)
   (tac : tactic unit := skip) : tactic unit :=
@@ -566,6 +577,11 @@ do { exfalso,
      ctx.any_of (λ H, symm_apply H >> tac) }
 <|> fail "assumption tactic failed"
 
+/-- `change_core e none` is equivalent to `change e`. It tries to change the goal to `e` and fails
+if this is not a definitional equality.
+
+`change_core e (some h)` assumes `h` is a local constant, and tries to change the type of `h` to `e`
+by reverting `h`, changing the goal, and reintroducing hypotheses. -/
 meta def change_core (e : expr) : option expr → tactic unit
 | none     := tactic.change e
 | (some h) :=
@@ -575,7 +591,8 @@ meta def change_core (e : expr) : option expr → tactic unit
      intron num_reverted
 
 /--
-assuming olde and newe are defeq when elaborated, replaces occurences of olde with newe at hypothesis h.
+`change_with_at olde newe hyp` replaces occurences of `olde` with `newe` at hypothesis `hyp`,
+assuming `olde` and `newe` are defeq when elaborated.
 -/
 meta def change_with_at (olde newe : pexpr) (hyp : name) : tactic unit :=
 do h ← get_local hyp,
@@ -839,21 +856,13 @@ meta def strip_prefix : name → tactic name
     else strip_prefix' n [a] a_1
 | n := pure n
 
-meta def local_binding_info : expr → binder_info
-| (expr.local_const _ _ bi _) := bi
-| _ := binder_info.default
-
-meta def is_default_local : expr → bool
-| (expr.local_const _ _ binder_info.default _) := tt
-| _ := ff
-
 meta def mk_patterns (t : expr) : tactic (list format) :=
 do let cl := t.get_app_fn.const_name,
    env ← get_env,
    let fs := env.constructors_of cl,
    fs.mmap $ λ f,
      do { (vs,_) ← mk_const f >>= infer_type >>= mk_local_pis,
-          let vs := vs.filter (λ v, is_default_local v),
+          let vs := vs.filter (λ v, v.is_default_local),
           vs ← vs.mmap (λ v,
             do v' ← get_unused_name v.local_pp_name,
                pose v' none `(()),
@@ -1082,8 +1091,8 @@ form `f ∘ g = h` for reasoning about higher-order functions.",
 
 attribute [higher_order map_comp_pure] map_pure
 
-private meta def tactic.use_aux (h : pexpr) : tactic unit :=
-(focus1 (refine h >> done)) <|> (fconstructor >> tactic.use_aux)
+private meta def use_aux (h : pexpr) : tactic unit :=
+(focus1 (refine h >> done)) <|> (fconstructor >> use_aux)
 
 /-- Similar to `existsi`, `use l` will use entries in `l` to instantiate existential obligations
 at the beginning of a target. Unlike `existsi`, the pexprs in `l` are elaborated with respect to
@@ -1097,7 +1106,7 @@ by tactic.use ``(42)
 See the doc string for `tactic.interactive.use` for more information.
  -/
 protected meta def use (l : list pexpr) : tactic unit :=
-focus1 $ seq (l.mmap' $ λ h, tactic.use_aux h <|> fail format!"failed to instantiate goal with {h}")
+focus1 $ seq (l.mmap' $ λ h, use_aux h <|> fail format!"failed to instantiate goal with {h}")
               instantiate_mvars_in_target
 
 /-- `clear_aux_decl_aux l` clears all expressions in `l` that represent aux decls from the
@@ -1159,6 +1168,8 @@ local postfix `?`:9001 := optional
 local postfix *:9001 := many .
 "
 
+/-- `trace_error msg t` executes the tactic `t`. If `t` fails, traces `msg` and the failure message
+of `t`. -/
 meta def trace_error (msg : string) (t : tactic α) : tactic α
 | s := match t s with
        | (result.success r s') := result.success r s'

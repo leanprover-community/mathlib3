@@ -391,6 +391,18 @@ meta def mk_and_lst : list expr → expr := mk_op_lst `(and) `(true)
 /-- `mk_or_lst [x1, x2, ...]` is defined as `x1 ∨ (x2 ∨ ...)`, or `false` if the list is empty. -/
 meta def mk_or_lst : list expr → expr := mk_op_lst `(or) `(false)
 
+/-- `local_binding_info e` returns the binding info of `e` if `e` is a local constant.
+Otherwise returns `binder_info.default`. -/
+meta def local_binding_info : expr → binder_info
+| (expr.local_const _ _ bi _) := bi
+| _ := binder_info.default
+
+/-- `is_default_local e` tests whether `e` is a local constant with binder info
+`binder_info.default` -/
+meta def is_default_local : expr → bool
+| (expr.local_const _ _ binder_info.default _) := tt
+| _ := ff
+
 end expr
 
 namespace environment

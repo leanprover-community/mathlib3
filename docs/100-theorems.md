@@ -121,12 +121,14 @@ theorem cos_add_sin_mul_I_pow (n : ℕ) (z : ℂ) :
 
 * Author:
 * Link:
-
-## <a name="19"></a>19. Four Squares Theorem
-
-* Author:
-* Link:
 -->
+## <a name="19"></a>19. Four Squares Theorem
+```lean
+lemma sum_four_squares : ∀ n : ℕ, ∃ a b c d : ℕ, a^2 + b^2 + c^2 + d^2 = n
+```
+* Author: Chris Hughes
+* Link: https://github.com/leanprover-community/mathlib/commit/ca9008153aaa6f16c7e2f691231b889dbb05a576#diff-a9b2207db3500729192b5de7cd46e688R201
+
 ## <a name="20"></a>20. All Primes (1 mod 4) Equal the Sum of Two Squares
 ```lean
 lemma sum_two_squares {p : ℕ} (hp : p.prime) (hp1 : p % 4 = 1) :

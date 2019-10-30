@@ -443,7 +443,7 @@ theorem fintype.card_subtype_le [fintype α] (p : α → Prop) [decidable_pred p
   fintype.card {x // p x} ≤ fintype.card α :=
 by rw fintype.subtype_card; exact card_le_of_subset (subset_univ _)
 
-theorem fintype.card_subtype_lt [fintype α] (p : α → Prop) [decidable_pred p] 
+theorem fintype.card_subtype_lt [fintype α] {p : α → Prop} [decidable_pred p] 
   {x : α} (hx : ¬ p x) : fintype.card {x // p x} < fintype.card α :=
 by rw [fintype.subtype_card]; exact finset.card_lt_card 
   ⟨subset_univ _, classical.not_forall.2 ⟨x, by simp [*, set.mem_def]⟩⟩

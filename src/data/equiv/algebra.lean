@@ -511,10 +511,10 @@ def to_ring_hom (e : α ≃+* β) : α →+* β :=
 { .. e.to_mul_equiv.to_monoid_hom, .. e.to_add_equiv.to_add_monoid_hom }
 
 /-- Reinterpret a ring equivalence as a monoid homomorphism. -/
-def to_monoid_hom (e : α ≃+* β) : α →* β := e.to_ring_hom.to_monoid_hom
+abbreviation to_monoid_hom (e : α ≃+* β) : α →* β := e.to_ring_hom.to_monoid_hom
 
-/-- Reinterpret a ring equivalence as an add_monoid homomorphism. -/
-def to_add_monoid_hom (e : α ≃+* β) : α →+ β := e.to_ring_hom.to_add_monoid_hom
+/-- Reinterpret a ring equivalence as an `add_monoid` homomorphism. -/
+abbreviation to_add_monoid_hom (e : α ≃+* β) : α →+ β := e.to_ring_hom.to_add_monoid_hom
 
 /-- Interpret an equivalence `f : α ≃ β` as a ring equivalence `α ≃+* β`. -/
 def of (e : α ≃ β) [is_semiring_hom e] : α ≃+* β :=
@@ -522,15 +522,34 @@ def of (e : α ≃ β) [is_semiring_hom e] : α ≃+* β :=
 
 instance (e : α ≃+* β) : is_semiring_hom e := e.to_ring_hom.is_semiring_hom
 
-def is_ring_hom_of_mul_equiv {R : Type*} {S : Type*} [ring R] [ring S]
-  (h : R ≃* S) (H: ∀ x y : R, h (x + y) = h x + h y) : is_ring_hom h :=
-@ring_hom.is_ring_hom _ _ _ _ $ ring_hom.mk' h.to_monoid_hom H
+end semiring_hom
 
-def of_mul_equiv {R : Type*} {S : Type*} [ring R] [ring S] (h : R ≃* S)
-  (H: ∀ x y : R, h (x + y) = h x + h y) : R ≃+* S :=
+end ring_equiv
+
+namespace mul_equiv
+
+/-- Gives an `is_semiring_hom` instance from a `mul_equiv` of semirings that preserves addition. -/
+protected def to_semiring_hom {R : Type*} {S : Type*} [semiring R] [semiring S]
+  (h : R ≃* S) (H : ∀ x y : R, h (x + y) = h x + h y) : is_semiring_hom h :=
+⟨add_equiv.map_zero $ add_equiv.mk' h.to_equiv H, h.map_one, H, h.5⟩
+
+/-- Gives a `ring_equiv` from a `mul_equiv` preserving addition.-/
+def to_ring_equiv {R : Type*} {S : Type*} [has_add R] [has_add S] [has_mul R] [has_mul S]
+  (h : R ≃* S) (H : ∀ x y : R, h (x + y) = h x + h y) : R ≃+* S :=
 {..h.to_equiv, ..h, ..add_equiv.mk' h.to_equiv H }
 
-end semiring_hom
+end mul_equiv
+
+namespace add_equiv
+
+/-- Gives an `is_semiring_hom` instance from a `mul_equiv` of semirings that preserves addition. -/
+protected def to_semiring_hom {R : Type*} {S : Type*} [semiring R] [semiring S]
+  (h : R ≃+ S) (H : ∀ x y : R, h (x * y) = h x * h y) : is_semiring_hom h :=
+⟨h.map_zero, mul_equiv.map_one $ mul_equiv.mk' h.to_equiv H, h.5, H⟩
+
+end add_equiv
+
+namespace ring_equiv
 
 section ring_hom
 

@@ -32,6 +32,7 @@ Most of the proofs come from the properties of `semiconj_by`.
 -/
 
 /-- Two elements commute, if `a * b = b * a`. -/
+@[to_additive add_commute]
 def commute {S : Type*} [has_mul S] (a b : S) : Prop := semiconj_by a b b
 
 open_locale smul
@@ -62,7 +63,7 @@ section semigroup
 variables {S : Type*} [semigroup S] {a b c : S}
 
 /-- If `a` commutes with both `b` and `c`, then it commutes with their product. -/
-@[simp] theorem mul_right (hab : commute a b) (hac : commute a c) :
+@[simp, to_additive] theorem mul_right (hab : commute a b) (hac : commute a c) :
   commute a (b * c) :=
 hab.mul_right hac
 
@@ -79,7 +80,7 @@ section monoid
 
 variables {M : Type*} [monoid M]
 
-@[simp] theorem one_right (a : M) : commute a 1 := semiconj_by.one_right a
+@[simp, to_additive] theorem one_right (a : M) : commute a 1 := semiconj_by.one_right a
 @[simp] theorem one_left (a : M) : commute 1 a := semiconj_by.one_left a
 
 @[simp] theorem units_inv_right {a : M} {u : units M} : commute a u → commute a ↑u⁻¹ :=
@@ -226,7 +227,7 @@ section centralizer
 variables {S : Type*} [has_mul S]
 
 /-- Centralizer of an element `a : S` is the set of elements that commute with `a`. -/
-def centralizer (a : S) : set S := { x | commute a x }
+@[to_additive add_centralizer] def centralizer (a : S) : set S := { x | commute a x }
 
 @[simp] theorem mem_centralizer {a b : S} : b ∈ centralizer a ↔ commute a b := iff.rfl
 
@@ -260,7 +261,8 @@ instance centralizer.is_submonoid : is_submonoid (centralizer a) :=
 { one_mem := commute.one_right a,
   mul_mem := λ _ _, commute.mul_right }
 
-def centralizer.submonoid : submonoid M :=
+/-- Centralizer of an element of a monoid `a` is the submonoid of elements that commute with `a`. -/
+@[to_additive hmm] def centralizer.submonoid : submonoid M :=
 { carrier := centralizer a,
   one_mem' := commute.one_right a,
   mul_mem' := λ _ _, commute.mul_right }
@@ -268,6 +270,8 @@ def centralizer.submonoid : submonoid M :=
 instance set.centralizer.is_submonoid : is_submonoid s.centralizer :=
 by rw s.centralizer_eq; apply_instance
 
+/-- Centralizer of a subset `T` of a monoid is the submonoid of elements that commute with
+    all `a ∈ T`. -/
 def set.centralizer.submonoid : submonoid M :=
 { carrier := s.centralizer,
   one_mem' := λ _ _, commute.one_right _,

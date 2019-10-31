@@ -241,11 +241,13 @@ lemma fst.is_monoid_hom [monoid α] [monoid β] : is_monoid_hom (prod.fst : α �
 lemma snd.is_monoid_hom [monoid α] [monoid β] : is_monoid_hom (prod.snd : α × β → β) :=
 { map_mul := λ _ _, rfl, map_one := rfl }
 
-@[to_additive prod.add_monoid_hom.fst]
+/-- Given monoids `α, β`, the natural projection homomorphism from `α × β` to `α`. -/
+@[to_additive prod.add_monoid_hom.fst "Given add_monoids `α, β`, the natural projection homomorphism from `α × β` to `α`."]
 def monoid_hom.fst [monoid α] [monoid β] : α × β →* α :=
 ⟨λ x, x.1, rfl, λ _ _, prod.fst_mul⟩
 
-@[to_additive prod.add_monoid_hom.snd]
+/-- Given monoids `α, β`, the natural projection homomorphism from `α × β` to `β`.-/
+@[to_additive prod.add_monoid_hom.snd "Given add_monoids `α, β`, the natural projection homomorphism from `α × β` to `β`."]
 def monoid_hom.snd [monoid α] [monoid β] : α × β →* β :=
 ⟨λ x, x.2, rfl, λ _ _, prod.snd_mul⟩
 
@@ -364,7 +366,8 @@ instance [monoid α] [monoid β] [is_submonoid s] [is_submonoid t] :
 { one_mem := by rw set.mem_prod; split; apply is_submonoid.one_mem,
   mul_mem := by intros; rw set.mem_prod at *; split; apply is_submonoid.mul_mem; tauto }
 
-@[to_additive add_submonoid]
+/-- Given submonoids `s, t` of monoids `α, β` respectively, `s × t` as a submonoid of `α × β`. -/
+@[to_additive add_submonoid "Given `add_submonoids` `s, t` of `add_monoids` `α, β` respectively, `s × t` as an `add_submonoid` of `α × β`."]
 def submonoid [monoid α] [monoid β] (s : submonoid α) (t : submonoid β) :
   submonoid (α × β) :=
 { carrier := (s : set α).prod t,

@@ -457,6 +457,7 @@ attribute.get_instances `class >>= list.mfilter (λ n,
 
 open nat
 
+/-- Create a list of `n` fresh metavariables. -/
 meta def mk_mvar_list : ℕ → tactic (list expr)
 | 0 := pure []
 | (succ n) := (::) <$> mk_mvar <*> mk_mvar_list n
@@ -750,7 +751,7 @@ meta def choose1 (h : expr) (data : name) (spec : name) : tactic expr := do
   intro1,
   intro1
 
-/-- Changes `(h : ∀xs, ∃as, p as) ⊢ g` to a list of functions `as`, an a final hypothesis on `p as` -/
+/-- Changes `(h : ∀xs, ∃as, p as) ⊢ g` to a list of functions `as`, and a final hypothesis on `p as` -/
 meta def choose : expr → list name → tactic unit
 | h [] := fail "expect list of variables"
 | h [n] := do
@@ -1049,6 +1050,11 @@ meta def mk_comp (v : expr) : expr → tactic expr
      t ← infer_type e,
      mk_mapp ``id [t]
 
+/--
+From a lemma of the shape `∀ x, f (g x) = h x`
+derive an auxiliary lemma of the form `f ∘ g = h`
+for reasoning about higher-order functions.
+-/
 meta def mk_higher_order_type : expr → tactic expr
 | (pi n bi d b@(pi _ _ _ _)) :=
   do v ← mk_local_def n d,
@@ -1070,7 +1076,7 @@ meta def higher_order_attr : user_attribute unit (option name) :=
 { name := `higher_order,
   parser := optional ident,
   descr :=
-"From a lemma of the shape `f (g x) = h x` derive an auxiliary lemma of the
+"From a lemma of the shape `∀ x, f (g x) = h x` derive an auxiliary lemma of the
 form `f ∘ g = h` for reasoning about higher-order functions.",
   after_set := some $ λ lmm _ _,
     do env  ← get_env,
@@ -1091,6 +1097,10 @@ form `f ∘ g = h` for reasoning about higher-order functions.",
 
 attribute [higher_order map_comp_pure] map_pure
 
+/--
+Use `refine` to partially discharge the goal,
+or call `fconstructor` and try again.
+-/
 private meta def use_aux (h : pexpr) : tactic unit :=
 (focus1 (refine h >> done)) <|> (fconstructor >> use_aux)
 

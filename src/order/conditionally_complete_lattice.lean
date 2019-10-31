@@ -716,6 +716,38 @@ le_antisymm
 
 end with_top
 
+namespace enat
+open_locale classical
+open lattice
+
+noncomputable instance : complete_linear_order enat :=
+{ Sup := λ s, with_top_equiv.symm $ Sup (with_top_equiv '' s),
+  Inf := λ s, with_top_equiv.symm $ Inf (with_top_equiv '' s),
+  le_Sup := by intros; rw ← with_top_equiv_le; simp; apply le_Sup _; simpa,
+  Inf_le := by intros; rw ← with_top_equiv_le; simp; apply Inf_le _; simpa,
+  Sup_le := begin
+    intros s a h1,
+    rw [← with_top_equiv_le, with_top_equiv.right_inverse_symm],
+    apply Sup_le _,
+    rintros b ⟨x, h2, rfl⟩,
+    rw with_top_equiv_le,
+    apply h1,
+    assumption
+  end,
+  le_Inf := begin
+    intros s a h1,
+    rw [← with_top_equiv_le, with_top_equiv.right_inverse_symm],
+    apply le_Inf _,
+    rintros b ⟨x, h2, rfl⟩,
+    rw with_top_equiv_le,
+    apply h1,
+    assumption
+  end,
+  ..enat.decidable_linear_order,
+  ..enat.lattice.bounded_lattice }
+
+end enat
+
 section order_dual
 open lattice
 

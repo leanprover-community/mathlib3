@@ -37,6 +37,7 @@ install:
   - if [ $RESULT -eq 0 ]; then git checkout -f HEAD ; fi
   - git clean -d -f -q
   - ./purge_olean.sh
+  - bash scripts/rm_all.sh || true
   - rm mathlib.txt || true
   - export LEAN_VERSION=lean-`lean --run scripts/lean_version.lean`
 
@@ -78,6 +79,9 @@ jobs:
         - travis_long "leanpkg test"
         - lean --recursive --export=mathlib.txt src/
         - travis_long "leanchecker mathlib.txt"
+        - bash scripts/mk_all.sh
+        - travis_long "lean src/lint_mathlib.lean"
+        - bash scripts/rm_all.sh
         - sh scripts/deploy_nightly.sh
 
     - stage: Test

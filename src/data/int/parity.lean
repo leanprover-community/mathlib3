@@ -47,14 +47,13 @@ begin
   exact @modeq.modeq_add _ _ 1 _ 1 h₁ h₂
 end
 
+@[parity_simps] theorem even_neg {n : ℤ} : even (-n) ↔ even n := by simp [even]
+
 @[simp] theorem not_even_bit1 (n : int) : ¬ even (bit1 n) :=
 by simp [bit1] with parity_simps
 
 @[parity_simps] theorem even_sub {m n : int} : even (m - n) ↔ (even m ↔ even n) :=
-begin
-  conv { to_rhs, rw [←sub_add_cancel m n, even_add] },
-  by_cases h : even n; simp [h]
-end
+by simp with parity_simps
 
 @[parity_simps] theorem even_mul {m n : int} : even (m * n) ↔ even m ∨ even n :=
 begin

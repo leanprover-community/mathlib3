@@ -1198,9 +1198,6 @@ meta def pformat := tactic format
 /-- `mk` lifts `fmt : format` to the tactic monad (`pformat`). -/
 meta def pformat.mk (fmt : format) : pformat := pure fmt
 
-meta def to_pfmt {α} [has_to_tactic_format α] (x : α) : pformat :=
-pp x
-
 meta instance pformat.has_to_tactic_format : has_to_tactic_format pformat :=
 ⟨ id ⟩
 
@@ -1208,19 +1205,19 @@ meta instance : has_append pformat :=
 ⟨ λ x y, (++) <$> x <*> y ⟩
 
 meta instance tactic.has_to_tactic_format [has_to_tactic_format α] : has_to_tactic_format (tactic α) :=
-⟨ λ x, x >>= to_pfmt ⟩
+⟨ λ x, x >>= pp ⟩
 
 private meta def parse_pformat : string → list char → parser pexpr
-| acc []            := pure ``(to_pfmt %%(reflect acc))
+| acc []            := pure ``(pp %%(reflect acc))
 | acc ('\n'::s)     :=
 do f ← parse_pformat "" s,
-   pure ``(to_pfmt %%(reflect acc) ++ pformat.mk format.line ++ %%f)
+   pure ``(pp %%(reflect acc) ++ pformat.mk format.line ++ %%f)
 | acc ('{'::'{'::s) := parse_pformat (acc ++ "{") s
 | acc ('{'::s) :=
 do (e, s) ← with_input (lean.parser.pexpr 0) s.as_string,
    '}'::s ← return s.to_list | fail "'}' expected",
    f ← parse_pformat "" s,
-   pure ``(to_pfmt %%(reflect acc) ++ to_pfmt %%e ++ %%f)
+   pure ``(pp %%(reflect acc) ++ pp %%e ++ %%f)
 | acc (c::s) := parse_pformat (acc.str c) s
 
 reserve prefix `pformat! `:100

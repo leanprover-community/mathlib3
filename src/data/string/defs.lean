@@ -19,7 +19,7 @@ x.to_list.is_prefix_of y.to_list
 def is_suffix_of (x y : string) : bool :=
 x.to_list.is_suffix_of y.to_list
 
-/-- `get_rest s t` returns `some s'` if `s = t ++ s'`.
+/-- `get_rest s t` returns `some r` if `s = t ++ r`.
   If `t` is not a prefix of `s`, returns `none` -/
 def get_rest (s t : string) : option string :=
 list.as_string <$> s.to_list.get_rest t.to_list

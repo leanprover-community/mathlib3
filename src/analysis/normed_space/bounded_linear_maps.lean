@@ -21,11 +21,13 @@ variables {G : Type*} [normed_group G] [normed_space 𝕜 G]
 
 set_option class.instance_max_depth 70
 
+/-- A function `f` satisfies `is_bounded_linear_map 𝕜 f` if it is linear and satisfies the
+inequality `∥ f x ∥ ≤ M * ∥ x ∥` for some positive constant `M`. -/
 structure is_bounded_linear_map (𝕜 : Type*) [normed_field 𝕜]
   {E : Type*} [normed_group E] [normed_space 𝕜 E]
   {F : Type*} [normed_group F] [normed_space 𝕜 F] (f : E → F)
   extends is_linear_map 𝕜 f : Prop :=
-(bound : ∃ M > 0, ∀ x : E, ∥ f x ∥ ≤ M * ∥ x ∥)
+(bound : ∃ M, 0 < M ∧ ∀ x : E, ∥ f x ∥ ≤ M * ∥ x ∥)
 
 lemma is_linear_map.with_bound
   {f : E → F} (hf : is_linear_map 𝕜 f) (M : ℝ) (h : ∀ x : E, ∥ f x ∥ ≤ M * ∥ x ∥) :
@@ -42,6 +44,7 @@ lemma continuous_linear_map.is_bounded_linear_map (f : E →L[𝕜] F) : is_boun
 
 namespace is_bounded_linear_map
 
+/-- Construct a linear map from a function `f` satisfying `is_bounded_linear_map 𝕜 f`. -/
 def to_linear_map (f : E → F) (h : is_bounded_linear_map 𝕜 f) : E →ₗ[𝕜] F :=
 (is_linear_map.mk' _ h.to_is_linear_map)
 
@@ -195,6 +198,8 @@ section bilinear_map
 
 variable (𝕜)
 
+/-- A map `f : E × F → G` satisfies `is_bounded_bilinear_map 𝕜 f` if it is bilinear and
+continuous. -/
 structure is_bounded_bilinear_map (f : E × F → G) : Prop :=
 (add_left   : ∀(x₁ x₂ : E) (y : F), f (x₁ + x₂, y) = f (x₁, y) + f (x₂, y))
 (smul_left  : ∀(c : 𝕜) (x : E) (y : F), f (c • x, y) = c • f (x,y))
@@ -275,6 +280,8 @@ def is_bounded_bilinear_map.linear_deriv (h : is_bounded_bilinear_map 𝕜 f) (p
     simp [h.smul_left, h.smul_right, smul_add]
   end }
 
+/-- The derivative of a bounded bilinear map at a point `p : E × F`, as a continuous linear map
+from `E × F` to `G`. -/
 def is_bounded_bilinear_map.deriv (h : is_bounded_bilinear_map 𝕜 f) (p : E × F) : (E × F) →L[𝕜] G :=
 (h.linear_deriv p).with_bound $ begin
   rcases h.bound with ⟨C, Cpos, hC⟩,

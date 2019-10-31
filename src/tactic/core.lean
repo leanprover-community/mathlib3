@@ -344,6 +344,35 @@ do d ← get_decl n,
 
 end instance_cache
 
+meta def match_head (e : expr) : expr → tactic unit
+| e' :=
+    unify e e'
+<|> do `(_ → %%e') ← whnf e',
+       v ← mk_mvar,
+       match_head (e'.instantiate_var v)
+
+meta def find_matching_head : expr → list expr → tactic (list expr)
+| e []         := return []
+| e (H :: Hs) :=
+  do t ← infer_type H,
+     ((::) H <$ match_head e t <|> pure id) <*> find_matching_head e Hs
+
+meta def subst_locals (s : list (expr × expr)) (e : expr) : expr :=
+(e.abstract_locals (s.map (expr.local_uniq_name ∘ prod.fst)).reverse).instantiate_vars (s.map prod.snd)
+
+meta def set_binder : expr → list binder_info → expr
+| e [] := e
+| (expr.pi v _ d b) (bi :: bs) := expr.pi v bi d (set_binder b bs)
+| e _ := e
+
+meta def last_explicit_arg : expr → tactic expr
+| (expr.app f e) :=
+do t ← infer_type f >>= whnf,
+   if t.binding_info = binder_info.default
+     then pure e
+     else last_explicit_arg f
+| e := pure e
+
 private meta def get_expl_pi_arity_aux : expr → tactic nat
 | (expr.pi n bi d b) :=
   do m     ← mk_fresh_name,
@@ -430,10 +459,6 @@ open functor function
 meta def expanded_field_list (struct_n : name) : tactic (list $ name × name) :=
 dlist.to_list <$> expanded_field_list' struct_n
 
-/--
-Return a list of all type classes which can be instantiated
-for the given expression.
--/
 meta def get_classes (e : expr) : tactic (list name) :=
 attribute.get_instances `class >>= list.mfilter (λ n,
   succeeds $ mk_app n [e] >>= mk_instance)

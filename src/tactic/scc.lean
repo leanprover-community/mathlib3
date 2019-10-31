@@ -123,6 +123,7 @@ do m ← read_ref cl,
         pure (n,e₁,p)
    end
 
+/-- (Implementation of `merge`.) -/
 meta def merge_intl (cl : closure) (p e₀ p₀ e₁ p₁ : expr) : tactic unit :=
 do p₂ ← mk_app ``iff.symm [p₀],
    p ← mk_app ``iff.trans [p₂,p],

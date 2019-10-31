@@ -169,3 +169,20 @@ run_cmd do
   e ← get_env,
   e.get `very_partially_applied_term_data_fst,
   e.get `very_partially_applied_term_data_snd
+
+@[simps] def let1 : ℕ × ℤ :=
+let n := 3 in ⟨n + 4, 5⟩
+
+@[simps] def let2 : ℕ × ℤ :=
+let n := 3, m := 4 in let k := 5 in ⟨n + m, k⟩
+
+@[simps] def let3 : ℕ → ℕ × ℤ :=
+λ n, let m := 4, k := 5 in ⟨n + m, k⟩
+
+@[simps] def let4 : ℕ → ℕ × ℤ :=
+let m := 4, k := 5 in λ n, ⟨n + m, k⟩
+
+run_cmd do
+  e ← get_env,
+  e.get `let1_fst >> e.get `let2_fst >> e.get `let3_fst >> e.get `let4_fst >>
+  e.get `let1_snd >> e.get `let2_snd >> e.get `let3_snd >> e.get `let4_snd

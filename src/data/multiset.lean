@@ -6,7 +6,7 @@ Author: Mario Carneiro
 Multisets.
 -/
 import logic.function order.boolean_algebra
-  data.equiv.basic data.list.basic data.list.perm data.list.sort data.quot data.string
+  data.equiv.basic data.list.basic data.list.perm data.list.sort data.quot data.string.basic
   algebra.order_functions algebra.group_power algebra.ordered_group
   category.traversable.lemmas tactic.interactive
   category.traversable.instances category.basic

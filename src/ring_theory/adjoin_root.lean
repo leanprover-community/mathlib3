@@ -120,7 +120,7 @@ def amk : polynomial α →ₐ[α] adjoin_root f :=
 
 lemma amk_eq_mk : ⇑(amk f) = mk := rfl
 
-variables (a : β) (h : f.eval₂ (algebra_map β) a = 0)
+variables (a : β) (h : aeval α β a f = 0)
 
 def alift : adjoin_root f →ₐ[α] β :=
 { commutes' := λ _, show lift _ a h (of _) = _, by rw [lift_of]; refl,

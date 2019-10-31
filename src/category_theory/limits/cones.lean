@@ -377,6 +377,8 @@ namespace category_theory.limits
 
 variables {F : J ⥤ Cᵒᵖ}
 
+-- Here and below we only automatically generate the `@[simp]` lemma for the `X` field,
+-- as we can be a simpler `rfl` lemma for the components of the natural transformation by hand.
 @[simps X] def cone_of_cocone_left_op (c : cocone F.left_op) : cone F :=
 { X := op c.X,
   π := nat_trans.right_op (c.ι ≫ (const.op_obj_unop (op c.X)).hom) }

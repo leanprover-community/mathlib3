@@ -107,7 +107,6 @@ lemma mul_div_root_cancel (f : polynomial α) [irreducible f] :
 mul_div_eq_iff_is_root.2 $ is_root_root _
 
 end field
-#print not_not
 section algebra
 
 variables [comm_ring α] (f : polynomial α) [comm_ring β] [algebra α β]

@@ -102,6 +102,7 @@ setup_tactic_parser
     coercion.
   * If one of the fields is a partially applied constructor, we will eta-expand it
     (this likely never happens).
+  * `@[simps]` reduces let-expressions where necessary.
   -/
 @[user_attribute] meta def simps_attr : user_attribute unit (option unit) :=
 { name := `simps,

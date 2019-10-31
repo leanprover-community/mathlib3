@@ -274,17 +274,29 @@ meta def binding_names : expr → list name
 | (lam n _ _ e) := n :: e.binding_names
 | e             := []
 
+/-- head-reduce a single let expression -/
+meta def reduce_let : expr → expr
+| (elet _ _ v b) := b.instantiate_var v
+| e              := e
+
+/-- head-reduce all let expressions -/
+meta def reduce_lets : expr → expr
+| (elet _ _ v b) := reduce_lets $ b.instantiate_var v
+| e              := e
+
 /-- Instantiate lambdas in the second argument by expressions from the first. -/
 meta def instantiate_lambdas : list expr → expr → expr
 | (e'::es) (lam n bi t e) := instantiate_lambdas es (e.instantiate_var e')
 | _        e              := e
 
-/-- Instantiate lambdas in the second argument `e` by expressions from the first argument `es`.
+/-- `instantiate_lambdas_or_apps es e` instantiates lambdas in `e` by expressions from `es`.
 If the length of `es` is larger than the number of lambdas in `e`,
-then the term is applied to the remaining terms -/
+then the term is applied to the remaining terms.
+Also reduces head let-expressions in `e`, including those after instantiating all lambdas. -/
 meta def instantiate_lambdas_or_apps : list expr → expr → expr
-| (e'::es) (lam n bi t e) := instantiate_lambdas_or_apps es (e.instantiate_var e')
-| es       e              := mk_app e es
+| (v::es) (lam n bi t b) := instantiate_lambdas_or_apps es $ b.instantiate_var v
+| es      (elet _ _ v b) := instantiate_lambdas_or_apps es $ b.instantiate_var v
+| es      e              := mk_app e es
 
 end expr
 

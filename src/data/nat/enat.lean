@@ -225,6 +225,7 @@ end
 
 section with_top
 
+/-- Computably converts an `enat` to a `with_top ℕ`. -/
 def to_with_top (x : enat) [decidable x.dom]: with_top ℕ := x.to_option
 
 lemma to_with_top_top : to_with_top ⊤ = ⊤ := rfl
@@ -248,6 +249,50 @@ enat.cases_on y (by simp) (enat.cases_on x (by simp) (by intros; simp))
 by simp only [lt_iff_le_not_le, to_with_top_le]
 
 end with_top
+
+section with_top_equiv
+open_locale classical
+
+/-- Order isomorphism between `enat` and `with_top ℕ`. -/
+noncomputable def with_top_equiv : enat ≃ with_top ℕ :=
+{ to_fun := λ x, to_with_top x,
+  inv_fun := λ x, match x with (some n) := coe n | none := ⊤ end,
+  left_inv := λ x, by apply enat.cases_on x; intros; simp; refl,
+  right_inv := λ x, by cases x; simp [with_top_equiv._match_1]; refl }
+
+@[simp] lemma with_top_equiv_top : with_top_equiv ⊤ = ⊤ :=
+to_with_top_top'
+
+@[simp] lemma with_top_equiv_coe (n : nat) : with_top_equiv n = n :=
+to_with_top_coe' _
+
+@[simp] lemma with_top_equiv_zero : with_top_equiv 0 = 0 :=
+with_top_equiv_coe _
+
+@[simp] lemma with_top_equiv_le {x y : enat} : with_top_equiv x ≤ with_top_equiv y ↔ x ≤ y :=
+to_with_top_le
+
+@[simp] lemma with_top_equiv_lt {x y : enat} : with_top_equiv x < with_top_equiv y ↔ x < y :=
+to_with_top_lt
+
+@[simp] lemma with_top_equiv_symm_top : with_top_equiv.symm ⊤ = ⊤ :=
+rfl
+
+@[simp] lemma with_top_equiv_symm_coe (n : nat) : with_top_equiv.symm n = n :=
+rfl
+
+@[simp] lemma with_top_equiv_symm_zero : with_top_equiv.symm 0 = 0 :=
+rfl
+
+@[simp] lemma with_top_equiv_symm_le {x y : with_top ℕ} :
+  with_top_equiv.symm x ≤ with_top_equiv.symm y ↔ x ≤ y :=
+by rw ← with_top_equiv_le; simp
+
+@[simp] lemma with_top_equiv_symm_lt {x y : with_top ℕ} :
+  with_top_equiv.symm x < with_top_equiv.symm y ↔ x < y :=
+by rw ← with_top_equiv_lt; simp
+
+end with_top_equiv
 
 lemma lt_wf : well_founded ((<) : enat → enat → Prop) :=
 show well_founded (λ a b : enat, a < b),

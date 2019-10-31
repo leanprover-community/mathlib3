@@ -105,3 +105,11 @@ begin
   success_if_fail {obtain ⟨h, h2⟩},
   trivial
 end
+
+example {i j : ℕ} : (Σ' x, i ≤ x ∧ x ≤ j) → i ≤ j :=
+begin
+  intro h,
+  rcases h' : h with ⟨x,h₀,h₁⟩,
+  guard_hyp h' := h = ⟨x,h₀,h₁⟩,
+  apply le_trans h₀ h₁,
+end

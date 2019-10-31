@@ -79,6 +79,9 @@ necessary.
 `rcases` also has special support for quotient types: quotient induction into Prop works like
 matching on the constructor `quot.mk`.
 
+`rcases h : e with PAT` will do the same as `rcases e with PAT` with the exception that an assumption
+`h : e = PAT` will be added to the context.
+
 `rcases? e` will perform case splits on `e` in the same way as `rcases e`,
 but rather than accepting a pattern, it does a maximal cases and prints the
 pattern that would produce this case splitting. The default maximum depth is 5,
@@ -1210,7 +1213,11 @@ This is not run by default.
 
 The command `#list_linters` prints a list of the names of all available linters.
 
-You can append a `-` to any command (e.g. `#lint_mathlib-`) to omit the slow tests (4).
+You can append a `*` to any command (e.g. `#lint_mathlib*`) to omit the slow tests (4).
+
+You can append a `-` to any command (e.g. `#lint_mathlib-`) to run a silent lint
+that suppresses the output of passing checks.
+A silent lint will fail if any test fails.
 
 You can append a sequence of linter names to any command to run extra tests, in addition to the
 default ones. e.g. `#lint doc_blame_thm` will run all default tests and `doc_blame_thm`.
@@ -1222,6 +1229,8 @@ You can add custom linters by defining a term of type `linter` in the `linter` n
 A linter defined with the name `linter.my_new_check` can be run with `#lint my_new_check`
 or `lint only my_new_check`.
 If you add the attribute `@[linter]` to `linter.my_new_check` it will run by default.
+
+Adding the attribute `@[nolint]` to a declaration omits it from all linter checks.
 
 ### lift
 

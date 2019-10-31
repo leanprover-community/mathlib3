@@ -32,7 +32,7 @@ meta def replace : ℕ → expr → tactic expr
   t' ← replace i t,
   d' ← replace i d,
   var ← mk_local_def n t,
-  e' ← replace i (expr.instantiate_var e var), -- | replace el 0,
+  e' ← replace i (expr.instantiate_var e var),
   return (expr.elet n t' d' (expr.abstract_local e' var.local_uniq_name))
 | (i+1) e := return e
 

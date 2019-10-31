@@ -358,3 +358,26 @@ run_cmd do e ← get_env,
 
 
 end is_eta_expansion
+
+section elide
+
+variables {x y z w : ℕ}
+variables (h  : x + y + z ≤ w)
+          (h' : x ≤ y + z + w)
+include h h'
+
+example : x + y + z ≤ w :=
+begin
+  elide 0 at h,
+  elide 2 at h',
+  guard_hyp h := @hidden _ (x + y + z ≤ w),
+  guard_hyp h' := x ≤ @has_add.add (@hidden Type nat) (@hidden (has_add nat) nat.has_add)
+                                   (@hidden ℕ (y + z)) (@hidden ℕ w),
+  unelide at h,
+  unelide at h',
+  guard_hyp h' := x ≤ y + z + w,
+  exact h, -- there was a universe problem in `elide`. `exact h` lets the kernel check
+           -- the consistency of the universes
+end
+
+end elide

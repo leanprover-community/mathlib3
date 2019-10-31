@@ -1459,7 +1459,7 @@ noncomputable def sup_quotient_equiv_quotient_inf (p p' : submodule R M) :
 
 section prod
 
-/-- The cartesian product of two linear maps is a linear map. -/
+/-- The cartesian product of two linear maps as a linear map. -/
 def prod {R M M₂ M₃ : Type*} [ring R] [add_comm_group M] [add_comm_group M₂] [add_comm_group M₃]
   [module R M] [module R M₂] [module R M₃]
   (f₁ : M →ₗ[R] M₂) (f₂ : M →ₗ[R] M₃) : M →ₗ[R] (M₂ × M₃) :=

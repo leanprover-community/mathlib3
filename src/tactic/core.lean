@@ -184,20 +184,6 @@ do subst ← d.univ_params.mmap $ λ u, prod.mk u <$> mk_meta_univ,
    let e : expr := expr.const d.to_name (prod.snd <$> subst),
    return (e, d.type.instantiate_univ_params subst)
 
--- TODO: I don't know exactly what this does. It's only used in the following declaration.
-meta def simp_lemmas_from_file : tactic name_set :=
-do s ← local_decls,
-   let s := s.map (expr.list_constant ∘ declaration.value),
-   xs ← s.to_list.mmap ((<$>) name_set.of_list ∘ mfilter tactic.is_simp_lemma ∘ name_set.to_list ∘ prod.snd),
-   return $ name_set.filter (λ x, ¬ s.contains x) (xs.foldl name_set.union mk_name_set)
-
--- TODO: I don't know exactly what this does, and it doesn't seem to be used anywhere.
-meta def file_simp_attribute_decl (attr : name) : tactic unit :=
-do s ← simp_lemmas_from_file,
-   trace format!"run_cmd mk_simp_attr `{attr}",
-   let lmms := format.join $ list.intersperse " " $ s.to_list.map to_fmt,
-   trace format!"local attribute [{attr}] {lmms}"
-
 /-- `mk_local n` reates a dummy local variable with name `n`.
 The type of this local constant is a constant with name `n`, so it is very unlikely to be
 a meaningful expression. -/

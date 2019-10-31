@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Simon Hudon, Scott Morrison
 -/
 
-import tactic.interactive tactic.finish tactic.ext tactic.lift tactic.apply tactic.reassoc_axiom
+import tactic.interactive tactic.finish tactic.ext tactic.lift tactic.apply tactic.reassoc_axiom tactic.elide
 
 example (m n p q : nat) (h : m + n = p) : true :=
 begin

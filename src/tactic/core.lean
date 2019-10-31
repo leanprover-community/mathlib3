@@ -459,6 +459,10 @@ open functor function
 meta def expanded_field_list (struct_n : name) : tactic (list $ name × name) :=
 dlist.to_list <$> expanded_field_list' struct_n
 
+/--
+Return a list of all type classes which can be instantiated
+for the given expression.
+-/
 meta def get_classes (e : expr) : tactic (list name) :=
 attribute.get_instances `class >>= list.mfilter (λ n,
   succeeds $ mk_app n [e] >>= mk_instance)

@@ -51,6 +51,8 @@ variables (C : Type u₁) [𝒞 : category.{v₁} C] (D : Type u₂) [𝒟 : cat
 include 𝒞 𝒟
 
 /-- `inl C Z` is the functor `X ↦ (X, Z)`. -/
+-- Here and below we specify explicitly the projections to generate `@[simp]` lemmas for, 
+-- as the default behaviour of `@[simps]` will generate projections all the way down to components of pairs.
 @[simps obj map] def inl (Z : D) : C ⥤ C × D :=
 { obj := λ X, (X, Z),
   map := λ X Y f, (f, 𝟙 Z) }

@@ -107,7 +107,7 @@ lemma mul_div_root_cancel (f : polynomial α) [irreducible f] :
 mul_div_eq_iff_is_root.2 $ is_root_root _
 
 end field
-
+#print not_not
 section algebra
 
 variables [comm_ring α] (f : polynomial α) [comm_ring β] [algebra α β]
@@ -120,22 +120,22 @@ def amk : polynomial α →ₐ[α] adjoin_root f :=
 
 lemma amk_eq_mk : ⇑(amk f) = mk := rfl
 
-variables (a : β) (h : aeval α β a f = 0)
+variables (b : β) (h : aeval α β b f = 0)
 
 def alift : adjoin_root f →ₐ[α] β :=
-{ commutes' := λ _, show lift _ a h (of _) = _, by rw [lift_of]; refl,
-  ..ring_hom.of (lift (algebra_map β) a h) }
+{ commutes' := λ _, show lift _ b h (of _) = _, by rw [lift_of]; refl,
+  ..ring_hom.of (lift (algebra_map β) b h) }
 
-variables {a h}
+variables {b h}
 
-@[simp] lemma alift_mk {g : polynomial α} : alift f a h (mk g) = g.eval₂ (algebra_map β) a :=
-@lift_mk _ _ _ f _ _ _ a h g
+@[simp] lemma alift_mk {g : polynomial α} : alift f b h (mk g) = g.eval₂ (algebra_map β) b :=
+@lift_mk _ _ _ f _ _ _ b h g
 
-@[simp] lemma alift_root : alift f a h root = a :=
+@[simp] lemma alift_root : alift f b h root = b :=
 @lift_root _ _ _  f _ _ _ _ h
 
-@[simp] lemma alift_of {x : α} : alift f a h (of x) = algebra_map β x :=
-by show lift (algebra_map β) a h (ideal.quotient.mk _ (C x)) = algebra_map β x;
+@[simp] lemma alift_of {a : α} : alift f b h (of a) = algebra_map β a :=
+by show lift (algebra_map β) b h (ideal.quotient.mk _ (C a)) = algebra_map β a;
   convert ideal.quotient.lift_mk; simp
 
 end algebra

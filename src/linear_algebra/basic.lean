@@ -1440,7 +1440,7 @@ exact comap_mono (inf_le_inf le_sup_left (le_refl _)) end
 set_option class.instance_max_depth 41
 
 /--
-Second Isomorphism Law : the canonical map from p/(p ∩ p') to (p+p')/p' is a linear isomorphism.
+Second Isomorphism Law : the canonical map from p/(p ∩ p') to (p+p')/p' as a linear isomorphism.
 -/
 noncomputable def sup_quotient_equiv_quotient_inf (p p' : submodule R M) :
   (comap p.subtype (p ⊓ p')).quotient ≃ₗ[R] (comap (p ⊔ p').subtype p').quotient :=

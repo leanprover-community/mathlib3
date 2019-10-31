@@ -255,9 +255,9 @@ meta def instance_priority (d : declaration) : tactic (option string) := do
   prio ← has_attribute `instance nm,
   /- return `none` if `d` is has low priority -/
   if prio < 1000 then return none else do
-  let (fn, args) := d.type.unsafe_pi_codomain.get_app_fn_args,
+  let (fn, args) := d.type.pi_codomain.get_app_fn_args,
   cls ← get_decl fn.const_name,
-  let (pi_args, _) := cls.type.unsafe_pi_binders,
+  let (pi_args, _) := cls.type.pi_binders,
   guard (args.length = pi_args.length),
   /- List all the arguments of the class that block type-class inference from firing
     (if they are metavariables). These are all the arguments except instance-arguments and

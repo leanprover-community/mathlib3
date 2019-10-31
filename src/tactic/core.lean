@@ -355,7 +355,7 @@ meta def get_pi_binders_aux : list binder → expr → tactic (list binder × ex
 | es e                  := return (es, e)
 
 /-- Get the binders and target of a pi-type. Instantiates bound variables by
-  local constants. Cf. `unsafe_pi_binders` in `meta.expr` (which produces open terms).
+  local constants. Cf. `pi_binders` in `meta.expr` (which produces open terms).
   See also `mk_local_pis` in `init.core.tactic` which does almost the same. -/
 meta def get_pi_binders : expr → tactic (list binder × expr) | e :=
 do (es, e) ← get_pi_binders_aux [] e, return (es.reverse, e)

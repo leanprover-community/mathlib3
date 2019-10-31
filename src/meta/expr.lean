@@ -314,28 +314,28 @@ meta def instantiate_lambdas_or_apps : list expr → expr → expr
   Terms will free variables are not well-typed, and one should not use them in tactics like
   `infer_type` or `unify`. You can still do syntactic analysis/manipulation on them.
   The reason for working with open types is for performance: instantiating variables requires
-  iterating through the expression. In one performance test `unsafe_pi_binders` was more than 6x
+  iterating through the expression. In one performance test `pi_binders` was more than 6x
   quicker than `mk_local_pis` (when applied to the type of all imported declarations 100x).
   -/
 
 /-- Get the codomain/target of a pi-type.
   This definition doesn't Instantiate bound variables, and therefore produces a term that is open.-/
-meta def unsafe_pi_codomain : expr → expr -- see note [open expressions]
-| (pi n bi d b) := unsafe_pi_codomain b
+meta def pi_codomain : expr → expr -- see note [open expressions]
+| (pi n bi d b) := pi_codomain b
 | e             := e
 
-/-- Auxilliary defintion for `unsafe_pi_binders`. -/
+/-- Auxilliary defintion for `pi_binders`. -/
 -- see note [open expressions]
-meta def unsafe_pi_binders_aux : list binder → expr → list binder × expr
-| es (pi n bi d b) := unsafe_pi_binders_aux (⟨n, bi, d⟩::es) b
+meta def pi_binders_aux : list binder → expr → list binder × expr
+| es (pi n bi d b) := pi_binders_aux (⟨n, bi, d⟩::es) b
 | es e             := (es, e)
 
 /-- Get the binders and codomain of a pi-type.
   This definition doesn't Instantiate bound variables, and therefore produces a term that is open.
   The.tactic `get_pi_binders` in `tactic.core` does the same, but also instantiates the
   free variables -/
-meta def unsafe_pi_binders (e : expr) : list binder × expr := -- see note [open expressions]
-let (es, e) := unsafe_pi_binders_aux [] e in (es.reverse, e)
+meta def pi_binders (e : expr) : list binder × expr := -- see note [open expressions]
+let (es, e) := pi_binders_aux [] e in (es.reverse, e)
 
 /-- Auxilliary defintion for `get_app_fn_args`. -/
 meta def get_app_fn_args_aux : list expr → expr → expr × list expr

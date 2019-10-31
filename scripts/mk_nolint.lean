@@ -4,7 +4,8 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Author: Robert Y. Lewis
 -/
 
-import tactic.lint system.io data.list.sort all
+import tactic.lint system.io data.list.sort   -- these are required
+import all   -- then import everything, to parse the library for failing linters
 
 /-!
 # mk_nolint

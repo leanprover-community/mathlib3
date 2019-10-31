@@ -20,6 +20,8 @@ variables (C : Type u₁) [𝒞 : category.{v₁} C]
           (E : Type u₃) [ℰ : category.{v₃} E]
 include 𝒞 𝒟 ℰ
 
+-- Here and below we specify explicitly the projections to generate `@[simp]` lemmas for, 
+-- as the default behaviour of `@[simps]` will generate projections all the way down to components of pairs.
 @[simps obj map] def associator : ((C × D) × E) ⥤ (C × (D × E)) :=
 { obj := λ X, (X.1.1, (X.1.2, X.2)),
   map := λ _ _ f, (f.1.1, (f.1.2, f.2)) }

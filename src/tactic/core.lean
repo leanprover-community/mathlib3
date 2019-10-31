@@ -355,40 +355,6 @@ do d ← get_decl n,
 
 end instance_cache
 
--- unused in library. propose to delete
-meta def match_head (e : expr) : expr → tactic unit
-| e' :=
-    unify e e'
-<|> do `(_ → %%e') ← whnf e',
-       v ← mk_mvar,
-       match_head (e'.instantiate_var v)
-
--- unused in library. propose to delete
-meta def find_matching_head : expr → list expr → tactic (list expr)
-| e []         := return []
-| e (H :: Hs) :=
-  do t ← infer_type H,
-     ((::) H <$ match_head e t <|> pure id) <*> find_matching_head e Hs
-
--- unused in library. propose to delete
-meta def subst_locals (s : list (expr × expr)) (e : expr) : expr :=
-(e.abstract_locals (s.map (expr.local_uniq_name ∘ prod.fst)).reverse).instantiate_vars (s.map prod.snd)
-
--- unused in library. propose to delete
-meta def set_binder : expr → list binder_info → expr
-| e [] := e
-| (expr.pi v _ d b) (bi :: bs) := expr.pi v bi d (set_binder b bs)
-| e _ := e
-
--- unused in library. propose to delete
-meta def last_explicit_arg : expr → tactic expr
-| (expr.app f e) :=
-do t ← infer_type f >>= whnf,
-   if t.binding_info = binder_info.default
-     then pure e
-     else last_explicit_arg f
-| e := pure e
-
 private meta def get_expl_pi_arity_aux : expr → tactic nat
 | (expr.pi n bi d b) :=
   do m     ← mk_fresh_name,

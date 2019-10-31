@@ -247,6 +247,14 @@ by { rw [unique_diff_within_at, tangent_cone_univ], simp }
 lemma unique_diff_on_univ : unique_diff_on 𝕜 (univ : set E) :=
 λx hx, unique_diff_within_at_univ
 
+lemma unique_diff_within_at.mono (h : unique_diff_within_at 𝕜 s x) (st : s ⊆ t) :
+  unique_diff_within_at 𝕜 t x :=
+begin
+  unfold unique_diff_within_at at *,
+  rw [← univ_subset_iff, ← h.1],
+  exact ⟨closure_mono (submodule.span_mono (tangent_cone_mono st)), closure_mono st h.2⟩
+end
+
 lemma unique_diff_within_at_inter (ht : t ∈ nhds x) :
   unique_diff_within_at 𝕜 (s ∩ t) x ↔ unique_diff_within_at 𝕜 s x :=
 begin
@@ -265,13 +273,23 @@ lemma unique_diff_within_at.inter (hs : unique_diff_within_at 𝕜 s x) (ht : t 
   unique_diff_within_at 𝕜 (s ∩ t) x :=
 (unique_diff_within_at_inter ht).2 hs
 
-lemma unique_diff_within_at.mono (h : unique_diff_within_at 𝕜 s x) (st : s ⊆ t) :
-  unique_diff_within_at 𝕜 t x :=
+lemma unique_diff_within_at_inter' (ht : t ∈ nhds_within x s) :
+  unique_diff_within_at 𝕜 (s ∩ t) x ↔ unique_diff_within_at 𝕜 s x :=
 begin
-  unfold unique_diff_within_at at *,
-  rw [← univ_subset_iff, ← h.1],
-  exact ⟨closure_mono (submodule.span_mono (tangent_cone_mono st)), closure_mono st h.2⟩
+  split,
+  { exact λH, H.mono (inter_subset_left _ _) },
+  { assume H,
+    rw mem_nhds_within at ht,
+    rcases ht with ⟨u, u_open, xu, us⟩,
+    have : u ∈ nhds x := mem_nhds_sets u_open xu,
+    rw ← unique_diff_within_at_inter this at H,
+    apply H.mono,
+    exact λ p ⟨ps, pu⟩, ⟨ps, us ⟨pu, ps⟩⟩ }
 end
+
+lemma unique_diff_within_at.inter' (hs : unique_diff_within_at 𝕜 s x) (ht : t ∈ nhds_within x s) :
+  unique_diff_within_at 𝕜 (s ∩ t) x :=
+(unique_diff_within_at_inter' ht).2 hs
 
 lemma is_open.unique_diff_within_at (hs : is_open s) (xs : x ∈ s) : unique_diff_within_at 𝕜 s x :=
 begin
@@ -279,7 +297,7 @@ begin
   rwa univ_inter at this
 end
 
-lemma unique_diff_on_inter (hs : unique_diff_on 𝕜 s) (ht : is_open t) : unique_diff_on 𝕜 (s ∩ t) :=
+lemma unique_diff_on.inter (hs : unique_diff_on 𝕜 s) (ht : is_open t) : unique_diff_on 𝕜 (s ∩ t) :=
 λx hx, (hs x hx.1).inter (mem_nhds_sets ht hx.2)
 
 lemma is_open.unique_diff_on (hs : is_open s) : unique_diff_on 𝕜 s :=

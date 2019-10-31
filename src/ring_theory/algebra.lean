@@ -146,6 +146,13 @@ variables {R A}
 
 end algebra
 
+instance module.endomorphism_algebra (R : Type u) (M : Type v)
+  [comm_ring R] [add_comm_group M] [module R M] : algebra R (M →ₗ[R] M) :=
+{ to_fun    := (λ r, r • linear_map.id),
+  hom       := by apply is_ring_hom.mk; intros; ext; simp [mul_smul, add_smul],
+  commutes' := by intros; ext; simp,
+  smul_def' := by intros; ext; simp }
+
 set_option old_structure_cmd true
 /-- Defining the homomorphism in the category R-Alg. -/
 structure alg_hom (R : Type u) (A : Type v) (B : Type w)
@@ -249,12 +256,20 @@ end alg_hom
 namespace algebra
 
 variables (R : Type u) (S : Type v) (A : Type w)
-variables [comm_ring R] [comm_ring S] [ring A] [algebra R S] [algebra S A]
 include R S A
-def comap : Type w := A
+
+/-- `comap R S A` is a type alias for `A`, and has an R-algebra structure defined on it
+  when `algebra R S` and `algebra S A`. -/
+/- This is done to avoid a type class search with meta-variables `algebra R ?m_1` and 
+    `algebra ?m_1 A -/
+/- The `nolint` attribute is added because it has unused arguments `R` and `S`, but these are necessary for synthesizing the
+     appropriate type classes -/
+@[nolint] def comap : Type w := A
 def comap.to_comap : A → comap R S A := id
 def comap.of_comap : comap R S A → A := id
+
 omit R S A
+variables [comm_ring R] [comm_ring S] [ring A] [algebra R S] [algebra S A]
 
 instance comap.ring : ring (comap R S A) := _inst_3
 instance comap.comm_ring (R : Type u) (S : Type v) (A : Type w)
@@ -354,6 +369,13 @@ begin
 end
 
 end mv_polynomial
+
+namespace rat
+
+instance algebra_rat {α} [field α] [char_zero α] : algebra ℚ α :=
+algebra.of_ring_hom rat.cast (by apply_instance)
+
+end rat
 
 namespace complex
 

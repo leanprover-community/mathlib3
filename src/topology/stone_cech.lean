@@ -9,7 +9,7 @@ Parts of the formalization are based on "Ultrafilters and Topology"
 by Marius Stekelenburg, particularly section 5.
 -/
 
-import topology.constructions
+import topology.bases topology.dense_embedding
 
 noncomputable theory
 

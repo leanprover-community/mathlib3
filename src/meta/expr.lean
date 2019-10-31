@@ -131,16 +131,32 @@ meta def nonzero : level → bool
 
 end level
 
-namespace expr
-open tactic
+/- converting between expressions and numerals -/
 
-/-- Apply a function to each constant (inductive type, defined function etc) in an expression. -/
-protected meta def apply_replacement_fun (f : name → name) (e : expr) : expr :=
-e.replace $ λ e d,
-  match e with
-  | expr.const n ls := some $ expr.const (f n) ls
-  | _ := none
-  end
+/--
+`nat.mk_numeral n` embeds `n` as a numeral expression inside a type with 0, 1, and +.
+`type`: an expression representing the target type. This must live in Type 0.
+`has_zero`, `has_one`, `has_add`: expressions of the type `has_zero %%type`, etc.
+ -/
+meta def nat.mk_numeral (type has_zero has_one has_add : expr) : ℕ → expr :=
+let z : expr := `(@has_zero.zero.{0} %%type %%has_zero),
+    o : expr := `(@has_one.one.{0} %%type %%has_one) in
+nat.binary_rec z
+  (λ b n e, if n = 0 then o else
+    if b then `(@bit1.{0} %%type %%has_one %%has_add %%e)
+    else `(@bit0.{0} %%type %%has_add %%e))
+
+/--
+`int.mk_numeral z` embeds `z` as a numeral expression inside a type with 0, 1, +, and -.
+`type`: an expression representing the target type. This must live in Type 0.
+`has_zero`, `has_one`, `has_add`, `has_neg`: expressions of the type `has_zero %%type`, etc.
+ -/
+meta def int.mk_numeral (type has_zero has_one has_add has_neg : expr) : ℤ → expr
+| (int.of_nat n) := n.mk_numeral type has_zero has_one has_add
+| -[1+n] := let ne := (n+1).mk_numeral type has_zero has_one has_add in
+            `(@has_neg.neg.{0} %%type %%has_neg %%ne)
+
+namespace expr
 
 /-- Turns an expression into a positive natural number, assuming it is only built up from
   `has_one.one`, `bit0` and `bit1`. -/
@@ -161,6 +177,19 @@ protected meta def to_nat : expr → option ℕ
 protected meta def to_int : expr → option ℤ
 | `(has_neg.neg %%e) := do n ← e.to_nat, some (-n)
 | e                  := coe <$> e.to_nat
+
+end expr
+
+namespace expr
+open tactic
+
+/-- Apply a function to each constant (inductive type, defined function etc) in an expression. -/
+protected meta def apply_replacement_fun (f : name → name) (e : expr) : expr :=
+e.replace $ λ e d,
+  match e with
+  | expr.const n ls := some $ expr.const (f n) ls
+  | _ := none
+  end
 
 /-- Tests whether an expression is a meta-variable. -/
 meta def is_mvar : expr → bool
@@ -245,17 +274,29 @@ meta def binding_names : expr → list name
 | (lam n _ _ e) := n :: e.binding_names
 | e             := []
 
+/-- head-reduce a single let expression -/
+meta def reduce_let : expr → expr
+| (elet _ _ v b) := b.instantiate_var v
+| e              := e
+
+/-- head-reduce all let expressions -/
+meta def reduce_lets : expr → expr
+| (elet _ _ v b) := reduce_lets $ b.instantiate_var v
+| e              := e
+
 /-- Instantiate lambdas in the second argument by expressions from the first. -/
 meta def instantiate_lambdas : list expr → expr → expr
 | (e'::es) (lam n bi t e) := instantiate_lambdas es (e.instantiate_var e')
 | _        e              := e
 
-/-- Instantiate lambdas in the second argument `e` by expressions from the first argument `es`.
+/-- `instantiate_lambdas_or_apps es e` instantiates lambdas in `e` by expressions from `es`.
 If the length of `es` is larger than the number of lambdas in `e`,
-then the term is applied to the remaining terms -/
+then the term is applied to the remaining terms.
+Also reduces head let-expressions in `e`, including those after instantiating all lambdas. -/
 meta def instantiate_lambdas_or_apps : list expr → expr → expr
-| (e'::es) (lam n bi t e) := instantiate_lambdas_or_apps es (e.instantiate_var e')
-| es       e              := mk_app e es
+| (v::es) (lam n bi t b) := instantiate_lambdas_or_apps es $ b.instantiate_var v
+| es      (elet _ _ v b) := instantiate_lambdas_or_apps es $ b.instantiate_var v
+| es      e              := mk_app e es
 
 end expr
 

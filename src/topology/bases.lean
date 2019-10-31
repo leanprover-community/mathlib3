@@ -6,7 +6,7 @@ Authors: Johannes Hölzl, Mario Carneiro
 Bases of topologies. Countability axioms.
 -/
 
-import topology.order data.set.countable
+import topology.constructions data.set.countable
 
 open set filter lattice classical
 
@@ -213,6 +213,34 @@ let b' := (λs, ⋂₀ s) '' {s:set (set α) | finite s ∧ s ⊆ b ∧ ⋂₀ s
     (countable_set_of_finite_subset hb₁),
   assume ⟨s, ⟨_, _, hn⟩, hp⟩, hn hp,
   is_topological_basis_of_subbasis hb₂⟩
+
+/- TODO: more fine grained instances for first_countable_topology, separable_space, t2_space, ... -/
+instance {β : Type*} [topological_space β]
+  [second_countable_topology α] [second_countable_topology β] : second_countable_topology (α × β) :=
+⟨let ⟨a, ha₁, ha₂, ha₃, ha₄, ha₅⟩ := is_open_generated_countable_inter α in
+  let ⟨b, hb₁, hb₂, hb₃, hb₄, hb₅⟩ := is_open_generated_countable_inter β in
+  ⟨{g | ∃u∈a, ∃v∈b, g = set.prod u v},
+    have {g | ∃u∈a, ∃v∈b, g = set.prod u v} = (⋃u∈a, ⋃v∈b, {set.prod u v}),
+      by apply set.ext; simp,
+    by rw [this]; exact (countable_bUnion ha₁ $ assume u hu, countable_bUnion hb₁ $ by simp),
+    by rw [ha₅, hb₅, prod_generate_from_generate_from_eq ha₄ hb₄]⟩⟩
+
+instance second_countable_topology_fintype {ι : Type*} {π : ι → Type*}
+  [fintype ι] [t : ∀a, topological_space (π a)] [sc : ∀a, second_countable_topology (π a)] :
+  second_countable_topology (∀a, π a) :=
+have ∀i, ∃b : set (set (π i)), countable b ∧ ∅ ∉ b ∧ is_topological_basis b, from
+  assume a, @is_open_generated_countable_inter (π a) _ (sc a),
+let ⟨g, hg⟩ := classical.axiom_of_choice this in
+have t = (λa, generate_from (g a)), from funext $ assume a, (hg a).2.2.2.2,
+begin
+  constructor,
+  refine ⟨pi univ '' pi univ g, countable_image _ _, _⟩,
+  { suffices : countable {f : Πa, set (π a) | ∀a, f a ∈ g a}, { simpa [pi] },
+    exact countable_pi (assume i, (hg i).1), },
+  rw [this, pi_generate_from_eq_fintype],
+  { congr' 1, ext f, simp [pi, eq_comm] },
+  exact assume a, (hg a).2.2.2.1
+end
 
 instance second_countable_topology.to_separable_space
   [second_countable_topology α] : separable_space α :=

@@ -45,7 +45,7 @@ assume hfi hgi,
     ... < ⊤ : add_lt_top.2 ⟨hfi, hgi⟩
 
 -- We don't need `f` to be measurable here, but it's easier to have a uniform API
-@[sanity_skip]
+@[nolint]
 lemma lintegral_nnnorm_neg {f : α → γ} (hf : measurable f) :
   (∫⁻ (a : α), ↑(nnnorm ((-f) a))) = ∫⁻ (a : α), ↑(nnnorm ((f) a)) :=
 lintegral_congr_ae $ by { filter_upwards [], simp }

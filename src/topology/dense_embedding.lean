@@ -3,7 +3,7 @@ Copyright (c) 2019 Reid Barton. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johannes Hölzl, Mario Carneiro, Patrick Massot
 -/
-import topology.maps topology.separation
+import topology.separation
 
 /-!
 # Dense embeddings
@@ -63,6 +63,12 @@ def dense_range.inhabited (df : dense_range f) (b : β) : inhabited α :=
 
 lemma dense_range.nonempty (hf : dense_range f) : nonempty α ↔ nonempty β :=
 ⟨nonempty.map f, λ ⟨b⟩, @nonempty_of_inhabited _ (hf.inhabited b)⟩
+
+lemma dense_range_prod {ι : Type*} {κ : Type*} {f : ι → β} {g : κ → γ}
+  (hf : dense_range f) (hg : dense_range g) : dense_range (λ p : ι × κ, (f p.1, g p.2)) :=
+have closure (range $ λ p : ι×κ, (f p.1, g p.2)) = set.prod (closure $ range f) (closure $ range g),
+    by rw [←closure_prod_eq, prod_range_range_eq],
+assume ⟨b, d⟩, this.symm ▸ mem_prod.2 ⟨hf _, hg _⟩
 end dense_range
 
 /-- `i : α → β` is "dense inducing" if it has dense range and the topology on `α`
@@ -111,6 +117,13 @@ begin
   have U_nhd : U ∈ nhds (i a) := mem_nhds_sets U_op e_a_in_U,
   exact (nhds (i a)).sets_of_superset U_nhd this
 end
+
+/-- The product of two dense inducings is a dense inducing -/
+protected lemma prod [topological_space γ] [topological_space δ]
+  {e₁ : α → β} {e₂ : γ → δ} (de₁ : dense_inducing e₁) (de₂ : dense_inducing e₂) :
+  dense_inducing (λ(p : α × γ), (e₁ p.1, e₂ p.2)) :=
+{ induced := (de₁.to_inducing.prod_mk de₂.to_inducing).induced,
+  dense := dense_range_prod de₁.dense de₂.dense }
 
 variables [topological_space δ] {f : γ → α} {g : γ → δ} {h : δ → β}
 /--
@@ -234,7 +247,7 @@ theorem dense_embedding.mk'
   ..dense_inducing.mk' e c dense H}
 
 namespace dense_embedding
-variables [topological_space α] [topological_space β]
+variables [topological_space α] [topological_space β] [topological_space γ] [topological_space δ]
 variables {e : α → β} (de : dense_embedding e)
 
 lemma inj_iff {x y} : e x = e y ↔ x = y := de.inj.eq_iff
@@ -242,4 +255,55 @@ lemma inj_iff {x y} : e x = e y ↔ x = y := de.inj.eq_iff
 lemma to_embedding : embedding e :=
 { induced := de.induced,
   inj := de.inj }
+
+/-- The product of two dense embeddings is a dense embedding -/
+protected lemma prod {e₁ : α → β} {e₂ : γ → δ} (de₁ : dense_embedding e₁) (de₂ : dense_embedding e₂) :
+  dense_embedding (λ(p : α × γ), (e₁ p.1, e₂ p.2)) :=
+{ inj := assume ⟨x₁, x₂⟩ ⟨y₁, y₂⟩,
+    by simp; exact assume h₁ h₂, ⟨de₁.inj h₁, de₂.inj h₂⟩,
+  ..dense_inducing.prod de₁.to_dense_inducing de₂.to_dense_inducing }
+
+def subtype_emb {α : Type*} (p : α → Prop) (e : α → β) (x : {x // p x}) :
+  {x // x ∈ closure (e '' {x | p x})} :=
+⟨e x.1, subset_closure $ mem_image_of_mem e x.2⟩
+
+protected lemma subtype (p : α → Prop) : dense_embedding (subtype_emb p e) :=
+{ dense_embedding .
+  dense   := assume ⟨x, hx⟩, closure_subtype.mpr $
+    have (λ (x : {x // p x}), e (x.val)) = e ∘ subtype.val, from rfl,
+    begin
+      rw ← image_univ,
+      simp [(image_comp _ _ _).symm, (∘), subtype_emb, -image_univ],
+      rw [this, image_comp, subtype.val_image],
+      simp,
+      assumption
+    end,
+  inj     := assume ⟨x, hx⟩ ⟨y, hy⟩ h, subtype.eq $ de.inj $ @@congr_arg subtype.val h,
+  induced := (induced_iff_nhds_eq _).2 (assume ⟨x, hx⟩,
+    by simp [subtype_emb, nhds_subtype_eq_comap, de.to_inducing.nhds_eq_comap, comap_comap_comp, (∘)]) }
+
 end dense_embedding
+
+lemma is_closed_property [topological_space β] {e : α → β} {p : β → Prop}
+  (he : closure (range e) = univ) (hp : is_closed {x | p x}) (h : ∀a, p (e a)) :
+  ∀b, p b :=
+have univ ⊆ {b | p b},
+  from calc univ = closure (range e) : he.symm
+    ... ⊆ closure {b | p b} : closure_mono $ range_subset_iff.mpr h
+    ... = _ : closure_eq_of_is_closed hp,
+assume b, this trivial
+
+lemma is_closed_property2 [topological_space α] [topological_space β] {e : α → β} {p : β → β → Prop}
+  (he : dense_embedding e) (hp : is_closed {q:β×β | p q.1 q.2}) (h : ∀a₁ a₂, p (e a₁) (e a₂)) :
+  ∀b₁ b₂, p b₁ b₂ :=
+have ∀q:β×β, p q.1 q.2,
+  from is_closed_property (he.prod he).to_dense_inducing.closure_range hp $ assume a, h _ _,
+assume b₁ b₂, this ⟨b₁, b₂⟩
+
+lemma is_closed_property3 [topological_space α] [topological_space β] {e : α → β} {p : β → β → β → Prop}
+  (he : dense_embedding e) (hp : is_closed {q:β×β×β | p q.1 q.2.1 q.2.2}) (h : ∀a₁ a₂ a₃, p (e a₁) (e a₂) (e a₃)) :
+  ∀b₁ b₂ b₃, p b₁ b₂ b₃ :=
+have ∀q:β×β×β, p q.1 q.2.1 q.2.2,
+  from is_closed_property (he.prod $ he.prod he).to_dense_inducing.closure_range hp $
+    assume ⟨a₁, a₂, a₃⟩, h _ _ _,
+assume b₁ b₂ b₃, this ⟨b₁, b₂, b₃⟩

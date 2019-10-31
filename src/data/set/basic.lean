@@ -781,6 +781,8 @@ assume x hx, h hx
 
 @[simp] theorem preimage_univ : f ⁻¹' univ = univ := rfl
 
+@[simp] theorem subset_preimage_univ {s : set α} : s ⊆ f ⁻¹' univ := subset_univ _
+
 @[simp] theorem preimage_inter {s t : set β} : f ⁻¹' (s ∩ t) = f ⁻¹' s ∩ f ⁻¹' t := rfl
 
 @[simp] theorem preimage_union {s t : set β} : f ⁻¹' (s ∪ t) = f ⁻¹' s ∪ f ⁻¹' t := rfl
@@ -1348,6 +1350,14 @@ theorem prod_range_range_eq {α β γ δ} {m₁ : α → γ} {m₂ : β → δ} 
   set.prod (range m₁) (range m₂) = range (λp:α×β, (m₁ p.1, m₂ p.2)) :=
 ext $ by simp [range]
 
+theorem prod_range_univ_eq {α β γ} {m₁ : α → γ} :
+  set.prod (range m₁) (univ : set β) = range (λp:α×β, (m₁ p.1, p.2)) :=
+ext $ by simp [range]
+
+theorem prod_univ_range_eq {α β δ} {m₂ : β → δ} :
+  set.prod (univ : set α) (range m₂) = range (λp:α×β, (p.1, m₂ p.2)) :=
+ext $ by simp [range]
+
 @[simp] theorem prod_singleton_singleton {a : α} {b : β} :
   set.prod {a} {b} = ({(a, b)} : set (α×β)) :=
 ext $ by simp [set.prod]
@@ -1375,6 +1385,10 @@ lemma fst_image_prod_subset (s : set α) (t : set β) :
   prod.fst '' (set.prod s t) ⊆ s :=
 λ _ h, let ⟨_, ⟨h₂, _⟩, h₁⟩ := (set.mem_image _ _ _).1 h in h₁ ▸ h₂
 
+lemma prod_subset_preimage_fst (s : set α) (t : set β) :
+  set.prod s t ⊆ prod.fst ⁻¹' s :=
+image_subset_iff.1 (fst_image_prod_subset s t)
+
 lemma fst_image_prod (s : set β) {t : set α} (ht : t ≠ ∅) :
   prod.fst '' (set.prod s t) = s :=
 set.subset.antisymm (fst_image_prod_subset _ _)
@@ -1384,6 +1398,10 @@ set.subset.antisymm (fst_image_prod_subset _ _)
 lemma snd_image_prod_subset (s : set α) (t : set β) :
   prod.snd '' (set.prod s t) ⊆ t :=
 λ _ h, let ⟨_, ⟨_, h₂⟩, h₁⟩ := (set.mem_image _ _ _).1 h in h₁ ▸ h₂
+
+lemma prod_subset_preimage_snd (s : set α) (t : set β) :
+  set.prod s t ⊆ prod.snd ⁻¹' t :=
+image_subset_iff.1 (snd_image_prod_subset s t)
 
 lemma snd_image_prod {s : set α} (hs : s ≠ ∅) (t : set β) :
   prod.snd '' (set.prod s t) = t :=

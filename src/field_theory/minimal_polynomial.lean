@@ -166,7 +166,7 @@ variable (β)
 /--If L/K is a field extension, and x is an element of L in the image of K,
 then the minimal polynomial of x is X - C x.-/
 lemma algebra_map' (a : α) :
-  minimal_polynomial (@is_integral_algebra_map α β _ _ _ _ _ a) =
+  minimal_polynomial (@is_integral_algebra_map α β _ _ _ a) =
   X - C a :=
 minimal_polynomial.algebra_map _ _
 variable {β}

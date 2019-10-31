@@ -21,7 +21,7 @@ by rw [← units.mk0_val ha, ← @units.coe_one (zmodp p hp), ← units.coe_pow,
 lemma euler_criterion_units {x : units (zmodp p hp)} :
   (∃ y : units (zmodp p hp), y ^ 2 = x) ↔ x ^ (p / 2) = 1 :=
 hp.eq_two_or_odd.elim
-  (λ h, by subst h; revert x; exact dec_trivial)
+  (λ h, by resetI; subst h; revert x; exact dec_trivial)
   (λ hp1, let ⟨g, hg⟩ := is_cyclic.exists_generator (units (zmodp p hp)) in
     let ⟨n, hn⟩ := show x ∈ powers g, from (powers_eq_gpowers g).symm ▸ hg x in
     ⟨λ ⟨y, hy⟩, by rw [← hy, ← pow_mul, two_mul_odd_div_two hp1,
@@ -44,7 +44,7 @@ lemma euler_criterion {a : zmodp p hp} (ha : a ≠ 0) :
 lemma exists_pow_two_eq_neg_one_iff_mod_four_ne_three :
   (∃ y : zmodp p hp, y ^ 2 = -1) ↔ p % 4 ≠ 3 :=
 have (-1 : zmodp p hp) ≠ 0, from mt neg_eq_zero.1 one_ne_zero,
-hp.eq_two_or_odd.elim (λ hp, by subst hp; exact dec_trivial)
+hp.eq_two_or_odd.elim (λ hp, by resetI; subst hp; exact dec_trivial)
   (λ hp1, (mod_two_eq_zero_or_one (p / 2)).elim
     (λ hp2, begin
       rw [euler_criterion hp this, neg_one_pow_eq_pow_mod_two, hp2, _root_.pow_zero,
@@ -67,7 +67,7 @@ hp.eq_two_or_odd.elim (λ hp, by subst hp; exact dec_trivial)
 
 lemma pow_div_two_eq_neg_one_or_one {a : zmodp p hp} (ha : a ≠ 0) : a ^ (p / 2) = 1 ∨ a ^ (p / 2) = -1 :=
 hp.eq_two_or_odd.elim
-  (λ h, by revert a ha; subst h; exact dec_trivial)
+  (λ h, by revert a ha; resetI; subst h; exact dec_trivial)
   (λ hp1, by rw [← mul_self_eq_one_iff, ← _root_.pow_add, ← two_mul, two_mul_odd_div_two hp1];
     exact fermat_little hp ha)
 
@@ -260,8 +260,8 @@ have hq0 : (q : zmodp p hp) ≠ 0, by rwa [← nat.cast_zero, ne.def, zmodp.eq_i
             zero_mod, mod_eq_of_lt (lt_of_le_of_lt hxp (nat.div_lt_self hp.pos (lt_succ_self _)))]))).1 $
 have h₁ : disjoint ((range (succ (p * q / 2))).filter (coprime (p * q)))
       (filter (λ x, ¬coprime q x) (filter (coprime p) (range (succ (p * q / 2))))),
-  by {rw [finset.filter_filter], apply finset.disjoint_filter,
-      rintros _ hpq ⟨_, hq⟩, exact hq (coprime.coprime_mul_left hpq)},
+  by {rw [finset.filter_filter], apply finset.disjoint_filter.2,
+      rintros _ _ hpq ⟨_, hq⟩, exact hq (coprime.coprime_mul_left hpq)},
 calc ((((range ((p * q) / 2).succ).filter (coprime (p * q))).prod (λ x, x) : ℕ) : zmodp p hp)
      * (q ^ (p / 2) * ((range (p / 2).succ).erase 0).prod (λ x, x) : zmodp p hp)
    = (((range (succ (p * q / 2))).filter (coprime (p * q)) ∪
@@ -434,7 +434,7 @@ calc ((((range (p / 2).succ).erase 0).prod (λ x, (x : zmodp p hp)) ^ 2)) * (-1)
   begin
     rw ← prod_union,
     { exact finset.prod_congr (by simp [finset.ext, -not_lt, -not_le]; tauto) (λ _ _, rfl) },
-    { apply disjoint_filter, tauto }
+    { apply disjoint_filter.2, tauto }
   end
 ... = -1 : by simp
 
@@ -488,7 +488,7 @@ lemma legendre_sym_eq_pow (a p : ℕ) (hp : nat.prime p) : (legendre_sym a p hp 
 if ha : (a : zmodp p hp) = 0 then by simp [*, legendre_sym, _root_.zero_pow (nat.div_pos hp.two_le (succ_pos 1))]
 else
 (nat.prime.eq_two_or_odd hp).elim
-  (λ hp2, begin subst hp2,
+  (λ hp2, begin resetI; subst hp2,
     suffices : ∀ a : zmodp 2 nat.prime_two,
       (((ite (a = 0) 0 (ite (∃ (b : zmodp 2 hp), b ^ 2 = a) 1 (-1))) : ℤ) : zmodp 2 nat.prime_two) = a ^ (2 / 2),
     { exact this a },
@@ -538,7 +538,7 @@ end
 
 lemma exists_pow_two_eq_prime_iff_of_mod_four_eq_one (hp1 : p % 4 = 1) (hq1 : q % 2 = 1) :
   (∃ a : zmodp p hp, a ^ 2 = q) ↔ ∃ b : zmodp q hq, b ^ 2 = p :=
-if hpq : p = q then by subst hpq else
+if hpq : p = q then by resetI; subst hpq else
 have h1 : ((p / 2) * (q / 2)) % 2 = 0,
   from (dvd_iff_mod_eq_zero _ _).1
     (dvd_mul_of_dvd_left ((dvd_iff_mod_eq_zero _ _).2 $

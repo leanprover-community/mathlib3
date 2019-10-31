@@ -146,6 +146,7 @@ do `(%%e₀ ↔ %%e₁) ← infer_type p >>= instantiate_mvars,
                 else cl.merge_intl p e₂ p₂ e₃ p₃
    else pure ()
 
+/-- Sequentially assign numbers to the nodes of the graph as they are being visited. -/
 meta def assign_preorder (cl : closure) (e : expr) : tactic unit :=
 modify_ref cl $ λ m, m.insert e (sum.inl m.size)
 
@@ -154,7 +155,7 @@ they are equivalent -/
 meta def prove_eqv (cl : closure) (e₀ e₁ : expr) : tactic expr :=
 do (_,r,p₀) ← root cl e₀,
    (_,r',p₁) ← root cl e₁,
-   is_def_eq r r',
+   guard (r = r') <|> fail!"{e₀} and {e₁} are not equivalent",
    p₁ ← mk_app ``iff.symm [p₁],
    mk_app ``iff.trans [p₀,p₁]
 
@@ -166,7 +167,7 @@ cl.prove_eqv e₀ e₁ >>= iff_mp
 meta def is_eqv (cl : closure) (e₀ e₁ : expr) : tactic bool :=
 do (_,r,p₀) ← root cl e₀,
    (_,r',p₁) ← root cl e₁,
-   succeeds $ is_def_eq r r'
+   return $ r = r'
 
 end closure
 
@@ -218,6 +219,7 @@ do p₁ ← cl.prove_impl e path.head.fst,
    ps ← mzip_with (λ p₀ p₁, mk_app ``iff.intro [p₀,p₁]) ls.tail rs.init,
    ps.mmap' cl.merge
 
+/-- (implementation of `collapse`) -/
 meta def collapse' : list (expr × expr) → list (expr × expr) → expr → tactic unit
 | acc [] v := merge_path acc v
 | acc ((x,pr) :: xs) v :=

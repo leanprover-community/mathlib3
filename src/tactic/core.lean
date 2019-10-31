@@ -284,6 +284,14 @@ meta def iterate_range : ℕ → ℕ → tactic unit → tactic unit
 | 0 (n+1) t := try (t >> iterate_range 0 n t)
 | (m+1) n t := t >> iterate_range m (n-1) t
 
+/--
+Given a tactic `tac` that takes an expression
+and returns a new expression and a proof of equality,
+use that tactic to change the type of the hypotheses listed in `hs`,
+as well as the goal if `tgt = tt`.
+
+Returns `tt` if any types were successfully changed.
+-/
 meta def replace_at (tac : expr → tactic (expr × expr)) (hs : list expr) (tgt : bool) : tactic bool :=
 do to_remove ← hs.mfilter $ λ h, do {
     h_type ← infer_type h,

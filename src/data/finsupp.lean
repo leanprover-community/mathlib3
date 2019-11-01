@@ -87,7 +87,7 @@ assume f g, decidable_of_iff (f.support = g.support ∧ (∀a∈f.support, f a =
     by rintro rfl; exact ⟨rfl, λ _ _, rfl⟩⟩
 
 lemma finite_supp (f : α →₀ β) : set.finite {a | f a ≠ 0} :=
-⟨set.fintype_of_finset f.support (λ _, mem_support_iff)⟩
+⟨fintype.of_finset f.support (λ _, mem_support_iff)⟩
 
 lemma support_subset_iff {s : set α} {f : α →₀ β} :
   ↑f.support ⊆ s ↔ (∀a∉s, f a = 0) :=

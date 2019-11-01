@@ -64,32 +64,51 @@ variables {E : Type*} [normed_group E] [normed_space 𝕜 E]
 variables {F : Type*} [normed_group F] [normed_space 𝕜 F]
 variables {G : Type*} [normed_group G] [normed_space 𝕜 G]
 
+/-- A function `f` has the continuous linear map `f'` as derivative along the filter `L` if
+`f x' = f x + f' (x' - x) + o (x' - x)` when `x'` converges along the filter `L`. This definition
+is designed to be specialized for `L = nhds x` (in `has_fderiv_at`), giving rise to the usual notion
+of Fréchet derivative, and for `L = nhds_within x s` (in `has_fderiv_within_at`), giving rise to
+the notion of Fréchet derivative along the set `s`. -/
 def has_fderiv_at_filter (f : E → F) (f' : E →L[𝕜] F) (x : E) (L : filter E) :=
 is_o (λ x', f x' - f x - f' (x' - x)) (λ x', x' - x) L
 
+/-- A function `f` has the continuous linear map `f'` as derivative at `x` within a set `s` if
+`f x' = f x + f' (x' - x) + o (x' - x)` when `x'` tends to `x` inside `s`. -/
 def has_fderiv_within_at (f : E → F) (f' : E →L[𝕜] F) (s : set E) (x : E) :=
 has_fderiv_at_filter f f' x (nhds_within x s)
 
+/-- A function `f` has the continuous linear map `f'` as derivative at `x` if
+`f x' = f x + f' (x' - x) + o (x' - x)` when `x'` tends to `x`. -/
 def has_fderiv_at (f : E → F) (f' : E →L[𝕜] F) (x : E) :=
 has_fderiv_at_filter f f' x (nhds x)
 
 variables (𝕜)
 
+/-- A function `f` is differentiable at a point `x` within a set `s` if it admits a derivative
+there (possibly non-unique). -/
 def differentiable_within_at (f : E → F) (s : set E) (x : E) :=
 ∃f' : E →L[𝕜] F, has_fderiv_within_at f f' s x
 
+/-- A function `f` is differentiable at a point `x` if it admits a derivative there (possibly
+non-unique). -/
 def differentiable_at (f : E → F) (x : E) :=
 ∃f' : E →L[𝕜] F, has_fderiv_at f f' x
 
+/-- If `f` has a derivative at `x` within `s`, then `fderiv_within 𝕜 f s x` is such a derivative.
+Otherwise, it is set to `0`. -/
 def fderiv_within (f : E → F) (s : set E) (x : E) : E →L[𝕜] F :=
 if h : ∃f', has_fderiv_within_at f f' s x then classical.some h else 0
 
+/-- If `f` has a derivative at `x`, then `fderiv 𝕜 f x` is such a derivative. Otherwise, it is
+set to `0`. -/
 def fderiv (f : E → F) (x : E) : E →L[𝕜] F :=
 if h : ∃f', has_fderiv_at f f' x then classical.some h else 0
 
+/-- `differentiable_on 𝕜 f s` means that `f` is differentiable within `s` at any point of `s`. -/
 def differentiable_on (f : E → F) (s : set E) :=
 ∀x ∈ s, differentiable_within_at 𝕜 f s x
 
+/-- `differentiable 𝕜 f` means that `f` is differentiable at any point. -/
 def differentiable (f : E → F) :=
 ∀x, differentiable_at 𝕜 f x
 
@@ -1082,14 +1101,14 @@ variables {c : E → 𝕜} {c' : E →L[𝕜] 𝕜}
 
 theorem has_fderiv_within_at.smul'
   (hc : has_fderiv_within_at c c' s x) (hf : has_fderiv_within_at f f' s x) :
-  has_fderiv_within_at (λ y, c y • f y) (c x • f' + c'.scalar_prod_space_iso (f x)) s x :=
+  has_fderiv_within_at (λ y, c y • f y) (c x • f' + c'.smul_right (f x)) s x :=
 begin
   have : is_bounded_bilinear_map 𝕜 (λ (p : 𝕜 × F), p.1 • p.2) := is_bounded_bilinear_map_smul,
   exact has_fderiv_at.comp_has_fderiv_within_at x (this.has_fderiv_at (c x, f x)) (hc.prod hf)
 end
 
 theorem has_fderiv_at.smul' (hc : has_fderiv_at c c' x) (hf : has_fderiv_at f f' x) :
-  has_fderiv_at (λ y, c y • f y) (c x • f' + c'.scalar_prod_space_iso (f x)) x :=
+  has_fderiv_at (λ y, c y • f y) (c x • f' + c'.smul_right (f x)) x :=
 begin
   have : is_bounded_bilinear_map 𝕜 (λ (p : 𝕜 × F), p.1 • p.2) := is_bounded_bilinear_map_smul,
   exact has_fderiv_at.comp x (this.has_fderiv_at (c x, f x)) (hc.prod hf)
@@ -1115,12 +1134,12 @@ lemma differentiable.smul' (hc : differentiable 𝕜 c) (hf : differentiable �
 lemma fderiv_within_smul' (hxs : unique_diff_within_at 𝕜 s x)
   (hc : differentiable_within_at 𝕜 c s x) (hf : differentiable_within_at 𝕜 f s x) :
   fderiv_within 𝕜 (λ y, c y • f y) s x =
-    c x • fderiv_within 𝕜 f s x + (fderiv_within 𝕜 c s x).scalar_prod_space_iso (f x) :=
+    c x • fderiv_within 𝕜 f s x + (fderiv_within 𝕜 c s x).smul_right (f x) :=
 (hc.has_fderiv_within_at.smul' hf.has_fderiv_within_at).fderiv_within hxs
 
 lemma fderiv_smul' (hc : differentiable_at 𝕜 c x) (hf : differentiable_at 𝕜 f x) :
   fderiv 𝕜 (λ y, c y • f y) x =
-    c x • fderiv 𝕜 f x + (fderiv 𝕜 c x).scalar_prod_space_iso (f x) :=
+    c x • fderiv 𝕜 f x + (fderiv 𝕜 c x).smul_right (f x) :=
 (hc.has_fderiv_at.smul' hf.has_fderiv_at).fderiv
 
 end smul

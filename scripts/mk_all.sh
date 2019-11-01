@@ -20,5 +20,5 @@ import all
 
 open nat -- need to do something before running a command
 
-#lint_mathlib
+#lint_mathlib- only def_lemma dup_namespace
 EOT

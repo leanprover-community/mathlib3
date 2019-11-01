@@ -46,7 +46,7 @@ variables (D : J ⥤ algebra T) [has_limit.{v₁} (D ⋙ forget T)]
   begin
     ext1,
     dsimp,
-    simp only [limit.lift_π, γ_app, c_π, limit.cone_π, functor.const_comp, whisker_right.app,
+    simp only [limit.lift_π, γ_app, c_π, limit.cone_π, functor.const_comp, whisker_right_app,
                 nat_trans.comp_app, category.assoc],
     dsimp,
     simp only [id_comp],
@@ -75,7 +75,7 @@ def forget_creates_limits (D : J ⥤ algebra T) [has_limit.{v₁} (D ⋙ forget 
       begin
         ext, dsimp,
         simp only [limit.lift_π, limit.cone_π, forget_map, id_comp, functor.const_comp,
-                    whisker_right.app, nat_trans.comp_app, category.assoc, functor.map_cone_π],
+                    whisker_right_app, nat_trans.comp_app, category.assoc, functor.map_cone_π],
         dsimp,
         rw [id_comp, ←category.assoc, ←T.map_comp],
         simp only [limit.lift_π, monad.forget_map, algebra.hom.h, functor.map_cone_π],

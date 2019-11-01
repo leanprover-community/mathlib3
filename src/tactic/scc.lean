@@ -91,6 +91,7 @@ meta def closure := ref (expr_map (ℕ ⊕ (expr × expr)))
 
 namespace closure
 
+/-- `mk_closure f` creates an empty `closure` `c`, executes `f` on `c`, and then deletes `c`, returning the output of `f`. -/
 meta def mk_closure {α} : (closure → tactic α) → tactic α :=
 using_new_ref (expr_map.mk _)
 

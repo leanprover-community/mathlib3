@@ -143,6 +143,8 @@ begin
   cases A; cases B; injection this; congr'
 end
 
+/-- If `f` is a monotone function w.r.t. `≤` and `r` (i.e.,  `x ≤ y` implies `r (f x) (f y)`,
+then we have `directed r f`. -/
 lemma directed_of_sup {β : Type*} {r : rel β β} {f : α → β}
   (hf : ((≤) ⇒ r) f f) : directed r f :=
 assume x y, ⟨x ⊔ y, hf le_sup_left, hf le_sup_right⟩
@@ -252,9 +254,9 @@ begin
   cases A; cases B; injection this; congr'
 end
 
-lemma directed_of_inf {β : Type*} {r : β → β → Prop} {f : α → β}
-  (hf : ∀a₁ a₂, a₁ ≤ a₂ → r (f a₂) (f a₁)) : directed r f :=
-assume x y, ⟨x ⊓ y, hf _ _ inf_le_left, hf _ _ inf_le_right⟩
+lemma directed_of_inf {β : Type*} {r : rel β β} {f : α → β}
+  (hf : ∀ ⦃a₁ a₂⦄, a₁ ≤ a₂ → r (f a₂) (f a₁)) : directed r f :=
+assume x y, ⟨x ⊓ y, hf inf_le_left, hf inf_le_right⟩
 
 lemma monotone_inf {α β : Type*} [preorder α] [semilattice_inf β]
   {f g : α → β} (hf : monotone f) (hg : monotone g) :

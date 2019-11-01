@@ -122,7 +122,7 @@ begin
     (unique_diff_on_Icc_zero_one t ht),
   refine le_trans (op_norm_comp_le _ _) (mul_le_mul (bound _ t_s) _ (norm_nonneg _) C0),
   have : fderiv_within ℝ (λ (t : ℝ), x + t • (y - x)) (Icc 0 1) t =
-      (id : ℝ →L[ℝ] ℝ).scalar_prod_space_iso (y - x) := calc
+      (id : ℝ →L[ℝ] ℝ).smul_right (y - x) := calc
     fderiv_within ℝ (λ (t : ℝ), x + t • (y - x)) (Icc 0 1) t
     = fderiv ℝ (λ (t : ℝ), x + t • (y - x)) t :
       differentiable.fderiv_within (D1 t) (unique_diff_on_Icc_zero_one t ht)
@@ -130,11 +130,11 @@ begin
       fderiv_add (differentiable_at_const _) ((differentiable.smul' differentiable_id (differentiable_const _)) t)
     ... = fderiv ℝ (λ (t : ℝ), t • (y-x)) t :
       by rw [fderiv_const, zero_add]
-    ... = t • fderiv ℝ (λ (t : ℝ), (y-x)) t + (fderiv ℝ id t).scalar_prod_space_iso (y - x) :
+    ... = t • fderiv ℝ (λ (t : ℝ), (y-x)) t + (fderiv ℝ id t).smul_right (y - x) :
       fderiv_smul' differentiable_at_id (differentiable_at_const _)
-    ... = (id : ℝ →L[ℝ] ℝ).scalar_prod_space_iso (y - x) :
+    ... = (id : ℝ →L[ℝ] ℝ).smul_right (y - x) :
       by rw [fderiv_const, smul_zero, zero_add, fderiv_id],
-  rw [this, scalar_prod_space_iso_norm],
+  rw [this, smul_right_norm],
   calc ∥(id : ℝ →L[ℝ] ℝ)∥ * ∥y - x∥ ≤ 1 * ∥y-x∥ :
     mul_le_mul_of_nonneg_right norm_id (norm_nonneg _)
   ... = ∥y - x∥ : one_mul _

@@ -1201,14 +1201,15 @@ User commands to spot common mistakes in the code
 * `#lint_all`: check all declarations in the environment (the current file and all
   imported files)
 
-Five linters are run by default:
-1. `unused_arguments` checks for unused arguments in declarations
-2. `def_lemma` checks whether a declaration is incorrectly marked as a def/lemma
-3. `dup_namespce` checks whether a namespace is duplicated in the name of a declaration
-4. `illegal_constant` checks whether ≥/> is used in the declaration
-5. `doc_blame` checks for missing doc strings on definitions and constants.
+The following linters are run by default:
+1. `unused_arguments` checks for unused arguments in declarations.
+2. `def_lemma` checks whether a declaration is incorrectly marked as a def/lemma.
+3. `dup_namespce` checks whether a namespace is duplicated in the name of a declaration.
+4. `illegal_constant` checks whether ≥/> is used in the declaration.
+5. `instance_priority` checks that instances that always apply have priority below default.
+6. `doc_blame` checks for missing doc strings on definitions and constants.
 
-A sixth linter, `doc_blame_thm`, checks for missing doc strings on lemmas and theorems.
+Another linter, `doc_blame_thm`, checks for missing doc strings on lemmas and theorems.
 This is not run by default.
 
 The command `#list_linters` prints a list of the names of all available linters.
@@ -1302,3 +1303,4 @@ See also additional documentation of `using_well_founded` in
   coercion.
 * If one of the fields is a partially applied constructor, we will eta-expand it
   (this likely never happens).
+* `@[simps]` reduces let-expressions where necessary.

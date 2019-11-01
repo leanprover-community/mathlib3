@@ -13,14 +13,15 @@ This file defines the following user commands to spot common mistakes in the cod
 * `#lint_all`: check all declarations in the environment (the current file and all
   imported files)
 
-Five linters are run by default:
-1. `unused_arguments` checks for unused arguments in declarations
-2. `def_lemma` checks whether a declaration is incorrectly marked as a def/lemma
-3. `dup_namespce` checks whether a namespace is duplicated in the name of a declaration
-4. `illegal_constant` checks whether ≥/> is used in the declaration
-5. `doc_blame` checks for missing doc strings on definitions and constants.
+The following linters are run by default:
+1. `unused_arguments` checks for unused arguments in declarations.
+2. `def_lemma` checks whether a declaration is incorrectly marked as a def/lemma.
+3. `dup_namespce` checks whether a namespace is duplicated in the name of a declaration.
+4. `illegal_constant` checks whether ≥/> is used in the declaration.
+5. `instance_priority` checks that instances that always apply have priority below default.
+6. `doc_blame` checks for missing doc strings on definitions and constants.
 
-A sixth linter, `doc_blame_thm`, checks for missing doc strings on lemmas and theorems.
+Another linter, `doc_blame_thm`, checks for missing doc strings on lemmas and theorems.
 This is not run by default.
 
 The command `#list_linters` prints a list of the names of all available linters.
@@ -178,27 +179,29 @@ meta def unused_arguments (d : declaration) : tactic (option string) := do
   return $ some $ ns.to_string_aux tt
 
 /-- A linter object for checking for unused arguments. This is in the default linter set. -/
-@[linter] meta def linter.unused_arguments : linter :=
+@[linter, priority 1500] meta def linter.unused_arguments : linter :=
 { test := unused_arguments,
   no_errors_found := "No unused arguments",
   errors_found := "UNUSED ARGUMENTS" }
 
 /-- Checks whether the correct declaration constructor (definition or theorem) by comparing it
-  to its sort. Instances will not be printed -/
-meta def incorrect_def_lemma (d : declaration) : tactic (option string) := do
-  e ← get_env,
-  expr.sort n ← infer_type d.type,
-  let is_def : Prop := d.is_definition,
-  if d.is_constant ∨ d.is_axiom ∨ (is_def ↔ (n ≠ level.zero))
-    then return none
-    else is_instance d.to_name >>= λ b, return $
-    if b then none
-    else if (d.is_definition : bool) then "is a def, should be a lemma/theorem"
-    else "is a lemma/theorem, should be a def"
+  to its sort. Instances will not be printed. -/
+/- This test is not very quick: maybe we can speed-up testing that something is a proposition?
+  This takes almost all of the execution time. -/
+meta def incorrect_def_lemma (d : declaration) : tactic (option string) :=
+  if d.is_constant ∨ d.is_axiom
+  then return none else do
+    is_instance_d ← is_instance d.to_name,
+    if is_instance_d then return none else do
+      -- the following seems to be a little quicker than `is_prop d.type`.
+      expr.sort n ← infer_type d.type, return $
+      if d.is_theorem ↔ n = level.zero then none
+      else if (d.is_definition : bool) then "is a def, should be a lemma/theorem"
+      else "is a lemma/theorem, should be a def"
 
 /-- A linter for checking whether the correct declaration constructor (definition or theorem)
 has been used. -/
-@[linter] meta def linter.def_lemma : linter :=
+@[linter, priority 1490] meta def linter.def_lemma : linter :=
 { test := incorrect_def_lemma,
   no_errors_found := "All declarations correctly marked as def/lemma",
   errors_found := "INCORRECT DEF/LEMMA" }
@@ -211,7 +214,7 @@ return $ let nm := d.to_name.components in if nm.chain' (≠) ∨ is_inst then n
   some $ "The namespace `" ++ s ++ "` is duplicated in the name"
 
 /-- A linter for checking whether a declaration has a namespace twice consecutively in its name. -/
-@[linter] meta def linter.dup_namespace : linter :=
+@[linter, priority 1480] meta def linter.dup_namespace : linter :=
 { test := dup_namespace,
   no_errors_found := "No declarations have a duplicate namespace",
   errors_found := "DUPLICATED NAMESPACES IN NAME" }
@@ -237,11 +240,40 @@ return $ let illegal := [`gt, `ge] in if d.type.contains_constant (λ n, n ∈ i
   else none
 
 /-- A linter for checking whether illegal constants (≥, >) appear in a declaration's type. -/
-@[linter] meta def linter.illegal_constants : linter :=
+@[linter, priority 1470] meta def linter.illegal_constants : linter :=
 { test := illegal_constants_in_statement,
   no_errors_found := "No illegal constants in declarations",
   errors_found := "ILLEGAL CONSTANTS IN DECLARATIONS",
   is_fast := ff }
+
+/-- checks whether an instance that always applies has priority ≥ 1000. -/
+meta def instance_priority (d : declaration) : tactic (option string) := do
+  let nm := d.to_name,
+  b ← is_instance nm,
+  /- return `none` if `d` is not an instance -/
+  if ¬ b then return none else do
+  prio ← has_attribute `instance nm,
+  /- return `none` if `d` is has low priority -/
+  if prio < 1000 then return none else do
+  let (fn, args) := d.type.pi_codomain.get_app_fn_args,
+  cls ← get_decl fn.const_name,
+  let (pi_args, _) := cls.type.pi_binders,
+  guard (args.length = pi_args.length),
+  /- List all the arguments of the class that block type-class inference from firing
+    (if they are metavariables). These are all the arguments except instance-arguments and
+    out-params. -/
+  let relevant_args := (args.zip pi_args).filter_map $ λ⟨e, ⟨_, info, tp⟩⟩,
+    if info = binder_info.inst_implicit ∨ tp.get_app_fn.is_constant_of `out_param
+    then none else some e,
+  let always_applies := relevant_args.all expr.is_var ∧ relevant_args.nodup,
+  if always_applies then return $ some "" else return none
+
+/-- A linter object for checking instance priorities of instances that always apply.
+  This is in the default linter set. -/
+@[linter, priority 1460] meta def linter.instance_priority : linter :=
+{ test := instance_priority,
+  no_errors_found := "All instance priorities are good",
+  errors_found := "DANGEROUS INSTANCE PRIORITIES.\n The following instances always apply, and therefore should have a priority < 1000" }
 
 /-- Reports definitions and constants that are missing doc strings -/
 meta def doc_blame_report_defn : declaration → tactic (option string)
@@ -255,7 +287,7 @@ meta def doc_blame_report_thm : declaration → tactic (option string)
 | _ := return none
 
 /-- A linter for checking definition doc strings -/
-@[linter] meta def linter.doc_blame : linter :=
+@[linter, priority 1450] meta def linter.doc_blame : linter :=
 { test := λ d, mcond (bnot <$> has_attribute' `instance d.to_name) (doc_blame_report_defn d) (return none),
   no_errors_found := "No definitions are missing documentation.",
   errors_found := "DEFINITIONS ARE MISSING DOCUMENTATION STRINGS" }
@@ -271,12 +303,12 @@ meta def linter.doc_blame_thm : linter :=
 `extras` is a list of names that should resolve to declarations with type `linter`.
 If `use_only` is true, it only uses the linters in `extra`.
 Otherwise, it uses all linters in the environment tagged with `@[linter]`.
-If `slow` is false, it filters the linter list to only use fast tests. -/
+If `slow` is false, it only uses the fast default tests. -/
 meta def get_checks (slow : bool) (extra : list name) (use_only : bool) :
-  tactic (list linter) :=
-do linter_list ← if use_only then return extra else list.append extra <$> attribute.get_instances `linter,
-   linter_list ← get_linters linter_list.erase_dup,
-   return $ if slow then linter_list else linter_list.filter (λ l, l.is_fast)
+  tactic (list linter) := do
+  default ← if use_only then return [] else attribute.get_instances `linter >>= get_linters,
+  let default := if slow then default else default.filter (λ l, l.is_fast),
+  list.append default <$> get_linters extra
 
 /-- If `verbose` is true, return `old ++ new`, else return `old`. -/
 private meta def append_when (verbose : bool) (old new : format) : format :=

@@ -94,6 +94,14 @@ infixr ⇒ := lift_fun
 def lift_fun_rev (rac : rel α γ) (rbd : rel β δ) : rel (α → β) (γ → δ) :=
 λ f g, ∀⦃x y⦄, rbd (f x) (g y) → rac x y
 
+/-- Two elements `x, y` are related by `r.join`, if there exists an element `z` such that
+both `x` and `y` are related to `z` by `r`. -/
+def join (r : rel α β) : rel α α := λ x y, ∃ z, r x z ∧ r y z
+
+/-- We say that a relation `r` has the diamond property, if two elements joined from below
+are necessarily joined from above. -/
+def diamond (r : rel α α) : Prop := ∀ ⦃x y z⦄, r x y → r x z → r.join y z
+
 end sort
 
 section type

@@ -13,11 +13,9 @@ In this file we prove various simple properties of relations that do not involve
 
 universes u v w x
 
-variables {α : Type u} {β : Type v} {γ : Type w} {δ : Type x}
-
 namespace function
 
-variable (α)
+variables (α : Sort u) {β : Sort v} {γ : Sort w}
 
 lemma to_rel_id : function.to_rel (@id α) = rel.id α := rfl
 
@@ -40,10 +38,6 @@ assume f g h, funext $ assume x,
 show to_rel f x (g x),
 from h.symm ▸ to_rel_mk g x
 
-lemma graph_def (f : α → β) : function.graph f = { x : α × β | f x.1 = x.2 } := rfl
-
-lemma mem_graph {f : α → β} {x y} : (x, y) ∈ function.graph f ↔ f x = y := iff.rfl
-
 variable {f}
 
 lemma injective.to_rel_left_unique (h : injective f) : (to_rel f).left_unique :=
@@ -58,8 +52,20 @@ lemma to_rel_right_total_iff_surjective : (to_rel f).right_total ↔ surjective 
 
 end function
 
+namespace function
+
+variables {α : Type u} {β : Type v}
+
+lemma graph_def (f : α → β) : function.graph f = { x : α × β | f x.1 = x.2 } := rfl
+
+lemma mem_graph {f : α → β} {x y} : (x, y) ∈ function.graph f ↔ f x = y := iff.rfl
+
+end function
+
 
 namespace rel
+
+variables {α : Sort u} {β : Sort v} {γ : Sort w} {δ : Sort x}
 
 -- Even if we mark it with `@[extensionality]`, `ext` will use `funext`.
 lemma ext {r r' : rel α β} (h : ∀ x y, r x y ↔ r' x y) : r = r' := by ext; apply h
@@ -107,92 +113,6 @@ by { ext x y, apply eq_comm }
 by { ext x z, simp only [comp, flip_def, and.comm] }
 
 lemma diag_flip (r : rel α α) : r.flip.diag = r.diag := rfl
-
-lemma mem_graph {x : α × β} : x ∈ r.graph ↔ r x.fst x.snd := iff.rfl
-
-lemma mk_mem_graph {x : α} {y : β} : (x, y) ∈ r.graph ↔ r x y := iff.rfl
-
-lemma graph_of_graph (s : set (α × β)) : (of_graph s).graph = s := function.uncurry'_curry s
-
-lemma of_graph_graph : of_graph r.graph = r := function.curry_uncurry' r
-
-lemma range_flip : r.flip.range = r.dom := rfl
-
-lemma dom_flip : r.flip.dom = r.range := rfl
-
-lemma image_def (s : set α) : image r s = {y | ∃ x ∈ s, r x y} := rfl
-
-/-- `r.image` preserves the `⊆` relation. -/
-lemma image_subset : ((⊆) ⇒ (⊆)) r.image r.image :=
-assume s t h y ⟨x, xs, rxy⟩, ⟨x, h xs, rxy⟩
-
-variable {r}
-
-lemma mem_image (y : β) (s : set α) : y ∈ image r s ↔ ∃ x ∈ s, r x y :=
-iff.rfl
-
-variables (r)
-
-lemma image_singleton (x : α) : r.image {x} = set_of (r x) :=
-by ext y; simp [rel.image, set.mem_singleton_iff, exists_prop, exists_eq_left]
-
-@[simp] lemma image_id (s : set α) : image (rel.id α) s = s :=
-by { ext x, simp only [mem_image, rel.id, exists_prop, exists_eq_right] }
-
-@[simp] lemma image_comp (s : set α) : image (rbc ∘r rab) s = image rbc (image rab s) :=
-set.subset.antisymm
-  (λ z ⟨x, ⟨xs, ⟨y, ⟨hyz, hxy⟩⟩⟩⟩, ⟨y, ⟨⟨x, ⟨xs, hxy⟩⟩, hyz⟩⟩)
-  (λ z ⟨y, ⟨⟨x, ⟨xs, hxy⟩⟩, hyz⟩⟩, ⟨x, ⟨xs, ⟨y, ⟨hyz, hxy⟩⟩⟩⟩)
-
-lemma image_univ : r.image set.univ = r.range := by { ext y, simp [mem_image, range] }
-
-lemma mem_preimage (x : α) (s : set β) : x ∈ preimage r s ↔ ∃ y ∈ s, r x y :=
-iff.rfl
-
-lemma preimage_def (s : set β) : preimage r s = {x | ∃ y ∈ s, r x y} :=
-rfl
-
-lemma preimage_singleton (y : β) : r.preimage {y} = set_of (flip r y) :=
-r.flip.image_singleton y
-
-lemma preimage_id (s : set α) : (rel.id α).preimage s = s :=
-by simp only [preimage, flip_id, image_id]
-
-lemma preimage_comp (s : set γ) : (rbc ∘r rab).preimage s = rab.preimage (rbc.preimage s) :=
-by simp only [preimage, flip_comp, image_comp]
-
-lemma preimage_univ : r.preimage set.univ = r.dom :=
-r.flip.image_univ
-
-/-- `r.preimage` preserves the `⊆` relation. -/
-lemma preimage_subset : ((⊆) ⇒ (⊆)) r.preimage r.preimage :=
-r.flip.image_subset
-
-lemma mem_core (x : α) (s : set β) : x ∈ core r s ↔ ∀ y, r x y → y ∈ s :=
-iff.rfl
-
-lemma core_univ : r.core set.univ = set.univ := set.ext (by simp [mem_core])
-
-lemma core_id (s : set α) : (rel.id α).core s = s :=
-by simp [core, rel.id]
-
-lemma core_comp (s : set γ) : (rbc ∘r rab).core s = rab.core (rbc.core s) :=
-set.subset.antisymm
-  (λ x h y hxy z hyz, h ⟨y, ⟨hyz, hxy⟩⟩)
-  (λ x h z ⟨y, ⟨hyz, hxy⟩⟩, h hxy hyz)
-
-lemma compl_dom_subset_core (s : set β) : - r.dom ⊆ r.core s :=
-assume x hx y rxy,
-absurd (Exists.intro y rxy) hx
-
-/-- Restrict the domain of a relation -/
-def restrict_domain (s : set α) : rel {x // x ∈ s} β :=
-λ x y, r x.val y
-
-theorem image_subset_iff (s : set α) (t : set β) : image r s ⊆ t ↔ s ⊆ core r t :=
-iff.intro
-  (λ h x xs y rxy, h ⟨x, xs, rxy⟩)
-  (λ h y ⟨x, xs, rxy⟩, h xs rxy)
 
 variables (rac : rel α γ) (rbd : rel β δ)
 
@@ -323,7 +243,7 @@ lemma map₂_def (f : α → β) (g : γ → δ) (r : rel α γ) (x y) :
 ⟨λ ⟨c, hc, a, hr, ha⟩, ⟨a, c, ha, hc, hr⟩,
   λ ⟨a, c, ha, hc, hr⟩, ⟨c, hc, a, hr, ha⟩⟩
 
-lemma map₂_map₂ {α₁ α₂ α₃ β₁ β₂ β₃ : Type*}
+lemma map₂_map₂ {α₁ α₂ α₃ β₁ β₂ β₃ : Sort*}
   (f₂ : α₂ → α₃) (f₁ : α₁ → α₂) (g₂ : β₂ → β₃) (g₁ : β₁ → β₂) (r : rel α₁ β₁) :
   (r.map₂ f₁ g₁).map₂ f₂ g₂ = r.map₂ (f₂ ∘ f₁) (g₂ ∘ g₁) :=
 by simp only [map₂, function.to_rel_comp g₂ g₁, function.to_rel_comp f₂ f₁,
@@ -336,5 +256,118 @@ r.map₂_def f f x y
 lemma map_map (g : β → γ) (f : α → β) (r : rel α α) :
   (r.map f).map g = r.map (g ∘ f) :=
 r.map₂_map₂ g f g f
+
+lemma join_eq_comp : r.join = r.flip.comp r :=
+ext $ λ x y, ⟨λ ⟨z, hxz, hyz⟩, ⟨z, hyz, hxz⟩, λ ⟨z, hyz, hxz⟩, ⟨z, hxz, hyz⟩⟩
+
+lemma symmetric_join : symmetric (join r) :=
+assume a b ⟨c, hac, hbc⟩, ⟨c, hbc, hac⟩
+
+variables {ra : rel α α}
+
+lemma reflexive_join (h : reflexive ra) : reflexive (join ra) :=
+assume a, ⟨a, h a, h a⟩
+
+lemma transitive_join (ht : transitive ra) (h : ra.diamond) : transitive (join ra) :=
+assume a b c ⟨x, hax, hbx⟩ ⟨y, hby, hcy⟩,
+let ⟨z, hxz, hyz⟩ := h hbx hby in
+⟨z, ht hax hxz, ht hcy hyz⟩
+
+lemma equivalence_join (hr : reflexive ra)  (ht : transitive ra) (h : ra.diamond) :
+  equivalence ra.join :=
+⟨reflexive_join hr, symmetric_join, transitive_join ht h⟩
+
+end rel
+
+-- Lemmas that require `Type`
+namespace rel
+
+variables {α : Type u} {β : Type v} {γ : Type w} {r : rel α β}
+
+local infixr ` ∘r `:80 := rel.comp
+
+lemma mem_graph {x : α × β} : x ∈ r.graph ↔ r x.fst x.snd := iff.rfl
+
+lemma mk_mem_graph {x : α} {y : β} : (x, y) ∈ r.graph ↔ r x y := iff.rfl
+
+lemma mem_image (y : β) (s : set α) : y ∈ image r s ↔ ∃ x ∈ s, r x y :=
+iff.rfl
+
+variables (r) (rbc : rel β γ) (rab : rel α β)
+
+lemma graph_of_graph (s : set (α × β)) : (of_graph s).graph = s := function.uncurry'_curry s
+
+lemma of_graph_graph : of_graph r.graph = r := function.curry_uncurry' r
+
+lemma range_flip : r.flip.range = r.dom := rfl
+
+lemma dom_flip : r.flip.dom = r.range := rfl
+
+lemma image_def (s : set α) : r.image s = {y | ∃ x ∈ s, r x y} := rfl
+
+/-- `r.image` preserves the `⊆` relation. -/
+lemma image_subset : ((⊆) ⇒ (⊆)) r.image r.image :=
+assume s t h y ⟨x, xs, rxy⟩, ⟨x, h xs, rxy⟩
+
+lemma image_singleton (x : α) : r.image {x} = set_of (r x) :=
+by ext y; simp [rel.image, set.mem_singleton_iff, exists_prop, exists_eq_left]
+
+@[simp] lemma image_id (s : set α) : image (rel.id α) s = s :=
+by { ext x, simp only [mem_image, rel.id, exists_prop, exists_eq_right] }
+
+@[simp] lemma image_comp (s : set α) : image (rbc ∘r rab) s = image rbc (image rab s) :=
+set.subset.antisymm
+  (λ z ⟨x, ⟨xs, ⟨y, ⟨hyz, hxy⟩⟩⟩⟩, ⟨y, ⟨⟨x, ⟨xs, hxy⟩⟩, hyz⟩⟩)
+  (λ z ⟨y, ⟨⟨x, ⟨xs, hxy⟩⟩, hyz⟩⟩, ⟨x, ⟨xs, ⟨y, ⟨hyz, hxy⟩⟩⟩⟩)
+
+lemma image_univ : r.image set.univ = r.range := by { ext y, simp [mem_image, range] }
+
+lemma mem_preimage (x : α) (s : set β) : x ∈ preimage r s ↔ ∃ y ∈ s, r x y :=
+iff.rfl
+
+lemma preimage_def (s : set β) : preimage r s = {x | ∃ y ∈ s, r x y} :=
+rfl
+
+lemma preimage_singleton (y : β) : r.preimage {y} = set_of (flip r y) :=
+r.flip.image_singleton y
+
+lemma preimage_id (s : set α) : (rel.id α).preimage s = s :=
+by simp only [preimage, flip_id, image_id]
+
+lemma preimage_comp (s : set γ) : (rbc ∘r rab).preimage s = rab.preimage (rbc.preimage s) :=
+by simp only [preimage, flip_comp, image_comp]
+
+lemma preimage_univ : r.preimage set.univ = r.dom :=
+r.flip.image_univ
+
+/-- `r.preimage` preserves the `⊆` relation. -/
+lemma preimage_subset : ((⊆) ⇒ (⊆)) r.preimage r.preimage :=
+r.flip.image_subset
+
+lemma mem_core (x : α) (s : set β) : x ∈ core r s ↔ ∀ y, r x y → y ∈ s :=
+iff.rfl
+
+lemma core_univ : r.core set.univ = set.univ := set.ext (by simp [mem_core])
+
+lemma core_id (s : set α) : (rel.id α).core s = s :=
+by simp [core, rel.id]
+
+lemma core_comp (s : set γ) : (rbc ∘r rab).core s = rab.core (rbc.core s) :=
+set.subset.antisymm
+  (λ x h y hxy z hyz, h ⟨y, ⟨hyz, hxy⟩⟩)
+  (λ x h z ⟨y, ⟨hyz, hxy⟩⟩, h hxy hyz)
+
+lemma compl_dom_subset_core (s : set β) : - r.dom ⊆ r.core s :=
+assume x hx y rxy,
+absurd (Exists.intro y rxy) hx
+
+/-- Restrict the domain of a relation -/
+def restrict_domain (s : set α) : rel {x // x ∈ s} β :=
+λ x y, r x.val y
+
+theorem image_subset_iff (s : set α) (t : set β) : image r s ⊆ t ↔ s ⊆ core r t :=
+iff.intro
+  (λ h x xs y rxy, h ⟨x, xs, rxy⟩)
+  (λ h y ⟨x, xs, rxy⟩, h xs rxy)
 
 end rel

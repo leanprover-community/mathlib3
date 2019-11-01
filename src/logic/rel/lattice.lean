@@ -23,6 +23,13 @@ namespace rel
 
 variables {α : Type u} {β : Type v} {γ : Type w} {δ : Type x} {r : rel α β}
 
+/-- A more symmetric but less readable definition of `rel.diamond`. -/
+lemma diamond_iff_le {r : rel α α} : r.diamond ↔ r.flip.join ≤ r.join :=
+⟨λ h x y ⟨z, hxz, hyz⟩, h hxz hyz, λ h x y z hxy hxz, h ⟨_, hxy, hxz⟩⟩
+
+lemma join_of_single {r : rel α α} (h : reflexive r) : r ≤ r.join :=
+assume a b hab, ⟨b, hab, h b⟩
+
 lemma lift_fun_mono : ((≥) ⇒ (≤) ⇒ (≤)).diag (@lift_fun α β γ δ) :=
 assume rac₁ rac₂ hac rbd₁ rbd₂ hbd f g hfg x y hxy,
 hbd $ hfg $ hac hxy

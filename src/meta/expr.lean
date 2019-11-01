@@ -131,16 +131,55 @@ meta def nonzero : level → bool
 
 end level
 
-namespace expr
-open tactic
+/-- The type of binders containing a name, the binding info and the binding type -/
+@[derive decidable_eq]
+meta structure binder :=
+  (name : name)
+  (info : binder_info)
+  (type : expr)
 
-/-- Apply a function to each constant (inductive type, defined function etc) in an expression. -/
-protected meta def apply_replacement_fun (f : name → name) (e : expr) : expr :=
-e.replace $ λ e d,
-  match e with
-  | expr.const n ls := some $ expr.const (f n) ls
-  | _ := none
-  end
+namespace binder
+/-- Turn a binder into a string. Uses expr.to_string for the type. -/
+protected meta def to_string (b : binder) : string :=
+let (l, r) := b.info.brackets in
+l ++ b.name.to_string ++ " : " ++ b.type.to_string ++ r
+
+open tactic
+meta instance : inhabited binder := ⟨⟨default _, default _, default _⟩⟩
+meta instance : has_to_string binder := ⟨ binder.to_string ⟩
+meta instance : has_to_format binder := ⟨ λ b, b.to_string ⟩
+meta instance : has_to_tactic_format binder :=
+⟨ λ b, let (l, r) := b.info.brackets in
+  (λ e, l ++ b.name.to_string ++ " : " ++ e ++ r) <$> pp b.type ⟩
+
+end binder
+
+/- converting between expressions and numerals -/
+
+/--
+`nat.mk_numeral n` embeds `n` as a numeral expression inside a type with 0, 1, and +.
+`type`: an expression representing the target type. This must live in Type 0.
+`has_zero`, `has_one`, `has_add`: expressions of the type `has_zero %%type`, etc.
+ -/
+meta def nat.mk_numeral (type has_zero has_one has_add : expr) : ℕ → expr :=
+let z : expr := `(@has_zero.zero.{0} %%type %%has_zero),
+    o : expr := `(@has_one.one.{0} %%type %%has_one) in
+nat.binary_rec z
+  (λ b n e, if n = 0 then o else
+    if b then `(@bit1.{0} %%type %%has_one %%has_add %%e)
+    else `(@bit0.{0} %%type %%has_add %%e))
+
+/--
+`int.mk_numeral z` embeds `z` as a numeral expression inside a type with 0, 1, +, and -.
+`type`: an expression representing the target type. This must live in Type 0.
+`has_zero`, `has_one`, `has_add`, `has_neg`: expressions of the type `has_zero %%type`, etc.
+ -/
+meta def int.mk_numeral (type has_zero has_one has_add has_neg : expr) : ℤ → expr
+| (int.of_nat n) := n.mk_numeral type has_zero has_one has_add
+| -[1+n] := let ne := (n+1).mk_numeral type has_zero has_one has_add in
+            `(@has_neg.neg.{0} %%type %%has_neg %%ne)
+
+namespace expr
 
 /-- Turns an expression into a positive natural number, assuming it is only built up from
   `has_one.one`, `bit0` and `bit1`. -/
@@ -161,6 +200,19 @@ protected meta def to_nat : expr → option ℕ
 protected meta def to_int : expr → option ℤ
 | `(has_neg.neg %%e) := do n ← e.to_nat, some (-n)
 | e                  := coe <$> e.to_nat
+
+end expr
+
+namespace expr
+open tactic
+
+/-- Apply a function to each constant (inductive type, defined function etc) in an expression. -/
+protected meta def apply_replacement_fun (f : name → name) (e : expr) : expr :=
+e.replace $ λ e d,
+  match e with
+  | expr.const n ls := some $ expr.const (f n) ls
+  | _ := none
+  end
 
 /-- Tests whether an expression is a meta-variable. -/
 meta def is_mvar : expr → bool
@@ -245,17 +297,89 @@ meta def binding_names : expr → list name
 | (lam n _ _ e) := n :: e.binding_names
 | e             := []
 
+/-- head-reduce a single let expression -/
+meta def reduce_let : expr → expr
+| (elet _ _ v b) := b.instantiate_var v
+| e              := e
+
+/-- head-reduce all let expressions -/
+meta def reduce_lets : expr → expr
+| (elet _ _ v b) := reduce_lets $ b.instantiate_var v
+| e              := e
+
 /-- Instantiate lambdas in the second argument by expressions from the first. -/
 meta def instantiate_lambdas : list expr → expr → expr
 | (e'::es) (lam n bi t e) := instantiate_lambdas es (e.instantiate_var e')
 | _        e              := e
 
-/-- Instantiate lambdas in the second argument `e` by expressions from the first argument `es`.
+/-- `instantiate_lambdas_or_apps es e` instantiates lambdas in `e` by expressions from `es`.
 If the length of `es` is larger than the number of lambdas in `e`,
-then the term is applied to the remaining terms -/
+then the term is applied to the remaining terms.
+Also reduces head let-expressions in `e`, including those after instantiating all lambdas. -/
 meta def instantiate_lambdas_or_apps : list expr → expr → expr
-| (e'::es) (lam n bi t e) := instantiate_lambdas_or_apps es (e.instantiate_var e')
-| es       e              := mk_app e es
+| (v::es) (lam n bi t b) := instantiate_lambdas_or_apps es $ b.instantiate_var v
+| es      (elet _ _ v b) := instantiate_lambdas_or_apps es $ b.instantiate_var v
+| es      e              := mk_app e es
+
+/- Note [open expressions]:
+  Some declarations work with open expressions, i.e. an expr that has free variables.
+  Terms will free variables are not well-typed, and one should not use them in tactics like
+  `infer_type` or `unify`. You can still do syntactic analysis/manipulation on them.
+  The reason for working with open types is for performance: instantiating variables requires
+  iterating through the expression. In one performance test `pi_binders` was more than 6x
+  quicker than `mk_local_pis` (when applied to the type of all imported declarations 100x).
+  -/
+
+/-- Get the codomain/target of a pi-type.
+  This definition doesn't Instantiate bound variables, and therefore produces a term that is open.-/
+meta def pi_codomain : expr → expr -- see note [open expressions]
+| (pi n bi d b) := pi_codomain b
+| e             := e
+
+/-- Auxilliary defintion for `pi_binders`. -/
+-- see note [open expressions]
+meta def pi_binders_aux : list binder → expr → list binder × expr
+| es (pi n bi d b) := pi_binders_aux (⟨n, bi, d⟩::es) b
+| es e             := (es, e)
+
+/-- Get the binders and codomain of a pi-type.
+  This definition doesn't Instantiate bound variables, and therefore produces a term that is open.
+  The.tactic `get_pi_binders` in `tactic.core` does the same, but also instantiates the
+  free variables -/
+meta def pi_binders (e : expr) : list binder × expr := -- see note [open expressions]
+let (es, e) := pi_binders_aux [] e in (es.reverse, e)
+
+/-- Auxilliary defintion for `get_app_fn_args`. -/
+meta def get_app_fn_args_aux : list expr → expr → expr × list expr
+| r (app f a) := get_app_fn_args_aux (a::r) f
+| r e         := (e, r)
+
+/-- A combination of `get_app_fn` and `get_app_args`: lists both the
+  function and its arguments of an application -/
+meta def get_app_fn_args : expr → expr × list expr :=
+get_app_fn_args_aux []
+
+/-- `drop_pis es e` instantiates the pis in `e` with the expressions from `es`. -/
+meta def drop_pis : list expr → expr → tactic expr
+| (list.cons v vs) (pi n bi d b) := do
+  t ← infer_type v,
+  guard (t =ₐ d),
+  drop_pis vs (b.instantiate_var v)
+| [] e := return e
+| _  _ := failed
+
+/-- `mk_op_lst op empty [x1, x2, ...]` is defined as `op x1 (op x2 ...)`.
+  Returns `empty` if the list is empty. -/
+meta def mk_op_lst (op : expr) (empty : expr) : list expr → expr
+| []        := empty
+| [e]       := e
+| (e :: es) := op e $ mk_op_lst es
+
+/-- `mk_and_lst [x1, x2, ...]` is defined as `x1 ∧ (x2 ∧ ...)`, or `true` if the list is empty. -/
+meta def mk_and_lst : list expr → expr := mk_op_lst `(and) `(true)
+
+/-- `mk_or_lst [x1, x2, ...]` is defined as `x1 ∨ (x2 ∨ ...)`, or `false` if the list is empty. -/
+meta def mk_or_lst : list expr → expr := mk_op_lst `(or) `(false)
 
 end expr
 
@@ -448,26 +572,3 @@ meta def univ_levels (d : declaration) : list level :=
 d.univ_params.map level.param
 
 end declaration
-
-/-- The type of binders containing a name, the binding info and the binding type -/
-@[derive decidable_eq]
-meta structure binder :=
-  (name : name)
-  (info : binder_info)
-  (type : expr)
-
-namespace binder
-/-- Turn a binder into a string. Uses expr.to_string for the type. -/
-protected meta def to_string (b : binder) : string :=
-let (l, r) := b.info.brackets in
-l ++ b.name.to_string ++ " : " ++ b.type.to_string ++ r
-
-open tactic
-meta instance : inhabited binder := ⟨⟨default _, default _, default _⟩⟩
-meta instance : has_to_string binder := ⟨ binder.to_string ⟩
-meta instance : has_to_format binder := ⟨ λ b, b.to_string ⟩
-meta instance : has_to_tactic_format binder :=
-⟨ λ b, let (l, r) := b.info.brackets in
-  (λ e, l ++ b.name.to_string ++ " : " ++ e ++ r) <$> pp b.type ⟩
-
-end binder

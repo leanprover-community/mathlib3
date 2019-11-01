@@ -9,7 +9,6 @@ namespace expr
 open tactic
 
 attribute [derive has_reflect] binder_info
-
 protected meta def of_nat (α : expr) : ℕ → tactic expr :=
 nat.binary_rec
   (tactic.mk_mapp ``has_zero.zero [some α, none])
@@ -21,6 +20,17 @@ protected meta def of_int (α : expr) : ℤ → tactic expr
 | -[1+ n] := do
   e ← expr.of_nat α (n+1),
   tactic.mk_app ``has_neg.neg [e]
+
+/-- Generates an expression of the form `∃(args), inner`. `args` is assumed to be a list of local
+  constants. When possible, `p ∧ q` is used instead of `∃(_ : p), q`. -/
+meta def mk_exists_lst (args : list expr) (inner : expr) : tactic expr :=
+args.mfoldr (λarg i:expr, do
+    t ← infer_type arg,
+    sort l ← infer_type t,
+    return $ if arg.occurs i ∨ l ≠ level.zero
+      then (const `Exists [l] : expr) t (i.lambdas [arg])
+      else (const `and [] : expr) t i)
+  inner
 
 /- only traverses the direct descendents -/
 meta def {u} traverse {m : Type → Type u} [applicative m]
@@ -345,7 +355,8 @@ meta def get_pi_binders_aux : list binder → expr → tactic (list binder × ex
 | es e                  := return (es, e)
 
 /-- Get the binders and target of a pi-type. Instantiates bound variables by
-  local constants. -/
+  local constants. Cf. `pi_binders` in `meta.expr` (which produces open terms).
+  See also `mk_local_pis` in `init.core.tactic` which does almost the same. -/
 meta def get_pi_binders : expr → tactic (list binder × expr) | e :=
 do (es, e) ← get_pi_binders_aux [] e, return (es.reverse, e)
 

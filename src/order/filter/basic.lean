@@ -1647,7 +1647,7 @@ in
 have ∀c (hc: chain r c) a (ha : a ∈ c), r a (sup c hc),
   from assume c hc a ha, infi_le_of_le ⟨a, mem_insert_of_mem _ ha⟩ (le_refl _),
 have (∃ (u : τ), ∀ (a : τ), r u a → r a u),
-  from zorn (assume c hc, ⟨sup c hc, this c hc⟩) (assume f₁ f₂ f₃ h₁ h₂, le_trans h₂ h₁),
+  from exists_maximal_of_chains_bounded (assume c hc, ⟨sup c hc, this c hc⟩) (assume f₁ f₂ f₃ h₁ h₂, le_trans h₂ h₁),
 let ⟨uτ, hmin⟩ := this in
 ⟨uτ.val, uτ.property.right, uτ.property.left, assume g hg₁ hg₂,
   hmin ⟨g, hg₁, le_trans hg₂ uτ.property.right⟩ hg₂⟩

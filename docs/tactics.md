@@ -79,6 +79,9 @@ necessary.
 `rcases` also has special support for quotient types: quotient induction into Prop works like
 matching on the constructor `quot.mk`.
 
+`rcases h : e with PAT` will do the same as `rcases e with PAT` with the exception that an assumption
+`h : e = PAT` will be added to the context.
+
 `rcases? e` will perform case splits on `e` in the same way as `rcases e`,
 but rather than accepting a pattern, it does a maximal cases and prints the
 pattern that would produce this case splitting. The default maximum depth is 5,
@@ -1300,3 +1303,4 @@ See also additional documentation of `using_well_founded` in
   coercion.
 * If one of the fields is a partially applied constructor, we will eta-expand it
   (this likely never happens).
+* `@[simps]` reduces let-expressions where necessary.

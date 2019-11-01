@@ -32,6 +32,9 @@ variables {s s₁ s₂ : finset α} {a : α} {f g : α → β}
 @[to_additive]
 protected def prod [comm_monoid β] (s : finset α) (f : α → β) : β := (s.1.map f).prod
 
+@[to_additive] lemma prod_eq_multiset_prod [comm_monoid β] (s : finset α) (f : α → β) :
+  s.prod f = (s.1.map f).prod := rfl
+
 @[to_additive]
 theorem prod_eq_fold [comm_monoid β] (s : finset α) (f : α → β) : s.prod f = s.fold (*) 1 f := rfl
 

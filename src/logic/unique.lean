@@ -37,6 +37,12 @@ lemma default_eq (a : α) : default α = a := (uniq _ a).symm
 
 instance : subsingleton α := ⟨λ a b, by rw [eq_default a, eq_default b]⟩
 
+lemma forall_iff {p : α → Prop} : (∀ a, p a) ↔ p (default α) :=
+⟨λ h, h _, λ h x, by rwa [unique.eq_default x]⟩
+
+lemma exists_iff {p : α → Prop} : Exists p ↔ p (default α) :=
+⟨λ ⟨a, ha⟩, eq_default a ▸ ha, exists.intro (default α)⟩
+
 end
 
 protected lemma subsingleton_unique' : ∀ (h₁ h₂ : unique α), h₁ = h₂

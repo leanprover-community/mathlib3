@@ -1,7 +1,8 @@
--- Copyright (c) 2017 Scott Morrison. All rights reserved.
--- Released under Apache 2.0 license as described in the file LICENSE.
--- Authors: Tim Baumann, Stephen Morgan, Scott Morrison, Floris van Doorn
-
+/-
+Copyright (c) 2017 Scott Morrison. All rights reserved.
+Released under Apache 2.0 license as described in the file LICENSE.
+Authors: Tim Baumann, Stephen Morgan, Scott Morrison, Floris van Doorn
+-/
 import category_theory.fully_faithful
 import category_theory.whiskering
 import category_theory.natural_isomorphism
@@ -134,7 +135,7 @@ lemma adjointify_η_ε (X : C) :
 begin
   dsimp [adjointify_η], simp,
   have := ε.hom.naturality (F.map (η.inv.app X)), dsimp at this, rw [this], clear this,
-  rw [assoc_symm _ _ (F.map _)],
+  rw [←assoc _ _ _ (F.map _)],
   have := ε.hom.naturality (ε.inv.app $ F.obj X), dsimp at this, rw [this], clear this,
   have := (ε.app $ F.obj X).hom_inv_id, dsimp at this, rw [this], clear this,
   rw [id_comp], have := (F.map_iso $ η.app X).hom_inv_id, dsimp at this, rw [this]
@@ -224,7 +225,7 @@ def as_equivalence (F : C ⥤ D) [is_equivalence F] : C ≌ D :=
   is_equivalence.functor_unit_iso_comp F⟩
 
 omit 𝒟
-instance is_equivalence_refl : is_equivalence (functor.id C) :=
+instance is_equivalence_refl : is_equivalence (𝟭 C) :=
 is_equivalence.of_equivalence equivalence.refl
 include 𝒟
 
@@ -234,10 +235,10 @@ is_equivalence.inverse F
 instance is_equivalence_inv (F : C ⥤ D) [is_equivalence F] : is_equivalence F.inv :=
 is_equivalence.of_equivalence F.as_equivalence.symm
 
-def fun_inv_id (F : C ⥤ D) [is_equivalence F] : F ⋙ F.inv ≅ functor.id C :=
+def fun_inv_id (F : C ⥤ D) [is_equivalence F] : F ⋙ F.inv ≅ 𝟭 C :=
 (is_equivalence.unit_iso F).symm
 
-def inv_fun_id (F : C ⥤ D) [is_equivalence F] : F.inv ⋙ F ≅ functor.id D :=
+def inv_fun_id (F : C ⥤ D) [is_equivalence F] : F.inv ⋙ F ≅ 𝟭 D :=
 is_equivalence.counit_iso F
 
 variables {E : Type u₃} [ℰ : category.{v₃} E]

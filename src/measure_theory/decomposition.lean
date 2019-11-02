@@ -11,10 +11,10 @@ TODO:
 -/
 import measure_theory.measure_space
 
-local attribute [instance, priority 0] classical.prop_decidable
+open set lattice filter
+open_locale classical
 
 namespace measure_theory
-open set lattice filter
 
 variables {α : Type*} [measurable_space α] {μ ν : measure α}
 

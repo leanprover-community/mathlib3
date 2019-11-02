@@ -34,11 +34,11 @@ variables {β : Type v} [add_comm_group β] (f : α → β)
 open free_abelian_group
 
 instance is_add_group_hom : is_add_group_hom (lift f) :=
-⟨λ x y, @is_group_hom.map_mul _ (multiplicative β) _ _ _ (abelianization.lift.is_group_hom _) x y⟩
+{ map_add := λ x y, @is_mul_hom.map_mul _ (multiplicative β) _ _ _ (abelianization.lift.is_group_hom _).to_is_mul_hom x y }
 
 @[simp] protected lemma add (x y : free_abelian_group α) :
   lift f (x + y) = lift f x + lift f y :=
-is_add_group_hom.map_add _ _ _
+is_add_hom.map_add _ _ _
 
 @[simp] protected lemma neg (x : free_abelian_group α) : lift f (-x) = -lift f x :=
 is_add_group_hom.map_neg _ _
@@ -57,9 +57,9 @@ protected theorem unique (g : free_abelian_group α → β) [is_add_group_hom g]
   (hg : ∀ x, g (of x) = f x) {x} :
   g x = lift f x :=
 @abelianization.lift.unique (free_group α) _ (multiplicative β) _ _ _ g
-  ⟨λ x y, @is_add_group_hom.map_add (additive $ abelianization (free_group α)) _ _ _ _ _ x y⟩ (λ x,
+  { map_mul := λ x y, is_add_hom.map_add g x y } (λ x,
   @free_group.to_group.unique α (multiplicative β) _ _ (g ∘ abelianization.of)
-    ⟨λ m n, is_add_group_hom.map_add g (abelianization.of m) (abelianization.of n)⟩ hg _) _
+    { map_mul := λ m n, is_add_hom.map_add g (abelianization.of m) (abelianization.of n) } hg _) _
 
 protected theorem ext (g h : free_abelian_group α → β)
   [is_add_group_hom g] [is_add_group_hom h]
@@ -101,19 +101,23 @@ quotient.induction_on z $ λ x, quot.induction_on x $ λ L,
 list.rec_on L C0 $ λ ⟨x, b⟩ tl ih,
 bool.rec_on b (Cp _ _ (Cn _ (C1 x)) ih) (Cp _ _ (C1 x) ih)
 
-instance is_add_group_hom_lift' {α} (β) [add_comm_group β] (a : free_abelian_group α) :
-  is_add_group_hom (λf, (a.lift f : β)) :=
+theorem lift.add' {α β} [add_comm_group β] (a : free_abelian_group α) (f g : α → β) :
+  a.lift (f + g) = (a.lift f) + (a.lift g) :=
 begin
-  refine ⟨assume f g, free_abelian_group.induction_on a _ _ _ _⟩,
-  { simp [is_add_group_hom.map_zero (free_abelian_group.lift f)] },
-  { simp [lift.of], assume x, refl },
-  { simp [is_add_group_hom.map_neg (free_abelian_group.lift f)],
-    assume x h, show - (f x + g x) = -f x + - g x, exact neg_add _ _ },
-  { simp [is_add_group_hom.map_add (free_abelian_group.lift f)],
-    assume x y hx hy,
-    rw [hx, hy],
+  refine free_abelian_group.induction_on a _ _ _ _,
+  { simp only [lift.zero, zero_add] },
+  { assume x,
+    simp only [lift.of, pi.add_apply] },
+  { assume x h,
+    simp only [lift.neg, lift.of, pi.add_apply, neg_add] },
+  { assume x y hx hy,
+    simp only [lift.add, hx, hy],
     ac_refl }
 end
+
+instance is_add_group_hom_lift' {α} (β) [add_comm_group β] (a : free_abelian_group α) :
+  is_add_group_hom (λf, (a.lift f : β)) :=
+{ map_add := λ f g, lift.add' a f g }
 
 variables {β : Type u}
 
@@ -177,14 +181,14 @@ neg_bind _ _
 sub_bind _ _ _
 
 instance is_add_group_hom_seq (f : free_abelian_group (α → β)) : is_add_group_hom ((<*>) f) :=
-⟨λ x y, show lift (<$> (x+y)) _ = _, by simp only [map_add]; exact
-@@is_add_group_hom.map_add _ _ _ (@@free_abelian_group.is_add_group_hom_lift' (free_abelian_group β) _ _) _ _⟩
+{ map_add := λ x y, show lift (<$> (x+y)) _ = _, by simp only [map_add]; exact
+@@is_add_hom.map_add _ _ _ (@@free_abelian_group.is_add_group_hom_lift' (free_abelian_group β) _ _).to_is_add_hom _ _ }
 
 @[simp] lemma seq_zero (f : free_abelian_group (α → β)) : f <*> 0 = 0 :=
 is_add_group_hom.map_zero _
 
 @[simp] lemma seq_add (f : free_abelian_group (α → β)) (x y : free_abelian_group α) : f <*> (x + y) = (f <*> x) + (f <*> y) :=
-is_add_group_hom.map_add _ _ _
+is_add_hom.map_add _ _ _
 
 @[simp] lemma seq_neg (f : free_abelian_group (α → β)) (x : free_abelian_group α) : f <*> (-x) = -(f <*> x) :=
 is_add_group_hom.map_neg _ _

@@ -25,7 +25,7 @@ def fin_two_equiv : fin 2 ≃ bool :=
   end,
   assume b, match b with tt := rfl | ff := rfl end⟩
 
-def sum_fin_sum_equiv : (fin m ⊕ fin n) ≃ fin (m + n) :=
+def sum_fin_sum_equiv : fin m ⊕ fin n ≃ fin (m + n) :=
 { to_fun := λ x, sum.rec_on x
     (λ y, ⟨y.1, nat.lt_of_lt_of_le y.2 $ nat.le_add_right m n⟩)
     (λ y, ⟨m + y.1, nat.add_lt_add_left y.2 m⟩),
@@ -46,7 +46,7 @@ def sum_fin_sum_equiv : (fin m ⊕ fin n) ≃ fin (m + n) :=
     { dsimp, rw [dif_neg H], simp [fin.ext_iff, nat.add_sub_of_le (le_of_not_gt H)] }
   end }
 
-def fin_prod_fin_equiv : (fin m × fin n) ≃ fin (m * n) :=
+def fin_prod_fin_equiv : fin m × fin n ≃ fin (m * n) :=
 { to_fun := λ x, ⟨x.2.1 + n * x.1.1,
     calc x.2.1 + n * x.1.1 + 1
         = x.1.1 * n + x.2.1 + 1 : by ac_refl
@@ -54,11 +54,11 @@ def fin_prod_fin_equiv : (fin m × fin n) ≃ fin (m * n) :=
     ... = (x.1.1 + 1) * n : eq.symm $ nat.succ_mul _ _
     ... ≤ m * n : nat.mul_le_mul_right _ x.1.2⟩,
   inv_fun := λ x,
-    have H : n > 0, from nat.pos_of_ne_zero $ λ H, nat.not_lt_zero x.1 $ by subst H; from x.2,
+    have H : 0 < n, from nat.pos_of_ne_zero $ λ H, nat.not_lt_zero x.1 $ by subst H; from x.2,
     (⟨x.1 / n, (nat.div_lt_iff_lt_mul _ _ H).2 x.2⟩,
      ⟨x.1 % n, nat.mod_lt _ H⟩),
   left_inv := λ ⟨x, y⟩,
-    have H : n > 0, from nat.pos_of_ne_zero $ λ H, nat.not_lt_zero y.1 $ H ▸ y.2,
+    have H : 0 < n, from nat.pos_of_ne_zero $ λ H, nat.not_lt_zero y.1 $ H ▸ y.2,
     prod.ext
       (fin.eq_of_veq $ calc
               (y.1 + n * x.1) / n

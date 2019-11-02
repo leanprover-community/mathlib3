@@ -84,7 +84,7 @@ variables [complete_lattice α] [complete_lattice β] {f : β → α} {g : α �
 -- Rolling rule
 theorem lfp_comp (m_f : monotone f) (m_g : monotone g) : lfp (f ∘ g) = f (lfp (g ∘ f)) :=
 le_antisymm
-  (lfp_le $ m_f $ ge_of_eq $ lfp_eq $ monotone_comp m_f m_g)
+  (lfp_le $ m_f $ ge_of_eq $ lfp_eq $ m_g.comp m_f)
   (le_lfp $ assume a fg_le,
     le_trans (m_f $ lfp_le $ show (g ∘ f) (g a) ≤ g a, from m_g fg_le) fg_le)
 
@@ -92,14 +92,14 @@ theorem gfp_comp (m_f : monotone f) (m_g : monotone g) : gfp (f ∘ g) = f (gfp 
 le_antisymm
   (gfp_le $ assume a fg_le,
     le_trans fg_le $ m_f $ le_gfp $ show g a ≤ (g ∘ f) (g a), from m_g fg_le)
-  (le_gfp $ m_f $ le_of_eq $ gfp_eq $ monotone_comp m_f m_g)
+  (le_gfp $ m_f $ le_of_eq $ gfp_eq $ m_g.comp m_f)
 
 -- Diagonal rule
 theorem lfp_lfp {h : α → α → α} (m : ∀⦃a b c d⦄, a ≤ b → c ≤ d → h a c ≤ h b d) :
   lfp (lfp ∘ h) = lfp (λx, h x x) :=
 let f := lfp (lfp ∘ h) in
 have f_eq : f = lfp (h f),
-  from lfp_eq $ monotone_comp (assume a b h x, m h (le_refl _)) monotone_lfp,
+  from lfp_eq $ monotone.comp monotone_lfp (assume a b h x, m h (le_refl _)) ,
 le_antisymm
   (lfp_le $ lfp_le $ ge_of_eq $ lfp_eq $ assume a b h, m h h)
   (lfp_le $ ge_of_eq $
@@ -111,7 +111,7 @@ theorem gfp_gfp {h : α → α → α} (m : ∀⦃a b c d⦄, a ≤ b → c ≤ 
   gfp (gfp ∘ h) = gfp (λx, h x x) :=
 let f := gfp (gfp ∘ h) in
 have f_eq : f = gfp (h f),
-  from gfp_eq $ monotone_comp (assume a b h x, m h (le_refl _)) monotone_gfp,
+  from gfp_eq $ monotone.comp monotone_gfp (assume a b h x, m h (le_refl _)),
 le_antisymm
   (le_gfp $ le_of_eq $
     calc f = gfp (h f)       : f_eq

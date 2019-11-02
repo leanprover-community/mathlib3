@@ -8,10 +8,10 @@ Extended non-negative reals
 import topology.instances.nnreal data.real.ennreal
 noncomputable theory
 open classical set lattice filter metric
-local attribute [instance] prop_decidable
+open_locale classical
 variables {α : Type*} {β : Type*} {γ : Type*}
 
-local notation `∞` := (⊤ : ennreal)
+open_locale ennreal
 
 namespace ennreal
 variables {a b c d : ennreal} {r p q : nnreal}
@@ -48,8 +48,7 @@ instance : second_countable_topology ennreal :=
     end)⟩⟩
 
 lemma embedding_coe : embedding (coe : nnreal → ennreal) :=
-and.intro (assume a b, coe_eq_coe.1) $
-begin
+⟨⟨begin
   refine le_antisymm _ _,
   { rw [orderable_topology.topology_eq_generate_intervals ennreal,
       ← coinduced_le_iff_le_induced],
@@ -63,8 +62,9 @@ begin
     refine le_generate_from (assume s ha, _),
     rcases ha with ⟨a, rfl | rfl⟩,
     exact ⟨{b : ennreal | ↑a < b}, @is_open_lt' ennreal ennreal.topological_space _ _ _, by simp⟩,
-    exact ⟨{b : ennreal | b < ↑a}, @is_open_gt' ennreal ennreal.topological_space _ _ _, by simp⟩, },
-end
+    exact ⟨{b : ennreal | b < ↑a}, @is_open_gt' ennreal ennreal.topological_space _ _ _, by simp⟩ }
+  end⟩,
+  assume a b, coe_eq_coe.1⟩
 
 lemma is_open_ne_top : is_open {a : ennreal | a ≠ ⊤} :=
 is_open_neg (is_closed_eq continuous_id continuous_const)
@@ -85,12 +85,12 @@ continuous (λa, (f a : ennreal)) ↔ continuous f :=
 embedding_coe.continuous_iff.symm
 
 lemma nhds_coe {r : nnreal} : nhds (r : ennreal) = (nhds r).map coe :=
-by rw [embedding_coe.2, map_nhds_induced_eq coe_range_mem_nhds]
+by rw [embedding_coe.induced, map_nhds_induced_eq coe_range_mem_nhds]
 
 lemma nhds_coe_coe {r p : nnreal} : nhds ((r : ennreal), (p : ennreal)) =
   (nhds (r, p)).map (λp:nnreal×nnreal, (p.1, p.2)) :=
 begin
-  rw [(embedding_prod_mk embedding_coe embedding_coe).map_nhds_eq],
+  rw [(embedding_coe.prod_mk embedding_coe).map_nhds_eq],
   rw [← prod_range_range_eq],
   exact prod_mem_nhds_sets coe_range_mem_nhds coe_range_mem_nhds
 end
@@ -331,9 +331,12 @@ begin
     simp only [finset.sum_insert has],
     rw [ih, supr_add_supr_of_monotone (hf a)],
     assume i j h,
-    exact (finset.sum_le_sum' $ assume a ha, hf a h) }
+    exact (finset.sum_le_sum $ assume a ha, hf a h) }
 end
 
+section priority
+-- for some reason the next proof fails without changing the priority of this instance
+local attribute [instance, priority 1000] classical.prop_decidable
 lemma mul_Sup {s : set ennreal} {a : ennreal} : a * Sup s = ⨆i∈s, a * i :=
 begin
   by_cases hs : ∀x∈s, x = (0:ennreal),
@@ -354,6 +357,7 @@ begin
         (ennreal.tendsto_mul_right (tendsto_id' inf_le_left) (or.inl s₁))),
     rw [this.symm, Sup_image] }
 end
+end priority
 
 lemma mul_supr {ι : Sort*} {f : ι → ennreal} {a : ennreal} : a * supr f = ⨆i, a * f i :=
 by rw [← Sup_range, mul_Sup, supr_range]
@@ -536,7 +540,7 @@ lemma has_sum_iff_tendsto_nat_of_nonneg {f : ℕ → ℝ} (hf : ∀i, 0 ≤ f i)
 ⟨tendsto_sum_nat_of_has_sum,
   assume hfr,
   have 0 ≤ r := ge_of_tendsto at_top_ne_bot hfr $ univ_mem_sets' $ assume i,
-    show 0 ≤ (finset.range i).sum f, from finset.zero_le_sum $ assume i _, hf i,
+    show 0 ≤ (finset.range i).sum f, from finset.sum_nonneg $ assume i _, hf i,
   let f' (n : ℕ) : nnreal := ⟨f n, hf n⟩, r' : nnreal := ⟨r, this⟩ in
   have f_eq : f = (λi:ℕ, (f' i : ℝ)) := rfl,
   have r_eq : r = r' := rfl,

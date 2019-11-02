@@ -1,6 +1,8 @@
--- Copyright (c) 2018 Keeley Hoek. All rights reserved.
--- Released under Apache 2.0 license as described in the file LICENSE.
--- Authors: Keeley Hoek, Scott Morrison
+/-
+Copyright (c) 2018 Keeley Hoek. All rights reserved.
+Released under Apache 2.0 license as described in the file LICENSE.
+Authors: Keeley Hoek, Scott Morrison
+-/
 import data.option.defs data.mllist
 
 open tactic

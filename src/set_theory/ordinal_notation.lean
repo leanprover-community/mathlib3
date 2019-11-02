@@ -7,8 +7,7 @@ Ordinal notations (constructive ordinal arithmetic for ordinals < ε₀).
 -/
 import set_theory.ordinal data.pnat.basic
 open ordinal
-
-local notation `ω` := omega.{0}
+open_locale ordinal -- get notation for `ω`
 
 /-- Recursive definition of an ordinal notation. `zero` denotes the
   ordinal 0, and `oadd e n a` is intended to refer to `ω^e * n + a`.

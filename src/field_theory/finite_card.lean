@@ -14,7 +14,7 @@ namespace finite_field
 theorem card (p : ℕ) [char_p α p] : ∃ (n : ℕ+), nat.prime p ∧ fintype.card α = p^(n : ℕ) :=
 have hp : nat.prime p, from char_p.char_is_prime α p,
 have V : vector_space (zmodp p hp) α, from {..zmod.to_module'},
-let ⟨n, h⟩ := @vector_space.card_fintype' _ _ _ _ _ _ V _ _ in
+let ⟨n, h⟩ := @vector_space.card_fintype _ _ _ _ V _ _ in
 have hn : n > 0, from or.resolve_left (nat.eq_zero_or_pos n)
   (assume h0 : n = 0,
   have fintype.card α = 1, by rw[←nat.pow_zero (fintype.card _), ←h0]; exact h,

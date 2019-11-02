@@ -7,9 +7,8 @@ Hausdorff properties of uniform spaces. Separation quotient.
 -/
 import topology.uniform_space.basic
 
-
 open filter topological_space lattice set classical
-local attribute [instance, priority 0] prop_decidable
+open_locale classical
 noncomputable theory
 set_option eqn_compiler.zeta true
 
@@ -17,7 +16,7 @@ universes u v w
 variables {α : Type u} {β : Type v} {γ : Type w}
 variables [uniform_space α] [uniform_space β] [uniform_space γ]
 
-local notation `𝓤` := uniformity
+open_locale uniformity
 
 /- separated uniformity -/
 
@@ -103,7 +102,8 @@ def separation_setoid (α : Type u) [uniform_space α] : setoid α :=
 
 local attribute [instance] separation_setoid
 
-instance {α : Type u} [u : uniform_space α] : uniform_space (quotient (separation_setoid α)) :=
+instance separation_setoid.uniform_space {α : Type u} [u : uniform_space α] :
+  uniform_space (quotient (separation_setoid α)) :=
 { to_topological_space := u.to_topological_space.coinduced (λx, ⟦x⟧),
   uniformity := map (λp:(α×α), (⟦p.1⟧, ⟦p.2⟧)) u.uniformity,
   refl := le_trans (by simp [quotient.exists_rep]) (filter.map_mono refl_le_uniformity),
@@ -162,7 +162,7 @@ lemma uniform_continuous_quotient_lift
   (hf : uniform_continuous f) : uniform_continuous (λa, quotient.lift f h a) :=
 uniform_continuous_quotient hf
 
-lemma uniform_continuous_quotient_lift₂ [uniform_space γ]
+lemma uniform_continuous_quotient_lift₂
   {f : α → β → γ} {h : ∀a c b d, (a, b) ∈ separation_rel α → (c, d) ∈ separation_rel β → f a c = f b d}
   (hf : uniform_continuous (λp:α×β, f p.1 p.2)) :
   uniform_continuous (λp:_×_, quotient.lift₂ f h p.1 p.2) :=

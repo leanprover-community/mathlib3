@@ -64,6 +64,8 @@ h hx
 
 @[simp] theorem set_of_mem_eq {s : set α} : {x | x ∈ s} = s := rfl
 
+lemma set_of_app_iff {p : α → Prop} {x : α} : { x | p x } x ↔ p x := iff.refl _
+
 theorem mem_def {a : α} {s : set α} : a ∈ s ↔ s a := iff.rfl
 
 instance decidable_mem (s : set α) [H : decidable_pred s] : ∀ a, decidable (a ∈ s) := H
@@ -779,6 +781,8 @@ assume x hx, h hx
 
 @[simp] theorem preimage_univ : f ⁻¹' univ = univ := rfl
 
+@[simp] theorem subset_preimage_univ {s : set α} : s ⊆ f ⁻¹' univ := subset_univ _
+
 @[simp] theorem preimage_inter {s t : set β} : f ⁻¹' (s ∩ t) = f ⁻¹' s ∩ f ⁻¹' t := rfl
 
 @[simp] theorem preimage_union {s t : set β} : f ⁻¹' (s ∪ t) = f ⁻¹' s ∪ f ⁻¹' t := rfl
@@ -1346,6 +1350,14 @@ theorem prod_range_range_eq {α β γ δ} {m₁ : α → γ} {m₂ : β → δ} 
   set.prod (range m₁) (range m₂) = range (λp:α×β, (m₁ p.1, m₂ p.2)) :=
 ext $ by simp [range]
 
+theorem prod_range_univ_eq {α β γ} {m₁ : α → γ} :
+  set.prod (range m₁) (univ : set β) = range (λp:α×β, (m₁ p.1, p.2)) :=
+ext $ by simp [range]
+
+theorem prod_univ_range_eq {α β δ} {m₂ : β → δ} :
+  set.prod (univ : set α) (range m₂) = range (λp:α×β, (p.1, m₂ p.2)) :=
+ext $ by simp [range]
+
 @[simp] theorem prod_singleton_singleton {a : α} {b : β} :
   set.prod {a} {b} = ({(a, b)} : set (α×β)) :=
 ext $ by simp [set.prod]
@@ -1373,6 +1385,10 @@ lemma fst_image_prod_subset (s : set α) (t : set β) :
   prod.fst '' (set.prod s t) ⊆ s :=
 λ _ h, let ⟨_, ⟨h₂, _⟩, h₁⟩ := (set.mem_image _ _ _).1 h in h₁ ▸ h₂
 
+lemma prod_subset_preimage_fst (s : set α) (t : set β) :
+  set.prod s t ⊆ prod.fst ⁻¹' s :=
+image_subset_iff.1 (fst_image_prod_subset s t)
+
 lemma fst_image_prod (s : set β) {t : set α} (ht : t ≠ ∅) :
   prod.fst '' (set.prod s t) = s :=
 set.subset.antisymm (fst_image_prod_subset _ _)
@@ -1383,11 +1399,39 @@ lemma snd_image_prod_subset (s : set α) (t : set β) :
   prod.snd '' (set.prod s t) ⊆ t :=
 λ _ h, let ⟨_, ⟨_, h₂⟩, h₁⟩ := (set.mem_image _ _ _).1 h in h₁ ▸ h₂
 
+lemma prod_subset_preimage_snd (s : set α) (t : set β) :
+  set.prod s t ⊆ prod.snd ⁻¹' t :=
+image_subset_iff.1 (snd_image_prod_subset s t)
+
 lemma snd_image_prod {s : set α} (hs : s ≠ ∅) (t : set β) :
   prod.snd '' (set.prod s t) = t :=
 set.subset.antisymm (snd_image_prod_subset _ _)
   $ λ y y_in, let (⟨x, x_in⟩ : ∃ (x : α), x ∈ s) := set.exists_mem_of_ne_empty hs in
     ⟨(x, y), ⟨x_in, y_in⟩, rfl⟩
+
+/-- A product set is included in a product set if and only factors are included, or a factor of the
+first set is empty. -/
+lemma prod_subset_prod_iff :
+  (set.prod s t ⊆ set.prod s₁ t₁) ↔ (s ⊆ s₁ ∧ t ⊆ t₁) ∨ (s = ∅) ∨ (t = ∅) :=
+begin
+  classical,
+  by_cases h : set.prod s t = ∅,
+  { simp [h, prod_eq_empty_iff.1 h] },
+  { have st : s ≠ ∅ ∧ t ≠ ∅, by rwa [← ne.def, prod_neq_empty_iff] at h,
+    split,
+    { assume H : set.prod s t ⊆ set.prod s₁ t₁,
+      have h' : s₁ ≠ ∅ ∧ t₁ ≠ ∅ := prod_neq_empty_iff.1 (subset_ne_empty H h),
+      refine or.inl ⟨_, _⟩,
+      show s ⊆ s₁,
+      { have := image_subset (prod.fst : α × β → α) H,
+        rwa [fst_image_prod _ st.2, fst_image_prod _ h'.2] at this },
+      show t ⊆ t₁,
+      { have := image_subset (prod.snd : α × β → β) H,
+        rwa [snd_image_prod st.1, snd_image_prod h'.1] at this } },
+    { assume H,
+      simp [st] at H,
+      exact prod_mono H.1 H.2 } }
+end
 
 end prod
 

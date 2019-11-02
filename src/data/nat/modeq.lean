@@ -11,6 +11,7 @@ namespace nat
 
 /-- Modular equality. `modeq n a b`, or `a ≡ b [MOD n]`, means
   that `a - b` is a multiple of `n`. -/
+@[derive decidable]
 def modeq (n a b : ℕ) := a % n = b % n
 
 notation a ` ≡ `:50 b ` [MOD `:50 n `]`:0 := modeq n a b
@@ -23,8 +24,6 @@ variables {n m a b c d : ℕ}
 @[symm] protected theorem symm : a ≡ b [MOD n] → b ≡ a [MOD n] := eq.symm
 
 @[trans] protected theorem trans : a ≡ b [MOD n] → b ≡ c [MOD n] → a ≡ c [MOD n] := eq.trans
-
-instance : decidable (a ≡ b [MOD n]) := by unfold modeq; apply_instance
 
 theorem modeq_zero_iff : a ≡ 0 [MOD n] ↔ n ∣ a :=
 by rw [modeq, zero_mod, dvd_iff_mod_eq_zero]
@@ -123,6 +122,13 @@ modeq.modeq_of_modeq_mul_right _ (modeq.mod_modeq _ _)
 @[simp] lemma mod_mul_left_mod (a b c : ℕ) : a % (b * c) % c = a % c :=
 modeq.modeq_of_modeq_mul_left _ (modeq.mod_modeq _ _)
 
+lemma div_mod_eq_mod_mul_div (a b c : ℕ) : a / b % c = a % (b * c) / b :=
+if hb0 : b = 0 then by simp [hb0]
+else by rw [← @add_right_cancel_iff _ _ (c * (a / b / c)), mod_add_div, nat.div_div_eq_div_mul,
+  ← nat.mul_left_inj (nat.pos_of_ne_zero hb0),← @add_left_cancel_iff _ _ (a % b), mod_add_div,
+  mul_add, ← @add_left_cancel_iff _ _ (a % (b * c) % b), add_left_comm,
+  ← add_assoc (a % (b * c) % b), mod_add_div, ← mul_assoc, mod_add_div, mod_mul_right_mod]
+
 lemma odd_mul_odd {n m : ℕ} (hn1 : n % 2 = 1) (hm1 : m % 2 = 1) : (n * m) % 2 = 1 :=
 show (n * m) % 2 = (1 * 1) % 2, from nat.modeq.modeq_mul hn1 hm1
 
@@ -133,7 +139,7 @@ have hn0 : 0 < n := nat.pos_of_ne_zero (λ h, by simp * at *),
 (nat.mul_left_inj (show 0 < 2, from dec_trivial)).1 $
 by rw [mul_add, two_mul_odd_div_two hm1, mul_left_comm, two_mul_odd_div_two hn1,
   two_mul_odd_div_two (nat.odd_mul_odd hm1 hn1), nat.mul_sub_left_distrib, mul_one,
-  ← nat.add_sub_assoc hm0, nat.sub_add_cancel (le_mul_of_ge_one_right' (nat.zero_le _) hn0)]
+  ← nat.add_sub_assoc hm0, nat.sub_add_cancel (le_mul_of_one_le_right' (nat.zero_le _) hn0)]
 
 lemma odd_of_mod_four_eq_one {n : ℕ} (h : n % 4 = 1) : n % 2 = 1 :=
 @modeq.modeq_of_modeq_mul_left 2 n 1 2 h

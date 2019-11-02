@@ -26,7 +26,7 @@ import topology.metric_space.basic topology.algebra.uniform_group
 
 noncomputable theory
 open classical set lattice filter topological_space metric
-local attribute [instance] prop_decidable
+open_locale classical
 
 universes u v w
 variables {α : Type u} {β : Type v} {γ : Type w}
@@ -35,6 +35,8 @@ instance : metric_space ℚ :=
 metric_space.induced coe rat.cast_injective real.metric_space
 
 theorem rat.dist_eq (x y : ℚ) : dist x y = abs (x - y) := rfl
+
+@[elim_cast, simp] lemma rat.dist_cast (x y : ℚ) : dist (x : ℝ) y = dist x y := rfl
 
 instance : metric_space ℤ :=
 begin
@@ -46,6 +48,13 @@ begin
   simpa using (@int.cast_le ℝ _ _ 0).2 (int.lt_add_one_iff.1 $
     (@int.cast_lt ℝ _ (abs (a - b)) 1).1 $ by simpa using h)
 end
+
+theorem int.dist_eq (x y : ℤ) : dist x y = abs (x - y) := rfl
+
+@[elim_cast, simp] theorem int.dist_cast_real (x y : ℤ) : dist (x : ℝ) y = dist x y := rfl
+
+@[elim_cast, simp] theorem int.dist_cast_rat (x y : ℤ) : dist (x : ℚ) y = dist x y :=
+by rw [← int.dist_cast_real, ← rat.dist_cast]; congr' 1; norm_cast
 
 theorem uniform_continuous_of_rat : uniform_continuous (coe : ℚ → ℝ) :=
 uniform_continuous_comap
@@ -60,7 +69,7 @@ let ⟨ε,ε0, hε⟩ := mem_nhds_iff.1 ht in
 let ⟨q, h⟩ := exists_rat_near x ε0 in
 ne_empty_iff_exists_mem.2 ⟨_, hε (mem_ball'.2 h), q, rfl⟩
 
-theorem embedding_of_rat : embedding (coe : ℚ → ℝ) := dense_embedding_of_rat.embedding
+theorem embedding_of_rat : embedding (coe : ℚ → ℝ) := dense_embedding_of_rat.to_embedding
 
 theorem continuous_of_rat : continuous (coe : ℚ → ℝ) := uniform_continuous_of_rat.continuous
 
@@ -71,7 +80,7 @@ let ⟨δ, δ0, Hδ⟩ := rat_add_continuous_lemma abs ε0 in
 
 -- TODO(Mario): Find a way to use rat_add_continuous_lemma
 theorem rat.uniform_continuous_add : uniform_continuous (λp : ℚ × ℚ, p.1 + p.2) :=
-uniform_embedding_of_rat.uniform_continuous_iff.2 $ by simp [(∘)]; exact
+uniform_embedding_of_rat.to_uniform_inducing.uniform_continuous_iff.2 $ by simp [(∘)]; exact
 real.uniform_continuous_add.comp ((uniform_continuous_of_rat.comp uniform_continuous_fst).prod_mk
   (uniform_continuous_of_rat.comp uniform_continuous_snd))
 
@@ -165,11 +174,10 @@ metric.uniform_continuous_iff.2 $ λ ε ε0, begin
 end
 
 lemma real.uniform_continuous_mul (s : set (ℝ × ℝ))
-  {r₁ r₂ : ℝ} (r₁0 : 0 < r₁) (r₂0 : 0 < r₂)
-  (H : ∀ x ∈ s, abs (x : ℝ × ℝ).1 < r₁ ∧ abs x.2 < r₂) :
+  {r₁ r₂ : ℝ} (H : ∀ x ∈ s, abs (x : ℝ × ℝ).1 < r₁ ∧ abs x.2 < r₂) :
   uniform_continuous (λp:s, p.1.1 * p.1.2) :=
 metric.uniform_continuous_iff.2 $ λ ε ε0,
-let ⟨δ, δ0, Hδ⟩ := rat_mul_continuous_lemma abs ε0 r₁0 r₂0 in
+let ⟨δ, δ0, Hδ⟩ := rat_mul_continuous_lemma abs ε0 in
 ⟨δ, δ0, λ a b h,
   let ⟨h₁, h₂⟩ := max_lt_iff.1 h in Hδ (H _ a.2).1 (H _ b.2).2 h₁ h₂⟩
 
@@ -178,8 +186,6 @@ continuous_iff_continuous_at.2 $ λ ⟨a₁, a₂⟩,
 tendsto_of_uniform_continuous_subtype
   (real.uniform_continuous_mul
     ({x | abs x < abs a₁ + 1}.prod {x | abs x < abs a₂ + 1})
-    (lt_of_le_of_lt (abs_nonneg _) (lt_add_one _))
-    (lt_of_le_of_lt (abs_nonneg _) (lt_add_one _))
     (λ x, id))
   (mem_nhds_sets
     (is_open_prod

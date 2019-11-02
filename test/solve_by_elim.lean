@@ -11,6 +11,12 @@ begin
   apply_assumption,
 end
 
+example {X : Type} (x : X) : x = x :=
+by solve_by_elim
+
+example : true :=
+by solve_by_elim
+
 example {a b : Prop} (h₀ : a → b) (h₁ : a) : b :=
 by solve_by_elim
 
@@ -96,19 +102,3 @@ begin
   repeat { split },
   solve_by_elim*,
 end
-
-example {P Q : Prop} (h : P ↔ Q) (h : P) : Q :=
-begin
-  solve_by_elim
-end
-
-example {P Q : Prop} (h : P ↔ Q) (h : Q) : P :=
-begin
-  solve_by_elim
-end
-
-example {a b c : ℕ} (h₁ : a ∣ c) (h₂ : a ∣ b + c) : a ∣ b :=
-begin
-  solve_by_elim [nat.dvd_add_iff_left],
-end
-

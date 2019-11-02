@@ -1,8 +1,8 @@
--- Copyright (c) 2017 Scott Morrison. All rights reserved.
--- Released under Apache 2.0 license as described in the file LICENSE.
--- Authors: Stephen Morgan, Scott Morrison
-
-import category_theory.products
+/-
+Copyright (c) 2017 Scott Morrison. All rights reserved.
+Released under Apache 2.0 license as described in the file LICENSE.
+Authors: Stephen Morgan, Scott Morrison
+-/
 import category_theory.types
 import category_theory.natural_isomorphism
 import data.opposite
@@ -153,23 +153,6 @@ instance {F : C ⥤ D} [faithful F] : faithful F.op :=
 
 end
 
-section
-
-omit 𝒞
-variables (E : Type u₁) [ℰ : category.{v₁+1} E]
-include ℰ
-
-/-- `functor.hom` is the hom-pairing, sending (X,Y) to X → Y, contravariant in X and covariant in Y. -/
-definition hom : Eᵒᵖ × E ⥤ Type v₁ :=
-{ obj       := λ p, unop p.1 ⟶ p.2,
-  map       := λ X Y f, λ h, f.1.unop ≫ h ≫ f.2 }
-
-@[simp] lemma hom_obj (X : Eᵒᵖ × E) : (functor.hom E).obj X = (unop X.1 ⟶ X.2) := rfl
-@[simp] lemma hom_pairing_map {X Y : Eᵒᵖ × E} (f : X ⟶ Y) :
-  (functor.hom E).map f = λ h, f.1.unop ≫ h ≫ f.2 := rfl
-
-end
-
 end functor
 
 namespace nat_trans
@@ -180,17 +163,17 @@ include 𝒟
 section
 variables {F G : C ⥤ D}
 
-protected definition op (α : F ⟶ G) : G.op ⟶ F.op :=
+@[simps] protected definition op (α : F ⟶ G) : G.op ⟶ F.op :=
 { app         := λ X, (α.app (unop X)).op,
   naturality' := begin tidy, erw α.naturality, refl, end }
 
-@[simp] lemma op_app (α : F ⟶ G) (X) : (nat_trans.op α).app X = (α.app (unop X)).op := rfl
+@[simp] lemma op_id (F : C ⥤ D) : nat_trans.op (𝟙 F) = 𝟙 (F.op) := rfl
 
-protected definition unop (α : F.op ⟶ G.op) : G ⟶ F :=
+@[simps] protected definition unop (α : F.op ⟶ G.op) : G ⟶ F :=
 { app         := λ X, (α.app (op X)).unop,
   naturality' := begin tidy, erw α.naturality, refl, end }
 
-@[simp] lemma unop_app (α : F.op ⟶ G.op) (X) : (nat_trans.unop α).app X = (α.app (op X)).unop := rfl
+@[simp] lemma unop_id (F : C ⥤ D) : nat_trans.unop (𝟙 F.op) = 𝟙 F := rfl
 
 end
 

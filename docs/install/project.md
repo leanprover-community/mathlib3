@@ -45,17 +45,17 @@ text field that appeared, type "lean doc" and hit Enter. Then click
 # Working on an existing package
 
 Suppose you want to work on an existing project.
-As example, we will take [Perfectoid spaces](https://github.com/leanprover-community/lean-perfectoid-spaces). Open a terminal.
+As example, we will take [the tutorial project](https://github.com/leanprover-community/tutorials). Open a terminal.
 
 * If you have not logged in since you installed Lean and mathlib, then
   you need to first type `source ~/.profile`.
 
 * Go the the directory where you would like this package to live.
 
-* Run `git clone https://github.com/leanprover-community/lean-perfectoid-spaces.git`.
+* Run `git clone https://github.com/leanprover-community/tutorials.git`.
 
-* This creates a directory named `lean-perfectoid-spaces`. Enter it
-  with `cd lean-perfectoid-spaces`.
+* This creates a directory named `tutorials`. Enter it
+  with `cd tutorials`.
 
 * Type `leanpkg configure` to get `leanpkg` ready for use in this project.
 
@@ -67,7 +67,7 @@ As example, we will take [Perfectoid spaces](https://github.com/leanprover-commu
   `code`
 
 * On the main screen, or in the File menu, click "Open folder" (just "Open" on a Mac), and
-  choose the folder `lean-perfectoid-spaces` (*not* one of its subfolders).
+  choose the folder `tutorials` (*not* one of its subfolders).
 
 * Using the file explorer on the left-hand side, explore everthing you want in
-  `lean-perfectoid-spaces/src`
+  `tutorials/src`

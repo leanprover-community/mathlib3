@@ -9,14 +9,14 @@ import data.real.nnreal order.bounds data.set.intervals tactic.norm_num
 noncomputable theory
 open classical set lattice
 
-local attribute [instance] prop_decidable
+open_locale classical
 variables {α : Type*} {β : Type*}
 
 /-- The extended nonnegative real numbers. This is usually denoted [0, ∞],
   and is relevant as the codomain of a measure. -/
 def ennreal := with_top nnreal
 
-local notation `∞` := (⊤ : ennreal)
+localized "notation `∞` := (⊤ : ennreal)" in ennreal
 
 namespace ennreal
 variables {a b c d : ennreal} {r p q : nnreal}
@@ -763,7 +763,7 @@ finset.induction_on s (by simp) $ assume a s ha ih,
   have ∀ (i j : ι), ∃ (k : ι), f k a + s.sum (f k) ≤ f i a + s.sum (f j),
     from assume i j,
     let ⟨k, hk⟩ := h (insert a s) i j in
-    ⟨k, add_le_add' (hk a (finset.mem_insert_self _ _)).left $ finset.sum_le_sum' $
+    ⟨k, add_le_add' (hk a (finset.mem_insert_self _ _)).left $ finset.sum_le_sum $
       assume a ha, (hk _ $ finset.mem_insert_of_mem ha).right⟩,
   by simp [ha, ih.symm, infi_add_infi this]
 

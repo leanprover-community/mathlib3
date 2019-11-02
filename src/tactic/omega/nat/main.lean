@@ -16,26 +16,17 @@ open tactic
 namespace omega
 namespace nat
 
-local notation `&` k    := preterm.cst k
-local infix ` ** ` : 300 := preterm.var
-local notation t ` +* ` s := preterm.add t s
-local notation t ` -* ` s := preterm.sub t s
-
-local notation x ` =* ` y := form.eq x y
-local notation x ` ≤* ` y := form.le x y
-local notation `¬* ` p   := form.not p
-local notation p ` ∨* ` q := form.or p q
-local notation p ` ∧* ` q := form.and p q
-
+open_locale omega.nat
 
 run_cmd mk_simp_attr `sugar_nat
 attribute [sugar_nat]
-  not_le not_lt
+  ne not_le not_lt
   nat.lt_iff_add_one_le
   nat.succ_eq_add_one
   or_false false_or
   and_true true_and
   ge gt mul_add add_mul mul_comm
+  one_mul mul_one
   classical.imp_iff_not_or
   classical.iff_iff_not_or_and_or_not
 
@@ -157,7 +148,7 @@ meta def to_form_core : expr → tactic form
      q ← to_form_core qx,
      return (p ∧* q)
 | `(_ → %%px) := to_form_core px
-| _ := failed
+| x := trace "Cannot reify expr : " >> trace x >> failed
 
 meta def to_form : nat → expr → tactic (form × nat)
 | m `(_ → %%px) := to_form (m+1) px
@@ -173,4 +164,4 @@ end omega
 open omega.nat
 
 meta def omega_nat : tactic unit :=
-desugar >> prove_lna >>= apply >> skip
+desugar >> (done <|> (prove_lna >>= apply >> skip))

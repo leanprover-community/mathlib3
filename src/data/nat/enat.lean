@@ -6,7 +6,7 @@ Authors: Chris Hughes
 Natural numbers with infinity, represented as roption ℕ.
 -/
 import data.pfun algebra.ordered_group
-import tactic.norm_cast
+import tactic.norm_cast tactic.norm_num
 
 open roption lattice
 
@@ -101,10 +101,17 @@ instance order_top : order_top enat :=
   le_top := λ x, ⟨λ h, false.elim h, λ hy, false.elim hy⟩,
   ..enat.semilattice_sup_bot }
 
+lemma top_eq_none : (⊤ : enat) = none := rfl
+
 lemma coe_lt_top (x : ℕ) : (x : enat) < ⊤ :=
 lt_of_le_of_ne le_top (λ h, absurd (congr_arg dom h) true_ne_false)
 
 @[simp] lemma coe_ne_top (x : ℕ) : (x : enat) ≠ ⊤ := ne_of_lt (coe_lt_top x)
+
+lemma ne_top_iff {x : enat} : x ≠ ⊤ ↔ ∃(n : ℕ), x = n := roption.ne_none_iff
+
+lemma ne_top_of_lt {x y : enat} (h : x < y) : x ≠ ⊤ :=
+ne_of_lt $ lt_of_lt_of_le h lattice.le_top
 
 lemma pos_iff_one_le {x : enat} : 0 < x ↔ 1 ≤ x :=
 enat.cases_on x ⟨λ _, le_top, λ _, coe_lt_top _⟩
@@ -165,8 +172,60 @@ instance : canonically_ordered_monoid enat :=
   ..enat.semilattice_sup_bot,
   ..enat.ordered_comm_monoid }
 
+protected lemma add_lt_add_right {x y z : enat} (h : x < y) (hz : z ≠ ⊤) : x + z < y + z :=
+begin
+  rcases ne_top_iff.mp (ne_top_of_lt h) with ⟨m, rfl⟩,
+  rcases ne_top_iff.mp hz with ⟨k, rfl⟩,
+  induction y using enat.cases_on with n,
+  { rw [top_add], apply_mod_cast coe_lt_top },
+  norm_cast at h, apply_mod_cast add_lt_add_right h
+end
+
+protected lemma add_lt_add_iff_right {x y z : enat} (hz : z ≠ ⊤) : x + z < y + z ↔ x < y :=
+⟨lt_of_add_lt_add_right', λ h, enat.add_lt_add_right h hz⟩
+
+protected lemma add_lt_add_iff_left {x y z : enat} (hz : z ≠ ⊤) : z + x < z + y ↔ x < y :=
+by simpa using enat.add_lt_add_iff_right hz
+
+protected lemma lt_add_iff_pos_right {x y : enat} (hx : x ≠ ⊤) : x < x + y ↔ 0 < y :=
+by { conv_rhs { rw [← enat.add_lt_add_iff_left hx] }, rw [add_zero] }
+
+lemma lt_add_one {x : enat} (hx : x ≠ ⊤) : x < x + 1 :=
+by { rw [enat.lt_add_iff_pos_right hx], norm_cast, norm_num }
+
+lemma le_of_lt_add_one {x y : enat} (h : x < y + 1) : x ≤ y :=
+begin
+  induction y using enat.cases_on with n, apply lattice.le_top,
+  rcases ne_top_iff.mp (ne_top_of_lt h) with ⟨m, rfl⟩,
+  apply_mod_cast nat.le_of_lt_succ, apply_mod_cast h
+end
+
+lemma add_one_le_of_lt {x y : enat} (h : x < y) : x + 1 ≤ y :=
+begin
+  induction y using enat.cases_on with n, apply lattice.le_top,
+  rcases ne_top_iff.mp (ne_top_of_lt h) with ⟨m, rfl⟩,
+  apply_mod_cast nat.succ_le_of_lt, apply_mod_cast h
+end
+
+lemma add_one_le_iff_lt {x y : enat} (hx : x ≠ ⊤) : x + 1 ≤ y ↔ x < y :=
+begin
+  split, swap, exact add_one_le_of_lt,
+  intro h, rcases ne_top_iff.mp hx with ⟨m, rfl⟩,
+  induction y using enat.cases_on with n, apply coe_lt_top,
+  apply_mod_cast nat.lt_of_succ_le, apply_mod_cast h
+end
+
+lemma lt_add_one_iff_lt {x y : enat} (hx : x ≠ ⊤) : x < y + 1 ↔ x ≤ y :=
+begin
+  split, exact le_of_lt_add_one,
+  intro h, rcases ne_top_iff.mp hx with ⟨m, rfl⟩,
+  induction y using enat.cases_on with n, { rw [top_add], apply coe_lt_top },
+  apply_mod_cast nat.lt_succ_of_le, apply_mod_cast h
+end
+
 section with_top
 
+/-- Computably converts an `enat` to a `with_top ℕ`. -/
 def to_with_top (x : enat) [decidable x.dom]: with_top ℕ := x.to_option
 
 lemma to_with_top_top : to_with_top ⊤ = ⊤ := rfl
@@ -190,6 +249,50 @@ enat.cases_on y (by simp) (enat.cases_on x (by simp) (by intros; simp))
 by simp only [lt_iff_le_not_le, to_with_top_le]
 
 end with_top
+
+section with_top_equiv
+open_locale classical
+
+/-- Order isomorphism between `enat` and `with_top ℕ`. -/
+noncomputable def with_top_equiv : enat ≃ with_top ℕ :=
+{ to_fun := λ x, to_with_top x,
+  inv_fun := λ x, match x with (some n) := coe n | none := ⊤ end,
+  left_inv := λ x, by apply enat.cases_on x; intros; simp; refl,
+  right_inv := λ x, by cases x; simp [with_top_equiv._match_1]; refl }
+
+@[simp] lemma with_top_equiv_top : with_top_equiv ⊤ = ⊤ :=
+to_with_top_top'
+
+@[simp] lemma with_top_equiv_coe (n : nat) : with_top_equiv n = n :=
+to_with_top_coe' _
+
+@[simp] lemma with_top_equiv_zero : with_top_equiv 0 = 0 :=
+with_top_equiv_coe _
+
+@[simp] lemma with_top_equiv_le {x y : enat} : with_top_equiv x ≤ with_top_equiv y ↔ x ≤ y :=
+to_with_top_le
+
+@[simp] lemma with_top_equiv_lt {x y : enat} : with_top_equiv x < with_top_equiv y ↔ x < y :=
+to_with_top_lt
+
+@[simp] lemma with_top_equiv_symm_top : with_top_equiv.symm ⊤ = ⊤ :=
+rfl
+
+@[simp] lemma with_top_equiv_symm_coe (n : nat) : with_top_equiv.symm n = n :=
+rfl
+
+@[simp] lemma with_top_equiv_symm_zero : with_top_equiv.symm 0 = 0 :=
+rfl
+
+@[simp] lemma with_top_equiv_symm_le {x y : with_top ℕ} :
+  with_top_equiv.symm x ≤ with_top_equiv.symm y ↔ x ≤ y :=
+by rw ← with_top_equiv_le; simp
+
+@[simp] lemma with_top_equiv_symm_lt {x y : with_top ℕ} :
+  with_top_equiv.symm x < with_top_equiv.symm y ↔ x < y :=
+by rw ← with_top_equiv_lt; simp
+
+end with_top_equiv
 
 lemma lt_wf : well_founded ((<) : enat → enat → Prop) :=
 show well_founded (λ a b : enat, a < b),

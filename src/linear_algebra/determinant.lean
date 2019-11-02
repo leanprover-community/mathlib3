@@ -3,7 +3,7 @@ Copyright (c) 2018 Kenny Lau. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Kenny Lau, Chris Hughes
 -/
-import data.matrix
+import data.matrix.basic
 import group_theory.perm.sign
 
 universes u v
@@ -40,21 +40,24 @@ by rw [← diagonal_one]; simp [-diagonal_one]
 
 lemma det_mul_aux {M N : matrix n n R} {p : n → n} (H : ¬bijective p) :
   univ.sum (λ σ : perm n, (ε σ) * (univ.prod (λ x, M (σ x) (p x) * N (p x) x))) = 0 :=
-let ⟨i, hi⟩ := classical.not_forall.1 (mt fintype.injective_iff_bijective.1 H) in
-let ⟨j, hij'⟩ := classical.not_forall.1 hi in
-have hij : p i = p j ∧ i ≠ j, from not_imp.1 hij',
-sum_involution
-  (λ σ _, σ * swap i j)
-  (λ σ _,
-    have ∀ a, p (swap i j a) = p a := λ a, by simp only [swap_apply_def]; split_ifs; cc,
-    have univ.prod (λ x, M (σ x) (p x)) = univ.prod (λ x, M ((σ * swap i j) x) (p x)),
-      from prod_bij (λ a _, swap i j a) (λ _ _, mem_univ _) (by simp [this])
-        (λ _ _ _ _ h, (swap i j).injective h)
-        (λ b _, ⟨swap i j b, mem_univ _, by simp⟩),
-    by simp [sign_mul, this, sign_swap hij.2, prod_mul_distrib])
-  (λ σ _ _ h, hij.2 (σ.injective $ by conv {to_lhs, rw ← h}; simp))
-  (λ _ _, mem_univ _)
-  (λ _ _, equiv.ext _ _ $ by simp)
+begin
+  obtain ⟨i, j, hpij, hij⟩ : ∃ i j, p i = p j ∧ i ≠ j,
+  { rw [← fintype.injective_iff_bijective, injective] at H,
+    push_neg at H,
+    exact H },
+  exact sum_involution
+    (λ σ _, σ * swap i j)
+    (λ σ _,
+      have ∀ a, p (swap i j a) = p a := λ a, by simp only [swap_apply_def]; split_ifs; cc,
+      have univ.prod (λ x, M (σ x) (p x)) = univ.prod (λ x, M ((σ * swap i j) x) (p x)),
+        from prod_bij (λ a _, swap i j a) (λ _ _, mem_univ _) (by simp [this])
+          (λ _ _ _ _ h, (swap i j).injective h)
+          (λ b _, ⟨swap i j b, mem_univ _, by simp⟩),
+      by simp [sign_mul, this, sign_swap hij, prod_mul_distrib])
+    (λ σ _ _ h, hij (σ.injective $ by conv {to_lhs, rw ← h}; simp))
+    (λ _ _, mem_univ _)
+    (λ _ _, equiv.ext _ _ $ by simp)
+end
 
 @[simp] lemma det_mul (M N : matrix n n R) : det (M * N) = det M * det N :=
 calc det (M * N) = univ.sum (λ σ : perm n, (univ.pi (λ a, univ)).sum
@@ -69,20 +72,10 @@ calc det (M * N) = univ.sum (λ σ : perm n, (univ.pi (λ a, univ)).sum
 ... = univ.sum (λ p : n → n, univ.sum
     (λ σ : perm n, ε σ * univ.prod (λ i, M (σ i) (p i) * N (p i) i))) :
   finset.sum_comm
-... = ((@univ (n → n) _).filter bijective ∪ univ.filter (λ p : n → n, ¬bijective p)).sum
-    (λ p : n → n, univ.sum (λ σ : perm n, ε σ * univ.prod (λ i, M (σ i) (p i) * N (p i) i))) :
-  finset.sum_congr (finset.ext.2 (by simp; tauto)) (λ _ _, rfl)
 ... = ((@univ (n → n) _).filter bijective).sum (λ p : n → n, univ.sum
-    (λ σ : perm n, ε σ * univ.prod (λ i, M (σ i) (p i) * N (p i) i))) +
-    (univ.filter (λ p : n → n, ¬bijective p)).sum (λ p : n → n, univ.sum
     (λ σ : perm n, ε σ * univ.prod (λ i, M (σ i) (p i) * N (p i) i))) :
-  finset.sum_union (by simp [finset.ext]; tauto)
-... = ((@univ (n → n) _).filter bijective).sum (λ p : n → n, univ.sum
-    (λ σ : perm n, ε σ * univ.prod (λ i, M (σ i) (p i) * N (p i) i))) +
-    (univ.filter (λ p : n → n, ¬bijective p)).sum (λ p, 0) :
-  (add_left_inj _).2 (finset.sum_congr rfl $ λ p h, det_mul_aux (mem_filter.1 h).2)
-... = ((@univ (n → n) _).filter bijective).sum (λ p : n → n, univ.sum
-    (λ σ : perm n, ε σ * univ.prod (λ i, M (σ i) (p i) * N (p i) i))) : by simp
+  eq.symm $ sum_subset (filter_subset _) 
+    (λ f _ hbij, det_mul_aux $ by simpa using hbij)
 ... = (@univ (perm n) _).sum (λ τ, univ.sum
     (λ σ : perm n, ε σ * univ.prod (λ i, M (σ i) (τ i) * N (τ i) i))) :
   sum_bij (λ p h, equiv.of_bijective (mem_filter.1 h).2) (λ _ _, mem_univ _)

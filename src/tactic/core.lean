@@ -3,13 +3,12 @@ Copyright (c) 2018 Mario Carneiro. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Mario Carneiro, Simon Hudon, Scott Morrison, Keeley Hoek
 -/
-import data.dlist.basic category.basic meta.expr meta.rb_map tactic.cache
+import data.dlist.basic category.basic meta.expr meta.rb_map data.bool
 
 namespace expr
 open tactic
 
 attribute [derive has_reflect] binder_info
-
 protected meta def of_nat (α : expr) : ℕ → tactic expr :=
 nat.binary_rec
   (tactic.mk_mapp ``has_zero.zero [some α, none])
@@ -21,6 +20,17 @@ protected meta def of_int (α : expr) : ℤ → tactic expr
 | -[1+ n] := do
   e ← expr.of_nat α (n+1),
   tactic.mk_app ``has_neg.neg [e]
+
+/-- Generates an expression of the form `∃(args), inner`. `args` is assumed to be a list of local
+  constants. When possible, `p ∧ q` is used instead of `∃(_ : p), q`. -/
+meta def mk_exists_lst (args : list expr) (inner : expr) : tactic expr :=
+args.mfoldr (λarg i:expr, do
+    t ← infer_type arg,
+    sort l ← infer_type t,
+    return $ if arg.occurs i ∨ l ≠ level.zero
+      then (const `Exists [l] : expr) t (i.lambdas [arg])
+      else (const `and [] : expr) t i)
+  inner
 
 /- only traverses the direct descendents -/
 meta def {u} traverse {m : Type → Type u} [applicative m]
@@ -83,50 +93,6 @@ meta def emit_code_here : string → lean.parser unit
 
 end lean.parser
 
-namespace name
-
-meta def head : name → string
-| (mk_string s anonymous) := s
-| (mk_string s p)         := head p
-| (mk_numeral n p)        := head p
-| anonymous               := "[anonymous]"
-
-meta def is_private (n : name) : bool :=
-n.head = "_private"
-
-meta def last : name → string
-| (mk_string s _)  := s
-| (mk_numeral n _) := repr n
-| anonymous        := "[anonymous]"
-
-meta def length : name → ℕ
-| (mk_string s anonymous) := s.length
-| (mk_string s p)         := s.length + 1 + p.length
-| (mk_numeral n p)        := p.length
-| anonymous               := "[anonymous]".length
-
-end name
-
-namespace environment
-meta def decl_filter_map {α : Type} (e : environment) (f : declaration → option α) : list α :=
-  e.fold [] $ λ d l, match f d with
-                     | some r := r :: l
-                     | none := l
-                     end
-
-meta def decl_map {α : Type} (e : environment) (f : declaration → α) : list α :=
-  e.decl_filter_map $ λ d, some (f d)
-
-meta def get_decls (e : environment) : list declaration :=
-  e.decl_map id
-
-meta def get_trusted_decls (e : environment) : list declaration :=
-  e.decl_filter_map (λ d, if d.is_trusted then some d else none)
-
-meta def get_decl_names (e : environment) : list name :=
-  e.decl_map declaration.to_name
-end environment
-
 namespace format
 
 meta def intercalate (x : format) : list format → format :=
@@ -149,8 +115,18 @@ meta def mk_user_fresh_name : tactic name :=
 do nm ← mk_fresh_name,
    return $ `user__ ++ nm.pop_prefix.sanitize_name ++ `user__
 
+
+/-- `has_attribute n n'` checks whether n' has attribute n. -/
+meta def has_attribute' : name → name → tactic bool | n n' :=
+succeeds (has_attribute n n')
+
+/-- Checks whether the name is a simp lemma -/
 meta def is_simp_lemma : name → tactic bool :=
-succeeds ∘ tactic.has_attribute `simp
+has_attribute' `simp
+
+/-- Checks whether the name is an instance. -/
+meta def is_instance : name → tactic bool :=
+has_attribute' `instance
 
 meta def local_decls : tactic (name_map declaration) :=
 do e ← tactic.get_env,
@@ -158,6 +134,16 @@ do e ← tactic.get_env,
      (λ d s, if environment.in_current_file' e d.to_name
              then s.insert d.to_name d else s),
    pure xs
+
+/-- If `{nm}_{n}` doesn't exist in the environment, returns that, otherwise tries `{nm}_{n+1}` -/
+meta def get_unused_decl_name_aux (e : environment) (nm : name) : ℕ → tactic name | n :=
+let nm' := nm.append_suffix ("_" ++ to_string n) in
+if e.contains nm' then get_unused_decl_name_aux (n+1) else return nm'
+
+/-- Return a name which doesn't already exist in the environment. If `nm` doesn't exist, it
+  returns that, otherwise it tries nm_2, nm_3, ... -/
+meta def get_unused_decl_name (nm : name) : tactic name :=
+get_env >>= λ e, if e.contains nm then get_unused_decl_name_aux e nm 2 else return nm
 
 /--
 Returns a pair (e, t), where `e ← mk_const d.to_name`, and `t = d.type`
@@ -359,6 +345,21 @@ whnf type >>= get_expl_pi_arity_aux
 meta def get_expl_arity (fn : expr) : tactic nat :=
 infer_type fn >>= get_expl_pi_arity
 
+/-- Auxilliary defintion for `get_pi_binders`. -/
+meta def get_pi_binders_aux : list binder → expr → tactic (list binder × expr)
+| es (expr.pi n bi d b) :=
+  do m ← mk_fresh_name,
+     let l := expr.local_const m n bi d,
+     let new_b := expr.instantiate_var b l,
+     get_pi_binders_aux (⟨n, bi, d⟩::es) new_b
+| es e                  := return (es, e)
+
+/-- Get the binders and target of a pi-type. Instantiates bound variables by
+  local constants. Cf. `pi_binders` in `meta.expr` (which produces open terms).
+  See also `mk_local_pis` in `init.core.tactic` which does almost the same. -/
+meta def get_pi_binders : expr → tactic (list binder × expr) | e :=
+do (es, e) ← get_pi_binders_aux [] e, return (es.reverse, e)
+
 /-- variation on `assert` where a (possibly incomplete)
     proof of the assertion is provided as a parameter.
 
@@ -543,24 +544,28 @@ meta def metavariables : tactic (list expr) :=
 do r ← result,
    pure (r.list_meta_vars)
 
+/-- Fail if the target contains a metavariable. -/
+meta def no_mvars_in_target : tactic unit :=
+expr.has_meta_var <$> target >>= guardb ∘ bnot
+
 /-- Succeeds only if the current goal is a proposition. -/
 meta def propositional_goal : tactic unit :=
-do goals ← get_goals,
-   p ← is_proof goals.head,
-   guard p
+do g :: _ ← get_goals,
+   is_proof g >>= guardb
 
 /-- Succeeds only if we can construct an instance showing the
     current goal is a subsingleton type. -/
 meta def subsingleton_goal : tactic unit :=
-do goals ← get_goals,
-   ty ← infer_type goals.head >>= instantiate_mvars,
+do g :: _ ← get_goals,
+   ty ← infer_type g >>= instantiate_mvars,
    to_expr ``(subsingleton %%ty) >>= mk_instance >> skip
 
-/-- Succeeds only if the current goal is "terminal", in the sense
-    that no other goals depend on it. -/
+/--
+Succeeds only if the current goal is "terminal",
+in the sense that no other goals depend on it
+(except possibly through shared metavariables; see `independent_goal`).
+-/
 meta def terminal_goal : tactic unit :=
--- We can't merely test for subsingletons, as sometimes in the presence of metavariables
--- `propositional_goal` succeeds while `subsingleton_goal` does not.
 propositional_goal <|> subsingleton_goal <|>
 do g₀ :: _ ← get_goals,
    mvars ← (λ L, list.erase L g₀) <$> metavariables,
@@ -570,6 +575,12 @@ do g₀ :: _ ← get_goals,
      monad.whenb d $
        pp t >>= λ s, fail ("The current goal is not terminal: " ++ s.to_string ++ " depends on it.")
 
+/--
+Succeeds only if the current goal is "independent", in the sense
+that no other goals depend on it, even through shared meta-variables.
+-/
+meta def independent_goal : tactic unit :=
+no_mvars_in_target >> terminal_goal
 
 meta def triv' : tactic unit := do c ← mk_const `trivial, exact c reducible
 
@@ -626,6 +637,7 @@ do l ← local_context,
    r ← successes (l.reverse.map (λ h, cases h >> skip)),
    when (r.empty) failed
 
+/-- given a proof `pr : t`, adds `h : t` to the current context, where the name `h` is fresh.  -/
 meta def note_anon (e : expr) : tactic expr :=
 do n ← get_unused_name "lh",
    note n none e
@@ -683,6 +695,18 @@ meta def choose : expr → list name → tactic unit
   v ← get_unused_name >>= choose1 h n,
   choose v ns
 
+/--
+Instantiates metavariables that appear in the current goal.
+-/
+meta def instantiate_mvars_in_target : tactic unit :=
+target >>= instantiate_mvars >>= change
+
+/--
+Instantiates metavariables in all goals.
+-/
+meta def instantiate_mvars_in_goals : tactic unit :=
+all_goals $ instantiate_mvars_in_target
+
 /-- This makes sure that the execution of the tactic does not change the tactic state.
     This can be helpful while using rewrite, apply, or expr munging.
     Remember to instantiate your metavariables before you're done! -/
@@ -691,6 +715,15 @@ meta def lock_tactic_state {α} (t : tactic α) : tactic α
        | result.success a s' := result.success a s
        | result.exception msg pos s' := result.exception msg pos s
 end
+
+/-- similar to `mk_local_pis` but make meta variables instead of
+    local constants -/
+meta def mk_meta_pis : expr → tactic (list expr × expr)
+| (expr.pi n bi d b) := do
+  p ← mk_meta_var d,
+  (ps, r) ← mk_meta_pis (expr.instantiate_var b p),
+  return ((p :: ps), r)
+| e := return ([], e)
 
 /--
 Hole command used to fill in a structure's field when specifying an instance.
@@ -728,6 +761,15 @@ instance : monad id :=
      let out := format.to_string format!"{{ {fs} }",
      return [(out,"")] }
 
+/-- Like `resolve_name` except when the list of goals is
+    empty. In that situation `resolve_name` fails whereas
+    `resolve_name'` simply proceeds on a dummy goal -/
+meta def resolve_name' (n : name) : tactic pexpr :=
+do [] ← get_goals | resolve_name n,
+   g ← mk_mvar,
+   set_goals [g],
+   resolve_name n <* set_goals []
+
 meta def strip_prefix' (n : name) : list string → name → tactic name
 | s name.anonymous := pure $ s.foldl (flip name.mk_string) name.anonymous
 | s (name.mk_string a p) :=
@@ -737,11 +779,19 @@ meta def strip_prefix' (n : name) : list string → name → tactic name
             then pure n'
             else strip_prefix' (a :: s) p }
      <|> strip_prefix' (a :: s) p
-| s (name.mk_numeral a p) := interaction_monad.failed
+| s n@(name.mk_numeral a p) := pure $ s.foldl (flip name.mk_string) n
 
 meta def strip_prefix : name → tactic name
-| n@(name.mk_string a a_1) := strip_prefix' n [a] a_1
-| _ := interaction_monad.failed
+| n@(name.mk_string a a_1) :=
+  if (`_private).is_prefix_of n
+    then let n' := n.update_prefix name.anonymous in
+            n' <$ resolve_name' n' <|> pure n
+    else strip_prefix' n [a] a_1
+| n := pure n
+
+meta def local_binding_info : expr → binder_info
+| (expr.local_const _ _ bi _) := bi
+| _ := binder_info.default
 
 meta def is_default_local : expr → bool
 | (expr.local_const _ _ binder_info.default _) := tt
@@ -987,8 +1037,10 @@ attribute [higher_order map_comp_pure] map_pure
 private meta def tactic.use_aux (h : pexpr) : tactic unit :=
 (focus1 (refine h >> done)) <|> (fconstructor >> tactic.use_aux)
 
-meta def tactic.use (l : list pexpr) : tactic unit :=
-focus1 $ l.mmap' $ λ h, tactic.use_aux h <|> fail format!"failed to instantiate goal with {h}"
+protected meta def use (l : list pexpr) : tactic unit :=
+focus1 $ seq (l.mmap' $ λ h, tactic.use_aux h <|> fail format!"failed to instantiate goal with {h}")
+              instantiate_mvars_in_target
+
 
 meta def clear_aux_decl_aux : list expr → tactic unit
 | []     := skip
@@ -996,6 +1048,37 @@ meta def clear_aux_decl_aux : list expr → tactic unit
 
 meta def clear_aux_decl : tactic unit :=
 local_context >>= clear_aux_decl_aux
+
+/-- `apply_at_aux e et [] h ht` (with `et` the type of `e` and `ht` the type of `h`)
+    finds a list of expressions `vs` and returns (e.mk_args (vs ++ [h]), vs) -/
+meta def apply_at_aux (arg t : expr) : list expr → expr → expr → tactic (expr × list expr)
+| vs e (pi n bi d b) :=
+  do { v ← mk_meta_var d,
+       apply_at_aux (v :: vs) (e v) (b.instantiate_var v) } <|>
+  (e arg, vs) <$ unify d t
+| vs e _ := failed
+
+/-- `apply_at e h` applies implication `e` on hypothesis `h` and replaces `h` with the result -/
+meta def apply_at (e h : expr) : tactic unit :=
+do ht ← infer_type h,
+   et ← infer_type e,
+   (h', gs') ← apply_at_aux h ht [] e et,
+   note h.local_pp_name none h',
+   clear h,
+   gs' ← gs'.mfilter is_assigned,
+   (g :: gs) ← get_goals,
+   set_goals (g :: gs' ++ gs)
+
+/-- `symmetry_hyp h` applies symmetry on hypothesis `h` -/
+meta def symmetry_hyp (h : expr) (md := semireducible) : tactic unit :=
+do tgt   ← infer_type h,
+   env   ← get_env,
+   let r := get_app_fn tgt,
+   match env.symm_for (const_name r) with
+   | (some symm) := do s ← mk_const symm,
+                       apply_at s h
+   | none        := fail "symmetry tactic failed, target is not a relation application with the expected property."
+   end
 
 precedence `setup_tactic_parser`:0
 
@@ -1010,6 +1093,13 @@ local postfix `?`:9001 := optional
 local postfix *:9001 := many .
 "
 
+meta def trace_error (msg : string) (t : tactic α) : tactic α
+| s := match t s with
+       | (result.success r s') := result.success r s'
+       | (result.exception (some msg') p s') := (trace msg >> trace (msg' ()) >> result.exception (some msg') p) s'
+       | (result.exception none p s') := result.exception none p s'
+       end
+
 /--
 This combinator is for testing purposes. It succeeds if `t` fails with message `msg`,
 and fails otherwise.
@@ -1022,5 +1112,192 @@ meta def {u} success_if_fail_with_msg {α : Type u} (t : tactic α) (msg : strin
 | (interaction_monad.result.success a s) :=
    mk_exception "success_if_fail_with_msg combinator failed, given tactic succeeded" none s
 end
+
+open lean interactive
+
+meta def pformat := tactic format
+
+meta def pformat.mk (fmt : format) : pformat := pure fmt
+
+meta def to_pfmt {α} [has_to_tactic_format α] (x : α) : pformat :=
+pp x
+
+meta instance pformat.has_to_tactic_format : has_to_tactic_format pformat :=
+⟨ id ⟩
+
+meta instance : has_append pformat :=
+⟨ λ x y, (++) <$> x <*> y ⟩
+
+meta instance tactic.has_to_tactic_format [has_to_tactic_format α] : has_to_tactic_format (tactic α) :=
+⟨ λ x, x >>= to_pfmt ⟩
+
+private meta def parse_pformat : string → list char → parser pexpr
+| acc []            := pure ``(to_pfmt %%(reflect acc))
+| acc ('\n'::s)     :=
+do f ← parse_pformat "" s,
+   pure ``(to_pfmt %%(reflect acc) ++ pformat.mk format.line ++ %%f)
+| acc ('{'::'{'::s) := parse_pformat (acc ++ "{") s
+| acc ('{'::s) :=
+do (e, s) ← with_input (lean.parser.pexpr 0) s.as_string,
+   '}'::s ← return s.to_list | fail "'}' expected",
+   f ← parse_pformat "" s,
+   pure ``(to_pfmt %%(reflect acc) ++ to_pfmt %%e ++ %%f)
+| acc (c::s) := parse_pformat (acc.str c) s
+
+reserve prefix `pformat! `:100
+
+/-- See `format!` in `init/meta/interactive_base.lean`.
+
+The main differences are that `pp` is called instead of `to_fmt` and that we can use
+arguments of type `tactic α` in the quotations.
+
+Now, consider the following:
+```
+e ← to_expr ``(3 + 7),
+trace format!"{e}"  -- outputs `has_add.add.{0} nat nat.has_add (bit1.{0} nat nat.has_one nat.has_add (has_one.one.{0} nat nat.has_one)) ...`
+trace pformat!"{e}" -- outputs `3 + 7`
+```
+
+The difference is significant. And now, the following is expressible:
+
+```
+e ← to_expr ``(3 + 7),
+trace pformat!"{e} : {infer_type e}" -- outputs `3 + 7 : ℕ`
+```
+
+See also: `trace!` and `fail!`
+-/
+@[user_notation]
+meta def pformat_macro (_ : parse $ tk "pformat!") (s : string) : parser pexpr :=
+do e ← parse_pformat "" s.to_list,
+   return ``(%%e : pformat)
+
+reserve prefix `fail! `:100
+
+/--
+the combination of `pformat` and `fail`
+-/
+@[user_notation]
+meta def fail_macro (_ : parse $ tk "fail!") (s : string) : parser pexpr :=
+do e ← pformat_macro () s,
+   pure ``((%%e : pformat) >>= fail)
+
+reserve prefix `trace! `:100
+/--
+the combination of `pformat` and `fail`
+-/
+@[user_notation]
+meta def trace_macro (_ : parse $ tk "trace!") (s : string) : parser pexpr :=
+do e ← pformat_macro () s,
+   pure ``((%%e : pformat) >>= trace)
+
+/-- A hackish way to get the `src` directory of mathlib. -/
+meta def get_mathlib_dir : tactic string :=
+do e ← get_env,
+  s ← e.decl_olean `tactic.reset_instance_cache,
+  return $ s.popn_back 17
+
+/-- Checks whether a declaration with the given name is declared in mathlib.
+  If you want to run this tactic many times, you should use `environment.is_prefix_of_file` instead,
+  since it is expensive to execute `get_mathlib_dir` many times. -/
+meta def is_in_mathlib (n : name) : tactic bool :=
+do ml ← get_mathlib_dir, e ← get_env, return $ e.is_prefix_of_file ml n
+
+/-- auxiliary function for apply_under_pis -/
+private meta def apply_under_pis_aux (func arg : pexpr) : ℕ → expr → pexpr
+| n (expr.pi nm bi tp bd) := expr.pi nm bi (pexpr.of_expr tp) (apply_under_pis_aux (n+1) bd)
+| n _ :=
+  let vars := ((list.range n).reverse.map (@expr.var ff)),
+      bd := vars.foldl expr.app arg.mk_explicit in
+  func bd
+
+/--
+Assumes `pi_expr` is of the form `Π x1 ... xn, _`.
+Creates a pexpr of the form `Π x1 ... xn, func (arg x1 ... xn)`.
+All arguments (implicit and explicit) to `arg` should be supplied. -/
+meta def apply_under_pis (func arg : pexpr) (pi_expr : expr) : pexpr :=
+apply_under_pis_aux func arg 0 pi_expr
+
+/--
+Tries to derive instances by unfolding the newly introduced type and applying type class resolution.
+
+For example,
+```
+@[derive ring] def new_int : Type := ℤ
+```
+adds an instance `ring new_int`, defined to be the instance of `ring ℤ` found by `apply_instance`.
+
+Multiple instances can be added with `@[derive [ring, module ℝ]]`.
+
+This derive handler applies only to declarations made using `def`, and will fail on such a
+declaration if it is unable to derive an instance. It is run with higher priority than the built-in
+handlers, which will fail on `def`s.
+-/
+@[derive_handler, priority 2000] meta def delta_instance : derive_handler :=
+λ cls new_decl_name,
+do env ← get_env,
+if env.is_inductive new_decl_name then return ff else
+do new_decl_type ← declaration.type <$> get_decl new_decl_name,
+   new_decl_pexpr ← resolve_name new_decl_name,
+   tgt ← to_expr $ apply_under_pis cls new_decl_pexpr new_decl_type,
+   (_, inst) ← solve_aux tgt
+     (intros >> reset_instance_cache >> delta_target [new_decl_name]  >> apply_instance >> done),
+   inst ← instantiate_mvars inst,
+   tgt ← instantiate_mvars tgt,
+   nm ← get_unused_decl_name $ new_decl_name ++
+     match cls with
+     -- the postfix is needed because we can't protect this name. using nm.last directly can
+     -- conflict with open namespaces
+     | (expr.const nm _) := (nm.last ++ "_1" : string)
+     | _ := "inst"
+     end,
+   add_decl $ mk_definition nm inst.collect_univ_params tgt inst,
+   set_basic_attribute `instance nm tt,
+   return tt
+
+/-- `find_private_decl n none` finds a private declaration named `n` in any of the imported files.
+
+`find_private_decl n (some m)` finds a private declaration named `n` in the same file where a declaration named `m`
+can be found.  -/
+meta def find_private_decl (n : name) (fr : option name) : tactic name :=
+do env ← get_env,
+   fn ← option_t.run (do
+         fr ← option_t.mk (return fr),
+         d ← monad_lift $ get_decl fr,
+         option_t.mk (return $ env.decl_olean d.to_name) ),
+   let p : string → bool :=
+     match fn with
+     | (some fn) := λ x, fn = x
+     | none := λ _, tt
+     end,
+   let xs := env.decl_filter_map (λ d,
+     do fn ← env.decl_olean d.to_name,
+        guard ((`_private).is_prefix_of d.to_name ∧ p fn ∧ d.to_name.update_prefix name.anonymous = n),
+        pure d.to_name),
+   match xs with
+   | [n] := pure n
+   | [] := fail "no such private found"
+   | _ := fail "many matches found"
+   end
+
+open lean.parser interactive
+
+/-- `import_private foo from bar` finds a private declaration `foo` in the same file as `bar`
+    and creates a local notation to refer to it.
+
+    `import_private foo`, looks for `foo` in all imported files. -/
+@[user_command]
+meta def import_private_cmd (_ : parse $ tk "import_private") : lean.parser unit :=
+do n  ← ident,
+   fr ← optional (tk "from" *> ident),
+   n ← find_private_decl n fr,
+   c ← resolve_constant n,
+   d ← get_decl n,
+   let c := @expr.const tt c d.univ_levels,
+   new_n ← new_aux_decl_name,
+   add_decl $ declaration.defn new_n d.univ_params d.type c reducibility_hints.abbrev d.is_trusted,
+   let new_not := sformat!"local notation `{n.update_prefix name.anonymous}` := {new_n}",
+   emit_command_here $ new_not,
+   skip .
 
 end tactic

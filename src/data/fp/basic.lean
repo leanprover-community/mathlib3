@@ -6,7 +6,7 @@ Authors: Mario Carneiro
 Implementation of floating-point numbers (experimental).
 -/
 
-import data.rat.basic data.semiquot
+import data.rat data.semiquot
 
 def int.shift2 (a b : ℕ) : ℤ → ℕ × ℕ
 | (int.of_nat e) := (a.shiftl e, b)
@@ -19,7 +19,7 @@ inductive rmode
 
 class float_cfg :=
 (prec emax : ℕ)
-(prec_pos : prec > 0)
+(prec_pos : 0 < prec)
 (prec_max : prec ≤ emax)
 
 variable [C : float_cfg]

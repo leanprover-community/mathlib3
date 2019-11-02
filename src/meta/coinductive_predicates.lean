@@ -3,6 +3,7 @@ Copyright (c) 2017 Johannes Hölzl. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Author: Johannes Hölzl (CMU)
 -/
+import tactic.core
 
 namespace name
 
@@ -29,13 +30,6 @@ meta def to_implicit_binder : expr → expr
 | (pi n _ d b) := pi n binder_info.implicit d b
 | e  := e
 
-meta def get_app_fn_args_aux : list expr → expr → expr × list expr
-| r (app f a) := get_app_fn_args_aux (a::r) f
-| r e         := (e, r)
-
-meta def get_app_fn_args : expr → expr × list expr :=
-get_app_fn_args_aux []
-
 end expr
 
 namespace tactic
@@ -49,14 +43,6 @@ meta def mk_local_pisn : expr → nat → tactic (list expr × expr)
 | e 0 := return ([], e)
 | _ _ := failed
 
-meta def drop_pis : list expr → expr → tactic expr
-| (list.cons v vs) (pi n bi d b) := do
-  t ← infer_type v,
-  guard (t =ₐ d),
-  drop_pis vs (b.instantiate_var v)
-| [] e := return e
-| _  _ := failed
-
 meta def mk_theorem (n : name) (ls : list name) (t : expr) (e : expr) : declaration :=
 declaration.thm n ls t (task.pure e)
 
@@ -66,24 +52,8 @@ meta def add_theorem_by (n : name) (ls : list name) (type : expr) (tac : tactic 
   add_decl $ mk_theorem n ls type body,
   return $ const n $ ls.map param
 
-meta def mk_exists_lst (args : list expr) (inner : expr) : tactic expr :=
-args.mfoldr (λarg i:expr, do
-    t ← infer_type arg,
-    sort l ← infer_type t,
-    return $ if arg.occurs i ∨ l ≠ level.zero
-      then (const `Exists [l] : expr) t (i.lambdas [arg])
-      else (const `and [] : expr) t i)
-  inner
-
-meta def mk_op_lst (op : expr) (empty : expr) : list expr → expr
-| []        := empty
-| [e]       := e
-| (e :: es) := op e $ mk_op_lst es
-
-meta def mk_and_lst : list expr → expr := mk_op_lst `(and) `(true)
-
-meta def mk_or_lst : list expr → expr := mk_op_lst `(or) `(false)
-
+/-- `elim_gen_prod n e []` assumes that `e` is an `k`-tuple for `k ≥ n` and inducts on `e` `n`
+  times. Returns the list of newly generated projections, and the resulting tail of `e`. -/
 meta def elim_gen_prod : nat → expr → list expr → tactic (list expr × expr)
 | 0       e hs := return (hs, e)
 | (n + 1) e hs := do

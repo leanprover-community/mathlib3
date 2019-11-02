@@ -326,7 +326,7 @@ lemma some_eq_coe (a : α) : (some a : with_bot α) = (↑a : with_bot α) := rf
 theorem coe_eq_coe {a b : α} : (a : with_bot α) = b ↔ a = b :=
 by rw [← option.some.inj_eq a b]; refl
 
-@[priority 0]
+@[priority 10]
 instance has_lt [has_lt α] : has_lt (with_bot α) :=
 { lt := λ o₁ o₂ : option α, ∃ b ∈ o₂, ∀ a ∈ o₁, a < b }
 
@@ -507,23 +507,54 @@ lemma some_eq_coe (a : α) : (some a : with_top α) = (↑a : with_top α) := rf
 theorem coe_eq_coe {a b : α} : (a : with_top α) = b ↔ a = b :=
 by rw [← option.some.inj_eq a b]; refl
 
-@[simp] theorem top_ne_coe [partial_order α] {a : α} : ⊤ ≠ (a : with_top α) .
-@[simp] theorem coe_ne_top [partial_order α] {a : α} : (a : with_top α) ≠ ⊤ .
+@[simp] theorem top_ne_coe {a : α} : ⊤ ≠ (a : with_top α) .
+@[simp] theorem coe_ne_top {a : α} : (a : with_top α) ≠ ⊤ .
 
-instance partial_order [partial_order α] : partial_order (with_top α) :=
-{ le          := λ o₁ o₂ : option α, ∀ b ∈ o₂, ∃ a ∈ o₁, a ≤ b,
+@[priority 10]
+instance has_lt [has_lt α] : has_lt (with_top α) :=
+{ lt := λ o₁ o₂ : option α, ∃ b ∈ o₁, ∀ a ∈ o₂, b < a }
+
+@[priority 10]
+instance has_le [has_le α] : has_le (with_top α) :=
+{ le          := λ o₁ o₂ : option α, ∀ a ∈ o₂, ∃ b ∈ o₁, b ≤ a }
+
+@[simp] theorem some_lt_some [has_lt α] {a b : α} :
+  @has_lt.lt (with_top α) _ (some a) (some b) ↔ a < b :=
+by simp [(<)]
+
+@[simp] theorem some_le_some [has_le α] {a b : α} :
+  @has_le.le (with_top α) _ (some a) (some b) ↔ a ≤ b :=
+by simp [(≤)]
+
+@[simp] theorem none_le [has_le α] {a : with_top α} :
+  @has_le.le (with_top α) _ a none :=
+by simp [(≤)]
+
+@[simp] theorem none_lt_some [has_lt α] {a : α} :
+  @has_lt.lt (with_top α) _ (some a) none :=
+by simp [(<)]; existsi a; refl
+
+instance [preorder α] : preorder (with_top α) :=
+{ le          := λ o₁ o₂ : option α, ∀ a ∈ o₂, ∃ b ∈ o₁, b ≤ a,
+  lt          := (<),
+  lt_iff_le_not_le := by { intros; cases a; cases b;
+                           simp [lt_iff_le_not_le]; simp [(<),(≤)] },
   le_refl     := λ o a ha, ⟨a, ha, le_refl _⟩,
   le_trans    := λ o₁ o₂ o₃ h₁ h₂ c hc,
     let ⟨b, hb, bc⟩ := h₂ c hc, ⟨a, ha, ab⟩ := h₁ b hb in
     ⟨a, ha, le_trans ab bc⟩,
-  le_antisymm := λ o₁ o₂ h₁ h₂, begin
+ }
+
+instance partial_order [partial_order α] : partial_order (with_top α) :=
+{ le_antisymm := λ o₁ o₂ h₁ h₂, begin
     cases o₂ with b,
     { cases o₁ with a, {refl},
       rcases h₂ a rfl with ⟨_, ⟨⟩, _⟩ },
     { rcases h₁ b rfl with ⟨a, ⟨⟩, h₁'⟩,
       rcases h₂ a rfl with ⟨_, ⟨⟩, h₂'⟩,
       rw le_antisymm h₁' h₂' }
-  end }
+  end,
+  .. with_top.preorder }
 
 instance order_top [partial_order α] : order_top (with_top α) :=
 { le_top := λ a a' h, option.no_confusion h,
@@ -533,9 +564,6 @@ instance order_top [partial_order α] : order_top (with_top α) :=
   (a : with_top α) ≤ b ↔ a ≤ b :=
 ⟨λ h, by rcases h b rfl with ⟨_, ⟨⟩, h⟩; exact h,
  λ h a' e, option.some_inj.1 e ▸ ⟨a, rfl, h⟩⟩
-
-@[simp] theorem some_le_some [partial_order α] {a b : α} :
-  @has_le.le (with_top α) _ (some a) (some b) ↔ a ≤ b := coe_le_coe
 
 theorem le_coe [partial_order α] {a b : α} :
   ∀ {o : option α}, a ∈ o →
@@ -553,11 +581,6 @@ theorem coe_le_iff [partial_order α] (a : α) : ∀(x : with_top α), ↑a ≤ 
 theorem lt_iff_exists_coe [partial_order α] : ∀(a b : with_top α), a < b ↔ (∃p:α, a = p ∧ ↑p < b)
 | (some a) b := by simp [some_eq_coe, coe_eq_coe]
 | none     b := by simp [none_eq_top]
-
-@[simp] theorem some_lt_some [partial_order α] {a b : α} :
-  @has_lt.lt (with_top α) _ (some a) (some b) ↔ a < b :=
-(and_congr some_le_some (not_congr some_le_some))
-  .trans lt_iff_le_not_le.symm
 
 lemma coe_lt_coe [partial_order α] {a b : α} : (a : with_top α) < b ↔ a < b := some_lt_some
 

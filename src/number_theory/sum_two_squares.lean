@@ -3,7 +3,7 @@ Copyright (c) 2019 Chris Hughes. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Author: Chris Hughes
 
-## Sums of two squares
+# Sums of two squares
 
 Proof of Fermat's theorem on the sum of two squares. Every prime congruent to 1 mod 4 is the sum
 of two squares

@@ -1,16 +1,21 @@
+/-
+Copyright (c) 2019 Jean Lo. All rights reserved.
+Released under Apache 2.0 license as described in the file LICENSE.
+Authors: Jean Lo
+
+Riesz's lemma on a normed space over a normed field.
+-/
 import analysis.normed_space.basic
 import topology.metric_space.hausdorff_distance
 
 variables {𝕜 : Type*} [normed_field 𝕜]
 variables {E : Type*} [normed_group E] [normed_space 𝕜 E]
 
-/--
-Riesz's Lemma, which usually states that it is possible to find a
+/-- Riesz's lemma, which usually states that it is possible to find a
 vector with norm 1 whose distance to a closed proper subspace is
-arbitrarily close to 1. It is stated here in terms of multiples of
+arbitrarily close to 1. The statement here is in terms of multiples of
 norms, since in general the existence of an element of norm exactly 1
-is not guaranteed.
--/
+is not guaranteed. -/
 lemma riesz_lemma {F : subspace 𝕜 E} (hFc : is_closed F.carrier)
   (hF : ∃ x : E, x ∉ F) {r : ℝ} (hr : r < 1) :
   ∃ x₀ : E, ∀ y : F, r * ∥x₀∥ ≤ ∥x₀ - y∥ :=
@@ -23,7 +28,8 @@ have hFn : F.carrier ≠ ∅, from set.ne_empty_of_mem (submodule.zero F),
 have hdp : 0 < d,
   from lt_of_le_of_ne metric.inf_dist_nonneg $ λ heq, hx
   ((metric.mem_iff_inf_dist_zero_of_closed hFc hFn).2 heq.symm),
-have hdlt : d < d / r, from lt_div_of_mul_lt hlt ((mul_lt_iff_lt_one_right hdp).2 hr),
+have hdlt : d < d / r,
+  from lt_div_of_mul_lt hlt ((mul_lt_iff_lt_one_right hdp).2 hr),
 let ⟨y₀, hy₀F, hxy₀⟩ := metric.exists_dist_lt_of_inf_dist_lt hdlt hFn in
 ⟨x - y₀, λ y,
 have hy₀y : (y₀ + y) ∈ F.carrier, from F.add hy₀F y.property,

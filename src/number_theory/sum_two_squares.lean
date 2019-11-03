@@ -16,6 +16,8 @@ open gaussian_int principal_ideal_domain
 namespace nat
 namespace prime
 
+/-- Fermat's theorem on the sum of two squares. Every prime congruent to 1 mod 4 is the sum
+of two squares -/
 lemma sum_two_squares {p : ℕ} (hp : p.prime) (hp1 : p % 4 = 1) :
   ∃ a b : ℕ, a ^ 2 + b ^ 2 = p :=
 sum_two_squares_of_nat_prime_of_not_irreducible hp

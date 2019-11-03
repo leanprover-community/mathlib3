@@ -2,11 +2,15 @@
 Copyright (c) 2019 Jean Lo. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jean Lo
-
-Riesz's lemma on a normed space over a normed field.
 -/
 import analysis.normed_space.basic
 import topology.metric_space.hausdorff_distance
+
+/-!
+# Riesz's lemma
+
+Riesz's lemma, stated for a normed space over a normed field.
+-/
 
 variables {𝕜 : Type*} [normed_field 𝕜]
 variables {E : Type*} [normed_group E] [normed_space 𝕜 E]

@@ -529,7 +529,7 @@ end ring_equiv
 namespace mul_equiv
 
 /-- Gives an `is_semiring_hom` instance from a `mul_equiv` of semirings that preserves addition. -/
-protected def to_semiring_hom {R : Type*} {S : Type*} [semiring R] [semiring S]
+protected lemma to_semiring_hom {R : Type*} {S : Type*} [semiring R] [semiring S]
   (h : R ≃* S) (H : ∀ x y : R, h (x + y) = h x + h y) : is_semiring_hom h :=
 ⟨add_equiv.map_zero $ add_equiv.mk' h.to_equiv H, h.map_one, H, h.5⟩
 
@@ -543,7 +543,7 @@ end mul_equiv
 namespace add_equiv
 
 /-- Gives an `is_semiring_hom` instance from a `mul_equiv` of semirings that preserves addition. -/
-protected def to_semiring_hom {R : Type*} {S : Type*} [semiring R] [semiring S]
+protected lemma to_semiring_hom {R : Type*} {S : Type*} [semiring R] [semiring S]
   (h : R ≃+ S) (H : ∀ x y : R, h (x * y) = h x * h y) : is_semiring_hom h :=
 ⟨h.map_zero, mul_equiv.map_one $ mul_equiv.mk' h.to_equiv H, h.5, H⟩
 

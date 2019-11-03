@@ -1,30 +1,33 @@
 import analysis.normed_space.basic
 import topology.metric_space.hausdorff_distance
 
-variables {k : Type*} [normed_field k]
-variables {α : Type*} [normed_group α] [normed_space k α]
+variables {𝕜 : Type*} [normed_field 𝕜]
+variables {E : Type*} [normed_group E] [normed_space 𝕜 E]
 
-/-- Riesz's Lemma. Stated in terms of multiples of norms since in
-    general the existence of an element of norm exactly 1 is not
-    guaranteed. -/
-lemma riesz_lemma {β : subspace k α} (hβc : is_closed β.carrier)
-(hβ : ∃ a : α, a ∉ β) {r : ℝ} (hr : r < 1) :
-∃ x ≠ (0 : α), ∀ y : β, r * ∥x∥ ≤ ∥x - y∥ :=
-let ⟨a, ha⟩ := hβ in or.cases_on (le_or_lt r 0)
-(λ hle, ⟨a, λ ha₀, ha (ha₀.symm ▸ (submodule.zero β)), λ b,
-calc _ ≤ 0 : mul_nonpos_of_nonpos_of_nonneg hle (norm_nonneg _)
-...    ≤ _ : norm_nonneg _⟩)
-(λ hlt, let d := metric.inf_dist a β in
-have hβn : β.carrier ≠ ∅, from set.ne_empty_of_mem (submodule.zero β),
+/--
+Riesz's Lemma, which usually states that it is possible to find a
+vector with norm 1 whose distance to a closed proper subspace is
+arbitrarily close to 1. It is stated here in terms of multiples of
+norms, since in general the existence of an element of norm exactly 1
+is not guaranteed.
+-/
+lemma riesz_lemma {F : subspace 𝕜 E} (hFc : is_closed F.carrier)
+  (hF : ∃ x : E, x ∉ F) {r : ℝ} (hr : r < 1) :
+  ∃ x₀ : E, ∀ y : F, r * ∥x₀∥ ≤ ∥x₀ - y∥ :=
+or.cases_on (le_or_lt r 0)
+(λ hle, ⟨0, λ _, by {rw [norm_zero, mul_zero], exact norm_nonneg _}⟩)
+(λ hlt,
+let ⟨x, hx⟩ := hF in
+let d := metric.inf_dist x F in
+have hFn : F.carrier ≠ ∅, from set.ne_empty_of_mem (submodule.zero F),
 have hdp : 0 < d,
-  from lt_of_le_of_ne metric.inf_dist_nonneg $ λ heq, ha
-  ((metric.mem_iff_inf_dist_zero_of_closed hβc hβn).2 heq.symm),
+  from lt_of_le_of_ne metric.inf_dist_nonneg $ λ heq, hx
+  ((metric.mem_iff_inf_dist_zero_of_closed hFc hFn).2 heq.symm),
 have hdlt : d < d / r, from lt_div_of_mul_lt hlt ((mul_lt_iff_lt_one_right hdp).2 hr),
-let ⟨b₀, hb₀β, hab₀⟩ := metric.exists_dist_lt_of_inf_dist_lt hdlt hβn in
-⟨a - b₀, λ haeq, ha ((eq_of_sub_eq_zero haeq).symm ▸ hb₀β),
-λ b,
-have hb₀b : (b₀ + b) ∈ β.carrier, from β.add hb₀β b.property,
+let ⟨y₀, hy₀F, hxy₀⟩ := metric.exists_dist_lt_of_inf_dist_lt hdlt hFn in
+⟨x - y₀, λ y,
+have hy₀y : (y₀ + y) ∈ F.carrier, from F.add hy₀F y.property,
 le_of_lt $ calc
-∥a - b₀ - b∥ = dist a (b₀ + b) : by { rw [sub_sub, dist_eq_norm] }
-...          ≥ d : metric.inf_dist_le_dist_of_mem hb₀b
-...          > _ : by { rw ←dist_eq_norm, exact (lt_div_iff' hlt).1 hab₀ }⟩)
+∥x - y₀ - y∥ = dist x (y₀ + y) : by { rw [sub_sub, dist_eq_norm] }
+...          ≥ d : metric.inf_dist_le_dist_of_mem hy₀y
+...          > _ : by { rw ←dist_eq_norm, exact (lt_div_iff' hlt).1 hxy₀ }⟩)

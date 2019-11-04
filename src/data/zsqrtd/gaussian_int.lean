@@ -2,7 +2,10 @@
 Copyright (c) 2019 Chris Hughes. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Author: Chris Hughes
-
+-/
+import data.zsqrtd.basic data.complex.basic ring_theory.principal_ideal_domain
+import data.zmod.quadratic_reciprocity
+/-!
 # Gaussian integers
 
 The Gaussian integers are complex integer, complex numbers whose real and imaginary parts are both
@@ -28,11 +31,8 @@ This file uses the local notation `ℤ[i]` for `gaussian_int`
 Gaussian integers are implemented using the more general definition `zsqrtd`, the type of integers
 adjoined a square root of `d`, in this case `-1`. The definition is reducible, so that properties
 and definitions about `zsqrtd` can easily be used.
-
 -/
 
-import data.zsqrtd.basic data.complex.basic ring_theory.principal_ideal_domain
-import data.zmod.quadratic_reciprocity
 open zsqrtd complex
 
 @[reducible] def gaussian_int : Type := zsqrtd (-1)

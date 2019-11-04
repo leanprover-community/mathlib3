@@ -2,14 +2,14 @@
 Copyright (c) 2019 Chris Hughes. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Author: Chris Hughes
-
+-/
+import data.zsqrtd.gaussian_int
+/-!
 # Sums of two squares
 
 Proof of Fermat's theorem on the sum of two squares. Every prime congruent to 1 mod 4 is the sum
 of two squares
 -/
-
-import data.zsqrtd.gaussian_int
 
 open gaussian_int principal_ideal_domain
 

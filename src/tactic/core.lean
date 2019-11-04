@@ -59,6 +59,17 @@ meta def mfoldl {α : Type} {m} [monad m] (f : α → expr → m α) : α → ex
 | x e := prod.snd <$> (state_t.run (e.traverse $ λ e',
     (get >>= monad_lift ∘ flip f e' >>= put) $> e') x : m _)
 
+meta def mk_bin_op_expr (op ident : expr) : list expr → expr
+| [] := ident
+| [x] := x
+| (x :: xs) := op x (mk_bin_op_expr xs)
+
+meta def mk_conj : list expr → expr :=
+mk_bin_op_expr `(and) `(true)
+
+meta def mk_disj : list expr → expr :=
+mk_bin_op_expr `(or) `(false)
+
 end expr
 
 namespace interaction_monad

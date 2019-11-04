@@ -97,6 +97,7 @@ returning the output of `f`. -/
 meta def with_new_closure {α} : (closure → tactic α) → tactic α :=
 using_new_ref (expr_map.mk _)
 
+/-- (implementation of `has_to_tactic_format closure` instance) -/
 meta def to_tactic_format (cl : closure) : tactic format :=
 do m ← read_ref cl,
    let l := m.to_list,

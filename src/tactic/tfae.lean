@@ -73,7 +73,7 @@ meta def tfae_have
 to prove a goal of the form `tfae [...]`. -/
 meta def tfae_finish : tactic unit :=
 applyc ``tfae_nil <|>
-closure.mk_closure (λ cl,
+closure.with_new_closure (λ cl,
 do impl_graph.mk_scc cl,
    `(tfae %%l) ← target,
    l ← parse_list l,

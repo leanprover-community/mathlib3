@@ -7,7 +7,7 @@ Tactics based on the strongly connected components (SCC) of a graph where
 the vertices are propositions and the edges are implications found
 in the context.
 
-They are used for finding the sets of equivalent proposition in a set
+They are used for finding the sets of equivalent propositions in a set
 of implications.
 -/
 
@@ -17,17 +17,18 @@ import category.basic data.sum
 /-!
 # Strongly Connected Components
 
-This file defines tactics to construct proofs of equivalences between a set of mutually equivalent 
+This file defines tactics to construct proofs of equivalences between a set of mutually equivalent
 propositions. The tactics use implications transitively to find sets of equivalent propositions.
 
 ## Implementation notes
 
-The tactics uses a strongly connected components algorithm on a graph where propositions are vertices
-and edges are proofs that the source implies the target. The strongly connected components are therefore
-sets of propositions that are each equivalent to each other.
+The tactics use a strongly connected components algorithm on a graph where propositions are
+vertices and edges are proofs that the source implies the target. The strongly connected components
+are therefore sets of propositions that are pairwise equivalent to each other.
 
-The resulting strongly connected components are encoded in a disjoint set data structure to facilitate
-the construction of proof of equivalence between two arbitrary members of an equivalence class.
+The resulting strongly connected components are encoded in a disjoint set data structure to
+facilitate the construction of equivalence proofs between two arbitrary members of an equivalence
+class.
 
 ## Possible generalizations
 
@@ -76,8 +77,8 @@ e₅ → e₄, p₅ -- with p₅ : e₅ ↔ e₄
 
 We can check that `e₂` and `e₃` are equivalent by seeking the root of
 the tree of each. The parent of `e₂` is `e₁`, the parent of `e₁` is
-`e₀` and `e₀` does not have a parent, and thus, this is the root of its root.
-The parent of `e₃` is `e₀` and it's also the root, the same as for `e₃` and
+`e₀` and `e₀` does not have a parent, and thus, this is the root of its tree.
+The parent of `e₃` is `e₀` and it's also the root, the same as for `e₂` and
 they are therefore equivalent. We can build a proof of that equivalence by using
 transitivity on `p₂`, `p₁` and `p₃.symm` in that order.
 
@@ -91,8 +92,9 @@ meta def closure := ref (expr_map (ℕ ⊕ (expr × expr)))
 
 namespace closure
 
-/-- `mk_closure f` creates an empty `closure` `c`, executes `f` on `c`, and then deletes `c`, returning the output of `f`. -/
-meta def mk_closure {α} : (closure → tactic α) → tactic α :=
+/-- `with_new_closure f` creates an empty `closure` `c`, executes `f` on `c`, and then deletes `c`,
+returning the output of `f`. -/
+meta def with_new_closure {α} : (closure → tactic α) → tactic α :=
 using_new_ref (expr_map.mk _)
 
 meta def to_tactic_format (cl : closure) : tactic format :=
@@ -106,8 +108,8 @@ do m ← read_ref cl,
 
 meta instance : has_to_tactic_format closure := ⟨ to_tactic_format ⟩
 
-/-- `(n,r,p) ← root cl e` returns `r` the root of the tree that `e` is a part of (which might be itself)
-along with `p` a proof of `e ↔ r` and `n`, the preorder numbering of the root. -/
+/-- `(n,r,p) ← root cl e` returns `r` the root of the tree that `e` is a part of (which might be
+itself) along with `p` a proof of `e ↔ r` and `n`, the preorder numbering of the root. -/
 meta def root (cl : closure) : expr → tactic (ℕ × expr × expr) | e :=
 do m ← read_ref cl,
    match m.find e with
@@ -131,11 +133,11 @@ do p₂ ← mk_app ``iff.symm [p₀],
    p ← mk_app ``iff.trans [p,p₁],
    modify_ref cl $ λ m, m.insert e₀ $ sum.inr (e₁,p)
 
-/-- `merge cl p`, with `p` a proof of `e₀ ↔ e₁` for some `e₀` and `e₁`, 
+/-- `merge cl p`, with `p` a proof of `e₀ ↔ e₁` for some `e₀` and `e₁`,
 merges the trees of `e₀` and `e₁` and keeps the root with the smallest preorder
 number as the root. This ensures that, in the depth-first traversal of the graph,
-when encountering an edge going into vertex whose equivalence class includes 
-a vertex that originated the current search, that vertex will be the root of 
+when encountering an edge going into a vertex whose equivalence class includes
+a vertex that originated the current search, that vertex will be the root of
 the corresponding tree. -/
 meta def merge (cl : closure) (p : expr) : tactic unit :=
 do `(%%e₀ ↔ %%e₁) ← infer_type p >>= instantiate_mvars,
@@ -182,7 +184,8 @@ using_new_ref (expr_map.mk (list $ expr × expr))
 
 namespace impl_graph
 
-/-- `add_edge g p`, with `p` a proof of `v₀ → v₁` or `v₀ ↔ v₁`, add an edge in the implication graph -/
+/-- `add_edge g p`, with `p` a proof of `v₀ → v₁` or `v₀ ↔ v₁`, adds an edge to the implication
+graph `g` -/
 meta def add_edge (g : impl_graph) : expr → tactic unit | p :=
 do t ← infer_type p,
    match t with
@@ -206,7 +209,7 @@ parameter cl : closure
 
 /-- `merge_path path e`, where `path` and `e` forms a cycle with proofs of implication between
 consecutive vertices. The proofs are compiled into proofs of equivalences and added to the closure
-structure. `e` and the first vertex of `path` do not have to be the same but they have to be 
+structure. `e` and the first vertex of `path` do not have to be the same but they have to be
 in the same equivalence class. -/
 meta def merge_path (path : list (expr × expr)) (e : expr) : tactic unit :=
 do p₁ ← cl.prove_impl e path.head.fst,
@@ -230,20 +233,19 @@ meta def collapse' : list (expr × expr) → list (expr × expr) → expr → ta
        then merge_path acc' v
        else collapse' acc' xs v
 
-/-- `collapse path v`, where `v` is a vertex that originated the current search 
+/-- `collapse path v`, where `v` is a vertex that originated the current search
 (or a vertex in the same equivalence class as the one that originated the current search).
-It or its equivalent should be found in `path`. Since the vertices following `v` in the path 
+It or its equivalent should be found in `path`. Since the vertices following `v` in the path
 form a cycle with `v`, they can all be added to an equivalence class. -/
 meta def collapse : list (expr × expr) → expr → tactic unit :=
 collapse' []
-
 
 /--
 Strongly connected component algorithm inspired by Tarjan's and
 Dijkstra's scc algorithm.  Whereas they return strongly connected
 components by enumerating them, this algorithm returns a disjoint set
 data structure using path compression. This is a compact
-representation that allows us, after the fact, construct a proof of
+representation that allows us, after the fact, to construct a proof of
 equivalence between any two members of an equivalence class.
 
  * Tarjan, R. E. (1972), "Depth-first search and linear graph algorithms",
@@ -290,7 +292,7 @@ do `(%%p ↔ %%q) ← target >>= whnf,
 /-- Use the available equivalences and implications to prove
 a goal of the form `p ↔ q`. -/
 meta def interactive.scc : tactic unit :=
-closure.mk_closure $ λ cl,
+closure.with_new_closure $ λ cl,
 do impl_graph.mk_scc cl,
    `(%%p ↔ %%q) ← target,
    cl.prove_eqv p q >>= exact
@@ -299,7 +301,7 @@ do impl_graph.mk_scc cl,
 add assumptions for every equivalence that can be proven using the
 strongly connected components technique. Mostly useful for testing. -/
 meta def interactive.scc' : tactic unit :=
-closure.mk_closure $ λ cl,
+closure.with_new_closure $ λ cl,
 do m ← impl_graph.mk_scc cl,
    let ls := m.to_list.map prod.fst,
    let ls' := prod.mk <$> ls <*> ls,

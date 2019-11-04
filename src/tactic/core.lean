@@ -458,7 +458,7 @@ meta def drop_binders : expr → tactic expr
 | (expr.pi n bi t b) := b.instantiate_var <$> mk_local' n bi t >>= drop_binders
 | e := pure e
 
-private meta def subobject_names (struct_n : name) : tactic (list name × list name) :=
+meta def subobject_names (struct_n : name) : tactic (list name × list name) :=
 do env ← get_env,
    [c] ← pure $ env.constructors_of struct_n | fail "too many constructors",
    vs  ← var_names <$> (mk_const c >>= infer_type),

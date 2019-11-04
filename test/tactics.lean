@@ -381,3 +381,19 @@ begin
 end
 
 end elide
+
+section struct_eq
+
+@[eq_proof_rule]
+structure foo (α : Type*) :=
+(x y : ℕ)
+(z : {z // z < x})
+(k : α)
+(h : x < y)
+
+#check @foo.eq
+
+example {α : Type*} : Π (x y : foo α), x.x = y.x → x.y = y.y → x.z == y.z → x.k = y.k → x = y :=
+foo.eq
+
+end struct_eq

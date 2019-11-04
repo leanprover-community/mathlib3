@@ -387,7 +387,7 @@ meta def eval : expr → ring_m (horner_expr × expr)
   p ← ring_m.mk_app ``norm_num.subst_into_prod ``has_mul [e₁, e₂, e₁', e₂', e', p₁, p₂, p'],
   return (e', p)
 | e@`(has_inv.inv %%_) := (do
-    (e', p) ← lift $ norm_num.derive' e,
+    (e', p) ← lift $ norm_num.derive e <|> refl_conv e,
     lift $ e'.to_rat,
     return (const e', p)) <|> eval_atom e
 | e@`(@has_div.div _ %%inst %%e₁ %%e₂) := mcond
@@ -402,7 +402,7 @@ meta def eval : expr → ring_m (horner_expr × expr)
     return (e', p'))
   (eval_atom e)
 | e@`(@has_pow.pow _ _ %%P %%e₁ %%e₂) := do
-  (e₂', p₂) ← lift $ norm_num.derive' e₂,
+  (e₂', p₂) ← lift $ norm_num.derive e₂ <|> refl_conv e₂,
   match e₂'.to_nat, P with
   | some k, `(monoid.has_pow) := do
     (e₁', p₁) ← eval e₁,

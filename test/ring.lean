@@ -19,6 +19,9 @@ example {α} [linear_ordered_field α] (a b c : α) :
   b ^ 2 - 4 * c * a = -(4 * c * a) + b ^ 2 := by ring
 example {α} [linear_ordered_field α] (a b c: α) :
   b ^ 2 - 4 * a * c = 4 * a * 0 + b * b - 4 * a * c := by ring
+example {α} [comm_semiring α] (x y z : α) (n : ℕ) :
+  (x + y) * (z * (y * y) + (x * x ^ n + (1 + ↑n) * x ^ n * y)) =
+    x * (x * x ^ n) + ((2 + ↑n) * (x * x ^ n) * y + (x * z + (z * y + (1 + ↑n) * x ^ n)) * (y * y)) := by ring
 example (a n s: ℕ) : a * (n - s) = (n - s) * a := by ring
 
 example (x y z : ℚ) (hx : x ≠ 0) (hy : y ≠ 0) (hz : z ≠ 0) :

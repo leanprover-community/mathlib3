@@ -23,7 +23,7 @@ attribute [inline] and.decidable or.decidable decidable.false xor.decidable iff.
 
 variables {α : Type*} {β : Type*}
 
-@[reducible] def hidden {a : α} := a
+@[reducible] def hidden {α : Sort*} {a : α} := a
 
 def empty.elim {C : Sort*} : empty → C.
 

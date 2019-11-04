@@ -1069,7 +1069,7 @@ do h ← get_unused_name `_inst,
    reset_instance_cache
 
 open expr
-#check function.comp
+
 /-- `mk_comp v e` checks whether `e` is a sequence of nested applications `f (g (h v))`, and if so,
 returns the expression `f ∘ g ∘ h`. -/
 meta def mk_comp (v : expr) : expr → tactic expr

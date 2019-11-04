@@ -90,7 +90,7 @@ induction_on s₁ $ λ l₁, induction_on s₂ $ λ l₂, H l₁ l₂
   (s₁ s₂ s₃ : finmap β) (H : ∀ (a₁ a₂ a₃ : alist β), C ⟦a₁⟧ ⟦a₂⟧ ⟦a₃⟧) : C s₁ s₂ s₃ :=
 induction_on₂ s₁ s₂ $ λ l₁ l₂, induction_on s₃ $ λ l₃, H l₁ l₂ l₃
 
-@[extensionality] theorem ext : ∀ {s t : finmap β}, s.entries = t.entries → s = t
+@[ext] theorem ext : ∀ {s t : finmap β}, s.entries = t.entries → s = t
 | ⟨l₁, h₁⟩ ⟨l₂, h₂⟩ H := by congr'
 
 @[simp] theorem ext_iff {s t : finmap β} : s.entries = t.entries ↔ s = t :=

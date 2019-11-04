@@ -352,7 +352,7 @@ unless they are explicitly included.
 ### ext1 / ext
 
  * `ext1 id` selects and apply one extensionality lemma (with
-    attribute `extensionality`), using `id`, if provided, to name a
+    attribute `ext`), using `id`, if provided, to name a
     local constant introduced by the lemma. If `id` is omitted, the
     local constant is named automatically, as per `intro`.
 
@@ -383,12 +383,12 @@ by applying functional extensionality and set extensionality.
 
 A maximum depth can be provided with `ext x y z : 3`.
 
-### The `extensionality` attribute
+### The `ext` attribute
 
  Tag lemmas of the form:
 
  ```lean
- @[extensionality]
+ @[ext]
  lemma my_collection.ext (a b : my_collection)
    (h : ∀ x, a.lookup x = b.lookup y) :
    a = b := ...
@@ -400,32 +400,32 @@ A maximum depth can be provided with `ext x y z : 3`.
  extensionality of multiple types that are definitionally equivalent.
 
  ```lean
- attribute [extensionality [(→),thunk,stream]] funext
+ attribute [ext [(→),thunk,stream]] funext
  ```
 
  Those parameters are cumulative. The following are equivalent:
 
  ```lean
- attribute [extensionality [(→),thunk]] funext
- attribute [extensionality [stream]] funext
+ attribute [ext [(→),thunk]] funext
+ attribute [ext [stream]] funext
  ```
 
  and
 
  ```lean
- attribute [extensionality [(→),thunk,stream]] funext
+ attribute [ext [(→),thunk,stream]] funext
  ```
 
  One removes type names from the list for one lemma with:
 
  ```lean
- attribute [extensionality [-stream,-thunk]] funext
+ attribute [ext [-stream,-thunk]] funext
  ```
 
  Finally, the following:
 
  ```lean
- @[extensionality]
+ @[ext]
  lemma my_collection.ext (a b : my_collection)
    (h : ∀ x, a.lookup x = b.lookup y) :
    a = b := ...
@@ -434,7 +434,7 @@ A maximum depth can be provided with `ext x y z : 3`.
  is equivalent to
 
  ```lean
- @[extensionality *]
+ @[ext *]
  lemma my_collection.ext (a b : my_collection)
    (h : ∀ x, a.lookup x = b.lookup y) :
    a = b := ...
@@ -447,7 +447,7 @@ A maximum depth can be provided with `ext x y z : 3`.
  that referred to in the lemma statement.
 
  ```lean
- @[extensionality [*,my_type_synonym]]
+ @[ext [*,my_type_synonym]]
  lemma my_collection.ext (a b : my_collection)
    (h : ∀ x, a.lookup x = b.lookup y) :
    a = b := ...
@@ -1175,7 +1175,7 @@ attribute [simp, reassoc] some_class.bar
 Instead of creating a new assumption from the result, `reassoc_of h` stands for the proof of that reassociated
 statement. This prevents poluting the local context with complicated assumptions used only once or twice.
 
-In the following, assumption `h` is needed in a reassociated form. Instead of proving it as a new goal and adding it as 
+In the following, assumption `h` is needed in a reassociated form. Instead of proving it as a new goal and adding it as
 an assumption, we use `reassoc_of h` as a rewrite rule which works just as well.
 
 ```lean
@@ -1189,7 +1189,7 @@ begin
 end
 ```
 
-Although `reassoc_of` is not a tactic or a meta program, its type is generated 
+Although `reassoc_of` is not a tactic or a meta program, its type is generated
 through meta-programming to make it usable inside normal expressions.
 
 ### lint

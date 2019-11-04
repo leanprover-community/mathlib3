@@ -9,6 +9,73 @@ universes u₁ u₂
 open interactive interactive.types
 open lean.parser nat tactic
 
+/--
+`derive_struct_ext_lemma n` generates an extensionality lemma based on
+the equality of all non-propositional projections.
+
+On the following:
+
+```
+@[eq_proof_rule]
+structure foo (α : Type*) :=
+(x y : ℕ)
+(z : {z // z < x})
+(k : α)
+(h : x < y)
+```
+
+`eq_proof_rule` generates:
+
+```
+foo.eq : ∀ {α : Type u_1} (x y : foo α), x.x = y.x → x.y = y.y → x.z == y.z → x.k = y.k → x = y
+```
+
+-/
+meta def derive_struct_ext_lemma (n : name) : tactic name :=
+do e ← get_env,
+   fs ← e.structure_fields n,
+   d ← get_decl n,
+   n ← resolve_constant n,
+   let r := @expr.const tt n $ d.univ_params.map level.param,
+   (args,_) ← infer_type r >>= mk_local_pis,
+   let args := args.map to_implicit,
+   let t := r.mk_app args,
+   x ← mk_local_def `x t,
+   y ← mk_local_def `y t,
+   let args_x := args ++ [x],
+   let args_y := args ++ [y],
+   bs ← fs.mmap $ λ f,
+     do { d ← get_decl (n ++ f),
+          let a := @expr.const tt (n ++ f) $ d.univ_params.map level.param,
+          t ← infer_type a,
+          s ← infer_type t,
+
+          if s ≠ `(Prop)
+            then do
+              let x := a.mk_app args_x,
+              let y := a.mk_app args_y,
+              t ← infer_type x,
+              t' ← infer_type y,
+              some <$> if t = t'
+                then mk_app `eq [x,y] >>= mk_local_def `h
+                else mk_mapp `heq [none,x,none,y] >>= mk_local_def `h
+            else pure none },
+   let bs := bs.filter_map id,
+   t ← mk_app `eq [x,y],
+   t ← pis (args ++ [x,y] ++ bs) t,
+   pr ← run_async $
+     do { (_,pr) ← solve_aux t (do
+          { args ← intron args.length,
+            x ← intro1, y ← intro1,
+            cases x, cases y,
+            bs.mmap' (λ _,
+              do e ← intro1,
+                 cases e),
+            reflexivity }),
+          instantiate_mvars pr },
+   let decl_n := n <.> "ext",
+   decl_n <$ add_decl (declaration.thm decl_n d.univ_params t pr)
+
 meta def get_ext_subject : expr → tactic name
 | (expr.pi n bi d b) :=
   do v  ← mk_local' n bi d,
@@ -61,7 +128,7 @@ do e  ← saturate_fun n,
  Tag lemmas of the form:
 
  ```
- @[extensionality]
+ @[ext]
  lemma my_collection.ext (a b : my_collection)
    (h : ∀ x, a.lookup x = b.lookup y) :
    a = b := ...
@@ -73,29 +140,29 @@ do e  ← saturate_fun n,
  extensionality of multiple types that are definitionally equivalent.
 
  ```
- attribute [extensionality [(→),thunk,stream]] funext
+ attribute [ext [(→),thunk,stream]] funext
  ```
 
  Those parameters are cumulative. The following are equivalent:
 
  ```
- attribute [extensionality [(→),thunk]] funext
- attribute [extensionality [stream]] funext
+ attribute [ext [(→),thunk]] funext
+ attribute [ext [stream]] funext
  ```
  and
  ```
- attribute [extensionality [(→),thunk,stream]] funext
+ attribute [ext [(→),thunk,stream]] funext
  ```
 
  One removes type names from the list for one lemma with:
  ```
- attribute [extensionality [-stream,-thunk]] funext
+ attribute [ext [-stream,-thunk]] funext
   ```
 
  Finally, the following:
 
  ```
- @[extensionality]
+ @[ext]
  lemma my_collection.ext (a b : my_collection)
    (h : ∀ x, a.lookup x = b.lookup y) :
    a = b := ...
@@ -104,7 +171,7 @@ do e  ← saturate_fun n,
  is equivalent to
 
  ```
- @[extensionality *]
+ @[ext *]
  lemma my_collection.ext (a b : my_collection)
    (h : ∀ x, a.lookup x = b.lookup y) :
    a = b := ...
@@ -114,7 +181,7 @@ do e  ← saturate_fun n,
  that referred to in the lemma statement.
 
  ```
- @[extensionality [*,my_type_synonym]]
+ @[ext [*,my_type_synonym]]
  lemma my_collection.ext (a b : my_collection)
    (h : ∀ x, a.lookup x = b.lookup y) :
    a = b := ...
@@ -122,7 +189,7 @@ do e  ← saturate_fun n,
  -/
 @[user_attribute]
 meta def extensional_attribute : user_attribute (name_map name) (bool × list ext_param_type × list name × list (name × name)) :=
-{ name := `extensionality,
+{ name := `ext,
   descr := "lemmas usable by `ext` tactic",
   cache_cfg := { mk_cache := λ ls,
                           do { attrs ← ls.mmap $ λ l,
@@ -136,6 +203,10 @@ meta def extensional_attribute : user_attribute (name_map name) (bool × list ex
          pure $ (ff,ls,[],m.to_list)  },
   after_set := some $ λ n _ b,
     do (ff,ls,_,ls') ← extensional_attribute.get_param n | pure (),
+       e ← get_env,
+       n ← if (e.structure_fields n).is_some
+         then derive_struct_ext_lemma n
+         else pure n,
        s ← mk_const n >>= infer_type >>= get_ext_subject,
        let (rs,ls'') := if ls.empty
                            then ([],[s])
@@ -144,18 +215,18 @@ meta def extensional_attribute : user_attribute (name_map name) (bool × list ex
        let l := ls'' ∪ (ls'.filter $ λ l, prod.snd l = n).map prod.fst \ rs,
        extensional_attribute.set n (tt,[],l,[]) b }
 
-attribute [extensionality] array.ext propext prod.ext
-attribute [extensionality [(→),thunk]] _root_.funext
+attribute [ext] array.ext propext prod.ext
+attribute [ext [(→),thunk]] _root_.funext
 
 namespace ulift
-@[extensionality] lemma ext {α : Type u₁} (X Y : ulift.{u₂} α) (w : X.down = Y.down) : X = Y :=
+@[ext] lemma ext {α : Type u₁} (X Y : ulift.{u₂} α) (w : X.down = Y.down) : X = Y :=
 begin
   cases X, cases Y, dsimp at w, rw w,
 end
 end ulift
 
 namespace plift
-@[extensionality] lemma ext {P : Prop} (a b : plift P) : a = b :=
+@[ext] lemma ext {P : Prop} (a b : plift P) : a = b :=
 begin
   cases a, cases b, refl
 end
@@ -176,7 +247,7 @@ do subject ← target >>= get_ext_subject,
    m ← extensional_attribute.get_cache,
    do { rule ← m.find subject,
         applyc rule cfg } <|>
-     do { ls ← attribute.get_instances `extensionality,
+     do { ls ← attribute.get_instances `ext,
           ls.any_of (λ n, applyc n cfg) } <|>
      fail format!"no applicable extensionality rule found for {subject}",
    try_intros xs
@@ -192,7 +263,7 @@ local postfix *:9001 := many
 
 /--
   `ext1 id` selects and apply one extensionality lemma (with attribute
-  `extensionality`), using `id`, if provided, to name a local constant
+  `ext`), using `id`, if provided, to name a local constant
   introduced by the lemma. If `id` is omitted, the local constant is
   named automatically, as per `intro`.
  -/

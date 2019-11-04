@@ -63,7 +63,7 @@ instance [has_repr α] : has_repr (polynomial α) :=
 theorem ext_iff {p q : polynomial α} : p = q ↔ ∀ n, coeff p n = coeff q n :=
 ⟨λ h n, h ▸ rfl, finsupp.ext⟩
 
-@[extensionality] lemma ext {p q : polynomial α} : (∀ n, coeff p n = coeff q n) → p = q :=
+@[ext] lemma ext {p q : polynomial α} : (∀ n, coeff p n = coeff q n) → p = q :=
 (@ext_iff _ _ p q).2
 
 /-- `degree p` is the degree of the polynomial `p`, i.e. the largest `X`-exponent in `p`.

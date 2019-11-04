@@ -23,7 +23,7 @@ variables {M N : matrix m n α}
 theorem ext_iff : (∀ i j, M i j = N i j) ↔ M = N :=
 ⟨λ h, funext $ λ i, funext $ h i, λ h, by simp [h]⟩
 
-@[extensionality] theorem ext : (∀ i j, M i j = N i j) → M = N :=
+@[ext] theorem ext : (∀ i j, M i j = N i j) → M = N :=
 ext_iff.mp
 
 end ext

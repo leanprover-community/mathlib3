@@ -213,7 +213,7 @@ structure cone_morphism (A B : cone F) :=
 restate_axiom cone_morphism.w'
 attribute [simp] cone_morphism.w
 
-@[extensionality] lemma cone_morphism.ext {A B : cone F} {f g : cone_morphism A B}
+@[ext] lemma cone_morphism.ext {A B : cone F} {f g : cone_morphism A B}
   (w : f.hom = g.hom) : f = g :=
 by cases f; cases g; simpa using w
 
@@ -228,7 +228,7 @@ namespace cones
 /-- To give an isomorphism between cones, it suffices to give an
   isomorphism between their vertices which commutes with the cone
   maps. -/
-@[extensionality, simps] def ext {c c' : cone F}
+@[ext, simps] def ext {c c' : cone F}
   (φ : c.X ≅ c'.X) (w : ∀ j, c.π.app j = φ.hom ≫ c'.π.app j) : c ≅ c' :=
 { hom := { hom := φ.hom },
   inv := { hom := φ.inv, w' := λ j, φ.inv_comp_eq.mpr (w j) } }
@@ -277,7 +277,7 @@ structure cocone_morphism (A B : cocone F) :=
 restate_axiom cocone_morphism.w'
 attribute [simp] cocone_morphism.w
 
-@[extensionality] lemma cocone_morphism.ext
+@[ext] lemma cocone_morphism.ext
   {A B : cocone F} {f g : cocone_morphism A B} (w : f.hom = g.hom) : f = g :=
 by cases f; cases g; simpa using w
 
@@ -292,7 +292,7 @@ namespace cocones
 /-- To give an isomorphism between cocones, it suffices to give an
   isomorphism between their vertices which commutes with the cocone
   maps. -/
-@[extensionality, simps] def ext {c c' : cocone F}
+@[ext, simps] def ext {c c' : cocone F}
   (φ : c.X ≅ c'.X) (w : ∀ j, c.ι.app j ≫ φ.hom = c'.ι.app j) : c ≅ c' :=
 { hom := { hom := φ.hom },
   inv := { hom := φ.inv, w' := λ j, φ.comp_inv_eq.mpr (w j).symm } }

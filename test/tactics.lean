@@ -384,16 +384,23 @@ end elide
 
 section struct_eq
 
-@[eq_proof_rule]
+@[ext]
 structure foo (α : Type*) :=
 (x y : ℕ)
 (z : {z // z < x})
 (k : α)
 (h : x < y)
 
-#check @foo.eq
-
 example {α : Type*} : Π (x y : foo α), x.x = y.x → x.y = y.y → x.z == y.z → x.k = y.k → x = y :=
-foo.eq
+foo.ext
+
+example {α} (x y : foo α) (h : x = y) : y = x :=
+begin
+  ext,
+  { guard_target' y.x = x.x, rw h },
+  { guard_target' y.y = x.y, rw h },
+  { guard_target' y.z == x.z, rw h },
+  { guard_target' y.k = x.k, rw h },
+end
 
 end struct_eq

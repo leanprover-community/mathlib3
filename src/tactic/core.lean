@@ -1300,4 +1300,75 @@ do n  ← ident,
    emit_command_here $ new_not,
    skip .
 
+/--
+Attribute applicable to a structure declaration to generate 
+an equality proof rule based on the equality of all non-
+propositional projections.
+
+On the following:
+
+```
+@[eq_proof_rule]
+structure foo (α : Type*) :=
+(x y : ℕ)
+(z : {z // z < x})
+(k : α)
+(h : x < y)
+```
+
+`eq_proof_rule` generates:
+
+```
+foo.eq : ∀ {α : Type u_1} (x y : foo α), x.x = y.x → x.y = y.y → x.z == y.z → x.k = y.k → x = y
+```
+
+-/
+@[user_attribute]
+meta def eq_proof_rule_attr : user_attribute :=
+{ name := `eq_proof_rule,
+  descr := "derive a proof rule for equality of structure types based on projections",
+  after_set := some $ λ n _ _,
+    do { e ← get_env,
+         fs ← e.structure_fields n,
+         d ← get_decl n,
+         n ← resolve_constant n,
+         let r := @expr.const tt n $ d.univ_params.map level.param,
+         (args,_) ← infer_type r >>= mk_local_pis,
+         let args := args.map to_implicit,
+         let t := r.mk_app args,
+         x ← mk_local_def `x t,
+         y ← mk_local_def `y t,
+         let args_x := args ++ [x],
+         let args_y := args ++ [y],
+         bs ← fs.mmap $ λ f,
+           do { d ← get_decl (n ++ f),
+                let a := @expr.const tt (n ++ f) $ d.univ_params.map level.param,
+                t ← infer_type a,
+                s ← infer_type t,
+
+                if s ≠ `(Prop)
+                  then do
+                    let x := a.mk_app args_x,
+                    let y := a.mk_app args_y,
+                    t ← infer_type x,
+                    t' ← infer_type y,
+                    some <$> if t = t'
+                      then mk_app `eq [x,y] >>= mk_local_def `h
+                      else mk_mapp `heq [none,x,none,y] >>= mk_local_def `h
+                  else pure none },
+         let bs := bs.filter_map id,
+         t ← mk_app `eq [x,y],
+         t ← pis (args ++ [x,y] ++ bs) t,
+         pr ← run_async $
+           do { (_,pr) ← solve_aux t (do
+                { args ← intron args.length,
+                  x ← intro1, y ← intro1,
+                  cases x, cases y,
+                  bs.mmap' (λ _,
+                    do e ← intro1,
+                       cases e),
+                  reflexivity }),
+                instantiate_mvars pr },
+         add_decl $ declaration.thm (n <.> "eq") d.univ_params t pr } }
+
 end tactic

@@ -306,15 +306,20 @@ do to_remove ← hs.mfilter $ λ h, do {
   to_remove.mmap' (λ h, try (clear h)),
   return (¬ to_remove.empty ∨ goal_simplified)
 
+/-- A variant of `simplify_bottom_up`. Given a tactic `post` for rewriting subexpressions,
+`simp_bottom_up post e` tries to rewrite `e` starting at the leaf nodes. Returns the resulting
+expression and a proof of equality. -/
 meta def simp_bottom_up' (post : expr → tactic (expr × expr)) (e : expr) (cfg : simp_config := {}) :
   tactic (expr × expr) :=
 prod.snd <$> simplify_bottom_up () (λ _, (<$>) (prod.mk ()) ∘ post) e cfg
 
+/-- Caches unary type classes on a type `α : Type.{univ}` -/
 meta structure instance_cache :=
 (α : expr)
 (univ : level)
 (inst : name_map expr)
 
+/-- Creates an `instance_cache` for the type `α` -/
 meta def mk_instance_cache (α : expr) : tactic instance_cache :=
 do u ← mk_meta_univ,
    infer_type α >>= unify (expr.sort (level.succ u)),
@@ -323,6 +328,9 @@ do u ← mk_meta_univ,
 
 namespace instance_cache
 
+/-- If `n` is the name of a type class with one parameter, `get c n` tries to find an instance of
+`n c.α` by checking the cache `c`. If there is no entry in the cache, it tries to find the instance
+via type class resolution, and updates the cache. -/
 meta def get (c : instance_cache) (n : name) : tactic (instance_cache × expr) :=
 match c.inst.find n with
 | some i := return (c, i)
@@ -331,12 +339,15 @@ match c.inst.find n with
 end
 
 open expr
+/-- If `e` is a `pi` expression that binds an instance-implicit variable of type `n`,
+`append_typeclasses e c l` searches `c` for an instance `p` of type `n` and returns `p :: l`. -/
 meta def append_typeclasses : expr → instance_cache → list expr →
   tactic (instance_cache × list expr)
 | (pi _ binder_info.inst_implicit (app (const n _) (var _)) body) c l :=
   do (c, p) ← c.get n, return (c, p :: l)
 | _ c l := return (c, l)
 
+/-- Creates the application `n c.α p l`, where `p` is a type class instance found in the cache `c`. -/
 meta def mk_app (c : instance_cache) (n : name) (l : list expr) : tactic (instance_cache × expr) :=
 do d ← get_decl n,
    (c, l) ← append_typeclasses d.type.binding_body c l,
@@ -344,6 +355,7 @@ do d ← get_decl n,
 
 end instance_cache
 
+-- unused in library. propose to delete
 meta def match_head (e : expr) : expr → tactic unit
 | e' :=
     unify e e'
@@ -351,20 +363,24 @@ meta def match_head (e : expr) : expr → tactic unit
        v ← mk_mvar,
        match_head (e'.instantiate_var v)
 
+-- unused in library. propose to delete
 meta def find_matching_head : expr → list expr → tactic (list expr)
 | e []         := return []
 | e (H :: Hs) :=
   do t ← infer_type H,
      ((::) H <$ match_head e t <|> pure id) <*> find_matching_head e Hs
 
+-- unused in library. propose to delete
 meta def subst_locals (s : list (expr × expr)) (e : expr) : expr :=
 (e.abstract_locals (s.map (expr.local_uniq_name ∘ prod.fst)).reverse).instantiate_vars (s.map prod.snd)
 
+-- unused in library. propose to delete
 meta def set_binder : expr → list binder_info → expr
 | e [] := e
 | (expr.pi v _ d b) (bi :: bs) := expr.pi v bi d (set_binder b bs)
 | e _ := e
 
+-- unused in library. propose to delete
 meta def last_explicit_arg : expr → tactic expr
 | (expr.app f e) :=
 do t ← infer_type f >>= whnf,
@@ -437,18 +453,19 @@ meta def var_names : expr → list name
 | (expr.pi n _ _ b) := n :: var_names b
 | _ := []
 
+-- todo: this duplicates mk_local_pis
 meta def drop_binders : expr → tactic expr
 | (expr.pi n bi t b) := b.instantiate_var <$> mk_local' n bi t >>= drop_binders
 | e := pure e
 
-meta def subobject_names (struct_n : name) : tactic (list name × list name) :=
+private meta def subobject_names (struct_n : name) : tactic (list name × list name) :=
 do env ← get_env,
    [c] ← pure $ env.constructors_of struct_n | fail "too many constructors",
    vs  ← var_names <$> (mk_const c >>= infer_type),
    fields ← env.structure_fields struct_n,
    return $ fields.partition (λ fn, ↑("_" ++ fn.to_string) ∈ vs)
 
-meta def expanded_field_list' : name → tactic (dlist $ name × name) | struct_n :=
+private meta def expanded_field_list' : name → tactic (dlist $ name × name) | struct_n :=
 do (so,fs) ← subobject_names struct_n,
    ts ← so.mmap (λ n, do
      e ← mk_const (n.update_prefix struct_n) >>= infer_type >>= drop_binders,
@@ -456,6 +473,9 @@ do (so,fs) ← subobject_names struct_n,
    return $ dlist.join ts ++ dlist.of_list (fs.map $ prod.mk struct_n)
 open functor function
 
+/-- `expanded_field_list struct_n` produces a list of the names of the fields of the structure
+named `struct_n`. These are returned as pairs of names `(prefix, name)`, where the full name
+of the projection is `prefix.name`. -/
 meta def expanded_field_list (struct_n : name) : tactic (list $ name × name) :=
 dlist.to_list <$> expanded_field_list' struct_n
 
@@ -850,7 +870,7 @@ do [] ← get_goals | resolve_name n,
    set_goals [g],
    resolve_name n <* set_goals []
 
-meta def strip_prefix' (n : name) : list string → name → tactic name
+private meta def strip_prefix' (n : name) : list string → name → tactic name
 | s name.anonymous := pure $ s.foldl (flip name.mk_string) name.anonymous
 | s (name.mk_string a p) :=
   do let n' := s.foldl (flip name.mk_string) name.anonymous,
@@ -869,6 +889,7 @@ meta def strip_prefix : name → tactic name
     else strip_prefix' n [a] a_1
 | n := pure n
 
+/-- Used to format return strings for the hole commands `match_stub` and `eqn_stub`. -/
 meta def mk_patterns (t : expr) : tactic (list format) :=
 do let cl := t.get_app_fn.const_name,
    env ← get_env,
@@ -1048,7 +1069,9 @@ do h ← get_unused_name `_inst,
    reset_instance_cache
 
 open expr
-
+#check function.comp
+/-- `mk_comp v e` checks whether `e` is a sequence of nested applications `f (g (h v))`, and if so,
+returns the expression `f ∘ g ∘ h`. -/
 meta def mk_comp (v : expr) : expr → tactic expr
 | (app f e) :=
   if e = v then pure f
@@ -1083,6 +1106,8 @@ meta def mk_higher_order_type : expr → tactic expr
 
 open lean.parser interactive.types
 
+/-- A user attribute that applies to lemmas of the shape `∀ x, f (g x) = h x`.
+It derives an auxiliary lemma of the form `f ∘ g = h` for reasoning about higher-order functions.-/
 @[user_attribute]
 meta def higher_order_attr : user_attribute unit (option name) :=
 { name := `higher_order,
@@ -1220,6 +1245,7 @@ meta def pformat := tactic format
 /-- `mk` lifts `fmt : format` to the tactic monad (`pformat`). -/
 meta def pformat.mk (fmt : format) : pformat := pure fmt
 
+/-- an alias for `pp`. -/
 meta def to_pfmt {α} [has_to_tactic_format α] (x : α) : pformat :=
 pp x
 

@@ -61,6 +61,8 @@ private meta def aux_after_set (tac : expr → tactic (expr × (expr → expr)))
     )
 | ty := tac ty
 
+run_cmd mk_simp_attr `push_cast
+
 private meta def after_set (decl : name) (prio : ℕ) (pers : bool) : tactic unit :=
 do
     (declaration.thm n l ty e) ← get_decl decl | failed,
@@ -68,7 +70,8 @@ do
     (ty', f) ← aux_after_set tac ty,
     let e' := task.map f e,
     let n' := new_name n,
-    add_decl (declaration.thm n' l ty' e')
+    add_decl (declaration.thm n' l ty' e'),
+    simp_attr.push_cast.set decl () tt
 
 private meta def mk_cache : list name → tactic simp_lemmas :=
 monad.foldl simp_lemmas.add_simp simp_lemmas.mk

@@ -58,9 +58,9 @@ The `expr_map` encodes a directed forest by storing for every non-root
 node, a reference to its parent and a proof of equivalence between
 that node's expression and its parent's expression. Given that data
 structure, checking that two nodes belong to the same tree is easy and
-fast by following the parent reference repeated up to a root. If they
-both have the same root, they belong to the same tree, i.e. their
-expressions are equivalent. The proof of equivance can be formed by
+fast by repeatedly following the parent references until a root is reached.
+If both nodes have the same root, they belong to the same tree, i.e. their
+expressions are equivalent. The proof of equivalence can be formed by
 composing the proofs along the edges of the paths to the root.
 
 More concretely, if we ignore preorder numbering, the set
@@ -97,12 +97,16 @@ returning the output of `f`. -/
 meta def with_new_closure {α} : (closure → tactic α) → tactic α :=
 using_new_ref (expr_map.mk _)
 
-/-- (implementation of `has_to_tactic_format closure` instance) -/
+/-- `to_tactic_format cl` pretty-prints the `closure` `cl` as a list. Assuming `cl` was built by
+`dfs_at`, each element corresponds to a node `pᵢ : expr` and is one of the folllowing:
+- if `pᵢ` is a root: `"pᵢ ⇐ i"`, where `i` is the preorder number of `pᵢ`,
+- otherwise: `"(pᵢ, pⱼ) : P"`, where `P` is `pᵢ ↔ pⱼ`.
+Useful for debugging. -/
 meta def to_tactic_format (cl : closure) : tactic format :=
 do m ← read_ref cl,
    let l := m.to_list,
    fmt ← l.mmap $ λ ⟨x,y⟩, match y with
-                           | sum.inl y := pp y
+                           | sum.inl y := pformat!"{x} ⇐ {y}"
                            | sum.inr ⟨y,p⟩ := pformat!"({x}, {y}) : {infer_type p}"
                            end,
    pure $ to_fmt fmt
@@ -154,8 +158,8 @@ do `(%%e₀ ↔ %%e₁) ← infer_type p >>= instantiate_mvars,
 meta def assign_preorder (cl : closure) (e : expr) : tactic unit :=
 modify_ref cl $ λ m, m.insert e (sum.inl m.size)
 
-/-- `prove_eqv cl e₀ e₁` construct a proof of equivalence of `e₀` and `e₁` if
-they are equivalent -/
+/-- `prove_eqv cl e₀ e₁` constructs a proof of equivalence of `e₀` and `e₁` if
+they are equivalent. -/
 meta def prove_eqv (cl : closure) (e₀ e₁ : expr) : tactic expr :=
 do (_,r,p₀) ← root cl e₀,
    (_,r',p₁) ← root cl e₁,
@@ -163,11 +167,11 @@ do (_,r,p₀) ← root cl e₀,
    p₁ ← mk_app ``iff.symm [p₁],
    mk_app ``iff.trans [p₀,p₁]
 
-/-- `prove_impl cl e₀ e₁` construct a proof of `e₀ -> e₁` if they are equivalent -/
+/-- `prove_impl cl e₀ e₁` constructs a proof of `e₀ -> e₁` if they are equivalent. -/
 meta def prove_impl (cl : closure) (e₀ e₁ : expr) : tactic expr :=
 cl.prove_eqv e₀ e₁ >>= iff_mp
 
-/-- `is_eqv cl e₀ e₁` checks whether `e₀` and `e₁` are equivalent without building a proof -/
+/-- `is_eqv cl e₀ e₁` checks whether `e₀` and `e₁` are equivalent without building a proof. -/
 meta def is_eqv (cl : closure) (e₀ e₁ : expr) : tactic bool :=
 do (_,r,p₀) ← root cl e₀,
    (_,r',p₁) ← root cl e₁,
@@ -179,14 +183,15 @@ end closure
 @[reducible]
 meta def impl_graph := ref (expr_map (list $ expr × expr))
 
-/-- create a local `impl_graph` -/
+/-- `with_impl_graph f` creates an empty `impl_graph` `g`, executes `f` on `g`, and then deletes
+`g`, returning the output of `f`. -/
 meta def with_impl_graph {α} : (impl_graph → tactic α) → tactic α :=
 using_new_ref (expr_map.mk (list $ expr × expr))
 
 namespace impl_graph
 
 /-- `add_edge g p`, with `p` a proof of `v₀ → v₁` or `v₀ ↔ v₁`, adds an edge to the implication
-graph `g` -/
+graph `g`. -/
 meta def add_edge (g : impl_graph) : expr → tactic unit | p :=
 do t ← infer_type p,
    match t with
@@ -243,7 +248,7 @@ collapse' []
 
 /--
 Strongly connected component algorithm inspired by Tarjan's and
-Dijkstra's scc algorithm.  Whereas they return strongly connected
+Dijkstra's scc algorithm. Whereas they return strongly connected
 components by enumerating them, this algorithm returns a disjoint set
 data structure using path compression. This is a compact
 representation that allows us, after the fact, to construct a proof of

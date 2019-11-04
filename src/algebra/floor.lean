@@ -32,7 +32,7 @@ rounding
 
 variables {α : Type*}
 
-/-
+/--
 A `floor_ring` is a linear ordered ring over `α` with a function
 `floor : α → ℤ` satisfying `∀ (z : ℤ) (x : α), z ≤ floor x ↔ (z : α) ≤ x)`.
 -/
@@ -88,8 +88,8 @@ eq_of_forall_le_iff $ λ a, by rw [le_floor,
 theorem floor_sub_int (x : α) (z : ℤ) : ⌊x - z⌋ = ⌊x⌋ - z :=
 eq.trans (by rw [int.cast_neg]; refl) (floor_add_int _ _)
 
-lemma abs_sub_lt_one_of_floor_eq_floor {α : Type*} [decidable_linear_ordered_comm_ring α] [floor_ring α]
-  {x y : α} (h : ⌊x⌋ = ⌊y⌋) : abs (x - y) < 1 :=
+lemma abs_sub_lt_one_of_floor_eq_floor {α : Type*} [decidable_linear_ordered_comm_ring α]
+  [floor_ring α] {x y : α} (h : ⌊x⌋ = ⌊y⌋) : abs (x - y) < 1 :=
 begin
   have : x < ⌊x⌋ + 1         := lt_floor_add_one x,
   have : y < ⌊y⌋ + 1         :=  lt_floor_add_one y,
@@ -265,3 +265,6 @@ lt_nat_ceil.1 $ by rw (
 
 lemma lt_of_nat_ceil_lt {x : α} {n : ℕ} (h : nat_ceil x < n) : x < n :=
 lt_of_le_of_lt (le_nat_ceil x) (by exact_mod_cast h)
+
+lemma le_of_le_nat_ceil {x : α} {n : ℕ} (h : nat_ceil x ≤ n) : x ≤ n :=
+le_trans (le_nat_ceil x) (by exact_mod_cast h)

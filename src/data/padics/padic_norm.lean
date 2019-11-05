@@ -45,8 +45,6 @@ universe u
 
 open nat
 
-attribute [class] nat.prime
-
 open_locale rat
 
 open multiplicity

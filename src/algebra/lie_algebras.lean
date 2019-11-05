@@ -103,6 +103,22 @@ begin
   exact H,
 end
 
+@[simp] protected lemma zero_left (x : L) :
+  ⁅x, 0⁆ = 0 :=
+begin
+  have H : ⁅x, 0⁆ + ⁅x, 0⁆ = ⁅x, 0⁆ + 0 := by { rw ←lie_ring.add_right, simp, },
+  exact add_left_cancel H,
+end
+
+@[simp] protected lemma zero_right (x : L) :
+  ⁅0, x⁆ = 0 := by { rw [←lie_ring.skew, lie_ring.zero_left], simp, }
+
+@[simp] protected lemma neg_left (x y : L) :
+  ⁅-x, y⁆ = -⁅x, y⁆ := by { rw [←sub_eq_zero_iff_eq, sub_neg_eq_add, ←lie_ring.add_left], simp, }
+
+@[simp] protected lemma neg_right (x y : L) :
+  ⁅x, -y⁆ = -⁅x, y⁆ := by { rw [←lie_ring.skew, ←lie_ring.skew], simp, }
+
 instance of_associative_ring (A : Type v) [ring A] : lie_ring A :=
 { add_left  := ring_commutator.add_left A,
   add_right := ring_commutator.add_right A,

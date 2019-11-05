@@ -126,11 +126,11 @@ meta def eval_expr' (α : Type*) [_inst_1 : reflected α] (e : expr) : tactic α
 mk_app ``id [e] >>= eval_expr α
 
 /-- `mk_fresh_name` returns identifiers starting with underscores,
-which are not legal when emitted by tactic programs. Turn the
+which are not legal when emitted by tactic programs. `mk_user_fresh_name` turns the
 useful source of random names provided by `mk_fresh_name` into
 names which are usable by tactic programs.
 
--- The returned name has four components which are all strings.-/
+The returned name has four components which are all strings. -/
 meta def mk_user_fresh_name : tactic name :=
 do nm ← mk_fresh_name,
    return $ `user__ ++ nm.pop_prefix.sanitize_name ++ `user__
@@ -148,7 +148,7 @@ has_attribute' `simp
 meta def is_instance : name → tactic bool :=
 has_attribute' `instance
 
-/-- Returns a dictionary mapping names to their corresponding declarations.
+/-- `local_decls` returns a dictionary mapping names to their corresponding declarations.
 Covers all declarations from the current file. -/
 meta def local_decls : tactic (name_map declaration) :=
 do e ← tactic.get_env,
@@ -198,7 +198,7 @@ do s ← simp_lemmas_from_file,
    let lmms := format.join $ list.intersperse " " $ s.to_list.map to_fmt,
    trace format!"local attribute [{attr}] {lmms}"
 
-/-- `mk_local n` reates a dummy local variable with name `n`.
+/-- `mk_local n` creates a dummy local variable with name `n`.
 The type of this local constant is a constant with name `n`, so it is very unlikely to be
 a meaningful expression. -/
 meta def mk_local (n : name) : expr :=

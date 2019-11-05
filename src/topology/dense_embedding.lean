@@ -294,16 +294,16 @@ have univ ⊆ {b | p b},
 assume b, this trivial
 
 lemma is_closed_property2 [topological_space α] [topological_space β] {e : α → β} {p : β → β → Prop}
-  (he : dense_embedding e) (hp : is_closed {q:β×β | p q.1 q.2}) (h : ∀a₁ a₂, p (e a₁) (e a₂)) :
+  (he : dense_inducing e) (hp : is_closed {q:β×β | p q.1 q.2}) (h : ∀a₁ a₂, p (e a₁) (e a₂)) :
   ∀b₁ b₂, p b₁ b₂ :=
 have ∀q:β×β, p q.1 q.2,
-  from is_closed_property (he.prod he).to_dense_inducing.closure_range hp $ assume a, h _ _,
+  from is_closed_property (he.prod he).closure_range hp $ assume a, h _ _,
 assume b₁ b₂, this ⟨b₁, b₂⟩
 
 lemma is_closed_property3 [topological_space α] [topological_space β] {e : α → β} {p : β → β → β → Prop}
-  (he : dense_embedding e) (hp : is_closed {q:β×β×β | p q.1 q.2.1 q.2.2}) (h : ∀a₁ a₂ a₃, p (e a₁) (e a₂) (e a₃)) :
+  (he : dense_inducing e) (hp : is_closed {q:β×β×β | p q.1 q.2.1 q.2.2}) (h : ∀a₁ a₂ a₃, p (e a₁) (e a₂) (e a₃)) :
   ∀b₁ b₂ b₃, p b₁ b₂ b₃ :=
 have ∀q:β×β×β, p q.1 q.2.1 q.2.2,
-  from is_closed_property (he.prod $ he.prod he).to_dense_inducing.closure_range hp $
+  from is_closed_property (he.prod $ he.prod he).closure_range hp $
     assume ⟨a₁, a₂, a₃⟩, h _ _ _,
 assume b₁ b₂ b₃, this ⟨b₁, b₂, b₃⟩

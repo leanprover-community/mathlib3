@@ -213,8 +213,6 @@ do (v,_) ← solve_aux `(true) (do
          return v),
    return v
 
-/- TODO: this is not used anywhere in the library, and I suspect it should elaborate `e` with respect
-to the expected type. -/
 /-- `check_defn n e` elaborates the pre-expression `e`,
 and succeeds if this is alpha-equivalent to the value of the declaration with name `n`. -/
 meta def check_defn (n : name) (e : pexpr) : tactic unit :=

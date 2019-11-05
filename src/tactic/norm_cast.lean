@@ -11,7 +11,7 @@ import data.buffer.parser
 
 namespace tactic
 
-/-
+/--
 This is a work around to the fact that in some cases
 mk_instance times out instead of failing
 example: has_lift_t ℤ ℕ
@@ -61,8 +61,11 @@ private meta def aux_after_set (tac : expr → tactic (expr × (expr → expr)))
     )
 | ty := tac ty
 
+/- The `push_cast` simp attribute uses `move_cast` lemmas in the "forward" direction,
+to move casts toward the leaf nodes of the expression. -/
 run_cmd mk_simp_attr `push_cast
 
+/-- Called after the `move_cast` attribute is applied to a declaration. -/
 private meta def after_set (decl : name) (prio : ℕ) (pers : bool) : tactic unit :=
 do
     (declaration.thm n l ty e) ← get_decl decl | failed,
@@ -357,6 +360,14 @@ then close the goal with assumption.
 -/
 meta def assumption_mod_cast : tactic unit :=
 tactic.assumption_mod_cast
+
+/-- `push_cast` rewrites the expression to move casts toward the leaf nodes.
+For example, `↑(a + b)` will be written to `↑a + ↑b`.
+Equivalent to `simp only with push_cast`.
+Can also be used at hypotheses.
+-/
+meta def push_cast (l : parse location): tactic unit :=
+tactic.interactive.simp none tt [] [`push_cast] l
 
 end tactic.interactive
 

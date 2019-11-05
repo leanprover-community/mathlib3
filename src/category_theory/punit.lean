@@ -1,7 +1,8 @@
--- Copyright (c) 2018 Scott Morrison. All rights reserved.
--- Released under Apache 2.0 license as described in the file LICENSE.
--- Authors: Scott Morrison
-
+/-
+Copyright (c) 2018 Scott Morrison. All rights reserved.
+Released under Apache 2.0 license as described in the file LICENSE.
+Authors: Scott Morrison
+-/
 import category_theory.const
 
 universes v w u -- declare the `v`'s first; see `category_theory.category` for an explanation
@@ -14,7 +15,7 @@ instance punit_category : small_category punit :=
   comp := λ _ _ _ _ _, punit.star }
 
 namespace functor
-variables {C : Sort u} [𝒞 : category.{v} C]
+variables {C : Type u} [𝒞 : category.{v} C]
 include 𝒞
 
 /-- The constant functor. For `X : C`, `of.obj X` is the functor `punit ⥤ C`

@@ -12,7 +12,7 @@ noncomputable theory
 
 universes u
 open set classical
-local attribute [instance] prop_decidable
+open_locale classical
 
 namespace zorn
 
@@ -205,7 +205,8 @@ h₃ this.symm
 /-- Zorn's lemma
 
 If every chain has an upper bound, then there is a maximal element -/
-theorem zorn (h : ∀c, chain c → ∃ub, ∀a∈c, a ≺ ub) (trans : ∀{a b c}, a ≺ b → b ≺ c → a ≺ c) :
+theorem exists_maximal_of_chains_bounded
+  (h : ∀c, chain c → ∃ub, ∀a∈c, a ≺ ub) (trans : ∀{a b c}, a ≺ b → b ≺ c → a ≺ c) :
   ∃m, ∀a, m ≺ a → a ≺ m :=
 have ∃ub, ∀a∈max_chain, a ≺ ub,
   from h _ $ max_chain_spec.left,
@@ -222,7 +223,7 @@ end chain
 
 theorem zorn_partial_order {α : Type u} [partial_order α]
   (h : ∀c:set α, @chain α (≤) c → ∃ub, ∀a∈c, a ≤ ub) : ∃m:α, ∀a, m ≤ a → a = m :=
-let ⟨m, hm⟩ := @zorn α (≤) h (assume a b c, le_trans) in
+let ⟨m, hm⟩ := @exists_maximal_of_chains_bounded α (≤) h (assume a b c, le_trans) in
 ⟨m, assume a ha, le_antisymm (hm a ha) ha⟩
 
 theorem zorn_partial_order₀ {α : Type u} [partial_order α] (s : set α)
@@ -273,5 +274,13 @@ theorem chain.total {α : Type u} [preorder α]
   {c} (H : @chain α (≤) c) :
   ∀ {x y}, x ∈ c → y ∈ c → x ≤ y ∨ y ≤ x :=
 @chain.total_of_refl _ (≤) ⟨le_refl⟩ _ H
+
+theorem chain.image {α β : Type*} (r : α → α → Prop)
+  (s : β → β → Prop) (f : α → β)
+  (h : ∀ x y, r x y → s (f x) (f y))
+  {c : set α} (hrc : chain r c) : chain s (f '' c) :=
+λ x ⟨a, ha₁, ha₂⟩ y ⟨b, hb₁, hb₂⟩, ha₂ ▸ hb₂ ▸ λ hxy,
+  (hrc a ha₁ b hb₁ (mt (congr_arg f) $ hxy)).elim
+    (or.inl ∘ h _ _) (or.inr ∘ h _ _)
 
 end zorn

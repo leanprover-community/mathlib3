@@ -100,6 +100,24 @@ encode_injective $ (mem_decode2.1 h₁).trans (mem_decode2.1 h₂).symm
 theorem encodek2 [encodable α] (a : α) : decode2 α (encode a) = some a :=
 mem_decode2.2 rfl
 
+def decidable_range_encode (α : Type*) [encodable α] : decidable_pred (set.range (@encode α _)) :=
+λ x, decidable_of_iff (option.is_some (decode2 α x))
+  ⟨λ h, ⟨option.get h, by rw [← decode2_is_partial_inv (option.get h), option.some_get]⟩,
+  λ ⟨n, hn⟩, by rw [← hn, encodek2]; exact rfl⟩
+
+def equiv_range_encode (α : Type*) [encodable α] : α ≃ set.range (@encode α _) :=
+{ to_fun := λ a : α, ⟨encode a, set.mem_range_self _⟩,
+  inv_fun := λ n, option.get (show is_some (decode2 α n.1),
+    by cases n.2 with x hx; rw [← hx, encodek2]; exact rfl),
+  left_inv := λ a, by dsimp;
+    rw [← option.some_inj, option.some_get, encodek2],
+  right_inv := λ ⟨n, x, hx⟩, begin
+    apply subtype.eq,
+    dsimp,
+    conv {to_rhs, rw ← hx},
+    rw [encode_injective.eq_iff, ← option.some_inj, option.some_get, ← hx, encodek2],
+  end }
+
 section sum
 variables [encodable α] [encodable β]
 

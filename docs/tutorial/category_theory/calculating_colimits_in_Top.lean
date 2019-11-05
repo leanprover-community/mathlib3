@@ -1,4 +1,4 @@
-import category_theory.instances.Top.limits
+import topology.category.Top.limits
 import category_theory.limits.shapes
 import topology.instances.real
 
@@ -7,7 +7,6 @@ import topology.instances.real
 noncomputable theory
 
 open category_theory
-open category_theory.instances
 open category_theory.limits
 
 def R : Top := Top.of ℝ
@@ -18,40 +17,51 @@ section MappingCylinder
 -- Let's construct the mapping cylinder.
 def to_pt (X : Top) : X ⟶ pt :=
 { val := λ _, unit.star, property := continuous_const }
-def I_0 : pt ⟶ I :=
+def I₀ : pt ⟶ I :=
 { val := λ _, ⟨(0 : ℝ), begin rw [set.left_mem_Icc], norm_num, end⟩,
   property := continuous_const }
-def I_1 : pt ⟶ I :=
+def I₁ : pt ⟶ I :=
 { val := λ _, ⟨(1 : ℝ), begin rw [set.right_mem_Icc], norm_num, end⟩,
   property := continuous_const }
 
-def cylinder (X : Top) : Top := limit (pair X I)
+def cylinder (X : Top) : Top := prod X I
 -- To define a map to the cylinder, we give a map to each factor.
--- `binary_fan.mk` is a helper method for constructing a `cone` over `pair X Y`.
-def cylinder_0 (X : Top) : X ⟶ cylinder X :=
-limit.lift (pair X I) (binary_fan.mk (𝟙 X) (to_pt X ≫ I_0))
-def cylinder_1 (X : Top) : X ⟶ cylinder X :=
-limit.lift (pair X I) (binary_fan.mk (𝟙 X) (to_pt X ≫ I_1))
+-- `prod.lift` is a helper method, providing a wrapper around `limit.lift` for binary products.
+def cylinder₀ (X : Top) : X ⟶ cylinder X :=
+prod.lift (𝟙 X) (to_pt X ≫ I₀)
+def cylinder₁ (X : Top) : X ⟶ cylinder X :=
+prod.lift (𝟙 X) (to_pt X ≫ I₁)
 
--- The mapping cylinder is the colimit of the diagram
+-- The mapping cylinder is the pushout of the diagram
 --    X
 --   ↙ ↘
 --  Y   (X x I)
-def mapping_cylinder {X Y : Top} (f : X ⟶ Y) : Top := colimit (span f (cylinder_1 X))
+-- (`pushout` is implemented just as a wrapper around `colimit`) is
+def mapping_cylinder {X Y : Top} (f : X ⟶ Y) : Top := pushout f (cylinder₁ X)
 
--- The mapping cone is the colimit of the diagram
+/-- We construct the map from `X` into the "bottom" of the mapping cylinder
+for `f : X ⟶ Y`, as the composition of the inclusion of `X` into the bottom of the
+cylinder `prod X I`, followed by the map `pushout.inr` of `prod X I` into `mapping_cylinder f`. -/
+def mapping_cylinder₀ {X Y : Top} (f : X ⟶ Y) : X ⟶ mapping_cylinder f :=
+cylinder₀ X ≫ pushout.inr
+
+/--
+The mapping cone is defined as the pushout of
+```
+         X
+        ↙ ↘
+ (Cyl f)   pt
+```
+(where the left arrow is `mapping_cylinder₀`).
+
+This makes it an iterated colimit; one could also define it in one step as the colimit of
+```
 --    X        X
 --   ↙ ↘      ↙ ↘
 --  Y   (X x I)  pt
--- Here we'll calculate it as an iterated colimit, as the colimit of
---         X
---        ↙ ↘
--- (Cyl f)   pt
-
-def mapping_cylinder_0 {X Y : Top} (f : X ⟶ Y) : X ⟶ mapping_cylinder f :=
-cylinder_0 X ≫ colimit.ι (span f (cylinder_1 X)) walking_span.right
-
-def mapping_cone {X Y : Top} (f : X ⟶ Y) : Top := colimit (span (mapping_cylinder_0 f) (to_pt X))
+```
+-/
+def mapping_cone {X Y : Top} (f : X ⟶ Y) : Top := pushout (mapping_cylinder₀ f) (to_pt X)
 
 -- TODO Hopefully someone will write a nice tactic for generating diagrams quickly,
 -- and we'll be able to verify that this iterated construction is the same as the colimit
@@ -62,13 +72,14 @@ section Gluing
 
 -- Here's two copies of the real line glued together at a point.
 def f : pt ⟶ R := { val := λ _, (0 : ℝ), property := continuous_const }
-def X : Top := colimit (span f f)
+
+/-- Two copies of the real line glued together at 0. -/
+def X : Top := pushout f f
 
 -- To define a map out of it, we define maps out of each copy of the line,
 -- and check the maps agree at 0.
--- `pushout_cocone.mk` is a helper method for constructing cocones over a span.
 def g : X ⟶ R :=
-colimit.desc (span f f) (pushout_cocone.mk (𝟙 _) (𝟙 _) rfl).
+pushout.desc (𝟙 _) (𝟙 _) rfl
 
 end Gluing
 
@@ -76,15 +87,18 @@ universes v u w
 
 section Products
 
-def d : discrete ℕ ⥤ Top := functor.of_function (λ n : ℕ, R)
+/-- The countably infinite product of copies of `ℝ`. -/
+def Y : Top := ∏ (λ n : ℕ, R)
 
-def Y : Top := limit d
-
-def w : cone d := fan.mk (λ (n : ℕ), ⟨λ (_ : pt), (n : ℝ), continuous_const⟩)
-
+/-- We define a point of this infinite product by specifying its coordinates. -/
 def q : pt ⟶ Y :=
-limit.lift d w
+pi.lift (λ (n : ℕ), ⟨λ (_ : pt), (n : ℝ), continuous_const⟩)
 
+-- "Looking under the hood", we see that `q` is a `subtype`, whose `val` is a function `unit → Y.α`.
+-- #check q.val -- q.val : pt.α → Y.α
+-- `q.property` is the fact this function is continous (i.e. no content)
+
+-- We can check that this function is definitionally just the function we specified.
 example : (q.val ()).val (57 : ℕ) = ((57 : ℕ) : ℝ) := rfl
 
 end Products

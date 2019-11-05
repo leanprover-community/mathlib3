@@ -161,6 +161,44 @@ theorem perm_lookup (a : α) {l₁ l₂ : list (sigma β)}
   (nd₁ : l₁.nodupkeys) (nd₂ : l₂.nodupkeys) (p : l₁ ~ l₂) : lookup a l₁ = lookup a l₂ :=
 by ext b; simp [mem_lookup_iff, nd₁, nd₂]; exact mem_of_perm p
 
+lemma mem_ext {l₀ l₁ : list (sigma β)}
+  (nd₀ : l₀.nodup) (nd₁ : l₁.nodup)
+  (h : ∀ x, x ∈ l₀ ↔ x ∈ l₁) : l₀ ~ l₁ :=
+begin
+  induction l₀ with x xs generalizing l₁; cases l₁ with x ys,
+  { constructor },
+  iterate 2
+  { specialize h x, simp at h,
+    cases h },
+  simp at nd₀ nd₁, rename x y, classical,
+  cases nd₀, cases nd₁,
+  by_cases h' : x = y,
+  { subst y, constructor, apply l₀_ih ‹ _ › ‹ nodup ys ›,
+    intro a, specialize h a, simp at h,
+    by_cases h' : a = x,
+    { subst a, rw ← not_iff_not, split; intro; assumption },
+    { simp [h'] at h, exact h } },
+  { transitivity x :: y :: ys.erase x,
+    { constructor, apply l₀_ih ‹ _ ›,
+      { simp, split, { intro, apply nd₁_left, apply mem_of_mem_erase a },
+        apply nodup_erase_of_nodup; assumption },
+      { intro a, specialize h a, simp at h,
+        by_cases h' : a = x,
+        { subst a, rw ← not_iff_not, split; intro, simp [mem_erase_of_nodup,*], assumption },
+        { simp [h'] at h, simp [h], apply or_congr, refl,
+          simp [mem_erase_of_ne,*] } } },
+    transitivity y :: x :: ys.erase x,
+    { constructor },
+    { constructor, symmetry, apply perm_erase,
+      specialize h x, simp [h'] at h, exact h } }
+end
+
+lemma lookup_ext {l₀ l₁ : list (sigma β)}
+  (nd₀ : l₀.nodupkeys) (nd₁ : l₁.nodupkeys)
+  (h : ∀ x y, y ∈ l₀.lookup x ↔ y ∈ l₁.lookup x) : l₀ ~ l₁ :=
+mem_ext (nodup_of_nodupkeys nd₀) (nodup_of_nodupkeys nd₁)
+  (λ ⟨a,b⟩, by rw [← mem_lookup_iff, ← mem_lookup_iff, h]; assumption)
+
 /- lookup_all -/
 
 /-- `lookup_all a l` is the list of all values in `l` corresponding to the key `a`. -/
@@ -338,6 +376,18 @@ iff.intro mem_keys_of_mem_keys_kerase $ λ p,
 theorem keys_kerase {a} {l : list (sigma β)} : (kerase a l).keys = l.keys.erase a :=
 by rw [keys, kerase, ←erasep_map sigma.fst l, erase_eq_erasep]
 
+theorem kerase_kerase {a a'} {l : list (sigma β)} : (kerase a' l).kerase a = (kerase a l).kerase a' :=
+begin
+  by_cases a = a',
+  { subst a' },
+  induction l with x xs, { refl },
+  { by_cases a' = x.1,
+    { subst a', simp [kerase_cons_ne h,kerase_cons_eq rfl] },
+    by_cases h' : a = x.1,
+    { subst a, simp [kerase_cons_eq rfl,kerase_cons_ne (ne.symm h)] },
+    { simp [kerase_cons_ne,*] } }
+end
+
 theorem kerase_nodupkeys (a : α) {l : list (sigma β)} : nodupkeys l → (kerase a l).nodupkeys :=
 nodupkeys_of_sublist $ kerase_sublist _ _
 
@@ -458,6 +508,34 @@ def kextract (a : α) : list (sigma β) → option (β a) × list (sigma β)
     { subst a', simp [kerase] },
     { simp [kextract, ne.symm h, kextract_eq_lookup_kerase l, kerase] }
   end
+
+/- erase_dupkeys -/
+
+def erase_dupkeys : list (sigma β) → list (sigma β) :=
+list.foldr (λ ⟨x,y⟩, kinsert x y) []
+
+lemma erase_dupkeys_cons {x : α} {y : β x} (l : list (sigma β)) : erase_dupkeys (⟨x,y⟩ :: l) = kinsert x y (erase_dupkeys l) := rfl
+
+lemma nodupkeys_erase_dupkeys (l : list (sigma β)) : nodupkeys (erase_dupkeys l) :=
+begin
+  dsimp [erase_dupkeys], generalize hl : nil = l',
+  have : nodupkeys l', { rw ← hl, apply nodup_nil },
+  clear hl,
+  induction l with x xs,
+  { apply this },
+  { cases x, simp [erase_dupkeys], split,
+    { simp [keys_kerase], apply mem_erase_of_nodup l_ih },
+    apply kerase_nodupkeys _ l_ih, }
+end
+
+lemma lookup_erase_dupkeys (a : α) (l : list (sigma β)) : lookup a (erase_dupkeys l) = lookup a l :=
+begin
+  induction l, refl,
+  cases l_hd with a' b,
+  by_cases a = a',
+  { subst a', rw [erase_dupkeys_cons,lookup_kinsert,lookup_cons_eq] },
+  { rw [erase_dupkeys_cons,lookup_kinsert_ne h,l_ih,lookup_cons_ne], exact h },
+end
 
 /- kunion -/
 

@@ -18,6 +18,10 @@ structure alist (β : α → Type v) : Type (max u v) :=
 (entries : list (sigma β))
 (nodupkeys : entries.nodupkeys)
 
+def list.to_alist [decidable_eq α] {β : α → Type v} (l : list (sigma β)) : alist β :=
+{ entries := _,
+  nodupkeys := nodupkeys_erase_dupkeys l }
+
 namespace alist
 
 @[extensionality] theorem ext : ∀ {s t : alist β}, s.entries = t.entries → s = t
@@ -135,6 +139,10 @@ lookup_kerase a s.nodupkeys
   lookup a (erase a' s) = lookup a s :=
 lookup_kerase_ne h
 
+@[simp] theorem erase_erase (a a' : α) (s : alist β) :
+  (s.erase a).erase a' = (s.erase a').erase a :=
+ext $ kerase_kerase
+
 /- insert -/
 
 /-- Insert a key-value pair into an association list and erase any existing pair
@@ -168,6 +176,25 @@ by simp only [lookup, insert, lookup_kinsert]
 @[simp] theorem lookup_insert_ne {a a'} {b' : β a'} {s : alist β} (h : a ≠ a') :
   lookup a (insert a' b' s) = lookup a s :=
 lookup_kinsert_ne h
+
+@[simp] theorem lookup_to_alist {a} (s : list (sigma β)) : lookup a s.to_alist = s.lookup a :=
+by rw [list.to_alist,lookup,lookup_erase_dupkeys]
+
+@[simp] theorem insert_insert {a} {b b' : β a} (s : alist β) : (s.insert a b).insert a b' = s.insert a b' :=
+by ext : 1; simp only [alist.insert_entries, list.kerase_cons_eq];
+   constructor_matching* [_ ∧ _]; refl
+
+@[simp] theorem insert_insert_of_ne {a a'} {b : β a} {b' : β a'} (s : alist β) (h : a ≠ a') :
+  ((s.insert a b).insert a' b').entries ~ ((s.insert a' b').insert a b).entries :=
+by simp only [insert_entries]; rw [kerase_cons_ne,kerase_cons_ne,kerase_comm];
+   [apply perm.swap, exact h, exact h.symm]
+
+@[simp] lemma insert_singleton_eq {a : α} {b b' : β a} : insert a b (singleton a b') = singleton a b :=
+ext (by simp only [alist.insert_entries, list.kerase_cons_eq, and_self, alist.singleton_entries, heq_iff_eq, eq_self_iff_true])
+
+@[simp] theorem entries_to_alist (xs : list (sigma β)) : (list.to_alist xs).entries = erase_dupkeys xs := rfl
+
+theorem to_alist_cons (a : α) (b : β a) (xs : list (sigma β)) : list.to_alist (⟨a,b⟩ :: xs) = insert a b xs.to_alist := rfl
 
 /- extract -/
 
@@ -212,6 +239,9 @@ theorem perm_union {s₁ s₂ s₃ s₄ : alist β}
   (s₁ ∪ s₃).entries ~ (s₂ ∪ s₄).entries :=
 by simp [perm_kunion s₃.nodupkeys p₁₂ p₃₄]
 
+theorem union_erase (a : α) (s₁ s₂ : alist β) : erase a (s₁ ∪ s₂) = erase a s₁ ∪ erase a s₂ :=
+ext kunion_kerase.symm
+
 @[simp] theorem lookup_union_left {a} {s₁ s₂ : alist β} :
   a ∈ s₁ → lookup a (s₁ ∪ s₂) = lookup a s₁ :=
 lookup_kunion_left
@@ -227,5 +257,33 @@ mem_lookup_kunion
 theorem mem_lookup_union_middle {a} {b : β a} {s₁ s₂ s₃ : alist β} :
   b ∈ lookup a (s₁ ∪ s₃) → a ∉ s₂ → b ∈ lookup a (s₁ ∪ s₂ ∪ s₃) :=
 mem_lookup_kunion_middle
+
+theorem insert_union {a} {b : β a} {s₁ s₂ : alist β} :
+  insert a b (s₁ ∪ s₂) = insert a b s₁ ∪ s₂ :=
+by ext; simp
+
+theorem union_assoc {s₁ s₂ s₃ : alist β} : ((s₁ ∪ s₂) ∪ s₃).entries ~ (s₁ ∪ (s₂ ∪ s₃)).entries :=
+lookup_ext (alist.nodupkeys _) (alist.nodupkeys _)
+(by simp [decidable.not_or_iff_and_not,or_assoc,and_or_distrib_left,and_assoc])
+
+/- disjoint -/
+
+def disjoint (s₁ s₂ : alist β) :=
+∀ k ∈ s₁.keys, ¬ k ∈ s₂.keys
+
+theorem union_comm_of_disjoint {s₁ s₂ : alist β} (h : disjoint s₁ s₂) : (s₁ ∪ s₂).entries ~ (s₂ ∪ s₁).entries :=
+lookup_ext (alist.nodupkeys _) (alist.nodupkeys _)
+(begin
+   intros, simp,
+   split; intro h',
+   cases h',
+   { right, refine ⟨_,h'⟩,
+     apply h, rw [keys,← list.lookup_is_some,h'], exact rfl },
+   { left, rw h'.2 },
+   cases h',
+   { right, refine ⟨_,h'⟩, intro h'',
+     apply h _ h'', rw [keys,← list.lookup_is_some,h'], exact rfl },
+   { left, rw h'.2 },
+ end)
 
 end alist

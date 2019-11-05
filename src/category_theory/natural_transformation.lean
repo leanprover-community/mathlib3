@@ -18,7 +18,7 @@ namespace category_theory
 
 universes v₁ v₂ v₃ v₄ u₁ u₂ u₃ u₄ -- declare the `v`'s first; see `category_theory.category` for an explanation
 
-variables {C : Sort u₁} [𝒞 : category.{v₁} C] {D : Sort u₂} [𝒟 : category.{v₂} D]
+variables {C : Type u₁} [𝒞 : category.{v₁} C] {D : Type u₂} [𝒟 : category.{v₂} D]
 include 𝒞 𝒟
 
 /--
@@ -28,13 +28,13 @@ The field `app` provides the components of the natural transformation.
 
 Naturality is expressed by `α.naturality_lemma`.
 -/
--- Unfortunately the universe level here needs a `(max ... 1)`,
--- so Lean can be sure that we're not in Prop.
-structure nat_trans (F G : C ⥤ D) : Sort (max u₁ v₂ 1) :=
+structure nat_trans (F G : C ⥤ D) : Type (max u₁ v₂) :=
 (app : Π X : C, (F.obj X) ⟶ (G.obj X))
 (naturality' : ∀ {{X Y : C}} (f : X ⟶ Y), (F.map f) ≫ (app Y) = (app X) ≫ (G.map f) . obviously)
 
 restate_axiom nat_trans.naturality'
+attribute [simp] nat_trans.naturality
+
 namespace nat_trans
 
 /-- `nat_trans.id F` is the identity natural transformation on a functor `F`. -/

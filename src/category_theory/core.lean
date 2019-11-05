@@ -14,12 +14,12 @@ namespace category_theory
 
 universes v₁ v₂ u₁ u₂ -- declare the `v`'s first; see `category_theory.category` for an explanation
 
-def core (C : Sort u₁) := C
+def core (C : Type u₁) := C
 
-variables {C : Sort u₁} [𝒞 : category.{v₁} C]
+variables {C : Type u₁} [𝒞 : category.{v₁} C]
 include 𝒞
 
-instance core_category : groupoid.{(max v₁ 1)} (core C) :=
+instance core_category : groupoid.{v₁} (core C) :=
 { hom  := λ X Y : C, X ≅ Y,
   inv  := λ X Y f, iso.symm f,
   id   := λ X, iso.refl X,
@@ -34,7 +34,7 @@ def inclusion : core C ⥤ C :=
 { obj := id,
   map := λ X Y f, f.hom }
 
-variables {G : Sort u₂} [𝒢 : groupoid.{v₂} G]
+variables {G : Type u₂} [𝒢 : groupoid.{v₂} G]
 include 𝒢
 
 /-- A functor from a groupoid to a category C factors through the core of C. -/

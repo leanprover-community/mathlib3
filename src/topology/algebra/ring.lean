@@ -9,7 +9,7 @@ Theory of topological rings.
 import topology.algebra.group ring_theory.ideals
 
 open classical set lattice filter topological_space
-local attribute [instance] classical.prop_decidable
+open_locale classical
 
 section topological_ring
 universes u v w
@@ -49,23 +49,25 @@ def ideal.closure (S : ideal α) : ideal α :=
 end topological_comm_ring
 
 section topological_ring
-variables {α : Type*} [topological_space α] [comm_ring α] [topological_ring α] (N : ideal α)
+variables {α : Type*} [topological_space α] [comm_ring α] (N : ideal α)
 open ideal.quotient
 
 instance topological_ring_quotient_topology : topological_space N.quotient :=
 by dunfold ideal.quotient submodule.quotient; apply_instance
 
-lemma quotient_ring_saturate (s : set α) :
+lemma quotient_ring_saturate {α : Type*} [comm_ring α] (N : ideal α) (s : set α) :
   mk N ⁻¹' (mk N '' s) = (⋃ x : N, (λ y, x.1 + y) '' s) :=
 begin
   ext x,
-  simp only [mem_preimage_eq, mem_image, mem_Union, ideal.quotient.eq],
+  simp only [mem_preimage, mem_image, mem_Union, ideal.quotient.eq],
   split,
   { exact assume ⟨a, a_in, h⟩, ⟨⟨_, N.neg_mem h⟩, a, a_in, by simp⟩ },
   { exact assume ⟨⟨i, hi⟩, a, ha, eq⟩, ⟨a, ha,
       by rw [← eq, sub_add_eq_sub_sub_swap, sub_self, zero_sub];
       exact N.neg_mem hi⟩ }
 end
+
+variable [topological_ring α]
 
 lemma quotient_ring.is_open_map_coe : is_open_map (mk N) :=
 begin

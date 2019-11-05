@@ -23,7 +23,7 @@ import topology.instances.ennreal
 noncomputable theory
 
 open classical set lattice filter finset function
-local attribute [instance] prop_decidable
+open_locale classical
 
 universes u v w x
 
@@ -393,7 +393,7 @@ begin
     ← ennreal.sub_sub_cancel (by exact hk) (measure_mono (Inter_subset _ k)),
     ← measure_diff (Inter_subset _ k) (h k) (is_measurable.Inter h)
       (lt_of_le_of_lt (measure_mono (Inter_subset _ k)) hk),
-    diff_Inter_left, measure_Union_eq_supr_nat],
+    diff_Inter, measure_Union_eq_supr_nat],
   { congr, funext i,
     cases le_total k i with ik ik,
     { exact measure_diff (hs _ _ ik) (h k) (h i)
@@ -419,7 +419,7 @@ begin
 end
 
 lemma tendsto_measure_Inter {μ : measure α} {s : ℕ → set α}
-  (hs : ∀n, is_measurable (s n)) (hm : ∀n m, n ≤ m → s m ⊆ s n) (hf : ∃i, μ (s i) < ⊤):
+  (hs : ∀n, is_measurable (s n)) (hm : ∀n m, n ≤ m → s m ⊆ s n) (hf : ∃i, μ (s i) < ⊤) :
   tendsto (μ ∘ s) at_top (nhds (μ (⋂n, s n))) :=
 begin
   rw measure_Inter_eq_infi_nat hs hm hf,
@@ -873,8 +873,11 @@ iff.intro
 
 lemma all_ae_iff {p : α → Prop} : (∀ₘ a, p a) ↔ volume { a | ¬ p a } = 0 := iff.refl _
 
+lemma all_ae_of_all {p : α → Prop} : (∀a, p a) → ∀ₘ a, p a := assume h,
+by {rw all_ae_iff, convert volume_empty, simp only [h, not_true], reflexivity}
+
 lemma all_ae_all_iff {ι : Type*} [encodable ι] {p : α → ι → Prop} :
-  (∀ₘ a, ∀i, p a i) ↔ (∀i, ∀ₘ a, p a i):=
+  (∀ₘ a, ∀i, p a i) ↔ (∀i, ∀ₘ a, p a i) :=
 begin
   refine iff.intro (assume h i, _) (assume h, _),
   { filter_upwards [h] assume a ha, ha i },

@@ -126,7 +126,7 @@ example (d : ℚ) (q n : ℕ) (h1 : ((q : ℚ) - 1)*n ≥ 0) (h2 : d = 2/3*(((q 
   ((q : ℚ) - 1)*n - d = 1/3 * (((q : ℚ) - 1)*n) :=
 by linarith
 
-example (a : ℚ) (ha : 0 ≤ a): 0 * 0 ≤ 2 * a :=
+example (a : ℚ) (ha : 0 ≤ a) : 0 * 0 ≤ 2 * a :=
 by linarith
 
 example (x : ℚ) : id x ≥ x :=
@@ -137,3 +137,7 @@ by linarith only [hx, hx2]
 
 example (x y z : ℚ) (hx : x < 5) (hy : y < 5000000000) (hz : z > 34*y) : x ≤ 5 :=
 by linarith only [hx]
+
+example (x y : ℚ) (h : x < y) : x ≠ y := by linarith
+
+example (x y : ℚ) (h : x < y) : ¬ x = y := by linarith

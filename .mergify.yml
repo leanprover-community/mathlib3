@@ -30,9 +30,10 @@ pull_request_rules:
         strict: smart
         strict_method: merge
   
-  - name: remove outdated reviews
-    conditions:
-      - base=master
-    actions:
-      dismiss_reviews:
-        approved: True
+ # In practice this turns out to be really annoying.
+ # - name: remove outdated reviews
+ #   conditions:
+ #     - base=master
+ #   actions:
+ #     dismiss_reviews:
+ #       approved: True

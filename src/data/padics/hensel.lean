@@ -2,18 +2,38 @@
 Copyright (c) 2018 Robert Y. Lewis. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Robert Y. Lewis
-
-A proof of Hensel's lemma on ℤ_p, roughly following Keith Conrad's writeup:
-http://www.math.uconn.edu/~kconrad/blurbs/gradnumthy/hensel.pdf
 -/
 
 import data.padics.padic_integers data.polynomial topology.metric_space.cau_seq_filter
-import analysis.specific_limits topology.instances.polynomial
-import tactic.basic
+import analysis.specific_limits topology.algebra.polynomial
+
+/-!
+# Hensel's lemma on ℤ_p
+
+This file proves Hensel's lemma on ℤ_p, roughly following Keith Conrad's writeup:
+http://www.math.uconn.edu/~kconrad/blurbs/gradnumthy/hensel.pdf
+
+Hensel's lemma gives a simple condition for the existence of a root of a polynomial.
+
+The proof and motivation are described in the paper
+[R. Y. Lewis, *A formal proof of Hensel's lemma over the p-adic integers*][lewis2019].
+
+## References
+
+* http://www.math.uconn.edu/~kconrad/blurbs/gradnumthy/hensel.pdf
+* [R. Y. Lewis, *A formal proof of Hensel's lemma over the p-adic integers*][lewis2019]
+* https://en.wikipedia.org/wiki/Hensel%27s_lemma
+
+## Tags
+
+p-adic, p adic, padic, p-adic integer
+-/
 
 noncomputable theory
 
-local attribute [instance] classical.prop_decidable
+open_locale classical
+
+-- We begin with some general lemmas that are used below in the computation.
 
 lemma padic_polynomial_dist {p : ℕ} [p.prime] (F : polynomial ℤ_[p]) (x y : ℤ_[p]) :
   ∥F.eval x - F.eval y∥ ≤ ∥x - y∥ :=
@@ -69,6 +89,7 @@ parameters {p : ℕ} [nat.prime p] {F : polynomial ℤ_[p]} {a : ℤ_[p]}
            (hnorm : ∥F.eval a∥ < ∥F.derivative.eval a∥^2) (hnsol : F.eval a ≠ 0)
 include hnorm
 
+/-- `T` is an auxiliary value that is used to control the behavior of the polynomial `F`. -/
 private def T : ℝ := ∥(F.eval a).val / ((F.derivative.eval a).val)^2∥
 
 private lemma deriv_sq_norm_pos : 0 < ∥F.derivative.eval a∥ ^ 2 :=
@@ -85,7 +106,7 @@ lt_of_le_of_ne (norm_nonneg _) (ne.symm deriv_norm_ne_zero)
 private lemma deriv_ne_zero : F.derivative.eval a ≠ 0 := mt (norm_eq_zero _).2 deriv_norm_ne_zero
 
 private lemma T_def : T = ∥F.eval a∥ / ∥F.derivative.eval a∥^2 :=
-calc T = ∥(F.eval a).val∥ / ∥((F.derivative.eval a).val)^2∥ : norm_div _ _
+calc T = ∥(F.eval a).val∥ / ∥((F.derivative.eval a).val)^2∥ : normed_field.norm_div _ _
    ... = ∥F.eval a∥ / ∥(F.derivative.eval a)^2∥ : by simp [norm, padic_norm_z]
    ... = ∥F.eval a∥ / ∥(F.derivative.eval a)∥^2 : by simp [pow, monoid.pow]
 
@@ -101,6 +122,7 @@ private lemma T_pow' (n : ℕ) : T ^ (2 ^ n) < 1 := (T_pow (nat.pow_pos (by norm
 
 private lemma T_pow_nonneg (n : ℕ) : T ^ n ≥ 0 := pow_nonneg (norm_nonneg _) _
 
+/-- We will construct a sequence of elements of ℤ_p satisfying successive values of `ih`. -/
 private def ih (n : ℕ) (z : ℤ_[p]) : Prop :=
 ∥F.derivative.eval z∥ = ∥F.derivative.eval a∥ ∧ ∥F.eval z∥ ≤ ∥F.derivative.eval a∥^2 * T ^ (2^n)
 
@@ -110,7 +132,7 @@ private lemma ih_0 : ih 0 a :=
 private lemma calc_norm_le_one {n : ℕ} {z : ℤ_[p]} (hz : ih n z) :
          ∥(↑(F.eval z) : ℚ_[p]) / ↑(F.derivative.eval z)∥ ≤ 1 :=
 calc ∥(↑(F.eval z) : ℚ_[p]) / ↑(F.derivative.eval z)∥
-    = ∥(↑(F.eval z) : ℚ_[p])∥ / ∥(↑(F.derivative.eval z) : ℚ_[p])∥ : norm_div _ _
+    = ∥(↑(F.eval z) : ℚ_[p])∥ / ∥(↑(F.derivative.eval z) : ℚ_[p])∥ : normed_field.norm_div _ _
 ... = ∥F.eval z∥ / ∥F.derivative.eval a∥ : by simp [hz.1]
 ... ≤ ∥F.derivative.eval a∥^2 * T^(2^n) / ∥F.derivative.eval a∥ :
   (div_le_div_right deriv_norm_pos).2 hz.2
@@ -164,7 +186,8 @@ calc ∥F.eval z'∥
 
 set_option eqn_compiler.zeta true
 
--- we need (ih k) in order to construct the value for k+1, otherwise it might not be an integer.
+/-- Given `z : ℤ_[p]` satisfying `ih n z`, construct `z' : ℤ_[p]` satisfying `ih (n+1) z'`. We need
+the hypothesis `ih n z`, since otherwise `z'` is not necessarily an integer. -/
 private def ih_n {n : ℕ} {z : ℤ_[p]} (hz : ih n z) : {z' : ℤ_[p] // ih (n+1) z'} :=
 have h1 : ∥(↑(F.eval z) : ℚ_[p]) / ↑(F.derivative.eval z)∥ ≤ 1, from calc_norm_le_one hz,
 let z1 : ℤ_[p] := ⟨_, h1⟩,
@@ -237,7 +260,7 @@ calc ∥newton_seq (n+2) - newton_seq (n+1)∥
                                                            deriv_norm_pos
 ... = ∥F.eval a∥ / ∥F.derivative.eval a∥ :
   begin
-    rw [T, _root_.pow_two, _root_.pow_one, norm_div, ←mul_div_assoc, padic_norm_e.mul],
+    rw [T, _root_.pow_two, _root_.pow_one, normed_field.norm_div, ←mul_div_assoc, padic_norm_e.mul],
     apply mul_div_mul_left',
     apply deriv_norm_ne_zero; assumption
   end
@@ -261,7 +284,6 @@ private lemma newton_seq_dist_aux (n : ℕ) :
 private lemma newton_seq_dist {n k : ℕ} (hnk : n ≤ k) :
   ∥newton_seq k - newton_seq n∥ ≤ ∥F.derivative.eval a∥ * T^(2^n) :=
 have hex : ∃ m, k = n + m, from exists_eq_add_of_le hnk,
---  ⟨k - n, by rw [←nat.add_sub_assoc hnk, add_comm, nat.add_sub_assoc (le_refl n), nat.sub_self, nat.add_zero]⟩,
 let ⟨_, hex'⟩ := hex in
 by rw hex'; apply newton_seq_dist_aux; assumption
 

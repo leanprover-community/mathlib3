@@ -122,9 +122,9 @@ ext_iff.2 $ by simp
 @[simp] lemma conj_conj (z : ℂ) : conj (conj z) = z :=
 ext_iff.2 $ by simp
 
-lemma conj_bijective : function.bijective conj :=
-⟨function.injective_of_has_left_inverse ⟨conj, conj_conj⟩,
- function.surjective_of_has_right_inverse ⟨conj, conj_conj⟩⟩
+lemma conj_involutive : function.involutive conj := conj_conj
+
+lemma conj_bijective : function.bijective conj := conj_involutive.bijective
 
 lemma conj_inj {z w : ℂ} : conj z = conj w ↔ z = w :=
 conj_bijective.1.eq_iff
@@ -244,10 +244,10 @@ noncomputable instance : discrete_field ℂ :=
   ..complex.comm_ring }
 
 instance re.is_add_group_hom : is_add_group_hom complex.re :=
-by refine_struct {..}; simp
+{ map_add := complex.add_re }
 
 instance im.is_add_group_hom : is_add_group_hom complex.im :=
-by refine_struct {..}; simp
+{ map_add := complex.add_im }
 
 instance : is_ring_hom conj :=
 by refine_struct {..}; simp

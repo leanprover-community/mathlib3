@@ -62,6 +62,14 @@ instance subtype.comm_ring {S : set cR} [is_subring S] : comm_ring (subtype S) :
 instance subring.domain {D : Type*} [integral_domain D] (S : set D) [is_subring S] : integral_domain S :=
 by subtype_instance
 
+instance is_subring.inter (S₁ S₂ : set R) [is_subring S₁] [is_subring S₂] :
+  is_subring (S₁ ∩ S₂) :=
+{ }
+
+instance is_subring.Inter {ι : Sort*} (S : ι → set R) [h : ∀ y : ι, is_subring (S y)] :
+  is_subring (set.Inter S) :=
+{ }
+
 lemma is_subring_Union_of_directed {ι : Type*} [hι : nonempty ι]
   (s : ι → set R) [∀ i, is_subring (s i)]
   (directed : ∀ i j, ∃ k, s i ⊆ s k ∧ s j ⊆ s k) :
@@ -161,5 +169,21 @@ theorem closure_subset_iff (s t : set R) [is_subring t] : closure s ⊆ t ↔ s 
 
 theorem closure_mono {s t : set R} (H : s ⊆ t) : closure s ⊆ closure t :=
 closure_subset $ set.subset.trans H subset_closure
+
+lemma image_closure {S : Type*} [ring S] (f : R → S) [is_ring_hom f] (s : set R) :
+  f '' closure s = closure (f '' s) :=
+le_antisymm
+  begin
+    rintros _ ⟨x, hx, rfl⟩,
+    apply in_closure.rec_on hx; intros,
+    { rw [is_monoid_hom.map_one f], apply is_submonoid.one_mem },
+    { rw [is_ring_hom.map_neg f, is_monoid_hom.map_one f],
+      apply is_add_subgroup.neg_mem, apply is_submonoid.one_mem },
+    { rw [is_monoid_hom.map_mul f],
+      apply is_submonoid.mul_mem; solve_by_elim [subset_closure, set.mem_image_of_mem] },
+    { rw [is_ring_hom.map_add f], apply is_add_submonoid.add_mem, assumption' },
+  end
+  (closure_subset $ set.image_subset _ subset_closure)
+
 
 end ring

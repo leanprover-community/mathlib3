@@ -32,7 +32,7 @@ The .. notation attempts to generate the 'of'-names automatically when the
 input theorem has the form A_iff_B or A_iff_B_left etc.
 
 -/
-import data.buffer.parser meta.coinductive_predicates
+import data.buffer.parser meta.expr
 
 open lean.parser tactic interactive parser
 

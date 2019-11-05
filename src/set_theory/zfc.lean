@@ -251,7 +251,7 @@ end pSet
 namespace classical
 open pSet
 
-noncomputable theorem all_definable : Π {n} (F : arity Set.{u} n), definable n F
+noncomputable def all_definable : Π {n} (F : arity Set.{u} n), definable n F
 | 0     F := let p := @quotient.exists_rep pSet _ F in
               definable.eq_mk ⟨some p, equiv.refl _⟩ (some_spec p)
 | (n+1) (F : arity Set.{u} (n + 1)) := begin

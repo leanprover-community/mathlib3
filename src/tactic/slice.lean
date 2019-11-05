@@ -1,7 +1,8 @@
--- Copyright (c) 2018 Scott Morrison. All rights reserved.
--- Released under Apache 2.0 license as described in the file LICENSE.
--- Authors: Scott Morrison
-
+/-
+Copyright (c) 2018 Scott Morrison. All rights reserved.
+Released under Apache 2.0 license as described in the file LICENSE.
+Authors: Scott Morrison
+-/
 import category_theory.category
 
 open category_theory
@@ -88,4 +89,3 @@ meta def slice_rhs (a b : parse small_nat) (t : conv.interactive.itactic) : tact
 do conv_target' (conv.interactive.to_rhs >> slice a b >> t)
 end interactive
 end tactic
-

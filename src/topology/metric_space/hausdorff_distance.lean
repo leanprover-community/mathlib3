@@ -17,7 +17,7 @@ This files introduces:
 import topology.metric_space.isometry topology.instances.ennreal
        topology.metric_space.lipschitz
 noncomputable theory
-local attribute [instance, priority 0] classical.prop_decidable
+open_locale classical
 universes u v w
 
 open classical lattice set function topological_space filter
@@ -25,7 +25,7 @@ open classical lattice set function topological_space filter
 namespace emetric
 
 section inf_edist
-local notation `∞` := (⊤ : ennreal)
+open_locale ennreal
 variables {α : Type u} {β : Type v} [emetric_space α] [emetric_space β] {x y : α} {s t : set α} {Φ : α → β}
 
 /-- The minimal edistance of a point to a set -/
@@ -145,7 +145,7 @@ lemma Hausdorff_edist_def {α : Type u} [emetric_space α] (s t : set α) :
 attribute [irreducible] Hausdorff_edist
 
 section Hausdorff_edist
-local notation `∞` := (⊤ : ennreal)
+open_locale ennreal
 variables {α : Type u} {β : Type v} [emetric_space α] [emetric_space β]
           {x y : α} {s t u : set α} {Φ : α → β}
 
@@ -456,7 +456,7 @@ lemma mem_closure_iff_inf_dist_zero (h : s ≠ ∅) : x ∈ closure s ↔ inf_di
 by simp [mem_closure_iff_inf_edist_zero, inf_dist, ennreal.to_real_eq_zero_iff, inf_edist_ne_top h]
 
 /-- Given a closed set `s`, a point belongs to `s` iff its infimum distance to this set vanishes -/
-lemma mem_iff_ind_dist_zero_of_closed (h : is_closed s) (hs : s ≠ ∅) :
+lemma mem_iff_inf_dist_zero_of_closed (h : is_closed s) (hs : s ≠ ∅) :
   x ∈ s ↔ inf_dist x s = 0 :=
 begin
   have := @mem_closure_iff_inf_dist_zero _ _ s x hs,

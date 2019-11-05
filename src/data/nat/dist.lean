@@ -92,7 +92,7 @@ or.elim (lt_or_ge i j)
 theorem dist_succ_succ {i j : nat} : dist (succ i) (succ j) = dist i j :=
 by simp [dist.def, succ_sub_succ]
 
-theorem dist_pos_of_ne {i j : nat} : i ≠ j → dist i j > 0 :=
+theorem dist_pos_of_ne {i j : nat} : i ≠ j → 0 < dist i j :=
 assume hne, nat.lt_by_cases
   (assume : i < j,
      begin rw [dist_eq_sub_of_le (le_of_lt this)], apply nat.sub_pos_of_lt this end)

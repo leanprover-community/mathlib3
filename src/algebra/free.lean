@@ -6,7 +6,6 @@ Authors: Kenny Lau
 1. Free magma of a type (traversable, decidable equality).
 2. Free semigroup of a magma.
 3. Free semigroup of a type (traversable, decidable equality).
-4. Free monoid of a semigroup.
 
 And finally, magma.free_semigroup (free_magma α) ≃ free_semigroup α.
 -/
@@ -350,70 +349,6 @@ end category
 instance [decidable_eq α] : decidable_eq (free_semigroup α) := prod.decidable_eq
 
 end free_semigroup
-
-
-namespace semigroup
-
-def free_monoid : Type u → Type u := option
-
-namespace free_monoid
-
-attribute [reducible] free_monoid
-instance (α : Type u) [semigroup α] : monoid (free_monoid α) :=
-{ mul := option.lift_or_get (*),
-  mul_assoc := is_associative.assoc _,
-  one := failure,
-  one_mul := is_left_id.left_id _,
-  mul_one := is_right_id.right_id _ }
-attribute [semireducible] free_monoid
-
-def of {α : Type u} : α → free_monoid α := some
-
-variables {α : Type u} [semigroup α]
-
-@[elab_as_eliminator]
-protected lemma induction_on {C : free_monoid α → Prop} (x : free_monoid α)
-  (h1 : C 1) (hof : ∀ x, C (of x)) : C x :=
-option.rec_on x h1 hof
-
-@[simp] lemma of_mul (x y : α) : of (x * y) = of x * of y := rfl
-
-section lift
-
-variables {β : Type v} [monoid β] (f : α → β)
-
-def lift (x : free_monoid α) : β :=
-option.rec_on x 1 f
-
-@[simp] lemma lift_of (x) : lift f (of x) = f x := rfl
-
-@[simp] lemma lift_one : lift f 1 = 1 := rfl
-
-@[simp] lemma lift_mul (hf : ∀ x y, f (x * y) = f x * f y) (x y) :
-  lift f (x * y) = lift f x * lift f y :=
-free_monoid.induction_on x (by rw [one_mul, lift_one, one_mul]) $ λ x,
-free_monoid.induction_on y (by rw [mul_one, lift_one, mul_one]) $ λ y,
-hf x y
-
-theorem lift_unique (f : free_monoid α → β) (hf : f 1 = 1) :
-  f = lift (f ∘ of) :=
-funext $ λ x, free_monoid.induction_on x hf $ λ x, rfl
-
-end lift
-
-variables {β : Type v} [semigroup β] (f : α → β)
-
-def map : free_monoid α → free_monoid β :=
-lift $ of ∘ f
-
-@[simp] lemma map_of (x) : map f (of x) = of (f x) := rfl
-@[simp] lemma map_mul (hf : ∀ x y, f (x * y) = f x * f y) (x y) : map f (x * y) = map f x * map f y :=
-lift_mul _ (λ x y, congr_arg of $ hf x y) _ _
-
-end free_monoid
-
-end semigroup
-
 
 def free_semigroup_free_magma (α : Type u) : magma.free_semigroup (free_magma α) ≃ free_semigroup α :=
 { to_fun := magma.free_semigroup.lift (free_magma.lift free_semigroup.of) (free_magma.lift_mul _),

@@ -16,7 +16,7 @@ always finite in this context.
 
 import topology.metric_space.hausdorff_distance topology.opens
 noncomputable theory
-local attribute [instance, priority 0] classical.prop_decidable
+open_locale classical
 
 universe u
 open classical lattice set function topological_space filter
@@ -148,7 +148,7 @@ begin
     -- First, we check it belongs to `t0`.
     have : y ∈ t0 := mem_Inter.2 (λk, mem_closure_of_tendsto (by simp) y_lim
     begin
-      simp only [exists_prop, set.mem_Union, filter.mem_at_top_sets, set.mem_preimage_eq, set.preimage_Union],
+      simp only [exists_prop, set.mem_Union, filter.mem_at_top_sets, set.mem_preimage, set.preimage_Union],
       exact ⟨max n k, λm hm, ⟨m, ⟨le_trans (le_max_right _ _) hm, z_in_s m (le_trans (le_max_left _ _) hm)⟩⟩⟩,
     end),
     -- Then, we check that `y` is close to `x = z n`. This follows from the fact that `y`
@@ -202,7 +202,7 @@ instance closeds.compact_space [compact_space α] : compact_space (closeds α) :
     are finitely many, and ε-dense for the Hausdorff distance. -/
   refine compact_of_totally_bounded_is_closed (emetric.totally_bounded_iff.2 (λε εpos, _)) is_closed_univ,
   rcases dense εpos with ⟨δ, δpos, δlt⟩,
-  rcases emetric.totally_bounded_iff.1 (compact_iff_totally_bounded_complete.1 (@compact_univ α _ _ _)).1 δ δpos
+  rcases emetric.totally_bounded_iff.1 (compact_iff_totally_bounded_complete.1 (@compact_univ α _ _)).1 δ δpos
     with ⟨s, fs, hs⟩,
   -- s : set α,  fs : finite s,  hs : univ ⊆ ⋃ (y : α) (H : y ∈ s), eball y δ
   -- we first show that any set is well approximated by a subset of `s`.
@@ -224,7 +224,7 @@ instance closeds.compact_space [compact_space α] : compact_space (closeds α) :
   split,
   -- `F` is finite
   { apply @finite_of_finite_image _ _ F (λf, f.val),
-    { simp [subtype.val_injective] },
+    { apply set.inj_on_of_injective, simp [subtype.val_injective] },
     { refine finite_subset (finite_subsets_of_finite fs) (λb, _),
       simp only [and_imp, set.mem_image, set.mem_set_of_eq, exists_imp_distrib],
       assume x hx hx',

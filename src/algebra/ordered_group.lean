@@ -46,11 +46,11 @@ ordered_comm_monoid.lt_of_add_lt_add_left a b c
 lemma add_le_add' (h₁ : a ≤ b) (h₂ : c ≤ d) : a + c ≤ b + d :=
 le_trans (add_le_add_right' h₁) (add_le_add_left' h₂)
 
-lemma le_add_of_nonneg_right' (h : b ≥ 0) : a ≤ a + b :=
+lemma le_add_of_nonneg_right' (h : 0 ≤ b) : a ≤ a + b :=
 have a + b ≥ a + 0, from add_le_add_left' h,
 by rwa add_zero at this
 
-lemma le_add_of_nonneg_left' (h : b ≥ 0) : a ≤ b + a :=
+lemma le_add_of_nonneg_left' (h : 0 ≤ b) : a ≤ b + a :=
 have 0 + a ≤ b + a, from add_le_add_right' h,
 by rwa zero_add at this
 
@@ -241,17 +241,19 @@ begin
     ..with_top.partial_order,
     ..with_top.add_comm_monoid, ..},
   { intros a b c h,
-    refine ⟨λ c h₂, _, λ h₂, h.2 $ this _ _ h₂ _⟩,
+    have h' := h,
+    rw lt_iff_le_not_le at h' ⊢,
+    refine ⟨λ c h₂, _, λ h₂, h'.2 $ this _ _ h₂ _⟩,
     cases h₂, cases a with a,
     { exact (not_le_of_lt h).elim le_top },
     cases b with b,
     { exact (not_le_of_lt h).elim le_top },
     { exact ⟨_, rfl, le_of_lt (lt_of_add_lt_add_left' $
         with_top.some_lt_some.1 h)⟩ } },
-  { intros a b h c cb h₂,
+  { intros a b h c ca h₂,
     cases c with c, {cases h₂},
     cases b with b; cases h₂,
-    cases a with a, {cases le_antisymm h le_top},
+    cases a with a, {cases le_antisymm h le_top },
     simp at h,
     exact ⟨_, rfl, add_le_add_left' h⟩, }
 end
@@ -401,7 +403,7 @@ instance ordered_cancel_comm_monoid.to_ordered_comm_monoid
 { lt_of_add_lt_add_left := @lt_of_add_lt_add_left _ _, ..H }
 
 section ordered_cancel_comm_monoid
-variables [ordered_cancel_comm_monoid α] {a b c : α}
+variables [ordered_cancel_comm_monoid α] {a b c x y : α}
 
 @[simp] lemma add_le_add_iff_left (a : α) {b c : α} : a + b ≤ a + c ↔ b ≤ c :=
 ⟨le_of_add_le_add_left, λ h, add_le_add_left h _⟩
@@ -428,6 +430,18 @@ by rwa add_zero at this
 
 @[simp] lemma lt_add_iff_pos_left (a : α) {b : α} : a < b + a ↔ 0 < b :=
 by rw [add_comm, lt_add_iff_pos_right]
+
+@[simp] lemma add_le_iff_nonpos_left : x + y ≤ y ↔ x ≤ 0 :=
+by { convert add_le_add_iff_right y, rw [zero_add] }
+
+@[simp] lemma add_le_iff_nonpos_right : x + y ≤ x ↔ y ≤ 0 :=
+by { convert add_le_add_iff_left x, rw [add_zero] }
+
+@[simp] lemma add_lt_iff_neg_right : x + y < y ↔ x < 0 :=
+by { convert add_lt_add_iff_right y, rw [zero_add] }
+
+@[simp] lemma add_lt_iff_neg_left : x + y < x ↔ y < 0 :=
+by { convert add_lt_add_iff_left x, rw [add_zero] }
 
 lemma add_eq_zero_iff_eq_zero_of_nonneg
   (ha : 0 ≤ a) (hb : 0 ≤ b) : a + b = 0 ↔ a = 0 ∧ b = 0 :=
@@ -456,9 +470,32 @@ by simpa [add_comm] using @with_top.add_lt_add_iff_left _ _ a b c
 end ordered_cancel_comm_monoid
 
 section ordered_comm_group
+
+/--
+The `add_lt_add_left` field of `ordered_comm_group` is redundant, but it is in core so
+we can't remove it for now. This alternative constructor is the best we can do.
+-/
+def ordered_comm_group.mk' {α : Type u} [add_comm_group α] [partial_order α]
+  (add_le_add_left : ∀ a b : α, a ≤ b → ∀ c : α, c + a ≤ c + b) :
+  ordered_comm_group α :=
+{ add_le_add_left := add_le_add_left,
+  add_lt_add_left := λ a b h c,
+  begin
+    rw lt_iff_le_not_le at h,
+    rw lt_iff_le_not_le,
+    split,
+    { apply add_le_add_left _ _ h.1 },
+    { intro w,
+      replace w : -c + (c + b) ≤ -c + (c + a) := add_le_add_left _ _ w _,
+      simp only [add_zero, add_comm, add_left_neg, add_left_comm] at w,
+      exact h.2 w },
+  end,
+  ..(by apply_instance : add_comm_group α),
+  ..(by apply_instance : partial_order α)  }
+
 variables [ordered_comm_group α] {a b c : α}
 
-lemma neg_neg_iff_pos {α : Type} [_inst_1 : ordered_comm_group α] {a : α} : -a < 0 ↔ 0 < a := 
+lemma neg_neg_iff_pos {α : Type} [_inst_1 : ordered_comm_group α] {a : α} : -a < 0 ↔ 0 < a :=
 ⟨ pos_of_neg_neg, neg_neg_of_pos ⟩
 
 @[simp] lemma neg_le_neg_iff : -a ≤ -b ↔ b ≤ a :=
@@ -613,6 +650,21 @@ sub_lt_iff_lt_add'.trans (lt_add_iff_pos_left _)
 
 end ordered_comm_group
 
+namespace decidable_linear_ordered_comm_group
+variables [s : decidable_linear_ordered_comm_group α]
+include s
+
+instance : decidable_linear_ordered_cancel_comm_monoid α :=
+{ le_of_add_le_add_left := λ x y z, le_of_add_le_add_left,
+  add_left_cancel := λ x y z, add_left_cancel,
+  add_right_cancel := λ x y z, add_right_cancel,
+  ..s }
+
+lemma eq_of_abs_sub_nonpos {a b : α} (h : abs (a - b) ≤ 0) : a = b :=
+eq_of_abs_sub_eq_zero (le_antisymm _ _ h (abs_nonneg (a - b)))
+
+end decidable_linear_ordered_comm_group
+
 set_option old_structure_cmd true
 /-- This is not so much a new structure as a construction mechanism
   for ordered groups, by specifying only the "positive cone" of the group. -/
@@ -676,3 +728,25 @@ def to_decidable_linear_ordered_comm_group
   ..@nonneg_comm_group.to_ordered_comm_group _ s }
 
 end nonneg_comm_group
+
+namespace order_dual
+
+instance [ordered_comm_monoid α] : ordered_comm_monoid (order_dual α) :=
+{ add_le_add_left := λ a b h c, @add_le_add_left' α _ b a c h,
+  lt_of_add_lt_add_left := λ a b c h, @lt_of_add_lt_add_left' α _ a c b h,
+  ..order_dual.partial_order α,
+  ..show add_comm_monoid α, by apply_instance }
+
+instance [ordered_cancel_comm_monoid α] : ordered_cancel_comm_monoid (order_dual α) :=
+{ le_of_add_le_add_left := λ a b c : α, le_of_add_le_add_left,
+  add_left_cancel := @add_left_cancel α _,
+  add_right_cancel := @add_right_cancel α _,
+  ..order_dual.ordered_comm_monoid }
+
+instance [ordered_comm_group α] : ordered_comm_group (order_dual α) :=
+{ add_lt_add_left := λ a b : α, ordered_comm_group.add_lt_add_left b a,
+  add_left_neg := λ a : α, add_left_neg a,
+  ..order_dual.ordered_comm_monoid,
+  ..show add_comm_group α, by apply_instance }
+
+end order_dual

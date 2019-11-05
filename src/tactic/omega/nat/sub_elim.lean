@@ -13,16 +13,7 @@ import tactic.omega.nat.form
 namespace omega
 namespace nat
 
-local notation `&` k    := preterm.cst k
-local infix ` ** ` : 300 := preterm.var
-local notation t ` +* ` s := preterm.add t s
-local notation t ` -* ` s := preterm.sub t s
-
-local notation x ` =* ` y := form.eq x y
-local notation x ` ≤* ` y := form.le x y
-local notation `¬* ` p   := form.not p
-local notation p ` ∨* ` q := form.or p q
-local notation p ` ∧* ` q := form.and p q
+open_locale omega.nat
 
 namespace preterm
 

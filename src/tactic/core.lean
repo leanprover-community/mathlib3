@@ -405,11 +405,6 @@ meta def var_names : expr → list name
 | (expr.pi n _ _ b) := n :: var_names b
 | _ := []
 
--- todo: this duplicates mk_local_pis
-meta def drop_binders : expr → tactic expr
-| (expr.pi n bi t b) := b.instantiate_var <$> mk_local' n bi t >>= drop_binders
-| e := pure e
-
 /-- When `struct_n` is the name of a structure type,
 `subobject_names struct_n` returns two lists of names `(instances, fields)`.
 The names in `instances` are the projections from `struct_n` to the structures that it extends
@@ -425,7 +420,7 @@ do env ← get_env,
 private meta def expanded_field_list' : name → tactic (dlist $ name × name) | struct_n :=
 do (so,fs) ← subobject_names struct_n,
    ts ← so.mmap (λ n, do
-     e ← mk_const (n.update_prefix struct_n) >>= infer_type >>= drop_binders,
+     (_, e) ← mk_const (n.update_prefix struct_n) >>= infer_type >>= mk_local_pis,
      expanded_field_list' $ e.get_app_fn.const_name),
    return $ dlist.join ts ++ dlist.of_list (fs.map $ prod.mk struct_n)
 open functor function

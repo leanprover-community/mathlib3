@@ -119,6 +119,20 @@ end
 @[simp] protected lemma neg_right (x y : L) :
   ⁅x, -y⁆ = -⁅x, y⁆ := by { rw [←lie_ring.skew, ←lie_ring.skew], simp, }
 
+@[simp] protected lemma gsmul_left (x y : L) (n : ℤ) :
+  ⁅n • x, y⁆ = n • ⁅x, y⁆ :=
+begin
+  have H : is_add_group_hom (λ z, ⁅z, y⁆) := { map_add := by { intros, rw lie_ring.add_left, } },
+  exact (@is_add_group_hom.map_gsmul _ _ _ _ _ H x n),
+end
+
+@[simp] protected lemma gsmul_right (x y : L) (n : ℤ) :
+  ⁅x, n • y⁆ = n • ⁅x, y⁆ :=
+begin
+  rw [←lie_ring.skew, ←lie_ring.skew _ x, lie_ring.gsmul_left],
+  unfold has_scalar.smul, rw gsmul_neg,
+end
+
 instance of_associative_ring (A : Type v) [ring A] : lie_ring A :=
 { add_left  := ring_commutator.add_left A,
   add_right := ring_commutator.add_right A,

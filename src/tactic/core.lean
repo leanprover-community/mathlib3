@@ -458,6 +458,11 @@ meta def drop_binders : expr → tactic expr
 | (expr.pi n bi t b) := b.instantiate_var <$> mk_local' n bi t >>= drop_binders
 | e := pure e
 
+/-- When `struct_n` is the name of a structure type,
+`subobject_names struct_n` returns two lists of names `(instances, fields)`.
+The names in `instances` are the projections from `struct_n` to the structures that it extends
+(assuming it was defined with `old_structure_cmd false`).
+The names in `fields` are the standard fields of `struct_n`. -/
 meta def subobject_names (struct_n : name) : tactic (list name × list name) :=
 do env ← get_env,
    [c] ← pure $ env.constructors_of struct_n | fail "too many constructors",
@@ -881,6 +886,7 @@ private meta def strip_prefix' (n : name) : list string → name → tactic name
      <|> strip_prefix' (a :: s) p
 | s n@(name.mk_numeral a p) := pure $ s.foldl (flip name.mk_string) n
 
+/-- Strips unnecessary prefixes from a name, e.g. if a namespace is open. -/
 meta def strip_prefix : name → tactic name
 | n@(name.mk_string a a_1) :=
   if (`_private).is_prefix_of n

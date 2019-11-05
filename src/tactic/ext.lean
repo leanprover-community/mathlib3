@@ -27,7 +27,7 @@ structure foo (α : Type*) :=
 `eq_proof_rule` generates:
 
 ```
-foo.eq : ∀ {α : Type u_1} (x y : foo α), x.x = y.x → x.y = y.y → x.z == y.z → x.k = y.k → x = y
+foo.ext : ∀ {α : Type u_1} (x y : foo α), x.x = y.x → x.y = y.y → x.z == y.z → x.k = y.k → x = y
 ```
 
 -/

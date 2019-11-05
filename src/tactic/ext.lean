@@ -16,7 +16,7 @@ the equality of all non-propositional projections.
 On the following:
 
 ```
-@[eq_proof_rule]
+@[ext]
 structure foo (α : Type*) :=
 (x y : ℕ)
 (z : {z // z < x})

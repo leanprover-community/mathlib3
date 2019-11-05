@@ -112,11 +112,16 @@ meta def length : name → ℕ
 | (mk_numeral n p)        := p.length
 | anonymous               := "[anonymous]".length
 
-/-- checks whether `nm` has a prefix (including itself) such that P is true -/
+/-- Checks whether `nm` has a prefix (including itself) such that P is true -/
 def has_prefix (P : name → bool) : name → bool
 | anonymous := ff
 | (mk_string s nm)  := P (mk_string s nm) ∨ has_prefix nm
 | (mk_numeral s nm) := P (mk_numeral s nm) ∨ has_prefix nm
+
+/-- Appends `'` to the end of a name. -/
+meta def add_prime : name → name
+| (name.mk_string s p) := name.mk_string (s ++ "'") p
+| n := (name.mk_string "x'" n)
 
 end name
 
@@ -223,6 +228,11 @@ meta def is_mvar : expr → bool
 meta def is_sort : expr → bool
 | (sort _) := tt
 | e         := ff
+
+/-- If `e` is a local constant, `to_implicit e` changes the binder info of `e` to `implicit`. -/
+meta def to_implicit : expr → expr
+| (expr.local_const uniq n bi t) := expr.local_const uniq n binder_info.implicit t
+| e := e
 
 /-- Returns a list of all local constants in an expression (without duplicates). -/
 meta def list_local_consts (e : expr) : list expr :=
@@ -380,6 +390,18 @@ meta def mk_and_lst : list expr → expr := mk_op_lst `(and) `(true)
 
 /-- `mk_or_lst [x1, x2, ...]` is defined as `x1 ∨ (x2 ∨ ...)`, or `false` if the list is empty. -/
 meta def mk_or_lst : list expr → expr := mk_op_lst `(or) `(false)
+
+/-- `local_binding_info e` returns the binding info of `e` if `e` is a local constant.
+Otherwise returns `binder_info.default`. -/
+meta def local_binding_info : expr → binder_info
+| (expr.local_const _ _ bi _) := bi
+| _ := binder_info.default
+
+/-- `is_default_local e` tests whether `e` is a local constant with binder info
+`binder_info.default` -/
+meta def is_default_local : expr → bool
+| (expr.local_const _ _ binder_info.default _) := tt
+| _ := ff
 
 end expr
 

@@ -6,7 +6,7 @@ Author: Mario Carneiro
 Displays a proof term in a line by line format somewhat akin to a Fitch style
 proof or the Metamath proof style.
 -/
-import tactic.core meta.coinductive_predicates
+import tactic.core
 open expr tactic
 
 namespace tactic

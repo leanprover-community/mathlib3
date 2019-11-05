@@ -1175,7 +1175,7 @@ attribute [simp, reassoc] some_class.bar
 Instead of creating a new assumption from the result, `reassoc_of h` stands for the proof of that reassociated
 statement. This prevents poluting the local context with complicated assumptions used only once or twice.
 
-In the following, assumption `h` is needed in a reassociated form. Instead of proving it as a new goal and adding it as 
+In the following, assumption `h` is needed in a reassociated form. Instead of proving it as a new goal and adding it as
 an assumption, we use `reassoc_of h` as a rewrite rule which works just as well.
 
 ```lean
@@ -1189,7 +1189,7 @@ begin
 end
 ```
 
-Although `reassoc_of` is not a tactic or a meta program, its type is generated 
+Although `reassoc_of` is not a tactic or a meta program, its type is generated
 through meta-programming to make it usable inside normal expressions.
 
 ### lint
@@ -1201,14 +1201,15 @@ User commands to spot common mistakes in the code
 * `#lint_all`: check all declarations in the environment (the current file and all
   imported files)
 
-Five linters are run by default:
-1. `unused_arguments` checks for unused arguments in declarations
-2. `def_lemma` checks whether a declaration is incorrectly marked as a def/lemma
-3. `dup_namespce` checks whether a namespace is duplicated in the name of a declaration
-4. `illegal_constant` checks whether ≥/> is used in the declaration
-5. `doc_blame` checks for missing doc strings on definitions and constants.
+The following linters are run by default:
+1. `unused_arguments` checks for unused arguments in declarations.
+2. `def_lemma` checks whether a declaration is incorrectly marked as a def/lemma.
+3. `dup_namespce` checks whether a namespace is duplicated in the name of a declaration.
+4. `illegal_constant` checks whether ≥/> is used in the declaration.
+5. `instance_priority` checks that instances that always apply have priority below default.
+6. `doc_blame` checks for missing doc strings on definitions and constants.
 
-A sixth linter, `doc_blame_thm`, checks for missing doc strings on lemmas and theorems.
+Another linter, `doc_blame_thm`, checks for missing doc strings on lemmas and theorems.
 This is not run by default.
 
 The command `#list_linters` prints a list of the names of all available linters.
@@ -1282,24 +1283,32 @@ See also additional documentation of `using_well_founded` in
 ### simps
 
 * The `@[simps]` attribute automatically derives lemmas specifying the projections of the declaration.
-* Example:
+* Example: (note that the forward and reverse functions are specified differently!)
   ```lean
-  @[simps] def refl (α) : α ≃ α := ⟨id, id, λ x, rfl, λ x, rfl⟩
+  @[simps] def refl (α) : α ≃ α := ⟨id, λ x, x, λ x, rfl, λ x, rfl⟩
   ```
   derives two simp-lemmas:
   ```lean
-  @[simp] lemma refl_to_fun (α) : (refl α).to_fun = id
-  @[simp] lemma refl_inv_fun (α) : (refl α).inv_fun = id
+  @[simp] lemma refl_to_fun (α) (x : α) : (refl α).to_fun x = id x
+  @[simp] lemma refl_inv_fun (α) (x : α) : (refl α).inv_fun x = x
   ```
 * It does not derive simp-lemmas for the prop-valued projections.
 * It will automatically reduce newly created beta-redexes, but not unfold any definitions.
 * If one of the fields itself is a structure, this command will recursively create
   simp-lemmas for all fields in that structure.
+* You can use `@[simps proj1 proj2 ...]` to only generate the projection lemmas for the specified
+  projections. For example:
+  ```lean
+  attribute [simps to_fun] refl
+  ```
 * If one of the values is an eta-expanded structure, we will eta-reduce this structure.
 * You can use `@[simps lemmas_only]` to derive the lemmas, but not mark them
   as simp-lemmas.
+* You can use `@[simps short_name]` to only use the name of the last projection for the name of the
+  generated lemmas.
+* The precise syntax is `('simps' 'lemmas_only'? 'short_name'? ident*)`.
 * If one of the projections is marked as a coercion, the generated lemmas do *not* use this
   coercion.
+* `@[simps]` reduces let-expressions where necessary.
 * If one of the fields is a partially applied constructor, we will eta-expand it
   (this likely never happens).
-* `@[simps]` reduces let-expressions where necessary.

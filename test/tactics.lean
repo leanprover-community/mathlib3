@@ -4,7 +4,8 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Simon Hudon, Scott Morrison
 -/
 
-import tactic.interactive tactic.finish tactic.ext tactic.lift tactic.apply tactic.reassoc_axiom
+import tactic.interactive tactic.finish tactic.ext tactic.lift tactic.apply
+       tactic.reassoc_axiom tactic.tfae tactic.elide
 
 example (m n p q : nat) (h : m + n = p) : true :=
 begin
@@ -129,57 +130,79 @@ end
 
 end h_generalize
 
--- section tfae
+section tfae
 
--- example (p q r s : Prop)
---   (h₀ : p ↔ q)
---   (h₁ : q ↔ r)
---   (h₂ : r ↔ s) :
---   p ↔ s :=
--- begin
---   scc,
--- end
+example (p q r s : Prop)
+  (h₀ : p ↔ q)
+  (h₁ : q ↔ r)
+  (h₂ : r ↔ s) :
+  p ↔ s :=
+begin
+  scc,
+end
 
--- example (p' p q r r' s s' : Prop)
---   (h₀ : p' → p)
---   (h₀ : p → q)
---   (h₁ : q → r)
---   (h₁ : r' → r)
---   (h₂ : r ↔ s)
---   (h₂ : s → p)
---   (h₂ : s → s') :
---   p ↔ s :=
--- begin
---   scc,
--- end
+example (p' p q r r' s s' : Prop)
+  (h₀ : p' → p)
+  (h₀ : p → q)
+  (h₁ : q → r)
+  (h₁ : r' → r)
+  (h₂ : r ↔ s)
+  (h₂ : s → p)
+  (h₂ : s → s') :
+  p ↔ s :=
+begin
+  scc,
+end
 
--- example (p' p q r r' s s' : Prop)
---   (h₀ : p' → p)
---   (h₀ : p → q)
---   (h₁ : q → r)
---   (h₁ : r' → r)
---   (h₂ : r ↔ s)
---   (h₂ : s → p)
---   (h₂ : s → s') :
---   p ↔ s :=
--- begin
---   scc',
---   assumption
--- end
+example (p' p q r r' s s' : Prop)
+  (h₀ : p' → p)
+  (h₀ : p → q)
+  (h₁ : q → r)
+  (h₁ : r' → r)
+  (h₂ : r ↔ s)
+  (h₂ : s → p)
+  (h₂ : s → s') :
+  p ↔ s :=
+begin
+  scc',
+  assumption
+end
 
--- example : tfae [true, ∀ n : ℕ, 0 ≤ n * n, true, true] := begin
---   tfae_have : 3 → 1, { intro h, constructor },
---   tfae_have : 2 → 3, { intro h, constructor },
---   tfae_have : 2 ← 1, { intros h n, apply nat.zero_le },
---   tfae_have : 4 ↔ 2, { tauto },
---   tfae_finish,
--- end
+example : tfae [true, ∀ n : ℕ, 0 ≤ n * n, true, true] := begin
+  tfae_have : 3 → 1, { intro h, constructor },
+  tfae_have : 2 → 3, { intro h, constructor },
+  tfae_have : 2 ← 1, { intros h n, apply nat.zero_le },
+  tfae_have : 4 ↔ 2, { tauto },
+  tfae_finish,
+end
 
--- example : tfae [] := begin
---   tfae_finish,
--- end
+example : tfae [] := begin
+  tfae_finish,
+end
 
--- end tfae
+variables P Q R : Prop
+
+example : tfae [P, Q, R] :=
+begin
+  have : P → Q := sorry, have : Q → R := sorry, have : R → P := sorry,
+  --have : R → Q := sorry, -- uncommenting this makes the proof fail
+  tfae_finish
+end
+
+example : tfae [P, Q, R] :=
+begin
+  have : P → Q := sorry, have : Q → R := sorry, have : R → P := sorry,
+  have : R → Q := sorry, -- uncommenting this makes the proof fail
+  tfae_finish
+end
+
+example : tfae [P, Q, R] :=
+begin
+  have : P ↔ Q := sorry, have : Q ↔ R := sorry,
+  tfae_finish -- the success or failure of this tactic is nondeterministic!
+end
+
+end tfae
 
 section clear_aux_decl
 
@@ -358,3 +381,26 @@ run_cmd do e ← get_env,
 
 
 end is_eta_expansion
+
+section elide
+
+variables {x y z w : ℕ}
+variables (h  : x + y + z ≤ w)
+          (h' : x ≤ y + z + w)
+include h h'
+
+example : x + y + z ≤ w :=
+begin
+  elide 0 at h,
+  elide 2 at h',
+  guard_hyp h := @hidden _ (x + y + z ≤ w),
+  guard_hyp h' := x ≤ @has_add.add (@hidden Type nat) (@hidden (has_add nat) nat.has_add)
+                                   (@hidden ℕ (y + z)) (@hidden ℕ w),
+  unelide at h,
+  unelide at h',
+  guard_hyp h' := x ≤ y + z + w,
+  exact h, -- there was a universe problem in `elide`. `exact h` lets the kernel check
+           -- the consistency of the universes
+end
+
+end elide

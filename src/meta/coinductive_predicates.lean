@@ -573,7 +573,7 @@ meta def coinductive_predicate (meta_info : decl_meta_info) (_ : parse $ tk "coi
 /-- Prepares coinduction proofs. This tactic constructs the coinduction invariant from
 the quantifiers in the current goal.
 
-Current version: do not support mutual inductive rules (i.e. only a since C -/
+Current version: do not support mutual inductive rules -/
 meta def coinduction (rule : expr) (ns : list name) : tactic unit := focus1 $
 do
   ctxts' ← intros,

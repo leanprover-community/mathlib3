@@ -119,7 +119,7 @@ meta def fold_over_with_cond_sorted {α} (l : list declaration)
   return $ ds₂.to_list
 
 /-- Make the output of `fold_over_with_cond` printable, in the following form:
-      #print <name> <open multiline comment> <elt of α> <close multiline comment> -/
+      `#print <name> <open multiline comment> <elt of α> <close multiline comment>` -/
 meta def print_decls {α} [has_to_format α] (ds : list (declaration × α)) : format :=
 ds.foldl
   (λ f x, f ++ "\n" ++ to_fmt "#print " ++ to_fmt x.1.to_name ++ " /- " ++ to_fmt x.2 ++ " -/")

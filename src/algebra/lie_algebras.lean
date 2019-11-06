@@ -81,16 +81,15 @@ class lie_ring (L : Type v) [add_comm_group L] extends has_bracket L :=
 (alternate : ∀ (x : L), ⁅x, x⁆ = 0)
 (jacobi : ∀ (x y z : L), ⁅x, ⁅y, z⁆⁆ + ⁅y, ⁅z, x⁆⁆ + ⁅z, ⁅x, y⁆⁆ = 0)
 
-namespace lie_ring
+section lie_ring
 
 variables (L : Type v) [add_comm_group L] [lie_ring L]
 
-attribute [simp] add_left
-attribute [simp] add_right
-attribute [simp] alternate
-attribute [simp] jacobi
+attribute [simp] lie_ring.add_left
+attribute [simp] lie_ring.add_right
+attribute [simp] lie_ring.alternate
 
-@[simp] protected lemma skew (x y : L) :
+@[simp] lemma lie_skew (x y : L) :
   -⁅y, x⁆ = ⁅x, y⁆ :=
 begin
   symmetry,
@@ -103,37 +102,37 @@ begin
   exact H,
 end
 
-@[simp] protected lemma zero_left (x : L) :
+@[simp] lemma lie_zero (x : L) :
   ⁅x, 0⁆ = 0 :=
 begin
   have H : ⁅x, 0⁆ + ⁅x, 0⁆ = ⁅x, 0⁆ + 0 := by { rw ←lie_ring.add_right, simp, },
   exact add_left_cancel H,
 end
 
-@[simp] protected lemma zero_right (x : L) :
-  ⁅0, x⁆ = 0 := by { rw [←lie_ring.skew, lie_ring.zero_left], simp, }
+@[simp] lemma zero_lie (x : L) :
+  ⁅0, x⁆ = 0 := by { rw [←lie_skew, lie_zero], simp, }
 
-@[simp] protected lemma neg_left (x y : L) :
+@[simp] lemma neg_lie (x y : L) :
   ⁅-x, y⁆ = -⁅x, y⁆ := by { rw [←sub_eq_zero_iff_eq, sub_neg_eq_add, ←lie_ring.add_left], simp, }
 
-@[simp] protected lemma neg_right (x y : L) :
-  ⁅x, -y⁆ = -⁅x, y⁆ := by { rw [←lie_ring.skew, ←lie_ring.skew], simp, }
+@[simp] lemma lie_neg (x y : L) :
+  ⁅x, -y⁆ = -⁅x, y⁆ := by { rw [←lie_skew, ←lie_skew], simp, }
 
-@[simp] protected lemma gsmul_left (x y : L) (n : ℤ) :
+@[simp] lemma gsmul_lie (x y : L) (n : ℤ) :
   ⁅n • x, y⁆ = n • ⁅x, y⁆ :=
 begin
   have H : is_add_group_hom (λ z, ⁅z, y⁆) := { map_add := by { intros, rw lie_ring.add_left, } },
   exact (@is_add_group_hom.map_gsmul _ _ _ _ _ H x n),
 end
 
-@[simp] protected lemma gsmul_right (x y : L) (n : ℤ) :
+@[simp] lemma lie_gsmul (x y : L) (n : ℤ) :
   ⁅x, n • y⁆ = n • ⁅x, y⁆ :=
 begin
-  rw [←lie_ring.skew, ←lie_ring.skew _ x, lie_ring.gsmul_left],
+  rw [←lie_skew, ←lie_skew _ x, gsmul_lie],
   unfold has_scalar.smul, rw gsmul_neg,
 end
 
-instance of_associative_ring (A : Type v) [ring A] : lie_ring A :=
+instance lie_ring.of_associative_ring (A : Type v) [ring A] : lie_ring A :=
 { add_left  := ring_commutator.add_left A,
   add_right := ring_commutator.add_right A,
   alternate := ring_commutator.alternate A,
@@ -147,27 +146,27 @@ identity. Forgetting the scalar multiplication, every Lie algebra is a Lie ring.
 -/
 class lie_algebra (R : Type u) (L : Type v)
   [comm_ring R] [add_comm_group L] extends module R L, lie_ring L :=
-(smul_right : ∀ (t : R) (x y : L), ⁅x, t • y⁆ = t • ⁅x, y⁆)
+(lie_smul : ∀ (t : R) (x y : L), ⁅x, t • y⁆ = t • ⁅x, y⁆)
+
+attribute [simp] lie_algebra.lie_smul
+
+@[simp] lemma smul_lie (R : Type u) (L : Type v) [comm_ring R] [add_comm_group L] [lie_algebra R L]
+  (t : R) (x y : L) : ⁅t • x, y⁆ = t • ⁅x, y⁆ :=
+  by { rw [←lie_skew, ←lie_skew _ x y], simp [-lie_skew], }
 
 namespace lie_algebra
 
 variables (R : Type u) (L : Type v) [comm_ring R] [add_comm_group L] [lie_algebra R L]
 
-attribute [simp] smul_right
-
-@[simp] protected lemma smul_left (t : R) (x y : L) :
-  ⁅t • x, y⁆ = t • ⁅x, y⁆ :=
-by { rw [←lie_ring.skew, ←lie_ring.skew _ x y], simp [-lie_ring.skew] }
-
-def adjoint_action (x : L) : L →ₗ[R] L :=
+def Ad (x : L) : L →ₗ[R] L :=
 { to_fun := has_bracket.bracket x,
   add    := by { intros, apply lie_ring.add_right },
-  smul   := by { intros, apply lie_algebra.smul_right } }
+  smul   := by { intros, apply lie_algebra.lie_smul } }
 
-def bracket_bilinear : L →ₗ[R] L →ₗ[R] L :=
-{ to_fun := lie_algebra.adjoint_action R L,
-  add    := by { unfold lie_algebra.adjoint_action, intros, ext, simp [lie_ring.add_left], },
-  smul   := by { unfold lie_algebra.adjoint_action, intros, ext, simp, } }
+def bil_lie : L →ₗ[R] L →ₗ[R] L :=
+{ to_fun := lie_algebra.Ad R L,
+  add    := by { unfold lie_algebra.Ad, intros, ext, simp [lie_ring.add_left], },
+  smul   := by { unfold lie_algebra.Ad, intros, ext, simp, } }
 
 instance of_associative_algebra (A : Type v) [ring A] [algebra R A] : lie_algebra R A :=
 begin

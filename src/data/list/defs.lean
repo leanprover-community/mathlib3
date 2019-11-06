@@ -531,4 +531,11 @@ protected def traverse {F : Type u → Type v} [applicative F] {α β : Type*} (
 | [] := pure []
 | (x :: xs) := list.cons <$> f x <*> traverse xs
 
+/-- `get_rest l l₁` returns `some l₂` if `l = l₁ ++ l₂`.
+  If `l₁` is not a prefix of `l`, returns `none` -/
+def get_rest [decidable_eq α] : list α → list α → option (list α)
+| l      []      := some l
+| []     _       := none
+| (x::l) (y::l₁) := if x = y then get_rest l l₁ else none
+
 end list

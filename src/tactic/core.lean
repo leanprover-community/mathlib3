@@ -126,11 +126,11 @@ meta def eval_expr' (α : Type*) [_inst_1 : reflected α] (e : expr) : tactic α
 mk_app ``id [e] >>= eval_expr α
 
 /-- `mk_fresh_name` returns identifiers starting with underscores,
-which are not legal when emitted by tactic programs. Turn the
-useful source of random names provided by `mk_fresh_name` into
+which are not legal when emitted by tactic programs. `mk_user_fresh_name` 
+turns the useful source of random names provided by `mk_fresh_name` into
 names which are usable by tactic programs.
 
--- The returned name has four components which are all strings.-/
+The returned name has four components which are all strings. -/
 meta def mk_user_fresh_name : tactic name :=
 do nm ← mk_fresh_name,
    return $ `user__ ++ nm.pop_prefix.sanitize_name ++ `user__
@@ -148,7 +148,7 @@ has_attribute' `simp
 meta def is_instance : name → tactic bool :=
 has_attribute' `instance
 
-/-- Returns a dictionary mapping names to their corresponding declarations.
+/-- `local_decls` returns a dictionary mapping names to their corresponding declarations.
 Covers all declarations from the current file. -/
 meta def local_decls : tactic (name_map declaration) :=
 do e ← tactic.get_env,
@@ -1184,8 +1184,9 @@ and fails otherwise.
 meta def {u} success_if_fail_with_msg {α : Type u} (t : tactic α) (msg : string) : tactic unit :=
 λ s, match t s with
 | (interaction_monad.result.exception msg' _ s') :=
-  if msg = (msg'.iget ()).to_string then result.success () s
-  else mk_exception "failure messages didn't match" none s
+  let expected_msg := (msg'.iget ()).to_string in
+  if msg = expected_msg then result.success () s
+  else mk_exception format!"failure messages didn't match. Expected:\n{expected_msg}" none s
 | (interaction_monad.result.success a s) :=
    mk_exception "success_if_fail_with_msg combinator failed, given tactic succeeded" none s
 end

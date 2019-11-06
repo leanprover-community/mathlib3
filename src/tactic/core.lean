@@ -184,7 +184,7 @@ do subst ← d.univ_params.mmap $ λ u, prod.mk u <$> mk_meta_univ,
    let e : expr := expr.const d.to_name (prod.snd <$> subst),
    return (e, d.type.instantiate_univ_params subst)
 
-/-- `mk_local n` reates a dummy local variable with name `n`.
+/-- `mk_local n` creates a dummy local variable with name `n`.
 The type of this local constant is a constant with name `n`, so it is very unlikely to be
 a meaningful expression. -/
 meta def mk_local (n : name) : expr :=
@@ -198,15 +198,6 @@ do (v,_) ← solve_aux `(true) (do
            | fail format!"{e} is not a local definition",
          return v),
    return v
-
-/- TODO: this is not used anywhere in the library, and I suspect it should elaborate `e` with respect
-to the expected type. -/
-/-- `check_defn n e` elaborates the pre-expression `e`,
-and succeeds if this is alpha-equivalent to the value of the declaration with name `n`. -/
-meta def check_defn (n : name) (e : pexpr) : tactic unit :=
-do (declaration.defn _ _ _ d _ _) ← get_decl n,
-   e' ← to_expr e,
-   guard (d =ₐ e') <|> trace d >> failed
 
 /-- `pis loc_consts f` is used to create a pi expression whose body is `f`.
 `loc_consts` should be a list of local constants. The function will abstract these local

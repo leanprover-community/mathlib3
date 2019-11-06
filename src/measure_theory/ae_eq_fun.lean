@@ -19,8 +19,8 @@ See `l1_space.lean` for L1 space.
 
 ## Notation
 
-* `α →ₘ β` is the type of L0 space. `f : α →ₘ β` is a "function" in L0.
-  In comments, `[f]` is also used to denote an L0 function.
+* `α →ₘ β` is the type of L0 space, where `α` is a measure space and `β` is a measurable space.
+  `f : α →ₘ β` is a "function" in L0. In comments, `[f]` is also used to denote an L0 function.
 
   `ₘ` can be typed as `\_m`. Sometimes it is shown as a box if font is missing.
 
@@ -54,15 +54,17 @@ See `l1_space.lean` for L1 space.
 
 ## Implementation notes
 
-`f.to_fun`  : To find a representative of `f : α →ₘ β`, use `f.to_fun`.
-              For each operation `op` in L0, there is a lemma called `op_to_fun`, characterizing,
-              say, `(f op g).to_fun`.
+`f.to_fun`     : To find a representative of `f : α →ₘ β`, use `f.to_fun`.
+                 For each operation `op` in L0, there is a lemma called `op_to_fun`, characterizing,
+                 say, `(f op g).to_fun`.
 
-`mk`        : To constructs an L0 function from an ordinary function, use `mk`
+`ae_eq_fun.mk` : To constructs an L0 function `α →ₘ β` from a measurable function `f : α → β`,
+                 use `ae_eq_fun.mk`
 
-`comp`      : If you want [g ∘ f], use `comp`.
+`comp`         : Use `comp g f` to get `[g ∘ f]` from `g : β → γ` and `[f] : α →ₘ γ`
 
-`comp₂`     : If you want [λa, g (f₁ a) (f₂ a)], use `comp₂`. For example, [f + g] is `comp₂ (+)`
+`comp₂`        : Use `comp₂ g f₁ f₂ to get `[λa, g (f₁ a) (f₂ a)]`.
+                 For example, `[f + g]` is `comp₂ (+)`
 
 
 ## Tags
@@ -91,7 +93,8 @@ instance ae_eq_fun.setoid : setoid { f : α → β // measurable f } :=
   assume ⟨f, hf⟩ ⟨g, hg⟩ hfg, by filter_upwards [hfg] assume a, eq.symm,
   assume ⟨f, hf⟩ ⟨g, hg⟩ ⟨h, hh⟩ hfg hgh, by filter_upwards [hfg, hgh] assume a, eq.trans ⟩
 
-/-- Quotient space by the above equivalence relation. -/
+/-- The space of equivalence classes of measurable functions, where two measurable functions are
+    equivalent if they agree almost everywhere, i.e., they differ on a set of measure `0`.  -/
 def ae_eq_fun : Type (max u v) := quotient (ae_eq_fun.setoid α β)
 
 variables {α β}
@@ -103,10 +106,11 @@ end measurable_space
 namespace ae_eq_fun
 variables [measurable_space β]
 
-/-- Construct the equivalence class `[f]` of a measurable function `f`. -/
+/-- Construct the equivalence class `[f]` of a measurable function `f`, based on the equivalence
+    relation of being almost everywhere equal. -/
 def mk (f : α → β) (hf : measurable f) : α →ₘ β := quotient.mk ⟨f, hf⟩
 
-/-- Find a representative of an `ae_eq_fun` [f] -/
+/-- A representative of an `ae_eq_fun` [f] -/
 protected def to_fun (f : α →ₘ β) : α → β := @quotient.out _ (ae_eq_fun.setoid α β) f
 
 protected lemma measurable (f : α →ₘ β) : measurable f.to_fun :=
@@ -131,7 +135,9 @@ by simp [mk, ae_eq_fun.to_fun]
 lemma all_ae_mk_to_fun (f : α → β) (hf) : ∀ₘ a, (mk f hf).to_fun a = f a :=
 by rw [← mk_eq_mk _ f _ hf, ← self_eq_mk (mk f hf)]
 
-/-- [g ∘ f] -/
+/-- Given a measurable function `g : β → γ`, and an almost everywhere equal function `[f] : α →ₘ β`,
+    return the equivalence class of `g ∘ f`, i.e., the almost everywhere equal function
+    `[g ∘ f] : α →ₘ γ`. -/
 def comp {γ : Type*} [measurable_space γ] (g : β → γ) (hg : measurable g) (f : α →ₘ β) : α →ₘ γ :=
 quotient.lift_on f (λf, mk (g ∘ f.1)  (measurable.comp hg f.2)) $ assume f₁ f₂ eq,
   by refine quotient.sound _; filter_upwards [eq] assume a, congr_arg g
@@ -148,7 +154,10 @@ lemma comp_to_fun {γ : Type*} [measurable_space γ] (g : β → γ) (hg : measu
   ∀ₘ a, (comp g hg f).to_fun a = (g ∘ f.to_fun) a :=
 by { rw comp_eq_mk_to_fun, apply all_ae_mk_to_fun }
 
-/-- `[λa, g (f₁ a) (f₂ a)]` -/
+/-- Given a measurable function `g : β → γ → δ`, and almost everywhere equal functions
+    `[f₁] : α →ₘ β` and `[f₂] : α →ₘ γ`, return the equivalence class of the function
+    `λa, g (f₁ a) (f₂ a)`, i.e., the almost everywhere equal function
+    `[λa, g (f₁ a) (f₂ a)] : α →ₘ γ` -/
 def comp₂ {γ δ : Type*} [measurable_space γ] [measurable_space δ]
   (g : β → γ → δ) (hg : measurable (λp:β×γ, g p.1 p.2)) (f₁ : α →ₘ β) (f₂ : α →ₘ γ) : α →ₘ δ :=
 begin
@@ -237,7 +246,8 @@ instance [partial_order β] : partial_order (α →ₘ β) :=
 end order
 
 variable (α)
-/-- Equivalence class of a constant function: `[λa:α, b]` -/
+/-- The equivalence class of a constant function: `[λa:α, b]`, based on the equivalence relation of
+    being almost everywhere equal -/
 def const (b : β) : α →ₘ β := mk (λa:α, b) measurable_const
 
 lemma const_to_fun (b : β) : ∀ₘ a, (const α b).to_fun a = b := all_ae_mk_to_fun _ _
@@ -312,7 +322,8 @@ lemma sub_to_fun (f g : α →ₘ γ) : ∀ₘ a, (f - g).to_fun a = f.to_fun a 
 begin
   rw sub_eq_add_neg,
   filter_upwards [add_to_fun f (-g), neg_to_fun g],
-  assume a, simp only [mem_set_of_eq],
+  assume a,
+  simp only [mem_set_of_eq],
   repeat {assume h, rw h},
   refl
 end
@@ -404,10 +415,8 @@ quotient.lift_on f (λf, lintegral f.1) (assume ⟨f, hf⟩ ⟨g, hg⟩ eq, lint
 lemma eintegral_to_fun (f : α →ₘ ennreal) : eintegral f = lintegral (f.to_fun) :=
 by conv_lhs { rw [self_eq_mk f, eintegral_mk] }
 
-/-- `∫ [0] = 0` -/
 @[simp] lemma eintegral_zero : eintegral (0 : α →ₘ ennreal) = 0 := lintegral_zero
 
-/-- `∫ [f] = 0` if and only if `[f] = 0` -/
 @[simp] lemma eintegral_eq_zero_iff (f : α →ₘ ennreal) : eintegral f = 0 ↔ f = 0 :=
 begin
   rcases f with ⟨f, hf⟩,
@@ -430,7 +439,7 @@ end
 section
 variables {γ : Type*} [emetric_space γ] [second_countable_topology γ]
 
-/-- `comp_edist f g a` will return `edist (f a) (g a) -/
+/-- `comp_edist [f] [g] a` will return `edist (f a) (g a) -/
 def comp_edist (f g : α →ₘ γ) : α →ₘ ennreal := comp₂ edist measurable_edist' f g
 
 lemma comp_edist_to_fun (f g : α →ₘ γ) :
@@ -470,8 +479,9 @@ begin
   apply lintegral_congr_ae,
   have : ∀ₘ a:α, (0 : α →ₘ γ).to_fun a = 0 := zero_to_fun,
   filter_upwards [this],
-  assume a, simp only [mem_set_of_eq],
-  assume h, rw h
+  assume a h,
+  simp only [mem_set_of_eq] at *,
+  rw h
 end
 
 end

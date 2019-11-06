@@ -84,6 +84,9 @@ meta def mk_and_lst : list expr → expr := mk_op_lst `(and) `(true)
 
 meta def mk_or_lst : list expr → expr := mk_op_lst `(or) `(false)
 
+/-- `mk_sigma [x,y,z]`, with `[x,y,z]` list of local constants of types `x : tx`,
+`y : ty x` and `z : tz x y`, creates an expression of sigma type: `⟨x,y,z⟩ : Σ' (x : tx) (y : ty x), tz x y`.
+ -/
 meta def mk_sigma : list expr → tactic expr
 | [] := mk_const ``punit
 | [x] := pure x
@@ -95,6 +98,10 @@ meta def mk_sigma : list expr → tactic expr
      r ← mk_mapp ``psigma.mk [α,t],
      pure $ r x y
 
+/-- `elim_gen_prod n e _ ns` with `e` an expression of type `psigma _`, applies `cases` on `e` `n` times
+and uses `ns` to name the resulting variables. Returns a triple: list of new variables, remaining term
+and unused variable names.
+-/
 meta def elim_gen_prod : nat → expr → list expr → list name → tactic (list expr × expr × list name)
 | 0       e hs ns := return (hs.reverse, e, ns)
 | (n + 1) e hs ns := do

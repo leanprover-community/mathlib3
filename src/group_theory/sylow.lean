@@ -11,7 +11,7 @@ open equiv.perm is_subgroup list quotient_group
 universes u v w
 variables {G : Type u} {α : Type v} {β : Type w} [group G]
 
-local attribute [instance, priority 0] subtype.fintype set_fintype classical.prop_decidable
+local attribute [instance, priority 10] subtype.fintype set_fintype classical.prop_decidable
 
 namespace mul_action
 variables [mul_action G α]
@@ -174,7 +174,7 @@ lemma mem_fixed_points_mul_left_cosets_iff_mem_normalizer {H : set G} [is_subgro
   $ by rw hx at hb₂;
     simpa [mul_inv_rev, mul_assoc] using hb₂)⟩
 
-lemma fixed_points_mul_left_cosets_equiv_quotient (H : set G) [is_subgroup H] [fintype H] :
+def fixed_points_mul_left_cosets_equiv_quotient (H : set G) [is_subgroup H] [fintype H] :
   fixed_points H (quotient H) ≃ quotient (subtype.val ⁻¹' H : set (normalizer H)) :=
 @subtype_quotient_equiv_quotient_subtype G (normalizer H) (id _) (id _) (fixed_points _ _)
   (λ a, mem_fixed_points_mul_left_cosets_iff_mem_normalizer.symm) (by intros; refl)

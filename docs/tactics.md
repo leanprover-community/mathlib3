@@ -79,6 +79,9 @@ necessary.
 `rcases` also has special support for quotient types: quotient induction into Prop works like
 matching on the constructor `quot.mk`.
 
+`rcases h : e with PAT` will do the same as `rcases e with PAT` with the exception that an assumption
+`h : e = PAT` will be added to the context.
+
 `rcases? e` will perform case splits on `e` in the same way as `rcases e`,
 but rather than accepting a pattern, it does a maximal cases and prints the
 pattern that would produce this case splitting. The default maximum depth is 5,
@@ -270,6 +273,34 @@ However, it will work, producing the identity function, if one replaces have by 
 
 * `exactI`: `resetI` followed by `exact`. Like `exact`, but uses all
   variables in the context for typeclass inference.
+
+### suggest
+
+`suggest` lists possible usages of the `refine` tactic and leaves the tactic state unchanged.
+It is intended as a complement of the search function in your editor, the `#find` tactic, and `library_search`.
+
+`suggest` takes an optional natural number `num` as input and returns the first `num` (or less, if all possibilities are exhausted) possibilities ordered by length of lemma names. The default for `num` is `50`.
+
+For performance reasons `suggest` uses monadic lazy lists (`mllist`). This means that `suggest` might miss some results if `num` is not large enough. However, because `suggest` uses monadic lazy lists, smaller values of `num` run faster than larger values.
+
+An example of `suggest` in action,
+
+```lean
+example (n : nat) : n < n + 1 :=
+begin suggest, sorry end
+```
+
+prints the list,
+
+```lean
+exact nat.lt.base n
+exact nat.lt_succ_self n
+refine not_le.mp _
+refine gt_iff_lt.mp _
+refine nat.lt.step _
+refine lt_of_not_ge _
+...
+```
 
 ### library_search
 
@@ -1137,11 +1168,70 @@ Here too, the `reassoc` attribute can be used instead. It works well when combin
 ```lean
 attribute [simp, reassoc] some_class.bar
 ```
-### sanity_check
 
-The `#sanity_check` command checks for common mistakes in the current file or in all of mathlib, respectively.
+### The reassoc_of function
 
-Currently this will check for unused arguments in declarations and whether a declaration is incorrectly marked as a def/lemma.
+`reassoc_of h` takes local assumption `h` and add a ` ≫ f` term on the right of both sides of the equality.
+Instead of creating a new assumption from the result, `reassoc_of h` stands for the proof of that reassociated
+statement. This prevents poluting the local context with complicated assumptions used only once or twice.
+
+In the following, assumption `h` is needed in a reassociated form. Instead of proving it as a new goal and adding it as
+an assumption, we use `reassoc_of h` as a rewrite rule which works just as well.
+
+```lean
+example (X Y Z W : C) (x : X ⟶ Y) (y : Y ⟶ Z) (z z' : Z ⟶ W) (w : X ⟶ Z)
+  (h : x ≫ y = w)
+  (h' : y ≫ z = y ≫ z') :
+  x ≫ y ≫ z = w ≫ z' :=
+begin
+  -- reassoc_of h : ∀ {X' : C} (f : W ⟶ X'), x ≫ y ≫ f = w ≫ f
+  rw [h',reassoc_of h],
+end
+```
+
+Although `reassoc_of` is not a tactic or a meta program, its type is generated
+through meta-programming to make it usable inside normal expressions.
+
+### lint
+User commands to spot common mistakes in the code
+
+* `#lint`: check all declarations in the current file
+* `#lint_mathlib`: check all declarations in mathlib (so excluding core or other projects,
+  and also excluding the current file)
+* `#lint_all`: check all declarations in the environment (the current file and all
+  imported files)
+
+The following linters are run by default:
+1. `unused_arguments` checks for unused arguments in declarations.
+2. `def_lemma` checks whether a declaration is incorrectly marked as a def/lemma.
+3. `dup_namespce` checks whether a namespace is duplicated in the name of a declaration.
+4. `illegal_constant` checks whether ≥/> is used in the declaration.
+5. `instance_priority` checks that instances that always apply have priority below default.
+6. `doc_blame` checks for missing doc strings on definitions and constants.
+
+Another linter, `doc_blame_thm`, checks for missing doc strings on lemmas and theorems.
+This is not run by default.
+
+The command `#list_linters` prints a list of the names of all available linters.
+
+You can append a `*` to any command (e.g. `#lint_mathlib*`) to omit the slow tests (4).
+
+You can append a `-` to any command (e.g. `#lint_mathlib-`) to run a silent lint
+that suppresses the output of passing checks.
+A silent lint will fail if any test fails.
+
+You can append a sequence of linter names to any command to run extra tests, in addition to the
+default ones. e.g. `#lint doc_blame_thm` will run all default tests and `doc_blame_thm`.
+
+You can append `only name1 name2 ...` to any command to run a subset of linters, e.g.
+`#lint only unused_arguments`
+
+You can add custom linters by defining a term of type `linter` in the `linter` namespace.
+A linter defined with the name `linter.my_new_check` can be run with `#lint my_new_check`
+or `lint only my_new_check`.
+If you add the attribute `@[linter]` to `linter.my_new_check` it will run by default.
+
+Adding the attribute `@[nolint]` to a declaration omits it from all linter checks.
 
 ### lift
 
@@ -1174,9 +1264,51 @@ Lift an expression to another type.
 * More generally, this can lift an expression from `α` to `β` assuming that there is an instance
   of `can_lift α β`. In this case the proof obligation is specified by `can_lift.cond`.
 
+### import_private
+
+`import_private foo from bar` finds a private declaration `foo` in the same file as `bar` and creates a
+local notation to refer to it.
+
+`import_private foo`, looks for `foo` in all (imported) files.
+
+When possible, make `foo` non-private rather than using this feature.
+
 ### default_dec_tac'
 
 `default_dec_tac'` is a replacement for the core tactic `default_dec_tac`, fixing a bug. This
 bug is often indicated by a message `nested exception message: tactic failed, there are no goals to be solved`,and solved by appending `using_well_founded wf_tacs` to the recursive definition.
 See also additional documentation of `using_well_founded` in
 [docs/extras/well_founded_recursion.md](extras/well_founded_recursion.md).
+
+### simps
+
+* The `@[simps]` attribute automatically derives lemmas specifying the projections of the declaration.
+* Example: (note that the forward and reverse functions are specified differently!)
+  ```lean
+  @[simps] def refl (α) : α ≃ α := ⟨id, λ x, x, λ x, rfl, λ x, rfl⟩
+  ```
+  derives two simp-lemmas:
+  ```lean
+  @[simp] lemma refl_to_fun (α) (x : α) : (refl α).to_fun x = id x
+  @[simp] lemma refl_inv_fun (α) (x : α) : (refl α).inv_fun x = x
+  ```
+* It does not derive simp-lemmas for the prop-valued projections.
+* It will automatically reduce newly created beta-redexes, but not unfold any definitions.
+* If one of the fields itself is a structure, this command will recursively create
+  simp-lemmas for all fields in that structure.
+* You can use `@[simps proj1 proj2 ...]` to only generate the projection lemmas for the specified
+  projections. For example:
+  ```lean
+  attribute [simps to_fun] refl
+  ```
+* If one of the values is an eta-expanded structure, we will eta-reduce this structure.
+* You can use `@[simps lemmas_only]` to derive the lemmas, but not mark them
+  as simp-lemmas.
+* You can use `@[simps short_name]` to only use the name of the last projection for the name of the
+  generated lemmas.
+* The precise syntax is `('simps' 'lemmas_only'? 'short_name'? ident*)`.
+* If one of the projections is marked as a coercion, the generated lemmas do *not* use this
+  coercion.
+* `@[simps]` reduces let-expressions where necessary.
+* If one of the fields is a partially applied constructor, we will eta-expand it
+  (this likely never happens).

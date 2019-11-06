@@ -8,7 +8,7 @@ Theory of topological monoids.
 TODO: generalize `topological_monoid` and `topological_add_monoid` to semigroups, or add a type class
 `topological_operator α (*)`.
 -/
-import topology.constructions
+import topology.constructions topology.continuous_on
 import algebra.pi_instances
 
 open classical set lattice filter topological_space

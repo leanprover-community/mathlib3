@@ -10,7 +10,7 @@ This isn't so bad, as the typical use is with the tactic monad, in any case.
 
 As we're in meta anyway, we don't bother with proofs about these constructions.
 -/
-import data.option.basic
+import data.option.defs
 universes u v
 
 namespace tactic -- We hide this away in the tactic namespace, just because it's all meta.
@@ -155,6 +155,13 @@ cons $ do (x, xs) ← ll,
           return (none, append (f x) (bind_ xs f))
 
 meta def monad_lift {α} (x : m α) : mllist m α := cons $ (flip prod.mk nil ∘ some) <$> x
+
+meta def head [alternative m] {α} (L : mllist m α) : m α :=
+do some (r, _) ← L.uncons | failure,
+   return r
+
+meta def mfirst [alternative m] {α β} (L : mllist m α) (f : α → m β) : m β :=
+(L.mfilter_map f).head
 
 end mllist
 

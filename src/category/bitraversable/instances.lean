@@ -76,18 +76,18 @@ def flip.bitraverse {α α' β β'} (f : α → F α') (f' : β → F β') : fli
 instance bitraversable.flip : bitraversable (flip t) :=
 { bitraverse := @flip.bitraverse t _ }
 
-variables [is_lawful_bitraversable t]
 open is_lawful_bitraversable
-instance is_lawful_bitraversable.flip  : is_lawful_bitraversable (flip t)  :=
+instance is_lawful_bitraversable.flip [is_lawful_bitraversable t]
+  : is_lawful_bitraversable (flip t)  :=
 by constructor; introsI; casesm is_lawful_bitraversable t; apply_assumption
 
 open bitraversable functor
 
-@[priority 0]
+@[priority 10]
 instance bitraversable.traversable {α} : traversable (t α) :=
 { traverse := @tsnd t _ _ }
 
-@[priority 0]
+@[priority 10]
 instance bitraversable.is_lawful_traversable [is_lawful_bitraversable t] {α} :
   is_lawful_traversable (t α) :=
 by { constructor; introsI; simp [traverse,comp_tsnd] with functor_norm,

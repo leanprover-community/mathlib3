@@ -6,7 +6,7 @@ Authors: Reid Barton
 Type of continuous maps and the compact-open topology on them.
 -/
 
-import topology.constructions tactic.tidy
+import topology.subset_properties tactic.tidy
 
 open set
 

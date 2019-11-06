@@ -64,7 +64,7 @@ def fresh_index : form → nat
 | (p ∨* q) := max p.fresh_index q.fresh_index
 | (p ∧* q) := max p.fresh_index q.fresh_index
 
-def holds_constant {v w : nat → nat} :
+lemma holds_constant {v w : nat → nat} :
   ∀ p : form,
   ( (∀ x < p.fresh_index, v x = w x) →
     (p.holds v ↔ p.holds w) )

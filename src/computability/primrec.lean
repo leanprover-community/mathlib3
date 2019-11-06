@@ -108,7 +108,7 @@ class primcodable (α : Type*) extends encodable α :=
 namespace primcodable
 open nat.primrec
 
-@[priority 0] instance of_denumerable (α) [denumerable α] : primcodable α :=
+@[priority 10] instance of_denumerable (α) [denumerable α] : primcodable α :=
 ⟨succ.of_eq $ by simp⟩
 
 def of_equiv (α) {β} [primcodable α] (e : β ≃ α) : primcodable β :=

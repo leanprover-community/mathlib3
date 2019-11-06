@@ -87,7 +87,7 @@ assume f g, decidable_of_iff (f.support = g.support ∧ (∀a∈f.support, f a =
     by rintro rfl; exact ⟨rfl, λ _ _, rfl⟩⟩
 
 lemma finite_supp (f : α →₀ β) : set.finite {a | f a ≠ 0} :=
-⟨set.fintype_of_finset f.support (λ _, mem_support_iff)⟩
+⟨fintype.of_finset f.support (λ _, mem_support_iff)⟩
 
 lemma support_subset_iff {s : set α} {f : α →₀ β} :
   ↑f.support ⊆ s ↔ (∀a∉s, f a = 0) :=
@@ -959,7 +959,7 @@ variables [add_monoid β] {v v' : α' →₀ β}
   (v + v').subtype_domain p = v.subtype_domain p + v'.subtype_domain p :=
 ext $ λ _, rfl
 
-instance subtype_domain.is_add_monoid_hom [add_monoid β] :
+instance subtype_domain.is_add_monoid_hom :
   is_add_monoid_hom (subtype_domain p : (α →₀ β) → subtype p →₀ β) :=
 { map_add := λ _ _, subtype_domain_add, map_zero := subtype_domain_zero }
 
@@ -1514,7 +1514,7 @@ end
 variable (σ)
 
 /-- The order on σ →₀ ℕ is well-founded.-/
-def lt_wf : well_founded (@has_lt.lt (σ →₀ ℕ) _) :=
+lemma lt_wf : well_founded (@has_lt.lt (σ →₀ ℕ) _) :=
 subrelation.wf (sum_id_lt_of_lt) $ inv_image.wf _ nat.lt_wf
 
 instance decidable_le : decidable_rel (@has_le.le (σ →₀ ℕ) _) :=

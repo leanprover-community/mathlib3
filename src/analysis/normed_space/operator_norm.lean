@@ -22,7 +22,7 @@ variables {𝕜 : Type*} {E : Type*} {F : Type*} {G : Type*}
 open metric continuous_linear_map
 
 lemma exists_pos_bound_of_bound {f : E → F} (M : ℝ) (h : ∀x, ∥f x∥ ≤ M * ∥x∥) :
-  ∃ N > 0, ∀x, ∥f x∥ ≤ N * ∥x∥ :=
+  ∃ N, 0 < N ∧ ∀x, ∥f x∥ ≤ N * ∥x∥ :=
 ⟨max M 1, lt_of_lt_of_le zero_lt_one (le_max_right _ _), λx, calc
   ∥f x∥ ≤ M * ∥x∥ : h x
   ... ≤ max M 1 * ∥x∥ : mul_le_mul_of_nonneg_right (le_max_left _ _) (norm_nonneg _) ⟩
@@ -42,6 +42,7 @@ begin
   exact continuous_of_lipschitz this
 end
 
+/-- Construct a continuous linear map from a linear map and a bound on this linear map. -/
 def linear_map.with_bound (f : E →ₗ[𝕜] F) (h : ∃C : ℝ, ∀x, ∥f x∥ ≤ C * ∥x∥) : E →L[𝕜] F :=
 ⟨f, let ⟨C, hC⟩ := h in linear_map.continuous_of_bound f C hC⟩
 
@@ -57,7 +58,7 @@ namespace continuous_linear_map
 The continuity ensures boundedness on a ball of some radius δ. The nondiscreteness is then
 used to rescale any element into an element of norm in [δ/C, δ], whose image has a controlled norm.
 The norm control for the original element follows by rescaling. -/
-theorem bound : ∃ C > 0, ∀ x : E, ∥f x∥ ≤ C * ∥x∥ :=
+theorem bound : ∃ C, 0 < C ∧ (∀ x : E, ∥f x∥ ≤ C * ∥x∥) :=
 begin
   have : continuous_at f 0 := continuous_iff_continuous_at.1 f.2 _,
   rcases metric.tendsto_nhds_nhds.1 this 1 zero_lt_one with ⟨ε, ε_pos, hε⟩,
@@ -70,7 +71,7 @@ begin
       rw [dist_eq_norm, sub_zero],
       exact lt_of_le_of_lt ha (half_lt_self ε_pos) },
     simpa using this },
-  rcases exists_one_lt_norm 𝕜 with ⟨c, hc⟩,
+  rcases normed_field.exists_one_lt_norm 𝕜 with ⟨c, hc⟩,
   refine ⟨δ⁻¹ * ∥c∥, mul_pos (inv_pos δ_pos) (lt_trans zero_lt_one hc), (λx, _)⟩,
   by_cases h : x = 0,
   { simp only [h, norm_zero, mul_zero, continuous_linear_map.map_zero], },
@@ -78,9 +79,9 @@ begin
     calc ∥f x∥
       = ∥f ((d⁻¹ * d) • x)∥ : by rwa [inv_mul_cancel, one_smul]
       ... = ∥d∥⁻¹ * ∥f (d • x)∥ :
-        by rw [mul_smul, map_smul, norm_smul, norm_inv]
+        by rw [mul_smul, map_smul, norm_smul, normed_field.norm_inv]
       ... ≤ ∥d∥⁻¹ * 1 :
-        mul_le_mul_of_nonneg_left (H dxle) (by { rw ← norm_inv, exact norm_nonneg _ })
+        mul_le_mul_of_nonneg_left (H dxle) (by { rw ← normed_field.norm_inv, exact norm_nonneg _ })
       ... ≤ δ⁻¹ * ∥c∥ * ∥x∥ : by { rw mul_one, exact dinv } }
 end
 
@@ -113,11 +114,11 @@ instance has_op_norm : has_norm (E →L[𝕜] F) := ⟨op_norm⟩
 -- So that invocations of real.Inf_le ma𝕜e sense: we show that the set of
 -- bounds is nonempty and bounded below.
 lemma bounds_nonempty {f : E →L[𝕜] F} :
-  ∃ c, c ∈ { c | c ≥ 0 ∧ ∀ x, ∥f x∥ ≤ c * ∥x∥ } :=
+  ∃ c, c ∈ { c | 0 ≤ c ∧ ∀ x, ∥f x∥ ≤ c * ∥x∥ } :=
 let ⟨M, hMp, hMb⟩ := f.bound in ⟨M, le_of_lt hMp, hMb⟩
 
 lemma bounds_bdd_below {f : E →L[𝕜] F} :
-  bdd_below { c | c ≥ 0 ∧ ∀ x, ∥f x∥ ≤ c * ∥x∥ } :=
+  bdd_below { c | 0 ≤ c ∧ ∀ x, ∥f x∥ ≤ c * ∥x∥ } :=
 ⟨0, λ _ ⟨hn, _⟩, hn⟩
 
 lemma op_norm_nonneg : 0 ≤ ∥f∥ :=
@@ -233,8 +234,8 @@ end op_norm
 
 /-- The norm of the tensor product of a scalar linear map and of an element of a normed space
 is the product of the norms. -/
-@[simp] lemma scalar_prod_space_iso_norm {c : E →L[𝕜] 𝕜} {f : F} :
-  ∥scalar_prod_space_iso c f∥ = ∥c∥ * ∥f∥ :=
+@[simp] lemma smul_right_norm {c : E →L[𝕜] 𝕜} {f : F} :
+  ∥smul_right c f∥ = ∥c∥ * ∥f∥ :=
 begin
   refine le_antisymm _ _,
   { apply op_norm_le_bound _ (mul_nonneg (norm_nonneg _) (norm_nonneg _)) (λx, _),
@@ -250,8 +251,8 @@ begin
       apply op_norm_le_bound _ (div_nonneg (norm_nonneg _) this) (λx, _),
       rw [div_mul_eq_mul_div, le_div_iff this],
       calc ∥c x∥ * ∥f∥ = ∥c x • f∥ : (norm_smul _ _).symm
-      ... = ∥((scalar_prod_space_iso c f) : E → F) x∥ : rfl
-      ... ≤ ∥scalar_prod_space_iso c f∥ * ∥x∥ : le_op_norm _ _ } },
+      ... = ∥((smul_right c f) : E → F) x∥ : rfl
+      ... ≤ ∥smul_right c f∥ * ∥x∥ : le_op_norm _ _ } },
 end
 
 end continuous_linear_map

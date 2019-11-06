@@ -74,8 +74,8 @@ calc map prod.swap ((𝓤 α).lift' gen) =
   end
   ... ≤ (𝓤 α).lift' gen :
     uniformity_lift_le_swap
-      (monotone_comp (monotone_set_of $ assume p,
-        @monotone_mem_sets (α×α) ((filter.prod ((p.2).val) ((p.1).val)))) monotone_principal)
+      (monotone_principal.comp (monotone_set_of $ assume p,
+        @monotone_mem_sets (α×α) ((filter.prod ((p.2).val) ((p.1).val)))))
       begin
         have h := λ(p:Cauchy α×Cauchy α), @filter.prod_comm _ _ (p.2.val) (p.1.val),
         simp [function.comp, h],
@@ -341,7 +341,7 @@ instance : t2_space (completion α) := separated_t2
 instance : regular_space (completion α) := separated_regular
 
 /-- Automatic coercion from `α` to its completion. Not always injective. -/
-instance : has_coe α (completion α) := ⟨quotient.mk ∘ pure_cauchy⟩
+instance : has_coe_t α (completion α) := ⟨quotient.mk ∘ pure_cauchy⟩ -- note [use has_coe_t]
 
 protected lemma coe_eq : (coe : α → completion α) = quotient.mk ∘ pure_cauchy := rfl
 

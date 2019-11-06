@@ -7,7 +7,6 @@ Opposites.
 -/
 import data.list.defs
 
-namespace opposite
 universes v u -- declare the `v` first; see `category_theory.category` for an explanation
 variable (α : Sort u)
 
@@ -39,8 +38,9 @@ def opposite : Sort u := α
 -- `presheaf Cᵒᵖ` parses as `presheaf (Cᵒᵖ)` and not `(presheaf C)ᵒᵖ`.
 notation α `ᵒᵖ`:std.prec.max_plus := opposite α
 
-variables {α}
+namespace opposite
 
+variables {α}
 def op : α → αᵒᵖ := id
 def unop : αᵒᵖ → α := id
 

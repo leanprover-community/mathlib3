@@ -46,12 +46,13 @@ class topological_module (α : Type u) (β : Type v)
   [module α β]
   extends topological_semimodule α β : Prop
 
+/-- A topological vector space is a topological module over a field. -/
 class topological_vector_space (α : Type u) (β : Type v)
   [discrete_field α] [topological_space α]
   [topological_space β] [add_comm_group β] [vector_space α β]
   extends topological_module α β
 
-/- Continuous linear maps between modules. Only put the type classes that are necessary for the
+/-- Continuous linear maps between modules. We only put the type classes that are necessary for the
 definition, although in applications β and γ will be topological modules over the topological
 ring α -/
 structure continuous_linear_map
@@ -196,9 +197,9 @@ variables (c : α) (f g : β →L[α] γ) (x y z : β)
 
 /-- Associating to a scalar-valued linear map and an element of `γ` the
 `γ`-valued linear map obtained by multiplying the two (a.k.a. tensoring by `γ`) -/
-def scalar_prod_space_iso (c : β →L[α] α) (f : γ) : β →L[α] γ :=
+def smul_right (c : β →L[α] α) (f : γ) : β →L[α] γ :=
 { cont := continuous_smul c.2 continuous_const,
-  ..c.to_linear_map.scalar_prod_space_iso f }
+  ..c.to_linear_map.smul_right f }
 
 variable [topological_add_group γ]
 

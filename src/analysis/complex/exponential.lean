@@ -590,11 +590,11 @@ begin
   norm_num, norm_num, apply pow_pos h
 end
 
-namespace angle
-
 /-- The type of angles -/
 def angle : Type :=
 quotient_add_group.quotient (gmultiples (2 * π))
+
+namespace angle
 
 instance angle.add_comm_group : add_comm_group angle :=
 quotient_add_group.add_comm_group _
@@ -1567,7 +1567,7 @@ by { rw ← one_rpow z, exact rpow_lt_rpow (le_of_lt hx) hx1 hz }
 
 lemma pow_nat_rpow_nat_inv {x : ℝ} (hx : 0 ≤ x) {n : ℕ} (hn : 0 < n) :
   (x ^ n) ^ (n⁻¹ : ℝ) = x :=
-have hn0 : (n : ℝ) ≠ 0, by simpa [nat.pos_iff_ne_zero'] using hn,
+have hn0 : (n : ℝ) ≠ 0, by simpa [nat.pos_iff_ne_zero] using hn,
 by rw [← rpow_nat_cast, ← rpow_mul hx, mul_inv_cancel hn0, rpow_one]
 
 section prove_rpow_is_continuous

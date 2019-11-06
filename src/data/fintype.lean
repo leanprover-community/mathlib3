@@ -65,7 +65,7 @@ instance decidable_eq_equiv_fintype [fintype α] [decidable_eq β] :
 instance decidable_injective_fintype [fintype α] [decidable_eq α] [decidable_eq β] :
   decidable_pred (injective : (α → β) → Prop) := λ x, by unfold injective; apply_instance
 
-instance decidable_surjective_fintype [fintype α] [decidable_eq α] [fintype β] [decidable_eq β] :
+instance decidable_surjective_fintype [fintype α] [fintype β] [decidable_eq β] :
   decidable_pred (surjective : (α → β) → Prop) := λ x, by unfold surjective; apply_instance
 
 instance decidable_bijective_fintype [fintype α] [decidable_eq α] [fintype β] [decidable_eq β] :
@@ -135,6 +135,18 @@ theorem card_of_subtype {p : α → Prop} (s : finset α)
   card {x // p x} = s.card :=
 by rw ← subtype_card s H; congr
 
+/-- Construct a fintype from a finset with the same elements. -/
+def of_finset {p : set α} (s : finset α) (H : ∀ x, x ∈ s ↔ x ∈ p) : fintype p :=
+fintype.subtype s H
+
+@[simp] theorem card_of_finset {p : set α} (s : finset α) (H : ∀ x, x ∈ s ↔ x ∈ p) :
+  @fintype.card p (of_finset s H) = s.card :=
+fintype.subtype_card s H
+
+theorem card_of_finset' {p : set α} (s : finset α)
+  (H : ∀ x, x ∈ s ↔ x ∈ p) [fintype p] : fintype.card p = s.card :=
+by rw ← card_of_finset s H; congr
+
 /-- If `f : α → β` is a bijection and `α` is a fintype, then `β` is also a fintype. -/
 def of_bijective [fintype α] (f : α → β) (H : function.bijective f) : fintype β :=
 ⟨univ.map ⟨f, H.1⟩,
@@ -181,6 +193,21 @@ finset.card_eq_sum_ones _
 
 end fintype
 
+namespace set
+
+/-- Construct a finset enumerating a set `s`, given a `fintype` instance.  -/
+def to_finset (s : set α) [fintype s] : finset α :=
+⟨(@finset.univ s _).1.map subtype.val,
+ multiset.nodup_map (λ a b, subtype.eq) finset.univ.2⟩
+
+@[simp] theorem mem_to_finset {s : set α} [fintype s] {a : α} : a ∈ s.to_finset ↔ a ∈ s :=
+by simp [to_finset]
+
+@[simp] theorem mem_to_finset_val {s : set α} [fintype s] {a : α} : a ∈ s.to_finset.1 ↔ a ∈ s :=
+mem_to_finset
+
+end set
+
 lemma finset.card_univ [fintype α] : (finset.univ : finset α).card = fintype.card α :=
 rfl
 
@@ -196,7 +223,7 @@ instance (n : ℕ) : fintype (fin n) :=
 @[simp] theorem fintype.card_fin (n : ℕ) : fintype.card (fin n) = n :=
 by rw [fin.fintype]; simp [fintype.card, card, univ]
 
-@[instance, priority 0] def unique.fintype {α : Type*} [unique α] : fintype α :=
+@[instance, priority 10] def unique.fintype {α : Type*} [unique α] : fintype α :=
 ⟨finset.singleton (default α), λ x, by rw [unique.eq_default x]; simp⟩
 
 @[simp] lemma univ_unique {α : Type*} [unique α] [f : fintype α] : @finset.univ α _ = {default α} :=
@@ -442,6 +469,11 @@ set_fintype _
 theorem fintype.card_subtype_le [fintype α] (p : α → Prop) [decidable_pred p] :
   fintype.card {x // p x} ≤ fintype.card α :=
 by rw fintype.subtype_card; exact card_le_of_subset (subset_univ _)
+
+theorem fintype.card_subtype_lt [fintype α] {p : α → Prop} [decidable_pred p] 
+  {x : α} (hx : ¬ p x) : fintype.card {x // p x} < fintype.card α :=
+by rw [fintype.subtype_card]; exact finset.card_lt_card 
+  ⟨subset_univ _, classical.not_forall.2 ⟨x, by simp [*, set.mem_def]⟩⟩
 
 instance psigma.fintype {α : Type*} {β : α → Type*} [fintype α] [∀ a, fintype (β a)] :
   fintype (Σ' a, β a) :=
@@ -712,7 +744,7 @@ subrelation.wf this (measure_wf _)
 lemma preorder.well_founded [fintype α] [preorder α] : well_founded ((<) : α → α → Prop) :=
 well_founded_of_trans_of_irrefl _
 
-@[instance, priority 0] lemma linear_order.is_well_order [fintype α] [linear_order α] :
+@[instance, priority 10] lemma linear_order.is_well_order [fintype α] [linear_order α] :
   is_well_order α (<) :=
 { wf := preorder.well_founded }
 

@@ -35,7 +35,7 @@ variable [division_ring α]
 protected def cast : ℚ → α
 | ⟨n, d, h, c⟩ := n / d
 
-@[priority 0] instance cast_coe : has_coe ℚ α := ⟨rat.cast⟩
+@[priority 10] instance cast_coe : has_coe ℚ α := ⟨rat.cast⟩
 
 @[simp] theorem cast_of_int (n : ℤ) : (of_int n : α) = n :=
 show (n / (1:ℕ) : α) = n, by rw [nat.cast_one, div_one]
@@ -178,23 +178,34 @@ theorem eq_cast [char_zero α] (f : ℚ → α) (H1 : f 1 = 1)
 eq_cast_of_ne_zero _ H1 Hadd Hmul _ $
   nat.cast_ne_zero.2 $ ne_of_gt n.pos
 
+@[simp, move_cast] theorem cast_add [char_zero α] (m n) :
+  ((m + n : ℚ) : α) = m + n :=
+cast_add_of_ne_zero (nat.cast_ne_zero.2 $ ne_of_gt m.pos) (nat.cast_ne_zero.2 $ ne_of_gt n.pos)
+
+@[simp, move_cast] theorem cast_sub [char_zero α] (m n) :
+  ((m - n : ℚ) : α) = m - n :=
+cast_sub_of_ne_zero (nat.cast_ne_zero.2 $ ne_of_gt m.pos) (nat.cast_ne_zero.2 $ ne_of_gt n.pos)
+
+@[simp, move_cast] theorem cast_mul [char_zero α] (m n) :
+  ((m * n : ℚ) : α) = m * n :=
+cast_mul_of_ne_zero (nat.cast_ne_zero.2 $ ne_of_gt m.pos) (nat.cast_ne_zero.2 $ ne_of_gt n.pos)
+
+@[simp, squash_cast, move_cast] theorem cast_bit0 [char_zero α] (n : ℚ) :
+  ((bit0 n : ℚ) : α) = bit0 n :=
+cast_add _ _
+
+@[simp, squash_cast, move_cast] theorem cast_bit1 [char_zero α] (n : ℚ) :
+  ((bit1 n : ℚ) : α) = bit1 n :=
+by rw [bit1, cast_add, cast_one, cast_bit0]; refl
+
+instance is_ring_hom_cast [char_zero α] : is_ring_hom (rat.cast : ℚ → α) :=
+⟨rat.cast_one, rat.cast_mul, rat.cast_add⟩
+
 end with_div_ring
 
 @[move_cast] theorem cast_mk [discrete_field α] [char_zero α] (a b : ℤ) : ((a /. b) : α) = a / b :=
 if b0 : b = 0 then by simp [b0, div_zero]
 else cast_mk_of_ne_zero a b (int.cast_ne_zero.2 b0)
-
-@[simp, move_cast] theorem cast_add [division_ring α] [char_zero α] (m n) :
-  ((m + n : ℚ) : α) = m + n :=
-cast_add_of_ne_zero (nat.cast_ne_zero.2 $ ne_of_gt m.pos) (nat.cast_ne_zero.2 $ ne_of_gt n.pos)
-
-@[simp, move_cast] theorem cast_sub [division_ring α] [char_zero α] (m n) :
-  ((m - n : ℚ) : α) = m - n :=
-cast_sub_of_ne_zero (nat.cast_ne_zero.2 $ ne_of_gt m.pos) (nat.cast_ne_zero.2 $ ne_of_gt n.pos)
-
-@[simp, move_cast] theorem cast_mul [division_ring α] [char_zero α] (m n) :
-  ((m * n : ℚ) : α) = m * n :=
-cast_mul_of_ne_zero (nat.cast_ne_zero.2 $ ne_of_gt m.pos) (nat.cast_ne_zero.2 $ ne_of_gt n.pos)
 
 @[simp, move_cast] theorem cast_inv [discrete_field α] [char_zero α] (n) : ((n⁻¹ : ℚ) : α) = n⁻¹ :=
 if n0 : n.num = 0 then
@@ -208,14 +219,6 @@ by rw [division_def, cast_mul, cast_inv, division_def]
 @[simp, move_cast] theorem cast_pow [discrete_field α] [char_zero α] (q) (k : ℕ) :
   ((q ^ k : ℚ) : α) = q ^ k :=
 by induction k; simp only [*, cast_one, cast_mul, pow_zero, pow_succ]
-
-@[simp, squash_cast, move_cast] theorem cast_bit0 [division_ring α] [char_zero α] (n : ℚ) :
-  ((bit0 n : ℚ) : α) = bit0 n :=
-cast_add _ _
-
-@[simp, squash_cast, move_cast] theorem cast_bit1 [division_ring α] [char_zero α] (n : ℚ) :
-  ((bit1 n : ℚ) : α) = bit1 n :=
-by rw [bit1, cast_add, cast_one, cast_bit0]; refl
 
 @[simp] theorem cast_nonneg [linear_ordered_field α] : ∀ {n : ℚ}, 0 ≤ (n : α) ↔ 0 ≤ n
 | ⟨n, d, h, c⟩ := show 0 ≤ (n * d⁻¹ : α) ↔ 0 ≤ (⟨n, d, h, c⟩ : ℚ),

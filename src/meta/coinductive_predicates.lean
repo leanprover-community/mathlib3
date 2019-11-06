@@ -29,13 +29,6 @@ meta def to_implicit_binder : expr → expr
 | (pi n _ d b) := pi n binder_info.implicit d b
 | e  := e
 
-meta def get_app_fn_args_aux : list expr → expr → expr × list expr
-| r (app f a) := get_app_fn_args_aux (a::r) f
-| r e         := (e, r)
-
-meta def get_app_fn_args : expr → expr × list expr :=
-get_app_fn_args_aux []
-
 end expr
 
 namespace tactic
@@ -48,14 +41,6 @@ meta def mk_local_pisn : expr → nat → tactic (list expr × expr)
   return ((p :: ps), r)
 | e 0 := return ([], e)
 | _ _ := failed
-
-meta def drop_pis : list expr → expr → tactic expr
-| (list.cons v vs) (pi n bi d b) := do
-  t ← infer_type v,
-  guard (t =ₐ d),
-  drop_pis vs (b.instantiate_var v)
-| [] e := return e
-| _  _ := failed
 
 meta def mk_theorem (n : name) (ls : list name) (t : expr) (e : expr) : declaration :=
 declaration.thm n ls t (task.pure e)

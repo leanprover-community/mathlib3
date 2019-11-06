@@ -422,7 +422,7 @@ A maximum depth can be provided with `ext x y z : 3`.
  attribute [ext [-stream,-thunk]] funext
  ```
 
- Finally, the following:
+ Also, the following:
 
  ```lean
  @[ext]
@@ -453,6 +453,23 @@ A maximum depth can be provided with `ext x y z : 3`.
    a = b := ...
  ```
 
+ Attribute `ext` can be applied to a structure to generate its extensionality lemma:
+
+ ```
+ @[ext]
+ structure foo (α : Type*) :=
+ (x y : ℕ)
+ (z : {z // z < x})
+ (k : α)
+ (h : x < y)
+ ```
+
+ will generate:
+
+ ```
+ @[ext] lemma foo.ext : ∀ {α : Type u_1} (x y : foo α), x.x = y.x → x.y = y.y → x.z == y.z → x.k = y.k → x = y
+ ```
+ 
 ### refine_struct
 
 `refine_struct { .. }` acts like `refine` but works only with structure instance

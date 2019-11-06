@@ -84,19 +84,20 @@ meta def mk_and_lst : list expr → expr := mk_op_lst `(and) `(true)
 
 meta def mk_or_lst : list expr → expr := mk_op_lst `(or) `(false)
 
-/-- `mk_sigma [x,y,z]`, with `[x,y,z]` list of local constants of types `x : tx`,
+/-- `mk_psigma [x,y,z]`, with `[x,y,z]` list of local constants of types `x : tx`,
 `y : ty x` and `z : tz x y`, creates an expression of sigma type: `⟨x,y,z⟩ : Σ' (x : tx) (y : ty x), tz x y`.
  -/
-meta def mk_sigma : list expr → tactic expr
+meta def mk_psigma : list expr → tactic expr
 | [] := mk_const ``punit
-| [x] := pure x
-| (x :: xs) :=
-  do y ← mk_sigma xs,
+| [x@(local_const _ _ _ _)] := pure x
+| (x@(local_const _ _ _ _) :: xs) :=
+  do y ← mk_psigma xs,
      α ← infer_type x,
      β ← infer_type y,
      t ← lambdas [x] β >>= instantiate_mvars,
      r ← mk_mapp ``psigma.mk [α,t],
      pure $ r x y
+| _ := fail "mk_psigma expects a list of local constants"
 
 /-- `elim_gen_prod n e _ ns` with `e` an expression of type `psigma _`, applies `cases` on `e` `n` times
 and uses `ns` to name the resulting variables. Returns a triple: list of new variables, remaining term
@@ -598,8 +599,8 @@ do
   solve1 (do
     eqs ← mk_and_lst <$> eqs.mmap (λ⟨i, m⟩,
       mk_app `eq [m, i] >>= instantiate_mvars)
-    <|> do { x ← mk_sigma (eqs.map prod.fst),
-             y ← mk_sigma (eqs.map prod.snd),
+    <|> do { x ← mk_psigma (eqs.map prod.fst),
+             y ← mk_psigma (eqs.map prod.snd),
              t ← infer_type x,
              mk_mapp `eq [t,x,y] },
     rel ← mk_exists_lst bs eqs,

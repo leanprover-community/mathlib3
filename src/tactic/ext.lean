@@ -76,7 +76,7 @@ do e ← get_env,
    let decl_n := n <.> "ext",
    add_decl (declaration.thm decl_n d.univ_params t pr),
    bs ← bs.mmap infer_type,
-   let rhs := expr.mk_conj bs,
+   let rhs := expr.mk_and_lst bs,
    iff_t ← mk_app `iff [eq_t,rhs],
    t ← pis (args ++ [x,y]) iff_t,
    pr ← run_async $

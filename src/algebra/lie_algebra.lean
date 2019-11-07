@@ -94,10 +94,8 @@ variables (L : Type v) [add_comm_group L] [lie_ring L]
 begin
   symmetry,
   rw [←sub_eq_zero_iff_eq, sub_neg_eq_add],
-  have H : ⁅x + y, x + y⁆ = 0 := by apply lie_ring.lie_self,
-  rw [lie_ring.add_lie,
-      lie_ring.lie_add, lie_ring.lie_add,
-      lie_ring.lie_self, lie_ring.lie_self] at H,
+  have H : ⁅x + y, x + y⁆ = 0 := by apply lie_self,
+  rw [add_lie, lie_add, lie_add, lie_self, lie_self] at H,
   simp at H,
   exact H,
 end
@@ -105,7 +103,7 @@ end
 @[simp] lemma lie_zero (x : L) :
   ⁅x, 0⁆ = 0 :=
 begin
-  have H : ⁅x, 0⁆ + ⁅x, 0⁆ = ⁅x, 0⁆ + 0 := by { rw ←lie_ring.lie_add, simp, },
+  have H : ⁅x, 0⁆ + ⁅x, 0⁆ = ⁅x, 0⁆ + 0 := by { rw ←lie_add, simp, },
   exact add_left_cancel H,
 end
 
@@ -113,7 +111,7 @@ end
   ⁅0, x⁆ = 0 := by { rw [←lie_skew, lie_zero], simp, }
 
 @[simp] lemma neg_lie (x y : L) :
-  ⁅-x, y⁆ = -⁅x, y⁆ := by { rw [←sub_eq_zero_iff_eq, sub_neg_eq_add, ←lie_ring.add_lie], simp, }
+  ⁅-x, y⁆ = -⁅x, y⁆ := by { rw [←sub_eq_zero_iff_eq, sub_neg_eq_add, ←add_lie], simp, }
 
 @[simp] lemma lie_neg (x y : L) :
   ⁅x, -y⁆ = -⁅x, y⁆ := by { rw [←lie_skew, ←lie_skew], simp, }
@@ -121,7 +119,7 @@ end
 @[simp] lemma gsmul_lie (x y : L) (n : ℤ) :
   ⁅n • x, y⁆ = n • ⁅x, y⁆ :=
 begin
-  have H : is_add_group_hom (λ z, ⁅z, y⁆) := { map_add := by { intros, rw lie_ring.add_lie, } },
+  have H : is_add_group_hom (λ z, ⁅z, y⁆) := { map_add := by { intros, rw add_lie, } },
   exact (@is_add_group_hom.map_gsmul _ _ _ _ _ H x n),
 end
 
@@ -148,8 +146,6 @@ class lie_algebra (R : Type u) (L : Type v)
   [comm_ring R] [add_comm_group L] extends module R L, lie_ring L :=
 (lie_smul : ∀ (t : R) (x y : L), ⁅x, t • y⁆ = t • ⁅x, y⁆)
 
-attribute [simp] lie_algebra.lie_smul
-
 @[simp] lemma lie_smul  (R : Type u) (L : Type v) [comm_ring R] [add_comm_group L] [lie_algebra R L]
   (t : R) (x y : L) : ⁅x, t • y⁆ = t • ⁅x, y⁆ :=
   lie_algebra.lie_smul t x y
@@ -164,12 +160,12 @@ variables (R : Type u) (L : Type v) [comm_ring R] [add_comm_group L] [lie_algebr
 
 def Ad (x : L) : L →ₗ[R] L :=
 { to_fun := has_bracket.bracket x,
-  add    := by { intros, apply lie_ring.lie_add },
-  smul   := by { intros, apply lie_algebra.lie_smul } }
+  add    := by { intros, apply lie_add },
+  smul   := by { intros, apply lie_smul } }
 
 def bil_lie : L →ₗ[R] L →ₗ[R] L :=
 { to_fun := lie_algebra.Ad R L,
-  add    := by { unfold lie_algebra.Ad, intros, ext, simp [lie_ring.add_lie], },
+  add    := by { unfold lie_algebra.Ad, intros, ext, simp [add_lie], },
   smul   := by { unfold lie_algebra.Ad, intros, ext, simp, } }
 
 instance of_associative_algebra (A : Type v) [ring A] [algebra R A] : lie_algebra R A :=

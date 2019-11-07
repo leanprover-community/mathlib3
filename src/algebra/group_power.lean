@@ -127,7 +127,7 @@ end is_add_monoid_hom
 namespace monoid_hom
 variables {β : Type v} [monoid α] [monoid β] (f : α →* β)
 
-theorem map_pow (a : α) : ∀(n : ℕ), f (a ^ n) = (f a) ^ n
+@[simp] theorem map_pow (a : α) : ∀(n : ℕ), f (a ^ n) = (f a) ^ n
 | 0            := f.map_one
 | (nat.succ n) := by rw [pow_succ, f.map_mul, map_pow n]; refl
 
@@ -136,7 +136,7 @@ end monoid_hom
 namespace add_monoid_hom
 variables {β : Type*} [add_monoid α] [add_monoid β] (f : α →+ β)
 
-theorem map_smul (a : α) : ∀(n : ℕ), f (n • a) = n • (f a)
+@[simp] theorem map_smul (a : α) : ∀(n : ℕ), f (n • a) = n • (f a)
 | 0            := f.map_zero
 | (nat.succ n) := by rw [succ_smul, f.map_add, map_smul n]; refl
 
@@ -361,7 +361,7 @@ end is_add_group_hom
 namespace monoid_hom
 variables {β : Type v} [group α] [group β] (f : α →* β)
 
-theorem map_gpow (a : α) (n : ℤ) : f (a ^ n) = f a ^ n :=
+@[simp] theorem map_gpow (a : α) (n : ℤ) : f (a ^ n) = f a ^ n :=
 by cases n; [exact f.map_pow _ _,
   exact (f.map_inv _).trans (congr_arg _ $ f.map_pow _ _)]
 
@@ -370,7 +370,7 @@ end monoid_hom
 namespace add_monoid_hom
 variables {β : Type v} [add_group α] [add_group β] (f : α →+ β)
 
-theorem map_gsmul (a : α) (n : ℤ) : f (gsmul n a) = gsmul n (f a) :=
+@[simp] theorem map_gsmul (a : α) (n : ℤ) : f (gsmul n a) = gsmul n (f a) :=
 by cases n; [exact f.map_smul _ _,
   exact (f.map_neg _).trans (congr_arg _ $ f.map_smul _ _)]
 
@@ -442,7 +442,7 @@ theorem is_semiring_hom.map_pow {β} [semiring α] [semiring β]
 by induction n with n ih; [exact is_semiring_hom.map_one f,
   rw [pow_succ, pow_succ, is_semiring_hom.map_mul f, ih]]
 
-lemma ring_hom.map_pow {β} [semiring α] [semiring β] (f : α →+* β) (a) :
+@[simp] lemma ring_hom.map_pow {β} [semiring α] [semiring β] (f : α →+* β) (a) :
   ∀ n : ℕ, f (a ^ n) = (f a) ^ n :=
 monoid_hom.map_pow f.to_monoid_hom a
 

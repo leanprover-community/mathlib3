@@ -31,21 +31,12 @@ universes u v
 open_locale smul
 
 /-- `x` is semiconjugate to `y` by `a`, if `a * x = y * a`. -/
-@[to_additive add_semiconj_by]
 def semiconj_by {M : Type u} [has_mul M] (a x y : M) : Prop := a * x = y * a
-
-namespace add_semiconj_by
-
-/-- Equality behind `semiconj_by a x y`; useful for rewriting. -/
-protected lemma eq {S : Type u} [has_add S] {a x y : S} (h : add_semiconj_by a x y) :
-  a + x = y + a := h
-
-end add_semiconj_by
 
 namespace semiconj_by
 
-/-- Equality behind `semiconj_by a x y`; useful for rewriting. -/
-@[to_additive] protected lemma eq {S : Type u} [has_mul S] {a x y : S} (h : semiconj_by a x y) :
+/-- Equality behind `semiconj_by a x y`; useful for rewriting. -
+protected lemma eq {S : Type u} [has_mul S] {a x y : S} (h : semiconj_by a x y) :
   a * x = y * a := h
 
 section semigroup
@@ -54,7 +45,7 @@ variables {S : Type u} [semigroup S] {a b x y z x' y' : S}
 
 /-- If `a` semiconjugates `x` to `y` and `x'` to `y'`,
 then it semiconjugates `x * x'` to `y * y'`. -/
-@[simp, to_additive] lemma mul_right (h : semiconj_by a x y) (h' : semiconj_by a x' y') :
+@[simp] lemma mul_right (h : semiconj_by a x y) (h' : semiconj_by a x' y') :
   semiconj_by a (x * x') (y * y') :=
 by unfold semiconj_by; assoc_rw [h.eq, h'.eq]
 
@@ -70,8 +61,7 @@ section monoid
 variables {M : Type u} [monoid M]
 
 /-- Any element semiconjugates `1` to `1`. -/
-@[simp, to_additive]
-lemma one_right (a : M) : semiconj_by a 1 1 := by rw [semiconj_by, mul_one, one_mul]
+@[simp] lemma one_right (a : M) : semiconj_by a 1 1 := by rw [semiconj_by, mul_one, one_mul]
 
 /-- One semiconjugates any element to itself. -/
 @[simp] lemma one_left (x : M) : semiconj_by 1 x x := eq.symm $ one_right x

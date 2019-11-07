@@ -77,7 +77,7 @@ Jacobi identity. The bracket is not associative unless it is identically zero.
 -/
 class lie_ring (L : Type v) [add_comm_group L] extends has_bracket L :=
 (add_left : ∀ (x y z : L), ⁅x + y, z⁆ = ⁅x, z⁆ + ⁅y, z⁆)
-(add_right : ∀ (x y z : L), ⁅z, x + y⁆ = ⁅z, x⁆ + ⁅z, y⁆)
+(lie_add : ∀ (x y z : L), ⁅z, x + y⁆ = ⁅z, x⁆ + ⁅z, y⁆)
 (lie_self : ∀ (x : L), ⁅x, x⁆ = 0)
 (jacobi : ∀ (x y z : L), ⁅x, ⁅y, z⁆⁆ + ⁅y, ⁅z, x⁆⁆ + ⁅z, ⁅x, y⁆⁆ = 0)
 

@@ -1,4 +1,4 @@
 
 import tactic.ext data.stream
 
-attribute [extensionality] stream.ext
+attribute [ext] stream.ext

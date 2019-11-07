@@ -85,19 +85,19 @@ section lie_ring
 
 variables (L : Type v) [add_comm_group L] [lie_ring L]
 
-attribute [simp] lie_ring.add_left
-attribute [simp] lie_ring.add_right
-attribute [simp] lie_ring.alternate
+attribute [simp] lie_ring.add_lie
+attribute [simp] lie_ring.lie_add
+attribute [simp] lie_ring.lie_self
 
 @[simp] lemma lie_skew (x y : L) :
   -⁅y, x⁆ = ⁅x, y⁆ :=
 begin
   symmetry,
   rw [←sub_eq_zero_iff_eq, sub_neg_eq_add],
-  have H : ⁅x + y, x + y⁆ = 0 := by apply lie_ring.alternate,
-  rw [lie_ring.add_left,
-      lie_ring.add_right, lie_ring.add_right,
-      lie_ring.alternate, lie_ring.alternate] at H,
+  have H : ⁅x + y, x + y⁆ = 0 := by apply lie_ring.lie_self,
+  rw [lie_ring.add_lie,
+      lie_ring.lie_add, lie_ring.lie_add,
+      lie_ring.lie_self, lie_ring.lie_self] at H,
   simp at H,
   exact H,
 end
@@ -105,7 +105,7 @@ end
 @[simp] lemma lie_zero (x : L) :
   ⁅x, 0⁆ = 0 :=
 begin
-  have H : ⁅x, 0⁆ + ⁅x, 0⁆ = ⁅x, 0⁆ + 0 := by { rw ←lie_ring.add_right, simp, },
+  have H : ⁅x, 0⁆ + ⁅x, 0⁆ = ⁅x, 0⁆ + 0 := by { rw ←lie_ring.lie_add, simp, },
   exact add_left_cancel H,
 end
 
@@ -113,7 +113,7 @@ end
   ⁅0, x⁆ = 0 := by { rw [←lie_skew, lie_zero], simp, }
 
 @[simp] lemma neg_lie (x y : L) :
-  ⁅-x, y⁆ = -⁅x, y⁆ := by { rw [←sub_eq_zero_iff_eq, sub_neg_eq_add, ←lie_ring.add_left], simp, }
+  ⁅-x, y⁆ = -⁅x, y⁆ := by { rw [←sub_eq_zero_iff_eq, sub_neg_eq_add, ←lie_ring.add_lie], simp, }
 
 @[simp] lemma lie_neg (x y : L) :
   ⁅x, -y⁆ = -⁅x, y⁆ := by { rw [←lie_skew, ←lie_skew], simp, }
@@ -121,7 +121,7 @@ end
 @[simp] lemma gsmul_lie (x y : L) (n : ℤ) :
   ⁅n • x, y⁆ = n • ⁅x, y⁆ :=
 begin
-  have H : is_add_group_hom (λ z, ⁅z, y⁆) := { map_add := by { intros, rw lie_ring.add_left, } },
+  have H : is_add_group_hom (λ z, ⁅z, y⁆) := { map_add := by { intros, rw lie_ring.add_lie, } },
   exact (@is_add_group_hom.map_gsmul _ _ _ _ _ H x n),
 end
 
@@ -133,10 +133,10 @@ begin
 end
 
 instance lie_ring.of_associative_ring (A : Type v) [ring A] : lie_ring A :=
-{ add_left  := ring_commutator.add_left A,
-  add_right := ring_commutator.add_right A,
-  alternate := ring_commutator.alternate A,
-  jacobi    := ring_commutator.jacobi A }
+{ add_lie  := ring_commutator.add_left A,
+  lie_add  := ring_commutator.add_right A,
+  lie_self := ring_commutator.alternate A,
+  jacobi   := ring_commutator.jacobi A }
 
 end lie_ring
 
@@ -160,12 +160,12 @@ variables (R : Type u) (L : Type v) [comm_ring R] [add_comm_group L] [lie_algebr
 
 def Ad (x : L) : L →ₗ[R] L :=
 { to_fun := has_bracket.bracket x,
-  add    := by { intros, apply lie_ring.add_right },
+  add    := by { intros, apply lie_ring.lie_add },
   smul   := by { intros, apply lie_algebra.lie_smul } }
 
 def bil_lie : L →ₗ[R] L →ₗ[R] L :=
 { to_fun := lie_algebra.Ad R L,
-  add    := by { unfold lie_algebra.Ad, intros, ext, simp [lie_ring.add_left], },
+  add    := by { unfold lie_algebra.Ad, intros, ext, simp [lie_ring.add_lie], },
   smul   := by { unfold lie_algebra.Ad, intros, ext, simp, } }
 
 instance of_associative_algebra (A : Type v) [ring A] [algebra R A] : lie_algebra R A :=

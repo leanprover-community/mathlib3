@@ -125,7 +125,7 @@ by cases f; refl
   mk f hf = mk g hg ↔ (∀ₘ a, f a = g a) :=
 ⟨quotient.exact, assume h, quotient.sound h⟩
 
-@[extensionality] lemma ext (f g : α →ₘ β) (f' g' : α → β) (hf' hg') (hf : mk f' hf' = f)
+@[ext] lemma ext (f g : α →ₘ β) (f' g' : α → β) (hf' hg') (hf : mk f' hf' = f)
   (hg : mk g' hg' = g) (h : ∀ₘ a, f' a = g' a) : f = g :=
 by { rw [← hf, ← hg], rw mk_eq_mk, assumption }
 

@@ -46,7 +46,7 @@ variables {α : Type u} {β : Type v} {γ : Type w} {ι : Sort x} {a : α} {s t 
 
 instance : inhabited (set α) := ⟨∅⟩
 
-@[extensionality]
+@[ext]
 theorem ext {a b : set α} (h : ∀ x, x ∈ a ↔ x ∈ b) : a = b :=
 funext (assume x, propext (h x))
 

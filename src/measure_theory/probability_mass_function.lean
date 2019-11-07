@@ -17,7 +17,7 @@ namespace pmf
 
 instance : has_coe_to_fun (pmf α) := ⟨λp, α → nnreal, λp a, p.1 a⟩
 
-@[extensionality] protected lemma ext : ∀{p q : pmf α}, (∀a, p a = q a) → p = q
+@[ext] protected lemma ext : ∀{p q : pmf α}, (∀a, p a = q a) → p = q
 | ⟨f, hf⟩ ⟨g, hg⟩ eq :=  subtype.eq $ funext eq
 
 lemma has_sum_coe_one (p : pmf α) : has_sum p 1 := p.2

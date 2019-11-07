@@ -66,7 +66,7 @@ section measurable
 variables [measurable_space α]
 instance has_coe_to_fun : has_coe_to_fun (α →ₛ β) := ⟨_, to_fun⟩
 
-@[extensionality] theorem ext {f g : α →ₛ β} (H : ∀ a, f a = g a) : f = g :=
+@[ext] theorem ext {f g : α →ₛ β} (H : ∀ a, f a = g a) : f = g :=
 by cases f; cases g; congr; exact funext H
 
 protected def range (f : α →ₛ β) := f.finite.to_finset

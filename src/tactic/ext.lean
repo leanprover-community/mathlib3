@@ -38,7 +38,7 @@ do e ← get_env,
    n ← resolve_constant n,
    let r := @expr.const tt n $ d.univ_params.map level.param,
    (args,_) ← infer_type r >>= mk_local_pis,
-   let args := args.map to_implicit,
+   let args := args.map expr.to_implicit,
    let t := r.mk_app args,
    x ← mk_local_def `x t,
    y ← mk_local_def `y t,
@@ -186,7 +186,7 @@ do e  ← saturate_fun n,
    (h : ∀ x, a.lookup x = b.lookup y) :
    a = b := ...
  ```
- 
+
  Attribute `ext` can be applied to a structure to generate its extensionality lemma:
 
  ```
@@ -203,7 +203,7 @@ do e  ← saturate_fun n,
  ```
  @[ext] lemma foo.ext : ∀ {α : Type u_1} (x y : foo α), x.x = y.x → x.y = y.y → x.z == y.z → x.k = y.k → x = y
  ```
- 
+
  -/
 @[user_attribute]
 meta def extensional_attribute : user_attribute (name_map name) (bool × list ext_param_type × list name × list (name × name)) :=

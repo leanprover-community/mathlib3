@@ -85,9 +85,9 @@ section lie_ring
 
 variables (L : Type v) [add_comm_group L] [lie_ring L]
 
-attribute [simp] lie_ring.add_lie
-attribute [simp] lie_ring.lie_add
-attribute [simp] lie_ring.lie_self
+@[simp] lemma add_lie (x y z : L) : ⁅x + y, z⁆ = ⁅x, z⁆ + ⁅y, z⁆ := lie_ring.add_lie x y z
+@[simp] lemma lie_add (x y z : L) : ⁅z, x + y⁆ = ⁅z, x⁆ + ⁅z, y⁆ := lie_ring.lie_add x y z
+@[simp] lemma lie_self (x : L) : ⁅x, x⁆ = 0 := lie_ring.lie_self x
 
 @[simp] lemma lie_skew (x y : L) :
   -⁅y, x⁆ = ⁅x, y⁆ :=

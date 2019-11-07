@@ -150,6 +150,10 @@ class lie_algebra (R : Type u) (L : Type v)
 
 attribute [simp] lie_algebra.lie_smul
 
+@[simp] lemma lie_smul  (R : Type u) (L : Type v) [comm_ring R] [add_comm_group L] [lie_algebra R L]
+  (t : R) (x y : L) : ⁅x, t • y⁆ = t • ⁅x, y⁆ :=
+  lie_algebra.lie_smul t x y
+
 @[simp] lemma smul_lie (R : Type u) (L : Type v) [comm_ring R] [add_comm_group L] [lie_algebra R L]
   (t : R) (x y : L) : ⁅t • x, y⁆ = t • ⁅x, y⁆ :=
   by { rw [←lie_skew, ←lie_skew _ x y], simp [-lie_skew], }

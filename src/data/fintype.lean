@@ -135,6 +135,18 @@ theorem card_of_subtype {p : α → Prop} (s : finset α)
   card {x // p x} = s.card :=
 by rw ← subtype_card s H; congr
 
+/-- Construct a fintype from a finset with the same elements. -/
+def of_finset {p : set α} (s : finset α) (H : ∀ x, x ∈ s ↔ x ∈ p) : fintype p :=
+fintype.subtype s H
+
+@[simp] theorem card_of_finset {p : set α} (s : finset α) (H : ∀ x, x ∈ s ↔ x ∈ p) :
+  @fintype.card p (of_finset s H) = s.card :=
+fintype.subtype_card s H
+
+theorem card_of_finset' {p : set α} (s : finset α)
+  (H : ∀ x, x ∈ s ↔ x ∈ p) [fintype p] : fintype.card p = s.card :=
+by rw ← card_of_finset s H; congr
+
 /-- If `f : α → β` is a bijection and `α` is a fintype, then `β` is also a fintype. -/
 def of_bijective [fintype α] (f : α → β) (H : function.bijective f) : fintype β :=
 ⟨univ.map ⟨f, H.1⟩,
@@ -180,6 +192,21 @@ lemma card_eq_sum_ones {α} [fintype α] : fintype.card α = (finset.univ : fins
 finset.card_eq_sum_ones _
 
 end fintype
+
+namespace set
+
+/-- Construct a finset enumerating a set `s`, given a `fintype` instance.  -/
+def to_finset (s : set α) [fintype s] : finset α :=
+⟨(@finset.univ s _).1.map subtype.val,
+ multiset.nodup_map (λ a b, subtype.eq) finset.univ.2⟩
+
+@[simp] theorem mem_to_finset {s : set α} [fintype s] {a : α} : a ∈ s.to_finset ↔ a ∈ s :=
+by simp [to_finset]
+
+@[simp] theorem mem_to_finset_val {s : set α} [fintype s] {a : α} : a ∈ s.to_finset.1 ↔ a ∈ s :=
+mem_to_finset
+
+end set
 
 lemma finset.card_univ [fintype α] : (finset.univ : finset α).card = fintype.card α :=
 rfl
@@ -442,6 +469,11 @@ set_fintype _
 theorem fintype.card_subtype_le [fintype α] (p : α → Prop) [decidable_pred p] :
   fintype.card {x // p x} ≤ fintype.card α :=
 by rw fintype.subtype_card; exact card_le_of_subset (subset_univ _)
+
+theorem fintype.card_subtype_lt [fintype α] {p : α → Prop} [decidable_pred p] 
+  {x : α} (hx : ¬ p x) : fintype.card {x // p x} < fintype.card α :=
+by rw [fintype.subtype_card]; exact finset.card_lt_card 
+  ⟨subset_univ _, classical.not_forall.2 ⟨x, by simp [*, set.mem_def]⟩⟩
 
 instance psigma.fintype {α : Type*} {β : α → Type*} [fintype α] [∀ a, fintype (β a)] :
   fintype (Σ' a, β a) :=

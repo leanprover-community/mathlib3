@@ -55,7 +55,7 @@ instance : inhabited (Π₀ i, β i) := ⟨0⟩
 
 @[simp] lemma zero_apply {i : ι} : (0 : Π₀ i, β i) i = 0 := rfl
 
-@[extensionality]
+@[ext]
 lemma ext {f g : Π₀ i, β i} (H : ∀ i, f i = g i) : f = g :=
 quotient.induction_on₂ f g (λ _ _ H, quotient.sound H) H
 

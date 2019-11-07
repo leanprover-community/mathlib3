@@ -16,7 +16,7 @@ open function
 
 variables {α : Type*} {xs : list α}
 
-@[extensionality]
+@[ext]
 lemma ext : ∀ {b₁ b₂ : buffer α}, to_list b₁ = to_list b₂ → b₁ = b₂
 | ⟨n₁, a₁⟩ ⟨n₂, a₂⟩ h := begin
   simp [to_list, to_array] at h,

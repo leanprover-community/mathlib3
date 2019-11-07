@@ -456,7 +456,7 @@ lemma mem_closure_iff_inf_dist_zero (h : s ≠ ∅) : x ∈ closure s ↔ inf_di
 by simp [mem_closure_iff_inf_edist_zero, inf_dist, ennreal.to_real_eq_zero_iff, inf_edist_ne_top h]
 
 /-- Given a closed set `s`, a point belongs to `s` iff its infimum distance to this set vanishes -/
-lemma mem_iff_ind_dist_zero_of_closed (h : is_closed s) (hs : s ≠ ∅) :
+lemma mem_iff_inf_dist_zero_of_closed (h : is_closed s) (hs : s ≠ ∅) :
   x ∈ s ↔ inf_dist x s = 0 :=
 begin
   have := @mem_closure_iff_inf_dist_zero _ _ s x hs,

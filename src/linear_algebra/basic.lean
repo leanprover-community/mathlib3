@@ -144,7 +144,7 @@ instance linear_map_apply_is_add_group_hom (a : M) :
   is_add_group_hom (λ f : M →ₗ[R] M₂, f a) :=
 { map_add := λ f g, linear_map.add_apply f g a }
 
-lemma sum_apply [decidable_eq M₃] (t : finset M₃) (f : M₃ → M →ₗ[R] M₂) (b : M) :
+lemma sum_apply (t : finset ι) (f : ι → M →ₗ[R] M₂) (b : M) :
   t.sum f b = t.sum (λd, f d b) :=
 (@finset.sum_hom _ _ _ t f _ _ (λ g : M →ₗ[R] M₂, g b) _).symm
 
@@ -293,6 +293,8 @@ lemma le_def {p p' : submodule R M} : p ≤ p' ↔ (p : set M) ⊆ p' := iff.rfl
 
 lemma le_def' {p p' : submodule R M} : p ≤ p' ↔ ∀ x ∈ p, x ∈ p' := iff.rfl
 
+/-- If two submodules p and p' satisfy p ⊆ p', then `of_le p p'` is the linear map version of this
+inclusion. -/
 def of_le {p p' : submodule R M} (h : p ≤ p') : p →ₗ[R] p' :=
 linear_map.cod_restrict _ p.subtype $ λ ⟨x, hx⟩, h hx
 
@@ -731,6 +733,7 @@ begin
 end
 
 -- TODO(Mario): Factor through add_subgroup
+/-- The equivalence relation associated to a submodule `p`, defined by `x ≈ y` iff `y - x ∈ p`. -/
 def quotient_rel : setoid M :=
 ⟨λ x y, x - y ∈ p, λ x, by simp,
  λ x y h, by simpa using neg_mem _ h,
@@ -741,6 +744,8 @@ def quotient : Type* := quotient (quotient_rel p)
 
 namespace quotient
 
+/-- Map associating to an element of `M` the corresponding element of `M/p`,
+when `p` is a submodule of `M`. -/
 def mk {p : submodule R M} : M → quotient p := quotient.mk'
 
 @[simp] theorem mk_eq_mk {p : submodule R M} (x : M) : (quotient.mk x : quotient p) = mk x := rfl
@@ -1255,7 +1260,7 @@ instance : has_coe (M ≃ₗ[R] M₂) (M →ₗ[R] M₂) := ⟨to_linear_map⟩
 lemma to_equiv_injective : function.injective (to_equiv : (M ≃ₗ[R] M₂) → M ≃ M₂) :=
 λ ⟨_, _, _, _, _, _⟩ ⟨_, _, _, _, _, _⟩ h, linear_equiv.mk.inj_eq.mpr (equiv.mk.inj h)
 
-@[extensionality] lemma ext {f g : M ≃ₗ[R] M₂} (h : (f : M → M₂) = g) : f = g :=
+@[ext] lemma ext {f g : M ≃ₗ[R] M₂} (h : (f : M → M₂) = g) : f = g :=
 to_equiv_injective (equiv.eq_of_to_fun_eq h)
 
 section
@@ -1421,6 +1426,10 @@ let F : f.ker.quotient →ₗ[R] f.range :=
 
 open submodule
 
+/--
+Canonical linear map from the quotient p/(p ∩ p') to (p+p')/p', mapping x + (p ∩ p') to x + p',
+where p and p' are submodules of an ambient module.
+-/
 def sup_quotient_to_quotient_inf (p p' : submodule R M) :
   (comap p.subtype (p ⊓ p')).quotient →ₗ[R] (comap (p ⊔ p').subtype p').quotient :=
 (comap p.subtype (p ⊓ p')).liftq
@@ -1430,7 +1439,9 @@ exact comap_mono (inf_le_inf le_sup_left (le_refl _)) end
 
 set_option class.instance_max_depth 41
 
-/-- Second Isomorphism Law -/
+/--
+Second Isomorphism Law : the canonical map from p/(p ∩ p') to (p+p')/p' as a linear isomorphism.
+-/
 noncomputable def sup_quotient_equiv_quotient_inf (p p' : submodule R M) :
   (comap p.subtype (p ⊓ p')).quotient ≃ₗ[R] (comap (p ⊔ p').subtype p').quotient :=
 { .. sup_quotient_to_quotient_inf p p',
@@ -1448,7 +1459,7 @@ noncomputable def sup_quotient_equiv_quotient_inf (p p' : submodule R M) :
 
 section prod
 
-/-- The product of two linear maps is a linear map. -/
+/-- The cartesian product of two linear maps as a linear map. -/
 def prod {R M M₂ M₃ : Type*} [ring R] [add_comm_group M] [add_comm_group M₂] [add_comm_group M₃]
   [module R M] [module R M₂] [module R M₃]
   (f₁ : M →ₗ[R] M₂) (f₂ : M →ₗ[R] M₃) : M →ₗ[R] (M₂ × M₃) :=
@@ -1464,16 +1475,6 @@ lemma is_linear_map_prod_iso {R M M₂ M₃ : Type*} [comm_ring R] [add_comm_gro
   [add_comm_group M₃] [module R M] [module R M₂] [module R M₃] :
   is_linear_map R (λ(p : (M →ₗ[R] M₂) × (M →ₗ[R] M₃)), (linear_map.prod p.1 p.2 : (M →ₗ[R] (M₂ × M₃)))) :=
 ⟨λu v, rfl, λc u, rfl⟩
-
-/-- The product by a linear map into the scalar ring is a linear map. -/
-def scalar_prod_space_iso {R M M₂ : Type*} [comm_ring R] [add_comm_group M] [add_comm_group M₂]
-  [module R M] [module R M₂] (c : M →ₗ[R] R) (f : M₂) : M →ₗ[R] M₂ :=
-{ to_fun := λx, (c x) • f,
-  add := λx y, begin
-    change c (x + y) • f = (c x) • f + (c y) • f,
-    simp [add_smul],
-  end,
-  smul := λa x, by simp [smul_smul] }
 
 end prod
 

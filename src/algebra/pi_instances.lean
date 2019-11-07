@@ -366,14 +366,6 @@ instance [monoid α] [monoid β] [is_submonoid s] [is_submonoid t] :
 { one_mem := by rw set.mem_prod; split; apply is_submonoid.one_mem,
   mul_mem := by intros; rw set.mem_prod at *; split; apply is_submonoid.mul_mem; tauto }
 
-/-- Given submonoids `s, t` of monoids `α, β` respectively, `s × t` as a submonoid of `α × β`. -/
-@[to_additive add_submonoid "Given `add_submonoids` `s, t` of `add_monoids` `α, β` respectively, `s × t` as an `add_submonoid` of `α × β`."]
-def submonoid [monoid α] [monoid β] (s : submonoid α) (t : submonoid β) :
-  submonoid (α × β) :=
-{ carrier := (s : set α).prod t,
-  one_mem' := ⟨s.one_mem, t.one_mem⟩,
-  mul_mem' := λ _ _ h1 h2, ⟨s.mul_mem h1.1 h2.1, t.mul_mem h1.2 h2.2⟩ }
-
 @[to_additive prod.is_add_subgroup.prod]
 instance is_subgroup.prod [group α] [group β] [is_subgroup s] [is_subgroup t] :
   is_subgroup (s.prod t) :=
@@ -384,9 +376,21 @@ instance is_subring.prod [ring α] [ring β] [is_subring s] [is_subring t] :
   is_subring (s.prod t) :=
 { .. prod.is_submonoid s t, .. prod.is_add_subgroup.prod s t }
 
-end substructures
-
 end prod
+
+namespace submonoid
+
+/-- Given submonoids `s, t` of monoids `α, β` respectively, `s × t` as a submonoid of `α × β`. -/
+@[to_additive prod "Given `add_submonoids` `s, t` of `add_monoids` `α, β` respectively, `s × t` as an `add_submonoid` of `α × β`."]
+def prod {α : Type*} {β : Type*} [monoid α] [monoid β] (s : submonoid α) (t : submonoid β) :
+  submonoid (α × β) :=
+{ carrier := (s : set α).prod t,
+  one_mem' := ⟨s.one_mem, t.one_mem⟩,
+  mul_mem' := λ _ _ h1 h2, ⟨s.mul_mem h1.1 h2.1, t.mul_mem h1.2 h2.2⟩ }
+
+end submonoid
+
+end substructures
 
 namespace finset
 

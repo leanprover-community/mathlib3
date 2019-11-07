@@ -40,7 +40,7 @@ namespace ring_commutator
 
 variables (A : Type v) [ring A]
 
-instance bracket : has_bracket A :=
+instance : has_bracket A :=
 { bracket := λ x y, x*y - y*x }
 
 @[simp] lemma add_left (x y z : A) :

@@ -51,24 +51,6 @@ meta def add_theorem_by (n : name) (ls : list name) (type : expr) (tac : tactic 
   add_decl $ mk_theorem n ls type body,
   return $ const n $ ls.map param
 
-meta def mk_exists_lst (args : list expr) (inner : expr) : tactic expr :=
-args.mfoldr (λarg i:expr, do
-    t ← infer_type arg,
-    sort l ← infer_type t,
-    return $ if arg.occurs i ∨ l ≠ level.zero
-      then (const `Exists [l] : expr) t (i.lambdas [arg])
-      else (const `and [] : expr) t i)
-  inner
-
-meta def mk_op_lst (op : expr) (empty : expr) : list expr → expr
-| []        := empty
-| [e]       := e
-| (e :: es) := op e $ mk_op_lst es
-
-meta def mk_and_lst : list expr → expr := mk_op_lst `(and) `(true)
-
-meta def mk_or_lst : list expr → expr := mk_op_lst `(or) `(false)
-
 /-- `mk_psigma [x,y,z]`, with `[x,y,z]` list of local constants of types `x : tx`,
 `y : ty x` and `z : tz x y`, creates an expression of sigma type: `⟨x,y,z⟩ : Σ' (x : tx) (y : ty x), tz x y`.
  -/

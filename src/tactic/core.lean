@@ -1344,7 +1344,7 @@ do e ← pformat_macro () s,
    pure ``((%%e : pformat) >>= trace)
 
 /-- Lifts a `tactic α` to a higher universe, overcoming universe `do`-block limitations. -/
-meta def uraise {α : Type u} (t : tactic α) : tactic (ulift.{v} α) := λ s₁,
+meta def uraise {α : Type v} (t : tactic α) : tactic (ulift.{u} α) := λ s₁,
 match t s₁ with
 | interaction_monad.result.exception fn pos ts := interaction_monad.result.exception fn pos ts
 | interaction_monad.result.success val s₂ := interaction_monad.result.success (ulift.up val) s₂
@@ -1352,11 +1352,14 @@ end
 
 /-- Descends a `tactic (ulift α)` to a lower universe, overcoming universe `do`-block
 limitations. -/
-meta def udescend {α : Type u} (t : tactic (ulift.{v} α)) : tactic α :=
+meta def udescend {α : Type v} (t : tactic (ulift.{u} α)) : tactic α :=
 λ ts, match t ts with
 | interaction_monad.result.success val state := interaction_monad.result.success val.down state
 | interaction_monad.result.exception fn pos state := interaction_monad.result.exception fn pos state
 end
+
+/-- Higher universe version of `skip`. -/
+meta def uskip : tactic (ulift.{u} unit) := return $ ulift.up ()
 
 /-- A hackish way to get the `src` directory of mathlib. -/
 meta def get_mathlib_dir : tactic string :=

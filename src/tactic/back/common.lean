@@ -4,6 +4,8 @@ universes u v
 
 namespace back
 
+open tactic
+
 declare_trace back
 
 meta def btrace (fmt : format) : tactic (ulift unit) :=

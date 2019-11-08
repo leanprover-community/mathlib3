@@ -2,8 +2,6 @@ import tactic.back.interactive
 
 -- set_option trace.back true
 
-
-
 axiom ax {n k : ℕ} : n = k
 
 @[back] axiom ax2 {m : ℤ} : m = -1

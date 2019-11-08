@@ -133,7 +133,7 @@ section
 open helper_tactics helper_tactics.filter_graph
 
 meta def helper_tactics_graph : filter_graph :=
-filter (λ ts e, tactic.under_state ts $ tactic.is_proof e) $
+filter (λ ts e, interaction_monad.under_state ts $ tactic.is_proof e) $
   vertex 5 [
     leaf 10 $ tactic.interactive.norm_num1 (interactive.loc.ns [none]),
     leaf 50 $ tactic.interactive.simp none ff [] [] (interactive.loc.ns [none])

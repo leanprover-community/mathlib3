@@ -5,6 +5,8 @@ variables {γ : Type}
 
 namespace back
 
+open tactic
+
 meta def find_any_solved_node : list (node γ) → option (node γ)
 | [] := none
 | (n :: rest) := if n.goals.length = 0 then some n else find_any_solved_node rest
@@ -55,7 +57,7 @@ meta def loop (i : inst) : list (node i.b.γ) → tactic tactic_state
 meta def initial_node (i : inst) : tactic (node i.b.γ) :=
 do ulift.up gs ← uraise tactic.get_goals,
    gs ← list.mmap i.init gs,
-   ulift.up state ← uraise tactic.get_state,
+   ulift.up state ← uraise interaction_monad.get_state,
    return ⟨gs, state, 0⟩
 
 meta def idea_list : list idea := [
@@ -69,6 +71,6 @@ meta def search (cfg : config) : tactic unit :=
 udescend.{2} $
 do ulift.up i ← uraise.{1} $ inst.of_brain (brains.queue idea_list) cfg,
    ulift.up n ← uraise.{2} $ initial_node i,
-   uraise $ loop i [n] >>= tactic.set_state
+   uraise $ loop i [n] >>= interaction_monad.set_state
 
 end back

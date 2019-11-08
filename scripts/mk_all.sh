@@ -14,11 +14,30 @@ do
   # Now modify this output so that Lean can parse it. Changes `./foo.lean` to `.foo` and `foodir` to `.foodir.all`. Also adds indentation, a comment and `import`. Write this to `all.lean`
 done
 
+nolint=0
+while getopts 't' opt; do
+  case $opt in
+    t) nolint=1 ;;
+    *) echo 'Error in command line parsing' >&2
+       exit 1
+  esac
+done
+
 cd $DIR/../src/
-cat <<EOT > lint_mathlib.lean
+if [ "$nolint" -eq 1 ]; then
+  cp ../scripts/nolints.txt ./nolints.lean
+  cat <<EOT > lint_mathlib.lean
+import .nolints
+EOT
+else
+  cat <<EOT > lint_mathlib.lean
 import all
+EOT
+fi
+
+cat <<EOT >> lint_mathlib.lean
 
 open nat -- need to do something before running a command
 
-#lint_mathlib- only def_lemma dup_namespace
+#lint_mathlib-
 EOT

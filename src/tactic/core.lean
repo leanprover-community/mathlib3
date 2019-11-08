@@ -59,6 +59,19 @@ meta def mfoldl {α : Type} {m} [monad m] (f : α → expr → m α) : α → ex
 | x e := prod.snd <$> (state_t.run (e.traverse $ λ e',
     (get >>= monad_lift ∘ flip f e' >>= put) $> e') x : m _)
 
+meta def replace_with (e : expr) (s : expr) (s' : expr) : expr :=
+e.replace $ λc d, if c = s then some (s'.lift_vars 0 d) else none
+
+meta def local_binder_info : expr → binder_info
+| (local_const x n bi t) := bi
+| e                      := binder_info.default
+
+meta def to_implicit_binder : expr → expr
+| (local_const n₁ n₂ _ d) := local_const n₁ n₂ binder_info.implicit d
+| (lam n _ d b) := lam n binder_info.implicit d b
+| (pi n _ d b) := pi n binder_info.implicit d b
+| e  := e
+
 end expr
 
 namespace interaction_monad
@@ -120,6 +133,14 @@ end format
 namespace tactic
 open function
 
+meta def mk_local_pisn : expr → nat → tactic (list expr × expr)
+| (expr.pi n bi d b) (c + 1) := do
+  p ← mk_local' n bi d,
+  (ps, r) ← mk_local_pisn (b.instantiate_var p) c,
+  return ((p :: ps), r)
+| e 0 := return ([], e)
+| _ _ := failed
+
 meta def mk_theorem (n : name) (ls : list name) (t : expr) (e : expr) : declaration :=
 declaration.thm n ls t (task.pure e)
 
@@ -127,7 +148,7 @@ meta def add_theorem_by (n : name) (ls : list name) (type : expr) (tac : tactic 
   ((), body) ← solve_aux type tac,
   body ← instantiate_mvars body,
   add_decl $ mk_theorem n ls type body,
-  return $ const n $ ls.map param
+  return $ expr.const n $ ls.map level.param
 
 /-- `eval_expr' α e` attempts to evaluate the expression `e` in the type `α`.
 This is a variant of `eval_expr` in core. Due to unexplained behavior in the VM, in rare

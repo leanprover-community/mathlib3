@@ -123,6 +123,11 @@ meta def add_prime : name → name
 | (name.mk_string s p) := name.mk_string (s ++ "'") p
 | n := (name.mk_string "x'" n)
 
+def last_string : name → string
+| anonymous        := "[anonymous]"
+| (mk_string s _)  := s
+| (mk_numeral _ n) := last_string n
+
 end name
 
 namespace level

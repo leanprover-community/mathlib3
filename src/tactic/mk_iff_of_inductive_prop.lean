@@ -9,7 +9,7 @@ Generation function for iff rules for inductives, like for `list.chain`:
       chain R a l ↔ l = [] ∨ ∃{b : α} {l' : list α}, R a b ∧ chain R b l ∧ l = b :: l'
 
 -/
-import meta.coinductive_predicates
+import tactic.core
 
 namespace tactic
 

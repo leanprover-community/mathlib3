@@ -4,45 +4,6 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Author: Johannes Hölzl (CMU)
 -/
 import tactic.core
-namespace name
-
-def last_string : name → string
-| anonymous        := "[anonymous]"
-| (mk_string s _)  := s
-| (mk_numeral _ n) := last_string n
-
-end name
-
-namespace expr
-open expr
-
-meta def replace_with (e : expr) (s : expr) (s' : expr) : expr :=
-e.replace $ λc d, if c = s then some (s'.lift_vars 0 d) else none
-
-meta def local_binder_info : expr → binder_info
-| (local_const x n bi t) := bi
-| e                      := binder_info.default
-
-meta def to_implicit_binder : expr → expr
-| (local_const n₁ n₂ _ d) := local_const n₁ n₂ binder_info.implicit d
-| (lam n _ d b) := lam n binder_info.implicit d b
-| (pi n _ d b) := pi n binder_info.implicit d b
-| e  := e
-
-end expr
-
-namespace tactic
-open level expr tactic
-
-meta def mk_local_pisn : expr → nat → tactic (list expr × expr)
-| (pi n bi d b) (c + 1) := do
-  p ← mk_local' n bi d,
-  (ps, r) ← mk_local_pisn (b.instantiate_var p) c,
-  return ((p :: ps), r)
-| e 0 := return ([], e)
-| _ _ := failed
-
-end tactic
 
 section
 universe u

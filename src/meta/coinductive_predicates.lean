@@ -42,56 +42,6 @@ meta def mk_local_pisn : expr → nat → tactic (list expr × expr)
 | e 0 := return ([], e)
 | _ _ := failed
 
-meta def mk_theorem (n : name) (ls : list name) (t : expr) (e : expr) : declaration :=
-declaration.thm n ls t (task.pure e)
-
-meta def add_theorem_by (n : name) (ls : list name) (type : expr) (tac : tactic unit) : tactic expr := do
-  ((), body) ← solve_aux type tac,
-  body ← instantiate_mvars body,
-  add_decl $ mk_theorem n ls type body,
-  return $ const n $ ls.map param
-
-/-- `mk_psigma [x,y,z]`, with `[x,y,z]` list of local constants of types `x : tx`,
-`y : ty x` and `z : tz x y`, creates an expression of sigma type: `⟨x,y,z⟩ : Σ' (x : tx) (y : ty x), tz x y`.
- -/
-meta def mk_psigma : list expr → tactic expr
-| [] := mk_const ``punit
-| [x@(local_const _ _ _ _)] := pure x
-| (x@(local_const _ _ _ _) :: xs) :=
-  do y ← mk_psigma xs,
-     α ← infer_type x,
-     β ← infer_type y,
-     t ← lambdas [x] β >>= instantiate_mvars,
-     r ← mk_mapp ``psigma.mk [α,t],
-     pure $ r x y
-| _ := fail "mk_psigma expects a list of local constants"
-
-/-- `elim_gen_prod n e _ ns` with `e` an expression of type `psigma _`, applies `cases` on `e` `n` times
-and uses `ns` to name the resulting variables. Returns a triple: list of new variables, remaining term
-and unused variable names.
--/
-meta def elim_gen_prod : nat → expr → list expr → list name → tactic (list expr × expr × list name)
-| 0       e hs ns := return (hs.reverse, e, ns)
-| (n + 1) e hs ns := do
-  t ← infer_type e,
-  if t.is_app_of `eq then return (hs.reverse, e, ns)
-  else do
-    [(_, [h, h'], _)] ← cases_core e (ns.take 1),
-    elim_gen_prod n h' (h :: hs) (ns.drop 1)
-
-private meta def elim_gen_sum_aux : nat → expr → list expr → tactic (list expr × expr)
-| 0       e hs := return (hs, e)
-| (n + 1) e hs := do
-  [(_, [h], _), (_, [h'], _)] ← induction e [],
-  swap,
-  elim_gen_sum_aux n h' (h::hs)
-
-meta def elim_gen_sum (n : nat) (e : expr) : tactic (list expr) := do
-  (hs, h') ← elim_gen_sum_aux n e [],
-  gs ← get_goals,
-  set_goals $ (gs.take (n+1)).reverse ++ gs.drop (n+1),
-  return $ hs.reverse ++ [h']
-
 end tactic
 
 section

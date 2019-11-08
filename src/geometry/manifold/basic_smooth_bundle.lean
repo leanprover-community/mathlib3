@@ -525,7 +525,6 @@ begin
   ext x : 1,
   show (chart_at (H × E) p).to_fun x = (local_equiv.refl (H × E)).to_fun x,
   { cases x,
-    simp only [chart_at],
     simp [chart_at, manifold.chart_at, basic_smooth_bundle_core.chart,
           topological_fiber_bundle_core.local_triv, topological_fiber_bundle_core.local_triv',
           basic_smooth_bundle_core.to_topological_fiber_bundle_core, tangent_bundle_core],

@@ -70,19 +70,19 @@ variables {σ : Type} {α : Type u}
 
 /-- `get_state` returns the underlying state inside an interaction monad, from within that monad. -/
 meta def get_state : interaction_monad σ σ :=
-λ s, success s s
+λ state, success state state
 
 /-- `set_state` sets the underlying state inside an interaction monad, from within that monad. -/
 meta def set_state (state : σ) : interaction_monad σ unit :=
-λ s, success () state
+λ _, success () state
 
 /-- `under_state` applies the given state to `tac`, and returns the result. If `tac` fails, then
 `under_state` does too. -/
 meta def under_state (state : σ) (tac : interaction_monad σ α) : interaction_monad σ α :=
 λ s, match tac state with
-| success val _       := success val s
-| exception fn pos ts := exception fn pos ts
-end
+     | success val _       := success val s
+     | exception fn pos ts := exception fn pos ts
+     end
 
 /-- `get_result tac` returns the result state of applying `tac` to the current state.
 Note that it does not update the current state. -/

@@ -35,9 +35,9 @@ run_cmd do
   guard $ l4.length = 1,
   guard $ ∃(x ∈ l4), (x : declaration × _).1.to_name = `foo.foo,
   -- guard $ ∃(x ∈ l4), (x : declaration × _).1.to_name = `foo4,
-  s ← lint ff,
+  (_, s) ← lint ff,
   guard $ "/- (slow tests skipped) -/\n".is_suffix_of s.to_string,
-  s2 ← lint tt,
+  (_, s2) ← lint tt,
   guard $ s.to_string ≠ s2.to_string,
   skip
 
@@ -53,5 +53,5 @@ meta def linter.dummy_linter : linter :=
   errors_found := "found something" }
 
 run_cmd do
-  s ← lint tt tt [`linter.dummy_linter] tt,
+  (_, s) ← lint tt tt [`linter.dummy_linter] tt,
   guard $ "/- found something: -/\n#print foo.foo /- gotcha! -/\n\n".is_suffix_of s.to_string

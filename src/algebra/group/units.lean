@@ -22,7 +22,7 @@ variables [monoid α] {a b c : units α}
 
 instance : has_coe (units α) α := ⟨val⟩
 
-@[extensionality] theorem ext : function.injective (coe : units α → α)
+@[ext] theorem ext : function.injective (coe : units α → α)
 | ⟨v, i₁, vi₁, iv₁⟩ ⟨v', i₂, vi₂, iv₂⟩ e :=
   by change v = v' at e; subst v'; congr;
       simpa only [iv₂, vi₁, one_mul, mul_one] using mul_assoc i₂ v i₁

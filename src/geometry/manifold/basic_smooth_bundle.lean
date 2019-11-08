@@ -40,13 +40,13 @@ with the charts of the basis). We show that this manifold is smooth.
 
 Then we use this machinery to construct the tangent bundle of a smooth manifold.
 
-`tangent_bundle_core I M`: the basic smooth bundle core associated to a smooth manifold M over a
-                           model with corners I.
-`tangent_bundle I M`     : the total space of `tangent_bundle_core I M`. It is itself a
-                           smooth manifold over the model with corners `I.tangent`, the product of
-                           `I` and the trivial model with corners on `E`.
-`tangent_space I x`      : the tangent space to M at x
-`tangent_bundle_proj I M`: the projection from the tangent bundle to the base manifold
+* `tangent_bundle_core I M`: the basic smooth bundle core associated to a smooth manifold M over a
+                             model with corners I.
+* `tangent_bundle I M`     : the total space of `tangent_bundle_core I M`. It is itself a
+                             smooth manifold over the model with corners `I.tangent`, the product of
+                             `I` and the trivial model with corners on `E`.
+* `tangent_space I x`      : the tangent space to M at x
+* `tangent_bundle.proj I M`: the projection from the tangent bundle to the base manifold
 
 ## TODO
 construct the cotangent bundle, and the bundles of differential forms. They should follow
@@ -525,6 +525,7 @@ begin
   ext x : 1,
   show (chart_at (H × E) p).to_fun x = (local_equiv.refl (H × E)).to_fun x,
   { cases x,
+    simp only [chart_at],
     simp [chart_at, manifold.chart_at, basic_smooth_bundle_core.chart,
           topological_fiber_bundle_core.local_triv, topological_fiber_bundle_core.local_triv',
           basic_smooth_bundle_core.to_topological_fiber_bundle_core, tangent_bundle_core],
@@ -559,12 +560,10 @@ begin
   split,
   { assume ho,
     have := e'.continuous_inv_fun o ho,
-    simp [e', tangent_bundle_model_space_chart_at] at this,
-    exact this },
+    simpa [e', tangent_bundle_model_space_chart_at] },
   { assume ho,
     have := e'.continuous_to_fun o ho,
-    simp [e', tangent_bundle_model_space_chart_at] at this,
-    exact this }
+    simpa [e', tangent_bundle_model_space_chart_at] }
 end
 
 end tangent_bundle

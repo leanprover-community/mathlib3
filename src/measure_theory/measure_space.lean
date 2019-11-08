@@ -886,6 +886,18 @@ begin
     filter_upwards [h] assume a, mem_Inter.1 }
 end
 
+variables {β : Type*}
+
+lemma all_ae_eq_refl (f : α → β) : ∀ₘ a, f a = f a :=
+by { filter_upwards [], assume a, apply eq.refl }
+
+lemma all_ae_eq_symm {f g : α → β} : (∀ₘ a, f a = g a) → (∀ₘ a, g a = f a) :=
+by { assume h, filter_upwards [h], assume a, apply eq.symm }
+
+lemma all_ae_eq_trans {f g h: α → β} (h₁ : ∀ₘ a, f a = g a) (h₂ : ∀ₘ a, g a = h a) :
+  ∀ₘ a, f a = h a :=
+by { filter_upwards [h₁, h₂], intro a, exact eq.trans }
+
 end measure_space
 
 end measure_theory

@@ -88,7 +88,8 @@ meta structure node (γ : Type) :=
 namespace node
 
 meta def prune_solved (n : node γ) : tactic (node γ) :=
-do gs ← n.goals.mfilter' $ λ g, tactic.under_state n.ts (bnot <$> tactic.is_assigned g.mvar),
+do gs ← n.goals.mfilter' $
+     λ g, interaction_monad.under_state n.ts (bnot <$> tactic.is_assigned g.mvar),
    return {n with goals := gs}
 
 meta def most_promising (n : node γ) : (option (goal γ)) × list (goal γ) := n.goals.extract_least
@@ -125,7 +126,7 @@ end inst
 namespace goal
 
 meta def from_tactic_state (i : inst) (ts : tactic_state) : tactic (list (goal i.b.γ)) :=
-do ulift.up gs ← uraise $ tactic.under_state ts tactic.get_goals,
+do ulift.up gs ← uraise $ interaction_monad.under_state ts tactic.get_goals,
    gs.mmap i.init
 
 meta def with_idea_state (g : goal γ) (d : g.t.id.α × ℕ × debug_msg) : goal γ :=

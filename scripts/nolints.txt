@@ -1605,7 +1605,6 @@ left_add_coset_equiv
 left_coset
 left_coset_equiv
 lex
-lin_equiv_matrix
 linarith.add_exprs
 linarith.add_exprs_aux
 linarith.add_neg_eq_pfs
@@ -1684,6 +1683,7 @@ linarith.update
 linarith.validate
 linear_equiv.to_equiv
 linear_equiv.to_linear_map
+linear_equiv_matrix
 linear_independent_monoid_hom
 linear_map
 linear_map.comp

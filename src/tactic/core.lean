@@ -5,6 +5,8 @@ Authors: Mario Carneiro, Simon Hudon, Scott Morrison, Keeley Hoek
 -/
 import data.dlist.basic category.basic meta.expr meta.rb_map data.bool
 
+universes u
+
 namespace expr
 open tactic
 
@@ -39,7 +41,7 @@ args.mfoldr (λarg i:expr, do
   inner
 
 /-- `traverse f e` applies the monadic function `f` to the direct descendants of `e`. -/
-meta def {u} traverse {m : Type → Type u} [applicative m]
+meta def traverse {m : Type → Type u} [applicative m]
   {elab elab' : bool} (f : expr elab → m (expr elab')) :
   expr elab → m (expr elab')
  | (var v)  := pure $ var v
@@ -64,14 +66,32 @@ end expr
 namespace interaction_monad
 open result
 
+variables {σ : Type} {α : Type u}
+
+/-- `get_state` returns the underlying state inside an interaction monad, from within that monad. -/
+meta def get_state : interaction_monad σ σ :=
+λ state, success state state
+
+/-- `set_state` sets the underlying state inside an interaction monad, from within that monad. -/
+meta def set_state (state : σ) : interaction_monad σ unit :=
+λ _, success () state
+
+/-- `under_state` applies the given state to `tac`, and returns the result. If `tac` fails, then
+`under_state` does too. -/
+meta def under_state (state : σ) (tac : interaction_monad σ α) : interaction_monad σ α :=
+λ s, match tac state with
+     | success val _       := success val s
+     | exception fn pos ts := exception fn pos ts
+     end
+
 /-- `get_result tac` returns the result state of applying `tac` to the current state.
-Note that it does not update the current state. -/
-meta def get_result {σ α} (tac : interaction_monad σ α) :
-  interaction_monad σ (interaction_monad.result σ α) | s :=
-match tac s with
-| r@(success _ s') := success r s'
-| r@(exception _ _ s') := success r s'
-end
+Note that it updates the current state. -/
+meta def get_result (tac : interaction_monad σ α)
+  : interaction_monad σ (interaction_monad.result σ α) :=
+λ s₁, match tac s₁ with
+      | r@(success _ s₂)     := success r s₂
+      | r@(exception _ _ s₂) := success r s₂
+      end
 
 end interaction_monad
 
@@ -82,10 +102,10 @@ open lean interaction_monad.result
 This replaces `of_tactic` in core, which has a buggy implementation. -/
 meta def of_tactic' {α} (tac : tactic α) : parser α :=
 do r ← of_tactic (interaction_monad.get_result tac),
-match r with
-| (success a _) := return a
-| (exception f pos _) := exception f pos
-end
+   match r with
+   | success a _ := return a
+   | exception f pos _ := exception f pos
+   end
 
 /-- Override the builtin `lean.parser.of_tactic` coe, which is broken.
 (See test/tactics.lean for a failure case.) -/
@@ -1232,7 +1252,7 @@ meta def trace_error (msg : string) (t : tactic α) : tactic α
 This combinator is for testing purposes. It succeeds if `t` fails with message `msg`,
 and fails otherwise.
 -/
-meta def {u} success_if_fail_with_msg {α : Type u} (t : tactic α) (msg : string) : tactic unit :=
+meta def success_if_fail_with_msg {α : Type u} (t : tactic α) (msg : string) : tactic unit :=
 λ s, match t s with
 | (interaction_monad.result.exception msg' _ s') :=
   let expected_msg := (msg'.iget ()).to_string in

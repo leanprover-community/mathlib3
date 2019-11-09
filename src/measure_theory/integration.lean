@@ -601,9 +601,11 @@ begin
   assume c hc,
   simp only [map_preimage, volume_bUnion_preimage],
   apply sum_lt_top,
-  assume b, simp only [mem_filter, mem_range, mem_singleton_iff, and_imp, exists_imp_distrib],
-  assume a fab gbc,
-  apply hf, assume b0,
+  intro b,
+  simp only [mem_filter, mem_range, mem_singleton_iff, and_imp, exists_imp_distrib],
+  intros a fab gbc,
+  apply hf,
+  intro b0,
   rw [b0, hg] at gbc, rw gbc at hc,
   contradiction
 end
@@ -620,7 +622,8 @@ begin
       { rw singleton_subset_iff, rw mem_range at b_mem, exact b_mem },
     exact lt_of_le_of_lt (volume_mono this) (h (g b) gb0) },
   { rw ← preimage_eq_empty_iff at b_mem,
-    rw [b_mem, volume_empty], exact with_top.zero_lt_top }
+    rw [b_mem, volume_empty],
+    exact with_top.zero_lt_top }
 end
 
 lemma fin_vol_supp_pair {f : α →ₛ β} {g : α →ₛ γ} (hf : f.fin_vol_supp) (hg : g.fin_vol_supp) :
@@ -649,7 +652,8 @@ begin
     { rw [haz, zero_mul], exact with_top.zero_lt_top },
     apply mul_lt_top,
     { rw ennreal.lt_top_iff_ne_top, exact hat },
-    apply h₂, exact haz }
+    apply h₂,
+    exact haz }
 end
 
 lemma fin_vol_supp_of_integral_lt_top {f : α →ₛ ennreal} (h : integral f < ⊤) : f.fin_vol_supp :=

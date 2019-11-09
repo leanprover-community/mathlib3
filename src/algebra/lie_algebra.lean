@@ -126,15 +126,15 @@ end
 @[simp] lemma lie_gsmul (x y : L) (n : ℤ) :
   ⁅x, n • y⁆ = n • ⁅x, y⁆ :=
 begin
-  rw [←lie_skew, ←lie_skew _ x, gsmul_lie],
+  rw [←lie_skew, ←lie_skew x, gsmul_lie],
   unfold has_scalar.smul, rw gsmul_neg,
 end
 
 instance lie_ring.of_associative_ring (A : Type v) [ring A] : lie_ring A :=
-{ add_lie  := ring_commutator.add_left A,
-  lie_add  := ring_commutator.add_right A,
-  lie_self := ring_commutator.alternate A,
-  jacobi   := ring_commutator.jacobi A }
+{ add_lie  := ring_commutator.add_left,
+  lie_add  := ring_commutator.add_right,
+  lie_self := ring_commutator.alternate,
+  jacobi   := ring_commutator.jacobi }
 
 end lie_ring
 
@@ -152,7 +152,7 @@ class lie_algebra (R : Type u) (L : Type v)
 
 @[simp] lemma smul_lie (R : Type u) (L : Type v) [comm_ring R] [add_comm_group L] [lie_algebra R L]
   (t : R) (x y : L) : ⁅t • x, y⁆ = t • ⁅x, y⁆ :=
-  by { rw [←lie_skew, ←lie_skew _ x y], simp [-lie_skew], }
+  by { rw [←lie_skew, ←lie_skew x y], simp [-lie_skew], }
 
 namespace lie_algebra
 

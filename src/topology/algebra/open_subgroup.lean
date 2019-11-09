@@ -31,7 +31,7 @@ instance : has_mem G (open_subgroup G) := ⟨λ g U, g ∈ (U : set G)⟩
 lemma ext : (U = V) ↔ ((U : set G) = V) :=
 by cases U; cases V; split; intro h; try {congr}; assumption
 
-@[extensionality, to_additive]
+@[ext, to_additive]
 lemma ext' (h : (U : set G) = V) : (U = V) :=
 ext.mpr h
 

@@ -60,7 +60,7 @@ f.mem_support_to_fun
 lemma not_mem_support_iff {f : α →₀ β} {a} : a ∉ f.support ↔ f a = 0 :=
 not_iff_comm.1 mem_support_iff.symm
 
-@[extensionality]
+@[ext]
 lemma ext : ∀{f g : α →₀ β}, (∀a, f a = g a) → f = g
 | ⟨s, f, hf⟩ ⟨t, g, hg⟩ h :=
   begin

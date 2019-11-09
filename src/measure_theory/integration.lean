@@ -243,8 +243,6 @@ instance [add_comm_group β] : add_comm_group (α →ₛ β) :=
 
 variables {K : Type*}
 
---instance [semiring β] [add_monoid β] : has_scalar β (α →ₛ β) := ⟨λb f, f.map (λa, b * a)⟩
-
 instance [has_scalar K β] : has_scalar K (α →ₛ β) := ⟨λk f, f.map (λb, k • b)⟩
 
 instance [semiring K] [add_comm_monoid β] [semimodule K β] : semimodule K (α →ₛ β) :=
@@ -314,13 +312,13 @@ end
 section approx
 
 section
-variables [topological_space β] [semilattice_sup_bot β] [has_zero β]
+variables [semilattice_sup_bot β] [has_zero β]
 
 def approx (i : ℕ → β) (f : α → β) (n : ℕ) : α →ₛ β :=
 (finset.range n).sup (λk, restrict (const α (i k)) {a:α | i k ≤ f a})
 
-lemma approx_apply [ordered_topology β] {i : ℕ → β} {f : α → β} {n : ℕ} (a : α)
-  (hf : _root_.measurable f) :
+lemma approx_apply [topological_space β] [ordered_topology β] {i : ℕ → β} {f : α → β} {n : ℕ}
+  (a : α) (hf : _root_.measurable f) :
   (approx i f n : α →ₛ β) a = (finset.range n).sup (λk, if i k ≤ f a then i k else 0) :=
 begin
   dsimp only [approx],
@@ -335,7 +333,7 @@ end
 lemma monotone_approx (i : ℕ → β) (f : α → β) : monotone (approx i f) :=
 assume n m h, finset.sup_mono $ finset.range_subset.2 h
 
-lemma approx_comp [ordered_topology β] [measurable_space γ]
+lemma approx_comp [topological_space β] [ordered_topology β] [measurable_space γ]
   {i : ℕ → β} {f : γ → β} {g : α → γ} {n : ℕ} (a : α)
   (hf : _root_.measurable f) (hg : _root_.measurable g) :
   (approx i (f ∘ g) n : α →ₛ β) a = (approx i f n : γ →ₛ β) (g a) :=
@@ -367,7 +365,7 @@ section eapprox
 def ennreal_rat_embed (n : ℕ) : ennreal :=
 nnreal.of_real ((encodable.decode ℚ n).get_or_else (0 : ℚ))
 
-lemma ennreal_rat_embed_encode (q : ℚ) (hq : 0 ≤ q) :
+lemma ennreal_rat_embed_encode (q : ℚ) :
   ennreal_rat_embed (encodable.encode q) = nnreal.of_real q :=
 by rw [ennreal_rat_embed, encodable.encodek]; refl
 
@@ -387,7 +385,7 @@ begin
   have : (nnreal.of_real q : ennreal) ≤
       (⨆ (k : ℕ) (h : ennreal_rat_embed k ≤ f a), ennreal_rat_embed k),
   { refine le_supr_of_le (encodable.encode q) _,
-    rw [ennreal_rat_embed_encode q hq],
+    rw [ennreal_rat_embed_encode q],
     refine le_supr_of_le (le_of_lt q_lt) _,
     exact le_refl _ },
   exact lt_irrefl _ (lt_of_le_of_lt this lt_q)
@@ -570,9 +568,8 @@ begin
     simp [this] }
 end
 
-lemma integral_map {β} [measure_space β] (f : α →ₛ ennreal) (g : β →ₛ ennreal)
-  (m : α → β) (hm : _root_.measurable m) (eq : ∀a:α, f a = g (m a))
-  (h : ∀s:set β, is_measurable s → volume s = volume (m ⁻¹' s)) :
+lemma integral_map {β} [measure_space β] (f : α →ₛ ennreal) (g : β →ₛ ennreal)(m : α → β)
+  (eq : ∀a:α, f a = g (m a)) (h : ∀s:set β, is_measurable s → volume s = volume (m ⁻¹' s)) :
   f.integral = g.integral :=
 have f_eq : (f : α → ennreal) = g ∘ m := funext eq,
 have vol_f : ∀r, volume (f ⁻¹' {r}) = volume (g ⁻¹' {r}),
@@ -590,17 +587,16 @@ end
 
 end measure
 
-section finsupp
+section fin_vol_supp
 
 variables [measure_space α] [has_zero β] [has_zero γ]
 
 open finset ennreal
 
-/-- A function that vanishes outside a set of finite measure.
-    For simple functions, having finite support is usually the same as being integrable. -/
-def finsupp (f : α → β) : Prop := ∀b ≠ 0, volume (f ⁻¹' {b}) < ⊤
+protected def fin_vol_supp (f : α →ₛ β) : Prop := ∀b ≠ 0, volume (f ⁻¹' {b}) < ⊤
 
-lemma finsupp_map {f : α →ₛ β} {g : β → γ} (hf : finsupp f) (hg : g 0 = 0) : finsupp (f.map g) :=
+lemma fin_vol_supp_map {f : α →ₛ β} {g : β → γ} (hf : f.fin_vol_supp) (hg : g 0 = 0) :
+  (f.map g).fin_vol_supp :=
 begin
   assume c hc,
   simp only [map_preimage, volume_bUnion_preimage],
@@ -612,8 +608,8 @@ begin
   contradiction
 end
 
-lemma finsupp_of_finsupp_map (f : α →ₛ β) {g : β → γ} (h : finsupp (f.map g))
-  (hg : ∀b, g b = 0 → b = 0) : finsupp f :=
+lemma fin_vol_supp_of_fin_vol_supp_map (f : α →ₛ β) {g : β → γ} (h : (f.map g).fin_vol_supp)
+  (hg : ∀b, g b = 0 → b = 0) : f.fin_vol_supp :=
 begin
   assume b hb,
   by_cases b_mem : b ∈ f.range,
@@ -627,8 +623,8 @@ begin
     rw [b_mem, volume_empty], exact with_top.zero_lt_top }
 end
 
-lemma finsupp_pair {f : α →ₛ β} {g : α →ₛ γ} (hf : finsupp f) (hg : finsupp g) :
-  finsupp (pair f g) :=
+lemma fin_vol_supp_pair {f : α →ₛ β} {g : α →ₛ γ} (hf : f.fin_vol_supp) (hg : g.fin_vol_supp) :
+  (pair f g).fin_vol_supp :=
 begin
   rintros ⟨b, c⟩ hbc,
   rw [pair_preimage_singleton],
@@ -640,7 +636,7 @@ begin
       ... < ⊤ : hg _ h },
 end
 
-lemma integral_lt_top_of_finsupp {f : α →ₛ ennreal} (h₁ : ∀ₘ a, f a < ⊤) (h₂ : finsupp f) :
+lemma integral_lt_top_of_fin_vol_supp {f : α →ₛ ennreal} (h₁ : ∀ₘ a, f a < ⊤) (h₂ : f.fin_vol_supp) :
   integral f < ⊤ :=
 begin
   rw integral, apply sum_lt_top,
@@ -656,7 +652,7 @@ begin
     apply h₂, exact haz }
 end
 
-lemma finsupp_of_integral_lt_top {f : α →ₛ ennreal} (h : integral f < ⊤) : finsupp f :=
+lemma fin_vol_supp_of_integral_lt_top {f : α →ₛ ennreal} (h : integral f < ⊤) : f.fin_vol_supp :=
 begin
   assume b hb,
   rw [integral, sum_lt_top_iff] at h,
@@ -672,13 +668,13 @@ begin
 end
 
 /-- A technical lemma dealing with the definition of `integrable` in `l1_space.lean`. -/
-lemma integral_map_coe_lt_top {f : α →ₛ β} {g : β → nnreal} (h : finsupp f) (hg : g 0 = 0) :
+lemma integral_map_coe_lt_top {f : α →ₛ β} {g : β → nnreal} (h : f.fin_vol_supp) (hg : g 0 = 0) :
   integral (f.map ((coe : nnreal → ennreal) ∘ g)) < ⊤ :=
-integral_lt_top_of_finsupp
+integral_lt_top_of_fin_vol_supp
   (by { filter_upwards[], assume a, simp only [mem_set_of_eq, map_apply], exact ennreal.coe_lt_top})
-  (by { apply finsupp_map h, simp only [hg, function.comp_app, ennreal.coe_zero] })
+  (by { apply fin_vol_supp_map h, simp only [hg, function.comp_app, ennreal.coe_zero] })
 
-end finsupp
+end fin_vol_supp
 
 end simple_func
 
@@ -1083,8 +1079,7 @@ calc
 end priority
 
 lemma limsup_lintegral_le {f : ℕ → α → ennreal} {g : α → ennreal}
-  (hf_meas : ∀ n, measurable (f n)) (hg_meas : measurable g)
-  (h_bound : ∀n, ∀ₘa, f n a ≤ g a) (h_fin : lintegral g < ⊤) :
+  (hf_meas : ∀ n, measurable (f n)) (h_bound : ∀n, ∀ₘa, f n a ≤ g a) (h_fin : lintegral g < ⊤) :
   limsup at_top (λn, lintegral (f n)) ≤ ∫⁻ a, limsup at_top (λn, f n a) :=
 calc
   limsup at_top (λn, lintegral (f n)) = ⨅n:ℕ, ⨆i≥n, lintegral (f i) :
@@ -1116,8 +1111,7 @@ calc
 /-- Dominated convergence theorem for nonnegative functions -/
 lemma dominated_convergence_nn
   {F : ℕ → α → ennreal} {f : α → ennreal} {g : α → ennreal}
-  (hF_meas : ∀n, measurable (F n)) (hf_meas : measurable f) (hg_meas : measurable g)
-  (h_bound : ∀n, ∀ₘ a, F n a ≤ g a)
+  (hF_meas : ∀n, measurable (F n)) (h_bound : ∀n, ∀ₘ a, F n a ≤ g a)
   (h_fin : lintegral g < ⊤)
   (h_lim : ∀ₘ a, tendsto (λ n, F n a) at_top (nhds (f a))) :
   tendsto (λn, lintegral (F n)) at_top (nhds (lintegral f)) :=
@@ -1125,7 +1119,7 @@ begin
   have limsup_le_lintegral :=
   calc
     limsup at_top (λ (n : ℕ), lintegral (F n)) ≤ ∫⁻ (a : α), limsup at_top (λn, F n a) :
-      limsup_lintegral_le hF_meas hg_meas h_bound h_fin
+      limsup_lintegral_le hF_meas h_bound h_fin
     ... = lintegral f :
       lintegral_congr_ae $
           by filter_upwards [h_lim] assume a h, limsup_eq_of_tendsto at_top_ne_bot h,
@@ -1213,7 +1207,6 @@ begin
   rw [integral, integral, lintegral_eq_supr_eapprox_integral, lintegral_eq_supr_eapprox_integral],
   { congr, funext n, symmetry,
     apply simple_func.integral_map,
-    { exact hg },
     { assume a, exact congr_fun (simple_func.eapprox_comp hf hg) a },
     { assume s hs, exact map_apply hg hs } },
   exact hf.comp hg,

@@ -63,7 +63,7 @@ lemma coe_to_nnreal_le_self : ∀{a:ennreal}, ↑(a.to_nnreal) ≤ a
 lemma coe_nnreal_eq (r : nnreal) : (r : ennreal) = ennreal.of_real r :=
 by { rw [ennreal.of_real, nnreal.of_real], cases r with r h, congr, dsimp, rw max_eq_left h }
 
-lemma of_real_eq_coe_nnreal {x : real} (h : x ≥ 0) :
+lemma of_real_eq_coe_nnreal {x : real} (h : 0 ≤ x) :
   ennreal.of_real x = @coe nnreal ennreal _ (⟨x, h⟩ : nnreal) :=
 by { rw [coe_nnreal_eq], refl }
 
@@ -415,18 +415,12 @@ open finset
 /-- sum of finte numbers is still finite -/
 lemma sum_lt_top [decidable_eq α] {s : finset α} {f : α → ennreal} :
   (∀a∈s, f a < ⊤) → s.sum f < ⊤ :=
-finset.induction_on s (by { intro h, rw sum_empty, exact coe_lt_top })
-  (λa s ha ih h,
-  begin
-    rw [sum_insert ha, add_lt_top], split,
-    { apply h, apply mem_insert_self },
-    { apply ih, intros a ha, apply h, apply mem_insert_of_mem ha }
-  end)
+with_top.sum_lt_top
 
 /-- sum of finte numbers is still finite -/
 lemma sum_lt_top_iff [decidable_eq α] {s : finset α} {f : α → ennreal} :
   s.sum f < ⊤ ↔ (∀a∈s, f a < ⊤) :=
-iff.intro (λh a ha, lt_of_le_of_lt (single_le_sum (λa ha, zero_le _) ha) h) sum_lt_top
+with_top.sum_lt_top_iff
 
 /-- seeing `ennreal` as `nnreal` does not change their sum, unless one of the `ennreal` is infinity -/
 lemma to_nnreal_sum [decidable_eq α] {s : finset α} {f : α → ennreal} (hf : ∀a∈s, f a < ⊤) :
@@ -712,7 +706,7 @@ begin
     simpa [ennreal.of_real, ennreal.to_real, some_eq_coe] }
 end
 
-lemma of_real_lt_iff_lt_to_real {a : ℝ} {b : ennreal} (ha : a ≥ 0) (hb : b ≠ ⊤) :
+lemma of_real_lt_iff_lt_to_real {a : ℝ} {b : ennreal} (ha : 0 ≤ a) (hb : b ≠ ⊤) :
   ennreal.of_real a < b ↔ a < ennreal.to_real b :=
 begin
   rcases b,
@@ -721,7 +715,7 @@ begin
     simpa [ennreal.of_real, ennreal.to_real, some_eq_coe] }
 end
 
-lemma le_of_real_iff_to_real_le {a : ennreal} {b : ℝ} (ha : a ≠ ⊤) (hb : b ≥ 0) :
+lemma le_of_real_iff_to_real_le {a : ennreal} {b : ℝ} (ha : a ≠ ⊤) (hb : 0 ≤ b) :
   a ≤ ennreal.of_real b ↔ ennreal.to_real a ≤ b :=
 begin
   rcases a,
@@ -743,7 +737,7 @@ lemma of_real_mul {p q : ℝ} (hp : 0 ≤ p) :
   ennreal.of_real (p * q) = (ennreal.of_real p) * (ennreal.of_real q) :=
 by { simp only [ennreal.of_real, coe_mul.symm, coe_eq_coe], exact nnreal.of_real_mul hp }
 
-lemma to_real_of_real_mul (c : ℝ) (a : ennreal) (h : c ≥ 0) :
+lemma to_real_of_real_mul (c : ℝ) (a : ennreal) (h : 0 ≤ c) :
   ennreal.to_real ((ennreal.of_real c) * a) = c * ennreal.to_real a :=
 begin
   cases a,
@@ -777,15 +771,17 @@ begin
   { assume h, rw h }
 end
 
-lemma to_real_mul_to_real {a b : ennreal} (ha : a ≠ ⊤) (hb : b ≠ ⊤) :
+lemma to_real_mul_to_real {a b : ennreal} :
   (ennreal.to_real a) * (ennreal.to_real b) = ennreal.to_real (a * b) :=
-let a' := ennreal.to_real a in
-let b' := ennreal.to_real b in
-have ha : ennreal.of_real a' = a := of_real_to_real ha,
-have hb : ennreal.of_real b' = b := of_real_to_real hb,
 begin
+  by_cases ha : a = ⊤,
+  { rw ha, simp },
+  by_cases hb : b = ⊤,
+  { rw hb, simp },
+  have ha : ennreal.of_real (ennreal.to_real a) = a := of_real_to_real ha,
+  have hb : ennreal.of_real (ennreal.to_real b) = b := of_real_to_real hb,
   conv_rhs { rw [← ha, ← hb, ← of_real_mul to_real_nonneg] },
-  rw [to_real_of_real (mul_nonneg to_real_nonneg to_real_nonneg)],
+  rw [to_real_of_real (mul_nonneg to_real_nonneg to_real_nonneg)]
 end
 
 end real

@@ -543,6 +543,15 @@ lemma succ_div : ∀ {a b : ℕ} (hb0 : 0 < b), (a + 1) / b =
     simp [hba, hb_le_a1, hb_dvd_a], }
 end
 
+lemma succ_div_of_dvd {a b : ℕ} (hba : b ∣ a + 1) : 
+  (a + 1) / b = a / b + 1 :=
+if hb0 : b = 0 then by simp * at *
+else by rw [succ_div (nat.pos_of_ne_zero hb0), if_pos hba]
+
+lemma succ_div_of_not_dvd {a b : ℕ} (hb0 : 0 < b) (hba : ¬ b ∣ a + 1) : 
+  (a + 1) / b = a / b :=
+by rw [succ_div hb0, if_neg hba, add_zero]
+
 @[simp] theorem mod_mod (a n : ℕ) : (a % n) % n = a % n :=
 (eq_zero_or_pos n).elim
   (λ n0, by simp [n0])

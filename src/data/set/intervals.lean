@@ -17,12 +17,14 @@ TODO: This is just the beginning; a lot of rules are missing
 import algebra.order algebra.order_functions data.set.lattice
 import tactic.tauto
 
+universe u
+
 namespace set
 
 open set
 
 section intervals
-variables {α : Type*} [preorder α] {a a₁ a₂ b b₁ b₂ x : α}
+variables {α : Type u} [preorder α] {a a₁ a₂ b b₁ b₂ x : α}
 
 /-- Left-open right-open interval -/
 def Ioo (a b : α) := {x | a < x ∧ x < b}
@@ -61,10 +63,12 @@ def Ioi (a : α) := {x | a < x}
 @[simp] lemma left_mem_Ico : a ∈ Ico a b ↔ a < b := ⟨λ h, h.2, λ h, ⟨le_refl _, h⟩⟩
 @[simp] lemma left_mem_Icc : a ∈ Icc a b ↔ a ≤ b := ⟨λ h, h.2, λ h, ⟨le_refl _, h⟩⟩
 @[simp] lemma left_mem_Ioc : a ∈ Ioc a b ↔ false := ⟨λ h, lt_irrefl a h.1, λ h, false.elim h⟩
+@[simp] lemma left_mem_Ici : a ∈ Ici a := by simp
 @[simp] lemma right_mem_Ioo : b ∈ Ioo a b ↔ false := ⟨λ h, lt_irrefl b h.2, λ h, false.elim h⟩
 @[simp] lemma right_mem_Ico : b ∈ Ico a b ↔ false := ⟨λ h, lt_irrefl b h.2, λ h, false.elim h⟩
 @[simp] lemma right_mem_Icc : b ∈ Icc a b ↔ a ≤ b := ⟨λ h, h.1, λ h, ⟨h, le_refl _⟩⟩
 @[simp] lemma right_mem_Ioc : b ∈ Ioc a b ↔ a < b := ⟨λ h, h.1, λ h, ⟨h, le_refl _⟩⟩
+@[simp] lemma right_mem_Iic : a ∈ Iic a := by simp
 
 @[simp] lemma Ioo_eq_empty (h : b ≤ a) : Ioo a b = ∅ :=
 eq_empty_iff_forall_not_mem.2 $ λ x ⟨h₁, h₂⟩, not_le_of_lt (lt_trans h₁ h₂) h
@@ -184,21 +188,34 @@ lemma Icc_subset_Iic_iff (h₁ : a₁ ≤ b₁) :
 lemma Icc_subset_Ici_iff (h₁ : a₁ ≤ b₁) :
   Icc a₁ b₁ ⊆ Ici a₂ ↔ a₂ ≤ a₁ :=
 ⟨λ h, h ⟨le_refl _, h₁⟩, λ h x ⟨hx, hx'⟩, le_trans h hx⟩
+
+@[simp] lemma Ici_inter_Iic : Ici a ∩ Iic b = Icc a b := rfl
+@[simp] lemma Ici_inter_Iio : Ici a ∩ Iio b = Ico a b := rfl
+@[simp] lemma Ioi_inter_Iic : Ioi a ∩ Iic b = Ioc a b := rfl
+@[simp] lemma Ioi_inter_Iio : Ioi a ∩ Iio b = Ioo a b := rfl
+
 end intervals
 
 section partial_order
-variables {α : Type*} [partial_order α] {a b : α}
+variables {α : Type u} [partial_order α] {a b : α}
 
 @[simp] lemma Icc_self (a : α) : Icc a a = {a} :=
 set.ext $ by simp [Icc, le_antisymm_iff, and_comm]
 
 lemma Ico_diff_Ioo_eq_singleton (h : a < b) : Ico a b \ Ioo a b = {a} :=
 set.ext $ λ x, begin
+  simp [not_and'], split,
+  { rintro ⟨⟨ax, xb⟩, hne⟩,
+    exact (eq_or_lt_of_le ax).elim eq.symm (λ h', absurd h' (hne xb)) },
+  { rintro rfl, exact ⟨⟨le_refl _, h⟩, λ _, lt_irrefl x⟩ }
+end
+
+lemma Ioc_diff_Ioo_eq_singleton (h : a < b) : Ioc a b \ Ioo a b = {b} :=
+set.ext $ λ x, begin
   simp, split,
-  { rintro ⟨⟨ax, xb⟩, h⟩,
-    exact eq.symm (classical.by_contradiction
-      (λ ne, h (lt_of_le_of_ne ax ne) xb)) },
-  { rintro rfl, exact ⟨⟨le_refl _, h⟩, (lt_irrefl x).elim⟩ }
+  { rintro ⟨⟨ax, xb⟩, hne⟩,
+    exact (eq_or_lt_of_le xb).elim id (λ h', absurd h' (hne ax)) },
+  { rintro rfl, exact ⟨⟨h, le_refl _⟩, λ _, lt_irrefl x⟩ }
 end
 
 lemma Icc_diff_Ico_eq_singleton (h : a ≤ b) : Icc a b \ Ico a b = {b} :=
@@ -210,10 +227,19 @@ set.ext $ λ x, begin
   { rintro rfl, exact ⟨⟨h, le_refl _⟩, λ _, lt_irrefl x⟩ }
 end
 
+lemma Icc_diff_Ioc_eq_singleton (h : a ≤ b) : Icc a b \ Ioc a b = {a} :=
+set.ext $ λ x, begin
+  simp [not_and'], split,
+  { rintro ⟨⟨ax, xb⟩, h⟩,
+    exact classical.by_contradiction
+      (λ hne, h xb (lt_of_le_of_ne ax (ne.symm hne))) },
+  { rintro rfl, exact ⟨⟨le_refl _, h⟩, λ _, lt_irrefl x⟩ }
+end
+
 end partial_order
 
 section linear_order
-variables {α : Type*} [linear_order α] {a a₁ a₂ b b₁ b₂ : α}
+variables {α : Type u} [linear_order α] {a a₁ a₂ b b₁ b₂ : α}
 
 lemma Ioo_eq_empty_iff [densely_ordered α] : Ioo a b = ∅ ↔ b ≤ a :=
 ⟨λ eq, le_of_not_lt $ λ h,
@@ -257,17 +283,64 @@ end, λ ⟨h₁, h₂⟩, by rw [h₁, h₂]⟩
 
 end linear_order
 
+section lattice
+
+open lattice
+
+section inf
+
+variables {α : Type u} [semilattice_inf α]
+
+@[simp] lemma Iic_inter_Iic {a b : α} : Iic a ∩ Iic b = Iic (a ⊓ b) :=
+by { ext x, simp [Iic] }
+
+@[simp] lemma Iio_inter_Iio [is_total α (≤)] {a b : α} : Iio a ∩ Iio b = Iio (a ⊓ b) :=
+by { ext x, simp [Iio] }
+
+end inf
+
+section sup
+
+variables {α : Type u} [semilattice_sup α]
+
+@[simp] lemma Ici_inter_Ici {a b : α} : Ici a ∩ Ici b = Ici (a ⊔ b) :=
+by { ext x, simp [Ici] }
+
+@[simp] lemma Ioi_inter_Ioi [is_total α (≤)] {a b : α} : Ioi a ∩ Ioi b = Ioi (a ⊔ b) :=
+by { ext x, simp [Ioi] }
+
+end sup
+
+section both
+
+variables {α : Type u} [lattice α] [ht : is_total α (≤)] {a₁ a₂ b₁ b₂ : α}
+
+lemma Icc_inter_Icc : Icc a₁ b₁ ∩ Icc a₂ b₂ = Icc (a₁ ⊔ a₂) (b₁ ⊓ b₂) :=
+by simp only [Ici_inter_Iic.symm, Ici_inter_Ici.symm, Iic_inter_Iic.symm]; ac_refl
+
+include ht
+
+lemma Ico_inter_Ico : Ico a₁ b₁ ∩ Ico a₂ b₂ = Ico (a₁ ⊔ a₂) (b₁ ⊓ b₂) :=
+by simp only [Ici_inter_Iio.symm, Ici_inter_Ici.symm, Iio_inter_Iio.symm]; ac_refl
+
+lemma Ioc_inter_Ioc : Ioc a₁ b₁ ∩ Ioc a₂ b₂ = Ioc (a₁ ⊔ a₂) (b₁ ⊓ b₂) :=
+by simp only [Ioi_inter_Iic.symm, Ioi_inter_Ioi.symm, Iic_inter_Iic.symm]; ac_refl
+
+lemma Ioo_inter_Ioo : Ioo a₁ b₁ ∩ Ioo a₂ b₂ = Ioo (a₁ ⊔ a₂) (b₁ ⊓ b₂) :=
+by simp only [Ioi_inter_Iio.symm, Ioi_inter_Ioi.symm, Iio_inter_Iio.symm]; ac_refl
+
+end both
+
+end lattice
+
 section decidable_linear_order
-variables {α : Type*} [decidable_linear_order α] {a a₁ a₂ b b₁ b₂ : α}
+variables {α : Type u} [decidable_linear_order α] {a a₁ a₂ b b₁ b₂ : α}
 
 @[simp] lemma Ico_diff_Iio {a b c : α} : Ico a b \ Iio c = Ico (max a c) b :=
 set.ext $ by simp [Ico, Iio, iff_def, max_le_iff] {contextual:=tt}
 
 @[simp] lemma Ico_inter_Iio {a b c : α} : Ico a b ∩ Iio c = Ico a (min b c) :=
 set.ext $ by simp [Ico, Iio, iff_def, lt_min_iff] {contextual:=tt}
-
-lemma Ioo_inter_Ioo {a b c d : α} : Ioo a b ∩ Ioo c d = Ioo (max a c) (min b d) :=
-set.ext $ by simp [iff_def, Ioo, lt_min_iff, max_lt_iff] {contextual := tt}
 
 /-- If two half-open intervals are disjoint and the endpoint of one lies in the other,
   then it must be equal to the endpoint of the other. -/
@@ -285,7 +358,7 @@ end decidable_linear_order
 
 section ordered_comm_group
 
-variables {α : Type*} [ordered_comm_group α]
+variables {α : Type u} [ordered_comm_group α]
 
 lemma image_neg_Iio (r : α) : image (λz, -z) (Iio r) = Ioi (-r) :=
 begin
@@ -327,7 +400,7 @@ end ordered_comm_group
 
 section decidable_linear_ordered_comm_group
 
-variables {α : Type*} [decidable_linear_ordered_comm_group α]
+variables {α : Type u} [decidable_linear_ordered_comm_group α]
 
 /-- If we remove a smaller interval from a larger, the result is nonempty -/
 lemma nonempty_Ico_sdiff {x dx y dy : α} (h : dy < dx) (hx : 0 < dx) :

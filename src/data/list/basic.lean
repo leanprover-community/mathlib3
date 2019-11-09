@@ -855,7 +855,7 @@ lemma last_eq_nth_le : ∀ (l : list α) (h : l ≠ []),
 | []     a := rfl
 | (b::l) a := by rw [cons_append, length_cons, nth, nth_concat_length]
 
-@[extensionality]
+@[ext]
 theorem ext : ∀ {l₁ l₂ : list α}, (∀n, nth l₁ n = nth l₂ n) → l₁ = l₂
 | []      []       h := rfl
 | (a::l₁) []       h := by have h0 := h 0; contradiction

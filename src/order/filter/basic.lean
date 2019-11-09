@@ -95,7 +95,7 @@ lemma filter_eq_iff : f = g ↔ f.sets = g.sets :=
 protected lemma ext_iff : f = g ↔ ∀ s, s ∈ f ↔ s ∈ g :=
 by rw [filter_eq_iff, ext_iff]
 
-@[extensionality]
+@[ext]
 protected lemma ext : (∀ s, s ∈ f ↔ s ∈ g) → f = g :=
 filter.ext_iff.2
 

@@ -314,36 +314,48 @@ meta def get_checks (slow : bool) (extra : list name) (use_only : bool) :
 private meta def append_when (verbose : bool) (old new : format) : format :=
 cond verbose (old ++ new) old
 
+private meta def check_fold (printer : (declaration → tactic (option string)) → tactic (name_set × format))
+(verbose : bool) : name_set × format → linter → tactic (name_set × format)
+| (ns, s) ⟨tac, ok_string, warning_string, _⟩ :=
+do (new_ns, f) ← printer tac,
+   if f.is_nil then return $ (ns, append_when verbose s format!"/- OK: {ok_string}. -/\n")
+  else return $ (ns.union new_ns, s ++ format!"/- {warning_string}: -/" ++ f ++ "\n\n")
+
 /-- The common denominator of `#lint[|mathlib|all]`.
   The different commands have different configurations for `l`, `printer` and `where_desc`.
   If `slow` is false, doesn't do the checks that take a lot of time.
   If `verbose` is false, it will suppress messages from passing checks.
-  By setting `checks` you can customize which checks are performed. -/
+  By setting `checks` you can customize which checks are performed.
+
+  Returns a `name_set` containing the names of all declarations that fail any check in `check`,
+  and a `format` object describing the failures. -/
 meta def lint_aux (l : list declaration)
-  (printer : (declaration → tactic (option string)) → tactic format)
-  (where_desc : string) (slow verbose : bool) (checks : list linter) : tactic format := do
+  (printer : (declaration → tactic (option string)) → tactic (name_set × format))
+  (where_desc : string) (slow verbose : bool) (checks : list linter) : tactic (name_set × format) := do
   let s : format := append_when verbose format.nil "/- Note: This command is still in development. -/\n",
   let s := append_when verbose s format!"/- Checking {l.length} declarations {where_desc} -/\n\n",
-  s ← checks.mfoldl (λ s ⟨tac, ok_string, warning_string, _⟩, show tactic format, from do
-    f ← printer tac,
-    if f.is_nil then return $ append_when verbose s format!"/- OK: {ok_string}. -/\n"
-    else return $ s ++ format!"/- {warning_string}: -/" ++ f ++ "\n\n") s,
-  return $ if slow then s else append_when verbose s "/- (slow tests skipped) -/\n"
+  (ns, s) ← checks.mfoldl (check_fold printer verbose) (mk_name_set, s),
+  return $ (ns, if slow then s else append_when verbose s "/- (slow tests skipped) -/\n")
 
-/-- Return the message printed by `#lint`. -/
+/-- Return the message printed by `#lint` and a `name_set` containing all declarations that fail. -/
 meta def lint (slow : bool := tt) (verbose : bool := tt) (extra : list name := [])
-  (use_only : bool := ff) : tactic format := do
+  (use_only : bool := ff) : tactic (name_set × format) := do
   checks ← get_checks slow extra use_only,
   e ← get_env,
   l ← e.mfilter (λ d,
     if e.in_current_file' d.to_name ∧ ¬ d.to_name.is_internal ∧ ¬ d.is_auto_generated e
     then bnot <$> has_attribute' `nolint d.to_name else return ff),
-  lint_aux l (λ t, print_decls <$> fold_over_with_cond l t)
+  lint_aux l (λ t, do lst ← fold_over_with_cond l t, return
+                      (name_set.of_list (lst.map (declaration.to_name ∘ prod.fst)), print_decls lst))
     "in the current file" slow verbose checks
 
-/-- Return the message printed by `#lint_mathlib`. -/
+private meta def name_list_of_decl_lists (l : list (string × list (declaration × string))) :
+  name_set :=
+name_set.of_list $ list.join $ l.map $ λ ⟨_, l'⟩, l'.map $ declaration.to_name ∘ prod.fst
+
+/-- Return the message printed by `#lint_mathlib` and a `name_set` containing all declarations that fail. -/
 meta def lint_mathlib (slow : bool := tt) (verbose : bool := tt) (extra : list name := [])
-  (use_only : bool := ff) : tactic format := do
+  (use_only : bool := ff) : tactic (name_set × format) := do
   checks ← get_checks slow extra use_only,
   e ← get_env,
   ml ← get_mathlib_dir,
@@ -353,17 +365,19 @@ meta def lint_mathlib (slow : bool := tt) (verbose : bool := tt) (extra : list n
     if e.is_prefix_of_file ml d.to_name ∧ ¬ d.to_name.is_internal ∧ ¬ d.is_auto_generated e
     then bnot <$> has_attribute' `nolint d.to_name else return ff),
   let ml' := ml.length,
-  lint_aux l (λ t, print_decls_sorted_mathlib ml' <$> fold_over_with_cond_sorted l t)
+  lint_aux l (λ t, do lst ← fold_over_with_cond_sorted l t,
+     return (name_list_of_decl_lists lst, print_decls_sorted_mathlib ml' lst))
     "in mathlib (only in imported files)" slow verbose checks
 
-/-- Return the message printed by `#lint_all`. -/
+/-- Return the message printed by `#lint_all` and a `name_set` containing all declarations that fail. -/
 meta def lint_all (slow : bool := tt) (verbose : bool := tt) (extra : list name := [])
-  (use_only : bool := ff) : tactic format := do
+  (use_only : bool := ff) : tactic (name_set × format) := do
   checks ← get_checks slow extra use_only,
   e ← get_env,
   l ← e.mfilter (λ d, if ¬ d.to_name.is_internal ∧ ¬ d.is_auto_generated e
     then bnot <$> has_attribute' `nolint d.to_name else return ff),
-  lint_aux l (λ t, print_decls_sorted <$> fold_over_with_cond_sorted l t)
+  lint_aux l (λ t, do lst ← fold_over_with_cond_sorted l t,
+    return (name_list_of_decl_lists lst, print_decls_sorted lst))
     "in all imported files (including this one)" slow verbose checks
 
 /-- Parses an optional `only`, followed by a sequence of zero or more identifiers.
@@ -372,12 +386,13 @@ private meta def parse_lint_additions : parser (bool × list name) :=
 prod.mk <$> only_flag <*> (list.map (name.append `linter) <$> ident_*)
 
 /-- The common denominator of `lint_cmd`, `lint_mathlib_cmd`, `lint_all_cmd` -/
-private meta def lint_cmd_aux (scope : bool → bool → list name → bool → tactic format) : parser unit :=
+private meta def lint_cmd_aux (scope : bool → bool → list name → bool → tactic (name_set × format)) :
+  parser unit :=
 do silent ← optional (tk "-"),
    fast_only ← optional (tk "*"),
    silent ← if silent.is_some then return silent else optional (tk "-"), -- allow either order of *-
    (use_only, extra) ← parse_lint_additions,
-   s ← scope fast_only.is_none silent.is_none extra use_only,
+   (_, s) ← scope fast_only.is_none silent.is_none extra use_only,
    when (¬ s.is_nil) $ do
      trace s,
      when silent.is_some $ fail "Linting did not succeed"
@@ -418,4 +433,4 @@ let ns := env.decl_filter_map $ λ dcl,
 @[hole_command] meta def lint_hole_cmd : hole_command :=
 { name := "Lint",
   descr := "Lint: Find common mistakes in current file.",
-  action := λ es, do s ← lint, return [(s.to_string,"")] }
+  action := λ es, do (_, s) ← lint, return [(s.to_string,"")] }

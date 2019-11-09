@@ -306,7 +306,7 @@ lemma add_to_fun (f g : α →₁ β) : ∀ₘ a, (f + g).to_fun a = f.to_fun a 
 ae_eq_fun.add_to_fun _ _
 
 lemma neg_mk (f : α → β) (hfm hfi) :
-  - mk f hfm hfi = mk (-f) (measurable_neg hfm) (integrable_neg hfm hfi) := rfl
+  - mk f hfm hfi = mk (-f) (measurable_neg hfm) (integrable_neg hfi) := rfl
 
 lemma neg_to_fun (f : α →₁ β) : ∀ₘ a, (-f).to_fun a = - f.to_fun a := ae_eq_fun.neg_to_fun _
 

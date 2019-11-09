@@ -32,6 +32,9 @@ lie bracket, ring commutator, jacobi identity, lie ring, lie algebra
 
 universes u v
 
+/--
+A product operation, intended use in Lie algebras and similar structures.
+-/
 class has_bracket (L : Type v) := (bracket : L → L → L)
 
 notation `⁅`x`,` y`⁆` := has_bracket.bracket x y
@@ -158,11 +161,17 @@ namespace lie_algebra
 
 variables (R : Type u) (L : Type v) [comm_ring R] [add_comm_group L] [lie_algebra R L]
 
+/--
+The adjoint action of a Lie algebra on itself.
+-/
 def Ad (x : L) : L →ₗ[R] L :=
 { to_fun := has_bracket.bracket x,
   add    := by { intros, apply lie_add },
   smul   := by { intros, apply lie_smul } }
 
+/--
+The bracket of a Lie algebra as a bilinear map.
+-/
 def bil_lie : L →ₗ[R] L →ₗ[R] L :=
 { to_fun := lie_algebra.Ad R L,
   add    := by { unfold lie_algebra.Ad, intros, ext, simp [add_lie], },

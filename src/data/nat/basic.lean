@@ -479,38 +479,6 @@ rw [mul_assoc, nat.add_mul_div_left _ _ (nat.pos_of_ne_zero hb), add_mul_mod_sel
 lemma mod_mul_left_div_self (a b c : ℕ) : a % (c * b) / b = (a / b) % c :=
 by rw [mul_comm c, mod_mul_right_div_self]
 
-lemma succ_div : ∀ {a b : ℕ} (hb0 : 0 < b), (a + 1) / b =
-  a / b + if b ∣ a + 1 then 1 else 0
-| 0     1     _ := rfl
-| 0     (b+2) _ := have hb2 : b + 2 > 1, from dec_trivial,
-  by simp [ne_of_gt hb2, div_eq_of_lt hb2]
-| (a+1) (b+1) hb0 := begin
-  rw [nat.div_def], conv_rhs { rw nat.div_def },
-  by_cases hb_eq_a : b = a + 1,
-  { simp [hb_eq_a, le_refl] },
-  by_cases hb_le_a1 : b ≤ a + 1,
-  { have hb_le_a : b ≤ a, from le_of_lt_succ (lt_of_le_of_ne hb_le_a1 hb_eq_a),
-    have h₁ : (0 < b + 1 ∧ b + 1 ≤ a + 1 + 1),
-      from ⟨succ_pos _, (add_le_add_iff_right _).2 hb_le_a1⟩,
-    have h₂ : (0 < b + 1 ∧ b + 1 ≤ a + 1),
-      from ⟨succ_pos _, (add_le_add_iff_right _).2 hb_le_a⟩,
-    have dvd_iff : b + 1 ∣ a - b + 1 ↔  b + 1 ∣ a + 1 + 1,
-    { rw [nat.dvd_add_iff_left (dvd_refl (b + 1)),
-        ← nat.add_sub_add_right a 1 b, add_comm (_ - _), add_assoc,
-        nat.sub_add_cancel (succ_le_succ hb_le_a)],
-      simp },
-    have wf : a - b < a + 1, from lt_succ_of_le (nat.sub_le_self _ _),
-    rw [if_pos h₁, if_pos h₂, nat.add_sub_add_right, nat.sub_add_comm hb_le_a,
-      by exact have _ := wf, @nat.succ_div (a - b) _ (succ_pos b),
-      nat.add_sub_add_right],
-    simp [dvd_iff, succ_eq_add_one], congr },
-  { have hba : ¬ b ≤ a,
-      from not_le_of_gt (lt_trans (lt_succ_self a) (lt_of_not_ge hb_le_a1)),
-    have hb_dvd_a : ¬ b + 1 ∣ a + 2,
-      from λ h, hb_le_a1 (le_of_succ_le_succ (le_of_dvd (succ_pos _) h)),
-    simp [hba, hb_le_a1, hb_dvd_a], }
-end
-
 /- The `n+1`-st triangle number is `n` more than the `n`-th triangle number -/
 lemma triangle_succ (n : ℕ) : (n + 1) * ((n + 1) - 1) / 2 = n * (n - 1) / 2 + n :=
 begin
@@ -542,6 +510,38 @@ exists_congr $ λ d, by rw [mul_assoc, nat.mul_left_inj ha]
 
 protected theorem mul_dvd_mul_iff_right {a b c : ℕ} (hc : 0 < c) : a * c ∣ b * c ↔ a ∣ b :=
 exists_congr $ λ d, by rw [mul_right_comm, nat.mul_right_inj hc]
+
+lemma succ_div : ∀ {a b : ℕ} (hb0 : 0 < b), (a + 1) / b =
+  a / b + if b ∣ a + 1 then 1 else 0
+| 0     1     _ := rfl
+| 0     (b+2) _ := have hb2 : b + 2 > 1, from dec_trivial,
+  by simp [ne_of_gt hb2, div_eq_of_lt hb2]
+| (a+1) (b+1) hb0 := begin
+  rw [nat.div_def], conv_rhs { rw nat.div_def },
+  by_cases hb_eq_a : b = a + 1,
+  { simp [hb_eq_a, le_refl] },
+  by_cases hb_le_a1 : b ≤ a + 1,
+  { have hb_le_a : b ≤ a, from le_of_lt_succ (lt_of_le_of_ne hb_le_a1 hb_eq_a),
+    have h₁ : (0 < b + 1 ∧ b + 1 ≤ a + 1 + 1),
+      from ⟨succ_pos _, (add_le_add_iff_right _).2 hb_le_a1⟩,
+    have h₂ : (0 < b + 1 ∧ b + 1 ≤ a + 1),
+      from ⟨succ_pos _, (add_le_add_iff_right _).2 hb_le_a⟩,
+    have dvd_iff : b + 1 ∣ a - b + 1 ↔  b + 1 ∣ a + 1 + 1,
+    { rw [nat.dvd_add_iff_left (dvd_refl (b + 1)),
+        ← nat.add_sub_add_right a 1 b, add_comm (_ - _), add_assoc,
+        nat.sub_add_cancel (succ_le_succ hb_le_a)],
+      simp },
+    have wf : a - b < a + 1, from lt_succ_of_le (nat.sub_le_self _ _),
+    rw [if_pos h₁, if_pos h₂, nat.add_sub_add_right, nat.sub_add_comm hb_le_a,
+      by exact have _ := wf, @succ_div (a - b) _ (succ_pos b),
+      nat.add_sub_add_right],
+    simp [dvd_iff, succ_eq_add_one], congr },
+  { have hba : ¬ b ≤ a,
+      from not_le_of_gt (lt_trans (lt_succ_self a) (lt_of_not_ge hb_le_a1)),
+    have hb_dvd_a : ¬ b + 1 ∣ a + 2,
+      from λ h, hb_le_a1 (le_of_succ_le_succ (le_of_dvd (succ_pos _) h)),
+    simp [hba, hb_le_a1, hb_dvd_a], }
+end
 
 @[simp] theorem mod_mod (a n : ℕ) : (a % n) % n = a % n :=
 (eq_zero_or_pos n).elim

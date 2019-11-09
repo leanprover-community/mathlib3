@@ -83,7 +83,7 @@ class lie_ring (L : Type v) [add_comm_group L] extends has_bracket L :=
 
 section lie_ring
 
-variables (L : Type v) [add_comm_group L] [lie_ring L]
+variables {L : Type v} [add_comm_group L] [lie_ring L]
 
 @[simp] lemma add_lie (x y z : L) : ⁅x + y, z⁆ = ⁅x, z⁆ + ⁅y, z⁆ := lie_ring.add_lie x y z
 @[simp] lemma lie_add (x y z : L) : ⁅z, x + y⁆ = ⁅z, x⁆ + ⁅z, y⁆ := lie_ring.lie_add x y z

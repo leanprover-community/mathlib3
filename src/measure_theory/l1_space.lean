@@ -160,18 +160,17 @@ calc (∫⁻ (a : α), (nnnorm ∥f a∥)) = (∫⁻ (a : α), (nnnorm (f a))) :
 section normed_space
 variables {K : Type*} [normed_field K] [normed_space K β]
 
-lemma integrable_smul {c : K} {f : α → β} (hfm : measurable f) :
-  integrable f → integrable (c • f) :=
+lemma integrable_smul {c : K} {f : α → γ} : integrable f → integrable (c • f) :=
 begin
   simp only [integrable], assume hfi,
   calc
-    (∫⁻ (a : α), nnnorm ((c • f) a)) = (∫⁻ (a : α), (nnnorm c) * nnnorm (f a)) :
-      by { apply lintegral_congr_ae, filter_upwards [], assume a, simp [nnnorm_smul] }
+    (∫⁻ (a : α), nnnorm ((c • f) a)) = (∫⁻ (a : α), (nnnorm c) * nnnorm (f a)) : by
+    { apply lintegral_congr_ae, filter_upwards [], assume a, simp [nnnorm_smul] }
     ... < ⊤ :
     begin
-      rw lintegral_const_mul,
+      rw lintegral_const_mul',
       apply mul_lt_top,
-      { simp }, { exact hfi }, { exact measurable_coe_nnnorm hfm }
+      { simp }, { exact hfi }, { simp }
     end
 end
 
@@ -216,7 +215,7 @@ section normed_space
 variables {K : Type*} [normed_field K] [normed_space K β]
 
 lemma integrable_smul : ∀ {c : K} {f : α →ₘ β}, integrable f → integrable (c • f) :=
-by { assume c, rintros ⟨f, hf⟩, have := integrable_smul hf, simpa }
+by { assume c, rintros ⟨f, hf⟩, simpa using integrable_smul }
 
 end normed_space
 
@@ -350,7 +349,7 @@ instance : has_scalar K (α →₁ β) := ⟨l1.smul⟩
 lemma smul_def (k : K) (f : α →₁ β) : k • f = ⟨k • f.1, ae_eq_fun.integrable_smul f.2⟩ := rfl
 
 lemma smul_mk (f : α → β) (hfm hfi) (k : K) :
-  k • mk f hfm hfi = mk (k • f) (measurable_smul hfm) (integrable_smul hfm hfi) := rfl
+  k • mk f hfm hfi = mk (k • f) (measurable_smul hfm) (integrable_smul hfi) := rfl
 
 lemma smul_to_fun (c : K) (f : α →₁ β) : ∀ₘ a, (c • f).to_fun a = c • f.to_fun a :=
 ae_eq_fun.smul_to_fun _ _

@@ -69,12 +69,12 @@ lemma integrable_of_ae_eq {f g : α → β} (hf : integrable f) (h : ∀ₘ a, f
 begin
   simp only [integrable] at *,
   have : (∫⁻ (a : α), ↑(nnnorm (f a))) = (∫⁻ (a : α), ↑(nnnorm (g a))),
-    apply lintegral_congr_ae,
+  { apply lintegral_congr_ae,
     filter_upwards [h],
     assume a,
     simp only [mem_set_of_eq],
     assume h,
-    rw h,
+    rw h },
   rwa ← this
 end
 
@@ -134,23 +134,20 @@ assume hfi hgi,
       lintegral_nnnorm_add hfm hgm
     ... < ⊤ : add_lt_top.2 ⟨hfi, hgi⟩
 
--- We don't need `f` to be measurable here, but it's easier to have a uniform API
-@[nolint]
-lemma lintegral_nnnorm_neg {f : α → β} (hf : measurable f) :
+lemma lintegral_nnnorm_neg {f : α → β} :
   (∫⁻ (a : α), ↑(nnnorm ((-f) a))) = ∫⁻ (a : α), ↑(nnnorm ((f) a)) :=
 lintegral_congr_ae $ by { filter_upwards [], simp }
 
-lemma integrable_neg {f : α → β} (hfm : measurable f) : integrable f → integrable (-f) :=
-assume hfi, calc _ = _ : lintegral_nnnorm_neg hfm
+lemma integrable_neg {f : α → β} : integrable f → integrable (-f) :=
+assume hfi, calc _ = _ : lintegral_nnnorm_neg
                  ... < ⊤ : hfi
 
 lemma integrable_sub {f g : α → β} (hf : measurable f) (hg : measurable g) :
   integrable f → integrable g → integrable (f - g) :=
 λ hfi hgi,
-  by { rw sub_eq_add_neg, refine integrable_add hf (measurable_neg hg) hfi (integrable_neg hg hgi) }
+  by { rw sub_eq_add_neg, refine integrable_add hf (measurable_neg hg) hfi (integrable_neg hgi) }
 
-lemma integrable_norm {f : α → β} (hfm : measurable f) (hfi : integrable f) :
-  integrable (λa, ∥f a∥) :=
+lemma integrable_norm {f : α → β} (hfi : integrable f) : integrable (λa, ∥f a∥) :=
 calc (∫⁻ (a : α), (nnnorm ∥f a∥)) = (∫⁻ (a : α), (nnnorm (f a))) :
     begin
       apply lintegral_congr_ae, filter_upwards [],
@@ -163,7 +160,8 @@ calc (∫⁻ (a : α), (nnnorm ∥f a∥)) = (∫⁻ (a : α), (nnnorm (f a))) :
 section normed_space
 variables {K : Type*} [normed_field K] [normed_space K β]
 
-lemma integrable_smul {c : K} {f : α → β} (hfm : measurable f) : integrable f → integrable (c • f) :=
+lemma integrable_smul {c : K} {f : α → β} (hfm : measurable f) :
+  integrable f → integrable (c • f) :=
 begin
   simp only [integrable], assume hfi,
   calc
@@ -204,7 +202,7 @@ begin
 end
 
 lemma integrable_neg : ∀ {f : α →ₘ β}, integrable f → integrable (-f) :=
-by { rintros ⟨f, hf⟩, have := measure_theory.integrable_neg hf, simpa }
+by { rintros ⟨f, hf⟩, have := measure_theory.integrable_neg, simpa }
 
 lemma integrable_sub : ∀ {f g : α →ₘ β}, integrable f → integrable g → integrable (f - g) :=
 by { rintros ⟨f, hf⟩ ⟨g, hg⟩, have := measure_theory.integrable_sub hf hg, simpa [mem_ball, zero_def] }
@@ -215,7 +213,7 @@ instance : is_add_subgroup (ball (0 : α →ₘ β) ⊤) :=
   neg_mem := λ _, integrable_neg }
 
 section normed_space
-variables {K : Type*} [normed_field K] [second_countable_topology K] [normed_space K β]
+variables {K : Type*} [normed_field K] [normed_space K β]
 
 lemma integrable_smul : ∀ {c : K} {f : α →ₘ β}, integrable f → integrable (c • f) :=
 by { assume c, rintros ⟨f, hf⟩, have := integrable_smul hf, simpa }
@@ -343,7 +341,7 @@ end normed_group
 
 section normed_space
 
-variables {K : Type*} [normed_field K] [second_countable_topology K] [normed_space K β]
+variables {K : Type*} [normed_field K] [normed_space K β]
 
 protected def smul : K → (α →₁ β) → (α →₁ β) := λ x f, ⟨x • f.1, ae_eq_fun.integrable_smul f.2⟩
 

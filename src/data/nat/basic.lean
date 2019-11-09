@@ -511,12 +511,13 @@ exists_congr $ λ d, by rw [mul_assoc, nat.mul_left_inj ha]
 protected theorem mul_dvd_mul_iff_right {a b c : ℕ} (hc : 0 < c) : a * c ∣ b * c ↔ a ∣ b :=
 exists_congr $ λ d, by rw [mul_right_comm, nat.mul_right_inj hc]
 
-lemma succ_div : ∀ {a b : ℕ} (hb0 : 0 < b), (a + 1) / b =
+lemma succ_div : ∀ (a b : ℕ), (a + 1) / b =
   a / b + if b ∣ a + 1 then 1 else 0
-| 0     1     _ := rfl
-| 0     (b+2) _ := have hb2 : b + 2 > 1, from dec_trivial,
+| a     0     := by simp
+| 0     1     := rfl
+| 0     (b+2) := have hb2 : b + 2 > 1, from dec_trivial,
   by simp [ne_of_gt hb2, div_eq_of_lt hb2]
-| (a+1) (b+1) hb0 := begin
+| (a+1) (b+1) := begin
   rw [nat.div_def], conv_rhs { rw nat.div_def },
   by_cases hb_eq_a : b = a + 1,
   { simp [hb_eq_a, le_refl] },
@@ -533,7 +534,7 @@ lemma succ_div : ∀ {a b : ℕ} (hb0 : 0 < b), (a + 1) / b =
       simp },
     have wf : a - b < a + 1, from lt_succ_of_le (nat.sub_le_self _ _),
     rw [if_pos h₁, if_pos h₂, nat.add_sub_add_right, nat.sub_add_comm hb_le_a,
-      by exact have _ := wf, @succ_div (a - b) _ (succ_pos b),
+      by exact have _ := wf, succ_div (a - b),
       nat.add_sub_add_right],
     simp [dvd_iff, succ_eq_add_one], congr },
   { have hba : ¬ b ≤ a,
@@ -545,12 +546,11 @@ end
 
 lemma succ_div_of_dvd {a b : ℕ} (hba : b ∣ a + 1) : 
   (a + 1) / b = a / b + 1 :=
-if hb0 : b = 0 then by simp * at *
-else by rw [succ_div (nat.pos_of_ne_zero hb0), if_pos hba]
+by rw [succ_div, if_pos hba]
 
-lemma succ_div_of_not_dvd {a b : ℕ} (hb0 : 0 < b) (hba : ¬ b ∣ a + 1) : 
+lemma succ_div_of_not_dvd {a b : ℕ} (hba : ¬ b ∣ a + 1) : 
   (a + 1) / b = a / b :=
-by rw [succ_div hb0, if_neg hba, add_zero]
+by rw [succ_div, if_neg hba, add_zero]
 
 @[simp] theorem mod_mod (a n : ℕ) : (a % n) % n = a % n :=
 (eq_zero_or_pos n).elim

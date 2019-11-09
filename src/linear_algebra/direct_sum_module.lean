@@ -97,7 +97,7 @@ lemma component.of (i j : ι) (b : M j) :
   if h : j = i then eq.rec_on h b else 0 :=
 dfinsupp.single_apply
 
-@[extensionality] lemma ext {f g : direct_sum ι M}
+@[ext] lemma ext {f g : direct_sum ι M}
   (h : ∀ i, component R ι M i f = component R ι M i g) : f = g :=
 dfinsupp.ext h
 

@@ -85,7 +85,7 @@ protected lemma continuous (f : β →L[α] γ) : continuous f := f.2
 /-- Coerce continuous linear maps to functions. -/
 instance to_fun : has_coe_to_fun $ β →L[α] γ := ⟨_, λ f, f.to_fun⟩
 
-@[extensionality] theorem ext {f g : β →L[α] γ} (h : ∀ x, f x = g x) : f = g :=
+@[ext] theorem ext {f g : β →L[α] γ} (h : ∀ x, f x = g x) : f = g :=
 by cases f; cases g; congr' 1; ext x; apply h
 
 theorem ext_iff {f g : β →L[α] γ} : f = g ↔ ∀ x, f x = g x :=

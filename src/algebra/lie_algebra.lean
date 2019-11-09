@@ -38,7 +38,7 @@ notation `⁅`x`,` y`⁆` := has_bracket.bracket x y
 
 namespace ring_commutator
 
-variables (A : Type v) [ring A]
+variables {A : Type v} [ring A]
 
 instance : has_bracket A :=
 { bracket := λ x y, x*y - y*x }

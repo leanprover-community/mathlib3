@@ -39,7 +39,7 @@ functions to integrals on all integrable functions.
 
 One can find similar results in `topology.algebra.group_completion` and
 `topology.algebra.uniform_ring`, where an explicit construction of completions is given, and thus
-`f : β → γ` is extended to `ψ : (completion β) → γ`. This approach is not suitable for extending
+`f : β → γ` is extended to `ψ : completion β → γ`. This approach is not suitable for extending
 integrals, since integrable functions are usually defined independently of simple functions.
 
 For results about functions without extra structures attached to them, see

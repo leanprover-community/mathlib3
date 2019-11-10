@@ -61,7 +61,6 @@ open set lattice filter topological_space ennreal emetric
 universes u v w
 variables {α : Type u} [measure_space α]
 variables {β : Type v} [normed_group β]
-variables {γ : Type w} [normed_group γ]
 
 def integrable (f : α → β) : Prop := (∫⁻ a, nnnorm (f a)) < ⊤
 
@@ -160,7 +159,7 @@ calc (∫⁻ (a : α), (nnnorm ∥f a∥)) = (∫⁻ (a : α), (nnnorm (f a))) :
 section normed_space
 variables {K : Type*} [normed_field K] [normed_space K β]
 
-lemma integrable_smul {c : K} {f : α → γ} : integrable f → integrable (c • f) :=
+lemma integrable_smul {c : K} {f : α → β} : integrable f → integrable (c • f) :=
 begin
   simp only [integrable], assume hfi,
   calc

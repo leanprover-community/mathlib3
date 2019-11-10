@@ -887,6 +887,32 @@ calc (∫⁻ a, r * f a) = (∫⁻ a, (⨆n, (const α r * eapprox f n) a)) :
   end
   ... = r * (∫⁻ a, f a) : by rw [← ennreal.mul_supr, lintegral_eq_supr_eapprox_integral hf]
 
+lemma lintegral_const_mul_le (r : ennreal) (f : α → ennreal) : r * (∫⁻ a, f a) ≤ (∫⁻ a, r * f a) :=
+begin
+  rw [lintegral, ennreal.mul_supr],
+  refine supr_le (λs, _),
+  rw [ennreal.mul_supr],
+  simp only [supr_le_iff, ge_iff_le],
+  assume hs,
+  rw ← simple_func.const_mul_integral,
+  refine le_supr_of_le (const α r * s) (le_supr_of_le (λx, _) (le_refl _)),
+  exact canonically_ordered_semiring.mul_le_mul (le_refl _) (hs x)
+end
+
+lemma lintegral_const_mul' (r : ennreal) (f : α → ennreal) (hr : r ≠ ⊤) :
+  (∫⁻ a, r * f a) = r * (∫⁻ a, f a) :=
+begin
+  by_cases h : r = 0,
+  { simp [h] },
+  apply le_antisymm _ (lintegral_const_mul_le r f),
+  have rinv : r * r⁻¹  = 1 := ennreal.mul_inv_cancel h hr,
+  have rinv' : r ⁻¹ * r = 1, by { rw mul_comm, exact rinv },
+  have := lintegral_const_mul_le (r⁻¹) (λx, r * f x),
+  simp [(mul_assoc _ _ _).symm, rinv'] at this,
+  simpa [(mul_assoc _ _ _).symm, rinv]
+    using canonically_ordered_semiring.mul_le_mul (le_refl r) this
+end
+
 lemma lintegral_supr_const (r : ennreal) {s : set α} (hs : is_measurable s) :
   (∫⁻ a, ⨆(h : a ∈ s), r) = r * volume s :=
 begin

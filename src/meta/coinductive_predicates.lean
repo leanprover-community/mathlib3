@@ -291,7 +291,7 @@ meta def add_coinductive_predicate
       fs ← pds.mmap (λpd, do
         [f₁, f₂, h] ← intro_lst [pd.f₁.local_pp_name, pd.f₂.local_pp_name, `h],
         -- the type of h' reduces to h
-        let h' := local_const h.local_uniq_name h.local_pp_name h.local_binder_info $
+        let h' := local_const h.local_uniq_name h.local_pp_name h.local_binding_info $
           (((const `implies [] : expr)
             (f₁.app_of_list pd.locals) (f₂.app_of_list pd.locals)).pis pd.locals).instantiate_locals $
           (ps.zip params).map $ λ⟨lv, p⟩, (p.local_uniq_name, lv),
@@ -464,7 +464,7 @@ meta def coinduction (rule : expr) (ns : list name) : tactic unit := focus1 $
 do
   ctxts' ← intros,
   ctxts ← ctxts'.mmap (λv,
-    local_const v.local_uniq_name v.local_pp_name v.local_binder_info <$> infer_type v),
+    local_const v.local_uniq_name v.local_pp_name v.local_binding_info <$> infer_type v),
   mvars ← apply_core rule {approx := ff, new_goals := new_goals.all},
   -- analyse relation
   g ← list.head <$> get_goals,

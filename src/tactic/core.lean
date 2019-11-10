@@ -59,19 +59,6 @@ meta def mfoldl {α : Type} {m} [monad m] (f : α → expr → m α) : α → ex
 | x e := prod.snd <$> (state_t.run (e.traverse $ λ e',
     (get >>= monad_lift ∘ flip f e' >>= put) $> e') x : m _)
 
-meta def replace_with (e : expr) (s : expr) (s' : expr) : expr :=
-e.replace $ λc d, if c = s then some (s'.lift_vars 0 d) else none
-
-meta def local_binder_info : expr → binder_info
-| (local_const x n bi t) := bi
-| e                      := binder_info.default
-
-meta def to_implicit_binder : expr → expr
-| (local_const n₁ n₂ _ d) := local_const n₁ n₂ binder_info.implicit d
-| (lam n _ d b) := lam n binder_info.implicit d b
-| (pi n _ d b) := pi n binder_info.implicit d b
-| e  := e
-
 end expr
 
 namespace interaction_monad
@@ -133,6 +120,9 @@ end format
 namespace tactic
 open function
 
+/-- `mk_local_pisn e n` instantiates the first `n` variables of a pi expression `e`,
+and returns the new local constants along with the instantiated expression. Fails if `e` does
+not begin with at least `n` pi binders. -/
 meta def mk_local_pisn : expr → nat → tactic (list expr × expr)
 | (expr.pi n bi d b) (c + 1) := do
   p ← mk_local' n bi d,
@@ -141,9 +131,14 @@ meta def mk_local_pisn : expr → nat → tactic (list expr × expr)
 | e 0 := return ([], e)
 | _ _ := failed
 
+-- TODO: move to `declaration` namespace in `meta/expr.lean`
+/-- `mk_theorem n ls t e` creates a theorem declaration with name `n`, universe parameters named
+`ls`, type `t`, and body `e`. -/
 meta def mk_theorem (n : name) (ls : list name) (t : expr) (e : expr) : declaration :=
 declaration.thm n ls t (task.pure e)
 
+/-- `add_theorem_by n ls type tac` uses `tac` to synthesize a term with type `type`, and adds this
+to the environment as a theorem with name `n` and universe parameters `ls`. -/
 meta def add_theorem_by (n : name) (ls : list name) (type : expr) (tac : tactic unit) : tactic expr := do
   ((), body) ← solve_aux type tac,
   body ← instantiate_mvars body,
@@ -314,6 +309,8 @@ private meta def elim_gen_sum_aux : nat → expr → list expr → tactic (list 
   swap,
   elim_gen_sum_aux n h' (h::hs)
 
+/-- `elim_gen_sum n e` applies cases on `e` `n` times. `e` is assumed to be a local constant whose
+type is a (nested) sum `⊕`. Returns the list of local constants representing the components of `e`. -/
 meta def elim_gen_sum (n : nat) (e : expr) : tactic (list expr) := do
   (hs, h') ← elim_gen_sum_aux n e [],
   gs ← get_goals,

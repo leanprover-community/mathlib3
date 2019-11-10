@@ -14,7 +14,7 @@ open_locale classical
 namespace ideal
 variables [comm_ring α] (I : ideal α)
 
-@[extensionality] lemma ext {I J : ideal α} (h : ∀ x, x ∈ I ↔ x ∈ J) : I = J :=
+@[ext] lemma ext {I J : ideal α} (h : ∀ x, x ∈ I ↔ x ∈ J) : I = J :=
 submodule.ext h
 
 theorem eq_top_of_unit_mem

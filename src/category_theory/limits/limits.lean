@@ -464,7 +464,7 @@ def limit.cone_morphism {F : J ⥤ C} [has_limit F] (c : cone F) :
   (limit.cone_morphism c).hom ≫ limit.π F j = c.π.app j :=
 by erw is_limit.fac
 
-@[extensionality] lemma limit.hom_ext {F : J ⥤ C} [has_limit F] {X : C} {f f' : X ⟶ limit F}
+@[ext] lemma limit.hom_ext {F : J ⥤ C} [has_limit F] {X : C} {f f' : X ⟶ limit F}
   (w : ∀ j, f ≫ limit.π F j = f' ≫ limit.π F j) : f = f' :=
 (limit.is_limit F).hom_ext w
 
@@ -733,7 +733,7 @@ def colimit.cocone_morphism {F : J ⥤ C} [has_colimit F] (c : cocone F) :
   colimit.ι F j ≫ (colimit.cocone_morphism c).hom = c.ι.app j :=
 by erw is_colimit.fac
 
-@[extensionality] lemma colimit.hom_ext {F : J ⥤ C} [has_colimit F] {X : C} {f f' : colimit F ⟶ X}
+@[ext] lemma colimit.hom_ext {F : J ⥤ C} [has_colimit F] {X : C} {f f' : colimit F ⟶ X}
   (w : ∀ j, colimit.ι F j ≫ f = colimit.ι F j ≫ f') : f = f' :=
 (colimit.is_colimit F).hom_ext w
 

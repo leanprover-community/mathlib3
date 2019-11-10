@@ -11,21 +11,20 @@ import analysis.normed_space.operator_norm
 /-!
 # Extension of uniform continuous functions
 
-Extension of a uniform continuous function preserves its properties.
+Extension of a uniform continuous function `f : β → γ` on a uniform space `β` to its completion
+preserves many of `f`'s properties.
 
 ## Main statements
 
-Let `β` be a dense subset of `α`, with `e : β → α` as the inclusion map. Let `f : β → γ` be a
-uniform continuous function on `β`. Then there is a uniform continuous function `ψ : α → γ` on `α`,
-such that `ψ` is an extension of `f`, i.e. `ψ ∘ e = f`.
-
-This theorem is proved in `topology.uniform_space.uniform_embedding.lean`. See the lemma
-`uniform_continuous_uniformly_extend`.
+Let `α` and `β` be uniform spaces and let `β` be a dense subset of `α`, with `e : β → α` as the
+inclusion map. Let `f : β → γ` be a uniform continuous function from `β` to a complete Hausdorff
+space `γ`. Then there is a uniform continuous function `ψ : α → γ` on `α`, such that `ψ` is an
+extension of `f`, i.e. `ψ ∘ e = f`.
 
 In this file we show that
 
 * If `f` is an `add_monoid_hom`, then `ψ` is also an `add_monoid_hom`.
-* If `f` is a `continuous_linear_map`, them `ψ` is also a `continuous_linear_map`.
+* If `f` is a `continuous_linear_map`, then `ψ` is also a `continuous_linear_map`.
 * If `∥f∥ ≤ M`, then `∥ψ∥ ≤ M`.
 
 ## Main definitions
@@ -35,7 +34,16 @@ In this file we show that
 
 ## Implementation notes
 
-`e` is generalized to be `uniform_inducing`.
+Mainly used in `measure_theory.bochner_integration` to extend integrals on integrable simple
+functions to integrals on all integrable functions.
+
+One can find similar results in `topology.algebra.group_completion` and
+`topology.algebra.uniform_ring`, where an explicit construction of completions is given, and thus
+`f : β → γ` is extended to `ψ : (completion β) → γ`. This approach is not suitable for extending
+integrals, since integrable functions are usually defined independently of simple functions.
+
+For results about functions without extra structures attached to them, see
+`topology.uniform_space.abstffract_completion`.
 
 ## Tags
 

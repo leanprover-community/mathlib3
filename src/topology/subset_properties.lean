@@ -191,10 +191,7 @@ lemma compact_Union_of_compact {f : β → set α} [fintype β]
 by rw ← bUnion_univ; exact compact_bUnion_of_compact finite_univ (λ i _, h i)
 
 lemma compact_of_finite {s : set α} (hs : finite s) : compact s :=
-let s' : set α := ⋃i ∈ s, {i} in
-have e : s' = s, from ext $ λi, by simp only [mem_bUnion_iff, mem_singleton_iff, exists_eq_right'],
-have compact s', from compact_bUnion_of_compact hs (λ_ _, compact_singleton),
-e ▸ this
+bUnion_of_singleton s ▸ compact_bUnion_of_compact hs (λ _ _, compact_singleton)
 
 lemma compact_union_of_compact {s t : set α} (hs : compact s) (ht : compact t) : compact (s ∪ t) :=
 by rw union_eq_Union; exact compact_Union_of_compact (λ b, by cases b; assumption)

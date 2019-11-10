@@ -94,7 +94,7 @@ end
 lemma dist_coe_le_dist (x : α) : dist (f x) (g x) ≤ dist f g :=
 le_cInf (ne_empty_iff_exists_mem.2 dist_set_exists) $ λb hb, hb.2 x
 
-@[extensionality] lemma ext (H : ∀x, f x = g x) : f = g :=
+@[ext] lemma ext (H : ∀x, f x = g x) : f = g :=
 subtype.eq $ by ext; apply H
 
 /- This lemma will be needed in the proof of the metric space instance, but it will become

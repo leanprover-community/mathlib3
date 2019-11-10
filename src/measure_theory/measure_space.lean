@@ -252,7 +252,7 @@ lemma of_measurable_apply {α} [measurable_space α]
   of_measurable m m0 @mU s = m s hs :=
 outer_measure'_eq m m0 @mU hs
 
-@[extensionality] lemma ext {α} [measurable_space α] :
+@[ext] lemma ext {α} [measurable_space α] :
   ∀ {μ₁ μ₂ : measure α}, (∀s, is_measurable s → μ₁ s = μ₂ s) → μ₁ = μ₂
 | ⟨m₁, u₁, h₁⟩ ⟨m₂, u₂, h₂⟩ h := by congr; rw [← h₁, ← h₂];
   exact outer_measure.trim_congr h

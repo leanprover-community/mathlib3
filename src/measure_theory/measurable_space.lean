@@ -171,7 +171,7 @@ by by_cases p; simp [h, is_measurable.empty]; apply is_measurable.univ
 
 end
 
-@[extensionality] lemma measurable_space.ext :
+@[ext] lemma measurable_space.ext :
   ∀{m₁ m₂ : measurable_space α}, (∀s:set α, m₁.is_measurable s ↔ m₂.is_measurable s) → m₁ = m₂
 | ⟨s₁, _, _, _⟩ ⟨s₂, _, _, _⟩ h :=
   have s₁ = s₂, from funext $ assume x, propext $ h x,
@@ -821,7 +821,7 @@ end
 
 namespace dynkin_system
 
-@[extensionality] lemma ext :
+@[ext] lemma ext :
   ∀{d₁ d₂ : dynkin_system α}, (∀s:set α, d₁.has s ↔ d₂.has s) → d₁ = d₂
 | ⟨s₁, _, _, _⟩ ⟨s₂, _, _, _⟩ h :=
   have s₁ = s₂, from funext $ assume x, propext $ h x,

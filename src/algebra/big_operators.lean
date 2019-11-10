@@ -787,3 +787,25 @@ multiset.induction_on s rfl
       end)
 
 end multiset
+
+namespace with_top
+open finset
+variables [decidable_eq α]
+
+/-- sum of finte numbers is still finite -/
+lemma sum_lt_top [ordered_comm_monoid β] {s : finset α} {f : α → with_top β} :
+  (∀a∈s, f a < ⊤) → s.sum f < ⊤ :=
+finset.induction_on s (by { intro h, rw sum_empty, exact coe_lt_top _ })
+  (λa s ha ih h,
+  begin
+    rw [sum_insert ha, add_lt_top], split,
+    { apply h, apply mem_insert_self },
+    { apply ih, intros a ha, apply h, apply mem_insert_of_mem ha }
+  end)
+
+/-- sum of finte numbers is still finite -/
+lemma sum_lt_top_iff [canonically_ordered_monoid β] {s : finset α} {f : α → with_top β} :
+  s.sum f < ⊤ ↔ (∀a∈s, f a < ⊤) :=
+iff.intro (λh a ha, lt_of_le_of_lt (single_le_sum (λa ha, zero_le _) ha) h) sum_lt_top
+
+end with_top

@@ -49,7 +49,7 @@ restate_axiom hom.h'
 attribute [simp] hom.h
 
 namespace hom
-@[extensionality] lemma ext {A B : algebra T} (f g : hom A B) (w : f.f = g.f) : f = g :=
+@[ext] lemma ext {A B : algebra T} (f g : hom A B) (w : f.f = g.f) : f = g :=
 by { cases f, cases g, congr, assumption }
 
 @[simps] def id (A : algebra T) : hom A A :=

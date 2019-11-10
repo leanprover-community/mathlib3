@@ -75,7 +75,7 @@ end
 /-- Two local homeomorphisms are equal when they have equal to_fun, inv_fun and source. It is not
 sufficient to have equal to_fun and source, as this only determines inv_fun on the target. This
 would only be true for a weaker notion of equality, arguably the right one, called `eq_on_source`. -/
-@[extensionality]
+@[ext]
 protected lemma ext (e' : local_homeomorph α β) (h : ∀x, e.to_fun x = e'.to_fun x)
   (hinv: ∀x, e.inv_fun x = e'.inv_fun x) (hs : e.source = e'.source) : e = e' :=
 eq_of_local_equiv_eq (local_equiv.ext e.to_local_equiv e'.to_local_equiv h hinv hs)

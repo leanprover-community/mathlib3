@@ -140,8 +140,6 @@ by rw [add_comm, add_one, pred_succ]
 theorem pos_iff_ne_zero : 0 < n ↔ n ≠ 0 :=
 ⟨ne_of_gt, nat.pos_of_ne_zero⟩
 
-theorem pos_iff_ne_zero' : 0 < n ↔ n ≠ 0 := pos_iff_ne_zero
-
 lemma one_lt_iff_ne_zero_and_ne_one : ∀ {n : ℕ}, 1 < n ↔ n ≠ 0 ∧ n ≠ 1
 | 0     := dec_trivial
 | 1     := dec_trivial
@@ -888,7 +886,7 @@ theorem size_pos {n : ℕ} : 0 < size n ↔ 0 < n :=
 by rw lt_size; refl
 
 theorem size_eq_zero {n : ℕ} : size n = 0 ↔ n = 0 :=
-by have := @size_pos n; simp [pos_iff_ne_zero'] at this;
+by have := @size_pos n; simp [pos_iff_ne_zero] at this;
    exact not_iff_not.1 this
 
 theorem size_pow {n : ℕ} : size (2^n) = n+1 :=
@@ -1170,13 +1168,11 @@ dvd_trans this hdiv
 lemma dvd_of_pow_dvd {p k m : ℕ} (hk : 1 ≤ k) (hpk : p^k ∣ m) : p ∣ m :=
 by rw ←nat.pow_one p; exact pow_dvd_of_le_of_pow_dvd hk hpk
 
-lemma eq_of_dvd_quot_one {a b : ℕ} (w : a ∣ b) (h : b / a = 1) : a = b :=
-begin
-  rcases w with ⟨b, rfl⟩,
-  rw [nat.mul_comm, nat.mul_div_cancel] at h,
-  { simp [h] },
-  { by_contradiction, simp * at * }
-end
+lemma eq_of_dvd_of_div_eq_one {a b : ℕ} (w : a ∣ b) (h : b / a = 1) : a = b :=
+by rw [←nat.div_mul_cancel w, h, one_mul]
+
+lemma eq_zero_of_dvd_of_div_eq_zero {a b : ℕ} (w : a ∣ b)  (h : b / a = 0) : b = 0 :=
+by rw [←nat.div_mul_cancel w, h, zero_mul]
 
 lemma div_le_div_left {a b c : ℕ} (h₁ : c ≤ b) (h₂ : 0 < c) : a / b ≤ a / c :=
 (nat.le_div_iff_mul_le _ _ h₂).2 $

@@ -300,7 +300,7 @@ meta def elim_gen_sum (n : nat) (e : expr) : tactic (list expr) := do
 `extract_def n trusted elab_def` will create an auxiliary definition named `n` and use it
 to close the goal. If `trusted` is false, it will be a meta definition. -/
 meta def extract_def (n : name) (trusted : bool) (elab_def : tactic unit) : tactic unit :=
-do cxt ← list.map expr.to_implicit <$> local_context,
+do cxt ← list.map expr.to_implicit_local_const <$> local_context,
    t ← target,
    (eqns,d) ← solve_aux t elab_def,
    d ← instantiate_mvars d,

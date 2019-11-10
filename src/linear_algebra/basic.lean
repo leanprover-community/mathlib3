@@ -24,8 +24,8 @@ Many of the relevant definitions, including `module`, `submodule`, and `linear_m
   that is, elements of `M` are identified if their difference is in `p`. This is itself a module.
 * The kernel `ker` and range `range` of a linear map are submodules of the domain and codomain
   respectively.
-* `lin_equiv M M₂`, the type of linear equivalences between `M` and `M₂`, is a structure that extends
-  `linear_map` and `equiv`.
+* `linear_equiv M M₂`, the type of linear equivalences between `M` and `M₂`, is a structure that
+  extends `linear_map` and `equiv`.
 * The general linear group is defined to be the group of invertible linear maps from `M` to itself.
 
 ## Main statements
@@ -37,8 +37,8 @@ Many of the relevant definitions, including `module`, `submodule`, and `linear_m
 
 * We continue to use the notation `M →ₗ[R] M₂` for the type of linear maps from `M` to `M₂` over the
   ring `R`.
-* We introduce the notations `M ≃ₗ M₂` and `M ≃ₗ[R] M₂` for `lin_equiv M M₂`. In the first, the ring
-  `R` is implicit.
+* We introduce the notations `M ≃ₗ M₂` and `M ≃ₗ[R] M₂` for `linear_equiv M M₂`. In the first, the
+  ring `R` is implicit.
 
 ## Implementation notes
 
@@ -1260,7 +1260,7 @@ instance : has_coe (M ≃ₗ[R] M₂) (M →ₗ[R] M₂) := ⟨to_linear_map⟩
 lemma to_equiv_injective : function.injective (to_equiv : (M ≃ₗ[R] M₂) → M ≃ M₂) :=
 λ ⟨_, _, _, _, _, _⟩ ⟨_, _, _, _, _, _⟩ h, linear_equiv.mk.inj_eq.mpr (equiv.mk.inj h)
 
-@[extensionality] lemma ext {f g : M ≃ₗ[R] M₂} (h : (f : M → M₂) = g) : f = g :=
+@[ext] lemma ext {f g : M ≃ₗ[R] M₂} (h : (f : M → M₂) = g) : f = g :=
 to_equiv_injective (equiv.eq_of_to_fun_eq h)
 
 section

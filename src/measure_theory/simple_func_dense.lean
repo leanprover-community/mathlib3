@@ -274,7 +274,7 @@ begin
          lintegral_add (measurable_coe_nnnorm hfm) (measurable_coe_nnnorm hfm)
        ... < ⊤ : by simp only [add_lt_top, and_self]; exact hfi },
   convert @dominated_convergence_nn _ _ G (λ a, 0) g
-              hF_meas measurable_const hg_meas h_bound h_finite h_lim,
+              hF_meas h_bound h_finite h_lim,
   simp only [lintegral_zero]
 end
 

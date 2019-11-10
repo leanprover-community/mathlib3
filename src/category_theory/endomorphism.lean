@@ -54,7 +54,7 @@ include 𝒞
 
 def Aut (X : C) := X ≅ X
 
-attribute [extensionality Aut] iso.ext
+attribute [ext Aut] iso.ext
 
 namespace Aut
 

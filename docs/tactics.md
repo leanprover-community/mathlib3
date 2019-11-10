@@ -352,7 +352,7 @@ unless they are explicitly included.
 ### ext1 / ext
 
  * `ext1 id` selects and apply one extensionality lemma (with
-    attribute `extensionality`), using `id`, if provided, to name a
+    attribute `ext`), using `id`, if provided, to name a
     local constant introduced by the lemma. If `id` is omitted, the
     local constant is named automatically, as per `intro`.
 
@@ -383,12 +383,12 @@ by applying functional extensionality and set extensionality.
 
 A maximum depth can be provided with `ext x y z : 3`.
 
-### The `extensionality` attribute
+### The `ext` attribute
 
  Tag lemmas of the form:
 
  ```lean
- @[extensionality]
+ @[ext]
  lemma my_collection.ext (a b : my_collection)
    (h : ∀ x, a.lookup x = b.lookup y) :
    a = b := ...
@@ -400,32 +400,32 @@ A maximum depth can be provided with `ext x y z : 3`.
  extensionality of multiple types that are definitionally equivalent.
 
  ```lean
- attribute [extensionality [(→),thunk,stream]] funext
+ attribute [ext [(→),thunk,stream]] funext
  ```
 
  Those parameters are cumulative. The following are equivalent:
 
  ```lean
- attribute [extensionality [(→),thunk]] funext
- attribute [extensionality [stream]] funext
+ attribute [ext [(→),thunk]] funext
+ attribute [ext [stream]] funext
  ```
 
  and
 
  ```lean
- attribute [extensionality [(→),thunk,stream]] funext
+ attribute [ext [(→),thunk,stream]] funext
  ```
 
  One removes type names from the list for one lemma with:
 
  ```lean
- attribute [extensionality [-stream,-thunk]] funext
+ attribute [ext [-stream,-thunk]] funext
  ```
 
- Finally, the following:
+ Also, the following:
 
  ```lean
- @[extensionality]
+ @[ext]
  lemma my_collection.ext (a b : my_collection)
    (h : ∀ x, a.lookup x = b.lookup y) :
    a = b := ...
@@ -434,7 +434,7 @@ A maximum depth can be provided with `ext x y z : 3`.
  is equivalent to
 
  ```lean
- @[extensionality *]
+ @[ext *]
  lemma my_collection.ext (a b : my_collection)
    (h : ∀ x, a.lookup x = b.lookup y) :
    a = b := ...
@@ -447,12 +447,29 @@ A maximum depth can be provided with `ext x y z : 3`.
  that referred to in the lemma statement.
 
  ```lean
- @[extensionality [*,my_type_synonym]]
+ @[ext [*,my_type_synonym]]
  lemma my_collection.ext (a b : my_collection)
    (h : ∀ x, a.lookup x = b.lookup y) :
    a = b := ...
  ```
 
+ Attribute `ext` can be applied to a structure to generate its extensionality lemma:
+
+ ```
+ @[ext]
+ structure foo (α : Type*) :=
+ (x y : ℕ)
+ (z : {z // z < x})
+ (k : α)
+ (h : x < y)
+ ```
+
+ will generate:
+
+ ```
+ @[ext] lemma foo.ext : ∀ {α : Type u_1} (x y : foo α), x.x = y.x → x.y = y.y → x.z == y.z → x.k = y.k → x = y
+ ```
+ 
 ### refine_struct
 
 `refine_struct { .. }` acts like `refine` but works only with structure instance
@@ -1052,6 +1069,13 @@ int.cast_coe_nat : ∀ (n : ℕ), ↑↑n = ↑n
 
 int.cats_id : int.cast_id : ∀ (n : ℤ), ↑n = n
 ```
+
+`push_cast` rewrites the expression to move casts toward the leaf nodes.
+This uses `move_cast` lemmas in the "forward" direction.
+For example, `↑(a + b)` will be written to `↑a + ↑b`.
+It is equivalent to `simp only with push_cast`, and can also be used at hypotheses
+with `push_cast at h`.
+
 
 ### convert_to
 

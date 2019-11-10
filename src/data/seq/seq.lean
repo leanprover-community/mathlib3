@@ -626,7 +626,7 @@ by rw add_comm; symmetry; apply dropn_add
 theorem nth_tail : ∀ (s : seq α) n, nth (tail s) n = nth s (n + 1)
 | ⟨f, al⟩ n := rfl
 
-@[extensionality]
+@[ext]
 protected lemma ext (s s': seq α) (hyp : ∀ (n : ℕ), s.nth n = s'.nth n) : s = s' :=
 begin
   let ext := (λ (s s' : seq α), ∀ n, s.nth n = s'.nth n),

@@ -233,11 +233,11 @@ Liminf_le_Liminf hu hv $ assume b (hb : {a | b ≤ u a} ∈ f.sets), show {a | b
 
 theorem Limsup_principal {s : set α} (h : bdd_above s) (hs : s ≠ ∅) :
   (principal s).Limsup = Sup s :=
-by simp [Limsup]; exact cInf_lower_bounds_eq_cSup h hs
+by simp [Limsup]; exact cInf_upper_bounds_eq_cSup h hs
 
 theorem Liminf_principal {s : set α} (h : bdd_below s) (hs : s ≠ ∅) :
   (principal s).Liminf = Inf s :=
-by simp [Liminf]; exact cSup_upper_bounds_eq_cInf h hs
+by simp [Liminf]; exact cSup_lower_bounds_eq_cInf h hs
 
 end conditionally_complete_lattice
 

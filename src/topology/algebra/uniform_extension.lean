@@ -43,7 +43,7 @@ One can find similar results in `topology.algebra.group_completion` and
 integrals, since integrable functions are usually defined independently of simple functions.
 
 For results about functions without extra structures attached to them, see
-`topology.uniform_space.abstffract_completion`.
+`topology.uniform_space.abstract_completion`.
 
 ## Tags
 

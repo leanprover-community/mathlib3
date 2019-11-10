@@ -288,15 +288,15 @@ theorem le_cInf_iff (_ : bdd_below s) (_ : s ≠ ∅) : a ≤ Inf s ↔ (∀b �
   le_trans ‹a ≤ Inf s› (cInf_le ‹bdd_below s› ‹b ∈ s›),
   le_cInf ‹s ≠ ∅›⟩
 
-lemma cSup_upper_bounds_eq_cInf {s : set α} (h : bdd_below s) (hs : s ≠ ∅) :
-  Sup {a | ∀x∈s, a ≤ x} = Inf s :=
+lemma cSup_lower_bounds_eq_cInf {s : set α} (h : bdd_below s) (hs : s ≠ ∅) :
+  Sup (lower_bounds s) = Inf s :=
 let ⟨b, hb⟩ := h, ⟨a, ha⟩ := ne_empty_iff_exists_mem.1 hs in
 le_antisymm
   (cSup_le (ne_empty_iff_exists_mem.2 ⟨b, hb⟩) $ assume a ha, le_cInf hs ha)
   (le_cSup ⟨a, assume y hy, hy a ha⟩ $ assume x hx, cInf_le h hx)
 
-lemma cInf_lower_bounds_eq_cSup {s : set α} (h : bdd_above s) (hs : s ≠ ∅) :
-  Inf {a | ∀x∈s, x ≤ a} = Sup s :=
+lemma cInf_upper_bounds_eq_cSup {s : set α} (h : bdd_above s) (hs : s ≠ ∅) :
+  Inf (upper_bounds s) = Sup s :=
 let ⟨b, hb⟩ := h, ⟨a, ha⟩ := ne_empty_iff_exists_mem.1 hs in
 le_antisymm
   (cInf_le ⟨a, assume y hy, hy a ha⟩ $ assume x hx, le_cSup h hx)

@@ -304,6 +304,58 @@ by simp [zmod.val_min_abs]
   { exact absurd h (mt sub_eq_zero.1 (ne_of_lt $ int.coe_nat_lt.2 x.2)) }
 end, λ hx0, hx0.symm ▸ zmod.val_min_abs_zero⟩
 
+lemma cast_nat_abs_val_min_abs {n : ℕ+} (a : zmod n) :
+  (a.val_min_abs.nat_abs : zmod n) = if a.val ≤ (n : ℕ) / 2 then a else -a :=
+have (a.val : ℤ) + -n ≤ 0, by erw [sub_nonpos, int.coe_nat_le]; exact le_of_lt a.2,
+begin
+  dsimp [zmod.val_min_abs],
+  split_ifs,
+  { simp },
+  { erw [← int.cast_coe_nat, int.of_nat_nat_abs_of_nonpos this],
+    simp }
+end
+
+@[simp] lemma nat_abs_val_min_abs_neg {n : ℕ+} (a : zmod n) :
+  (-a).val_min_abs.nat_abs = a.val_min_abs.nat_abs :=
+if haa : -a = a then by rw [haa]
+else
+have hpa : (n : ℕ) - a.val ≤ n / 2 ↔ (n : ℕ) / 2 < a.val,
+  from suffices (((n : ℕ) % 2) + 2 * (n / 2)) - a.val ≤ (n : ℕ) / 2 ↔ (n : ℕ) / 2 < a.val,
+    by rwa [nat.mod_add_div] at this,
+  begin
+    rw [nat.sub_le_iff, two_mul, ← add_assoc, nat.add_sub_cancel],
+    cases (n : ℕ).mod_two_eq_zero_or_one with hn0 hn1,
+    { split,
+      { exact λ h, lt_of_le_of_ne (le_trans (nat.le_add_left _ _) h)
+          begin
+            assume hna,
+            rw [← zmod.cast_val a, ← hna, neg_eq_iff_add_eq_zero, ← nat.cast_add,
+              zmod.eq_zero_iff_dvd_nat, ← two_mul, ← zero_add (2 * _), ← hn0,
+              nat.mod_add_div] at haa,
+            exact haa (dvd_refl _)
+          end },
+      { rw [hn0, zero_add], exact le_of_lt } },
+    { rw [hn1, add_comm, nat.succ_le_iff] }
+  end,
+have ha0 : ¬ a = 0, from λ ha0, by simp * at *,
+begin
+  dsimp [zmod.val_min_abs],
+  rw [← not_le] at hpa,
+  simp only [if_neg ha0, zmod.neg_val, hpa, int.coe_nat_sub (le_of_lt a.2)],
+  split_ifs,
+  { simp },
+  { rw [← int.nat_abs_neg], simp }
+end
+
+lemma val_eq_ite_val_min_abs {n : ℕ+} (a : zmod n) :
+  (a.val : ℤ) = a.val_min_abs + if a.val ≤ n / 2 then 0 else n :=
+by simp [zmod.val_min_abs]; split_ifs; simp
+
+lemma neg_eq_self_mod_two : ∀ (a : zmod 2), -a = a := dec_trivial
+
+@[simp] lemma nat_abs_mod_two (a : ℤ) : (a.nat_abs : zmod 2) = a :=
+by cases a; simp [zmod.neg_eq_self_mod_two]
+
 section
 variables {α : Type*} [has_zero α] [has_one α] [has_add α] {n : ℕ+}
 
@@ -408,6 +460,18 @@ zmod.val_min_abs_zero
 
 @[simp] lemma val_min_abs_eq_zero (x : zmodp p hp) : x.val_min_abs = 0 ↔ x = 0 :=
 zmod.val_min_abs_eq_zero x
+
+lemma cast_nat_abs_val_min_abs (a : zmodp p hp) :
+  (a.val_min_abs.nat_abs : zmodp p hp) = if a.val ≤ p / 2 then a else -a :=
+zmod.cast_nat_abs_val_min_abs a
+
+@[simp] lemma nat_abs_val_min_abs_neg (a : zmodp p hp) :
+  (-a).val_min_abs.nat_abs = a.val_min_abs.nat_abs :=
+zmod.nat_abs_val_min_abs_neg _
+
+lemma val_eq_ite_val_min_abs (a : zmodp p hp) :
+  (a.val : ℤ) = a.val_min_abs + if a.val ≤ p / 2 then 0 else p :=
+zmod.val_eq_ite_val_min_abs _
 
 variable (hp)
 

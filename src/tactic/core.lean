@@ -118,6 +118,32 @@ format.join ∘ list.intersperse x
 end format
 
 namespace tactic
+open function
+
+/-- `mk_local_pisn e n` instantiates the first `n` variables of a pi expression `e`,
+and returns the new local constants along with the instantiated expression. Fails if `e` does
+not begin with at least `n` pi binders. -/
+meta def mk_local_pisn : expr → nat → tactic (list expr × expr)
+| (expr.pi n bi d b) (c + 1) := do
+  p ← mk_local' n bi d,
+  (ps, r) ← mk_local_pisn (b.instantiate_var p) c,
+  return ((p :: ps), r)
+| e 0 := return ([], e)
+| _ _ := failed
+
+-- TODO: move to `declaration` namespace in `meta/expr.lean`
+/-- `mk_theorem n ls t e` creates a theorem declaration with name `n`, universe parameters named
+`ls`, type `t`, and body `e`. -/
+meta def mk_theorem (n : name) (ls : list name) (t : expr) (e : expr) : declaration :=
+declaration.thm n ls t (task.pure e)
+
+/-- `add_theorem_by n ls type tac` uses `tac` to synthesize a term with type `type`, and adds this
+to the environment as a theorem with name `n` and universe parameters `ls`. -/
+meta def add_theorem_by (n : name) (ls : list name) (type : expr) (tac : tactic unit) : tactic expr := do
+  ((), body) ← solve_aux type tac,
+  body ← instantiate_mvars body,
+  add_decl $ mk_theorem n ls type body,
+  return $ expr.const n $ ls.map level.param
 
 /-- `eval_expr' α e` attempts to evaluate the expression `e` in the type `α`.
 This is a variant of `eval_expr` in core. Due to unexplained behavior in the VM, in rare
@@ -126,8 +152,8 @@ meta def eval_expr' (α : Type*) [_inst_1 : reflected α] (e : expr) : tactic α
 mk_app ``id [e] >>= eval_expr α
 
 /-- `mk_fresh_name` returns identifiers starting with underscores,
-which are not legal when emitted by tactic programs. `mk_user_fresh_name` turns the
-useful source of random names provided by `mk_fresh_name` into
+which are not legal when emitted by tactic programs. `mk_user_fresh_name` 
+turns the useful source of random names provided by `mk_fresh_name` into
 names which are usable by tactic programs.
 
 The returned name has four components which are all strings. -/
@@ -184,20 +210,6 @@ do subst ← d.univ_params.mmap $ λ u, prod.mk u <$> mk_meta_univ,
    let e : expr := expr.const d.to_name (prod.snd <$> subst),
    return (e, d.type.instantiate_univ_params subst)
 
--- TODO: I don't know exactly what this does. It's only used in the following declaration.
-meta def simp_lemmas_from_file : tactic name_set :=
-do s ← local_decls,
-   let s := s.map (expr.list_constant ∘ declaration.value),
-   xs ← s.to_list.mmap ((<$>) name_set.of_list ∘ mfilter tactic.is_simp_lemma ∘ name_set.to_list ∘ prod.snd),
-   return $ name_set.filter (λ x, ¬ s.contains x) (xs.foldl name_set.union mk_name_set)
-
--- TODO: I don't know exactly what this does, and it doesn't seem to be used anywhere.
-meta def file_simp_attribute_decl (attr : name) : tactic unit :=
-do s ← simp_lemmas_from_file,
-   trace format!"run_cmd mk_simp_attr `{attr}",
-   let lmms := format.join $ list.intersperse " " $ s.to_list.map to_fmt,
-   trace format!"local attribute [{attr}] {lmms}"
-
 /-- `mk_local n` creates a dummy local variable with name `n`.
 The type of this local constant is a constant with name `n`, so it is very unlikely to be
 a meaningful expression. -/
@@ -212,13 +224,6 @@ do (v,_) ← solve_aux `(true) (do
            | fail format!"{e} is not a local definition",
          return v),
    return v
-
-/-- `check_defn n e` elaborates the pre-expression `e`,
-and succeeds if this is alpha-equivalent to the value of the declaration with name `n`. -/
-meta def check_defn (n : name) (e : pexpr) : tactic unit :=
-do (declaration.defn _ _ _ d _ _) ← get_decl n,
-   e' ← to_expr e,
-   guard (d =ₐ e') <|> trace d >> failed
 
 /-- `pis loc_consts f` is used to create a pi expression whose body is `f`.
 `loc_consts` should be a list of local constants. The function will abstract these local
@@ -247,6 +252,49 @@ meta def lambdas : list expr → expr → tactic expr
   f' ← lambdas es f,
   pure $ expr.lam pp info t (expr.abstract_local f' uniq)
 | _ f := pure f
+
+/-- `mk_psigma [x,y,z]`, with `[x,y,z]` list of local constants of types `x : tx`,
+`y : ty x` and `z : tz x y`, creates an expression of sigma type: `⟨x,y,z⟩ : Σ' (x : tx) (y : ty x), tz x y`.
+ -/
+meta def mk_psigma : list expr → tactic expr
+| [] := mk_const ``punit
+| [x@(expr.local_const _ _ _ _)] := pure x
+| (x@(expr.local_const _ _ _ _) :: xs) :=
+  do y ← mk_psigma xs,
+     α ← infer_type x,
+     β ← infer_type y,
+     t ← lambdas [x] β >>= instantiate_mvars,
+     r ← mk_mapp ``psigma.mk [α,t],
+     pure $ r x y
+| _ := fail "mk_psigma expects a list of local constants"
+
+/-- `elim_gen_prod n e _ ns` with `e` an expression of type `psigma _`, applies `cases` on `e` `n` times
+and uses `ns` to name the resulting variables. Returns a triple: list of new variables, remaining term
+and unused variable names.
+-/
+meta def elim_gen_prod : nat → expr → list expr → list name → tactic (list expr × expr × list name)
+| 0       e hs ns := return (hs.reverse, e, ns)
+| (n + 1) e hs ns := do
+  t ← infer_type e,
+  if t.is_app_of `eq then return (hs.reverse, e, ns)
+  else do
+    [(_, [h, h'], _)] ← cases_core e (ns.take 1),
+    elim_gen_prod n h' (h :: hs) (ns.drop 1)
+
+private meta def elim_gen_sum_aux : nat → expr → list expr → tactic (list expr × expr)
+| 0       e hs := return (hs, e)
+| (n + 1) e hs := do
+  [(_, [h], _), (_, [h'], _)] ← induction e [],
+  swap,
+  elim_gen_sum_aux n h' (h::hs)
+
+/-- `elim_gen_sum n e` applies cases on `e` `n` times. `e` is assumed to be a local constant whose
+type is a (nested) sum `⊕`. Returns the list of local constants representing the components of `e`. -/
+meta def elim_gen_sum (n : nat) (e : expr) : tactic (list expr) := do
+  (hs, h') ← elim_gen_sum_aux n e [],
+  gs ← get_goals,
+  set_goals $ (gs.take (n+1)).reverse ++ gs.drop (n+1),
+  return $ hs.reverse ++ [h']
 
 /-- Given `elab_def`, a tactic to solve the current goal,
 `extract_def n trusted elab_def` will create an auxiliary definition named `n` and use it
@@ -353,40 +401,6 @@ do d ← get_decl n,
 
 end instance_cache
 
--- unused in library. propose to delete
-meta def match_head (e : expr) : expr → tactic unit
-| e' :=
-    unify e e'
-<|> do `(_ → %%e') ← whnf e',
-       v ← mk_mvar,
-       match_head (e'.instantiate_var v)
-
--- unused in library. propose to delete
-meta def find_matching_head : expr → list expr → tactic (list expr)
-| e []         := return []
-| e (H :: Hs) :=
-  do t ← infer_type H,
-     ((::) H <$ match_head e t <|> pure id) <*> find_matching_head e Hs
-
--- unused in library. propose to delete
-meta def subst_locals (s : list (expr × expr)) (e : expr) : expr :=
-(e.abstract_locals (s.map (expr.local_uniq_name ∘ prod.fst)).reverse).instantiate_vars (s.map prod.snd)
-
--- unused in library. propose to delete
-meta def set_binder : expr → list binder_info → expr
-| e [] := e
-| (expr.pi v _ d b) (bi :: bs) := expr.pi v bi d (set_binder b bs)
-| e _ := e
-
--- unused in library. propose to delete
-meta def last_explicit_arg : expr → tactic expr
-| (expr.app f e) :=
-do t ← infer_type f >>= whnf,
-   if t.binding_info = binder_info.default
-     then pure e
-     else last_explicit_arg f
-| e := pure e
-
 private meta def get_expl_pi_arity_aux : expr → tactic nat
 | (expr.pi n bi d b) :=
   do m     ← mk_fresh_name,
@@ -451,11 +465,6 @@ meta def var_names : expr → list name
 | (expr.pi n _ _ b) := n :: var_names b
 | _ := []
 
--- todo: this duplicates mk_local_pis
-meta def drop_binders : expr → tactic expr
-| (expr.pi n bi t b) := b.instantiate_var <$> mk_local' n bi t >>= drop_binders
-| e := pure e
-
 /-- When `struct_n` is the name of a structure type,
 `subobject_names struct_n` returns two lists of names `(instances, fields)`.
 The names in `instances` are the projections from `struct_n` to the structures that it extends
@@ -471,7 +480,7 @@ do env ← get_env,
 private meta def expanded_field_list' : name → tactic (dlist $ name × name) | struct_n :=
 do (so,fs) ← subobject_names struct_n,
    ts ← so.mmap (λ n, do
-     e ← mk_const (n.update_prefix struct_n) >>= infer_type >>= drop_binders,
+     (_, e) ← mk_const (n.update_prefix struct_n) >>= infer_type >>= mk_local_pis,
      expanded_field_list' $ e.get_app_fn.const_name),
    return $ dlist.join ts ++ dlist.of_list (fs.map $ prod.mk struct_n)
 open functor function

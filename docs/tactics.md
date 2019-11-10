@@ -1070,6 +1070,13 @@ int.cast_coe_nat : ∀ (n : ℕ), ↑↑n = ↑n
 int.cats_id : int.cast_id : ∀ (n : ℤ), ↑n = n
 ```
 
+`push_cast` rewrites the expression to move casts toward the leaf nodes.
+This uses `move_cast` lemmas in the "forward" direction.
+For example, `↑(a + b)` will be written to `↑a + ↑b`.
+It is equivalent to `simp only with push_cast`, and can also be used at hypotheses
+with `push_cast at h`.
+
+
 ### convert_to
 
 `convert_to g using n` attempts to change the current goal to `g`, but unlike `change`,

@@ -238,15 +238,14 @@ meta def is_sort : expr → bool
 | (sort _) := tt
 | e         := ff
 
-/-- If `e` is a local constant, `to_implicit e` changes the binder info of `e` to `implicit`.
-See also `to_implicit_binder`, which also changes lambdas and pis. -/
-meta def to_implicit : expr → expr
+/-- If `e` is a local constant, `to_implicit_local_const e` changes the binder info of `e` to
+ `implicit`. See also `to_implicit_binder`, which also changes lambdas and pis. -/
+meta def to_implicit_local_const : expr → expr
 | (expr.local_const uniq n bi t) := expr.local_const uniq n binder_info.implicit t
 | e := e
 
--- TODO: rename
 /-- If `e` is a local constant, lamda, or pi expression, `to_implicit_binder e` changes the binder
-info of `e` to `implicit`. See also `to_implicit`, which only changes local constants. -/
+info of `e` to `implicit`. See also `to_implicit_local_const`, which only changes local constants. -/
 meta def to_implicit_binder : expr → expr
 | (local_const n₁ n₂ _ d) := local_const n₁ n₂ binder_info.implicit d
 | (lam n _ d b) := lam n binder_info.implicit d b
@@ -416,9 +415,6 @@ Otherwise returns `binder_info.default`. -/
 meta def local_binding_info : expr → binder_info
 | (expr.local_const _ _ bi _) := bi
 | _ := binder_info.default
-
--- TODO: delete
-meta abbreviation local_binder_info := local_binding_info
 
 /-- `is_default_local e` tests whether `e` is a local constant with binder info
 `binder_info.default` -/

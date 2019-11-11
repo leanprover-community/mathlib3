@@ -11,7 +11,7 @@ import analysis.calculus.fderiv
 
 This file defines the derivative of a function `f : 𝕜 → F` where `𝕜` is a
 normed field and `F` is a normed space over this field. The derivative of
-such a function `f` is given by an element `f' : F`.
+such a function `f` at a point `x` is given by an element `f' : F`.
 
 The theory is developed analogously to the [Fréchet
 derivatives](./fderiv.lean). We first introduce predicates defined in terms
@@ -68,7 +68,7 @@ variables {F : Type v} [normed_group F] [normed_space 𝕜 F]
 /--
 `f` has the derivative `f'` at the point `x` as `x` goes along the filter `L`.
 
-That is, `f x' = f x + f' • (x' - x) + o(x' - x)` where `x'` converges along the filter `L`.
+That is, `f x' = f x + (x' - x) • f' + o(x' - x)` where `x'` converges along the filter `L`.
 -/
 def has_deriv_at_filter (f : 𝕜 → F) (f' : F) (x : 𝕜) (L : filter 𝕜) :=
 has_fderiv_at_filter f (smul_right 1 f' : 𝕜 →L[𝕜] F) x L
@@ -76,7 +76,7 @@ has_fderiv_at_filter f (smul_right 1 f' : 𝕜 →L[𝕜] F) x L
 /--
 `f` has the derivative `f'` at the point `x` within the subset `s`.
 
-That is, `f x' = f x + f' • (x' - x) + o(x' - x)` where `x'` converges to `x` inside `s`.
+That is, `f x' = f x + (x' - x) • f' + o(x' - x)` where `x'` converges to `x` inside `s`.
 -/
 def has_deriv_within_at (f : 𝕜 → F) (f' : F) (s : set 𝕜) (x : 𝕜) :=
 has_deriv_at_filter f f' x (nhds_within x s)
@@ -84,7 +84,7 @@ has_deriv_at_filter f f' x (nhds_within x s)
 /--
 `f` has the derivative `f'` at the point `x`.
 
-That is, `f x' = f x + f' • (x' - x) + o(x' - x)` where `x'` converges to `x`.
+That is, `f x' = f x + (x' - x) • f' + o(x' - x)` where `x'` converges to `x`.
 -/
 def has_deriv_at (f : 𝕜 → F) (f' : F) (x : 𝕜) :=
 has_deriv_at_filter f f' x (nhds x)
@@ -93,7 +93,7 @@ has_deriv_at_filter f f' x (nhds x)
 Derivative of `f` at the point `x` within the set `s`, if it exists.  Zero otherwise.
 
 If the derivative exists (i.e., `∃ f', has_deriv_within_at f f' s x`), then
-`f x' = f x + deriv_within f s x • (x' - x) + o(x' - x)` where `x'` converges to `x` inside `s`.
+`f x' = f x + (x' - x) • deriv_within f s x + o(x' - x)` where `x'` converges to `x` inside `s`.
 -/
 def deriv_within (f : 𝕜 → F) (s : set 𝕜) (x : 𝕜) :=
 if h : ∃ f', has_deriv_within_at f f' s x then classical.some h else 0
@@ -102,7 +102,7 @@ if h : ∃ f', has_deriv_within_at f f' s x then classical.some h else 0
 Derivative of `f` at the point `x`, if it exists.  Zero otherwise.
 
 If the derivative exists (i.e., `∃ f', has_deriv_at f f' x`), then
-`f x' = f x + deriv f x • (x' - x) + o(x' - x)` where `x'` converges to `x`.
+`f x' = f x + (x' - x) • deriv f x + o(x' - x)` where `x'` converges to `x`.
 -/
 def deriv (f : 𝕜 → F) (x : 𝕜) :=
 if h : ∃ f', has_deriv_at f f' x then classical.some h else 0

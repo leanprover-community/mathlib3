@@ -15,7 +15,7 @@ of endomorphisms of a module as well as of the algebra of square matrices over a
 ## Notations
 
 We introduce the notation ⁅x, y⁆ for the Lie bracket. Note that these are the Unicode "square with
-quill" square brackets rather than the usual square brackets.
+quill" brackets rather than the usual square brackets.
 
 ## Implementation notes
 
@@ -43,25 +43,30 @@ namespace ring_commutator
 
 variables {A : Type v} [ring A]
 
-instance : has_bracket A :=
-{ bracket := λ x y, x*y - y*x }
+/--
+The ring commutator captures the extent to which a ring is commutative. It is identically zero
+exactly when the ring is commutative.
+-/
+def commutator (x y : A) := x*y - y*x
+
+local notation `⁅`x`,` y`⁆` := commutator x y
 
 @[simp] lemma add_left (x y z : A) :
   ⁅x + y, z⁆ = ⁅x, z⁆ + ⁅y, z⁆ :=
-by { unfold has_bracket.bracket, simp [right_distrib, left_distrib] }
+by { unfold commutator, simp [right_distrib, left_distrib] }
 
 @[simp] lemma add_right (x y z : A) :
   ⁅z, x + y⁆ = ⁅z, x⁆ + ⁅z, y⁆ :=
-by { unfold has_bracket.bracket, simp [right_distrib, left_distrib] }
+by { unfold commutator, simp [right_distrib, left_distrib] }
 
 @[simp] lemma alternate (x : A) :
   ⁅x, x⁆ = 0 :=
-by { unfold has_bracket.bracket, simp }
+by { unfold commutator, simp }
 
 lemma jacobi (x y z : A) :
   ⁅x, ⁅y, z⁆⁆ + ⁅y, ⁅z, x⁆⁆ + ⁅z, ⁅x, y⁆⁆ = 0 :=
 begin
-  unfold has_bracket.bracket,
+  unfold commutator,
   repeat { rw mul_sub_left_distrib },
   repeat { rw mul_sub_right_distrib },
   repeat { rw add_sub },
@@ -133,8 +138,12 @@ begin
   unfold has_scalar.smul, rw gsmul_neg,
 end
 
-instance lie_ring.of_associative_ring (A : Type v) [ring A] : lie_ring A :=
-{ add_lie  := ring_commutator.add_left,
+/--
+An associative ring gives rise to a Lie ring by taking the bracket to be the ring commutator.
+-/
+def lie_ring.of_associative_ring (A : Type v) [ring A] : lie_ring A :=
+{ bracket  := ring_commutator.commutator,
+  add_lie  := ring_commutator.add_left,
   lie_add  := ring_commutator.add_right,
   lie_self := ring_commutator.alternate,
   jacobi   := ring_commutator.jacobi }
@@ -177,18 +186,29 @@ def bil_lie : L →ₗ[R] L →ₗ[R] L :=
   add    := by { unfold lie_algebra.Ad, intros, ext, simp [add_lie], },
   smul   := by { unfold lie_algebra.Ad, intros, ext, simp, } }
 
-instance of_associative_algebra (A : Type v) [ring A] [algebra R A] : lie_algebra R A :=
-begin
-  apply @lie_algebra.mk R A _ _ _ (lie_ring.of_associative_ring A),
-  intros t x y,
-  unfold has_bracket.bracket,
-  rw [algebra.mul_smul_comm, algebra.smul_mul_assoc, smul_sub],
-end
+/--
+An associative algebra gives rise to a Lie algebra by taking the bracket to be the ring commutator.
+-/
+def of_associative_algebra (A : Type v) [ring A] [algebra R A] : lie_algebra R A :=
+{ bracket  := ring_commutator.commutator,
+  lie_smul := by { intros, unfold has_bracket.bracket, unfold ring_commutator.commutator,
+                   rw [algebra.mul_smul_comm, algebra.smul_mul_assoc, smul_sub], },
+  ..lie_ring.of_associative_ring A }
 
-instance of_endomorphism_algebra (M : Type v)
-  [add_comm_group M] [module R M] : lie_algebra R (module.End R M) := infer_instance
+/--
+An important class of Lie algebras are those arising from the associative algebra structure on
+module endomorphisms.
+-/
+def of_endomorphism_algebra (M : Type v)
+  [add_comm_group M] [module R M] : lie_algebra R (module.End R M) :=
+of_associative_algebra R (module.End R M)
 
 end lie_algebra
 
-instance matrix.lie_algebra (n : Type u) (R : Type v)
-  [fintype n] [decidable_eq n] [comm_ring R] : lie_algebra R (matrix n n R) := infer_instance
+/--
+An important class of Lie algebras are those arising from the associative algebra structure on
+square matrices over a commutative ring.
+-/
+def matrix.lie_algebra (n : Type u) (R : Type v)
+  [fintype n] [decidable_eq n] [comm_ring R] : lie_algebra R (matrix n n R) :=
+lie_algebra.of_associative_algebra R (matrix n n R)

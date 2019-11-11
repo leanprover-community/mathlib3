@@ -939,20 +939,19 @@ lemma dist_pi_def (f g : Πb, π b) :
 lemma dist_pi_lt_iff {f g : Πb, π b} {r : ℝ} (hr : 0 < r) :
   dist f g < r ↔ ∀b, dist (f b) (g b) < r :=
 begin
-  let r' : nnreal := ⟨r, le_of_lt hr⟩,
-  have A : ⊥ < r' := hr,
-  have : r = r' := rfl,
-  rw [dist_pi_def, this, ← nnreal.coe_lt, finset.sup_lt_iff A],
-  simp [nnreal.coe_lt, (dist_nndist _ _).symm]
+  lift r to nnreal using le_of_lt hr,
+  rw_mod_cast [dist_pi_def, finset.sup_lt_iff],
+  { simp [nndist], refl },
+  { exact hr }
 end
 
 lemma dist_pi_le_iff {f g : Πb, π b} {r : ℝ} (hr : 0 ≤ r) :
   dist f g ≤ r ↔ ∀b, dist (f b) (g b) ≤ r :=
 begin
-  let r' : nnreal := ⟨r, hr⟩,
-  have : r = r' := rfl,
-  rw [dist_pi_def, this, ← nnreal.coe_le, finset.sup_le_iff],
-  simp [nnreal.coe_le, (dist_nndist _ _).symm]
+  lift r to nnreal using hr,
+  rw_mod_cast [dist_pi_def, finset.sup_le_iff],
+  simp [nndist],
+  refl
 end
 
 /-- An open ball in a product space is a product of open balls. The assumption `0 < r`

@@ -250,7 +250,7 @@ have h_bound : ∀ n, ∀ₘ x, G n x ≤ g x := λ n, all_ae_of_all $ λ x, coe
   calc
     nndist (F n x) (f x) ≤ nndist (F n x) 0 + nndist 0 (f x) : nndist_triangle _ _ _
     ... = nnnorm (F n x) + nnnorm (f x) : by simp [nndist_eq_nnnorm]
-    ... ≤ nnnorm (f x) + nnnorm (f x) + nnnorm (f x) : by { simp [nnreal.coe_le, (hF x).2] },
+    ... ≤ nnnorm (f x) + nnnorm (f x) + nnnorm (f x) : by { simp [nnreal.coe_le.symm, (hF x).2] },
 have h_finite : lintegral g < ⊤ :=
   calc
     (∫⁻ x, nnnorm (f x) + nnnorm (f x) + nnnorm (f x)) =

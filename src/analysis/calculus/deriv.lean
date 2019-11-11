@@ -96,7 +96,7 @@ If the derivative exists (i.e., `∃ f', has_deriv_within_at f f' s x`), then
 `f x' = f x + (x' - x) • deriv_within f s x + o(x' - x)` where `x'` converges to `x` inside `s`.
 -/
 def deriv_within (f : 𝕜 → F) (s : set 𝕜) (x : 𝕜) :=
-if h : ∃ f', has_deriv_within_at f f' s x then classical.some h else 0
+(fderiv_within 𝕜 f s x : 𝕜 →L[𝕜] F) 1
 
 /--
 Derivative of `f` at the point `x`, if it exists.  Zero otherwise.
@@ -105,7 +105,7 @@ If the derivative exists (i.e., `∃ f', has_deriv_at f f' x`), then
 `f x' = f x + (x' - x) • deriv f x + o(x' - x)` where `x'` converges to `x`.
 -/
 def deriv (f : 𝕜 → F) (x : 𝕜) :=
-if h : ∃ f', has_deriv_at f f' x then classical.some h else 0
+(fderiv 𝕜 f x : 𝕜 →L[𝕜] F) 1
 
 variables {f f₀ f₁ g : 𝕜 → F}
 variables {f' f₀' f₁' g' : F}
@@ -127,12 +127,10 @@ by simp [has_deriv_at, has_deriv_at_filter, has_fderiv_at]
 
 lemma deriv_within_zero_of_not_differentiable_within_at
   (h : ¬ differentiable_within_at 𝕜 f s x) : deriv_within f s x = 0 :=
-have ¬ ∃ f', has_deriv_within_at f f' s x, by contrapose! h; rcases h with ⟨f', h⟩; exact ⟨_, h⟩,
-by simp [deriv_within, this]
+by unfold deriv_within; rw fderiv_within_zero_of_not_differentiable_within_at; simp *
 
 lemma deriv_zero_of_not_differentiable_at (h : ¬ differentiable_at 𝕜 f x) : deriv f x = 0 :=
-have ¬ ∃ f', has_deriv_at f f' x, by contrapose! h; rcases h with ⟨f', h⟩; exact ⟨_, h⟩,
-by simp [deriv, this]
+by unfold deriv; rw fderiv_zero_of_not_differentiable_at; simp *
 
 theorem unique_diff_within_at.eq_deriv (s : set 𝕜) (H : unique_diff_within_at 𝕜 s x)
   (h : has_deriv_within_at f f' s x) (h₁ : has_deriv_within_at f f₁' s x) : f' = f₁' :=
@@ -191,15 +189,10 @@ has_fderiv_within_at_inter h
 
 lemma differentiable_within_at.has_deriv_within_at (h : differentiable_within_at 𝕜 f s x) :
   has_deriv_within_at f (deriv_within f s x) s x :=
-have h' : ∃ f', has_deriv_within_at f f' s x,
-  from let ⟨f', h⟩ := h in ⟨_, has_fderiv_within_at_iff_has_deriv_within_at.mp h⟩,
-by dunfold deriv_within; rw dif_pos h'; exact classical.some_spec h'
+show has_fderiv_within_at _ _ _ _, by convert h.has_fderiv_within_at; simp [deriv_within]
 
-lemma differentiable_at.has_deriv_at (h : differentiable_at 𝕜 f x) :
-  has_deriv_at f (deriv f x) x :=
-have h' : ∃ f', has_deriv_at f f' x,
-  from let ⟨f', h⟩ := h in ⟨_, has_fderiv_at_iff_has_deriv_at.mp h⟩,
-by dunfold deriv; rw dif_pos h'; exact classical.some_spec h'
+lemma differentiable_at.has_deriv_at (h : differentiable_at 𝕜 f x) : has_deriv_at f (deriv f x) x :=
+show has_fderiv_at _ _ _, by convert h.has_fderiv_at; simp [deriv]
 
 lemma has_deriv_at.deriv (h : has_deriv_at f f' x) : deriv f x = f' :=
 has_deriv_at_unique h.differentiable_at.has_deriv_at h
@@ -209,36 +202,21 @@ lemma has_deriv_within_at.deriv_within
   deriv_within f s x = f' :=
 hxs.eq_deriv _ h.differentiable_within_at.has_deriv_within_at h
 
-lemma fderiv_within_deriv_within (hxs : unique_diff_within_at 𝕜 s x) :
-  (fderiv_within 𝕜 f s x : 𝕜 → F) 1 = deriv_within f s x :=
-if h : differentiable_within_at 𝕜 f s x then
-  have has_fderiv_within_at f (fderiv_within 𝕜 f s x) s x, from h.has_fderiv_within_at,
-  have has_deriv_within_at f ((fderiv_within 𝕜 f s x : 𝕜 → F) 1) s x,
-    by simp [has_deriv_within_at, has_fderiv_within_at, has_deriv_at_filter, *] at *,
-  (this.deriv_within hxs).symm
-else
-  by rw [deriv_within_zero_of_not_differentiable_within_at h,
-      fderiv_within_zero_of_not_differentiable_within_at h]; refl
+lemma fderiv_within_deriv_within : (fderiv_within 𝕜 f s x : 𝕜 → F) 1 = deriv_within f s x :=
+rfl
 
-lemma deriv_within_fderiv_within (hxs : unique_diff_within_at 𝕜 s x) :
-  smul_right 1 (deriv_within f s x) = fderiv_within 𝕜 f s x :=
-by rw ← fderiv_within_deriv_within hxs; simp
+lemma deriv_within_fderiv_within : smul_right 1 (deriv_within f s x) = fderiv_within 𝕜 f s x :=
+by simp [deriv_within]
 
 lemma fderiv_deriv : (fderiv 𝕜 f x : 𝕜 → F) 1 = deriv f x :=
-if h : differentiable_at 𝕜 f x then
-  have has_fderiv_at f (fderiv 𝕜 f x) x, from h.has_fderiv_at,
-  have has_deriv_at f ((fderiv 𝕜 f x : 𝕜 → F) 1) x,
-    by simp [has_deriv_at, has_fderiv_at, has_deriv_at_filter, *] at *,
-  this.deriv.symm
-else
-  by rw [deriv_zero_of_not_differentiable_at h, fderiv_zero_of_not_differentiable_at h]; refl
+rfl
 
 lemma deriv_fderiv : smul_right 1 (deriv f x) = fderiv 𝕜 f x :=
-by rw ← fderiv_deriv; simp
+by simp [deriv]
 
 lemma differentiable_at.deriv_within (h : differentiable_at 𝕜 f x)
   (hxs : unique_diff_within_at 𝕜 s x) : deriv_within f s x = deriv f x :=
-by rw [← fderiv_within_deriv_within hxs, ← fderiv_deriv, differentiable.fderiv_within h]; assumption
+by unfold deriv_within deriv; rw differentiable.fderiv_within h hxs
 
 lemma deriv_within_subset (st : s ⊆ t) (ht : unique_diff_within_at 𝕜 s x)
   (h : differentiable_within_at 𝕜 f t x) :
@@ -246,13 +224,11 @@ lemma deriv_within_subset (st : s ⊆ t) (ht : unique_diff_within_at 𝕜 s x)
 ((differentiable_within_at.has_deriv_within_at h).mono st).deriv_within ht
 
 @[simp] lemma deriv_within_univ : deriv_within f univ = deriv f :=
-by ext; rw [← fderiv_deriv, ← fderiv_within_deriv_within (unique_diff_within_at_univ),
-    fderiv_within_univ]
+by ext; unfold deriv_within deriv; rw fderiv_within_univ
 
 lemma deriv_within_inter (ht : t ∈ nhds x) (hs : unique_diff_within_at 𝕜 s x) :
   deriv_within f (s ∩ t) x = deriv_within f s x :=
-by rw [← fderiv_within_deriv_within hs, ← fderiv_within_deriv_within (hs.inter ht),
-    fderiv_within_inter]; assumption
+by unfold deriv_within; rw fderiv_within_inter ht hs
 
 section congr
 
@@ -280,21 +256,15 @@ has_deriv_at_filter.congr_of_mem_sets h h₁ (mem_of_nhds h₁ : _)
 lemma deriv_within_congr_of_mem_nhds_within (hs : unique_diff_within_at 𝕜 s x)
   (hL : {y | f₁ y = f y} ∈ nhds_within x s) (hx : f₁ x = f x) :
   deriv_within f₁ s x = deriv_within f s x :=
-begin
-  repeat { rw ← fderiv_within_deriv_within hs },
-  rw fderiv_within_congr_of_mem_nhds_within; assumption
-end
+by unfold deriv_within; rw fderiv_within_congr_of_mem_nhds_within hs hL hx
 
 lemma deriv_within_congr (hs : unique_diff_within_at 𝕜 s x)
   (hL : ∀y∈s, f₁ y = f y) (hx : f₁ x = f x) :
   deriv_within f₁ s x = deriv_within f s x :=
-begin
-  repeat { rw ← fderiv_within_deriv_within hs },
-  rw fderiv_within_congr; assumption
-end
+by unfold deriv_within; rw fderiv_within_congr hs hL hx
 
 lemma deriv_congr_of_mem_nhds (hL : {y | f₁ y = f y} ∈ nhds x) : deriv f₁ x = deriv f x :=
-by rwa [← fderiv_deriv, ← fderiv_deriv, fderiv_congr_of_mem_nhds]
+by unfold deriv; rwa fderiv_congr_of_mem_nhds
 
 end congr
 
@@ -314,12 +284,8 @@ has_deriv_at_filter_id _ _
 @[simp] lemma deriv_id : deriv id x = 1 :=
 has_deriv_at.deriv (has_deriv_at_id x)
 
-lemma deriv_within_id (hxs : unique_diff_within_at 𝕜 s x) :
-  fderiv_within 𝕜 id s x = id :=
-begin
-  rw differentiable.fderiv_within (differentiable_at_id) hxs,
-  exact fderiv_id
-end
+lemma deriv_within_id (hxs : unique_diff_within_at 𝕜 s x) : deriv_within id s x = 1 :=
+by unfold deriv_within; rw fderiv_within_id; simp *
 
 end id
 

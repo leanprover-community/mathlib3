@@ -928,6 +928,8 @@ equiv_of_unique_of_unique
 
 namespace quot
 
+/-- An equivalence `e : α ≃ β` generates an equivalence between quotient spaces,
+if `ra a₁ a₂ ↔ rb (e a₁) (e a₂). -/
 protected def congr {ra : α → α → Prop} {rb : β → β → Prop} (e : α ≃ β)
   (eq : ∀a₁ a₂, ra a₁ a₂ ↔ rb (e a₁) (e a₂)) :
   quot ra ≃ quot rb :=
@@ -945,7 +947,8 @@ protected def congr_right {r r' : α → α → Prop} (eq : ∀a₁ a₂, r a₁
   quot r ≃ quot r' :=
 quot.congr (equiv.refl α) eq
 
-
+/-- An equivalence `e : α ≃ β` generates an equivalence between the quotient space of `α`
+by a relation `ra` and the quotient space of `β` by the image of this relation under `e`. -/
 protected def congr_left {r : α → α → Prop} (e : α ≃ β) :
   quot r ≃ quot (λ b b', r (e.symm b) (e.symm b')) :=
 @quot.congr α β r (λ b b', r (e.symm b) (e.symm b')) e (λ a₁ a₂, by simp only [e.symm_apply_apply])
@@ -953,11 +956,15 @@ protected def congr_left {r : α → α → Prop} (e : α ≃ β) :
 end quot
 
 namespace quotient
+/-- An equivalence `e : α ≃ β` generates an equivalence between quotient spaces,
+if `ra a₁ a₂ ↔ rb (e a₁) (e a₂). -/
 protected def congr {ra : setoid α} {rb : setoid β} (e : α ≃ β)
   (eq : ∀a₁ a₂, @setoid.r α ra a₁ a₂ ↔ @setoid.r β rb (e a₁) (e a₂)) :
   quotient ra ≃ quotient rb :=
 quot.congr e eq
 
+/-- Quotients are congruent on equivalences under equality of their relation.
+An alternative is just to use rewriting with `eq`, but then computational proofs get stuck. -/
 protected def congr_right {r r' : setoid α}
   (eq : ∀a₁ a₂, @setoid.r α r a₁ a₂ ↔ @setoid.r α r' a₁ a₂) : quotient r ≃ quotient r' :=
 quot.congr_right eq

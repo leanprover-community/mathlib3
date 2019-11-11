@@ -10,7 +10,7 @@ import analysis.normed_space.bounded_linear_maps
 /-!
 # Bochner integral
 
-To be added soon.
+To be added in the next PR.
 
 ## Main definitions
 
@@ -34,7 +34,7 @@ To be added soon.
 
 `section coe_to_l1` : `coe` from `l1.simple_func` to `l1` is a uniform and dense embedding.
 
-`section simple_func_integral` : basic properties of `l1.simple_func.integral`.
+`section simple_func_integral` : basic properties of `l1.simple_func.integral` proved.
 -/
 
 noncomputable theory

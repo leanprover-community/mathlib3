@@ -16,19 +16,20 @@ namespace rel
 
 variables {δ : Type*} (r : rel α β)
 
-def inv : rel β α := flip r
+/-- The converse relation : `r.flip x y ↔ r y x` -/
+protected def flip : rel β α := flip r
 
-lemma inv_def (x : α) (y : β) : r.inv y x ↔ r x y := iff.rfl
+lemma flip_def (x : α) (y : β) : r.flip y x ↔ r x y := iff.rfl
 
-lemma inv_inv : inv (inv r) = r := by { ext x y, reflexivity }
+lemma flip_flip : flip (flip r) = r := by { ext x y, reflexivity }
 
 def dom := {x | ∃ y, r x y}
 
 def codom := {y | ∃ x, r x y}
 
-lemma codom_inv : r.inv.codom = r.dom := by { ext x y, reflexivity }
+lemma codom_flip : r.flip.codom = r.dom := by { ext x y, reflexivity }
 
-lemma dom_inv : r.inv.dom = r.codom := by { ext x y, reflexivity}
+lemma dom_flip : r.flip.dom = r.codom := by { ext x y, reflexivity}
 
 def comp (r : rel α β) (s : rel β γ) : rel α γ :=
 λ x z, ∃ y, r x y ∧ s y z
@@ -51,11 +52,11 @@ by { unfold comp, ext y, simp }
 lemma comp_left_id (r : rel α β) : @eq α ∘ r = r :=
 by { unfold comp, ext x, simp }
 
-lemma inv_id : inv (@eq α) = @eq α :=
+lemma flip_id : rel.flip (@eq α) = @eq α :=
 by { ext x y, split; apply eq.symm }
 
-lemma inv_comp (r : rel α β) (s : rel β γ) : inv (r ∘ s) = inv s ∘ inv r :=
-by { ext x z, simp [comp, inv, flip, and.comm] }
+lemma flip_comp (r : rel α β) (s : rel β γ) : (r ∘ s).flip = s.flip ∘ r.flip :=
+by { ext x z, simp [comp, rel.flip, flip, and.comm] }
 
 def image (s : set α) : set β := {y | ∃ x ∈ s, r x y}
 
@@ -96,7 +97,7 @@ end
 
 lemma image_univ : r.image set.univ = r.codom := by { ext y, simp [mem_image, codom] }
 
-def preimage (s : set β) : set α := image (inv r) s
+def preimage (s : set β) : set α := r.flip.image s
 
 lemma mem_preimage (x : α) (s : set β) : x ∈ preimage r s ↔ ∃ y ∈ s, r x y :=
 iff.refl _
@@ -114,14 +115,14 @@ lemma preimage_union (s t : set β) : r.preimage (s ∪ t) = r.preimage s ∪ r.
 image_union _ s t
 
 lemma preimage_id (s : set α) : preimage (@eq α) s = s :=
-by simp only [preimage, inv_id, image_id]
+by simp only [preimage, flip_id, image_id]
 
 lemma preimage_comp (s : rel β γ) (t : set γ) :
   preimage (r ∘ s) t = preimage r (preimage s t) :=
-by simp only [preimage, inv_comp, image_comp]
+by simp only [preimage, flip_comp, image_comp]
 
 lemma preimage_univ : r.preimage set.univ = r.dom :=
-by { rw [preimage, image_univ, codom_inv] }
+by { rw [preimage, image_univ, codom_flip] }
 
 def core (s : set β) := {x | ∀ y, r x y → y ∈ s}
 
@@ -184,7 +185,7 @@ by simp [set.image, function.graph, rel.image]
 
 lemma preimage_eq (f : α → β) (s : set β) :
   f ⁻¹' s = (function.graph f).preimage s :=
-by simp [set.preimage, function.graph, rel.preimage, rel.inv, flip, rel.image]
+by simp [set.preimage, function.graph, rel.preimage, rel.flip, flip, rel.image]
 
 lemma preimage_eq_core (f : α → β) (s : set β) :
   f ⁻¹' s = (function.graph f).core s :=

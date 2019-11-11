@@ -53,15 +53,15 @@ local notation `⁅`x`,` y`⁆` := commutator x y
 
 @[simp] lemma add_left (x y z : A) :
   ⁅x + y, z⁆ = ⁅x, z⁆ + ⁅y, z⁆ :=
-by { unfold commutator, simp [right_distrib, left_distrib] }
+by simp [commutator, right_distrib, left_distrib]
 
 @[simp] lemma add_right (x y z : A) :
   ⁅z, x + y⁆ = ⁅z, x⁆ + ⁅z, y⁆ :=
-by { unfold commutator, simp [right_distrib, left_distrib] }
+by simp [commutator, right_distrib, left_distrib]
 
 @[simp] lemma alternate (x : A) :
   ⁅x, x⁆ = 0 :=
-by { unfold commutator, simp }
+by simp [commutator]
 
 lemma jacobi (x y z : A) :
   ⁅x, ⁅y, z⁆⁆ + ⁅y, ⁅z, x⁆⁆ + ⁅z, ⁅x, y⁆⁆ = 0 :=
@@ -102,10 +102,9 @@ variables {L : Type v} [add_comm_group L] [lie_ring L]
 begin
   symmetry,
   rw [←sub_eq_zero_iff_eq, sub_neg_eq_add],
-  have H : ⁅x + y, x + y⁆ = 0 := by apply lie_self,
+  have H : ⁅x + y, x + y⁆ = 0, from lie_self _,
   rw [add_lie, lie_add, lie_add, lie_self, lie_self] at H,
-  simp at H,
-  exact H,
+  simpa using H,
 end
 
 @[simp] lemma lie_zero (x : L) :
@@ -127,8 +126,8 @@ end
 @[simp] lemma gsmul_lie (x y : L) (n : ℤ) :
   ⁅n • x, y⁆ = n • ⁅x, y⁆ :=
 begin
-  have H : is_add_group_hom (λ z, ⁅z, y⁆) := { map_add := by { intros, rw add_lie, } },
-  exact (@is_add_group_hom.map_gsmul _ _ _ _ _ H x n),
+  haveI : is_add_group_hom (λ z, ⁅z, y⁆) := { map_add := by { intros, rw add_lie, } },
+  apply is_add_group_hom.map_gsmul (λ (z : L), ⁅z,y⁆),
 end
 
 @[simp] lemma lie_gsmul (x y : L) (n : ℤ) :

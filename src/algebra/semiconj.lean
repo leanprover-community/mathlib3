@@ -35,7 +35,7 @@ def semiconj_by {M : Type u} [has_mul M] (a x y : M) : Prop := a * x = y * a
 
 namespace semiconj_by
 
-/-- Equality behind `semiconj_by a x y`; useful for rewriting. -
+/-- Equality behind `semiconj_by a x y`; useful for rewriting. -/
 protected lemma eq {S : Type u} [has_mul S] {a x y : S} (h : semiconj_by a x y) :
   a * x = y * a := h
 

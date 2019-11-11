@@ -834,6 +834,24 @@ lemma nth_le_append : ∀ {l₁ l₂ : list α} {n : ℕ} (hn₁) (hn₂),
 | (a::l) _ (n+1) hn₁ hn₂ := by simp only [nth_le, cons_append];
                          exact nth_le_append _ _
 
+lemma nth_le_append_right_aux {l₁ l₂ : list α} {n : ℕ}
+  (h₁ : l₁.length ≤ n) (h₂ : n < (l₁ ++ l₂).length) : n - l₁.length < l₂.length :=
+begin
+  rw list.length_append at h₂,
+  convert (nat.sub_lt_sub_right_iff h₁).mpr h₂,
+  simp,
+end
+
+lemma nth_le_append_right : ∀ {l₁ l₂ : list α} {n : ℕ} (h₁ : l₁.length ≤ n) (h₂),
+  (l₁ ++ l₂).nth_le n h₂ = l₂.nth_le (n - l₁.length) (nth_le_append_right_aux h₁ h₂)
+| []       _ n     h₁ h₂ := rfl
+| (a :: l) _ (n+1) h₁ h₂ :=
+  begin
+    dsimp,
+    conv { to_rhs, congr, skip, rw [←nat.sub_sub, nat.sub.right_comm, nat.add_sub_cancel], },
+    rw nth_le_append_right (nat.lt_succ_iff.mp h₁),
+  end
+
 @[simp] lemma nth_le_repeat (a : α) {n m : ℕ} (h : m < n) :
   (list.repeat a n).nth_le m (by rwa list.length_repeat) = a :=
 eq_of_mem_repeat (nth_le_mem _ _ _)

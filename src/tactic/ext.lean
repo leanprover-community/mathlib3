@@ -82,7 +82,7 @@ do e ← get_env,
    t ← pis (args ++ [x,y]) iff_t,
    pr ← run_async $
      do { (_,pr) ← solve_aux t $ do
-          { trace_state, args ← intron args.length,
+          { args ← intron args.length,
             x ← intro1, y ← intro1,
             cases x, cases y,
             split,

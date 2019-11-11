@@ -1967,6 +1967,14 @@ begin
     exact ⟨le_trans hm hmk, lt_of_lt_of_le hkn hn⟩ }
 end
 
+protected theorem subset {m₁ n₁ m₂ n₂ : ℕ} (hmm : m₂ ≤ m₁) (hnn : n₁ ≤ n₂) :
+  Ico m₁ n₁ ⊆ Ico m₂ n₂ :=
+begin
+  simp only [finset.subset_iff, Ico.mem],
+  assume x hx,
+  exact ⟨le_trans hmm hx.1, lt_of_lt_of_le hx.2 hnn⟩ 
+end
+
 lemma union_consecutive {n m l : ℕ} (hnm : n ≤ m) (hml : m ≤ l) :
   Ico n m ∪ Ico m l = Ico n l :=
 by rw [← to_finset, ← to_finset, ← multiset.to_finset_add,

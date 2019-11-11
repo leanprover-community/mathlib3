@@ -67,7 +67,7 @@ variables {G : Type*} [normed_group G] [normed_space 𝕜 G]
 
 /-- A function `f` has the continuous linear map `f'` as derivative along the filter `L` if
 `f x' = f x + f' (x' - x) + o (x' - x)` when `x'` converges along the filter `L`. This definition
-is designed to be specialized for `L = nhds x` (in `has_fderiv_at`), giving rise to the usual notion
+is designed to be specialized for `L = 𝓝 x` (in `has_fderiv_at`), giving rise to the usual notion
 of Fréchet derivative, and for `L = nhds_within x s` (in `has_fderiv_within_at`), giving rise to
 the notion of Fréchet derivative along the set `s`. -/
 def has_fderiv_at_filter (f : E → F) (f' : E →L[𝕜] F) (x : E) (L : filter E) :=

@@ -255,7 +255,7 @@ def topological_space.induced {α : Type u} {β : Type v} (f : α → β) (t : t
 
 lemma is_open_induced_iff [t : topological_space β] {s : set α} {f : α → β} :
   @is_open α (t.induced f) s ↔ (∃t, is_open t ∧ f ⁻¹' t = s) :=
-iff.refl _
+iff.rfl
 
 lemma is_closed_induced_iff [t : topological_space β] {s : set α} {f : α → β} :
   @is_closed α (t.induced f) s ↔ (∃t, is_closed t ∧ s = f ⁻¹' t) :=
@@ -277,7 +277,7 @@ def topological_space.coinduced {α : Type u} {β : Type v} (f : α → β) (t :
 
 lemma is_open_coinduced {t : topological_space α} {s : set β} {f : α → β} :
   @is_open β (topological_space.coinduced f t) s ↔ is_open (f ⁻¹' s) :=
-iff.refl _
+iff.rfl
 
 variables {t t₁ t₂ : topological_space α} {t' : topological_space β} {f : α → β} {g : β → α}
 
@@ -534,7 +534,7 @@ variables [t : topological_space β] {f : α → β}
 
 theorem is_open_induced_eq {s : set α} :
   @_root_.is_open _ (induced f t) s ↔ s ∈ preimage f '' {s | is_open s} :=
-iff.refl _
+iff.rfl
 
 theorem is_open_induced {s : set β} (h : is_open s) : (induced f t).is_open (f ⁻¹' s) :=
 ⟨s, h, rfl⟩

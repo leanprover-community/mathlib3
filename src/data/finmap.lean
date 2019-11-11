@@ -293,7 +293,7 @@ theorem mem_list_to_finmap (a : α) (xs : list (sigma β)) : a ∈ xs.to_finmap 
 by { induction xs with x xs; [skip, cases x];
      simp only [to_finmap_cons, *, not_mem_empty, exists_or_distrib, list.not_mem_nil, finmap.to_finmap_nil, iff_self,
                 exists_false, mem_cons_iff, mem_insert, exists_and_distrib_left];
-     apply or_congr _ (iff.refl _),
+     apply or_congr _ iff.rfl,
      conv { to_lhs, rw ← and_true (a = x_fst) },
      apply and_congr_right, rintro ⟨⟩, simp only [exists_eq, iff_self, heq_iff_eq] }
 

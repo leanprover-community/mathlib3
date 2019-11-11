@@ -486,7 +486,7 @@ def image (s : set α) : set β := rel.image f.graph' s
 lemma image_def (s : set α) : image f s = {y | ∃ x ∈ s, y ∈ f x} := rfl
 
 lemma mem_image (y : β) (s : set α) : y ∈ image f s ↔ ∃ x ∈ s, y ∈ f x :=
-iff.refl _
+iff.rfl
 
 lemma image_mono {s t : set α} (h : s ⊆ t) : f.image s ⊆ f.image t :=
 rel.image_mono _ h
@@ -502,7 +502,7 @@ def preimage (s : set β) : set α := rel.preimage (λ x y, y ∈ f x) s
 lemma preimage_def (s : set β) : preimage f s = {x | ∃ y ∈ s, y ∈ f x} := rfl
 
 lemma mem_preimage (s : set β) (x : α) : x ∈ preimage f s ↔ ∃ y ∈ s, y ∈ f x :=
-iff.refl _
+iff.rfl
 
 lemma preimage_subset_dom (s : set β) : f.preimage s ⊆ f.dom :=
 assume x ⟨y, ys, fxy⟩, roption.dom_iff_mem.mpr ⟨y, fxy⟩

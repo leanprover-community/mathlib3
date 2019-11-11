@@ -119,13 +119,13 @@ class uniform_space (α : Type u) extends topological_space α, uniform_space.co
 def uniform_space.of_core {α : Type u} (u : uniform_space.core α) : uniform_space α :=
 { to_core := u,
   to_topological_space := u.to_topological_space,
-  is_open_uniformity := assume a, iff.refl _ }
+  is_open_uniformity := assume a, iff.rfl }
 
 def uniform_space.of_core_eq {α : Type u} (u : uniform_space.core α) (t : topological_space α)
   (h : t = u.to_topological_space) : uniform_space α :=
 { to_core := u,
   to_topological_space := t,
-  is_open_uniformity := assume a, h.symm ▸ iff.refl _ }
+  is_open_uniformity := assume a, h.symm ▸ iff.rfl }
 
 lemma uniform_space.to_core_to_topological_space (u : uniform_space α) :
   u.to_core.to_topological_space = u.to_topological_space :=

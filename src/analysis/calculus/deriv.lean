@@ -127,10 +127,10 @@ by simp [has_deriv_at, has_deriv_at_filter, has_fderiv_at]
 
 lemma deriv_within_zero_of_not_differentiable_within_at
   (h : ¬ differentiable_within_at 𝕜 f s x) : deriv_within f s x = 0 :=
-by unfold deriv_within; rw fderiv_within_zero_of_not_differentiable_within_at; simp *
+by { unfold deriv_within, rw fderiv_within_zero_of_not_differentiable_within_at, simp * }
 
 lemma deriv_zero_of_not_differentiable_at (h : ¬ differentiable_at 𝕜 f x) : deriv f x = 0 :=
-by unfold deriv; rw fderiv_zero_of_not_differentiable_at; simp *
+by { unfold deriv, rw fderiv_zero_of_not_differentiable_at, simp * }
 
 theorem unique_diff_within_at.eq_deriv (s : set 𝕜) (H : unique_diff_within_at 𝕜 s x)
   (h : has_deriv_within_at f f' s x) (h₁ : has_deriv_within_at f f₁' s x) : f' = f₁' :=
@@ -189,10 +189,10 @@ has_fderiv_within_at_inter h
 
 lemma differentiable_within_at.has_deriv_within_at (h : differentiable_within_at 𝕜 f s x) :
   has_deriv_within_at f (deriv_within f s x) s x :=
-show has_fderiv_within_at _ _ _ _, by convert h.has_fderiv_within_at; simp [deriv_within]
+show has_fderiv_within_at _ _ _ _, by { convert h.has_fderiv_within_at, simp [deriv_within] }
 
 lemma differentiable_at.has_deriv_at (h : differentiable_at 𝕜 f x) : has_deriv_at f (deriv f x) x :=
-show has_fderiv_at _ _ _, by convert h.has_fderiv_at; simp [deriv]
+show has_fderiv_at _ _ _, by { convert h.has_fderiv_at, simp [deriv] }
 
 lemma has_deriv_at.deriv (h : has_deriv_at f f' x) : deriv f x = f' :=
 has_deriv_at_unique h.differentiable_at.has_deriv_at h
@@ -216,7 +216,7 @@ by simp [deriv]
 
 lemma differentiable_at.deriv_within (h : differentiable_at 𝕜 f x)
   (hxs : unique_diff_within_at 𝕜 s x) : deriv_within f s x = deriv f x :=
-by unfold deriv_within deriv; rw differentiable.fderiv_within h hxs
+by { unfold deriv_within deriv, rw differentiable.fderiv_within h hxs }
 
 lemma deriv_within_subset (st : s ⊆ t) (ht : unique_diff_within_at 𝕜 s x)
   (h : differentiable_within_at 𝕜 f t x) :
@@ -224,11 +224,11 @@ lemma deriv_within_subset (st : s ⊆ t) (ht : unique_diff_within_at 𝕜 s x)
 ((differentiable_within_at.has_deriv_within_at h).mono st).deriv_within ht
 
 @[simp] lemma deriv_within_univ : deriv_within f univ = deriv f :=
-by ext; unfold deriv_within deriv; rw fderiv_within_univ
+by { ext, unfold deriv_within deriv, rw fderiv_within_univ }
 
 lemma deriv_within_inter (ht : t ∈ nhds x) (hs : unique_diff_within_at 𝕜 s x) :
   deriv_within f (s ∩ t) x = deriv_within f s x :=
-by unfold deriv_within; rw fderiv_within_inter ht hs
+by { unfold deriv_within, rw fderiv_within_inter ht hs }
 
 section congr
 
@@ -239,7 +239,7 @@ has_fderiv_at_filter_congr_of_mem_sets hx h₀ (by simp [h₁])
 
 lemma has_deriv_at_filter.congr_of_mem_sets (h : has_deriv_at_filter f f' x L)
   (hL : {x | f₁ x = f x} ∈ L) (hx : f₁ x = f x) : has_deriv_at_filter f₁ f' x L :=
-by rw has_deriv_at_filter_congr_of_mem_sets; assumption <|> refl
+by rwa has_deriv_at_filter_congr_of_mem_sets hx hL rfl
 
 lemma has_deriv_within_at.congr_mono (h : has_deriv_within_at f f' s x) (ht : ∀x ∈ t, f₁ x = f x)
   (hx : f₁ x = f x) (h₁ : t ⊆ s) : has_deriv_within_at f₁ f' t x :=
@@ -256,15 +256,15 @@ has_deriv_at_filter.congr_of_mem_sets h h₁ (mem_of_nhds h₁ : _)
 lemma deriv_within_congr_of_mem_nhds_within (hs : unique_diff_within_at 𝕜 s x)
   (hL : {y | f₁ y = f y} ∈ nhds_within x s) (hx : f₁ x = f x) :
   deriv_within f₁ s x = deriv_within f s x :=
-by unfold deriv_within; rw fderiv_within_congr_of_mem_nhds_within hs hL hx
+by { unfold deriv_within, rw fderiv_within_congr_of_mem_nhds_within hs hL hx }
 
 lemma deriv_within_congr (hs : unique_diff_within_at 𝕜 s x)
   (hL : ∀y∈s, f₁ y = f y) (hx : f₁ x = f x) :
   deriv_within f₁ s x = deriv_within f s x :=
-by unfold deriv_within; rw fderiv_within_congr hs hL hx
+by { unfold deriv_within, rw fderiv_within_congr hs hL hx }
 
 lemma deriv_congr_of_mem_nhds (hL : {y | f₁ y = f y} ∈ nhds x) : deriv f₁ x = deriv f x :=
-by unfold deriv; rwa fderiv_congr_of_mem_nhds
+by { unfold deriv, rwa fderiv_congr_of_mem_nhds }
 
 end congr
 
@@ -285,7 +285,7 @@ has_deriv_at_filter_id _ _
 has_deriv_at.deriv (has_deriv_at_id x)
 
 lemma deriv_within_id (hxs : unique_diff_within_at 𝕜 s x) : deriv_within id s x = 1 :=
-by unfold deriv_within; rw fderiv_within_id; simp *
+by { unfold deriv_within, rw fderiv_within_id, simp * }
 
 end id
 
@@ -306,7 +306,7 @@ lemma deriv_const : deriv (λ x, c) x = 0 :=
 has_deriv_at.deriv (has_deriv_at_const x c)
 
 lemma deriv_within_const (hxs : unique_diff_within_at 𝕜 s x) : deriv_within (λ x, c) s x = 0 :=
-by rw (differentiable_at_const _).deriv_within hxs; apply deriv_const
+by { rw (differentiable_at_const _).deriv_within hxs, apply deriv_const }
 
 end const
 
@@ -492,7 +492,7 @@ theorem has_deriv_at_filter.comp
   (hh : has_deriv_at_filter h h' x L) :
   has_deriv_at_filter (g ∘ h) (h' • g') x L :=
 have (smul_right 1 g' : 𝕜 →L[𝕜] _).comp (smul_right 1 h' : 𝕜 →L[𝕜] _) =
-    smul_right 1 (h' • g'), by ext; simp [mul_smul],
+    smul_right 1 (h' • g'), by { ext, simp [mul_smul] },
 begin
   unfold has_deriv_at_filter,
   rw ← this,

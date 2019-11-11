@@ -67,6 +67,17 @@ lemma smul_sum {α : Type u} {M : Type v} {R : Type w}
   a • (s.sum f) = s.sum (λc, a • f c) :=
 (finset.sum_hom ((•) a)).symm
 
+lemma smul_sum' {α : Type u} {M : Type v} {R : Type w}
+  [ring R] [add_comm_group M] [module R M]
+  {s : finset α} {f : α → R} {x : M} :
+  (s.sum f) • x = s.sum (λa, (f a) • x) :=
+begin
+-- TODO : where should I put this instance?
+  haveI : is_add_monoid_hom (λ (r : R), r • x) :=
+    { map_add := λ a b, add_smul _ _ _, map_zero := zero_smul _ _ },
+  exact (finset.sum_hom (λ (r : R), r • x)).symm
+end
+
 end finset
 
 namespace finsupp

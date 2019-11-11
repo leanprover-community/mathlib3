@@ -127,10 +127,10 @@ by simp [has_deriv_at, has_deriv_at_filter, has_fderiv_at]
 
 lemma deriv_within_zero_of_not_differentiable_within_at
   (h : ¬ differentiable_within_at 𝕜 f s x) : deriv_within f s x = 0 :=
-by { unfold deriv_within, rw fderiv_within_zero_of_not_differentiable_within_at, simp * }
+by { unfold deriv_within, rw fderiv_within_zero_of_not_differentiable_within_at, simp, assumption }
 
 lemma deriv_zero_of_not_differentiable_at (h : ¬ differentiable_at 𝕜 f x) : deriv f x = 0 :=
-by { unfold deriv, rw fderiv_zero_of_not_differentiable_at, simp * }
+by { unfold deriv, rw fderiv_zero_of_not_differentiable_at, simp, assumption }
 
 theorem unique_diff_within_at.eq_deriv (s : set 𝕜) (H : unique_diff_within_at 𝕜 s x)
   (h : has_deriv_within_at f f' s x) (h₁ : has_deriv_within_at f f₁' s x) : f' = f₁' :=
@@ -285,7 +285,7 @@ has_deriv_at_filter_id _ _
 has_deriv_at.deriv (has_deriv_at_id x)
 
 lemma deriv_within_id (hxs : unique_diff_within_at 𝕜 s x) : deriv_within id s x = 1 :=
-by { unfold deriv_within, rw fderiv_within_id, simp * }
+by { unfold deriv_within, rw fderiv_within_id, simp, assumption }
 
 end id
 

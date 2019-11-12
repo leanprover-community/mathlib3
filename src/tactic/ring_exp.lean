@@ -668,9 +668,7 @@ meta def resolve_atom (a : expr) : ring_exp_m atom := do
   pure atm
 
 def sub_pf {α} [comm_ring α] {ps qs psqs : α} : ps + -qs = psqs → ps - qs = psqs := by simp
-def divide_pf {α} [has_div α] {ps qs ps_u qs_u ps_p qs_p e' e'' : α} :
-  ps = ps_u → qs = qs_u → ps_u = ps_p → qs_u = qs_p → ps_p / qs_p = e' → e' = e'' → ps / qs = e''
-:= by cc
+def div_pf {α} [division_ring α] {ps qs psqs : α} : ps * qs⁻¹ = psqs → ps / qs = psqs := λ p_pf, p_pf
 
 meta def eval_atom (ps : expr) : ring_exp_m (ex_pf sum) :=
   match ps.to_rat with
@@ -680,6 +678,18 @@ meta def eval_atom (ps : expr) : ring_exp_m (ex_pf sum) :=
     a <- resolve_atom ps,
     ex_var a >>= base_to_exp >>= exp_to_prod >>= prod_to_sum
   end
+
+def inverse_pf {α} [has_inv α] {ps ps_u ps_p e' e'' : α} :
+  ps = ps_u → ps_u = ps_p → ps_p ⁻¹ = e' → e' = e'' → ps ⁻¹ = e''
+:= by cc
+
+meta def inverse (ps : ex_pf sum) : ring_exp_m (ex_pf sum) := do
+  (ps_pretty, ps_pretty_pf) <- ps.simple,
+  e <- lift $ mk_app ``has_inv.inv [ps_pretty],
+  (e', e_pf) <- lift (norm_num.derive e) <|> ((λ e_pf, (e, e_pf)) <$> lift (mk_eq_refl e)),
+  e'' <- eval_atom e',
+  pf <- lift $ mk_app ``inverse_pf [ps.proof, ps_pretty_pf, e_pf, e''.proof],
+  pure $ e''.set_proof pf
 
 meta def eval : expr → ring_exp_m (ex_pf sum)
 | `(%%ps + %%qs) := do
@@ -697,16 +707,13 @@ meta def eval : expr → ring_exp_m (ex_pf sum)
   ps' <- eval ps,
   qs' <- eval qs,
   mul ps' qs'
-| `(%%ps / %%qs) := do
-  ps_ugly <- eval ps,
-  qs_ugly <- eval qs,
-  (ps_pretty, ps_pretty_pf) <- ps_ugly.simple,
-  (qs_pretty, qs_pretty_pf) <- qs_ugly.simple,
-  e <- lift $ mk_app ``has_div.div [ps_pretty, qs_pretty],
-  (e', e_pf) <- lift (norm_num.derive e) <|> ((λ e_pf, (e, e_pf)) <$> lift (mk_eq_refl e)),
-  e'' <- eval_atom e',
-  pf <- lift $ mk_app ``divide_pf [ps_ugly.proof, qs_ugly.proof, ps_pretty_pf, qs_pretty_pf, e_pf, e''.proof],
-  pure $ e''.set_proof pf
+| `(has_inv.inv %%ps) := eval ps >>= λ ps', inverse ps' <|> eval_atom ps
+| e@`(%%ps / %%qs) := (do
+  ps' <- eval ps,
+  qs' <- eval qs >>= inverse,
+  psqs <- mul ps' qs',
+  pf <- lift $ mk_app ``div_pf [psqs.proof],
+  pure (psqs.set_proof pf)) <|> eval_atom e
 | p'@`(@has_pow.pow _ _ %%hp_instance %%ps %%qs) := (do
   has_pow_pf <-
   match hp_instance with
@@ -815,6 +822,7 @@ example (n : ℕ) (m : ℤ) : 2^(n+1) * m = 2 * 2^n * m := by ring_exp
 example (n m : ℕ) (a : ℤ) : (a ^ n)^m = a^(n * m) := by ring_exp
 example (n m : ℕ) (a : ℤ) : a^(n^0) = a^1 := by ring_exp
 example (n : ℕ) : 0^(n + 1) = 0 := by ring_exp
+example [comm_ring α] (x : α) : x ^ (k + 2) = x * x * x^k := by ring_exp,
 -- Powers of sums
 example (a b : ℤ) : (a + b)^2 = a^2 + b^2 + a * b + b * a := by ring_exp
 example (a b : ℤ) (n : ℕ) : (a + b)^(n + 2) = (a^2 + b^2 + a * b + b * a) * (a + b)^n := by ring_exp
@@ -836,7 +844,11 @@ example {α : Type u} [linear_ordered_field α] (x : α) :
   f (x + 1 / 2) ^ 1 * -2 + (f (x + 1 / 2) ^ 1 * 2 + 0) = 0
 := by ring_exp_eq
 
-example {α} [linear_ordered_field α] (a b c : α) : a*(-c/b)*(-c/b) + b*(-c/b) + c = a*((c/b)*(c/b)) := by ring_exp
+-- This is a somewhat subtle case: `-c/b` is parsed as `(-c)/b`,
+-- so we can't simply treat both sides of the division as atoms.
+-- Instead, we follow the `ring` tactic in interpreting `-c / b` as `-c * b⁻¹`,
+-- with only `b⁻¹` an atom.
+example {α} [linear_ordered_field α] (a b c : α) : a*(-c/b)*(-c/b) = a*((c/b)*(c/b)) := by ring_exp
 
 /-
 -- Counterexamples:

@@ -457,11 +457,11 @@ protected theorem ext'_iff {S T : submonoid M}  : (S : set M) = T ↔ S = T :=
 ⟨ext', λ h, h ▸ rfl⟩
 
 /-- Two submonoids are equal if they have the same elements. -/
-@[extensionality, to_additive "Two `add_submonoid`s are equal if they have the same elements."]
+@[ext, to_additive "Two `add_submonoid`s are equal if they have the same elements."]
 theorem ext {S T : submonoid M}
   (h : ∀ x, x ∈ S ↔ x ∈ T) : S = T := ext' $ set.ext h
 
-attribute [extensionality] add_submonoid.ext
+attribute [ext] add_submonoid.ext
 
 /-- A submonoid contains the monoid's 1. -/
 @[to_additive "An `add_submonoid` contains the monoid's 0."]

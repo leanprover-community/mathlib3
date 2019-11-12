@@ -57,7 +57,7 @@ def with_cont_t (f : (β → m r) → α → m r) (x : cont_t r m α) : cont_t r
 lemma run_with_cont_t (f : (β → m r) → α → m r) (x : cont_t r m α) :
   run (with_cont_t f x) = run x ∘ f := rfl
 
-@[extensionality]
+@[ext]
 protected lemma ext {x y : cont_t r m α}
   (h : ∀ f, x.run f = y.run f) :
   x = y := by { ext; apply h }

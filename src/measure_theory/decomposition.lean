@@ -12,7 +12,7 @@ TODO:
 import measure_theory.measure_space
 
 open set lattice filter
-open_locale classical
+open_locale classical topological_space
 
 namespace measure_theory
 
@@ -52,7 +52,7 @@ begin
     ac_refl },
 
   have d_Union : ∀(s : ℕ → set α), (∀n, is_measurable (s n)) → monotone s →
-    tendsto (λn, d (s n)) at_top (nhds (d (⋃n, s n))),
+    tendsto (λn, d (s n)) at_top (𝓝 (d (⋃n, s n))),
   { assume s hs hm,
     refine tendsto_sub _ _;
       refine (nnreal.tendsto_coe.2 $
@@ -61,7 +61,7 @@ begin
     exact hν _ },
 
   have d_Inter : ∀(s : ℕ → set α), (∀n, is_measurable (s n)) → (∀n m, n ≤ m → s m ⊆ s n) →
-    tendsto (λn, d (s n)) at_top (nhds (d (⋂n, s n))),
+    tendsto (λn, d (s n)) at_top (𝓝 (d (⋂n, s n))),
   { assume s hs hm,
     refine tendsto_sub _ _;
       refine (nnreal.tendsto_coe.2 $
@@ -150,19 +150,19 @@ begin
 
   let s := ⋃ m, ⋂n, f m n,
   have γ_le_d_s : γ ≤ d s,
-  { have hγ : tendsto (λm:ℕ, γ - 2 * (1/2)^m) at_top (nhds γ),
-    { suffices : tendsto (λm:ℕ, γ - 2 * (1/2)^m) at_top (nhds (γ - 2 * 0)), { simpa },
+  { have hγ : tendsto (λm:ℕ, γ - 2 * (1/2)^m) at_top (𝓝 γ),
+    { suffices : tendsto (λm:ℕ, γ - 2 * (1/2)^m) at_top (𝓝 (γ - 2 * 0)), { simpa },
       exact (tendsto_sub tendsto_const_nhds $ tendsto_mul tendsto_const_nhds $
         tendsto_pow_at_top_nhds_0_of_lt_1
           (le_of_lt $ half_pos $ zero_lt_one) (half_lt_self zero_lt_one)) },
-    have hd : tendsto (λm, d (⋂n, f m n)) at_top (nhds (d (⋃ m, ⋂ n, f m n))),
+    have hd : tendsto (λm, d (⋂n, f m n)) at_top (𝓝 (d (⋃ m, ⋂ n, f m n))),
     { refine d_Union _ _ _,
       { assume n, exact is_measurable.Inter (assume m, hf _ _) },
       { exact assume n m hnm, subset_Inter
           (assume i, subset.trans (Inter_subset (f n) i) $ f_subset_f hnm $ le_refl _) } },
     refine le_of_tendsto_of_tendsto (@at_top_ne_bot ℕ _ _) hγ hd (univ_mem_sets' $ assume m, _),
     change γ - 2 * (1 / 2) ^ m ≤ d (⋂ (n : ℕ), f m n),
-    have : tendsto (λn, d (f m n)) at_top (nhds (d (⋂ n, f m n))),
+    have : tendsto (λn, d (f m n)) at_top (𝓝 (d (⋂ n, f m n))),
     { refine d_Inter _ _ _,
       { assume n, exact hf _ _ },
       { assume n m hnm, exact f_subset_f (le_refl _) hnm } },

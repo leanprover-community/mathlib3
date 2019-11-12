@@ -1,5 +1,5 @@
 import tactic data.stream.basic data.set.basic data.finset data.multiset
-       category.traversable.derive
+       category.traversable.derive meta.coinductive_predicates
 
 open tactic
 

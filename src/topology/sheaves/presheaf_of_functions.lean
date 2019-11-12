@@ -49,7 +49,7 @@ def pullback {X Y : Topᵒᵖ} (f : X ⟶ Y) (R : TopCommRing) :
   map_add' := by tidy,
   map_mul' := by tidy }
 
-local attribute [extensionality] subtype.eq
+local attribute [ext] subtype.eq
 
 /-- A homomorphism of topological rings can be postcomposed with functions from a source space `X`;
 this is a ring homomorphism (with respect to the pointwise ring operations on functions). -/

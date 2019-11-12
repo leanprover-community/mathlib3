@@ -58,7 +58,7 @@ instance : has_lift (finset α) (set α) := ⟨to_set⟩
 theorem ext {s₁ s₂ : finset α} : s₁ = s₂ ↔ ∀ a, a ∈ s₁ ↔ a ∈ s₂ :=
 val_inj.symm.trans $ nodup_ext s₁.2 s₂.2
 
-@[extensionality]
+@[ext]
 theorem ext' {s₁ s₂ : finset α} : (∀ a, a ∈ s₁ ↔ a ∈ s₂) → s₁ = s₂ :=
 ext.2
 
@@ -1965,6 +1965,14 @@ begin
     exact ne_of_gt (lt_of_le_of_lt (nat.zero_le m₁) hmn) },
   { rintros ⟨hm, hn⟩ k ⟨hmk, hkn⟩,
     exact ⟨le_trans hm hmk, lt_of_lt_of_le hkn hn⟩ }
+end
+
+protected theorem subset {m₁ n₁ m₂ n₂ : ℕ} (hmm : m₂ ≤ m₁) (hnn : n₁ ≤ n₂) :
+  Ico m₁ n₁ ⊆ Ico m₂ n₂ :=
+begin
+  simp only [finset.subset_iff, Ico.mem],
+  assume x hx,
+  exact ⟨le_trans hmm hx.1, lt_of_lt_of_le hx.2 hnn⟩ 
 end
 
 lemma union_consecutive {n m l : ℕ} (hnm : n ≤ m) (hml : m ≤ l) :

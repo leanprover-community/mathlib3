@@ -34,7 +34,7 @@ lemma codom_inv : r.inv.codom = r.dom := by { ext x y, reflexivity }
 
 lemma dom_inv : r.inv.dom = r.codom := by { ext x y, reflexivity}
 
-/-- Composition of relation; note that it follows the category theory order of arguments. -/
+/-- Composition of relation; note that it follows the `category_theory/` order of arguments. -/
 def comp (r : rel α β) (s : rel β γ) : rel α γ :=
 λ x z, ∃ y, r x y ∧ s y z
 

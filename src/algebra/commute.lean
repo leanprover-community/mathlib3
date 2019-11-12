@@ -32,7 +32,6 @@ Most of the proofs come from the properties of `semiconj_by`.
 -/
 
 /-- Two elements commute iff `a * b = b * a`. -/
-@[to_additive add_commute "Two elements commute iff `a + b = b + a`."]
 def commute {S : Type*} [has_mul S] (a b : S) : Prop := semiconj_by a b b
 
 open_locale smul
@@ -228,7 +227,6 @@ variables {S : Type*} [has_mul S]
 
 /-- Centralizer of an element `a : S` as the set of elements that commute with `a`; for `S` a
     monoid, `submonoid.centralizer` is the centralizer as a submonoid. -/
-@[to_additive add_centralizer "Centralizer of an element `a : S` as the set of elements that commute with `a` under addition; for `S` an `add_monoid`, `add_submonoid.add_centralizer` is the centralizer as an `add_submonoid`."] 
 def centralizer (a : S) : set S := { x | commute a x }
 
 @[simp] theorem mem_centralizer {a b : S} : b ∈ centralizer a ↔ commute a b := iff.rfl
@@ -265,7 +263,6 @@ instance centralizer.is_submonoid : is_submonoid (centralizer a) :=
   mul_mem := λ _ _, commute.mul_right }
 
 /-- Centralizer of an element `a` of a monoid is the submonoid of elements that commute with `a`. -/
-@[to_additive add_centralizer "Centralizer of an element `a` of an `add_monoid` is the `add_submonoid` of elements that commute with `a` under addition."] 
 def submonoid.centralizer : submonoid M :=
 { carrier := centralizer a,
   one_mem' := commute.one_right a,

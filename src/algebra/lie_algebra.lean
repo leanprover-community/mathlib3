@@ -33,7 +33,7 @@ lie bracket, ring commutator, jacobi identity, lie ring, lie algebra
 universes u v
 
 /--
-A product operation, intended use in Lie algebras and similar structures.
+A binary operation, intended use in Lie algebras and similar structures.
 -/
 class has_bracket (L : Type v) := (bracket : L → L → L)
 

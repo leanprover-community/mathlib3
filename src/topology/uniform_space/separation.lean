@@ -8,7 +8,7 @@ Hausdorff properties of uniform spaces. Separation quotient.
 import topology.uniform_space.basic
 
 open filter topological_space lattice set classical
-open_locale classical
+open_locale classical topological_space
 noncomputable theory
 set_option eqn_compiler.zeta true
 
@@ -55,10 +55,10 @@ instance separated_t2 [s : separated α] : t2_space α :=
 ⟨assume x y, assume h : x ≠ y,
 let ⟨d, hd, (hxy : (x, y) ∉ d)⟩ := separated_def'.1 s x y h in
 let ⟨d', hd', (hd'd' : comp_rel d' d' ⊆ d)⟩ := comp_mem_uniformity_sets hd in
-have {y | (x, y) ∈ d'} ∈ nhds x,
+have {y | (x, y) ∈ d'} ∈ 𝓝 x,
   from mem_nhds_left x hd',
 let ⟨u, hu₁, hu₂, hu₃⟩ := mem_nhds_sets_iff.mp this in
-have {x | (x, y) ∈ d'} ∈ nhds y,
+have {x | (x, y) ∈ d'} ∈ 𝓝 y,
   from mem_nhds_right y hd',
 let ⟨v, hv₁, hv₂, hv₃⟩ := mem_nhds_sets_iff.mp this in
 have u ∩ v = ∅, from
@@ -70,7 +70,7 @@ have u ∩ v = ∅, from
 
 instance separated_regular [separated α] : regular_space α :=
 { regular := λs a hs ha,
-    have -s ∈ nhds a,
+    have -s ∈ 𝓝 a,
       from mem_nhds_sets hs ha,
     have {p : α × α | p.1 = a → p.2 ∈ -s} ∈ 𝓤 α,
       from mem_nhds_uniformity_iff.mp this,
@@ -88,8 +88,8 @@ instance separated_regular [separated α] : regular_space α :=
         let ⟨x, (hx : (a, x) ∈ d), y, ⟨hx₁, hx₂⟩, (hy : (y, _) ∈ d)⟩ := @this ⟨a, a'⟩ ⟨hae, ha'⟩ in
         have (a, a') ∈ comp_rel d d, from ⟨y, hx₂, hy⟩,
         h this rfl,
-    have closure e ∈ nhds a, from (nhds a).sets_of_superset (mem_nhds_left a hd) subset_closure,
-    have nhds a ⊓ principal (-closure e) = ⊥,
+    have closure e ∈ 𝓝 a, from (𝓝 a).sets_of_superset (mem_nhds_left a hd) subset_closure,
+    have 𝓝 a ⊓ principal (-closure e) = ⊥,
       from (@inf_eq_bot_iff_le_compl _ _ _ (principal (- closure e)) (principal (closure e))
         (by simp [principal_univ, union_comm]) (by simp)).mpr (by simp [this]),
     ⟨- closure e, is_closed_closure, assume x h₁ h₂, @e_subset x h₂ h₁, this⟩,

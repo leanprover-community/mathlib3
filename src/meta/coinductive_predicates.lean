@@ -5,76 +5,6 @@ Author: Johannes Hölzl (CMU)
 -/
 import tactic.core
 
-namespace name
-
-def last_string : name → string
-| anonymous        := "[anonymous]"
-| (mk_string s _)  := s
-| (mk_numeral _ n) := last_string n
-
-end name
-
-namespace expr
-open expr
-
-meta def replace_with (e : expr) (s : expr) (s' : expr) : expr :=
-e.replace $ λc d, if c = s then some (s'.lift_vars 0 d) else none
-
-meta def local_binder_info : expr → binder_info
-| (local_const x n bi t) := bi
-| e                      := binder_info.default
-
-meta def to_implicit_binder : expr → expr
-| (local_const n₁ n₂ _ d) := local_const n₁ n₂ binder_info.implicit d
-| (lam n _ d b) := lam n binder_info.implicit d b
-| (pi n _ d b) := pi n binder_info.implicit d b
-| e  := e
-
-end expr
-
-namespace tactic
-open level expr tactic
-
-meta def mk_local_pisn : expr → nat → tactic (list expr × expr)
-| (pi n bi d b) (c + 1) := do
-  p ← mk_local' n bi d,
-  (ps, r) ← mk_local_pisn (b.instantiate_var p) c,
-  return ((p :: ps), r)
-| e 0 := return ([], e)
-| _ _ := failed
-
-meta def mk_theorem (n : name) (ls : list name) (t : expr) (e : expr) : declaration :=
-declaration.thm n ls t (task.pure e)
-
-meta def add_theorem_by (n : name) (ls : list name) (type : expr) (tac : tactic unit) : tactic expr := do
-  ((), body) ← solve_aux type tac,
-  body ← instantiate_mvars body,
-  add_decl $ mk_theorem n ls type body,
-  return $ const n $ ls.map param
-
-/-- `elim_gen_prod n e []` assumes that `e` is an `k`-tuple for `k ≥ n` and inducts on `e` `n`
-  times. Returns the list of newly generated projections, and the resulting tail of `e`. -/
-meta def elim_gen_prod : nat → expr → list expr → tactic (list expr × expr)
-| 0       e hs := return (hs, e)
-| (n + 1) e hs := do
-  [(_, [h, h'], _)] ← induction e [],
-  elim_gen_prod n h' (hs ++ [h])
-
-private meta def elim_gen_sum_aux : nat → expr → list expr → tactic (list expr × expr)
-| 0       e hs := return (hs, e)
-| (n + 1) e hs := do
-  [(_, [h], _), (_, [h'], _)] ← induction e [],
-  swap,
-  elim_gen_sum_aux n h' (h::hs)
-
-meta def elim_gen_sum (n : nat) (e : expr) : tactic (list expr) := do
-  (hs, h') ← elim_gen_sum_aux n e [],
-  gs ← get_goals,
-  set_goals $ (gs.take (n+1)).reverse ++ gs.drop (n+1),
-  return $ hs.reverse ++ [h']
-
-end tactic
-
 section
 universe u
 
@@ -361,7 +291,7 @@ meta def add_coinductive_predicate
       fs ← pds.mmap (λpd, do
         [f₁, f₂, h] ← intro_lst [pd.f₁.local_pp_name, pd.f₂.local_pp_name, `h],
         -- the type of h' reduces to h
-        let h' := local_const h.local_uniq_name h.local_pp_name h.local_binder_info $
+        let h' := local_const h.local_uniq_name h.local_pp_name h.local_binding_info $
           (((const `implies [] : expr)
             (f₁.app_of_list pd.locals) (f₂.app_of_list pd.locals)).pis pd.locals).instantiate_locals $
           (ps.zip params).map $ λ⟨lv, p⟩, (p.local_uniq_name, lv),
@@ -408,8 +338,8 @@ meta def add_coinductive_predicate
       ps ← intro_lst $ params.map local_pp_name,
       ls ← intro_lst $ pd.locals.map local_pp_name,
       h ← intro `h,
-      (fs, h) ← elim_gen_prod pds.length h [],
-      (hs, h) ← elim_gen_prod pds.length h [],
+      (fs, h, _) ← elim_gen_prod pds.length h [] [],
+      (hs, h, _) ← elim_gen_prod pds.length h [] [],
       eapply $ pd.mono.app_of_list ps,
       pds.mmap' (λpd:coind_pred, focus1 $ do
         eapply $ pd.corec_functional,
@@ -489,9 +419,9 @@ meta def add_coinductive_predicate
           | (n+1) := do
             hs ← elim_gen_sum n h',
             (hs.zip $ pd.intros.zip s).mmap' (λ⟨h, r, n_bs, n_eqs⟩, solve1 $ do
-              (as, h) ← elim_gen_prod (n_bs - (if n_eqs = 0 then 1 else 0)) h [],
+              (as, h, _) ← elim_gen_prod (n_bs - (if n_eqs = 0 then 1 else 0)) h [] [],
               if n_eqs > 0 then do
-                (eqs, eq') ← elim_gen_prod (n_eqs - 1) h [],
+                (eqs, eq', _) ← elim_gen_prod (n_eqs - 1) h [] [],
                 (eqs ++ [eq']).mmap' subst
               else skip,
               eapply ((const r.func_nm u_params).app_of_list $ ps ++ fs),
@@ -529,28 +459,30 @@ meta def coinductive_predicate (meta_info : decl_meta_info) (_ : parse $ tk "coi
 /-- Prepares coinduction proofs. This tactic constructs the coinduction invariant from
 the quantifiers in the current goal.
 
-Current version: do not support mutual inductive rules (i.e. only a since C -/
-meta def coinduction (rule : expr) : tactic unit := focus1 $
+Current version: do not support mutual inductive rules -/
+meta def coinduction (rule : expr) (ns : list name) : tactic unit := focus1 $
 do
   ctxts' ← intros,
   ctxts ← ctxts'.mmap (λv,
-    local_const v.local_uniq_name v.local_pp_name v.local_binder_info <$> infer_type v),
+    local_const v.local_uniq_name v.local_pp_name v.local_binding_info <$> infer_type v),
   mvars ← apply_core rule {approx := ff, new_goals := new_goals.all},
   -- analyse relation
   g ← list.head <$> get_goals,
   (list.cons _ m_is) ← return $ mvars.drop_while (λv, v.2 ≠ g),
   tgt ← target,
   (is, ty) ← mk_local_pis tgt,
-
   -- construct coinduction predicate
   (bs, eqs) ← compact_relation ctxts <$>
     ((is.zip m_is).mmap (λ⟨i, m⟩, prod.mk i <$> instantiate_mvars m.2)),
-
   solve1 (do
-    eqs ← mk_and_lst <$> eqs.mmap (λ⟨i, m⟩, mk_app `eq [m, i] >>= instantiate_mvars),
+    eqs ← mk_and_lst <$> eqs.mmap (λ⟨i, m⟩,
+      mk_app `eq [m, i] >>= instantiate_mvars)
+    <|> do { x ← mk_psigma (eqs.map prod.fst),
+             y ← mk_psigma (eqs.map prod.snd),
+             t ← infer_type x,
+             mk_mapp `eq [t,x,y] },
     rel ← mk_exists_lst bs eqs,
     exact (rel.lambdas is)),
-
   -- prove predicate
   solve1 (do
     target >>= instantiate_mvars >>= change, -- TODO: bug in existsi & constructor when mvars in hyptohesis
@@ -563,12 +495,16 @@ do
     target >>= instantiate_mvars >>= change, -- TODO: bug in subst when mvars in hyptohesis
     is ← intro_lst $ is.map expr.local_pp_name,
     h ← intro1,
-    (_, h) ← elim_gen_prod (bs.length - (if eqs.length = 0 then 1 else 0)) h [],
+    (_, h, ns) ← elim_gen_prod (bs.length - (if eqs.length = 0 then 1 else 0)) h [] ns,
     (match eqs with
     | [] := clear h
     | (e::eqs) := do
-      (hs, h) ← elim_gen_prod eqs.length h [],
-      (h::(hs.reverse)).mmap' subst
+      (hs, h, ns) ← elim_gen_prod eqs.length h [] ns,
+      (h::(hs.reverse) : list _).mfoldl (λ (hs : list name) (h : expr),
+        do [(_,hs',σ)] ← cases_core h hs,
+           clear (h.instantiate_locals σ),
+           pure $ hs.drop hs'.length) ns,
+      skip
     end))
 
 namespace interactive
@@ -577,11 +513,12 @@ local postfix `?`:9001 := optional
 local postfix *:9001 := many
 
 meta def coinduction (corec_name : parse ident)
+  (ns : parse with_ident_list)
   (revert : parse $ (tk "generalizing" *> ident*)?) : tactic unit := do
   rule ← mk_const corec_name,
   locals ← mmap tactic.get_local $ revert.get_or_else [],
   revert_lst locals,
-  tactic.coinduction rule,
+  tactic.coinduction rule ns,
   skip
 
 end interactive

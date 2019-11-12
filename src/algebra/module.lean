@@ -237,6 +237,9 @@ by simp [lin.map_neg, lin.map_add]
 
 end is_linear_map
 
+abbreviation module.End (R : Type u) (M : Type v)
+  [comm_ring R] [add_comm_group M] [module R M] := M →ₗ[R] M
+
 /-- A submodule of a module is one which is closed under vector operations.
   This is a sufficient condition for the subset of vectors in the submodule
   to themselves form a module. -/

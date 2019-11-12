@@ -8,6 +8,7 @@ Algebra over Commutative Ring (under category)
 
 import data.polynomial data.mv_polynomial
 import data.complex.basic
+import data.matrix.basic
 import linear_algebra.tensor_product
 import ring_theory.subring
 
@@ -152,6 +153,16 @@ instance module.endomorphism_algebra (R : Type u) (M : Type v)
   hom       := by apply is_ring_hom.mk; intros; ext; simp [mul_smul, add_smul],
   commutes' := by intros; ext; simp,
   smul_def' := by intros; ext; simp }
+
+set_option class.instance_max_depth 50
+instance matrix_algebra (n : Type u) (R : Type v)
+  [fintype n] [decidable_eq n] [comm_ring R] : algebra R (matrix n n R) :=
+{ to_fun    := (λ r, r • 1),
+  hom       := { map_one := by simp,
+                 map_mul := by { intros, simp [mul_smul], },
+                 map_add := by { intros, simp [add_smul], } },
+  commutes' := by { intros, simp },
+  smul_def' := by { intros, simp } }
 
 set_option old_structure_cmd true
 /-- Defining the homomorphism in the category R-Alg. -/

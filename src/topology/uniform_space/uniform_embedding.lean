@@ -10,7 +10,7 @@ import topology.dense_embedding
 
 open filter topological_space lattice set classical
 open_locale classical
-open_locale uniformity
+open_locale uniformity topological_space
 
 section
 variables {α : Type*} {β : Type*} {γ : Type*}
@@ -101,20 +101,20 @@ lemma uniform_embedding.dense_embedding {f : α → β} (h : uniform_embedding f
 lemma closure_image_mem_nhds_of_uniform_inducing
   {s : set (α×α)} {e : α → β} (b : β)
   (he₁ : uniform_inducing e) (he₂ : dense_inducing e) (hs : s ∈ 𝓤 α) :
-  ∃a, closure (e '' {a' | (a, a') ∈ s}) ∈ nhds b :=
+  ∃a, closure (e '' {a' | (a, a') ∈ s}) ∈ 𝓝 b :=
 have s ∈ comap (λp:α×α, (e p.1, e p.2)) (𝓤 β),
   from he₁.comap_uniformity.symm ▸ hs,
 let ⟨t₁, ht₁u, ht₁⟩ := this in
 have ht₁ : ∀p:α×α, (e p.1, e p.2) ∈ t₁ → p ∈ s, from ht₁,
 let ⟨t₂, ht₂u, ht₂s, ht₂c⟩ := comp_symm_of_uniformity ht₁u in
 let ⟨t, htu, hts, htc⟩ := comp_symm_of_uniformity ht₂u in
-have preimage e {b' | (b, b') ∈ t₂} ∈ comap e (nhds b),
+have preimage e {b' | (b, b') ∈ t₂} ∈ comap e (𝓝 b),
   from preimage_mem_comap $ mem_nhds_left b ht₂u,
 let ⟨a, (ha : (b, e a) ∈ t₂)⟩ := inhabited_of_mem_sets (he₂.comap_nhds_neq_bot) this in
 have ∀b' (s' : set (β × β)), (b, b') ∈ t → s' ∈ 𝓤 β →
   {y : β | (b', y) ∈ s'} ∩ e '' {a' : α | (a, a') ∈ s} ≠ ∅,
   from assume b' s' hb' hs',
-  have preimage e {b'' | (b', b'') ∈ s' ∩ t} ∈ comap e (nhds b'),
+  have preimage e {b'' | (b', b'') ∈ s' ∩ t} ∈ comap e (𝓝 b'),
     from preimage_mem_comap $ mem_nhds_left b' $ inter_mem_sets hs' htu,
   let ⟨a₂, ha₂s', ha₂t⟩ := inhabited_of_mem_sets (he₂.comap_nhds_neq_bot) this in
   have (e a, e a₂) ∈ t₁,
@@ -122,7 +122,7 @@ have ∀b' (s' : set (β × β)), (b, b') ∈ t → s' ∈ 𝓤 β →
   have e a₂ ∈ {b'':β | (b', b'') ∈ s'} ∩ e '' {a' | (a, a') ∈ s},
     from ⟨ha₂s', mem_image_of_mem _ $ ht₁ (a, a₂) this⟩,
   ne_empty_of_mem this,
-have ∀b', (b, b') ∈ t → nhds b' ⊓ principal (e '' {a' | (a, a') ∈ s}) ≠ ⊥,
+have ∀b', (b, b') ∈ t → 𝓝 b' ⊓ principal (e '' {a' | (a, a') ∈ s}) ≠ ⊥,
 begin
   intros b' hb',
   rw [nhds_eq_uniformity, lift'_inf_principal_eq, lift'_neq_bot_iff],
@@ -131,7 +131,7 @@ begin
 end,
 have ∀b', (b, b') ∈ t → b' ∈ closure (e '' {a' | (a, a') ∈ s}),
   from assume b' hb', by rw [closure_eq_nhds]; exact this b' hb',
-⟨a, (nhds b).sets_of_superset (mem_nhds_left b htu) this⟩
+⟨a, (𝓝 b).sets_of_superset (mem_nhds_left b htu) this⟩
 
 lemma uniform_embedding_subtype_emb (p : α → Prop) {e : α → β} (ue : uniform_embedding e)
   (de : dense_embedding e) : uniform_embedding (dense_embedding.subtype_emb p e) :=
@@ -181,12 +181,12 @@ begin
     existsi [m x, mem_image_of_mem m xs],
     rw [(uniform_embedding.embedding hm).induced, nhds_induced] at hx,
     calc f = map m f' : (map_comap $ filter.mem_sets_of_superset fs $ image_subset_range _ _).symm
-      ... ≤ map m (comap m (nhds (m x))) : map_mono hx
-      ... ≤ nhds (m x) : map_comap_le }
+      ... ≤ map m (comap m (𝓝 (m x))) : map_mono hx
+      ... ≤ 𝓝 (m x) : map_comap_le }
 end
 
 lemma complete_space_extension {m : β → α} (hm : uniform_inducing m) (dense : dense_range m)
-  (h : ∀f:filter β, cauchy f → ∃x:α, map m f ≤ nhds x) : complete_space α :=
+  (h : ∀f:filter β, cauchy f → ∃x:α, map m f ≤ 𝓝 x) : complete_space α :=
 ⟨assume (f : filter α), assume hf : cauchy f,
 let
   p : set (α × α) → set α → set α := λs t, {y : α| ∃x:α, x ∈ t ∧ (x, y) ∈ s},
@@ -208,14 +208,14 @@ have comap m g ≠ ⊥, from comap_neq_bot $ assume t ht,
   let ⟨t', ht', ht_mem⟩ := (mem_lift_sets $ monotone_lift' monotone_const mp₀).mp ht in
   let ⟨t'', ht'', ht'_sub⟩ := (mem_lift'_sets mp₁).mp ht_mem in
   let ⟨x, (hx : x ∈ t'')⟩ := inhabited_of_mem_sets hf.left ht'' in
-  have h₀ : nhds x ⊓ principal (range m) ≠ ⊥,
+  have h₀ : 𝓝 x ⊓ principal (range m) ≠ ⊥,
     by simpa [dense_range, closure_eq_nhds] using dense x,
-  have h₁ : {y | (x, y) ∈ t'} ∈ nhds x ⊓ principal (range m),
-    from @mem_inf_sets_of_left α (nhds x) (principal (range m)) _ $ mem_nhds_left x ht',
-  have h₂ : range m ∈ nhds x ⊓ principal (range m),
-    from @mem_inf_sets_of_right α (nhds x) (principal (range m)) _ $ subset.refl _,
-  have {y | (x, y) ∈ t'} ∩ range m ∈ nhds x ⊓ principal (range m),
-    from @inter_mem_sets α (nhds x ⊓ principal (range m)) _ _ h₁ h₂,
+  have h₁ : {y | (x, y) ∈ t'} ∈ 𝓝 x ⊓ principal (range m),
+    from @mem_inf_sets_of_left α (𝓝 x) (principal (range m)) _ $ mem_nhds_left x ht',
+  have h₂ : range m ∈ 𝓝 x ⊓ principal (range m),
+    from @mem_inf_sets_of_right α (𝓝 x) (principal (range m)) _ $ subset.refl _,
+  have {y | (x, y) ∈ t'} ∩ range m ∈ 𝓝 x ⊓ principal (range m),
+    from @inter_mem_sets α (𝓝 x ⊓ principal (range m)) _ _ h₁ h₂,
   let ⟨y, xyt', b, b_eq⟩ := inhabited_of_mem_sets h₀ this in
   ⟨b, b_eq.symm ▸ ht'_sub ⟨x, hx, xyt'⟩⟩,
 
@@ -241,14 +241,14 @@ have cauchy g, from
 have cauchy (filter.comap m g),
   from cauchy_comap (le_of_eq hm.comap_uniformity) ‹cauchy g› (by assumption),
 
-let ⟨x, (hx : map m (filter.comap m g) ≤ nhds x)⟩ := h _ this in
-have map m (filter.comap m g) ⊓ nhds x ≠ ⊥,
+let ⟨x, (hx : map m (filter.comap m g) ≤ 𝓝 x)⟩ := h _ this in
+have map m (filter.comap m g) ⊓ 𝓝 x ≠ ⊥,
   from (le_nhds_iff_adhp_of_cauchy (cauchy_map hm.uniform_continuous this)).mp hx,
-have g ⊓ nhds x ≠ ⊥,
+have g ⊓ 𝓝 x ≠ ⊥,
   from neq_bot_of_le_neq_bot this (inf_le_inf (assume s hs, ⟨s, hs, subset.refl _⟩) (le_refl _)),
 
 ⟨x, calc f ≤ g : by assumption
-  ... ≤ nhds x : le_nhds_of_cauchy_adhp ‹cauchy g› this⟩⟩
+  ... ≤ 𝓝 x : le_nhds_of_cauchy_adhp ‹cauchy g› this⟩⟩
 
 lemma totally_bounded_preimage {f : α → β} {s : set β} (hf : uniform_embedding f)
   (hs : totally_bounded s) : totally_bounded (f ⁻¹' s) :=
@@ -284,12 +284,12 @@ variables {α : Type*} {β : Type*} {γ : Type*}
 local notation `ψ` := (h_e.dense_inducing h_dense).extend f
 
 lemma uniformly_extend_exists [complete_space γ] (a : α) :
-  ∃c, tendsto f (comap e (nhds a)) (nhds c) :=
+  ∃c, tendsto f (comap e (𝓝 a)) (𝓝 c) :=
 let de := (h_e.dense_inducing h_dense) in
-have cauchy (nhds a), from cauchy_nhds,
-have cauchy (comap e (nhds a)), from
+have cauchy (𝓝 a), from cauchy_nhds,
+have cauchy (comap e (𝓝 a)), from
   cauchy_comap (le_of_eq h_e.comap_uniformity) this de.comap_nhds_neq_bot,
-have cauchy (map f (comap e (nhds a))), from
+have cauchy (map f (comap e (𝓝 a))), from
   cauchy_map h_f this,
 complete_space.complete this
 
@@ -297,8 +297,8 @@ lemma uniform_extend_subtype [complete_space γ]
   {p : α → Prop} {e : α → β} {f : α → γ} {b : β} {s : set α}
   (hf : uniform_continuous (λx:subtype p, f x.val))
   (he : uniform_embedding e) (hd : ∀x:β, x ∈ closure (range e))
-  (hb : closure (e '' s) ∈ nhds b) (hs : is_closed s) (hp : ∀x∈s, p x) :
-  ∃c, tendsto f (comap e (nhds b)) (nhds c) :=
+  (hb : closure (e '' s) ∈ 𝓝 b) (hs : is_closed s) (hp : ∀x∈s, p x) :
+  ∃c, tendsto f (comap e (𝓝 b)) (𝓝 c) :=
 have de : dense_embedding e,
   from he.dense_embedding hd,
 have de' : dense_embedding (dense_embedding.subtype_emb p e),
@@ -307,19 +307,19 @@ have ue' : uniform_embedding (dense_embedding.subtype_emb p e),
   from uniform_embedding_subtype_emb _ he de,
 have b ∈ closure (e '' {x | p x}),
   from (closure_mono $ mono_image $ hp) (mem_of_nhds hb),
-let ⟨c, (hc : tendsto (f ∘ subtype.val) (comap (dense_embedding.subtype_emb p e) (nhds ⟨b, this⟩)) (nhds c))⟩ :=
+let ⟨c, (hc : tendsto (f ∘ subtype.val) (comap (dense_embedding.subtype_emb p e) (𝓝 ⟨b, this⟩)) (𝓝 c))⟩ :=
   uniformly_extend_exists ue'.to_uniform_inducing de'.dense hf _ in
 begin
   rw [nhds_subtype_eq_comap] at hc,
   simp [comap_comap_comp] at hc,
-  change (tendsto (f ∘ @subtype.val α p) (comap (e ∘ @subtype.val α p) (nhds b)) (nhds c)) at hc,
+  change (tendsto (f ∘ @subtype.val α p) (comap (e ∘ @subtype.val α p) (𝓝 b)) (𝓝 c)) at hc,
   rw [←comap_comap_comp, tendsto_comap'_iff] at hc,
   exact ⟨c, hc⟩,
   exact ⟨_, hb, assume x,
     begin
       change e x ∈ (closure (e '' s)) → x ∈ range subtype.val,
       rw [←closure_induced, closure_eq_nhds, mem_set_of_eq, (≠), nhds_induced, ← de.to_dense_inducing.nhds_eq_comap],
-      change x ∈ {x | nhds x ⊓ principal s ≠ ⊥} → x ∈ range subtype.val,
+      change x ∈ {x | 𝓝 x ⊓ principal s ≠ ⊥} → x ∈ range subtype.val,
       rw [←closure_eq_nhds, closure_eq_of_is_closed hs],
       exact assume hxs, ⟨⟨x, hp x hxs⟩, rfl⟩,
       exact de.inj
@@ -334,7 +334,7 @@ dense_inducing.extend_e_eq _ b (continuous_iff_continuous_at.1 h_f.continuous b)
 include h_f
 
 lemma uniformly_extend_spec [complete_space γ] (a : α) :
-  tendsto f (comap e (nhds a)) (nhds (ψ a)) :=
+  tendsto f (comap e (𝓝 a)) (𝓝 (ψ a)) :=
 let de := (h_e.dense_inducing h_dense) in
 begin
   by_cases ha : a ∈ range e,
@@ -349,11 +349,11 @@ lemma uniform_continuous_uniformly_extend [cγ : complete_space γ] : uniform_co
 assume d hd,
 let ⟨s, hs, hs_comp⟩ := (mem_lift'_sets $
   monotone_comp_rel monotone_id $ monotone_comp_rel monotone_id monotone_id).mp (comp_le_uniformity3 hd) in
-have h_pnt : ∀{a m}, m ∈ nhds a → ∃c, c ∈ f '' preimage e m ∧ (c, ψ a) ∈ s ∧ (ψ a, c) ∈ s,
+have h_pnt : ∀{a m}, m ∈ 𝓝 a → ∃c, c ∈ f '' preimage e m ∧ (c, ψ a) ∈ s ∧ (ψ a, c) ∈ s,
   from assume a m hm,
-  have nb : map f (comap e (nhds a)) ≠ ⊥,
+  have nb : map f (comap e (𝓝 a)) ≠ ⊥,
     from map_ne_bot (h_e.dense_inducing h_dense).comap_nhds_neq_bot,
-  have (f '' preimage e m) ∩ ({c | (c, ψ a) ∈ s } ∩ {c | (ψ a, c) ∈ s }) ∈ map f (comap e (nhds a)),
+  have (f '' preimage e m) ∩ ({c | (c, ψ a) ∈ s } ∩ {c | (ψ a, c) ∈ s }) ∈ map f (comap e (𝓝 a)),
     from inter_mem_sets (image_mem_map $ preimage_mem_comap $ hm)
       (uniformly_extend_spec h_e h_dense h_f _ (inter_mem_sets (mem_nhds_right _ hs) (mem_nhds_left _ hs))),
   inhabited_of_mem_sets nb this,
@@ -365,9 +365,9 @@ let ⟨t, ht, ts⟩ := this in
 show preimage (λp:(α×α), (ψ p.1, ψ p.2)) d ∈ 𝓤 α,
   from (𝓤 α).sets_of_superset (interior_mem_uniformity ht) $
   assume ⟨x₁, x₂⟩ hx_t,
-  have nhds (x₁, x₂) ≤ principal (interior t),
+  have 𝓝 (x₁, x₂) ≤ principal (interior t),
     from is_open_iff_nhds.mp is_open_interior (x₁, x₂) hx_t,
-  have interior t ∈ filter.prod (nhds x₁) (nhds x₂),
+  have interior t ∈ filter.prod (𝓝 x₁) (𝓝 x₂),
     by rwa [nhds_prod_eq, le_principal_iff] at this,
   let ⟨m₁, hm₁, m₂, hm₂, (hm : set.prod m₁ m₂ ⊆ interior t)⟩ := mem_prod_iff.mp this in
   let ⟨a, ha₁, _, ha₂⟩ := h_pnt hm₁ in

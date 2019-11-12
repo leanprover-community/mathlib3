@@ -685,12 +685,10 @@ calc s.card = (s.image f).sum (λ a, (s.filter (λ x, f x = a)).card) :
 ... ≤ (s.image f).sum (λ _, n) : sum_le_sum hn
 ... = _ : by simp [mul_comm]
 
-@[simp] lemma prod_Ico_id_eq_fact (n : ℕ) :
-  (Ico 1 (n+1)).prod (λ x, x) = nat.fact n :=
-calc (Ico 1 (n+1)).prod (λ x, x) = (range n).prod nat.succ :
+@[simp] lemma prod_Ico_id_eq_fact (n : ℕ) : (Ico 1 n.succ).prod (λ x, x) = nat.fact n :=
+calc (Ico 1 n.succ).prod (λ x, x) = (range n).prod nat.succ :
 eq.symm (prod_bij (λ x _, nat.succ x)
-  (λ a h₁, Ico.mem.2 ⟨nat.succ_le_succ (nat.zero_le _),
-    nat.succ_lt_succ (mem_range.1 h₁)⟩)
+  (λ a h₁, by simp [*, nat.lt_succ_iff, nat.succ_le_iff] at *)
   (by simp) (λ _ _ _ _, nat.succ_inj)
   (λ b h,
     have b.pred.succ = b, from nat.succ_pred_eq_of_pos $

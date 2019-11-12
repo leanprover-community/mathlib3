@@ -32,7 +32,7 @@ instance : orderable_topology ℝ≥0 :=
     (le_generate_from $ assume s hs,
     match s, hs with
     | _, ⟨⟨a, ha⟩, or.inl rfl⟩ := ⟨{b : ℝ | a < b}, is_open_lt' a, rfl⟩
-    | _, ⟨⟨a, ha⟩, or.inr rfl⟩ := ⟨{b : ℝ | b < a}, is_open_gt' a, set.ext $ assume b, iff.refl _⟩
+    | _, ⟨⟨a, ha⟩, or.inr rfl⟩ := ⟨{b : ℝ | b < a}, is_open_gt' a, set.ext $ assume b, iff.rfl⟩
     end)
     begin
       apply coinduced_le_iff_le_induced.1,

@@ -24,7 +24,7 @@ def is_complete (s : set α) := ∀f, cauchy f → f ≤ principal s → ∃x∈
 
 lemma cauchy_iff {f : filter α} :
   cauchy f ↔ (f ≠ ⊥ ∧ (∀ s ∈ 𝓤 α, ∃t∈f.sets, set.prod t t ⊆ s)) :=
-and_congr (iff.refl _) $ forall_congr $ assume s, forall_congr $ assume hs, mem_prod_same_iff
+and_congr iff.rfl $ forall_congr $ assume s, forall_congr $ assume hs, mem_prod_same_iff
 
 lemma cauchy_map_iff {l : filter β} {f : β → α} :
   cauchy (l.map f) ↔ (l ≠ ⊥ ∧ tendsto (λp:β×β, (f p.1, f p.2)) (l.prod l) (𝓤 α)) :=

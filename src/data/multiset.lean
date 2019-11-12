@@ -812,7 +812,7 @@ lemma abs_sum_le_sum_abs [discrete_linear_ordered_field α] {s : multiset α} :
   abs s.sum ≤ (s.map abs).sum :=
 le_sum_of_subadditive _ abs_zero abs_add s
 
-theorem dvd_sum [comm_semiring α] {{a : α} {s : multiset α} (h : ∀ x ∈ s, a ∣ x) : a ∣ s.sum :=
+theorem dvd_sum [comm_semiring α] {a : α} {s : multiset α} (h : ∀ x ∈ s, a ∣ x) : a ∣ s.sum :=
 list.dvd_sum h
 
 /- join -/

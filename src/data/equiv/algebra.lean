@@ -343,7 +343,7 @@ instance is_group_hom {α β} [group α] [group β] (h : α ≃* β) :
 
 /-- Two multiplicative isomorphisms agree if they are defined by the
     same underlying function. -/
-@[extensionality, to_additive
+@[ext, to_additive
   "Two additive isomorphisms agree if they are defined by the same underlying function."]
 lemma ext {α β : Type*} [has_mul α] [has_mul β]
   {f g : mul_equiv α β} (h : ∀ x, f x = g x) : f = g :=
@@ -354,7 +354,7 @@ begin
   { exact congr_arg equiv.inv_fun h₁ }
 end
 
-attribute [extensionality] add_equiv.ext
+attribute [ext] add_equiv.ext
 
 end mul_equiv
 
@@ -550,7 +550,7 @@ end ring_hom
 
 /-- Two ring isomorphisms agree if they are defined by the
     same underlying function. -/
-@[extensionality] lemma ext {R S : Type*} [has_mul R] [has_add R] [has_mul S] [has_add S]
+@[ext] lemma ext {R S : Type*} [has_mul R] [has_add R] [has_mul S] [has_add S]
   {f g : R ≃+* S} (h : ∀ x, f x = g x) : f = g :=
 begin
   have h₁ := equiv.ext f.to_equiv g.to_equiv h,

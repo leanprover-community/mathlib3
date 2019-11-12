@@ -140,8 +140,6 @@ by rw [add_comm, add_one, pred_succ]
 theorem pos_iff_ne_zero : 0 < n ↔ n ≠ 0 :=
 ⟨ne_of_gt, nat.pos_of_ne_zero⟩
 
-theorem pos_iff_ne_zero' : 0 < n ↔ n ≠ 0 := pos_iff_ne_zero
-
 lemma one_lt_iff_ne_zero_and_ne_one : ∀ {n : ℕ}, 1 < n ↔ n ≠ 0 ∧ n ≠ 1
 | 0     := dec_trivial
 | 1     := dec_trivial
@@ -456,6 +454,19 @@ lemma eq_zero_of_le_div {a b : ℕ} (hb : 2 ≤ b) (h : a ≤ a / b) : a = 0 :=
 eq_zero_of_mul_le hb $
   by rw mul_comm; exact (nat.le_div_iff_mul_le' (lt_of_lt_of_le dec_trivial hb)).1 h
 
+lemma mul_div_le_mul_div_assoc (a b c : ℕ) : a * (b / c) ≤ (a * b) / c :=
+if hc0 : c = 0 then by simp [hc0]
+else (nat.le_div_iff_mul_le _ _ (nat.pos_of_ne_zero hc0)).2
+  (by rw [mul_assoc]; exact mul_le_mul_left _ (nat.div_mul_le_self _ _))
+
+lemma div_mul_div_le_div (a b c : ℕ) : ((a / c) * b) / a ≤ b / c :=
+if ha0 : a = 0 then by simp [ha0]
+else calc a / c * b / a ≤ b * a / c / a :
+    nat.div_le_div_right (by rw [mul_comm];
+        exact mul_div_le_mul_div_assoc _ _ _)
+  ... = b / c : by rw [nat.div_div_eq_div_mul, mul_comm b, mul_comm c,
+      nat.mul_div_mul _ _ (nat.pos_of_ne_zero ha0)]
+
 lemma eq_zero_of_le_half {a : ℕ} (h : a ≤ a / 2) : a = 0 :=
 eq_zero_of_le_div (le_refl _) h
 
@@ -499,6 +510,47 @@ exists_congr $ λ d, by rw [mul_assoc, nat.mul_left_inj ha]
 
 protected theorem mul_dvd_mul_iff_right {a b c : ℕ} (hc : 0 < c) : a * c ∣ b * c ↔ a ∣ b :=
 exists_congr $ λ d, by rw [mul_right_comm, nat.mul_right_inj hc]
+
+lemma succ_div : ∀ (a b : ℕ), (a + 1) / b =
+  a / b + if b ∣ a + 1 then 1 else 0
+| a     0     := by simp
+| 0     1     := rfl
+| 0     (b+2) := have hb2 : b + 2 > 1, from dec_trivial,
+  by simp [ne_of_gt hb2, div_eq_of_lt hb2]
+| (a+1) (b+1) := begin
+  rw [nat.div_def], conv_rhs { rw nat.div_def },
+  by_cases hb_eq_a : b = a + 1,
+  { simp [hb_eq_a, le_refl] },
+  by_cases hb_le_a1 : b ≤ a + 1,
+  { have hb_le_a : b ≤ a, from le_of_lt_succ (lt_of_le_of_ne hb_le_a1 hb_eq_a),
+    have h₁ : (0 < b + 1 ∧ b + 1 ≤ a + 1 + 1),
+      from ⟨succ_pos _, (add_le_add_iff_right _).2 hb_le_a1⟩,
+    have h₂ : (0 < b + 1 ∧ b + 1 ≤ a + 1),
+      from ⟨succ_pos _, (add_le_add_iff_right _).2 hb_le_a⟩,
+    have dvd_iff : b + 1 ∣ a - b + 1 ↔  b + 1 ∣ a + 1 + 1,
+    { rw [nat.dvd_add_iff_left (dvd_refl (b + 1)),
+        ← nat.add_sub_add_right a 1 b, add_comm (_ - _), add_assoc,
+        nat.sub_add_cancel (succ_le_succ hb_le_a)],
+      simp },
+    have wf : a - b < a + 1, from lt_succ_of_le (nat.sub_le_self _ _),
+    rw [if_pos h₁, if_pos h₂, nat.add_sub_add_right, nat.sub_add_comm hb_le_a,
+      by exact have _ := wf, succ_div (a - b),
+      nat.add_sub_add_right],
+    simp [dvd_iff, succ_eq_add_one], congr },
+  { have hba : ¬ b ≤ a,
+      from not_le_of_gt (lt_trans (lt_succ_self a) (lt_of_not_ge hb_le_a1)),
+    have hb_dvd_a : ¬ b + 1 ∣ a + 2,
+      from λ h, hb_le_a1 (le_of_succ_le_succ (le_of_dvd (succ_pos _) h)),
+    simp [hba, hb_le_a1, hb_dvd_a], }
+end
+
+lemma succ_div_of_dvd {a b : ℕ} (hba : b ∣ a + 1) : 
+  (a + 1) / b = a / b + 1 :=
+by rw [succ_div, if_pos hba]
+
+lemma succ_div_of_not_dvd {a b : ℕ} (hba : ¬ b ∣ a + 1) : 
+  (a + 1) / b = a / b :=
+by rw [succ_div, if_neg hba, add_zero]
 
 @[simp] theorem mod_mod (a n : ℕ) : (a % n) % n = a % n :=
 (eq_zero_or_pos n).elim
@@ -875,7 +927,7 @@ theorem size_pos {n : ℕ} : 0 < size n ↔ 0 < n :=
 by rw lt_size; refl
 
 theorem size_eq_zero {n : ℕ} : size n = 0 ↔ n = 0 :=
-by have := @size_pos n; simp [pos_iff_ne_zero'] at this;
+by have := @size_pos n; simp [pos_iff_ne_zero] at this;
    exact not_iff_not.1 this
 
 theorem size_pow {n : ℕ} : size (2^n) = n+1 :=
@@ -1157,13 +1209,11 @@ dvd_trans this hdiv
 lemma dvd_of_pow_dvd {p k m : ℕ} (hk : 1 ≤ k) (hpk : p^k ∣ m) : p ∣ m :=
 by rw ←nat.pow_one p; exact pow_dvd_of_le_of_pow_dvd hk hpk
 
-lemma eq_of_dvd_quot_one {a b : ℕ} (w : a ∣ b) (h : b / a = 1) : a = b :=
-begin
-  rcases w with ⟨b, rfl⟩,
-  rw [nat.mul_comm, nat.mul_div_cancel] at h,
-  { simp [h] },
-  { by_contradiction, simp * at * }
-end
+lemma eq_of_dvd_of_div_eq_one {a b : ℕ} (w : a ∣ b) (h : b / a = 1) : a = b :=
+by rw [←nat.div_mul_cancel w, h, one_mul]
+
+lemma eq_zero_of_dvd_of_div_eq_zero {a b : ℕ} (w : a ∣ b)  (h : b / a = 0) : b = 0 :=
+by rw [←nat.div_mul_cancel w, h, zero_mul]
 
 lemma div_le_div_left {a b c : ℕ} (h₁ : c ≤ b) (h₂ : 0 < c) : a / b ≤ a / c :=
 (nat.le_div_iff_mul_le _ _ h₂).2 $

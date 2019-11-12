@@ -53,7 +53,7 @@ variables {J : Type v} [small_category J] (F : J ⥤ CommRing.{v})
 
 inductive prequotient
 -- There's always `of`
-| of : Π (j : J) (x : (F.obj j).α), prequotient
+| of : Π (j : J) (x : F.obj j), prequotient
 -- Then one generator for each operation
 | zero {} : prequotient
 | one {} : prequotient
@@ -69,13 +69,13 @@ inductive relation : prequotient F → prequotient F → Prop
 | symm : Π (x y) (h : relation x y), relation y x
 | trans : Π (x y z) (h : relation x y) (k : relation y z), relation x z
 -- There's always a `map` relation
-| map : Π (j j' : J) (f : j ⟶ j') (x : (F.obj j).α), relation (of j' (F.map f x)) (of j x)
+| map : Π (j j' : J) (f : j ⟶ j') (x : F.obj j), relation (of j' (F.map f x)) (of j x)
 -- Then one relation per operation, describing the interaction with `of`
 | zero : Π (j), relation (of j 0) zero
 | one : Π (j), relation (of j 1) one
-| neg : Π (j) (x : (F.obj j).α), relation (of j (-x)) (neg (of j x))
-| add : Π (j) (x y : (F.obj j).α), relation (of j (x + y)) (add (of j x) (of j y))
-| mul : Π (j) (x y : (F.obj j).α), relation (of j (x * y)) (mul (of j x) (of j y))
+| neg : Π (j) (x : F.obj j), relation (of j (-x)) (neg (of j x))
+| add : Π (j) (x y : F.obj j), relation (of j (x + y)) (add (of j x) (of j y))
+| mul : Π (j) (x y : F.obj j), relation (of j (x * y)) (mul (of j x) (of j y))
 -- Then one relation per argument of each operation
 | neg_1 : Π (x x') (r : relation x x'), relation (neg x) (neg x')
 | add_1 : Π (x x' y) (r : relation x x'), relation (add x y) (add x' y)
@@ -272,7 +272,7 @@ instance : comm_ring (colimit_type F) :=
 
 def colimit : CommRing := CommRing.of (colimit_type F)
 
-def cocone_fun (j : J) (x : (F.obj j).α) : colimit_type F :=
+def cocone_fun (j : J) (x : F.obj j) : colimit_type F :=
 quot.mk _ (of j x)
 
 def cocone_morphism (j : J) : F.obj j ⟶ colimit F :=

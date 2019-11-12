@@ -95,7 +95,7 @@ lemma filter_eq_iff : f = g ↔ f.sets = g.sets :=
 protected lemma ext_iff : f = g ↔ ∀ s, s ∈ f ↔ s ∈ g :=
 by rw [filter_eq_iff, ext_iff]
 
-@[extensionality]
+@[ext]
 protected lemma ext : (∀ s, s ∈ f ↔ s ∈ g) → f = g :=
 filter.ext_iff.2
 
@@ -237,7 +237,7 @@ protected def mk_of_closure (s : set (set α)) (hs : (generate s).sets = s) : fi
 lemma mk_of_closure_sets {s : set (set α)} {hs : (generate s).sets = s} :
   filter.mk_of_closure s hs = generate s :=
 filter.ext $ assume u,
-show u ∈ (filter.mk_of_closure s hs).sets ↔ u ∈ (generate s).sets, from hs.symm ▸ iff.refl _
+show u ∈ (filter.mk_of_closure s hs).sets ↔ u ∈ (generate s).sets, from hs.symm ▸ iff.rfl
 
 /- Galois insertion from sets of sets into a filters. -/
 def gi_generate (α : Type*) :
@@ -278,7 +278,7 @@ instance : has_top (filter α) :=
   inter_sets       := assume x y hx hy a, mem_inter (hx _) (hy _) }⟩
 
 lemma mem_top_sets_iff_forall {s : set α} : s ∈ (⊤ : filter α) ↔ (∀x, x ∈ s) :=
-iff.refl _
+iff.rfl
 
 @[simp] lemma mem_top_sets {s : set α} : s ∈ (⊤ : filter α) ↔ s = univ :=
 by rw [mem_top_sets_iff_forall, eq_univ_iff_forall]
@@ -959,7 +959,7 @@ by simp only [pure, has_pure.pure, ne.def, not_false_iff, singleton_ne_empty, pr
 
 lemma mem_seq_sets_def {f : filter (α → β)} {g : filter α} {s : set β} :
   s ∈ f.seq g ↔ (∃u ∈ f, ∃t ∈ g, ∀x∈u, ∀y∈t, (x : α → β) y ∈ s) :=
-iff.refl _
+iff.rfl
 
 lemma mem_seq_sets_iff {f : filter (α → β)} {g : filter α} {s : set β} :
   s ∈ f.seq g ↔ (∃u ∈ f, ∃t ∈ g, set.seq u t ⊆ s) :=
@@ -1067,7 +1067,7 @@ section bind
   s ∈ bind f m ↔ ∃t ∈ f, ∀x ∈ t, s ∈ m x :=
 calc s ∈ bind f m ↔ {a | s ∈ m a} ∈ f : by simp only [bind, mem_map, iff_self, mem_join_sets, mem_set_of_eq]
                      ... ↔ (∃t ∈ f, t ⊆ {a | s ∈ m a}) : exists_sets_subset_iff.symm
-                     ... ↔ (∃t ∈ f, ∀x ∈ t, s ∈ m x) : iff.refl _
+                     ... ↔ (∃t ∈ f, ∀x ∈ t, s ∈ m x) : iff.rfl
 
 lemma bind_mono {f : filter α} {g h : α → filter β} (h₁ : {a | g a ≤ h a} ∈ f) :
   bind f g ≤ bind f h :=
@@ -1647,7 +1647,7 @@ in
 have ∀c (hc: chain r c) a (ha : a ∈ c), r a (sup c hc),
   from assume c hc a ha, infi_le_of_le ⟨a, mem_insert_of_mem _ ha⟩ (le_refl _),
 have (∃ (u : τ), ∀ (a : τ), r u a → r a u),
-  from zorn (assume c hc, ⟨sup c hc, this c hc⟩) (assume f₁ f₂ f₃ h₁ h₂, le_trans h₂ h₁),
+  from exists_maximal_of_chains_bounded (assume c hc, ⟨sup c hc, this c hc⟩) (assume f₁ f₂ f₃ h₁ h₂, le_trans h₂ h₁),
 let ⟨uτ, hmin⟩ := this in
 ⟨uτ.val, uτ.property.right, uτ.property.left, assume g hg₁ hg₂,
   hmin ⟨g, hg₁, le_trans hg₂ uτ.property.right⟩ hg₂⟩

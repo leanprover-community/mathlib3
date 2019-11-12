@@ -149,7 +149,7 @@ lemma sum_card_order_of_eq_card_pow_eq_one {n : ℕ} (hn : 0 < n) :
   ((finset.range n.succ).filter (∣ n)).sum (λ m, (finset.univ.filter (λ a : α, order_of a = m)).card)
   = (finset.univ.filter (λ a : α, a ^ n = 1)).card :=
 calc ((finset.range n.succ).filter (∣ n)).sum (λ m, (finset.univ.filter (λ a : α, order_of a = m)).card)
-    = _ : (finset.card_bind (by { intros, apply finset.disjoint_filter, cc })).symm
+    = _ : (finset.card_bind (by { intros, apply finset.disjoint_filter.2, cc })).symm
 ... = _ : congr_arg finset.card (finset.ext.2 (begin
   assume a,
   suffices : order_of a ≤ n ∧ order_of a ∣ n ↔ a ^ n = 1,
@@ -347,7 +347,7 @@ calc (univ.filter (λ a : α, a ^ n = 1)).card ≤ (gpowers (g ^ (fintype.card �
   have hm0 : 0 < m, from nat.pos_of_ne_zero
     (λ hm0, (by rw [hm0, mul_zero, fintype.card_eq_zero_iff] at hm; exact hm 1)),
   begin
-    rw [← set.card_fintype_of_finset' _ (λ _, set.mem_to_finset), ← order_eq_card_gpowers,
+    rw [← fintype.card_of_finset' _ (λ _, set.mem_to_finset), ← order_eq_card_gpowers,
       order_of_pow, order_of_eq_card_of_forall_mem_gpowers hg],
     rw [hm] {occs := occurrences.pos [2,3]},
     rw [nat.mul_div_cancel_left _  (gcd_pos_of_pos_left _ hn0), gcd_mul_left_left,
@@ -366,13 +366,13 @@ le_antisymm
   (hn _ (order_of_pos _))
   (calc order_of a = @fintype.card (gpowers a) (id _) : order_eq_card_gpowers
     ... ≤ @fintype.card (↑(univ.filter (λ b : α, b ^ order_of a = 1)) : set α)
-    (set.fintype_of_finset _ (λ _, iff.rfl)) :
+    (fintype.of_finset _ (λ _, iff.rfl)) :
       @fintype.card_le_of_injective (gpowers a) (↑(univ.filter (λ b : α, b ^ order_of a = 1)) : set α)
         (id _) (id _) (λ b, ⟨b.1, mem_filter.2 ⟨mem_univ _,
           let ⟨i, hi⟩ := b.2 in
           by rw [← hi, ← gpow_coe_nat, ← gpow_mul, mul_comm, gpow_mul, gpow_coe_nat,
             pow_order_of_eq_one, one_gpow]⟩⟩) (λ _ _ h, subtype.eq (subtype.mk.inj h))
-    ... = (univ.filter (λ b : α, b ^ order_of a = 1)).card : set.card_fintype_of_finset _ _)
+    ... = (univ.filter (λ b : α, b ^ order_of a = 1)).card : fintype.card_of_finset _ _)
 
 open_locale nat -- use φ for nat.totient
 

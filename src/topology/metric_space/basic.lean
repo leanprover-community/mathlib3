@@ -14,6 +14,7 @@ open lattice set filter classical topological_space
 noncomputable theory
 
 open_locale uniformity
+open_locale topological_space
 
 universes u v w
 variables {α : Type u} {β : Type v} {γ : Type w}
@@ -363,7 +364,7 @@ cauchy_iff.trans $ and_congr iff.rfl
                ⟨t, tf, h⟩ := H ε ε0 in
    ⟨t, tf, λ ⟨x, y⟩ ⟨hx, hy⟩, hε (h x y hx hy)⟩⟩
 
-theorem nhds_eq : nhds x = (⨅ε:{ε:ℝ // ε>0}, principal (ball x ε.val)) :=
+theorem nhds_eq : 𝓝 x = (⨅ε:{ε:ℝ // ε>0}, principal (ball x ε.val)) :=
 begin
   rw [nhds_eq_uniformity, uniformity_dist', lift'_infi],
   { apply congr_arg, funext ε,
@@ -374,7 +375,7 @@ begin
   { intros, refl }
 end
 
-theorem mem_nhds_iff : s ∈ nhds x ↔ ∃ε>0, ball x ε ⊆ s :=
+theorem mem_nhds_iff : s ∈ 𝓝 x ↔ ∃ε>0, ball x ε ⊆ s :=
 begin
   rw [nhds_eq, mem_infi],
   { simp },
@@ -390,11 +391,11 @@ by simp [is_open_iff_nhds, mem_nhds_iff]
 theorem is_open_ball : is_open (ball x ε) :=
 is_open_iff.2 $ λ y, exists_ball_subset_ball
 
-theorem ball_mem_nhds (x : α) {ε : ℝ} (ε0 : 0 < ε) : ball x ε ∈ nhds x :=
+theorem ball_mem_nhds (x : α) {ε : ℝ} (ε0 : 0 < ε) : ball x ε ∈ 𝓝 x :=
 mem_nhds_sets is_open_ball (mem_ball_self ε0)
 
 theorem tendsto_nhds_nhds [metric_space β] {f : α → β} {a b} :
-  tendsto f (nhds a) (nhds b) ↔
+  tendsto f (𝓝 a) (𝓝 b) ↔
     ∀ ε > 0, ∃ δ > 0, ∀{x:α}, dist x a < δ → dist (f x) b < ε :=
 ⟨λ H ε ε0, mem_nhds_iff.1 (H (ball_mem_nhds _ ε0)),
  λ H s hs,
@@ -413,16 +414,16 @@ let ⟨δ, δ_pos, hδ⟩ := continuous_iff.1 hf b ε hε in
 ⟨δ / 2, half_pos δ_pos, assume a ha, hδ a $ lt_of_le_of_lt ha $ div_two_lt_of_pos δ_pos⟩
 
 theorem tendsto_nhds {f : filter β} {u : β → α} {a : α} :
-  tendsto u f (nhds a) ↔ ∀ ε > 0, ∃ n ∈ f, ∀x ∈ n,  dist (u x) a < ε :=
+  tendsto u f (𝓝 a) ↔ ∀ ε > 0, ∃ n ∈ f, ∀x ∈ n,  dist (u x) a < ε :=
 by simp only [metric.nhds_eq, tendsto_infi, subtype.forall, tendsto_principal, mem_ball];
   exact forall_congr (assume ε, forall_congr (assume hε, exists_sets_subset_iff.symm))
 
 theorem continuous_iff' [topological_space β] {f : β → α} :
-  continuous f ↔ ∀a (ε > 0), ∃ n ∈ nhds a, ∀b ∈ n, dist (f b) (f a) < ε :=
+  continuous f ↔ ∀a (ε > 0), ∃ n ∈ 𝓝 a, ∀b ∈ n, dist (f b) (f a) < ε :=
 continuous_iff_continuous_at.trans $ forall_congr $ λ b, tendsto_nhds
 
 theorem tendsto_at_top [nonempty β] [semilattice_sup β] {u : β → α} {a : α} :
-  tendsto u at_top (nhds a) ↔ ∀ε>0, ∃N, ∀n≥N, dist (u n) a < ε :=
+  tendsto u at_top (𝓝 a) ↔ ∀ε>0, ∃N, ∀n≥N, dist (u n) a < ε :=
 by simp only [metric.nhds_eq, tendsto_infi, subtype.forall, tendsto_at_top_principal]; refl
 
 end metric
@@ -574,14 +575,14 @@ by ext y; rw [mem_closed_ball, dist_comm, real.dist_eq,
   abs_sub_le_iff, mem_Icc, ← sub_le_iff_le_add', sub_le]
 
 lemma squeeze_zero {α} {f g : α → ℝ} {t₀ : filter α} (hf : ∀t, 0 ≤ f t) (hft : ∀t, f t ≤ g t)
-  (g0 : tendsto g t₀ (nhds 0)) : tendsto f t₀ (nhds 0) :=
+  (g0 : tendsto g t₀ (𝓝 0)) : tendsto f t₀ (𝓝 0) :=
 begin
   apply tendsto_of_tendsto_of_tendsto_of_le_of_le (tendsto_const_nhds) g0;
   simp [*]; exact filter.univ_mem_sets
 end
 
 theorem metric.uniformity_eq_comap_nhds_zero :
-  𝓤 α = comap (λp:α×α, dist p.1 p.2) (nhds (0 : ℝ)) :=
+  𝓤 α = comap (λp:α×α, dist p.1 p.2) (𝓝 (0 : ℝ)) :=
 begin
   simp only [uniformity_dist', nhds_eq, comap_infi, comap_principal],
   congr, funext ε,
@@ -591,7 +592,7 @@ begin
 end
 
 lemma cauchy_seq_iff_tendsto_dist_at_top_0 [inhabited β] [semilattice_sup β] {u : β → α} :
-  cauchy_seq u ↔ tendsto (λ (n : β × β), dist (u n.1) (u n.2)) at_top (nhds 0) :=
+  cauchy_seq u ↔ tendsto (λ (n : β × β), dist (u n.1) (u n.2)) at_top (𝓝 0) :=
 by rw [cauchy_seq_iff_prod_map, metric.uniformity_eq_comap_nhds_zero, ← map_le_iff_le_comap,
   filter.map_map, tendsto, prod.map_def]
 
@@ -663,7 +664,7 @@ most efficient. -/
 lemma cauchy_seq_iff_le_tendsto_0 {s : ℕ → α} : cauchy_seq s ↔ ∃ b : ℕ → ℝ,
   (∀ n, 0 ≤ b n) ∧
   (∀ n m N : ℕ, N ≤ n → N ≤ m → dist (s n) (s m) ≤ b N) ∧
-  tendsto b at_top (nhds 0) :=
+  tendsto b at_top (𝓝 0) :=
 ⟨λ hs, begin
   /- `s` is a Cauchy sequence. The sequence `b` will be constructed by taking
   the supremum of the distances between `s n` and `s m` for `n m ≥ N`.
@@ -795,16 +796,16 @@ theorem continuous_dist [topological_space β] {f g : β → α}
 continuous_dist'.comp (hf.prod_mk hg)
 
 theorem tendsto_dist {f g : β → α} {x : filter β} {a b : α}
-  (hf : tendsto f x (nhds a)) (hg : tendsto g x (nhds b)) :
-  tendsto (λx, dist (f x) (g x)) x (nhds (dist a b)) :=
-have tendsto (λp:α×α, dist p.1 p.2) (nhds (a, b)) (nhds (dist a b)),
+  (hf : tendsto f x (𝓝 a)) (hg : tendsto g x (𝓝 b)) :
+  tendsto (λx, dist (f x) (g x)) x (𝓝 (dist a b)) :=
+have tendsto (λp:α×α, dist p.1 p.2) (𝓝 (a, b)) (𝓝 (dist a b)),
   from continuous_iff_continuous_at.mp continuous_dist' (a, b),
 tendsto.comp (by rw [nhds_prod_eq] at this; exact this) (hf.prod_mk hg)
 
-lemma nhds_comap_dist (a : α) : (nhds (0 : ℝ)).comap (λa', dist a' a) = nhds a :=
+lemma nhds_comap_dist (a : α) : (𝓝 (0 : ℝ)).comap (λa', dist a' a) = 𝓝 a :=
 have h₁ : ∀ε, (λa', dist a' a) ⁻¹' ball 0 ε ⊆ ball a ε,
   by simp [subset_def, real.dist_0_eq_abs],
-have h₂ : tendsto (λa', dist a' a) (nhds a) (nhds (dist a a)),
+have h₂ : tendsto (λa', dist a' a) (𝓝 a) (𝓝 (dist a a)),
   from tendsto_dist tendsto_id tendsto_const_nhds,
 le_antisymm
   (by simp [h₁, nhds_eq, infi_le_infi, principal_mono,
@@ -812,7 +813,7 @@ le_antisymm
   (by simpa [map_le_iff_le_comap.symm, tendsto] using h₂)
 
 lemma tendsto_iff_dist_tendsto_zero {f : β → α} {x : filter β} {a : α} :
-  (tendsto f x (nhds a)) ↔ (tendsto (λb, dist (f b) a) x (nhds 0)) :=
+  (tendsto f x (𝓝 a)) ↔ (tendsto (λb, dist (f b) a) x (𝓝 0)) :=
 by rw [← nhds_comap_dist a, tendsto_comap_iff]
 
 lemma uniform_continuous_nndist' : uniform_continuous (λp:α×α, nndist p.1 p.2) :=
@@ -826,7 +827,7 @@ lemma continuous_nndist [topological_space β] {f g : β → α}
 continuous_nndist'.comp (hf.prod_mk hg)
 
 lemma tendsto_nndist' (a b :α) :
-  tendsto (λp:α×α, nndist p.1 p.2) (filter.prod (nhds a) (nhds b)) (nhds (nndist a b)) :=
+  tendsto (λp:α×α, nndist p.1 p.2) (filter.prod (𝓝 a) (𝓝 b)) (𝓝 (nndist a b)) :=
 by rw [← nhds_prod_eq]; exact continuous_iff_continuous_at.1 continuous_nndist' _
 
 namespace metric

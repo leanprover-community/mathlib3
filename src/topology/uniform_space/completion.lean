@@ -41,7 +41,7 @@ noncomputable theory
 open filter set
 universes u v w x
 
-open_locale uniformity classical
+open_locale uniformity classical topological_space
 
 /-- Space of Cauchy filters
 
@@ -317,10 +317,10 @@ instance complete_space_separation [h : complete_space α] :
   have cauchy (f.comap (λx, ⟦x⟧)), from
     cauchy_comap comap_quotient_le_uniformity hf $
       comap_neq_bot_of_surj hf.left $ assume b, quotient.exists_rep _,
-  let ⟨x, (hx : f.comap (λx, ⟦x⟧) ≤ nhds x)⟩ := complete_space.complete this in
+  let ⟨x, (hx : f.comap (λx, ⟦x⟧) ≤ 𝓝 x)⟩ := complete_space.complete this in
   ⟨⟦x⟧, calc f = map (λx, ⟦x⟧) (f.comap (λx, ⟦x⟧)) :
       (map_comap $ univ_mem_sets' $ assume b, quotient.exists_rep _).symm
-    ... ≤ map (λx, ⟦x⟧) (nhds x) : map_mono hx
+    ... ≤ map (λx, ⟦x⟧) (𝓝 x) : map_mono hx
     ... ≤ _ : continuous_iff_continuous_at.mp uniform_continuous_quotient_mk.continuous _⟩⟩
 
 
@@ -341,7 +341,7 @@ instance : t2_space (completion α) := separated_t2
 instance : regular_space (completion α) := separated_regular
 
 /-- Automatic coercion from `α` to its completion. Not always injective. -/
-instance : has_coe α (completion α) := ⟨quotient.mk ∘ pure_cauchy⟩
+instance : has_coe_t α (completion α) := ⟨quotient.mk ∘ pure_cauchy⟩ -- note [use has_coe_t]
 
 protected lemma coe_eq : (coe : α → completion α) = quotient.mk ∘ pure_cauchy := rfl
 

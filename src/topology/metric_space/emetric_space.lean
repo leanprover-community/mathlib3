@@ -22,7 +22,7 @@ import topology.bases
 open lattice set filter classical
 noncomputable theory
 
-open_locale uniformity
+open_locale uniformity topological_space
 
 universes u v w
 variables {α : Type u} {β : Type v} {γ : Type w}
@@ -382,7 +382,7 @@ eq_empty_iff_forall_not_mem.trans
 ⟨λh, le_bot_iff.1 (le_of_not_gt (λ ε0, h _ (mem_ball_self ε0))),
 λε0 y h, not_lt_of_le (le_of_eq ε0) (pos_of_mem_ball h)⟩
 
-theorem nhds_eq : nhds x = (⨅ε:{ε:ennreal // ε>0}, principal (ball x ε.val)) :=
+theorem nhds_eq : 𝓝 x = (⨅ε:{ε:ennreal // ε>0}, principal (ball x ε.val)) :=
 begin
   rw [nhds_eq_uniformity, uniformity_edist'', lift'_infi],
   { apply congr_arg, funext ε,
@@ -393,7 +393,7 @@ begin
   { intros, refl }
 end
 
-theorem mem_nhds_iff : s ∈ nhds x ↔ ∃ε>0, ball x ε ⊆ s :=
+theorem mem_nhds_iff : s ∈ 𝓝 x ↔ ∃ε>0, ball x ε ⊆ s :=
 begin
   rw [nhds_eq, mem_infi],
   { simp },
@@ -409,7 +409,7 @@ by simp [is_open_iff_nhds, mem_nhds_iff]
 theorem is_open_ball : is_open (ball x ε) :=
 is_open_iff.2 $ λ y, exists_ball_subset_ball
 
-theorem ball_mem_nhds (x : α) {ε : ennreal} (ε0 : 0 < ε) : ball x ε ∈ nhds x :=
+theorem ball_mem_nhds (x : α) {ε : ennreal} (ε0 : 0 < ε) : ball x ε ∈ 𝓝 x :=
 mem_nhds_sets is_open_ball (mem_ball_self ε0)
 
 /-- ε-characterization of the closure in emetric spaces -/
@@ -433,14 +433,14 @@ begin
 end⟩
 
 theorem tendsto_nhds {f : filter β} {u : β → α} {a : α} :
-  tendsto u f (nhds a) ↔ ∀ ε > 0, ∃ n ∈ f, ∀x ∈ n, edist (u x) a < ε :=
+  tendsto u f (𝓝 a) ↔ ∀ ε > 0, ∃ n ∈ f, ∀x ∈ n, edist (u x) a < ε :=
 ⟨λ H ε ε0, ⟨u⁻¹' (ball a ε), H (ball_mem_nhds _ ε0), by simp⟩,
  λ H s hs,
   let ⟨ε, ε0, hε⟩ := mem_nhds_iff.1 hs, ⟨δ, δ0, hδ⟩ := H _ ε0 in
   f.sets_of_superset δ0 (λx xδ, hε (hδ x xδ))⟩
 
 theorem tendsto_at_top [inhabited β] [semilattice_sup β] (u : β → α) {a : α} :
-  tendsto u at_top (nhds a) ↔ ∀ε>0, ∃N, ∀n≥N, edist (u n) a < ε :=
+  tendsto u at_top (𝓝 a) ↔ ∀ε>0, ∃N, ∀n≥N, edist (u n) a < ε :=
 begin
   rw tendsto_nhds,
   apply forall_congr,

@@ -59,7 +59,7 @@ def vcomp (α : nat_trans F G) (β : nat_trans G H) : nat_trans F H :=
   end }
 
 -- We'll want to be able to prove that two natural transformations are equal if they are componentwise equal.
-@[extensionality] lemma ext {α β : nat_trans F G} (w : ∀ X : C, α.app X = β.app X) : α = β :=
+@[ext] lemma ext {α β : nat_trans F G} (w : ∀ X : C, α.app X = β.app X) : α = β :=
 begin
   induction α with α_components α_naturality,
   induction β with β_components β_naturality,

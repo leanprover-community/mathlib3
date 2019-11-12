@@ -58,7 +58,7 @@ instance : has_lift (finset α) (set α) := ⟨to_set⟩
 theorem ext {s₁ s₂ : finset α} : s₁ = s₂ ↔ ∀ a, a ∈ s₁ ↔ a ∈ s₂ :=
 val_inj.symm.trans $ nodup_ext s₁.2 s₂.2
 
-@[extensionality]
+@[ext]
 theorem ext' {s₁ s₂ : finset α} : (∀ a, a ∈ s₁ ↔ a ∈ s₂) → s₁ = s₂ :=
 ext.2
 
@@ -242,6 +242,12 @@ ssubset_iff.mpr ⟨a, h, subset.refl _⟩
     { rw [insert_val, ndinsert_of_not_mem m] }
   end) nd
 
+/--
+To prove a proposition about an arbitrary `finset α`,
+it suffices to prove it for the empty `finset`,
+and to show that if it holds for some `finset α`,
+then it holds for the `finset` obtained by inserting a new element.
+-/
 @[elab_as_eliminator] protected theorem induction_on {α : Type*} {p : finset α → Prop} [decidable_eq α]
   (s : finset α) (h₁ : p ∅) (h₂ : ∀ ⦃a : α⦄ {s : finset α}, a ∉ s → p s → p (insert a s)) : p s :=
 finset.induction h₁ h₂ s
@@ -1178,7 +1184,7 @@ lemma inj_on_of_surj_on_of_card_le {s : finset α} {t : finset β}
   (f : Π a ∈ s, β) (hf : ∀ a ha, f a ha ∈ t)
   (hsurj : ∀ b ∈ t, ∃ a ha, b = f a ha)
   (hst : card s ≤ card t)
-  ⦃a₁ a₂⦄ (ha₁ : a₁ ∈ s) (ha₂ : a₂ ∈ s) 
+  ⦃a₁ a₂⦄ (ha₁ : a₁ ∈ s) (ha₂ : a₂ ∈ s)
   (ha₁a₂: f a₁ ha₁ = f a₂ ha₂) : a₁ = a₂ :=
 by haveI : inhabited {x // x ∈ s} := ⟨⟨a₁, ha₁⟩⟩; exact
 let f' : {x // x ∈ s} → {x // x ∈ t} := λ x, ⟨f x.1 x.2, hf x.1 x.2⟩ in
@@ -1819,9 +1825,8 @@ suffices card (t \ s) = card ((t \ s) ∪ s) - card s, by rwa sdiff_union_of_sub
 by rw [card_disjoint_union sdiff_disjoint, nat.add_sub_cancel]
 
 lemma disjoint_filter {s : finset α} {p q : α → Prop} [decidable_pred p] [decidable_pred q] :
-    (∀x, p x → ¬ q x) → disjoint (s.filter p) (s.filter q) :=
-assume h, by simp only [disjoint_iff_ne, mem_filter]; rintros a ⟨_, ha⟩ b ⟨_, hb⟩ eq;
-rw [eq] at ha; exact h _ ha hb
+    disjoint (s.filter p) (s.filter q) ↔ (∀ x ∈ s, p x → ¬ q x) :=
+by split; simp [disjoint_left] {contextual := tt}
 
 end disjoint
 
@@ -1909,7 +1914,7 @@ end
 
 end decidable_linear_order
 
-/- Ico (a closed openinterval) -/
+/- Ico (a closed open interval) -/
 variables {n m l : ℕ}
 
 /-- `Ico n m` is the set of natural numbers `n ≤ k < m`. -/
@@ -1960,6 +1965,14 @@ begin
     exact ne_of_gt (lt_of_le_of_lt (nat.zero_le m₁) hmn) },
   { rintros ⟨hm, hn⟩ k ⟨hmk, hkn⟩,
     exact ⟨le_trans hm hmk, lt_of_lt_of_le hkn hn⟩ }
+end
+
+protected theorem subset {m₁ n₁ m₂ n₂ : ℕ} (hmm : m₂ ≤ m₁) (hnn : n₁ ≤ n₂) :
+  Ico m₁ n₁ ⊆ Ico m₂ n₂ :=
+begin
+  simp only [finset.subset_iff, Ico.mem],
+  assume x hx,
+  exact ⟨le_trans hmm hx.1, lt_of_lt_of_le hx.2 hnn⟩ 
 end
 
 lemma union_consecutive {n m l : ℕ} (hnm : n ≤ m) (hml : m ≤ l) :
@@ -2032,6 +2045,30 @@ have ∀k, (k < m ∧ (l ≤ k → m ≤ k)) ↔ (k < m ∧ k < l) :=
 by ext k; by_cases n ≤ k; simp [h, this]
 
 end Ico
+
+-- TODO We don't yet attempt to reproduce the entire interface for `Ico` for `Ico_ℤ`.
+
+/-- `Ico_ℤ l u` is the set of integers `l ≤ k < u`. -/
+def Ico_ℤ (l u : ℤ) : finset ℤ :=
+(finset.range (u - l).to_nat).map
+  { to_fun := λ n, n + l,
+    inj := λ n m h, by simpa using h }
+
+namespace Ico_ℤ
+
+@[simp] lemma mem {n m l : ℤ} : l ∈ Ico_ℤ n m ↔ n ≤ l ∧ l < m :=
+begin
+  dsimp [Ico_ℤ],
+  simp only [int.lt_to_nat, exists_prop, mem_range, add_comm, function.embedding.coe_fn_mk, mem_map],
+  split,
+  { rintro ⟨a, ⟨h, rfl⟩⟩,
+    exact ⟨int.le.intro rfl, lt_sub_iff_add_lt'.mp h⟩ },
+  { rintro ⟨h₁, h₂⟩,
+    use (l - n).to_nat,
+    split; simp [h₁, h₂], }
+end
+
+end Ico_ℤ
 
 end finset
 

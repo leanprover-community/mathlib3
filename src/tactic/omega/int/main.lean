@@ -18,7 +18,7 @@ open_locale omega.int
 
 run_cmd mk_simp_attr `sugar
 attribute [sugar]
-  not_le not_lt
+  ne not_le not_lt
   int.lt_iff_add_one_le
   or_false false_or
   and_true true_and
@@ -76,7 +76,7 @@ meta def to_form_core : expr → tactic form
   do p ← to_form_core px,
      q ← to_form_core qx,
      return (p ∧* q)
-| _ := failed
+| x := trace "Cannot reify expr : " >> trace x >> failed
 
 meta def to_form : nat → expr → tactic (form × nat)
 | m `(_ → %%px) := to_form (m+1) px
@@ -92,4 +92,4 @@ end omega
 open omega.int
 
 meta def omega_int : tactic unit :=
-desugar >> prove_lia >>= apply >> skip
+desugar >> (done <|> (prove_lia >>= apply >> skip))

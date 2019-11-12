@@ -159,7 +159,7 @@ iff.intro
   cons_cons
 
 lemma append_append_left_iff : ∀L, red (L ++ L₁) (L ++ L₂) ↔ red L₁ L₂
-| []       := iff.refl _
+| []       := iff.rfl
 | (p :: L) := by simp [append_append_left_iff L, cons_cons_iff]
 
 lemma append_append (h₁ : red L₁ L₃) (h₂ : red L₂ L₄) : red (L₁ ++ L₂) (L₃ ++ L₄) :=
@@ -560,7 +560,7 @@ prod.of
 instance sum.is_group_hom : is_group_hom (@sum α _) :=
 prod.is_group_hom
 
-@[simp] lemma sum.sum : sum (x * y) = sum x + sum y :=
+@[simp] lemma sum.mul : sum (x * y) = sum x + sum y :=
 prod.mul
 
 @[simp] lemma sum.one : sum (1:free_group α) = 0 :=

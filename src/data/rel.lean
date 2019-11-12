@@ -60,7 +60,7 @@ by { ext x z, simp [comp, inv, flip, and.comm] }
 def image (s : set α) : set β := {y | ∃ x ∈ s, r x y}
 
 lemma mem_image (y : β) (s : set α) : y ∈ image r s ↔ ∃ x ∈ s, r x y :=
-iff.refl _
+iff.rfl
 
 lemma image_subset : ((⊆) ⇒ (⊆)) r.image r.image :=
 assume s t h y ⟨x, xs, rxy⟩, ⟨x, h xs, rxy⟩
@@ -91,7 +91,7 @@ lemma image_univ : r.image set.univ = r.codom := by { ext y, simp [mem_image, co
 def preimage (s : set β) : set α := image (inv r) s
 
 lemma mem_preimage (x : α) (s : set β) : x ∈ preimage r s ↔ ∃ y ∈ s, r x y :=
-iff.refl _
+iff.rfl
 
 lemma preimage_def (s : set β) : preimage r s = {x | ∃ y ∈ s, r x y} :=
 set.ext $ λ x, mem_preimage _ _ _
@@ -118,7 +118,7 @@ by { rw [preimage, image_univ, codom_inv] }
 def core (s : set β) := {x | ∀ y, r x y → y ∈ s}
 
 lemma mem_core (x : α) (s : set β) : x ∈ core r s ↔ ∀ y, r x y → y ∈ s :=
-iff.refl _
+iff.rfl
 
 lemma core_subset : ((⊆) ⇒ (⊆)) r.core r.core :=
 assume s t h x h' y rxy, h (h' y rxy)

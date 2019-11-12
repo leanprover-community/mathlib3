@@ -94,7 +94,7 @@ end
 
 lemma image_univ : r.image set.univ = r.codom := by { ext y, simp [mem_image, codom] }
 
-/-- Preimage of a set under a relation `r`. Same as the image of `s` under `r.flip` -/
+/-- Preimage of a set under a relation `r`. Same as the image of `s` under `r.inv` -/
 def preimage (s : set β) : set α := image (inv r) s
 
 lemma mem_preimage (x : α) (s : set β) : x ∈ preimage r s ↔ ∃ y ∈ s, r x y :=

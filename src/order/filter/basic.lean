@@ -237,7 +237,7 @@ protected def mk_of_closure (s : set (set α)) (hs : (generate s).sets = s) : fi
 lemma mk_of_closure_sets {s : set (set α)} {hs : (generate s).sets = s} :
   filter.mk_of_closure s hs = generate s :=
 filter.ext $ assume u,
-show u ∈ (filter.mk_of_closure s hs).sets ↔ u ∈ (generate s).sets, from hs.symm ▸ iff.refl _
+show u ∈ (filter.mk_of_closure s hs).sets ↔ u ∈ (generate s).sets, from hs.symm ▸ iff.rfl
 
 /- Galois insertion from sets of sets into a filters. -/
 def gi_generate (α : Type*) :
@@ -278,7 +278,7 @@ instance : has_top (filter α) :=
   inter_sets       := assume x y hx hy a, mem_inter (hx _) (hy _) }⟩
 
 lemma mem_top_sets_iff_forall {s : set α} : s ∈ (⊤ : filter α) ↔ (∀x, x ∈ s) :=
-iff.refl _
+iff.rfl
 
 @[simp] lemma mem_top_sets {s : set α} : s ∈ (⊤ : filter α) ↔ s = univ :=
 by rw [mem_top_sets_iff_forall, eq_univ_iff_forall]
@@ -959,7 +959,7 @@ by simp only [pure, has_pure.pure, ne.def, not_false_iff, singleton_ne_empty, pr
 
 lemma mem_seq_sets_def {f : filter (α → β)} {g : filter α} {s : set β} :
   s ∈ f.seq g ↔ (∃u ∈ f, ∃t ∈ g, ∀x∈u, ∀y∈t, (x : α → β) y ∈ s) :=
-iff.refl _
+iff.rfl
 
 lemma mem_seq_sets_iff {f : filter (α → β)} {g : filter α} {s : set β} :
   s ∈ f.seq g ↔ (∃u ∈ f, ∃t ∈ g, set.seq u t ⊆ s) :=
@@ -1067,7 +1067,7 @@ section bind
   s ∈ bind f m ↔ ∃t ∈ f, ∀x ∈ t, s ∈ m x :=
 calc s ∈ bind f m ↔ {a | s ∈ m a} ∈ f : by simp only [bind, mem_map, iff_self, mem_join_sets, mem_set_of_eq]
                      ... ↔ (∃t ∈ f, t ⊆ {a | s ∈ m a}) : exists_sets_subset_iff.symm
-                     ... ↔ (∃t ∈ f, ∀x ∈ t, s ∈ m x) : iff.refl _
+                     ... ↔ (∃t ∈ f, ∀x ∈ t, s ∈ m x) : iff.rfl
 
 lemma bind_mono {f : filter α} {g h : α → filter β} (h₁ : {a | g a ≤ h a} ∈ f) :
   bind f g ≤ bind f h :=

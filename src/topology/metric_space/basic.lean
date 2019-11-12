@@ -327,6 +327,28 @@ uniform_embedding_def'.trans $ and_congr iff.rfl $ and_congr iff.rfl
  λ H s su, let ⟨δ, δ0, hδ⟩ := mem_uniformity_dist.1 su, ⟨ε, ε0, hε⟩ := H _ δ0 in
   ⟨_, dist_mem_uniformity ε0, λ a b h, hδ (hε h)⟩⟩
 
+/-- A map between metric spaces is a uniform embedding if and only if the distance between `f x`
+and `f y` is controlled in terms of the distance between `x` and `y` and conversely. -/
+theorem uniform_embedding_iff' [metric_space β] {f : α → β} :
+  uniform_embedding f ↔
+  (∀ ε > 0, ∃ δ > 0, ∀ {a b : α}, dist a b < δ → dist (f a) (f b) < ε) ∧
+  (∀ δ > 0, ∃ ε > 0, ∀ {a b : α}, dist (f a) (f b) < ε → dist a b < δ) :=
+begin
+  split,
+  { assume h,
+    exact ⟨uniform_continuous_iff.1 (uniform_embedding_iff.1 h).2.1,
+          (uniform_embedding_iff.1 h).2.2⟩ },
+  { rintros ⟨h₁, h₂⟩,
+    refine uniform_embedding_iff.2 ⟨_, uniform_continuous_iff.2 h₁, h₂⟩,
+    assume x y hxy,
+    have : dist x y ≤ 0,
+    { refine le_of_forall_lt' (λδ δpos, _),
+      rcases h₂ δ δpos with ⟨ε, εpos, hε⟩,
+      have : dist (f x) (f y) < ε, by simpa [hxy],
+      exact hε this },
+    simpa using this }
+end
+
 theorem totally_bounded_iff {s : set α} :
   totally_bounded s ↔ ∀ ε > 0, ∃t : set α, finite t ∧ s ⊆ ⋃y∈t, ball y ε :=
 ⟨λ H ε ε0, H _ (dist_mem_uniformity ε0),
@@ -915,6 +937,36 @@ end
 lemma dist_pi_def (f g : Πb, π b) :
   dist f g = (sup univ (λb, nndist (f b) (g b)) : nnreal) := rfl
 
+lemma dist_pi_lt_iff {f g : Πb, π b} {r : ℝ} (hr : 0 < r) :
+  dist f g < r ↔ ∀b, dist (f b) (g b) < r :=
+begin
+  lift r to nnreal using le_of_lt hr,
+  rw_mod_cast [dist_pi_def, finset.sup_lt_iff],
+  { simp [nndist], refl },
+  { exact hr }
+end
+
+lemma dist_pi_le_iff {f g : Πb, π b} {r : ℝ} (hr : 0 ≤ r) :
+  dist f g ≤ r ↔ ∀b, dist (f b) (g b) ≤ r :=
+begin
+  lift r to nnreal using hr,
+  rw_mod_cast [dist_pi_def, finset.sup_le_iff],
+  simp [nndist],
+  refl
+end
+
+/-- An open ball in a product space is a product of open balls. The assumption `0 < r`
+is necessary for the case of the empty product. -/
+lemma ball_pi (x : Πb, π b) {r : ℝ} (hr : 0 < r) :
+  ball x r = { y | ∀b, y b ∈ ball (x b) r } :=
+by { ext p, simp [dist_pi_lt_iff hr] }
+
+/-- A closed ball in a product space is a product of closed balls. The assumption `0 ≤ r`
+is necessary for the case of the empty product. -/
+lemma closed_ball_pi (x : Πb, π b) {r : ℝ} (hr : 0 ≤ r) :
+  closed_ball x r = { y | ∀b, y b ∈ closed_ball (x b) r } :=
+by { ext p, simp [dist_pi_le_iff hr] }
+
 end pi
 
 section compact
@@ -940,6 +992,23 @@ open metric
 /-- A metric space is proper if all closed balls are compact. -/
 class proper_space (α : Type u) [metric_space α] : Prop :=
 (compact_ball : ∀x:α, ∀r, compact (closed_ball x r))
+
+/-- If all closed balls of large enough radius are compact, then the space is proper. Especially
+useful when the lower bound for the radius is 0. -/
+lemma proper_space_of_compact_closed_ball_of_le
+  (R : ℝ) (h : ∀x:α, ∀r, R ≤ r → compact (closed_ball x r)) :
+  proper_space α :=
+⟨begin
+  assume x r,
+  by_cases hr : R ≤ r,
+  { exact h x r hr },
+  { have : closed_ball x r = closed_ball x R ∩ closed_ball x r,
+    { symmetry,
+      apply inter_eq_self_of_subset_right,
+      exact closed_ball_subset_closed_ball (le_of_lt (not_le.1 hr)) },
+    rw this,
+    exact compact_inter (h x R (le_refl _)) is_closed_ball }
+end⟩
 
 /- A compact metric space is proper -/
 instance proper_of_compact [compact_space α] : proper_space α :=
@@ -1013,6 +1082,16 @@ begin
   end,
   haveI : separable_space α := ⟨by_cases A B⟩,
   apply emetric.second_countable_of_separable,
+end
+
+/-- A finite product of proper spaces is proper. -/
+instance pi_proper_space {π : β → Type*} [fintype β] [∀b, metric_space (π b)]
+  [h : ∀b, proper_space (π b)] : proper_space (Πb, π b) :=
+begin
+  refine proper_space_of_compact_closed_ball_of_le 0 (λx r hr, _),
+  rw closed_ball_pi _ hr,
+  apply compact_pi_infinite (λb, _),
+  apply (h b).compact_ball
 end
 
 end proper_space

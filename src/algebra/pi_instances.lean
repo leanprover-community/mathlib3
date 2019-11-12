@@ -376,12 +376,14 @@ instance is_subring.prod [ring α] [ring β] [is_subring s] [is_subring t] :
   is_subring (s.prod t) :=
 { .. prod.is_submonoid s t, .. prod.is_add_subgroup.prod s t }
 
+end substructures
+
 end prod
 
 namespace submonoid
 
 /-- Given submonoids `s, t` of monoids `α, β` respectively, `s × t` as a submonoid of `α × β`. -/
-@[to_additive prod "Given `add_submonoids` `s, t` of `add_monoids` `α, β` respectively, `s × t` as an `add_submonoid` of `α × β`."]
+@[to_additive add_submonoid.prod "Given `add_submonoids` `s, t` of `add_monoids` `α, β` respectively, `s × t` as an `add_submonoid` of `α × β`."]
 def prod {α : Type*} {β : Type*} [monoid α] [monoid β] (s : submonoid α) (t : submonoid β) :
   submonoid (α × β) :=
 { carrier := (s : set α).prod t,
@@ -389,8 +391,6 @@ def prod {α : Type*} {β : Type*} [monoid α] [monoid β] (s : submonoid α) (t
   mul_mem' := λ _ _ h1 h2, ⟨s.mul_mem h1.1 h2.1, t.mul_mem h1.2 h2.2⟩ }
 
 end submonoid
-
-end substructures
 
 namespace finset
 

@@ -12,7 +12,7 @@ bounded linear map between Banach spaces has a bounded inverse.
 import topology.metric_space.baire analysis.normed_space.bounded_linear_maps
 
 open function metric set filter finset
-open_locale classical
+open_locale classical topological_space
 
 variables {𝕜 : Type*} [nondiscrete_normed_field 𝕜]
 {E : Type*} [normed_group E] [complete_space E] [normed_space 𝕜 E]
@@ -152,12 +152,12 @@ begin
     { simp [lin.map_zero] },
     { rw [sum_range_succ, lin.add, IH, nat.iterate_succ'],
       simp [u, h] } },
-  have : tendsto (λn, (range n).sum u) at_top (nhds x) :=
+  have : tendsto (λn, (range n).sum u) at_top (𝓝 x) :=
     tendsto_sum_nat_of_has_sum (has_sum_tsum su),
-  have L₁ : tendsto (λn, f((range n).sum u)) at_top (nhds (f x)) :=
+  have L₁ : tendsto (λn, f((range n).sum u)) at_top (𝓝 (f x)) :=
     tendsto.comp (hf.continuous.tendsto _) this,
   simp only [fsumeq] at L₁,
-  have L₂ : tendsto (λn, y - (h^[n]) y) at_top (nhds (y - 0)),
+  have L₂ : tendsto (λn, y - (h^[n]) y) at_top (𝓝 (y - 0)),
   { refine tendsto_sub tendsto_const_nhds _,
     rw tendsto_iff_norm_tendsto_zero,
     simp only [sub_zero],

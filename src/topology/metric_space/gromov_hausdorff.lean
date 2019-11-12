@@ -32,6 +32,7 @@ topology.metric_space.completion
 
 noncomputable theory
 open_locale classical
+open_locale topological_space
 universes u v w
 
 open classical lattice set function topological_space filter metric quotient
@@ -727,7 +728,7 @@ a uniformly bounded diameter, and for all ε the number of balls of radius ε re
 to cover the space is uniformly bounded. This is an equivalence, but we only prove the
 interesting direction that these conditions imply compactness. -/
 lemma totally_bounded {t : set GH_space} {C : ℝ} {u : ℕ → ℝ} {K : ℕ → ℕ}
-  (ulim : tendsto u at_top (nhds 0))
+  (ulim : tendsto u at_top (𝓝 0))
   (hdiam : ∀p ∈ t, diam (univ : set (GH_space.rep p)) ≤ C)
   (hcov : ∀p ∈ t, ∀n:ℕ, ∃s : set (GH_space.rep p), cardinal.mk s ≤ K n ∧ univ ⊆ ⋃x∈s, ball x (u n)) :
   totally_bounded t :=
@@ -998,7 +999,7 @@ begin
   -- therefore, it converges to a limit `L`
   rcases cauchy_seq_tendsto_of_complete this with ⟨L, hL⟩,
   -- the images of `X3 n` in the Gromov-Hausdorff space converge to the image of `L`
-  have M : tendsto (λn, (X3 n).to_GH_space) at_top (nhds L.to_GH_space) :=
+  have M : tendsto (λn, (X3 n).to_GH_space) at_top (𝓝 L.to_GH_space) :=
     tendsto.comp (to_GH_space_continuous.tendsto _) hL,
   -- By construction, the image of `X3 n` in the Gromov-Hausdorff space is `u n`.
   have : ∀n, (X3 n).to_GH_space = u n,

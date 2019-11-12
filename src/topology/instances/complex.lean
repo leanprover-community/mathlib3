@@ -9,6 +9,7 @@ import data.complex.basic topology.metric_space.basic topology.instances.real
 
 noncomputable theory
 open filter metric
+open_locale topological_space
 
 namespace complex
 
@@ -50,7 +51,7 @@ metric.uniform_continuous_iff.2 $ λ ε ε0,
 lemma continuous_abs : continuous (abs : ℂ → ℝ) :=
 uniform_continuous_abs.continuous
 
-lemma tendsto_inv {r : ℂ} (r0 : r ≠ 0) : tendsto (λq, q⁻¹) (nhds r) (nhds r⁻¹) :=
+lemma tendsto_inv {r : ℂ} (r0 : r ≠ 0) : tendsto (λq, q⁻¹) (𝓝 r) (𝓝 r⁻¹) :=
 by rw ← abs_pos at r0; exact
 tendsto_of_uniform_continuous_subtype
   (uniform_continuous_inv {x | abs r / 2 < abs x} (half_pos r0) (λ x h, le_of_lt h))

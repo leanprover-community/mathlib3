@@ -103,7 +103,7 @@ begin
   symmetry,
   rw [←sub_eq_zero_iff_eq, sub_neg_eq_add],
   have H : ⁅x + y, x + y⁆ = 0, from lie_self _,
-  rw [add_lie, lie_add, lie_add, lie_self, lie_self] at H,
+  rw add_lie at H,
   simpa using H,
 end
 
@@ -126,8 +126,9 @@ end
 @[simp] lemma gsmul_lie (x y : L) (n : ℤ) :
   ⁅n • x, y⁆ = n • ⁅x, y⁆ :=
 begin
-  haveI : is_add_group_hom (λ z, ⁅z, y⁆) := { map_add := by { intros, rw add_lie, } },
-  apply is_add_group_hom.map_gsmul (λ (z : L), ⁅z,y⁆),
+  let Ad := λ z, ⁅z, y⁆,
+  haveI : is_add_group_hom Ad := { map_add := by simp [Ad], },
+  apply is_add_group_hom.map_gsmul Ad,
 end
 
 @[simp] lemma lie_gsmul (x y : L) (n : ℤ) :

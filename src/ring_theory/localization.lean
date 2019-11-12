@@ -112,7 +112,7 @@ instance of.is_ring_hom : is_ring_hom (of : α → localization α S) :=
 
 variables {S}
 
-instance : has_coe α (localization α S) := ⟨of⟩
+instance : has_coe_t α (localization α S) := ⟨of⟩ -- note [use has_coe_t]
 
 instance coe.is_ring_hom : is_ring_hom (coe : α → localization α S) :=
 localization.of.is_ring_hom

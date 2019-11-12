@@ -32,6 +32,9 @@ variables {s s₁ s₂ : finset α} {a : α} {f g : α → β}
 @[to_additive]
 protected def prod [comm_monoid β] (s : finset α) (f : α → β) : β := (s.1.map f).prod
 
+@[to_additive] lemma prod_eq_multiset_prod [comm_monoid β] (s : finset α) (f : α → β) :
+  s.prod f = (s.1.map f).prod := rfl
+
 @[to_additive]
 theorem prod_eq_fold [comm_monoid β] (s : finset α) (f : α → β) : s.prod f = s.fold (*) 1 f := rfl
 
@@ -678,14 +681,14 @@ calc s.card = (s.image f).sum (λ a, (s.filter (λ x, f x = a)).card) :
 ... ≤ (s.image f).sum (λ _, n) : sum_le_sum hn
 ... = _ : by simp [mul_comm]
 
-@[simp] lemma prod_range_id_eq_fact (n : ℕ) : ((range n.succ).erase 0).prod (λ x, x) = nat.fact n :=
-calc ((range n.succ).erase 0).prod (λ x, x) = (range n).prod nat.succ :
+@[simp] lemma prod_Ico_id_eq_fact (n : ℕ) : (Ico 1 n.succ).prod (λ x, x) = nat.fact n :=
+calc (Ico 1 n.succ).prod (λ x, x) = (range n).prod nat.succ :
 eq.symm (prod_bij (λ x _, nat.succ x)
-  (λ a h₁, mem_erase.2 ⟨nat.succ_ne_zero _, mem_range.2 $ nat.succ_lt_succ $ by simpa using h₁⟩)
+  (λ a h₁, by simp [*, nat.lt_succ_iff, nat.succ_le_iff] at *)
   (by simp) (λ _ _ _ _, nat.succ_inj)
   (λ b h,
     have b.pred.succ = b, from nat.succ_pred_eq_of_pos $
-      by simp [nat.pos_iff_ne_zero] at *; tauto,
+      by simp [nat.pos_iff_ne_zero, nat.succ_le_iff] at *; tauto,
     ⟨nat.pred b, mem_range.2 $ nat.lt_of_succ_lt_succ (by simp [*] at *), this.symm⟩))
 ... = nat.fact n : by induction n; simp [*, range_succ]
 
@@ -784,3 +787,25 @@ multiset.induction_on s rfl
       end)
 
 end multiset
+
+namespace with_top
+open finset
+variables [decidable_eq α]
+
+/-- sum of finte numbers is still finite -/
+lemma sum_lt_top [ordered_comm_monoid β] {s : finset α} {f : α → with_top β} :
+  (∀a∈s, f a < ⊤) → s.sum f < ⊤ :=
+finset.induction_on s (by { intro h, rw sum_empty, exact coe_lt_top _ })
+  (λa s ha ih h,
+  begin
+    rw [sum_insert ha, add_lt_top], split,
+    { apply h, apply mem_insert_self },
+    { apply ih, intros a ha, apply h, apply mem_insert_of_mem ha }
+  end)
+
+/-- sum of finte numbers is still finite -/
+lemma sum_lt_top_iff [canonically_ordered_monoid β] {s : finset α} {f : α → with_top β} :
+  s.sum f < ⊤ ↔ (∀a∈s, f a < ⊤) :=
+iff.intro (λh a ha, lt_of_le_of_lt (single_le_sum (λa ha, zero_le _) ha) h) sum_lt_top
+
+end with_top

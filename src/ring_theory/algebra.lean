@@ -8,6 +8,7 @@ Algebra over Commutative Ring (under category)
 
 import data.polynomial data.mv_polynomial
 import data.complex.basic
+import data.matrix.basic
 import linear_algebra.tensor_product
 import ring_theory.subring
 
@@ -146,6 +147,23 @@ variables {R A}
 
 end algebra
 
+instance module.endomorphism_algebra (R : Type u) (M : Type v)
+  [comm_ring R] [add_comm_group M] [module R M] : algebra R (M →ₗ[R] M) :=
+{ to_fun    := (λ r, r • linear_map.id),
+  hom       := by apply is_ring_hom.mk; intros; ext; simp [mul_smul, add_smul],
+  commutes' := by intros; ext; simp,
+  smul_def' := by intros; ext; simp }
+
+set_option class.instance_max_depth 50
+instance matrix_algebra (n : Type u) (R : Type v)
+  [fintype n] [decidable_eq n] [comm_ring R] : algebra R (matrix n n R) :=
+{ to_fun    := (λ r, r • 1),
+  hom       := { map_one := by simp,
+                 map_mul := by { intros, simp [mul_smul], },
+                 map_add := by { intros, simp [add_smul], } },
+  commutes' := by { intros, simp },
+  smul_def' := by { intros, simp } }
+
 set_option old_structure_cmd true
 /-- Defining the homomorphism in the category R-Alg. -/
 structure alg_hom (R : Type u) (A : Type v) (B : Type w)
@@ -170,7 +188,7 @@ variables (φ : A →ₐ[R] B)
 
 instance : is_ring_hom ⇑φ := ring_hom.is_ring_hom φ.to_ring_hom
 
-@[extensionality]
+@[ext]
 theorem ext {φ₁ φ₂ : A →ₐ[R] B} (H : ∀ x, φ₁ x = φ₂ x) : φ₁ = φ₂ :=
 by cases φ₁; cases φ₂; congr' 1; ext; apply H
 
@@ -249,12 +267,20 @@ end alg_hom
 namespace algebra
 
 variables (R : Type u) (S : Type v) (A : Type w)
-variables [comm_ring R] [comm_ring S] [ring A] [algebra R S] [algebra S A]
 include R S A
-def comap : Type w := A
+
+/-- `comap R S A` is a type alias for `A`, and has an R-algebra structure defined on it
+  when `algebra R S` and `algebra S A`. -/
+/- This is done to avoid a type class search with meta-variables `algebra R ?m_1` and
+    `algebra ?m_1 A -/
+/- The `nolint` attribute is added because it has unused arguments `R` and `S`, but these are necessary for synthesizing the
+     appropriate type classes -/
+@[nolint] def comap : Type w := A
 def comap.to_comap : A → comap R S A := id
 def comap.of_comap : comap R S A → A := id
+
 omit R S A
+variables [comm_ring R] [comm_ring S] [ring A] [algebra R S] [algebra S A]
 
 instance comap.ring : ring (comap R S A) := _inst_3
 instance comap.comm_ring (R : Type u) (S : Type v) (A : Type w)
@@ -355,6 +381,13 @@ end
 
 end mv_polynomial
 
+namespace rat
+
+instance algebra_rat {α} [field α] [char_zero α] : algebra ℚ α :=
+algebra.of_ring_hom rat.cast (by apply_instance)
+
+end rat
+
 namespace complex
 
 instance algebra_over_reals : algebra ℝ ℂ :=
@@ -387,7 +420,7 @@ variables {A}
 theorem mem_coe {x : A} {s : subalgebra R A} : x ∈ (s : set A) ↔ x ∈ s :=
 iff.rfl
 
-@[extensionality] theorem ext {S T : subalgebra R A}
+@[ext] theorem ext {S T : subalgebra R A}
   (h : ∀ x : A, x ∈ S ↔ x ∈ T) : S = T :=
 by cases S; cases T; congr; ext x; exact h x
 

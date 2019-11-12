@@ -6,7 +6,7 @@ Author: Mario Carneiro
 Multisets.
 -/
 import logic.function order.boolean_algebra
-  data.equiv.basic data.list.basic data.list.perm data.list.sort data.quot data.string
+  data.equiv.basic data.list.basic data.list.perm data.list.sort data.quot data.string.basic
   algebra.order_functions algebra.group_power algebra.ordered_group
   category.traversable.lemmas tactic.interactive
   category.traversable.instances category.basic
@@ -1929,7 +1929,7 @@ quot.induction_on s $ λ l, count_filter h
 theorem ext {s t : multiset α} : s = t ↔ ∀ a, count a s = count a t :=
 quotient.induction_on₂ s t $ λ l₁ l₂, quotient.eq.trans perm_iff_count
 
-@[extensionality]
+@[ext]
 theorem ext' {s t : multiset α} : (∀ a, count a s = count a t) → s = t :=
 ext.2
 

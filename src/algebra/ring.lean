@@ -348,7 +348,7 @@ variables (f : α →+* β) {x y : α} {rα rβ}
 theorem coe_inj ⦃f g : α →+* β⦄ (h : (f : α → β) = g) : f = g :=
 by cases f; cases g; cases h; refl
 
-@[extensionality] theorem ext ⦃f g : α →+* β⦄ (h : ∀ x, f x = g x) : f = g :=
+@[ext] theorem ext ⦃f g : α →+* β⦄ (h : ∀ x, f x = g x) : f = g :=
 coe_inj (funext h)
 
 theorem ext_iff {f g : α →+* β} : f = g ↔ ∀ x, f x = g x :=

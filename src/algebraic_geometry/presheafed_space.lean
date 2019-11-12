@@ -55,7 +55,7 @@ structure hom (X Y : PresheafedSpace.{v} C) :=
 (f : (X : Top.{v}) ⟶ (Y : Top.{v}))
 (c : Y.𝒪 ⟶ f _* X.𝒪)
 
-@[extensionality] lemma ext {X Y : PresheafedSpace.{v} C} (α β : hom X Y)
+@[ext] lemma ext {X Y : PresheafedSpace.{v} C} (α β : hom X Y)
   (w : α.f = β.f) (h : α.c ≫ (whisker_right (nat_trans.op (opens.map_iso _ _ w).inv) X.𝒪) = β.c) :
   α = β :=
 begin

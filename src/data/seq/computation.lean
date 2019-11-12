@@ -27,7 +27,7 @@ variables {α : Type u} {β : Type v} {γ : Type w}
 /-- `return a` is the computation that immediately terminates with result `a`. -/
 def return (a : α) : computation α := ⟨stream.const (some a), λn a', id⟩
 
-instance : has_coe α (computation α) := ⟨return⟩
+instance : has_coe_t α (computation α) := ⟨return⟩ -- note [use has_coe_t]
 
 /-- `think c` is the computation that delays for one "tick" and then performs
   computation `c`. -/

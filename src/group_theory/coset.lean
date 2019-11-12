@@ -170,7 +170,7 @@ lemma induction_on {C : quotient s → Prop} (x : quotient s)
 quotient.induction_on' x H
 
 @[to_additive]
-instance : has_coe α (quotient s) := ⟨mk⟩
+instance : has_coe_t α (quotient s) := ⟨mk⟩ -- note [use has_coe_t]
 
 @[elab_as_eliminator, to_additive]
 lemma induction_on' {C : quotient s → Prop} (x : quotient s)
@@ -241,3 +241,9 @@ have h : ∀ {x : quotient s} {a : α}, x ∈ t → a ∈ s →
   right_inv := λ ⟨⟨a, ha⟩, ⟨x, hx⟩⟩, show (_, _) = _, by simp [h hx ha] }
 
 end quotient_group
+
+/- Note [use has_coe_t]:
+We use the class `has_coe_t` instead of `has_coe` if the first-argument is a variable.
+Using `has_coe` would cause looping of type-class inference. See
+https://leanprover.zulipchat.com/#narrow/stream/113488-general/topic/remove.20all.20instances.20with.20variable.20domain
+-/

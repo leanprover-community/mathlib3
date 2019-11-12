@@ -53,7 +53,7 @@ variables {X Y Z : C}
 
 namespace iso
 
-@[extensionality] lemma ext ⦃α β : X ≅ Y⦄ (w : α.hom = β.hom) : α = β :=
+@[ext] lemma ext ⦃α β : X ≅ Y⦄ (w : α.hom = β.hom) : α = β :=
 suffices α.inv = β.inv, by cases α; cases β; cc,
 calc α.inv
     = α.inv ≫ (β.hom ≫ β.inv) : by rw [iso.hom_inv_id, category.comp_id]

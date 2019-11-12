@@ -435,6 +435,10 @@ begin
   { simp [has, ih] }
 end
 
+theorem dvd_sum [comm_semiring α] {a : α} {s : finset β} {f : β → α}
+  (h : ∀ x ∈ s, a ∣ f x) : a ∣ s.sum f :=
+multiset.dvd_sum (λ y hy, by rcases multiset.mem_map.1 hy with ⟨x, rfl⟩; exact h x hy)
+
 lemma le_sum_of_subadditive [add_comm_monoid α] [ordered_comm_monoid β]
   (f : α → β) (h_zero : f 0 = 0) (h_add : ∀x y, f (x + y) ≤ f x + f y) (s : finset γ) (g : γ → α) :
   f (s.sum g) ≤ s.sum (λc, f (g c)) :=

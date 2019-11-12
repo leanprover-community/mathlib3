@@ -7,11 +7,12 @@ Lipschitz functions and the Banach fixed-point theorem
 -/
 import topology.metric_space.basic analysis.specific_limits
 open filter
+open_locale topological_space
 
 variables {α : Type*} {β : Type*} {γ : Type*}
 
 lemma fixed_point_of_tendsto_iterate [topological_space α] [t2_space α] {f : α → α} {x : α}
-  (hf : tendsto f (nhds x) (nhds (f x))) (hx : ∃ x₀ : α, tendsto (λ n, f^[n] x₀) at_top (nhds x)) :
+  (hf : tendsto f (𝓝 x) (𝓝 (f x))) (hx : ∃ x₀ : α, tendsto (λ n, f^[n] x₀) at_top (𝓝 x)) :
   f x = x :=
 begin
   rcases hx with ⟨x₀, hx⟩,

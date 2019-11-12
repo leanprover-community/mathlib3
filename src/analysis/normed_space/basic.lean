@@ -15,6 +15,7 @@ variables {α : Type*} {β : Type*} {γ : Type*} {ι : Type*}
 
 noncomputable theory
 open filter metric
+open_locale topological_space
 localized "notation f `→_{`:50 a `}`:0 b := filter.tendsto f (_root_.nhds a) (_root_.nhds b)" in filter
 
 class has_norm (α : Type*) := (norm : α → ℝ)
@@ -141,7 +142,7 @@ lemma ball_0_eq (ε : ℝ) : ball (0:α) ε = {x | ∥x∥ < ε} :=
 set.ext $ assume a, by simp
 
 theorem normed_group.tendsto_nhds_zero {f : γ → α} {l : filter γ} :
-  tendsto f l (nhds 0) ↔ ∀ ε > 0, { x | ∥ f x ∥ < ε } ∈ l :=
+  tendsto f l (𝓝 0) ↔ ∀ ε > 0, { x | ∥ f x ∥ < ε } ∈ l :=
 begin
   rw [metric.tendsto_nhds], simp only [normed_group.dist_eq, sub_zero],
   split,
@@ -197,12 +198,12 @@ instance fintype.normed_group {π : ι → Type*} [fintype ι] [∀i, normed_gro
     show nndist (x a) (y a) = nnnorm (x a - y a), from nndist_eq_nnnorm _ _ }
 
 lemma tendsto_iff_norm_tendsto_zero {f : ι → β} {a : filter ι} {b : β} :
-  tendsto f a (nhds b) ↔ tendsto (λ e, ∥ f e - b ∥) a (nhds 0) :=
+  tendsto f a (𝓝 b) ↔ tendsto (λ e, ∥ f e - b ∥) a (𝓝 0) :=
 by rw tendsto_iff_dist_tendsto_zero ; simp only [(dist_eq_norm _ _).symm]
 
 lemma tendsto_zero_iff_norm_tendsto_zero {f : γ → β} {a : filter γ} :
-  tendsto f a (nhds 0) ↔ tendsto (λ e, ∥ f e ∥) a (nhds 0) :=
-have tendsto f a (nhds 0) ↔ tendsto (λ e, ∥ f e - 0 ∥) a (nhds 0) :=
+  tendsto f a (𝓝 0) ↔ tendsto (λ e, ∥ f e ∥) a (𝓝 0) :=
+have tendsto f a (𝓝 0) ↔ tendsto (λ e, ∥ f e - 0 ∥) a (𝓝 0) :=
   tendsto_iff_norm_tendsto_zero,
 by simpa
 
@@ -381,6 +382,9 @@ lemma real.norm_eq_abs (r : ℝ) : norm r = abs r := rfl
 @[simp] lemma norm_norm [normed_group α] (x : α) : ∥∥x∥∥ = ∥x∥ :=
 by rw [real.norm_eq_abs, abs_of_nonneg (norm_nonneg _)]
 
+@[simp] lemma nnnorm_norm [normed_group α] (a : α) : nnnorm ∥a∥ = nnnorm a :=
+by simp only [nnnorm, norm_norm]
+
 instance : normed_ring ℤ :=
 { norm := λ n, ∥(n : ℝ)∥,
   norm_mul := λ m n, le_of_eq $ by simp only [norm, int.cast_mul, abs_mul],
@@ -424,7 +428,7 @@ variables {E : Type*} {F : Type*}
 [normed_group E] [normed_space α E] [normed_group F] [normed_space α F]
 
 lemma tendsto_smul {f : γ → α} { g : γ → F} {e : filter γ} {s : α} {b : F} :
-  (tendsto f e (nhds s)) → (tendsto g e (nhds b)) → tendsto (λ x, (f x) • (g x)) e (nhds (s • b)) :=
+  (tendsto f e (𝓝 s)) → (tendsto g e (𝓝 b)) → tendsto (λ x, (f x) • (g x)) e (𝓝 (s • b)) :=
 begin
   intros limf limg,
   rw tendsto_iff_norm_tendsto_zero,
@@ -437,15 +441,15 @@ begin
   { exact ineq },
   { clear ineq,
 
-    have limf': tendsto (λ x, ∥f x - s∥) e (nhds 0) := tendsto_iff_norm_tendsto_zero.1 limf,
-    have limg' : tendsto (λ x, ∥g x∥) e (nhds ∥b∥) := filter.tendsto.comp (continuous_iff_continuous_at.1 continuous_norm _) limg,
+    have limf': tendsto (λ x, ∥f x - s∥) e (𝓝 0) := tendsto_iff_norm_tendsto_zero.1 limf,
+    have limg' : tendsto (λ x, ∥g x∥) e (𝓝 ∥b∥) := filter.tendsto.comp (continuous_iff_continuous_at.1 continuous_norm _) limg,
 
     have lim1 := tendsto_mul limf' limg',
     simp only [zero_mul, sub_eq_add_neg] at lim1,
 
     have limg3 := tendsto_iff_norm_tendsto_zero.1 limg,
 
-    have lim2 := tendsto_mul (tendsto_const_nhds : tendsto _ _ (nhds ∥ s ∥)) limg3,
+    have lim2 := tendsto_mul (tendsto_const_nhds : tendsto _ _ (𝓝 ∥ s ∥)) limg3,
     simp only [sub_eq_add_neg, mul_zero] at lim2,
 
     rw [show (0:ℝ) = 0 + 0, by simp],
@@ -453,7 +457,7 @@ begin
 end
 
 lemma tendsto_smul_const {g : γ → F} {e : filter γ} (s : α) {b : F} :
-  (tendsto g e (nhds b)) → tendsto (λ x, s • (g x)) e (nhds (s • b)) :=
+  (tendsto g e (𝓝 b)) → tendsto (λ x, s • (g x)) e (𝓝 (s • b)) :=
 tendsto_smul tendsto_const_nhds
 
 instance normed_space.topological_vector_space : topological_vector_space α E :=
@@ -544,9 +548,9 @@ lemma summable_of_summable_norm {f : ι → α} (hf : summable (λa, ∥f a∥))
 summable_of_norm_bounded _ hf (assume i, le_refl _)
 
 lemma norm_tsum_le_tsum_norm {f : ι → α} (hf : summable (λi, ∥f i∥)) : ∥(∑i, f i)∥ ≤ (∑ i, ∥f i∥) :=
-have h₁ : tendsto (λs:finset ι, ∥s.sum f∥) at_top (nhds ∥(∑ i, f i)∥) :=
+have h₁ : tendsto (λs:finset ι, ∥s.sum f∥) at_top (𝓝 ∥(∑ i, f i)∥) :=
   (continuous_norm.tendsto _).comp (has_sum_tsum $ summable_of_summable_norm hf),
-have h₂ : tendsto (λs:finset ι, s.sum (λi, ∥f i∥)) at_top (nhds (∑ i, ∥f i∥)) :=
+have h₂ : tendsto (λs:finset ι, s.sum (λi, ∥f i∥)) at_top (𝓝 (∑ i, ∥f i∥)) :=
   has_sum_tsum hf,
 le_of_tendsto_of_tendsto at_top_ne_bot h₁ h₂ $ univ_mem_sets' $ assume s, norm_triangle_sum _ _
 

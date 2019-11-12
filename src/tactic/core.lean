@@ -19,7 +19,7 @@ nat.binary_rec
     do e ← tac, tactic.mk_app (cond b ``bit1 ``bit0) [e])
 
 /-- Given an expr `α` representing a type with numeral structure,
-`of_nat α n` creates the `α`-valued numeral expression corresponding to `n`.
+`of_int α n` creates the `α`-valued numeral expression corresponding to `n`.
 The output is either a numeral or the negation of a numeral. -/
 protected meta def of_int (α : expr) : ℤ → tactic expr
 | (n : ℕ) := expr.of_nat α n

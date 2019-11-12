@@ -86,6 +86,9 @@ inductive ex_type : Type
 | exp : ex_type
 open ex_type
 
+meta structure ex_info : Type :=
+(pretty : expr) (proof : expr)
+
 /-!
   The `ex` type is an abstract representation of an expression with `+`, `*` and `^`.
   Those operators are mapped to the `sum`, `prod` and `exp` constructors respectively.
@@ -114,49 +117,44 @@ open ex_type
   (For example, the correct equality check of `expr` is `is_def_eq : expr → expr → tactic unit`.)
 -/
 meta inductive ex (α : Type u) : ex_type → Type u
-| zero  {} (pretty proof : expr) : ex sum
-| sum   {} (pretty proof : expr) : ex prod → ex sum → ex sum
-| coeff {} (pretty proof : expr) : coeff → ex prod
-| prod  {} (pretty proof : expr) : ex exp → ex prod → ex prod
-| var   {} (pretty proof : expr) : α → ex base
-| sum_b {} (pretty proof : expr) : ex sum → ex base
-| exp   {} (pretty proof : expr) : ex base → ex prod → ex exp
+| zero  {} (info : ex_info) : ex sum
+| sum   {} (info : ex_info) : ex prod → ex sum → ex sum
+| coeff {} (info : ex_info) : coeff → ex prod
+| prod  {} (info : ex_info) : ex exp → ex prod → ex prod
+| var   {} (info : ex_info) : α → ex base
+| sum_b {} (info : ex_info) : ex sum → ex base
+| exp   {} (info : ex_info) : ex base → ex prod → ex exp
 
 /-!
   Return the normalised form of the given expression.
 -/
-meta def ex.pretty {α} : Π {et : ex_type} (ps : ex α et), expr
-| sum (ex.zero ps_p _ ) := ps_p
-| sum (ex.sum ps_p _ _ _) := ps_p
-| prod (ex.coeff ps_p _ _) := ps_p
-| prod (ex.prod ps_p _ _ _) := ps_p
-| base (ex.var ps_p _ _) := ps_p
-| base (ex.sum_b ps_p _ _) := ps_p
-| exp (ex.exp ps_p _ _ _) := ps_p
+meta def ex.info {α} : Π {et : ex_type} (ps : ex α et), ex_info
+| sum (ex.zero i) := i
+| sum (ex.sum i _ _) := i
+| prod (ex.coeff i _) := i
+| prod (ex.prod i _ _) := i
+| base (ex.var i _) := i
+| base (ex.sum_b i _) := i
+| exp (ex.exp i _ _) := i
 
+meta def ex.pretty {α} {et : ex_type} (ps : ex α et) : expr := ps.info.pretty
 /-!
   Return the normalisation proof of the given expression.
 -/
-meta def ex.proof {α} : Π {et : ex_type} (ps : ex α et), expr
-| sum (ex.zero _ ps_pf) := ps_pf
-| sum (ex.sum _ ps_pf _ _) := ps_pf
-| prod (ex.coeff _ ps_pf _) := ps_pf
-| prod (ex.prod _ ps_pf _ _) := ps_pf
-| base (ex.var _ ps_pf _) := ps_pf
-| base (ex.sum_b _ ps_pf _) := ps_pf
-| exp (ex.exp _ ps_pf _ _) := ps_pf
+meta def ex.proof {α} {et : ex_type} (ps : ex α et) : expr := ps.info.proof
+
 /-!
   Setter for the normalisation proof of the given expression.
   We use this to combine intermediate normalisation proofs.
 -/
 meta def ex.set_proof {α} : Π {et : ex_type} (ps : ex α et), expr → ex α et
-| sum (ex.zero ps_p ps_pf) pf := ex.zero ps_p pf
-| sum (ex.sum ps_p ps_pf p ps) pf := ex.sum ps_p pf p ps
-| prod (ex.coeff ps_p ps_pf x) pf := ex.coeff ps_p pf x
-| prod (ex.prod ps_p ps_pf p ps) pf := ex.prod ps_p pf p ps
-| base (ex.var ps_p ps_pf x) pf := ex.var ps_p pf x
-| base (ex.sum_b ps_p ps_pf ps) pf := ex.sum_b ps_p pf ps
-| exp (ex.exp ps_p ps_pf p ps) pf := ex.exp ps_p pf p ps
+| sum (ex.zero ⟨ps_p, ps_pf⟩) pf := ex.zero ⟨ps_p, pf⟩
+| sum (ex.sum ⟨ps_p, ps_pf⟩ p ps) pf := ex.sum ⟨ps_p, pf⟩ p ps
+| prod (ex.coeff ⟨ps_p, ps_pf⟩ x) pf := ex.coeff ⟨ps_p, pf⟩ x
+| prod (ex.prod ⟨ps_p, ps_pf⟩ p ps) pf := ex.prod ⟨ps_p, pf⟩ p ps
+| base (ex.var ⟨ps_p, ps_pf⟩ x) pf := ex.var ⟨ps_p, pf⟩ x
+| base (ex.sum_b ⟨ps_p, ps_pf⟩ ps) pf := ex.sum_b ⟨ps_p, pf⟩ ps
+| exp (ex.exp ⟨ps_p, ps_pf⟩ p ps) pf := ex.exp ⟨ps_p, pf⟩ p ps
 
 section instances
 variables {α : Type u}
@@ -164,42 +162,42 @@ variables {α : Type u}
 instance coeff_has_repr : has_repr coeff := ⟨λ x, repr x.1⟩
 
 meta def ex.repr [has_repr α] : Π {et : ex_type}, ex α et → string
-| sum (ex.zero _ _) := "0"
-| sum (ex.sum _ _ p ps) := ex.repr p ++ "+" ++ ex.repr ps
-| prod (ex.coeff _ _ x) := repr x
-| prod (ex.prod _ _ p ps) := ex.repr p ++ "*" ++ ex.repr ps
-| base (ex.var _ _ x) := repr x
-| base (ex.sum_b _ _ ps) := "(" ++ ex.repr ps ++ ")"
-| exp (ex.exp _ _ p ps) := ex.repr p ++ "^" ++ ex.repr ps
+| sum (ex.zero _) := "0"
+| sum (ex.sum _ p ps) := ex.repr p ++ "+" ++ ex.repr ps
+| prod (ex.coeff _ x) := repr x
+| prod (ex.prod _ p ps) := ex.repr p ++ "*" ++ ex.repr ps
+| base (ex.var _ x) := repr x
+| base (ex.sum_b _ ps) := "(" ++ ex.repr ps ++ ")"
+| exp (ex.exp _ p ps) := ex.repr p ++ "^" ++ ex.repr ps
 meta instance [has_repr α] {et : ex_type} : has_repr (ex α et) := ⟨ex.repr⟩
 
 meta def ex.eq (eq : α → α → bool) : Π {et : ex_type}, ex α et → ex α et → bool
-| sum (ex.zero _ _) (ex.zero _ _) := tt
-| sum (ex.zero _ _) (ex.sum _ _ _ _) := ff
-| sum (ex.sum _ _ _ _) (ex.zero _ _) := ff
-| sum (ex.sum _ _ p ps) (ex.sum _ _ q qs) := p.eq q && ps.eq qs
-| prod (ex.coeff _ _  x) (ex.coeff _ _ y) := x = y
-| prod (ex.coeff _ _ _) (ex.prod _ _ _ _) := ff
-| prod (ex.prod _ _ _ _) (ex.coeff _ _ _) := ff
-| prod (ex.prod _ _ p ps) (ex.prod _ _ q qs) := p.eq q && ps.eq qs
-| base (ex.var _ _ x) (ex.var _ _ y) := eq x y
-| base (ex.var _ _ _) (ex.sum_b _ _ _) := ff
-| base (ex.sum_b _ _ _) (ex.var _ _ _) := ff
-| base (ex.sum_b _ _ ps) (ex.sum_b _ _ qs) := ps.eq qs
-| exp (ex.exp _ _ p ps) (ex.exp _ _ q qs) := p.eq q && ps.eq qs
+| sum (ex.zero _) (ex.zero _) := tt
+| sum (ex.zero _) (ex.sum _ _ _) := ff
+| sum (ex.sum _ _ _) (ex.zero _) := ff
+| sum (ex.sum _ p ps) (ex.sum _ q qs) := p.eq q && ps.eq qs
+| prod (ex.coeff _  x) (ex.coeff _ y) := x = y
+| prod (ex.coeff _ _) (ex.prod _ _ _) := ff
+| prod (ex.prod _ _ _) (ex.coeff _ _) := ff
+| prod (ex.prod _ p ps) (ex.prod _ q qs) := p.eq q && ps.eq qs
+| base (ex.var _ x) (ex.var _ y) := eq x y
+| base (ex.var _ _) (ex.sum_b _ _) := ff
+| base (ex.sum_b _ _) (ex.var _ _) := ff
+| base (ex.sum_b _ ps) (ex.sum_b _ qs) := ps.eq qs
+| exp (ex.exp _ p ps) (ex.exp _ q qs) := p.eq q && ps.eq qs
 
 meta def ex.lt (eq lt : α → α → bool) : Π {et : ex_type}, ex α et → ex α et → bool
-| sum ps (ex.zero _ _) := ff
-| sum (ex.zero _ _) qs := tt
-| sum (ex.sum _ _ p ps) (ex.sum _ _ q qs) := p.lt q || (p.eq eq q && ps.lt qs)
-| prod ps (ex.coeff _ _ _) := ff
-| prod (ex.coeff _ _ _) qs := tt
-| prod (ex.prod _ _ p ps) (ex.prod _ _ q qs) := p.lt q || (p.eq eq q && ps.lt qs)
-| base (ex.var _ _ x) (ex.var _ _ y) := lt x y
-| base (ex.var _ _ _) (ex.sum_b _ _ _) := tt
-| base (ex.sum_b _ _ _) (ex.var _ _ _) := ff
-| base (ex.sum_b _ _ ps) (ex.sum_b _ _ qs) := ps.lt qs
-| exp (ex.exp _ _ p ps) (ex.exp _ _ q qs) := p.lt q || (p.eq eq q && ps.lt qs)
+| sum ps (ex.zero _) := ff
+| sum (ex.zero _) qs := tt
+| sum (ex.sum _ p ps) (ex.sum _ q qs) := p.lt q || (p.eq eq q && ps.lt qs)
+| prod ps (ex.coeff _ _) := ff
+| prod (ex.coeff _ _) qs := tt
+| prod (ex.prod _ p ps) (ex.prod _ q qs) := p.lt q || (p.eq eq q && ps.lt qs)
+| base (ex.var _ x) (ex.var _ y) := lt x y
+| base (ex.var _ _) (ex.sum_b _ _) := tt
+| base (ex.sum_b _ _) (ex.var _ _) := ff
+| base (ex.sum_b _ ps) (ex.sum_b _ qs) := ps.lt qs
+| exp (ex.exp _ p ps) (ex.exp _ q qs) := p.lt q || (p.eq eq q && ps.lt qs)
 end instances
 
 meta structure atom : Type :=
@@ -254,37 +252,37 @@ def pretty_pf_var_one (p : α) : p ^ 1 = p := by simp
 def pretty_pf_exp_one {p p' : α} : p = p' → p ^ 1 = p' := by simp
 -- Format an expression `e` nicely as `e_p`.
 meta def ex.simple : Π {et : ex_type}, ex_pf et → ring_exp_m (expr × expr)
-| sum pps@(ex.sum pps_p pps_pf p (ex.zero _ _)) := do
+| sum pps@(ex.sum pps_i p (ex.zero _)) := do
   (p_p, p_pf) <- p.simple,
   pf <- lift $ mk_app ``pretty_pf_sum_zero [p_pf],
   pure $ (p_p, pf)
-| sum (ex.sum pps_p pps_pf p ps) := do
+| sum (ex.sum pps_i p ps) := do
   (p_p, p_pf) <- p.simple,
   (ps_p, ps_pf) <- ps.simple,
   pps_p <- lift $ mk_app ``has_add.add [p_p, ps_p],
   pf <- lift $ mk_app ``sum_congr [p_pf, ps_pf],
   pure $ (pps_p, pf)
-| prod (ex.prod pps_p pps_pf p (ex.coeff _ _ ⟨⟨1, 1, _, _⟩⟩)) := do
+| prod (ex.prod pps_i p (ex.coeff _ ⟨⟨1, 1, _, _⟩⟩)) := do
   (p_p, p_pf) <- p.simple,
   pf <- lift $ mk_app ``pretty_pf_prod_one [p_pf],
   pure $ (p_p, pf)
-| prod (ex.prod pps_p pps_pf p (ex.coeff _ _ ⟨⟨-1, 1, _, _⟩⟩)) := do
+| prod (ex.prod pps_i p (ex.coeff _ ⟨⟨-1, 1, _, _⟩⟩)) := do
   (p_p, p_pf) <- p.simple,
   p' <- lift $ mk_app ``has_neg.neg [p_p],
   pf <- lift $ mk_app ``pretty_pf_prod_neg_one [p_pf],
   pure $ (p', pf)
-| prod (ex.prod pps_p pps_pf p ps) := do
+| prod (ex.prod pps_i p ps) := do
   (p_p, p_pf) <- p.simple,
   (ps_p, ps_pf) <- ps.simple,
   pps_p <- lift $ mk_app ``has_mul.mul [p_p, ps_p],
   pf <- lift $ mk_app ``prod_congr [p_pf, ps_pf],
   pure $ (pps_p, pf)
-| base (ex.sum_b pps_p pps_pf ps) := ps.simple
-| exp (ex.exp pps_p pps_pf p (ex.coeff _ _ ⟨⟨1, 1, _, _⟩⟩)) := do
+| base (ex.sum_b pps_i ps) := ps.simple
+| exp (ex.exp pps_i p (ex.coeff _ ⟨⟨1, 1, _, _⟩⟩)) := do
   (p_p, p_pf) <- p.simple,
   pf <- lift $ mk_app ``pretty_pf_exp_one [p_pf],
   pure $ (p_p, pf)
-| exp (ex.exp pps_p pps_pf p ps) := do
+| exp (ex.exp pps_i p ps) := do
   (p_p, p_pf) <- p.simple,
   (ps_p, ps_pf) <- in_exponent $ ps.simple,
   ctx <- get_context,
@@ -300,31 +298,31 @@ meta def ex_zero : ring_exp_m (ex_pf sum) := do
   ctx <- get_context,
   x_p <- lift $ expr.of_rat ctx.info_b.α 0,
   x_pf <- lift $ mk_eq_refl x_p,
-  pure (ex.zero x_p x_pf)
+  pure (ex.zero ⟨x_p, x_pf⟩)
 meta def ex_sum (p : ex_pf prod) (ps : ex_pf sum) : ring_exp_m (ex_pf sum) := do
   p_pf <- lift $ mk_eq_refl p.pretty,
   ps_pf <- lift $ mk_eq_refl ps.pretty,
   pps_p <- lift $ mk_app ``has_add.add [p.pretty, ps.pretty],
   pps_pf <- lift $ mk_app ``sum_congr [p.proof, ps.proof],
-  pure (ex.sum pps_p pps_pf (p.set_proof p_pf) (ps.set_proof ps_pf))
+  pure (ex.sum ⟨pps_p, pps_pf⟩ (p.set_proof p_pf) (ps.set_proof ps_pf))
 meta def ex_coeff (x : rat) : ring_exp_m (ex_pf prod) := do
   ctx <- get_context,
   x_p <- lift $ expr.of_rat ctx.info_b.α x,
   x_pf <- lift $ mk_eq_refl x_p,
-  pure (ex.coeff x_p x_pf ⟨x⟩)
+  pure (ex.coeff ⟨x_p, x_pf⟩ ⟨x⟩)
 meta def ex_one : ring_exp_m (ex_pf prod) := ex_coeff 1
 meta def ex_prod (p : ex_pf exp) (ps : ex_pf prod) : ring_exp_m (ex_pf prod) := do
   p_pf <- lift $ mk_eq_refl p.pretty,
   ps_pf <- lift $ mk_eq_refl ps.pretty,
   pps_p <- lift $ mk_app ``has_mul.mul [p.pretty, ps.pretty],
   pps_pf <- lift $ mk_app ``prod_congr [p.proof, ps.proof],
-  pure (ex.prod pps_p pps_pf (p.set_proof p_pf) (ps.set_proof ps_pf))
+  pure (ex.prod ⟨pps_p, pps_pf⟩ (p.set_proof p_pf) (ps.set_proof ps_pf))
 meta def ex_var (p : atom) : ring_exp_m (ex_pf base) := do
   pf <- lift $ mk_eq_refl p.1,
-  pure (ex.var p.1 pf p)
+  pure (ex.var ⟨p.1, pf⟩ p)
 meta def ex_sum_b (ps : ex_pf sum) : ring_exp_m (ex_pf base) := do
   ps_pf <- lift $ mk_eq_refl ps.pretty,
-  pure (ex.sum_b ps.pretty ps.proof (ps.set_proof ps_pf))
+  pure (ex.sum_b ps.info (ps.set_proof ps_pf))
 meta def ex_exp (p : ex_pf base) (ps : ex_pf prod) : ring_exp_m (ex_pf exp) := do
   p_pf <- lift $ mk_eq_refl p.pretty,
   ps_pf <- lift $ mk_eq_refl ps.pretty,
@@ -332,7 +330,7 @@ meta def ex_exp (p : ex_pf base) (ps : ex_pf prod) : ring_exp_m (ex_pf exp) := d
   m_hp <- lift $ mk_mapp ``monoid.has_pow [some ctx.info_b.α, none],
   pps_p <- lift $ mk_app ``has_pow.pow [m_hp, p.pretty, ps.pretty],
   pps_pf <- lift $ mk_app ``exp_congr [p.proof, ps.proof],
-  pure (ex.exp pps_p pps_pf (p.set_proof p_pf) (ps.set_proof ps_pf))
+  pure (ex.exp ⟨pps_p, pps_pf⟩ (p.set_proof p_pf) (ps.set_proof ps_pf))
 
 def base_to_exp_pf {p ps' : α} : p ^ 1 = ps' → p = ps' := by simp
 meta def base_to_exp (p : ex_pf base) : ring_exp_m (ex_pf exp) := do
@@ -360,14 +358,14 @@ meta def add_coeff (p q : coeff) : ring_exp_m (ex_pf prod) := do
   q' <- lift $ expr.of_rat ctx.info_b.α q.1,
   pq' <- lift $ mk_app ``has_add.add [p', q'],
   (pq_p, pq_pf) <- lift $ norm_num pq',
-  pure $ (ex.coeff pq_p pq_pf ⟨p.1 + q.1⟩)
+  pure $ (ex.coeff ⟨pq_p, pq_pf⟩ ⟨p.1 + q.1⟩)
 meta def mul_coeff (p q : coeff) : ring_exp_m (ex_pf prod) := do
   ctx <- get_context,
   p' <- lift $ expr.of_rat ctx.info_b.α p.1,
   q' <- lift $ expr.of_rat ctx.info_b.α q.1,
   pq' <- lift $ mk_app ``has_mul.mul [p', q'],
   (pq_p, pq_pf) <- lift $ norm_num pq',
-  pure $ (ex.coeff pq_p pq_pf ⟨p.1 * q.1⟩)
+  pure $ (ex.coeff ⟨pq_p, pq_pf⟩ ⟨p.1 * q.1⟩)
 
 meta inductive overlap : Type
 | none {} : overlap
@@ -384,16 +382,16 @@ def add_overlap_pf_zero {ps qs} (p : α) : ps + qs = 0 → p * ps + p * qs = 0 :
   ... = p * 0 : by rw pq_pf
   ... = 0 : mul_zero _
 meta def add_overlap : ex_pf prod → ex_pf prod → ring_exp_m overlap
-| (ex.coeff _ _ x) (ex.coeff _ _ y) := do
-  xy@(ex.coeff _ _ xy_c) <- add_coeff x y | lift $ fail "internal error: add_coeff should return ex.coeff",
+| (ex.coeff _ x) (ex.coeff _ y) := do
+  xy@(ex.coeff _ xy_c) <- add_coeff x y | lift $ fail "internal error: add_coeff should return ex.coeff",
   if xy_c.1 = 0
   then do
     z <- ex_zero,
     pure $ (overlap.zero (z.set_proof xy.proof))
   else pure $ overlap.nonzero xy
-| (ex.prod _ _ _ _) (ex.coeff _ _ _) := pure overlap.none
-| (ex.coeff _ _ _) (ex.prod _ _ _ _) := pure overlap.none
-| (ex.prod _ _ p ps) (ex.prod _ _ q qs) := if p.eq atom.eq q
+| (ex.prod _ _ _) (ex.coeff _ _) := pure overlap.none
+| (ex.coeff _ _) (ex.prod _ _ _) := pure overlap.none
+| (ex.prod _ p ps) (ex.prod _ q qs) := if p.eq atom.eq q
   then do
     pq_ol <- add_overlap ps qs,
     match pq_ol with
@@ -429,38 +427,37 @@ def add_pf_sum_lt {pps p ps qqs q qs pqs : α} :
 def add_pf_sum_gt {pps p ps qqs q qs pqs : α} :
   pps = p + ps → qqs = q + qs → pps + qs = pqs → pps + qqs = q + pqs := by cc
 meta def add : ex_pf sum → ex_pf sum → ring_exp_m (ex_pf sum)
-| (ex.zero ps_p ps_pf) qs := do
-  pf <- lift $ mk_app ``add_pf_z_sum [ps_pf, qs.proof],
+| ps@(ex.zero ps_i) qs := do
+  pf <- lift $ mk_app ``add_pf_z_sum [ps.proof, qs.proof],
   pure $ qs.set_proof pf
-| ps (ex.zero qs_p qs_pf) := do
-  pf <- lift $ mk_app ``add_pf_sum_z [ps.proof, qs_pf],
+| ps qs@(ex.zero qs_i) := do
+  pf <- lift $ mk_app ``add_pf_sum_z [ps.proof, qs.proof],
   pure $ ps.set_proof pf
-| pps@(ex.sum pps_p pps_pf p ps) qqs@(ex.sum qqs_p qqs_pf q qs) := do
+| pps@(ex.sum pps_i p ps) qqs@(ex.sum qqs_i q qs) := do
   ol <- add_overlap p q,
   match ol with
   | (overlap.nonzero pq) := do
     pqs <- add ps qs,
     pqqs <- ex_sum pq pqs,
-    pf <- lift $ mk_app ``add_pf_sum_overlap [pps_pf, qqs_pf, pq.proof, pqs.proof],
+    pf <- lift $ mk_app ``add_pf_sum_overlap [pps.proof, qqs.proof, pq.proof, pqs.proof],
     pure $ pqqs.set_proof pf
   | (overlap.zero pq) := do
     pqs <- add ps qs,
-    pf <- lift $ mk_app ``add_pf_sum_overlap_zero [pps_pf, qqs_pf, pq.proof, pqs.proof],
+    pf <- lift $ mk_app ``add_pf_sum_overlap_zero [pps.proof, qqs.proof, pq.proof, pqs.proof],
     pure $ pqs.set_proof pf
   | overlap.none := if p.lt atom.eq atom.lt q
   then do
     pqs <- add ps qqs,
     ppqs <- ex_sum p pqs,
-    pf <- lift $ mk_app ``add_pf_sum_lt [pps_pf, qqs_pf, pqs.proof],
+    pf <- lift $ mk_app ``add_pf_sum_lt [pps.proof, qqs.proof, pqs.proof],
     pure $ ppqs.set_proof pf
   else do
     pqs <- add pps qs,
     pqqs <- ex_sum q pqs,
-    pf <- lift $ mk_app ``add_pf_sum_gt [pps_pf, qqs_pf, pqs.proof],
+    pf <- lift $ mk_app ``add_pf_sum_gt [pps.proof, qqs.proof, pqs.proof],
     pure $ pqqs.set_proof pf
   end
 
--- TODO: this is the same structure as add, with some different names. Generalise?
 def mul_pf_c_c {ps ps' qs qs' pq : α} : ps = ps' → qs = qs' → ps' * qs' = pq → ps * qs = pq := by cc
 def mul_pf_c_prod {ps qqs q qs pqs : α} : qqs = q * qs → ps * qs = pqs → ps * qqs = q * pqs := by cc
 def mul_pf_prod_c {pps p ps qs pqs : α} : pps = p * ps → ps * qs = pqs → pps * qs = p * pqs := by cc
@@ -469,31 +466,31 @@ def mul_pp_pf_prod_lt {pps p ps qqs q qs pqs : α} :
 def mul_pp_pf_prod_gt {pps p ps qqs q qs pqs : α} :
   pps = p * ps → qqs = q * qs → pps * qs = pqs → pps * qqs = q * pqs := by cc
 meta def mul_pp : ex_pf prod → ex_pf prod → ring_exp_m (ex_pf prod)
-| (ex.coeff ps_p ps_pf x) (ex.coeff qs_p qs_pf y) := do
+| ps@(ex.coeff ps_i x) qs@(ex.coeff qs_i y) := do
   pq <- mul_coeff x y,
-  pf <- lift $ mk_app ``mul_pf_c_c [ps_pf, qs_pf, pq.proof],
+  pf <- lift $ mk_app ``mul_pf_c_c [ps.proof, qs.proof, pq.proof],
   pure $ pq.set_proof pf
-| ps@(ex.coeff ps_p ps_pf x) (ex.prod qqs_p qqs_pf q qs) := do
+| ps@(ex.coeff ps_i x) qqs@(ex.prod qqs_i q qs) := do
   pqs <- mul_pp ps qs,
   pqqs <- ex_prod q pqs,
-  pf <- lift $ mk_app ``mul_pf_c_prod [qqs_pf, pqs.proof],
+  pf <- lift $ mk_app ``mul_pf_c_prod [qqs.proof, pqs.proof],
   pure $ pqqs.set_proof pf
-| (ex.prod pps_p pps_pf p ps) qs@(ex.coeff qs_p qs_pf y) := do
+| pps@(ex.prod pps_i p ps) qs@(ex.coeff qs_i y) := do
   pqs <- mul_pp ps qs,
   ppqs <- ex_prod p pqs,
-  pf <- lift $ mk_app ``mul_pf_prod_c [pps_pf, pqs.proof],
+  pf <- lift $ mk_app ``mul_pf_prod_c [pps.proof, pqs.proof],
   pure $ ppqs.set_proof pf
-| pps@(ex.prod pps_p pps_pf p ps) qqs@(ex.prod qqs_p qqs_pf q qs) := do
+| pps@(ex.prod pps_i p ps) qqs@(ex.prod qqs_i q qs) := do
   if p.lt atom.eq atom.lt q
   then do
     pqs <- mul_pp ps qqs,
     ppqs <- ex_prod p pqs,
-    pf <- lift $ mk_app ``mul_pp_pf_prod_lt [pps_pf, qqs_pf, pqs.proof],
+    pf <- lift $ mk_app ``mul_pp_pf_prod_lt [pps.proof, qqs.proof, pqs.proof],
     pure $ ppqs.set_proof pf
   else do
     pqs <- mul_pp pps qs,
     pqqs <- ex_prod q pqs,
-    pf <- lift $ mk_app ``mul_pp_pf_prod_gt [pps_pf, qqs_pf, pqs.proof],
+    pf <- lift $ mk_app ``mul_pp_pf_prod_gt [pps.proof, qqs.proof, pqs.proof],
     pure $ pqqs.set_proof pf
 
 def mul_p_pf_zero {ps qs qs' : α} : ps = 0 → qs = qs' → ps * qs = 0 := λ ps_pf qs_pf, calc
@@ -505,15 +502,15 @@ def mul_p_pf_sum {pps p ps qs qs' ppsqs : α} : pps = p + ps → qs = qs' →
   ... = p * qs + ps * qs : add_mul _ _ _
   ... = ppsqs : ppsqs_pf
 meta def mul_p : ex_pf sum → ex_pf prod → ring_exp_m (ex_pf sum)
-| (ex.zero ps_p ps_pf) qs := do
+| ps@(ex.zero ps_i) qs := do
   z <- ex_zero,
-  pf <- lift $ mk_app ``mul_p_pf_zero [ps_pf, qs.proof],
+  pf <- lift $ mk_app ``mul_p_pf_zero [ps.proof, qs.proof],
   pure $ z.set_proof pf
-| (ex.sum pps_p pps_pf p ps) qs := do
+| pps@(ex.sum pps_i p ps) qs := do
   pqs <- mul_pp p qs >>= prod_to_sum,
   psqs <- mul_p ps qs,
   ppsqs <- add pqs psqs,
-  pf <- lift $ mk_app ``mul_p_pf_sum [pps_pf, qs.proof, ppsqs.proof],
+  pf <- lift $ mk_app ``mul_p_pf_sum [pps.proof, qs.proof, ppsqs.proof],
   pure $ ppsqs.set_proof pf
 
 def mul_pf_zero {ps ps' qs : α} : ps = ps' → qs = 0 → ps * qs = 0 := λ ps_pf qs_pf, calc
@@ -525,15 +522,15 @@ def mul_pf_sum {ps ps' qqs q qs psqqs : α} : ps = ps' → qqs = q + qs →
   ... = ps * q + ps * qs : mul_add _ _ _
   ... = psqqs : psqqs_pf
 meta def mul : ex_pf sum → ex_pf sum → ring_exp_m (ex_pf sum)
-| ps (ex.zero qs_p qs_pf) := do
+| ps qs@(ex.zero qs_i) := do
   z <- ex_zero,
-  pf <- lift $ mk_app ``mul_pf_zero [ps.proof, qs_pf],
+  pf <- lift $ mk_app ``mul_pf_zero [ps.proof, qs.proof],
   pure $ z.set_proof pf
-| ps (ex.sum qqs_p qqs_pf q qs) := do
+| ps qqs@(ex.sum qqs_i q qs) := do
   psq <- mul_p ps q,
   psqs <- mul ps qs,
   psqqs <- add psq psqs,
-  pf <- lift $ mk_app ``mul_pf_sum [ps.proof, qqs_pf, psqqs.proof],
+  pf <- lift $ mk_app ``mul_pf_sum [ps.proof, qqs.proof, psqqs.proof],
   pure $ psqqs.set_proof pf
 
 def pow_e_pf_var {pps p : α} {ps qs psqs : ℕ} : pps = p ^ ps → ps * qs = psqs → pps ^ qs = p ^ psqs := λ pps_pf psqs_pf, calc
@@ -545,10 +542,10 @@ def pow_e_pf_exp {pps p : α} {ps qs psqs : ℕ} : pps = p ^ ps → ps * qs = ps
   ... = p ^ (ps * qs) : symm (pow_mul _ _ _)
   ... = p ^ psqs : by rw [psqs_pf]
 meta def pow_e : ex_pf exp → ex_pf prod → ring_exp_m (ex_pf exp)
-| (ex.exp pps_p pps_pf p ps) qs := do
+| pps@(ex.exp pps_i p ps) qs := do
   psqs <- in_exponent $ mul_pp ps qs,
   ppsqs <- ex_exp p psqs,
-  pf <- lift $ mk_app ``pow_e_pf_exp [pps_pf, psqs.proof],
+  pf <- lift $ mk_app ``pow_e_pf_exp [pps.proof, psqs.proof],
   pure $ ppsqs.set_proof pf
 
 def pow_pp_pf_one {ps : α} {qs qs' : ℕ} : ps = 1 → qs = qs' → ps ^ qs = 1 := λ ps_pf qs_pf, calc
@@ -561,21 +558,21 @@ def pow_pp_pf_prod {pps p ps pqs psqs : α} {qs qs' : ℕ} : pps = p * ps → qs
     ... = p ^ qs * ps ^ qs : mul_pow _ _ _
     ... = pqs * psqs : by rw [pqs_pf, psqs_pf]
 meta def pow_pp : ex_pf prod → ex_pf prod → ring_exp_m (ex_pf prod)
-| (ex.coeff ps_p ps_pf ⟨⟨1, 1, _, _⟩⟩) qs := do
+| ps@(ex.coeff ps_i ⟨⟨1, 1, _, _⟩⟩) qs := do
   o <- ex_one,
-  pf <- lift $ mk_app ``pow_pp_pf_one [ps_pf, qs.proof],
+  pf <- lift $ mk_app ``pow_pp_pf_one [ps.proof, qs.proof],
   pure $ o.set_proof pf
-| (ex.coeff ps_p ps_pf x) qs := do
+| ps@(ex.coeff ps_i x) qs := do
   ps' <- ex_coeff x.1,
-  ps'' <- (prod_to_sum $ ps'.set_proof ps_pf) >>= ex_sum_b,
+  ps'' <- (prod_to_sum $ ps'.set_proof ps.proof) >>= ex_sum_b,
   pqs <- ex_exp ps'' qs,
-  pf <- lift $ mk_app ``pow_pp_pf_c [ps_pf, qs.proof, pqs.proof],
+  pf <- lift $ mk_app ``pow_pp_pf_c [ps.proof, qs.proof, pqs.proof],
   exp_to_prod $ pqs.set_proof pf
-| (ex.prod pps_p pps_pf p ps) qs := do
+| pps@(ex.prod pps_i p ps) qs := do
   pqs <- pow_e p qs,
   psqs <- pow_pp ps qs,
   ppsqs <- ex_prod pqs psqs,
-  pf <- lift $ mk_app ``pow_pp_pf_prod [pps_pf, qs.proof, pqs.proof, psqs.proof],
+  pf <- lift $ mk_app ``pow_pp_pf_prod [pps.proof, qs.proof, pqs.proof, psqs.proof],
   pure $ ppsqs.set_proof pf
 
 def pow_p_pf_one {ps ps' : α} {qs : ℕ} : ps = ps' → qs = succ zero → ps ^ qs = ps' := λ ps_pf qs_pf, calc
@@ -591,22 +588,22 @@ def pow_p_pf_succ {ps ps' pqqs : α} {qs qs' : ℕ} : ps = ps' → qs = succ qs'
 def pow_p_pf_singleton {pps p pqs : α} {qs : ℕ} : pps = p + 0 → p ^ qs = pqs → pps ^ qs = pqs := λ pps_pf pqs_pf, by rw [pps_pf, add_zero, pqs_pf]
 def pow_p_pf_cons {ps ps' : α} {qs qs' : ℕ} : ps = ps' → qs = qs' → ps ^ qs = ps' ^ qs' := by cc
 meta def pow_p : ex_pf sum → ex_pf prod → ring_exp_m (ex_pf sum)
-| ps (ex.coeff qs_p qs_pf ⟨⟨1, 1, _, _⟩⟩) := do
-  pf <- lift $ mk_app ``pow_p_pf_one [ps.proof, qs_pf],
+| ps qs@(ex.coeff qs_i ⟨⟨1, 1, _, _⟩⟩) := do
+  pf <- lift $ mk_app ``pow_p_pf_one [ps.proof, qs.proof],
   pure $ ps.set_proof pf
-| (ex.zero ps_p ps_pf) (ex.coeff qs_p qs_pf y) := do
+| ps@(ex.zero ps_i) qs@(ex.coeff qs_i y) := do
   z <- ex_zero,
-  pf <- lift $ mk_app ``pow_p_pf_zero [ps_pf, qs_pf],
+  pf <- lift $ mk_app ``pow_p_pf_zero [ps.proof, qs.proof],
   pure $ z.set_proof pf
-| ps (ex.coeff qs_p qs_pf ⟨⟨int.of_nat (succ n), 1, den_pos, _⟩⟩) := do
+| ps qs@(ex.coeff qs_i ⟨⟨int.of_nat (succ n), 1, den_pos, _⟩⟩) := do
   qs' <- in_exponent $ ex_coeff ⟨int.of_nat n, 1, den_pos, coprime_one_right _⟩,
   pqs <- pow_p ps qs',
   pqqs <- mul ps pqs,
-  pf <- lift $ mk_app ``pow_p_pf_succ [ps.proof, qs_pf, pqqs.proof],
+  pf <- lift $ mk_app ``pow_p_pf_succ [ps.proof, qs.proof, pqqs.proof],
   pure $ pqqs.set_proof pf
-| (ex.sum pps_p pps_pf p (ex.zero _ _)) qqs := do
+| pps@(ex.sum pps_i p (ex.zero _)) qqs := do
   pqs <- pow_pp p qqs,
-  pf <- lift $ mk_app ``pow_p_pf_singleton [pps_pf, pqs.proof],
+  pf <- lift $ mk_app ``pow_p_pf_singleton [pps.proof, pqs.proof],
   prod_to_sum $ pqs.set_proof pf
 | pps qqs := do -- fallback: treat them as atoms
   pps' <- ex_sum_b pps,
@@ -623,15 +620,15 @@ def pow_pf_sum {ps ps' psqqs : α} {qqs q qs : ℕ} : ps = ps' → qqs = q + qs 
     ... = ps ^ q * ps ^ qs : pow_add _ _ _
     ... = psqqs : psqqs_pf
 meta def pow : ex_pf sum → ex_pf sum → ring_exp_m (ex_pf sum)
-| ps (ex.zero qs_p qs_pf) := do
+| ps qs@(ex.zero qs_i) := do
   o <- ex_one,
-  pf <- lift $ mk_app ``pow_pf_zero [ps.proof, qs_pf],
+  pf <- lift $ mk_app ``pow_pf_zero [ps.proof, qs.proof],
   prod_to_sum $ o.set_proof pf
-| ps (ex.sum qqs_p qqs_pf q qs) := do
+| ps qqs@(ex.sum qqs_i q qs) := do
   psq <- pow_p ps q,
   psqs <- pow ps qs,
   psqqs <- mul psq psqs,
-  pf <- lift $ mk_app ``pow_pf_sum [ps.proof, qqs_pf, psqqs.proof],
+  pf <- lift $ mk_app ``pow_pf_sum [ps.proof, qqs.proof, psqqs.proof],
   pure $ psqqs.set_proof pf
 
 def negate_pf {α} {ps ps' : α} [comm_ring α] : (-1) * ps = ps' → -ps = ps' := by simp
@@ -822,7 +819,8 @@ example (n : ℕ) (m : ℤ) : 2^(n+1) * m = 2 * 2^n * m := by ring_exp
 example (n m : ℕ) (a : ℤ) : (a ^ n)^m = a^(n * m) := by ring_exp
 example (n m : ℕ) (a : ℤ) : a^(n^0) = a^1 := by ring_exp
 example (n : ℕ) : 0^(n + 1) = 0 := by ring_exp
-example [comm_ring α] (x : α) : x ^ (k + 2) = x * x * x^k := by ring_exp,
+def bla₁ {α} [comm_ring α] (x : α) (k : ℕ) : x ^ (k + 2) = x * x * x^k := by ring_exp
+#print bla₁
 -- Powers of sums
 example (a b : ℤ) : (a + b)^2 = a^2 + b^2 + a * b + b * a := by ring_exp
 example (a b : ℤ) (n : ℕ) : (a + b)^(n + 2) = (a^2 + b^2 + a * b + b * a) * (a + b)^n := by ring_exp

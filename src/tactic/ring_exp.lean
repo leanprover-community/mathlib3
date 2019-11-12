@@ -775,7 +775,7 @@ meta def eval : expr → ring_exp_m (ex_pf sum)
   psqs <- pow ps' qs',
   psqs_pf <- psqs.proof_term,
   pf <- lift $ mk_eq_trans has_pow_pf psqs_pf,
-  pure $ psqs.set_proof pf) <|> eval_atom ps
+  pure $ psqs.set_proof pf) <|> eval_atom p'
 | ps := eval_atom ps
 
 meta def eval_with_proof (e : expr) : ring_exp_m (ex_pf sum × expr) := do
@@ -877,7 +877,11 @@ example (n : ℕ) (m : ℤ) : 2^(n+1) * m = 2 * 2^n * m := by ring_exp
 example (n m : ℕ) (a : ℤ) : (a ^ n)^m = a^(n * m) := by ring_exp
 example (n m : ℕ) (a : ℤ) : a^(n^0) = a^1 := by ring_exp
 example (n : ℕ) : 0^(n + 1) = 0 := by ring_exp
-def bla₁ {α} [comm_ring α] (x : α) (k : ℕ) : x ^ (k + 2) = x * x * x^k := by ring_exp
+example {α} [comm_ring α] (x : α) (k : ℕ) : x ^ (k + 2) = x * x * x^k := by ring_exp
+example {α} [comm_ring α] (k : ℕ) (x y z : α) :
+  x * (z * (x - y)) + (x * (y * y ^ k) - y * (y * y ^ k)) = (z * x + y * y ^ k) * (x - y)
+:= by ring_exp
+
 -- Powers of sums
 example (a b : ℤ) : (a + b)^2 = a^2 + b^2 + a * b + b * a := by ring_exp
 example (a b : ℤ) (n : ℕ) : (a + b)^(n + 2) = (a^2 + b^2 + a * b + b * a) * (a + b)^n := by ring_exp

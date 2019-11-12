@@ -356,6 +356,24 @@ by apply_instance
 
 end lattice
 
+namespace monotone
+
+open lattice
+
+variables {α : Type u} {β : Type v}
+
+lemma le_map_sup [semilattice_sup α] [semilattice_sup β]
+  {f : α → β} (h : monotone f) (x y : α) :
+  f x ⊔ f y ≤ f (x ⊔ y) :=
+sup_le (h le_sup_left) (h le_sup_right)
+
+lemma map_inf_le [semilattice_inf α] [semilattice_inf β]
+  {f : α → β} (h : monotone f) (x y : α) :
+  f (x ⊓ y) ≤ f x ⊓ f y :=
+le_inf (h inf_le_left) (h inf_le_right)
+
+end monotone
+
 namespace order_dual
 open lattice
 variable (α : Type*)

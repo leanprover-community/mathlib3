@@ -171,7 +171,7 @@ by by_cases p; simp [h, is_measurable.empty]; apply is_measurable.univ
 
 end
 
-@[extensionality] lemma measurable_space.ext :
+@[ext] lemma measurable_space.ext :
   ∀{m₁ m₂ : measurable_space α}, (∀s:set α, m₁.is_measurable s ↔ m₂.is_measurable s) → m₁ = m₂
 | ⟨s₁, _, _, _⟩ ⟨s₂, _, _, _⟩ h :=
   have s₁ = s₂, from funext $ assume x, propext $ h x,
@@ -256,7 +256,7 @@ let b : measurable_space α :=
         (hf i).elim (by simp {contextual := tt}) (assume hi, false.elim $ h ⟨i, hi⟩)) } in
 have b = ⊥, from bot_unique $ assume s hs,
   hs.elim (assume s, s.symm ▸ @is_measurable_empty _ ⊥) (assume s, s.symm ▸ @is_measurable.univ _ ⊥),
-this ▸ iff.refl _
+this ▸ iff.rfl
 
 @[simp] theorem is_measurable_top {s : set α} : @is_measurable _ ⊤ s := trivial
 
@@ -821,7 +821,7 @@ end
 
 namespace dynkin_system
 
-@[extensionality] lemma ext :
+@[ext] lemma ext :
   ∀{d₁ d₂ : dynkin_system α}, (∀s:set α, d₁.has s ↔ d₂.has s) → d₁ = d₂
 | ⟨s₁, _, _, _⟩ ⟨s₂, _, _, _⟩ h :=
   have s₁ = s₂, from funext $ assume x, propext $ h x,

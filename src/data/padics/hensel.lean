@@ -31,7 +31,7 @@ p-adic, p adic, padic, p-adic integer
 
 noncomputable theory
 
-open_locale classical
+open_locale classical topological_space
 
 -- We begin with some general lemmas that are used below in the computation.
 
@@ -45,7 +45,7 @@ let ⟨z, hz⟩ := F.eval_sub_factor x y in calc
 open filter metric
 
 private lemma comp_tendsto_lim {p : ℕ} [p.prime] {F : polynomial ℤ_[p]} (ncs : cau_seq ℤ_[p] norm) :
-  tendsto (λ i, F.eval (ncs i)) at_top (nhds (F.eval ncs.lim)) :=
+  tendsto (λ i, F.eval (ncs i)) at_top (𝓝 (F.eval ncs.lim)) :=
 @tendsto.comp _ _ _ ncs
   (λ k, F.eval k)
   _ _ _
@@ -57,11 +57,11 @@ parameters {p : ℕ} [nat.prime p] {ncs : cau_seq ℤ_[p] norm} {F : polynomial 
 include ncs_der_val
 
 private lemma ncs_tendsto_const :
-  tendsto (λ i, ∥F.derivative.eval (ncs i)∥) at_top (nhds ∥F.derivative.eval a∥) :=
+  tendsto (λ i, ∥F.derivative.eval (ncs i)∥) at_top (𝓝 ∥F.derivative.eval a∥) :=
 by convert tendsto_const_nhds; ext; rw ncs_der_val
 
 private lemma ncs_tendsto_lim :
-  tendsto (λ i, ∥F.derivative.eval (ncs i)∥) at_top (nhds (∥F.derivative.eval ncs.lim∥)) :=
+  tendsto (λ i, ∥F.derivative.eval (ncs i)∥) at_top (𝓝 (∥F.derivative.eval ncs.lim∥)) :=
 tendsto.comp (continuous_iff_continuous_at.1 continuous_norm _) (comp_tendsto_lim _)
 
 private lemma norm_deriv_eq : ∥F.derivative.eval ncs.lim∥ = ∥F.derivative.eval a∥ :=
@@ -71,10 +71,10 @@ end
 
 section
 parameters {p : ℕ} [nat.prime p] {ncs : cau_seq ℤ_[p] norm} {F : polynomial ℤ_[p]}
-           (hnorm : tendsto (λ i, ∥F.eval (ncs i)∥) at_top (nhds 0))
+           (hnorm : tendsto (λ i, ∥F.eval (ncs i)∥) at_top (𝓝 0))
 include hnorm
 
-private lemma tendsto_zero_of_norm_tendsto_zero : tendsto (λ i, F.eval (ncs i)) at_top (nhds 0) :=
+private lemma tendsto_zero_of_norm_tendsto_zero : tendsto (λ i, F.eval (ncs i)) at_top (𝓝 0) :=
 tendsto_iff_norm_tendsto_zero.2 (by simpa using hnorm)
 
 lemma limit_zero_of_norm_tendsto_zero : F.eval ncs.lim = 0 :=
@@ -299,7 +299,7 @@ private lemma newton_seq_dist_to_a : ∀ n : ℕ, 0 < n → ∥newton_seq n - a�
 ... = ∥newton_seq (k+1) - a∥ : max_eq_right_of_lt hlt
 ... = ∥polynomial.eval a F∥ / ∥polynomial.eval a (polynomial.derivative F)∥ : newton_seq_dist_to_a (k+1) (succ_pos _)
 
-private lemma bound' : tendsto (λ n : ℕ, ∥F.derivative.eval a∥ * T^(2^n)) at_top (nhds 0) :=
+private lemma bound' : tendsto (λ n : ℕ, ∥F.derivative.eval a∥ * T^(2^n)) at_top (𝓝 0) :=
 begin
   rw ←mul_zero (∥F.derivative.eval a∥),
   exact tendsto_mul (tendsto_const_nhds)
@@ -320,7 +320,7 @@ begin
   simpa [normed_field.norm_mul, real.norm_eq_abs, abs_of_nonneg (mtn n)] using hN _ hn
 end
 
-private lemma bound'_sq : tendsto (λ n : ℕ, ∥F.derivative.eval a∥^2 * T^(2^n)) at_top (nhds 0) :=
+private lemma bound'_sq : tendsto (λ n : ℕ, ∥F.derivative.eval a∥^2 * T^(2^n)) at_top (𝓝 0) :=
 begin
   rw [←mul_zero (∥F.derivative.eval a∥), _root_.pow_two],
   simp only [mul_assoc],
@@ -351,18 +351,18 @@ setoid.symm (cau_seq.equiv_lim newton_cau_seq) _ hε
 private lemma soln_deriv_norm : ∥F.derivative.eval soln∥ = ∥F.derivative.eval a∥ :=
 norm_deriv_eq newton_seq_deriv_norm
 
-private lemma newton_seq_norm_tendsto_zero : tendsto (λ i, ∥F.eval (newton_cau_seq i)∥) at_top (nhds 0) :=
+private lemma newton_seq_norm_tendsto_zero : tendsto (λ i, ∥F.eval (newton_cau_seq i)∥) at_top (𝓝 0) :=
 squeeze_zero (λ _, norm_nonneg _) newton_seq_norm_le bound'_sq
 
 private lemma newton_seq_dist_tendsto :
-  tendsto (λ n, ∥newton_cau_seq n - a∥) at_top (nhds (∥F.eval a∥ / ∥F.derivative.eval a∥)) :=
+  tendsto (λ n, ∥newton_cau_seq n - a∥) at_top (𝓝 (∥F.eval a∥ / ∥F.derivative.eval a∥)) :=
 tendsto.congr'
   (suffices ∃ k, ∀ n ≥ k,  ∥F.eval a∥ / ∥F.derivative.eval a∥ = ∥newton_cau_seq n - a∥, by simpa,
     ⟨1, λ _ hx, (newton_seq_dist_to_a _ hx).symm⟩)
   (tendsto_const_nhds)
 
 private lemma newton_seq_dist_tendsto' :
-  tendsto (λ n, ∥newton_cau_seq n - a∥) at_top (nhds ∥soln - a∥) :=
+  tendsto (λ n, ∥newton_cau_seq n - a∥) at_top (𝓝 ∥soln - a∥) :=
 tendsto.comp (continuous_iff_continuous_at.1 continuous_norm _)
              (tendsto_sub (tendsto_limit _) tendsto_const_nhds)
 

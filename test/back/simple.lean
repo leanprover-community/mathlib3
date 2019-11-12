@@ -1,30 +1,30 @@
 import tactic.back.interactive
 
+-- attribute [back] congr_arg congr_fun iff.mpr iff.mp implies.trans
+attribute [back] implies.trans
+
 -- set_option trace.back true
 
 axiom ax {n k : ℕ} : n = k
 
-@[back] axiom ax2 {m : ℤ} : m = -1
-
 example {n : ℕ} (h : n = 1) : n = 1 :=
 begin
   back,
-end
-
-example {n : ℤ} (h : n = 1) (h' : n = 3) : n = -1 :=
-begin
-  back,
+  -- exact h
 end
 
 example {n : ℕ} (h : n = 1) : n = 2 :=
 begin
   back [ax],
+  -- exact ax
 end
 
 example {n : ℕ} (h : n = 1) : n = 2 ∧ n = 1 :=
 begin
   split,
   back [ax]
+  -- exact ax
+  -- exact h
 end
 
 example {n : ℕ} (h : n = 1000 + 200) : n = 1 + 199 + 1000 ∧ 1000 + 200 = 1 + 199 + 1000 :=
@@ -37,4 +37,21 @@ example {n k : ℕ} (h₁ : n = 1) (h₂ : k = 2) : n = 1 ∧ k = 2 :=
 begin
   split,
   back,
+end
+
+example {p q r s : Prop} (h₁ : ∀ a, (a → q) → (r → s)) (h₂ : p → r) (h₃ : r → q) : p → s :=
+begin
+  back?
+  -- apply implies.trans,
+  -- apply h₂,
+  -- apply h₁,
+  -- apply h₃,
+end
+
+@[back] axiom ax2 {m : ℤ} : m = -1
+
+example {n : ℤ} (h : n = 1) (h' : n = 3) : n = -1 :=
+begin
+  back,
+  -- exact ax2
 end

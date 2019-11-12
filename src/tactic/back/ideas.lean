@@ -90,10 +90,9 @@ meta def init (cfg : config) (_ : expr) : option (tactic unit) × ℕ × debug_m
 
 meta def expand_graph (ts : tactic_state) (e : expr)
   : ℕ → filter_graph → tactic (list (tactic unit × ℕ))
-| p₁ (filter_graph.leaf p₂ t) := return [(t, p₁ + p₂)]
+| p₁ (filter_graph.leaf p₂ t)   := return [(t, p₁ + p₂)]
 | p₁ (filter_graph.vertex p₂ l) := list.join <$> (l.mmap $ expand_graph (p₁ + p₂))
-| p₁ (filter_graph.filter f n) :=
-  mcond (f ts e) (expand_graph p₁ n) (return [])
+| p₁ (filter_graph.filter f n)  := mcond (f ts e) (expand_graph p₁ n) (return [])
 
 meta def step (cfg : config) (ts : tactic_state) (e : expr)
   : option (tactic unit) → tactic (list (option (tactic unit) × ℕ × debug_msg) × list tactic_state)

@@ -21,8 +21,8 @@ do let (g, gs) := n.most_promising,
    | none := tactic.fail "node has no goals"
    | some g :=
      do when_btrace $ do {
-          ppg ← tactic.pp g,
-          ppgs ← tactic.pp gs,
+          ppg ← g.to_format n.ts,
+          ppgs ← gs.mmap $ λ g, g.to_format n.ts,
           tactic.trace format!"explore_node {ppg}:\n  others={ppgs}"
         },
 
@@ -34,8 +34,8 @@ do let (g, gs) := n.most_promising,
         lg ← lg.mmap $ n.with_tactic_state i gs,
 
         when_btrace $ do {
-          ppls ← tactic.pp ls,
-          pplg ← tactic.pp lg,
+          ppls ← string.intercalate "\n      " <$> (ls.mmap $ λ s, to_string <$> tactic.pp s),
+          pplg ← string.intercalate "\n      " <$> (lg.mmap $ λ s, to_string <$> tactic.pp s),
           tactic.trace format!"end explore:\n  ls={ppls},\n  lg={pplg}\n"
         },
 
@@ -69,8 +69,12 @@ meta def idea_list : list idea := [
 
 meta def search (cfg : config) : tactic unit :=
 udescend.{2} $
-do ulift.up i ← uraise.{1} $ inst.of_brain (brains.queue idea_list) cfg,
+do ulift.up gs ← uraise get_goals,
+
+   ulift.up i ← uraise.{1} $ inst.of_brain (brains.queue idea_list) cfg,
    ulift.up n ← uraise.{2} $ initial_node i,
-   uraise $ loop i [n] >>= interaction_monad.set_state
+   uraise $ loop i [n] >>= interaction_monad.set_state,
+
+   uraise $ gs.mmap' $ λ e, instantiate_mvars e >>= pp >>= λ fmt, trace format!"exact {fmt}\n"
 
 end back

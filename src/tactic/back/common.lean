@@ -8,12 +8,26 @@ open tactic
 
 declare_trace back
 
-meta def btrace (fmt : format) : tactic (ulift unit) :=
-uraise $ tactic.when_tracing `back (tactic.trace fmt)
+meta def is_btrace_enabled : tactic bool :=
+(λ o, options.get_bool o `trace.back ff) <$> get_options
+
+meta def save_tracing (state : bool) : tactic bool :=
+do o ← get_options,
+   let prev := o.get_bool `trace.back ff,
+   set_options $ o.set_bool `trace.back state,
+   return prev
+
+meta def restore_tracing (state : bool) : tactic unit :=
+do o ← get_options,
+   set_options $ o.set_bool `trace.back state
 
 meta def when_btrace (t : tactic unit) : tactic (ulift.{u} unit) :=
-if tactic.is_trace_enabled_for `back then uraise t >> uskip
-else uskip
+do ulift.up r ← uraise is_btrace_enabled,
+   if r then uraise t >> uskip
+   else uskip
+
+meta def btrace (fmt : format) : tactic (ulift unit) :=
+when_btrace (tactic.trace fmt)
 
 meta def debug_msg := option (unit → tactic format)
 
@@ -52,10 +66,10 @@ meta structure thought :=
 
 meta structure goal (γ : Type) :=
 (mvar : expr)
-(penalty : ℕ)
-(t : thought)
-(state : t.id.α)
 (mem : γ)
+(t : thought)
+(penalty : ℕ)
+(state : t.id.α)
 (debug : debug_msg)
 
 variables {γ : Type}
@@ -64,7 +78,7 @@ namespace thought
 
 meta def init : Π (t : thought), γ → expr → goal γ
 | t@⟨(@idea.mk _ _ _ _ vinit _), data⟩ mem :=
-λ e, let (state, penalty, debug) := vinit data e in ⟨e, penalty, t, state, mem, debug⟩
+λ e, let (state, penalty, debug) := vinit data e in ⟨e, mem, t, penalty, state, debug⟩
 
 meta def step : Π (t : thought),
   tactic_state → expr → t.id.α → tactic (list (t.id.α × ℕ × debug_msg) × list tactic_state)
@@ -159,16 +173,15 @@ end node
 
 section debug
 
-meta instance goal.has_to_tactic_format : has_to_tactic_format (goal γ) := ⟨λ g,
-  do mvar ← tactic.infer_type g.mvar >>= tactic.pp,
-     match g.debug with
-     | none := return format!"{{`{mvar}`@({g.penalty})}"
-     | some t := do msg ← t (), return format!"{{`{mvar}`@({g.penalty})#{msg}}"
-     end
-⟩
+meta def goal.to_format (g : goal γ) (ts : tactic_state) : tactic format :=
+do mvar ← interaction_monad.under_state ts $ tactic.infer_type g.mvar >>= tactic.pp,
+   match g.debug with
+   | none := return format!"{{`{mvar}`@({g.penalty})}"
+   | some t := do msg ← t (), return format!"{{`{mvar}`@({g.penalty})#{msg}}"
+   end
 
 meta instance node.has_to_tactic_format : has_to_tactic_format (node γ) := ⟨λ n,
-  do gs ← tactic.pp n.goals,
+  do gs ← n.goals.mmap $ λ g, g.to_format n.ts,
      return format!"{gs}@({n.penalty})"
 ⟩
 

@@ -252,6 +252,11 @@ lemma map_mul (f : α ≃* β) :  ∀ x y : α, f (x * y) = f x * f y := f.map_m
 @[to_additive]
 instance (h : α ≃* β) : is_mul_hom h := ⟨h.map_mul⟩
 
+/-- Makes a multiplicative isomorphism from a bijection which preserves multiplication. -/
+@[to_additive]
+def mk' (f : α ≃ β) (h : ∀ x y, f (x * y) = f x * f y) : α ≃* β :=
+⟨f.1, f.2, f.3, f.4, h⟩
+
 /-- The identity map is a multiplicative isomorphism. -/
 @[refl, to_additive]
 def refl (α : Type*) [has_mul α] : α ≃* α :=
@@ -518,6 +523,12 @@ variables [semiring α] [semiring β]
 def to_ring_hom (e : α ≃+* β) : α →+* β :=
 { .. e.to_mul_equiv.to_monoid_hom, .. e.to_add_equiv.to_add_monoid_hom }
 
+/-- Reinterpret a ring equivalence as a monoid homomorphism. -/
+abbreviation to_monoid_hom (e : α ≃+* β) : α →* β := e.to_ring_hom.to_monoid_hom
+
+/-- Reinterpret a ring equivalence as an `add_monoid` homomorphism. -/
+abbreviation to_add_monoid_hom (e : α ≃+* β) : α →+ β := e.to_ring_hom.to_add_monoid_hom
+
 /-- Interpret an equivalence `f : α ≃ β` as a ring equivalence `α ≃+* β`. -/
 def of (e : α ≃ β) [is_semiring_hom e] : α ≃+* β :=
 { .. e, .. monoid_hom.of e, .. add_monoid_hom.of e }
@@ -535,6 +546,33 @@ lemma symm_to_ring_hom_apply_to_ring_hom_apply {α β} [semiring α] [semiring �
 equiv.symm_apply_apply (e.to_equiv)
 
 end semiring_hom
+
+end ring_equiv
+
+namespace mul_equiv
+
+/-- Gives an `is_semiring_hom` instance from a `mul_equiv` of semirings that preserves addition. -/
+protected lemma to_semiring_hom {R : Type*} {S : Type*} [semiring R] [semiring S]
+  (h : R ≃* S) (H : ∀ x y : R, h (x + y) = h x + h y) : is_semiring_hom h :=
+⟨add_equiv.map_zero $ add_equiv.mk' h.to_equiv H, h.map_one, H, h.5⟩
+
+/-- Gives a `ring_equiv` from a `mul_equiv` preserving addition.-/
+def to_ring_equiv {R : Type*} {S : Type*} [has_add R] [has_add S] [has_mul R] [has_mul S]
+  (h : R ≃* S) (H : ∀ x y : R, h (x + y) = h x + h y) : R ≃+* S :=
+{..h.to_equiv, ..h, ..add_equiv.mk' h.to_equiv H }
+
+end mul_equiv
+
+namespace add_equiv
+
+/-- Gives an `is_semiring_hom` instance from a `mul_equiv` of semirings that preserves addition. -/
+protected lemma to_semiring_hom {R : Type*} {S : Type*} [semiring R] [semiring S]
+  (h : R ≃+ S) (H : ∀ x y : R, h (x * y) = h x * h y) : is_semiring_hom h :=
+⟨h.map_zero, mul_equiv.map_one $ mul_equiv.mk' h.to_equiv H, h.5, H⟩
+
+end add_equiv
+
+namespace ring_equiv
 
 section ring_hom
 

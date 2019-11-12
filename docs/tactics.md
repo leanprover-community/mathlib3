@@ -352,7 +352,7 @@ unless they are explicitly included.
 ### ext1 / ext
 
  * `ext1 id` selects and apply one extensionality lemma (with
-    attribute `extensionality`), using `id`, if provided, to name a
+    attribute `ext`), using `id`, if provided, to name a
     local constant introduced by the lemma. If `id` is omitted, the
     local constant is named automatically, as per `intro`.
 
@@ -383,12 +383,12 @@ by applying functional extensionality and set extensionality.
 
 A maximum depth can be provided with `ext x y z : 3`.
 
-### The `extensionality` attribute
+### The `ext` attribute
 
  Tag lemmas of the form:
 
  ```lean
- @[extensionality]
+ @[ext]
  lemma my_collection.ext (a b : my_collection)
    (h : ∀ x, a.lookup x = b.lookup y) :
    a = b := ...
@@ -400,32 +400,32 @@ A maximum depth can be provided with `ext x y z : 3`.
  extensionality of multiple types that are definitionally equivalent.
 
  ```lean
- attribute [extensionality [(→),thunk,stream]] funext
+ attribute [ext [(→),thunk,stream]] funext
  ```
 
  Those parameters are cumulative. The following are equivalent:
 
  ```lean
- attribute [extensionality [(→),thunk]] funext
- attribute [extensionality [stream]] funext
+ attribute [ext [(→),thunk]] funext
+ attribute [ext [stream]] funext
  ```
 
  and
 
  ```lean
- attribute [extensionality [(→),thunk,stream]] funext
+ attribute [ext [(→),thunk,stream]] funext
  ```
 
  One removes type names from the list for one lemma with:
 
  ```lean
- attribute [extensionality [-stream,-thunk]] funext
+ attribute [ext [-stream,-thunk]] funext
  ```
 
- Finally, the following:
+ Also, the following:
 
  ```lean
- @[extensionality]
+ @[ext]
  lemma my_collection.ext (a b : my_collection)
    (h : ∀ x, a.lookup x = b.lookup y) :
    a = b := ...
@@ -434,7 +434,7 @@ A maximum depth can be provided with `ext x y z : 3`.
  is equivalent to
 
  ```lean
- @[extensionality *]
+ @[ext *]
  lemma my_collection.ext (a b : my_collection)
    (h : ∀ x, a.lookup x = b.lookup y) :
    a = b := ...
@@ -447,12 +447,30 @@ A maximum depth can be provided with `ext x y z : 3`.
  that referred to in the lemma statement.
 
  ```lean
- @[extensionality [*,my_type_synonym]]
+ @[ext [*,my_type_synonym]]
  lemma my_collection.ext (a b : my_collection)
    (h : ∀ x, a.lookup x = b.lookup y) :
    a = b := ...
  ```
 
+ Attribute `ext` can be applied to a structure to generate its extensionality lemma:
+
+ ```
+ @[ext]
+ structure foo (α : Type*) :=
+ (x y : ℕ)
+ (z : {z // z < x})
+ (k : α)
+ (h : x < y)
+ ```
+
+ will generate:
+
+ ```
+ @[ext] lemma foo.ext : ∀ {α : Type u_1} (x y : foo α), x.x = y.x → x.y = y.y → x.z == y.z → x.k = y.k → x = y
+ lemma foo.ext_iff : ∀ {α : Type u_1} (x y : foo α), x = y ↔ x.x = y.x ∧ x.y = y.y ∧ x.z == y.z ∧ x.k = y.k
+ ```
+ 
 ### refine_struct
 
 `refine_struct { .. }` acts like `refine` but works only with structure instance
@@ -1053,6 +1071,13 @@ int.cast_coe_nat : ∀ (n : ℕ), ↑↑n = ↑n
 int.cats_id : int.cast_id : ∀ (n : ℤ), ↑n = n
 ```
 
+`push_cast` rewrites the expression to move casts toward the leaf nodes.
+This uses `move_cast` lemmas in the "forward" direction.
+For example, `↑(a + b)` will be written to `↑a + ↑b`.
+It is equivalent to `simp only with push_cast`, and can also be used at hypotheses
+with `push_cast at h`.
+
+
 ### convert_to
 
 `convert_to g using n` attempts to change the current goal to `g`, but unlike `change`,
@@ -1175,7 +1200,7 @@ attribute [simp, reassoc] some_class.bar
 Instead of creating a new assumption from the result, `reassoc_of h` stands for the proof of that reassociated
 statement. This prevents poluting the local context with complicated assumptions used only once or twice.
 
-In the following, assumption `h` is needed in a reassociated form. Instead of proving it as a new goal and adding it as 
+In the following, assumption `h` is needed in a reassociated form. Instead of proving it as a new goal and adding it as
 an assumption, we use `reassoc_of h` as a rewrite rule which works just as well.
 
 ```lean
@@ -1189,7 +1214,7 @@ begin
 end
 ```
 
-Although `reassoc_of` is not a tactic or a meta program, its type is generated 
+Although `reassoc_of` is not a tactic or a meta program, its type is generated
 through meta-programming to make it usable inside normal expressions.
 
 ### lint
@@ -1283,24 +1308,32 @@ See also additional documentation of `using_well_founded` in
 ### simps
 
 * The `@[simps]` attribute automatically derives lemmas specifying the projections of the declaration.
-* Example:
+* Example: (note that the forward and reverse functions are specified differently!)
   ```lean
-  @[simps] def refl (α) : α ≃ α := ⟨id, id, λ x, rfl, λ x, rfl⟩
+  @[simps] def refl (α) : α ≃ α := ⟨id, λ x, x, λ x, rfl, λ x, rfl⟩
   ```
   derives two simp-lemmas:
   ```lean
-  @[simp] lemma refl_to_fun (α) : (refl α).to_fun = id
-  @[simp] lemma refl_inv_fun (α) : (refl α).inv_fun = id
+  @[simp] lemma refl_to_fun (α) (x : α) : (refl α).to_fun x = id x
+  @[simp] lemma refl_inv_fun (α) (x : α) : (refl α).inv_fun x = x
   ```
 * It does not derive simp-lemmas for the prop-valued projections.
 * It will automatically reduce newly created beta-redexes, but not unfold any definitions.
 * If one of the fields itself is a structure, this command will recursively create
   simp-lemmas for all fields in that structure.
+* You can use `@[simps proj1 proj2 ...]` to only generate the projection lemmas for the specified
+  projections. For example:
+  ```lean
+  attribute [simps to_fun] refl
+  ```
 * If one of the values is an eta-expanded structure, we will eta-reduce this structure.
 * You can use `@[simps lemmas_only]` to derive the lemmas, but not mark them
   as simp-lemmas.
+* You can use `@[simps short_name]` to only use the name of the last projection for the name of the
+  generated lemmas.
+* The precise syntax is `('simps' 'lemmas_only'? 'short_name'? ident*)`.
 * If one of the projections is marked as a coercion, the generated lemmas do *not* use this
   coercion.
+* `@[simps]` reduces let-expressions where necessary.
 * If one of the fields is a partially applied constructor, we will eta-expand it
   (this likely never happens).
-* `@[simps]` reduces let-expressions where necessary.

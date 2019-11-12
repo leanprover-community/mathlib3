@@ -51,6 +51,7 @@ usual formulas (and existence assertions) for the derivative of
 import analysis.asymptotics analysis.calculus.tangent_cone
 
 open filter asymptotics continuous_linear_map set
+open_locale topological_space
 
 noncomputable theory
 local attribute [instance, priority 10] classical.decidable_inhabited classical.prop_decidable
@@ -66,7 +67,7 @@ variables {G : Type*} [normed_group G] [normed_space 𝕜 G]
 
 /-- A function `f` has the continuous linear map `f'` as derivative along the filter `L` if
 `f x' = f x + f' (x' - x) + o (x' - x)` when `x'` converges along the filter `L`. This definition
-is designed to be specialized for `L = nhds x` (in `has_fderiv_at`), giving rise to the usual notion
+is designed to be specialized for `L = 𝓝 x` (in `has_fderiv_at`), giving rise to the usual notion
 of Fréchet derivative, and for `L = nhds_within x s` (in `has_fderiv_within_at`), giving rise to
 the notion of Fréchet derivative along the set `s`. -/
 def has_fderiv_at_filter (f : E → F) (f' : E →L[𝕜] F) (x : E) (L : filter E) :=
@@ -80,7 +81,7 @@ has_fderiv_at_filter f f' x (nhds_within x s)
 /-- A function `f` has the continuous linear map `f'` as derivative at `x` if
 `f x' = f x + f' (x' - x) + o (x' - x)` when `x'` tends to `x`. -/
 def has_fderiv_at (f : E → F) (f' : E →L[𝕜] F) (x : E) :=
-has_fderiv_at_filter f f' x (nhds x)
+has_fderiv_at_filter f f' x (𝓝 x)
 
 variables (𝕜)
 
@@ -133,8 +134,8 @@ tangent cone related discussions. -/
 theorem has_fderiv_within_at.lim (h : has_fderiv_within_at f f' s x)
   {c : ℕ → 𝕜} {d : ℕ → E} {v : E} (dtop : {n : ℕ | x + d n ∈ s} ∈ (at_top : filter ℕ))
   (clim : tendsto (λ (n : ℕ), ∥c n∥) at_top at_top)
-  (cdlim : tendsto (λ (n : ℕ), c n • d n) at_top (nhds v)) :
-  tendsto (λn, c n • (f (x + d n) - f x)) at_top (nhds (f' v)) :=
+  (cdlim : tendsto (λ (n : ℕ), c n • d n) at_top (𝓝 v)) :
+  tendsto (λn, c n • (f (x + d n) - f x)) at_top (𝓝 (f' v)) :=
 begin
   have at_top_is_finer : at_top ≤ comap (λ (n : ℕ), x + d n) (nhds_within x s),
   { conv in (nhds_within x s) { rw ← add_zero x },
@@ -153,12 +154,12 @@ begin
     is_o_smul this,
   have : is_o (λn:ℕ, c n • (f (x + d n) - f x - f' (d n))) (λn, (1:ℝ)) at_top :=
     this.trans_is_O (is_O_one_of_tendsto cdlim),
-  have L1 : tendsto (λn:ℕ, c n • (f (x + d n) - f x - f' (d n))) at_top (nhds 0) :=
+  have L1 : tendsto (λn:ℕ, c n • (f (x + d n) - f x - f' (d n))) at_top (𝓝 0) :=
     is_o_one_iff.1 this,
-  have L2 : tendsto (λn:ℕ, f' (c n • d n)) at_top (nhds (f' v)) :=
+  have L2 : tendsto (λn:ℕ, f' (c n • d n)) at_top (𝓝 (f' v)) :=
     tendsto.comp f'.cont.continuous_at cdlim,
   have L3 : tendsto (λn:ℕ, (c n • (f (x + d n) - f x - f' (d n)) +  f' (c n • d n)))
-            at_top (nhds (0 + f' v)) :=
+            at_top (𝓝 (0 + f' v)) :=
     tendsto_add L1 L2,
   have : (λn:ℕ, (c n • (f (x + d n) - f x - f' (d n)) +  f' (c n • d n)))
           = (λn: ℕ, c n • (f (x + d n) - f x)),
@@ -204,7 +205,7 @@ section fderiv_properties
 
 theorem has_fderiv_at_filter_iff_tendsto :
   has_fderiv_at_filter f f' x L ↔
-  tendsto (λ x', ∥x' - x∥⁻¹ * ∥f x' - f x - f' (x' - x)∥) L (nhds 0) :=
+  tendsto (λ x', ∥x' - x∥⁻¹ * ∥f x' - f x - f' (x' - x)∥) L (𝓝 0) :=
 have h : ∀ x', ∥x' - x∥ = 0 → ∥f x' - f x - f' (x' - x)∥ = 0, from λ x' hx',
   by { rw [sub_eq_zero.1 ((norm_eq_zero (x' - x)).1 hx')], simp },
 begin
@@ -214,11 +215,11 @@ begin
 end
 
 theorem has_fderiv_within_at_iff_tendsto : has_fderiv_within_at f f' s x ↔
-  tendsto (λ x', ∥x' - x∥⁻¹ * ∥f x' - f x - f' (x' - x)∥) (nhds_within x s) (nhds 0) :=
+  tendsto (λ x', ∥x' - x∥⁻¹ * ∥f x' - f x - f' (x' - x)∥) (nhds_within x s) (𝓝 0) :=
 has_fderiv_at_filter_iff_tendsto
 
 theorem has_fderiv_at_iff_tendsto : has_fderiv_at f f' x ↔
-  tendsto (λ x', ∥x' - x∥⁻¹ * ∥f x' - f x - f' (x' - x)∥) (nhds x) (nhds 0) :=
+  tendsto (λ x', ∥x' - x∥⁻¹ * ∥f x' - f x - f' (x' - x)∥) (𝓝 x) (𝓝 0) :=
 has_fderiv_at_filter_iff_tendsto
 
 theorem has_fderiv_at_filter.mono (h : has_fderiv_at_filter f f' x L₂) (hst : L₁ ≤ L₂) :
@@ -229,7 +230,7 @@ theorem has_fderiv_within_at.mono (h : has_fderiv_within_at f f' t x) (hst : s �
   has_fderiv_within_at f f' s x :=
 h.mono (nhds_within_mono _ hst)
 
-theorem has_fderiv_at.has_fderiv_at_filter (h : has_fderiv_at f f' x) (hL : L ≤ nhds x) :
+theorem has_fderiv_at.has_fderiv_at_filter (h : has_fderiv_at f f' x) (hL : L ≤ 𝓝 x) :
   has_fderiv_at_filter f f' x L :=
 h.mono hL
 
@@ -259,7 +260,7 @@ lemma has_fderiv_within_at_inter' (h : t ∈ nhds_within x s) :
   has_fderiv_within_at f f' (s ∩ t) x ↔ has_fderiv_within_at f f' s x :=
 by simp [has_fderiv_within_at, nhds_within_restrict'' s h]
 
-lemma has_fderiv_within_at_inter (h : t ∈ nhds x) :
+lemma has_fderiv_within_at_inter (h : t ∈ 𝓝 x) :
   has_fderiv_within_at f f' (s ∩ t) x ↔ has_fderiv_within_at f f' s x :=
 by simp [has_fderiv_within_at, nhds_within_restrict' s h]
 
@@ -303,7 +304,7 @@ begin
   refl
 end
 
-lemma differentiable_within_at_inter (ht : t ∈ nhds x) :
+lemma differentiable_within_at_inter (ht : t ∈ 𝓝 x) :
   differentiable_within_at 𝕜 f (s ∩ t) x ↔ differentiable_within_at 𝕜 f s x :=
 by simp only [differentiable_within_at, has_fderiv_within_at, has_fderiv_at_filter,
     nhds_within_restrict' s ht]
@@ -318,7 +319,7 @@ lemma differentiable_at.differentiable_within_at
 (differentiable_within_at_univ.2 h).mono (subset_univ _)
 
 lemma differentiable_within_at.differentiable_at
-  (h : differentiable_within_at 𝕜 f s x) (hs : s ∈ nhds x) : differentiable_at 𝕜 f x :=
+  (h : differentiable_within_at 𝕜 f s x) (hs : s ∈ 𝓝 x) : differentiable_at 𝕜 f x :=
 begin
   have : s = univ ∩ s, by rw univ_inter,
   rwa [this, differentiable_within_at_inter hs, differentiable_within_at_univ] at h
@@ -371,7 +372,7 @@ begin
     simp [fderiv_within, this, -has_fderiv_within_at_univ] }
 end
 
-lemma fderiv_within_inter (ht : t ∈ nhds x) (hs : unique_diff_within_at 𝕜 s x) :
+lemma fderiv_within_inter (ht : t ∈ 𝓝 x) (hs : unique_diff_within_at 𝕜 s x) :
   fderiv_within 𝕜 f (s ∩ t) x = fderiv_within 𝕜 f s x :=
 begin
   by_cases h : differentiable_within_at 𝕜 f (s ∩ t) x,
@@ -414,7 +415,7 @@ lemma has_fderiv_within_at.congr_of_mem_nhds_within (h : has_fderiv_within_at f 
 has_fderiv_at_filter.congr_of_mem_sets h h₁ hx
 
 lemma has_fderiv_at.congr_of_mem_nhds (h : has_fderiv_at f f' x)
-  (h₁ : {y | f₁ y = f y} ∈ nhds x) : has_fderiv_at f₁ f' x :=
+  (h₁ : {y | f₁ y = f y} ∈ 𝓝 x) : has_fderiv_at f₁ f' x :=
 has_fderiv_at_filter.congr_of_mem_sets h h₁ (mem_of_nhds h₁ : _)
 
 lemma differentiable_within_at.congr_mono (h : differentiable_within_at 𝕜 f s x)
@@ -439,7 +440,7 @@ lemma differentiable_on.congr (h : differentiable_on 𝕜 f s) (h' : ∀x ∈ s,
 λ x hx, (h x hx).congr h' (h' x hx)
 
 lemma differentiable_at.congr_of_mem_nhds (h : differentiable_at 𝕜 f x)
-  (hL : {y | f₁ y = f y} ∈ nhds x) : differentiable_at 𝕜 f₁ x :=
+  (hL : {y | f₁ y = f y} ∈ 𝓝 x) : differentiable_at 𝕜 f₁ x :=
 has_fderiv_at.differentiable_at (has_fderiv_at_filter.congr_of_mem_sets h.has_fderiv_at hL (mem_of_nhds hL : _))
 
 lemma differentiable_within_at.fderiv_within_congr_mono (h : differentiable_within_at 𝕜 f s x)
@@ -478,7 +479,7 @@ begin
   exact hL
 end
 
-lemma fderiv_congr_of_mem_nhds (hL : {y | f₁ y = f y} ∈ nhds x) :
+lemma fderiv_congr_of_mem_nhds (hL : {y | f₁ y = f y} ∈ 𝓝 x) :
   fderiv 𝕜 f₁ x = fderiv 𝕜 f x :=
 begin
   have A : f₁ x = f x := (mem_of_nhds hL : _),
@@ -810,10 +811,10 @@ end sub
 section continuous
 
 theorem has_fderiv_at_filter.tendsto_nhds
-  (hL : L ≤ nhds x) (h : has_fderiv_at_filter f f' x L) :
-  tendsto f L (nhds (f x)) :=
+  (hL : L ≤ 𝓝 x) (h : has_fderiv_at_filter f f' x L) :
+  tendsto f L (𝓝 (f x)) :=
 begin
-  have : tendsto (λ x', f x' - f x) L (nhds 0),
+  have : tendsto (λ x', f x' - f x) L (𝓝 0),
   { refine h.is_O_sub.trans_tendsto (tendsto_le_left hL _),
     rw ← sub_self x, exact tendsto_sub tendsto_id tendsto_const_nhds },
   have := tendsto_add this tendsto_const_nhds,
@@ -868,7 +869,7 @@ begin
   rw [has_fderiv_at, has_fderiv_at_filter, this],
   rcases h.bound with ⟨C, Cpos, hC⟩,
   have A : asymptotics.is_O (λx : E × F, b (x.1 - p.1, x.2 - p.2))
-    (λx, ∥x - p∥ * ∥x - p∥) (nhds p) :=
+    (λx, ∥x - p∥ * ∥x - p∥) (𝓝 p) :=
   ⟨C, Cpos, filter.univ_mem_sets' (λx, begin
     simp only [mem_set_of_eq, norm_mul, norm_norm],
     calc ∥b (x.1 - p.1, x.2 - p.2)∥ ≤ C * ∥x.1 - p.1∥ * ∥x.2 - p.2∥ : hC _ _
@@ -876,7 +877,7 @@ begin
       le_of_lt Cpos, le_refl, mul_nonneg, norm_nonneg, norm_nonneg]
     ... = C * (∥x-p∥ * ∥x-p∥) : mul_assoc _ _ _ end)⟩,
   have B : asymptotics.is_o (λ (x : E × F), ∥x - p∥ * ∥x - p∥)
-    (λx, 1 * ∥x - p∥) (nhds p),
+    (λx, 1 * ∥x - p∥) (𝓝 p),
   { apply asymptotics.is_o_mul_right _ (asymptotics.is_O_refl _ _),
     rw [asymptotics.is_o_iff_tendsto],
     { simp only [div_one],
@@ -1216,8 +1217,8 @@ variables {F : Type*} [normed_group F] [normed_space ℝ F]
 variables {G : Type*} [normed_group G] [normed_space ℝ G]
 
 theorem has_fderiv_at_filter_real_equiv {f : E → F} {f' : E →L[ℝ] F} {x : E} {L : filter E} :
-  tendsto (λ x' : E, ∥x' - x∥⁻¹ * ∥f x' - f x - f' (x' - x)∥) L (nhds 0) ↔
-  tendsto (λ x' : E, ∥x' - x∥⁻¹ • (f x' - f x - f' (x' - x))) L (nhds 0) :=
+  tendsto (λ x' : E, ∥x' - x∥⁻¹ * ∥f x' - f x - f' (x' - x)∥) L (𝓝 0) ↔
+  tendsto (λ x' : E, ∥x' - x∥⁻¹ • (f x' - f x - f' (x' - x))) L (𝓝 0) :=
 begin
   symmetry,
   rw [tendsto_iff_norm_tendsto_zero], refine tendsto.congr'r (λ x', _),

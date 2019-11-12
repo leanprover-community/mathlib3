@@ -42,6 +42,7 @@ open map, closed map, embedding, quotient map, identification map
 -/
 
 open set filter lattice
+open_locale topological_space
 
 variables {α : Type*} {β : Type*} {γ : Type*} {δ : Type*}
 
@@ -77,16 +78,16 @@ have is_closed (t ∩ range f), from is_closed_inter ht h,
 h_eq.symm ▸ by rwa [image_preimage_eq_inter_range]
 
 lemma inducing.nhds_eq_comap {f : α → β} (hf : inducing f) :
-  ∀ (a : α), nhds a = comap f (nhds $ f a) :=
+  ∀ (a : α), 𝓝 a = comap f (𝓝 $ f a) :=
 (induced_iff_nhds_eq f).1 hf.induced
 
-lemma inducing.map_nhds_eq {f : α → β} (hf : inducing f) (a : α) (h : range f ∈ nhds (f a)) :
-  (nhds a).map f = nhds (f a) :=
+lemma inducing.map_nhds_eq {f : α → β} (hf : inducing f) (a : α) (h : range f ∈ 𝓝 (f a)) :
+  (𝓝 a).map f = 𝓝 (f a) :=
 hf.induced.symm ▸ map_nhds_induced_eq h
 
 lemma inducing.tendsto_nhds_iff {ι : Type*}
   {f : ι → β} {g : β → γ} {a : filter ι} {b : β} (hg : inducing g) :
-  tendsto f a (nhds b) ↔ tendsto (g ∘ f) a (nhds (g b)) :=
+  tendsto f a (𝓝 b) ↔ tendsto (g ∘ f) a (𝓝 (g b)) :=
 by rw [tendsto, tendsto, hg.induced, nhds_induced, ← map_le_iff_le_comap, filter.map_map]
 
 lemma inducing.continuous_iff {f : α → β} {g : β → γ} (hg : inducing g) :
@@ -107,7 +108,7 @@ structure embedding [tα : topological_space α] [tβ : topological_space β] (f
 variables [topological_space α] [topological_space β] [topological_space γ]
 
 lemma embedding.mk' (f : α → β) (inj : function.injective f)
-  (induced : ∀a, comap f (nhds (f a)) = nhds a) : embedding f :=
+  (induced : ∀a, comap f (𝓝 (f a)) = 𝓝 a) : embedding f :=
 ⟨⟨(induced_iff_nhds_eq f).2 (λ a, (induced a).symm)⟩, inj⟩
 
 lemma embedding_id : embedding (@id α) :=
@@ -132,12 +133,12 @@ lemma embedding_is_closed {f : α → β} {s : set α}
 inducing_is_closed hf.1 h hs
 
 lemma embedding.map_nhds_eq {f : α → β}
-  (hf : embedding f) (a : α) (h : range f ∈ nhds (f a)) : (nhds a).map f = nhds (f a) :=
+  (hf : embedding f) (a : α) (h : range f ∈ 𝓝 (f a)) : (𝓝 a).map f = 𝓝 (f a) :=
 inducing.map_nhds_eq hf.1 a h
 
 lemma embedding.tendsto_nhds_iff {ι : Type*}
   {f : ι → β} {g : β → γ} {a : filter ι} {b : β} (hg : embedding g) :
-  tendsto f a (nhds b) ↔ tendsto (g ∘ f) a (nhds (g b)) :=
+  tendsto f a (𝓝 b) ↔ tendsto (g ∘ f) a (𝓝 (g b)) :=
 by rw [tendsto, tendsto, hg.induced, nhds_induced, ← map_le_iff_le_comap, filter.map_map]
 
 lemma embedding.continuous_iff {f : α → β} {g : β → γ} (hg : embedding g) :
@@ -192,7 +193,7 @@ variables [topological_space α] [topological_space β]
 
 def is_open_map (f : α → β) := ∀ U : set α, is_open U → is_open (f '' U)
 
-lemma is_open_map_iff_nhds_le (f : α → β) : is_open_map f ↔ ∀(a:α), nhds (f a) ≤ (nhds a).map f :=
+lemma is_open_map_iff_nhds_le (f : α → β) : is_open_map f ↔ ∀(a:α), 𝓝 (f a) ≤ (𝓝 a).map f :=
 begin
   split,
   { assume h a s hs,

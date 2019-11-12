@@ -188,7 +188,7 @@ variables (φ : A →ₐ[R] B)
 
 instance : is_ring_hom ⇑φ := ring_hom.is_ring_hom φ.to_ring_hom
 
-@[extensionality]
+@[ext]
 theorem ext {φ₁ φ₂ : A →ₐ[R] B} (H : ∀ x, φ₁ x = φ₂ x) : φ₁ = φ₂ :=
 by cases φ₁; cases φ₂; congr' 1; ext; apply H
 
@@ -271,7 +271,7 @@ include R S A
 
 /-- `comap R S A` is a type alias for `A`, and has an R-algebra structure defined on it
   when `algebra R S` and `algebra S A`. -/
-/- This is done to avoid a type class search with meta-variables `algebra R ?m_1` and 
+/- This is done to avoid a type class search with meta-variables `algebra R ?m_1` and
     `algebra ?m_1 A -/
 /- The `nolint` attribute is added because it has unused arguments `R` and `S`, but these are necessary for synthesizing the
      appropriate type classes -/
@@ -420,7 +420,7 @@ variables {A}
 theorem mem_coe {x : A} {s : subalgebra R A} : x ∈ (s : set A) ↔ x ∈ s :=
 iff.rfl
 
-@[extensionality] theorem ext {S T : subalgebra R A}
+@[ext] theorem ext {S T : subalgebra R A}
   (h : ∀ x : A, x ∈ S ↔ x ∈ T) : S = T :=
 by cases S; cases T; congr; ext x; exact h x
 

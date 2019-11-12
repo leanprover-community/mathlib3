@@ -17,6 +17,7 @@ always finite in this context.
 import topology.metric_space.hausdorff_distance topology.opens
 noncomputable theory
 open_locale classical
+open_locale topological_space
 
 universe u
 open classical lattice set function topological_space filter
@@ -184,7 +185,7 @@ begin
   have main : ∀n:ℕ, edist (s n) t ≤ 2 * B n := λn, Hausdorff_edist_le_of_mem_edist (I1 n) (I2 n),
   -- from this, the convergence of `s n` to `t0` follows.
   refine (tendsto_at_top _).2 (λε εpos, _),
-  have : tendsto (λn, 2 * ennreal.half_pow n) at_top (nhds (2 * 0)) :=
+  have : tendsto (λn, 2 * ennreal.half_pow n) at_top (𝓝 (2 * 0)) :=
     ennreal.tendsto_mul_right ennreal.half_pow_tendsto_zero (by simp),
   rw mul_zero at this,
   have Z := (tendsto_orderable.1 this).2 ε εpos,

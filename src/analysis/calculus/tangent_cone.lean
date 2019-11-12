@@ -30,11 +30,12 @@ variables {G : Type*} [normed_group G] [normed_space ℝ G]
 
 set_option class.instance_max_depth 50
 open filter set
+open_locale topological_space
 
 /-- The set of all tangent directions to the set `s` at the point `x`. -/
 def tangent_cone_at (s : set E) (x : E) : set E :=
 {y : E | ∃(c : ℕ → 𝕜) (d : ℕ → E), {n:ℕ | x + d n ∈ s} ∈ (at_top : filter ℕ) ∧
-  (tendsto (λn, ∥c n∥) at_top at_top) ∧ (tendsto (λn, c n • d n) at_top (nhds y))}
+  (tendsto (λn, ∥c n∥) at_top at_top) ∧ (tendsto (λn, c n • d n) at_top (𝓝 y))}
 
 /-- A property ensuring that the tangent cone to `s` at `x` spans a dense subset of the whole space.
 The main role of this property is to ensure that the differential within `s` at `x` is unique,
@@ -85,14 +86,14 @@ end
 /-- Auxiliary lemma ensuring that, under the assumptions defining the tangent cone,
 the sequence `d` tends to 0 at infinity. -/
 lemma tangent_cone_at.lim_zero {c : ℕ → 𝕜} {d : ℕ → E}
-  (hc : tendsto (λn, ∥c n∥) at_top at_top) (hd : tendsto (λn, c n • d n) at_top (nhds y)) :
-  tendsto d at_top (nhds 0) :=
+  (hc : tendsto (λn, ∥c n∥) at_top at_top) (hd : tendsto (λn, c n • d n) at_top (𝓝 y)) :
+  tendsto d at_top (𝓝 0) :=
 begin
-  have A : tendsto (λn, ∥c n∥⁻¹) at_top (nhds 0) :=
+  have A : tendsto (λn, ∥c n∥⁻¹) at_top (𝓝 0) :=
     tendsto_inverse_at_top_nhds_0.comp hc,
-  have B : tendsto (λn, ∥c n • d n∥) at_top (nhds ∥y∥) :=
+  have B : tendsto (λn, ∥c n • d n∥) at_top (𝓝 ∥y∥) :=
     (continuous_norm.tendsto _).comp hd,
-  have C : tendsto (λn, ∥c n∥⁻¹ * ∥c n • d n∥) at_top (nhds (0 * ∥y∥)) :=
+  have C : tendsto (λn, ∥c n∥⁻¹ * ∥c n • d n∥) at_top (𝓝 (0 * ∥y∥)) :=
     tendsto_mul A B,
   rw zero_mul at C,
   have : {n | ∥c n∥⁻¹ * ∥c n • d n∥ = ∥d n∥} ∈ (@at_top ℕ _),
@@ -102,21 +103,21 @@ begin
     rw mem_set_of_eq at hn,
     rw [mem_set_of_eq, ← norm_inv, ← norm_smul, smul_smul, inv_mul_cancel, one_smul],
     simpa [norm_eq_zero] using (ne_of_lt (lt_of_lt_of_le zero_lt_one hn)).symm },
-  have D : tendsto (λ (n : ℕ), ∥d n∥) at_top (nhds 0) :=
+  have D : tendsto (λ (n : ℕ), ∥d n∥) at_top (𝓝 0) :=
     tendsto.congr' this C,
   rw tendsto_zero_iff_norm_tendsto_zero,
   exact D
 end
 
 /-- Intersecting with a neighborhood of the point does not change the tangent cone. -/
-lemma tangent_cone_inter_nhds (ht : t ∈ nhds x) :
+lemma tangent_cone_inter_nhds (ht : t ∈ 𝓝 x) :
   tangent_cone_at 𝕜 (s ∩ t) x = tangent_cone_at 𝕜 s x :=
 begin
   refine subset.antisymm (tangent_cone_mono (inter_subset_left _ _)) _,
   rintros y ⟨c, d, ds, ctop, clim⟩,
   refine ⟨c, d, _, ctop, clim⟩,
   have : {n : ℕ | x + d n ∈ t} ∈ at_top,
-  { have : tendsto (λn, x + d n) at_top (nhds (x + 0)) :=
+  { have : tendsto (λn, x + d n) at_top (𝓝 (x + 0)) :=
       tendsto_add tendsto_const_nhds (tangent_cone_at.lim_zero ctop clim),
     rw add_zero at this,
     exact mem_map.1 (this ht) },
@@ -158,7 +159,7 @@ begin
     simp at hn,
     simp [hn, (hd' n).1] },
   { apply tendsto_prod_mk_nhds hy,
-    change tendsto (λ (n : ℕ), c n • d' n) at_top (nhds 0),
+    change tendsto (λ (n : ℕ), c n • d' n) at_top (𝓝 0),
     rw tendsto_zero_iff_norm_tendsto_zero,
     refine squeeze_zero (λn, norm_nonneg _) (λn, (hd' n).2) _,
     apply tendsto_pow_at_top_nhds_0_of_lt_1; norm_num }
@@ -200,7 +201,7 @@ begin
     simp at hn,
     simp [hn, (hd' n).1] },
   { apply tendsto_prod_mk_nhds _ hy,
-    change tendsto (λ (n : ℕ), c n • d' n) at_top (nhds 0),
+    change tendsto (λ (n : ℕ), c n • d' n) at_top (𝓝 0),
     rw tendsto_zero_iff_norm_tendsto_zero,
     refine squeeze_zero (λn, norm_nonneg _) (λn, (hd' n).2) _,
     apply tendsto_pow_at_top_nhds_0_of_lt_1; norm_num }
@@ -225,7 +226,7 @@ begin
       by { ext n, exact abs_of_nonneg (pow_nonneg (by norm_num) _) },
     rw this,
     exact tendsto_pow_at_top_at_top_of_gt_1 (by norm_num) },
-  show filter.tendsto (λ (n : ℕ), c n • d n) filter.at_top (nhds (y - x)),
+  show filter.tendsto (λ (n : ℕ), c n • d n) filter.at_top (𝓝 (y - x)),
   { have : (λ (n : ℕ), c n • d n) = (λn, y - x),
     { ext n,
       simp only [d, smul_smul],
@@ -255,7 +256,7 @@ begin
   exact ⟨closure_mono (submodule.span_mono (tangent_cone_mono st)), closure_mono st h.2⟩
 end
 
-lemma unique_diff_within_at_inter (ht : t ∈ nhds x) :
+lemma unique_diff_within_at_inter (ht : t ∈ 𝓝 x) :
   unique_diff_within_at 𝕜 (s ∩ t) x ↔ unique_diff_within_at 𝕜 s x :=
 begin
   have : x ∈ closure (s ∩ t) ↔ x ∈ closure s,
@@ -269,7 +270,7 @@ begin
   rw [unique_diff_within_at, unique_diff_within_at, tangent_cone_inter_nhds ht, this]
 end
 
-lemma unique_diff_within_at.inter (hs : unique_diff_within_at 𝕜 s x) (ht : t ∈ nhds x) :
+lemma unique_diff_within_at.inter (hs : unique_diff_within_at 𝕜 s x) (ht : t ∈ 𝓝 x) :
   unique_diff_within_at 𝕜 (s ∩ t) x :=
 (unique_diff_within_at_inter ht).2 hs
 
@@ -281,7 +282,7 @@ begin
   { assume H,
     rw mem_nhds_within at ht,
     rcases ht with ⟨u, u_open, xu, us⟩,
-    have : u ∈ nhds x := mem_nhds_sets u_open xu,
+    have : u ∈ 𝓝 x := mem_nhds_sets u_open xu,
     rw ← unique_diff_within_at_inter this at H,
     apply H.mono,
     exact λ p ⟨ps, pu⟩, ⟨ps, us ⟨pu, ps⟩⟩ }

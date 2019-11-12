@@ -112,11 +112,21 @@ meta def length : name → ℕ
 | (mk_numeral n p)        := p.length
 | anonymous               := "[anonymous]".length
 
-/-- checks whether `nm` has a prefix (including itself) such that P is true -/
+/-- Checks whether `nm` has a prefix (including itself) such that P is true -/
 def has_prefix (P : name → bool) : name → bool
 | anonymous := ff
 | (mk_string s nm)  := P (mk_string s nm) ∨ has_prefix nm
 | (mk_numeral s nm) := P (mk_numeral s nm) ∨ has_prefix nm
+
+/-- Appends `'` to the end of a name. -/
+meta def add_prime : name → name
+| (name.mk_string s p) := name.mk_string (s ++ "'") p
+| n := (name.mk_string "x'" n)
+
+def last_string : name → string
+| anonymous        := "[anonymous]"
+| (mk_string s _)  := s
+| (mk_numeral _ n) := last_string n
 
 end name
 
@@ -206,6 +216,10 @@ end expr
 namespace expr
 open tactic
 
+/-- `replace_with e s s'` replaces ocurrences of `s` with `s'` in `e`. -/
+meta def replace_with (e : expr) (s : expr) (s' : expr) : expr :=
+e.replace $ λc d, if c = s then some (s'.lift_vars 0 d) else none
+
 /-- Apply a function to each constant (inductive type, defined function etc) in an expression. -/
 protected meta def apply_replacement_fun (f : name → name) (e : expr) : expr :=
 e.replace $ λ e d,
@@ -223,6 +237,22 @@ meta def is_mvar : expr → bool
 meta def is_sort : expr → bool
 | (sort _) := tt
 | e         := ff
+
+/-- If `e` is a local constant, `to_implicit e` changes the binder info of `e` to `implicit`.
+See also `to_implicit_binder`, which also changes lambdas and pis. -/
+meta def to_implicit : expr → expr
+| (expr.local_const uniq n bi t) := expr.local_const uniq n binder_info.implicit t
+| e := e
+
+-- TODO: rename
+/-- If `e` is a local constant, lamda, or pi expression, `to_implicit_binder e` changes the binder
+info of `e` to `implicit`. See also `to_implicit`, which only changes local constants. -/
+meta def to_implicit_binder : expr → expr
+| (local_const n₁ n₂ _ d) := local_const n₁ n₂ binder_info.implicit d
+| (lam n _ d b) := lam n binder_info.implicit d b
+| (pi n _ d b) := pi n binder_info.implicit d b
+| e  := e
+
 
 /-- Returns a list of all local constants in an expression (without duplicates). -/
 meta def list_local_consts (e : expr) : list expr :=
@@ -381,6 +411,21 @@ meta def mk_and_lst : list expr → expr := mk_op_lst `(and) `(true)
 /-- `mk_or_lst [x1, x2, ...]` is defined as `x1 ∨ (x2 ∨ ...)`, or `false` if the list is empty. -/
 meta def mk_or_lst : list expr → expr := mk_op_lst `(or) `(false)
 
+/-- `local_binding_info e` returns the binding info of `e` if `e` is a local constant.
+Otherwise returns `binder_info.default`. -/
+meta def local_binding_info : expr → binder_info
+| (expr.local_const _ _ bi _) := bi
+| _ := binder_info.default
+
+-- TODO: delete
+meta abbreviation local_binder_info := local_binding_info
+
+/-- `is_default_local e` tests whether `e` is a local constant with binder info
+`binder_info.default` -/
+meta def is_default_local : expr → bool
+| (expr.local_const _ _ binder_info.default _) := tt
+| _ := ff
+
 end expr
 
 namespace environment
@@ -475,14 +520,18 @@ namespace expr
   is an eta-expansion of a structure. (not to be confused with eta-expanion for `λ`). -/
 open tactic
 
-/-- Checks whether for all elements `(nm, val)` in the list we have `val = nm.{univs} args` -/
+/-- `is_eta_expansion_of args univs l` checks whether for all elements `(nm, pr)` in `l` we have
+  `pr = nm.{univs} args`.
+  Used in `is_eta_expansion`, where `l` consists of the projections and the fields of the value we
+  want to eta-reduce. -/
 meta def is_eta_expansion_of (args : list expr) (univs : list level) (l : list (name × expr)) :
   bool :=
 l.all $ λ⟨proj, val⟩, val = (const proj univs).mk_app args
 
-/-- Checks whether there is an expression `e` such that for all elements `(nm, val)` in the list
-  `val = nm ... e` where `...` denotes the same list of parameters for all applications.
-  Returns e if it exists. -/
+/-- `is_eta_expansion_test l` checks whether there is a list of expresions `args` such that for all
+  elements `(nm, pr)` in `l` we have `pr = nm args`. If so, returns the last element of `args`.
+  Used in `is_eta_expansion`, where `l` consists of the projections and the fields of the value we
+  want to eta-reduce. -/
 meta def is_eta_expansion_test : list (name × expr) → option expr
 | []              := none
 | (⟨proj, val⟩::l) :=
@@ -497,9 +546,11 @@ meta def is_eta_expansion_test : list (name × expr) → option expr
   | _                       := none
   end
 
-/-- Checks whether there is an expression `e` such that for all *non-propositional* elements
-  `(nm, val)` in the list `val = e ... nm` where `...` denotes the same list of parameters for all
-  applications. Also checks whether the resulting expression unifies with the given one -/
+/-- `is_eta_expansion_aux val l` checks whether `val` can be eta-reduced to an expression `e`.
+  Here `l` is intended to consists of the projections and the fields of `val`.
+  This tactic calls `is_eta_expansion_test l`, but first removes all proofs from the list `l` and
+  afterward checks whether the retulting expression `e` unifies with `val`.
+  This last check is necessary, because `val` and `e` might have different types. -/
 meta def is_eta_expansion_aux (val : expr) (l : list (name × expr)) : tactic (option expr) :=
 do l' ← l.mfilter (λ⟨proj, val⟩, bnot <$> is_proof val),
   match is_eta_expansion_test l' with
@@ -507,7 +558,10 @@ do l' ← l.mfilter (λ⟨proj, val⟩, bnot <$> is_proof val),
   | none   := return none
   end
 
-/-- Checks whether there is an expression `e` such that `val` is the eta-expansion of `e`.
+/-- `is_eta_expansion val` checks whether there is an expression `e` such that `val` is the
+  eta-expansion of `e`.
+  With eta-expansion we here mean the eta-expansion of a structure, not of a function.
+  For example, the eta-expansion of `x : α × β` is `⟨x.1, x.2⟩`.
   This assumes that `val` is a fully-applied application of the constructor of a structure.
 
   This is useful to reduce expressions generated by the notation

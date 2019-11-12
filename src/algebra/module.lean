@@ -148,7 +148,7 @@ instance : has_coe_to_fun (β →ₗ[α] γ) := ⟨_, to_fun⟩
 
 theorem is_linear : is_linear_map α f := {..f}
 
-@[extensionality] theorem ext {f g : β →ₗ[α] γ} (H : ∀ x, f x = g x) : f = g :=
+@[ext] theorem ext {f g : β →ₗ[α] γ} (H : ∀ x, f x = g x) : f = g :=
 by cases f; cases g; congr'; exact funext H
 
 theorem ext_iff {f g : β →ₗ[α] γ} : f = g ↔ ∀ x, f x = g x :=
@@ -266,7 +266,7 @@ by cases s; cases t; congr'
 protected theorem ext'_iff {s t : submodule α β}  : (s : set β) = t ↔ s = t :=
 ⟨ext', λ h, h ▸ rfl⟩
 
-@[extensionality] theorem ext {s t : submodule α β}
+@[ext] theorem ext {s t : submodule α β}
   (h : ∀ x, x ∈ s ↔ x ∈ t) : s = t := ext' $ set.ext h
 
 @[simp] lemma zero_mem : (0 : β) ∈ p := p.zero

@@ -76,12 +76,12 @@ meta def get_state : interaction_monad σ σ :=
 meta def set_state (state : σ) : interaction_monad σ unit :=
 λ _, success () state
 
-/-- `under_state` applies the given state to `tac`, and returns the result. If `tac` fails, then
+/-- `under_state` applies `tac` to the given state and returns the result. If `tac` fails, then
 `under_state` does too. -/
-meta def under_state (state : σ) (tac : interaction_monad σ α) : interaction_monad σ α :=
+meta def run_with_state (state : σ) (tac : interaction_monad σ α) : interaction_monad σ α :=
 λ s, match tac state with
-     | success val _       := success val s
-     | exception fn pos ts := exception fn pos ts
+     | success val _      := success val s
+     | exception fn pos _ := exception fn pos s
      end
 
 /-- `get_result tac` returns the result state of applying `tac` to the current state.
@@ -172,7 +172,7 @@ meta def eval_expr' (α : Type*) [_inst_1 : reflected α] (e : expr) : tactic α
 mk_app ``id [e] >>= eval_expr α
 
 /-- `mk_fresh_name` returns identifiers starting with underscores,
-which are not legal when emitted by tactic programs. `mk_user_fresh_name` 
+which are not legal when emitted by tactic programs. `mk_user_fresh_name`
 turns the useful source of random names provided by `mk_fresh_name` into
 names which are usable by tactic programs.
 

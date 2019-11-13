@@ -2,8 +2,12 @@
 Copyright (c) 2019 Jeremy Avigad. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jeremy Avigad, Sébastien Gouëzel
+-/
 
-The Fréchet derivative.
+import analysis.asymptotics analysis.calculus.tangent_cone
+
+/-!
+# The Fréchet derivative
 
 Let `E` and `F` be normed spaces, `f : E → F`, and `f' : E →L[𝕜] F` a
 continuous 𝕜-linear map, where `𝕜` is a non-discrete normed field. Then
@@ -14,6 +18,24 @@ says that `f` has derivative `f'` at `x`, where the domain of interest
 is restricted to `s`. We also have
 
   `has_fderiv_at f f' x := has_fderiv_within_at f f' x univ`
+
+## Main results
+
+In addition to the definition and basic properties of the derivative, this file contains the
+usual formulas (and existence assertions) for the derivative of
+* constants
+* the identity
+* bounded linear maps
+* bounded bilinear maps
+* sum of two functions
+* multiplication of a function by a scalar constant
+* negative of a function
+* subtraction of two functions
+* multiplication of a function by a scalar function
+* multiplication of two scalar functions
+* composition of functions (the chain rule)
+
+## Implementation details
 
 The derivative is defined in terms of the `is_o` relation, but also
 characterized in terms of the `tendsto` relation.
@@ -32,23 +54,11 @@ they imply the uniqueness of the derivative. This is satisfied for open subsets,
 for `univ`. This uniqueness only holds when the field is non-discrete, which we request at the very
 beginning: otherwise, a derivative can be defined, but it has no interesting properties whatsoever.
 
-In addition to the definition and basic properties of the derivative, this file contains the
-usual formulas (and existence assertions) for the derivative of
-* constants
-* the identity
-* bounded linear maps
-* bounded bilinear maps
-* sum of two functions
-* multiplication of a function by a scalar constant
-* negative of a function
-* subtraction of two functions
-* multiplication of a function by a scalar function
-* multiplication of two scalar functions
-* composition of functions (the chain rule)
+## Tags
+
+derivative, differentiable, Fréchet, calculus
 
 -/
-
-import analysis.asymptotics analysis.calculus.tangent_cone
 
 open filter asymptotics continuous_linear_map set
 open_locale topological_space

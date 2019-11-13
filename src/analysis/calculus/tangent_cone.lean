@@ -2,6 +2,12 @@
 Copyright (c) 2019 Sébastien Gouëzel. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Sébastien Gouëzel
+-/
+
+import analysis.convex analysis.normed_space.bounded_linear_maps
+
+/-!
+# Tangent cone
 
 In this file, we define two predicates `unique_diff_within_at 𝕜 s x` and `unique_diff_on 𝕜 s`
 ensuring that, if a function has two derivatives, then they have to coincide. As a direct
@@ -16,12 +22,12 @@ One should however think of this definition as an implementation detail: the onl
 introduce the predicates `unique_diff_within_at` and `unique_diff_on` is to ensure the uniqueness
 of the derivative. This is why their names reflect their uses, and not how they are defined.
 
+## Implementation details
+
 Note that this file is imported by `deriv.lean`. Hence, derivatives are not defined yet. The
 property of uniqueness of the derivative is therefore proved in `deriv.lean`, but based on the
 properties of the tangent cone we prove here.
 -/
-
-import analysis.convex analysis.normed_space.bounded_linear_maps
 
 variables (𝕜 : Type*) [nondiscrete_normed_field 𝕜]
 variables {E : Type*} [normed_group E] [normed_space 𝕜 E]

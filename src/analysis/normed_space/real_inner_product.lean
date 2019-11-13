@@ -38,7 +38,7 @@ inner product space, norm, orthogonal projection
 *  [Clément & Martin, *The Lax-Milgram Theorem. A detailed proof to be formalized in Coq*]
 *  [Clément & Martin, *A Coq formal proof of the Lax–Milgram theorem*]
 
-The Coq code is available at the following address: http://www.lri.fr/~sboldo/elfic/index.html
+The Coq code is available at the following address: <http://www.lri.fr/~sboldo/elfic/index.html>
 -/
 
 noncomputable theory

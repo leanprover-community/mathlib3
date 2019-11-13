@@ -29,7 +29,7 @@ fractions. We hence just call them `continued_fractions` in the library.
 
 ## References
 
-- https://en.wikipedia.org/wiki/Generalized_continued_fraction
+- <https://en.wikipedia.org/wiki/Generalized_continued_fraction>
 - [Wall, H.S., *Analytic Theory of Continued Fractions*][wall2018analytic]
 
 ## Tags

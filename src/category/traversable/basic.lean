@@ -11,7 +11,7 @@ import category.applicative
 # Traversable type class
 
 Type classes for traversing collections. The concepts and laws are taken from
-http://hackage.haskell.org/package/base-4.11.1.0/docs/Data-Traversable.html
+<http://hackage.haskell.org/package/base-4.11.1.0/docs/Data-Traversable.html>
 
 Traversable collections are a generalization of functors. Whereas
 functors (such as `list`) allow us to apply a function to every
@@ -28,7 +28,7 @@ all the resulting effects. In the example, the effect is encoded in the
 monad `io` but any applicative functor is accepted by `traverse`.
 
 For more on how to use traversable, consider the Haskell tutorial:
-https://en.wikibooks.org/wiki/Haskell/Traversable
+<https://en.wikibooks.org/wiki/Haskell/Traversable>
 
 ## Main definitions
   * `traversable` type class - exposes the `traverse` function
@@ -41,9 +41,9 @@ traversable iterator functor applicative
 
 ## References
 
- * "Applicative Programming with Effects", by Conor McBride and Ross Paterson, Journal of Functional Programming 18:1 (2008) 1-13, online at http://www.soi.city.ac.uk/~ross/papers/Applicative.html.
- * "The Essence of the Iterator Pattern", by Jeremy Gibbons and Bruno Oliveira, in Mathematically-Structured Functional Programming, 2006, online at http://web.comlab.ox.ac.uk/oucl/work/jeremy.gibbons/publications/#iterator.
- * "An Investigation of the Laws of Traversals", by Mauro Jaskelioff and Ondrej Rypacek, in Mathematically-Structured Functional Programming, 2012, online at http://arxiv.org/pdf/1202.2919.
+ * "Applicative Programming with Effects", by Conor McBride and Ross Paterson, Journal of Functional Programming 18:1 (2008) 1-13, online at <http://www.soi.city.ac.uk/~ross/papers/Applicative.html>
+ * "The Essence of the Iterator Pattern", by Jeremy Gibbons and Bruno Oliveira, in Mathematically-Structured Functional Programming, 2006, online at <http://web.comlab.ox.ac.uk/oucl/work/jeremy.gibbons/publications/#iterator>
+ * "An Investigation of the Laws of Traversals", by Mauro Jaskelioff and Ondrej Rypacek, in Mathematically-Structured Functional Programming, 2012, online at <http://arxiv.org/pdf/1202.2919>
 Synopsis
 
 

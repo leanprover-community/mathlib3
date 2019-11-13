@@ -745,6 +745,12 @@ lemma lt_pow_self {p : ℕ} (h : 1 < p) : ∀ n : ℕ, n < p ^ n
   n + 1 < p^n + 1 : nat.add_lt_add_right (lt_pow_self _) _
     ... ≤ p ^ (n+1) : pow_lt_pow_succ h _
 
+lemma pow_monotonic { x m n : ℕ } ( ha : 2 ≤ x ) ( k : x^m ≤ x^n ) : m ≤ n :=
+le_of_not_lt (λ r, not_le_of_lt (pow_lt_pow_of_lt_right ha r) k)
+
+lemma pow_right_inj { x m n : ℕ } ( ha : 2 ≤ x ) ( k : x^m = x^n ) : m = n :=
+by apply le_antisymm; apply pow_monotonic ha; apply le_of_eq; rw k
+
 lemma not_pos_pow_dvd : ∀ {p k : ℕ} (hp : 1 < p) (hk : 1 < k), ¬ p^k ∣ p
 | (succ p) (succ k) hp hk h :=
   have (succ p)^k * succ p ∣ 1 * succ p, by simpa,

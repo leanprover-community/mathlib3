@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Author: Seul Baek
 
 Correctness lemmas for equality elimination.
-See 5.5 of http://www.decision-procedures.org/ for details.
+See 5.5 of <http://www.decision-procedures.org/> for details.
 -/
 
 import tactic.omega.clause

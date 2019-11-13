@@ -34,10 +34,13 @@ variables [topological_space β] [topological_space γ] (f : α → β) (g : β 
 /-- `f : α → β` has dense range if its range (image) is a dense subset of β. -/
 def dense_range := ∀ x, x ∈ closure (range f)
 
-lemma dense_range_iff_closure_eq : dense_range f ↔ closure (range f) = univ :=
+variables {f}
+
+lemma dense_range_iff_closure_range : dense_range f ↔ closure (range f) = univ :=
 eq_univ_iff_forall.symm
 
-variables {f}
+lemma dense_range.closure_range (h : dense_range f) : closure (range f) = univ :=
+eq_univ_iff_forall.mpr h
 
 lemma dense_range.comp (hg : dense_range g) (hf : dense_range f) (cg : continuous g) :
   dense_range (g ∘ f) :=
@@ -49,7 +52,7 @@ begin
   intro c,
   rw range_comp,
   apply this,
-  rw [(dense_range_iff_closure_eq f).1 hf, image_univ],
+  rw [hf.closure_range, image_univ],
   exact hg c
 end
 
@@ -64,7 +67,7 @@ def dense_range.inhabited (df : dense_range f) (b : β) : inhabited α :=
 lemma dense_range.nonempty (hf : dense_range f) : nonempty α ↔ nonempty β :=
 ⟨nonempty.map f, λ ⟨b⟩, @nonempty_of_inhabited _ (hf.inhabited b)⟩
 
-lemma dense_range_prod {ι : Type*} {κ : Type*} {f : ι → β} {g : κ → γ}
+lemma dense_range.prod {ι : Type*} {κ : Type*} {f : ι → β} {g : κ → γ}
   (hf : dense_range f) (hg : dense_range g) : dense_range (λ p : ι × κ, (f p.1, g p.2)) :=
 have closure (range $ λ p : ι×κ, (f p.1, g p.2)) = set.prod (closure $ range f) (closure $ range g),
     by rw [←closure_prod_eq, prod_range_range_eq],
@@ -89,7 +92,7 @@ protected lemma continuous (di : dense_inducing i) : continuous i :=
 di.to_inducing.continuous
 
 lemma closure_range : closure (range i) = univ :=
-(dense_range_iff_closure_eq _).mp di.dense
+di.dense.closure_range
 
 lemma self_sub_closure_image_preimage_of_open {s : set β} (di : dense_inducing i) :
   is_open s → s ⊆ closure (i '' (i ⁻¹' s)) :=
@@ -123,7 +126,7 @@ protected lemma prod [topological_space γ] [topological_space δ]
   {e₁ : α → β} {e₂ : γ → δ} (de₁ : dense_inducing e₁) (de₂ : dense_inducing e₂) :
   dense_inducing (λ(p : α × γ), (e₁ p.1, e₂ p.2)) :=
 { induced := (de₁.to_inducing.prod_mk de₂.to_inducing).induced,
-  dense := dense_range_prod de₁.dense de₂.dense }
+  dense := dense_range.prod de₁.dense de₂.dense }
 
 variables [topological_space δ] {f : γ → α} {g : γ → δ} {h : δ → β}
 /--
@@ -263,6 +266,7 @@ protected lemma prod {e₁ : α → β} {e₂ : γ → δ} (de₁ : dense_embedd
     by simp; exact assume h₁ h₂, ⟨de₁.inj h₁, de₂.inj h₂⟩,
   ..dense_inducing.prod de₁.to_dense_inducing de₂.to_dense_inducing }
 
+/-- The dense embedding of a subtype inside its closure. -/
 def subtype_emb {α : Type*} (p : α → Prop) (e : α → β) (x : {x // p x}) :
   {x // x ∈ closure (e '' {x | p x})} :=
 ⟨e x.1, subset_closure $ mem_image_of_mem e x.2⟩
@@ -285,25 +289,51 @@ protected lemma subtype (p : α → Prop) : dense_embedding (subtype_emb p e) :=
 end dense_embedding
 
 lemma is_closed_property [topological_space β] {e : α → β} {p : β → Prop}
-  (he : closure (range e) = univ) (hp : is_closed {x | p x}) (h : ∀a, p (e a)) :
+  (he : dense_range e) (hp : is_closed {x | p x}) (h : ∀a, p (e a)) :
   ∀b, p b :=
 have univ ⊆ {b | p b},
-  from calc univ = closure (range e) : he.symm
+  from calc univ = closure (range e) : he.closure_range.symm
     ... ⊆ closure {b | p b} : closure_mono $ range_subset_iff.mpr h
     ... = _ : closure_eq_of_is_closed hp,
 assume b, this trivial
 
-lemma is_closed_property2 [topological_space α] [topological_space β] {e : α → β} {p : β → β → Prop}
-  (he : dense_embedding e) (hp : is_closed {q:β×β | p q.1 q.2}) (h : ∀a₁ a₂, p (e a₁) (e a₂)) :
+lemma is_closed_property2 [topological_space β] {e : α → β} {p : β → β → Prop}
+  (he : dense_range e) (hp : is_closed {q:β×β | p q.1 q.2}) (h : ∀a₁ a₂, p (e a₁) (e a₂)) :
   ∀b₁ b₂, p b₁ b₂ :=
 have ∀q:β×β, p q.1 q.2,
-  from is_closed_property (he.prod he).to_dense_inducing.closure_range hp $ assume a, h _ _,
+  from is_closed_property (he.prod he) hp $ λ _, h _ _,
 assume b₁ b₂, this ⟨b₁, b₂⟩
 
-lemma is_closed_property3 [topological_space α] [topological_space β] {e : α → β} {p : β → β → β → Prop}
-  (he : dense_embedding e) (hp : is_closed {q:β×β×β | p q.1 q.2.1 q.2.2}) (h : ∀a₁ a₂ a₃, p (e a₁) (e a₂) (e a₃)) :
+lemma is_closed_property3 [topological_space β] {e : α → β} {p : β → β → β → Prop}
+  (he : dense_range e) (hp : is_closed {q:β×β×β | p q.1 q.2.1 q.2.2}) (h : ∀a₁ a₂ a₃, p (e a₁) (e a₂) (e a₃)) :
   ∀b₁ b₂ b₃, p b₁ b₂ b₃ :=
 have ∀q:β×β×β, p q.1 q.2.1 q.2.2,
-  from is_closed_property (he.prod $ he.prod he).to_dense_inducing.closure_range hp $
-    assume ⟨a₁, a₂, a₃⟩, h _ _ _,
+  from is_closed_property (he.prod $ he.prod he) hp $ λ _, h _ _ _,
 assume b₁ b₂ b₃, this ⟨b₁, b₂, b₃⟩
+
+lemma is_closed_property' [topological_space β] {e : α → β} {p : β → Prop}
+  (he : closure (range e) = univ) (hp : is_closed {x | p x}) (h : ∀a, p (e a)) :
+  ∀b, p b := is_closed_property (dense_range_iff_closure_range.mpr he) hp h
+
+lemma is_closed_property2' [topological_space β] {e : α → β} {p : β → β → Prop}
+  (he : closure (range e) = univ) (hp : is_closed {q:β×β | p q.1 q.2}) (h : ∀a₁ a₂, p (e a₁) (e a₂)) :
+  ∀b₁ b₂, p b₁ b₂ := is_closed_property2 (dense_range_iff_closure_range.mpr he) hp h
+
+lemma is_closed_property3' [topological_space β] {e : α → β} {p : β → β → β → Prop}
+  (he : closure (range e) = univ) (hp : is_closed {q:β×β×β | p q.1 q.2.1 q.2.2}) (h : ∀a₁ a₂ a₃, p (e a₁) (e a₂) (e a₃)) :
+  ∀b₁ b₂ b₃, p b₁ b₂ b₃ := is_closed_property3 (dense_range_iff_closure_range.mpr he) hp h
+
+@[elab_as_eliminator]
+lemma dense_range.induction_on  [topological_space β] {e : α → β} (he : dense_range e) {p : β → Prop}
+  (b₀ : β) (hp : is_closed {b | p b}) (ih : ∀a:α, p $ e a) : p b₀ :=
+is_closed_property he hp ih b₀
+
+@[elab_as_eliminator]
+lemma dense_range.induction_on₂ [topological_space β] {e : α → β} {p : β → β → Prop}
+  (he : dense_range e) (hp : is_closed {q:β×β | p q.1 q.2}) (h : ∀a₁ a₂, p (e a₁) (e a₂))
+  (b₁ b₂ : β) : p b₁ b₂ := is_closed_property2 he hp h _ _
+
+@[elab_as_eliminator]
+lemma dense_range.induction_on₃ [topological_space β] {e : α → β} {p : β → β → β → Prop}
+  (he : dense_range e) (hp : is_closed {q:β×β×β | p q.1 q.2.1 q.2.2}) (h : ∀a₁ a₂ a₃, p (e a₁) (e a₂) (e a₃))
+  (b₁ b₂ b₃ : β) : p b₁ b₂ b₃ := is_closed_property3 he hp h _ _ _

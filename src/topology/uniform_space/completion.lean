@@ -373,7 +373,7 @@ def cpkg {α : Type*} [uniform_space α] : abstract_completion α :=
   complete := by apply_instance,
   separation := by apply_instance,
   uniform_inducing := completion.uniform_inducing_coe α,
-  dense := (dense_range_iff_closure_eq _).2 completion.dense }
+  dense := dense_range_iff_closure_range.mpr completion.dense }
 
 local attribute [instance]
 abstract_completion.uniform_struct abstract_completion.complete abstract_completion.separation
@@ -394,7 +394,7 @@ lemma uniform_embedding_coe [separated α] : uniform_embedding  (coe : α → co
 variable {α}
 
 lemma dense_inducing_coe : dense_inducing (coe : α → completion α) :=
-{ dense := (dense_range_iff_closure_eq _).2 dense,
+{ dense := dense_range_iff_closure_range.mpr dense,
   ..(uniform_inducing_coe α).inducing }
 
 lemma dense_embedding_coe [separated α]: dense_embedding (coe : α → completion α) :=
@@ -418,7 +418,7 @@ end
 @[elab_as_eliminator]
 lemma induction_on {p : completion α → Prop}
   (a : completion α) (hp : is_closed {a | p a}) (ih : ∀a:α, p a) : p a :=
-is_closed_property dense hp ih a
+is_closed_property' dense hp ih a
 
 @[elab_as_eliminator]
 lemma induction_on₂ {p : completion α → completion β → Prop}
@@ -426,7 +426,7 @@ lemma induction_on₂ {p : completion α → completion β → Prop}
   (hp : is_closed {x : completion α × completion β | p x.1 x.2})
   (ih : ∀(a:α) (b:β), p a b) : p a b :=
 have ∀x : completion α × completion β, p x.1 x.2, from
-  is_closed_property dense₂ hp $ assume ⟨a, b⟩, ih a b,
+  is_closed_property' dense₂ hp $ assume ⟨a, b⟩, ih a b,
 this (a, b)
 
 @[elab_as_eliminator]
@@ -435,7 +435,7 @@ lemma induction_on₃ {p : completion α → completion β → completion γ →
   (hp : is_closed {x : completion α × completion β × completion γ | p x.1 x.2.1 x.2.2})
   (ih : ∀(a:α) (b:β) (c:γ), p a b c) : p a b c :=
 have ∀x : completion α × completion β × completion γ, p x.1 x.2.1 x.2.2, from
-  is_closed_property dense₃ hp $ assume ⟨a, b, c⟩, ih a b c,
+  is_closed_property' dense₃ hp $ assume ⟨a, b, c⟩, ih a b c,
 this (a, b, c)
 
 @[elab_as_eliminator]
@@ -456,7 +456,7 @@ begin
   exact dense₂
 end,
 have ∀x:(completion α × completion β) × (completion γ × completion δ), p x.1.1 x.1.2 x.2.1 x.2.2, from
-  is_closed_property dense₄ hp (assume p:(α×β)×(γ×δ), ih p.1.1 p.1.2 p.2.1 p.2.2),
+  is_closed_property' dense₄ hp (assume p:(α×β)×(γ×δ), ih p.1.1 p.1.2 p.2.1 p.2.2),
 this ((a, b), (c, d))
 
 lemma ext [t2_space β] {f g : completion α → β} (hf : continuous f) (hg : continuous g)
@@ -538,7 +538,7 @@ begin
   refine ⟨completion.extension (separation_quotient.lift (coe : α → completion α)),
     completion.map quotient.mk, _, _⟩,
   { assume a,
-    refine completion.induction_on a (is_closed_eq (continuous_map.comp continuous_extension) continuous_id) _,
+    refine induction_on a (is_closed_eq (continuous_map.comp continuous_extension) continuous_id) _,
     rintros ⟨a⟩,
     show completion.map quotient.mk (completion.extension (separation_quotient.lift coe) ↑⟦a⟧) = ↑⟦a⟧,
     rw [extension_coe (separation_quotient.uniform_continuous_lift _),

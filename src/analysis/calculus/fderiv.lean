@@ -130,6 +130,14 @@ variables {x : E}
 variables {s t : set E}
 variables {L L₁ L₂ : filter E}
 
+lemma fderiv_within_zero_of_not_differentiable_within_at
+  (h : ¬ differentiable_within_at 𝕜 f s x) : fderiv_within 𝕜 f s x = 0 :=
+have ¬ ∃ f', has_fderiv_within_at f f' s x, from h,
+by simp [fderiv_within, this]
+
+lemma fderiv_zero_of_not_differentiable_at (h : ¬ differentiable_at 𝕜 f x) : fderiv 𝕜 f x = 0 :=
+have ¬ ∃ f', has_fderiv_at f f' x, from h,
+by simp [fderiv, this]
 
 section derivative_uniqueness
 /- In this section, we discuss the uniqueness of the derivative.
@@ -374,12 +382,10 @@ begin
   { apply has_fderiv_within_at.fderiv_within _ (is_open_univ.unique_diff_within_at (mem_univ _)),
     rw has_fderiv_within_at_univ,
     apply h.has_fderiv_at },
-  { have : fderiv 𝕜 f x = 0,
-      by { unfold differentiable_at at h, simp [fderiv, h] },
-    rw this,
-    have : ¬(differentiable_within_at 𝕜 f univ x), by rwa differentiable_within_at_univ,
-    unfold differentiable_within_at at this,
-    simp [fderiv_within, this, -has_fderiv_within_at_univ] }
+  { have : ¬ differentiable_within_at 𝕜 f univ x,
+      by contrapose! h; rwa ← differentiable_within_at_univ,
+    rw [fderiv_zero_of_not_differentiable_at h,
+        fderiv_within_zero_of_not_differentiable_within_at this] }
 end
 
 lemma fderiv_within_inter (ht : t ∈ 𝓝 x) (hs : unique_diff_within_at 𝕜 s x) :
@@ -388,13 +394,10 @@ begin
   by_cases h : differentiable_within_at 𝕜 f (s ∩ t) x,
   { apply fderiv_within_subset (inter_subset_left _ _) _ ((differentiable_within_at_inter ht).1 h),
     apply hs.inter ht },
-  { have : fderiv_within 𝕜 f (s ∩ t) x = 0,
-      by { unfold differentiable_within_at at h, simp [fderiv_within, h] },
-    rw this,
-    rw differentiable_within_at_inter ht at h,
-    have : fderiv_within 𝕜 f s x = 0,
-      by { unfold differentiable_within_at at h, simp [fderiv_within, h] },
-    rw this }
+  { have : ¬ differentiable_within_at 𝕜 f s x,
+      by contrapose! h; rw differentiable_within_at_inter; assumption,
+    rw [fderiv_within_zero_of_not_differentiable_within_at h,
+        fderiv_within_zero_of_not_differentiable_within_at this] }
 end
 
 end fderiv_properties

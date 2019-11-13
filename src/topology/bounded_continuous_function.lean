@@ -12,6 +12,7 @@ import analysis.normed_space.basic topology.metric_space.cau_seq_filter
 
 noncomputable theory
 local attribute [instance] classical.decidable_inhabited classical.prop_decidable
+open_locale topological_space
 
 open set lattice filter metric
 
@@ -21,13 +22,13 @@ variables {α : Type u} {β : Type v} {γ : Type w}
 /-- A locally uniform limit of continuous functions is continuous -/
 lemma continuous_of_locally_uniform_limit_of_continuous [topological_space α] [metric_space β]
   {F : ℕ → α → β} {f : α → β}
-  (L : ∀x:α, ∃s ∈ nhds x, ∀ε>(0:ℝ), ∃n, ∀y∈s, dist (F n y) (f y) ≤ ε)
+  (L : ∀x:α, ∃s ∈ 𝓝 x, ∀ε>(0:ℝ), ∃n, ∀y∈s, dist (F n y) (f y) ≤ ε)
   (C : ∀ n, continuous (F n)) : continuous f :=
 continuous_iff'.2 $ λ x ε ε0, begin
   rcases L x with ⟨r, rx, hr⟩,
   rcases hr (ε/2/2) (half_pos $ half_pos ε0) with ⟨n, hn⟩,
   rcases continuous_iff'.1 (C n) x (ε/2) (half_pos ε0) with ⟨s, sx, hs⟩,
-  refine ⟨_, (nhds x).inter_sets rx sx, _⟩,
+  refine ⟨_, (𝓝 x).inter_sets rx sx, _⟩,
   rintro y ⟨yr, ys⟩,
   calc dist (f y) (f x)
         ≤ dist (F n y) (F n x) + (dist (F n y) (f y) + dist (F n x) (f x)) : dist_triangle4_left _ _ _ _
@@ -131,7 +132,7 @@ theorem continuous_eval : continuous (λ p : (α →ᵇ β) × α, p.1 p.2) :=
 continuous_iff'.2 $ λ ⟨f, x⟩ ε ε0,
 /- use the continuity of `f` to find a neighborhood of `x` where it varies at most by ε/2 -/
 let ⟨s, sx, Hs⟩ := continuous_iff'.1 f.2.1 x (ε/2) (half_pos ε0) in
-/- s : set α, sx : s ∈ nhds x, Hs : ∀ (b : α), b ∈ s → dist (f.val b) (f.val x) < ε / 2 -/
+/- s : set α, sx : s ∈ 𝓝 x, Hs : ∀ (b : α), b ∈ s → dist (f.val b) (f.val x) < ε / 2 -/
 ⟨set.prod (ball f (ε/2)) s, prod_mem_nhds_sets (ball_mem_nhds _ (half_pos ε0)) sx,
 λ ⟨g, y⟩ ⟨hg, hy⟩, calc dist (g y) (f x)
       ≤ dist (g y) (f y) + dist (f y) (f x) : dist_triangle _ _ _
@@ -157,7 +158,7 @@ begin
   have fx_cau : ∀x, cauchy_seq (λn, f n x) :=
     λx, cauchy_seq_iff_le_tendsto_0.2 ⟨b, b0, f_bdd x, b_lim⟩,
   choose F hF using λx, cauchy_seq_tendsto_of_complete (fx_cau x),
-  /- F : α → β,  hF : ∀ (x : α), tendsto (λ (n : ℕ), f n x) at_top (nhds (F x))
+  /- F : α → β,  hF : ∀ (x : α), tendsto (λ (n : ℕ), f n x) at_top (𝓝 (F x))
   `F` is the desired limit function. Check that it is uniformly approximated by `f N` -/
   have fF_bdd : ∀x N, dist (f N x) (F x) ≤ b N :=
     λ x N, le_of_tendsto (by simp)
@@ -220,7 +221,7 @@ and several useful variations around it. -/
 theorem arzela_ascoli₁ [compact_space β]
   (A : set (α →ᵇ β))
   (closed : is_closed A)
-  (H : ∀ (x:α) (ε > 0), ∃U ∈ nhds x, ∀ (y z ∈ U) (f : α →ᵇ β),
+  (H : ∀ (x:α) (ε > 0), ∃U ∈ 𝓝 x, ∀ (y z ∈ U) (f : α →ᵇ β),
     f ∈ A → dist (f y) (f z) < ε) :
   compact A :=
 begin
@@ -285,7 +286,7 @@ theorem arzela_ascoli₂
   (A : set (α →ᵇ β))
   (closed : is_closed A)
   (in_s : ∀(f : α →ᵇ β) (x : α), f ∈ A → f x ∈ s)
-  (H : ∀(x:α) (ε > 0), ∃U ∈ nhds x, ∀ (y z ∈ U) (f : α →ᵇ β),
+  (H : ∀(x:α) (ε > 0), ∃U ∈ 𝓝 x, ∀ (y z ∈ U) (f : α →ᵇ β),
     f ∈ A → dist (f y) (f z) < ε) :
   compact A :=
 /- This version is deduced from the previous one by restricting to the compact type in the target,
@@ -311,7 +312,7 @@ theorem arzela_ascoli
   (s : set β) (hs : compact s)
   (A : set (α →ᵇ β))
   (in_s : ∀(f : α →ᵇ β) (x : α), f ∈ A → f x ∈ s)
-  (H : ∀(x:α) (ε > 0), ∃U ∈ nhds x, ∀ (y z ∈ U) (f : α →ᵇ β),
+  (H : ∀(x:α) (ε > 0), ∃U ∈ 𝓝 x, ∀ (y z ∈ U) (f : α →ᵇ β),
     f ∈ A → dist (f y) (f z) < ε) :
   compact (closure A) :=
 /- This version is deduced from the previous one by checking that the closure of A, in
@@ -320,7 +321,7 @@ arzela_ascoli₂ s hs (closure A) is_closed_closure
   (λ f x hf, (mem_of_closed' (closed_of_compact _ hs)).2 $ λ ε ε0,
     let ⟨g, gA, dist_fg⟩ := mem_closure_iff'.1 hf ε ε0 in
     ⟨g x, in_s g x gA, lt_of_le_of_lt (dist_coe_le_dist _) dist_fg⟩)
-  (λ x ε ε0, show ∃ U ∈ nhds x,
+  (λ x ε ε0, show ∃ U ∈ 𝓝 x,
       ∀ y z ∈ U, ∀ (f : α →ᵇ β), f ∈ closure A → dist (f y) (f z) < ε,
     begin
       refine bex.imp_right (λ U U_set hU y z hy hz f hf, _) (H x (ε/2) (half_pos ε0)),
@@ -337,10 +338,10 @@ instance is when the source space is a metric space, and there is a fixed modulu
 for all the functions in the set A -/
 
 lemma equicontinuous_of_continuity_modulus {α : Type u} [metric_space α]
-  (b : ℝ → ℝ) (b_lim : tendsto b (nhds 0) (nhds 0))
+  (b : ℝ → ℝ) (b_lim : tendsto b (𝓝 0) (𝓝 0))
   (A : set (α →ᵇ β))
   (H : ∀(x y:α) (f : α →ᵇ β), f ∈ A → dist (f x) (f y) ≤ b (dist x y))
-  (x:α) (ε : ℝ) (ε0 : ε > 0) : ∃U ∈ nhds x, ∀ (y z ∈ U) (f : α →ᵇ β),
+  (x:α) (ε : ℝ) (ε0 : ε > 0) : ∃U ∈ 𝓝 x, ∀ (y z ∈ U) (f : α →ᵇ β),
     f ∈ A → dist (f y) (f z) < ε :=
 begin
   rcases tendsto_nhds_nhds.1 b_lim ε ε0 with ⟨δ, δ0, hδ⟩,

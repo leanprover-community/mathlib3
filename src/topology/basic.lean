@@ -11,7 +11,7 @@ import order.filter
 
 The main definition is the type class `topological space α` which endows a type `α` with a topology.
 Then `set α` gets predicates `is_open`, `is_closed` and functions `interior`, `closure` and
-`frontier`. Each point `x` of `α` gets a neighborhood filter `nhds x`.
+`frontier`. Each point `x` of `α` gets a neighborhood filter `𝓝 x`.
 
 This file also defines locally finite families of subsets of `α`.
 
@@ -357,16 +357,18 @@ end
 /-- neighbourhood filter -/
 def nhds (a : α) : filter α := (⨅ s ∈ {s : set α | a ∈ s ∧ is_open s}, principal s)
 
-lemma nhds_def (a : α) : nhds a = (⨅ s ∈ {s : set α | a ∈ s ∧ is_open s}, principal s) := rfl
+localized "notation `𝓝` := nhds" in topological_space
 
-lemma le_nhds_iff {f a} : f ≤ nhds a ↔ ∀ s : set α, a ∈ s → is_open s → s ∈ f :=
+lemma nhds_def (a : α) : 𝓝 a = (⨅ s ∈ {s : set α | a ∈ s ∧ is_open s}, principal s) := rfl
+
+lemma le_nhds_iff {f a} : f ≤ 𝓝 a ↔ ∀ s : set α, a ∈ s → is_open s → s ∈ f :=
 by simp [nhds_def]
 
-lemma nhds_le_of_le {f a} {s : set α} (h : a ∈ s) (o : is_open s) (sf : principal s ≤ f) : nhds a ≤ f :=
+lemma nhds_le_of_le {f a} {s : set α} (h : a ∈ s) (o : is_open s) (sf : principal s ≤ f) : 𝓝 a ≤ f :=
 by rw nhds_def; exact infi_le_of_le s (infi_le_of_le ⟨h, o⟩ sf)
 
-lemma nhds_sets {a : α} : (nhds a).sets = {s | ∃t⊆s, is_open t ∧ a ∈ t} :=
-calc (nhds a).sets = (⋃s∈{s : set α| a ∈ s ∧ is_open s}, (principal s).sets) : infi_sets_eq'
+lemma nhds_sets {a : α} : (𝓝 a).sets = {s | ∃t⊆s, is_open t ∧ a ∈ t} :=
+calc (𝓝 a).sets = (⋃s∈{s : set α| a ∈ s ∧ is_open s}, (principal s).sets) : infi_sets_eq'
   (assume x ⟨hx₁, hx₂⟩ y ⟨hy₁, hy₂⟩,
     ⟨x ∩ y, ⟨⟨hx₁, hy₁⟩, is_open_inter hx₂ hy₂⟩,
       le_principal_iff.2 (inter_subset_left _ _),
@@ -378,8 +380,8 @@ calc (nhds a).sets = (⋃s∈{s : set α| a ∈ s ∧ is_open s}, (principal s).
       (assume t ⟨i, hi₁, hi₂, hi₃⟩, mem_Union.2 ⟨i, mem_Union.2 ⟨⟨hi₃, hi₂⟩, hi₁⟩⟩)
 
 lemma map_nhds {a : α} {f : α → β} :
-  map f (nhds a) = (⨅ s ∈ {s : set α | a ∈ s ∧ is_open s}, principal (image f s)) :=
-calc map f (nhds a) = (⨅ s ∈ {s : set α | a ∈ s ∧ is_open s}, map f (principal s)) :
+  map f (𝓝 a) = (⨅ s ∈ {s : set α | a ∈ s ∧ is_open s}, principal (image f s)) :=
+calc map f (𝓝 a) = (⨅ s ∈ {s : set α | a ∈ s ∧ is_open s}, map f (principal s)) :
     map_binfi_eq
     (assume x ⟨hx₁, hx₂⟩ y ⟨hy₁, hy₂⟩,
       ⟨x ∩ y, ⟨⟨hx₁, hy₁⟩, is_open_inter hx₂ hy₂⟩,
@@ -391,23 +393,23 @@ calc map f (nhds a) = (⨅ s ∈ {s : set α | a ∈ s ∧ is_open s}, map f (pr
 attribute [irreducible] nhds
 
 lemma mem_nhds_sets_iff {a : α} {s : set α} :
- s ∈ nhds a ↔ ∃t⊆s, is_open t ∧ a ∈ t :=
+ s ∈ 𝓝 a ↔ ∃t⊆s, is_open t ∧ a ∈ t :=
 by simp only [nhds_sets, mem_set_of_eq, exists_prop]
 
-lemma mem_of_nhds {a : α} {s : set α} : s ∈ nhds a → a ∈ s :=
+lemma mem_of_nhds {a : α} {s : set α} : s ∈ 𝓝 a → a ∈ s :=
 λ H, let ⟨t, ht, _, hs⟩ := mem_nhds_sets_iff.1 H in ht hs
 
 lemma mem_nhds_sets {a : α} {s : set α} (hs : is_open s) (ha : a ∈ s) :
- s ∈ nhds a :=
+ s ∈ 𝓝 a :=
 mem_nhds_sets_iff.2 ⟨s, subset.refl _, hs, ha⟩
 
 theorem all_mem_nhds (x : α) (P : set α → Prop) (hP : ∀ s t, s ⊆ t → P s → P t) :
-  (∀ s ∈ nhds x, P s) ↔ (∀ s, is_open s → x ∈ s → P s) :=
+  (∀ s ∈ 𝓝 x, P s) ↔ (∀ s, is_open s → x ∈ s → P s) :=
 iff.intro
   (λ h s os xs, h s (mem_nhds_sets os xs))
   (λ h t,
     begin
-      change t ∈ (nhds x).sets → P t,
+      change t ∈ (𝓝 x).sets → P t,
       rw nhds_sets,
       rintros ⟨s, hs, opens, xs⟩,
       exact hP _ _ hs (h s opens xs),
@@ -415,73 +417,73 @@ iff.intro
 
 theorem all_mem_nhds_filter (x : α) (f : set α → set β) (hf : ∀ s t, s ⊆ t → f s ⊆ f t)
     (l : filter β) :
-  (∀ s ∈ nhds x, f s ∈ l) ↔ (∀ s, is_open s → x ∈ s → f s ∈ l) :=
+  (∀ s ∈ 𝓝 x, f s ∈ l) ↔ (∀ s, is_open s → x ∈ s → f s ∈ l) :=
 all_mem_nhds _ _ (λ s t ssubt h, mem_sets_of_superset h (hf s t ssubt))
 
 theorem rtendsto_nhds {r : rel β α} {l : filter β} {a : α} :
-  rtendsto r l (nhds a) ↔ (∀ s, is_open s → a ∈ s → r.core s ∈ l) :=
+  rtendsto r l (𝓝 a) ↔ (∀ s, is_open s → a ∈ s → r.core s ∈ l) :=
 all_mem_nhds_filter _ _ (λ s t, id) _
 
 theorem rtendsto'_nhds {r : rel β α} {l : filter β} {a : α} :
-  rtendsto' r l (nhds a) ↔ (∀ s, is_open s → a ∈ s → r.preimage s ∈ l) :=
+  rtendsto' r l (𝓝 a) ↔ (∀ s, is_open s → a ∈ s → r.preimage s ∈ l) :=
 by { rw [rtendsto'_def], apply all_mem_nhds_filter, apply rel.preimage_mono }
 
 theorem ptendsto_nhds {f : β →. α} {l : filter β} {a : α} :
-  ptendsto f l (nhds a) ↔ (∀ s, is_open s → a ∈ s → f.core s ∈ l) :=
+  ptendsto f l (𝓝 a) ↔ (∀ s, is_open s → a ∈ s → f.core s ∈ l) :=
 rtendsto_nhds
 
 theorem ptendsto'_nhds {f : β →. α} {l : filter β} {a : α} :
-  ptendsto' f l (nhds a) ↔ (∀ s, is_open s → a ∈ s → f.preimage s ∈ l) :=
+  ptendsto' f l (𝓝 a) ↔ (∀ s, is_open s → a ∈ s → f.preimage s ∈ l) :=
 rtendsto'_nhds
 
 theorem tendsto_nhds {f : β → α} {l : filter β} {a : α} :
-  tendsto f l (nhds a) ↔ (∀ s, is_open s → a ∈ s → f ⁻¹' s ∈ l) :=
+  tendsto f l (𝓝 a) ↔ (∀ s, is_open s → a ∈ s → f ⁻¹' s ∈ l) :=
 all_mem_nhds_filter _ _ (λ s t h, preimage_mono h) _
 
-lemma tendsto_const_nhds {a : α} {f : filter β} : tendsto (λb:β, a) f (nhds a) :=
+lemma tendsto_const_nhds {a : α} {f : filter β} : tendsto (λb:β, a) f (𝓝 a) :=
 tendsto_nhds.mpr $ assume s hs ha, univ_mem_sets' $ assume _, ha
 
-lemma pure_le_nhds : pure ≤ (nhds : α → filter α) :=
+lemma pure_le_nhds : pure ≤ (𝓝 : α → filter α) :=
 assume a, by rw nhds_def; exact le_infi
   (assume s, le_infi $ assume ⟨h₁, _⟩, principal_mono.mpr $
     singleton_subset_iff.2 h₁)
 
 lemma tendsto_pure_nhds {α : Type*} [topological_space β] (f : α → β) (a : α) :
-  tendsto f (pure a) (nhds (f a)) :=
+  tendsto f (pure a) (𝓝 (f a)) :=
 begin
   rw [tendsto, filter.map_pure],
   exact pure_le_nhds (f a)
 end
 
-@[simp] lemma nhds_neq_bot {a : α} : nhds a ≠ ⊥ :=
-assume : nhds a = ⊥,
+@[simp] lemma nhds_neq_bot {a : α} : 𝓝 a ≠ ⊥ :=
+assume : 𝓝 a = ⊥,
 have pure a = (⊥ : filter α),
   from lattice.bot_unique $ this ▸ pure_le_nhds a,
 pure_neq_bot this
 
-lemma interior_eq_nhds {s : set α} : interior s = {a | nhds a ≤ principal s} :=
+lemma interior_eq_nhds {s : set α} : interior s = {a | 𝓝 a ≤ principal s} :=
 set.ext $ λ x, by simp only [mem_interior, le_principal_iff, mem_nhds_sets_iff]; refl
 
 lemma mem_interior_iff_mem_nhds {s : set α} {a : α} :
-  a ∈ interior s ↔ s ∈ nhds a :=
+  a ∈ interior s ↔ s ∈ 𝓝 a :=
 by simp only [interior_eq_nhds, le_principal_iff]; refl
 
-lemma is_open_iff_nhds {s : set α} : is_open s ↔ ∀a∈s, nhds a ≤ principal s :=
+lemma is_open_iff_nhds {s : set α} : is_open s ↔ ∀a∈s, 𝓝 a ≤ principal s :=
 calc is_open s ↔ s ⊆ interior s : subset_interior_iff_open.symm
-  ... ↔ (∀a∈s, nhds a ≤ principal s) : by rw [interior_eq_nhds]; refl
+  ... ↔ (∀a∈s, 𝓝 a ≤ principal s) : by rw [interior_eq_nhds]; refl
 
-lemma is_open_iff_mem_nhds {s : set α} : is_open s ↔ ∀a∈s, s ∈ nhds a :=
+lemma is_open_iff_mem_nhds {s : set α} : is_open s ↔ ∀a∈s, s ∈ 𝓝 a :=
 is_open_iff_nhds.trans $ forall_congr $ λ _, imp_congr_right $ λ _, le_principal_iff
 
-lemma closure_eq_nhds {s : set α} : closure s = {a | nhds a ⊓ principal s ≠ ⊥} :=
+lemma closure_eq_nhds {s : set α} : closure s = {a | 𝓝 a ⊓ principal s ≠ ⊥} :=
 calc closure s = - interior (- s) : closure_eq_compl_interior_compl
-  ... = {a | ¬ nhds a ≤ principal (-s)} : by rw [interior_eq_nhds]; refl
-  ... = {a | nhds a ⊓ principal s ≠ ⊥} : set.ext $ assume a, not_congr
+  ... = {a | ¬ 𝓝 a ≤ principal (-s)} : by rw [interior_eq_nhds]; refl
+  ... = {a | 𝓝 a ⊓ principal s ≠ ⊥} : set.ext $ assume a, not_congr
     (inf_eq_bot_iff_le_compl
       (show principal s ⊔ principal (-s) = ⊤, by simp only [sup_principal, union_compl_self, principal_univ])
       (by simp only [inf_principal, inter_compl_self, principal_empty])).symm
 
-theorem mem_closure_iff_nhds {s : set α} {a : α} : a ∈ closure s ↔ ∀ t ∈ nhds a, t ∩ s ≠ ∅ :=
+theorem mem_closure_iff_nhds {s : set α} {a : α} : a ∈ closure s ↔ ∀ t ∈ 𝓝 a, t ∩ s ≠ ∅ :=
 mem_closure_iff.trans
 ⟨λ H t ht, subset_ne_empty
   (inter_subset_inter_left _ interior_subset)
@@ -491,25 +493,25 @@ mem_closure_iff.trans
 /-- `x` belongs to the closure of `s` if and only if some ultrafilter
   supported on `s` converges to `x`. -/
 lemma mem_closure_iff_ultrafilter {s : set α} {x : α} :
-  x ∈ closure s ↔ ∃ (u : ultrafilter α), s ∈ u.val ∧ u.val ≤ nhds x :=
+  x ∈ closure s ↔ ∃ (u : ultrafilter α), s ∈ u.val ∧ u.val ≤ 𝓝 x :=
 begin
-  rw closure_eq_nhds, change nhds x ⊓ principal s ≠ ⊥ ↔ _, symmetry,
+  rw closure_eq_nhds, change 𝓝 x ⊓ principal s ≠ ⊥ ↔ _, symmetry,
   convert exists_ultrafilter_iff _, ext u,
   rw [←le_principal_iff, inf_comm, le_inf_iff]
 end
 
-lemma is_closed_iff_nhds {s : set α} : is_closed s ↔ ∀a, nhds a ⊓ principal s ≠ ⊥ → a ∈ s :=
+lemma is_closed_iff_nhds {s : set α} : is_closed s ↔ ∀a, 𝓝 a ⊓ principal s ≠ ⊥ → a ∈ s :=
 calc is_closed s ↔ closure s = s : by rw [closure_eq_iff_is_closed]
   ... ↔ closure s ⊆ s : ⟨assume h, by rw h, assume h, subset.antisymm h subset_closure⟩
-  ... ↔ (∀a, nhds a ⊓ principal s ≠ ⊥ → a ∈ s) : by rw [closure_eq_nhds]; refl
+  ... ↔ (∀a, 𝓝 a ⊓ principal s ≠ ⊥ → a ∈ s) : by rw [closure_eq_nhds]; refl
 
 lemma closure_inter_open {s t : set α} (h : is_open s) : s ∩ closure t ⊆ closure (s ∩ t) :=
 assume a ⟨hs, ht⟩,
-have s ∈ nhds a, from mem_nhds_sets h hs,
-have nhds a ⊓ principal s = nhds a, from inf_of_le_left $ by rwa le_principal_iff,
-have nhds a ⊓ principal (s ∩ t) ≠ ⊥,
-  from calc nhds a ⊓ principal (s ∩ t) = nhds a ⊓ (principal s ⊓ principal t) : by rw inf_principal
-    ... = nhds a ⊓ principal t : by rw [←inf_assoc, this]
+have s ∈ 𝓝 a, from mem_nhds_sets h hs,
+have 𝓝 a ⊓ principal s = 𝓝 a, from inf_of_le_left $ by rwa le_principal_iff,
+have 𝓝 a ⊓ principal (s ∩ t) ≠ ⊥,
+  from calc 𝓝 a ⊓ principal (s ∩ t) = 𝓝 a ⊓ (principal s ⊓ principal t) : by rw inf_principal
+    ... = 𝓝 a ⊓ principal t : by rw [←inf_assoc, this]
     ... ≠ ⊥ : by rw [closure_eq_nhds] at ht; assumption,
 by rw [closure_eq_nhds]; assumption
 
@@ -520,19 +522,19 @@ calc closure s \ closure t = (- closure t) ∩ closure s : by simp only [diff_eq
   ... ⊆ closure (s \ t) : closure_mono $ diff_subset_diff (subset.refl s) subset_closure
 
 lemma mem_of_closed_of_tendsto {f : β → α} {b : filter β} {a : α} {s : set α}
-  (hb : b ≠ ⊥) (hf : tendsto f b (nhds a)) (hs : is_closed s) (h : f ⁻¹' s ∈ b) : a ∈ s :=
-have b.map f ≤ nhds a ⊓ principal s,
+  (hb : b ≠ ⊥) (hf : tendsto f b (𝓝 a)) (hs : is_closed s) (h : f ⁻¹' s ∈ b) : a ∈ s :=
+have b.map f ≤ 𝓝 a ⊓ principal s,
   from le_trans (le_inf (le_refl _) (le_principal_iff.mpr h)) (inf_le_inf hf (le_refl _)),
 is_closed_iff_nhds.mp hs a $ neq_bot_of_le_neq_bot (map_ne_bot hb) this
 
 lemma mem_of_closed_of_tendsto' {f : β → α} {x : filter β} {a : α} {s : set α}
-  (hf : tendsto f x (nhds a)) (hs : is_closed s) (h : x ⊓ principal (f ⁻¹' s) ≠ ⊥) : a ∈ s :=
+  (hf : tendsto f x (𝓝 a)) (hs : is_closed s) (h : x ⊓ principal (f ⁻¹' s) ≠ ⊥) : a ∈ s :=
 is_closed_iff_nhds.mp hs _ $ neq_bot_of_le_neq_bot (@map_ne_bot _ _ _ f h) $
   le_inf (le_trans (map_mono $ inf_le_left) hf) $
     le_trans (map_mono $ inf_le_right_of_le $ by simp only [comap_principal, le_principal_iff]; exact subset.refl _) (@map_comap_le _ _ _ f)
 
 lemma mem_closure_of_tendsto {f : β → α} {b : filter β} {a : α} {s : set α}
-  (hb : b ≠ ⊥) (hf : tendsto f b (nhds a)) (h : f ⁻¹' s ∈ b) : a ∈ closure s :=
+  (hb : b ≠ ⊥) (hf : tendsto f b (𝓝 a)) (h : f ⁻¹' s ∈ b) : a ∈ closure s :=
 mem_of_closed_of_tendsto hb hf (is_closed_closure) $
   filter.mem_sets_of_superset h (preimage_mono subset_closure)
 
@@ -541,9 +543,9 @@ section lim
 variables [inhabited α]
 
 /-- If `f` is a filter, then `lim f` is a limit of the filter, if it exists. -/
-noncomputable def lim (f : filter α) : α := epsilon $ λa, f ≤ nhds a
+noncomputable def lim (f : filter α) : α := epsilon $ λa, f ≤ 𝓝 a
 
-lemma lim_spec {f : filter α} (h : ∃a, f ≤ nhds a) : f ≤ nhds (lim f) := epsilon_spec h
+lemma lim_spec {f : filter α} (h : ∃a, f ≤ 𝓝 a) : f ≤ 𝓝 (lim f) := epsilon_spec h
 end lim
 
 
@@ -553,7 +555,7 @@ section locally_finite
 /-- A family of sets in `set α` is locally finite if at every point `x:α`,
   there is a neighborhood of `x` which meets only finitely many sets in the family -/
 def locally_finite (f : β → set α) :=
-∀x:α, ∃t ∈ nhds x, finite {i | f i ∩ t ≠ ∅ }
+∀x:α, ∃t ∈ 𝓝 x, finite {i | f i ∩ t ≠ ∅ }
 
 lemma locally_finite_of_finite {f : β → set α} (h : finite (univ : set β)) : locally_finite f :=
 assume x, ⟨univ, univ_mem_sets, finite_subset h $ subset_univ _⟩
@@ -570,15 +572,15 @@ lemma is_closed_Union_of_locally_finite {f : β → set α}
 is_open_iff_nhds.mpr $ assume a, assume h : a ∉ (⋃i, f i),
   have ∀i, a ∈ -f i,
     from assume i hi, h $ mem_Union.2 ⟨i, hi⟩,
-  have ∀i, - f i ∈ (nhds a).sets,
+  have ∀i, - f i ∈ (𝓝 a).sets,
     by rw [nhds_sets]; exact assume i, ⟨- f i, subset.refl _, h₂ i, this i⟩,
   let ⟨t, h_sets, (h_fin : finite {i | f i ∩ t ≠ ∅ })⟩ := h₁ a in
 
-  calc nhds a ≤ principal (t ∩ (⋂ i∈{i | f i ∩ t ≠ ∅ }, - f i)) :
+  calc 𝓝 a ≤ principal (t ∩ (⋂ i∈{i | f i ∩ t ≠ ∅ }, - f i)) :
   begin
     rw [le_principal_iff],
-    apply @filter.inter_mem_sets _ (nhds a) _ _ h_sets,
-    apply @filter.Inter_mem_sets _ (nhds a) _ _ _ h_fin,
+    apply @filter.inter_mem_sets _ (𝓝 a) _ _ h_sets,
+    apply @filter.Inter_mem_sets _ (𝓝 a) _ _ _ h_fin,
     exact assume i h, this i
   end
   ... ≤ principal (- ⋃i, f i) :
@@ -596,6 +598,7 @@ end topological_space
 section continuous
 variables {α : Type*} {β : Type*} {γ : Type*} {δ : Type*}
 variables [topological_space α] [topological_space β] [topological_space γ]
+open_locale topological_space
 
 /-- A function between topological spaces is continuous if the preimage
   of every open set is open. -/
@@ -603,10 +606,10 @@ def continuous (f : α → β) := ∀s, is_open s → is_open (f ⁻¹' s)
 
 /-- A function between topological spaces is continuous at a point `x₀`
 if `f x` tends to `f x₀` when `x` tends to `x₀`. -/
-def continuous_at (f : α → β) (x : α) := tendsto f (nhds x) (nhds (f x))
+def continuous_at (f : α → β) (x : α) := tendsto f (𝓝 x) (𝓝 (f x))
 
 lemma continuous_at.preimage_mem_nhds {f : α → β} {x : α} {t : set β} (h : continuous_at f x)
-  (ht : t ∈ nhds (f x)) : f ⁻¹' t ∈ nhds x :=
+  (ht : t ∈ 𝓝 (f x)) : f ⁻¹' t ∈ 𝓝 x :=
 h ht
 
 lemma continuous_id : continuous (id : α → α) :=
@@ -622,8 +625,8 @@ lemma continuous_at.comp {g : β → γ} {f : α → β} {x : α}
 hg.comp hf
 
 lemma continuous.tendsto {f : α → β} (hf : continuous f) (x) :
-  tendsto f (nhds x) (nhds (f x)) | s :=
-show s ∈ nhds (f x) → s ∈ map f (nhds x),
+  tendsto f (𝓝 x) (𝓝 (f x)) | s :=
+show s ∈ 𝓝 (f x) → s ∈ map f (𝓝 x),
 by simp [nhds_sets]; exact
 assume t t_subset t_open fx_in_t,
   ⟨f ⁻¹' t, preimage_mono t_subset, hf t t_open, fx_in_t⟩
@@ -634,9 +637,9 @@ h.tendsto x
 
 lemma continuous_iff_continuous_at {f : α → β} : continuous f ↔ ∀ x, continuous_at f x :=
 ⟨continuous.tendsto,
-  assume hf : ∀x, tendsto f (nhds x) (nhds (f x)),
+  assume hf : ∀x, tendsto f (𝓝 x) (𝓝 (f x)),
   assume s, assume hs : is_open s,
-  have ∀a, f a ∈ s → s ∈ nhds (f a),
+  have ∀a, f a ∈ s → s ∈ 𝓝 (f a),
     by simp [nhds_sets]; exact assume a ha, ⟨s, subset.refl s, hs, ha⟩,
   show is_open (f ⁻¹' s),
     by simp [is_open_iff_nhds]; exact assume a ha, hf a (this a ha)⟩
@@ -650,11 +653,11 @@ lemma continuous_iff_is_closed {f : α → β} :
   assume hf s, by rw [←is_closed_compl_iff, ←is_closed_compl_iff]; exact hf _⟩
 
 lemma continuous_at_iff_ultrafilter {f : α → β} (x) : continuous_at f x ↔
-  ∀ g, is_ultrafilter g → g ≤ nhds x → g.map f ≤ nhds (f x) :=
-tendsto_iff_ultrafilter f (nhds x) (nhds (f x))
+  ∀ g, is_ultrafilter g → g ≤ 𝓝 x → g.map f ≤ 𝓝 (f x) :=
+tendsto_iff_ultrafilter f (𝓝 x) (𝓝 (f x))
 
 lemma continuous_iff_ultrafilter {f : α → β} :
-  continuous f ↔ ∀ x g, is_ultrafilter g → g ≤ nhds x → g.map f ≤ nhds (f x) :=
+  continuous f ↔ ∀ x g, is_ultrafilter g → g ≤ 𝓝 x → g.map f ≤ 𝓝 (f x) :=
 by simp only [continuous_iff_continuous_at, continuous_at_iff_ultrafilter]
 
 lemma continuous_if {p : α → Prop} {f g : α → β} {h : ∀a, decidable (p a)}
@@ -701,12 +704,12 @@ lemma open_dom_of_pcontinuous {f : α →. β} (h : pcontinuous f) : is_open f.d
 by rw [←pfun.preimage_univ]; exact h _ is_open_univ
 
 lemma pcontinuous_iff' {f : α →. β} :
-  pcontinuous f ↔ ∀ {x y} (h : y ∈ f x), ptendsto' f (nhds x) (nhds y) :=
+  pcontinuous f ↔ ∀ {x y} (h : y ∈ f x), ptendsto' f (𝓝 x) (𝓝 y) :=
 begin
   split,
   { intros h x y h',
     rw [ptendsto'_def],
-    change ∀ (s : set β), s ∈ (nhds y).sets → pfun.preimage f s ∈ (nhds x).sets,
+    change ∀ (s : set β), s ∈ (𝓝 y).sets → pfun.preimage f s ∈ (𝓝 x).sets,
     rw [nhds_sets, nhds_sets],
     rintros s ⟨t, tsubs, opent, yt⟩,
     exact ⟨f.preimage t, pfun.preimage_mono _ tsubs, h _ opent, ⟨y, yt, h'⟩⟩
@@ -716,24 +719,24 @@ begin
   rintros x ⟨y, ys, fxy⟩ t,
   rw [mem_principal_sets],
   assume h : f.preimage s ⊆ t,
-  change t ∈ nhds x,
+  change t ∈ 𝓝 x,
   apply mem_sets_of_superset _ h,
-  have h' : ∀ s ∈ nhds y, f.preimage s ∈ nhds x,
+  have h' : ∀ s ∈ 𝓝 y, f.preimage s ∈ 𝓝 x,
   { intros s hs,
-     have : ptendsto' f (nhds x) (nhds y) := hf fxy,
+     have : ptendsto' f (𝓝 x) (𝓝 y) := hf fxy,
      rw ptendsto'_def at this,
      exact this s hs },
-  show f.preimage s ∈ nhds x,
+  show f.preimage s ∈ 𝓝 x,
   apply h', rw mem_nhds_sets_iff, exact ⟨s, set.subset.refl _, os, ys⟩
 end
 
 lemma image_closure_subset_closure_image {f : α → β} {s : set α} (h : continuous f) :
   f '' closure s ⊆ closure (f '' s) :=
-have ∀ (a : α), nhds a ⊓ principal s ≠ ⊥ → nhds (f a) ⊓ principal (f '' s) ≠ ⊥,
+have ∀ (a : α), 𝓝 a ⊓ principal s ≠ ⊥ → 𝓝 (f a) ⊓ principal (f '' s) ≠ ⊥,
   from assume a ha,
-  have h₁ : ¬ map f (nhds a ⊓ principal s) = ⊥,
+  have h₁ : ¬ map f (𝓝 a ⊓ principal s) = ⊥,
     by rwa[map_eq_bot_iff],
-  have h₂ : map f (nhds a ⊓ principal s) ≤ nhds (f a) ⊓ principal (f '' s),
+  have h₂ : map f (𝓝 a ⊓ principal s) ≤ 𝓝 (f a) ⊓ principal (f '' s),
     from le_inf
       (le_trans (map_mono inf_le_left) $ by rw [continuous_iff_continuous_at] at h; exact h a)
       (le_trans (map_mono inf_le_right) $ by simp; exact subset.refl _),

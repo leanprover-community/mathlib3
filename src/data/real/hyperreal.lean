@@ -8,6 +8,7 @@ Construction of the hyperreal numbers as an ultraproduct of real sequences.
 import data.real.basic algebra.field order.filter.filter_product analysis.specific_limits
 
 open filter filter.filter_product
+open_locale topological_space
 
 local attribute [instance] classical.prop_decidable -- TODO: use "open_locale classical"
 
@@ -54,7 +55,7 @@ lemma omega_ne_zero : ω ≠ 0 := ne_of_gt omega_pos
 
 theorem epsilon_mul_omega : ε * ω = 1 := @inv_mul_cancel _ _ ω omega_ne_zero
 
-lemma lt_of_tendsto_zero_of_pos {f : ℕ → ℝ} (hf : tendsto f at_top (nhds 0)) :
+lemma lt_of_tendsto_zero_of_pos {f : ℕ → ℝ} (hf : tendsto f at_top (𝓝 0)) :
   ∀ {r : ℝ}, r > 0 → of_seq f < (r : ℝ*) :=
 begin
   simp only [metric.tendsto_at_top, dist_zero_right, norm, lt_def U] at hf ⊢,
@@ -66,12 +67,12 @@ begin
     (set.finite_subset (set.finite_le_nat N) hs)
 end
 
-lemma neg_lt_of_tendsto_zero_of_pos {f : ℕ → ℝ} (hf : tendsto f at_top (nhds 0)) :
+lemma neg_lt_of_tendsto_zero_of_pos {f : ℕ → ℝ} (hf : tendsto f at_top (𝓝 0)) :
   ∀ {r : ℝ}, r > 0 → (-r : ℝ*) < of_seq f :=
 λ r hr, have hg : _ := tendsto_neg hf,
 neg_lt_of_neg_lt (by rw [neg_zero] at hg; exact lt_of_tendsto_zero_of_pos hg hr)
 
-lemma gt_of_tendsto_zero_of_neg {f : ℕ → ℝ} (hf : tendsto f at_top (nhds 0)) :
+lemma gt_of_tendsto_zero_of_neg {f : ℕ → ℝ} (hf : tendsto f at_top (𝓝 0)) :
   ∀ {r : ℝ}, r < 0 → (r : ℝ*) < of_seq f :=
 λ r hr, by rw [←of_eq_coe, ←neg_neg r, of_neg];
 exact neg_lt_of_tendsto_zero_of_pos hf (neg_pos.mpr hr)
@@ -564,7 +565,7 @@ lemma infinitesimal_mul {x y : ℝ*} :
 zero_mul 0 ▸ is_st_mul
 
 theorem infinitesimal_of_tendsto_zero {f : ℕ → ℝ} :
-  tendsto f at_top (nhds 0) → infinitesimal (of_seq f) :=
+  tendsto f at_top (𝓝 0) → infinitesimal (of_seq f) :=
 λ hf d hd, by rw [←of_eq_coe, ←of_eq_coe, sub_eq_add_neg,
   ←of_neg, ←of_add, ←of_add, zero_add, zero_add, of_eq_coe, of_eq_coe];
 exact ⟨neg_lt_of_tendsto_zero_of_pos hf hd, lt_of_tendsto_zero_of_pos hf hd⟩
@@ -645,9 +646,9 @@ end
 
 -- ST STUFF THAT REQUIRES INFINITESIMAL MACHINERY
 
-theorem is_st_of_tendsto {f : ℕ → ℝ} {r : ℝ} (hf : tendsto f at_top (nhds r)) :
+theorem is_st_of_tendsto {f : ℕ → ℝ} {r : ℝ} (hf : tendsto f at_top (𝓝 r)) :
   is_st (of_seq f) r :=
-have hg : tendsto (λ n, f n - r) at_top (nhds 0) :=
+have hg : tendsto (λ n, f n - r) at_top (𝓝 0) :=
   (sub_self r) ▸ (tendsto_sub hf tendsto_const_nhds),
 by rw [←(zero_add r), ←(sub_add_cancel f (λ n, r))];
 exact is_st_add (infinitesimal_of_tendsto_zero hg) (is_st_refl_real r)

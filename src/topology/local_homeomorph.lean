@@ -38,6 +38,7 @@ For design notes, see `local_equiv.lean`.
 -/
 
 open function set
+open_locale topological_space
 
 variables {α : Type*} {β : Type*} {γ : Type*} {δ : Type*}
 [topological_space α] [topological_space β] [topological_space γ] [topological_space δ]
@@ -443,7 +444,7 @@ begin
   { assume f_cont,
     have : e.to_fun (e.inv_fun x) = x := e.right_inv h,
     rw ← this at f_cont,
-    have : e.source ∈ nhds (e.inv_fun x) := mem_nhds_sets e.open_source (e.map_target h),
+    have : e.source ∈ 𝓝 (e.inv_fun x) := mem_nhds_sets e.open_source (e.map_target h),
     rw [← continuous_within_at_inter this, inter_comm],
     exact continuous_within_at.comp f_cont
       ((e.continuous_at_to_fun (e.map_target h)).continuous_within_at) (inter_subset_right _ _) },
@@ -482,7 +483,7 @@ begin
   { assume fe_cont x hx,
     have := e.continuous_within_at_iff_continuous_within_at_comp_right (h hx),
     rw this,
-    have : e.source ∈ nhds (e.inv_fun x) := mem_nhds_sets e.open_source (e.map_target (h hx)),
+    have : e.source ∈ 𝓝 (e.inv_fun x) := mem_nhds_sets e.open_source (e.map_target (h hx)),
     rw [← continuous_within_at_inter this, inter_comm],
     exact fe_cont _ (by simp [hx, h hx, e.map_target (h hx)]) }
 end
@@ -497,7 +498,7 @@ begin
   rw [← continuous_within_at_inter' h, ← continuous_within_at_inter' h],
   split,
   { assume f_cont,
-    have : e.source ∈ nhds (f x) := mem_nhds_sets e.open_source hx,
+    have : e.source ∈ 𝓝 (f x) := mem_nhds_sets e.open_source hx,
     apply continuous_within_at.comp (e.continuous_to_fun (f x) hx) f_cont (inter_subset_right _ _) },
   { assume fe_cont,
     have : continuous_within_at (e.inv_fun ∘ (e.to_fun ∘ f)) (s ∩ f ⁻¹' e.source) x,
@@ -510,7 +511,7 @@ end
 /-- Continuity at a point can be read under left composition with a local homeomorphism if a
 neighborhood of the initial point is sent to the source of the local homeomorphism-/
 lemma continuous_at_iff_continuous_at_comp_left
-  {f : γ → α} {x : γ} (h : f ⁻¹' e.source ∈ nhds x) :
+  {f : γ → α} {x : γ} (h : f ⁻¹' e.source ∈ 𝓝 x) :
   continuous_at f x ↔ continuous_at (e.to_fun ∘ f) x :=
 begin
   have hx : f x ∈ e.source := (mem_of_nhds h : _),

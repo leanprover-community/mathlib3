@@ -2,8 +2,12 @@
 Copyright (c) 2018 Chris Hughes. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Author: Chris Hughes
+-/
 
-# zmod and zmodp
+import data.int.modeq data.int.gcd data.fintype data.pnat.basic tactic.ring
+
+/-!
+# Integers mod `n`
 
 Definition of the integers mod n, and the field structure on the integers mod p.
 
@@ -12,11 +16,11 @@ There are two types defined, `zmod n`, which is for integers modulo a positive n
 
 ## Definitions
 
-`val` is inherited from `fin` and returns the least natural number in the equivalence class
+* `val` is inherited from `fin` and returns the least natural number in the equivalence class
 
-`val_min_abs` returns the integer closest to zero in the equivalence class.
+* `val_min_abs` returns the integer closest to zero in the equivalence class.
 
-A coercion `cast` is defined from `zmod n` into any semiring. This is a semiring hom if the ring has
+* A coercion `cast` is defined from `zmod n` into any semiring. This is a semiring hom if the ring has
 characteristic dividing `n`
 
 ## Implentation notes
@@ -24,10 +28,7 @@ characteristic dividing `n`
 `zmod` and `zmodp` are implemented as different types so that the field instance for `zmodp` can be
 synthesized. This leads to a lot of code duplication and most of the functions and theorems for
 `zmod` are restated for `zmodp`
-
 -/
-
-import data.int.modeq data.int.gcd data.fintype data.pnat.basic tactic.ring
 
 open nat nat.modeq int
 

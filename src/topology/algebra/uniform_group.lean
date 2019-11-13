@@ -17,7 +17,7 @@ import topology.uniform_space.uniform_embedding topology.uniform_space.complete_
 import topology.algebra.group
 
 noncomputable theory
-open_locale classical uniformity
+open_locale classical uniformity topological_space
 
 section uniform_add_group
 open filter set
@@ -94,7 +94,7 @@ lemma uniform_embedding_translate (a : α) : uniform_embedding (λx:α, x + a) :
 
 section
 variables (α)
-lemma uniformity_eq_comap_nhds_zero : 𝓤 α = comap (λx:α×α, x.2 - x.1) (nhds (0:α)) :=
+lemma uniformity_eq_comap_nhds_zero : 𝓤 α = comap (λx:α×α, x.2 - x.1) (𝓝 (0:α)) :=
 begin
   rw [nhds_eq_comap_uniformity, filter.comap_comap_comp],
   refine le_antisymm (filter.map_le_iff_le_comap.1 _) _,
@@ -119,7 +119,7 @@ begin
 end
 
 lemma uniform_continuous_of_tendsto_zero [uniform_space β] [add_group β] [uniform_add_group β]
-  {f : α → β} [is_add_group_hom f] (h : tendsto f (nhds 0) (nhds 0)) :
+  {f : α → β} [is_add_group_hom f] (h : tendsto f (𝓝 0) (𝓝 0)) :
   uniform_continuous f :=
 begin
   have : ((λx:β×β, x.2 - x.1) ∘ (λx:α×α, (f x.1, f x.2))) = (λx:α×α, f (x.2 - x.1)),
@@ -133,7 +133,7 @@ lemma uniform_continuous_of_continuous [uniform_space β] [add_group β] [unifor
   {f : α → β} [is_add_group_hom f] (h : continuous f) :
   uniform_continuous f :=
 uniform_continuous_of_tendsto_zero $
-  suffices tendsto f (nhds 0) (nhds (f 0)), by rwa [is_add_group_hom.map_zero f] at this,
+  suffices tendsto f (𝓝 0) (𝓝 (f 0)), by rwa [is_add_group_hom.map_zero f] at this,
   h.tendsto 0
 
 end uniform_add_group
@@ -146,13 +146,13 @@ variables {G : Type u} [add_comm_group G] [topological_space G] [topological_add
 
 variable (G)
 def topological_add_group.to_uniform_space : uniform_space G :=
-{ uniformity          := comap (λp:G×G, p.2 - p.1) (nhds 0),
+{ uniformity          := comap (λp:G×G, p.2 - p.1) (𝓝 0),
   refl                :=
     by refine map_le_iff_le_comap.1 (le_trans _ (pure_le_nhds 0));
       simp [set.subset_def] {contextual := tt},
   symm                :=
   begin
-    suffices : tendsto ((λp, -p) ∘ (λp:G×G, p.2 - p.1)) (comap (λp:G×G, p.2 - p.1) (nhds 0)) (nhds (-0)),
+    suffices : tendsto ((λp, -p) ∘ (λp:G×G, p.2 - p.1)) (comap (λp:G×G, p.2 - p.1) (𝓝 0)) (𝓝 (-0)),
     { simpa [(∘), tendsto_comap_iff] },
     exact tendsto.comp (tendsto_neg tendsto_id) tendsto_comap
   end,
@@ -163,7 +163,7 @@ def topological_add_group.to_uniform_space : uniform_space G :=
     { rcases H with ⟨U, U_nhds, U_sub⟩,
       rcases exists_nhds_half U_nhds with ⟨V, ⟨V_nhds, V_sum⟩⟩,
       existsi ((λp:G×G, p.2 - p.1) ⁻¹' V),
-      have H : (λp:G×G, p.2 - p.1) ⁻¹' V ∈ comap (λp:G×G, p.2 - p.1) (nhds (0 : G)),
+      have H : (λp:G×G, p.2 - p.1) ⁻¹' V ∈ comap (λp:G×G, p.2 - p.1) (𝓝 (0 : G)),
         by existsi [V, V_nhds] ; refl,
       existsi H,
       have comp_rel_sub : comp_rel ((λp:G×G, p.2 - p.1) ⁻¹' V) ((λp:G×G, p.2 - p.1) ⁻¹' V) ⊆ (λp:G×G, p.2 - p.1) ⁻¹' U,
@@ -179,7 +179,7 @@ def topological_add_group.to_uniform_space : uniform_space G :=
   begin
     intro S,
     let S' := λ x, {p : G × G | p.1 = x → p.2 ∈ S},
-    show is_open S ↔ ∀ (x : G), x ∈ S → S' x ∈ comap (λp:G×G, p.2 - p.1) (nhds (0 : G)),
+    show is_open S ↔ ∀ (x : G), x ∈ S → S' x ∈ comap (λp:G×G, p.2 - p.1) (𝓝 (0 : G)),
     rw [is_open_iff_mem_nhds],
     refine forall_congr (assume a, forall_congr (assume ha, _)),
     rw [← nhds_translation a, mem_comap_sets, mem_comap_sets],
@@ -193,14 +193,14 @@ def topological_add_group.to_uniform_space : uniform_space G :=
 section
 local attribute [instance] topological_add_group.to_uniform_space
 
-lemma uniformity_eq_comap_nhds_zero' : 𝓤 G = comap (λp:G×G, p.2 - p.1) (nhds (0 : G)) := rfl
+lemma uniformity_eq_comap_nhds_zero' : 𝓤 G = comap (λp:G×G, p.2 - p.1) (𝓝 (0 : G)) := rfl
 
 variable {G}
 lemma topological_add_group_is_uniform : uniform_add_group G :=
 have tendsto
     ((λp:(G×G), p.1 - p.2) ∘ (λp:(G×G)×(G×G), (p.1.2 - p.1.1, p.2.2 - p.2.1)))
-    (comap (λp:(G×G)×(G×G), (p.1.2 - p.1.1, p.2.2 - p.2.1)) ((nhds 0).prod (nhds 0)))
-    (nhds (0 - 0)) :=
+    (comap (λp:(G×G)×(G×G), (p.1.2 - p.1.1, p.2.2 - p.2.1)) ((𝓝 0).prod (𝓝 0)))
+    (𝓝 (0 - 0)) :=
   (tendsto_sub tendsto_fst tendsto_snd).comp tendsto_comap,
 begin
   constructor,
@@ -292,13 +292,13 @@ variables {ψ : α × β → G} (hψ : continuous ψ) [ψbilin : is_Z_bilin ψ]
 
 include hψ ψbilin
 
-lemma is_Z_bilin.tendsto_zero_left (x₁ : α) : tendsto ψ (nhds (x₁, 0)) (nhds 0) :=
+lemma is_Z_bilin.tendsto_zero_left (x₁ : α) : tendsto ψ (𝓝 (x₁, 0)) (𝓝 0) :=
 begin
   have := continuous.tendsto hψ (x₁, 0),
   rwa [is_Z_bilin.zero_right ψ] at this
 end
 
-lemma is_Z_bilin.tendsto_zero_right (y₁ : β) : tendsto ψ (nhds (0, y₁)) (nhds 0) :=
+lemma is_Z_bilin.tendsto_zero_right (y₁ : β) : tendsto ψ (𝓝 (0, y₁)) (𝓝 0) :=
 begin
   have := continuous.tendsto hψ (0, y₁),
   rwa [is_Z_bilin.zero_left ψ] at this
@@ -315,13 +315,13 @@ variables {e : β → α} [is_add_group_hom e] (de : dense_inducing e)
 include de
 
 lemma tendsto_sub_comap_self (x₀ : α) :
-  tendsto (λt:β×β, t.2 - t.1) (comap (λp:β×β, (e p.1, e p.2)) $ nhds (x₀, x₀)) (nhds 0) :=
+  tendsto (λt:β×β, t.2 - t.1) (comap (λp:β×β, (e p.1, e p.2)) $ 𝓝 (x₀, x₀)) (𝓝 0) :=
 begin
   have comm : (λx:α×α, x.2-x.1) ∘ (λt:β×β, (e t.1, e t.2)) = e ∘ (λt:β×β, t.2 - t.1),
   { ext t,
     change e t.2 - e t.1 = e (t.2 - t.1),
     rwa ← is_add_group_hom.map_sub e t.2 t.1 },
-  have lim : tendsto (λ x : α × α, x.2-x.1) (nhds (x₀, x₀)) (nhds (e 0)),
+  have lim : tendsto (λ x : α × α, x.2-x.1) (𝓝 (x₀, x₀)) (𝓝 (e 0)),
     { have := continuous.tendsto (continuous_sub'.comp continuous_swap) (x₀, x₀),
       simpa [-sub_eq_add_neg, sub_self, eq.symm (is_add_group_hom.map_zero e)] using this },
   have := de.tendsto_comap_nhds_nhds lim comm,
@@ -346,17 +346,17 @@ variables {φ : β × δ → G} (hφ : continuous φ) [bilin : is_Z_bilin φ]
 
 include de df hφ bilin
 
-variables {W' : set G} (W'_nhd : W' ∈ nhds (0 : G))
+variables {W' : set G} (W'_nhd : W' ∈ 𝓝 (0 : G))
 include W'_nhd
 
 private lemma extend_Z_bilin_aux (x₀ : α) (y₁ : δ) :
-  ∃ U₂ ∈ comap e (nhds x₀), ∀ x x' ∈ U₂, φ (x' - x, y₁) ∈ W' :=
+  ∃ U₂ ∈ comap e (𝓝 x₀), ∀ x x' ∈ U₂, φ (x' - x, y₁) ∈ W' :=
 begin
-  let Nx := nhds x₀,
+  let Nx := 𝓝 x₀,
   let ee := λ u : β × β, (e u.1, e u.2),
 
-  have lim1 : tendsto (λ a : β × β, (a.2 - a.1, y₁)) (filter.prod (comap e Nx) (comap e Nx)) (nhds (0, y₁)),
-  { have := tendsto.prod_mk (tendsto_sub_comap_self de x₀) (tendsto_const_nhds : tendsto (λ (p : β × β), y₁) (comap ee $ nhds (x₀, x₀)) (nhds y₁)),
+  have lim1 : tendsto (λ a : β × β, (a.2 - a.1, y₁)) (filter.prod (comap e Nx) (comap e Nx)) (𝓝 (0, y₁)),
+  { have := tendsto.prod_mk (tendsto_sub_comap_self de x₀) (tendsto_const_nhds : tendsto (λ (p : β × β), y₁) (comap ee $ 𝓝 (x₀, x₀)) (𝓝 y₁)),
     rw [nhds_prod_eq, prod_comap_comap_eq, ←nhds_prod_eq],
     exact (this : _) },
 
@@ -366,23 +366,23 @@ begin
 end
 
 private lemma extend_Z_bilin_key (x₀ : α) (y₀ : γ) :
-  ∃ U ∈ comap e (nhds x₀), ∃ V ∈ comap f (nhds y₀),
+  ∃ U ∈ comap e (𝓝 x₀), ∃ V ∈ comap f (𝓝 y₀),
     ∀ x x' ∈ U, ∀ y y' ∈ V, φ (x', y') - φ (x, y) ∈ W' :=
 begin
-  let Nx := nhds x₀,
-  let Ny := nhds y₀,
+  let Nx := 𝓝 x₀,
+  let Ny := 𝓝 y₀,
   let dp := dense_inducing.prod de df,
   let ee := λ u : β × β, (e u.1, e u.2),
   let ff := λ u : δ × δ, (f u.1, f u.2),
 
-  have lim_φ : filter.tendsto φ (nhds (0, 0)) (nhds 0),
+  have lim_φ : filter.tendsto φ (𝓝 (0, 0)) (𝓝 0),
   { have := continuous.tendsto hφ (0, 0),
     rwa [is_Z_bilin.zero φ] at this },
 
   have lim_φ_sub_sub : tendsto (λ (p : (β × β) × (δ × δ)), φ (p.1.2 - p.1.1, p.2.2 - p.2.1))
-    (filter.prod (comap ee $ nhds (x₀, x₀)) (comap ff $ nhds (y₀, y₀))) (nhds 0),
+    (filter.prod (comap ee $ 𝓝 (x₀, x₀)) (comap ff $ 𝓝 (y₀, y₀))) (𝓝 0),
   { have lim_sub_sub :  tendsto (λ (p : (β × β) × δ × δ), (p.1.2 - p.1.1, p.2.2 - p.2.1))
-      (filter.prod (comap ee (nhds (x₀, x₀))) (comap ff (nhds (y₀, y₀)))) (filter.prod (nhds 0) (nhds 0)),
+      (filter.prod (comap ee (𝓝 (x₀, x₀))) (comap ff (𝓝 (y₀, y₀)))) (filter.prod (𝓝 0) (𝓝 0)),
     { have := filter.prod_mono (tendsto_sub_comap_self de x₀) (tendsto_sub_comap_self df y₀),
       rwa prod_map_map_eq at this },
     rw ← nhds_prod_eq at lim_sub_sub,
@@ -390,7 +390,7 @@ begin
 
   rcases exists_nhds_quarter W'_nhd with ⟨W, W_nhd, W4⟩,
 
-  have : ∃ U₁ ∈ comap e (nhds x₀), ∃ V₁ ∈ comap f (nhds y₀),
+  have : ∃ U₁ ∈ comap e (𝓝 x₀), ∃ V₁ ∈ comap f (𝓝 y₀),
     ∀ x x' ∈ U₁, ∀ y y' ∈ V₁,  φ (x'-x, y'-y) ∈ W,
   { have := tendsto_prod_iff.1 lim_φ_sub_sub W W_nhd,
     repeat { rw [nhds_prod_eq, ←prod_comap_comap_eq] at this },
@@ -454,7 +454,7 @@ begin
     cc },
   { suffices : map (λ (p : (β × δ) × (β × δ)), φ p.2 - φ p.1)
       (comap (λ (p : (β × δ) × β × δ), ((e p.1.1, f p.1.2), (e p.2.1, f p.2.2)))
-         (filter.prod (nhds (x₀, y₀)) (nhds (x₀, y₀)))) ≤ nhds 0,
+         (filter.prod (𝓝 (x₀, y₀)) (𝓝 (x₀, y₀)))) ≤ 𝓝 0,
     by rwa [uniformity_eq_comap_nhds_zero G, prod_map_map_eq, ←map_le_iff_le_comap, filter.map_map,
         prod_comap_comap_eq],
 
@@ -473,8 +473,8 @@ begin
 
     simp only [exists_prop],
     split,
-    { change U' ∈ nhds x₀ at U'_nhd,
-      change V' ∈ nhds y₀ at V'_nhd,
+    { change U' ∈ 𝓝 x₀ at U'_nhd,
+      change V' ∈ 𝓝 y₀ at V'_nhd,
       have := prod_mem_prod U'_nhd V'_nhd,
       tauto },
     { intros p h',

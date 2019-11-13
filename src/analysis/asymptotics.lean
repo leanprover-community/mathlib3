@@ -24,7 +24,7 @@ norm explicitly.
 If `f` and `g` are functions to a normed field like the reals or complex numbers and `g` is always
 nonzero, we have
 
-  `is_o f g l ↔ tendsto (λ x, f x / (g x)) (nhds 0) l`.
+  `is_o f g l ↔ tendsto (λ x, f x / (g x)) (𝓝 0) l`.
 
 In fact, the right-to-left direction holds without the hypothesis on `g`, and in the other direction
 it suffices to assume that `f` is zero wherever `g` is. (This generalization is useful in defining
@@ -32,6 +32,7 @@ the Fréchet derivative.)
 -/
 import analysis.normed_space.basic
 open filter
+open_locale topological_space
 
 namespace asymptotics
 
@@ -570,7 +571,7 @@ begin
 end
 
 theorem is_o_one_iff {f : α → β} {l : filter α} :
-  is_o f (λ x, (1 : γ)) l ↔ tendsto f l (nhds 0) :=
+  is_o f (λ x, (1 : γ)) l ↔ tendsto f l (𝓝 0) :=
 begin
   rw [normed_group.tendsto_nhds_zero, is_o], split,
   { intros h e epos,
@@ -584,12 +585,12 @@ begin
 end
 
 theorem is_O_one_of_tendsto {f : α → β} {l : filter α} {y : β}
-  (h : tendsto f l (nhds y)) : is_O f (λ x, (1 : γ)) l :=
+  (h : tendsto f l (𝓝 y)) : is_O f (λ x, (1 : γ)) l :=
 begin
   have Iy : ∥y∥ < ∥y∥ + 1 := lt_add_one _,
   refine ⟨∥y∥ + 1, lt_of_le_of_lt (norm_nonneg _) Iy, _⟩,
   simp only [mul_one, normed_field.norm_one],
-  have : tendsto (λx, ∥f x∥) l (nhds ∥y∥) :=
+  have : tendsto (λx, ∥f x∥) l (𝓝 ∥y∥) :=
     (continuous_norm.tendsto _).comp h,
   exact this (ge_mem_nhds Iy)
 end
@@ -600,12 +601,12 @@ section
 variables [normed_group β] [normed_group γ]
 
 theorem is_O.trans_tendsto {f : α → β} {g : α → γ} {l : filter α}
-    (h₁ : is_O f g l) (h₂ : tendsto g l (nhds 0)) :
-  tendsto f l (nhds 0) :=
+    (h₁ : is_O f g l) (h₂ : tendsto g l (𝓝 0)) :
+  tendsto f l (𝓝 0) :=
 (@is_o_one_iff _ _ ℝ _ _ _ _).1 $ h₁.trans_is_o $ is_o_one_iff.2 h₂
 
 theorem is_o.trans_tendsto {f : α → β} {g : α → γ} {l : filter α}
-  (h₁ : is_o f g l) : tendsto g l (nhds 0) → tendsto f l (nhds 0) :=
+  (h₁ : is_o f g l) : tendsto g l (𝓝 0) → tendsto f l (𝓝 0) :=
 h₁.to_is_O.trans_tendsto
 
 end
@@ -751,7 +752,7 @@ section
 variables [normed_field β]
 
 theorem tendsto_nhds_zero_of_is_o {f g : α → β} {l : filter α} (h : is_o f g l) :
-  tendsto (λ x, f x / (g x)) l (nhds 0) :=
+  tendsto (λ x, f x / (g x)) l (𝓝 0) :=
 have eq₁ : is_o (λ x, f x / g x) (λ x, g x / g x) l,
   from is_o_mul_right h (is_O_refl _ _),
 have eq₂ : is_O (λ x, g x / g x) (λ x, (1 : β)) l,
@@ -765,7 +766,7 @@ have eq₂ : is_O (λ x, g x / g x) (λ x, (1 : β)) l,
 is_o_one_iff.mp (eq₁.trans_is_O eq₂)
 
 private theorem is_o_of_tendsto {f g : α → β} {l : filter α}
-    (hgf : ∀ x, g x = 0 → f x = 0) (h : tendsto (λ x, f x / (g x)) l (nhds 0)) :
+    (hgf : ∀ x, g x = 0 → f x = 0) (h : tendsto (λ x, f x / (g x)) l (𝓝 0)) :
   is_o f g l :=
 have eq₁ : is_o (λ x, f x / (g x)) (λ x, (1 : β)) l,
   from is_o_one_iff.mpr h,
@@ -784,7 +785,7 @@ eq₃.trans_is_o eq₂
 
 theorem is_o_iff_tendsto {f g : α → β} {l : filter α}
     (hgf : ∀ x, g x = 0 → f x = 0) :
-  is_o f g l ↔ tendsto (λ x, f x / (g x)) l (nhds 0) :=
+  is_o f g l ↔ tendsto (λ x, f x / (g x)) l (𝓝 0) :=
 iff.intro tendsto_nhds_zero_of_is_o (is_o_of_tendsto hgf)
 
 end

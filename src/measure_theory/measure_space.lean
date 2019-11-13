@@ -23,7 +23,7 @@ import topology.instances.ennreal
 noncomputable theory
 
 open classical set lattice filter finset function
-open_locale classical
+open_locale classical topological_space
 
 universes u v w x
 
@@ -412,7 +412,7 @@ by rw [← measure_union hd (hs.inter ht) (hs.diff ht), inter_union_diff s t]
 
 lemma tendsto_measure_Union {μ : measure α} {s : ℕ → set α}
   (hs : ∀n, is_measurable (s n)) (hm : monotone s) :
-  tendsto (μ ∘ s) at_top (nhds (μ (⋃n, s n))) :=
+  tendsto (μ ∘ s) at_top (𝓝 (μ (⋃n, s n))) :=
 begin
   rw measure_Union_eq_supr_nat hs hm,
   exact tendsto_at_top_supr_nat (μ ∘ s) (assume n m hnm, measure_mono $ hm $ hnm)
@@ -420,7 +420,7 @@ end
 
 lemma tendsto_measure_Inter {μ : measure α} {s : ℕ → set α}
   (hs : ∀n, is_measurable (s n)) (hm : ∀n m, n ≤ m → s m ⊆ s n) (hf : ∃i, μ (s i) < ⊤) :
-  tendsto (μ ∘ s) at_top (nhds (μ (⋂n, s n))) :=
+  tendsto (μ ∘ s) at_top (𝓝 (μ (⋂n, s n))) :=
 begin
   rw measure_Inter_eq_infi_nat hs hm hf,
   exact tendsto_at_top_infi_nat (μ ∘ s) (assume n m hnm, measure_mono $ hm _ _ $ hnm),

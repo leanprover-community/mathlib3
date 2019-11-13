@@ -21,10 +21,11 @@ import topology.basic
 import topology.bases
 
 open set filter
+open_locale topological_space
 
 variables {α : Type*} {β : Type*}
 
-local notation f ` ⟶ ` limit := tendsto f at_top (nhds limit)
+local notation f ` ⟶ ` limit := tendsto f at_top (𝓝 limit)
 
 /- Statements about sequences in general topological spaces. -/
 section topological_space
@@ -33,10 +34,10 @@ variables [topological_space α] [topological_space β]
 /-- A sequence converges in the sence of topological spaces iff the associated statement for filter
 holds. -/
 lemma topological_space.seq_tendsto_iff {x : ℕ → α} {limit : α} :
-  tendsto x at_top (nhds limit) ↔
+  tendsto x at_top (𝓝 limit) ↔
     ∀ U : set α, limit ∈ U → is_open U → ∃ n0 : ℕ, ∀ n ≥ n0, (x n) ∈ U :=
 iff.intro
-  (assume ttol : tendsto x at_top (nhds limit),
+  (assume ttol : tendsto x at_top (𝓝 limit),
     show ∀ U : set α, limit ∈ U → is_open U → ∃ n0 : ℕ, ∀ n ≥ n0, (x n) ∈ U, from
       assume U limitInU isOpenU,
       have {n | (x n) ∈ U} ∈ at_top :=
@@ -131,7 +132,7 @@ def sequentially_continuous (f : α → β) : Prop :=
 lemma continuous.to_sequentially_continuous {f : α → β} (_ : continuous f) :
   sequentially_continuous f :=
 assume x limit (_ : x ⟶ limit),
-have tendsto f (nhds limit) (nhds (f limit)), from continuous.tendsto ‹continuous f› limit,
+have tendsto f (𝓝 limit) (𝓝 (f limit)), from continuous.tendsto ‹continuous f› limit,
 show (f ∘ x) ⟶ (f limit), from tendsto.comp this ‹(x ⟶ limit)›
 
 /-- In a sequential space, continuity and sequential continuity coincide. -/
@@ -174,7 +175,7 @@ instance [topological_space α] [first_countable_topology α] : sequential_space
     apply hp, rw gbasis, rw ← le_principal_iff, apply lattice.infi_le_of_le i _, apply le_refl _ },
   -- It remains to show that x converges to p. Intuitively this is the case
   -- because x i ∈ g i, and the g i get "arbitrarily small" around p. Formally:
-  have gssnhds : ∀ s ∈ nhds p, ∃ i, g i ⊆ s,
+  have gssnhds : ∀ s ∈ 𝓝 p, ∃ i, g i ⊆ s,
   { intro s, rw gbasis, rw mem_infi,
     { simp, intros i hi, use i, assumption },
     { apply directed_of_mono, intros, apply principal_mono.mpr, apply gmon, assumption },

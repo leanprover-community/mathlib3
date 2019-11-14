@@ -36,9 +36,10 @@ variables {α : Type u} {β : Type v} {ι : Type w}
 section preorder
 variables [preorder α] [preorder β] {s t : set α} {a b : α}
 
-/-- A set is bounded above. -/
+/-- A set is bounded above if there exists an upper bound. -/
 def bdd_above (s : set α) := ∃x, ∀y∈s, y ≤ x
-/-- A set is bounded below. -/
+
+/-- A set is bounded below if there exists a lower bound. -/
 def bdd_below (s : set α) := ∃x, ∀y∈s, x ≤ y
 
 /-Introduction rules for boundedness above and below.

@@ -85,7 +85,6 @@ lemma continuous_equiv_fun_basis {n : ℕ} {ι : Type u} [fintype ι] (ξ : ι �
   (hn : fintype.card ι = n) (hξ : is_basis 𝕜 ξ) : continuous (equiv_fun_basis hξ) :=
 begin
   resetI,
-  classical,
   induction n with n IH generalizing ι E,
   { apply linear_map.continuous_of_bound _ 0 (λx, _),
     have : equiv_fun_basis hξ x = 0,

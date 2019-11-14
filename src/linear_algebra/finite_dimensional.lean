@@ -111,8 +111,7 @@ lemma findim_submodule_le [finite_dimensional K V] (s : submodule K V) : findim 
 begin
   have := dim_submodule_le s,
   rw [← findim_eq_dim, ← findim_eq_dim] at this,
-  norm_cast at this,
-  exact this
+  exact_mod_cast this
 end
 
 variable (K)
@@ -121,8 +120,7 @@ variable (K)
 begin
   have := dim_of_field K,
   rw [← findim_eq_dim] at this,
-  norm_cast at this,
-  exact this
+  exact_mod_cast this
 end
 
 /-- The vector space of functions on a fintype has finite dimension. -/
@@ -170,8 +168,7 @@ lemma findim_eq_card [finite_dimensional K V] : findim K V = fintype.card ι :=
 begin
   have := dim_eq_card h,
   rw ← findim_eq_dim at this,
-  norm_cast at this,
-  exact this
+  exact_mod_cast this
 end
 
 end
@@ -233,8 +230,7 @@ begin
   classical,
   have := dim_range_add_dim_ker f,
   rw [← findim_eq_dim, ← findim_eq_dim, ← findim_eq_dim] at this,
-  norm_cast at this,
-  exact this
+  exact_mod_cast this
 end
 
 end linear_map

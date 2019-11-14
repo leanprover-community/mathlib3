@@ -4,12 +4,11 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Sébastien Gouëzel
 -/
 
-import analysis.normed_space.operator_norm linear_algebra.finite_dimensional
-tactic.omega topology.metric_space.isometry
+import analysis.normed_space.operator_norm linear_algebra.finite_dimensional tactic.omega
 
 
 /-!
-# Properties of norms in finite dimension over complete fields
+# Finite dimensional normed spaces over complete fields
 
 Over a complete nondiscrete field, in finite dimension, all norms are equivalent and all linear maps
 are continuous. Moreover, a finite-dimensional subspace is always complete and closed.
@@ -30,17 +29,17 @@ are continuous. Moreover, a finite-dimensional subspace is always complete and c
 ## Implementation notes
 
 The fact that all norms are equivalent is not written explicitly, as it would mean having two norms
-on a single space, which is not the way we use type classes. However, if one has a
+on a single space, which is not the way type classes work. However, if one has a
 finite-dimensional vector space `E` with a norm, and a copy `E'` of this type with another norm,
-then the identity from `E` to `E'` and from `E'`to `E` are continuous thanks to
-`linear_map.continuous_of_finite_dimensional`. This gives the desired normed equivalence.
+then the identities from `E` to `E'` and from `E'`to `E` are continuous thanks to
+`linear_map.continuous_of_finite_dimensional`. This gives the desired norm equivalence.
 
 The proofs rely on linear equivalences, which are only defined in mathlib for types in the same
 universe. Therefore, all the results in this file are restricted to spaces leaving in the same
 universe as their base field.
 -/
 
-universes u v w
+universes u v
 
 open set finite_dimensional
 open_locale classical
@@ -102,7 +101,7 @@ begin
     have H₁ : ∀s : submodule 𝕜 E, findim 𝕜 s = n → is_closed (s : set E),
     { assume s s_dim,
       rcases exists_is_basis_finite 𝕜 s with ⟨b, b_basis, b_finite⟩,
-      letI : fintype b := set.finite.fintype b_finite,
+      letI : fintype b := finite.fintype b_finite,
       have U : uniform_embedding (equiv_fun_basis b_basis).symm,
       { have : fintype.card b = n,
           by { rw ← s_dim, exact (findim_eq_card b_basis).symm },
@@ -116,13 +115,10 @@ begin
       have : is_complete (range (subtype.val : s → E)),
       { change is_complete (range ((equiv_fun_basis b_basis).symm.to_equiv)) at this,
         rw equiv.range_eq_univ at this,
-        rwa [← set.image_univ, is_complete_image_iff],
+        rwa [← image_univ, is_complete_image_iff],
         exact isometry_subtype_val.uniform_embedding },
       apply is_closed_of_is_complete,
-      convert this,
-      rw set.subtype.val_range,
-      ext x,
-      refl },
+      rwa subtype.val_range at this },
     -- second step: any linear form is continuous, as its kernel is closed by the first step
     have H₂ : ∀f : E →ₗ[𝕜] 𝕜, continuous f,
     { assume f,
@@ -173,7 +169,7 @@ begin
   -- for the proof, go to a model vector space `b → 𝕜` thanks to `continuous_equiv_fun_basis`, and
   -- argue that all linear maps there are continuous.
   rcases exists_is_basis_finite 𝕜 E with ⟨b, b_basis, b_finite⟩,
-  letI : fintype b := set.finite.fintype b_finite,
+  letI : fintype b := finite.fintype b_finite,
   have A : continuous (equiv_fun_basis b_basis) :=
     continuous_equiv_fun_basis _ rfl b_basis,
   have B : continuous (f.comp ((equiv_fun_basis b_basis).symm : (b → 𝕜) →ₗ[𝕜] E)) :=
@@ -190,11 +186,11 @@ end
 We do not register this as an instance to avoid an instance loop when trying to prove the
 completeness of 𝕜, and the search for 𝕜 as an unknown metavariable. Declare the instance explicitly
 when needed. -/
-variables (𝕜 E E)
+variables (𝕜 E)
 lemma finite_dimensional.complete [finite_dimensional 𝕜 E] : complete_space E :=
 begin
   rcases exists_is_basis_finite 𝕜 E with ⟨b, b_basis, b_finite⟩,
-  letI : fintype b := set.finite.fintype b_finite,
+  letI : fintype b := finite.fintype b_finite,
   have : uniform_embedding (equiv_fun_basis b_basis).symm :=
     linear_equiv.uniform_embedding _ (linear_map.continuous_of_finite_dimensional _)
     (linear_map.continuous_of_finite_dimensional _),
@@ -211,13 +207,10 @@ lemma submodule.complete_of_finite_dimensional (s : submodule 𝕜 E) [finite_di
 begin
   haveI : complete_space s := finite_dimensional.complete 𝕜 s,
   have : is_complete (range (subtype.val : s → E)),
-  { rw [← set.image_univ, is_complete_image_iff],
+  { rw [← image_univ, is_complete_image_iff],
     { exact complete_univ },
     { exact isometry_subtype_val.uniform_embedding } },
-  convert this,
-  rw set.subtype.val_range,
-  ext x,
-  refl
+  rwa subtype.val_range at this
 end
 
 /-- A finite-dimensional subspace is closed. -/
@@ -240,7 +233,7 @@ when needed. -/
 lemma finite_dimensional.proper [finite_dimensional 𝕜 E] : proper_space E :=
 begin
   rcases exists_is_basis_finite 𝕜 E with ⟨b, b_basis, b_finite⟩,
-  letI : fintype b := set.finite.fintype b_finite,
+  letI : fintype b := finite.fintype b_finite,
   let e := equiv_fun_basis b_basis,
   let f : E →L[𝕜] (b → 𝕜) :=
     { cont := linear_map.continuous_of_finite_dimensional _, ..e.to_linear_map },

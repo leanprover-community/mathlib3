@@ -233,7 +233,7 @@ open tactic
 meta structure eval_info :=
   (α : expr) (univ : level)
   -- Cache the instances for optimization and consistency:
-  (csr_instance : expr) (hp_instance : expr) 
+  (csr_instance : expr) (ha_instance : expr) (hm_instance : expr) (hp_instance : expr)
   -- Optional instances (only required for - and / respectively)
   (cr_instance : option expr) (dr_instance : option expr)
 /--
@@ -289,6 +289,30 @@ meta def none_or_proof_term : list ex_info → ring_exp_m (option (list expr))
 meta def mk_app_csr (f : name) (args : list expr) : ring_exp_m expr := do
   ctx <- get_context,
   pure $ (@expr.const tt f [ctx.info_b.univ] ctx.info_b.α ctx.info_b.csr_instance).mk_app args
+/--
+  Specialized version of `mk_app ``has_add.add`.
+  Should be faster because it can use the cached instances.
+  -/
+  meta def mk_add (args : list expr) : ring_exp_m expr := do
+  ctx <- get_context,
+  pure $ (@expr.const tt ``has_add.add [ctx.info_b.univ] ctx.info_b.α ctx.info_b.ha_instance).mk_app args
+/--
+  Specialized version of `mk_app ``has_mul.mul`.
+  Should be faster because it can use the cached instances.
+  -/
+  meta def mk_mul (args : list expr) : ring_exp_m expr := do
+  ctx <- get_context,
+  pure $ (@expr.const tt ``has_mul.mul [ctx.info_b.univ] ctx.info_b.α ctx.info_b.hm_instance).mk_app args
+/--
+  Specialized version of `mk_app ``has_pow.pow`.
+  Should be faster because it can use the cached instances.
+  -/
+  meta def mk_pow (args : list expr) : ring_exp_m expr := do
+  ctx <- get_context,
+  pure $ (@expr.const tt ``has_pow.pow
+    [ctx.info_b.univ, ctx.info_e.univ]
+    ctx.info_b.α ctx.info_e.α
+    ctx.info_b.hp_instance).mk_app args
 
 /--
   Use the proof terms as arguments to the given lemma.
@@ -329,7 +353,7 @@ meta def ex.simple : Π {et : ex_type}, ex_pf et → ring_exp_m (expr × expr)
 | sum (ex.sum pps_i p ps) := do
   (p_p, p_pf) <- p.simple,
   (ps_p, ps_pf) <- ps.simple,
-  pps_p <- mk_app_csr ``has_add.add [p_p, ps_p],
+  pps_p <- mk_add [p_p, ps_p],
   pf <- mk_app_csr ``sum_congr [p.pretty, p_p, ps.pretty, ps_p, p_pf, ps_pf],
   pure $ (pps_p, pf)
 | prod (ex.prod pps_i p (ex.coeff _ ⟨⟨1, 1, _, _⟩⟩)) := do
@@ -351,7 +375,7 @@ meta def ex.simple : Π {et : ex_type}, ex_pf et → ring_exp_m (expr × expr)
 | prod (ex.prod pps_i p ps) := do
   (p_p, p_pf) <- p.simple,
   (ps_p, ps_pf) <- ps.simple,
-  pps_p <- lift $ mk_app ``has_mul.mul [p_p, ps_p],
+  pps_p <- mk_mul [p_p, ps_p],
   pf <- mk_app_csr ``prod_congr [p.pretty, p_p, ps.pretty, ps_p, p_pf, ps_pf],
   pure $ (pps_p, pf)
 | base (ex.sum_b pps_i ps) := ps.simple
@@ -362,8 +386,7 @@ meta def ex.simple : Π {et : ex_type}, ex_pf et → ring_exp_m (expr × expr)
 | exp (ex.exp pps_i p ps) := do
   (p_p, p_pf) <- p.simple,
   (ps_p, ps_pf) <- in_exponent $ ps.simple,
-  ctx <- get_context,
-  pps_p <- lift $ mk_app ``has_pow.pow [ctx.info_b.hp_instance, p_p, ps_p],
+  pps_p <- mk_pow [p_p, ps_p],
   pf <- mk_app_csr ``exp_congr [p.pretty, p_p, ps.pretty, ps_p, p_pf, ps_pf],
   pure $ (pps_p, pf)
 | et ps := do
@@ -372,12 +395,11 @@ meta def ex.simple : Π {et : ex_type}, ex_pf et → ring_exp_m (expr × expr)
 
 -- Shortcut operators for determining the added/multiplied originals.
 meta def add_orig {et et'} (ps : ex_pf et) (qs : ex_pf et') : ring_exp_m expr
-:= lift $ mk_app ``has_add.add [ps.orig, qs.orig]
+:= mk_add [ps.orig, qs.orig]
 meta def mul_orig {et et'} (ps : ex_pf et) (qs : ex_pf et') : ring_exp_m expr
-:= lift $ mk_app ``has_mul.mul [ps.orig, qs.orig]
-meta def pow_orig {et et'} (ps : ex_pf et) (qs : ex_pf et') : ring_exp_m expr := do
-  ctx <- get_context,
-  lift $ mk_app ``has_pow.pow [ctx.info_b.α, ctx.info_e.α, ctx.info_b.hp_instance, ps.orig, qs.orig]
+:= mk_mul [ps.orig, qs.orig]
+meta def pow_orig {et et'} (ps : ex_pf et) (qs : ex_pf et') : ring_exp_m expr
+:= mk_pow [ps.orig, qs.orig]
 
 -- Constructors for ex_pf that use the ring_exp_m monad to fill in the proofs.
 meta def ex_zero : ring_exp_m (ex_pf sum) := do
@@ -386,7 +408,7 @@ meta def ex_zero : ring_exp_m (ex_pf sum) := do
   pure (ex.zero ⟨x_p, x_p, none⟩)
 meta def ex_sum (p : ex_pf prod) (ps : ex_pf sum) : ring_exp_m (ex_pf sum) := do
   pps_o <- add_orig p ps,
-  pps_p <- lift $ mk_app ``has_add.add [p.pretty, ps.pretty],
+  pps_p <- mk_add [p.pretty, ps.pretty],
   pps_pf <- mk_proof_refl pps_p ``sum_congr [p.orig, p.pretty, ps.orig, ps.pretty] [p.info, ps.info],
   pure (ex.sum ⟨pps_o, pps_p, pps_pf⟩ (p.set_info none none) (ps.set_info none none))
 meta def ex_coeff (x : rat) : ring_exp_m (ex_pf prod) := do
@@ -396,7 +418,7 @@ meta def ex_coeff (x : rat) : ring_exp_m (ex_pf prod) := do
 meta def ex_one : ring_exp_m (ex_pf prod) := ex_coeff 1
 meta def ex_prod (p : ex_pf exp) (ps : ex_pf prod) : ring_exp_m (ex_pf prod) := do
   pps_o <- mul_orig p ps,
-  pps_p <- lift $ mk_app ``has_mul.mul [p.pretty, ps.pretty],
+  pps_p <- mk_mul [p.pretty, ps.pretty],
   pps_pf <- mk_proof_refl pps_p ``prod_congr [p.orig, p.pretty, ps.orig, ps.pretty] [p.info, ps.info],
   pure (ex.prod ⟨pps_o, pps_p, pps_pf⟩ (p.set_info none none) (ps.set_info none none))
 meta def ex_var (p : atom) : ring_exp_m (ex_pf base) := pure (ex.var ⟨p.1, p.1, none⟩ p)
@@ -405,7 +427,7 @@ meta def ex_sum_b (ps : ex_pf sum) : ring_exp_m (ex_pf base) := do
 meta def ex_exp (p : ex_pf base) (ps : ex_pf prod) : ring_exp_m (ex_pf exp) := do
   ctx <- get_context,
   pps_o <- pow_orig p ps,
-  pps_p <- lift $ mk_app ``has_pow.pow [ctx.info_b.hp_instance, p.pretty, ps.pretty],
+  pps_p <- mk_pow [p.pretty, ps.pretty],
   pps_pf <- mk_proof_refl pps_p ``exp_congr [p.orig, p.pretty, ps.orig, ps.pretty] [p.info, ps.info],
   pure (ex.exp ⟨pps_o, pps_p, pps_pf⟩ (p.set_info none none) (ps.set_info none none))
 
@@ -442,12 +464,12 @@ meta def atom_to_sum (p : atom) : ring_exp_m (ex_pf sum) := do
 -- Make an expression with the sum/product of given coefficients.
 meta def add_coeff (p_p q_p : expr) (p q : coeff) : ring_exp_m (ex_pf prod) := do
   ctx <- get_context,
-  pq' <- lift $ mk_app ``has_add.add [p_p, q_p],
+  pq' <- mk_add [p_p, q_p],
   (pq_p, pq_pf) <- lift $ norm_num.derive pq',
   pure $ (ex.coeff ⟨pq_p, pq_p, pq_pf⟩ ⟨p.1 + q.1⟩)
 meta def mul_coeff (p_p q_p : expr) (p q : coeff) : ring_exp_m (ex_pf prod) := do
   ctx <- get_context,
-  pq' <- lift $ mk_app ``has_mul.mul [p_p, q_p],
+  pq' <- mk_mul [p_p, q_p],
   (pq_p, pq_pf) <- lift $ norm_num.derive pq',
   pure $ (ex.coeff ⟨pq_p, pq_p, pq_pf⟩ ⟨p.1 * q.1⟩)
 
@@ -899,8 +921,10 @@ meta def make_eval_info (α : expr) : tactic eval_info := do
   csr_instance ← mk_app ``comm_semiring [α] >>= mk_instance,
   cr_instance ← (some <$> (mk_app ``comm_ring [α] >>= mk_instance) <|> pure none),
   dr_instance ← (some <$> (mk_app ``division_ring [α] >>= mk_instance) <|> pure none),
+  ha_instance ← mk_app ``has_add [α] >>= mk_instance,
+  hm_instance ← mk_app ``has_mul [α] >>= mk_instance,
   hp_instance ← mk_mapp ``monoid.has_pow [some α, none],
-  pure (eval_info.mk α u csr_instance hp_instance cr_instance dr_instance)
+  pure (eval_info.mk α u csr_instance ha_instance hm_instance hp_instance cr_instance dr_instance)
 
 meta def run_ring_exp {α} (e : expr) (mx : ring_exp_m α) : tactic α := do
   info_b <- infer_type e >>= make_eval_info,

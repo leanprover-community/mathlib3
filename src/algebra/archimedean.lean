@@ -70,7 +70,8 @@ end linear_ordered_ring
 section linear_ordered_field
 
 /-- Every positive x is between two successive integer powers of
-another y greater than one. -/
+another y greater than one. This is the same as exists_int_pow_near',
+but with ≤ and < the other way around. -/
 lemma exists_int_pow_near [discrete_linear_ordered_field α] [archimedean α]
   {x : α} {y : α} (hx : 0 < x) (hy : 1 < y) :
   ∃ n : ℤ, y ^ n ≤ x ∧ x < y ^ (n + 1) :=
@@ -86,7 +87,9 @@ let ⟨M, hM⟩ := pow_unbounded_of_one_lt x hy in
 let ⟨n, hn₁, hn₂⟩ := int.exists_greatest_of_bdd hb he in
   ⟨n, hn₁, lt_of_not_ge (λ hge, not_le_of_gt (int.lt_succ _) (hn₂ _ hge))⟩
 
-/-- The same as exists_int_pow_near, but with ≤ and < the other way around. -/
+/-- Every positive x is between two successive integer powers of
+another y greater than one. This is the same as exists_int_pow_near,
+but with ≤ and < the other way around. -/
 lemma exists_int_pow_near' [discrete_linear_ordered_field α] [archimedean α]
   {x : α} {y : α} (hx : 0 < x) (hy : 1 < y) :
   ∃ n : ℤ, y ^ n < x ∧ x ≤ y ^ (n + 1) :=

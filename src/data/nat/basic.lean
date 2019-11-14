@@ -748,10 +748,10 @@ lemma lt_pow_self {p : ℕ} (h : 1 < p) : ∀ n : ℕ, n < p ^ n
 lemma pow_strict_mono {x : ℕ} (k : 2 ≤ x) : strict_mono (nat.pow x) :=
 λ _ _, pow_lt_pow_of_lt_right k
 
-lemma le_right_iff_pow_le {x m n : ℕ} (k : 2 ≤ x) : x^m ≤ x^n ↔ m ≤ n :=
+lemma pow_le_iff_le_right {x m n : ℕ} (k : 2 ≤ x) : x^m ≤ x^n ↔ m ≤ n :=
 strict_mono.le_iff_le (pow_strict_mono k)
 
-lemma lt_right_iff_pow_lt {x m n : ℕ} (k : 2 ≤ x) : x^m < x^n ↔ m < n :=
+lemma pow_lt_iff_lt_right {x m n : ℕ} (k : 2 ≤ x) : x^m < x^n ↔ m < n :=
 strict_mono.lt_iff_lt (pow_strict_mono k)
 
 lemma pow_right_injective {x : ℕ} (k : 2 ≤ x) : function.injective (nat.pow x) :=

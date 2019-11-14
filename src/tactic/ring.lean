@@ -474,7 +474,6 @@ open tactic.ring
 
 local postfix `?`:9001 := optional
 
-/-
 /-- Tactic for solving equations in the language of *commutative* (semi)rings.
   This version of `ring` fails if the target is not an equality
   that is provable by the axioms of commutative (semi)rings. -/
@@ -484,10 +483,10 @@ do `(%%e₁ = %%e₂) ← target,
   ((e₁', p₁), (e₂', p₂)) ← ring_m.run transp e₁ $
     prod.mk <$> eval e₁ <*> eval e₂,
   is_def_eq e₁' e₂',
+  trace e₁' >> trace e₂',
   p ← mk_eq_symm p₂ >>= mk_eq_trans p₁,
   tactic.exact p
--/
-meta def ring1 (red : parse (tk "!")?) : tactic unit := tactic.interactive.ring_exp_eq
+--meta def ring1 (red : parse (tk "!")?) : tactic unit := tactic.interactive.ring_exp_eq
 
 meta def ring.mode : lean.parser ring.normalize_mode :=
 with_desc "(SOP|raw|horner)?" $
@@ -516,7 +515,7 @@ do ns ← loc.get_locals,
    tt ← tactic.replace_at (tactic.ring.normalize transp SOP) ns loc.include_goal
       | fail "ring failed to simplify",
    when loc.include_goal $ try tactic.reflexivity
-/- /
+/-/
 meta def ring (red : parse (tk "!")?) (SOP : parse ring.mode) (loc : parse location) : tactic unit :=
 tactic.interactive.ring_exp loc
 -- -/

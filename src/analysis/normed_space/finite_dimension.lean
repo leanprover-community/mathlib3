@@ -6,7 +6,6 @@ Authors: Sébastien Gouëzel
 
 import analysis.normed_space.operator_norm linear_algebra.finite_dimensional tactic.omega
 
-
 /-!
 # Finite dimensional normed spaces over complete fields
 
@@ -24,7 +23,7 @@ are continuous. Moreover, a finite-dimensional subspace is always complete and c
   closed
 * `finite_dimensional.proper` : a finite-dimensional space over a proper field is proper. This
   is not registered as an instance, as the field would be an unknown metavariable in typeclass
-  resolution.
+  resolution. It is however registered as an instance for `𝕜 = ℝ`.
 
 ## Implementation notes
 
@@ -57,7 +56,7 @@ lemma linear_map.continuous_on_pi {ι : Type u} [fintype ι] {𝕜 : Type u} [no
   {E : Type v} [normed_group E] [normed_space 𝕜 E] (f : (ι → 𝕜) →ₗ[𝕜] E) : continuous f :=
 begin
   -- for the proof, write `f` in the standard basis, and use that each coordinate is a continuous
-  -- function
+  -- function.
   have : (f : (ι → 𝕜) → E) =
          (λx, finset.sum finset.univ (λi:ι, x i • (f (λj, if i = j then 1 else 0)))),
     by { ext x, exact f.pi_apply_eq_sum_univ x },
@@ -73,7 +72,6 @@ variables {𝕜 : Type u} [nondiscrete_normed_field 𝕜]
 {E : Type u} [normed_group E] [normed_space 𝕜 E]
 {F : Type v} [normed_group F] [normed_space 𝕜 F]
 [complete_space 𝕜]
-include 𝕜
 
 set_option class.instance_max_depth 150
 
@@ -224,7 +222,6 @@ section proper_field
 -- we use linear equivs, which require all the types to live in the same universe
 variables (𝕜 : Type u) [nondiscrete_normed_field 𝕜]
 (E : Type u) [normed_group E] [normed_space 𝕜 E] [proper_space 𝕜]
-include 𝕜
 
 /-- Any finite-dimensional vector space over a proper field is proper.
 We do not register this as an instance to avoid an instance loop when trying to prove the
@@ -252,7 +249,7 @@ end proper_field
 /- Over the real numbers, we can register the previous statement as an instance as it will not
 cause problems in instance resolution since the properness of `ℝ` is already known. -/
 instance finite_dimensional.proper_real
-  (F : Type) [normed_group F] [normed_space ℝ F] [finite_dimensional ℝ F] : proper_space F :=
-finite_dimensional.proper ℝ F
+  (E : Type) [normed_group E] [normed_space ℝ E] [finite_dimensional ℝ E] : proper_space E :=
+finite_dimensional.proper ℝ E
 
 attribute [instance, priority 900] finite_dimensional.proper_real

@@ -745,17 +745,29 @@ lemma lt_pow_self {p : ℕ} (h : 1 < p) : ∀ n : ℕ, n < p ^ n
   n + 1 < p^n + 1 : nat.add_lt_add_right (lt_pow_self _) _
     ... ≤ p ^ (n+1) : pow_lt_pow_succ h _
 
-lemma pow_strict_mono {x : ℕ} (k : 2 ≤ x) : strict_mono (nat.pow x) :=
+lemma pow_right_strict_mono {x : ℕ} (k : 2 ≤ x) : strict_mono (nat.pow x) :=
 λ _ _, pow_lt_pow_of_lt_right k
 
 lemma pow_le_iff_le_right {x m n : ℕ} (k : 2 ≤ x) : x^m ≤ x^n ↔ m ≤ n :=
-strict_mono.le_iff_le (pow_strict_mono k)
+strict_mono.le_iff_le (pow_right_strict_mono k)
 
 lemma pow_lt_iff_lt_right {x m n : ℕ} (k : 2 ≤ x) : x^m < x^n ↔ m < n :=
-strict_mono.lt_iff_lt (pow_strict_mono k)
+strict_mono.lt_iff_lt (pow_right_strict_mono k)
 
 lemma pow_right_injective {x : ℕ} (k : 2 ≤ x) : function.injective (nat.pow x) :=
-strict_mono.injective (pow_strict_mono k)
+strict_mono.injective (pow_right_strict_mono k)
+
+lemma pow_left_strict_mono {m : ℕ} (k : 1 ≤ m) : strict_mono (λ (x : ℕ), x^m) :=
+λ _ _ h, pow_lt_pow_of_lt_left h k
+
+lemma pow_le_iff_le_left {m x y : ℕ} (k : 1 ≤ m) : x^m ≤ y^m ↔ x ≤ y :=
+strict_mono.le_iff_le (pow_left_strict_mono k)
+
+lemma pow_lt_iff_lt_left {m x y : ℕ} (k : 1 ≤ m) : x^m < y^m ↔ x < y :=
+strict_mono.lt_iff_lt (pow_left_strict_mono k)
+
+lemma pow_left_injective {m x y : ℕ} (k : 1 ≤ m) : function.injective (λ (x : ℕ), x^m) :=
+strict_mono.injective (pow_left_strict_mono k)
 
 lemma not_pos_pow_dvd : ∀ {p k : ℕ} (hp : 1 < p) (hk : 1 < k), ¬ p^k ∣ p
 | (succ p) (succ k) hp hk h :=

@@ -161,11 +161,11 @@ lemma dim_eq_card : dim K V = fintype.card ι :=
 by rw [←h.mk_range_eq_dim, cardinal.fintype_card,
        set.card_range_of_injective (h.injective zero_ne_one)]
 
-/-- The findim of a vector space is equal to the cardinality of any basis.
-The assumption `[finite_dimensional K V]` is redundant, as there is a finite basis anyway, but it
-is necessary to make sense of `findim`. -/
-lemma findim_eq_card [finite_dimensional K V] : findim K V = fintype.card ι :=
+/-- The findim of a vector space is equal to the cardinality of any basis. -/
+lemma findim_eq_card : by { haveI : finite_dimensional K V := finite_dimensional_of_finite_basis h,
+  exact findim K V = fintype.card ι } :=
 begin
+  haveI : finite_dimensional K V := finite_dimensional_of_finite_basis h,
   have := dim_eq_card h,
   rw ← findim_eq_dim at this,
   exact_mod_cast this

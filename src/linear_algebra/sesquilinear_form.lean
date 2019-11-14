@@ -23,7 +23,7 @@ refer to the function field, ie. S x y = S.bilin x y.
 
 ## References
 
-* https://en.wikipedia.org/wiki/Sesquilinear_form#Over_arbitrary_rings
+* <https://en.wikipedia.org/wiki/Sesquilinear_form#Over_arbitrary_rings>
 
 ## Tags
 

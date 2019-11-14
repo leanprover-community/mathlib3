@@ -21,6 +21,7 @@ end open_add_subgroup
 
 namespace open_subgroup
 open function lattice topological_space
+open_locale topological_space
 variables {G : Type*} [group G] [topological_space G]
 variables {U V : open_subgroup G}
 
@@ -58,7 +59,7 @@ protected lemma mul_mem {g₁ g₂ : G} (h₁ : g₁ ∈ U) (h₂ : g₂ ∈ U) 
   @is_submonoid.mul_mem G _ U _ g₁ g₂ h₁ h₂
 
 @[to_additive]
-lemma mem_nhds_one : (U : set G) ∈ nhds (1 : G) :=
+lemma mem_nhds_one : (U : set G) ∈ 𝓝 (1 : G) :=
 mem_nhds_sets U.is_open U.one_mem
 variable {U}
 

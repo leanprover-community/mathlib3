@@ -10,7 +10,7 @@ import topology.uniform_space.cauchy
 import topology.uniform_space.separation
 noncomputable theory
 
-open_locale uniformity
+open_locale uniformity topological_space
 
 section
 open filter lattice uniform_space
@@ -39,14 +39,14 @@ lemma Pi.uniform_space_topology :
 instance Pi.complete [∀ i, complete_space (α i)] : complete_space (Π i, α i) :=
 ⟨begin
   intros f hf,
-  have : ∀ i, ∃ x : α i, filter.map (λ a : Πi, α i, a i) f ≤ nhds x,
+  have : ∀ i, ∃ x : α i, filter.map (λ a : Πi, α i, a i) f ≤ 𝓝 x,
   { intro i,
     have key : cauchy (map (λ (a : Π (i : ι), α i), a i) f),
       from cauchy_map (Pi.uniform_continuous_proj α i) hf,
     exact (cauchy_iff_exists_le_nhds $ map_ne_bot hf.1).1 key },
   choose x hx using this,
   use x,
-  rw [show nhds x = (⨅i, comap (λa, a i) (nhds (x i))),
+  rw [show 𝓝 x = (⨅i, comap (λa, a i) (𝓝 (x i))),
         by rw Pi.uniform_space_topology ; exact nhds_pi,
       le_infi_iff],
   exact λ i, map_le_iff_le_comap.mp (hx i),

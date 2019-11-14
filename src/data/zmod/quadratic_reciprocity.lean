@@ -3,8 +3,10 @@ Copyright (c) 2018 Chris Hughes. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Chris Hughes
 -/
+
 import field_theory.finite data.zmod.basic data.nat.parity
-/-
+
+/-!
 # Quadratic reciprocity.
 
 This file contains results about quadratic residues modulo a prime number.

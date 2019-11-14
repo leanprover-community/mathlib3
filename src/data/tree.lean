@@ -15,7 +15,7 @@ to be defined and is better suited for in-kernel computation.
 
 ## References
 
-https://leanprover-community.github.io/archive/113488general/62193tacticquestion.html
+<https://leanprover-community.github.io/archive/113488general/62193tacticquestion.html>
 -/
 
 @[derive has_reflect]

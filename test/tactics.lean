@@ -417,6 +417,9 @@ structure foo (α : Type*) :=
 example {α : Type*} : Π (x y : foo α), x.x = y.x → x.y = y.y → x.z == y.z → x.k = y.k → x = y :=
 foo.ext
 
+example {α : Type*} : Π (x y : foo α), x = y ↔ x.x = y.x ∧ x.y = y.y ∧ x.z == y.z ∧ x.k = y.k :=
+foo.ext_iff
+
 example {α} (x y : foo α) (h : x = y) : y = x :=
 begin
   ext,

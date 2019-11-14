@@ -8,6 +8,7 @@ Nonnegative real numbers.
 import data.real.nnreal topology.instances.real topology.algebra.infinite_sum
 noncomputable theory
 open set topological_space metric
+open_locale topological_space
 
 namespace nnreal
 open_locale nnreal
@@ -69,16 +70,16 @@ lemma continuous_coe : continuous (coe : nnreal → ℝ) :=
 continuous_subtype_val
 
 lemma tendsto_coe {f : filter α} {m : α → nnreal} :
-  ∀{x : nnreal}, tendsto (λa, (m a : ℝ)) f (nhds (x : ℝ)) ↔ tendsto m f (nhds x)
+  ∀{x : nnreal}, tendsto (λa, (m a : ℝ)) f (𝓝 (x : ℝ)) ↔ tendsto m f (𝓝 x)
 | ⟨r, hr⟩ := by rw [nhds_subtype_eq_comap, tendsto_comap_iff]; refl
 
-lemma tendsto_of_real {f : filter α} {m : α → ℝ} {x : ℝ} (h : tendsto m f (nhds x)) :
-  tendsto (λa, nnreal.of_real (m a)) f (nhds (nnreal.of_real x)) :=
+lemma tendsto_of_real {f : filter α} {m : α → ℝ} {x : ℝ} (h : tendsto m f (𝓝 x)) :
+  tendsto (λa, nnreal.of_real (m a)) f (𝓝 (nnreal.of_real x)) :=
 tendsto.comp (continuous_iff_continuous_at.1 continuous_of_real _) h
 
 lemma tendsto_sub {f : filter α} {m n : α → nnreal} {r p : nnreal}
-  (hm : tendsto m f (nhds r)) (hn : tendsto n f (nhds p)) :
-  tendsto (λa, m a - n a) f (nhds (r - p)) :=
+  (hm : tendsto m f (𝓝 r)) (hn : tendsto n f (𝓝 p)) :
+  tendsto (λa, m a - n a) f (𝓝 (r - p)) :=
 tendsto_of_real $ tendsto_sub (tendsto_coe.2 hm) (tendsto_coe.2 hn)
 
 lemma continuous_sub' : continuous (λp:nnreal×nnreal, p.1 - p.2) :=

@@ -77,7 +77,7 @@ variables {M}
 namespace con
 
 section
-variables [has_mul M] [has_mul N] (c : con M)
+variables [has_mul M] [has_mul N] [has_mul P] (c : con M)
 
 /-- A coercion from a congruence relation to its underlying binary relation. -/
 @[to_additive "A coercion from an additive congruence relation to its underlying binary relation."]

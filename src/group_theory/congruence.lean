@@ -9,11 +9,12 @@ import group_theory.submonoid data.setoid algebra.pi_instances data.equiv.algebr
 /-!
 # Congruence relations
 
-This file defines multiplicative and additive congruence relations, first by extending
-equivalence relations, or `setoid`s, and then as the inductive congruence closure of a
-binary operation.
+This file defines congruence relations: equivalence relations that preserve a binary operation,
+which in this case is multiplication or addition. The principal definition is a `structure`
+extending a `setoid` (an equivalence relation), but the inductive definition as the congruence 
+closure of a binary relation is also given (see `con_gen`).
 
-It also proves basic properties of the quotient of a type by a congruence relation, and the
+The file also proves basic properties of the quotient of a type by a congruence relation, and the
 complete lattice of congruence relations on a type.
 
 ## Implementation notes

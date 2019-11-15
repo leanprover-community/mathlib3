@@ -227,9 +227,9 @@ hold in both worlds, sometimes with additional assumptions of non-emptyness or
 boundedness.-/
 class conditionally_complete_lattice (α : Type u) extends lattice α, has_Sup α, has_Inf α :=
 (le_cSup : ∀s a, bdd_above s → a ∈ s → a ≤ Sup s)
-(cSup_le : ∀s a, s ≠ ∅ → (∀b∈s, b ≤ a) → Sup s ≤ a)
+(cSup_le : ∀s a, s ≠ ∅ → a ∈ upper_bounds s → Sup s ≤ a)
 (cInf_le : ∀s a, bdd_below s → a ∈ s → Inf s ≤ a)
-(le_cInf : ∀s a, s ≠ ∅ → (∀b∈s, a ≤ b) → a ≤ Inf s)
+(le_cInf : ∀s a, s ≠ ∅ → a ∈ lower_bounds s → a ≤ Inf s)
 
 class conditionally_complete_linear_order (α : Type u)
   extends conditionally_complete_lattice α, decidable_linear_order α
@@ -621,7 +621,7 @@ noncomputable instance : conditionally_complete_linear_order_bot ℕ :=
   le_cSup    := assume s a hb ha, by rw [Sup_nat_def hb]; revert a ha; exact @nat.find_spec _ _ hb,
   cSup_le    := assume s a hs ha, by rw [Sup_nat_def ⟨a, ha⟩]; exact nat.find_min' _ ha,
   le_cInf    := assume s a hs hb,
-    by rw [Inf_nat_def (ne_empty_iff_exists_mem.1 hs)]; exact hb _ (@nat.find_spec (λn, n ∈ s) _ _),
+    by rw [Inf_nat_def (ne_empty_iff_exists_mem.1 hs)]; exact hb (@nat.find_spec (λn, n ∈ s) _ _),
   cInf_le    := assume s a hb ha, by rw [Inf_nat_def ⟨a, ha⟩]; exact nat.find_min' _ ha,
   cSup_empty :=
   begin

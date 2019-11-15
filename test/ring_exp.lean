@@ -4,7 +4,6 @@ universes u
 
 set_option trace.app_builder true
 
-/-
 -- Tests for addition.
 example (a b : ℚ) : a = a := by ring_exp
 example (a b : ℚ) : a + b = a + b := by ring_exp
@@ -66,35 +65,11 @@ example {α : Type u} [linear_ordered_field α] (x : α) :
 -- Instead, we follow the `ring` tactic in interpreting `-c / b` as `-c * b⁻¹`,
 -- with only `b⁻¹` an atom.
 example {α} [linear_ordered_field α] (a b c : α) : a*(-c/b)*(-c/b) = a*((c/b)*(c/b)) := by ring_exp
--/
 
-example {α} [comm_ring α] (k : ℕ) (x y z : α) :
-  x * (z * (x - y)) + (x * (y * y ^ k) - y * (y * y ^ k)) = (z * x + y * y ^ k) * (x - y)
-:= by ring_exp
-
-/-
--- Counterexamples:
-example : 0 = 1 := by ring_exp
-example : 10 = 1 := by ring_exp
-example (a : ℕ) : a = 1 := by ring_exp
-example (a b : ℕ) : a = b := by ring_exp
-example (a b : ℕ) : a + b = a := by ring_exp
-example (a b : ℕ) : a + b = a * b := by ring_exp
-example (a b : ℕ) : a ^ 2 + b ^ 2 = (a + b)^2 := by ring_exp
-example (a b n : ℕ) : (a + b)^n = a^n + b^n := by ring_exp
-
--- This also includes constants as the base (which is harder to fix):
-example (n : ℕ) : 4^n = 2^n * 2^n := by ring_exp
-example (n : ℕ) : (2 * 2)^n = 2^n * 2^n := by ring_exp
-example (n : ℕ) : 4^n = (2 * 2)^n := by ring
-example (n : ℕ) : 4^n = (2 * 2)^n := by ring_exp
-
-example (n : ℕ) : 0^n = 0 := by ring_exp -- (since 0^0 evaluates to 1, this equality does not always hold!)
-
--- Negative numbers in exponents probably aren't worth the trouble.
-example (a : ℤ) (n : ℕ) : a * a^(2^n - 1) = a^(2^n) := by ring_exp
--/
-
+/--
+  This last example is copied from `data/polynomial.lean`,
+  and is used as a benchmark because it was one of the slowest results.
+  -/
 variables {α : Type} [comm_ring α]
 def pow_sub_pow_factor (x y : α) : Π {i : ℕ},{z // x^i - y^i = z*(x - y)}
 | 0 := ⟨0, by simp⟩

@@ -450,7 +450,7 @@ do (lhs, _) ← infer_type prf >>= get_rel_sides,
    return lhs
 
 meta structure linarith_config :=
-(discharger : tactic unit := `[ring_exp_eq])
+(discharger : tactic unit := `[ring])
 (restrict_type : option Type := none)
 (restrict_type_reflect : reflected restrict_type . apply_instance)
 (exfalso : bool := tt)
@@ -825,7 +825,7 @@ meta def tactic.interactive.linarith (red : parse ((tk "!")?))
   (restr : parse ((tk "only")?)) (hyps : parse pexpr_list?)
   (cfg : linarith_config := {}) : tactic unit :=
 let cfg :=
-  if red.is_some then {cfg with transparency := semireducible, discharger := `[ring_exp_eq]}
+  if red.is_some then {cfg with transparency := semireducible, discharger := `[ring!]}
   else cfg in
 do t ← target,
    match get_contr_lemma_name t with

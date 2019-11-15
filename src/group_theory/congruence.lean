@@ -4,14 +4,17 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Amelia Livingston
 -/
 
-import group_theory.submonoid data.setoid algebra.pi_instances data.equiv.algebra
+import group_theory.submonoid
+import data.setoid
+import algebra.pi_instances
+import data.equiv.algebra
 
 /-!
 # Congruence relations
 
 This file defines congruence relations: equivalence relations that preserve a binary operation,
 which in this case is multiplication or addition. The principal definition is a `structure`
-extending a `setoid` (an equivalence relation), but the inductive definition as the congruence 
+extending a `setoid` (an equivalence relation), but the inductive definition as the congruence
 closure of a binary relation is also given (see `con_gen`).
 
 The file also proves basic properties of the quotient of a type by a congruence relation, and the
@@ -41,7 +44,7 @@ set_option old_structure_cmd true
 
 /-- A congruence relation on a type with an addition is an equivalence relation which
     preserves addition. -/
-structure add_con (M : Type*) [has_add M] extends setoid M :=
+structure add_con [has_add M] extends setoid M :=
 (add' : ∀ {w x y z}, r w x → r y z → r (w + y) (x + z))
 
 /-- A congruence relation on a type with a multiplication is an equivalence relation which
@@ -73,8 +76,6 @@ inductive con_gen.rel [has_mul M] (r : M → M → Prop) : M → M → Prop
 def con_gen [has_mul M] (r : M → M → Prop) : con M :=
 ⟨con_gen.rel r, ⟨con_gen.rel.refl, con_gen.rel.symm, con_gen.rel.trans⟩, con_gen.rel.mul⟩
 
-variables {M}
-
 namespace con
 
 section
@@ -86,20 +87,20 @@ instance : has_coe_to_fun (con M) := ⟨_, λ c, λ x y, c.r x y⟩
 
 /-- Congruence relations are reflexive. -/
 @[to_additive "Additive congruence relations are reflexive."]
-lemma refl (x) : c.1 x x := c.2.1 x
+protected lemma refl (x) : c x x := c.2.1 x
 
 /-- Congruence relations are symmetric. -/
 @[to_additive "Additive congruence relations are symmetric."]
-lemma symm : ∀ {x y}, c x y → c.1 y x := λ _ _ h, c.2.2.1 h
+protected lemma symm : ∀ {x y}, c x y → c y x := λ _ _ h, c.2.2.1 h
 
 /-- Congruence relations are transitive. -/
 @[to_additive "Additive congruence relations are transitive."]
-lemma trans : ∀ {x y z}, c x y → c y z → c.1 x z :=
-λ _ _ _ hx, c.2.2.2 hx
+protected lemma trans : ∀ {x y z}, c x y → c y z → c x z :=
+λ _ _ _ h, c.2.2.2 h
 
 /-- Multiplicative congruence relations preserve multiplication. -/
 @[to_additive "Additive congruence relations preserve addition."]
-lemma mul : ∀ {w x y z}, c w x → c y z → c (w * y) (x * z) :=
+protected lemma mul : ∀ {w x y z}, c w x → c y z → c (w * y) (x * z) :=
 λ _ _ _ _ h1 h2, c.3 h1 h2
 
 /-- Given a type `M` with a multiplication, a congruence relation `c` on `M`, and elements of `M`
@@ -201,7 +202,7 @@ variables (c)
 /-- Two elements are related by a congruence relation `c` iff they are represented by the same
     element of the quotient by `c`. -/
 @[simp, to_additive "Two elements are related by an additive congruence relation `c` iff they are represented by the same element of the quotient by `c`."]
-protected lemma eq (a b : M) : (a : c.quotient) = b ↔ c a b :=
+protected lemma eq {a b : M} : (a : c.quotient) = b ↔ c a b :=
 quotient.eq'
 
 /-- The multiplication induced on the quotient by a congruence relation on a type with a
@@ -209,7 +210,7 @@ quotient.eq'
 @[to_additive "The addition induced on the quotient by an additive congruence relation on a type with a addition."]
 instance has_mul : has_mul c.quotient :=
 ⟨λ x y, quotient.lift_on₂' x y (λ w z, ((w * z : M) : c.quotient))
-     $ λ _ _ _ _ h1 h2, (c.eq _ _).2 $ c.mul h1 h2⟩
+     $ λ _ _ _ _ h1 h2, c.eq.2 $ c.mul h1 h2⟩
 
 /-- The kernel of the quotient map induced by a congruence relation `c` equals `c`. -/
 @[simp, to_additive "The kernel of the quotient map induced by an additive congruence relation `c` equals `c`."]
@@ -221,7 +222,7 @@ variables {c}
 /-- The coercion to the quotient of a congruence relation commutes with multiplication (by
     definition). -/
 @[simp, to_additive "The coercion to the quotient of an additive congruence relation commutes with addition (by definition)."]
-lemma coe_mul (x y : M) : (x : c.quotient) * (y : c.quotient) = ((x * y : M) : c.quotient) := rfl
+lemma coe_mul (x y : M) : (↑(x * y) : c.quotient) = ↑x * ↑y := rfl
 
 /-- Definition of the function on the quotient by a congruence relation `c` induced by a function
     that is constant on `c`'s equivalence classes. -/
@@ -326,8 +327,8 @@ theorem inf_iff_and {c d : con M} {x y} : (c ⊓ d) x y ↔ c x y ∧ d x y := i
 theorem con_gen_eq (r : M → M → Prop) :
   con_gen r = Inf {s : con M | ∀ x y, r x y → s.r x y} :=
 ext $ λ x y,
-  ⟨λ H, con_gen.rel.rec_on H (λ _ _ h _ hs, hs _ _ h) (refl _) (λ _ _ _, symm _)
-    (λ _ _ _ _ _, trans _)
+  ⟨λ H, con_gen.rel.rec_on H (λ _ _ h _ hs, hs _ _ h) (con.refl _) (λ _ _ _, con.symm _)
+    (λ _ _ _ _ _, con.trans _)
     $ λ w x y z _ _ h1 h2 c hc, c.mul (h1 c hc) $ h2 c hc,
   Inf_le _ _ (λ _ _, con_gen.rel.of _ _) _ _⟩
 

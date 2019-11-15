@@ -129,30 +129,31 @@ else by rw [← @add_right_cancel_iff _ _ (c * (a / b / c)), mod_add_div, nat.di
   mul_add, ← @add_left_cancel_iff _ _ (a % (b * c) % b), add_left_comm,
   ← add_assoc (a % (b * c) % b), mod_add_div, ← mul_assoc, mod_add_div, mod_mul_right_mod]
 
-lemma add_mod_add_ite {a b c : ℕ} (hc0 : 0 < c) :
+lemma add_mod_add_ite {a b c : ℕ} :
   (a + b) % c + (if c ≤ a % c + b % c then c else 0) = a % c + b % c :=
 have (a + b) % c = (a % c + b % c) % c,
   from nat.modeq.modeq_add (nat.modeq.mod_modeq _ _).symm (nat.modeq.mod_modeq _ _).symm,
-begin
-  rw this,
-  split_ifs,
-  { have h2 : (a % c + b % c) / c < 2,
-      from nat.div_lt_of_lt_mul (by rw mul_two;
-        exact add_lt_add (nat.mod_lt _ hc0) (nat.mod_lt _ hc0)),
-    have h0 : 0 <  (a % c + b % c) / c, from nat.div_pos h hc0,
-    rw [← @add_right_cancel_iff _ _ (c * ((a % c + b % c) / c)), add_comm _ c, add_assoc,
-      mod_add_div, le_antisymm (le_of_lt_succ h2) h0, mul_one, add_comm] },
-  { rw [nat.mod_eq_of_lt (lt_of_not_ge h), add_zero] }
-end
+if hc0 : c = 0 then by simp [hc0, nat.zero_le]
+else
+  begin
+    rw this,
+    split_ifs,
+    { have h2 : (a % c + b % c) / c < 2,
+        from nat.div_lt_of_lt_mul (by rw mul_two;
+          exact add_lt_add (nat.mod_lt _ hc0) (nat.mod_lt _ hc0)),
+      have h0 : 0 <  (a % c + b % c) / c, from nat.div_pos h (nat.pos_of_ne_zero hc0),
+      rw [← @add_right_cancel_iff _ _ (c * ((a % c + b % c) / c)), add_comm _ c, add_assoc,
+        mod_add_div, le_antisymm (le_of_lt_succ h2) h0, mul_one, add_comm] },
+    { rw [nat.mod_eq_of_lt (lt_of_not_ge h), add_zero] }
+  end
 
 lemma add_mod_of_add_mod_lt {a b c : ℕ} (hc : a % c + b % c < c) :
   (a + b) % c = a % c + b % c :=
-if hc0 : c = 0 then by simp [hc0]
-else by rw [← add_mod_add_ite (nat.pos_of_ne_zero hc0), if_neg (not_le_of_lt hc), add_zero]
+ by rw [← add_mod_add_ite, if_neg (not_le_of_lt hc), add_zero]
 
-lemma add_mod_add_of_le_add_mod {a b c : ℕ} (hc : c ≤ a % c + b % c) (hc0 : 0 < c) :
+lemma add_mod_add_of_le_add_mod {a b c : ℕ} (hc : c ≤ a % c + b % c) :
   (a + b) % c + c = a % c + b % c :=
-by rw [← add_mod_add_ite hc0, if_pos hc]
+by rw [← add_mod_add_ite, if_pos hc]
 
 lemma add_div {a b c : ℕ} (hc0 : 0 < c) : (a + b) / c = a / c + b / c +
   if c ≤ a % c + b % c then 1 else 0 :=

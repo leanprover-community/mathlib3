@@ -126,7 +126,7 @@ protected lemma prod [topological_space γ] [topological_space δ]
   {e₁ : α → β} {e₂ : γ → δ} (de₁ : dense_inducing e₁) (de₂ : dense_inducing e₂) :
   dense_inducing (λ(p : α × γ), (e₁ p.1, e₂ p.2)) :=
 { induced := (de₁.to_inducing.prod_mk de₂.to_inducing).induced,
-  dense := dense_range.prod de₁.dense de₂.dense }
+  dense := de₁.dense.prod de₂.dense }
 
 variables [topological_space δ] {f : γ → α} {g : γ → δ} {h : δ → β}
 /--
@@ -310,18 +310,6 @@ lemma is_closed_property3 [topological_space β] {e : α → β} {p : β → β 
 have ∀q:β×β×β, p q.1 q.2.1 q.2.2,
   from is_closed_property (he.prod $ he.prod he) hp $ λ _, h _ _ _,
 assume b₁ b₂ b₃, this ⟨b₁, b₂, b₃⟩
-
-lemma is_closed_property' [topological_space β] {e : α → β} {p : β → Prop}
-  (he : closure (range e) = univ) (hp : is_closed {x | p x}) (h : ∀a, p (e a)) :
-  ∀b, p b := is_closed_property (dense_range_iff_closure_range.mpr he) hp h
-
-lemma is_closed_property2' [topological_space β] {e : α → β} {p : β → β → Prop}
-  (he : closure (range e) = univ) (hp : is_closed {q:β×β | p q.1 q.2}) (h : ∀a₁ a₂, p (e a₁) (e a₂)) :
-  ∀b₁ b₂, p b₁ b₂ := is_closed_property2 (dense_range_iff_closure_range.mpr he) hp h
-
-lemma is_closed_property3' [topological_space β] {e : α → β} {p : β → β → β → Prop}
-  (he : closure (range e) = univ) (hp : is_closed {q:β×β×β | p q.1 q.2.1 q.2.2}) (h : ∀a₁ a₂ a₃, p (e a₁) (e a₂) (e a₃)) :
-  ∀b₁ b₂ b₃, p b₁ b₂ b₃ := is_closed_property3 (dense_range_iff_closure_range.mpr he) hp h
 
 @[elab_as_eliminator]
 lemma dense_range.induction_on  [topological_space β] {e : α → β} (he : dense_range e) {p : β → Prop}

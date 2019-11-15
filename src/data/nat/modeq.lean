@@ -133,14 +133,15 @@ lemma add_mod_add_ite {a b c : ℕ} :
   (a + b) % c + (if c ≤ a % c + b % c then c else 0) = a % c + b % c :=
 have (a + b) % c = (a % c + b % c) % c,
   from nat.modeq.modeq_add (nat.modeq.mod_modeq _ _).symm (nat.modeq.mod_modeq _ _).symm,
-if hc0 : c = 0 then by simp [hc0, nat.zero_le]
+if hc0 : c = 0 then by simp [hc0]
 else
   begin
     rw this,
     split_ifs,
     { have h2 : (a % c + b % c) / c < 2,
         from nat.div_lt_of_lt_mul (by rw mul_two;
-          exact add_lt_add (nat.mod_lt _ hc0) (nat.mod_lt _ hc0)),
+          exact add_lt_add (nat.mod_lt _ (nat.pos_of_ne_zero hc0))
+            (nat.mod_lt _ (nat.pos_of_ne_zero hc0))),
       have h0 : 0 <  (a % c + b % c) / c, from nat.div_pos h (nat.pos_of_ne_zero hc0),
       rw [← @add_right_cancel_iff _ _ (c * ((a % c + b % c) / c)), add_comm _ c, add_assoc,
         mod_add_div, le_antisymm (le_of_lt_succ h2) h0, mul_one, add_comm] },
@@ -163,11 +164,12 @@ begin
     a % c + c * (a / c) + (b % c + c * (b / c)) + c * (if c ≤ a % c + b % c then 1 else 0) + (a + b) % c,
   { simpa only [mul_add, add_comm, add_left_comm, add_assoc] },
   rw [mod_add_div, mod_add_div, mod_add_div, mul_ite, add_assoc, add_assoc],
-  conv_lhs { rw ← add_mod_add_ite hc0 },
+  conv_lhs { rw ← add_mod_add_ite },
   simp
 end
 
-lemma add_div_eq_of_add_mod_lt {a b c : ℕ} (hc : a % c + b % c < c) : (a + b) / c = a / c + b / c :=
+lemma add_div_eq_of_add_mod_lt {a b c : ℕ} (hc : a % c + b % c < c) :
+  (a + b) / c = a / c + b / c :=
 if hc0 : c = 0 then by simp [hc0]
 else by rw [add_div (nat.pos_of_ne_zero hc0), if_neg (not_le_of_lt hc), add_zero]
 

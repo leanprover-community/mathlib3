@@ -82,7 +82,7 @@ end finsupp
 section
 open_locale classical
 
-/-- decomposing `x : ι → R` as a sum along the canonical basis-/
+/-- decomposing `x : ι → R` as a sum along the canonical basis -/
 lemma pi_eq_sum_univ {ι : Type u} [fintype ι] {R : Type v} [semiring R] (x : ι → R) :
   x = finset.sum finset.univ (λi:ι, x i • (λj, if i = j then 1 else 0)) :=
 begin

@@ -129,7 +129,7 @@ else by rw [← @add_right_cancel_iff _ _ (c * (a / b / c)), mod_add_div, nat.di
   mul_add, ← @add_left_cancel_iff _ _ (a % (b * c) % b), add_left_comm,
   ← add_assoc (a % (b * c) % b), mod_add_div, ← mul_assoc, mod_add_div, mod_mul_right_mod]
 
-lemma add_mod_add_ite {a b c : ℕ} :
+lemma add_mod_add_ite (a b c : ℕ) :
   (a + b) % c + (if c ≤ a % c + b % c then c else 0) = a % c + b % c :=
 have (a + b) % c = (a % c + b % c) % c,
   from nat.modeq.modeq_add (nat.modeq.mod_modeq _ _).symm (nat.modeq.mod_modeq _ _).symm,

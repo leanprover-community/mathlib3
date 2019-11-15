@@ -72,7 +72,7 @@ end
 instance [finite_dimensional K V] (S : submodule K V) : finite_dimensional K S :=
 finite_dimensional_iff_dim_lt_omega.2 (lt_of_le_of_lt (dim_submodule_le _) (dim_lt_omega K V))
 
-/-- The dimension of a finite dimensional vector space, in ℕ-/
+/-- The dimension of a finite-dimensional vector space as a natural number -/
 noncomputable def findim (K V : Type*) [discrete_field K]
   [add_comm_group V] [vector_space K V] [finite_dimensional K V] : ℕ :=
 classical.some (lt_omega.1 (dim_lt_omega K V))

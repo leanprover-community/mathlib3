@@ -226,9 +226,11 @@ end atom
 section operations
 open tactic
 /--
-  Stores the information needed in the `eval` function and its dependencies.
+  Stores the information needed in the `eval` function and its dependencies,
+  so they can (re)construct expressions.
 
-  The `eval_info` structure stores this information for one type.
+  The `eval_info` structure stores this information for one type,
+  and the `context` combines the two types, one for bases and one for exponents.
 -/
 meta structure eval_info :=
   (α : expr) (univ : level)
@@ -236,6 +238,8 @@ meta structure eval_info :=
   (csr_instance : expr) (ha_instance : expr) (hm_instance : expr) (hp_instance : expr)
   -- Optional instances (only required for - and / respectively)
   (cr_instance : option expr) (dr_instance : option expr)
+  -- Cache common constants.
+  (zero : expr) (one : expr)
 /--
   The full set of information needed for the `eval` function.
 
@@ -404,8 +408,7 @@ meta def pow_orig {et et'} (ps : ex_pf et) (qs : ex_pf et') : ring_exp_m expr
 -- Constructors for ex_pf that use the ring_exp_m monad to fill in the proofs.
 meta def ex_zero : ring_exp_m (ex_pf sum) := do
   ctx <- get_context,
-  x_p <- lift $ expr.of_rat ctx.info_b.α 0, -- TODO: cache this expression
-  pure (ex.zero ⟨x_p, x_p, none⟩)
+  pure $ ex.zero ⟨ctx.info_b.zero, ctx.info_b.zero, none⟩
 meta def ex_sum (p : ex_pf prod) (ps : ex_pf sum) : ring_exp_m (ex_pf sum) := do
   pps_o <- add_orig p ps,
   pps_p <- mk_add [p.pretty, ps.pretty],
@@ -415,7 +418,9 @@ meta def ex_coeff (x : rat) : ring_exp_m (ex_pf prod) := do
   ctx <- get_context,
   x_p <- lift $ expr.of_rat ctx.info_b.α x,
   pure (ex.coeff ⟨x_p, x_p, none⟩ ⟨x⟩)
-meta def ex_one : ring_exp_m (ex_pf prod) := ex_coeff 1
+meta def ex_one : ring_exp_m (ex_pf prod) := do
+  ctx <- get_context,
+  pure $ ex.coeff ⟨ctx.info_b.one, ctx.info_b.one, none⟩ ⟨1⟩
 meta def ex_prod (p : ex_pf exp) (ps : ex_pf prod) : ring_exp_m (ex_pf prod) := do
   pps_o <- mul_orig p ps,
   pps_p <- mk_mul [p.pretty, ps.pretty],
@@ -924,7 +929,9 @@ meta def make_eval_info (α : expr) : tactic eval_info := do
   ha_instance ← mk_app ``has_add [α] >>= mk_instance,
   hm_instance ← mk_app ``has_mul [α] >>= mk_instance,
   hp_instance ← mk_mapp ``monoid.has_pow [some α, none],
-  pure (eval_info.mk α u csr_instance ha_instance hm_instance hp_instance cr_instance dr_instance)
+  z ← mk_mapp ``has_zero.zero [α, none],
+  o ← mk_mapp ``has_one.one [α, none],
+  pure (eval_info.mk α u csr_instance ha_instance hm_instance hp_instance cr_instance dr_instance z o)
 
 meta def run_ring_exp {α} (e : expr) (mx : ring_exp_m α) : tactic α := do
   info_b <- infer_type e >>= make_eval_info,

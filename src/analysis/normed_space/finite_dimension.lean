@@ -34,7 +34,7 @@ then the identities from `E` to `E'` and from `E'`to `E` are continuous thanks t
 `linear_map.continuous_of_finite_dimensional`. This gives the desired norm equivalence.
 
 The proofs rely on linear equivalences, which are only defined in mathlib for types in the same
-universe. Therefore, all the results in this file are restricted to spaces leaving in the same
+universe. Therefore, all the results in this file are restricted to spaces living in the same
 universe as their base field.
 -/
 

@@ -1,3 +1,10 @@
+/-
+Copyright (c) 2019 Tim Baanen. All rights reserved.
+Released under Apache 2.0 license as described in the file LICENSE.
+Author: Tim Baanen.
+
+Solve equations in commutative (semi)rings with exponents.
+-/
 import tactic.norm_num
 import tactic.well_founded_tactics
 /-!
@@ -12,7 +19,7 @@ import tactic.well_founded_tactics
   - coefficients (any rational number, embedded into the (semi)ring)
   - addition of expressions
   - multiplication of expressions
-  - exponentiation of expressions (the exponent must be a natural number)
+  - exponentiation of expressions (the exponent must have type `ℕ`)
   - subtraction and negation of expressions (if the base is a full ring)
 
   The motivating example is proving `2 * 2^n * b = b * 2^(n+1)`,
@@ -237,9 +244,9 @@ meta def ex.proof {et : ex_type} (ps : ex et) : option expr := ps.info.proof
   Update the `orig` and `proof` fields of the `ex_info`.
   Intended for use in `ex.set_info`.
 -/
-meta def ex_info.set (i : ex_info) (o : option expr) (pf : option expr) : ex_info
+meta def ex_info.set (i : ex_info) (o : option expr) (pf : option expr) : ex_info :=
 -- TODO: is there an equivalent to Haskell's (maybe : α → option α → α)
-:= {orig := match o with | none := i.pretty | (some o) := o end, proof := pf, .. i}
+{orig := match o with | none := i.pretty | (some o) := o end, proof := pf, .. i}
 
 /--
   Update the `ex_info` of the given expression.
@@ -383,14 +390,20 @@ meta def mk_app_csr (f : name) (args : list expr) : ring_exp_m expr := do
   -/
   meta def mk_add (args : list expr) : ring_exp_m expr := do
   ctx <- get_context,
-  pure $ (@expr.const tt ``has_add.add [ctx.info_b.univ] ctx.info_b.α ctx.info_b.ha_instance).mk_app args
+  pure $ (@expr.const tt ``has_add.add
+    [ctx.info_b.univ]
+    ctx.info_b.α
+    ctx.info_b.ha_instance).mk_app args
 /--
   Specialized version of `mk_app ``has_mul.mul`.
   Should be faster because it can use the cached instances.
   -/
   meta def mk_mul (args : list expr) : ring_exp_m expr := do
   ctx <- get_context,
-  pure $ (@expr.const tt ``has_mul.mul [ctx.info_b.univ] ctx.info_b.α ctx.info_b.hm_instance).mk_app args
+  pure $ (@expr.const tt ``has_mul.mul
+    [ctx.info_b.univ]
+    ctx.info_b.α
+    ctx.info_b.hm_instance).mk_app args
 /--
   Specialized version of `mk_app ``has_pow.pow`.
   Should be faster because it can use the cached instances.
@@ -445,7 +458,8 @@ meta def mk_proof (lem : name) (args : list expr) (hs : list ex_info) : ring_exp
   Often, we construct a proof term using congruence where reflexivity suffices.
   To solve this, the following function tries to get away with reflexivity.
 -/
-meta def mk_proof_or_refl (term : expr) (lem : name) (args : list expr) (hs : list ex_info) : ring_exp_m expr := do
+meta def mk_proof_or_refl (term : expr) (lem : name) (args : list expr) (hs : list ex_info) :
+ring_exp_m expr := do
   hs_full <- none_or_proof_term hs,
   match hs_full with
   | none := lift $ mk_eq_refl term
@@ -453,14 +467,14 @@ meta def mk_proof_or_refl (term : expr) (lem : name) (args : list expr) (hs : li
   end
 
 /-- A shortcut for adding the original terms of two expressions. -/
-meta def add_orig {et et'} (ps : ex et) (qs : ex et') : ring_exp_m expr
-:= mk_add [ps.orig, qs.orig]
+meta def add_orig {et et'} (ps : ex et) (qs : ex et') : ring_exp_m expr :=
+mk_add [ps.orig, qs.orig]
 /-- A shortcut for multiplying the original terms of two expressions. -/
-meta def mul_orig {et et'} (ps : ex et) (qs : ex et') : ring_exp_m expr
-:= mk_mul [ps.orig, qs.orig]
+meta def mul_orig {et et'} (ps : ex et) (qs : ex et') : ring_exp_m expr :=
+mk_mul [ps.orig, qs.orig]
 /-- A shortcut for exponentiating the original terms of two expressions. -/
-meta def pow_orig {et et'} (ps : ex et) (qs : ex et') : ring_exp_m expr
-:= mk_pow [ps.orig, qs.orig]
+meta def pow_orig {et et'} (ps : ex et) (qs : ex et') : ring_exp_m expr :=
+mk_pow [ps.orig, qs.orig]
 
 /-- Congruence lemma for constructing `ex.sum`. -/
 def sum_congr {p p' ps ps' : α} : p = p' → ps = ps' → p + ps = p' + ps' := by cc
@@ -715,20 +729,27 @@ meta def add : ex sum → ex sum → ring_exp_m (ex sum)
   then do
     pqs <- add ps qqs,
     ppqs <- ex_sum p pqs,
-    pf <- mk_proof ``add_pf_sum_lt [pps.orig, p.pretty, ps.pretty, qqs.orig, pqs.pretty] [pps.info, pqs.info],
+    pf <- mk_proof ``add_pf_sum_lt
+      [pps.orig, p.pretty, ps.pretty, qqs.orig, pqs.pretty]
+      [pps.info, pqs.info],
     pure $ ppqs.set_info ppqqs_o pf
   else do
     pqs <- add pps qs,
     pqqs <- ex_sum q pqs,
-    pf <- mk_proof ``add_pf_sum_gt [pps.orig, qqs.orig, q.pretty, qs.pretty, pqs.pretty] [qqs.info, pqs.info],
+    pf <- mk_proof ``add_pf_sum_gt
+      [pps.orig, qqs.orig, q.pretty, qs.pretty, pqs.pretty]
+      [qqs.info, pqs.info],
     pure $ pqqs.set_info ppqqs_o pf
   end
 end addition
 
 section multiplication
-lemma mul_pf_c_c {ps ps' qs qs' pq : α} : ps = ps' → qs = qs' → ps' * qs' = pq → ps * qs = pq := by cc
-lemma mul_pf_c_prod {ps qqs q qs pqs : α} : qqs = q * qs → ps * qs = pqs → ps * qqs = q * pqs := by cc
-lemma mul_pf_prod_c {pps p ps qs pqs : α} : pps = p * ps → ps * qs = pqs → pps * qs = p * pqs := by cc
+lemma mul_pf_c_c {ps ps' qs qs' pq : α} :
+ps = ps' → qs = qs' → ps' * qs' = pq → ps * qs = pq := by cc
+lemma mul_pf_c_prod {ps qqs q qs pqs : α} :
+qqs = q * qs → ps * qs = pqs → ps * qqs = q * pqs := by cc
+lemma mul_pf_prod_c {pps p ps qs pqs : α} :
+pps = p * ps → ps * qs = pqs → pps * qs = p * pqs := by cc
 lemma mul_pp_pf_prod_lt {pps p ps qqs pqs : α} :
   pps = p * ps → ps * qqs = pqs → pps * qqs = p * pqs := by cc
 lemma mul_pp_pf_prod_gt {pps qqs q qs pqs : α} :
@@ -784,7 +805,8 @@ meta def mul_pp : ex prod → ex prod → ring_exp_m (ex prod)
       [qqs.info, pqs.info],
     pure $ pqqs.set_info ppqqs_o pf
 
-lemma mul_p_pf_zero {ps qs qs' : α} : ps = 0 → qs = qs' → ps * qs = 0 := λ ps_pf _, by rw [ps_pf, zero_mul]
+lemma mul_p_pf_zero {ps qs qs' : α} : ps = 0 → qs = qs' → ps * qs = 0 :=
+λ ps_pf _, by rw [ps_pf, zero_mul]
 lemma mul_p_pf_sum {pps p ps qs ppsqs : α} : pps = p + ps →
   p * qs + ps * qs = ppsqs → pps * qs = ppsqs := λ pps_pf ppsqs_pf, calc
   pps * qs = (p + ps) * qs : by rw [pps_pf]
@@ -814,7 +836,8 @@ meta def mul_p : ex sum → ex prod → ring_exp_m (ex sum)
     [pps.info, ppsqs.info],
   pure $ ppsqs.set_info ppsqs_o pf
 
-lemma mul_pf_zero {ps ps' qs : α} : ps = ps' → qs = 0 → ps * qs = 0 := λ _ qs_pf, by rw [qs_pf, mul_zero]
+lemma mul_pf_zero {ps ps' qs : α} : ps = ps' → qs = 0 → ps * qs = 0 :=
+λ _ qs_pf, by rw [qs_pf, mul_zero]
 lemma mul_pf_sum {ps qqs q qs psqqs : α} : qqs = q + qs → ps * q + ps * qs = psqqs →
   ps * qqs = psqqs := λ qs_pf psqqs_pf, calc
   ps * qqs = ps * (q + qs) : by rw [qs_pf]
@@ -846,7 +869,9 @@ meta def mul : ex sum → ex sum → ring_exp_m (ex sum)
 end multiplication
 
 section exponentiation
-lemma pow_e_pf_exp {pps p : α} {ps qs psqs : ℕ} : pps = p ^ ps → ps * qs = psqs → pps ^ qs = p ^ psqs := λ pps_pf psqs_pf, calc
+lemma pow_e_pf_exp {pps p : α} {ps qs psqs : ℕ} :
+  pps = p ^ ps → ps * qs = psqs → pps ^ qs = p ^ psqs :=
+λ pps_pf psqs_pf, calc
   pps ^ qs = (p ^ ps) ^ qs : by rw [pps_pf]
   ... = p ^ (ps * qs) : symm (pow_mul _ _ _)
   ... = p ^ psqs : by rw [psqs_pf]
@@ -860,14 +885,19 @@ meta def pow_e : ex exp → ex prod → ring_exp_m (ex exp)
   psqs <- in_exponent $ mul_pp ps qs,
   ppsqs <- ex_exp p psqs,
   ppsqs_o <- pow_orig pps qs,
-  pf <- mk_proof ``pow_e_pf_exp [pps.orig, p.pretty, ps.pretty, qs.orig, psqs.pretty] [pps.info, psqs.info],
+  pf <- mk_proof ``pow_e_pf_exp
+    [pps.orig, p.pretty, ps.pretty, qs.orig, psqs.pretty]
+    [pps.info, psqs.info],
   pure $ ppsqs.set_info ppsqs_o pf
 
 lemma pow_pp_pf_one {ps : α} {qs qs' : ℕ} : ps = 1 → qs = qs' → ps ^ qs = 1 :=
 λ ps_pf _, by rw [ps_pf, _root_.one_pow]
-lemma pow_pp_pf_c {ps ps' pqs : α} {qs qs' : ℕ} : ps = ps' → qs = qs' → ps' ^ qs' = pqs → ps ^ qs = pqs * 1 := by simp; cc
+lemma pow_pp_pf_c {ps ps' pqs : α} {qs qs' : ℕ} :
+  ps = ps' → qs = qs' → ps' ^ qs' = pqs → ps ^ qs = pqs * 1 :=
+by simp; cc
 lemma pow_pp_pf_prod {pps p ps pqs psqs : α} {qs : ℕ} : pps = p * ps →
-  p ^ qs = pqs → ps ^ qs = psqs → pps ^ qs = pqs * psqs := λ pps_pf pqs_pf psqs_pf, calc
+  p ^ qs = pqs → ps ^ qs = psqs → pps ^ qs = pqs * psqs :=
+λ pps_pf pqs_pf psqs_pf, calc
     pps ^ qs = (p * ps) ^ qs : by rw [pps_pf]
     ... = p ^ qs * ps ^ qs : mul_pow _ _ _
     ... = pqs * psqs : by rw [pqs_pf, psqs_pf]
@@ -903,20 +933,25 @@ meta def pow_pp : ex prod → ex prod → ring_exp_m (ex prod)
     [pps.info, pqs.info, psqs.info],
   pure $ ppsqs.set_info ppsqs_o pf
 
-lemma pow_p_pf_one {ps ps' : α} {qs : ℕ} : ps = ps' → qs = succ zero → ps ^ qs = ps' := λ ps_pf qs_pf, calc
+lemma pow_p_pf_one {ps ps' : α} {qs : ℕ} : ps = ps' → qs = succ zero → ps ^ qs = ps' :=
+λ ps_pf qs_pf, calc
   ps ^ qs = ps' ^ 1 : by rw [ps_pf, qs_pf]
   ... = ps' : pow_one _
-lemma pow_p_pf_zero {ps : α} {qs qs' : ℕ} : ps = 0 → qs = succ qs' → ps ^ qs = 0 := λ ps_pf qs_pf, calc
+lemma pow_p_pf_zero {ps : α} {qs qs' : ℕ} : ps = 0 → qs = succ qs' → ps ^ qs = 0 :=
+λ ps_pf qs_pf, calc
   ps ^ qs = 0 ^ (succ qs') : by rw [ps_pf, qs_pf]
   ... = 0 : zero_pow (succ_pos qs')
-lemma pow_p_pf_succ {ps pqqs : α} {qs qs' : ℕ} : qs = succ qs' → ps * ps ^ qs' = pqqs → ps ^ qs = pqqs
-:= λ qs_pf pqqs_pf, calc
+lemma pow_p_pf_succ {ps pqqs : α} {qs qs' : ℕ} :
+  qs = succ qs' → ps * ps ^ qs' = pqqs → ps ^ qs = pqqs :=
+λ qs_pf pqqs_pf, calc
   ps ^ qs = ps ^ succ qs' : by rw [qs_pf]
   ... = ps * ps ^ qs' : pow_succ _ _
   ... = pqqs : by rw [pqqs_pf]
-lemma pow_p_pf_singleton {pps p pqs : α} {qs : ℕ} : pps = p + 0 → p ^ qs = pqs → pps ^ qs = pqs :=
+lemma pow_p_pf_singleton {pps p pqs : α} {qs : ℕ} :
+  pps = p + 0 → p ^ qs = pqs → pps ^ qs = pqs :=
 λ pps_pf pqs_pf, by rw [pps_pf, add_zero, pqs_pf]
-lemma pow_p_pf_cons {ps ps' : α} {qs qs' : ℕ} : ps = ps' → qs = qs' → ps ^ qs = ps' ^ qs' := by cc
+lemma pow_p_pf_cons {ps ps' : α} {qs qs' : ℕ} :
+  ps = ps' → qs = qs' → ps ^ qs = ps' ^ qs' := by cc
 /--
   Exponentiate two expressions.
 
@@ -941,18 +976,24 @@ meta def pow_p : ex sum → ex prod → ring_exp_m (ex sum)
   pqs <- pow_p ps qs',
   pqqs <- mul ps pqs,
   pqqs_o <- pow_orig ps qs,
-  pf <- mk_proof ``pow_p_pf_succ [ps.orig, pqqs.pretty, qs.orig, qs'.pretty] [qs.info, pqqs.info],
+  pf <- mk_proof ``pow_p_pf_succ
+    [ps.orig, pqqs.pretty, qs.orig, qs'.pretty]
+    [qs.info, pqqs.info],
   pure $ pqqs.set_info pqqs_o pf
 | pps@(ex.sum pps_i p (ex.zero _)) qqs := do
   pqs <- pow_pp p qqs,
   pqs_o <- pow_orig pps qqs,
-  pf <- mk_proof ``pow_p_pf_singleton [pps.orig, p.pretty, pqs.pretty, qqs.orig] [pps.info, pqs.info],
+  pf <- mk_proof ``pow_p_pf_singleton
+    [pps.orig, p.pretty, pqs.pretty, qqs.orig]
+    [pps.info, pqs.info],
   prod_to_sum $ pqs.set_info pqs_o pf
 | pps qqs := do -- fallback: treat them as atoms
   pps' <- ex_sum_b pps,
   psqs <- ex_exp pps' qqs,
   psqs_o <- pow_orig pps qqs,
-  pf <- mk_proof_or_refl psqs.pretty ``pow_p_pf_cons [pps.orig, pps.pretty, qqs.orig, qqs.pretty] [pps.info, qqs.info],
+  pf <- mk_proof_or_refl psqs.pretty ``pow_p_pf_cons
+    [pps.orig, pps.pretty, qqs.orig, qqs.pretty]
+    [pps.info, qqs.info],
   exp_to_prod (psqs.set_info psqs_o pf) >>= prod_to_sum
 
 lemma pow_pf_zero {ps ps' : α} {qs : ℕ} : ps = ps' → qs = 0 → ps ^ qs = 1 := λ _ qs_pf, calc
@@ -980,7 +1021,9 @@ meta def pow : ex sum → ex sum → ring_exp_m (ex sum)
   psqs <- pow ps qs,
   psqqs <- mul psq psqs,
   psqqs_o <- pow_orig ps qqs,
-  pf <- mk_proof ``pow_pf_sum [ps.orig, psqqs.pretty, qqs.orig, q.pretty, qs.pretty] [qqs.info, psqqs.info],
+  pf <- mk_proof ``pow_pf_sum
+    [ps.orig, psqqs.pretty, qqs.orig, q.pretty, qs.pretty]
+    [qqs.info, psqqs.info],
   pure $ psqqs.set_info psqqs_o pf
  end exponentiation
 
@@ -1114,8 +1157,8 @@ meta def negate (ps : ex sum) : ring_exp_m (ex sum) := do
   end
 
 lemma inverse_pf [division_ring α] {ps ps_u ps_p e' e'' : α} :
-  ps = ps_u → ps_u = ps_p → ps_p ⁻¹ = e' → e' = e'' → ps ⁻¹ = e''
-:= by cc
+  ps = ps_u → ps_u = ps_p → ps_p ⁻¹ = e' → e' = e'' → ps ⁻¹ = e'' :=
+by cc
 /--
   Invert an expression by simplifying, applying `has_inv.inv` and treating the result as an atom.
 
@@ -1138,8 +1181,8 @@ meta def inverse (ps : ex sum) : ring_exp_m (ex sum) := do
   e''_o <- lift $ mk_app ``has_inv.inv [ps.orig],
   pure $ e''.set_info e''_o pf
 
-lemma sub_pf [comm_ring α] {ps qs psqs : α} : ps + -qs = psqs → ps - qs = psqs := λ p_pf, p_pf
-lemma div_pf [division_ring α] {ps qs psqs : α} : ps * qs⁻¹ = psqs → ps / qs = psqs := λ p_pf, p_pf
+lemma sub_pf [comm_ring α] {ps qs psqs : α} : ps + -qs = psqs → ps - qs = psqs := id
+lemma div_pf [division_ring α] {ps qs psqs : α} : ps * qs⁻¹ = psqs → ps / qs = psqs := id
 
 end operations
 
@@ -1244,7 +1287,7 @@ meta def make_eval_info (α : expr) : tactic eval_info := do
   hp_instance ← mk_mapp ``monoid.has_pow [some α, none],
   z ← mk_mapp ``has_zero.zero [α, none],
   o ← mk_mapp ``has_one.one [α, none],
-  pure (eval_info.mk α u csr_instance ha_instance hm_instance hp_instance cr_instance dr_instance z o)
+  pure ⟨α, u, csr_instance, ha_instance, hm_instance, hp_instance, cr_instance, dr_instance, z, o⟩
 
 /-- Use `e` to build the context for running `mx`. -/
 meta def run_ring_exp {α} (e : expr) (mx : ring_exp_m α) : tactic α := do
@@ -1288,7 +1331,6 @@ meta def ring_exp_eq : tactic unit := do
     trace ps'.pretty,
     trace qs'.pretty,
     fail "ring_exp failed to prove equality"
-
 
 /-- Tactic for solving equations of *commutative* (semi)rings,
     allowing variables in the exponent.

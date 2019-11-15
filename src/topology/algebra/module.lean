@@ -125,6 +125,8 @@ instance : has_one (β →L[α] β) := ⟨id⟩
 @[simp, elim_cast] lemma coe_id : ((id : β →L[α] β) : β →ₗ[α] β) = linear_map.id := rfl
 @[simp, elim_cast] lemma coe_id' : ((id : β →L[α] β) : β → β) = _root_.id := rfl
 
+@[simp] lemma one_apply : (1 : β →L[α] β) x = x := rfl
+
 section add
 variables [topological_add_group γ]
 
@@ -195,11 +197,28 @@ variables (c : α) (f g : β →L[α] γ) (x y z : β)
 @[simp, move_cast] lemma coe_apply : (((c • f) : β →L[α] γ) : β →ₗ[α] γ) = c • (f : β →ₗ[α] γ) := rfl
 @[move_cast] lemma coe_apply' : (((c • f) : β →L[α] γ) : β → γ) = c • (f : β → γ) := rfl
 
-/-- Associating to a scalar-valued linear map and an element of `γ` the
-`γ`-valued linear map obtained by multiplying the two (a.k.a. tensoring by `γ`) -/
+/-- The linear map `λ x, c x • f`.  Associates to a scalar-valued linear map and an element of
+`γ` the `γ`-valued linear map obtained by multiplying the two (a.k.a. tensoring by `γ`) -/
 def smul_right (c : β →L[α] α) (f : γ) : β →L[α] γ :=
 { cont := continuous_smul c.2 continuous_const,
   ..c.to_linear_map.smul_right f }
+
+@[simp]
+lemma smul_right_apply {c : β →L[α] α} {f : γ} {x : β} :
+  (smul_right c f : β → γ) x = (c : β → α) x • f :=
+rfl
+
+@[simp]
+lemma smul_right_one_one (c : α →L[α] γ) : smul_right 1 ((c : α → γ) 1) = c :=
+by ext; simp [-continuous_linear_map.map_smul, (continuous_linear_map.map_smul _ _ _).symm]
+
+@[simp]
+lemma smul_right_one_eq_iff {f f' : γ} :
+  smul_right (1 : α →L[α] α) f = smul_right 1 f' ↔ f = f' :=
+⟨λ h, have (smul_right (1 : α →L[α] α) f : α → γ) 1 = (smul_right (1 : α →L[α] α) f' : α → γ) 1,
+        by rw h,
+      by simp at this; assumption,
+  by cc⟩
 
 variable [topological_add_group γ]
 

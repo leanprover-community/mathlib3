@@ -608,7 +608,7 @@ by apply_instance
   * We make them lemmas, and not definitions, because otherwise later definitions will raise
     "failed to generate bytecode" errors when writing something like
     `letI := classical.dec_eq _`.
-  Cf. https://leanprover-community.github.io/archive/113488general/08268noncomputabletheorem.html -/
+  Cf. <https://leanprover-community.github.io/archive/113488general/08268noncomputabletheorem.html> -/
 
 @[elab_as_eliminator]
 noncomputable def {u} exists_cases {C : Sort u} (H0 : C) (H : ∀ a, p a → C) : C :=

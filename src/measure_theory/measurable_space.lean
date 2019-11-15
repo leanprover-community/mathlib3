@@ -47,9 +47,9 @@ defined in terms of the Galois connection induced by f.
 
 ## References
 
-* https://en.wikipedia.org/wiki/Measurable_space
-* https://en.wikipedia.org/wiki/Sigma-algebra
-* https://en.wikipedia.org/wiki/Dynkin_system
+* <https://en.wikipedia.org/wiki/Measurable_space>
+* <https://en.wikipedia.org/wiki/Sigma-algebra>
+* <https://en.wikipedia.org/wiki/Dynkin_system>
 
 ## Tags
 

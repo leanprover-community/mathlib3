@@ -2,20 +2,27 @@
 Copyright (c) 2017 Scott Morrison. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Stephen Morgan, Scott Morrison, Johannes Hölzl, Reid Barton
+-/
 
-Defines a category, as a typeclass parametrised by the type of objects.
+import tactic.basic
+import tactic.tidy
+
+/-!
+# Categories
+
+Defines a category, as a type class parametrised by the type of objects.
+
+## Notations
+
 Introduces notations
-  `X ⟶ Y` for the morphism spaces,
-  `f ≫ g` for composition in the 'arrows' convention.
+* `X ⟶ Y` for the morphism spaces,
+* `f ≫ g` for composition in the 'arrows' convention.
 
 Users may like to add `f ⊚ g` for composition in the standard convention, using
 ```
 local notation f ` ⊚ `:80 g:80 := category.comp g f    -- type as \oo
 ```
 -/
-
-import tactic.basic
-import tactic.tidy
 
 universes v u  -- The order in this declaration matters: v often needs to be explicitly specified while u often can be omitted
 

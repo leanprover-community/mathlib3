@@ -31,9 +31,9 @@ This file introduces the following properties of a map `f : X → Y` between top
 
 ## References
 
-* https://en.wikipedia.org/wiki/Open_and_closed_maps
-* https://en.wikipedia.org/wiki/Embedding#General_topology
-* https://en.wikipedia.org/wiki/Quotient_space_(topology)#Quotient_map
+* <https://en.wikipedia.org/wiki/Open_and_closed_maps>
+* <https://en.wikipedia.org/wiki/Embedding#General_topology>
+* <https://en.wikipedia.org/wiki/Quotient_space_(topology)#Quotient_map>
 
 ## Tags
 

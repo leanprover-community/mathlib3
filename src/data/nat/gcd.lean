@@ -28,6 +28,10 @@ theorem dvd_gcd {m n k : ℕ} : k ∣ m → k ∣ n → k ∣ gcd m n :=
 gcd.induction m n (λn _ kn, by rw gcd_zero_left; exact kn)
   (λn m mpos IH H1 H2, by rw gcd_rec; exact IH ((dvd_mod_iff H1).2 H2) H1)
 
+theorem dvd_gcd_iff {m n k : ℕ} : k ∣ gcd m n ↔ k ∣ m ∧ k ∣ n :=
+iff.intro (λ h, ⟨dvd_trans h (gcd_dvd m n).left, dvd_trans h (gcd_dvd m n).right⟩)
+          (λ h, dvd_gcd h.left h.right)
+
 theorem gcd_comm (m n : ℕ) : gcd m n = gcd n m :=
 dvd_antisymm
   (dvd_gcd (gcd_dvd_right m n) (gcd_dvd_left m n))

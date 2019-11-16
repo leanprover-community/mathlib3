@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Author: Jeremy Avigad
 -/
 
-import analysis.normed_space.basic tactic.omega
+import analysis.normed_space.basic
 
 /-!
 # Asymptotics

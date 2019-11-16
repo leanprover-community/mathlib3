@@ -1972,7 +1972,7 @@ protected theorem subset {m₁ n₁ m₂ n₂ : ℕ} (hmm : m₂ ≤ m₁) (hnn 
 begin
   simp only [finset.subset_iff, Ico.mem],
   assume x hx,
-  exact ⟨le_trans hmm hx.1, lt_of_lt_of_le hx.2 hnn⟩ 
+  exact ⟨le_trans hmm hx.1, lt_of_lt_of_le hx.2 hnn⟩
 end
 
 lemma union_consecutive {n m l : ℕ} (hnm : n ≤ m) (hml : m ≤ l) :
@@ -2002,6 +2002,12 @@ begin
   rw succ_top,
   exact nat.le_pred_of_lt h
 end
+
+lemma succ_bot {m n : ℕ} (h : m < n) : insert m (Ico (succ m) n) = Ico m n :=
+suffices ∀ x, (x = m ∨ (m < x ∧ x < n)) ↔ m ≤ x ∧ x < n,
+  by simp [*, finset.ext, succ_le_iff] at *,
+λ x, ⟨λ h, by rcases h with rfl | h; simp only [lt_iff_le_not_le] at *; finish,
+  λ h, by cases lt_or_eq_of_le h.1; finish⟩
 
 theorem eq_cons {n m : ℕ} (h : n < m) : Ico n m = insert n (Ico (n + 1) m) :=
 by rw [← to_finset, multiset.Ico.eq_cons h, multiset.to_finset_cons, to_finset]

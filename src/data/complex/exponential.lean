@@ -414,7 +414,6 @@ by rw [← domain.mul_left_inj (exp_ne_zero x), ← exp_add];
 lemma exp_sub : exp (x - y) = exp x / exp y :=
 by simp [exp_add, exp_neg, div_eq_mul_inv]
 
-set_option class.instance_max_depth 40
 @[simp] lemma exp_conj : exp (conj x) = conj (exp x) :=
 begin
   dsimp [exp],

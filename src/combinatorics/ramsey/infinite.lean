@@ -6,7 +6,7 @@ Author: Jared Corduan.
 
 import algebra.order_functions
 import logic.basic
-import data.set.finite
+import data.set.finite data.finset data.fintype
 
 /-!
 # The Infinite Ramsey Theorem
@@ -82,9 +82,25 @@ end
 /-
 There are two colors, red and blue.
 -/
+@[derive decidable_eq]
 inductive color
 | red : color
 | blue : color
+
+open color
+
+/--
+The fintype instance for color.
+-/
+instance color_fintype  : fintype color :=
+⟨
+  ⟨red :: blue :: 0, dec_trivial⟩,
+  begin
+    intros x, cases x,
+    { left, refl },
+    { right, left, refl }
+  end
+⟩
 
 /--
 An infinite set of natural numbers.
@@ -96,8 +112,6 @@ structure Inf :=
 instance Inf.has_coe : has_coe Inf (set ℕ) := ⟨Inf.s⟩
 instance : has_mem ℕ Inf := ⟨λ n H, n ∈ H.s⟩
 instance : has_subset Inf := ⟨λ H₁ H₂, H₁.s ⊆ H₂.s⟩
-
-open color
 
 /--
 Given a function from natural numbers to colors,
@@ -419,7 +433,7 @@ end
 Restrict a coloring of unordered pairs of all natural numbers
 to unordered pairs of a given infinite set H.
 -/
-def restrict (f : [ℕ]² → color) (H : set ℕ) : [H]² → color :=
+def restrict {α : Type }(f : [ℕ]² → α) (H : set ℕ) : [H]² → α :=
   λ h, f (⟨h.val, ⟨h.property.left, ⟨true.intro, true.intro⟩⟩⟩)
 
 /--
@@ -474,5 +488,74 @@ begin
     rw [←stable, hproj] at hproj,
     rw ←hproj, refl }
 end
+
+/--
+An equivalenc of color and fin 2
+-/
+lemma color_equiv_fin2 : color ≃ fin 2 :=
+{
+  to_fun := λ c, color.rec_on c 0 1,
+  inv_fun := λ n, nat.rec_on n.val red (λ _ _, blue),
+  left_inv := begin intro x, cases x, refl, refl end,
+  right_inv :=
+    begin
+      intro x,
+      cases x with x hx,
+      cases x,
+      { refl },
+      { simp,
+        cases x,
+        { refl },
+        { rw [fin.eq_iff_veq],
+          simp [lt_succ_iff, succ_le_succ_iff, succ_pos ] at hx,
+          simp, rw hx } },
+    end
+}
+
+theorem infinite_ramsey_pairs_two_colors' (f : [ℕ]² → fin 2) :
+∃ H : Inf, ∃ k : fin 2,
+∀ h : [H]²,
+(restrict f H) h = k :=
+begin
+  have h : ∃ H : Inf, ∃ c : color, ∀ h : [H]²,
+    (restrict (color_equiv_fin2.inv_fun ∘ f) H) h = c,
+    exact infinite_ramsey_pairs_two_colors (color_equiv_fin2.inv_fun ∘ f),
+  cases h with H hH,
+  cases hH with c hc,
+  apply exists.intro H,
+  apply exists.intro (color_equiv_fin2.to_fun c),
+  intros p,
+  have hp : (restrict (color_equiv_fin2.inv_fun ∘ f) H) p = c, exact hc p,
+  unfold restrict at hp,
+  have hc2 :
+    color_equiv_fin2.to_fun ((color_equiv_fin2.inv_fun ∘ f)  ⟨p.val, _⟩ ) =
+      color_equiv_fin2.to_fun (c), rw hp,
+  simp at hc2,
+  rw color_equiv_fin2.right_inv
+    (f ⟨p.val, ⟨p.property.left, trivial, trivial⟩⟩) at hc2,
+  exact hc2,
+end
+
+noncomputable def split_coloring
+  (k : ℕ)
+  (f : [ℕ]² → fin (succ k))
+  (p : [ℕ]²)
+  : fin 2 := if (f p = k) then 1 else 0
+
+theorem infinite_ramsey_pairs_n_colors (k : ℕ) (f : [ℕ]² → fin (k+2)) :
+∃ H : Inf, ∃ c : fin (k+2),
+∀ h : [H]²,
+(restrict f H) h = c :=
+begin
+  induction k with k IH,
+  simp [infinite_ramsey_pairs_two_colors' f],
+  have foo : succ k + 2 = succ (k+2), refl,
+  --have h : ∃ H : Inf, ∃ k : fin 2, ∀ h : [H]²,
+  --  (restrict (split_coloring (k.val+2) f) H) h = k,
+  --exact infinite_ramsey_pairs_two_colors (ftc ∘ f),
+  sorry,
+end
+
+#print infinite_ramsey_pairs_two_colors'
 
 end infinite_ramsey_pairs

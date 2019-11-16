@@ -11,8 +11,26 @@ infix ` ≃ `:25 := equiv
 
 namespace foo
 
-@[simps] protected def rfl {α} : α ≃ α :=
+def field {α β : Sort*} : α ≃ β → pprod (α → β) (β → α)
+| ⟨f,g,_,_⟩ := ⟨f,g⟩
+
+@[projection equiv]
+def field_eq {α β : Type} (f : α → β) {g h h'} : field ⟨f,g,h,h'⟩ = ⟨f,g⟩ := rfl
+
+@[simps] protected def rfl {α : Type} : α ≃ α :=
 ⟨id, λ x, x, λ x, rfl, λ x, rfl⟩
+
+@[simps] protected def rfl' {α} : α ≃ α :=
+⟨id, λ x, x, λ x, rfl, λ x, rfl⟩
+
+#check foo.rfl_inv_fun
+#check foo.rfl_to_fun
+
+example : ∀ {α : Sort*} (a : α), (field foo.rfl).fst a = id a :=
+@foo.rfl_field_fst
+
+example : ∀ {α : Sort*} (x : α), (field foo.rfl).snd x = x :=
+@foo.rfl_field_snd
 
 /- simps adds declarations -/
 run_cmd do
@@ -53,7 +71,7 @@ run_cmd do
   let nm := `foo.bar1,
   d ← e.get nm,
   let lhs : expr := const d.to_name (d.univ_params.map level.param),
-  simps_add_projections e nm "" d.type lhs d.value [] d.univ_params tt ff ff []
+  simps_add_projections e nm "" d.type lhs d.value none [] d.univ_params tt ff ff []
 
 end foo
 

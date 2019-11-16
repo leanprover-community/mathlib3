@@ -152,7 +152,7 @@ meta def eval_expr' (α : Type*) [_inst_1 : reflected α] (e : expr) : tactic α
 mk_app ``id [e] >>= eval_expr α
 
 /-- `mk_fresh_name` returns identifiers starting with underscores,
-which are not legal when emitted by tactic programs. `mk_user_fresh_name` 
+which are not legal when emitted by tactic programs. `mk_user_fresh_name`
 turns the useful source of random names provided by `mk_fresh_name` into
 names which are usable by tactic programs.
 
@@ -321,7 +321,7 @@ meta def retrieve {α} (tac : tactic α) : tactic α :=
 
 /-- Repeat a tactic at least once, calling it recursively on all subgoals,
   until it fails. This tactic fails if the first invocation fails. -/
-meta def repeat1 (t : tactic unit) : tactic unit := t; repeat t
+meta def repeat1 (t : tactic unit) : tactic unit := t; iterate t
 
 /-- `iterate_range m n t`: Repeat the given tactic at least `m` times and
   at most `n` times or until `t` fails. Fails if `t` does not run at least m times. -/
@@ -713,6 +713,10 @@ do r ← decorate_ex "iterate1 failed: tactic did not succeed" t,
 Fails if `intro` cannot be applied. -/
 meta def intros1 : tactic (list expr) :=
 iterate1 intro1 >>= λ p, return (p.1 :: p.2)
+
+meta def iterate_exactly' : ℕ → tactic α → tactic (list α)
+| nat.zero _ := pure []
+| (nat.succ n) tac := (::) <$> tac <*> iterate_exactly' n tac
 
 /-- `successes` invokes each tactic in turn, returning the list of successful results. -/
 meta def successes (tactics : list (tactic α)) : tactic (list α) :=
@@ -1325,12 +1329,40 @@ do e ← pformat_macro () s,
 
 reserve prefix `trace! `:100
 /--
-the combination of `pformat` and `fail`
+the combination of `pformat` and `trace`
 -/
 @[user_notation]
 meta def trace_macro (_ : parse $ tk "trace!") (s : string) : parser pexpr :=
 do e ← pformat_macro () s,
    pure ``((%%e : pformat) >>= trace)
+
+/-- an alias of `format` that gives tactics an expression to pretty pring -/
+@[reducible] meta def fmt_of {α} (x : α) : Type := format
+
+/-- for a goal of the form `fmt_of e`, solves the goal with a format value corresponding
+to the expression `e` -/
+meta def create_fmt : tactic unit :=
+do `(fmt_of %%e) ← target,
+   fmt ← pp e,
+   let fmt := to_string fmt,
+   refine ``(to_fmt %%(`(fmt)))
+
+/-- `show_expr my_expr` creates a format value `"my_expr = value_of_my_expr" which contains a representation
+of the expression used as an argument -/
+meta def show_expr {α} [has_to_tactic_format α] (x : α) (lbl : fmt_of x . create_fmt) : tactic format :=
+do fmt ← pp x,
+   pure $ format!"{lbl} = {fmt}"
+
+/-- `trace_var my_expr` prints `"my_expr = value_of_my_expr" which contains a representation
+of the expression used as an argument -/
+meta def trace_var {α} [has_to_tactic_format α] (x : α) (lbl : fmt_of x . create_fmt) : tactic unit :=
+trace!"{lbl} = {x}"
+
+/-- `trace_var my_expr_of_type_expr` prints `"my_expr_of_type_expr = value_of_my_expr : inferred_type_of_value_of_my_expr"
+which contains a representation of the expression used as an argument, the value of that expression (an `expr`)
+and the type of that `expr` -/
+meta def trace_expr (x : expr) (lbl : fmt_of x . create_fmt) : tactic unit :=
+trace!"{lbl} = {x} : {infer_type x}"
 
 /-- A hackish way to get the `src` directory of mathlib. -/
 meta def get_mathlib_dir : tactic string :=

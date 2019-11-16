@@ -468,6 +468,7 @@ A maximum depth can be provided with `ext x y z : 3`.
 
  ```
  @[ext] lemma foo.ext : ∀ {α : Type u_1} (x y : foo α), x.x = y.x → x.y = y.y → x.z == y.z → x.k = y.k → x = y
+ lemma foo.ext_iff : ∀ {α : Type u_1} (x y : foo α), x = y ↔ x.x = y.x ∧ x.y = y.y ∧ x.z == y.z ∧ x.k = y.k
  ```
  
 ### refine_struct
@@ -1069,6 +1070,13 @@ int.cast_coe_nat : ∀ (n : ℕ), ↑↑n = ↑n
 
 int.cats_id : int.cast_id : ∀ (n : ℤ), ↑n = n
 ```
+
+`push_cast` rewrites the expression to move casts toward the leaf nodes.
+This uses `move_cast` lemmas in the "forward" direction.
+For example, `↑(a + b)` will be written to `↑a + ↑b`.
+It is equivalent to `simp only with push_cast`, and can also be used at hypotheses
+with `push_cast at h`.
+
 
 ### convert_to
 

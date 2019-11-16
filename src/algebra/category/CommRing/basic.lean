@@ -132,3 +132,54 @@ instance has_forget_to_CommSemiRing : has_forget₂ CommRing CommSemiRing :=
 has_forget₂.mk' (λ R : CommRing, CommSemiRing.of R) (λ R, rfl) (λ R₁ R₂ f, f) (by tidy)
 
 end CommRing
+
+
+namespace ring_equiv
+
+variables {X Y : Type u}
+
+/-- Build an isomorphism in the category `Ring` from a `ring_equiv` between `ring`s. -/
+@[simps] def to_Ring_iso [ring X] [ring Y] (e : X ≃+* Y) : Ring.of X ≅ Ring.of Y :=
+{ hom := e.to_ring_hom,
+  inv := e.symm.to_ring_hom }
+
+/-- Build an isomorphism in the category `CommRing` from a `ring_equiv` between `comm_ring`s. -/
+@[simps] def to_CommRing_iso [comm_ring X] [comm_ring Y] (e : X ≃+* Y) : CommRing.of X ≅ CommRing.of Y :=
+{ hom := e.to_ring_hom,
+  inv := e.symm.to_ring_hom }
+
+end ring_equiv
+
+namespace category_theory.iso
+
+/-- Build a `ring_equiv` from an isomorphism in the category `Ring`. -/
+def Ring_iso_to_ring_equiv {X Y : Ring.{u}} (i : X ≅ Y) : X ≃+* Y :=
+{ to_fun    := i.hom,
+  inv_fun   := i.inv,
+  left_inv  := by tidy,
+  right_inv := by tidy,
+  map_add'  := by tidy,
+  map_mul'  := by tidy }.
+
+/-- Build a `ring_equiv` from an isomorphism in the category `CommRing`. -/
+def CommRing_iso_to_ring_equiv {X Y : CommRing.{u}} (i : X ≅ Y) : X ≃+* Y :=
+{ to_fun    := i.hom,
+  inv_fun   := i.inv,
+  left_inv  := by tidy,
+  right_inv := by tidy,
+  map_add'  := by tidy,
+  map_mul'  := by tidy }.
+
+end category_theory.iso
+
+/-- ring equivalences between `ring`s are the same as (isomorphic to) isomorphisms in `Ring`. -/
+def ring_equiv_iso_Ring_iso {X Y : Type u} [ring X] [ring Y] :
+  (X ≃+* Y) ≅ (Ring.of X ≅ Ring.of Y) :=
+{ hom := λ e, e.to_Ring_iso,
+  inv := λ i, i.Ring_iso_to_ring_equiv, }
+
+/-- ring equivalences between `comm_ring`s are the same as (isomorphic to) isomorphisms in `CommRing`. -/
+def ring_equiv_iso_CommRing_iso {X Y : Type u} [comm_ring X] [comm_ring Y] :
+  (X ≃+* Y) ≅ (CommRing.of X ≅ CommRing.of Y) :=
+{ hom := λ e, e.to_CommRing_iso,
+  inv := λ i, i.CommRing_iso_to_ring_equiv, }

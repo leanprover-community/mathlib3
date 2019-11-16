@@ -12,7 +12,7 @@ import topology.constructions topology.continuous_on
 import algebra.pi_instances
 
 open classical set lattice filter topological_space
-open_locale classical
+open_locale classical topological_space
 
 universes u v w
 variables {α : Type u} {β : Type v} {γ : Type w}
@@ -64,19 +64,19 @@ lemma continuous_pow : ∀ n : ℕ, continuous (λ a : α, a ^ n)
 | (k+1) := show continuous (λ (a : α), a * a ^ k), from continuous_mul continuous_id (continuous_pow _)
 
 @[to_additive]
-lemma tendsto_mul' {a b : α} : tendsto (λp:α×α, p.fst * p.snd) (nhds (a, b)) (nhds (a * b)) :=
+lemma tendsto_mul' {a b : α} : tendsto (λp:α×α, p.fst * p.snd) (𝓝 (a, b)) (𝓝 (a * b)) :=
 continuous_iff_continuous_at.mp (topological_monoid.continuous_mul α) (a, b)
 
 @[to_additive]
 lemma tendsto_mul {f : β → α} {g : β → α} {x : filter β} {a b : α}
-  (hf : tendsto f x (nhds a)) (hg : tendsto g x (nhds b)) :
-  tendsto (λx, f x * g x) x (nhds (a * b)) :=
+  (hf : tendsto f x (𝓝 a)) (hg : tendsto g x (𝓝 b)) :
+  tendsto (λx, f x * g x) x (𝓝 (a * b)) :=
 tendsto.comp (by rw [←nhds_prod_eq]; exact tendsto_mul') (hf.prod_mk hg)
 
 @[to_additive]
 lemma tendsto_list_prod {f : γ → β → α} {x : filter β} {a : γ → α} :
-  ∀l:list γ, (∀c∈l, tendsto (f c) x (nhds (a c))) →
-    tendsto (λb, (l.map (λc, f c b)).prod) x (nhds ((l.map a).prod))
+  ∀l:list γ, (∀c∈l, tendsto (f c) x (𝓝 (a c))) →
+    tendsto (λb, (l.map (λc, f c b)).prod) x (𝓝 ((l.map a).prod))
 | []       _ := by simp [tendsto_const_nhds]
 | (f :: l) h :=
   begin
@@ -108,20 +108,20 @@ variables [topological_space α] [comm_monoid α]
 
 @[to_additive]
 lemma is_submonoid.mem_nhds_one (β : set α) [is_submonoid β] (oβ : is_open β) :
-  β ∈ nhds (1 : α) :=
+  β ∈ 𝓝 (1 : α) :=
 mem_nhds_sets_iff.2 ⟨β, (by refl), oβ, is_submonoid.one_mem _⟩
 
 variable [topological_monoid α]
 
 @[to_additive]
 lemma tendsto_multiset_prod {f : γ → β → α} {x : filter β} {a : γ → α} (s : multiset γ) :
-  (∀c∈s, tendsto (f c) x (nhds (a c))) →
-    tendsto (λb, (s.map (λc, f c b)).prod) x (nhds ((s.map a).prod)) :=
+  (∀c∈s, tendsto (f c) x (𝓝 (a c))) →
+    tendsto (λb, (s.map (λc, f c b)).prod) x (𝓝 ((s.map a).prod)) :=
 by { rcases s with ⟨l⟩, simp, exact tendsto_list_prod l }
 
 @[to_additive]
 lemma tendsto_finset_prod {f : γ → β → α} {x : filter β} {a : γ → α} (s : finset γ) :
-  (∀c∈s, tendsto (f c) x (nhds (a c))) → tendsto (λb, s.prod (λc, f c b)) x (nhds (s.prod a)) :=
+  (∀c∈s, tendsto (f c) x (𝓝 (a c))) → tendsto (λb, s.prod (λc, f c b)) x (𝓝 (s.prod a)) :=
 tendsto_multiset_prod _
 
 @[to_additive]

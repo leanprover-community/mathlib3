@@ -23,7 +23,7 @@ the notation B x y to refer to the function field, ie. B x y = B.bilin x y.
 
 ## References
 
-* https://en.wikipedia.org/wiki/Bilinear_form
+* <https://en.wikipedia.org/wiki/Bilinear_form>
 
 ## Tags
 

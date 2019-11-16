@@ -578,7 +578,7 @@ forall_ennreal.2 $ and.intro
     (assume h, le_top))
   (assume r hr,
     have ((1 / 2 : nnreal) : ennreal) * ⊤ ≤ r :=
-      hr _ (coe_lt_coe.2 ((@nnreal.coe_lt (1/2) 1).2 one_half_lt_one)),
+      hr _ (coe_lt_coe.2 ((@nnreal.coe_lt (1/2) 1).1 one_half_lt_one)),
     have ne : ((1 / 2 : nnreal) : ennreal) ≠ 0,
     begin
       rw [(≠), coe_eq_zero],

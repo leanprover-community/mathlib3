@@ -87,7 +87,7 @@ has_deriv_at_filter f f' x (nhds_within x s)
 That is, `f x' = f x + (x' - x) • f' + o(x' - x)` where `x'` converges to `x`.
 -/
 def has_deriv_at (f : 𝕜 → F) (f' : F) (x : 𝕜) :=
-has_deriv_at_filter f f' x (nhds x)
+has_deriv_at_filter f f' x (𝓝 x)
 
 /--
 Derivative of `f` at the point `x` within the set `s`, if it exists.  Zero otherwise.
@@ -138,15 +138,15 @@ smul_right_one_eq_iff.mp $ unique_diff_within_at.eq H h h₁
 
 theorem has_deriv_at_filter_iff_tendsto :
   has_deriv_at_filter f f' x L ↔
-  tendsto (λ x' : 𝕜, ∥x' - x∥⁻¹ * ∥f x' - f x - (x' - x) • f'∥) L (nhds 0) :=
+  tendsto (λ x' : 𝕜, ∥x' - x∥⁻¹ * ∥f x' - f x - (x' - x) • f'∥) L (𝓝 0) :=
 has_fderiv_at_filter_iff_tendsto
 
 theorem has_deriv_within_at_iff_tendsto : has_deriv_within_at f f' s x ↔
-  tendsto (λ x', ∥x' - x∥⁻¹ * ∥f x' - f x - (x' - x) • f'∥) (nhds_within x s) (nhds 0) :=
+  tendsto (λ x', ∥x' - x∥⁻¹ * ∥f x' - f x - (x' - x) • f'∥) (nhds_within x s) (𝓝 0) :=
 has_fderiv_at_filter_iff_tendsto
 
 theorem has_deriv_at_iff_tendsto : has_deriv_at f f' x ↔
-  tendsto (λ x', ∥x' - x∥⁻¹ * ∥f x' - f x - (x' - x) • f'∥) (nhds x) (nhds 0) :=
+  tendsto (λ x', ∥x' - x∥⁻¹ * ∥f x' - f x - (x' - x) • f'∥) (𝓝 x) (𝓝 0) :=
 has_fderiv_at_filter_iff_tendsto
 
 theorem has_deriv_at_iff_is_o_nhds_zero : has_deriv_at f f' x ↔
@@ -161,7 +161,7 @@ theorem has_deriv_within_at.mono (h : has_deriv_within_at f f' t x) (hst : s ⊆
   has_deriv_within_at f f' s x :=
 has_fderiv_within_at.mono h hst
 
-theorem has_deriv_at.has_deriv_at_filter (h : has_deriv_at f f' x) (hL : L ≤ nhds x) :
+theorem has_deriv_at.has_deriv_at_filter (h : has_deriv_at f f' x) (hL : L ≤ 𝓝 x) :
   has_deriv_at_filter f f' x L :=
 has_fderiv_at.has_fderiv_at_filter h hL
 
@@ -187,7 +187,7 @@ lemma has_deriv_within_at_inter' (h : t ∈ nhds_within x s) :
   has_deriv_within_at f f' (s ∩ t) x ↔ has_deriv_within_at f f' s x :=
 has_fderiv_within_at_inter' h
 
-lemma has_deriv_within_at_inter (h : t ∈ nhds x) :
+lemma has_deriv_within_at_inter (h : t ∈ 𝓝 x) :
   has_deriv_within_at f f' (s ∩ t) x ↔ has_deriv_within_at f f' s x :=
 has_fderiv_within_at_inter h
 
@@ -230,7 +230,7 @@ lemma deriv_within_subset (st : s ⊆ t) (ht : unique_diff_within_at 𝕜 s x)
 @[simp] lemma deriv_within_univ : deriv_within f univ = deriv f :=
 by { ext, unfold deriv_within deriv, rw fderiv_within_univ }
 
-lemma deriv_within_inter (ht : t ∈ nhds x) (hs : unique_diff_within_at 𝕜 s x) :
+lemma deriv_within_inter (ht : t ∈ 𝓝 x) (hs : unique_diff_within_at 𝕜 s x) :
   deriv_within f (s ∩ t) x = deriv_within f s x :=
 by { unfold deriv_within, rw fderiv_within_inter ht hs }
 
@@ -254,7 +254,7 @@ lemma has_deriv_within_at.congr_of_mem_nhds_within (h : has_deriv_within_at f f'
 has_deriv_at_filter.congr_of_mem_sets h h₁ hx
 
 lemma has_deriv_at.congr_of_mem_nhds (h : has_deriv_at f f' x)
-  (h₁ : {y | f₁ y = f y} ∈ nhds x) : has_deriv_at f₁ f' x :=
+  (h₁ : {y | f₁ y = f y} ∈ 𝓝 x) : has_deriv_at f₁ f' x :=
 has_deriv_at_filter.congr_of_mem_sets h h₁ (mem_of_nhds h₁ : _)
 
 lemma deriv_within_congr_of_mem_nhds_within (hs : unique_diff_within_at 𝕜 s x)
@@ -267,7 +267,7 @@ lemma deriv_within_congr (hs : unique_diff_within_at 𝕜 s x)
   deriv_within f₁ s x = deriv_within f s x :=
 by { unfold deriv_within, rw fderiv_within_congr hs hL hx }
 
-lemma deriv_congr_of_mem_nhds (hL : {y | f₁ y = f y} ∈ nhds x) : deriv f₁ x = deriv f x :=
+lemma deriv_congr_of_mem_nhds (hL : {y | f₁ y = f y} ∈ 𝓝 x) : deriv f₁ x = deriv f x :=
 by { unfold deriv, rwa fderiv_congr_of_mem_nhds }
 
 end congr
@@ -449,8 +449,8 @@ end sub
 section continuous
 
 theorem has_deriv_at_filter.tendsto_nhds
-  (hL : L ≤ nhds x) (h : has_deriv_at_filter f f' x L) :
-  tendsto f L (nhds (f x)) :=
+  (hL : L ≤ 𝓝 x) (h : has_deriv_at_filter f f' x L) :
+  tendsto f L (𝓝 (f x)) :=
 has_fderiv_at_filter.tendsto_nhds hL h
 
 theorem has_deriv_within_at.continuous_within_at

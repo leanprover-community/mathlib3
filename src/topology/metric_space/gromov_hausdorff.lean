@@ -31,7 +31,8 @@ topology.metric_space.completion
 
 
 noncomputable theory
-local attribute [instance, priority 0] classical.prop_decidable
+open_locale classical
+open_locale topological_space
 universes u v w
 
 open classical lattice set function topological_space filter metric quotient
@@ -79,13 +80,13 @@ begin
   split,
   { assume h,
     rcases setoid.symm h with ⟨e⟩,
-    have f := (Kuratowski_embedding_isometry α).isometric_on_range.trans e,
+    have f := (Kuratowski_embedding.isometry α).isometric_on_range.trans e,
     use λx, f x,
     split,
     { apply isometry_subtype_val.comp f.isometry },
     { rw [range_comp, f.range_coe, set.image_univ, set.range_coe_subtype] } },
   { rintros ⟨Ψ, ⟨isomΨ, rangeΨ⟩⟩,
-    have f := ((Kuratowski_embedding_isometry α).isometric_on_range.symm.trans
+    have f := ((Kuratowski_embedding.isometry α).isometric_on_range.symm.trans
                isomΨ.isometric_on_range).symm,
     have E : (range Ψ ≃ᵢ (nonempty_compacts.Kuratowski_embedding α).val) = (p.val ≃ᵢ range (Kuratowski_embedding α)),
       by { dunfold nonempty_compacts.Kuratowski_embedding, rw [rangeΨ]; refl },
@@ -131,16 +132,16 @@ lemma to_GH_space_eq_to_GH_space_iff_isometric {α : Type u} [metric_space α] [
           = ((range (Kuratowski_embedding α)) ≃ᵢ (range (Kuratowski_embedding β))),
     by { dunfold nonempty_compacts.Kuratowski_embedding, refl },
   have e' := cast I e,
-  have f := (Kuratowski_embedding_isometry α).isometric_on_range,
-  have g := (Kuratowski_embedding_isometry β).isometric_on_range.symm,
+  have f := (Kuratowski_embedding.isometry α).isometric_on_range,
+  have g := (Kuratowski_embedding.isometry β).isometric_on_range.symm,
   have h := (f.trans e').trans g,
   exact ⟨h⟩
 end,
 begin
   rintros ⟨e⟩,
   simp only [to_GH_space, quotient.eq],
-  have f := (Kuratowski_embedding_isometry α).isometric_on_range.symm,
-  have g := (Kuratowski_embedding_isometry β).isometric_on_range,
+  have f := (Kuratowski_embedding.isometry α).isometric_on_range.symm,
+  have g := (Kuratowski_embedding.isometry β).isometric_on_range,
   have h := (f.trans e).trans g,
   have I : ((range (Kuratowski_embedding α)) ≃ᵢ (range (Kuratowski_embedding β))) =
     ((nonempty_compacts.Kuratowski_embedding α).val ≃ᵢ (nonempty_compacts.Kuratowski_embedding β).val),
@@ -199,33 +200,33 @@ begin
   -- Embed s in ℓ^∞(ℝ) through its Kuratowski embedding
   let F := Kuratowski_embedding (subtype s),
   have : Hausdorff_dist (F '' (range Φ')) (F '' (range Ψ')) = Hausdorff_dist (range Φ') (range Ψ') :=
-    Hausdorff_dist_image (Kuratowski_embedding_isometry _),
+    Hausdorff_dist_image (Kuratowski_embedding.isometry _),
   rw ← this,
   -- Let A and B be the images of α and β under this embedding. They are in ℓ^∞(ℝ), and
   -- their Hausdorff distance is the same as in the original space.
   let A : nonempty_compacts ℓ_infty_ℝ := ⟨F '' (range Φ'), ⟨by simp, begin
       rw [← range_comp, ← image_univ],
       exact compact_image compact_univ
-            ((Kuratowski_embedding_isometry _).continuous.comp IΦ'.continuous),
+            ((Kuratowski_embedding.isometry _).continuous.comp IΦ'.continuous),
     end⟩⟩,
   let B : nonempty_compacts ℓ_infty_ℝ := ⟨F '' (range Ψ'), ⟨by simp, begin
       rw [← range_comp, ← image_univ],
       exact compact_image compact_univ
-        ((Kuratowski_embedding_isometry _).continuous.comp IΨ'.continuous),
+        ((Kuratowski_embedding.isometry _).continuous.comp IΨ'.continuous),
     end⟩⟩,
   have Aα : ⟦A⟧ = to_GH_space α,
   { rw eq_to_GH_space_iff,
-    exact ⟨λx, F (Φ' x), ⟨(Kuratowski_embedding_isometry _).comp IΦ', by rw range_comp⟩⟩ },
+    exact ⟨λx, F (Φ' x), ⟨(Kuratowski_embedding.isometry _).comp IΦ', by rw range_comp⟩⟩ },
   have Bβ : ⟦B⟧ = to_GH_space β,
   { rw eq_to_GH_space_iff,
-    exact ⟨λx, F (Ψ' x), ⟨(Kuratowski_embedding_isometry _).comp IΨ', by rw range_comp⟩⟩ },
+    exact ⟨λx, F (Ψ' x), ⟨(Kuratowski_embedding.isometry _).comp IΨ', by rw range_comp⟩⟩ },
   refine cInf_le ⟨0, begin simp, assume t _ _ _ _ ht, rw ← ht, exact Hausdorff_dist_nonneg end⟩ _,
   apply (mem_image _ _ _).2,
   existsi (⟨A, B⟩ : nonempty_compacts ℓ_infty_ℝ × nonempty_compacts ℓ_infty_ℝ),
   simp [Aα, Bβ]
 end
 
-local attribute [instance, priority 0] inhabited_of_nonempty'
+local attribute [instance, priority 10] inhabited_of_nonempty'
 
 /-- The optimal coupling constructed above realizes exactly the Gromov-Hausdorff distance,
 essentially by design. -/
@@ -362,17 +363,17 @@ begin
   let Φ := F ∘ optimal_GH_injl α β,
   let Ψ := F ∘ optimal_GH_injr α β,
   refine ⟨Φ, Ψ, _, _, _⟩,
-  { exact (Kuratowski_embedding_isometry _).comp (isometry_optimal_GH_injl α β) },
-  { exact (Kuratowski_embedding_isometry _).comp (isometry_optimal_GH_injr α β) },
+  { exact (Kuratowski_embedding.isometry _).comp (isometry_optimal_GH_injl α β) },
+  { exact (Kuratowski_embedding.isometry _).comp (isometry_optimal_GH_injr α β) },
   { rw [← image_univ, ← image_univ, image_comp F, image_univ, image_comp F (optimal_GH_injr α β),
       image_univ, ← Hausdorff_dist_optimal],
-    exact (Hausdorff_dist_image (Kuratowski_embedding_isometry _)).symm },
+    exact (Hausdorff_dist_image (Kuratowski_embedding.isometry _)).symm },
 end
 
 -- without the next two lines, { exact closed_of_compact (range Φ) hΦ } in the next
 -- proof is very slow, as the t2_space instance is very hard to find
-local attribute [instance, priority 0] orderable_topology.t2_space
-local attribute [instance, priority 0] ordered_topology.to_t2_space
+local attribute [instance, priority 10] orderable_topology.t2_space
+local attribute [instance, priority 10] ordered_topology.to_t2_space
 
 /-- The Gromov-Hausdorff distance defines a genuine distance on the Gromov-Hausdorff space. -/
 instance GH_space_metric_space : metric_space GH_space :=
@@ -603,7 +604,7 @@ begin
   let ε := (2/5) * δ,
   have εpos : 0 < ε := mul_pos (by norm_num) δpos,
   have : ∀p:GH_space, ∃s : set (p.rep), finite s ∧ (univ ⊆ (⋃x∈s, ball x ε)) :=
-    λp, by simpa using finite_cover_balls_of_compact (@compact_univ (p.rep) _ _ _) εpos,
+    λp, by simpa using finite_cover_balls_of_compact (@compact_univ p.rep _ _) εpos,
   -- for each p, s p is a finite ε-dense subset of p (or rather the metric space
   -- p.rep representing p)
   choose s hs using this,
@@ -727,7 +728,7 @@ a uniformly bounded diameter, and for all ε the number of balls of radius ε re
 to cover the space is uniformly bounded. This is an equivalence, but we only prove the
 interesting direction that these conditions imply compactness. -/
 lemma totally_bounded {t : set GH_space} {C : ℝ} {u : ℕ → ℝ} {K : ℕ → ℕ}
-  (ulim : tendsto u at_top (nhds 0))
+  (ulim : tendsto u at_top (𝓝 0))
   (hdiam : ∀p ∈ t, diam (univ : set (GH_space.rep p)) ≤ C)
   (hcov : ∀p ∈ t, ∀n:ℕ, ∃s : set (GH_space.rep p), cardinal.mk s ≤ K n ∧ univ ⊆ ⋃x∈s, ball x (u n)) :
   totally_bounded t :=
@@ -998,7 +999,7 @@ begin
   -- therefore, it converges to a limit `L`
   rcases cauchy_seq_tendsto_of_complete this with ⟨L, hL⟩,
   -- the images of `X3 n` in the Gromov-Hausdorff space converge to the image of `L`
-  have M : tendsto (λn, (X3 n).to_GH_space) at_top (nhds L.to_GH_space) :=
+  have M : tendsto (λn, (X3 n).to_GH_space) at_top (𝓝 L.to_GH_space) :=
     tendsto.comp (to_GH_space_continuous.tendsto _) hL,
   -- By construction, the image of `X3 n` in the Gromov-Hausdorff space is `u n`.
   have : ∀n, (X3 n).to_GH_space = u n,

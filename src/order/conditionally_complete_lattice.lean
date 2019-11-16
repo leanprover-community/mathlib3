@@ -288,15 +288,15 @@ theorem le_cInf_iff (_ : bdd_below s) (_ : s ≠ ∅) : a ≤ Inf s ↔ (∀b �
   le_trans ‹a ≤ Inf s› (cInf_le ‹bdd_below s› ‹b ∈ s›),
   le_cInf ‹s ≠ ∅›⟩
 
-lemma cSup_upper_bounds_eq_cInf {s : set α} (h : bdd_below s) (hs : s ≠ ∅) :
-  Sup {a | ∀x∈s, a ≤ x} = Inf s :=
+lemma cSup_lower_bounds_eq_cInf {s : set α} (h : bdd_below s) (hs : s ≠ ∅) :
+  Sup (lower_bounds s) = Inf s :=
 let ⟨b, hb⟩ := h, ⟨a, ha⟩ := ne_empty_iff_exists_mem.1 hs in
 le_antisymm
   (cSup_le (ne_empty_iff_exists_mem.2 ⟨b, hb⟩) $ assume a ha, le_cInf hs ha)
   (le_cSup ⟨a, assume y hy, hy a ha⟩ $ assume x hx, cInf_le h hx)
 
-lemma cInf_lower_bounds_eq_cSup {s : set α} (h : bdd_above s) (hs : s ≠ ∅) :
-  Inf {a | ∀x∈s, x ≤ a} = Sup s :=
+lemma cInf_upper_bounds_eq_cSup {s : set α} (h : bdd_above s) (hs : s ≠ ∅) :
+  Inf (upper_bounds s) = Sup s :=
 let ⟨b, hb⟩ := h, ⟨a, ha⟩ := ne_empty_iff_exists_mem.1 hs in
 le_antisymm
   (cInf_le ⟨a, assume y hy, hy a ha⟩ $ assume x hx, le_cSup h hx)
@@ -459,10 +459,10 @@ calc Inf (insert a s)
     ... = Inf {a} ⊓ Inf s : by apply cInf_union _ _ ‹bdd_below s› ‹s ≠ ∅›; simp only [ne.def, not_false_iff, set.singleton_ne_empty,bdd_below_singleton]
     ... = a ⊓ Inf s       : by simp only [eq_self_iff_true, lattice.cInf_singleton]
 
-@[simp] lemma cInf_interval [conditionally_complete_lattice α] : Inf {b | a ≤ b} = a :=
+@[simp] lemma cInf_interval : Inf {b | a ≤ b} = a :=
 cInf_of_mem_of_le (by simp only [set.mem_set_of_eq]) (λw Hw, by simp only [set.mem_set_of_eq] at Hw; apply Hw)
 
-@[simp] lemma cSup_interval [conditionally_complete_lattice α] : Sup {b | b ≤ a} = a :=
+@[simp] lemma cSup_interval : Sup {b | b ≤ a} = a :=
 cSup_of_mem_of_le (by simp only [set.mem_set_of_eq]) (λw Hw, by simp only [set.mem_set_of_eq] at Hw; apply Hw)
 
 /--The indexed supremum of two functions are comparable if the functions are pointwise comparable-/
@@ -587,7 +587,6 @@ le_antisymm
 end conditionally_complete_linear_order
 
 section conditionally_complete_linear_order_bot
-variables [conditionally_complete_linear_order_bot α]
 
 lemma cSup_empty [conditionally_complete_linear_order_bot α] : (Sup ∅ : α) = ⊥ :=
 conditionally_complete_linear_order_bot.cSup_empty α
@@ -596,7 +595,7 @@ end conditionally_complete_linear_order_bot
 
 section
 
-local attribute [instance] classical.prop_decidable
+open_locale classical
 
 noncomputable instance : has_Inf ℕ :=
 ⟨λs, if h : ∃n, n ∈ s then @nat.find (λn, n ∈ s) _ h else 0⟩
@@ -637,7 +636,7 @@ end lattice /-end of namespace lattice-/
 
 namespace with_top
 open lattice
-local attribute [instance] classical.prop_decidable
+open_locale classical
 
 variables [conditionally_complete_linear_order_bot α]
 
@@ -716,6 +715,38 @@ le_antisymm
   end
 
 end with_top
+
+namespace enat
+open_locale classical
+open lattice
+
+noncomputable instance : complete_linear_order enat :=
+{ Sup := λ s, with_top_equiv.symm $ Sup (with_top_equiv '' s),
+  Inf := λ s, with_top_equiv.symm $ Inf (with_top_equiv '' s),
+  le_Sup := by intros; rw ← with_top_equiv_le; simp; apply le_Sup _; simpa,
+  Inf_le := by intros; rw ← with_top_equiv_le; simp; apply Inf_le _; simpa,
+  Sup_le := begin
+    intros s a h1,
+    rw [← with_top_equiv_le, with_top_equiv.right_inverse_symm],
+    apply Sup_le _,
+    rintros b ⟨x, h2, rfl⟩,
+    rw with_top_equiv_le,
+    apply h1,
+    assumption
+  end,
+  le_Inf := begin
+    intros s a h1,
+    rw [← with_top_equiv_le, with_top_equiv.right_inverse_symm],
+    apply le_Inf _,
+    rintros b ⟨x, h2, rfl⟩,
+    rw with_top_equiv_le,
+    apply h1,
+    assumption
+  end,
+  ..enat.decidable_linear_order,
+  ..enat.lattice.bounded_lattice }
+
+end enat
 
 section order_dual
 open lattice

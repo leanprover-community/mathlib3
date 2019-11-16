@@ -507,7 +507,7 @@ lemma sign_surjective (hα : 1 < fintype.card α) : function.surjective (sign : 
 λ a, (int.units_eq_one_or a).elim
   (λ h, ⟨1, by simp [h]⟩)
   (λ h, let ⟨x⟩ := fintype.card_pos_iff.1 (lt_trans zero_lt_one hα) in
-    let ⟨y, hxy⟩ := fintype.exists_ne_of_card_gt_one hα x in
+    let ⟨y, hxy⟩ := fintype.exists_ne_of_one_lt_card hα x in
     ⟨swap y x, by rw [sign_swap hxy, h]⟩ )
 
 lemma eq_sign_of_surjective_hom {s : perm α → units ℤ}
@@ -707,4 +707,4 @@ lemma finset.sum_univ_perm [fintype α] [add_comm_monoid β] {f : α → β} (σ
   (univ : finset α).sum f = univ.sum (λ z, f (σ z)) :=
 @finset.prod_univ_perm _ (multiplicative β) _ _ f σ
 
-attribute [to_additive finset.sum_univ_perm] finset.prod_univ_perm
+attribute [to_additive] finset.prod_univ_perm

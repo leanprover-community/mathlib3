@@ -4,6 +4,7 @@ Tests for norm_cast
 
 import tactic.norm_cast
 import data.complex.basic -- ℕ, ℤ, ℚ, ℝ, ℂ
+import data.zmod.basic
 
 constants (an bn cn dn : ℕ) (az bz cz dz : ℤ) (aq bq cq dq : ℚ)
 constants (ar br cr dr : ℝ) (ac bc cc dc : ℂ)
@@ -87,3 +88,17 @@ example [has_mul α] [has_one α] (x y : α) (h : (x : with_zero α) * y = 1) :
 by exact_mod_cast h
 
 end hidden
+
+example (k : ℕ) {x y : ℕ} :
+  (x * x + y * y : ℤ) - ↑((x * y + 1) * k) = ↑y * ↑y - ↑k * ↑x * ↑y + (↑x * ↑x - ↑k) :=
+begin
+  push_cast,
+  ring
+end
+
+example (k : ℕ) {x y : ℕ} (h : ((x + y + k : ℕ) : ℤ) = 0) : x + y + k = 0 :=
+begin
+  push_cast at h,
+  guard_hyp h := (x : ℤ) + y + k = 0,
+  assumption_mod_cast
+end

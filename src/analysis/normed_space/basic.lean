@@ -15,7 +15,8 @@ variables {α : Type*} {β : Type*} {γ : Type*} {ι : Type*}
 
 noncomputable theory
 open filter metric
-local notation f `→_{`:50 a `}`:0 b := tendsto f (nhds a) (nhds b)
+open_locale topological_space
+localized "notation f `→_{`:50 a `}`:0 b := filter.tendsto f (_root_.nhds a) (_root_.nhds b)" in filter
 
 class has_norm (α : Type*) := (norm : α → ℝ)
 
@@ -141,7 +142,7 @@ lemma ball_0_eq (ε : ℝ) : ball (0:α) ε = {x | ∥x∥ < ε} :=
 set.ext $ assume a, by simp
 
 theorem normed_group.tendsto_nhds_zero {f : γ → α} {l : filter γ} :
-  tendsto f l (nhds 0) ↔ ∀ ε > 0, { x | ∥ f x ∥ < ε } ∈ l :=
+  tendsto f l (𝓝 0) ↔ ∀ ε > 0, { x | ∥ f x ∥ < ε } ∈ l :=
 begin
   rw [metric.tendsto_nhds], simp only [normed_group.dist_eq, sub_zero],
   split,
@@ -197,12 +198,12 @@ instance fintype.normed_group {π : ι → Type*} [fintype ι] [∀i, normed_gro
     show nndist (x a) (y a) = nnnorm (x a - y a), from nndist_eq_nnnorm _ _ }
 
 lemma tendsto_iff_norm_tendsto_zero {f : ι → β} {a : filter ι} {b : β} :
-  tendsto f a (nhds b) ↔ tendsto (λ e, ∥ f e - b ∥) a (nhds 0) :=
+  tendsto f a (𝓝 b) ↔ tendsto (λ e, ∥ f e - b ∥) a (𝓝 0) :=
 by rw tendsto_iff_dist_tendsto_zero ; simp only [(dist_eq_norm _ _).symm]
 
 lemma tendsto_zero_iff_norm_tendsto_zero {f : γ → β} {a : filter γ} :
-  tendsto f a (nhds 0) ↔ tendsto (λ e, ∥ f e ∥) a (nhds 0) :=
-have tendsto f a (nhds 0) ↔ tendsto (λ e, ∥ f e - 0 ∥) a (nhds 0) :=
+  tendsto f a (𝓝 0) ↔ tendsto (λ e, ∥ f e ∥) a (𝓝 0) :=
+have tendsto f a (𝓝 0) ↔ tendsto (λ e, ∥ f e - 0 ∥) a (𝓝 0) :=
   tendsto_iff_norm_tendsto_zero,
 by simpa
 
@@ -249,7 +250,7 @@ instance normed_ring.to_normed_group [β : normed_ring α] : normed_group α := 
 lemma norm_mul_le {α : Type*} [normed_ring α] (a b : α) : (∥a*b∥) ≤ (∥a∥) * (∥b∥) :=
 normed_ring.norm_mul _ _
 
-lemma norm_pow_le {α : Type*} [normed_ring α] (a : α) : ∀ {n : ℕ}, n > 0 → ∥a^n∥ ≤ ∥a∥^n
+lemma norm_pow_le {α : Type*} [normed_ring α] (a : α) : ∀ {n : ℕ}, 0 < n → ∥a^n∥ ≤ ∥a∥^n
 | 1 h := by simp
 | (n+2) h :=
   le_trans (norm_mul_le a (a^(n+1)))
@@ -305,26 +306,26 @@ instance normed_top_ring [normed_ring α] : topological_ring α :=
     have ∀ e : α, -e - -x = -(e - x), by intro; simp,
     by simp only [this, norm_neg]; apply lim_norm ⟩
 
-section normed_field
 
 class normed_field (α : Type*) extends has_norm α, discrete_field α, metric_space α :=
 (dist_eq : ∀ x y, dist x y = norm (x - y))
-(norm_mul : ∀ a b, norm (a * b) = norm a * norm b)
+(norm_mul' : ∀ a b, norm (a * b) = norm a * norm b)
 
 class nondiscrete_normed_field (α : Type*) extends normed_field α :=
 (non_trivial : ∃x:α, 1<∥x∥)
 
 instance normed_field.to_normed_ring [i : normed_field α] : normed_ring α :=
-{ norm_mul := by finish [i.norm_mul], ..i }
+{ norm_mul := by finish [i.norm_mul'], ..i }
 
+namespace normed_field
 @[simp] lemma norm_one {α : Type*} [normed_field α] : ∥(1 : α)∥ = 1 :=
 have  ∥(1 : α)∥ * ∥(1 : α)∥ = ∥(1 : α)∥ * 1, by calc
- ∥(1 : α)∥ * ∥(1 : α)∥ = ∥(1 : α) * (1 : α)∥ : by rw normed_field.norm_mul
+ ∥(1 : α)∥ * ∥(1 : α)∥ = ∥(1 : α) * (1 : α)∥ : by rw normed_field.norm_mul'
                   ... = ∥(1 : α)∥ * 1 : by simp,
 eq_of_mul_eq_mul_left (ne_of_gt ((norm_pos_iff _).2 (by simp))) this
 
 @[simp] lemma norm_mul [normed_field α] (a b : α) : ∥a * b∥ = ∥a∥ * ∥b∥ :=
-normed_field.norm_mul a b
+normed_field.norm_mul' a b
 
 instance normed_field.is_monoid_hom_norm [normed_field α] : is_monoid_hom (norm : α → ℝ) :=
 { map_one := norm_one, map_mul := norm_mul }
@@ -370,17 +371,39 @@ end
 instance : normed_field ℝ :=
 { norm := λ x, abs x,
   dist_eq := assume x y, rfl,
-  norm_mul := abs_mul }
+  norm_mul' := abs_mul }
 
 instance : nondiscrete_normed_field ℝ :=
 { non_trivial := ⟨2, by { unfold norm, rw abs_of_nonneg; norm_num }⟩ }
+end normed_field
 
 lemma real.norm_eq_abs (r : ℝ) : norm r = abs r := rfl
 
-end normed_field
-
 @[simp] lemma norm_norm [normed_group α] (x : α) : ∥∥x∥∥ = ∥x∥ :=
 by rw [real.norm_eq_abs, abs_of_nonneg (norm_nonneg _)]
+
+@[simp] lemma nnnorm_norm [normed_group α] (a : α) : nnnorm ∥a∥ = nnnorm a :=
+by simp only [nnnorm, norm_norm]
+
+instance : normed_ring ℤ :=
+{ norm := λ n, ∥(n : ℝ)∥,
+  norm_mul := λ m n, le_of_eq $ by simp only [norm, int.cast_mul, abs_mul],
+  dist_eq := λ m n, by simp only [int.dist_eq, norm, int.cast_sub] }
+
+@[elim_cast] lemma int.norm_cast_real (m : ℤ) : ∥(m : ℝ)∥ = ∥m∥ := rfl
+
+instance : normed_field ℚ :=
+{ norm := λ r, ∥(r : ℝ)∥,
+  norm_mul' := λ r₁ r₂, by simp only [norm, rat.cast_mul, abs_mul],
+  dist_eq := λ r₁ r₂, by simp only [rat.dist_eq, norm, rat.cast_sub] }
+
+instance : nondiscrete_normed_field ℚ :=
+{ non_trivial := ⟨2, by { unfold norm, rw abs_of_nonneg; norm_num }⟩ }
+
+@[elim_cast, simp] lemma rat.norm_cast_real (r : ℚ) : ∥(r : ℝ)∥ = ∥r∥ := rfl
+
+@[elim_cast, simp] lemma int.norm_cast_rat (m : ℤ) : ∥(m : ℚ)∥ = ∥m∥ :=
+by rw [← rat.norm_cast_real, ← int.norm_cast_real]; congr' 1; norm_cast
 
 section normed_space
 
@@ -405,7 +428,7 @@ variables {E : Type*} {F : Type*}
 [normed_group E] [normed_space α E] [normed_group F] [normed_space α F]
 
 lemma tendsto_smul {f : γ → α} { g : γ → F} {e : filter γ} {s : α} {b : F} :
-  (tendsto f e (nhds s)) → (tendsto g e (nhds b)) → tendsto (λ x, (f x) • (g x)) e (nhds (s • b)) :=
+  (tendsto f e (𝓝 s)) → (tendsto g e (𝓝 b)) → tendsto (λ x, (f x) • (g x)) e (𝓝 (s • b)) :=
 begin
   intros limf limg,
   rw tendsto_iff_norm_tendsto_zero,
@@ -418,15 +441,15 @@ begin
   { exact ineq },
   { clear ineq,
 
-    have limf': tendsto (λ x, ∥f x - s∥) e (nhds 0) := tendsto_iff_norm_tendsto_zero.1 limf,
-    have limg' : tendsto (λ x, ∥g x∥) e (nhds ∥b∥) := filter.tendsto.comp (continuous_iff_continuous_at.1 continuous_norm _) limg,
+    have limf': tendsto (λ x, ∥f x - s∥) e (𝓝 0) := tendsto_iff_norm_tendsto_zero.1 limf,
+    have limg' : tendsto (λ x, ∥g x∥) e (𝓝 ∥b∥) := filter.tendsto.comp (continuous_iff_continuous_at.1 continuous_norm _) limg,
 
     have lim1 := tendsto_mul limf' limg',
     simp only [zero_mul, sub_eq_add_neg] at lim1,
 
     have limg3 := tendsto_iff_norm_tendsto_zero.1 limg,
 
-    have lim2 := tendsto_mul (tendsto_const_nhds : tendsto _ _ (nhds ∥ s ∥)) limg3,
+    have lim2 := tendsto_mul (tendsto_const_nhds : tendsto _ _ (𝓝 ∥ s ∥)) limg3,
     simp only [sub_eq_add_neg, mul_zero] at lim2,
 
     rw [show (0:ℝ) = 0 + 0, by simp],
@@ -434,12 +457,14 @@ begin
 end
 
 lemma tendsto_smul_const {g : γ → F} {e : filter γ} (s : α) {b : F} :
-  (tendsto g e (nhds b)) → tendsto (λ x, s • (g x)) e (nhds (s • b)) :=
+  (tendsto g e (𝓝 b)) → tendsto (λ x, s • (g x)) e (𝓝 (s • b)) :=
 tendsto_smul tendsto_const_nhds
 
 instance normed_space.topological_vector_space : topological_vector_space α E :=
 { continuous_smul := continuous_iff_continuous_at.2 $ λp, tendsto_smul
     (continuous_iff_continuous_at.1 continuous_fst _) (continuous_iff_continuous_at.1 continuous_snd _) }
+
+open normed_field
 
 /-- If there is a scalar `c` with `∥c∥>1`, then any element can be moved by scalar multiplication to
 any shell of width `∥c∥`. Also recap information on the norm of the rescaling element that shows
@@ -492,7 +517,7 @@ instance fintype.normed_space {E : ι → Type*} [fintype ι] [∀i, normed_grou
 end normed_space
 
 section summable
-local attribute [instance] classical.prop_decidable
+open_locale classical
 open finset filter
 variables [normed_group α] [complete_space α]
 
@@ -523,9 +548,9 @@ lemma summable_of_summable_norm {f : ι → α} (hf : summable (λa, ∥f a∥))
 summable_of_norm_bounded _ hf (assume i, le_refl _)
 
 lemma norm_tsum_le_tsum_norm {f : ι → α} (hf : summable (λi, ∥f i∥)) : ∥(∑i, f i)∥ ≤ (∑ i, ∥f i∥) :=
-have h₁ : tendsto (λs:finset ι, ∥s.sum f∥) at_top (nhds ∥(∑ i, f i)∥) :=
+have h₁ : tendsto (λs:finset ι, ∥s.sum f∥) at_top (𝓝 ∥(∑ i, f i)∥) :=
   (continuous_norm.tendsto _).comp (has_sum_tsum $ summable_of_summable_norm hf),
-have h₂ : tendsto (λs:finset ι, s.sum (λi, ∥f i∥)) at_top (nhds (∑ i, ∥f i∥)) :=
+have h₂ : tendsto (λs:finset ι, s.sum (λi, ∥f i∥)) at_top (𝓝 (∑ i, ∥f i∥)) :=
   has_sum_tsum hf,
 le_of_tendsto_of_tendsto at_top_ne_bot h₁ h₂ $ univ_mem_sets' $ assume s, norm_triangle_sum _ _
 
@@ -536,7 +561,7 @@ namespace complex
 instance : normed_field ℂ :=
 { norm := complex.abs,
   dist_eq := λ _ _, rfl,
-  norm_mul := complex.abs_mul,
+  norm_mul' := complex.abs_mul,
   .. complex.discrete_field }
 
 instance : nondiscrete_normed_field ℂ :=
@@ -554,7 +579,7 @@ by rw [norm_real, real.norm_eq_abs]
 suffices ∥((n : ℝ) : ℂ)∥ = _root_.abs n, by simpa,
 by rw [norm_real, real.norm_eq_abs]
 
-lemma norm_int_of_nonneg {n : ℤ} (hn : n ≥ 0) : ∥(n : ℂ)∥ = n :=
+lemma norm_int_of_nonneg {n : ℤ} (hn : 0 ≤ n) : ∥(n : ℂ)∥ = n :=
 by rw [norm_int, _root_.abs_of_nonneg]; exact int.cast_nonneg.2 hn
 
 end complex

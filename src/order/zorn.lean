@@ -12,7 +12,7 @@ noncomputable theory
 
 universes u
 open set classical
-local attribute [instance] prop_decidable
+open_locale classical
 
 namespace zorn
 
@@ -205,7 +205,8 @@ h₃ this.symm
 /-- Zorn's lemma
 
 If every chain has an upper bound, then there is a maximal element -/
-theorem zorn (h : ∀c, chain c → ∃ub, ∀a∈c, a ≺ ub) (trans : ∀{a b c}, a ≺ b → b ≺ c → a ≺ c) :
+theorem exists_maximal_of_chains_bounded
+  (h : ∀c, chain c → ∃ub, ∀a∈c, a ≺ ub) (trans : ∀{a b c}, a ≺ b → b ≺ c → a ≺ c) :
   ∃m, ∀a, m ≺ a → a ≺ m :=
 have ∃ub, ∀a∈max_chain, a ≺ ub,
   from h _ $ max_chain_spec.left,
@@ -222,7 +223,7 @@ end chain
 
 theorem zorn_partial_order {α : Type u} [partial_order α]
   (h : ∀c:set α, @chain α (≤) c → ∃ub, ∀a∈c, a ≤ ub) : ∃m:α, ∀a, m ≤ a → a = m :=
-let ⟨m, hm⟩ := @zorn α (≤) h (assume a b c, le_trans) in
+let ⟨m, hm⟩ := @exists_maximal_of_chains_bounded α (≤) h (assume a b c, le_trans) in
 ⟨m, assume a ha, le_antisymm (hm a ha) ha⟩
 
 theorem zorn_partial_order₀ {α : Type u} [partial_order α] (s : set α)

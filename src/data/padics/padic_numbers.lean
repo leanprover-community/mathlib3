@@ -56,7 +56,7 @@ p-adic, p adic, padic, norm, valuation, cauchy, completion, p-adic completion
 -/
 
 noncomputable theory
-local attribute [instance, priority 1] classical.prop_decidable
+open_locale classical
 
 open nat multiplicity padic_norm cau_seq cau_seq.completion metric
 
@@ -71,7 +71,7 @@ variables {p : ℕ} [nat.prime p]
 /-- The p-adic norm of the entries of a nonzero Cauchy sequence of rationals is eventually
 constant. -/
 lemma stationary {f : cau_seq ℚ (padic_norm p)} (hf : ¬ f ≈ 0) :
-  ∃ N, ∀ m n, m ≥ N → n ≥ N → padic_norm p (f n) = padic_norm p (f m) :=
+  ∃ N, ∀ m n, N ≤ m → N ≤ n → padic_norm p (f n) = padic_norm p (f m) :=
 have ∃ ε > 0, ∃ N1, ∀ j ≥ N1, ε ≤ padic_norm p (f j),
   from cau_seq.abv_pos_of_not_lim_zero $ not_lim_zero_of_not_congr_zero hf,
 let ⟨ε, hε, N1, hN1⟩ := this,
@@ -263,7 +263,7 @@ by simpa [hk] using padic_norm.image p hk'
 
 lemma norm_one : norm (1 : padic_seq p) = 1 :=
 have h1 : ¬ (1 : padic_seq p) ≈ 0, from one_not_equiv_zero _,
-by simp [h1, norm, hp.gt_one]
+by simp [h1, norm, hp.one_lt]
 
 private lemma norm_eq_of_equiv_aux {f g : padic_seq p} (hf : ¬ f ≈ 0) (hg : ¬ g ≈ 0) (hfg : f ≈ g)
   (h : padic_norm p (f (stationary_point hf)) ≠ padic_norm p (g (stationary_point hg)))
@@ -463,7 +463,7 @@ by induction n; simp
 lemma cast_eq_of_rat : ∀ (q : ℚ), (↑q : ℚ_[p]) = of_rat p q
 | ⟨n, d, h1, h2⟩ :=
   show ↑n / ↑d = _, from
-    have (⟨n, d, h1, h2⟩ : ℚ) = rat.mk n d, from rat.num_denom _,
+    have (⟨n, d, h1, h2⟩ : ℚ) = rat.mk n d, from rat.num_denom',
     by simp [this, rat.mk_eq_div, of_rat_div]
 
 @[move_cast] lemma coe_add : ∀ {x y : ℚ}, (↑(x + y) : ℚ_[p]) = ↑x + ↑y := by simp [cast_eq_of_rat]
@@ -723,7 +723,7 @@ instance : has_norm ℚ_[p] := ⟨λ x, padic_norm_e x⟩
 
 instance : normed_field ℚ_[p] :=
 { dist_eq := λ _ _, rfl,
-  norm_mul := by simp [has_norm.norm, padic_norm_e.mul'] }
+  norm_mul' := by simp [has_norm.norm, padic_norm_e.mul'] }
 
 instance : is_absolute_value (λ a : ℚ_[p], ∥a∥) :=
 { abv_nonneg := norm_nonneg,
@@ -775,7 +775,7 @@ end
 instance : nondiscrete_normed_field ℚ_[p] :=
 { non_trivial := ⟨padic.of_rat p (p⁻¹), begin
     have h0 : p ≠ 0 := ne_of_gt (hp.pos),
-    have h1 : 1 < p := prime.gt_one hp,
+    have h1 : 1 < p := hp.one_lt,
     rw [← padic.cast_eq_of_rat, eq_padic_norm],
     simp only [padic_norm, inv_eq_zero],
     simp only [if_neg] {discharger := `[exact_mod_cast h0]},
@@ -816,7 +816,7 @@ theorem norm_rat_le_one : ∀ {q : ℚ} (hq : ¬ p ∣ q.denom), ∥(q : ℚ_[p]
       have h : (multiplicity p d).get _ = 0, by simp [multiplicity_eq_zero_of_not_dvd, hq],
       rw_mod_cast [h, sub_zero],
       apply fpow_le_one_of_nonpos,
-      { exact_mod_cast le_of_lt hp.gt_one, },
+      { exact_mod_cast le_of_lt hp.one_lt, },
       { apply neg_nonpos_of_nonneg, norm_cast, simp, }
     end
 

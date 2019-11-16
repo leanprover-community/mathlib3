@@ -53,12 +53,6 @@ meta def get_def_variables (n : name) : tactic (list (name × binder_info × exp
 meta def get_includes_core (flag : name) : tactic (list (name × binder_info × expr)) :=
 get_def_variables flag
 
-meta def binder_brackets : binder_info → string × string
-| binder_info.implicit        := ("{", "}")
-| binder_info.strict_implicit := ("{", "}")
-| binder_info.inst_implicit   := ("[", "]")
-| _                           := ("(", ")")
-
 meta def binder_priority : binder_info → ℕ
 | binder_info.implicit := 1
 | binder_info.strict_implicit := 2
@@ -126,7 +120,7 @@ let n := to_string n, (ns, ins) := collect_implicit_names ns in
 if n.front = '_' then (ns, n :: ins) else (n :: ns, ins)
 
 meta def format_variable : expr × binder_info × list name → tactic string
-| (e, bi, ns) := do let (l, r) := binder_brackets bi,
+| (e, bi, ns) := do let (l, r) := bi.brackets,
                     e ← pp e,
                     let (ns, ins) := collect_implicit_names ns,
                     let ns := " ".intercalate $ ns.map to_string,

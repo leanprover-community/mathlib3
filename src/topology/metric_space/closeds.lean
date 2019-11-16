@@ -16,7 +16,8 @@ always finite in this context.
 
 import topology.metric_space.hausdorff_distance topology.opens
 noncomputable theory
-local attribute [instance, priority 0] classical.prop_decidable
+open_locale classical
+open_locale topological_space
 
 universe u
 open classical lattice set function topological_space filter
@@ -184,7 +185,7 @@ begin
   have main : ∀n:ℕ, edist (s n) t ≤ 2 * B n := λn, Hausdorff_edist_le_of_mem_edist (I1 n) (I2 n),
   -- from this, the convergence of `s n` to `t0` follows.
   refine (tendsto_at_top _).2 (λε εpos, _),
-  have : tendsto (λn, 2 * ennreal.half_pow n) at_top (nhds (2 * 0)) :=
+  have : tendsto (λn, 2 * ennreal.half_pow n) at_top (𝓝 (2 * 0)) :=
     ennreal.tendsto_mul_right ennreal.half_pow_tendsto_zero (by simp),
   rw mul_zero at this,
   have Z := (tendsto_orderable.1 this).2 ε εpos,
@@ -202,7 +203,7 @@ instance closeds.compact_space [compact_space α] : compact_space (closeds α) :
     are finitely many, and ε-dense for the Hausdorff distance. -/
   refine compact_of_totally_bounded_is_closed (emetric.totally_bounded_iff.2 (λε εpos, _)) is_closed_univ,
   rcases dense εpos with ⟨δ, δpos, δlt⟩,
-  rcases emetric.totally_bounded_iff.1 (compact_iff_totally_bounded_complete.1 (@compact_univ α _ _ _)).1 δ δpos
+  rcases emetric.totally_bounded_iff.1 (compact_iff_totally_bounded_complete.1 (@compact_univ α _ _)).1 δ δpos
     with ⟨s, fs, hs⟩,
   -- s : set α,  fs : finite s,  hs : univ ⊆ ⋃ (y : α) (H : y ∈ s), eball y δ
   -- we first show that any set is well approximated by a subset of `s`.

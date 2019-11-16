@@ -248,7 +248,8 @@ end semilattice_inf
 /- Lattices -/
 
 /-- A lattice is a join-semilattice which is also a meet-semilattice. -/
-class lattice (α : Type u) extends semilattice_sup α, semilattice_inf α
+-- TODO(lint): Fix double namespace issue
+@[nolint] class lattice (α : Type u) extends semilattice_sup α, semilattice_inf α
 
 section lattice
 variables {α : Type u} [lattice α] {a b c d : α}
@@ -267,7 +268,7 @@ le_antisymm (by finish) (by finish)
 theorem sup_inf_self : a ⊔ (a ⊓ b) = a :=
 le_antisymm (by finish) (by finish)
 
-theorem lattice.ext {α} {A B : lattice α}
+theorem ext {α} {A B : lattice α}
   (H : ∀ x y : α, (by haveI := A; exact x ≤ y) ↔ x ≤ y) : A = B :=
 begin
   have SS : @lattice.to_semilattice_sup α A =
@@ -354,6 +355,24 @@ instance nat.distrib_lattice : distrib_lattice ℕ :=
 by apply_instance
 
 end lattice
+
+namespace monotone
+
+open lattice
+
+variables {α : Type u} {β : Type v}
+
+lemma le_map_sup [semilattice_sup α] [semilattice_sup β]
+  {f : α → β} (h : monotone f) (x y : α) :
+  f x ⊔ f y ≤ f (x ⊔ y) :=
+sup_le (h le_sup_left) (h le_sup_right)
+
+lemma map_inf_le [semilattice_inf α] [semilattice_inf β]
+  {f : α → β} (h : monotone f) (x y : α) :
+  f (x ⊓ y) ≤ f x ⊓ f y :=
+le_inf (h inf_le_left) (h inf_le_right)
+
+end monotone
 
 namespace order_dual
 open lattice

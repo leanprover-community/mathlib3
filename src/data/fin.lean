@@ -7,7 +7,7 @@ More about finite numbers.
 -/
 import data.nat.basic
 
-open fin nat
+open fin nat function
 
 /-- `fin 0` is empty -/
 def fin_zero_elim {C : Sort*} : fin 0 → C :=
@@ -25,6 +25,8 @@ by cases a; refl
 protected lemma ext_iff (a b : fin n) : a = b ↔ a.val = b.val :=
 iff.intro (congr_arg _) fin.eq_of_veq
 
+lemma injective_val {n : ℕ} : injective (val : fin n → ℕ) := λ _ _, fin.eq_of_veq
+
 lemma eq_iff_veq (a b : fin n) : a = b ↔ a.1 = b.1 :=
 ⟨veq_of_eq, eq_of_veq⟩
 
@@ -34,7 +36,17 @@ lemma eq_iff_veq (a b : fin n) : a = b ↔ a.1 = b.1 :=
 
 instance fin_to_nat (n : ℕ) : has_coe (fin n) nat := ⟨fin.val⟩
 
-@[simp] def mk_val {m n : ℕ} (h : m < n) : (⟨m, h⟩ : fin n).val = m := rfl
+@[simp] lemma mk_val {m n : ℕ} (h : m < n) : (⟨m, h⟩ : fin n).val = m := rfl
+
+@[simp] lemma coe_mk {m n : ℕ} (h : m < n) : ((⟨m, h⟩ : fin n) : ℕ) = m := rfl
+
+lemma coe_eq_val (a : fin n) : (a : ℕ) = a.val := rfl
+
+@[simp] lemma val_one  {n : ℕ} : (1 : fin (n+2)).val = 1 := rfl
+@[simp] lemma val_two  {n : ℕ} : (2 : fin (n+3)).val = 2 := rfl
+@[simp] lemma coe_zero {n : ℕ} : ((0 : fin (n+1)) : ℕ) = 0 := rfl
+@[simp] lemma coe_one  {n : ℕ} : ((1 : fin (n+2)) : ℕ) = 1 := rfl
+@[simp] lemma coe_two  {n : ℕ} : ((2 : fin (n+3)) : ℕ) = 2 := rfl
 
 instance {n : ℕ} : decidable_linear_order (fin n) :=
 decidable_linear_order.lift fin.val (@fin.eq_of_veq _) (by apply_instance)
@@ -48,15 +60,18 @@ lemma forall_iff {p : fin n → Prop} : (∀ i, p i) ↔ ∀ i h, p ⟨i, h⟩ :
 
 lemma zero_le (a : fin (n + 1)) : 0 ≤ a := zero_le a.1
 
-lemma lt_iff_val_lt_val : a < b ↔ a.val < b.val := iff.refl _
+lemma lt_iff_val_lt_val : a < b ↔ a.val < b.val := iff.rfl
 
-lemma le_iff_val_le_val : a ≤ b ↔ a.val ≤ b.val := iff.refl _
+lemma le_iff_val_le_val : a ≤ b ↔ a.val ≤ b.val := iff.rfl
 
 @[simp] lemma succ_val (j : fin n) : j.succ.val = j.val.succ :=
 by cases j; simp [fin.succ]
 
 protected theorem succ.inj (p : fin.succ a = fin.succ b) : a = b :=
 by cases a; cases b; exact eq_of_veq (nat.succ.inj (veq_of_eq p))
+
+lemma succ_ne_zero {n} : ∀ k : fin n, fin.succ k ≠ 0
+| ⟨k, hk⟩ heq := nat.succ_ne_zero k $ (fin.ext_iff _ _).1 heq
 
 @[simp] lemma pred_val (j : fin (n+1)) (h : j ≠ 0) : (j.pred h).val = j.val.pred :=
 by cases j; simp [fin.pred]
@@ -105,7 +120,7 @@ else i.pred $
   ne_of_gt (lt_of_le_of_lt (zero_le p) this)
 
 /-- `sub_nat i h` subtracts `m` from `i`, generalizes `fin.pred`. -/
-def sub_nat (m) (i : fin (n + m)) (h : i.val ≥ m) : fin n :=
+def sub_nat (m) (i : fin (n + m)) (h : m ≤ i.val) : fin n :=
 ⟨i.val - m, by simp [nat.sub_lt_right_iff_lt_add h, i.is_lt]⟩
 
 /-- `add_nat i h` adds `m` on `i`, generalizes `fin.succ`. -/
@@ -125,13 +140,22 @@ le_of_lt_succ i.is_lt
 
 @[simp] lemma cast_lt_val (k : fin m) (h : k.1 < n) : (k.cast_lt h).val = k.val := rfl
 
+@[simp] lemma cast_le_val (k : fin m) (h : m ≤ n) : (k.cast_le h).val = k.val := rfl
+
+@[simp] lemma cast_add_val (k : fin m) : (k.cast_add n).val = k.val := rfl
+
+@[simp] lemma last_val (n : ℕ) : (last n).val = n := rfl
+
 @[simp] lemma cast_succ_cast_lt (i : fin (n + 1)) (h : i.val < n) : cast_succ (cast_lt i h) = i :=
 fin.eq_of_veq rfl
 
-@[simp] lemma sub_nat_val (i : fin (n + m)) (h : i.val ≥ m) : (i.sub_nat m h).val = i.val - m :=
+@[simp] lemma cast_lt_cast_succ {n : ℕ} (a : fin n) (h : a.1 < n) : cast_lt (cast_succ a) h = a :=
+by cases a; refl
+
+@[simp] lemma sub_nat_val (i : fin (n + m)) (h : m ≤ i.val) : (i.sub_nat m h).val = i.val - m :=
 rfl
 
-@[simp] lemma add_nat_val (i : fin (n + m)) (h : i.val ≥ m) : (i.add_nat m).val = i.val + m :=
+@[simp] lemma add_nat_val (i : fin (n + m)) (h : m ≤ i.val) : (i.add_nat m).val = i.val + m :=
 rfl
 
 @[simp] lemma cast_succ_inj {a b : fin n} : a.cast_succ = b.cast_succ ↔ a = b :=
@@ -142,7 +166,7 @@ def clamp (n m : ℕ) : fin (m + 1) := fin.of_nat $ min n m
 @[simp] lemma clamp_val (n m : ℕ) : (clamp n m).val = min n m :=
 nat.mod_eq_of_lt $ nat.lt_succ_iff.mpr $ min_le_right _ _
 
-lemma injective_cast_le {n₁ n₂ : ℕ} (h : n₁ ≤ n₂) : function.injective (fin.cast_le h)
+lemma injective_cast_le {n₁ n₂ : ℕ} (h : n₁ ≤ n₂) : injective (fin.cast_le h)
 | ⟨i₁, h₁⟩ ⟨i₂, h₂⟩ eq := fin.eq_of_veq $ show i₁ = i₂, from fin.veq_of_eq eq
 
 theorem succ_above_ne (p : fin (n+1)) (i : fin n) : p.succ_above i ≠ p :=

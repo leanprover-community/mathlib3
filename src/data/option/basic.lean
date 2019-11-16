@@ -33,7 +33,7 @@ theorem injective_map {f : α → β} (Hf : function.injective f) : function.inj
 | none      none      H := rfl
 | (some a₁) (some a₂) H := by rw Hf (option.some.inj H)
 
-@[extensionality] theorem ext : ∀ {o₁ o₂ : option α}, (∀ a, a ∈ o₁ ↔ a ∈ o₂) → o₁ = o₂
+@[ext] theorem ext : ∀ {o₁ o₂ : option α}, (∀ a, a ∈ o₁ ↔ a ∈ o₂) → o₁ = o₂
 | none     none     H := rfl
 | (some a) o        H := ((H _).1 rfl).symm
 | o        (some b) H := (H _).2 rfl
@@ -119,6 +119,10 @@ by cases x; simp [is_some]; exact ⟨_, rfl⟩
 
 @[simp] theorem not_is_some {a : option α} : is_some a = ff ↔ a.is_none = tt :=
 by cases a; simp
+
+lemma eq_some_iff_get_eq {o : option α} {a : α} :
+  o = some a ↔ ∃ h : o.is_some, option.get h = a :=
+by cases o; simp
 
 lemma not_is_some_iff_eq_none {o : option α} :  ¬o.is_some ↔ o = none :=
 by cases o; simp

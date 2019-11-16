@@ -5,7 +5,7 @@ Authors: Johannes Hölzl, Mario Carneiro
 
 Subtype of open subsets in a topological space.
 -/
-import topology.bases topology.subset_properties topology.constructions
+import topology.bases topology.separation
 
 open filter lattice
 variables {α : Type*} {β : Type*} [topological_space α] [topological_space β]
@@ -49,13 +49,13 @@ instance : has_subset (opens α) :=
 instance : has_mem α (opens α) :=
 { mem := λ a U, a ∈ U.val }
 
-@[extensionality] lemma ext {U V : opens α} (h : U.val = V.val) : U = V := subtype.ext.mpr h
+@[ext] lemma ext {U V : opens α} (h : U.val = V.val) : U = V := subtype.ext.mpr h
 
 instance : partial_order (opens α) := subtype.partial_order _
 
 def interior (s : set α) : opens α := ⟨interior s, is_open_interior⟩
 
-def gc : galois_connection (subtype.val : opens α → set α) interior :=
+lemma gc : galois_connection (subtype.val : opens α → set α) interior :=
 λ U s, ⟨λ h, interior_maximal h U.property, λ h, le_trans h interior_subset⟩
 
 def gi : @galois_insertion (order_dual (set α)) (order_dual (opens α)) _ _ interior (subtype.val) :=

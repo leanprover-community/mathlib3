@@ -8,7 +8,7 @@ Probability mass function -- discrete probability measures
 import topology.instances.nnreal topology.instances.ennreal topology.algebra.infinite_sum
 noncomputable theory
 variables {α : Type*} {β : Type*} {γ : Type*}
-local attribute [instance] classical.prop_decidable
+open_locale classical
 
 /-- Probability mass functions, i.e. discrete probability measures -/
 def {u} pmf (α : Type u) : Type u := { f : α → nnreal // has_sum f 1 }
@@ -17,7 +17,7 @@ namespace pmf
 
 instance : has_coe_to_fun (pmf α) := ⟨λp, α → nnreal, λp a, p.1 a⟩
 
-@[extensionality] protected lemma ext : ∀{p q : pmf α}, (∀a, p a = q a) → p = q
+@[ext] protected lemma ext : ∀{p q : pmf α}, (∀a, p a = q a) → p = q
 | ⟨f, hf⟩ ⟨g, hg⟩ eq :=  subtype.eq $ funext eq
 
 lemma has_sum_coe_one (p : pmf α) : has_sum p 1 := p.2

@@ -62,7 +62,7 @@ let a_n : int := get n as in
 let m : int := a_n + 1 in
 ((symmod b m) + (coeffs.val v (as.map (λ x, symmod x m)))) / m
 
-local notation as ` {` m ` ↦ ` a `}` := set a as m
+open_locale list.func
 
 def rhs : nat → int → list int → term
 | n b as :=
@@ -94,7 +94,7 @@ lemma rhs_correct_aux {v : nat → int} {m : int} {as : list int} :
       simp only [hk, list.length_map] }
   end
 
-local notation v ` ⟨` m ` ↦ ` a `⟩` := update m a v
+open_locale omega
 
 lemma rhs_correct {v : nat → int}
   {b : int} {as : list int} (n : nat) :

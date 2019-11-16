@@ -73,7 +73,7 @@ namespace pos_num
   | (bit1 p) := (add_to_nat (bit0 (m * p)) m).trans $
     show (↑(m * p) + ↑(m * p) + ↑m : ℕ) = ↑m * (p + p) + m, by rw [mul_to_nat, left_distrib]
 
-  theorem to_nat_pos : ∀ n : pos_num, (n : ℕ) > 0
+  theorem to_nat_pos : ∀ n : pos_num, 0 < (n : ℕ)
   | 1        := zero_lt_one
   | (bit0 p) := let h := to_nat_pos p in add_pos h h
   | (bit1 p) := nat.succ_pos _
@@ -392,7 +392,7 @@ namespace pos_num
   theorem one_le_cast [linear_ordered_semiring α] (n : pos_num) : (1 : α) ≤ n :=
   by rw [← cast_to_nat, ← nat.cast_one, nat.cast_le]; apply to_nat_pos
 
-  theorem cast_pos [linear_ordered_semiring α] (n : pos_num) : (n : α) > 0 :=
+  theorem cast_pos [linear_ordered_semiring α] (n : pos_num) : 0 < (n : α) :=
   lt_of_lt_of_le zero_lt_one (one_le_cast n)
 
   @[simp, move_cast] theorem cast_mul [semiring α] (m n) : ((m * n : pos_num) : α) = m * n :=

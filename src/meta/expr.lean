@@ -3,7 +3,7 @@ Copyright (c) 2019 Robert Y. Lewis. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Mario Carneiro, Simon Hudon, Scott Morrison, Keeley Hoek, Robert Y. Lewis
 -/
-
+import data.string.defs
 /-!
 # Additional operations on expr and related types
 
@@ -15,7 +15,28 @@ Authors: Mario Carneiro, Simon Hudon, Scott Morrison, Keeley Hoek, Robert Y. Lew
  expr, name, declaration, level, environment, meta, metaprogramming, tactic
 -/
 
+namespace binder_info
+
+instance : inhabited binder_info := ⟨ binder_info.default ⟩
+
+/-- The brackets corresponding to a given binder_info. -/
+def brackets : binder_info → string × string
+| binder_info.implicit        := ("{", "}")
+| binder_info.strict_implicit := ("{{", "}}")
+| binder_info.inst_implicit   := ("[", "]")
+| _                           := ("(", ")")
+
+end binder_info
+
 namespace name
+
+/-- Find the largest prefix `n` of a `name` such that `f n ≠ none`, then replace this prefix
+with the value of `f n`. -/
+def map_prefix (f : name → option name) : name → name
+| anonymous := anonymous
+| (mk_string s n') := (f (mk_string s n')).get_or_else (mk_string s $ map_prefix n')
+| (mk_numeral d n') := (f (mk_numeral d n')).get_or_else (mk_numeral d $ map_prefix n')
+
 /-- If `nm` is a simple name (having only one string component) starting with `_`, then `deinternalize_field nm` removes the underscore. Otherwise, it does nothing. -/
 meta def deinternalize_field : name → name
 | (mk_string s name.anonymous) :=
@@ -91,6 +112,22 @@ meta def length : name → ℕ
 | (mk_numeral n p)        := p.length
 | anonymous               := "[anonymous]".length
 
+/-- Checks whether `nm` has a prefix (including itself) such that P is true -/
+def has_prefix (P : name → bool) : name → bool
+| anonymous := ff
+| (mk_string s nm)  := P (mk_string s nm) ∨ has_prefix nm
+| (mk_numeral s nm) := P (mk_numeral s nm) ∨ has_prefix nm
+
+/-- Appends `'` to the end of a name. -/
+meta def add_prime : name → name
+| (name.mk_string s p) := name.mk_string (s ++ "'") p
+| n := (name.mk_string "x'" n)
+
+def last_string : name → string
+| anonymous        := "[anonymous]"
+| (mk_string s _)  := s
+| (mk_numeral _ n) := last_string n
+
 end name
 
 namespace level
@@ -104,8 +141,55 @@ meta def nonzero : level → bool
 
 end level
 
-namespace expr
+/-- The type of binders containing a name, the binding info and the binding type -/
+@[derive decidable_eq]
+meta structure binder :=
+  (name : name)
+  (info : binder_info)
+  (type : expr)
+
+namespace binder
+/-- Turn a binder into a string. Uses expr.to_string for the type. -/
+protected meta def to_string (b : binder) : string :=
+let (l, r) := b.info.brackets in
+l ++ b.name.to_string ++ " : " ++ b.type.to_string ++ r
+
 open tactic
+meta instance : inhabited binder := ⟨⟨default _, default _, default _⟩⟩
+meta instance : has_to_string binder := ⟨ binder.to_string ⟩
+meta instance : has_to_format binder := ⟨ λ b, b.to_string ⟩
+meta instance : has_to_tactic_format binder :=
+⟨ λ b, let (l, r) := b.info.brackets in
+  (λ e, l ++ b.name.to_string ++ " : " ++ e ++ r) <$> pp b.type ⟩
+
+end binder
+
+/- converting between expressions and numerals -/
+
+/--
+`nat.mk_numeral n` embeds `n` as a numeral expression inside a type with 0, 1, and +.
+`type`: an expression representing the target type. This must live in Type 0.
+`has_zero`, `has_one`, `has_add`: expressions of the type `has_zero %%type`, etc.
+ -/
+meta def nat.mk_numeral (type has_zero has_one has_add : expr) : ℕ → expr :=
+let z : expr := `(@has_zero.zero.{0} %%type %%has_zero),
+    o : expr := `(@has_one.one.{0} %%type %%has_one) in
+nat.binary_rec z
+  (λ b n e, if n = 0 then o else
+    if b then `(@bit1.{0} %%type %%has_one %%has_add %%e)
+    else `(@bit0.{0} %%type %%has_add %%e))
+
+/--
+`int.mk_numeral z` embeds `z` as a numeral expression inside a type with 0, 1, +, and -.
+`type`: an expression representing the target type. This must live in Type 0.
+`has_zero`, `has_one`, `has_add`, `has_neg`: expressions of the type `has_zero %%type`, etc.
+ -/
+meta def int.mk_numeral (type has_zero has_one has_add has_neg : expr) : ℤ → expr
+| (int.of_nat n) := n.mk_numeral type has_zero has_one has_add
+| -[1+n] := let ne := (n+1).mk_numeral type has_zero has_one has_add in
+            `(@has_neg.neg.{0} %%type %%has_neg %%ne)
+
+namespace expr
 
 /-- Turns an expression into a positive natural number, assuming it is only built up from
   `has_one.one`, `bit0` and `bit1`. -/
@@ -127,6 +211,23 @@ protected meta def to_int : expr → option ℤ
 | `(has_neg.neg %%e) := do n ← e.to_nat, some (-n)
 | e                  := coe <$> e.to_nat
 
+end expr
+
+namespace expr
+open tactic
+
+/-- `replace_with e s s'` replaces ocurrences of `s` with `s'` in `e`. -/
+meta def replace_with (e : expr) (s : expr) (s' : expr) : expr :=
+e.replace $ λc d, if c = s then some (s'.lift_vars 0 d) else none
+
+/-- Apply a function to each constant (inductive type, defined function etc) in an expression. -/
+protected meta def apply_replacement_fun (f : name → name) (e : expr) : expr :=
+e.replace $ λ e d,
+  match e with
+  | expr.const n ls := some $ expr.const (f n) ls
+  | _ := none
+  end
+
 /-- Tests whether an expression is a meta-variable. -/
 meta def is_mvar : expr → bool
 | (mvar _ _ _) := tt
@@ -136,6 +237,21 @@ meta def is_mvar : expr → bool
 meta def is_sort : expr → bool
 | (sort _) := tt
 | e         := ff
+
+/-- If `e` is a local constant, `to_implicit_local_const e` changes the binder info of `e` to
+ `implicit`. See also `to_implicit_binder`, which also changes lambdas and pis. -/
+meta def to_implicit_local_const : expr → expr
+| (expr.local_const uniq n bi t) := expr.local_const uniq n binder_info.implicit t
+| e := e
+
+/-- If `e` is a local constant, lamda, or pi expression, `to_implicit_binder e` changes the binder
+info of `e` to `implicit`. See also `to_implicit_local_const`, which only changes local constants. -/
+meta def to_implicit_binder : expr → expr
+| (local_const n₁ n₂ _ d) := local_const n₁ n₂ binder_info.implicit d
+| (lam n _ d b) := lam n binder_info.implicit d b
+| (pi n _ d b) := pi n binder_info.implicit d b
+| e  := e
+
 
 /-- Returns a list of all local constants in an expression (without duplicates). -/
 meta def list_local_consts (e : expr) : list expr :=
@@ -156,6 +272,11 @@ e.fold mk_name_set $ λ e' _ l,
   | expr.const n _ := if n.get_prefix = pre then l.insert n else l
   | _ := l
   end
+
+/-- Returns true if `e` contains a name `n` where `p n` is true.
+  Returns `true` if `p name.anonymous` is true -/
+meta def contains_constant (e : expr) (p : name → Prop) [decidable_pred p] : bool :=
+e.fold ff (λ e' _ b, if p (e'.const_name) then tt else b)
 
 /--
  is_num_eq n1 n2 returns true if n1 and n2 are both numerals with the same numeral structure,
@@ -199,6 +320,108 @@ meta def pi_arity_aux : ℕ → expr → ℕ
 meta def pi_arity : expr → ℕ :=
 pi_arity_aux 0
 
+/-- Get the names of the bound variables by a sequence of pis or lambdas. -/
+meta def binding_names : expr → list name
+| (pi n _ _ e)  := n :: e.binding_names
+| (lam n _ _ e) := n :: e.binding_names
+| e             := []
+
+/-- head-reduce a single let expression -/
+meta def reduce_let : expr → expr
+| (elet _ _ v b) := b.instantiate_var v
+| e              := e
+
+/-- head-reduce all let expressions -/
+meta def reduce_lets : expr → expr
+| (elet _ _ v b) := reduce_lets $ b.instantiate_var v
+| e              := e
+
+/-- Instantiate lambdas in the second argument by expressions from the first. -/
+meta def instantiate_lambdas : list expr → expr → expr
+| (e'::es) (lam n bi t e) := instantiate_lambdas es (e.instantiate_var e')
+| _        e              := e
+
+/-- `instantiate_lambdas_or_apps es e` instantiates lambdas in `e` by expressions from `es`.
+If the length of `es` is larger than the number of lambdas in `e`,
+then the term is applied to the remaining terms.
+Also reduces head let-expressions in `e`, including those after instantiating all lambdas. -/
+meta def instantiate_lambdas_or_apps : list expr → expr → expr
+| (v::es) (lam n bi t b) := instantiate_lambdas_or_apps es $ b.instantiate_var v
+| es      (elet _ _ v b) := instantiate_lambdas_or_apps es $ b.instantiate_var v
+| es      e              := mk_app e es
+
+/- Note [open expressions]:
+  Some declarations work with open expressions, i.e. an expr that has free variables.
+  Terms will free variables are not well-typed, and one should not use them in tactics like
+  `infer_type` or `unify`. You can still do syntactic analysis/manipulation on them.
+  The reason for working with open types is for performance: instantiating variables requires
+  iterating through the expression. In one performance test `pi_binders` was more than 6x
+  quicker than `mk_local_pis` (when applied to the type of all imported declarations 100x).
+  -/
+
+/-- Get the codomain/target of a pi-type.
+  This definition doesn't Instantiate bound variables, and therefore produces a term that is open.-/
+meta def pi_codomain : expr → expr -- see note [open expressions]
+| (pi n bi d b) := pi_codomain b
+| e             := e
+
+/-- Auxilliary defintion for `pi_binders`. -/
+-- see note [open expressions]
+meta def pi_binders_aux : list binder → expr → list binder × expr
+| es (pi n bi d b) := pi_binders_aux (⟨n, bi, d⟩::es) b
+| es e             := (es, e)
+
+/-- Get the binders and codomain of a pi-type.
+  This definition doesn't Instantiate bound variables, and therefore produces a term that is open.
+  The.tactic `get_pi_binders` in `tactic.core` does the same, but also instantiates the
+  free variables -/
+meta def pi_binders (e : expr) : list binder × expr := -- see note [open expressions]
+let (es, e) := pi_binders_aux [] e in (es.reverse, e)
+
+/-- Auxilliary defintion for `get_app_fn_args`. -/
+meta def get_app_fn_args_aux : list expr → expr → expr × list expr
+| r (app f a) := get_app_fn_args_aux (a::r) f
+| r e         := (e, r)
+
+/-- A combination of `get_app_fn` and `get_app_args`: lists both the
+  function and its arguments of an application -/
+meta def get_app_fn_args : expr → expr × list expr :=
+get_app_fn_args_aux []
+
+/-- `drop_pis es e` instantiates the pis in `e` with the expressions from `es`. -/
+meta def drop_pis : list expr → expr → tactic expr
+| (list.cons v vs) (pi n bi d b) := do
+  t ← infer_type v,
+  guard (t =ₐ d),
+  drop_pis vs (b.instantiate_var v)
+| [] e := return e
+| _  _ := failed
+
+/-- `mk_op_lst op empty [x1, x2, ...]` is defined as `op x1 (op x2 ...)`.
+  Returns `empty` if the list is empty. -/
+meta def mk_op_lst (op : expr) (empty : expr) : list expr → expr
+| []        := empty
+| [e]       := e
+| (e :: es) := op e $ mk_op_lst es
+
+/-- `mk_and_lst [x1, x2, ...]` is defined as `x1 ∧ (x2 ∧ ...)`, or `true` if the list is empty. -/
+meta def mk_and_lst : list expr → expr := mk_op_lst `(and) `(true)
+
+/-- `mk_or_lst [x1, x2, ...]` is defined as `x1 ∨ (x2 ∨ ...)`, or `false` if the list is empty. -/
+meta def mk_or_lst : list expr → expr := mk_op_lst `(or) `(false)
+
+/-- `local_binding_info e` returns the binding info of `e` if `e` is a local constant.
+Otherwise returns `binder_info.default`. -/
+meta def local_binding_info : expr → binder_info
+| (expr.local_const _ _ bi _) := bi
+| _ := binder_info.default
+
+/-- `is_default_local e` tests whether `e` is a local constant with binder info
+`binder_info.default` -/
+meta def is_default_local : expr → bool
+| (expr.local_const _ _ binder_info.default _) := tt
+| _ := ff
+
 end expr
 
 namespace environment
@@ -230,6 +453,24 @@ option.is_some $ do
     (some di.type) | none,
   env.is_projection (n ++ x.deinternalize_field)
 
+/-- Get all projections of the structure `n`. Returns `none` if `n` is not structure-like.
+  If `n` is not a structure, but is structure-like, this does not check whether the names
+  are existing declarations. -/
+meta def get_projections (env : environment) (n : name) : option (list name) := do
+  (nparams, intro) ← env.is_structure_like n,
+  di ← (env.get intro).to_option,
+  tgt ← nparams.iterate
+    (λ e : option expr, do expr.pi _ _ _ body ← e | none, some body)
+    (some di.type) | none,
+  return $ tgt.binding_names.map (λ x, n ++ x.deinternalize_field)
+
+/-- Tests whether `nm` is a generalized inductive type that is not a normal inductive type.
+  Note that `is_ginductive` returns `tt` even on regular inductive types.
+  This returns `tt` if `nm` is (part of a) mutually defined inductive type or a nested inductive
+  type. -/
+meta def is_ginductive' (e : environment) (nm : name) : bool :=
+e.is_ginductive nm ∧ ¬ e.is_inductive nm
+
 /-- For all declarations `d` where `f d = some x` this adds `x` to the returned list.  -/
 meta def decl_filter_map {α : Type} (e : environment) (f : declaration → option α) : list α :=
   e.fold [] $ λ d l, match f d with
@@ -258,13 +499,92 @@ meta def mfold {α : Type} {m : Type → Type} [monad m] (e : environment) (x : 
   (fn : declaration → α → m α) : m α :=
 e.fold (return x) (λ d t, t >>= fn d)
 
+/-- Filters all declarations in the environment. -/
+meta def mfilter (e : environment) (test : declaration → tactic bool) : tactic (list declaration) :=
+e.mfold [] $ λ d ds, do b ← test d, return $ if b then d::ds else ds
+
+/-- Checks whether `s` is a prefix of the file where `n` is declared.
+  This is used to check whether `n` is declared in mathlib, where `s` is the mathlib directory. -/
+meta def is_prefix_of_file (e : environment) (s : string) (n : name) : bool :=
+s.is_prefix_of $ (e.decl_olean n).get_or_else ""
+
 end environment
 
-namespace declaration
 
+namespace expr
+/- In this section we define the tactic `is_eta_expansion` which checks whether an expression
+  is an eta-expansion of a structure. (not to be confused with eta-expanion for `λ`). -/
 open tactic
+
+/-- `is_eta_expansion_of args univs l` checks whether for all elements `(nm, pr)` in `l` we have
+  `pr = nm.{univs} args`.
+  Used in `is_eta_expansion`, where `l` consists of the projections and the fields of the value we
+  want to eta-reduce. -/
+meta def is_eta_expansion_of (args : list expr) (univs : list level) (l : list (name × expr)) :
+  bool :=
+l.all $ λ⟨proj, val⟩, val = (const proj univs).mk_app args
+
+/-- `is_eta_expansion_test l` checks whether there is a list of expresions `args` such that for all
+  elements `(nm, pr)` in `l` we have `pr = nm args`. If so, returns the last element of `args`.
+  Used in `is_eta_expansion`, where `l` consists of the projections and the fields of the value we
+  want to eta-reduce. -/
+meta def is_eta_expansion_test : list (name × expr) → option expr
+| []              := none
+| (⟨proj, val⟩::l) :=
+  match val.get_app_fn with
+  | (const nm univs : expr) :=
+    if nm = proj then
+      let args := val.get_app_args in
+      let e := args.ilast in
+      if is_eta_expansion_of args univs l then some e else none
+    else
+      none
+  | _                       := none
+  end
+
+/-- `is_eta_expansion_aux val l` checks whether `val` can be eta-reduced to an expression `e`.
+  Here `l` is intended to consists of the projections and the fields of `val`.
+  This tactic calls `is_eta_expansion_test l`, but first removes all proofs from the list `l` and
+  afterward checks whether the retulting expression `e` unifies with `val`.
+  This last check is necessary, because `val` and `e` might have different types. -/
+meta def is_eta_expansion_aux (val : expr) (l : list (name × expr)) : tactic (option expr) :=
+do l' ← l.mfilter (λ⟨proj, val⟩, bnot <$> is_proof val),
+  match is_eta_expansion_test l' with
+  | some e := option.map (λ _, e) <$> try_core (unify e val)
+  | none   := return none
+  end
+
+/-- `is_eta_expansion val` checks whether there is an expression `e` such that `val` is the
+  eta-expansion of `e`.
+  With eta-expansion we here mean the eta-expansion of a structure, not of a function.
+  For example, the eta-expansion of `x : α × β` is `⟨x.1, x.2⟩`.
+  This assumes that `val` is a fully-applied application of the constructor of a structure.
+
+  This is useful to reduce expressions generated by the notation
+    `{ field_1 := _, ..other_structure }`
+  If `other_structure` is itself a field of the structure, then the elaborator will insert an
+  eta-expanded version of `other_structure`. -/
+meta def is_eta_expansion (val : expr) : tactic (option expr) := do
+  e ← get_env,
+  type ← infer_type val,
+  projs ← e.get_projections type.get_app_fn.const_name,
+  let args := (val.get_app_args).drop type.get_app_args.length,
+  is_eta_expansion_aux val (projs.zip args)
+
+end expr
+
+namespace declaration
+open tactic
+
+protected meta def update_with_fun (f : name → name) (tgt : name) (decl : declaration) :
+  declaration :=
+let decl := decl.update_name $ tgt in
+let decl := decl.update_type $ decl.type.apply_replacement_fun f in
+decl.update_value $ decl.value.apply_replacement_fun f
+
 /-- Checks whether the declaration is declared in the current file.
-  This is a simple wrapper around `environment.in_current_file'` -/
+  This is a simple wrapper around `environment.in_current_file'`
+  Use `environment.in_current_file'` instead if performance matters. -/
 meta def in_current_file (d : declaration) : tactic bool :=
 do e ← get_env, return $ e.in_current_file' d.to_name
 
@@ -282,5 +602,23 @@ meta def is_constant : declaration → bool
 meta def is_axiom : declaration → bool
 | (ax _ _ _) := tt
 | _          := ff
+
+/-- Checks whether a declaration is automatically generated in the environment.
+  There is no cheap way to check whether a declaration in the namespace of a generalized
+  inductive type is automatically generated, so for now we say that all of them are automatically
+  generated. -/
+meta def is_auto_generated (e : environment) (d : declaration) : bool :=
+e.is_constructor d.to_name ∨
+(e.is_projection d.to_name).is_some ∨
+(e.is_constructor d.to_name.get_prefix ∧
+  d.to_name.last ∈ ["inj", "inj_eq", "sizeof_spec", "inj_arrow"]) ∨
+(e.is_inductive d.to_name.get_prefix ∧
+  d.to_name.last ∈ ["below", "binduction_on", "brec_on", "cases_on", "dcases_on", "drec_on", "drec",
+  "rec", "rec_on", "no_confusion", "no_confusion_type", "sizeof", "ibelow", "has_sizeof_inst"]) ∨
+d.to_name.has_prefix (λ nm, e.is_ginductive' nm)
+
+/-- Returns the list of universe levels of a declaration. -/
+meta def univ_levels (d : declaration) : list level :=
+d.univ_params.map level.param
 
 end declaration

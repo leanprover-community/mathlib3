@@ -13,7 +13,7 @@ import algebra.big_operators algebra.module
 noncomputable theory
 
 open set lattice finset function filter encodable
-local attribute [instance] classical.prop_decidable
+open_locale classical
 
 namespace measure_theory
 
@@ -79,7 +79,7 @@ lemma union_null (m : outer_measure α) {s₁ s₂ : set α}
   (h₁ : m s₁ = 0) (h₂ : m s₂ = 0) : m (s₁ ∪ s₂) = 0 :=
 by simpa [h₁, h₂] using m.union s₁ s₂
 
-@[extensionality] lemma ext : ∀{μ₁ μ₂ : outer_measure α},
+@[ext] lemma ext : ∀{μ₁ μ₂ : outer_measure α},
   (∀s, μ₁ s = μ₂ s) → μ₁ = μ₂
 | ⟨m₁, e₁, _, u₁⟩ ⟨m₂, e₂, _, u₂⟩ h := by congr; exact funext h
 

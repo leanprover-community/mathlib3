@@ -5,6 +5,7 @@ Handbook of Practical Logic and Automated Reasoning.
 
 import tactic.omega
 
+example (n : ℤ) : n - 1 ≠ n := by omega
 example (x : int) : (x = 5 ∨ x = 7) → 2 < x := by omega
 example (x : int) : x ≤ -x → x ≤ 0 := by omega
 example : ∀ x y : int, (x ≤ 5 ∧ y ≤ 3) → x + y ≤ 8 := by omega
@@ -32,6 +33,11 @@ example (x y : nat) :  x ≤ 3 * y → 3 * x ≤ 9 * y := by omega
 example (x y z : nat) : (x ≤ y) → (z > y) → (x - z = 0) := by omega
 example (x y z : nat) : x - 5 > 122 → y ≤ 127 → y < x := by omega
 example : ∀ (x y : nat), x ≤ y ↔ x - y = 0 := by omega
+example (k : nat) (h : 1 * 1 + 1 * 1 + 1 = 1 * 1 * k) : k = 3 := by omega
+example (a b : ℕ) (h : a < b + 1) (ha : a.prime) : a ≤ b := by omega
+example (a b c : ℕ) (h : a < b + 1) (ha : c.prime) : a ≤ b := by omega
+example (a b : ℕ) (h : a < b + 1) (p : fin a) : a ≤ b := by omega
+example : 3 < 4 := by omega
 
 /-
 Use `omega manual` to disable automatic reverts,

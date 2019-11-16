@@ -19,7 +19,7 @@ inductive rmode
 
 class float_cfg :=
 (prec emax : ℕ)
-(prec_pos : prec > 0)
+(prec_pos : 0 < prec)
 (prec_max : prec ≤ emax)
 
 variable [C : float_cfg]

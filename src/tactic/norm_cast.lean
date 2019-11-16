@@ -11,7 +11,7 @@ import data.buffer.parser data.num.basic
 
 namespace tactic
 
-/-
+/--
 This is a work around to the fact that in some cases
 mk_instance times out instead of failing
 example: has_lift_t ℤ ℕ
@@ -71,6 +71,11 @@ meta def pexpr_of_num (α : expr) : num → pexpr
 meta def expr_of_num (α : expr) : num → tactic expr
 | n := to_expr $ pexpr_of_num α n
 
+/- The `push_cast` simp attribute uses `move_cast` lemmas in the "forward" direction,
+to move casts toward the leaf nodes of the expression. -/
+run_cmd mk_simp_attr `push_cast
+
+
 private meta def mk_cache : list name → tactic simp_lemmas :=
 monad.foldl simp_lemmas.add_simp simp_lemmas.mk
 
@@ -89,8 +94,6 @@ meta def elim_cast_attr : user_attribute simp_lemmas :=
     { mk_cache     := mk_cache,
       dependencies := [], },
 }
-
-section move_cast
 
 private meta def new_name (n : name) : name := name.mk_string "reversed" n
 
@@ -123,8 +126,6 @@ do
   let e' := task.map f e,
   let n' := new_name n,
   add_decl (declaration.thm n' l ty' e')
-
-end move_cast
 
 /--
 This is an attribute of the norm_cast tactic.
@@ -449,6 +450,14 @@ Normalize the goal and every expression in the local context, then close the goa
 -/
 meta def assumption_mod_cast : tactic unit :=
 tactic.assumption_mod_cast
+
+/-- `push_cast` rewrites the expression to move casts toward the leaf nodes.
+For example, `↑(a + b)` will be written to `↑a + ↑b`.
+Equivalent to `simp only with push_cast`.
+Can also be used at hypotheses.
+-/
+meta def push_cast (l : parse location): tactic unit :=
+tactic.interactive.simp none tt [] [`push_cast] l
 
 end tactic.interactive
 

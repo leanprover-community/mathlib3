@@ -187,13 +187,13 @@ do when c classical,
       try (assumption_with r);
       repeat (do
         gs ← get_goals,
-        () <$ tactic.intros;
+        repeat (() <$ tactic.intro1);
         distrib_not;
         casesm (some ()) [``(_ ∧ _),``(_ ∨ _),``(Exists _),``(false)];
         try (contradiction_with r);
         try (target >>= match_or >> refine ``( or_iff_not_imp_left.mpr _));
         try (target >>= match_or >> refine ``( or_iff_not_imp_right.mpr _));
-        () <$ tactic.intros;
+        repeat (() <$ tactic.intro1);
         constructor_matching (some ()) [``(_ ∧ _),``(_ ↔ _),``(true)];
         try (assumption_with r),
         gs' ← get_goals,

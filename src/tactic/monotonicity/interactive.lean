@@ -379,7 +379,7 @@ meta def find_rule (ls : list name) : mono_law → tactic (list expr)
 
 universes u v
 
-lemma apply_rel {α : Sort u} (R : α → α → Sort v) {x y : α}
+def apply_rel {α : Sort u} (R : α → α → Sort v) {x y : α}
   (x' y' : α)
   (h : R x y)
   (hx : x = x')

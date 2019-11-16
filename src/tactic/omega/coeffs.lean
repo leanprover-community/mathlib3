@@ -76,9 +76,9 @@ lemma val_between_eq_val_between
     apply nat.le_add_right
   end
 
-local notation as ` {` m ` ↦ ` a `}` := set a as m
+open_locale list.func
 
-def val_between_set {a : int} {l n : nat} :
+lemma val_between_set {a : int} {l n : nat} :
   ∀ {m}, l ≤ n → n < l + m → val_between v ([] {n ↦ a}) l m = a * v n
 | 0 h1 h2 :=
   begin exfalso, apply lt_irrefl l (lt_of_le_of_lt h1 h2) end
@@ -102,7 +102,7 @@ def val_between_set {a : int} {l n : nat} :
       simp only [h3, get_nil, add_zero, zero_mul, int.default_eq_zero] }
   end
 
-@[simp] def val_set {m : nat} {a : int} :
+@[simp] lemma val_set {m : nat} {a : int} :
   val v ([] {m ↦ a}) = a * v m :=
 begin
   apply val_between_set, apply zero_le,
@@ -195,7 +195,7 @@ begin
             { apply le_max_right <|> apply le_max_left } } }
 end
 
-local notation v ` ⟨` m ` ↦ ` a `⟩` := update m a v
+open_locale omega
 
 lemma val_except_update_set
   {n : nat} {as : list int} {i j : int} :
@@ -215,7 +215,7 @@ lemma val_between_add_val_between {as : list int} {l m : nat} :
     ring,
   end
 
-def val_except_add_eq (n : nat) {as : list int} :
+lemma val_except_add_eq (n : nat) {as : list int} :
   (val_except n v as) + ((get n as) * (v n)) = val v as :=
 begin
   unfold val_except, unfold val,

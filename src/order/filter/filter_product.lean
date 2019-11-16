@@ -10,7 +10,7 @@ import algebra.pi_instances
 
 universes u v
 variables {α : Type u} (β : Type v) (φ : filter α)
-local attribute [instance] classical.prop_decidable
+open_locale classical
 
 namespace filter
 
@@ -58,7 +58,7 @@ def lift_rel₂ (R : β → β → Prop) : β* → β* → Prop :=
   ⟨ λ ha, by filter_upwards [h₁, h₂, ha] λ i hi1 hi2 hia, by simpa [hi1.symm, hi2.symm],
     λ hb, by filter_upwards [h₁, h₂, hb] λ i hi1 hi2 hib, by simpa [hi1.symm.symm, hi2.symm.symm] ⟩
 
-instance coe_filterprod : has_coe β β* := ⟨ of ⟩
+instance coe_filterprod : has_coe_t β β* := ⟨ of ⟩ -- note [use has_coe_t]
 
 instance [has_add β] : has_add β* := { add := lift₂ has_add.add }
 

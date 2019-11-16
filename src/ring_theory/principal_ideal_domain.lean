@@ -10,7 +10,7 @@ import ring_theory.ideals ring_theory.noetherian ring_theory.unique_factorizatio
 variables {α : Type*}
 
 open set function ideal
-local attribute [instance] classical.prop_decidable
+open_locale classical
 
 class ideal.is_principal [comm_ring α] (S : ideal α) : Prop :=
 (principal : ∃ a, S = span {a})
@@ -103,7 +103,7 @@ begin
 end⟩
 
 section
-local attribute [instance] classical.prop_decidable
+open_locale classical
 open submodule
 
 lemma factors_decreasing (b₁ b₂ : α) (h₁ : b₁ ≠ 0) (h₂ : ¬ is_unit b₂) :
@@ -136,7 +136,7 @@ associates.forall_associated.2 $ assume a,
 by rw [associates.irreducible_mk_iff, associates.prime_mk, irreducible_iff_prime]
 
 section
-local attribute [instance] classical.prop_decidable
+open_locale classical
 
 noncomputable def factors (a : α) : multiset α :=
 if h : a = 0 then ∅ else classical.some

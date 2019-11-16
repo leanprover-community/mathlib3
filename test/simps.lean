@@ -11,8 +11,25 @@ infix ` ≃ `:25 := equiv
 
 namespace foo
 
-@[simps] protected def rfl {α} : α ≃ α :=
+def field {α β : Sort*} : α ≃ β → pprod (α → β) (β → α)
+| ⟨f,g,_,_⟩ := ⟨f,g⟩
+
+@[projection equiv]
+def field_eq {α β : Type} (f : α → β) {g h h'} : field ⟨f,g,h,h'⟩ = ⟨f,g⟩ := rfl
+
+set_option trace.app_builder true
+
+@[simps] protected def rfl {α : Type} : α ≃ α :=
 ⟨id, λ x, x, λ x, rfl, λ x, rfl⟩
+
+#check foo.rfl_inv_fun
+#check foo.rfl_to_fun
+
+example : ∀ {α : Sort*} (a : α), (field foo.rfl).fst a = id a :=
+@foo.rfl_field_fst
+
+example : ∀ {α : Sort*} (x : α), (field foo.rfl).snd x = x :=
+@foo.rfl_field_snd
 
 /- simps adds declarations -/
 run_cmd do
@@ -53,7 +70,7 @@ run_cmd do
   let nm := `foo.bar1,
   d ← e.get nm,
   let lhs : expr := const d.to_name (d.univ_params.map level.param),
-  simps_add_projections e nm "" d.type lhs d.value [] d.univ_params tt ff ff []
+  simps_add_projections e nm "" d.type lhs d.value none [] d.univ_params tt ff ff []
 
 end foo
 
@@ -227,4 +244,34 @@ run_cmd do
 run_cmd do
   e ← get_env,
   e.get `short_name1_fst, e.get `short_name1_fst_2,
+
   e.get `short_name1_snd, e.get `short_name1_snd_2
+
+/- test user-defined projections on instances and involving propositions -/
+class inst_and_prop_in_user_proj (α : Type) :=
+(has_twin : ∀ a : α, ∃ b : α, a = b)
+
+noncomputable def twin_for (α : Type) [inst_and_prop_in_user_proj α] (x : α) : α :=
+classical.some (inst_and_prop_in_user_proj.has_twin x)
+
+def from_twin_fn  (α : Type) (f : α → α) (h : ∀ x : α, x = f x) : ∀ a : α, ∃ b : α, a = b :=
+λ n, ⟨f n, h n⟩
+
+@[projection inst_and_prop_in_user_proj]
+lemma from_list_fn_def  (α : Type) (f : α → α) (h : ∀ x : α, x = f x) :
+  @twin_for _ ⟨ from_twin_fn _ f h ⟩ = f :=
+begin
+  ext, simp [twin_for],
+  rw ← classical.some_spec (@inst_and_prop_in_user_proj.has_twin α ⟨from_twin_fn α f h⟩ x),
+  exact h _
+end
+
+@[simps]
+instance : inst_and_prop_in_user_proj ℕ :=
+{ has_twin := from_twin_fn ℕ id $ λ x, rfl }
+
+example (x : ℕ) : twin_for ℕ x = x :=
+begin
+  simp only [nat.inst_and_prop_in_user_proj_twin_for],
+  guard_target id x = x, refl
+end

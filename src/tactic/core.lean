@@ -1325,12 +1325,40 @@ do e ← pformat_macro () s,
 
 reserve prefix `trace! `:100
 /--
-the combination of `pformat` and `fail`
+the combination of `pformat` and `trace`
 -/
 @[user_notation]
 meta def trace_macro (_ : parse $ tk "trace!") (s : string) : parser pexpr :=
 do e ← pformat_macro () s,
    pure ``((%%e : pformat) >>= trace)
+
+/-- an alias of `format` that gives tactics an expression to pretty pring -/
+@[reducible] meta def fmt_of {α} (x : α) : Type := format
+
+/-- for a goal of the form `fmt_of e`, solves the goal with a format value corresponding
+to the expression `e` -/
+meta def create_fmt : tactic unit :=
+do `(fmt_of %%e) ← target,
+   fmt ← pp e,
+   let fmt := to_string fmt,
+   refine ``(to_fmt %%(`(fmt)))
+
+/-- `show_expr my_expr` creates a format value `"my_expr = value_of_my_expr" which contains a representation
+of the expression used as an argument -/
+meta def show_expr {α} [has_to_tactic_format α] (x : α) (lbl : fmt_of x . create_fmt) : tactic format :=
+do fmt ← pp x,
+   pure $ format!"{lbl} = {fmt}"
+
+/-- `trace_var my_expr` prints `"my_expr = value_of_my_expr" which contains a representation
+of the expression used as an argument -/
+meta def trace_var {α} [has_to_tactic_format α] (x : α) (lbl : fmt_of x . create_fmt) : tactic unit :=
+trace!"{lbl} = {x}"
+
+/-- `trace_var my_expr_of_type_expr` prints `"my_expr_of_type_expr = value_of_my_expr : inferred_type_of_value_of_my_expr"
+which contains a representation of the expression used as an argument, the value of that expression (an `expr`)
+and the type of that `expr` -/
+meta def trace_expr (x : expr) (lbl : fmt_of x . create_fmt) : tactic unit :=
+trace!"{lbl} = {x} : {infer_type x}"
 
 /-- A hackish way to get the `src` directory of mathlib. -/
 meta def get_mathlib_dir : tactic string :=

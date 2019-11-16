@@ -19,13 +19,13 @@ x.to_list.is_prefix_of y.to_list
 def is_suffix_of (x y : string) : bool :=
 x.to_list.is_suffix_of y.to_list
 
-/-- `get_rest s t` returns `some r` if `s = t ++ r`.
+/-- `drop_prefix s t` returns `some r` if `s = t ++ r`.
   If `t` is not a prefix of `s`, returns `none` -/
-def get_rest (s t : string) : option string :=
-list.as_string <$> s.to_list.get_rest t.to_list
+def drop_prefix (s t : string) : option string :=
+list.as_string <$> s.to_list.drop_prefix t.to_list
 
 /-- Removes the first `n` elements from the string `s` -/
-def popn (s : string) (n : nat) : string :=
+def drop (s : string) (n : nat) : string :=
 (s.mk_iterator.nextn n).next_to_string
 
 end string

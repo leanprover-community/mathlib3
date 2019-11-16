@@ -137,7 +137,7 @@ ds.foldl
 meta def print_decls_sorted_mathlib {α} [has_to_format α] (n : ℕ)
   (ds : list (string × list (declaration × α))) : format :=
 ds.foldl
-  (λ f x, f ++ "\n\n" ++ to_fmt "-- " ++ to_fmt (x.1.popn n) ++ print_decls x.2)
+  (λ f x, f ++ "\n\n" ++ to_fmt "-- " ++ to_fmt (x.1.drop n) ++ print_decls x.2)
   format.nil
 
 /-- Auxilliary definition for `check_unused_arguments` -/

@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Author: Jeremy Avigad
 -/
 
-import analysis.normed_space.basic
+import analysis.normed_space.basic tactic.omega
 
 /-!
 # Asymptotics
@@ -755,13 +755,13 @@ end
 end
 
 section
-variables [normed_field β]
+variables {K : Type*} [normed_field K]
 
-theorem tendsto_nhds_zero_of_is_o {f g : α → β} {l : filter α} (h : is_o f g l) :
+theorem tendsto_nhds_zero_of_is_o {f g : α → K} {l : filter α} (h : is_o f g l) :
   tendsto (λ x, f x / (g x)) l (𝓝 0) :=
 have eq₁ : is_o (λ x, f x / g x) (λ x, g x / g x) l,
   from is_o_mul_right h (is_O_refl _ _),
-have eq₂ : is_O (λ x, g x / g x) (λ x, (1 : β)) l,
+have eq₂ : is_O (λ x, g x / g x) (λ x, (1 : K)) l,
   begin
     use [1, zero_lt_one],
     filter_upwards [univ_mem_sets], simp,
@@ -771,10 +771,10 @@ have eq₂ : is_O (λ x, g x / g x) (λ x, (1 : β)) l,
   end,
 is_o_one_iff.mp (eq₁.trans_is_O eq₂)
 
-private theorem is_o_of_tendsto {f g : α → β} {l : filter α}
+private theorem is_o_of_tendsto {f g : α → K} {l : filter α}
     (hgf : ∀ x, g x = 0 → f x = 0) (h : tendsto (λ x, f x / (g x)) l (𝓝 0)) :
   is_o f g l :=
-have eq₁ : is_o (λ x, f x / (g x)) (λ x, (1 : β)) l,
+have eq₁ : is_o (λ x, f x / (g x)) (λ x, (1 : K)) l,
   from is_o_one_iff.mpr h,
 have eq₂ : is_o (λ x, f x / g x * g x) g l,
   by convert is_o_mul_right eq₁ (is_O_refl _ _); simp,
@@ -789,10 +789,31 @@ have eq₃ : is_O f (λ x, f x / g x * g x) l,
   end,
 eq₃.trans_is_o eq₂
 
-theorem is_o_iff_tendsto {f g : α → β} {l : filter α}
+theorem is_o_iff_tendsto {f g : α → K} {l : filter α}
     (hgf : ∀ x, g x = 0 → f x = 0) :
   is_o f g l ↔ tendsto (λ x, f x / (g x)) l (𝓝 0) :=
 iff.intro tendsto_nhds_zero_of_is_o (is_o_of_tendsto hgf)
+
+theorem is_o_pow_pow {m n : ℕ} (h : m < n) :
+  is_o (λ(x : K), x^n) (λx, x^m) (𝓝 0) :=
+begin
+  let p := n - m,
+  have p_pos : 0 < p := nat.sub_pos_of_lt h,
+  have : n = m + p := (nat.add_sub_cancel' (le_of_lt h)).symm,
+  simp [this, pow_add],
+  have : (λ(x : K), x^m) = (λx, x^m * 1), by simp,
+  rw this,
+  apply is_o_mul_left (is_O_refl _ _) _,
+  rw is_o_iff_tendsto,
+  { simp only [div_one],
+    convert (continuous_pow p).tendsto (0 : K),
+    exact (zero_pow p_pos).symm },
+  { simp }
+end
+
+theorem is_o_pow_id {n : ℕ} (h : 1 < n) :
+  is_o (λ(x : K), x^n) (λx, x) (𝓝 0) :=
+by { convert is_o_pow_pow h, simp }
 
 end
 

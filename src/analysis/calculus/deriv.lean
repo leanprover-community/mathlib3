@@ -149,6 +149,10 @@ theorem has_deriv_at_iff_tendsto : has_deriv_at f f' x ↔
   tendsto (λ x', ∥x' - x∥⁻¹ * ∥f x' - f x - (x' - x) • f'∥) (nhds x) (nhds 0) :=
 has_fderiv_at_filter_iff_tendsto
 
+theorem has_deriv_at_iff_is_o_nhds_zero : has_deriv_at f f' x ↔
+  is_o (λh, f (x + h) - f x - h • f') (λh, h) (nhds 0) :=
+has_fderiv_at_iff_is_o_nhds_zero
+
 theorem has_deriv_at_filter.mono (h : has_deriv_at_filter f f' x L₂) (hst : L₁ ≤ L₂) :
   has_deriv_at_filter f f' x L₁ :=
 has_fderiv_at_filter.mono h hst

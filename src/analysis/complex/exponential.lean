@@ -4,7 +4,8 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Chris Hughes, Abhimanyu Pallavi Sudhir, Jean Lo, Calle Sönne
 -/
 import topology.instances.complex tactic.linarith data.complex.exponential
-      group_theory.quotient_group topology.metric_space.basic
+      group_theory.quotient_group analysis.calculus.deriv
+
 
 /-!
 # Exponential
@@ -26,55 +27,115 @@ The following functions are shown to be continuous:
 * real power function
 * square root function
 
+The following functions are shown to be differentiable, and their derivatives are computed:
+  * complex exponential function
+  * complex sin, cos, sinh, cosh
+
 ## Tags
 
 exp, log, sin, cos, tan, arcsin, arccos, arctan, angle, argument, power, square root,
 
 -/
+noncomputable theory
 
-open finset filter metric
+open finset filter metric asymptotics
 open_locale topological_space
 
 namespace complex
 
-lemma tendsto_exp_zero_one : tendsto exp (𝓝 0) (𝓝 1) :=
-tendsto_nhds_nhds.2 $ λ ε ε0,
-  ⟨min (ε / 2) 1, lt_min (div_pos ε0 (by norm_num)) (by norm_num),
-    λ x h, have h : abs x < min (ε / 2) 1, by simpa [dist_eq] using h,
-      calc abs (exp x - 1) ≤ 2 * abs x : abs_exp_sub_one_le
-          (le_trans (le_of_lt h) (min_le_right _ _))
-        ... = abs x + abs x : two_mul (abs x)
-        ... < ε / 2 + ε / 2 : add_lt_add
-          (lt_of_lt_of_le h (min_le_left _ _)) (lt_of_lt_of_le h (min_le_left _ _))
-        ... = ε : by rw add_halves⟩
+/-- The complex exponential is everywhere differentiable, with the derivative `exp x`. -/
+lemma has_deriv_at_exp (x : ℂ) :
+  has_deriv_at exp (exp x) x :=
+begin
+  rw has_deriv_at_iff_is_o_nhds_zero,
+  have : (1 : ℕ) < 2 := by norm_num,
+  apply is_O.trans_is_o _ (is_o_pow_id this),
+  apply is_O_iff.2 ⟨∥exp x∥, _⟩,
+  have : metric.ball (0 : ℂ) 1 ∈ nhds (0 : ℂ) :=
+    mem_nhds_sets metric.is_open_ball (by simp [zero_lt_one]),
+  apply filter.mem_sets_of_superset this (λz hz, _),
+  simp only [metric.mem_ball, dist_zero_right] at hz,
+  simp only [exp_zero, mul_one, one_mul, add_comm, normed_field.norm_pow,
+             zero_add, set.mem_set_of_eq],
+  calc ∥exp (x + z) - exp x - z * exp x∥
+    = ∥exp x * (exp z - 1 - z)∥ : by { congr, rw [exp_add], ring }
+    ... = ∥exp x∥ * ∥exp z - 1 - z∥ : normed_field.norm_mul _ _
+    ... ≤ ∥exp x∥ * ∥z∥^2 :
+      mul_le_mul_of_nonneg_left (abs_exp_sub_one_sub_id_le (le_of_lt hz)) (norm_nonneg _)
+end
+
+lemma differentiable_exp : differentiable ℂ exp :=
+λx, (has_deriv_at_exp x).differentiable_at
+
+lemma deriv_exp {x : ℂ} :
+  deriv exp x = exp x :=
+(has_deriv_at_exp x).deriv
 
 lemma continuous_exp : continuous exp :=
-continuous_iff_continuous_at.2 (λ x,
-  have H1 : tendsto (λ h, exp (x + h)) (𝓝 0) (𝓝 (exp x)),
-    by simpa [exp_add] using tendsto_mul tendsto_const_nhds tendsto_exp_zero_one,
-  have H2 : tendsto (λ y, y - x) (𝓝 x) (𝓝 (x - x)) :=
-     tendsto_sub tendsto_id (@tendsto_const_nhds _ _ _ x _),
-  suffices tendsto ((λ h, exp (x + h)) ∘
-      (λ y, id y - (λ z, x) y)) (𝓝 x) (𝓝 (exp x)),
-    by simp only [function.comp, add_sub_cancel'_right, id.def] at this;
-      exact this,
-  tendsto.comp H1 (by rw [sub_self] at H2; exact H2))
+differentiable_exp.continuous
+
+/-- The complex sine function is everywhere differentiable, with the derivative `cos x`. -/
+lemma has_deriv_at_sin (x : ℂ) :
+  has_deriv_at sin (cos x) x :=
+begin
+  have A : has_deriv_at (λ(z:ℂ), exp (z * I)) (I * exp (x * I)) x,
+  { have := has_deriv_at.mul (has_deriv_at_id x) (has_deriv_at_const x I),
+    simp at this,
+    exact has_deriv_at.comp x (has_deriv_at_exp _) this },
+  have B : has_deriv_at (λ(z:ℂ), exp (-z * I)) (-I * exp (-x * I)) x,
+  { apply has_deriv_at.comp x (has_deriv_at_exp _) _,
+    have := has_deriv_at.mul (has_deriv_at.neg (has_deriv_at_id x)) (has_deriv_at_const x I),
+    simpa only [mul_one, mul_neg_eq_neg_mul_symm, zero_add, mul_zero, neg_zero] },
+  have C : has_deriv_at (λ(z:ℂ), exp (-z * I) - exp (z * I)) (-I * (exp (x * I) + exp (-x * I))) x,
+    by { convert has_deriv_at.sub B A, ring },
+  convert has_deriv_at.mul C (has_deriv_at_const x (I/(2:ℂ))),
+  { ext z, simp [sin, mul_div_assoc] },
+  { simp only [cos, neg_mul_eq_neg_mul_symm, mul_neg_eq_neg_mul_symm, zero_add, sub_eq_add_neg, mul_zero],
+    rw [← mul_assoc, ← mul_div_right_comm, I_mul_I, div_eq_mul_inv, div_eq_mul_inv],
+    generalize : (2 : ℂ)⁻¹ = u,
+    ring }
+end
+
+lemma differentiable_sin : differentiable ℂ sin :=
+λx, (has_deriv_at_sin x).differentiable_at
+
+lemma deriv_sin {x : ℂ} :
+  deriv sin x = cos x :=
+(has_deriv_at_sin x).deriv
 
 lemma continuous_sin : continuous sin :=
-continuous_mul
-  (continuous_mul
-    (continuous_sub
-      (continuous_exp.comp (continuous_mul continuous_neg' continuous_const))
-      (continuous_exp.comp (continuous_mul continuous_id continuous_const)))
-    continuous_const)
-  continuous_const
+differentiable_sin.continuous
+
+/-- The complex cosine function is everywhere differentiable, with the derivative `-sin x`. -/
+lemma has_deriv_at_cos (x : ℂ) :
+  has_deriv_at cos (-sin x) x :=
+begin
+  have A : has_deriv_at (λ(z:ℂ), exp (z * I)) (I * exp (x * I)) x,
+  { have := has_deriv_at.mul (has_deriv_at_id x) (has_deriv_at_const x I),
+    simp at this,
+    exact has_deriv_at.comp x (has_deriv_at_exp _) this },
+  have B : has_deriv_at (λ(z:ℂ), exp (-z * I)) (-I * exp (-x * I)) x,
+  { apply has_deriv_at.comp x (has_deriv_at_exp _) _,
+    have := has_deriv_at.mul (has_deriv_at.neg (has_deriv_at_id x)) (has_deriv_at_const x I),
+    simpa only [mul_one, mul_neg_eq_neg_mul_symm, zero_add, mul_zero, neg_zero] },
+  have C : has_deriv_at (λ(z:ℂ), exp (z * I) + exp (-z * I)) (I * (exp (x * I) - exp (-x * I))) x,
+    by { convert has_deriv_at.add A B, ring },
+  convert has_deriv_at.mul C (has_deriv_at_const x (1/(2:ℂ))),
+  { ext z, simp [cos, mul_div_assoc], refl },
+  { simp only [sin, div_eq_mul_inv, neg_mul_eq_neg_mul_symm, one_mul, zero_add, sub_eq_add_neg, mul_zero],
+    generalize : (2 : ℂ)⁻¹ = u,
+    ring }
+end
+
+lemma differentiable_cos : differentiable ℂ cos :=
+λx, (has_deriv_at_cos x).differentiable_at
+
+lemma deriv_cos {x : ℂ} :
+  deriv cos x = -sin x :=
+(has_deriv_at_cos x).deriv
 
 lemma continuous_cos : continuous cos :=
-continuous_mul
-  (continuous_add
-    (continuous_exp.comp (continuous_mul continuous_id continuous_const))
-    (continuous_exp.comp (continuous_mul continuous_neg' continuous_const)))
-  continuous_const
+differentiable_cos.continuous
 
 lemma continuous_tan : continuous (λ x : {x // cos x ≠ 0}, tan x) :=
 continuous_mul
@@ -82,19 +143,53 @@ continuous_mul
   (continuous_inv subtype.property
     (continuous_cos.comp continuous_subtype_val))
 
+/-- The complex hyperbolic sine function is everywhere differentiable, with the derivative `sinh x`. -/
+lemma has_deriv_at_sinh (x : ℂ) :
+  has_deriv_at sinh (cosh x) x :=
+begin
+  have B : has_deriv_at (λ(z:ℂ), exp (-z)) (- exp (-x)) x,
+  { convert has_deriv_at.comp x (has_deriv_at_exp _) (has_deriv_at.neg (has_deriv_at_id x)),
+    simp },
+  have C : has_deriv_at (λ(z:ℂ), exp z - exp(-z)) (exp x + exp (-x)) x,
+    by { convert has_deriv_at.sub (has_deriv_at_exp x) B, simp },
+  convert has_deriv_at.mul C (has_deriv_at_const x (1/(2:ℂ))),
+  { ext z, simp [sinh, div_eq_mul_inv] },
+  { simp [cosh, div_eq_mul_inv, mul_comm] }
+end
+
+lemma differentiable_sinh : differentiable ℂ sinh :=
+λx, (has_deriv_at_sinh x).differentiable_at
+
+lemma deriv_sinh {x : ℂ} :
+  deriv sinh x = cosh x :=
+(has_deriv_at_sinh x).deriv
+
 lemma continuous_sinh : continuous sinh :=
-continuous_mul
-  (continuous_sub
-    continuous_exp
-    (continuous_exp.comp continuous_neg'))
-  continuous_const
+differentiable_sinh.continuous
+
+/-- The complex hyperbolic cosine function is everywhere differentiable, with the derivative `cosh x`. -/
+lemma has_deriv_at_cosh (x : ℂ) :
+  has_deriv_at cosh (sinh x) x :=
+begin
+  have B : has_deriv_at (λ(z:ℂ), exp (-z)) (- exp (-x)) x,
+  { convert has_deriv_at.comp x (has_deriv_at_exp _) (has_deriv_at.neg (has_deriv_at_id x)),
+    simp },
+  have C : has_deriv_at (λ(z:ℂ), exp z + exp(-z)) (exp x - exp (-x)) x :=
+    has_deriv_at.add (has_deriv_at_exp x) B,
+  convert has_deriv_at.mul C (has_deriv_at_const x (1/(2:ℂ))),
+  { ext z, simp [cosh, div_eq_mul_inv] },
+  { simp [sinh, div_eq_mul_inv, mul_comm] }
+end
+
+lemma differentiable_cosh : differentiable ℂ cosh :=
+λx, (has_deriv_at_cosh x).differentiable_at
+
+lemma deriv_cosh {x : ℂ} :
+  deriv cosh x = sinh x :=
+(has_deriv_at_cosh x).deriv
 
 lemma continuous_cosh : continuous cosh :=
-continuous_mul
-  (continuous_add
-    continuous_exp
-    (continuous_exp.comp continuous_neg'))
-  continuous_const
+differentiable_cosh.continuous
 
 end complex
 

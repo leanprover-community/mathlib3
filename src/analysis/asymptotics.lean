@@ -2,6 +2,12 @@
 Copyright (c) 2019 Jeremy Avigad. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Author: Jeremy Avigad
+-/
+
+import analysis.normed_space.basic
+
+/-!
+# Asymptotics
 
 We introduce these relations:
 
@@ -30,7 +36,7 @@ In fact, the right-to-left direction holds without the hypothesis on `g`, and in
 it suffices to assume that `f` is zero wherever `g` is. (This generalization is useful in defining
 the Fréchet derivative.)
 -/
-import analysis.normed_space.basic
+
 open filter
 open_locale topological_space
 

@@ -2,8 +2,13 @@
 Copyright (c) 2018 Jan-David Salchow. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jan-David Salchow
+-/
 
-Sequences in topological spaces.
+import topology.basic
+import topology.bases
+
+/-!
+# Sequences in topological spaces
 
 In this file we define sequences in topological spaces and show how they are related to
 filters and the topology. In particular, we
@@ -13,12 +18,9 @@ filters and the topology. In particular, we
 * define sequential continuity and show that it coincides with continuity in sequential spaces,
 * provide an instance that shows that every first-countable (and in particular metric) space is a sequential space.
 
-TODO:
+# TODO
 * Sequential compactness should be handled here.
 -/
-
-import topology.basic
-import topology.bases
 
 open set filter
 open_locale topological_space

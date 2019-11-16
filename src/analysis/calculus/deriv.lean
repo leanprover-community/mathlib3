@@ -57,7 +57,7 @@ for Fréchet derivatives.
 
 universes u v w
 noncomputable theory
-open_locale classical
+open_locale classical topological_space
 open filter continuous_linear_map asymptotics set
 
 set_option class.instance_max_depth 100
@@ -150,7 +150,7 @@ theorem has_deriv_at_iff_tendsto : has_deriv_at f f' x ↔
 has_fderiv_at_filter_iff_tendsto
 
 theorem has_deriv_at_iff_is_o_nhds_zero : has_deriv_at f f' x ↔
-  is_o (λh, f (x + h) - f x - h • f') (λh, h) (nhds 0) :=
+  is_o (λh, f (x + h) - f x - h • f') (λh, h) (𝓝 0) :=
 has_fderiv_at_iff_is_o_nhds_zero
 
 theorem has_deriv_at_filter.mono (h : has_deriv_at_filter f f' x L₂) (hst : L₁ ≤ L₂) :

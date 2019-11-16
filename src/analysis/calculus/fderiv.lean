@@ -241,11 +241,11 @@ theorem has_fderiv_at_iff_tendsto : has_fderiv_at f f' x ↔
 has_fderiv_at_filter_iff_tendsto
 
 theorem has_fderiv_at_iff_is_o_nhds_zero : has_fderiv_at f f' x ↔
-  is_o (λh, f (x + h) - f x - f' h) (λh, h) (nhds 0) :=
+  is_o (λh, f (x + h) - f x - f' h) (λh, h) (𝓝 0) :=
 begin
   split,
   { assume H,
-    have : nhds 0 ≤ comap (λ (z : E), z + x) (nhds (0 + x)),
+    have : 𝓝 0 ≤ comap (λ (z : E), z + x) (𝓝 (0 + x)),
     { refine tendsto_iff_comap.mp _,
       apply continuous.tendsto,
       exact continuous_add continuous_id continuous_const },
@@ -255,7 +255,7 @@ begin
     { ext h, simp },
     { simp } },
   { assume H,
-    have : nhds x ≤ comap (λ (z : E), z - x) (nhds (x - x)),
+    have : 𝓝 x ≤ comap (λ (z : E), z - x) (𝓝 (x - x)),
     { refine tendsto_iff_comap.mp _,
       apply continuous.tendsto,
       exact continuous_add continuous_id continuous_const },

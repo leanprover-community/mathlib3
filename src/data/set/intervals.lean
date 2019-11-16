@@ -189,10 +189,10 @@ lemma Icc_subset_Ici_iff (h₁ : a₁ ≤ b₁) :
   Icc a₁ b₁ ⊆ Ici a₂ ↔ a₂ ≤ a₁ :=
 ⟨λ h, h ⟨le_refl _, h₁⟩, λ h x ⟨hx, hx'⟩, le_trans h hx⟩
 
-@[simp] lemma Ici_inter_Iic : Ici a ∩ Iic b = Icc a b := rfl
-@[simp] lemma Ici_inter_Iio : Ici a ∩ Iio b = Ico a b := rfl
-@[simp] lemma Ioi_inter_Iic : Ioi a ∩ Iic b = Ioc a b := rfl
-@[simp] lemma Ioi_inter_Iio : Ioi a ∩ Iio b = Ioo a b := rfl
+lemma Ici_inter_Iic : Ici a ∩ Iic b = Icc a b := rfl
+lemma Ici_inter_Iio : Ici a ∩ Iio b = Ico a b := rfl
+lemma Ioi_inter_Iic : Ioi a ∩ Iic b = Ioc a b := rfl
+lemma Ioi_inter_Iio : Ioi a ∩ Iio b = Ioo a b := rfl
 
 end intervals
 

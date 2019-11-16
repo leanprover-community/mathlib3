@@ -948,6 +948,7 @@ and likewise for `to_rhs`.
    for `x + y < w + z` could be broken down into either
     - left:  `x ≤ w` and `y < z` or
     - right: `x < w` and `y ≤ z`
+- `mono using [rule1,rule2]` calls `simp [rule1,rule2]` before applying mono.
 
 To use it, first import `tactic.monotonicity`.
 

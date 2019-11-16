@@ -15,11 +15,17 @@ section preorder
 
 variables [preorder α] [preorder β] {f : α → β}
 
+/-- The set of upper bounds of a set. -/
 def upper_bounds (s : set α) : set α := { x | ∀a ∈ s, a ≤ x }
+/-- The set of lower bounds of a set. -/
 def lower_bounds (s : set α) : set α := { x | ∀a ∈ s, x ≤ a }
+/-- `a` is a least element of a set `s`; for a partial order, it is unique if exists. -/
 def is_least (s : set α) (a : α) : Prop := a ∈ s ∧ a ∈ lower_bounds s
+/-- `a` is a greatest element of a set `s`; for a partial order, it is unique if exists -/
 def is_greatest (s : set α) (a : α) : Prop := a ∈ s ∧ a ∈ upper_bounds s
+/-- `a` is a least upper bound of a set `s`; for a partial order, it is unique if exists. -/
 def is_lub (s : set α) : α → Prop := is_least (upper_bounds s)
+/-- `a` is a greatest lower bound of a set `s`; for a partial order, it is unique if exists. -/
 def is_glb (s : set α) : α → Prop := is_greatest (lower_bounds s)
 
 lemma upper_bounds_mono (h₁ : a₁ ≤ a₂) (h₂ : a₁ ∈ upper_bounds s) : a₂ ∈ upper_bounds s :=

@@ -6,7 +6,7 @@ Authors: Sébastien Gouëzel
 The mean value inequality: a bound on the derivative of a function implies that this function
 is Lipschitz continuous for the same bound.
 -/
-import analysis.calculus.deriv
+import analysis.calculus.fderiv
 
 set_option class.instance_max_depth 100
 

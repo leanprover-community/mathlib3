@@ -12,19 +12,19 @@ import topology.instances.complex tactic.linarith data.complex.exponential
 ## Main definitions
 
 This file contains the following definitions:
-• π, arcsin, arccos, arctan
-• argument of a complex number
-• logarithm on real and complex numbers
-• complex and real power function
+* π, arcsin, arccos, arctan
+* argument of a complex number
+* logarithm on real and complex numbers
+* complex and real power function
 
 ## Main statements
 
 The following functions are shown to be continuous:
-• complex and real exponential function
-• sin, cos, tan, sinh, cosh
-• logarithm on real numbers
-• real power function
-• square root function
+* complex and real exponential function
+* sin, cos, tan, sinh, cosh
+* logarithm on real numbers
+* real power function
+* square root function
 
 ## Tags
 
@@ -33,10 +33,11 @@ exp, log, sin, cos, tan, arcsin, arccos, arctan, angle, argument, power, square 
 -/
 
 open finset filter metric
+open_locale topological_space
 
 namespace complex
 
-lemma tendsto_exp_zero_one : tendsto exp (nhds 0) (nhds 1) :=
+lemma tendsto_exp_zero_one : tendsto exp (𝓝 0) (𝓝 1) :=
 tendsto_nhds_nhds.2 $ λ ε ε0,
   ⟨min (ε / 2) 1, lt_min (div_pos ε0 (by norm_num)) (by norm_num),
     λ x h, have h : abs x < min (ε / 2) 1, by simpa [dist_eq] using h,
@@ -49,12 +50,12 @@ tendsto_nhds_nhds.2 $ λ ε ε0,
 
 lemma continuous_exp : continuous exp :=
 continuous_iff_continuous_at.2 (λ x,
-  have H1 : tendsto (λ h, exp (x + h)) (nhds 0) (nhds (exp x)),
+  have H1 : tendsto (λ h, exp (x + h)) (𝓝 0) (𝓝 (exp x)),
     by simpa [exp_add] using tendsto_mul tendsto_const_nhds tendsto_exp_zero_one,
-  have H2 : tendsto (λ y, y - x) (nhds x) (nhds (x - x)) :=
+  have H2 : tendsto (λ y, y - x) (𝓝 x) (𝓝 (x - x)) :=
      tendsto_sub tendsto_id (@tendsto_const_nhds _ _ _ x _),
   suffices tendsto ((λ h, exp (x + h)) ∘
-      (λ y, id y - (λ z, x) y)) (nhds x) (nhds (exp x)),
+      (λ y, id y - (λ z, x) y)) (𝓝 x) (𝓝 (exp x)),
     by simp only [function.comp, add_sub_cancel'_right, id.def] at this;
       exact this,
   tendsto.comp H1 (by rw [sub_self] at H2; exact H2))
@@ -197,7 +198,7 @@ end
 
 section prove_log_is_continuous
 
-lemma tendsto_log_one_zero : tendsto log (nhds 1) (nhds 0) :=
+lemma tendsto_log_one_zero : tendsto log (𝓝 1) (𝓝 0) :=
 begin
   rw tendsto_nhds_nhds, assume ε ε0,
   let δ := min (exp ε - 1) (1 - exp (-ε)),
@@ -227,14 +228,14 @@ begin
   rw continuous_at,
   let f₁ := λ h:{h:ℝ // 0 < h}, log (x.1 * h.1),
   let f₂ := λ y:{y:ℝ // 0 < y}, subtype.mk (x.1 ⁻¹ * y.1) (mul_pos (inv_pos x.2) y.2),
-  have H1 : tendsto f₁ (nhds ⟨1, zero_lt_one⟩) (nhds (log (x.1*1))),
+  have H1 : tendsto f₁ (𝓝 ⟨1, zero_lt_one⟩) (𝓝 (log (x.1*1))),
     have : f₁ = λ h:{h:ℝ // 0 < h}, log x.1 + log h.1,
       ext h, rw ← log_mul x.2 h.2,
     simp only [this, log_mul x.2 zero_lt_one, log_one], exact
       tendsto_add tendsto_const_nhds (tendsto.comp tendsto_log_one_zero continuous_at_subtype_val),
-  have H2 : tendsto f₂ (nhds x) (nhds ⟨x.1⁻¹ * x.1, mul_pos (inv_pos x.2) x.2⟩),
+  have H2 : tendsto f₂ (𝓝 x) (𝓝 ⟨x.1⁻¹ * x.1, mul_pos (inv_pos x.2) x.2⟩),
     rw tendsto_subtype_rng, exact tendsto_mul tendsto_const_nhds continuous_at_subtype_val,
-  suffices h : tendsto (f₁ ∘ f₂) (nhds x) (nhds (log x.1)),
+  suffices h : tendsto (f₁ ∘ f₂) (𝓝 x) (𝓝 (log x.1)),
   begin
     convert h, ext y,
     have : x.val * (x.val⁻¹ * y.val) = y.val,

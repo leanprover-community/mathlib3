@@ -24,7 +24,7 @@ has to be `dense_inducing` (not necessarily injective).
 noncomputable theory
 
 open set filter lattice
-open_locale classical
+open_locale classical topological_space
 
 variables {α : Type*} {β : Type*} {γ : Type*} {δ : Type*}
 
@@ -82,7 +82,7 @@ variables [topological_space α] [topological_space β]
 variables {i : α → β} (di : dense_inducing i)
 
 lemma nhds_eq_comap (di : dense_inducing i) :
-  ∀ a : α, nhds a = comap i (nhds $ i a) :=
+  ∀ a : α, 𝓝 a = comap i (𝓝 $ i a) :=
 di.to_inducing.nhds_eq_comap
 
 protected lemma continuous (di : dense_inducing i) : continuous i :=
@@ -103,7 +103,7 @@ begin
 end
 
 lemma closure_image_nhds_of_nhds {s : set α} {a : α} (di : dense_inducing i) :
-  s ∈ nhds a → closure (i '' s) ∈ nhds (i a) :=
+  s ∈ 𝓝 a → closure (i '' s) ∈ 𝓝 (i a) :=
 begin
   rw [di.nhds_eq_comap a, mem_comap_sets],
   intro h,
@@ -114,8 +114,8 @@ begin
                    ... ⊆ s      : sub,
   have := calc U ⊆ closure (i '' (i ⁻¹' U)) : self_sub_closure_image_preimage_of_open di U_op
              ... ⊆ closure (i '' s)         : closure_mono (image_subset i this),
-  have U_nhd : U ∈ nhds (i a) := mem_nhds_sets U_op e_a_in_U,
-  exact (nhds (i a)).sets_of_superset U_nhd this
+  have U_nhd : U ∈ 𝓝 (i a) := mem_nhds_sets U_op e_a_in_U,
+  exact (𝓝 (i a)).sets_of_superset U_nhd this
 end
 
 /-- The product of two dense inducings is a dense inducing -/
@@ -131,27 +131,27 @@ variables [topological_space δ] {f : γ → α} {g : γ → δ} {h : δ → β}
 g↓     ↓e
  δ -h→ β
 -/
-lemma tendsto_comap_nhds_nhds  {d : δ} {a : α} (di : dense_inducing i) (H : tendsto h (nhds d) (nhds (i a)))
-  (comm : h ∘ g = i ∘ f) : tendsto f (comap g (nhds d)) (nhds a) :=
+lemma tendsto_comap_nhds_nhds  {d : δ} {a : α} (di : dense_inducing i) (H : tendsto h (𝓝 d) (𝓝 (i a)))
+  (comm : h ∘ g = i ∘ f) : tendsto f (comap g (𝓝 d)) (𝓝 a) :=
 begin
-  have lim1 : map g (comap g (nhds d)) ≤ nhds d := map_comap_le,
-  replace lim1 : map h (map g (comap g (nhds d))) ≤ map h (nhds d) := map_mono lim1,
+  have lim1 : map g (comap g (𝓝 d)) ≤ 𝓝 d := map_comap_le,
+  replace lim1 : map h (map g (comap g (𝓝 d))) ≤ map h (𝓝 d) := map_mono lim1,
   rw [filter.map_map, comm, ← filter.map_map, map_le_iff_le_comap] at lim1,
-  have lim2 :  comap i (map h (nhds d)) ≤  comap i  (nhds (i a)) := comap_mono H,
+  have lim2 :  comap i (map h (𝓝 d)) ≤  comap i  (𝓝 (i a)) := comap_mono H,
   rw ← di.nhds_eq_comap at lim2,
   exact le_trans lim1 lim2,
 end
 
-protected lemma nhds_inf_neq_bot (di : dense_inducing i) {b : β} : nhds b ⊓ principal (range i) ≠ ⊥ :=
+protected lemma nhds_inf_neq_bot (di : dense_inducing i) {b : β} : 𝓝 b ⊓ principal (range i) ≠ ⊥ :=
 begin
   convert di.dense b,
   simp [closure_eq_nhds]
 end
 
-lemma comap_nhds_neq_bot (di : dense_inducing i) {b : β} : comap i (nhds b) ≠ ⊥ :=
+lemma comap_nhds_neq_bot (di : dense_inducing i) {b : β} : comap i (𝓝 b) ≠ ⊥ :=
 forall_sets_neq_empty_iff_neq_bot.mp $
 assume s ⟨t, ht, (hs : i ⁻¹' t ⊆ s)⟩,
-have t ∩ range i ∈ nhds b ⊓ principal (range i),
+have t ∩ range i ∈ 𝓝 b ⊓ principal (range i),
   from inter_mem_inf_sets ht (subset.refl _),
 let ⟨_, ⟨hx₁, y, rfl⟩⟩ := inhabited_of_mem_sets di.nhds_inf_neq_bot this in
 subset_ne_empty hs $ ne_empty_of_mem hx₁
@@ -163,9 +163,9 @@ variables [topological_space γ]
   continuous extension, then `g` is the unique such extension. In general,
   `g` might not be continuous or even extend `f`. -/
 def extend (di : dense_inducing i) (f : α → γ) (b : β) : γ :=
-@lim _ _ ⟨f (dense_range.inhabited di.dense b).default⟩ (map f (comap i (nhds b)))
+@lim _ _ ⟨f (dense_range.inhabited di.dense b).default⟩ (map f (comap i (𝓝 b)))
 
-lemma extend_eq [t2_space γ] {b : β} {c : γ} {f : α → γ} (hf : map f (comap i (nhds b)) ≤ nhds c) :
+lemma extend_eq [t2_space γ] {b : β} {c : γ} {f : α → γ} (hf : map f (comap i (𝓝 b)) ≤ 𝓝 c) :
   di.extend f b = c :=
 @lim_eq _ _ (id _) _ _ _ (by simp; exact comap_nhds_neq_bot di) hf
 
@@ -178,12 +178,12 @@ lemma extend_eq_of_cont [t2_space γ] {f : α → γ} (hf : continuous f) (a : �
 di.extend_e_eq a (continuous_iff_continuous_at.1 hf a)
 
 lemma tendsto_extend [regular_space γ] {b : β} {f : α → γ} (di : dense_inducing i)
-  (hf : {b | ∃c, tendsto f (comap i $ nhds b) (nhds c)} ∈ nhds b) :
-  tendsto (di.extend f) (nhds b) (nhds (di.extend f b)) :=
-let φ := {b | tendsto f (comap i $ nhds b) (nhds $ di.extend f b)} in
-have hφ : φ ∈ nhds b,
-  from (nhds b).sets_of_superset hf $ assume b ⟨c, hc⟩,
-    show tendsto f (comap i (nhds b)) (nhds (di.extend f b)), from (di.extend_eq hc).symm ▸ hc,
+  (hf : {b | ∃c, tendsto f (comap i $ 𝓝 b) (𝓝 c)} ∈ 𝓝 b) :
+  tendsto (di.extend f) (𝓝 b) (𝓝 (di.extend f b)) :=
+let φ := {b | tendsto f (comap i $ 𝓝 b) (𝓝 $ di.extend f b)} in
+have hφ : φ ∈ 𝓝 b,
+  from (𝓝 b).sets_of_superset hf $ assume b ⟨c, hc⟩,
+    show tendsto f (comap i (𝓝 b)) (𝓝 (di.extend f b)), from (di.extend_eq hc).symm ▸ hc,
 assume s hs,
 let ⟨s'', hs''₁, hs''₂, hs''₃⟩ := nhds_is_closed hs in
 let ⟨s', hs'₁, (hs'₂ : i ⁻¹' s' ⊆ f ⁻¹' s'')⟩ := mem_of_nhds hφ hs''₁ in
@@ -192,12 +192,12 @@ have h₁ : closure (f '' (i ⁻¹' s')) ⊆ s'',
   by rw [closure_subset_iff_subset_of_is_closed hs''₃, image_subset_iff]; exact hs'₂,
 have h₂ : t ⊆ di.extend f ⁻¹' closure (f '' (i ⁻¹' t)), from
   assume b' hb',
-  have nhds b' ≤ principal t, by simp; exact mem_nhds_sets ht₂ hb',
-  have map f (comap i (nhds b')) ≤ nhds (di.extend f b') ⊓ principal (f '' (i ⁻¹' t)),
-    from calc _ ≤ map f (comap i (nhds b' ⊓ principal t)) : map_mono $ comap_mono $ le_inf (le_refl _) this
-      ... ≤ map f (comap i (nhds b')) ⊓ map f (comap i (principal t)) :
+  have 𝓝 b' ≤ principal t, by simp; exact mem_nhds_sets ht₂ hb',
+  have map f (comap i (𝓝 b')) ≤ 𝓝 (di.extend f b') ⊓ principal (f '' (i ⁻¹' t)),
+    from calc _ ≤ map f (comap i (𝓝 b' ⊓ principal t)) : map_mono $ comap_mono $ le_inf (le_refl _) this
+      ... ≤ map f (comap i (𝓝 b')) ⊓ map f (comap i (principal t)) :
         le_inf (map_mono $ comap_mono $ inf_le_left) (map_mono $ comap_mono $ inf_le_right)
-      ... ≤ map f (comap i (nhds b')) ⊓ principal (f '' (i ⁻¹' t)) : by simp [le_refl]
+      ... ≤ map f (comap i (𝓝 b')) ⊓ principal (f '' (i ⁻¹' t)) : by simp [le_refl]
       ... ≤ _ : inf_le_inf ((ht₁ hb').left) (le_refl _),
   show di.extend f b' ∈ closure (f '' (i ⁻¹' t)),
   begin
@@ -206,8 +206,8 @@ have h₂ : t ⊆ di.extend f ⁻¹' closure (f '' (i ⁻¹' t)), from
     simp,
     exact di.comap_nhds_neq_bot
   end,
-(nhds b).sets_of_superset
-  (show t ∈ nhds b, from mem_nhds_sets ht₂ ht₃)
+(𝓝 b).sets_of_superset
+  (show t ∈ 𝓝 b, from mem_nhds_sets ht₂ ht₃)
   (calc t ⊆ di.extend f ⁻¹' closure (f '' (i ⁻¹' t)) : h₂
     ... ⊆ di.extend f ⁻¹' closure (f '' (i ⁻¹' s')) :
       preimage_mono $ closure_mono $ image_subset f $ preimage_mono $ subset.trans ht₁ $ inter_subset_right _ _
@@ -215,15 +215,15 @@ have h₂ : t ⊆ di.extend f ⁻¹' closure (f '' (i ⁻¹' t)), from
     ... ⊆ di.extend f ⁻¹' s : preimage_mono hs''₂)
 
 lemma continuous_extend [regular_space γ] {f : α → γ} (di : dense_inducing i)
-  (hf : ∀b, ∃c, tendsto f (comap i (nhds b)) (nhds c)) : continuous (di.extend f) :=
+  (hf : ∀b, ∃c, tendsto f (comap i (𝓝 b)) (𝓝 c)) : continuous (di.extend f) :=
 continuous_iff_continuous_at.mpr $ assume b, di.tendsto_extend $ univ_mem_sets' hf
 
 lemma mk'
   (i : α → β)
   (c     : continuous i)
   (dense : ∀x, x ∈ closure (range i))
-  (H     : ∀ (a:α) s ∈ nhds a,
-    ∃t ∈ nhds (i a), ∀ b, i b ∈ t → b ∈ s) :
+  (H     : ∀ (a:α) s ∈ 𝓝 a,
+    ∃t ∈ 𝓝 (i a), ∀ b, i b ∈ t → b ∈ s) :
   dense_inducing i :=
 { induced := (induced_iff_nhds_eq i).2 $
     λ a, le_antisymm (tendsto_iff_comap.1 $ c.tendsto _) (by simpa [le_def] using H a),
@@ -240,8 +240,8 @@ theorem dense_embedding.mk'
   (c     : continuous e)
   (dense : ∀x, x ∈ closure (range e))
   (inj   : function.injective e)
-  (H     : ∀ (a:α) s ∈ nhds a,
-    ∃t ∈ nhds (e a), ∀ b, e b ∈ t → b ∈ s) :
+  (H     : ∀ (a:α) s ∈ 𝓝 a,
+    ∃t ∈ 𝓝 (e a), ∀ b, e b ∈ t → b ∈ s) :
   dense_embedding e :=
 { inj := inj,
   ..dense_inducing.mk' e c dense H}

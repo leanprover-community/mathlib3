@@ -24,7 +24,7 @@ instance lattice_set : complete_lattice (set α) :=
   le_antisymm  := assume a b, subset.antisymm,
 
   lt           := λ x y, x ⊆ y ∧ ¬ y ⊆ x,
-  lt_iff_le_not_le := λ x y, iff.refl _,
+  lt_iff_le_not_le := λ x y, iff.rfl,
 
   sup          := (∪),
   le_sup_left  := subset_union_left,
@@ -668,7 +668,7 @@ set.ext $ by simp [seq]
 
 @[simp] lemma mem_seq_iff {s : set (α → β)} {t : set α} {b : β} :
   b ∈ seq s t ↔ ∃ (f ∈ s) (a ∈ t), (f : α → β) a = b :=
-iff.refl _
+iff.rfl
 
 lemma seq_subset {s : set (α → β)} {t : set α} {u : set β} :
   seq s t ⊆ u ↔ (∀f∈s, ∀a∈t, (f : α → β) a ∈ u) :=
@@ -803,7 +803,7 @@ end disjoint
 
 namespace set
 
-protected theorem disjoint_iff {s t : set α} : disjoint s t ↔ s ∩ t ⊆ ∅ := iff.refl _
+protected theorem disjoint_iff {s t : set α} : disjoint s t ↔ s ∩ t ⊆ ∅ := iff.rfl
 
 lemma not_disjoint_iff {s t : set α} : ¬disjoint s t ↔ ∃x, x ∈ s ∧ x ∈ t :=
 by { rw [set.disjoint_iff, subset_empty_iff], apply ne_empty_iff_exists_mem }

@@ -290,7 +290,7 @@ section add_comm_monoid
 variables {γ : Type*}
   [topological_space γ] [second_countable_topology γ] [add_comm_monoid γ] [topological_add_monoid γ]
 
-instance : add_comm_monoid (α →ₘ γ) :=
+instance add_comm_monoid : add_comm_monoid (α →ₘ γ) :=
 { add_comm := by rintros ⟨a⟩ ⟨b⟩; exact quotient.sound (univ_mem_sets' $ assume a, add_comm _ _),
   .. ae_eq_fun.add_monoid }
 

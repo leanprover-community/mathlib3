@@ -171,6 +171,15 @@ theorem singleton_inj {a b : α} : ι a = ι b ↔ a = b :=
 
 @[simp] lemma coe_singleton (a : α) : ↑(ι a) = ({a} : set α) := rfl
 
+lemma singleton_iff_unique_mem (s : finset α) : (∃ a, s = finset.singleton a) ↔ ∃! a, a ∈ s :=
+begin
+  split; rintro ⟨x, t⟩; use x,
+    rw t,
+    exact ⟨finset.mem_singleton_self _, λ i, finset.mem_singleton.1⟩,
+  ext, rw finset.mem_singleton,
+  exact ⟨λ r, t.right _ r, λ r, r.symm ▸ t.left⟩
+end
+
 /- insert -/
 section decidable_eq
 variables [decidable_eq α]

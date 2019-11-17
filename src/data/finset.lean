@@ -555,6 +555,16 @@ set.ext $ λ _, mem_sdiff
 @[simp] lemma to_set_sdiff (s t : finset α) : (s \ t).to_set = s.to_set \ t.to_set :=
 by apply finset.coe_sdiff
 
+theorem union_sdiff_self_eq_union (s t : finset α) : s ∪ (t \ s) = s ∪ t :=
+ext.2 $ λ a, by simp only [mem_union, mem_sdiff, or_iff_not_imp_left,
+  imp_and_distrib, and_iff_left id]
+
+lemma union_sdiff_symm (s t : finset α) : s ∪ (t \ s) = t ∪ (s \ t) :=
+by rw [union_sdiff_self_eq_union, union_sdiff_self_eq_union, union_comm]
+
+lemma sdiff_empty_iff_subset (s t : finset α) : s \ t = ∅ ↔ s ⊆ t :=
+by rw [subset_iff, ext]; simp
+
 end decidable_eq
 
 /- attach -/

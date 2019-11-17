@@ -14,7 +14,7 @@ attribute [simp] max_eq_left max_eq_right min_eq_left min_eq_right
 
 /-- A function `f` is strictly monotone if `a < b` implies `f a < f b`. -/
 def strict_mono [has_lt α] [has_lt β] (f : α → β) : Prop :=
-∀ a b, a < b → f a < f b
+∀ ⦃a b⦄, a < b → f a < f b
 
 namespace strict_mono
 open ordering function
@@ -25,13 +25,13 @@ variables [linear_order α] [preorder β] {f : α → β}
 lemma lt_iff_lt (H : strict_mono f) {a b} :
   f a < f b ↔ a < b :=
 ⟨λ h, ((lt_trichotomy b a)
-  .resolve_left $ λ h', lt_asymm h $ H _ _ h')
-  .resolve_left $ λ e, ne_of_gt h $ congr_arg _ e, H _ _⟩
+  .resolve_left $ λ h', lt_asymm h $ H h')
+  .resolve_left $ λ e, ne_of_gt h $ congr_arg _ e, @H _ _⟩
 
 lemma injective (H : strict_mono f) : injective f
 | a b e := ((lt_trichotomy a b)
-  .resolve_left $ λ h, ne_of_lt (H _ _ h) e)
-  .resolve_right $ λ h, ne_of_gt (H _ _ h) e
+  .resolve_left $ λ h, ne_of_lt (H h) e)
+  .resolve_right $ λ h, ne_of_gt (H h) e
 
 theorem compares (H : strict_mono f) {a b} :
   ∀ {o}, compares o (f a) (f b) ↔ compares o a b
@@ -41,8 +41,8 @@ theorem compares (H : strict_mono f) {a b} :
 
 lemma le_iff_le (H : strict_mono f) {a b} :
   f a ≤ f b ↔ a ≤ b :=
-⟨λ h, le_of_not_gt $ λ h', not_le_of_lt (H b a h') h,
- λ h, (lt_or_eq_of_le h).elim (λ h', le_of_lt (H _ _ h')) (λ h', h' ▸ le_refl _)⟩
+⟨λ h, le_of_not_gt $ λ h', not_le_of_lt (H h') h,
+ λ h, (lt_or_eq_of_le h).elim (λ h', le_of_lt (H h')) (λ h', h' ▸ le_refl _)⟩
 end
 
 protected lemma nat {β} [preorder β] {f : ℕ → β} (h : ∀n, f n < f (n+1)) : strict_mono f :=
@@ -51,7 +51,7 @@ by { intros n m hnm, induction hnm with m' hnm' ih, apply h, exact lt.trans ih (
 -- `preorder α` isn't strong enough: if the preorder on α is an equivalence relation,
 -- then `strict_mono f` is vacuously true.
 lemma monotone [partial_order α] [preorder β] {f : α → β} (H : strict_mono f) : monotone f :=
-λ a b h, (lt_or_eq_of_le h).rec (le_of_lt ∘ (H _ _)) (by rintro rfl; refl)
+λ a b h, (lt_or_eq_of_le h).rec (le_of_lt ∘ (@H _ _)) (by rintro rfl; refl)
 
 end strict_mono
 

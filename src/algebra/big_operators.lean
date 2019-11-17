@@ -308,7 +308,7 @@ lemma prod_Ico_succ_top {a b : ℕ} (hab : a ≤ b) (f : ℕ → β) :
 lemma sum_eq_sum_Ico_succ_bot {δ : Type*} [add_comm_monoid δ] {a b : ℕ}
   (hab : a < b) (f : ℕ → δ) : (Ico a b).sum f = f a + (Ico (a + 1) b).sum f :=
 have ha : a ∉ Ico (a + 1) b, by simp,
-by rw [← sum_insert ha, Ico.succ_bot hab]
+by rw [← sum_insert ha, Ico.insert_succ_bot hab]
 
 @[to_additive]
 lemma prod_eq_prod_Ico_succ_bot {a b : ℕ} (hab : a < b) (f : ℕ → β) :

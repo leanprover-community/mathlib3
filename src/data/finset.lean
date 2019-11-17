@@ -2003,14 +2003,8 @@ begin
   exact nat.le_pred_of_lt h
 end
 
-lemma succ_bot {m n : ℕ} (h : m < n) : insert m (Ico (succ m) n) = Ico m n :=
-suffices ∀ x, (x = m ∨ (m < x ∧ x < n)) ↔ m ≤ x ∧ x < n,
-  by simp [*, finset.ext, succ_le_iff] at *,
-λ x, ⟨λ h, by rcases h with rfl | h; simp only [lt_iff_le_not_le] at *; finish,
-  λ h, by cases lt_or_eq_of_le h.1; finish⟩
-
-theorem eq_cons {n m : ℕ} (h : n < m) : Ico n m = insert n (Ico (n + 1) m) :=
-by rw [← to_finset, multiset.Ico.eq_cons h, multiset.to_finset_cons, to_finset]
+theorem insert_succ_bot {n m : ℕ} (h : n < m) : insert n (Ico (n + 1) m) = Ico n m :=
+by rw [eq_comm, ← to_finset, multiset.Ico.eq_cons h, multiset.to_finset_cons, to_finset]
 
 @[simp] theorem pred_singleton {m : ℕ} (h : 0 < m) : Ico (m - 1) m = {m - 1} :=
 eq_of_veq $ multiset.Ico.pred_singleton h

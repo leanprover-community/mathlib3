@@ -361,7 +361,7 @@ lemma uniform_inducing_coe : uniform_inducing  (coe : α → completion α) :=
 
 variables {α}
 
-lemma dense : dense_range (coe : α → completion α):=
+lemma dense : dense_range (coe : α → completion α) :=
 begin
   rw [dense_range_iff_closure_range, completion.coe_eq, range_comp],
   exact quotient_dense_of_dense pure_cauchy_dense

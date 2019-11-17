@@ -23,7 +23,7 @@ refer to the function field, ie. S x y = S.bilin x y.
 
 ## References
 
-* https://en.wikipedia.org/wiki/Sesquilinear_form#Over_arbitrary_rings
+* <https://en.wikipedia.org/wiki/Sesquilinear_form#Over_arbitrary_rings>
 
 ## Tags
 
@@ -77,7 +77,7 @@ lemma sub_right (x y z : M) :
 S x (y - z) = S x y - S x z := by rw [sub_eq_add_neg, add_right, neg_right]; refl
 
 variable {D : sesq_form R M I}
-@[extensionality] lemma ext (H : ∀ (x y : M), S x y = D x y) : S = D := by {cases S, cases D, congr, funext, exact H _ _}
+@[ext] lemma ext (H : ∀ (x y : M), S x y = D x y) : S = D := by {cases S, cases D, congr, funext, exact H _ _}
 
 instance : add_comm_group (sesq_form R M I) :=
 { add := λ S D, { sesq := λ x y, S x y + D x y,

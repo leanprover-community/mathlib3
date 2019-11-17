@@ -2,6 +2,12 @@
 Copyright (c) 2017 Jeremy Avigad. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jeremy Avigad, Jesse Michael Han
+-/
+
+import logic.basic
+
+/-!
+# The `finish` family of tactics
 
 These tactics do straightforward things: they call the simplifier, split conjunctive assumptions,
 eliminate existential quantifiers on the left, and look for contradictions. They rely on ematching
@@ -10,20 +16,21 @@ and congruence closure to try to finish off a goal at the end.
 The procedures *do* split on disjunctions and recreate the smt state for each terminal call, so
 they are only meant to be used on small, straightforward problems.
 
+## Main definitions
+
 We provide the following tactics:
 
-  finish  -- solves the goal or fails
-  clarify -- makes as much progress as possible while not leaving more than one goal
-  safe    -- splits freely, finishes off whatever subgoals it can, and leaves the rest
+  `finish`  -- solves the goal or fails
+  `clarify` -- makes as much progress as possible while not leaving more than one goal
+  `safe`    -- splits freely, finishes off whatever subgoals it can, and leaves the rest
 
 All accept an optional list of simplifier rules, typically definitions that should be expanded.
 (The equations and identities should not refer to the local context.)
 
-The variants ifinish, iclarify, and isafe restrict to intuitionistic logic. They do not work
-well with the current heuristic instantiation method used by ematch, so they should be revisited
+The variants `ifinish`, `iclarify`, and `isafe` restrict to intuitionistic logic. They do not work
+well with the current heuristic instantiation method used by `ematch`, so they should be revisited
 when the API changes.
 -/
-import logic.basic
 
 declare_trace auto.done
 declare_trace auto.finish

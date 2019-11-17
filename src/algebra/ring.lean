@@ -348,7 +348,7 @@ variables (f : α →+* β) {x y : α} {rα rβ}
 theorem coe_inj ⦃f g : α →+* β⦄ (h : (f : α → β) = g) : f = g :=
 by cases f; cases g; cases h; refl
 
-@[extensionality] theorem ext ⦃f g : α →+* β⦄ (h : ∀ x, f x = g x) : f = g :=
+@[ext] theorem ext ⦃f g : α →+* β⦄ (h : ∀ x, f x = g x) : f = g :=
 coe_inj (funext h)
 
 theorem ext_iff {f g : α →+* β} : f = g ↔ ∀ x, f x = g x :=
@@ -396,6 +396,10 @@ def comp (hnp : β →+* γ) (hmn : α →+* β) : α →+* γ :=
   map_add' := λ x y, by simp,
   map_mul' := λ x y, by simp}
 
+/-- Composition of semiring homomorphisms is associative. -/
+lemma comp_assoc {δ} {rδ: semiring δ} (f : α →+* β) (g : β →+* γ) (h : γ →+* δ) :
+  (h.comp g).comp f = h.comp (g.comp f) := rfl
+
 @[simp] lemma coe_comp (hnp : β →+* γ) (hmn : α →+* β) : (hnp.comp hmn : α → γ) = hnp ∘ hmn := rfl
 
 @[simp] lemma comp_apply (hnp : β →+* γ) (hmn : α →+* β) (x : α) : (hnp.comp hmn : α → γ) x =
@@ -411,6 +415,10 @@ eq_neg_of_add_eq_zero $ by rw [←f.map_add, neg_add_self, f.map_zero]
 @[simp] theorem map_sub {α β} [ring α] [ring β] (f : α →+* β) (x y : α) :
   f (x - y) = (f x) - (f y) := by simp
 
+/-- A ring homomorphism is injective iff its kernel is trivial. -/
+theorem injective_iff {α β} [ring α] [ring β] (f : α →+* β) :
+  function.injective f ↔ (∀ a, f a = 0 → a = 0) :=
+add_monoid_hom.injective_iff f.to_add_monoid_hom
 include rα
 
 /-- Makes a ring homomorphism from a monoid homomorphism of rings which preserves addition. -/

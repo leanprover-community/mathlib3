@@ -8,6 +8,7 @@ Algebra over Commutative Ring (under category)
 
 import data.polynomial data.mv_polynomial
 import data.complex.basic
+import data.matrix.basic
 import linear_algebra.tensor_product
 import ring_theory.subring
 
@@ -153,6 +154,16 @@ instance module.endomorphism_algebra (R : Type u) (M : Type v)
   commutes' := by intros; ext; simp,
   smul_def' := by intros; ext; simp }
 
+set_option class.instance_max_depth 50
+instance matrix_algebra (n : Type u) (R : Type v)
+  [fintype n] [decidable_eq n] [comm_ring R] : algebra R (matrix n n R) :=
+{ to_fun    := (λ r, r • 1),
+  hom       := { map_one := by simp,
+                 map_mul := by { intros, simp [mul_smul], },
+                 map_add := by { intros, simp [add_smul], } },
+  commutes' := by { intros, simp },
+  smul_def' := by { intros, simp } }
+
 set_option old_structure_cmd true
 /-- Defining the homomorphism in the category R-Alg. -/
 structure alg_hom (R : Type u) (A : Type v) (B : Type w)
@@ -177,7 +188,7 @@ variables (φ : A →ₐ[R] B)
 
 instance : is_ring_hom ⇑φ := ring_hom.is_ring_hom φ.to_ring_hom
 
-@[extensionality]
+@[ext]
 theorem ext {φ₁ φ₂ : A →ₐ[R] B} (H : ∀ x, φ₁ x = φ₂ x) : φ₁ = φ₂ :=
 by cases φ₁; cases φ₂; congr' 1; ext; apply H
 
@@ -260,7 +271,7 @@ include R S A
 
 /-- `comap R S A` is a type alias for `A`, and has an R-algebra structure defined on it
   when `algebra R S` and `algebra S A`. -/
-/- This is done to avoid a type class search with meta-variables `algebra R ?m_1` and 
+/- This is done to avoid a type class search with meta-variables `algebra R ?m_1` and
     `algebra ?m_1 A -/
 /- The `nolint` attribute is added because it has unused arguments `R` and `S`, but these are necessary for synthesizing the
      appropriate type classes -/
@@ -409,7 +420,7 @@ variables {A}
 theorem mem_coe {x : A} {s : subalgebra R A} : x ∈ (s : set A) ↔ x ∈ s :=
 iff.rfl
 
-@[extensionality] theorem ext {S T : subalgebra R A}
+@[ext] theorem ext {S T : subalgebra R A}
   (h : ∀ x : A, x ∈ S ↔ x ∈ T) : S = T :=
 by cases S; cases T; congr; ext x; exact h x
 
@@ -494,6 +505,14 @@ include R
 variables (R)
 instance id : algebra R R :=
 algebra.of_ring_hom id $ by apply_instance
+
+namespace id
+
+@[simp] lemma map_eq_self (x : R) : algebra_map R x = x := rfl
+
+@[simp] lemma smul_eq_mul (x y : R) : x • y = x * y := rfl
+
+end id
 
 def of_id : R →ₐ A :=
 { commutes' := λ _, rfl, .. ring_hom.of (algebra_map A) }

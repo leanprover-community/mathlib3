@@ -79,7 +79,7 @@ lemma union_null (m : outer_measure α) {s₁ s₂ : set α}
   (h₁ : m s₁ = 0) (h₂ : m s₂ = 0) : m (s₁ ∪ s₂) = 0 :=
 by simpa [h₁, h₂] using m.union s₁ s₂
 
-@[extensionality] lemma ext : ∀{μ₁ μ₂ : outer_measure α},
+@[ext] lemma ext : ∀{μ₁ μ₂ : outer_measure α},
   (∀s, μ₁ s = μ₂ s) → μ₁ = μ₂
 | ⟨m₁, e₁, _, u₁⟩ ⟨m₂, e₂, _, u₂⟩ h := by congr; exact funext h
 
@@ -107,7 +107,7 @@ instance : has_add (outer_measure α) :=
 @[simp] theorem add_apply (m₁ m₂ : outer_measure α) (s : set α) :
   (m₁ + m₂) s = m₁ s + m₂ s := rfl
 
-instance : add_comm_monoid (outer_measure α) :=
+instance add_comm_monoid : add_comm_monoid (outer_measure α) :=
 { zero      := 0,
   add       := (+),
   add_comm  := assume a b, ext $ assume s, add_comm _ _,

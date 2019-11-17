@@ -20,7 +20,7 @@ monad to an honest monad of the functor `Measure : Meas ⥤ Meas`.
 
 ## References
 
-* https://ncatlab.org/nlab/show/Giry+monad
+* <https://ncatlab.org/nlab/show/Giry+monad>
 
 ## Tags
 

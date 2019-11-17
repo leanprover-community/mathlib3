@@ -171,14 +171,18 @@ theorem singleton_inj {a b : α} : ι a = ι b ↔ a = b :=
 
 @[simp] lemma coe_singleton (a : α) : ↑(ι a) = ({a} : set α) := rfl
 
-lemma singleton_iff_unique_mem (s : finset α) : (∃ a, s = finset.singleton a) ↔ ∃! a, a ∈ s :=
+lemma eq_singleton_iff_unique_mem {s : finset α} {a : α} :
+  s = finset.singleton a ↔ a ∈ s ∧ ∀ x ∈ s, x = a :=
 begin
-  split; rintro ⟨x, t⟩; use x,
+  split; intro t,
     rw t,
-    exact ⟨finset.mem_singleton_self _, λ i, finset.mem_singleton.1⟩,
+    refine ⟨finset.mem_singleton_self _, λ _, finset.mem_singleton.1⟩,
   ext, rw finset.mem_singleton,
-  exact ⟨λ r, t.right _ r, λ r, r.symm ▸ t.left⟩
+  refine ⟨t.right _, λ r, r.symm ▸ t.left⟩
 end
+
+lemma singleton_iff_unique_mem (s : finset α) : (∃ a, s = finset.singleton a) ↔ ∃! a, a ∈ s :=
+by simp only [eq_singleton_iff_unique_mem, exists_unique]
 
 /- insert -/
 section decidable_eq
@@ -555,14 +559,17 @@ set.ext $ λ _, mem_sdiff
 @[simp] lemma to_set_sdiff (s t : finset α) : (s \ t).to_set = s.to_set \ t.to_set :=
 by apply finset.coe_sdiff
 
-theorem union_sdiff_self_eq_union (s t : finset α) : s ∪ (t \ s) = s ∪ t :=
+@[simp] theorem union_sdiff_self_eq_union {s t : finset α} : s ∪ (t \ s) = s ∪ t :=
 ext.2 $ λ a, by simp only [mem_union, mem_sdiff, or_iff_not_imp_left,
   imp_and_distrib, and_iff_left id]
 
-lemma union_sdiff_symm (s t : finset α) : s ∪ (t \ s) = t ∪ (s \ t) :=
+@[simp] theorem sdiff_union_self_eq_union {s t : finset α} : (s \ t) ∪ t = s ∪ t :=
+by rw [union_comm, union_sdiff_self_eq_union, union_comm]
+
+lemma union_sdiff_symm {s t : finset α} : s ∪ (t \ s) = t ∪ (s \ t) :=
 by rw [union_sdiff_self_eq_union, union_sdiff_self_eq_union, union_comm]
 
-lemma sdiff_empty_iff_subset (s t : finset α) : s \ t = ∅ ↔ s ⊆ t :=
+lemma sdiff_eq_empty_iff_subset {s t : finset α} : s \ t = ∅ ↔ s ⊆ t :=
 by rw [subset_iff, ext]; simp
 
 end decidable_eq
@@ -1991,7 +1998,7 @@ protected theorem subset {m₁ n₁ m₂ n₂ : ℕ} (hmm : m₂ ≤ m₁) (hnn 
 begin
   simp only [finset.subset_iff, Ico.mem],
   assume x hx,
-  exact ⟨le_trans hmm hx.1, lt_of_lt_of_le hx.2 hnn⟩ 
+  exact ⟨le_trans hmm hx.1, lt_of_lt_of_le hx.2 hnn⟩
 end
 
 lemma union_consecutive {n m l : ℕ} (hnm : n ≤ m) (hml : m ≤ l) :

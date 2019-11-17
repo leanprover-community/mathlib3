@@ -14,7 +14,7 @@ import
   measure_theory.borel_space
 noncomputable theory
 open lattice set filter
-open_locale classical
+open_locale classical topological_space
 
 section sequence_of_directed
 variables {α : Type*} {β : Type*} [encodable α] [inhabited α]
@@ -226,7 +226,7 @@ instance [add_monoid β] : add_monoid (α →ₛ β) :=
   zero_add  := assume f, ext (assume a, zero_add _),
   add_zero  := assume f, ext (assume a, add_zero _) }
 
-instance [add_comm_monoid β] : add_comm_monoid (α →ₛ β) :=
+instance add_comm_monoid [add_comm_monoid β] : add_comm_monoid (α →ₛ β) :=
 { add_comm := λ f g, ext (λa, add_comm _ _),
   .. simple_func.add_monoid }
 
@@ -1143,8 +1143,8 @@ lemma dominated_convergence_nn
   {F : ℕ → α → ennreal} {f : α → ennreal} {g : α → ennreal}
   (hF_meas : ∀n, measurable (F n)) (h_bound : ∀n, ∀ₘ a, F n a ≤ g a)
   (h_fin : lintegral g < ⊤)
-  (h_lim : ∀ₘ a, tendsto (λ n, F n a) at_top (nhds (f a))) :
-  tendsto (λn, lintegral (F n)) at_top (nhds (lintegral f)) :=
+  (h_lim : ∀ₘ a, tendsto (λ n, F n a) at_top (𝓝 (f a))) :
+  tendsto (λn, lintegral (F n)) at_top (𝓝 (lintegral f)) :=
 begin
   have limsup_le_lintegral :=
   calc

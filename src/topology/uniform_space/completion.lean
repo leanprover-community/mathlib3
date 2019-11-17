@@ -41,7 +41,7 @@ noncomputable theory
 open filter set
 universes u v w x
 
-open_locale uniformity classical
+open_locale uniformity classical topological_space
 
 /-- Space of Cauchy filters
 
@@ -317,10 +317,10 @@ instance complete_space_separation [h : complete_space α] :
   have cauchy (f.comap (λx, ⟦x⟧)), from
     cauchy_comap comap_quotient_le_uniformity hf $
       comap_neq_bot_of_surj hf.left $ assume b, quotient.exists_rep _,
-  let ⟨x, (hx : f.comap (λx, ⟦x⟧) ≤ nhds x)⟩ := complete_space.complete this in
+  let ⟨x, (hx : f.comap (λx, ⟦x⟧) ≤ 𝓝 x)⟩ := complete_space.complete this in
   ⟨⟦x⟧, calc f = map (λx, ⟦x⟧) (f.comap (λx, ⟦x⟧)) :
       (map_comap $ univ_mem_sets' $ assume b, quotient.exists_rep _).symm
-    ... ≤ map (λx, ⟦x⟧) (nhds x) : map_mono hx
+    ... ≤ map (λx, ⟦x⟧) (𝓝 x) : map_mono hx
     ... ≤ _ : continuous_iff_continuous_at.mp uniform_continuous_quotient_mk.continuous _⟩⟩
 
 

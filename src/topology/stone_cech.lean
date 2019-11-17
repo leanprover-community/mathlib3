@@ -14,6 +14,7 @@ import topology.bases topology.dense_embedding
 noncomputable theory
 
 open filter lattice set
+open_locale topological_space
 
 universes u v
 
@@ -59,10 +60,10 @@ end
 /-- Every ultrafilter `u` on `ultrafilter α` converges to a unique
   point of `ultrafilter α`, namely `mjoin u`. -/
 lemma ultrafilter_converges_iff {u : ultrafilter (ultrafilter α)} {x : ultrafilter α} :
-  u.val ≤ nhds x ↔ x = mjoin u :=
+  u.val ≤ 𝓝 x ↔ x = mjoin u :=
 begin
   rw [eq_comm, ultrafilter.eq_iff_val_le_val],
-  change u.val ≤ nhds x ↔ x.val.sets ⊆ {a | {v : ultrafilter α | a ∈ v.val} ∈ u.val},
+  change u.val ≤ 𝓝 x ↔ x.val.sets ⊆ {a | {v : ultrafilter α | a ∈ v.val} ∈ u.val},
   simp only [topological_space.nhds_generate_from, lattice.le_infi_iff, ultrafilter_basis,
     le_principal_iff],
   split; intro h,
@@ -80,7 +81,7 @@ t2_iff_ultrafilter.mpr $ assume f x y u fx fy,
   have hy : y = mjoin ⟨f, u⟩, from ultrafilter_converges_iff.mp fy,
   hx.trans hy.symm
 
-lemma ultrafilter_comap_pure_nhds (b : ultrafilter α) : comap pure (nhds b) ≤ b.val :=
+lemma ultrafilter_comap_pure_nhds (b : ultrafilter α) : comap pure (𝓝 b) ≤ b.val :=
 begin
   rw topological_space.nhds_generate_from,
   simp only [comap_infi, comap_principal],
@@ -151,7 +152,7 @@ end
 variables  [compact_space γ]
 
 lemma continuous_ultrafilter_extend (f : α → γ) : continuous (ultrafilter.extend f) :=
-have ∀ (b : ultrafilter α), ∃ c, tendsto f (comap ultrafilter.pure (nhds b)) (nhds c) := assume b,
+have ∀ (b : ultrafilter α), ∃ c, tendsto f (comap ultrafilter.pure (𝓝 b)) (𝓝 c) := assume b,
   -- b.map f is an ultrafilter on γ, which is compact, so it converges to some c in γ.
   let ⟨c, _, h⟩ := compact_iff_ultrafilter_le_nhds.mp compact_univ (b.map f).val (b.map f).property
     (by rw [le_principal_iff]; exact univ_mem_sets) in
@@ -165,12 +166,12 @@ end
 /-- The value of `ultrafilter.extend f` on an ultrafilter `b` is the
   unique limit of the ultrafilter `b.map f` in `γ`. -/
 lemma ultrafilter_extend_eq_iff {f : α → γ} {b : ultrafilter α} {c : γ} :
-  ultrafilter.extend f b = c ↔ b.val.map f ≤ nhds c :=
+  ultrafilter.extend f b = c ↔ b.val.map f ≤ 𝓝 c :=
 ⟨assume h, begin
    -- Write b as an ultrafilter limit of pure ultrafilters, and use
    -- the facts that ultrafilter.extend is a continuous extension of f.
    let b' : ultrafilter (ultrafilter α) := b.map pure,
-   have t : b'.val ≤ nhds b,
+   have t : b'.val ≤ 𝓝 b,
      from ultrafilter_converges_iff.mpr (by exact (bind_pure _).symm),
    rw ←h,
    have := (continuous_ultrafilter_extend f).tendsto b,
@@ -243,7 +244,7 @@ continuous_quot_lift _ (continuous_ultrafilter_extend f)
 
 end extension
 
-lemma convergent_eqv_pure {u : ultrafilter α} {x : α} (ux : u.val ≤ nhds x) : u ≈ pure x :=
+lemma convergent_eqv_pure {u : ultrafilter α} {x : α} (ux : u.val ≤ 𝓝 x) : u ≈ pure x :=
 assume γ tγ h₁ h₂ f hf, begin
   resetI,
   transitivity f x, swap, symmetry,
@@ -254,9 +255,9 @@ end
 lemma continuous_stone_cech_unit : continuous (stone_cech_unit : α → stone_cech α) :=
 continuous_iff_ultrafilter.mpr $ λ x g u gx,
   let g' : ultrafilter α := ⟨g, u⟩ in
-  have (g'.map ultrafilter.pure).val ≤ nhds g',
+  have (g'.map ultrafilter.pure).val ≤ 𝓝 g',
     by rw ultrafilter_converges_iff; exact (bind_pure _).symm,
-  have (g'.map stone_cech_unit).val ≤ nhds ⟦g'⟧, from
+  have (g'.map stone_cech_unit).val ≤ 𝓝 ⟦g'⟧, from
     (continuous_at_iff_ultrafilter g').mp
       (continuous_quotient_mk.tendsto g') _ (ultrafilter_map u) this,
   by rwa (show ⟦g'⟧ = ⟦pure x⟧, from quotient.sound $ convergent_eqv_pure gx) at this
@@ -270,10 +271,10 @@ begin
   resetI,
   let ff := stone_cech_extend hf,
   change ff ⟦x⟧ = ff ⟦y⟧,
-  have lim : ∀ z : ultrafilter α, g ≤ nhds ⟦z⟧ → tendsto ff g (nhds (ff ⟦z⟧)) :=
+  have lim : ∀ z : ultrafilter α, g ≤ 𝓝 ⟦z⟧ → tendsto ff g (𝓝 (ff ⟦z⟧)) :=
   assume z gz,
-    calc map ff g ≤ map ff (nhds ⟦z⟧) : map_mono gz
-              ... ≤ nhds (ff ⟦z⟧) : (continuous_stone_cech_extend hf).tendsto _,
+    calc map ff g ≤ map ff (𝓝 ⟦z⟧) : map_mono gz
+              ... ≤ 𝓝 (ff ⟦z⟧) : (continuous_stone_cech_extend hf).tendsto _,
   exact tendsto_nhds_unique u.1 (lim x gx) (lim y gy)
 end
 

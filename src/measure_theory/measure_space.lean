@@ -23,7 +23,7 @@ import topology.instances.ennreal
 noncomputable theory
 
 open classical set lattice filter finset function
-open_locale classical
+open_locale classical topological_space
 
 universes u v w x
 
@@ -412,7 +412,7 @@ by rw [← measure_union hd (hs.inter ht) (hs.diff ht), inter_union_diff s t]
 
 lemma tendsto_measure_Union {μ : measure α} {s : ℕ → set α}
   (hs : ∀n, is_measurable (s n)) (hm : monotone s) :
-  tendsto (μ ∘ s) at_top (nhds (μ (⋃n, s n))) :=
+  tendsto (μ ∘ s) at_top (𝓝 (μ (⋃n, s n))) :=
 begin
   rw measure_Union_eq_supr_nat hs hm,
   exact tendsto_at_top_supr_nat (μ ∘ s) (assume n m hnm, measure_mono $ hm $ hnm)
@@ -420,7 +420,7 @@ end
 
 lemma tendsto_measure_Inter {μ : measure α} {s : ℕ → set α}
   (hs : ∀n, is_measurable (s n)) (hm : ∀n m, n ≤ m → s m ⊆ s n) (hf : ∃i, μ (s i) < ⊤) :
-  tendsto (μ ∘ s) at_top (nhds (μ (⋂n, s n))) :=
+  tendsto (μ ∘ s) at_top (𝓝 (μ (⋂n, s n))) :=
 begin
   rw measure_Inter_eq_infi_nat hs hm hf,
   exact tendsto_at_top_infi_nat (μ ∘ s) (assume n m hnm, measure_mono $ hm _ _ $ hnm),
@@ -491,7 +491,7 @@ instance : has_add (measure α) :=
 @[simp] theorem add_apply (μ₁ μ₂ : measure α) (s : set α) :
   (μ₁ + μ₂) s = μ₁ s + μ₂ s := rfl
 
-instance : add_comm_monoid (measure α) :=
+instance add_comm_monoid : add_comm_monoid (measure α) :=
 { zero      := 0,
   add       := (+),
   add_assoc := assume a b c, ext $ assume s hs, add_assoc _ _ _,
@@ -637,7 +637,7 @@ def a_e (μ : measure α) : filter α :=
   inter_sets := λ s t hs ht, by simp [compl_inter]; exact measure_union_null hs ht,
   sets_of_superset := λ s t hs hst, measure_mono_null (set.compl_subset_compl.2 hst) hs }
 
-lemma mem_a_e_iff (s : set α) : s ∈ μ.a_e.sets ↔ μ (- s) = 0 := iff.refl _
+lemma mem_a_e_iff (s : set α) : s ∈ μ.a_e.sets ↔ μ (- s) = 0 := iff.rfl
 
 end measure
 
@@ -871,7 +871,7 @@ iff.intro
   (assume h', by filter_upwards [h, h'] assume a hpq hp, hpq.1 hp)
   (assume h', by filter_upwards [h, h'] assume a hpq hq, hpq.2 hq)
 
-lemma all_ae_iff {p : α → Prop} : (∀ₘ a, p a) ↔ volume { a | ¬ p a } = 0 := iff.refl _
+lemma all_ae_iff {p : α → Prop} : (∀ₘ a, p a) ↔ volume { a | ¬ p a } = 0 := iff.rfl
 
 lemma all_ae_of_all {p : α → Prop} : (∀a, p a) → ∀ₘ a, p a := assume h,
 by {rw all_ae_iff, convert volume_empty, simp only [h, not_true], reflexivity}

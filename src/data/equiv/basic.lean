@@ -574,7 +574,7 @@ def subtype_equiv_of_subtype' {p : α → Prop} (e : α ≃ β) :
 subtype_congr e $ by simp
 
 def subtype_congr_prop {α : Type*} {p q : α → Prop} (h : p = q) : subtype p ≃ subtype q :=
-subtype_congr (equiv.refl α) (assume a, h ▸ iff.refl _)
+subtype_congr (equiv.refl α) (assume a, h ▸ iff.rfl)
 
 def set_congr {α : Type*} {s t : set α} (h : s = t) : s ≃ t :=
 subtype_congr_prop h

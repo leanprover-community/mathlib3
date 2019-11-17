@@ -11,6 +11,7 @@ import tactic.linarith
 
 universes u v
 open set filter classical emetric
+open_locale topological_space
 
 variable {β : Type v}
 
@@ -41,7 +42,7 @@ begin
   simpa [half_pow] using this
 end
 
-lemma half_pow_tendsto_zero : tendsto (λn, half_pow n) at_top (nhds 0) :=
+lemma half_pow_tendsto_zero : tendsto (λn, half_pow n) at_top (𝓝 0) :=
 begin
   unfold half_pow,
   rw ← ennreal.of_real_zero,
@@ -106,7 +107,7 @@ lemma cauchy_seq_of_edist_le_half_pow [emetric_space β]
 begin
   refine emetric.cauchy_seq_iff_le_tendsto_0.2 ⟨λn:ℕ, 2 * half_pow n, ⟨_, _⟩⟩,
   { exact λk l N hk hl, edist_le_two_mul_half_pow hk hl h },
-  { have : tendsto (λn, 2 * half_pow n) at_top (nhds (2 * 0)) :=
+  { have : tendsto (λn, 2 * half_pow n) at_top (𝓝 (2 * 0)) :=
       ennreal.tendsto_mul_right half_pow_tendsto_zero (by simp),
     simpa using this }
 end
@@ -134,7 +135,7 @@ noncomputable def B2 (B : ℕ → ennreal) (n : ℕ) :=
 lemma B2_pos (hB : ∀n, 0 < B n) (n : ℕ) : 0 < B2 B n :=
 by unfold B2; simp [half_pow_pos n, hB n]
 
-lemma B2_lim : tendsto (λn, B2 B n) at_top (nhds 0) :=
+lemma B2_lim : tendsto (λn, B2 B n) at_top (𝓝 0) :=
 begin
   have : ∀n, B2 B n ≤ half_pow n := λn, lattice.inf_le_left,
   exact tendsto_of_tendsto_of_tendsto_of_le_of_le tendsto_const_nhds half_pow_tendsto_zero
@@ -217,8 +218,8 @@ The Nth one has radius `< B2 N < ε/2`. This set is in `f`, so we can find an el
 also in `t1`.
 `dist(x, seq N) < ε/2` since `seq N` is in this set, and `dist (seq N, y) < ε/2`,
 so `x` is in the ε-ball around `y`, and thus in `t2`. -/
-lemma le_nhds_cau_filter_lim {y : β} (H : tendsto (seq_of_cau_filter hf B hB) at_top (nhds y)) :
-  f ≤ nhds y :=
+lemma le_nhds_cau_filter_lim {y : β} (H : tendsto (seq_of_cau_filter hf B hB) at_top (𝓝 y)) :
+  f ≤ 𝓝 y :=
 begin
   refine (le_nhds_iff_adhp_of_cauchy hf).2 _,
   refine forall_sets_neq_empty_iff_neq_bot.1 (λs hs, _),
@@ -260,7 +261,7 @@ end sequentially_complete
 
 /-- An emetric space in which every Cauchy sequence converges is complete. -/
 theorem complete_of_cauchy_seq_tendsto {α : Type u} [emetric_space α]
-  (H : ∀u : ℕ → α, cauchy_seq u → ∃x, tendsto u at_top (nhds x)) :
+  (H : ∀u : ℕ → α, cauchy_seq u → ∃x, tendsto u at_top (𝓝 x)) :
   complete_space α :=
 ⟨begin
   -- Consider a Cauchy filter `f`
@@ -283,7 +284,7 @@ converging. This is often applied for `B N = 2^{-N}`, i.e., with a very fast con
 to do in general for arbitrary Cauchy sequences. -/
 theorem emetric.complete_of_convergent_controlled_sequences {α : Type u} [emetric_space α]
   (B : ℕ → ennreal) (hB : ∀n, 0 < B n)
-  (H : ∀u : ℕ → α, (∀N n m : ℕ, N ≤ n → N ≤ m → edist (u n) (u m) < B N) → ∃x, tendsto u at_top (nhds x)) :
+  (H : ∀u : ℕ → α, (∀N n m : ℕ, N ≤ n → N ≤ m → edist (u n) (u m) < B N) → ∃x, tendsto u at_top (𝓝 x)) :
   complete_space α :=
 ⟨begin
   -- Consider a Cauchy filter `f`.
@@ -308,7 +309,7 @@ converging. This is often applied for `B N = 2^{-N}`, i.e., with a very fast con
 to do in general for arbitrary Cauchy sequences. -/
 theorem metric.complete_of_convergent_controlled_sequences {α : Type u} [metric_space α]
   (B : ℕ → real) (hB : ∀n, 0 < B n)
-  (H : ∀u : ℕ → α, (∀N n m : ℕ, N ≤ n → N ≤ m → dist (u n) (u m) < B N) → ∃x, tendsto u at_top (nhds x)) :
+  (H : ∀u : ℕ → α, (∀N n m : ℕ, N ≤ n → N ≤ m → dist (u n) (u m) < B N) → ∃x, tendsto u at_top (𝓝 x)) :
   complete_space α :=
 begin
   -- this follows from the same criterion in emetric spaces. We just need to translate
@@ -331,7 +332,7 @@ multiplicative absolute value on normed fields. -/
 
 lemma tendsto_limit [normed_ring β] [hn : is_absolute_value (norm : β → ℝ)]
   (f : cau_seq β norm) [cau_seq.is_complete β norm] :
-  tendsto f at_top (nhds f.lim) :=
+  tendsto f at_top (𝓝 f.lim) :=
 _root_.tendsto_nhds.mpr
 begin
   intros s os lfs,

@@ -2,20 +2,29 @@
 Copyright (c) 2019 Sébastien Gouëzel. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Author: Sébastien Gouëzel
+-/
+
+import topology.metric_space.isometry topology.instances.ennreal
+       topology.metric_space.lipschitz
+
+/-!
+# Hausdorff distance
+
 The Hausdorff distance on subsets of a metric (or emetric) space.
+
 Given two subsets `s` and `t` of a metric space, their Hausdorff distance is the smallest `d`
 such that any point `s` is within `d` of a point in `t`, and conversely. This quantity
 is often infinite (think of `s` bounded and `t` unbounded), and therefore better
 expressed in the setting of emetric spaces.
+
+## Main definitions
+
 This files introduces:
 * `inf_edist x s`, the infimum edistance of a point `x` to a set `s` in an emetric space
 * `Hausdorff_edist s t`, the Hausdorff edistance of two sets in an emetric space
 * Versions of these notions on metric spaces, called respectively `inf_dist` and
 `Hausdorff_dist`.
 -/
-
-import topology.metric_space.isometry topology.instances.ennreal
-       topology.metric_space.lipschitz
 noncomputable theory
 open_locale classical
 universes u v w
@@ -456,7 +465,7 @@ lemma mem_closure_iff_inf_dist_zero (h : s ≠ ∅) : x ∈ closure s ↔ inf_di
 by simp [mem_closure_iff_inf_edist_zero, inf_dist, ennreal.to_real_eq_zero_iff, inf_edist_ne_top h]
 
 /-- Given a closed set `s`, a point belongs to `s` iff its infimum distance to this set vanishes -/
-lemma mem_iff_ind_dist_zero_of_closed (h : is_closed s) (hs : s ≠ ∅) :
+lemma mem_iff_inf_dist_zero_of_closed (h : is_closed s) (hs : s ≠ ∅) :
   x ∈ s ↔ inf_dist x s = 0 :=
 begin
   have := @mem_closure_iff_inf_dist_zero _ _ s x hs,

@@ -5,7 +5,7 @@ Author: Simon Hudon
 
 Monad encapsulating continuation passing programming style, similar to
 Haskell's `Cont`, `ContT` and `MonadCont`:
-http://hackage.haskell.org/package/mtl-2.2.2/docs/Control-Monad-Cont.html
+<http://hackage.haskell.org/package/mtl-2.2.2/docs/Control-Monad-Cont.html>
 -/
 
 import tactic.ext
@@ -57,7 +57,7 @@ def with_cont_t (f : (β → m r) → α → m r) (x : cont_t r m α) : cont_t r
 lemma run_with_cont_t (f : (β → m r) → α → m r) (x : cont_t r m α) :
   run (with_cont_t f x) = run x ∘ f := rfl
 
-@[extensionality]
+@[ext]
 protected lemma ext {x y : cont_t r m α}
   (h : ∀ f, x.run f = y.run f) :
   x = y := by { ext; apply h }

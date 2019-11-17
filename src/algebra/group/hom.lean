@@ -272,7 +272,7 @@ rfl
 lemma coe_inj ⦃f g : M →* N⦄ (h : (f : M → N) = g) : f = g :=
 by cases f; cases g; cases h; refl
 
-@[extensionality, to_additive]
+@[ext, to_additive]
 lemma ext ⦃f g : M →* N⦄ (h : ∀ x, f x = g x) : f = g :=
 coe_inj (funext h)
 
@@ -314,6 +314,13 @@ def comp (hnp : N →* P) (hmn : M →* N) : M →* P :=
 { to_fun := hnp ∘ hmn,
   map_one' := by simp,
   map_mul' := by simp }
+
+@[simp, to_additive] lemma comp_apply (g : N →* P) (f : M →* N) (x : M) :
+  g.comp f x = g (f x) := rfl
+
+/-- Composition of monoid homomorphisms is associative. -/
+@[to_additive] lemma comp_assoc {Q : Type*} [monoid Q] (f : M →* N) (g : N →* P) (h : P →* Q) :
+  (h.comp g).comp f = h.comp (g.comp f) := rfl
 
 omit mP
 variables [mM] [mN]
@@ -359,6 +366,15 @@ eq_inv_of_mul_eq_one $ by rw [←f.map_mul, inv_mul_self, f.map_one]
 @[simp, to_additive]
 theorem map_mul_inv {G H} [group G] [group H] (f : G →* H) (g h : G) :
   f (g * h⁻¹) = (f g) * (f h)⁻¹ := by rw [f.map_mul, f.map_inv]
+
+/-- A group homomorphism is injective iff its kernel is trivial. -/
+@[to_additive]
+lemma injective_iff {G H} [group G] [group H] (f : G →* H) :
+  function.injective f ↔ (∀ a, f a = 1 → a = 1) :=
+⟨λ h _, by rw ← f.map_one; exact @h _ _,
+  λ h x y hxy, by rw [← inv_inv (f x), inv_eq_iff_mul_eq_one, ← f.map_inv,
+      ← f.map_mul] at hxy;
+    simpa using inv_eq_of_mul_eq_one (h _ hxy)⟩
 
 include mM
 /-- Makes a group homomomorphism from a proof that the map preserves multiplication. -/

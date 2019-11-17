@@ -1,4 +1,14 @@
 /-
+Copyright (c) 2019 Floris van Doorn. All rights reserved.
+Released under Apache 2.0 license as described in the file LICENSE.
+Authors: Floris van Doorn
+-/
+
+import tactic.core meta.rb_map
+
+/-!
+# Localized notation
+
 This consists of two user-commands which allow you to declare notation and commands localized to a namespace.
 
 * Declare notation which is localized to a namespace using:
@@ -20,7 +30,7 @@ localized "attribute [simp] le_refl" in le
 ```
 The code is inspired by code from Gabriel Ebner from the hott3 repository.
 -/
-import tactic.core meta.rb_map
+
 open lean lean.parser interactive tactic native
 
 reserve notation `localized`

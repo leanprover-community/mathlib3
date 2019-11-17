@@ -11,8 +11,7 @@ import measure_theory.l1_space
 
 noncomputable theory
 open lattice set filter topological_space
-open_locale classical
-
+open_locale classical topological_space
 
 universes u v
 variables {α : Type u} {β : Type v} {ι : Type*}
@@ -24,7 +23,7 @@ variables [measure_space α] [normed_group β] [second_countable_topology β]
 
 local infixr ` →ₛ `:25 := simple_func
 lemma simple_func_sequence_tendsto {f : α → β} (hf : measurable f) :
-  ∃ (F : ℕ → (α →ₛ β)), ∀ x : α, tendsto (λ n, F n x) at_top (nhds (f x)) ∧
+  ∃ (F : ℕ → (α →ₛ β)), ∀ x : α, tendsto (λ n, F n x) at_top (𝓝 (f x)) ∧
   ∀ n, ∥F n x∥ ≤ ∥f x∥ + ∥f x∥ :=
 -- enumerate a countable dense subset {e k} of β
 let ⟨D, ⟨D_countable, D_dense⟩⟩ := separable_space.exists_countable_closure_eq_univ β in
@@ -238,7 +237,7 @@ classical.by_cases
 
 lemma simple_func_sequence_tendsto' {f : α → β} (hfm : measurable f)
   (hfi : integrable f) : ∃ (F : ℕ → (α →ₛ β)), (∀n, integrable (F n)) ∧
-   tendsto (λ n, ∫⁻ x,  nndist (F n x) (f x)) at_top  (nhds 0) :=
+   tendsto (λ n, ∫⁻ x,  nndist (F n x) (f x)) at_top  (𝓝 0) :=
 let ⟨F, hF⟩ := simple_func_sequence_tendsto hfm in
 let G : ℕ → α → ennreal := λn x, nndist (F n x) (f x) in
 let g : α → ennreal := λx, nnnorm (f x) + nnnorm (f x) + nnnorm (f x) in
@@ -250,14 +249,14 @@ have h_bound : ∀ n, ∀ₘ x, G n x ≤ g x := λ n, all_ae_of_all $ λ x, coe
   calc
     nndist (F n x) (f x) ≤ nndist (F n x) 0 + nndist 0 (f x) : nndist_triangle _ _ _
     ... = nnnorm (F n x) + nnnorm (f x) : by simp [nndist_eq_nnnorm]
-    ... ≤ nnnorm (f x) + nnnorm (f x) + nnnorm (f x) : by { simp [nnreal.coe_le, (hF x).2] },
+    ... ≤ nnnorm (f x) + nnnorm (f x) + nnnorm (f x) : by { simp [nnreal.coe_le.symm, (hF x).2] },
 have h_finite : lintegral g < ⊤ :=
   calc
     (∫⁻ x, nnnorm (f x) + nnnorm (f x) + nnnorm (f x)) =
       (∫⁻ x, nnnorm (f x)) + (∫⁻ x, nnnorm (f x)) + (∫⁻ x, nnnorm (f x)) :
     by rw [lintegral_add, lintegral_add]; simp only [measurable_coe_nnnorm hfm, measurable_add]
     ... < ⊤ : by { simp only [and_self, add_lt_top], exact hfi},
-have h_lim : ∀ₘ x, tendsto (λ n, G n x) at_top (nhds 0) := all_ae_of_all $ λ x,
+have h_lim : ∀ₘ x, tendsto (λ n, G n x) at_top (𝓝 0) := all_ae_of_all $ λ x,
   begin
     apply (@tendsto_coe ℕ at_top (λ n, nndist (F n x) (f x)) 0).2,
     apply (@nnreal.tendsto_coe ℕ at_top (λ n, nndist (F n x) (f x)) 0).1,
@@ -274,7 +273,7 @@ begin
          lintegral_add (measurable_coe_nnnorm hfm) (measurable_coe_nnnorm hfm)
        ... < ⊤ : by simp only [add_lt_top, and_self]; exact hfi },
   convert @dominated_convergence_nn _ _ G (λ a, 0) g
-              hF_meas measurable_const hg_meas h_bound h_finite h_lim,
+              hF_meas h_bound h_finite h_lim,
   simp only [lintegral_zero]
 end
 

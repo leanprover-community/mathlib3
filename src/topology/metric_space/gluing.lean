@@ -3,39 +3,49 @@ Copyright (c) 2019 Sébastien Gouëzel. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Gluing metric spaces
 Authors: Sébastien Gouëzel
+-/
+
+import topology.metric_space.isometry topology.metric_space.premetric_space
+
+/-!
+# Metric space gluing
 
 Gluing two metric spaces along a common subset. Formally, we are given
+
+```
      Φ
   γ ---> α
   |
   |Ψ
   v
   β
-where hΦ : isometry Φ and hΨ : isometry Ψ
+```
+where `hΦ : isometry Φ` and `hΨ : isometry Ψ`.
 We want to complete the square by a space `glue_space hΦ hΨ` and two isometries
 `to_glue_l hΦ hΨ` and `to_glue_r hΦ hΨ` that make the square commute.
-We start by defining a predistance on the disjoint union α ⊕ β, for which
-points Φ p and Ψ p are at distance 0. The (quotient) metric space associated
+We start by defining a predistance on the disjoint union `α ⊕ β`, for which
+points `Φ p` and `Ψ p` are at distance 0. The (quotient) metric space associated
 to this predistance is the desired space.
 
-This is an instance of a more general construction, where Φ and Ψ do not have to be isometries,
-but the distances in the image almost coincide, up to 2ε say. Then one can almost glue the two
-spaces so that the images of a point under Φ and Ψ are ε-close. If ε > 0, this yields a
-metric space structure on α ⊕ β, without the need to take a quotient. In particular, when
-α and β are inhabited, this gives a natural metric space structure on α ⊕ β, where the basepoints
+This is an instance of a more general construction, where `Φ` and `Ψ` do not have to be isometries,
+but the distances in the image almost coincide, up to `2ε` say. Then one can almost glue the two
+spaces so that the images of a point under `Φ` and `Ψ` are ε-close. If `ε > 0`, this yields a
+metric space structure on `α ⊕ β`, without the need to take a quotient. In particular, when
+`α` and `β` are inhabited, this gives a natural metric space structure on `α ⊕ β`, where the basepoints
 are at distance 1, say, and the distances between other points are obtained by going through the
 two basepoints.
 
 We also define the inductive limit of metric spaces. Given
+```
      f 0        f 1        f 2        f 3
 X 0 -----> X 1 -----> X 2 -----> X 3 -----> ...
-where the X n are metric spaces and f n isometric embeddings, we define the inductive
-limit of the X n, also known as the increasing union of the X n in this context, if we
-identify X n and X (n+1) through f n. This is a metric space in which all X n embed
-isometrically and in a way compatible with f n.
--/
+```
+where the `X n` are metric spaces and `f n` isometric embeddings, we define the inductive
+limit of the `X n`, also known as the increasing union of the `X n` in this context, if we
+identify `X n` and `X (n+1)` through `f n`. This is a metric space in which all `X n` embed
+isometrically and in a way compatible with `f n`.
 
-import topology.metric_space.isometry topology.metric_space.premetric_space
+-/
 
 noncomputable theory
 

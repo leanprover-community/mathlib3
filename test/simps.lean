@@ -53,7 +53,7 @@ run_cmd do
   let nm := `foo.bar1,
   d ← e.get nm,
   let lhs : expr := const d.to_name (d.univ_params.map level.param),
-  add_projections e nm d.type lhs d.value [] d.univ_params tt ff
+  simps_add_projections e nm "" d.type lhs d.value [] d.univ_params tt ff ff []
 
 end foo
 
@@ -184,5 +184,47 @@ let m := 4, k := 5 in λ n, ⟨n + m, k⟩
 
 run_cmd do
   e ← get_env,
-  e.get `let1_fst >> e.get `let2_fst >> e.get `let3_fst >> e.get `let4_fst >>
-  e.get `let1_snd >> e.get `let2_snd >> e.get `let3_snd >> e.get `let4_snd
+  e.get `let1_fst, e.get `let2_fst, e.get `let3_fst, e.get `let4_fst,
+  e.get `let1_snd, e.get `let2_snd, e.get `let3_snd, e.get `let4_snd
+
+
+namespace specify
+@[simps fst] def specify1 : ℕ × ℕ × ℕ := (1, 2, 3)
+@[simps snd] def specify2 : ℕ × ℕ × ℕ := (1, 2, 3)
+@[simps snd_fst] def specify3 : ℕ × ℕ × ℕ := (1, 2, 3)
+@[simps snd snd_snd snd_snd] def specify4 : ℕ × ℕ × ℕ := (1, 2, 3) -- last argument is ignored
+@[simps] def specify5 : ℕ × ℕ × ℕ := (1, prod.map (λ x, x) (λ y, y) (2, 3))
+end specify
+
+run_cmd do
+  e ← get_env,
+  e.get `specify.specify1_fst, e.get `specify.specify2_snd,
+  e.get `specify.specify3_snd_fst, e.get `specify.specify4_snd_snd, e.get `specify.specify4_snd,
+  e.get `specify.specify5_fst, e.get `specify.specify5_snd,
+  guard $ 12 = e.fold 0 -- there are no other lemmas generated
+    (λ d n, n + if d.to_name.components.init.ilast = `specify then 1 else 0),
+  success_if_fail_with_msg (simps_tac `specify.specify1 tt ff ["fst_fst"])
+    "Invalid simp-lemma specify.specify1_fst_fst. Too many projections given.",
+  success_if_fail_with_msg (simps_tac `specify.specify1 tt ff ["foo_fst"])
+    "Invalid simp-lemma specify.specify1_foo_fst. Projection foo doesn't exist.",
+  success_if_fail_with_msg (simps_tac `specify.specify1 tt ff ["snd_bar"])
+    "Invalid simp-lemma specify.specify1_snd_bar. Projection bar doesn't exist.",
+  success_if_fail_with_msg (simps_tac `specify.specify5 tt ff ["snd_snd"])
+    "Invalid simp-lemma specify.specify5_snd_snd. Too many projections given."
+
+
+/- We also eta-reduce if we explicitly specify the projection. -/
+attribute [simps extra] test
+run_cmd do
+  e ← get_env,
+  d1 ← e.get `test_extra,
+  d2 ← e.get `test_extra_2,
+  guard $ d1.type =ₐ d2.type,
+  skip
+
+/- check short_name option -/
+@[simps short_name] def short_name1 : (ℕ × ℕ) × ℕ × ℕ := ((1, 2), 3, 4)
+run_cmd do
+  e ← get_env,
+  e.get `short_name1_fst, e.get `short_name1_fst_2,
+  e.get `short_name1_snd, e.get `short_name1_snd_2

@@ -86,16 +86,16 @@ Informally, one can think of `F` as the set of "big" subsets of `X`. For example
 
 Note that if `F` is a filter that contains the empty set, then it contains all subsets of `X` by the first axiom. This filter is sometimes called "bottom" (we will see why a little later on). Some references demand that the empty set is not allowed to be in a filter -- Lean does not have this restriction. A filter not containing the empty set is sometimes called a "proper filter".
 
-If `X` is a topological space, and `x ∈ X`, then the _neighbourhood filter_ `nhds x` of `x` is the set of subsets `Y` of `X` such that `x` is in the interior of `Y`. One checks easily that this is a filter (technical point: to see that this is actually the definition of `nhds x` in mathlib, it helps to know that the set of all filters on a type is a complete lattice, partially ordered using `F ≤ G` iff `G ⊆ F`, so the definition, which involves an inf, is actually a union; also, the definition I give is not literally the definition in mathlib, but `lemma nhds_sets` says that their definition is the one here. Note also that this is why the filter with the most sets is called bottom!).
+If `X` is a topological space, and `x ∈ X`, then the _neighbourhood filter_ `𝓝 x` of `x` is the set of subsets `Y` of `X` such that `x` is in the interior of `Y`. One checks easily that this is a filter (technical point: to see that this is actually the definition of `𝓝 x` in mathlib, it helps to know that the set of all filters on a type is a complete lattice, partially ordered using `F ≤ G` iff `G ⊆ F`, so the definition, which involves an inf, is actually a union; also, the definition I give is not literally the definition in mathlib, but `lemma nhds_sets` says that their definition is the one here. Note also that this is why the filter with the most sets is called bottom!).
 
-Why are we interested in these filters? Well, given a map `f` from `ℕ` to a topological space `X`, one can check that the resulting sequence `f 0`, `f 1`, `f 2`... tends to `x ∈ F` if and only if the pre-image of any element in the filter `nhds x` is in the cofinite filter on `ℕ` -- this is just another way of saying that given any open set `U` containing `x`, there exists `N` such that for all `n ≥ N`, `f n ∈ U`. So filters provide a way of thinking about limits.
+Why are we interested in these filters? Well, given a map `f` from `ℕ` to a topological space `X`, one can check that the resulting sequence `f 0`, `f 1`, `f 2`... tends to `x ∈ F` if and only if the pre-image of any element in the filter `𝓝 x` is in the cofinite filter on `ℕ` -- this is just another way of saying that given any open set `U` containing `x`, there exists `N` such that for all `n ≥ N`, `f n ∈ U`. So filters provide a way of thinking about limits.
 
 The _principal filter_ `principal Y` attached to a subset `Y` of a set `X` is the collection of all subsets of `X` that contain `Y`. So it's not difficult to convince yourself that the following results should be true:
 
 ```lean
-example : interior Y = {x | nhds x ≤ filter.principal Y} := interior_eq_nhds
+example : interior Y = {x | 𝓝 x ≤ filter.principal Y} := interior_eq_nhds
 
-example : is_open Y ↔ ∀ y ∈ Y, Y ∈ (nhds y).sets := is_open_iff_mem_nhds
+example : is_open Y ↔ ∀ y ∈ Y, Y ∈ (𝓝 y).sets := is_open_iff_mem_nhds
 ```
 
 ### Compactness with filters
@@ -109,7 +109,7 @@ of compactness is also written in filter-theoretic terms:
 ```lean
 /-- A set `s` is compact if every filter that contains `s` also meets every
   neighborhood of some `a ∈ s`. -/
-def compact (Y : set X) := ∀F, F ≠ ⊥ → F ≤ principal Y → ∃y∈Y, F ⊓ nhds y ≠ ⊥
+def compact (Y : set X) := ∀F, F ≠ ⊥ → F ≤ principal Y → ∃y∈Y, F ⊓ 𝓝 y ≠ ⊥
 ```
 
 Translated, this says that a subset `Y` of a topological space `X` is compact if for every proper filter `F` on `X`, if `Y` is an element of `F` then there's an element `y` of `Y` such that the smallest filter containing both F and the neighbourhood filter of `y` is not the filter of all subsets of `X` either. This should be thought of as being the correct general analogue of the Bolzano-Weierstrass theorem, that in a compact subspace of `ℝ^n`, any sequence has a convergent subsequence.
@@ -137,7 +137,7 @@ Of course Hausdorffness is what we need to ensure that limits are unique, but be
 
 ```lean
 lemma tendsto_nhds_unique [t2_space X] {f : β → X} {l : filter β} {x y : X}
-  (hl : l ≠ ⊥) (hx : tendsto f l (nhds x)) (hb : tendsto f l (nhds y)) : x = y
+  (hl : l ≠ ⊥) (hx : tendsto f l (𝓝 x)) (hb : tendsto f l (𝓝 y)) : x = y
 ```
 
 Note that actually this statement is more general than the classical statement that if a sequence tends to two limits in a Hausdorff space then the limits are the same, because it applies to any non-trivial filter on any set rather than just the cofinite filter on the natural numbers.

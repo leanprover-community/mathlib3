@@ -25,7 +25,7 @@ section
   variables {α β : Type u}
   open function
 
-  @[extensionality]
+  @[ext]
   protected lemma ext (x x' : writer_t ω m α)
     (h : x.run = x'.run) :
     x = x' := by cases x; cases x'; congr; apply h

@@ -24,7 +24,7 @@ We define the order on cardinal numbers, define omega, and do basic cardinal ari
 
 ## References
 
-* https://en.wikipedia.org/wiki/Cardinal_number
+* <https://en.wikipedia.org/wiki/Cardinal_number>
 
 ## Tags
 

@@ -2,19 +2,25 @@
 Copyright (c) 2019 Chris Hughes. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Chris Hughes
+-/
+
+import ring_theory.noetherian linear_algebra.dimension
+import ring_theory.principal_ideal_domain
+
+/-!
+# Finite dimensional vector spaces
 
 Definition and basic properties of finite dimensional vector spaces.
+
+## Main definitions
 
 The class `finite_dimensional` is defined to be `is_noetherian`, for ease of transfer of proofs.
 However an additional constructor `finite_dimensional.of_fg` is provided to prove
 finite dimensionality in a conventional manner.
 
 Also defined is `findim`, the dimension of a finite dimensional space, returning a `nat`,
-as opposed to `dim`, which returns a `cardinal`,
+as opposed to `dim`, which returns a `cardinal`.
 -/
-
-import ring_theory.noetherian linear_algebra.dimension
-import ring_theory.principal_ideal_domain
 
 universes u v w
 

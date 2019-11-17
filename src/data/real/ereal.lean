@@ -4,13 +4,13 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Kevin Buzzard
 -/
 
-import data.real.basic 
+import data.real.basic
 
 /-!
 # The extended reals [-∞, ∞].
 
 This file defines `ereal`, the real numbers together with a top and bottom element,
-referred to as ⊤ and ⊥. 
+referred to as ⊤ and ⊥.
 
 Addition and multiplication are problematic in the presence of ±∞, but
 negation is not, so we define negation. The main work is defining
@@ -24,11 +24,7 @@ real, ereal, complete lattice
 -/
 
 /-- ereal : The type $$[-\infty,+\infty]$$ or `[-∞, ∞]` -/
-def ereal := with_bot (with_top ℝ)
-
-instance : linear_order ereal := by unfold ereal; apply_instance
-instance : lattice.order_bot ereal := by unfold ereal; apply_instance
-instance : lattice.order_top ereal := by unfold ereal; apply_instance
+@[derive [linear_order, lattice.order_bot, lattice.order_top]] def ereal := with_bot (with_top ℝ)
 
 /- neg -/
 
@@ -47,7 +43,7 @@ theorem ereal.neg_le_of_neg_le : ∀ {a b : ereal} (h : -a ≤ b), -b ≤ a
 | (some none) b h := lattice.le_top
 | (some (some a)) none h := by cases (lattice.le_bot_iff.1 h)
 | (some (some a)) (some none) h := lattice.bot_le
-| (some (some a)) (some (some b)) h := 
+| (some (some a)) (some (some b)) h :=
 begin
   revert h,
   change (((-a : ℝ) : with_top ℝ) : with_bot (with_top ℝ)) ≤ _ →
@@ -86,8 +82,8 @@ dite (Xoc = ∅) (λ h, ⟨⊥, ⟨
       exact hx,
     },
     λ u hu, lattice.bot_le⟩
-  ⟩) (λ h, dite (⊤ ∈ Xoc) (λ h2, ⟨⊤, ⟨λ _ _, lattice.le_top, λ x hx, hx _ h2⟩⟩) $
-    λ htop, 
+  ⟩) (λ h, dite (⊤ ∈ Xoc) (λ h2, ⟨⊤, ⟨λ _ _, lattice.le_top, λ x hx, hx h2⟩⟩) $
+    λ htop,
     let Xoo : set ℝ := λ (x : ℝ), Xoc (↑ x) in
     begin
     by_cases h2 : nonempty (upper_bounds Xoo),
@@ -95,24 +91,23 @@ dite (Xoc = ∅) (λ h, ⟨⊥, ⟨
       use (↑(↑(real.Sup Xoo : real) : with_top ℝ) : with_bot (with_top ℝ)),
       split,
       { rintros (⟨⟩|⟨⟩|x) hx,
-            exact lattice.bot_le,
-          exact false.elim (htop hx),
-        change (↑(↑x : with_top ℝ) : with_bot (with_top ℝ)) ≤ _,
-        simp [real.le_Sup _ ⟨b, hb⟩ hx],
+        { exact lattice.bot_le},
+        { exact false.elim (htop hx)},
+        { change (↑(↑x : with_top ℝ) : with_bot (with_top ℝ)) ≤ _,
+          simp [real.le_Sup _ ⟨b, hb⟩ hx]},
       },
       { intros c hc,
         cases c with c,
-          cases (set.exists_mem_of_ne_empty h) with x hx,
-          cases (lattice.le_bot_iff.1 (hc (↑x : with_bot _) hx)),
+        { cases (set.exists_mem_of_ne_empty h) with x hx,
+          cases (lattice.le_bot_iff.1 (hc hx))},
         cases c with c, {unfold_coes, simp},
         suffices : real.Sup Xoo ≤ c,
-          unfold_coes, simp [this],
+        { unfold_coes, simp [this]},
         refine (real.Sup_le Xoo _ ⟨b, hb⟩).2 _,
-          rcases (set.exists_mem_of_ne_empty h) with ⟨⟨⟩ | ⟨x⟩, hx⟩,
-            contradiction,
-          exact ⟨x, hx⟩,
+        { rcases (set.exists_mem_of_ne_empty h) with ⟨⟨⟩ | ⟨x⟩, hx⟩, contradiction,
+          exact ⟨x, hx⟩},
         intros x hx,
-        replace hc := hc (↑(↑x : with_top ℝ) : with_bot (with_top ℝ)) hx,
+        replace hc := hc hx,
         unfold_coes at hc,
         simpa using hc,
       }
@@ -122,22 +117,22 @@ dite (Xoc = ∅) (λ h, ⟨⊥, ⟨
       intros b hb,
       rw lattice.top_le_iff,
       cases b with b,
-        exfalso,
+      { exfalso,
         apply h,
         ext x,
         split, swap, rintro ⟨⟩,
         intro hx,
-        cases (lattice.le_bot_iff.1 (hb (↑x : with_bot _) hx)),
-      cases b with b, refl,
-      exfalso,
-      apply h2,
-      use b,
-      intros x hx,
-      replace hb := hb (↑(↑x : with_top ℝ) : with_bot (with_top ℝ)) hx,
-      unfold_coes at hb,
-      simpa using hb,
+        cases (lattice.le_bot_iff.1 (hb hx))},
+      { cases b with b, refl,
+        exfalso,
+        apply h2,
+        use b,
+        intros x hx,
+        replace hb := hb hx,
+        unfold_coes at hb,
+        simpa using hb},
     }
-  end) 
+  end)
 
 noncomputable def ereal.Sup := λ X, classical.some (Sup_exists X)
 
@@ -151,9 +146,9 @@ noncomputable instance : lattice.complete_lattice (ereal) :=
   bot_le := @lattice.bot_le _ _,
   Sup := ereal.Sup,
   Inf := λ X, -classical.some (Sup_exists ({mx | ∃ x ∈ X, mx = -x})),
-  le_Sup := λ X x hx, (classical.some_spec (Sup_exists X)).1 _ hx,
-  Sup_le := λ X b hb, (classical.some_spec (Sup_exists X)).2 _ hb,
-  Inf_le := λ X x hx, ereal.neg_le_of_neg_le $ (classical.some_spec (Sup_exists ({mx | ∃ x ∈ X, mx = -x}))).1 _ ⟨x, hx, rfl⟩,
-  le_Inf := λ X b hb, ereal.le_neg_of_le_neg $ (classical.some_spec (Sup_exists ({mx | ∃ x ∈ X, mx = -x}))).2 _
-    (λ mx ⟨x, hx, hmx⟩, ereal.le_neg_of_le_neg $ hb _ $ by rwa [hmx, ereal.neg_neg]),
+  le_Sup := λ X x hx, (classical.some_spec (Sup_exists X)).1 hx,
+  Sup_le := λ X b hb, (classical.some_spec (Sup_exists X)).2 hb,
+  Inf_le := λ X x hx, ereal.neg_le_of_neg_le $ (classical.some_spec (Sup_exists ({mx | ∃ x ∈ X, mx = -x}))).1 ⟨x, hx, rfl⟩,
+  le_Inf := λ X b hb, ereal.le_neg_of_le_neg $ (classical.some_spec (Sup_exists ({mx | ∃ x ∈ X, mx = -x}))).2
+    (λ mx ⟨h, hx, hmx⟩, ereal.le_neg_of_le_neg $ hb _ $ by rwa [hmx, ereal.neg_neg]),
   ..with_bot.lattice }

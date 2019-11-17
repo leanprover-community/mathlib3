@@ -23,7 +23,9 @@ are continuous. Moreover, a finite-dimensional subspace is always complete and c
   closed
 * `finite_dimensional.proper` : a finite-dimensional space over a proper field is proper. This
   is not registered as an instance, as the field would be an unknown metavariable in typeclass
-  resolution. It is however registered as an instance for `𝕜 = ℝ`.
+  resolution. It is however registered as an instance for `𝕜 = ℝ` and `𝕜 = ℂ`. As properness
+  implies completeness, there is no need to also register `finite_dimensional.complete` on `ℝ` or
+  `ℂ`.
 
 ## Implementation notes
 
@@ -252,3 +254,11 @@ instance finite_dimensional.proper_real
 finite_dimensional.proper ℝ E
 
 attribute [instance, priority 900] finite_dimensional.proper_real
+
+/- Over the complex numbers, we can register the previous statement as an instance as it will not
+cause problems in instance resolution since the properness of `ℂ` is already known. -/
+instance finite_dimensional.proper_complex
+  (E : Type) [normed_group E] [normed_space ℂ E] [finite_dimensional ℂ E] : proper_space E :=
+finite_dimensional.proper ℂ E
+
+attribute [instance, priority 900] finite_dimensional.proper_complex

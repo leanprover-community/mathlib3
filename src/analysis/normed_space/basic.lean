@@ -148,7 +148,7 @@ lemma ball_0_eq (ε : ℝ) : ball (0:α) ε = {x | ∥x∥ < ε} :=
 set.ext $ assume a, by simp
 
 theorem normed_group.tendsto_nhds_zero {f : γ → α} {l : filter γ} :
-  tendsto f l (𝓝 0) ↔ ∀ ε, 0 < ε → { x | ∥ f x ∥ < ε } ∈ l :=
+  tendsto f l (𝓝 0) ↔ ∀ ε > 0, { x | ∥ f x ∥ < ε } ∈ l :=
 begin
   rw [metric.tendsto_nhds], simp only [normed_group.dist_eq, sub_zero],
   split,
@@ -561,7 +561,7 @@ open finset filter
 variables [normed_group α] [complete_space α]
 
 lemma summable_iff_vanishing_norm {f : ι → α} :
-  summable f ↔ ∀ε, 0 < ε → (∃s:finset ι, ∀t, disjoint t s → ∥ t.sum f ∥ < ε) :=
+  summable f ↔ ∀ε > 0, ∃s:finset ι, ∀t, disjoint t s → ∥ t.sum f ∥ < ε :=
 begin
   simp only [summable_iff_vanishing, metric.mem_nhds_iff, exists_imp_distrib],
   split,

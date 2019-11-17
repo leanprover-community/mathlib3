@@ -312,7 +312,7 @@ have ∀q:β×β×β, p q.1 q.2.1 q.2.2,
 assume b₁ b₂ b₃, this ⟨b₁, b₂, b₃⟩
 
 @[elab_as_eliminator]
-lemma dense_range.induction_on  [topological_space β] {e : α → β} (he : dense_range e) {p : β → Prop}
+lemma dense_range.induction_on [topological_space β] {e : α → β} (he : dense_range e) {p : β → Prop}
   (b₀ : β) (hp : is_closed {b | p b}) (ih : ∀a:α, p $ e a) : p b₀ :=
 is_closed_property he hp ih b₀
 

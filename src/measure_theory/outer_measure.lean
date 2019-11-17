@@ -107,7 +107,7 @@ instance : has_add (outer_measure α) :=
 @[simp] theorem add_apply (m₁ m₂ : outer_measure α) (s : set α) :
   (m₁ + m₂) s = m₁ s + m₂ s := rfl
 
-instance : add_comm_monoid (outer_measure α) :=
+instance add_comm_monoid : add_comm_monoid (outer_measure α) :=
 { zero      := 0,
   add       := (+),
   add_comm  := assume a b, ext $ assume s, add_comm _ _,

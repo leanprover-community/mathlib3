@@ -771,7 +771,7 @@ instance prod.metric_space_max [metric_space β] : metric_space (α × β) :=
   edist := λ x y, max (edist x.1 y.1) (edist x.2 y.2),
   edist_dist := assume x y, begin
     have : monotone ennreal.of_real := assume x y h, ennreal.of_real_le_of_real h,
-    rw [edist_dist, edist_dist, (max_distrib_of_monotone this).symm]
+    rw [edist_dist, edist_dist, this.map_max.symm]
   end,
   uniformity_dist := begin
     refine uniformity_prod.trans _,

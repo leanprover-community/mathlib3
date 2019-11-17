@@ -67,7 +67,7 @@ end
 lemma differentiable_exp : differentiable ℂ exp :=
 λx, (has_deriv_at_exp x).differentiable_at
 
-lemma deriv_exp {x : ℂ} :
+@[simp] lemma deriv_exp {x : ℂ} :
   deriv exp x = exp x :=
 (has_deriv_at_exp x).deriv
 
@@ -99,7 +99,7 @@ end
 lemma differentiable_sin : differentiable ℂ sin :=
 λx, (has_deriv_at_sin x).differentiable_at
 
-lemma deriv_sin {x : ℂ} :
+@[simp] lemma deriv_sin {x : ℂ} :
   deriv sin x = cos x :=
 (has_deriv_at_sin x).deriv
 
@@ -130,7 +130,7 @@ end
 lemma differentiable_cos : differentiable ℂ cos :=
 λx, (has_deriv_at_cos x).differentiable_at
 
-lemma deriv_cos {x : ℂ} :
+@[simp] lemma deriv_cos {x : ℂ} :
   deriv cos x = -sin x :=
 (has_deriv_at_cos x).deriv
 
@@ -160,7 +160,7 @@ end
 lemma differentiable_sinh : differentiable ℂ sinh :=
 λx, (has_deriv_at_sinh x).differentiable_at
 
-lemma deriv_sinh {x : ℂ} :
+@[simp] lemma deriv_sinh {x : ℂ} :
   deriv sinh x = cosh x :=
 (has_deriv_at_sinh x).deriv
 
@@ -184,7 +184,7 @@ end
 lemma differentiable_cosh : differentiable ℂ cosh :=
 λx, (has_deriv_at_cosh x).differentiable_at
 
-lemma deriv_cosh {x : ℂ} :
+@[simp] lemma deriv_cosh {x : ℂ} :
   deriv cosh x = sinh x :=
 (has_deriv_at_cosh x).deriv
 

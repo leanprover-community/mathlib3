@@ -192,6 +192,15 @@ structure galois_insertion {α β : Type*} [preorder α] [preorder β] (l : α �
 (le_l_u : ∀x, x ≤ l (u x))
 (choice_eq : ∀a h, choice a h = l a)
 
+/-- A constructor for a Galois insertion with the trivial `choice` function. -/
+def galois_insertion.monotone_intro {α β : Type*} [preorder α] [preorder β] {l : α → β} {u : β → α}
+  (hu : monotone u) (hl : monotone l) (hul : ∀ a, a ≤ u (l a)) (hlu : ∀ b, l (u b) = b) :
+  galois_insertion l u :=
+{ choice := λ x _, l x,
+  gc := galois_connection.monotone_intro hu hl hul (λ b, le_of_eq (hlu b)),
+  le_l_u := λ b, le_of_eq $ (hlu b).symm,
+  choice_eq := λ _ _, rfl }
+
 /-- Makes a Galois insertion from an order-preserving bijection. -/
 protected def order_iso.to_galois_insertion [preorder α] [preorder β] (oi : @order_iso α β (≤) (≤)) : 
 @galois_insertion α β _ _ (oi) (oi.symm) :=

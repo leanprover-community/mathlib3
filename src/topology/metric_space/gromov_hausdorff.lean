@@ -514,7 +514,7 @@ end
 
 lemma to_GH_space_lipschitz :
   lipschitz_with 1 (nonempty_compacts.to_GH_space : nonempty_compacts α → GH_space) :=
-⟨zero_le_one, by { simp, exact GH_dist_le_nonempty_compacts_dist } ⟩
+lipschitz_with.one_mk GH_dist_le_nonempty_compacts_dist
 
 lemma to_GH_space_continuous :
   continuous (nonempty_compacts.to_GH_space : nonempty_compacts α → GH_space) :=

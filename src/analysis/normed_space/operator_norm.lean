@@ -385,7 +385,7 @@ have eq : _ := uniformly_extend_of_ind h_e h_dense f.uniform_continuous,
   cont := cont
 }
 
-lemma extend_zero : extend (0 : E →L[𝕜] F) h_dense h_e = 0 :=
+@[simp] lemma extend_zero : extend (0 : E →L[𝕜] F) h_dense h_e = 0 :=
 begin
   apply ext,
   refine is_closed_property h_dense (is_closed_eq _ _) _,
@@ -401,10 +401,9 @@ variables {N : ℝ} (h_e : ∀x, ∥x∥ ≤ N * ∥e x∥)
 
 local notation `ψ` := f.extend h_dense (uniform_embedding_of_bound _ _ h_e).to_uniform_inducing
 
-/-- If a dense embedding `e : E →L[𝕜] G` expands the norm by a constant factor `N⁻¹`, and the norm
-    of `f : E →L[𝕜] G` is bounded by `M`, then the norm of the extension of `f` along `e` is bounded
-    by `M * N`. -/
-lemma op_norm_uniformly_extend_le : ∥ψ∥ ≤ N * ∥f∥ :=
+/-- If a dense embedding `e : E →L[𝕜] G` expands the norm by a constant factor `N⁻¹`, then the norm
+    of the extension of `f` along `e` is bounded by `N * ∥f∥`. -/
+lemma op_norm_extend_le : ∥ψ∥ ≤ N * ∥f∥ :=
 begin
   have uni : uniform_inducing e := (uniform_embedding_of_bound _ _ h_e).to_uniform_inducing,
   have eq : ∀x, ψ (e x) = f x := uniformly_extend_of_ind uni h_dense f.uniform_continuous,

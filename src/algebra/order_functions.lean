@@ -130,10 +130,10 @@ left_comm max max_comm max_assoc a b c
 theorem max.right_comm (a b c : α) : max (max a b) c = max (max a c) b :=
 right_comm max max_comm max_assoc a b c
 
-lemma max_distrib_of_monotone (hf : monotone f) : f (max a b) = max (f a) (f b) :=
+lemma monotone.map_max (hf : monotone f) : f (max a b) = max (f a) (f b) :=
 by cases le_total a b; simp [h, hf h]
 
-lemma min_distrib_of_monotone (hf : monotone f) : f (min a b) = min (f a) (f b) :=
+lemma monotone.map_min (hf : monotone f) : f (min a b) = min (f a) (f b) :=
 by cases le_total a b; simp [h, hf h]
 
 theorem min_choice (a b : α) : min a b = a ∨ min a b = b :=
@@ -256,14 +256,23 @@ end decidable_linear_ordered_comm_group
 section decidable_linear_ordered_semiring
 variables [decidable_linear_ordered_semiring α] {a b c d : α}
 
-lemma monotone_mul_of_nonneg (ha : 0 ≤ a) : monotone (λ x, a*x) :=
+lemma monotone_mul_left_of_nonneg (ha : 0 ≤ a) : monotone (λ x, a*x) :=
 assume b c b_le_c, mul_le_mul_of_nonneg_left b_le_c ha
 
+lemma monotone_mul_right_of_nonneg (ha : 0 ≤ a) : monotone (λ x, x*a) :=
+assume b c b_le_c, mul_le_mul_of_nonneg_right b_le_c ha
+
 lemma mul_max_of_nonneg (b c : α) (ha : 0 ≤ a) : a * max b c = max (a * b) (a * c) :=
-max_distrib_of_monotone (monotone_mul_of_nonneg ha)
+(monotone_mul_left_of_nonneg ha).map_max
 
 lemma mul_min_of_nonneg (b c : α) (ha : 0 ≤ a) : a * min b c = min (a * b) (a * c) :=
-min_distrib_of_monotone (monotone_mul_of_nonneg ha)
+(monotone_mul_left_of_nonneg ha).map_min
+
+lemma max_mul_of_nonneg (a b : α) (hc : 0 ≤ c) : max a b * c = max (a * c) (b * c) :=
+(monotone_mul_right_of_nonneg hc).map_max
+
+lemma min_mul_of_nonneg (a b : α) (hc : 0 ≤ c) : min a b * c = min (a * c) (b * c) :=
+(monotone_mul_right_of_nonneg hc).map_min
 
 end decidable_linear_ordered_semiring
 

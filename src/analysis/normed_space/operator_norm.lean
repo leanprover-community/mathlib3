@@ -300,7 +300,7 @@ theorem lipschitz : lipschitz_with ∥f∥ f :=
   by { rw [dist_eq_norm, dist_eq_norm, ←map_sub], apply le_op_norm }⟩
 
 /-- A continuous linear map is automatically uniformly continuous. -/
-theorem uniform_continuous : uniform_continuous f :=
+protected theorem uniform_continuous : uniform_continuous f :=
 f.lipschitz.to_uniform_continuous
 
 /-- A continuous linear map is a uniform embedding if it expands the norm by a constant factor. -/
@@ -308,7 +308,7 @@ theorem uniform_embedding_of_bound (C : ℝ) (hC : ∀x, ∥x∥ ≤ C * ∥f x�
   uniform_embedding f :=
 begin
   have Cpos : 0 < max C 1 := lt_of_lt_of_le zero_lt_one (le_max_right _ _),
-  refine uniform_embedding_iff'.2 ⟨metric.uniform_continuous_iff.1 (uniform_continuous _),
+  refine uniform_embedding_iff'.2 ⟨metric.uniform_continuous_iff.1 f.uniform_continuous,
                                     λδ δpos, ⟨δ / (max C 1), div_pos δpos Cpos, λx y hxy, _⟩⟩,
   calc dist x y = ∥x - y∥ : by rw dist_eq_norm
   ... ≤ C * ∥f (x - y)∥ : hC _
@@ -352,6 +352,74 @@ begin
     ... ≤ δ⁻¹ * ∥c∥ * ∥f x∥ :
       by rwa [mul_one] }
 end
+
+section uniformly_extend
+
+variables [complete_space F]
+variables {e : E →L[𝕜] G}
+
+section
+
+variables (h_e : uniform_inducing e) (h_dense : dense_range e)
+
+/-- Extension of a continuous linear map `f : E →L[𝕜] F`, with `E` a normed space and `F` a complete
+    normed space, along a uniform and dense embedding `e : E →L[𝕜] G`.  -/
+def extend : G →L[𝕜] F :=
+/- extension of `f` is continuous -/
+have cont : _ := (uniform_continuous_uniformly_extend h_e h_dense f.uniform_continuous).continuous,
+/- extension of `f` agrees with `f` on the domain of the embedding `e` -/
+have eq : _ := uniformly_extend_of_ind h_e h_dense f.uniform_continuous,
+{ to_fun := (h_e.dense_inducing h_dense).extend f,
+  add :=
+  begin
+    refine is_closed_property2 h_dense (is_closed_eq _ _) _,
+      { exact cont.comp (_root_.continuous_add continuous_fst continuous_snd) },
+      { exact _root_.continuous_add (cont.comp continuous_fst) (cont.comp continuous_snd) },
+      { assume x y, rw ← e.map_add, simp only [eq], exact f.map_add _ _  },
+  end,
+  smul := λk,
+  begin
+    refine is_closed_property h_dense (is_closed_eq _ _) _,
+      { exact cont.comp (continuous_smul continuous_const continuous_id)  },
+      { exact (continuous_smul continuous_const continuous_id).comp cont },
+      { assume x, rw ← map_smul, simp only [eq], exact map_smul _ _ _  },
+  end,
+  cont := cont
+}
+
+end
+
+section
+
+variables {M N : ℝ} (N0 : 0 ≤ N) (h_dense : dense_range e) (he : ∀x, ∥x∥ ≤ N * ∥e x∥)
+
+include N0
+
+local notation `ψ` := f.extend (uniform_embedding_of_bound _ _ he).to_uniform_inducing h_dense
+
+/-- If a dense embedding `e : E →L[𝕜] G` expands the norm by a constant factor `N`, and the norm of
+    `f : E →L[𝕜] G` is bounded by `M`, then the norm of the extension of `f` along `e` is bounded
+    by `M * N`. -/
+lemma op_norm_uniformly_extend_le (hf : ∥f∥ ≤ M): ∥ψ∥ ≤ M * N :=
+have M0 : 0 ≤ M := le_trans (norm_nonneg _) hf,
+have uni : uniform_inducing e := (uniform_embedding_of_bound _ _ he).to_uniform_inducing,
+have eq : ∀x, ψ (e x) = f x := uniformly_extend_of_ind uni h_dense f.uniform_continuous,
+begin
+  refine op_norm_le_bound ψ _ (is_closed_property h_dense (is_closed_le _ _) _),
+  { exact mul_nonneg M0 N0 },
+  { exact continuous_norm.comp (cont ψ) },
+  { exact continuous_mul continuous_const continuous_norm },
+  { assume x,
+    rw eq,
+    calc ∥f x∥ ≤ ∥f∥ * ∥x∥ : le_op_norm _ _
+      ... ≤ M * ∥x∥ : mul_le_mul_of_nonneg_right hf (norm_nonneg _)
+      ... ≤ M * (N * ∥e x∥) : mul_le_mul_of_nonneg_left (he x) M0
+      ... ≤ M * N * ∥e x∥ : by rw mul_assoc }
+end
+
+end
+
+end uniformly_extend
 
 end op_norm
 

@@ -397,7 +397,7 @@ end
 end
 
 section
-variables {M N : ℝ} (h_e : ∀x, ∥x∥ ≤ N * ∥e x∥)
+variables {N : ℝ} (h_e : ∀x, ∥x∥ ≤ N * ∥e x∥)
 
 local notation `ψ` := f.extend h_dense (uniform_embedding_of_bound _ _ h_e).to_uniform_inducing
 

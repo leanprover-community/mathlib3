@@ -566,17 +566,16 @@ theorem one_le_pow_of_one_le {a : α} (H : 1 ≤ a) : ∀ (n : ℕ), 1 ≤ a ^ n
 | (n+1) := by simpa only [mul_one] using mul_le_mul H (one_le_pow_of_one_le n)
     zero_le_one (le_trans zero_le_one H)
 
-theorem one_add_mul_le_pow {a : α} (H : 0 ≤ a) :
+/-- Bernoulli's inequality. This version works for semirings but requires
+an additional hypothesis `0 ≤ a * a`. -/
+theorem one_add_mul_le_pow' {a : α} (Hsqr : 0 ≤ a * a) (H : 0 ≤ 1 + a) :
   ∀ (n : ℕ), 1 + n • a ≤ (1 + a) ^ n
 | 0     := le_of_eq $ add_zero _
-| (n+1) := begin
-  rw [pow_succ', succ_smul'],
-  refine le_trans _ (mul_le_mul_of_nonneg_right
-    (one_add_mul_le_pow n) (add_nonneg zero_le_one H)),
-  rw [mul_add, mul_one, ← add_assoc, add_le_add_iff_left],
-  simpa only [one_mul] using mul_le_mul_of_nonneg_right
-    ((le_add_iff_nonneg_right 1).2 (add_monoid.smul_nonneg H n)) H
-end
+| (n+1) :=
+calc 1 + (n + 1) • a ≤ (1 + a) * (1 + n • a) :
+  by simpa [succ_smul, mul_add, add_mul, add_monoid.mul_smul_left]
+    using add_monoid.smul_nonneg Hsqr n
+... ≤ (1 + a)^(n+1) : mul_le_mul_of_nonneg_left (one_add_mul_le_pow' n) H
 
 theorem pow_le_pow {a : α} {n m : ℕ} (ha : 1 ≤ a) (h : n ≤ m) : a ^ n ≤ a ^ m :=
 let ⟨k, hk⟩ := nat.le.dest h in
@@ -635,11 +634,31 @@ lemma pow_le_one {x : α} : ∀ (n : ℕ) (h0 : 0 ≤ x) (h1 : x ≤ 1), x ^ n �
 end linear_ordered_semiring
 
 theorem pow_two_nonneg [linear_ordered_ring α] (a : α) : 0 ≤ a ^ 2 :=
-by rw pow_two; exact mul_self_nonneg _
+by { rw pow_two, exact mul_self_nonneg _ }
+
+/-- Bernoulli's inequality for `n : ℕ`, `0 ≤ 2 + a` -/
+theorem one_add_mul_le_pow [linear_ordered_ring α] {a : α} (H : 0 ≤ 2 + a) :
+  ∀ (n : ℕ), 1 + n • a ≤ (1 + a) ^ n
+| 0     := le_of_eq $ add_zero _
+| 1     := by simp
+| (n+2) :=
+have 0 ≤ n • (a * a * (2 + a)) + a * a,
+  from add_nonneg (add_monoid.smul_nonneg (mul_nonneg (mul_self_nonneg a) H) n)
+    (mul_self_nonneg a),
+calc 1 + (n + 2) • a ≤ 1 + (n + 2) • a + (n • (a * a * (2 + a)) + a * a) :
+  (le_add_iff_nonneg_right _).2 this
+... = (1 + a) * (1 + a) * (1 + n • a) :
+  by { simp only [add_mul, mul_add, mul_two, mul_one, one_mul, succ_smul, add_monoid.smul_add,
+         add_monoid.mul_smul_assoc, (add_monoid.mul_smul_left _ _ _).symm],
+       ac_refl }
+... ≤ (1 + a) * (1 + a) * (1 + a)^n :
+  mul_le_mul_of_nonneg_left (one_add_mul_le_pow n) (mul_self_nonneg (1 + a))
+... = (1 + a)^(n + 2) : by simp only [pow_succ, mul_assoc]
 
 theorem one_add_sub_mul_le_pow [linear_ordered_ring α]
-  {a : α} (H : 1 ≤ a) (n : ℕ) : 1 + n • (a - 1) ≤ a ^ n :=
-by simpa only [add_sub_cancel'_right] using one_add_mul_le_pow (sub_nonneg.2 H) n
+  {a : α} (H : 0 ≤ 1 + a) (n : ℕ) : 1 + n • (a - 1) ≤ a ^ n :=
+have 0 ≤ 2 + (a - 1), by rwa [bit0, add_assoc, add_sub_cancel'_right],
+by simpa only [add_sub_cancel'_right] using one_add_mul_le_pow this n
 
 namespace int
 

@@ -604,3 +604,43 @@ by rw [span_int_eq_add_group_closure, add_group.closure_add_subgroup]
 end span_int
 
 end int
+
+section restrict_scalar
+/- In this section, we describe restriction of scalars: if `S` is an algebra over `R`, then
+`S`-modules are also `R`-modules-/
+
+variables (R : Type*) [comm_ring R] (S : Type*) [comm_ring S] [algebra R S]
+(E : Type*) [add_comm_group E] [module S E] {F : Type*} [add_comm_group F] [module S F]
+
+/-- When `E` is a module over a ring `S`, and `S` is an algebra over `R`, then `E` inherits a
+module structure over `R`, called `module.restrict S R E`.
+Not registered as an instance as `S` can not be inferred. -/
+def module.restrict_scalar : module R E :=
+{ smul      := λc x, (algebra_map S c) • x,
+  one_smul  := by simp,
+  mul_smul  := by simp [mul_smul],
+  smul_add  := by simp [smul_add],
+  smul_zero := by simp [smul_zero],
+  add_smul  := by simp [add_smul],
+  zero_smul := by simp [zero_smul] }
+
+variables {S E}
+
+local attribute [instance] module.restrict_scalar
+
+/-- The `R`-linear map induced by an `S`-linear map when `S` is an algebra over `R`. -/
+def linear_map.restrict_scalar (f : E →ₗ[S] F) : E →ₗ[R] F :=
+{ to_fun := f.to_fun,
+  add := λx y, f.map_add x y,
+  smul := λc x, f.map_smul (algebra_map S c) x }
+
+@[simp, squash_cast] lemma linear_map.coe_restrict_scalar_eq_coe (f : E →ₗ[S] F) :
+  (f.restrict_scalar R : E → F) = f := rfl
+
+/- Register as an instance (with low priority) the fact that a complex vector space is also a real
+vector space. -/
+instance module.complex_to_real (E : Type*) [add_comm_group E] [module ℂ E] : module ℝ E :=
+module.restrict_scalar ℝ ℂ E
+attribute [instance, priority 900] module.complex_to_real
+
+end restrict_scalar

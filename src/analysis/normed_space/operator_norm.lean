@@ -116,7 +116,6 @@ variables [nondiscrete_normed_field 𝕜] [normed_space 𝕜 E] [normed_space �
 (c : 𝕜) (f g : E →L[𝕜] F) (h : F →L[𝕜] G) (x y z : E)
 include 𝕜
 
-
 /-- A continuous linear map between normed spaces is bounded when the field is nondiscrete.
 The continuity ensures boundedness on a ball of some radius δ. The nondiscreteness is then
 used to rescale any element into an element of norm in [δ/C, δ], whose image has a controlled norm.
@@ -275,11 +274,6 @@ lemma op_norm_neg : ∥-f∥ = ∥f∥ := calc
 instance to_normed_group : normed_group (E →L[𝕜] F) :=
 normed_group.of_core _ ⟨op_norm_zero_iff, op_norm_triangle, op_norm_neg⟩
 
-/- The next instance should be found automatically, but it is not.
-TODO: fix me -/
-instance to_normed_group_prod : normed_group (E →L[𝕜] (F × G)) :=
-continuous_linear_map.to_normed_group
-
 instance to_normed_space : normed_space 𝕜 (E →L[𝕜] F) :=
 ⟨op_norm_smul⟩
 
@@ -377,6 +371,50 @@ begin
       ... = ∥((smul_right c f) : E → F) x∥ : rfl
       ... ≤ ∥smul_right c f∥ * ∥x∥ : le_op_norm _ _ } },
 end
+
+section restrict_scalar
+
+variable (𝕜)
+variables (𝕜' : Type*) [normed_field 𝕜'] [normed_algebra 𝕜 𝕜']
+{E' : Type*} [normed_group E'] [normed_space 𝕜' E']
+{F' : Type*} [normed_group F'] [normed_space 𝕜' F']
+
+/-- `𝕜`-normed space structure induced by a `𝕜'`-normed space structure when `𝕜'` is a
+normed algebra over `𝕜`. -/
+def normed_space.restrict_scalar : normed_space 𝕜 E' :=
+{ norm_smul := λc x, begin
+    change ∥(algebra_map 𝕜' c) • x∥ = ∥c∥ * ∥x∥,
+    simp [norm_smul, normed_algebra.norm_eq]
+  end,
+  ..module.restrict_scalar 𝕜 𝕜' E' }
+
+local attribute [instance, priority 500] normed_space.restrict_scalar
+
+variable {𝕜'}
+/-- `𝕜`-linear continuous function induced by a `𝕜'`-linear continuous function when `𝕜'` is a
+normed algebra over `𝕜`. -/
+def restrict_scalar (f : E' →L[𝕜'] F') : E' →L[𝕜] F' :=
+{ cont := f.cont,
+  ..linear_map.restrict_scalar 𝕜 (f.to_linear_map) }
+
+@[simp, move_cast] lemma restrict_scalar_coe_eq_coe (f : E' →L[𝕜'] F') :
+  (f.restrict_scalar 𝕜 : E' →ₗ[𝕜] F') = (f : E' →ₗ[𝕜'] F').restrict_scalar 𝕜 := rfl
+
+@[simp, squash_cast] lemma restrict_scalar_coe_eq_coe' (f : E' →L[𝕜'] F') :
+  (f.restrict_scalar 𝕜 : E' → F') = f := rfl
+
+end restrict_scalar
+
+section restrict_scalar_real_complex
+/- Register as an instance with low priority that a complex normed space is also a real normed
+space. -/
+variables {E' : Type*} [normed_group E'] [normed_space ℂ E']
+
+instance normed_space.restrict_scalar_complex_to_real : normed_space ℝ E' :=
+normed_space.restrict_scalar ℝ ℂ
+attribute [instance, priority 900] normed_space.restrict_scalar_complex_to_real
+
+end restrict_scalar_real_complex
 
 end continuous_linear_map
 

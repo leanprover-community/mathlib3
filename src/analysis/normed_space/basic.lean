@@ -516,6 +516,16 @@ instance fintype.normed_space {E : ι → Type*} [fintype ι] [∀i, normed_grou
 
 end normed_space
 
+section normed_algebra
+
+/-- A normed algebra `𝕜'` over `𝕜` is an algebra endowed with a norm for which the embedding of
+`𝕜` in `𝕜'` is an isometry. -/
+class normed_algebra (𝕜 : Type*) (𝕜' : Type*) [normed_field 𝕜] [normed_ring 𝕜']
+  extends algebra 𝕜 𝕜' :=
+(norm_eq : ∀x:𝕜, ∥algebra_map 𝕜' x∥ = ∥x∥)
+
+end normed_algebra
+
 section summable
 open_locale classical
 open finset filter
@@ -566,6 +576,10 @@ instance : normed_field ℂ :=
 
 instance : nondiscrete_normed_field ℂ :=
 { non_trivial := ⟨2, by simp [norm]; norm_num⟩ }
+
+instance normed_algebra_over_real : normed_algebra ℝ ℂ :=
+{ norm_eq := abs_of_real,
+  ..complex.algebra_over_reals }
 
 @[simp] lemma norm_real (r : ℝ) : ∥(r : ℂ)∥ = ∥r∥ := complex.abs_of_real _
 

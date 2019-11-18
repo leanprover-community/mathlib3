@@ -51,24 +51,24 @@ lemma monotone_l : monotone l :=
 assume a b H, gc.l_le (le_trans H (gc.le_u_l b))
 
 lemma upper_bounds_l_image_subset {s : set α} : upper_bounds (l '' s) ⊆ u ⁻¹' upper_bounds s :=
-assume b hb c, assume : c ∈ s, gc.le_u (hb _ (mem_image_of_mem _ ‹c ∈ s›))
+assume b hb c, assume : c ∈ s, gc.le_u (hb (mem_image_of_mem _ ‹c ∈ s›))
 
 lemma lower_bounds_u_image_subset {s : set β} : lower_bounds (u '' s) ⊆ l ⁻¹' lower_bounds s :=
-assume a ha c, assume : c ∈ s, gc.l_le (ha _ (mem_image_of_mem _ ‹c ∈ s›))
+assume a ha c, assume : c ∈ s, gc.l_le (ha (mem_image_of_mem _ ‹c ∈ s›))
 
 lemma is_lub_l_image {s : set α} {a : α} (h : is_lub s a) : is_lub (l '' s) (l a) :=
 ⟨mem_upper_bounds_image gc.monotone_l $ and.elim_left ‹is_lub s a›,
-  assume b hb, gc.l_le $ and.elim_right ‹is_lub s a› _ $ gc.upper_bounds_l_image_subset hb⟩
+  assume b hb, gc.l_le $ and.elim_right ‹is_lub s a› $ gc.upper_bounds_l_image_subset hb⟩
 
 lemma is_glb_u_image {s : set β} {b : β} (h : is_glb s b) : is_glb (u '' s) (u b) :=
 ⟨mem_lower_bounds_image gc.monotone_u $ and.elim_left ‹is_glb s b›,
-  assume a ha, gc.le_u $ and.elim_right ‹is_glb s b› _ $ gc.lower_bounds_u_image_subset ha⟩
+  assume a ha, gc.le_u $ and.elim_right ‹is_glb s b› $ gc.lower_bounds_u_image_subset ha⟩
 
 lemma is_glb_l {a : α} : is_glb { b | a ≤ u b } (l a) :=
-⟨assume b, gc.l_le, assume b h, h _ $ gc.le_u_l _⟩
+⟨assume b, gc.l_le, assume b h, h $ gc.le_u_l _⟩
 
 lemma is_lub_u {b : β} : is_lub { a | l a ≤ b } (u b) :=
-⟨assume b, gc.le_u, assume b h, h _ $ gc.l_u_le _⟩
+⟨assume b, gc.le_u, assume b h, h $ gc.l_u_le _⟩
 
 end
 

@@ -226,7 +226,7 @@ instance [add_monoid β] : add_monoid (α →ₛ β) :=
   zero_add  := assume f, ext (assume a, zero_add _),
   add_zero  := assume f, ext (assume a, add_zero _) }
 
-instance [add_comm_monoid β] : add_comm_monoid (α →ₛ β) :=
+instance add_comm_monoid [add_comm_monoid β] : add_comm_monoid (α →ₛ β) :=
 { add_comm := λ f g, ext (λa, add_comm _ _),
   .. simple_func.add_monoid }
 

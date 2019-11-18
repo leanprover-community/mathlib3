@@ -171,6 +171,19 @@ theorem singleton_inj {a b : α} : ι a = ι b ↔ a = b :=
 
 @[simp] lemma coe_singleton (a : α) : ↑(ι a) = ({a} : set α) := rfl
 
+lemma eq_singleton_iff_unique_mem {s : finset α} {a : α} :
+  s = finset.singleton a ↔ a ∈ s ∧ ∀ x ∈ s, x = a :=
+begin
+  split; intro t,
+    rw t,
+    refine ⟨finset.mem_singleton_self _, λ _, finset.mem_singleton.1⟩,
+  ext, rw finset.mem_singleton,
+  refine ⟨t.right _, λ r, r.symm ▸ t.left⟩
+end
+
+lemma singleton_iff_unique_mem (s : finset α) : (∃ a, s = finset.singleton a) ↔ ∃! a, a ∈ s :=
+by simp only [eq_singleton_iff_unique_mem, exists_unique]
+
 /- insert -/
 section decidable_eq
 variables [decidable_eq α]
@@ -545,6 +558,19 @@ set.ext $ λ _, mem_sdiff
 
 @[simp] lemma to_set_sdiff (s t : finset α) : (s \ t).to_set = s.to_set \ t.to_set :=
 by apply finset.coe_sdiff
+
+@[simp] theorem union_sdiff_self_eq_union {s t : finset α} : s ∪ (t \ s) = s ∪ t :=
+ext.2 $ λ a, by simp only [mem_union, mem_sdiff, or_iff_not_imp_left,
+  imp_and_distrib, and_iff_left id]
+
+@[simp] theorem sdiff_union_self_eq_union {s t : finset α} : (s \ t) ∪ t = s ∪ t :=
+by rw [union_comm, union_sdiff_self_eq_union, union_comm]
+
+lemma union_sdiff_symm {s t : finset α} : s ∪ (t \ s) = t ∪ (s \ t) :=
+by rw [union_sdiff_self_eq_union, union_sdiff_self_eq_union, union_comm]
+
+lemma sdiff_eq_empty_iff_subset {s t : finset α} : s \ t = ∅ ↔ s ⊆ t :=
+by rw [subset_iff, ext]; simp
 
 end decidable_eq
 

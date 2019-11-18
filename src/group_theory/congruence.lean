@@ -7,8 +7,6 @@ Authors: Amelia Livingston
 import group_theory.submonoid
 import data.setoid
 import algebra.pi_instances
-import data.equiv.algebra
-import tactic.tidy
 
 /-!
 # Congruence relations
@@ -25,7 +23,7 @@ congruence relations on the quotient by `c`.
 
 The second half of the file concerns congruence relations on monoids, in which case the
 quotient by the congruence relation is also a monoid. There are results about the universal
-property of quotients of monoids and the isomorphism theorems for monoids.
+property of quotients of monoids, and the isomorphism theorems for monoids.
 
 ## Implementation notes
 
@@ -42,7 +40,7 @@ congruence relation.
 
 A congruence relation on a monoid `M` can be thought of as a submonoid of `M × M` for which
 membership is an equivalence relation, but whilst this fact is established in the file, it is not
-used, since this perspective adds unnecessary layers of definitional unfolding.
+used, since this perspective adds more layers of definitional unfolding.
 
 ## Tags
 

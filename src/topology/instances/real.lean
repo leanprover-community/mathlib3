@@ -405,7 +405,7 @@ lemma real.bounded_iff_bdd_below_bdd_above {s : set ℝ} : bounded s ↔ bdd_bel
 end,
 begin
   rintros ⟨⟨m, hm⟩, ⟨M, hM⟩⟩,
-  have I : s ⊆ Icc m M := λx hx, ⟨hm x hx, hM x hx⟩,
+  have I : s ⊆ Icc m M := λx hx, ⟨hm hx, hM hx⟩,
   have : Icc m M = closed_ball ((m+M)/2) ((M-m)/2) :=
     by rw closed_ball_Icc; congr; ring,
   rw this at I,

@@ -261,7 +261,7 @@ technical lemmas -/
 
 lemma HD_below_aux1 {f : Cb α β} (C : ℝ) {x : α} : bdd_below (range (λ (y : β), f (inl x, inr y) + C)) :=
 let ⟨cf, hcf⟩ := (real.bounded_iff_bdd_below_bdd_above.1 bounded_range).1 in
-⟨cf + C, forall_range_iff.2 (λi, add_le_add_right ((λx, hcf (f x) (mem_range_self _)) _) _)⟩
+⟨cf + C, forall_range_iff.2 (λi, add_le_add_right ((λx, hcf (mem_range_self x)) _) _)⟩
 
 private lemma HD_bound_aux1 (f : Cb α β) (C : ℝ) : bdd_above (range (λ (x : α), infi (λy:β, f (inl x, inr y) + C))) :=
 begin
@@ -269,12 +269,12 @@ begin
   refine ⟨Cf + C, forall_range_iff.2 (λx, _)⟩,
   calc infi (λy:β, f (inl x, inr y) + C) ≤ f (inl x, inr (default β)) + C :
     cinfi_le (HD_below_aux1 C)
-    ... ≤ Cf + C : add_le_add ((λx, hCf (f x) (mem_range_self _)) _) (le_refl _)
+    ... ≤ Cf + C : add_le_add ((λx, hCf (mem_range_self x)) _) (le_refl _)
 end
 
 lemma HD_below_aux2 {f : Cb α β} (C : ℝ) {y : β} : bdd_below (range (λ (x : α), f (inl x, inr y) + C)) :=
 let ⟨cf, hcf⟩ := (real.bounded_iff_bdd_below_bdd_above.1 bounded_range).1 in
-⟨cf + C, forall_range_iff.2 (λi, add_le_add_right ((λx, hcf (f x) (mem_range_self _)) _) _)⟩
+⟨cf + C, forall_range_iff.2 (λi, add_le_add_right ((λx, hcf (mem_range_self x)) _) _)⟩
 
 private lemma HD_bound_aux2 (f : Cb α β) (C : ℝ) : bdd_above (range (λ (y : β), infi (λx:α, f (inl x, inr y) + C))) :=
 begin
@@ -282,7 +282,7 @@ begin
   refine ⟨Cf + C, forall_range_iff.2 (λy, _)⟩,
   calc infi (λx:α, f (inl x, inr y) + C) ≤ f (inl (default α), inr y) + C :
     cinfi_le (HD_below_aux2 C)
-  ... ≤ Cf + C : add_le_add ((λx, hCf (f x) (mem_range_self _)) _) (le_refl _)
+  ... ≤ Cf + C : add_le_add ((λx, hCf (mem_range_self x)) _) (le_refl _)
 end
 
 /-- Explicit bound on HD (dist). This means that when looking for minimizers it will
@@ -320,9 +320,9 @@ private lemma HD_lipschitz_aux1 (f g : Cb α β) :
   supr (λx:α, infi (λy:β, f (inl x, inr y))) ≤ supr (λx:α, infi (λy:β, g (inl x, inr y))) + dist f g :=
 begin
   rcases (real.bounded_iff_bdd_below_bdd_above.1 bounded_range).1 with ⟨cg, hcg⟩,
-  have Hcg : ∀x, cg ≤ g x := λx, hcg (g x) (mem_range_self _),
+  have Hcg : ∀x, cg ≤ g x := λx, hcg (mem_range_self x),
   rcases (real.bounded_iff_bdd_below_bdd_above.1 bounded_range).1 with ⟨cf, hcf⟩,
-  have Hcf : ∀x, cf ≤ f x := λx, hcf (f x) (mem_range_self _),
+  have Hcf : ∀x, cf ≤ f x := λx, hcf (mem_range_self x),
 
   -- prove the inequality but with `dist f g` inside, by using inequalities comparing
   -- supr to supr and infi to infi
@@ -354,9 +354,9 @@ private lemma HD_lipschitz_aux2 (f g : Cb α β) :
   supr (λy:β, infi (λx:α, f (inl x, inr y))) ≤ supr (λy:β, infi (λx:α, g (inl x, inr y))) + dist f g :=
 begin
   rcases (real.bounded_iff_bdd_below_bdd_above.1 bounded_range).1 with ⟨cg, hcg⟩,
-  have Hcg : ∀x, cg ≤ g x := λx, hcg (g x) (mem_range_self _),
+  have Hcg : ∀x, cg ≤ g x := λx, hcg (mem_range_self x),
   rcases (real.bounded_iff_bdd_below_bdd_above.1 bounded_range).1 with ⟨cf, hcf⟩,
-  have Hcf : ∀x, cf ≤ f x := λx, hcf (f x) (mem_range_self _),
+  have Hcf : ∀x, cf ≤ f x := λx, hcf (mem_range_self x),
 
   -- prove the inequality but with `dist f g` inside, by using inequalities comparing
   -- supr to supr and infi to infi

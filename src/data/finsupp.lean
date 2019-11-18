@@ -1508,7 +1508,7 @@ lemma sum_id_lt_of_lt (m n : σ →₀ ℕ) (h : m < n) :
 begin
   rw [← card_to_multiset, ← card_to_multiset],
   apply multiset.card_lt_of_lt,
-  exact to_multiset_strict_mono _ _ h
+  exact to_multiset_strict_mono h
 end
 
 variable (σ)

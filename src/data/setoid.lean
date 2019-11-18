@@ -74,6 +74,14 @@ def ker (f : α → β) : setoid α :=
 @[simp] lemma ker_mk_eq (r : setoid α) : ker (@quotient.mk _ r) = r :=
 ext' $ λ x y, quotient.eq
 
+/-- Given types `α, β`, the product of two equivalence relations `r` on `α` and `s` on `β`:
+    `(x₁, x₂), (y₁, y₂) ∈ α × β` are related by `r.prod s` iff `x₁` is related to `y₁`
+    by `r` and `x₂` is related to `y₂` by `s`. -/
+protected def prod (r : setoid α) (s : setoid β) : setoid (α × β) :=
+{ r := λ x y, r.rel x.1 y.1 ∧ s.rel x.2 y.2,
+  iseqv := ⟨λ x, ⟨r.refl' x.1, s.refl' x.2⟩, λ _ _ h, ⟨r.symm' h.1, s.symm' h.2⟩,
+            λ _ _ _ h1 h2, ⟨r.trans' h1.1 h2.1, s.trans' h1.2 h2.2⟩⟩ }
+
 /-- The infimum of two equivalence relations. -/
 instance : has_inf (setoid α) :=
 ⟨λ r s, ⟨λ x y, r.rel x y ∧ s.rel x y, ⟨λ x, ⟨r.refl' x, s.refl' x⟩,

@@ -51,7 +51,7 @@ begin
 end
 
 -- Here are two other potential solutions, suggested by @fpvandoorn at
--- https://github.com/leanprover-community/mathlib/pull/1018#discussion_r283978240
+-- <https://github.com/leanprover-community/mathlib/pull/1018#discussion_r283978240>
 -- However, I can't get the subsequent two proofs to work with either one.
 
 -- def stalk_pushforward (f : X ⟶ Y) (ℱ : X.presheaf C) (x : X) : (f _* ℱ).stalk (f x) ⟶ ℱ.stalk x :=

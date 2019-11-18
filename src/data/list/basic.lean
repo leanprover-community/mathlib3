@@ -1526,6 +1526,14 @@ by rw [h, prod_append, prod_cons, mul_left_comm]; exact dvd_mul_right _ _
 @[simp] theorem sum_const_nat (m n : ℕ) : sum (list.repeat m n) = m * n :=
 by induction n; [refl, simp only [*, repeat_succ, sum_cons, nat.mul_succ, add_comm]]
 
+theorem dvd_sum [comm_semiring α] {a} {l : list α} (h : ∀ x ∈ l, a ∣ x) : a ∣ l.sum :=
+begin
+  induction l with x l ih,
+  { exact dvd_zero _ },
+  { rw [list.sum_cons],
+    exact dvd_add (h _ (mem_cons_self _ _)) (ih (λ x hx, h x (mem_cons_of_mem _ hx))) }
+end
+
 @[simp] theorem length_join (L : list (list α)) : length (join L) = sum (map length L) :=
 by induction L; [refl, simp only [*, join, map, sum_cons, length_append]]
 

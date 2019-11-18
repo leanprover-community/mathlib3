@@ -2,19 +2,27 @@
 Copyright (c) 2019 Sébastien Gouëzel. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Author: Sébastien Gouëzel
+-/
 
-The Gromov-Hausdorff distance on the space of nonempty compact metric spaces up to isometry.
+import topology.metric_space.closeds set_theory.cardinal topology.metric_space.gromov_hausdorff_realized
+topology.metric_space.completion
+
+/-!
+# Gromov-Hausdorff distance
+
+This file defines the Gromov-Hausdorff distance on the space of nonempty compact metric spaces
+up to isometry.
 
 We introduces the space of all nonempty compact metric spaces, up to isometry,
 called `GH_space`, and endow it with a metric space structure. The distance,
 known as the Gromov-Hausdorff distance, is defined as follows: given two
-nonempty compact spaces X and Y, their distance is the minimum Hausdorff distance
-between all possible isometric embeddings of X and Y in all metric spaces.
+nonempty compact spaces `X` and `Y`, their distance is the minimum Hausdorff distance
+between all possible isometric embeddings of `X` and `Y` in all metric spaces.
 To define properly the Gromov-Hausdorff space, we consider the non-empty
-compact subsets of ℓ^∞(ℝ) up to isometry, which is a well-defined type,
+compact subsets of `ℓ^∞(ℝ)` up to isometry, which is a well-defined type,
 and define the distance as the infimum of the Hausdorff distance over all
 embeddings in ℓ^∞(ℝ). We prove that this coincides with the previous description,
-as all separable metric spaces embed isometrically into ℓ^∞(ℝ), through an
+as all separable metric spaces embed isometrically into `ℓ^∞(ℝ)`, through an
 embedding called the Kuratowski embedding.
 To prove that we have a distance, we should show that if spaces can be coupled
 to be arbitrarily close, then they are isometric. More generally, the Gromov-Hausdorff
@@ -22,13 +30,12 @@ distance is realized, i.e., there is a coupling for which the Hausdorff distance
 is exactly the Gromov-Hausdorff distance. This follows from a compactness
 argument, essentially following from Arzela-Ascoli.
 
+## Main results
+
 We prove the most important properties of the Gromov-Hausdorff space: it is a polish space,
 i.e., it is complete and second countable. We also prove the Gromov compactness criterion.
+
 -/
-
-import topology.metric_space.closeds set_theory.cardinal topology.metric_space.gromov_hausdorff_realized
-topology.metric_space.completion
-
 
 noncomputable theory
 open_locale classical
@@ -220,7 +227,8 @@ begin
   have Bβ : ⟦B⟧ = to_GH_space β,
   { rw eq_to_GH_space_iff,
     exact ⟨λx, F (Ψ' x), ⟨(Kuratowski_embedding.isometry _).comp IΨ', by rw range_comp⟩⟩ },
-  refine cInf_le ⟨0, begin simp, assume t _ _ _ _ ht, rw ← ht, exact Hausdorff_dist_nonneg end⟩ _,
+  refine cInf_le ⟨0,
+    begin simp [lower_bounds], assume t _ _ _ _ ht, rw ← ht, exact Hausdorff_dist_nonneg end⟩ _,
   apply (mem_image _ _ _).2,
   existsi (⟨A, B⟩ : nonempty_compacts ℓ_infty_ℝ × nonempty_compacts ℓ_infty_ℝ),
   simp [Aα, Bβ]

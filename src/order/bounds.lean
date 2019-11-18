@@ -15,26 +15,32 @@ section preorder
 
 variables [preorder α] [preorder β] {f : α → β}
 
-def upper_bounds (s : set α) : set α := { x | ∀a ∈ s, a ≤ x }
-def lower_bounds (s : set α) : set α := { x | ∀a ∈ s, x ≤ a }
+/-- The set of upper bounds of a set. -/
+def upper_bounds (s : set α) : set α := { x | ∀ ⦃a⦄, a ∈ s →  a ≤ x }
+/-- The set of lower bounds of a set. -/
+def lower_bounds (s : set α) : set α := { x | ∀ ⦃a⦄, a ∈ s → x ≤ a }
+/-- `a` is a least element of a set `s`; for a partial order, it is unique if exists. -/
 def is_least (s : set α) (a : α) : Prop := a ∈ s ∧ a ∈ lower_bounds s
+/-- `a` is a greatest element of a set `s`; for a partial order, it is unique if exists -/
 def is_greatest (s : set α) (a : α) : Prop := a ∈ s ∧ a ∈ upper_bounds s
+/-- `a` is a least upper bound of a set `s`; for a partial order, it is unique if exists. -/
 def is_lub (s : set α) : α → Prop := is_least (upper_bounds s)
+/-- `a` is a greatest lower bound of a set `s`; for a partial order, it is unique if exists. -/
 def is_glb (s : set α) : α → Prop := is_greatest (lower_bounds s)
 
 lemma upper_bounds_mono (h₁ : a₁ ≤ a₂) (h₂ : a₁ ∈ upper_bounds s) : a₂ ∈ upper_bounds s :=
-λ a h, le_trans (h₂ _ h) h₁
+λ a h, le_trans (h₂ h) h₁
 
 lemma lower_bounds_mono (h₁ : a₂ ≤ a₁) (h₂ : a₁ ∈ lower_bounds s) : a₂ ∈ lower_bounds s :=
-λ a h, le_trans h₁ (h₂ _ h)
+λ a h, le_trans h₁ (h₂ h)
 
 lemma mem_upper_bounds_image (Hf : monotone f) (Ha : a ∈ upper_bounds s) :
   f a ∈ upper_bounds (f '' s) :=
-ball_image_of_ball (assume x H, Hf (Ha _ ‹x ∈ s›))
+ball_image_of_ball (assume x H, Hf (Ha ‹x ∈ s›))
 
 lemma mem_lower_bounds_image (Hf : monotone f) (Ha : a ∈ lower_bounds s) :
   f a ∈ lower_bounds (f '' s) :=
-ball_image_of_ball (assume x H, Hf (Ha _ ‹x ∈ s›))
+ball_image_of_ball (assume x H, Hf (Ha ‹x ∈ s›))
 
 lemma is_lub_singleton {a : α} : is_lub {a} a :=
 by simp [is_lub, is_least, upper_bounds, lower_bounds] {contextual := tt}
@@ -48,13 +54,13 @@ section partial_order
 variables [partial_order α]
 
 lemma eq_of_is_least_of_is_least (Ha : is_least s a₁) (Hb : is_least s a₂) : a₁ = a₂ :=
-le_antisymm (Ha.right _ Hb.left) (Hb.right _ Ha.left)
+le_antisymm (Ha.right Hb.left) (Hb.right Ha.left)
 
 lemma is_least_iff_eq_of_is_least (Ha : is_least s a₁) : is_least s a₂ ↔ a₁ = a₂ :=
 iff.intro (eq_of_is_least_of_is_least Ha) (assume h, h ▸ Ha)
 
 lemma eq_of_is_greatest_of_is_greatest (Ha : is_greatest s a₁) (Hb : is_greatest s a₂) : a₁ = a₂ :=
-le_antisymm (Hb.right _ Ha.left) (Ha.right _ Hb.left)
+le_antisymm (Hb.right Ha.left) (Ha.right Hb.left)
 
 lemma is_greatest_iff_eq_of_is_greatest (Ha : is_greatest s a₁) : is_greatest s a₂ ↔ a₁ = a₂ :=
 iff.intro (eq_of_is_greatest_of_is_greatest Ha) (assume h, h ▸ Ha)
@@ -66,10 +72,10 @@ lemma is_lub_iff_eq_of_is_lub : is_lub s a₁ → (is_lub s a₂ ↔ a₁ = a₂
 is_least_iff_eq_of_is_least
 
 lemma is_lub_le_iff (h : is_lub s a₁) : a₁ ≤ a₂ ↔ a₂ ∈ upper_bounds s :=
-⟨λ hl, upper_bounds_mono hl h.1, h.2 _⟩
+⟨λ hl, upper_bounds_mono hl h.1, λ hr, h.2 hr⟩
 
 lemma le_is_glb_iff (h : is_glb s a₁) : a₂ ≤ a₁ ↔ a₂ ∈ lower_bounds s :=
-⟨λ hl, lower_bounds_mono hl h.1, h.2 _⟩
+⟨λ hl, lower_bounds_mono hl h.1, λ hr, h.2 hr⟩
 
 lemma eq_of_is_glb_of_is_glb : is_glb s a₁ → is_glb s a₂ → a₁ = a₂ :=
 eq_of_is_greatest_of_is_greatest
@@ -80,13 +86,13 @@ is_greatest_iff_eq_of_is_greatest
 lemma ne_empty_of_is_lub [no_bot_order α] (hs : is_lub s a) : s ≠ ∅ :=
 let ⟨a', ha'⟩ := no_bot a in
 assume h,
-have a ≤ a', from hs.right _ (by simp [upper_bounds, h]),
+have a ≤ a', from hs.right (by simp [upper_bounds, h]),
 lt_irrefl a $ lt_of_le_of_lt this ha'
 
 lemma ne_empty_of_is_glb [no_top_order α] (hs : is_glb s a) : s ≠ ∅ :=
 let ⟨a', ha'⟩ := no_top a in
 assume h,
-have a' ≤ a, from hs.right _ (by simp [lower_bounds, h]),
+have a' ≤ a, from hs.right (by simp [lower_bounds, h]),
 lt_irrefl a $ lt_of_lt_of_le ha' this
 
 end partial_order
@@ -101,15 +107,15 @@ by simp [is_lub, is_least, lower_bounds, upper_bounds]
 
 lemma is_lub_union_sup [semilattice_sup α] (hs : is_lub s a₁) (ht : is_lub t a₂) :
   is_lub (s ∪ t) (a₁ ⊔ a₂) :=
-⟨assume c h, h.cases_on (le_sup_left_of_le ∘ hs.left c) (le_sup_right_of_le ∘ ht.left c),
+⟨assume c h, h.cases_on (λ h, le_sup_left_of_le $ hs.left h) (λ h, le_sup_right_of_le $ ht.left h),
   assume c hc, sup_le
-    (hs.right _ $ assume d hd, hc _ $ or.inl hd) (ht.right _ $ assume d hd, hc _ $ or.inr hd)⟩
+    (hs.right $ assume d hd, hc $ or.inl hd) (ht.right $ assume d hd, hc $ or.inr hd)⟩
 
 lemma is_glb_union_inf [semilattice_inf α] (hs : is_glb s a₁) (ht : is_glb t a₂) :
   is_glb (s ∪ t) (a₁ ⊓ a₂) :=
-⟨assume c h, h.cases_on (inf_le_left_of_le ∘ hs.left c) (inf_le_right_of_le ∘ ht.left c),
+⟨assume c h, h.cases_on (λ h, inf_le_left_of_le $ hs.left h) (λ h, inf_le_right_of_le $ ht.left h),
   assume c hc, le_inf
-    (hs.right _ $ assume d hd, hc _ $ or.inl hd) (ht.right _ $ assume d hd, hc _ $ or.inr hd)⟩
+    (hs.right $ assume d hd, hc $ or.inl hd) (ht.right $ assume d hd, hc $ or.inr hd)⟩
 
 lemma is_lub_insert_sup [semilattice_sup α] (h : is_lub s a₁) : is_lub (insert a₂ s) (a₂ ⊔ a₁) :=
 by rw [insert_eq]; exact is_lub_union_sup is_lub_singleton h

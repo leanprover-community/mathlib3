@@ -147,8 +147,8 @@ instance : no_top_order ℝ≥0 :=
 lemma bdd_above_coe {s : set ℝ≥0} : bdd_above ((coe : nnreal → ℝ) '' s) ↔ bdd_above s :=
 iff.intro
   (assume ⟨b, hb⟩, ⟨nnreal.of_real b, assume ⟨y, hy⟩ hys, show y ≤ max b 0, from
-    le_max_left_of_le $ hb _ $ set.mem_image_of_mem _ hys⟩)
-  (assume ⟨b, hb⟩, ⟨b, assume y ⟨x, hx, eq⟩, eq ▸ hb _ $ hx⟩)
+    le_max_left_of_le $ hb $ set.mem_image_of_mem _ hys⟩)
+  (assume ⟨b, hb⟩, ⟨b, assume y ⟨x, hx, eq⟩, eq ▸ hb hx⟩)
 
 lemma bdd_below_coe (s : set ℝ≥0) : bdd_below ((coe : nnreal → ℝ) '' s) :=
 ⟨0, assume r ⟨q, _, eq⟩, eq ▸ q.2⟩
@@ -180,10 +180,10 @@ instance : conditionally_complete_linear_order_bot ℝ≥0 :=
   Inf     := Inf,
   le_cSup := assume s a hs ha, le_cSup (bdd_above_coe.2 hs) (set.mem_image_of_mem _ ha),
   cSup_le := assume s a hs h,show Sup ((coe : nnreal → ℝ) '' s) ≤ a, from
-    cSup_le (by simp [hs]) $ assume r ⟨b, hb, eq⟩, eq ▸ h _ hb,
+    cSup_le (by simp [hs]) $ assume r ⟨b, hb, eq⟩, eq ▸ h hb,
   cInf_le := assume s a _ has, cInf_le (bdd_below_coe s) (set.mem_image_of_mem _ has),
   le_cInf := assume s a hs h, show (↑a : ℝ) ≤ Inf ((coe : nnreal → ℝ) '' s), from
-    le_cInf (by simp [hs]) $ assume r ⟨b, hb, eq⟩, eq ▸ h _ hb,
+    le_cInf (by simp [hs]) $ assume r ⟨b, hb, eq⟩, eq ▸ h hb,
   cSup_empty := nnreal.eq $ by simp [coe_Sup, real.Sup_empty]; refl,
   decidable_le := begin assume x y, apply classical.dec end,
   .. nnreal.linear_ordered_semiring, .. lattice.lattice_of_decidable_linear_order,

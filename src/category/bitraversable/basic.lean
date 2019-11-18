@@ -13,7 +13,7 @@ import category.functor
 # Bitraversable type class
 
 Type class for traversing bifunctors. The concepts and laws are taken from
-https://hackage.haskell.org/package/base-4.12.0.0/docs/Data-Bitraversable.html
+<https://hackage.haskell.org/package/base-4.12.0.0/docs/Data-Bitraversable.html>
 
 Simple examples of `bitraversable` are `prod` and `sum`. A more elaborate example is
 to define an a-list as:

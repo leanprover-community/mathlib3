@@ -506,6 +506,14 @@ variables (R)
 instance id : algebra R R :=
 algebra.of_ring_hom id $ by apply_instance
 
+namespace id
+
+@[simp] lemma map_eq_self (x : R) : algebra_map R x = x := rfl
+
+@[simp] lemma smul_eq_mul (x y : R) : x • y = x * y := rfl
+
+end id
+
 def of_id : R →ₐ A :=
 { commutes' := λ _, rfl, .. ring_hom.of (algebra_map A) }
 variables {R}

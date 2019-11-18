@@ -245,5 +245,5 @@ end quotient_group
 /- Note [use has_coe_t]:
 We use the class `has_coe_t` instead of `has_coe` if the first-argument is a variable.
 Using `has_coe` would cause looping of type-class inference. See
-https://leanprover.zulipchat.com/#narrow/stream/113488-general/topic/remove.20all.20instances.20with.20variable.20domain
+<https://leanprover.zulipchat.com/#narrow/stream/113488-general/topic/remove.20all.20instances.20with.20variable.20domain>
 -/

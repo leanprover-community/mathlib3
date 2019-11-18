@@ -58,7 +58,7 @@ for Fréchet derivatives.
 universes u v w
 noncomputable theory
 open_locale classical
-open filter continuous_linear_map asymptotics set
+open filter asymptotics set
 
 set_option class.instance_max_depth 100
 
@@ -71,7 +71,7 @@ variables {F : Type v} [normed_group F] [normed_space 𝕜 F]
 That is, `f x' = f x + (x' - x) • f' + o(x' - x)` where `x'` converges along the filter `L`.
 -/
 def has_deriv_at_filter (f : 𝕜 → F) (f' : F) (x : 𝕜) (L : filter 𝕜) :=
-has_fderiv_at_filter f (smul_right 1 f' : 𝕜 →L[𝕜] F) x L
+has_fderiv_at_filter f (continuous_linear_map.smul_right 1 f' : 𝕜 →L[𝕜] F) x L
 
 /--
 `f` has the derivative `f'` at the point `x` within the subset `s`.
@@ -121,8 +121,18 @@ lemma has_fderiv_within_at_iff_has_deriv_within_at {f' : 𝕜 →L[𝕜] F} :
   has_fderiv_within_at f f' s x ↔ has_deriv_within_at f (f' 1) s x :=
 by simp [has_deriv_within_at, has_deriv_at_filter, has_fderiv_within_at]
 
+lemma has_deriv_within_at_iff_has_fderiv_within_at {f' : F} :
+  has_deriv_within_at f f' s x ↔
+  has_fderiv_within_at f (continuous_linear_map.smul_right 1 f' : 𝕜 →L[𝕜] F) s x :=
+by simp [has_deriv_within_at, has_deriv_at_filter, has_fderiv_within_at]
+
 lemma has_fderiv_at_iff_has_deriv_at {f' : 𝕜 →L[𝕜] F} :
   has_fderiv_at f f' x ↔ has_deriv_at f (f' 1) x :=
+by simp [has_deriv_at, has_deriv_at_filter, has_fderiv_at]
+
+lemma has_deriv_at_iff_has_fderiv_at {f' : F} :
+  has_deriv_at f f' x ↔
+  has_fderiv_at f (continuous_linear_map.smul_right 1 f' : 𝕜 →L[𝕜] F) x :=
 by simp [has_deriv_at, has_deriv_at_filter, has_fderiv_at]
 
 lemma deriv_within_zero_of_not_differentiable_within_at
@@ -134,7 +144,7 @@ by { unfold deriv, rw fderiv_zero_of_not_differentiable_at, simp, assumption }
 
 theorem unique_diff_within_at.eq_deriv (s : set 𝕜) (H : unique_diff_within_at 𝕜 s x)
   (h : has_deriv_within_at f f' s x) (h₁ : has_deriv_within_at f f₁' s x) : f' = f₁' :=
-smul_right_one_eq_iff.mp $ unique_diff_within_at.eq H h h₁
+continuous_linear_map.smul_right_one_eq_iff.mp $ unique_diff_within_at.eq H h h₁
 
 theorem has_deriv_at_filter_iff_tendsto :
   has_deriv_at_filter f f' x L ↔
@@ -177,7 +187,7 @@ has_fderiv_within_at_univ
 
 theorem has_deriv_at_unique
   (h₀ : has_deriv_at f f₀' x) (h₁ : has_deriv_at f f₁' x) : f₀' = f₁' :=
-smul_right_one_eq_iff.mp $ has_fderiv_at_unique h₀ h₁
+continuous_linear_map.smul_right_one_eq_iff.mp $ has_fderiv_at_unique h₀ h₁
 
 lemma has_deriv_within_at_inter' (h : t ∈ nhds_within x s) :
   has_deriv_within_at f f' (s ∩ t) x ↔ has_deriv_within_at f f' s x :=
@@ -205,13 +215,15 @@ hxs.eq_deriv _ h.differentiable_within_at.has_deriv_within_at h
 lemma fderiv_within_deriv_within : (fderiv_within 𝕜 f s x : 𝕜 → F) 1 = deriv_within f s x :=
 rfl
 
-lemma deriv_within_fderiv_within : smul_right 1 (deriv_within f s x) = fderiv_within 𝕜 f s x :=
+lemma deriv_within_fderiv_within :
+  continuous_linear_map.smul_right 1 (deriv_within f s x) = fderiv_within 𝕜 f s x :=
 by simp [deriv_within]
 
 lemma fderiv_deriv : (fderiv 𝕜 f x : 𝕜 → F) 1 = deriv f x :=
 rfl
 
-lemma deriv_fderiv : smul_right 1 (deriv f x) = fderiv 𝕜 f x :=
+lemma deriv_fderiv :
+  continuous_linear_map.smul_right 1 (deriv f x) = fderiv 𝕜 f x :=
 by simp [deriv]
 
 lemma differentiable_at.deriv_within (h : differentiable_at 𝕜 f x)
@@ -294,7 +306,7 @@ section const
 variables (c : F) (s x L)
 
 theorem has_deriv_at_filter_const : has_deriv_at_filter (λ x, c) 0 x L :=
-(is_o_zero _ _).congr_left $ λ _, by simp [zero_apply, sub_self]
+(is_o_zero _ _).congr_left $ λ _, by simp [continuous_linear_map.zero_apply, sub_self]
 
 theorem has_deriv_within_at_const : has_deriv_within_at (λ x, c) 0 s x :=
 has_deriv_at_filter_const _ _ _
@@ -491,8 +503,9 @@ theorem has_deriv_at_filter.comp
   (hg : has_deriv_at_filter g g' (h x) (L.map h))
   (hh : has_deriv_at_filter h h' x L) :
   has_deriv_at_filter (g ∘ h) (h' • g') x L :=
-have (smul_right 1 g' : 𝕜 →L[𝕜] _).comp (smul_right 1 h' : 𝕜 →L[𝕜] _) =
-    smul_right 1 (h' • g'), by { ext, simp [mul_smul] },
+have (continuous_linear_map.smul_right 1 g' : 𝕜 →L[𝕜] _).comp
+      (continuous_linear_map.smul_right 1 h' : 𝕜 →L[𝕜] _) =
+    continuous_linear_map.smul_right 1 (h' • g'), by { ext, simp [mul_smul] },
 begin
   unfold has_deriv_at_filter,
   rw ← this,
@@ -574,3 +587,42 @@ lemma deriv_mul (hc : differentiable_at 𝕜 c x) (hd : differentiable_at 𝕜 d
 (hc.has_deriv_at.mul hd.has_deriv_at).deriv
 
 end mul
+
+/- Restriction to `ℝ` of complex functions -/
+section complex_to_real
+variables {e : ℂ → ℂ} {e' : ℂ} {z : ℝ}
+
+lemma zoug (h : has_deriv_at e e' z) :
+  has_deriv_at (λx:ℝ, (e x).re) e'.re z :=
+begin
+  rw has_deriv_at_iff_has_fderiv_at at h,
+  have Z := h.restrict_scalars ℝ,
+  have T := complex.re,
+  let W : ℂ →ₗ[ℝ] ℝ :=
+  { to_fun := λx, x.re,
+    add := by simp,
+    smul := λc x, by { change ((c : ℂ) * x).re = c * x.re, simp } },
+  let W' : ℂ →L[ℝ] ℝ := W.with_bound ⟨1, λx, begin
+    change abs (x.re) ≤ 1 * complex.abs x,
+    rw one_mul,
+    exact complex.abs_re_le_abs x
+  end⟩,
+  let X : ℝ →ₗ[ℝ] ℂ :=
+  { to_fun := λx, (x : ℂ),
+    add := complex.of_real_add,
+    smul := complex.of_real_mul },
+  let X' : ℝ →L[ℝ] ℂ := X.with_bound ⟨1, λx, begin
+    change complex.abs (x : ℂ) ≤ 1 * abs x,
+    rw [one_mul, complex.abs_of_real],
+  end⟩,
+  have : (λx:ℝ, (e x).re) = (W' : ℂ → ℝ) ∘ e ∘ (X' : ℝ → ℂ),
+    by { ext x, refl },
+  rw this,
+  have A : has_fderiv_at X' X' z := X'.has_fderiv_at,
+  have B : has_fderiv_at e ((continuous_linear_map.smul_right 1 e' : ℂ →L[ℂ] ℂ).restrict_scalars ℝ) (X' z) := Z,
+  have C : has_fderiv_at W' W' (e (X' z)) := W'.has_fderiv_at,
+  have D := has_fderiv_at_iff_has_deriv_at.1 (C.comp z (B.comp z A)),
+  convert D,
+end
+
+end complex_to_real

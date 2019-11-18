@@ -580,8 +580,10 @@ lemma differentiable_on_const (c : F) : differentiable_on 𝕜 (λx, c) s :=
 
 end const
 
-/- Bounded linear maps -/
-section is_bounded_linear_map
+/- Continuous linear maps. There are currently two variants of these in mathlib, the bundled version
+(named `continuous_linear_map`, and denoted `E →L[𝕜] F`), and the unbundled version (with a
+predicate `is_bounded_linear_map`). We give statements for both versions -/
+section continuous_linear_map
 
 lemma is_bounded_linear_map.has_fderiv_at_filter (h : is_bounded_linear_map 𝕜 f) :
   has_fderiv_at_filter f h.to_continuous_linear_map x L :=
@@ -630,7 +632,45 @@ lemma is_bounded_linear_map.differentiable_on (h : is_bounded_linear_map 𝕜 f)
   differentiable_on 𝕜 f s :=
 h.differentiable.differentiable_on
 
-end is_bounded_linear_map
+variable (e : E →L[𝕜] F)
+
+lemma continuous_linear_map.has_fderiv_at_filter :
+  has_fderiv_at_filter e e x L :=
+begin
+  have : (λ (x' : E), e x' - e x - e (x' - x)) = λx', 0, by { ext, simp },
+  rw [has_fderiv_at_filter, this],
+  exact asymptotics.is_o_zero _ _
+end
+
+lemma continuous_linear_map.has_fderiv_within_at : has_fderiv_within_at e e s x :=
+e.has_fderiv_at_filter
+
+lemma continuous_linear_map.has_fderiv_at : has_fderiv_at e e x  :=
+e.has_fderiv_at_filter
+
+lemma continuous_linear_map.differentiable_at : differentiable_at 𝕜 e x :=
+e.has_fderiv_at.differentiable_at
+
+lemma continuous_linear_map.differentiable_within_at : differentiable_within_at 𝕜 e s x :=
+e.differentiable_at.differentiable_within_at
+
+lemma continuous_linear_map.fderiv : fderiv 𝕜 e x = e :=
+e.has_fderiv_at.fderiv
+
+lemma continuous_linear_map.fderiv_within (hxs : unique_diff_within_at 𝕜 s x) :
+  fderiv_within 𝕜 e s x = e :=
+begin
+  rw differentiable.fderiv_within e.differentiable_at hxs,
+  exact e.fderiv
+end
+
+lemma continuous_linear_map.differentiable : differentiable 𝕜 e :=
+λx, e.differentiable_at
+
+lemma continuous_linear_map.differentiable_on : differentiable_on 𝕜 e s :=
+e.differentiable.differentiable_on
+
+end continuous_linear_map
 
 /- multiplication by a constant -/
 section smul_const
@@ -1298,3 +1338,41 @@ begin
 end
 
 end tangent_cone
+
+section restrict_scalars
+
+/- If a function is differentiable over `ℂ`, then it is differentiable over `ℝ`. In this paragraph,
+we give variants of this statement, in the general situation where `ℂ` and `ℝ` are replaced
+respectively by `𝕜'` and `𝕜` where `𝕜'` is a normed algebra over `𝕜`. -/
+
+variables (𝕜 : Type*) [nondiscrete_normed_field 𝕜]
+{𝕜' : Type*} [nondiscrete_normed_field 𝕜'] [normed_algebra 𝕜 𝕜']
+{E : Type*} [normed_group E] [normed_space 𝕜' E]
+{F : Type*} [normed_group F] [normed_space 𝕜' F]
+{f : E → F} {f' : E →L[𝕜'] F} {s : set E} {x : E}
+
+local attribute [instance] normed_space.restrict_scalars
+
+lemma has_fderiv_at.restrict_scalars (h : has_fderiv_at f f' x) :
+  has_fderiv_at f (f'.restrict_scalars 𝕜) x := h
+
+lemma has_fderiv_within_at.restrict_scalars (h : has_fderiv_within_at f f' s x) :
+  has_fderiv_within_at f (f'.restrict_scalars 𝕜) s x := h
+
+lemma differentiable_at.restrict_scalars (h : differentiable_at 𝕜' f x) :
+  differentiable_at 𝕜 f x :=
+(h.has_fderiv_at.restrict_scalars 𝕜).differentiable_at
+
+lemma differentiable_within_at.restrict_scalars (h : differentiable_within_at 𝕜' f s x) :
+  differentiable_within_at 𝕜 f s x :=
+(h.has_fderiv_within_at.restrict_scalars 𝕜).differentiable_within_at
+
+lemma differentiable_on.restrict_scalars (h : differentiable_on 𝕜' f s) :
+  differentiable_on 𝕜 f s :=
+λx hx, (h x hx).restrict_scalars 𝕜
+
+lemma differentiable.restrict_scalars (h : differentiable 𝕜' f) :
+  differentiable 𝕜 f :=
+λx, (h x).restrict_scalars 𝕜
+
+end restrict_scalars

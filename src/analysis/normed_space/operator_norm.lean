@@ -372,7 +372,7 @@ begin
       ... ≤ ∥smul_right c f∥ * ∥x∥ : le_op_norm _ _ } },
 end
 
-section restrict_scalar
+section restrict_scalars
 
 variable (𝕜)
 variables (𝕜' : Type*) [normed_field 𝕜'] [normed_algebra 𝕜 𝕜']
@@ -381,40 +381,40 @@ variables (𝕜' : Type*) [normed_field 𝕜'] [normed_algebra 𝕜 𝕜']
 
 /-- `𝕜`-normed space structure induced by a `𝕜'`-normed space structure when `𝕜'` is a
 normed algebra over `𝕜`. -/
-def normed_space.restrict_scalar : normed_space 𝕜 E' :=
+def normed_space.restrict_scalars : normed_space 𝕜 E' :=
 { norm_smul := λc x, begin
     change ∥(algebra_map 𝕜' c) • x∥ = ∥c∥ * ∥x∥,
     simp [norm_smul, normed_algebra.norm_eq]
   end,
-  ..module.restrict_scalar 𝕜 𝕜' E' }
+  ..module.restrict_scalars 𝕜 𝕜' E' }
 
-local attribute [instance, priority 500] normed_space.restrict_scalar
+local attribute [instance, priority 500] normed_space.restrict_scalars
 
 variable {𝕜'}
 /-- `𝕜`-linear continuous function induced by a `𝕜'`-linear continuous function when `𝕜'` is a
 normed algebra over `𝕜`. -/
-def restrict_scalar (f : E' →L[𝕜'] F') : E' →L[𝕜] F' :=
+def restrict_scalars (f : E' →L[𝕜'] F') : E' →L[𝕜] F' :=
 { cont := f.cont,
-  ..linear_map.restrict_scalar 𝕜 (f.to_linear_map) }
+  ..linear_map.restrict_scalars 𝕜 (f.to_linear_map) }
 
-@[simp, move_cast] lemma restrict_scalar_coe_eq_coe (f : E' →L[𝕜'] F') :
-  (f.restrict_scalar 𝕜 : E' →ₗ[𝕜] F') = (f : E' →ₗ[𝕜'] F').restrict_scalar 𝕜 := rfl
+@[simp, move_cast] lemma restrict_scalars_coe_eq_coe (f : E' →L[𝕜'] F') :
+  (f.restrict_scalars 𝕜 : E' →ₗ[𝕜] F') = (f : E' →ₗ[𝕜'] F').restrict_scalars 𝕜 := rfl
 
-@[simp, squash_cast] lemma restrict_scalar_coe_eq_coe' (f : E' →L[𝕜'] F') :
-  (f.restrict_scalar 𝕜 : E' → F') = f := rfl
+@[simp, squash_cast] lemma restrict_scalars_coe_eq_coe' (f : E' →L[𝕜'] F') :
+  (f.restrict_scalars 𝕜 : E' → F') = f := rfl
 
-end restrict_scalar
+end restrict_scalars
 
-section restrict_scalar_real_complex
+section restrict_scalars_real_complex
 /- Register as an instance with low priority that a complex normed space is also a real normed
 space. -/
 variables {E' : Type*} [normed_group E'] [normed_space ℂ E']
 
-instance normed_space.restrict_scalar_complex_to_real : normed_space ℝ E' :=
-normed_space.restrict_scalar ℝ ℂ
-attribute [instance, priority 900] normed_space.restrict_scalar_complex_to_real
+instance normed_space.restrict_scalars_complex_to_real : normed_space ℝ E' :=
+normed_space.restrict_scalars ℝ ℂ
+attribute [instance, priority 900] normed_space.restrict_scalars_complex_to_real
 
-end restrict_scalar_real_complex
+end restrict_scalars_real_complex
 
 end continuous_linear_map
 

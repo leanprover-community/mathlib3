@@ -489,15 +489,15 @@ forall_sets_neq_empty_iff_neq_bot.mp $ assume t ht,
       have a ∈ t₂, from ht₂ $ by rwa [h],
       ne_empty_iff_exists_mem.mpr ⟨a, ht ⟨‹a ∈ t₁›, ‹a ∈ t₂›⟩⟩)
     (assume : a ≠ a',
-      have a' < a, from lt_of_le_of_ne (ha.left _ ‹a' ∈ s›) this.symm,
+      have a' < a, from lt_of_le_of_ne (ha.left ‹a' ∈ s›) this.symm,
       let ⟨l, hl, hlt₁⟩ := hl ⟨a', this⟩ in
       have ∃a'∈s, l < a',
         from classical.by_contradiction $ assume : ¬ ∃a'∈s, l < a',
           have ∀a'∈s, a' ≤ l, from assume a ha, not_lt.1 $ assume ha', this ⟨a, ha, ha'⟩,
-          have ¬ l < a, from not_lt.2 $ ha.right _ this,
+          have ¬ l < a, from not_lt.2 $ ha.right this,
           this ‹l < a›,
       let ⟨a', ha', ha'l⟩ := this in
-      have a' ∈ t₁, from hlt₁ _ ‹l < a'›  $ ha.left _ ha',
+      have a' ∈ t₁, from hlt₁ _ ‹l < a'›  $ ha.left ha',
       ne_empty_iff_exists_mem.mpr ⟨a', ht ⟨‹a' ∈ t₁›, ht₂ ‹a' ∈ s›⟩⟩)
 
 lemma nhds_principal_ne_bot_of_is_glb : ∀ {a : α} {s : set α}, is_glb s a → s ≠ ∅ →
@@ -511,7 +511,7 @@ lemma is_lub_of_mem_nhds {s : set α} {a : α} {f : filter α}
   have s ∩ {a | b < a} ∈ f ⊓ 𝓝 a,
     from inter_mem_inf_sets hsf (mem_nhds_sets (is_open_lt' _) hba),
   let ⟨x, ⟨hxs, hxb⟩⟩ := inhabited_of_mem_sets hfa this in
-  have b < b, from lt_of_lt_of_le hxb $ hb _ hxs,
+  have b < b, from lt_of_lt_of_le hxb $ hb hxs,
   lt_irrefl b this⟩
 
 lemma is_glb_of_mem_nhds : ∀ {s : set α} {a : α} {f : filter α},
@@ -532,7 +532,7 @@ have ∀a'∈s, ¬ b < f a',
       have f a < f a', from hs this,
       lt_irrefl (f a') $ by rwa [h] at this)
     (assume h : a ≠ a',
-      have a' < a, from lt_of_le_of_ne (ha.left _ ha') h.symm,
+      have a' < a, from lt_of_le_of_ne (ha.left ha') h.symm,
       have {x | a' < x} ∈ 𝓝 a, from mem_nhds_sets (is_open_lt' _) this,
       have {x | a' < x} ∩ t₁ ∈ 𝓝 a, from inter_mem_sets this ht₁,
       have ({x | a' < x} ∩ t₁) ∩ s ∈ 𝓝 a ⊓ principal s,
@@ -544,7 +544,7 @@ have ∀a'∈s, ¬ b < f a',
 and.intro
   (assume b' ⟨a', ha', h_eq⟩, h_eq ▸ not_lt.1 $ this _ ha')
   (assume b' hb', le_of_tendsto hnbot hb $
-      mem_inf_sets_of_right $ assume x hx, hb' _ $ mem_image_of_mem _ hx)
+      mem_inf_sets_of_right $ assume x hx, hb' $ mem_image_of_mem _ hx)
 
 lemma is_glb_of_is_glb_of_tendsto {f : α → β} {s : set α} {a : α} {b : β}
   (hf : ∀x∈s, ∀y∈s, x ≤ y → f x ≤ f y) : is_glb s a → s ≠ ∅ →
@@ -584,7 +584,7 @@ begin
     (λ x _, is_open_lt continuous_const continuous_id) _ with ⟨t, st, ft, ht⟩,
   { refine H ((bdd_below_finite ft).imp $ λ C hC y hy, _),
     rcases mem_bUnion_iff.1 (ht hy) with ⟨x, hx, xy⟩,
-    exact le_trans (hC _ hx) (le_of_lt xy) },
+    exact le_trans (hC hx) (le_of_lt xy) },
   { refine λ x hx, mem_bUnion_iff.2 (not_imp_comm.1 _ H),
     exact λ h, ⟨x, λ y hy, le_of_not_lt (h.imp $ λ ys, ⟨_, hy, ys⟩)⟩ }
 end

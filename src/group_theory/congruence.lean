@@ -14,8 +14,8 @@ import data.equiv.algebra
 
 This file defines congruence relations: equivalence relations that preserve a binary operation,
 which in this case is multiplication or addition. The principal definition is a `structure`
-extending a `setoid` (an equivalence relation), but the inductive definition as the congruence
-closure of a binary relation is also given (see `con_gen`).
+extending a `setoid` (an equivalence relation), and the inductive definition of the smallest
+congruence relation containing a binary relation is also given (see `con_gen`).
 
 The file also proves basic properties of the quotient of a type by a congruence relation, and the
 complete lattice of congruence relations on a type.
@@ -35,7 +35,7 @@ congruence relation.
 
 ## Tags
 
-congruence, congruence relation
+congruence, congruence relation, quotient, quotient by congruence relation
 -/
 
 variables (M : Type*) {N : Type*} {P : Type*}
@@ -54,7 +54,8 @@ structure add_con [has_add M] extends setoid M :=
 
 variables {M}
 
-/-- The inductively defined additive congruence closure of a binary relation. -/
+/-- The inductively defined smallest additive congruence relation containing a given binary
+    relation. -/
 inductive add_con_gen.rel [has_add M] (r : M → M → Prop) : M → M → Prop
 | of {} : Π x y, r x y → add_con_gen.rel x y
 | refl {} : Π x, add_con_gen.rel x x
@@ -62,7 +63,8 @@ inductive add_con_gen.rel [has_add M] (r : M → M → Prop) : M → M → Prop
 | trans {} : Π x y z, add_con_gen.rel x y → add_con_gen.rel y z → add_con_gen.rel x z
 | add {} : Π w x y z, add_con_gen.rel w x → add_con_gen.rel y z → add_con_gen.rel (w + y) (x + z)
 
-/-- The inductively defined multiplicative congruence closure of a binary relation. -/
+/-- The inductively defined smallest multiplicative congruence relation containing a given binary
+    relation. -/
 @[to_additive add_con_gen.rel]
 inductive con_gen.rel [has_mul M] (r : M → M → Prop) : M → M → Prop
 | of {} : Π x y, r x y → con_gen.rel x y
@@ -71,8 +73,9 @@ inductive con_gen.rel [has_mul M] (r : M → M → Prop) : M → M → Prop
 | trans {} : Π x y z, con_gen.rel x y → con_gen.rel y z → con_gen.rel x z
 | mul {} : Π w x y z, con_gen.rel w x → con_gen.rel y z → con_gen.rel (w * y) (x * z)
 
-/-- The inductively defined multiplicative congruence closure of a binary relation. -/
-@[to_additive add_con_gen "The inductively defined additive congruence closure of a binary relation."]
+/-- The inductively defined smallest multiplicative congruence relation containing a given binary
+    relation. -/
+@[to_additive add_con_gen "The inductively defined smallest additive congruence relation containing a given binary relation."]
 def con_gen [has_mul M] (r : M → M → Prop) : con M :=
 ⟨con_gen.rel r, ⟨con_gen.rel.refl, con_gen.rel.symm, con_gen.rel.trans⟩, con_gen.rel.mul⟩
 
@@ -313,7 +316,8 @@ instance : complete_lattice (con M) :=
   Inf_le := λ  _ _, Inf_le _ _,
   le_Inf := λ _ _, le_Inf _ _ }
 
-/-- The infimum of two congruence relations equals the infimum of the underlying binary operations. -/
+/-- The infimum of two congruence relations equals the infimum of the underlying binary
+    operations. -/
 @[to_additive "The infimum of two additive congruence relations equals the infimum of the underlying binary operations."]
 lemma inf_def {c d : con M} : (c ⊓ d).r = c.r ⊓ d.r := rfl
 
@@ -321,9 +325,9 @@ lemma inf_def {c d : con M} : (c ⊓ d).r = c.r ⊓ d.r := rfl
 @[to_additive "Definition of the infimum of two additive congruence relations."]
 theorem inf_iff_and {c d : con M} {x y} : (c ⊓ d) x y ↔ c x y ∧ d x y := iff.rfl
 
-/-- The inductively defined congruence closure of a binary relation `r` equals the infimum of the
-    set of congruence relations containing `r`. -/
-@[to_additive add_con_gen_eq "The inductively defined additive congruence closure of a binary relation `r` equals the infimum of the set of additive congruence relations containing `r`."]
+/-- The inductively defined smallest congruence relation containing a binary relation `r` equals
+    the infimum of the set of congruence relations containing `r`. -/
+@[to_additive add_con_gen_eq "The inductively defined smallest additive congruence relation containing a binary relation `r` equals the infimum of the set of additive congruence relations containing `r`."]
 theorem con_gen_eq (r : M → M → Prop) :
   con_gen r = Inf {s : con M | ∀ x y, r x y → s.r x y} :=
 ext $ λ x y,
@@ -332,33 +336,35 @@ ext $ λ x y,
     $ λ w x y z _ _ h1 h2 c hc, c.mul (h1 c hc) $ h2 c hc,
   Inf_le _ _ (λ _ _, con_gen.rel.of _ _) _ _⟩
 
-/-- The congruence closure of a binary relation `r` is contained in any congruence relation
-    containing `r`. -/
-@[to_additive add_con_gen_le "The additive congruence closure of a binary relation `r` is contained in any additive congruence relation containing `r`."]
+/-- The smallest congruence relation containing a binary relation `r` is contained in any
+    congruence relation containing `r`. -/
+@[to_additive add_con_gen_le "The smallest additive congruence relation containing a binary relation `r` is contained in any additive congruence relation containing `r`."]
 theorem con_gen_le {r : M → M → Prop} {c : con M} (h : ∀ x y, r x y → c.r x y) :
   con_gen r ≤ c :=
 by rw con_gen_eq; exact Inf_le _ _ h
 
-/-- Congruence closure of binary relations is monotonic. -/
-@[to_additive add_con_gen_mono "Additive congruence closure of binary relations is monotonic."]
+/-- Given binary relations `r, s` with `r` contained in `s`, the smallest congruence relation
+    containing `s` contains the smallest congruence relation containing `r`. -/
+@[to_additive add_con_gen_mono "Given binary relations `r, s` with `r` contained in `s`, the smallest additive congruence relation containing `s` contains the smallest additive congruence relation containing `r`."]
 theorem con_gen_mono {r s : M → M → Prop} (h : ∀ x y, r x y → s x y) :
   con_gen r ≤ con_gen s :=
 con_gen_le $ λ x y hr, con_gen.rel.of _ _ $ h x y hr
 
-/-- Congruence relations equal their congruence closure. -/
-@[simp, to_additive add_con_gen_of_add_con "Additive congruence relations equal their additive congruence closure."]
+/-- Congruence relations equal the smallest congruence relation in which they are contained. -/
+@[simp, to_additive add_con_gen_of_add_con "Additive congruence relations equal the smallest additive congruence relation in which they are contained."]
 lemma con_gen_of_con (c : con M) : con_gen c.r = c :=
 le_antisymm (by rw con_gen_eq; exact Inf_le _ c (λ _ _, id)) con_gen.rel.of
 
-/-- Congruence closure of binary relations is idempotent. -/
-@[simp, to_additive add_con_gen_idem "Additive congruence closure of binary relations is idempotent."]
+/-- The map sending a binary relation to the smallest congruence relation in which it is
+    contained is idempotent. -/
+@[simp, to_additive add_con_gen_idem "The map sending a binary relation to the smallest additive congruence relation in which it is contained is idempotent."]
 lemma con_gen_idem (r : M → M → Prop) :
   con_gen (con_gen r).r = con_gen r :=
 con_gen_of_con _
 
-/-- The supremum of congruence relations `c, d` equals the congruence closure of the binary relation
-    '`x` is related to `y` by `c` or `d`'. -/
-@[to_additive sup_eq_add_con_gen "The supremum of additive congruence relations `c, d` equals the congruence closure of the binary relation '`x` is related to `y` by `c` or `d`'."]
+/-- The supremum of congruence relations `c, d` equals the smallest congruence relation containing
+    the binary relation '`x` is related to `y` by `c` or `d`'. -/
+@[to_additive sup_eq_add_con_gen "The supremum of additive congruence relations `c, d` equals the smallest additive congruence relation containing the binary relation '`x` is related to `y` by `c` or `d`'."]
 lemma sup_eq_con_gen (c d : con M) :
   c ⊔ d = con_gen (λ x y, c x y ∨ d x y) :=
 begin
@@ -369,15 +375,16 @@ begin
          λ H, ⟨λ _ _ h, H _ _ $ or.inl h, λ _ _ h, H _ _ $ or.inr h⟩⟩,
 end
 
-/-- The supremum of two congruence relations equals the congruence closure of the supremum of the
-    underlying binary operations. -/
-@[to_additive "The supremum of two additive congruence relations equals the additive congruence closure of the supremum of the underlying binary operations."]
+/-- The supremum of two congruence relations equals the smallest congruence relation containing
+    the supremum of the underlying binary operations. -/
+@[to_additive "The supremum of two additive congruence relations equals the smallest additive congruence relation containing the supremum of the underlying binary operations."]
 lemma sup_def {c d : con M} : c ⊔ d = con_gen (c.r ⊔ d.r) :=
 by rw sup_eq_con_gen; refl
 
-/-- The supremum of a set of congruence relations `S` equals the congruence closure of the
-    binary relation 'there exists `c ∈ S` such that `x` is related to `y` by `c`'. -/
-@[to_additive Sup_eq_add_con_gen "The supremum of a set of additive congruence relations S equals the additive congruence closure of the binary relation 'there exists `c ∈ S` such that `x` is related to `y` by `c`'."]
+/-- The supremum of a set of congruence relations `S` equals the smallest congruence relation
+    containing the binary relation 'there exists `c ∈ S` such that `x` is related to `y` by
+    `c`'. -/
+@[to_additive Sup_eq_add_con_gen "The supremum of a set of additive congruence relations S equals the smallest additive congruence relation containing the binary relation 'there exists `c ∈ S` such that `x` is related to `y` by `c`'."]
 lemma Sup_eq_con_gen (S : set (con M)) :
   Sup S = con_gen (λ x y, ∃ c : con M, c ∈ S ∧ c x y) :=
 begin
@@ -388,9 +395,9 @@ begin
          λ h r hS _ _ hr, h _ _ ⟨r, hS, hr⟩⟩,
 end
 
-/-- The supremum of a set of congruence relations is the same as the congruence closure of the
-    supremum of the set's image under the map to the underlying binary relation. -/
-@[to_additive "The supremum of a set of additive congruence relations is the same as the additive congruence closure of the supremum of the set's image under the map to the underlying binary relation."]
+/-- The supremum of a set of congruence relations is the same as the smallest congruence relation
+    containing the supremum of the set's image under the map to the underlying binary relation. -/
+@[to_additive "The supremum of a set of additive congruence relations is the same as the smallest additive congruence relation containing the supremum of the set's image under the map to the underlying binary relation."]
 lemma Sup_def {S : set (con M)} : Sup S = con_gen (Sup (r '' S)) :=
 begin
   rw Sup_eq_con_gen,
@@ -404,8 +411,8 @@ end
 variables (M)
 
 /-- There is a Galois insertion of congruence relations on a type with a multiplication `M` into
-    binary relations on `M`, with congruence closure the lower adjoint. -/
-@[to_additive "There is a Galois insertion of additive congruence relations on a type with an addition `M` into binary relations on `M`, with additive congruence closure the lower adjoint."]
+    binary relations on `M`. -/
+@[to_additive "There is a Galois insertion of additive congruence relations on a type with an addition `M` into binary relations on `M`."]
 protected def gi : @galois_insertion (M → M → Prop) (con M) _ _ con_gen r :=
 { choice := λ r h, con_gen r,
  gc := λ r c, ⟨λ H _ _ h, H _ _ $ con_gen.rel.of _ _ h, λ H, con_gen_of_con c ▸ con_gen_mono H⟩,

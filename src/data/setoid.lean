@@ -74,7 +74,7 @@ def ker (f : α → β) : setoid α :=
 @[simp] lemma ker_mk_eq (r : setoid α) : ker (@quotient.mk _ r) = r :=
 ext' $ λ x y, quotient.eq
 
-/-- Given types `α, β`, the product of two congruence relations `r` on `α` and `s` on `β`:
+/-- Given types `α, β`, the product of two equivalence relations `r` on `α` and `s` on `β`:
     `(x₁, x₂), (y₁, y₂) ∈ α × β` are related by `r.prod s` iff `x₁` is related to `y₁`
     by `r` and `x₂` is related to `y₂` by `s`. -/
 protected def prod (r : setoid α) (s : setoid β) : setoid (α × β) :=

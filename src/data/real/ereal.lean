@@ -23,8 +23,6 @@ structure on `ereal`.
 real, ereal, complete lattice
 -/
 
-attribute [pattern] lattice.has_bot.bot lattice.has_top.top
-
 /-- ereal : The type $$[-\infty,+\infty]$$ or `[-∞, ∞]` -/
 @[derive [linear_order, lattice.order_bot, lattice.order_top]] def ereal := with_bot (with_top ℝ)
 

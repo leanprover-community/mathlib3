@@ -26,6 +26,8 @@ class has_bot (α : Type u) := (bot : α)
 notation `⊤` := has_top.top _
 notation `⊥` := has_bot.bot _
 
+attribute [pattern] lattice.has_bot.bot lattice.has_top.top
+
 /-- An `order_top` is a partial order with a maximal element.
   (We could state this on preorders, but then it wouldn't be unique
   so distinguishing one would seem odd.) -/

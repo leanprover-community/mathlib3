@@ -355,11 +355,9 @@ end
 
 section uniformly_extend
 
-variables [complete_space F]
-variables {e : E →L[𝕜] G}
+variables [complete_space F] {e : E →L[𝕜] G}
 
 section
-
 variables (h_e : uniform_inducing e) (h_dense : dense_range e)
 
 /-- Extension of a continuous linear map `f : E →L[𝕜] F`, with `E` a normed space and `F` a complete
@@ -390,9 +388,7 @@ have eq : _ := uniformly_extend_of_ind h_e h_dense f.uniform_continuous,
 end
 
 section
-
 variables {M N : ℝ} (N0 : 0 ≤ N) (h_dense : dense_range e) (he : ∀x, ∥x∥ ≤ N * ∥e x∥)
-
 include N0
 
 local notation `ψ` := f.extend (uniform_embedding_of_bound _ _ he).to_uniform_inducing h_dense

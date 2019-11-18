@@ -355,10 +355,10 @@ end
 
 section uniformly_extend
 
-variables [complete_space F] {e : E →L[𝕜] G}
+variables [complete_space F] {e : E →L[𝕜] G} (h_dense : dense_range e)
 
 section
-variables (h_e : uniform_inducing e) (h_dense : dense_range e)
+variables (h_e : uniform_inducing e)
 
 /-- Extension of a continuous linear map `f : E →L[𝕜] F`, with `E` a normed space and `F` a complete
     normed space, along a uniform and dense embedding `e : E →L[𝕜] G`.  -/
@@ -371,46 +371,61 @@ have eq : _ := uniformly_extend_of_ind h_e h_dense f.uniform_continuous,
   add :=
   begin
     refine is_closed_property2 h_dense (is_closed_eq _ _) _,
-      { exact cont.comp (_root_.continuous_add continuous_fst continuous_snd) },
-      { exact _root_.continuous_add (cont.comp continuous_fst) (cont.comp continuous_snd) },
-      { assume x y, rw ← e.map_add, simp only [eq], exact f.map_add _ _  },
+    { exact cont.comp (_root_.continuous_add continuous_fst continuous_snd) },
+    { exact _root_.continuous_add (cont.comp continuous_fst) (cont.comp continuous_snd) },
+    { assume x y, rw ← e.map_add, simp only [eq], exact f.map_add _ _  },
   end,
   smul := λk,
   begin
     refine is_closed_property h_dense (is_closed_eq _ _) _,
-      { exact cont.comp (continuous_smul continuous_const continuous_id)  },
-      { exact (continuous_smul continuous_const continuous_id).comp cont },
-      { assume x, rw ← map_smul, simp only [eq], exact map_smul _ _ _  },
+    { exact cont.comp (continuous_smul continuous_const continuous_id)  },
+    { exact (continuous_smul continuous_const continuous_id).comp cont },
+    { assume x, rw ← map_smul, simp only [eq], exact map_smul _ _ _  },
   end,
   cont := cont
 }
 
+lemma extend_zero : extend (0 : E →L[𝕜] F) h_dense h_e = 0 :=
+begin
+  apply ext,
+  refine is_closed_property h_dense (is_closed_eq _ _) _,
+  { exact (uniform_continuous_uniformly_extend h_e h_dense uniform_continuous_const).continuous },
+  { simp only [zero_apply], exact continuous_const },
+  { assume x, exact uniformly_extend_of_ind h_e h_dense uniform_continuous_const x }
+end
+
 end
 
 section
-variables {M N : ℝ} (N0 : 0 ≤ N) (h_dense : dense_range e) (he : ∀x, ∥x∥ ≤ N * ∥e x∥)
-include N0
+variables {M N : ℝ} (h_e : ∀x, ∥x∥ ≤ N * ∥e x∥)
 
-local notation `ψ` := f.extend (uniform_embedding_of_bound _ _ he).to_uniform_inducing h_dense
+local notation `ψ` := f.extend h_dense (uniform_embedding_of_bound _ _ h_e).to_uniform_inducing
 
-/-- If a dense embedding `e : E →L[𝕜] G` expands the norm by a constant factor `N`, and the norm of
-    `f : E →L[𝕜] G` is bounded by `M`, then the norm of the extension of `f` along `e` is bounded
+/-- If a dense embedding `e : E →L[𝕜] G` expands the norm by a constant factor `N⁻¹`, and the norm
+    of `f : E →L[𝕜] G` is bounded by `M`, then the norm of the extension of `f` along `e` is bounded
     by `M * N`. -/
-lemma op_norm_uniformly_extend_le (hf : ∥f∥ ≤ M): ∥ψ∥ ≤ M * N :=
-have M0 : 0 ≤ M := le_trans (norm_nonneg _) hf,
-have uni : uniform_inducing e := (uniform_embedding_of_bound _ _ he).to_uniform_inducing,
-have eq : ∀x, ψ (e x) = f x := uniformly_extend_of_ind uni h_dense f.uniform_continuous,
+lemma op_norm_uniformly_extend_le : ∥ψ∥ ≤ N * ∥f∥ :=
 begin
-  refine op_norm_le_bound ψ _ (is_closed_property h_dense (is_closed_le _ _) _),
-  { exact mul_nonneg M0 N0 },
-  { exact continuous_norm.comp (cont ψ) },
-  { exact continuous_mul continuous_const continuous_norm },
-  { assume x,
-    rw eq,
-    calc ∥f x∥ ≤ ∥f∥ * ∥x∥ : le_op_norm _ _
-      ... ≤ M * ∥x∥ : mul_le_mul_of_nonneg_right hf (norm_nonneg _)
-      ... ≤ M * (N * ∥e x∥) : mul_le_mul_of_nonneg_left (he x) M0
-      ... ≤ M * N * ∥e x∥ : by rw mul_assoc }
+  have uni : uniform_inducing e := (uniform_embedding_of_bound _ _ h_e).to_uniform_inducing,
+  have eq : ∀x, ψ (e x) = f x := uniformly_extend_of_ind uni h_dense f.uniform_continuous,
+  by_cases N0 : 0 ≤ N,
+  { refine op_norm_le_bound ψ _ (is_closed_property h_dense (is_closed_le _ _) _),
+    { exact mul_nonneg N0 (norm_nonneg _) },
+    { exact continuous_norm.comp (cont ψ) },
+    { exact continuous_mul continuous_const continuous_norm },
+    { assume x,
+      rw eq,
+      calc ∥f x∥ ≤ ∥f∥ * ∥x∥ : le_op_norm _ _
+        ... ≤ ∥f∥ * (N * ∥e x∥) : mul_le_mul_of_nonneg_left (h_e x) (norm_nonneg _)
+        ... ≤ N * ∥f∥ * ∥e x∥ : by rw [mul_comm N ∥f∥, mul_assoc] } },
+  { have he : ∀ x : E, x = 0,
+    { assume x,
+      have N0 : N ≤ 0 := le_of_lt (lt_of_not_ge N0),
+      rw ← norm_le_zero_iff,
+      exact le_trans (h_e x) (mul_nonpos_of_nonpos_of_nonneg N0 (norm_nonneg _)) },
+    have hf : f = 0, { ext, simp only [he x, zero_apply, map_zero] },
+    have hψ : ψ = 0, { rw hf, apply extend_zero },
+    rw [hψ, hf, norm_zero, norm_zero, mul_zero] }
 end
 
 end

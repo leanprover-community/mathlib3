@@ -41,7 +41,7 @@ import tactic.well_founded_tactics
   - Represent addition, multiplication and exponentiation in the `ex` type,
     thus allowing us to map expressions to `ex` (the `eval` function drives this).
     We apply associativity and distributivity of the operators here (helped by `ex_type`)
-    and commutativity as well (but unfortunately not helped by anything).
+    and commutativity as well (by sorting the subterms; unfortunately not helped by anything).
     Any expression not of the above formats is treated as an atom (the same as a variable).
 
   There are some details we glossed over which make the plan more complicated:
@@ -1215,38 +1215,39 @@ meta def eval : expr → ring_exp_m (ex sum)
   psqs <- add ps' qs',
   pf <- mk_proof_or_refl psqs.pretty ``sub_pf [cri, ps, qs, psqs.pretty] [psqs.info],
   pure (psqs.set_info e pf)) <|> eval_base e
-| e@`(- %%ps) := (do
+| e@`(- %%ps) := do
   ps' <- eval ps,
-  negate ps') <|> eval_base e
+  negate ps' <|> eval_base e
 | e@`(%%ps * %%qs) := do
   ps' <- eval ps,
   qs' <- eval qs,
-  mul ps' qs'
-| e@`(has_inv.inv %%ps) := (do
+  pq <- mul ps' qs',
+  pure pq
+| e@`(has_inv.inv %%ps) := do
   ps' <- eval ps,
-  inverse ps') <|> eval_base e
-| e@`(%%ps / %%qs) := (do
+  inverse ps' <|> eval_base e
+| e@`(%%ps / %%qs) := do
   ctx <- get_context,
   dri <- match ctx.info_b.dr_instance with
   | none := lift $ fail "division is only directly supported in a division ring"
   | (some dri) := pure dri
   end,
   ps' <- eval ps,
-  qs' <- eval qs >>= inverse,
-  psqs <- mul ps' qs',
+  qs' <- eval qs,
+  (do qs'' <- inverse qs',
+  psqs <- mul ps' qs'',
   pf <- mk_proof_or_refl psqs.pretty ``div_pf [dri, ps, qs, psqs.pretty] [psqs.info],
   pure (psqs.set_info e pf)) <|> eval_base e
-| e@`(@has_pow.pow _ _ %%hp_instance %%ps %%qs) := (do
-  has_pow_pf <-
-  match hp_instance with
-  | `(monoid.has_pow) := lift $ mk_eq_refl e
-  | `(nat.has_pow) := lift $ mk_app ``nat.pow_eq_pow [ps, qs] >>= mk_eq_symm
-  | _ := lift $ fail "has_pow instance must be nat.has_pow or monoid.has_pow"
-  end,
+| e@`(@has_pow.pow _ _ %%hp_instance %%ps %%qs) := do
   ps' <- eval ps,
   qs' <- in_exponent $ eval qs,
   psqs <- pow ps' qs',
   psqs_pf <- psqs.proof_term,
+  (do has_pow_pf <- match hp_instance with
+  | `(monoid.has_pow) := lift $ mk_eq_refl e
+  | `(nat.has_pow) := lift $ mk_app ``nat.pow_eq_pow [ps, qs] >>= mk_eq_symm
+  | _ := lift $ fail "has_pow instance must be nat.has_pow or monoid.has_pow"
+  end,
   pf <- lift $ mk_eq_trans has_pow_pf psqs_pf,
   pure $ psqs.set_info e pf) <|> eval_base e
 | ps := eval_base ps

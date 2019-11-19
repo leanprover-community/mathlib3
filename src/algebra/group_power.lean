@@ -637,13 +637,15 @@ theorem pow_two_nonneg [linear_ordered_ring α] (a : α) : 0 ≤ a ^ 2 :=
 by { rw pow_two, exact mul_self_nonneg _ }
 
 /-- Bernoulli's inequality for `n : ℕ`, `0 ≤ 2 + a` -/
-theorem one_add_mul_le_pow [linear_ordered_ring α] {a : α} (H : 0 ≤ 2 + a) :
+theorem one_add_mul_le_pow [linear_ordered_ring α] {a : α} (H : -2 ≤ a) :
   ∀ (n : ℕ), 1 + n • a ≤ (1 + a) ^ n
 | 0     := le_of_eq $ add_zero _
 | 1     := by simp
 | (n+2) :=
+have H' : 0 ≤ 2 + a,
+  from neg_le_iff_add_nonneg.1 H,
 have 0 ≤ n • (a * a * (2 + a)) + a * a,
-  from add_nonneg (add_monoid.smul_nonneg (mul_nonneg (mul_self_nonneg a) H) n)
+  from add_nonneg (add_monoid.smul_nonneg (mul_nonneg (mul_self_nonneg a) H') n)
     (mul_self_nonneg a),
 calc 1 + (n + 2) • a ≤ 1 + (n + 2) • a + (n • (a * a * (2 + a)) + a * a) :
   (le_add_iff_nonneg_right _).2 this
@@ -656,8 +658,8 @@ calc 1 + (n + 2) • a ≤ 1 + (n + 2) • a + (n • (a * a * (2 + a)) + a * a)
 ... = (1 + a)^(n + 2) : by simp only [pow_succ, mul_assoc]
 
 theorem one_add_sub_mul_le_pow [linear_ordered_ring α]
-  {a : α} (H : 0 ≤ 1 + a) (n : ℕ) : 1 + n • (a - 1) ≤ a ^ n :=
-have 0 ≤ 2 + (a - 1), by rwa [bit0, add_assoc, add_sub_cancel'_right],
+  {a : α} (H : -1 ≤ a) (n : ℕ) : 1 + n • (a - 1) ≤ a ^ n :=
+have -2 ≤ a - 1, by { rw [bit0, neg_add], exact sub_le_sub_right H 1 },
 by simpa only [add_sub_cancel'_right] using one_add_mul_le_pow this n
 
 namespace int

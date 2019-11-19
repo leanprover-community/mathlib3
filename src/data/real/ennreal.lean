@@ -63,7 +63,7 @@ lemma coe_to_nnreal_le_self : ∀{a:ennreal}, ↑(a.to_nnreal) ≤ a
 lemma coe_nnreal_eq (r : nnreal) : (r : ennreal) = ennreal.of_real r :=
 by { rw [ennreal.of_real, nnreal.of_real], cases r with r h, congr, dsimp, rw max_eq_left h }
 
-lemma of_real_eq_coe_nnreal {x : real} (h : x ≥ 0) :
+lemma of_real_eq_coe_nnreal {x : real} (h : 0 ≤ x) :
   ennreal.of_real x = @coe nnreal ennreal _ (⟨x, h⟩ : nnreal) :=
 by { rw [coe_nnreal_eq], refl }
 
@@ -408,6 +408,37 @@ iff.intro
 
 end sub
 
+section sum
+
+open finset
+
+/-- sum of finte numbers is still finite -/
+lemma sum_lt_top [decidable_eq α] {s : finset α} {f : α → ennreal} :
+  (∀a∈s, f a < ⊤) → s.sum f < ⊤ :=
+with_top.sum_lt_top
+
+/-- sum of finte numbers is still finite -/
+lemma sum_lt_top_iff [decidable_eq α] {s : finset α} {f : α → ennreal} :
+  s.sum f < ⊤ ↔ (∀a∈s, f a < ⊤) :=
+with_top.sum_lt_top_iff
+
+/-- seeing `ennreal` as `nnreal` does not change their sum, unless one of the `ennreal` is infinity -/
+lemma to_nnreal_sum [decidable_eq α] {s : finset α} {f : α → ennreal} (hf : ∀a∈s, f a < ⊤) :
+  ennreal.to_nnreal (s.sum f) = s.sum (λa, ennreal.to_nnreal (f a)) :=
+begin
+  rw [← coe_eq_coe, coe_to_nnreal, coe_finset_sum, sum_congr],
+  { refl },
+  { intros x hx, rw coe_to_nnreal, rw ← ennreal.lt_top_iff_ne_top, exact hf x hx },
+  { rw ← ennreal.lt_top_iff_ne_top, exact sum_lt_top hf }
+end
+
+/-- seeing `ennreal` as `real` does not change their sum, unless one of the `ennreal` is infinity -/
+lemma to_real_sum [decidable_eq α] {s : finset α} {f : α → ennreal} (hf : ∀a∈s, f a < ⊤) :
+  ennreal.to_real (s.sum f) = s.sum (λa, ennreal.to_real (f a)) :=
+by { rw [ennreal.to_real, to_nnreal_sum hf, nnreal.sum_coe], refl }
+
+end sum
+
 section interval
 
 variables {x y z : ennreal} {ε ε₁ ε₂ : ennreal} {s : set ennreal}
@@ -547,7 +578,7 @@ forall_ennreal.2 $ and.intro
     (assume h, le_top))
   (assume r hr,
     have ((1 / 2 : nnreal) : ennreal) * ⊤ ≤ r :=
-      hr _ (coe_lt_coe.2 ((@nnreal.coe_lt (1/2) 1).2 one_half_lt_one)),
+      hr _ (coe_lt_coe.2 ((@nnreal.coe_lt (1/2) 1).1 one_half_lt_one)),
     have ne : ((1 / 2 : nnreal) : ennreal) ≠ 0,
     begin
       rw [(≠), coe_eq_zero],
@@ -675,7 +706,7 @@ begin
     simpa [ennreal.of_real, ennreal.to_real, some_eq_coe] }
 end
 
-lemma of_real_lt_iff_lt_to_real {a : ℝ} {b : ennreal} (ha : a ≥ 0) (hb : b ≠ ⊤) :
+lemma of_real_lt_iff_lt_to_real {a : ℝ} {b : ennreal} (ha : 0 ≤ a) (hb : b ≠ ⊤) :
   ennreal.of_real a < b ↔ a < ennreal.to_real b :=
 begin
   rcases b,
@@ -684,7 +715,7 @@ begin
     simpa [ennreal.of_real, ennreal.to_real, some_eq_coe] }
 end
 
-lemma le_of_real_iff_to_real_le {a : ennreal} {b : ℝ} (ha : a ≠ ⊤) (hb : b ≥ 0) :
+lemma le_of_real_iff_to_real_le {a : ennreal} {b : ℝ} (ha : a ≠ ⊤) (hb : 0 ≤ b) :
   a ≤ ennreal.of_real b ↔ ennreal.to_real a ≤ b :=
 begin
   rcases a,
@@ -706,7 +737,7 @@ lemma of_real_mul {p q : ℝ} (hp : 0 ≤ p) :
   ennreal.of_real (p * q) = (ennreal.of_real p) * (ennreal.of_real q) :=
 by { simp only [ennreal.of_real, coe_mul.symm, coe_eq_coe], exact nnreal.of_real_mul hp }
 
-lemma to_real_of_real_mul (c : ℝ) (a : ennreal) (h : c ≥ 0) :
+lemma to_real_of_real_mul (c : ℝ) (a : ennreal) (h : 0 ≤ c) :
   ennreal.to_real ((ennreal.of_real c) * a) = c * ennreal.to_real a :=
 begin
   cases a,
@@ -717,6 +748,40 @@ begin
   { simp only [ennreal.to_real, ennreal.to_nnreal],
     simp only [some_eq_coe, ennreal.of_real, coe_mul.symm, to_nnreal_coe, nnreal.coe_mul],
     congr, apply nnreal.coe_of_real, exact h }
+end
+
+@[simp] lemma to_real_mul_top (a : ennreal) : ennreal.to_real (a * ⊤) = 0 :=
+begin
+  by_cases h : a = 0,
+  { rw [h, zero_mul, zero_to_real] },
+  { rw [mul_top, if_neg h, top_to_real] }
+end
+
+@[simp] lemma to_real_top_mul (a : ennreal) : ennreal.to_real (⊤ * a) = 0 :=
+by { rw mul_comm, exact to_real_mul_top _ }
+
+lemma to_real_eq_to_real {a b : ennreal} (ha : a < ⊤) (hb : b < ⊤) :
+  ennreal.to_real a = ennreal.to_real b ↔ a = b :=
+begin
+  rw ennreal.lt_top_iff_ne_top at *,
+  split,
+  { assume h, apply le_antisymm,
+      rw ← to_real_le_to_real ha hb, exact le_of_eq h,
+      rw ← to_real_le_to_real hb ha, exact le_of_eq h.symm },
+  { assume h, rw h }
+end
+
+lemma to_real_mul_to_real {a b : ennreal} :
+  (ennreal.to_real a) * (ennreal.to_real b) = ennreal.to_real (a * b) :=
+begin
+  by_cases ha : a = ⊤,
+  { rw ha, simp },
+  by_cases hb : b = ⊤,
+  { rw hb, simp },
+  have ha : ennreal.of_real (ennreal.to_real a) = a := of_real_to_real ha,
+  have hb : ennreal.of_real (ennreal.to_real b) = b := of_real_to_real hb,
+  conv_rhs { rw [← ha, ← hb, ← of_real_mul to_real_nonneg] },
+  rw [to_real_of_real (mul_nonneg to_real_nonneg to_real_nonneg)]
 end
 
 end real

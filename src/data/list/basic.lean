@@ -834,6 +834,24 @@ lemma nth_le_append : ∀ {l₁ l₂ : list α} {n : ℕ} (hn₁) (hn₂),
 | (a::l) _ (n+1) hn₁ hn₂ := by simp only [nth_le, cons_append];
                          exact nth_le_append _ _
 
+lemma nth_le_append_right_aux {l₁ l₂ : list α} {n : ℕ}
+  (h₁ : l₁.length ≤ n) (h₂ : n < (l₁ ++ l₂).length) : n - l₁.length < l₂.length :=
+begin
+  rw list.length_append at h₂,
+  convert (nat.sub_lt_sub_right_iff h₁).mpr h₂,
+  simp,
+end
+
+lemma nth_le_append_right : ∀ {l₁ l₂ : list α} {n : ℕ} (h₁ : l₁.length ≤ n) (h₂),
+  (l₁ ++ l₂).nth_le n h₂ = l₂.nth_le (n - l₁.length) (nth_le_append_right_aux h₁ h₂)
+| []       _ n     h₁ h₂ := rfl
+| (a :: l) _ (n+1) h₁ h₂ :=
+  begin
+    dsimp,
+    conv { to_rhs, congr, skip, rw [←nat.sub_sub, nat.sub.right_comm, nat.add_sub_cancel], },
+    rw nth_le_append_right (nat.lt_succ_iff.mp h₁),
+  end
+
 @[simp] lemma nth_le_repeat (a : α) {n m : ℕ} (h : m < n) :
   (list.repeat a n).nth_le m (by rwa list.length_repeat) = a :=
 eq_of_mem_repeat (nth_le_mem _ _ _)
@@ -1507,6 +1525,14 @@ by rw [h, prod_append, prod_cons, mul_left_comm]; exact dvd_mul_right _ _
 
 @[simp] theorem sum_const_nat (m n : ℕ) : sum (list.repeat m n) = m * n :=
 by induction n; [refl, simp only [*, repeat_succ, sum_cons, nat.mul_succ, add_comm]]
+
+theorem dvd_sum [comm_semiring α] {a} {l : list α} (h : ∀ x ∈ l, a ∣ x) : a ∣ l.sum :=
+begin
+  induction l with x l ih,
+  { exact dvd_zero _ },
+  { rw [list.sum_cons],
+    exact dvd_add (h _ (mem_cons_self _ _)) (ih (λ x hx, h x (mem_cons_of_mem _ hx))) }
+end
 
 @[simp] theorem length_join (L : list (list α)) : length (join L) = sum (map length L) :=
 by induction L; [refl, simp only [*, join, map, sum_cons, length_append]]

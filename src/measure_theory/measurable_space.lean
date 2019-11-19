@@ -47,9 +47,9 @@ defined in terms of the Galois connection induced by f.
 
 ## References
 
-* https://en.wikipedia.org/wiki/Measurable_space
-* https://en.wikipedia.org/wiki/Sigma-algebra
-* https://en.wikipedia.org/wiki/Dynkin_system
+* <https://en.wikipedia.org/wiki/Measurable_space>
+* <https://en.wikipedia.org/wiki/Sigma-algebra>
+* <https://en.wikipedia.org/wiki/Dynkin_system>
 
 ## Tags
 
@@ -256,7 +256,7 @@ let b : measurable_space α :=
         (hf i).elim (by simp {contextual := tt}) (assume hi, false.elim $ h ⟨i, hi⟩)) } in
 have b = ⊥, from bot_unique $ assume s hs,
   hs.elim (assume s, s.symm ▸ @is_measurable_empty _ ⊥) (assume s, s.symm ▸ @is_measurable.univ _ ⊥),
-this ▸ iff.refl _
+this ▸ iff.rfl
 
 @[simp] theorem is_measurable_top {s : set α} : @is_measurable _ ⊤ s := trivial
 

@@ -9,6 +9,7 @@ Bases of topologies. Countability axioms.
 import topology.constructions data.set.countable
 
 open set filter lattice classical
+open_locale topological_space
 
 namespace filter
 universe u
@@ -131,9 +132,9 @@ lemma is_topological_basis_of_open_of_nhds {s : set (set α)}
         by rw nhds_generate_from; exact infi_le_of_le v (infi_le_of_le ⟨hav, hvs⟩ $ le_principal_iff.2 hvu))⟩
 
 lemma mem_nhds_of_is_topological_basis {a : α} {s : set α} {b : set (set α)}
-  (hb : is_topological_basis b) : s ∈ nhds a ↔ ∃t∈b, a ∈ t ∧ t ⊆ s :=
+  (hb : is_topological_basis b) : s ∈ 𝓝 a ↔ ∃t∈b, a ∈ t ∧ t ⊆ s :=
 begin
-  change s ∈ (nhds a).sets ↔ ∃t∈b, a ∈ t ∧ t ⊆ s,
+  change s ∈ (𝓝 a).sets ↔ ∃t∈b, a ∈ t ∧ t ⊆ s,
   rw [hb.2.2, nhds_generate_from, infi_sets_eq'],
   { simp only [mem_bUnion_iff, exists_prop, mem_set_of_eq, and_assoc, and.left_comm], refl },
   { exact assume s ⟨hs₁, hs₂⟩ t ⟨ht₁, ht₂⟩,
@@ -178,7 +179,7 @@ class separable_space : Prop :=
 /-- A first-countable space is one in which every point has a
   countable neighborhood basis. -/
 class first_countable_topology : Prop :=
-(nhds_generated_countable : ∀a:α, (nhds a).has_countable_basis)
+(nhds_generated_countable : ∀a:α, (𝓝 a).has_countable_basis)
 
 /-- A second-countable space is one with a countable basis. -/
 class second_countable_topology : Prop :=
@@ -245,7 +246,7 @@ end
 instance second_countable_topology.to_separable_space
   [second_countable_topology α] : separable_space α :=
 let ⟨b, hb₁, hb₂, hb₃, hb₄, eq⟩ := is_open_generated_countable_inter α in
-have nhds_eq : ∀a, nhds a = (⨅ s : {s : set α // a ∈ s ∧ s ∈ b}, principal s.val),
+have nhds_eq : ∀a, 𝓝 a = (⨅ s : {s : set α // a ∈ s ∧ s ∈ b}, principal s.val),
   by intro a; rw [eq, nhds_generate_from, infi_subtype]; refl,
 have ∀s∈b, ∃a, a ∈ s, from assume s hs, exists_mem_of_ne_empty $ assume eq, hb₂ $ eq ▸ hs,
 have ∃f:∀s∈b, α, ∀s h, f s h ∈ s, by simp only [skolem] at this; exact this,

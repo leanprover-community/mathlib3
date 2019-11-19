@@ -123,6 +123,11 @@ meta def add_prime : name → name
 | (name.mk_string s p) := name.mk_string (s ++ "'") p
 | n := (name.mk_string "x'" n)
 
+def last_string : name → string
+| anonymous        := "[anonymous]"
+| (mk_string s _)  := s
+| (mk_numeral _ n) := last_string n
+
 end name
 
 namespace level
@@ -211,6 +216,10 @@ end expr
 namespace expr
 open tactic
 
+/-- `replace_with e s s'` replaces ocurrences of `s` with `s'` in `e`. -/
+meta def replace_with (e : expr) (s : expr) (s' : expr) : expr :=
+e.replace $ λc d, if c = s then some (s'.lift_vars 0 d) else none
+
 /-- Apply a function to each constant (inductive type, defined function etc) in an expression. -/
 protected meta def apply_replacement_fun (f : name → name) (e : expr) : expr :=
 e.replace $ λ e d,
@@ -229,10 +238,20 @@ meta def is_sort : expr → bool
 | (sort _) := tt
 | e         := ff
 
-/-- If `e` is a local constant, `to_implicit e` changes the binder info of `e` to `implicit`. -/
-meta def to_implicit : expr → expr
+/-- If `e` is a local constant, `to_implicit_local_const e` changes the binder info of `e` to
+ `implicit`. See also `to_implicit_binder`, which also changes lambdas and pis. -/
+meta def to_implicit_local_const : expr → expr
 | (expr.local_const uniq n bi t) := expr.local_const uniq n binder_info.implicit t
 | e := e
+
+/-- If `e` is a local constant, lamda, or pi expression, `to_implicit_binder e` changes the binder
+info of `e` to `implicit`. See also `to_implicit_local_const`, which only changes local constants. -/
+meta def to_implicit_binder : expr → expr
+| (local_const n₁ n₂ _ d) := local_const n₁ n₂ binder_info.implicit d
+| (lam n _ d b) := lam n binder_info.implicit d b
+| (pi n _ d b) := pi n binder_info.implicit d b
+| e  := e
+
 
 /-- Returns a list of all local constants in an expression (without duplicates). -/
 meta def list_local_consts (e : expr) : list expr :=

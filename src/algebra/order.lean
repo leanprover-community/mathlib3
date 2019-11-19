@@ -7,8 +7,8 @@ Authors: Mario Carneiro
 universe u
 variables {α : Type u}
 
-@[simp] lemma ge_iff_le [preorder α] {a b : α} : a ≥ b ↔ b ≤ a := iff.refl _
-@[simp] lemma gt_iff_lt [preorder α] {a b : α} : a > b ↔ b < a := iff.refl _
+@[simp] lemma ge_iff_le [preorder α] {a b : α} : a ≥ b ↔ b ≤ a := iff.rfl
+@[simp] lemma gt_iff_lt [preorder α] {a b : α} : a > b ↔ b < a := iff.rfl
 
 lemma not_le_of_lt [preorder α] {a b : α} (h : a < b) : ¬ b ≤ a :=
 (le_not_le_of_lt h).right
@@ -96,9 +96,17 @@ lemma le_of_forall_lt [linear_order α] {a b : α}
   (H : ∀ c, c < a → c < b) : a ≤ b :=
 le_of_not_lt $ λ h, lt_irrefl _ (H _ h)
 
+lemma forall_lt_iff_le [linear_order α] {a b : α} :
+  (∀ ⦃c⦄, c < a → c < b) ↔ a ≤ b :=
+⟨le_of_forall_lt, λ h c hca, lt_of_lt_of_le hca h⟩
+
 lemma le_of_forall_lt' [linear_order α] {a b : α}
   (H : ∀ c, a < c → b < c) : b ≤ a :=
 le_of_not_lt $ λ h, lt_irrefl _ (H _ h)
+
+lemma forall_lt_iff_le' [linear_order α] {a b : α} :
+  (∀ ⦃c⦄, a < c → b < c) ↔ b ≤ a :=
+⟨le_of_forall_lt', λ h c hac, lt_of_le_of_lt h hac⟩
 
 lemma eq_of_forall_ge_iff [partial_order α] {a b : α}
   (H : ∀ c, a ≤ c ↔ b ≤ c) : a = b :=

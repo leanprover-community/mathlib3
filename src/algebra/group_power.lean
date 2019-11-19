@@ -636,7 +636,7 @@ end linear_ordered_semiring
 theorem pow_two_nonneg [linear_ordered_ring α] (a : α) : 0 ≤ a ^ 2 :=
 by { rw pow_two, exact mul_self_nonneg _ }
 
-/-- Bernoulli's inequality for `n : ℕ`, `0 ≤ 2 + a` -/
+/-- Bernoulli's inequality for `n : ℕ`, `-2 ≤ a`. -/
 theorem one_add_mul_le_pow [linear_ordered_ring α] {a : α} (H : -2 ≤ a) :
   ∀ (n : ℕ), 1 + n • a ≤ (1 + a) ^ n
 | 0     := le_of_eq $ add_zero _
@@ -657,6 +657,7 @@ calc 1 + (n + 2) • a ≤ 1 + (n + 2) • a + (n • (a * a * (2 + a)) + a * a)
   mul_le_mul_of_nonneg_left (one_add_mul_le_pow n) (mul_self_nonneg (1 + a))
 ... = (1 + a)^(n + 2) : by simp only [pow_succ, mul_assoc]
 
+/-- Bernoulli's inequality reformulated to estimate `a^n`. -/
 theorem one_add_sub_mul_le_pow [linear_ordered_ring α]
   {a : α} (H : -1 ≤ a) (n : ℕ) : 1 + n • (a - 1) ≤ a ^ n :=
 have -2 ≤ a - 1, by { rw [bit0, neg_add], exact sub_le_sub_right H 1 },

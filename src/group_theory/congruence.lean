@@ -770,13 +770,8 @@ noncomputable def submonoid_quotient_equiv (A : submonoid M) :
 @[to_additive "The third isomorphism theorem for `add_monoid`s."]
 def quotient_quotient_equiv_quotient (c d : con M) (h : c ≤ d) :
   (ker (c.map d h)).quotient ≃* d.quotient :=
-{ to_fun := λ x, con.lift_on x (λ w, con.lift_on w (λ y, d.mk' y) $ λ _ _ H, d.eq.2 $ h _ _ H) $
-    λ x y, con.induction_on₂ x y $ λ _ _, id,
-  inv_fun := λ x, con.lift_on x (coe : M → (ker (c.map d h)).quotient) $
-    λ _ _ H, by erw con.eq; exact d.eq.2 H,
-  left_inv := λ x, con.induction_on x $ λ w, con.induction_on w $ λ y, rfl,
-  right_inv := λ x, con.induction_on x $ λ y, rfl,
-  map_mul' := λ x y, con.induction_on₂ x y $ λ w z, con.induction_on₂ w z $ λ a b,
-    show _ = d.mk' a * d.mk' b, by rw ←d.mk'.map_mul; refl }
+{ map_mul' := λ x y, con.induction_on₂ x y $ λ w z, con.induction_on₂ w z $ λ a b,
+    show _ = d.mk' a * d.mk' b, by rw ←d.mk'.map_mul; refl,
+  ..setoid.quotient_quotient_equiv_quotient _ _ h }
 
 end con

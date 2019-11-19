@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Amelia Livingston, Bryan Gin-ge Chen
 -/
 
-import data.quot data.set.lattice data.fintype order.galois_connection
+import data.quot data.set.lattice data.fintype order.galois_connection tactic.default
 
 /-!
 # Equivalence relations
@@ -280,9 +280,17 @@ noncomputable def quotient_ker_equiv_of_surjective (hf : surjective f) :
   ⟨injective_ker_lift f, λ y, exists.elim (hf y) $ λ w hw, ⟨quotient.mk' w, hw⟩⟩
 
 /-- The third isomorphism theorem for sets. -/
-noncomputable def quotient_quotient_equiv_quotient (s : setoid α) (h : r ≤ s) :
+def quotient_quotient_equiv_quotient (s : setoid α) (h : r ≤ s) :
   quotient (ker (quot.map_right h)) ≃ quotient s :=
-quotient_ker_equiv_of_surjective _ $ λ x, by rcases x; exact ⟨quotient.mk' x, rfl⟩
+{ to_fun := λ x, quotient.lift_on' x (λ w, quotient.lift_on' w (@quotient.mk _ s) $
+    λ x y H, quotient.sound $ h x y H) $ λ x y, quotient.induction_on₂' x y $ λ w z H,
+      show @quot.mk _ _ _ = @quot.mk _ _ _, from H,
+  inv_fun := λ x, quotient.lift_on' x
+    (λ w, @quotient.mk _ (ker $ quot.map_right h) $ @quotient.mk _ r w) $
+      λ x y H, quotient.sound' $ show @quot.mk _ _ _ = @quot.mk _ _ _, from quotient.sound H,
+  left_inv := λ x, quotient.induction_on' x $ λ y, quotient.induction_on' y $
+    λ w, by show ⟦_⟧ = _; refl,
+  right_inv := λ x, quotient.induction_on' x $ λ y, by show ⟦_⟧ = _; refl }
 
 variables {r f}
 

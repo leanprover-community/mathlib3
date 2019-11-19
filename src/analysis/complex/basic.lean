@@ -27,7 +27,8 @@ They are bundled versions of the real part, the imaginary part, and the embeddin
 as `ℝ`-linear maps.
 
 `has_deriv_at_real_of_complex` expresses that, if a function on `ℂ` is differentiable (over `ℂ`),
-  then its restriction to `ℝ` is differentiable over `ℝ` and writes down its derivative.
+then its restriction to `ℝ` is differentiable over `ℝ`, with derivative the real part of the
+complex derivative.
 -/
 noncomputable theory
 

@@ -786,6 +786,11 @@ lemma mul_pf_c_prod {ps qqs q qs pqs : α} :
 lemma mul_pf_prod_c {pps p ps qs pqs : α} :
   pps = p * ps → ps * qs = pqs → pps * qs = p * pqs := by cc
 
+lemma mul_pp_pf_overlap {pps p_b ps qqs qs psqs : α} {p_e q_e : ℕ} :
+  pps = p_b ^ p_e * ps → qqs = p_b ^ q_e * qs →
+  p_b ^ (p_e + q_e) * (ps * qs) = psqs → pps * qqs = psqs
+:= λ ps_pf qs_pf psqs_pf, by simp [symm psqs_pf, _root_.pow_add, ps_pf, qs_pf]; ac_refl
+
 lemma mul_pp_pf_prod_lt {pps p ps qqs pqs : α} :
   pps = p * ps → ps * qqs = pqs → pps * qqs = p * pqs := by cc
 
@@ -798,6 +803,8 @@ lemma mul_pp_pf_prod_gt {pps qqs q qs pqs : α} :
   * `x * y = (x * y)` (for `x`, `y` coefficients)
   * `x * (q * qs) = q * (qs * x)` (for `x` coefficient)
   * `(p * ps) * y = p * (ps * y)` (for `y` coefficient)
+  * `(p_b^p_e * ps) * (p_b^q_e * qs) = p_b^(p_e + q_e) * (ps * qs)`
+      (if `p_e` and `q_e` are identical except coefficient)
   * `(p * ps) * (q * qs) = p * (ps * (q * qs))` (if `p.lt q`)
   * `(p * ps) * (q * qs) = q * ((p * ps) * qs)` (if not `p.lt q`)
 -/
@@ -825,10 +832,19 @@ meta def mul_pp : ex prod → ex prod → ring_exp_m (ex prod)
     [pps.orig, p.pretty, ps.pretty, qs.orig, pqs.pretty]
     [pps.info, pqs.info],
   pure $ ppqs.set_info ppqs_o pf
-| pps@(ex.prod _ p ps) qqs@(ex.prod _ q qs) := do
+  | pps@(ex.prod _ p@(ex.exp _ p_b p_e) ps) qqs@(ex.prod _ q@(ex.exp _ q_b q_e) qs) := do
   ppqqs_o ← mul_orig pps qqs,
-  if p.lt q
-  then do
+  pq_ol ← in_exponent $ add_overlap p_e q_e,
+  match pq_ol, p_b.eq q_b with
+  | (overlap.nonzero pq_e), tt := do
+    psqs ← mul_pp ps qs,
+    pq ← ex_exp p_b pq_e,
+    ppsqqs ← ex_prod pq psqs,
+    pf ← mk_proof ``mul_pp_pf_overlap
+      [pps.orig, p_b.pretty, ps.pretty, qqs.orig, qs.pretty, ppsqqs.pretty, p_e.pretty, q_e.pretty]
+      [pps.info, qqs.info, ppsqqs.info],
+    pure $ ppsqqs.set_info ppqqs_o pf
+  | _, _ := if p.lt q  then do
     pqs ← mul_pp ps qqs,
     ppqs ← ex_prod p pqs,
     pf ← mk_proof ``mul_pp_pf_prod_lt
@@ -842,6 +858,7 @@ meta def mul_pp : ex prod → ex prod → ring_exp_m (ex prod)
       [pps.orig, qqs.orig, q.pretty, qs.pretty, pqs.pretty]
       [qqs.info, pqs.info],
     pure $ pqqs.set_info ppqqs_o pf
+  end
 
 lemma mul_p_pf_zero {ps qs qs' : α} : ps = 0 → qs = qs' → ps * qs = 0 :=
 λ ps_pf _, by rw [ps_pf, zero_mul]
@@ -1007,8 +1024,8 @@ lemma pow_p_pf_cons {ps ps' : α} {qs qs' : ℕ} :
 
   * `ps ^ 1 = ps`
   * `0 ^ qs = 0` (note that this is handled *after* `ps ^ 0 = 1`)
-  * `ps ^ (qs + 1) = ps * ps ^ qs`
-  * `(p + 0) ^ qs = ps ^ qs`
+  * `(p + 0) ^ qs = p ^ qs`
+  * `ps ^ (qs + 1) = ps * ps ^ qs` (note that this is handled *after* `p + 0 ^ qs = p ^ qs`)
   * `ps ^ qs = ps ^ qs` (otherwise)
 -/
 meta def pow_p : ex sum → ex prod → ring_exp_m (ex sum)
@@ -1021,6 +1038,13 @@ meta def pow_p : ex sum → ex prod → ring_exp_m (ex sum)
   pf ← mk_proof ``pow_p_pf_zero [ps.orig, qs.orig, qs.pretty] [ps.info, qs.info],
   z_o ← pow_orig ps qs,
   pure $ z.set_info z_o pf
+| pps@(ex.sum pps_i p (ex.zero _)) qqs := do
+  pqs ← pow_pp p qqs,
+  pqs_o ← pow_orig pps qqs,
+  pf ← mk_proof ``pow_p_pf_singleton
+    [pps.orig, p.pretty, pqs.pretty, qqs.orig]
+    [pps.info, pqs.info],
+  prod_to_sum $ pqs.set_info pqs_o pf
 | ps qs@(ex.coeff qs_i ⟨⟨int.of_nat (succ n), 1, den_pos, _⟩⟩) := do
   qs' ← in_exponent $ ex_coeff ⟨int.of_nat n, 1, den_pos, coprime_one_right _⟩,
   pqs ← pow_p ps qs',
@@ -1030,13 +1054,6 @@ meta def pow_p : ex sum → ex prod → ring_exp_m (ex sum)
     [ps.orig, pqqs.pretty, qs.orig, qs'.pretty]
     [qs.info, pqqs.info],
   pure $ pqqs.set_info pqqs_o pf
-| pps@(ex.sum pps_i p (ex.zero _)) qqs := do
-  pqs ← pow_pp p qqs,
-  pqs_o ← pow_orig pps qqs,
-  pf ← mk_proof ``pow_p_pf_singleton
-    [pps.orig, p.pretty, pqs.pretty, qqs.orig]
-    [pps.info, pqs.info],
-  prod_to_sum $ pqs.set_info pqs_o pf
 | pps qqs := do -- fallback: treat them as atoms
   pps' ← ex_sum_b pps,
   psqs ← ex_exp pps' qqs,

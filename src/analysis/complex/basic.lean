@@ -173,6 +173,10 @@ begin
       by { apply continuous_linear_map.unit_le_op_norm, simp } }
 end
 
+lemma of_real_continuous_linear_map_isometry :
+  isometry of_real_continuous_linear_map :=
+continuous_linear_map.isometry_iff_norm_image_eq_norm.2 (λx, by simp)
+
 end complex
 
 section real_deriv_of_complex

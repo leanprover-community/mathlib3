@@ -297,6 +297,21 @@ theorem lipschitz : lipschitz_with ∥f∥ f :=
 theorem uniform_continuous : uniform_continuous f :=
 f.lipschitz.to_uniform_continuous
 
+variable {f}
+/-- A continuous linear map is an isometry if and only if it preserves the norm. -/
+lemma isometry_iff_norm_image_eq_norm :
+  isometry f ↔ ∀x, ∥f x∥ = ∥x∥ :=
+begin
+  rw isometry_emetric_iff_metric,
+  split,
+  { assume H x,
+    have := H x 0,
+    rwa [dist_eq_norm, dist_eq_norm, f.map_zero, sub_zero, sub_zero] at this },
+  { assume H x y,
+    rw [dist_eq_norm, dist_eq_norm, ← f.map_sub, H] }
+end
+
+variable (f)
 /-- A continuous linear map is a uniform embedding if it expands the norm by a constant factor. -/
 theorem uniform_embedding_of_bound (C : ℝ) (hC : ∀x, ∥x∥ ≤ C * ∥f x∥) :
   uniform_embedding f :=

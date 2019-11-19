@@ -73,6 +73,10 @@ import tactic.well_founded_tactics
   `2 ^ n * 2 ^ n = 4 ^ n := by ring_exp` could be implemented
   in a similar way that `2 * a + 2 * a = 4 * a := by ring_exp` already works.
   This feature wasn't needed yet, so it's not implemented yet.
+
+  ## Tags
+
+  ring, semiring, exponent, power
 -/
 
 -- The base ring `α` will have a universe level `u`.
@@ -1337,10 +1341,7 @@ meta def ring_exp_eq : tactic unit := do
     qs_pf_inv <- mk_eq_symm qs_pf,
     pf <- mk_eq_trans ps_pf qs_pf_inv,
     tactic.interactive.exact ``(%%pf)
-  else do
-    trace ps'.pretty,
-    trace qs'.pretty,
-    fail "ring_exp failed to prove equality"
+  else fail "ring_exp failed to prove equality"
 
 /-- Tactic for solving equations of *commutative* (semi)rings,
     allowing variables in the exponent.

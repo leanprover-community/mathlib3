@@ -18,12 +18,16 @@ open filter metric
 open_locale topological_space
 localized "notation f `→_{`:50 a `}`:0 b := filter.tendsto f (_root_.nhds a) (_root_.nhds b)" in filter
 
+/-- Auxiliary class, endowing a type `α` with a function `norm : α → ℝ`. This class is designed to
+be extended in more interesting classes specifying the properties of the norm. -/
 class has_norm (α : Type*) := (norm : α → ℝ)
 
 export has_norm (norm)
 
 notation `∥`:1024 e:1 `∥`:1 := norm e
 
+/-- A normed group is an additive group endowed with a norm for which `dist x y = ∥x - y∥` defines
+a metric space structure. -/
 class normed_group (α : Type*) extends has_norm α, add_comm_group α, metric_space α :=
 (dist_eq : ∀ x y, dist x y = norm (x - y))
 
@@ -54,6 +58,8 @@ structure normed_group.core (α : Type*) [add_comm_group α] [has_norm α] :=
 (triangle : ∀ x y : α, ∥x + y∥ ≤ ∥x∥ + ∥y∥)
 (norm_neg : ∀ x : α, ∥-x∥ = ∥x∥)
 
+/-- Constructing a normed group from core properties of a norm, i.e., registering the distance and
+the metric space structure from the norm properties. -/
 noncomputable def normed_group.of_core (α : Type*) [add_comm_group α] [has_norm α]
   (C : normed_group.core α) : normed_group α :=
 { dist := λ x y, ∥x - y∥,
@@ -153,9 +159,9 @@ begin
   exact ⟨_, h ε εgt0, set.subset.refl _⟩
 end
 
-
 section nnnorm
 
+/-- Version of the norm taking values in nonnegative reals. -/
 def nnnorm (a : α) : nnreal := ⟨norm a, norm_nonneg a⟩
 
 @[simp] lemma coe_nnnorm (a : α) : (nnnorm a : ℝ) = norm a := rfl
@@ -179,23 +185,39 @@ nnreal.coe_le.2 $ dist_norm_norm_le g h
 
 end nnnorm
 
+/-- A submodule of a normed group is also a normed group, with the restriction of the norm.
+As all instances can be inferred from the submodule `s`, they are put as implicit instead of
+typeclasses. -/
+instance submodule.normed_group {𝕜 : Type*} {_ : ring 𝕜}
+  {E : Type*} [normed_group E] {_ : module 𝕜 E} (s : submodule 𝕜 E) : normed_group s :=
+{ norm := λx, norm (x : E),
+  dist_eq := λx y, dist_eq_norm (x : E) (y : E) }
+
+/-- normed group instance on the product of two normed groups, using the sup norm. -/
 instance prod.normed_group : normed_group (α × β) :=
 { norm := λx, max ∥x.1∥ ∥x.2∥,
   dist_eq := assume (x y : α × β),
     show max (dist x.1 y.1) (dist x.2 y.2) = (max ∥(x - y).1∥ ∥(x - y).2∥), by simp [dist_eq_norm] }
 
 lemma norm_fst_le (x : α × β) : ∥x.1∥ ≤ ∥x∥ :=
-begin have : ∥x∥ = max (∥x.fst∥) (∥x.snd∥) := rfl, rw this, simp[le_max_left] end
+by simp [norm, le_max_left]
 
 lemma norm_snd_le (x : α × β) : ∥x.2∥ ≤ ∥x∥ :=
-begin have : ∥x∥ = max (∥x.fst∥) (∥x.snd∥) := rfl, rw this, simp[le_max_right] end
+by simp [norm, le_max_right]
 
-instance fintype.normed_group {π : ι → Type*} [fintype ι] [∀i, normed_group (π i)] :
+/-- normed group instance on the product of finitely many normed groups, using the sup norm. -/
+instance pi.normed_group {π : ι → Type*} [fintype ι] [∀i, normed_group (π i)] :
   normed_group (Πb, π b) :=
 { norm := λf, ((finset.sup finset.univ (λ b, nnnorm (f b)) : nnreal) : ℝ),
   dist_eq := assume x y,
     congr_arg (coe : nnreal → ℝ) $ congr_arg (finset.sup finset.univ) $ funext $ assume a,
     show nndist (x a) (y a) = nnnorm (x a - y a), from nndist_eq_nnnorm _ _ }
+
+/-- The norm of an element in a product space is `≤ r` if and only if the norm of each
+component is. -/
+lemma pi_norm_le_iff {π : ι → Type*} [fintype ι] [∀i, normed_group (π i)] {r : ℝ} (hr : 0 ≤ r)
+  {x : Πb, π b} : ∥x∥ ≤ r ↔ ∀i, ∥x i∥ ≤ r :=
+by { simp only [(dist_zero_right _).symm, dist_pi_le_iff hr], refl }
 
 lemma tendsto_iff_norm_tendsto_zero {f : ι → β} {a : filter ι} {b : β} :
   tendsto f a (𝓝 b) ↔ tendsto (λ e, ∥ f e - b ∥) a (𝓝 0) :=
@@ -224,6 +246,8 @@ end
 lemma continuous_nnnorm : continuous (nnnorm : α → nnreal) :=
 continuous_subtype_mk _ continuous_norm
 
+/-- A normed group is a uniform additive group, i.e., addition and subtraction are uniformly
+continuous. -/
 instance normed_uniform_group : uniform_add_group α :=
 begin
   refine ⟨metric.uniform_continuous_iff.2 $ assume ε hε, ⟨ε / 2, half_pos hε, assume a b h, _⟩⟩,
@@ -241,6 +265,7 @@ end normed_group
 
 section normed_ring
 
+/-- A normed ring is a ring endowed with a norm which satisfies the inequality `∥x y∥ ≤ ∥x∥ ∥y∥`. -/
 class normed_ring (α : Type*) extends has_norm α, ring α, metric_space α :=
 (dist_eq : ∀ x y, dist x y = norm (x - y))
 (norm_mul : ∀ a b, norm (a * b) ≤ norm a * norm b)
@@ -257,6 +282,7 @@ lemma norm_pow_le {α : Type*} [normed_ring α] (a : α) : ∀ {n : ℕ}, 0 < n 
            (mul_le_mul (le_refl _)
                        (norm_pow_le (nat.succ_pos _)) (norm_nonneg _) (norm_nonneg _))
 
+/-- Normed ring structure on the product of two normed rings, using the sup norm. -/
 instance prod.normed_ring [normed_ring α] [normed_ring β] : normed_ring (α × β) :=
 { norm_mul := assume x y,
   calc
@@ -301,16 +327,20 @@ instance normed_ring_top_monoid [normed_ring α] : topological_monoid α :=
             { apply tendsto_const_nhds }}}}
     end ⟩
 
+/-- A normed ring is a topological ring. -/
 instance normed_top_ring [normed_ring α] : topological_ring α :=
 ⟨ continuous_iff_continuous_at.2 $ λ x, tendsto_iff_norm_tendsto_zero.2 $
     have ∀ e : α, -e - -x = -(e - x), by intro; simp,
     by simp only [this, norm_neg]; apply lim_norm ⟩
 
-
+/-- A normed field is a field with a norm satisfying ∥x y∥ = ∥x∥ ∥y∥. -/
 class normed_field (α : Type*) extends has_norm α, discrete_field α, metric_space α :=
 (dist_eq : ∀ x y, dist x y = norm (x - y))
 (norm_mul' : ∀ a b, norm (a * b) = norm a * norm b)
 
+/-- A nondiscrete normed field is a normed field in which there is an element of norm different from
+`0` and `1`. This makes it possible to bring any element arbitrarily close to `0` by multiplication
+by the powers of any element, and thus to relate algebra and topology. -/
 class nondiscrete_normed_field (α : Type*) extends normed_field α :=
 (non_trivial : ∃x:α, 1<∥x∥)
 
@@ -368,6 +398,20 @@ begin
   { simp [inv_lt_one hy] }
 end
 
+lemma exists_lt_norm (α : Type*) [nondiscrete_normed_field α]
+  (r : ℝ) : ∃ x : α, r < ∥x∥ :=
+let ⟨w, hw⟩ := exists_one_lt_norm α in
+let ⟨n, hn⟩ := pow_unbounded_of_one_lt r hw in
+⟨w^n, by rwa norm_pow⟩
+
+lemma exists_norm_lt (α : Type*) [nondiscrete_normed_field α]
+  {r : ℝ} (hr : 0 < r) : ∃ x : α, 0 < ∥x∥ ∧ ∥x∥ < r :=
+let ⟨w, hw⟩ := exists_one_lt_norm α in
+let ⟨n, hle, hlt⟩ := exists_int_pow_near' hr hw in
+⟨w^n, by { rw norm_fpow; exact fpow_pos_of_pos (lt_trans zero_lt_one hw) _},
+by rwa norm_fpow⟩
+
+
 instance : normed_field ℝ :=
 { norm := λ x, abs x,
   dist_eq := assume x y, rfl,
@@ -407,6 +451,8 @@ by rw [← rat.norm_cast_real, ← int.norm_cast_real]; congr' 1; norm_cast
 
 section normed_space
 
+/-- A normed space over a normed field is a vector space endowed with a norm which satisfies the
+equality `∥c • x∥ = ∥c∥ ∥x∥`. -/
 class normed_space (α : Type*) (β : Type*) [normed_field α] [normed_group β]
   extends vector_space α β :=
 (norm_smul : ∀ (a:α) (b:β), norm (a • b) = has_norm.norm a * norm b)
@@ -493,6 +539,7 @@ begin
     exact mul_le_mul_of_nonneg_right hn.1 (norm_nonneg _) }
 end
 
+/-- The product of two normed spaces is a normed space, with the sup norm. -/
 instance : normed_space α (E × F) :=
 { norm_smul :=
   begin
@@ -507,12 +554,18 @@ instance : normed_space α (E × F) :=
   ..prod.normed_group,
   ..prod.vector_space }
 
-instance fintype.normed_space {E : ι → Type*} [fintype ι] [∀i, normed_group (E i)]
+/-- The product of finitely many normed spaces is a normed space, with the sup norm. -/
+instance pi.normed_space {E : ι → Type*} [fintype ι] [∀i, normed_group (E i)]
   [∀i, normed_space α (E i)] : normed_space α (Πi, E i) :=
 { norm_smul := λ a f,
     show (↑(finset.sup finset.univ (λ (b : ι), nnnorm (a • f b))) : ℝ) =
       nnnorm a * ↑(finset.sup finset.univ (λ (b : ι), nnnorm (f b))),
     by simp only [(nnreal.coe_mul _ _).symm, nnreal.mul_finset_sup, nnnorm_smul] }
+
+/-- A subspace of a normed space is also a normed space, with the restriction of the norm. -/
+instance submodule.normed_space {𝕜 : Type*} [normed_field 𝕜]
+  {E : Type*} [normed_group E] [normed_space 𝕜 E] (s : submodule 𝕜 E) : normed_space 𝕜 s :=
+{ norm_smul := λc x, norm_smul c (x : E) }
 
 end normed_space
 
@@ -532,7 +585,7 @@ open finset filter
 variables [normed_group α] [complete_space α]
 
 lemma summable_iff_vanishing_norm {f : ι → α} :
-  summable f ↔ ∀ε>0, (∃s:finset ι, ∀t, disjoint t s → ∥ t.sum f ∥ < ε) :=
+  summable f ↔ ∀ε > 0, ∃s:finset ι, ∀t, disjoint t s → ∥ t.sum f ∥ < ε :=
 begin
   simp only [summable_iff_vanishing, metric.mem_nhds_iff, exists_imp_distrib],
   split,

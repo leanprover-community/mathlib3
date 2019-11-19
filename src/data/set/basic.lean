@@ -1104,18 +1104,18 @@ subset.antisymm
   (forall_range_iff.mpr $ assume i, mem_image_of_mem g (mem_range_self _))
   (ball_image_iff.mpr $ forall_range_iff.mpr mem_range_self)
 
-theorem range_subset_iff {ι : Type*} {f : ι → β} {s : set β} : range f ⊆ s ↔ ∀ y, f y ∈ s :=
+theorem range_subset_iff {s : set α} : range f ⊆ s ↔ ∀ y, f y ∈ s :=
 forall_range_iff
 
 lemma range_comp_subset_range (f : α → β) (g : β → γ) : range (g ∘ f) ⊆ range g :=
 by rw range_comp; apply image_subset_range
 
-lemma nonempty_of_nonempty_range {α : Type*} {β : Type*} {f : α → β} (H : ¬range f = ∅) : nonempty α :=
-begin
-  cases exists_mem_of_ne_empty H with x h,
-  cases mem_range.1 h with y _,
-  exact ⟨y⟩
-end
+lemma range_ne_empty_iff_nonempty : range f ≠ ∅ ↔ nonempty ι :=
+ne_empty_iff_exists_mem.trans
+  ⟨λ ⟨y, x, hxy⟩, ⟨x⟩, λ ⟨x⟩, ⟨f x, mem_range_self x⟩⟩
+
+lemma range_ne_empty [h : nonempty ι] (f : ι → α) : range f ≠ ∅ :=
+range_ne_empty_iff_nonempty.2 h
 
 @[simp] lemma range_eq_empty {α : Type u} {β : Type v} {f : α → β} : range f = ∅ ↔ ¬ nonempty α :=
 by rw ← set.image_univ; simp [-set.image_univ]
@@ -1157,16 +1157,12 @@ by rw [image_preimage_eq_inter_range, preimage_inter_range]
 @[simp] theorem quot_mk_range_eq [setoid α] : range (λx : α, ⟦x⟧) = univ :=
 range_iff_surjective.2 quot.exists_rep
 
-lemma range_const_subset {c : β} : range (λx:α, c) ⊆ {c} :=
+lemma range_const_subset {c : α} : range (λx:ι, c) ⊆ {c} :=
 range_subset_iff.2 $ λ x, or.inl rfl
 
-@[simp] lemma range_const [h : nonempty α] {c : β} : range (λx:α, c) = {c} :=
-begin
-  refine subset.antisymm range_const_subset (λy hy, _),
-  rw set.mem_singleton_iff.1 hy,
-  rcases exists_mem_of_nonempty α with ⟨x, _⟩,
-  exact mem_range_self x
-end
+@[simp] lemma range_const : ∀ [nonempty ι] {c : α}, range (λx:ι, c) = {c}
+| ⟨x⟩ c := subset.antisymm range_const_subset $
+  assume y hy, (mem_singleton_iff.1 hy).symm ▸ mem_range_self x
 
 def range_factorization (f : ι → β) : ι → range f :=
 λ i, ⟨f i, mem_range_self i⟩

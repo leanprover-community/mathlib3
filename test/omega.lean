@@ -37,6 +37,7 @@ example (k : nat) (h : 1 * 1 + 1 * 1 + 1 = 1 * 1 * k) : k = 3 := by omega
 example (a b : ℕ) (h : a < b + 1) (ha : a.prime) : a ≤ b := by omega
 example (a b c : ℕ) (h : a < b + 1) (ha : c.prime) : a ≤ b := by omega
 example (a b : ℕ) (h : a < b + 1) (p : fin a) : a ≤ b := by omega
+example : nat.zero = nat.zero := by omega
 example : 3 < 4 := by omega
 
 /-

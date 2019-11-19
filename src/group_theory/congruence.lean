@@ -52,6 +52,8 @@ variables (M : Type*) {N : Type*} {P : Type*}
 
 set_option old_structure_cmd true
 
+open function setoid lattice
+
 /-- A congruence relation on a type with an addition is an equivalence relation which
     preserves addition. -/
 structure add_con [has_add M] extends setoid M :=
@@ -138,7 +140,7 @@ attribute [ext] add_con.ext
 /-- The map sending a congruence relation to its underlying equivalence relation is injective. -/
 @[to_additive "The map sending an additive congruence relation to its underlying equivalence relation is injective."]
 lemma to_setoid_inj {c d : con M} (H : c.to_setoid = d.to_setoid) : c = d :=
-ext $ setoid.ext_iff.1 H
+ext $ ext_iff.1 H
 
 /-- Iff version of extensionality rule for congruence relations. -/
 @[to_additive "Iff version of extensionality rule for additive congruence relations."]
@@ -252,8 +254,6 @@ protected def congr {c d : con M} (h : c = d) :  c.quotient ≃* d.quotient :=
   ..quotient.congr (equiv.refl M) $ by apply ext_iff.2 h }
 
 -- The complete lattice of congruence relations on a type
-
-open lattice
 
 /-- For congruence relations `c, d` on a type `M` with a multiplication, `c ≤ d` iff `∀ x y ∈ M`,
     `x` is related to `y` by `d` if `x` is related to `y` by `c`. -/
@@ -431,7 +431,6 @@ protected def gi : @galois_insertion (M → M → Prop) (con M) _ _ con_gen r :=
 
 variables {M} (c)
 
-open function setoid
 
 /-- Given a multiplication-preserving function `f` whose kernel is contained in a congruence
     relation `c`, the smallest congruence relation containing the binary relation on `f`'s image
@@ -596,8 +595,6 @@ lemma mk'_ker : ker c.mk' = c := ext $ λ _ _, c.eq
 
 variables {c}
 
-open function
-
 /-- The natural homomorphism from a monoid to its quotient by a congruence relation is
     surjective. -/
 @[to_additive "The natural homomorphism from an `add_monoid` to its quotient by a congruence relation is surjective."]
@@ -698,16 +695,12 @@ lemma lift_surjective_of_surjective (h : c ≤ ker f) (hf : surjective f) :
 @[to_additive "Given an `add_monoid` homomorphism `f` from `M` to `P`, the kernel of `f` is the unique additive congruence relation on `M` whose induced map from the quotient of `M` to `P` is injective."]
 lemma ker_eq_lift_of_injective (H : c ≤ ker f) (h : injective (c.lift f H)) :
   ker f = c :=
-to_setoid_inj $ setoid.ker_eq_lift_of_injective f H h
-
-variables (f)
+to_setoid_inj $ ker_eq_lift_of_injective f H h
 
 /-- The homomorphism induced on the quotient of a monoid by the kernel of a monoid homomorphism. -/
 @[to_additive "The homomorphism induced on the quotient of an `add_monoid` by the kernel of an `add_monoid` homomorphism."]
 def ker_lift (f : M →* P) : (ker f).quotient →* P :=
 (ker f).lift f $ λ _ _, id
-
-variables {f}
 
 /-- The diagram described by the universal property for quotients of monoids, when the congruence
     relation is the kernel of the homomorphism, commutes. -/
@@ -772,6 +765,6 @@ def quotient_quotient_equiv_quotient (c d : con M) (h : c ≤ d) :
   (ker (c.map d h)).quotient ≃* d.quotient :=
 { map_mul' := λ x y, con.induction_on₂ x y $ λ w z, con.induction_on₂ w z $ λ a b,
     show _ = d.mk' a * d.mk' b, by rw ←d.mk'.map_mul; refl,
-  ..setoid.quotient_quotient_equiv_quotient _ _ h }
+  ..quotient_quotient_equiv_quotient _ _ h }
 
 end con

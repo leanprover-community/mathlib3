@@ -579,6 +579,23 @@ class normed_algebra (𝕜 : Type*) (𝕜' : Type*) [normed_field 𝕜] [normed_
 
 end normed_algebra
 
+section restrict_scalars
+set_option class.instance_max_depth 40
+
+variables (𝕜 : Type*) (𝕜' : Type*) [normed_field 𝕜] [normed_field 𝕜'] [normed_algebra 𝕜 𝕜']
+{E : Type*} [normed_group E] [normed_space 𝕜' E]
+
+/-- `𝕜`-normed space structure induced by a `𝕜'`-normed space structure when `𝕜'` is a
+normed algebra over `𝕜`. Not registered as an instance as `𝕜'` could not be inferred. -/
+def normed_space.restrict_scalars : normed_space 𝕜 E :=
+{ norm_smul := λc x, begin
+    change ∥(algebra_map 𝕜' c) • x∥ = ∥c∥ * ∥x∥,
+    simp [norm_smul, normed_algebra.norm_eq]
+  end,
+  ..module.restrict_scalars 𝕜 𝕜' E }
+
+end restrict_scalars
+
 section summable
 open_locale classical
 open finset filter

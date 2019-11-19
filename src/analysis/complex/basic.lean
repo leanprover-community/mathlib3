@@ -3,7 +3,7 @@ Copyright (c) Sébastien Gouëzel. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Sébastien Gouëzel
 -/
-import analysis.calculus.deriv
+import analysis.calculus.deriv analysis.normed_space.finite_dimension
 
 /-!
 # Basic facts of analytic nature on complex numbers
@@ -61,16 +61,18 @@ by rw [norm_real, real.norm_eq_abs]
 lemma norm_int_of_nonneg {n : ℤ} (hn : 0 ≤ n) : ∥(n : ℂ)∥ = n :=
 by rw [norm_int, _root_.abs_of_nonneg]; exact int.cast_nonneg.2 hn
 
-section restrict_scalars_real_complex
-/- Register as an instance with low priority that a complex normed space is also a real normed
-space. -/
-variables {E : Type*} [normed_group E] [normed_space ℂ E]
+/-- Over the complex numbers, any finite-dimensional spaces is proper (and therefore complete).
+We can register this as an instance, as it will not cause problems in instance resolution since
+the properness of `ℂ` is already known and there is no metavariable. -/
+instance finite_dimensional.proper
+  (E : Type) [normed_group E] [normed_space ℂ E] [finite_dimensional ℂ E] : proper_space E :=
+finite_dimensional.proper ℂ E
+attribute [instance, priority 900] complex.finite_dimensional.proper
 
-instance normed_space.restrict_scalars_complex_to_real : normed_space ℝ E :=
-normed_space.restrict_scalars ℝ ℂ
-attribute [instance, priority 900] complex.normed_space.restrict_scalars_complex_to_real
-
-end restrict_scalars_real_complex
+/-- A complex normed vector space is also a real normed vector space. -/
+instance normed_space.restrict_scalars_real (E : Type*) [normed_group E] [normed_space ℂ E] :
+  normed_space ℝ E := normed_space.restrict_scalars ℝ ℂ
+attribute [instance, priority 900] complex.normed_space.restrict_scalars_real
 
 /-- Linear map version of the real part function, from `ℂ` to `ℝ`. -/
 def re_linear_map : ℂ →ₗ[ℝ] ℝ :=

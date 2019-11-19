@@ -82,3 +82,10 @@ begin
   ←mul_sub x, hz],
   ring_exp_eq
 end
+
+-- Here, we check that `n - s` is not treated as `n + additive_inverse s`,
+-- if `s` doesn't have an additive inverse.
+constant fact : ℕ → ℕ
+example (B s n : ℕ) :
+  B * (fact s * ((n - s) * fact (n - s - 1))) = B * (n - s) * (fact s * fact (n - s - 1))
+:= by ring_exp

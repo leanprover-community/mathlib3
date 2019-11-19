@@ -6,13 +6,16 @@ Authors: Sébastien Gouëzel
 import analysis.calculus.deriv analysis.normed_space.finite_dimension
 
 /-!
-# Basic facts of analytic nature on complex numbers
+# Normed space structure on `ℂ`.
 
-This file gathers various facts on complex numbers of an analytic nature.
+This file gathers basic facts on complex numbers of an analytic nature.
 
 ## Main results
 
-This file defines, in the namespace `complex`, functions
+This file registers `ℂ` as a normed field, expresses basic properties of the norm, and gives
+tools on the real vector space structure of `ℂ`. Notably, in the namespace `complex`,
+it defines functions:
+
 * `re_linear_map`
 * `re_continuous_linear_map`
 * `im_linear_map`
@@ -20,10 +23,11 @@ This file defines, in the namespace `complex`, functions
 * `of_real_linear_map`
 * `of_real_continuous_linear_map`
 
-They are bundled versions of the real part, the imaginary part, and the embedding of `ℝ` in `ℂ`.
+They are bundled versions of the real part, the imaginary part, and the embedding of `ℝ` in `ℂ`,
+as `ℝ`-linear maps.
 
-We also show that, if a function on `ℂ` is differentiable (over `ℂ`), then its restriction to `ℝ`
-is differentiable over `ℝ` and express its derivative, in `has_deriv_at_real_of_complex`.
+`has_deriv_at_real_of_complex` expresses that, if a function on `ℂ` is differentiable (over `ℂ`),
+  then its restriction to `ℝ` is differentiable over `ℝ` and writes down its derivative.
 -/
 noncomputable theory
 
@@ -171,12 +175,14 @@ end
 
 end complex
 
-/- Restriction to `ℝ` of complex functions -/
-section real_of_complex
+section real_deriv_of_complex
+/- Differentiability of the restriction to `ℝ` of complex functions -/
 open complex
 variables {e : ℂ → ℂ} {e' : ℂ} {z : ℝ}
 
-lemma has_deriv_at_real_of_complex (h : has_deriv_at e e' z) :
+/-- If a complex function is differentiable at a real point, then the induced real function is also
+differentiable at this point, with a derivative equal to the real part of the complex derivative. -/
+theorem has_deriv_at_real_of_complex (h : has_deriv_at e e' z) :
   has_deriv_at (λx:ℝ, (e x).re) e'.re z :=
 begin
   have : (λx:ℝ, (e x).re) = (re_continuous_linear_map : ℂ → ℝ) ∘ e ∘ (of_real_continuous_linear_map : ℝ → ℂ),
@@ -194,4 +200,4 @@ begin
   rw one_mul
 end
 
-end real_of_complex
+end real_deriv_of_complex

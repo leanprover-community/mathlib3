@@ -256,14 +256,23 @@ end decidable_linear_ordered_comm_group
 section decidable_linear_ordered_semiring
 variables [decidable_linear_ordered_semiring α] {a b c d : α}
 
-lemma monotone_mul_of_nonneg (ha : 0 ≤ a) : monotone (λ x, a*x) :=
+lemma monotone_mul_left_of_nonneg (ha : 0 ≤ a) : monotone (λ x, a*x) :=
 assume b c b_le_c, mul_le_mul_of_nonneg_left b_le_c ha
 
+lemma monotone_mul_right_of_nonneg (ha : 0 ≤ a) : monotone (λ x, x*a) :=
+assume b c b_le_c, mul_le_mul_of_nonneg_right b_le_c ha
+
 lemma mul_max_of_nonneg (b c : α) (ha : 0 ≤ a) : a * max b c = max (a * b) (a * c) :=
-(monotone_mul_of_nonneg ha).map_max
+(monotone_mul_left_of_nonneg ha).map_max
 
 lemma mul_min_of_nonneg (b c : α) (ha : 0 ≤ a) : a * min b c = min (a * b) (a * c) :=
-(monotone_mul_of_nonneg ha).map_min
+(monotone_mul_left_of_nonneg ha).map_min
+
+lemma max_mul_of_nonneg (a b : α) (hc : 0 ≤ c) : max a b * c = max (a * c) (b * c) :=
+(monotone_mul_right_of_nonneg hc).map_max
+
+lemma min_mul_of_nonneg (a b : α) (hc : 0 ≤ c) : min a b * c = min (a * c) (b * c) :=
+(monotone_mul_right_of_nonneg hc).map_min
 
 end decidable_linear_ordered_semiring
 

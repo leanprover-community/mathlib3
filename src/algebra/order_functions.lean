@@ -14,7 +14,7 @@ attribute [simp] max_eq_left max_eq_right min_eq_left min_eq_right
 
 /-- A function `f` is strictly monotone if `a < b` implies `f a < f b`. -/
 def strict_mono [has_lt α] [has_lt β] (f : α → β) : Prop :=
-∀ a b, a < b → f a < f b
+∀ ⦃a b⦄, a < b → f a < f b
 
 namespace strict_mono
 open ordering function
@@ -25,13 +25,13 @@ variables [linear_order α] [preorder β] {f : α → β}
 lemma lt_iff_lt (H : strict_mono f) {a b} :
   f a < f b ↔ a < b :=
 ⟨λ h, ((lt_trichotomy b a)
-  .resolve_left $ λ h', lt_asymm h $ H _ _ h')
-  .resolve_left $ λ e, ne_of_gt h $ congr_arg _ e, H _ _⟩
+  .resolve_left $ λ h', lt_asymm h $ H h')
+  .resolve_left $ λ e, ne_of_gt h $ congr_arg _ e, @H _ _⟩
 
 lemma injective (H : strict_mono f) : injective f
 | a b e := ((lt_trichotomy a b)
-  .resolve_left $ λ h, ne_of_lt (H _ _ h) e)
-  .resolve_right $ λ h, ne_of_gt (H _ _ h) e
+  .resolve_left $ λ h, ne_of_lt (H h) e)
+  .resolve_right $ λ h, ne_of_gt (H h) e
 
 theorem compares (H : strict_mono f) {a b} :
   ∀ {o}, compares o (f a) (f b) ↔ compares o a b
@@ -41,8 +41,8 @@ theorem compares (H : strict_mono f) {a b} :
 
 lemma le_iff_le (H : strict_mono f) {a b} :
   f a ≤ f b ↔ a ≤ b :=
-⟨λ h, le_of_not_gt $ λ h', not_le_of_lt (H b a h') h,
- λ h, (lt_or_eq_of_le h).elim (λ h', le_of_lt (H _ _ h')) (λ h', h' ▸ le_refl _)⟩
+⟨λ h, le_of_not_gt $ λ h', not_le_of_lt (H h') h,
+ λ h, (lt_or_eq_of_le h).elim (λ h', le_of_lt (H h')) (λ h', h' ▸ le_refl _)⟩
 end
 
 protected lemma nat {β} [preorder β] {f : ℕ → β} (h : ∀n, f n < f (n+1)) : strict_mono f :=
@@ -51,7 +51,7 @@ by { intros n m hnm, induction hnm with m' hnm' ih, apply h, exact lt.trans ih (
 -- `preorder α` isn't strong enough: if the preorder on α is an equivalence relation,
 -- then `strict_mono f` is vacuously true.
 lemma monotone [partial_order α] [preorder β] {f : α → β} (H : strict_mono f) : monotone f :=
-λ a b h, (lt_or_eq_of_le h).rec (le_of_lt ∘ (H _ _)) (by rintro rfl; refl)
+λ a b h, (lt_or_eq_of_le h).rec (le_of_lt ∘ (@H _ _)) (by rintro rfl; refl)
 
 end strict_mono
 
@@ -130,10 +130,10 @@ left_comm max max_comm max_assoc a b c
 theorem max.right_comm (a b c : α) : max (max a b) c = max (max a c) b :=
 right_comm max max_comm max_assoc a b c
 
-lemma max_distrib_of_monotone (hf : monotone f) : f (max a b) = max (f a) (f b) :=
+lemma monotone.map_max (hf : monotone f) : f (max a b) = max (f a) (f b) :=
 by cases le_total a b; simp [h, hf h]
 
-lemma min_distrib_of_monotone (hf : monotone f) : f (min a b) = min (f a) (f b) :=
+lemma monotone.map_min (hf : monotone f) : f (min a b) = min (f a) (f b) :=
 by cases le_total a b; simp [h, hf h]
 
 theorem min_choice (a b : α) : min a b = a ∨ min a b = b :=
@@ -256,14 +256,23 @@ end decidable_linear_ordered_comm_group
 section decidable_linear_ordered_semiring
 variables [decidable_linear_ordered_semiring α] {a b c d : α}
 
-lemma monotone_mul_of_nonneg (ha : 0 ≤ a) : monotone (λ x, a*x) :=
+lemma monotone_mul_left_of_nonneg (ha : 0 ≤ a) : monotone (λ x, a*x) :=
 assume b c b_le_c, mul_le_mul_of_nonneg_left b_le_c ha
 
+lemma monotone_mul_right_of_nonneg (ha : 0 ≤ a) : monotone (λ x, x*a) :=
+assume b c b_le_c, mul_le_mul_of_nonneg_right b_le_c ha
+
 lemma mul_max_of_nonneg (b c : α) (ha : 0 ≤ a) : a * max b c = max (a * b) (a * c) :=
-max_distrib_of_monotone (monotone_mul_of_nonneg ha)
+(monotone_mul_left_of_nonneg ha).map_max
 
 lemma mul_min_of_nonneg (b c : α) (ha : 0 ≤ a) : a * min b c = min (a * b) (a * c) :=
-min_distrib_of_monotone (monotone_mul_of_nonneg ha)
+(monotone_mul_left_of_nonneg ha).map_min
+
+lemma max_mul_of_nonneg (a b : α) (hc : 0 ≤ c) : max a b * c = max (a * c) (b * c) :=
+(monotone_mul_right_of_nonneg hc).map_max
+
+lemma min_mul_of_nonneg (a b : α) (hc : 0 ≤ c) : min a b * c = min (a * c) (b * c) :=
+(monotone_mul_right_of_nonneg hc).map_min
 
 end decidable_linear_ordered_semiring
 

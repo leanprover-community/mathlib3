@@ -364,13 +364,15 @@ meta def eval : expr → ring_m (horner_expr × expr)
   (e', p') ← eval_add e₁' e₂',
   p ← ring_m.mk_app ``norm_num.subst_into_sum ``has_add [e₁, e₂, e₁', e₂', e', p₁, p₂, p'],
   return (e', p)
-| `(%%e₁ - %%e₂) := do
-  c ← get_cache,
-  e₂' ← lift $ mk_app ``has_neg.neg [e₂],
-  e ← lift $ mk_app ``has_add.add [e₁, e₂'],
-  (e', p) ← eval e,
-  p' ← ring_m.mk_app ``unfold_sub ``add_group [e₁, e₂, e', p],
-  return (e', p')
+| e@`(@has_sub.sub %%α %%P %%e₁ %%e₂) :=
+  mcond (succeeds (lift $ mk_app ``comm_ring [α] >>= mk_instance))
+    (do
+      e₂' ← lift $ mk_app ``has_neg.neg [e₂],
+      e ← lift $ mk_app ``has_add.add [e₁, e₂'],
+      (e', p) ← eval e,
+      p' ← ring_m.mk_app ``unfold_sub ``add_group [e₁, e₂, e', p],
+      return (e', p'))
+    (eval_atom e)
 | `(- %%e) := do
   (e₁, p₁) ← eval e,
   (e₂, p₂) ← eval_neg e₁,

@@ -75,13 +75,23 @@ import tactic.well_founded_tactics
   This feature wasn't needed yet, so it's not implemented yet.
 -/
 
-namespace tactic.ring_exp
-open nat
-
 -- The base ring `α` will have a universe level `u`.
 -- We do not introduce `α` as a variable yet,
 -- in order to make it explicit or implicit as required.
 universes u
+
+/--
+  If the value is `none`, returns the default value;
+  otherwise it returns the value contained in `just.`
+
+  Equivalent to `Data.Maybe.fromMaybe` in Haskell.
+-/
+def option.from_option {α : Type u} : α → option α → α
+| d none     := d
+| _ (some x) := x
+
+namespace tactic.ring_exp
+open nat
 
 /--
   The `atom` structure is used to represent atomic expressions:
@@ -245,8 +255,7 @@ meta def ex.proof {et : ex_type} (ps : ex et) : option expr := ps.info.proof
   Intended for use in `ex.set_info`.
 -/
 meta def ex_info.set (i : ex_info) (o : option expr) (pf : option expr) : ex_info :=
--- TODO: is there an equivalent to Haskell's (maybe : α → option α → α)
-{orig := match o with | none := i.pretty | (some o) := o end, proof := pf, .. i}
+{orig := o.from_option i.pretty, proof := pf, .. i}
 
 /--
   Update the `ex_info` of the given expression.
@@ -306,8 +315,9 @@ meta def ex.lt : Π {et : ex_type}, ex et → ex et → bool
 | sum  _                (ex.zero _)      := ff
 | sum  (ex.zero _)      _                := tt
 | sum  (ex.sum _ p ps)  (ex.sum _ q qs)  := p.lt q || (p.eq q && ps.lt qs)
-| prod _                (ex.coeff _ _)   := ff -- TODO: do we need to compare two coefficients?
+| prod (ex.coeff _ x)   (ex.coeff _ y)   := x.1 < y.1
 | prod (ex.coeff _ _)   _                := tt
+| prod _                (ex.coeff _ _)   := ff
 | prod (ex.prod _ p ps) (ex.prod _ q qs) := p.lt q || (p.eq q && ps.lt qs)
 | base (ex.var _ x)     (ex.var _ y)     := x.lt y
 | base (ex.var _ _)     (ex.sum_b _ _)   := tt
@@ -579,7 +589,6 @@ meta def atom_to_sum (p : atom) : ring_exp_m (ex sum) := do
   Note that the result might not be a valid expression:
   if `p = -q`, then the result should be `ex.zero : ex sum` instead.
   The caller must detect when this happens!
-  TODO: can we guarantee a valid expression?
 
   The returned value is of the form `ex.coeff _ (p + q)`,
   with the proof of `expr.of_rat p + expr.of_rat q = expr.of_rat (p + q)`.
@@ -617,7 +626,7 @@ meta def mul_coeff (p_p q_p : expr) (p q : coeff) : ring_exp_m (ex prod) := do
   the case `zero` to overlapping products adding to zero, e.g. `a * 2 + a * -2`.
   We distinguish those two cases because in the second, the whole product reduces to `0`.
 
-  TODO: we can also do this for the base of exponents,
+  A potential extension to the tactic would also do this for the base of exponents,
   e.g. to show `2^n * 2^n = 4^n`.
 -/
 meta inductive overlap : Type

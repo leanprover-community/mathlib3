@@ -126,6 +126,7 @@ def differentiable (f : E → F) :=
 variables {𝕜}
 variables {f f₀ f₁ g : E → F}
 variables {f' f₀' f₁' g' : E →L[𝕜] F}
+variables (e : E →L[𝕜] F)
 variables {x : E}
 variables {s t : set E}
 variables {L L₁ L₂ : filter E}
@@ -582,7 +583,7 @@ end const
 
 /- Continuous linear maps. There are currently two variants of these in mathlib, the bundled version
 (named `continuous_linear_map`, and denoted `E →L[𝕜] F`), and the unbundled version (with a
-predicate `is_bounded_linear_map`). We give statements for both versions -/
+predicate `is_bounded_linear_map`). We give statements for both versions. -/
 section continuous_linear_map
 
 lemma is_bounded_linear_map.has_fderiv_at_filter (h : is_bounded_linear_map 𝕜 f) :
@@ -631,8 +632,6 @@ lemma is_bounded_linear_map.differentiable (h : is_bounded_linear_map 𝕜 f) :
 lemma is_bounded_linear_map.differentiable_on (h : is_bounded_linear_map 𝕜 f) :
   differentiable_on 𝕜 f s :=
 h.differentiable.differentiable_on
-
-variable (e : E →L[𝕜] F)
 
 lemma continuous_linear_map.has_fderiv_at_filter :
   has_fderiv_at_filter e e x L :=

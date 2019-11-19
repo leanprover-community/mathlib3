@@ -405,17 +405,6 @@ def restrict_scalars (f : E' →L[𝕜'] F') : E' →L[𝕜] F' :=
 
 end restrict_scalars
 
-section restrict_scalars_real_complex
-/- Register as an instance with low priority that a complex normed space is also a real normed
-space. -/
-variables {E' : Type*} [normed_group E'] [normed_space ℂ E']
-
-instance normed_space.restrict_scalars_complex_to_real : normed_space ℝ E' :=
-normed_space.restrict_scalars ℝ ℂ
-attribute [instance, priority 900] normed_space.restrict_scalars_complex_to_real
-
-end restrict_scalars_real_complex
-
 end continuous_linear_map
 
 /-- If both directions in a linear equiv `e` are continuous, then `e` is a uniform embedding. -/

@@ -565,35 +565,3 @@ have h₂ : tendsto (λs:finset ι, s.sum (λi, ∥f i∥)) at_top (𝓝 (∑ i,
 le_of_tendsto_of_tendsto at_top_ne_bot h₁ h₂ $ univ_mem_sets' $ assume s, norm_triangle_sum _ _
 
 end summable
-
-namespace complex
-
-instance : normed_field ℂ :=
-{ norm := complex.abs,
-  dist_eq := λ _ _, rfl,
-  norm_mul' := complex.abs_mul,
-  .. complex.discrete_field }
-
-instance : nondiscrete_normed_field ℂ :=
-{ non_trivial := ⟨2, by simp [norm]; norm_num⟩ }
-
-instance normed_algebra_over_real : normed_algebra ℝ ℂ :=
-{ norm_eq := abs_of_real,
-  ..complex.algebra_over_reals }
-
-@[simp] lemma norm_real (r : ℝ) : ∥(r : ℂ)∥ = ∥r∥ := complex.abs_of_real _
-
-@[simp] lemma norm_rat (r : ℚ) : ∥(r : ℂ)∥ = _root_.abs (r : ℝ) :=
-suffices ∥((r : ℝ) : ℂ)∥ = _root_.abs r, by simpa,
-by rw [norm_real, real.norm_eq_abs]
-
-@[simp] lemma norm_nat (n : ℕ) : ∥(n : ℂ)∥ = n := complex.abs_of_nat _
-
-@[simp] lemma norm_int {n : ℤ} : ∥(n : ℂ)∥ = _root_.abs n :=
-suffices ∥((n : ℝ) : ℂ)∥ = _root_.abs n, by simpa,
-by rw [norm_real, real.norm_eq_abs]
-
-lemma norm_int_of_nonneg {n : ℤ} (hn : 0 ≤ n) : ∥(n : ℂ)∥ = n :=
-by rw [norm_int, _root_.abs_of_nonneg]; exact int.cast_nonneg.2 hn
-
-end complex

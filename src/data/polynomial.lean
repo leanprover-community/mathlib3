@@ -5,7 +5,7 @@ Authors: Chris Hughes, Johannes Hölzl, Jens Wagemaker
 
 Theory of univariate polynomials, represented as `ℕ →₀ α`, where α is a commutative semiring.
 -/
-import data.finsupp algebra.gcd_domain ring_theory.euclidean_domain tactic.ring ring_theory.multiplicity
+import data.finsupp algebra.gcd_domain ring_theory.euclidean_domain tactic.ring_exp ring_theory.multiplicity
 
 noncomputable theory
 local attribute [instance, priority 100] classical.prop_decidable
@@ -2387,10 +2387,10 @@ def pow_add_expansion {α : Type*} [comm_semiring α] (x y : α) : ∀ (n : ℕ)
 | (n+2) :=
   begin
     cases pow_add_expansion (n+1) with z hz,
-    rw [_root_.pow_succ, hz],
-    existsi (x*z + (n+1)*x^n+z*y),
-    simp [_root_.pow_succ],
-    ring
+    existsi x*z + (n+1)*x^n+z*y,
+    calc (x + y) ^ (n + 2) = (x + y) * (x + y) ^ (n + 1) : by ring_exp
+    ... = (x + y) * (x ^ (n + 1) + ↑(n + 1) * x ^ (n + 1 - 1) * y + z * y ^ 2) : by rw hz
+    ... = x ^ (n + 2) + ↑(n + 2) * x ^ (n + 1) * y + (x*z + (n+1)*x^n+z*y) * y ^ 2 : by {push_cast, ring_exp}
   end
 
 variables [comm_ring α]
@@ -2432,12 +2432,12 @@ def pow_sub_pow_factor (x y : α) : Π {i : ℕ},{z : α // x^i - y^i = z*(x - y
 | 1 := ⟨1, by simp⟩
 | (k+2) :=
   begin
-    cases pow_sub_pow_factor with z hz,
+    cases @pow_sub_pow_factor (k+1) with z hz,
     existsi z*x + y^(k+1),
-    rw [_root_.pow_succ x, _root_.pow_succ y, ←sub_add_sub_cancel (x*x^(k+1)) (x*y^(k+1)),
-        ←mul_sub x, hz],
-    simp only [_root_.pow_succ],
-    ring
+    calc x ^ (k + 2) - y ^ (k + 2)
+        = x * (x ^ (k + 1) - y ^ (k + 1)) + (x * y ^ (k + 1) - y ^ (k + 2)) : by ring_exp
+    ... = x * (z * (x - y)) + (x * y ^ (k + 1) - y ^ (k + 2)) : by rw hz
+    ... = (z * x + y ^ (k + 1)) * (x - y) : by ring_exp
   end
 
 def eval_sub_factor (f : polynomial α) (x y : α) :

@@ -510,6 +510,12 @@ lemma le_neg : a ≤ -b ↔ b ≤ -a :=
 have -(-a) ≤ -b ↔ b ≤ -a, from neg_le_neg_iff,
 by rwa neg_neg at this
 
+lemma neg_le_iff_add_nonneg : -a ≤ b ↔ 0 ≤ a + b :=
+(add_le_add_iff_left a).symm.trans $ by rw add_neg_self
+
+lemma le_neg_iff_add_nonpos : a ≤ -b ↔ a + b ≤ 0 :=
+(add_le_add_iff_right b).symm.trans $ by rw neg_add_self
+
 @[simp] lemma neg_nonpos : -a ≤ 0 ↔ 0 ≤ a :=
 have -a ≤ -0 ↔ 0 ≤ a, from neg_le_neg_iff,
 by rwa neg_zero at this
@@ -517,6 +523,12 @@ by rwa neg_zero at this
 @[simp] lemma neg_nonneg : 0 ≤ -a ↔ a ≤ 0 :=
 have -0 ≤ -a ↔ a ≤ 0, from neg_le_neg_iff,
 by rwa neg_zero at this
+
+lemma neg_le_self (h : 0 ≤ a) : -a ≤ a :=
+le_trans (neg_nonpos.2 h) h
+
+lemma self_le_neg (h : a ≤ 0) : a ≤ -a :=
+le_trans h (neg_nonneg.2 h)
 
 @[simp] lemma neg_lt_neg_iff : -a < -b ↔ b < a :=
 have a + b + -a < a + b + -b ↔ -a < -b, from add_lt_add_iff_left _,

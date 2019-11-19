@@ -37,9 +37,9 @@ set_option class.instance_max_depth 40
 namespace complex
 
 instance : normed_field ℂ :=
-{ norm := complex.abs,
+{ norm := abs,
   dist_eq := λ _ _, rfl,
-  norm_mul' := complex.abs_mul,
+  norm_mul' := abs_mul,
   .. complex.discrete_field }
 
 instance : nondiscrete_normed_field ℂ :=
@@ -51,13 +51,13 @@ instance normed_algebra_over_reals : normed_algebra ℝ ℂ :=
 
 @[simp] lemma norm_eq_abs (z : ℂ) : ∥z∥ = abs z := rfl
 
-@[simp] lemma norm_real (r : ℝ) : ∥(r : ℂ)∥ = ∥r∥ := complex.abs_of_real _
+@[simp] lemma norm_real (r : ℝ) : ∥(r : ℂ)∥ = ∥r∥ := abs_of_real _
 
 @[simp] lemma norm_rat (r : ℚ) : ∥(r : ℂ)∥ = _root_.abs (r : ℝ) :=
 suffices ∥((r : ℝ) : ℂ)∥ = _root_.abs r, by simpa,
 by rw [norm_real, real.norm_eq_abs]
 
-@[simp] lemma norm_nat (n : ℕ) : ∥(n : ℂ)∥ = n := complex.abs_of_nat _
+@[simp] lemma norm_nat (n : ℕ) : ∥(n : ℂ)∥ = n := abs_of_nat _
 
 @[simp] lemma norm_int {n : ℤ} : ∥(n : ℂ)∥ = _root_.abs n :=
 suffices ∥((n : ℝ) : ℂ)∥ = _root_.abs n, by simpa,

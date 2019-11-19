@@ -152,6 +152,9 @@ section add_group
   lemma sub_sub_sub_cancel_right (a b c : α) : (a - c) - (b - c) = a - b :=
   by rw [← neg_sub c b, sub_neg_eq_add, sub_add_sub_cancel]
 
+  theorem sub_sub_assoc_swap : a - (b - c) = a + c - b :=
+  by simp
+
   theorem sub_eq_zero : a - b = 0 ↔ a = b :=
   ⟨eq_of_sub_eq_zero, λ h, by rw [h, sub_self]⟩
 
@@ -205,9 +208,9 @@ section add_comm_group
 
   lemma add_sub_cancel'_right (a b : α) : a + (b - a) = b :=
   by rw [← add_sub_assoc, add_sub_cancel']
-  
+
   @[simp] lemma add_add_neg_cancel'_right (a b : α) : a + (b + -a) = b :=
-  add_sub_cancel'_right a b 
+  add_sub_cancel'_right a b
 
   lemma sub_right_comm (a b c : α) : a - b - c = a - c - b :=
   add_right_comm _ _ _
@@ -226,6 +229,9 @@ section add_comm_group
 
   lemma sub_sub_sub_cancel_left (a b c : α) : (c - a) - (c - b) = b - a :=
   by rw [← neg_sub b c, sub_neg_eq_add, add_comm, sub_add_sub_cancel]
+
+  theorem sub_sub_assoc {α} [add_comm_group α] (a b c : α) : a - (b - c) = a - b + c :=
+  by simp
 
   lemma sub_eq_sub_iff_sub_eq_sub {d : α} :
   a - b = c - d ↔ a - c = b - d :=

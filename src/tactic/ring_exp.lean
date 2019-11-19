@@ -1344,7 +1344,6 @@ meta def ring_exp_eq : tactic unit := do
 
 /-- Tactic for solving equations of *commutative* (semi)rings,
     allowing variables in the exponent.
-    This version of `ring_exp` fails if the target is not an equality.
   -/
 meta def ring_exp (loc : parse location) : tactic unit :=
   match loc with

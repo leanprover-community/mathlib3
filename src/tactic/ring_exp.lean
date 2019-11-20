@@ -120,7 +120,7 @@ end atom
 
 section expression
 /-!
-  ## `expression` section
+  ### `expression` section
   In this section, we define the `ex` type and its basic operations.
 
   First, we introduce the supporting types `coeff`, `ex_type` and `ex_info`.
@@ -138,7 +138,7 @@ section expression
   or using a different meta representation of numerals.
 -/
 @[derive decidable_eq]
-structure coeff : Type := (value {} : ℚ)
+structure coeff : Type := (value : ℚ)
 
 /--
   The `ex` type is structured according to a parameter `et : ex_type`.
@@ -326,7 +326,7 @@ end expression
 
 section operations
 /-!
-  ## `operations` section
+  ### `operations` section
   This section defines the operations (on `ex`) that use tactics.
   They live in the `ring_exp_m` monad,
   which adds a cache and a list of encountered atoms to the `tactic` monad.
@@ -662,10 +662,10 @@ end
 
   This type is used in the function `add_overlap`.
   In order to deal with equations of the form `a * 2 + a = 3 * a`,
-  the `add` function will add up overlapping producs,
+  the `add` function will add up overlapping products,
   turning `a * 2 + a` into `a * 3`.
   We need to distinguish `a * 2 + a` from `a * 2 + b` in order to do this,
-  and the `overlap` type carrues the information on how it overlaps.
+  and the `overlap` type carries the information on how it overlaps.
 
   The case `none` corresponds to non-overlapping products, e.g. `a * 2 + b`;
   the case `nonzero` to overlapping products adding to non-zero, e.g. `a * 2 + a`
@@ -1285,7 +1285,7 @@ end operations
 
 section wiring
 /-!
-  ## `wiring` section
+  ### `wiring` section
   This section deals with going from `expr` to `ex` and back.
 
   The main attraction is `eval`, which uses `add`, `mul`, etc.

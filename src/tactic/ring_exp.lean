@@ -351,7 +351,7 @@ meta structure eval_info :=
   -- Cache the instances for optimization and consistency
   (csr_instance : expr) (ha_instance : expr) (hm_instance : expr) (hp_instance : expr)
   -- Optional instances (only required for (-) and (/) respectively)
-  (cr_instance : option expr) (dr_instance : option expr)
+  (ring_instance : option expr) (dr_instance : option expr)
   -- Cache common constants.
   (zero : expr) (one : expr)
 
@@ -396,32 +396,37 @@ meta def in_exponent {α} (mx : ring_exp_m α) : ring_exp_m α := do
   reader_t.lift $ mx.run ⟨ctx.info_e, ctx.info_e⟩
 
 /--
+  Specialized version of mk_app where the first two arguments are {α} [some_class α].
+  Should be faster because it can use the cached instances.
+-/
+meta def mk_app_class (f : name) (inst : expr) (args : list expr) : ring_exp_m expr := do
+  ctx ← get_context,
+  pure $ (@expr.const tt f [ctx.info_b.univ] ctx.info_b.α inst).mk_app args
+
+/--
   Specialized version of mk_app where the first two arguments are {α} [comm_semiring α].
   Should be faster because it can use the cached instances.
  -/
 meta def mk_app_csr (f : name) (args : list expr) : ring_exp_m expr := do
   ctx ← get_context,
-  pure $ (@expr.const tt f [ctx.info_b.univ] ctx.info_b.α ctx.info_b.csr_instance).mk_app args
+  mk_app_class f (ctx.info_b.csr_instance) args
+
 /--
   Specialized version of `mk_app ``has_add.add`.
   Should be faster because it can use the cached instances.
-  -/
-  meta def mk_add (args : list expr) : ring_exp_m expr := do
+-/
+meta def mk_add (args : list expr) : ring_exp_m expr := do
   ctx ← get_context,
-  pure $ (@expr.const tt ``has_add.add
-    [ctx.info_b.univ]
-    ctx.info_b.α
-    ctx.info_b.ha_instance).mk_app args
+  mk_app_class ``has_add.add ctx.info_b.ha_instance args
+
 /--
   Specialized version of `mk_app ``has_mul.mul`.
   Should be faster because it can use the cached instances.
   -/
   meta def mk_mul (args : list expr) : ring_exp_m expr := do
   ctx ← get_context,
-  pure $ (@expr.const tt ``has_mul.mul
-    [ctx.info_b.univ]
-    ctx.info_b.α
-    ctx.info_b.hm_instance).mk_app args
+  mk_app_class ``has_mul.mul ctx.info_b.hm_instance args
+
 /--
   Specialized version of `mk_app ``has_pow.pow`.
   Should be faster because it can use the cached instances.
@@ -1137,7 +1142,7 @@ meta def ex.simple : Π {et : ex_type}, ex et → ring_exp_m (expr × expr)
   prod.mk p_p <$> mk_app_csr ``simple_pf_prod_one [p.pretty, p_p, p_pf]
 | prod pps@(ex.prod pps_i p (ex.coeff _ ⟨⟨-1, 1, _, _⟩⟩)) := do
   ctx ← get_context,
-  match ctx.info_b.cr_instance with
+  match ctx.info_b.ring_instance with
   | none := prod.mk pps.pretty <$> pps.proof_term
   | (some cri) := do
     (p_p, p_pf) ← p.simple,
@@ -1211,22 +1216,22 @@ match ps.to_rat with
   atom_to_sum a
 end
 
-lemma negate_pf {α} {ps ps' : α} [comm_ring α] : (-1) * ps = ps' → -ps = ps' := by simp
+lemma negate_pf {α} {ps ps' : α} [ring α] : (-1) * ps = ps' → -ps = ps' := by simp
 /--
   Negate an expression by multiplying with `-1`.
 
-  Only works if there is a `comm_ring` instance; otherwise it will `fail`.
+  Only works if there is a `ring` instance; otherwise it will `fail`.
 -/
 meta def negate (ps : ex sum) : ring_exp_m (ex sum) := do
   ctx ← get_context,
-  match ctx.info_b.cr_instance with
+  match ctx.info_b.ring_instance with
   | none := lift $ fail "internal error: negate called in semiring"
-  | (some cr_instance) := do
+  | (some ring_instance) := do
     minus_one ← ex_coeff (-1) >>= prod_to_sum,
     ps' ← mul minus_one ps,
     ps_pf ← ps'.proof_term,
     -- We can't use mk_app at the next line because it would cause a timeout.
-    pf ← lift $ to_expr ``(@negate_pf _ _ _ %%cr_instance %%ps_pf),
+    pf ← lift $ to_expr ``(@negate_pf _ _ _ %%ring_instance %%ps_pf),
     ps'_o ← lift $ mk_app ``has_neg.neg [ps.orig],
     pure $ ps'.set_info ps'_o pf
   end
@@ -1250,13 +1255,14 @@ meta def inverse (ps : ex sum) : ring_exp_m (ex sum) := do
   (e', e_pf) ← lift (norm_num.derive e) <|> ((λ e_pf, (e, e_pf)) <$> lift (mk_eq_refl e)),
   e'' ← eval_base e',
   ps_pf ← ps.proof_term,
-  pf ← mk_proof_or_refl e''.pretty ``inverse_pf
-    [dri, ps.orig, ps.pretty, ps_simple, e', e''.pretty, ps_pf, ps_simple_pf, e_pf]
-    [e''.info],
+  e''_pf ← e''.proof_term,
+  pf ← mk_app_class ``inverse_pf dri
+    [ ps.orig, ps.pretty, ps_simple, e', e''.pretty,
+      ps_pf, ps_simple_pf, e_pf, e''_pf],
   e''_o ← lift $ mk_app ``has_inv.inv [ps.orig],
   pure $ e''.set_info e''_o pf
 
-lemma sub_pf {α} [comm_ring α] {ps qs psqs : α} : ps + -qs = psqs → ps - qs = psqs := id
+lemma sub_pf {α} [ring α] {ps qs psqs : α} : ps + -qs = psqs → ps - qs = psqs := id
 lemma div_pf {α} [division_ring α] {ps qs psqs : α} : ps * qs⁻¹ = psqs → ps / qs = psqs := id
 
 end operations
@@ -1288,14 +1294,15 @@ meta def eval : expr → ring_exp_m (ex sum)
   add ps' qs'
 | e@`(%%ps - %%qs) := (do
   ctx ← get_context,
-  cri ← match ctx.info_b.cr_instance with
+  ri ← match ctx.info_b.ring_instance with
   | none := lift $ fail "subtraction is not directly supported in a semiring"
-  | (some cri) := pure cri
+  | (some ri) := pure ri
   end,
   ps' ← eval ps,
   qs' ← eval qs >>= negate,
   psqs ← add ps' qs',
-  pf ← mk_proof_or_refl psqs.pretty ``sub_pf [cri, ps, qs, psqs.pretty] [psqs.info],
+  psqs_pf ← psqs.proof_term,
+  pf ← mk_app_class ``sub_pf ri [ps, qs, psqs.pretty, psqs_pf],
   pure (psqs.set_info e pf)) <|> eval_base e
 | e@`(- %%ps) := do
   ps' ← eval ps,
@@ -1317,7 +1324,8 @@ meta def eval : expr → ring_exp_m (ex sum)
   qs' ← eval qs,
   (do qs'' ← inverse qs',
   psqs ← mul ps' qs'',
-  pf ← mk_proof_or_refl psqs.pretty ``div_pf [dri, ps, qs, psqs.pretty] [psqs.info],
+  psqs_pf ← psqs.proof_term,
+  pf ← mk_app_class ``div_pf dri [ps, qs, psqs.pretty, psqs_pf],
   pure (psqs.set_info e pf)) <|> eval_base e
 | e@`(@has_pow.pow _ _ %%hp_instance %%ps %%qs) := do
   ps' ← eval ps,
@@ -1360,14 +1368,14 @@ meta def make_eval_info (α : expr) : tactic eval_info := do
   infer_type α >>= unify (expr.sort (level.succ u)),
   u ← get_univ_assignment u,
   csr_instance ← mk_app ``comm_semiring [α] >>= mk_instance,
-  cr_instance ← (some <$> (mk_app ``comm_ring [α] >>= mk_instance) <|> pure none),
+  ring_instance ← (some <$> (mk_app ``ring [α] >>= mk_instance) <|> pure none),
   dr_instance ← (some <$> (mk_app ``division_ring [α] >>= mk_instance) <|> pure none),
   ha_instance ← mk_app ``has_add [α] >>= mk_instance,
   hm_instance ← mk_app ``has_mul [α] >>= mk_instance,
   hp_instance ← mk_mapp ``monoid.has_pow [some α, none],
   z ← mk_mapp ``has_zero.zero [α, none],
   o ← mk_mapp ``has_one.one [α, none],
-  pure ⟨α, u, csr_instance, ha_instance, hm_instance, hp_instance, cr_instance, dr_instance, z, o⟩
+  pure ⟨α, u, csr_instance, ha_instance, hm_instance, hp_instance, ring_instance, dr_instance, z, o⟩
 
 /-- Use `e` to build the context for running `mx`. -/
 meta def run_ring_exp {α} (e : expr) (mx : ring_exp_m α) : tactic α := do

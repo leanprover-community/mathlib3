@@ -422,16 +422,16 @@ meta def mk_add (args : list expr) : ring_exp_m expr := do
 /--
   Specialized version of `mk_app ``has_mul.mul`.
   Should be faster because it can use the cached instances.
-  -/
-  meta def mk_mul (args : list expr) : ring_exp_m expr := do
+-/
+meta def mk_mul (args : list expr) : ring_exp_m expr := do
   ctx ← get_context,
   mk_app_class ``has_mul.mul ctx.info_b.hm_instance args
 
 /--
   Specialized version of `mk_app ``has_pow.pow`.
   Should be faster because it can use the cached instances.
-  -/
-  meta def mk_pow (args : list expr) : ring_exp_m expr := do
+-/
+meta def mk_pow (args : list expr) : ring_exp_m expr := do
   ctx ← get_context,
   pure $ (@expr.const tt ``has_pow.pow
     [ctx.info_b.univ, ctx.info_e.univ]
@@ -626,8 +626,11 @@ meta def atom_to_sum (p : atom) : ring_exp_m (ex sum) := do
 meta def add_coeff (p_p q_p : expr) (p q : coeff) : ring_exp_m (ex prod) := do
   ctx ← get_context,
   pq' ← mk_add [p_p, q_p],
-  (pq_p, pq_pf) ← lift $ norm_num.derive pq',
+  (pq_p, pq_pf) ← lift $ norm_num pq',
   pure $ ex.coeff ⟨pq_p, pq_p, pq_pf⟩ ⟨p.1 + q.1⟩
+
+lemma mul_coeff_pf_one_mul (q : α) : 1 * q = q := one_mul q
+lemma mul_coeff_pf_mul_one (p : α) : p * 1 = p := mul_one p
 
 /--
   Compute the product of two coefficients.
@@ -635,11 +638,24 @@ meta def add_coeff (p_p q_p : expr) (p q : coeff) : ring_exp_m (ex prod) := do
   The returned value is of the form `ex.coeff _ (p * q)`,
   with the proof of `expr.of_rat p * expr.of_rat q = expr.of_rat (p * q)`.
 -/
-meta def mul_coeff (p_p q_p : expr) (p q : coeff) : ring_exp_m (ex prod) := do
+meta def mul_coeff (p_p q_p : expr) (p q : coeff) : ring_exp_m (ex prod) :=
+match p.1, q.1 with -- Special case to speed up multiplication with 1.
+| ⟨1, 1, _, _⟩, _ := do
+  ctx ← get_context,
+  pq_o ← mk_mul [p_p, q_p],
+  pf ← mk_app_csr ``mul_coeff_pf_one_mul [q_p],
+  pure $ ex.coeff ⟨pq_o, q_p, pf⟩ ⟨q.1⟩
+| _, ⟨1, 1, _, _⟩ := do
+  ctx ← get_context,
+  pq_o ← mk_mul [p_p, q_p],
+  pf ← mk_app_csr ``mul_coeff_pf_mul_one [p_p],
+  pure $ ex.coeff ⟨pq_o, p_p, pf⟩ ⟨p.1⟩
+| _, _ := do
   ctx ← get_context,
   pq' ← mk_mul [p_p, q_p],
-  (pq_p, pq_pf) ← lift $ norm_num.derive pq',
+  (pq_p, pq_pf) ← lift $ norm_num pq',
   pure $ ex.coeff ⟨pq_p, pq_p, pq_pf⟩ ⟨p.1 * q.1⟩
+end
 
 /--
   Represents the way in which two products are equal except coefficient.

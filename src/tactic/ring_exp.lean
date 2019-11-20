@@ -1360,11 +1360,6 @@ meta def run_ring_exp {α} (e : expr) (mx : ring_exp_m α) : tactic α := do
   info_e ← mk_const ``nat >>= make_eval_info,
   (λ x : (_ × _), x.1) <$> (state_t.run (reader_t.run mx ⟨info_b, info_e⟩) [])
 
-end wiring
-end tactic.ring_exp
-
-namespace tactic.interactive
-open interactive interactive.types lean.parser tactic tactic.ring_exp
 /-- Repeatedly apply `eval_simple` on (sub)expressions. -/
 meta def normalize (e : expr) : tactic (expr × expr) := do
   (_, e', pf') ← ext_simplify_core () {}
@@ -1374,6 +1369,11 @@ meta def normalize (e : expr) : tactic (expr × expr) := do
     return ((), e'', some pf, ff))
   (λ _ _ _ _ _, failed) `eq e,
   pure (e', pf')
+end wiring
+end tactic.ring_exp
+
+namespace tactic.interactive
+open interactive interactive.types lean.parser tactic tactic.ring_exp
 
 /-- Tactic for solving equations of *commutative* (semi)rings,
     allowing variables in the exponent.

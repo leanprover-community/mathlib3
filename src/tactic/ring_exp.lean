@@ -206,13 +206,13 @@ meta structure ex_info : Type :=
   (For example, the correct equality check of `expr` is `is_def_eq : expr → expr → tactic unit`.)
 -/
 meta inductive ex : ex_type → Type
-| zero  {} (info : ex_info) : ex sum
-| sum   {} (info : ex_info) : ex prod → ex sum → ex sum
-| coeff {} (info : ex_info) : coeff → ex prod
-| prod  {} (info : ex_info) : ex exp → ex prod → ex prod
-| var   {} (info : ex_info) : atom → ex base
-| sum_b {} (info : ex_info) : ex sum → ex base
-| exp   {} (info : ex_info) : ex base → ex prod → ex exp
+| zero  (info : ex_info) : ex sum
+| sum   (info : ex_info) : ex prod → ex sum → ex sum
+| coeff (info : ex_info) : coeff → ex prod
+| prod  (info : ex_info) : ex exp → ex prod → ex prod
+| var   (info : ex_info) : atom → ex base
+| sum_b (info : ex_info) : ex sum → ex base
+| exp   (info : ex_info) : ex base → ex prod → ex exp
 
 /--
   Return the proof information associated to the `ex`.

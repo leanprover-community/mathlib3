@@ -198,31 +198,20 @@ A version of the infinite pigeon hole principle, tailored to our use case.
 -/
 lemma pigeon_hole_principle (f : ℕ → color) (H : Inf):
   set.infinite (is_red f ∩ H) ∨ set.infinite (is_blue f ∩ H) :=
-begin
-  rw or_iff_not_imp_left,
-  intros redFin,
-  rw infinite_unbounded at redFin,
-  simp [not_forall, not_exists] at redFin,
-  cases redFin with w Hw,
-  rw infinite_unbounded,
-  intros x,
-  have x_lt_a : x < x + w + 1, exact lt_succ_sum x w,
-  have w_lt_a : w < x + w + 1,
-    { simp },
-  have H' : ∀ x : ℕ, ∃ y : ℕ, x < y ∧ y ∈ H,
-    exact (infinite_unbounded H.s).elim_left H.pf,
-  let a : ℕ := x + w + 1,
-    cases (H' a) with b Hb,
-  have w_lt_b : w < b, exact lt_trans w_lt_a Hb.left,
-  have hrb : f b = red ∨ f b = blue,
-    { cases f b, simp, simp },
-  apply exists.intro b,
-  constructor,
-  { exact lt_trans x_lt_a Hb.left },
-  {
-    cases hrb with hRed hBlue,
-    { exact absurd Hb.right (Hw b w_lt_b hRed) },
-    { exact ⟨hBlue, Hb.right⟩ } }
+begin -- The proof is essentiall "a finite union of finite sets is finite"
+  unfold set.infinite, rw ←not_and_distrib,
+  intro c,
+  have hf : finite ((is_red f ∩ H) ∪ (is_blue f ∩ H)),
+    apply finite_union c.left c.right,
+    rw ←inter_distrib_right at hf,
+  have hrb : ∀ x, f x = red ∨ f x = blue,
+    intro x, cases f x, left, refl, right, refl,
+  have he : (is_red f ∪ is_blue f) ∩ H = H, rw ext_iff,
+    intro x, constructor,
+      { intro h, apply h.right },
+      { intro h, constructor, apply hrb, apply h },
+  rw he at hf,
+  exact H.pf hf,
 end
 
 /-

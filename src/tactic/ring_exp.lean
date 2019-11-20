@@ -363,7 +363,7 @@ meta structure eval_info :=
   When evaluating an exponent, we put `info_e` in `info_b`.
 -/
 meta structure context :=
-  (info_b : eval_info) (info_e : eval_info)
+  (info_b : eval_info) (info_e : eval_info) (transp : transparency)
 
 /--
   The `ring_exp_m` monad is used instead of `tactic` to store the context.
@@ -393,7 +393,7 @@ meta def lift {α} (m : tactic α) : ring_exp_m α := reader_t.lift (state_t.lif
 -/
 meta def in_exponent {α} (mx : ring_exp_m α) : ring_exp_m α := do
   ctx ← get_context,
-  reader_t.lift $ mx.run ⟨ctx.info_e, ctx.info_e⟩
+  reader_t.lift $ mx.run ⟨ctx.info_e, ctx.info_e, ctx.transp⟩
 
 /--
   Specialized version of mk_app where the first two arguments are {α} [some_class α].
@@ -1198,7 +1198,8 @@ meta def ex.simple : Π {et : ex_type}, ex et → ring_exp_m (expr × expr)
 meta def resolve_atom_aux (a : expr) : list atom → ℕ → ring_exp_m (atom × list atom)
 | [] n := let atm : atom := ⟨a, n⟩ in pure (atm, [atm])
 | bas@(b :: as) n := do
-  (lift $ is_def_eq a b.value >> pure (b , bas)) <|> do
+  ctx ← get_context,
+  (lift $ is_def_eq a b.value ctx.transp >> pure (b , bas)) <|> do
   (atm, as') ← resolve_atom_aux as (succ n),
   pure (atm, b :: as')
 
@@ -1394,16 +1395,16 @@ meta def make_eval_info (α : expr) : tactic eval_info := do
   pure ⟨α, u, csr_instance, ha_instance, hm_instance, hp_instance, ring_instance, dr_instance, z, o⟩
 
 /-- Use `e` to build the context for running `mx`. -/
-meta def run_ring_exp {α} (e : expr) (mx : ring_exp_m α) : tactic α := do
+meta def run_ring_exp {α} (transp : transparency) (e : expr) (mx : ring_exp_m α) : tactic α := do
   info_b ← infer_type e >>= make_eval_info,
   info_e ← mk_const ``nat >>= make_eval_info,
-  (λ x : (_ × _), x.1) <$> (state_t.run (reader_t.run mx ⟨info_b, info_e⟩) [])
+  (λ x : (_ × _), x.1) <$> (state_t.run (reader_t.run mx ⟨info_b, info_e, transp⟩) [])
 
 /-- Repeatedly apply `eval_simple` on (sub)expressions. -/
-meta def normalize (e : expr) : tactic (expr × expr) := do
+meta def normalize (transp : transparency) (e : expr) : tactic (expr × expr) := do
   (_, e', pf') ← ext_simplify_core () {}
   simp_lemmas.mk (λ _, failed) (λ _ _ _ _ e, do
-    (e'', pf) ← run_ring_exp e $ eval_simple e,
+    (e'', pf) ← run_ring_exp transp e $ eval_simple e,
     guard (¬ e'' =ₐ e),
     return ((), e'', some pf, ff))
   (λ _ _ _ _ _, failed) `eq e,
@@ -1414,14 +1415,18 @@ end tactic.ring_exp
 namespace tactic.interactive
 open interactive interactive.types lean.parser tactic tactic.ring_exp
 
+local postfix `?`:9001 := optional
+
 /-- Tactic for solving equations of *commutative* (semi)rings,
     allowing variables in the exponent.
     This version of `ring_exp` fails if the target is not an equality.
   -/
-meta def ring_exp_eq : tactic unit := do
+meta def ring_exp_eq (red : parse (tk "!")?) : tactic unit := do
   `(eq %%ps %%qs) ← target >>= whnf,
 
-  ((ps', ps_pf), (qs', qs_pf)) ← run_ring_exp ps $
+  let transp := if red.is_some then semireducible else reducible,
+
+  ((ps', ps_pf), (qs', qs_pf)) ← run_ring_exp transp ps $
     prod.mk <$> eval_with_proof ps <*> eval_with_proof qs,
 
   if ps'.eq qs'
@@ -1434,13 +1439,14 @@ meta def ring_exp_eq : tactic unit := do
 /-- Tactic for normalizing expressions of *commutative* (semi)rings,
     allowing variables in the exponent.
   -/
-meta def ring_exp (loc : parse location) : tactic unit :=
+meta def ring_exp (red : parse (tk "!")?) (loc : parse location) : tactic unit :=
   match loc with
-  | interactive.loc.ns [none] := ring_exp_eq
+  | interactive.loc.ns [none] := ring_exp_eq red
   | _ := failed
   end <|>
   do ns ← loc.get_locals,
-  tt ← tactic.replace_at normalize ns loc.include_goal
+  let transp := if red.is_some then semireducible else reducible,
+  tt ← tactic.replace_at (normalize transp) ns loc.include_goal
   | fail "ring_exp failed to simplify",
   when loc.include_goal $ try tactic.reflexivity
 end tactic.interactive

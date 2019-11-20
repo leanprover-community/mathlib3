@@ -108,6 +108,8 @@ example {α : Type u} [linear_ordered_field α] (x : α) :
   f (x + 1 / 2) ^ 1 * -2 + (f (x + 1 / 2) ^ 1 * 2 + 0) = 0
 := by ring_exp_eq
 
+example (x y : ℕ) : x + id y = y + id x := by ring_exp!
+
 -- Here, we check that `n - s` is not treated as `n + additive_inverse s`,
 -- if `s` doesn't have an additive inverse.
 example (B s n : ℕ) : B * (f s * ((n - s) * f (n - s - 1))) = B * (n - s) * (f s * f (n - s - 1)) :=

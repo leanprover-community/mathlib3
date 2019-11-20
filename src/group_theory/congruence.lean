@@ -432,12 +432,11 @@ protected def gi : @galois_insertion (M → M → Prop) (con M) _ _ con_gen r :=
 variables {M} (c)
 
 
-/-- Given a multiplication-preserving function `f` whose kernel is contained in a congruence
-    relation `c`, the smallest congruence relation containing the binary relation on `f`'s image
-    defined by '`x ≈ y` iff the elements of `f⁻¹(x)` are related to the elements of `f⁻¹(y)`
-    by `c`.' -/
-@[to_additive "Given an addition-preserving function `f` whose kernel is contained in an additive congruence relation `c`, the smallest additive congruence relation containing the binary relation on `f`'s image defined by '`x ≈ y` iff the elements of `f⁻¹(x)` are related to the elements of `f⁻¹(y)` by `c`.'"]
-def map_gen (f : M → N) (H : ∀ x y, f (x * y) = f x * f y) (h : mul_ker f H ≤ c) : con N :=
+/-- Given a function `f`, the smallest congruence relation containing the binary relation on `f`'s
+    image defined by '`x ≈ y` iff the elements of `f⁻¹(x)` are related to the elements of `f⁻¹(y)`
+    by a congruence relation `c`.' -/
+@[to_additive "Given a function `f`, the smallest additive congruence relation containing the binary relation on `f`'s image defined by '`x ≈ y` iff the elements of `f⁻¹(x)` are related to the elements of `f⁻¹(y)` by an additive congruence relation `c`.'"]
+def map_gen (f : M → N) : con N :=
 con_gen $ λ x y, ∃ a b, f a = x ∧ f b = y ∧ c a b
 
 /-- Given a surjective multiplicative-preserving function `f` whose kernel is contained in a
@@ -455,18 +454,16 @@ def map_of_surjective (f : M → N) (H : ∀ x y, f (x * y) = f x * f y) (h : mu
 @[to_additive "A specialization of 'the smallest additive congruence relation containing an additive congruence relation `c` equals `c`'."]
 lemma map_of_surjective_eq_map_gen {c : con M} {f : M → N} (H : ∀ x y, f (x * y) = f x * f y)
   (h : mul_ker f H ≤ c) (hf : surjective f) :
-  c.map_gen f H h = c.map_of_surjective f H h hf :=
+  c.map_gen f = c.map_of_surjective f H h hf :=
 by rw ←con_gen_of_con (c.map_of_surjective f H h hf); refl
 
-/-- Given a congruence relation `c` on a type `M` with a multiplication and a
-    multiplication-preserving map `f` to the quotient of `M` by `c`, a congruence relation `d` on
-    the quotient induces a congruence relation on `f`'s domain defined by '`x ≈ y` iff `f(x)` is
-    related to `f(y)` by `d`.' -/
-@[to_additive "Given an additive congruence relation `c` on a type `M` with an addition and an addition-preserving map `f` to the quotient of `M` by `c`, an additive congruence relation `d` on the quotient induces an additive congruence relation on `f`'s domain defined by '`x ≈ y` iff `f(x)` is related to `f(y)` by `d`.'"]
-def comap (f : N → c.quotient) (H : ∀ x y, f (x * y) = f x * f y)
-  (d : con c.quotient) : con N :=
-{ mul' := λ w x y z h1 h2, show d (f (w * y)) (f (x * z)), by rw [H, H]; exact d.mul h1 h2,
-  ..d.to_setoid.comap f }
+/-- Given types with multiplications `M, N` and a congruence relation `c` on `N`, a
+    multiplication-preserving map `f : M → N` induces a congruence relation on `f`'s domain
+    defined by '`x ≈ y` iff `f(x)` is related to `f(y)` by `c`.' -/
+@[to_additive "Given types with additions `M, N` and an additive congruence relation `c` on `N`, an addition-preserving map `f : M → N` induces an additive congruence relation on `f`'s domain defined by '`x ≈ y` iff `f(x)` is related to `f(y)` by `c`.' "]
+def comap (f : M → N) (H : ∀ x y, f (x * y) = f x * f y) (c : con N) : con M :=
+{ mul' := λ w x y z h1 h2, show c (f (w * y)) (f (x * z)), by rw [H, H]; exact c.mul h1 h2,
+  ..c.to_setoid.comap f }
 
 section
 open quotient
@@ -479,14 +476,14 @@ open quotient
     ((≤) : con c.quotient → con c.quotient → Prop) :=
   { to_fun := λ d, d.1.map_of_surjective coe _
       (by rw mul_ker_mk_eq; exact d.2) $ @exists_rep _ c.to_setoid,
-    inv_fun := λ d, ⟨c.comap coe (λ x y, rfl) d, λ _ _ h,
+    inv_fun := λ d, ⟨comap (coe : M → c.quotient) (λ x y, rfl) d, λ _ _ h,
       show d _ _, by rw c.eq.2 h; exact d.refl _ ⟩,
     left_inv := λ d, subtype.ext.2 $ ext $ λ _ _,
       ⟨λ h, let ⟨a, b, hx, hy, H⟩ := h in
         d.1.trans (d.1.symm $ d.2 a _ $ c.eq.1 hx) $ d.1.trans H $ d.2 b _ $ c.eq.1 hy,
        λ h, ⟨_, _, rfl, rfl, h⟩⟩,
     right_inv := λ d, let Hm : mul_ker (coe : M → c.quotient) (λ x y, rfl) ≤
-          c.comap (coe : M → c.quotient) (λ x y, rfl) d :=
+          comap (coe : M → c.quotient) (λ x y, rfl) d :=
         λ x y h, show d _ _, by rw mul_ker_mk_eq at h; exact c.eq.2 h ▸ d.refl _ in
       ext $ λ x y, ⟨λ h, let ⟨a, b, hx, hy, H⟩ := h in hx ▸ hy ▸ H,
         con.induction_on₂ x y $ λ w z h, ⟨w, z, rfl, rfl, h⟩⟩,
@@ -562,20 +559,6 @@ def ker (f : M →* P) : con M := mul_ker f f.3
 @[to_additive "The definition of the additive congruence relation defined by an `add_monoid` homomorphism's kernel."]
 lemma ker_rel (f : M →* P) {x y} : ker f x y ↔ f x = f y := iff.rfl
 
-variables (c)
-
-/-- Restriction of a congruence relation on a monoid to a submonoid. -/
-@[to_additive "Restriction of a congruence relation on an `add_monoid` to an `add_submonoid`."]
-def subtype (A : submonoid M) : con A :=
-⟨λ x y, c x y, ⟨λ x, c.refl x, λ _ _, c.symm, λ _ _ _, c.trans⟩,
- λ _ _ _ _, c.mul⟩
-
-variables {c}
-
-/-- The definition of the restriction of a congruence relation on a monoid to a submonoid. -/
-@[simp, to_additive "The definition of the restriction of an additive congruence relation on an `add_monoid` to an `add_submonoid`."]
-lemma subtype_apply {A : submonoid M} {x y} : c.subtype A x y ↔ c x y := iff.rfl
-
 /-- There exists an element of the quotient of a monoid by a congruence relation (namely 1). -/
 @[to_additive "There exists an element of the quotient of an `add_monoid` by a congruence relation (namely 0)."]
 instance : inhabited c.quotient := ⟨((1 : M) : c.quotient)⟩
@@ -612,15 +595,12 @@ set.ext $ λ x,
   ⟨λ h, set.mem_preimage.2 $ set.mem_singleton_iff.2 h.symm,
    λ h, (set.mem_singleton_iff.1 $ set.mem_preimage.1 h).symm⟩
 
-/-- The restriction of a congruence relation to a submonoid equals the kernel of the natural
-    homomorphism to the quotient composed with the inclusion homomorphism of the submonoid into
-    the monoid. -/
-@[to_additive "The restriction of an additive congruence relation to an `add_submonoid` equals the kernel of the natural homomorphism to the quotient composed with the inclusion homomorphism of the `add_submonoid` into the `add_monoid`."]
-lemma subtype_eq (A : submonoid M) :
-  c.subtype A = ker (c.mk'.comp A.subtype) :=
-ext $ λ x y,
-  ⟨λ h, show (↑x : c.quotient) = ↑y, from c.eq.2 $ subtype_apply.2 h,
-   λ h, by rw [subtype_apply, ←mk'_ker c]; simpa using h⟩
+/-- Given a monoid homomorphism `f : N → M` and a congruence relation `c` on `M`, the congruence
+    relation induced on `N` by `f` equals the kernel of `c`'s quotient homomorphism composed with
+    `f`. -/
+@[to_additive "Given an `add_monoid` homomorphism `f : N → M` and an additive congruence relation `c` on `M`, the additive congruence relation induced on `N` by `f` equals the kernel of `c`'s quotient homomorphism composed with `f`."]
+lemma comap_eq {f : N →* M} : comap f f.map_mul c = ker (c.mk'.comp f) :=
+ext $ λ x y, show c _ _ ↔ c.mk' _ = c.mk' _, by rw ←c.eq; refl
 
 variables (c) (f : M →* P)
 
@@ -754,10 +734,10 @@ noncomputable def quotient_ker_equiv_of_surjective (f : M →* P) (hf : surjecti
       ⟨injective_ker_lift f, lift_surjective_of_surjective (le_refl _) hf⟩ }
 
 /-- The second isomorphism theorem for monoids. -/
-@[to_additive add_submonoid_quotient_equiv "The second isomorphism theorem for `add_monoid`s."]
-noncomputable def submonoid_quotient_equiv (A : submonoid M) :
-  (c.subtype A).quotient ≃* (c.mk'.comp A.subtype).range :=
-(con.congr $ subtype_eq A).trans $ quotient_ker_equiv_range $ c.mk'.comp A.subtype
+@[to_additive "The second isomorphism theorem for `add_monoid`s."]
+noncomputable def comap_quotient_equiv (f : N →* M) :
+  (comap f f.map_mul c).quotient ≃* (c.mk'.comp f).range :=
+(con.congr comap_eq).trans $ quotient_ker_equiv_range $ c.mk'.comp f
 
 /-- The third isomorphism theorem for monoids. -/
 @[to_additive "The third isomorphism theorem for `add_monoid`s."]

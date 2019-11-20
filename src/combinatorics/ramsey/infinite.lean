@@ -93,14 +93,12 @@ open color
 The fintype instance for color.
 -/
 instance color_fintype  : fintype color :=
-⟨
-  ⟨red :: blue :: 0, dec_trivial⟩,
+⟨⟨red :: blue :: 0, dec_trivial⟩,
   begin
     intros x, cases x,
     { left, refl },
     { right, left, refl }
-  end
-⟩
+  end⟩
 
 /--
 An infinite set of natural numbers.
@@ -493,8 +491,7 @@ end
 An equivalenc of color and fin 2
 -/
 lemma color_equiv_fin2 : color ≃ fin 2 :=
-{
-  to_fun := λ c, color.rec_on c 0 1,
+{ to_fun := λ c, color.rec_on c 0 1,
   inv_fun := λ n, nat.rec_on n.val red (λ _ _, blue),
   left_inv := begin intro x, cases x, refl, refl end,
   right_inv :=
@@ -509,13 +506,12 @@ lemma color_equiv_fin2 : color ≃ fin 2 :=
         { rw [fin.eq_iff_veq],
           simp [lt_succ_iff, succ_le_succ_iff, succ_pos ] at hx,
           simp, rw hx } },
-    end
-}
+    end }
 
 theorem infinite_ramsey_pairs_two_colors' (f : [ℕ]² → fin 2) :
-∃ H : Inf, ∃ k : fin 2,
-∀ h : [H]²,
-(restrict f H) h = k :=
+  ∃ H : Inf, ∃ k : fin 2,
+  ∀ h : [H]²,
+  (restrict f H) h = k :=
 begin
   have h : ∃ H : Inf, ∃ c : color, ∀ h : [H]²,
     (restrict (color_equiv_fin2.inv_fun ∘ f) H) h = c,
@@ -536,23 +532,42 @@ begin
   exact hc2,
 end
 
+/-
+Intuitively, split_coloring reduces a (k+1)-coloring
+to a 2-coloring by coloring k "red" and everything else "blue".
+This is the key trick for the inductive argument that
+extends Ramsey's theorem for two colors to k colors.
+-/
 noncomputable def split_coloring
   (k : ℕ)
   (f : [ℕ]² → fin (succ k))
   (p : [ℕ]²)
-  : fin 2 := if (f p = k) then 1 else 0
+  : fin 2 := if (f p = k) then 0 else 1
 
 theorem infinite_ramsey_pairs_n_colors (k : ℕ) (f : [ℕ]² → fin (k+2)) :
-∃ H : Inf, ∃ c : fin (k+2),
-∀ h : [H]²,
-(restrict f H) h = c :=
+  ∃ H : Inf, ∃ c : fin (k+2),
+  ∀ h : [H]²,
+  (restrict f H) h = c :=
 begin
   induction k with k IH,
   simp [infinite_ramsey_pairs_two_colors' f],
-  have foo : succ k + 2 = succ (k+2), refl,
-  --have h : ∃ H : Inf, ∃ k : fin 2, ∀ h : [H]²,
-  --  (restrict (split_coloring (k.val+2) f) H) h = k,
-  --exact infinite_ramsey_pairs_two_colors (ftc ∘ f),
+  have rt22 : ∃ H : Inf, ∃ i : fin 2, ∀ h : [H]²,
+    (restrict (split_coloring (k+2) f) H) h = i,
+  exact infinite_ramsey_pairs_two_colors' (split_coloring (k+2) f),
+  cases rt22 with S hS,
+  cases hS with i hRT,
+  cases i with i hi,
+  /-
+  From here, the proof informally is:
+  If i = 0, then f restricted to S is always equal to k+1,
+    and so S satisfies the conclusion of the theorem.
+  Otherwise, f restricted to S is contained in fin (k+2),
+    and we can _almost_ apply infinite_ramsey_pairs_two_colors'.
+    The trouble is that infinite_ramsey_pairs_two_colors' requires
+    the domain of the coloring to be [ℕ]² not unordered pairs of
+    an arbitrary infinite subset of ℕ. Therefore we need to generalize
+    the statement of infinite_ramsey_pairs_two_colors'.
+  -/
   sorry,
 end
 

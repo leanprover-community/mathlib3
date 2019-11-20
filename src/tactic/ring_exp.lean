@@ -540,8 +540,8 @@ meta def ex_prod (p : ex exp) (ps : ex prod) : ring_exp_m (ex prod) := do
 meta def ex_var (p : atom) : ring_exp_m (ex base) := pure (ex.var ⟨p.1, p.1, none⟩ p)
 
 /-- Constructs `ex.sum_b` with the correct arguments. -/
-meta def ex_sum_b (ps : ex sum) : ring_exp_m (ex base) := do
-  pure (ex.sum_b ps.info (ps.set_info none none))
+meta def ex_sum_b (ps : ex sum) : ring_exp_m (ex base) :=
+pure (ex.sum_b ps.info (ps.set_info none none))
 
 /-- Constructs `ex.exp` with the correct arguments. -/
 meta def ex_exp (p : ex base) (ps : ex prod) : ring_exp_m (ex exp) := do
@@ -611,7 +611,7 @@ meta def add_coeff (p_p q_p : expr) (p q : coeff) : ring_exp_m (ex prod) := do
   ctx ← get_context,
   pq' ← mk_add [p_p, q_p],
   (pq_p, pq_pf) ← lift $ norm_num.derive pq',
-  pure $ (ex.coeff ⟨pq_p, pq_p, pq_pf⟩ ⟨p.1 + q.1⟩)
+  pure $ ex.coeff ⟨pq_p, pq_p, pq_pf⟩ ⟨p.1 + q.1⟩
 
 /--
   Compute the product of two coefficients.
@@ -623,7 +623,7 @@ meta def mul_coeff (p_p q_p : expr) (p q : coeff) : ring_exp_m (ex prod) := do
   ctx ← get_context,
   pq' ← mk_mul [p_p, q_p],
   (pq_p, pq_pf) ← lift $ norm_num.derive pq',
-  pure $ (ex.coeff ⟨pq_p, pq_p, pq_pf⟩ ⟨p.1 * q.1⟩)
+  pure $ ex.coeff ⟨pq_p, pq_p, pq_pf⟩ ⟨p.1 * q.1⟩
 
 /--
   Represents the way in which two products are equal except coefficient.
@@ -1116,50 +1116,43 @@ lemma simple_pf_exp_one {p p' : α} : p = p' → p ^ 1 = p' := by simp
 meta def ex.simple : Π {et : ex_type}, ex et → ring_exp_m (expr × expr)
 | sum pps@(ex.sum pps_i p (ex.zero _)) := do
   (p_p, p_pf) ← p.simple,
-  pf ← mk_app_csr ``simple_pf_sum_zero [p.pretty, p_p, p_pf],
-  pure $ (p_p, pf)
+  prod.mk p_p <$> mk_app_csr ``simple_pf_sum_zero [p.pretty, p_p, p_pf]
 | sum (ex.sum pps_i p ps) := do
   (p_p, p_pf) ← p.simple,
   (ps_p, ps_pf) ← ps.simple,
-  pps_p ← mk_add [p_p, ps_p],
-  pf ← mk_app_csr ``sum_congr [p.pretty, p_p, ps.pretty, ps_p, p_pf, ps_pf],
-  pure $ (pps_p, pf)
+  prod.mk
+    <$> mk_add [p_p, ps_p]
+    <*> mk_app_csr ``sum_congr [p.pretty, p_p, ps.pretty, ps_p, p_pf, ps_pf]
 | prod (ex.prod pps_i p (ex.coeff _ ⟨⟨1, 1, _, _⟩⟩)) := do
   (p_p, p_pf) ← p.simple,
-  pf ← mk_app_csr ``simple_pf_prod_one [p.pretty, p_p, p_pf],
-  pure $ (p_p, pf)
+  prod.mk p_p <$> mk_app_csr ``simple_pf_prod_one [p.pretty, p_p, p_pf]
 | prod pps@(ex.prod pps_i p (ex.coeff _ ⟨⟨-1, 1, _, _⟩⟩)) := do
   ctx ← get_context,
   match ctx.info_b.cr_instance with
-  | none := do
-    pf ← pps.proof_term,
-    pure $ (pps.pretty, pf)
+  | none := prod.mk pps.pretty <$> pps.proof_term
   | (some cri) := do
     (p_p, p_pf) ← p.simple,
-    p' ← lift $ mk_app ``has_neg.neg [p_p],
-    pf ← mk_app_csr ``simple_pf_prod_neg_one [cri, p.pretty, p_p, p_pf],
-    pure $ (p', pf)
+    prod.mk
+      <$> lift (mk_app ``has_neg.neg [p_p])
+      <*> mk_app_csr ``simple_pf_prod_neg_one [cri, p.pretty, p_p, p_pf]
   end
 | prod (ex.prod pps_i p ps) := do
   (p_p, p_pf) ← p.simple,
   (ps_p, ps_pf) ← ps.simple,
-  pps_p ← mk_mul [p_p, ps_p],
-  pf ← mk_app_csr ``prod_congr [p.pretty, p_p, ps.pretty, ps_p, p_pf, ps_pf],
-  pure $ (pps_p, pf)
+  prod.mk
+    <$> mk_mul [p_p, ps_p]
+    <*> mk_app_csr ``prod_congr [p.pretty, p_p, ps.pretty, ps_p, p_pf, ps_pf]
 | base (ex.sum_b pps_i ps) := ps.simple
 | exp (ex.exp pps_i p (ex.coeff _ ⟨⟨1, 1, _, _⟩⟩)) := do
   (p_p, p_pf) ← p.simple,
-  pf ← mk_app_csr ``simple_pf_exp_one [p.pretty, p_p, p_pf],
-  pure $ (p_p, pf)
+  prod.mk p_p <$> mk_app_csr ``simple_pf_exp_one [p.pretty, p_p, p_pf]
 | exp (ex.exp pps_i p ps) := do
   (p_p, p_pf) ← p.simple,
   (ps_p, ps_pf) ← in_exponent $ ps.simple,
-  pps_p ← mk_pow [p_p, ps_p],
-  pf ← mk_app_csr ``exp_congr [p.pretty, p_p, ps.pretty, ps_p, p_pf, ps_pf],
-  pure $ (pps_p, pf)
-| et ps := do
-  pf ← ps.proof_term,
-  pure $ (ps.pretty, pf)
+  prod.mk
+    <$> mk_pow [p_p, ps_p]
+    <*> mk_app_csr ``exp_congr [p.pretty, p_p, ps.pretty, ps_p, p_pf, ps_pf]
+| et ps := prod.mk ps.pretty <$> ps.proof_term
 
 /--
   Performs a lookup of the atom `a` in the list of known atoms,
@@ -1295,8 +1288,7 @@ meta def eval : expr → ring_exp_m (ex sum)
 | e@`(%%ps * %%qs) := do
   ps' ← eval ps,
   qs' ← eval qs,
-  pq ← mul ps' qs',
-  pure pq
+  mul ps' qs'
 | e@`(has_inv.inv %%ps) := do
   ps' ← eval ps,
   inverse ps' <|> eval_base e
@@ -1333,8 +1325,7 @@ meta def eval : expr → ring_exp_m (ex sum)
 -/
 meta def eval_with_proof (e : expr) : ring_exp_m (ex sum × expr) := do
   e' ← eval e,
-  e_pf ← e'.proof_term,
-  pure (e', e_pf)
+  prod.mk e' <$> e'.proof_term
 
 /--
   Run `eval` on the expression and simplify the result.
@@ -1346,8 +1337,7 @@ meta def eval_with_proof (e : expr) : ring_exp_m (ex sum × expr) := do
 meta def eval_simple (e : expr) : ring_exp_m (expr × expr) := do
   (complicated, complicated_pf) ← eval_with_proof e,
   (simple, simple_pf) ← complicated.simple,
-  pf ← lift $ mk_eq_trans complicated_pf simple_pf,
-  pure (simple, pf)
+  prod.mk simple <$> lift (mk_eq_trans complicated_pf simple_pf)
 
 /-- Compute the `eval_info` for a given type `α`. -/
 meta def make_eval_info (α : expr) : tactic eval_info := do
@@ -1392,10 +1382,8 @@ meta def normalize (e : expr) : tactic (expr × expr) := do
 meta def ring_exp_eq : tactic unit := do
   `(eq %%ps %%qs) ← target >>= whnf,
 
-  (ps', ps_pf, qs', qs_pf) ← run_ring_exp ps (do
-    (ps', ps_pf) ← eval_with_proof ps,
-    (qs', qs_pf) ← eval_with_proof qs,
-    pure (ps', ps_pf, qs', qs_pf)),
+  ((ps', ps_pf), (qs', qs_pf)) ← run_ring_exp ps $
+    prod.mk <$> eval_with_proof ps <*> eval_with_proof qs,
 
   if ps'.eq qs'
   then do

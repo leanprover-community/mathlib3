@@ -1392,7 +1392,7 @@ meta def ring_exp_eq : tactic unit := do
     tactic.interactive.exact ``(%%pf)
   else fail "ring_exp failed to prove equality"
 
-/-- Tactic for solving equations of *commutative* (semi)rings,
+/-- Tactic for normalizing expressions of *commutative* (semi)rings,
     allowing variables in the exponent.
   -/
 meta def ring_exp (loc : parse location) : tactic unit :=

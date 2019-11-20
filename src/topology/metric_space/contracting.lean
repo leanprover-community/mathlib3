@@ -71,6 +71,16 @@ from cauchy_seq_of_le_geometric K (dist x₀ (f x₀)) hf.1 $
 let ⟨x, hx⟩ := cauchy_seq_tendsto_of_complete this in
 ⟨x, fixed_point_of_tendsto_iterate (hf.to_lipschitz_with.to_continuous.tendsto x) ⟨x₀, hx⟩⟩
 
+/-- Let `f` be a contracting map with constant `K`; let `g` be another map uniformly
+`C`-close to `f`. If `x` and `y` are their fixed points, then `dist x y ≤ C / (1 - K)`. -/
+lemma dist_fixed_point_fixed_point_of_dist_le' (g : α → α)
+  {x y} (hx : f x = x) (hy : g y = y) {C} (hfg : ∀ z, dist (f z) (g z) ≤ C) :
+  dist x y ≤ C / (1 - K) :=
+calc dist x y = dist y x : dist_comm x y
+          ... ≤ (dist y (f y)) / (1 - K) : hf.dist_le_of_fixed_point y hx
+          ... = (dist (f y) (g y)) / (1 - K) : by rw [hy, dist_comm]
+          ... ≤ C / (1 - K) : (div_le_div_right hf.one_sub_K_pos).2 (hfg y)
+
 noncomputable theory
 
 variables [inhabited α] [complete_space α]
@@ -98,16 +108,6 @@ lemma apriori_dist_iterate_fixed_point_le (x n) :
 le_trans (hf.aposteriori_dist_iterate_fixed_point_le x n) $
   (div_le_div_right hf.one_sub_K_pos).2 $
     hf.to_lipschitz_with.dist_iterate_succ_le_geometric x n
-
-/-- Let `f` be a contracting map with constant `K`; let `g` be another map uniformly
-`C`-close to `f`. If `x` and `y` are their fixed points, then `dist x y ≤ C / (1 - K)`. -/
-lemma dist_fixed_point_fixed_point_of_dist_le' (g : α → α)
-  {x y} (hx : f x = x) (hy : g y = y) {C} (hfg : ∀ z, dist (f z) (g z) ≤ C) :
-  dist x y ≤ C / (1 - K) :=
-calc dist x y = dist y x : dist_comm x y
-          ... ≤ (dist y (f y)) / (1 - K) : hf.dist_le_of_fixed_point y hx
-          ... = (dist (f y) (g y)) / (1 - K) : by rw [hy, dist_comm]
-          ... ≤ C / (1 - K) : (div_le_div_right hf.one_sub_K_pos).2 (hfg y)
 
 lemma fixed_point_lipschitz_in_map {g : α → α} (hg : contracting_with K g)
   {C} (hfg : ∀ z, dist (f z) (g z) ≤ C) :

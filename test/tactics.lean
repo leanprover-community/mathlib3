@@ -352,15 +352,15 @@ end category_theory
 section is_eta_expansion
 /- test the is_eta_expansion tactic -/
 open function tactic
-structure equiv (α : Sort*) (β : Sort*) :=
+structure my_equiv (α : Sort*) (β : Sort*) :=
 (to_fun    : α → β)
 (inv_fun   : β → α)
 (left_inv  : left_inverse inv_fun to_fun)
 (right_inv : right_inverse inv_fun to_fun)
 
-infix ` ≃ `:25 := equiv
+infix ` my≃ `:25 := my_equiv
 
-protected def my_rfl {α} : α ≃ α :=
+protected def my_rfl {α} : α my≃ α :=
 ⟨id, λ x, x, λ x, rfl, λ x, rfl⟩
 
 def eta_expansion_test : ℕ × ℕ := ((1,0).1,(1,0).2)
@@ -369,12 +369,12 @@ run_cmd do e ← get_env, x ← e.get `eta_expansion_test,
   let nms := [`prod.fst, `prod.snd],
   guard $ expr.is_eta_expansion_test (nms.zip v) = some `((1, 0))
 
-def eta_expansion_test2 : ℕ ≃ ℕ :=
+def eta_expansion_test2 : ℕ my≃ ℕ :=
 ⟨my_rfl.to_fun, my_rfl.inv_fun, λ x, rfl, λ x, rfl⟩
 
 run_cmd do e ← get_env, x ← e.get `eta_expansion_test2,
   let v := (x.value.get_app_args).drop 2,
-  projs ← e.structure_fields_full `equiv,
+  projs ← e.structure_fields_full `my_equiv,
   b ← expr.is_eta_expansion_aux x.value (projs.zip v),
   guard $ b = some `(@my_rfl ℕ)
 

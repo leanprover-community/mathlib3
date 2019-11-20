@@ -35,16 +35,17 @@ it will be non-discrete. -/
 
 variables [normed_field 𝕜] [normed_space 𝕜 E] [normed_space 𝕜 F] (f : E →ₗ[𝕜] F)
 
+lemma linear_map.lipschitz_of_bound (C : ℝ) (h : ∀x, ∥f x∥ ≤ C * ∥x∥) :
+  lipschitz_with (nnreal.of_real C) f :=
+lipschitz_with.of_dist_le $ λ x y, by simpa [dist_eq_norm] using h (x - y)
+
+lemma linear_map.uniform_continuous_of_bound (C : ℝ) (h : ∀x, ∥f x∥ ≤ C * ∥x∥) :
+  uniform_continuous f :=
+(f.lipschitz_of_bound C h).to_uniform_continuous
+
 lemma linear_map.continuous_of_bound (C : ℝ) (h : ∀x, ∥f x∥ ≤ C * ∥x∥) :
   continuous f :=
-begin
-  have : ∀ (x y : E), dist (f x) (f y) ≤ C * dist x y := λx y, calc
-    dist (f x) (f y) = ∥f x - f y∥ : by rw dist_eq_norm
-    ... = ∥f (x - y)∥ : by simp
-    ... ≤ C * ∥x - y∥ : h _
-    ... = C * dist x y : by rw dist_eq_norm,
-  exact continuous_of_lipschitz this
-end
+(f.lipschitz_of_bound C h).to_continuous
 
 /-- Construct a continuous linear map from a linear map and a bound on this linear map. -/
 def linear_map.with_bound (h : ∃C : ℝ, ∀x, ∥f x∥ ≤ C * ∥x∥) : E →L[𝕜] F :=
@@ -295,9 +296,8 @@ lemma op_norm_comp_le : ∥comp h f∥ ≤ ∥h∥ * ∥f∥ :=
   end⟩)
 
 /-- continuous linear maps are Lipschitz continuous. -/
-theorem lipschitz : lipschitz_with ∥f∥ f :=
-⟨op_norm_nonneg _, λ x y,
-  by { rw [dist_eq_norm, dist_eq_norm, ←map_sub], apply le_op_norm }⟩
+theorem lipschitz : lipschitz_with ⟨∥f∥, op_norm_nonneg f⟩ f :=
+λ x y, by { rw [dist_eq_norm, dist_eq_norm, ←map_sub], apply le_op_norm }
 
 /-- A continuous linear map is automatically uniformly continuous. -/
 protected theorem uniform_continuous : uniform_continuous f :=

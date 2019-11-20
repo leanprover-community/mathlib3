@@ -184,23 +184,32 @@ end
 
 /-- Composition (in the target) of a bounded continuous function with a Lipschitz map again
 gives a bounded continuous function -/
-def comp (G : β → γ) (H : ∀x y, dist (G x) (G y) ≤ C * dist x y)
+def comp (G : β → γ) {C : nnreal} (H : lipschitz_with C G)
   (f : α →ᵇ β) : α →ᵇ γ :=
-⟨λx, G (f x), (continuous_of_lipschitz H).comp f.2.1,
+⟨λx, G (f x), H.to_continuous.comp f.2.1,
   let ⟨D, hD⟩ := f.2.2 in
   ⟨max C 0 * D, λ x y, calc
     dist (G (f x)) (G (f y)) ≤ C * dist (f x) (f y) : H _ _
     ... ≤ max C 0 * dist (f x) (f y) : mul_le_mul_of_nonneg_right (le_max_left C 0) dist_nonneg
     ... ≤ max C 0 * D : mul_le_mul_of_nonneg_left (hD _ _) (le_max_right C 0)⟩⟩
 
-/-- The composition operator (in the target) with a Lipschitz map is continuous -/
-lemma continuous_comp {G : β → γ} (H : ∀x y, dist (G x) (G y) ≤ C * dist x y) :
-  continuous (comp G H : (α →ᵇ β) → α →ᵇ γ) :=
-continuous_of_lipschitz $ λ f g,
-(dist_le (mul_nonneg (le_max_right C 0) dist_nonneg)).2 $ λ x,
+/-- The composition operator (in the target) with a Lipschitz map is Lipschitz -/
+lemma lipschitz_comp {G : β → γ} {C : nnreal} (H : lipschitz_with C G) :
+  lipschitz_with C (comp G H : (α →ᵇ β) → α →ᵇ γ) :=
+λ f g,
+(dist_le (mul_nonneg C.2 dist_nonneg)).2 $ λ x,
 calc dist (G (f x)) (G (g x)) ≤ C * dist (f x) (g x) : H _ _
-  ... ≤ max C 0 * dist (f x) (g x) : mul_le_mul_of_nonneg_right (le_max_left C 0) (dist_nonneg)
-  ... ≤ max C 0 * dist f g : mul_le_mul_of_nonneg_left (dist_coe_le_dist _) (le_max_right C 0)
+  ... ≤ C * dist f g : mul_le_mul_of_nonneg_left (dist_coe_le_dist _) C.2
+
+/-- The composition operator (in the target) with a Lipschitz map is uniformly continuous -/
+lemma uniform_continuous_comp {G : β → γ} {C : nnreal} (H : lipschitz_with C G) :
+  uniform_continuous (comp G H : (α →ᵇ β) → α →ᵇ γ) :=
+(lipschitz_comp H).to_uniform_continuous
+
+/-- The composition operator (in the target) with a Lipschitz map is continuous -/
+lemma continuous_comp {G : β → γ} {C : nnreal} (H : lipschitz_with C G) :
+  continuous (comp G H : (α →ᵇ β) → α →ᵇ γ) :=
+(lipschitz_comp H).to_continuous
 
 /-- Restriction (in the target) of a bounded continuous function taking values in a subset -/
 def cod_restrict (s : set β) (f : α →ᵇ β) (H : ∀x, f x ∈ s) : α →ᵇ s :=
@@ -292,7 +301,7 @@ theorem arzela_ascoli₂
 /- This version is deduced from the previous one by restricting to the compact type in the target,
 using compactness there and then lifting everything to the original space. -/
 begin
-  have M : ∀x y : s, dist (x : β) y ≤ 1 * dist x y := λ x y, ge_of_eq (one_mul _),
+  have M : lipschitz_with 1 coe := lipschitz_with.subtype_coe s,
   let F : (α →ᵇ s) → α →ᵇ β := comp coe M,
   refine compact_of_is_closed_subset
     (compact_image (_ : compact (F ⁻¹' A)) (continuous_comp M)) closed (λ f hf, _),

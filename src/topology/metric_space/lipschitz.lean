@@ -107,7 +107,7 @@ begin
     mul_le_mul_of_nonneg_left (metric.dist_le_diam_of_mem hs hx hy) K.2
 end
 
-protected lemma weaken (K' : ℝ≥0) (h : K ≤ K') :
+protected lemma weaken {K' : ℝ≥0} (h : K ≤ K') :
   lipschitz_with K' f :=
 assume x y, le_trans (hf x y) $ mul_le_mul_of_nonneg_right h dist_nonneg
 

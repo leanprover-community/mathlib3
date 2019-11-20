@@ -271,6 +271,7 @@ meta def ex.set_info : Π {et : ex_type} (ps : ex et), option expr → option ex
 
 instance coeff_has_repr : has_repr coeff := ⟨λ x, repr x.1⟩
 
+/-- Convert an `ex` to a `string`. -/
 meta def ex.repr : Π {et : ex_type}, ex et → string
 | sum  (ex.zero _)      := "0"
 | sum  (ex.sum _ p ps)  := ex.repr p ++ " + " ++ ex.repr ps
@@ -372,7 +373,17 @@ meta def ring_exp_m (α : Type) : Type := reader_t context (state_t (list atom) 
 -- Basic operations on `ring_exp_m`:
 meta instance : monad ring_exp_m := by { dunfold ring_exp_m, apply_instance }
 meta instance : alternative ring_exp_m := by { dunfold ring_exp_m, apply_instance }
+
+/--
+  Access the instance cache.
+-/
 meta def get_context : ring_exp_m context := reader_t.read
+
+/--
+  Lift an operation in the `tactic` monad to the `ring_exp_m` monad.
+
+  This operation will not access the cache.
+-/
 meta def lift {α} (m : tactic α) : ring_exp_m α := reader_t.lift (state_t.lift m)
 
 /--
@@ -486,13 +497,13 @@ meta def pow_orig {et et'} (ps : ex et) (qs : ex et') : ring_exp_m expr :=
 mk_pow [ps.orig, qs.orig]
 
 /-- Congruence lemma for constructing `ex.sum`. -/
-def sum_congr {p p' ps ps' : α} : p = p' → ps = ps' → p + ps = p' + ps' := by cc
+lemma sum_congr {p p' ps ps' : α} : p = p' → ps = ps' → p + ps = p' + ps' := by cc
 
 /-- Congruence lemma for constructing `ex.prod`. -/
-def prod_congr {p p' ps ps' : α} : p = p' → ps = ps' → p * ps = p' * ps' := by cc
+lemma prod_congr {p p' ps ps' : α} : p = p' → ps = ps' → p * ps = p' * ps' := by cc
 
 /-- Congruence lemma for constructing `ex.exp`. -/
-def exp_congr {p p' : α} {ps ps' : ℕ} : p = p' → ps = ps' → p ^ ps = p' ^ ps' := by cc
+lemma exp_congr {p p' : α} {ps ps' : ℕ} : p = p' → ps = ps' → p ^ ps = p' ^ ps' := by cc
 
 /-- Constructs `ex.zero` with the correct arguments. -/
 meta def ex_zero : ring_exp_m (ex sum) := do
@@ -860,8 +871,8 @@ meta def mul_pp : ex prod → ex prod → ring_exp_m (ex prod)
     pure $ pqqs.set_info ppqqs_o pf
   end
 
-lemma mul_p_pf_zero {ps qs qs' : α} : ps = 0 → qs = qs' → ps * qs = 0 :=
-λ ps_pf _, by rw [ps_pf, zero_mul]
+lemma mul_p_pf_zero {ps qs : α} : ps = 0 → ps * qs = 0 :=
+λ ps_pf, by rw [ps_pf, zero_mul]
 
 lemma mul_p_pf_sum {pps p ps qs ppsqs : α} : pps = p + ps →
   p * qs + ps * qs = ppsqs → pps * qs = ppsqs := λ pps_pf ppsqs_pf, calc
@@ -879,7 +890,7 @@ meta def mul_p : ex sum → ex prod → ring_exp_m (ex sum)
 | ps@(ex.zero ps_i) qs := do
   z ← ex_zero,
   z_o ← mul_orig ps qs,
-  pf ← mk_proof ``mul_p_pf_zero [ps.orig, qs.orig, qs.pretty] [ps.info, qs.info],
+  pf ← mk_proof ``mul_p_pf_zero [ps.orig, qs.orig] [ps.info],
   pure $ z.set_info z_o pf
 | pps@(ex.sum pps_i p ps) qs := do
   pqs ← mul_pp p qs >>= prod_to_sum,
@@ -893,8 +904,8 @@ meta def mul_p : ex sum → ex prod → ring_exp_m (ex sum)
     [pps.info, ppsqs.info],
   pure $ ppsqs.set_info ppsqs_o pf
 
-lemma mul_pf_zero {ps ps' qs : α} : ps = ps' → qs = 0 → ps * qs = 0 :=
-λ _ qs_pf, by rw [qs_pf, mul_zero]
+lemma mul_pf_zero {ps qs : α} : qs = 0 → ps * qs = 0 :=
+λ qs_pf, by rw [qs_pf, mul_zero]
 
 lemma mul_pf_sum {ps qqs q qs psqqs : α} : qqs = q + qs → ps * q + ps * qs = psqqs →
   ps * qqs = psqqs := λ qs_pf psqqs_pf, calc
@@ -912,9 +923,7 @@ meta def mul : ex sum → ex sum → ring_exp_m (ex sum)
 | ps qs@(ex.zero qs_i) := do
   z ← ex_zero,
   z_o ← mul_orig ps qs,
-  pf ← mk_proof ``mul_pf_zero
-    [ps.orig, ps.pretty, qs.orig]
-    [ps.info, qs.info],
+  pf ← mk_proof ``mul_pf_zero [ps.orig, qs.orig] [qs.info],
   pure $ z.set_info z_o pf
 | ps qqs@(ex.sum qqs_i q qs) := do
   psq ← mul_p ps q,
@@ -950,8 +959,8 @@ meta def pow_e : ex exp → ex prod → ring_exp_m (ex exp)
     [pps.info, psqs.info],
   pure $ ppsqs.set_info ppsqs_o pf
 
-lemma pow_pp_pf_one {ps : α} {qs qs' : ℕ} : ps = 1 → qs = qs' → ps ^ qs = 1 :=
-λ ps_pf _, by rw [ps_pf, _root_.one_pow]
+lemma pow_pp_pf_one {ps : α} {qs : ℕ} : ps = 1 → ps ^ qs = 1 :=
+λ ps_pf, by rw [ps_pf, _root_.one_pow]
 
 lemma pow_pp_pf_c {ps ps' pqs : α} {qs qs' : ℕ} :
   ps = ps' → qs = qs' → ps' ^ qs' = pqs → ps ^ qs = pqs * 1 :=
@@ -975,7 +984,7 @@ meta def pow_pp : ex prod → ex prod → ring_exp_m (ex prod)
 | ps@(ex.coeff ps_i ⟨⟨1, 1, _, _⟩⟩) qs := do
   o ← ex_one,
   o_o ← pow_orig ps qs,
-  pf ← mk_proof ``pow_pp_pf_one [ps.orig, qs.orig, qs.pretty] [ps.info, qs.info],
+  pf ← mk_proof ``pow_pp_pf_one [ps.orig, qs.orig] [ps.info],
   pure $ o.set_info o_o pf
 | ps@(ex.coeff ps_i x) qs := do
   ps'' ← pure ps >>= prod_to_sum >>= ex_sum_b,
@@ -1063,7 +1072,7 @@ meta def pow_p : ex sum → ex prod → ring_exp_m (ex sum)
     [pps.info, qqs.info],
   exp_to_prod (psqs.set_info psqs_o pf) >>= prod_to_sum
 
-lemma pow_pf_zero {ps ps' : α} {qs : ℕ} : ps = ps' → qs = 0 → ps ^ qs = 1 := λ _ qs_pf, calc
+lemma pow_pf_zero {ps : α} {qs : ℕ} : qs = 0 → ps ^ qs = 1 := λ qs_pf, calc
   ps ^ qs = ps ^ 0 : by rw [qs_pf]
   ... = 1 : pow_zero _
 
@@ -1082,7 +1091,7 @@ meta def pow : ex sum → ex sum → ring_exp_m (ex sum)
 | ps qs@(ex.zero qs_i) := do
   o ← ex_one,
   o_o ← pow_orig ps qs,
-  pf ← mk_proof ``pow_pf_zero [ps.orig, ps.pretty, qs.orig] [ps.info, qs.info],
+  pf ← mk_proof ``pow_pf_zero [ps.orig, qs.orig] [qs.info],
   prod_to_sum $ o.set_info o_o pf
 | ps qqs@(ex.sum qqs_i q qs) := do
   psq ← pow_p ps q,
@@ -1099,7 +1108,7 @@ lemma simple_pf_sum_zero {p p' : α} : p = p' → p + 0 = p' := by simp
 
 lemma simple_pf_prod_one {p p' : α} : p = p' → p * 1 = p' := by simp
 
-lemma simple_pf_prod_neg_one [comm_ring α] {p p' : α} : p = p' → p * -1 = - p' := by simp
+lemma simple_pf_prod_neg_one [ring α] {p p' : α} : p = p' → p * -1 = - p' := by simp
 
 lemma simple_pf_var_one (p : α) : p ^ 1 = p := by simp
 
@@ -1222,7 +1231,7 @@ meta def negate (ps : ex sum) : ring_exp_m (ex sum) := do
     pure $ ps'.set_info ps'_o pf
   end
 
-lemma inverse_pf [division_ring α] {ps ps_u ps_p e' e'' : α} :
+lemma inverse_pf {α} [division_ring α] {ps ps_u ps_p e' e'' : α} :
   ps = ps_u → ps_u = ps_p → ps_p ⁻¹ = e' → e' = e'' → ps ⁻¹ = e'' :=
 by cc
 /--
@@ -1247,8 +1256,8 @@ meta def inverse (ps : ex sum) : ring_exp_m (ex sum) := do
   e''_o ← lift $ mk_app ``has_inv.inv [ps.orig],
   pure $ e''.set_info e''_o pf
 
-lemma sub_pf [comm_ring α] {ps qs psqs : α} : ps + -qs = psqs → ps - qs = psqs := id
-lemma div_pf [division_ring α] {ps qs psqs : α} : ps * qs⁻¹ = psqs → ps / qs = psqs := id
+lemma sub_pf {α} [comm_ring α] {ps qs psqs : α} : ps + -qs = psqs → ps - qs = psqs := id
+lemma div_pf {α} [division_ring α] {ps qs psqs : α} : ps * qs⁻¹ = psqs → ps / qs = psqs := id
 
 end operations
 
@@ -1266,6 +1275,12 @@ section wiring
 open tactic
 open ex_type
 
+/--
+  Compute a normalized form (of type `ex`) from an expression (of type `expr`).
+
+  This is the main driver of the `ring_exp` tactic,
+  calling out to `add`, `mul`, `pow`, etc. to parse the `expr`.
+-/
 meta def eval : expr → ring_exp_m (ex sum)
 | e@`(%%ps + %%qs) := do
   ps' ← eval ps,

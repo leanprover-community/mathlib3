@@ -16,12 +16,12 @@ This file registers `ℂ` as a normed field, expresses basic properties of the n
 tools on the real vector space structure of `ℂ`. Notably, in the namespace `complex`,
 it defines functions:
 
-* `re_linear_map`
-* `re_continuous_linear_map`
-* `im_linear_map`
-* `im_continuous_linear_map`
-* `of_real_linear_map`
-* `of_real_continuous_linear_map`
+* `linear_map.re`
+* `continuous_linear_map.re`
+* `linear_map.im`
+* `continuous_linear_map.im`
+* `linear_map.of_real`
+* `continuous_linear_map.of_real`
 
 They are bundled versions of the real part, the imaginary part, and the embedding of `ℝ` in `ℂ`,
 as `ℝ`-linear maps.
@@ -46,7 +46,7 @@ instance : nondiscrete_normed_field ℂ :=
 { non_trivial := ⟨2, by simp [norm]; norm_num⟩ }
 
 instance normed_algebra_over_reals : normed_algebra ℝ ℂ :=
-{ norm_eq := abs_of_real,
+{ norm_algebra_map_eq := abs_of_real,
   ..complex.algebra_over_reals }
 
 @[simp] lemma norm_eq_abs (z : ℂ) : ∥z∥ = abs z := rfl
@@ -80,102 +80,102 @@ instance normed_space.restrict_scalars_real (E : Type*) [normed_group E] [normed
 attribute [instance, priority 900] complex.normed_space.restrict_scalars_real
 
 /-- Linear map version of the real part function, from `ℂ` to `ℝ`. -/
-def re_linear_map : ℂ →ₗ[ℝ] ℝ :=
+def linear_map.re : ℂ →ₗ[ℝ] ℝ :=
 { to_fun := λx, x.re,
   add := by simp,
   smul := λc x, by { change ((c : ℂ) * x).re = c * x.re, simp } }
 
-@[simp] lemma re_linear_map_apply (z : ℂ) : re_linear_map z = z.re := rfl
+@[simp] lemma linear_map.re_apply (z : ℂ) : linear_map.re z = z.re := rfl
 
 /-- Continuous linear map version of the real part function, from `ℂ` to `ℝ`. -/
-def re_continuous_linear_map : ℂ →L[ℝ] ℝ :=
-re_linear_map.with_bound ⟨1, λx, begin
+def continuous_linear_map.re : ℂ →L[ℝ] ℝ :=
+linear_map.re.with_bound ⟨1, λx, begin
   change _root_.abs (x.re) ≤ 1 * abs x,
   rw one_mul,
-  exact complex.abs_re_le_abs x
+  exact abs_re_le_abs x
 end⟩
 
-@[simp] lemma re_continuous_linear_map_coe :
-  (coe (re_continuous_linear_map) : ℂ →ₗ[ℝ] ℝ) = re_linear_map := rfl
+@[simp] lemma continuous_linear_map.re_coe :
+  (coe (continuous_linear_map.re) : ℂ →ₗ[ℝ] ℝ) = linear_map.re := rfl
 
-@[simp] lemma re_continuous_linear_map_apply (z : ℂ) :
-  (re_continuous_linear_map : ℂ → ℝ) z = z.re := rfl
+@[simp] lemma continuous_linear_map.re_apply (z : ℂ) :
+  (continuous_linear_map.re : ℂ → ℝ) z = z.re := rfl
 
-@[simp] lemma re_continuous_linear_map_norm :
-  ∥re_continuous_linear_map∥ = 1 :=
+@[simp] lemma continuous_linear_map.re_norm :
+  ∥continuous_linear_map.re∥ = 1 :=
 begin
   apply le_antisymm,
   { refine continuous_linear_map.op_norm_le_bound _ (zero_le_one) (λx, _),
     rw one_mul,
     exact complex.abs_re_le_abs x },
-  { calc 1 = ∥re_continuous_linear_map (1 : ℂ)∥ : by simp
-    ... ≤ ∥re_continuous_linear_map∥ : by { apply continuous_linear_map.unit_le_op_norm, simp } }
+  { calc 1 = ∥continuous_linear_map.re (1 : ℂ)∥ : by simp
+    ... ≤ ∥continuous_linear_map.re∥ : by { apply continuous_linear_map.unit_le_op_norm, simp } }
 end
 
 /-- Linear map version of the imaginary part function, from `ℂ` to `ℝ`. -/
-def im_linear_map : ℂ →ₗ[ℝ] ℝ :=
+def linear_map.im : ℂ →ₗ[ℝ] ℝ :=
 { to_fun := λx, x.im,
   add := by simp,
   smul := λc x, by { change ((c : ℂ) * x).im = c * x.im, simp } }
 
-@[simp] lemma im_linear_map_apply (z : ℂ) : im_linear_map z = z.im := rfl
+@[simp] lemma linear_map.im_apply (z : ℂ) : linear_map.im z = z.im := rfl
 
 /-- Continuous linear map version of the real part function, from `ℂ` to `ℝ`. -/
-def im_continuous_linear_map : ℂ →L[ℝ] ℝ :=
-im_linear_map.with_bound ⟨1, λx, begin
+def continuous_linear_map.im : ℂ →L[ℝ] ℝ :=
+linear_map.im.with_bound ⟨1, λx, begin
   change _root_.abs (x.im) ≤ 1 * abs x,
   rw one_mul,
   exact complex.abs_im_le_abs x
 end⟩
 
-@[simp] lemma im_continuous_linear_map_coe :
-  (coe (im_continuous_linear_map) : ℂ →ₗ[ℝ] ℝ) = im_linear_map := rfl
+@[simp] lemma continuous_linear_map.im_coe :
+  (coe (continuous_linear_map.im) : ℂ →ₗ[ℝ] ℝ) = linear_map.im := rfl
 
-@[simp] lemma im_continuous_linear_map_apply (z : ℂ) :
-  (im_continuous_linear_map : ℂ → ℝ) z = z.im := rfl
+@[simp] lemma continuous_linear_map.im_apply (z : ℂ) :
+  (continuous_linear_map.im : ℂ → ℝ) z = z.im := rfl
 
-@[simp] lemma im_continuous_linear_map_norm :
-  ∥im_continuous_linear_map∥ = 1 :=
+@[simp] lemma continuous_linear_map.im_norm :
+  ∥continuous_linear_map.im∥ = 1 :=
 begin
   apply le_antisymm,
   { refine continuous_linear_map.op_norm_le_bound _ (zero_le_one) (λx, _),
     rw one_mul,
     exact complex.abs_im_le_abs x },
-  { calc 1 = ∥im_continuous_linear_map (I : ℂ)∥ : by simp
-    ... ≤ ∥im_continuous_linear_map∥ :
+  { calc 1 = ∥continuous_linear_map.im (I : ℂ)∥ : by simp
+    ... ≤ ∥continuous_linear_map.im∥ :
       by { apply continuous_linear_map.unit_le_op_norm, rw ← abs_I, exact le_refl _ } }
 end
 
 /-- Linear map version of the canonical embedding of `ℝ` in `ℂ`. -/
-def of_real_linear_map : ℝ →ₗ[ℝ] ℂ :=
+def linear_map.of_real : ℝ →ₗ[ℝ] ℂ :=
 { to_fun := λx, of_real x,
   add := by simp,
   smul := λc x, by { simp, refl } }
 
-@[simp] lemma of_real_linear_map_apply (x : ℝ) : of_real_linear_map x = x := rfl
+@[simp] lemma linear_map.of_real_apply (x : ℝ) : linear_map.of_real x = x := rfl
 
 /-- Continuous linear map version of the canonical embedding of `ℝ` in `ℂ`. -/
-def of_real_continuous_linear_map : ℝ →L[ℝ] ℂ :=
-of_real_linear_map.with_bound ⟨1, λx, by simp⟩
+def continuous_linear_map.of_real : ℝ →L[ℝ] ℂ :=
+linear_map.of_real.with_bound ⟨1, λx, by simp⟩
 
-@[simp] lemma of_real_continuous_linear_map_coe :
-  (coe (of_real_continuous_linear_map) : ℝ →ₗ[ℝ] ℂ) = of_real_linear_map := rfl
+@[simp] lemma continuous_linear_map.of_real_coe :
+  (coe (continuous_linear_map.of_real) : ℝ →ₗ[ℝ] ℂ) = linear_map.of_real := rfl
 
-@[simp] lemma of_real_continuous_linear_map_apply (x : ℝ) :
-  (of_real_continuous_linear_map : ℝ → ℂ) x = x := rfl
+@[simp] lemma continuous_linear_map.of_real_apply (x : ℝ) :
+  (continuous_linear_map.of_real : ℝ → ℂ) x = x := rfl
 
-@[simp] lemma of_real_continuous_linear_map_norm :
-  ∥of_real_continuous_linear_map∥ = 1 :=
+@[simp] lemma continuous_linear_map.of_real_norm :
+  ∥continuous_linear_map.of_real∥ = 1 :=
 begin
   apply le_antisymm,
   { exact continuous_linear_map.op_norm_le_bound _ (zero_le_one) (λx, by simp) },
-  { calc 1 = ∥of_real_continuous_linear_map (1 : ℝ)∥ : by simp
-    ... ≤ ∥of_real_continuous_linear_map∥ :
+  { calc 1 = ∥continuous_linear_map.of_real (1 : ℝ)∥ : by simp
+    ... ≤ ∥continuous_linear_map.of_real∥ :
       by { apply continuous_linear_map.unit_le_op_norm, simp } }
 end
 
-lemma of_real_continuous_linear_map_isometry :
-  isometry of_real_continuous_linear_map :=
+lemma continuous_linear_map.of_real_isometry :
+  isometry continuous_linear_map.of_real :=
 continuous_linear_map.isometry_iff_norm_image_eq_norm.2 (λx, by simp)
 
 end complex
@@ -190,16 +190,16 @@ differentiable at this point, with a derivative equal to the real part of the co
 theorem has_deriv_at_real_of_complex (h : has_deriv_at e e' z) :
   has_deriv_at (λx:ℝ, (e x).re) e'.re z :=
 begin
-  have : (λx:ℝ, (e x).re) = (re_continuous_linear_map : ℂ → ℝ) ∘ e ∘ (of_real_continuous_linear_map : ℝ → ℂ),
+  have : (λx:ℝ, (e x).re) = (continuous_linear_map.re : ℂ → ℝ) ∘ e ∘ (continuous_linear_map.of_real : ℝ → ℂ),
     by { ext x, refl },
   rw this,
-  have A : has_fderiv_at of_real_continuous_linear_map of_real_continuous_linear_map z :=
-    of_real_continuous_linear_map.has_fderiv_at,
+  have A : has_fderiv_at continuous_linear_map.of_real continuous_linear_map.of_real z :=
+    continuous_linear_map.of_real.has_fderiv_at,
   have B : has_fderiv_at e ((continuous_linear_map.smul_right 1 e' : ℂ →L[ℂ] ℂ).restrict_scalars ℝ)
-    (of_real_continuous_linear_map z) :=
+    (continuous_linear_map.of_real z) :=
     (has_deriv_at_iff_has_fderiv_at.1 h).restrict_scalars ℝ,
-  have C : has_fderiv_at re_continuous_linear_map re_continuous_linear_map
-    (e (of_real_continuous_linear_map z)) := re_continuous_linear_map.has_fderiv_at,
+  have C : has_fderiv_at continuous_linear_map.re continuous_linear_map.re
+    (e (continuous_linear_map.of_real z)) := continuous_linear_map.re.has_fderiv_at,
   convert has_fderiv_at_iff_has_deriv_at.1 (C.comp z (B.comp z A)),
   change e' = 1 * e',
   rw one_mul

@@ -1113,7 +1113,7 @@ lemma simple_pf_sum_zero {p p' : α} : p = p' → p + 0 = p' := by simp
 
 lemma simple_pf_prod_one {p p' : α} : p = p' → p * 1 = p' := by simp
 
-lemma simple_pf_prod_neg_one [ring α] {p p' : α} : p = p' → p * -1 = - p' := by simp
+lemma simple_pf_prod_neg_one {α} [ring α] {p p' : α} : p = p' → p * -1 = - p' := by simp
 
 lemma simple_pf_var_one (p : α) : p ^ 1 = p := by simp
 
@@ -1144,11 +1144,11 @@ meta def ex.simple : Π {et : ex_type}, ex et → ring_exp_m (expr × expr)
   ctx ← get_context,
   match ctx.info_b.ring_instance with
   | none := prod.mk pps.pretty <$> pps.proof_term
-  | (some cri) := do
+  | (some ringi) := do
     (p_p, p_pf) ← p.simple,
     prod.mk
       <$> lift (mk_app ``has_neg.neg [p_p])
-      <*> mk_app_csr ``simple_pf_prod_neg_one [cri, p.pretty, p_p, p_pf]
+      <*> mk_app_class ``simple_pf_prod_neg_one ringi [p.pretty, p_p, p_pf]
   end
 | prod (ex.prod pps_i p ps) := do
   (p_p, p_pf) ← p.simple,

@@ -1195,11 +1195,11 @@ meta def ex.simple : Π {et : ex_type}, ex et → ring_exp_m (expr × expr)
   This function is mostly useful in `resolve_atom`,
   which updates the state with the new list of atoms.
 -/
-meta def resolve_atoms (a : expr) : list atom → ℕ → ring_exp_m (atom × list atom)
+meta def resolve_atom_aux (a : expr) : list atom → ℕ → ring_exp_m (atom × list atom)
 | [] n := let atm : atom := ⟨a, n⟩ in pure (atm, [atm])
 | bas@(b :: as) n := do
   (lift $ is_def_eq a b.value >> pure (b , bas)) <|> do
-  (atm, as') ← resolve_atoms as (succ n),
+  (atm, as') ← resolve_atom_aux as (succ n),
   pure (atm, b :: as')
 
 /--
@@ -1213,7 +1213,7 @@ meta def resolve_atoms (a : expr) : list atom → ℕ → ring_exp_m (atom × li
 -/
 meta def resolve_atom (a : expr) : ring_exp_m atom := do
   atoms ← reader_t.lift $ state_t.get,
-  (atm, atoms') ← resolve_atoms a atoms 0,
+  (atm, atoms') ← resolve_atom_aux a atoms 0,
   reader_t.lift $ state_t.put atoms',
   pure atm
 

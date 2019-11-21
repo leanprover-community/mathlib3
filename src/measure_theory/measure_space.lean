@@ -491,7 +491,7 @@ instance : has_add (measure α) :=
 @[simp] theorem add_apply (μ₁ μ₂ : measure α) (s : set α) :
   (μ₁ + μ₂) s = μ₁ s + μ₂ s := rfl
 
-instance : add_comm_monoid (measure α) :=
+instance add_comm_monoid : add_comm_monoid (measure α) :=
 { zero      := 0,
   add       := (+),
   add_assoc := assume a b c, ext $ assume s hs, add_assoc _ _ _,

@@ -473,7 +473,7 @@ lemma cast_eq_of_rat : ∀ (q : ℚ), (↑q : ℚ_[p]) = of_rat p q
 @[move_cast] lemma coe_div : ∀ {x y : ℚ}, (↑(x / y) : ℚ_[p]) = ↑x / ↑y := by simp [cast_eq_of_rat]
 
 @[squash_cast] lemma coe_one : (↑1 : ℚ_[p]) = 1 := rfl
-@[squash_cast] lemma coe_zero : (↑1 : ℚ_[p]) = 1 := rfl
+@[squash_cast] lemma coe_zero : (↑0 : ℚ_[p]) = 0 := rfl
 
 lemma const_equiv {q r : ℚ} : const (padic_norm p) q ≈ const (padic_norm p) r ↔ q = r :=
 ⟨ λ heq : lim_zero (const (padic_norm p) (q - r)),

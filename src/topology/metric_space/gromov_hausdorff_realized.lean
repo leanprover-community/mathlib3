@@ -39,7 +39,8 @@ variables (α : Type u) (β : Type v)
 @[reducible] private def prod_space_fun : Type* := ((α ⊕ β) × (α ⊕ β)) → ℝ
 @[reducible] private def Cb : Type* := bounded_continuous_function ((α ⊕ β) × (α ⊕ β)) ℝ
 
-private def max_var : ℝ := 2 * diam (univ : set α) + 1 + 2 * diam (univ : set β)
+private def max_var : nnreal :=
+2 * ⟨diam (univ : set α), diam_nonneg⟩ + 1 + 2 * ⟨diam (univ : set β), diam_nonneg⟩
 
 private lemma one_le_max_var : 1 ≤ max_var α β := calc
   (1 : real) = 2 * 0 + 1 + 2 * 0 : by simp
@@ -157,11 +158,10 @@ calc
   ... = 2 * max_var α β * dist (x, y) (z, t) : by refl
 
 /-- Candidates are Lipschitz -/
-private lemma candidates_lipschitz (fA : f ∈ candidates α β) (p q : (α ⊕ β) × (α ⊕ β)) :
-  dist (f p) (f q) ≤ 2 * max_var α β * dist p q :=
+private lemma candidates_lipschitz (fA : f ∈ candidates α β) :
+  lipschitz_with (2 * max_var α β) f :=
 begin
-  rcases p with ⟨x, y⟩,
-  rcases q with ⟨z, t⟩,
+  rintros ⟨x, y⟩ ⟨z, t⟩,
   rw real.dist_eq,
   apply abs_le_of_le_of_neg_le,
   { exact candidates_lipschitz_aux fA },
@@ -172,7 +172,7 @@ end
 
 /-- candidates give rise to elements of bounded_continuous_functions -/
 def candidates_b_of_candidates (f : prod_space_fun α β) (fA : f ∈ candidates α β) : Cb α β :=
-bounded_continuous_function.mk_of_compact f (continuous_of_lipschitz (candidates_lipschitz fA))
+bounded_continuous_function.mk_of_compact f (candidates_lipschitz fA).to_continuous
 
 lemma candidates_b_of_candidates_mem (f : prod_space_fun α β) (fA : f ∈ candidates α β) :
   candidates_b_of_candidates f fA ∈ candidates_b α β := fA
@@ -240,7 +240,7 @@ begin
     simp only [set.mem_Icc],
     exact ⟨candidates_nonneg hf, candidates_le_max_var hf⟩ },
   { refine equicontinuous_of_continuity_modulus (λt, 2 * max_var α β * t) _ _ _,
-    { have : tendsto (λ (t : ℝ), 2 * max_var α β * t) (𝓝 0) (𝓝 (2 * max_var α β * 0)) :=
+    { have : tendsto (λ (t : ℝ), 2 * (max_var α β : ℝ) * t) (𝓝 0) (𝓝 (2 * max_var α β * 0)) :=
         tendsto_mul tendsto_const_nhds tendsto_id,
       simpa using this },
     { assume x y f hf,
@@ -390,8 +390,7 @@ max_le (le_trans (HD_lipschitz_aux1 f g) (add_le_add_right (le_max_left _ _) _))
 
 /-- Conclude that HD, being Lipschitz, is continuous -/
 private lemma HD_continuous : continuous (HD : Cb α β → ℝ) :=
-uniform_continuous.continuous $ uniform_continuous_of_le_add 1 $
-λf g, begin simp, exact HD_lipschitz_aux3 _ _ end
+lipschitz_with.to_continuous (lipschitz_with.one_of_le_add HD_lipschitz_aux3)
 
 end constructions --section
 

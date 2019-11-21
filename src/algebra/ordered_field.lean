@@ -116,6 +116,9 @@ lemma div_lt_div_iff (b0 : 0 < b) (d0 : 0 < d) :
   a / b < c / d ↔ a * d < c * b :=
 by rw [lt_div_iff d0, div_mul_eq_mul_div, div_lt_iff b0]
 
+lemma div_le_div_iff (b0 : 0 < b) (d0 : 0 < d) : a / b ≤ c / d ↔ a * d ≤ c * b :=
+by rw [le_div_iff d0, div_mul_eq_mul_div, div_le_iff b0]
+
 lemma div_lt_div (hac : a < c) (hbd : d ≤ b) (c0 : 0 ≤ c) (d0 : 0 < d) :
   a / b < c / d :=
 (div_lt_div_iff (lt_of_lt_of_le d0 hbd) d0).2 (mul_lt_mul hac hbd d0 c0)

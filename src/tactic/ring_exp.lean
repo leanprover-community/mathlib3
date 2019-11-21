@@ -618,9 +618,9 @@ meta def atom_to_sum (p : atom) : ring_exp_m (ex sum) := do
 -/
 meta def add_coeff (p_p q_p : expr) (p q : coeff) : ring_exp_m (ex prod) := do
   ctx ← get_context,
-  pq' ← mk_add [p_p, q_p],
-  (pq_p, pq_pf) ← lift $ norm_num pq',
-  pure $ ex.coeff ⟨pq_p, pq_p, pq_pf⟩ ⟨p.1 + q.1⟩
+  pq_o ← mk_add [p_p, q_p],
+  (pq_p, pq_pf) ← lift $ norm_num pq_o,
+  pure $ ex.coeff ⟨pq_o, pq_p, pq_pf⟩ ⟨p.1 + q.1⟩
 
 lemma mul_coeff_pf_one_mul (q : α) : 1 * q = q := one_mul q
 lemma mul_coeff_pf_mul_one (p : α) : p * 1 = p := mul_one p
@@ -1226,7 +1226,7 @@ match ps.to_rat with
   atom_to_sum a
 end
 
-lemma negate_pf {α} {ps ps' : α} [ring α] : (-1) * ps = ps' → -ps = ps' := by simp
+lemma negate_pf {α} [ring α] {ps ps' : α} : (-1) * ps = ps' → -ps = ps' := by simp
 /--
   Negate an expression by multiplying with `-1`.
 
@@ -1240,8 +1240,7 @@ meta def negate (ps : ex sum) : ring_exp_m (ex sum) := do
     minus_one ← ex_coeff (-1) >>= prod_to_sum,
     ps' ← mul minus_one ps,
     ps_pf ← ps'.proof_term,
-    -- We can't use mk_app at the next line because it would cause a timeout.
-    pf ← lift $ to_expr ``(@negate_pf _ _ _ %%ring_instance %%ps_pf),
+    pf ← mk_app_class ``negate_pf ring_instance [ps.orig, ps'.pretty, ps_pf],
     ps'_o ← lift $ mk_app ``has_neg.neg [ps.orig],
     pure $ ps'.set_info ps'_o pf
   end

@@ -1410,10 +1410,14 @@ open interactive interactive.types lean.parser tactic tactic.ring_exp
 
 local postfix `?`:9001 := optional
 
-/-- Tactic for solving equations of *commutative* (semi)rings,
-    allowing variables in the exponent.
-    This version of `ring_exp` fails if the target is not an equality.
-  -/
+/--
+  Tactic for solving equations of *commutative* (semi)rings,
+  allowing variables in the exponent.
+  This version of `ring_exp` fails if the target is not an equality.
+
+  The variant `ring_exp_eq!` will use a more aggressive reducibility setting
+  to determine equality of atoms.
+-/
 meta def ring_exp_eq (red : parse (tk "!")?) : tactic unit := do
   `(eq %%ps %%qs) ← target >>= whnf,
 
@@ -1429,9 +1433,13 @@ meta def ring_exp_eq (red : parse (tk "!")?) : tactic unit := do
     tactic.interactive.exact ``(%%pf)
   else fail "ring_exp failed to prove equality"
 
-/-- Tactic for normalizing expressions of *commutative* (semi)rings,
-    allowing variables in the exponent.
-  -/
+/--
+  Tactic for normalizing expressions of *commutative* (semi)rings,
+  allowing variables in the exponent.
+
+  The variant `ring_exp!` will use a more aggressive reducibility setting
+  to determine equality of atoms.
+-/
 meta def ring_exp (red : parse (tk "!")?) (loc : parse location) : tactic unit :=
   match loc with
   | interactive.loc.ns [none] := ring_exp_eq red

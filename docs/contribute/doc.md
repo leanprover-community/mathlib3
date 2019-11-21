@@ -122,7 +122,13 @@ It is common to structure a file in sections, where each section contains relate
 By describing the sections with module documentation `/-! ... -/` at the beginning,
 these sections can be seen in the documentation.
 
-Third-level headers `###` should be used for the titles of sections.
+While these sectioning comments will often correspond to `section` or `namespace` commands,
+this is not required. You can use sectioning comments inside of a section or namespace, and you can
+have multiple sections or namespaces following one sectioning comment.
+
+Sectioning comments are for display and readability only. They have no semantic meaning.
+
+Third-level headers `###` should be used for titles inside sectioning comments.
 
 See [meta/expr.lean](../../src/meta/expr.lean) for an example in practice.
 
@@ -148,9 +154,7 @@ end binder_info
 
 namespace name
 
-/-!
-### Declarations about `name`
--/
+/-! ### Declarations about `name` -/
 
 /-- Find the largest prefix `n` of a `name` such that `f n ≠ none`, then replace this prefix
 with the value of `f n`. -/

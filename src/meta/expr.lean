@@ -18,9 +18,7 @@ import data.string.defs
 
 namespace binder_info
 
-/-!
-### Declarations about `binder_info`
--/
+/-! ### Declarations about `binder_info` -/
 
 instance : inhabited binder_info := ⟨ binder_info.default ⟩
 
@@ -35,9 +33,7 @@ end binder_info
 
 namespace name
 
-/-!
-### Declarations about `name`
--/
+/-! ### Declarations about `name` -/
 
 /-- Find the largest prefix `n` of a `name` such that `f n ≠ none`, then replace this prefix
 with the value of `f n`. -/
@@ -141,9 +137,7 @@ end name
 
 namespace level
 
-/-!
-### Declarations about `level`
--/
+/-! ### Declarations about `level` -/
 
 /-- Tests whether a universe level is non-zero for all assignments of its variables -/
 meta def nonzero : level → bool
@@ -154,9 +148,7 @@ meta def nonzero : level → bool
 
 end level
 
-/-!
-### Declarations about `binder`
--/
+/-! ### Declarations about `binder` -/
 
 /-- The type of binders containing a name, the binding info and the binding type -/
 @[derive decidable_eq]
@@ -183,6 +175,11 @@ end binder
 
 /-!
 ### Converting between expressions and numerals
+
+There are a number of ways to convert between expressions and numerals, depending on the input and
+output types and whether you want to infer the necessary type classes.
+
+See also the tactics `expr.of_nat`, `expr.of_int`, `expr.of_rat`.
 -/
 
 
@@ -246,9 +243,7 @@ meta def is_num_eq : expr → expr → bool
 
 end expr
 
-/-!
-### Declarations about `expr`
--/
+/-! ### Declarations about `expr` -/
 
 namespace expr
 open tactic
@@ -448,9 +443,7 @@ meta def is_default_local : expr → bool
 
 end expr
 
-/-!
-### Declarations about `environment`
--/
+/-! ### Declarations about `environment` -/
 
 namespace environment
 
@@ -607,9 +600,7 @@ meta def is_eta_expansion (val : expr) : tactic (option expr) := do
 
 end expr
 
-/-!
-### Declarations about `declaration`
--/
+/-! ### Declarations about `declaration` -/
 
 namespace declaration
 open tactic

@@ -581,7 +581,9 @@ lemma differentiable_on_const (c : F) : differentiable_on 𝕜 (λx, c) s :=
 
 end const
 
-/- Continuous linear maps. There are currently two variants of these in mathlib, the bundled version
+/- ### Continuous linear maps
+
+There are currently two variants of these in mathlib, the bundled version
 (named `continuous_linear_map`, and denoted `E →L[𝕜] F`), and the unbundled version (with a
 predicate `is_bounded_linear_map`). We give statements for both versions. -/
 section continuous_linear_map

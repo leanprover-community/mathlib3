@@ -140,14 +140,7 @@ section expression
 @[derive decidable_eq]
 structure coeff : Type := (value : ℚ)
 
-/--
-  The `ex` type is structured according to a parameter `et : ex_type`.
-
-  Instead of allowing each operand to have arbitrary subexpressions as argument,
-  we have a single `ex_type` allowed for each argument.
-  This e.g. enforces that `+` associates to the right,
-  and `+` distributes over `*`.
-  -/
+/-- The values in `ex_type` are used as parameters to `ex` to control the expression's structure. -/
 inductive ex_type : Type
 | base : ex_type
 | sum : ex_type

@@ -58,7 +58,7 @@ for Fréchet derivatives.
 universes u v w
 noncomputable theory
 open_locale classical topological_space
-open filter continuous_linear_map asymptotics set
+open filter asymptotics set
 
 set_option class.instance_max_depth 100
 

@@ -219,8 +219,8 @@ unique_diff_within_at.eq (H x hx) h h₁
 
 end derivative_uniqueness
 
-/- Basic properties of the derivative -/
 section fderiv_properties
+/-! ### Basic properties of the derivative -/
 
 theorem has_fderiv_at_filter_iff_tendsto :
   has_fderiv_at_filter f f' x L ↔
@@ -403,8 +403,8 @@ end
 
 end fderiv_properties
 
-/- Congr -/
 section congr
+/-! ### congr properties of the derivative -/
 
 theorem has_fderiv_at_filter_congr_of_mem_sets
   (hx : f₀ x = f₁ x) (h₀ : {x | f₀ x = f₁ x} ∈ L) (h₁ : ∀ x, f₀' x = f₁' x) :
@@ -504,8 +504,8 @@ end
 
 end congr
 
-/- id -/
 section id
+/-! ### Derivative of the identity -/
 
 theorem has_fderiv_at_filter_id (x : E) (L : filter E) :
   has_fderiv_at_filter id (id : E →L[𝕜] E) x L :=
@@ -542,8 +542,8 @@ end
 
 end id
 
-/- constants -/
 section const
+/-! ### derivative of a constant function -/
 
 theorem has_fderiv_at_filter_const (c : F) (x : E) (L : filter E) :
   has_fderiv_at_filter (λ x, c) (0 : E →L[𝕜] F) x L :=
@@ -581,12 +581,12 @@ lemma differentiable_on_const (c : F) : differentiable_on 𝕜 (λx, c) s :=
 
 end const
 
+section continuous_linear_map
 /-! ### Continuous linear maps
 
 There are currently two variants of these in mathlib, the bundled version
 (named `continuous_linear_map`, and denoted `E →L[𝕜] F`), and the unbundled version (with a
 predicate `is_bounded_linear_map`). We give statements for both versions. -/
-section continuous_linear_map
 
 lemma is_bounded_linear_map.has_fderiv_at_filter (h : is_bounded_linear_map 𝕜 f) :
   has_fderiv_at_filter f h.to_continuous_linear_map x L :=
@@ -673,8 +673,8 @@ e.differentiable.differentiable_on
 
 end continuous_linear_map
 
-/- multiplication by a constant -/
 section smul_const
+/-! ### Derivative of a function multiplied by a constant -/
 
 theorem has_fderiv_at_filter.smul (h : has_fderiv_at_filter f f' x L) (c : 𝕜) :
   has_fderiv_at_filter (λ x, c • f x) (c • f') x L :=
@@ -715,8 +715,8 @@ lemma fderiv_smul (h : differentiable_at 𝕜 f x) (c : 𝕜) :
 
 end smul_const
 
-/- add -/
 section add
+/-! ### Derivative of the sum of two functions -/
 
 theorem has_fderiv_at_filter.add
   (hf : has_fderiv_at_filter f f' x L) (hg : has_fderiv_at_filter g g' x L) :
@@ -765,8 +765,8 @@ lemma fderiv_add
 
 end add
 
-/- neg -/
 section neg
+/-! ### Derivative of the negative of a function -/
 
 theorem has_fderiv_at_filter.neg (h : has_fderiv_at_filter f f' x L) :
   has_fderiv_at_filter (λ x, -f x) (-f') x L :=
@@ -807,8 +807,8 @@ h.has_fderiv_at.neg.fderiv
 
 end neg
 
-/- sub -/
 section sub
+/-! ### Derivative of the difference of two functions -/
 
 theorem has_fderiv_at_filter.sub
   (hf : has_fderiv_at_filter f f' x L) (hg : has_fderiv_at_filter g g' x L) :
@@ -861,8 +861,8 @@ h.to_is_O.congr_of_sub.2 (f'.is_O_sub _ _)
 
 end sub
 
-/- Continuity -/
 section continuous
+/-! ### Deducing continuity from differentiability -/
 
 theorem has_fderiv_at_filter.tendsto_nhds
   (hL : L ≤ 𝓝 x) (h : has_fderiv_at_filter f f' x L) :
@@ -899,9 +899,9 @@ continuous_iff_continuous_at.2 $ λx, (h x).continuous_at
 
 end continuous
 
-/- Bounded bilinear maps -/
-
 section bilinear_map
+/-! ### Derivative of a bounded bilinear map -/
+
 variables {b : E × F → G} {u : set (E × F) }
 
 open normed_field
@@ -982,9 +982,9 @@ h.differentiable.continuous
 
 end bilinear_map
 
-
-/- Cartesian products -/
 section cartesian_product
+/-! ### Derivative of the cartesian product of two functions -/
+
 variables {f₂ : E → G} {f₂' : E →L[𝕜] G}
 
 lemma has_fderiv_at_filter.prod
@@ -1042,10 +1042,11 @@ end
 
 end cartesian_product
 
-/- Composition -/
 section composition
+/-! ###
+Derivative of the composition of two functions
 
-/- For composition lemmas, we put x explicit to help the elaborator, as otherwise Lean tends to
+For composition lemmas, we put x explicit to help the elaborator, as otherwise Lean tends to
 get confused since there are too many possibilities for composition -/
 
 variable (x)
@@ -1150,8 +1151,9 @@ lemma differentiable.comp {g : F → G} (hg : differentiable 𝕜 g) (hf : diffe
 
 end composition
 
-/- Multiplication by a scalar function -/
 section smul
+/-! ### Derivative of the product of a scalar-valued function and a vector-valued function -/
+
 variables {c : E → 𝕜} {c' : E →L[𝕜] 𝕜}
 
 theorem has_fderiv_within_at.smul'
@@ -1199,10 +1201,9 @@ lemma fderiv_smul' (hc : differentiable_at 𝕜 c x) (hf : differentiable_at �
 
 end smul
 
-
-/- Multiplication of scalar functions -/
-
 section mul
+/-! ### Derivative of the product of two scalar-valued functions -/
+
 set_option class.instance_max_depth 120
 variables {c d : E → 𝕜} {c' d' : E →L[𝕜] 𝕜}
 
@@ -1258,13 +1259,14 @@ lemma fderiv_mul (hc : differentiable_at 𝕜 c x) (hd : differentiable_at 𝕜 
 end mul
 
 end
+
+section
 /-
   In the special case of a normed space over the reals,
   we can use  scalar multiplication in the `tendsto` characterization
   of the Fréchet derivative.
 -/
 
-section
 
 variables {E : Type*} [normed_group E] [normed_space ℝ E]
 variables {F : Type*} [normed_group F] [normed_space ℝ F]

@@ -181,7 +181,7 @@ continuous_linear_map.isometry_iff_norm_image_eq_norm.2 (λx, by simp)
 end complex
 
 section real_deriv_of_complex
-/- Differentiability of the restriction to `ℝ` of complex functions -/
+/- ### Differentiability of the restriction to `ℝ` of complex functions -/
 open complex
 variables {e : ℂ → ℂ} {e' : ℂ} {z : ℝ}
 

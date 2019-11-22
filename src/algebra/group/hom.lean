@@ -49,10 +49,12 @@ is_group_hom, is_monoid_hom, monoid_hom
 -/
 
 /- Note [low priority instance on morphisms]:
-  We have instances stating that the composition of product of two morphisms is again a morphism.
-  Type class inference will "succeed" in applying these instances when they shouldn't apply, which
-  causes a very long instance resolution that fails. To avoid this, we make the priority of these
-  instances very low.
+  We have instances stating that the composition or the product of two morphisms is again a morphism.
+  Type class inference will "succeed" in applying these instances when they shouldn't apply (for
+  example when the goal is just `⊢ is_mul_hom f` the instances `is_mul_hom.comp` or `is_mul_hom.mul`
+  might still succeed). This can cause type class inference to loop.
+  To avoid this, we make the priority of these instances very low. We should think about not making
+  these declarations instances in the first place.
 -/
 universes u v
 variables {α : Type u} {β : Type v}

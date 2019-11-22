@@ -21,7 +21,6 @@ import topology.instances.ennreal
        measure_theory.outer_measure
 
 noncomputable theory
-set_option default_priority 100 -- see Note [default priority]
 
 open classical set lattice filter finset function
 open_locale classical topological_space
@@ -792,10 +791,13 @@ end is_complete
 
 namespace measure_theory
 
+section prio
+set_option default_priority 100 -- see Note [default priority]
 /-- A measure space is a measurable space equipped with a
   measure, referred to as `volume`. -/
 class measure_space (α : Type*) extends measurable_space α :=
 (μ {} : measure α)
+end prio
 
 section measure_space
 variables {α : Type*} [measure_space α] {s₁ s₂ : set α}

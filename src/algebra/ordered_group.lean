@@ -6,7 +6,6 @@ Authors: Mario Carneiro, Johannes Hölzl
 Ordered monoids and groups.
 -/
 import algebra.group order.bounded_lattice tactic.basic
-set_option default_priority 100 -- see Note [default priority]
 
 universe u
 variable {α : Type u}
@@ -14,7 +13,7 @@ variable {α : Type u}
 section old_structure_cmd
 
 set_option old_structure_cmd true
-
+set_option default_priority 100 -- see Note [default priority]
 /-- An ordered (additive) commutative monoid is a commutative monoid
   with a partial order such that addition is an order embedding, i.e.
   `a + b ≤ a + c ↔ b ≤ c`. These monoids are automatically cancellative. -/
@@ -681,6 +680,8 @@ eq_of_abs_sub_eq_zero (le_antisymm _ _ h (abs_nonneg (a - b)))
 end decidable_linear_ordered_comm_group
 
 set_option old_structure_cmd true
+section prio
+set_option default_priority 100 -- see Note [default priority]
 /-- This is not so much a new structure as a construction mechanism
   for ordered groups, by specifying only the "positive cone" of the group. -/
 class nonneg_comm_group (α : Type*) extends add_comm_group α :=
@@ -690,6 +691,7 @@ class nonneg_comm_group (α : Type*) extends add_comm_group α :=
 (zero_nonneg : nonneg 0)
 (add_nonneg : ∀ {a b}, nonneg a → nonneg b → nonneg (a + b))
 (nonneg_antisymm : ∀ {a}, nonneg a → nonneg (-a) → a = 0)
+end prio
 
 namespace nonneg_comm_group
 variable [s : nonneg_comm_group α]

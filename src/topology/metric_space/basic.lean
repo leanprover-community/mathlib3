@@ -15,7 +15,6 @@ noncomputable theory
 
 open_locale uniformity
 open_locale topological_space
-set_option default_priority 100 -- see Note [default priority]
 
 universes u v w
 variables {α : Type u} {β : Type v} {γ : Type w}
@@ -47,6 +46,8 @@ class has_dist (α : Type*) := (dist : α → α → ℝ)
 
 export has_dist (dist)
 
+section prio
+set_option default_priority 100 -- see Note [default priority]
 /-- Metric space
 
 Each metric space induces a canonical `uniform_space` and hence a canonical `topological_space`.
@@ -68,6 +69,7 @@ class metric_space (α : Type u) extends has_dist α : Type u :=
 (edist_dist : ∀ x y : α, edist x y = ennreal.of_real (dist x y) . control_laws_tac)
 (to_uniform_space : uniform_space α := uniform_space_of_dist dist dist_self dist_comm dist_triangle)
 (uniformity_dist : 𝓤 α = ⨅ ε>0, principal {p:α×α | dist p.1 p.2 < ε} . control_laws_tac)
+end prio
 
 variables [metric_space α]
 

@@ -14,15 +14,17 @@ is canonically a metric space.
 
 import topology.metric_space.basic tactic.linarith
 noncomputable theory
-set_option default_priority 100 -- see Note [default priority]
 
 universes u v
 variables {α : Type u}
 
+section prio
+set_option default_priority 100 -- see Note [default priority]
 class premetric_space (α : Type u) extends has_dist α : Type u :=
 (dist_self : ∀ x : α, dist x x = 0)
 (dist_comm : ∀ x y : α, dist x y = dist y x)
 (dist_triangle : ∀ x y z : α, dist x z ≤ dist x y + dist y z)
+end prio
 
 namespace premetric
 section

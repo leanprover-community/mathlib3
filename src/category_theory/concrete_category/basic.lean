@@ -34,14 +34,16 @@ related work.
 -/
 
 universe u
-set_option default_priority 100 -- see Note [default priority]
 
 namespace category_theory
 
+section prio
+set_option default_priority 100 -- see Note [default priority]
 /-- A concrete category is a category `C` with a fixed faithful functor `forget : C ⥤ Type`. -/
 class concrete_category (C : Type (u+1)) extends category.{u} C :=
 (forget : C ⥤ Type u)
 [forget_faithful : faithful forget]
+end prio
 
 attribute [instance] concrete_category.forget_faithful
 

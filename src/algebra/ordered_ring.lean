@@ -4,7 +4,6 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Mario Carneiro
 -/
 import tactic.split_ifs order.basic algebra.order algebra.ordered_group algebra.ring data.nat.cast
-set_option default_priority 100 -- see Note [default priority]
 
 universe u
 variable {α : Type u}
@@ -229,6 +228,8 @@ end
 end linear_ordered_ring
 
 set_option old_structure_cmd true
+section prio
+set_option default_priority 100 -- see Note [default priority]
 /-- Extend `nonneg_comm_group` to support ordered rings
   specified by their nonnegative elements -/
 class nonneg_ring (α : Type*)
@@ -241,6 +242,7 @@ class nonneg_ring (α : Type*)
 class linear_nonneg_ring (α : Type*) extends domain α, nonneg_comm_group α :=
 (mul_nonneg : ∀ {a b}, nonneg a → nonneg b → nonneg (a * b))
 (nonneg_total : ∀ a, nonneg a ∨ nonneg (-a))
+end prio
 
 namespace nonneg_ring
 open nonneg_comm_group
@@ -342,9 +344,12 @@ instance to_decidable_linear_ordered_comm_ring
 
 end linear_nonneg_ring
 
+section prio
+set_option default_priority 100 -- see Note [default priority]
 class canonically_ordered_comm_semiring (α : Type*) extends
   canonically_ordered_monoid α, comm_semiring α, zero_ne_one_class α :=
 (mul_eq_zero_iff (a b : α) : a * b = 0 ↔ a = 0 ∨ b = 0)
+end prio
 
 namespace canonically_ordered_semiring
 open canonically_ordered_monoid

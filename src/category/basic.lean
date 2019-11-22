@@ -8,7 +8,6 @@ Extends the theory on functors, applicatives and monads.
 
 universes u v w
 variables {α β γ : Type u}
-set_option default_priority 100 -- see Note [default priority]
 
 notation a ` $< `:1 f:1 := f a
 
@@ -190,8 +189,11 @@ instance : is_lawful_monad (sum.{v u} e) :=
 
 end sum
 
+section prio
+set_option default_priority 100 -- see Note [default priority]
 class is_comm_applicative (m : Type* → Type*) [applicative m] extends is_lawful_applicative m : Prop :=
 (commutative_prod : ∀{α β} (a : m α) (b : m β), prod.mk <$> a <*> b = (λb a, (a, b)) <$> b <*> a)
+end prio
 
 lemma is_comm_applicative.commutative_map
   {m : Type* → Type*} [applicative m] [is_comm_applicative m]

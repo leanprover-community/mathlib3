@@ -5,12 +5,14 @@ Authors: Andreas Swerdlow
 -/
 
 import ring_theory.subring
-set_option default_priority 100 -- see Note [default priority]
 
 variables {F : Type*} [discrete_field F] (S : set F)
 
+section prio
+set_option default_priority 100 -- see Note [default priority]
 class is_subfield extends is_subring S : Prop :=
 (inv_mem : ∀ {x : F}, x ≠ 0 → x ∈ S → x⁻¹ ∈ S)
+end prio
 
 instance is_subfield.field [is_subfield S] : discrete_field S :=
 { inv := λ x, ⟨x⁻¹, if hx0 : x = 0

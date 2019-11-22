@@ -12,7 +12,6 @@ import topology.instances.nnreal topology.instances.complex
 import topology.algebra.module
 
 variables {α : Type*} {β : Type*} {γ : Type*} {ι : Type*}
-set_option default_priority 100 -- see Note [default priority]
 
 noncomputable theory
 open filter metric
@@ -27,10 +26,13 @@ export has_norm (norm)
 
 notation `∥`:1024 e:1 `∥`:1 := norm e
 
+section prio
+set_option default_priority 100 -- see Note [default priority]
 /-- A normed group is an additive group endowed with a norm for which `dist x y = ∥x - y∥` defines
 a metric space structure. -/
 class normed_group (α : Type*) extends has_norm α, add_comm_group α, metric_space α :=
 (dist_eq : ∀ x y, dist x y = norm (x - y))
+end prio
 
 /-- Construct a normed group from a translation invariant distance -/
 def normed_group.of_add_dist [has_norm α] [add_comm_group α] [metric_space α]
@@ -269,10 +271,13 @@ end normed_group
 
 section normed_ring
 
+section prio
+set_option default_priority 100 -- see Note [default priority]
 /-- A normed ring is a ring endowed with a norm which satisfies the inequality `∥x y∥ ≤ ∥x∥ ∥y∥`. -/
 class normed_ring (α : Type*) extends has_norm α, ring α, metric_space α :=
 (dist_eq : ∀ x y, dist x y = norm (x - y))
 (norm_mul : ∀ a b, norm (a * b) ≤ norm a * norm b)
+end prio
 
 @[priority 100] -- see Note [lower instance priority]
 instance normed_ring.to_normed_group [β : normed_ring α] : normed_group α := { ..β }
@@ -340,6 +345,8 @@ instance normed_top_ring [normed_ring α] : topological_ring α :=
     have ∀ e : α, -e - -x = -(e - x), by intro; simp,
     by simp only [this, norm_neg]; apply lim_norm ⟩
 
+section prio
+set_option default_priority 100 -- see Note [default priority]
 /-- A normed field is a field with a norm satisfying ∥x y∥ = ∥x∥ ∥y∥. -/
 class normed_field (α : Type*) extends has_norm α, discrete_field α, metric_space α :=
 (dist_eq : ∀ x y, dist x y = norm (x - y))
@@ -350,6 +357,7 @@ class normed_field (α : Type*) extends has_norm α, discrete_field α, metric_s
 by the powers of any element, and thus to relate algebra and topology. -/
 class nondiscrete_normed_field (α : Type*) extends normed_field α :=
 (non_trivial : ∃x:α, 1<∥x∥)
+end prio
 
 @[priority 100] -- see Note [lower instance priority]
 instance normed_field.to_normed_ring [i : normed_field α] : normed_ring α :=
@@ -459,11 +467,14 @@ by rw [← rat.norm_cast_real, ← int.norm_cast_real]; congr' 1; norm_cast
 
 section normed_space
 
+section prio
+set_option default_priority 100 -- see Note [default priority]
 /-- A normed space over a normed field is a vector space endowed with a norm which satisfies the
 equality `∥c • x∥ = ∥c∥ ∥x∥`. -/
 class normed_space (α : Type*) (β : Type*) [normed_field α] [normed_group β]
   extends vector_space α β :=
 (norm_smul : ∀ (a:α) (b:β), norm (a • b) = has_norm.norm a * norm b)
+end prio
 
 variables [normed_field α] [normed_group β]
 

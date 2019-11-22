@@ -10,7 +10,6 @@ variables {α : Type u} {β : Type v} {a b : α}
 open set function lattice
 
 open_locale classical
-set_option default_priority 100 -- see Note [default priority]
 
 namespace ideal
 variables [comm_ring α] (I : ideal α)
@@ -353,8 +352,11 @@ begin
   use [I, Imax], apply H, apply ideal.subset_span, exact set.mem_singleton a
 end
 
+section prio
+set_option default_priority 100 -- see Note [default priority]
 class local_ring (α : Type u) extends nonzero_comm_ring α :=
 (is_local : ∀ (a : α), (is_unit a) ∨ (is_unit (1 - a)))
+end prio
 
 namespace local_ring
 variable [local_ring α]
@@ -455,8 +457,11 @@ have xmemI : x ∈ I, from ((Iuniq Ix Ixmax) ▸ Hx),
 have ymemI : y ∈ I, from ((Iuniq Iy Iymax) ▸ Hy),
 Imax.1 $ I.eq_top_of_is_unit_mem (I.add_mem xmemI ymemI) H
 
+section prio
+set_option default_priority 100 -- see Note [default priority]
 class is_local_ring_hom [comm_ring α] [comm_ring β] (f : α → β) extends is_ring_hom f : Prop :=
 (map_nonunit : ∀ a, is_unit (f a) → is_unit a)
+end prio
 
 @[simp] lemma is_unit_of_map_unit [comm_ring α] [comm_ring β] (f : α → β) [is_local_ring_hom f]
   (a) (h : is_unit (f a)) : is_unit a :=

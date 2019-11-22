@@ -42,7 +42,6 @@ The Coq code is available at the following address: <http://www.lri.fr/~sboldo/e
 -/
 
 noncomputable theory
-set_option default_priority 100 -- see Note [default priority]
 
 open real set lattice
 open_locale topological_space
@@ -55,6 +54,8 @@ class has_inner (α : Type*) := (inner : α → α → ℝ)
 
 export has_inner (inner)
 
+section prio
+set_option default_priority 100 -- see Note [default priority]
 /--
 An inner product space is a real vector space with an additional operation called inner product.
 Inner product spaces over complex vector space will be defined in another file.
@@ -65,6 +66,7 @@ class inner_product_space (α : Type*) extends add_comm_group α, vector_space �
 (definite  : ∀ x, inner x x = 0 → x = 0)
 (add_left  : ∀ x y z, inner (x + y) z = inner x z + inner y z)
 (smul_left : ∀ x y r, inner (r • x) y = r * inner x y)
+end prio
 
 variable [inner_product_space α]
 

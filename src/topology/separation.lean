@@ -11,7 +11,6 @@ import topology.subset_properties
 open set filter lattice
 open_locale topological_space
 local attribute [instance] classical.prop_decidable -- TODO: use "open_locale classical"
-set_option default_priority 100 -- see Note [default priority]
 
 universes u v
 variables {α : Type u} {β : Type v} [topological_space α]
@@ -302,11 +301,14 @@ end separation
 
 section regularity
 
+section prio
+set_option default_priority 100 -- see Note [default priority]
 /-- A T₃ space, also known as a regular space (although this condition sometimes
   omits T₂), is one in which for every closed `C` and `x ∉ C`, there exist
   disjoint open sets containing `x` and `C` respectively. -/
 class regular_space (α : Type u) [topological_space α] extends t1_space α : Prop :=
 (regular : ∀{s:set α} {a}, is_closed s → a ∉ s → ∃t, is_open t ∧ s ⊆ t ∧ 𝓝 a ⊓ principal t = ⊥)
+end prio
 
 lemma nhds_is_closed [regular_space α] {a : α} {s : set α} (h : s ∈ 𝓝 a) :
   ∃t∈(𝓝 a), t ⊆ s ∧ is_closed t :=
@@ -334,12 +336,15 @@ end regularity
 
 section normality
 
+section prio
+set_option default_priority 100 -- see Note [default priority]
 /-- A T₄ space, also known as a normal space (although this condition sometimes
   omits T₂), is one in which for every pair of disjoint closed sets `C` and `D`,
   there exist disjoint open sets containing `C` and `D` respectively. -/
 class normal_space (α : Type u) [topological_space α] extends t1_space α : Prop :=
 (normal : ∀ s t : set α, is_closed s → is_closed t → disjoint s t →
   ∃ u v, is_open u ∧ is_open v ∧ s ⊆ u ∧ t ⊆ v ∧ disjoint u v)
+end prio
 
 theorem normal_separation [normal_space α] (s t : set α)
   (H1 : is_closed s) (H2 : is_closed t) (H3 : disjoint s t) :

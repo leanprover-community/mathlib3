@@ -47,9 +47,15 @@ When they can be inferred from the type it is faster to use this method than to 
 is_group_hom, is_monoid_hom, monoid_hom
 
 -/
+
+/- Note [low priority instance on morphisms]:
+  We have instances stating that the composition of product of two morphisms is again a morphism.
+  Type class inference will "succeed" in applying these instances when they shouldn't apply, which
+  causes a very long instance resolution that fails. To avoid this, we make the priority of these
+  instances very low.
+-/
 universes u v
 variables {α : Type u} {β : Type v}
-set_option default_priority 100 -- see Note [default priority]
 
 /-- Predicate for maps which preserve an addition. -/
 class is_add_hom {α β : Type*} [has_add α] [has_add β] (f : α → β) : Prop :=
@@ -68,13 +74,15 @@ variables [has_mul α] [has_mul β] {γ : Type*} [has_mul γ]
 instance id : is_mul_hom (id : α → α) := {map_mul := λ _ _, rfl}
 
 /-- The composition of maps which preserve multiplication, also preserves multiplication. -/
-@[to_additive "The composition of addition preserving maps also preserves addition"]
+-- see Note [low priority instance on morphisms]
+@[priority 10, to_additive "The composition of addition preserving maps also preserves addition"]
 instance comp (f : α → β) (g : β → γ) [is_mul_hom f] [hg : is_mul_hom g] : is_mul_hom (g ∘ f) :=
 { map_mul := λ x y, by simp only [function.comp, map_mul f, map_mul g] }
 
 /-- A product of maps which preserve multiplication,
 preserves multiplication when the target is commutative. -/
-@[instance, to_additive]
+-- see Note [low priority instance on morphisms]
+@[instance, priority 10, to_additive]
 lemma mul {α β} [semigroup α] [comm_semigroup β]
   (f g : α → β) [is_mul_hom f] [is_mul_hom g] :
   is_mul_hom (λa, f a * g a) :=
@@ -89,6 +97,8 @@ lemma inv {α β} [has_mul α] [comm_group β] (f : α → β) [is_mul_hom f] :
 
 end is_mul_hom
 
+section prio
+set_option default_priority 100 -- see Note [default priority]
 /-- Predicate for add_monoid homomorphisms (deprecated -- use the bundled `monoid_hom` version). -/
 class is_add_monoid_hom [add_monoid α] [add_monoid β] (f : α → β) extends is_add_hom f : Prop :=
 (map_zero : f 0 = 0)
@@ -97,6 +107,7 @@ class is_add_monoid_hom [add_monoid α] [add_monoid β] (f : α → β) extends 
 @[to_additive is_add_monoid_hom]
 class is_monoid_hom [monoid α] [monoid β] (f : α → β) extends is_mul_hom f : Prop :=
 (map_one : f 1 = 1)
+end prio
 
 namespace is_monoid_hom
 variables [monoid α] [monoid β] (f : α → β) [is_monoid_hom f]
@@ -122,7 +133,7 @@ variables [monoid α] [monoid β] (f : α → β) [is_monoid_hom f]
 instance id : is_monoid_hom (@id α) := { map_one := rfl }
 
 /-- The composite of two monoid homomorphisms is a monoid homomorphism. -/
-@[to_additive]
+@[priority 10, to_additive] -- see Note [low priority instance on morphisms]
 instance comp {γ} [monoid γ] (g : β → γ) [is_monoid_hom g] :
   is_monoid_hom (g ∘ f) :=
 { map_one := show g _ = 1, by rw [map_one f, map_one g] }
@@ -143,12 +154,15 @@ instance is_add_monoid_hom_mul_right {γ : Type*} [semiring γ] (x : γ) :
 
 end is_add_monoid_hom
 
+section prio
+set_option default_priority 100 -- see Note [default priority]
 /-- Predicate for additive group homomorphism (deprecated -- use bundled `monoid_hom`). -/
 class is_add_group_hom [add_group α] [add_group β] (f : α → β) extends is_add_hom f : Prop
 
 /-- Predicate for group homomorphisms (deprecated -- use bundled `monoid_hom`). -/
 @[to_additive is_add_group_hom]
 class is_group_hom [group α] [group β] (f : α → β) extends is_mul_hom f : Prop
+end prio
 
 /-- Construct `is_group_hom` from its only hypothesis. The default constructor tries to get
 `is_mul_hom` from class instances, and this makes some proofs fail. -/
@@ -180,7 +194,7 @@ eq_inv_of_mul_eq_one $ by rw [← map_mul f, inv_mul_self, map_one f]
 instance id : is_group_hom (@id α) := { }
 
 /-- The composition of two group homomomorphisms is a group homomorphism. -/
-@[to_additive]
+@[priority 10, to_additive] -- see Note [low priority instance on morphisms]
 instance comp {γ} [group γ] (g : β → γ) [is_group_hom g] : is_group_hom (g ∘ f) := { }
 
 /-- A group homomorphism is injective iff its kernel is trivial. -/
@@ -193,7 +207,7 @@ lemma injective_iff (f : α → β) [is_group_hom f] :
     simpa using inv_eq_of_mul_eq_one (h _ hxy)⟩
 
 /-- The product of group homomorphisms is a group homomorphism if the target is commutative. -/
-@[instance, to_additive]
+@[instance, priority 10, to_additive] -- see Note [low priority instance on morphisms]
 lemma mul {α β} [group α] [comm_group β]
   (f g : α → β) [is_group_hom f] [is_group_hom g] :
   is_group_hom (λa, f a * g a) :=

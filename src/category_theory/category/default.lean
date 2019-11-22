@@ -23,7 +23,6 @@ Users may like to add `f ⊚ g` for composition in the standard convention, usin
 local notation f ` ⊚ `:80 g:80 := category.comp g f    -- type as \oo
 ```
 -/
-set_option default_priority 100 -- see Note [default priority]
 
 universes v u  -- The order in this declaration matters: v often needs to be explicitly specified while u often can be omitted
 
@@ -44,6 +43,8 @@ class has_hom (obj : Type u) : Type (max u (v+1)) :=
 
 infixr ` ⟶ `:10 := has_hom.hom -- type as \h
 
+section prio
+set_option default_priority 100 -- see Note [default priority]
 class category_struct (obj : Type u)
 extends has_hom.{v} obj : Type (max u (v+1)) :=
 (id       : Π X : obj, hom X X)
@@ -63,6 +64,7 @@ extends category_struct.{v} obj : Type (max u (v+1)) :=
 (comp_id' : ∀ {X Y : obj} (f : hom X Y), f ≫ 𝟙 Y = f . obviously)
 (assoc'   : ∀ {W X Y Z : obj} (f : hom W X) (g : hom X Y) (h : hom Y Z),
   (f ≫ g) ≫ h = f ≫ (g ≫ h) . obviously)
+end prio
 
 -- `restate_axiom` is a command that creates a lemma from a structure field,
 -- discarding any auto_param wrappers from the type.

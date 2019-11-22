@@ -10,21 +10,26 @@ import topology.algebra.group ring_theory.ideals
 
 open classical set lattice filter topological_space
 open_locale classical
-set_option default_priority 100 -- see Note [default priority]
 
 section topological_ring
 universes u v w
 variables (α : Type u) [topological_space α]
 
+section prio
+set_option default_priority 100 -- see Note [default priority]
 /-- A topological semiring is a semiring where addition and multiplication are continuous. -/
 class topological_semiring [semiring α]
   extends topological_add_monoid α, topological_monoid α : Prop
+end prio
 
 variables [ring α]
 
+section prio
+set_option default_priority 100 -- see Note [default priority]
 /-- A topological ring is a ring where the ring operations are continuous. -/
 class topological_ring extends topological_add_monoid α, topological_monoid α : Prop :=
 (continuous_neg : continuous (λa:α, -a))
+end prio
 
 variables [t : topological_ring α]
 @[priority 100] -- see Note [lower instance priority]

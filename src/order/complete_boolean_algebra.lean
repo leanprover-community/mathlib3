@@ -8,13 +8,14 @@ Theory of complete Boolean algebras.
 import order.complete_lattice order.boolean_algebra data.set.basic
 
 set_option old_structure_cmd true
-set_option default_priority 100 -- see Note [default priority]
 
 universes u v w
 variables {α : Type u} {β : Type v} {ι : Sort w}
 
 namespace lattice
 
+section prio
+set_option default_priority 100 -- see Note [default priority]
 /-- A complete distributive lattice is a bit stronger than the name might
   suggest; perhaps completely distributive lattice is more descriptive,
   as this class includes a requirement that the lattice join
@@ -22,6 +23,7 @@ namespace lattice
 class complete_distrib_lattice α extends complete_lattice α :=
 (infi_sup_le_sup_Inf : ∀a s, (⨅ b ∈ s, a ⊔ b) ≤ a ⊔ Inf s)
 (inf_Sup_le_supr_inf : ∀a s, a ⊓ Sup s ≤ (⨆ b ∈ s, a ⊓ b))
+end prio
 
 section complete_distrib_lattice
 variables [complete_distrib_lattice α] {a b : α} {s t : set α}
@@ -97,8 +99,11 @@ instance [d : complete_distrib_lattice α] : bounded_distrib_lattice α :=
       ... = x ⊔ y ⊓ z : by rw insert_of_has_insert; simp,
   ..d }
 
+section prio
+set_option default_priority 100 -- see Note [default priority]
 /-- A complete boolean algebra is a completely distributive boolean algebra. -/
 class complete_boolean_algebra α extends boolean_algebra α, complete_distrib_lattice α
+end prio
 
 section complete_boolean_algebra
 variables [complete_boolean_algebra α] {a b : α} {s : set α} {f : ι → α}

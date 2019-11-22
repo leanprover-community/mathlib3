@@ -8,7 +8,6 @@ Theory of complete lattices.
 import order.bounded_lattice data.set.basic tactic.pi_instances
 
 set_option old_structure_cmd true
-set_option default_priority 100 -- see Note [default priority]
 open set
 
 namespace lattice
@@ -34,6 +33,8 @@ lemma has_Sup_to_nonempty (α) [has_Sup α] : nonempty α := ⟨Sup ∅⟩
 notation `⨆` binders `, ` r:(scoped f, supr f) := r
 notation `⨅` binders `, ` r:(scoped f, infi f) := r
 
+section prio
+set_option default_priority 100 -- see Note [default priority]
 /-- A complete lattice is a bounded lattice which
   has suprema and infima for every subset. -/
 class complete_lattice (α : Type u) extends bounded_lattice α, has_Sup α, has_Inf α :=
@@ -44,6 +45,7 @@ class complete_lattice (α : Type u) extends bounded_lattice α, has_Sup α, has
 
 /-- A complete linear order is a linear order whose lattice structure is complete. -/
 class complete_linear_order (α : Type u) extends complete_lattice α, decidable_linear_order α
+end prio
 
 section
 variables [complete_lattice α] {s t : set α} {a b : α}

@@ -13,13 +13,14 @@ import linear_algebra.tensor_product
 import ring_theory.subring
 
 noncomputable theory
-set_option default_priority 100 -- see Note [default priority]
 
 universes u v w u₁ v₁
 
 open lattice
 open_locale tensor_product
 
+section prio
+set_option default_priority 100 -- see Note [default priority]
 /-- The category of R-algebras where R is a commutative
 ring is the under category R ↓ CRing. In the categorical
 setting we have a forgetful functor R-Alg ⥤ R-Mod.
@@ -29,6 +30,7 @@ class algebra (R : Type u) (A : Type v) [comm_ring R] [ring A] extends has_scala
 (to_fun : R → A) [hom : is_ring_hom to_fun]
 (commutes' : ∀ r x, x * to_fun r = to_fun r * x)
 (smul_def' : ∀ r x, r • x = to_fun r * x)
+end prio
 
 attribute [instance] algebra.hom
 

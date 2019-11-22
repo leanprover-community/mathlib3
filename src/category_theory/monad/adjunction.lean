@@ -5,7 +5,6 @@ Authors: Scott Morrison
 -/
 import category_theory.monad.algebra
 import category_theory.adjunction.fully_faithful
-set_option default_priority 100 -- see Note [default priority]
 
 namespace category_theory
 open category
@@ -57,16 +56,19 @@ def comparison_forget [is_right_adjoint R] : comparison R ⋙ forget ((left_adjo
 
 end monad
 
+section prio
+set_option default_priority 100 -- see Note [default priority]
 /-- A functor is *reflective*, or *a reflective inclusion*, if it is fully faithful and right adjoint. -/
 class reflective (R : D ⥤ C) extends is_right_adjoint R, full R, faithful R.
-
-instance μ_iso_of_reflective [reflective R] : is_iso (μ_ ((left_adjoint R) ⋙ R)) :=
-by { dsimp [adjunction.monad], apply_instance }
 
 /-- A right adjoint functor `R : D ⥤ C` is *monadic* if the comparison function `monad.comparison R` from `D` to the
 category of Eilenberg-Moore algebras for the adjunction is an equivalence. -/
 class monadic_right_adjoint (R : D ⥤ C) extends is_right_adjoint R :=
 (eqv : is_equivalence (monad.comparison R))
+end prio
+
+instance μ_iso_of_reflective [reflective R] : is_iso (μ_ ((left_adjoint R) ⋙ R)) :=
+by { dsimp [adjunction.monad], apply_instance }
 
 attribute [instance] monadic_right_adjoint.eqv
 

@@ -27,7 +27,6 @@ import
   tactic.finish data.set.finite
 
 set_option old_structure_cmd true
-set_option default_priority 100 -- see Note [default priority]
 
 open preorder set lattice
 
@@ -217,6 +216,8 @@ end semilattice_inf
 
 
 namespace lattice
+section prio
+set_option default_priority 100 -- see Note [default priority]
 /-- A conditionally complete lattice is a lattice in which
 every nonempty subset which is bounded above has a supremum, and
 every nonempty subset which is bounded below has an infimum.
@@ -238,6 +239,7 @@ class conditionally_complete_linear_order (α : Type u)
 class conditionally_complete_linear_order_bot (α : Type u)
   extends conditionally_complete_lattice α, decidable_linear_order α, order_bot α :=
 (cSup_empty : Sup ∅ = ⊥)
+end prio
 
 /- A complete lattice is a conditionally complete lattice, as there are no restrictions
 on the properties of Inf and Sup in a complete lattice.-/

@@ -10,8 +10,8 @@ import data.int.basic
 
 universe u
 
+section prio
 set_option default_priority 100 -- see Note [default priority]
-
 class euclidean_domain (α : Type u) extends nonzero_comm_ring α :=
 (quotient : α → α → α)
 (quotient_zero : ∀ a, quotient a 0 = 0)
@@ -30,6 +30,7 @@ class euclidean_domain (α : Type u) extends nonzero_comm_ring α :=
   function from weak to strong. I've currently divided the lemmas into
   strong and weak depending on whether they require `val_le_mul_left` or not. -/
 (mul_left_not_lt : ∀ a {b}, b ≠ 0 → ¬r (a * b) a)
+end prio
 
 namespace euclidean_domain
 variable {α : Type u}

@@ -8,7 +8,6 @@ import algebra.euclidean_domain
 import ring_theory.ideals ring_theory.noetherian ring_theory.unique_factorization_domain
 
 variables {α : Type*}
-set_option default_priority 100 -- see Note [default priority]
 
 open set function ideal
 open_locale classical
@@ -16,8 +15,12 @@ open_locale classical
 class ideal.is_principal [comm_ring α] (S : ideal α) : Prop :=
 (principal : ∃ a, S = span {a})
 
+section prio
+set_option default_priority 100 -- see Note [default priority]
 class principal_ideal_domain (α : Type*) extends integral_domain α :=
 (principal : ∀ (S : ideal α), S.is_principal)
+end prio
+
 attribute [instance] principal_ideal_domain.principal
 namespace ideal.is_principal
 variable [comm_ring α]

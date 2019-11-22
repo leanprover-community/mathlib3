@@ -5,7 +5,6 @@ Authors: Jeremy Avigad, Mario Carneiro
 -/
 import logic.basic data.sum data.set.basic algebra.order
 open function
-set_option default_priority 100 -- see Note [default priority]
 
 /- TODO: automatic construction of dual definitions / theorems -/
 
@@ -331,9 +330,12 @@ def partial_order_of_SO (r) [is_strict_order α r] : partial_order α :=
       (asymm h)⟩,
     λ ⟨h₁, h₂⟩, h₁.resolve_left (λ e, h₂ $ e ▸ or.inl rfl)⟩ }
 
+section prio
+set_option default_priority 100 -- see Note [default priority]
 /-- This is basically the same as `is_strict_total_order`, but that definition is
   in Type (probably by mistake) and also has redundant assumptions. -/
 @[algebra] class is_strict_total_order' (α : Type u) (lt : α → α → Prop) extends is_trichotomous α lt, is_strict_order α lt : Prop.
+end prio
 
 /-- Construct a linear order from a `is_strict_total_order'` relation -/
 def linear_order_of_STO' (r) [is_strict_total_order' α r] : linear_order α :=
@@ -405,9 +407,12 @@ instance is_extensional_of_is_strict_total_order'
   .resolve_left $ mt (H _).2 (irrefl a))
   .resolve_right $ mt (H _).1 (irrefl b)⟩
 
+section prio
+set_option default_priority 100 -- see Note [default priority]
 /-- A well order is a well-founded linear order. -/
 @[algebra] class is_well_order (α : Type u) (r : α → α → Prop) extends is_strict_total_order' α r : Prop :=
 (wf : well_founded r)
+end prio
 
 @[priority 100] -- see Note [lower instance priority]
 instance is_well_order.is_strict_total_order {α} (r : α → α → Prop) [is_well_order α r] : is_strict_total_order α r := by apply_instance
@@ -558,5 +563,8 @@ lemma directed_of_mono {ι} [decidable_linear_order ι] (f : ι → α)
   (H : ∀ i j, i ≤ j → f i ≼ f j) : directed (≼) f :=
 λ a b, ⟨max a b, H _ _ (le_max_left _ _), H _ _ (le_max_right _ _)⟩
 
+section prio
+set_option default_priority 100 -- see Note [default priority]
 class directed_order (α : Type u) extends preorder α :=
 (directed : ∀ i j : α, ∃ k, i ≤ k ∧ j ≤ k)
+end prio

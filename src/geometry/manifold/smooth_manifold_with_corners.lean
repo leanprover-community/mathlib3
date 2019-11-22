@@ -102,7 +102,6 @@ real and complex manifolds).
 -/
 
 noncomputable theory
-set_option default_priority 100 -- see Note [default priority]
 
 universes u v w u' v' w'
 

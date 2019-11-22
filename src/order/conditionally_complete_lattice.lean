@@ -732,7 +732,30 @@ begin
       exfalso, apply h_1, use b, intros a ha, exact some_le_some.1 (hb ha)}}
 end
 
-lemma is_glb_Inf (s : set (with_top α)) : is_glb s (Inf s) := sorry
+lemma is_glb_Inf (s : set (with_top α)) : is_glb s (Inf s) :=
+begin
+  split,
+  { show ite _ _ _ ∈ _,
+    split_ifs,
+    { intros a ha, exact top_le_iff.2 (set.mem_singleton_iff.1 (h ha))},
+    { rintro (⟨⟩|a) ha, exact le_top,
+      refine some_le_some.2 (cInf_le _ ha),
+      use ⊥,
+      intros _ _, exact bot_le}},
+  { show ite _ _ _ ∈ _,
+    split_ifs,
+    { intros _ _, exact le_top},
+    { rintro (⟨⟩|a) ha,
+      { exfalso, apply h, intros b hb, exact set.mem_singleton_iff.2 (top_le_iff.1 (ha hb))},
+      { refine some_le_some.2 (le_cInf _ _),
+        { refine mt _ h,
+          rintro hs (⟨⟩|b) hb,
+          { exact mem_singleton _},
+          { exfalso, apply not_mem_empty b, rwa ←hs}},
+        { intros b hb,
+          rw ←some_le_some,
+          refine ha hb}}}}
+end
 
 noncomputable instance : complete_linear_order (with_top α) :=
 { Sup := Sup, le_Sup := assume s, (is_lub_Sup s).1, Sup_le := assume s, (is_lub_Sup s).2,

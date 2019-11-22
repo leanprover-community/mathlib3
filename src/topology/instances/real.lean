@@ -39,6 +39,9 @@ theorem rat.dist_eq (x y : ℚ) : dist x y = abs (x - y) := rfl
 
 @[elim_cast, simp] lemma rat.dist_cast (x y : ℚ) : dist (x : ℝ) y = dist x y := rfl
 
+section low_prio
+-- we want to ignore this instance for the next declaration
+local attribute [instance, priority 10] int.uniform_space
 instance : metric_space ℤ :=
 begin
   letI M := metric_space.induced coe int.cast_injective real.metric_space,
@@ -49,6 +52,7 @@ begin
   simpa using (@int.cast_le ℝ _ _ 0).2 (int.lt_add_one_iff.1 $
     (@int.cast_lt ℝ _ (abs (a - b)) 1).1 $ by simpa using h)
 end
+end low_prio
 
 theorem int.dist_eq (x y : ℤ) : dist x y = abs (x - y) := rfl
 

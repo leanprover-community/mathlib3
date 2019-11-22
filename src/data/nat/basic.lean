@@ -1121,6 +1121,16 @@ end
 theorem fact_mul_fact_dvd_fact {n k : ℕ} (hk : k ≤ n) : fact k * fact (n - k) ∣ fact n :=
 by rw [←choose_mul_fact_mul_fact hk, mul_assoc]; exact dvd_mul_left _ _
 
+@[simp] lemma choose_symm {n k : ℕ} (hk : k ≤ n) : choose n (n-k) = choose n k :=
+by rw [choose_eq_fact_div_fact hk, choose_eq_fact_div_fact (sub_le _ _), nat.sub_sub_self hk, mul_comm]
+
+lemma choose_succ_right_eq {n k : ℕ} : choose n (k + 1) * (k + 1) = choose n k * (n - k) :=
+begin
+  have e : (n+1) * choose n k = choose n k * (k+1) + choose n (k+1) * (k+1),
+    rw [← right_distrib, ← choose_succ_succ, succ_mul_choose_eq],
+  rw [← nat.sub_eq_of_eq_add e, mul_comm, ← nat.mul_sub_left_distrib, nat.add_sub_add_right]
+end
+
 section find_greatest
 
 /-- `find_greatest P b` is the largest `i ≤ bound` such that `P i` holds, or `0` if no such `i`

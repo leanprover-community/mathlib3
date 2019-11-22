@@ -2,15 +2,19 @@
 Copyright (c) 2019 Sébastien Gouëzel. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Author: Sébastien Gouëzel
+-/
 
-The completion of a metric space.
+import topology.uniform_space.completion topology.metric_space.isometry
+
+/-!
+# The completion of a metric space
 
 Completion of uniform spaces are already defined in `topology.uniform_space.completion`. We show
 here that the uniform space completion of a metric space inherits a metric space structure,
 by extending the distance to the completion and checking that it is indeed a distance, and that
 it defines the same uniformity as the already defined uniform structure on the completion
 -/
-import topology.uniform_space.completion topology.metric_space.isometry
+
 open lattice set filter uniform_space uniform_space.completion
 noncomputable theory
 

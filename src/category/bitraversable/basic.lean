@@ -43,8 +43,8 @@ class bitraversable (t : Type u → Type u → Type u)
   extends bifunctor t :=
 (bitraverse : Π {m : Type u → Type u} [applicative m] {α α' β β'},
   (α → m α') → (β → m β') → t α β → m (t α' β'))
-export bitraversable ( bitraverse )
 end prio
+export bitraversable ( bitraverse )
 
 def bisequence {t m} [bitraversable t] [applicative m] {α β} : t (m α) (m β) → m (t α β) :=
 bitraverse id id

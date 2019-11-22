@@ -248,9 +248,8 @@ instance prod {α β} [primcodable α] [primcodable β] : primcodable (α × β)
   (pair right ((primcodable.prim α).comp left))).of_eq $
 λ n, begin
   simp [nat.unpaired],
-  cases decode α n.unpair.1; simp, {refl},
-  cases decode β n.unpair.2; simp, {refl},
-  refl
+  cases decode α n.unpair.1, { simp },
+  cases decode β n.unpair.2; simp
 end⟩
 
 end primcodable

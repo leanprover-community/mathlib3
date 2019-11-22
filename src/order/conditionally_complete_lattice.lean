@@ -704,10 +704,6 @@ begin
     assume a _, le_top⟩
 end
 
---noncomputable instance : has_Sup (with_top α) := ⟨λs, classical.some $ has_lub s⟩
---noncomputable instance : has_Inf (with_top α) := ⟨λs, classical.some $ has_glb s⟩
-noncomputable example : has_Sup (with_top α) := by apply_instance
-
 lemma is_lub_Sup (s : set (with_top α)) : is_lub s (Sup s) :=
 begin
   split,

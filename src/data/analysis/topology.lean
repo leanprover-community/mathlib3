@@ -46,7 +46,7 @@ def of_equiv (E : σ ≃ τ) : ctop α σ → ctop α τ
 
 end
 
-instance to_topsp (F : ctop α σ) : topological_space α :=
+def to_topsp (F : ctop α σ) : topological_space α :=
 topological_space.generate_from (set.range F.f)
 
 theorem to_topsp_is_topological_basis (F : ctop α σ) :

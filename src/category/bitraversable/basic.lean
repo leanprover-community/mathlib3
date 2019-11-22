@@ -36,6 +36,7 @@ traversable bitraversable iterator functor bifunctor applicative
 -/
 
 universes u
+set_option default_priority 100 -- see Note [default priority]
 
 class bitraversable (t : Type u → Type u → Type u)
   extends bifunctor t :=

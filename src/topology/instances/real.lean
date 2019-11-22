@@ -99,6 +99,7 @@ uniform_add_group.mk' real.uniform_continuous_add real.uniform_continuous_neg
 instance : uniform_add_group ℚ :=
 uniform_add_group.mk' rat.uniform_continuous_add rat.uniform_continuous_neg
 
+ -- short-circuit type class inference
 instance : topological_add_group ℝ := by apply_instance
 instance : topological_add_group ℚ := by apply_instance
 
@@ -197,7 +198,7 @@ tendsto_of_uniform_continuous_subtype
 instance : topological_ring ℝ :=
 { continuous_mul := real.continuous_mul, ..real.topological_add_group }
 
-instance : topological_semiring ℝ := by apply_instance
+instance : topological_semiring ℝ := by apply_instance  -- short-circuit type class inference
 
 lemma rat.continuous_mul : continuous (λp : ℚ × ℚ, p.1 * p.2) :=
 embedding_of_rat.continuous_iff.2 $ by simp [(∘)]; exact

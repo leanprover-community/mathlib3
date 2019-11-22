@@ -5,6 +5,7 @@ Authors: Jeremy Avigad, Mario Carneiro
 -/
 import logic.basic data.sum data.set.basic algebra.order
 open function
+set_option default_priority 100 -- see Note [default priority]
 
 /- TODO: automatic construction of dual definitions / theorems -/
 
@@ -376,6 +377,7 @@ theorem is_strict_weak_order_of_is_order_connected [is_asymm α r]
     ⟨is_order_connected.neg_trans h₁ h₃, is_order_connected.neg_trans h₄ h₂⟩,
   ..@is_irrefl_of_is_asymm α r _ }
 
+@[priority 100] -- see Note [lower instance priority]
 instance is_order_connected_of_is_strict_total_order'
   [is_strict_total_order' α r] : is_order_connected α r :=
 ⟨λ a b c h, (trichotomous _ _).imp_right (λ o,
@@ -396,6 +398,7 @@ instance [linear_order α] : is_strict_weak_order α (<) := by apply_instance
 @[algebra] class is_extensional (α : Type u) (r : α → α → Prop) : Prop :=
 (ext : ∀ a b, (∀ x, r x a ↔ r x b) → a = b)
 
+@[priority 100] -- see Note [lower instance priority]
 instance is_extensional_of_is_strict_total_order'
   [is_strict_total_order' α r] : is_extensional α r :=
 ⟨λ a b H, ((@trichotomous _ r _ a b)
@@ -406,11 +409,17 @@ instance is_extensional_of_is_strict_total_order'
 @[algebra] class is_well_order (α : Type u) (r : α → α → Prop) extends is_strict_total_order' α r : Prop :=
 (wf : well_founded r)
 
+@[priority 100] -- see Note [lower instance priority]
 instance is_well_order.is_strict_total_order {α} (r : α → α → Prop) [is_well_order α r] : is_strict_total_order α r := by apply_instance
+@[priority 100] -- see Note [lower instance priority]
 instance is_well_order.is_extensional {α} (r : α → α → Prop) [is_well_order α r] : is_extensional α r := by apply_instance
+@[priority 100] -- see Note [lower instance priority]
 instance is_well_order.is_trichotomous {α} (r : α → α → Prop) [is_well_order α r] : is_trichotomous α r := by apply_instance
+@[priority 100] -- see Note [lower instance priority]
 instance is_well_order.is_trans {α} (r : α → α → Prop) [is_well_order α r] : is_trans α r := by apply_instance
+@[priority 100] -- see Note [lower instance priority]
 instance is_well_order.is_irrefl {α} (r : α → α → Prop) [is_well_order α r] : is_irrefl α r := by apply_instance
+@[priority 100] -- see Note [lower instance priority]
 instance is_well_order.is_asymm {α} (r : α → α → Prop) [is_well_order α r] : is_asymm α r := by apply_instance
 
 noncomputable def decidable_linear_order_of_is_well_order (r : α → α → Prop) [is_well_order α r] :

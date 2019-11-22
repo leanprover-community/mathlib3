@@ -8,6 +8,7 @@ import algebra.euclidean_domain
 import ring_theory.ideals ring_theory.noetherian ring_theory.unique_factorization_domain
 
 variables {α : Type*}
+set_option default_priority 100 -- see Note [default priority]
 
 open set function ideal
 open_locale classical
@@ -68,6 +69,7 @@ lemma mod_mem_iff {S : ideal α} {x y : α} (hy : y ∈ S) : x % y ∈ S ↔ x �
 ⟨λ hxy, div_add_mod x y ▸ ideal.add_mem S (mul_mem_right S hy) hxy,
   λ hx, (mod_eq_sub_mul_div x y).symm ▸ ideal.sub_mem S hx (ideal.mul_mem_right S hy)⟩
 
+@[priority 100] -- see Note [lower instance priority]
 instance euclidean_domain.to_principal_ideal_domain : principal_ideal_domain α :=
 { principal := λ S, by exactI
     ⟨if h : {x : α | x ∈ S ∧ x ≠ 0} = ∅
@@ -95,6 +97,7 @@ end
 namespace principal_ideal_domain
 variables [principal_ideal_domain α]
 
+@[priority 100] -- see Note [lower instance priority]
 instance is_noetherian_ring : is_noetherian_ring α :=
 ⟨assume s : ideal α,
 begin

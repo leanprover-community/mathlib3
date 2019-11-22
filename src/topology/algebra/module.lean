@@ -11,6 +11,7 @@ import topology.algebra.ring linear_algebra.basic ring_theory.algebra
 open topological_space
 
 universes u v w u'
+set_option default_priority 100 -- see Note [default priority]
 
 /-- A topological semimodule, over a semiring which is also a topological space, is a
 semimodule in which scalar multiplication is continuous. In applications, α will be a topological

@@ -6,6 +6,7 @@ Authors: Johannes Hölzl, Mitchell Rowett, Scott Morrison, Johan Commelin, Mario
 -/
 import group_theory.submonoid
 open set function
+set_option default_priority 100 -- see Note [default priority]
 
 variables {α : Type*} {β : Type*} {a a₁ a₂ b c: α}
 

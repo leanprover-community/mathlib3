@@ -46,6 +46,7 @@ domain, integral_domain, nonzero_comm_semiring, nonzero_comm_ring, units
 -/
 universes u v w
 variable {α : Type u}
+set_option default_priority 100 -- see Note [default priority]
 
 section
 variable [semiring α]
@@ -158,10 +159,12 @@ instance comp {γ} [semiring γ] (g : β → γ) [is_semiring_hom g] :
   map_mul := λ x y, by simp [map_mul f]; rw map_mul g; refl }
 
 /-- A semiring homomorphism is an additive monoid homomorphism. -/
+@[priority 100] -- see Note [lower instance priority]
 instance : is_add_monoid_hom f :=
 { ..‹is_semiring_hom f› }
 
 /-- A semiring homomorphism is a monoid homomorphism. -/
+@[priority 100] -- see Note [lower instance priority]
 instance : is_monoid_hom f :=
 { ..‹is_semiring_hom f› }
 
@@ -300,9 +303,11 @@ instance comp {γ} [ring γ] (g : β → γ) [is_ring_hom g] :
   map_one := by simp [map_one f]; exact map_one g }
 
 /-- A ring homomorphism is also a semiring homomorphism. -/
+@[priority 100] -- see Note [lower instance priority]
 instance : is_semiring_hom f :=
 { map_zero := map_zero f, ..‹is_ring_hom f› }
 
+@[priority 100] -- see Note [lower instance priority]
 instance : is_add_group_hom f := { }
 
 end is_ring_hom
@@ -438,12 +443,14 @@ class nonzero_comm_semiring (α : Type*) extends comm_semiring α, zero_ne_one_c
 class nonzero_comm_ring (α : Type*) extends comm_ring α, zero_ne_one_class α
 
 /-- A nonzero commutative ring is a nonzero commutative semiring. -/
+@[priority 100] -- see Note [lower instance priority]
 instance nonzero_comm_ring.to_nonzero_comm_semiring {α : Type*} [I : nonzero_comm_ring α] :
   nonzero_comm_semiring α :=
 { zero_ne_one := by convert zero_ne_one,
   ..show comm_semiring α, by apply_instance }
 
 /-- An integral domain is a nonzero commutative ring. -/
+@[priority 100] -- see Note [lower instance priority]
 instance integral_domain.to_nonzero_comm_ring (α : Type*) [id : integral_domain α] :
   nonzero_comm_ring α :=
 { ..id }
@@ -530,6 +537,7 @@ section
   include s
 
 /-- An integral domain is a domain. -/
+  @[priority 100] -- see Note [lower instance priority]
   instance integral_domain.to_domain : domain α := {..s}
 
 /-- Right multiplcation by a nonzero element of an integral domain is injective. -/

@@ -6,6 +6,7 @@ Authors: Mario Carneiro, Johannes Hölzl
 Ordered monoids and groups.
 -/
 import algebra.group order.bounded_lattice tactic.basic
+set_option default_priority 100 -- see Note [default priority]
 
 universe u
 variable {α : Type u}
@@ -398,6 +399,7 @@ instance with_zero.canonically_ordered_monoid :
 
 end canonically_ordered_monoid
 
+@[priority 100] -- see Note [lower instance priority]
 instance ordered_cancel_comm_monoid.to_ordered_comm_monoid
   [H : ordered_cancel_comm_monoid α] : ordered_comm_monoid α :=
 { lt_of_add_lt_add_left := @lt_of_add_lt_add_left _ _, ..H }
@@ -666,6 +668,7 @@ namespace decidable_linear_ordered_comm_group
 variables [s : decidable_linear_ordered_comm_group α]
 include s
 
+@[priority 100] -- see Note [lower instance priority]
 instance : decidable_linear_ordered_cancel_comm_monoid α :=
 { le_of_add_le_add_left := λ x y z, le_of_add_le_add_left,
   add_left_cancel := λ x y z, add_left_cancel,
@@ -692,7 +695,8 @@ namespace nonneg_comm_group
 variable [s : nonneg_comm_group α]
 include s
 
-@[reducible] instance to_ordered_comm_group : ordered_comm_group α :=
+@[reducible, priority 100] -- see Note [lower instance priority]
+instance to_ordered_comm_group : ordered_comm_group α :=
 { le := λ a b, nonneg (b - a),
   lt := λ a b, pos (b - a),
   lt_iff_le_not_le := λ a b, by simp; rw [pos_iff]; simp,

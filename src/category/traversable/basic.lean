@@ -50,6 +50,7 @@ Synopsis
 -/
 
 open function (hiding comp)
+set_option default_priority 100 -- see Note [default priority]
 
 universes u v w
 

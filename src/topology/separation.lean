@@ -11,6 +11,7 @@ import topology.subset_properties
 open set filter lattice
 open_locale topological_space
 local attribute [instance] classical.prop_decidable -- TODO: use "open_locale classical"
+set_option default_priority 100 -- see Note [default priority]
 
 universes u v
 variables {α : Type u} {β : Type v} [topological_space α]
@@ -121,6 +122,7 @@ class t1_space (α : Type u) [topological_space α] : Prop :=
 lemma is_closed_singleton [t1_space α] {x : α} : is_closed ({x} : set α) :=
 t1_space.t1 x
 
+@[priority 100] -- see Note [lower instance priority]
 instance t1_space.t0_space [t1_space α] : t0_space α :=
 ⟨λ x y h, ⟨-{x}, is_open_compl_iff.2 is_closed_singleton,
   or.inr ⟨λ hyx, or.cases_on hyx h.symm id, λ hx, hx $ or.inl rfl⟩⟩⟩
@@ -142,6 +144,7 @@ lemma t2_separation [t2_space α] {x y : α} (h : x ≠ y) :
   ∃u v : set α, is_open u ∧ is_open v ∧ x ∈ u ∧ y ∈ v ∧ u ∩ v = ∅ :=
 t2_space.t2 x y h
 
+@[priority 100] -- see Note [lower instance priority]
 instance t2_space.t1_space [t2_space α] : t1_space α :=
 ⟨λ x, is_open_iff_forall_mem_open.2 $ λ y hxy,
 let ⟨u, v, hu, hv, hyu, hxv, huv⟩ := t2_separation (mt mem_singleton_of_eq hxy) in
@@ -195,6 +198,7 @@ lim_eq nhds_neq_bot (le_refl _)
 lim_eq begin rw [closure_eq_nhds] at h, exact h end inf_le_left
 end lim
 
+@[priority 100] -- see Note [lower instance priority]
 instance t2_space_discrete {α : Type*} [topological_space α] [discrete_topology α] : t2_space α :=
 { t2 := assume x y hxy, ⟨{x}, {y}, is_open_discrete _, is_open_discrete _, mem_insert _ _, mem_insert _ _,
   eq_empty_iff_forall_not_mem.2 $ by intros z hz;
@@ -290,6 +294,7 @@ lemma locally_compact_of_compact_nhds [t2_space α] (h : ∀ x : α, ∃ s, s �
    subset.trans (diff_subset_comm.mp kuw) un,
    compact_diff kc wo⟩⟩
 
+@[priority 100] -- see Note [lower instance priority]
 instance locally_compact_of_compact [t2_space α] [compact_space α] : locally_compact_space α :=
 locally_compact_of_compact_nhds (assume x, ⟨univ, mem_nhds_sets is_open_univ trivial, compact_univ⟩)
 
@@ -315,6 +320,7 @@ let ⟨t, ht₁, ht₂, ht₃⟩ := this in
   is_closed_compl_iff.mpr ht₁⟩
 
 variable (α)
+@[priority 100] -- see Note [lower instance priority]
 instance regular_space.t2_space [regular_space α] : t2_space α :=
 ⟨λ x y hxy,
 let ⟨s, hs, hys, hxs⟩ := regular_space.regular is_closed_singleton
@@ -340,6 +346,7 @@ theorem normal_separation [normal_space α] (s t : set α)
   ∃ u v, is_open u ∧ is_open v ∧ s ⊆ u ∧ t ⊆ v ∧ disjoint u v :=
 normal_space.normal s t H1 H2 H3
 
+@[priority 100] -- see Note [lower instance priority]
 instance normal_space.regular_space [normal_space α] : regular_space α :=
 { regular := λ s x hs hxs, let ⟨u, v, hu, hv, hsu, hxv, huv⟩ := normal_separation s {x} hs is_closed_singleton
       (λ _ ⟨hx, hy⟩, hxs $ set.mem_of_eq_of_mem (set.eq_of_mem_singleton hy).symm hx) in

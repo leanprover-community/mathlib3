@@ -5,6 +5,7 @@ Authors: Scott Morrison
 -/
 import category_theory.monad.algebra
 import category_theory.adjunction.fully_faithful
+set_option default_priority 100 -- see Note [default priority]
 
 namespace category_theory
 open category
@@ -137,6 +138,7 @@ end reflective
 
 /-- Any reflective inclusion has a monadic right adjoint.
     cf Prop 5.3.3 of [Riehl][riehl2017] -/
+@[priority 100] -- see Note [lower instance priority]
 instance monadic_of_reflective [reflective R] : monadic_right_adjoint R :=
 { eqv := equivalence.equivalence_of_fully_faithfully_ess_surj _ }
 

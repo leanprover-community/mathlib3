@@ -30,6 +30,7 @@ open set lattice filter classical
 open_locale classical topological_space
 
 set_option eqn_compiler.zeta true
+set_option default_priority 100 -- see Note [default priority]
 
 universes u
 section

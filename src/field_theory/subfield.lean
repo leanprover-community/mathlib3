@@ -5,6 +5,7 @@ Authors: Andreas Swerdlow
 -/
 
 import ring_theory.subring
+set_option default_priority 100 -- see Note [default priority]
 
 variables {F : Type*} [discrete_field F] (S : set F)
 

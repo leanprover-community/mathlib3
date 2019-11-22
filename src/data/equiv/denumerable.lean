@@ -9,6 +9,7 @@ from nat, where the functions are known inverses of each other.
 -/
 import data.equiv.encodable data.sigma data.fintype data.list.min_max
 open nat
+set_option default_priority 100 -- see Note [default priority]
 
 /-- A denumerable type is one which is (constructively) bijective with ℕ.
   Although we already have a name for this property, namely `α ≃ ℕ`,

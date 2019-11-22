@@ -27,6 +27,7 @@ import
   tactic.finish data.set.finite
 
 set_option old_structure_cmd true
+set_option default_priority 100 -- see Note [default priority]
 
 open preorder set lattice
 
@@ -241,6 +242,7 @@ class conditionally_complete_linear_order_bot (α : Type u)
 /- A complete lattice is a conditionally complete lattice, as there are no restrictions
 on the properties of Inf and Sup in a complete lattice.-/
 
+@[priority 100] -- see Note [lower instance priority]
 instance conditionally_complete_lattice_of_complete_lattice [complete_lattice α]:
   conditionally_complete_lattice α :=
 { le_cSup := by intros; apply le_Sup; assumption,
@@ -249,6 +251,7 @@ instance conditionally_complete_lattice_of_complete_lattice [complete_lattice α
   le_cInf := by intros; apply le_Inf; assumption,
   ..‹complete_lattice α›}
 
+@[priority 100] -- see Note [lower instance priority]
 instance conditionally_complete_linear_order_of_complete_linear_order [complete_linear_order α]:
   conditionally_complete_linear_order α :=
 { ..lattice.conditionally_complete_lattice_of_complete_lattice, .. ‹complete_linear_order α› }

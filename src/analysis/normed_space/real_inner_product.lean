@@ -42,6 +42,7 @@ The Coq code is available at the following address: <http://www.lri.fr/~sboldo/e
 -/
 
 noncomputable theory
+set_option default_priority 100 -- see Note [default priority]
 
 open real set lattice
 open_locale topological_space
@@ -141,6 +142,7 @@ end basic_properties
 section norm
 
 /-- An inner product naturally induces a norm. -/
+@[priority 100] -- see Note [lower instance priority]
 instance inner_product_space_has_norm : has_norm α := ⟨λx, sqrt (inner x x)⟩
 
 lemma norm_eq_sqrt_inner {x : α} : ∥x∥ = sqrt (inner x x) := rfl
@@ -179,6 +181,7 @@ lemma parallelogram_law_with_norm {x y : α} :
 by { simp only [(inner_self_eq_norm_square _).symm], exact parallelogram_law }
 
 /-- An inner product space forms a normed group w.r.t. its associated norm. -/
+@[priority 100] -- see Note [lower instance priority]
 instance inner_product_space_is_normed_group : normed_group α :=
 normed_group.of_core α
 { norm_eq_zero_iff := assume x, iff.intro

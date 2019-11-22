@@ -23,6 +23,7 @@ Users may like to add `f ⊚ g` for composition in the standard convention, usin
 local notation f ` ⊚ `:80 g:80 := category.comp g f    -- type as \oo
 ```
 -/
+set_option default_priority 100 -- see Note [default priority]
 
 universes v u  -- The order in this declaration matters: v often needs to be explicitly specified while u often can be omitted
 
@@ -136,6 +137,7 @@ namespace preorder
 
 variables (α : Type u)
 
+@[priority 100] -- see Note [lower instance priority]
 instance small_category [preorder α] : small_category α :=
 { hom  := λ U V, ulift (plift (U ≤ V)),
   id   := λ X, ⟨ ⟨ le_refl X ⟩ ⟩,

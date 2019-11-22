@@ -10,6 +10,7 @@ import topology.algebra.group ring_theory.ideals
 
 open classical set lattice filter topological_space
 open_locale classical
+set_option default_priority 100 -- see Note [default priority]
 
 section topological_ring
 universes u v w
@@ -26,8 +27,10 @@ class topological_ring extends topological_add_monoid α, topological_monoid α 
 (continuous_neg : continuous (λa:α, -a))
 
 variables [t : topological_ring α]
+@[priority 100] -- see Note [lower instance priority]
 instance topological_ring.to_topological_semiring : topological_semiring α := {..t}
 
+@[priority 100] -- see Note [lower instance priority]
 instance topological_ring.to_topological_add_group : topological_add_group α := {..t}
 end topological_ring
 

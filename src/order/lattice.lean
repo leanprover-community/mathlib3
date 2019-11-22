@@ -9,6 +9,7 @@ Defines the inf/sup (semi)-lattice with optionally top/bot type class hierarchy.
 import order.basic
 
 set_option old_structure_cmd true
+set_option default_priority 100 -- see Note [default priority]
 
 universes u v w
 
@@ -328,6 +329,7 @@ end distrib_lattice
 
 /- Lattices derived from linear orders -/
 
+@[priority 100] -- see Note [lower instance priority]
 instance lattice_of_decidable_linear_order {α : Type u} [o : decidable_linear_order α] : lattice α :=
 { sup          := max,
   le_sup_left  := le_max_left,
@@ -343,6 +345,7 @@ instance lattice_of_decidable_linear_order {α : Type u} [o : decidable_linear_o
 theorem sup_eq_max [decidable_linear_order α] : x ⊔ y = max x y := rfl
 theorem inf_eq_min [decidable_linear_order α] : x ⊓ y = min x y := rfl
 
+@[priority 100] -- see Note [lower instance priority]
 instance distrib_lattice_of_decidable_linear_order {α : Type u} [o : decidable_linear_order α] : distrib_lattice α :=
 { le_sup_inf := assume a b c,
     match le_total b c with

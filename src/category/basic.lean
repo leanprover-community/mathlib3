@@ -8,6 +8,7 @@ Extends the theory on functors, applicatives and monads.
 
 universes u v w
 variables {α β γ : Type u}
+set_option default_priority 100 -- see Note [default priority]
 
 notation a ` $< `:1 f:1 := f a
 

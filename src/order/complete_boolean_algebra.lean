@@ -8,6 +8,7 @@ Theory of complete Boolean algebras.
 import order.complete_lattice order.boolean_algebra data.set.basic
 
 set_option old_structure_cmd true
+set_option default_priority 100 -- see Note [default priority]
 
 universes u v w
 variables {α : Type u} {β : Type v} {ι : Sort w}
@@ -87,6 +88,7 @@ end
 
 end complete_distrib_lattice
 
+@[priority 100] -- see Note [lower instance priority]
 instance [d : complete_distrib_lattice α] : bounded_distrib_lattice α :=
 { le_sup_inf := assume x y z,
     calc (x ⊔ y) ⊓ (x ⊔ z) ≤ (⨅ b ∈ ({z, y} : set α), x ⊔ b) :

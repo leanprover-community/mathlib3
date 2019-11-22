@@ -49,6 +49,7 @@ is_group_hom, is_monoid_hom, monoid_hom
 -/
 universes u v
 variables {α : Type u} {β : Type v}
+set_option default_priority 100 -- see Note [default priority]
 
 /-- Predicate for maps which preserve an addition. -/
 class is_add_hom {α β : Type*} [has_add α] [has_add β] (f : α → β) : Prop :=
@@ -161,7 +162,7 @@ variables [group α] [group β] (f : α → β) [is_group_hom f]
 open is_mul_hom (map_mul)
 
 /-- A group homomorphism is a monoid homomorphism. -/
-@[to_additive to_is_add_monoid_hom]
+@[priority 100, to_additive to_is_add_monoid_hom] -- see Note [lower instance priority]
 instance to_is_monoid_hom : is_monoid_hom f :=
 is_monoid_hom.of_mul f
 

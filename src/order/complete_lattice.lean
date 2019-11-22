@@ -8,6 +8,7 @@ Theory of complete lattices.
 import order.bounded_lattice data.set.basic tactic.pi_instances
 
 set_option old_structure_cmd true
+set_option default_priority 100 -- see Note [default priority]
 open set
 
 namespace lattice

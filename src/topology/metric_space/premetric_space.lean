@@ -14,6 +14,7 @@ is canonically a metric space.
 
 import topology.metric_space.basic tactic.linarith
 noncomputable theory
+set_option default_priority 100 -- see Note [default priority]
 
 universes u v
 variables {α : Type u}

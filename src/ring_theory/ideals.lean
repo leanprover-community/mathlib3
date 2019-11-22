@@ -10,6 +10,7 @@ variables {α : Type u} {β : Type v} {a b : α}
 open set function lattice
 
 open_locale classical
+set_option default_priority 100 -- see Note [default priority]
 
 namespace ideal
 variables [comm_ring α] (I : ideal α)
@@ -131,6 +132,7 @@ theorem is_maximal.is_prime {I : ideal α} (H : I.is_maximal) : I.is_prime :=
   exact I.neg_mem_iff.1 ((I.add_mem_iff_right $ I.mul_mem_left hxy).1 this)
 end⟩
 
+@[priority 100] -- see Note [lower instance priority]
 instance is_maximal.is_prime' (I : ideal α) : ∀ [H : I.is_maximal], I.is_prime := is_maximal.is_prime
 
 theorem exists_le_maximal (I : ideal α) (hI : I ≠ ⊤) :
@@ -357,8 +359,6 @@ class local_ring (α : Type u) extends nonzero_comm_ring α :=
 namespace local_ring
 variable [local_ring α]
 
-instance : comm_ring α := by apply_instance
-
 lemma is_unit_or_is_unit_one_sub_self (a : α) :
   (is_unit a) ∨ (is_unit (1 - a)) :=
 is_local a
@@ -504,6 +504,7 @@ end local_ring
 namespace discrete_field
 variables [discrete_field α]
 
+@[priority 100] -- see Note [lower instance priority]
 instance : local_ring α :=
 { is_local := λ a,
   if h : a = 0

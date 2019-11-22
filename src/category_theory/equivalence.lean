@@ -294,6 +294,7 @@ namespace equivalence
 def ess_surj_of_equivalence (F : C ⥤ D) [is_equivalence F] : ess_surj F :=
 ⟨ λ Y : D, F.inv.obj Y, λ Y : D, (F.inv_fun_id.app Y) ⟩
 
+@[priority 100] -- see Note [lower instance priority]
 instance faithful_of_equivalence (F : C ⥤ D) [is_equivalence F] : faithful F :=
 { injectivity' := λ X Y f g w,
   begin
@@ -301,6 +302,7 @@ instance faithful_of_equivalence (F : C ⥤ D) [is_equivalence F] : faithful F :
     simpa only [cancel_epi, cancel_mono, is_equivalence.inv_fun_map] using p
   end }.
 
+@[priority 100] -- see Note [lower instance priority]
 instance full_of_equivalence (F : C ⥤ D) [is_equivalence F] : full F :=
 { preimage := λ X Y f, (F.fun_inv_id.app X).inv ≫ (F.inv.map f) ≫ (F.fun_inv_id.app Y).hom,
   witness' := λ X Y f,

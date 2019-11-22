@@ -80,6 +80,7 @@ private lemma is_closed_eq : is_closed {p : α × α | p.1 = p.2} :=
 by simp [le_antisymm_iff];
    exact is_closed_inter t.is_closed_le' (is_closed_le continuous_snd continuous_fst)
 
+@[priority 100] -- see Note [lower instance priority]
 instance ordered_topology.to_t2_space : t2_space α :=
 { t2 :=
   have is_open {p : α × α | p.1 ≠ p.2}, from is_closed_eq,
@@ -394,6 +395,7 @@ match dense_or_discrete a₁ a₂ with
       ... ≤ b₂ : h₁ _ hb₂⟩
 end
 
+@[priority 100] -- see Note [lower instance priority]
 instance orderable_topology.to_ordered_topology : ordered_topology α :=
 { is_closed_le' :=
     is_open_prod_iff.mpr $ assume a₁ a₂ (h : ¬ a₁ ≤ a₂),
@@ -401,8 +403,9 @@ instance orderable_topology.to_ordered_topology : ordered_topology α :=
       let ⟨u, v, hu, hv, ha₁, ha₂, h⟩ := order_separated h in
       ⟨v, u, hv, hu, ha₂, ha₁, assume ⟨b₁, b₂⟩ ⟨h₁, h₂⟩, not_le_of_gt $ h b₂ h₂ b₁ h₁⟩ }
 
-instance orderable_topology.t2_space : t2_space α := by apply_instance
+def orderable_topology.t2_space : t2_space α := by apply_instance
 
+@[priority 100] -- see Note [lower instance priority]
 instance orderable_topology.regular_space : regular_space α :=
 { regular := assume s a hs ha,
     have -s ∈ 𝓝 a, from mem_nhds_sets hs ha,

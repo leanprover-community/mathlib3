@@ -21,6 +21,7 @@ import topology.instances.ennreal
        measure_theory.outer_measure
 
 noncomputable theory
+set_option default_priority 100 -- see Note [default priority]
 
 open classical set lattice filter finset function
 open_locale classical topological_space

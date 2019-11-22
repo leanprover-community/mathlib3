@@ -39,7 +39,7 @@ namespace Group
 local attribute [reducible] Group
 
 @[to_additive]
-instance : has_coe_to_sort Group := infer_instance
+instance : has_coe_to_sort Group := infer_instance -- short-circuit type class inference
 
 @[to_additive add_group]
 instance (G : Group) : group G := G.str
@@ -48,10 +48,10 @@ instance (G : Group) : group G := G.str
 instance : has_one Group := ⟨Group.of punit⟩
 
 @[to_additive]
-instance : concrete_category Group := infer_instance
+instance : concrete_category Group := infer_instance -- short-circuit type class inference
 
 @[to_additive has_forget_to_AddMon]
-instance has_forget_to_Mon : has_forget₂ Group Mon := infer_instance
+instance has_forget_to_Mon : has_forget₂ Group Mon := infer_instance -- short-circuit type class inference
 
 end Group
 
@@ -68,17 +68,17 @@ namespace CommGroup
 local attribute [reducible] CommGroup
 
 @[to_additive]
-instance : has_coe_to_sort CommGroup := infer_instance
+instance : has_coe_to_sort CommGroup := infer_instance -- short-circuit type class inference
 
 @[to_additive add_comm_group]
 instance (G : CommGroup) : comm_group G := G.str
 
 @[to_additive] instance : has_one CommGroup := ⟨CommGroup.of punit⟩
 
-@[to_additive] instance : concrete_category CommGroup := infer_instance
+@[to_additive] instance : concrete_category CommGroup := infer_instance -- short-circuit type class inference
 
 @[to_additive has_forget_to_AddGroup]
-instance has_forget_to_Group : has_forget₂ CommGroup Group := infer_instance
+instance has_forget_to_Group : has_forget₂ CommGroup Group := infer_instance -- short-circuit type class inference
 
 @[to_additive has_forget_to_AddCommMon]
 instance has_forget_to_CommMon : has_forget₂ CommGroup CommMon :=

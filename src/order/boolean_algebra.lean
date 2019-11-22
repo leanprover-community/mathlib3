@@ -7,6 +7,7 @@ Type class hierarchy for Boolean algebras.
 -/
 import order.bounded_lattice
 set_option old_structure_cmd true
+set_option default_priority 100 -- see Note [default priority]
 
 namespace lattice
 universes u

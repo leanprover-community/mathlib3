@@ -15,6 +15,7 @@ noncomputable theory
 
 open_locale uniformity
 open_locale topological_space
+set_option default_priority 100 -- see Note [default priority]
 
 universes u v w
 variables {α : Type u} {β : Type v} {γ : Type w}
@@ -70,9 +71,11 @@ class metric_space (α : Type u) extends has_dist α : Type u :=
 
 variables [metric_space α]
 
+@[priority 100] -- see Note [lower instance priority]
 instance metric_space.to_uniform_space' : uniform_space α :=
 metric_space.to_uniform_space α
 
+@[priority 200] -- see Note [lower instance priority]
 instance metric_space.to_has_edist : has_edist α := ⟨metric_space.edist⟩
 
 @[simp] theorem dist_self (x : α) : dist x x = 0 := metric_space.dist_self x
@@ -452,6 +455,7 @@ end metric
 
 open metric
 
+@[priority 100] -- see Note [lower instance priority]
 instance metric_space.to_separated : separated α :=
 separated_def.2 $ λ x y h, eq_of_forall_dist_le $
   λ ε ε0, le_of_lt (h _ (dist_mem_uniformity ε0))
@@ -488,6 +492,7 @@ theorem uniformity_edist : 𝓤 α = (⨅ ε>0, principal {p:α×α | edist p.1 
 by simpa [infi_subtype] using @metric.uniformity_edist' α _
 
 /-- A metric space induces an emetric space -/
+@[priority 100] -- see Note [lower instance priority]
 instance metric_space.to_emetric_space : emetric_space α :=
 { edist               := edist,
   edist_self          := by simp [edist_dist],
@@ -1011,10 +1016,12 @@ lemma proper_space_of_compact_closed_ball_of_le
 end⟩
 
 /- A compact metric space is proper -/
+@[priority 100] -- see Note [lower instance priority]
 instance proper_of_compact [compact_space α] : proper_space α :=
 ⟨assume x r, compact_of_is_closed_subset compact_univ is_closed_ball (subset_univ _)⟩
 
 /-- A proper space is locally compact -/
+@[priority 100] -- see Note [lower instance priority]
 instance locally_compact_of_proper [proper_space α] :
   locally_compact_space α :=
 begin
@@ -1030,6 +1037,7 @@ begin
 end
 
 /-- A proper space is complete -/
+@[priority 100] -- see Note [lower instance priority]
 instance complete_of_proper [proper_space α] : complete_space α :=
 ⟨begin
   intros f hf,
@@ -1049,6 +1057,7 @@ end⟩
 compact, and therefore admits a countable dense subset. Taking a countable union over the balls
 centered at a fixed point and with integer radius, one obtains a countable set which is
 dense in the whole space. -/
+@[priority 100] -- see Note [lower instance priority]
 instance second_countable_of_proper [proper_space α] :
   second_countable_topology α :=
 begin

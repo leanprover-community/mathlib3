@@ -12,6 +12,7 @@ import topology.instances.nnreal topology.instances.complex
 import topology.algebra.module
 
 variables {α : Type*} {β : Type*} {γ : Type*} {ι : Type*}
+set_option default_priority 100 -- see Note [default priority]
 
 noncomputable theory
 open filter metric
@@ -248,6 +249,7 @@ continuous_subtype_mk _ continuous_norm
 
 /-- A normed group is a uniform additive group, i.e., addition and subtraction are uniformly
 continuous. -/
+@[priority 100] -- see Note [lower instance priority]
 instance normed_uniform_group : uniform_add_group α :=
 begin
   refine ⟨metric.uniform_continuous_iff.2 $ assume ε hε, ⟨ε / 2, half_pos hε, assume a b h, _⟩⟩,
@@ -258,8 +260,10 @@ begin
     ... = ε : add_halves _
 end
 
-instance normed_top_monoid : topological_add_monoid α := by apply_instance
-instance normed_top_group : topological_add_group α := by apply_instance
+@[priority 100] -- see Note [lower instance priority]
+instance normed_top_monoid : topological_add_monoid α := by apply_instance -- short-circuit type class inference
+@[priority 100] -- see Note [lower instance priority]
+instance normed_top_group : topological_add_group α := by apply_instance -- short-circuit type class inference
 
 end normed_group
 
@@ -270,6 +274,7 @@ class normed_ring (α : Type*) extends has_norm α, ring α, metric_space α :=
 (dist_eq : ∀ x y, dist x y = norm (x - y))
 (norm_mul : ∀ a b, norm (a * b) ≤ norm a * norm b)
 
+@[priority 100] -- see Note [lower instance priority]
 instance normed_ring.to_normed_group [β : normed_ring α] : normed_group α := { ..β }
 
 lemma norm_mul_le {α : Type*} [normed_ring α] (a b : α) : (∥a*b∥) ≤ (∥a∥) * (∥b∥) :=
@@ -297,6 +302,7 @@ instance prod.normed_ring [normed_ring α] [normed_ring β] : normed_ring (α ×
   ..prod.normed_group }
 end normed_ring
 
+@[priority 100] -- see Note [lower instance priority]
 instance normed_ring_top_monoid [normed_ring α] : topological_monoid α :=
 ⟨ continuous_iff_continuous_at.2 $ λ x, tendsto_iff_norm_tendsto_zero.2 $
     have ∀ e : α × α, e.fst * e.snd - x.fst * x.snd =
@@ -328,6 +334,7 @@ instance normed_ring_top_monoid [normed_ring α] : topological_monoid α :=
     end ⟩
 
 /-- A normed ring is a topological ring. -/
+@[priority 100] -- see Note [lower instance priority]
 instance normed_top_ring [normed_ring α] : topological_ring α :=
 ⟨ continuous_iff_continuous_at.2 $ λ x, tendsto_iff_norm_tendsto_zero.2 $
     have ∀ e : α, -e - -x = -(e - x), by intro; simp,
@@ -344,6 +351,7 @@ by the powers of any element, and thus to relate algebra and topology. -/
 class nondiscrete_normed_field (α : Type*) extends normed_field α :=
 (non_trivial : ∃x:α, 1<∥x∥)
 
+@[priority 100] -- see Note [lower instance priority]
 instance normed_field.to_normed_ring [i : normed_field α] : normed_ring α :=
 { norm_mul := by finish [i.norm_mul'], ..i }
 
@@ -506,6 +514,7 @@ lemma tendsto_smul_const {g : γ → F} {e : filter γ} (s : α) {b : F} :
   (tendsto g e (𝓝 b)) → tendsto (λ x, s • (g x)) e (𝓝 (s • b)) :=
 tendsto_smul tendsto_const_nhds
 
+@[priority 100] -- see Note [lower instance priority]
 instance normed_space.topological_vector_space : topological_vector_space α E :=
 { continuous_smul := continuous_iff_continuous_at.2 $ λp, tendsto_smul
     (continuous_iff_continuous_at.1 continuous_fst _) (continuous_iff_continuous_at.1 continuous_snd _) }

@@ -7,6 +7,7 @@ Authors: Reid Barton
 import category_theory.category
 import category_theory.isomorphism
 import data.equiv.basic
+set_option default_priority 100 -- see Note [default priority]
 
 namespace category_theory
 
@@ -31,6 +32,7 @@ section
 variables {C : Type u} [𝒞 : groupoid.{v} C] {X Y : C}
 include 𝒞
 
+@[priority 100] -- see Note [lower instance priority]
 instance is_iso.of_groupoid (f : X ⟶ Y) : is_iso f := { inv := groupoid.inv f }
 
 variables (X Y)

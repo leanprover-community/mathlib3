@@ -247,6 +247,7 @@ return $ let illegal := [`gt, `ge] in if d.type.contains_constant (λ n, n ∈ i
   is_fast := ff }
 
 /-- checks whether an instance that always applies has priority ≥ 1000. -/
+-- TODO: instance_priority should also be tested on automatically-generated declarations
 meta def instance_priority (d : declaration) : tactic (option string) := do
   let nm := d.to_name,
   b ← is_instance nm,
@@ -266,7 +267,30 @@ meta def instance_priority (d : declaration) : tactic (option string) := do
     if info = binder_info.inst_implicit ∨ tp.get_app_fn.is_constant_of `out_param
     then none else some e,
   let always_applies := relevant_args.all expr.is_var ∧ relevant_args.nodup,
-  if always_applies then return $ some "" else return none
+  if always_applies then return $ some "set priority below 1000" else return none
+
+/- Note [default priority]:
+  Instances that always apply should be applied after instances that only apply in specific cases.
+  For example, the instance `int.add_group : add_group ℤ` should be tried before
+  `add_comm_group.to_comm_group [add_comm_group α] : comm_group α`, because the second instance will
+  take a long time to fail (an exhaustive search through the tree) and the first one fails almost
+  instantly.
+
+  Classes that use the `extends` keyword automatically generate instances that always apply.
+  Therefore, we set the priority of these instances to 100 (or something similar, which is below the
+  default value of 1000) using `set_option default_priority 100`
+-/
+
+/- Note [lower instance priority]:
+  Instances that always apply should be applied after instances that only apply in specific cases.
+  For example, the instance `int.add_group : add_group ℤ` should be tried before
+  `add_comm_group.to_comm_group [add_comm_group α] : comm_group α`, because the second instance will
+  take a long time to fail (an exhaustive search through the tree) and the first one fails almost
+  instantly.
+
+  Therefore, if we create an instance that always applies, we set the priority of these instances to
+  100 (or something similar, which is below the default value of 1000).
+-/
 
 /-- A linter object for checking instance priorities of instances that always apply.
   This is in the default linter set. -/

@@ -21,6 +21,7 @@ import topology.uniform_space.separation topology.uniform_space.uniform_embeddin
 import topology.bases
 open lattice set filter classical
 noncomputable theory
+set_option default_priority 100 -- see Note [default priority]
 
 open_locale uniformity topological_space
 
@@ -109,6 +110,7 @@ class emetric_space (α : Type u) extends has_edist α : Type u :=
 namespace, while notions associated to metric spaces are mostly in the root namespace. -/
 variables [emetric_space α]
 
+@[priority 100] -- see Note [lower instance priority]
 instance emetric_space.to_uniform_space' : uniform_space α :=
 emetric_space.to_uniform_space α
 
@@ -233,6 +235,7 @@ end emetric
 open emetric
 
 /-- An emetric space is separated -/
+@[priority 100] -- see Note [lower instance priority]
 instance to_separated : separated α :=
 separated_def.2 $ λ x y h, eq_of_forall_edist_le $
 λ ε ε0, le_of_lt (h _ (edist_mem_uniformity ε0))
@@ -569,6 +572,7 @@ end compact
 
 section first_countable
 
+@[priority 100] -- see Note [lower instance priority]
 instance (α : Type u) [emetric_space α] :
   topological_space.first_countable_topology α :=
 ⟨assume a, ⟨⋃ i:ℕ, {ball a i⁻¹},

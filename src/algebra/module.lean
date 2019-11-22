@@ -16,6 +16,7 @@ When they can be inferred from the type it is faster to use this method than to 
 
 import algebra.ring algebra.big_operators group_theory.subgroup group_theory.group_action
 open function
+set_option default_priority 100 -- see Note [default priority]
 
 universes u v w x
 variables {α : Type u} {β : Type v} {γ : Type w} {δ : Type x}

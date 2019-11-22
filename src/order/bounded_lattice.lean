@@ -12,6 +12,7 @@ import order.lattice data.option.basic
        tactic.pi_instances
 
 set_option old_structure_cmd true
+set_option default_priority 100 -- see Note [default priority]
 
 universes u v
 
@@ -217,15 +218,19 @@ end semilattice_inf_bot
   of all finite suprema and infima, taking `inf ∅ = ⊤` and `sup ∅ = ⊥`. -/
 class bounded_lattice (α : Type u) extends lattice α, order_top α, order_bot α
 
+@[priority 100] -- see Note [lower instance priority]
 instance semilattice_inf_top_of_bounded_lattice (α : Type u) [bl : bounded_lattice α] : semilattice_inf_top α :=
 { le_top := assume x, @le_top α _ x, ..bl }
 
+@[priority 100] -- see Note [lower instance priority]
 instance semilattice_inf_bot_of_bounded_lattice (α : Type u) [bl : bounded_lattice α] : semilattice_inf_bot α :=
 { bot_le := assume x, @bot_le α _ x, ..bl }
 
+@[priority 100] -- see Note [lower instance priority]
 instance semilattice_sup_top_of_bounded_lattice (α : Type u) [bl : bounded_lattice α] : semilattice_sup_top α :=
 { le_top := assume x, @le_top α _ x, ..bl }
 
+@[priority 100] -- see Note [lower instance priority]
 instance semilattice_sup_bot_of_bounded_lattice (α : Type u) [bl : bounded_lattice α] : semilattice_sup_bot α :=
 { bot_le := assume x, @bot_le α _ x, ..bl }
 

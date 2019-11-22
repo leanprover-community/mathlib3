@@ -25,7 +25,7 @@ using_well_founded {rel_tac :=
 instance has_lt' : has_lt string :=
 ⟨λ s₁ s₂, ltb s₁.mk_iterator s₂.mk_iterator⟩
 
-instance decidable_lt : @decidable_rel string (<) := by apply_instance
+instance decidable_lt : @decidable_rel string (<) := by apply_instance -- short-circuit type class inference
 
 @[simp] theorem lt_iff_to_list_lt :
   ∀ {s₁ s₂ : string}, s₁ < s₂ ↔ s₁.to_list < s₂.to_list
@@ -48,7 +48,7 @@ instance decidable_lt : @decidable_rel string (<) := by apply_instance
 
 instance has_le : has_le string := ⟨λ s₁ s₂, ¬ s₂ < s₁⟩
 
-instance decidable_le : @decidable_rel string (≤) := by apply_instance
+instance decidable_le : @decidable_rel string (≤) := by apply_instance -- short-circuit type class inference
 
 @[simp] theorem le_iff_to_list_le
   {s₁ s₂ : string} : s₁ ≤ s₂ ↔ s₁.to_list ≤ s₂.to_list :=

@@ -13,6 +13,7 @@ import linear_algebra.tensor_product
 import ring_theory.subring
 
 noncomputable theory
+set_option default_priority 100 -- see Note [default priority]
 
 universes u v w u₁ v₁
 
@@ -40,7 +41,7 @@ variables {R : Type u} {S : Type v} {A : Type w}
 variables [comm_ring R] [comm_ring S] [ring A] [algebra R A]
 
 /-- The codomain of an algebra. -/
-instance : has_scalar R A := infer_instance
+instance : has_scalar R A := infer_instance -- short-circuit type class inference
 
 include R
 

@@ -13,6 +13,7 @@ import topology.algebra.monoid topology.homeomorph
 
 open classical set lattice filter topological_space
 open_locale classical topological_space
+set_option default_priority 100 -- see Note [default priority]
 
 universes u v w
 variables {α : Type u} {β : Type v} {γ : Type w}
@@ -260,6 +261,7 @@ variables (α) [add_group_with_zero_nhd α]
 
 local notation `Z` := add_group_with_zero_nhd.Z
 
+@[priority 100] -- see Note [lower instance priority]
 instance : topological_space α :=
 topological_space.mk_of_nhds $ λa, map (λx, x + a) (Z α)
 
@@ -302,6 +304,7 @@ topological_space.nhds_mk_of_nhds _ _
 
 lemma nhds_zero_eq_Z : 𝓝 0 = Z α := by simp [nhds_eq]; exact filter.map_id
 
+@[priority 100] -- see Note [lower instance priority]
 instance : topological_add_monoid α :=
 ⟨ continuous_iff_continuous_at.2 $ assume ⟨a, b⟩,
   begin
@@ -313,6 +316,7 @@ instance : topological_add_monoid α :=
     exact tendsto_map.comp add_Z
   end⟩
 
+@[priority 100] -- see Note [lower instance priority]
 instance : topological_add_group α :=
 ⟨continuous_iff_continuous_at.2 $ assume a,
   begin

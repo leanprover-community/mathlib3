@@ -18,6 +18,7 @@ for this.)
 import data.equiv.list
 
 open denumerable encodable
+set_option default_priority 100 -- see Note [default priority]
 
 namespace nat
 

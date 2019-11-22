@@ -31,6 +31,7 @@ lie bracket, ring commutator, jacobi identity, lie ring, lie algebra
 -/
 
 universes u v
+set_option default_priority 100 -- see Note [default priority]
 
 /--
 A binary operation, intended use in Lie algebras and similar structures.

@@ -34,6 +34,7 @@ related work.
 -/
 
 universe u
+set_option default_priority 100 -- see Note [default priority]
 
 namespace category_theory
 

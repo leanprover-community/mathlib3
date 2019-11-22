@@ -8,6 +8,7 @@ import group_theory.subgroup
 import algebra.ring
 
 universes u v
+set_option default_priority 100 -- see Note [default priority]
 
 open group
 

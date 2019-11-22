@@ -12,6 +12,7 @@ import tactic.ext
 import category.monad.basic category.monad.writer
 
 universes u v w
+set_option default_priority 100 -- see Note [default priority]
 
 structure monad_cont.label (α : Type w) (m : Type u → Type v) (β : Type u) :=
 (apply : α → m β)

@@ -12,6 +12,8 @@ import algebra.associated data.int.gcd
 variables {α : Type*}
 
 set_option old_structure_cmd true
+set_option default_priority 100 -- see Note [default priority]
+
 
 /-- Normalization domain: multiplying with `norm_unit` gives a normal form for associated elements. -/
 class normalization_domain (α : Type*) extends integral_domain α :=

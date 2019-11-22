@@ -100,7 +100,7 @@ end preorder
 
 /--When there is a global minimum, every set is bounded below.-/
 @[simp] lemma bdd_below_bot [order_bot α] (s : set α) : bdd_below s :=
-⟨⊥, assume a ha,  order_bot.bot_le a⟩
+⟨⊥, assume a ha, order_bot.bot_le a⟩
 
 /-When there is a max (i.e., in the class semilattice_sup), then the union of
 two bounded sets is bounded, by the maximum of the bounds for the two sets.
@@ -214,6 +214,29 @@ finite.induction_on H
 
 end semilattice_inf
 
+section with_top_bot
+
+/-!
+Extension of Sup and Inf from a preorder `α` to `with_top α` and `with_bot α`
+-/
+
+open_locale classical
+
+noncomputable instance {α : Type*} [preorder α] [has_Sup α] : has_Sup (with_top α) :=
+⟨λ S, if ⊤ ∈ S then ⊤ else
+  if ¬ bdd_above (coe ⁻¹' S : set α) then ⊤ else ↑(Sup (coe ⁻¹' S : set α))⟩
+
+noncomputable instance {α : Type*} [has_Inf α] : has_Inf (with_top α) :=
+⟨λ S, if S ⊆ {⊤} then ⊤ else ↑(Inf (coe ⁻¹' S : set α))⟩
+
+noncomputable instance {α : Type*} [has_Sup α] : has_Sup (with_bot α) :=
+⟨λ S, if S ⊆ {⊥} then ⊥ else ↑(Sup (coe ⁻¹' S : set α))⟩
+
+noncomputable instance {α : Type*} [preorder α] [has_Inf α] : has_Inf (with_bot α) :=
+⟨λ S, if ⊥ ∈ S then ⊥ else
+  if ¬ bdd_below (coe ⁻¹' S : set α) then ⊥ else ↑(Inf (coe ⁻¹' S : set α))⟩
+
+end with_top_bot
 
 namespace lattice
 /-- A conditionally complete lattice is a lattice in which

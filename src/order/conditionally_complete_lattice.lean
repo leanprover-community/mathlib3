@@ -224,17 +224,16 @@ open_locale classical
 
 noncomputable instance {α : Type*} [preorder α] [has_Sup α] : has_Sup (with_top α) :=
 ⟨λ S, if ⊤ ∈ S then ⊤ else
-  if ¬ bdd_above (coe ⁻¹' S : set α) then ⊤ else ↑(Sup (coe ⁻¹' S : set α))⟩
+  if bdd_above (coe ⁻¹' S : set α) then ↑(Sup (coe ⁻¹' S : set α)) else ⊤⟩
 
 noncomputable instance {α : Type*} [has_Inf α] : has_Inf (with_top α) :=
 ⟨λ S, if S ⊆ {⊤} then ⊤ else ↑(Inf (coe ⁻¹' S : set α))⟩
 
 noncomputable instance {α : Type*} [has_Sup α] : has_Sup (with_bot α) :=
-⟨λ S, if S ⊆ {⊥} then ⊥ else ↑(Sup (coe ⁻¹' S : set α))⟩
+⟨(@with_top.lattice.has_Inf (order_dual α) _).Inf⟩
 
 noncomputable instance {α : Type*} [preorder α] [has_Inf α] : has_Inf (with_bot α) :=
-⟨λ S, if ⊥ ∈ S then ⊥ else
-  if ¬ bdd_below (coe ⁻¹' S : set α) then ⊥ else ↑(Inf (coe ⁻¹' S : set α))⟩
+⟨(@with_top.lattice.has_Sup (order_dual α) _ _).Sup⟩
 
 end with_top_bot
 
@@ -705,11 +704,35 @@ begin
     assume a _, le_top⟩
 end
 
-noncomputable instance : has_Sup (with_top α) := ⟨λs, classical.some $ has_lub s⟩
-noncomputable instance : has_Inf (with_top α) := ⟨λs, classical.some $ has_glb s⟩
+--noncomputable instance : has_Sup (with_top α) := ⟨λs, classical.some $ has_lub s⟩
+--noncomputable instance : has_Inf (with_top α) := ⟨λs, classical.some $ has_glb s⟩
+noncomputable example : has_Sup (with_top α) := by apply_instance
 
-lemma is_lub_Sup (s : set (with_top α)) : is_lub s (Sup s) := classical.some_spec _
-lemma is_glb_Inf (s : set (with_top α)) : is_glb s (Inf s) := classical.some_spec _
+lemma is_lub_Sup (s : set (with_top α)) : is_lub s (Sup s) :=
+begin
+  split,
+  { show ite _ _ _ ∈ _,
+    split_ifs,
+    { intros _ _, exact le_top},
+    { rintro (⟨⟩|a) ha, contradiction,
+      apply some_le_some.2,
+      exact le_cSup h_1 ha},
+    { intros _ _, exact le_top}},
+  { show ite _ _ _ ∈ _,
+    split_ifs,
+    { rintro (⟨⟩|a) ha, exact _root_.le_refl _,
+      exfalso, apply not_top_le_coe a, exact ha h},
+    { rintro (⟨⟩|b) hb, exact le_top,
+      apply some_le_some.2,
+      by_cases ((coe ⁻¹' s : set α) = ∅),
+      { rw [h, cSup_empty], exact bot_le},
+      { refine cSup_le h _,
+        intros a ha, exact some_le_some.1 (hb ha)}},
+    { rintro (⟨⟩|b) hb, exact _root_.le_refl _,
+      exfalso, apply h_1, use b, intros a ha, exact some_le_some.1 (hb ha)}}
+end
+
+lemma is_glb_Inf (s : set (with_top α)) : is_glb s (Inf s) := sorry
 
 noncomputable instance : complete_linear_order (with_top α) :=
 { Sup := Sup, le_Sup := assume s, (is_lub_Sup s).1, Sup_le := assume s, (is_lub_Sup s).2,
@@ -812,18 +835,18 @@ As an application, one can deduce that the extended reals [-∞, ∞] are a comp
 open lattice
 
 open_locale classical
-/-- Extends `Sup` from a conditionally complete lattice `α` to `with_top α`.
-The new `Sup` returns a non-junk value for more subsets (e.g. for unbounded-above subsets of `α`). -/
-noncomputable instance with_top.conditionally_complete_lattice.has_Sup
-  {α : Type*} [conditionally_complete_lattice α] : has_Sup (with_top α) :=
-⟨λ S, if ⊤ ∈ S then ⊤ else
-      let So := (coe ⁻¹' S : set α) in
-      if bdd_above So then ↑(Sup So) else ⊤⟩
+--/-- Extends `Sup` from a conditionally complete lattice `α` to `with_top α`.
+--The new `Sup` returns a non-junk value for more subsets (e.g. for unbounded-above subsets of `α`). -/
+--noncomputable instance with_top.conditionally_complete_lattice.has_Sup
+--  {α : Type*} [conditionally_complete_lattice α] : has_Sup (with_top α) :=
+--⟨λ S, if ⊤ ∈ S then ⊤ else
+--      let So := (coe ⁻¹' S : set α) in
+--      if bdd_above So then ↑(Sup So) else ⊤⟩
 
-/-- Extends `Inf` from a conditionally complete lattice `α` to `with_top α`. -/
-noncomputable instance with_top.conditionally_complete_lattice.has_Inf
-  {α : Type*} [conditionally_complete_lattice α] : has_Inf (with_top α) :=
-⟨λ S, if S ⊆ {⊤} then ⊤ else ↑(Inf (coe ⁻¹' S) : α)⟩
+--/-- Extends `Inf` from a conditionally complete lattice `α` to `with_top α`. -/
+--noncomputable instance with_top.conditionally_complete_lattice.has_Inf
+--  {α : Type*} [conditionally_complete_lattice α] : has_Inf (with_top α) :=
+--⟨λ S, if S ⊆ {⊤} then ⊤ else ↑(Inf (coe ⁻¹' S) : α)⟩
 
 /-- Adding a top element to a conditionally complete lattice gives a conditionally complete lattice -/
 noncomputable instance with_top.conditionally_complete_lattice
@@ -880,28 +903,28 @@ noncomputable instance with_top.conditionally_complete_lattice
       },
     end,
   ..with_top.lattice,
-  ..with_top.conditionally_complete_lattice.has_Sup,
-  ..with_top.conditionally_complete_lattice.has_Inf
+  ..with_top.lattice.has_Sup,
+  ..with_top.lattice.has_Inf
 }
 
 
-/-- Extends `Sup` from a conditionally complete lattice `α` to `with_bot α`. -/
-noncomputable instance with_bot.conditionally_complete_lattice.has_Sup
-  {α : Type*} [conditionally_complete_lattice α] : has_Sup (with_bot α) :=
-⟨(@with_top.conditionally_complete_lattice.has_Inf (order_dual α) _).Inf⟩
+--/-- Extends `Sup` from a conditionally complete lattice `α` to `with_bot α`. -/
+--noncomputable instance with_bot.conditionally_complete_lattice.has_Sup
+--  {α : Type*} [conditionally_complete_lattice α] : has_Sup (with_bot α) :=
+--⟨(@with_top.lattice.has_Inf (order_dual α) _).Inf⟩
 
-/-- Extends Inf from a conditionally complete lattice `α` to `with_bot α`.
-The new Inf returns a non-junk value for more subsets (e.g. for unbounded-below subsets of `α`). -/
-noncomputable instance with_bot.conditionally_complete_lattice.has_Inf
-  {α : Type*} [conditionally_complete_lattice α] : has_Sup (with_bot α) :=
-⟨(@with_top.conditionally_complete_lattice.has_Sup (order_dual α) _).Sup⟩
+--/-- Extends Inf from a conditionally complete lattice `α` to `with_bot α`.
+--The new Inf returns a non-junk value for more subsets (e.g. for unbounded-below subsets of `α`). -/
+--noncomputable instance with_bot.conditionally_complete_lattice.has_Inf
+--  {α : Type*} [conditionally_complete_lattice α] : has_Sup (with_bot α) :=
+--⟨(@with_top.lattice.has_Sup (order_dual α) _).Sup⟩
 
 /-- Adding a bottom element to a conditionally complete lattice gives a conditionally complete lattice -/
 noncomputable instance with_bot.conditionally_complete_lattice
   {α : Type*} [conditionally_complete_lattice α] :
   conditionally_complete_lattice (with_bot α) :=
-{ Sup := @has_Inf.Inf _ (@with_top.conditionally_complete_lattice.has_Inf (order_dual α) _),
-  Inf := @has_Sup.Sup _ (@with_top.conditionally_complete_lattice.has_Sup (order_dual α) _),
+{ Sup := @has_Inf.Inf _ (@with_top.lattice.has_Inf (order_dual α) _),
+  Inf := @has_Sup.Sup _ (@with_top.lattice.has_Sup (order_dual α) _ _),
   le_cSup := (@with_top.conditionally_complete_lattice (order_dual α) _).cInf_le,
   cSup_le := (@with_top.conditionally_complete_lattice (order_dual α) _).le_cInf,
   cInf_le := (@with_top.conditionally_complete_lattice (order_dual α) _).le_cSup,
@@ -980,8 +1003,8 @@ noncomputable instance {α : Type*} [conditionally_complete_lattice α] :
         }
       }
     end,
-  ..with_top.conditionally_complete_lattice.has_Inf,
-  ..with_top.conditionally_complete_lattice.has_Sup,
+  ..with_top.lattice.has_Inf,
+  ..with_top.lattice.has_Sup,
   ..with_top.lattice.bounded_lattice
 }
 end with_top_bot

@@ -1,9 +1,15 @@
 /-
 Copyright (c) 2015, 2017 Jeremy Avigad. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Extended metric spaces.
-
 Authors: Jeremy Avigad, Robert Y. Lewis, Johannes Hölzl, Mario Carneiro, Sébastien Gouëzel
+-/
+
+import data.real.nnreal data.real.ennreal
+import topology.uniform_space.separation topology.uniform_space.uniform_embedding topology.uniform_space.pi
+import topology.bases
+
+/-!
+# Extended metric spaces
 
 This file is devoted to the definition and study of `emetric_spaces`, i.e., metric
 spaces in which the distance is allowed to take the value ∞. This extended distance is
@@ -16,9 +22,6 @@ topological spaces. For example:
 The class `emetric_space` therefore extends `uniform_space` (and `topological_space`).
 -/
 
-import data.real.nnreal data.real.ennreal
-import topology.uniform_space.separation topology.uniform_space.uniform_embedding topology.uniform_space.pi
-import topology.bases
 open lattice set filter classical
 noncomputable theory
 

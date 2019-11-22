@@ -2,8 +2,15 @@
 Copyright (c) 2019 Sébastien Gouëzel. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Author: Sébastien Gouëzel
-The metric and emetric space structure on the types of closed subsets and nonempty compact
-subsets of a metric or emetric space
+-/
+
+import topology.metric_space.hausdorff_distance topology.opens
+
+/-!
+# Closed subsets
+
+This file defines the metric and emetric space structure on the types of closed subsets and nonempty compact
+subsets of a metric or emetric space.
 
 The Hausdorff distance induces an emetric space structure on the type of closed subsets
 of an emetric space, called `closeds`. Its completeness, resp. compactness, resp.
@@ -14,7 +21,6 @@ inherits a metric space structure from the Hausdorff distance, as the Hausdorff 
 always finite in this context.
 -/
 
-import topology.metric_space.hausdorff_distance topology.opens
 noncomputable theory
 open_locale classical
 open_locale topological_space

@@ -1056,9 +1056,11 @@ meta def pow_p : ex sum → ex prod → ring_exp_m (ex sum)
   ps_o ← pow_orig ps qs,
   pf ← mk_proof ``pow_p_pf_one [ps.orig, ps.pretty, qs.orig] [ps.info, qs.info],
   pure $ ps.set_info ps_o pf
-| ps@(ex.zero ps_i) qs@(ex.coeff qs_i y) := do
+| ps@(ex.zero ps_i) qs@(ex.coeff qs_i ⟨⟨succ y, 1, _, _⟩⟩) := do
+  ctx ← get_context,
   z ← ex_zero,
-  pf ← mk_proof ``pow_p_pf_zero [ps.orig, qs.orig, qs.pretty] [ps.info, qs.info],
+  qs_pred ← lift $ expr.of_nat ctx.info_e.α y,
+  pf ← mk_proof ``pow_p_pf_zero [ps.orig, qs.orig, qs_pred] [ps.info, qs.info],
   z_o ← pow_orig ps qs,
   pure $ z.set_info z_o pf
 | pps@(ex.sum pps_i p (ex.zero _)) qqs := do

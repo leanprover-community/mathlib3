@@ -47,6 +47,7 @@ section exponentiation
   Test that exponentiation has the correct distributivity properties.
 -/
 example : 0 ^ 1 = 0 := by ring_exp
+example : 0 ^ 2 = 0 := by ring_exp
 example (a : ℕ) : a ^ 0 = 1 := by ring_exp
 example (a : ℕ) : a ^ 1 = a := by ring_exp
 example (a : ℕ) : a ^ 2 = a * a := by ring_exp

@@ -772,6 +772,20 @@ end order_dual
 
 section with_top_bot
 
+/-! ### Complete lattice structure on `with_top (with_bot α)`
+
+If `α` is a `conditionally_complete_lattice`, then we show that `with_top α` and `with_bot α`
+also inherit the structure of conditionally complete lattices. Furthermore, we show
+that `with_top (with_bot α)` naturally inherits the structure of a complete lattice. Note that
+for α a conditionally complete lattice, `Sup` and `Inf` both return junk values
+for sets which are empty or unbounded. The extension of `Sup` to `with_top α` fixes
+the unboundedness problem and the extension to `with_bot α` fixes the problem with
+the empty set.
+
+As an application, one can deduce that the extended reals [-∞, ∞] are a complete lattice.
+-/
+
+
 open lattice
 
 open_locale classical
@@ -794,7 +808,7 @@ noncomputable instance with_top.conditionally_complete_lattice
   conditionally_complete_lattice (with_top α) :=
 { le_cSup := λ S a hS haS,
     let So := (coe ⁻¹' S : set α) in
-    show a ≤ (ite (⊤ ∈ S) ⊤ (ite (bdd_above So) ↑(Sup So) ⊤)),
+    show a ≤ (if (⊤ ∈ S) then ⊤ else (if (bdd_above So) then ↑(Sup So) else ⊤)),
     begin
       split_ifs,
       { exact le_top},
@@ -803,7 +817,7 @@ noncomputable instance with_top.conditionally_complete_lattice
     end,
   cSup_le := λ S a hS haS,
     let So := (coe ⁻¹' S : set α) in
-    show (ite (⊤ ∈ S) ⊤ (ite (bdd_above So) ↑(Sup So) ⊤)) ≤ a,
+    show (if (⊤ ∈ S) then ⊤ else (if (bdd_above So) then ↑(Sup So) else ⊤)) ≤ a,
     begin
       split_ifs,
       { exact haS h},
@@ -816,7 +830,7 @@ noncomputable instance with_top.conditionally_complete_lattice
         exfalso, apply h_1, use a, intros b hb, exact with_top.some_le_some.1 (haS hb)},
     end,
   cInf_le := λ S a hS haS,
-    show (ite (S ⊆ {⊤}) ⊤ ↑(Inf (coe ⁻¹' S))) ≤ a,
+    show (if (S ⊆ {⊤}) then ⊤ else ↑(Inf (coe ⁻¹' S))) ≤ a,
     begin
       cases a, exact le_top,
       split_ifs,
@@ -825,23 +839,23 @@ noncomputable instance with_top.conditionally_complete_lattice
         rcases hS with ⟨⟨⟩|a, ha⟩,
         { use a, intros b hb, exact false.elim (with_top.not_top_le_coe b (ha hb))},
         { use a, intros b hb, exact with_top.some_le_some.1 (ha hb)}}
-  end,
+    end,
   le_cInf := λ S a hS haS,
-    show a ≤ (ite (S ⊆ {⊤}) ⊤ ↑(Inf (coe ⁻¹' S))),
+    show a ≤ (if (S ⊆ {⊤}) then ⊤ else ↑(Inf (coe ⁻¹' S))),
     begin
-    cases a with a,
-    { split_ifs, exact _root_.le_refl _,
-      exfalso, apply h, intros s hs, simpa using top_le_iff.1 (haS hs),
-    },
-    { split_ifs, exact le_top,
-      refine with_top.some_le_some.2 (le_cInf _ _),
-      { apply mt _ h,
-        rintro h2 (⟨⟩|a) ha,
-        { exact set.mem_singleton _},
-        { exfalso, apply set.not_mem_empty a, rwa h2.symm}},
-      { intros b hb, exact with_top.some_le_some.1 (haS hb) }
-    },
-  end,
+      cases a with a,
+      { split_ifs, exact _root_.le_refl _,
+        exfalso, apply h, intros s hs, simpa using top_le_iff.1 (haS hs),
+      },
+      { split_ifs, exact le_top,
+        refine with_top.some_le_some.2 (le_cInf _ _),
+        { apply mt _ h,
+          rintro h2 (⟨⟩|a) ha,
+          { exact set.mem_singleton _},
+          { exfalso, apply set.not_mem_empty a, rwa h2.symm}},
+        { intros b hb, exact with_top.some_le_some.1 (haS hb) }
+      },
+    end,
   ..with_top.lattice,
   ..with_top.conditionally_complete_lattice.has_Sup,
   ..with_top.conditionally_complete_lattice.has_Inf
@@ -883,39 +897,39 @@ local attribute [instance, priority 10] classical.prop_decidable
 noncomputable instance {α : Type*} [conditionally_complete_lattice α] :
   complete_lattice (with_top (with_bot α)) :=
 { le_Sup := λ S a ha,
-  show a ≤ ite _ _ _,
-  begin
-    split_ifs,
-    { exact le_top},
-    { cases a, contradiction, exact with_top.some_le_some.2 (le_cSup h_1 ha)},
-    { exact le_top}
-  end,
+    show a ≤ ite _ _ _,
+    begin
+      split_ifs,
+      { exact le_top},
+      { cases a, contradiction, exact with_top.some_le_some.2 (le_cSup h_1 ha)},
+      { exact le_top}
+    end,
   Sup_le := λ S a ha,
-  show ite _ _ _ ≤ a,
-  begin
-    split_ifs,
-    { exact ha _ h},
-    { cases a, exact le_top,
-      apply with_top.some_le_some.2,
-      show ite _ _ _ ≤ _,
-      split_ifs, exact bot_le,
-      cases a with a,
-      { exfalso,
-        apply h_2,
-        intros b hb,
-        exact set.mem_singleton_iff.2 (le_bot_iff.1 (with_top.some_le_some.1 (ha (some b) hb))),
-      },
-      { apply with_bot.some_le_some.2,
-        refine cSup_le _ _,
-        { refine mt _ h_2,
-          rintro hS (⟨⟩|b) hb,
-          { exact set.mem_singleton _},
-          { exfalso, apply set.not_mem_empty (b : α), erw ←hS, exact hb}},
-        { intros b hb, exact with_bot.some_le_some.1 (with_top.some_le_some.1 (ha _ hb))}}},
-    { cases a with a,
-      { exact _root_.le_refl _},
-      { exfalso, apply h_1, use a, intros b hb, exact with_top.some_le_some.1 (ha _ hb)}}
-  end,
+    show ite _ _ _ ≤ a,
+    begin
+      split_ifs,
+      { exact ha _ h},
+      { cases a, exact le_top,
+        apply with_top.some_le_some.2,
+        show ite _ _ _ ≤ _,
+        split_ifs, exact bot_le,
+        cases a with a,
+        { exfalso,
+          apply h_2,
+          intros b hb,
+          exact set.mem_singleton_iff.2 (le_bot_iff.1 (with_top.some_le_some.1 (ha (some b) hb))),
+        },
+        { apply with_bot.some_le_some.2,
+          refine cSup_le _ _,
+          { refine mt _ h_2,
+            rintro hS (⟨⟩|b) hb,
+            { exact set.mem_singleton _},
+            { exfalso, apply set.not_mem_empty (b : α), erw ←hS, exact hb}},
+          { intros b hb, exact with_bot.some_le_some.1 (with_top.some_le_some.1 (ha _ hb))}}},
+      { cases a with a,
+        { exact _root_.le_refl _},
+        { exfalso, apply h_1, use a, intros b hb, exact with_top.some_le_some.1 (ha _ hb)}}
+    end,
   Inf_le := λ S a haS,
     show ite _ _ _ ≤ a,
     begin

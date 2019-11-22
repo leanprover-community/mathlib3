@@ -1336,7 +1336,7 @@ meta def trace_macro (_ : parse $ tk "trace!") (s : string) : parser pexpr :=
 do e ← pformat_macro () s,
    pure ``((%%e : pformat) >>= trace)
 
-/-- an alias of `format` that gives tactics an expression to pretty pring -/
+/-- an alias of `format` that gives tactics an expression to pretty print -/
 @[reducible] meta def fmt_of {α} (x : α) : Type := format
 
 /-- for a goal of the form `fmt_of e`, solves the goal with a format value corresponding

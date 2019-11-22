@@ -854,18 +854,6 @@ As an application, one can deduce that the extended reals [-∞, ∞] are a comp
 open lattice
 
 open_locale classical
---/-- Extends `Sup` from a conditionally complete lattice `α` to `with_top α`.
---The new `Sup` returns a non-junk value for more subsets (e.g. for unbounded-above subsets of `α`). -/
---noncomputable instance with_top.conditionally_complete_lattice.has_Sup
---  {α : Type*} [conditionally_complete_lattice α] : has_Sup (with_top α) :=
---⟨λ S, if ⊤ ∈ S then ⊤ else
---      let So := (coe ⁻¹' S : set α) in
---      if bdd_above So then ↑(Sup So) else ⊤⟩
-
---/-- Extends `Inf` from a conditionally complete lattice `α` to `with_top α`. -/
---noncomputable instance with_top.conditionally_complete_lattice.has_Inf
---  {α : Type*} [conditionally_complete_lattice α] : has_Inf (with_top α) :=
---⟨λ S, if S ⊆ {⊤} then ⊤ else ↑(Inf (coe ⁻¹' S) : α)⟩
 
 /-- Adding a top element to a conditionally complete lattice gives a conditionally complete lattice -/
 noncomputable instance with_top.conditionally_complete_lattice
@@ -925,18 +913,6 @@ noncomputable instance with_top.conditionally_complete_lattice
   ..with_top.lattice.has_Sup,
   ..with_top.lattice.has_Inf
 }
-
-
---/-- Extends `Sup` from a conditionally complete lattice `α` to `with_bot α`. -/
---noncomputable instance with_bot.conditionally_complete_lattice.has_Sup
---  {α : Type*} [conditionally_complete_lattice α] : has_Sup (with_bot α) :=
---⟨(@with_top.lattice.has_Inf (order_dual α) _).Inf⟩
-
---/-- Extends Inf from a conditionally complete lattice `α` to `with_bot α`.
---The new Inf returns a non-junk value for more subsets (e.g. for unbounded-below subsets of `α`). -/
---noncomputable instance with_bot.conditionally_complete_lattice.has_Inf
---  {α : Type*} [conditionally_complete_lattice α] : has_Sup (with_bot α) :=
---⟨(@with_top.lattice.has_Sup (order_dual α) _).Sup⟩
 
 /-- Adding a bottom element to a conditionally complete lattice gives a conditionally complete lattice -/
 noncomputable instance with_bot.conditionally_complete_lattice

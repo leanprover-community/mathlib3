@@ -73,7 +73,7 @@ lemma integrable_of_fin_vol_supp {f : α →ₛ β} (h : f.fin_vol_supp) : integ
 by { rw [integrable_iff_integral_lt_top], exact integral_map_coe_lt_top h nnnorm_zero }
 
 /-- For simple functions with a `normed_group` as codomain, being integrable is the same as having
-    finite support. -/
+    finite volume support. -/
 lemma integrable_iff_fin_vol_supp (f : α →ₛ β) : integrable f ↔ f.fin_vol_supp :=
 iff.intro fin_vol_supp_of_integrable integrable_of_fin_vol_supp
 

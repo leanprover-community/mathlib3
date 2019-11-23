@@ -122,7 +122,7 @@ begin
       finset.sum_congr rfl $ by { assume x, simp only [mem_filter], rintro ⟨_, h⟩, rw h }
 end
 
-/-- `simple_func.bintegral` and `simple_func.integral` agrees when the integrand has type
+/-- `simple_func.bintegral` and `simple_func.integral` agree when the integrand has type
     `α →ₛ ennreal`. But since `ennreal` is not a `normed_space`, we need some form of coercion.
     See `bintegral_eq_integral'` for a simpler version. -/
 lemma bintegral_eq_integral {f : α →ₛ β} {g : β → ennreal} (hf : integrable f) (hg0 : g 0 = 0)

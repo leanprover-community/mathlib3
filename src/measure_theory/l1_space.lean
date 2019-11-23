@@ -69,11 +69,7 @@ begin
   simp only [integrable] at *,
   have : (∫⁻ (a : α), ↑(nnnorm (f a))) = (∫⁻ (a : α), ↑(nnnorm (g a))),
   { apply lintegral_congr_ae,
-    filter_upwards [h],
-    assume a,
-    simp only [mem_set_of_eq],
-    assume h,
-    rw h },
+    filter_upwards [h], assume a, simp only [mem_set_of_eq], assume h, rw h },
   rwa ← this
 end
 
@@ -85,9 +81,7 @@ lemma lintegral_nnnorm_eq_lintegral_edist (f : α → β) :
 begin
   apply lintegral_congr_ae,
   filter_upwards [],
-  assume a,
-  simp only [mem_set_of_eq],
-  rw [edist_nndist, nndist_eq_nnnorm, sub_zero (f a)]
+  assume a, simp only [mem_set_of_eq], rw [edist_nndist, nndist_eq_nnnorm, sub_zero (f a)]
 end
 
 lemma integrable_iff_lintegral_edist (f : α → β) :
@@ -149,17 +143,15 @@ lemma integrable_sub {f g : α → β} (hf : measurable f) (hg : measurable g) :
 lemma integrable_norm {f : α → β} (hfi : integrable f) : integrable (λa, ∥f a∥) :=
 calc (∫⁻ (a : α), (nnnorm ∥f a∥)) = (∫⁻ (a : α), (nnnorm (f a))) :
     begin
-      apply lintegral_congr_ae, filter_upwards [],
-      assume a,
-      simp only [mem_set_of_eq],
-      rw [nnnorm_norm]
+      apply lintegral_congr_ae,
+      filter_upwards [], assume a, simp only [mem_set_of_eq], rw [nnnorm_norm]
     end
   ... < ⊤ : hfi
 
 section normed_space
 variables {K : Type*} [normed_field K] [normed_space K β]
 
-lemma integrable_smul {c : K} {f : α → β} : integrable f → integrable (c • f) :=
+lemma integrable_smul (c : K) {f : α → β} : integrable f → integrable (c • f) :=
 begin
   simp only [integrable], assume hfi,
   calc
@@ -214,7 +206,7 @@ section normed_space
 variables {K : Type*} [normed_field K] [normed_space K β]
 
 lemma integrable_smul : ∀ {c : K} {f : α →ₘ β}, integrable f → integrable (c • f) :=
-by { assume c, rintros ⟨f, hf⟩, simpa using integrable_smul }
+by { assume c, rintros ⟨f, hf⟩, simpa using integrable_smul _ }
 
 end normed_space
 
@@ -235,133 +227,47 @@ end
 namespace l1
 open ae_eq_fun
 
+instance : has_coe (α →₁ β) (α →ₘ β) := ⟨subtype.val⟩
+
+protected lemma eq {f g : α →₁ β} : (f : α →ₘ β) = (g : α →ₘ β) → f = g := subtype.eq
+protected lemma eq_iff {f g : α →₁ β} : (f : α →ₘ β) = (g : α →ₘ β) ↔ f = g :=
+iff.intro (l1.eq) (congr_arg coe)
+
 /- TODO : order structure of l1-/
-
-section normed_group
-
-/-- Construct the equivalence class `[f]` of a measurable and integrable function `f`. -/
-def mk (f : α → β) : measurable f → integrable f → (α →₁ β) :=
-assume hfm hfi, ⟨mk f hfm, by { rw integrable_mk, assumption }⟩
-
-/-- Find a representative of an L1 function `[f]` -/
-@[reducible]
-protected def to_fun (f : α →₁ β) : α → β := f.1.to_fun
-
-protected lemma measurable (f : α →₁ β) : measurable f.to_fun := f.1.measurable
-
-protected lemma integrable (f : α →₁ β) : integrable f.to_fun :=
-by { rw [← integrable_to_fun], exact f.2  }
-
-@[simp] lemma mk_eq_mk (f g : α → β) (hfm hfi hgm hgi) :
-  mk f hfm hfi = mk g hgm hgi ↔ (∀ₘ a, f a = g a) :=
-by { simp only [mk, subtype.mk_eq_mk, ae_eq_fun.mk_eq_mk] }
-
-lemma ext_iff (f g : α →₁ β) (f' g' : α → β) (hfm' hfi' hgm' hgi')
-  (hf : mk f' hfm' hfi' = f) (hg : mk g' hgm' hgi' = g) : f = g ↔ (∀ₘ a, f' a = g' a) :=
-by { rw [← hf, ← hg, mk_eq_mk] }
-
-lemma all_ae_mk_to_fun (f : α → β) (hfm hfi) : ∀ₘ a, (mk f hfm hfi).to_fun a = f a :=
-begin
-  filter_upwards [all_ae_mk_to_fun f hfm],
-  assume a,
-  simp only [mem_set_of_eq],
-  assume h,
-  rw ← h,
-  refl
-end
-
-lemma self_eq_mk (f : α →₁ β) : f = mk (f.to_fun) f.measurable f.integrable :=
-begin
-  rcases f with ⟨f, hfi⟩,
-  rw [mk, subtype.mk_eq_mk],
-  exact self_eq_mk f
-end
-
-/- TODO : define `comp` like that in `ae_eq_fun.lean`? -/
-
 instance : emetric_space (α →₁ β) := subtype.emetric_space
 instance : metric_space (α →₁ β) := metric_space_emetric_ball 0 ⊤
-
 instance : add_comm_group (α →₁ β) := subtype.add_comm_group
 
-variables (α β)
+@[simp] lemma coe_zero : ((0 : α →₁ β) : α →ₘ β) = 0 := rfl
+@[simp] lemma coe_add (f g : α →₁ β) : ((f + g : α →₁ β) : α →ₘ β) = f + g := rfl
+@[simp] lemma coe_neg (f : α →₁ β) : ((-f : α →₁ β) : α →ₘ β) = -f := rfl
+@[simp] lemma coe_sub (f g : α →₁ β) : ((f - g : α →₁ β) : α →ₘ β) = f - g := rfl
+@[simp] lemma edist_eq (f g : α →₁ β) : edist f g = edist (f : α →ₘ β) (g : α →ₘ β) := rfl
 
-lemma zero_def : (0 : α →₁ β) = ⟨(0 : α →ₘ β), ae_eq_fun.integrable_zero⟩ := rfl
-
-lemma zero_to_fun : ∀ₘ a, (0 : α →₁ β).to_fun a = 0 := ae_eq_fun.zero_to_fun
-
-lemma mk_zero : mk (0 : α → β) (@measurable_const _ _ _ _ (0:β)) integrable_zero = 0 := rfl
-
-variables {α β}
-
-lemma add_def (f g : α →₁ β) : f + g = ⟨f.1 + g.1, ae_eq_fun.integrable_add f.2 g.2⟩ := rfl
-
-lemma mk_add (f g : α → β) (hfm hfi hgm hgi) :
-  mk (f + g) (measurable_add hfm hgm) (integrable_add hfm hgm hfi hgi) = mk f hfm hfi + mk g hgm hgi :=
-rfl
-
-lemma add_to_fun (f g : α →₁ β) : ∀ₘ a, (f + g).to_fun a = f.to_fun a + g.to_fun a :=
-ae_eq_fun.add_to_fun _ _
-
-lemma neg_mk (f : α → β) (hfm hfi) :
-  - mk f hfm hfi = mk (-f) (measurable_neg hfm) (integrable_neg hfi) := rfl
-
-lemma neg_to_fun (f : α →₁ β) : ∀ₘ a, (-f).to_fun a = - f.to_fun a := ae_eq_fun.neg_to_fun _
-
-lemma sub_to_fun (f g : α →₁ β) : ∀ₘ a, (f - g).to_fun a = f.to_fun a - g.to_fun a :=
-ae_eq_fun.sub_to_fun _ _
-
-lemma dist_def (f g : α →₁ β) : dist f g = ennreal.to_real (edist f.1 g.1) := rfl
-
-lemma dist_to_fun (f g : α →₁ β) : dist f g = ennreal.to_real (∫⁻ x, edist (f.to_fun x) (g.to_fun x)) :=
-by simp only [dist_def, edist_to_fun]
+lemma dist_eq (f g : α →₁ β) : dist f g = ennreal.to_real (edist (f : α →ₘ β) (g : α →ₘ β)) := rfl
 
 instance : has_norm (α →₁ β) := ⟨λ f, dist f 0⟩
 
-lemma norm_def (f : α →₁ β) : (norm f) = ennreal.to_real (edist f.1 0) := rfl
-
-lemma norm_mk (f : α → β) (hfm hfi) : ∥mk f hfm hfi∥ = ennreal.to_real (∫⁻ a, nnnorm (f a)) :=
-by { rw [norm_def, lintegral_nnnorm_eq_lintegral_edist], refl }
-
-lemma norm_to_fun (f : α →₁ β) : ∥f∥ = ennreal.to_real (∫⁻ a, nnnorm (f.to_fun a)) :=
-by { rw [lintegral_nnnorm_eq_lintegral_edist, ← edist_zero_to_fun], refl }
+lemma norm_eq (f : α →₁ β) : ∥f∥ = ennreal.to_real (edist (f : α →ₘ β) 0) := rfl
 
 instance : normed_group (α →₁ β) := normed_group.of_add_dist (λ x, rfl) $ by
-{ rintros ⟨f, _⟩ ⟨g, _⟩ ⟨h, _⟩, simp only [dist_def, add_def], rw [edist_eq_add_add] }
-
-lemma lintegral_edist_to_fun_lt_top (f g : α →₁ β) : (∫⁻ a, edist (f.to_fun a) (g.to_fun a)) < ⊤ :=
-begin
-  apply lintegral_edist_lt_top,
-  exact f.measurable, exact f.integrable, exact g.measurable, exact g.integrable
-end
-
-end normed_group
+{ intros, simp only [dist_eq, coe_add], rw edist_eq_add_add }
 
 section normed_space
 
 variables {K : Type*} [normed_field K] [normed_space K β]
 
-protected def smul : K → (α →₁ β) → (α →₁ β) := λ x f, ⟨x • f.1, ae_eq_fun.integrable_smul f.2⟩
+instance : has_scalar K (α →₁ β) := ⟨λ x f, ⟨x • (f : α →ₘ β), ae_eq_fun.integrable_smul f.2⟩⟩
 
-instance : has_scalar K (α →₁ β) := ⟨l1.smul⟩
-
-lemma smul_def (k : K) (f : α →₁ β) : k • f = ⟨k • f.1, ae_eq_fun.integrable_smul f.2⟩ := rfl
-
-lemma smul_mk (f : α → β) (hfm hfi) (k : K) :
-  k • mk f hfm hfi = mk (k • f) (measurable_smul hfm) (integrable_smul hfi) := rfl
-
-lemma smul_to_fun (c : K) (f : α →₁ β) : ∀ₘ a, (c • f).to_fun a = c • f.to_fun a :=
-ae_eq_fun.smul_to_fun _ _
-
-local attribute [simp] smul_def norm_def add_def zero_def dist_def
+@[simp] lemma coe_smul (c : K) (f : α →₁ β) : ((c • f : α →₁ β) : α →ₘ β) = c • (f : α →ₘ β) := rfl
 
 instance : semimodule K (α →₁ β) :=
-{ one_smul  := by { rintros ⟨f, hf⟩, simp [ae_eq_fun.semimodule.one_smul] },
-  mul_smul  := by { rintros x y ⟨f, hf⟩, simp [ae_eq_fun.semimodule.mul_smul] },
-  smul_add  := by { rintros x ⟨f, hf⟩ ⟨g, hg⟩, simp [smul_add] },
-  smul_zero := by { assume x, simp [smul_zero x] },
-  add_smul  := by { rintros x y ⟨f, hf⟩, simp [add_smul x y f] },
-  zero_smul := by { rintro ⟨f, hf⟩, simp [zero_smul K f] } }
+{ one_smul  := λf, l1.eq (by { simp only [coe_smul], exact one_smul _ _ }),
+  mul_smul  := λx y f, l1.eq (by { simp only [coe_smul], exact mul_smul _ _ _ }),
+  smul_add  := λx f g, l1.eq (by { simp only [coe_smul, coe_add], exact smul_add _ _ _ }),
+  smul_zero := λx, l1.eq (by { simp only [coe_zero, coe_smul], exact smul_zero _ }),
+  add_smul  := λx y f, l1.eq (by { simp only [coe_smul], exact add_smul _ _ _ }),
+  zero_smul := λf, l1.eq (by { simp only [coe_smul], exact zero_smul _ _ }) }
 
 instance : module K (α →₁ β) := { .. l1.semimodule }
 
@@ -371,10 +277,100 @@ instance : normed_space K (α →₁ β) :=
 ⟨ begin
     rintros x ⟨f, hf⟩,
     show ennreal.to_real (edist (x • f) 0) = ∥x∥ * ennreal.to_real (edist f 0),
-    rw [edist_smul, to_real_of_real_mul], exact norm_nonneg _
+    rw [edist_smul, to_real_of_real_mul],
+    exact norm_nonneg _
   end ⟩
 
 end normed_space
+
+section of_fun
+
+/-- Construct the equivalence class `[f]` of a measurable and integrable function `f`. -/
+def of_fun (f : α → β) (hfm : measurable f) (hfi : integrable f) : (α →₁ β) :=
+⟨mk f hfm, by { rw integrable_mk, exact hfi }⟩
+
+lemma of_fun_eq_mk (f : α → β) (hfm hfi) : (of_fun f hfm hfi : α →ₘ β) = mk f hfm := rfl
+
+lemma of_fun_eq_of_fun (f g : α → β) (hfm hfi hgm hgi) :
+  of_fun f hfm hfi = of_fun g hgm hgi ↔ ∀ₘ a, f a = g a :=
+by { rw ← l1.eq_iff, simp only [of_fun_eq_mk, mk_eq_mk] }
+
+lemma of_fun_zero : of_fun (0 : α → β) (@measurable_const _ _ _ _ (0:β)) integrable_zero = 0 := rfl
+
+lemma of_fun_add (f g : α → β) (hfm hfi hgm hgi) :
+  of_fun (f + g) (measurable_add hfm hgm) (integrable_add hfm hgm hfi hgi)
+    = of_fun f hfm hfi + of_fun g hgm hgi :=
+rfl
+
+lemma of_fun_neg (f : α → β) (hfm hfi) :
+  of_fun (-f) (measurable_neg hfm) (integrable_neg hfi) = - of_fun f hfm hfi := rfl
+
+lemma norm_of_fun (f : α → β) (hfm hfi) : ∥of_fun f hfm hfi∥ = ennreal.to_real (∫⁻ a, edist (f a) 0) :=
+rfl
+
+variables {K : Type*} [normed_field K] [normed_space K β]
+
+lemma of_fun_smul (f : α → β) (hfm hfi) (k : K) :
+  of_fun (k • f) (measurable_smul hfm) (integrable_smul _ hfi) = k • of_fun f hfm hfi := rfl
+
+end of_fun
+
+section to_fun
+
+@[reducible]
+protected def to_fun (f : α →₁ β) : α → β := (f : α →ₘ β).to_fun
+
+protected lemma measurable (f : α →₁ β) : measurable f.to_fun := f.1.measurable
+
+protected lemma integrable (f : α →₁ β) : integrable f.to_fun :=
+by { rw [l1.to_fun, ← integrable_to_fun], exact f.2 }
+
+lemma of_fun_to_fun (f : α →₁ β) : of_fun (f.to_fun) f.measurable f.integrable = f :=
+begin
+  rcases f with ⟨f, hfi⟩,
+  rw [of_fun, subtype.mk_eq_mk],
+  exact (self_eq_mk f).symm
+end
+
+lemma mk_to_fun (f : α →₁ β) : mk (f.to_fun) f.measurable = f :=
+by { rw ← of_fun_eq_mk, rw l1.eq_iff, exact of_fun_to_fun f }
+
+lemma to_fun_of_fun (f : α → β) (hfm hfi) : ∀ₘ a, (of_fun f hfm hfi).to_fun a = f a :=
+begin
+  filter_upwards [all_ae_mk_to_fun f hfm],
+  assume a, simp only [mem_set_of_eq], assume h, rw ← h, refl
+end
+
+variables (α β)
+lemma zero_to_fun : ∀ₘ a, (0 : α →₁ β).to_fun a = 0 := ae_eq_fun.zero_to_fun
+variables {α β}
+
+lemma add_to_fun (f g : α →₁ β) : ∀ₘ a, (f + g).to_fun a = f.to_fun a + g.to_fun a :=
+ae_eq_fun.add_to_fun _ _
+
+lemma neg_to_fun (f : α →₁ β) : ∀ₘ a, (-f).to_fun a = -f.to_fun a := ae_eq_fun.neg_to_fun _
+
+lemma sub_to_fun (f g : α →₁ β) : ∀ₘ a, (f - g).to_fun a = f.to_fun a - g.to_fun a :=
+ae_eq_fun.sub_to_fun _ _
+
+lemma dist_to_fun (f g : α →₁ β) : dist f g = ennreal.to_real (∫⁻ x, edist (f.to_fun x) (g.to_fun x)) :=
+by { simp only [dist_eq, edist_to_fun] }
+
+lemma norm_to_fun (f : α →₁ β) : ∥f∥ = ennreal.to_real (∫⁻ a, nnnorm (f.to_fun a)) :=
+by { rw [lintegral_nnnorm_eq_lintegral_edist, ← edist_zero_to_fun], refl }
+
+lemma lintegral_edist_to_fun_lt_top (f g : α →₁ β) : (∫⁻ a, edist (f.to_fun a) (g.to_fun a)) < ⊤ :=
+begin
+  apply lintegral_edist_lt_top,
+  exact f.measurable, exact f.integrable, exact g.measurable, exact g.integrable
+end
+
+variables {K : Type*} [normed_field K] [normed_space K β]
+
+lemma smul_to_fun (c : K) (f : α →₁ β) : ∀ₘ a, (c • f).to_fun a = c • f.to_fun a :=
+ae_eq_fun.smul_to_fun _ _
+
+end to_fun
 
 /- TODO: l1 is a complete space -/
 

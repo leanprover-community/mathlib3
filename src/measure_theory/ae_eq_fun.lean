@@ -271,7 +271,7 @@ comp₂ (+) (measurable_add (measurable_fst measurable_id) (measurable_snd  meas
 instance : has_add (α →ₘ γ) := ⟨ae_eq_fun.add⟩
 
 @[simp] lemma mk_add_mk (f g : α → γ) (hf hg) :
-   (mk f hf) + (mk g hg) = mk (λa, (f a) + (g a)) (measurable_add hf hg) := rfl
+   (mk f hf) + (mk g hg) = mk (f + g) (measurable_add hf hg) := rfl
 
 lemma add_to_fun (f g : α →ₘ γ) : ∀ₘ a, (f + g).to_fun a = f.to_fun a + g.to_fun a :=
 comp₂_to_fun _ _ _ _
@@ -379,6 +379,8 @@ instance : semimodule K (α →ₘ γ) :=
   zero_smul :=
     by { rintro ⟨f, hf⟩, simp only [quot_mk_eq_mk, smul_mk, zero_def], congr, exact zero_smul K f }}
 
+instance : mul_action K (α →ₘ γ) := by apply_instance
+
 end semimodule
 
 section module
@@ -426,7 +428,7 @@ begin
 end
 
 lemma eintegral_add : ∀(f g : α →ₘ ennreal), eintegral (f + g) = eintegral f + eintegral g :=
-by rintros ⟨f⟩ ⟨g⟩; simp only [quot_mk_eq_mk, mk_add_mk, eintegral_mk, lintegral_add f.2 g.2]
+by { rintros ⟨f⟩ ⟨g⟩, simp only [quot_mk_eq_mk, mk_add_mk, eintegral_mk], exact lintegral_add f.2 g.2 }
 
 lemma eintegral_le_eintegral {f g : α →ₘ ennreal} (h : f ≤ g) : eintegral f ≤ eintegral g :=
 begin

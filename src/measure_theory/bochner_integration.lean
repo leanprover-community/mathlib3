@@ -301,7 +301,7 @@ instance : is_add_subgroup (λf:α →₁ β, ∃ (s : α →ₛ β), integrable
     use -s, split,
     { exact integrable_neg hsi },
     { rw [coe_neg, ← hs], refl }
-  end}
+  end }
 
 instance : add_comm_group (α →₁ₛ β) := subtype.add_comm_group
 

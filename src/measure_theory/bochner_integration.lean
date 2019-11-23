@@ -351,7 +351,7 @@ end instances
 
 section of_simple_func
 
-/-- Construct the equivalence class `[f]` of a integrable simple function `f`. -/
+/-- Construct the equivalence class `[f]` of an integrable simple function `f`. -/
 @[reducible] def of_simple_func (f : α →ₛ β) (hf : integrable f) : (α →₁ₛ β) :=
   ⟨l1.of_fun f f.measurable hf, ⟨f, ⟨hf, rfl⟩⟩⟩
 

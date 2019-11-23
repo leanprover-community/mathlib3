@@ -470,9 +470,9 @@ theorem fintype.card_subtype_le [fintype α] (p : α → Prop) [decidable_pred p
   fintype.card {x // p x} ≤ fintype.card α :=
 by rw fintype.subtype_card; exact card_le_of_subset (subset_univ _)
 
-theorem fintype.card_subtype_lt [fintype α] {p : α → Prop} [decidable_pred p] 
+theorem fintype.card_subtype_lt [fintype α] {p : α → Prop} [decidable_pred p]
   {x : α} (hx : ¬ p x) : fintype.card {x // p x} < fintype.card α :=
-by rw [fintype.subtype_card]; exact finset.card_lt_card 
+by rw [fintype.subtype_card]; exact finset.card_lt_card
   ⟨subset_univ _, classical.not_forall.2 ⟨x, by simp [*, set.mem_def]⟩⟩
 
 instance psigma.fintype {α : Type*} {β : α → Type*} [fintype α] [∀ a, fintype (β a)] :
@@ -761,6 +761,7 @@ namespace infinite
 lemma exists_not_mem_finset [infinite α] (s : finset α) : ∃ x, x ∉ s :=
 classical.not_forall.1 $ λ h, not_fintype ⟨s, h⟩
 
+@[priority 100] -- see Note [lower instance priority]
 instance nonempty (α : Type*) [infinite α] : nonempty α :=
 nonempty_of_exists (exists_not_mem_finset (∅ : finset α))
 

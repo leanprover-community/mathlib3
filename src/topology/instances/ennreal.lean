@@ -30,7 +30,7 @@ topological_space.generate_from {s | ∃a, s = {b | a < b} ∨ s = {b | b < a}}
 
 instance : orderable_topology ennreal := ⟨rfl⟩
 
-instance : t2_space ennreal := by apply_instance
+instance : t2_space ennreal := by apply_instance -- short-circuit type class inference
 
 instance : second_countable_topology ennreal :=
 ⟨⟨⋃q ≥ (0:ℚ), {{a : ennreal | a < nnreal.of_real q}, {a : ennreal | ↑(nnreal.of_real q) < a}},

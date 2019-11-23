@@ -79,6 +79,8 @@ end
 
 end ring_commutator
 
+section prio
+set_option default_priority 100 -- see Note [default priority]
 /--
 A Lie ring is an additive group with compatible product, known as the bracket, satisfying the
 Jacobi identity. The bracket is not associative unless it is identically zero.
@@ -88,6 +90,7 @@ class lie_ring (L : Type v) [add_comm_group L] extends has_bracket L :=
 (lie_add : ∀ (x y z : L), ⁅z, x + y⁆ = ⁅z, x⁆ + ⁅z, y⁆)
 (lie_self : ∀ (x : L), ⁅x, x⁆ = 0)
 (jacobi : ∀ (x y z : L), ⁅x, ⁅y, z⁆⁆ + ⁅y, ⁅z, x⁆⁆ + ⁅z, ⁅x, y⁆⁆ = 0)
+end prio
 
 section lie_ring
 
@@ -150,6 +153,8 @@ def lie_ring.of_associative_ring (A : Type v) [ring A] : lie_ring A :=
 
 end lie_ring
 
+section prio
+set_option default_priority 100 -- see Note [default priority]
 /--
 A Lie algebra is a module with compatible product, known as the bracket, satisfying the Jacobi
 identity. Forgetting the scalar multiplication, every Lie algebra is a Lie ring.
@@ -157,6 +162,7 @@ identity. Forgetting the scalar multiplication, every Lie algebra is a Lie ring.
 class lie_algebra (R : Type u) (L : Type v)
   [comm_ring R] [add_comm_group L] extends module R L, lie_ring L :=
 (lie_smul : ∀ (t : R) (x y : L), ⁅x, t • y⁆ = t • ⁅x, y⁆)
+end prio
 
 @[simp] lemma lie_smul  (R : Type u) (L : Type v) [comm_ring R] [add_comm_group L] [lie_algebra R L]
   (t : R) (x y : L) : ⁅x, t • y⁆ = t • ⁅x, y⁆ :=

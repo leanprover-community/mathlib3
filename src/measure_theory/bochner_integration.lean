@@ -187,7 +187,7 @@ begin
   { assume b, rw ennreal.lt_top_iff_ne_top, exact ennreal.of_real_ne_top  }
 end
 
-/-- `simple_func.bintegral` and `lintegral : (α → ennreal) → ennreal` agrees when the integrand has
+/-- `simple_func.bintegral` and `lintegral : (α → ennreal) → ennreal` agree when the integrand has
     type `α →ₛ ennreal`. But since `ennreal` is not a `normed_space`, we need some form of coercion. -/
 lemma bintegral_eq_lintegral' {f : α →ₛ ℝ} (hf : integrable f) (h_pos : ∀ₘ a, 0 ≤ f a) :
   f.bintegral = ennreal.to_real (∫⁻ a, (f.map ennreal.of_real a)) :=

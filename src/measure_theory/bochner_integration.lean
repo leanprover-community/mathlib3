@@ -170,7 +170,7 @@ begin
     simp only [this, pair_apply, zero_smul, ennreal.zero_to_real] },
 end
 
-/-- `simple_func.bintegral` and `simple_func.integral` agrees when the integrand has type
+/-- `simple_func.bintegral` and `simple_func.integral` agree when the integrand has type
     `α →ₛ ennreal`. But since `ennreal` is not a `normed_space`, we need some form of coercion. -/
 lemma bintegral_eq_integral' {f : α →ₛ ℝ} (hf : integrable f) (h_pos : ∀ₘ a, 0 ≤ f a) :
   f.bintegral = ennreal.to_real (f.map ennreal.of_real).integral :=

@@ -2,25 +2,32 @@
 Copyright (c) 2019 Chris Hughes. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Chris Hughes
+-/
+
+import ring_theory.noetherian linear_algebra.dimension
+import ring_theory.principal_ideal_domain
+
+/-!
+# Finite dimensional vector spaces
 
 Definition and basic properties of finite dimensional vector spaces.
+
+## Main definitions
 
 The class `finite_dimensional` is defined to be `is_noetherian`, for ease of transfer of proofs.
 However an additional constructor `finite_dimensional.of_fg` is provided to prove
 finite dimensionality in a conventional manner.
 
 Also defined is `findim`, the dimension of a finite dimensional space, returning a `nat`,
-as opposed to `dim`, which returns a `cardinal`,
+as opposed to `dim`, which returns a `cardinal`.
 -/
-
-import ring_theory.noetherian linear_algebra.dimension
-import ring_theory.principal_ideal_domain
 
 universes u v w
 
 open vector_space cardinal submodule module function
 
-variables {K : Type u} {V : Type v} [discrete_field K] [add_comm_group V] [vector_space K V]
+variables {K : Type u} {V V₂ : Type v} [discrete_field K] [add_comm_group V] [vector_space K V]
+[add_comm_group V₂] [vector_space K V₂]
 
 /-- `finite_dimensional` vector spaces are defined to be noetherian modules.
   Use `finite_dimensional.of_fg` to prove finite dimensional from a conventional
@@ -71,6 +78,7 @@ end
 instance [finite_dimensional K V] (S : submodule K V) : finite_dimensional K S :=
 finite_dimensional_iff_dim_lt_omega.2 (lt_of_le_of_lt (dim_submodule_le _) (dim_lt_omega K V))
 
+/-- The dimension of a finite-dimensional vector space as a natural number -/
 noncomputable def findim (K V : Type*) [discrete_field K]
   [add_comm_group V] [vector_space K V] [finite_dimensional K V] : ℕ :=
 classical.some (lt_omega.1 (dim_lt_omega K V))
@@ -104,6 +112,23 @@ begin
   rw [this, map_top (submodule.subtype S), range_subtype],
 end
 
+/-- The dimension of a submodule is bounded by the dimension of the ambient space. -/
+lemma findim_submodule_le [finite_dimensional K V] (s : submodule K V) : findim K s ≤ findim K V :=
+begin
+  have := dim_submodule_le s,
+  rw [← findim_eq_dim, ← findim_eq_dim] at this,
+  exact_mod_cast this
+end
+
+variable (K)
+/-- A field is one-dimensional as a vector space over itself. -/
+@[simp] lemma findim_of_field : findim K K = 1 :=
+begin
+  have := dim_of_field K,
+  rw [← findim_eq_dim] at this,
+  exact_mod_cast this
+end
+
 /-- The vector space of functions on a fintype has finite dimension. -/
 instance finite_dimensional_fintype_fun {ι : Type*} [fintype ι] :
   finite_dimensional K (ι → K) :=
@@ -124,6 +149,8 @@ end
 @[simp] lemma findim_fin_fun {n : ℕ} : findim K (fin n → K) = n :=
 by simp
 
+variable {K}
+
 section
 
 variables {ι : Type w} [fintype ι] [decidable_eq V]
@@ -139,6 +166,16 @@ finite_dimensional.of_fg $ fg_of_finite_basis h
 lemma dim_eq_card : dim K V = fintype.card ι :=
 by rw [←h.mk_range_eq_dim, cardinal.fintype_card,
        set.card_range_of_injective (h.injective zero_ne_one)]
+
+/-- The findim of a vector space is equal to the cardinality of any basis. -/
+lemma findim_eq_card : by { haveI : finite_dimensional K V := finite_dimensional_of_finite_basis h,
+  exact findim K V = fintype.card ι } :=
+begin
+  haveI : finite_dimensional K V := finite_dimensional_of_finite_basis h,
+  have := dim_eq_card h,
+  rw ← findim_eq_dim at this,
+  exact_mod_cast this
+end
 
 end
 
@@ -184,5 +221,22 @@ by rw [← mul_assoc, hfg, one_mul, mul_one] at this; rwa ← this
 
 lemma mul_eq_one_comm [finite_dimensional K V] {f g : V →ₗ[K] V} : f * g = 1 ↔ g * f = 1 :=
 ⟨mul_eq_one_of_mul_eq_one, mul_eq_one_of_mul_eq_one⟩
+
+instance finite_dimensional_range [h : finite_dimensional K V] (f : V →ₗ[K] V₂) :
+  finite_dimensional K f.range :=
+begin
+  rw finite_dimensional_iff_dim_lt_omega at h ⊢,
+  exact lt_of_le_of_lt (dim_range_le f) h
+end
+
+/-- rank-nullity theorem -/
+theorem findim_range_add_findim_ker [finite_dimensional K V] (f : V →ₗ[K] V₂) :
+  findim K f.range + findim K f.ker = findim K V :=
+begin
+  classical,
+  have := dim_range_add_dim_ker f,
+  rw [← findim_eq_dim, ← findim_eq_dim, ← findim_eq_dim] at this,
+  exact_mod_cast this
+end
 
 end linear_map

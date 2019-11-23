@@ -5,7 +5,7 @@ Author: Simon Hudon
 
 Monad encapsulating continuation passing programming style, similar to
 Haskell's `Cont`, `ContT` and `MonadCont`:
-http://hackage.haskell.org/package/mtl-2.2.2/docs/Control-Monad-Cont.html
+<http://hackage.haskell.org/package/mtl-2.2.2/docs/Control-Monad-Cont.html>
 -/
 
 import tactic.ext
@@ -23,6 +23,8 @@ class monad_cont (m : Type u → Type v) :=
 
 open monad_cont
 
+section prio
+set_option default_priority 100 -- see Note [default priority]
 class is_lawful_monad_cont (m : Type u → Type v) [monad m] [monad_cont m]
 extends is_lawful_monad m :=
 (call_cc_bind_right {α ω γ} (cmd : m α) (next : (label ω m γ) → α → m ω) :
@@ -31,6 +33,7 @@ extends is_lawful_monad m :=
   call_cc (λ f : label α m β, goto f x >>= dead f) = pure x)
 (call_cc_dummy {α β} (dummy : m α) :
   call_cc (λ f : label α m β, dummy) = dummy)
+end prio
 
 export is_lawful_monad_cont
 

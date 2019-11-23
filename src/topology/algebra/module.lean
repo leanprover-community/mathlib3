@@ -12,6 +12,8 @@ open topological_space
 
 universes u v w u'
 
+section prio
+set_option default_priority 100 -- see Note [default priority]
 /-- A topological semimodule, over a semiring which is also a topological space, is a
 semimodule in which scalar multiplication is continuous. In applications, α will be a topological
 semiring and β a topological additive semigroup, but this is not needed for the definition -/
@@ -20,6 +22,7 @@ class topological_semimodule (α : Type u) (β : Type v)
   [topological_space β] [add_comm_monoid β]
   [semimodule α β] : Prop :=
 (continuous_smul : continuous (λp : α × β, p.1 • p.2))
+end prio
 
 section
 
@@ -37,6 +40,8 @@ continuous_smul'.comp (hf.prod_mk hg)
 
 end
 
+section prio
+set_option default_priority 100 -- see Note [default priority]
 /-- A topological module, over a ring which is also a topological space, is a module in which
 scalar multiplication is continuous. In applications, α will be a topological ring and β a
 topological additive group, but this is not needed for the definition -/
@@ -51,6 +56,7 @@ class topological_vector_space (α : Type u) (β : Type v)
   [discrete_field α] [topological_space α]
   [topological_space β] [add_comm_group β] [vector_space α β]
   extends topological_module α β
+end prio
 
 /-- Continuous linear maps between modules. We only put the type classes that are necessary for the
 definition, although in applications β and γ will be topological modules over the topological
@@ -125,6 +131,8 @@ instance : has_one (β →L[α] β) := ⟨id⟩
 @[simp, elim_cast] lemma coe_id : ((id : β →L[α] β) : β →ₗ[α] β) = linear_map.id := rfl
 @[simp, elim_cast] lemma coe_id' : ((id : β →L[α] β) : β → β) = _root_.id := rfl
 
+@[simp] lemma one_apply : (1 : β →L[α] β) x = x := rfl
+
 section add
 variables [topological_add_group γ]
 
@@ -195,11 +203,28 @@ variables (c : α) (f g : β →L[α] γ) (x y z : β)
 @[simp, move_cast] lemma coe_apply : (((c • f) : β →L[α] γ) : β →ₗ[α] γ) = c • (f : β →ₗ[α] γ) := rfl
 @[move_cast] lemma coe_apply' : (((c • f) : β →L[α] γ) : β → γ) = c • (f : β → γ) := rfl
 
-/-- Associating to a scalar-valued linear map and an element of `γ` the
-`γ`-valued linear map obtained by multiplying the two (a.k.a. tensoring by `γ`) -/
+/-- The linear map `λ x, c x • f`.  Associates to a scalar-valued linear map and an element of
+`γ` the `γ`-valued linear map obtained by multiplying the two (a.k.a. tensoring by `γ`) -/
 def smul_right (c : β →L[α] α) (f : γ) : β →L[α] γ :=
 { cont := continuous_smul c.2 continuous_const,
   ..c.to_linear_map.smul_right f }
+
+@[simp]
+lemma smul_right_apply {c : β →L[α] α} {f : γ} {x : β} :
+  (smul_right c f : β → γ) x = (c : β → α) x • f :=
+rfl
+
+@[simp]
+lemma smul_right_one_one (c : α →L[α] γ) : smul_right 1 ((c : α → γ) 1) = c :=
+by ext; simp [-continuous_linear_map.map_smul, (continuous_linear_map.map_smul _ _ _).symm]
+
+@[simp]
+lemma smul_right_one_eq_iff {f f' : γ} :
+  smul_right (1 : α →L[α] α) f = smul_right 1 f' ↔ f = f' :=
+⟨λ h, have (smul_right (1 : α →L[α] α) f : α → γ) 1 = (smul_right (1 : α →L[α] α) f' : α → γ) 1,
+        by rw h,
+      by simp at this; assumption,
+  by cc⟩
 
 variable [topological_add_group γ]
 

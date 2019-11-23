@@ -40,7 +40,7 @@ reason about arbitrary partial orders.
  * Tarjan, R. E. (1972), "Depth-first search and linear graph algorithms",
    SIAM Journal on Computing, 1 (2): 146–160, doi:10.1137/0201010
  * Dijkstra, Edsger (1976), A Discipline of Programming, NJ: Prentice Hall, Ch. 25.
- * https://en.wikipedia.org/wiki/Disjoint-set_data_structure
+ * <https://en.wikipedia.org/wiki/Disjoint-set_data_structure>
 
 ## Tags
 
@@ -85,7 +85,7 @@ transitivity on `p₂`, `p₁` and `p₃.symm` in that order.
 Similarly, we can discover that `e₂` and `e₅` aren't equivalent.
 
 A description of the path compression optimization can be found at:
-https://en.wikipedia.org/wiki/Disjoint-set_data_structure#Path_compression
+<https://en.wikipedia.org/wiki/Disjoint-set_data_structure#Path_compression>
 
 -/
 meta def closure := ref (expr_map (ℕ ⊕ (expr × expr)))

@@ -60,9 +60,9 @@ lemma forall_iff {p : fin n → Prop} : (∀ i, p i) ↔ ∀ i h, p ⟨i, h⟩ :
 
 lemma zero_le (a : fin (n + 1)) : 0 ≤ a := zero_le a.1
 
-lemma lt_iff_val_lt_val : a < b ↔ a.val < b.val := iff.refl _
+lemma lt_iff_val_lt_val : a < b ↔ a.val < b.val := iff.rfl
 
-lemma le_iff_val_le_val : a ≤ b ↔ a.val ≤ b.val := iff.refl _
+lemma le_iff_val_le_val : a ≤ b ↔ a.val ≤ b.val := iff.rfl
 
 @[simp] lemma succ_val (j : fin n) : j.succ.val = j.val.succ :=
 by cases j; simp [fin.succ]

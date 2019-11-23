@@ -10,7 +10,7 @@ open interactive interactive.types
 open lean.parser nat tactic
 
 /--
-`derive_struct_ext_lemma n` generates an extensionality lemma based on
+`derive_struct_ext_lemma n` generates two extensionality lemmas based on
 the equality of all non-propositional projections.
 
 On the following:
@@ -27,7 +27,8 @@ structure foo (α : Type*) :=
 `derive_struct_lemma` generates:
 
 ```
-foo.ext : ∀ {α : Type u_1} (x y : foo α), x.x = y.x → x.y = y.y → x.z == y.z → x.k = y.k → x = y
+lemma foo.ext : ∀ {α : Type u_1} (x y : foo α), x.x = y.x → x.y = y.y → x.z == y.z → x.k = y.k → x = y
+lemma foo.ext_iff : ∀ {α : Type u_1} (x y : foo α), x = y ↔ x.x = y.x ∧ x.y = y.y ∧ x.z == y.z ∧ x.k = y.k
 ```
 
 -/
@@ -38,7 +39,7 @@ do e ← get_env,
    n ← resolve_constant n,
    let r := @expr.const tt n $ d.univ_params.map level.param,
    (args,_) ← infer_type r >>= mk_local_pis,
-   let args := args.map expr.to_implicit,
+   let args := args.map expr.to_implicit_local_const,
    let t := r.mk_app args,
    x ← mk_local_def `x t,
    y ← mk_local_def `y t,
@@ -61,8 +62,8 @@ do e ← get_env,
                 else mk_mapp `heq [none,x,none,y] >>= mk_local_def `h
             else pure none },
    let bs := bs.filter_map id,
-   t ← mk_app `eq [x,y],
-   t ← pis (args ++ [x,y] ++ bs) t,
+   eq_t ← mk_app `eq [x,y],
+   t ← pis (args ++ [x,y] ++ bs) eq_t,
    pr ← run_async $
      do { (_,pr) ← solve_aux t (do
           { args ← intron args.length,
@@ -74,7 +75,29 @@ do e ← get_env,
             reflexivity }),
           instantiate_mvars pr },
    let decl_n := n <.> "ext",
-   decl_n <$ add_decl (declaration.thm decl_n d.univ_params t pr)
+   add_decl (declaration.thm decl_n d.univ_params t pr),
+   bs ← bs.mmap infer_type,
+   let rhs := expr.mk_and_lst bs,
+   iff_t ← mk_app `iff [eq_t,rhs],
+   t ← pis (args ++ [x,y]) iff_t,
+   pr ← run_async $
+     do { (_,pr) ← solve_aux t $ do
+          { args ← intron args.length,
+            x ← intro1, y ← intro1,
+            cases x, cases y,
+            split,
+            solve1 $ do
+            { h ← intro1, hs ← injection h, subst_vars,
+              repeat (refine ``( and.intro _ _ ) >> reflexivity ),
+              done <|> reflexivity },
+            solve1 $ do
+            { repeat (do refine ``(and_imp.mpr _),
+                         h ← intro1, cases h, skip ),
+              h ← intro1, cases h,
+              reflexivity }  },
+          instantiate_mvars pr },
+   add_decl (declaration.thm (n <.> "ext_iff") d.univ_params t pr),
+   pure decl_n
 
 meta def get_ext_subject : expr → tactic name
 | (expr.pi n bi d b) :=
@@ -202,6 +225,7 @@ do e  ← saturate_fun n,
 
  ```
  @[ext] lemma foo.ext : ∀ {α : Type u_1} (x y : foo α), x.x = y.x → x.y = y.y → x.z == y.z → x.k = y.k → x = y
+ lemma foo.ext_iff : ∀ {α : Type u_1} (x y : foo α), x = y ↔ x.x = y.x ∧ x.y = y.y ∧ x.z == y.z ∧ x.k = y.k
  ```
 
  -/

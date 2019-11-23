@@ -9,14 +9,14 @@ import analysis.normed_space.basic algebra.geom_sum
 import topology.instances.ennreal
 
 noncomputable theory
-open_locale classical
+open_locale classical topological_space
 
 open classical function lattice filter finset metric
 
 variables {α : Type*} {β : Type*} {ι : Type*}
 
 lemma summable_of_absolute_convergence_real {f : ℕ → ℝ} :
-  (∃r, tendsto (λn, (range n).sum (λi, abs (f i))) at_top (nhds r)) → summable f
+  (∃r, tendsto (λn, (range n).sum (λi, abs (f i))) at_top (𝓝 r)) → summable f
 | ⟨r, hr⟩ :=
   begin
     refine summable_of_summable_norm ⟨r, (has_sum_iff_tendsto_nat_of_nonneg _ _).2 _⟩,
@@ -24,22 +24,14 @@ lemma summable_of_absolute_convergence_real {f : ℕ → ℝ} :
     simpa only using hr
   end
 
-lemma tendsto_pow_at_top_at_top_of_gt_1 {r : ℝ} (h : r > 1) : tendsto (λn:ℕ, r ^ n) at_top at_top :=
-tendsto_infi.2 $ assume p, tendsto_principal.2 $
-  let ⟨n, hn⟩ := exists_nat_gt (p / (r - 1)) in
-  have hn_nn : (0:ℝ) ≤ n, from nat.cast_nonneg n,
-  have r - 1 > 0, from sub_lt_iff_lt_add.mp $ by simp; assumption,
-  have p ≤ r ^ n,
-    from calc p = (p / (r - 1)) * (r - 1) : (div_mul_cancel _ $ ne_of_gt this).symm
-      ... ≤ n * (r - 1) : mul_le_mul (le_of_lt hn) (le_refl _) (le_of_lt this) hn_nn
-      ... ≤ 1 + n * (r - 1) : le_add_of_nonneg_of_le zero_le_one (le_refl _)
-      ... = 1 + add_monoid.smul n (r - 1) : by rw [add_monoid.smul_eq_mul]
-      ... ≤ (1 + (r - 1)) ^ n : one_add_mul_le_pow (le_of_lt this) _
-      ... ≤ r ^ n : by simp; exact le_refl _,
-  show {n | p ≤ r ^ n} ∈ at_top,
-    from mem_at_top_sets.mpr ⟨n, assume m hnm, le_trans this (pow_le_pow (le_of_lt h) hnm)⟩
+lemma tendsto_pow_at_top_at_top_of_gt_1 {r : ℝ} (h : r > 1) :
+  tendsto (λn:ℕ, r ^ n) at_top at_top :=
+(tendsto_at_top_at_top _).2 $ assume p,
+  let ⟨n, hn⟩ := pow_unbounded_of_one_lt p h in
+  ⟨n, λ m hnm, le_of_lt $
+    lt_of_lt_of_le hn (pow_le_pow (le_of_lt h) hnm)⟩
 
-lemma tendsto_inverse_at_top_nhds_0 : tendsto (λr:ℝ, r⁻¹) at_top (nhds 0) :=
+lemma tendsto_inverse_at_top_nhds_0 : tendsto (λr:ℝ, r⁻¹) at_top (𝓝 0) :=
 tendsto_orderable_unbounded (no_top 0) (no_bot 0) $ assume l u hl hu,
   mem_at_top_sets.mpr ⟨u⁻¹ + 1, assume b hb,
     have u⁻¹ < b, from lt_of_lt_of_le (lt_add_of_pos_right _ zero_lt_one) hb,
@@ -52,17 +44,17 @@ tendsto_orderable_unbounded (no_top 0) (no_bot 0) $ assume l u hl hu,
     end⟩⟩
 
 lemma tendsto_pow_at_top_nhds_0_of_lt_1 {r : ℝ} (h₁ : 0 ≤ r) (h₂ : r < 1) :
-  tendsto (λn:ℕ, r^n) at_top (nhds 0) :=
+  tendsto (λn:ℕ, r^n) at_top (𝓝 0) :=
 by_cases
   (assume : r = 0, (tendsto_add_at_top_iff_nat 1).mp $ by simp [pow_succ, this, tendsto_const_nhds])
   (assume : r ≠ 0,
-    have tendsto (λn, (r⁻¹ ^ n)⁻¹) at_top (nhds 0),
+    have tendsto (λn, (r⁻¹ ^ n)⁻¹) at_top (𝓝 0),
       from tendsto.comp tendsto_inverse_at_top_nhds_0
         (tendsto_pow_at_top_at_top_of_gt_1 $ one_lt_inv (lt_of_le_of_ne h₁ this.symm) h₂),
     tendsto.congr' (univ_mem_sets' $ by simp *) this)
 
 lemma tendsto_pow_at_top_nhds_0_of_lt_1_normed_field {K : Type*} [normed_field K] {ξ : K}
-  (_ : ∥ξ∥ < 1) : tendsto (λ n : ℕ, ξ^n) at_top (nhds 0) :=
+  (_ : ∥ξ∥ < 1) : tendsto (λ n : ℕ, ξ^n) at_top (𝓝 0) :=
 begin
   rw[tendsto_iff_norm_tendsto_zero],
   convert tendsto_pow_at_top_nhds_0_of_lt_1 (norm_nonneg ξ) ‹∥ξ∥ < 1›,
@@ -76,15 +68,15 @@ tendsto_coe_nat_real_at_top_iff.1 $
   have hr : 1 < (k : ℝ), by rw [← nat.cast_one, nat.cast_lt]; exact h,
   by simpa using tendsto_pow_at_top_at_top_of_gt_1 hr
 
-lemma tendsto_inverse_at_top_nhds_0_nat : tendsto (λ n : ℕ, (n : ℝ)⁻¹) at_top (nhds 0) :=
+lemma tendsto_inverse_at_top_nhds_0_nat : tendsto (λ n : ℕ, (n : ℝ)⁻¹) at_top (𝓝 0) :=
 tendsto.comp tendsto_inverse_at_top_nhds_0 (tendsto_coe_nat_real_at_top_iff.2 tendsto_id)
 
-lemma tendsto_one_div_at_top_nhds_0_nat : tendsto (λ n : ℕ, 1/(n : ℝ)) at_top (nhds 0) :=
+lemma tendsto_one_div_at_top_nhds_0_nat : tendsto (λ n : ℕ, 1/(n : ℝ)) at_top (𝓝 0) :=
 by simpa only [inv_eq_one_div] using tendsto_inverse_at_top_nhds_0_nat
 
 lemma tendsto_one_div_add_at_top_nhds_0_nat :
-  tendsto (λ n : ℕ, 1 / ((n : ℝ) + 1)) at_top (nhds 0) :=
-suffices tendsto (λ n : ℕ, 1 / (↑(n + 1) : ℝ)) at_top (nhds 0), by simpa,
+  tendsto (λ n : ℕ, 1 / ((n : ℝ) + 1)) at_top (𝓝 0) :=
+suffices tendsto (λ n : ℕ, 1 / (↑(n + 1) : ℝ)) at_top (𝓝 0), by simpa,
 (tendsto_add_at_top_iff_nat 1).2 tendsto_one_div_at_top_nhds_0_nat
 
 lemma has_sum_geometric {r : ℝ} (h₁ : 0 ≤ r) (h₂ : r < 1) :
@@ -92,7 +84,7 @@ lemma has_sum_geometric {r : ℝ} (h₁ : 0 ≤ r) (h₂ : r < 1) :
 have r ≠ 1, from ne_of_lt h₂,
 have r + -1 ≠ 0,
   by rw [←sub_eq_add_neg, ne, sub_eq_iff_eq_add]; simp; assumption,
-have tendsto (λn, (r ^ n - 1) * (r - 1)⁻¹) at_top (nhds ((0 - 1) * (r - 1)⁻¹)),
+have tendsto (λn, (r ^ n - 1) * (r - 1)⁻¹) at_top (𝓝 ((0 - 1) * (r - 1)⁻¹)),
   from tendsto_mul
     (tendsto_sub (tendsto_pow_at_top_nhds_0_of_lt_1 h₁ h₂) tendsto_const_nhds) tendsto_const_nhds,
 have (λ n, (range n).sum (λ i, r ^ i)) = (λ n, geom_series r n) := rfl,

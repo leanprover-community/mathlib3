@@ -27,6 +27,7 @@ import topology.metric_space.basic topology.algebra.uniform_group
 noncomputable theory
 open classical set lattice filter topological_space metric
 open_locale classical
+open_locale topological_space
 
 universes u v w
 variables {α : Type u} {β : Type v} {γ : Type w}
@@ -38,6 +39,9 @@ theorem rat.dist_eq (x y : ℚ) : dist x y = abs (x - y) := rfl
 
 @[elim_cast, simp] lemma rat.dist_cast (x y : ℚ) : dist (x : ℝ) y = dist x y := rfl
 
+section low_prio
+-- we want to ignore this instance for the next declaration
+local attribute [instance, priority 10] int.uniform_space
 instance : metric_space ℤ :=
 begin
   letI M := metric_space.induced coe int.cast_injective real.metric_space,
@@ -48,6 +52,7 @@ begin
   simpa using (@int.cast_le ℝ _ _ 0).2 (int.lt_add_one_iff.1 $
     (@int.cast_lt ℝ _ (abs (a - b)) 1).1 $ by simpa using h)
 end
+end low_prio
 
 theorem int.dist_eq (x y : ℤ) : dist x y = abs (x - y) := rfl
 
@@ -98,6 +103,7 @@ uniform_add_group.mk' real.uniform_continuous_add real.uniform_continuous_neg
 instance : uniform_add_group ℚ :=
 uniform_add_group.mk' rat.uniform_continuous_add rat.uniform_continuous_neg
 
+ -- short-circuit type class inference
 instance : topological_add_group ℝ := by apply_instance
 instance : topological_add_group ℚ := by apply_instance
 
@@ -149,7 +155,7 @@ metric.uniform_continuous_iff.2 $ λ ε ε0,
 lemma rat.continuous_abs : continuous (abs : ℚ → ℚ) :=
 rat.uniform_continuous_abs.continuous
 
-lemma real.tendsto_inv {r : ℝ} (r0 : r ≠ 0) : tendsto (λq, q⁻¹) (nhds r) (nhds r⁻¹) :=
+lemma real.tendsto_inv {r : ℝ} (r0 : r ≠ 0) : tendsto (λq, q⁻¹) (𝓝 r) (𝓝 r⁻¹) :=
 by rw ← abs_pos_iff at r0; exact
 tendsto_of_uniform_continuous_subtype
   (real.uniform_continuous_inv {x | abs r / 2 < abs x} (half_pos r0) (λ x h, le_of_lt h))
@@ -196,7 +202,7 @@ tendsto_of_uniform_continuous_subtype
 instance : topological_ring ℝ :=
 { continuous_mul := real.continuous_mul, ..real.topological_add_group }
 
-instance : topological_semiring ℝ := by apply_instance
+instance : topological_semiring ℝ := by apply_instance  -- short-circuit type class inference
 
 lemma rat.continuous_mul : continuous (λp : ℚ × ℚ, p.1 * p.2) :=
 embedding_of_rat.continuous_iff.2 $ by simp [(∘)]; exact
@@ -344,7 +350,7 @@ instance : proper_space ℝ :=
 open real
 
 lemma real.intermediate_value {f : ℝ → ℝ} {a b t : ℝ}
-  (hf : ∀ x, a ≤ x → x ≤ b → tendsto f (nhds x) (nhds (f x)))
+  (hf : ∀ x, a ≤ x → x ≤ b → tendsto f (𝓝 x) (𝓝 (f x)))
   (ha : f a ≤ t) (hb : t ≤ f b) (hab : a ≤ b) : ∃ x : ℝ, a ≤ x ∧ x ≤ b ∧ f x = t :=
 let x := real.Sup {x | f x ≤ t ∧ a ≤ x ∧ x ≤ b} in
 have hx₁ : ∃ y, ∀ g ∈ {x | f x ≤ t ∧ a ≤ x ∧ x ≤ b}, g ≤ y := ⟨b, λ _ h, h.2.2⟩,
@@ -388,7 +394,7 @@ have hxb : x ≤ b, from (Sup_le _ hx₂ hx₁).2 (λ _ h, h.2.2),
         end)⟩
 
 lemma real.intermediate_value' {f : ℝ → ℝ} {a b t : ℝ}
-  (hf : ∀ x, a ≤ x → x ≤ b → tendsto f (nhds x) (nhds (f x)))
+  (hf : ∀ x, a ≤ x → x ≤ b → tendsto f (𝓝 x) (𝓝 (f x)))
   (ha : t ≤ f a) (hb : f b ≤ t) (hab : a ≤ b) : ∃ x : ℝ, a ≤ x ∧ x ≤ b ∧ f x = t :=
 let ⟨x, hx₁, hx₂, hx₃⟩ := @real.intermediate_value
   (λ x, - f x) a b (-t) (λ x hax hxb, tendsto_neg (hf x hax hxb))
@@ -404,7 +410,7 @@ lemma real.bounded_iff_bdd_below_bdd_above {s : set ℝ} : bounded s ↔ bdd_bel
 end,
 begin
   rintros ⟨⟨m, hm⟩, ⟨M, hM⟩⟩,
-  have I : s ⊆ Icc m M := λx hx, ⟨hm x hx, hM x hx⟩,
+  have I : s ⊆ Icc m M := λx hx, ⟨hm hx, hM hx⟩,
   have : Icc m M = closed_ball ((m+M)/2) ((M-m)/2) :=
     by rw closed_ball_Icc; congr; ring,
   rw this at I,

@@ -12,13 +12,15 @@ import group_theory.quotient_group
 import topology.algebra.monoid topology.homeomorph
 
 open classical set lattice filter topological_space
-open_locale classical
+open_locale classical topological_space
 
 universes u v w
 variables {α : Type u} {β : Type v} {γ : Type w}
 
 section topological_group
 
+section prio
+set_option default_priority 100 -- see Note [default priority]
 /-- A topological (additive) group is a group in which the addition and negation operations are
 continuous. -/
 class topological_add_group (α : Type u) [topological_space α] [add_group α]
@@ -31,6 +33,7 @@ continuous. -/
 class topological_group (α : Type*) [topological_space α] [group α]
   extends topological_monoid α : Prop :=
 (continuous_inv : continuous (λa:α, a⁻¹))
+end prio
 
 variables [topological_space α] [group α]
 
@@ -50,7 +53,7 @@ continuous_inv'.comp_continuous_on hf
 
 @[to_additive]
 lemma tendsto_inv [topological_group α] {f : β → α} {x : filter β} {a : α}
-  (hf : tendsto f x (nhds a)) : tendsto (λx, (f x)⁻¹) x (nhds a⁻¹) :=
+  (hf : tendsto f x (𝓝 a)) : tendsto (λx, (f x)⁻¹) x (𝓝 a⁻¹) :=
 tendsto.comp (continuous_iff_continuous_at.mp (topological_group.continuous_inv α) a) hf
 
 @[to_additive topological_add_group]
@@ -98,10 +101,10 @@ protected def homeomorph.inv (α : Type*) [topological_space α] [group α] [top
   .. equiv.inv α }
 
 @[to_additive exists_nhds_half]
-lemma exists_nhds_split [topological_group α] {s : set α} (hs : s ∈ nhds (1 : α)) :
-  ∃ V ∈ nhds (1 : α), ∀ v w ∈ V, v * w ∈ s :=
+lemma exists_nhds_split [topological_group α] {s : set α} (hs : s ∈ 𝓝 (1 : α)) :
+  ∃ V ∈ 𝓝 (1 : α), ∀ v w ∈ V, v * w ∈ s :=
 begin
-  have : ((λa:α×α, a.1 * a.2) ⁻¹' s) ∈ nhds ((1, 1) : α × α) :=
+  have : ((λa:α×α, a.1 * a.2) ⁻¹' s) ∈ 𝓝 ((1, 1) : α × α) :=
     tendsto_mul' (by simpa using hs),
   rw nhds_prod_eq at this,
   rcases mem_prod_iff.1 this with ⟨V₁, H₁, V₂, H₂, H⟩,
@@ -109,20 +112,20 @@ begin
 end
 
 @[to_additive exists_nhds_half_neg]
-lemma exists_nhds_split_inv [topological_group α] {s : set α} (hs : s ∈ nhds (1 : α)) :
-  ∃ V ∈ nhds (1 : α), ∀ v w ∈ V, v * w⁻¹ ∈ s :=
+lemma exists_nhds_split_inv [topological_group α] {s : set α} (hs : s ∈ 𝓝 (1 : α)) :
+  ∃ V ∈ 𝓝 (1 : α), ∀ v w ∈ V, v * w⁻¹ ∈ s :=
 begin
-  have : tendsto (λa:α×α, a.1 * (a.2)⁻¹) ((nhds (1:α)).prod (nhds (1:α))) (nhds 1),
-  { simpa using tendsto_mul (@tendsto_fst α α (nhds 1) (nhds 1)) (tendsto_inv tendsto_snd) },
-  have : ((λa:α×α, a.1 * (a.2)⁻¹) ⁻¹' s) ∈ (nhds (1:α)).prod (nhds (1:α)) :=
+  have : tendsto (λa:α×α, a.1 * (a.2)⁻¹) ((𝓝 (1:α)).prod (𝓝 (1:α))) (𝓝 1),
+  { simpa using tendsto_mul (@tendsto_fst α α (𝓝 1) (𝓝 1)) (tendsto_inv tendsto_snd) },
+  have : ((λa:α×α, a.1 * (a.2)⁻¹) ⁻¹' s) ∈ (𝓝 (1:α)).prod (𝓝 (1:α)) :=
     this (by simpa using hs),
   rcases mem_prod_iff.1 this with ⟨V₁, H₁, V₂, H₂, H⟩,
   exact ⟨V₁ ∩ V₂, inter_mem_sets H₁ H₂, assume v w ⟨hv, _⟩ ⟨_, hw⟩, @H (v, w) ⟨hv, hw⟩⟩
 end
 
 @[to_additive exists_nhds_quarter]
-lemma exists_nhds_split4 [topological_group α] {u : set α} (hu : u ∈ nhds (1 : α)) :
-  ∃ V ∈ nhds (1 : α), ∀ {v w s t}, v ∈ V → w ∈ V → s ∈ V → t ∈ V → v * w * s * t ∈ u :=
+lemma exists_nhds_split4 [topological_group α] {u : set α} (hu : u ∈ 𝓝 (1 : α)) :
+  ∃ V ∈ 𝓝 (1 : α), ∀ {v w s t}, v ∈ V → w ∈ V → s ∈ V → t ∈ V → v * w * s * t ∈ u :=
 begin
   rcases exists_nhds_split hu with ⟨W, W_nhd, h⟩,
   rcases exists_nhds_split W_nhd with ⟨V, V_nhd, h'⟩,
@@ -134,10 +137,10 @@ end
 section
 variable (α)
 @[to_additive]
-lemma nhds_one_symm [topological_group α] : comap (λr:α, r⁻¹) (nhds (1 : α)) = nhds (1 : α) :=
+lemma nhds_one_symm [topological_group α] : comap (λr:α, r⁻¹) (𝓝 (1 : α)) = 𝓝 (1 : α) :=
 begin
-  have lim : tendsto (λr:α, r⁻¹) (nhds 1) (nhds 1),
-  { simpa using tendsto_inv (@tendsto_id α (nhds 1)) },
+  have lim : tendsto (λr:α, r⁻¹) (𝓝 1) (𝓝 1),
+  { simpa using tendsto_inv (@tendsto_id α (𝓝 1)) },
   refine comap_eq_of_inverse _ _ lim lim,
   { funext x, simp },
 end
@@ -145,13 +148,13 @@ end
 
 @[to_additive]
 lemma nhds_translation_mul_inv [topological_group α] (x : α) :
-  comap (λy:α, y * x⁻¹) (nhds 1) = nhds x :=
+  comap (λy:α, y * x⁻¹) (𝓝 1) = 𝓝 x :=
 begin
   refine comap_eq_of_inverse (λy:α, y * x) _ _ _,
   { funext x; simp },
-  { suffices : tendsto (λy:α, y * x⁻¹) (nhds x) (nhds (x * x⁻¹)), { simpa },
+  { suffices : tendsto (λy:α, y * x⁻¹) (𝓝 x) (𝓝 (x * x⁻¹)), { simpa },
     exact tendsto_mul tendsto_id tendsto_const_nhds },
-  { suffices : tendsto (λy:α, y * x) (nhds 1) (nhds (1 * x)), { simpa },
+  { suffices : tendsto (λy:α, y * x) (𝓝 1) (𝓝 (1 * x)), { simpa },
     exact tendsto_mul tendsto_id tendsto_const_nhds }
 end
 
@@ -236,14 +239,16 @@ lemma continuous_on.sub [topological_add_group α] [topological_space β] {f : �
 continuous_sub'.comp_continuous_on (hf.prod hg)
 
 lemma tendsto_sub [topological_add_group α] {f : β → α} {g : β → α} {x : filter β} {a b : α}
-  (hf : tendsto f x (nhds a)) (hg : tendsto g x (nhds b)) : tendsto (λx, f x - g x) x (nhds (a - b)) :=
+  (hf : tendsto f x (𝓝 a)) (hg : tendsto g x (𝓝 b)) : tendsto (λx, f x - g x) x (𝓝 (a - b)) :=
 by simp; exact tendsto_add hf (tendsto_neg hg)
 
-lemma nhds_translation [topological_add_group α] (x : α) : comap (λy:α, y - x) (nhds 0) = nhds x :=
+lemma nhds_translation [topological_add_group α] (x : α) : comap (λy:α, y - x) (𝓝 0) = 𝓝 x :=
 nhds_translation_add_neg x
 
 end topological_add_group
 
+section prio
+set_option default_priority 100 -- see Note [default priority]
 /-- additive group with a neighbourhood around 0.
 Only used to construct a topology and uniform space.
 
@@ -254,12 +259,14 @@ class add_group_with_zero_nhd (α : Type u) extends add_comm_group α :=
 (Z : filter α)
 (zero_Z {} : pure 0 ≤ Z)
 (sub_Z {} : tendsto (λp:α×α, p.1 - p.2) (Z.prod Z) Z)
+end prio
 
 namespace add_group_with_zero_nhd
 variables (α) [add_group_with_zero_nhd α]
 
 local notation `Z` := add_group_with_zero_nhd.Z
 
+@[priority 100] -- see Note [lower instance priority]
 instance : topological_space α :=
 topological_space.mk_of_nhds $ λa, map (λx, x + a) (Z α)
 
@@ -284,7 +291,7 @@ begin
   exact ⟨V₁ ∩ V₂, inter_mem_sets H₁ H₂, assume v w ⟨hv, _⟩ ⟨_, hw⟩, @H (v, w) ⟨hv, hw⟩⟩
 end
 
-lemma nhds_eq (a : α) : nhds a = map (λx, x + a) (Z α) :=
+lemma nhds_eq (a : α) : 𝓝 a = map (λx, x + a) (Z α) :=
 topological_space.nhds_mk_of_nhds _ _
   (assume a, calc pure a = map (λx, x + a) (pure 0) : by simp
     ... ≤ _ : map_mono zero_Z)
@@ -300,8 +307,9 @@ topological_space.nhds_mk_of_nhds _ _
         simpa using eqt _ _ hxt hb }
     end)
 
-lemma nhds_zero_eq_Z : nhds 0 = Z α := by simp [nhds_eq]; exact filter.map_id
+lemma nhds_zero_eq_Z : 𝓝 0 = Z α := by simp [nhds_eq]; exact filter.map_id
 
+@[priority 100] -- see Note [lower instance priority]
 instance : topological_add_monoid α :=
 ⟨ continuous_iff_continuous_at.2 $ assume ⟨a, b⟩,
   begin
@@ -313,6 +321,7 @@ instance : topological_add_monoid α :=
     exact tendsto_map.comp add_Z
   end⟩
 
+@[priority 100] -- see Note [lower instance priority]
 instance : topological_add_group α :=
 ⟨continuous_iff_continuous_at.2 $ assume a,
   begin
@@ -388,7 +397,7 @@ section
 variables [topological_space α] [comm_group α] [topological_group α]
 
 @[to_additive]
-lemma nhds_pointwise_mul (x y : α) : nhds (x * y) = nhds x * nhds y :=
+lemma nhds_pointwise_mul (x y : α) : 𝓝 (x * y) = 𝓝 x * 𝓝 y :=
 filter_eq $ set.ext $ assume s,
 begin
   rw [← nhds_translation_mul_inv x, ← nhds_translation_mul_inv y, ← nhds_translation_mul_inv (x*y)],
@@ -411,7 +420,7 @@ begin
 end
 
 @[to_additive]
-lemma nhds_is_mul_hom : is_mul_hom (λx:α, nhds x) := ⟨λ_ _, nhds_pointwise_mul _ _⟩
+lemma nhds_is_mul_hom : is_mul_hom (λx:α, 𝓝 x) := ⟨λ_ _, nhds_pointwise_mul _ _⟩
 
 end
 

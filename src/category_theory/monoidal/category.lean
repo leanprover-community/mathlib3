@@ -192,7 +192,7 @@ end
 --   = ((λ_ X).hom ⊗ (𝟙 Y))
 -- (and the corresponding fact for right unitors)
 -- following the proof on nLab:
--- Lemma 2.2 at https://ncatlab.org/nlab/revision/monoidal+category/115
+-- Lemma 2.2 at <https://ncatlab.org/nlab/revision/monoidal+category/115>
 
 lemma left_unitor_product_aux_perimeter (X Y : C) :
     ((α_ (𝟙_ C) (𝟙_ C) X).hom ⊗ (𝟙 Y)) ≫
@@ -276,7 +276,7 @@ begin
   rw [←right_unitor_product_aux_triangle, ←right_unitor_product_aux_perimeter],
 end
 
--- See Proposition 2.2.4 of http://www-math.mit.edu/~etingof/egnobookfinal.pdf
+-- See Proposition 2.2.4 of <http://www-math.mit.edu/~etingof/egnobookfinal.pdf>
 @[simp] lemma left_unitor_tensor (X Y : C) :
   ((α_ (𝟙_ C) X Y).hom) ≫ ((λ_ (X ⊗ Y)).hom) =
     ((λ_ X).hom ⊗ (𝟙 Y)) :=

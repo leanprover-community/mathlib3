@@ -185,6 +185,15 @@ def pointwise_mul_comm_semiring [comm_monoid α] : comm_semiring (set α) :=
 
 local attribute [instance] pointwise_mul_semiring
 
+def comm_monoid [comm_monoid α] : comm_monoid (set α) :=
+@comm_semiring.to_comm_monoid (set α) pointwise_mul_comm_semiring
+
+def add_comm_monoid [add_comm_monoid α] : add_comm_monoid (set α) :=
+show @add_comm_monoid (additive (set (multiplicative α))),
+from @additive.add_comm_monoid _ set.comm_monoid
+
+attribute [to_additive set.add_comm_monoid] set.comm_monoid
+
 section is_mul_hom
 open is_mul_hom
 

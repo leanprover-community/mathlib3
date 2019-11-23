@@ -91,9 +91,9 @@ is_monoid_hom.map_pow α.conj f n
 
 /-- `conj` defines a group isomorphisms between groups of automorphisms -/
 def conj_Aut : Aut X ≃* Aut Y :=
-(Aut.units_End_eqv_Aut X).symm.trans $
+(Aut.units_End_equiv_Aut X).symm.trans $
 (units.map_equiv α.conj).trans $
-Aut.units_End_eqv_Aut Y
+Aut.units_End_equiv_Aut Y
 
 lemma conj_Aut_apply (f : Aut X) : α.conj_Aut f = α.symm ≪≫ f ≪≫ α :=
 by cases f; cases α; ext; refl

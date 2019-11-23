@@ -150,7 +150,7 @@ end
 end is_bounded_linear_map
 
 section
-set_option class.instance_max_depth 180
+set_option class.instance_max_depth 240
 
 lemma is_bounded_linear_map_prod_iso :
   is_bounded_linear_map 𝕜 (λ(p : (E →L[𝕜] F) × (E →L[𝕜] G)),
@@ -301,7 +301,7 @@ end
 @[simp] lemma is_bounded_bilinear_map_deriv_coe (h : is_bounded_bilinear_map 𝕜 f) (p q : E × F) :
   h.deriv p q = f (p.1, q.2) + f (q.1, p.2) := rfl
 
-set_option class.instance_max_depth 95
+set_option class.instance_max_depth 100
 
 /-- Given a bounded bilinear map `f`, the map associating to a point `p` the derivative of `f` at
 `p` is itself a bounded linear map. -/

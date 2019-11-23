@@ -598,7 +598,7 @@ multiset.induction_on s (by simp; exact zero_ne_one.symm) $
 theorem irreducible_mk_iff (a : α) : irreducible (associates.mk a) ↔ irreducible a :=
 begin
   simp [irreducible, is_unit_mk],
-  apply and_congr (iff.refl _),
+  apply and_congr iff.rfl,
   split,
   { assume h x y eq,
     have : is_unit (associates.mk x) ∨ is_unit (associates.mk y),

@@ -5,7 +5,7 @@ Authors: Zhouhang Zhou
 
 The pointwise operations on filters have nice properties, such as
   • map m (f₁ * f₂) = map m f₁ * map m f₂
-  • nhds x * nhds y = nhds (x * y)
+  • 𝓝 x * 𝓝 y = 𝓝 (x * y)
 
 -/
 

@@ -3,13 +3,18 @@ Copyright (c) 2018 Sébastien Gouëzel. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Isometries of emetric and metric spaces
 Authors: Sébastien Gouëzel
-We define isometries, i.e., maps between emetric spaces that preserve
-the edistance (on metric spaces, these are exactly the maps that preserve distances),
-and prove their basic properties. We also introduce isometric bijections.
 -/
 
 import topology.metric_space.basic
 topology.bounded_continuous_function analysis.normed_space.basic topology.opens
+
+/-!
+# Isometries
+
+We define isometries, i.e., maps between emetric spaces that preserve
+the edistance (on metric spaces, these are exactly the maps that preserve distances),
+and prove their basic properties. We also introduce isometric bijections.
+-/
 
 noncomputable theory
 
@@ -67,14 +72,8 @@ assume x y, calc
 /-- An isometry is an embedding -/
 theorem isometry.uniform_embedding (hf : isometry f) : uniform_embedding f :=
 begin
-  refine emetric.uniform_embedding_iff.2 ⟨_, _, _⟩,
-  { assume x y hxy,
-    have : edist (f x) (f y) = 0 := by simp [hxy],
-    have : edist x y = 0 :=
-      begin have A := hf x y, rwa this at A, exact eq.symm A end,
-    by simpa using this },
-  { rw emetric.uniform_continuous_iff,
-    assume ε εpos,
+  refine emetric.uniform_embedding_iff'.2 ⟨_, _⟩,
+  { assume ε εpos,
     existsi [ε, εpos],
     simp [hf.edist_eq] },
   { assume δ δpos,
@@ -133,6 +132,7 @@ instance : has_coe_to_fun (α ≃ᵢ β) := ⟨λ_, α → β, λe, e.to_equiv�
 
 lemma coe_eq_to_equiv (h : α ≃ᵢ β) (a : α) : h a = h.to_equiv a := rfl
 
+/-- The (bundled) homeomorphism associated to an isometric isomorphism. -/
 protected def to_homeomorph (h : α ≃ᵢ β) : α ≃ₜ β :=
 { continuous_to_fun  := (isometry_to_fun h).continuous,
   continuous_inv_fun := (isometry_inv_fun h).continuous,
@@ -145,14 +145,17 @@ lemma to_homeomorph_to_equiv (h : α ≃ᵢ β) :
   h.to_homeomorph.to_equiv = h.to_equiv :=
 by ext; refl
 
+/-- The identity isometry of a space. -/
 protected def refl (α : Type*) [emetric_space α] : α ≃ᵢ α :=
 { isometry_to_fun := isometry_id, isometry_inv_fun := isometry_id, .. equiv.refl α }
 
+/-- The composition of two isometric isomorphisms, as an isometric isomorphism. -/
 protected def trans (h₁ : α ≃ᵢ β) (h₂ : β ≃ᵢ γ) : α ≃ᵢ γ :=
 { isometry_to_fun  := h₂.isometry_to_fun.comp h₁.isometry_to_fun,
   isometry_inv_fun := h₁.isometry_inv_fun.comp h₂.isometry_inv_fun,
   .. equiv.trans h₁.to_equiv h₂.to_equiv }
 
+/-- The inverse of an isometric isomorphism, as an isometric isomorphism. -/
 protected def symm (h : α ≃ᵢ β) : β ≃ᵢ α :=
 { isometry_to_fun  := h.isometry_inv_fun,
   isometry_inv_fun := h.isometry_to_fun,
@@ -205,6 +208,7 @@ begin
   refl
 end
 
+/-- The space of bounded sequences, with its sup norm -/
 @[reducible] def ℓ_infty_ℝ : Type := bounded_continuous_function ℕ ℝ
 open bounded_continuous_function metric topological_space
 

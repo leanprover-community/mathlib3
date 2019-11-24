@@ -10,21 +10,30 @@ import analysis.normed_space.bounded_linear_maps
 /-!
 # Bochner integral
 
-To be added in the next PR.
+Bochner integral extends the definition of Lebesgue integral to functions that map froma  measure
+space into a Banach space (complete normed vector space). It is constructed here by extending the
+integral on simple functions.
 
 ## Main definitions
 
-`simple_func.bintegral` :
-    bochner integral of simple functions.
+Bochner integral is defined following these steps:
 
-`l1.simple_func` :
-    subspace of L1 consisting of equivalence classes of an integrable simple function.
+Step 1: Define integral on simple functions of the type `simple_func α β` (notation : `α →ₛ β`)
+  where `β` is a real normed space.
 
-`l1.simple_func.integral` :
-    bochner integral of `l1.simple_func`; basically the same thing as `simple_func.bintegral`.
+  (See `simple_func.bintegral` and section `bintegral` for details. Also see `simple_func.integral`
+  for integral on simple functions of the type `simple_func α ennreal`.)
 
-`l1.simple_func.integral_clm` :
-    `l1.simple_func.integral` as a continuous linear map.
+Step 2: Use `simple_func α β` to cut out the simple functions from L1 functions, and define integral
+  on these. Simple functions in L1 space is written as `α →₁ₛ β`.
+
+Step 3: Show that the embedding of `α →₁ₛ β` into L1 is a dense and uniform one.
+
+Step 4: Show that the integral defined on `α →₁ₛ β` is a continuous linear map.
+
+Step 5: Define the bochner integral on L1 functions by extending the integral on integrable simple
+  functions `α →₁ₛ β` using `continuous_linear_map.extend`. Define the bochner integral on functions
+  as the bochner integral of its equivalent class in L1 space.
 
 ## Main statements
 
@@ -35,6 +44,20 @@ To be added in the next PR.
 `section coe_to_l1` : `coe` from `l1.simple_func` to `l1` is a uniform and dense embedding.
 
 `section simple_func_integral` : basic properties of `l1.simple_func.integral` proved.
+
+## Notations
+
+`α →ₛ β` : simple functions (defined in `measure_theory/integration`)
+`α →₁ β` : functions in L1 space, i.e., equivalence classes of an integrable function (defined in
+           `measure_theory/l1_space`)
+`α →₁ₛ β` : simple functions in L1 space, i.e., equivalence classes of an integrable simple function
+
+Note : `ₛ` is typed using `\_s`. Sometimes it shows as a box if font is missing.
+
+## Tags
+
+bochner integral, simple function, function space
+
 -/
 
 noncomputable theory
@@ -283,9 +306,17 @@ iff.intro (subtype.eq) (congr_arg coe)
 @[elim_cast] protected lemma eq_iff' {f g : α →₁ₛ β} : (f : α →ₘ β) = (g : α →ₘ β) ↔ f = g :=
 iff.intro (simple_func.eq') (congr_arg _)
 
-@[nolint] protected def emetric_space  : emetric_space (α →₁ₛ β) := subtype.emetric_space
+/-- L1 simple functions forms a `emetric_space`, with the emetric being inherited from L1 space,
+  i.e., `edist f g = ∫⁻ a, edist (f a) (g a)`.
+  Not declared as an instance as `α →₁ₛ β` will only be useful in the construction of the bochner
+  integral. -/
+protected def emetric_space  : emetric_space (α →₁ₛ β) := subtype.emetric_space
 
-@[nolint] protected def metric_space : metric_space (α →₁ₛ β) := subtype.metric_space
+/-- L1 simple functions forms a `metric_space`, with the metric being inherited from L1 space,
+  i.e., `dist f g = ennreal.to_real (∫⁻ a, edist (f a) (g a)`).
+  Not declared as an instance as `α →₁ₛ β` will only be useful in the construction of the bochner
+  integral. -/
+protected def metric_space : metric_space (α →₁ₛ β) := subtype.metric_space
 
 local attribute [instance] protected lemma is_add_subgroup : is_add_subgroup
   (λf:α →₁ β, ∃ (s : α →ₛ β), integrable s ∧ ae_eq_fun.mk s s.measurable = f) :=
@@ -305,7 +336,9 @@ local attribute [instance] protected lemma is_add_subgroup : is_add_subgroup
     { rw [coe_neg, ← hs], refl }
   end }
 
-@[nolint] protected def add_comm_group : add_comm_group (α →₁ₛ β) := subtype.add_comm_group
+/-- Not declared as an instance as `α →₁ₛ β` will only be useful in the construction of the bochner
+  integral. -/
+protected def add_comm_group : add_comm_group (α →₁ₛ β) := subtype.add_comm_group
 
 local attribute [instance] simple_func.add_comm_group simple_func.metric_space
   simple_func.emetric_space
@@ -317,20 +350,27 @@ local attribute [instance] simple_func.add_comm_group simple_func.metric_space
 @[simp] lemma edist_eq (f g : α →₁ₛ β) : edist f g = edist (f : α →₁ β) (g : α →₁ β) := rfl
 @[simp] lemma dist_eq (f g : α →₁ₛ β) : dist f g = dist (f : α →₁ β) (g : α →₁ β) := rfl
 
-@[nolint] protected def has_norm : has_norm (α →₁ₛ β) := ⟨λf, ∥(f : α →₁ β)∥⟩
+/-- The norm on `α →₁ₛ β` is inherited from L1 space. That is, `∥f∥ = ∫⁻ a, edist (f a) 0`.
+  Not declared as an instance as `α →₁ₛ β` will only be useful in the construction of the bochner
+  integral. -/
+protected def has_norm : has_norm (α →₁ₛ β) := ⟨λf, ∥(f : α →₁ β)∥⟩
 
 local attribute [instance] simple_func.has_norm
 
 lemma norm_eq (f : α →₁ₛ β) : ∥f∥ = ∥(f : α →₁ β)∥ := rfl
 lemma norm_eq' (f : α →₁ₛ β) : ∥f∥ = ennreal.to_real (edist (f : α →ₘ β) 0) := rfl
 
-@[nolint] protected def normed_group : normed_group (α →₁ₛ β) :=
+/-- Not declared as an instance as `α →₁ₛ β` will only be useful in the construction of the bochner
+  integral. -/
+protected def normed_group : normed_group (α →₁ₛ β) :=
 normed_group.of_add_dist (λ x, rfl) $ by
   { intros, simp only [dist_eq, coe_add, l1.dist_eq, l1.coe_add], rw edist_eq_add_add }
 
 variables {𝕜 : Type*} [normed_field 𝕜] [normed_space 𝕜 β]
 
-@[nolint] protected def has_scalar : has_scalar 𝕜 (α →₁ₛ β) := ⟨λk f, ⟨k • f,
+/-- Not declared as an instance as `α →₁ₛ β` will only be useful in the construction of the bochner
+  integral. -/
+protected def has_scalar : has_scalar 𝕜 (α →₁ₛ β) := ⟨λk f, ⟨k • f,
 begin
   rcases f with ⟨f, ⟨s, hsi, hs⟩⟩,
   use k • s, split,
@@ -342,7 +382,9 @@ local attribute [instance] simple_func.has_scalar
 
 @[simp] lemma coe_smul (c : 𝕜) (f : α →₁ₛ β) : ((c • f : α →₁ₛ β) : α →₁ β) = c • (f : α →₁ β) := rfl
 
-@[nolint] protected def semimodule : semimodule 𝕜 (α →₁ₛ β) :=
+/-- Not declared as an instance as `α →₁ₛ β` will only be useful in the construction of the bochner
+  integral. -/
+protected def semimodule : semimodule 𝕜 (α →₁ₛ β) :=
 { one_smul  := λf, simple_func.eq (by { simp only [coe_smul], exact one_smul _ _ }),
   mul_smul  := λx y f, simple_func.eq (by { simp only [coe_smul], exact mul_smul _ _ _ }),
   smul_add  := λx f g, simple_func.eq (by { simp only [coe_smul, coe_add], exact smul_add _ _ _ }),
@@ -350,15 +392,21 @@ local attribute [instance] simple_func.has_scalar
   add_smul  := λx y f, simple_func.eq (by { simp only [coe_smul], exact add_smul _ _ _ }),
   zero_smul := λf, simple_func.eq (by { simp only [coe_smul], exact zero_smul _ _ }) }
 
-@[nolint] protected def module : module 𝕜 (α →₁ₛ β) :=
+/-- Not declared as an instance as `α →₁ₛ β` will only be useful in the construction of the bochner
+  integral. -/
+protected def module : module 𝕜 (α →₁ₛ β) :=
 { .. simple_func.semimodule }
 
-@[nolint] protected def vector_space : vector_space 𝕜 (α →₁ₛ β) :=
+/-- Not declared as an instance as `α →₁ₛ β` will only be useful in the construction of the bochner
+  integral. -/
+protected def vector_space : vector_space 𝕜 (α →₁ₛ β) :=
 { .. simple_func.semimodule }
 
 local attribute [instance] simple_func.vector_space simple_func.normed_group
 
-@[nolint] protected def normed_space : normed_space 𝕜 (α →₁ₛ β) :=
+/-- Not declared as an instance as `α →₁ₛ β` will only be useful in the construction of the bochner
+  integral. -/
+protected def normed_space : normed_space 𝕜 (α →₁ₛ β) :=
 ⟨ λc f, by { rw [norm_eq, norm_eq, coe_smul, norm_smul] } ⟩
 
 end instances

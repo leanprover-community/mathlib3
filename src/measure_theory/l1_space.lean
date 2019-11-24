@@ -247,7 +247,13 @@ protected lemma eq {f g : α →₁ β} : (f : α →ₘ β) = (g : α →ₘ β
 iff.intro (l1.eq) (congr_arg coe)
 
 /- TODO : order structure of l1-/
+
+/-- L1 space forms a `emetric_space`, with the emetric being inherited from almost everywhere
+  functions, i.e., `edist f g = ∫⁻ a, edist (f a) (g a)`. -/
 instance : emetric_space (α →₁ β) := subtype.emetric_space
+
+/-- L1 space forms a `metric_space`, with the metric being inherited from almost everywhere
+  functions, i.e., `edist f g = ennreal.to_real (∫⁻ a, edist (f a) (g a))`. -/
 instance : metric_space (α →₁ β) := metric_space_emetric_ball 0 ⊤
 instance : add_comm_group (α →₁ β) := subtype.add_comm_group
 
@@ -259,6 +265,7 @@ instance : add_comm_group (α →₁ β) := subtype.add_comm_group
 
 lemma dist_eq (f g : α →₁ β) : dist f g = ennreal.to_real (edist (f : α →ₘ β) (g : α →ₘ β)) := rfl
 
+/-- The norm on L1 space is defined to be `∥f∥ = ∫⁻ a, edist (f a) 0`. -/
 instance : has_norm (α →₁ β) := ⟨λ f, dist f 0⟩
 
 lemma norm_eq (f : α →₁ β) : ∥f∥ = ennreal.to_real (edist (f : α →ₘ β) 0) := rfl

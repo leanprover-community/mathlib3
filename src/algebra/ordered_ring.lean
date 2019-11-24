@@ -19,6 +19,10 @@ mul_pos ha hb
 section linear_ordered_semiring
 variable [linear_ordered_semiring α]
 
+/-- `0 < 2`: an alternative version of `two_pos` that only assumes `linear_ordered_semiring`. -/
+lemma zero_lt_two : (0:α) < 2 :=
+by { rw [← zero_add (0:α), bit0], exact add_lt_add zero_lt_one zero_lt_one }
+
 @[simp] lemma mul_le_mul_left {a b c : α} (h : 0 < c) : c * a ≤ c * b ↔ a ≤ b :=
 ⟨λ h', le_of_mul_le_mul_left h' h, λ h', mul_le_mul_of_nonneg_left h' (le_of_lt h)⟩
 
@@ -156,6 +160,10 @@ decidable.le_iff_le_iff_lt_iff_lt.2 $ mul_lt_mul_left h
 decidable.le_iff_le_iff_lt_iff_lt.2 $ mul_lt_mul_right h
 
 end decidable_linear_ordered_semiring
+
+-- The proof doesn't need commutativity but we have no `decidable_linear_ordered_ring`
+@[simp] lemma abs_two [decidable_linear_ordered_comm_ring α] : abs (2:α) = 2 :=
+abs_of_pos $ by refine zero_lt_two
 
 @[priority 100] -- see Note [lower instance priority]
 instance linear_ordered_semiring.to_no_top_order {α : Type*} [linear_ordered_semiring α] :

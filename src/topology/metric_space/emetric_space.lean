@@ -131,6 +131,9 @@ iff.intro eq_of_edist_eq_zero (assume : x = y, this ▸ edist_self _)
 iff.intro (assume h, eq_of_edist_eq_zero (h.symm))
           (assume : x = y, this ▸ (edist_self _).symm)
 
+theorem edist_le_zero {x y : α} : (edist x y ≤ 0) ↔ x = y :=
+le_zero_iff_eq.trans edist_eq_zero
+
 /-- Triangle inequality for the extended distance -/
 theorem edist_triangle_left (x y z : α) : edist x y ≤ edist z x + edist z y :=
 by rw edist_comm z; apply edist_triangle
@@ -182,7 +185,7 @@ finset.Ico.zero_bot n ▸ edist_le_Ico_sum_of_edist_le (zero_le n) (λ _ _, hd)
 
 /-- Two points coincide if their distance is `< ε` for all positive ε -/
 theorem eq_of_forall_edist_le {x y : α} (h : ∀ε, ε > 0 → edist x y ≤ ε) : x = y :=
-eq_of_edist_eq_zero (eq_of_le_of_forall_le_of_dense (by simp) h)
+eq_of_edist_eq_zero (eq_of_le_of_forall_le_of_dense bot_le h)
 
 /-- Reformulation of the uniform structure in terms of the extended distance -/
 theorem uniformity_edist' : 𝓤 α = (⨅ ε>0, principal {p:α×α | edist p.1 p.2 < ε}) :=
@@ -332,8 +335,8 @@ instance prod.emetric_space_max [emetric_space β] : emetric_space (α × β) :=
   edist_self := λ x, by simp,
   eq_of_edist_eq_zero := λ x y h, begin
     cases max_le_iff.1 (le_of_eq h) with h₁ h₂,
-    have A : x.fst = y.fst := eq_of_edist_eq_zero (by simpa using h₁),
-    have B : x.snd = y.snd := eq_of_edist_eq_zero (by simpa using h₂),
+    have A : x.fst = y.fst := edist_le_zero.1 h₁,
+    have B : x.snd = y.snd := edist_le_zero.1 h₂,
     exact prod.ext_iff.2 ⟨A, B⟩
   end,
   edist_comm := λ x y, by simp [edist_comm],
@@ -372,7 +375,7 @@ instance emetric_space_pi [∀b, emetric_space (π b)] : emetric_space (Πb, π 
     begin
       have eq1 : sup univ (λ (b : β), edist (f b) (g b)) ≤ 0 := le_of_eq eq0,
       simp only [finset.sup_le_iff] at eq1,
-      exact (funext $ assume b, eq_of_edist_eq_zero $ bot_unique $ eq1 b $ mem_univ b),
+      exact (funext $ assume b, edist_le_zero.1 $ eq1 b $ mem_univ b),
     end,
   to_uniform_space := Pi.uniform_space _,
   uniformity_edist := begin

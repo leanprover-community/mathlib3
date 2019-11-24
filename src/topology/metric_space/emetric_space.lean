@@ -147,6 +147,42 @@ calc
   edist x t ≤ edist x z + edist z t : edist_triangle x z t
 ... ≤ (edist x y + edist y z) + edist z t : add_le_add_right' (edist_triangle x y z)
 
+/-- The triangle (polygon) inequality for sequences of points; `finset.Ico` version. -/
+lemma edist_le_Ico_sum_edist (f : ℕ → α) {m n} (h : m ≤ n) :
+  edist (f m) (f n) ≤ (finset.Ico m n).sum (λ i, edist (f i) (f (i + 1))) :=
+begin
+  revert n,
+  refine nat.le_induction _ _,
+  { simp only [finset.sum_empty, finset.Ico.self_eq_empty, edist_self],
+    -- TODO: Why doesn't Lean close this goal automatically? `apply le_refl` fails too.
+    exact le_refl (0:ennreal) },
+  { assume n hn hrec,
+    calc edist (f m) (f (n+1)) ≤ edist (f m) (f n) + edist (f n) (f (n+1)) : edist_triangle _ _ _
+      ... ≤ (finset.Ico m n).sum _ + _ : add_le_add' hrec (le_refl _)
+      ... = (finset.Ico m (n+1)).sum _ :
+        by rw [finset.Ico.succ_top hn, finset.sum_insert, add_comm]; simp }
+end
+
+/-- The triangle (polygon) inequality for sequences of points; `finset.range` version. -/
+lemma edist_le_range_sum_edist (f : ℕ → α) (n : ℕ) :
+  edist (f 0) (f n) ≤ (finset.range n).sum (λ i, edist (f i) (f (i + 1))) :=
+finset.Ico.zero_bot n ▸ edist_le_Ico_sum_edist f (nat.zero_le n)
+
+/-- A version of `edist_le_Ico_sum_edist` with each intermediate distance replaced
+with an upper estimate. -/
+lemma edist_le_Ico_sum_of_edist_le {f : ℕ → α} {m n} (hmn : m ≤ n)
+  {d : ℕ → ennreal} (hd : ∀ {k}, m ≤ k → k < n → edist (f k) (f (k + 1)) ≤ d k) :
+  edist (f m) (f n) ≤ (finset.Ico m n).sum d :=
+le_trans (edist_le_Ico_sum_edist f hmn) $
+finset.sum_le_sum $ λ k hk, hd (finset.Ico.mem.1 hk).1 (finset.Ico.mem.1 hk).2
+
+/-- A version of `edist_le_range_sum_edist` with each intermediate distance replaced
+with an upper estimate. -/
+lemma edist_le_range_sum_of_edist_le {f : ℕ → α} (n : ℕ)
+  {d : ℕ → ennreal} (hd : ∀ {k}, k < n → edist (f k) (f (k + 1)) ≤ d k) :
+  edist (f 0) (f n) ≤ (finset.range n).sum d :=
+finset.Ico.zero_bot n ▸ edist_le_Ico_sum_of_edist_le (zero_le n) (λ _ _, hd)
+
 /-- Two points coincide if their distance is `< ε` for all positive ε -/
 theorem eq_of_forall_edist_le {x y : α} (h : ∀ε, ε > 0 → edist x y ≤ ε) : x = y :=
 eq_of_edist_eq_zero (eq_of_le_of_forall_le_of_dense bot_le h)

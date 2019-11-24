@@ -103,23 +103,23 @@ begin
   rcases mem_range.1 hb with ⟨a, rfl⟩,
   let s' := f.range.filter (λb, g b = g (f a)),
   calc (ennreal.to_real (volume ((f.map g) ⁻¹' {g (f a)}))) • (g (f a)) =
-       (ennreal.to_real (volume (⋃b∈s', f ⁻¹' {b}))) • (g (f a)) : by rw map_preimage_singleton
-    ... = (ennreal.to_real (s'.sum (λb, volume (f ⁻¹' {b})))) • (g (f a)) :
-      by rw volume_bUnion_preimage
-    ... = (s'.sum (λb, ennreal.to_real (volume (f ⁻¹' {b})))) • (g (f a)) :
-    begin
-      by_cases h : g (f a) = 0,
-      { rw [h, smul_zero, smul_zero] },
-      { rw ennreal.to_real_sum,
-        simp only [mem_filter],
-        rintros b ⟨_, hb⟩,
-        have : b ≠ 0, { assume hb', rw [← hb, hb'] at h, contradiction },
-        apply hf,
-        assumption }
-    end
-    ... = s'.sum (λb, (ennreal.to_real (volume (f ⁻¹' {b}))) • (g (f a))) : by rw [finset.smul_sum']
-    ... = s'.sum (λb, (ennreal.to_real (volume (f ⁻¹' {b}))) • (g b)) :
-      finset.sum_congr rfl $ by { assume x, simp only [mem_filter], rintro ⟨_, h⟩, rw h }
+      (ennreal.to_real (volume (⋃b∈s', f ⁻¹' {b}))) • (g (f a)) : by rw map_preimage_singleton
+  ... = (ennreal.to_real (s'.sum (λb, volume (f ⁻¹' {b})))) • (g (f a)) :
+    by rw volume_bUnion_preimage
+  ... = (s'.sum (λb, ennreal.to_real (volume (f ⁻¹' {b})))) • (g (f a)) :
+  begin
+    by_cases h : g (f a) = 0,
+    { rw [h, smul_zero, smul_zero] },
+    { rw ennreal.to_real_sum,
+      simp only [mem_filter],
+      rintros b ⟨_, hb⟩,
+      have : b ≠ 0, { assume hb', rw [← hb, hb'] at h, contradiction },
+      apply hf,
+      assumption }
+  end
+  ... = s'.sum (λb, (ennreal.to_real (volume (f ⁻¹' {b}))) • (g (f a))) : by rw [finset.smul_sum']
+  ... = s'.sum (λb, (ennreal.to_real (volume (f ⁻¹' {b}))) • (g b)) :
+    finset.sum_congr rfl $ by { assume x, simp only [mem_filter], rintro ⟨_, h⟩, rw h }
 end
 
 /-- `simple_func.bintegral` and `simple_func.integral` agree when the integrand has type
@@ -222,15 +222,15 @@ end
 lemma bintegral_smul (r : ℝ) {f : α →ₛ β} (hf : integrable f) :
   bintegral (r • f) = r • bintegral f :=
 calc bintegral (r • f) = sum f.range (λx, ennreal.to_real (volume (f ⁻¹' {x})) • r • x) :
-    by rw [smul_eq_map r f, map_bintegral f _ hf (smul_zero _)]
-  ... = (f.range).sum (λ (x : β), ((ennreal.to_real (volume (f ⁻¹' {x}))) * r) • x) :
-    finset.sum_congr rfl $ λb hb, by apply smul_smul
-  ... = r • bintegral f :
-  begin
-    rw [bintegral, smul_sum],
-    refine finset.sum_congr rfl (λb hb, _),
-    rw [smul_smul, mul_comm]
-  end
+  by rw [smul_eq_map r f, map_bintegral f _ hf (smul_zero _)]
+... = (f.range).sum (λ (x : β), ((ennreal.to_real (volume (f ⁻¹' {x}))) * r) • x) :
+  finset.sum_congr rfl $ λb hb, by apply smul_smul
+... = r • bintegral f :
+begin
+  rw [bintegral, smul_sum],
+  refine finset.sum_congr rfl (λb hb, _),
+  rw [smul_smul, mul_comm]
+end
 
 lemma norm_bintegral_le_bintegral_norm (f : α →ₛ β) (hf : integrable f) :
   ∥f.bintegral∥ ≤ (f.map norm).bintegral :=
@@ -277,16 +277,18 @@ instance : has_coe (α →₁ₛ β) (α →₁ β) := ⟨subtype.val⟩
 protected lemma eq {f g : α →₁ₛ β} : (f : α →₁ β) = (g : α →₁ β) → f = g := subtype.eq
 protected lemma eq' {f g : α →₁ₛ β} : (f : α →ₘ β) = (g : α →ₘ β) → f = g := subtype.eq ∘ subtype.eq
 
-protected lemma eq_iff {f g : α →₁ₛ β} : (f : α →₁ β) = (g : α →₁ β) ↔ f = g :=
+@[elim_cast] protected lemma eq_iff {f g : α →₁ₛ β} : (f : α →₁ β) = (g : α →₁ β) ↔ f = g :=
 iff.intro (subtype.eq) (congr_arg coe)
 
-protected lemma eq_iff' {f g : α →₁ₛ β} : (f : α →ₘ β) = (g : α →ₘ β) ↔ f = g :=
+@[elim_cast] protected lemma eq_iff' {f g : α →₁ₛ β} : (f : α →ₘ β) = (g : α →ₘ β) ↔ f = g :=
 iff.intro (simple_func.eq') (congr_arg _)
 
-instance : emetric_space (α →₁ₛ β) := subtype.emetric_space
-instance : metric_space (α →₁ₛ β) := subtype.metric_space
+@[nolint] protected def emetric_space  : emetric_space (α →₁ₛ β) := subtype.emetric_space
 
-instance : is_add_subgroup (λf:α →₁ β, ∃ (s : α →ₛ β), integrable s ∧ ae_eq_fun.mk s s.measurable = f) :=
+@[nolint] protected def metric_space : metric_space (α →₁ₛ β) := subtype.metric_space
+
+local attribute [instance] protected lemma is_add_subgroup : is_add_subgroup
+  (λf:α →₁ β, ∃ (s : α →ₛ β), integrable s ∧ ae_eq_fun.mk s s.measurable = f) :=
 { zero_mem := by { use 0, split, { exact integrable_zero }, { refl } },
   add_mem :=
   begin
@@ -303,7 +305,10 @@ instance : is_add_subgroup (λf:α →₁ β, ∃ (s : α →ₛ β), integrable
     { rw [coe_neg, ← hs], refl }
   end }
 
-instance : add_comm_group (α →₁ₛ β) := subtype.add_comm_group
+@[nolint] protected def add_comm_group : add_comm_group (α →₁ₛ β) := subtype.add_comm_group
+
+local attribute [instance] simple_func.add_comm_group simple_func.metric_space
+  simple_func.emetric_space
 
 @[simp] lemma coe_zero : ((0 : α →₁ₛ β) : α →₁ β) = 0 := rfl
 @[simp] lemma coe_add (f g : α →₁ₛ β) : ((f + g : α →₁ₛ β) : α →₁ β) = f + g := rfl
@@ -312,17 +317,20 @@ instance : add_comm_group (α →₁ₛ β) := subtype.add_comm_group
 @[simp] lemma edist_eq (f g : α →₁ₛ β) : edist f g = edist (f : α →₁ β) (g : α →₁ β) := rfl
 @[simp] lemma dist_eq (f g : α →₁ₛ β) : dist f g = dist (f : α →₁ β) (g : α →₁ β) := rfl
 
-instance : has_norm (α →₁ₛ β) := ⟨λf, ∥(f : α →₁ β)∥⟩
+@[nolint] protected def has_norm : has_norm (α →₁ₛ β) := ⟨λf, ∥(f : α →₁ β)∥⟩
+
+local attribute [instance] simple_func.has_norm
 
 lemma norm_eq (f : α →₁ₛ β) : ∥f∥ = ∥(f : α →₁ β)∥ := rfl
 lemma norm_eq' (f : α →₁ₛ β) : ∥f∥ = ennreal.to_real (edist (f : α →ₘ β) 0) := rfl
 
-instance : normed_group (α →₁ₛ β) := normed_group.of_add_dist (λ x, rfl) $ by
-{ intros, simp only [dist_eq, coe_add, l1.dist_eq, l1.coe_add], rw edist_eq_add_add }
+@[nolint] protected def normed_group : normed_group (α →₁ₛ β) :=
+normed_group.of_add_dist (λ x, rfl) $ by
+  { intros, simp only [dist_eq, coe_add, l1.dist_eq, l1.coe_add], rw edist_eq_add_add }
 
-variables {K : Type*} [normed_field K] [second_countable_topology K] [normed_space K β]
+variables {𝕜 : Type*} [normed_field 𝕜] [normed_space 𝕜 β]
 
-instance : has_scalar K (α →₁ₛ β) := ⟨λk f, ⟨k • f,
+@[nolint] protected def has_scalar : has_scalar 𝕜 (α →₁ₛ β) := ⟨λk f, ⟨k • f,
 begin
   rcases f with ⟨f, ⟨s, hsi, hs⟩⟩,
   use k • s, split,
@@ -330,9 +338,11 @@ begin
   { rw [coe_smul, subtype.coe_mk, ← hs], refl }
 end ⟩⟩
 
-@[simp] lemma coe_smul (c : K) (f : α →₁ₛ β) : ((c • f : α →₁ₛ β) : α →₁ β) = c • (f : α →₁ β) := rfl
+local attribute [instance] simple_func.has_scalar
 
-instance : semimodule K (α →₁ₛ β) :=
+@[simp] lemma coe_smul (c : 𝕜) (f : α →₁ₛ β) : ((c • f : α →₁ₛ β) : α →₁ β) = c • (f : α →₁ β) := rfl
+
+@[nolint] protected def semimodule : semimodule 𝕜 (α →₁ₛ β) :=
 { one_smul  := λf, simple_func.eq (by { simp only [coe_smul], exact one_smul _ _ }),
   mul_smul  := λx y f, simple_func.eq (by { simp only [coe_smul], exact mul_smul _ _ _ }),
   smul_add  := λx f g, simple_func.eq (by { simp only [coe_smul, coe_add], exact smul_add _ _ _ }),
@@ -340,14 +350,20 @@ instance : semimodule K (α →₁ₛ β) :=
   add_smul  := λx y f, simple_func.eq (by { simp only [coe_smul], exact add_smul _ _ _ }),
   zero_smul := λf, simple_func.eq (by { simp only [coe_smul], exact zero_smul _ _ }) }
 
-instance : module K (α →₁ₛ β) := { .. simple_func.semimodule }
+@[nolint] protected def module : module 𝕜 (α →₁ₛ β) :=
+{ .. simple_func.semimodule }
 
-instance : vector_space K (α →₁ₛ β) := { .. simple_func.semimodule }
+@[nolint] protected def vector_space : vector_space 𝕜 (α →₁ₛ β) :=
+{ .. simple_func.semimodule }
 
-instance : normed_space K (α →₁ₛ β) :=
+local attribute [instance] simple_func.vector_space simple_func.normed_group
+
+@[nolint] protected def normed_space : normed_space 𝕜 (α →₁ₛ β) :=
 ⟨ λc f, by { rw [norm_eq, norm_eq, coe_smul, norm_smul] } ⟩
 
 end instances
+
+local attribute [instance] simple_func.normed_group simple_func.normed_space
 
 section of_simple_func
 
@@ -374,9 +390,9 @@ lemma of_simple_func_sub (f g : α →ₛ β) (hf hg) :
   of_simple_func (f - g) (integrable_sub f.measurable g.measurable hf hg) = of_simple_func f hf -
     of_simple_func g hg := rfl
 
-variables {K : Type*} [normed_field K] [second_countable_topology K] [normed_space K β]
+variables {𝕜 : Type*} [normed_field 𝕜] [normed_space 𝕜 β]
 
-lemma of_simple_func_smul (f : α →ₛ β) (hf) (c : K) :
+lemma of_simple_func_smul (f : α →ₛ β) (hf) (c : 𝕜) :
   of_simple_func (c • f) (integrable_smul _ hf) = c • of_simple_func f hf := rfl
 
 lemma norm_of_simple_func (f : α →ₛ β) (hf) : ∥of_simple_func f hf∥ = ennreal.to_real (∫⁻ a, edist (f a) 0) :=
@@ -416,7 +432,12 @@ variables (α β)
 lemma zero_to_simple_func : ∀ₘ a, (0 : α →₁ₛ β).to_simple_func a = 0 :=
 begin
   filter_upwards [to_simple_func_eq_to_fun (0 : α →₁ₛ β), l1.zero_to_fun α β],
-  assume a, simp only [mem_set_of_eq], assume h, rw h, assume h, exact h
+  assume a,
+  simp only [mem_set_of_eq],
+  assume h,
+  rw h,
+  assume h,
+  exact h
 end
 variables {α β}
 
@@ -425,13 +446,23 @@ lemma add_to_simple_func (f g : α →₁ₛ β) :
 begin
   filter_upwards [to_simple_func_eq_to_fun (f + g), to_simple_func_eq_to_fun f,
     to_simple_func_eq_to_fun g, l1.add_to_fun (f:α→₁β) g],
-  assume a, simp only [mem_set_of_eq], repeat { assume h, rw h }, assume h, rw ← h, refl
+  assume a,
+  simp only [mem_set_of_eq],
+  repeat { assume h, rw h },
+  assume h,
+  rw ← h,
+  refl
 end
 
 lemma neg_to_simple_func (f : α →₁ₛ β) : ∀ₘ a, (-f).to_simple_func a = - f.to_simple_func a :=
 begin
   filter_upwards [to_simple_func_eq_to_fun (-f), to_simple_func_eq_to_fun f, l1.neg_to_fun (f:α→₁β)],
-  assume a, simp only [mem_set_of_eq], repeat { assume h, rw h }, assume h, rw ← h, refl
+  assume a,
+  simp only [mem_set_of_eq],
+  repeat { assume h, rw h },
+  assume h,
+  rw ← h,
+  refl
 end
 
 lemma sub_to_simple_func (f g : α →₁ₛ β) :
@@ -439,17 +470,27 @@ lemma sub_to_simple_func (f g : α →₁ₛ β) :
 begin
   filter_upwards [to_simple_func_eq_to_fun (f - g), to_simple_func_eq_to_fun f,
     to_simple_func_eq_to_fun g, l1.sub_to_fun (f:α→₁β) g],
-  assume a, simp only [mem_set_of_eq], repeat { assume h, rw h }, assume h, rw ← h, refl
+  assume a,
+  simp only [mem_set_of_eq],
+  repeat { assume h, rw h },
+  assume h,
+  rw ← h,
+  refl
 end
 
-variables {K : Type*} [normed_field K] [second_countable_topology K] [normed_space K β]
+variables {𝕜 : Type*} [normed_field 𝕜] [normed_space 𝕜 β]
 
-lemma smul_to_simple_func (k : K) (f : α →₁ₛ β) :
+lemma smul_to_simple_func (k : 𝕜) (f : α →₁ₛ β) :
   ∀ₘ a, (k • f).to_simple_func a = k • f.to_simple_func a :=
 begin
   filter_upwards [to_simple_func_eq_to_fun (k • f), to_simple_func_eq_to_fun f,
     l1.smul_to_fun k (f:α→₁β)],
-  assume a, simp only [mem_set_of_eq], repeat { assume h, rw h }, assume h, rw ← h, refl
+  assume a,
+  simp only [mem_set_of_eq],
+  repeat { assume h, rw h },
+  assume h,
+  rw ← h,
+  refl
 end
 
 lemma lintegral_edist_to_simple_func_lt_top (f g : α →₁ₛ β) :
@@ -471,33 +512,35 @@ end
 lemma norm_to_simple_func (f : α →₁ₛ β) :
   ∥f∥ = ennreal.to_real (∫⁻ (a : α), nnnorm ((to_simple_func f) a)) :=
 calc ∥f∥ = ennreal.to_real (∫⁻x, edist (f.to_simple_func x) ((0 : α →₁ₛ β).to_simple_func x)) :
-    begin
-      rw [← dist_zero_right, dist_to_simple_func]
-    end
-  ... = ennreal.to_real (∫⁻ (x : α), (coe ∘ nnnorm) (f.to_simple_func x)) :
-    begin
-      rw lintegral_nnnorm_eq_lintegral_edist,
-      have : (∫⁻ (x : α), edist ((to_simple_func f) x) ((to_simple_func (0:α→₁ₛβ)) x)) =
-               ∫⁻ (x : α), edist ((to_simple_func f) x) 0,
-      { apply lintegral_congr_ae, filter_upwards [zero_to_simple_func α β],
-        assume a, simp only [mem_set_of_eq],
-        assume h, rw h },
-      rw [ennreal.to_real_eq_to_real],
-      { exact this },
-      { exact lintegral_edist_to_simple_func_lt_top _ _ },
-      { rw ← this, exact lintegral_edist_to_simple_func_lt_top _ _ }
-    end
+begin
+  rw [← dist_zero_right, dist_to_simple_func]
+end
+... = ennreal.to_real (∫⁻ (x : α), (coe ∘ nnnorm) (f.to_simple_func x)) :
+begin
+  rw lintegral_nnnorm_eq_lintegral_edist,
+  have : (∫⁻ (x : α), edist ((to_simple_func f) x) ((to_simple_func (0:α→₁ₛβ)) x)) =
+            ∫⁻ (x : α), edist ((to_simple_func f) x) 0,
+  { apply lintegral_congr_ae, filter_upwards [zero_to_simple_func α β],
+    assume a,
+    simp only [mem_set_of_eq],
+    assume h,
+    rw h },
+  rw [ennreal.to_real_eq_to_real],
+  { exact this },
+  { exact lintegral_edist_to_simple_func_lt_top _ _ },
+  { rw ← this, exact lintegral_edist_to_simple_func_lt_top _ _ }
+end
 
 lemma norm_eq_bintegral (f : α →₁ₛ β) : ∥f∥ = (f.to_simple_func.map norm).bintegral :=
 calc ∥f∥ = ennreal.to_real (∫⁻ (x : α), (coe ∘ nnnorm) (f.to_simple_func x)) :
-    by { rw norm_to_simple_func }
-  ... = (f.to_simple_func.map norm).bintegral :
-    begin
-      rw ← f.to_simple_func.bintegral_eq_lintegral (coe ∘ nnnorm) f.integrable,
-      { congr },
-      { simp only [nnnorm_zero, function.comp_app, ennreal.coe_zero] },
-      { assume b, exact coe_lt_top }
-    end
+  by { rw norm_to_simple_func }
+... = (f.to_simple_func.map norm).bintegral :
+begin
+  rw ← f.to_simple_func.bintegral_eq_lintegral (coe ∘ nnnorm) f.integrable,
+  { congr },
+  { simp only [nnnorm_zero, function.comp_app, ennreal.coe_zero] },
+  { assume b, exact coe_lt_top }
+end
 
 end to_simple_func
 
@@ -512,8 +555,7 @@ begin
   rw ennreal.tendsto_at_top at h₂,
   rcases h₂ (ennreal.of_real (ε/2)) (of_real_pos.2 $ half_pos ε0) with ⟨N, hN⟩,
   have : (∫⁻ (x : α), nndist (F N x) (f x)) < ennreal.of_real ε :=
-  calc
-    (∫⁻ (x : α), nndist (F N x) (f x)) ≤ 0 + ennreal.of_real (ε/2) : (hN N (le_refl _)).2
+    calc (∫⁻ (x : α), nndist (F N x) (f x)) ≤ 0 + ennreal.of_real (ε/2) : (hN N (le_refl _)).2
     ... < ennreal.of_real ε :
       by { simp only [zero_add, of_real_lt_of_real_iff ε0], exact half_lt_self ε0 },
   { refine ⟨of_simple_func (F N) (h₁ N), _⟩, rw dist_comm,
@@ -545,17 +587,18 @@ l1.simple_func.dense_embedding.to_dense_inducing
 protected lemma closure_range : closure (range (coe : (α →₁ₛ β) → (α →₁ β))) = univ :=
 l1.simple_func.dense_embedding.to_dense_inducing.closure_range
 
-variables (K : Type*) [normed_field K] [second_countable_topology K] [normed_space K β]
+variables (𝕜 : Type*) [normed_field 𝕜] [normed_space 𝕜 β]
 
 variables (α β)
 
-def coe_to_l1 : (α →₁ₛ β) →L[K] (α →₁ β) :=
+/-- The uniform and dense embedding of L1 simple functions into L1 functions. -/
+def coe_to_l1 : (α →₁ₛ β) →L[𝕜] (α →₁ β) :=
 { to_fun := (coe : (α →₁ₛ β) → (α →₁ β)),
   add := λf g, rfl,
   smul := λk f, rfl,
   cont := l1.simple_func.uniform_continuous.continuous, }
 
-variables {α β K}
+variables {α β 𝕜}
 
 end coe_to_l1
 
@@ -592,37 +635,18 @@ begin
     { apply smul_to_simple_func }
 end
 
-instance : is_add_group_hom (integral : (α →₁ₛ β) → β) := { map_add := integral_add }
-
-lemma tendsto_integral : tendsto (integral : (α →₁ₛ β) → β) (nhds 0) (nhds 0) :=
-begin
-  have := @metric.tendsto_nhds_nhds (α →₁ₛ β) β _ _ integral 0 0,
-  rw this,
-  assume ε ε0,
-  use ε, use ε0,
-  assume f,
-  rw [dist_zero_right, norm_eq_bintegral, dist_zero_right, integral],
-  assume hf,
-  exact lt_of_le_of_lt (f.to_simple_func.norm_bintegral_le_bintegral_norm f.integrable) hf
-end
-
-lemma uniform_continuous_integral : uniform_continuous (integral : (α →₁ₛ β) → β) :=
-uniform_continuous_of_tendsto_zero tendsto_integral
-
-/-- Bochner integration over simple functions in l1 space as a continuous linear map. -/
-def integral_clm : (α →₁ₛ β) →L[ℝ] β :=
-{ to_fun := integral,
-  add := integral_add,
-  smul := integral_smul,
-  cont := uniform_continuous_integral.continuous }
-
-local notation `Integral` := @integral_clm α _ β _ _ _
-
 lemma norm_integral_le_norm (f : α →₁ₛ β) : ∥ integral f ∥ ≤ ∥f∥ :=
 begin
   rw [integral, norm_eq_bintegral],
   exact f.to_simple_func.norm_bintegral_le_bintegral_norm f.integrable
 end
+
+/-- Bochner integration over simple functions in l1 space as a continuous linear map. -/
+def integral_clm : (α →₁ₛ β) →L[ℝ] β :=
+linear_map.with_bound ⟨integral, integral_add, integral_smul⟩
+  ⟨1, (λf, le_trans (norm_integral_le_norm _) $ by rw one_mul)⟩
+
+local notation `Integral` := @integral_clm α _ β _ _ _
 
 open continuous_linear_map
 

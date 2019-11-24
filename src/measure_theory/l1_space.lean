@@ -62,6 +62,7 @@ universes u v w
 variables {α : Type u} [measure_space α]
 variables {β : Type v} [normed_group β]
 
+/-- A function is `integrable` if the integral of its pointwise norm is less than infinity. -/
 def integrable (f : α → β) : Prop := (∫⁻ a, nnnorm (f a)) < ⊤
 
 lemma integrable_of_ae_eq {f g : α → β} (hf : integrable f) (h : ∀ₘ a, f a = g a) : integrable g :=
@@ -69,7 +70,11 @@ begin
   simp only [integrable] at *,
   have : (∫⁻ (a : α), ↑(nnnorm (f a))) = (∫⁻ (a : α), ↑(nnnorm (g a))),
   { apply lintegral_congr_ae,
-    filter_upwards [h], assume a, simp only [mem_set_of_eq], assume h, rw h },
+    filter_upwards [h],
+    assume a,
+    simp only [mem_set_of_eq],
+    assume h,
+    rw h },
   rwa ← this
 end
 
@@ -81,7 +86,9 @@ lemma lintegral_nnnorm_eq_lintegral_edist (f : α → β) :
 begin
   apply lintegral_congr_ae,
   filter_upwards [],
-  assume a, simp only [mem_set_of_eq], rw [edist_nndist, nndist_eq_nnnorm, sub_zero (f a)]
+  assume a,
+  simp only [mem_set_of_eq],
+  rw [edist_nndist, nndist_eq_nnnorm, sub_zero (f a)]
 end
 
 lemma integrable_iff_lintegral_edist (f : α → β) :
@@ -144,14 +151,17 @@ lemma integrable_norm {f : α → β} (hfi : integrable f) : integrable (λa, �
 calc (∫⁻ (a : α), (nnnorm ∥f a∥)) = (∫⁻ (a : α), (nnnorm (f a))) :
     begin
       apply lintegral_congr_ae,
-      filter_upwards [], assume a, simp only [mem_set_of_eq], rw [nnnorm_norm]
+      filter_upwards [],
+      assume a,
+      simp only [mem_set_of_eq],
+      rw [nnnorm_norm]
     end
   ... < ⊤ : hfi
 
 section normed_space
-variables {K : Type*} [normed_field K] [normed_space K β]
+variables {𝕜 : Type*} [normed_field 𝕜] [normed_space 𝕜 β]
 
-lemma integrable_smul (c : K) {f : α → β} : integrable f → integrable (c • f) :=
+lemma integrable_smul (c : 𝕜) {f : α → β} : integrable f → integrable (c • f) :=
 begin
   simp only [integrable], assume hfi,
   calc
@@ -171,6 +181,8 @@ variables [second_countable_topology β]
 
 namespace ae_eq_fun
 
+/-- An almost everywhere equal function is `integrable` if it has a finite distance to the origin.
+  Should mean the same thing as the predicate `integrable` over functions. -/
 def integrable (f : α →ₘ β) : Prop := f ∈ ball (0 : α →ₘ β) ⊤
 
 lemma integrable_mk (f : α → β) (hf : measurable f) :
@@ -197,15 +209,15 @@ by { rintros ⟨f, hf⟩, have := measure_theory.integrable_neg, simpa }
 lemma integrable_sub : ∀ {f g : α →ₘ β}, integrable f → integrable g → integrable (f - g) :=
 by { rintros ⟨f, hf⟩ ⟨g, hg⟩, have := measure_theory.integrable_sub hf hg, simpa [mem_ball, zero_def] }
 
-instance : is_add_subgroup (ball (0 : α →ₘ β) ⊤) :=
+protected lemma is_add_subgroup : is_add_subgroup (ball (0 : α →ₘ β) ⊤) :=
 { zero_mem := integrable_zero,
   add_mem := λ _ _, integrable_add,
   neg_mem := λ _, integrable_neg }
 
 section normed_space
-variables {K : Type*} [normed_field K] [normed_space K β]
+variables {𝕜 : Type*} [normed_field 𝕜] [normed_space 𝕜 β]
 
-lemma integrable_smul : ∀ {c : K} {f : α →ₘ β}, integrable f → integrable (c • f) :=
+lemma integrable_smul : ∀ {c : 𝕜} {f : α →ₘ β}, integrable f → integrable (c • f) :=
 by { assume c, rintros ⟨f, hf⟩, simpa using integrable_smul _ }
 
 end normed_space
@@ -226,11 +238,12 @@ end
 
 namespace l1
 open ae_eq_fun
+local attribute [instance] ae_eq_fun.is_add_subgroup
 
 instance : has_coe (α →₁ β) (α →ₘ β) := ⟨subtype.val⟩
 
 protected lemma eq {f g : α →₁ β} : (f : α →ₘ β) = (g : α →ₘ β) → f = g := subtype.eq
-protected lemma eq_iff {f g : α →₁ β} : (f : α →ₘ β) = (g : α →ₘ β) ↔ f = g :=
+@[elim_cast] protected lemma eq_iff {f g : α →₁ β} : (f : α →ₘ β) = (g : α →ₘ β) ↔ f = g :=
 iff.intro (l1.eq) (congr_arg coe)
 
 /- TODO : order structure of l1-/
@@ -255,13 +268,13 @@ instance : normed_group (α →₁ β) := normed_group.of_add_dist (λ x, rfl) $
 
 section normed_space
 
-variables {K : Type*} [normed_field K] [normed_space K β]
+variables {𝕜 : Type*} [normed_field 𝕜] [normed_space 𝕜 β]
 
-instance : has_scalar K (α →₁ β) := ⟨λ x f, ⟨x • (f : α →ₘ β), ae_eq_fun.integrable_smul f.2⟩⟩
+instance : has_scalar 𝕜 (α →₁ β) := ⟨λ x f, ⟨x • (f : α →ₘ β), ae_eq_fun.integrable_smul f.2⟩⟩
 
-@[simp] lemma coe_smul (c : K) (f : α →₁ β) : ((c • f : α →₁ β) : α →ₘ β) = c • (f : α →ₘ β) := rfl
+@[simp] lemma coe_smul (c : 𝕜) (f : α →₁ β) : ((c • f : α →₁ β) : α →ₘ β) = c • (f : α →ₘ β) := rfl
 
-instance : semimodule K (α →₁ β) :=
+instance : semimodule 𝕜 (α →₁ β) :=
 { one_smul  := λf, l1.eq (by { simp only [coe_smul], exact one_smul _ _ }),
   mul_smul  := λx y f, l1.eq (by { simp only [coe_smul], exact mul_smul _ _ _ }),
   smul_add  := λx f g, l1.eq (by { simp only [coe_smul, coe_add], exact smul_add _ _ _ }),
@@ -269,11 +282,11 @@ instance : semimodule K (α →₁ β) :=
   add_smul  := λx y f, l1.eq (by { simp only [coe_smul], exact add_smul _ _ _ }),
   zero_smul := λf, l1.eq (by { simp only [coe_smul], exact zero_smul _ _ }) }
 
-instance : module K (α →₁ β) := { .. l1.semimodule }
+instance : module 𝕜 (α →₁ β) := { .. l1.semimodule }
 
-instance : vector_space K (α →₁ β) := { .. l1.semimodule }
+instance : vector_space 𝕜 (α →₁ β) := { .. l1.semimodule }
 
-instance : normed_space K (α →₁ β) :=
+instance : normed_space 𝕜 (α →₁ β) :=
 ⟨ begin
     rintros x ⟨f, hf⟩,
     show ennreal.to_real (edist (x • f) 0) = ∥x∥ * ennreal.to_real (edist f 0),
@@ -308,15 +321,16 @@ lemma of_fun_neg (f : α → β) (hfm hfi) :
 lemma norm_of_fun (f : α → β) (hfm hfi) : ∥of_fun f hfm hfi∥ = ennreal.to_real (∫⁻ a, edist (f a) 0) :=
 rfl
 
-variables {K : Type*} [normed_field K] [normed_space K β]
+variables {𝕜 : Type*} [normed_field 𝕜] [normed_space 𝕜 β]
 
-lemma of_fun_smul (f : α → β) (hfm hfi) (k : K) :
+lemma of_fun_smul (f : α → β) (hfm hfi) (k : 𝕜) :
   of_fun (k • f) (measurable_smul hfm) (integrable_smul _ hfi) = k • of_fun f hfm hfi := rfl
 
 end of_fun
 
 section to_fun
 
+/-- Find a representative of a L1 function [f] -/
 @[reducible]
 protected def to_fun (f : α →₁ β) : α → β := (f : α →ₘ β).to_fun
 
@@ -338,7 +352,11 @@ by { rw ← of_fun_eq_mk, rw l1.eq_iff, exact of_fun_to_fun f }
 lemma to_fun_of_fun (f : α → β) (hfm hfi) : ∀ₘ a, (of_fun f hfm hfi).to_fun a = f a :=
 begin
   filter_upwards [all_ae_mk_to_fun f hfm],
-  assume a, simp only [mem_set_of_eq], assume h, rw ← h, refl
+  assume a,
+  simp only [mem_set_of_eq],
+  assume h,
+  rw ← h,
+  refl
 end
 
 variables (α β)
@@ -365,9 +383,9 @@ begin
   exact f.measurable, exact f.integrable, exact g.measurable, exact g.integrable
 end
 
-variables {K : Type*} [normed_field K] [normed_space K β]
+variables {𝕜 : Type*} [normed_field 𝕜] [normed_space 𝕜 β]
 
-lemma smul_to_fun (c : K) (f : α →₁ β) : ∀ₘ a, (c • f).to_fun a = c • f.to_fun a :=
+lemma smul_to_fun (c : 𝕜) (f : α →₁ β) : ∀ₘ a, (c • f).to_fun a = c • f.to_fun a :=
 ae_eq_fun.smul_to_fun _ _
 
 end to_fun

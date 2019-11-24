@@ -20,6 +20,14 @@ instance monoid_to_is_right_id {α : Type*} [monoid α]
 : is_right_id α (*) 1 :=
 ⟨ monoid.mul_one ⟩
 
+@[to_additive]
+theorem mul_left_injective [left_cancel_semigroup α] (a : α) : function.injective ((*) a) :=
+λ b c, mul_left_cancel
+
+@[to_additive]
+theorem mul_right_injective [right_cancel_semigroup α] (a : α) : function.injective (λ x, x * a) :=
+λ b c, mul_right_cancel
+
 @[simp, to_additive]
 theorem mul_left_inj [left_cancel_semigroup α] (a : α) {b c : α} : a * b = a * c ↔ b = c :=
 ⟨mul_left_cancel, congr_arg _⟩

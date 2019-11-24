@@ -242,4 +242,8 @@ end
 lemma div_nonneg' {a b : α} (ha : 0 ≤ a) (hb : 0 ≤ b) : 0 ≤ a / b :=
 (lt_or_eq_of_le hb).elim (div_nonneg ha) (λ h, by simp [h.symm])
 
+lemma div_le_div_of_le_of_nonneg {a b c : α} (hab : a ≤ b) (hc : 0 ≤ c) :
+  a / c ≤ b / c :=
+mul_le_mul_of_nonneg_right hab (inv_nonneg.2 hc)
+
 end

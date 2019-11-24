@@ -128,7 +128,7 @@ assume hfi hgi,
   calc
     (∫⁻ (a : α), ↑(nnnorm ((f + g) a))) ≤ ∫⁻ (a : α), ↑(nnnorm (f a)) + ↑(nnnorm (g a)) :
       lintegral_le_lintegral _ _
-        (assume a, by { simp only [coe_add.symm, coe_le_coe], exact nnnorm_triangle _ _ })
+        (assume a, by { simp only [coe_add.symm, coe_le_coe], exact nnnorm_add_le _ _ })
     ... = _ :
       lintegral_nnnorm_add hfm hgm
     ... < ⊤ : add_lt_top.2 ⟨hfi, hgi⟩

@@ -1525,6 +1525,10 @@ lemma tendsto_at_top_add_right_of_le' (C : β) (hf : tendsto f l at_top) (hg : {
 @tendsto_at_top_of_add_bdd_above_right' _ _ _ l (λ x, f x + g x) (λ x, -(g x)) (-C)
   (by simp [hg]) (by simp [hf])
 
+lemma tendsto_at_top_add_right_of_le (C : β) (hf : tendsto f l at_top) (hg : ∀ x, C ≤ g x) :
+  tendsto (λ x, f x + g x) l at_top :=
+tendsto_at_top_add_right_of_le' l C hf (univ_mem_sets' hg)
+
 lemma tendsto_at_top_add_const_left (C : β) (hf : tendsto f l at_top) :
   tendsto (λ x, C + f x) l at_top :=
 tendsto_at_top_add_left_of_le' l C (univ_mem_sets' $ λ _, le_refl C) hf

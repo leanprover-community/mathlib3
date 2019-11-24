@@ -1507,6 +1507,34 @@ tendsto_at_top_of_add_bdd_above_right' l C (univ_mem_sets' hC)
 
 end ordered_monoid
 
+section ordered_group
+
+variables [ordered_comm_group β] (l : filter α) {f g : α → β}
+
+lemma tendsto_at_top_add_left_of_le' (C : β) (hf : {x | C ≤ f x} ∈ l) (hg : tendsto g l at_top) :
+  tendsto (λ x, f x + g x) l at_top :=
+@tendsto_at_top_of_add_bdd_above_left' _ _ _ l (λ x, -(f x)) (λ x, f x + g x) (-C)
+  (by simp [hf]) (by simp [hg])
+
+lemma tendsto_at_top_add_left_of_le (C : β) (hf : ∀ x, C ≤ f x) (hg : tendsto g l at_top) :
+  tendsto (λ x, f x + g x) l at_top :=
+tendsto_at_top_add_left_of_le' l C (univ_mem_sets' hf) hg
+
+lemma tendsto_at_top_add_right_of_le' (C : β) (hf : tendsto f l at_top) (hg : {x | C ≤ g x} ∈ l) :
+  tendsto (λ x, f x + g x) l at_top :=
+@tendsto_at_top_of_add_bdd_above_right' _ _ _ l (λ x, f x + g x) (λ x, -(g x)) (-C)
+  (by simp [hg]) (by simp [hf])
+
+lemma tendsto_at_top_add_const_left (C : β) (hf : tendsto f l at_top) :
+  tendsto (λ x, C + f x) l at_top :=
+tendsto_at_top_add_left_of_le' l C (univ_mem_sets' $ λ _, le_refl C) hf
+
+lemma tendsto_at_top_add_const_right (C : β) (hf : tendsto f l at_top) :
+  tendsto (λ x, f x + C) l at_top :=
+tendsto_at_top_add_right_of_le' l C hf (univ_mem_sets' $ λ _, le_refl C)
+
+end ordered_group
+
 lemma tendsto_at_top' [nonempty α] [semilattice_sup α] (f : α → β) (l : filter β) :
   tendsto f at_top l ↔ (∀s ∈ l, ∃a, ∀b≥a, f b ∈ s) :=
 by simp only [tendsto_def, mem_at_top_sets]; refl

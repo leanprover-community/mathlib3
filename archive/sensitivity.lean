@@ -421,7 +421,7 @@ begin
                   { dsimp only [φ],
                     erw [(f $ m+1).map_finsupp_total, (ε q).map_finsupp_total, finsupp.total_apply] ; apply_instance }
     ... ≤ (coeffs y).support.sum (λ p,
-           |(coeffs y p) * (ε q $ φ $ e p)| ) : norm_triangle_sum _ $ λ p, coeffs y p * _
+           |(coeffs y p) * (ε q $ φ $ e p)| ) : norm_sum_le _ $ λ p, coeffs y p * _
     ... = (coeffs y).support.sum (λ p, |coeffs y p| * ite (q.adjacent p) 1 0) : by simp only [abs_mul, f_matrix]
     ... = ((coeffs y).support.filter (Q.adjacent q)).sum (λ p, |coeffs y p| ) : by simp [finset.sum_filter]
     ... ≤ ((coeffs y).support.filter (Q.adjacent q)).sum (λ p, |coeffs y q| ) : finset.sum_le_sum (λ p _, H_max p)

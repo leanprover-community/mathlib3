@@ -763,7 +763,7 @@ begin
     ... = ∥a • (x - z) + b • (y - z)∥ :
       by rw [add_smul, smul_sub, smul_sub]; simp
     ... ≤ ∥a • (x - z)∥ + ∥b • (y - z)∥ :
-      norm_triangle (a • (x - z)) (b • (y - z))
+      norm_add_le (a • (x - z)) (b • (y - z))
     ... = a * dist x z + b * dist y z :
       by simp [norm_smul, normed_group.dist_eq, real.norm_eq_abs, abs_of_nonneg ha, abs_of_nonneg hb]
 end

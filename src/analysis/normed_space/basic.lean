@@ -83,13 +83,54 @@ lemma dist_eq_norm (g h : α) : dist g h = ∥g - h∥ :=
 normed_group.dist_eq _ _
 
 @[simp] lemma dist_zero_right (g : α) : dist g 0 = ∥g∥ :=
-by { rw[dist_eq_norm], simp }
+by rw [dist_eq_norm, sub_zero]
 
-lemma norm_triangle (g h : α) : ∥g + h∥ ≤ ∥g∥ + ∥h∥ :=
-calc ∥g + h∥ = ∥g - (-h)∥             : by simp
-         ... = dist g (-h)            : by simp[dist_eq_norm]
-         ... ≤ dist g 0 + dist 0 (-h) : by apply dist_triangle
-         ... = ∥g∥ + ∥h∥               : by simp[dist_eq_norm]
+lemma norm_sub_rev (g h : α) : ∥g - h∥ = ∥h - g∥ :=
+by simpa only [dist_eq_norm] using dist_comm g h
+
+@[simp] lemma norm_neg (g : α) : ∥-g∥ = ∥g∥ :=
+by simpa using norm_sub_rev 0 g
+
+@[simp] lemma dist_add_left (g h₁ h₂ : α) : dist (g + h₁) (g + h₂) = dist h₁ h₂ :=
+by simp [dist_eq_norm]
+
+@[simp] lemma dist_add_right (g₁ g₂ h : α) : dist (g₁ + h) (g₂ + h) = dist g₁ g₂ :=
+by simp [dist_eq_norm]
+
+@[simp] lemma dist_neg_neg (g h : α) : dist (-g) (-h) = dist g h :=
+by simp only [dist_eq_norm, neg_sub_neg, norm_sub_rev]
+
+@[simp] lemma dist_sub_left (g h₁ h₂ : α) : dist (g - h₁) (g - h₂) = dist h₁ h₂ :=
+by simp only [sub_eq_add_neg, dist_add_left, dist_neg_neg]
+
+@[simp] lemma dist_sub_right (g₁ g₂ h : α) : dist (g₁ - h) (g₂ - h) = dist g₁ g₂ :=
+dist_add_right _ _ _
+
+/-- Triangle inequality for the norm. -/
+lemma norm_add_le (g h : α) : ∥g + h∥ ≤ ∥g∥ + ∥h∥ :=
+by simpa [dist_eq_norm] using dist_triangle g 0 (-h)
+
+lemma norm_add_le_of_le {g₁ g₂ : α} {n₁ n₂ : ℝ} (H₁ : ∥g₁∥ ≤ n₁) (H₂ : ∥g₂∥ ≤ n₂) :
+  ∥g₁ + g₂∥ ≤ n₁ + n₂ :=
+le_trans (norm_add_le g₁ g₂) (add_le_add H₁ H₂)
+
+lemma dist_add_add_le (g₁ g₂ h₁ h₂ : α) :
+  dist (g₁ + g₂) (h₁ + h₂) ≤ dist g₁ h₁ + dist g₂ h₂ :=
+by simpa only [dist_add_left, dist_add_right] using dist_triangle (g₁ + g₂) (h₁ + g₂) (h₁ + h₂)
+
+lemma dist_add_add_le_of_le {g₁ g₂ h₁ h₂ : α} {d₁ d₂ : ℝ}
+  (H₁ : dist g₁ h₁ ≤ d₁) (H₂ : dist g₂ h₂ ≤ d₂) :
+  dist (g₁ + g₂) (h₁ + h₂) ≤ d₁ + d₂ :=
+le_trans (dist_add_add_le g₁ g₂ h₁ h₂) (add_le_add H₁ H₂)
+
+lemma dist_sub_sub_le (g₁ g₂ h₁ h₂ : α) :
+  dist (g₁ - g₂) (h₁ - h₂) ≤ dist g₁ h₁ + dist g₂ h₂ :=
+dist_neg_neg g₂ h₂ ▸ dist_add_add_le _ _ _ _
+
+lemma dist_sub_sub_le_of_le {g₁ g₂ h₁ h₂ : α} {d₁ d₂ : ℝ}
+  (H₁ : dist g₁ h₁ ≤ d₁) (H₂ : dist g₂ h₂ ≤ d₂) :
+  dist (g₁ - g₂) (h₁ - h₂) ≤ d₁ + d₂ :=
+le_trans (dist_sub_sub_le g₁ g₂ h₁ h₂) (add_le_add H₁ H₂)
 
 @[simp] lemma norm_nonneg (g : α) : 0 ≤ ∥g∥ :=
 by { rw[←dist_zero_right], exact dist_nonneg }
@@ -97,69 +138,49 @@ by { rw[←dist_zero_right], exact dist_nonneg }
 lemma norm_eq_zero (g : α) : ∥g∥ = 0 ↔ g = 0 :=
 by { rw[←dist_zero_right], exact dist_eq_zero }
 
-@[simp] lemma norm_zero : ∥(0:α)∥ = 0 := (norm_eq_zero _).2 (by simp)
+@[simp] lemma norm_zero : ∥(0:α)∥ = 0 := (norm_eq_zero _).2 rfl
 
-lemma norm_triangle_sum {β} : ∀(s : finset β) (f : β → α), ∥s.sum f∥ ≤ s.sum (λa, ∥ f a ∥) :=
-finset.le_sum_of_subadditive norm norm_zero norm_triangle
+lemma norm_sum_le {β} : ∀(s : finset β) (f : β → α), ∥s.sum f∥ ≤ s.sum (λa, ∥ f a ∥) :=
+finset.le_sum_of_subadditive norm norm_zero norm_add_le
+
+lemma norm_sum_le_of_le {β} (s : finset β) {f : β → α} {n : β → ℝ} (h : ∀ b ∈ s, ∥f b∥ ≤ n b) :
+  ∥s.sum f∥ ≤ s.sum n :=
+by { haveI := classical.dec_eq β, exact le_trans (norm_sum_le s f) (finset.sum_le_sum h) }
 
 lemma norm_pos_iff (g : α) : 0 < ∥ g ∥ ↔ g ≠ 0 :=
-begin
-  split ; intro h ; rw[←dist_zero_right] at *,
-  { exact dist_pos.1 h },
-  { exact dist_pos.2 h }
-end
+dist_zero_right g ▸ dist_pos
 
 lemma norm_le_zero_iff (g : α) : ∥g∥ ≤ 0 ↔ g = 0 :=
 by { rw[←dist_zero_right], exact dist_le_zero }
 
-@[simp] lemma norm_neg (g : α) : ∥-g∥ = ∥g∥ :=
-calc ∥-g∥ = ∥0 - g∥ : by simp
-      ... = dist 0 g : (dist_eq_norm 0 g).symm
-      ... = dist g 0 : dist_comm _ _
-      ... = ∥g - 0∥ : (dist_eq_norm g 0)
-      ... = ∥g∥ : by simp
+lemma norm_sub_le (g h : α) : ∥g - h∥ ≤ ∥g∥ + ∥h∥ :=
+by simpa [dist_eq_norm] using dist_triangle g 0 h
 
-lemma norm_reverse_triangle' (a b : α) : ∥a∥ - ∥b∥ ≤ ∥a - b∥ :=
-by simpa using add_le_add (norm_triangle (a - b) (b)) (le_refl (-∥b∥))
+lemma norm_sub_le_of_le {g₁ g₂ : α} {n₁ n₂ : ℝ} (H₁ : ∥g₁∥ ≤ n₁) (H₂ : ∥g₂∥ ≤ n₂) :
+  ∥g₁ - g₂∥ ≤ n₁ + n₂ :=
+le_trans (norm_sub_le g₁ g₂) (add_le_add H₁ H₂)
 
-lemma norm_reverse_triangle (a b : α) : abs(∥a∥ - ∥b∥) ≤ ∥a - b∥ :=
-suffices -(∥a∥ - ∥b∥) ≤ ∥a - b∥, from abs_le_of_le_of_neg_le (norm_reverse_triangle' a b) this,
-calc -(∥a∥ - ∥b∥) = ∥b∥ - ∥a∥ : by abel
-             ... ≤ ∥b - a∥ : norm_reverse_triangle' b a
-             ... = ∥a - b∥ : by rw ← norm_neg (a - b); simp
-
-lemma norm_triangle_sub {a b : α} : ∥a - b∥ ≤ ∥a∥ + ∥b∥ :=
-by simpa only [sub_eq_add_neg, norm_neg] using norm_triangle a (-b)
+lemma dist_le_norm_add_norm (g h : α) : dist g h ≤ ∥g∥ + ∥h∥ :=
+by { rw dist_eq_norm, apply norm_sub_le }
 
 lemma abs_norm_sub_norm_le (g h : α) : abs(∥g∥ - ∥h∥) ≤ ∥g - h∥ :=
-abs_le.2 $ and.intro
-  (suffices -∥g - h∥ ≤ -(∥h∥ - ∥g∥), by simpa,
-    neg_le_neg $ sub_right_le_of_le_add $
-    calc ∥h∥ = ∥h - g + g∥ : by simp
-      ... ≤ ∥h - g∥ + ∥g∥ : norm_triangle _ _
-      ... = ∥-(g - h)∥ + ∥g∥ : by simp
-      ... = ∥g - h∥ + ∥g∥ : by { rw [norm_neg (g-h)] })
-  (sub_right_le_of_le_add $ calc ∥g∥ = ∥g - h + h∥ : by simp ... ≤ ∥g-h∥ + ∥h∥ : norm_triangle _ _)
+by simpa [dist_eq_norm] using abs_dist_sub_le g h 0
+
+lemma norm_sub_norm_le (g h : α) : ∥g∥ - ∥h∥ ≤ ∥g - h∥ :=
+le_trans (le_abs_self _) (abs_norm_sub_norm_le g h)
 
 lemma dist_norm_norm_le (g h : α) : dist ∥g∥ ∥h∥ ≤ ∥g - h∥ :=
 abs_norm_sub_norm_le g h
-
-lemma norm_sub_rev (g h : α) : ∥g - h∥ = ∥h - g∥ :=
-by rw ←norm_neg; simp
 
 lemma ball_0_eq (ε : ℝ) : ball (0:α) ε = {x | ∥x∥ < ε} :=
 set.ext $ assume a, by simp
 
 theorem normed_group.tendsto_nhds_zero {f : γ → α} {l : filter γ} :
   tendsto f l (𝓝 0) ↔ ∀ ε > 0, { x | ∥ f x ∥ < ε } ∈ l :=
+metric.tendsto_nhds.trans $ forall_congr $ λ ε, forall_congr $ λ εgt0,
 begin
-  rw [metric.tendsto_nhds], simp only [normed_group.dist_eq, sub_zero],
-  split,
-  { intros h ε εgt0,
-    rcases h ε εgt0 with ⟨s, ssets, hs⟩,
-    exact mem_sets_of_superset ssets hs },
-  intros h ε εgt0,
-  exact ⟨_, h ε εgt0, set.subset.refl _⟩
+  simp only [dist_zero_right],
+  exact exists_sets_subset_iff
 end
 
 section nnnorm
@@ -177,8 +198,8 @@ by simp only [nnreal.eq_iff.symm, nnreal.coe_zero, coe_nnnorm, norm_eq_zero]
 @[simp] lemma nnnorm_zero : nnnorm (0 : α) = 0 :=
 nnreal.eq norm_zero
 
-lemma nnnorm_triangle (g h : α) : nnnorm (g + h) ≤ nnnorm g + nnnorm h :=
-by simpa [nnreal.coe_le] using norm_triangle g h
+lemma nnnorm_add_le (g h : α) : nnnorm (g + h) ≤ nnnorm g + nnnorm h :=
+nnreal.coe_le.2 $ norm_add_le g h
 
 @[simp] lemma nnnorm_neg (g : α) : nnnorm (-g) = nnnorm g :=
 nnreal.eq $ norm_neg g
@@ -257,7 +278,7 @@ begin
   refine ⟨metric.uniform_continuous_iff.2 $ assume ε hε, ⟨ε / 2, half_pos hε, assume a b h, _⟩⟩,
   rw [prod.dist_eq, max_lt_iff, dist_eq_norm, dist_eq_norm] at h,
   calc dist (a.1 - a.2) (b.1 - b.2) = ∥(a.1 - b.1) - (a.2 - b.2)∥  : by simp [dist_eq_norm]
-    ... ≤ ∥a.1 - b.1∥ + ∥a.2 - b.2∥ : norm_triangle_sub
+    ... ≤ ∥a.1 - b.1∥ + ∥a.2 - b.2∥ : norm_sub_le _ _
     ... < ε / 2 + ε / 2 : add_lt_add h.1 h.2
     ... = ε : add_halves _
 end
@@ -315,7 +336,7 @@ instance normed_ring_top_monoid [normed_ring α] : topological_monoid α :=
     begin
       apply squeeze_zero,
       { intro, apply norm_nonneg },
-      { simp only [this], intro, apply norm_triangle },
+      { simp only [this], intro, apply norm_add_le },
       { rw ←zero_add (0 : ℝ), apply tendsto_add,
         { apply squeeze_zero,
           { intro, apply norm_nonneg },
@@ -486,6 +507,9 @@ set_option class.instance_max_depth 43
 lemma norm_smul [normed_space α β] (s : α) (x : β) : ∥s • x∥ = ∥s∥ * ∥x∥ :=
 normed_space.norm_smul s x
 
+lemma dist_smul [normed_space α β] (s : α) (x y : β) : dist (s • x) (s • y) = ∥s∥ * dist x y :=
+by simp only [dist_eq_norm, (norm_smul _ _).symm, smul_sub]
+
 lemma nnnorm_smul [normed_space α β] (s : α) (x : β) : nnnorm (s • x) = nnnorm s * nnnorm x :=
 nnreal.eq $ norm_smul s x
 
@@ -499,7 +523,7 @@ begin
   rw tendsto_iff_norm_tendsto_zero,
   have ineq := λ x : γ, calc
       ∥f x • g x - s • b∥ = ∥(f x • g x - s • g x) + (s • g x - s • b)∥ : by simp[add_assoc]
-                      ... ≤ ∥f x • g x - s • g x∥ + ∥s • g x - s • b∥ : norm_triangle (f x • g x - s • g x) (s • g x - s • b)
+                      ... ≤ ∥f x • g x - s • g x∥ + ∥s • g x - s • b∥ : norm_add_le (f x • g x - s • g x) (s • g x - s • b)
                       ... ≤ ∥f x - s∥*∥g x∥ + ∥s∥*∥g x - b∥ : by { rw [←smul_sub, ←sub_smul, norm_smul, norm_smul] },
   apply squeeze_zero,
   { intro t, exact norm_nonneg _ },
@@ -614,7 +638,7 @@ summable_iff_vanishing_norm.2 $ assume ε hε,
   ⟨s, assume t ht,
     have ∥t.sum g∥ < ε := hs t ht,
     have nn : 0 ≤ t.sum g := finset.sum_nonneg (assume a _, le_trans (norm_nonneg _) (h a)),
-    lt_of_le_of_lt (norm_triangle_sum t f) $ lt_of_le_of_lt (finset.sum_le_sum $ assume i _, h i) $
+    lt_of_le_of_lt (norm_sum_le_of_le t (λ i _, h i)) $
       by rwa [real.norm_eq_abs, abs_of_nonneg nn] at this⟩
 
 lemma summable_of_summable_norm {f : ι → α} (hf : summable (λa, ∥f a∥)) : summable f :=
@@ -625,7 +649,7 @@ have h₁ : tendsto (λs:finset ι, ∥s.sum f∥) at_top (𝓝 ∥(∑ i, f i)�
   (continuous_norm.tendsto _).comp (has_sum_tsum $ summable_of_summable_norm hf),
 have h₂ : tendsto (λs:finset ι, s.sum (λi, ∥f i∥)) at_top (𝓝 (∑ i, ∥f i∥)) :=
   has_sum_tsum hf,
-le_of_tendsto_of_tendsto at_top_ne_bot h₁ h₂ $ univ_mem_sets' $ assume s, norm_triangle_sum _ _
+le_of_tendsto_of_tendsto at_top_ne_bot h₁ h₂ $ univ_mem_sets' $ assume s, norm_sum_le _ _
 
 end summable
 

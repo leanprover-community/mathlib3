@@ -221,11 +221,10 @@ lemma op_norm_le_bound {M : ℝ} (hMp: 0 ≤ M) (hM : ∀ x, ∥f x∥ ≤ M * �
 Inf_le _ bounds_bdd_below ⟨hMp, hM⟩
 
 /-- The operator norm satisfies the triangle inequality. -/
-theorem op_norm_triangle : ∥f + g∥ ≤ ∥f∥ + ∥g∥ :=
+theorem op_norm_add_le : ∥f + g∥ ≤ ∥f∥ + ∥g∥ :=
 Inf_le _ bounds_bdd_below
   ⟨add_nonneg (op_norm_nonneg _) (op_norm_nonneg _), λ x, by { rw add_mul,
-    calc _ ≤ ∥f x∥ + ∥g x∥ : norm_triangle _ _
-    ...    ≤ _             : add_le_add (le_op_norm _ _) (le_op_norm _ _) }⟩
+    exact norm_add_le_of_le (le_op_norm _ _) (le_op_norm _ _) }⟩
 
 /-- An operator is zero iff its norm vanishes. -/
 theorem op_norm_zero_iff : ∥f∥ = 0 ↔ f = 0 :=
@@ -274,7 +273,7 @@ lemma op_norm_neg : ∥-f∥ = ∥f∥ := calc
 /-- Continuous linear maps themselves form a normed space with respect to
     the operator norm. -/
 instance to_normed_group : normed_group (E →L[𝕜] F) :=
-normed_group.of_core _ ⟨op_norm_zero_iff, op_norm_triangle, op_norm_neg⟩
+normed_group.of_core _ ⟨op_norm_zero_iff, op_norm_add_le, op_norm_neg⟩
 
 /- The next instance should be found automatically, but it is not.
 TODO: fix me -/

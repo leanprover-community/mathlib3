@@ -318,6 +318,7 @@ lemma compact_iff_totally_bounded_complete {s : set α} :
 λ ⟨ht, hc⟩, compact_iff_ultrafilter_le_nhds.2
   (λf hf hfs, hc _ (totally_bounded_iff_ultrafilter.1 ht _ hf hfs) hfs)⟩
 
+@[priority 100] -- see Note [lower instance priority]
 instance complete_of_compact {α : Type u} [uniform_space α] [compact_space α] : complete_space α :=
 ⟨λf hf, by simpa [principal_univ] using (compact_iff_totally_bounded_complete.1 compact_univ).2 f hf⟩
 

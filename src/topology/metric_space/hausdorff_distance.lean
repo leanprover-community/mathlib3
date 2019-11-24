@@ -448,13 +448,22 @@ begin
     { simp [ennreal.add_eq_top, inf_edist_ne_top hs, edist_ne_top] }}
 end
 
-/-- The minimal distance to a set is uniformly continuous -/
-lemma uniform_continuous_inf_dist : uniform_continuous (λx, inf_dist x s) :=
-uniform_continuous_of_le_add 1 (by simp [inf_dist_le_inf_dist_add_dist])
+variable (s)
 
-/-- The minimal distance to a set is continuous -/
-lemma continuous_inf_dist : continuous (λx, inf_dist x s) :=
-uniform_continuous_inf_dist.continuous
+/-- The minimal distance to a set is Lipschitz in point with constant 1 -/
+lemma lipschitz_inf_dist_pt : lipschitz_with 1 (λx, inf_dist x s) :=
+lipschitz_with.one_of_le_add $ λ x y, inf_dist_le_inf_dist_add_dist
+
+/-- The minimal distance to a set is uniformly continuous in point -/
+lemma uniform_continuous_inf_dist_pt :
+  uniform_continuous (λx, inf_dist x s) :=
+(lipschitz_inf_dist_pt s).to_uniform_continuous
+
+/-- The minimal distance to a set is continuous in point -/
+lemma continuous_inf_dist_pt : continuous (λx, inf_dist x s) :=
+(uniform_continuous_inf_dist_pt s).continuous
+
+variable {s}
 
 /-- The minimal distance to a set and its closure coincide -/
 lemma inf_dist_eq_closure : inf_dist x (closure s) = inf_dist x s :=

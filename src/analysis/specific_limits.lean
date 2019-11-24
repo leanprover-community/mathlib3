@@ -24,20 +24,12 @@ lemma summable_of_absolute_convergence_real {f : ℕ → ℝ} :
     simpa only using hr
   end
 
-lemma tendsto_pow_at_top_at_top_of_gt_1 {r : ℝ} (h : r > 1) : tendsto (λn:ℕ, r ^ n) at_top at_top :=
-tendsto_infi.2 $ assume p, tendsto_principal.2 $
-  let ⟨n, hn⟩ := exists_nat_gt (p / (r - 1)) in
-  have hn_nn : (0:ℝ) ≤ n, from nat.cast_nonneg n,
-  have r - 1 > 0, from sub_lt_iff_lt_add.mp $ by simp; assumption,
-  have p ≤ r ^ n,
-    from calc p = (p / (r - 1)) * (r - 1) : (div_mul_cancel _ $ ne_of_gt this).symm
-      ... ≤ n * (r - 1) : mul_le_mul (le_of_lt hn) (le_refl _) (le_of_lt this) hn_nn
-      ... ≤ 1 + n * (r - 1) : le_add_of_nonneg_of_le zero_le_one (le_refl _)
-      ... = 1 + add_monoid.smul n (r - 1) : by rw [add_monoid.smul_eq_mul]
-      ... ≤ (1 + (r - 1)) ^ n : one_add_mul_le_pow (le_of_lt this) _
-      ... ≤ r ^ n : by simp; exact le_refl _,
-  show {n | p ≤ r ^ n} ∈ at_top,
-    from mem_at_top_sets.mpr ⟨n, assume m hnm, le_trans this (pow_le_pow (le_of_lt h) hnm)⟩
+lemma tendsto_pow_at_top_at_top_of_gt_1 {r : ℝ} (h : r > 1) :
+  tendsto (λn:ℕ, r ^ n) at_top at_top :=
+(tendsto_at_top_at_top _).2 $ assume p,
+  let ⟨n, hn⟩ := pow_unbounded_of_one_lt p h in
+  ⟨n, λ m hnm, le_of_lt $
+    lt_of_lt_of_le hn (pow_le_pow (le_of_lt h) hnm)⟩
 
 lemma tendsto_inverse_at_top_nhds_0 : tendsto (λr:ℝ, r⁻¹) at_top (𝓝 0) :=
 tendsto_orderable_unbounded (no_top 0) (no_bot 0) $ assume l u hl hu,

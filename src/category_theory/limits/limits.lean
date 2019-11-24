@@ -418,10 +418,12 @@ class has_limits :=
 
 variables {J C}
 
+@[priority 100] -- see Note [lower instance priority]
 instance has_limit_of_has_limits_of_shape
   {J : Type v} [small_category J] [H : has_limits_of_shape J C] (F : J ⥤ C) : has_limit F :=
 has_limits_of_shape.has_limit F
 
+@[priority 100] -- see Note [lower instance priority]
 instance has_limits_of_shape_of_has_limits
   {J : Type v} [small_category J] [H : has_limits.{v} C] : has_limits_of_shape J C :=
 has_limits.has_limits_of_shape C J
@@ -677,10 +679,12 @@ class has_colimits :=
 
 variables {J C}
 
+@[priority 100] -- see Note [lower instance priority]
 instance has_colimit_of_has_colimits_of_shape
   {J : Type v} [small_category J] [H : has_colimits_of_shape J C] (F : J ⥤ C) : has_colimit F :=
 has_colimits_of_shape.has_colimit F
 
+@[priority 100] -- see Note [lower instance priority]
 instance has_colimits_of_shape_of_has_colimits
   {J : Type v} [small_category J] [H : has_colimits.{v} C] : has_colimits_of_shape J C :=
 has_colimits.has_colimits_of_shape C J

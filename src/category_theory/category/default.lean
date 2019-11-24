@@ -43,6 +43,8 @@ class has_hom (obj : Type u) : Type (max u (v+1)) :=
 
 infixr ` ⟶ `:10 := has_hom.hom -- type as \h
 
+section prio
+set_option default_priority 100 -- see Note [default priority]
 class category_struct (obj : Type u)
 extends has_hom.{v} obj : Type (max u (v+1)) :=
 (id       : Π X : obj, hom X X)
@@ -62,6 +64,7 @@ extends category_struct.{v} obj : Type (max u (v+1)) :=
 (comp_id' : ∀ {X Y : obj} (f : hom X Y), f ≫ 𝟙 Y = f . obviously)
 (assoc'   : ∀ {W X Y Z : obj} (f : hom W X) (g : hom X Y) (h : hom Y Z),
   (f ≫ g) ≫ h = f ≫ (g ≫ h) . obviously)
+end prio
 
 -- `restate_axiom` is a command that creates a lemma from a structure field,
 -- discarding any auto_param wrappers from the type.
@@ -136,6 +139,7 @@ namespace preorder
 
 variables (α : Type u)
 
+@[priority 100] -- see Note [lower instance priority]
 instance small_category [preorder α] : small_category α :=
 { hom  := λ U V, ulift (plift (U ≤ V)),
   id   := λ X, ⟨ ⟨ le_refl X ⟩ ⟩,

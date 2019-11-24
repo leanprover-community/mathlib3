@@ -216,6 +216,8 @@ end semilattice_inf
 
 
 namespace lattice
+section prio
+set_option default_priority 100 -- see Note [default priority]
 /-- A conditionally complete lattice is a lattice in which
 every nonempty subset which is bounded above has a supremum, and
 every nonempty subset which is bounded below has an infimum.
@@ -237,10 +239,12 @@ class conditionally_complete_linear_order (α : Type u)
 class conditionally_complete_linear_order_bot (α : Type u)
   extends conditionally_complete_lattice α, decidable_linear_order α, order_bot α :=
 (cSup_empty : Sup ∅ = ⊥)
+end prio
 
 /- A complete lattice is a conditionally complete lattice, as there are no restrictions
 on the properties of Inf and Sup in a complete lattice.-/
 
+@[priority 100] -- see Note [lower instance priority]
 instance conditionally_complete_lattice_of_complete_lattice [complete_lattice α]:
   conditionally_complete_lattice α :=
 { le_cSup := by intros; apply le_Sup; assumption,
@@ -249,6 +253,7 @@ instance conditionally_complete_lattice_of_complete_lattice [complete_lattice α
   le_cInf := by intros; apply le_Inf; assumption,
   ..‹complete_lattice α›}
 
+@[priority 100] -- see Note [lower instance priority]
 instance conditionally_complete_linear_order_of_complete_linear_order [complete_linear_order α]:
   conditionally_complete_linear_order α :=
 { ..lattice.conditionally_complete_lattice_of_complete_lattice, .. ‹complete_linear_order α› }

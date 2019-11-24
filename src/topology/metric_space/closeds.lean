@@ -2,8 +2,15 @@
 Copyright (c) 2019 Sébastien Gouëzel. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Author: Sébastien Gouëzel
-The metric and emetric space structure on the types of closed subsets and nonempty compact
-subsets of a metric or emetric space
+-/
+
+import topology.metric_space.hausdorff_distance topology.opens
+
+/-!
+# Closed subsets
+
+This file defines the metric and emetric space structure on the types of closed subsets and nonempty compact
+subsets of a metric or emetric space.
 
 The Hausdorff distance induces an emetric space structure on the type of closed subsets
 of an emetric space, called `closeds`. Its completeness, resp. compactness, resp.
@@ -14,7 +21,6 @@ inherits a metric space structure from the Hausdorff distance, as the Hausdorff 
 always finite in this context.
 -/
 
-import topology.metric_space.hausdorff_distance topology.opens
 noncomputable theory
 open_locale classical
 open_locale topological_space
@@ -436,22 +442,20 @@ emetric_space.to_metric_space $ λx y, Hausdorff_edist_ne_top_of_ne_empty_of_bou
 lemma nonempty_compacts.dist_eq {x y : nonempty_compacts α} :
   dist x y = Hausdorff_dist x.val y.val := rfl
 
+lemma lipschitz_inf_dist_set (x : α) :
+  lipschitz_with 1 (λ s : nonempty_compacts α, inf_dist x s.val) :=
+lipschitz_with.one_of_le_add $ assume s t,
+by { rw dist_comm,
+  exact inf_dist_le_inf_dist_add_Hausdorff_dist (edist_ne_top t s) }
+
+lemma lipschitz_inf_dist :
+  lipschitz_with 2 (λ p : α × (nonempty_compacts α), inf_dist p.1 p.2.val) :=
+@lipschitz_with.uncurry' _ _ _ _ _ _ (λ (x : α) (s : nonempty_compacts α), inf_dist x s.val) 1 1
+  (λ s, lipschitz_inf_dist_pt s.val) lipschitz_inf_dist_set
+
 lemma uniform_continuous_inf_dist_Hausdorff_dist :
   uniform_continuous (λp : α × (nonempty_compacts α), inf_dist p.1 (p.2).val) :=
-begin
-  refine uniform_continuous_of_le_add 2 _,
-  rintros ⟨x, s⟩ ⟨y, t⟩,
-  calc inf_dist x (s.val) ≤ inf_dist x (t.val) + Hausdorff_dist (t.val) (s.val) :
-    inf_dist_le_inf_dist_add_Hausdorff_dist (edist_ne_top t s)
-  ... ≤ (inf_dist y (t.val) + dist x y) + Hausdorff_dist (t.val) (s.val) :
-    add_le_add_right inf_dist_le_inf_dist_add_dist _
-  ... = inf_dist y (t.val) + (dist x y + Hausdorff_dist (s.val) (t.val)) :
-    by simp [add_comm, Hausdorff_dist_comm]
-  ... ≤ inf_dist y (t.val) + (dist (x, s) (y, t) + dist (x, s) (y, t)) :
-    add_le_add_left (add_le_add (by simp [dist, le_refl]) (by simp [dist, nonempty_compacts.dist_eq, le_refl])) _
-  ... = inf_dist y (t.val) + 2 * dist (x, s) (y, t) :
-    by rw [← mul_two, mul_comm]
-end
+lipschitz_inf_dist.to_uniform_continuous
 
 end --section
 end metric --namespace

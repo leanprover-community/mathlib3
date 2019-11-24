@@ -26,10 +26,13 @@ export has_norm (norm)
 
 notation `∥`:1024 e:1 `∥`:1 := norm e
 
+section prio
+set_option default_priority 100 -- see Note [default priority]
 /-- A normed group is an additive group endowed with a norm for which `dist x y = ∥x - y∥` defines
 a metric space structure. -/
 class normed_group (α : Type*) extends has_norm α, add_comm_group α, metric_space α :=
 (dist_eq : ∀ x y, dist x y = norm (x - y))
+end prio
 
 /-- Construct a normed group from a translation invariant distance -/
 def normed_group.of_add_dist [has_norm α] [add_comm_group α] [metric_space α]
@@ -248,6 +251,7 @@ continuous_subtype_mk _ continuous_norm
 
 /-- A normed group is a uniform additive group, i.e., addition and subtraction are uniformly
 continuous. -/
+@[priority 100] -- see Note [lower instance priority]
 instance normed_uniform_group : uniform_add_group α :=
 begin
   refine ⟨metric.uniform_continuous_iff.2 $ assume ε hε, ⟨ε / 2, half_pos hε, assume a b h, _⟩⟩,
@@ -258,18 +262,24 @@ begin
     ... = ε : add_halves _
 end
 
-instance normed_top_monoid : topological_add_monoid α := by apply_instance
-instance normed_top_group : topological_add_group α := by apply_instance
+@[priority 100] -- see Note [lower instance priority]
+instance normed_top_monoid : topological_add_monoid α := by apply_instance -- short-circuit type class inference
+@[priority 100] -- see Note [lower instance priority]
+instance normed_top_group : topological_add_group α := by apply_instance -- short-circuit type class inference
 
 end normed_group
 
 section normed_ring
 
+section prio
+set_option default_priority 100 -- see Note [default priority]
 /-- A normed ring is a ring endowed with a norm which satisfies the inequality `∥x y∥ ≤ ∥x∥ ∥y∥`. -/
 class normed_ring (α : Type*) extends has_norm α, ring α, metric_space α :=
 (dist_eq : ∀ x y, dist x y = norm (x - y))
 (norm_mul : ∀ a b, norm (a * b) ≤ norm a * norm b)
+end prio
 
+@[priority 100] -- see Note [lower instance priority]
 instance normed_ring.to_normed_group [β : normed_ring α] : normed_group α := { ..β }
 
 lemma norm_mul_le {α : Type*} [normed_ring α] (a b : α) : (∥a*b∥) ≤ (∥a∥) * (∥b∥) :=
@@ -297,6 +307,7 @@ instance prod.normed_ring [normed_ring α] [normed_ring β] : normed_ring (α ×
   ..prod.normed_group }
 end normed_ring
 
+@[priority 100] -- see Note [lower instance priority]
 instance normed_ring_top_monoid [normed_ring α] : topological_monoid α :=
 ⟨ continuous_iff_continuous_at.2 $ λ x, tendsto_iff_norm_tendsto_zero.2 $
     have ∀ e : α × α, e.fst * e.snd - x.fst * x.snd =
@@ -328,11 +339,14 @@ instance normed_ring_top_monoid [normed_ring α] : topological_monoid α :=
     end ⟩
 
 /-- A normed ring is a topological ring. -/
+@[priority 100] -- see Note [lower instance priority]
 instance normed_top_ring [normed_ring α] : topological_ring α :=
 ⟨ continuous_iff_continuous_at.2 $ λ x, tendsto_iff_norm_tendsto_zero.2 $
     have ∀ e : α, -e - -x = -(e - x), by intro; simp,
     by simp only [this, norm_neg]; apply lim_norm ⟩
 
+section prio
+set_option default_priority 100 -- see Note [default priority]
 /-- A normed field is a field with a norm satisfying ∥x y∥ = ∥x∥ ∥y∥. -/
 class normed_field (α : Type*) extends has_norm α, discrete_field α, metric_space α :=
 (dist_eq : ∀ x y, dist x y = norm (x - y))
@@ -343,7 +357,9 @@ class normed_field (α : Type*) extends has_norm α, discrete_field α, metric_s
 by the powers of any element, and thus to relate algebra and topology. -/
 class nondiscrete_normed_field (α : Type*) extends normed_field α :=
 (non_trivial : ∃x:α, 1<∥x∥)
+end prio
 
+@[priority 100] -- see Note [lower instance priority]
 instance normed_field.to_normed_ring [i : normed_field α] : normed_ring α :=
 { norm_mul := by finish [i.norm_mul'], ..i }
 
@@ -398,6 +414,20 @@ begin
   { simp [inv_lt_one hy] }
 end
 
+lemma exists_lt_norm (α : Type*) [nondiscrete_normed_field α]
+  (r : ℝ) : ∃ x : α, r < ∥x∥ :=
+let ⟨w, hw⟩ := exists_one_lt_norm α in
+let ⟨n, hn⟩ := pow_unbounded_of_one_lt r hw in
+⟨w^n, by rwa norm_pow⟩
+
+lemma exists_norm_lt (α : Type*) [nondiscrete_normed_field α]
+  {r : ℝ} (hr : 0 < r) : ∃ x : α, 0 < ∥x∥ ∧ ∥x∥ < r :=
+let ⟨w, hw⟩ := exists_one_lt_norm α in
+let ⟨n, hle, hlt⟩ := exists_int_pow_near' hr hw in
+⟨w^n, by { rw norm_fpow; exact fpow_pos_of_pos (lt_trans zero_lt_one hw) _},
+by rwa norm_fpow⟩
+
+
 instance : normed_field ℝ :=
 { norm := λ x, abs x,
   dist_eq := assume x y, rfl,
@@ -437,11 +467,14 @@ by rw [← rat.norm_cast_real, ← int.norm_cast_real]; congr' 1; norm_cast
 
 section normed_space
 
+section prio
+set_option default_priority 100 -- see Note [default priority]
 /-- A normed space over a normed field is a vector space endowed with a norm which satisfies the
 equality `∥c • x∥ = ∥c∥ ∥x∥`. -/
 class normed_space (α : Type*) (β : Type*) [normed_field α] [normed_group β]
   extends vector_space α β :=
 (norm_smul : ∀ (a:α) (b:β), norm (a • b) = has_norm.norm a * norm b)
+end prio
 
 variables [normed_field α] [normed_group β]
 
@@ -492,6 +525,7 @@ lemma tendsto_smul_const {g : γ → F} {e : filter γ} (s : α) {b : F} :
   (tendsto g e (𝓝 b)) → tendsto (λ x, s • (g x)) e (𝓝 (s • b)) :=
 tendsto_smul tendsto_const_nhds
 
+@[priority 100] -- see Note [lower instance priority]
 instance normed_space.topological_vector_space : topological_vector_space α E :=
 { continuous_smul := continuous_iff_continuous_at.2 $ λp, tendsto_smul
     (continuous_iff_continuous_at.1 continuous_fst _) (continuous_iff_continuous_at.1 continuous_snd _) }

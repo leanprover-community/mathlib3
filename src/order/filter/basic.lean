@@ -1485,27 +1485,25 @@ lemma tendsto_at_top_of_add_const_right (C : β) (hf : tendsto (λ x, f x + C) l
 (tendsto_at_top _ l).2 $ assume b,
   monotone_mem_sets (λ x, le_of_add_le_add_right) ((tendsto_at_top _ _).1 hf (b + C))
 
-lemma tendsto_at_top_of_add_bdd_above_left' :
-  (∃ C, {x | f x ≤ C} ∈ l) → tendsto (λ x, f x + g x) l at_top → tendsto g l at_top
-| ⟨C, hf⟩ h :=
+lemma tendsto_at_top_of_add_bdd_above_left' (C) (hC : {x | f x ≤ C} ∈ l)
+  (h : tendsto (λ x, f x + g x) l at_top) :
+  tendsto g l at_top :=
 tendsto_at_top_of_add_const_left l C
-  (tendsto_at_top_mono' l (monotone_mem_sets (λ x (hx : f x ≤ C), add_le_add_right hx (g x)) hf) h)
+  (tendsto_at_top_mono' l (monotone_mem_sets (λ x (hx : f x ≤ C), add_le_add_right hx (g x)) hC) h)
 
-lemma tendsto_at_top_of_add_bdd_above_left :
-  (∃ C, ∀ x, f x ≤ C) → tendsto (λ x, f x + g x) l at_top → tendsto g l at_top
-| ⟨C, hf⟩ :=
-tendsto_at_top_of_add_bdd_above_left' l ⟨C, univ_mem_sets' hf⟩
+lemma tendsto_at_top_of_add_bdd_above_left (C) (hC : ∀ x, f x ≤ C) :
+  tendsto (λ x, f x + g x) l at_top → tendsto g l at_top :=
+tendsto_at_top_of_add_bdd_above_left' l C (univ_mem_sets' hC)
 
-lemma tendsto_at_top_of_add_bdd_above_right' :
-  (∃ C, {x | g x ≤ C} ∈ l) → tendsto (λ x, f x + g x) l at_top → tendsto f l at_top
-| ⟨C, hg⟩ h :=
+lemma tendsto_at_top_of_add_bdd_above_right' (C) (hC : {x | g x ≤ C} ∈ l)
+  (h : tendsto (λ x, f x + g x) l at_top) :
+  tendsto f l at_top :=
 tendsto_at_top_of_add_const_right l C
-  (tendsto_at_top_mono' l (monotone_mem_sets (λ x (hx : g x ≤ C), add_le_add_left hx (f x)) hg) h)
+  (tendsto_at_top_mono' l (monotone_mem_sets (λ x (hx : g x ≤ C), add_le_add_left hx (f x)) hC) h)
 
-lemma tendsto_at_top_of_add_bdd_above_right :
-  (∃ C, ∀ x, g x ≤ C) → tendsto (λ x, f x + g x) l at_top → tendsto f l at_top
-| ⟨C, hg⟩ :=
-tendsto_at_top_of_add_bdd_above_right' l ⟨C, univ_mem_sets' hg⟩
+lemma tendsto_at_top_of_add_bdd_above_right (C) (hC : ∀ x, g x ≤ C) :
+  tendsto (λ x, f x + g x) l at_top → tendsto f l at_top :=
+tendsto_at_top_of_add_bdd_above_right' l C (univ_mem_sets' hC)
 
 end ordered_monoid
 

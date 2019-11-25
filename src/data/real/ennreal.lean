@@ -256,10 +256,10 @@ begin
   apply lt_of_lt_of_le I J
 end
 
-lemma coe_min : ((min r p:nnreal):ennreal) = min r p :=
+@[move_cast] lemma coe_min : ((min r p:nnreal):ennreal) = min r p :=
 coe_mono.map_min
 
-lemma coe_max : ((max r p:nnreal):ennreal) = max r p :=
+@[move_cast] lemma coe_max : ((max r p:nnreal):ennreal) = max r p :=
 coe_mono.map_max
 
 end order

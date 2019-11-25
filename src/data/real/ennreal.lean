@@ -112,6 +112,7 @@ by simp [ennreal.to_real, to_nnreal_eq_zero_iff]
 @[simp] lemma coe_eq_coe : (↑r : ennreal) = ↑q ↔ r = q := with_top.coe_eq_coe
 @[simp] lemma coe_le_coe : (↑r : ennreal) ≤ ↑q ↔ r ≤ q := with_top.coe_le_coe
 @[simp] lemma coe_lt_coe : (↑r : ennreal) < ↑q ↔ r < q := with_top.coe_lt_coe
+lemma coe_mono : monotone (coe : nnreal → ennreal) := λ _ _, coe_le_coe.2
 
 @[simp] lemma coe_eq_zero : (↑r : ennreal) = 0 ↔ r = 0 := coe_eq_coe
 @[simp] lemma zero_eq_coe : 0 = (↑r : ennreal) ↔ 0 = r := coe_eq_coe
@@ -179,7 +180,7 @@ section order
 @[simp] lemma one_le_coe_iff : (1:ennreal) ≤ ↑r ↔ 1 ≤ r := coe_le_coe
 @[simp] lemma coe_le_one_iff : ↑r ≤ (1:ennreal) ↔ r ≤ 1 := coe_le_coe
 @[simp] lemma coe_lt_one_iff : (↑p : ennreal) < 1 ↔ p < 1 := coe_lt_coe
-@[simp] lemma one_lt_zero_iff : 1 < (↑p : ennreal) ↔ 1 < p := coe_lt_coe
+@[simp] lemma one_lt_coe_iff : 1 < (↑p : ennreal) ↔ 1 < p := coe_lt_coe
 @[simp] lemma coe_nat (n : nat) : ((n : nnreal) : ennreal) = n := with_top.coe_nat n
 @[simp] lemma nat_ne_top (n : nat) : (n : ennreal) ≠ ⊤ := with_top.nat_ne_top n
 @[simp] lemma top_ne_nat (n : nat) : (⊤ : ennreal) ≠ n := with_top.top_ne_nat n
@@ -254,6 +255,12 @@ begin
   have J : ↑a'R + ↑b'R ≤ c + d := add_le_add' (le_of_lt a'c) (le_of_lt b'd),
   apply lt_of_lt_of_le I J
 end
+
+lemma coe_min : ((min r p:nnreal):ennreal) = min r p :=
+coe_mono.map_min
+
+lemma coe_max : ((max r p:nnreal):ennreal) = max r p :=
+coe_mono.map_max
 
 end order
 

@@ -760,6 +760,8 @@ section nnreal
 
 instance : metric_space nnreal := by unfold nnreal; apply_instance
 
+lemma nnreal.dist_eq (a b : nnreal) : dist a b = abs ((a:ℝ) - b) := rfl
+
 end nnreal
 
 section prod

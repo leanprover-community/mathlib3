@@ -71,13 +71,13 @@ tendsto_coe_nat_real_at_top_iff.1 $
 lemma tendsto_inverse_at_top_nhds_0_nat : tendsto (λ n : ℕ, (n : ℝ)⁻¹) at_top (𝓝 0) :=
 tendsto.comp tendsto_inverse_at_top_nhds_0 (tendsto_coe_nat_real_at_top_iff.2 tendsto_id)
 
-lemma tendsto_one_div_at_top_nhds_0_nat : tendsto (λ n : ℕ, 1/(n : ℝ)) at_top (𝓝 0) :=
-by simpa only [inv_eq_one_div] using tendsto_inverse_at_top_nhds_0_nat
+lemma tendsto_const_div_at_top_nhds_0_nat (C : ℝ) : tendsto (λ n : ℕ, C / n) at_top (𝓝 0) :=
+by simpa only [mul_zero] using tendsto_mul tendsto_const_nhds tendsto_inverse_at_top_nhds_0_nat
 
 lemma tendsto_one_div_add_at_top_nhds_0_nat :
   tendsto (λ n : ℕ, 1 / ((n : ℝ) + 1)) at_top (𝓝 0) :=
 suffices tendsto (λ n : ℕ, 1 / (↑(n + 1) : ℝ)) at_top (𝓝 0), by simpa,
-(tendsto_add_at_top_iff_nat 1).2 tendsto_one_div_at_top_nhds_0_nat
+(tendsto_add_at_top_iff_nat 1).2 (tendsto_const_div_at_top_nhds_0_nat 1)
 
 lemma has_sum_geometric {r : ℝ} (h₁ : 0 ≤ r) (h₂ : r < 1) :
   has_sum (λn:ℕ, r ^ n) (1 / (1 - r)) :=
@@ -114,6 +114,12 @@ begin
     rw ← pow_inv; [refl, exact two_ne_zero] },
   { norm_num, rw div_mul_cancel _ two_ne_zero }
 end
+
+lemma summable_geometric_two' (a : ℝ) : summable (λ n:ℕ, (a / 2) / 2 ^ n) :=
+⟨a, has_sum_geometric_two' a⟩
+
+lemma tsum_geometric_two' (a : ℝ) : (∑ n:ℕ, (a / 2) / 2^n) = a :=
+tsum_eq_has_sum $ has_sum_geometric_two' a
 
 def pos_sum_of_encodable {ε : ℝ} (hε : 0 < ε)
   (ι) [encodable ι] : {ε' : ι → ℝ // (∀ i, 0 < ε' i) ∧ ∃ c, has_sum ε' c ∧ c ≤ ε} :=

@@ -664,46 +664,6 @@ open_locale classical
 
 variables [conditionally_complete_linear_order_bot α]
 
-lemma has_lub (s : set (with_top α)) : ∃a, is_lub s a :=
-begin
-  by_cases hs : s = ∅, { subst hs, exact ⟨⊥, is_lub_empty⟩, },
-  rcases ne_empty_iff_exists_mem.1 hs with ⟨x, hxs⟩,
-  by_cases bnd : ∃b:α, ↑b ∈ upper_bounds s,
-  { rcases bnd with ⟨b, hb⟩,
-    have bdd : bdd_above {a : α | ↑a ∈ s}, from ⟨b, assume y hy, coe_le_coe.1 $ hb hy⟩,
-    refine ⟨(Sup {a : α | ↑a ∈ s} : α), _, _⟩,
-    { assume a has,
-      rcases (le_coe_iff _ _).1 (hb has) with ⟨a, rfl, h⟩,
-      exact (coe_le_coe.2 $ le_cSup bdd has) },
-    { assume a hs,
-      rcases (le_coe_iff _ _).1 (hb hxs) with ⟨x, rfl, h⟩,
-      refine (coe_le_iff _ _).2 (assume c hc, _), subst hc,
-      exact (cSup_le (ne_empty_of_mem hxs) $ assume b (hbs : ↑b ∈ s), coe_le_coe.1 $ hs hbs), } },
-  exact ⟨⊤, assume a _, le_top, assume a,
-    match a with
-    | some a, ha := (bnd ⟨a, ha⟩).elim
-    | none,   ha := _root_.le_refl ⊤
-    end⟩
-end
-
-lemma has_glb (s : set (with_top α)) : ∃a, is_glb s a :=
-begin
-  by_cases hs : ∃x:α, ↑x ∈ s,
-  { rcases hs with ⟨x, hxs⟩,
-    refine ⟨(Inf {a : α | ↑a ∈ s} : α), _, _⟩,
-    exact (assume a has, (coe_le_iff _ _).2 $ assume x hx, cInf_le (bdd_below_bot _) $
-      show ↑x ∈ s, from hx ▸ has),
-    { assume a has,
-      rcases (le_coe_iff _ _).1 (has hxs) with ⟨x, rfl, h⟩,
-      exact (coe_le_coe.2 $ le_cInf (ne_empty_of_mem hxs) $
-        assume b hbs, coe_le_coe.1 $ has hbs) } },
-  exact ⟨⊤, assume a, match a with
-    | some a, ha := (hs ⟨a, ha⟩).elim
-    | none,   ha := _root_.le_refl _
-    end,
-    assume a _, le_top⟩
-end
-
 lemma is_lub_Sup (s : set (with_top α)) : is_lub s (Sup s) :=
 begin
   split,

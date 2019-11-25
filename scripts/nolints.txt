@@ -1697,14 +1697,10 @@ measure_theory.ae_eq_fun.integrable
 measure_theory.ae_eq_fun.neg
 measure_theory.ae_eq_fun.smul
 measure_theory.integrable
-measure_theory.integral
-measure_theory.l1.integral
 measure_theory.l1.simple_func
 measure_theory.l1.simple_func.exists_simple_func_near
 measure_theory.l1.simple_func.integral
-measure_theory.l1.simple_func.mk
 measure_theory.l1.simple_func.to_simple_func
-measure_theory.l1.smul
 measure_theory.lintegral_eq_nnreal
 measure_theory.measure
 measure_theory.measure.integral

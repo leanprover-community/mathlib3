@@ -343,7 +343,7 @@ begin
   rwa [this, differentiable_within_at_inter hs, differentiable_within_at_univ] at h
 end
 
-lemma differentiable.fderiv_within
+lemma differentiable_at.fderiv_within
   (h : differentiable_at 𝕜 f x) (hxs : unique_diff_within_at 𝕜 s x) :
   fderiv_within 𝕜 f s x = fderiv 𝕜 f x :=
 begin
@@ -535,7 +535,7 @@ has_fderiv_at.fderiv (has_fderiv_at_id x)
 lemma fderiv_within_id (hxs : unique_diff_within_at 𝕜 s x) :
   fderiv_within 𝕜 id s x = id :=
 begin
-  rw differentiable.fderiv_within (differentiable_at_id) hxs,
+  rw differentiable_at.fderiv_within (differentiable_at_id) hxs,
   exact fderiv_id
 end
 
@@ -568,7 +568,7 @@ has_fderiv_at.fderiv (has_fderiv_at_const c x)
 lemma fderiv_within_const (c : F) (hxs : unique_diff_within_at 𝕜 s x) :
   fderiv_within 𝕜 (λy, c) s x = 0 :=
 begin
-  rw differentiable.fderiv_within (differentiable_at_const _) hxs,
+  rw differentiable_at.fderiv_within (differentiable_at_const _) hxs,
   exact fderiv_const _
 end
 
@@ -618,7 +618,7 @@ has_fderiv_at.fderiv (h.has_fderiv_at)
 lemma is_bounded_linear_map.fderiv_within (h : is_bounded_linear_map 𝕜 f)
   (hxs : unique_diff_within_at 𝕜 s x) : fderiv_within 𝕜 f s x = h.to_continuous_linear_map :=
 begin
-  rw differentiable.fderiv_within h.differentiable_at hxs,
+  rw differentiable_at.fderiv_within h.differentiable_at hxs,
   exact h.fderiv
 end
 
@@ -923,7 +923,7 @@ has_fderiv_at.fderiv (h.has_fderiv_at p)
 lemma is_bounded_bilinear_map.fderiv_within (h : is_bounded_bilinear_map 𝕜 b) (p : E × F)
   (hxs : unique_diff_within_at 𝕜 u p) : fderiv_within 𝕜 b u p = h.deriv p :=
 begin
-  rw differentiable.fderiv_within (h.differentiable_at p) hxs,
+  rw differentiable_at.fderiv_within (h.differentiable_at p) hxs,
   exact h.fderiv p
 end
 

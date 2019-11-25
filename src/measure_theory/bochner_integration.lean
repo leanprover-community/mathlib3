@@ -10,30 +10,30 @@ import analysis.normed_space.bounded_linear_maps
 /-!
 # Bochner integral
 
-Bochner integral extends the definition of Lebesgue integral to functions that map froma  measure
-space into a Banach space (complete normed vector space). It is constructed here by extending the
-integral on simple functions.
+The Bochner integral extends the definition of the Lebesgue integral to functions that map from a
+measure space into a Banach space (complete normed vector space). It is constructed here by
+extending the integral on simple functions.
 
 ## Main definitions
 
-Bochner integral is defined following these steps:
+The Bochner integral is defined following these steps:
 
-Step 1: Define integral on simple functions of the type `simple_func α β` (notation : `α →ₛ β`)
+Step 1: Define the integral on simple functions of the type `simple_func α β` (notation : `α →ₛ β`)
   where `β` is a real normed space.
 
   (See `simple_func.bintegral` and section `bintegral` for details. Also see `simple_func.integral`
-  for integral on simple functions of the type `simple_func α ennreal`.)
+  for the integral on simple functions of the type `simple_func α ennreal`.)
 
 Step 2: Use `simple_func α β` to cut out the simple functions from L1 functions, and define integral
-  on these. Simple functions in L1 space is written as `α →₁ₛ β`.
+  on these. The type of simple functions in L1 space is written as `α →₁ₛ β`.
 
 Step 3: Show that the embedding of `α →₁ₛ β` into L1 is a dense and uniform one.
 
 Step 4: Show that the integral defined on `α →₁ₛ β` is a continuous linear map.
 
-Step 5: Define the bochner integral on L1 functions by extending the integral on integrable simple
-  functions `α →₁ₛ β` using `continuous_linear_map.extend`. Define the bochner integral on functions
-  as the bochner integral of its equivalent class in L1 space.
+Step 5: Define the Bochner integral on L1 functions by extending the integral on integrable simple
+  functions `α →₁ₛ β` using `continuous_linear_map.extend`. Define the Bochner integral on functions
+  as the Bochner integral of its equivalent class in L1 space.
 
 ## Main statements
 
@@ -56,7 +56,7 @@ Note : `ₛ` is typed using `\_s`. Sometimes it shows as a box if font is missin
 
 ## Tags
 
-bochner integral, simple function, function space
+Bochner integral, simple function, function space
 
 -/
 
@@ -109,7 +109,7 @@ variables [normed_space ℝ γ]
 /-- Bochner integral of simple functions whose codomain is a real `normed_space`.
     The name `simple_func.integral` has been taken in the file `integration.lean`, which calculates
     the integral of a simple function with type `α → ennreal`.
-    The name `bintegral` stands for bochner integral. -/
+    The name `bintegral` stands for Bochner integral. -/
 def bintegral [normed_space ℝ β] (f : α →ₛ β) : β :=
 f.range.sum (λ x, (ennreal.to_real (volume (f ⁻¹' {x}))) • x)
 
@@ -262,7 +262,7 @@ begin
   rw bintegral,
   calc ∥sum f.range (λx, ennreal.to_real (volume (f ⁻¹' {x})) • x)∥ ≤
        sum f.range (λx, ∥ennreal.to_real (volume (f ⁻¹' {x})) • x∥) :
-    norm_triangle_sum _ _
+    norm_sum_le _ _
     ... = sum f.range (λx, ennreal.to_real (volume (f ⁻¹' {x})) • ∥x∥) :
     begin
       refine finset.sum_congr rfl (λb hb, _),

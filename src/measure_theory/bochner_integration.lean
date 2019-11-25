@@ -33,7 +33,7 @@ Step 4: Show that the integral defined on `α →₁ₛ β` is a continuous line
 
 Step 5: Define the Bochner integral on L1 functions by extending the integral on integrable simple
   functions `α →₁ₛ β` using `continuous_linear_map.extend`. Define the Bochner integral on functions
-  as the Bochner integral of its equivalent class in L1 space.
+  as the Bochner integral of its equivalence class in L1 space.
 
 ## Main statements
 
@@ -48,9 +48,9 @@ Step 5: Define the Bochner integral on L1 functions by extending the integral on
 ## Notations
 
 `α →ₛ β` : simple functions (defined in `measure_theory/integration`)
-`α →₁ β` : functions in L1 space, i.e., equivalence classes of an integrable function (defined in
+`α →₁ β` : functions in L1 space, i.e., equivalence classes of integrable functions (defined in
            `measure_theory/l1_space`)
-`α →₁ₛ β` : simple functions in L1 space, i.e., equivalence classes of an integrable simple function
+`α →₁ₛ β` : simple functions in L1 space, i.e., equivalence classes of integrable simple functions
 
 Note : `ₛ` is typed using `\_s`. Sometimes it shows as a box if font is missing.
 
@@ -69,7 +69,7 @@ namespace measure_theory
 open set lattice filter topological_space ennreal emetric
 
 universes u v w
-variables {α : Type u} [measure_space α]{β : Type v} {γ : Type w}
+variables {α : Type u} [measure_space α] {β : Type v} {γ : Type w}
 
 local infixr ` →ₛ `:25 := simple_func
 

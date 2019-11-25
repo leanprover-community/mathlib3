@@ -580,8 +580,8 @@ begin
   simp
 end
 
-/-- The composition `l ∘ f` where `l : F → E` and `f : 𝕜 → F`, has a derivative within a set
-equal to the Fréchet derivative of `l` applied to the derivative of `f`. -/
+/-- The composition `l ∘ f` where `l : F → E` and `f : 𝕜 → F`, has a derivative equal to the
+Fréchet derivative of `l` applied to the derivative of `f`. -/
 theorem has_fderiv_at.comp_has_deriv_at
   (hl : has_fderiv_at l l' (f x)) (hf : has_deriv_at f f' x) :
   has_deriv_at (l ∘ f) (l' (f')) x :=

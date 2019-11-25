@@ -664,7 +664,10 @@ open_locale classical
 
 variables [conditionally_complete_linear_order_bot α]
 
-lemma is_lub_Sup (s : set (with_top α)) : is_lub s (Sup s) :=
+/-- The Sup of a non-empty set is its least upper bound for a conditionally
+complete lattice with a top. -/
+lemma is_lub_Sup' {β : Type*} [conditionally_complete_lattice β]
+  (s : set (with_top β)) (hs : s ≠ ∅) : is_lub s (Sup s) :=
 begin
   split,
   { show ite _ _ _ ∈ _,
@@ -680,12 +683,28 @@ begin
       exfalso, apply not_top_le_coe a, exact ha h},
     { rintro (⟨⟩|b) hb, exact le_top,
       apply some_le_some.2,
-      by_cases ((coe ⁻¹' s : set α) = ∅),
-      { rw [h, cSup_empty], exact bot_le},
-      { refine cSup_le h _,
-        intros a ha, exact some_le_some.1 (hb ha)}},
+      refine cSup_le _ _,
+      { refine mt _ h,
+        rw ne_empty_iff_exists_mem at hs,
+        intro h2,
+        rcases hs with ⟨⟨⟩|b, hb⟩, assumption,
+        exfalso, revert h2, exact ne_empty_of_mem hb},
+      { intros a ha, exact some_le_some.1 (hb ha)}},
     { rintro (⟨⟩|b) hb, exact _root_.le_refl _,
       exfalso, apply h_1, use b, intros a ha, exact some_le_some.1 (hb ha)}}
+end
+
+lemma is_lub_Sup (s : set (with_top α)) : is_lub s (Sup s) :=
+begin
+  by_cases hs : s = ∅,
+  { rw hs,
+    show is_lub ∅ (ite _ _ _),
+    split_ifs,
+    { cases h},
+    { rw [preimage_empty, cSup_empty], exact is_lub_empty},
+    { exfalso, apply h_1, use ⊥, rintro a ⟨⟩}
+  },
+  exact is_lub_Sup' s hs,
 end
 
 lemma is_glb_Inf (s : set (with_top α)) : is_glb s (Inf s) :=
@@ -819,29 +838,8 @@ open_locale classical
 noncomputable instance with_top.conditionally_complete_lattice
   {α : Type*} [conditionally_complete_lattice α] :
   conditionally_complete_lattice (with_top α) :=
-{ le_cSup := λ S a hS haS,
-    let So := (coe ⁻¹' S : set α) in
-    show a ≤ (if (⊤ ∈ S) then ⊤ else (if (bdd_above So) then ↑(Sup So) else ⊤)),
-    begin
-      split_ifs,
-      { exact le_top},
-      { cases a, contradiction, exact with_top.some_le_some.2 (le_cSup h_1 haS)},
-      { exact le_top},
-    end,
-  cSup_le := λ S a hS haS,
-    let So := (coe ⁻¹' S : set α) in
-    show (if (⊤ ∈ S) then ⊤ else (if (bdd_above So) then ↑(Sup So) else ⊤)) ≤ a,
-    begin
-      split_ifs,
-      { exact haS h},
-      { cases a, exact le_top,
-        refine with_top.some_le_some.2 (cSup_le _ _),
-        { rcases (set.exists_mem_of_ne_empty hS) with ⟨⟨⟩|b, hb⟩, contradiction,
-          rw set.ne_empty_iff_exists_mem, exact ⟨b, hb⟩},
-        { intros b hb, exact with_top.some_le_some.1 (haS hb)}},
-      { cases a, exact _root_.le_refl _,
-        exfalso, apply h_1, use a, intros b hb, exact with_top.some_le_some.1 (haS hb)},
-    end,
+{ le_cSup := λ S a hS haS, (with_top.is_lub_Sup' S (ne_empty_of_mem haS)).1 haS,
+  cSup_le := λ S a hS haS, (with_top.is_lub_Sup' S hS).2 haS,
   cInf_le := λ S a hS haS,
     show (if (S ⊆ {⊤}) then ⊤ else ↑(Inf (coe ⁻¹' S))) ≤ a,
     begin

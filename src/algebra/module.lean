@@ -5,7 +5,7 @@ Authors: Nathaniel Thomas, Jeremy Avigad, Johannes Hölzl, Mario Carneiro
 
 Modules over a ring.
 
-## Implemetation notes
+## Implementation notes
 
 
 Throughout the `linear_map` section implicit `{}` brackets are often used instead of type class `[]` brackets.
@@ -116,8 +116,6 @@ instance semiring.to_semimodule [r : semiring α] : semimodule α α :=
 
 instance ring.to_module [r : ring α] : module α α :=
 { ..semiring.to_semimodule }
-
-attribute [instance, priority 1500] ring.to_module
 
 def is_ring_hom.to_module [ring α] [ring β] (f : α → β) [h : is_ring_hom f] : module α β :=
 module.of_core
@@ -370,8 +368,6 @@ end prio
 
 instance discrete_field.to_vector_space {α : Type*} [discrete_field α] : vector_space α α :=
 { .. ring.to_module }
-
-attribute [instance, priority 1500] discrete_field.to_vector_space
 
 /-- Subspace of a vector space. Defined to equal `submodule`. -/
 @[reducible] def subspace (α : Type u) (β : Type v)

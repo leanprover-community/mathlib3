@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Chris Hughes, Abhimanyu Pallavi Sudhir, Jean Lo, Calle Sönne
 -/
 import topology.instances.complex tactic.linarith data.complex.exponential
-      group_theory.quotient_group topology.metric_space.basic
+      group_theory.quotient_group analysis.specific_limits
 
 /-!
 # Exponential
@@ -1708,12 +1708,13 @@ end
 lemma tendsto_exp_div_pow_at_top (n : ℕ) :
   tendsto (λx, exp x / x^n) at_top at_top :=
 begin
-  have n_pos : (n : ℝ) + 1 ≠ 0 := ne_of_gt (nat.cast_add_one_pos n),
-  have : ∀x:ℝ, 0 < x → exp (x / (n+1)) ≤ (n+1)^n * exp x / x^n,
+  have n_pos : (0 : ℝ) < n + 1 := nat.cast_add_one_pos n,
+  have n_ne_zero : (n : ℝ) + 1 ≠ 0 := ne_of_gt n_pos,
+  have A : ∀x:ℝ, 0 < x → exp (x / (n+1)) / (n+1)^n ≤ exp x / x^n,
   { assume x hx,
     let y := x / (n+1),
-    have y_pos : 0 < y := div_pos hx (nat.cast_add_one_pos n),
-    calc
+    have y_pos : 0 < y := div_pos hx n_pos,
+    have : exp (x / (n+1)) ≤ (n+1)^n * (exp x / x^n), from calc
       exp y = exp y * 1 : by simp
       ... ≤ exp y * (exp y / y)^n : begin
           apply mul_le_mul_of_nonneg_left (one_le_pow_of_one_le _ n) (le_of_lt (exp_pos _)),
@@ -1726,15 +1727,17 @@ begin
       ... = exp ((n + 1) * y) / y^n :
         by rw [← exp_add, add_mul, one_mul, add_comm]
       ... = exp x / (x / (n+1))^n :
-        by { dsimp [y], rw mul_div_cancel' _ n_pos }
-      ... = (n+1)^n * exp x / x^n :
-        by rw [div_pow _ n_pos, div_div_eq_mul_div, mul_comm] },
-  have : tendsto (λx, exp (x / (n+1))) at_top at_top,
-  { apply tendsto_exp_at_top.comp,
-    apply tendsto_at_top_mul,
-
-
-  }
+        by { dsimp [y], rw mul_div_cancel' _ n_ne_zero }
+      ... = (n+1)^n * (exp x / x^n) :
+        by rw [← mul_div_assoc, div_pow _ n_ne_zero, div_div_eq_mul_div, mul_comm],
+    rwa div_le_iff' (pow_pos n_pos n) },
+  have B : {x : ℝ | exp (x / (n+1)) / (n+1)^n ≤ exp x / x^n} ∈ at_top :=
+    mem_at_top_sets.2 ⟨1, λx hx, A _ (lt_of_lt_of_le zero_lt_one hx)⟩,
+  have C : tendsto (λx, exp (x / (n+1)) / (n+1)^n) at_top at_top,
+  { apply tendsto_at_top_div (pow_pos n_pos n),
+    apply tendsto_exp_at_top.comp,
+    exact tendsto_at_top_div (nat.cast_add_one_pos n) tendsto_id },
+  exact tendsto_at_top_mono' at_top B C
 end
 
 

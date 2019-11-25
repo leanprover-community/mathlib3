@@ -39,6 +39,9 @@ theorem rat.dist_eq (x y : ℚ) : dist x y = abs (x - y) := rfl
 
 @[elim_cast, simp] lemma rat.dist_cast (x y : ℚ) : dist (x : ℝ) y = dist x y := rfl
 
+section low_prio
+-- we want to ignore this instance for the next declaration
+local attribute [instance, priority 10] int.uniform_space
 instance : metric_space ℤ :=
 begin
   letI M := metric_space.induced coe int.cast_injective real.metric_space,
@@ -49,6 +52,7 @@ begin
   simpa using (@int.cast_le ℝ _ _ 0).2 (int.lt_add_one_iff.1 $
     (@int.cast_lt ℝ _ (abs (a - b)) 1).1 $ by simpa using h)
 end
+end low_prio
 
 theorem int.dist_eq (x y : ℤ) : dist x y = abs (x - y) := rfl
 
@@ -99,6 +103,7 @@ uniform_add_group.mk' real.uniform_continuous_add real.uniform_continuous_neg
 instance : uniform_add_group ℚ :=
 uniform_add_group.mk' rat.uniform_continuous_add rat.uniform_continuous_neg
 
+ -- short-circuit type class inference
 instance : topological_add_group ℝ := by apply_instance
 instance : topological_add_group ℚ := by apply_instance
 
@@ -197,7 +202,7 @@ tendsto_of_uniform_continuous_subtype
 instance : topological_ring ℝ :=
 { continuous_mul := real.continuous_mul, ..real.topological_add_group }
 
-instance : topological_semiring ℝ := by apply_instance
+instance : topological_semiring ℝ := by apply_instance  -- short-circuit type class inference
 
 lemma rat.continuous_mul : continuous (λp : ℚ × ℚ, p.1 * p.2) :=
 embedding_of_rat.continuous_iff.2 $ by simp [(∘)]; exact
@@ -405,7 +410,7 @@ lemma real.bounded_iff_bdd_below_bdd_above {s : set ℝ} : bounded s ↔ bdd_bel
 end,
 begin
   rintros ⟨⟨m, hm⟩, ⟨M, hM⟩⟩,
-  have I : s ⊆ Icc m M := λx hx, ⟨hm x hx, hM x hx⟩,
+  have I : s ⊆ Icc m M := λx hx, ⟨hm hx, hM hx⟩,
   have : Icc m M = closed_ball ((m+M)/2) ((M-m)/2) :=
     by rw closed_ball_Icc; congr; ring,
   rw this at I,

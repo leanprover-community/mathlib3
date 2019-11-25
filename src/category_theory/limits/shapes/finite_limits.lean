@@ -37,8 +37,10 @@ class has_finite_colimits :=
 
 attribute [instance] has_finite_limits.has_limits_of_shape has_finite_colimits.has_colimits_of_shape
 
+@[priority 100] -- see Note [lower instance priority]
 instance [has_limits.{v} C] : has_finite_limits.{v} C :=
 { has_limits_of_shape := λ J _ _, by { resetI, apply_instance } }
+@[priority 100] -- see Note [lower instance priority]
 instance [has_colimits.{v} C] : has_finite_colimits.{v} C :=
 { has_colimits_of_shape := λ J _ _, by { resetI, apply_instance } }
 

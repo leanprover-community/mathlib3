@@ -67,6 +67,17 @@ lemma smul_sum {α : Type u} {M : Type v} {R : Type w}
   a • (s.sum f) = s.sum (λc, a • f c) :=
 (finset.sum_hom ((•) a)).symm
 
+lemma smul_sum' {α : Type u} {M : Type v} {R : Type w}
+  [ring R] [add_comm_group M] [module R M]
+  {s : finset α} {f : α → R} {x : M} :
+  (s.sum f) • x = s.sum (λa, (f a) • x) :=
+begin
+-- TODO : where should I put this instance?
+  haveI : is_add_monoid_hom (λ (r : R), r • x) :=
+    { map_add := λ a b, add_smul _ _ _, map_zero := zero_smul _ _ },
+  exact (finset.sum_hom (λ (r : R), r • x)).symm
+end
+
 end finset
 
 namespace finsupp
@@ -78,6 +89,25 @@ lemma smul_sum {α : Type u} {β : Type v} {R : Type w} {M : Type y}
 finset.smul_sum
 
 end finsupp
+
+section
+open_locale classical
+
+/-- decomposing `x : ι → R` as a sum along the canonical basis -/
+lemma pi_eq_sum_univ {ι : Type u} [fintype ι] {R : Type v} [semiring R] (x : ι → R) :
+  x = finset.sum finset.univ (λi:ι, x i • (λj, if i = j then 1 else 0)) :=
+begin
+  ext k,
+  rw pi.finset_sum_apply,
+  have : finset.sum finset.univ (λ (x_1 : ι), x x_1 * ite (k = x_1) 1 0) = x k,
+    by { have := finset.sum_mul_boole finset.univ x k, rwa if_pos (finset.mem_univ _) at this },
+  rw ← this,
+  apply finset.sum_congr rfl (λl hl, _),
+  simp only [smul_eq_mul, mul_ite, pi.smul_apply],
+  conv_lhs { rw eq_comm }
+end
+
+end
 
 namespace linear_map
 section
@@ -176,6 +206,21 @@ include M
 instance endomorphism_ring : ring (M →ₗ[R] M) :=
 by refine {mul := (*), one := 1, ..linear_map.add_comm_group, ..};
   { intros, apply linear_map.ext, simp }
+
+end
+
+section
+open_locale classical
+
+/-- A linear map `f` applied to `x : ι → R` can be computed using the image under `f` of elements
+of the canonical basis. -/
+lemma pi_apply_eq_sum_univ {ι : Type u} [fintype ι] (f : (ι → R) →ₗ[R] M) (x : ι → R) :
+  f x = finset.sum finset.univ (λi:ι, x i • (f (λj, if i = j then 1 else 0))) :=
+begin
+  conv_lhs { rw [pi_eq_sum_univ x, f.map_sum] },
+  apply finset.sum_congr rfl (λl hl, _),
+  rw f.map_smul
+end
 
 end
 

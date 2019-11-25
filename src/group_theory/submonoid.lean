@@ -7,6 +7,7 @@ Authors: Johannes Hölzl, Kenny Lau, Johan Commelin, Mario Carneiro, Kevin Buzza
 import algebra.big_operators
 import data.finset
 import tactic.subtype_instance
+import data.equiv.algebra
 
 /-!
 # Submonoids
@@ -895,3 +896,15 @@ ext' $ set.eq_of_subset_of_subset (closure'_le $ set.singleton_subset_iff.2 mult
 multiples_subset _ $ in_closure.basic $ set.mem_singleton x
 
 end add_monoid
+
+namespace mul_equiv
+
+variables {M : Type*} [monoid M] {N : Type*} [monoid N] {S T : submonoid M}
+
+/-- Makes the identity isomorphism from a proof two submonoids of a multiplicative
+    monoid are equal. -/
+@[to_additive add_submonoid_congr "Makes the identity additive isomorphism from a proof two submonoids of an additive monoid are equal."]
+def submonoid_congr (h : S = T) : S ≃* T :=
+{ map_mul' :=  λ _ _, rfl, ..equiv.set_congr $ submonoid.ext'_iff.2 h }
+
+end mul_equiv

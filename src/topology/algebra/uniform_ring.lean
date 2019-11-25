@@ -159,14 +159,8 @@ by rw ring_sep_quot α; apply_instance
 instance [comm_ring α] [uniform_space α] [uniform_add_group α] [topological_ring α] :
   topological_ring (quotient (separation_setoid α)) :=
 begin
-  convert topological_ring_quotient (⊥ : ideal α).closure,
-  { apply ring_sep_rel },
-  { dsimp [topological_ring_quotient_topology, quotient.topological_space, to_topological_space],
-    congr,
-    apply ring_sep_rel,
-    apply ring_sep_rel },
-  { apply ring_sep_rel },
-  { simp [uniform_space.comm_ring] },
+  convert topological_ring_quotient (⊥ : ideal α).closure; try {apply ring_sep_rel},
+  simp [uniform_space.comm_ring]
 end
 
 end uniform_space

@@ -5,7 +5,7 @@ Authors: Floris van Doorn, Leonardo de Moura, Jeremy Avigad, Mario Carneiro
 
 Basic operations on the natural numbers.
 -/
-import logic.basic algebra.ordered_ring data.option.basic
+import logic.basic algebra.ordered_ring data.option.basic algebra.order_functions
 
 universes u v
 
@@ -184,6 +184,10 @@ by rw [add_comm a, nat.add_sub_assoc h, add_comm]
 
 theorem sub_min (n m : ℕ) : n - min n m = n - m :=
 nat.sub_eq_of_eq_add $ by rw [add_comm, sub_add_min]
+
+theorem sub_sub_assoc {a b c : ℕ} (h₁ : b ≤ a) (h₂ : c ≤ b) : a - (b - c) = a - b + c :=
+(nat.sub_eq_iff_eq_add (le_trans (nat.sub_le _ _) h₁)).2 $
+by rw [add_right_comm, add_assoc, nat.sub_add_cancel h₂, nat.sub_add_cancel h₁]
 
 protected theorem lt_of_sub_pos (h : 0 < n - m) : m < n :=
 lt_of_not_ge
@@ -544,11 +548,11 @@ lemma succ_div : ∀ (a b : ℕ), (a + 1) / b =
     simp [hba, hb_le_a1, hb_dvd_a], }
 end
 
-lemma succ_div_of_dvd {a b : ℕ} (hba : b ∣ a + 1) : 
+lemma succ_div_of_dvd {a b : ℕ} (hba : b ∣ a + 1) :
   (a + 1) / b = a / b + 1 :=
 by rw [succ_div, if_pos hba]
 
-lemma succ_div_of_not_dvd {a b : ℕ} (hba : ¬ b ∣ a + 1) : 
+lemma succ_div_of_not_dvd {a b : ℕ} (hba : ¬ b ∣ a + 1) :
   (a + 1) / b = a / b :=
 by rw [succ_div, if_neg hba, add_zero]
 
@@ -785,6 +789,30 @@ lemma lt_pow_self {p : ℕ} (h : 1 < p) : ∀ n : ℕ, n < p ^ n
 | (n+1) := calc
   n + 1 < p^n + 1 : nat.add_lt_add_right (lt_pow_self _) _
     ... ≤ p ^ (n+1) : pow_lt_pow_succ h _
+
+lemma pow_right_strict_mono {x : ℕ} (k : 2 ≤ x) : strict_mono (nat.pow x) :=
+λ _ _, pow_lt_pow_of_lt_right k
+
+lemma pow_le_iff_le_right {x m n : ℕ} (k : 2 ≤ x) : x^m ≤ x^n ↔ m ≤ n :=
+strict_mono.le_iff_le (pow_right_strict_mono k)
+
+lemma pow_lt_iff_lt_right {x m n : ℕ} (k : 2 ≤ x) : x^m < x^n ↔ m < n :=
+strict_mono.lt_iff_lt (pow_right_strict_mono k)
+
+lemma pow_right_injective {x : ℕ} (k : 2 ≤ x) : function.injective (nat.pow x) :=
+strict_mono.injective (pow_right_strict_mono k)
+
+lemma pow_left_strict_mono {m : ℕ} (k : 1 ≤ m) : strict_mono (λ (x : ℕ), x^m) :=
+λ _ _ h, pow_lt_pow_of_lt_left h k
+
+lemma pow_le_iff_le_left {m x y : ℕ} (k : 1 ≤ m) : x^m ≤ y^m ↔ x ≤ y :=
+strict_mono.le_iff_le (pow_left_strict_mono k)
+
+lemma pow_lt_iff_lt_left {m x y : ℕ} (k : 1 ≤ m) : x^m < y^m ↔ x < y :=
+strict_mono.lt_iff_lt (pow_left_strict_mono k)
+
+lemma pow_left_injective {m x y : ℕ} (k : 1 ≤ m) : function.injective (λ (x : ℕ), x^m) :=
+strict_mono.injective (pow_left_strict_mono k)
 
 lemma not_pos_pow_dvd : ∀ {p k : ℕ} (hp : 1 < p) (hk : 1 < k), ¬ p^k ∣ p
 | (succ p) (succ k) hp hk h :=
@@ -1092,6 +1120,16 @@ end
 
 theorem fact_mul_fact_dvd_fact {n k : ℕ} (hk : k ≤ n) : fact k * fact (n - k) ∣ fact n :=
 by rw [←choose_mul_fact_mul_fact hk, mul_assoc]; exact dvd_mul_left _ _
+
+@[simp] lemma choose_symm {n k : ℕ} (hk : k ≤ n) : choose n (n-k) = choose n k :=
+by rw [choose_eq_fact_div_fact hk, choose_eq_fact_div_fact (sub_le _ _), nat.sub_sub_self hk, mul_comm]
+
+lemma choose_succ_right_eq {n k : ℕ} : choose n (k + 1) * (k + 1) = choose n k * (n - k) :=
+begin
+  have e : (n+1) * choose n k = choose n k * (k+1) + choose n (k+1) * (k+1),
+    rw [← right_distrib, ← choose_succ_succ, succ_mul_choose_eq],
+  rw [← nat.sub_eq_of_eq_add e, mul_comm, ← nat.mul_sub_left_distrib, nat.add_sub_add_right]
+end
 
 section find_greatest
 

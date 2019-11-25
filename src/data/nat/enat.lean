@@ -110,6 +110,9 @@ lt_of_le_of_ne le_top (λ h, absurd (congr_arg dom h) true_ne_false)
 
 lemma ne_top_iff {x : enat} : x ≠ ⊤ ↔ ∃(n : ℕ), x = n := roption.ne_none_iff
 
+lemma ne_top_iff_dom {x : enat} : x ≠ ⊤ ↔ x.dom :=
+by classical; exact not_iff_comm.1 roption.eq_none_iff'.symm
+
 lemma ne_top_of_lt {x y : enat} (h : x < y) : x ≠ ⊤ :=
 ne_of_lt $ lt_of_lt_of_le h lattice.le_top
 
@@ -222,6 +225,21 @@ begin
   induction y using enat.cases_on with n, { rw [top_add], apply coe_lt_top },
   apply_mod_cast nat.lt_succ_of_le, apply_mod_cast h
 end
+
+lemma add_eq_top_iff {a b : enat} : a + b = ⊤ ↔ a = ⊤ ∨ b = ⊤ :=
+by apply enat.cases_on a; apply enat.cases_on b;
+  simp; simp only [(enat.coe_add _ _).symm, enat.coe_ne_top]; simp
+
+protected lemma add_right_cancel_iff {a b c : enat} (hc : c ≠ ⊤) : a + c = b + c ↔ a = b :=
+begin
+  rcases ne_top_iff.1 hc with ⟨c, rfl⟩,
+  apply enat.cases_on a; apply enat.cases_on b;
+  simp [add_eq_top_iff, coe_ne_top, @eq_comm _ (⊤ : enat)];
+  simp only [(enat.coe_add _ _).symm, add_left_cancel_iff, enat.coe_inj]; tauto
+end
+
+protected lemma add_left_cancel_iff {a b c : enat} (ha : a ≠ ⊤) : a + b = a + c ↔ b = c :=
+by rw [add_comm a, add_comm a, enat.add_right_cancel_iff ha]
 
 section with_top
 

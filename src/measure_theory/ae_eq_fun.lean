@@ -451,7 +451,7 @@ comp₂_to_fun _ _ _ _
 lemma comp_edist_self : ∀ (f : α →ₘ γ), comp_edist f f = 0 :=
 by rintro ⟨f⟩; refine quotient.sound _; simp only [edist_self]
 
-/-- Almost everywhere equal functions forms a `emetric_space`, with the emetric defined as
+/-- Almost everywhere equal functions form an `emetric_space`, with the emetric defined as
   `edist f g = ∫⁻ a, edist (f a) (g a)`. -/
 instance : emetric_space (α →ₘ γ) :=
 { edist               := λf g, eintegral (comp_edist f g),

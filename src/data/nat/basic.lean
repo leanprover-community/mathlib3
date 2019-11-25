@@ -185,6 +185,10 @@ by rw [add_comm a, nat.add_sub_assoc h, add_comm]
 theorem sub_min (n m : ℕ) : n - min n m = n - m :=
 nat.sub_eq_of_eq_add $ by rw [add_comm, sub_add_min]
 
+theorem sub_sub_assoc {a b c : ℕ} (h₁ : b ≤ a) (h₂ : c ≤ b) : a - (b - c) = a - b + c :=
+(nat.sub_eq_iff_eq_add (le_trans (nat.sub_le _ _) h₁)).2 $
+by rw [add_right_comm, add_assoc, nat.sub_add_cancel h₂, nat.sub_add_cancel h₁]
+
 protected theorem lt_of_sub_pos (h : 0 < n - m) : m < n :=
 lt_of_not_ge
   (assume : n ≤ m,
@@ -544,11 +548,11 @@ lemma succ_div : ∀ (a b : ℕ), (a + 1) / b =
     simp [hba, hb_le_a1, hb_dvd_a], }
 end
 
-lemma succ_div_of_dvd {a b : ℕ} (hba : b ∣ a + 1) : 
+lemma succ_div_of_dvd {a b : ℕ} (hba : b ∣ a + 1) :
   (a + 1) / b = a / b + 1 :=
 by rw [succ_div, if_pos hba]
 
-lemma succ_div_of_not_dvd {a b : ℕ} (hba : ¬ b ∣ a + 1) : 
+lemma succ_div_of_not_dvd {a b : ℕ} (hba : ¬ b ∣ a + 1) :
   (a + 1) / b = a / b :=
 by rw [succ_div, if_neg hba, add_zero]
 
@@ -1116,6 +1120,16 @@ end
 
 theorem fact_mul_fact_dvd_fact {n k : ℕ} (hk : k ≤ n) : fact k * fact (n - k) ∣ fact n :=
 by rw [←choose_mul_fact_mul_fact hk, mul_assoc]; exact dvd_mul_left _ _
+
+@[simp] lemma choose_symm {n k : ℕ} (hk : k ≤ n) : choose n (n-k) = choose n k :=
+by rw [choose_eq_fact_div_fact hk, choose_eq_fact_div_fact (sub_le _ _), nat.sub_sub_self hk, mul_comm]
+
+lemma choose_succ_right_eq {n k : ℕ} : choose n (k + 1) * (k + 1) = choose n k * (n - k) :=
+begin
+  have e : (n+1) * choose n k = choose n k * (k+1) + choose n (k+1) * (k+1),
+    rw [← right_distrib, ← choose_succ_succ, succ_mul_choose_eq],
+  rw [← nat.sub_eq_of_eq_add e, mul_comm, ← nat.mul_sub_left_distrib, nat.add_sub_add_right]
+end
 
 section find_greatest
 

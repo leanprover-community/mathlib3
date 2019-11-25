@@ -15,8 +15,12 @@ open_locale classical
 class ideal.is_principal [comm_ring α] (S : ideal α) : Prop :=
 (principal : ∃ a, S = span {a})
 
+section prio
+set_option default_priority 100 -- see Note [default priority]
 class principal_ideal_domain (α : Type*) extends integral_domain α :=
 (principal : ∀ (S : ideal α), S.is_principal)
+end prio
+
 attribute [instance] principal_ideal_domain.principal
 namespace ideal.is_principal
 variable [comm_ring α]
@@ -68,6 +72,7 @@ lemma mod_mem_iff {S : ideal α} {x y : α} (hy : y ∈ S) : x % y ∈ S ↔ x �
 ⟨λ hxy, div_add_mod x y ▸ ideal.add_mem S (mul_mem_right S hy) hxy,
   λ hx, (mod_eq_sub_mul_div x y).symm ▸ ideal.sub_mem S hx (ideal.mul_mem_right S hy)⟩
 
+@[priority 100] -- see Note [lower instance priority]
 instance euclidean_domain.to_principal_ideal_domain : principal_ideal_domain α :=
 { principal := λ S, by exactI
     ⟨if h : {x : α | x ∈ S ∧ x ≠ 0} = ∅
@@ -95,6 +100,7 @@ end
 namespace principal_ideal_domain
 variables [principal_ideal_domain α]
 
+@[priority 100] -- see Note [lower instance priority]
 instance is_noetherian_ring : is_noetherian_ring α :=
 ⟨assume s : ideal α,
 begin

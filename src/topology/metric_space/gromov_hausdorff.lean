@@ -514,7 +514,7 @@ end
 
 lemma to_GH_space_lipschitz :
   lipschitz_with 1 (nonempty_compacts.to_GH_space : nonempty_compacts α → GH_space) :=
-⟨zero_le_one, by { simp, exact GH_dist_le_nonempty_compacts_dist } ⟩
+lipschitz_with.one_mk GH_dist_le_nonempty_compacts_dist
 
 lemma to_GH_space_continuous :
   continuous (nonempty_compacts.to_GH_space : nonempty_compacts α → GH_space) :=
@@ -532,6 +532,8 @@ the two spaces, by gluing them (approximately) along the two matching subsets. -
 variables {α : Type u} [metric_space α] [compact_space α] [nonempty α]
           {β : Type v} [metric_space β] [compact_space β] [nonempty β]
 
+-- we want to ignore these instances in the following theorem
+local attribute [instance, priority 10] sum.topological_space sum.uniform_space
 /-- If there are subsets which are ε1-dense and ε3-dense in two spaces, and
 isometric up to ε2, then the Gromov-Hausdorff distance between the spaces is bounded by
 ε1 + ε2/2 + ε3. -/

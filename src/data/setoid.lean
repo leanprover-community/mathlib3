@@ -279,17 +279,12 @@ noncomputable def quotient_ker_equiv_of_surjective (hf : surjective f) :
 @equiv.of_bijective _ _ (@quotient.lift _ _ (ker f) f (λ _ _, id))
   ⟨injective_ker_lift f, λ y, exists.elim (hf y) $ λ w hw, ⟨quotient.mk' w, hw⟩⟩
 
-/-- The third isomorphism theorem for sets. -/
-noncomputable def quotient_quotient_equiv_quotient (s : setoid α) (h : r ≤ s) :
-  quotient (ker (quot.map_right h)) ≃ quotient s :=
-quotient_ker_equiv_of_surjective _ $ λ x, by rcases x; exact ⟨quotient.mk' x, rfl⟩
-
 variables {r f}
 
-/-- Given a function f whose kernel is contained in an equivalence relation r, the equivalence
-    closure of the relation on f's image defined by x ≈ y ↔ the elements of f⁻¹(x) are related
-    to the elements of f⁻¹(y) by r. -/
-def map (r) (f : α → β) (h : ker f ≤ r) : setoid β :=
+/-- Given a function `f : α → β` and equivalence relation `r` on `α`, the equivalence
+    closure of the relation on `f`'s image defined by '`x ≈ y` iff the elements of `f⁻¹(x)` are
+    related to the elements of `f⁻¹(y)` by `r`.' -/
+def map (r : setoid α) (f : α → β) : setoid β :=
 eqv_gen.setoid $ λ x y, ∃ a b, f a = x ∧ f b = y ∧ r.rel a b
 
 /-- Given a surjective function f whose kernel is contained in an equivalence relation r, the
@@ -305,14 +300,40 @@ def map_of_surjective (r) (f : α → β) (h : ker f ≤ r) (hf : surjective f) 
 
 /-- A special case of the equivalence closure of an equivalence relation r equalling r. -/
 lemma map_of_surjective_eq_map (h : ker f ≤ r) (hf : surjective f) :
-  map r f h = map_of_surjective r f h hf :=
+  map r f = map_of_surjective r f h hf :=
 by rw ←eqv_gen_of_setoid (map_of_surjective r f h hf); refl
 
-/-- Given an equivalence relation r on α and a map f to the quotient of α by r, an
-    equivalence relation s on the quotient induces an equivalence relation on f's domain defined
-    by x ≈ y ↔ f(x) is related to f(y) by s. -/
-def comap (f : β → quotient r) (s : setoid (quotient r)) : setoid β :=
-⟨λ x y, s.rel (f x) (f y), ⟨λ _, s.refl' _, λ _ _ h, s.symm' h, λ _ _ _ h1, s.trans' h1⟩⟩
+/-- Given a function `f : α → β`, an equivalence relation `r` on `β` induces an equivalence
+    relation on `α` defined by '`x ≈ y` iff `f(x)` is related to `f(y)` by `r`'. -/
+def comap (f : α → β) (r : setoid β) : setoid α :=
+⟨λ x y, r.rel (f x) (f y), ⟨λ _, r.refl' _, λ _ _ h, r.symm' h, λ _ _ _ h1, r.trans' h1⟩⟩
+
+/-- Given a map `f : N → M` and an equivalence relation `r` on `β`, the equivalence relation
+    induced on `α` by `f` equals the kernel of `r`'s quotient map composed with `f`. -/
+lemma comap_eq {f : α → β} {r : setoid β} : comap f r = ker (@quotient.mk _ r ∘ f) :=
+ext $ λ x y, show _ ↔ ⟦_⟧ = ⟦_⟧, by rw quotient.eq; refl
+
+/-- The second isomorphism theorem for sets. -/
+noncomputable def comap_quotient_equiv (f : α → β) (r : setoid β) :
+  quotient (comap f r) ≃ set.range (@quotient.mk _ r ∘ f) :=
+(quotient.congr_right $ ext_iff.1 comap_eq).trans $ quotient_ker_equiv_range $ quotient.mk ∘ f
+
+variables (r f)
+
+/-- The third isomorphism theorem for sets. -/
+def quotient_quotient_equiv_quotient (s : setoid α) (h : r ≤ s) :
+  quotient (ker (quot.map_right h)) ≃ quotient s :=
+{ to_fun := λ x, quotient.lift_on' x (λ w, quotient.lift_on' w (@quotient.mk _ s) $
+    λ x y H, quotient.sound $ h x y H) $ λ x y, quotient.induction_on₂' x y $ λ w z H,
+      show @quot.mk _ _ _ = @quot.mk _ _ _, from H,
+  inv_fun := λ x, quotient.lift_on' x
+    (λ w, @quotient.mk _ (ker $ quot.map_right h) $ @quotient.mk _ r w) $
+      λ x y H, quotient.sound' $ show @quot.mk _ _ _ = @quot.mk _ _ _, from quotient.sound H,
+  left_inv := λ x, quotient.induction_on' x $ λ y, quotient.induction_on' y $
+    λ w, by show ⟦_⟧ = _; refl,
+  right_inv := λ x, quotient.induction_on' x $ λ y, by show ⟦_⟧ = _; refl }
+
+variables {r f}
 
 section
 open quotient

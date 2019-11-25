@@ -574,6 +574,7 @@ subset_connected_component
 class connected_space (α : Type u) [topological_space α] : Prop :=
 (is_connected_univ : is_connected (univ : set α))
 
+@[priority 100] -- see Note [lower instance priority]
 instance irreducible_space.connected_space (α : Type u) [topological_space α]
   [irreducible_space α] : connected_space α :=
 ⟨is_connected_of_is_irreducible $ irreducible_space.is_irreducible_univ α⟩
@@ -634,6 +635,7 @@ let ⟨r, hrt, hruv⟩ := ht u v hu hv (subset.trans hts hsuv) ⟨x, hxt, hxu⟩
 class totally_separated_space (α : Type u) [topological_space α] : Prop :=
 (is_totally_separated_univ : is_totally_separated (univ : set α))
 
+@[priority 100] -- see Note [lower instance priority]
 instance totally_separated_space.totally_disconnected_space (α : Type u) [topological_space α]
   [totally_separated_space α] : totally_disconnected_space α :=
 ⟨is_totally_disconnected_of_is_totally_separated $ totally_separated_space.is_totally_separated_univ α⟩

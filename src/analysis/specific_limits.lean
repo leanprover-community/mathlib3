@@ -24,20 +24,12 @@ lemma summable_of_absolute_convergence_real {f : ℕ → ℝ} :
     simpa only using hr
   end
 
-lemma tendsto_pow_at_top_at_top_of_gt_1 {r : ℝ} (h : r > 1) : tendsto (λn:ℕ, r ^ n) at_top at_top :=
-tendsto_infi.2 $ assume p, tendsto_principal.2 $
-  let ⟨n, hn⟩ := exists_nat_gt (p / (r - 1)) in
-  have hn_nn : (0:ℝ) ≤ n, from nat.cast_nonneg n,
-  have r - 1 > 0, from sub_lt_iff_lt_add.mp $ by simp; assumption,
-  have p ≤ r ^ n,
-    from calc p = (p / (r - 1)) * (r - 1) : (div_mul_cancel _ $ ne_of_gt this).symm
-      ... ≤ n * (r - 1) : mul_le_mul (le_of_lt hn) (le_refl _) (le_of_lt this) hn_nn
-      ... ≤ 1 + n * (r - 1) : le_add_of_nonneg_of_le zero_le_one (le_refl _)
-      ... = 1 + add_monoid.smul n (r - 1) : by rw [add_monoid.smul_eq_mul]
-      ... ≤ (1 + (r - 1)) ^ n : one_add_mul_le_pow (le_of_lt this) _
-      ... ≤ r ^ n : by simp; exact le_refl _,
-  show {n | p ≤ r ^ n} ∈ at_top,
-    from mem_at_top_sets.mpr ⟨n, assume m hnm, le_trans this (pow_le_pow (le_of_lt h) hnm)⟩
+lemma tendsto_pow_at_top_at_top_of_gt_1 {r : ℝ} (h : r > 1) :
+  tendsto (λn:ℕ, r ^ n) at_top at_top :=
+(tendsto_at_top_at_top _).2 $ assume p,
+  let ⟨n, hn⟩ := pow_unbounded_of_one_lt p h in
+  ⟨n, λ m hnm, le_of_lt $
+    lt_of_lt_of_le hn (pow_le_pow (le_of_lt h) hnm)⟩
 
 lemma tendsto_inverse_at_top_nhds_0 : tendsto (λr:ℝ, r⁻¹) at_top (𝓝 0) :=
 tendsto_orderable_unbounded (no_top 0) (no_bot 0) $ assume l u hl hu,
@@ -79,13 +71,13 @@ tendsto_coe_nat_real_at_top_iff.1 $
 lemma tendsto_inverse_at_top_nhds_0_nat : tendsto (λ n : ℕ, (n : ℝ)⁻¹) at_top (𝓝 0) :=
 tendsto.comp tendsto_inverse_at_top_nhds_0 (tendsto_coe_nat_real_at_top_iff.2 tendsto_id)
 
-lemma tendsto_one_div_at_top_nhds_0_nat : tendsto (λ n : ℕ, 1/(n : ℝ)) at_top (𝓝 0) :=
-by simpa only [inv_eq_one_div] using tendsto_inverse_at_top_nhds_0_nat
+lemma tendsto_const_div_at_top_nhds_0_nat (C : ℝ) : tendsto (λ n : ℕ, C / n) at_top (𝓝 0) :=
+by simpa only [mul_zero] using tendsto_mul tendsto_const_nhds tendsto_inverse_at_top_nhds_0_nat
 
 lemma tendsto_one_div_add_at_top_nhds_0_nat :
   tendsto (λ n : ℕ, 1 / ((n : ℝ) + 1)) at_top (𝓝 0) :=
 suffices tendsto (λ n : ℕ, 1 / (↑(n + 1) : ℝ)) at_top (𝓝 0), by simpa,
-(tendsto_add_at_top_iff_nat 1).2 tendsto_one_div_at_top_nhds_0_nat
+(tendsto_add_at_top_iff_nat 1).2 (tendsto_const_div_at_top_nhds_0_nat 1)
 
 lemma has_sum_geometric {r : ℝ} (h₁ : 0 ≤ r) (h₂ : r < 1) :
   has_sum (λn:ℕ, r ^ n) (1 / (1 - r)) :=
@@ -122,6 +114,12 @@ begin
     rw ← pow_inv; [refl, exact two_ne_zero] },
   { norm_num, rw div_mul_cancel _ two_ne_zero }
 end
+
+lemma summable_geometric_two' (a : ℝ) : summable (λ n:ℕ, (a / 2) / 2 ^ n) :=
+⟨a, has_sum_geometric_two' a⟩
+
+lemma tsum_geometric_two' (a : ℝ) : (∑ n:ℕ, (a / 2) / 2^n) = a :=
+tsum_eq_has_sum $ has_sum_geometric_two' a
 
 def pos_sum_of_encodable {ε : ℝ} (hε : 0 < ε)
   (ι) [encodable ι] : {ε' : ι → ℝ // (∀ i, 0 < ε' i) ∧ ∃ c, has_sum ε' c ∧ c ≤ ε} :=

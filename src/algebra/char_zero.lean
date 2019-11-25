@@ -34,6 +34,7 @@ theorem ordered_cancel_comm_monoid.char_zero_of_inj_zero {α : Type*}
   (H : ∀ n:ℕ, (n:α) = 0 → n = 0) : char_zero α :=
 char_zero_of_inj_zero (@add_left_cancel _ _) H
 
+@[priority 100] -- see Note [lower instance priority]
 instance linear_ordered_semiring.to_char_zero {α : Type*}
   [linear_ordered_semiring α] : char_zero α :=
 ordered_cancel_comm_monoid.char_zero_of_inj_zero $

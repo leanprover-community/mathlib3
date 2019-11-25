@@ -72,7 +72,7 @@ begin
           ∥f x - d • y∥ = ∥f x₁ - (a + d • y) - (f x₂ - a)∥ :
             by { congr' 1, simp only [x, lin.map_sub], abel }
           ... ≤ ∥f x₁ - (a + d • y)∥ + ∥f x₂ - a∥ :
-            norm_triangle_sub
+            norm_sub_le _ _
           ... ≤ δ + δ : begin
               apply add_le_add,
               { rw [← dist_eq_norm, dist_comm], exact le_of_lt h₁ },
@@ -97,7 +97,7 @@ begin
           ∥d⁻¹ • x∥ = ∥d∥⁻¹ * ∥x₁ - x₂∥ : by rw [norm_smul, normed_field.norm_inv]
           ... ≤ ((ε / 2)⁻¹ * ∥c∥ * ∥y∥) * (n + n) : begin
               refine mul_le_mul dinv _ (norm_nonneg _) _,
-              { exact le_trans (norm_triangle_sub) (add_le_add (le_of_lt hx₁) (le_of_lt hx₂)) },
+              { exact le_trans (norm_sub_le _ _) (add_le_add (le_of_lt hx₁) (le_of_lt hx₂)) },
               { apply mul_nonneg (mul_nonneg _ (norm_nonneg _)) (norm_nonneg _),
                 exact inv_nonneg.2 (le_of_lt (half_pos εpos)) }
             end

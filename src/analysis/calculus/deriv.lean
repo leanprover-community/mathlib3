@@ -127,16 +127,15 @@ by simp [has_deriv_within_at, has_deriv_at_filter, has_fderiv_within_at]
 lemma has_deriv_within_at_iff_has_fderiv_within_at {f' : F} :
   has_deriv_within_at f f' s x ↔
   has_fderiv_within_at f (continuous_linear_map.smul_right 1 f' : 𝕜 →L[𝕜] F) s x :=
-by simp [has_deriv_within_at, has_deriv_at_filter, has_fderiv_within_at]
+iff.rfl
 
 lemma has_fderiv_at_iff_has_deriv_at {f' : 𝕜 →L[𝕜] F} :
   has_fderiv_at f f' x ↔ has_deriv_at f (f' 1) x :=
 by simp [has_deriv_at, has_deriv_at_filter, has_fderiv_at]
 
 lemma has_deriv_at_iff_has_fderiv_at {f' : F} :
-  has_deriv_at f f' x ↔
-  has_fderiv_at f (continuous_linear_map.smul_right 1 f' : 𝕜 →L[𝕜] F) x :=
-by simp [has_deriv_at, has_deriv_at_filter, has_fderiv_at]
+  has_deriv_at f f' x ↔ has_fderiv_at f (continuous_linear_map.smul_right 1 f' : 𝕜 →L[𝕜] F) x :=
+iff.rfl
 
 lemma deriv_within_zero_of_not_differentiable_within_at
   (h : ¬ differentiable_within_at 𝕜 f s x) : deriv_within f s x = 0 :=
@@ -229,7 +228,7 @@ by simp [deriv]
 
 lemma differentiable_at.deriv_within (h : differentiable_at 𝕜 f x)
   (hxs : unique_diff_within_at 𝕜 s x) : deriv_within f s x = deriv f x :=
-by { unfold deriv_within deriv, rw differentiable_at.fderiv_within h hxs }
+by { unfold deriv_within deriv, rw h.fderiv_within hxs }
 
 lemma deriv_within_subset (st : s ⊆ t) (ht : unique_diff_within_at 𝕜 s x)
   (h : differentiable_within_at 𝕜 f t x) :

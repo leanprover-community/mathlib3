@@ -1686,4 +1686,59 @@ by rw sqrt_eq_rpow; exact continuous_rpow_of_pos (λa, by norm_num) continuous_i
 
 end sqrt
 
+section exp
+
+lemma tendsto_exp_at_top :
+  tendsto exp at_top at_top :=
+begin
+  have A : tendsto (λx:ℝ, x + 1) at_top at_top :=
+    tendsto_at_top_add_const_right at_top 1 tendsto_id,
+  have B : {x : ℝ | x + 1 ≤ exp x} ∈ at_top,
+  { have : {x : ℝ | 0 ≤ x} ∈ at_top := mem_at_top 0,
+    filter_upwards [this],
+    exact λx hx, add_one_le_exp_of_nonneg hx },
+  exact tendsto_at_top_mono' at_top B A
+end
+
+lemma zou {x y : ℝ} (n : ℕ) : (exp x)^n = exp (n * x) :=
+begin
+  rw exp_nat_mul,
+end
+
+lemma tendsto_exp_div_pow_at_top (n : ℕ) :
+  tendsto (λx, exp x / x^n) at_top at_top :=
+begin
+  have n_pos : (n : ℝ) + 1 ≠ 0 := ne_of_gt (nat.cast_add_one_pos n),
+  have : ∀x:ℝ, 0 < x → exp (x / (n+1)) ≤ (n+1)^n * exp x / x^n,
+  { assume x hx,
+    let y := x / (n+1),
+    have y_pos : 0 < y := div_pos hx (nat.cast_add_one_pos n),
+    calc
+      exp y = exp y * 1 : by simp
+      ... ≤ exp y * (exp y / y)^n : begin
+          apply mul_le_mul_of_nonneg_left (one_le_pow_of_one_le _ n) (le_of_lt (exp_pos _)),
+          apply one_le_div_of_le _ y_pos,
+          apply le_trans _ (add_one_le_exp_of_nonneg (le_of_lt y_pos)),
+          exact le_add_of_le_of_nonneg (le_refl _) (zero_le_one)
+        end
+      ... = exp y * exp (n * y) / y^n :
+        by rw [div_pow _ (ne_of_gt y_pos), exp_nat_mul, mul_div_assoc]
+      ... = exp ((n + 1) * y) / y^n :
+        by rw [← exp_add, add_mul, one_mul, add_comm]
+      ... = exp x / (x / (n+1))^n :
+        by { dsimp [y], rw mul_div_cancel' _ n_pos }
+      ... = (n+1)^n * exp x / x^n :
+        by rw [div_pow _ n_pos, div_div_eq_mul_div, mul_comm] },
+  have : tendsto (λx, exp (x / (n+1))) at_top at_top,
+  { apply tendsto_exp_at_top.comp,
+    apply tendsto_at_top_mul,
+
+
+  }
+end
+
+
+
+end exp
+
 end real

@@ -75,7 +75,6 @@ meta def expr_of_num (α : expr) : num → tactic expr
 to move casts toward the leaf nodes of the expression. -/
 run_cmd mk_simp_attr `push_cast
 
-
 private meta def mk_cache : list name → tactic simp_lemmas :=
 monad.foldl simp_lemmas.add_simp simp_lemmas.mk
 
@@ -145,7 +144,7 @@ meta def move_cast_attr : user_attribute simp_lemmas :=
 }
 
 /-
-this is an auxiliary function to merge the sets of elim_cast and move_cast lemmas,
+This is an auxiliary function to merge the sets of elim_cast and move_cast lemmas,
 as they are used together in step 2.
 -/
 private meta def get_cache : tactic simp_lemmas :=
@@ -190,6 +189,7 @@ do
 
 /-
 This is the main heuristic used alongside the elim_cast and move_cast lemmas.
+The goal is to help casts move past operators by adding intermediate casts.
 An expression of the shape: op (↑(x : α) : γ) (↑(y : β) : γ)
 is rewritten as:            op (↑(↑(x : α) : β) : γ) (↑(y : β) : γ)
 when the squash_cast lemmas can prove that (↑(x : α) : γ) = (↑(↑(x : α) : β) : γ)
@@ -241,12 +241,13 @@ private meta def heur (_ : unit) : expr → tactic (unit × expr × expr)
 
 /-
 assumption is used to discharge proofs in step 2
-
-TODO:
-norm_cast takes a list of expressions to use as lemmas for the discharger
 -/
 private meta def prove : tactic unit :=
 assumption
+
+/-
+TODO: norm_cast takes a list of expressions to use as lemmas for the discharger
+-/
 
 /-
 This is an auxiliary function used in step 2.
@@ -264,7 +265,14 @@ private meta def post (s : simp_lemmas) (_ : unit) (e : expr) : tactic (unit × 
   return ((), new_e, pr)
 ) <|> heur () e
 
-private meta def aux_num_0 (e : expr) : tactic expr :=
+/-
+The following auxiliary functions are used to handle numerals.
+In step 1 we rewrite every numeral as a cast of a numeral of type ℕ.
+In step 4 we simplify the casted numerals.
+-/
+
+-- prove ↑n = n where n is a numeral
+private meta def aux_num_prove_eq (e : expr) : tactic expr :=
 do
   s ← simp_lemmas.mk_default, --TODO: replace this with norm_cast lemmas
   (_, h) ← simplify s [] e,
@@ -277,6 +285,7 @@ do
   pr ← to_expr ``(eq.mpr %%h trivial),
   return pr
 
+-- rewrite (n : α) to ((n : ℕ) : α) where n is a numeral and α ≠ ℕ
 private meta def aux_num_1 (_ : unit) (e : expr) : tactic (unit × expr × expr) :=
 do
   α ← infer_type e,
@@ -286,16 +295,17 @@ do
   new_e ← to_expr $ pexpr_of_num `(ℕ) n,
   new_e ← to_expr ``(@coe ℕ %%α %%h1 %%new_e),
   h ← to_expr ``(%%e = %%new_e),
-  pr ← aux_num_0 h,
+  pr ← aux_num_prove_eq h,
   return ((), new_e, pr)
 
+-- rewrite (↑n : α) to (n : α) where n is a numeral
 private meta def aux_num_2 (_ : unit) (e : expr) : tactic (unit × expr × expr) :=
 do
   `(@coe ℕ %%α %%h1 %%e') ← return e,
   n ← e'.to_num,
   new_e ← to_expr $ pexpr_of_num α n,
   h ← to_expr ``(%%e = %%new_e),
-  pr ← aux_num_0 h,
+  pr ← aux_num_prove_eq h,
   return ((), new_e, pr)
 
 private meta def simplify_top_down' {α} (a : α) (pre : α → expr → tactic (α × expr × expr)) (e : expr) (cfg : simp_config := {}) : tactic (α × expr × expr) :=

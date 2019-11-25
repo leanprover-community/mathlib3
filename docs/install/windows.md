@@ -31,7 +31,6 @@ Installing `elan`
 
   Then close and reopen Git Bash.
 
-
 Installing mathlib supporting tools
 ---
 
@@ -43,11 +42,18 @@ In order to use mathlib supporting tools, you need to [get python](https://www.p
 * Run the downloaded file (`python-3.x.x.exe`)
 * Check `Add Python 3.x to PATH`.
 * Choose the default installation.
-* Navigate to the folder where Python was installed. A reliable way to do this is to search for `python` in the Start Menu -> right click `Python 3.x (xx-bit)` -> open file location -> right click `Python 3.x (xx-bit)` -> open file location. The default location is something like `C:\Users\<user>\AppData\Local\Programs\Python\Python37-32`.
-* Copy the file `python.exe` to `python3.exe`.
 * Open Git Bash (type `git bash` in the Start Menu)
+* Run `which python`
+  * The expected output is something like `/c/Users/<user>/AppData/Local/Programs/Python/Pythonxx-xx/python`.
+  * If it's something like `/c/Users/<user>/AppData/Local/Microsoft/WindowsApps/python`, then you need to disable a Windows setting.
+    * type `manage app execution aliases` into the Windows search prompt and open the corresponding System Settings page.
+    * There should be two entries `App Installer python.exe` and `App Installer python3.exe`. Ensure that both of these are set to `Off`.
+    * Close and reopen Git Bash and restart this step.
+  * If it is any other directory, you might have an existing version of Python. Ask help on Zulip.
+  * If you get `command not found`, you should add the Python directory to your path. Google how to do this, or ask on Zulip.
+* Run `cp "$(which python)" "$(which python)"3`. This ensures that we can use the command `python3` to call Python.
 * Test whether everything is working by typing `python3 --version` and `pip3 --version`. If both commands give a short output and no error, everything is set up correctly.
-* If `pip3 --version` doesn't give any output, run the command `python3 -m pip install --upgrade pip`, which should fix it.
+  * If `pip3 --version` doesn't give any output, run the command `python3 -m pip install --upgrade pip`, which should fix it.
 
 
 ### Configure Git

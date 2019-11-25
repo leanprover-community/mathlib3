@@ -113,23 +113,28 @@ variables {x : 𝕜}
 variables {s t : set 𝕜}
 variables {L L₁ L₂ : filter 𝕜}
 
+/-- Expressing `has_fderiv_at_filter f f' x L` in terms of `has_deriv_at_filter` -/
 lemma has_fderiv_at_filter_iff_has_deriv_at_filter {f' : 𝕜 →L[𝕜] F} :
   has_fderiv_at_filter f f' x L ↔ has_deriv_at_filter f (f' 1) x L :=
 by simp [has_deriv_at_filter]
 
+/-- Expressing `has_fderiv_within_at f f' s x` in terms of `has_deriv_within_at` -/
 lemma has_fderiv_within_at_iff_has_deriv_within_at {f' : 𝕜 →L[𝕜] F} :
   has_fderiv_within_at f f' s x ↔ has_deriv_within_at f (f' 1) s x :=
 by simp [has_deriv_within_at, has_deriv_at_filter, has_fderiv_within_at]
 
+/-- Expressing `has_deriv_within_at f f' s x` in terms of `has_fderiv_within_at` -/
 lemma has_deriv_within_at_iff_has_fderiv_within_at {f' : F} :
   has_deriv_within_at f f' s x ↔
   has_fderiv_within_at f (continuous_linear_map.smul_right 1 f' : 𝕜 →L[𝕜] F) s x :=
 iff.rfl
 
+/-- Expressing `has_fderiv_at f f' x` in terms of `has_deriv_at` -/
 lemma has_fderiv_at_iff_has_deriv_at {f' : 𝕜 →L[𝕜] F} :
   has_fderiv_at f f' x ↔ has_deriv_at f (f' 1) x :=
 by simp [has_deriv_at, has_deriv_at_filter, has_fderiv_at]
 
+/-- Expressing `has_deriv_at f f' x` in terms of `has_fderiv_at` -/
 lemma has_deriv_at_iff_has_fderiv_at {f' : F} :
   has_deriv_at f f' x ↔
   has_fderiv_at f (continuous_linear_map.smul_right 1 f' : 𝕜 →L[𝕜] F) x :=

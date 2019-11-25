@@ -11,7 +11,7 @@ has a least upper bound and a greatest lower bound, denoted below by Sup s and I
 Typical examples are real, nat, int with their usual orders.
 
 The theory is very comparable to the theory of complete lattices, except that suitable
-boundedness and non-emptyness assumptions have to be added to most statements.
+boundedness and nonemptiness assumptions have to be added to most statements.
 We introduce two predicates bdd_above and bdd_below to express this boundedness, prove
 their basic properties, and then go on to prove most useful properties of Sup and Inf
 in conditionally complete lattices.
@@ -245,7 +245,7 @@ Typical examples are real numbers or natural numbers.
 
 To differentiate the statements from the corresponding statements in (unconditional)
 complete lattices, we prefix Inf and Sup by a c everywhere. The same statements should
-hold in both worlds, sometimes with additional assumptions of non-emptyness or
+hold in both worlds, sometimes with additional assumptions of nonemptiness or
 boundedness.-/
 class conditionally_complete_lattice (α : Type u) extends lattice α, has_Sup α, has_Inf α :=
 (le_cSup : ∀s a, bdd_above s → a ∈ s → a ≤ Sup s)
@@ -350,7 +350,7 @@ have ¬(b < Inf s) :=
   show false, by finish [lt_irrefl (Inf s)],
 show Inf s = b, by finish
 
-/--When an element a of a set s is larger than all elements of the set, it is Sup s-/
+/--When an element a of a set s is larger than all other elements of the set, it is Sup s-/
 theorem cSup_of_mem_of_le (_ : a ∈ s) (_ : ∀w∈s, w ≤ a) : Sup s = a :=
 have bdd_above s := ⟨a, by assumption⟩,
 have s ≠ ∅ := ne_empty_of_mem ‹a ∈ s›,
@@ -358,7 +358,7 @@ have A : a ≤ Sup s := le_cSup ‹bdd_above s› ‹a ∈ s›,
 have B : Sup s ≤ a := cSup_le ‹s ≠ ∅› ‹∀w∈s, w ≤ a›,
 le_antisymm B A
 
-/--When an element a of a set s is smaller than all elements of the set, it is Inf s-/
+/--When an element a of a set s is smaller than all other elements of the set, it is Inf s-/
 theorem cInf_of_mem_of_le (_ : a ∈ s) (_ : ∀w∈s, a ≤ w) : Inf s = a :=
 have bdd_below s := ⟨a, by assumption⟩,
 have s ≠ ∅ := ne_empty_of_mem ‹a ∈ s›,
@@ -368,15 +368,15 @@ le_antisymm A B
 
 /--b < Sup s when there is an element a in s with b < a, when s is bounded above.
 This is essentially an iff, except that the assumptions for the two implications are
-slightly different (one needs boundedness above for one direction, nonemptyness and linear
+slightly different (one needs boundedness above for one direction, nonemptiness and linear
 order for the other one), so we formulate separately the two implications, contrary to
 the complete_lattice case.-/
 lemma lt_cSup_of_lt (_ : bdd_above s) (_ : a ∈ s) (_ : b < a) : b < Sup s :=
 lt_of_lt_of_le ‹b < a› (le_cSup ‹bdd_above s› ‹a ∈ s›)
 
-/--Inf s < b s when there is an element a in s with a < b, when s is bounded below.
+/--Inf s < b when there is an element a in s with a < b, when s is bounded below.
 This is essentially an iff, except that the assumptions for the two implications are
-slightly different (one needs boundedness below for one direction, nonemptyness and linear
+slightly different (one needs boundedness below for one direction, nonemptiness and linear
 order for the other one), so we formulate separately the two implications, contrary to
 the complete_lattice case.-/
 
@@ -407,7 +407,7 @@ have Inf s ≤ w := cInf_le ‹bdd_below s› ‹w ∈ s›,
 have w ≤ Sup s := le_cSup ‹bdd_above s› ‹w ∈ s›,
 le_trans ‹Inf s ≤ w› ‹w ≤ Sup s›
 
-/--The sup of a union of sets is the max of the suprema of each subset, under the assumptions
+/--The sup of a union of two sets is the max of the suprema of each subset, under the assumptions
 that all sets are bounded above and nonempty.-/
 theorem cSup_union (_ : bdd_above s) (_ : s ≠ ∅) (_ : bdd_above t) (_ : t ≠ ∅) :
 Sup (s ∪ t) = Sup s ⊔ Sup t :=
@@ -427,7 +427,7 @@ have B : Sup s ⊔ Sup t ≤ Sup (s ∪ t) :=
   by simp only [lattice.sup_le_iff]; split; assumption; assumption,
 le_antisymm A B
 
-/--The inf of a union of sets is the min of the infima of each subset, under the assumptions
+/--The inf of a union of two sets is the min of the infima of each subset, under the assumptions
 that all sets are bounded below and nonempty.-/
 theorem cInf_union (_ : bdd_below s) (_ : s ≠ ∅) (_ : bdd_below t) (_ : t ≠ ∅) :
 Inf (s ∪ t) = Inf s ⊓ Inf t :=
@@ -447,7 +447,7 @@ have B : Inf (s ∪ t) ≤ Inf s ⊓ Inf t  :=
   by simp only [lattice.le_inf_iff]; split; assumption; assumption,
 le_antisymm B A
 
-/--The supremum of an intersection of sets is bounded by the minimum of the suprema of each
+/--The supremum of an intersection of two sets is bounded by the minimum of the suprema of each
 set, if all sets are bounded above and nonempty.-/
 theorem cSup_inter_le (_ : bdd_above s) (_ : bdd_above t) (_ : s ∩ t ≠ ∅) :
 Sup (s ∩ t) ≤ Sup s ⊓ Sup t :=
@@ -457,7 +457,7 @@ begin
   apply le_cSup ‹bdd_above t› ‹b ∈ t›
 end
 
-/--The infimum of an intersection of sets is bounded below by the maximum of the
+/--The infimum of an intersection of two sets is bounded below by the maximum of the
 infima of each set, if all sets are bounded below and nonempty.-/
 theorem le_cInf_inter (_ : bdd_below s) (_ : bdd_below t) (_ : s ∩ t ≠ ∅) :
 Inf s ⊔ Inf t ≤ Inf (s ∩ t) :=
@@ -847,7 +847,7 @@ for sets which are empty or unbounded. The extension of `Sup` to `with_top α` f
 the unboundedness problem and the extension to `with_bot α` fixes the problem with
 the empty set.
 
-As an application, one can deduce that the extended reals [-∞, ∞] are a complete lattice.
+This result can be used to show that the extended reals [-∞, ∞] are a complete lattice.
 -/
 
 

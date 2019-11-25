@@ -671,6 +671,18 @@ begin
                     ... = ε : add_halves _⟩ }
 end
 
+/-- If the distance between `s n` and `s m`, `n, m ≥ N` is bounded above by `b N`
+and `b` converges to zero, then `s` is a Cauchy sequence.  -/
+lemma cauchy_seq_of_le_tendsto_0 {s : β → α} (b : β → ℝ)
+  (h : ∀ n m N : β, N ≤ n → N ≤ m → dist (s n) (s m) ≤ b N) (h₀ : tendsto b at_top (nhds 0)) :
+  cauchy_seq s :=
+metric.cauchy_seq_iff.2 $ λ ε ε0,
+  (metric.tendsto_at_top.1 h₀ ε ε0).imp $ λ N hN m n hm hn,
+  calc dist (s m) (s n) ≤ b N : h m n N hm hn
+                    ... ≤ abs (b N) : le_abs_self _
+                    ... = dist (b N) 0 : by rw real.dist_0_eq_abs; refl
+                    ... < ε : (hN _ (le_refl N))
+
 /-- A Cauchy sequence on the natural numbers is bounded. -/
 theorem cauchy_seq_bdd {u : ℕ → α} (hu : cauchy_seq u) :
   ∃ R > 0, ∀ m n, dist (u m) (u n) < R :=
@@ -687,17 +699,6 @@ begin
   { have : _ ≤ R := finset.le_sup (finset.mem_range.2 h),
     exact lt_of_le_of_lt this (lt_add_of_pos_right _ zero_lt_one) }
 end
-
-/-- A version of `cauchy_seq_iff_le_tendsto_0.2` that doesn't assume `0 ≤ b n`. -/
-lemma cauchy_seq_of_le_tendsto_0 {s : ℕ → α} (b : ℕ → ℝ)
-  (h : ∀ n m N : ℕ, N ≤ n → N ≤ m → dist (s n) (s m) ≤ b N) (h₀ : tendsto b at_top (nhds 0)) :
-  cauchy_seq s :=
-metric.cauchy_seq_iff.2 $ λ ε ε0,
-  (metric.tendsto_at_top.1 h₀ ε ε0).imp $ λ N hN m n hm hn,
-  calc dist (s m) (s n) ≤ b N : h m n N hm hn
-                    ... ≤ abs (b N) : le_abs_self _
-                    ... = dist (b N) 0 : by rw real.dist_0_eq_abs; refl
-                    ... < ε : (hN _ (le_refl N))
 
 /-- Yet another metric characterization of Cauchy sequences on integers. This one is often the
 most efficient. -/

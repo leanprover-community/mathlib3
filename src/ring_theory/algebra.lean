@@ -20,7 +20,8 @@ open lattice
 open_locale tensor_product
 
 section prio
-set_option default_priority 100 -- see Note [default priority]
+-- We set the priority below 100, so that mul_action.to_has_scalar has higher priority
+set_option default_priority 200 -- see Note [default priority]
 /-- The category of R-algebras where R is a commutative
 ring is the under category R ↓ CRing. In the categorical
 setting we have a forgetful functor R-Alg ⥤ R-Mod.
@@ -28,11 +29,11 @@ However here it extends module in order to preserve
 definitional equality in certain cases. -/
 class algebra (R : Type u) (A : Type v) [comm_ring R] [ring A] extends has_scalar R A :=
 (to_fun : R → A) [hom : is_ring_hom to_fun]
-(commutes' : ∀ r x, x * to_fun r = to_fun r * x)
+(commutes' : ∀ r x, x * to_fun r = to_fun r * x)q
 (smul_def' : ∀ r x, r • x = to_fun r * x)
 end prio
 
-attribute [instance] algebra.hom
+local attribute [instance] algebra.hom
 
 def algebra_map {R : Type u} (A : Type v) [comm_ring R] [ring A] [algebra R A] (x : R) : A :=
 algebra.to_fun A x
@@ -42,7 +43,8 @@ namespace algebra
 variables {R : Type u} {S : Type v} {A : Type w}
 variables [comm_ring R] [comm_ring S] [ring A] [algebra R A]
 
-include R
+-- /-- The codomain of an algebra. -/
+-- instance : has_scalar R A := infer_instance -- short-circuit type class inference
 
 instance : is_ring_hom (algebra_map A : R → A) := algebra.hom _ A
 
@@ -74,7 +76,22 @@ def of_ring_hom (i : R → S) (hom : is_ring_hom i) : algebra R S :=
   commutes' := λ _ _, mul_comm _ _,
   smul_def' := λ c x, rfl }
 
-theorem smul_def (r : R) (x : A) : r • x = algebra_map A r * x :=
+lemma smul_def'' (r : R) (x : A) : r • x = algebra_map A r * x :=
+algebra.smul_def' r x
+
+@[priority 200] -- see Note [lower instance priority]
+instance to_module : module R A :=
+{ one_smul := by simp [smul_def''],
+  mul_smul := by simp [smul_def'', mul_assoc],
+  smul_add := by simp [smul_def'', mul_add],
+  smul_zero := by simp [smul_def''],
+  add_smul := by simp [smul_def'', add_mul],
+  zero_smul := by simp [smul_def''] }
+
+-- from now on, we don't want to use the following instance anymore
+attribute [instance, priority 0] algebra.to_has_scalar
+
+lemma smul_def (r : R) (x : A) : r • x = algebra_map A r * x :=
 algebra.smul_def' r x
 
 theorem commutes (r : R) (x : A) : x * algebra_map A r = algebra_map A r * x :=
@@ -91,16 +108,6 @@ by rw [smul_def, smul_def, left_comm]
   (r • x) * y = r • (x * y) :=
 by rw [smul_def, smul_def, mul_assoc]
 
-@[priority 100] -- see Note [lower instance priority]
-instance to_module : module R A :=
-{ one_smul := by simp [smul_def],
-  mul_smul := by simp [smul_def, mul_assoc],
-  smul_add := by simp [smul_def, mul_add],
-  smul_zero := by simp [smul_def],
-  add_smul := by simp [smul_def, add_mul],
-  zero_smul := by simp [smul_def] }
-
-omit R
 @[priority 100] -- see Note [lower instance priority]
 instance {F : Type u} {K : Type v} [discrete_field F] [ring K] [algebra F K] :
   vector_space F K :=
@@ -134,7 +141,6 @@ linear_map.mk₂ R (*)
   (λ x y z, mul_add x y z)
   (λ c x y, by rw [smul_def, smul_def, left_comm])
 
-set_option class.instance_max_depth 39
 def lmul_left (r : A) : A →ₗ A :=
 lmul R A r
 
@@ -156,7 +162,7 @@ instance module.endomorphism_algebra (R : Type u) (M : Type v)
   commutes' := by intros; ext; simp,
   smul_def' := by intros; ext; simp }
 
-set_option class.instance_max_depth 50
+set_option class.instance_max_depth 40
 instance matrix_algebra (n : Type u) (R : Type v)
   [fintype n] [decidable_eq n] [comm_ring R] : algebra R (matrix n n R) :=
 { to_fun    := (λ r, r • 1),
@@ -473,8 +479,6 @@ def comap {R : Type u} {S : Type v} {A : Type w}
   subring := iSB.is_subring,
   range_le := λ a ⟨r, hr⟩, hr ▸ iSB.range_le ⟨_, rfl⟩ }
 
-set_option class.instance_max_depth 48
-
 def under {R : Type u} {A : Type v} [comm_ring R] [comm_ring A]
   {i : algebra R A} (S : subalgebra R A)
   (T : subalgebra S A) : subalgebra R A :=
@@ -595,8 +599,7 @@ set.subset.antisymm (λ x hx, span_induction hx
   (λ _, add_group.mem_closure)
   (is_add_submonoid.zero_mem _)
   (λ a b ha hb, is_add_submonoid.add_mem ha hb)
-  (λ n a ha, by { erw [show n • a = gsmul n a, from (gsmul_eq_mul a n).symm],
-    exact is_add_subgroup.gsmul_mem ha}))
+  (λ n a ha, by { exact is_add_subgroup.gsmul_mem ha }))
   (add_group.closure_subset subset_span)
 
 @[simp] lemma span_int_eq (s : set R) [is_add_subgroup s] :

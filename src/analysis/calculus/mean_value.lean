@@ -8,7 +8,7 @@ is Lipschitz continuous for the same bound.
 -/
 import analysis.calculus.fderiv
 
-set_option class.instance_max_depth 100
+set_option class.instance_max_depth 120
 
 variables {E : Type*} [normed_group E] [normed_space ℝ E]
           {F : Type*} [normed_group F] [normed_space ℝ F]
@@ -73,16 +73,14 @@ begin
       hs ⟨hε xε, xI⟩,
     have I : ∥f x - f k∥ ≤ D * (x-k) := calc
       ∥f x - f k∥ = ∥g (x-k) + h x∥ : by { congr' 1, simp only [h], abel }
-      ... ≤ ∥g (x-k)∥ + ∥h x∥ : norm_triangle _ _
-      ... ≤ ∥g∥ * ∥x-k∥ + (D-C) * ∥x-k∥ : add_le_add (g.le_op_norm _) Ih
+      ... ≤ ∥g∥ * ∥x-k∥ + (D-C) * ∥x-k∥ : norm_add_le_of_le (g.le_op_norm _) Ih
       ... ≤ C * ∥x-k∥ + (D-C) * ∥x-k∥ :
         add_le_add_right (mul_le_mul_of_nonneg_right (bound k k_mem_K.1) (norm_nonneg _)) _
       ... = D * ∥x-k∥ : by ring
       ... = D * (x-k) : by simp [norm, abs_of_nonneg (le_of_lt (half_pos δpos))],
     have : ∥f x - f 0∥ ≤ D * x := calc
       ∥f x - f 0∥ = ∥(f x - f k) + (f k - f 0)∥ : by { congr' 1, abel }
-      ... ≤ ∥f x - f k∥ + ∥f k - f 0∥ : norm_triangle _ _
-      ... ≤ D * (x - k) + D * k : add_le_add I (k_mem_K.2)
+      ... ≤ D * (x - k) + D * k : norm_add_le_of_le I (k_mem_K.2)
       ... = D * x : by ring,
     have xK : x ∈ K := ⟨xI, this⟩,
     have : x ≤ k := le_cSup ⟨1, λy hy, hy.1.2⟩ xK,

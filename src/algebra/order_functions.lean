@@ -86,8 +86,8 @@ lemma max_min_distrib_right : max (min a b) c = min (max a c) (max b c) := sup_i
 lemma min_max_distrib_left : min a (max b c) = max (min a b) (min a c) := inf_sup_left
 lemma min_max_distrib_right : min (max a b) c = max (min a c) (min b c) := inf_sup_right
 
-instance max_idem : is_idempotent α max := by apply_instance
-instance min_idem : is_idempotent α min := by apply_instance
+instance max_idem : is_idempotent α max := by apply_instance -- short-circuit type class inference
+instance min_idem : is_idempotent α min := by apply_instance -- short-circuit type class inference
 
 @[simp] lemma min_le_iff : min a b ≤ c ↔ a ≤ c ∨ b ≤ c :=
 have a ≤ b → (a ≤ c ∨ b ≤ c ↔ a ≤ c),

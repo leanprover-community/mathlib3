@@ -184,23 +184,32 @@ end
 
 /-- Composition (in the target) of a bounded continuous function with a Lipschitz map again
 gives a bounded continuous function -/
-def comp (G : β → γ) (H : ∀x y, dist (G x) (G y) ≤ C * dist x y)
+def comp (G : β → γ) {C : nnreal} (H : lipschitz_with C G)
   (f : α →ᵇ β) : α →ᵇ γ :=
-⟨λx, G (f x), (continuous_of_lipschitz H).comp f.2.1,
+⟨λx, G (f x), H.to_continuous.comp f.2.1,
   let ⟨D, hD⟩ := f.2.2 in
   ⟨max C 0 * D, λ x y, calc
     dist (G (f x)) (G (f y)) ≤ C * dist (f x) (f y) : H _ _
     ... ≤ max C 0 * dist (f x) (f y) : mul_le_mul_of_nonneg_right (le_max_left C 0) dist_nonneg
     ... ≤ max C 0 * D : mul_le_mul_of_nonneg_left (hD _ _) (le_max_right C 0)⟩⟩
 
-/-- The composition operator (in the target) with a Lipschitz map is continuous -/
-lemma continuous_comp {G : β → γ} (H : ∀x y, dist (G x) (G y) ≤ C * dist x y) :
-  continuous (comp G H : (α →ᵇ β) → α →ᵇ γ) :=
-continuous_of_lipschitz $ λ f g,
-(dist_le (mul_nonneg (le_max_right C 0) dist_nonneg)).2 $ λ x,
+/-- The composition operator (in the target) with a Lipschitz map is Lipschitz -/
+lemma lipschitz_comp {G : β → γ} {C : nnreal} (H : lipschitz_with C G) :
+  lipschitz_with C (comp G H : (α →ᵇ β) → α →ᵇ γ) :=
+λ f g,
+(dist_le (mul_nonneg C.2 dist_nonneg)).2 $ λ x,
 calc dist (G (f x)) (G (g x)) ≤ C * dist (f x) (g x) : H _ _
-  ... ≤ max C 0 * dist (f x) (g x) : mul_le_mul_of_nonneg_right (le_max_left C 0) (dist_nonneg)
-  ... ≤ max C 0 * dist f g : mul_le_mul_of_nonneg_left (dist_coe_le_dist _) (le_max_right C 0)
+  ... ≤ C * dist f g : mul_le_mul_of_nonneg_left (dist_coe_le_dist _) C.2
+
+/-- The composition operator (in the target) with a Lipschitz map is uniformly continuous -/
+lemma uniform_continuous_comp {G : β → γ} {C : nnreal} (H : lipschitz_with C G) :
+  uniform_continuous (comp G H : (α →ᵇ β) → α →ᵇ γ) :=
+(lipschitz_comp H).to_uniform_continuous
+
+/-- The composition operator (in the target) with a Lipschitz map is continuous -/
+lemma continuous_comp {G : β → γ} {C : nnreal} (H : lipschitz_with C G) :
+  continuous (comp G H : (α →ᵇ β) → α →ᵇ γ) :=
+(lipschitz_comp H).to_continuous
 
 /-- Restriction (in the target) of a bounded continuous function taking values in a subset -/
 def cod_restrict (s : set β) (f : α →ᵇ β) (H : ∀x, f x ∈ s) : α →ᵇ s :=
@@ -292,7 +301,7 @@ theorem arzela_ascoli₂
 /- This version is deduced from the previous one by restricting to the compact type in the target,
 using compactness there and then lifting everything to the original space. -/
 begin
-  have M : ∀x y : s, dist (x : β) y ≤ 1 * dist x y := λ x y, ge_of_eq (one_mul _),
+  have M : lipschitz_with 1 coe := lipschitz_with.subtype_coe s,
   let F : (α →ᵇ s) → α →ᵇ β := comp coe M,
   refine compact_of_is_closed_subset
     (compact_image (_ : compact (F ⁻¹' A)) (continuous_comp M)) closed (λ f hf, _),
@@ -379,29 +388,25 @@ lemma norm_coe_le_norm (x : α) : ∥f x∥ ≤ ∥f∥ := calc
   ∥f x∥ = dist (f x) ((0 : α →ᵇ β) x) : by simp [dist_zero_right]
   ... ≤ ∥f∥ : dist_coe_le_dist _
 
+/-- Distance between the images of any two points is at most twice the norm of the function. -/
+lemma dist_le_two_norm (x y : α) : dist (f x) (f y) ≤ 2 * ∥f∥ := calc
+  dist (f x) (f y) ≤ ∥f x∥ + ∥f y∥ : dist_le_norm_add_norm _ _
+               ... ≤ ∥f∥ + ∥f∥     : add_le_add (norm_coe_le_norm x) (norm_coe_le_norm y)
+               ... = 2 * ∥f∥      : (two_mul _).symm
+
 /-- The norm of a function is controlled by the supremum of the pointwise norms -/
 lemma norm_le (C0 : (0 : ℝ) ≤ C) : ∥f∥ ≤ C ↔ ∀x:α, ∥f x∥ ≤ C :=
 by simpa only [coe_zero, dist_zero_right] using @dist_le _ _ _ _ f 0 _ C0
 
 /-- The pointwise sum of two bounded continuous functions is again bounded continuous. -/
 instance : has_add (α →ᵇ β) :=
-⟨λf g, ⟨λx, f x + g x, continuous_add f.2.1 g.2.1, (∥f∥ + ∥g∥) + (∥f∥ + ∥g∥),
-  λ x y,
-    have ∀x, dist (f x + g x) 0 ≤ ∥f∥ + ∥g∥ := λx, calc
-      dist (f x + g x) 0 = ∥f x + g x∥ : dist_zero_right _
-      ... ≤ ∥f x∥ + ∥g x∥ : norm_triangle _ _
-      ... ≤ ∥f∥ + ∥g∥ : add_le_add (norm_coe_le_norm _) (norm_coe_le_norm _),
-    calc dist (f x + g x) (f y + g y) ≤ dist (f x + g x) 0 + dist (f y + g y) 0 : dist_triangle_right _ _ _
-        ... ≤ (∥f∥ + ∥g∥) + (∥f∥ + ∥g∥) : add_le_add (this x) (this y) ⟩⟩
+⟨λf g, ⟨λx, f x + g x, continuous_add f.2.1 g.2.1,
+  let ⟨_, fM, hf⟩ := f.2 in let ⟨_, gM, hg⟩ := g.2 in
+  ⟨fM + gM, λ x y, dist_add_add_le_of_le (hf _ _) (hg _ _)⟩⟩⟩
 
 /-- The pointwise opposite of a bounded continuous function is again bounded continuous. -/
 instance : has_neg (α →ᵇ β) :=
-⟨λf, ⟨λx, -f x, continuous_neg f.2.1,
-  begin
-    have dn : ∀a b : β, dist (-a) (-b) = dist a b := λ a b,
-      by rw [dist_eq_norm, neg_sub_neg, ← dist_eq_norm, dist_comm],
-    simpa only [dn] using f.2.2
-  end⟩⟩
+⟨λf, ⟨λx, -f x, continuous_neg f.2.1, by simpa only [dist_neg_neg] using f.2.2⟩⟩
 
 @[simp] lemma coe_add : (f + g) x = f x + g x := rfl
 @[simp] lemma coe_neg : (-f) x = - (f x) := rfl

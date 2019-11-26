@@ -116,6 +116,9 @@ lemma div_lt_div_iff (b0 : 0 < b) (d0 : 0 < d) :
   a / b < c / d ↔ a * d < c * b :=
 by rw [lt_div_iff d0, div_mul_eq_mul_div, div_lt_iff b0]
 
+lemma div_le_div_iff (b0 : 0 < b) (d0 : 0 < d) : a / b ≤ c / d ↔ a * d ≤ c * b :=
+by rw [le_div_iff d0, div_mul_eq_mul_div, div_le_iff b0]
+
 lemma div_lt_div (hac : a < c) (hbd : d ≤ b) (c0 : 0 ≤ c) (d0 : 0 < d) :
   a / b < c / d :=
 (div_lt_div_iff (lt_of_lt_of_le d0 hbd) d0).2 (mul_lt_mul hac hbd d0 c0)
@@ -146,6 +149,7 @@ calc (λx, x * c) '' {r | a ≤ r ∧ r ≤ b } = (λx, x / c) ⁻¹' {r | a ≤
   ... = {r | a * c ≤ r ∧ r ≤ b * c} :
     set.ext $ by simp [le_div_iff, div_le_iff, hc]
 
+@[priority 100] -- see Note [lower instance priority]
 instance linear_ordered_field.to_densely_ordered : densely_ordered α :=
 { dense := assume a₁ a₂ h, ⟨(a₁ + a₂) / 2,
   calc a₁ = (a₁ + a₁) / 2 : (add_self_div_two a₁).symm
@@ -153,9 +157,11 @@ instance linear_ordered_field.to_densely_ordered : densely_ordered α :=
   calc (a₁ + a₂) / 2 < (a₂ + a₂) / 2 : div_lt_div_of_lt_of_pos (add_lt_add_right h _) two_pos
     ... = a₂ : add_self_div_two a₂⟩ }
 
+@[priority 100] -- see Note [lower instance priority]
 instance linear_ordered_field.to_no_top_order : no_top_order α :=
 { no_top := assume a, ⟨a + 1, lt_add_of_le_of_pos (le_refl a) zero_lt_one ⟩ }
 
+@[priority 100] -- see Note [lower instance priority]
 instance linear_ordered_field.to_no_bot_order : no_bot_order α :=
 { no_bot := assume a, ⟨a + -1,
     add_lt_of_le_of_neg (le_refl _) (neg_lt_of_neg_lt $ by simp [zero_lt_one]) ⟩ }
@@ -235,5 +241,9 @@ end
 
 lemma div_nonneg' {a b : α} (ha : 0 ≤ a) (hb : 0 ≤ b) : 0 ≤ a / b :=
 (lt_or_eq_of_le hb).elim (div_nonneg ha) (λ h, by simp [h.symm])
+
+lemma div_le_div_of_le_of_nonneg {a b c : α} (hab : a ≤ b) (hc : 0 ≤ c) :
+  a / c ≤ b / c :=
+mul_le_mul_of_nonneg_right hab (inv_nonneg.2 hc)
 
 end

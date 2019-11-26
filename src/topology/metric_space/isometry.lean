@@ -3,13 +3,18 @@ Copyright (c) 2018 Sébastien Gouëzel. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Isometries of emetric and metric spaces
 Authors: Sébastien Gouëzel
-We define isometries, i.e., maps between emetric spaces that preserve
-the edistance (on metric spaces, these are exactly the maps that preserve distances),
-and prove their basic properties. We also introduce isometric bijections.
 -/
 
 import topology.metric_space.basic
 topology.bounded_continuous_function analysis.normed_space.basic topology.opens
+
+/-!
+# Isometries
+
+We define isometries, i.e., maps between emetric spaces that preserve
+the edistance (on metric spaces, these are exactly the maps that preserve distances),
+and prove their basic properties. We also introduce isometric bijections.
+-/
 
 noncomputable theory
 

@@ -9,10 +9,12 @@ open set
 universe u
 variables {α : Type u}
 
--- Default priority sufficient as core version has custom-set lower priority (100)
 /-- Core version `division_ring_has_div` erratically requires two instances of `division_ring` -/
+-- priority 900 sufficient as core version has custom-set lower priority (100)
+@[priority 900] -- see Note [lower instance priority]
 instance division_ring_has_div' [division_ring α] : has_div α := ⟨algebra.div⟩
 
+@[priority 100] -- see Note [lower instance priority]
 instance division_ring.to_domain [s : division_ring α] : domain α :=
 { eq_zero_or_eq_zero_of_mul_eq_zero := λ a b h,
     classical.by_contradiction $ λ hn,
@@ -122,6 +124,7 @@ lemma div_eq_iff_mul_eq (hb : b ≠ 0) : a / b = c ↔ c * b = a :=
 
 end division_ring
 
+@[priority 100] -- see Note [lower instance priority]
 instance field.to_integral_domain [F : field α] : integral_domain α :=
 { ..F, ..division_ring.to_domain }
 

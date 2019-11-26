@@ -185,6 +185,7 @@ class first_countable_topology : Prop :=
 class second_countable_topology : Prop :=
 (is_open_generated_countable : ∃b:set (set α), countable b ∧ t = topological_space.generate_from b)
 
+@[priority 100] -- see Note [lower instance priority]
 instance second_countable_topology.to_first_countable_topology
   [second_countable_topology α] : first_countable_topology α :=
 let ⟨b, hb, eq⟩ := second_countable_topology.is_open_generated_countable α in
@@ -243,6 +244,7 @@ begin
   exact assume a, (hg a).2.2.2.1
 end
 
+@[priority 100] -- see Note [lower instance priority]
 instance second_countable_topology.to_separable_space
   [second_countable_topology α] : separable_space α :=
 let ⟨b, hb₁, hb₂, hb₃, hb₄, eq⟩ := is_open_generated_countable_inter α in

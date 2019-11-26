@@ -13,7 +13,7 @@ open_locale topological_space
 namespace nnreal
 open_locale nnreal
 
-instance : topological_space ℝ≥0 := infer_instance
+instance : topological_space ℝ≥0 := infer_instance -- short-circuit type class inference
 
 instance : topological_semiring ℝ≥0 :=
 { continuous_mul :=

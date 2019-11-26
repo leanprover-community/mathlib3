@@ -13,12 +13,17 @@ variables {α : Type*}
 
 set_option old_structure_cmd true
 
+
+
+section prio
+set_option default_priority 100 -- see Note [default priority]
 /-- Normalization domain: multiplying with `norm_unit` gives a normal form for associated elements. -/
 class normalization_domain (α : Type*) extends integral_domain α :=
 (norm_unit : α → units α)
 (norm_unit_zero      : norm_unit 0 = 1)
 (norm_unit_mul       : ∀{a b}, a ≠ 0 → b ≠ 0 → norm_unit (a * b) = norm_unit a * norm_unit b)
 (norm_unit_coe_units : ∀(u : units α), norm_unit u = u⁻¹)
+end prio
 
 export normalization_domain (norm_unit norm_unit_zero norm_unit_mul norm_unit_coe_units)
 
@@ -127,6 +132,8 @@ quotient.induction_on a normalize_idem
 
 end associates
 
+section prio
+set_option default_priority 100 -- see Note [default priority]
 /-- GCD domain: an integral domain with normalization and `gcd` (greatest common divisor) and
 `lcm` (least common multiple) operations. In this setting `gcd` and `lcm` form a bounded lattice on
 the associated elements where `gcd` is the infimum, `lcm` is the supremum, `1` is bottom, and
@@ -142,6 +149,7 @@ class gcd_domain (α : Type*) extends normalization_domain α :=
 (gcd_mul_lcm    : ∀a b, gcd a b * lcm a b = normalize (a * b))
 (lcm_zero_left  : ∀a, lcm 0 a = 0)
 (lcm_zero_right : ∀a, lcm a 0 = 0)
+end prio
 
 export gcd_domain (gcd lcm gcd_dvd_left gcd_dvd_right dvd_gcd  lcm_zero_left lcm_zero_right)
 

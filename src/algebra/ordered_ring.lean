@@ -19,6 +19,10 @@ mul_pos ha hb
 section linear_ordered_semiring
 variable [linear_ordered_semiring α]
 
+/-- `0 < 2`: an alternative version of `two_pos` that only assumes `linear_ordered_semiring`. -/
+lemma zero_lt_two : (0:α) < 2 :=
+by { rw [← zero_add (0:α), bit0], exact add_lt_add zero_lt_one zero_lt_one }
+
 @[simp] lemma mul_le_mul_left {a b c : α} (h : 0 < c) : c * a ≤ c * b ↔ a ≤ b :=
 ⟨λ h', le_of_mul_le_mul_left h' h, λ h', mul_le_mul_of_nonneg_left h' (le_of_lt h)⟩
 
@@ -157,15 +161,22 @@ decidable.le_iff_le_iff_lt_iff_lt.2 $ mul_lt_mul_right h
 
 end decidable_linear_ordered_semiring
 
+-- The proof doesn't need commutativity but we have no `decidable_linear_ordered_ring`
+@[simp] lemma abs_two [decidable_linear_ordered_comm_ring α] : abs (2:α) = 2 :=
+abs_of_pos $ by refine zero_lt_two
+
+@[priority 100] -- see Note [lower instance priority]
 instance linear_ordered_semiring.to_no_top_order {α : Type*} [linear_ordered_semiring α] :
   no_top_order α :=
 ⟨assume a, ⟨a + 1, lt_add_of_pos_right _ zero_lt_one⟩⟩
 
+@[priority 100] -- see Note [lower instance priority]
 instance linear_ordered_semiring.to_no_bot_order {α : Type*} [linear_ordered_ring α] :
   no_bot_order α :=
 ⟨assume a, ⟨a - 1, sub_lt_iff_lt_add.mpr $ lt_add_of_pos_right _ zero_lt_one⟩⟩
 
-instance to_domain [s : linear_ordered_ring α] : domain α :=
+@[priority 100] -- see Note [lower instance priority]
+instance linear_ordered_ring.to_domain [s : linear_ordered_ring α] : domain α :=
 { eq_zero_or_eq_zero_of_mul_eq_zero := @linear_ordered_ring.eq_zero_or_eq_zero_of_mul_eq_zero α s,
   ..s }
 
@@ -225,6 +236,8 @@ end
 end linear_ordered_ring
 
 set_option old_structure_cmd true
+section prio
+set_option default_priority 100 -- see Note [default priority]
 /-- Extend `nonneg_comm_group` to support ordered rings
   specified by their nonnegative elements -/
 class nonneg_ring (α : Type*)
@@ -237,11 +250,13 @@ class nonneg_ring (α : Type*)
 class linear_nonneg_ring (α : Type*) extends domain α, nonneg_comm_group α :=
 (mul_nonneg : ∀ {a b}, nonneg a → nonneg b → nonneg (a * b))
 (nonneg_total : ∀ a, nonneg a ∨ nonneg (-a))
+end prio
 
 namespace nonneg_ring
 open nonneg_comm_group
 variable [s : nonneg_ring α]
 
+@[priority 100] -- see Note [lower instance priority]
 instance to_ordered_ring : ordered_ring α :=
 { le := (≤),
   lt := (<),
@@ -281,6 +296,7 @@ namespace linear_nonneg_ring
 open nonneg_comm_group
 variable [s : linear_nonneg_ring α]
 
+@[priority 100] -- see Note [lower instance priority]
 instance to_nonneg_ring : nonneg_ring α :=
 { mul_pos := λ a b pa pb,
   let ⟨a1, a2⟩ := (pos_iff α a).1 pa,
@@ -293,6 +309,7 @@ instance to_nonneg_ring : nonneg_ring α :=
       (ne_of_gt (pos_def.1 pb))⟩,
   ..s }
 
+@[priority 100] -- see Note [lower instance priority]
 instance to_linear_order : linear_order α :=
 { le := (≤),
   lt := (<),
@@ -303,6 +320,7 @@ instance to_linear_order : linear_order α :=
   le_total := nonneg_total_iff.1 nonneg_total,
   ..s }
 
+@[priority 100] -- see Note [lower instance priority]
 instance to_linear_ordered_ring : linear_ordered_ring α :=
 { le := (≤),
   lt := (<),
@@ -321,6 +339,7 @@ instance to_linear_ordered_ring : linear_ordered_ring α :=
     exact zero_ne_one _ (nonneg_antisymm this h).symm
   end, ..s }
 
+@[priority 80] -- see Note [lower instance priority]
 instance to_decidable_linear_ordered_comm_ring
   [decidable_pred (@nonneg α _)]
   [comm : @is_commutative α (*)]
@@ -333,9 +352,12 @@ instance to_decidable_linear_ordered_comm_ring
 
 end linear_nonneg_ring
 
+section prio
+set_option default_priority 100 -- see Note [default priority]
 class canonically_ordered_comm_semiring (α : Type*) extends
   canonically_ordered_monoid α, comm_semiring α, zero_ne_one_class α :=
 (mul_eq_zero_iff (a b : α) : a * b = 0 ↔ a = 0 ∨ b = 0)
+end prio
 
 namespace canonically_ordered_semiring
 open canonically_ordered_monoid

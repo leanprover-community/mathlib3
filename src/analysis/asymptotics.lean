@@ -310,9 +310,8 @@ begin
   filter_upwards [hc₁, hc₂],
   intros x hx₁ hx₂,
   show ∥f₁ x + f₂ x∥ ≤ (c₁ + c₂) * ∥g x∥,
-  apply le_trans (norm_triangle _ _),
   rw add_mul,
-  exact add_le_add hx₁ hx₂
+  exact norm_add_le_of_le hx₁ hx₂
 end
 
 theorem is_o.add {f₁ f₂ : α → β} {g : α → γ} {l : filter α} (h₁ : is_o f₁ g l) (h₂ : is_o f₂ g l) :
@@ -321,8 +320,7 @@ begin
   intros c cpos,
   filter_upwards [h₁ (c / 2) (half_pos cpos), h₂ (c / 2) (half_pos cpos)],
   intros x hx₁ hx₂, dsimp at hx₁ hx₂,
-  apply le_trans (norm_triangle _ _),
-  apply le_trans (add_le_add hx₁ hx₂),
+  apply le_trans (norm_add_le_of_le hx₁ hx₂),
   rw [←mul_add, ←two_mul, ←mul_assoc, div_mul_cancel _ two_ne_zero]
 end
 

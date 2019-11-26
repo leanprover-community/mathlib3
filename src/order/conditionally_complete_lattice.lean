@@ -884,7 +884,7 @@ noncomputable instance {α : Type*} [conditionally_complete_lattice α] : bounde
   ..with_top.order_top,
   ..conditionally_complete_lattice.to_lattice _ }
 
-def with_top.cSup_empty {α : Type*} [conditionally_complete_lattice α] :
+theorem with_bot.cSup_empty {α : Type*} [conditionally_complete_lattice α] :
   Sup (∅ : set (with_bot α)) = ⊥ :=
 begin
   show ite _ _ _ = ⊥,
@@ -900,7 +900,7 @@ noncomputable instance {α : Type*} [conditionally_complete_lattice α] :
       { show ite _ _ _ ≤ a,
         split_ifs,
         { rw h at h_1, cases h_1 },
-        { convert bot_le, convert with_top.cSup_empty, rw h, refl },
+        { convert bot_le, convert with_bot.cSup_empty, rw h, refl },
         { exfalso, apply h_2, use ⊥, rw h, rintro b ⟨⟩ } },
       { refine (with_top.is_lub_Sup' h).2 ha }
     end,

@@ -584,13 +584,13 @@ begin
   refine (metric.cauchy_seq_iff'.1 hd ε (nnreal.coe_pos.2 εpos)).imp (λ N hN n hn, _),
   have hsum := hN n hn,
   -- We simplify the known inequality
-  rw [nnreal.dist_eq, nnreal.sum_coe, nnreal.sum_coe, ← sum_Ico_eq_sub _ hn] at hsum,
-  replace hsum := lt_of_le_of_lt (le_abs_self _) hsum,
-  rw [← nnreal.sum_coe, nnreal.coe_lt] at hsum,
+  rw [dist_nndist, nnreal.nndist_eq, ← sum_range_add_sum_Ico _ hn, nnreal.add_sub_cancel'] at hsum,
+  norm_cast at hsum,
+  replace hsum := lt_of_le_of_lt (le_max_left _ _) hsum,
 
   -- Then use `hf` to simplify the goal to the same form
   apply lt_of_le_of_lt (edist_le_Ico_sum_of_edist_le hn (λ k _ _, hf k)),
-  rwa [← ennreal.coe_finset_sum, ennreal.coe_lt_coe]
+  assumption_mod_cast
 end
 
 /-- If the distance between consequent points of a sequence is estimated by a summable series,

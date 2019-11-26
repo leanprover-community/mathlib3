@@ -425,6 +425,8 @@ instance : module ℤ M :=
 
 end add_comm_group
 
+lemma gsmul_eq_smul {M : Type*} [add_comm_group M] (n : ℤ) (x : M) : gsmul n x = n • x := rfl
+
 def is_add_group_hom.to_linear_map [add_comm_group α] [add_comm_group β]
   (f : α → β) [is_add_group_hom f] : α →ₗ[ℤ] β :=
 { to_fun := f,

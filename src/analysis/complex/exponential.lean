@@ -269,8 +269,8 @@ real.intermediate_value'
   (le_of_lt cos_one_pos)
   (le_of_lt cos_two_neg) (by norm_num)
 
-/-- The number π = 3.14159265... Defined here using choice as a zero of cos in [1,2], from which
-one can derive all its properties. For explicit bounds on π, see `data.real.pi`. -/
+/-- The number π = 3.14159265... Defined here using choice as twice a zero of cos in [1,2], from
+which one can derive all its properties. For explicit bounds on π, see `data.real.pi`. -/
 noncomputable def pi : ℝ := 2 * classical.some exists_cos_eq_zero
 
 localized "notation `π` := real.pi" in real

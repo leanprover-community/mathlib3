@@ -90,7 +90,7 @@ lemma summable_of_absolute_convergence_real {f : ℕ → ℝ} :
     simpa only using hr
   end
 
-lemma tendsto_pow_at_top_at_top_of_gt_1 {r : ℝ} (h : r > 1) :
+lemma tendsto_pow_at_top_at_top_of_gt_1 {r : ℝ} (h : 1 < r) :
   tendsto (λn:ℕ, r ^ n) at_top at_top :=
 (tendsto_at_top_at_top _).2 $ assume p,
   let ⟨n, hn⟩ := pow_unbounded_of_one_lt p h in
@@ -187,6 +187,7 @@ lemma summable_geometric_two' (a : ℝ) : summable (λ n:ℕ, (a / 2) / 2 ^ n) :
 lemma tsum_geometric_two' (a : ℝ) : (∑ n:ℕ, (a / 2) / 2^n) = a :=
 tsum_eq_has_sum $ has_sum_geometric_two' a
 
+/-- For any positive `ε`, define on an encodable type a positive sequence with sum less than `ε` -/
 def pos_sum_of_encodable {ε : ℝ} (hε : 0 < ε)
   (ι) [encodable ι] : {ε' : ι → ℝ // (∀ i, 0 < ε' i) ∧ ∃ c, has_sum ε' c ∧ c ≤ ε} :=
 begin

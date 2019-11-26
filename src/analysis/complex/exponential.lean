@@ -144,6 +144,8 @@ match le_total x 1 with
 | (or.inr hx1) := exists_exp_eq_of_one_le hx1
 end
 
+/-- The real logarithm function, equal to `0` for `x ≤ 0` and to the inverse of the exponential
+for `x > 0`. -/
 noncomputable def log (x : ℝ) : ℝ :=
 if hx : 0 < x then classical.some (exists_exp_eq_of_pos hx) else 0
 
@@ -267,6 +269,8 @@ real.intermediate_value'
   (le_of_lt cos_one_pos)
   (le_of_lt cos_two_neg) (by norm_num)
 
+/-- The number π = 3.14159265... Defined here using choice as a zero of cos in [1,2], from which
+one can derive all its properties. For explicit bounds on π, see `data.real.pi`. -/
 noncomputable def pi : ℝ := 2 * classical.some exists_cos_eq_zero
 
 localized "notation `π` := real.pi" in real
@@ -574,7 +578,7 @@ end
 
 /- note 1: this inequality is not tight, the tighter inequality is sin x > x - x ^ 3 / 6.
    note 2: this is also true for x > 1, but it's nontrivial for x just above 1. -/
-lemma sin_gt_sub_cube {x : ℝ} (h : 0 < x) (h' : x ≤ 1) : sin x > x - x ^ 3 / 4 :=
+lemma sin_gt_sub_cube {x : ℝ} (h : 0 < x) (h' : x ≤ 1) : x - x ^ 3 / 4 < sin x :=
 begin
   have hx : abs x = x := abs_of_nonneg (le_of_lt h),
   have : abs x ≤ 1, rwa [hx],
@@ -1275,6 +1279,9 @@ by simp [cos_add, sin_add, cos_int_mul_two_pi]
 
 section pow
 
+/-- The complex power function `x^y`, given by `x^y = exp(y log x)` (where `log` is the principal
+determination of the logarithm), unless `x = 0` where one sets `0^0 = 1` and `0^y = 0` for
+`y ≠ 0`. -/
 noncomputable def cpow (x y : ℂ) : ℂ :=
 if x = 0
   then if y = 0
@@ -1357,6 +1364,10 @@ end complex
 
 namespace real
 
+/-- The real power function `x^y`, defined as the real part of the complex power function.
+For `x > 0`, it is equal to `exp(y log x)`. For `x = 0`, one sets `0^0=1` and `0^y=0` for `y ≠ 0`.
+For `y < 0`, the definition is somewhat arbitary as it depends on the choice of a complex
+determination of the logarithm. With our conventions, it is equal to `exp (y log (-x)) cos (πy)`. -/
 noncomputable def rpow (x y : ℝ) := ((x : ℂ) ^ (y : ℂ)).re
 
 noncomputable instance : has_pow ℝ ℝ := ⟨rpow⟩
@@ -1688,8 +1699,8 @@ end sqrt
 
 section exp
 
-lemma tendsto_exp_at_top :
-  tendsto exp at_top at_top :=
+/-- The real exponential function tends to +infinity at +infinity -/
+lemma tendsto_exp_at_top : tendsto exp at_top at_top :=
 begin
   have A : tendsto (λx:ℝ, x + 1) at_top at_top :=
     tendsto_at_top_add_const_right at_top 1 tendsto_id,
@@ -1700,13 +1711,13 @@ begin
   exact tendsto_at_top_mono' at_top B A
 end
 
-lemma zou {x y : ℝ} (n : ℕ) : (exp x)^n = exp (n * x) :=
-begin
-  rw exp_nat_mul,
-end
+/-- The real exponential function tends to 0 at -infinity or, equivalently, `exp(-x)` tends to `0`
+at +infinity -/
+lemma tendsto_exp_neg_at_top_nhds_0 : tendsto (λx, exp (-x)) at_top (𝓝 0) :=
+(tendsto.comp tendsto_inverse_at_top_nhds_0 (tendsto_exp_at_top)).congr (λx, (exp_neg x).symm)
 
-lemma tendsto_exp_div_pow_at_top (n : ℕ) :
-  tendsto (λx, exp x / x^n) at_top at_top :=
+/-- The function `exp(x)/x^n` tends to +infinity at +infinity, for any natural number `n` -/
+lemma tendsto_exp_div_pow_at_top (n : ℕ) : tendsto (λx, exp x / x^n) at_top at_top :=
 begin
   have n_pos : (0 : ℝ) < n + 1 := nat.cast_add_one_pos n,
   have n_ne_zero : (n : ℝ) + 1 ≠ 0 := ne_of_gt n_pos,
@@ -1740,7 +1751,14 @@ begin
   exact tendsto_at_top_mono' at_top B C
 end
 
-
+/-- The function `x^n * exp(-x)` tends to `0` at +infinity, for any natural number `n`. -/
+lemma tendsto_pow_mul_exp_neg_at_top_nhds_0 (n : ℕ) : tendsto (λx, x^n * exp (-x)) at_top (𝓝 0) :=
+begin
+  apply tendsto.congr (λx, _)
+    (tendsto.comp tendsto_inverse_at_top_nhds_0 (tendsto_exp_div_pow_at_top n)),
+  rw [function.comp_app, inv_eq_one_div, div_div_eq_mul_div, one_mul,
+      div_eq_mul_inv, exp_neg]
+end
 
 end exp
 

@@ -620,20 +620,20 @@ protected lemma uniform_embedding : uniform_embedding (coe : (α →₁ₛ β) �
 uniform_embedding_comap subtype.val_injective
 
 protected lemma uniform_inducing : uniform_inducing (coe : (α →₁ₛ β) → (α →₁ β)) :=
-l1.simple_func.uniform_embedding.to_uniform_inducing
+simple_func.uniform_embedding.to_uniform_inducing
 
 protected lemma dense_embedding : dense_embedding (coe : (α →₁ₛ β) → (α →₁ β)) :=
-l1.simple_func.uniform_embedding.dense_embedding $
+simple_func.uniform_embedding.dense_embedding $
 λ f, mem_closure_iff_nhds.2 $ λ t ht,
 let ⟨ε,ε0, hε⟩ := metric.mem_nhds_iff.1 ht in
 let ⟨s, h⟩ := exists_simple_func_near f ε0 in
 ne_empty_iff_exists_mem.2 ⟨_, hε (metric.mem_ball'.2 h), s, rfl⟩
 
 protected lemma dense_inducing : dense_inducing (coe : (α →₁ₛ β) → (α →₁ β)) :=
-l1.simple_func.dense_embedding.to_dense_inducing
+simple_func.dense_embedding.to_dense_inducing
 
-protected lemma closure_range : closure (range (coe : (α →₁ₛ β) → (α →₁ β))) = univ :=
-l1.simple_func.dense_embedding.to_dense_inducing.closure_range
+protected lemma dense_range : dense_range (coe : (α →₁ₛ β) → (α →₁ β)) :=
+simple_func.dense_inducing.dense
 
 variables (𝕜 : Type*) [normed_field 𝕜] [normed_space 𝕜 β]
 
@@ -654,7 +654,7 @@ section simple_func_integral
 
 variables [normed_space ℝ β]
 
-/-- Bochner integration over simple functions in l1 space. -/
+/-- The Bochner integral over simple functions in l1 space. -/
 def integral (f : α →₁ₛ β) : β := simple_func.bintegral (f.to_simple_func)
 
 lemma integral_eq_lintegral {f : α →₁ₛ ℝ} (h_pos : ∀ₘ a, 0 ≤ f.to_simple_func a) :
@@ -689,7 +689,7 @@ begin
   exact f.to_simple_func.norm_bintegral_le_bintegral_norm f.integrable
 end
 
-/-- Bochner integration over simple functions in l1 space as a continuous linear map. -/
+/-- The Bochner integral over simple functions in l1 space as a continuous linear map. -/
 def integral_clm : (α →₁ₛ β) →L[ℝ] β :=
 linear_map.with_bound ⟨integral, integral_add, integral_smul⟩
   ⟨1, (λf, le_trans (norm_integral_le_norm _) $ by rw one_mul)⟩
@@ -711,6 +711,90 @@ end simple_func_integral
 
 end simple_func
 
+open simple_func
+
+variables [normed_space ℝ β] [normed_space ℝ γ] [complete_space β]
+
+local notation `to_l1` := coe_to_l1 α β ℝ
+local notation `Integral` := @integral_clm α _ β _ _ _
+local attribute [instance] simple_func.normed_group simple_func.normed_space
+
+open continuous_linear_map
+
+/-- The Bochner integral in l1 space as a continuous linear map. -/
+def integral_clm : (α →₁ β) →L[ℝ] β :=
+  integral_clm.extend to_l1 simple_func.dense_range simple_func.uniform_inducing
+
+/-- The Bochner integral in l1 space -/
+def integral (f : α →₁ β) : β := (integral_clm).to_fun f
+
+variables (α β)
+lemma integral_zero : integral (0 : α →₁ β) = 0 :=
+map_zero integral_clm
+variables {α β}
+
+lemma integral_add (f g : α →₁ β) : integral (f + g) = integral f + integral g :=
+map_add integral_clm f g
+
+lemma integral_smul (r : ℝ) (f : α →₁ β) : integral (r • f) = r • integral f :=
+map_smul r integral_clm f
+
+lemma integral_sub (f g : α →₁ β) : integral (f - g) = integral f - integral g :=
+map_sub integral_clm f g
+
 end l1
+
+variables [normed_group β] [second_countable_topology β] [normed_space ℝ β] [complete_space β]
+          [normed_group γ] [second_countable_topology γ] [normed_space ℝ γ] [complete_space γ]
+
+/-- The Bochner integral -/
+def integral (f : α → β) : β :=
+if hf : measurable f ∧ integrable f
+then (l1.of_fun f hf.1 hf.2).integral
+else 0
+
+section properties
+
+open continuous_linear_map measure_theory.simple_func
+
+variables (α β)
+lemma integral_zero : integral (0 : α → β) = 0 :=
+begin
+  simp only [integral], rw dif_pos,
+  { apply l1.integral_zero },
+  { exact ⟨(measurable_const : measurable (λb:α, (0:β))), integrable_zero⟩ }
+end
+variables {α β}
+
+lemma integral_add {f g : α → β} (hfm : measurable f) (hfi : integrable f) (hgm : measurable g)
+  (hgi : integrable g) : integral (f + g) = integral f + integral g :=
+begin
+  simp only [integral], repeat { rw dif_pos },
+  { rw ← l1.integral_add, refl },
+  { exact ⟨hgm, hgi⟩ },
+  { exact ⟨hfm, hfi⟩ },
+  { exact ⟨measurable_add hfm hgm, integrable_add hfm hgm hfi hgi⟩ }
+end
+
+lemma integral_sub {f g : α → β} (hfm : measurable f) (hfi : integrable f) (hgm : measurable g)
+  (hgi : integrable g) : integral (f - g) = integral f - integral g :=
+begin
+  simp only [integral], repeat {rw dif_pos},
+  { rw ← l1.integral_sub, refl },
+  { exact ⟨hgm, hgi⟩ },
+  { exact ⟨hfm, hfi⟩ },
+  { exact ⟨measurable_sub hfm hgm, integrable_sub hfm hgm hfi hgi⟩ }
+end
+
+lemma integral_smul (r : ℝ) {f : α → β} (hfm : measurable f) (hfi : integrable f) :
+  integral (λx, r • (f x)) = r • integral f :=
+begin
+  simp only [integral], rw dif_pos, rw dif_pos,
+  { rw ← l1.integral_smul, refl  },
+  { exact ⟨hfm, hfi⟩ },
+  { exact ⟨measurable_smul hfm, integrable_smul _ hfi⟩ }
+end
+
+end properties
 
 end measure_theory

@@ -25,7 +25,7 @@ lemma tendsto_at_top_mul_left [decidable_linear_ordered_semiring α] [archimedea
 begin
   apply (tendsto_at_top _ _).2 (λb, _),
   obtain ⟨n, hn⟩ : ∃ (n : ℕ), (1 : α) ≤ n • r := archimedean.arch 1 hr,
-  have hn' : 1 ≤ r * n, by { convert hn, rw add_monoid.smul_eq_mul' },
+  have hn' : 1 ≤ r * n, by rwa add_monoid.smul_eq_mul' at hn,
   filter_upwards [(tendsto_at_top _ _).1 hf (n * max b 0)],
   assume x hx,
   calc b ≤ 1 * max b 0 : by { rw [one_mul], exact le_max_left _ _ }
@@ -44,7 +44,7 @@ lemma tendsto_at_top_mul_right [decidable_linear_ordered_semiring α] [archimede
 begin
   apply (tendsto_at_top _ _).2 (λb, _),
   obtain ⟨n, hn⟩ : ∃ (n : ℕ), (1 : α) ≤ n • r := archimedean.arch 1 hr,
-  have hn' : 1 ≤ (n : α) * r, by { convert hn, rw add_monoid.smul_eq_mul },
+  have hn' : 1 ≤ (n : α) * r, by rwa add_monoid.smul_eq_mul at hn,
   filter_upwards [(tendsto_at_top _ _).1 hf (max b 0 * n)],
   assume x hx,
   calc b ≤ max b 0 * 1 : by { rw [mul_one], exact le_max_left _ _ }

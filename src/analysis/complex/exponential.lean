@@ -1744,21 +1744,16 @@ begin
     rwa div_le_iff' (pow_pos n_pos n) },
   have B : {x : ℝ | exp (x / (n+1)) / (n+1)^n ≤ exp x / x^n} ∈ at_top :=
     mem_at_top_sets.2 ⟨1, λx hx, A _ (lt_of_lt_of_le zero_lt_one hx)⟩,
-  have C : tendsto (λx, exp (x / (n+1)) / (n+1)^n) at_top at_top,
-  { apply tendsto_at_top_div (pow_pos n_pos n),
-    apply tendsto_exp_at_top.comp,
-    exact tendsto_at_top_div (nat.cast_add_one_pos n) tendsto_id },
+  have C : tendsto (λx, exp (x / (n+1)) / (n+1)^n) at_top at_top :=
+    tendsto_at_top_div (pow_pos n_pos n)
+      (tendsto_exp_at_top.comp (tendsto_at_top_div (nat.cast_add_one_pos n) tendsto_id)),
   exact tendsto_at_top_mono' at_top B C
 end
 
 /-- The function `x^n * exp(-x)` tends to `0` at +infinity, for any natural number `n`. -/
 lemma tendsto_pow_mul_exp_neg_at_top_nhds_0 (n : ℕ) : tendsto (λx, x^n * exp (-x)) at_top (𝓝 0) :=
-begin
-  apply tendsto.congr (λx, _)
-    (tendsto.comp tendsto_inverse_at_top_nhds_0 (tendsto_exp_div_pow_at_top n)),
-  rw [function.comp_app, inv_eq_one_div, div_div_eq_mul_div, one_mul,
-      div_eq_mul_inv, exp_neg]
-end
+(tendsto_inverse_at_top_nhds_0.comp (tendsto_exp_div_pow_at_top n)).congr $ λx,
+  by rw [function.comp_app, inv_eq_one_div, div_div_eq_mul_div, one_mul, div_eq_mul_inv, exp_neg]
 
 end exp
 

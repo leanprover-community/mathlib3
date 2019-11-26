@@ -359,7 +359,7 @@ variables [normed_field β]
 instance normed_field.is_absolute_value : is_absolute_value (norm : β → ℝ) :=
 { abv_nonneg := norm_nonneg,
   abv_eq_zero := norm_eq_zero,
-  abv_add := norm_triangle,
+  abv_add := norm_add_le,
   abv_mul := normed_field.norm_mul }
 
 open metric
@@ -405,6 +405,7 @@ lemma cau_seq_iff_cauchy_seq {α : Type u} [normed_field α] {u : ℕ → α} :
 
 /-- A complete normed field is complete as a metric space, as Cauchy sequences converge by
 assumption and this suffices to characterize completeness. -/
+@[priority 100] -- see Note [lower instance priority]
 instance complete_space_of_cau_seq_complete [cau_seq.is_complete β norm] : complete_space β :=
 begin
   apply complete_of_cauchy_seq_tendsto,

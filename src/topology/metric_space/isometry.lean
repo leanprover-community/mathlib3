@@ -3,13 +3,18 @@ Copyright (c) 2018 Sébastien Gouëzel. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Isometries of emetric and metric spaces
 Authors: Sébastien Gouëzel
-We define isometries, i.e., maps between emetric spaces that preserve
-the edistance (on metric spaces, these are exactly the maps that preserve distances),
-and prove their basic properties. We also introduce isometric bijections.
 -/
 
 import topology.metric_space.basic
 topology.bounded_continuous_function analysis.normed_space.basic topology.opens
+
+/-!
+# Isometries
+
+We define isometries, i.e., maps between emetric spaces that preserve
+the edistance (on metric spaces, these are exactly the maps that preserve distances),
+and prove their basic properties. We also introduce isometric bijections.
+-/
 
 noncomputable theory
 
@@ -201,6 +206,14 @@ begin
   dunfold isometry.isometric_on_range,
   rw ← equiv.set.range_apply f h.injective x,
   refl
+end
+
+/-- In a normed algebra, the inclusion of the base field in the extended field is an isometry. -/
+lemma algebra_map_isometry (𝕜 : Type*) (𝕜' : Type*) [normed_field 𝕜] [normed_ring 𝕜']
+  [h : normed_algebra 𝕜 𝕜'] : isometry (@algebra_map 𝕜 𝕜' _ _ _) :=
+begin
+  refine isometry_emetric_iff_metric.2 (λx y, _),
+  rw [dist_eq_norm, dist_eq_norm, ← algebra.map_sub, norm_algebra_map_eq],
 end
 
 /-- The space of bounded sequences, with its sup norm -/

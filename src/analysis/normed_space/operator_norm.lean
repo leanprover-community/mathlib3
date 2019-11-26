@@ -35,16 +35,17 @@ it will be non-discrete. -/
 
 variables [normed_field 𝕜] [normed_space 𝕜 E] [normed_space 𝕜 F] (f : E →ₗ[𝕜] F)
 
+lemma linear_map.lipschitz_of_bound (C : ℝ) (h : ∀x, ∥f x∥ ≤ C * ∥x∥) :
+  lipschitz_with (nnreal.of_real C) f :=
+lipschitz_with.of_dist_le $ λ x y, by simpa [dist_eq_norm] using h (x - y)
+
+lemma linear_map.uniform_continuous_of_bound (C : ℝ) (h : ∀x, ∥f x∥ ≤ C * ∥x∥) :
+  uniform_continuous f :=
+(f.lipschitz_of_bound C h).to_uniform_continuous
+
 lemma linear_map.continuous_of_bound (C : ℝ) (h : ∀x, ∥f x∥ ≤ C * ∥x∥) :
   continuous f :=
-begin
-  have : ∀ (x y : E), dist (f x) (f y) ≤ C * dist x y := λx y, calc
-    dist (f x) (f y) = ∥f x - f y∥ : by rw dist_eq_norm
-    ... = ∥f (x - y)∥ : by simp
-    ... ≤ C * ∥x - y∥ : h _
-    ... = C * dist x y : by rw dist_eq_norm,
-  exact continuous_of_lipschitz this
-end
+(f.lipschitz_of_bound C h).to_continuous
 
 /-- Construct a continuous linear map from a linear map and a bound on this linear map. -/
 def linear_map.with_bound (h : ∃C : ℝ, ∀x, ∥f x∥ ≤ C * ∥x∥) : E →L[𝕜] F :=
@@ -115,7 +116,6 @@ end normed_field
 variables [nondiscrete_normed_field 𝕜] [normed_space 𝕜 E] [normed_space 𝕜 F] [normed_space 𝕜 G]
 (c : 𝕜) (f g : E →L[𝕜] F) (h : F →L[𝕜] G) (x y z : E)
 include 𝕜
-
 
 /-- A continuous linear map between normed spaces is bounded when the field is nondiscrete.
 The continuity ensures boundedness on a ball of some radius δ. The nondiscreteness is then
@@ -220,11 +220,10 @@ lemma op_norm_le_bound {M : ℝ} (hMp: 0 ≤ M) (hM : ∀ x, ∥f x∥ ≤ M * �
 Inf_le _ bounds_bdd_below ⟨hMp, hM⟩
 
 /-- The operator norm satisfies the triangle inequality. -/
-theorem op_norm_triangle : ∥f + g∥ ≤ ∥f∥ + ∥g∥ :=
+theorem op_norm_add_le : ∥f + g∥ ≤ ∥f∥ + ∥g∥ :=
 Inf_le _ bounds_bdd_below
   ⟨add_nonneg (op_norm_nonneg _) (op_norm_nonneg _), λ x, by { rw add_mul,
-    calc _ ≤ ∥f x∥ + ∥g x∥ : norm_triangle _ _
-    ...    ≤ _             : add_le_add (le_op_norm _ _) (le_op_norm _ _) }⟩
+    exact norm_add_le_of_le (le_op_norm _ _) (le_op_norm _ _) }⟩
 
 /-- An operator is zero iff its norm vanishes. -/
 theorem op_norm_zero_iff : ∥f∥ = 0 ↔ f = 0 :=
@@ -273,12 +272,7 @@ lemma op_norm_neg : ∥-f∥ = ∥f∥ := calc
 /-- Continuous linear maps themselves form a normed space with respect to
     the operator norm. -/
 instance to_normed_group : normed_group (E →L[𝕜] F) :=
-normed_group.of_core _ ⟨op_norm_zero_iff, op_norm_triangle, op_norm_neg⟩
-
-/- The next instance should be found automatically, but it is not.
-TODO: fix me -/
-instance to_normed_group_prod : normed_group (E →L[𝕜] (F × G)) :=
-continuous_linear_map.to_normed_group
+normed_group.of_core _ ⟨op_norm_zero_iff, op_norm_add_le, op_norm_neg⟩
 
 instance to_normed_space : normed_space 𝕜 (E →L[𝕜] F) :=
 ⟨op_norm_smul⟩
@@ -295,20 +289,34 @@ lemma op_norm_comp_le : ∥comp h f∥ ≤ ∥h∥ * ∥f∥ :=
   end⟩)
 
 /-- continuous linear maps are Lipschitz continuous. -/
-theorem lipschitz : lipschitz_with ∥f∥ f :=
-⟨op_norm_nonneg _, λ x y,
-  by { rw [dist_eq_norm, dist_eq_norm, ←map_sub], apply le_op_norm }⟩
+theorem lipschitz : lipschitz_with ⟨∥f∥, op_norm_nonneg f⟩ f :=
+λ x y, by { rw [dist_eq_norm, dist_eq_norm, ←map_sub], apply le_op_norm }
 
 /-- A continuous linear map is automatically uniformly continuous. -/
-theorem uniform_continuous : uniform_continuous f :=
+protected theorem uniform_continuous : uniform_continuous f :=
 f.lipschitz.to_uniform_continuous
 
+variable {f}
+/-- A continuous linear map is an isometry if and only if it preserves the norm. -/
+lemma isometry_iff_norm_image_eq_norm :
+  isometry f ↔ ∀x, ∥f x∥ = ∥x∥ :=
+begin
+  rw isometry_emetric_iff_metric,
+  split,
+  { assume H x,
+    have := H x 0,
+    rwa [dist_eq_norm, dist_eq_norm, f.map_zero, sub_zero, sub_zero] at this },
+  { assume H x y,
+    rw [dist_eq_norm, dist_eq_norm, ← f.map_sub, H] }
+end
+
+variable (f)
 /-- A continuous linear map is a uniform embedding if it expands the norm by a constant factor. -/
 theorem uniform_embedding_of_bound (C : ℝ) (hC : ∀x, ∥x∥ ≤ C * ∥f x∥) :
   uniform_embedding f :=
 begin
   have Cpos : 0 < max C 1 := lt_of_lt_of_le zero_lt_one (le_max_right _ _),
-  refine uniform_embedding_iff'.2 ⟨metric.uniform_continuous_iff.1 (uniform_continuous _),
+  refine uniform_embedding_iff'.2 ⟨metric.uniform_continuous_iff.1 f.uniform_continuous,
                                     λδ δpos, ⟨δ / (max C 1), div_pos δpos Cpos, λx y hxy, _⟩⟩,
   calc dist x y = ∥x - y∥ : by rw dist_eq_norm
   ... ≤ C * ∥f (x - y)∥ : hC _
@@ -353,6 +361,84 @@ begin
       by rwa [mul_one] }
 end
 
+section uniformly_extend
+
+variables [complete_space F] {e : E →L[𝕜] G} (h_dense : dense_range e)
+
+section
+variables (h_e : uniform_inducing e)
+
+/-- Extension of a continuous linear map `f : E →L[𝕜] F`, with `E` a normed space and `F` a complete
+    normed space, along a uniform and dense embedding `e : E →L[𝕜] G`.  -/
+def extend : G →L[𝕜] F :=
+/- extension of `f` is continuous -/
+have cont : _ := (uniform_continuous_uniformly_extend h_e h_dense f.uniform_continuous).continuous,
+/- extension of `f` agrees with `f` on the domain of the embedding `e` -/
+have eq : _ := uniformly_extend_of_ind h_e h_dense f.uniform_continuous,
+{ to_fun := (h_e.dense_inducing h_dense).extend f,
+  add :=
+  begin
+    refine is_closed_property2 h_dense (is_closed_eq _ _) _,
+    { exact cont.comp (_root_.continuous_add continuous_fst continuous_snd) },
+    { exact _root_.continuous_add (cont.comp continuous_fst) (cont.comp continuous_snd) },
+    { assume x y, rw ← e.map_add, simp only [eq], exact f.map_add _ _  },
+  end,
+  smul := λk,
+  begin
+    refine is_closed_property h_dense (is_closed_eq _ _) _,
+    { exact cont.comp (continuous_smul continuous_const continuous_id)  },
+    { exact (continuous_smul continuous_const continuous_id).comp cont },
+    { assume x, rw ← map_smul, simp only [eq], exact map_smul _ _ _  },
+  end,
+  cont := cont
+}
+
+@[simp] lemma extend_zero : extend (0 : E →L[𝕜] F) h_dense h_e = 0 :=
+begin
+  apply ext,
+  refine is_closed_property h_dense (is_closed_eq _ _) _,
+  { exact (uniform_continuous_uniformly_extend h_e h_dense uniform_continuous_const).continuous },
+  { simp only [zero_apply], exact continuous_const },
+  { assume x, exact uniformly_extend_of_ind h_e h_dense uniform_continuous_const x }
+end
+
+end
+
+section
+variables {N : ℝ} (h_e : ∀x, ∥x∥ ≤ N * ∥e x∥)
+
+local notation `ψ` := f.extend h_dense (uniform_embedding_of_bound _ _ h_e).to_uniform_inducing
+
+/-- If a dense embedding `e : E →L[𝕜] G` expands the norm by a constant factor `N⁻¹`, then the norm
+    of the extension of `f` along `e` is bounded by `N * ∥f∥`. -/
+lemma op_norm_extend_le : ∥ψ∥ ≤ N * ∥f∥ :=
+begin
+  have uni : uniform_inducing e := (uniform_embedding_of_bound _ _ h_e).to_uniform_inducing,
+  have eq : ∀x, ψ (e x) = f x := uniformly_extend_of_ind uni h_dense f.uniform_continuous,
+  by_cases N0 : 0 ≤ N,
+  { refine op_norm_le_bound ψ _ (is_closed_property h_dense (is_closed_le _ _) _),
+    { exact mul_nonneg N0 (norm_nonneg _) },
+    { exact continuous_norm.comp (cont ψ) },
+    { exact continuous_mul continuous_const continuous_norm },
+    { assume x,
+      rw eq,
+      calc ∥f x∥ ≤ ∥f∥ * ∥x∥ : le_op_norm _ _
+        ... ≤ ∥f∥ * (N * ∥e x∥) : mul_le_mul_of_nonneg_left (h_e x) (norm_nonneg _)
+        ... ≤ N * ∥f∥ * ∥e x∥ : by rw [mul_comm N ∥f∥, mul_assoc] } },
+  { have he : ∀ x : E, x = 0,
+    { assume x,
+      have N0 : N ≤ 0 := le_of_lt (lt_of_not_ge N0),
+      rw ← norm_le_zero_iff,
+      exact le_trans (h_e x) (mul_nonpos_of_nonpos_of_nonneg N0 (norm_nonneg _)) },
+    have hf : f = 0, { ext, simp only [he x, zero_apply, map_zero] },
+    have hψ : ψ = 0, { rw hf, apply extend_zero },
+    rw [hψ, hf, norm_zero, norm_zero, mul_zero] }
+end
+
+end
+
+end uniformly_extend
+
 end op_norm
 
 /-- The norm of the tensor product of a scalar linear map and of an element of a normed space
@@ -377,6 +463,29 @@ begin
       ... = ∥((smul_right c f) : E → F) x∥ : rfl
       ... ≤ ∥smul_right c f∥ * ∥x∥ : le_op_norm _ _ } },
 end
+
+section restrict_scalars
+
+variable (𝕜)
+variables {𝕜' : Type*} [normed_field 𝕜'] [normed_algebra 𝕜 𝕜']
+{E' : Type*} [normed_group E'] [normed_space 𝕜' E']
+{F' : Type*} [normed_group F'] [normed_space 𝕜' F']
+
+local attribute [instance, priority 500] normed_space.restrict_scalars
+
+/-- `𝕜`-linear continuous function induced by a `𝕜'`-linear continuous function when `𝕜'` is a
+normed algebra over `𝕜`. -/
+def restrict_scalars (f : E' →L[𝕜'] F') : E' →L[𝕜] F' :=
+{ cont := f.cont,
+  ..linear_map.restrict_scalars 𝕜 (f.to_linear_map) }
+
+@[simp, move_cast] lemma restrict_scalars_coe_eq_coe (f : E' →L[𝕜'] F') :
+  (f.restrict_scalars 𝕜 : E' →ₗ[𝕜] F') = (f : E' →ₗ[𝕜'] F').restrict_scalars 𝕜 := rfl
+
+@[simp, squash_cast] lemma restrict_scalars_coe_eq_coe' (f : E' →L[𝕜'] F') :
+  (f.restrict_scalars 𝕜 : E' → F') = f := rfl
+
+end restrict_scalars
 
 end continuous_linear_map
 

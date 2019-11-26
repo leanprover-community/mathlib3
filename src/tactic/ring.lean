@@ -133,6 +133,8 @@ theorem horner_add_horner_gt {α} [comm_semiring α] (a₁ x n₁ b₁ a₂ n₂
   @horner α _ a₁ x n₁ b₁ + horner a₂ x n₂ b₂ = horner a' x n₂ b' :=
 by simp [h₂.symm, h₃.symm, h₁.symm, horner, pow_add, mul_add, mul_comm, mul_left_comm]
 
+-- set_option trace.class_instances true
+-- set_option class.instance_max_depth 128
 theorem horner_add_horner_eq {α} [comm_semiring α] (a₁ x n b₁ a₂ b₂ a' b' t)
   (h₁ : a₁ + a₂ = a') (h₂ : b₁ + b₂ = b') (h₃ : horner a' x n b' = t) :
   @horner α _ a₁ x n b₁ + horner a₂ x n b₂ = t :=
@@ -364,13 +366,15 @@ meta def eval : expr → ring_m (horner_expr × expr)
   (e', p') ← eval_add e₁' e₂',
   p ← ring_m.mk_app ``norm_num.subst_into_sum ``has_add [e₁, e₂, e₁', e₂', e', p₁, p₂, p'],
   return (e', p)
-| `(%%e₁ - %%e₂) := do
-  c ← get_cache,
-  e₂' ← lift $ mk_app ``has_neg.neg [e₂],
-  e ← lift $ mk_app ``has_add.add [e₁, e₂'],
-  (e', p) ← eval e,
-  p' ← ring_m.mk_app ``unfold_sub ``add_group [e₁, e₂, e', p],
-  return (e', p')
+| e@`(@has_sub.sub %%α %%P %%e₁ %%e₂) :=
+  mcond (succeeds (lift $ mk_app ``comm_ring [α] >>= mk_instance))
+    (do
+      e₂' ← lift $ mk_app ``has_neg.neg [e₂],
+      e ← lift $ mk_app ``has_add.add [e₁, e₂'],
+      (e', p) ← eval e,
+      p' ← ring_m.mk_app ``unfold_sub ``add_group [e₁, e₂, e', p],
+      return (e', p'))
+    (eval_atom e)
 | `(- %%e) := do
   (e₁, p₁) ← eval e,
   (e₂, p₂) ← eval_neg e₁,

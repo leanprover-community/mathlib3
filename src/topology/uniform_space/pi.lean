@@ -33,9 +33,6 @@ begin
   exact infi_le (λ j, uniform_space.comap (λ (a : Π (i : ι), α i), a j) (U j)) i
 end
 
-lemma Pi.uniform_space_topology :
-  (Pi.uniform_space α).to_topological_space = Pi.topological_space := rfl
-
 instance Pi.complete [∀ i, complete_space (α i)] : complete_space (Π i, α i) :=
 ⟨begin
   intros f hf,
@@ -46,9 +43,7 @@ instance Pi.complete [∀ i, complete_space (α i)] : complete_space (Π i, α i
     exact (cauchy_iff_exists_le_nhds $ map_ne_bot hf.1).1 key },
   choose x hx using this,
   use x,
-  rw [show 𝓝 x = (⨅i, comap (λa, a i) (𝓝 (x i))),
-        by rw Pi.uniform_space_topology ; exact nhds_pi,
-      le_infi_iff],
+  rw [nhds_pi, le_infi_iff],
   exact λ i, map_le_iff_le_comap.mp (hx i),
 end⟩
 

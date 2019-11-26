@@ -37,6 +37,8 @@ class has_inf (α : Type u) := (inf : α → α → α)
 infix ⊔ := has_sup.sup
 infix ⊓ := has_inf.inf
 
+section prio
+set_option default_priority 100 -- see Note [default priority]
 /-- A `semilattice_sup` is a join-semilattice, that is, a partial order
   with a join (a.k.a. lub / least upper bound, sup / supremum) operation
   `⊔` which is the least element larger than both factors. -/
@@ -44,6 +46,7 @@ class semilattice_sup (α : Type u) extends has_sup α, partial_order α :=
 (le_sup_left : ∀ a b : α, a ≤ a ⊔ b)
 (le_sup_right : ∀ a b : α, b ≤ a ⊔ b)
 (sup_le : ∀ a b c : α, a ≤ c → b ≤ c → a ⊔ b ≤ c)
+end prio
 
 section semilattice_sup
 variables {α : Type u} [semilattice_sup α] {a b c d : α}
@@ -145,6 +148,8 @@ assume x y, ⟨x ⊔ y, hf _ _ le_sup_left, hf _ _ le_sup_right⟩
 
 end semilattice_sup
 
+section prio
+set_option default_priority 100 -- see Note [default priority]
 /-- A `semilattice_inf` is a meet-semilattice, that is, a partial order
   with a meet (a.k.a. glb / greatest lower bound, inf / infimum) operation
   `⊓` which is the greatest element smaller than both factors. -/
@@ -152,6 +157,7 @@ class semilattice_inf (α : Type u) extends has_inf α, partial_order α :=
 (inf_le_left : ∀ a b : α, a ⊓ b ≤ a)
 (inf_le_right : ∀ a b : α, a ⊓ b ≤ b)
 (le_inf : ∀ a b c : α, a ≤ b → a ≤ c → a ≤ b ⊓ c)
+end prio
 
 section semilattice_inf
 variables {α : Type u} [semilattice_inf α] {a b c d : α}
@@ -247,9 +253,12 @@ end semilattice_inf
 
 /- Lattices -/
 
+section prio
+set_option default_priority 100 -- see Note [default priority]
 /-- A lattice is a join-semilattice which is also a meet-semilattice. -/
 -- TODO(lint): Fix double namespace issue
 @[nolint] class lattice (α : Type u) extends semilattice_sup α, semilattice_inf α
+end prio
 
 section lattice
 variables {α : Type u} [lattice α] {a b c d : α}
@@ -281,6 +290,8 @@ end lattice
 
 variables {α : Type u} {x y z w : α}
 
+section prio
+set_option default_priority 100 -- see Note [default priority]
 /-- A distributive lattice is a lattice that satisfies any of four
   equivalent distribution properties (of sup over inf or inf over sup,
   on the left or right). A classic example of a distributive lattice
@@ -289,6 +300,7 @@ variables {α : Type u} {x y z w : α}
   as a sublattice of a powerset lattice. -/
 class distrib_lattice α extends lattice α :=
 (le_sup_inf : ∀x y z : α, (x ⊔ y) ⊓ (x ⊔ z) ≤ x ⊔ (y ⊓ z))
+end prio
 
 section distrib_lattice
 variables [distrib_lattice α]
@@ -328,6 +340,7 @@ end distrib_lattice
 
 /- Lattices derived from linear orders -/
 
+@[priority 100] -- see Note [lower instance priority]
 instance lattice_of_decidable_linear_order {α : Type u} [o : decidable_linear_order α] : lattice α :=
 { sup          := max,
   le_sup_left  := le_max_left,
@@ -343,6 +356,7 @@ instance lattice_of_decidable_linear_order {α : Type u} [o : decidable_linear_o
 theorem sup_eq_max [decidable_linear_order α] : x ⊔ y = max x y := rfl
 theorem inf_eq_min [decidable_linear_order α] : x ⊓ y = min x y := rfl
 
+@[priority 100] -- see Note [lower instance priority]
 instance distrib_lattice_of_decidable_linear_order {α : Type u} [o : decidable_linear_order α] : distrib_lattice α :=
 { le_sup_inf := assume a b c,
     match le_total b c with

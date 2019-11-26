@@ -139,7 +139,7 @@ instance : normed_ring ℤ_[p] :=
 instance padic_norm_z.is_absolute_value : is_absolute_value (λ z : ℤ_[p], ∥z∥) :=
 { abv_nonneg := norm_nonneg,
   abv_eq_zero := λ ⟨_, _⟩, by simp [norm_eq_zero, padic_int.zero_def],
-  abv_add := λ ⟨_,_⟩ ⟨_, _⟩, norm_triangle _ _,
+  abv_add := λ ⟨_,_⟩ ⟨_, _⟩, norm_add_le _ _,
   abv_mul := λ _ _, by unfold norm; simp [padic_norm_z] }
 
 protected lemma padic_int.pmul_comm : ∀ z1 z2 : ℤ_[p], z1*z2 = z2*z1

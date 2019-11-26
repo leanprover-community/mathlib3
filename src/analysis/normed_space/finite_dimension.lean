@@ -242,7 +242,7 @@ begin
     have B : e (e.symm y) = y := linear_equiv.apply_symm_apply _ _,
     conv_lhs { rw [← A, ← B] },
     change dist (f (e.symm x)) (f (e.symm y)) ≤ ∥f∥ * dist (e.symm x) (e.symm y),
-    exact f.lipschitz.2 _ _ }
+    exact f.lipschitz _ _ }
 end
 
 end proper_field
@@ -254,11 +254,3 @@ instance finite_dimensional.proper_real
 finite_dimensional.proper ℝ E
 
 attribute [instance, priority 900] finite_dimensional.proper_real
-
-/- Over the complex numbers, we can register the previous statement as an instance as it will not
-cause problems in instance resolution since the properness of `ℂ` is already known. -/
-instance finite_dimensional.proper_complex
-  (E : Type) [normed_group E] [normed_space ℂ E] [finite_dimensional ℂ E] : proper_space E :=
-finite_dimensional.proper ℂ E
-
-attribute [instance, priority 900] finite_dimensional.proper_complex

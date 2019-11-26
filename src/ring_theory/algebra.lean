@@ -20,7 +20,7 @@ open lattice
 open_locale tensor_product
 
 section prio
--- We set the priority below 100, so that mul_action.to_has_scalar has higher priority
+-- We set this priority to 0 later in this file
 set_option default_priority 200 -- see Note [default priority]
 /-- The category of R-algebras where R is a commutative
 ring is the under category R ↓ CRing. In the categorical
@@ -32,8 +32,6 @@ class algebra (R : Type u) (A : Type v) [comm_ring R] [ring A] extends has_scala
 (commutes' : ∀ r x, x * to_fun r = to_fun r * x)
 (smul_def' : ∀ r x, r • x = to_fun r * x)
 end prio
-
-local attribute [instance] algebra.hom
 
 def algebra_map {R : Type u} (A : Type v) [comm_ring R] [ring A] [algebra R A] (x : R) : A :=
 algebra.to_fun A x
@@ -405,9 +403,7 @@ end complex
 structure subalgebra (R : Type u) (A : Type v)
   [comm_ring R] [ring A] [algebra R A] : Type v :=
 (carrier : set A) [subring : is_subring carrier]
-(range_le : set.range (algebra_map A : R → A) ≤ carrier)
-
-local attribute [instance] subalgebra.subring
+(range_le' : set.range (algebra_map A : R → A) ≤ carrier)
 
 namespace subalgebra
 
@@ -418,8 +414,10 @@ include R
 instance : has_coe (subalgebra R A) (set A) :=
 ⟨λ S, S.carrier⟩
 
+lemma range_le (S : subalgebra R A) : set.range (algebra_map A : R → A) ≤ S := S.range_le'
+
 instance : has_mem A (subalgebra R A) :=
-⟨λ x S, x ∈ S.carrier⟩
+⟨λ x S, x ∈ (S : set A)⟩
 
 variables {A}
 theorem mem_coe {x : A} {s : subalgebra R A} : x ∈ (s : set A) ↔ x ∈ s :=
@@ -453,7 +451,7 @@ def val : S →ₐ[R] A :=
 by refine_struct { to_fun := subtype.val }; intros; refl
 
 def to_submodule : submodule R A :=
-{ carrier := S.carrier,
+{ carrier := S,
   zero := (0:S).2,
   add := λ x y hx hy, (⟨x, hx⟩ + ⟨y, hy⟩ : S).2,
   smul := λ c x hx, (algebra.smul_def c x).symm ▸ (⟨algebra_map A c, S.range_le ⟨c, rfl⟩⟩ * ⟨x, hx⟩:S).2 }
@@ -464,7 +462,7 @@ instance coe_to_submodule : has_coe (subalgebra R A) (submodule R A) :=
 instance to_submodule.is_subring : is_subring ((S : submodule R A) : set A) := S.2
 
 instance : partial_order (subalgebra R A) :=
-{ le := λ S T, S.carrier ≤ T.carrier,
+{ le := λ S T, (S : set A) ≤ (T : set A),
   le_refl := λ _, le_refl _,
   le_trans := λ _ _ _, le_trans,
   le_antisymm := λ S T hst hts, ext $ λ x, ⟨@hst x, @hts x⟩ }
@@ -474,13 +472,13 @@ def comap {R : Type u} {S : Type v} {A : Type w}
   (iSB : subalgebra S A) : subalgebra R (algebra.comap R S A) :=
 { carrier := (iSB : set A),
   subring := iSB.is_subring,
-  range_le := λ a ⟨r, hr⟩, hr ▸ iSB.range_le ⟨_, rfl⟩ }
+  range_le' := λ a ⟨r, hr⟩, hr ▸ iSB.range_le ⟨_, rfl⟩ }
 
 def under {R : Type u} {A : Type v} [comm_ring R] [comm_ring A]
   {i : algebra R A} (S : subalgebra R A)
   (T : subalgebra S A) : subalgebra R A :=
 { carrier := T,
-  range_le := (λ a ⟨r, hr⟩, hr ▸ T.range_le ⟨⟨algebra_map A r, S.range_le ⟨r, rfl⟩⟩, rfl⟩) }
+  range_le' := (λ a ⟨r, hr⟩, hr ▸ T.range_le ⟨⟨algebra_map A r, S.range_le ⟨r, rfl⟩⟩, rfl⟩) }
 
 end subalgebra
 
@@ -495,7 +493,7 @@ protected def range : subalgebra R B :=
   subring :=
   { one_mem := ⟨1, φ.map_one⟩,
     mul_mem := λ y₁ y₂ ⟨x₁, hx₁⟩ ⟨x₂, hx₂⟩, ⟨x₁ * x₂, hx₁ ▸ hx₂ ▸ φ.map_mul x₁ x₂⟩ },
-  range_le := λ y ⟨r, hr⟩, ⟨algebra_map A r, hr ▸ φ.commutes r⟩ }
+  range_le' := λ y ⟨r, hr⟩, ⟨algebra_map A r, hr ▸ φ.commutes r⟩ }
 
 end alg_hom
 
@@ -526,7 +524,7 @@ theorem of_id_apply (r) : of_id R A r = algebra_map A r := rfl
 variables (R) {A}
 def adjoin (s : set A) : subalgebra R A :=
 { carrier := ring.closure (set.range (algebra_map A : R → A) ∪ s),
-  range_le := le_trans (set.subset_union_left _ _) ring.subset_closure }
+  range_le' := le_trans (set.subset_union_left _ _) ring.subset_closure }
 variables {R}
 
 protected lemma gc : galois_connection (adjoin R : set A → subalgebra R A) coe :=
@@ -578,7 +576,7 @@ algebra.of_ring_hom coe $ by constructor; intros; simp
 variables {R}
 /-- CRing ⥤ ℤ-Alg -/
 def subalgebra_of_subring (S : set R) [is_subring S] : subalgebra ℤ R :=
-{ carrier := S, range_le := λ x ⟨i, h⟩, h ▸ int.induction_on i
+{ carrier := S, range_le' := λ x ⟨i, h⟩, h ▸ int.induction_on i
     (by rw algebra.map_zero; exact is_add_submonoid.zero_mem _)
     (λ i hi, by rw [algebra.map_add, algebra.map_one]; exact is_add_submonoid.add_mem hi (is_submonoid.one_mem _))
     (λ i hi, by rw [algebra.map_sub, algebra.map_one]; exact is_add_subgroup.sub_mem _ _ _ hi (is_submonoid.one_mem _)) }

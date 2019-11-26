@@ -68,7 +68,7 @@ end
 
 /-- If a function tends to infinity along a filter, then this function multiplied by a positive
 constant (on the right) also tends to infinity. For a version working in `ℕ` or `ℤ`, use
-`tendsto_at_top_mul_left` instead. -/
+`tendsto_at_top_mul_right` instead. -/
 lemma tendsto_at_top_mul_right' [linear_ordered_field α]
   {l : filter β} {r : α} (hr : 0 < r) {f : β → α} (hf : tendsto f l at_top) :
   tendsto (λx, f x * r) l at_top :=

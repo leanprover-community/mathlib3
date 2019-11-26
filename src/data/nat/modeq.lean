@@ -181,6 +181,12 @@ lemma add_div_le_add_div (a b c : ℕ) : a / c + b / c ≤ (a + b) / c :=
 if hc0 : c = 0 then by simp [hc0]
 else by rw [nat.add_div (nat.pos_of_ne_zero hc0)]; exact le_add_right _ _
 
+lemma le_mod_add_mod_of_dvd_add_of_not_dvd {a b c : ℕ} (h : c ∣ a + b) (ha : ¬ c ∣ a) :
+  c ≤ a % c + b % c :=
+by_contradiction $ λ hc,
+  have (a + b) % c = a % c + b % c, from add_mod_of_add_mod_lt (lt_of_not_ge hc),
+  by simp [dvd_iff_mod_eq_zero, *] at *
+
 lemma odd_mul_odd {n m : ℕ} (hn1 : n % 2 = 1) (hm1 : m % 2 = 1) : (n * m) % 2 = 1 :=
 show (n * m) % 2 = (1 * 1) % 2, from nat.modeq.modeq_mul hn1 hm1
 

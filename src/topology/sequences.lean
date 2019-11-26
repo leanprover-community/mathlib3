@@ -159,6 +159,7 @@ namespace topological_space
 namespace first_countable_topology
 
 /-- Every first-countable space is sequential. -/
+@[priority 100] -- see Note [lower instance priority]
 instance [topological_space α] [first_countable_topology α] : sequential_space α :=
 ⟨show ∀ M, sequential_closure M = closure M, from assume M,
   suffices closure M ⊆ sequential_closure M,

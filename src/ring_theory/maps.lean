@@ -38,6 +38,7 @@ namespace is_ring_anti_hom
 
 variables [ring R] [ring F] (f : R → F) [is_ring_anti_hom f]
 
+@[priority 100] -- see Note [lower instance priority]
 instance : is_add_group_hom f :=
 { to_is_add_hom := ⟨λ x y, is_ring_anti_hom.map_add f⟩ }
 

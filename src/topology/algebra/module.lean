@@ -12,6 +12,8 @@ open topological_space
 
 universes u v w u'
 
+section prio
+set_option default_priority 100 -- see Note [default priority]
 /-- A topological semimodule, over a semiring which is also a topological space, is a
 semimodule in which scalar multiplication is continuous. In applications, α will be a topological
 semiring and β a topological additive semigroup, but this is not needed for the definition -/
@@ -20,6 +22,7 @@ class topological_semimodule (α : Type u) (β : Type v)
   [topological_space β] [add_comm_monoid β]
   [semimodule α β] : Prop :=
 (continuous_smul : continuous (λp : α × β, p.1 • p.2))
+end prio
 
 section
 
@@ -37,6 +40,8 @@ continuous_smul'.comp (hf.prod_mk hg)
 
 end
 
+section prio
+set_option default_priority 100 -- see Note [default priority]
 /-- A topological module, over a ring which is also a topological space, is a module in which
 scalar multiplication is continuous. In applications, α will be a topological ring and β a
 topological additive group, but this is not needed for the definition -/
@@ -51,6 +56,7 @@ class topological_vector_space (α : Type u) (β : Type v)
   [discrete_field α] [topological_space α]
   [topological_space β] [add_comm_group β] [vector_space α β]
   extends topological_module α β
+end prio
 
 /-- Continuous linear maps between modules. We only put the type classes that are necessary for the
 definition, although in applications β and γ will be topological modules over the topological

@@ -61,26 +61,37 @@ by simp [ha, tsum]; exact some_spec ha
 
 lemma summable_spec (ha : has_sum f a) : summable f := ⟨a, ha⟩
 
+/-- Constant zero function has sum `0` -/
 lemma has_sum_zero : has_sum (λb, 0 : β → α) 0 :=
 by simp [has_sum, tendsto_const_nhds]
 
 lemma summable_zero : summable (λb, 0 : β → α) := summable_spec has_sum_zero
 
+/-- If a function `f` vanishes outside of a finite set `s`, then it `has_sum` `s.sum f`. -/
 lemma has_sum_sum_of_ne_finset_zero (hf : ∀b∉s, f b = 0) : has_sum f (s.sum f) :=
 tendsto_infi' s $ tendsto.congr'
   (assume t (ht : s ⊆ t), show s.sum f = t.sum f, from sum_subset ht $ assume x _, hf _)
   tendsto_const_nhds
 
+lemma has_sum_fintype [fintype β] (f : β → α) : has_sum f (finset.univ.sum f) :=
+has_sum_sum_of_ne_finset_zero $ λ a h, h.elim (mem_univ _)
+
 lemma summable_sum_of_ne_finset_zero (hf : ∀b∉s, f b = 0) : summable f :=
 summable_spec $ has_sum_sum_of_ne_finset_zero hf
 
+lemma has_sum_single {f : β → α} (b : β) (hf : ∀b' ≠ b, f b' = 0) :
+  has_sum f (f b) :=
+suffices has_sum f (({b} : finset β).sum f),
+  by simpa using this,
+has_sum_sum_of_ne_finset_zero $ by simpa [hf]
+
 lemma has_sum_ite_eq (b : β) (a : α) : has_sum (λb', if b' = b then a else 0) a :=
-suffices
-  has_sum (λb', if b' = b then a else 0) (({b} : finset β).sum (λb', if b' = b then a else 0)), from
-  by simpa,
-has_sum_sum_of_ne_finset_zero $ assume b' hb,
-  have b' ≠ b, by simpa using hb,
-  by rw [if_neg this]
+begin
+  convert has_sum_single b _,
+  { exact (if_pos rfl).symm },
+  assume b' hb',
+  exact if_neg hb'
+end
 
 lemma has_sum_of_iso {j : γ → β} {i : β → γ}
   (hf : has_sum f a) (h₁ : ∀x, i (j x) = x) (h₂ : ∀x, j (i x) = x) : has_sum (f ∘ j) a :=
@@ -110,6 +121,7 @@ have (λs:finset β, s.sum (g ∘ f)) = g ∘ (λs:finset β, s.sum f),
 show tendsto (λs:finset β, s.sum (g ∘ f)) at_top (𝓝 (g a)),
   by rw [this]; exact tendsto.comp (continuous_iff_continuous_at.mp h₃ a) hf
 
+/-- If `f : ℕ → α` has sum `a`, then the partial sums `∑_{i=0}^{n-1} f i` converge to `a`. -/
 lemma tendsto_sum_nat_of_has_sum {f : ℕ → α} (h : has_sum f a) :
   tendsto (λn:ℕ, (range n).sum f) at_top (𝓝 a) :=
 suffices map (λ (n : ℕ), sum (range n) f) at_top ≤ map (λ (s : finset ℕ), sum s f) at_top,
@@ -293,12 +305,11 @@ lemma tsum_eq_sum {f : β → α} {s : finset β} (hf : ∀b∉s, f b = 0)  :
 tsum_eq_has_sum $ has_sum_sum_of_ne_finset_zero hf
 
 lemma tsum_fintype [fintype β] (f : β → α) : (∑b, f b) = finset.univ.sum f :=
-tsum_eq_sum $ λ a h, h.elim (mem_univ _)
+tsum_eq_has_sum $ has_sum_fintype f
 
 lemma tsum_eq_single {f : β → α} (b : β) (hf : ∀b' ≠ b, f b' = 0)  :
   (∑b, f b) = f b :=
-calc (∑b, f b) = (finset.singleton b).sum f : tsum_eq_sum $ by simp [hf] {contextual := tt}
-  ... = f b : by simp
+tsum_eq_has_sum $ has_sum_single b hf
 
 @[simp] lemma tsum_ite_eq (b : β) (a : α) : (∑b', if b' = b then a else 0) = a :=
 tsum_eq_has_sum (has_sum_ite_eq b a)
@@ -476,6 +487,22 @@ begin
     rw [this, option.cases_on'],
     exact hs _ h }
 end
+
+lemma sum_le_has_sum {f : β → α} (s : finset β) (hs : ∀ b∉s, 0 ≤ f b) (hf : has_sum f a) :
+  s.sum f ≤ a :=
+let f' := λ b, if b ∈ s then f b else 0 in
+have hf' : has_sum f' (s.sum f'),
+  from has_sum_sum_of_ne_finset_zero $ λ b hb, if_neg hb,
+have hle : ∀ b, f' b ≤ f b,
+  from λ b, if hb : b ∈ s
+    then by simp only [f', if_pos hb]
+    else by simp only [f', if_neg hb, hs b hb],
+calc s.sum f = s.sum f' : finset.sum_congr rfl $ λ b hb, (if_pos hb).symm
+... ≤ a : has_sum_le hle hf' hf
+
+lemma sum_le_tsum {f : β → α} (s : finset β) (hs : ∀ b∉s, 0 ≤ f b) (hf : summable f) :
+  s.sum f ≤ tsum f :=
+sum_le_has_sum s hs (has_sum_tsum hf)
 
 lemma tsum_le_tsum (h : ∀b, f b ≤ g b) (hf : summable f) (hg : summable g) : (∑b, f b) ≤ (∑b, g b) :=
 has_sum_le h (has_sum_tsum hf) (has_sum_tsum hg)

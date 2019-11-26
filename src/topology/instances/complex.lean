@@ -36,7 +36,7 @@ metric.uniform_continuous_iff.2 $ λ ε ε0, ⟨_, ε0, λ a b h,
 instance : uniform_add_group ℂ :=
 uniform_add_group.mk' uniform_continuous_add uniform_continuous_neg
 
-instance : topological_add_group ℂ := by apply_instance
+instance : topological_add_group ℂ := by apply_instance -- short-circuit type class inference
 
 lemma uniform_continuous_inv (s : set ℂ) {r : ℝ} (r0 : 0 < r) (H : ∀ x ∈ s, r ≤ abs x) :
   uniform_continuous (λp:s, p.1⁻¹) :=
@@ -117,7 +117,7 @@ lemma continuous_of_real : continuous of_real := uniform_continuous_of_real.cont
 instance : topological_ring ℂ :=
 { continuous_mul := complex.continuous_mul, ..complex.topological_add_group }
 
-instance : topological_semiring ℂ := by apply_instance
+instance : topological_semiring ℂ := by apply_instance -- short-circuit type class inference
 
 def real_prod_homeo : homeomorph ℂ (ℝ × ℝ) :=
 { to_equiv := real_prod_equiv,

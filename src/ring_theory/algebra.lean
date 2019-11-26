@@ -29,7 +29,7 @@ However here it extends module in order to preserve
 definitional equality in certain cases. -/
 class algebra (R : Type u) (A : Type v) [comm_ring R] [ring A] extends has_scalar R A :=
 (to_fun : R → A) [hom : is_ring_hom to_fun]
-(commutes' : ∀ r x, x * to_fun r = to_fun r * x)q
+(commutes' : ∀ r x, x * to_fun r = to_fun r * x)
 (smul_def' : ∀ r x, r • x = to_fun r * x)
 end prio
 
@@ -42,9 +42,6 @@ namespace algebra
 
 variables {R : Type u} {S : Type v} {A : Type w}
 variables [comm_ring R] [comm_ring S] [ring A] [algebra R A]
-
--- /-- The codomain of an algebra. -/
--- instance : has_scalar R A := infer_instance -- short-circuit type class inference
 
 instance : is_ring_hom (algebra_map A : R → A) := algebra.hom _ A
 
@@ -410,7 +407,7 @@ structure subalgebra (R : Type u) (A : Type v)
 (carrier : set A) [subring : is_subring carrier]
 (range_le : set.range (algebra_map A : R → A) ≤ carrier)
 
-attribute [instance] subalgebra.subring
+local attribute [instance] subalgebra.subring
 
 namespace subalgebra
 

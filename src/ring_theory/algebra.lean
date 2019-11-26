@@ -42,9 +42,6 @@ namespace algebra
 variables {R : Type u} {S : Type v} {A : Type w}
 variables [comm_ring R] [comm_ring S] [ring A] [algebra R A]
 
-/-- The codomain of an algebra. -/
-instance : has_scalar R A := infer_instance -- short-circuit type class inference
-
 include R
 
 instance : is_ring_hom (algebra_map A : R → A) := algebra.hom _ A
@@ -94,6 +91,7 @@ by rw [smul_def, smul_def, left_comm]
   (r • x) * y = r • (x * y) :=
 by rw [smul_def, smul_def, mul_assoc]
 
+@[priority 100] -- see Note [lower instance priority]
 instance to_module : module R A :=
 { one_smul := by simp [smul_def],
   mul_smul := by simp [smul_def, mul_assoc],
@@ -103,6 +101,7 @@ instance to_module : module R A :=
   zero_smul := by simp [smul_def] }
 
 omit R
+@[priority 100] -- see Note [lower instance priority]
 instance {F : Type u} {K : Type v} [discrete_field F] [ring K] [algebra F K] :
   vector_space F K :=
 @vector_space.mk F _ _ _ algebra.to_module

@@ -1578,6 +1578,10 @@ lemma tendsto_at_top_at_top_of_monotone [nonempty α] [semilattice_sup α] [preo
 
 alias tendsto_at_top_at_top_of_monotone ← monotone.tendsto_at_top_at_top
 
+lemma tendsto_finset_range : tendsto finset.range at_top at_top :=
+(tendsto_at_top_at_top _).2 (λ s, ⟨s.sup id + 1, λ N hN n hn,
+  finset.mem_range.2 $ lt_of_le_of_lt (finset.le_sup hn) $ nat.lt_of_succ_le hN⟩)
+
 lemma tendsto_finset_image_at_top_at_top {i : β → γ} {j : γ → β} (h : ∀x, j (i x) = x) :
   tendsto (λs:finset γ, s.image j) at_top at_top :=
 tendsto_infi.2 $ assume s, tendsto_infi' (s.image i) $ tendsto_principal_principal.2 $

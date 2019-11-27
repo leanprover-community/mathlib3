@@ -559,6 +559,25 @@ begin
                     ... = ε : ennreal.add_halves _⟩ }
 end
 
+/-- A variation of the emetric characterization of Cauchy sequences that deals with
+`nnreal` upper bounds. -/
+theorem cauchy_seq_iff_nnreal [inhabited β] [semilattice_sup β] {u : β → α} :
+  cauchy_seq u ↔ ∀ ε : nnreal, 0 < ε → ∃ N, ∀ n, N ≤ n → edist (u N) (u n) < ε :=
+begin
+  refine cauchy_seq_iff'.trans
+    ⟨λ H ε εpos, (H ε (ennreal.coe_pos.2 εpos)).imp $
+      λ N hN n hn, edist_comm (u n) (u N) ▸ hN n hn,
+      λ H ε εpos, _⟩,
+  specialize H ((min 1 ε).to_nnreal)
+    (ennreal.to_nnreal_pos_iff.2 ⟨lt_min ennreal.zero_lt_one εpos,
+      ennreal.lt_top_iff_ne_top.1 $ min_lt_iff.2 $ or.inl ennreal.coe_lt_top⟩),
+  refine H.imp (λ N hN n hn, edist_comm (u N) (u n) ▸ lt_of_lt_of_le (hN n hn) _),
+  refine ennreal.coe_le_iff.2 _,
+  rintros ε rfl,
+  rw [← ennreal.coe_one, ← ennreal.coe_min, ennreal.to_nnreal_coe],
+  apply min_le_right
+end
+
 theorem totally_bounded_iff {s : set α} :
   totally_bounded s ↔ ∀ ε > 0, ∃t : set α, finite t ∧ s ⊆ ⋃y∈t, ball y ε :=
 ⟨λ H ε ε0, H _ (edist_mem_uniformity ε0),

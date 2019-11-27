@@ -48,8 +48,7 @@ lemma has_deriv_at_exp (x : ℂ) : has_deriv_at exp (exp x) x :=
 begin
   rw has_deriv_at_iff_is_o_nhds_zero,
   have : (1 : ℕ) < 2 := by norm_num,
-  apply is_O.trans_is_o _ (is_o_pow_id this),
-  apply is_O_iff.2 ⟨∥exp x∥, _⟩,
+  refine is_O.trans_is_o (is_O_iff.2 ⟨∥exp x∥, _⟩) (is_o_pow_id this),
   have : metric.ball (0 : ℂ) 1 ∈ nhds (0 : ℂ) :=
     mem_nhds_sets metric.is_open_ball (by simp [zero_lt_one]),
   apply filter.mem_sets_of_superset this (λz hz, _),
@@ -76,13 +75,11 @@ differentiable_exp.continuous
 lemma has_deriv_at_sin (x : ℂ) : has_deriv_at sin (cos x) x :=
 begin
   have A : has_deriv_at (λ(z:ℂ), exp (z * I)) (I * exp (x * I)) x,
-  { have := has_deriv_at.mul (has_deriv_at_id x) (has_deriv_at_const x I),
-    simp at this,
-    exact has_deriv_at.comp x (has_deriv_at_exp _) this },
+  { convert (has_deriv_at_exp _).comp x ((has_deriv_at_id x).mul (has_deriv_at_const x I)),
+    simp },
   have B : has_deriv_at (λ(z:ℂ), exp (-z * I)) (-I * exp (-x * I)) x,
-  { apply has_deriv_at.comp x (has_deriv_at_exp _) _,
-    have := has_deriv_at.mul (has_deriv_at.neg (has_deriv_at_id x)) (has_deriv_at_const x I),
-    simpa only [mul_one, mul_neg_eq_neg_mul_symm, zero_add, mul_zero, neg_zero] },
+  { convert (has_deriv_at_exp _).comp x ((has_deriv_at_id x).neg.mul (has_deriv_at_const x I)),
+    simp },
   have C : has_deriv_at (λ(z:ℂ), exp (-z * I) - exp (z * I)) (-I * (exp (x * I) + exp (-x * I))) x,
     by { convert has_deriv_at.sub B A, ring },
   convert has_deriv_at.mul C (has_deriv_at_const x (I/(2:ℂ))),
@@ -106,13 +103,11 @@ differentiable_sin.continuous
 lemma has_deriv_at_cos (x : ℂ) : has_deriv_at cos (-sin x) x :=
 begin
   have A : has_deriv_at (λ(z:ℂ), exp (z * I)) (I * exp (x * I)) x,
-  { have := has_deriv_at.mul (has_deriv_at_id x) (has_deriv_at_const x I),
-    simp at this,
-    exact has_deriv_at.comp x (has_deriv_at_exp _) this },
+  { convert (has_deriv_at_exp _).comp x ((has_deriv_at_id x).mul (has_deriv_at_const x I)),
+    simp },
   have B : has_deriv_at (λ(z:ℂ), exp (-z * I)) (-I * exp (-x * I)) x,
-  { apply has_deriv_at.comp x (has_deriv_at_exp _) _,
-    have := has_deriv_at.mul (has_deriv_at.neg (has_deriv_at_id x)) (has_deriv_at_const x I),
-    simpa only [mul_one, mul_neg_eq_neg_mul_symm, zero_add, mul_zero, neg_zero] },
+  { convert (has_deriv_at_exp _).comp x ((has_deriv_at_id x).neg.mul (has_deriv_at_const x I)),
+    simp },
   have C : has_deriv_at (λ(z:ℂ), exp (z * I) + exp (-z * I)) (I * (exp (x * I) - exp (-x * I))) x,
     by { convert has_deriv_at.add A B, ring },
   convert has_deriv_at.mul C (has_deriv_at_const x (1/(2:ℂ))),
@@ -140,11 +135,9 @@ continuous_mul
 /-- The complex hyperbolic sine function is everywhere differentiable, with the derivative `sinh x`. -/
 lemma has_deriv_at_sinh (x : ℂ) : has_deriv_at sinh (cosh x) x :=
 begin
-  have B : has_deriv_at (λ(z:ℂ), exp (-z)) (- exp (-x)) x,
-  { convert has_deriv_at.comp x (has_deriv_at_exp _) (has_deriv_at.neg (has_deriv_at_id x)),
-    simp },
   have C : has_deriv_at (λ(z:ℂ), exp z - exp(-z)) (exp x + exp (-x)) x,
-    by { convert has_deriv_at.sub (has_deriv_at_exp x) B, simp },
+  { convert (has_deriv_at_exp x).sub ((has_deriv_at_exp _).comp x (has_deriv_at_id x).neg),
+    simp },
   convert has_deriv_at.mul C (has_deriv_at_const x (1/(2:ℂ))),
   { ext z, simp [sinh, div_eq_mul_inv] },
   { simp [cosh, div_eq_mul_inv, mul_comm] }
@@ -162,11 +155,9 @@ differentiable_sinh.continuous
 /-- The complex hyperbolic cosine function is everywhere differentiable, with the derivative `cosh x`. -/
 lemma has_deriv_at_cosh (x : ℂ) : has_deriv_at cosh (sinh x) x :=
 begin
-  have B : has_deriv_at (λ(z:ℂ), exp (-z)) (- exp (-x)) x,
-  { convert has_deriv_at.comp x (has_deriv_at_exp _) (has_deriv_at.neg (has_deriv_at_id x)),
+  have C : has_deriv_at (λ(z:ℂ), exp z + exp(-z)) (exp x - exp (-x)) x,
+  { convert (has_deriv_at_exp x).add ((has_deriv_at_exp _).comp x (has_deriv_at_id x).neg),
     simp },
-  have C : has_deriv_at (λ(z:ℂ), exp z + exp(-z)) (exp x - exp (-x)) x :=
-    has_deriv_at.add (has_deriv_at_exp x) B,
   convert has_deriv_at.mul C (has_deriv_at_const x (1/(2:ℂ))),
   { ext z, simp [cosh, div_eq_mul_inv] },
   { simp [sinh, div_eq_mul_inv, mul_comm] }

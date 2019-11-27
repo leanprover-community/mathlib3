@@ -44,7 +44,7 @@ In order to use mathlib supporting tools, you need to [get python](https://www.p
 * Choose the default installation.
 * Open Git Bash (type `git bash` in the Start Menu)
 * Run `which python`
-  * The expected output is something like `/c/Users/<user>/AppData/Local/Programs/Python/Pythonxx-xx/python`. In this case, move to the next step.
+  * The expected output is something like `/c/Users/<user>/AppData/Local/Programs/Python/Pythonxx-xx/python`. In this case, proceed to the next step.
   * If it's something like `/c/Users/<user>/AppData/Local/Microsoft/WindowsApps/python`, then you need to disable a Windows setting.
     * Type `manage app execution aliases` into the Windows search prompt (start menu) and open the corresponding System Settings page.
     * There should be two entries `App Installer python.exe` and `App Installer python3.exe`. Ensure that both of these are set to `Off`.

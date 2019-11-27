@@ -613,6 +613,37 @@ instance submodule.normed_space {𝕜 : Type*} [normed_field 𝕜]
 
 end normed_space
 
+section normed_algebra
+
+/-- A normed algebra `𝕜'` over `𝕜` is an algebra endowed with a norm for which the embedding of
+`𝕜` in `𝕜'` is an isometry. -/
+class normed_algebra (𝕜 : Type*) (𝕜' : Type*) [normed_field 𝕜] [normed_ring 𝕜']
+  extends algebra 𝕜 𝕜' :=
+(norm_algebra_map_eq : ∀x:𝕜, ∥algebra_map 𝕜' x∥ = ∥x∥)
+
+@[simp] lemma norm_algebra_map_eq {𝕜 : Type*} (𝕜' : Type*) [normed_field 𝕜] [normed_ring 𝕜']
+  [h : normed_algebra 𝕜 𝕜'] (x : 𝕜) : ∥algebra_map 𝕜' x∥ = ∥x∥ :=
+normed_algebra.norm_algebra_map_eq _ _
+
+end normed_algebra
+
+section restrict_scalars
+set_option class.instance_max_depth 40
+
+variables (𝕜 : Type*) (𝕜' : Type*) [normed_field 𝕜] [normed_field 𝕜'] [normed_algebra 𝕜 𝕜']
+{E : Type*} [normed_group E] [normed_space 𝕜' E]
+
+/-- `𝕜`-normed space structure induced by a `𝕜'`-normed space structure when `𝕜'` is a
+normed algebra over `𝕜`. Not registered as an instance as `𝕜'` can not be inferred. -/
+def normed_space.restrict_scalars : normed_space 𝕜 E :=
+{ norm_smul := λc x, begin
+    change ∥(algebra_map 𝕜' c) • x∥ = ∥c∥ * ∥x∥,
+    simp [norm_smul]
+  end,
+  ..module.restrict_scalars 𝕜 𝕜' E }
+
+end restrict_scalars
+
 section summable
 open_locale classical
 open finset filter
@@ -652,31 +683,3 @@ have h₂ : tendsto (λs:finset ι, s.sum (λi, ∥f i∥)) at_top (𝓝 (∑ i,
 le_of_tendsto_of_tendsto at_top_ne_bot h₁ h₂ $ univ_mem_sets' $ assume s, norm_sum_le _ _
 
 end summable
-
-namespace complex
-
-instance : normed_field ℂ :=
-{ norm := complex.abs,
-  dist_eq := λ _ _, rfl,
-  norm_mul' := complex.abs_mul,
-  .. complex.discrete_field }
-
-instance : nondiscrete_normed_field ℂ :=
-{ non_trivial := ⟨2, by simp [norm]; norm_num⟩ }
-
-@[simp] lemma norm_real (r : ℝ) : ∥(r : ℂ)∥ = ∥r∥ := complex.abs_of_real _
-
-@[simp] lemma norm_rat (r : ℚ) : ∥(r : ℂ)∥ = _root_.abs (r : ℝ) :=
-suffices ∥((r : ℝ) : ℂ)∥ = _root_.abs r, by simpa,
-by rw [norm_real, real.norm_eq_abs]
-
-@[simp] lemma norm_nat (n : ℕ) : ∥(n : ℂ)∥ = n := complex.abs_of_nat _
-
-@[simp] lemma norm_int {n : ℤ} : ∥(n : ℂ)∥ = _root_.abs n :=
-suffices ∥((n : ℝ) : ℂ)∥ = _root_.abs n, by simpa,
-by rw [norm_real, real.norm_eq_abs]
-
-lemma norm_int_of_nonneg {n : ℤ} (hn : 0 ≤ n) : ∥(n : ℂ)∥ = n :=
-by rw [norm_int, _root_.abs_of_nonneg]; exact int.cast_nonneg.2 hn
-
-end complex

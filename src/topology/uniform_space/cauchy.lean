@@ -113,6 +113,11 @@ defined on ℝ is Cauchy at +∞ to deduce convergence. Therefore, we define it 
 is general enough to cover both ℕ and ℝ, which are the main motivating examples. -/
 def cauchy_seq [semilattice_sup β] (u : β → α) := cauchy (at_top.map u)
 
+lemma cauchy_seq_of_tendsto_nhds [semilattice_sup β] [nonempty β] (f : β → α) {x}
+  (hx : tendsto f at_top (𝓝 x)) :
+  cauchy_seq f :=
+cauchy_downwards cauchy_nhds (map_ne_bot at_top_ne_bot) hx
+
 lemma cauchy_seq_iff_prod_map [inhabited β] [semilattice_sup β] {u : β → α} :
   cauchy_seq u ↔ map (prod.map u u) at_top ≤ 𝓤 α :=
 iff.trans (and_iff_right (map_ne_bot at_top_ne_bot)) (prod_map_at_top_eq u u ▸ iff.rfl)

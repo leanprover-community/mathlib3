@@ -126,6 +126,7 @@ def differentiable (f : E → F) :=
 variables {𝕜}
 variables {f f₀ f₁ g : E → F}
 variables {f' f₀' f₁' g' : E →L[𝕜] F}
+variables (e : E →L[𝕜] F)
 variables {x : E}
 variables {s t : set E}
 variables {L L₁ L₂ : filter E}
@@ -218,8 +219,8 @@ unique_diff_within_at.eq (H x hx) h h₁
 
 end derivative_uniqueness
 
-/- Basic properties of the derivative -/
 section fderiv_properties
+/-! ### Basic properties of the derivative -/
 
 theorem has_fderiv_at_filter_iff_tendsto :
   has_fderiv_at_filter f f' x L ↔
@@ -239,6 +240,31 @@ has_fderiv_at_filter_iff_tendsto
 theorem has_fderiv_at_iff_tendsto : has_fderiv_at f f' x ↔
   tendsto (λ x', ∥x' - x∥⁻¹ * ∥f x' - f x - f' (x' - x)∥) (𝓝 x) (𝓝 0) :=
 has_fderiv_at_filter_iff_tendsto
+
+theorem has_fderiv_at_iff_is_o_nhds_zero : has_fderiv_at f f' x ↔
+  is_o (λh, f (x + h) - f x - f' h) (λh, h) (𝓝 0) :=
+begin
+  split,
+  { assume H,
+    have : 𝓝 0 ≤ comap (λ (z : E), z + x) (𝓝 (0 + x)),
+    { refine tendsto_iff_comap.mp _,
+      apply continuous.tendsto,
+      exact continuous_add continuous_id continuous_const },
+    apply is_o.mono this,
+    convert is_o.comp H (λz, z + x),
+    { ext h, simp },
+    { ext h, simp },
+    { simp } },
+  { assume H,
+    have : 𝓝 x ≤ comap (λ (z : E), z - x) (𝓝 (x - x)),
+    { refine tendsto_iff_comap.mp _,
+      apply continuous.tendsto,
+      exact continuous_add continuous_id continuous_const },
+    apply is_o.mono this,
+    convert is_o.comp H (λz, z - x),
+    { ext h, simp },
+    { simp } }
+end
 
 theorem has_fderiv_at_filter.mono (h : has_fderiv_at_filter f f' x L₂) (hst : L₁ ≤ L₂) :
   has_fderiv_at_filter f f' x L₁ :=
@@ -402,8 +428,8 @@ end
 
 end fderiv_properties
 
-/- Congr -/
 section congr
+/-! ### congr properties of the derivative -/
 
 theorem has_fderiv_at_filter_congr_of_mem_sets
   (hx : f₀ x = f₁ x) (h₀ : {x | f₀ x = f₁ x} ∈ L) (h₁ : ∀ x, f₀' x = f₁' x) :
@@ -503,8 +529,8 @@ end
 
 end congr
 
-/- id -/
 section id
+/-! ### Derivative of the identity -/
 
 theorem has_fderiv_at_filter_id (x : E) (L : filter E) :
   has_fderiv_at_filter id (id : E →L[𝕜] E) x L :=
@@ -541,8 +567,8 @@ end
 
 end id
 
-/- constants -/
 section const
+/-! ### derivative of a constant function -/
 
 theorem has_fderiv_at_filter_const (c : F) (x : E) (L : filter E) :
   has_fderiv_at_filter (λ x, c) (0 : E →L[𝕜] F) x L :=
@@ -580,8 +606,12 @@ lemma differentiable_on_const (c : F) : differentiable_on 𝕜 (λx, c) s :=
 
 end const
 
-/- Bounded linear maps -/
-section is_bounded_linear_map
+section continuous_linear_map
+/-! ### Continuous linear maps
+
+There are currently two variants of these in mathlib, the bundled version
+(named `continuous_linear_map`, and denoted `E →L[𝕜] F`), and the unbundled version (with a
+predicate `is_bounded_linear_map`). We give statements for both versions. -/
 
 lemma is_bounded_linear_map.has_fderiv_at_filter (h : is_bounded_linear_map 𝕜 f) :
   has_fderiv_at_filter f h.to_continuous_linear_map x L :=
@@ -630,10 +660,46 @@ lemma is_bounded_linear_map.differentiable_on (h : is_bounded_linear_map 𝕜 f)
   differentiable_on 𝕜 f s :=
 h.differentiable.differentiable_on
 
-end is_bounded_linear_map
+lemma continuous_linear_map.has_fderiv_at_filter :
+  has_fderiv_at_filter e e x L :=
+begin
+  have : (λ (x' : E), e x' - e x - e (x' - x)) = λx', 0, by { ext, simp },
+  rw [has_fderiv_at_filter, this],
+  exact asymptotics.is_o_zero _ _
+end
 
-/- multiplication by a constant -/
+lemma continuous_linear_map.has_fderiv_within_at : has_fderiv_within_at e e s x :=
+e.has_fderiv_at_filter
+
+lemma continuous_linear_map.has_fderiv_at : has_fderiv_at e e x  :=
+e.has_fderiv_at_filter
+
+lemma continuous_linear_map.differentiable_at : differentiable_at 𝕜 e x :=
+e.has_fderiv_at.differentiable_at
+
+lemma continuous_linear_map.differentiable_within_at : differentiable_within_at 𝕜 e s x :=
+e.differentiable_at.differentiable_within_at
+
+lemma continuous_linear_map.fderiv : fderiv 𝕜 e x = e :=
+e.has_fderiv_at.fderiv
+
+lemma continuous_linear_map.fderiv_within (hxs : unique_diff_within_at 𝕜 s x) :
+  fderiv_within 𝕜 e s x = e :=
+begin
+  rw differentiable.fderiv_within e.differentiable_at hxs,
+  exact e.fderiv
+end
+
+lemma continuous_linear_map.differentiable : differentiable 𝕜 e :=
+λx, e.differentiable_at
+
+lemma continuous_linear_map.differentiable_on : differentiable_on 𝕜 e s :=
+e.differentiable.differentiable_on
+
+end continuous_linear_map
+
 section smul_const
+/-! ### Derivative of a function multiplied by a constant -/
 
 theorem has_fderiv_at_filter.smul (h : has_fderiv_at_filter f f' x L) (c : 𝕜) :
   has_fderiv_at_filter (λ x, c • f x) (c • f') x L :=
@@ -674,8 +740,8 @@ lemma fderiv_smul (h : differentiable_at 𝕜 f x) (c : 𝕜) :
 
 end smul_const
 
-/- add -/
 section add
+/-! ### Derivative of the sum of two functions -/
 
 theorem has_fderiv_at_filter.add
   (hf : has_fderiv_at_filter f f' x L) (hg : has_fderiv_at_filter g g' x L) :
@@ -724,8 +790,8 @@ lemma fderiv_add
 
 end add
 
-/- neg -/
 section neg
+/-! ### Derivative of the negative of a function -/
 
 theorem has_fderiv_at_filter.neg (h : has_fderiv_at_filter f f' x L) :
   has_fderiv_at_filter (λ x, -f x) (-f') x L :=
@@ -766,8 +832,8 @@ h.has_fderiv_at.neg.fderiv
 
 end neg
 
-/- sub -/
 section sub
+/-! ### Derivative of the difference of two functions -/
 
 theorem has_fderiv_at_filter.sub
   (hf : has_fderiv_at_filter f f' x L) (hg : has_fderiv_at_filter g g' x L) :
@@ -820,8 +886,8 @@ h.to_is_O.congr_of_sub.2 (f'.is_O_sub _ _)
 
 end sub
 
-/- Continuity -/
 section continuous
+/-! ### Deducing continuity from differentiability -/
 
 theorem has_fderiv_at_filter.tendsto_nhds
   (hL : L ≤ 𝓝 x) (h : has_fderiv_at_filter f f' x L) :
@@ -858,9 +924,9 @@ continuous_iff_continuous_at.2 $ λx, (h x).continuous_at
 
 end continuous
 
-/- Bounded bilinear maps -/
-
 section bilinear_map
+/-! ### Derivative of a bounded bilinear map -/
+
 variables {b : E × F → G} {u : set (E × F) }
 
 open normed_field
@@ -941,9 +1007,9 @@ h.differentiable.continuous
 
 end bilinear_map
 
-
-/- Cartesian products -/
 section cartesian_product
+/-! ### Derivative of the cartesian product of two functions -/
+
 variables {f₂ : E → G} {f₂' : E →L[𝕜] G}
 
 lemma has_fderiv_at_filter.prod
@@ -1001,10 +1067,11 @@ end
 
 end cartesian_product
 
-/- Composition -/
 section composition
+/-! ###
+Derivative of the composition of two functions
 
-/- For composition lemmas, we put x explicit to help the elaborator, as otherwise Lean tends to
+For composition lemmas, we put x explicit to help the elaborator, as otherwise Lean tends to
 get confused since there are too many possibilities for composition -/
 
 variable (x)
@@ -1109,8 +1176,9 @@ lemma differentiable.comp {g : F → G} (hg : differentiable 𝕜 g) (hf : diffe
 
 end composition
 
-/- Multiplication by a scalar function -/
 section smul
+/-! ### Derivative of the product of a scalar-valued function and a vector-valued function -/
+
 variables {c : E → 𝕜} {c' : E →L[𝕜] 𝕜}
 
 theorem has_fderiv_within_at.smul'
@@ -1158,10 +1226,9 @@ lemma fderiv_smul' (hc : differentiable_at 𝕜 c x) (hf : differentiable_at �
 
 end smul
 
-
-/- Multiplication of scalar functions -/
-
 section mul
+/-! ### Derivative of the product of two scalar-valued functions -/
+
 set_option class.instance_max_depth 120
 variables {c d : E → 𝕜} {c' d' : E →L[𝕜] 𝕜}
 
@@ -1217,13 +1284,14 @@ lemma fderiv_mul (hc : differentiable_at 𝕜 c x) (hd : differentiable_at 𝕜 
 end mul
 
 end
+
+section
 /-
   In the special case of a normed space over the reals,
   we can use  scalar multiplication in the `tendsto` characterization
   of the Fréchet derivative.
 -/
 
-section
 
 variables {E : Type*} [normed_group E] [normed_space ℝ E]
 variables {F : Type*} [normed_group F] [normed_space ℝ F]
@@ -1298,3 +1366,42 @@ begin
 end
 
 end tangent_cone
+
+section restrict_scalars
+/-! ### Restricting from `ℂ` to `ℝ`, or generally from `𝕜'` to `𝕜`
+
+If a function is differentiable over `ℂ`, then it is differentiable over `ℝ`. In this paragraph,
+we give variants of this statement, in the general situation where `ℂ` and `ℝ` are replaced
+respectively by `𝕜'` and `𝕜` where `𝕜'` is a normed algebra over `𝕜`. -/
+
+variables (𝕜 : Type*) [nondiscrete_normed_field 𝕜]
+{𝕜' : Type*} [nondiscrete_normed_field 𝕜'] [normed_algebra 𝕜 𝕜']
+{E : Type*} [normed_group E] [normed_space 𝕜' E]
+{F : Type*} [normed_group F] [normed_space 𝕜' F]
+{f : E → F} {f' : E →L[𝕜'] F} {s : set E} {x : E}
+
+local attribute [instance] normed_space.restrict_scalars
+
+lemma has_fderiv_at.restrict_scalars (h : has_fderiv_at f f' x) :
+  has_fderiv_at f (f'.restrict_scalars 𝕜) x := h
+
+lemma has_fderiv_within_at.restrict_scalars (h : has_fderiv_within_at f f' s x) :
+  has_fderiv_within_at f (f'.restrict_scalars 𝕜) s x := h
+
+lemma differentiable_at.restrict_scalars (h : differentiable_at 𝕜' f x) :
+  differentiable_at 𝕜 f x :=
+(h.has_fderiv_at.restrict_scalars 𝕜).differentiable_at
+
+lemma differentiable_within_at.restrict_scalars (h : differentiable_within_at 𝕜' f s x) :
+  differentiable_within_at 𝕜 f s x :=
+(h.has_fderiv_within_at.restrict_scalars 𝕜).differentiable_within_at
+
+lemma differentiable_on.restrict_scalars (h : differentiable_on 𝕜' f s) :
+  differentiable_on 𝕜 f s :=
+λx hx, (h x hx).restrict_scalars 𝕜
+
+lemma differentiable.restrict_scalars (h : differentiable 𝕜' f) :
+  differentiable 𝕜 f :=
+λx, (h x).restrict_scalars 𝕜
+
+end restrict_scalars

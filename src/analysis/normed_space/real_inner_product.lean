@@ -50,6 +50,8 @@ universes u v w
 
 variables {α : Type u} {F : Type v} {G : Type w}
 
+set_option class.instance_max_depth 40
+
 class has_inner (α : Type*) := (inner : α → α → ℝ)
 
 export has_inner (inner)

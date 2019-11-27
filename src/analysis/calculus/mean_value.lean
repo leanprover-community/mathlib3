@@ -128,7 +128,7 @@ begin
       fderiv_add (differentiable_at_const _) ((differentiable.smul' differentiable_id (differentiable_const _)) t)
     ... = fderiv ℝ (λ (t : ℝ), t • (y-x)) t :
       by rw [fderiv_const, zero_add]
-    ... = t • fderiv ℝ (λ (t : ℝ), (y-x)) t + (fderiv ℝ id t).smul_right (y - x) :
+    ... = t • fderiv ℝ (λ (t : ℝ), (y-x)) t + (fderiv ℝ _root_.id t).smul_right (y - x) :
       fderiv_smul' differentiable_at_id (differentiable_at_const _)
     ... = (id : ℝ →L[ℝ] ℝ).smul_right (y - x) :
       by rw [fderiv_const, smul_zero, zero_add, fderiv_id],

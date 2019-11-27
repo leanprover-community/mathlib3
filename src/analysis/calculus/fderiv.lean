@@ -241,6 +241,31 @@ theorem has_fderiv_at_iff_tendsto : has_fderiv_at f f' x ↔
   tendsto (λ x', ∥x' - x∥⁻¹ * ∥f x' - f x - f' (x' - x)∥) (𝓝 x) (𝓝 0) :=
 has_fderiv_at_filter_iff_tendsto
 
+theorem has_fderiv_at_iff_is_o_nhds_zero : has_fderiv_at f f' x ↔
+  is_o (λh, f (x + h) - f x - f' h) (λh, h) (𝓝 0) :=
+begin
+  split,
+  { assume H,
+    have : 𝓝 0 ≤ comap (λ (z : E), z + x) (𝓝 (0 + x)),
+    { refine tendsto_iff_comap.mp _,
+      apply continuous.tendsto,
+      exact continuous_add continuous_id continuous_const },
+    apply is_o.mono this,
+    convert is_o.comp H (λz, z + x),
+    { ext h, simp },
+    { ext h, simp },
+    { simp } },
+  { assume H,
+    have : 𝓝 x ≤ comap (λ (z : E), z - x) (𝓝 (x - x)),
+    { refine tendsto_iff_comap.mp _,
+      apply continuous.tendsto,
+      exact continuous_add continuous_id continuous_const },
+    apply is_o.mono this,
+    convert is_o.comp H (λz, z - x),
+    { ext h, simp },
+    { simp } }
+end
+
 theorem has_fderiv_at_filter.mono (h : has_fderiv_at_filter f f' x L₂) (hst : L₁ ≤ L₂) :
   has_fderiv_at_filter f f' x L₁ :=
 is_o.mono hst h

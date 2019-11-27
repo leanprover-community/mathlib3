@@ -733,16 +733,16 @@ variables (α β)
 map_zero integral_clm
 variables {α β}
 
-@[simp] lemma integral_add (f g : α →₁ β) : integral (f + g) = integral f + integral g :=
+lemma integral_add (f g : α →₁ β) : integral (f + g) = integral f + integral g :=
 map_add integral_clm f g
 
-@[simp] lemma integral_neg (f : α →₁ β) : integral (-f) = - integral f :=
+lemma integral_neg (f : α →₁ β) : integral (-f) = - integral f :=
 map_neg integral_clm f
 
-@[simp] lemma integral_sub (f g : α →₁ β) : integral (f - g) = integral f - integral g :=
+lemma integral_sub (f g : α →₁ β) : integral (f - g) = integral f - integral g :=
 map_sub integral_clm f g
 
-@[simp] lemma integral_smul (r : ℝ) (f : α →₁ β) : integral (r • f) = r • integral f :=
+lemma integral_smul (r : ℝ) (f : α →₁ β) : integral (r • f) = r • integral f :=
 map_smul r integral_clm f
 
 end l1
@@ -779,7 +779,7 @@ begin
   { exact ⟨measurable_add hfm hgm, integrable_add hfm hgm hfi hgi⟩ }
 end
 
-@[simp] lemma integral_neg (f : α → β) : integral (-f) = - integral f :=
+lemma integral_neg (f : α → β) : integral (-f) = - integral f :=
 begin
   simp only [integral],
   by_cases hfm : measurable f, by_cases hfi : integrable f,
@@ -807,7 +807,7 @@ begin
   { exact ⟨measurable_sub hfm hgm, integrable_sub hfm hgm hfi hgi⟩ }
 end
 
-@[simp] lemma integral_smul (r : ℝ) (f : α → β) : integral (λx, r • (f x)) = r • integral f :=
+lemma integral_smul (r : ℝ) (f : α → β) : integral (λx, r • (f x)) = r • integral f :=
 begin
   by_cases r0 : r = 0,
   { have : (λx, r • (f x)) = 0, { funext, rw [r0, zero_smul, pi.zero_apply] },

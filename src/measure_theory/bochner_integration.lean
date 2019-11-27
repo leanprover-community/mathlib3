@@ -729,18 +729,21 @@ def integral_clm : (α →₁ β) →L[ℝ] β :=
 def integral (f : α →₁ β) : β := (integral_clm).to_fun f
 
 variables (α β)
-lemma integral_zero : integral (0 : α →₁ β) = 0 :=
+@[simp] lemma integral_zero : integral (0 : α →₁ β) = 0 :=
 map_zero integral_clm
 variables {α β}
 
-lemma integral_add (f g : α →₁ β) : integral (f + g) = integral f + integral g :=
+@[simp] lemma integral_add (f g : α →₁ β) : integral (f + g) = integral f + integral g :=
 map_add integral_clm f g
 
-lemma integral_smul (r : ℝ) (f : α →₁ β) : integral (r • f) = r • integral f :=
-map_smul r integral_clm f
+@[simp] lemma integral_neg (f : α →₁ β) : integral (-f) = - integral f :=
+map_neg integral_clm f
 
-lemma integral_sub (f g : α →₁ β) : integral (f - g) = integral f - integral g :=
+@[simp] lemma integral_sub (f g : α →₁ β) : integral (f - g) = integral f - integral g :=
 map_sub integral_clm f g
+
+@[simp] lemma integral_smul (r : ℝ) (f : α →₁ β) : integral (r • f) = r • integral f :=
+map_smul r integral_clm f
 
 end l1
 
@@ -758,7 +761,7 @@ section properties
 open continuous_linear_map measure_theory.simple_func
 
 variables (α β)
-lemma integral_zero : integral (0 : α → β) = 0 :=
+@[simp] lemma integral_zero : integral (0 : α → β) = 0 :=
 begin
   simp only [integral], rw dif_pos,
   { apply l1.integral_zero },
@@ -776,6 +779,24 @@ begin
   { exact ⟨measurable_add hfm hgm, integrable_add hfm hgm hfi hgi⟩ }
 end
 
+@[simp] lemma integral_neg (f : α → β) : integral (-f) = - integral f :=
+begin
+  simp only [integral],
+  by_cases hfm : measurable f, by_cases hfi : integrable f,
+  { repeat { rw dif_pos },
+    { rw ← l1.integral_neg, refl },
+    { exact ⟨hfm, hfi⟩ },
+    { exact ⟨measurable_neg hfm, integrable_neg hfi⟩ } },
+  { repeat { rw dif_neg },
+    { rw neg_zero },
+    { rw not_and_distrib, exact or.inr hfi },
+    { rw not_and_distrib, rw integrable_neg_iff, exact or.inr hfi } },
+  { repeat { rw dif_neg },
+    { rw neg_zero },
+    { rw not_and_distrib, exact or.inl hfm },
+    { rw not_and_distrib, rw measurable_neg_iff, exact or.inl hfm } }
+end
+
 lemma integral_sub {f g : α → β} (hfm : measurable f) (hfi : integrable f) (hgm : measurable g)
   (hgi : integrable g) : integral (f - g) = integral f - integral g :=
 begin
@@ -786,15 +807,31 @@ begin
   { exact ⟨measurable_sub hfm hgm, integrable_sub hfm hgm hfi hgi⟩ }
 end
 
-lemma integral_smul (r : ℝ) {f : α → β} (hfm : measurable f) (hfi : integrable f) :
-  integral (λx, r • (f x)) = r • integral f :=
+@[simp] lemma integral_smul (r : ℝ) (f : α → β) : integral (λx, r • (f x)) = r • integral f :=
 begin
-  simp only [integral], rw dif_pos, rw dif_pos,
-  { rw ← l1.integral_smul, refl  },
-  { exact ⟨hfm, hfi⟩ },
-  { exact ⟨measurable_smul hfm, integrable_smul _ hfi⟩ }
+  by_cases r0 : r = 0,
+  { have : (λx, r • (f x)) = 0, { funext, rw [r0, zero_smul, pi.zero_apply] },
+    rw [this, r0, zero_smul], apply integral_zero },
+  simp only [integral],
+  by_cases hfm : measurable f, by_cases hfi : integrable f,
+  { rw dif_pos, rw dif_pos,
+    { rw ← l1.integral_smul, refl  },
+    { exact ⟨hfm, hfi⟩ },
+    { exact ⟨measurable_smul _ hfm, integrable_smul _ hfi⟩ } },
+  { repeat { rw dif_neg },
+    { rw smul_zero },
+    { rw not_and_distrib, exact or.inr hfi },
+    { rw not_and_distrib,
+      have : (λx, r • (f x)) = r • f, { funext, simp only [pi.smul_apply] },
+      rw [this, integrable_smul_iff r0], exact or.inr hfi } },
+  { repeat { rw dif_neg },
+    { rw smul_zero },
+    { rw not_and_distrib, exact or.inl hfm },
+    { rw not_and_distrib, rw [measurable_smul_iff r0], exact or.inl hfm, apply_instance } },
 end
 
 end properties
+
+attribute [irreducible] integral l1.integral
 
 end measure_theory

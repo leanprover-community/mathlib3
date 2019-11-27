@@ -49,7 +49,7 @@ In order to use mathlib supporting tools, you need to [get python](https://www.p
     * Type `manage app execution aliases` into the Windows search prompt (start menu) and open the corresponding System Settings page.
     * There should be two entries `App Installer python.exe` and `App Installer python3.exe`. Ensure that both of these are set to `Off`.
     * Close and reopen Git Bash and restart this step.
-  * If it is any other directory, you might have an existing version of Python. Ask help on Zulip.
+  * If it is any other directory, you might have an existing version of Python. Ask for help in the Zulip chat room (linked above).
   * If you get `command not found`, you should add the Python directory to your path. Google how to do this, or ask on Zulip.
 * Run `cp "$(which python)" "$(which python)"3`. This ensures that we can use the command `python3` to call Python.
 * Test whether everything is working by typing `python3 --version` and `pip3 --version`. If both commands give a short output and no error, everything is set up correctly.

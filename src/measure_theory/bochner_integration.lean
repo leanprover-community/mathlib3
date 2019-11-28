@@ -727,6 +727,8 @@ def integral_clm : (α →₁ β) →L[ℝ] β :=
 /-- The Bochner integral in l1 space -/
 def integral (f : α →₁ β) : β := (integral_clm).to_fun f
 
+lemma integral_eq (f : α →₁ β) : integral f = (integral_clm).to_fun f := rfl
+
 variables (α β)
 @[simp] lemma integral_zero : integral (0 : α →₁ β) = 0 :=
 map_zero integral_clm
@@ -759,13 +761,15 @@ section properties
 
 open continuous_linear_map measure_theory.simple_func
 
+variables {f g : α → β}
+
 lemma integral_eq (f : α → β) : integral f =
   if hf : measurable f ∧ integrable f then (l1.of_fun f hf.1 hf.2).integral else 0 := rfl
 
-lemma integral_zero_of_non_measurable {f : α → β} (h : ¬ measurable f) : integral f = 0 :=
+lemma integral_zero_of_non_measurable (h : ¬ measurable f) : integral f = 0 :=
 by { rw [integral, dif_neg], rw not_and_distrib, exact or.inl h }
 
-lemma integral_zero_of_non_integrable {f : α → β} (h : ¬ integrable f) : integral f = 0 :=
+lemma integral_zero_of_non_integrable (h : ¬ integrable f) : integral f = 0 :=
 by { rw [integral, dif_neg], rw not_and_distrib, exact or.inr h }
 
 variables (α β)
@@ -777,7 +781,7 @@ begin
 end
 variables {α β}
 
-lemma integral_add {f g : α → β} (hfm : measurable f) (hfi : integrable f) (hgm : measurable g)
+lemma integral_add (hfm : measurable f) (hfi : integrable f) (hgm : measurable g)
   (hgi : integrable g) : integral (f + g) = integral f + integral g :=
 begin
   simp only [integral], repeat { rw dif_pos },
@@ -805,7 +809,7 @@ begin
     { rw not_and_distrib, rw measurable_neg_iff, exact or.inl hfm } }
 end
 
-lemma integral_sub {f g : α → β} (hfm : measurable f) (hfi : integrable f) (hgm : measurable g)
+lemma integral_sub (hfm : measurable f) (hfi : integrable f) (hgm : measurable g)
   (hgi : integrable g) : integral (f - g) = integral f - integral g :=
 begin
   simp only [integral], repeat {rw dif_pos},
@@ -837,6 +841,30 @@ begin
     { rw not_and_distrib, exact or.inl hfm },
     { rw not_and_distrib, rw [measurable_smul_iff r0], exact or.inl hfm, apply_instance } },
 end
+
+lemma integral_congr (h : ∀ a, f a = g a) : integral f = integral g :=
+begin
+  sorry
+end
+
+lemma integral_congr_ae (h : ∀ₘ a, f a = g a) : integral f = integral g :=
+begin
+  sorry
+end
+
+/-- T : β →L[𝕜] β?-/
+lemma integral_bounded_linear (T : β →L[ℝ] β) : integral (λa, T (f a)) =  T (integral f) :=
+begin
+  sorry
+end
+
+lemma integral_bounded_linear' (T T' : β →L[ℝ] β)
+  (h : ¬ (∀b, T b = 0) → (∀b, T' (T b) = b)) : integral (λx, T (f x)) = T (integral f) :=
+begin
+  sorry
+end
+
+#check lintegral_const_mul
 
 end properties
 

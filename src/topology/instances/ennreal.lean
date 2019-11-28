@@ -708,6 +708,8 @@ have tendsto (λp:α×α, edist p.1 p.2) (𝓝 (a, b)) (𝓝 (edist a b)),
   from continuous_iff_continuous_at.mp continuous_edist' (a, b),
 tendsto.comp (by rw [nhds_prod_eq] at this; exact this) (hf.prod_mk hg)
 
+/-- If `edist (f n) (f (n+1))` is bounded above by a summable function `d : ℕ → ℝ≥0`,
+then the distance from `f n` to the limit is bounded by `∑_{k=n}^∞ d k`. -/
 lemma edist_le_tsum_of_edist_le_of_tendsto {f : ℕ → α} (d : ℕ → nnreal)
   (hf : ∀ n, edist (f n) (f n.succ) ≤ d n) (hd : summable d)
   {a : α} (ha : tendsto f at_top (𝓝 a)) (n : ℕ) :
@@ -722,6 +724,8 @@ begin
   exact nnreal.summable_comp_injective hd (add_left_injective n)
 end
 
+/-- If `edist (f n) (f (n+1))` is bounded above by a summable function `d : ℕ → ℝ≥0`,
+then the distance from `f 0` to the limit is bounded by `∑_{k=0}^∞ d k`. -/
 lemma edist_le_tsum_of_edist_le_of_tendsto₀ {f : ℕ → α} (d : ℕ → nnreal)
   (hf : ∀ n, edist (f n) (f n.succ) ≤ d n) (hd : summable d)
   {a : α} (ha : tendsto f at_top (𝓝 a)) :

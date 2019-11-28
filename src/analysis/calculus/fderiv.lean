@@ -686,7 +686,7 @@ e.has_fderiv_at.fderiv
 lemma continuous_linear_map.fderiv_within (hxs : unique_diff_within_at 𝕜 s x) :
   fderiv_within 𝕜 e s x = e :=
 begin
-  rw differentiable.fderiv_within e.differentiable_at hxs,
+  rw differentiable_at.fderiv_within e.differentiable_at hxs,
   exact e.fderiv
 end
 

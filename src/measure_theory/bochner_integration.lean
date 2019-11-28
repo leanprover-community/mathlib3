@@ -766,10 +766,10 @@ variables {f g : α → β}
 lemma integral_eq (f : α → β) : integral f =
   if hf : measurable f ∧ integrable f then (l1.of_fun f hf.1 hf.2).integral else 0 := rfl
 
-lemma integral_zero_of_non_measurable (h : ¬ measurable f) : integral f = 0 :=
+lemma integral_eq_zero_of_non_measurable (h : ¬ measurable f) : integral f = 0 :=
 by { rw [integral, dif_neg], rw not_and_distrib, exact or.inl h }
 
-lemma integral_zero_of_non_integrable (h : ¬ integrable f) : integral f = 0 :=
+lemma integral_eq_zero_of_non_integrable (h : ¬ integrable f) : integral f = 0 :=
 by { rw [integral, dif_neg], rw not_and_distrib, exact or.inr h }
 
 variables (α β)

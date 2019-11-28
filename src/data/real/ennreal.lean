@@ -195,8 +195,11 @@ lemma coe_le_iff : ↑r ≤ a ↔ (∀p:nnreal, a = p → r ≤ p) := with_top.c
 
 lemma lt_iff_exists_coe : a < b ↔ (∃p:nnreal, a = p ∧ ↑p < b) := with_top.lt_iff_exists_coe a b
 
--- TODO: move to canonically ordered semiring ...
-protected lemma zero_lt_one : 0 < (1 : ennreal) := zero_lt_coe_iff.mpr zero_lt_one
+protected lemma zero_lt_one : 0 < (1 : ennreal) :=
+  canonically_ordered_semiring.zero_lt_one
+
+protected lemma pow_pos : 0 < a → ∀ n : ℕ, 0 < a^n :=
+  canonically_ordered_semiring.pow_pos
 
 @[simp] lemma not_lt_zero : ¬ a < 0 := by simp
 

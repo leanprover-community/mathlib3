@@ -716,7 +716,6 @@ open simple_func
 variables [normed_space ℝ β] [normed_space ℝ γ] [complete_space β]
 
 local notation `to_l1` := coe_to_l1 α β ℝ
-local notation `Integral` := @integral_clm α _ β _ _ _
 local attribute [instance] simple_func.normed_group simple_func.normed_space
 
 open continuous_linear_map
@@ -759,6 +758,15 @@ else 0
 section properties
 
 open continuous_linear_map measure_theory.simple_func
+
+lemma integral_eq (f : α → β) : integral f =
+  if hf : measurable f ∧ integrable f then (l1.of_fun f hf.1 hf.2).integral else 0 := rfl
+
+lemma integral_zero_of_non_measurable {f : α → β} (h : ¬ measurable f) : integral f = 0 :=
+by { rw [integral, dif_neg], rw not_and_distrib, exact or.inl h }
+
+lemma integral_zero_of_non_integrable {f : α → β} (h : ¬ integrable f) : integral f = 0 :=
+by { rw [integral, dif_neg], rw not_and_distrib, exact or.inr h }
 
 variables (α β)
 @[simp] lemma integral_zero : integral (0 : α → β) = 0 :=
@@ -832,10 +840,10 @@ end
 
 end properties
 
-run_cmd mk_simp_attr `integral
+run_cmd mk_simp_attr `integral_simps
 
-attribute [integral] integral_neg integral_smul l1.integral_add l1.integral_sub l1.integral_smul
-  l1.integral_neg
+attribute [integral_simps] integral_neg integral_smul l1.integral_add l1.integral_sub
+  l1.integral_smul l1.integral_neg
 
 attribute [irreducible] integral l1.integral
 

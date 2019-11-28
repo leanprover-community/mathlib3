@@ -832,6 +832,11 @@ end
 
 end properties
 
+run_cmd mk_simp_attr `integral
+
+attribute [integral] integral_neg integral_smul l1.integral_add l1.integral_sub l1.integral_smul
+  l1.integral_neg
+
 attribute [irreducible] integral l1.integral
 
 end measure_theory

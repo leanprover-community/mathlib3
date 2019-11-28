@@ -842,30 +842,6 @@ begin
     { rw not_and_distrib, rw [measurable_smul_iff r0], exact or.inl hfm, apply_instance } },
 end
 
-lemma integral_congr (h : ∀ a, f a = g a) : integral f = integral g :=
-begin
-  sorry
-end
-
-lemma integral_congr_ae (h : ∀ₘ a, f a = g a) : integral f = integral g :=
-begin
-  sorry
-end
-
-/-- T : β →L[𝕜] β?-/
-lemma integral_bounded_linear (T : β →L[ℝ] β) : integral (λa, T (f a)) =  T (integral f) :=
-begin
-  sorry
-end
-
-lemma integral_bounded_linear' (T T' : β →L[ℝ] β)
-  (h : ¬ (∀b, T b = 0) → (∀b, T' (T b) = b)) : integral (λx, T (f x)) = T (integral f) :=
-begin
-  sorry
-end
-
-#check lintegral_const_mul
-
 end properties
 
 run_cmd mk_simp_attr `integral_simps

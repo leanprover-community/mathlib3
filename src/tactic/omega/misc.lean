@@ -40,4 +40,21 @@ def update_zero (a : α) (v : nat → α) : nat → α
 | 0     := a
 | (k+1) := v k
 
+open tactic
+
+meta def intro_fresh : tactic unit :=
+do n ← mk_fresh_name,
+   intro n,
+   skip
+
+meta def revert_cond (t : expr → tactic unit) (x : expr) : tactic unit :=
+(t x >> revert x >> skip) <|> skip
+
+meta def revert_cond_all (t : expr → tactic unit) : tactic unit :=
+do hs ← local_context, mmap (revert_cond t) hs, skip
+
+meta def app_first {α β : Type} (t : α → tactic β) : list α → tactic β
+| [] := failed
+| (a :: as) := t a <|> app_first as
+
 end omega

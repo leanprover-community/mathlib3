@@ -11,6 +11,11 @@ import tactic.split_ifs tactic.omega.term
 namespace omega
 namespace int
 
+meta inductive exprterm : Type
+| cst : int → exprterm
+| exp : int → expr → exprterm
+| add : exprterm → exprterm → exprterm
+
 @[derive has_reflect]
 inductive preterm : Type
 | cst : int → preterm

@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Author: Seul Baek
 
 Subtraction elimination for linear natural number arithmetic.
-Works by repeatedly rewriting goals of the form `P[t-s]` into
+Works by repeatedly rewriting goals of the preform `P[t-s]` into
 `P[x] ∧ (t = s + x ∨ (t ≤ s ∧ x = 0))`, where `x` is fresh.
 -/
 
@@ -62,32 +62,32 @@ lemma val_sub_subst {k : nat} {x y : preterm} {v : nat → nat} :
 
 end preterm
 
-namespace form
+namespace preform
 
-def sub_terms : form → option (preterm × preterm)
+def sub_terms : preform → option (preterm × preterm)
 | (t =* s) := t.sub_terms <|> s.sub_terms
 | (t ≤* s) := t.sub_terms <|> s.sub_terms
 | (¬* p)   := p.sub_terms
 | (p ∨* q) := p.sub_terms <|> q.sub_terms
 | (p ∧* q) := p.sub_terms <|> q.sub_terms
 
-@[simp] def sub_subst (x y : preterm) (k : nat) : form → form
+@[simp] def sub_subst (x y : preterm) (k : nat) : preform → preform
 | (t =* s) := preterm.sub_subst x y k t =* preterm.sub_subst x y k s
 | (t ≤* s) := preterm.sub_subst x y k t ≤* preterm.sub_subst x y k s
 | (¬* p)   := ¬* p.sub_subst
 | (p ∨* q) := p.sub_subst ∨* q.sub_subst
 | (p ∧* q) := p.sub_subst ∧* q.sub_subst
 
-end form
+end preform
 
-def is_diff (t s : preterm) (k : nat) : form :=
+def is_diff (t s : preterm) (k : nat) : preform :=
 ((t =* (s +* (1 ** k))) ∨* (t ≤* s ∧* ((1 ** k) =* &0)))
 
 lemma holds_is_diff {t s : preterm} {k : nat} {v : nat → nat} :
   v k = t.val v - s.val v → (is_diff t s k).holds v :=
 begin
   intro h1,
-  simp only [form.holds, is_diff, if_pos (eq.refl 1),
+  simp only [preform.holds, is_diff, if_pos (eq.refl 1),
     preterm.val_add, preterm.val_var, preterm.val_const],
   by_cases h2 : t.val v ≤ s.val v,
   { right, refine ⟨h2,_⟩,
@@ -96,28 +96,28 @@ begin
     rw not_le at h2, apply le_of_lt h2 }
 end
 
-def sub_elim_core (t s : preterm) (k : nat) (p : form) : form :=
-(form.sub_subst t s k p) ∧* (is_diff t s k)
+def sub_elim_core (t s : preterm) (k : nat) (p : preform) : preform :=
+(preform.sub_subst t s k p) ∧* (is_diff t s k)
 
-def sub_fresh_index (t s : preterm) (p : form) : nat :=
+def sub_fresh_index (t s : preterm) (p : preform) : nat :=
 max p.fresh_index (max t.fresh_index s.fresh_index)
 
-def sub_elim (t s : preterm) (p : form) : form :=
+def sub_elim (t s : preterm) (p : preform) : preform :=
 sub_elim_core t s (sub_fresh_index t s p) p
 
 lemma sub_subst_equiv {k : nat} {x y : preterm} {v : nat → nat} :
-  ∀ p : form, p.fresh_index ≤ k → ((form.sub_subst x y k p).holds
+  ∀ p : preform, p.fresh_index ≤ k → ((preform.sub_subst x y k p).holds
     (update k (x.val v - y.val v) v) ↔ (p.holds v))
 | (t =* s) h1 :=
   begin
-    simp only [form.holds, form.sub_subst],
+    simp only [preform.holds, preform.sub_subst],
     apply pred_mono_2;
     apply preterm.val_sub_subst (le_trans _ h1),
     apply le_max_left, apply le_max_right
   end
 | (t ≤* s) h1 :=
   begin
-    simp only [form.holds, form.sub_subst],
+    simp only [preform.holds, preform.sub_subst],
     apply pred_mono_2;
     apply preterm.val_sub_subst (le_trans _ h1),
     apply le_max_left, apply le_max_right
@@ -126,20 +126,20 @@ lemma sub_subst_equiv {k : nat} {x y : preterm} {v : nat → nat} :
   by { apply not_iff_not_of_iff, apply sub_subst_equiv p h1 }
 | (p ∨* q) h1 :=
   begin
-    simp only [form.holds, form.sub_subst],
+    simp only [preform.holds, preform.sub_subst],
     apply pred_mono_2; apply propext;
     apply sub_subst_equiv _ (le_trans _ h1),
     apply le_max_left, apply le_max_right
   end
 | (p ∧* q) h1 :=
   begin
-    simp only [form.holds, form.sub_subst],
+    simp only [preform.holds, preform.sub_subst],
     apply pred_mono_2; apply propext;
     apply sub_subst_equiv _ (le_trans _ h1),
     apply le_max_left, apply le_max_right
   end
 
-lemma sat_sub_elim {t s : preterm} {p : form} :
+lemma sat_sub_elim {t s : preterm} {p : preform} :
   p.sat → (sub_elim t s p).sat :=
 begin
   intro h1, simp only [sub_elim, sub_elim_core],
@@ -157,7 +157,7 @@ begin
     apply le_max_left, apply le_max_right }
 end
 
-lemma unsat_of_unsat_sub_elim (t s : preterm) (p : form) :
+lemma unsat_of_unsat_sub_elim (t s : preterm) (p : preform) :
   (sub_elim t s p).unsat → p.unsat :=
 (@not_imp_not _ _ (classical.dec _)).elim_right sat_sub_elim
 

@@ -14,11 +14,11 @@ namespace omega
 
 open tactic
 
-meta def revert_cond (t : expr → tactic unit) (x : expr) : tactic unit :=
-(t x >> revert x >> skip) <|> skip
-
-meta def revert_cond_all (t : expr → tactic unit) : tactic unit :=
-do hs ← local_context, mmap (revert_cond t) hs, skip
+-- meta def revert_cond (t : expr → tactic unit) (x : expr) : tactic unit :=
+-- (t x >> revert x >> skip) <|> skip
+--
+-- meta def revert_cond_all (t : expr → tactic unit) : tactic unit :=
+-- do hs ← local_context, mmap (revert_cond t) hs, skip
 
 meta def select_domain (t s : tactic (option bool)) : tactic (option bool) :=
 do a ← t, b ← s,
@@ -91,21 +91,13 @@ meta def rev_lna : tactic unit :=
 do revert_cond_all is_lna_form,
    revert_cond_all is_lna_term
 
-meta def goal_domain_aux : list expr → tactic bool
-| []      := failed
-| (x::xs) :=
-  do b1 ← ((form_domain x >>= return ∘ some) <|> return none),
-     match b1 with
-     | none             := goal_domain_aux xs
-     | (some none)      := goal_domain_aux xs
-     | (some (some tt)) := return tt
-     | (some (some ff)) := return ff
-     end
+meta def goal_domain_aux (x : expr) : tactic bool :=
+(omega.int.wff x >> return tt) <|> (omega.nat.wff x >> return ff)
 
 meta def goal_domain : tactic bool :=
 do gx ← target,
    hxs ← local_context >>= monad.mapm infer_type,
-   goal_domain_aux (gx::hxs)
+   app_first goal_domain_aux (gx::hxs)
 
 meta def clear_unused_hyp (hx : expr) : tactic unit :=
 do x ← infer_type hx,
@@ -117,10 +109,17 @@ do x ← infer_type hx,
 meta def clear_unused_hyps : tactic unit :=
 local_context >>= mmap' clear_unused_hyp
 
+meta def determine_domain (opt : list name) : tactic bool :=
+if `int ∈ opt
+then return tt
+else if `nat ∈ opt
+     then return ff
+     else goal_domain
+
 meta def preprocess (opt : list name) : tactic unit :=
 if `manual ∈ opt
 then skip
-else clear_unused_hyps >>
+else -- clear_unused_hyps >>
      if `int ∈ opt
      then rev_lia
      else if `nat ∈ opt
@@ -140,9 +139,8 @@ Use `omega manual` to disable automatic reverts, and `omega int` or
 `omega nat` to specify the domain.
 -/
 meta def tactic.interactive.omega (opt : parse (many ident)) : tactic unit :=
-preprocess opt >>
-if `int ∈ opt
-then omega_int
-else if `nat ∈ opt
-     then omega_nat
-     else mcond goal_domain omega_int omega_nat
+do is_int ← determine_domain opt,
+   let is_manual : bool := if `manaul ∈ opt then tt else ff,
+   if is_int
+   then omega_int is_manual
+   else omega_nat is_manual

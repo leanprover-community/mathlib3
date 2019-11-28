@@ -13,6 +13,12 @@ open tactic
 namespace omega
 namespace nat
 
+meta inductive exprterm : Type
+| cst : nat → exprterm
+| exp : nat → expr → exprterm
+| add : exprterm → exprterm → exprterm
+| sub : exprterm → exprterm → exprterm
+
 @[derive has_reflect, derive decidable_eq]
 inductive preterm : Type
 | cst : nat → preterm

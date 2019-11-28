@@ -2671,7 +2671,7 @@ side
 side.other
 side.to_string
 simp_attr.functor_norm
-simp_attr.integral
+simp_attr.integral_simps
 simp_attr.monad_norm
 simp_attr.parity_simps
 simp_attr.push_cast

@@ -220,7 +220,7 @@ lemma dist_le_of_le_geometric_of_tendsto₀ {a : α} (ha : tendsto f at_top (�
 (tsum_eq_has_sum $ aux_has_sum_of_le_geometric hr hu) ▸
   dist_le_tsum_of_dist_le_of_tendsto₀ _ hu ⟨_, aux_has_sum_of_le_geometric hr hu⟩ ha
 
-/-- If `edist (f n) (f (n+1))` is bounded by `C * r^n`, `r < 1`, then the distance from
+/-- If `dist (f n) (f (n+1))` is bounded by `C * r^n`, `r < 1`, then the distance from
 `f 0` to the limit of `f` is bounded above by `C / (1 - r)`. -/
 lemma dist_le_of_le_geometric_of_tendsto {a : α} (ha : tendsto f at_top (𝓝 a)) (n : ℕ) :
   dist (f n) a ≤ (C * r^n) / (1 - r) :=

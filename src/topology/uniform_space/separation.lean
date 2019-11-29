@@ -51,6 +51,7 @@ theorem separated_def' {α : Type u} [uniform_space α] :
 separated_def.trans $ forall_congr $ λ x, forall_congr $ λ y,
 by rw ← not_imp_not; simp [classical.not_forall]
 
+@[priority 100] -- see Note [lower instance priority]
 instance separated_t2 [s : separated α] : t2_space α :=
 ⟨assume x y, assume h : x ≠ y,
 let ⟨d, hd, (hxy : (x, y) ∉ d)⟩ := separated_def'.1 s x y h in
@@ -68,6 +69,7 @@ have u ∩ v = ∅, from
   hxy $ hd'd' this,
 ⟨u, v, hu₂, hv₂, hu₃, hv₃, this⟩⟩
 
+@[priority 100] -- see Note [lower instance priority]
 instance separated_regular [separated α] : regular_space α :=
 { regular := λs a hs ha,
     have -s ∈ 𝓝 a,

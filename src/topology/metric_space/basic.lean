@@ -46,6 +46,8 @@ class has_dist (α : Type*) := (dist : α → α → ℝ)
 
 export has_dist (dist)
 
+section prio
+set_option default_priority 100 -- see Note [default priority]
 /-- Metric space
 
 Each metric space induces a canonical `uniform_space` and hence a canonical `topological_space`.
@@ -67,12 +69,15 @@ class metric_space (α : Type u) extends has_dist α : Type u :=
 (edist_dist : ∀ x y : α, edist x y = ennreal.of_real (dist x y) . control_laws_tac)
 (to_uniform_space : uniform_space α := uniform_space_of_dist dist dist_self dist_comm dist_triangle)
 (uniformity_dist : 𝓤 α = ⨅ ε>0, principal {p:α×α | dist p.1 p.2 < ε} . control_laws_tac)
+end prio
 
 variables [metric_space α]
 
+@[priority 100] -- see Note [lower instance priority]
 instance metric_space.to_uniform_space' : uniform_space α :=
 metric_space.to_uniform_space α
 
+@[priority 200] -- see Note [lower instance priority]
 instance metric_space.to_has_edist : has_edist α := ⟨metric_space.edist⟩
 
 @[simp] theorem dist_self (x : α) : dist x x = 0 := metric_space.dist_self x
@@ -452,6 +457,7 @@ end metric
 
 open metric
 
+@[priority 100] -- see Note [lower instance priority]
 instance metric_space.to_separated : separated α :=
 separated_def.2 $ λ x y h, eq_of_forall_dist_le $
   λ ε ε0, le_of_lt (h _ (dist_mem_uniformity ε0))
@@ -488,6 +494,7 @@ theorem uniformity_edist : 𝓤 α = (⨅ ε>0, principal {p:α×α | edist p.1 
 by simpa [infi_subtype] using @metric.uniformity_edist' α _
 
 /-- A metric space induces an emetric space -/
+@[priority 100] -- see Note [lower instance priority]
 instance metric_space.to_emetric_space : emetric_space α :=
 { edist               := edist,
   edist_self          := by simp [edist_dist],
@@ -664,6 +671,18 @@ begin
                     ... = ε : add_halves _⟩ }
 end
 
+/-- If the distance between `s n` and `s m`, `n, m ≥ N` is bounded above by `b N`
+and `b` converges to zero, then `s` is a Cauchy sequence.  -/
+lemma cauchy_seq_of_le_tendsto_0 {s : β → α} (b : β → ℝ)
+  (h : ∀ n m N : β, N ≤ n → N ≤ m → dist (s n) (s m) ≤ b N) (h₀ : tendsto b at_top (nhds 0)) :
+  cauchy_seq s :=
+metric.cauchy_seq_iff.2 $ λ ε ε0,
+  (metric.tendsto_at_top.1 h₀ ε ε0).imp $ λ N hN m n hm hn,
+  calc dist (s m) (s n) ≤ b N : h m n N hm hn
+                    ... ≤ abs (b N) : le_abs_self _
+                    ... = dist (b N) 0 : by rw real.dist_0_eq_abs; refl
+                    ... < ε : (hN _ (le_refl N))
+
 /-- A Cauchy sequence on the natural numbers is bounded. -/
 theorem cauchy_seq_bdd {u : ℕ → α} (hu : cauchy_seq u) :
   ∃ R > 0, ∀ m n, dist (u m) (u n) < R :=
@@ -713,12 +732,7 @@ lemma cauchy_seq_iff_le_tendsto_0 {s : ℕ → α} : cauchy_seq s ↔ ∃ b : �
   rintro _ ⟨⟨m', n'⟩, ⟨hm', hn'⟩, rfl⟩,
   exact le_of_lt (hN _ _ (le_trans hn hm') (le_trans hn hn'))
   end,
-λ ⟨b, _, b_bound, b_lim⟩, metric.cauchy_seq_iff.2 $ λ ε ε0,
-  (metric.tendsto_at_top.1 b_lim ε ε0).imp $ λ N hN m n hm hn,
-  calc dist (s m) (s n) ≤ b N : b_bound m n N hm hn
-                    ... ≤ abs (b N) : le_abs_self _
-                    ... = dist (b N) 0 : by rw real.dist_0_eq_abs; refl
-                    ... < ε : (hN _ (le_refl N)) ⟩
+λ ⟨b, _, b_bound, b_lim⟩, cauchy_seq_of_le_tendsto_0 b b_bound b_lim⟩
 
 end cauchy_seq
 
@@ -753,6 +767,19 @@ section nnreal
 
 instance : metric_space nnreal := by unfold nnreal; apply_instance
 
+lemma nnreal.dist_eq (a b : nnreal) : dist a b = abs ((a:ℝ) - b) := rfl
+
+lemma nnreal.nndist_eq (a b : nnreal) :
+  nndist a b = max (a - b) (b - a) :=
+begin
+  wlog h : a ≤ b,
+  { apply nnreal.coe_eq.1,
+    rw [nnreal.sub_eq_zero h, max_eq_right (zero_le $ b - a), ← dist_nndist, nnreal.dist_eq,
+      nnreal.coe_sub h, abs, neg_sub],
+    apply max_eq_right,
+    linarith [nnreal.coe_le.2 h] },
+  rwa [nndist_comm, max_comm]
+end
 end nnreal
 
 section prod
@@ -1011,10 +1038,12 @@ lemma proper_space_of_compact_closed_ball_of_le
 end⟩
 
 /- A compact metric space is proper -/
+@[priority 100] -- see Note [lower instance priority]
 instance proper_of_compact [compact_space α] : proper_space α :=
 ⟨assume x r, compact_of_is_closed_subset compact_univ is_closed_ball (subset_univ _)⟩
 
 /-- A proper space is locally compact -/
+@[priority 100] -- see Note [lower instance priority]
 instance locally_compact_of_proper [proper_space α] :
   locally_compact_space α :=
 begin
@@ -1030,6 +1059,7 @@ begin
 end
 
 /-- A proper space is complete -/
+@[priority 100] -- see Note [lower instance priority]
 instance complete_of_proper [proper_space α] : complete_space α :=
 ⟨begin
   intros f hf,
@@ -1049,6 +1079,7 @@ end⟩
 compact, and therefore admits a countable dense subset. Taking a countable union over the balls
 centered at a fixed point and with integer radius, one obtains a countable set which is
 dense in the whole space. -/
+@[priority 100] -- see Note [lower instance priority]
 instance second_countable_of_proper [proper_space α] :
   second_countable_topology α :=
 begin

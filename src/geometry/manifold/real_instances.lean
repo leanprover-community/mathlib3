@@ -55,6 +55,7 @@ section
 local attribute [reducible] euclidean_space euclidean_half_space euclidean_quadrant
 variable {n : ℕ}
 
+ -- short-circuit type class inference
 instance : vector_space ℝ (euclidean_space n) := by apply_instance
 instance : normed_group (euclidean_space n) := by apply_instance
 instance : normed_space ℝ (euclidean_space n) := by apply_instance

@@ -166,6 +166,7 @@ meta def comp.lt (c1 c2 : comp) : bool :=
 
 meta instance comp.has_lt : has_lt comp := ⟨λ a b, comp.lt a b⟩
 meta instance pcomp.has_lt : has_lt pcomp := ⟨λ p1 p2, p1.c < p2.c⟩
+ -- short-circuit type class inference
 meta instance pcomp.has_lt_dec : decidable_rel ((<) : pcomp → pcomp → Prop) := by apply_instance
 
 meta def comp.coeff_of (c : comp) (a : ℕ) : ℤ :=

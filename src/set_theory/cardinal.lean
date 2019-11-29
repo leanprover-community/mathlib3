@@ -96,7 +96,7 @@ instance : linear_order cardinal.{u} :=
 
 noncomputable instance : decidable_linear_order cardinal.{u} := classical.DLO _
 
-noncomputable instance : distrib_lattice cardinal.{u} := by apply_instance
+noncomputable instance : distrib_lattice cardinal.{u} := by apply_instance -- short-circuit type class inference
 
 instance : has_zero cardinal.{u} := ⟨⟦pempty⟧⟩
 

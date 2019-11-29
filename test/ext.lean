@@ -171,3 +171,5 @@ begin
   refl,
   refl,
 end
+
+@[ext] structure dumb (V : Type) := (val : V)

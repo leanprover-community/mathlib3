@@ -19,7 +19,7 @@ p-adic norm. We show that the p-adic norm on ℚ extends to ℚ_p, that ℚ is e
 ## Important definitions
 
 * `padic` : the type of p-adic numbers
-* `padic_norm_e` : the rational ralued p-adic norm on ℚ_p
+* `padic_norm_e` : the rational valued p-adic norm on ℚ_p
 
 ## Notation
 
@@ -728,7 +728,7 @@ instance : normed_field ℚ_[p] :=
 instance : is_absolute_value (λ a : ℚ_[p], ∥a∥) :=
 { abv_nonneg := norm_nonneg,
   abv_eq_zero := norm_eq_zero,
-  abv_add := norm_triangle,
+  abv_add := norm_add_le,
   abv_mul := by simp [has_norm.norm, padic_norm_e.mul'] }
 
 theorem rat_dense {p : ℕ} {hp : p.prime} (q : ℚ_[p]) {ε : ℝ} (hε : ε > 0) :

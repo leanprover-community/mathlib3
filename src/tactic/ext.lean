@@ -89,7 +89,7 @@ do e ← get_env,
             solve1 $ do
             { h ← intro1, hs ← injection h, subst_vars,
               repeat (refine ``( and.intro _ _ ) >> reflexivity ),
-              reflexivity },
+              done <|> reflexivity },
             solve1 $ do
             { repeat (do refine ``(and_imp.mpr _),
                          h ← intro1, cases h, skip ),

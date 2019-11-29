@@ -142,6 +142,15 @@ lemma integrable_neg {f : α → β} : integrable f → integrable (-f) :=
 assume hfi, calc _ = _ : lintegral_nnnorm_neg
                  ... < ⊤ : hfi
 
+lemma integrable_neg_iff (f : α → β) : integrable (-f) ↔ integrable f :=
+begin
+  split,
+  { assume h,
+    have := integrable_neg h,
+    rwa _root_.neg_neg at this },
+  exact integrable_neg
+end
+
 lemma integrable_sub {f g : α → β} (hf : measurable f) (hg : measurable g) :
   integrable f → integrable g → integrable (f - g) :=
 λ hfi hgi,
@@ -173,6 +182,15 @@ begin
       apply mul_lt_top,
       { simp }, { exact hfi }, { simp }
     end
+end
+
+lemma integrable_smul_iff {c : 𝕜} (hc : c ≠ 0) (f : α → β) : integrable (c • f) ↔ integrable f :=
+begin
+  split,
+  { assume h,
+    have := integrable_smul c⁻¹ h,
+    rwa [smul_smul, inv_mul_cancel hc, one_smul] at this },
+  exact integrable_smul _
 end
 
 end normed_space
@@ -331,7 +349,7 @@ rfl
 variables {𝕜 : Type*} [normed_field 𝕜] [normed_space 𝕜 β]
 
 lemma of_fun_smul (f : α → β) (hfm hfi) (k : 𝕜) :
-  of_fun (k • f) (measurable_smul hfm) (integrable_smul _ hfi) = k • of_fun f hfm hfi := rfl
+  of_fun (k • f) (measurable_smul _ hfm) (integrable_smul _ hfi) = k • of_fun f hfm hfi := rfl
 
 end of_fun
 

@@ -571,8 +571,20 @@ begin
       exact inv_lt_inv ha hb } }
 end
 
+lemma inv_lt_iff_inv_lt : a⁻¹ < b ↔ b⁻¹ < a :=
+by simpa only [inv_inv] using @inv_lt_inv a b⁻¹
+
+lemma lt_inv_iff_lt_inv : a < b⁻¹ ↔ b < a⁻¹ :=
+by simpa only [inv_inv] using @inv_lt_inv a⁻¹ b
+
 @[simp] lemma inv_le_inv : a⁻¹ ≤ b⁻¹ ↔ b ≤ a :=
 by simp only [le_iff_lt_or_eq, inv_lt_inv, inv_eq_inv, eq_comm]
+
+lemma inv_le_iff_inv_le : a⁻¹ ≤ b ↔ b⁻¹ ≤ a :=
+by simpa only [inv_inv] using @inv_le_inv a b⁻¹
+
+lemma le_inv_iff_le_inv : a ≤ b⁻¹ ↔ b ≤ a⁻¹ :=
+by simpa only [inv_inv] using @inv_le_inv a⁻¹ b
 
 lemma le_div_iff_mul_le : ∀{b}, b ≠ 0 → b ≠ ⊤ → (a ≤ c / b ↔ a * b ≤ c)
 | none     h0 ht := (ht rfl).elim

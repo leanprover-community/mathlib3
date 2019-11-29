@@ -285,6 +285,25 @@ by_cases
   (assume : a = 0, by simp [this, tendsto_const_nhds])
   (assume ha : a ≠ 0, ennreal.tendsto_mul tendsto_const_nhds (or.inl ha) hm hb)
 
+protected lemma continuous_inv : continuous (has_inv.inv : ennreal → ennreal) :=
+continuous_iff_continuous_at.2 $ λ a, tendsto_orderable.2
+⟨begin
+  assume b hb,
+  simp only [@ennreal.lt_inv_iff_lt_inv b],
+  exact gt_mem_nhds (ennreal.lt_inv_iff_lt_inv.1 hb),
+end,
+begin
+  assume b hb,
+  simp only [gt_iff_lt, @ennreal.inv_lt_iff_inv_lt _ b],
+  exact lt_mem_nhds (ennreal.inv_lt_iff_inv_lt.1 hb)
+end⟩
+
+@[simp] protected lemma tendsto_inv {f : filter α} {m : α → ennreal} {a : ennreal} :
+  tendsto (λ x, (m x)⁻¹) f (𝓝 a⁻¹) ↔ tendsto m f (𝓝 a) :=
+⟨λ h, by simpa only [function.comp, ennreal.inv_inv]
+  using (ennreal.continuous_inv.tendsto a⁻¹).comp h,
+  (ennreal.continuous_inv.tendsto a).comp⟩
+
 lemma Sup_add {s : set ennreal} (hs : s ≠ ∅) : Sup s + a = ⨆b∈s, b + a :=
 have Sup ((λb, b + a) '' s) = Sup s + a,
   from is_lub_iff_Sup_eq.mp $ is_lub_of_is_lub_of_tendsto

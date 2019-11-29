@@ -5,7 +5,7 @@ Authors: Nathaniel Thomas, Jeremy Avigad, Johannes Hölzl, Mario Carneiro
 
 Modules over a ring.
 
-## Implemetation notes
+## Implementation notes
 
 
 Throughout the `linear_map` section implicit `{}` brackets are often used instead of type class `[]` brackets.
@@ -25,6 +25,8 @@ variables {α : Type u} {β : Type v} {γ : Type w} {δ : Type x}
 
 -- infixr ` • `:73 := has_scalar.smul
 
+section prio
+set_option default_priority 100 -- see Note [default priority]
 /-- A semimodule is a generalization of vector spaces to a scalar semiring.
   It consists of a scalar semiring `α` and an additive monoid of "vectors" `β`,
   connected by a "scalar multiplication" operation `r • x : β`
@@ -34,6 +36,7 @@ class semimodule (α : Type u) (β : Type v) [semiring α]
   [add_comm_monoid β] extends distrib_mul_action α β :=
 (add_smul : ∀(r s : α) (x : β), (r + s) • x = r • x + s • x)
 (zero_smul : ∀x : β, (0 : α) • x = 0)
+end prio
 
 section semimodule
 variables [R:semiring α] [add_comm_monoid β] [semimodule α β] (r s : α) (x y : β)
@@ -53,12 +56,15 @@ by rw [←one_smul α x, ←zero_eq_one, zero_smul]
 
 end semimodule
 
+section prio
+set_option default_priority 100 -- see Note [default priority]
 /-- A module is a generalization of vector spaces to a scalar ring.
   It consists of a scalar ring `α` and an additive group of "vectors" `β`,
   connected by a "scalar multiplication" operation `r • x : β`
   (where `r : α` and `x : β`) with some natural associativity and
   distributivity axioms similar to those on a ring. -/
 class module (α : Type u) (β : Type v) [ring α] [add_comm_group β] extends semimodule α β
+end prio
 
 structure module.core (α β) [ring α] [add_comm_group β] extends has_scalar α β :=
 (smul_add : ∀(r : α) (x y : β), r • (x + y) = r • x + r • y)
@@ -350,12 +356,15 @@ lemma mul_mem_right (h : a ∈ I) : a * b ∈ I := mul_comm b a ▸ I.mul_mem_le
 
 end ideal
 
+section prio
+set_option default_priority 100 -- see Note [default priority]
 /-- A vector space is the same as a module, except the scalar ring is actually
   a field. (This adds commutativity of the multiplication and existence of inverses.)
   This is the traditional generalization of spaces like `ℝ^n`, which have a natural
   addition operation and a way to multiply them by real numbers, but no multiplication
   operation between vectors. -/
 class vector_space (α : Type u) (β : Type v) [discrete_field α] [add_comm_group β] extends module α β
+end prio
 
 instance discrete_field.to_vector_space {α : Type*} [discrete_field α] : vector_space α α :=
 { .. ring.to_module }

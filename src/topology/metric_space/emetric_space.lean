@@ -1,9 +1,15 @@
 /-
 Copyright (c) 2015, 2017 Jeremy Avigad. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Extended metric spaces.
-
 Authors: Jeremy Avigad, Robert Y. Lewis, Johannes Hölzl, Mario Carneiro, Sébastien Gouëzel
+-/
+
+import data.real.nnreal data.real.ennreal
+import topology.uniform_space.separation topology.uniform_space.uniform_embedding topology.uniform_space.pi
+import topology.bases
+
+/-!
+# Extended metric spaces
 
 This file is devoted to the definition and study of `emetric_spaces`, i.e., metric
 spaces in which the distance is allowed to take the value ∞. This extended distance is
@@ -16,9 +22,6 @@ topological spaces. For example:
 The class `emetric_space` therefore extends `uniform_space` (and `topological_space`).
 -/
 
-import data.real.nnreal data.real.ennreal
-import topology.uniform_space.separation topology.uniform_space.uniform_embedding topology.uniform_space.pi
-import topology.bases
 open lattice set filter classical
 noncomputable theory
 
@@ -85,6 +88,8 @@ uniform_space.of_core {
   symm       := tendsto_infi.2 $ assume ε, tendsto_infi.2 $ assume h,
     tendsto_infi' ε $ tendsto_infi' h $ tendsto_principal_principal.2 $ by simp [edist_comm] }
 
+section prio
+set_option default_priority 100 -- see Note [default priority]
 /-- Extended metric spaces, with an extended distance `edist` possibly taking the
 value ∞
 
@@ -104,11 +109,13 @@ class emetric_space (α : Type u) extends has_edist α : Type u :=
 (edist_triangle : ∀ x y z : α, edist x z ≤ edist x y + edist y z)
 (to_uniform_space : uniform_space α := uniform_space_of_edist edist edist_self edist_comm edist_triangle)
 (uniformity_edist : 𝓤 α = ⨅ ε>0, principal {p:α×α | edist p.1 p.2 < ε} . control_laws_tac)
+end prio
 
 /- emetric spaces are less common than metric spaces. Therefore, we work in a dedicated
 namespace, while notions associated to metric spaces are mostly in the root namespace. -/
 variables [emetric_space α]
 
+@[priority 100] -- see Note [lower instance priority]
 instance emetric_space.to_uniform_space' : uniform_space α :=
 emetric_space.to_uniform_space α
 
@@ -124,6 +131,9 @@ iff.intro eq_of_edist_eq_zero (assume : x = y, this ▸ edist_self _)
 iff.intro (assume h, eq_of_edist_eq_zero (h.symm))
           (assume : x = y, this ▸ (edist_self _).symm)
 
+theorem edist_le_zero {x y : α} : (edist x y ≤ 0) ↔ x = y :=
+le_zero_iff_eq.trans edist_eq_zero
+
 /-- Triangle inequality for the extended distance -/
 theorem edist_triangle_left (x y z : α) : edist x y ≤ edist z x + edist z y :=
 by rw edist_comm z; apply edist_triangle
@@ -137,9 +147,45 @@ calc
   edist x t ≤ edist x z + edist z t : edist_triangle x z t
 ... ≤ (edist x y + edist y z) + edist z t : add_le_add_right' (edist_triangle x y z)
 
+/-- The triangle (polygon) inequality for sequences of points; `finset.Ico` version. -/
+lemma edist_le_Ico_sum_edist (f : ℕ → α) {m n} (h : m ≤ n) :
+  edist (f m) (f n) ≤ (finset.Ico m n).sum (λ i, edist (f i) (f (i + 1))) :=
+begin
+  revert n,
+  refine nat.le_induction _ _,
+  { simp only [finset.sum_empty, finset.Ico.self_eq_empty, edist_self],
+    -- TODO: Why doesn't Lean close this goal automatically? `apply le_refl` fails too.
+    exact le_refl (0:ennreal) },
+  { assume n hn hrec,
+    calc edist (f m) (f (n+1)) ≤ edist (f m) (f n) + edist (f n) (f (n+1)) : edist_triangle _ _ _
+      ... ≤ (finset.Ico m n).sum _ + _ : add_le_add' hrec (le_refl _)
+      ... = (finset.Ico m (n+1)).sum _ :
+        by rw [finset.Ico.succ_top hn, finset.sum_insert, add_comm]; simp }
+end
+
+/-- The triangle (polygon) inequality for sequences of points; `finset.range` version. -/
+lemma edist_le_range_sum_edist (f : ℕ → α) (n : ℕ) :
+  edist (f 0) (f n) ≤ (finset.range n).sum (λ i, edist (f i) (f (i + 1))) :=
+finset.Ico.zero_bot n ▸ edist_le_Ico_sum_edist f (nat.zero_le n)
+
+/-- A version of `edist_le_Ico_sum_edist` with each intermediate distance replaced
+with an upper estimate. -/
+lemma edist_le_Ico_sum_of_edist_le {f : ℕ → α} {m n} (hmn : m ≤ n)
+  {d : ℕ → ennreal} (hd : ∀ {k}, m ≤ k → k < n → edist (f k) (f (k + 1)) ≤ d k) :
+  edist (f m) (f n) ≤ (finset.Ico m n).sum d :=
+le_trans (edist_le_Ico_sum_edist f hmn) $
+finset.sum_le_sum $ λ k hk, hd (finset.Ico.mem.1 hk).1 (finset.Ico.mem.1 hk).2
+
+/-- A version of `edist_le_range_sum_edist` with each intermediate distance replaced
+with an upper estimate. -/
+lemma edist_le_range_sum_of_edist_le {f : ℕ → α} (n : ℕ)
+  {d : ℕ → ennreal} (hd : ∀ {k}, k < n → edist (f k) (f (k + 1)) ≤ d k) :
+  edist (f 0) (f n) ≤ (finset.range n).sum d :=
+finset.Ico.zero_bot n ▸ edist_le_Ico_sum_of_edist_le (zero_le n) (λ _ _, hd)
+
 /-- Two points coincide if their distance is `< ε` for all positive ε -/
 theorem eq_of_forall_edist_le {x y : α} (h : ∀ε, ε > 0 → edist x y ≤ ε) : x = y :=
-eq_of_edist_eq_zero (eq_of_le_of_forall_le_of_dense (by simp) h)
+eq_of_edist_eq_zero (eq_of_le_of_forall_le_of_dense bot_le h)
 
 /-- Reformulation of the uniform structure in terms of the extended distance -/
 theorem uniformity_edist' : 𝓤 α = (⨅ ε>0, principal {p:α×α | edist p.1 p.2 < ε}) :=
@@ -233,6 +279,7 @@ end emetric
 open emetric
 
 /-- An emetric space is separated -/
+@[priority 100] -- see Note [lower instance priority]
 instance to_separated : separated α :=
 separated_def.2 $ λ x y h, eq_of_forall_edist_le $
 λ ε ε0, le_of_lt (h _ (edist_mem_uniformity ε0))
@@ -288,8 +335,8 @@ instance prod.emetric_space_max [emetric_space β] : emetric_space (α × β) :=
   edist_self := λ x, by simp,
   eq_of_edist_eq_zero := λ x y h, begin
     cases max_le_iff.1 (le_of_eq h) with h₁ h₂,
-    have A : x.fst = y.fst := eq_of_edist_eq_zero (by simpa using h₁),
-    have B : x.snd = y.snd := eq_of_edist_eq_zero (by simpa using h₂),
+    have A : x.fst = y.fst := edist_le_zero.1 h₁,
+    have B : x.snd = y.snd := edist_le_zero.1 h₂,
     exact prod.ext_iff.2 ⟨A, B⟩
   end,
   edist_comm := λ x y, by simp [edist_comm],
@@ -328,7 +375,7 @@ instance emetric_space_pi [∀b, emetric_space (π b)] : emetric_space (Πb, π 
     begin
       have eq1 : sup univ (λ (b : β), edist (f b) (g b)) ≤ 0 := le_of_eq eq0,
       simp only [finset.sup_le_iff] at eq1,
-      exact (funext $ assume b, eq_of_edist_eq_zero $ bot_unique $ eq1 b $ mem_univ b),
+      exact (funext $ assume b, edist_le_zero.1 $ eq1 b $ mem_univ b),
     end,
   to_uniform_space := Pi.uniform_space _,
   uniformity_edist := begin
@@ -512,6 +559,25 @@ begin
                     ... = ε : ennreal.add_halves _⟩ }
 end
 
+/-- A variation of the emetric characterization of Cauchy sequences that deals with
+`nnreal` upper bounds. -/
+theorem cauchy_seq_iff_nnreal [inhabited β] [semilattice_sup β] {u : β → α} :
+  cauchy_seq u ↔ ∀ ε : nnreal, 0 < ε → ∃ N, ∀ n, N ≤ n → edist (u N) (u n) < ε :=
+begin
+  refine cauchy_seq_iff'.trans
+    ⟨λ H ε εpos, (H ε (ennreal.coe_pos.2 εpos)).imp $
+      λ N hN n hn, edist_comm (u n) (u N) ▸ hN n hn,
+      λ H ε εpos, _⟩,
+  specialize H ((min 1 ε).to_nnreal)
+    (ennreal.to_nnreal_pos_iff.2 ⟨lt_min ennreal.zero_lt_one εpos,
+      ennreal.lt_top_iff_ne_top.1 $ min_lt_iff.2 $ or.inl ennreal.coe_lt_top⟩),
+  refine H.imp (λ N hN n hn, edist_comm (u N) (u n) ▸ lt_of_lt_of_le (hN n hn) _),
+  refine ennreal.coe_le_iff.2 _,
+  rintros ε rfl,
+  rw [← ennreal.coe_one, ← ennreal.coe_min, ennreal.to_nnreal_coe],
+  apply min_le_right
+end
+
 theorem totally_bounded_iff {s : set α} :
   totally_bounded s ↔ ∀ ε > 0, ∃t : set α, finite t ∧ s ⊆ ⋃y∈t, ball y ε :=
 ⟨λ H ε ε0, H _ (edist_mem_uniformity ε0),
@@ -569,6 +635,7 @@ end compact
 
 section first_countable
 
+@[priority 100] -- see Note [lower instance priority]
 instance (α : Type u) [emetric_space α] :
   topological_space.first_countable_topology α :=
 ⟨assume a, ⟨⋃ i:ℕ, {ball a i⁻¹},

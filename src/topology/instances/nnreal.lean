@@ -13,7 +13,7 @@ open_locale topological_space
 namespace nnreal
 open_locale nnreal
 
-instance : topological_space ℝ≥0 := infer_instance
+instance : topological_space ℝ≥0 := infer_instance -- short-circuit type class inference
 
 instance : topological_semiring ℝ≥0 :=
 { continuous_mul :=
@@ -92,10 +92,11 @@ lemma continuous_sub [topological_space α] {f g : α → nnreal}
   (hf : continuous f) (hg : continuous g) : continuous (λ a, f a - g a) :=
 continuous_sub'.comp (hf.prod_mk hg)
 
-lemma has_sum_coe {f : α → nnreal} {r : nnreal} : has_sum (λa, (f a : ℝ)) (r : ℝ) ↔ has_sum f r :=
+@[elim_cast] lemma has_sum_coe {f : α → nnreal} {r : nnreal} :
+  has_sum (λa, (f a : ℝ)) (r : ℝ) ↔ has_sum f r :=
 by simp [has_sum, sum_coe.symm, tendsto_coe]
 
-lemma summable_coe {f : α → nnreal} : summable (λa, (f a : ℝ)) ↔ summable f :=
+@[elim_cast] lemma summable_coe {f : α → nnreal} : summable (λa, (f a : ℝ)) ↔ summable f :=
 begin
   simp [summable],
   split,
@@ -103,8 +104,19 @@ begin
   exact assume ⟨a, ha⟩, ⟨a.1, has_sum_coe.2 ha⟩
 end
 
-lemma tsum_coe {f : α → nnreal} (hf : summable f) : (∑a, (f a : ℝ)) = ↑(∑a, f a) :=
-tsum_eq_has_sum $ has_sum_coe.2 $ has_sum_tsum $ hf
+open_locale classical
+
+@[move_cast] lemma coe_tsum {f : α → nnreal} : ↑(∑a, f a) = (∑a, (f a : ℝ)) :=
+if hf : summable f
+then (eq.symm $ tsum_eq_has_sum $ has_sum_coe.2 $ has_sum_tsum $ hf)
+else by simp [tsum, hf, mt summable_coe.1 hf]
+
+lemma summable_comp_injective {β : Type*} {f : α → nnreal} (hf : summable f)
+  {i : β → α} (hi : function.injective i) :
+  summable (f ∘ i) :=
+nnreal.summable_coe.1 $
+show summable ((coe ∘ f) ∘ i),
+from summable_comp_of_summable_of_injective _ (nnreal.summable_coe.2 hf) hi
 
 end coe
 

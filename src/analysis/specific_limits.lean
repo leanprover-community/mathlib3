@@ -71,16 +71,16 @@ tendsto_coe_nat_real_at_top_iff.1 $
 lemma tendsto_inverse_at_top_nhds_0_nat : tendsto (λ n : ℕ, (n : ℝ)⁻¹) at_top (𝓝 0) :=
 tendsto.comp tendsto_inverse_at_top_nhds_0 (tendsto_coe_nat_real_at_top_iff.2 tendsto_id)
 
-lemma tendsto_one_div_at_top_nhds_0_nat : tendsto (λ n : ℕ, 1/(n : ℝ)) at_top (𝓝 0) :=
-by simpa only [inv_eq_one_div] using tendsto_inverse_at_top_nhds_0_nat
+lemma tendsto_const_div_at_top_nhds_0_nat (C : ℝ) : tendsto (λ n : ℕ, C / n) at_top (𝓝 0) :=
+by simpa only [mul_zero] using tendsto_mul tendsto_const_nhds tendsto_inverse_at_top_nhds_0_nat
 
 lemma tendsto_one_div_add_at_top_nhds_0_nat :
   tendsto (λ n : ℕ, 1 / ((n : ℝ) + 1)) at_top (𝓝 0) :=
 suffices tendsto (λ n : ℕ, 1 / (↑(n + 1) : ℝ)) at_top (𝓝 0), by simpa,
-(tendsto_add_at_top_iff_nat 1).2 tendsto_one_div_at_top_nhds_0_nat
+(tendsto_add_at_top_iff_nat 1).2 (tendsto_const_div_at_top_nhds_0_nat 1)
 
 lemma has_sum_geometric {r : ℝ} (h₁ : 0 ≤ r) (h₂ : r < 1) :
-  has_sum (λn:ℕ, r ^ n) (1 / (1 - r)) :=
+  has_sum (λn:ℕ, r ^ n) (1 - r)⁻¹ :=
 have r ≠ 1, from ne_of_lt h₂,
 have r + -1 ≠ 0,
   by rw [←sub_eq_add_neg, ne, sub_eq_iff_eq_add]; simp; assumption,
@@ -94,7 +94,7 @@ have (λ n, (range n).sum (λ i, r ^ i)) = (λ n, geom_series r n) := rfl,
 lemma summable_geometric {r : ℝ} (h₁ : 0 ≤ r) (h₂ : r < 1) : summable (λn:ℕ, r ^ n) :=
 ⟨_, has_sum_geometric h₁ h₂⟩
 
-lemma tsum_geometric {r : ℝ} (h₁ : 0 ≤ r) (h₂ : r < 1) : (∑n:ℕ, r ^ n) = 1 / (1 - r) :=
+lemma tsum_geometric {r : ℝ} (h₁ : 0 ≤ r) (h₂ : r < 1) : (∑n:ℕ, r ^ n) = (1 - r)⁻¹ :=
 tsum_eq_has_sum (has_sum_geometric h₁ h₂)
 
 lemma has_sum_geometric_two : has_sum (λn:ℕ, ((1:ℝ)/2) ^ n) 2 :=
@@ -115,6 +115,27 @@ begin
   { norm_num, rw div_mul_cancel _ two_ne_zero }
 end
 
+lemma summable_geometric_two' (a : ℝ) : summable (λ n:ℕ, (a / 2) / 2 ^ n) :=
+⟨a, has_sum_geometric_two' a⟩
+
+lemma tsum_geometric_two' (a : ℝ) : (∑ n:ℕ, (a / 2) / 2^n) = a :=
+tsum_eq_has_sum $ has_sum_geometric_two' a
+
+lemma has_sum_geometric_nnreal {r : nnreal} (hr : r < 1) :
+  has_sum (λ n : ℕ, r ^ n) (1 - r)⁻¹ :=
+begin
+  apply nnreal.has_sum_coe.1,
+  push_cast,
+  rw [nnreal.coe_sub (le_of_lt hr)],
+  exact has_sum_geometric r.coe_nonneg hr
+end
+
+lemma summable_geometric_nnreal {r : nnreal} (hr : r < 1) : summable (λn:ℕ, r ^ n) :=
+⟨_, has_sum_geometric_nnreal hr⟩
+
+lemma tsum_geometric_nnreal {r : nnreal} (hr : r < 1) : (∑n:ℕ, r ^ n) = (1 - r)⁻¹ :=
+tsum_eq_has_sum (has_sum_geometric_nnreal hr)
+
 def pos_sum_of_encodable {ε : ℝ} (hε : 0 < ε)
   (ι) [encodable ι] : {ε' : ι → ℝ // (∀ i, 0 < ε' i) ∧ ∃ c, has_sum ε' c ∧ c ≤ ε} :=
 begin
@@ -129,25 +150,116 @@ begin
   { assume n, exact le_refl _ }
 end
 
-lemma cauchy_seq_of_le_geometric [metric_space α] (r C : ℝ) (hr : r < 1) {f : ℕ → α}
-  (hu : ∀n, dist (f n) (f (n+1)) ≤ C * r^n) : cauchy_seq f :=
+section edist_le_geometric
+
+variables [emetric_space α] (r C : nnreal) (hr : r < 1) {f : ℕ → α}
+  (hu : ∀n, edist (f n) (f (n+1)) ≤ C * r^n)
+
+include hr hu
+
+/-- If `edist (f n) (f (n+1))` is bounded by `C * r^n`, `r < 1`, then `f` is a Cauchy sequence.-/
+lemma cauchy_seq_of_edist_le_geometric : cauchy_seq f :=
 begin
-  refine cauchy_seq_of_summable_dist (summable_of_norm_bounded (λn, C * r^n) _ _),
-  { by_cases h : C = 0,
-    { simp [h, summable_zero] },
-    { have Cpos : C > 0,
-      { have := le_trans dist_nonneg (hu 0),
-        simp only [mul_one, pow_zero] at this,
-        exact lt_of_le_of_ne this (ne.symm h) },
-      have rnonneg: r ≥ 0,
-      { have := le_trans dist_nonneg (hu 1),
-        simp only [pow_one] at this,
-        exact nonneg_of_mul_nonneg_left this Cpos },
-      refine summable_mul_left C _,
-      exact summable_spec (@has_sum_geometric r rnonneg hr) }},
-  show ∀n, abs (dist (f n) (f (n+1))) ≤ C * r^n,
-  { assume n, rw abs_of_nonneg (dist_nonneg), exact hu n }
+  norm_cast at hu,
+  exact cauchy_seq_of_edist_le_of_summable _ hu
+   (summable_mul_left C $ summable_geometric_nnreal hr)
 end
+
+/-- If `edist (f n) (f (n+1))` is bounded by `C * r^n`, `r < 1`, then the distance from
+`f n` to the limit of `f` is bounded above by `C * r^n / (1 - r)`. -/
+lemma edist_le_of_edist_le_geometric_of_tendsto {a : α} (ha : tendsto f at_top (𝓝 a)) (n : ℕ) :
+  edist (f n) a ≤ (C * r^n) / (1 - r) :=
+begin
+  norm_cast at hu,
+  rw_mod_cast [← ennreal.coe_one, ← ennreal.coe_div (ne_of_gt $ nnreal.sub_pos.2 hr)],
+  convert edist_le_tsum_of_edist_le_of_tendsto _ hu
+    (summable_mul_left C $ summable_geometric_nnreal hr) ha _,
+  refine eq.symm (tsum_eq_has_sum _),
+  simp only [pow_add, nnreal.div_def, mul_assoc],
+  exact has_sum_mul_left C (has_sum_mul_left (r ^ n) (has_sum_geometric_nnreal hr))
+end
+
+/-- If `edist (f n) (f (n+1))` is bounded by `C * r^n`, `r < 1`, then the distance from
+`f 0` to the limit of `f` is bounded above by `C / (1 - r)`. -/
+lemma edist_le_of_edist_le_geometric_of_tendsto₀ {a : α} (ha : tendsto f at_top (𝓝 a)) :
+  edist (f 0) a ≤ C / (1 - r) :=
+by simpa only [pow_zero, mul_one] using edist_le_of_edist_le_geometric_of_tendsto r C hr hu ha 0
+
+end edist_le_geometric
+
+section le_geometric
+
+variables [metric_space α] {r C : ℝ} (hr : r < 1) {f : ℕ → α}
+  (hu : ∀n, dist (f n) (f (n+1)) ≤ C * r^n)
+
+include hr hu
+
+lemma aux_has_sum_of_le_geometric : has_sum (λ n : ℕ, C * r^n) (C / (1 - r)) :=
+begin
+  have h0 : 0 ≤ C,
+    by simpa using le_trans dist_nonneg (hu 0),
+  rcases eq_or_lt_of_le h0 with rfl | Cpos,
+  { simp [has_sum_zero] },
+  { have rnonneg: r ≥ 0, from nonneg_of_mul_nonneg_left
+      (by simpa only [pow_one] using le_trans dist_nonneg (hu 1)) Cpos,
+    refine has_sum_mul_left C _,
+    by simpa using has_sum_geometric rnonneg hr }
+end
+
+variables (r C)
+
+/-- If `edist (f n) (f (n+1))` is bounded by `C * r^n`, `r < 1`, then `f` is a Cauchy sequence.
+Note that this lemma does not assume `0 ≤ C` or `0 ≤ r`. -/
+lemma cauchy_seq_of_le_geometric : cauchy_seq f :=
+cauchy_seq_of_dist_le_of_summable _ hu ⟨_, aux_has_sum_of_le_geometric hr hu⟩
+
+/-- If `dist (f n) (f (n+1))` is bounded by `C * r^n`, `r < 1`, then the distance from
+`f n` to the limit of `f` is bounded above by `C * r^n / (1 - r)`. -/
+lemma dist_le_of_le_geometric_of_tendsto₀ {a : α} (ha : tendsto f at_top (𝓝 a)) :
+  dist (f 0) a ≤ C / (1 - r) :=
+(tsum_eq_has_sum $ aux_has_sum_of_le_geometric hr hu) ▸
+  dist_le_tsum_of_dist_le_of_tendsto₀ _ hu ⟨_, aux_has_sum_of_le_geometric hr hu⟩ ha
+
+/-- If `dist (f n) (f (n+1))` is bounded by `C * r^n`, `r < 1`, then the distance from
+`f 0` to the limit of `f` is bounded above by `C / (1 - r)`. -/
+lemma dist_le_of_le_geometric_of_tendsto {a : α} (ha : tendsto f at_top (𝓝 a)) (n : ℕ) :
+  dist (f n) a ≤ (C * r^n) / (1 - r) :=
+begin
+  have := aux_has_sum_of_le_geometric hr hu,
+  convert dist_le_tsum_of_dist_le_of_tendsto _ hu ⟨_, this⟩ ha n,
+  simp only [pow_add, mul_left_comm C, mul_div_right_comm],
+  rw [mul_comm],
+  exact (eq.symm $ tsum_eq_has_sum $ has_sum_mul_left _ this)
+end
+
+omit hr hu
+
+variable (hu₂ : ∀ n, dist (f n) (f (n+1)) ≤ (C / 2) / 2^n)
+
+/-- If `dist (f n) (f (n+1))` is bounded by `(C / 2) / 2^n`, then `f` is a Cauchy sequence. -/
+lemma cauchy_seq_of_le_geometric_two : cauchy_seq f :=
+cauchy_seq_of_dist_le_of_summable _ hu₂ $ ⟨_, has_sum_geometric_two' C⟩
+
+/-- If `dist (f n) (f (n+1))` is bounded by `(C / 2) / 2^n`, then the distance from
+`f 0` to the limit of `f` is bounded above by `C`. -/
+lemma dist_le_of_le_geometric_two_of_tendsto₀ {a : α} (ha : tendsto f at_top (𝓝 a)) :
+  dist (f 0) a ≤ C :=
+(tsum_geometric_two' C) ▸ dist_le_tsum_of_dist_le_of_tendsto₀ _ hu₂ (summable_geometric_two' C) ha
+
+include hu₂
+
+/-- If `dist (f n) (f (n+1))` is bounded by `(C / 2) / 2^n`, then the distance from
+`f n` to the limit of `f` is bounded above by `C / 2^n`. -/
+lemma dist_le_of_le_geometric_two_of_tendsto {a : α} (ha : tendsto f at_top (𝓝 a)) (n : ℕ) :
+  dist (f n) a ≤ C / 2^n :=
+begin
+  convert dist_le_tsum_of_dist_le_of_tendsto _ hu₂ (summable_geometric_two' C) ha n,
+  simp only [add_comm n, pow_add, (div_div_eq_div_mul _ _ _).symm],
+  symmetry,
+  exact tsum_eq_has_sum (has_sum_mul_right _ $ has_sum_geometric_two' C)
+end
+
+end le_geometric
 
 namespace nnreal
 

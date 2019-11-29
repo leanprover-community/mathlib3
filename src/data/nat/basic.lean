@@ -2,10 +2,19 @@
 Copyright (c) 2014 Floris van Doorn. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Floris van Doorn, Leonardo de Moura, Jeremy Avigad, Mario Carneiro
-
-Basic operations on the natural numbers.
 -/
 import logic.basic algebra.ordered_ring data.option.basic algebra.order_functions
+
+/-!
+# Basic operations on the natural numbers
+
+This files has some basic lemmas about natural numbers, definition of the `choice` function,
+and extra recursors:
+
+* `le_rec_on`, `le_induction`: recursion and induction principles starting at non-zero numbers.
+* `decreasing_induction` : recursion gowing downwards.
+* `strong_rec'` : recursion based on strong inequalities.
+-/
 
 universes u v
 
@@ -64,6 +73,8 @@ by simp only [add_comm, nat.lt_succ_iff]
 theorem of_le_succ {n m : ℕ} (H : n ≤ m.succ) : n ≤ m ∨ n = m.succ :=
 (lt_or_eq_of_le H).imp le_of_lt_succ id
 
+/-- Recursion starting at a non-zero number: given a map `C k → C (k+1)` for each `k`,
+there is a map from `C n` to each `C m`, `n ≤ m`. -/
 @[elab_as_eliminator]
 def le_rec_on {C : ℕ → Sort u} {n : ℕ} : Π {m : ℕ}, n ≤ m → (Π {k}, C k → C (k+1)) → C n → C m
 | 0     H next x := eq.rec_on (eq_zero_of_le_zero H) x
@@ -335,6 +346,7 @@ end
 theorem two_mul_ne_two_mul_add_one {n m} : 2 * n ≠ 2 * m + 1 :=
 mt (congr_arg (%2)) (by rw [add_comm, add_mul_mod_self_left, mul_mod_right]; exact dec_trivial)
 
+/-- Recursion principle based on `<`. -/
 @[elab_as_eliminator]
 protected def strong_rec' {p : ℕ → Sort u} (H : ∀ n, (∀ m, m < n → p m) → p n) : ∀ (n : ℕ), p n
 | n := H n (λ m hm, strong_rec' m)
@@ -811,7 +823,7 @@ strict_mono.le_iff_le (pow_left_strict_mono k)
 lemma pow_lt_iff_lt_left {m x y : ℕ} (k : 1 ≤ m) : x^m < y^m ↔ x < y :=
 strict_mono.lt_iff_lt (pow_left_strict_mono k)
 
-lemma pow_left_injective {m x y : ℕ} (k : 1 ≤ m) : function.injective (λ (x : ℕ), x^m) :=
+lemma pow_left_injective {m : ℕ} (k : 1 ≤ m) : function.injective (λ (x : ℕ), x^m) :=
 strict_mono.injective (pow_left_strict_mono k)
 
 lemma not_pos_pow_dvd : ∀ {p k : ℕ} (hp : 1 < p) (hk : 1 < k), ¬ p^k ∣ p
@@ -1045,6 +1057,8 @@ end
 
 /- choose -/
 
+/-- `choose n k` is the number of `k`-element subsets in an `n`-element set. Also known as binomial
+coefficients. -/
 def choose : ℕ → ℕ → ℕ
 | _             0 := 1
 | 0       (k + 1) := 0
@@ -1120,6 +1134,16 @@ end
 
 theorem fact_mul_fact_dvd_fact {n k : ℕ} (hk : k ≤ n) : fact k * fact (n - k) ∣ fact n :=
 by rw [←choose_mul_fact_mul_fact hk, mul_assoc]; exact dvd_mul_left _ _
+
+@[simp] lemma choose_symm {n k : ℕ} (hk : k ≤ n) : choose n (n-k) = choose n k :=
+by rw [choose_eq_fact_div_fact hk, choose_eq_fact_div_fact (sub_le _ _), nat.sub_sub_self hk, mul_comm]
+
+lemma choose_succ_right_eq {n k : ℕ} : choose n (k + 1) * (k + 1) = choose n k * (n - k) :=
+begin
+  have e : (n+1) * choose n k = choose n k * (k+1) + choose n (k+1) * (k+1),
+    rw [← right_distrib, ← choose_succ_succ, succ_mul_choose_eq],
+  rw [← nat.sub_eq_of_eq_add e, mul_comm, ← nat.mul_sub_left_distrib, nat.add_sub_add_right]
+end
 
 section find_greatest
 
@@ -1295,10 +1319,13 @@ lemma with_bot.add_eq_one_iff : ∀ {n m : with_bot ℕ}, n + m = 1 ↔ (n = 0 �
 
 -- induction
 
+/-- Induction principle starting at a non-zero number. For maps to a `Sort*` see `le_rec_on`. -/
 @[elab_as_eliminator] lemma le_induction {P : nat → Prop} {m} (h0 : P m) (h1 : ∀ n, m ≤ n → P n → P (n + 1)) :
   ∀ n, m ≤ n → P n :=
 by apply nat.less_than_or_equal.rec h0; exact h1
 
+/-- Decreasing induction: if `P (k+1)` implies `P k`, then `P n` implies `P m` for all `m ≤ n`.
+Also works for functions to `Sort*`. -/
 @[elab_as_eliminator]
 def decreasing_induction {P : ℕ → Sort*} (h : ∀n, P (n+1) → P n) {m n : ℕ} (mn : m ≤ n)
   (hP : P n) : P m :=

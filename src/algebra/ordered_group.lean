@@ -13,7 +13,7 @@ variable {α : Type u}
 section old_structure_cmd
 
 set_option old_structure_cmd true
-
+set_option default_priority 100 -- see Note [default priority]
 /-- An ordered (additive) commutative monoid is a commutative monoid
   with a partial order such that addition is an order embedding, i.e.
   `a + b ≤ a + c ↔ b ≤ c`. These monoids are automatically cancellative. -/
@@ -398,6 +398,7 @@ instance with_zero.canonically_ordered_monoid :
 
 end canonically_ordered_monoid
 
+@[priority 100] -- see Note [lower instance priority]
 instance ordered_cancel_comm_monoid.to_ordered_comm_monoid
   [H : ordered_cancel_comm_monoid α] : ordered_comm_monoid α :=
 { lt_of_add_lt_add_left := @lt_of_add_lt_add_left _ _, ..H }
@@ -666,6 +667,7 @@ namespace decidable_linear_ordered_comm_group
 variables [s : decidable_linear_ordered_comm_group α]
 include s
 
+@[priority 100] -- see Note [lower instance priority]
 instance : decidable_linear_ordered_cancel_comm_monoid α :=
 { le_of_add_le_add_left := λ x y z, le_of_add_le_add_left,
   add_left_cancel := λ x y z, add_left_cancel,
@@ -678,6 +680,8 @@ eq_of_abs_sub_eq_zero (le_antisymm _ _ h (abs_nonneg (a - b)))
 end decidable_linear_ordered_comm_group
 
 set_option old_structure_cmd true
+section prio
+set_option default_priority 100 -- see Note [default priority]
 /-- This is not so much a new structure as a construction mechanism
   for ordered groups, by specifying only the "positive cone" of the group. -/
 class nonneg_comm_group (α : Type*) extends add_comm_group α :=
@@ -687,12 +691,14 @@ class nonneg_comm_group (α : Type*) extends add_comm_group α :=
 (zero_nonneg : nonneg 0)
 (add_nonneg : ∀ {a b}, nonneg a → nonneg b → nonneg (a + b))
 (nonneg_antisymm : ∀ {a}, nonneg a → nonneg (-a) → a = 0)
+end prio
 
 namespace nonneg_comm_group
 variable [s : nonneg_comm_group α]
 include s
 
-@[reducible] instance to_ordered_comm_group : ordered_comm_group α :=
+@[reducible, priority 100] -- see Note [lower instance priority]
+instance to_ordered_comm_group : ordered_comm_group α :=
 { le := λ a b, nonneg (b - a),
   lt := λ a b, pos (b - a),
   lt_iff_le_not_le := λ a b, by simp; rw [pos_iff]; simp,

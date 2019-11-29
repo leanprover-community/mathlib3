@@ -11,7 +11,7 @@ has a least upper bound and a greatest lower bound, denoted below by Sup s and I
 Typical examples are real, nat, int with their usual orders.
 
 The theory is very comparable to the theory of complete lattices, except that suitable
-boundedness and non-emptyness assumptions have to be added to most statements.
+boundedness and nonemptiness assumptions have to be added to most statements.
 We introduce two predicates bdd_above and bdd_below to express this boundedness, prove
 their basic properties, and then go on to prove most useful properties of Sup and Inf
 in conditionally complete lattices.
@@ -100,7 +100,7 @@ end preorder
 
 /--When there is a global minimum, every set is bounded below.-/
 @[simp] lemma bdd_below_bot [order_bot α] (s : set α) : bdd_below s :=
-⟨⊥, assume a ha,  order_bot.bot_le a⟩
+⟨⊥, assume a ha, order_bot.bot_le a⟩
 
 /-When there is a max (i.e., in the class semilattice_sup), then the union of
 two bounded sets is bounded, by the maximum of the bounds for the two sets.
@@ -214,8 +214,32 @@ finite.induction_on H
 
 end semilattice_inf
 
+section
+
+/-!
+Extension of Sup and Inf from a preorder `α` to `with_top α` and `with_bot α`
+-/
+
+open_locale classical
+
+noncomputable instance {α : Type*} [preorder α] [has_Sup α] : has_Sup (with_top α) :=
+⟨λ S, if ⊤ ∈ S then ⊤ else
+  if bdd_above (coe ⁻¹' S : set α) then ↑(Sup (coe ⁻¹' S : set α)) else ⊤⟩
+
+noncomputable instance {α : Type*} [has_Inf α] : has_Inf (with_top α) :=
+⟨λ S, if S ⊆ {⊤} then ⊤ else ↑(Inf (coe ⁻¹' S : set α))⟩
+
+noncomputable instance {α : Type*} [has_Sup α] : has_Sup (with_bot α) :=
+⟨(@with_top.lattice.has_Inf (order_dual α) _).Inf⟩
+
+noncomputable instance {α : Type*} [preorder α] [has_Inf α] : has_Inf (with_bot α) :=
+⟨(@with_top.lattice.has_Sup (order_dual α) _ _).Sup⟩
+
+end -- section
 
 namespace lattice
+section prio
+set_option default_priority 100 -- see Note [default priority]
 /-- A conditionally complete lattice is a lattice in which
 every nonempty subset which is bounded above has a supremum, and
 every nonempty subset which is bounded below has an infimum.
@@ -223,7 +247,7 @@ Typical examples are real numbers or natural numbers.
 
 To differentiate the statements from the corresponding statements in (unconditional)
 complete lattices, we prefix Inf and Sup by a c everywhere. The same statements should
-hold in both worlds, sometimes with additional assumptions of non-emptyness or
+hold in both worlds, sometimes with additional assumptions of nonemptiness or
 boundedness.-/
 class conditionally_complete_lattice (α : Type u) extends lattice α, has_Sup α, has_Inf α :=
 (le_cSup : ∀s a, bdd_above s → a ∈ s → a ≤ Sup s)
@@ -237,18 +261,21 @@ class conditionally_complete_linear_order (α : Type u)
 class conditionally_complete_linear_order_bot (α : Type u)
   extends conditionally_complete_lattice α, decidable_linear_order α, order_bot α :=
 (cSup_empty : Sup ∅ = ⊥)
+end prio
 
 /- A complete lattice is a conditionally complete lattice, as there are no restrictions
 on the properties of Inf and Sup in a complete lattice.-/
 
+@[priority 100] -- see Note [lower instance priority]
 instance conditionally_complete_lattice_of_complete_lattice [complete_lattice α]:
   conditionally_complete_lattice α :=
 { le_cSup := by intros; apply le_Sup; assumption,
   cSup_le := by intros; apply Sup_le; assumption,
   cInf_le := by intros; apply Inf_le; assumption,
   le_cInf := by intros; apply le_Inf; assumption,
-  ..‹complete_lattice α›}
+  ..‹complete_lattice α› }
 
+@[priority 100] -- see Note [lower instance priority]
 instance conditionally_complete_linear_order_of_complete_linear_order [complete_linear_order α]:
   conditionally_complete_linear_order α :=
 { ..lattice.conditionally_complete_lattice_of_complete_lattice, .. ‹complete_linear_order α› }
@@ -328,7 +355,7 @@ have ¬(b < Inf s) :=
   show false, by finish [lt_irrefl (Inf s)],
 show Inf s = b, by finish
 
-/--When an element a of a set s is larger than all elements of the set, it is Sup s-/
+/--When an element a of a set s is larger than all other elements of the set, it is Sup s-/
 theorem cSup_of_mem_of_le (_ : a ∈ s) (_ : ∀w∈s, w ≤ a) : Sup s = a :=
 have bdd_above s := ⟨a, by assumption⟩,
 have s ≠ ∅ := ne_empty_of_mem ‹a ∈ s›,
@@ -336,7 +363,7 @@ have A : a ≤ Sup s := le_cSup ‹bdd_above s› ‹a ∈ s›,
 have B : Sup s ≤ a := cSup_le ‹s ≠ ∅› ‹∀w∈s, w ≤ a›,
 le_antisymm B A
 
-/--When an element a of a set s is smaller than all elements of the set, it is Inf s-/
+/--When an element a of a set s is smaller than all other elements of the set, it is Inf s-/
 theorem cInf_of_mem_of_le (_ : a ∈ s) (_ : ∀w∈s, a ≤ w) : Inf s = a :=
 have bdd_below s := ⟨a, by assumption⟩,
 have s ≠ ∅ := ne_empty_of_mem ‹a ∈ s›,
@@ -346,15 +373,15 @@ le_antisymm A B
 
 /--b < Sup s when there is an element a in s with b < a, when s is bounded above.
 This is essentially an iff, except that the assumptions for the two implications are
-slightly different (one needs boundedness above for one direction, nonemptyness and linear
+slightly different (one needs boundedness above for one direction, nonemptiness and linear
 order for the other one), so we formulate separately the two implications, contrary to
 the complete_lattice case.-/
 lemma lt_cSup_of_lt (_ : bdd_above s) (_ : a ∈ s) (_ : b < a) : b < Sup s :=
 lt_of_lt_of_le ‹b < a› (le_cSup ‹bdd_above s› ‹a ∈ s›)
 
-/--Inf s < b s when there is an element a in s with a < b, when s is bounded below.
+/--Inf s < b when there is an element a in s with a < b, when s is bounded below.
 This is essentially an iff, except that the assumptions for the two implications are
-slightly different (one needs boundedness below for one direction, nonemptyness and linear
+slightly different (one needs boundedness below for one direction, nonemptiness and linear
 order for the other one), so we formulate separately the two implications, contrary to
 the complete_lattice case.-/
 
@@ -385,7 +412,7 @@ have Inf s ≤ w := cInf_le ‹bdd_below s› ‹w ∈ s›,
 have w ≤ Sup s := le_cSup ‹bdd_above s› ‹w ∈ s›,
 le_trans ‹Inf s ≤ w› ‹w ≤ Sup s›
 
-/--The sup of a union of sets is the max of the suprema of each subset, under the assumptions
+/--The sup of a union of two sets is the max of the suprema of each subset, under the assumptions
 that all sets are bounded above and nonempty.-/
 theorem cSup_union (_ : bdd_above s) (_ : s ≠ ∅) (_ : bdd_above t) (_ : t ≠ ∅) :
 Sup (s ∪ t) = Sup s ⊔ Sup t :=
@@ -405,7 +432,7 @@ have B : Sup s ⊔ Sup t ≤ Sup (s ∪ t) :=
   by simp only [lattice.sup_le_iff]; split; assumption; assumption,
 le_antisymm A B
 
-/--The inf of a union of sets is the min of the infima of each subset, under the assumptions
+/--The inf of a union of two sets is the min of the infima of each subset, under the assumptions
 that all sets are bounded below and nonempty.-/
 theorem cInf_union (_ : bdd_below s) (_ : s ≠ ∅) (_ : bdd_below t) (_ : t ≠ ∅) :
 Inf (s ∪ t) = Inf s ⊓ Inf t :=
@@ -425,7 +452,7 @@ have B : Inf (s ∪ t) ≤ Inf s ⊓ Inf t  :=
   by simp only [lattice.le_inf_iff]; split; assumption; assumption,
 le_antisymm B A
 
-/--The supremum of an intersection of sets is bounded by the minimum of the suprema of each
+/--The supremum of an intersection of two sets is bounded by the minimum of the suprema of each
 set, if all sets are bounded above and nonempty.-/
 theorem cSup_inter_le (_ : bdd_above s) (_ : bdd_above t) (_ : s ∩ t ≠ ∅) :
 Sup (s ∩ t) ≤ Sup s ⊓ Sup t :=
@@ -435,7 +462,7 @@ begin
   apply le_cSup ‹bdd_above t› ‹b ∈ t›
 end
 
-/--The infimum of an intersection of sets is bounded below by the maximum of the
+/--The infimum of an intersection of two sets is bounded below by the maximum of the
 infima of each set, if all sets are bounded below and nonempty.-/
 theorem le_cInf_inter (_ : bdd_below s) (_ : bdd_below t) (_ : s ∩ t ≠ ∅) :
 Inf s ⊔ Inf t ≤ Inf (s ∩ t) :=
@@ -471,13 +498,13 @@ cSup_of_mem_of_le (by simp only [set.mem_set_of_eq]) (λw Hw, by simp only [set.
 lemma csupr_le_csupr {f g : β → α} (B : bdd_above (range g)) (H : ∀x, f x ≤ g x) : supr f ≤ supr g :=
 begin
   classical, by_cases nonempty β,
-  { have Rf : range f ≠ ∅, {simpa},
+  { have Rf : range f ≠ ∅, { simpa },
     apply cSup_le Rf,
     rintros y ⟨x, rfl⟩,
     have : g x ∈ range g := ⟨x, rfl⟩,
     exact le_cSup_of_le B this (H x) },
-  { have Rf : range f = ∅, {simpa},
-    have Rg : range g = ∅, {simpa},
+  { have Rf : range f = ∅, { simpa },
+    have Rg : range g = ∅, { simpa },
     unfold supr, rw [Rf, Rg] }
 end
 
@@ -493,13 +520,13 @@ le_cSup H (mem_range_self _)
 lemma cinfi_le_cinfi {f g : β → α} (B : bdd_below (range f)) (H : ∀x, f x ≤ g x) : infi f ≤ infi g :=
 begin
   classical, by_cases nonempty β,
-  { have Rg : range g ≠ ∅, {simpa},
+  { have Rg : range g ≠ ∅, { simpa },
     apply le_cInf Rg,
     rintros y ⟨x, rfl⟩,
     have : f x ∈ range f := ⟨x, rfl⟩,
     exact cInf_le_of_le B this (H x) },
-  { have Rf : range f = ∅, {simpa},
-    have Rg : range g = ∅, {simpa},
+  { have Rf : range f = ∅, { simpa },
+    have Rg : range g = ∅, { simpa },
     unfold infi, rw [Rf, Rg] }
 end
 
@@ -642,51 +669,94 @@ open_locale classical
 
 variables [conditionally_complete_linear_order_bot α]
 
-lemma has_lub (s : set (with_top α)) : ∃a, is_lub s a :=
+/-- The Sup of a non-empty set is its least upper bound for a conditionally
+complete lattice with a top. -/
+lemma is_lub_Sup' {β : Type*} [conditionally_complete_lattice β]
+  {s : set (with_top β)} (hs : s ≠ ∅) : is_lub s (Sup s) :=
 begin
-  by_cases hs : s = ∅, { subst hs, exact ⟨⊥, is_lub_empty⟩, },
-  rcases ne_empty_iff_exists_mem.1 hs with ⟨x, hxs⟩,
-  by_cases bnd : ∃b:α, ↑b ∈ upper_bounds s,
-  { rcases bnd with ⟨b, hb⟩,
-    have bdd : bdd_above {a : α | ↑a ∈ s}, from ⟨b, assume y hy, coe_le_coe.1 $ hb hy⟩,
-    refine ⟨(Sup {a : α | ↑a ∈ s} : α), _, _⟩,
-    { assume a has,
-      rcases (le_coe_iff _ _).1 (hb has) with ⟨a, rfl, h⟩,
-      exact (coe_le_coe.2 $ le_cSup bdd has) },
-    { assume a hs,
-      rcases (le_coe_iff _ _).1 (hb hxs) with ⟨x, rfl, h⟩,
-      refine (coe_le_iff _ _).2 (assume c hc, _), subst hc,
-      exact (cSup_le (ne_empty_of_mem hxs) $ assume b (hbs : ↑b ∈ s), coe_le_coe.1 $ hs hbs), } },
-  exact ⟨⊤, assume a _, le_top, assume a,
-    match a with
-    | some a, ha := (bnd ⟨a, ha⟩).elim
-    | none,   ha := _root_.le_refl ⊤
-    end⟩
+  split,
+  { show ite _ _ _ ∈ _,
+    split_ifs,
+    { intros _ _, exact le_top },
+    { rintro (⟨⟩|a) ha,
+      { contradiction },
+      apply some_le_some.2,
+      exact le_cSup h_1 ha },
+    { intros _ _, exact le_top } },
+  { show ite _ _ _ ∈ _,
+    split_ifs,
+    { rintro (⟨⟩|a) ha,
+      { exact _root_.le_refl _ },
+      { exact false.elim (not_top_le_coe a (ha h)) } },
+    { rintro (⟨⟩|b) hb,
+      { exact le_top },
+      refine some_le_some.2 (cSup_le _ _),
+      { refine mt _ h,
+        rw ne_empty_iff_exists_mem at hs,
+        intro h2,
+        rcases hs with ⟨⟨⟩|b, hb⟩,
+        { assumption },
+        { exfalso, revert h2, exact ne_empty_of_mem hb } },
+      { intros a ha, exact some_le_some.1 (hb ha) } },
+    { rintro (⟨⟩|b) hb,
+      { exact _root_.le_refl _ },
+      { exfalso, apply h_1, use b, intros a ha, exact some_le_some.1 (hb ha) } } }
 end
 
-lemma has_glb (s : set (with_top α)) : ∃a, is_glb s a :=
+lemma is_lub_Sup (s : set (with_top α)) : is_lub s (Sup s) :=
 begin
-  by_cases hs : ∃x:α, ↑x ∈ s,
-  { rcases hs with ⟨x, hxs⟩,
-    refine ⟨(Inf {a : α | ↑a ∈ s} : α), _, _⟩,
-    exact (assume a has, (coe_le_iff _ _).2 $ assume x hx, cInf_le (bdd_below_bot _) $
-      show ↑x ∈ s, from hx ▸ has),
-    { assume a has,
-      rcases (le_coe_iff _ _).1 (has hxs) with ⟨x, rfl, h⟩,
-      exact (coe_le_coe.2 $ le_cInf (ne_empty_of_mem hxs) $
-        assume b hbs, coe_le_coe.1 $ has hbs) } },
-  exact ⟨⊤, assume a, match a with
-    | some a, ha := (hs ⟨a, ha⟩).elim
-    | none,   ha := _root_.le_refl _
-    end,
-    assume a _, le_top⟩
+  by_cases hs : s = ∅,
+  { rw hs,
+    show is_lub ∅ (ite _ _ _),
+    split_ifs,
+    { cases h },
+    { rw [preimage_empty, cSup_empty], exact is_lub_empty },
+    { exfalso, apply h_1, use ⊥, rintro a ⟨⟩ } },
+  exact is_lub_Sup' hs,
 end
 
-noncomputable instance : has_Sup (with_top α) := ⟨λs, classical.some $ has_lub s⟩
-noncomputable instance : has_Inf (with_top α) := ⟨λs, classical.some $ has_glb s⟩
+/-- The Inf of a bounded-below set is its greatest lower bound for a conditionally
+complete lattice with a top. -/
+lemma is_glb_Inf' {β : Type*} [conditionally_complete_lattice β]
+  {s : set (with_top β)} (hs : bdd_below s) : is_glb s (Inf s) :=
+begin
+  split,
+  { show ite _ _ _ ∈ _,
+    split_ifs,
+    { intros a ha, exact top_le_iff.2 (set.mem_singleton_iff.1 (h ha)) },
+    { rintro (⟨⟩|a) ha,
+      { exact le_top },
+      refine some_le_some.2 (cInf_le _ ha),
+      rcases hs with ⟨⟨⟩|b, hb⟩,
+      { exfalso,
+        apply h,
+        intros c hc,
+        rw [mem_singleton_iff, ←top_le_iff],
+        exact hb hc },
+      use b,
+      intros c hc,
+      exact some_le_some.1 (hb hc) } },
+  { show ite _ _ _ ∈ _,
+    split_ifs,
+    { intros _ _, exact le_top },
+    { rintro (⟨⟩|a) ha,
+      { exfalso, apply h, intros b hb, exact set.mem_singleton_iff.2 (top_le_iff.1 (ha hb)) },
+      { refine some_le_some.2 (le_cInf _ _),
+        { refine mt _ h,
+          rintro hs (⟨⟩|b) hb,
+          { exact mem_singleton _ },
+          { exfalso, apply not_mem_empty b, rwa ←hs } },
+        { intros b hb,
+          rw ←some_le_some,
+          exact ha hb } } } }
+end
 
-lemma is_lub_Sup (s : set (with_top α)) : is_lub s (Sup s) := classical.some_spec _
-lemma is_glb_Inf (s : set (with_top α)) : is_glb s (Inf s) := classical.some_spec _
+lemma is_glb_Inf (s : set (with_top α)) : is_glb s (Inf s) :=
+begin
+  by_cases hs : bdd_below s,
+  { exact is_glb_Inf' hs },
+  { exfalso, apply hs, use ⊥, intros _ _, exact bot_le },
+end
 
 noncomputable instance : complete_linear_order (with_top α) :=
 { Sup := Sup, le_Sup := assume s, (is_lub_Sup s).1, Sup_le := assume s, (is_lub_Sup s).2,
@@ -769,3 +839,89 @@ instance (α : Type*) [conditionally_complete_linear_order α] :
   ..order_dual.decidable_linear_order α }
 
 end order_dual
+
+section with_top_bot
+
+/-! ### Complete lattice structure on `with_top (with_bot α)`
+
+If `α` is a `conditionally_complete_lattice`, then we show that `with_top α` and `with_bot α`
+also inherit the structure of conditionally complete lattices. Furthermore, we show
+that `with_top (with_bot α)` naturally inherits the structure of a complete lattice. Note that
+for α a conditionally complete lattice, `Sup` and `Inf` both return junk values
+for sets which are empty or unbounded. The extension of `Sup` to `with_top α` fixes
+the unboundedness problem and the extension to `with_bot α` fixes the problem with
+the empty set.
+
+This result can be used to show that the extended reals [-∞, ∞] are a complete lattice.
+-/
+
+open lattice
+
+open_locale classical
+
+/-- Adding a top element to a conditionally complete lattice gives a conditionally complete lattice -/
+noncomputable instance with_top.conditionally_complete_lattice
+  {α : Type*} [conditionally_complete_lattice α] :
+  conditionally_complete_lattice (with_top α) :=
+{ le_cSup := λ S a hS haS, (with_top.is_lub_Sup' (ne_empty_of_mem haS)).1 haS,
+  cSup_le := λ S a hS haS, (with_top.is_lub_Sup' hS).2 haS,
+  cInf_le := λ S a hS haS, (with_top.is_glb_Inf' hS).1 haS,
+  le_cInf := λ S a hS haS, (with_top.is_glb_Inf' ⟨a, haS⟩).2 haS,
+  ..with_top.lattice,
+  ..with_top.lattice.has_Sup,
+  ..with_top.lattice.has_Inf }
+
+/-- Adding a bottom element to a conditionally complete lattice gives a conditionally complete lattice -/
+noncomputable instance with_bot.conditionally_complete_lattice
+  {α : Type*} [conditionally_complete_lattice α] :
+  conditionally_complete_lattice (with_bot α) :=
+{ le_cSup := (@with_top.conditionally_complete_lattice (order_dual α) _).cInf_le,
+  cSup_le := (@with_top.conditionally_complete_lattice (order_dual α) _).le_cInf,
+  cInf_le := (@with_top.conditionally_complete_lattice (order_dual α) _).le_cSup,
+  le_cInf := (@with_top.conditionally_complete_lattice (order_dual α) _).cSup_le,
+  ..with_bot.lattice,
+  ..with_bot.lattice.has_Sup,
+  ..with_bot.lattice.has_Inf }
+
+/-- Adding a bottom and a top to a conditionally complete lattice gives a bounded lattice-/
+noncomputable instance {α : Type*} [conditionally_complete_lattice α] : bounded_lattice (with_top (with_bot α)) :=
+{ ..with_top.order_bot,
+  ..with_top.order_top,
+  ..conditionally_complete_lattice.to_lattice _ }
+
+theorem with_bot.cSup_empty {α : Type*} [conditionally_complete_lattice α] :
+  Sup (∅ : set (with_bot α)) = ⊥ :=
+begin
+  show ite _ _ _ = ⊥,
+  split_ifs; finish,
+end
+
+noncomputable instance {α : Type*} [conditionally_complete_lattice α] :
+  complete_lattice (with_top (with_bot α)) :=
+{ le_Sup := λ S a haS, (with_top.is_lub_Sup' (ne_empty_of_mem haS)).1 haS,
+  Sup_le := λ S a ha,
+    begin
+      by_cases h : S = ∅,
+      { show ite _ _ _ ≤ a,
+        split_ifs,
+        { rw h at h_1, cases h_1 },
+        { convert bot_le, convert with_bot.cSup_empty, rw h, refl },
+        { exfalso, apply h_2, use ⊥, rw h, rintro b ⟨⟩ } },
+      { refine (with_top.is_lub_Sup' h).2 ha }
+    end,
+  Inf_le := λ S a haS,
+    show ite _ _ _ ≤ a,
+    begin
+      split_ifs,
+      { cases a with a, exact _root_.le_refl _,
+        cases (h haS); tauto },
+      { cases a,
+        { exact le_top },
+        { apply with_top.some_le_some.2, refine cInf_le _ haS, use ⊥, intros b hb, exact bot_le } }
+    end,
+  le_Inf := λ S a haS, (with_top.is_glb_Inf' ⟨a, haS⟩).2 haS,
+  ..with_top.lattice.has_Inf,
+  ..with_top.lattice.has_Sup,
+  ..with_top.lattice.bounded_lattice }
+
+end with_top_bot

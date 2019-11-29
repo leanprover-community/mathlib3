@@ -2,8 +2,13 @@
 Copyright (c) 2017 Johannes Hölzl. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johannes Hölzl, Mario Carneiro
+-/
+import data.set.lattice data.set.finite
+import topology.instances.ennreal
+       measure_theory.outer_measure
 
-Measure spaces -- measures
+/-!
+# Measure spaces
 
 Measures are restricted to a measurable space (associated by the type class `measurable_space`).
 This allows us to prove equalities between measures by restricting to a generating set of the
@@ -16,9 +21,6 @@ somehow well-behaved on non-measurable sets.
 This allows us for the `lebesgue` measure space to have the `borel` measurable space, but still be
 a complete measure.
 -/
-import data.set.lattice data.set.finite
-import topology.instances.ennreal
-       measure_theory.outer_measure
 
 noncomputable theory
 
@@ -791,10 +793,13 @@ end is_complete
 
 namespace measure_theory
 
+section prio
+set_option default_priority 100 -- see Note [default priority]
 /-- A measure space is a measurable space equipped with a
   measure, referred to as `volume`. -/
 class measure_space (α : Type*) extends measurable_space α :=
 (μ {} : measure α)
+end prio
 
 section measure_space
 variables {α : Type*} [measure_space α] {s₁ s₂ : set α}

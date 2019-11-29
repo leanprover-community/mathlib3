@@ -67,8 +67,8 @@ lemma of_real_eq_coe_nnreal {x : real} (h : 0 ≤ x) :
   ennreal.of_real x = @coe nnreal ennreal _ (⟨x, h⟩ : nnreal) :=
 by { rw [coe_nnreal_eq], refl }
 
-@[simp] lemma coe_zero : ↑(0 : nnreal) = (0 : ennreal) := rfl
-@[simp] lemma coe_one : ↑(1 : nnreal) = (1 : ennreal) := rfl
+@[simp, elim_cast] lemma coe_zero : ↑(0 : nnreal) = (0 : ennreal) := rfl
+@[simp, elim_cast] lemma coe_one : ↑(1 : nnreal) = (1 : ennreal) := rfl
 
 @[simp] lemma to_real_nonneg {a : ennreal} : 0 ≤ a.to_real := by simp [ennreal.to_real]
 
@@ -537,16 +537,57 @@ show ↑(p * r⁻¹) = ↑p * (↑r)⁻¹, by rw [coe_mul, coe_inv hr]
 by by_cases a = 0; cases a; simp [*, none_eq_top, some_eq_coe,
   -coe_inv, (coe_inv _).symm] at *
 
+lemma inv_involutive : function.involutive (λ a:ennreal, a⁻¹) :=
+λ a, ennreal.inv_inv
+
+lemma inv_bijective : function.bijective (λ a:ennreal, a⁻¹) :=
+ennreal.inv_involutive.bijective
+
+@[simp] lemma inv_eq_inv : a⁻¹ = b⁻¹ ↔ a = b := inv_bijective.1.eq_iff
+
 @[simp] lemma inv_eq_top : a⁻¹ = ∞ ↔ a = 0 :=
-by by_cases a = 0; cases a; simp [*, none_eq_top, some_eq_coe,
-  -coe_inv, (coe_inv _).symm] at *
+inv_zero ▸ inv_eq_inv
 
 lemma inv_ne_top : a⁻¹ ≠ ∞ ↔ a ≠ 0 := by simp
 
 @[simp] lemma inv_eq_zero : a⁻¹ = 0 ↔ a = ∞ :=
-by rw [← inv_eq_top, inv_inv]
+inv_top ▸ inv_eq_inv
 
 lemma inv_ne_zero : a⁻¹ ≠ 0 ↔ a ≠ ∞ := by simp
+
+@[simp] lemma inv_pos : 0 < a⁻¹ ↔ a ≠ ∞ :=
+zero_lt_iff_ne_zero.trans inv_ne_zero
+
+@[simp] lemma inv_lt_inv : a⁻¹ < b⁻¹ ↔ b < a :=
+begin
+  cases a; cases b; simp only [some_eq_coe, none_eq_top, inv_top],
+  { simp only [lt_irrefl] },
+  { exact inv_pos.trans lt_top_iff_ne_top.symm },
+  { simp only [not_lt_zero, not_top_lt] },
+  { cases eq_or_lt_of_le (zero_le a) with ha ha;
+      cases eq_or_lt_of_le (zero_le b) with hb hb,
+    { subst a, subst b, simp },
+    { subst a, simp },
+    { subst b, simp [zero_lt_iff_ne_zero, lt_top_iff_ne_top, inv_ne_top] },
+    { rw [← coe_inv (ne_of_gt ha), ← coe_inv (ne_of_gt hb), coe_lt_coe, coe_lt_coe],
+      simp only [nnreal.coe_lt.symm] at *,
+      exact inv_lt_inv ha hb } }
+end
+
+lemma inv_lt_iff_inv_lt : a⁻¹ < b ↔ b⁻¹ < a :=
+by simpa only [inv_inv] using @inv_lt_inv a b⁻¹
+
+lemma lt_inv_iff_lt_inv : a < b⁻¹ ↔ b < a⁻¹ :=
+by simpa only [inv_inv] using @inv_lt_inv a⁻¹ b
+
+@[simp] lemma inv_le_inv : a⁻¹ ≤ b⁻¹ ↔ b ≤ a :=
+by simp only [le_iff_lt_or_eq, inv_lt_inv, inv_eq_inv, eq_comm]
+
+lemma inv_le_iff_inv_le : a⁻¹ ≤ b ↔ b⁻¹ ≤ a :=
+by simpa only [inv_inv] using @inv_le_inv a b⁻¹
+
+lemma le_inv_iff_le_inv : a ≤ b⁻¹ ↔ b ≤ a⁻¹ :=
+by simpa only [inv_inv] using @inv_le_inv a⁻¹ b
 
 lemma le_div_iff_mul_le : ∀{b}, b ≠ 0 → b ≠ ⊤ → (a ≤ c / b ↔ a * b ≤ c)
 | none     h0 ht := (ht rfl).elim
@@ -645,21 +686,8 @@ end
 
 lemma exists_inv_nat_lt {a : ennreal} (h : a ≠ 0) :
   ∃n:ℕ, (n:ennreal)⁻¹ < a :=
-begin
-  rcases dense (bot_lt_iff_ne_bot.2 h) with ⟨b, bz, ba⟩,
-  have bz' : b ≠ 0 := bot_lt_iff_ne_bot.1 bz,
-  have : b⁻¹ ≠ ⊤ := by simp [bz'],
-  rcases ennreal.exists_nat_gt this with ⟨n, bn⟩,
-  have I : ((n : ℕ) : ennreal)⁻¹ ≤ b := begin
-    rw [ennreal.inv_le_iff_le_mul, mul_comm, ← ennreal.inv_le_iff_le_mul],
-    exact le_of_lt bn,
-    simp only [h, ennreal.nat_ne_top, forall_prop_of_false, ne.def, not_false_iff],
-    exact λ_, ne_bot_of_gt bn,
-    exact λ_, ne_bot_of_gt bn,
-    exact λ_, bz'
-  end,
-  exact ⟨n, lt_of_le_of_lt I ba⟩
-end
+@inv_inv a ▸ by simp only [inv_lt_inv, ennreal.exists_nat_gt (inv_ne_top.2 h)]
+
 end inv
 
 section real

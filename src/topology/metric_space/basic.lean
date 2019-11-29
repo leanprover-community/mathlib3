@@ -767,6 +767,19 @@ section nnreal
 
 instance : metric_space nnreal := by unfold nnreal; apply_instance
 
+lemma nnreal.dist_eq (a b : nnreal) : dist a b = abs ((a:ℝ) - b) := rfl
+
+lemma nnreal.nndist_eq (a b : nnreal) :
+  nndist a b = max (a - b) (b - a) :=
+begin
+  wlog h : a ≤ b,
+  { apply nnreal.coe_eq.1,
+    rw [nnreal.sub_eq_zero h, max_eq_right (zero_le $ b - a), ← dist_nndist, nnreal.dist_eq,
+      nnreal.coe_sub h, abs, neg_sub],
+    apply max_eq_right,
+    linarith [nnreal.coe_le.2 h] },
+  rwa [nndist_comm, max_comm]
+end
 end nnreal
 
 section prod

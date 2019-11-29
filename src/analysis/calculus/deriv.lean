@@ -57,8 +57,8 @@ for Fréchet derivatives.
 
 universes u v w
 noncomputable theory
-open_locale classical
-open filter continuous_linear_map asymptotics set
+open_locale classical topological_space
+open filter asymptotics set
 
 set_option class.instance_max_depth 100
 
@@ -71,7 +71,7 @@ variables {F : Type v} [normed_group F] [normed_space 𝕜 F]
 That is, `f x' = f x + (x' - x) • f' + o(x' - x)` where `x'` converges along the filter `L`.
 -/
 def has_deriv_at_filter (f : 𝕜 → F) (f' : F) (x : 𝕜) (L : filter 𝕜) :=
-has_fderiv_at_filter f (smul_right 1 f' : 𝕜 →L[𝕜] F) x L
+has_fderiv_at_filter f (continuous_linear_map.smul_right 1 f' : 𝕜 →L[𝕜] F) x L
 
 /--
 `f` has the derivative `f'` at the point `x` within the subset `s`.
@@ -87,7 +87,7 @@ has_deriv_at_filter f f' x (nhds_within x s)
 That is, `f x' = f x + (x' - x) • f' + o(x' - x)` where `x'` converges to `x`.
 -/
 def has_deriv_at (f : 𝕜 → F) (f' : F) (x : 𝕜) :=
-has_deriv_at_filter f f' x (nhds x)
+has_deriv_at_filter f f' x (𝓝 x)
 
 /--
 Derivative of `f` at the point `x` within the set `s`, if it exists.  Zero otherwise.
@@ -113,17 +113,32 @@ variables {x : 𝕜}
 variables {s t : set 𝕜}
 variables {L L₁ L₂ : filter 𝕜}
 
+/-- Expressing `has_fderiv_at_filter f f' x L` in terms of `has_deriv_at_filter` -/
 lemma has_fderiv_at_filter_iff_has_deriv_at_filter {f' : 𝕜 →L[𝕜] F} :
   has_fderiv_at_filter f f' x L ↔ has_deriv_at_filter f (f' 1) x L :=
 by simp [has_deriv_at_filter]
 
+/-- Expressing `has_fderiv_within_at f f' s x` in terms of `has_deriv_within_at` -/
 lemma has_fderiv_within_at_iff_has_deriv_within_at {f' : 𝕜 →L[𝕜] F} :
   has_fderiv_within_at f f' s x ↔ has_deriv_within_at f (f' 1) s x :=
 by simp [has_deriv_within_at, has_deriv_at_filter, has_fderiv_within_at]
 
+/-- Expressing `has_deriv_within_at f f' s x` in terms of `has_fderiv_within_at` -/
+lemma has_deriv_within_at_iff_has_fderiv_within_at {f' : F} :
+  has_deriv_within_at f f' s x ↔
+  has_fderiv_within_at f (continuous_linear_map.smul_right 1 f' : 𝕜 →L[𝕜] F) s x :=
+iff.rfl
+
+/-- Expressing `has_fderiv_at f f' x` in terms of `has_deriv_at` -/
 lemma has_fderiv_at_iff_has_deriv_at {f' : 𝕜 →L[𝕜] F} :
   has_fderiv_at f f' x ↔ has_deriv_at f (f' 1) x :=
 by simp [has_deriv_at, has_deriv_at_filter, has_fderiv_at]
+
+/-- Expressing `has_deriv_at f f' x` in terms of `has_fderiv_at` -/
+lemma has_deriv_at_iff_has_fderiv_at {f' : F} :
+  has_deriv_at f f' x ↔
+  has_fderiv_at f (continuous_linear_map.smul_right 1 f' : 𝕜 →L[𝕜] F) x :=
+iff.rfl
 
 lemma deriv_within_zero_of_not_differentiable_within_at
   (h : ¬ differentiable_within_at 𝕜 f s x) : deriv_within f s x = 0 :=
@@ -134,20 +149,24 @@ by { unfold deriv, rw fderiv_zero_of_not_differentiable_at, simp, assumption }
 
 theorem unique_diff_within_at.eq_deriv (s : set 𝕜) (H : unique_diff_within_at 𝕜 s x)
   (h : has_deriv_within_at f f' s x) (h₁ : has_deriv_within_at f f₁' s x) : f' = f₁' :=
-smul_right_one_eq_iff.mp $ unique_diff_within_at.eq H h h₁
+continuous_linear_map.smul_right_one_eq_iff.mp $ unique_diff_within_at.eq H h h₁
 
 theorem has_deriv_at_filter_iff_tendsto :
   has_deriv_at_filter f f' x L ↔
-  tendsto (λ x' : 𝕜, ∥x' - x∥⁻¹ * ∥f x' - f x - (x' - x) • f'∥) L (nhds 0) :=
+  tendsto (λ x' : 𝕜, ∥x' - x∥⁻¹ * ∥f x' - f x - (x' - x) • f'∥) L (𝓝 0) :=
 has_fderiv_at_filter_iff_tendsto
 
 theorem has_deriv_within_at_iff_tendsto : has_deriv_within_at f f' s x ↔
-  tendsto (λ x', ∥x' - x∥⁻¹ * ∥f x' - f x - (x' - x) • f'∥) (nhds_within x s) (nhds 0) :=
+  tendsto (λ x', ∥x' - x∥⁻¹ * ∥f x' - f x - (x' - x) • f'∥) (nhds_within x s) (𝓝 0) :=
 has_fderiv_at_filter_iff_tendsto
 
 theorem has_deriv_at_iff_tendsto : has_deriv_at f f' x ↔
-  tendsto (λ x', ∥x' - x∥⁻¹ * ∥f x' - f x - (x' - x) • f'∥) (nhds x) (nhds 0) :=
+  tendsto (λ x', ∥x' - x∥⁻¹ * ∥f x' - f x - (x' - x) • f'∥) (𝓝 x) (𝓝 0) :=
 has_fderiv_at_filter_iff_tendsto
+
+theorem has_deriv_at_iff_is_o_nhds_zero : has_deriv_at f f' x ↔
+  is_o (λh, f (x + h) - f x - h • f') (λh, h) (𝓝 0) :=
+has_fderiv_at_iff_is_o_nhds_zero
 
 theorem has_deriv_at_filter.mono (h : has_deriv_at_filter f f' x L₂) (hst : L₁ ≤ L₂) :
   has_deriv_at_filter f f' x L₁ :=
@@ -157,7 +176,7 @@ theorem has_deriv_within_at.mono (h : has_deriv_within_at f f' t x) (hst : s ⊆
   has_deriv_within_at f f' s x :=
 has_fderiv_within_at.mono h hst
 
-theorem has_deriv_at.has_deriv_at_filter (h : has_deriv_at f f' x) (hL : L ≤ nhds x) :
+theorem has_deriv_at.has_deriv_at_filter (h : has_deriv_at f f' x) (hL : L ≤ 𝓝 x) :
   has_deriv_at_filter f f' x L :=
 has_fderiv_at.has_fderiv_at_filter h hL
 
@@ -177,13 +196,13 @@ has_fderiv_within_at_univ
 
 theorem has_deriv_at_unique
   (h₀ : has_deriv_at f f₀' x) (h₁ : has_deriv_at f f₁' x) : f₀' = f₁' :=
-smul_right_one_eq_iff.mp $ has_fderiv_at_unique h₀ h₁
+continuous_linear_map.smul_right_one_eq_iff.mp $ has_fderiv_at_unique h₀ h₁
 
 lemma has_deriv_within_at_inter' (h : t ∈ nhds_within x s) :
   has_deriv_within_at f f' (s ∩ t) x ↔ has_deriv_within_at f f' s x :=
 has_fderiv_within_at_inter' h
 
-lemma has_deriv_within_at_inter (h : t ∈ nhds x) :
+lemma has_deriv_within_at_inter (h : t ∈ 𝓝 x) :
   has_deriv_within_at f f' (s ∩ t) x ↔ has_deriv_within_at f f' s x :=
 has_fderiv_within_at_inter h
 
@@ -205,13 +224,15 @@ hxs.eq_deriv _ h.differentiable_within_at.has_deriv_within_at h
 lemma fderiv_within_deriv_within : (fderiv_within 𝕜 f s x : 𝕜 → F) 1 = deriv_within f s x :=
 rfl
 
-lemma deriv_within_fderiv_within : smul_right 1 (deriv_within f s x) = fderiv_within 𝕜 f s x :=
+lemma deriv_within_fderiv_within :
+  continuous_linear_map.smul_right 1 (deriv_within f s x) = fderiv_within 𝕜 f s x :=
 by simp [deriv_within]
 
 lemma fderiv_deriv : (fderiv 𝕜 f x : 𝕜 → F) 1 = deriv f x :=
 rfl
 
-lemma deriv_fderiv : smul_right 1 (deriv f x) = fderiv 𝕜 f x :=
+lemma deriv_fderiv :
+  continuous_linear_map.smul_right 1 (deriv f x) = fderiv 𝕜 f x :=
 by simp [deriv]
 
 lemma differentiable_at.deriv_within (h : differentiable_at 𝕜 f x)
@@ -226,7 +247,7 @@ lemma deriv_within_subset (st : s ⊆ t) (ht : unique_diff_within_at 𝕜 s x)
 @[simp] lemma deriv_within_univ : deriv_within f univ = deriv f :=
 by { ext, unfold deriv_within deriv, rw fderiv_within_univ }
 
-lemma deriv_within_inter (ht : t ∈ nhds x) (hs : unique_diff_within_at 𝕜 s x) :
+lemma deriv_within_inter (ht : t ∈ 𝓝 x) (hs : unique_diff_within_at 𝕜 s x) :
   deriv_within f (s ∩ t) x = deriv_within f s x :=
 by { unfold deriv_within, rw fderiv_within_inter ht hs }
 
@@ -250,7 +271,7 @@ lemma has_deriv_within_at.congr_of_mem_nhds_within (h : has_deriv_within_at f f'
 has_deriv_at_filter.congr_of_mem_sets h h₁ hx
 
 lemma has_deriv_at.congr_of_mem_nhds (h : has_deriv_at f f' x)
-  (h₁ : {y | f₁ y = f y} ∈ nhds x) : has_deriv_at f₁ f' x :=
+  (h₁ : {y | f₁ y = f y} ∈ 𝓝 x) : has_deriv_at f₁ f' x :=
 has_deriv_at_filter.congr_of_mem_sets h h₁ (mem_of_nhds h₁ : _)
 
 lemma deriv_within_congr_of_mem_nhds_within (hs : unique_diff_within_at 𝕜 s x)
@@ -263,7 +284,7 @@ lemma deriv_within_congr (hs : unique_diff_within_at 𝕜 s x)
   deriv_within f₁ s x = deriv_within f s x :=
 by { unfold deriv_within, rw fderiv_within_congr hs hL hx }
 
-lemma deriv_congr_of_mem_nhds (hL : {y | f₁ y = f y} ∈ nhds x) : deriv f₁ x = deriv f x :=
+lemma deriv_congr_of_mem_nhds (hL : {y | f₁ y = f y} ∈ 𝓝 x) : deriv f₁ x = deriv f x :=
 by { unfold deriv, rwa fderiv_congr_of_mem_nhds }
 
 end congr
@@ -294,7 +315,7 @@ section const
 variables (c : F) (s x L)
 
 theorem has_deriv_at_filter_const : has_deriv_at_filter (λ x, c) 0 x L :=
-(is_o_zero _ _).congr_left $ λ _, by simp [zero_apply, sub_self]
+(is_o_zero _ _).congr_left $ λ _, by simp [continuous_linear_map.zero_apply, sub_self]
 
 theorem has_deriv_within_at_const : has_deriv_within_at (λ x, c) 0 s x :=
 has_deriv_at_filter_const _ _ _
@@ -445,8 +466,8 @@ end sub
 section continuous
 
 theorem has_deriv_at_filter.tendsto_nhds
-  (hL : L ≤ nhds x) (h : has_deriv_at_filter f f' x L) :
-  tendsto f L (nhds (f x)) :=
+  (hL : L ≤ 𝓝 x) (h : has_deriv_at_filter f f' x L) :
+  tendsto f L (𝓝 (f x)) :=
 has_fderiv_at_filter.tendsto_nhds hL h
 
 theorem has_deriv_within_at.continuous_within_at
@@ -491,8 +512,9 @@ theorem has_deriv_at_filter.comp
   (hg : has_deriv_at_filter g g' (h x) (L.map h))
   (hh : has_deriv_at_filter h h' x L) :
   has_deriv_at_filter (g ∘ h) (h' • g') x L :=
-have (smul_right 1 g' : 𝕜 →L[𝕜] _).comp (smul_right 1 h' : 𝕜 →L[𝕜] _) =
-    smul_right 1 (h' • g'), by { ext, simp [mul_smul] },
+have (continuous_linear_map.smul_right 1 g' : 𝕜 →L[𝕜] _).comp
+      (continuous_linear_map.smul_right 1 h' : 𝕜 →L[𝕜] _) =
+    continuous_linear_map.smul_right 1 (h' • g'), by { ext, simp [mul_smul] },
 begin
   unfold has_deriv_at_filter,
   rw ← this,

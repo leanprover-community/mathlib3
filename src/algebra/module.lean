@@ -5,7 +5,7 @@ Authors: Nathaniel Thomas, Jeremy Avigad, Johannes Hölzl, Mario Carneiro
 
 Modules over a ring.
 
-## Implemetation notes
+## Implementation notes
 
 
 Throughout the `linear_map` section implicit `{}` brackets are often used instead of type class `[]` brackets.

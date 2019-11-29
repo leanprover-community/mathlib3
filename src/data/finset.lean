@@ -754,11 +754,7 @@ range_succ
 
 @[simp] theorem range_subset {n m} : range n ⊆ range m ↔ n ≤ m := range_subset
 
-theorem exists_nat_subset_range (s : finset ℕ) : ∃n : ℕ, s ⊆ range n :=
-finset.induction_on s ⟨0, empty_subset _⟩ $ λ a s ha ⟨n, hn⟩,
-⟨max (a + 1) n, insert_subset.2
-  ⟨by simpa only [mem_range] using le_max_left (a+1) n,
-  subset.trans hn (by simpa only [range_subset] using le_max_right (a+1) n)⟩⟩
+theorem range_mono : monotone range := λ _ _, range_subset.2
 
 end range
 
@@ -985,6 +981,8 @@ eq_of_veq $ by simp only [image_val, erase_dup_map_erase_dup_eq, multiset.map_ma
 
 theorem image_subset_image {s₁ s₂ : finset α} (h : s₁ ⊆ s₂) : s₁.image f ⊆ s₂.image f :=
 by simp only [subset_def, image_val, subset_erase_dup', erase_dup_subset', multiset.map_subset_map h]
+
+theorem image_mono (f : α → β) : monotone (finset.image f) := λ _ _, image_subset_image
 
 theorem image_filter {p : β → Prop} [decidable_pred p] :
   (s.image f).filter p = (s.filter (p ∘ f)).image f :=
@@ -1565,6 +1563,12 @@ begin
 end,
 by letI := classical.dec_eq β; from
 finset.induction_on s (by simp [bot]) (by simp [A] {contextual := tt})
+
+theorem subset_range_sup_succ (s : finset ℕ) : s ⊆ range (s.sup id).succ :=
+λ n hn, mem_range.2 $ nat.lt_succ_of_le $ le_sup hn
+
+theorem exists_nat_subset_range (s : finset ℕ) : ∃n : ℕ, s ⊆ range n :=
+⟨_, s.subset_range_sup_succ⟩
 
 end sup
 

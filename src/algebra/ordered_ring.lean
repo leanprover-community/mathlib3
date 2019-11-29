@@ -362,7 +362,9 @@ end prio
 namespace canonically_ordered_semiring
 open canonically_ordered_monoid
 
-lemma mul_le_mul [canonically_ordered_comm_semiring α] {a b c d : α} (hab : a ≤ b) (hcd : c ≤ d) :
+variable [canonically_ordered_comm_semiring α]
+
+lemma mul_le_mul {a b c d : α} (hab : a ≤ b) (hcd : c ≤ d) :
   a * c ≤ b * d :=
 begin
   rcases (le_iff_exists_add _ _).1 hab with ⟨b, rfl⟩,
@@ -370,6 +372,13 @@ begin
   suffices : a * c ≤ a * c + (a * d + b * c + b * d), by simpa [mul_add, add_mul],
   exact (le_iff_exists_add _ _).2 ⟨_, rfl⟩
 end
+
+/-- A version of `zero_lt_one : 0 < 1` for a `canonically_ordered_comm_semiring`. -/
+lemma zero_lt_one : (0:α) < 1 := lt_of_le_of_ne (zero_le 1) zero_ne_one
+
+lemma mul_pos {a b : α} : 0 < a * b ↔ (0 < a) ∧ (0 < b) :=
+by simp only [zero_lt_iff_ne_zero, ne.def, canonically_ordered_comm_semiring.mul_eq_zero_iff,
+  not_or_distrib]
 
 end canonically_ordered_semiring
 

@@ -54,6 +54,7 @@ instance smul.is_add_monoid_hom {r : α} : is_add_monoid_hom (λ x : β, r • x
 lemma semimodule.eq_zero_of_zero_eq_one (zero_eq_one : (0 : α) = 1) : x = 0 :=
 by rw [←one_smul α x, ←zero_eq_one, zero_smul]
 
+/-- R-linearity of finite sums of elements of an R-semimodule. -/
 lemma finset.sum_smul' {α : Type*} {R : Type*} [semiring R] {M : Type*} [add_comm_monoid M]
   [semimodule R M] (s : finset α) (r : R) (f : α → M) :
     finset.sum s (λ (x : α), (r • (f x))) = r • (finset.sum s f) :=

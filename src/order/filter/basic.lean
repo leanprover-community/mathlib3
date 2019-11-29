@@ -1579,16 +1579,13 @@ lemma tendsto_at_top_at_top_of_monotone [nonempty α] [semilattice_sup α] [preo
 alias tendsto_at_top_at_top_of_monotone ← monotone.tendsto_at_top_at_top
 
 lemma tendsto_finset_range : tendsto finset.range at_top at_top :=
-(tendsto_at_top_at_top _).2 (λ s, ⟨s.sup id + 1, λ N hN n hn,
-  finset.mem_range.2 $ lt_of_le_of_lt (finset.le_sup hn) $ nat.lt_of_succ_le hN⟩)
+finset.range_mono.tendsto_at_top_at_top.2 finset.exists_nat_subset_range
 
 lemma tendsto_finset_image_at_top_at_top {i : β → γ} {j : γ → β} (h : ∀x, j (i x) = x) :
-  tendsto (λs:finset γ, s.image j) at_top at_top :=
-tendsto_infi.2 $ assume s, tendsto_infi' (s.image i) $ tendsto_principal_principal.2 $
-  assume t (ht : s.image i ⊆ t),
-  calc s = (s.image i).image j :
-      by simp only [finset.image_image, (∘), h]; exact finset.image_id.symm
-    ... ⊆  t.image j : finset.image_subset_image ht
+  tendsto (finset.image j) at_top at_top :=
+have j ∘ i = id, from funext h,
+(finset.image_mono j).tendsto_at_top_at_top.2 $ assume s,
+  ⟨s.image i, by simp only [finset.image_image, this, finset.image_id, le_refl]⟩
 
 lemma prod_at_top_at_top_eq {β₁ β₂ : Type*} [inhabited β₁] [inhabited β₂] [semilattice_sup β₁]
   [semilattice_sup β₂] : filter.prod (@at_top β₁ _) (@at_top β₂ _) = @at_top (β₁ × β₂) _ :=

@@ -64,7 +64,7 @@ variable {α : Type*}
 open filter
 
 lemma continuous_of_real : continuous nnreal.of_real :=
-continuous_subtype_mk _ $ continuous_max continuous_id continuous_const
+continuous_subtype_mk _ $ continuous.max continuous_id continuous_const
 
 lemma continuous_coe : continuous (coe : nnreal → ℝ) :=
 continuous_subtype_val
@@ -83,7 +83,7 @@ lemma tendsto_sub {f : filter α} {m n : α → nnreal} {r p : nnreal}
 tendsto_of_real $ tendsto_sub (tendsto_coe.2 hm) (tendsto_coe.2 hn)
 
 lemma continuous_sub : continuous (λp:nnreal×nnreal, p.1 - p.2) :=
-  continuous_subtype_mk _ (continuous_max
+  continuous_subtype_mk _ (continuous.max
     (continuous.sub (continuous.comp continuous_coe continuous_fst)
                     (continuous.comp continuous_coe continuous_snd))
                                                       continuous_const)

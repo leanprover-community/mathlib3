@@ -134,11 +134,11 @@ lemma frontier_lt_subset_eq : frontier {b | f b < g b} ⊆ {b | f b = g b} :=
 by rw ← frontier_compl;
    convert frontier_le_subset_eq hg hf; simp [ext_iff, eq_comm]
 
-lemma continuous_max : continuous (λb, max (f b) (g b)) :=
+lemma continuous.max : continuous (λb, max (f b) (g b)) :=
 have ∀b∈frontier {b | f b ≤ g b}, g b = f b, from assume b hb, (frontier_le_subset_eq hf hg hb).symm,
 continuous_if this hg hf
 
-lemma continuous_min : continuous (λb, min (f b) (g b)) :=
+lemma continuous.min : continuous (λb, min (f b) (g b)) :=
 have ∀b∈frontier {b | f b ≤ g b}, f b = g b, from assume b hb, frontier_le_subset_eq hf hg hb,
 continuous_if this hf hg
 
@@ -150,7 +150,7 @@ show tendsto ((λp:α×α, max p.1 p.2) ∘ (λb, (f b, g b))) b (𝓝 (max a₁
   from tendsto.comp
     begin
       rw [←nhds_prod_eq],
-      from continuous_iff_continuous_at.mp (continuous_max continuous_fst continuous_snd) _
+      from continuous_iff_continuous_at.mp (continuous.max continuous_fst continuous_snd) _
     end
     (hf.prod_mk hg)
 
@@ -160,7 +160,7 @@ show tendsto ((λp:α×α, min p.1 p.2) ∘ (λb, (f b, g b))) b (𝓝 (min a₁
   from tendsto.comp
     begin
       rw [←nhds_prod_eq],
-      from continuous_iff_continuous_at.mp (continuous_min continuous_fst continuous_snd) _
+      from continuous_iff_continuous_at.mp (continuous.min continuous_fst continuous_snd) _
     end
     (hf.prod_mk hg)
 

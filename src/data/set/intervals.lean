@@ -10,8 +10,8 @@ import tactic.tauto
 /-!
 # Intervals
 
-In any preorder `α`, we define intervals (which on each side can be either infinie, open, or closed).
-The naming conventions are as follows:
+In any preorder `α`, we define intervals (which on each side can be either infinite, open, or
+closed) using the following naming conventions:
 - `i`: infinite
 - `o`: open
 - `c`: closed
@@ -23,7 +23,7 @@ This file contains these definitions, and basic facts on inclusion, intersection
 intervals (where the precise statements may depend on the properties of the order, in particular
 for some statements it should be `linear_order` or `densely_ordered`).
 
-It also contains statements on lower and upper bounds of intervals.
+This file also contains statements on lower and upper bounds of intervals.
 
 TODO: This is just the beginning; a lot of rules are missing
 -/
@@ -214,20 +214,16 @@ lemma Icc_subset_Ici_iff (h₁ : a₁ ≤ b₁) :
   Icc a₁ b₁ ⊆ Ici a₂ ↔ a₂ ≤ a₁ :=
 ⟨λ h, h ⟨le_refl _, h₁⟩, λ h x ⟨hx, hx'⟩, le_trans h hx⟩
 
-lemma Ioi_subset_Ioi (h : a ≤ b) :
-  Ioi b ⊆ Ioi a :=
+lemma Ioi_subset_Ioi (h : a ≤ b) : Ioi b ⊆ Ioi a :=
 λx hx, lt_of_le_of_lt h hx
 
-lemma Ioi_subset_Ici (h : a ≤ b) :
-  Ioi b ⊆ Ici a :=
+lemma Ioi_subset_Ici (h : a ≤ b) : Ioi b ⊆ Ici a :=
 subset.trans (Ioi_subset_Ioi h) Ioi_subset_Ici_self
 
-lemma Iio_subset_Iio (h : a ≤ b) :
-  Iio a ⊆ Iio b :=
+lemma Iio_subset_Iio (h : a ≤ b) : Iio a ⊆ Iio b :=
 λx hx, lt_of_lt_of_le hx h
 
-lemma Iio_subset_Iic (h : a ≤ b) :
-  Iio a ⊆ Iic b :=
+lemma Iio_subset_Iic (h : a ≤ b) : Iio a ⊆ Iic b :=
 subset.trans (Iio_subset_Iio h) Iio_subset_Iic_self
 
 lemma Ici_inter_Iic : Ici a ∩ Iic b = Icc a b := rfl

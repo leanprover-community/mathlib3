@@ -99,12 +99,12 @@ begin
   rw [nhds_eq_comap_uniformity, filter.comap_comap_comp],
   refine le_antisymm (filter.map_le_iff_le_comap.1 _) _,
   { assume s hs,
-    rcases mem_uniformity_of_uniform_continuous.invarant uniform_continuous_sub hs with ⟨t, ht, hts⟩,
+    rcases mem_uniformity_of_uniform_continuous_invariant uniform_continuous_sub hs with ⟨t, ht, hts⟩,
     refine mem_map.2 (mem_sets_of_superset ht _),
     rintros ⟨a, b⟩,
     simpa [subset_def] using hts a b a },
   { assume s hs,
-    rcases mem_uniformity_of_uniform_continuous.invarant uniform_continuous_add hs with ⟨t, ht, hts⟩,
+    rcases mem_uniformity_of_uniform_continuous_invariant uniform_continuous_add hs with ⟨t, ht, hts⟩,
     refine ⟨_, ht, _⟩,
     rintros ⟨a, b⟩, simpa [subset_def] using hts 0 (b - a) a }
 end

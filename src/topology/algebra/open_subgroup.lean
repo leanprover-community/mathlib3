@@ -113,7 +113,7 @@ begin
     convert is_submonoid.mul_mem (is_subgroup.inv_mem hux) hu,
     simp },
   split,
-  { exact (continuous.mul_right _) _ U.is_open },
+  { exact (continuous_mul_right _) _ U.is_open },
   { simpa using is_submonoid.one_mem (U : set G) }
 end
 

@@ -45,11 +45,11 @@ lemma continuous.mul [topological_space β] {f : β → α} {g : β → α}
 continuous_mul.comp (hf.prod_mk hg)
 
 @[to_additive]
-lemma continuous.mul_left (a : α) : continuous (λ b:α, a * b) :=
+lemma continuous_mul_left (a : α) : continuous (λ b:α, a * b) :=
 continuous.mul continuous_const continuous_id
 
 @[to_additive]
-lemma continuous.mul_right (a : α) : continuous (λ b:α, b * a) :=
+lemma continuous_mul_right (a : α) : continuous (λ b:α, b * a) :=
 continuous.mul continuous_id continuous_const
 
 @[to_additive]
@@ -125,14 +125,14 @@ lemma tendsto_finset_prod {f : γ → β → α} {x : filter β} {a : γ → α}
 tendsto_multiset_prod _
 
 @[to_additive]
-lemma continuous.multiset_prod [topological_space β] {f : γ → β → α} (s : multiset γ) :
+lemma continuous_multiset_prod [topological_space β] {f : γ → β → α} (s : multiset γ) :
   (∀c∈s, continuous (f c)) → continuous (λa, (s.map (λc, f c a)).prod) :=
 by { rcases s with ⟨l⟩, simp, exact continuous_list_prod l }
 
 @[to_additive]
 lemma continuous_finset_prod [topological_space β] {f : γ → β → α} (s : finset γ) :
   (∀c∈s, continuous (f c)) → continuous (λa, s.prod (λc, f c a)) :=
-continuous.multiset_prod _
+continuous_multiset_prod _
 
 end
 

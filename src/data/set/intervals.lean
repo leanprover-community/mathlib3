@@ -468,7 +468,6 @@ begin
   exact lt_irrefl _ (lt_of_lt_of_le az.2 (hy ⟨le_of_lt az.1, zy⟩))
 end
 
-
 end decidable_linear_order
 
 section ordered_comm_group

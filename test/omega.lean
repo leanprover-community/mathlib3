@@ -3,6 +3,7 @@ Test cases for omega. Most of the examples are from John Harrison's
 Handbook of Practical Logic and Automated Reasoning.
 -/
 
+import data.fintype
 import tactic.omega
 
 example (n : ℤ) : n - 1 ≠ n := by omega
@@ -39,6 +40,7 @@ example (a b c : ℕ) (h : a < b + 1) (ha : c.prime) : a ≤ b := by omega
 example (a b : ℕ) (h : a < b + 1) (p : fin a) : a ≤ b := by omega
 example : nat.zero = nat.zero := by omega
 example : 3 < 4 := by omega
+example {X : Type} [fintype X] (n k : ℕ) (hk : k + 1 ≤ n) : n - k = n - (k + 1) + 1 := by omega
 example (n : ℕ) (G_C G_L : list ℤ) (hG : G_C.length + G_L.length = n + 1)
   (iv : ℕ) (hi : iv < G_C.length) : iv + (G_C.length - iv - 1) + G_L.length = n := by omega
 

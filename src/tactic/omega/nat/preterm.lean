@@ -13,12 +13,24 @@ open tactic
 namespace omega
 namespace nat
 
+/-
+The shadow syntax for arithmetic terms. All constants are reified to `cst`
+(e.g., `5` is reified to `cst 5`) and all other atomic terms are reified to
+`exp` (e.g., `5 * (list.length l)` is reified to `exp 5 \`(list.length l)`).
+`exp` accepts a coefficient of type `nat` as its first argument because
+multiplication by constant is allowed by the omega test.
+-/
 meta inductive exprterm : Type
 | cst : nat → exprterm
 | exp : nat → expr → exprterm
 | add : exprterm → exprterm → exprterm
 | sub : exprterm → exprterm → exprterm
 
+/-
+Similar to `exprterm`, except that all exprs are now replaced with
+de Brujin indices of type `nat`. This is akin to generalizing over
+the terms represented by the said exprs.
+-/
 @[derive has_reflect, derive decidable_eq]
 inductive preterm : Type
 | cst : nat → preterm
@@ -71,6 +83,10 @@ def fresh_index : preterm → nat
 | (t1 +* t2) := max t1.fresh_index t2.fresh_index
 | (t1 -* t2) := max t1.fresh_index t2.fresh_index
 
+/-
+If variable assignments `v` and `w` agree on all variables that occur
+in term `t`, the value of `t` under `v` and `w` are identical.
+-/
 lemma val_constant (v w : nat → nat) :
   ∀ t : preterm, (∀ x < t.fresh_index, v x = w x) →
   t.val v = t.val w

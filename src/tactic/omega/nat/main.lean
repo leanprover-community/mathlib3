@@ -248,6 +248,10 @@ meta def intro_nats : tactic unit :=
 do (expr.pi _ _ `(nat) _) ← target,
    intro_nats_core
 
+/-
+If the goal has universal quantifiers over natural, introduce all of them.
+Otherwise, revert all hypotheses that are formulas of linear natural number arithmetic.
+-/
 meta def preprocess : tactic unit :=
 intro_nats <|> (revert_cond_all wfx >> desugar)
 
@@ -256,5 +260,8 @@ end omega
 
 open omega.nat
 
+/-
+The core omega tactic for natural numbers
+-/
 meta def omega_nat (is_manual : bool) : tactic unit :=
 desugar ; (if is_manual then skip else preprocess) ; prove >>= apply >> skip

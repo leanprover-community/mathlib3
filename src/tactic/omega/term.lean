@@ -56,7 +56,6 @@ begin
     val, add_comm, add_left_comm]
 end
 
-
 @[simp] lemma val_mul {v : nat → int} {i : int} {t : term} :
 val v (mul i t) = i * (val v t) :=
 begin

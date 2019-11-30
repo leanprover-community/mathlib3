@@ -213,6 +213,10 @@ meta def intro_ints : tactic unit :=
 do (expr.pi _ _ `(int) _) ← target,
    intro_ints_core
 
+/-
+If the goal has universal quantifiers over integers, introduce all of them.
+Otherwise, revert all hypotheses that are formulas of linear integer arithmetic.
+-/
 meta def preprocess : tactic unit :=
 intro_ints <|> (revert_cond_all wfx >> desugar)
 
@@ -221,5 +225,8 @@ end omega
 
 open omega.int
 
+/-
+The core omega tactic for integers
+-/
 meta def omega_int (is_manual : bool) : tactic unit :=
 desugar ; (if is_manual then skip else preprocess) ; prove >>= apply >> skip

@@ -14,12 +14,6 @@ namespace omega
 
 open tactic
 
--- meta def revert_cond (t : expr → tactic unit) (x : expr) : tactic unit :=
--- (t x >> revert x >> skip) <|> skip
---
--- meta def revert_cond_all (t : expr → tactic unit) : tactic unit :=
--- do hs ← local_context, mmap (revert_cond t) hs, skip
-
 meta def select_domain (t s : tactic (option bool)) : tactic (option bool) :=
 do a ← t, b ← s,
    match a, b with
@@ -44,7 +38,6 @@ Detects domain of a formula from its expr.
 - Returns some ff, if domain is exclusively ℕ
 - Fails, if domain is neither ℤ nor ℕ
 -/
-
 meta def form_domain : expr → tactic (option bool)
 | `(¬ %%px)      := form_domain px
 | `(%%px ∨ %%qx) := select_domain (form_domain px) (form_domain qx)
@@ -65,32 +58,6 @@ meta def form_domain : expr → tactic (option bool)
 | `(false)                   := return none
 | x                          := failed
 
-meta def form_wf (x : expr) : tactic bool :=
-(form_domain x >> return tt) <|> return ff
-
-meta def term_domain (x : expr) : tactic (option bool) :=
-infer_type x >>= type_domain
-
-meta def is_lia_form (x : expr) : tactic unit :=
-do (some tt) ← infer_type x >>= form_domain, skip
-
-meta def is_lia_term (x : expr) : tactic unit :=
-do (some tt) ← term_domain x, skip
-
-meta def rev_lia : tactic unit :=
-do revert_cond_all is_lia_form,
-   revert_cond_all is_lia_term
-
-meta def is_lna_form (x : expr) : tactic unit :=
-do (some ff) ← infer_type x >>= form_domain, skip
-
-meta def is_lna_term (x : expr) : tactic unit :=
-do (some ff) ← term_domain x, skip
-
-meta def rev_lna : tactic unit :=
-do revert_cond_all is_lna_form,
-   revert_cond_all is_lna_term
-
 meta def goal_domain_aux (x : expr) : tactic bool :=
 (omega.int.wff x >> return tt) <|> (omega.nat.wff x >> return ff)
 
@@ -99,32 +66,12 @@ do gx ← target,
    hxs ← local_context >>= monad.mapm infer_type,
    app_first goal_domain_aux (gx::hxs)
 
-meta def clear_unused_hyp (hx : expr) : tactic unit :=
-do x ← infer_type hx,
-   b ← form_wf x,
-   if (b ∨ x = `(nat) ∨ x = `(int))
-   then skip
-   else clear hx >> skip
-
-meta def clear_unused_hyps : tactic unit :=
-local_context >>= mmap' clear_unused_hyp
-
 meta def determine_domain (opt : list name) : tactic bool :=
 if `int ∈ opt
 then return tt
 else if `nat ∈ opt
      then return ff
      else goal_domain
-
-meta def preprocess (opt : list name) : tactic unit :=
-if `manual ∈ opt
-then skip
-else -- clear_unused_hyps >>
-     if `int ∈ opt
-     then rev_lia
-     else if `nat ∈ opt
-          then rev_lna
-          else monad.cond goal_domain rev_lia rev_lna
 
 end omega
 

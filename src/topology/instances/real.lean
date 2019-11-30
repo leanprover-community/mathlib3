@@ -78,30 +78,30 @@ theorem embedding_of_rat : embedding (coe : ℚ → ℝ) := dense_embedding_of_r
 
 theorem continuous_of_rat : continuous (coe : ℚ → ℝ) := uniform_continuous_of_rat.continuous
 
-theorem real.uniform_continuous_add : uniform_continuous (λp : ℝ × ℝ, p.1 + p.2) :=
+theorem real.uniform_continuous.add : uniform_continuous (λp : ℝ × ℝ, p.1 + p.2) :=
 metric.uniform_continuous_iff.2 $ λ ε ε0,
 let ⟨δ, δ0, Hδ⟩ := rat_add_continuous_lemma abs ε0 in
 ⟨δ, δ0, λ a b h, let ⟨h₁, h₂⟩ := max_lt_iff.1 h in Hδ h₁ h₂⟩
 
 -- TODO(Mario): Find a way to use rat_add_continuous_lemma
-theorem rat.uniform_continuous_add : uniform_continuous (λp : ℚ × ℚ, p.1 + p.2) :=
+theorem rat.uniform_continuous.add : uniform_continuous (λp : ℚ × ℚ, p.1 + p.2) :=
 uniform_embedding_of_rat.to_uniform_inducing.uniform_continuous_iff.2 $ by simp [(∘)]; exact
-real.uniform_continuous_add.comp ((uniform_continuous_of_rat.comp uniform_continuous_fst).prod_mk
+real.uniform_continuous.add.comp ((uniform_continuous_of_rat.comp uniform_continuous_fst).prod_mk
   (uniform_continuous_of_rat.comp uniform_continuous_snd))
 
-theorem real.uniform_continuous_neg : uniform_continuous (@has_neg.neg ℝ _) :=
+theorem real.uniform_continuous.neg : uniform_continuous (@has_neg.neg ℝ _) :=
 metric.uniform_continuous_iff.2 $ λ ε ε0, ⟨_, ε0, λ a b h,
   by rw dist_comm at h; simpa [real.dist_eq] using h⟩
 
-theorem rat.uniform_continuous_neg : uniform_continuous (@has_neg.neg ℚ _) :=
+theorem rat.uniform_continuous.neg : uniform_continuous (@has_neg.neg ℚ _) :=
 metric.uniform_continuous_iff.2 $ λ ε ε0, ⟨_, ε0, λ a b h,
   by rw dist_comm at h; simpa [rat.dist_eq] using h⟩
 
 instance : uniform_add_group ℝ :=
-uniform_add_group.mk' real.uniform_continuous_add real.uniform_continuous_neg
+uniform_add_group.mk' real.uniform_continuous.add real.uniform_continuous.neg
 
 instance : uniform_add_group ℚ :=
-uniform_add_group.mk' rat.uniform_continuous_add rat.uniform_continuous_neg
+uniform_add_group.mk' rat.uniform_continuous.add rat.uniform_continuous.neg
 
  -- short-circuit type class inference
 instance : topological_add_group ℝ := by apply_instance
@@ -134,7 +134,7 @@ _
 lemma uniform_embedding_mul_rat {q : ℚ} (hq : q ≠ 0) : uniform_embedding ((*) q) :=
 _ -/
 
-lemma real.uniform_continuous_inv (s : set ℝ) {r : ℝ} (r0 : 0 < r) (H : ∀ x ∈ s, r ≤ abs x) :
+lemma real.uniform_continuous.inv (s : set ℝ) {r : ℝ} (r0 : 0 < r) (H : ∀ x ∈ s, r ≤ abs x) :
   uniform_continuous (λp:s, p.1⁻¹) :=
 metric.uniform_continuous_iff.2 $ λ ε ε0,
 let ⟨δ, δ0, Hδ⟩ := rat_inv_continuous_lemma abs ε0 r0 in
@@ -158,19 +158,19 @@ rat.uniform_continuous_abs.continuous
 lemma real.tendsto_inv {r : ℝ} (r0 : r ≠ 0) : tendsto (λq, q⁻¹) (𝓝 r) (𝓝 r⁻¹) :=
 by rw ← abs_pos_iff at r0; exact
 tendsto_of_uniform_continuous_subtype
-  (real.uniform_continuous_inv {x | abs r / 2 < abs x} (half_pos r0) (λ x h, le_of_lt h))
+  (real.uniform_continuous.inv {x | abs r / 2 < abs x} (half_pos r0) (λ x h, le_of_lt h))
   (mem_nhds_sets (real.continuous_abs _ $ is_open_lt' (abs r / 2)) (half_lt_self r0))
 
-lemma real.continuous_inv' : continuous (λa:{r:ℝ // r ≠ 0}, a.val⁻¹) :=
+lemma real.continuous.inv' : continuous (λa:{r:ℝ // r ≠ 0}, a.val⁻¹) :=
 continuous_iff_continuous_at.mpr $ assume ⟨r, hr⟩,
   tendsto.comp (real.tendsto_inv hr) (continuous_iff_continuous_at.mp continuous_subtype_val _)
 
-lemma real.continuous_inv [topological_space α] {f : α → ℝ} (h : ∀a, f a ≠ 0) (hf : continuous f) :
+lemma real.continuous.inv [topological_space α] {f : α → ℝ} (h : ∀a, f a ≠ 0) (hf : continuous f) :
   continuous (λa, (f a)⁻¹) :=
 show continuous ((has_inv.inv ∘ @subtype.val ℝ (λr, r ≠ 0)) ∘ λa, ⟨f a, h a⟩),
-  from real.continuous_inv'.comp (continuous_subtype_mk _ hf)
+  from real.continuous.inv'.comp (continuous_subtype_mk _ hf)
 
-lemma real.uniform_continuous_mul_const {x : ℝ} : uniform_continuous ((*) x) :=
+lemma real.uniform_continuous.mul_const {x : ℝ} : uniform_continuous ((*) x) :=
 metric.uniform_continuous_iff.2 $ λ ε ε0, begin
   cases no_top (abs x) with y xy,
   have y0 := lt_of_le_of_lt (abs_nonneg _) xy,

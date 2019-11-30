@@ -466,11 +466,11 @@ variables [topological_space α] [ordered_comm_group α] [topological_add_group 
 lemma neg_preimage_closure {s : set α} : (λr:α, -r) ⁻¹' closure s = closure ((λr:α, -r) '' s) :=
 have (λr:α, -r) ∘ (λr:α, -r) = id, from funext neg_neg,
 by rw [preimage_neg]; exact
-  (subset.antisymm (image_closure_subset_closure_image continuous_neg') $
+  (subset.antisymm (image_closure_subset_closure_image continuous_neg) $
     calc closure ((λ (r : α), -r) '' s) = (λr, -r) '' ((λr, -r) '' closure ((λ (r : α), -r) '' s)) :
         by rw [←image_comp, this, image_id]
       ... ⊆ (λr, -r) '' closure ((λr, -r) '' ((λ (r : α), -r) '' s)) :
-        mono_image $ image_closure_subset_closure_image continuous_neg'
+        mono_image $ image_closure_subset_closure_image continuous_neg
       ... = _ : by rw [←image_comp, this, image_id])
 
 end topological_add_group

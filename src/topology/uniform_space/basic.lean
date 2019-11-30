@@ -697,7 +697,7 @@ lemma mem_map_sets_iff' {α : Type*} {β : Type*} {f : filter α} {m : α → β
   t ∈ (map m f).sets ↔ (∃s∈f, m '' s ⊆ t) :=
 mem_map_sets_iff
 
-lemma mem_uniformity_of_uniform_continuous_invarant [uniform_space α] {s:set (α×α)} {f : α → α → α}
+lemma mem_uniformity_of_uniform_continuous.invarant [uniform_space α] {s:set (α×α)} {f : α → α → α}
   (hf : uniform_continuous (λp:α×α, f p.1 p.2)) (hs : s ∈ 𝓤 α) :
   ∃u∈𝓤 α, ∀a b c, (a, b) ∈ u → (f a c, f b c) ∈ s :=
 begin

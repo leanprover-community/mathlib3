@@ -127,7 +127,7 @@ lemma continuous_cos : continuous cos :=
 differentiable_cos.continuous
 
 lemma continuous_tan : continuous (λ x : {x // cos x ≠ 0}, tan x) :=
-continuous_mul
+continuous.mul
   (continuous_sin.comp continuous_subtype_val)
   (continuous_inv subtype.property
     (continuous_cos.comp continuous_subtype_val))
@@ -216,9 +216,8 @@ differentiable_cos.continuous
 
 lemma continuous_tan : continuous (λ x : {x // cos x ≠ 0}, tan x) :=
 by simp only [tan_eq_sin_div_cos]; exact
-continuous_mul
-  (continuous_sin.comp continuous_subtype_val)
-  (continuous_inv subtype.property
+  (continuous_sin.comp continuous_subtype_val).mul
+  (continuous.inv subtype.property
     (continuous_cos.comp continuous_subtype_val))
 
 lemma has_deriv_at_sinh (x : ℝ) : has_deriv_at sinh (cosh x) x :=
@@ -1690,7 +1689,7 @@ section prove_rpow_is_continuous
 lemma continuous_rpow_aux1 : continuous (λp : {p:ℝ×ℝ // 0 < p.1}, p.val.1 ^ p.val.2) :=
 suffices h : continuous (λ p : {p:ℝ×ℝ // 0 < p.1 }, exp (log p.val.1 * p.val.2)),
   by { convert h, ext p, rw rpow_def_of_pos p.2 },
-continuous_exp.comp $ continuous_mul
+continuous_exp.comp $ continuous.mul
   (show continuous ((λp:{p:ℝ//0 < p}, log (p.val)) ∘ (λp:{p:ℝ×ℝ//0<p.fst}, ⟨p.val.1, p.2⟩)), from
     continuous_log'.comp $ continuous_subtype_mk _ $ continuous_fst.comp continuous_subtype_val)
   (continuous_snd.comp $ continuous_subtype_val.comp continuous_id)
@@ -1698,14 +1697,14 @@ continuous_exp.comp $ continuous_mul
 lemma continuous_rpow_aux2 : continuous (λ p : {p:ℝ×ℝ // p.1 < 0}, p.val.1 ^ p.val.2) :=
 suffices h : continuous (λp:{p:ℝ×ℝ // p.1 < 0}, exp (log (-p.val.1) * p.val.2) * cos (p.val.2 * π)),
   by { convert h, ext p, rw [rpow_def_of_neg p.2] },
-continuous_mul
-  (continuous_exp.comp $ continuous_mul
+continuous.mul
+  (continuous_exp.comp $ continuous.mul
     (show continuous $ (λp:{p:ℝ//0<p},
             log (p.val))∘(λp:{p:ℝ×ℝ//p.1<0}, ⟨-p.val.1, neg_pos_of_neg p.2⟩),
-     from continuous_log'.comp $ continuous_subtype_mk _ $ continuous_neg'.comp $
+     from continuous_log'.comp $ continuous_subtype_mk _ $ continuous_neg.comp $
             continuous_fst.comp continuous_subtype_val)
     (continuous_snd.comp $ continuous_subtype_val.comp continuous_id))
-  (continuous_cos.comp $ continuous_mul
+  (continuous_cos.comp $ continuous.mul
     (continuous_snd.comp $ continuous_subtype_val.comp continuous_id) continuous_const)
 
 lemma continuous_at_rpow_of_ne_zero (hx : x ≠ 0) (y : ℝ) :

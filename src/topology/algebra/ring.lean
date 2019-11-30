@@ -46,9 +46,9 @@ def ideal.closure (S : ideal α) : ideal α :=
 { carrier := closure S,
   zero := subset_closure S.zero_mem,
   add  := assume x y hx hy,
-    mem_closure2 continuous_add' hx hy $ assume a b, S.add_mem,
+    mem_closure2 continuous_add hx hy $ assume a b, S.add_mem,
   smul  := assume c x hx,
-    have continuous (λx:α, c * x) := continuous_mul continuous_const continuous_id,
+    have continuous (λx:α, c * x) := continuous.mul continuous_const continuous_id,
     mem_closure this hx $ assume a, S.mul_mem_left }
 
 @[simp] lemma ideal.coe_closure (S : ideal α) :
@@ -99,12 +99,12 @@ end
 instance topological_ring_quotient : topological_ring N.quotient :=
 { continuous_add :=
     have cont : continuous (mk N ∘ (λ (p : α × α), p.fst + p.snd)) :=
-      continuous_quot_mk.comp continuous_add',
+      continuous_quot_mk.comp continuous_add,
     (quotient_map.continuous_iff (quotient_ring.quotient_map_coe_coe N)).2 cont,
-  continuous_neg := continuous_quotient_lift _ (continuous_quot_mk.comp continuous_neg'),
+  continuous_neg := continuous_quotient_lift _ (continuous_quot_mk.comp continuous_neg),
   continuous_mul :=
     have cont : continuous (mk N ∘ (λ (p : α × α), p.fst * p.snd)) :=
-      continuous_quot_mk.comp continuous_mul',
+      continuous_quot_mk.comp continuous_mul,
     (quotient_map.continuous_iff (quotient_ring.quotient_map_coe_coe N)).2 cont }
 
 end topological_ring

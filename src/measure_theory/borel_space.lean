@@ -195,7 +195,7 @@ end
 lemma measurable_add
   [add_monoid α] [topological_add_monoid α] [second_countable_topology α] [measurable_space β]
   {f : β → α} {g : β → α} : measurable f → measurable g → measurable (λa, f a + g a) :=
-measurable_of_continuous2 continuous_add'
+measurable_of_continuous2 continuous_add
 
 lemma measurable_finset_sum {ι : Type*}
   [add_comm_monoid α] [topological_add_monoid α] [second_countable_topology α] [measurable_space β]
@@ -207,7 +207,7 @@ finset.induction_on s
 lemma measurable_neg
   [add_group α] [topological_add_group α] [measurable_space β] {f : β → α}
   (hf : measurable f) : measurable (λa, - f a) :=
-(measurable_of_continuous continuous_neg').comp hf
+(measurable_of_continuous continuous_neg).comp hf
 
 lemma measurable_neg_iff
   [add_group α] [topological_add_group α] [measurable_space β] (f : β → α) :
@@ -225,12 +225,12 @@ $ measurable_neg
 lemma measurable_sub
   [add_group α] [topological_add_group α] [second_countable_topology α] [measurable_space β]
   {f : β → α} {g : β → α} : measurable f → measurable g → measurable (λa, f a - g a) :=
-measurable_of_continuous2 continuous_sub'
+measurable_of_continuous2 continuous_sub
 
 lemma measurable_mul
   [monoid α] [topological_monoid α] [second_countable_topology α] [measurable_space β]
   {f : β → α} {g : β → α} : measurable f → measurable g → measurable (λa, f a * g a) :=
-measurable_of_continuous2 continuous_mul'
+measurable_of_continuous2 continuous_mul
 
 lemma measurable_le {α β}
   [topological_space α] [partial_order α] [ordered_topology α] [second_countable_topology α]
@@ -373,15 +373,15 @@ open filter measure_theory
 
 lemma measurable_add [measurable_space α] {f : α → nnreal} {g : α → nnreal} :
   measurable f → measurable g → measurable (λa, f a + g a) :=
-measurable_of_continuous2 continuous_add'
+measurable_of_continuous2 continuous_add
 
 lemma measurable_sub [measurable_space α] {f g: α → nnreal}
   (hf : measurable f) (hg : measurable g) : measurable (λ a, f a - g a) :=
-measurable_of_continuous2 continuous_sub' hf hg
+measurable_of_continuous2 continuous_sub hf hg
 
 lemma measurable_mul [measurable_space α] {f : α → nnreal} {g : α → nnreal} :
   measurable f → measurable g → measurable (λa, f a * g a) :=
-measurable_of_continuous2 continuous_mul'
+measurable_of_continuous2 continuous_mul
 
 lemma measurable_of_real : measurable nnreal.of_real :=
 measurable_of_continuous nnreal.continuous_of_real

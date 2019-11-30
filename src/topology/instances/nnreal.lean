@@ -18,11 +18,11 @@ instance : topological_space ℝ≥0 := infer_instance -- short-circuit type cla
 instance : topological_semiring ℝ≥0 :=
 { continuous_mul :=
    continuous_subtype_mk _
-        (continuous_mul (continuous.comp continuous_subtype_val continuous_fst)
+        (continuous.mul (continuous.comp continuous_subtype_val continuous_fst)
                         (continuous.comp continuous_subtype_val continuous_snd)),
   continuous_add :=
     continuous_subtype_mk _
-          (continuous_add (continuous.comp continuous_subtype_val continuous_fst)
+          (continuous.add (continuous.comp continuous_subtype_val continuous_fst)
                           (continuous.comp continuous_subtype_val continuous_snd)) }
 
 instance : second_countable_topology nnreal :=
@@ -82,15 +82,15 @@ lemma tendsto_sub {f : filter α} {m n : α → nnreal} {r p : nnreal}
   tendsto (λa, m a - n a) f (𝓝 (r - p)) :=
 tendsto_of_real $ tendsto_sub (tendsto_coe.2 hm) (tendsto_coe.2 hn)
 
-lemma continuous_sub' : continuous (λp:nnreal×nnreal, p.1 - p.2) :=
+lemma continuous_sub : continuous (λp:nnreal×nnreal, p.1 - p.2) :=
   continuous_subtype_mk _ (continuous_max
-    (continuous_sub (continuous.comp continuous_coe continuous_fst)
+    (continuous.sub (continuous.comp continuous_coe continuous_fst)
                     (continuous.comp continuous_coe continuous_snd))
                                                       continuous_const)
 
-lemma continuous_sub [topological_space α] {f g : α → nnreal}
+lemma continuous.sub [topological_space α] {f g : α → nnreal}
   (hf : continuous f) (hg : continuous g) : continuous (λ a, f a - g a) :=
-continuous_sub'.comp (hf.prod_mk hg)
+continuous_sub.comp (hf.prod_mk hg)
 
 @[elim_cast] lemma has_sum_coe {f : α → nnreal} {r : nnreal} :
   has_sum (λa, (f a : ℝ)) (r : ℝ) ↔ has_sum f r :=

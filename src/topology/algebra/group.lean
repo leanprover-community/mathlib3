@@ -38,18 +38,18 @@ end prio
 variables [topological_space α] [group α]
 
 @[to_additive]
-lemma continuous_inv' [topological_group α] : continuous (λx:α, x⁻¹) :=
+lemma continuous_inv [topological_group α] : continuous (λx:α, x⁻¹) :=
 topological_group.continuous_inv α
 
 @[to_additive]
-lemma continuous_inv [topological_group α] [topological_space β] {f : β → α}
+lemma continuous.inv [topological_group α] [topological_space β] {f : β → α}
   (hf : continuous f) : continuous (λx, (f x)⁻¹) :=
-continuous_inv'.comp hf
+continuous_inv.comp hf
 
 @[to_additive]
 lemma continuous_on.inv [topological_group α] [topological_space β] {f : β → α} {s : set β}
   (hf : continuous_on f s) : continuous_on (λx, (f x)⁻¹) s :=
-continuous_inv'.comp_continuous_on hf
+continuous_inv.comp_continuous_on hf
 
 @[to_additive]
 lemma tendsto_inv [topological_group α] {f : β → α} {x : filter β} {a : α}
@@ -59,14 +59,14 @@ tendsto.comp (continuous_iff_continuous_at.mp (topological_group.continuous_inv 
 @[to_additive topological_add_group]
 instance [topological_group α] [topological_space β] [group β] [topological_group β] :
   topological_group (α × β) :=
-{ continuous_inv := continuous.prod_mk (continuous_inv continuous_fst) (continuous_inv continuous_snd) }
+{ continuous_inv := continuous.prod_mk continuous_fst.inv continuous_snd.inv }
 
 attribute [instance] prod.topological_add_group
 
 @[to_additive]
 protected def homeomorph.mul_left [topological_group α] (a : α) : α ≃ₜ α :=
-{ continuous_to_fun  := continuous_mul continuous_const continuous_id,
-  continuous_inv_fun := continuous_mul continuous_const continuous_id,
+{ continuous_to_fun  := continuous.mul continuous_const continuous_id,
+  continuous_inv_fun := continuous.mul continuous_const continuous_id,
   .. equiv.mul_left a }
 
 @[to_additive]
@@ -81,8 +81,8 @@ lemma is_closed_map_mul_left [topological_group α] (a : α) : is_closed_map (λ
 protected def homeomorph.mul_right
   {α : Type*} [topological_space α] [group α] [topological_group α] (a : α) :
   α ≃ₜ α :=
-{ continuous_to_fun  := continuous_mul continuous_id continuous_const,
-  continuous_inv_fun := continuous_mul continuous_id continuous_const,
+{ continuous_to_fun  := continuous.mul continuous_id continuous_const,
+  continuous_inv_fun := continuous.mul continuous_id continuous_const,
   .. equiv.mul_right a }
 
 @[to_additive]
@@ -96,8 +96,8 @@ lemma is_closed_map_mul_right [topological_group α] (a : α) : is_closed_map (�
 @[to_additive]
 protected def homeomorph.inv (α : Type*) [topological_space α] [group α] [topological_group α] :
   α ≃ₜ α :=
-{ continuous_to_fun  := continuous_inv',
-  continuous_inv_fun := continuous_inv',
+{ continuous_to_fun  := continuous_inv,
+  continuous_inv_fun := continuous_inv,
   .. equiv.inv α }
 
 @[to_additive exists_nhds_half]
@@ -202,7 +202,7 @@ end
 instance topological_group_quotient : topological_group (quotient N) :=
 { continuous_mul := begin
     have cont : continuous ((coe : α → quotient N) ∘ (λ (p : α × α), p.fst * p.snd)) :=
-      continuous_quot_mk.comp continuous_mul',
+      continuous_quot_mk.comp continuous_mul,
     have quot : quotient_map (λ p : α × α, ((p.1:quotient N), (p.2:quotient N))),
     { apply is_open_map.to_quotient_map,
       { exact is_open_map.prod (quotient_group.open_coe N) (quotient_group.open_coe N) },
@@ -216,7 +216,7 @@ instance topological_group_quotient : topological_group (quotient N) :=
   continuous_inv := begin
     apply continuous_quotient_lift,
     change continuous ((coe : α → quotient N) ∘ (λ (a : α), a⁻¹)),
-    exact continuous_quot_mk.comp continuous_inv'
+    exact continuous_quot_mk.comp continuous_inv
   end }
 
 attribute [instance] topological_add_group_quotient
@@ -227,16 +227,16 @@ end quotient_topological_group
 section topological_add_group
 variables [topological_space α] [add_group α]
 
-lemma continuous_sub [topological_add_group α] [topological_space β] {f : β → α} {g : β → α}
+lemma continuous.sub [topological_add_group α] [topological_space β] {f : β → α} {g : β → α}
   (hf : continuous f) (hg : continuous g) : continuous (λx, f x - g x) :=
-by simp; exact continuous_add hf (continuous_neg hg)
+by simp; exact continuous.add hf (continuous.neg hg)
 
-lemma continuous_sub' [topological_add_group α] : continuous (λp:α×α, p.1 - p.2) :=
-continuous_sub continuous_fst continuous_snd
+lemma continuous_sub [topological_add_group α] : continuous (λp:α×α, p.1 - p.2) :=
+continuous.sub continuous_fst continuous_snd
 
 lemma continuous_on.sub [topological_add_group α] [topological_space β] {f : β → α} {g : β → α} {s : set β}
   (hf : continuous_on f s) (hg : continuous_on g s) : continuous_on (λx, f x - g x) s :=
-continuous_sub'.comp_continuous_on (hf.prod hg)
+continuous_sub.comp_continuous_on (hf.prod hg)
 
 lemma tendsto_sub [topological_add_group α] {f : β → α} {g : β → α} {x : filter β} {a b : α}
   (hf : tendsto f x (𝓝 a)) (hg : tendsto g x (𝓝 b)) : tendsto (λx, f x - g x) x (𝓝 (a - b)) :=
@@ -368,8 +368,7 @@ lemma topological_group.regular_space [t1_space α] : regular_space α :=
 ⟨assume s a hs ha,
  let f := λ p : α × α, p.1 * (p.2)⁻¹ in
  have hf : continuous f :=
-   continuous.comp continuous_mul'
-     (continuous.prod_mk (continuous_fst) (continuous.comp continuous_inv' continuous_snd)),
+   continuous_mul.comp (continuous_fst.prod_mk (continuous_inv.comp continuous_snd)),
  -- a ∈ -s implies f (a, 1) ∈ -s, and so (a, 1) ∈ f⁻¹' (-s);
  -- and so can find t₁ t₂ open such that a ∈ t₁ × t₂ ⊆ f⁻¹' (-s)
  let ⟨t₁, t₂, ht₁, ht₂, a_mem_t₁, one_mem_t₂, t_subset⟩ :=

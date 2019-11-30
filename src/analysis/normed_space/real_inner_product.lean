@@ -330,7 +330,7 @@ begin
   rcases cauchy_seq_tendsto_of_is_complete h₁ (λ n, _) seq_is_cauchy with ⟨v, hv, w_tendsto⟩,
   use v, use hv,
   have h_cont : continuous (λ v, ∥u - v∥) :=
-    continuous.comp continuous_norm (continuous_sub continuous_const continuous_id),
+    continuous.comp continuous_norm (continuous.sub continuous_const continuous_id),
   have : tendsto (λ n, ∥u - w n∥) at_top (𝓝 ∥u - v∥),
     convert (tendsto.comp h_cont.continuous_at w_tendsto),
   exact tendsto_nhds_unique at_top_ne_bot this norm_tendsto,

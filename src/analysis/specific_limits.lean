@@ -15,6 +15,72 @@ open classical function lattice filter finset metric
 
 variables {α : Type*} {β : Type*} {ι : Type*}
 
+/-- If a function tends to infinity along a filter, then this function multiplied by a positive
+constant (on the left) also tends to infinity. The archimedean assumption is convenient to get a
+statement that works on `ℕ`, `ℤ` and `ℝ`, although not necessary (a version in ordered fields is
+given in `tendsto_at_top_mul_left'`). -/
+lemma tendsto_at_top_mul_left [decidable_linear_ordered_semiring α] [archimedean α]
+  {l : filter β} {r : α} (hr : 0 < r) {f : β → α} (hf : tendsto f l at_top) :
+  tendsto (λx, r * f x) l at_top :=
+begin
+  apply (tendsto_at_top _ _).2 (λb, _),
+  obtain ⟨n, hn⟩ : ∃ (n : ℕ), (1 : α) ≤ n • r := archimedean.arch 1 hr,
+  have hn' : 1 ≤ r * n, by rwa add_monoid.smul_eq_mul' at hn,
+  filter_upwards [(tendsto_at_top _ _).1 hf (n * max b 0)],
+  assume x hx,
+  calc b ≤ 1 * max b 0 : by { rw [one_mul], exact le_max_left _ _ }
+  ... ≤ (r * n) * max b 0 : mul_le_mul_of_nonneg_right hn' (le_max_right _ _)
+  ... = r * (n * max b 0) : by rw [mul_assoc]
+  ... ≤ r * f x : mul_le_mul_of_nonneg_left hx (le_of_lt hr)
+end
+
+/-- If a function tends to infinity along a filter, then this function multiplied by a positive
+constant (on the right) also tends to infinity. The archimedean assumption is convenient to get a
+statement that works on `ℕ`, `ℤ` and `ℝ`, although not necessary (a version in ordered fields is
+given in `tendsto_at_top_mul_right'`). -/
+lemma tendsto_at_top_mul_right [decidable_linear_ordered_semiring α] [archimedean α]
+  {l : filter β} {r : α} (hr : 0 < r) {f : β → α} (hf : tendsto f l at_top) :
+  tendsto (λx, f x * r) l at_top :=
+begin
+  apply (tendsto_at_top _ _).2 (λb, _),
+  obtain ⟨n, hn⟩ : ∃ (n : ℕ), (1 : α) ≤ n • r := archimedean.arch 1 hr,
+  have hn' : 1 ≤ (n : α) * r, by rwa add_monoid.smul_eq_mul at hn,
+  filter_upwards [(tendsto_at_top _ _).1 hf (max b 0 * n)],
+  assume x hx,
+  calc b ≤ max b 0 * 1 : by { rw [mul_one], exact le_max_left _ _ }
+  ... ≤ max b 0 * (n * r) : mul_le_mul_of_nonneg_left hn' (le_max_right _ _)
+  ... = (max b 0 * n) * r : by rw [mul_assoc]
+  ... ≤ f x * r : mul_le_mul_of_nonneg_right hx (le_of_lt hr)
+end
+
+/-- If a function tends to infinity along a filter, then this function multiplied by a positive
+constant (on the left) also tends to infinity. For a version working in `ℕ` or `ℤ`, use
+`tendsto_at_top_mul_left` instead. -/
+lemma tendsto_at_top_mul_left' [linear_ordered_field α]
+  {l : filter β} {r : α} (hr : 0 < r) {f : β → α} (hf : tendsto f l at_top) :
+  tendsto (λx, r * f x) l at_top :=
+begin
+  apply (tendsto_at_top _ _).2 (λb, _),
+  filter_upwards [(tendsto_at_top _ _).1 hf (b/r)],
+  assume x hx,
+  simpa [div_le_iff' hr] using hx
+end
+
+/-- If a function tends to infinity along a filter, then this function multiplied by a positive
+constant (on the right) also tends to infinity. For a version working in `ℕ` or `ℤ`, use
+`tendsto_at_top_mul_right` instead. -/
+lemma tendsto_at_top_mul_right' [linear_ordered_field α]
+  {l : filter β} {r : α} (hr : 0 < r) {f : β → α} (hf : tendsto f l at_top) :
+  tendsto (λx, f x * r) l at_top :=
+by simpa [mul_comm] using tendsto_at_top_mul_left' hr hf
+
+/-- If a function tends to infinity along a filter, then this function divided by a positive
+constant also tends to infinity. -/
+lemma tendsto_at_top_div [linear_ordered_field α]
+  {l : filter β} {r : α} (hr : 0 < r) {f : β → α} (hf : tendsto f l at_top) :
+  tendsto (λx, f x / r) l at_top :=
+tendsto_at_top_mul_right' (inv_pos hr) hf
+
 lemma summable_of_absolute_convergence_real {f : ℕ → ℝ} :
   (∃r, tendsto (λn, (range n).sum (λi, abs (f i))) at_top (𝓝 r)) → summable f
 | ⟨r, hr⟩ :=
@@ -24,7 +90,7 @@ lemma summable_of_absolute_convergence_real {f : ℕ → ℝ} :
     simpa only using hr
   end
 
-lemma tendsto_pow_at_top_at_top_of_gt_1 {r : ℝ} (h : r > 1) :
+lemma tendsto_pow_at_top_at_top_of_gt_1 {r : ℝ} (h : 1 < r) :
   tendsto (λn:ℕ, r ^ n) at_top at_top :=
 (tendsto_at_top_at_top _).2 $ assume p,
   let ⟨n, hn⟩ := pow_unbounded_of_one_lt p h in
@@ -136,6 +202,7 @@ lemma summable_geometric_nnreal {r : nnreal} (hr : r < 1) : summable (λn:ℕ, r
 lemma tsum_geometric_nnreal {r : nnreal} (hr : r < 1) : (∑n:ℕ, r ^ n) = (1 - r)⁻¹ :=
 tsum_eq_has_sum (has_sum_geometric_nnreal hr)
 
+/-- For any positive `ε`, define on an encodable type a positive sequence with sum less than `ε` -/
 def pos_sum_of_encodable {ε : ℝ} (hε : 0 < ε)
   (ι) [encodable ι] : {ε' : ι → ℝ // (∀ i, 0 < ε' i) ∧ ∃ c, has_sum ε' c ∧ c ≤ ε} :=
 begin

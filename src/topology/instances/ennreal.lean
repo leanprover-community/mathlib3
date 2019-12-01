@@ -278,7 +278,7 @@ end⟩
   (ennreal.continuous_inv.tendsto a).comp⟩
 
 protected lemma tendsto_inv_nat_nhds_zero : tendsto (λ n : ℕ, (n : ennreal)⁻¹) at_top (𝓝 0) :=
-ennreal.inv_top ▸ ennreal.tendsto_inv.2 tendsto_nat_nhds_top
+ennreal.inv_top ▸ ennreal.tendsto_inv_iff.2 tendsto_nat_nhds_top
 
 lemma Sup_add {s : set ennreal} (hs : s ≠ ∅) : Sup s + a = ⨆b∈s, b + a :=
 have Sup ((λb, b + a) '' s) = Sup s + a,

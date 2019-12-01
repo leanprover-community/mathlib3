@@ -160,7 +160,7 @@ begin
   { conv in (nhds_within x s) { rw ← add_zero x },
     rw [← tendsto_iff_comap, nhds_within, tendsto_inf],
     split,
-    { apply tendsto_add tendsto_const_nhds (tangent_cone_at.lim_zero clim cdlim) },
+    { apply tendsto.add tendsto_const_nhds (tangent_cone_at.lim_zero clim cdlim) },
     { rwa tendsto_principal } },
   have : is_o (λ y, f y - f x - f' (y - x)) (λ y, y - x) (nhds_within x s) := h,
   have : is_o (λ n:ℕ, f (x + d n) - f x - f' ((x + d n) - x)) (λ n, (x + d n)  - x)
@@ -179,7 +179,7 @@ begin
     tendsto.comp f'.cont.continuous_at cdlim,
   have L3 : tendsto (λn:ℕ, (c n • (f (x + d n) - f x - f' (d n)) +  f' (c n • d n)))
             at_top (𝓝 (0 + f' v)) :=
-    tendsto_add L1 L2,
+    tendsto.add L1 L2,
   have : (λn:ℕ, (c n • (f (x + d n) - f x - f' (d n)) +  f' (c n • d n)))
           = (λn: ℕ, c n • (f (x + d n) - f x)),
     by { ext n, simp [smul_add] },
@@ -249,7 +249,7 @@ begin
     have : 𝓝 0 ≤ comap (λ (z : E), z + x) (𝓝 (0 + x)),
     { refine tendsto_iff_comap.mp _,
       apply continuous.tendsto,
-      exact continuous_add continuous_id continuous_const },
+      exact continuous.add continuous_id continuous_const },
     apply is_o.mono this,
     convert is_o.comp H (λz, z + x),
     { ext h, simp },
@@ -259,7 +259,7 @@ begin
     have : 𝓝 x ≤ comap (λ (z : E), z - x) (𝓝 (x - x)),
     { refine tendsto_iff_comap.mp _,
       apply continuous.tendsto,
-      exact continuous_add continuous_id continuous_const },
+      exact continuous.add continuous_id continuous_const },
     apply is_o.mono this,
     convert is_o.comp H (λz, z - x),
     { ext h, simp },
@@ -895,8 +895,8 @@ theorem has_fderiv_at_filter.tendsto_nhds
 begin
   have : tendsto (λ x', f x' - f x) L (𝓝 0),
   { refine h.is_O_sub.trans_tendsto (tendsto_le_left hL _),
-    rw ← sub_self x, exact tendsto_sub tendsto_id tendsto_const_nhds },
-  have := tendsto_add this tendsto_const_nhds,
+    rw ← sub_self x, exact tendsto.sub tendsto_id tendsto_const_nhds },
+  have := tendsto.add this tendsto_const_nhds,
   rw zero_add (f x) at this,
   exact this.congr (by simp)
 end
@@ -963,7 +963,7 @@ begin
       have : 0 = ∥p - p∥, by simp,
       rw this,
       have : continuous (λx, ∥x-p∥) :=
-        continuous_norm.comp (continuous_sub continuous_id continuous_const),
+        continuous_norm.comp (continuous.sub continuous_id continuous_const),
       exact this.tendsto p },
     simp only [forall_prop_of_false, not_false_iff, one_ne_zero, forall_true_iff] },
   simp only [one_mul, asymptotics.is_o_norm_right] at B,

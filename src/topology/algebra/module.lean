@@ -137,13 +137,13 @@ section add
 variables [topological_add_group γ]
 
 instance : has_add (β →L[α] γ) :=
-⟨λ f g, ⟨f + g, continuous_add f.2 g.2⟩⟩
+⟨λ f g, ⟨f + g, continuous.add f.2 g.2⟩⟩
 
 @[simp] lemma add_apply : (f + g) x = f x + g x := rfl
 @[simp, move_cast] lemma coe_add : (((f + g) : β →L[α] γ) : β →ₗ[α] γ) = (f : β →ₗ[α] γ) + g := rfl
 @[move_cast] lemma coe_add' : (((f + g) : β →L[α] γ) : β → γ) = (f : β → γ) + g := rfl
 
-instance : has_neg (β →L[α] γ) := ⟨λ f, ⟨-f, continuous_neg f.2⟩⟩
+instance : has_neg (β →L[α] γ) := ⟨λ f, ⟨-f, continuous.neg f.2⟩⟩
 
 @[simp] lemma neg_apply : (-f) x = - (f x) := rfl
 

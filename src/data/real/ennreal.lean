@@ -442,7 +442,7 @@ end
 @[simp] lemma sub_eq_zero_iff_le : a - b = 0 ↔ a ≤ b :=
 by simpa [-ennreal.sub_le_iff_le_add] using @ennreal.sub_le_iff_le_add a b 0
 
-@[simp] lemma sub_pos : 0 < a - b ↔ b < a :=
+@[simp] lemma zero_lt_sub_iff_lt : 0 < a - b ↔ b < a :=
 by simpa [ennreal.bot_lt_iff_ne_bot, -sub_eq_zero_iff_le] using not_iff_not.2 (@sub_eq_zero_iff_le a b)
 
 lemma sub_le_self (a b : ennreal) : a - b ≤ a :=

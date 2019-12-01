@@ -76,8 +76,11 @@ local infixr ` →ₛ `:25 := simple_func
 namespace simple_func
 
 section bintegral
-/-! ### Define the Bochner integral of simple functions of the type `α →ₛ β` where `β` is a normed
-group, and prove basic property of this integral. -/
+/-! ### The Bochner integral of simple functions
+
+Define the Bochner integral of simple functions of the type `α →ₛ β` where `β` is a normed group,
+and prove basic property of this integral.
+-/
 open finset
 
 variables [normed_group β] [normed_group γ]
@@ -296,7 +299,7 @@ infixr ` →₁ₛ `:25 := measure_theory.l1.simple_func
 namespace simple_func
 
 section instances
-/-! ### Prove that simple functions in L1 space form a `normed_space`. -/
+/-! Simple functions in L1 space form a `normed_space`. -/
 
 instance : has_coe (α →₁ₛ β) (α →₁ β) := ⟨subtype.val⟩
 
@@ -596,7 +599,7 @@ end
 end to_simple_func
 
 section coe_to_l1
-/-! ### Prove that the embedding of integrable simple functions `α →₁ₛ β` into L1 is a uniform and dense embedding. -/
+/-! The embedding of integrable simple functions `α →₁ₛ β` into L1 is a uniform and dense embedding. -/
 
 lemma exists_simple_func_near (f : α →₁ β) {ε : ℝ} (ε0 : 0 < ε) :
   ∃ s : α →₁ₛ β, dist f s < ε :=
@@ -655,7 +658,7 @@ variables {α β 𝕜}
 end coe_to_l1
 
 section simple_func_integral
-/-! ### Define the Bochner integral on `α →₁ₛ β` and prove basic properties of this integral. -/
+/-! Define the Bochner integral on `α →₁ₛ β` and prove basic properties of this integral. -/
 
 variables [normed_space ℝ β]
 
@@ -882,9 +885,14 @@ begin
     rw [integral_eq_zero_of_non_integrable hfi, integral_eq_zero_of_non_integrable hgi] },
 end
 
-lemma of_real_norm_integral_le_lintegral_norm (f : α → β) (hfm : measurable f) (hfi : integrable f) :
+lemma of_real_norm_integral_le_lintegral_norm (f : α → β) :
   ennreal.of_real ∥integral f∥ ≤ ∫⁻ a, ennreal.of_real ∥f a∥ :=
 begin
+  by_cases hfm : measurable f,
+  by_cases hfi : integrable f,
+  rotate,
+  { rw [integral_eq_zero_of_non_integrable hfi, _root_.norm_zero, of_real_zero], exact zero_le _ },
+  { rw [integral_eq_zero_of_non_measurable hfm, _root_.norm_zero, of_real_zero], exact zero_le _ },
   rw [integral, dif_pos],
   rotate, { exact ⟨hfm, hfi⟩ },
   calc ennreal.of_real ∥l1.integral (l1.of_fun f hfm hfi)∥ ≤ (ennreal.of_real ∥l1.of_fun f hfm hfi∥) :
@@ -904,10 +912,13 @@ begin
     by { rw of_real_to_real, rw ← lt_top_iff_ne_top, rwa ← integrable_iff_norm }
 end
 
-lemma norm_integral_le_lintegral_norm (f : α → β) (hfm : measurable f) (hfi : integrable f) :
+lemma norm_integral_le_lintegral_norm (f : α → β) :
   ∥integral f∥ ≤ ennreal.to_real (∫⁻ a, ennreal.of_real ∥f a∥) :=
 begin
-  have := (to_real_le_to_real _ _).2 (of_real_norm_integral_le_lintegral_norm f hfm hfi),
+  by_cases hfi : integrable f,
+  rotate,
+  { rw [integral_eq_zero_of_non_integrable hfi, _root_.norm_zero], exact to_real_nonneg },
+  have := (to_real_le_to_real _ _).2 (of_real_norm_integral_le_lintegral_norm f),
   { rwa to_real_of_real (norm_nonneg _) at this },
   { exact of_real_ne_top },
   { rw ← lt_top_iff_ne_top, rwa ← integrable_iff_norm }
@@ -946,11 +957,7 @@ begin
     have h₃ : integrable (F n) := integrable_of_integrable_bound bound_integrable (h_bound _),
     have h₄ : integrable f := integrable_of_dominated_convergence bound_integrable h_bound h_lim,
     rw ← integral_sub h₁ h₃ h₂ h₄,
-    refine norm_integral_le_lintegral_norm _ _ _,
-    -- Show `F n - f` is measurable
-    { exact measurable_sub h₁ h₂ },
-    -- Show `F n - f` is integrable
-    { exact integrable_sub h₁ h₂ h₃ h₄ },  }
+    exact norm_integral_le_lintegral_norm _ }
 end
 
 end properties

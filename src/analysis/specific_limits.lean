@@ -127,8 +127,7 @@ nnreal.tendsto_coe.1 $ by simp only [nnreal.coe_pow, nnreal.coe_zero,
 lemma ennreal.tendsto_pow_at_top_nhds_0_of_lt_1 {r : ennreal} (hr : r < 1) :
   tendsto (λ n:ℕ, r^n) at_top (𝓝 0) :=
 begin
-  lift r to nnreal using (ennreal.lt_top_iff_ne_top.1 $ lt_trans hr $
-      ennreal.lt_top_iff_ne_top.2 ennreal.one_ne_top),
+  rcases ennreal.lt_iff_exists_coe.1 hr with ⟨r, rfl, hr'⟩,
   rw [← ennreal.coe_zero],
   norm_cast at *,
   apply nnreal.tendsto_pow_at_top_nhds_0_of_lt_1 hr
@@ -221,12 +220,10 @@ and for `1 ≤ r` the RHS equals `∞`. -/
 lemma ennreal.tsum_geometric (r : ennreal) : (∑n:ℕ, r ^ n) = (1 - r)⁻¹ :=
 begin
   cases lt_or_le r 1 with hr hr,
-  { lift r to nnreal using (ennreal.lt_top_iff_ne_top.1 $ lt_trans hr $
-      ennreal.lt_top_iff_ne_top.2 ennreal.one_ne_top),
+  { rcases ennreal.lt_iff_exists_coe.1 hr with ⟨r, rfl, hr'⟩,
     norm_cast at *,
     convert ennreal.tsum_coe_eq (nnreal.has_sum_geometric hr),
-    rw ennreal.coe_inv,
-    exact ne_of_gt (nnreal.sub_pos.2 hr) },
+    rw [ennreal.coe_inv $ ne_of_gt $ nnreal.sub_pos.2 hr] },
   { rw [ennreal.sub_eq_zero_of_le hr, ennreal.inv_zero, ennreal.tsum_eq_supr_nat, supr_eq_top],
     refine λ a ha, (ennreal.exists_nat_gt (lt_top_iff_ne_top.1 ha)).imp
       (λ n hn, lt_of_lt_of_le hn _),
@@ -310,14 +307,9 @@ lemma edist_le_of_edist_le_geometric_two_of_tendsto (n : ℕ) :
   edist (f n) a ≤ 2 * C / 2^n :=
 begin
   simp only [ennreal.div_def, ennreal.inv_pow'] at hu,
-  rw [ennreal.div_def, mul_assoc, mul_comm],
+  rw [ennreal.div_def, mul_assoc, mul_comm, ennreal.inv_pow'],
   convert edist_le_of_edist_le_geometric_of_tendsto 2⁻¹ C hu ha n,
-  { exact ennreal.inv_pow' },
-  { -- `2 = (1 - 2⁻¹)⁻¹` in `ennreal`; unfortunately, no tactic (yet) to prove this automatically
-    conv_rhs { congr, congr, rw [← ennreal.add_halves 1, ennreal.div_def, one_mul] },
-    rw [ennreal.add_sub_self, ennreal.inv_inv],
-    rw [ennreal.lt_top_iff_ne_top, ennreal.inv_ne_top, ← ennreal.coe_two, ne.def, ennreal.coe_eq_zero],
-    exact two_ne_zero' },
+  rw [ennreal.one_sub_inv_two, ennreal.inv_inv]
 end
 
 /-- If `edist (f n) (f (n+1))` is bounded by `C * 2^-n`, then the distance from

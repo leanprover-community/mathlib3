@@ -904,7 +904,7 @@ lemma integral_congr_ae (hfm : measurable f) (hgm : measurable g) (h : ∀ₘ a,
    { rw ← lt_top_iff_ne_top, rwa ← integrable_def_of_norm }
  end
 
- lemma tendsto_integral_of_dominated_convergence [second_countable_topology β]
+ lemma tendsto_integral_of_dominated_convergence
    {F : ℕ → α → β} {f : α → β} {bound : α → ℝ}
    (F_measurable : ∀ n, measurable (F n))
    (f_measurable : measurable f)

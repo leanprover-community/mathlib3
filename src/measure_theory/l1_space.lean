@@ -51,7 +51,7 @@ integrable, function space, l1
 -/
 
 noncomputable theory
-open_locale classical
+open_locale classical topological_space
 
 set_option class.instance_max_depth 100
 
@@ -64,6 +64,35 @@ variables {β : Type v} [normed_group β]
 
 /-- A function is `integrable` if the integral of its pointwise norm is less than infinity. -/
 def integrable (f : α → β) : Prop := (∫⁻ a, nnnorm (f a)) < ⊤
+
+private lemma of_real_norm_eq_coe_nnnorm (x : β) : ennreal.of_real ∥x∥ = (nnnorm x : ennreal) :=
+ of_real_eq_coe_nnreal _
+
+ private lemma edist_eq_coe_nnnorm (x : β) : edist x 0 = (nnnorm x : ennreal) :=
+ by { rw [edist_dist, dist_eq_norm, _root_.sub_zero, of_real_norm_eq_coe_nnnorm] }
+
+ lemma integrable_def_of_norm (f : α → β) : integrable f ↔ (∫⁻ a, ennreal.of_real ∥f a∥) < ⊤ :=
+ have eq : (λa, ennreal.of_real ∥f a∥) = (λa, (nnnorm(f a) : ennreal)),
+   by { funext, rw of_real_norm_eq_coe_nnnorm },
+ iff.intro (by { rw eq, exact λh, h }) $ by { rw eq, exact λh, h }
+
+ lemma integrable_def_of_edist (f : α → β) : integrable f ↔ (∫⁻ a, edist (f a) 0) < ⊤ :=
+ have eq : (λa, edist (f a) 0) = (λa, (nnnorm(f a) : ennreal)),
+   by { funext, rw edist_eq_coe_nnnorm },
+ iff.intro (by { rw eq, exact λh, h }) $ by { rw eq, exact λh, h }
+
+ lemma integrable_def_of_real {f : α → ℝ} (h : ∀ₘ a, 0 ≤ f a) :
+   integrable f ↔ (∫⁻ a, ennreal.of_real (f a)) < ⊤ :=
+ have lintegral_eq :  (∫⁻ a, ennreal.of_real ∥f a∥) = (∫⁻ a, ennreal.of_real (f a)) :=
+ begin
+   apply lintegral_congr_ae,
+   filter_upwards [h],
+   simp only [mem_set_of_eq],
+   assume a h,
+   rw [real.norm_eq_abs, abs_of_nonneg],
+   exact h
+ end,
+ by rw [integrable_def_of_norm, lintegral_eq]
 
 lemma integrable_of_ae_eq {f g : α → β} (hf : integrable f) (h : ∀ₘ a, f a = g a) : integrable g :=
 begin
@@ -78,22 +107,12 @@ begin
   rwa ← this
 end
 
-lemma integrable_iff_of_ae_eq (f g : α → β) (h : ∀ₘ a, f a = g a) : integrable f ↔ integrable g :=
+lemma integrable_iff_of_ae_eq {f g : α → β} (h : ∀ₘ a, f a = g a) : integrable f ↔ integrable g :=
 iff.intro (λhf, integrable_of_ae_eq hf h) (λhg, integrable_of_ae_eq hg (all_ae_eq_symm h))
 
 lemma lintegral_nnnorm_eq_lintegral_edist (f : α → β) :
   (∫⁻ a, nnnorm (f a)) = ∫⁻ a, edist (f a) 0 :=
-begin
-  apply lintegral_congr_ae,
-  filter_upwards [],
-  assume a,
-  simp only [mem_set_of_eq],
-  rw [edist_nndist, nndist_eq_nnnorm, sub_zero (f a)]
-end
-
-lemma integrable_iff_lintegral_edist (f : α → β) :
-  integrable f ↔ (∫⁻ a, edist (f a) 0) < ⊤ :=
-by rw [integrable, lintegral_nnnorm_eq_lintegral_edist]
+by { congr, funext, rw edist_eq_coe_nnnorm }
 
 lemma lintegral_edist_triangle [second_countable_topology β] {f g h : α → β}
   (hf : measurable f) (hg : measurable g) (hh : measurable h) :
@@ -112,7 +131,7 @@ lemma lintegral_edist_lt_top [second_countable_topology β] {f g : α → β}
   (∫⁻ a, edist (f a) (g a)) < ⊤ :=
 lt_of_le_of_lt
   (lintegral_edist_triangle hfm hgm (measurable_const : measurable (λa, (0 : β))))
-  (ennreal.add_lt_top.2 $ by { split; rw ← integrable_iff_lintegral_edist; assumption })
+  (ennreal.add_lt_top.2 $ by { split; rw ← integrable_def_of_edist; assumption })
 
 @[simp] lemma lintegral_nnnorm_zero : (∫⁻ a : α, nnnorm (0 : β)) = 0 := by simp
 
@@ -157,15 +176,139 @@ lemma integrable_sub {f g : α → β} (hf : measurable f) (hg : measurable g) :
   by { rw sub_eq_add_neg, refine integrable_add hf (measurable_neg hg) hfi (integrable_neg hgi) }
 
 lemma integrable_norm {f : α → β} (hfi : integrable f) : integrable (λa, ∥f a∥) :=
-calc (∫⁻ (a : α), (nnnorm ∥f a∥)) = (∫⁻ (a : α), (nnnorm (f a))) :
-    begin
-      apply lintegral_congr_ae,
-      filter_upwards [],
-      assume a,
-      simp only [mem_set_of_eq],
-      rw [nnnorm_norm]
-    end
-  ... < ⊤ : hfi
+have eq : (λa, (nnnorm ∥f a∥ : ennreal)) = λa, (nnnorm (f a) : ennreal),
+   by { funext, rw nnnorm_norm },
+ by { rwa [integrable, eq] }
+
+ lemma integrable_norm_iff (f : α → β) : integrable (λa, ∥f a∥) ↔ integrable f :=
+ have eq : (λa, (nnnorm ∥f a∥ : ennreal)) = λa, (nnnorm (f a) : ennreal),
+   by { funext, rw nnnorm_norm },
+ by { rw [integrable, integrable, eq] }
+
+ lemma integrable_of_integrable_bound {f : α → β} {bound : α → ℝ} (h : integrable bound)
+   (h_bound : ∀ₘ a, ∥f a∥ ≤ bound a) : integrable f :=
+ have h₁ : ∀ₘ a, (nnnorm (f a) : ennreal) ≤ ennreal.of_real (bound a),
+ begin
+   filter_upwards [h_bound],
+   simp only [mem_set_of_eq],
+   assume a h,
+   calc (nnnorm (f a) : ennreal) = ennreal.of_real (∥f a∥) : by rw of_real_norm_eq_coe_nnnorm
+     ... ≤ ennreal.of_real (bound a) : ennreal.of_real_le_of_real h
+ end,
+ calc (∫⁻ a, nnnorm (f a)) ≤ (∫⁻ a, ennreal.of_real (bound a)) :
+     by { apply lintegral_le_lintegral_ae, exact h₁ }
+   ... ≤ (∫⁻ a, ennreal.of_real ∥bound a∥) : lintegral_le_lintegral _ _ $
+     by { assume a, apply ennreal.of_real_le_of_real, exact le_max_left (bound a) (-bound a) }
+   ... < ⊤ : by { rwa [integrable_def_of_norm] at h }
+
+ section dominated_convergence
+
+ variables {F : ℕ → α → β} {f : α → β} {bound : α → ℝ}
+
+ /-- `∥F n a∥ ≤ bound a` implies `ennreal.of_real ∥F n a∥ ≤ ennreal.of_real (bound a)` -/
+ private lemma of_real_F_le_bound (h : ∀ n, ∀ₘ a, ∥F n a∥ ≤ bound a) :
+   ∀ n, ∀ₘ a, ennreal.of_real ∥F n a∥ ≤ ennreal.of_real (bound a) :=
+ λn, by filter_upwards [h n] λ a h, ennreal.of_real_le_of_real h
+
+ /-- `F n a --> f a` implies `ennreal.of_real ∥F n a∥ --> ennreal.of_real ∥f a∥` -/
+ private lemma tendsto_of_real_norm (h : ∀ₘ a, tendsto (λ n, F n a) at_top $ 𝓝 $ f a) :
+   ∀ₘ a, tendsto (λn, ennreal.of_real ∥F n a∥) at_top $ 𝓝 $ ennreal.of_real ∥f a∥ :=
+ by filter_upwards [h]
+   λ a h, tendsto_of_real $ tendsto.comp (continuous.tendsto continuous_norm _) h
+
+ /-- `F n a --> f a` and `∥F n a∥ ≤ bound a` implies `∥f a∥ ≤ bound a`, which in turn implies that
+     `ennreal.of_real ∥f a∥ ≤ ennreal.of_real (bound a)` -/
+ private lemma of_real_f_le_bound (h_bound : ∀ n, ∀ₘ a, ∥F n a∥ ≤ bound a)
+   (h_lim : ∀ₘ a, tendsto (λ n, F n a) at_top (𝓝 (f a))) :
+   ∀ₘ a, ennreal.of_real ∥f a∥ ≤ ennreal.of_real (bound a) :=
+ begin
+   have F_le_bound := of_real_F_le_bound h_bound,
+   rw ← all_ae_all_iff at F_le_bound,
+   filter_upwards [tendsto_of_real_norm h_lim, F_le_bound],
+   assume a tendsto_norm F_le_bound,
+   refine le_of_tendsto at_top_ne_bot tendsto_norm _,
+   simp only [mem_at_top_sets, ge_iff_le, mem_set_of_eq, preimage_set_of_eq, nonempty_of_inhabited],
+   use 0,
+   assume n hn,
+   exact F_le_bound n
+ end
+
+ lemma integrable_of_dominated_convergence {F : ℕ → α → β} {f : α → β} {bound : α → ℝ}
+   (bound_integrable : integrable bound)
+   (h_bound : ∀ n, ∀ₘ a, ∥F n a∥ ≤ bound a)
+   (h_lim : ∀ₘ a, tendsto (λ n, F n a) at_top (𝓝 (f a))) :
+   integrable f :=
+ /- `∥F n a∥ ≤ bound a` and `∥F n a∥ --> ∥f a∥` implies `∥f a∥ ≤ bound a`,
+   and so `∫ ∥f∥ ≤ ∫ bound < ⊤` since `bound` is integrable -/
+ begin
+   rw integrable_def_of_norm,
+   calc (∫⁻ a, (ennreal.of_real ∥f a∥)) ≤ ∫⁻ a, ennreal.of_real (bound a) :
+     lintegral_le_lintegral_ae $ of_real_f_le_bound h_bound h_lim
+     ... < ⊤ :
+     begin
+       rw ← integrable_def_of_real,
+       { exact bound_integrable },
+       filter_upwards [h_bound 0] λ a h, le_trans (norm_nonneg _) h,
+     end
+end
+
+ lemma tendsto_lintegral_norm_of_dominated_convergence [second_countable_topology β]
+   {F : ℕ → α → β} {f : α → β} {bound : α → ℝ}
+   (F_measurable : ∀ n, measurable (F n))
+   (f_measurable : measurable f)
+   (bound_integrable : integrable bound)
+   (h_bound : ∀ n, ∀ₘ a, ∥F n a∥ ≤ bound a)
+   (h_lim : ∀ₘ a, tendsto (λ n, F n a) at_top (𝓝 (f a))) :
+   tendsto (λn, ∫⁻ a, ennreal.of_real ∥F n a - f a∥) at_top (𝓝 0) :=
+ let b := λa, 2 * ennreal.of_real (bound a) in
+ /- `∥F n a∥ ≤ bound a` and `F n a --> f a` implies `∥f a∥ ≤ bound a`, and thus by the
+   triangle inequality, have `∥F n a - f a∥ ≤ 2 * (bound a). -/
+ have hb : ∀ n, ∀ₘ a, ennreal.of_real ∥F n a - f a∥ ≤ b a,
+ begin
+   assume n,
+   filter_upwards [of_real_F_le_bound h_bound n, of_real_f_le_bound h_bound h_lim],
+   assume a h₁ h₂,
+   calc ennreal.of_real ∥F n a - f a∥ ≤ (ennreal.of_real ∥F n a∥) + (ennreal.of_real ∥f a∥) :
+   begin
+     rw [← ennreal.of_real_add],
+     apply of_real_le_of_real,
+     { apply norm_sub_le }, { exact norm_nonneg _ }, { exact norm_nonneg _ }
+   end
+     ... ≤ (ennreal.of_real (bound a)) + (ennreal.of_real (bound a)) : add_le_add' h₁ h₂
+     ... = b a : by rw ← two_mul
+ end,
+ /- On the other hand, `F n a --> f a` implies that `∥F n a - f a∥ --> 0`  -/
+ have h : ∀ₘ a, tendsto (λ n, ennreal.of_real ∥F n a - f a∥) at_top (𝓝 0),
+ begin
+   suffices h : ∀ₘ a, tendsto (λ n, ennreal.of_real ∥F n a - f a∥) at_top (𝓝 $ ennreal.of_real 0),
+   { rwa ennreal.of_real_zero at h },
+   filter_upwards [h_lim],
+   assume a h,
+   refine tendsto.comp (continuous.tendsto continuous_of_real _) _,
+   rw ← tendsto_iff_norm_tendsto_zero,
+   exact h
+ end,
+ /- Therefore, by the dominated convergence theorem for nonnegative integration, have
+   ` ∫ ∥f a - F n a∥ --> 0 ` -/
+ begin
+   suffices h : tendsto (λn, ∫⁻ a, ennreal.of_real ∥F n a - f a∥) at_top (𝓝 (∫⁻ (a:α), 0)),
+   { rwa lintegral_zero at h },
+   -- Using the dominated convergence theorem.
+   refine tendsto_lintegral_of_dominated_convergence _ hb _ _,
+   -- Show `λa, ∥f a - F n a∥` is measurable for all `n`
+   { exact λn, measurable.comp measurable_of_real (measurable_norm (measurable_sub (F_measurable n)
+       f_measurable)) },
+   -- Show `2 * bound` is integrable
+   { rw integrable_def_of_real at bound_integrable,
+     { calc (∫⁻ a, b a) = 2 * (∫⁻ a, ennreal.of_real (bound a)) :
+         by { rw lintegral_const_mul', exact coe_ne_top }
+         ... < ⊤ : mul_lt_top (coe_lt_top) bound_integrable },
+     filter_upwards [h_bound 0] λ a h, le_trans (norm_nonneg _) h },
+   -- Show `∥f a - F n a∥ --> 0`
+   { exact h }
+ end
+
+ end dominated_convergence
 
 section normed_space
 variables {𝕜 : Type*} [normed_field 𝕜] [normed_space 𝕜 β]
@@ -399,8 +542,11 @@ ae_eq_fun.sub_to_fun _ _
 lemma dist_to_fun (f g : α →₁ β) : dist f g = ennreal.to_real (∫⁻ x, edist (f.to_fun x) (g.to_fun x)) :=
 by { simp only [dist_eq, edist_to_fun] }
 
-lemma norm_to_fun (f : α →₁ β) : ∥f∥ = ennreal.to_real (∫⁻ a, nnnorm (f.to_fun a)) :=
+lemma norm_eq_nnnorm_to_fun (f : α →₁ β) : ∥f∥ = ennreal.to_real (∫⁻ a, nnnorm (f.to_fun a)) :=
 by { rw [lintegral_nnnorm_eq_lintegral_edist, ← edist_zero_to_fun], refl }
+
+lemma norm_eq_norm_to_fun (f : α →₁ β) : ∥f∥ = ennreal.to_real (∫⁻ a, ennreal.of_real ∥f.to_fun a∥) :=
+ by { rw norm_eq_nnnorm_to_fun, congr, funext, rw of_real_norm_eq_coe_nnnorm }
 
 lemma lintegral_edist_to_fun_lt_top (f g : α →₁ β) : (∫⁻ a, edist (f.to_fun a) (g.to_fun a)) < ⊤ :=
 begin

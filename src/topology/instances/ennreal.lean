@@ -206,10 +206,10 @@ instance : topological_add_monoid ennreal :=
     cases a₂, { simp [continuous_at, none_eq_top, some_eq_coe, nhds_swap (a₁ : ennreal) ⊤,
                       tendsto_map'_iff, (∘), hl ↑a₁] },
     simp [continuous_at, some_eq_coe, nhds_coe_coe, tendsto_map'_iff, (∘)],
-    simp only [coe_add.symm, tendsto_coe, tendsto_add']
+    simp only [coe_add.symm, tendsto_coe, tendsto_add]
   end ⟩
 
-protected lemma tendsto_mul' (ha : a ≠ 0 ∨ b ≠ ⊤) (hb : b ≠ 0 ∨ a ≠ ⊤) :
+protected lemma tendsto_mul (ha : a ≠ 0 ∨ b ≠ ⊤) (hb : b ≠ 0 ∨ a ≠ ⊤) :
   tendsto (λp:ennreal×ennreal, p.1 * p.2) (𝓝 (a, b)) (𝓝 (a * b)) :=
 have ht : ∀b:ennreal, b ≠ 0 → tendsto (λp:ennreal×ennreal, p.1 * p.2) (𝓝 ((⊤:ennreal), b)) (𝓝 ⊤),
 begin
@@ -239,20 +239,20 @@ begin
     have ha' : a ≠ 0, from mt coe_eq_coe.2 ha,
     simp [*, nhds_swap (a : ennreal) ⊤, none_eq_top, some_eq_coe, top_mul, tendsto_map'_iff, (∘), mul_comm] },
   simp [some_eq_coe, nhds_coe_coe, tendsto_map'_iff, (∘)],
-  simp only [coe_mul.symm, tendsto_coe, tendsto_mul']
+  simp only [coe_mul.symm, tendsto_coe, tendsto_mul]
 end
 
-protected lemma tendsto_mul {f : filter α} {ma : α → ennreal} {mb : α → ennreal} {a b : ennreal}
+protected lemma tendsto.mul {f : filter α} {ma : α → ennreal} {mb : α → ennreal} {a b : ennreal}
   (hma : tendsto ma f (𝓝 a)) (ha : a ≠ 0 ∨ b ≠ ⊤) (hmb : tendsto mb f (𝓝 b)) (hb : b ≠ 0 ∨ a ≠ ⊤) :
   tendsto (λa, ma a * mb a) f (𝓝 (a * b)) :=
 show tendsto ((λp:ennreal×ennreal, p.1 * p.2) ∘ (λa, (ma a, mb a))) f (𝓝 (a * b)), from
-tendsto.comp (ennreal.tendsto_mul' ha hb) (tendsto_prod_mk_nhds hma hmb)
+tendsto.comp (ennreal.tendsto_mul ha hb) (tendsto_prod_mk_nhds hma hmb)
 
-protected lemma tendsto_mul_right {f : filter α} {m : α → ennreal} {a b : ennreal}
+protected lemma tendsto.mul_right {f : filter α} {m : α → ennreal} {a b : ennreal}
   (hm : tendsto m f (𝓝 b)) (hb : b ≠ 0 ∨ a ≠ ⊤) : tendsto (λb, a * m b) f (𝓝 (a * b)) :=
 by_cases
   (assume : a = 0, by simp [this, tendsto_const_nhds])
-  (assume ha : a ≠ 0, ennreal.tendsto_mul tendsto_const_nhds (or.inl ha) hm hb)
+  (assume ha : a ≠ 0, ennreal.tendsto.mul tendsto_const_nhds (or.inl ha) hm hb)
 
 protected lemma continuous_inv : continuous (has_inv.inv : ennreal → ennreal) :=
 continuous_iff_continuous_at.2 $ λ a, tendsto_orderable.2
@@ -267,7 +267,7 @@ begin
   exact lt_mem_nhds (ennreal.inv_lt_iff_inv_lt.1 hb)
 end⟩
 
-@[simp] protected lemma tendsto_inv {f : filter α} {m : α → ennreal} {a : ennreal} :
+@[simp] protected lemma tendsto_inv_iff {f : filter α} {m : α → ennreal} {a : ennreal} :
   tendsto (λ x, (m x)⁻¹) f (𝓝 a⁻¹) ↔ tendsto m f (𝓝 a) :=
 ⟨λ h, by simpa only [function.comp, ennreal.inv_inv]
   using (ennreal.continuous_inv.tendsto a⁻¹).comp h,
@@ -279,7 +279,7 @@ have Sup ((λb, b + a) '' s) = Sup s + a,
     (assume x _ y _ h, add_le_add' h (le_refl _))
     is_lub_Sup
     hs
-    (tendsto_add (tendsto_id' inf_le_left) tendsto_const_nhds),
+    (tendsto.add (tendsto_id' inf_le_left) tendsto_const_nhds),
 by simp [Sup_image, -add_comm] at this; exact this.symm
 
 lemma supr_add {ι : Sort*} {s : ι → ennreal} [h : nonempty ι] : supr s + a = ⨆b, s b + a :=
@@ -343,7 +343,7 @@ begin
         (assume x _ y _ h, canonically_ordered_semiring.mul_le_mul (le_refl _) h)
         is_lub_Sup
         s₀
-        (ennreal.tendsto_mul_right (tendsto_id' inf_le_left) (or.inl s₁))),
+        (ennreal.tendsto.mul_right (tendsto_id' inf_le_left) (or.inl s₁))),
     rw [this.symm, Sup_image] }
 end
 end priority
@@ -358,7 +358,7 @@ protected lemma tendsto_coe_sub : ∀{b:ennreal}, tendsto (λb:ennreal, ↑r - b
 begin
   refine (forall_ennreal.2 $ and.intro (assume a, _) _),
   { simp [@nhds_coe a, tendsto_map'_iff, (∘), tendsto_coe, coe_sub.symm],
-    exact nnreal.tendsto_sub tendsto_const_nhds tendsto_id },
+    exact nnreal.tendsto.sub tendsto_const_nhds tendsto_id },
   simp,
   exact (tendsto.congr' (mem_sets_of_superset (lt_mem_nhds $ @coe_lt_top r) $
     by simp [le_of_lt] {contextual := tt})) tendsto_const_nhds
@@ -458,7 +458,7 @@ have sum_ne_0 : (∑i, f i) ≠ 0, from ne_of_gt $
 have tendsto (λs:finset α, s.sum ((*) a ∘ f)) at_top (𝓝 (a * (∑i, f i))),
   by rw [← show (*) a ∘ (λs:finset α, s.sum f) = λs, s.sum ((*) a ∘ f),
          from funext $ λ s, finset.mul_sum];
-  exact ennreal.tendsto_mul_right (has_sum_tsum ennreal.summable) (or.inl sum_ne_0),
+  exact ennreal.tendsto.mul_right (has_sum_tsum ennreal.summable) (or.inl sum_ne_0),
 tsum_eq_has_sum this
 
 protected lemma tsum_mul : (∑i, f i * a) = (∑i, f i) * a :=

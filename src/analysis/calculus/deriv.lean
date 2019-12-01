@@ -46,7 +46,9 @@ We also show the existence and compute the derivatives of:
   - multiplication
   - negation
   - multiplication of two functions in `𝕜 → 𝕜`
+  - multiplication of a function in `𝕜 → 𝕜` and of a function in `𝕜 → E`
   - composition of a function in `𝕜 → F` with a function in `𝕜 → 𝕜`
+  - composition of a function in `F → E` with a function in `𝕜 → F`
 
 ## Implementation notes
 
@@ -64,6 +66,7 @@ set_option class.instance_max_depth 100
 
 variables {𝕜 : Type u} [nondiscrete_normed_field 𝕜]
 variables {F : Type v} [normed_group F] [normed_space 𝕜 F]
+variables {E : Type w} [normed_group E] [normed_space 𝕜 E]
 
 /--
 `f` has the derivative `f'` at the point `x` as `x` goes along the filter `L`.
@@ -237,7 +240,7 @@ by simp [deriv]
 
 lemma differentiable_at.deriv_within (h : differentiable_at 𝕜 f x)
   (hxs : unique_diff_within_at 𝕜 s x) : deriv_within f s x = deriv f x :=
-by { unfold deriv_within deriv, rw differentiable.fderiv_within h hxs }
+by { unfold deriv_within deriv, rw h.fderiv_within hxs }
 
 lemma deriv_within_subset (st : s ⊆ t) (ht : unique_diff_within_at 𝕜 s x)
   (h : differentiable_within_at 𝕜 f t x) :
@@ -252,6 +255,7 @@ lemma deriv_within_inter (ht : t ∈ 𝓝 x) (hs : unique_diff_within_at 𝕜 s 
 by { unfold deriv_within, rw fderiv_within_inter ht hs }
 
 section congr
+/-! ### Congruence properties of derivatives -/
 
 theorem has_deriv_at_filter_congr_of_mem_sets
   (hx : f₀ x = f₁ x) (h₀ : {x | f₀ x = f₁ x} ∈ L) (h₁ : f₀' = f₁') :
@@ -289,8 +293,8 @@ by { unfold deriv, rwa fderiv_congr_of_mem_nhds }
 
 end congr
 
-/- id -/
 section id
+/-! ### Derivative of the identity -/
 variables (s x L)
 
 theorem has_deriv_at_filter_id : has_deriv_at_filter id 1 x L :=
@@ -310,8 +314,8 @@ by { unfold deriv_within, rw fderiv_within_id, simp, assumption }
 
 end id
 
-/- constants -/
 section const
+/-! ### Derivative of constant functions -/
 variables (c : F) (s x L)
 
 theorem has_deriv_at_filter_const : has_deriv_at_filter (λ x, c) 0 x L :=
@@ -331,8 +335,8 @@ by { rw (differentiable_at_const _).deriv_within hxs, apply deriv_const }
 
 end const
 
-/- Linear maps -/
 section is_linear_map
+/-! ### Derivative of linear maps -/
 variables (s x L) [is_linear_map 𝕜 f]
 
 lemma is_linear_map.has_deriv_at_filter : has_deriv_at_filter f (f 1) x L :=
@@ -376,6 +380,7 @@ is_linear_map.differentiable.differentiable_on
 end is_linear_map
 
 section add
+/-! ### Derivative of the sum of two functions -/
 
 theorem has_deriv_at_filter.add
   (hf : has_deriv_at_filter f f' x L) (hg : has_deriv_at_filter g g' x L) :
@@ -404,8 +409,8 @@ lemma deriv_add
 
 end add
 
-/- neg -/
 section neg
+/-! ### Derivative of the negative of a function -/
 
 theorem has_deriv_at_filter.neg (h : has_deriv_at_filter f f' x L) :
   has_deriv_at_filter (λ x, -f x) (-f') x L :=
@@ -428,8 +433,8 @@ h.has_deriv_at.neg.deriv
 
 end neg
 
-/- sub -/
 section sub
+/-! ### Derivative of the difference of two functions -/
 
 theorem has_deriv_at_filter.sub
   (hf : has_deriv_at_filter f f' x L) (hg : has_deriv_at_filter g g' x L) :
@@ -462,8 +467,8 @@ has_fderiv_at_filter.is_O_sub h
 
 end sub
 
-/- Continuity -/
 section continuous
+/-! ### Continuity of a function admitting a derivative -/
 
 theorem has_deriv_at_filter.tendsto_nhds
   (hL : L ≤ 𝓝 x) (h : has_deriv_at_filter f f' x L) :
@@ -479,8 +484,9 @@ has_deriv_at_filter.tendsto_nhds (le_refl _) h
 
 end continuous
 
-/- Cartesian products -/
 section cartesian_product
+/-! ### Derivative of the cartesian product of two functions -/
+
 variables {G : Type w} [normed_group G] [normed_space 𝕜 G]
 variables {f₂ : 𝕜 → G} {f₂' : G}
 
@@ -501,8 +507,9 @@ hf₁.prod hf₂
 
 end cartesian_product
 
-/- Composition -/
 section composition
+/-! ### Derivative of the composition of a vector valued function and a scalar function -/
+
 variables {h : 𝕜 → 𝕜} {h' : 𝕜}
 /- For composition lemmas, we put x explicit to help the elaborator, as otherwise Lean tends to
 get confused since there are too many possibilities for composition -/
@@ -565,8 +572,100 @@ end
 
 end composition
 
-/- Multiplication -/
+section composition_vector
+/-! ### Derivative of the composition of a function between vector spaces and of a function defined on `𝕜` -/
+
+variables {l : F → E} {l' : F →L[𝕜] E}
+variable (x)
+
+/-- The composition `l ∘ f` where `l : F → E` and `f : 𝕜 → F`, has a derivative within a set
+equal to the Fréchet derivative of `l` applied to the derivative of `f`. -/
+theorem has_fderiv_within_at.comp_has_deriv_within_at {t : set F}
+  (hl : has_fderiv_within_at l l' t (f x)) (hf : has_deriv_within_at f f' s x) (hst : s ⊆ f ⁻¹' t) :
+  has_deriv_within_at (l ∘ f) (l' (f')) s x :=
+begin
+  rw has_deriv_within_at_iff_has_fderiv_within_at,
+  convert has_fderiv_within_at.comp x hl hf hst,
+  ext,
+  simp
+end
+
+/-- The composition `l ∘ f` where `l : F → E` and `f : 𝕜 → F`, has a derivative equal to the
+Fréchet derivative of `l` applied to the derivative of `f`. -/
+theorem has_fderiv_at.comp_has_deriv_at
+  (hl : has_fderiv_at l l' (f x)) (hf : has_deriv_at f f' x) :
+  has_deriv_at (l ∘ f) (l' (f')) x :=
+begin
+  rw has_deriv_at_iff_has_fderiv_at,
+  convert has_fderiv_at.comp x hl hf,
+  ext,
+  simp
+end
+
+theorem has_fderiv_at.comp_has_deriv_within_at
+  (hl : has_fderiv_at l l' (f x)) (hf : has_deriv_within_at f f' s x) :
+  has_deriv_within_at (l ∘ f) (l' (f')) s x :=
+begin
+  rw ← has_fderiv_within_at_univ at hl,
+  exact has_fderiv_within_at.comp_has_deriv_within_at x hl hf subset_preimage_univ
+end
+
+lemma fderiv_within.comp_deriv_within {t : set F}
+  (hl : differentiable_within_at 𝕜 l t (f x)) (hf : differentiable_within_at 𝕜 f s x)
+  (hs : s ⊆ f ⁻¹' t) (hxs : unique_diff_within_at 𝕜 s x) :
+  deriv_within (l ∘ f) s x = (fderiv_within 𝕜 l t (f x) : F → E) (deriv_within f s x) :=
+begin
+  apply has_deriv_within_at.deriv_within _ hxs,
+  exact (hl.has_fderiv_within_at).comp_has_deriv_within_at x (hf.has_deriv_within_at) hs
+end
+
+lemma fderiv.comp_deriv
+  (hl : differentiable_at 𝕜 l (f x)) (hf : differentiable_at 𝕜 f x) :
+  deriv (l ∘ f) x = (fderiv 𝕜 l (f x) : F → E) (deriv f x) :=
+begin
+  apply has_deriv_at.deriv _,
+  exact (hl.has_fderiv_at).comp_has_deriv_at x (hf.has_deriv_at)
+end
+
+end composition_vector
+
+section mul_vector
+/-! ### Derivative of the multiplication of a scalar function and a vector function -/
+variables {c : 𝕜 → 𝕜} {c' : 𝕜}
+
+theorem has_deriv_within_at.smul'
+  (hc : has_deriv_within_at c c' s x) (hf : has_deriv_within_at f f' s x) :
+  has_deriv_within_at (λ y, c y • f y) (c x • f' + c' • f x) s x :=
+begin
+  show has_fderiv_within_at _ _ _ _,
+  convert has_fderiv_within_at.smul' hc hf,
+  ext,
+  simp [smul_add, (mul_smul _ _ _).symm, mul_comm]
+end
+
+theorem has_deriv_at.smul'
+  (hc : has_deriv_at c c' x) (hf : has_deriv_at f f' x) :
+  has_deriv_at (λ y, c y • f y) (c x • f' + c' • f x) x :=
+begin
+  show has_fderiv_at _ _ _,
+  convert has_fderiv_at.smul' hc hf,
+  ext,
+  simp [smul_add, (mul_smul _ _ _).symm, mul_comm]
+end
+
+lemma deriv_within_smul' (hxs : unique_diff_within_at 𝕜 s x)
+  (hc : differentiable_within_at 𝕜 c s x) (hf : differentiable_within_at 𝕜 f s x) :
+  deriv_within (λ y, c y • f y) s x = c x • deriv_within f s x + (deriv_within c s x) • f x :=
+(hc.has_deriv_within_at.smul' hf.has_deriv_within_at).deriv_within hxs
+
+lemma deriv_smul' (hc : differentiable_at 𝕜 c x) (hf : differentiable_at 𝕜 f x) :
+  deriv (λ y, c y • f y) x = c x • deriv f x + (deriv c x) • f x :=
+(hc.has_deriv_at.smul' hf.has_deriv_at).deriv
+
+end mul_vector
+
 section mul
+/-! ### Derivative of the multiplication of two scalar functions -/
 variables {c d : 𝕜 → 𝕜} {c' d' : 𝕜}
 
 theorem has_deriv_within_at.mul

@@ -250,7 +250,7 @@ begin
     have h : tendsto (λ n:ℕ, δ) at_top (𝓝 δ),
       exact tendsto_const_nhds,
     have h' : tendsto (λ n:ℕ, δ + 1 / (n + 1)) at_top (𝓝 δ),
-      convert tendsto_add h tendsto_one_div_add_at_top_nhds_0_nat, simp only [add_zero],
+      convert tendsto.add h tendsto_one_div_add_at_top_nhds_0_nat, simp only [add_zero],
     exact tendsto_of_tendsto_of_tendsto_of_le_of_le h h'
       (by { rw mem_at_top_sets, use 0, assume n hn, exact δ_le _ })
       (by { rw mem_at_top_sets, use 0, assume n hn, exact le_of_lt (hw _) }),
@@ -316,21 +316,21 @@ begin
     apply tendsto.comp,
     { convert continuous_sqrt.continuous_at, exact sqrt_zero.symm },
     have eq₁ : tendsto (λ (n : ℕ), 8 * δ * (1 / (n + 1))) at_top (𝓝 (0:ℝ)),
-      convert tendsto_mul (@tendsto_const_nhds _ _ _ (8 * δ) _) tendsto_one_div_add_at_top_nhds_0_nat,
+      convert tendsto.mul (@tendsto_const_nhds _ _ _ (8 * δ) _) tendsto_one_div_add_at_top_nhds_0_nat,
       simp only [mul_zero],
     have : tendsto (λ (n : ℕ), (4:ℝ) * (1 / (n + 1))) at_top (𝓝 (0:ℝ)),
-      convert tendsto_mul (@tendsto_const_nhds _ _ _ (4:ℝ) _) tendsto_one_div_add_at_top_nhds_0_nat,
+      convert tendsto.mul (@tendsto_const_nhds _ _ _ (4:ℝ) _) tendsto_one_div_add_at_top_nhds_0_nat,
       simp only [mul_zero],
     have eq₂ : tendsto (λ (n : ℕ), (4:ℝ) * (1 / (n + 1)) * (1 / (n + 1))) at_top (𝓝 (0:ℝ)),
-      convert tendsto_mul this tendsto_one_div_add_at_top_nhds_0_nat,
+      convert tendsto.mul this tendsto_one_div_add_at_top_nhds_0_nat,
       simp only [mul_zero],
-    convert tendsto_add eq₁ eq₂, simp only [add_zero],
+    convert tendsto.add eq₁ eq₂, simp only [add_zero],
   -- Step 3: By completeness of `K`, let `w : ℕ → K` converge to some `v : K`.
   -- Prove that it satisfies all requirements.
   rcases cauchy_seq_tendsto_of_is_complete h₁ (λ n, _) seq_is_cauchy with ⟨v, hv, w_tendsto⟩,
   use v, use hv,
   have h_cont : continuous (λ v, ∥u - v∥) :=
-    continuous.comp continuous_norm (continuous_sub continuous_const continuous_id),
+    continuous.comp continuous_norm (continuous.sub continuous_const continuous_id),
   have : tendsto (λ n, ∥u - w n∥) at_top (𝓝 ∥u - v∥),
     convert (tendsto.comp h_cont.continuous_at w_tendsto),
   exact tendsto_nhds_unique at_top_ne_bot this norm_tendsto,

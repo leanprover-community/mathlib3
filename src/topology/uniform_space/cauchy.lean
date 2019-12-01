@@ -451,7 +451,7 @@ begin
   exact U''_sub_U' _ (seq_pair_mem hf U''_mem hm hn),
 end
 
-/-- A sequenitally complete uniform space with a countable basis of the uniformity filter is
+/-- A sequentially complete uniform space with a countable basis of the uniformity filter is
 complete. -/
 theorem complete_of_cauchy_seq_tendsto
   (H : ∀ u : ℕ → α, cauchy_seq u → ∃a, tendsto u at_top (𝓝 a)) :

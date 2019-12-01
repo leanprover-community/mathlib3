@@ -114,7 +114,7 @@ mem_nhds_sets_iff.2 ⟨β, (by refl), oβ, is_submonoid.one_mem _⟩
 variable [topological_monoid α]
 
 @[to_additive]
-lemma tendsto.multiset_prod {f : γ → β → α} {x : filter β} {a : γ → α} (s : multiset γ) :
+lemma tendsto_multiset_prod {f : γ → β → α} {x : filter β} {a : γ → α} (s : multiset γ) :
   (∀c∈s, tendsto (f c) x (𝓝 (a c))) →
     tendsto (λb, (s.map (λc, f c b)).prod) x (𝓝 ((s.map a).prod)) :=
 by { rcases s with ⟨l⟩, simp, exact tendsto_list_prod l }
@@ -122,7 +122,7 @@ by { rcases s with ⟨l⟩, simp, exact tendsto_list_prod l }
 @[to_additive]
 lemma tendsto_finset_prod {f : γ → β → α} {x : filter β} {a : γ → α} (s : finset γ) :
   (∀c∈s, tendsto (f c) x (𝓝 (a c))) → tendsto (λb, s.prod (λc, f c b)) x (𝓝 (s.prod a)) :=
-tendsto.multiset_prod _
+tendsto_multiset_prod _
 
 @[to_additive]
 lemma continuous_multiset_prod [topological_space β] {f : γ → β → α} (s : multiset γ) :

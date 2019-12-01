@@ -47,7 +47,7 @@ begin
   unfold half_pow,
   rw ← ennreal.of_real_zero,
   apply ennreal.tendsto_of_real,
-  exact tendsto_pow_at_top_nhds_0_of_lt_1 (by norm_num) (by norm_num)
+  exact _root_.tendsto_pow_at_top_nhds_0_of_lt_1 (by norm_num) (by norm_num)
 end
 
 lemma half_pow_add_succ (n : ℕ) : half_pow (n+1) + half_pow (n+1) = half_pow n :=

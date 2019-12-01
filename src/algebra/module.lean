@@ -58,7 +58,7 @@ by rw [←one_smul α x, ←zero_eq_one, zero_smul]
 lemma finset.sum_smul' {α : Type*} {R : Type*} [semiring R] {M : Type*} [add_comm_monoid M]
   [semimodule R M] (s : finset α) (r : R) (f : α → M) :
     finset.sum s (λ (x : α), (r • (f x))) = r • (finset.sum s f) :=
-by haveI := classical.dec_eq α; exact
+by classical; exact
 finset.induction_on s (by simp) (by simp [_root_.smul_add] {contextual := tt})
 
 end semimodule

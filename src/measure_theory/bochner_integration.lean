@@ -76,6 +76,8 @@ local infixr ` →ₛ `:25 := simple_func
 namespace simple_func
 
 section bintegral
+/-! ### Define the Bochner integral of simple functions of the type `α →ₛ β` where `β` is a normed
+group, and prove basic property of this integral. -/
 open finset
 
 variables [normed_group β] [normed_group γ]
@@ -294,6 +296,7 @@ infixr ` →₁ₛ `:25 := measure_theory.l1.simple_func
 namespace simple_func
 
 section instances
+/-! ### Prove that simple functions in L1 space form a `normed_space`. -/
 
 instance : has_coe (α →₁ₛ β) (α →₁ β) := ⟨subtype.val⟩
 
@@ -593,6 +596,7 @@ end
 end to_simple_func
 
 section coe_to_l1
+/-! ### Prove that the embedding of integrable simple functions `α →₁ₛ β` into L1 is a uniform and dense embedding. -/
 
 lemma exists_simple_func_near (f : α →₁ β) {ε : ℝ} (ε0 : 0 < ε) :
   ∃ s : α →₁ₛ β, dist f s < ε :=
@@ -651,6 +655,7 @@ variables {α β 𝕜}
 end coe_to_l1
 
 section simple_func_integral
+/-! ### Define the Bochner integral on `α →₁ₛ β` and prove basic properties of this integral. -/
 
 variables [normed_space ℝ β]
 
@@ -715,6 +720,8 @@ open simple_func
 
 variables [normed_space ℝ β] [normed_space ℝ γ] [complete_space β]
 
+section integration_in_l1
+
 local notation `to_l1` := coe_to_l1 α β ℝ
 local attribute [instance] simple_func.normed_group simple_func.normed_space
 
@@ -760,6 +767,8 @@ local notation `Integral` := @integral_clm α _ β _ _ _ _
    ... ≤ ∥Integral∥ * ∥f∥ : le_op_norm _ _
    ... ≤ 1 * ∥f∥ : mul_le_mul_of_nonneg_right norm_Integral_le_one $ norm_nonneg _
    ... = ∥f∥ : one_mul _
+
+end integration_in_l1
 
 end l1
 

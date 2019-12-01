@@ -5,12 +5,13 @@ Authors: Johannes Hölzl, Mario Carneiro
 
 Theory of Cauchy filters in uniform spaces. Complete uniform spaces. Totally bounded subsets.
 -/
-import topology.uniform_space.basic
+import topology.uniform_space.basic data.set.intervals
+
+universes u v
 
 open filter topological_space lattice set classical
 open_locale classical
-variables {α : Type*} {β : Type*} [uniform_space α]
-universe u
+variables {α : Type u} {β : Type v} [uniform_space α]
 
 open_locale uniformity topological_space
 
@@ -20,6 +21,8 @@ open_locale uniformity topological_space
   cofinitely many of the `a n` is Cauchy iff `a` is a Cauchy sequence. -/
 def cauchy (f : filter α) := f ≠ ⊥ ∧ filter.prod f f ≤ (𝓤 α)
 
+/-- A set `s` is called *complete*, if any Cauchy filter `f` such that `s ∈ f`
+has a limit in `s` (formally, it satisfies `f ≤ 𝓝 x` for some `x ∈ s`). -/
 def is_complete (s : set α) := ∀f, cauchy f → f ≤ principal s → ∃x∈s, f ≤ 𝓝 x
 
 lemma cauchy_iff {f : filter α} :
@@ -50,41 +53,38 @@ cauchy_downwards cauchy_nhds
   (show principal {a} ≠ ⊥, by simp)
   (pure_le_nhds a)
 
+/-- The common part of the proofs of `le_nhds_of_cauchy_adhp` and
+`sequentially_complete.le_nhds_of_seq_tendsto_nhds`: if for any entourage `s`
+one can choose a set `t ∈ f` of diameter `s` such that it contains a point `y`
+with `(x, y) ∈ s`, then `f` converges to `x`. -/
+lemma le_nhds_of_cauchy_adhp_aux {f : filter α} {x : α}
+  (adhs : ∀ s ∈ 𝓤 α, ∃ t ∈ f, (set.prod t t ⊆ s) ∧ ∃ y, (y ∈ t) ∧ (x, y) ∈ s) :
+  f ≤ 𝓝 x :=
+begin
+  -- Consider a neighborhood `s` of `x`
+  assume s hs,
+  -- Take an entourage twice smaller than `s`
+  rcases comp_mem_uniformity_sets (mem_nhds_uniformity_iff.1 hs) with ⟨U, U_mem, hU⟩,
+  -- Take `t` and `y` provided by `adhs`
+  rcases adhs U U_mem with ⟨t, t_mem, ht, y, hy, hxy⟩,
+  apply mem_sets_of_superset t_mem,
+  -- Given a point `z ∈ t`, we have `(x, y) ∈ U` and `(y, z) ∈ t × t ⊆ U`, hence `z ∈ s`
+  exact (λ z hz, hU (prod_mk_mem_comp_rel hxy (ht $ mk_mem_prod hy hz)) rfl)
+end
+
+/-- If `x` is an adherent (cluster) point for a Cauchy filter `f`, then it is a limit point
+for `f`. -/
 lemma le_nhds_of_cauchy_adhp {f : filter α} {x : α} (hf : cauchy f)
   (adhs : f ⊓ 𝓝 x ≠ ⊥) : f ≤ 𝓝 x :=
-have ∀s∈f.sets, x ∈ closure s,
+le_nhds_of_cauchy_adhp_aux
 begin
-  intros s hs,
-  simp [closure_eq_nhds, inf_comm],
-  exact assume h', adhs $ bot_unique $ h' ▸ inf_le_inf (by simp; exact hs) (le_refl _)
-end,
-calc f ≤ f.lift' (λs:set α, {y | x ∈ closure s ∧ y ∈ closure s}) :
-    le_infi $ assume s, le_infi $ assume hs,
-    begin
-      rw [←forall_sets_neq_empty_iff_neq_bot] at adhs,
-      simp [this s hs],
-      exact mem_sets_of_superset hs subset_closure
-    end
-  ... ≤ f.lift' (λs:set α, {y | (x, y) ∈ closure (set.prod s s)}) :
-    by simp [closure_prod_eq]; exact le_refl _
-  ... = (filter.prod f f).lift' (λs:set (α×α), {y | (x, y) ∈ closure s}) :
-  begin
-    rw [prod_same_eq],
-    rw [lift'_lift'_assoc],
-    exact monotone_prod monotone_id monotone_id,
-    exact monotone_preimage.comp (assume s t h x h', closure_mono h h')
-  end
-  ... ≤ (𝓤 α).lift' (λs:set (α×α), {y | (x, y) ∈ closure s}) : lift'_mono hf.right (le_refl _)
-  ... = ((𝓤 α).lift' closure).lift' (λs:set (α×α), {y | (x, y) ∈ s}) :
-  begin
-    rw [lift'_lift'_assoc],
-    exact assume s t h, closure_mono h,
-    exact monotone_preimage
-  end
-  ... = (𝓤 α).lift' (λs:set (α×α), {y | (x, y) ∈ s}) :
-    by rw [←uniformity_eq_uniformity_closure]
-  ... = 𝓝 x :
-    by rw [nhds_eq_uniformity]
+  assume s hs,
+  -- Take `t ∈ f` such that `t × t ⊆ s`.
+  rcases (cauchy_iff.1 hf).2 s hs with ⟨t, t_mem, ht⟩,
+  use [t, t_mem, ht],
+  exact exists_mem_of_ne_empty (forall_sets_neq_empty_iff_neq_bot.2 adhs _
+    (inter_mem_inf_sets t_mem (mem_nhds_left x hs)))
+end
 
 lemma le_nhds_iff_adhp_of_cauchy {f : filter α} {x : α} (hf : cauchy f) :
   f ≤ 𝓝 x ↔ f ⊓ 𝓝 x ≠ ⊥ :=
@@ -121,6 +121,20 @@ cauchy_downwards cauchy_nhds (map_ne_bot at_top_ne_bot) hx
 lemma cauchy_seq_iff_prod_map [inhabited β] [semilattice_sup β] {u : β → α} :
   cauchy_seq u ↔ map (prod.map u u) at_top ≤ 𝓤 α :=
 iff.trans (and_iff_right (map_ne_bot at_top_ne_bot)) (prod_map_at_top_eq u u ▸ iff.rfl)
+
+lemma cauchy_seq_of_controlled [semilattice_sup β] [inhabited β]
+  (U : β → set (α × α)) (hU : ∀ s ∈ 𝓤 α, ∃ n, U n ⊆ s)
+  {f : β → α} (hf : ∀ {N m n : β}, N ≤ m → N ≤ n → (f m, f n) ∈ U N) :
+  cauchy_seq f :=
+cauchy_seq_iff_prod_map.2
+begin
+  assume s hs,
+  rw [mem_map, mem_at_top_sets],
+  cases hU s hs with N hN,
+  refine ⟨(N, N), λ mn hmn, _⟩,
+  cases mn with m n,
+  exact hN (hf hmn.1 hmn.2)
+end
 
 /-- A complete space is defined here using uniformities. A uniform space
   is complete if every Cauchy filter converges. -/
@@ -330,3 +344,105 @@ instance complete_of_compact {α : Type u} [uniform_space α] [compact_space α]
 lemma compact_of_totally_bounded_is_closed [complete_space α] {s : set α}
   (ht : totally_bounded s) (hc : is_closed s) : compact s :=
 (@compact_iff_totally_bounded_complete α _ s).2 ⟨ht, is_complete_of_is_closed hc⟩
+
+namespace sequentially_complete
+
+variables {f : filter α} (hf : cauchy f) {U : ℕ → set (α × α)}
+  (U_mem : ∀ n, U n ∈ 𝓤 α) (U_le : ∀ s ∈ 𝓤 α, ∃ n, U n ⊆ s)
+
+open set finset
+
+noncomputable theory
+
+/-- An auxiliary sequence of sets approximating a Cauchy filter. -/
+def set_seq_aux (n : ℕ) : {s : set α // ∃ (_ : s ∈ f), s.prod s ⊆ U n } :=
+indefinite_description _ $ (cauchy_iff.1 hf).2 (U n) (U_mem n)
+
+/-- Given a Cauchy filter `f` and a sequence `U` of entourages, `set_seq` provides
+a sequence of monotonically decreasing sets `s n ∈ f` such that `(s n).prod (s n) ⊆ U`. -/
+def set_seq (n : ℕ) : set α :=  ⋂ m ∈ Iic n, (set_seq_aux hf U_mem m).val
+
+lemma set_seq_mem (n : ℕ) : set_seq hf U_mem n ∈ f :=
+Inter_mem_sets (finite_le_nat n) (λ m _, (set_seq_aux hf U_mem m).2.fst)
+
+lemma set_seq_mono ⦃m n : ℕ⦄ (h : m ≤ n) : set_seq hf U_mem n ⊆ set_seq hf U_mem m :=
+bInter_subset_bInter_left (λ k hk, le_trans hk h)
+
+lemma set_seq_sub_aux (n : ℕ) : set_seq hf U_mem n ⊆ set_seq_aux hf U_mem n :=
+bInter_subset_of_mem right_mem_Iic
+
+lemma set_seq_prod_subset {N m n} (hm : N ≤ m) (hn : N ≤ n) :
+  (set_seq hf U_mem m).prod (set_seq hf U_mem n) ⊆ U N :=
+begin
+  assume p hp,
+  refine (set_seq_aux hf U_mem N).2.snd ⟨_, _⟩;
+    apply set_seq_sub_aux,
+  exact set_seq_mono hf U_mem hm hp.1,
+  exact set_seq_mono hf U_mem hn hp.2
+end
+
+/-- A sequence of points such that `seq n ∈ set_seq n`. Here `set_seq` is a monotonically
+decreasing sequence of sets `set_seq n ∈ f` with diameters controlled by a given sequence
+of entourages. -/
+def seq (n : ℕ) : α := some $ inhabited_of_mem_sets hf.1 (set_seq_mem hf U_mem n)
+
+lemma seq_mem (n : ℕ) : seq hf U_mem n ∈ set_seq hf U_mem n :=
+some_spec $ inhabited_of_mem_sets hf.1 (set_seq_mem hf U_mem n)
+
+lemma seq_pair_mem ⦃N m n : ℕ⦄ (hm : N ≤ m) (hn : N ≤ n) :
+  (seq hf U_mem m, seq hf U_mem n) ∈ U N :=
+set_seq_prod_subset hf U_mem hm hn ⟨seq_mem hf U_mem m, seq_mem hf U_mem n⟩
+
+include U_le
+
+theorem seq_is_cauchy_seq : cauchy_seq $ seq hf U_mem :=
+cauchy_seq_of_controlled U U_le $ seq_pair_mem hf U_mem
+
+/-- If the sequence `sequentially_complete.seq` converges to `a`, then `f ≤ 𝓝 a`. -/
+theorem le_nhds_of_seq_tendsto_nhds ⦃a : α⦄ (ha : tendsto (seq hf U_mem) at_top (𝓝 a)) :
+  f ≤ 𝓝 a :=
+le_nhds_of_cauchy_adhp_aux
+begin
+  assume s hs,
+  rcases U_le s hs with ⟨m, hm⟩,
+  rcases (tendsto_at_top' _ _).1 ha _ (mem_nhds_left a (U_mem m)) with ⟨n, hn⟩,
+  refine ⟨set_seq hf U_mem (max m n), set_seq_mem hf U_mem _, _,
+    seq hf U_mem (max m n), seq_mem hf U_mem _, _⟩,
+  { have := le_max_left m n,
+    exact set.subset.trans (set_seq_prod_subset hf U_mem this this) hm },
+  { exact hm (hn _ $ le_max_right m n) }
+end
+
+end sequentially_complete
+
+namespace uniform_space
+
+open sequentially_complete
+
+variables {f : filter α} (hf : cauchy f) {U U': ℕ → set (α × α)}
+  (U_mem : ∀ n, U n ∈ 𝓤 α) (U_le : ∀ s ∈ 𝓤 α, ∃ n, U n ⊆ s)
+  (U'_mem : ∀ n, U' n ∈ 𝓤 α)
+
+theorem complete_of_convergent_controlled_sequences
+  (H : ∀ u : ℕ → α, (∀ N m n, N ≤ m → N ≤ n → (u m, u n) ∈ U' N) → ∃ a, tendsto u at_top (𝓝 a)) :
+  complete_space α :=
+-- We take a sequence majorated by both `U` and `U'`
+let U'' := λ n, U n ∩ U' n in
+have U''_sub_U : ∀ n, U'' n ⊆ U n, from λ n, inter_subset_left _ _,
+have U''_sub_U' : ∀ n, U'' n ⊆ U' n, from λ n, inter_subset_right _ _,
+have U''_mem : ∀ n, U'' n ∈ 𝓤 α, from λ n, inter_mem_sets (U_mem n) (U'_mem n),
+have U''_le : ∀ s ∈ 𝓤 α, ∃ n, U'' n ⊆ s,
+  from λ s hs, (U_le s hs).imp (λ n hn x hx, hn $ U''_sub_U n hx),
+begin
+  refine ⟨λ f hf, (H (seq hf U''_mem) (λ N m n hm hn, _)).imp $
+    le_nhds_of_seq_tendsto_nhds hf U''_mem U''_le⟩,
+  exact U''_sub_U' _ (seq_pair_mem hf U''_mem hm hn),
+end
+
+theorem complete_of_cauchy_seq_tendsto
+  (H : ∀ u : ℕ → α, cauchy_seq u → ∃a, tendsto u at_top (𝓝 a)) :
+  complete_space α :=
+complete_of_convergent_controlled_sequences U_mem U_le U_mem
+  (λ u hu, H u $ cauchy_seq_of_controlled U U_le hu)
+
+end uniform_space

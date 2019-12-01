@@ -1288,6 +1288,9 @@ Lift an expression to another type.
   specify it again as the third argument to `with`, like this: `lift n to ℕ using h with n rfl h`.
 * More generally, this can lift an expression from `α` to `β` assuming that there is an instance
   of `can_lift α β`. In this case the proof obligation is specified by `can_lift.cond`.
+* Given an instance `can_lift β γ`, it can also lift `α → β` to `α → γ`; more generally, given
+  `β : Π a : α, Type*`, `γ : Π a : α, Type*`, and `[Π a : α, can_lift (β a) (γ a)`, it automatically
+  generates an instance `can_lift (Π a, β a) (Π a, γ a)`.
 
 ### import_private
 

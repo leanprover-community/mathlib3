@@ -40,6 +40,7 @@ meta def can_lift_attr : user_attribute (list name) :=
 instance : can_lift ℤ ℕ :=
 ⟨coe, λ n, 0 ≤ n, λ n hn, ⟨n.nat_abs, int.nat_abs_of_nonneg hn⟩⟩
 
+/-- Enable automatic handling of pi types in `can_lift`. -/
 instance pi.can_lift (ι : Type u) (α : Π i : ι, Type v) (β : Π i : ι, Type w)
   [Π i : ι, can_lift (α i) (β i)] :
   can_lift (Π i : ι, α i) (Π i : ι, β i) :=

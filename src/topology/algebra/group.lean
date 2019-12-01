@@ -52,7 +52,7 @@ lemma continuous_on.inv [topological_group α] [topological_space β] {f : β �
 continuous_inv.comp_continuous_on hf
 
 @[to_additive]
-lemma tendsto_inv [topological_group α] {f : β → α} {x : filter β} {a : α}
+lemma tendsto.inv [topological_group α] {f : β → α} {x : filter β} {a : α}
   (hf : tendsto f x (𝓝 a)) : tendsto (λx, (f x)⁻¹) x (𝓝 a⁻¹) :=
 tendsto.comp (continuous_iff_continuous_at.mp (topological_group.continuous_inv α) a) hf
 
@@ -105,7 +105,7 @@ lemma exists_nhds_split [topological_group α] {s : set α} (hs : s ∈ 𝓝 (1 
   ∃ V ∈ 𝓝 (1 : α), ∀ v w ∈ V, v * w ∈ s :=
 begin
   have : ((λa:α×α, a.1 * a.2) ⁻¹' s) ∈ 𝓝 ((1, 1) : α × α) :=
-    tendsto_mul' (by simpa using hs),
+    tendsto_mul (by simpa using hs),
   rw nhds_prod_eq at this,
   rcases mem_prod_iff.1 this with ⟨V₁, H₁, V₂, H₂, H⟩,
   exact ⟨V₁ ∩ V₂, inter_mem_sets H₁ H₂, assume v w ⟨hv, _⟩ ⟨_, hw⟩, @H (v, w) ⟨hv, hw⟩⟩
@@ -116,7 +116,7 @@ lemma exists_nhds_split_inv [topological_group α] {s : set α} (hs : s ∈ 𝓝
   ∃ V ∈ 𝓝 (1 : α), ∀ v w ∈ V, v * w⁻¹ ∈ s :=
 begin
   have : tendsto (λa:α×α, a.1 * (a.2)⁻¹) ((𝓝 (1:α)).prod (𝓝 (1:α))) (𝓝 1),
-  { simpa using tendsto_mul (@tendsto_fst α α (𝓝 1) (𝓝 1)) (tendsto_inv tendsto_snd) },
+  { simpa using tendsto.mul (@tendsto_fst α α (𝓝 1) (𝓝 1)) (tendsto.inv tendsto_snd) },
   have : ((λa:α×α, a.1 * (a.2)⁻¹) ⁻¹' s) ∈ (𝓝 (1:α)).prod (𝓝 (1:α)) :=
     this (by simpa using hs),
   rcases mem_prod_iff.1 this with ⟨V₁, H₁, V₂, H₂, H⟩,
@@ -140,7 +140,7 @@ variable (α)
 lemma nhds_one_symm [topological_group α] : comap (λr:α, r⁻¹) (𝓝 (1 : α)) = 𝓝 (1 : α) :=
 begin
   have lim : tendsto (λr:α, r⁻¹) (𝓝 1) (𝓝 1),
-  { simpa using tendsto_inv (@tendsto_id α (𝓝 1)) },
+  { simpa using tendsto.inv (@tendsto_id α (𝓝 1)) },
   refine comap_eq_of_inverse _ _ lim lim,
   { funext x, simp },
 end
@@ -153,9 +153,9 @@ begin
   refine comap_eq_of_inverse (λy:α, y * x) _ _ _,
   { funext x; simp },
   { suffices : tendsto (λy:α, y * x⁻¹) (𝓝 x) (𝓝 (x * x⁻¹)), { simpa },
-    exact tendsto_mul tendsto_id tendsto_const_nhds },
+    exact tendsto.mul tendsto_id tendsto_const_nhds },
   { suffices : tendsto (λy:α, y * x) (𝓝 1) (𝓝 (1 * x)), { simpa },
-    exact tendsto_mul tendsto_id tendsto_const_nhds }
+    exact tendsto.mul tendsto_id tendsto_const_nhds }
 end
 
 @[to_additive]
@@ -238,9 +238,9 @@ lemma continuous_on.sub [topological_add_group α] [topological_space β] {f : �
   (hf : continuous_on f s) (hg : continuous_on g s) : continuous_on (λx, f x - g x) s :=
 continuous_sub.comp_continuous_on (hf.prod hg)
 
-lemma tendsto_sub [topological_add_group α] {f : β → α} {g : β → α} {x : filter β} {a b : α}
+lemma tendsto.sub [topological_add_group α] {f : β → α} {g : β → α} {x : filter β} {a b : α}
   (hf : tendsto f x (𝓝 a)) (hg : tendsto g x (𝓝 b)) : tendsto (λx, f x - g x) x (𝓝 (a - b)) :=
-by simp; exact tendsto_add hf (tendsto_neg hg)
+by simp; exact tendsto.add hf (tendsto.neg hg)
 
 lemma nhds_translation [topological_add_group α] (x : α) : comap (λy:α, y - x) (𝓝 0) = 𝓝 x :=
 nhds_translation_add_neg x

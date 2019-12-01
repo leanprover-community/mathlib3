@@ -64,14 +64,14 @@ lemma continuous_pow : ∀ n : ℕ, continuous (λ a : α, a ^ n)
 | (k+1) := show continuous (λ (a : α), a * a ^ k), from continuous.mul continuous_id (continuous_pow _)
 
 @[to_additive]
-lemma tendsto_mul' {a b : α} : tendsto (λp:α×α, p.fst * p.snd) (𝓝 (a, b)) (𝓝 (a * b)) :=
+lemma tendsto_mul {a b : α} : tendsto (λp:α×α, p.fst * p.snd) (𝓝 (a, b)) (𝓝 (a * b)) :=
 continuous_iff_continuous_at.mp (topological_monoid.continuous_mul α) (a, b)
 
 @[to_additive]
-lemma tendsto_mul {f : β → α} {g : β → α} {x : filter β} {a b : α}
+lemma tendsto.mul {f : β → α} {g : β → α} {x : filter β} {a b : α}
   (hf : tendsto f x (𝓝 a)) (hg : tendsto g x (𝓝 b)) :
   tendsto (λx, f x * g x) x (𝓝 (a * b)) :=
-tendsto.comp (by rw [←nhds_prod_eq]; exact tendsto_mul') (hf.prod_mk hg)
+tendsto.comp (by rw [←nhds_prod_eq]; exact tendsto_mul) (hf.prod_mk hg)
 
 @[to_additive]
 lemma tendsto_list_prod {f : γ → β → α} {x : filter β} {a : γ → α} :
@@ -81,7 +81,7 @@ lemma tendsto_list_prod {f : γ → β → α} {x : filter β} {a : γ → α} :
 | (f :: l) h :=
   begin
     simp,
-    exact tendsto_mul
+    exact tendsto.mul
       (h f (list.mem_cons_self _ _))
       (tendsto_list_prod l (assume c hc, h c (list.mem_cons_of_mem _ hc)))
   end
@@ -114,7 +114,7 @@ mem_nhds_sets_iff.2 ⟨β, (by refl), oβ, is_submonoid.one_mem _⟩
 variable [topological_monoid α]
 
 @[to_additive]
-lemma tendsto_multiset_prod {f : γ → β → α} {x : filter β} {a : γ → α} (s : multiset γ) :
+lemma tendsto.multiset_prod {f : γ → β → α} {x : filter β} {a : γ → α} (s : multiset γ) :
   (∀c∈s, tendsto (f c) x (𝓝 (a c))) →
     tendsto (λb, (s.map (λc, f c b)).prod) x (𝓝 ((s.map a).prod)) :=
 by { rcases s with ⟨l⟩, simp, exact tendsto_list_prod l }
@@ -122,7 +122,7 @@ by { rcases s with ⟨l⟩, simp, exact tendsto_list_prod l }
 @[to_additive]
 lemma tendsto_finset_prod {f : γ → β → α} {x : filter β} {a : γ → α} (s : finset γ) :
   (∀c∈s, tendsto (f c) x (𝓝 (a c))) → tendsto (λb, s.prod (λc, f c b)) x (𝓝 (s.prod a)) :=
-tendsto_multiset_prod _
+tendsto.multiset_prod _
 
 @[to_additive]
 lemma continuous_multiset_prod [topological_space β] {f : γ → β → α} (s : multiset γ) :

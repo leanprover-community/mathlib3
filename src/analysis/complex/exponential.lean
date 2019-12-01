@@ -129,7 +129,7 @@ differentiable_cos.continuous
 lemma continuous_tan : continuous (λ x : {x // cos x ≠ 0}, tan x) :=
 continuous.mul
   (continuous_sin.comp continuous_subtype_val)
-  (continuous_inv subtype.property
+  (continuous.inv subtype.property
     (continuous_cos.comp continuous_subtype_val))
 
 /-- The complex hyperbolic sine function is everywhere differentiable, with the derivative `sinh x`. -/
@@ -347,9 +347,9 @@ begin
     have : f₁ = λ h:{h:ℝ // 0 < h}, log x.1 + log h.1,
       ext h, rw ← log_mul x.2 h.2,
     simp only [this, log_mul x.2 zero_lt_one, log_one], exact
-      tendsto_add tendsto_const_nhds (tendsto.comp tendsto_log_one_zero continuous_at_subtype_val),
+      tendsto.add tendsto_const_nhds (tendsto.comp tendsto_log_one_zero continuous_at_subtype_val),
   have H2 : tendsto f₂ (𝓝 x) (𝓝 ⟨x.1⁻¹ * x.1, mul_pos (inv_pos x.2) x.2⟩),
-    rw tendsto_subtype_rng, exact tendsto_mul tendsto_const_nhds continuous_at_subtype_val,
+    rw tendsto_subtype_rng, exact tendsto.mul tendsto_const_nhds continuous_at_subtype_val,
   suffices h : tendsto (f₁ ∘ f₂) (𝓝 x) (𝓝 (log x.1)),
   begin
     convert h, ext y,

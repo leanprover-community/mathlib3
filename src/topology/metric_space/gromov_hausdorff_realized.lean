@@ -241,7 +241,7 @@ begin
     exact ⟨candidates_nonneg hf, candidates_le_max_var hf⟩ },
   { refine equicontinuous_of_continuity_modulus (λt, 2 * max_var α β * t) _ _ _,
     { have : tendsto (λ (t : ℝ), 2 * (max_var α β : ℝ) * t) (𝓝 0) (𝓝 (2 * max_var α β * 0)) :=
-        tendsto_mul tendsto_const_nhds tendsto_id,
+        tendsto.mul tendsto_const_nhds tendsto_id,
       simpa using this },
     { assume x y f hf,
       exact candidates_lipschitz hf _ _ } }

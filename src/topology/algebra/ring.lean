@@ -48,7 +48,7 @@ def ideal.closure (S : ideal α) : ideal α :=
   add  := assume x y hx hy,
     mem_closure2 continuous_add hx hy $ assume a b, S.add_mem,
   smul  := assume c x hx,
-    have continuous (λx:α, c * x) := continuous.mul continuous_const continuous_id,
+    have continuous (λx:α, c * x) := continuous_const.mul continuous_id,
     mem_closure this hx $ assume a, S.mul_mem_left }
 
 @[simp] lemma ideal.coe_closure (S : ideal α) :
@@ -88,10 +88,9 @@ end
 lemma quotient_ring.quotient_map_coe_coe : quotient_map (λ p : α × α, (mk N p.1, mk N p.2)) :=
 begin
   apply is_open_map.to_quotient_map,
-  { exact is_open_map.prod (quotient_ring.is_open_map_coe N) (quotient_ring.is_open_map_coe N) },
-  { apply continuous.prod_mk,
-    { exact continuous_quot_mk.comp continuous_fst },
-    { exact continuous_quot_mk.comp continuous_snd } },
+  { exact (quotient_ring.is_open_map_coe N).prod (quotient_ring.is_open_map_coe N) },
+  { exact (continuous_quot_mk.comp continuous_fst).prod_mk
+          (continuous_quot_mk.comp continuous_snd) },
   { rintro ⟨⟨x⟩, ⟨y⟩⟩,
     exact ⟨(x, y), rfl⟩ }
 end

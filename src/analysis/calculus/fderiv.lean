@@ -248,22 +248,15 @@ begin
   { assume H,
     have : 𝓝 0 ≤ comap (λ (z : E), z + x) (𝓝 (0 + x)),
     { refine tendsto_iff_comap.mp _,
-      apply continuous.tendsto,
-      exact continuous.add continuous_id continuous_const },
+      exact (continuous_id.add continuous_const).tendsto _ },
     apply is_o.mono this,
-    convert is_o.comp H (λz, z + x),
-    { ext h, simp },
-    { ext h, simp },
-    { simp } },
+    convert is_o.comp H (λz, z + x) ; { try {ext}, simp } },
   { assume H,
     have : 𝓝 x ≤ comap (λ (z : E), z - x) (𝓝 (x - x)),
     { refine tendsto_iff_comap.mp _,
-      apply continuous.tendsto,
-      exact continuous.add continuous_id continuous_const },
+      exact (continuous_id.add continuous_const).tendsto _ },
     apply is_o.mono this,
-    convert is_o.comp H (λz, z - x),
-    { ext h, simp },
-    { simp } }
+    convert is_o.comp H (λz, z - x) ; { try {ext}, simp } }
 end
 
 theorem has_fderiv_at_filter.mono (h : has_fderiv_at_filter f f' x L₂) (hst : L₁ ≤ L₂) :
@@ -963,7 +956,7 @@ begin
       have : 0 = ∥p - p∥, by simp,
       rw this,
       have : continuous (λx, ∥x-p∥) :=
-        continuous_norm.comp (continuous.sub continuous_id continuous_const),
+        continuous_norm.comp (continuous_id.sub continuous_const),
       exact this.tendsto p },
     simp only [forall_prop_of_false, not_false_iff, one_ne_zero, forall_true_iff] },
   simp only [one_mul, asymptotics.is_o_norm_right] at B,

@@ -85,10 +85,8 @@ begin
     { simp [*, is_subgroup.inv_mem, is_submonoid.mul_mem], },
     convert is_submonoid.mul_mem hu this, simp [mul_assoc] },
   split,
-  { apply continuous.mul continuous_id continuous_const,
-    { exact U.property },
-    { apply_instance } },
-  { erw set.mem_preimage,
+  { exact continuous_id.mul continuous_const _ U.property },
+  { change  x * (x⁻¹ * g) ∈ U,
     convert hg,
     rw [← mul_assoc, mul_right_inv, one_mul] }
 end

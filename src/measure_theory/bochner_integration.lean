@@ -754,19 +754,19 @@ lemma integral_smul (r : ℝ) (f : α →₁ β) : integral (r • f) = r • in
 map_smul r integral_clm f
 
 local notation `Integral` := @integral_clm α _ β _ _ _ _
- local notation `sIntegral` := @simple_func.integral_clm α _ β _ _ _
+local notation `sIntegral` := @simple_func.integral_clm α _ β _ _ _
 
- lemma norm_Integral_le_one : ∥Integral∥ ≤ 1 :=
- calc ∥Integral∥ ≤ 1 * ∥sIntegral∥ :
-   op_norm_extend_le _ _ _ $ λs, by {rw one_mul, refl}
-   ... = ∥sIntegral∥ : one_mul _
-   ... ≤ 1 : norm_Integral_le_one
+lemma norm_Integral_le_one : ∥Integral∥ ≤ 1 :=
+calc ∥Integral∥ ≤ 1 * ∥sIntegral∥ :
+  op_norm_extend_le _ _ _ $ λs, by {rw one_mul, refl}
+  ... = ∥sIntegral∥ : one_mul _
+  ... ≤ 1 : norm_Integral_le_one
 
- lemma norm_integral_le (f : α →₁ β) : ∥integral f∥ ≤ ∥f∥ :=
- calc ∥integral f∥ = ∥Integral f∥ : rfl
-   ... ≤ ∥Integral∥ * ∥f∥ : le_op_norm _ _
-   ... ≤ 1 * ∥f∥ : mul_le_mul_of_nonneg_right norm_Integral_le_one $ norm_nonneg _
-   ... = ∥f∥ : one_mul _
+lemma norm_integral_le (f : α →₁ β) : ∥integral f∥ ≤ ∥f∥ :=
+calc ∥integral f∥ = ∥Integral f∥ : rfl
+  ... ≤ ∥Integral∥ * ∥f∥ : le_op_norm _ _
+  ... ≤ 1 * ∥f∥ : mul_le_mul_of_nonneg_right norm_Integral_le_one $ norm_nonneg _
+  ... = ∥f∥ : one_mul _
 
 end integration_in_l1
 
@@ -870,88 +870,88 @@ end
 
 lemma integral_congr_ae (hfm : measurable f) (hgm : measurable g) (h : ∀ₘ a, f a = g a) :
    integral f = integral g :=
- begin
-   by_cases hfi : integrable f,
-   { have hgi : integrable g := integrable_of_ae_eq hfi h,
-     simp only [integral],
-     repeat { rw dif_pos },
-     rotate, { exact ⟨hgm, hgi⟩ }, { exact ⟨hfm, hfi⟩ },
-     rw ← l1.of_fun_eq_of_fun f g hfm hfi hgm hgi at h,
-     rw h },
-   { have hgi : ¬ integrable g, { rw integrable_iff_of_ae_eq h at hfi, exact hfi },
-     rw [integral_eq_zero_of_non_integrable hfi, integral_eq_zero_of_non_integrable hgi] },
- end
+begin
+  by_cases hfi : integrable f,
+  { have hgi : integrable g := integrable_of_ae_eq hfi h,
+    simp only [integral],
+    repeat { rw dif_pos },
+    rotate, { exact ⟨hgm, hgi⟩ }, { exact ⟨hfm, hfi⟩ },
+    rw ← l1.of_fun_eq_of_fun f g hfm hfi hgm hgi at h,
+    rw h },
+  { have hgi : ¬ integrable g, { rw integrable_iff_of_ae_eq h at hfi, exact hfi },
+    rw [integral_eq_zero_of_non_integrable hfi, integral_eq_zero_of_non_integrable hgi] },
+end
 
- lemma of_real_norm_integral_le_lintegral_norm (f : α → β) (hfm : measurable f) (hfi : integrable f) :
-   ennreal.of_real ∥integral f∥ ≤ ∫⁻ a, ennreal.of_real ∥f a∥ :=
- begin
-   rw [integral, dif_pos],
-   rotate, { exact ⟨hfm, hfi⟩ },
-   calc ennreal.of_real ∥l1.integral (l1.of_fun f hfm hfi)∥ ≤ (ennreal.of_real ∥l1.of_fun f hfm hfi∥) :
-     of_real_le_of_real $ l1.norm_integral_le _
-     ... = (ennreal.of_real $ ennreal.to_real $ ∫⁻ a, ennreal.of_real $ ∥(l1.of_fun f hfm hfi).to_fun a∥) :
-     by { rw l1.norm_eq_norm_to_fun }
-     ... = (ennreal.of_real $ ennreal.to_real $ ∫⁻ a, ennreal.of_real ∥f a∥) :
-     begin
-       congr' 2,
-       apply lintegral_congr_ae,
-       filter_upwards [l1.to_fun_of_fun f hfm hfi],
-       simp only [mem_set_of_eq],
-       assume a h,
-       rw h
-     end
-     ... = (∫⁻ a, ennreal.of_real ∥f a∥) :
-     by { rw of_real_to_real, rw ← lt_top_iff_ne_top, rwa ← integrable_def_of_norm }
- end
+lemma of_real_norm_integral_le_lintegral_norm (f : α → β) (hfm : measurable f) (hfi : integrable f) :
+  ennreal.of_real ∥integral f∥ ≤ ∫⁻ a, ennreal.of_real ∥f a∥ :=
+begin
+  rw [integral, dif_pos],
+  rotate, { exact ⟨hfm, hfi⟩ },
+  calc ennreal.of_real ∥l1.integral (l1.of_fun f hfm hfi)∥ ≤ (ennreal.of_real ∥l1.of_fun f hfm hfi∥) :
+    of_real_le_of_real $ l1.norm_integral_le _
+    ... = (ennreal.of_real $ ennreal.to_real $ ∫⁻ a, ennreal.of_real $ ∥(l1.of_fun f hfm hfi).to_fun a∥) :
+    by { rw l1.norm_eq_norm_to_fun }
+    ... = (ennreal.of_real $ ennreal.to_real $ ∫⁻ a, ennreal.of_real ∥f a∥) :
+    begin
+      congr' 2,
+      apply lintegral_congr_ae,
+      filter_upwards [l1.to_fun_of_fun f hfm hfi],
+      simp only [mem_set_of_eq],
+      assume a h,
+      rw h
+    end
+    ... = (∫⁻ a, ennreal.of_real ∥f a∥) :
+    by { rw of_real_to_real, rw ← lt_top_iff_ne_top, rwa ← integrable_iff_norm }
+end
 
- lemma norm_integral_le_lintegral_norm (f : α → β) (hfm : measurable f) (hfi : integrable f) :
-   ∥integral f∥ ≤ ennreal.to_real (∫⁻ a, ennreal.of_real ∥f a∥) :=
- begin
-   have := (to_real_le_to_real _ _).2 (of_real_norm_integral_le_lintegral_norm f hfm hfi),
-   { rwa to_real_of_real (norm_nonneg _) at this },
-   { exact of_real_ne_top },
-   { rw ← lt_top_iff_ne_top, rwa ← integrable_def_of_norm }
- end
+lemma norm_integral_le_lintegral_norm (f : α → β) (hfm : measurable f) (hfi : integrable f) :
+  ∥integral f∥ ≤ ennreal.to_real (∫⁻ a, ennreal.of_real ∥f a∥) :=
+begin
+  have := (to_real_le_to_real _ _).2 (of_real_norm_integral_le_lintegral_norm f hfm hfi),
+  { rwa to_real_of_real (norm_nonneg _) at this },
+  { exact of_real_ne_top },
+  { rw ← lt_top_iff_ne_top, rwa ← integrable_iff_norm }
+end
 
- lemma tendsto_integral_of_dominated_convergence
-   {F : ℕ → α → β} {f : α → β} {bound : α → ℝ}
-   (F_measurable : ∀ n, measurable (F n))
-   (f_measurable : measurable f)
-   (bound_integrable : integrable bound)
-   (h_bound : ∀ n, ∀ₘ a, ∥F n a∥ ≤ bound a)
-   (h_lim : ∀ₘ a, tendsto (λ n, F n a) at_top (𝓝 (f a))) :
-   tendsto (λn, ∫ a, F n a) at_top (𝓝 $ integral f) :=
- begin
-   /- To show `(∫ a, F n a) --> (∫ f)`, suffices to show `∥∫ a, F n a - ∫ f∥ --> 0` -/
-   rw tendsto_iff_norm_tendsto_zero,
-   /- But `0 ≤ ∥∫ a, F n a - ∫ f∥ = ∥∫ a, (F n a - f a) ∥ ≤ ∫ a, ∥F n a - f a∥, and thus we apply the
-      sandwich theorem and prove that `∫ a, ∥F n a - f a∥ --> 0` -/
-   have zero_tendsto_zero : tendsto (λn:ℕ, (0 : ℝ)) at_top (𝓝 0) := tendsto_const_nhds,
-   have lintegral_norm_tendsto_zero :
-     tendsto (λn, ennreal.to_real $ ∫⁻ a, ennreal.of_real ∥F n a - f a∥) at_top (𝓝 0) :=
-   tendsto.comp (tendsto_to_real (zero_ne_top))
-     (tendsto_lintegral_norm_of_dominated_convergence
-       F_measurable f_measurable bound_integrable h_bound h_lim),
-   -- Use the sandwich theorem
-   refine tendsto_of_tendsto_of_tendsto_of_le_of_le zero_tendsto_zero lintegral_norm_tendsto_zero _ _,
-   -- Show `0 ≤ ∥∫ a, F n a - ∫ f∥` for all `n`
-   { simp only [filter.mem_at_top_sets, norm_nonneg, set.mem_set_of_eq, forall_true_iff,
-       exists_const] },
-   -- Show `∥∫ a, F n a - ∫ f∥ ≤ ∫ a, ∥F n a - f a∥` for all `n`
-   { simp only [mem_at_top_sets, mem_set_of_eq],
-     use 0,
-     assume n hn,
-     have h₁ : measurable (F n) := F_measurable _,
-     have h₂ : measurable f := f_measurable,
-     have h₃ : integrable (F n) := integrable_of_integrable_bound bound_integrable (h_bound _),
-     have h₄ : integrable f := integrable_of_dominated_convergence bound_integrable h_bound h_lim,
-     rw ← integral_sub h₁ h₃ h₂ h₄,
-     refine norm_integral_le_lintegral_norm _ _ _,
-     -- Show `F n - f` is measurable
-     { exact measurable_sub h₁ h₂ },
-     -- Show `F n - f` is integrable
-     { exact integrable_sub h₁ h₂ h₃ h₄ },  }
- end
+lemma tendsto_integral_of_dominated_convergence
+  {F : ℕ → α → β} {f : α → β} {bound : α → ℝ}
+  (F_measurable : ∀ n, measurable (F n))
+  (f_measurable : measurable f)
+  (bound_integrable : integrable bound)
+  (h_bound : ∀ n, ∀ₘ a, ∥F n a∥ ≤ bound a)
+  (h_lim : ∀ₘ a, tendsto (λ n, F n a) at_top (𝓝 (f a))) :
+  tendsto (λn, ∫ a, F n a) at_top (𝓝 $ integral f) :=
+begin
+  /- To show `(∫ a, F n a) --> (∫ f)`, suffices to show `∥∫ a, F n a - ∫ f∥ --> 0` -/
+  rw tendsto_iff_norm_tendsto_zero,
+  /- But `0 ≤ ∥∫ a, F n a - ∫ f∥ = ∥∫ a, (F n a - f a) ∥ ≤ ∫ a, ∥F n a - f a∥, and thus we apply the
+    sandwich theorem and prove that `∫ a, ∥F n a - f a∥ --> 0` -/
+  have zero_tendsto_zero : tendsto (λn:ℕ, (0 : ℝ)) at_top (𝓝 0) := tendsto_const_nhds,
+  have lintegral_norm_tendsto_zero :
+    tendsto (λn, ennreal.to_real $ ∫⁻ a, ennreal.of_real ∥F n a - f a∥) at_top (𝓝 0) :=
+  tendsto.comp (tendsto_to_real (zero_ne_top))
+    (tendsto_lintegral_norm_of_dominated_convergence
+      F_measurable f_measurable bound_integrable h_bound h_lim),
+  -- Use the sandwich theorem
+  refine tendsto_of_tendsto_of_tendsto_of_le_of_le zero_tendsto_zero lintegral_norm_tendsto_zero _ _,
+  -- Show `0 ≤ ∥∫ a, F n a - ∫ f∥` for all `n`
+  { simp only [filter.mem_at_top_sets, norm_nonneg, set.mem_set_of_eq, forall_true_iff,
+      exists_const] },
+  -- Show `∥∫ a, F n a - ∫ f∥ ≤ ∫ a, ∥F n a - f a∥` for all `n`
+  { simp only [mem_at_top_sets, mem_set_of_eq],
+    use 0,
+    assume n hn,
+    have h₁ : measurable (F n) := F_measurable _,
+    have h₂ : measurable f := f_measurable,
+    have h₃ : integrable (F n) := integrable_of_integrable_bound bound_integrable (h_bound _),
+    have h₄ : integrable f := integrable_of_dominated_convergence bound_integrable h_bound h_lim,
+    rw ← integral_sub h₁ h₃ h₂ h₄,
+    refine norm_integral_le_lintegral_norm _ _ _,
+    -- Show `F n - f` is measurable
+    { exact measurable_sub h₁ h₂ },
+    -- Show `F n - f` is integrable
+    { exact integrable_sub h₁ h₂ h₃ h₄ },  }
+end
 
 end properties
 

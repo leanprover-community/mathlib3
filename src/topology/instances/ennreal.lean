@@ -110,6 +110,10 @@ begin
   exact tendsto_id
 end
 
+lemma tendsto_to_real {a : ennreal} : a ≠ ⊤ → tendsto (ennreal.to_real) (𝓝 a) (𝓝 a.to_real) :=
+λ ha, tendsto.comp ((@nnreal.tendsto_coe _ (𝓝 a.to_nnreal) id (a.to_nnreal)).2 tendsto_id)
+  (tendsto_to_nnreal ha)
+
 lemma tendsto_nhds_top {m : α → ennreal} {f : filter α}
   (h : ∀n:ℕ, {a | ↑n < m a} ∈ f) : tendsto m f (𝓝 ⊤) :=
 tendsto_nhds_generate_from $ assume s hs,

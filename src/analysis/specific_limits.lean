@@ -261,7 +261,7 @@ begin
   refine cauchy_seq_of_edist_le_of_tsum_ne_top _ hu _,
   rw [ennreal.mul_tsum, ennreal.tsum_geometric],
   refine ennreal.mul_ne_top hC (ennreal.inv_ne_top.2 _),
-  exact ne_of_gt (ennreal.sub_pos.2 hr)
+  exact ne_of_gt (ennreal.zero_lt_sub_iff_lt.2 hr)
 end
 
 omit hr hC

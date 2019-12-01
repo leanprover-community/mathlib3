@@ -36,6 +36,7 @@ functor, applicative, monad, simp
 -/
 
 run_cmd mk_simp_attr `monad_norm [`functor_norm]
+run_cmd tactic.add_doc_string `simp_attr.monad_norm "Simp set for monad_norm"
 
 attribute [ext] reader_t.ext state_t.ext except_t.ext option_t.ext
 attribute [functor_norm]   bind_assoc pure_bind bind_pure

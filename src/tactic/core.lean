@@ -152,7 +152,7 @@ meta def eval_expr' (α : Type*) [_inst_1 : reflected α] (e : expr) : tactic α
 mk_app ``id [e] >>= eval_expr α
 
 /-- `mk_fresh_name` returns identifiers starting with underscores,
-which are not legal when emitted by tactic programs. `mk_user_fresh_name` 
+which are not legal when emitted by tactic programs. `mk_user_fresh_name`
 turns the useful source of random names provided by `mk_fresh_name` into
 names which are usable by tactic programs.
 
@@ -1440,5 +1440,19 @@ do n  ← ident,
    let new_not := sformat!"local notation `{n.update_prefix name.anonymous}` := {new_n}",
    emit_command_here $ new_not,
    skip .
+
+/--
+The command `mk_simp_attr simp_name` creates a simp set with name `simp_name`.
+Lemmas tagged with `@[simp_name]` will be included when `simp using simp_name` is called.
+An optional description for the simp set can be provided with `mk_simp_attr simp_name "description"`.
+-/
+@[user_command]
+meta def mk_simp_attr_cmd (_ : parse $ tk "mk_simp_attr") : lean.parser unit :=
+do n ← ident,
+   descr ← (do d ← parser.pexpr,
+               d ← to_expr d,
+               eval_expr string d) <|> return ("simp set for " ++ to_string n),
+   mk_simp_attr n,
+   add_doc_string (name.append `simp_attr n) descr
 
 end tactic

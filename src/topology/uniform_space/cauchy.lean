@@ -345,6 +345,17 @@ lemma compact_of_totally_bounded_is_closed [complete_space α] {s : set α}
   (ht : totally_bounded s) (hc : is_closed s) : compact s :=
 (@compact_iff_totally_bounded_complete α _ s).2 ⟨ht, is_complete_of_is_closed hc⟩
 
+/-! *** Sequentially complete space
+
+In this section we prove that a uniform space is complete provided that it is sequentially complete
+(i.e., any Cauchy sequence converges) and its uniformity filter admits a countable generating set.
+In particular, this applies to (e)metric spaces, see file `topology/metric_space/cau_seq_filter`.
+
+More precisely, we assume that there is a sequence of entourages $$U_n$$ such that any other
+entourage includes one of $$U_n$$. Then any Cauchy filter $$f$$ generates a decreasing sequence of
+sets $$s_n ∈ f$$ such that $$s_n × s_n ⊆ U_n$$. Choose a sequence $$x_n∈s_n$$. It is easy to show
+that this is a Cauchy sequence. If this sequence converges to some $$a$$, then $$f ≤ 𝓝 a$$. -/
+
 namespace sequentially_complete
 
 variables {f : filter α} (hf : cauchy f) {U : ℕ → set (α × α)}
@@ -419,10 +430,11 @@ namespace uniform_space
 
 open sequentially_complete
 
-variables {f : filter α} (hf : cauchy f) {U U': ℕ → set (α × α)}
-  (U_mem : ∀ n, U n ∈ 𝓤 α) (U_le : ∀ s ∈ 𝓤 α, ∃ n, U n ⊆ s)
-  (U'_mem : ∀ n, U' n ∈ 𝓤 α)
+variables (U : ℕ → set (α × α)) (U_mem : ∀ n, U n ∈ 𝓤 α) (U_le : ∀ s ∈ 𝓤 α, ∃ n, U n ⊆ s)
+  (U' : ℕ → set (α × α)) (U'_mem : ∀ n, U' n ∈ 𝓤 α)
 
+/-- A uniform space is complete provided that (a) its uniformity filter has a countable basis;
+(b) any sequence satisfying a "controlled" version of the Cauchy condition converges. -/
 theorem complete_of_convergent_controlled_sequences
   (H : ∀ u : ℕ → α, (∀ N m n, N ≤ m → N ≤ n → (u m, u n) ∈ U' N) → ∃ a, tendsto u at_top (𝓝 a)) :
   complete_space α :=
@@ -439,10 +451,12 @@ begin
   exact U''_sub_U' _ (seq_pair_mem hf U''_mem hm hn),
 end
 
+/-- A sequenitally complete uniform space with a countable basis of the uniformity filter is
+complete. -/
 theorem complete_of_cauchy_seq_tendsto
   (H : ∀ u : ℕ → α, cauchy_seq u → ∃a, tendsto u at_top (𝓝 a)) :
   complete_space α :=
-complete_of_convergent_controlled_sequences U_mem U_le U_mem
+complete_of_convergent_controlled_sequences U U_mem U_le U U_mem
   (λ u hu, H u $ cauchy_seq_of_controlled U U_le hu)
 
 end uniform_space

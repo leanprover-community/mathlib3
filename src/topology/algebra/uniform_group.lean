@@ -314,7 +314,7 @@ variables [topological_space β] [add_comm_group β]
 variables {e : β → α} [is_add_group_hom e] (de : dense_inducing e)
 include de
 
-lemma tendsto.sub_comap_self (x₀ : α) :
+lemma tendsto_sub_comap_self (x₀ : α) :
   tendsto (λt:β×β, t.2 - t.1) (comap (λp:β×β, (e p.1, e p.2)) $ 𝓝 (x₀, x₀)) (𝓝 0) :=
 begin
   have comm : (λx:α×α, x.2-x.1) ∘ (λt:β×β, (e t.1, e t.2)) = e ∘ (λt:β×β, t.2 - t.1),
@@ -356,7 +356,7 @@ begin
   let ee := λ u : β × β, (e u.1, e u.2),
 
   have lim1 : tendsto (λ a : β × β, (a.2 - a.1, y₁)) (filter.prod (comap e Nx) (comap e Nx)) (𝓝 (0, y₁)),
-  { have := tendsto.prod_mk (tendsto.sub_comap_self de x₀) (tendsto_const_nhds : tendsto (λ (p : β × β), y₁) (comap ee $ 𝓝 (x₀, x₀)) (𝓝 y₁)),
+  { have := tendsto.prod_mk (tendsto_sub_comap_self de x₀) (tendsto_const_nhds : tendsto (λ (p : β × β), y₁) (comap ee $ 𝓝 (x₀, x₀)) (𝓝 y₁)),
     rw [nhds_prod_eq, prod_comap_comap_eq, ←nhds_prod_eq],
     exact (this : _) },
 
@@ -383,7 +383,7 @@ begin
     (filter.prod (comap ee $ 𝓝 (x₀, x₀)) (comap ff $ 𝓝 (y₀, y₀))) (𝓝 0),
   { have lim_sub_sub :  tendsto (λ (p : (β × β) × δ × δ), (p.1.2 - p.1.1, p.2.2 - p.2.1))
       (filter.prod (comap ee (𝓝 (x₀, x₀))) (comap ff (𝓝 (y₀, y₀)))) (filter.prod (𝓝 0) (𝓝 0)),
-    { have := filter.prod_mono (tendsto.sub_comap_self de x₀) (tendsto.sub_comap_self df y₀),
+    { have := filter.prod_mono (tendsto_sub_comap_self de x₀) (tendsto_sub_comap_self df y₀),
       rwa prod_map_map_eq at this },
     rw ← nhds_prod_eq at lim_sub_sub,
     exact tendsto.comp lim_φ lim_sub_sub },

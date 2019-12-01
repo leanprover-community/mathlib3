@@ -144,7 +144,7 @@ continuous_if this hf hg
 
 end
 
-lemma tendsto_max {b : filter β} {a₁ a₂ : α} (hf : tendsto f b (𝓝 a₁)) (hg : tendsto g b (𝓝 a₂)) :
+lemma tendsto.max {b : filter β} {a₁ a₂ : α} (hf : tendsto f b (𝓝 a₁)) (hg : tendsto g b (𝓝 a₂)) :
   tendsto (λb, max (f b) (g b)) b (𝓝 (max a₁ a₂)) :=
 show tendsto ((λp:α×α, max p.1 p.2) ∘ (λb, (f b, g b))) b (𝓝 (max a₁ a₂)),
   from tendsto.comp
@@ -154,7 +154,7 @@ show tendsto ((λp:α×α, max p.1 p.2) ∘ (λb, (f b, g b))) b (𝓝 (max a₁
     end
     (hf.prod_mk hg)
 
-lemma tendsto_min {b : filter β} {a₁ a₂ : α} (hf : tendsto f b (𝓝 a₁)) (hg : tendsto g b (𝓝 a₂)) :
+lemma tendsto.min {b : filter β} {a₁ a₂ : α} (hf : tendsto f b (𝓝 a₁)) (hg : tendsto g b (𝓝 a₂)) :
   tendsto (λb, min (f b) (g b)) b (𝓝 (min a₁ a₂)) :=
 show tendsto ((λp:α×α, min p.1 p.2) ∘ (λb, (f b, g b))) b (𝓝 (min a₁ a₂)),
   from tendsto.comp

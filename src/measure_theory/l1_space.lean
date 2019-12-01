@@ -65,12 +65,6 @@ variables {β : Type v} [normed_group β]
 /-- A function is `integrable` if the integral of its pointwise norm is less than infinity. -/
 def integrable (f : α → β) : Prop := (∫⁻ a, nnnorm (f a)) < ⊤
 
-private lemma of_real_norm_eq_coe_nnnorm (x : β) : ennreal.of_real ∥x∥ = (nnnorm x : ennreal) :=
-of_real_eq_coe_nnreal _
-
-private lemma edist_eq_coe_nnnorm (x : β) : edist x 0 = (nnnorm x : ennreal) :=
-by { rw [edist_dist, dist_eq_norm, _root_.sub_zero, of_real_norm_eq_coe_nnnorm] }
-
 lemma integrable_iff_norm (f : α → β) : integrable f ↔ (∫⁻ a, ennreal.of_real ∥f a∥) < ⊤ :=
 have eq : (λa, ennreal.of_real ∥f a∥) = (λa, (nnnorm(f a) : ennreal)),
   by { funext, rw of_real_norm_eq_coe_nnnorm },
@@ -205,26 +199,22 @@ section dominated_convergence
 
 variables {F : ℕ → α → β} {f : α → β} {bound : α → ℝ}
 
-/-- `∥F n a∥ ≤ bound a` implies `ennreal.of_real ∥F n a∥ ≤ ennreal.of_real (bound a)` -/
-private lemma of_real_F_le_bound (h : ∀ n, ∀ₘ a, ∥F n a∥ ≤ bound a) :
+lemma all_ae_of_real_F_le_bound (h : ∀ n, ∀ₘ a, ∥F n a∥ ≤ bound a) :
   ∀ n, ∀ₘ a, ennreal.of_real ∥F n a∥ ≤ ennreal.of_real (bound a) :=
 λn, by filter_upwards [h n] λ a h, ennreal.of_real_le_of_real h
 
-/-- `F n a --> f a` implies `ennreal.of_real ∥F n a∥ --> ennreal.of_real ∥f a∥` -/
-private lemma tendsto_of_real_norm (h : ∀ₘ a, tendsto (λ n, F n a) at_top $ 𝓝 $ f a) :
+lemma all_ae_tendsto_of_real_norm (h : ∀ₘ a, tendsto (λ n, F n a) at_top $ 𝓝 $ f a) :
   ∀ₘ a, tendsto (λn, ennreal.of_real ∥F n a∥) at_top $ 𝓝 $ ennreal.of_real ∥f a∥ :=
 by filter_upwards [h]
   λ a h, tendsto_of_real $ tendsto.comp (continuous.tendsto continuous_norm _) h
 
-/-- `F n a --> f a` and `∥F n a∥ ≤ bound a` implies `∥f a∥ ≤ bound a`, which in turn implies that
-    `ennreal.of_real ∥f a∥ ≤ ennreal.of_real (bound a)` -/
-private lemma of_real_f_le_bound (h_bound : ∀ n, ∀ₘ a, ∥F n a∥ ≤ bound a)
+lemma all_ae_of_real_f_le_bound (h_bound : ∀ n, ∀ₘ a, ∥F n a∥ ≤ bound a)
   (h_lim : ∀ₘ a, tendsto (λ n, F n a) at_top (𝓝 (f a))) :
   ∀ₘ a, ennreal.of_real ∥f a∥ ≤ ennreal.of_real (bound a) :=
 begin
-  have F_le_bound := of_real_F_le_bound h_bound,
+  have F_le_bound := all_ae_of_real_F_le_bound h_bound,
   rw ← all_ae_all_iff at F_le_bound,
-  filter_upwards [tendsto_of_real_norm h_lim, F_le_bound],
+  filter_upwards [all_ae_tendsto_of_real_norm h_lim, F_le_bound],
   assume a tendsto_norm F_le_bound,
   refine le_of_tendsto at_top_ne_bot tendsto_norm _,
   simp only [mem_at_top_sets, ge_iff_le, mem_set_of_eq, preimage_set_of_eq, nonempty_of_inhabited],
@@ -243,7 +233,7 @@ lemma integrable_of_dominated_convergence {F : ℕ → α → β} {f : α → β
 begin
   rw integrable_iff_norm,
   calc (∫⁻ a, (ennreal.of_real ∥f a∥)) ≤ ∫⁻ a, ennreal.of_real (bound a) :
-    lintegral_le_lintegral_ae $ of_real_f_le_bound h_bound h_lim
+    lintegral_le_lintegral_ae $ all_ae_of_real_f_le_bound h_bound h_lim
     ... < ⊤ :
     begin
       rw ← integrable_iff_of_real,
@@ -266,7 +256,7 @@ let b := λa, 2 * ennreal.of_real (bound a) in
 have hb : ∀ n, ∀ₘ a, ennreal.of_real ∥F n a - f a∥ ≤ b a,
 begin
   assume n,
-  filter_upwards [of_real_F_le_bound h_bound n, of_real_f_le_bound h_bound h_lim],
+  filter_upwards [all_ae_of_real_F_le_bound h_bound n, all_ae_of_real_f_le_bound h_bound h_lim],
   assume a h₁ h₂,
   calc ennreal.of_real ∥F n a - f a∥ ≤ (ennreal.of_real ∥F n a∥) + (ennreal.of_real ∥f a∥) :
   begin

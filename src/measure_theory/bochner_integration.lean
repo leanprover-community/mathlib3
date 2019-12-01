@@ -924,8 +924,9 @@ begin
   { rw ← lt_top_iff_ne_top, rwa ← integrable_iff_norm }
 end
 
-lemma tendsto_integral_of_dominated_convergence
-  {F : ℕ → α → β} {f : α → β} {bound : α → ℝ}
+/-- Lebesgue dominated convergence theorem provides sufficient conditions under which almost
+  everywhere convergence of a sequence of functions implies the convergence of their integrals. -/
+theorem tendsto_integral_of_dominated_convergence {F : ℕ → α → β} {f : α → β} {bound : α → ℝ}
   (F_measurable : ∀ n, measurable (F n))
   (f_measurable : measurable f)
   (bound_integrable : integrable bound)
@@ -952,11 +953,9 @@ begin
   { simp only [mem_at_top_sets, mem_set_of_eq],
     use 0,
     assume n hn,
-    have h₁ : measurable (F n) := F_measurable _,
-    have h₂ : measurable f := f_measurable,
-    have h₃ : integrable (F n) := integrable_of_integrable_bound bound_integrable (h_bound _),
-    have h₄ : integrable f := integrable_of_dominated_convergence bound_integrable h_bound h_lim,
-    rw ← integral_sub h₁ h₃ h₂ h₄,
+    have h₁ : integrable (F n) := integrable_of_integrable_bound bound_integrable (h_bound _),
+    have h₂ : integrable f := integrable_of_dominated_convergence bound_integrable h_bound h_lim,
+    rw ← integral_sub (F_measurable _) h₁ f_measurable h₂,
     exact norm_integral_le_lintegral_norm _ }
 end
 

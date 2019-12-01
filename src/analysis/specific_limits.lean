@@ -237,7 +237,7 @@ lemma edist_le_of_edist_le_geometric_of_tendsto {a : α} (ha : tendsto f at_top 
   edist (f n) a ≤ (C * r^n) / (1 - r) :=
 begin
   norm_cast at hu,
-  rw_mod_cast [← ennreal.coe_one, ← ennreal.coe_div (ne_of_gt $ nnreal.sub_pos.2 hr)],
+  rw [← ennreal.coe_one], rw_mod_cast [← ennreal.coe_div (ne_of_gt $ nnreal.sub_pos.2 hr)],
   convert edist_le_tsum_of_edist_le_of_tendsto _ hu
     (summable_mul_left C $ summable_geometric_nnreal hr) ha _,
   refine eq.symm (tsum_eq_has_sum _),

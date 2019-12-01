@@ -108,7 +108,7 @@ begin
   refine emetric.cauchy_seq_iff_le_tendsto_0.2 ⟨λn:ℕ, 2 * half_pow n, ⟨_, _⟩⟩,
   { exact λk l N hk hl, edist_le_two_mul_half_pow hk hl h },
   { have : tendsto (λn, 2 * half_pow n) at_top (𝓝 (2 * 0)) :=
-      ennreal.tendsto_mul_right half_pow_tendsto_zero (by simp),
+      ennreal.tendsto.mul_right half_pow_tendsto_zero (by simp),
     simpa using this }
 end
 

@@ -138,7 +138,7 @@ lemma tendsto_inverse_at_top_nhds_0_nat : tendsto (λ n : ℕ, (n : ℝ)⁻¹) a
 tendsto.comp tendsto_inverse_at_top_nhds_0 (tendsto_coe_nat_real_at_top_iff.2 tendsto_id)
 
 lemma tendsto_const_div_at_top_nhds_0_nat (C : ℝ) : tendsto (λ n : ℕ, C / n) at_top (𝓝 0) :=
-by simpa only [mul_zero] using tendsto_mul tendsto_const_nhds tendsto_inverse_at_top_nhds_0_nat
+by simpa only [mul_zero] using tendsto.mul tendsto_const_nhds tendsto_inverse_at_top_nhds_0_nat
 
 lemma tendsto_one_div_add_at_top_nhds_0_nat :
   tendsto (λ n : ℕ, 1 / ((n : ℝ) + 1)) at_top (𝓝 0) :=
@@ -151,8 +151,8 @@ have r ≠ 1, from ne_of_lt h₂,
 have r + -1 ≠ 0,
   by rw [←sub_eq_add_neg, ne, sub_eq_iff_eq_add]; simp; assumption,
 have tendsto (λn, (r ^ n - 1) * (r - 1)⁻¹) at_top (𝓝 ((0 - 1) * (r - 1)⁻¹)),
-  from tendsto_mul
-    (tendsto_sub (tendsto_pow_at_top_nhds_0_of_lt_1 h₁ h₂) tendsto_const_nhds) tendsto_const_nhds,
+  from tendsto.mul
+    (tendsto.sub (tendsto_pow_at_top_nhds_0_of_lt_1 h₁ h₂) tendsto_const_nhds) tendsto_const_nhds,
 have (λ n, (range n).sum (λ i, r ^ i)) = (λ n, geom_series r n) := rfl,
 (has_sum_iff_tendsto_nat_of_nonneg (pow_nonneg h₁) _).mpr $
   by simp [neg_inv, geom_sum, div_eq_mul_inv, *] at *

@@ -192,7 +192,7 @@ begin
   -- from this, the convergence of `s n` to `t0` follows.
   refine (tendsto_at_top _).2 (λε εpos, _),
   have : tendsto (λn, 2 * ennreal.half_pow n) at_top (𝓝 (2 * 0)) :=
-    ennreal.tendsto_mul_right ennreal.half_pow_tendsto_zero (by simp),
+    ennreal.tendsto.mul_right ennreal.half_pow_tendsto_zero (by simp),
   rw mul_zero at this,
   have Z := (tendsto_orderable.1 this).2 ε εpos,
   simp only [filter.mem_at_top_sets, set.mem_set_of_eq] at Z,

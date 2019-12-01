@@ -254,11 +254,3 @@ instance finite_dimensional.proper_real
 finite_dimensional.proper ℝ E
 
 attribute [instance, priority 900] finite_dimensional.proper_real
-
-/- Over the complex numbers, we can register the previous statement as an instance as it will not
-cause problems in instance resolution since the properness of `ℂ` is already known. -/
-instance finite_dimensional.proper_complex
-  (E : Type) [normed_group E] [normed_space ℂ E] [finite_dimensional ℂ E] : proper_space E :=
-finite_dimensional.proper ℂ E
-
-attribute [instance, priority 900] finite_dimensional.proper_complex

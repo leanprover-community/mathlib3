@@ -272,7 +272,7 @@ begin
        ... = (∫⁻ a, nnnorm (f a)) + (∫⁻ a, nnnorm (f a)) :
          lintegral_add (measurable_coe_nnnorm hfm) (measurable_coe_nnnorm hfm)
        ... < ⊤ : by simp only [add_lt_top, and_self]; exact hfi },
-  convert @dominated_convergence_nn _ _ G (λ a, 0) g
+  convert @tendsto_lintegral_of_dominated_convergence _ _ G (λ a, 0) g
               hF_meas h_bound h_finite h_lim,
   simp only [lintegral_zero]
 end

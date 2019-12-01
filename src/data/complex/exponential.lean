@@ -952,6 +952,17 @@ calc abs (exp x - 1) = abs (exp x - (range 1).sum (λ m, x ^ m / m.fact)) :
   exp_bound hx dec_trivial
 ... = 2 * abs x : by simp [two_mul, mul_two, mul_add, mul_comm]
 
+lemma abs_exp_sub_one_sub_id_le {x : ℂ} (hx : abs x ≤ 1) :
+  abs (exp x - 1 - x) ≤ (abs x)^2 :=
+calc abs (exp x - 1 - x) = abs (exp x - (range 2).sum (λ m, x ^ m / m.fact)) :
+  by simp [sum_range_succ]
+... ≤ (abs x)^2 * (nat.succ 2 * (nat.fact 2 * (2 : ℕ))⁻¹) :
+  exp_bound hx dec_trivial
+... ≤ (abs x)^2 * 1 :
+  mul_le_mul_of_nonneg_left (by norm_num) (pow_two_nonneg (abs x))
+... = (abs x)^2 :
+  by rw [mul_one]
+
 end complex
 
 namespace real

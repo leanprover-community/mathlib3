@@ -65,7 +65,7 @@ begin
   assume s hs,
   -- Take an entourage twice smaller than `s`
   rcases comp_mem_uniformity_sets (mem_nhds_uniformity_iff.1 hs) with ⟨U, U_mem, hU⟩,
-  -- Take `t` and `y` provided by `adhs`
+  -- Take a set `t ∈ f`, `t × t ⊆ U`, and a point `y ∈ t` such that `(x, y) ∈ U`
   rcases adhs U U_mem with ⟨t, t_mem, ht, y, hy, hxy⟩,
   apply mem_sets_of_superset t_mem,
   -- Given a point `z ∈ t`, we have `(x, y) ∈ U` and `(y, z) ∈ t × t ⊆ U`, hence `z ∈ s`
@@ -345,16 +345,16 @@ lemma compact_of_totally_bounded_is_closed [complete_space α] {s : set α}
   (ht : totally_bounded s) (hc : is_closed s) : compact s :=
 (@compact_iff_totally_bounded_complete α _ s).2 ⟨ht, is_complete_of_is_closed hc⟩
 
-/-! *** Sequentially complete space
+/-! ### Sequentially complete space
 
 In this section we prove that a uniform space is complete provided that it is sequentially complete
 (i.e., any Cauchy sequence converges) and its uniformity filter admits a countable generating set.
 In particular, this applies to (e)metric spaces, see file `topology/metric_space/cau_seq_filter`.
 
-More precisely, we assume that there is a sequence of entourages $$U_n$$ such that any other
-entourage includes one of $$U_n$$. Then any Cauchy filter $$f$$ generates a decreasing sequence of
-sets $$s_n ∈ f$$ such that $$s_n × s_n ⊆ U_n$$. Choose a sequence $$x_n∈s_n$$. It is easy to show
-that this is a Cauchy sequence. If this sequence converges to some $$a$$, then $$f ≤ 𝓝 a$$. -/
+More precisely, we assume that there is a sequence of entourages `U_n` such that any other
+entourage includes one of `U_n`. Then any Cauchy filter `f` generates a decreasing sequence of
+sets `s_n ∈ f` such that `s_n × s_n ⊆ U_n`. Choose a sequence `x_n∈s_n`. It is easy to show
+that this is a Cauchy sequence. If this sequence converges to some `a`, then `f ≤ 𝓝 a`. -/
 
 namespace sequentially_complete
 

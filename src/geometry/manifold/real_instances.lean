@@ -231,7 +231,7 @@ def Icc_left_chart (x y : ℝ) [h : lt_class x y] :
     apply continuous.continuous_on,
     apply continuous_subtype_mk,
     have : continuous (λ (z : ℝ) (i : fin 1), z - x) :=
-      (continuous_pi (λi, continuous_id)).sub continuous_const,
+      continuous.sub (continuous_pi $ λi, continuous_id) continuous_const,
     exact this.comp continuous_subtype_val,
   end,
   continuous_inv_fun := begin

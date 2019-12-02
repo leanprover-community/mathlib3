@@ -71,12 +71,10 @@ meta def pexpr_of_num (α : expr) : num → pexpr
 meta def expr_of_num (α : expr) : num → tactic expr
 | n := to_expr $ pexpr_of_num α n
 
-/- The `push_cast` simp attribute uses `move_cast` lemmas in the "forward" direction,
-to move casts toward the leaf nodes of the expression. -/
-run_cmd mk_simp_attr `push_cast
-
 private meta def mk_cache : list name → tactic simp_lemmas :=
 monad.foldl simp_lemmas.add_simp simp_lemmas.mk
+
+private meta def new_name (n : name) : name := name.mk_string "reversed" n
 
 /--
 This is an attribute of the norm_cast tactic.
@@ -94,7 +92,9 @@ meta def elim_cast_attr : user_attribute simp_lemmas :=
       dependencies := [], },
 }
 
-private meta def new_name (n : name) : name := name.mk_string "reversed" n
+/- The `push_cast` simp attribute uses `move_cast` lemmas in the "forward" direction,
+to move casts toward the leaf nodes of the expression. -/
+run_cmd mk_simp_attr `push_cast
 
 private meta def aux_after_set (tac : expr → tactic (expr × (expr → expr))) :
   expr → tactic (expr × (expr → expr))
@@ -108,15 +108,7 @@ private meta def aux_after_set (tac : expr → tactic (expr × (expr → expr)))
   )
 | ty := tac ty
 
-/-
-By convention, composotional lemmas are written in the opposite direction than
-the one needed by norm_cast, therefore the labeled lemmas are "flipped" before
-being added to the set of move_cast lemmas.
-
-This is the reason why elim_cast and move_cast are two different attributes.
-
-TODO: merge them into one attribute?
--/
+/-- Called after the `move_cast` attribute is applied to a declaration. -/
 private meta def after_set (decl : name) (prio : ℕ) (pers : bool) : tactic unit :=
 do
   (declaration.thm n l ty e) ← get_decl decl | failed,
@@ -124,7 +116,8 @@ do
   (ty', f) ← aux_after_set tac ty,
   let e' := task.map f e,
   let n' := new_name n,
-  add_decl (declaration.thm n' l ty' e')
+  add_decl (declaration.thm n' l ty' e'),
+  simp_attr.push_cast.set decl () tt
 
 /--
 This is an attribute of the norm_cast tactic.
@@ -267,25 +260,17 @@ private meta def post (s : simp_lemmas) (_ : unit) (e : expr) : tactic (unit × 
 
 /-
 The following auxiliary functions are used to handle numerals.
-In step 1 we rewrite every numeral as a cast of a numeral of type ℕ.
-In step 4 we simplify the casted numerals.
 -/
 
 -- prove ↑n = n where n is a numeral
-private meta def aux_num_prove_eq (e : expr) : tactic expr :=
+private meta def aux_num_prove_eq (a b : expr) : tactic expr :=
 do
   s ← simp_lemmas.mk_default, --TODO: replace this with norm_cast lemmas
-  (_, h) ← simplify s [] e,
+  h ← to_expr ``(%%a = %%b),
+  (_, pr) ← simplify s [] h,
+  to_expr ``(eq.mpr %%pr trivial)
 
-  --verifying
-  tmp ← infer_type h,
-  (_, a) ← tmp.is_eq,
-  is_def_eq a `(true),
-
-  pr ← to_expr ``(eq.mpr %%h trivial),
-  return pr
-
--- rewrite (n : α) to ((n : ℕ) : α) where n is a numeral and α ≠ ℕ
+-- if possible, rewrite (n : α) as ((n : ℕ) : α) where n is a numeral and α ≠ ℕ
 private meta def aux_num_1 (_ : unit) (e : expr) : tactic (unit × expr × expr) :=
 do
   α ← infer_type e,
@@ -294,18 +279,16 @@ do
   h1 ← mk_app `has_lift_t [`(ℕ), α] >>= mk_instance',
   new_e ← to_expr $ pexpr_of_num `(ℕ) n,
   new_e ← to_expr ``(@coe ℕ %%α %%h1 %%new_e),
-  h ← to_expr ``(%%e = %%new_e),
-  pr ← aux_num_prove_eq h,
+  pr ← aux_num_prove_eq e new_e,
   return ((), new_e, pr)
 
--- rewrite (↑n : α) to (n : α) where n is a numeral
+-- if possible, rewrite (↑n : α) as (n : α) where n is a numeral
 private meta def aux_num_2 (_ : unit) (e : expr) : tactic (unit × expr × expr) :=
 do
   `(@coe ℕ %%α %%h1 %%e') ← return e,
   n ← e'.to_num,
   new_e ← to_expr $ pexpr_of_num α n,
-  h ← to_expr ``(%%e = %%new_e),
-  pr ← aux_num_prove_eq h,
+  pr ← aux_num_prove_eq e new_e,
   return ((), new_e, pr)
 
 private meta def simplify_top_down' {α} (a : α) (pre : α → expr → tactic (α × expr × expr)) (e : expr) (cfg : simp_config := {}) : tactic (α × expr × expr) :=

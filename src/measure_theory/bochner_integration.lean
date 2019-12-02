@@ -844,7 +844,7 @@ end
 
 end properties
 
-mk_simp_attr integral_simps "Simp set for integral rules."
+mk_simp_set integral_simps "Simp set for integral rules."
 
 attribute [integral_simps] integral_neg integral_smul l1.integral_add l1.integral_sub
   l1.integral_smul l1.integral_neg

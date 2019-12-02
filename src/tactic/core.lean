@@ -1442,17 +1442,21 @@ do n  ← ident,
    skip .
 
 /--
-The command `mk_simp_attr simp_name` creates a simp set with name `simp_name`.
+The command `mk_simp_set simp_name` creates a simp set with name `simp_name`.
 Lemmas tagged with `@[simp_name]` will be included when `simp using simp_name` is called.
-An optional description for the simp set can be provided with `mk_simp_attr simp_name "description"`.
+An optional description for the simp set can be provided with `mk_simp_set simp_name "description"`.
+
+Appending the command with `with id1 id2 ...` will use `id1`, `id2`, ... as dependencies
+of the attribute.
 -/
 @[user_command]
-meta def mk_simp_attr_cmd (_ : parse $ tk "mk_simp_attr") : lean.parser unit :=
+meta def mk_simp_set_cmd (_ : parse $ tk "mk_simp_set") : lean.parser unit :=
 do n ← ident,
    descr ← (do d ← parser.pexpr,
                d ← to_expr d,
                eval_expr string d) <|> return ("simp set for " ++ to_string n),
-   mk_simp_attr n,
+   with_list ← types.with_ident_list,
+   mk_simp_attr n with_list,
    add_doc_string (name.append `simp_attr n) descr
 
 end tactic

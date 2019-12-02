@@ -61,6 +61,7 @@ universes u v w
 noncomputable theory
 open_locale classical topological_space
 open filter asymptotics set
+open continuous_linear_map (smul_right smul_right_one_eq_iff)
 
 set_option class.instance_max_depth 100
 
@@ -74,7 +75,7 @@ variables {E : Type w} [normed_group E] [normed_space 𝕜 E]
 That is, `f x' = f x + (x' - x) • f' + o(x' - x)` where `x'` converges along the filter `L`.
 -/
 def has_deriv_at_filter (f : 𝕜 → F) (f' : F) (x : 𝕜) (L : filter 𝕜) :=
-has_fderiv_at_filter f (continuous_linear_map.smul_right 1 f' : 𝕜 →L[𝕜] F) x L
+has_fderiv_at_filter f (smul_right 1 f' : 𝕜 →L[𝕜] F) x L
 
 /--
 `f` has the derivative `f'` at the point `x` within the subset `s`.
@@ -129,7 +130,7 @@ by simp [has_deriv_within_at, has_deriv_at_filter, has_fderiv_within_at]
 /-- Expressing `has_deriv_within_at f f' s x` in terms of `has_fderiv_within_at` -/
 lemma has_deriv_within_at_iff_has_fderiv_within_at {f' : F} :
   has_deriv_within_at f f' s x ↔
-  has_fderiv_within_at f (continuous_linear_map.smul_right 1 f' : 𝕜 →L[𝕜] F) s x :=
+  has_fderiv_within_at f (smul_right 1 f' : 𝕜 →L[𝕜] F) s x :=
 iff.rfl
 
 /-- Expressing `has_fderiv_at f f' x` in terms of `has_deriv_at` -/
@@ -140,7 +141,7 @@ by simp [has_deriv_at, has_deriv_at_filter, has_fderiv_at]
 /-- Expressing `has_deriv_at f f' x` in terms of `has_fderiv_at` -/
 lemma has_deriv_at_iff_has_fderiv_at {f' : F} :
   has_deriv_at f f' x ↔
-  has_fderiv_at f (continuous_linear_map.smul_right 1 f' : 𝕜 →L[𝕜] F) x :=
+  has_fderiv_at f (smul_right 1 f' : 𝕜 →L[𝕜] F) x :=
 iff.rfl
 
 lemma deriv_within_zero_of_not_differentiable_within_at
@@ -152,7 +153,7 @@ by { unfold deriv, rw fderiv_zero_of_not_differentiable_at, simp, assumption }
 
 theorem unique_diff_within_at.eq_deriv (s : set 𝕜) (H : unique_diff_within_at 𝕜 s x)
   (h : has_deriv_within_at f f' s x) (h₁ : has_deriv_within_at f f₁' s x) : f' = f₁' :=
-continuous_linear_map.smul_right_one_eq_iff.mp $ unique_diff_within_at.eq H h h₁
+smul_right_one_eq_iff.mp $ unique_diff_within_at.eq H h h₁
 
 theorem has_deriv_at_filter_iff_tendsto :
   has_deriv_at_filter f f' x L ↔
@@ -199,7 +200,7 @@ has_fderiv_within_at_univ
 
 theorem has_deriv_at_unique
   (h₀ : has_deriv_at f f₀' x) (h₁ : has_deriv_at f f₁' x) : f₀' = f₁' :=
-continuous_linear_map.smul_right_one_eq_iff.mp $ has_fderiv_at_unique h₀ h₁
+smul_right_one_eq_iff.mp $ has_fderiv_at_unique h₀ h₁
 
 lemma has_deriv_within_at_inter' (h : t ∈ nhds_within x s) :
   has_deriv_within_at f f' (s ∩ t) x ↔ has_deriv_within_at f f' s x :=
@@ -232,14 +233,14 @@ lemma fderiv_within_deriv_within : (fderiv_within 𝕜 f s x : 𝕜 → F) 1 = d
 rfl
 
 lemma deriv_within_fderiv_within :
-  continuous_linear_map.smul_right 1 (deriv_within f s x) = fderiv_within 𝕜 f s x :=
+  smul_right 1 (deriv_within f s x) = fderiv_within 𝕜 f s x :=
 by simp [deriv_within]
 
 lemma fderiv_deriv : (fderiv 𝕜 f x : 𝕜 → F) 1 = deriv f x :=
 rfl
 
 lemma deriv_fderiv :
-  continuous_linear_map.smul_right 1 (deriv f x) = fderiv 𝕜 f x :=
+  smul_right 1 (deriv f x) = fderiv 𝕜 f x :=
 by simp [deriv]
 
 lemma differentiable_at.deriv_within (h : differentiable_at 𝕜 f x)
@@ -523,9 +524,9 @@ theorem has_deriv_at_filter.comp
   (hg : has_deriv_at_filter g g' (h x) (L.map h))
   (hh : has_deriv_at_filter h h' x L) :
   has_deriv_at_filter (g ∘ h) (h' • g') x L :=
-have (continuous_linear_map.smul_right 1 g' : 𝕜 →L[𝕜] _).comp
-      (continuous_linear_map.smul_right 1 h' : 𝕜 →L[𝕜] _) =
-    continuous_linear_map.smul_right 1 (h' • g'), by { ext, simp [mul_smul] },
+have (smul_right 1 g' : 𝕜 →L[𝕜] _).comp
+      (smul_right 1 h' : 𝕜 →L[𝕜] _) =
+    smul_right 1 (h' • g'), by { ext, simp [mul_smul] },
 begin
   unfold has_deriv_at_filter,
   rw ← this,
@@ -700,13 +701,52 @@ lemma deriv_mul (hc : differentiable_at 𝕜 c x) (hd : differentiable_at 𝕜 d
 
 end mul
 
+section inverse
+/-! ### Derivative of the inverse function -/
+
+theorem has_deriv_at_inverse (x_ne_zero : x ≠ 0) :
+  has_deriv_at (λx, x⁻¹) (-(x^2)⁻¹) x :=
+begin
+  rw has_deriv_at_iff_is_o_nhds_zero,
+  have : is_o (λ (h : 𝕜), h^2/(x^2 * (x + h))) (λ (h : 𝕜), h) (𝓝 0) := sorry,
+  apply (is_o_congr _ _).2 this,
+  { have : metric.ball (0 : 𝕜) (∥x∥) ∈ 𝓝 (0 : 𝕜),
+    { apply mem_nhds_sets metric.is_open_ball,
+      simp [(norm_pos_iff x).mpr x_ne_zero] },
+    filter_upwards [this],
+    assume h hx,
+    have : 0 < ∥x + h∥ := calc
+      0 < ∥x∥ - ∥-h∥ : by rwa [norm_neg, sub_pos, ← dist_zero_right h]
+      ... ≤ ∥x - -h∥ : norm_sub_norm_le _ _
+      ... = ∥x + h∥ : by simp,
+    have : x + h ≠ 0 := (norm_pos_iff (x + h)).mp this,
+    have A : (x + h) / (x ^ 2 * (x + h)) = 1/x^2,
+      by rwa [mul_comm, div_mul_eq_div_mul_one_div, div_self, one_mul],
+    calc (x + h)⁻¹ - x⁻¹ - h * -(x ^ 2)⁻¹ =
+      x^2 /(x^2 * (x+h)) - (x * (x+h))/(x^2 * (x+h)) - (-h * (x+h))/(x^2 * (x+h)) :
+      begin
+        rw [inv_eq_one_div, inv_eq_one_div, inv_eq_one_div],
+        congr' 1,
+        congr' 1,
+        { rw [div_mul_eq_div_mul_one_div, div_self, one_mul], exact pow_ne_zero 2 x_ne_zero },
+        { rwa [mul_div_assoc, A, ← mul_div_assoc, mul_one, pow_two, div_mul_eq_div_mul_one_div,
+               div_self, one_mul] },
+        { rw [mul_div_assoc, A, mul_neg_eq_neg_mul_symm, neg_mul_eq_neg_mul_symm] }
+      end
+      ... = (x^2 - x * (x+h) + h * (x+h)) / (x^2 * (x+h)) : sorry
+      ... = h ^ 2 / (x ^ 2 * (x +h)) : by { congr' 1, ring } },
+  { convert univ_mem_sets, simp }
+end
+
+end inverse
+
 namespace polynomial
 /-! ### Derivative of a polynomial -/
 
 variable (p : polynomial 𝕜)
 
 /-- The derivative (in the analysis sense) of a polynomial `p` is given by `p.derivative`. -/
-lemma has_deriv_at (x : 𝕜) : has_deriv_at (λx, p.eval x) (p.derivative.eval x) x :=
+protected lemma has_deriv_at (x : 𝕜) : has_deriv_at (λx, p.eval x) (p.derivative.eval x) x :=
 begin
   apply p.induction_on,
   { simp [has_deriv_at_const] },
@@ -719,42 +759,60 @@ begin
     { simp [pow_add], ring } }
 end
 
-theorem has_deriv_within_at (x : 𝕜) (s : set 𝕜) :
+protected theorem has_deriv_within_at (x : 𝕜) (s : set 𝕜) :
   has_deriv_within_at (λx, p.eval x) (p.derivative.eval x) s x :=
 (p.has_deriv_at x).has_deriv_within_at
 
-lemma differentiable_at : differentiable_at 𝕜 (λx, p.eval x) x :=
+protected lemma differentiable_at : differentiable_at 𝕜 (λx, p.eval x) x :=
 (p.has_deriv_at x).differentiable_at
 
-lemma differentiable_within_at : differentiable_within_at 𝕜 (λx, p.eval x) s x :=
+protected lemma differentiable_within_at : differentiable_within_at 𝕜 (λx, p.eval x) s x :=
 p.differentiable_at.differentiable_within_at
 
-lemma differentiable : differentiable 𝕜 (λx, p.eval x) :=
+protected lemma differentiable : differentiable 𝕜 (λx, p.eval x) :=
 λx, p.differentiable_at
 
-lemma differentiable_on : differentiable_on 𝕜 (λx, p.eval x) s :=
+protected lemma differentiable_on : differentiable_on 𝕜 (λx, p.eval x) s :=
 p.differentiable.differentiable_on
 
-lemma deriv : deriv (λx, p.eval x) x = p.derivative.eval x :=
-has_deriv_at.deriv (p.has_deriv_at x)
+protected lemma deriv : deriv (λx, p.eval x) x = p.derivative.eval x :=
+(p.has_deriv_at x).deriv
 
-lemma deriv_within (hxs : unique_diff_within_at 𝕜 s x) :
+protected lemma deriv_within (hxs : unique_diff_within_at 𝕜 s x) :
   deriv_within (λx, p.eval x) s x = p.derivative.eval x :=
 begin
   rw differentiable_at.deriv_within p.differentiable_at hxs,
   exact p.deriv
 end
 
-lemma continuous : continuous (λx, p.eval x) :=
+protected lemma continuous : continuous (λx, p.eval x) :=
 p.differentiable.continuous
 
-lemma continuous_on : continuous_on (λx, p.eval x) s :=
+protected lemma continuous_on : continuous_on (λx, p.eval x) s :=
 p.continuous.continuous_on
 
-lemma continuous_at : continuous_at (λx, p.eval x) x :=
+protected lemma continuous_at : continuous_at (λx, p.eval x) x :=
 p.continuous.continuous_at
 
-lemma continuous_within_at : continuous_within_at (λx, p.eval x) s x :=
+protected lemma continuous_within_at : continuous_within_at (λx, p.eval x) s x :=
 p.continuous_at.continuous_within_at
+
+protected lemma has_fderiv_at (x : 𝕜) :
+  has_fderiv_at (λx, p.eval x) (smul_right 1 (p.derivative.eval x) : 𝕜 →L[𝕜] 𝕜) x :=
+by simpa [has_deriv_at_iff_has_fderiv_at] using p.has_deriv_at x
+
+protected lemma has_fderiv_within_at (x : 𝕜) :
+  has_fderiv_within_at (λx, p.eval x) (smul_right 1 (p.derivative.eval x) : 𝕜 →L[𝕜] 𝕜) s x :=
+(p.has_fderiv_at x).has_fderiv_within_at
+
+protected lemma fderiv : fderiv 𝕜 (λx, p.eval x) x = smul_right 1 (p.derivative.eval x) :=
+(p.has_fderiv_at x).fderiv
+
+protected lemma fderiv_within (hxs : unique_diff_within_at 𝕜 s x) :
+  fderiv_within 𝕜 (λx, p.eval x) s x = smul_right 1 (p.derivative.eval x) :=
+begin
+  rw differentiable_at.fderiv_within p.differentiable_at hxs,
+  exact p.fderiv
+end
 
 end polynomial

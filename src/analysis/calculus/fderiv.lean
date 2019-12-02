@@ -35,6 +35,10 @@ usual formulas (and existence assertions) for the derivative of
 * multiplication of two scalar functions
 * composition of functions (the chain rule)
 
+Results on the derivative of functions defined on `𝕜` (as vectors in the target space, in opposition
+to linear maps) are included in `deriv.lean`. The derivative of polynomials is handled there, as it
+is naturally one-dimensional.
+
 ## Implementation details
 
 The derivative is defined in terms of the `is_o` relation, but also

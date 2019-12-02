@@ -1019,15 +1019,16 @@ Transforms the goal into its contrapositive.
 ### norm_cast
 
 This tactic normalizes casts inside expressions.
-It is basically a simp tactic with a specific set of lemmas to move casts
-upwards in the expression.
-Therefore it can be used more safely as a non-terminating tactic.
-It also has special handling of numerals.
+It can be tought as call to the simplifier with a specific set of lemmas to
+move casts upwards in the expression.
+It also has special handling of numerals and a simple heuristic to simplify
+casts "past" binary operators.
+Contrary to simp, it should be safe to use as a non-terminating tactic.
 
 For instance, given an assumption
 ```lean
 a b : ℤ
-h : ↑a + ↑b < (10 : ℚ)
+h : (a + b : ℚ) < 10
 ```
 
 writing `norm_cast at h` will turn `h` into
@@ -1035,16 +1036,23 @@ writing `norm_cast at h` will turn `h` into
 h : a + b < 10
 ```
 
-You can also use `exact_mod_cast`, `apply_mod_cast`, `rw_mod_cast`
-or `assumption_mod_cast`.
-Writing `exact_mod_cast h` and `apply_mod_cast h` will normalize the goal and h before using `exact h` or `apply h`.
+`norm_cast` comes with wrapper tactics:
+-`exact_mod_cast`
+-`apply_mod_cast`
+-`rw_mod_cast`
+-`assumption_mod_cast`.
+
+Writing `exact_mod_cast h` and `apply_mod_cast h` will normalize the goal and `h`
+before using `exact h` or `apply h`.
 Writing `assumption_mod_cast` will normalize the goal and for every
 expression `h` in the context it will try to normalize `h` and use
 `exact h`.
 `rw_mod_cast` acts like the `rw` tactic but it applies `norm_cast` between steps.
 
-These tactics work with three attributes,
-`elim_cast`, `move_cast` and `squash_cast`.
+`norm_cast` works with three attributes,
+-`elim_cast`
+-`move_cast`
+-`squash_cast`
 
 `elim_cast` is for elimination lemmas of the following shapes
 -`Π ..., P ↑a1 ... ↑an = P a1 ... an`
@@ -1070,8 +1078,9 @@ examples:
 @[move_cast] theorem cast_sub [add_group α] [has_one α] {m n} (h : m ≤ n) : ((n - m : ℕ) : α) = n - m
 ```
 
-`squash_cast` is for lemmas of the following shapes
+`squash_cast` is for lemmas of the following shapes:
 -`Π ..., ↑↑a = ↑a`
+-`Π ..., ↑a = a`
 -`Π ..., ↑1 = 1`
 -`Π ..., ↑0 = 0`
 -`Π ..., ↑(bit0 n) = bit0 ↑n`

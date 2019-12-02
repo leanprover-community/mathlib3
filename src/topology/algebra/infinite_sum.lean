@@ -129,7 +129,7 @@ lemma tendsto_sum_nat_of_has_sum {f : ℕ → α} (h : has_sum f a) :
 variable [topological_add_monoid α]
 
 lemma has_sum_add (hf : has_sum f a) (hg : has_sum g b) : has_sum (λb, f b + g b) (a + b) :=
-by simp [has_sum, sum_add_distrib]; exact tendsto.add hf hg
+by simp [has_sum, sum_add_distrib]; exact hf.add hg
 
 lemma summable_add (hf : summable f) (hg : summable g) : summable (λb, f b + g b) :=
 summable_spec $ has_sum_add (has_sum_tsum hf)(has_sum_tsum hg)

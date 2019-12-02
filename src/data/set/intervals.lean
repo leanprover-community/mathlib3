@@ -214,12 +214,12 @@ lemma Icc_subset_Ici_iff (h₁ : a₁ ≤ b₁) :
   Icc a₁ b₁ ⊆ Ici a₂ ↔ a₂ ≤ a₁ :=
 ⟨λ h, h ⟨le_refl _, h₁⟩, λ h x ⟨hx, hx'⟩, le_trans h hx⟩
 
-/-- If `a ≤ b`, then `(a, +∞) ⊆ (b, +∞)`. In preorders, this is just an implication. If you need
+/-- If `a ≤ b`, then `(b, +∞) ⊆ (a, +∞)`. In preorders, this is just an implication. If you need
 the equivalence in linear orders, use `Ioi_subset_Ioi_iff`. -/
 lemma Ioi_subset_Ioi (h : a ≤ b) : Ioi b ⊆ Ioi a :=
 λx hx, lt_of_le_of_lt h hx
 
-/-- If `a ≤ b`, then `(a, +∞) ⊆ [b, +∞)`. In preorders, this is just an implication. If you need
+/-- If `a ≤ b`, then `(b, +∞) ⊆ [a, +∞)`. In preorders, this is just an implication. If you need
 the equivalence in dense linear orders, use `Ioi_subset_Ici_iff`. -/
 lemma Ioi_subset_Ici (h : a ≤ b) : Ioi b ⊆ Ici a :=
 subset.trans (Ioi_subset_Ioi h) Ioi_subset_Ici_self

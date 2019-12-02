@@ -137,13 +137,13 @@ section add
 variables [topological_add_group γ]
 
 instance : has_add (β →L[α] γ) :=
-⟨λ f g, ⟨f + g, continuous.add f.2 g.2⟩⟩
+⟨λ f g, ⟨f + g, f.2.add g.2⟩⟩
 
 @[simp] lemma add_apply : (f + g) x = f x + g x := rfl
 @[simp, move_cast] lemma coe_add : (((f + g) : β →L[α] γ) : β →ₗ[α] γ) = (f : β →ₗ[α] γ) + g := rfl
 @[move_cast] lemma coe_add' : (((f + g) : β →L[α] γ) : β → γ) = (f : β → γ) + g := rfl
 
-instance : has_neg (β →L[α] γ) := ⟨λ f, ⟨-f, continuous.neg f.2⟩⟩
+instance : has_neg (β →L[α] γ) := ⟨λ f, ⟨-f, f.2.neg⟩⟩
 
 @[simp] lemma neg_apply : (-f) x = - (f x) := rfl
 
@@ -181,7 +181,7 @@ instance [topological_add_group β] : ring (β →L[α] β) :=
 
 /-- The cartesian product of two bounded linear maps, as a bounded linear map. -/
 def prod (f₁ : β →L[α] γ) (f₂ : β →L[α] δ) : β →L[α] (γ × δ) :=
-{ cont := continuous.prod_mk f₁.2 f₂.2,
+{ cont := f₁.2.prod_mk f₂.2,
   ..f₁.to_linear_map.prod f₂.to_linear_map }
 
 end general_ring

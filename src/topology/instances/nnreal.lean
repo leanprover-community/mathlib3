@@ -16,14 +16,10 @@ open_locale nnreal
 instance : topological_space ℝ≥0 := infer_instance -- short-circuit type class inference
 
 instance : topological_semiring ℝ≥0 :=
-{ continuous_mul :=
-   continuous_subtype_mk _
-        (continuous.mul (continuous.comp continuous_subtype_val continuous_fst)
-                        (continuous.comp continuous_subtype_val continuous_snd)),
-  continuous_add :=
-    continuous_subtype_mk _
-          (continuous.add (continuous.comp continuous_subtype_val continuous_fst)
-                          (continuous.comp continuous_subtype_val continuous_snd)) }
+{ continuous_mul := continuous_subtype_mk _ $
+    (continuous_subtype_val.comp continuous_fst).mul (continuous_subtype_val.comp continuous_snd),
+  continuous_add := continuous_subtype_mk _ $
+    (continuous_subtype_val.comp continuous_fst).add (continuous_subtype_val.comp continuous_snd) }
 
 instance : second_countable_topology nnreal :=
 topological_space.subtype.second_countable_topology _ _
@@ -64,7 +60,7 @@ variable {α : Type*}
 open filter
 
 lemma continuous_of_real : continuous nnreal.of_real :=
-continuous_subtype_mk _ $ continuous.max continuous_id continuous_const
+continuous_subtype_mk _ $ continuous_id.max continuous_const
 
 lemma continuous_coe : continuous (coe : nnreal → ℝ) :=
 continuous_subtype_val
@@ -83,10 +79,9 @@ lemma tendsto.sub {f : filter α} {m n : α → nnreal} {r p : nnreal}
 tendsto_of_real $ tendsto.sub (tendsto_coe.2 hm) (tendsto_coe.2 hn)
 
 lemma continuous_sub : continuous (λp:nnreal×nnreal, p.1 - p.2) :=
-  continuous_subtype_mk _ (continuous.max
-    (continuous.sub (continuous.comp continuous_coe continuous_fst)
-                    (continuous.comp continuous_coe continuous_snd))
-                                                      continuous_const)
+continuous_subtype_mk _ $
+  ((continuous.comp continuous_coe continuous_fst).sub
+   (continuous.comp continuous_coe continuous_snd)).max continuous_const
 
 lemma continuous.sub [topological_space α] {f g : α → nnreal}
   (hf : continuous f) (hg : continuous g) : continuous (λ a, f a - g a) :=

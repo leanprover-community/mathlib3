@@ -45,7 +45,7 @@ begin
     { apply continuous_on.prod,
       { refine continuous_norm.comp_continuous_on _,
         apply continuous_on.sub hf.continuous_on continuous_on_const },
-      { exact (continuous.mul continuous_const continuous_id).continuous_on } },
+      { exact (continuous_const.mul continuous_id).continuous_on } },
     show is_closed K, from
       A.preimage_closed_of_closed is_closed_Icc (ordered_topology.is_closed_le' _) },
   have : k = 1,

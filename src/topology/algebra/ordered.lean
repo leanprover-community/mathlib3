@@ -455,7 +455,7 @@ instance orderable_topology.regular_space : regular_space α :=
       by rw [←sup_principal, inf_sup_left, ht₁a, ht₂a, bot_sup_eq]⟩,
   ..orderable_topology.t2_space }
 
-/-- A set is a neighborhood of `a` if and only if it contains an open interval containing `a`,
+/-- A set is a neighborhood of `a` if and only if it contains an interval `(l, u)` containing `a`,
 provided `a` is neither a bottom element nor a top element. -/
 lemma mem_nhds_iff_exists_Ioo_subset' {a l' u' : α} {s : set α}
   (hl' : l' < a) (hu' : a < u') :
@@ -473,7 +473,7 @@ begin
     apply mem_sets_of_superset (mem_nhds_sets is_open_Ioo ha) h }
 end
 
-/-- A set is a neighborhood of `a` if and only if it contains an open interval containing `a`. -/
+/-- A set is a neighborhood of `a` if and only if it contains an interval `(l, u)` containing `a`. -/
 lemma mem_nhds_iff_exists_Ioo_subset [no_top_order α] [no_bot_order α] {a : α} {s : set α} :
   s ∈ 𝓝 a ↔ ∃l u, a ∈ Ioo l u ∧ Ioo l u ⊆ s :=
 let ⟨l', hl'⟩ := no_bot a in let ⟨u', hu'⟩ := no_top a in mem_nhds_iff_exists_Ioo_subset' hl' hu'
@@ -487,7 +487,8 @@ the left and to the right, either open or closed, i.e., members of `nhds_within 
 characterized as the sets containing suitable intervals to the right or to the left of `a`.
 We give now these characterizations. -/
 
-/-- A set is a neighborhood of `a` within `(a, +∞)` if and only if it contains an interval `(a, u)`. -/
+/-- A set is a neighborhood of `a` within `(a, +∞)` if and only if it contains an interval `(a, u)`
+with `a < u`, provided `a` is not a top element. -/
 lemma mem_nhds_within_Ioi_iff_exists_Ioo_subset' {a u' : α} {s : set α} (hu' : a < u') :
   s ∈ nhds_within a (Ioi a) ↔ ∃u, a < u ∧ Ioo a u ⊆ s :=
 begin
@@ -504,12 +505,14 @@ begin
     rwa [inter_comm, Ioi_inter_Iio] }
 end
 
-/-- A set is a neighborhood of `a` within `(a, +∞)` if and only if it contains an interval `(a, u)`. -/
+/-- A set is a neighborhood of `a` within `(a, +∞)` if and only if it contains an interval `(a, u)`
+with `a < u`. -/
 lemma mem_nhds_within_Ioi_iff_exists_Ioo_subset [no_top_order α] {a : α} {s : set α} :
   s ∈ nhds_within a (Ioi a) ↔ ∃u, a < u ∧ Ioo a u ⊆ s :=
 let ⟨u', hu'⟩ := no_top a in mem_nhds_within_Ioi_iff_exists_Ioo_subset' hu'
 
-/-- A set is a neighborhood of `a` within `(a, +∞)` if and only if it contains an interval `(a, u]`. -/
+/-- A set is a neighborhood of `a` within `(a, +∞)` if and only if it contains an interval `(a, u]`
+with `a < u`. -/
 lemma mem_nhds_within_Ioi_iff_exists_Ioc_subset [no_top_order α] [densely_ordered α]
   {a : α} {s : set α} : s ∈ nhds_within a (Ioi a) ↔ ∃u, a < u ∧ Ioc a u ⊆ s :=
 begin
@@ -522,7 +525,8 @@ begin
     exact ⟨u, au, subset.trans Ioo_subset_Ioc_self as⟩ }
 end
 
-/-- A set is a neighborhood of `a` within `(-∞, a)` if and only if it contains an interval `(l, a)`. -/
+/-- A set is a neighborhood of `a` within `(-∞, a)` if and only if it contains an interval `(l, a)`
+with `l < a`, provided `a` is not a bottom element. -/
 lemma mem_nhds_within_Iio_iff_exists_Ioo_subset' {a l' : α} {s : set α} (hl' : l' < a) :
   s ∈ nhds_within a (Iio a) ↔ ∃l, l < a ∧ Ioo l a ⊆ s :=
 begin
@@ -539,12 +543,14 @@ begin
     rwa [Ioi_inter_Iio] }
 end
 
-/-- A set is a neighborhood of `a` within `(-∞, a)` if and only if it contains an interval `(l, a)`. -/
+/-- A set is a neighborhood of `a` within `(-∞, a)` if and only if it contains an interval `(l, a)`
+with `l < a`. -/
 lemma mem_nhds_within_Iio_iff_exists_Ioo_subset [no_bot_order α] {a : α} {s : set α} :
   s ∈ nhds_within a (Iio a) ↔ ∃l, l < a ∧ Ioo l a ⊆ s :=
 let ⟨l', hl'⟩ := no_bot a in mem_nhds_within_Iio_iff_exists_Ioo_subset' hl'
 
-/-- A set is a neighborhood of `a` within `(-∞, a)` if and only if it contains an interval `[l, a)`. -/
+/-- A set is a neighborhood of `a` within `(-∞, a)` if and only if it contains an interval `[l, a)`
+with `l < a`. -/
 lemma mem_nhds_within_Iio_iff_exists_Ico_subset [no_bot_order α] [densely_ordered α]
   {a : α} {s : set α} : s ∈ nhds_within a (Iio a) ↔ ∃l, l < a ∧ Ico l a ⊆ s :=
 begin
@@ -557,7 +563,8 @@ begin
     exact ⟨l, la, subset.trans Ioo_subset_Ico_self as⟩ }
 end
 
-/-- A set is a neighborhood of `a` within `[a, +∞)` if and only if it contains an interval `[a, u)`. -/
+/-- A set is a neighborhood of `a` within `[a, +∞)` if and only if it contains an interval `[a, u)`
+with `a < u`, provided `a` is not a top element. -/
 lemma mem_nhds_within_Ici_iff_exists_Ico_subset' {a u' : α} {s : set α} (hu' : a < u') :
   s ∈ nhds_within a (Ici a) ↔ ∃u, a < u ∧ Ico a u ⊆ s :=
 begin
@@ -574,12 +581,14 @@ begin
     rwa [inter_comm, Ici_inter_Iio] }
 end
 
-/-- A set is a neighborhood of `a` within `[a, +∞)` if and only if it contains an interval `[a, u)`. -/
+/-- A set is a neighborhood of `a` within `[a, +∞)` if and only if it contains an interval `[a, u)`
+with `a < u`. -/
 lemma mem_nhds_within_Ici_iff_exists_Ico_subset [no_top_order α] {a : α} {s : set α} :
   s ∈ nhds_within a (Ici a) ↔ ∃u, a < u ∧ Ico a u ⊆ s :=
 let ⟨u', hu'⟩ := no_top a in mem_nhds_within_Ici_iff_exists_Ico_subset' hu'
 
-/-- A set is a neighborhood of `a` within `[a, +∞)` if and only if it contains an interval `[a, u]`. -/
+/-- A set is a neighborhood of `a` within `[a, +∞)` if and only if it contains an interval `[a, u]`
+with `a < u`. -/
 lemma mem_nhds_within_Ici_iff_exists_Icc_subset [no_top_order α] [densely_ordered α]
   {a : α} {s : set α} : s ∈ nhds_within a (Ici a) ↔ ∃u, a < u ∧ Icc a u ⊆ s :=
 begin
@@ -592,7 +601,8 @@ begin
     exact ⟨u, au, subset.trans Ico_subset_Icc_self as⟩ }
 end
 
-/-- A set is a neighborhood of `a` within `(-∞, a]` if and only if it contains an interval `(l, a]`. -/
+/-- A set is a neighborhood of `a` within `(-∞, a]` if and only if it contains an interval `(l, a]`
+with `l < a`, provided `a` is not a bottom element. -/
 lemma mem_nhds_within_Iic_iff_exists_Ioc_subset' {a l' : α} {s : set α} (hl' : l' < a) :
   s ∈ nhds_within a (Iic a) ↔ ∃l, l < a ∧ Ioc l a ⊆ s :=
 begin
@@ -609,12 +619,14 @@ begin
     rwa [Ioi_inter_Iic] }
 end
 
-/-- A set is a neighborhood of `a` within `(-∞, a]` if and only if it contains an interval `(l, a]`. -/
+/-- A set is a neighborhood of `a` within `(-∞, a]` if and only if it contains an interval `(l, a]`
+with `l < a`. -/
 lemma mem_nhds_within_Iic_iff_exists_Ioc_subset [no_bot_order α] {a : α} {s : set α} :
   s ∈ nhds_within a (Iic a) ↔ ∃l, l < a ∧ Ioc l a ⊆ s :=
 let ⟨l', hl'⟩ := no_bot a in mem_nhds_within_Iic_iff_exists_Ioc_subset' hl'
 
-/-- A set is a neighborhood of `a` within `(-∞, a]` if and only if it contains an interval `[l, a]`. -/
+/-- A set is a neighborhood of `a` within `(-∞, a]` if and only if it contains an interval `[l, a]`
+with `l < a`. -/
 lemma mem_nhds_within_Iic_iff_exists_Icc_subset [no_bot_order α] [densely_ordered α]
   {a : α} {s : set α} : s ∈ nhds_within a (Iic a) ↔ ∃l, l < a ∧ Icc l a ⊆ s :=
 begin

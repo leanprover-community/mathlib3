@@ -1443,7 +1443,7 @@ do n  ← ident,
 
 /--
 The command `mk_simp_attribute simp_name` creates a simp set with name `simp_name`.
-Lemmas tagged with `@[simp_name]` will be included when `simp using simp_name` is called.
+Lemmas tagged with `@[simp_name]` will be included when `simp with simp_name` is called.
 An optional description for the simp set can be provided with `mk_simp_attribute simp_name "description"`.
 
 Appending the command with `with attr1 attr2 ...` will include all declarations tagged with

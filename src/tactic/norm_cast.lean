@@ -306,26 +306,21 @@ do
   e ← instantiate_mvars e,
   let cfg : simp_config := { fail_if_unchanged := ff },
   let e0 := e,
-  trace ("norm_cast on: ", e0),
 
   -- step 1: pre-processing of numerals
   ((), e1, pr1) ← simplify_top_down' () aux_num_1 e0 cfg,
   h1 ← to_expr ``(%%e0 = %%e1),
-  trace ("step 1: ", e1),
 
   -- step 2: casts are moved upwards and eliminated
   ((), e2, pr2) ← simplify_bottom_up () (post s) e1 cfg,
-  trace ("step 2: ", e2),
 
   -- step 3: casts are squashed
   s ← squash_cast_attr.get_cache,
   (e3, pr3) ← simplify s [] e2 cfg,
-  trace ("step 3: ", e3),
 
   --step 4: post-processing of numerals
   ((), e4, pr4) ← simplify_top_down' () aux_num_2 e3 cfg,
   h4 ← to_expr ``(%%e3 = %%e4),
-  trace ("step 4: ", e4),
 
   let new_e := e4,
   guard (¬ new_e =ₐ e),

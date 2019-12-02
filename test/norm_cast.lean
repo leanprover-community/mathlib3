@@ -9,8 +9,8 @@ import data.zmod.basic
 constants (an bn cn dn : ℕ) (az bz cz dz : ℤ) (aq bq cq dq : ℚ)
 constants (ar br cr dr : ℝ) (ac bc cc dc : ℂ)
 
-example : (an : ℤ) = bn → an = bn := λ h, by exact_mod_cast h
-example : an = bn → (an : ℤ) = bn := λ h, by exact_mod_cast h
+example : (an : ℤ) = bn → an = bn := by {intro h, exact_mod_cast h}
+example : an = bn → (an : ℤ) = bn := by {intro h, exact_mod_cast h}
 example : az = bz ↔ (az : ℚ) = bz := by norm_cast
 
 example : (aq : ℝ) = br ↔ (aq : ℂ) = br := by norm_cast
@@ -18,8 +18,8 @@ example : (an : ℚ) = bz ↔ (an : ℂ) = bz := by norm_cast
 example : (((an : ℤ) : ℚ) : ℝ) = bq ↔ ((an : ℚ) : ℂ) = (bq : ℝ) :=
 by norm_cast
 
-example : (an : ℤ) < bn ↔ an < bn             := by norm_cast
-example : (an : ℚ) < bz ↔ (an : ℝ) < bz       := by norm_cast
+example : (an : ℤ) < bn ↔ an < bn := by norm_cast
+example : (an : ℚ) < bz ↔ (an : ℝ) < bz := by norm_cast
 example : ((an : ℤ) : ℝ) < bq ↔ (an : ℚ) < bq := by norm_cast
 example : (an : ℤ) ≠ (bn : ℤ) ↔ an ≠ bn := by norm_cast
 
@@ -30,7 +30,7 @@ example : az > (0 : ℕ) ↔ az > 0 := by norm_cast
 example : (an : ℤ) ≠ 0 ↔ an ≠ 0 := by norm_cast
 example : aq < (1 : ℕ) ↔ (aq : ℝ) < (1 : ℤ) := by norm_cast
 
-example : (an : ℤ) + bn = (an + bn : ℕ)   := by norm_cast
+example : (an : ℤ) + bn = (an + bn : ℕ) := by norm_cast
 example : (an : ℂ) + bq = ((an + bq) : ℚ) := by norm_cast
 example : (((an : ℤ) : ℚ) : ℝ) + bn = (an + (bn : ℤ)) := by norm_cast
 
@@ -54,7 +54,6 @@ example (h : bn ≤ an) : an - bn = 1 ↔ (an - bn : ℤ) = 1 :=
 by norm_cast
 example (h : (cz : ℚ) = az / bz) : (cz : ℝ) = az / bz :=
 by assumption_mod_cast
-
 
 namespace hidden
 

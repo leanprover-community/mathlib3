@@ -127,10 +127,8 @@ lemma continuous_cos : continuous cos :=
 differentiable_cos.continuous
 
 lemma continuous_tan : continuous (λ x : {x // cos x ≠ 0}, tan x) :=
-continuous.mul
-  (continuous_sin.comp continuous_subtype_val)
-  (continuous.inv subtype.property
-    (continuous_cos.comp continuous_subtype_val))
+(continuous_sin.comp continuous_subtype_val).mul
+  (continuous.inv subtype.property (continuous_cos.comp continuous_subtype_val))
 
 /-- The complex hyperbolic sine function is everywhere differentiable, with the derivative `sinh x`. -/
 lemma has_deriv_at_sinh (x : ℂ) : has_deriv_at sinh (cosh x) x :=
@@ -1700,23 +1698,22 @@ section prove_rpow_is_continuous
 lemma continuous_rpow_aux1 : continuous (λp : {p:ℝ×ℝ // 0 < p.1}, p.val.1 ^ p.val.2) :=
 suffices h : continuous (λ p : {p:ℝ×ℝ // 0 < p.1 }, exp (log p.val.1 * p.val.2)),
   by { convert h, ext p, rw rpow_def_of_pos p.2 },
-continuous_exp.comp $ continuous.mul
+continuous_exp.comp $
   (show continuous ((λp:{p:ℝ//0 < p}, log (p.val)) ∘ (λp:{p:ℝ×ℝ//0<p.fst}, ⟨p.val.1, p.2⟩)), from
-    continuous_log'.comp $ continuous_subtype_mk _ $ continuous_fst.comp continuous_subtype_val)
+    continuous_log'.comp $ continuous_subtype_mk _ $ continuous_fst.comp continuous_subtype_val).mul
   (continuous_snd.comp $ continuous_subtype_val.comp continuous_id)
 
 lemma continuous_rpow_aux2 : continuous (λ p : {p:ℝ×ℝ // p.1 < 0}, p.val.1 ^ p.val.2) :=
 suffices h : continuous (λp:{p:ℝ×ℝ // p.1 < 0}, exp (log (-p.val.1) * p.val.2) * cos (p.val.2 * π)),
   by { convert h, ext p, rw [rpow_def_of_neg p.2] },
-continuous.mul
-  (continuous_exp.comp $ continuous.mul
+  (continuous_exp.comp $
     (show continuous $ (λp:{p:ℝ//0<p},
             log (p.val))∘(λp:{p:ℝ×ℝ//p.1<0}, ⟨-p.val.1, neg_pos_of_neg p.2⟩),
      from continuous_log'.comp $ continuous_subtype_mk _ $ continuous_neg.comp $
-            continuous_fst.comp continuous_subtype_val)
-    (continuous_snd.comp $ continuous_subtype_val.comp continuous_id))
-  (continuous_cos.comp $ continuous.mul
-    (continuous_snd.comp $ continuous_subtype_val.comp continuous_id) continuous_const)
+            continuous_fst.comp continuous_subtype_val).mul
+    (continuous_snd.comp $ continuous_subtype_val.comp continuous_id)).mul
+  (continuous_cos.comp $
+    (continuous_snd.comp $ continuous_subtype_val.comp continuous_id).mul continuous_const)
 
 lemma continuous_at_rpow_of_ne_zero (hx : x ≠ 0) (y : ℝ) :
   continuous_at (λp:ℝ×ℝ, p.1^p.2) (x, y) :=

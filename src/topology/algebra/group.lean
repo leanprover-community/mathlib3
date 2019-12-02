@@ -59,14 +59,14 @@ tendsto.comp (continuous_iff_continuous_at.mp (topological_group.continuous_inv 
 @[to_additive topological_add_group]
 instance [topological_group α] [topological_space β] [group β] [topological_group β] :
   topological_group (α × β) :=
-{ continuous_inv := continuous.prod_mk continuous_fst.inv continuous_snd.inv }
+{ continuous_inv := continuous_fst.inv.prod_mk continuous_snd.inv }
 
 attribute [instance] prod.topological_add_group
 
 @[to_additive]
 protected def homeomorph.mul_left [topological_group α] (a : α) : α ≃ₜ α :=
-{ continuous_to_fun  := continuous.mul continuous_const continuous_id,
-  continuous_inv_fun := continuous.mul continuous_const continuous_id,
+{ continuous_to_fun  := continuous_const.mul continuous_id,
+  continuous_inv_fun := continuous_const.mul continuous_id,
   .. equiv.mul_left a }
 
 @[to_additive]
@@ -81,8 +81,8 @@ lemma is_closed_map_mul_left [topological_group α] (a : α) : is_closed_map (λ
 protected def homeomorph.mul_right
   {α : Type*} [topological_space α] [group α] [topological_group α] (a : α) :
   α ≃ₜ α :=
-{ continuous_to_fun  := continuous.mul continuous_id continuous_const,
-  continuous_inv_fun := continuous.mul continuous_id continuous_const,
+{ continuous_to_fun  := continuous_id.mul continuous_const,
+  continuous_inv_fun := continuous_id.mul continuous_const,
   .. equiv.mul_right a }
 
 @[to_additive]
@@ -206,9 +206,8 @@ instance topological_group_quotient : topological_group (quotient N) :=
     have quot : quotient_map (λ p : α × α, ((p.1:quotient N), (p.2:quotient N))),
     { apply is_open_map.to_quotient_map,
       { exact is_open_map.prod (quotient_group.open_coe N) (quotient_group.open_coe N) },
-      { apply continuous.prod_mk,
-        { exact continuous_quot_mk.comp continuous_fst },
-        { exact continuous_quot_mk.comp continuous_snd } },
+      { exact (continuous_quot_mk.comp continuous_fst).prod_mk
+              (continuous_quot_mk.comp continuous_snd) },
       { rintro ⟨⟨x⟩, ⟨y⟩⟩,
         exact ⟨(x, y), rfl⟩ } },
     exact (quotient_map.continuous_iff quot).2 cont,
@@ -229,10 +228,10 @@ variables [topological_space α] [add_group α]
 
 lemma continuous.sub [topological_add_group α] [topological_space β] {f : β → α} {g : β → α}
   (hf : continuous f) (hg : continuous g) : continuous (λx, f x - g x) :=
-by simp; exact continuous.add hf (continuous.neg hg)
+by simp; exact hf.add hg.neg
 
 lemma continuous_sub [topological_add_group α] : continuous (λp:α×α, p.1 - p.2) :=
-continuous.sub continuous_fst continuous_snd
+continuous_fst.sub continuous_snd
 
 lemma continuous_on.sub [topological_add_group α] [topological_space β] {f : β → α} {g : β → α} {s : set β}
   (hf : continuous_on f s) (hg : continuous_on g s) : continuous_on (λx, f x - g x) s :=

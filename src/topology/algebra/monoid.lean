@@ -46,11 +46,11 @@ continuous_mul.comp (hf.prod_mk hg)
 
 @[to_additive]
 lemma continuous_mul_left (a : α) : continuous (λ b:α, a * b) :=
-continuous.mul continuous_const continuous_id
+continuous_const.mul continuous_id
 
 @[to_additive]
 lemma continuous_mul_right (a : α) : continuous (λ b:α, b * a) :=
-continuous.mul continuous_id continuous_const
+continuous_id.mul continuous_const
 
 @[to_additive]
 lemma continuous_on.mul [topological_space β] {f : β → α} {g : β → α} {s : set β}
@@ -61,7 +61,7 @@ lemma continuous_on.mul [topological_space β] {f : β → α} {g : β → α} {
 -- @[to_additive continuous_smul]
 lemma continuous_pow : ∀ n : ℕ, continuous (λ a : α, a ^ n)
 | 0 := by simpa using continuous_const
-| (k+1) := show continuous (λ (a : α), a * a ^ k), from continuous.mul continuous_id (continuous_pow _)
+| (k+1) := show continuous (λ (a : α), a * a ^ k), from continuous_id.mul (continuous_pow _)
 
 @[to_additive]
 lemma tendsto_mul {a b : α} : tendsto (λp:α×α, p.fst * p.snd) (𝓝 (a, b)) (𝓝 (a * b)) :=
@@ -95,9 +95,8 @@ continuous_iff_continuous_at.2 $ assume x, tendsto_list_prod l $ assume c hc,
 
 @[to_additive topological_add_monoid]
 instance [topological_space β] [monoid β] [topological_monoid β] : topological_monoid (α × β) :=
-⟨continuous.prod_mk
-  (continuous.mul (continuous_fst.comp continuous_fst) (continuous_fst.comp continuous_snd))
-  (continuous.mul (continuous_snd.comp continuous_fst) (continuous_snd.comp continuous_snd)) ⟩
+⟨((continuous_fst.comp continuous_fst).mul (continuous_fst.comp continuous_snd)).prod_mk
+ ((continuous_snd.comp continuous_fst).mul (continuous_snd.comp continuous_snd))⟩
 
 attribute [instance] prod.topological_add_monoid
 

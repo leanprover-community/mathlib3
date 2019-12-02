@@ -1446,8 +1446,8 @@ The command `mk_simp_attribute simp_name` creates a simp set with name `simp_nam
 Lemmas tagged with `@[simp_name]` will be included when `simp using simp_name` is called.
 An optional description for the simp set can be provided with `mk_simp_attribute simp_name "description"`.
 
-Appending the command with `with id1 id2 ...` will use `id1`, `id2`, ... as dependencies
-of the attribute.
+Appending the command with `with attr1 attr2 ...` will include all declarations tagged with
+`attr1`, `attr2`, ... in the new simp set.
 -/
 @[user_command]
 meta def mk_simp_attribute_cmd (_ : parse $ tk "mk_simp_attribute") : lean.parser unit :=

@@ -16,7 +16,7 @@ namespace int
 
 open_locale omega.int
 
-mk_simp_set sugar
+mk_simp_attribute sugar
 attribute [sugar]
   ne not_le not_lt
   int.lt_iff_add_one_le

@@ -26,7 +26,7 @@ by rw [even_iff, mod_two_ne_zero]
 instance : decidable_pred even :=
 λ n, decidable_of_decidable_of_iff (by apply_instance) even_iff.symm
 
-mk_simp_set parity_simps "Simp attribute for lemmas about `even`"
+mk_simp_attribute parity_simps "Simp attribute for lemmas about `even`"
 
 @[simp] theorem even_zero : even 0 := ⟨0, dec_trivial⟩
 

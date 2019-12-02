@@ -1338,11 +1338,11 @@ See also additional documentation of `using_well_founded` in
 * If one of the fields is a partially applied constructor, we will eta-expand it
   (this likely never happens).
 
-### mk_simp_set
+### mk_simp_attribute
 
-The command `mk_simp_set simp_name` creates a simp set with name `simp_name`.
+The command `mk_simp_attribute simp_name` creates a simp set with name `simp_name`.
 Lemmas tagged with `@[simp_name]` will be included when `simp using simp_name` is called.
-An optional description for the simp set can be provided with `mk_simp_set simp_name "description"`.
+An optional description for the simp set can be provided with `mk_simp_attribute simp_name "description"`.
 
 Appending the command with `with id1 id2 ...` will use `id1`, `id2`, ... as dependencies
 of the attribute.

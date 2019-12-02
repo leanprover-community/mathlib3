@@ -539,16 +539,16 @@ begin
     have limf': tendsto (λ x, ∥f x - s∥) e (𝓝 0) := tendsto_iff_norm_tendsto_zero.1 limf,
     have limg' : tendsto (λ x, ∥g x∥) e (𝓝 ∥b∥) := filter.tendsto.comp (continuous_iff_continuous_at.1 continuous_norm _) limg,
 
-    have lim1 := tendsto.mul limf' limg',
+    have lim1 := limf'.mul limg',
     simp only [zero_mul, sub_eq_add_neg] at lim1,
 
     have limg3 := tendsto_iff_norm_tendsto_zero.1 limg,
 
-    have lim2 := tendsto.mul (tendsto_const_nhds : tendsto _ _ (𝓝 ∥ s ∥)) limg3,
+    have lim2 := (tendsto_const_nhds : tendsto _ _ (𝓝 ∥ s ∥)).mul limg3,
     simp only [sub_eq_add_neg, mul_zero] at lim2,
 
     rw [show (0:ℝ) = 0 + 0, by simp],
-    exact tendsto.add lim1 lim2  }
+    exact lim1.add lim2  }
 end
 
 lemma tendsto_smul_const {g : γ → F} {e : filter γ} (s : α) {b : F} :

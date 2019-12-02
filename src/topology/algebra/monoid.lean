@@ -68,7 +68,7 @@ lemma tendsto_mul {a b : α} : tendsto (λp:α×α, p.fst * p.snd) (𝓝 (a, b))
 continuous_iff_continuous_at.mp (topological_monoid.continuous_mul α) (a, b)
 
 @[to_additive]
-lemma tendsto.mul {f : β → α} {g : β → α} {x : filter β} {a b : α}
+lemma filter.tendsto.mul {f : β → α} {g : β → α} {x : filter β} {a b : α}
   (hf : tendsto f x (𝓝 a)) (hg : tendsto g x (𝓝 b)) :
   tendsto (λx, f x * g x) x (𝓝 (a * b)) :=
 tendsto.comp (by rw [←nhds_prod_eq]; exact tendsto_mul) (hf.prod_mk hg)
@@ -81,8 +81,7 @@ lemma tendsto_list_prod {f : γ → β → α} {x : filter β} {a : γ → α} :
 | (f :: l) h :=
   begin
     simp,
-    exact tendsto.mul
-      (h f (list.mem_cons_self _ _))
+    exact (h f (list.mem_cons_self _ _)).mul
       (tendsto_list_prod l (assume c hc, h c (list.mem_cons_of_mem _ hc)))
   end
 

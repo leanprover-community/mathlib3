@@ -99,8 +99,7 @@ begin
     tendsto_inverse_at_top_nhds_0.comp hc,
   have B : tendsto (λn, ∥c n • d n∥) at_top (𝓝 ∥y∥) :=
     (continuous_norm.tendsto _).comp hd,
-  have C : tendsto (λn, ∥c n∥⁻¹ * ∥c n • d n∥) at_top (𝓝 (0 * ∥y∥)) :=
-    tendsto.mul A B,
+  have C : tendsto (λn, ∥c n∥⁻¹ * ∥c n • d n∥) at_top (𝓝 (0 * ∥y∥)) := A.mul B,
   rw zero_mul at C,
   have : {n | ∥c n∥⁻¹ * ∥c n • d n∥ = ∥d n∥} ∈ (@at_top ℕ _),
   { have : {n | 1 ≤ ∥c n∥} ∈ (@at_top ℕ _) :=
@@ -124,7 +123,7 @@ begin
   refine ⟨c, d, _, ctop, clim⟩,
   have : {n : ℕ | x + d n ∈ t} ∈ at_top,
   { have : tendsto (λn, x + d n) at_top (𝓝 (x + 0)) :=
-      tendsto.add tendsto_const_nhds (tangent_cone_at.lim_zero ctop clim),
+      tendsto_const_nhds.add (tangent_cone_at.lim_zero ctop clim),
     rw add_zero at this,
     exact mem_map.1 (this ht) },
   exact inter_mem_sets ds this

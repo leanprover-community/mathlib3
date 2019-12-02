@@ -4,7 +4,6 @@ Tests for norm_cast
 
 import tactic.norm_cast
 import data.complex.basic -- ℕ, ℤ, ℚ, ℝ, ℂ
-import data.zmod.basic
 
 constants (an bn cn dn : ℕ) (az bz cz dz : ℤ) (aq bq cq dq : ℚ)
 constants (ar br cr dr : ℝ) (ac bc cc dc : ℂ)

@@ -16,14 +16,10 @@ open_locale nnreal
 instance : topological_space ℝ≥0 := infer_instance -- short-circuit type class inference
 
 instance : topological_semiring ℝ≥0 :=
-{ continuous_mul :=
-   continuous_subtype_mk _
-        (continuous_mul (continuous.comp continuous_subtype_val continuous_fst)
-                        (continuous.comp continuous_subtype_val continuous_snd)),
-  continuous_add :=
-    continuous_subtype_mk _
-          (continuous_add (continuous.comp continuous_subtype_val continuous_fst)
-                          (continuous.comp continuous_subtype_val continuous_snd)) }
+{ continuous_mul := continuous_subtype_mk _ $
+    (continuous_subtype_val.comp continuous_fst).mul (continuous_subtype_val.comp continuous_snd),
+  continuous_add := continuous_subtype_mk _ $
+    (continuous_subtype_val.comp continuous_fst).add (continuous_subtype_val.comp continuous_snd) }
 
 instance : second_countable_topology nnreal :=
 topological_space.subtype.second_countable_topology _ _
@@ -64,7 +60,7 @@ variable {α : Type*}
 open filter
 
 lemma continuous_of_real : continuous nnreal.of_real :=
-continuous_subtype_mk _ $ continuous_max continuous_id continuous_const
+continuous_subtype_mk _ $ continuous_id.max continuous_const
 
 lemma continuous_coe : continuous (coe : nnreal → ℝ) :=
 continuous_subtype_val
@@ -77,20 +73,19 @@ lemma tendsto_of_real {f : filter α} {m : α → ℝ} {x : ℝ} (h : tendsto m 
   tendsto (λa, nnreal.of_real (m a)) f (𝓝 (nnreal.of_real x)) :=
 tendsto.comp (continuous_iff_continuous_at.1 continuous_of_real _) h
 
-lemma tendsto_sub {f : filter α} {m n : α → nnreal} {r p : nnreal}
+lemma tendsto.sub {f : filter α} {m n : α → nnreal} {r p : nnreal}
   (hm : tendsto m f (𝓝 r)) (hn : tendsto n f (𝓝 p)) :
   tendsto (λa, m a - n a) f (𝓝 (r - p)) :=
-tendsto_of_real $ tendsto_sub (tendsto_coe.2 hm) (tendsto_coe.2 hn)
+tendsto_of_real $ tendsto.sub (tendsto_coe.2 hm) (tendsto_coe.2 hn)
 
-lemma continuous_sub' : continuous (λp:nnreal×nnreal, p.1 - p.2) :=
-  continuous_subtype_mk _ (continuous_max
-    (continuous_sub (continuous.comp continuous_coe continuous_fst)
-                    (continuous.comp continuous_coe continuous_snd))
-                                                      continuous_const)
+lemma continuous_sub : continuous (λp:nnreal×nnreal, p.1 - p.2) :=
+continuous_subtype_mk _ $
+  ((continuous.comp continuous_coe continuous_fst).sub
+   (continuous.comp continuous_coe continuous_snd)).max continuous_const
 
-lemma continuous_sub [topological_space α] {f g : α → nnreal}
+lemma continuous.sub [topological_space α] {f g : α → nnreal}
   (hf : continuous f) (hg : continuous g) : continuous (λ a, f a - g a) :=
-continuous_sub'.comp (hf.prod_mk hg)
+continuous_sub.comp (hf.prod_mk hg)
 
 @[elim_cast] lemma has_sum_coe {f : α → nnreal} {r : nnreal} :
   has_sum (λa, (f a : ℝ)) (r : ℝ) ↔ has_sum f r :=

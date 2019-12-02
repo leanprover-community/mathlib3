@@ -138,33 +138,33 @@ lemma frontier_lt_subset_eq : frontier {b | f b < g b} ⊆ {b | f b = g b} :=
 by rw ← frontier_compl;
    convert frontier_le_subset_eq hg hf; simp [ext_iff, eq_comm]
 
-lemma continuous_max : continuous (λb, max (f b) (g b)) :=
+lemma continuous.max : continuous (λb, max (f b) (g b)) :=
 have ∀b∈frontier {b | f b ≤ g b}, g b = f b, from assume b hb, (frontier_le_subset_eq hf hg hb).symm,
 continuous_if this hg hf
 
-lemma continuous_min : continuous (λb, min (f b) (g b)) :=
+lemma continuous.min : continuous (λb, min (f b) (g b)) :=
 have ∀b∈frontier {b | f b ≤ g b}, f b = g b, from assume b hb, frontier_le_subset_eq hf hg hb,
 continuous_if this hf hg
 
 end
 
-lemma tendsto_max {b : filter β} {a₁ a₂ : α} (hf : tendsto f b (𝓝 a₁)) (hg : tendsto g b (𝓝 a₂)) :
+lemma tendsto.max {b : filter β} {a₁ a₂ : α} (hf : tendsto f b (𝓝 a₁)) (hg : tendsto g b (𝓝 a₂)) :
   tendsto (λb, max (f b) (g b)) b (𝓝 (max a₁ a₂)) :=
 show tendsto ((λp:α×α, max p.1 p.2) ∘ (λb, (f b, g b))) b (𝓝 (max a₁ a₂)),
   from tendsto.comp
     begin
       rw [←nhds_prod_eq],
-      from continuous_iff_continuous_at.mp (continuous_max continuous_fst continuous_snd) _
+      from continuous_iff_continuous_at.mp (continuous_fst.max continuous_snd) _
     end
     (hf.prod_mk hg)
 
-lemma tendsto_min {b : filter β} {a₁ a₂ : α} (hf : tendsto f b (𝓝 a₁)) (hg : tendsto g b (𝓝 a₂)) :
+lemma tendsto.min {b : filter β} {a₁ a₂ : α} (hf : tendsto f b (𝓝 a₁)) (hg : tendsto g b (𝓝 a₂)) :
   tendsto (λb, min (f b) (g b)) b (𝓝 (min a₁ a₂)) :=
 show tendsto ((λp:α×α, min p.1 p.2) ∘ (λb, (f b, g b))) b (𝓝 (min a₁ a₂)),
   from tendsto.comp
     begin
       rw [←nhds_prod_eq],
-      from continuous_iff_continuous_at.mp (continuous_min continuous_fst continuous_snd) _
+      from continuous_iff_continuous_at.mp (continuous_fst.min continuous_snd) _
     end
     (hf.prod_mk hg)
 
@@ -642,11 +642,11 @@ variables [topological_space α] [ordered_comm_group α] [topological_add_group 
 lemma neg_preimage_closure {s : set α} : (λr:α, -r) ⁻¹' closure s = closure ((λr:α, -r) '' s) :=
 have (λr:α, -r) ∘ (λr:α, -r) = id, from funext neg_neg,
 by rw [preimage_neg]; exact
-  (subset.antisymm (image_closure_subset_closure_image continuous_neg') $
+  (subset.antisymm (image_closure_subset_closure_image continuous_neg) $
     calc closure ((λ (r : α), -r) '' s) = (λr, -r) '' ((λr, -r) '' closure ((λ (r : α), -r) '' s)) :
         by rw [←image_comp, this, image_id]
       ... ⊆ (λr, -r) '' closure ((λr, -r) '' ((λ (r : α), -r) '' s)) :
-        mono_image $ image_closure_subset_closure_image continuous_neg'
+        mono_image $ image_closure_subset_closure_image continuous_neg
       ... = _ : by rw [←image_comp, this, image_id])
 
 end topological_add_group
@@ -889,7 +889,7 @@ lemma Sup_of_continuous' {f : α → β} (Mf : continuous f) (Cf : monotone f)
 --This is a particular case of the more general is_lub_of_is_lub_of_tendsto
 (is_lub_iff_Sup_eq.1
   (is_lub_of_is_lub_of_tendsto (λ x hx y hy xy, Cf xy) is_lub_Sup hs $
-    tendsto_le_left inf_le_left (continuous.tendsto Mf _))).symm
+    tendsto_le_left inf_le_left (Mf.tendsto _))).symm
 
 /-- A continuous monotone function sending bot to bot sends supremum to supremum. -/
 lemma Sup_of_continuous {f : α → β} (Mf : continuous f) (Cf : monotone f)
@@ -911,7 +911,7 @@ lemma Inf_of_continuous' {f : α → β} (Mf : continuous f) (Cf : monotone f)
   {s : set α} (hs : s ≠ ∅) : f (Inf s) = Inf (f '' s) :=
 (is_glb_iff_Inf_eq.1
   (is_glb_of_is_glb_of_tendsto (λ x hx y hy xy, Cf xy) is_glb_Inf hs $
-    tendsto_le_left inf_le_left (continuous.tendsto Mf _))).symm
+    tendsto_le_left inf_le_left (Mf.tendsto _))).symm
 
 /-- A continuous monotone function sending top to top sends infimum to infimum. -/
 lemma Inf_of_continuous {f : α → β} (Mf : continuous f) (Cf : monotone f)
@@ -960,7 +960,7 @@ begin
   refine (is_lub_iff_eq_of_is_lub _).1
     (is_lub_cSup (mt image_eq_empty.1 ne) (bdd_above_of_bdd_above_of_monotone Cf H)),
   refine is_lub_of_is_lub_of_tendsto (λx hx y hy xy, Cf xy) (is_lub_cSup ne H) ne _,
-  exact tendsto_le_left inf_le_left (continuous.tendsto Mf _)
+  exact tendsto_le_left inf_le_left (Mf.tendsto _)
 end
 
 /-- A continuous monotone function sends indexed supremum to indexed supremum in conditionally complete
@@ -978,7 +978,7 @@ begin
   refine (is_glb_iff_eq_of_is_glb _).1
     (is_glb_cInf (mt image_eq_empty.1 ne) (bdd_below_of_bdd_below_of_monotone Cf H)),
   refine is_glb_of_is_glb_of_tendsto (λx hx y hy xy, Cf xy) (is_glb_cInf ne H) ne _,
-  exact tendsto_le_left inf_le_left (continuous.tendsto Mf _)
+  exact tendsto_le_left inf_le_left (Mf.tendsto _)
 end
 
 /-- A continuous monotone function sends indexed infimum to indexed infimum in conditionally complete

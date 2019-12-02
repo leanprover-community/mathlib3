@@ -379,8 +379,8 @@ have eq : _ := uniformly_extend_of_ind h_e h_dense f.uniform_continuous,
   add :=
   begin
     refine is_closed_property2 h_dense (is_closed_eq _ _) _,
-    { exact cont.comp (_root_.continuous_add continuous_fst continuous_snd) },
-    { exact _root_.continuous_add (cont.comp continuous_fst) (cont.comp continuous_snd) },
+    { exact cont.comp (continuous_fst.add continuous_snd) },
+    { exact (cont.comp continuous_fst).add (cont.comp continuous_snd) },
     { assume x y, rw ← e.map_add, simp only [eq], exact f.map_add _ _  },
   end,
   smul := λk,
@@ -419,7 +419,7 @@ begin
   { refine op_norm_le_bound ψ _ (is_closed_property h_dense (is_closed_le _ _) _),
     { exact mul_nonneg N0 (norm_nonneg _) },
     { exact continuous_norm.comp (cont ψ) },
-    { exact continuous_mul continuous_const continuous_norm },
+    { exact continuous_const.mul continuous_norm },
     { assume x,
       rw eq,
       calc ∥f x∥ ≤ ∥f∥ * ∥x∥ : le_op_norm _ _

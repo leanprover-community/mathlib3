@@ -208,7 +208,7 @@ begin
   have I3 : ∀x y, is_closed {f : Cb α β | f (x, y) = f (y, x)} :=
     λx y, is_closed_eq continuous_evalx continuous_evalx,
   have I4 : ∀x y z, is_closed {f : Cb α β | f (x, z) ≤ f (x, y) + f (y, z)} :=
-    λx y z, is_closed_le continuous_evalx (continuous_add continuous_evalx continuous_evalx),
+    λx y z, is_closed_le continuous_evalx (continuous_evalx.add continuous_evalx),
   have I5 : ∀x, is_closed {f : Cb α β | f (x, x) = 0} :=
     λx, is_closed_eq continuous_evalx continuous_const,
   have I6 : ∀x y, is_closed {f : Cb α β | f (x, y) ≤ max_var α β} :=
@@ -241,7 +241,7 @@ begin
     exact ⟨candidates_nonneg hf, candidates_le_max_var hf⟩ },
   { refine equicontinuous_of_continuity_modulus (λt, 2 * max_var α β * t) _ _ _,
     { have : tendsto (λ (t : ℝ), 2 * (max_var α β : ℝ) * t) (𝓝 0) (𝓝 (2 * max_var α β * 0)) :=
-        tendsto_mul tendsto_const_nhds tendsto_id,
+        tendsto.mul tendsto_const_nhds tendsto_id,
       simpa using this },
     { assume x y f hf,
       exact candidates_lipschitz hf _ _ } }
@@ -335,14 +335,14 @@ begin
              infi ((λz, z + dist f g) ∘ (λy:β, (g (inl x, inr y)))),
   { assume x,
     refine cinfi_of_cinfi_of_monotone_of_continuous (_ : continuous (λ (z : ℝ), z + dist f g)) _ _,
-    { exact continuous_add continuous_id continuous_const },
+    { exact continuous_id.add continuous_const },
     { assume x y hx, simpa },
     { show bdd_below (range (λ (y : β), g (inl x, inr y))),
         from ⟨cg, forall_range_iff.2(λi, Hcg _)⟩ } },
   have E2 : supr (λx:α, infi (λy:β, g (inl x, inr y))) + dist f g =
          supr ((λz, z + dist f g) ∘ (λx:α, infi (λy:β, g (inl x, inr y)))),
   { refine csupr_of_csupr_of_monotone_of_continuous (_ : continuous (λ (z : ℝ), z + dist f g)) _ _,
-    { exact continuous_add continuous_id continuous_const },
+    { exact continuous_id.add continuous_const },
     { assume x y hx, simpa },
     { by simpa using HD_bound_aux1 _ 0 } },
   -- deduce the result from the above two steps
@@ -369,14 +369,14 @@ begin
              infi ((λz, z + dist f g) ∘ (λx:α, (g (inl x, inr y)))),
   { assume y,
     refine cinfi_of_cinfi_of_monotone_of_continuous (_ : continuous (λ (z : ℝ), z + dist f g)) _ _,
-    { exact continuous_add continuous_id continuous_const },
+    { exact continuous_id.add continuous_const },
     { assume x y hx, simpa },
     { show bdd_below (range (λx:α, g (inl x, inr y))),
         from ⟨cg, forall_range_iff.2(λi, Hcg _)⟩ } },
   have E2 : supr (λy:β, infi (λx:α, g (inl x, inr y))) + dist f g =
          supr ((λz, z + dist f g) ∘ (λy:β, infi (λx:α, g (inl x, inr y)))),
   { refine csupr_of_csupr_of_monotone_of_continuous (_ : continuous (λ (z : ℝ), z + dist f g)) _ _,
-    { exact continuous_add continuous_id continuous_const },
+    { exact continuous_id.add continuous_const },
     { assume x y hx, simpa },
     { by simpa using HD_bound_aux2 _ 0 } },
   -- deduce the result from the above two steps

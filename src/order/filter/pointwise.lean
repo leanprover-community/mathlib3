@@ -193,7 +193,7 @@ end
 variables {m}
 
 @[to_additive]
-lemma tendsto_mul_mul [is_mul_hom m] {f₁ g₁ : filter α} {f₂ g₂ : filter β} :
+lemma tendsto.mul_mul [is_mul_hom m] {f₁ g₁ : filter α} {f₂ g₂ : filter β} :
   tendsto m f₁ f₂ → tendsto m g₁ g₂ → tendsto m (f₁ * g₁) (f₂ * g₂) :=
 assume hf hg, by { rw [tendsto, map_pointwise_mul m], exact pointwise_mul_le_mul hf hg }
 

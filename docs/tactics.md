@@ -1337,3 +1337,17 @@ See also additional documentation of `using_well_founded` in
 * `@[simps]` reduces let-expressions where necessary.
 * If one of the fields is a partially applied constructor, we will eta-expand it
   (this likely never happens).
+
+### mk_simp_attr
+
+The command `mk_simp_attr simp_name` creates a simp set with name `simp_name`.
+Lemmas tagged with `@[simp_name]` will be included when `simp using simp_name` is called.
+An optional description for the simp set can be provided with `mk_simp_attr simp_name "description"`.
+
+This command is preferred to using ``run_cmd mk_simp_attr `simp_name`` since it adds a doc string 
+to the attribute that is defined. If you need to create a simp set in a file where this command is not
+available, you should use
+```lean
+run_cmd mk_simp_attr `simp_name
+run_cmd add_doc_string `simp_attr.simp_name "Description of the simp set here"
+```

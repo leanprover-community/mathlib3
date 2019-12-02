@@ -209,6 +209,10 @@ lemma has_deriv_within_at_inter (h : t ∈ 𝓝 x) :
   has_deriv_within_at f f' (s ∩ t) x ↔ has_deriv_within_at f f' s x :=
 has_fderiv_within_at_inter h
 
+lemma has_deriv_within_at.nhds_within (h : has_deriv_within_at f f' s x)
+  (ht : s ∈ nhds_within x t) : has_deriv_within_at f f' t x :=
+(has_deriv_within_at_inter' ht).1 (h.mono (inter_subset_right _ _))
+
 lemma differentiable_within_at.has_deriv_within_at (h : differentiable_within_at 𝕜 f s x) :
   has_deriv_within_at f (deriv_within f s x) s x :=
 show has_fderiv_within_at _ _ _ _, by { convert h.has_fderiv_within_at, simp [deriv_within] }
@@ -695,3 +699,62 @@ lemma deriv_mul (hc : differentiable_at 𝕜 c x) (hd : differentiable_at 𝕜 d
 (hc.has_deriv_at.mul hd.has_deriv_at).deriv
 
 end mul
+
+namespace polynomial
+/-! ### Derivative of a polynomial -/
+
+variable (p : polynomial 𝕜)
+
+/-- The derivative (in the analysis sense) of a polynomial `p` is given by `p.derivative`. -/
+lemma has_deriv_at (x : 𝕜) : has_deriv_at (λx, p.eval x) (p.derivative.eval x) x :=
+begin
+  apply p.induction_on,
+  { simp [has_deriv_at_const] },
+  { assume p q hp hq,
+    convert hp.add hq;
+    simp },
+  { assume n a h,
+    convert h.mul (has_deriv_at_id x),
+    { ext y, simp [pow_add, mul_assoc] },
+    { simp [pow_add], ring } }
+end
+
+theorem has_deriv_within_at (x : 𝕜) (s : set 𝕜) :
+  has_deriv_within_at (λx, p.eval x) (p.derivative.eval x) s x :=
+(p.has_deriv_at x).has_deriv_within_at
+
+lemma differentiable_at : differentiable_at 𝕜 (λx, p.eval x) x :=
+(p.has_deriv_at x).differentiable_at
+
+lemma differentiable_within_at : differentiable_within_at 𝕜 (λx, p.eval x) s x :=
+p.differentiable_at.differentiable_within_at
+
+lemma differentiable : differentiable 𝕜 (λx, p.eval x) :=
+λx, p.differentiable_at
+
+lemma differentiable_on : differentiable_on 𝕜 (λx, p.eval x) s :=
+p.differentiable.differentiable_on
+
+lemma deriv : deriv (λx, p.eval x) x = p.derivative.eval x :=
+has_deriv_at.deriv (p.has_deriv_at x)
+
+lemma deriv_within (hxs : unique_diff_within_at 𝕜 s x) :
+  deriv_within (λx, p.eval x) s x = p.derivative.eval x :=
+begin
+  rw differentiable_at.deriv_within p.differentiable_at hxs,
+  exact p.deriv
+end
+
+lemma continuous : continuous (λx, p.eval x) :=
+p.differentiable.continuous
+
+lemma continuous_on : continuous_on (λx, p.eval x) s :=
+p.continuous.continuous_on
+
+lemma continuous_at : continuous_at (λx, p.eval x) x :=
+p.continuous.continuous_at
+
+lemma continuous_within_at : continuous_within_at (λx, p.eval x) s x :=
+p.continuous_at.continuous_within_at
+
+end polynomial

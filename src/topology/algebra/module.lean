@@ -167,6 +167,18 @@ def comp (g : γ →L[α] δ) (f : β →L[α] γ) : β →L[α] δ :=
 @[simp, move_cast] lemma coe_comp : ((h.comp f) : (β →ₗ[α] δ)) = (h : γ →ₗ[α] δ).comp f := rfl
 @[simp, move_cast] lemma coe_comp' : ((h.comp f) : (β → δ)) = (h : γ → δ) ∘ f := rfl
 
+@[simp] theorem comp_id : f.comp id = f :=
+ext $ λ x, rfl
+
+@[simp] theorem id_comp : id.comp f = f :=
+ext $ λ x, rfl
+
+@[simp] theorem comp_zero : f.comp (0 : δ →L[α] β) = 0 :=
+by { ext, simp }
+
+@[simp] theorem zero_comp : (0 : γ →L[α] δ).comp f = 0 :=
+by { ext, simp }
+
 instance : has_mul (β →L[α] β) := ⟨comp⟩
 
 instance [topological_add_group β] : ring (β →L[α] β) :=

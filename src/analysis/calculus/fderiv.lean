@@ -301,6 +301,10 @@ lemma has_fderiv_within_at_inter (h : t ∈ 𝓝 x) :
   has_fderiv_within_at f f' (s ∩ t) x ↔ has_fderiv_within_at f f' s x :=
 by simp [has_fderiv_within_at, nhds_within_restrict' s h]
 
+lemma has_fderiv_within_at.nhds_within (h : has_fderiv_within_at f f' s x)
+  (ht : s ∈ nhds_within x t) : has_fderiv_within_at f f' t x :=
+(has_fderiv_within_at_inter' ht).1 (h.mono (inter_subset_right _ _))
+
 lemma differentiable_within_at.has_fderiv_within_at (h : differentiable_within_at 𝕜 f s x) :
   has_fderiv_within_at f (fderiv_within 𝕜 f s x) s x :=
 begin
@@ -326,6 +330,15 @@ lemma has_fderiv_within_at.fderiv_within
   (h : has_fderiv_within_at f f' s x) (hxs : unique_diff_within_at 𝕜 s x) :
   fderiv_within 𝕜 f s x = f' :=
 by { ext, rw hxs.eq h h.differentiable_within_at.has_fderiv_within_at }
+
+/-- If `x` is not in the closure of `s`, then `f` has any derivative at `x` within `s`,
+as this statement is empty. -/
+lemma has_fderiv_within_at_of_not_mem_closure (h : x ∉ closure s) :
+  has_fderiv_within_at f f' s x :=
+begin
+  simp [mem_closure_iff_nhds_within_ne_bot] at h,
+  simp [has_fderiv_within_at, has_fderiv_at_filter, h, is_o]
+end
 
 lemma differentiable_within_at.mono (h : differentiable_within_at 𝕜 f t x) (st : s ⊆ t) :
   differentiable_within_at 𝕜 f s x :=
@@ -661,32 +674,32 @@ begin
   exact asymptotics.is_o_zero _ _
 end
 
-lemma continuous_linear_map.has_fderiv_within_at : has_fderiv_within_at e e s x :=
+protected lemma continuous_linear_map.has_fderiv_within_at : has_fderiv_within_at e e s x :=
 e.has_fderiv_at_filter
 
-lemma continuous_linear_map.has_fderiv_at : has_fderiv_at e e x  :=
+protected lemma continuous_linear_map.has_fderiv_at : has_fderiv_at e e x  :=
 e.has_fderiv_at_filter
 
-lemma continuous_linear_map.differentiable_at : differentiable_at 𝕜 e x :=
+protected lemma continuous_linear_map.differentiable_at : differentiable_at 𝕜 e x :=
 e.has_fderiv_at.differentiable_at
 
-lemma continuous_linear_map.differentiable_within_at : differentiable_within_at 𝕜 e s x :=
+protected lemma continuous_linear_map.differentiable_within_at : differentiable_within_at 𝕜 e s x :=
 e.differentiable_at.differentiable_within_at
 
-lemma continuous_linear_map.fderiv : fderiv 𝕜 e x = e :=
+protected lemma continuous_linear_map.fderiv : fderiv 𝕜 e x = e :=
 e.has_fderiv_at.fderiv
 
-lemma continuous_linear_map.fderiv_within (hxs : unique_diff_within_at 𝕜 s x) :
+protected lemma continuous_linear_map.fderiv_within (hxs : unique_diff_within_at 𝕜 s x) :
   fderiv_within 𝕜 e s x = e :=
 begin
   rw differentiable_at.fderiv_within e.differentiable_at hxs,
   exact e.fderiv
 end
 
-lemma continuous_linear_map.differentiable : differentiable 𝕜 e :=
+protected lemma continuous_linear_map.differentiable : differentiable 𝕜 e :=
 λx, e.differentiable_at
 
-lemma continuous_linear_map.differentiable_on : differentiable_on 𝕜 e s :=
+protected lemma continuous_linear_map.differentiable_on : differentiable_on 𝕜 e s :=
 e.differentiable.differentiable_on
 
 end continuous_linear_map
@@ -997,6 +1010,14 @@ h.differentiable.differentiable_on
 lemma is_bounded_bilinear_map.continuous (h : is_bounded_bilinear_map 𝕜 b) :
   continuous b :=
 h.differentiable.continuous
+
+lemma is_bounded_bilinear_map.continuous_left (h : is_bounded_bilinear_map 𝕜 b) {f : F} :
+  continuous (λe, b (e, f)) :=
+h.continuous.comp (continuous_id.prod_mk continuous_const)
+
+lemma is_bounded_bilinear_map.continuous_right (h : is_bounded_bilinear_map 𝕜 b) {e : E} :
+  continuous (λf, b (e, f)) :=
+h.continuous.comp (continuous_const.prod_mk continuous_id)
 
 end bilinear_map
 

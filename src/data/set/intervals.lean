@@ -214,15 +214,23 @@ lemma Icc_subset_Ici_iff (h₁ : a₁ ≤ b₁) :
   Icc a₁ b₁ ⊆ Ici a₂ ↔ a₂ ≤ a₁ :=
 ⟨λ h, h ⟨le_refl _, h₁⟩, λ h x ⟨hx, hx'⟩, le_trans h hx⟩
 
+/-- If `a ≤ b`, then `(a, +∞) ⊆ (b, +∞)`. In preorders, this is just an implication. If you need
+the equivalence in linear orders, use `Ioi_subset_Ioi_iff`. -/
 lemma Ioi_subset_Ioi (h : a ≤ b) : Ioi b ⊆ Ioi a :=
 λx hx, lt_of_le_of_lt h hx
 
+/-- If `a ≤ b`, then `(a, +∞) ⊆ [b, +∞)`. In preorders, this is just an implication. If you need
+the equivalence in dense linear orders, use `Ioi_subset_Ici_iff`. -/
 lemma Ioi_subset_Ici (h : a ≤ b) : Ioi b ⊆ Ici a :=
 subset.trans (Ioi_subset_Ioi h) Ioi_subset_Ici_self
 
+/-- If `a ≤ b`, then `(-∞, a) ⊆ (-∞, b)`. In preorders, this is just an implication. If you need
+the equivalence in linear orders, use `Iio_subset_Iio_iff`. -/
 lemma Iio_subset_Iio (h : a ≤ b) : Iio a ⊆ Iio b :=
 λx hx, lt_of_lt_of_le hx h
 
+/-- If `a ≤ b`, then `(-∞, a) ⊆ (-∞, b]`. In preorders, this is just an implication. If you need
+the equivalence in dense linear orders, use `Iio_subset_Iic_iff`. -/
 lemma Iio_subset_Iic (h : a ≤ b) : Iio a ⊆ Iic b :=
 subset.trans (Iio_subset_Iio h) Iio_subset_Iic_self
 
@@ -317,6 +325,40 @@ lemma Ico_eq_Ico_iff (h : a₁ < b₁ ∨ a₂ < b₂) : Ico a₁ b₁ = Ico a�
     have := (Ico_subset_Ico_iff (lt_of_le_of_lt h₁ $ lt_of_lt_of_le h h₂)).1 e';
     tauto
 end, λ ⟨h₁, h₂⟩, by rw [h₁, h₂]⟩
+
+@[simp] lemma Ioi_subset_Ioi_iff : Ioi b ⊆ Ioi a ↔ a ≤ b :=
+begin
+  refine ⟨λh, _, λh, Ioi_subset_Ioi h⟩,
+  classical,
+  by_contradiction ba,
+  exact lt_irrefl _ (h (not_le.mp ba))
+end
+
+@[simp] lemma Ioi_subset_Ici_iff [densely_ordered α] : Ioi b ⊆ Ici a ↔ a ≤ b :=
+begin
+  refine ⟨λh, _, λh, Ioi_subset_Ici h⟩,
+  classical,
+  by_contradiction ba,
+  obtain ⟨c, bc, ca⟩ : ∃c, b < c ∧ c < a := dense (not_le.mp ba),
+  exact lt_irrefl _ (lt_of_lt_of_le ca (h bc))
+end
+
+@[simp] lemma Iio_subset_Iio_iff : Iio a ⊆ Iio b ↔ a ≤ b :=
+begin
+  refine ⟨λh, _, λh, Iio_subset_Iio h⟩,
+  classical,
+  by_contradiction ab,
+  exact lt_irrefl _ (h (not_le.mp ab))
+end
+
+@[simp] lemma Iio_subset_Iic_iff [densely_ordered α] : Iio a ⊆ Iic b ↔ a ≤ b :=
+begin
+  refine ⟨λh, _, λh, Iio_subset_Iic h⟩,
+  classical,
+  by_contradiction ba,
+  obtain ⟨c, bc, ca⟩ : ∃c, b < c ∧ c < a := dense (not_le.mp ba),
+  exact lt_irrefl _ (lt_of_lt_of_le bc (h ca))
+end
 
 lemma is_glb_Ici : is_glb (Ici a) a :=
 ⟨λx hx, hx, λy hy, hy left_mem_Ici⟩

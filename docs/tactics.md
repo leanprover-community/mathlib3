@@ -1347,7 +1347,7 @@ Lemmas tagged with `@[simp_name]` will be included when `simp with simp_name` is
 Appending the command with `with attr1 attr2 ...` will include all declarations tagged with
 `attr1`, `attr2`, ... in the new simp set.
 
-This command is preferred to using ``run_cmd mk_simp_aset `simp_name`` since it adds a doc string
+This command is preferred to using ``run_cmd mk_simp_attr `simp_name`` since it adds a doc string
 to the attribute that is defined. If you need to create a simp set in a file where this command is not
 available, you should use
 ```lean

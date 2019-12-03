@@ -121,12 +121,11 @@ instance : topological_semiring ℂ := by apply_instance -- short-circuit type c
 
 def real_prod_homeo : homeomorph ℂ (ℝ × ℝ) :=
 { to_equiv := real_prod_equiv,
-  continuous_to_fun := continuous.prod_mk continuous_re continuous_im,
+  continuous_to_fun := continuous_re.prod_mk continuous_im,
   continuous_inv_fun := show continuous (λ p : ℝ × ℝ, complex.mk p.1 p.2),
     by simp only [mk_eq_add_mul_I]; exact
-    continuous.add
-      (continuous_of_real.comp continuous_fst)
-      (continuous.mul (continuous_of_real.comp continuous_snd) continuous_const) }
+      (continuous_of_real.comp continuous_fst).add
+      ((continuous_of_real.comp continuous_snd).mul continuous_const) }
 
 instance : proper_space ℂ :=
 ⟨λx r, begin

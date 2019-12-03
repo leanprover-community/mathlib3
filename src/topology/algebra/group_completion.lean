@@ -56,8 +56,7 @@ instance : add_group (completion α) :=
 
 instance : uniform_add_group (completion α) :=
 ⟨((uniform_continuous_map₂ (+)).comp
-  (uniform_continuous.prod_mk uniform_continuous_fst
-                              (uniform_continuous_map.comp uniform_continuous_snd)) : _)⟩
+  (uniform_continuous_fst.prod_mk (uniform_continuous_map.comp uniform_continuous_snd)) : _)⟩
 
 instance is_add_group_hom_coe : is_add_group_hom (coe : α → completion α) :=
 { map_add := coe_add }
@@ -70,7 +69,7 @@ have hf : uniform_continuous f, from uniform_continuous_of_continuous hf,
 { map_add := assume a b, completion.induction_on₂ a b
   (is_closed_eq
     (continuous_extension.comp continuous_add)
-    (continuous.add (continuous_extension.comp continuous_fst) (continuous_extension.comp continuous_snd)))
+    ((continuous_extension.comp continuous_fst).add (continuous_extension.comp continuous_snd)))
   (assume a b, by rw_mod_cast [extension_coe hf, extension_coe hf, extension_coe hf, is_add_hom.map_add f]) }
 
 lemma is_add_group_hom_map

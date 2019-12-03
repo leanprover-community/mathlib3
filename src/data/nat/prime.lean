@@ -11,7 +11,7 @@ import tactic.wlog
 /-!
 # Prime numbers
 
-This file deals with prime numbers: natural numbers p ≥ 2 whose only divisors are `p` and `1`.
+This file deals with prime numbers: natural numbers `p ≥ 2` whose only divisors are `p` and `1`.
 
 ## Important declarations
 
@@ -19,7 +19,7 @@ All the following declarations exist in the namespace `nat`.
 
 - `prime`: the predicate that expresses that a natural number `p` is prime
 - `primes`: the subtype of natural numbers that are prime
-- `min_fac n`: the minimal prime factor of a natural number n ≠ 1
+- `min_fac n`: the minimal prime factor of a natural number `n ≠ 1`
 - `exists_infinite_primes`: Euclid's theorem that there exist infinitely many prime numbers
 - `factors n`: the prime factorization of `n`
 - `factors_unique`: uniqueness of the prime factorisation
@@ -266,7 +266,7 @@ theorem exists_prime_and_dvd {n : ℕ} (n2 : 2 ≤ n) : ∃ p, prime p ∧ p ∣
 ⟨min_fac n, min_fac_prime (ne_of_gt n2), min_fac_dvd _⟩
 
 /-- Euclid's theorem. There exist infinitely many prime numbers.
-Here given in the form: for every n, there exists a prime number p ≥ n. -/
+Here given in the form: for every `n`, there exists a prime number `p ≥ n`. -/
 theorem exists_infinite_primes (n : ℕ) : ∃ p, n ≤ p ∧ prime p :=
 let p := min_fac (fact n + 1) in
 have f1 : fact n + 1 ≠ 1, from ne_of_gt $ succ_lt_succ $ fact_pos _,

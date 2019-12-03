@@ -1,7 +1,7 @@
 /-
 Copyright (c) 2019 Gabriel Ebner. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Authors: Gabriel Ebner
+Authors: Gabriel Ebner, Sébastien Gouëzel
 -/
 import analysis.calculus.fderiv
 
@@ -42,13 +42,16 @@ We also show the existence and compute the derivatives of:
   - the identity function
   - linear maps
   - addition
+  - negation
   - subtraction
   - multiplication
-  - negation
+  - inverse `x → x⁻¹`
   - multiplication of two functions in `𝕜 → 𝕜`
   - multiplication of a function in `𝕜 → 𝕜` and of a function in `𝕜 → E`
   - composition of a function in `𝕜 → F` with a function in `𝕜 → 𝕜`
   - composition of a function in `F → E` with a function in `𝕜 → F`
+  - division
+  - polynomials
 
 ## Implementation notes
 
@@ -702,43 +705,152 @@ lemma deriv_mul (hc : differentiable_at 𝕜 c x) (hd : differentiable_at 𝕜 d
 end mul
 
 section inverse
-/-! ### Derivative of the inverse function -/
+/-! ### Derivative of `x → x⁻¹` -/
 
-theorem has_deriv_at_inverse (x_ne_zero : x ≠ 0) :
-  has_deriv_at (λx, x⁻¹) (-(x^2)⁻¹) x :=
+lemma has_deriv_at_inv_one :
+  has_deriv_at (λx, x⁻¹) (-1) (1 : 𝕜) :=
 begin
   rw has_deriv_at_iff_is_o_nhds_zero,
-  have : is_o (λ (h : 𝕜), h^2/(x^2 * (x + h))) (λ (h : 𝕜), h) (𝓝 0) := sorry,
+  have : is_o (λ (h : 𝕜), h^2*(1 + h)⁻¹) (λ (h : 𝕜), h*1) (𝓝 0),
+  { have : tendsto (λ (h : 𝕜), (1 + h)⁻¹) (𝓝 0) (𝓝 (1+0)⁻¹) :=
+      ((tendsto_const_nhds).add tendsto_id).inv' (by norm_num),
+    exact is_o_mul_right (is_o_pow_id (by norm_num)) (is_O_one_of_tendsto this) },
   apply (is_o_congr _ _).2 this,
-  { have : metric.ball (0 : 𝕜) (∥x∥) ∈ 𝓝 (0 : 𝕜),
+  { have : metric.ball (0 : 𝕜) (∥(1:𝕜)∥) ∈ 𝓝 (0 : 𝕜),
     { apply mem_nhds_sets metric.is_open_ball,
-      simp [(norm_pos_iff x).mpr x_ne_zero] },
+      simp [zero_lt_one] },
     filter_upwards [this],
     assume h hx,
-    have : 0 < ∥x + h∥ := calc
-      0 < ∥x∥ - ∥-h∥ : by rwa [norm_neg, sub_pos, ← dist_zero_right h]
-      ... ≤ ∥x - -h∥ : norm_sub_norm_le _ _
-      ... = ∥x + h∥ : by simp,
-    have : x + h ≠ 0 := (norm_pos_iff (x + h)).mp this,
-    have A : (x + h) / (x ^ 2 * (x + h)) = 1/x^2,
-      by rwa [mul_comm, div_mul_eq_div_mul_one_div, div_self, one_mul],
-    calc (x + h)⁻¹ - x⁻¹ - h * -(x ^ 2)⁻¹ =
-      x^2 /(x^2 * (x+h)) - (x * (x+h))/(x^2 * (x+h)) - (-h * (x+h))/(x^2 * (x+h)) :
-      begin
-        rw [inv_eq_one_div, inv_eq_one_div, inv_eq_one_div],
-        congr' 1,
-        congr' 1,
-        { rw [div_mul_eq_div_mul_one_div, div_self, one_mul], exact pow_ne_zero 2 x_ne_zero },
-        { rwa [mul_div_assoc, A, ← mul_div_assoc, mul_one, pow_two, div_mul_eq_div_mul_one_div,
-               div_self, one_mul] },
-        { rw [mul_div_assoc, A, mul_neg_eq_neg_mul_symm, neg_mul_eq_neg_mul_symm] }
-      end
-      ... = (x^2 - x * (x+h) + h * (x+h)) / (x^2 * (x+h)) : sorry
-      ... = h ^ 2 / (x ^ 2 * (x +h)) : by { congr' 1, ring } },
+    have : 0 < ∥1 + h∥ := calc
+      0 < ∥(1:𝕜)∥ - ∥-h∥ : by rwa [norm_neg, sub_pos, ← dist_zero_right h]
+      ... ≤ ∥1 - -h∥ : norm_sub_norm_le _ _
+      ... = ∥1 + h∥ : by simp,
+    have : 1 + h ≠ 0 := (norm_pos_iff (1 + h)).mp this,
+    calc (1 + h)⁻¹ - 1⁻¹ - h * -1 =
+      (1+h)⁻¹ - ((1+h) * (1+h)⁻¹) + h * ((1+h) * (1+h)⁻¹) :
+        by { simp only [mul_inv_cancel this], simp }
+      ... = h^2 * (1+h)⁻¹ : by { generalize : (1+h)⁻¹ = y, ring } },
   { convert univ_mem_sets, simp }
 end
 
+theorem has_deriv_at_inv (x_ne_zero : x ≠ 0) :
+  has_deriv_at (λy, y⁻¹) (-(x^2)⁻¹) x :=
+begin
+  have A : has_deriv_at (λy, y⁻¹) (-1) (x⁻¹ * x : 𝕜),
+    by { simp [inv_mul_cancel x_ne_zero, has_deriv_at_inv_one] },
+  have B : has_deriv_at (λy, x⁻¹ * y) (x⁻¹) x,
+    by { convert ((has_deriv_at_const x (x⁻¹)).mul (has_deriv_at_id x)), simp },
+  convert (has_deriv_at_const _ (x⁻¹)).mul (A.comp x B : _),
+  { ext y,
+    have : x⁻¹ * (y⁻¹ * x) = y⁻¹,
+      by rw [← mul_assoc, mul_comm, ← mul_assoc, mul_inv_cancel x_ne_zero, one_mul],
+    simp [mul_inv', this] },
+  { simp [pow_two, mul_inv'] }
+end
+
+theorem has_deriv_within_at_inv (x_ne_zero : x ≠ 0) (s : set 𝕜) :
+  has_deriv_within_at (λx, x⁻¹) (-(x^2)⁻¹) s x :=
+(has_deriv_at_inv x_ne_zero).has_deriv_within_at
+
+lemma differentiable_at_inv (x_ne_zero : x ≠ 0) :
+  differentiable_at 𝕜 (λx, x⁻¹) x :=
+(has_deriv_at_inv x_ne_zero).differentiable_at
+
+lemma differentiable_within_at_inv (x_ne_zero : x ≠ 0) :
+  differentiable_within_at 𝕜 (λx, x⁻¹) s x :=
+(differentiable_at_inv x_ne_zero).differentiable_within_at
+
+lemma differentiable_on_inv : differentiable_on 𝕜 (λx:𝕜, x⁻¹) {x | x ≠ 0} :=
+λx hx, differentiable_within_at_inv hx
+
+lemma deriv_inv (x_ne_zero : x ≠ 0) :
+  deriv (λx, x⁻¹) x = -(x^2)⁻¹ :=
+(has_deriv_at_inv x_ne_zero).deriv
+
+lemma deriv_within_inv (x_ne_zero : x ≠ 0) (hxs : unique_diff_within_at 𝕜 s x) :
+  deriv_within (λx, x⁻¹) s x = -(x^2)⁻¹ :=
+begin
+  rw differentiable_at.deriv_within (differentiable_at_inv x_ne_zero) hxs,
+  exact deriv_inv x_ne_zero
+end
+
+lemma has_fderiv_at_inv (x_ne_zero : x ≠ 0) :
+  has_fderiv_at (λx, x⁻¹) (smul_right 1 (-(x^2)⁻¹) : 𝕜 →L[𝕜] 𝕜) x :=
+by simpa [has_deriv_at_iff_has_fderiv_at] using has_deriv_at_inv x_ne_zero
+
+lemma has_fderiv_within_at_inv (x_ne_zero : x ≠ 0) :
+  has_fderiv_within_at (λx, x⁻¹) (smul_right 1 (-(x^2)⁻¹) : 𝕜 →L[𝕜] 𝕜) s x :=
+(has_fderiv_at_inv x_ne_zero).has_fderiv_within_at
+
+lemma fderiv_inv (x_ne_zero : x ≠ 0) :
+  fderiv 𝕜 (λx, x⁻¹) x = smul_right 1 (-(x^2)⁻¹) :=
+(has_fderiv_at_inv x_ne_zero).fderiv
+
+lemma fderiv_within_inv (x_ne_zero : x ≠ 0) (hxs : unique_diff_within_at 𝕜 s x) :
+  fderiv_within 𝕜 (λx, x⁻¹) s x = smul_right 1 (-(x^2)⁻¹) :=
+begin
+  rw differentiable_at.fderiv_within (differentiable_at_inv x_ne_zero) hxs,
+  exact fderiv_inv x_ne_zero
+end
+
 end inverse
+
+section division
+/-! ### Derivative of `x → c x / d x` -/
+
+variables {c d : 𝕜 → 𝕜} {c' d' : 𝕜}
+
+lemma has_deriv_within_at.div
+  (hc : has_deriv_within_at c c' s x) (hd : has_deriv_within_at d d' s x) (hx : d x ≠ 0) :
+  has_deriv_within_at (λ y, c y / d y) ((c' * d x - c x * d')/(d x)^2) s x :=
+begin
+  have A : (d x)⁻¹ * (d x)⁻¹ * (c' * d x) = (d x)⁻¹ * c',
+    by rw [← mul_assoc, mul_comm, ← mul_assoc, ← mul_assoc, mul_inv_cancel hx, one_mul],
+  convert hc.mul ((has_deriv_at_inv hx).comp_has_deriv_within_at x hd),
+  simp [div_eq_inv_mul, pow_two, mul_inv', mul_add, A],
+  ring
+end
+
+lemma has_deriv_at.div (hc : has_deriv_at c c' x) (hd : has_deriv_at d d' x) (hx : d x ≠ 0) :
+  has_deriv_at (λ y, c y / d y) ((c' * d x - c x * d')/(d x)^2) x :=
+begin
+  rw ← has_deriv_within_at_univ at *,
+  exact hc.div hd hx
+end
+
+lemma differentiable_within_at.div
+  (hc : differentiable_within_at 𝕜 c s x) (hd : differentiable_within_at 𝕜 d s x) (hx : d x ≠ 0) :
+differentiable_within_at 𝕜 (λx, c x/d x) s x :=
+((hc.has_deriv_within_at).div (hd.has_deriv_within_at) hx).differentiable_within_at
+
+lemma differentiable_at.div
+  (hc : differentiable_at 𝕜 c x) (hd : differentiable_at 𝕜 d x) (hx : d x ≠ 0) :
+differentiable_at 𝕜 (λx, c x/d x) x :=
+((hc.has_deriv_at).div (hd.has_deriv_at) hx).differentiable_at
+
+lemma differentiable_on.div
+  (hc : differentiable_on 𝕜 c s) (hd : differentiable_on 𝕜 d s) (hx : ∀ x ∈ s, d x ≠ 0) :
+differentiable_on 𝕜 (λx, c x/d x) s :=
+λx h, (hc x h).div (hd x h) (hx x h)
+
+lemma differentiable.div
+  (hc : differentiable 𝕜 c) (hd : differentiable 𝕜 d) (hx : ∀ x, d x ≠ 0) :
+differentiable 𝕜 (λx, c x/d x) :=
+λx, (hc x).div (hd x) (hx x)
+
+lemma deriv_within_div
+  (hc : differentiable_within_at 𝕜 c s x) (hd : differentiable_within_at 𝕜 d s x) (hx : d x ≠ 0)
+  (hxs : unique_diff_within_at 𝕜 s x) :
+  deriv_within (λx, c x/d x) s x
+    = ((deriv_within c s x) * d x - c x * (deriv_within d s x)) / (d x)^2 :=
+((hc.has_deriv_within_at).div (hd.has_deriv_within_at) hx).deriv_within hxs
+
+lemma deriv_div
+  (hc : differentiable_at 𝕜 c x) (hd : differentiable_at 𝕜 d x) (hx : d x ≠ 0) :
+  deriv (λx, c x/d x) x = ((deriv c x) * d x - c x * (deriv d x)) / (d x)^2 :=
+((hc.has_deriv_at).div (hd.has_deriv_at) hx).deriv
+
+end division
 
 namespace polynomial
 /-! ### Derivative of a polynomial -/

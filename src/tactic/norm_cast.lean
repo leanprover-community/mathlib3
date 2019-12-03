@@ -265,7 +265,9 @@ The following auxiliary functions are used to handle numerals.
 -- prove ↑n = n where n is a numeral
 private meta def aux_num_prove_eq (a b : expr) : tactic expr :=
 do
-  s ← simp_lemmas.mk_default, --TODO: replace this with norm_cast lemmas
+  s1 ← simp_lemmas.mk_default,
+  s2 ← squash_cast_attr.get_cache,
+  let s := simp_lemmas.join s1 s2,
   h ← to_expr ``(%%a = %%b),
   (_, pr) ← simplify s [] h,
   to_expr ``(eq.mpr %%pr trivial)
@@ -445,7 +447,7 @@ Equivalent to `simp only with push_cast`.
 Can also be used at hypotheses.
 -/
 meta def push_cast (l : parse location): tactic unit :=
-tactic.interactive.simp none tt [] [`push_cast] l
+tactic.interactive.simp none tt [] [`push_cast, `squash_cast] l
 
 end tactic.interactive
 

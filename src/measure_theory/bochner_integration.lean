@@ -885,43 +885,17 @@ begin
     rw [integral_eq_zero_of_non_integrable hfi, integral_eq_zero_of_non_integrable hgi] },
 end
 
-lemma of_real_norm_integral_le_lintegral_norm (f : α → β) :
-  ennreal.of_real ∥integral f∥ ≤ ∫⁻ a, ennreal.of_real ∥f a∥ :=
-begin
-  by_cases hfm : measurable f,
-  by_cases hfi : integrable f,
-  rotate,
-  { rw [integral_eq_zero_of_non_integrable hfi, _root_.norm_zero, of_real_zero], exact zero_le _ },
-  { rw [integral_eq_zero_of_non_measurable hfm, _root_.norm_zero, of_real_zero], exact zero_le _ },
-  rw [integral, dif_pos],
-  rotate, { exact ⟨hfm, hfi⟩ },
-  calc ennreal.of_real ∥l1.integral (l1.of_fun f hfm hfi)∥ ≤ (ennreal.of_real ∥l1.of_fun f hfm hfi∥) :
-    of_real_le_of_real $ l1.norm_integral_le _
-    ... = (ennreal.of_real $ ennreal.to_real $ ∫⁻ a, ennreal.of_real $ ∥(l1.of_fun f hfm hfi).to_fun a∥) :
-    by { rw l1.norm_eq_norm_to_fun }
-    ... = (ennreal.of_real $ ennreal.to_real $ ∫⁻ a, ennreal.of_real ∥f a∥) :
-    begin
-      congr' 2,
-      apply lintegral_congr_ae,
-      filter_upwards [l1.to_fun_of_fun f hfm hfi],
-      simp only [mem_set_of_eq],
-      assume a h,
-      rw h
-    end
-    ... = (∫⁻ a, ennreal.of_real ∥f a∥) :
-    by { rw of_real_to_real, rw ← lt_top_iff_ne_top, rwa ← integrable_iff_norm }
-end
-
 lemma norm_integral_le_lintegral_norm (f : α → β) :
   ∥integral f∥ ≤ ennreal.to_real (∫⁻ a, ennreal.of_real ∥f a∥) :=
 begin
+  by_cases hfm : measurable f,
   by_cases hfi : integrable f,
-  rotate,
-  { rw [integral_eq_zero_of_non_integrable hfi, _root_.norm_zero], exact to_real_nonneg },
-  have := (to_real_le_to_real _ _).2 (of_real_norm_integral_le_lintegral_norm f),
-  { rwa to_real_of_real (norm_nonneg _) at this },
-  { exact of_real_ne_top },
-  { rw ← lt_top_iff_ne_top, rwa ← integrable_iff_norm }
+  { rw [integral, l1.lintegral_norm_eq_norm_of_fun f hfm hfi, dif_pos],
+    exact l1.norm_integral_le _, exact ⟨hfm, hfi⟩ },
+  { rw [integral_eq_zero_of_non_integrable hfi, _root_.norm_zero],
+    exact to_real_nonneg },
+  { rw [integral_eq_zero_of_non_measurable hfm, _root_.norm_zero],
+    exact to_real_nonneg }
 end
 
 /-- Lebesgue dominated convergence theorem provides sufficient conditions under which almost

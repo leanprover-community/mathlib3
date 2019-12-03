@@ -108,6 +108,10 @@ lemma lintegral_nnnorm_eq_lintegral_edist (f : α → β) :
   (∫⁻ a, nnnorm (f a)) = ∫⁻ a, edist (f a) 0 :=
 by { congr, funext, rw edist_eq_coe_nnnorm }
 
+lemma lintegral_norm_eq_lintegral_edist (f : α → β) :
+  (∫⁻ a, ennreal.of_real ∥f a∥) = ∫⁻ a, edist (f a) 0 :=
+by { congr, funext, rw [of_real_norm_eq_coe_nnnorm, edist_eq_coe_nnnorm] }
+
 lemma lintegral_edist_triangle [second_countable_topology β] {f g h : α → β}
   (hf : measurable f) (hg : measurable g) (hh : measurable h) :
   (∫⁻ a, edist (f a) (g a)) ≤ (∫⁻ a, edist (f a) (h a)) + ∫⁻ a, edist (g a) (h a) :=
@@ -478,6 +482,10 @@ lemma of_fun_neg (f : α → β) (hfm hfi) :
 
 lemma norm_of_fun (f : α → β) (hfm hfi) : ∥of_fun f hfm hfi∥ = ennreal.to_real (∫⁻ a, edist (f a) 0) :=
 rfl
+
+lemma lintegral_norm_eq_norm_of_fun (f : α → β) (hfm hfi) :
+  ennreal.to_real (∫⁻ a, ennreal.of_real ∥f a∥) = ∥of_fun f hfm hfi∥ :=
+by { rw [norm_of_fun, lintegral_norm_eq_lintegral_edist] }
 
 variables {𝕜 : Type*} [normed_field 𝕜] [normed_space 𝕜 β]
 

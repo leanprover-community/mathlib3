@@ -338,12 +338,15 @@ lemma frontier_eq_closure_inter_closure {s : set α} :
   frontier s = closure s ∩ closure (- s) :=
 by rw [closure_compl, frontier, diff_eq]
 
+/-- The complement of a set has the same frontier as the original set. -/
 @[simp] lemma frontier_compl (s : set α) : frontier (-s) = frontier s :=
 by simp only [frontier_eq_closure_inter_closure, lattice.neg_neg, inter_comm]
 
+/-- Frontier of a set is closed. -/
 lemma is_closed_frontier {s : set α} : is_closed (frontier s) :=
 by rw frontier_eq_closure_inter_closure; exact is_closed_inter is_closed_closure is_closed_closure
 
+/-- Frontier of a set has no interior points. -/
 lemma interior_frontier {s : set α} (h : is_closed s) : interior (frontier s) = ∅ :=
 begin
   have A : frontier s = s \ interior s, by rw [frontier, closure_eq_of_is_closed h],
@@ -660,6 +663,8 @@ lemma continuous_iff_ultrafilter {f : α → β} :
   continuous f ↔ ∀ x g, is_ultrafilter g → g ≤ 𝓝 x → g.map f ≤ 𝓝 (f x) :=
 by simp only [continuous_iff_continuous_at, continuous_at_iff_ultrafilter]
 
+/-- A piecewise defined function `if p then f else g` is continuous, if both `f` and `g`
+are continuous, and they coincide on the frontier (boundary) of the set `{a | p a}`. -/
 lemma continuous_if {p : α → Prop} {f g : α → β} {h : ∀a, decidable (p a)}
   (hp : ∀a∈frontier {a | p a}, f a = g a) (hf : continuous f) (hg : continuous g) :
   continuous (λa, @ite (p a) (h a) β (f a) (g a)) :=

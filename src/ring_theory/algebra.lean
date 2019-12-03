@@ -337,6 +337,10 @@ def aeval : polynomial R →ₐ[R] A :=
 
 theorem aeval_def (p : polynomial R) : aeval R A x p = eval₂ (algebra_map A) x p := rfl
 
+@[simp] lemma aeval_X : aeval R A x X = x := eval₂_X _ x
+
+@[simp] lemma aeval_C (r : R) : aeval R A x (C r) = algebra_map A r := eval₂_C _ x
+
 instance aeval.is_ring_hom : is_ring_hom (aeval R A x) :=
 by apply_instance
 
@@ -365,6 +369,10 @@ def aeval : mv_polynomial σ R →ₐ[R] A :=
   ..ring_hom.of (eval₂ (algebra_map A) subtype.val) }
 
 theorem aeval_def (p : mv_polynomial σ R) : aeval R A σ p = eval₂ (algebra_map A) subtype.val p := rfl
+
+@[simp] lemma aeval_X (s : σ) : aeval R A σ (X s) = s := eval₂_X _ _ _
+
+@[simp] lemma aeval_C (r : R) : aeval R A σ (C r) = algebra_map A r := eval₂_C _ _ _
 
 instance aeval.is_ring_hom : is_ring_hom (aeval R A σ) :=
 by apply_instance

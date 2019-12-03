@@ -7,31 +7,29 @@ Authors: Johan Commelin
 import ring_theory.integral_closure
 import data.padics.padic_integers
 
-open algebra
+open algebra polynomial
 
-theorem is_integrally_closed_int_rat : is_integrally_closed ℤ ℚ :=
+theorem int.is_integrally_closed : is_integrally_closed ℤ ℚ :=
 { inj := int.cast_injective,
   closed :=
   begin
     rintros r ⟨f, hf, hr⟩,
-    lift r to ℤ, { exact ⟨r, rfl⟩ },
-    by_contradiction H,
+    suffices : r.denom = 1,
+    { lift r to ℤ using this, exact ⟨r, rfl⟩ },
+    contrapose! hr,
     let p := nat.min_fac r.denom,
-    have hp : p.prime := nat.min_fac_prime H,
-    rw [f.as_sum, finset.sum_range_succ,
-      alg_hom.map_add, add_eq_zero_iff_eq_neg] at hr,
-    replace hr := congr_arg (padic_val_rat p) hr,
-    refine ne_of_lt _ hr, clear hr,
-    have := hf.leading_coeff, rw [leading_coeff] at this,
-    rw [this, C_1, one_mul],
-    rw [padic_val_rat.neg, ← finset.sum_hom (aeval ℤ ℚ r), is_monoid_hom.map_pow (aeval ℤ ℚ r)],
-    rw [aeval_def, eval₂_X],
-    replace : r ≠ 0, { rintro rfl, apply H, refl },
+    have hp : p.prime := nat.min_fac_prime hr,
+    rw [hf.as_sum, alg_hom.map_add, add_eq_zero_iff_eq_neg],
+    apply mt (congr_arg (padic_val_rat p)),
+    apply ne_of_lt,
+    rw [is_monoid_hom.map_pow (aeval ℤ ℚ r), aeval_X],
+    rw [padic_val_rat.neg, ← finset.sum_hom (aeval ℤ ℚ r)],
+    have : r ≠ 0, { rintro rfl, apply hr, refl },
     resetI,
     rw [padic_val_rat.pow p this],
   end }
 
-lemma is_integrally_closed (p : ℕ) [p.prime] : is_integrally_closed ℤ_[p] ℚ_[p] :=
+lemma padic_int.is_integrally_closed (p : ℕ) [p.prime] : is_integrally_closed ℤ_[p] ℚ_[p] :=
 { inj := subtype.val_injective,
   closed :=
   begin

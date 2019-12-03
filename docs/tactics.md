@@ -1340,9 +1340,9 @@ See also additional documentation of `using_well_founded` in
 
 ### mk_simp_attribute
 
-The command `mk_simp_attribute simp_name` creates a simp set with name `simp_name`.
+The command `mk_simp_attribute simp_name "description"` creates a simp set with name `simp_name`.
 Lemmas tagged with `@[simp_name]` will be included when `simp with simp_name` is called.
-An optional description for the simp set can be provided with `mk_simp_attribute simp_name "description"`.
+`mk_simp_attribute simp_name none` will use a default description.
 
 Appending the command with `with attr1 attr2 ...` will include all declarations tagged with
 `attr1`, `attr2`, ... in the new simp set.

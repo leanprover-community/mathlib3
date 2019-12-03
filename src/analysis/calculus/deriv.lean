@@ -705,7 +705,7 @@ lemma deriv_mul (hc : differentiable_at 𝕜 c x) (hd : differentiable_at 𝕜 d
 end mul
 
 section inverse
-/-! ### Derivative of `x → x⁻¹` -/
+/-! ### Derivative of `x ↦ x⁻¹` -/
 
 lemma has_deriv_at_inv_one :
   has_deriv_at (λx, x⁻¹) (-1) (1 : 𝕜) :=
@@ -796,7 +796,7 @@ end
 end inverse
 
 section division
-/-! ### Derivative of `x → c x / d x` -/
+/-! ### Derivative of `x ↦ c x / d x` -/
 
 variables {c d : 𝕜 → 𝕜} {c' d' : 𝕜}
 

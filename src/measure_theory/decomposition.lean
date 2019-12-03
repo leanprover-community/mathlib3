@@ -152,7 +152,7 @@ begin
   have γ_le_d_s : γ ≤ d s,
   { have hγ : tendsto (λm:ℕ, γ - 2 * (1/2)^m) at_top (𝓝 γ),
     { suffices : tendsto (λm:ℕ, γ - 2 * (1/2)^m) at_top (𝓝 (γ - 2 * 0)), { simpa },
-      exact (tendsto.sub tendsto_const_nhds $ tendsto.mul tendsto_const_nhds $
+      exact (tendsto_const_nhds.sub $ tendsto_const_nhds.mul $
         tendsto_pow_at_top_nhds_0_of_lt_1
           (le_of_lt $ half_pos $ zero_lt_one) (half_lt_self zero_lt_one)) },
     have hd : tendsto (λm, d (⋂n, f m n)) at_top (𝓝 (d (⋃ m, ⋂ n, f m n))),

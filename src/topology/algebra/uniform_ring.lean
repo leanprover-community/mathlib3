@@ -103,7 +103,7 @@ have hf : uniform_continuous f, from uniform_continuous_of_continuous hf,
   map_add := assume a b, completion.induction_on₂ a b
     (is_closed_eq
       (continuous_extension.comp continuous_add)
-      (continuous.add (continuous_extension.comp continuous_fst)
+      ((continuous_extension.comp continuous_fst).add
                       (continuous_extension.comp continuous_snd)))
     (assume a b,
       by rw [← coe_add, extension_coe hf, extension_coe hf, extension_coe hf,
@@ -111,8 +111,7 @@ have hf : uniform_continuous f, from uniform_continuous_of_continuous hf,
   map_mul := assume a b, completion.induction_on₂ a b
     (is_closed_eq
       (continuous_extension.comp continuous_mul)
-      (_root_.continuous.mul (continuous_extension.comp continuous_fst)
-                             (continuous_extension.comp continuous_snd)))
+      ((continuous_extension.comp continuous_fst).mul (continuous_extension.comp continuous_snd)))
     (assume a b,
       by rw [← coe_mul, extension_coe hf, extension_coe hf, extension_coe hf, is_ring_hom.map_mul f]) }
 
@@ -128,8 +127,8 @@ variables (R : Type*) [comm_ring R] [uniform_space R] [uniform_add_group R] [top
 
 instance : comm_ring (completion R) :=
 { mul_comm := assume a b, completion.induction_on₂ a b
-      (is_closed_eq (continuous.mul continuous_fst continuous_snd)
-                    (continuous.mul continuous_snd continuous_fst))
+      (is_closed_eq (continuous_fst.mul continuous_snd)
+                    (continuous_snd.mul continuous_fst))
       (assume a b, by rw [← coe_mul, ← coe_mul, mul_comm]),
  ..completion.ring }
 

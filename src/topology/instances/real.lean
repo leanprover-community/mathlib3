@@ -397,7 +397,7 @@ lemma real.intermediate_value' {f : ℝ → ℝ} {a b t : ℝ}
   (hf : ∀ x, a ≤ x → x ≤ b → tendsto f (𝓝 x) (𝓝 (f x)))
   (ha : t ≤ f a) (hb : f b ≤ t) (hab : a ≤ b) : ∃ x : ℝ, a ≤ x ∧ x ≤ b ∧ f x = t :=
 let ⟨x, hx₁, hx₂, hx₃⟩ := @real.intermediate_value
-  (λ x, - f x) a b (-t) (λ x hax hxb, tendsto.neg (hf x hax hxb))
+  (λ x, - f x) a b (-t) (λ x hax hxb, (hf x hax hxb).neg)
   (neg_le_neg ha) (neg_le_neg hb) hab in
 ⟨x, hx₁, hx₂, neg_inj hx₃⟩
 

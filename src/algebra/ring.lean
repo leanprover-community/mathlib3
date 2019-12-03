@@ -441,7 +441,7 @@ def mk' {γ} [ring γ] (f : α →* γ) (map_add : ∀ a b : α, f (a + b) = f a
 end ring_hom
 
 section prio
-set_option default_priority 90 -- see Note [default priority]
+set_option default_priority 100 -- see Note [default priority]
 /-- Predicate for commutative semirings in which zero does not equal one. -/
 class nonzero_comm_semiring (α : Type*) extends comm_semiring α, zero_ne_one_class α
 
@@ -487,7 +487,7 @@ def nonzero_comm_semiring.of_ne [comm_semiring α] {x y : α} (h : x ≠ y) : no
 def has_div_of_division_ring [division_ring α] : has_div α := division_ring_has_div
 
 section prio
-set_option default_priority 90 -- see Note [default priority]
+set_option default_priority 100 -- see Note [default priority]
 /-- A domain is a ring with no zero divisors, i.e. satisfying
   the condition `a * b = 0 ↔ a = 0 ∨ b = 0`. Alternatively, a domain
   is an integral domain without assuming commutativity of multiplication. -/

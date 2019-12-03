@@ -887,7 +887,7 @@ protected lemma differentiable : differentiable 𝕜 (λx, p.eval x) :=
 protected lemma differentiable_on : differentiable_on 𝕜 (λx, p.eval x) s :=
 p.differentiable.differentiable_on
 
-protected lemma deriv : deriv (λx, p.eval x) x = p.derivative.eval x :=
+@[simp] protected lemma deriv : deriv (λx, p.eval x) x = p.derivative.eval x :=
 (p.has_deriv_at x).deriv
 
 protected lemma deriv_within (hxs : unique_diff_within_at 𝕜 s x) :
@@ -917,7 +917,7 @@ protected lemma has_fderiv_within_at (x : 𝕜) :
   has_fderiv_within_at (λx, p.eval x) (smul_right 1 (p.derivative.eval x) : 𝕜 →L[𝕜] 𝕜) s x :=
 (p.has_fderiv_at x).has_fderiv_within_at
 
-protected lemma fderiv : fderiv 𝕜 (λx, p.eval x) x = smul_right 1 (p.derivative.eval x) :=
+@[simp] protected lemma fderiv : fderiv 𝕜 (λx, p.eval x) x = smul_right 1 (p.derivative.eval x) :=
 (p.has_fderiv_at x).fderiv
 
 protected lemma fderiv_within (hxs : unique_diff_within_at 𝕜 s x) :

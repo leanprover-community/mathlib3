@@ -302,7 +302,7 @@ private lemma newton_seq_dist_to_a : ∀ n : ℕ, 0 < n → ∥newton_seq n - a�
 private lemma bound' : tendsto (λ n : ℕ, ∥F.derivative.eval a∥ * T^(2^n)) at_top (𝓝 0) :=
 begin
   rw ←mul_zero (∥F.derivative.eval a∥),
-  exact tendsto.mul (tendsto_const_nhds)
+  exact tendsto_const_nhds.mul
                     (tendsto.comp
                       (tendsto_pow_at_top_nhds_0_of_lt_1 (norm_nonneg _) (T_lt_one hnorm))
                       (tendsto_pow_at_top_at_top_of_gt_1_nat (by norm_num)))
@@ -364,7 +364,7 @@ tendsto.congr'
 private lemma newton_seq_dist_tendsto' :
   tendsto (λ n, ∥newton_cau_seq n - a∥) at_top (𝓝 ∥soln - a∥) :=
 tendsto.comp (continuous_iff_continuous_at.1 continuous_norm _)
-             (tendsto.sub (tendsto_limit _) tendsto_const_nhds)
+             ((tendsto_limit _).sub tendsto_const_nhds)
 
 
 private lemma soln_dist_to_a : ∥soln - a∥ = ∥F.eval a∥ / ∥F.derivative.eval a∥ :=

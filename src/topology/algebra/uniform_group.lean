@@ -197,7 +197,7 @@ have tendsto
     ((λp:(G×G), p.1 - p.2) ∘ (λp:(G×G)×(G×G), (p.1.2 - p.1.1, p.2.2 - p.2.1)))
     (comap (λp:(G×G)×(G×G), (p.1.2 - p.1.1, p.2.2 - p.2.1)) ((𝓝 0).prod (𝓝 0)))
     (𝓝 (0 - 0)) :=
-  (tendsto.sub tendsto_fst tendsto_snd).comp tendsto_comap,
+  (tendsto_fst.sub tendsto_snd).comp tendsto_comap,
 begin
   constructor,
   rw [uniform_continuous, uniformity_prod_eq_prod, tendsto_map'_iff,

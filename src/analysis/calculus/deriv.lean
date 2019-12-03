@@ -796,7 +796,7 @@ end
 end inverse
 
 section division
-/-! ### Derivative of `x → c x / d x` -/
+/-! ### Derivative of `x ↦ c x / d x` -/
 
 variables {c d : 𝕜 → 𝕜} {c' d' : 𝕜}
 

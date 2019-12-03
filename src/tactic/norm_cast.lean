@@ -109,7 +109,7 @@ private meta def aux_after_set (tac : expr → tactic (expr × (expr → expr)))
 | ty := tac ty
 
 /-- Called after the `move_cast` attribute is applied to a declaration. -/
-private meta def after_set (decl : name) (prio : ℕ) (pers : bool) : tactic unit :=
+private meta def move_cast_after_set (decl : name) (prio : ℕ) (pers : bool) : tactic unit :=
 do
   (declaration.thm n l ty e) ← get_decl decl | failed,
   let tac := λ ty, (flip_eq ty <|> flip_iff ty),
@@ -130,7 +130,7 @@ meta def move_cast_attr : user_attribute simp_lemmas :=
 {
   name      := `move_cast,
   descr     := "attribute for lemmas of the shape Π ..., ↑(P a1 ... an) = P ↑a1 ... ↑an",
-  after_set := some after_set,
+  after_set := some move_cast_after_set,
   cache_cfg :=
     { mk_cache     := mk_cache ∘ (list.map new_name),
       dependencies := [], },
@@ -145,6 +145,10 @@ do
   a ← elim_cast_attr.get_cache,
   b ← move_cast_attr.get_cache,
   return $ simp_lemmas.join a b
+
+/-- Called after the `squash_cast` attribute is applied to a declaration. -/
+private meta def squash_cast_after_set (decl : name) (prio : ℕ) (pers : bool) : tactic unit :=
+simp_attr.push_cast.set decl () tt
 
 /--
 This is an attribute of the norm_cast tactic for simplification rules that compose or
@@ -163,7 +167,7 @@ meta def squash_cast_attr : user_attribute simp_lemmas :=
 {
   name      := `squash_cast,
   descr     := "attribute for lemmas of the shape Π ..., ↑↑a = ↑a",
-  after_set := none,
+  after_set := some squash_cast_after_set,
   cache_cfg := {
     mk_cache     := monad.foldl simp_lemmas.add_simp simp_lemmas.mk,
     dependencies := [],
@@ -447,7 +451,7 @@ Equivalent to `simp only with push_cast`.
 Can also be used at hypotheses.
 -/
 meta def push_cast (l : parse location): tactic unit :=
-tactic.interactive.simp none tt [] [`push_cast, `squash_cast] l
+tactic.interactive.simp none tt [] [`push_cast] l
 
 end tactic.interactive
 

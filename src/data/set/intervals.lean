@@ -2,31 +2,20 @@
 Copyright (c) 2017 Johannes Hölzl. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johannes Hölzl, Mario Carneiro, Patrick Massot
--/
 
-import algebra.order algebra.order_functions data.set.lattice
-import tactic.tauto
+Intervals
 
-/-!
-# Intervals
+Naming conventions:
+  `i`: infinite
+  `o`: open
+  `c`: closed
 
-In any preorder `α`, we define intervals (which on each side can be either infinite, open, or
-closed) using the following naming conventions:
-- `i`: infinite
-- `o`: open
-- `c`: closed
-
-Each interval has the name `I` + letter for left side + letter for right side. For instance,
-`Ioc a b` denotes the inverval `(a, b]`.
-
-This file contains these definitions, and basic facts on inclusion, intersection, difference of
-intervals (where the precise statements may depend on the properties of the order, in particular
-for some statements it should be `linear_order` or `densely_ordered`).
-
-This file also contains statements on lower and upper bounds of intervals.
+Each interval has the name `I` + letter for left side + letter for right side
 
 TODO: This is just the beginning; a lot of rules are missing
 -/
+import algebra.order algebra.order_functions data.set.lattice
+import tactic.tauto
 
 universe u
 
@@ -157,26 +146,12 @@ lemma Icc_subset_Ico_right (h₁ : b₁ < b₂) : Icc a b₁ ⊆ Ico a b₂ :=
 
 lemma Ioo_subset_Ico_self : Ioo a b ⊆ Ico a b := λ x, and.imp_left le_of_lt
 
-lemma Ioo_subset_Ioc_self : Ioo a b ⊆ Ioc a b := λ x, and.imp_right le_of_lt
-
 lemma Ico_subset_Icc_self : Ico a b ⊆ Icc a b := λ x, and.imp_right le_of_lt
-
-lemma Ioc_subset_Icc_self : Ioc a b ⊆ Icc a b := λ x, and.imp_left le_of_lt
 
 lemma Ioo_subset_Icc_self : Ioo a b ⊆ Icc a b :=
 subset.trans Ioo_subset_Ico_self Ico_subset_Icc_self
 
-lemma Ico_subset_Iio_self : Ico a b ⊆ Iio b := λ x, and.right
-
-lemma Ioo_subset_Iio_self : Ioo a b ⊆ Iio b := λ x, and.right
-
-lemma Ioc_subset_Ioi_self : Ioc a b ⊆ Ioi a := λ x, and.left
-
-lemma Ioo_subset_Ioi_self : Ioo a b ⊆ Ioi a := λ x, and.left
-
-lemma Ioi_subset_Ici_self : Ioi a ⊆ Ici a := λx hx, le_of_lt hx
-
-lemma Iio_subset_Iic_self : Iio a ⊆ Iic a := λx hx, le_of_lt hx
+lemma Ico_subset_Iio_self : Ioo a b ⊆ Iio b := λ x, and.right
 
 lemma Icc_subset_Icc_iff (h₁ : a₁ ≤ b₁) :
   Icc a₁ b₁ ⊆ Icc a₂ b₂ ↔ a₂ ≤ a₁ ∧ b₁ ≤ b₂ :=
@@ -213,26 +188,6 @@ lemma Icc_subset_Iic_iff (h₁ : a₁ ≤ b₁) :
 lemma Icc_subset_Ici_iff (h₁ : a₁ ≤ b₁) :
   Icc a₁ b₁ ⊆ Ici a₂ ↔ a₂ ≤ a₁ :=
 ⟨λ h, h ⟨le_refl _, h₁⟩, λ h x ⟨hx, hx'⟩, le_trans h hx⟩
-
-/-- If `a ≤ b`, then `(b, +∞) ⊆ (a, +∞)`. In preorders, this is just an implication. If you need
-the equivalence in linear orders, use `Ioi_subset_Ioi_iff`. -/
-lemma Ioi_subset_Ioi (h : a ≤ b) : Ioi b ⊆ Ioi a :=
-λx hx, lt_of_le_of_lt h hx
-
-/-- If `a ≤ b`, then `(b, +∞) ⊆ [a, +∞)`. In preorders, this is just an implication. If you need
-the equivalence in dense linear orders, use `Ioi_subset_Ici_iff`. -/
-lemma Ioi_subset_Ici (h : a ≤ b) : Ioi b ⊆ Ici a :=
-subset.trans (Ioi_subset_Ioi h) Ioi_subset_Ici_self
-
-/-- If `a ≤ b`, then `(-∞, a) ⊆ (-∞, b)`. In preorders, this is just an implication. If you need
-the equivalence in linear orders, use `Iio_subset_Iio_iff`. -/
-lemma Iio_subset_Iio (h : a ≤ b) : Iio a ⊆ Iio b :=
-λx hx, lt_of_lt_of_le hx h
-
-/-- If `a ≤ b`, then `(-∞, a) ⊆ (-∞, b]`. In preorders, this is just an implication. If you need
-the equivalence in dense linear orders, use `Iio_subset_Iic_iff`. -/
-lemma Iio_subset_Iic (h : a ≤ b) : Iio a ⊆ Iic b :=
-subset.trans (Iio_subset_Iio h) Iio_subset_Iic_self
 
 lemma Ici_inter_Iic : Ici a ∩ Iic b = Icc a b := rfl
 lemma Ici_inter_Iio : Ici a ∩ Iio b = Ico a b := rfl
@@ -326,58 +281,6 @@ lemma Ico_eq_Ico_iff (h : a₁ < b₁ ∨ a₂ < b₂) : Ico a₁ b₁ = Ico a�
     tauto
 end, λ ⟨h₁, h₂⟩, by rw [h₁, h₂]⟩
 
-@[simp] lemma Ioi_subset_Ioi_iff : Ioi b ⊆ Ioi a ↔ a ≤ b :=
-begin
-  refine ⟨λh, _, λh, Ioi_subset_Ioi h⟩,
-  classical,
-  by_contradiction ba,
-  exact lt_irrefl _ (h (not_le.mp ba))
-end
-
-@[simp] lemma Ioi_subset_Ici_iff [densely_ordered α] : Ioi b ⊆ Ici a ↔ a ≤ b :=
-begin
-  refine ⟨λh, _, λh, Ioi_subset_Ici h⟩,
-  classical,
-  by_contradiction ba,
-  obtain ⟨c, bc, ca⟩ : ∃c, b < c ∧ c < a := dense (not_le.mp ba),
-  exact lt_irrefl _ (lt_of_lt_of_le ca (h bc))
-end
-
-@[simp] lemma Iio_subset_Iio_iff : Iio a ⊆ Iio b ↔ a ≤ b :=
-begin
-  refine ⟨λh, _, λh, Iio_subset_Iio h⟩,
-  classical,
-  by_contradiction ab,
-  exact lt_irrefl _ (h (not_le.mp ab))
-end
-
-@[simp] lemma Iio_subset_Iic_iff [densely_ordered α] : Iio a ⊆ Iic b ↔ a ≤ b :=
-begin
-  refine ⟨λh, _, λh, Iio_subset_Iic h⟩,
-  classical,
-  by_contradiction ba,
-  obtain ⟨c, bc, ca⟩ : ∃c, b < c ∧ c < a := dense (not_le.mp ba),
-  exact lt_irrefl _ (lt_of_lt_of_le bc (h ca))
-end
-
-lemma is_glb_Ici : is_glb (Ici a) a :=
-⟨λx hx, hx, λy hy, hy left_mem_Ici⟩
-
-lemma is_glb_Icc (h : a ≤ b) : is_glb (Icc a b) a :=
-⟨λx hx, hx.1, λy hy, hy (left_mem_Icc.mpr h)⟩
-
-lemma is_glb_Ico (h : a < b) : is_glb (Ico a b) a :=
-⟨λx hx, hx.1, λy hy, hy (left_mem_Ico.mpr h)⟩
-
-lemma is_lub_Iic : is_lub (Iic a) a :=
-⟨λx hx, hx, λy hy, hy right_mem_Iic⟩
-
-lemma is_lub_Icc (h : a ≤ b) : is_lub (Icc a b) b :=
-⟨λx hx, hx.2, λy hy, hy (right_mem_Icc.mpr h)⟩
-
-lemma is_lub_Ioc (h : a < b) : is_lub (Ioc a b) b :=
-⟨λx hx, hx.2, λy hy, hy (right_mem_Ioc.mpr h)⟩
-
 end linear_order
 
 section lattice
@@ -449,65 +352,6 @@ begin
   apply not_disjoint_iff.mpr ⟨max y₁ x₁, _, _⟩ h,
   simp [le_refl, h3, hx],
   simp [le_refl, hy, lt_trans hx h2.2]
-end
-
-variables [densely_ordered α]
-open_locale classical
-
-lemma is_glb_Ioi : is_glb (Ioi a) a :=
-begin
-  refine ⟨λx hx, le_of_lt hx, λy hy, _⟩,
-  by_contradiction h,
-  rcases dense (not_le.1 h) with ⟨z, az, zy⟩,
-  exact lt_irrefl _ (lt_of_le_of_lt (hy az) zy),
-end
-
-lemma is_glb_Ioo (hab : a < b) : is_glb (Ioo a b) a :=
-begin
-  refine ⟨λx hx, le_of_lt hx.1, λy hy, _⟩,
-  by_contradiction h,
-  have : a < min b y, by { rw lt_min_iff, exact ⟨hab, not_le.1 h⟩ },
-  rcases dense this with ⟨z, az, zy⟩,
-  rw lt_min_iff at zy,
-  exact lt_irrefl _ (lt_of_le_of_lt (hy ⟨az, zy.1⟩) zy.2)
-end
-
-lemma is_glb_Ioc (hab : a < b) : is_glb (Ioc a b) a :=
-begin
-  refine ⟨λx hx, le_of_lt hx.1, λy hy, _⟩,
-  by_contradiction h,
-  have : a < min b y, by { rw lt_min_iff, exact ⟨hab, not_le.1 h⟩ },
-  rcases dense this with ⟨z, az, zy⟩,
-  rw lt_min_iff at zy,
-  exact lt_irrefl _ (lt_of_le_of_lt (hy ⟨az, le_of_lt zy.1⟩) zy.2)
-end
-
-lemma is_lub_Iio : is_lub (Iio a) a :=
-begin
-  refine ⟨λx hx, le_of_lt hx, λy hy, _⟩,
-  by_contradiction h,
-  rcases dense (not_le.1 h) with ⟨z, az, zy⟩,
-  exact lt_irrefl _ (lt_of_lt_of_le az (hy zy)),
-end
-
-lemma is_lub_Ioo (hab : a < b) : is_lub (Ioo a b) b :=
-begin
-  refine ⟨λx hx, le_of_lt hx.2, λy hy, _⟩,
-  by_contradiction h,
-  have : max a y < b, by { rw max_lt_iff, exact ⟨hab, not_le.1 h⟩ },
-  rcases dense this with ⟨z, az, zy⟩,
-  rw max_lt_iff at az,
-  exact lt_irrefl _ (lt_of_lt_of_le az.2 (hy ⟨az.1, zy⟩))
-end
-
-lemma is_lub_Ico (hab : a < b) : is_lub (Ico a b) b :=
-begin
-  refine ⟨λx hx, le_of_lt hx.2, λy hy, _⟩,
-  by_contradiction h,
-  have : max a y < b, by { rw max_lt_iff, exact ⟨hab, not_le.1 h⟩ },
-  rcases dense this with ⟨z, az, zy⟩,
-  rw max_lt_iff at az,
-  exact lt_irrefl _ (lt_of_lt_of_le az.2 (hy ⟨le_of_lt az.1, zy⟩))
 end
 
 end decidable_linear_order

@@ -35,43 +35,43 @@ section
 variables [topological_space α] [monoid α] [topological_monoid α]
 
 @[to_additive]
-lemma continuous_mul' : continuous (λp:α×α, p.1 * p.2) :=
+lemma continuous_mul : continuous (λp:α×α, p.1 * p.2) :=
 topological_monoid.continuous_mul α
 
 @[to_additive]
-lemma continuous_mul [topological_space β] {f : β → α} {g : β → α}
+lemma continuous.mul [topological_space β] {f : β → α} {g : β → α}
   (hf : continuous f) (hg : continuous g) :
   continuous (λx, f x * g x) :=
-continuous_mul'.comp (hf.prod_mk hg)
+continuous_mul.comp (hf.prod_mk hg)
 
 @[to_additive]
 lemma continuous_mul_left (a : α) : continuous (λ b:α, a * b) :=
-continuous_mul continuous_const continuous_id
+continuous_const.mul continuous_id
 
 @[to_additive]
 lemma continuous_mul_right (a : α) : continuous (λ b:α, b * a) :=
-continuous_mul continuous_id continuous_const
+continuous_id.mul continuous_const
 
 @[to_additive]
 lemma continuous_on.mul [topological_space β] {f : β → α} {g : β → α} {s : set β}
   (hf : continuous_on f s) (hg : continuous_on g s) :
   continuous_on (λx, f x * g x) s :=
-(continuous_mul'.comp_continuous_on (hf.prod hg) : _)
+(continuous_mul.comp_continuous_on (hf.prod hg) : _)
 
 -- @[to_additive continuous_smul]
 lemma continuous_pow : ∀ n : ℕ, continuous (λ a : α, a ^ n)
 | 0 := by simpa using continuous_const
-| (k+1) := show continuous (λ (a : α), a * a ^ k), from continuous_mul continuous_id (continuous_pow _)
+| (k+1) := show continuous (λ (a : α), a * a ^ k), from continuous_id.mul (continuous_pow _)
 
 @[to_additive]
-lemma tendsto_mul' {a b : α} : tendsto (λp:α×α, p.fst * p.snd) (𝓝 (a, b)) (𝓝 (a * b)) :=
+lemma tendsto_mul {a b : α} : tendsto (λp:α×α, p.fst * p.snd) (𝓝 (a, b)) (𝓝 (a * b)) :=
 continuous_iff_continuous_at.mp (topological_monoid.continuous_mul α) (a, b)
 
 @[to_additive]
-lemma tendsto_mul {f : β → α} {g : β → α} {x : filter β} {a b : α}
+lemma filter.tendsto.mul {f : β → α} {g : β → α} {x : filter β} {a b : α}
   (hf : tendsto f x (𝓝 a)) (hg : tendsto g x (𝓝 b)) :
   tendsto (λx, f x * g x) x (𝓝 (a * b)) :=
-tendsto.comp (by rw [←nhds_prod_eq]; exact tendsto_mul') (hf.prod_mk hg)
+tendsto.comp (by rw [←nhds_prod_eq]; exact tendsto_mul) (hf.prod_mk hg)
 
 @[to_additive]
 lemma tendsto_list_prod {f : γ → β → α} {x : filter β} {a : γ → α} :
@@ -81,8 +81,7 @@ lemma tendsto_list_prod {f : γ → β → α} {x : filter β} {a : γ → α} :
 | (f :: l) h :=
   begin
     simp,
-    exact tendsto_mul
-      (h f (list.mem_cons_self _ _))
+    exact (h f (list.mem_cons_self _ _)).mul
       (tendsto_list_prod l (assume c hc, h c (list.mem_cons_of_mem _ hc)))
   end
 
@@ -95,9 +94,8 @@ continuous_iff_continuous_at.2 $ assume x, tendsto_list_prod l $ assume c hc,
 
 @[to_additive topological_add_monoid]
 instance [topological_space β] [monoid β] [topological_monoid β] : topological_monoid (α × β) :=
-⟨continuous.prod_mk
-  (continuous_mul (continuous_fst.comp continuous_fst) (continuous_fst.comp continuous_snd))
-  (continuous_mul (continuous_snd.comp continuous_fst) (continuous_snd.comp continuous_snd)) ⟩
+⟨((continuous_fst.comp continuous_fst).mul (continuous_fst.comp continuous_snd)).prod_mk
+ ((continuous_snd.comp continuous_fst).mul (continuous_snd.comp continuous_snd))⟩
 
 attribute [instance] prod.topological_add_monoid
 

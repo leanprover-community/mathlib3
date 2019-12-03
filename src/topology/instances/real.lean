@@ -161,14 +161,14 @@ tendsto_of_uniform_continuous_subtype
   (real.uniform_continuous_inv {x | abs r / 2 < abs x} (half_pos r0) (λ x h, le_of_lt h))
   (mem_nhds_sets (real.continuous_abs _ $ is_open_lt' (abs r / 2)) (half_lt_self r0))
 
-lemma real.continuous_inv' : continuous (λa:{r:ℝ // r ≠ 0}, a.val⁻¹) :=
+lemma real.continuous_inv : continuous (λa:{r:ℝ // r ≠ 0}, a.val⁻¹) :=
 continuous_iff_continuous_at.mpr $ assume ⟨r, hr⟩,
   tendsto.comp (real.tendsto_inv hr) (continuous_iff_continuous_at.mp continuous_subtype_val _)
 
-lemma real.continuous_inv [topological_space α] {f : α → ℝ} (h : ∀a, f a ≠ 0) (hf : continuous f) :
+lemma real.continuous.inv [topological_space α] {f : α → ℝ} (h : ∀a, f a ≠ 0) (hf : continuous f) :
   continuous (λa, (f a)⁻¹) :=
 show continuous ((has_inv.inv ∘ @subtype.val ℝ (λr, r ≠ 0)) ∘ λa, ⟨f a, h a⟩),
-  from real.continuous_inv'.comp (continuous_subtype_mk _ hf)
+  from real.continuous_inv.comp (continuous_subtype_mk _ hf)
 
 lemma real.uniform_continuous_mul_const {x : ℝ} : uniform_continuous ((*) x) :=
 metric.uniform_continuous_iff.2 $ λ ε ε0, begin
@@ -397,7 +397,7 @@ lemma real.intermediate_value' {f : ℝ → ℝ} {a b t : ℝ}
   (hf : ∀ x, a ≤ x → x ≤ b → tendsto f (𝓝 x) (𝓝 (f x)))
   (ha : t ≤ f a) (hb : f b ≤ t) (hab : a ≤ b) : ∃ x : ℝ, a ≤ x ∧ x ≤ b ∧ f x = t :=
 let ⟨x, hx₁, hx₂, hx₃⟩ := @real.intermediate_value
-  (λ x, - f x) a b (-t) (λ x hax hxb, tendsto_neg (hf x hax hxb))
+  (λ x, - f x) a b (-t) (λ x hax hxb, (hf x hax hxb).neg)
   (neg_le_neg ha) (neg_le_neg hb) hab in
 ⟨x, hx₁, hx₂, neg_inj hx₃⟩
 

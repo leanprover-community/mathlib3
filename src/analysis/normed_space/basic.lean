@@ -207,6 +207,12 @@ nnreal.eq $ norm_neg g
 lemma nndist_nnnorm_nnnorm_le (g h : α) : nndist (nnnorm g) (nnnorm h) ≤ nnnorm (g - h) :=
 nnreal.coe_le.2 $ dist_norm_norm_le g h
 
+lemma of_real_norm_eq_coe_nnnorm (x : β) : ennreal.of_real ∥x∥ = (nnnorm x : ennreal) :=
+ennreal.of_real_eq_coe_nnreal _
+
+lemma edist_eq_coe_nnnorm (x : β) : edist x 0 = (nnnorm x : ennreal) :=
+by { rw [edist_dist, dist_eq_norm, _root_.sub_zero, of_real_norm_eq_coe_nnnorm] }
+
 end nnnorm
 
 /-- A submodule of a normed group is also a normed group, with the restriction of the norm.
@@ -337,12 +343,12 @@ instance normed_ring_top_monoid [normed_ring α] : topological_monoid α :=
       apply squeeze_zero,
       { intro, apply norm_nonneg },
       { simp only [this], intro, apply norm_add_le },
-      { rw ←zero_add (0 : ℝ), apply tendsto_add,
+      { rw ←zero_add (0 : ℝ), apply tendsto.add,
         { apply squeeze_zero,
           { intro, apply norm_nonneg },
           { intro t, show ∥t.fst * t.snd - t.fst * x.snd∥ ≤ ∥t.fst∥ * ∥t.snd - x.snd∥,
             rw ←mul_sub, apply norm_mul_le },
-          { rw ←mul_zero (∥x.fst∥), apply tendsto_mul,
+          { rw ←mul_zero (∥x.fst∥), apply tendsto.mul,
             { apply continuous_iff_continuous_at.1,
               apply continuous_norm.comp continuous_fst },
             { apply tendsto_iff_norm_tendsto_zero.1,
@@ -352,7 +358,7 @@ instance normed_ring_top_monoid [normed_ring α] : topological_monoid α :=
           { intro, apply norm_nonneg },
           { intro t, show ∥t.fst * x.snd - x.fst * x.snd∥ ≤ ∥t.fst - x.fst∥ * ∥x.snd∥,
             rw ←sub_mul, apply norm_mul_le },
-          { rw ←zero_mul (∥x.snd∥), apply tendsto_mul,
+          { rw ←zero_mul (∥x.snd∥), apply tendsto.mul,
             { apply tendsto_iff_norm_tendsto_zero.1,
               apply continuous_iff_continuous_at.1,
               apply continuous_fst },
@@ -533,16 +539,16 @@ begin
     have limf': tendsto (λ x, ∥f x - s∥) e (𝓝 0) := tendsto_iff_norm_tendsto_zero.1 limf,
     have limg' : tendsto (λ x, ∥g x∥) e (𝓝 ∥b∥) := filter.tendsto.comp (continuous_iff_continuous_at.1 continuous_norm _) limg,
 
-    have lim1 := tendsto_mul limf' limg',
+    have lim1 := limf'.mul limg',
     simp only [zero_mul, sub_eq_add_neg] at lim1,
 
     have limg3 := tendsto_iff_norm_tendsto_zero.1 limg,
 
-    have lim2 := tendsto_mul (tendsto_const_nhds : tendsto _ _ (𝓝 ∥ s ∥)) limg3,
+    have lim2 := (tendsto_const_nhds : tendsto _ _ (𝓝 ∥ s ∥)).mul limg3,
     simp only [sub_eq_add_neg, mul_zero] at lim2,
 
     rw [show (0:ℝ) = 0 + 0, by simp],
-    exact tendsto_add lim1 lim2  }
+    exact lim1.add lim2  }
 end
 
 lemma tendsto_smul_const {g : γ → F} {e : filter γ} (s : α) {b : F} :

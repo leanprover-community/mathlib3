@@ -54,7 +54,7 @@ begin
   have d_Union : ∀(s : ℕ → set α), (∀n, is_measurable (s n)) → monotone s →
     tendsto (λn, d (s n)) at_top (𝓝 (d (⋃n, s n))),
   { assume s hs hm,
-    refine tendsto_sub _ _;
+    refine tendsto.sub _ _;
       refine (nnreal.tendsto_coe.2 $
         (ennreal.tendsto_to_nnreal $ @ne_top_of_lt _ _ _ ⊤ _).comp $ tendsto_measure_Union hs hm),
     exact hμ _,
@@ -63,7 +63,7 @@ begin
   have d_Inter : ∀(s : ℕ → set α), (∀n, is_measurable (s n)) → (∀n m, n ≤ m → s m ⊆ s n) →
     tendsto (λn, d (s n)) at_top (𝓝 (d (⋂n, s n))),
   { assume s hs hm,
-    refine tendsto_sub _ _;
+    refine tendsto.sub _ _;
       refine (nnreal.tendsto_coe.2 $
         (ennreal.tendsto_to_nnreal $ @ne_top_of_lt _ _ _ ⊤ _).comp $ tendsto_measure_Inter hs hm _),
     exact hμ _,
@@ -152,7 +152,7 @@ begin
   have γ_le_d_s : γ ≤ d s,
   { have hγ : tendsto (λm:ℕ, γ - 2 * (1/2)^m) at_top (𝓝 γ),
     { suffices : tendsto (λm:ℕ, γ - 2 * (1/2)^m) at_top (𝓝 (γ - 2 * 0)), { simpa },
-      exact (tendsto_sub tendsto_const_nhds $ tendsto_mul tendsto_const_nhds $
+      exact (tendsto_const_nhds.sub $ tendsto_const_nhds.mul $
         tendsto_pow_at_top_nhds_0_of_lt_1
           (le_of_lt $ half_pos $ zero_lt_one) (half_lt_self zero_lt_one)) },
     have hd : tendsto (λm, d (⋂n, f m n)) at_top (𝓝 (d (⋃ m, ⋂ n, f m n))),

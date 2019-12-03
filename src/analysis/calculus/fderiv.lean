@@ -160,7 +160,7 @@ begin
   { conv in (nhds_within x s) { rw ← add_zero x },
     rw [← tendsto_iff_comap, nhds_within, tendsto_inf],
     split,
-    { apply tendsto_add tendsto_const_nhds (tangent_cone_at.lim_zero clim cdlim) },
+    { apply tendsto_const_nhds.add (tangent_cone_at.lim_zero clim cdlim) },
     { rwa tendsto_principal } },
   have : is_o (λ y, f y - f x - f' (y - x)) (λ y, y - x) (nhds_within x s) := h,
   have : is_o (λ n:ℕ, f (x + d n) - f x - f' ((x + d n) - x)) (λ n, (x + d n)  - x)
@@ -179,7 +179,7 @@ begin
     tendsto.comp f'.cont.continuous_at cdlim,
   have L3 : tendsto (λn:ℕ, (c n • (f (x + d n) - f x - f' (d n)) +  f' (c n • d n)))
             at_top (𝓝 (0 + f' v)) :=
-    tendsto_add L1 L2,
+    L1.add L2,
   have : (λn:ℕ, (c n • (f (x + d n) - f x - f' (d n)) +  f' (c n • d n)))
           = (λn: ℕ, c n • (f (x + d n) - f x)),
     by { ext n, simp [smul_add] },
@@ -248,22 +248,15 @@ begin
   { assume H,
     have : 𝓝 0 ≤ comap (λ (z : E), z + x) (𝓝 (0 + x)),
     { refine tendsto_iff_comap.mp _,
-      apply continuous.tendsto,
-      exact continuous_add continuous_id continuous_const },
+      exact (continuous_id.add continuous_const).tendsto _ },
     apply is_o.mono this,
-    convert is_o.comp H (λz, z + x),
-    { ext h, simp },
-    { ext h, simp },
-    { simp } },
+    convert is_o.comp H (λz, z + x) ; { try {ext}, simp } },
   { assume H,
     have : 𝓝 x ≤ comap (λ (z : E), z - x) (𝓝 (x - x)),
     { refine tendsto_iff_comap.mp _,
-      apply continuous.tendsto,
-      exact continuous_add continuous_id continuous_const },
+      exact (continuous_id.add continuous_const).tendsto _ },
     apply is_o.mono this,
-    convert is_o.comp H (λz, z - x),
-    { ext h, simp },
-    { simp } }
+    convert is_o.comp H (λz, z - x) ; { try {ext}, simp } }
 end
 
 theorem has_fderiv_at_filter.mono (h : has_fderiv_at_filter f f' x L₂) (hst : L₁ ≤ L₂) :
@@ -369,7 +362,7 @@ begin
   rwa [this, differentiable_within_at_inter hs, differentiable_within_at_univ] at h
 end
 
-lemma differentiable.fderiv_within
+lemma differentiable_at.fderiv_within
   (h : differentiable_at 𝕜 f x) (hxs : unique_diff_within_at 𝕜 s x) :
   fderiv_within 𝕜 f s x = fderiv 𝕜 f x :=
 begin
@@ -561,7 +554,7 @@ has_fderiv_at.fderiv (has_fderiv_at_id x)
 lemma fderiv_within_id (hxs : unique_diff_within_at 𝕜 s x) :
   fderiv_within 𝕜 id s x = id :=
 begin
-  rw differentiable.fderiv_within (differentiable_at_id) hxs,
+  rw differentiable_at.fderiv_within (differentiable_at_id) hxs,
   exact fderiv_id
 end
 
@@ -594,7 +587,7 @@ has_fderiv_at.fderiv (has_fderiv_at_const c x)
 lemma fderiv_within_const (c : F) (hxs : unique_diff_within_at 𝕜 s x) :
   fderiv_within 𝕜 (λy, c) s x = 0 :=
 begin
-  rw differentiable.fderiv_within (differentiable_at_const _) hxs,
+  rw differentiable_at.fderiv_within (differentiable_at_const _) hxs,
   exact fderiv_const _
 end
 
@@ -648,7 +641,7 @@ has_fderiv_at.fderiv (h.has_fderiv_at)
 lemma is_bounded_linear_map.fderiv_within (h : is_bounded_linear_map 𝕜 f)
   (hxs : unique_diff_within_at 𝕜 s x) : fderiv_within 𝕜 f s x = h.to_continuous_linear_map :=
 begin
-  rw differentiable.fderiv_within h.differentiable_at hxs,
+  rw differentiable_at.fderiv_within h.differentiable_at hxs,
   exact h.fderiv
 end
 
@@ -686,7 +679,7 @@ e.has_fderiv_at.fderiv
 lemma continuous_linear_map.fderiv_within (hxs : unique_diff_within_at 𝕜 s x) :
   fderiv_within 𝕜 e s x = e :=
 begin
-  rw differentiable.fderiv_within e.differentiable_at hxs,
+  rw differentiable_at.fderiv_within e.differentiable_at hxs,
   exact e.fderiv
 end
 
@@ -895,8 +888,8 @@ theorem has_fderiv_at_filter.tendsto_nhds
 begin
   have : tendsto (λ x', f x' - f x) L (𝓝 0),
   { refine h.is_O_sub.trans_tendsto (tendsto_le_left hL _),
-    rw ← sub_self x, exact tendsto_sub tendsto_id tendsto_const_nhds },
-  have := tendsto_add this tendsto_const_nhds,
+    rw ← sub_self x, exact tendsto_id.sub tendsto_const_nhds },
+  have := tendsto.add this tendsto_const_nhds,
   rw zero_add (f x) at this,
   exact this.congr (by simp)
 end
@@ -963,7 +956,7 @@ begin
       have : 0 = ∥p - p∥, by simp,
       rw this,
       have : continuous (λx, ∥x-p∥) :=
-        continuous_norm.comp (continuous_sub continuous_id continuous_const),
+        continuous_norm.comp (continuous_id.sub continuous_const),
       exact this.tendsto p },
     simp only [forall_prop_of_false, not_false_iff, one_ne_zero, forall_true_iff] },
   simp only [one_mul, asymptotics.is_o_norm_right] at B,
@@ -989,7 +982,7 @@ has_fderiv_at.fderiv (h.has_fderiv_at p)
 lemma is_bounded_bilinear_map.fderiv_within (h : is_bounded_bilinear_map 𝕜 b) (p : E × F)
   (hxs : unique_diff_within_at 𝕜 u p) : fderiv_within 𝕜 b u p = h.deriv p :=
 begin
-  rw differentiable.fderiv_within (h.differentiable_at p) hxs,
+  rw differentiable_at.fderiv_within (h.differentiable_at p) hxs,
   exact h.fderiv p
 end
 

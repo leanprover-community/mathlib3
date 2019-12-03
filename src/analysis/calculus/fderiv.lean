@@ -35,9 +35,10 @@ usual formulas (and existence assertions) for the derivative of
 * multiplication of two scalar functions
 * composition of functions (the chain rule)
 
-Results on the derivative of functions defined on `𝕜` (as vectors in the target space, in opposition
-to linear maps) are included in `deriv.lean`. The derivative of polynomials is handled there, as it
-is naturally one-dimensional.
+One can also interpret the derivative of a function `f : 𝕜 → E` as an element of `E` (by identifying
+a linear function from `𝕜` to `E` with its value at `1`). Results on the Fréchet derivative are
+translated to this more elementary point of view on the derivative in the file `deriv.lean`. The
+derivative of polynomials is handled there, as it is naturally one-dimensional.
 
 ## Implementation details
 

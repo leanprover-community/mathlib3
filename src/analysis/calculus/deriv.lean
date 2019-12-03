@@ -711,8 +711,8 @@ lemma has_deriv_at_inv_one :
   has_deriv_at (λx, x⁻¹) (-1) (1 : 𝕜) :=
 begin
   rw has_deriv_at_iff_is_o_nhds_zero,
-  have : is_o (λ (h : 𝕜), h^2*(1 + h)⁻¹) (λ (h : 𝕜), h*1) (𝓝 0),
-  { have : tendsto (λ (h : 𝕜), (1 + h)⁻¹) (𝓝 0) (𝓝 (1+0)⁻¹) :=
+  have : is_o (λ (h : 𝕜), h^2 * (1 + h)⁻¹) (λ (h : 𝕜), h * 1) (𝓝 0),
+  { have : tendsto (λ (h : 𝕜), (1 + h)⁻¹) (𝓝 0) (𝓝 (1 + 0)⁻¹) :=
       ((tendsto_const_nhds).add tendsto_id).inv' (by norm_num),
     exact is_o_mul_right (is_o_pow_id (by norm_num)) (is_O_one_of_tendsto this) },
   apply (is_o_congr _ _).2 this,
@@ -802,7 +802,7 @@ variables {c d : 𝕜 → 𝕜} {c' d' : 𝕜}
 
 lemma has_deriv_within_at.div
   (hc : has_deriv_within_at c c' s x) (hd : has_deriv_within_at d d' s x) (hx : d x ≠ 0) :
-  has_deriv_within_at (λ y, c y / d y) ((c' * d x - c x * d')/(d x)^2) s x :=
+  has_deriv_within_at (λ y, c y / d y) ((c' * d x - c x * d') / (d x)^2) s x :=
 begin
   have A : (d x)⁻¹ * (d x)⁻¹ * (c' * d x) = (d x)⁻¹ * c',
     by rw [← mul_assoc, mul_comm, ← mul_assoc, ← mul_assoc, mul_inv_cancel hx, one_mul],
@@ -812,7 +812,7 @@ begin
 end
 
 lemma has_deriv_at.div (hc : has_deriv_at c c' x) (hd : has_deriv_at d d' x) (hx : d x ≠ 0) :
-  has_deriv_at (λ y, c y / d y) ((c' * d x - c x * d')/(d x)^2) x :=
+  has_deriv_at (λ y, c y / d y) ((c' * d x - c x * d') / (d x)^2) x :=
 begin
   rw ← has_deriv_within_at_univ at *,
   exact hc.div hd hx
@@ -820,34 +820,34 @@ end
 
 lemma differentiable_within_at.div
   (hc : differentiable_within_at 𝕜 c s x) (hd : differentiable_within_at 𝕜 d s x) (hx : d x ≠ 0) :
-differentiable_within_at 𝕜 (λx, c x/d x) s x :=
+differentiable_within_at 𝕜 (λx, c x / d x) s x :=
 ((hc.has_deriv_within_at).div (hd.has_deriv_within_at) hx).differentiable_within_at
 
 lemma differentiable_at.div
   (hc : differentiable_at 𝕜 c x) (hd : differentiable_at 𝕜 d x) (hx : d x ≠ 0) :
-differentiable_at 𝕜 (λx, c x/d x) x :=
+differentiable_at 𝕜 (λx, c x / d x) x :=
 ((hc.has_deriv_at).div (hd.has_deriv_at) hx).differentiable_at
 
 lemma differentiable_on.div
   (hc : differentiable_on 𝕜 c s) (hd : differentiable_on 𝕜 d s) (hx : ∀ x ∈ s, d x ≠ 0) :
-differentiable_on 𝕜 (λx, c x/d x) s :=
+differentiable_on 𝕜 (λx, c x / d x) s :=
 λx h, (hc x h).div (hd x h) (hx x h)
 
 lemma differentiable.div
   (hc : differentiable 𝕜 c) (hd : differentiable 𝕜 d) (hx : ∀ x, d x ≠ 0) :
-differentiable 𝕜 (λx, c x/d x) :=
+differentiable 𝕜 (λx, c x / d x) :=
 λx, (hc x).div (hd x) (hx x)
 
 lemma deriv_within_div
   (hc : differentiable_within_at 𝕜 c s x) (hd : differentiable_within_at 𝕜 d s x) (hx : d x ≠ 0)
   (hxs : unique_diff_within_at 𝕜 s x) :
-  deriv_within (λx, c x/d x) s x
+  deriv_within (λx, c x / d x) s x
     = ((deriv_within c s x) * d x - c x * (deriv_within d s x)) / (d x)^2 :=
 ((hc.has_deriv_within_at).div (hd.has_deriv_within_at) hx).deriv_within hxs
 
 lemma deriv_div
   (hc : differentiable_at 𝕜 c x) (hd : differentiable_at 𝕜 d x) (hx : d x ≠ 0) :
-  deriv (λx, c x/d x) x = ((deriv c x) * d x - c x * (deriv d x)) / (d x)^2 :=
+  deriv (λx, c x / d x) x = ((deriv c x) * d x - c x * (deriv d x)) / (d x)^2 :=
 ((hc.has_deriv_at).div (hd.has_deriv_at) hx).deriv
 
 end division

@@ -513,15 +513,15 @@ end normed_field
 /-- If a function converges to a nonzero value, its inverse converges to the inverse of this value.
 We use the lemma `tendsto.inv'` as `tendsto.inv` is already used in multiplicative topological
 groups. -/
-lemma filter.tendsto.inv' [normed_field α] {l : filter β} {f : β → α} {x : β}
-  (hx : f x ≠ 0) (h : tendsto f l (𝓝 (f x))) :
-  tendsto (λx, (f x)⁻¹) l (𝓝 (f x)⁻¹) :=
-(normed_field.tendsto_inv hx).comp h
+lemma filter.tendsto.inv' [normed_field α] {l : filter β} {f : β → α} {y : α}
+  (hy : y ≠ 0) (h : tendsto f l (𝓝 y)) :
+  tendsto (λx, (f x)⁻¹) l (𝓝 y⁻¹) :=
+(normed_field.tendsto_inv hy).comp h
 
-lemma filter.tendsto.div [normed_field α] {l : filter β} {f g : β → α} {x : β}
-  (hf : tendsto f l (𝓝 (f x))) (hg : tendsto g l (𝓝 (g x))) (hx : g x ≠ 0) :
-  tendsto (λx, f x / g x) l (𝓝 ((f x) / (g x))) :=
-hf.mul (hg.inv' hx)
+lemma filter.tendsto.div [normed_field α] {l : filter β} {f g : β → α} {x y : α}
+  (hf : tendsto f l (𝓝 x)) (hg : tendsto g l (𝓝 y)) (hy : y ≠ 0) :
+  tendsto (λa, f a / g a) l (𝓝 (x / y)) :=
+hf.mul (hg.inv' hy)
 
 lemma real.norm_eq_abs (r : ℝ) : norm r = abs r := rfl
 

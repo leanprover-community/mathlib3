@@ -511,7 +511,7 @@ instance : nondiscrete_normed_field ℝ :=
 end normed_field
 
 /-- If a function converges to a nonzero value, its inverse converges to the inverse of this value.
-We use the lemma `tendsto.inv'` as `tendsto.inv` is already used in multiplicative topological
+We use the name `tendsto.inv'` as `tendsto.inv` is already used in multiplicative topological
 groups. -/
 lemma filter.tendsto.inv' [normed_field α] {l : filter β} {f : β → α} {y : α}
   (hy : y ≠ 0) (h : tendsto f l (𝓝 y)) :

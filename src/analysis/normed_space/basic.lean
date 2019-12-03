@@ -473,10 +473,9 @@ begin
     ... ≤ ∥r - (r - x)∥ : norm_sub_norm_le r (r - x)
     ... = ∥x∥ : by simp,
   have norm_x_pos : 0 < ∥x∥ := lt_of_lt_of_le (half_pos norm_r_pos) rx,
-  have x0 : x ≠ 0 := (norm_pos_iff x).mp norm_x_pos,
   have : x⁻¹ - r⁻¹ = (r - x) * x⁻¹ * r⁻¹,
-    by rw [sub_mul, sub_mul, mul_inv_cancel x0, one_mul, mul_comm, ← mul_assoc,
-           inv_mul_cancel r0, one_mul],
+    by rw [sub_mul, sub_mul, mul_inv_cancel ((norm_pos_iff x).mp norm_x_pos), one_mul, mul_comm,
+           ← mul_assoc, inv_mul_cancel r0, one_mul],
   calc dist x⁻¹ r⁻¹ = ∥x⁻¹ - r⁻¹∥ : dist_eq_norm _ _
   ... ≤ ∥r-x∥ * ∥x∥⁻¹ * ∥r∥⁻¹ : by rw [this, norm_mul, norm_mul, norm_inv, norm_inv]
   ... ≤ (ε/2/2 * ∥r∥^2) * (2 * ∥r∥⁻¹) * (∥r∥⁻¹) : begin
@@ -511,14 +510,17 @@ instance : nondiscrete_normed_field ℝ :=
 { non_trivial := ⟨2, by { unfold norm, rw abs_of_nonneg; norm_num }⟩ }
 end normed_field
 
-lemma filter.tendsto.inv' [normed_field α] [topological_space β] {f : β → α} {x : β}
-  (hx : f x ≠ 0) (h : tendsto f (𝓝 x) (𝓝 (f x))) :
-  tendsto (λx, (f x)⁻¹) (𝓝 x) (𝓝 (f x)⁻¹) :=
+/-- If a function converges to a nonzero value, its inverse converges to the inverse of this value.
+We use the lemma `tendsto.inv'` as `tendsto.inv` is already used in multiplicative topological
+groups. -/
+lemma filter.tendsto.inv' [normed_field α] {l : filter β} {f : β → α} {x : β}
+  (hx : f x ≠ 0) (h : tendsto f l (𝓝 (f x))) :
+  tendsto (λx, (f x)⁻¹) l (𝓝 (f x)⁻¹) :=
 (normed_field.tendsto_inv hx).comp h
 
-lemma filter.tendsto.div [normed_field α] [topological_space β] {f g : β → α} {x : β}
-  (hf : tendsto f (𝓝 x) (𝓝 (f x))) (hg : tendsto g (𝓝 x) (𝓝 (g x))) (hx : g x ≠ 0) :
-  tendsto (λx, f x/g x) (𝓝 x) (𝓝 ((f x) / (g x))) :=
+lemma filter.tendsto.div [normed_field α] {l : filter β} {f g : β → α} {x : β}
+  (hf : tendsto f l (𝓝 (f x))) (hg : tendsto g l (𝓝 (g x))) (hx : g x ≠ 0) :
+  tendsto (λx, f x / g x) l (𝓝 ((f x) / (g x))) :=
 hf.mul (hg.inv' hx)
 
 lemma real.norm_eq_abs (r : ℝ) : norm r = abs r := rfl

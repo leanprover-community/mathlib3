@@ -739,7 +739,7 @@ calc mk α = 1 ↔ mk α ≤ 1 ∧ ¬mk α < 1 : eq_iff_le_not_lt
 begin
   apply and_congr le_one_iff_subsingleton,
   push_neg,
-  rw [one_le_iff_ne_zero, ne_zero_iff_nonempty],
+  rw [one_le_iff_ne_zero, ne_zero_iff_nonempty]
 end
 
 theorem infinite_iff {α : Type u} : infinite α ↔ omega ≤ mk α :=

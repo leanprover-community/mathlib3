@@ -279,6 +279,15 @@ begin
   all_goals { admit }
 end
 
+-- test lift of functions
+example (α : Type*) (f : α → ℤ) (hf : ∀ a, 0 ≤ f a) (hf' : ∀ a, f a < 1) (a : α) : 0 ≤ 2 * f a :=
+begin
+  lift f to α → ℕ using hf,
+    guard_target ((0:ℤ) ≤ 2 * (λ i : α, (f i : ℤ)) a),
+    guard_hyp hf' := ∀ a, ((λ i : α, (f i:ℤ)) a) < 1,
+  trivial
+end
+
 instance can_lift_unit : can_lift unit unit :=
 ⟨id, λ x, true, λ x _, ⟨x, rfl⟩⟩
 

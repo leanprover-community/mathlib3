@@ -15,6 +15,7 @@ section functor
 variables {f : Type u → Type v} [functor f] [is_lawful_functor f]
 
 run_cmd mk_simp_attr `functor_norm
+run_cmd tactic.add_doc_string `simp_attr.functor_norm "Simp set for functor_norm"
 
 @[functor_norm] protected theorem map_map (m : α → β) (g : β → γ) (x : f α) :
   g <$> (m <$> x) = (g ∘ m) <$> x :=

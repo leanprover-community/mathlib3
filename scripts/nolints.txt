@@ -1,5 +1,6 @@
 import .all
-attribute [nolint]
+run_cmd tactic.skip
+apply_nolint
 AddCommGroup
 AddCommGroup.of
 AddCommMon
@@ -1386,7 +1387,6 @@ is_closed_map
 is_cobounded_ge_nhds
 is_cobounded_under_ge_of_tendsto
 is_comm_applicative
-is_complete
 is_conj
 is_cyclic
 is_cyclic.comm_group
@@ -2650,14 +2650,6 @@ setoid.is_partition
 side
 side.other
 side.to_string
-simp_attr.functor_norm
-simp_attr.integral_simps
-simp_attr.monad_norm
-simp_attr.parity_simps
-simp_attr.push_cast
-simp_attr.split_if_reduction
-simp_attr.sugar
-simp_attr.sugar_nat
 simple_add_group
 simple_group
 smooth_manifold_with_corners

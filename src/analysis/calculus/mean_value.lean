@@ -6,7 +6,8 @@ Authors: Sébastien Gouëzel
 
 import analysis.calculus.deriv
 
-/-! # The mean value inequality
+/-! 
+# The mean value inequality
 
 A bound on the derivative of a function implies that this function
 is Lipschitz continuous for the same bound, on a segment or more generally in a convex set.

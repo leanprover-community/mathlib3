@@ -175,9 +175,6 @@ theorem empty_def : (∅ : set α) = {x | false} := rfl
 theorem eq_empty_iff_forall_not_mem {s : set α} : s = ∅ ↔ ∀ x, x ∉ s :=
 by simp [ext_iff]
 
-theorem ne_empty_of_mem {s : set α} {x : α} (h : x ∈ s) : s ≠ ∅ :=
-by { intro hs, rw hs at h, apply not_mem_empty _ h }
-
 @[simp] theorem empty_subset (s : set α) : ∅ ⊆ s :=
 assume x, assume h, false.elim h
 
@@ -187,12 +184,17 @@ by simp [subset.antisymm_iff]
 theorem eq_empty_of_subset_empty {s : set α} : s ⊆ ∅ → s = ∅ :=
 subset_empty_iff.1
 
-theorem ne_empty_iff_exists_mem {s : set α} : s ≠ ∅ ↔ ∃ x, x ∈ s :=
+theorem ne_empty_iff_nonempty : s ≠ ∅ ↔ s.nonempty :=
 by haveI := classical.prop_decidable;
-   simp [eq_empty_iff_forall_not_mem]
+   simp [eq_empty_iff_forall_not_mem, set.nonempty]
+
+theorem ne_empty_iff_exists_mem {s : set α} : s ≠ ∅ ↔ ∃ x, x ∈ s := ne_empty_iff_nonempty
 
 theorem exists_mem_of_ne_empty {s : set α} : s ≠ ∅ → ∃ x, x ∈ s :=
 ne_empty_iff_exists_mem.1
+
+theorem ne_empty_of_mem {s : set α} {x : α} (h : x ∈ s) : s ≠ ∅ :=
+ne_empty_iff_nonempty.2 ⟨x, h⟩
 
 theorem coe_nonempty_iff_ne_empty {s : set α} : nonempty s ↔ s ≠ ∅ :=
 nonempty_subtype.trans ne_empty_iff_exists_mem.symm
@@ -1335,10 +1337,10 @@ lemma prod_subset_iff {P : set (α × β)} :
 ⟨λ h _ xin _ yin, h (mk_mem_prod xin yin),
  λ h _ pin, by { cases mem_prod.1 pin with hs ht, simpa using h _ hs _ ht }⟩
 
-@[simp] theorem prod_empty {s : set α} : set.prod s ∅ = (∅ : set (α × β)) :=
+@[simp] theorem prod_empty : set.prod s ∅ = (∅ : set (α × β)) :=
 ext $ by simp [set.prod]
 
-@[simp] theorem empty_prod {t : set β} : set.prod ∅ t = (∅ : set (α × β)) :=
+@[simp] theorem empty_prod : set.prod ∅ t = (∅ : set (α × β)) :=
 ext $ by simp [set.prod]
 
 theorem insert_prod {a : α} {s : set α} {t : set β} :
@@ -1391,9 +1393,20 @@ ext $ by simp [range]
   set.prod {a} {b} = ({(a, b)} : set (α×β)) :=
 ext $ by simp [set.prod]
 
-theorem prod_neq_empty_iff {s : set α} {t : set β} :
-  set.prod s t ≠ ∅ ↔ (s ≠ ∅ ∧ t ≠ ∅) :=
-by simp [not_eq_empty_iff_exists]
+theorem nonempty.prod : s.nonempty → t.nonempty → (s.prod t).nonempty
+| ⟨x, hx⟩ ⟨y, hy⟩ := ⟨(x, y), ⟨hx, hy⟩⟩
+
+theorem nonempty.fst : (s.prod t).nonempty → s.nonempty
+| ⟨p, hp⟩ := ⟨p.1, hp.1⟩
+
+theorem nonempty.snd : (s.prod t).nonempty → t.nonempty
+| ⟨p, hp⟩ := ⟨p.2, hp.2⟩
+
+theorem prod_nonempty_iff : (s.prod t).nonempty ↔ s.nonempty ∧ t.nonempty :=
+⟨λ h, ⟨h.fst, h.snd⟩, λ h, nonempty.prod h.1 h.2⟩
+
+theorem prod_neq_empty_iff : s.prod t ≠ ∅ ↔ (s ≠ ∅ ∧ t ≠ ∅) :=
+by simp only [ne_empty_iff_nonempty, prod_nonempty_iff]
 
 theorem prod_eq_empty_iff {s : set α} {t : set β} :
   set.prod s t = ∅ ↔ (s = ∅ ∨ t = ∅) :=

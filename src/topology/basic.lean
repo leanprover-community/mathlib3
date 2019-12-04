@@ -342,11 +342,11 @@ by rw [closure_compl, frontier, diff_eq]
 @[simp] lemma frontier_compl (s : set α) : frontier (-s) = frontier s :=
 by simp only [frontier_eq_closure_inter_closure, lattice.neg_neg, inter_comm]
 
-/-- Frontier of a set is closed. -/
+/-- The frontier of a set is closed. -/
 lemma is_closed_frontier {s : set α} : is_closed (frontier s) :=
 by rw frontier_eq_closure_inter_closure; exact is_closed_inter is_closed_closure is_closed_closure
 
-/-- Frontier of a set has no interior points. -/
+/-- The frontier of a set has no interior point. -/
 lemma interior_frontier {s : set α} (h : is_closed s) : interior (frontier s) = ∅ :=
 begin
   have A : frontier s = s \ interior s, by rw [frontier, closure_eq_of_is_closed h],

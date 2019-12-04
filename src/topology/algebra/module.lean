@@ -61,12 +61,13 @@ end prio
 section
 
 variables {α : Type*} {β : Type*}
+[ring α] [topological_space α]
+[topological_space β] [add_comm_group β]
+[module α β] [topological_module α β]
 
 /-- Scalar multiplication by a unit is a homeomorphism from a
 topological module onto itself. -/
-protected def homeomorph.smul_of_unit
-[ring α] [topological_space α] [topological_space β] [add_comm_group β]
-[module α β] [topological_module α β] (a : units α) : β ≃ₜ β :=
+protected def homeomorph.smul_of_unit (a : units α) : β ≃ₜ β :=
 {
   to_fun    := λ x, (a : α) • x,
   inv_fun   := λ x, ((a⁻¹ : units α) : α) • x,
@@ -78,12 +79,33 @@ protected def homeomorph.smul_of_unit
   continuous_inv_fun := continuous_smul continuous_const continuous_id,
 }
 
+lemma is_open_map_smul_of_unit (a : units α) : is_open_map (λ (x : β), (a : α) • x) :=
+(homeomorph.smul_of_unit a).is_open_map
+
+lemma is_closed_map_smul_of_unit (a : units α) : is_closed_map (λ (x : β), (a : α) • x) :=
+(homeomorph.smul_of_unit a).is_closed_map
+
+end
+
+section
+
+variables {α : Type*} {β : Type*} {a : α}
+[discrete_field α] [topological_space α]
+[topological_space β] [add_comm_group β]
+[vector_space α β] [topological_vector_space α β]
+
+set_option class.instance_max_depth 36
+
 /-- Scalar multiplication by a non-zero field element is a
 homeomorphism from a topological vector space onto itself. -/
-protected def homeomorph.smul_of_ne_zero
-[discrete_field α] [topological_space α] [topological_space β] [add_comm_group β]
-[vector_space α β] [topological_vector_space α β] {a : α} (ha : a ≠ 0) : β ≃ₜ β :=
-{ .. homeomorph.smul_of_unit ((equiv.units_equiv_ne_zero _).inv_fun ⟨_, ha⟩) }
+protected def homeomorph.smul_of_ne_zero (ha : a ≠ 0) : β ≃ₜ β :=
+{.. homeomorph.smul_of_unit ((equiv.units_equiv_ne_zero _).inv_fun ⟨_, ha⟩)}
+
+lemma is_open_map_smul_of_ne_zero (ha : a ≠ 0) : is_open_map (λ (x : β), a • x) :=
+(homeomorph.smul_of_ne_zero ha).is_open_map
+
+lemma is_closed_map_smul_of_ne_zero (ha : a ≠ 0) : is_closed_map (λ (x : β), a • x) :=
+(homeomorph.smul_of_ne_zero ha).is_closed_map
 
 end
 

@@ -144,6 +144,12 @@ protected def nonempty (s : set α) : Prop := ∃ x, x ∈ s
 
 lemma nonempty_of_mem {x} (h : x ∈ s) : s.nonempty := ⟨x, h⟩
 
+/-- Extract a witness from `s.nonempty`. This function might be used instead of case analysis
+on the argument. Note that it makes a proof depend on the `classical.choice` axiom. -/
+protected def nonempty.some (h : s.nonempty) : α := classical.some h
+
+protected lemma nonempty.some_mem (h : s.nonempty) : h.some ∈ s := classical.some_spec h
+
 lemma nonempty.of_subset (ht : s ⊆ t) (hs : s.nonempty) : t.nonempty := hs.imp ht
 
 lemma nonempty_of_ssubset (ht : s ⊂ t) : (t \ s).nonempty :=
@@ -218,7 +224,10 @@ theorem ball_empty_iff {p : α → Prop} :
   (∀ x ∈ (∅ : set α), p x) ↔ true :=
 by simp [iff_def]
 
-/- universal set -/
+/-! ### Universal set.
+
+In Lean `@univ α` (or `univ : set α`) is the set that contains all elements of type `α`.
+Mathematically it is the same as `α` but it has a different type. -/
 
 theorem univ_def : @univ α = {x | true} := rfl
 
@@ -255,7 +264,7 @@ lemma exists_mem_of_nonempty (α) : ∀ [nonempty α], ∃x:α, x ∈ (univ : se
 instance univ_decidable : decidable_pred (@set.univ α) :=
 λ x, is_true trivial
 
-/- union -/
+/-! ### Lemmas about union -/
 
 theorem union_def {s₁ s₂ : set α} : s₁ ∪ s₂ = {a | a ∈ s₁ ∨ a ∈ s₂} := rfl
 
@@ -334,7 +343,7 @@ subset.trans h (subset_union_right t u)
 @[simp] theorem union_empty_iff {s t : set α} : s ∪ t = ∅ ↔ s = ∅ ∧ t = ∅ :=
 ⟨by finish [ext_iff], by finish [ext_iff]⟩
 
-/- intersection -/
+/-! ### Lemmas about intersection -/
 
 theorem inter_def {s₁ s₂ : set α} : s₁ ∩ s₂ = {a | a ∈ s₁ ∧ a ∈ s₂} := rfl
 
@@ -423,7 +432,7 @@ by finish [ext_iff, iff_def]
 theorem nonempty_of_inter_nonempty_left {s t : set α} (h : s ∩ t ≠ ∅) : s ≠ ∅ :=
 by finish [ext_iff, iff_def]
 
-/- distributivity laws -/
+/-! ### Distributivity laws -/
 
 theorem inter_distrib_left (s t u : set α) : s ∩ (t ∪ u) = (s ∩ t) ∪ (s ∩ u) :=
 ext (assume x, and_or_distrib_left)
@@ -437,7 +446,9 @@ ext (assume x, or_and_distrib_left)
 theorem union_distrib_right (s t u : set α) : (s ∩ t) ∪ u = (s ∪ u) ∩ (t ∪ u) :=
 ext (assume x, and_or_distrib_right)
 
-/- insert -/
+/-! ### Lemmas about `insert`
+
+`insert α s` is the set `{α} ∪ s`. -/
 
 theorem insert_def (x : α) (s : set α) : insert x s = { y | y = x ∨ y ∈ s } := rfl
 
@@ -496,7 +507,7 @@ theorem ball_insert_iff {P : α → Prop} {a : α} {s : set α} :
   (∀ x ∈ insert a s, P x) ↔ P a ∧ (∀x ∈ s, P x) :=
 by finish [iff_def]
 
-/- singletons -/
+/-! ### Lemmas about singletons -/
 
 theorem singleton_def (a : α) : ({a} : set α) = insert a ∅ := rfl
 
@@ -556,7 +567,7 @@ instance unique_singleton {α : Type*} (a : α) : unique ↥({a} : set α) :=
     apply eq_of_mem_singleton (subtype.mem x),
   end}
 
-/- separation -/
+/-! ### Lemmas about sets defined as `{x ∈ s | p x}`. -/
 
 theorem mem_sep {s : set α} {p : α → Prop} {x : α} (xs : x ∈ s) (px : p x) : x ∈ {x ∈ s | p x} :=
 ⟨xs, px⟩
@@ -579,7 +590,7 @@ by finish [ext_iff]
 @[simp] lemma sep_univ {α} {p : α → Prop} : {a ∈ (univ : set α) | p a} = {a | p a} :=
 set.ext $ by simp
 
-/- complement -/
+/-! ### Lemmas about complement -/
 
 theorem mem_compl {s : set α} {x : α} (h : x ∉ s) : x ∈ -s := h
 
@@ -664,7 +675,7 @@ begin
   intros h x, rintro ⟨xa, xb⟩, cases h xa, contradiction, assumption
 end
 
-/- set difference -/
+/-! ### Lemmas about set difference -/
 
 theorem diff_eq (s t : set α) : s \ t = s ∩ -t := rfl
 
@@ -1108,6 +1119,7 @@ end image
 theorem univ_eq_true_false : univ = ({true, false} : set Prop) :=
 eq.symm $ eq_univ_of_forall $ classical.cases (by simp) (by simp)
 
+/-! ### Lemmas about range of a function. -/
 section range
 variables {f : ι → α}
 open function
@@ -1252,7 +1264,7 @@ theorem pairwise_on.mono' {s : set α} {r r' : α → α → Prop}
 end set
 open set
 
-/- image and preimage on subtypes -/
+/-! ### Image and preimage on subtypes -/
 
 namespace subtype
 
@@ -1318,6 +1330,8 @@ by rw ← image_univ; simp [-image_univ, subtype.val_image]
 subtype.val_range
 
 end range
+
+/-! ### Lemmas about cartesian product of sets -/
 
 section prod
 

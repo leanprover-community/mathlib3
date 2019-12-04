@@ -43,13 +43,17 @@ lemma convex_interior {A : set α} (hA : convex A) : convex (interior A) :=
     (by { apply pointwise_add_subset_add; exact image_subset _ interior_subset })
     ((convex_iff' _).mp hA ha hb hab)
 
-#check mem_closure_of_continuous2
-
 /-- In a topological vector space, the closure of a convex set is convex. -/
 lemma convex_closure {A : set α} (hA : convex A) : convex (closure A) :=
 λ x y a b hx hy ha hb hab,
-let f : α × α → α := λ p, a • p.fst + b • p.snd in
-_
+let f : α → α → α := λ x' y', a • x' + b • y' in
+have hf : continuous ((λ p : α × α, p.fst + p.snd) ∘ (λ p : α × α, (a • p.fst, b • p.snd))), from
+  continuous.comp continuous_add (continuous.prod_mk
+    (continuous_smul continuous_const continuous_fst)
+    (continuous_smul continuous_const continuous_snd)),
+show f x y ∈ closure A, from
+  mem_closure_of_continuous2 hf hx hy (λ x' hx' y' hy', subset_closure
+  (hA _ _ _ _ hx' hy' ha hb hab))
 
 
 end topological_vector_space

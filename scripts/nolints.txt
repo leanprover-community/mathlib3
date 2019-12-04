@@ -1390,7 +1390,6 @@ is_comm_applicative
 is_conj
 is_cyclic
 is_cyclic.comm_group
-is_ring_hom
 is_group_hom.ker
 is_integral
 is_lawful_bifunctor

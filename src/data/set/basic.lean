@@ -139,14 +139,19 @@ not_not
 
 /-! ### Non-empty sets -/
 
-/-- A set `s` is not empty. -/
+/-- The property `s.nonempty` expresses the fact that the set `s` is not empty. It should be used in theorem assumptions instead of `∃ x, x ∈ s` or `s ≠ ∅` as it gives access to a nice API thanks to the dot notation. -/
 protected def nonempty (s : set α) : Prop := ∃ x, x ∈ s
 
-lemma nonempty.of_mem {x} (h : x ∈ s) : s.nonempty := ⟨x, h⟩
+lemma nonempty_of_mem {x} (h : x ∈ s) : s.nonempty := ⟨x, h⟩
 
 lemma nonempty.of_subset (ht : s ⊆ t) (hs : s.nonempty) : t.nonempty := hs.imp ht
 
-lemma nonempty.of_ssubset (ht : s ⊂ t) : t.nonempty := (exists_of_ssubset ht).imp $ λ _, Exists.fst
+lemma nonempty_of_ssubset (ht : s ⊂ t) : (t \ s).nonempty :=
+let ⟨x, xt, xs⟩ := exists_of_ssubset ht in ⟨x, xt, xs⟩
+
+lemma nonempty.of_diff (h : (s \ t).nonempty) : s.nonempty := h.imp $ λ _, and.left
+
+lemma nonempty.of_ssubset' (ht : s ⊂ t) : t.nonempty := (nonempty_of_ssubset ht).of_diff
 
 lemma nonempty.inl (hs : s.nonempty) : (s ∪ t).nonempty := hs.imp $ λ _, or.inl
 
@@ -1405,13 +1410,13 @@ theorem nonempty.snd : (s.prod t).nonempty → t.nonempty
 theorem prod_nonempty_iff : (s.prod t).nonempty ↔ s.nonempty ∧ t.nonempty :=
 ⟨λ h, ⟨h.fst, h.snd⟩, λ h, nonempty.prod h.1 h.2⟩
 
-theorem prod_neq_empty_iff : s.prod t ≠ ∅ ↔ (s ≠ ∅ ∧ t ≠ ∅) :=
+theorem prod_ne_empty_iff : s.prod t ≠ ∅ ↔ (s ≠ ∅ ∧ t ≠ ∅) :=
 by simp only [ne_empty_iff_nonempty, prod_nonempty_iff]
 
 theorem prod_eq_empty_iff {s : set α} {t : set β} :
   set.prod s t = ∅ ↔ (s = ∅ ∨ t = ∅) :=
 suffices (¬ set.prod s t ≠ ∅) ↔ (¬ s ≠ ∅ ∨ ¬ t ≠ ∅), by simpa only [(≠), classical.not_not],
-by classical; rw [prod_neq_empty_iff, not_and_distrib]
+by classical; rw [prod_ne_empty_iff, not_and_distrib]
 
 @[simp] theorem prod_mk_mem_set_prod_eq {a : α} {b : β} {s : set α} {t : set β} :
   (a, b) ∈ set.prod s t = (a ∈ s ∧ b ∈ t) := rfl
@@ -1459,10 +1464,10 @@ begin
   classical,
   by_cases h : set.prod s t = ∅,
   { simp [h, prod_eq_empty_iff.1 h] },
-  { have st : s ≠ ∅ ∧ t ≠ ∅, by rwa [← ne.def, prod_neq_empty_iff] at h,
+  { have st : s ≠ ∅ ∧ t ≠ ∅, by rwa [← ne.def, prod_ne_empty_iff] at h,
     split,
     { assume H : set.prod s t ⊆ set.prod s₁ t₁,
-      have h' : s₁ ≠ ∅ ∧ t₁ ≠ ∅ := prod_neq_empty_iff.1 (subset_ne_empty H h),
+      have h' : s₁ ≠ ∅ ∧ t₁ ≠ ∅ := prod_ne_empty_iff.1 (subset_ne_empty H h),
       refine or.inl ⟨_, _⟩,
       show s ⊆ s₁,
       { have := image_subset (prod.fst : α × β → α) H,

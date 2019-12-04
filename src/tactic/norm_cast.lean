@@ -135,7 +135,7 @@ meta def move_cast_attr : user_attribute simp_lemmas :=
       dependencies := [], },
 }
 
-/-
+/--
 This is an auxiliary function to merge the sets of elim_cast and move_cast lemmas,
 as they are used together in step 2.
 -/

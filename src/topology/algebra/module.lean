@@ -58,6 +58,35 @@ class topological_vector_space (α : Type u) (β : Type v)
   extends topological_module α β
 end prio
 
+section
+
+variables {α : Type*} {β : Type*}
+
+/-- Scalar multiplication by a unit is a homeomorphism from a
+topological module onto itself. -/
+protected def homeomorph.smul_of_unit
+[ring α] [topological_space α] [topological_space β] [add_comm_group β]
+[module α β] [topological_module α β] (a : units α) : β ≃ₜ β :=
+{
+  to_fun    := λ x, (a : α) • x,
+  inv_fun   := λ x, ((a⁻¹ : units α) : α) • x,
+  right_inv := λ x, calc (a : α) • ((a⁻¹ : units α) : α) • x = x :
+                 by rw [smul_smul, units.mul_inv, one_smul],
+  left_inv  := λ x, calc ((a⁻¹ : units α) : α) • (a : α) • x = x :
+                 by rw [smul_smul, units.inv_mul, one_smul],
+  continuous_to_fun  := continuous_smul continuous_const continuous_id,
+  continuous_inv_fun := continuous_smul continuous_const continuous_id,
+}
+
+/-- Scalar multiplication by a non-zero field element is a
+homeomorphism from a topological vector space onto itself. -/
+protected def homeomorph.smul_of_ne_zero
+[discrete_field α] [topological_space α] [topological_space β] [add_comm_group β]
+[vector_space α β] [topological_vector_space α β] {a : α} (ha : a ≠ 0) : β ≃ₜ β :=
+{ .. homeomorph.smul_of_unit ((equiv.units_equiv_ne_zero _).inv_fun ⟨_, ha⟩) }
+
+end
+
 /-- Continuous linear maps between modules. We only put the type classes that are necessary for the
 definition, although in applications β and γ will be topological modules over the topological
 ring α -/

@@ -92,7 +92,7 @@ meta def elim_cast_attr : user_attribute simp_lemmas :=
       dependencies := [], },
 }
 
-mk_simp_attribute push_cast "The `push_cast` simp attribute uses `move_cast` lemmas in the \"forward\" direction,
+mk_simp_attribute push_cast "The `push_cast` simp attribute uses `squash_cast` and `move_cast` lemmas in the \"forward\" direction,
 to move casts toward the leaf nodes of the expression."
 
 private meta def aux_after_set (tac : expr → tactic (expr × (expr → expr))) :
@@ -187,7 +187,7 @@ do
 This is the main heuristic used alongside the elim_cast and move_cast lemmas.
 The goal is to help casts move past operators by adding intermediate casts.
 An expression of the shape: op (↑(x : α) : γ) (↑(y : β) : γ)
-is rewritten as:            op (↑(↑(x : α) : β) : γ) (↑(y : β) : γ)
+is rewritten to:            op (↑(↑(x : α) : β) : γ) (↑(y : β) : γ)
 when the squash_cast lemmas can prove that (↑(x : α) : γ) = (↑(↑(x : α) : β) : γ)
 -/
 private meta def heur (_ : unit) : expr → tactic (unit × expr × expr)
@@ -275,7 +275,7 @@ do
   (_, pr) ← simplify s [] h,
   to_expr ``(eq.mpr %%pr trivial)
 
--- if possible, rewrite (n : α) as ((n : ℕ) : α) where n is a numeral and α ≠ ℕ
+-- if possible, rewrite (n : α) to ((n : ℕ) : α) where n is a numeral and α ≠ ℕ
 private meta def aux_num_1 (_ : unit) (e : expr) : tactic (unit × expr × expr) :=
 do
   α ← infer_type e,
@@ -287,7 +287,7 @@ do
   pr ← aux_num_prove_eq e new_e,
   return ((), new_e, pr)
 
--- if possible, rewrite (↑n : α) as (n : α) where n is a numeral
+-- if possible, rewrite (↑n : α) to (n : α) where n is a numeral
 private meta def aux_num_2 (_ : unit) (e : expr) : tactic (unit × expr × expr) :=
 do
   `(@coe ℕ %%α %%h1 %%e') ← return e,
@@ -399,7 +399,7 @@ do
   when (¬ ns.empty) $ try tactic.contradiction
 
 /--
-Rewrite with the given rule and normalize casts between steps.
+Rewrite with the given rules and normalize casts between steps.
 -/
 meta def rw_mod_cast (rs : parse rw_rules) (loc : parse location) : tactic unit :=
 ( do

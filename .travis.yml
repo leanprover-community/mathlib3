@@ -79,7 +79,7 @@ jobs:
         - travis_long "leanpkg test"
         - lean --recursive --export=mathlib.txt src/
         - travis_long "leanchecker mathlib.txt"
-        - bash scripts/mk_all.sh
+        - bash scripts/mk_all.sh -t
         - travis_long "lean src/lint_mathlib.lean"
         - bash scripts/rm_all.sh
         - sh scripts/deploy_nightly.sh

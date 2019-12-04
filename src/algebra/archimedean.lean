@@ -26,12 +26,16 @@ variables [linear_ordered_ring α] [archimedean α]
 
 lemma pow_unbounded_of_one_lt (x : α) {y : α}
     (hy1 : 1 < y) : ∃ n : ℕ, x < y ^ n :=
-have hy0 : 0 <  y - 1 := sub_pos_of_lt hy1,
+have hy0 : 0 < y - 1 := sub_pos_of_lt hy1,
+-- TODO `by linarith` fails to prove hy1'
+have hy1' : (-1:α) ≤ y, from le_trans (neg_le_self zero_le_one) (le_of_lt hy1),
 let ⟨n, h⟩ := archimedean.arch x hy0 in
 ⟨n, calc x ≤ n • (y - 1)     : h
-       ... < 1 + n • (y - 1) : by rw add_comm; exact lt_add_one _
-       ... ≤ y ^ n           : one_add_sub_mul_le_pow (le_of_lt hy1) _⟩
+       ... < 1 + n • (y - 1) : lt_one_add _
+       ... ≤ y ^ n           : one_add_sub_mul_le_pow hy1' n⟩
 
+/-- Every x greater than 1 is between two successive natural-number
+powers of another y greater than one. -/
 lemma exists_nat_pow_near {x : α} {y : α} (hx : 1 < x) (hy : 1 < y) :
   ∃ n : ℕ, y ^ n ≤ x ∧ x < y ^ (n + 1) :=
 have h : ∃ n : ℕ, x < y ^ n, from pow_unbounded_of_one_lt _ hy,
@@ -67,6 +71,9 @@ end linear_ordered_ring
 
 section linear_ordered_field
 
+/-- Every positive x is between two successive integer powers of
+another y greater than one. This is the same as `exists_int_pow_near'`,
+but with ≤ and < the other way around. -/
 lemma exists_int_pow_near [discrete_linear_ordered_field α] [archimedean α]
   {x : α} {y : α} (hx : 0 < x) (hy : 1 < y) :
   ∃ n : ℤ, y ^ n ≤ x ∧ x < y ^ (n + 1) :=
@@ -81,6 +88,19 @@ let ⟨M, hM⟩ := pow_unbounded_of_one_lt x hy in
   (fpow_le_of_le (le_of_lt hy) (le_of_lt hlt)) (lt_of_le_of_lt hm hM))⟩,
 let ⟨n, hn₁, hn₂⟩ := int.exists_greatest_of_bdd hb he in
   ⟨n, hn₁, lt_of_not_ge (λ hge, not_le_of_gt (int.lt_succ _) (hn₂ _ hge))⟩
+
+/-- Every positive x is between two successive integer powers of
+another y greater than one. This is the same as `exists_int_pow_near`,
+but with ≤ and < the other way around. -/
+lemma exists_int_pow_near' [discrete_linear_ordered_field α] [archimedean α]
+  {x : α} {y : α} (hx : 0 < x) (hy : 1 < y) :
+  ∃ n : ℤ, y ^ n < x ∧ x ≤ y ^ (n + 1) :=
+let ⟨m, hle, hlt⟩ := exists_int_pow_near (inv_pos hx) hy in
+have hyp : 0 < y, from lt_trans (discrete_linear_ordered_field.zero_lt_one α) hy,
+⟨-(m+1),
+by rwa [fpow_neg, one_div_eq_inv, inv_lt (fpow_pos_of_pos hyp _) hx],
+by rwa [neg_add, neg_add_cancel_right, fpow_neg, one_div_eq_inv,
+        le_inv hx (fpow_pos_of_pos hyp _)]⟩
 
 variables [linear_ordered_field α] [floor_ring α]
 

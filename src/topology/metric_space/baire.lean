@@ -2,8 +2,14 @@
 Copyright (c) 2019 Sébastien Gouëzel. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Sébastien Gouëzel
+-/
 
-Baire theorem: in a complete metric space, a countable intersection of dense open subsets is dense.
+import topology.metric_space.basic analysis.specific_limits
+
+/-!
+# Baire theorem
+
+In a complete metric space, a countable intersection of dense open subsets is dense.
 
 The good concept underlying the theorem is that of a Gδ set, i.e., a countable intersection
 of open sets. Then Baire theorem can also be formulated as the fact that a countable
@@ -14,7 +20,7 @@ covered by a countable union of closed sets, then the union of their interiors i
 The names of the theorems do not contain the string "Baire", but are instead built from the form of
 the statement. "Baire" is however in the docstring of all the theorems, to facilitate grep searches.
 -/
-import topology.metric_space.basic analysis.specific_limits
+
 noncomputable theory
 open_locale classical
 

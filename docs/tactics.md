@@ -1019,7 +1019,7 @@ Transforms the goal into its contrapositive.
 ### norm_cast
 
 This tactic normalizes casts inside expressions.
-It can be tought as call to the simplifier with a specific set of lemmas to
+It can be thought of as a call to the simplifier with a specific set of lemmas to
 move casts upwards in the expression.
 It also has special handling of numerals and a simple heuristic to simplify
 casts "past" binary operators.

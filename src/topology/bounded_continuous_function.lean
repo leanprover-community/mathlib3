@@ -400,13 +400,13 @@ by simpa only [coe_zero, dist_zero_right] using @dist_le _ _ _ _ f 0 _ C0
 
 /-- The pointwise sum of two bounded continuous functions is again bounded continuous. -/
 instance : has_add (α →ᵇ β) :=
-⟨λf g, ⟨λx, f x + g x, continuous_add f.2.1 g.2.1,
+⟨λf g, ⟨λx, f x + g x, f.2.1.add g.2.1,
   let ⟨_, fM, hf⟩ := f.2 in let ⟨_, gM, hg⟩ := g.2 in
   ⟨fM + gM, λ x y, dist_add_add_le_of_le (hf _ _) (hg _ _)⟩⟩⟩
 
 /-- The pointwise opposite of a bounded continuous function is again bounded continuous. -/
 instance : has_neg (α →ᵇ β) :=
-⟨λf, ⟨λx, -f x, continuous_neg f.2.1, by simpa only [dist_neg_neg] using f.2.2⟩⟩
+⟨λf, ⟨λx, -f x, f.2.1.neg, by simpa only [dist_neg_neg] using f.2.2⟩⟩
 
 @[simp] lemma coe_add : (f + g) x = f x + g x := rfl
 @[simp] lemma coe_neg : (-f) x = - (f x) := rfl

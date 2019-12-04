@@ -7,15 +7,18 @@ import data.string.defs
 /-!
 # Additional operations on expr and related types
 
- This file defines basic operations on the types expr, name, declaration, level, environment.
+This file defines basic operations on the types expr, name, declaration, level, environment.
 
- This file is mostly for non-tactics. Tactics should generally be placed in `tactic.core`.
+This file is mostly for non-tactics. Tactics should generally be placed in `tactic.core`.
 
- ## Tags
- expr, name, declaration, level, environment, meta, metaprogramming, tactic
+## Tags
+
+expr, name, declaration, level, environment, meta, metaprogramming, tactic
 -/
 
 namespace binder_info
+
+/-! ### Declarations about `binder_info` -/
 
 instance : inhabited binder_info := ⟨ binder_info.default ⟩
 
@@ -29,6 +32,8 @@ def brackets : binder_info → string × string
 end binder_info
 
 namespace name
+
+/-! ### Declarations about `name` -/
 
 /-- Find the largest prefix `n` of a `name` such that `f n ≠ none`, then replace this prefix
 with the value of `f n`. -/
@@ -132,6 +137,8 @@ end name
 
 namespace level
 
+/-! ### Declarations about `level` -/
+
 /-- Tests whether a universe level is non-zero for all assignments of its variables -/
 meta def nonzero : level → bool
 | (succ _) := tt
@@ -140,6 +147,8 @@ meta def nonzero : level → bool
 | _ := ff
 
 end level
+
+/-! ### Declarations about `binder` -/
 
 /-- The type of binders containing a name, the binding info and the binding type -/
 @[derive decidable_eq]
@@ -164,7 +173,15 @@ meta instance : has_to_tactic_format binder :=
 
 end binder
 
-/- converting between expressions and numerals -/
+/-!
+### Converting between expressions and numerals
+
+There are a number of ways to convert between expressions and numerals, depending on the input and
+output types and whether you want to infer the necessary type classes.
+
+See also the tactics `expr.of_nat`, `expr.of_int`, `expr.of_rat`.
+-/
+
 
 /--
 `nat.mk_numeral n` embeds `n` as a numeral expression inside a type with 0, 1, and +.
@@ -211,7 +228,22 @@ protected meta def to_int : expr → option ℤ
 | `(has_neg.neg %%e) := do n ← e.to_nat, some (-n)
 | e                  := coe <$> e.to_nat
 
+/--
+ is_num_eq n1 n2 returns true if n1 and n2 are both numerals with the same numeral structure,
+ ignoring differences in type and type class arguments.
+-/
+meta def is_num_eq : expr → expr → bool
+| `(@has_zero.zero _ _) `(@has_zero.zero _ _) := tt
+| `(@has_one.one _ _) `(@has_one.one _ _) := tt
+| `(bit0 %%a) `(bit0 %%b) := a.is_num_eq b
+| `(bit1 %%a) `(bit1 %%b) := a.is_num_eq b
+| `(-%%a) `(-%%b) := a.is_num_eq b
+| `(%%a/%%a') `(%%b/%%b') :=  a.is_num_eq b
+| _ _ := ff
+
 end expr
+
+/-! ### Declarations about `expr` -/
 
 namespace expr
 open tactic
@@ -277,19 +309,6 @@ e.fold mk_name_set $ λ e' _ l,
   Returns `true` if `p name.anonymous` is true -/
 meta def contains_constant (e : expr) (p : name → Prop) [decidable_pred p] : bool :=
 e.fold ff (λ e' _ b, if p (e'.const_name) then tt else b)
-
-/--
- is_num_eq n1 n2 returns true if n1 and n2 are both numerals with the same numeral structure,
- ignoring differences in type and type class arguments.
--/
-meta def is_num_eq : expr → expr → bool
-| `(@has_zero.zero _ _) `(@has_zero.zero _ _) := tt
-| `(@has_one.one _ _) `(@has_one.one _ _) := tt
-| `(bit0 %%a) `(bit0 %%b) := a.is_num_eq b
-| `(bit1 %%a) `(bit1 %%b) := a.is_num_eq b
-| `(-%%a) `(-%%b) := a.is_num_eq b
-| `(%%a/%%a') `(%%b/%%b') :=  a.is_num_eq b
-| _ _ := ff
 
 /-- Simplifies the expression `t` with the specified options.
   The result is `(new_e, pr)` with the new expression `new_e` and a proof
@@ -360,7 +379,7 @@ meta def instantiate_lambdas_or_apps : list expr → expr → expr
   -/
 
 /-- Get the codomain/target of a pi-type.
-  This definition doesn't Instantiate bound variables, and therefore produces a term that is open.-/
+  This definition doesn't instantiate bound variables, and therefore produces a term that is open.-/
 meta def pi_codomain : expr → expr -- see note [open expressions]
 | (pi n bi d b) := pi_codomain b
 | e             := e
@@ -372,7 +391,7 @@ meta def pi_binders_aux : list binder → expr → list binder × expr
 | es e             := (es, e)
 
 /-- Get the binders and codomain of a pi-type.
-  This definition doesn't Instantiate bound variables, and therefore produces a term that is open.
+  This definition doesn't instantiate bound variables, and therefore produces a term that is open.
   The.tactic `get_pi_binders` in `tactic.core` does the same, but also instantiates the
   free variables -/
 meta def pi_binders (e : expr) : list binder × expr := -- see note [open expressions]
@@ -423,6 +442,8 @@ meta def is_default_local : expr → bool
 | _ := ff
 
 end expr
+
+/-! ### Declarations about `environment` -/
 
 namespace environment
 
@@ -510,10 +531,16 @@ s.is_prefix_of $ (e.decl_olean n).get_or_else ""
 
 end environment
 
+/-!
+### `is_eta_expansion`
+
+ In this section we define the tactic `is_eta_expansion` which checks whether an expression
+  is an eta-expansion of a structure. (not to be confused with eta-expanion for `λ`).
+
+-/
 
 namespace expr
-/- In this section we define the tactic `is_eta_expansion` which checks whether an expression
-  is an eta-expansion of a structure. (not to be confused with eta-expanion for `λ`). -/
+
 open tactic
 
 /-- `is_eta_expansion_of args univs l` checks whether for all elements `(nm, pr)` in `l` we have
@@ -572,6 +599,8 @@ meta def is_eta_expansion (val : expr) : tactic (option expr) := do
   is_eta_expansion_aux val (projs.zip args)
 
 end expr
+
+/-! ### Declarations about `declaration` -/
 
 namespace declaration
 open tactic

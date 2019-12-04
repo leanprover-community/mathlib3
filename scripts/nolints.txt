@@ -1,5 +1,6 @@
 import .all
-attribute [nolint]
+run_cmd tactic.skip
+apply_nolint
 AddCommGroup
 AddCommGroup.of
 AddCommMon
@@ -125,8 +126,6 @@ associates.out
 associates.prime
 associates.unique'
 associates_int_equiv_nat
-asymptotics.is_O
-asymptotics.is_o
 auto.add_conjuncts
 auto.add_simps
 auto.auto_config
@@ -603,7 +602,6 @@ complex.cau_seq_re
 complex.conj
 complex.cos
 complex.cosh
-complex.cpow
 complex.exp
 complex.exp'
 complex.lim_aux
@@ -1389,7 +1387,6 @@ is_closed_map
 is_cobounded_ge_nhds
 is_cobounded_under_ge_of_tendsto
 is_comm_applicative
-is_complete
 is_conj
 is_cyclic
 is_cyclic.comm_group
@@ -1693,14 +1690,8 @@ measurable_space.dynkin_system.to_measurable_space
 measurable_space.gi_generate_from
 measurable_space.mk_of_closure
 measure_theory.ae_eq_fun.add
-measure_theory.ae_eq_fun.integrable
 measure_theory.ae_eq_fun.neg
 measure_theory.ae_eq_fun.smul
-measure_theory.integrable
-measure_theory.l1.simple_func
-measure_theory.l1.simple_func.exists_simple_func_near
-measure_theory.l1.simple_func.integral
-measure_theory.l1.simple_func.to_simple_func
 measure_theory.lintegral_eq_nnreal
 measure_theory.measure
 measure_theory.measure.integral
@@ -1850,13 +1841,10 @@ mzip_with
 mzip_with'
 name.last_string
 nat.cases
-nat.choose
-nat.decreasing_induction
 nat.dist_eq_sub_of_ge
 nat.elim
 nat.even
 nat.galois_connection_mul_div
-nat.le_rec_on
 nat.min_fac_aux
 nat.modeq.chinese_remainder
 nat.partrec
@@ -1869,13 +1857,11 @@ nat.partrec.code.evaln
 nat.partrec.code.id
 nat.partrec.code.of_nat_code
 nat.partrec'.vec
-nat.pow_left_injective
 nat.primrec'.vec
 nat.rfind
 nat.rfind_opt
 nat.rfind_x
 nat.sqrt_aux
-nat.strong_rec'
 nat.subtype.denumerable
 nat.subtype.of_nat
 nat.subtype.succ
@@ -2472,7 +2458,6 @@ pos_num.succ
 pos_num.test_bit
 pos_num.transfer
 pos_num.transfer_rw
-pos_sum_of_encodable
 power_series.inv
 power_series.inv.aux
 power_series.mk
@@ -2562,19 +2547,15 @@ real.exp
 real.le
 real.le_mk_of_forall_le
 real.le_of_forall_epsilon_le
-real.log
 real.mk
 real.mk_le_of_forall_le
 real.mk_near_of_forall_near
 real.of_near
 real.of_rat
-real.pi
 real.pi_gt_314
 real.pi_gt_sqrt_two_add_series
 real.pi_gt_three
-real.rpow
 real.sin
-real.sin_gt_sub_cube
 real.sinh
 real.sqrt
 real.sqrt_aux
@@ -2666,17 +2647,9 @@ set.seq
 set.sigma_to_Union
 set_fintype
 setoid.is_partition
-setoid.map
 side
 side.other
 side.to_string
-simp_attr.functor_norm
-simp_attr.monad_norm
-simp_attr.parity_simps
-simp_attr.push_cast
-simp_attr.split_if_reduction
-simp_attr.sugar
-simp_attr.sugar_nat
 simple_add_group
 simple_group
 smooth_manifold_with_corners
@@ -3205,7 +3178,6 @@ tactic.using_texpr
 tactic.valid_types
 tactic.wlog
 tendsto_orderable
-tendsto_pow_at_top_at_top_of_gt_1
 tensor_product
 tensor_product.assoc
 tensor_product.comm

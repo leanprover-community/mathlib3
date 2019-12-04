@@ -207,6 +207,12 @@ nnreal.eq $ norm_neg g
 lemma nndist_nnnorm_nnnorm_le (g h : α) : nndist (nnnorm g) (nnnorm h) ≤ nnnorm (g - h) :=
 nnreal.coe_le.2 $ dist_norm_norm_le g h
 
+lemma of_real_norm_eq_coe_nnnorm (x : β) : ennreal.of_real ∥x∥ = (nnnorm x : ennreal) :=
+ennreal.of_real_eq_coe_nnreal _
+
+lemma edist_eq_coe_nnnorm (x : β) : edist x 0 = (nnnorm x : ennreal) :=
+by { rw [edist_dist, dist_eq_norm, _root_.sub_zero, of_real_norm_eq_coe_nnnorm] }
+
 end nnnorm
 
 /-- A submodule of a normed group is also a normed group, with the restriction of the norm.
@@ -337,12 +343,12 @@ instance normed_ring_top_monoid [normed_ring α] : topological_monoid α :=
       apply squeeze_zero,
       { intro, apply norm_nonneg },
       { simp only [this], intro, apply norm_add_le },
-      { rw ←zero_add (0 : ℝ), apply tendsto_add,
+      { rw ←zero_add (0 : ℝ), apply tendsto.add,
         { apply squeeze_zero,
           { intro, apply norm_nonneg },
           { intro t, show ∥t.fst * t.snd - t.fst * x.snd∥ ≤ ∥t.fst∥ * ∥t.snd - x.snd∥,
             rw ←mul_sub, apply norm_mul_le },
-          { rw ←mul_zero (∥x.fst∥), apply tendsto_mul,
+          { rw ←mul_zero (∥x.fst∥), apply tendsto.mul,
             { apply continuous_iff_continuous_at.1,
               apply continuous_norm.comp continuous_fst },
             { apply tendsto_iff_norm_tendsto_zero.1,
@@ -352,7 +358,7 @@ instance normed_ring_top_monoid [normed_ring α] : topological_monoid α :=
           { intro, apply norm_nonneg },
           { intro t, show ∥t.fst * x.snd - x.fst * x.snd∥ ≤ ∥t.fst - x.fst∥ * ∥x.snd∥,
             rw ←sub_mul, apply norm_mul_le },
-          { rw ←zero_mul (∥x.snd∥), apply tendsto_mul,
+          { rw ←zero_mul (∥x.snd∥), apply tendsto.mul,
             { apply tendsto_iff_norm_tendsto_zero.1,
               apply continuous_iff_continuous_at.1,
               apply continuous_fst },
@@ -533,16 +539,16 @@ begin
     have limf': tendsto (λ x, ∥f x - s∥) e (𝓝 0) := tendsto_iff_norm_tendsto_zero.1 limf,
     have limg' : tendsto (λ x, ∥g x∥) e (𝓝 ∥b∥) := filter.tendsto.comp (continuous_iff_continuous_at.1 continuous_norm _) limg,
 
-    have lim1 := tendsto_mul limf' limg',
+    have lim1 := limf'.mul limg',
     simp only [zero_mul, sub_eq_add_neg] at lim1,
 
     have limg3 := tendsto_iff_norm_tendsto_zero.1 limg,
 
-    have lim2 := tendsto_mul (tendsto_const_nhds : tendsto _ _ (𝓝 ∥ s ∥)) limg3,
+    have lim2 := (tendsto_const_nhds : tendsto _ _ (𝓝 ∥ s ∥)).mul limg3,
     simp only [sub_eq_add_neg, mul_zero] at lim2,
 
     rw [show (0:ℝ) = 0 + 0, by simp],
-    exact tendsto_add lim1 lim2  }
+    exact lim1.add lim2  }
 end
 
 lemma tendsto_smul_const {g : γ → F} {e : filter γ} (s : α) {b : F} :
@@ -613,6 +619,37 @@ instance submodule.normed_space {𝕜 : Type*} [normed_field 𝕜]
 
 end normed_space
 
+section normed_algebra
+
+/-- A normed algebra `𝕜'` over `𝕜` is an algebra endowed with a norm for which the embedding of
+`𝕜` in `𝕜'` is an isometry. -/
+class normed_algebra (𝕜 : Type*) (𝕜' : Type*) [normed_field 𝕜] [normed_ring 𝕜']
+  extends algebra 𝕜 𝕜' :=
+(norm_algebra_map_eq : ∀x:𝕜, ∥algebra_map 𝕜' x∥ = ∥x∥)
+
+@[simp] lemma norm_algebra_map_eq {𝕜 : Type*} (𝕜' : Type*) [normed_field 𝕜] [normed_ring 𝕜']
+  [h : normed_algebra 𝕜 𝕜'] (x : 𝕜) : ∥algebra_map 𝕜' x∥ = ∥x∥ :=
+normed_algebra.norm_algebra_map_eq _ _
+
+end normed_algebra
+
+section restrict_scalars
+set_option class.instance_max_depth 40
+
+variables (𝕜 : Type*) (𝕜' : Type*) [normed_field 𝕜] [normed_field 𝕜'] [normed_algebra 𝕜 𝕜']
+{E : Type*} [normed_group E] [normed_space 𝕜' E]
+
+/-- `𝕜`-normed space structure induced by a `𝕜'`-normed space structure when `𝕜'` is a
+normed algebra over `𝕜`. Not registered as an instance as `𝕜'` can not be inferred. -/
+def normed_space.restrict_scalars : normed_space 𝕜 E :=
+{ norm_smul := λc x, begin
+    change ∥(algebra_map 𝕜' c) • x∥ = ∥c∥ * ∥x∥,
+    simp [norm_smul]
+  end,
+  ..module.restrict_scalars 𝕜 𝕜' E }
+
+end restrict_scalars
+
 section summable
 open_locale classical
 open finset filter
@@ -652,31 +689,3 @@ have h₂ : tendsto (λs:finset ι, s.sum (λi, ∥f i∥)) at_top (𝓝 (∑ i,
 le_of_tendsto_of_tendsto at_top_ne_bot h₁ h₂ $ univ_mem_sets' $ assume s, norm_sum_le _ _
 
 end summable
-
-namespace complex
-
-instance : normed_field ℂ :=
-{ norm := complex.abs,
-  dist_eq := λ _ _, rfl,
-  norm_mul' := complex.abs_mul,
-  .. complex.discrete_field }
-
-instance : nondiscrete_normed_field ℂ :=
-{ non_trivial := ⟨2, by simp [norm]; norm_num⟩ }
-
-@[simp] lemma norm_real (r : ℝ) : ∥(r : ℂ)∥ = ∥r∥ := complex.abs_of_real _
-
-@[simp] lemma norm_rat (r : ℚ) : ∥(r : ℂ)∥ = _root_.abs (r : ℝ) :=
-suffices ∥((r : ℝ) : ℂ)∥ = _root_.abs r, by simpa,
-by rw [norm_real, real.norm_eq_abs]
-
-@[simp] lemma norm_nat (n : ℕ) : ∥(n : ℂ)∥ = n := complex.abs_of_nat _
-
-@[simp] lemma norm_int {n : ℤ} : ∥(n : ℂ)∥ = _root_.abs n :=
-suffices ∥((n : ℝ) : ℂ)∥ = _root_.abs n, by simpa,
-by rw [norm_real, real.norm_eq_abs]
-
-lemma norm_int_of_nonneg {n : ℤ} (hn : 0 ≤ n) : ∥(n : ℂ)∥ = n :=
-by rw [norm_int, _root_.abs_of_nonneg]; exact int.cast_nonneg.2 hn
-
-end complex

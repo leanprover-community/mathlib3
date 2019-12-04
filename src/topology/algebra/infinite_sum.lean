@@ -124,16 +124,12 @@ show tendsto (λs:finset β, s.sum (g ∘ f)) at_top (𝓝 (g a)),
 /-- If `f : ℕ → α` has sum `a`, then the partial sums `∑_{i=0}^{n-1} f i` converge to `a`. -/
 lemma tendsto_sum_nat_of_has_sum {f : ℕ → α} (h : has_sum f a) :
   tendsto (λn:ℕ, (range n).sum f) at_top (𝓝 a) :=
-suffices map (λ (n : ℕ), sum (range n) f) at_top ≤ map (λ (s : finset ℕ), sum s f) at_top,
-  from le_trans this h,
-assume s (hs : {t : finset ℕ | t.sum f ∈ s} ∈ at_top),
-let ⟨t, ht⟩ := mem_at_top_sets.mp hs, ⟨n, hn⟩ := @exists_nat_subset_range t in
-mem_at_top_sets.mpr ⟨n, assume n' hn', ht _ $ finset.subset.trans hn $ range_subset.mpr hn'⟩
+@tendsto.comp _ _ _ finset.range (λ s : finset ℕ, s.sum f) _ _ _ h tendsto_finset_range
 
 variable [topological_add_monoid α]
 
 lemma has_sum_add (hf : has_sum f a) (hg : has_sum g b) : has_sum (λb, f b + g b) (a + b) :=
-by simp [has_sum, sum_add_distrib]; exact tendsto_add hf hg
+by simp [has_sum, sum_add_distrib]; exact hf.add hg
 
 lemma summable_add (hf : summable f) (hg : summable g) : summable (λb, f b + g b) :=
 summable_spec $ has_sum_add (has_sum_tsum hf)(has_sum_tsum hg)
@@ -370,7 +366,7 @@ variables [add_comm_group α] [topological_space α] [topological_add_group α]
 variables {f g : β → α} {a a₁ a₂ : α}
 
 lemma has_sum_neg : has_sum f a → has_sum (λb, - f b) (- a) :=
-has_sum_hom has_neg.neg continuous_neg'
+has_sum_hom has_neg.neg continuous_neg
 
 lemma summable_neg (hf : summable f) : summable (λb, - f b) :=
 summable_spec $ has_sum_neg $ has_sum_tsum $ hf
@@ -431,11 +427,11 @@ variables [semiring α] [topological_space α] [topological_semiring α]
 variables {f g : β → α} {a a₁ a₂ : α}
 
 lemma has_sum_mul_left (a₂) : has_sum f a₁ → has_sum (λb, a₂ * f b) (a₂ * a₁) :=
-has_sum_hom _ (continuous_mul continuous_const continuous_id)
+has_sum_hom _ (continuous_const.mul continuous_id)
 
 lemma has_sum_mul_right (a₂) (hf : has_sum f a₁) : has_sum (λb, f b * a₂) (a₁ * a₂) :=
 @has_sum_hom _ _ _ _ _ f a₁ (λa, a * a₂) _ _ _
-  (continuous_mul continuous_id continuous_const) hf
+  (continuous_id.mul continuous_const) hf
 
 lemma summable_mul_left (a) (hf : summable f) : summable (λb, a * f b) :=
 summable_spec $ has_sum_mul_left _ $ has_sum_tsum hf
@@ -490,15 +486,8 @@ end
 
 lemma sum_le_has_sum {f : β → α} (s : finset β) (hs : ∀ b∉s, 0 ≤ f b) (hf : has_sum f a) :
   s.sum f ≤ a :=
-let f' := λ b, if b ∈ s then f b else 0 in
-have hf' : has_sum f' (s.sum f'),
-  from has_sum_sum_of_ne_finset_zero $ λ b hb, if_neg hb,
-have hle : ∀ b, f' b ≤ f b,
-  from λ b, if hb : b ∈ s
-    then by simp only [f', if_pos hb]
-    else by simp only [f', if_neg hb, hs b hb],
-calc s.sum f = s.sum f' : finset.sum_congr rfl $ λ b hb, (if_pos hb).symm
-... ≤ a : has_sum_le hle hf' hf
+ge_of_tendsto at_top_ne_bot hf (mem_at_top_sets.2 ⟨s, λ t hst,
+  sum_le_sum_of_subset_of_nonneg hst $ λ b hbt hbs, hs b hbs⟩)
 
 lemma sum_le_tsum {f : β → α} (s : finset β) (hs : ∀ b∉s, 0 ≤ f b) (hf : summable f) :
   s.sum f ≤ tsum f :=
@@ -582,22 +571,75 @@ end uniform_group
 section cauchy_seq
 open finset.Ico filter
 
+/-- If the extended distance between consequent points of a sequence is estimated
+by a summable series of `nnreal`s, then the original sequence is a Cauchy sequence. -/
+lemma cauchy_seq_of_edist_le_of_summable [emetric_space α] {f : ℕ → α} (d : ℕ → nnreal)
+  (hf : ∀ n, edist (f n) (f n.succ) ≤ d n) (hd : summable d) : cauchy_seq f :=
+begin
+  refine emetric.cauchy_seq_iff_nnreal.2 (λ ε εpos, _),
+  -- Actually we need partial sums of `d` to be a Cauchy sequence
+  replace hd : cauchy_seq (λ (n : ℕ), sum (range n) d) :=
+    let ⟨_, H⟩ := hd in cauchy_seq_of_tendsto_nhds _ (tendsto_sum_nat_of_has_sum H),
+  -- Now we take the same `N` as in one of the definitions of a Cauchy sequence
+  refine (metric.cauchy_seq_iff'.1 hd ε (nnreal.coe_pos.2 εpos)).imp (λ N hN n hn, _),
+  have hsum := hN n hn,
+  -- We simplify the known inequality
+  rw [dist_nndist, nnreal.nndist_eq, ← sum_range_add_sum_Ico _ hn, nnreal.add_sub_cancel'] at hsum,
+  norm_cast at hsum,
+  replace hsum := lt_of_le_of_lt (le_max_left _ _) hsum,
+
+  -- Then use `hf` to simplify the goal to the same form
+  apply lt_of_le_of_lt (edist_le_Ico_sum_of_edist_le hn (λ k _ _, hf k)),
+  assumption_mod_cast
+end
+
+/-- If the distance between consequent points of a sequence is estimated by a summable series,
+then the original sequence is a Cauchy sequence. -/
+lemma cauchy_seq_of_dist_le_of_summable [metric_space α] {f : ℕ → α} (d : ℕ → ℝ)
+  (hf : ∀ n, dist (f n) (f n.succ) ≤ d n) (hd : summable d) : cauchy_seq f :=
+begin
+  refine metric.cauchy_seq_iff'.2 (λε εpos, _),
+  replace hd : cauchy_seq (λ (n : ℕ), sum (range n) d) :=
+    let ⟨_, H⟩ := hd in cauchy_seq_of_tendsto_nhds _ (tendsto_sum_nat_of_has_sum H),
+  refine (metric.cauchy_seq_iff'.1 hd ε εpos).imp (λ N hN n hn, _),
+  have hsum := hN n hn,
+  rw [real.dist_eq, ← sum_Ico_eq_sub _ hn] at hsum,
+  calc dist (f n) (f N) = dist (f N) (f n) : dist_comm _ _
+  ... ≤ (Ico N n).sum d : dist_le_Ico_sum_of_dist_le hn (λ k _ _, hf k)
+  ... ≤ abs ((Ico N n).sum d) : le_abs_self _
+  ... < ε : hsum
+end
+
 lemma cauchy_seq_of_summable_dist [metric_space α] {f : ℕ → α}
   (h : summable (λn, dist (f n) (f n.succ))) : cauchy_seq f :=
+cauchy_seq_of_dist_le_of_summable _ (λ _, le_refl _) h
+
+lemma dist_le_tsum_of_dist_le_of_tendsto [metric_space α] {f : ℕ → α} (d : ℕ → ℝ)
+  (hf : ∀ n, dist (f n) (f n.succ) ≤ d n) (hd : summable d) {a : α} (ha : tendsto f at_top (𝓝 a))
+  (n : ℕ) :
+  dist (f n) a ≤ ∑ m, d (n + m) :=
 begin
-  let d := λn, dist (f n) (f (n+1)),
-  refine metric.cauchy_seq_iff'.2 (λε εpos, _),
-  rcases (summable_iff_vanishing _).1 h {x : ℝ | x < ε} (gt_mem_nhds εpos) with ⟨s, hs⟩,
-  have : ∃N:ℕ, ∀x ∈ s, x < N,
-  { by_cases h : s = ∅,
-    { use 0, simp [h]},
-    { use s.max' h + 1,
-      exact λx hx, lt_of_le_of_lt (s.le_max' h x hx) (nat.lt_succ_self _) }},
-  rcases this with ⟨N, hN⟩,
-  refine ⟨N, λn hn, _⟩,
-  calc dist (f n) (f N) ≤ (Ico N n).sum d : by rw dist_comm; apply dist_le_Ico_sum_dist f hn
-    ... < ε : hs _ (finset.disjoint_iff_ne.2
-                     (λa ha b hb, ne_of_gt (lt_of_lt_of_le (hN _ hb) (mem.1 ha).1)))
+  refine le_of_tendsto at_top_ne_bot (tendsto_dist tendsto_const_nhds ha)
+    (mem_at_top_sets.2 ⟨n, λ m hnm, _⟩),
+  refine le_trans (dist_le_Ico_sum_of_dist_le hnm (λ k _ _, hf k)) _,
+  rw [sum_Ico_eq_sum_range],
+  refine sum_le_tsum (range _) (λ _ _, le_trans dist_nonneg (hf _)) _,
+  exact summable_comp_of_summable_of_injective _ hd (add_left_injective n)
 end
+
+lemma dist_le_tsum_of_dist_le_of_tendsto₀ [metric_space α] {f : ℕ → α} (d : ℕ → ℝ)
+  (hf : ∀ n, dist (f n) (f n.succ) ≤ d n) (hd : summable d) {a : α} (ha : tendsto f at_top (𝓝 a)) :
+  dist (f 0) a ≤ tsum d :=
+by simpa only [zero_add] using dist_le_tsum_of_dist_le_of_tendsto d hf hd ha 0
+
+lemma dist_le_tsum_dist_of_tendsto [metric_space α] {f : ℕ → α}
+  (h : summable (λn, dist (f n) (f n.succ))) {a : α} (ha : tendsto f at_top (𝓝 a)) (n) :
+  dist (f n) a ≤ ∑ m, dist (f (n+m)) (f (n+m).succ) :=
+dist_le_tsum_of_dist_le_of_tendsto (λ n, dist (f n) (f n.succ)) (λ _, le_refl _) h ha n
+
+lemma dist_le_tsum_dist_of_tendsto₀ [metric_space α] {f : ℕ → α}
+  (h : summable (λn, dist (f n) (f n.succ))) {a : α} (ha : tendsto f at_top (𝓝 a)) :
+  dist (f 0) a ≤ ∑ n, dist (f n) (f n.succ) :=
+by simpa only [zero_add] using dist_le_tsum_dist_of_tendsto h ha 0
 
 end cauchy_seq

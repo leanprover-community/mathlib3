@@ -15,7 +15,7 @@ under a specified condition.
 lift, tactic
 -/
 
-universe variables u v
+universe variables u v w
 
 /-- A class specifying that you can lift elements from `α` to `β` assuming `cond` is true.
   Used by the tactic `lift`. -/
@@ -39,6 +39,15 @@ meta def can_lift_attr : user_attribute (list name) :=
 
 instance : can_lift ℤ ℕ :=
 ⟨coe, λ n, 0 ≤ n, λ n hn, ⟨n.nat_abs, int.nat_abs_of_nonneg hn⟩⟩
+
+/-- Enable automatic handling of pi types in `can_lift`. -/
+instance pi.can_lift (ι : Type u) (α : Π i : ι, Type v) (β : Π i : ι, Type w)
+  [Π i : ι, can_lift (α i) (β i)] :
+  can_lift (Π i : ι, α i) (Π i : ι, β i) :=
+{ coe := λ f i, can_lift.coe (α i) (f i),
+  cond := λ f, ∀ i, can_lift.cond (β i) (f i),
+  prf := λ f hf, ⟨λ i, classical.some (can_lift.prf (f i) (hf i)), funext $ λ i,
+    classical.some_spec (can_lift.prf (f i) (hf i))⟩ }
 
 namespace tactic
 
@@ -70,6 +79,8 @@ if h_some : h.is_some then
   -/
 meta def lift (p : pexpr) (t : pexpr) (h : option pexpr) (n : list name) : tactic unit :=
 do
+  propositional_goal <|>
+    fail "lift tactic failed. Tactic is only applicable when the target is a proposition.",
   e ← i_to_expr p,
   old_tp ← infer_type e,
   new_tp ← i_to_expr t,
@@ -137,6 +148,8 @@ namespace interactive
     specify it again as the third argument to `with`, like this: `lift n to ℕ using h with n rfl h`.
   * More generally, this can lift an expression from `α` to `β` assuming that there is an instance
     of `can_lift α β`. In this case the proof obligation is specified by `can_lift.cond`.
+  * Given an instance `can_lift β γ`, it can also lift `α → β` to `α → γ`, and similarly for
+    general pi types, see `pi.can_lift`.
 -/
 meta def lift (p : parse texpr) (t : parse to_texpr) (h : parse using_texpr)
   (n : parse with_ident_list) : tactic unit :=

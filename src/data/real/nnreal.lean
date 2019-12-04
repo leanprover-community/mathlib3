@@ -53,11 +53,11 @@ instance : inhabited ℝ≥0 := ⟨0⟩
 @[simp] protected lemma coe_zero : ((0 : ℝ≥0) : ℝ) = 0 := rfl
 @[simp] protected lemma coe_one  : ((1 : ℝ≥0) : ℝ) = 1 := rfl
 @[simp] protected lemma coe_add (r₁ r₂ : ℝ≥0) : ((r₁ + r₂ : ℝ≥0) : ℝ) = r₁ + r₂ := rfl
-@[simp] protected lemma coe_mul (r₁ r₂ : ℝ≥0) : ((r₁ * r₂ : ℝ≥0) : ℝ) = r₁ * r₂ := rfl
-@[simp] protected lemma coe_div (r₁ r₂ : ℝ≥0) : ((r₁ / r₂ : ℝ≥0) : ℝ) = r₁ / r₂ := rfl
-@[simp] protected lemma coe_inv (r : ℝ≥0) : ((r⁻¹ : ℝ≥0) : ℝ) = r⁻¹ := rfl
+@[simp, move_cast] protected lemma coe_mul (r₁ r₂ : ℝ≥0) : ((r₁ * r₂ : ℝ≥0) : ℝ) = r₁ * r₂ := rfl
+@[simp, move_cast] protected lemma coe_div (r₁ r₂ : ℝ≥0) : ((r₁ / r₂ : ℝ≥0) : ℝ) = r₁ / r₂ := rfl
+@[simp, move_cast] protected lemma coe_inv (r : ℝ≥0) : ((r⁻¹ : ℝ≥0) : ℝ) = r⁻¹ := rfl
 
-@[simp] protected lemma coe_sub (r₁ r₂ : ℝ≥0) (h : r₂ ≤ r₁) : ((r₁ - r₂ : ℝ≥0) : ℝ) = r₁ - r₂ :=
+@[simp] protected lemma coe_sub {r₁ r₂ : ℝ≥0} (h : r₂ ≤ r₁) : ((r₁ - r₂ : ℝ≥0) : ℝ) = r₁ - r₂ :=
 max_eq_left $ le_sub.2 $ by simp [show (r₂ : ℝ) ≤ r₁, from h]
 
 -- TODO: setup semifield!
@@ -75,19 +75,22 @@ end
 
 instance : is_semiring_hom (coe : ℝ≥0 → ℝ) := by refine_struct {..}; intros; refl
 
-lemma sum_coe {α} {s : finset α} {f : α → ℝ≥0} : ↑(s.sum f) = s.sum (λa, (f a : ℝ)) :=
+@[move_cast] lemma coe_pow (r : ℝ≥0) (n : ℕ) : ((r^n : ℝ≥0) : ℝ) = r^n :=
+is_monoid_hom.map_pow coe r n
+
+@[move_cast] lemma sum_coe {α} {s : finset α} {f : α → ℝ≥0} :
+  ↑(s.sum f) = s.sum (λa, (f a : ℝ)) :=
 eq.symm $ finset.sum_hom _
 
-lemma prod_coe {α} {s : finset α} {f : α → ℝ≥0} : ↑(s.prod f) = s.prod (λa, (f a : ℝ)) :=
+@[move_cast] lemma prod_coe {α} {s : finset α} {f : α → ℝ≥0} :
+  ↑(s.prod f) = s.prod (λa, (f a : ℝ)) :=
 eq.symm $ finset.prod_hom _
 
-lemma smul_coe (r : ℝ≥0) : ∀n, ↑(add_monoid.smul n r) = add_monoid.smul n (r:ℝ)
-| 0       := rfl
-| (n + 1) := by simp [add_monoid.add_smul, smul_coe n]
+@[move_cast] lemma smul_coe (r : ℝ≥0) (n : ℕ) : ↑(add_monoid.smul n r) = add_monoid.smul n (r:ℝ) :=
+is_add_monoid_hom.map_smul coe r n
 
-@[simp] protected lemma coe_nat_cast : ∀(n : ℕ), (↑(↑n : ℝ≥0) : ℝ) = n
-| 0       := rfl
-| (n + 1) := by simp [coe_nat_cast n]
+@[simp, squash_cast] protected lemma coe_nat_cast (n : ℕ) : (↑(↑n : ℝ≥0) : ℝ) = n :=
+is_semiring_hom.map_nat_cast coe n
 
 instance : decidable_linear_order ℝ≥0 :=
 decidable_linear_order.lift (coe : ℝ≥0 → ℝ) subtype.val_injective (by apply_instance)
@@ -95,6 +98,7 @@ decidable_linear_order.lift (coe : ℝ≥0 → ℝ) subtype.val_injective (by ap
 @[elim_cast] protected lemma coe_le {r₁ r₂ : ℝ≥0} : (r₁ : ℝ) ≤ r₂ ↔ r₁ ≤ r₂ := iff.rfl
 @[elim_cast] protected lemma coe_lt {r₁ r₂ : ℝ≥0} : (r₁ : ℝ) < r₂ ↔ r₁ < r₂ := iff.rfl
 @[elim_cast] protected lemma coe_pos {r : ℝ≥0} : (0 : ℝ) < r ↔ 0 < r := iff.rfl
+@[elim_cast] protected lemma coe_eq {r₁ r₂ : ℝ≥0} : (r₁ : ℝ) = r₂ ↔ r₁ = r₂ := subtype.ext.symm
 
 protected lemma coe_mono : monotone (coe : ℝ≥0 → ℝ) := λ _ _, nnreal.coe_le.2
 
@@ -332,21 +336,26 @@ end mul
 
 section sub
 
+lemma sub_def {r p : ℝ≥0} : r - p = nnreal.of_real (r - p) := rfl
+
 lemma sub_eq_zero {r p : nnreal} (h : r ≤ p) : r - p = 0 :=
 nnreal.eq $ max_eq_right $ sub_le_iff_le_add.2 $ by simpa [nnreal.coe_le] using h
+
+lemma sub_pos {r p : ℝ≥0} : 0 < r - p ↔ p < r :=
+of_real_pos.trans $ sub_pos.trans $ nnreal.coe_lt
 
 protected lemma sub_lt_self {r p : nnreal} : 0 < r → 0 < p → r - p < r :=
 assume hr hp,
 begin
   cases le_total r p,
   { rwa [sub_eq_zero h] },
-  { rw [← nnreal.coe_lt, nnreal.coe_sub _ _ h], exact sub_lt_self _ hp }
+  { rw [← nnreal.coe_lt, nnreal.coe_sub h], exact sub_lt_self _ hp }
 end
 
 @[simp] lemma sub_le_iff_le_add {r p q : nnreal} : r - p ≤ q ↔ r ≤ q + p :=
 match le_total p r with
 | or.inl h :=
-  by rw [← nnreal.coe_le, ← nnreal.coe_le, nnreal.coe_sub _ _ h, nnreal.coe_add, sub_le_iff_le_add]
+  by rw [← nnreal.coe_le, ← nnreal.coe_le, nnreal.coe_sub h, nnreal.coe_add, sub_le_iff_le_add]
 | or.inr h :=
   have r ≤ p + q, from le_add_right h,
   by simpa [nnreal.coe_le, nnreal.coe_le, sub_eq_zero h]
@@ -359,7 +368,7 @@ lemma add_sub_cancel' {r p : nnreal} : (r + p) - r = p :=
 by rw [add_comm, add_sub_cancel]
 
 @[simp] lemma sub_add_cancel_of_le {a b : nnreal} (h : b ≤ a) : (a - b) + b = a :=
-nnreal.eq $ by rw [nnreal.coe_add, nnreal.coe_sub _ _ h, sub_add_cancel]
+nnreal.eq $ by rw [nnreal.coe_add, nnreal.coe_sub h, sub_add_cancel]
 
 end sub
 
@@ -395,9 +404,12 @@ by rw [← mul_le_mul_left (zero_lt_iff_ne_zero.2 h), mul_inv_cancel h, mul_comm
 @[simp] lemma lt_inv_iff_mul_lt {r p : ℝ≥0} (h : p ≠ 0) : (r < p⁻¹ ↔ r * p < 1) :=
 by rw [← mul_lt_mul_left (zero_lt_iff_ne_zero.2 h), mul_inv_cancel h, mul_comm]
 
-lemma mul_le_if_le_inv {a b r : nnreal} (hr : r ≠ 0) : r * a ≤ b ↔ a ≤ r⁻¹ * b :=
+lemma mul_le_iff_le_inv {a b r : ℝ≥0} (hr : r ≠ 0) : r * a ≤ b ↔ a ≤ r⁻¹ * b :=
 have 0 < r, from lt_of_le_of_ne (zero_le r) hr.symm,
 by rw [← @mul_le_mul_left _ _ a _ r this, ← mul_assoc, mul_inv_cancel hr, one_mul]
+
+lemma le_div_iff_mul_le {a b r : ℝ≥0} (hr : r ≠ 0) : a ≤ b / r ↔ a * r ≤ b :=
+by rw [div_def, mul_comm, ← mul_le_iff_le_inv hr, mul_comm]
 
 lemma le_of_forall_lt_one_mul_lt {x y : ℝ≥0} (h : ∀a<1, a * x ≤ y) : x ≤ y :=
 le_of_forall_ge_of_dense $ assume a ha,

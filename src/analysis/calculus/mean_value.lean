@@ -2,11 +2,17 @@
 Copyright (c) 2019 Sébastien Gouëzel. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Sébastien Gouëzel
-
-The mean value inequality: a bound on the derivative of a function implies that this function
-is Lipschitz continuous for the same bound.
 -/
-import analysis.calculus.fderiv
+
+import analysis.calculus.deriv
+
+/-! 
+# The mean value inequality
+
+A bound on the derivative of a function implies that this function
+is Lipschitz continuous for the same bound, on a segment or more generally in a convex set.
+This is proved in `norm_image_sub_le_of_norm_deriv_le_convex`.
+-/
 
 set_option class.instance_max_depth 120
 
@@ -19,7 +25,7 @@ open metric set lattice asymptotics continuous_linear_map
 implies a bound on the distance of the endpoints images -/
 theorem norm_image_sub_le_of_norm_deriv_le_segment {f : ℝ → F} {C : ℝ}
   (hf : differentiable_on ℝ f (Icc 0 1))
-  (bound : ∀t ∈ Icc (0:ℝ) 1, ∥fderiv_within ℝ f (Icc 0 1) t∥ ≤ C) :
+  (bound : ∀t ∈ Icc (0:ℝ) 1, ∥deriv_within f (Icc 0 1) t∥ ≤ C) :
   ∥f 1 - f 0∥ ≤ C :=
 begin
   /- Let D > C. We will show that, for all t ∈ [0,1], one has ∥f t - f 0∥ ≤ D * t. This is true
@@ -40,20 +46,20 @@ begin
     { apply continuous_on.prod,
       { refine continuous_norm.comp_continuous_on _,
         apply continuous_on.sub hf.continuous_on continuous_on_const },
-      { exact (continuous_mul continuous_const continuous_id).continuous_on } },
+      { exact (continuous_const.mul continuous_id).continuous_on } },
     show is_closed K, from
       A.preimage_closed_of_closed is_closed_Icc (ordered_topology.is_closed_le' _) },
   have : k = 1,
   { by_contradiction k_ne_1,
     have k_lt_1 : k < 1 := lt_of_le_of_ne k_mem_K.1.2 k_ne_1,
     have : 0 ≤ k := k_mem_K.1.1,
-    let g := fderiv_within ℝ f (Icc 0 1) k,
-    let h := λx, f x - f k - g (x-k),
+    let g := deriv_within f (Icc 0 1) k,
+    let h := λx, f x - f k - (x-k) • g,
     have : is_o (λ x, h x) (λ x, x - k) (nhds_within k (Icc 0 1)) :=
-      (hf k k_mem_K.1).has_fderiv_within_at,
+      (hf k k_mem_K.1).has_deriv_within_at,
     have : {x | ∥h x∥ ≤ (D-C) * ∥x-k∥} ∈ nhds_within k (Icc 0 1) :=
       this (D-C) (sub_pos_of_lt hD),
-    rcases (mem_nhds_within _ _ _).1 this with ⟨s, s_open, ks, hs⟩,
+    rcases mem_nhds_within.1 this with ⟨s, s_open, ks, hs⟩,
     rcases is_open_iff.1 s_open k ks with ⟨ε, εpos, hε⟩,
     change 0 < ε at εpos,
     let δ := min ε (1-k),
@@ -72,8 +78,8 @@ begin
     have Ih : ∥h x∥ ≤ (D - C) * ∥x - k∥ :=
       hs ⟨hε xε, xI⟩,
     have I : ∥f x - f k∥ ≤ D * (x-k) := calc
-      ∥f x - f k∥ = ∥g (x-k) + h x∥ : by { congr' 1, simp only [h], abel }
-      ... ≤ ∥g∥ * ∥x-k∥ + (D-C) * ∥x-k∥ : norm_add_le_of_le (g.le_op_norm _) Ih
+      ∥f x - f k∥ = ∥(x-k) • g + h x∥ : by { congr' 1, simp only [h], abel }
+      ... ≤ ∥g∥ * ∥x-k∥ + (D-C) * ∥x-k∥ : norm_add_le_of_le (by rw [norm_smul, mul_comm]) Ih
       ... ≤ C * ∥x-k∥ + (D-C) * ∥x-k∥ :
         add_le_add_right (mul_le_mul_of_nonneg_right (bound k k_mem_K.1) (norm_nonneg _)) _
       ... = D * ∥x-k∥ : by ring
@@ -96,7 +102,7 @@ theorem norm_image_sub_le_of_norm_deriv_le_convex {f : E → F} {C : ℝ} {s : s
   (hs : convex s) (xs : x ∈ s) (ys : y ∈ s) : ∥f y - f x∥ ≤ C * ∥y - x∥ :=
 begin
   /- By composition with t ↦ x + t • (y-x), we reduce to a statement for functions defined
-  on [0,1], for which it is proved in norm_image_sub_le_of_norm_deriv_le_segment.
+  on [0,1], for which it is proved in `norm_image_sub_le_of_norm_deriv_le_segment`.
   We just have to check the differentiability of the composition and bounds on its derivative,
   which is straightforward but tedious for lack of automation. -/
   have C0 : 0 ≤ C := le_trans (norm_nonneg _) (bound x xs),
@@ -114,26 +120,21 @@ begin
     (hf.comp D1.differentiable_on (image_subset_iff.1 segm)) (λt ht, _),
   /- It remains to check that the derivative of g is bounded by C ∥y-x∥ at any t ∈ [0,1] -/
   have t_s : x + t • (y-x) ∈ s := segm (mem_image_of_mem _ ht),
-  simp only [g],
   /- Expand the derivative of the composition, and bound its norm by the product of the norms -/
-  rw fderiv_within.comp t (hf _ t_s) ((D1 t).differentiable_within_at) (image_subset_iff.1 segm)
-    (unique_diff_on_Icc_zero_one t ht),
-  refine le_trans (op_norm_comp_le _ _) (mul_le_mul (bound _ t_s) _ (norm_nonneg _) C0),
-  have : fderiv_within ℝ (λ (t : ℝ), x + t • (y - x)) (Icc 0 1) t =
-      (id : ℝ →L[ℝ] ℝ).smul_right (y - x) := calc
-    fderiv_within ℝ (λ (t : ℝ), x + t • (y - x)) (Icc 0 1) t
-    = fderiv ℝ (λ (t : ℝ), x + t • (y - x)) t :
-      differentiable.fderiv_within (D1 t) (unique_diff_on_Icc_zero_one t ht)
-    ... = fderiv ℝ (λ (t : ℝ), x) t + fderiv ℝ (λ (t : ℝ), t • (y-x)) t :
-      fderiv_add (differentiable_at_const _) ((differentiable.smul' differentiable_id (differentiable_const _)) t)
-    ... = fderiv ℝ (λ (t : ℝ), t • (y-x)) t :
-      by rw [fderiv_const, zero_add]
-    ... = t • fderiv ℝ (λ (t : ℝ), (y-x)) t + (fderiv ℝ id t).smul_right (y - x) :
-      fderiv_smul' differentiable_at_id (differentiable_at_const _)
-    ... = (id : ℝ →L[ℝ] ℝ).smul_right (y - x) :
-      by rw [fderiv_const, smul_zero, zero_add, fderiv_id],
-  rw [this, smul_right_norm],
-  calc ∥(id : ℝ →L[ℝ] ℝ)∥ * ∥y - x∥ ≤ 1 * ∥y-x∥ :
-    mul_le_mul_of_nonneg_right norm_id (norm_nonneg _)
-  ... = ∥y - x∥ : one_mul _
+  rw fderiv_within.comp_deriv_within t (hf _ t_s) ((D1 t).differentiable_within_at)
+    (image_subset_iff.1 segm) (unique_diff_on_Icc_zero_one t ht),
+  refine le_trans (le_op_norm _ _) (mul_le_mul (bound _ t_s) _ (norm_nonneg _) C0),
+  have : deriv_within (λ (t : ℝ), x + t • (y - x)) (Icc 0 1) t = y - x := calc
+    deriv_within (λ (t : ℝ), x + t • (y - x)) (Icc 0 1) t
+    = deriv (λ (t : ℝ), x + t • (y - x)) t :
+      differentiable_at.deriv_within (D1 t) (unique_diff_on_Icc_zero_one t ht)
+    ... = deriv (λ (t : ℝ), x) t + deriv (λ (t : ℝ), t • (y-x)) t :
+      deriv_add (differentiable_at_const _) ((differentiable.smul' differentiable_id (differentiable_const _)) t)
+    ... = deriv (λ (t : ℝ), t • (y-x)) t :
+      by rw [deriv_const, zero_add]
+    ... = t • deriv (λ (t : ℝ), (y-x)) t + (deriv (@_root_.id ℝ) t) • (y - x) :
+      deriv_smul' differentiable_at_id (differentiable_at_const _)
+    ... = y - x :
+      by rw [deriv_const, smul_zero, zero_add, deriv_id, one_smul],
+  rw [this]
 end

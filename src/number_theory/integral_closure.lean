@@ -9,6 +9,33 @@ import data.padics.padic_integers
 
 open algebra polynomial
 
+lemma padic_val_rat_pos_iff_padic_norm_le_one (p : ℕ) [hp : nat.prime p] (r : ℚ) :
+   0 ≤ padic_val_rat p r ↔ ∥(r : ℚ_[p])∥ ≤ 1 :=
+begin
+  rw [padic_norm_e.eq_padic_norm, padic_norm],
+  split_ifs with hr,
+  { subst hr, rw padic_val_rat, rw dif_neg,
+    { split; intros, { exact_mod_cast zero_le_one }, { trivial } },
+    push_neg, left, trivial },
+  { split; intros H,
+    { norm_cast, rw [← neg_le_neg_iff, neg_zero] at H,
+      rw fpow_strict_mono },
+    }
+end
+
+lemma rat.denom_eq_one_iff_padic_val_rat_pos (r : ℚ) :
+  r.denom = 1 ↔ (∀ p : ℕ, p.prime → 0 ≤ padic_val_rat p r) :=
+sorry
+
+lemma rat.denom_eq_one_iff_padic_val_le_one (r : ℚ) :
+  r.denom = 1 ↔ (∀ p : ℕ, p.prime → by exactI ∥(r : ℚ_[p])∥ ≤ 1) :=
+begin
+  rw rat.denom_eq_one_iff_padic_val_rat_pos,
+  apply forall_congr, intros p,
+  apply forall_congr, intros hp, resetI,
+  exact padic_val_rat_pos_iff_padic_norm_le_one p r
+end
+
 theorem int.is_integrally_closed : is_integrally_closed ℤ ℚ :=
 { inj := int.cast_injective,
   closed :=

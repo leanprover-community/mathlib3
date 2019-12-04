@@ -92,8 +92,7 @@ instance euclidean_domain.to_principal_ideal_domain : principal_ideal_domain α 
       λ hx, let ⟨y, hy⟩ := mem_span_singleton.1 hx in hy.symm ▸ ideal.mul_mem_right _ hmin.1⟩⟩
     else ⟨0, submodule.ext $ λ a, by rw [← @submodule.bot_coe α α _ _ ring.to_module, span_eq, submodule.mem_bot]; exact
       ⟨λ haS, by_contradiction $ λ ha0, h ⟨a, ⟨haS, ha0⟩⟩,
-      λ h₁, h₁.symm ▸ S.zero_mem⟩⟩
-⟩ }
+      λ h₁, h₁.symm ▸ S.zero_mem⟩⟩⟩ }
 
 end
 

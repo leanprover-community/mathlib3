@@ -513,7 +513,7 @@ begin
 end
 
 lemma mul_sub (ha : a ≠ ∞) : a * (b - c) = a * b - a * c :=
-by simpa only [mul_comm a] using sub_mul a
+by { simp only [mul_comm a], exact sub_mul ha }
 
 end sub
 

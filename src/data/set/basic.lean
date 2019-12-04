@@ -6,8 +6,13 @@ Author: Jeremy Avigad, Leonardo de Moura
 import tactic.basic tactic.finish data.subtype logic.unique
 open function
 
+/-! # Basic properties of sets
 
-/- set coercion to a type -/
+This file provides some basic definitions related to sets and functions (e.g., `preimage`)
+not present in the core library, as well as extra lemmas.
+-/
+
+/-! ### Set coercion to a type -/
 namespace set
 instance {α : Type*} : has_coe_to_sort (set α) := ⟨_, λ s, {x // x ∈ s}⟩
 end set
@@ -56,7 +61,7 @@ theorem ext_iff (s t : set α) : s = t ↔ ∀ x, x ∈ s ↔ x ∈ t :=
 @[trans] theorem mem_of_mem_of_subset {α : Type u} {x : α} {s t : set α} (hx : x ∈ s) (h : s ⊆ t) : x ∈ t :=
 h hx
 
-/- mem and set_of -/
+/-! ### Lemmas about `mem` and `set_of` -/
 
 @[simp] theorem mem_set_of_eq {a : α} {p : α → Prop} : a ∈ {a | p a} = p a := rfl
 
@@ -79,7 +84,7 @@ rfl
 
 @[simp] lemma set_of_mem {α} {s : set α} : {a | a ∈ s} = s := rfl
 
-/- subset -/
+/-! #### Lemmas about subsets -/
 
 -- TODO(Jeremy): write a tactic to unfold specific instances of generic notation?
 theorem subset_def {s t : set α} : (s ⊆ t) = ∀ x, x ∈ s → x ∈ t := rfl
@@ -109,7 +114,7 @@ assume h₁ h₂, h₁ h₂
 theorem not_subset : (¬ s ⊆ t) ↔ ∃a, a ∈ s ∧ a ∉ t :=
 by simp [subset_def, classical.not_forall]
 
-/- strict subset -/
+/-! ### Definition of strict subsets `s ⊂ t` and basic properties. -/
 
 /-- `s ⊂ t` means that `s` is a strict subset of `t`, that is, `s ⊆ t` but `s ≠ t`. -/
 def strict_subset (s t : set α) := s ⊆ t ∧ s ≠ t
@@ -132,7 +137,34 @@ assume h : x ∈ ∅, h
 @[simp] theorem not_not_mem [decidable (a ∈ s)] : ¬ (a ∉ s) ↔ a ∈ s :=
 not_not
 
-/- empty set -/
+/-! ### Non-empty sets -/
+
+/-- A set `s` is not empty. -/
+protected def nonempty (s : set α) : Prop := ∃ x, x ∈ s
+
+lemma nonempty.of_mem {x} (h : x ∈ s) : s.nonempty := ⟨x, h⟩
+
+lemma nonempty.of_subset (ht : s ⊆ t) (hs : s.nonempty) : t.nonempty := hs.imp ht
+
+lemma nonempty.of_ssubset (ht : s ⊂ t) : t.nonempty := (exists_of_ssubset ht).imp $ λ _, Exists.fst
+
+lemma nonempty.inl (hs : s.nonempty) : (s ∪ t).nonempty := hs.imp $ λ _, or.inl
+
+lemma nonempty.inr (ht : t.nonempty) : (s ∪ t).nonempty := ht.imp $ λ _, or.inr
+
+@[simp] lemma union_nonempty : (s ∪ t).nonempty ↔ s.nonempty ∨ t.nonempty := exists_or_distrib
+
+lemma nonempty.left (h : (s ∩ t).nonempty) : s.nonempty := h.imp $ λ _, and.left
+
+lemma nonempty.right (h : (s ∩ t).nonempty) : t.nonempty := h.imp $ λ _, and.right
+
+lemma nonempty_iff_univ_nonempty : nonempty α ↔ (univ : set α).nonempty :=
+⟨λ ⟨x⟩, ⟨x, trivial⟩, λ ⟨x, _⟩, ⟨x⟩⟩
+
+lemma univ_nonempty : ∀ [h : nonempty α], (univ : set α).nonempty
+| ⟨x⟩ := ⟨x, trivial⟩
+
+/-! ### Lemmas about the empty set -/
 
 theorem empty_def : (∅ : set α) = {x | false} := rfl
 

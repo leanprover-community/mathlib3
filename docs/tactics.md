@@ -470,7 +470,7 @@ A maximum depth can be provided with `ext x y z : 3`.
  @[ext] lemma foo.ext : ∀ {α : Type u_1} (x y : foo α), x.x = y.x → x.y = y.y → x.z == y.z → x.k = y.k → x = y
  lemma foo.ext_iff : ∀ {α : Type u_1} (x y : foo α), x = y ↔ x.x = y.x ∧ x.y = y.y ∧ x.z == y.z ∧ x.k = y.k
  ```
- 
+
 ### refine_struct
 
 `refine_struct { .. }` acts like `refine` but works only with structure instance
@@ -1340,3 +1340,20 @@ See also additional documentation of `using_well_founded` in
 * `@[simps]` reduces let-expressions where necessary.
 * If one of the fields is a partially applied constructor, we will eta-expand it
   (this likely never happens).
+
+### mk_simp_attribute
+
+The command `mk_simp_attribute simp_name "description"` creates a simp set with name `simp_name`.
+Lemmas tagged with `@[simp_name]` will be included when `simp with simp_name` is called.
+`mk_simp_attribute simp_name none` will use a default description.
+
+Appending the command with `with attr1 attr2 ...` will include all declarations tagged with
+`attr1`, `attr2`, ... in the new simp set.
+
+This command is preferred to using ``run_cmd mk_simp_attr `simp_name`` since it adds a doc string
+to the attribute that is defined. If you need to create a simp set in a file where this command is not
+available, you should use
+```lean
+run_cmd mk_simp_attr `simp_name
+run_cmd add_doc_string `simp_attr.simp_name "Description of the simp set here"
+```

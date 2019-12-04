@@ -79,6 +79,8 @@ if h_some : h.is_some then
   -/
 meta def lift (p : pexpr) (t : pexpr) (h : option pexpr) (n : list name) : tactic unit :=
 do
+  propositional_goal <|>
+    fail "lift tactic failed. Tactic is only applicable when the target is a proposition.",
   e ← i_to_expr p,
   old_tp ← infer_type e,
   new_tp ← i_to_expr t,

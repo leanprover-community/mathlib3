@@ -158,7 +158,7 @@ begin
     tendsto.comp (hf.continuous.tendsto _) this,
   simp only [fsumeq] at L₁,
   have L₂ : tendsto (λn, y - (h^[n]) y) at_top (𝓝 (y - 0)),
-  { refine tendsto.sub tendsto_const_nhds _,
+  { refine tendsto_const_nhds.sub _,
     rw tendsto_iff_norm_tendsto_zero,
     simp only [sub_zero],
     refine squeeze_zero (λ_, norm_nonneg _) hnle _,

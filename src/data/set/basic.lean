@@ -148,7 +148,7 @@ lemma nonempty_of_mem {x} (h : x ∈ s) : s.nonempty := ⟨x, h⟩
 
 /-- Extract a witness from `s.nonempty`. This function might be used instead of case analysis
 on the argument. Note that it makes a proof depend on the `classical.choice` axiom. -/
-protected def nonempty.some (h : s.nonempty) : α := classical.some h
+protected noncomputable def nonempty.some (h : s.nonempty) : α := classical.some h
 
 protected lemma nonempty.some_mem (h : s.nonempty) : h.some ∈ s := classical.some_spec h
 

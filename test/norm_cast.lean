@@ -98,3 +98,5 @@ begin
   guard_hyp h := (x : ℤ) + y + k = 0,
   assumption_mod_cast
 end
+
+example {x : ℚ} : ((x + 42 : ℚ) : ℝ) = x + 42 :=  by push_cast

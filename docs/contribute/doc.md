@@ -12,7 +12,8 @@ Each mathlib file should start with:
 
 (See the example below.)
 
-Headers use atx-style headers (with hash signs, no underlying dash).
+Headers use atx-style headers (with hash signs, no underlying dash). 
+The open and close delimiters `/-!` and `-/` should appear on their own lines.
 
 The mandatory title of the file is a first level header. It is followed by a summary of the content
 of the file.
@@ -129,6 +130,8 @@ have multiple sections or namespaces following one sectioning comment.
 Sectioning comments are for display and readability only. They have no semantic meaning.
 
 Third-level headers `###` should be used for titles inside sectioning comments.
+
+If the comment is more than one line long, the delimiters `/-!` and `-/` should appear on their own lines.
 
 See [meta/expr.lean](../../src/meta/expr.lean) for an example in practice.
 

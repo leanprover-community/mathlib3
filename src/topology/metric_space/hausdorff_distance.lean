@@ -81,7 +81,7 @@ begin
     ... = edist y z + edist x y : add_comm _ _,
   have : (λz, z + edist x y) (Inf (edist y '' s)) = Inf ((λz, z + edist x y) '' (edist y '' s)),
   { refine Inf_of_continuous _ _ (by simp),
-    { exact continuous.add continuous_id continuous_const },
+    { exact continuous_id.add continuous_const },
     { assume a b h, simp, apply add_le_add_right' h }},
   simp only [inf_edist] at this,
   rw [inf_edist, inf_edist, this, ← image_comp],

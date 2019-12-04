@@ -754,11 +754,7 @@ range_succ
 
 @[simp] theorem range_subset {n m} : range n ⊆ range m ↔ n ≤ m := range_subset
 
-theorem exists_nat_subset_range (s : finset ℕ) : ∃n : ℕ, s ⊆ range n :=
-finset.induction_on s ⟨0, empty_subset _⟩ $ λ a s ha ⟨n, hn⟩,
-⟨max (a + 1) n, insert_subset.2
-  ⟨by simpa only [mem_range] using le_max_left (a+1) n,
-  subset.trans hn (by simpa only [range_subset] using le_max_right (a+1) n)⟩⟩
+theorem range_mono : monotone range := λ _ _, range_subset.2
 
 end range
 
@@ -985,6 +981,8 @@ eq_of_veq $ by simp only [image_val, erase_dup_map_erase_dup_eq, multiset.map_ma
 
 theorem image_subset_image {s₁ s₂ : finset α} (h : s₁ ⊆ s₂) : s₁.image f ⊆ s₂.image f :=
 by simp only [subset_def, image_val, subset_erase_dup', erase_dup_subset', multiset.map_subset_map h]
+
+theorem image_mono (f : α → β) : monotone (finset.image f) := λ _ _, image_subset_image
 
 theorem image_filter {p : β → Prop} [decidable_pred p] :
   (s.image f).filter p = (s.filter (p ∘ f)).image f :=
@@ -1495,6 +1493,95 @@ by haveI := classical.prop_decidable;
    rw [fold, insert_val', ← fold_erase_dup_idem op, erase_dup_map_erase_dup_eq,
        fold_erase_dup_idem op]; simp only [map_cons, fold_cons_left, fold]
 
+lemma fold_op_rel_iff_and [decidable_eq α]
+  {r : β → β → Prop} (hr : ∀ {x y z}, r x (op y z) ↔ (r x y ∧ r x z)) {c : β} :
+  r c (s.fold op b f) ↔ (r c b ∧ ∀ x∈s, r c (f x)) :=
+begin
+  apply finset.induction_on s, { simp },
+  clear s, intros a s ha IH,
+  rw [finset.fold_insert ha, hr, IH, ← and_assoc, and_comm (r c (f a)), and_assoc],
+  apply and_congr iff.rfl,
+  split,
+  { rintro ⟨h₁, h₂⟩, intros b hb, rw finset.mem_insert at hb,
+    rcases hb with rfl|hb; solve_by_elim },
+  { intro h, split,
+    { exact h a (finset.mem_insert_self _ _), },
+    { intros b hb, apply h b, rw finset.mem_insert, right, exact hb } }
+end
+
+lemma fold_op_rel_iff_or [decidable_eq α]
+  {r : β → β → Prop} (hr : ∀ {x y z}, r x (op y z) ↔ (r x y ∨ r x z)) {c : β} :
+  r c (s.fold op b f) ↔ (r c b ∨ ∃ x∈s, r c (f x)) :=
+begin
+  apply finset.induction_on s, { simp },
+  clear s, intros a s ha IH,
+  rw [finset.fold_insert ha, hr, IH, ← or_assoc, or_comm (r c (f a)), or_assoc],
+  apply or_congr iff.rfl,
+  split,
+  { rintro (h₁|⟨x, hx, h₂⟩),
+    { use a, simp [h₁] },
+    { refine ⟨x, by simp [hx], h₂⟩ } },
+  { rintro ⟨x, hx, h⟩,
+    rw mem_insert at hx, cases hx,
+    { left, rwa hx at h },
+    { right, exact ⟨x, hx, h⟩ } }
+end
+
+omit hc ha
+
+section order
+variables [decidable_eq α] [decidable_linear_order β] (c : β)
+
+lemma le_fold_min : c ≤ s.fold min b f ↔ (c ≤ b ∧ ∀ x∈s, c ≤ f x) :=
+fold_op_rel_iff_and $ λ x y z, le_min_iff
+
+lemma fold_min_le : s.fold min b f ≤ c ↔ (b ≤ c ∨ ∃ x∈s, f x ≤ c) :=
+begin
+  show _ ≥ _ ↔ _,
+  apply fold_op_rel_iff_or,
+  intros x y z,
+  show _ ≤ _ ↔ _,
+  exact min_le_iff
+end
+
+lemma lt_fold_min : c < s.fold min b f ↔ (c < b ∧ ∀ x∈s, c < f x) :=
+fold_op_rel_iff_and $ λ x y z, lt_min_iff
+
+lemma fold_min_lt : s.fold min b f < c ↔ (b < c ∨ ∃ x∈s, f x < c) :=
+begin
+  show _ > _ ↔ _,
+  apply fold_op_rel_iff_or,
+  intros x y z,
+  show _ < _ ↔ _,
+  exact min_lt_iff
+end
+
+lemma fold_max_le : s.fold max b f ≤ c ↔ (b ≤ c ∧ ∀ x∈s, f x ≤ c) :=
+begin
+  show _ ≥ _ ↔ _,
+  apply fold_op_rel_iff_and,
+  intros x y z,
+  show _ ≤ _ ↔ _,
+  exact max_le_iff
+end
+
+lemma le_fold_max : c ≤ s.fold max b f ↔ (c ≤ b ∨ ∃ x∈s, c ≤ f x) :=
+fold_op_rel_iff_or $ λ x y z, le_max_iff
+
+lemma fold_max_lt : s.fold max b f < c ↔ (b < c ∧ ∀ x∈s, f x < c) :=
+begin
+  show _ > _ ↔ _,
+  apply fold_op_rel_iff_and,
+  intros x y z,
+  show _ < _ ↔ _,
+  exact max_lt_iff
+end
+
+lemma lt_fold_max : c < s.fold max b f ↔ (c < b ∨ ∃ x∈s, c < f x) :=
+fold_op_rel_iff_or $ λ x y z, lt_max_iff
+
+end order
+
 end fold
 
 section sup
@@ -1565,6 +1652,12 @@ begin
 end,
 by letI := classical.dec_eq β; from
 finset.induction_on s (by simp [bot]) (by simp [A] {contextual := tt})
+
+theorem subset_range_sup_succ (s : finset ℕ) : s ⊆ range (s.sup id).succ :=
+λ n hn, mem_range.2 $ nat.lt_succ_of_le $ le_sup hn
+
+theorem exists_nat_subset_range (s : finset ℕ) : ∃n : ℕ, s ⊆ range n :=
+⟨_, s.subset_range_sup_succ⟩
 
 end sup
 

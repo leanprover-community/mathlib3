@@ -1139,7 +1139,7 @@ calc
     lintegral_congr_ae $ all_ae_of_all $ assume a, limsup_eq_infi_supr_of_nat.symm
 
 /-- Dominated convergence theorem for nonnegative functions -/
-lemma dominated_convergence_nn
+lemma tendsto_lintegral_of_dominated_convergence
   {F : ℕ → α → ennreal} {f : α → ennreal} {g : α → ennreal}
   (hF_meas : ∀n, measurable (F n)) (h_bound : ∀n, ∀ₘ a, F n a ≤ g a)
   (h_fin : lintegral g < ⊤)

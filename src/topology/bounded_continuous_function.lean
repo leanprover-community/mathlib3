@@ -388,29 +388,25 @@ lemma norm_coe_le_norm (x : α) : ∥f x∥ ≤ ∥f∥ := calc
   ∥f x∥ = dist (f x) ((0 : α →ᵇ β) x) : by simp [dist_zero_right]
   ... ≤ ∥f∥ : dist_coe_le_dist _
 
+/-- Distance between the images of any two points is at most twice the norm of the function. -/
+lemma dist_le_two_norm (x y : α) : dist (f x) (f y) ≤ 2 * ∥f∥ := calc
+  dist (f x) (f y) ≤ ∥f x∥ + ∥f y∥ : dist_le_norm_add_norm _ _
+               ... ≤ ∥f∥ + ∥f∥     : add_le_add (norm_coe_le_norm x) (norm_coe_le_norm y)
+               ... = 2 * ∥f∥      : (two_mul _).symm
+
 /-- The norm of a function is controlled by the supremum of the pointwise norms -/
 lemma norm_le (C0 : (0 : ℝ) ≤ C) : ∥f∥ ≤ C ↔ ∀x:α, ∥f x∥ ≤ C :=
 by simpa only [coe_zero, dist_zero_right] using @dist_le _ _ _ _ f 0 _ C0
 
 /-- The pointwise sum of two bounded continuous functions is again bounded continuous. -/
 instance : has_add (α →ᵇ β) :=
-⟨λf g, ⟨λx, f x + g x, continuous_add f.2.1 g.2.1, (∥f∥ + ∥g∥) + (∥f∥ + ∥g∥),
-  λ x y,
-    have ∀x, dist (f x + g x) 0 ≤ ∥f∥ + ∥g∥ := λx, calc
-      dist (f x + g x) 0 = ∥f x + g x∥ : dist_zero_right _
-      ... ≤ ∥f x∥ + ∥g x∥ : norm_triangle _ _
-      ... ≤ ∥f∥ + ∥g∥ : add_le_add (norm_coe_le_norm _) (norm_coe_le_norm _),
-    calc dist (f x + g x) (f y + g y) ≤ dist (f x + g x) 0 + dist (f y + g y) 0 : dist_triangle_right _ _ _
-        ... ≤ (∥f∥ + ∥g∥) + (∥f∥ + ∥g∥) : add_le_add (this x) (this y) ⟩⟩
+⟨λf g, ⟨λx, f x + g x, f.2.1.add g.2.1,
+  let ⟨_, fM, hf⟩ := f.2 in let ⟨_, gM, hg⟩ := g.2 in
+  ⟨fM + gM, λ x y, dist_add_add_le_of_le (hf _ _) (hg _ _)⟩⟩⟩
 
 /-- The pointwise opposite of a bounded continuous function is again bounded continuous. -/
 instance : has_neg (α →ᵇ β) :=
-⟨λf, ⟨λx, -f x, continuous_neg f.2.1,
-  begin
-    have dn : ∀a b : β, dist (-a) (-b) = dist a b := λ a b,
-      by rw [dist_eq_norm, neg_sub_neg, ← dist_eq_norm, dist_comm],
-    simpa only [dn] using f.2.2
-  end⟩⟩
+⟨λf, ⟨λx, -f x, f.2.1.neg, by simpa only [dist_neg_neg] using f.2.2⟩⟩
 
 @[simp] lemma coe_add : (f + g) x = f x + g x := rfl
 @[simp] lemma coe_neg : (-f) x = - (f x) := rfl

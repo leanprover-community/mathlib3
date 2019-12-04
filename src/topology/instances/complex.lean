@@ -36,7 +36,7 @@ metric.uniform_continuous_iff.2 $ λ ε ε0, ⟨_, ε0, λ a b h,
 instance : uniform_add_group ℂ :=
 uniform_add_group.mk' uniform_continuous_add uniform_continuous_neg
 
-instance : topological_add_group ℂ := by apply_instance
+instance : topological_add_group ℂ := by apply_instance -- short-circuit type class inference
 
 lemma uniform_continuous_inv (s : set ℂ) {r : ℝ} (r0 : 0 < r) (H : ∀ x ∈ s, r ≤ abs x) :
   uniform_continuous (λp:s, p.1⁻¹) :=
@@ -57,14 +57,14 @@ tendsto_of_uniform_continuous_subtype
   (uniform_continuous_inv {x | abs r / 2 < abs x} (half_pos r0) (λ x h, le_of_lt h))
   (mem_nhds_sets (continuous_abs _ $ is_open_lt' (abs r / 2)) (half_lt_self r0))
 
-lemma continuous_inv' : continuous (λa:{r:ℂ // r ≠ 0}, a.val⁻¹) :=
+lemma continuous_inv : continuous (λa:{r:ℂ // r ≠ 0}, a.val⁻¹) :=
 continuous_iff_continuous_at.mpr $ assume ⟨r, hr⟩,
   tendsto.comp (tendsto_inv hr) (continuous_iff_continuous_at.mp continuous_subtype_val _)
 
-lemma continuous_inv {α} [topological_space α] {f : α → ℂ} (h : ∀a, f a ≠ 0) (hf : continuous f) :
+lemma continuous.inv {α} [topological_space α] {f : α → ℂ} (h : ∀a, f a ≠ 0) (hf : continuous f) :
   continuous (λa, (f a)⁻¹) :=
 show continuous ((has_inv.inv ∘ @subtype.val ℂ (λr, r ≠ 0)) ∘ λa, ⟨f a, h a⟩),
-  from continuous_inv'.comp (continuous_subtype_mk _ hf)
+  from continuous_inv.comp (continuous_subtype_mk _ hf)
 
 lemma uniform_continuous_mul_const {x : ℂ} : uniform_continuous ((*) x) :=
 metric.uniform_continuous_iff.2 $ λ ε ε0, begin
@@ -117,16 +117,15 @@ lemma continuous_of_real : continuous of_real := uniform_continuous_of_real.cont
 instance : topological_ring ℂ :=
 { continuous_mul := complex.continuous_mul, ..complex.topological_add_group }
 
-instance : topological_semiring ℂ := by apply_instance
+instance : topological_semiring ℂ := by apply_instance -- short-circuit type class inference
 
 def real_prod_homeo : homeomorph ℂ (ℝ × ℝ) :=
 { to_equiv := real_prod_equiv,
-  continuous_to_fun := continuous.prod_mk continuous_re continuous_im,
+  continuous_to_fun := continuous_re.prod_mk continuous_im,
   continuous_inv_fun := show continuous (λ p : ℝ × ℝ, complex.mk p.1 p.2),
     by simp only [mk_eq_add_mul_I]; exact
-    continuous_add
-      (continuous_of_real.comp continuous_fst)
-      (continuous_mul (continuous_of_real.comp continuous_snd) continuous_const) }
+      (continuous_of_real.comp continuous_fst).add
+      ((continuous_of_real.comp continuous_snd).mul continuous_const) }
 
 instance : proper_space ℂ :=
 ⟨λx r, begin

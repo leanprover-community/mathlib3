@@ -12,6 +12,8 @@ open topological_space
 
 universes u v w u'
 
+section prio
+set_option default_priority 100 -- see Note [default priority]
 /-- A topological semimodule, over a semiring which is also a topological space, is a
 semimodule in which scalar multiplication is continuous. In applications, α will be a topological
 semiring and β a topological additive semigroup, but this is not needed for the definition -/
@@ -20,6 +22,7 @@ class topological_semimodule (α : Type u) (β : Type v)
   [topological_space β] [add_comm_monoid β]
   [semimodule α β] : Prop :=
 (continuous_smul : continuous (λp : α × β, p.1 • p.2))
+end prio
 
 section
 
@@ -37,6 +40,8 @@ continuous_smul'.comp (hf.prod_mk hg)
 
 end
 
+section prio
+set_option default_priority 100 -- see Note [default priority]
 /-- A topological module, over a ring which is also a topological space, is a module in which
 scalar multiplication is continuous. In applications, α will be a topological ring and β a
 topological additive group, but this is not needed for the definition -/
@@ -51,6 +56,7 @@ class topological_vector_space (α : Type u) (β : Type v)
   [discrete_field α] [topological_space α]
   [topological_space β] [add_comm_group β] [vector_space α β]
   extends topological_module α β
+end prio
 
 /-- Continuous linear maps between modules. We only put the type classes that are necessary for the
 definition, although in applications β and γ will be topological modules over the topological
@@ -131,13 +137,13 @@ section add
 variables [topological_add_group γ]
 
 instance : has_add (β →L[α] γ) :=
-⟨λ f g, ⟨f + g, continuous_add f.2 g.2⟩⟩
+⟨λ f g, ⟨f + g, f.2.add g.2⟩⟩
 
 @[simp] lemma add_apply : (f + g) x = f x + g x := rfl
 @[simp, move_cast] lemma coe_add : (((f + g) : β →L[α] γ) : β →ₗ[α] γ) = (f : β →ₗ[α] γ) + g := rfl
 @[move_cast] lemma coe_add' : (((f + g) : β →L[α] γ) : β → γ) = (f : β → γ) + g := rfl
 
-instance : has_neg (β →L[α] γ) := ⟨λ f, ⟨-f, continuous_neg f.2⟩⟩
+instance : has_neg (β →L[α] γ) := ⟨λ f, ⟨-f, f.2.neg⟩⟩
 
 @[simp] lemma neg_apply : (-f) x = - (f x) := rfl
 
@@ -175,7 +181,7 @@ instance [topological_add_group β] : ring (β →L[α] β) :=
 
 /-- The cartesian product of two bounded linear maps, as a bounded linear map. -/
 def prod (f₁ : β →L[α] γ) (f₂ : β →L[α] δ) : β →L[α] (γ × δ) :=
-{ cont := continuous.prod_mk f₁.2 f₂.2,
+{ cont := f₁.2.prod_mk f₂.2,
   ..f₁.to_linear_map.prod f₂.to_linear_map }
 
 end general_ring

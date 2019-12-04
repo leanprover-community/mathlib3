@@ -271,7 +271,7 @@ comp₂ (+) (measurable_add (measurable_fst measurable_id) (measurable_snd  meas
 instance : has_add (α →ₘ γ) := ⟨ae_eq_fun.add⟩
 
 @[simp] lemma mk_add_mk (f g : α → γ) (hf hg) :
-   (mk f hf) + (mk g hg) = mk (λa, (f a) + (g a)) (measurable_add hf hg) := rfl
+   (mk f hf) + (mk g hg) = mk (f + g) (measurable_add hf hg) := rfl
 
 lemma add_to_fun (f g : α →ₘ γ) : ∀ₘ a, (f + g).to_fun a = f.to_fun a + g.to_fun a :=
 comp₂_to_fun _ _ _ _
@@ -344,24 +344,24 @@ end add_comm_group
 
 section semimodule
 
-variables {K : Type*} [semiring K] [topological_space K]
+variables {𝕜 : Type*} [semiring 𝕜] [topological_space 𝕜]
 variables {γ : Type*} [topological_space γ]
-          [add_comm_monoid γ] [semimodule K γ] [topological_semimodule K γ]
+          [add_comm_monoid γ] [semimodule 𝕜 γ] [topological_semimodule 𝕜 γ]
 
-protected def smul : K → (α →ₘ γ) → (α →ₘ γ) :=
-λ c f, comp (has_scalar.smul c) (measurable_smul measurable_id) f
+protected def smul : 𝕜 → (α →ₘ γ) → (α →ₘ γ) :=
+λ c f, comp (has_scalar.smul c) (measurable_smul _ measurable_id) f
 
-instance : has_scalar K (α →ₘ γ) := ⟨ae_eq_fun.smul⟩
+instance : has_scalar 𝕜 (α →ₘ γ) := ⟨ae_eq_fun.smul⟩
 
-@[simp] lemma smul_mk (c : K) (f : α → γ) (hf) : c • (mk f hf) = mk (c • f) (measurable_smul hf) :=
+@[simp] lemma smul_mk (c : 𝕜) (f : α → γ) (hf) : c • (mk f hf) = mk (c • f) (measurable_smul _ hf) :=
 rfl
 
-lemma smul_to_fun (c : K) (f : α →ₘ γ) : ∀ₘ a, (c • f).to_fun a = c • f.to_fun a :=
+lemma smul_to_fun (c : 𝕜) (f : α →ₘ γ) : ∀ₘ a, (c • f).to_fun a = c • f.to_fun a :=
 comp_to_fun _ _ _
 
 variables [second_countable_topology γ] [topological_add_monoid γ]
 
-instance : semimodule K (α →ₘ γ) :=
+instance : semimodule 𝕜 (α →ₘ γ) :=
 { one_smul  := by { rintros ⟨f, hf⟩, simp only [quot_mk_eq_mk, smul_mk, one_smul] },
   mul_smul  :=
     by { rintros x y ⟨f, hf⟩, simp only [quot_mk_eq_mk, smul_mk, mul_action.mul_smul x y f], refl },
@@ -377,27 +377,29 @@ instance : semimodule K (α →ₘ γ) :=
     exact add_smul x y f
   end,
   zero_smul :=
-    by { rintro ⟨f, hf⟩, simp only [quot_mk_eq_mk, smul_mk, zero_def], congr, exact zero_smul K f }}
+    by { rintro ⟨f, hf⟩, simp only [quot_mk_eq_mk, smul_mk, zero_def], congr, exact zero_smul 𝕜 f }}
+
+instance : mul_action 𝕜 (α →ₘ γ) := by apply_instance
 
 end semimodule
 
 section module
 
-variables {K : Type*} [ring K] [topological_space K]
+variables {𝕜 : Type*} [ring 𝕜] [topological_space 𝕜]
 variables {γ : Type*} [topological_space γ] [second_countable_topology γ] [add_comm_group γ]
-          [topological_add_group γ] [module K γ] [topological_semimodule K γ]
+          [topological_add_group γ] [module 𝕜 γ] [topological_semimodule 𝕜 γ]
 
-instance : module K (α →ₘ γ) := { .. ae_eq_fun.semimodule }
+instance : module 𝕜 (α →ₘ γ) := { .. ae_eq_fun.semimodule }
 
 end module
 
 section vector_space
 
-variables {K : Type*} [discrete_field K] [topological_space K]
+variables {𝕜 : Type*} [discrete_field 𝕜] [topological_space 𝕜]
 variables {γ : Type*} [topological_space γ] [second_countable_topology γ] [add_comm_group γ]
-          [topological_add_group γ] [vector_space K γ] [topological_semimodule K γ]
+          [topological_add_group γ] [vector_space 𝕜 γ] [topological_semimodule 𝕜 γ]
 
-instance : vector_space K (α →ₘ γ) := { .. ae_eq_fun.semimodule }
+instance : vector_space 𝕜 (α →ₘ γ) := { .. ae_eq_fun.semimodule }
 
 end vector_space
 
@@ -426,7 +428,7 @@ begin
 end
 
 lemma eintegral_add : ∀(f g : α →ₘ ennreal), eintegral (f + g) = eintegral f + eintegral g :=
-by rintros ⟨f⟩ ⟨g⟩; simp only [quot_mk_eq_mk, mk_add_mk, eintegral_mk, lintegral_add f.2 g.2]
+by { rintros ⟨f⟩ ⟨g⟩, simp only [quot_mk_eq_mk, mk_add_mk, eintegral_mk], exact lintegral_add f.2 g.2 }
 
 lemma eintegral_le_eintegral {f g : α →ₘ ennreal} (h : f ≤ g) : eintegral f ≤ eintegral g :=
 begin
@@ -449,6 +451,8 @@ comp₂_to_fun _ _ _ _
 lemma comp_edist_self : ∀ (f : α →ₘ γ), comp_edist f f = 0 :=
 by rintro ⟨f⟩; refine quotient.sound _; simp only [edist_self]
 
+/-- Almost everywhere equal functions form an `emetric_space`, with the emetric defined as
+  `edist f g = ∫⁻ a, edist (f a) (g a)`. -/
 instance : emetric_space (α →ₘ γ) :=
 { edist               := λf g, eintegral (comp_edist f g),
   edist_self          := assume f, (eintegral_eq_zero_iff _).2 (comp_edist_self _),
@@ -517,10 +521,10 @@ section normed_space
 
 set_option class.instance_max_depth 100
 
-variables {K : Type*} [normed_field K]
-variables {γ : Type*} [normed_group γ] [second_countable_topology γ] [normed_space K γ]
+variables {𝕜 : Type*} [normed_field 𝕜]
+variables {γ : Type*} [normed_group γ] [second_countable_topology γ] [normed_space 𝕜 γ]
 
-lemma edist_smul (x : K) : ∀ f : α →ₘ γ, edist (x • f) 0 = (ennreal.of_real ∥x∥) * edist f 0 :=
+lemma edist_smul (x : 𝕜) : ∀ f : α →ₘ γ, edist (x • f) 0 = (ennreal.of_real ∥x∥) * edist f 0 :=
 begin
   rintros ⟨f, hf⟩, simp only [zero_def, edist_mk_mk', quot_mk_eq_mk, smul_mk],
   exact calc

@@ -72,7 +72,7 @@ begin
           ∥f x - d • y∥ = ∥f x₁ - (a + d • y) - (f x₂ - a)∥ :
             by { congr' 1, simp only [x, lin.map_sub], abel }
           ... ≤ ∥f x₁ - (a + d • y)∥ + ∥f x₂ - a∥ :
-            norm_triangle_sub
+            norm_sub_le _ _
           ... ≤ δ + δ : begin
               apply add_le_add,
               { rw [← dist_eq_norm, dist_comm], exact le_of_lt h₁ },
@@ -97,7 +97,7 @@ begin
           ∥d⁻¹ • x∥ = ∥d∥⁻¹ * ∥x₁ - x₂∥ : by rw [norm_smul, normed_field.norm_inv]
           ... ≤ ((ε / 2)⁻¹ * ∥c∥ * ∥y∥) * (n + n) : begin
               refine mul_le_mul dinv _ (norm_nonneg _) _,
-              { exact le_trans (norm_triangle_sub) (add_le_add (le_of_lt hx₁) (le_of_lt hx₂)) },
+              { exact le_trans (norm_sub_le _ _) (add_le_add (le_of_lt hx₁) (le_of_lt hx₂)) },
               { apply mul_nonneg (mul_nonneg _ (norm_nonneg _)) (norm_nonneg _),
                 exact inv_nonneg.2 (le_of_lt (half_pos εpos)) }
             end
@@ -158,13 +158,13 @@ begin
     tendsto.comp (hf.continuous.tendsto _) this,
   simp only [fsumeq] at L₁,
   have L₂ : tendsto (λn, y - (h^[n]) y) at_top (𝓝 (y - 0)),
-  { refine tendsto_sub tendsto_const_nhds _,
+  { refine tendsto_const_nhds.sub _,
     rw tendsto_iff_norm_tendsto_zero,
     simp only [sub_zero],
     refine squeeze_zero (λ_, norm_nonneg _) hnle _,
     have : 0 = 0 * ∥y∥, by rw zero_mul,
     rw this,
-    refine tendsto_mul _ tendsto_const_nhds,
+    refine tendsto.mul _ tendsto_const_nhds,
     exact tendsto_pow_at_top_nhds_0_of_lt_1 (by norm_num) (by norm_num) },
   have feq : f x = y - 0,
   { apply tendsto_nhds_unique _ L₁ L₂,

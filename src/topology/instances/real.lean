@@ -39,6 +39,9 @@ theorem rat.dist_eq (x y : ℚ) : dist x y = abs (x - y) := rfl
 
 @[elim_cast, simp] lemma rat.dist_cast (x y : ℚ) : dist (x : ℝ) y = dist x y := rfl
 
+section low_prio
+-- we want to ignore this instance for the next declaration
+local attribute [instance, priority 10] int.uniform_space
 instance : metric_space ℤ :=
 begin
   letI M := metric_space.induced coe int.cast_injective real.metric_space,
@@ -49,6 +52,7 @@ begin
   simpa using (@int.cast_le ℝ _ _ 0).2 (int.lt_add_one_iff.1 $
     (@int.cast_lt ℝ _ (abs (a - b)) 1).1 $ by simpa using h)
 end
+end low_prio
 
 theorem int.dist_eq (x y : ℤ) : dist x y = abs (x - y) := rfl
 
@@ -99,6 +103,7 @@ uniform_add_group.mk' real.uniform_continuous_add real.uniform_continuous_neg
 instance : uniform_add_group ℚ :=
 uniform_add_group.mk' rat.uniform_continuous_add rat.uniform_continuous_neg
 
+ -- short-circuit type class inference
 instance : topological_add_group ℝ := by apply_instance
 instance : topological_add_group ℚ := by apply_instance
 
@@ -156,14 +161,14 @@ tendsto_of_uniform_continuous_subtype
   (real.uniform_continuous_inv {x | abs r / 2 < abs x} (half_pos r0) (λ x h, le_of_lt h))
   (mem_nhds_sets (real.continuous_abs _ $ is_open_lt' (abs r / 2)) (half_lt_self r0))
 
-lemma real.continuous_inv' : continuous (λa:{r:ℝ // r ≠ 0}, a.val⁻¹) :=
+lemma real.continuous_inv : continuous (λa:{r:ℝ // r ≠ 0}, a.val⁻¹) :=
 continuous_iff_continuous_at.mpr $ assume ⟨r, hr⟩,
   tendsto.comp (real.tendsto_inv hr) (continuous_iff_continuous_at.mp continuous_subtype_val _)
 
-lemma real.continuous_inv [topological_space α] {f : α → ℝ} (h : ∀a, f a ≠ 0) (hf : continuous f) :
+lemma real.continuous.inv [topological_space α] {f : α → ℝ} (h : ∀a, f a ≠ 0) (hf : continuous f) :
   continuous (λa, (f a)⁻¹) :=
 show continuous ((has_inv.inv ∘ @subtype.val ℝ (λr, r ≠ 0)) ∘ λa, ⟨f a, h a⟩),
-  from real.continuous_inv'.comp (continuous_subtype_mk _ hf)
+  from real.continuous_inv.comp (continuous_subtype_mk _ hf)
 
 lemma real.uniform_continuous_mul_const {x : ℝ} : uniform_continuous ((*) x) :=
 metric.uniform_continuous_iff.2 $ λ ε ε0, begin
@@ -197,7 +202,7 @@ tendsto_of_uniform_continuous_subtype
 instance : topological_ring ℝ :=
 { continuous_mul := real.continuous_mul, ..real.topological_add_group }
 
-instance : topological_semiring ℝ := by apply_instance
+instance : topological_semiring ℝ := by apply_instance  -- short-circuit type class inference
 
 lemma rat.continuous_mul : continuous (λp : ℚ × ℚ, p.1 * p.2) :=
 embedding_of_rat.continuous_iff.2 $ by simp [(∘)]; exact
@@ -392,7 +397,7 @@ lemma real.intermediate_value' {f : ℝ → ℝ} {a b t : ℝ}
   (hf : ∀ x, a ≤ x → x ≤ b → tendsto f (𝓝 x) (𝓝 (f x)))
   (ha : t ≤ f a) (hb : f b ≤ t) (hab : a ≤ b) : ∃ x : ℝ, a ≤ x ∧ x ≤ b ∧ f x = t :=
 let ⟨x, hx₁, hx₂, hx₃⟩ := @real.intermediate_value
-  (λ x, - f x) a b (-t) (λ x hax hxb, tendsto_neg (hf x hax hxb))
+  (λ x, - f x) a b (-t) (λ x hax hxb, (hf x hax hxb).neg)
   (neg_le_neg ha) (neg_le_neg hb) hab in
 ⟨x, hx₁, hx₂, neg_inj hx₃⟩
 

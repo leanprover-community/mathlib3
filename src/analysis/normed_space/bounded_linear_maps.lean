@@ -95,9 +95,8 @@ lemma add (hf : is_bounded_linear_map 𝕜 f) (hg : is_bounded_linear_map 𝕜 g
 let ⟨hlf, Mf, hMfp, hMf⟩ := hf in
 let ⟨hlg, Mg, hMgp, hMg⟩ := hg in
 (hlf.mk' _ + hlg.mk' _).is_linear.with_bound (Mf + Mg) $ assume x,
-  calc ∥f x + g x∥ ≤ ∥f x∥ + ∥g x∥ : norm_triangle _ _
-  ... ≤ Mf * ∥x∥ + Mg * ∥x∥        : add_le_add (hMf x) (hMg x)
-  ... ≤ (Mf + Mg) * ∥x∥            : by rw add_mul
+  calc ∥f x + g x∥ ≤ Mf * ∥x∥ + Mg * ∥x∥ : norm_add_le_of_le (hMf x) (hMg x)
+               ... ≤ (Mf + Mg) * ∥x∥     : by rw add_mul
 
 lemma sub (hf : is_bounded_linear_map 𝕜 f) (hg : is_bounded_linear_map 𝕜 g) :
   is_bounded_linear_map 𝕜 (λ e, f e - g e) := add hf (neg hg)
@@ -120,7 +119,7 @@ tendsto_iff_norm_tendsto_zero.2 $
       calc ∥f e - f x∥ = ∥hf.mk' f (e - x)∥ : by rw (hf.mk' _).map_sub e x; refl
                    ... ≤ M * ∥e - x∥        : hM (e - x))
     (suffices (λ (e : E), M * ∥e - x∥) →_{x} (M * 0), by simpa,
-      tendsto_mul tendsto_const_nhds (lim_norm _))
+      tendsto_const_nhds.mul (lim_norm _))
 
 lemma continuous (hf : is_bounded_linear_map 𝕜 f) : continuous f :=
 continuous_iff_continuous_at.2 $ λ _, hf.tendsto _
@@ -150,7 +149,7 @@ end
 end is_bounded_linear_map
 
 section
-set_option class.instance_max_depth 180
+set_option class.instance_max_depth 240
 
 lemma is_bounded_linear_map_prod_iso :
   is_bounded_linear_map 𝕜 (λ(p : (E →L[𝕜] F) × (E →L[𝕜] G)),
@@ -287,8 +286,7 @@ def is_bounded_bilinear_map.deriv (h : is_bounded_bilinear_map 𝕜 f) (p : E ×
   rcases h.bound with ⟨C, Cpos, hC⟩,
   refine ⟨C * ∥p.1∥ + C * ∥p.2∥, λq, _⟩,
   calc ∥f (p.1, q.2) + f (q.1, p.2)∥
-    ≤ ∥f (p.1, q.2)∥ + ∥f (q.1, p.2)∥ : norm_triangle _ _
-  ... ≤ C * ∥p.1∥ * ∥q.2∥ + C * ∥q.1∥ * ∥p.2∥ : add_le_add (hC _ _) (hC _ _)
+    ≤ C * ∥p.1∥ * ∥q.2∥ + C * ∥q.1∥ * ∥p.2∥ : norm_add_le_of_le (hC _ _) (hC _ _)
   ... ≤ C * ∥p.1∥ * ∥q∥ + C * ∥q∥ * ∥p.2∥ : begin
       apply add_le_add,
       exact mul_le_mul_of_nonneg_left (le_max_right _ _) (mul_nonneg (le_of_lt Cpos) (norm_nonneg _)),
@@ -301,7 +299,7 @@ end
 @[simp] lemma is_bounded_bilinear_map_deriv_coe (h : is_bounded_bilinear_map 𝕜 f) (p q : E × F) :
   h.deriv p q = f (p.1, q.2) + f (q.1, p.2) := rfl
 
-set_option class.instance_max_depth 95
+set_option class.instance_max_depth 100
 
 /-- Given a bounded bilinear map `f`, the map associating to a point `p` the derivative of `f` at
 `p` is itself a bounded linear map. -/
@@ -317,8 +315,7 @@ begin
   { refine continuous_linear_map.op_norm_le_bound _
       (mul_nonneg (add_nonneg (le_of_lt Cpos) (le_of_lt Cpos)) (norm_nonneg _)) (λq, _),
     calc ∥f (p.1, q.2) + f (q.1, p.2)∥
-      ≤ ∥f (p.1, q.2)∥ + ∥f (q.1, p.2)∥ : norm_triangle _ _
-    ... ≤ C * ∥p.1∥ * ∥q.2∥ + C * ∥q.1∥ * ∥p.2∥ : add_le_add (hC _ _) (hC _ _)
+      ≤ C * ∥p.1∥ * ∥q.2∥ + C * ∥q.1∥ * ∥p.2∥ : norm_add_le_of_le (hC _ _) (hC _ _)
     ... ≤ C * ∥p∥ * ∥q∥ + C * ∥q∥ * ∥p∥ : by apply_rules [add_le_add, mul_le_mul, norm_nonneg,
       le_of_lt Cpos, le_refl, le_max_left, le_max_right, mul_nonneg, norm_nonneg, norm_nonneg,
       norm_nonneg]

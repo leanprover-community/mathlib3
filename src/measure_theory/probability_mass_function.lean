@@ -47,17 +47,18 @@ end
 def bind (p : pmf α) (f : α → pmf β) : pmf β :=
 ⟨λb, (∑a, p a * f a b),
   begin
-    simp [ennreal.has_sum_coe.symm, (ennreal.tsum_coe (bind.summable p f _)).symm],
+    apply ennreal.has_sum_coe.1,
+    simp only [ennreal.coe_tsum (bind.summable p f _)],
     rw [has_sum_iff_of_summable ennreal.summable, ennreal.tsum_comm],
-    simp [ennreal.mul_tsum, (ennreal.tsum_coe (f _).summable_coe),
-      ennreal.tsum_coe p.summable_coe]
+    simp [ennreal.mul_tsum, (ennreal.coe_tsum (f _).summable_coe).symm,
+      (ennreal.coe_tsum p.summable_coe).symm]
   end⟩
 
 @[simp] lemma bind_apply (p : pmf α) (f : α → pmf β) (b : β) : p.bind f b = (∑a, p a * f a b) := rfl
 
 lemma coe_bind_apply (p : pmf α) (f : α → pmf β) (b : β) :
   (p.bind f b : ennreal) = (∑a, p a * f a b) :=
-eq.trans (ennreal.tsum_coe $ bind.summable p f b).symm $ by simp
+eq.trans (ennreal.coe_tsum $ bind.summable p f b) $ by simp
 
 @[simp] lemma pure_bind (a : α) (f : α → pmf β) : (pure a).bind f = f a :=
 have ∀b a', ite (a' = a) 1 0 * f a' b = ite (a' = a) (f a b) 0, from

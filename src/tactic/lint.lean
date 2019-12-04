@@ -247,6 +247,7 @@ return $ let illegal := [`gt, `ge] in if d.type.contains_constant (λ n, n ∈ i
   is_fast := ff }
 
 /-- checks whether an instance that always applies has priority ≥ 1000. -/
+-- TODO: instance_priority should also be tested on automatically-generated declarations
 meta def instance_priority (d : declaration) : tactic (option string) := do
   let nm := d.to_name,
   b ← is_instance nm,
@@ -266,7 +267,35 @@ meta def instance_priority (d : declaration) : tactic (option string) := do
     if info = binder_info.inst_implicit ∨ tp.get_app_fn.is_constant_of `out_param
     then none else some e,
   let always_applies := relevant_args.all expr.is_var ∧ relevant_args.nodup,
-  if always_applies then return $ some "" else return none
+  if always_applies then return $ some "set priority below 1000" else return none
+
+/- Note [lower instance priority]:
+  Certain instances always apply during type-class resolution. For example, the instance
+  `add_comm_group.to_add_group {α} [add_comm_group α] : add_group α` applies to all type-class
+  resolution problems of the form `add_group _`, and type-class inference will then do an
+  exhaustive search to find a commutative group. These instances take a long time to fail.
+  Other instances will only apply if the goal has a certain shape. For example
+  `int.add_group : add_group ℤ` or
+  `add_group.prod {α β} [add_group α] [add_group β] : add_group (α × β)`. Usually these instances
+  will fail quickly, and when they apply, they are almost the desired instance.
+  For this reason, we want the instances of the second type (that only apply in specific cases) to
+  always have higher priority than the instances of the first type (that always apply).
+  See also #1561.
+
+  Therefore, if we create an instance that always applies, we set the priority of these instances to
+  100 (or something similar, which is below the default value of 1000).
+-/
+
+/- Note [default priority]:
+  Instances that always apply should be applied after instances that only apply in specific cases,
+  see note [lower instance priority] above.
+
+  Classes that use the `extends` keyword automatically generate instances that always apply.
+  Therefore, we set the priority of these instances to 100 (or something similar, which is below the
+  default value of 1000) using `set_option default_priority 100`.
+  We have to put this option inside a section, so that the default priority is the default
+  1000 outside the section.
+-/
 
 /-- A linter object for checking instance priorities of instances that always apply.
   This is in the default linter set. -/
@@ -434,3 +463,13 @@ let ns := env.decl_filter_map $ λ dcl,
 { name := "Lint",
   descr := "Lint: Find common mistakes in current file.",
   action := λ es, do (_, s) ← lint, return [(s.to_string,"")] }
+
+/-- Tries to apply the `nolint` attribute to a list of declarations. Always succeeds, even if some
+of the declarations don't exist. -/
+meta def apply_nolint_tac (decls : list name) : tactic unit :=
+decls.mmap' (λ d, try (nolint_attr.set d () tt))
+
+/-- `apply_nolint id1 id2 ...` tries to apply the `nolint` attribute to `id1`, `id2`, ...
+It will always succeed, even if some of the declarations do not exist. -/
+@[user_command] meta def apply_nolint_cmd (_ : parse $ tk "apply_nolint") : parser unit :=
+ident_* >>= ↑apply_nolint_tac

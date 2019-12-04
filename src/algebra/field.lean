@@ -200,14 +200,12 @@ end
 
 end
 
-@[reducible] def is_field_hom {α β} [division_ring α] [division_ring β] (f : α → β) := is_ring_hom f
-
-namespace is_field_hom
+namespace is_ring_hom
 open is_ring_hom
 
 section
 variables {β : Type*} [division_ring α] [division_ring β]
-variables (f : α → β) [is_field_hom f] {x y : α}
+variables (f : α → β) [is_ring_hom f] {x y : α}
 
 lemma map_ne_zero : f x ≠ 0 ↔ x ≠ 0 :=
 ⟨mt $ λ h, h.symm ▸ map_zero f,
@@ -235,7 +233,7 @@ end
 
 section
 variables {β : Type*} [discrete_field α] [discrete_field β]
-variables (f : α → β) [is_field_hom f] {x y : α}
+variables (f : α → β) [is_ring_hom f] {x y : α}
 
 lemma map_inv : f x⁻¹ = (f x)⁻¹ :=
 classical.by_cases (by rintro rfl; simp only [map_zero f, inv_zero]) (map_inv' f)
@@ -245,4 +243,4 @@ lemma map_div : f (x / y) = f x / f y :=
 
 end
 
-end is_field_hom
+end is_ring_hom

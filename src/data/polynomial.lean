@@ -2174,34 +2174,34 @@ by rw [div_def, mul_comm, degree_mul_leading_coeff_inv _ hq0];
   exact degree_div_by_monic_lt _ (monic_mul_leading_coeff_inv hq0) hp
     (by rw degree_mul_leading_coeff_inv _ hq0; exact hq)
 
-@[simp] lemma degree_map [discrete_field β] (p : polynomial α) (f : α → β) [is_field_hom f] :
+@[simp] lemma degree_map [discrete_field β] (p : polynomial α) (f : α → β) [is_ring_hom f] :
   degree (p.map f) = degree p :=
-p.degree_map_eq_of_injective (is_field_hom.injective f)
+p.degree_map_eq_of_injective (is_ring_hom.injective f)
 
-@[simp] lemma nat_degree_map [discrete_field β] (f : α → β) [is_field_hom f] :
+@[simp] lemma nat_degree_map [discrete_field β] (f : α → β) [is_ring_hom f] :
   nat_degree (p.map f) = nat_degree p :=
 nat_degree_eq_of_degree_eq (degree_map _ f)
 
-@[simp] lemma leading_coeff_map [discrete_field β] (f : α → β) [is_field_hom f] :
+@[simp] lemma leading_coeff_map [discrete_field β] (f : α → β) [is_ring_hom f] :
   leading_coeff (p.map f) = f (leading_coeff p) :=
 by simp [leading_coeff, coeff_map f]
 
-lemma map_div [discrete_field β] (f : α → β) [is_field_hom f] :
+lemma map_div [discrete_field β] (f : α → β) [is_ring_hom f] :
   (p / q).map f = p.map f / q.map f :=
 if hq0 : q = 0 then by simp [hq0]
 else
 by rw [div_def, div_def, map_mul, map_div_by_monic f (monic_mul_leading_coeff_inv hq0)];
-  simp [is_field_hom.map_inv f, leading_coeff, coeff_map f]
+  simp [is_ring_hom.map_inv f, leading_coeff, coeff_map f]
 
-lemma map_mod [discrete_field β] (f : α → β) [is_field_hom f] :
+lemma map_mod [discrete_field β] (f : α → β) [is_ring_hom f] :
   (p % q).map f = p.map f % q.map f :=
 if hq0 : q = 0 then by simp [hq0]
-else by rw [mod_def, mod_def, leading_coeff_map f, ← is_field_hom.map_inv f, ← map_C f,
+else by rw [mod_def, mod_def, leading_coeff_map f, ← is_ring_hom.map_inv f, ← map_C f,
   ← map_mul f, map_mod_by_monic f (monic_mul_leading_coeff_inv hq0)]
 
-@[simp] lemma map_eq_zero [discrete_field β] (f : α → β) [is_field_hom f] :
+@[simp] lemma map_eq_zero [discrete_field β] (f : α → β) [is_ring_hom f] :
   p.map f = 0 ↔ p = 0 :=
-by simp [polynomial.ext_iff, is_field_hom.map_eq_zero f, coeff_map]
+by simp [polynomial.ext_iff, is_ring_hom.map_eq_zero f, coeff_map]
 
 lemma exists_root_of_degree_eq_one (h : degree p = 1) : ∃ x, is_root p x :=
 ⟨-(p.coeff 0 / p.coeff 1),

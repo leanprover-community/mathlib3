@@ -92,9 +92,8 @@ meta def elim_cast_attr : user_attribute simp_lemmas :=
       dependencies := [], },
 }
 
-/- The `push_cast` simp attribute uses `move_cast` lemmas in the "forward" direction,
-to move casts toward the leaf nodes of the expression. -/
-run_cmd mk_simp_attr `push_cast
+mk_simp_attribute push_cast "The `push_cast` simp attribute uses `move_cast` lemmas in the \"forward\" direction,
+to move casts toward the leaf nodes of the expression."
 
 private meta def aux_after_set (tac : expr → tactic (expr × (expr → expr))) :
   expr → tactic (expr × (expr → expr))

@@ -76,7 +76,8 @@ local infixr ` →ₛ `:25 := simple_func
 namespace simple_func
 
 section bintegral
-/-! ### The Bochner integral of simple functions
+/-! 
+### The Bochner integral of simple functions
 
 Define the Bochner integral of simple functions of the type `α →ₛ β` where `β` is a normed group,
 and prove basic property of this integral.
@@ -961,7 +962,7 @@ end
 
 end properties
 
-run_cmd mk_simp_attr `integral_simps
+mk_simp_attribute integral_simps "Simp set for integral rules."
 
 attribute [integral_simps] integral_neg integral_smul l1.integral_add l1.integral_sub
   l1.integral_smul l1.integral_neg

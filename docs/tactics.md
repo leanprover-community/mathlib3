@@ -470,7 +470,7 @@ A maximum depth can be provided with `ext x y z : 3`.
  @[ext] lemma foo.ext : ∀ {α : Type u_1} (x y : foo α), x.x = y.x → x.y = y.y → x.z == y.z → x.k = y.k → x = y
  lemma foo.ext_iff : ∀ {α : Type u_1} (x y : foo α), x = y ↔ x.x = y.x ∧ x.y = y.y ∧ x.z == y.z ∧ x.k = y.k
  ```
- 
+
 ### refine_struct
 
 `refine_struct { .. }` acts like `refine` but works only with structure instance
@@ -1288,6 +1288,9 @@ Lift an expression to another type.
   specify it again as the third argument to `with`, like this: `lift n to ℕ using h with n rfl h`.
 * More generally, this can lift an expression from `α` to `β` assuming that there is an instance
   of `can_lift α β`. In this case the proof obligation is specified by `can_lift.cond`.
+* Given an instance `can_lift β γ`, it can also lift `α → β` to `α → γ`; more generally, given
+  `β : Π a : α, Type*`, `γ : Π a : α, Type*`, and `[Π a : α, can_lift (β a) (γ a)]`, it automatically
+  generates an instance `can_lift (Π a, β a) (Π a, γ a)`.
 
 ### import_private
 
@@ -1337,3 +1340,20 @@ See also additional documentation of `using_well_founded` in
 * `@[simps]` reduces let-expressions where necessary.
 * If one of the fields is a partially applied constructor, we will eta-expand it
   (this likely never happens).
+
+### mk_simp_attribute
+
+The command `mk_simp_attribute simp_name "description"` creates a simp set with name `simp_name`.
+Lemmas tagged with `@[simp_name]` will be included when `simp with simp_name` is called.
+`mk_simp_attribute simp_name none` will use a default description.
+
+Appending the command with `with attr1 attr2 ...` will include all declarations tagged with
+`attr1`, `attr2`, ... in the new simp set.
+
+This command is preferred to using ``run_cmd mk_simp_attr `simp_name`` since it adds a doc string
+to the attribute that is defined. If you need to create a simp set in a file where this command is not
+available, you should use
+```lean
+run_cmd mk_simp_attr `simp_name
+run_cmd add_doc_string `simp_attr.simp_name "Description of the simp set here"
+```

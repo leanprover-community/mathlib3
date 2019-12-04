@@ -463,3 +463,13 @@ let ns := env.decl_filter_map $ λ dcl,
 { name := "Lint",
   descr := "Lint: Find common mistakes in current file.",
   action := λ es, do (_, s) ← lint, return [(s.to_string,"")] }
+
+/-- Tries to apply the `nolint` attribute to a list of declarations. Always succeeds, even if some
+of the declarations don't exist. -/
+meta def apply_nolint_tac (decls : list name) : tactic unit :=
+decls.mmap' (λ d, try (nolint_attr.set d () tt))
+
+/-- `apply_nolint id1 id2 ...` tries to apply the `nolint` attribute to `id1`, `id2`, ...
+It will always succeed, even if some of the declarations do not exist. -/
+@[user_command] meta def apply_nolint_cmd (_ : parse $ tk "apply_nolint") : parser unit :=
+ident_* >>= ↑apply_nolint_tac

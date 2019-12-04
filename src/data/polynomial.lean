@@ -539,6 +539,15 @@ begin
     finset.sum_mul_boole, finset_sum_coeff, ite_le_nat_degree_coeff],
 end
 
+lemma monic.as_sum {p : polynomial α} (hp : p.monic) :
+  p = X^(p.nat_degree) + ((finset.range p.nat_degree).sum $ λ i, C (p.coeff i) * X^i) :=
+begin
+  conv_lhs { rw [p.as_sum, finset.sum_range_succ] },
+  suffices : C (p.coeff p.nat_degree) = 1,
+  { rw [this, one_mul] },
+  exact congr_arg C hp
+end
+
 section map
 variables [comm_semiring β]
 variables (f : α → β)

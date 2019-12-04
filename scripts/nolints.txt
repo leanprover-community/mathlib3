@@ -1,5 +1,6 @@
 import .all
-attribute [nolint]
+run_cmd tactic.skip
+apply_nolint
 AddCommGroup
 AddCommGroup.of
 AddCommMon
@@ -1386,7 +1387,6 @@ is_closed_map
 is_cobounded_ge_nhds
 is_cobounded_under_ge_of_tendsto
 is_comm_applicative
-is_complete
 is_conj
 is_cyclic
 is_cyclic.comm_group

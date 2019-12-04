@@ -127,10 +127,8 @@ lemma continuous_cos : continuous cos :=
 differentiable_cos.continuous
 
 lemma continuous_tan : continuous (λ x : {x // cos x ≠ 0}, tan x) :=
-continuous_mul
-  (continuous_sin.comp continuous_subtype_val)
-  (continuous_inv subtype.property
-    (continuous_cos.comp continuous_subtype_val))
+(continuous_sin.comp continuous_subtype_val).mul
+  (continuous.inv subtype.property (continuous_cos.comp continuous_subtype_val))
 
 /-- The complex hyperbolic sine function is everywhere differentiable, with the derivative `sinh x`. -/
 lemma has_deriv_at_sinh (x : ℂ) : has_deriv_at sinh (cosh x) x :=
@@ -216,9 +214,8 @@ differentiable_cos.continuous
 
 lemma continuous_tan : continuous (λ x : {x // cos x ≠ 0}, tan x) :=
 by simp only [tan_eq_sin_div_cos]; exact
-continuous_mul
-  (continuous_sin.comp continuous_subtype_val)
-  (continuous_inv subtype.property
+  (continuous_sin.comp continuous_subtype_val).mul
+  (continuous.inv subtype.property
     (continuous_cos.comp continuous_subtype_val))
 
 lemma has_deriv_at_sinh (x : ℝ) : has_deriv_at sinh (cosh x) x :=
@@ -347,10 +344,10 @@ begin
   have H1 : tendsto f₁ (𝓝 ⟨1, zero_lt_one⟩) (𝓝 (log (x.1*1))),
     have : f₁ = λ h:{h:ℝ // 0 < h}, log x.1 + log h.1,
       ext h, rw ← log_mul x.2 h.2,
-    simp only [this, log_mul x.2 zero_lt_one, log_one], exact
-      tendsto_add tendsto_const_nhds (tendsto.comp tendsto_log_one_zero continuous_at_subtype_val),
+    simp only [this, log_mul x.2 zero_lt_one, log_one],
+    exact tendsto_const_nhds.add (tendsto.comp tendsto_log_one_zero continuous_at_subtype_val),
   have H2 : tendsto f₂ (𝓝 x) (𝓝 ⟨x.1⁻¹ * x.1, mul_pos (inv_pos x.2) x.2⟩),
-    rw tendsto_subtype_rng, exact tendsto_mul tendsto_const_nhds continuous_at_subtype_val,
+    rw tendsto_subtype_rng, exact tendsto_const_nhds.mul continuous_at_subtype_val,
   suffices h : tendsto (f₁ ∘ f₂) (𝓝 x) (𝓝 (log x.1)),
   begin
     convert h, ext y,
@@ -1701,23 +1698,22 @@ section prove_rpow_is_continuous
 lemma continuous_rpow_aux1 : continuous (λp : {p:ℝ×ℝ // 0 < p.1}, p.val.1 ^ p.val.2) :=
 suffices h : continuous (λ p : {p:ℝ×ℝ // 0 < p.1 }, exp (log p.val.1 * p.val.2)),
   by { convert h, ext p, rw rpow_def_of_pos p.2 },
-continuous_exp.comp $ continuous_mul
+continuous_exp.comp $
   (show continuous ((λp:{p:ℝ//0 < p}, log (p.val)) ∘ (λp:{p:ℝ×ℝ//0<p.fst}, ⟨p.val.1, p.2⟩)), from
-    continuous_log'.comp $ continuous_subtype_mk _ $ continuous_fst.comp continuous_subtype_val)
+    continuous_log'.comp $ continuous_subtype_mk _ $ continuous_fst.comp continuous_subtype_val).mul
   (continuous_snd.comp $ continuous_subtype_val.comp continuous_id)
 
 lemma continuous_rpow_aux2 : continuous (λ p : {p:ℝ×ℝ // p.1 < 0}, p.val.1 ^ p.val.2) :=
 suffices h : continuous (λp:{p:ℝ×ℝ // p.1 < 0}, exp (log (-p.val.1) * p.val.2) * cos (p.val.2 * π)),
   by { convert h, ext p, rw [rpow_def_of_neg p.2] },
-continuous_mul
-  (continuous_exp.comp $ continuous_mul
+  (continuous_exp.comp $
     (show continuous $ (λp:{p:ℝ//0<p},
             log (p.val))∘(λp:{p:ℝ×ℝ//p.1<0}, ⟨-p.val.1, neg_pos_of_neg p.2⟩),
-     from continuous_log'.comp $ continuous_subtype_mk _ $ continuous_neg'.comp $
-            continuous_fst.comp continuous_subtype_val)
-    (continuous_snd.comp $ continuous_subtype_val.comp continuous_id))
-  (continuous_cos.comp $ continuous_mul
-    (continuous_snd.comp $ continuous_subtype_val.comp continuous_id) continuous_const)
+     from continuous_log'.comp $ continuous_subtype_mk _ $ continuous_neg.comp $
+            continuous_fst.comp continuous_subtype_val).mul
+    (continuous_snd.comp $ continuous_subtype_val.comp continuous_id)).mul
+  (continuous_cos.comp $
+    (continuous_snd.comp $ continuous_subtype_val.comp continuous_id).mul continuous_const)
 
 lemma continuous_at_rpow_of_ne_zero (hx : x ≠ 0) (y : ℝ) :
   continuous_at (λp:ℝ×ℝ, p.1^p.2) (x, y) :=

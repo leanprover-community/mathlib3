@@ -59,22 +59,23 @@ pow_one a
 
 end field_power
 
-namespace is_field_hom
+namespace is_ring_hom
 
-lemma map_fpow {K L : Type*} [discrete_field K] [discrete_field L] (f : K → L) [is_field_hom f]
-  (a : K) : ∀ (n : ℤ), f (a ^ n) = f a ^ n
+lemma map_fpow {α β : Type*} [discrete_field α] [discrete_field β] (f : α → β) [is_ring_hom f]
+  (a : α) : ∀ (n : ℤ), f (a ^ n) = f a ^ n
 | (n : ℕ) := is_semiring_hom.map_pow f a n
-| -[1+ n] := by simp [fpow_neg_succ_of_nat, is_semiring_hom.map_pow f, is_field_hom.map_inv f]
+| -[1+ n] := by simp [fpow_neg_succ_of_nat, is_semiring_hom.map_pow f, is_ring_hom.map_inv f]
 
 lemma map_fpow' {K L : Type*} [division_ring K] [division_ring L] (f : K → L) [is_ring_hom f]
-  (a : K) : ∀ (n : ℤ), f (a ^ n) = f a ^ n
+  (a : K) (ha : a ≠ 0) : ∀ (n : ℤ), f (a ^ n) = f a ^ n
 | (n : ℕ) := is_semiring_hom.map_pow f a n
 | -[1+ n] :=
 begin
-  simp [fpow_neg_succ_of_nat, is_semiring_hom.map_pow f],
+  have : a^(n+1) ≠ 0 := mt pow_eq_zero ha,
+  simp [fpow_neg_succ_of_nat, is_semiring_hom.map_pow f, is_ring_hom.map_inv' f this],
 end
 
-end is_field_hom
+end is_ring_hom
 
 section discrete_field_power
 open int
@@ -221,17 +222,20 @@ begin
   { contradiction },
   { exact (fpow_strict_mono H).injective h, },
 end
+
 end ordered
 
+section
+variables {K : Type*} [discrete_field K]
 
-@[simp] theorem fpow_neg_mul_fpow_self {K : Type*} [discrete_field K] (n : ℕ) {x : K} (h : x ≠ 0) :
+@[simp] theorem fpow_neg_mul_fpow_self (n : ℕ) {x : K} (h : x ≠ 0) :
   x^-(n:ℤ) * x^n = 1 :=
 begin
   convert inv_mul_cancel (pow_ne_zero n h),
   rw [fpow_neg, one_div_eq_inv, fpow_of_nat]
 end
 
-@[simp, move_cast] theorem cast_fpow {K : Type*} [discrete_field K] [char_zero K] (q : ℚ) (k : ℤ) :
+@[simp, move_cast] theorem cast_fpow [char_zero K] (q : ℚ) (k : ℤ) :
   ((q ^ k : ℚ) : K) = q ^ k :=
 begin
   cases k,
@@ -243,8 +247,7 @@ begin
     norm_cast }
 end
 
-lemma fpow_eq_zero {K : Type*} [discrete_field K] {x : K} {n : ℤ} (h : x^n = 0) :
-  x = 0 :=
+lemma fpow_eq_zero {x : K} {n : ℤ} (h : x^n = 0) : x = 0 :=
 begin
   by_cases hn : 0 ≤ n,
   { lift n to ℕ using hn, rw fpow_of_nat at h, exact pow_eq_zero h, },
@@ -255,4 +258,6 @@ begin
     rw ← inv_eq_zero,
     apply pow_eq_zero (_ : _^m = _),
     rwa [inv_eq_one_div, one_div_pow hx], }
+end
+
 end

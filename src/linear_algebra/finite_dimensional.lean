@@ -77,7 +77,7 @@ namespace finite_dimensional
 
 open is_noetherian
 
-/-- A vector space is finite-dimensional if and only it its dimension (as a cardinal) is strictly
+/-- A vector space is finite-dimensional if and only if its dimension (as a cardinal) is strictly
 less than the first infinite cardinal `omega`. -/
 lemma finite_dimensional_iff_dim_lt_omega : finite_dimensional K V ↔ dim K V < omega.{v} :=
 begin

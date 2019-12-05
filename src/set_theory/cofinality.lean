@@ -114,8 +114,7 @@ begin
     { intro e, injection e with e, subst b,
       exact irrefl _ h } },
   { intro a,
-    have : {b : S | ¬ r b a} ≠ ∅ := let ⟨b, bS, ba⟩ := hS a in
-      @set.ne_empty_of_mem S {b | ¬ r b a} ⟨b, bS⟩ ba,
+    have : {b : S | ¬ r b a}.nonempty := let ⟨b, bS, ba⟩ := hS a in ⟨⟨b, bS⟩, ba⟩,
     let b := (is_well_order.wf s).min _ this,
     have ba : ¬r b a := (is_well_order.wf s).min_mem _ this,
     refine ⟨b, ⟨b.2, λ c, not_imp_not.1 $ λ h, _⟩, ba⟩,

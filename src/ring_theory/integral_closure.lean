@@ -90,7 +90,7 @@ begin
   let leval : @linear_map R (polynomial R) A _ _ _ _ _ := (aeval R A x).to_linear_map,
   let D : ℕ → submodule R A := λ n, (degree_le R n).map leval,
   let M := well_founded.min (is_noetherian_iff_well_founded.1 H)
-    (set.range D) (set.ne_empty_of_mem ⟨0, rfl⟩),
+    (set.range D) ⟨_, ⟨0, rfl⟩⟩,
   have HM : M ∈ set.range D := well_founded.min_mem _ _ _,
   cases HM with N HN,
   have HM : ¬M < D (N+1) := well_founded.not_lt_min

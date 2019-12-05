@@ -31,7 +31,7 @@ variables [comm_ring α] [comm_ring β] [algebra α β]
 /-- Let B be an A-algebra, and x an element of B that is integral over A.
 The minimal polynomial of x is a monic polynomial of smallest degree that has x as its root. -/
 noncomputable def minimal_polynomial {x : β} (hx : is_integral α x) : polynomial α :=
-well_founded.min polynomial.degree_lt_wf _ (ne_empty_iff_exists_mem.mpr hx)
+well_founded.min polynomial.degree_lt_wf _ hx
 
 end min_poly_def
 
@@ -43,17 +43,17 @@ variables {x : β} (hx : is_integral α x)
 
 /--A minimal polynomial is monic.-/
 lemma monic : monic (minimal_polynomial hx) :=
-(well_founded.min_mem degree_lt_wf _ (ne_empty_iff_exists_mem.mpr hx)).1
+(well_founded.min_mem degree_lt_wf _ hx).1
 
 /--An element is a root of its minimal polynomial.-/
 @[simp] lemma aeval : aeval α β x (minimal_polynomial hx) = 0 :=
-(well_founded.min_mem degree_lt_wf _ (ne_empty_iff_exists_mem.mpr hx)).2
+(well_founded.min_mem degree_lt_wf _ hx).2
 
 /--The defining property of the minimal polynomial of an element x:
 it is the monic polynomial with smallest degree that has x as its root.-/
 lemma min {p : polynomial α} (pmonic : p.monic) (hp : polynomial.aeval α β x p = 0) :
   degree (minimal_polynomial hx) ≤ degree p :=
-le_of_not_lt $ well_founded.not_lt_min degree_lt_wf _ (ne_empty_iff_exists_mem.mpr hx) ⟨pmonic, hp⟩
+le_of_not_lt $ well_founded.not_lt_min degree_lt_wf _ hx ⟨pmonic, hp⟩
 
 end ring
 

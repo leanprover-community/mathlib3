@@ -68,16 +68,14 @@ variables {α : Type*} {β : Type*}
 /-- Scalar multiplication by a unit is a homeomorphism from a
 topological module onto itself. -/
 protected def homeomorph.smul_of_unit (a : units α) : β ≃ₜ β :=
-{
-  to_fun    := λ x, (a : α) • x,
+{ to_fun    := λ x, (a : α) • x,
   inv_fun   := λ x, ((a⁻¹ : units α) : α) • x,
   right_inv := λ x, calc (a : α) • ((a⁻¹ : units α) : α) • x = x :
                  by rw [smul_smul, units.mul_inv, one_smul],
   left_inv  := λ x, calc ((a⁻¹ : units α) : α) • (a : α) • x = x :
                  by rw [smul_smul, units.inv_mul, one_smul],
   continuous_to_fun  := continuous_smul continuous_const continuous_id,
-  continuous_inv_fun := continuous_smul continuous_const continuous_id,
-}
+  continuous_inv_fun := continuous_smul continuous_const continuous_id }
 
 lemma is_open_map_smul_of_unit (a : units α) : is_open_map (λ (x : β), (a : α) • x) :=
 (homeomorph.smul_of_unit a).is_open_map

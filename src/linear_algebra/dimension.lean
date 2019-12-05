@@ -168,19 +168,19 @@ begin
       ⟨equiv.ulift.trans (equiv.sum_congr (@equiv.ulift b) (@equiv.ulift c)).symm ⟩),
 end
 
-theorem dim_quotient (p : submodule K V) :
+theorem dim_quotient_add_dim (p : submodule K V) :
   dim K p.quotient + dim K p = dim K V :=
 by classical; exact let ⟨f⟩ := quotient_prod_linear_equiv p in dim_prod.symm.trans f.dim_eq
 
 theorem dim_quotient_le (p : submodule K V) :
   dim K p.quotient ≤ dim K V :=
-by { rw ← dim_quotient p, exact cardinal.le_add_right _ _ }
+by { rw ← dim_quotient_add_dim p, exact cardinal.le_add_right _ _ }
 
 /-- rank-nullity theorem -/
 theorem dim_range_add_dim_ker (f : V →ₗ[K] V₂) : dim K f.range + dim K f.ker = dim K V :=
 begin
   haveI := λ (p : submodule K V), classical.dec_eq p.quotient,
-  rw [← f.quot_ker_equiv_range.dim_eq, dim_quotient]
+  rw [← f.quot_ker_equiv_range.dim_eq, dim_quotient_add_dim]
 end
 
 lemma dim_range_le (f : V →ₗ[K] V₂) : dim K f.range ≤ dim K V :=
@@ -209,9 +209,7 @@ lemma dim_eq_injective (f : V →ₗ[K] V₂) (h : injective f) : dim K V = dim 
 by rw [← dim_range_add_dim_ker f, linear_map.ker_eq_bot.2 h]; simp [dim_bot]
 
 lemma dim_submodule_le (s : submodule K V) : dim K s ≤ dim K V :=
-by { rw ← dim_quotient s, exact cardinal.le_add_left _ _ }
-
-set_option class.instance_max_depth 32
+by { rw ← dim_quotient_add_dim s, exact cardinal.le_add_left _ _ }
 
 lemma dim_le_injective (f : V →ₗ[K] V₂) (h : injective f) :
   dim K V ≤ dim K V₂ :=

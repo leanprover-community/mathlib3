@@ -120,8 +120,7 @@ lemma iff_fg :
   finite_dimensional K V ↔ (⊤ : submodule K V).fg :=
 begin
   split,
-  { assume h,
-    haveI : finite_dimensional K V := h,
+  { introI h,
     rcases exists_is_basis_finite K V with ⟨s, s_basis, s_finite⟩,
     exact ⟨s_finite.to_finset, by { convert s_basis.2, simp }⟩ },
   { rintros ⟨s, hs⟩,
@@ -178,6 +177,25 @@ begin
   have := dim_eq_card_basis h,
   rw ← findim_eq_dim at this,
   exact_mod_cast this
+end
+
+-- set_option pp.universes true
+
+/-- If a vector space is finite-dimensional, then the cardinality of any basis is equal to its
+`findim`. -/
+lemma findim_eq_card_basis' [finite_dimensional K V] {ι : Type w} {b : ι → V} (h : is_basis K b) :
+  (findim K V : cardinal.{w}) = cardinal.mk ι  :=
+begin
+  rcases exists_is_basis_finite K V with ⟨s, s_basis, s_finite⟩,
+  letI: fintype s := s_finite.fintype,
+  have A : cardinal.mk s = fintype.card s := fintype_card _,
+  have B : findim K V = fintype.card s := findim_eq_card_basis s_basis,
+  have C : cardinal.lift.{w v} (cardinal.mk ι) = cardinal.lift.{v w} (cardinal.mk s) :=
+    mk_eq_mk_of_basis h s_basis,
+  rw [A, ← B, lift_nat_cast] at C,
+  have : cardinal.lift.{w v} (cardinal.mk ι) = cardinal.lift.{w v} (findim K V),
+    by { simp, exact C },
+  exact (lift_inj.mp this).symm
 end
 
 /-- If a submodule has maximal dimension in a finite dimensional space, then it is equal to the
@@ -245,7 +263,7 @@ theorem fg_iff_finite_dimensional (s : submodule K V) :
 
 /-- In a finite-dimensional vector space, the dimensions of a submodule and of the corresponding
 quotient add up to the dimension of the space. -/
-theorem findim_quotient [finite_dimensional K V] (s : submodule K V) :
+theorem findim_quotient_add_findim [finite_dimensional K V] (s : submodule K V) :
   findim K s.quotient + findim K s = findim K V :=
 begin
   have := dim_quotient s,
@@ -330,6 +348,11 @@ by rw [← mul_assoc, hfg, one_mul, mul_one] at this; rwa ← this
 they are inverse to each other on the other side. -/
 lemma mul_eq_one_comm [finite_dimensional K V] {f g : V →ₗ[K] V} : f * g = 1 ↔ g * f = 1 :=
 ⟨mul_eq_one_of_mul_eq_one, mul_eq_one_of_mul_eq_one⟩
+
+/-- In a finite-dimensional space, linear maps are inverse to each other on one side if and only if
+they are inverse to each other on the other side. -/
+lemma comp_eq_id_comm [finite_dimensional K V] {f g : V →ₗ[K] V} : f.comp g = id ↔ g.comp f = id :=
+mul_eq_one_comm
 
 /-- The image under an onto linear map of a finite-dimensional space is also finite-dimensional. -/
 lemma finite_dimensional_of_surjective [h : finite_dimensional K V]

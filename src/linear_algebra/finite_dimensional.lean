@@ -179,8 +179,6 @@ begin
   exact_mod_cast this
 end
 
--- set_option pp.universes true
-
 /-- If a vector space is finite-dimensional, then the cardinality of any basis is equal to its
 `findim`. -/
 lemma findim_eq_card_basis' [finite_dimensional K V] {ι : Type w} {b : ι → V} (h : is_basis K b) :

@@ -95,14 +95,8 @@ principal_ideal_domain.is_maximal_of_irreducible ‹irreducible f›
 noncomputable instance field : discrete_field (adjoin_root f) :=
 ideal.quotient.field (span {f} : ideal (polynomial α))
 
- -- short-circuit type class inference
-instance : is_field_hom (coe : α → adjoin_root f) := by apply_instance
- -- short-circuit type class inference
-instance lift_is_field_hom [field β] {i : α → β} [is_ring_hom i] {a : β}
-  {h : f.eval₂ i a = 0} : is_field_hom (lift i a h) := by apply_instance
-
 lemma coe_injective : function.injective (coe : α → adjoin_root f) :=
-is_field_hom.injective _
+is_ring_hom.injective _
 
 lemma mul_div_root_cancel (f : polynomial α) [irreducible f] :
   (X - C (root : adjoin_root f)) * (f.map coe / (X - C root)) = f.map coe :=

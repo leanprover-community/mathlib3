@@ -61,9 +61,8 @@ private meta def aux_after_set (tac : expr → tactic (expr × (expr → expr)))
     )
 | ty := tac ty
 
-/- The `push_cast` simp attribute uses `move_cast` lemmas in the "forward" direction,
-to move casts toward the leaf nodes of the expression. -/
-run_cmd mk_simp_attr `push_cast
+mk_simp_attribute push_cast "The `push_cast` simp attribute uses `move_cast` lemmas in the \"forward\" direction,
+to move casts toward the leaf nodes of the expression."
 
 /-- Called after the `move_cast` attribute is applied to a declaration. -/
 private meta def after_set (decl : name) (prio : ℕ) (pers : bool) : tactic unit :=

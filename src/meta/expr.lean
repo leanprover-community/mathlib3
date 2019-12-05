@@ -7,13 +7,13 @@ import data.string.defs
 /-!
 # Additional operations on expr and related types
 
- This file defines basic operations on the types expr, name, declaration, level, environment.
+This file defines basic operations on the types expr, name, declaration, level, environment.
 
- This file is mostly for non-tactics. Tactics should generally be placed in `tactic.core`.
+This file is mostly for non-tactics. Tactics should generally be placed in `tactic.core`.
 
- ## Tags
+## Tags
 
- expr, name, declaration, level, environment, meta, metaprogramming, tactic
+expr, name, declaration, level, environment, meta, metaprogramming, tactic
 -/
 
 namespace binder_info

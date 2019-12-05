@@ -246,7 +246,7 @@ lemma is_open_prod_iff' {s : set α} {t : set β} :
 begin
   by_cases h : set.prod s t = ∅,
   { simp [h, prod_eq_empty_iff.1 h] },
-  { have st : s ≠ ∅ ∧ t ≠ ∅, by rwa [← ne.def, prod_neq_empty_iff] at h,
+  { have st : s ≠ ∅ ∧ t ≠ ∅, by rwa [← ne.def, prod_ne_empty_iff] at h,
     split,
     { assume H : is_open (set.prod s t),
       refine or.inl ⟨_, _⟩,

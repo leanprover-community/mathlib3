@@ -129,7 +129,7 @@ lemma tendsto_sum_nat_of_has_sum {f : ℕ → α} (h : has_sum f a) :
 variable [topological_add_monoid α]
 
 lemma has_sum_add (hf : has_sum f a) (hg : has_sum g b) : has_sum (λb, f b + g b) (a + b) :=
-by simp [has_sum, sum_add_distrib]; exact tendsto.add hf hg
+by simp [has_sum, sum_add_distrib]; exact hf.add hg
 
 lemma summable_add (hf : summable f) (hg : summable g) : summable (λb, f b + g b) :=
 summable_spec $ has_sum_add (has_sum_tsum hf)(has_sum_tsum hg)
@@ -427,11 +427,11 @@ variables [semiring α] [topological_space α] [topological_semiring α]
 variables {f g : β → α} {a a₁ a₂ : α}
 
 lemma has_sum_mul_left (a₂) : has_sum f a₁ → has_sum (λb, a₂ * f b) (a₂ * a₁) :=
-has_sum_hom _ (continuous.mul continuous_const continuous_id)
+has_sum_hom _ (continuous_const.mul continuous_id)
 
 lemma has_sum_mul_right (a₂) (hf : has_sum f a₁) : has_sum (λb, f b * a₂) (a₁ * a₂) :=
 @has_sum_hom _ _ _ _ _ f a₁ (λa, a * a₂) _ _ _
-  (continuous.mul continuous_id continuous_const) hf
+  (continuous_id.mul continuous_const) hf
 
 lemma summable_mul_left (a) (hf : summable f) : summable (λb, a * f b) :=
 summable_spec $ has_sum_mul_left _ $ has_sum_tsum hf

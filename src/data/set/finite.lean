@@ -43,6 +43,7 @@ theorem finite.exists_finset_coe {s : set α} (hs : finite s) :
   ∃ s' : finset α, ↑s' = s :=
 ⟨hs.to_finset, hs.coe_to_finset⟩
 
+/-- Finite sets can be lifted to finsets. -/
 instance : can_lift (set α) (finset α) :=
 { coe := coe,
   cond := finite,

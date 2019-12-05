@@ -135,7 +135,7 @@ lemma of_finite_basis {ι : Type w} [fintype ι] {b : ι → V} (h : is_basis K 
 iff_fg.2 $ ⟨finset.univ.image b, by {convert h.2, simp} ⟩
 
 /-- A subspace of a finite-dimensional space is also finite-dimensional. -/
-instance fnite_dimensional_submodule [finite_dimensional K V] (S : submodule K V) :
+instance finite_dimensional_submodule [finite_dimensional K V] (S : submodule K V) :
   finite_dimensional K S :=
 finite_dimensional_iff_dim_lt_omega.2 (lt_of_le_of_lt (dim_submodule_le _) (dim_lt_omega K V))
 

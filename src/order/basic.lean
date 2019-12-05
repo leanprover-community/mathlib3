@@ -385,6 +385,7 @@ instance is_order_connected_of_is_strict_total_order'
 ⟨λ a b c h, (trichotomous _ _).imp_right (λ o,
   o.elim (λ e, e ▸ h) (λ h', trans h' h))⟩
 
+@[priority 100] -- see Note [lower instance priority]
 instance is_strict_total_order_of_is_strict_total_order'
   [is_strict_total_order' α r] : is_strict_total_order α r :=
 {..is_strict_weak_order_of_is_order_connected}

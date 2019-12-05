@@ -244,7 +244,7 @@ def integral_closure : subalgebra R A :=
     add_mem := λ _ _, is_integral_add,
     neg_mem := λ _, is_integral_neg,
     mul_mem := λ _ _, is_integral_mul },
-  range_le := λ y ⟨x, hx⟩, hx ▸ is_integral_algebra_map }
+  range_le' := λ y ⟨x, hx⟩, hx ▸ is_integral_algebra_map }
 
 theorem mem_integral_closure_iff_mem_fg {r : A} :
   r ∈ integral_closure R A ↔ ∃ M : subalgebra R A, (M : submodule R A).fg ∧ r ∈ M :=

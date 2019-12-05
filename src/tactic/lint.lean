@@ -302,7 +302,7 @@ meta def instance_priority (d : declaration) : tactic (option string) := do
 @[linter, priority 1460] meta def linter.instance_priority : linter :=
 { test := instance_priority,
   no_errors_found := "All instance priorities are good",
-  errors_found := "DANGEROUS INSTANCE PRIORITIES.\n The following instances always apply, and therefore should have a priority < 1000" }
+  errors_found := "DANGEROUS INSTANCE PRIORITIES.\nThe following instances always apply, and therefore should have a priority < 1000.\nIf you don't know what priority to choose, use priority 100." }
 
 /-- Reports definitions and constants that are missing doc strings -/
 meta def doc_blame_report_defn : declaration → tactic (option string)

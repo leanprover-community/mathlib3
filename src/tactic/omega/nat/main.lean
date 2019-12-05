@@ -18,7 +18,8 @@ namespace nat
 
 open_locale omega.nat
 
-run_cmd mk_simp_attr `sugar_nat
+mk_simp_attribute sugar_nat none
+
 attribute [sugar_nat]
   ne not_le not_lt
   nat.lt_iff_add_one_le

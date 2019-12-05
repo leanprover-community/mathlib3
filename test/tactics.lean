@@ -304,6 +304,13 @@ begin
   trivial
 end
 
+example (n : ℤ) : ℕ :=
+begin
+  success_if_fail_with_msg {lift n to ℕ}
+    "lift tactic failed. Tactic is only applicable when the target is a proposition.",
+  exact 0
+end
+
 end lift
 
 private meta def get_exception_message (t : lean.parser unit) : lean.parser string

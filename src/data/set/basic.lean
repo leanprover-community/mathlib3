@@ -6,8 +6,13 @@ Author: Jeremy Avigad, Leonardo de Moura
 import tactic.basic tactic.finish data.subtype logic.unique
 open function
 
+/-! # Basic properties of sets
 
-/- set coercion to a type -/
+This file provides some basic definitions related to sets and functions (e.g., `preimage`)
+not present in the core library, as well as extra lemmas.
+-/
+
+/-! ### Set coercion to a type -/
 namespace set
 instance {α : Type*} : has_coe_to_sort (set α) := ⟨_, λ s, {x // x ∈ s}⟩
 end set
@@ -56,7 +61,7 @@ theorem ext_iff (s t : set α) : s = t ↔ ∀ x, x ∈ s ↔ x ∈ t :=
 @[trans] theorem mem_of_mem_of_subset {α : Type u} {x : α} {s t : set α} (hx : x ∈ s) (h : s ⊆ t) : x ∈ t :=
 h hx
 
-/- mem and set_of -/
+/-! ### Lemmas about `mem` and `set_of` -/
 
 @[simp] theorem mem_set_of_eq {a : α} {p : α → Prop} : a ∈ {a | p a} = p a := rfl
 
@@ -79,7 +84,7 @@ rfl
 
 @[simp] lemma set_of_mem {α} {s : set α} : {a | a ∈ s} = s := rfl
 
-/- subset -/
+/-! #### Lemmas about subsets -/
 
 -- TODO(Jeremy): write a tactic to unfold specific instances of generic notation?
 theorem subset_def {s t : set α} : (s ⊆ t) = ∀ x, x ∈ s → x ∈ t := rfl
@@ -109,7 +114,7 @@ assume h₁ h₂, h₁ h₂
 theorem not_subset : (¬ s ⊆ t) ↔ ∃a, a ∈ s ∧ a ∉ t :=
 by simp [subset_def, classical.not_forall]
 
-/- strict subset -/
+/-! ### Definition of strict subsets `s ⊂ t` and basic properties. -/
 
 /-- `s ⊂ t` means that `s` is a strict subset of `t`, that is, `s ⊆ t` but `s ≠ t`. -/
 def strict_subset (s t : set α) := s ⊆ t ∧ s ≠ t
@@ -132,7 +137,47 @@ assume h : x ∈ ∅, h
 @[simp] theorem not_not_mem [decidable (a ∈ s)] : ¬ (a ∉ s) ↔ a ∈ s :=
 not_not
 
-/- empty set -/
+/-! ### Non-empty sets -/
+
+/-- The property `s.nonempty` expresses the fact that the set `s` is not empty. It should be used
+in theorem assumptions instead of `∃ x, x ∈ s` or `s ≠ ∅` as it gives access to a nice API thanks
+to the dot notation. -/
+protected def nonempty (s : set α) : Prop := ∃ x, x ∈ s
+
+lemma nonempty_of_mem {x} (h : x ∈ s) : s.nonempty := ⟨x, h⟩
+
+/-- Extract a witness from `s.nonempty`. This function might be used instead of case analysis
+on the argument. Note that it makes a proof depend on the `classical.choice` axiom. -/
+protected noncomputable def nonempty.some (h : s.nonempty) : α := classical.some h
+
+protected lemma nonempty.some_mem (h : s.nonempty) : h.some ∈ s := classical.some_spec h
+
+lemma nonempty.of_subset (ht : s ⊆ t) (hs : s.nonempty) : t.nonempty := hs.imp ht
+
+lemma nonempty_of_ssubset (ht : s ⊂ t) : (t \ s).nonempty :=
+let ⟨x, xt, xs⟩ := exists_of_ssubset ht in ⟨x, xt, xs⟩
+
+lemma nonempty.of_diff (h : (s \ t).nonempty) : s.nonempty := h.imp $ λ _, and.left
+
+lemma nonempty.of_ssubset' (ht : s ⊂ t) : t.nonempty := (nonempty_of_ssubset ht).of_diff
+
+lemma nonempty.inl (hs : s.nonempty) : (s ∪ t).nonempty := hs.imp $ λ _, or.inl
+
+lemma nonempty.inr (ht : t.nonempty) : (s ∪ t).nonempty := ht.imp $ λ _, or.inr
+
+@[simp] lemma union_nonempty : (s ∪ t).nonempty ↔ s.nonempty ∨ t.nonempty := exists_or_distrib
+
+lemma nonempty.left (h : (s ∩ t).nonempty) : s.nonempty := h.imp $ λ _, and.left
+
+lemma nonempty.right (h : (s ∩ t).nonempty) : t.nonempty := h.imp $ λ _, and.right
+
+lemma nonempty_iff_univ_nonempty : nonempty α ↔ (univ : set α).nonempty :=
+⟨λ ⟨x⟩, ⟨x, trivial⟩, λ ⟨x, _⟩, ⟨x⟩⟩
+
+lemma univ_nonempty : ∀ [h : nonempty α], (univ : set α).nonempty
+| ⟨x⟩ := ⟨x, trivial⟩
+
+/-! ### Lemmas about the empty set -/
 
 theorem empty_def : (∅ : set α) = {x | false} := rfl
 
@@ -143,9 +188,6 @@ theorem empty_def : (∅ : set α) = {x | false} := rfl
 theorem eq_empty_iff_forall_not_mem {s : set α} : s = ∅ ↔ ∀ x, x ∉ s :=
 by simp [ext_iff]
 
-theorem ne_empty_of_mem {s : set α} {x : α} (h : x ∈ s) : s ≠ ∅ :=
-by { intro hs, rw hs at h, apply not_mem_empty _ h }
-
 @[simp] theorem empty_subset (s : set α) : ∅ ⊆ s :=
 assume x, assume h, false.elim h
 
@@ -155,12 +197,17 @@ by simp [subset.antisymm_iff]
 theorem eq_empty_of_subset_empty {s : set α} : s ⊆ ∅ → s = ∅ :=
 subset_empty_iff.1
 
-theorem ne_empty_iff_exists_mem {s : set α} : s ≠ ∅ ↔ ∃ x, x ∈ s :=
+theorem ne_empty_iff_nonempty : s ≠ ∅ ↔ s.nonempty :=
 by haveI := classical.prop_decidable;
-   simp [eq_empty_iff_forall_not_mem]
+   simp [eq_empty_iff_forall_not_mem, set.nonempty]
+
+theorem ne_empty_iff_exists_mem {s : set α} : s ≠ ∅ ↔ ∃ x, x ∈ s := ne_empty_iff_nonempty
 
 theorem exists_mem_of_ne_empty {s : set α} : s ≠ ∅ → ∃ x, x ∈ s :=
 ne_empty_iff_exists_mem.1
+
+theorem ne_empty_of_mem {s : set α} {x : α} (h : x ∈ s) : s ≠ ∅ :=
+ne_empty_iff_nonempty.2 ⟨x, h⟩
 
 theorem coe_nonempty_iff_ne_empty {s : set α} : nonempty s ↔ s ≠ ∅ :=
 nonempty_subtype.trans ne_empty_iff_exists_mem.symm
@@ -179,7 +226,10 @@ theorem ball_empty_iff {p : α → Prop} :
   (∀ x ∈ (∅ : set α), p x) ↔ true :=
 by simp [iff_def]
 
-/- universal set -/
+/-! ### Universal set.
+
+In Lean `@univ α` (or `univ : set α`) is the set that contains all elements of type `α`.
+Mathematically it is the same as `α` but it has a different type. -/
 
 theorem univ_def : @univ α = {x | true} := rfl
 
@@ -216,7 +266,7 @@ lemma exists_mem_of_nonempty (α) : ∀ [nonempty α], ∃x:α, x ∈ (univ : se
 instance univ_decidable : decidable_pred (@set.univ α) :=
 λ x, is_true trivial
 
-/- union -/
+/-! ### Lemmas about union -/
 
 theorem union_def {s₁ s₂ : set α} : s₁ ∪ s₂ = {a | a ∈ s₁ ∨ a ∈ s₂} := rfl
 
@@ -295,7 +345,7 @@ subset.trans h (subset_union_right t u)
 @[simp] theorem union_empty_iff {s t : set α} : s ∪ t = ∅ ↔ s = ∅ ∧ t = ∅ :=
 ⟨by finish [ext_iff], by finish [ext_iff]⟩
 
-/- intersection -/
+/-! ### Lemmas about intersection -/
 
 theorem inter_def {s₁ s₂ : set α} : s₁ ∩ s₂ = {a | a ∈ s₁ ∧ a ∈ s₂} := rfl
 
@@ -384,7 +434,7 @@ by finish [ext_iff, iff_def]
 theorem nonempty_of_inter_nonempty_left {s t : set α} (h : s ∩ t ≠ ∅) : s ≠ ∅ :=
 by finish [ext_iff, iff_def]
 
-/- distributivity laws -/
+/-! ### Distributivity laws -/
 
 theorem inter_distrib_left (s t u : set α) : s ∩ (t ∪ u) = (s ∩ t) ∪ (s ∩ u) :=
 ext (assume x, and_or_distrib_left)
@@ -398,7 +448,9 @@ ext (assume x, or_and_distrib_left)
 theorem union_distrib_right (s t u : set α) : (s ∩ t) ∪ u = (s ∪ u) ∩ (t ∪ u) :=
 ext (assume x, and_or_distrib_right)
 
-/- insert -/
+/-! ### Lemmas about `insert`
+
+`insert α s` is the set `{α} ∪ s`. -/
 
 theorem insert_def (x : α) (s : set α) : insert x s = { y | y = x ∨ y ∈ s } := rfl
 
@@ -457,7 +509,7 @@ theorem ball_insert_iff {P : α → Prop} {a : α} {s : set α} :
   (∀ x ∈ insert a s, P x) ↔ P a ∧ (∀x ∈ s, P x) :=
 by finish [iff_def]
 
-/- singletons -/
+/-! ### Lemmas about singletons -/
 
 theorem singleton_def (a : α) : ({a} : set α) = insert a ∅ := rfl
 
@@ -517,7 +569,7 @@ instance unique_singleton {α : Type*} (a : α) : unique ↥({a} : set α) :=
     apply eq_of_mem_singleton (subtype.mem x),
   end}
 
-/- separation -/
+/-! ### Lemmas about sets defined as `{x ∈ s | p x}`. -/
 
 theorem mem_sep {s : set α} {p : α → Prop} {x : α} (xs : x ∈ s) (px : p x) : x ∈ {x ∈ s | p x} :=
 ⟨xs, px⟩
@@ -540,7 +592,7 @@ by finish [ext_iff]
 @[simp] lemma sep_univ {α} {p : α → Prop} : {a ∈ (univ : set α) | p a} = {a | p a} :=
 set.ext $ by simp
 
-/- complement -/
+/-! ### Lemmas about complement -/
 
 theorem mem_compl {s : set α} {x : α} (h : x ∉ s) : x ∈ -s := h
 
@@ -625,7 +677,7 @@ begin
   intros h x, rintro ⟨xa, xb⟩, cases h xa, contradiction, assumption
 end
 
-/- set difference -/
+/-! ### Lemmas about set difference -/
 
 theorem diff_eq (s t : set α) : s \ t = s ∩ -t := rfl
 
@@ -1053,6 +1105,7 @@ Hh.symm ▸ set.ext (λ ⟨a₁, a₂⟩, ⟨quotient.induction_on₂ a₁ a₂
   have h₃ : ⟦b₁⟧ = a₁ ∧ ⟦b₂⟧ = a₂ := prod.ext_iff.1 h₂,
     h₃.1 ▸ h₃.2 ▸ h₁⟩)
 
+/-- Restriction of `f` to `s` factors through `s.image_factorization f : s → f '' s`. -/
 def image_factorization (f : α → β) (s : set α) : s → f '' s :=
 λ p, ⟨f p.1, mem_image_of_mem f p.2⟩
 
@@ -1069,6 +1122,7 @@ end image
 theorem univ_eq_true_false : univ = ({true, false} : set Prop) :=
 eq.symm $ eq_univ_of_forall $ classical.cases (by simp) (by simp)
 
+/-! ### Lemmas about range of a function. -/
 section range
 variables {f : ι → α}
 open function
@@ -1165,6 +1219,7 @@ range_subset_iff.2 $ λ x, or.inl rfl
 | ⟨x⟩ c := subset.antisymm range_const_subset $
   assume y hy, (mem_singleton_iff.1 hy).symm ▸ mem_range_self x
 
+/-- Any map `f : ι → β` factors through a map `range_factorization f : ι → range f`. -/
 def range_factorization (f : ι → β) : ι → range f :=
 λ i, ⟨f i, mem_range_self i⟩
 
@@ -1213,7 +1268,7 @@ theorem pairwise_on.mono' {s : set α} {r r' : α → α → Prop}
 end set
 open set
 
-/- image and preimage on subtypes -/
+/-! ### Image and preimage on subtypes -/
 
 namespace subtype
 
@@ -1280,6 +1335,8 @@ subtype.val_range
 
 end range
 
+/-! ### Lemmas about cartesian product of sets -/
+
 section prod
 
 variables {α : Type*} {β : Type*} {γ : Type*} {δ : Type*}
@@ -1303,10 +1360,10 @@ lemma prod_subset_iff {P : set (α × β)} :
 ⟨λ h _ xin _ yin, h (mk_mem_prod xin yin),
  λ h _ pin, by { cases mem_prod.1 pin with hs ht, simpa using h _ hs _ ht }⟩
 
-@[simp] theorem prod_empty {s : set α} : set.prod s ∅ = (∅ : set (α × β)) :=
+@[simp] theorem prod_empty : set.prod s ∅ = (∅ : set (α × β)) :=
 ext $ by simp [set.prod]
 
-@[simp] theorem empty_prod {t : set β} : set.prod ∅ t = (∅ : set (α × β)) :=
+@[simp] theorem empty_prod : set.prod ∅ t = (∅ : set (α × β)) :=
 ext $ by simp [set.prod]
 
 theorem insert_prod {a : α} {s : set α} {t : set β} :
@@ -1359,14 +1416,25 @@ ext $ by simp [range]
   set.prod {a} {b} = ({(a, b)} : set (α×β)) :=
 ext $ by simp [set.prod]
 
-theorem prod_neq_empty_iff {s : set α} {t : set β} :
-  set.prod s t ≠ ∅ ↔ (s ≠ ∅ ∧ t ≠ ∅) :=
-by simp [not_eq_empty_iff_exists]
+theorem nonempty.prod : s.nonempty → t.nonempty → (s.prod t).nonempty
+| ⟨x, hx⟩ ⟨y, hy⟩ := ⟨(x, y), ⟨hx, hy⟩⟩
+
+theorem nonempty.fst : (s.prod t).nonempty → s.nonempty
+| ⟨p, hp⟩ := ⟨p.1, hp.1⟩
+
+theorem nonempty.snd : (s.prod t).nonempty → t.nonempty
+| ⟨p, hp⟩ := ⟨p.2, hp.2⟩
+
+theorem prod_nonempty_iff : (s.prod t).nonempty ↔ s.nonempty ∧ t.nonempty :=
+⟨λ h, ⟨h.fst, h.snd⟩, λ h, nonempty.prod h.1 h.2⟩
+
+theorem prod_ne_empty_iff : s.prod t ≠ ∅ ↔ (s ≠ ∅ ∧ t ≠ ∅) :=
+by simp only [ne_empty_iff_nonempty, prod_nonempty_iff]
 
 theorem prod_eq_empty_iff {s : set α} {t : set β} :
   set.prod s t = ∅ ↔ (s = ∅ ∨ t = ∅) :=
 suffices (¬ set.prod s t ≠ ∅) ↔ (¬ s ≠ ∅ ∨ ¬ t ≠ ∅), by simpa only [(≠), classical.not_not],
-by classical; rw [prod_neq_empty_iff, not_and_distrib]
+by classical; rw [prod_ne_empty_iff, not_and_distrib]
 
 @[simp] theorem prod_mk_mem_set_prod_eq {a : α} {b : β} {s : set α} {t : set β} :
   (a, b) ∈ set.prod s t = (a ∈ s ∧ b ∈ t) := rfl
@@ -1414,10 +1482,10 @@ begin
   classical,
   by_cases h : set.prod s t = ∅,
   { simp [h, prod_eq_empty_iff.1 h] },
-  { have st : s ≠ ∅ ∧ t ≠ ∅, by rwa [← ne.def, prod_neq_empty_iff] at h,
+  { have st : s ≠ ∅ ∧ t ≠ ∅, by rwa [← ne.def, prod_ne_empty_iff] at h,
     split,
     { assume H : set.prod s t ⊆ set.prod s₁ t₁,
-      have h' : s₁ ≠ ∅ ∧ t₁ ≠ ∅ := prod_neq_empty_iff.1 (subset_ne_empty H h),
+      have h' : s₁ ≠ ∅ ∧ t₁ ≠ ∅ := prod_ne_empty_iff.1 (subset_ne_empty H h),
       refine or.inl ⟨_, _⟩,
       show s ⊆ s₁,
       { have := image_subset (prod.fst : α × β → α) H,

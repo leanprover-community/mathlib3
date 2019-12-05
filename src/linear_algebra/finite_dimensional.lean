@@ -266,19 +266,19 @@ quotient add up to the dimension of the space. -/
 theorem findim_quotient_add_findim [finite_dimensional K V] (s : submodule K V) :
   findim K s.quotient + findim K s = findim K V :=
 begin
-  have := dim_quotient s,
+  have := dim_quotient_add_dim s,
   rw [← findim_eq_dim, ← findim_eq_dim, ← findim_eq_dim] at this,
   exact_mod_cast this
 end
 
 /-- The dimension of a submodule is bounded by the dimension of the ambient space. -/
 lemma findim_le [finite_dimensional K V] (s : submodule K V) : findim K s ≤ findim K V :=
-by { rw ← s.findim_quotient, exact nat.le_add_left _ _ }
+by { rw ← s.findim_quotient_add_findim, exact nat.le_add_left _ _ }
 
 /-- The dimension of a quotient is bounded by the dimension of the ambient space. -/
 lemma findim_quotient_le [finite_dimensional K V] (s : submodule K V) :
   findim K s.quotient ≤ findim K V :=
-by { rw ← s.findim_quotient, exact nat.le_add_right _ _ }
+by { rw ← s.findim_quotient_add_findim, exact nat.le_add_right _ _ }
 
 end submodule
 
@@ -368,6 +368,6 @@ f.quot_ker_equiv_range.finite_dimensional
 the dimension of the source space. -/
 theorem findim_range_add_findim_ker [finite_dimensional K V] (f : V →ₗ[K] V₂) :
   findim K f.range + findim K f.ker = findim K V :=
-by { rw [← f.quot_ker_equiv_range.findim_eq], exact submodule.findim_quotient _ }
+by { rw [← f.quot_ker_equiv_range.findim_eq], exact submodule.findim_quotient_add_findim _ }
 
 end linear_map

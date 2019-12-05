@@ -43,38 +43,16 @@ do
   f ← to_expr ``(@iff.symm %%a %%b),
   return (new_ty, ⇑f)
 
-protected meta def to_pos_num : expr → option pos_num
-| `(@has_one.one %%α %%h) := some $ pos_num.one
-| `(@bit0 %%α %%h %%e) := do n ← to_pos_num e, return $ pos_num.bit0 n
-| `(@bit1 %%α %%h1 %%h2 %%e) := do n ← to_pos_num e, return $ pos_num.bit1 n
-| _ := none
-
-protected meta def to_num : expr → option num
-| `(@has_zero.zero %%α %%h) := some $ num.zero
-| e := do n ← e.to_pos_num, return $ num.pos n
-
 end expr
 
 namespace norm_cast
 
 open tactic expr
 
-meta def pexpr_of_pos_num (α : expr) : pos_num → pexpr
-| pos_num.one := ``(has_one.one %%α)
-| (pos_num.bit0 n) := ``(bit0 %%(pexpr_of_pos_num n))
-| (pos_num.bit1 n) := ``(bit1 %%(pexpr_of_pos_num n))
-
-meta def pexpr_of_num (α : expr) : num → pexpr
-| num.zero := ``(has_zero.zero %%α)
-| (num.pos n) := pexpr_of_pos_num α n
-
-meta def expr_of_num (α : expr) : num → tactic expr
-| n := to_expr $ pexpr_of_num α n
-
-private meta def mk_cache : list name → tactic simp_lemmas :=
+meta def mk_cache : list name → tactic simp_lemmas :=
 monad.foldl simp_lemmas.add_simp simp_lemmas.mk
 
-private meta def new_name (n : name) : name := name.mk_string "reversed" n
+meta def new_name (n : name) : name := name.mk_string "reversed" n
 
 /--
 This is an attribute of the norm_cast tactic.
@@ -90,12 +68,13 @@ meta def elim_cast_attr : user_attribute simp_lemmas :=
   cache_cfg :=
     { mk_cache     := mk_cache,
       dependencies := [], },
+  before_unset := some $ λ _ _, tactic.skip,
 }
 
 mk_simp_attribute push_cast "The `push_cast` simp attribute uses `squash_cast` and `move_cast` lemmas in the \"forward\" direction,
 to move casts toward the leaf nodes of the expression."
 
-private meta def aux_after_set (tac : expr → tactic (expr × (expr → expr))) :
+meta def aux_after_set (tac : expr → tactic (expr × (expr → expr))) :
   expr → tactic (expr × (expr → expr))
 | (pi n bi d b) := do
   uniq_n ← mk_fresh_name,
@@ -108,7 +87,7 @@ private meta def aux_after_set (tac : expr → tactic (expr × (expr → expr)))
 | ty := tac ty
 
 /-- Called after the `move_cast` attribute is applied to a declaration. -/
-private meta def move_cast_after_set (decl : name) (prio : ℕ) (pers : bool) : tactic unit :=
+meta def move_cast_after_set (decl : name) (prio : ℕ) (pers : bool) : tactic unit :=
 do
   (declaration.thm n l ty e) ← get_decl decl | failed,
   let tac := λ ty, (flip_eq ty <|> flip_iff ty),
@@ -122,7 +101,6 @@ do
 This is an attribute of the norm_cast tactic.
 It's intended for lemmas of the following shapes:
   - Π ..., ↑(P a1 ... an) = P ↑a1 ... ↑an
-  - Π ..., ↑(P a1 ... an) ↔ P ↑a1 ... ↑an
 -/
 @[user_attribute]
 meta def move_cast_attr : user_attribute simp_lemmas :=
@@ -133,33 +111,28 @@ meta def move_cast_attr : user_attribute simp_lemmas :=
   cache_cfg :=
     { mk_cache     := mk_cache ∘ (list.map new_name),
       dependencies := [], },
+  before_unset := some $ λ _ _, tactic.skip,
 }
 
 /--
 This is an auxiliary function to merge the sets of elim_cast and move_cast lemmas,
 as they are used together in step 2.
 -/
-private meta def get_cache : tactic simp_lemmas :=
+meta def get_cache : tactic simp_lemmas :=
 do
   a ← elim_cast_attr.get_cache,
   b ← move_cast_attr.get_cache,
   return $ simp_lemmas.join a b
 
 /-- Called after the `squash_cast` attribute is applied to a declaration. -/
-private meta def squash_cast_after_set (decl : name) (prio : ℕ) (pers : bool) : tactic unit :=
+meta def squash_cast_after_set (decl : name) (prio : ℕ) (pers : bool) : tactic unit :=
 simp_attr.push_cast.set decl () tt
 
 /--
-This is an attribute of the norm_cast tactic for simplification rules that compose or
-remove casts, but without generalizing the expression in the way elim_cast lemmas do.
-It's intended for, but not restricted to, lemmas of the following shapes:
+This is an attribute of the norm_cast tactic.
+It's intended for lemmas of the following shapes:
   - Π ..., ↑↑a = ↑a
   - Π ..., ↑a = a
-  - ((1 : α) : β) = (1 : β).
-  - see documentation for more examples
-
-They are used in the heuristic to infer intermediate casts,
-and at the end of the tactic to "clean" the expression.
 -/
 @[user_attribute]
 meta def squash_cast_attr : user_attribute simp_lemmas :=
@@ -169,14 +142,33 @@ meta def squash_cast_attr : user_attribute simp_lemmas :=
   after_set := some squash_cast_after_set,
   cache_cfg := {
     mk_cache     := monad.foldl simp_lemmas.add_simp simp_lemmas.mk,
-    dependencies := [],
-  }
+    dependencies := [], },
+  before_unset := some $ λ _ _, tactic.skip,
 }
+
+end norm_cast
+
+namespace tactic.interactive
+open tactic interactive tactic.interactive interactive.types expr lean.parser
+open norm_cast
+
+/-- `push_cast` rewrites the expression to move casts toward the leaf nodes.
+For example, `↑(a + b)` will be written to `↑a + ↑b`.
+Equivalent to `simp only with push_cast`.
+Can also be used at hypotheses.
+-/
+meta def push_cast (l : parse location): tactic unit :=
+tactic.interactive.simp none tt [] [`push_cast] l
+
+end tactic.interactive
+
+namespace norm_cast
+open tactic expr
 
 /-
 This is an auxiliary function that proves e = new_e using only squash_cast lemmas.
 -/
-private meta def aux_squash (e new_e : expr) : tactic expr :=
+meta def aux_squash (e new_e : expr) : tactic expr :=
 do
   s ← squash_cast_attr.get_cache,
   (e', pr) ← s.rewrite new_e,
@@ -190,7 +182,7 @@ An expression of the shape: op (↑(x : α) : γ) (↑(y : β) : γ)
 is rewritten to:            op (↑(↑(x : α) : β) : γ) (↑(y : β) : γ)
 when the squash_cast lemmas can prove that (↑(x : α) : γ) = (↑(↑(x : α) : β) : γ)
 -/
-private meta def heur (_ : unit) : expr → tactic (unit × expr × expr)
+meta def heur (_ : unit) : expr → tactic (unit × expr × expr)
 | (app (app op x) y) :=
 ( do
   `(@coe %%α %%δ %%coe1 %%xx) ← return x,
@@ -238,8 +230,7 @@ private meta def heur (_ : unit) : expr → tactic (unit × expr × expr)
 /-
 assumption is used to discharge proofs in step 2
 -/
-private meta def prove : tactic unit :=
-assumption
+meta def prove : tactic unit := assumption
 
 /-
 TODO: norm_cast takes a list of expressions to use as lemmas for the discharger
@@ -250,7 +241,7 @@ This is an auxiliary function used in step 2.
 It tries to rewrite an expression using the elim_cast and move_cast lemmas.
 On failure, it calls the heuristic.
 -/
-private meta def post (s : simp_lemmas) (_ : unit) (e : expr) : tactic (unit × expr × expr) :=
+meta def post (s : simp_lemmas) (_ : unit) (e : expr) : tactic (unit × expr × expr) :=
 ( do
   r ← mcond (is_prop e) (return `iff) (return `eq),
   (new_e, pr) ← s.rewrite e prove r,
@@ -266,37 +257,34 @@ The following auxiliary functions are used to handle numerals.
 -/
 
 -- prove ↑n = n where n is a numeral
-private meta def aux_num_prove_eq (a b : expr) : tactic expr :=
+meta def aux_num_prove_eq (a b : expr) : tactic expr :=
 do
-  s1 ← simp_lemmas.mk_default,
-  s2 ← squash_cast_attr.get_cache,
-  let s := simp_lemmas.join s1 s2,
   h ← to_expr ``(%%a = %%b),
-  (_, pr) ← simplify s [] h,
+  (_, pr) ← solve_aux h `[push_cast],
   to_expr ``(eq.mpr %%pr trivial)
 
 -- if possible, rewrite (n : α) to ((n : ℕ) : α) where n is a numeral and α ≠ ℕ
-private meta def aux_num_1 (_ : unit) (e : expr) : tactic (unit × expr × expr) :=
+meta def aux_num_1 (_ : unit) (e : expr) : tactic (unit × expr × expr) :=
 do
   α ← infer_type e,
   success_if_fail $ is_def_eq α `(ℕ),
   n ← e.to_num,
   h1 ← mk_app `has_lift_t [`(ℕ), α] >>= mk_instance',
-  new_e ← to_expr $ pexpr_of_num `(ℕ) n,
+  new_e ← expr.of_num `(ℕ) n,
   new_e ← to_expr ``(@coe ℕ %%α %%h1 %%new_e),
   pr ← aux_num_prove_eq e new_e,
   return ((), new_e, pr)
 
 -- if possible, rewrite (↑n : α) to (n : α) where n is a numeral
-private meta def aux_num_2 (_ : unit) (e : expr) : tactic (unit × expr × expr) :=
+meta def aux_num_2 (_ : unit) (e : expr) : tactic (unit × expr × expr) :=
 do
   `(@coe ℕ %%α %%h1 %%e') ← return e,
   n ← e'.to_num,
-  new_e ← to_expr $ pexpr_of_num α n,
+  new_e ← expr.of_num α n,
   pr ← aux_num_prove_eq e new_e,
   return ((), new_e, pr)
 
-private meta def simplify_top_down' {α} (a : α) (pre : α → expr → tactic (α × expr × expr)) (e : expr) (cfg : simp_config := {}) : tactic (α × expr × expr) :=
+meta def simplify_top_down' {α} (a : α) (pre : α → expr → tactic (α × expr × expr)) (e : expr) (cfg : simp_config := {}) : tactic (α × expr × expr) :=
 ext_simplify_core a cfg simp_lemmas.mk (λ _, failed)
   (λ a _ _ _ e, do (new_a, new_e, pr) ← pre a e, guard (¬ new_e =ₐ e), return (new_a, new_e, some pr, ff))
   (λ _ _ _ _ _, failed)
@@ -340,7 +328,7 @@ namespace tactic
 open tactic expr
 open norm_cast
 
-private meta def aux_mod_cast (e : expr) (include_goal : bool := tt) : tactic expr :=
+meta def aux_mod_cast (e : expr) (include_goal : bool := tt) : tactic expr :=
 match e with
 | local_const _ lc _ _ := do
   e ← get_local lc,
@@ -443,14 +431,6 @@ Normalize the goal and every expression in the local context, then close the goa
 -/
 meta def assumption_mod_cast : tactic unit :=
 tactic.assumption_mod_cast
-
-/-- `push_cast` rewrites the expression to move casts toward the leaf nodes.
-For example, `↑(a + b)` will be written to `↑a + ↑b`.
-Equivalent to `simp only with push_cast`.
-Can also be used at hypotheses.
--/
-meta def push_cast (l : parse location): tactic unit :=
-tactic.interactive.simp none tt [] [`push_cast] l
 
 end tactic.interactive
 

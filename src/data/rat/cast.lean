@@ -190,11 +190,11 @@ cast_sub_of_ne_zero (nat.cast_ne_zero.2 $ ne_of_gt m.pos) (nat.cast_ne_zero.2 $ 
   ((m * n : ℚ) : α) = m * n :=
 cast_mul_of_ne_zero (nat.cast_ne_zero.2 $ ne_of_gt m.pos) (nat.cast_ne_zero.2 $ ne_of_gt n.pos)
 
-@[simp, squash_cast, move_cast] theorem cast_bit0 [char_zero α] (n : ℚ) :
+@[simp, move_cast] theorem cast_bit0 [char_zero α] (n : ℚ) :
   ((bit0 n : ℚ) : α) = bit0 n :=
 cast_add _ _
 
-@[simp, squash_cast, move_cast] theorem cast_bit1 [char_zero α] (n : ℚ) :
+@[simp, move_cast] theorem cast_bit1 [char_zero α] (n : ℚ) :
   ((bit1 n : ℚ) : α) = bit1 n :=
 by rw [bit1, cast_add, cast_one, cast_bit0]; refl
 

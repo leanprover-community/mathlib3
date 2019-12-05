@@ -14,8 +14,8 @@ namespace pos_num
 
   @[simp, squash_cast] theorem cast_one [has_zero α] [has_one α] [has_add α] : ((1 : pos_num) : α) = 1 := rfl
   @[simp] theorem cast_one' [has_zero α] [has_one α] [has_add α] : (pos_num.one : α) = 1 := rfl
-  @[simp, squash_cast] theorem cast_bit0 [has_zero α] [has_one α] [has_add α] (n : pos_num) : (n.bit0 : α) = _root_.bit0 n := rfl
-  @[simp, squash_cast] theorem cast_bit1 [has_zero α] [has_one α] [has_add α] (n : pos_num) : (n.bit1 : α) = _root_.bit1 n := rfl
+  @[simp, move_cast] theorem cast_bit0 [has_zero α] [has_one α] [has_add α] (n : pos_num) : (n.bit0 : α) = _root_.bit0 n := rfl
+  @[simp, move_cast] theorem cast_bit1 [has_zero α] [has_one α] [has_add α] (n : pos_num) : (n.bit1 : α) = _root_.bit1 n := rfl
 
   @[simp, squash_cast] theorem cast_to_nat [add_monoid α] [has_one α] : ∀ n : pos_num, ((n : ℕ) : α) = n
   | 1        := nat.cast_one
@@ -428,10 +428,10 @@ namespace num
   @[simp, move_cast] theorem cast_add [semiring α] (m n) : ((m + n : num) : α) = m + n :=
   by rw [← cast_to_nat, add_to_nat, nat.cast_add, cast_to_nat, cast_to_nat]
 
-  @[simp, squash_cast] theorem cast_bit0 [semiring α] (n : num) : (n.bit0 : α) = _root_.bit0 n :=
+  @[simp, move_cast] theorem cast_bit0 [semiring α] (n : num) : (n.bit0 : α) = _root_.bit0 n :=
   by rw [← bit0_of_bit0, _root_.bit0, cast_add]; refl
 
-  @[simp, squash_cast] theorem cast_bit1 [semiring α] (n : num) : (n.bit1 : α) = _root_.bit1 n :=
+  @[simp, move_cast] theorem cast_bit1 [semiring α] (n : num) : (n.bit1 : α) = _root_.bit1 n :=
   by rw [← bit1_of_bit1, _root_.bit1, bit0_of_bit0, cast_add, cast_bit0]; refl
 
   @[simp, move_cast] theorem cast_mul [semiring α] : ∀ m n, ((m * n : num) : α) = m * n
@@ -720,14 +720,14 @@ namespace znum
   | (neg a) := show pos_num.sub' 1 (_root_.bit0 a) = _,
     by rw [pos_num.one_sub', a.bit0_of_bit0]; refl
 
-  @[simp, squash_cast] theorem cast_bit0 [add_group α] [has_one α] :
+  @[simp, move_cast] theorem cast_bit0 [add_group α] [has_one α] :
     ∀ n : znum, (n.bit0 : α) = bit0 n
   | 0       := (add_zero _).symm
   | (pos p) := by rw [znum.bit0, cast_pos, cast_pos]; refl
   | (neg p) := by rw [znum.bit0, cast_neg, cast_neg, pos_num.cast_bit0,
                       _root_.bit0, _root_.bit0, neg_add_rev]
 
-  @[simp, squash_cast] theorem cast_bit1 [add_group α] [has_one α] :
+  @[simp, move_cast] theorem cast_bit1 [add_group α] [has_one α] :
     ∀ n : znum, (n.bit1 : α) = bit1 n
   | 0       := by simp [znum.bit1, _root_.bit1, _root_.bit0]
   | (pos p) := by rw [znum.bit1, cast_pos, cast_pos]; refl

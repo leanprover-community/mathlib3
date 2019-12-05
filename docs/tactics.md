@@ -1076,6 +1076,8 @@ examples:
 @[move_cast] theorem coe_nat_add (m n : ℕ) : (↑(m + n) : ℤ) = ↑m + ↑n
 
 @[move_cast] theorem cast_sub [add_group α] [has_one α] {m n} (h : m ≤ n) : ((n - m : ℕ) : α) = n - m
+
+@[move_cast] theorem coe_nat_bit0 (n : ℕ) : (↑(bit0 n) : ℤ) = bit0 ↑n
 ```
 
 `squash_cast` is for lemmas of the following shapes:
@@ -1083,16 +1085,12 @@ examples:
 -`Π ..., ↑a = a`
 -`Π ..., ↑1 = 1`
 -`Π ..., ↑0 = 0`
--`Π ..., ↑(bit0 n) = bit0 ↑n`
--`Π ..., ↑(bit1 n) = bit1 ↑n`
 
 examples:
 ```lean
 @[squash_cast] theorem cast_coe_nat (n : ℕ) : ((n : ℤ) : α) = n
 
 @[squash_cast] theorem cast_one : ((1 : ℚ) : α) = 1
-
-@[squash_cast] theorem coe_nat_bit0 (n : ℕ) : (↑(bit0 n) : ℤ) = bit0 ↑n
 ```
 
 `push_cast` rewrites the expression to move casts toward the leaf nodes.

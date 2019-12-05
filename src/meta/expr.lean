@@ -3,7 +3,7 @@ Copyright (c) 2019 Robert Y. Lewis. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Mario Carneiro, Simon Hudon, Scott Morrison, Keeley Hoek, Robert Y. Lewis
 -/
-import data.string.defs
+import data.string.defs data.num.basic
 /-!
 # Additional operations on expr and related types
 
@@ -206,7 +206,30 @@ meta def int.mk_numeral (type has_zero has_one has_add has_neg : expr) : ℤ →
 | -[1+n] := let ne := (n+1).mk_numeral type has_zero has_one has_add in
             `(@has_neg.neg.{0} %%type %%has_neg %%ne)
 
+meta def pos_num.to_pexpr (α : expr) : pos_num → pexpr
+| pos_num.one := ``(has_one.one %%α)
+| (pos_num.bit0 n) := ``(bit0 %%(pos_num.to_pexpr n))
+| (pos_num.bit1 n) := ``(bit1 %%(pos_num.to_pexpr n))
+
+meta def num.to_pexpr (α : expr) : num → pexpr
+| num.zero := ``(has_zero.zero %%α)
+| (num.pos n) := pos_num.to_pexpr α n
+
 namespace expr
+
+/-- Turns an expression into a positive binary number, assuming it is only built up from
+  `has_one.one`, `bit0` and `bit1`. -/
+protected meta def to_pos_num : expr → option pos_num
+| `(@has_one.one %%α %%h) := some $ pos_num.one
+| `(@bit0 %%α %%h %%e) := do n ← to_pos_num e, return $ pos_num.bit0 n
+| `(@bit1 %%α %%h1 %%h2 %%e) := do n ← to_pos_num e, return $ pos_num.bit1 n
+| _ := none
+
+/-- Turns an expression into a binary number, assuming it is only built up from
+  `has_one.one`, `bit0`, `bit1` and `has_zero.zero`. -/
+protected meta def to_num : expr → option num
+| `(@has_zero.zero %%α %%h) := some $ num.zero
+| e := do n ← e.to_pos_num, return $ num.pos n
 
 /-- Turns an expression into a positive natural number, assuming it is only built up from
   `has_one.one`, `bit0` and `bit1`. -/

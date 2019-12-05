@@ -113,7 +113,7 @@ begin
 end
 variables {K V}
 
-/-- A vector space if finite-dimensional if and only if it is finitely generated. As the
+/-- A vector space is finite-dimensional if and only if it is finitely generated. As the
 finitely-generated property is a property of submodules, we formulate this in terms of the
 maximal submodule, equal to the whole space as a set by definition.-/
 lemma iff_fg :

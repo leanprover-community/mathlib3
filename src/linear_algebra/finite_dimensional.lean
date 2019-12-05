@@ -53,7 +53,7 @@ in `dimension.lean`. Not all results have been ported yet.
 One of the characterizations of finite-dimensionality is in terms of finite generation. This
 property is currently defined only for submodules, so we express it through the fact that the
 maximal submodule (which, as a set, coincides with the whole space) is finitely generated. This is
-not very convenient to use, although there are some helpers functions. However, this becomes very
+not very convenient to use, although there are some helper functions. However, this becomes very
 convenient when speaking of submodules which are finite-dimensional, as this notion coincides with
 the fact that the submodule is finitely generated (as a submodule of the whole space). This
 equivalence is proved in `submodule.fg_iff_finite_dimensional`.
@@ -68,7 +68,7 @@ variables {K : Type u} {V : Type v} [discrete_field K] [add_comm_group V] [vecto
 {V₂ : Type v'} [add_comm_group V₂] [vector_space K V₂]
 
 /-- `finite_dimensional` vector spaces are defined to be noetherian modules.
-Use `finite_dimensional.iff_fg` or `finite_dimensional.of_finite_basis`to prove finite dimensional
+Use `finite_dimensional.iff_fg` or `finite_dimensional.of_finite_basis` to prove finite dimension
 from a conventional definition. -/
 @[reducible] def finite_dimensional (K V : Type*) [discrete_field K]
   [add_comm_group V] [vector_space K V] := is_noetherian K V
@@ -100,8 +100,10 @@ lemma dim_lt_omega (K V : Type*) [discrete_field K] [add_comm_group V] [vector_s
   ∀ [finite_dimensional K V], dim K V < omega.{v} :=
 finite_dimensional_iff_dim_lt_omega.1
 
-/-- In a finite dimensional space, there exists a finite basis. A basis is in general parametrized
-by a type, here we use as parametrizing type the subset of the space corresponding to the basis. -/
+/-- In a finite dimensional space, there exists a finite basis. A basis is in general given as a
+function from an arbitrary type to the vector space. Here, we think of a basis as a set (instead of
+a function), and use as parametrizing type this set (and as a function the function `subtype.val`).
+-/
 variables (K V)
 lemma exists_is_basis_finite [finite_dimensional K V] :
   ∃ s : set V, (is_basis K (subtype.val : s → V)) ∧ s.finite :=
@@ -231,17 +233,14 @@ end finite_dimensional
 namespace submodule
 open finite_dimensional
 
-/-- A finitely generated submodule is finite-dimensional -/
-theorem fg.finite_dimensional {s : submodule K V} (hs : s.fg) : finite_dimensional K s :=
-is_noetherian_of_fg_of_noetherian s hs
-
 /-- A submodule is finitely generated if and only if it is finite-dimensional -/
 theorem fg_iff_finite_dimensional (s : submodule K V) :
   s.fg ↔ finite_dimensional K s :=
-⟨λh, h.finite_dimensional, λh, by { rw ← map_subtype_top s, exact fg_map (iff_fg.1 h) }⟩
+⟨λh, is_noetherian_of_fg_of_noetherian s h,
+ λh, by { rw ← map_subtype_top s, exact fg_map (iff_fg.1 h) }⟩
 
-/-- The dimension of a submodule and the corresponding quotient add up to the dimension of the
-space. -/
+/-- In a finite-dimensional vector space, the dimensions of a submodule and of the corresponding
+quotient add up to the dimension of the space. -/
 theorem findim_quotient [finite_dimensional K V] (s : submodule K V) :
   findim K s.quotient + findim K s = findim K V :=
 begin

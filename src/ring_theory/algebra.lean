@@ -20,7 +20,8 @@ open lattice
 open_locale tensor_product
 
 section prio
-set_option default_priority 100 -- see Note [default priority]
+-- We set this priority to 0 later in this file
+set_option default_priority 200 -- see Note [default priority]
 /-- The category of R-algebras where R is a commutative
 ring is the under category R ↓ CRing. In the categorical
 setting we have a forgetful functor R-Alg ⥤ R-Mod.
@@ -32,8 +33,6 @@ class algebra (R : Type u) (A : Type v) [comm_ring R] [ring A] extends has_scala
 (smul_def' : ∀ r x, r • x = to_fun r * x)
 end prio
 
-attribute [instance] algebra.hom
-
 def algebra_map {R : Type u} (A : Type v) [comm_ring R] [ring A] [algebra R A] (x : R) : A :=
 algebra.to_fun A x
 
@@ -41,11 +40,6 @@ namespace algebra
 
 variables {R : Type u} {S : Type v} {A : Type w}
 variables [comm_ring R] [comm_ring S] [ring A] [algebra R A]
-
-/-- The codomain of an algebra. -/
-instance : has_scalar R A := infer_instance -- short-circuit type class inference
-
-include R
 
 instance : is_ring_hom (algebra_map A : R → A) := algebra.hom _ A
 
@@ -77,7 +71,22 @@ def of_ring_hom (i : R → S) (hom : is_ring_hom i) : algebra R S :=
   commutes' := λ _ _, mul_comm _ _,
   smul_def' := λ c x, rfl }
 
-theorem smul_def (r : R) (x : A) : r • x = algebra_map A r * x :=
+lemma smul_def'' (r : R) (x : A) : r • x = algebra_map A r * x :=
+algebra.smul_def' r x
+
+@[priority 200] -- see Note [lower instance priority]
+instance to_module : module R A :=
+{ one_smul := by simp [smul_def''],
+  mul_smul := by simp [smul_def'', mul_assoc],
+  smul_add := by simp [smul_def'', mul_add],
+  smul_zero := by simp [smul_def''],
+  add_smul := by simp [smul_def'', add_mul],
+  zero_smul := by simp [smul_def''] }
+
+-- from now on, we don't want to use the following instance anymore
+attribute [instance, priority 0] algebra.to_has_scalar
+
+lemma smul_def (r : R) (x : A) : r • x = algebra_map A r * x :=
 algebra.smul_def' r x
 
 theorem commutes (r : R) (x : A) : x * algebra_map A r = algebra_map A r * x :=
@@ -94,15 +103,7 @@ by rw [smul_def, smul_def, left_comm]
   (r • x) * y = r • (x * y) :=
 by rw [smul_def, smul_def, mul_assoc]
 
-instance to_module : module R A :=
-{ one_smul := by simp [smul_def],
-  mul_smul := by simp [smul_def, mul_assoc],
-  smul_add := by simp [smul_def, mul_add],
-  smul_zero := by simp [smul_def],
-  add_smul := by simp [smul_def, add_mul],
-  zero_smul := by simp [smul_def] }
-
-omit R
+@[priority 100] -- see Note [lower instance priority]
 instance {F : Type u} {K : Type v} [discrete_field F] [ring K] [algebra F K] :
   vector_space F K :=
 @vector_space.mk F _ _ _ algebra.to_module
@@ -135,7 +136,6 @@ linear_map.mk₂ R (*)
   (λ x y z, mul_add x y z)
   (λ c x y, by rw [smul_def, smul_def, left_comm])
 
-set_option class.instance_max_depth 39
 def lmul_left (r : A) : A →ₗ A :=
 lmul R A r
 
@@ -157,7 +157,7 @@ instance module.endomorphism_algebra (R : Type u) (M : Type v)
   commutes' := by intros; ext; simp,
   smul_def' := by intros; ext; simp }
 
-set_option class.instance_max_depth 50
+set_option class.instance_max_depth 40
 instance matrix_algebra (n : Type u) (R : Type v)
   [fintype n] [decidable_eq n] [comm_ring R] : algebra R (matrix n n R) :=
 { to_fun    := (λ r, r • 1),
@@ -411,9 +411,7 @@ end complex
 structure subalgebra (R : Type u) (A : Type v)
   [comm_ring R] [ring A] [algebra R A] : Type v :=
 (carrier : set A) [subring : is_subring carrier]
-(range_le : set.range (algebra_map A : R → A) ≤ carrier)
-
-attribute [instance] subalgebra.subring
+(range_le' : set.range (algebra_map A : R → A) ≤ carrier)
 
 namespace subalgebra
 
@@ -424,8 +422,10 @@ include R
 instance : has_coe (subalgebra R A) (set A) :=
 ⟨λ S, S.carrier⟩
 
+lemma range_le (S : subalgebra R A) : set.range (algebra_map A : R → A) ≤ S := S.range_le'
+
 instance : has_mem A (subalgebra R A) :=
-⟨λ x S, x ∈ S.carrier⟩
+⟨λ x S, x ∈ (S : set A)⟩
 
 variables {A}
 theorem mem_coe {x : A} {s : subalgebra R A} : x ∈ (s : set A) ↔ x ∈ s :=
@@ -459,7 +459,7 @@ def val : S →ₐ[R] A :=
 by refine_struct { to_fun := subtype.val }; intros; refl
 
 def to_submodule : submodule R A :=
-{ carrier := S.carrier,
+{ carrier := S,
   zero := (0:S).2,
   add := λ x y hx hy, (⟨x, hx⟩ + ⟨y, hy⟩ : S).2,
   smul := λ c x hx, (algebra.smul_def c x).symm ▸ (⟨algebra_map A c, S.range_le ⟨c, rfl⟩⟩ * ⟨x, hx⟩:S).2 }
@@ -470,7 +470,7 @@ instance coe_to_submodule : has_coe (subalgebra R A) (submodule R A) :=
 instance to_submodule.is_subring : is_subring ((S : submodule R A) : set A) := S.2
 
 instance : partial_order (subalgebra R A) :=
-{ le := λ S T, S.carrier ≤ T.carrier,
+{ le := λ S T, (S : set A) ≤ (T : set A),
   le_refl := λ _, le_refl _,
   le_trans := λ _ _ _, le_trans,
   le_antisymm := λ S T hst hts, ext $ λ x, ⟨@hst x, @hts x⟩ }
@@ -480,15 +480,13 @@ def comap {R : Type u} {S : Type v} {A : Type w}
   (iSB : subalgebra S A) : subalgebra R (algebra.comap R S A) :=
 { carrier := (iSB : set A),
   subring := iSB.is_subring,
-  range_le := λ a ⟨r, hr⟩, hr ▸ iSB.range_le ⟨_, rfl⟩ }
-
-set_option class.instance_max_depth 48
+  range_le' := λ a ⟨r, hr⟩, hr ▸ iSB.range_le ⟨_, rfl⟩ }
 
 def under {R : Type u} {A : Type v} [comm_ring R] [comm_ring A]
   {i : algebra R A} (S : subalgebra R A)
   (T : subalgebra S A) : subalgebra R A :=
 { carrier := T,
-  range_le := (λ a ⟨r, hr⟩, hr ▸ T.range_le ⟨⟨algebra_map A r, S.range_le ⟨r, rfl⟩⟩, rfl⟩) }
+  range_le' := (λ a ⟨r, hr⟩, hr ▸ T.range_le ⟨⟨algebra_map A r, S.range_le ⟨r, rfl⟩⟩, rfl⟩) }
 
 end subalgebra
 
@@ -503,7 +501,7 @@ protected def range : subalgebra R B :=
   subring :=
   { one_mem := ⟨1, φ.map_one⟩,
     mul_mem := λ y₁ y₂ ⟨x₁, hx₁⟩ ⟨x₂, hx₂⟩, ⟨x₁ * x₂, hx₁ ▸ hx₂ ▸ φ.map_mul x₁ x₂⟩ },
-  range_le := λ y ⟨r, hr⟩, ⟨algebra_map A r, hr ▸ φ.commutes r⟩ }
+  range_le' := λ y ⟨r, hr⟩, ⟨algebra_map A r, hr ▸ φ.commutes r⟩ }
 
 end alg_hom
 
@@ -534,7 +532,7 @@ theorem of_id_apply (r) : of_id R A r = algebra_map A r := rfl
 variables (R) {A}
 def adjoin (s : set A) : subalgebra R A :=
 { carrier := ring.closure (set.range (algebra_map A : R → A) ∪ s),
-  range_le := le_trans (set.subset_union_left _ _) ring.subset_closure }
+  range_le' := le_trans (set.subset_union_left _ _) ring.subset_closure }
 variables {R}
 
 protected lemma gc : galois_connection (adjoin R : set A → subalgebra R A) coe :=
@@ -586,7 +584,7 @@ algebra.of_ring_hom coe $ by constructor; intros; simp
 variables {R}
 /-- CRing ⥤ ℤ-Alg -/
 def subalgebra_of_subring (S : set R) [is_subring S] : subalgebra ℤ R :=
-{ carrier := S, range_le := λ x ⟨i, h⟩, h ▸ int.induction_on i
+{ carrier := S, range_le' := λ x ⟨i, h⟩, h ▸ int.induction_on i
     (by rw algebra.map_zero; exact is_add_submonoid.zero_mem _)
     (λ i hi, by rw [algebra.map_add, algebra.map_one]; exact is_add_submonoid.add_mem hi (is_submonoid.one_mem _))
     (λ i hi, by rw [algebra.map_sub, algebra.map_one]; exact is_add_subgroup.sub_mem _ _ _ hi (is_submonoid.one_mem _)) }
@@ -604,8 +602,7 @@ set.subset.antisymm (λ x hx, span_induction hx
   (λ _, add_group.mem_closure)
   (is_add_submonoid.zero_mem _)
   (λ a b ha hb, is_add_submonoid.add_mem ha hb)
-  (λ n a ha, by { erw [show n • a = gsmul n a, from (gsmul_eq_mul a n).symm],
-    exact is_add_subgroup.gsmul_mem ha}))
+  (λ n a ha, by { exact is_add_subgroup.gsmul_mem ha }))
   (add_group.closure_subset subset_span)
 
 @[simp] lemma span_int_eq (s : set R) [is_add_subgroup s] :

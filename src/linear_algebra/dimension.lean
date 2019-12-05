@@ -211,7 +211,6 @@ by rw [← dim_range_add_dim_ker f, linear_map.ker_eq_bot.2 h]; simp [dim_bot]
 lemma dim_submodule_le (s : submodule K V) : dim K s ≤ dim K V :=
 by { rw ← dim_quotient s, exact cardinal.le_add_left _ _ }
 
-set_option class.instance_max_depth 32
 
 lemma dim_le_injective (f : V →ₗ[K] V₂) (h : injective f) :
   dim K V ≤ dim K V₂ :=

@@ -499,7 +499,7 @@ theorem insert_nonempty (a : α) (s : set α) : (insert a s).nonempty :=
 ⟨a, mem_insert a s⟩
 
 theorem insert_ne_empty (a : α) (s : set α) : insert a s ≠ ∅ :=
-(insert_nonempty).ne_empty
+(insert_nonempty a s).ne_empty
 
 -- useful in proofs by induction
 theorem forall_of_forall_insert {P : α → Prop} {a : α} {s : set α} (h : ∀ x, x ∈ insert a s → P x) :

@@ -214,7 +214,7 @@ open_locale classical
 
 /-- A linear map `f` applied to `x : ι → R` can be computed using the image under `f` of elements
 of the canonical basis. -/
-lemma pi_apply_eq_sum_univ {ι : Type u} [fintype ι] (f : (ι → R) →ₗ[R] M) (x : ι → R) :
+lemma pi_apply_eq_sum_univ [fintype ι] (f : (ι → R) →ₗ[R] M) (x : ι → R) :
   f x = finset.sum finset.univ (λi:ι, x i • (f (λj, if i = j then 1 else 0))) :=
 begin
   conv_lhs { rw [pi_eq_sum_univ x, f.map_sum] },
@@ -1118,6 +1118,11 @@ by simpa using map_comap_subtype p ⊤
 lemma map_subtype_le (p' : submodule R p) : map p.subtype p' ≤ p :=
 by simpa using (map_mono le_top : map p.subtype p' ≤ p.subtype.range)
 
+/-- Under the canonical linear map from a submodule `p` to the ambient space `M`, the image of the
+maximal submodule of `p` is just `p `. -/
+@[simp] lemma map_subtype_top : map p.subtype (⊤ : submodule R p) = p :=
+by simp
+
 @[simp] theorem ker_of_le (p p' : submodule R M) (h : p ≤ p') : (of_le h).ker = ⊥ :=
 by rw [of_le, ker_cod_restrict, ker_subtype]
 
@@ -1187,12 +1192,13 @@ by rw [range, ← prod_top, prod_map_fst]
 @[simp] theorem range_snd : (snd R M M₂).range = ⊤ :=
 by rw [range, ← prod_top, prod_map_snd]
 
-/-- The map from a module `M` to the quotient of `M` by a submodule `p` is a linear map. -/
+/-- The map from a module `M` to the quotient of `M` by a submodule `p` as a linear map. -/
 def mkq : M →ₗ[R] p.quotient := ⟨quotient.mk, by simp, by simp⟩
 
 @[simp] theorem mkq_apply (x : M) : p.mkq x = quotient.mk x := rfl
 
-/-- The map from the quotient of `M` by a submodule `p` to `M₂` along `f : M → M₂` is linear. -/
+/-- The map from the quotient of `M` by a submodule `p` to `M₂` induced by a linear map `f : M → M₂`
+vanishing on `p`, as a linear map. -/
 def liftq (f : M →ₗ[R] M₂) (h : p ≤ f.ker) : p.quotient →ₗ[R] M₂ :=
 ⟨λ x, _root_.quotient.lift_on' x f $
    λ a b (ab : a - b ∈ p), eq_of_sub_eq_zero $ by simpa using h ab,

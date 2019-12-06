@@ -37,13 +37,14 @@ as opposed to `dim`, which returns a `cardinal`. When the space has infinite dim
 
 Preservation of finite-dimensionality and formulas for the dimension are given for
 - submodules
-- quotients (for the dimension of a quotient, see `findim_quotient`)
+- quotients (for the dimension of a quotient, see `findim_quotient_add_findim`)
 - linear equivs, in `linear_equiv.finite_dimensional` and `linear_equiv.findim_eq`
 - image under a linear map (the rank-nullity formula is in `findim_range_add_findim_ker`)
 
 Basic properties of linear maps of a finite-dimensional vector space are given. Notably, the
 equivalence of injectivity and surjectivity is proved in `linear_map.injective_iff_surjective`,
-and the equivalence between left-inverse and right-inverse in `mul_eq_one_of_mul_eq_one`.
+and the equivalence between left-inverse and right-inverse in `mul_eq_one_comm` and
+`comp_eq_id_comm`.
 
 ## Implementation notes
 

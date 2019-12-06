@@ -329,7 +329,7 @@ begin
 end
 
 /-- Finite topological spaces are compact. -/
-instance fintype.compact_space [fintype α] : compact_space α :=
+@[priority 100] instance fintype.compact_space [fintype α] : compact_space α :=
 { compact_univ := compact_of_finite set.finite_univ }
 
 /-- The product of two compact spaces is compact. -/

@@ -383,10 +383,10 @@ theorem sInter_union (S T : set (set α)) : ⋂₀ (S ∪ T) = ⋂₀ S ∩ ⋂�
 @[simp] theorem sInter_insert (s : set α) (T : set (set α)) : ⋂₀ (insert s T) = s ∩ ⋂₀ T := Inf_insert
 
 theorem sUnion_pair (s t : set α) : ⋃₀ {s, t} = s ∪ t :=
-(sUnion_insert _ _).trans $ by rw [union_comm, sUnion_singleton]
+Sup_pair
 
 theorem sInter_pair (s t : set α) : ⋂₀ {s, t} = s ∩ t :=
-(sInter_insert _ _).trans $ by rw [inter_comm, sInter_singleton]
+Inf_pair
 
 @[simp] theorem sUnion_image (f : α → set β) (s : set α) : ⋃₀ (f '' s) = ⋃ x ∈ s, f x := Sup_image
 

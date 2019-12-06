@@ -325,3 +325,14 @@ lemma dense_range.induction_on₂ [topological_space β] {e : α → β} {p : β
 lemma dense_range.induction_on₃ [topological_space β] {e : α → β} {p : β → β → β → Prop}
   (he : dense_range e) (hp : is_closed {q:β×β×β | p q.1 q.2.1 q.2.2}) (h : ∀a₁ a₂ a₃, p (e a₁) (e a₂) (e a₃))
   (b₁ b₂ b₃ : β) : p b₁ b₂ b₃ := is_closed_property3 he hp h _ _ _
+
+section
+variables [topological_space β] [topological_space γ] [t2_space γ]
+variables {f : α → β}
+
+/-- Two continuous functions to a t2-space that agree on the dense range of a function are equal. -/
+lemma dense_range.equalizer (hfd : dense_range f)
+  {g h : β → γ} (hg : continuous g) (hh : continuous h) (H : g ∘ f = h ∘ f) :
+  g = h :=
+funext $ λ y, hfd.induction_on y (is_closed_eq hg hh) $ congr_fun H
+end

@@ -19,6 +19,7 @@ variables {K : Type u} [division_ring K]
 | 0 h := absurd rfl h
 | (k+1) h := zero_mul _
 
+/-- The integer power of an element of a division ring (e.g., a field). -/
 def fpow (a : K) : ℤ → K
 | (of_nat n) := a ^ n
 | -[1+n] := 1/(a ^ (n+1))
@@ -187,7 +188,7 @@ lemma one_lt_fpow {K}  [discrete_linear_ordered_field K] {p : K} (hp : 1 < p) :
 section ordered
 variables  {K : Type*} [discrete_linear_ordered_field K]
 
-lemma nat.fpow_pos_of_pos {p : ℕ} (h : 0 < p) (n:ℤ) : (p:K)^n > 0 :=
+lemma nat.fpow_pos_of_pos {p : ℕ} (h : 0 < p) (n:ℤ) : 0 < (p:K)^n :=
 by { apply fpow_pos_of_pos, exact_mod_cast h }
 
 lemma nat.fpow_ne_zero_of_pos {p : ℕ} (h : 0 < p) (n:ℤ) : (p:K)^n ≠ 0 :=
@@ -207,14 +208,18 @@ begin
   apply one_lt_fpow hx, linarith,
 end
 
-@[simp] lemma fpow_mono {x : K} (hx : 1 < x) {m n : ℤ} :
+@[simp] lemma fpow_lt_iff_lt {x : K} (hx : 1 < x) {m n : ℤ} :
   x ^ m < x ^ n ↔ m < n :=
 (fpow_strict_mono hx).lt_iff_lt
 
-@[simp] lemma fpow_inj {x : K} (h₀ : 0 < x) (h₁ : x ≠ 1) {m n : ℤ} :
-  x ^ m = x ^ n ↔ m = n :=
+@[simp] lemma fpow_le_iff_le {x : K} (hx : 1 < x) {m n : ℤ} :
+  x ^ m ≤ x ^ n ↔ m ≤ n :=
+(fpow_strict_mono hx).le_iff_le
+
+lemma fpow_injective {x : K} (h₀ : 0 < x) (h₁ : x ≠ 1) :
+  function.injective ((^) x : ℤ → K) :=
 begin
-  split; intro h, swap, {simp [h]},
+  intros m n h,
   rcases lt_trichotomy x 1 with H|rfl|H,
   { apply (fpow_strict_mono (one_lt_inv h₀ H)).injective,
     show x⁻¹ ^ m = x⁻¹ ^ n,
@@ -222,6 +227,10 @@ begin
   { contradiction },
   { exact (fpow_strict_mono H).injective h, },
 end
+
+@[simp] lemma fpow_inj {x : K} (h₀ : 0 < x) (h₁ : x ≠ 1) {m n : ℤ} :
+  x ^ m = x ^ n ↔ m = n :=
+⟨λ h, fpow_injective h₀ h₁ h, congr_arg _⟩
 
 end ordered
 
@@ -235,17 +244,9 @@ begin
   rw [fpow_neg, one_div_eq_inv, fpow_of_nat]
 end
 
-@[simp, move_cast] theorem cast_fpow [char_zero K] (q : ℚ) (k : ℤ) :
-  ((q ^ k : ℚ) : K) = q ^ k :=
-begin
-  cases k,
-  { erw fpow_of_nat,
-    rw rat.cast_pow,
-    erw fpow_of_nat },
-  { rw fpow_neg_succ_of_nat,
-    rw fpow_neg_succ_of_nat,
-    norm_cast }
-end
+@[simp, move_cast] theorem cast_fpow [char_zero K] (q : ℚ) (n : ℤ) :
+  ((q ^ n : ℚ) : K) = q ^ n :=
+@is_ring_hom.map_fpow _ _ _ _ _ (rat.is_ring_hom_cast) q n
 
 lemma fpow_eq_zero {x : K} {n : ℤ} (h : x^n = 0) : x = 0 :=
 begin

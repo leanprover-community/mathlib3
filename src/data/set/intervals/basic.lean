@@ -411,4 +411,72 @@ end both
 
 end lattice
 
+section decidable_linear_order
+variables {α : Type u} [decidable_linear_order α] {a a₁ a₂ b b₁ b₂ : α}
+
+@[simp] lemma Ico_diff_Iio {a b c : α} : Ico a b \ Iio c = Ico (max a c) b :=
+set.ext $ by simp [Ico, Iio, iff_def, max_le_iff] {contextual:=tt}
+
+@[simp] lemma Ico_inter_Iio {a b c : α} : Ico a b ∩ Iio c = Ico a (min b c) :=
+set.ext $ by simp [Ico, Iio, iff_def, lt_min_iff] {contextual:=tt}
+
+end decidable_linear_order
+
+section ordered_comm_group
+
+variables {α : Type u} [ordered_comm_group α]
+
+lemma image_neg_Iio (r : α) : image (λz, -z) (Iio r) = Ioi (-r) :=
+begin
+  apply set.ext,
+  intros z,
+  apply iff.intro,
+  { intros hz,
+    apply exists.elim hz,
+    intros z' hz',
+    rw [←hz'.2],
+    simp only [mem_Ioi, neg_lt_neg_iff],
+    exact hz'.1 },
+  { intros hz,
+    simp only [mem_image, mem_Iio],
+    use -z,
+    simp [hz],
+    exact neg_lt.1 hz }
+end
+
+lemma image_neg_Iic (r : α)  : image (λz, -z) (Iic r) = Ici (-r) :=
+begin
+  apply set.ext,
+  intros z,
+  apply iff.intro,
+  { intros hz,
+    apply exists.elim hz,
+    intros z' hz',
+    rw [←hz'.2],
+    simp only [neg_le_neg_iff, mem_Ici],
+    exact hz'.1 },
+  { intros hz,
+    simp only [mem_image, mem_Iic],
+    use -z,
+    simp [hz],
+    exact neg_le.1 hz }
+end
+
+end ordered_comm_group
+
+section decidable_linear_ordered_comm_group
+
+variables {α : Type u} [decidable_linear_ordered_comm_group α]
+
+/-- If we remove a smaller interval from a larger, the result is nonempty -/
+lemma nonempty_Ico_sdiff {x dx y dy : α} (h : dy < dx) (hx : 0 < dx) :
+  nonempty ↥(Ico x (x + dx) \ Ico y (y + dy)) :=
+begin
+  cases lt_or_le x y with h' h',
+  { use x, simp* },
+  { use max x (x + dy), simp [*, le_refl] }
+end
+
+end decidable_linear_ordered_comm_group
+
 end set

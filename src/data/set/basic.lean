@@ -146,6 +146,9 @@ protected def nonempty (s : set α) : Prop := ∃ x, x ∈ s
 
 lemma nonempty_of_mem {x} (h : x ∈ s) : s.nonempty := ⟨x, h⟩
 
+theorem nonempty.ne_empty : s.nonempty → s ≠ ∅
+| ⟨x, hx⟩ hs := by { rw hs at hx, exact hx }
+
 /-- Extract a witness from `s.nonempty`. This function might be used instead of case analysis
 on the argument. Note that it makes a proof depend on the `classical.choice` axiom. -/
 protected noncomputable def nonempty.some (h : s.nonempty) : α := classical.some h
@@ -492,9 +495,11 @@ ext $ assume a, by simp [or.comm, or.left_comm]
 @[simp] theorem union_insert : s ∪ insert a t = insert a (s ∪ t) :=
 ext $ assume a, by simp [or.comm, or.left_comm]
 
--- TODO(Jeremy): make this automatic
+theorem insert_nonempty (a : α) (s : set α) : (insert a s).nonempty :=
+⟨a, mem_insert a s⟩
+
 theorem insert_ne_empty (a : α) (s : set α) : insert a s ≠ ∅ :=
-by safe [ext_iff, iff_def]; have h' := a_1 a; finish
+(insert_nonempty a s).ne_empty
 
 -- useful in proofs by induction
 theorem forall_of_forall_insert {P : α → Prop} {a : α} {s : set α} (h : ∀ x, x ∈ insert a s → P x) :
@@ -537,7 +542,9 @@ by finish [ext_iff, or_comm]
 @[simp] theorem pair_eq_singleton (a : α) : ({a, a} : set α) = {a} :=
 by finish
 
-@[simp] theorem singleton_ne_empty (a : α) : ({a} : set α) ≠ ∅ := insert_ne_empty _ _
+@[simp] theorem singleton_nonempty (a : α) : ({a} : set α).nonempty := insert_nonempty _ _
+
+@[simp] theorem singleton_ne_empty (a : α) : ({a} : set α) ≠ ∅ := (singleton_nonempty a).ne_empty
 
 @[simp] theorem singleton_subset_iff {a : α} {s : set α} : {a} ⊆ s ↔ a ∈ s :=
 ⟨λh, h (by simp), λh b e, by simp at e; simp [*]⟩

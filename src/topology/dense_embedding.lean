@@ -330,7 +330,7 @@ section
 variables [topological_space β] [topological_space γ] [t2_space γ]
 variables {f : α → β}
 
-/-- Two continuous functions to a t2-space that agree on a dense set are equal. -/
+/-- Two continuous functions to a t2-space that agree on the dense range of a function are equal. -/
 lemma dense_range.equalizer (hfd : dense_range f)
   {g h : β → γ} (hg : continuous g) (hh : continuous h) (H : g ∘ f = h ∘ f) :
   g = h :=

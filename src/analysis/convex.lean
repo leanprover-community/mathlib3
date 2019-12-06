@@ -14,6 +14,8 @@ import tactic.linarith
 import linear_algebra.basic
 import ring_theory.algebra
 
+import algebra.smul_set
+
 open set
 open_locale classical
 
@@ -22,7 +24,7 @@ variables {α : Type*} {β : Type*} {ι : Sort _}
   [add_comm_group α] [vector_space ℝ α] [add_comm_group β] [vector_space ℝ β]
   (A : set α) (B : set α) (x : α)
 
-local attribute [instance] set.pointwise_add
+local attribute [instance] set.pointwise_add set.smul_set
 
 /-- Convexity of sets -/
 def convex (A : set α) :=
@@ -47,13 +49,25 @@ begin
 end⟩
 
 /-- Alternative definition of set convexity, in terms of pointwise set operations. -/
-lemma convex_iff':
+lemma convex_iff₂:
   convex A ↔ ∀ {a b : ℝ}, 0 ≤ a → 0 ≤ b → a + b = 1 →
-    ((λ x, a • x) '' A) + ((λ x, b • x) '' A) ⊆ A :=
-⟨λ hA a b ha hb hab w ⟨au, ⟨u, hu, hau⟩, bv, ⟨v, hv, hbv⟩, hw⟩,
-  by { rw [←hau, ←hbv] at hw; rw hw; exact hA _ _ _ _ hu hv ha hb hab },
- λ h x y a b hx hy ha hb hab,
-  (h ha hb hab) (set.add_mem_pointwise_add ⟨_, hx, rfl⟩ ⟨_, hy, rfl⟩)⟩
+    a • A + b • A ⊆ A :=
+iff.intro
+  (λ hA a b ha hb hab w ⟨au, ⟨u, hu, hau⟩, bv, ⟨v, hv, hbv⟩, hw⟩,
+    by { rw [←hau, ←hbv] at hw; rw hw; exact hA _ _ _ _ hu hv ha hb hab })
+  (λ h x y a b hx hy ha hb hab,
+    (h ha hb hab) (set.add_mem_pointwise_add ⟨_, hx, rfl⟩ ⟨_, hy, rfl⟩))
+
+/-- Alternative definition of set convexity, in terms of pointwise set operations. -/
+lemma convex_iff₃:
+  convex A ↔ ∀ {θ : ℝ}, 0 ≤ θ → θ ≤ 1 → θ • A + (1 - θ) • A ⊆ A :=
+iff.intro
+  (λ h θ hθ₀ hθ₁, (convex_iff₂ _).mp h hθ₀
+    (by rwa [le_sub, sub_zero]) (by rw [add_sub, add_sub_cancel']))
+  (λ h, (convex_iff₂ _).mpr $ λ a b ha hb hab,
+    have ha' : a ≤ 1, from calc a ≤ a + b : le_add_of_nonneg_right hb
+                           ...    = 1 : hab,
+    by { rw (eq_sub_of_add_eq' hab); exact h ha ha' })
 
 /-- Another alternative definition of set convexity -/
 lemma convex_iff_div:
@@ -765,14 +779,14 @@ section topological_vector_space
 variables {α : Type*} [add_comm_group α] [vector_space ℝ α]
 [topological_space α] [topological_add_group α] [topological_vector_space ℝ α]
 
-local attribute [instance] set.pointwise_add
+local attribute [instance] set.pointwise_add set.smul_set
 
 open set
 
 /-- In a topological vector space, the interior of a convex set is convex. -/
 lemma convex_interior {A : set α} (hA : convex A) : convex (interior A) :=
-(convex_iff' _).mpr $ λ a b ha hb hab,
-  have h : is_open ((λ x, a • x) '' interior A + (λ x, b • x) '' interior A), from
+(convex_iff₂ _).mpr $ λ a b ha hb hab,
+  have h : is_open (a • interior A + b • interior A), from
   or.elim (classical.em (a = 0))
   (λ heq,
     have hne : b ≠ 0, from by { rw [heq, zero_add] at hab, rw hab, exact one_ne_zero },
@@ -781,7 +795,7 @@ lemma convex_interior {A : set α} (hA : convex A) : convex (interior A) :=
     is_open_pointwise_add_right ((is_open_map_smul_of_ne_zero hne _) is_open_interior)),
   (subset_interior_iff_subset_of_open h).mpr $ subset.trans
     (by { apply pointwise_add_subset_add; exact image_subset _ interior_subset })
-    ((convex_iff' _).mp hA ha hb hab)
+    ((convex_iff₂ _).mp hA ha hb hab)
 
 /-- In a topological vector space, the closure of a convex set is convex. -/
 lemma convex_closure {A : set α} (hA : convex A) : convex (closure A) :=

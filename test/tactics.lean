@@ -374,7 +374,7 @@ def eta_expansion_test2 : ℕ ≃ ℕ :=
 
 run_cmd do e ← get_env, x ← e.get `eta_expansion_test2,
   let v := (x.value.get_app_args).drop 2,
-  projs ← e.get_projections `equiv,
+  projs ← e.structure_fields_full `equiv,
   b ← expr.is_eta_expansion_aux x.value (projs.zip v),
   guard $ b = some `(@my_rfl ℕ)
 

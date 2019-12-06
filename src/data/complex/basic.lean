@@ -261,10 +261,10 @@ lemma div_im (z w : ℂ) : (z / w).im = z.im * w.re / norm_sq w - z.re * w.im / 
 by simp [div_eq_mul_inv, mul_assoc]
 
 @[simp, move_cast] lemma of_real_div (r s : ℝ) : ((r / s : ℝ) : ℂ) = r / s :=
-is_field_hom.map_div coe
+is_ring_hom.map_div coe
 
 @[simp, move_cast] lemma of_real_fpow (r : ℝ) (n : ℤ) : ((r ^ n : ℝ) : ℂ) = (r : ℂ) ^ n :=
-is_field_hom.map_fpow of_real r n
+is_ring_hom.map_fpow of_real r n
 
 @[simp, squash_cast] theorem of_real_int_cast : ∀ n : ℤ, ((n : ℝ) : ℂ) = n :=
 int.eq_cast (λ n, ((n : ℝ) : ℂ))

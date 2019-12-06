@@ -58,14 +58,14 @@ pow_one a
 
 end field_power
 
-namespace is_field_hom
+namespace is_ring_hom
 
-lemma map_fpow {α β : Type*} [discrete_field α] [discrete_field β] (f : α → β) [is_field_hom f]
+lemma map_fpow {α β : Type*} [discrete_field α] [discrete_field β] (f : α → β) [is_ring_hom f]
   (a : α) : ∀ (n : ℤ), f (a ^ n) = f a ^ n
 | (n : ℕ) := is_semiring_hom.map_pow f a n
-| -[1+ n] := by simp [fpow_neg_succ_of_nat, is_semiring_hom.map_pow f, is_field_hom.map_inv f]
+| -[1+ n] := by simp [fpow_neg_succ_of_nat, is_semiring_hom.map_pow f, is_ring_hom.map_inv f]
 
-end is_field_hom
+end is_ring_hom
 
 section discrete_field_power
 open int

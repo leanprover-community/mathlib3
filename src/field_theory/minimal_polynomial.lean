@@ -155,7 +155,7 @@ begin
     rwa [← with_bot.coe_one, with_bot.coe_le_coe], },
   apply degree_pos_of_root (ne_zero_of_monic hq),
   show is_root q a,
-  apply is_field_hom.injective (algebra_map β : α → β),
+  apply is_ring_hom.injective (algebra_map β : α → β),
   rw [is_ring_hom.map_zero (algebra_map β : α → β), ← H],
   convert polynomial.hom_eval₂ _ _ _ _,
   { exact is_semiring_hom.id },

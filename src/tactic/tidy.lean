@@ -79,6 +79,8 @@ meta def tidy (cfg : tidy.cfg := {}) := tactic.tidy.core cfg >> skip
 namespace interactive
 open lean.parser interactive
 
+/-- Use a variety of conservative tactics to solve goals.
+`tidy?` reports back the tactic script it found. -/
 meta def tidy (trace : parse $ optional (tk "?")) (cfg : tidy.cfg := {}) :=
 tactic.tidy { trace_result := trace.is_some, ..cfg }
 end interactive

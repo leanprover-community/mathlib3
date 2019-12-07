@@ -81,10 +81,13 @@ open lean.parser interactive
 
 /-- Use a variety of conservative tactics to solve goals.
 `tidy?` reports back the tactic script it found.
-The default list of tactics is stored in `default_tidy_tactics`.
+The default list of tactics is stored in `tactic.tidy.default_tidy_tactics`.
 This list can be overridden using `tidy { tactics := ... }`.
 (The list must be a `list` of `tactic string`, so that `tidy?`
-can report a usable tactic script.) -/
+can report a usable tactic script.) 
+
+Tactics can also be added to the list by tagging them (locally) with the
+`[tidy]` attribute. -/
 meta def tidy (trace : parse $ optional (tk "?")) (cfg : tidy.cfg := {}) :=
 tactic.tidy { trace_result := trace.is_some, ..cfg }
 end interactive

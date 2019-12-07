@@ -6,7 +6,7 @@ Authors: Johan Commelin
 Pointwise addition and multiplication of sets
 -/
 
-import data.set.finite data.set.lattice group_theory.group_action
+import data.set.finite data.set.lattice group_theory.group_action algebra.module
 
 namespace set
 open function
@@ -254,4 +254,44 @@ end
 
 end monoid
 
+def pointwise_smul [has_scalar α β] : has_scalar (set α) (set β) :=
+  ⟨λ s t, { x | ∃ a ∈ s, ∃ y ∈ t, x  = a • y }⟩
+
+def smul_set [has_scalar α β] : has_scalar α (set β) :=
+  ⟨λ a s, (λ y, a • y) '' s⟩
+
+local attribute [instance] pointwise_smul smul_set
+
+lemma smul_set_eq_pointwise_smul_singleton [has_scalar α β]
+  (a : α) (s : set β) : a • s = ({a} : set α) • s :=
+set.ext $ λ x, iff.intro
+  (λ ⟨_, ht, hx⟩, ⟨a, mem_singleton _, _, ht, hx.symm⟩)
+  (λ ⟨a', ha', y, hy, hx⟩, ⟨_, hy, by {
+    rw mem_singleton_iff at ha'; rw ha' at hx; exact hx.symm }⟩)
+
+/-- A set scaled by 1 is itself. -/
+lemma one_smul_set [monoid α] [mul_action α β] (s : set β) : (1 : α) • s = s :=
+set.ext $ λ x, iff.intro
+  (λ ⟨y, hy, hx⟩, by { rw ←hx, show (1 : α) • y ∈ s, by rwa one_smul })
+  (λ hx, ⟨x, hx, show (1 : α) • x = x, by rwa one_smul⟩)
+
 end set
+
+section
+
+open set
+
+variables {α : Type*} {β : Type*}
+
+local attribute [instance] set.smul_set
+
+/-- A nonempty set in a semimodule is scaled by zero to the singleton
+containing 0 in the semimodule. -/
+lemma zero_smul_set [semiring α] [add_comm_monoid β] [semimodule α β]
+  {s : set β} (h : s ≠ ∅) : (0 : α) • s = {(0 : β)} :=
+set.ext $ λ x, iff.intro
+(λ ⟨y, hy, hx⟩, mem_singleton_iff.mpr (by { rw ←hx; exact zero_smul α y}))
+(λ hx, let ⟨_, hs⟩ := set.ne_empty_iff_exists_mem.mp h in
+  ⟨_, hs, show (0 : α) • _ = x, by { rw mem_singleton_iff at hx; rw [hx, zero_smul] }⟩)
+
+end

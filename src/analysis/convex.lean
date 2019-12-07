@@ -14,8 +14,6 @@ import tactic.linarith
 import linear_algebra.basic
 import ring_theory.algebra
 
-import algebra.smul_set
-
 open set
 open_locale classical
 

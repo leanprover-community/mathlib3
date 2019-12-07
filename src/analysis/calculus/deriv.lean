@@ -928,3 +928,42 @@ begin
 end
 
 end polynomial
+
+section pow
+/-! ### Derivative of `x ↦ x^n` for `n : ℕ` -/
+variable {n : ℕ }
+
+lemma has_deriv_at_pow (n : ℕ) (x : 𝕜) : has_deriv_at (λx, x^n) ((n : 𝕜) * x^(n-1)) x :=
+begin
+  convert (polynomial.C 1 * (polynomial.X)^n).has_deriv_at x,
+  { simp },
+  { rw [polynomial.derivative_monomial], simp }
+end
+
+theorem has_deriv_within_at_pow (n : ℕ) (x : 𝕜) (s : set 𝕜) :
+  has_deriv_within_at (λx, x^n) ((n : 𝕜) * x^(n-1)) s x :=
+(has_deriv_at_pow n x).has_deriv_within_at
+
+lemma differentiable_at_pow : differentiable_at 𝕜 (λx, x^n) x :=
+(has_deriv_at_pow n x).differentiable_at
+
+lemma differentiable_within_at_pow : differentiable_within_at 𝕜 (λx, x^n) s x :=
+differentiable_at_pow.differentiable_within_at
+
+lemma differentiable_pow : differentiable 𝕜 (λx:𝕜, x^n) :=
+λx, differentiable_at_pow
+
+lemma differentiable_on_pow : differentiable_on 𝕜 (λx, x^n) s :=
+differentiable_pow.differentiable_on
+
+@[simp] lemma deriv_pow : deriv (λx, x^n) x = (n : 𝕜) * x^(n-1) :=
+(has_deriv_at_pow n x).deriv
+
+lemma deriv_within_pow (hxs : unique_diff_within_at 𝕜 s x) :
+  deriv_within (λx, x^n) s x = (n : 𝕜) * x^(n-1) :=
+begin
+  rw differentiable_at.deriv_within differentiable_at_pow hxs,
+  exact deriv_pow
+end
+
+end pow

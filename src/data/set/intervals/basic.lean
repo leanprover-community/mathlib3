@@ -4,8 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johannes Hölzl, Mario Carneiro, Patrick Massot
 -/
 
-import algebra.order algebra.order_functions data.set.lattice
-import tactic.tauto
+import order.lattice algebra.order_functions tactic.tauto
 
 /-!
 # Intervals
@@ -360,24 +359,6 @@ begin
   exact lt_irrefl _ (lt_of_lt_of_le bc (h ca))
 end
 
-lemma is_glb_Ici : is_glb (Ici a) a :=
-⟨λx hx, hx, λy hy, hy left_mem_Ici⟩
-
-lemma is_glb_Icc (h : a ≤ b) : is_glb (Icc a b) a :=
-⟨λx hx, hx.1, λy hy, hy (left_mem_Icc.mpr h)⟩
-
-lemma is_glb_Ico (h : a < b) : is_glb (Ico a b) a :=
-⟨λx hx, hx.1, λy hy, hy (left_mem_Ico.mpr h)⟩
-
-lemma is_lub_Iic : is_lub (Iic a) a :=
-⟨λx hx, hx, λy hy, hy right_mem_Iic⟩
-
-lemma is_lub_Icc (h : a ≤ b) : is_lub (Icc a b) b :=
-⟨λx hx, hx.2, λy hy, hy (right_mem_Icc.mpr h)⟩
-
-lemma is_lub_Ioc (h : a < b) : is_lub (Ioc a b) b :=
-⟨λx hx, hx.2, λy hy, hy (right_mem_Ioc.mpr h)⟩
-
 end linear_order
 
 section lattice
@@ -438,77 +419,6 @@ set.ext $ by simp [Ico, Iio, iff_def, max_le_iff] {contextual:=tt}
 
 @[simp] lemma Ico_inter_Iio {a b c : α} : Ico a b ∩ Iio c = Ico a (min b c) :=
 set.ext $ by simp [Ico, Iio, iff_def, lt_min_iff] {contextual:=tt}
-
-/-- If two half-open intervals are disjoint and the endpoint of one lies in the other,
-  then it must be equal to the endpoint of the other. -/
-lemma eq_of_Ico_disjoint {x₁ x₂ y₁ y₂ : α}
-  (h : disjoint (Ico x₁ x₂) (Ico y₁ y₂)) (hx : x₁ < x₂) (hy : y₁ < y₂) (h2 : x₂ ∈ Ico y₁ y₂) :
-  y₁ = x₂ :=
-begin
-  apply le_antisymm h2.1, rw [←not_lt], intro h3,
-  apply not_disjoint_iff.mpr ⟨max y₁ x₁, _, _⟩ h,
-  simp [le_refl, h3, hx],
-  simp [le_refl, hy, lt_trans hx h2.2]
-end
-
-variables [densely_ordered α]
-open_locale classical
-
-lemma is_glb_Ioi : is_glb (Ioi a) a :=
-begin
-  refine ⟨λx hx, le_of_lt hx, λy hy, _⟩,
-  by_contradiction h,
-  rcases dense (not_le.1 h) with ⟨z, az, zy⟩,
-  exact lt_irrefl _ (lt_of_le_of_lt (hy az) zy),
-end
-
-lemma is_glb_Ioo (hab : a < b) : is_glb (Ioo a b) a :=
-begin
-  refine ⟨λx hx, le_of_lt hx.1, λy hy, _⟩,
-  by_contradiction h,
-  have : a < min b y, by { rw lt_min_iff, exact ⟨hab, not_le.1 h⟩ },
-  rcases dense this with ⟨z, az, zy⟩,
-  rw lt_min_iff at zy,
-  exact lt_irrefl _ (lt_of_le_of_lt (hy ⟨az, zy.1⟩) zy.2)
-end
-
-lemma is_glb_Ioc (hab : a < b) : is_glb (Ioc a b) a :=
-begin
-  refine ⟨λx hx, le_of_lt hx.1, λy hy, _⟩,
-  by_contradiction h,
-  have : a < min b y, by { rw lt_min_iff, exact ⟨hab, not_le.1 h⟩ },
-  rcases dense this with ⟨z, az, zy⟩,
-  rw lt_min_iff at zy,
-  exact lt_irrefl _ (lt_of_le_of_lt (hy ⟨az, le_of_lt zy.1⟩) zy.2)
-end
-
-lemma is_lub_Iio : is_lub (Iio a) a :=
-begin
-  refine ⟨λx hx, le_of_lt hx, λy hy, _⟩,
-  by_contradiction h,
-  rcases dense (not_le.1 h) with ⟨z, az, zy⟩,
-  exact lt_irrefl _ (lt_of_lt_of_le az (hy zy)),
-end
-
-lemma is_lub_Ioo (hab : a < b) : is_lub (Ioo a b) b :=
-begin
-  refine ⟨λx hx, le_of_lt hx.2, λy hy, _⟩,
-  by_contradiction h,
-  have : max a y < b, by { rw max_lt_iff, exact ⟨hab, not_le.1 h⟩ },
-  rcases dense this with ⟨z, az, zy⟩,
-  rw max_lt_iff at az,
-  exact lt_irrefl _ (lt_of_lt_of_le az.2 (hy ⟨az.1, zy⟩))
-end
-
-lemma is_lub_Ico (hab : a < b) : is_lub (Ico a b) b :=
-begin
-  refine ⟨λx hx, le_of_lt hx.2, λy hy, _⟩,
-  by_contradiction h,
-  have : max a y < b, by { rw max_lt_iff, exact ⟨hab, not_le.1 h⟩ },
-  rcases dense this with ⟨z, az, zy⟩,
-  rw max_lt_iff at az,
-  exact lt_irrefl _ (lt_of_lt_of_le az.2 (hy ⟨le_of_lt az.1, zy⟩))
-end
 
 end decidable_linear_order
 

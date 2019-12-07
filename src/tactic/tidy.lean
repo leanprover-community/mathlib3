@@ -80,7 +80,11 @@ namespace interactive
 open lean.parser interactive
 
 /-- Use a variety of conservative tactics to solve goals.
-`tidy?` reports back the tactic script it found. -/
+`tidy?` reports back the tactic script it found.
+The default list of tactics is stored in `default_tidy_tactics`.
+This list can be overridden using `tidy { tactics := ... }`.
+(The list must be a `list` of `tactic string`, so that `tidy?`
+can report a usable tactic script.) -/
 meta def tidy (trace : parse $ optional (tk "?")) (cfg : tidy.cfg := {}) :=
 tactic.tidy { trace_result := trace.is_some, ..cfg }
 end interactive

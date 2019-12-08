@@ -279,6 +279,15 @@ begin
   all_goals { admit }
 end
 
+-- test lift of functions
+example (α : Type*) (f : α → ℤ) (hf : ∀ a, 0 ≤ f a) (hf' : ∀ a, f a < 1) (a : α) : 0 ≤ 2 * f a :=
+begin
+  lift f to α → ℕ using hf,
+    guard_target ((0:ℤ) ≤ 2 * (λ i : α, (f i : ℤ)) a),
+    guard_hyp hf' := ∀ a, ((λ i : α, (f i:ℤ)) a) < 1,
+  trivial
+end
+
 instance can_lift_unit : can_lift unit unit :=
 ⟨id, λ x, true, λ x _, ⟨x, rfl⟩⟩
 
@@ -293,6 +302,13 @@ begin
   success_if_fail_with_msg {lift (n : option ℤ) to ℕ}
     "Failed to find a lift from option ℤ to ℕ. Provide an instance of\n  can_lift (option ℤ) ℕ",
   trivial
+end
+
+example (n : ℤ) : ℕ :=
+begin
+  success_if_fail_with_msg {lift n to ℕ}
+    "lift tactic failed. Tactic is only applicable when the target is a proposition.",
+  exact 0
 end
 
 end lift
@@ -358,7 +374,7 @@ def eta_expansion_test2 : ℕ ≃ ℕ :=
 
 run_cmd do e ← get_env, x ← e.get `eta_expansion_test2,
   let v := (x.value.get_app_args).drop 2,
-  projs ← e.get_projections `equiv,
+  projs ← e.structure_fields_full `equiv,
   b ← expr.is_eta_expansion_aux x.value (projs.zip v),
   guard $ b = some `(@my_rfl ℕ)
 

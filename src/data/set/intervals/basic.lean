@@ -2,20 +2,30 @@
 Copyright (c) 2017 Johannes Hölzl. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johannes Hölzl, Mario Carneiro, Patrick Massot
+-/
 
-Intervals
+import order.lattice algebra.order_functions tactic.tauto
 
-Naming conventions:
-  `i`: infinite
-  `o`: open
-  `c`: closed
+/-!
+# Intervals
 
-Each interval has the name `I` + letter for left side + letter for right side
+In any preorder `α`, we define intervals (which on each side can be either infinite, open, or
+closed) using the following naming conventions:
+- `i`: infinite
+- `o`: open
+- `c`: closed
+
+Each interval has the name `I` + letter for left side + letter for right side. For instance,
+`Ioc a b` denotes the inverval `(a, b]`.
+
+This file contains these definitions, and basic facts on inclusion, intersection, difference of
+intervals (where the precise statements may depend on the properties of the order, in particular
+for some statements it should be `linear_order` or `densely_ordered`).
+
+This file also contains statements on lower and upper bounds of intervals.
 
 TODO: This is just the beginning; a lot of rules are missing
 -/
-import algebra.order algebra.order_functions data.set.lattice
-import tactic.tauto
 
 universe u
 
@@ -146,12 +156,26 @@ lemma Icc_subset_Ico_right (h₁ : b₁ < b₂) : Icc a b₁ ⊆ Ico a b₂ :=
 
 lemma Ioo_subset_Ico_self : Ioo a b ⊆ Ico a b := λ x, and.imp_left le_of_lt
 
+lemma Ioo_subset_Ioc_self : Ioo a b ⊆ Ioc a b := λ x, and.imp_right le_of_lt
+
 lemma Ico_subset_Icc_self : Ico a b ⊆ Icc a b := λ x, and.imp_right le_of_lt
+
+lemma Ioc_subset_Icc_self : Ioc a b ⊆ Icc a b := λ x, and.imp_left le_of_lt
 
 lemma Ioo_subset_Icc_self : Ioo a b ⊆ Icc a b :=
 subset.trans Ioo_subset_Ico_self Ico_subset_Icc_self
 
-lemma Ico_subset_Iio_self : Ioo a b ⊆ Iio b := λ x, and.right
+lemma Ico_subset_Iio_self : Ico a b ⊆ Iio b := λ x, and.right
+
+lemma Ioo_subset_Iio_self : Ioo a b ⊆ Iio b := λ x, and.right
+
+lemma Ioc_subset_Ioi_self : Ioc a b ⊆ Ioi a := λ x, and.left
+
+lemma Ioo_subset_Ioi_self : Ioo a b ⊆ Ioi a := λ x, and.left
+
+lemma Ioi_subset_Ici_self : Ioi a ⊆ Ici a := λx hx, le_of_lt hx
+
+lemma Iio_subset_Iic_self : Iio a ⊆ Iic a := λx hx, le_of_lt hx
 
 lemma Icc_subset_Icc_iff (h₁ : a₁ ≤ b₁) :
   Icc a₁ b₁ ⊆ Icc a₂ b₂ ↔ a₂ ≤ a₁ ∧ b₁ ≤ b₂ :=
@@ -188,6 +212,26 @@ lemma Icc_subset_Iic_iff (h₁ : a₁ ≤ b₁) :
 lemma Icc_subset_Ici_iff (h₁ : a₁ ≤ b₁) :
   Icc a₁ b₁ ⊆ Ici a₂ ↔ a₂ ≤ a₁ :=
 ⟨λ h, h ⟨le_refl _, h₁⟩, λ h x ⟨hx, hx'⟩, le_trans h hx⟩
+
+/-- If `a ≤ b`, then `(b, +∞) ⊆ (a, +∞)`. In preorders, this is just an implication. If you need
+the equivalence in linear orders, use `Ioi_subset_Ioi_iff`. -/
+lemma Ioi_subset_Ioi (h : a ≤ b) : Ioi b ⊆ Ioi a :=
+λx hx, lt_of_le_of_lt h hx
+
+/-- If `a ≤ b`, then `(b, +∞) ⊆ [a, +∞)`. In preorders, this is just an implication. If you need
+the equivalence in dense linear orders, use `Ioi_subset_Ici_iff`. -/
+lemma Ioi_subset_Ici (h : a ≤ b) : Ioi b ⊆ Ici a :=
+subset.trans (Ioi_subset_Ioi h) Ioi_subset_Ici_self
+
+/-- If `a ≤ b`, then `(-∞, a) ⊆ (-∞, b)`. In preorders, this is just an implication. If you need
+the equivalence in linear orders, use `Iio_subset_Iio_iff`. -/
+lemma Iio_subset_Iio (h : a ≤ b) : Iio a ⊆ Iio b :=
+λx hx, lt_of_lt_of_le hx h
+
+/-- If `a ≤ b`, then `(-∞, a) ⊆ (-∞, b]`. In preorders, this is just an implication. If you need
+the equivalence in dense linear orders, use `Iio_subset_Iic_iff`. -/
+lemma Iio_subset_Iic (h : a ≤ b) : Iio a ⊆ Iic b :=
+subset.trans (Iio_subset_Iio h) Iio_subset_Iic_self
 
 lemma Ici_inter_Iic : Ici a ∩ Iic b = Icc a b := rfl
 lemma Ici_inter_Iio : Ici a ∩ Iio b = Ico a b := rfl
@@ -281,6 +325,40 @@ lemma Ico_eq_Ico_iff (h : a₁ < b₁ ∨ a₂ < b₂) : Ico a₁ b₁ = Ico a�
     tauto
 end, λ ⟨h₁, h₂⟩, by rw [h₁, h₂]⟩
 
+@[simp] lemma Ioi_subset_Ioi_iff : Ioi b ⊆ Ioi a ↔ a ≤ b :=
+begin
+  refine ⟨λh, _, λh, Ioi_subset_Ioi h⟩,
+  classical,
+  by_contradiction ba,
+  exact lt_irrefl _ (h (not_le.mp ba))
+end
+
+@[simp] lemma Ioi_subset_Ici_iff [densely_ordered α] : Ioi b ⊆ Ici a ↔ a ≤ b :=
+begin
+  refine ⟨λh, _, λh, Ioi_subset_Ici h⟩,
+  classical,
+  by_contradiction ba,
+  obtain ⟨c, bc, ca⟩ : ∃c, b < c ∧ c < a := dense (not_le.mp ba),
+  exact lt_irrefl _ (lt_of_lt_of_le ca (h bc))
+end
+
+@[simp] lemma Iio_subset_Iio_iff : Iio a ⊆ Iio b ↔ a ≤ b :=
+begin
+  refine ⟨λh, _, λh, Iio_subset_Iio h⟩,
+  classical,
+  by_contradiction ab,
+  exact lt_irrefl _ (h (not_le.mp ab))
+end
+
+@[simp] lemma Iio_subset_Iic_iff [densely_ordered α] : Iio a ⊆ Iic b ↔ a ≤ b :=
+begin
+  refine ⟨λh, _, λh, Iio_subset_Iic h⟩,
+  classical,
+  by_contradiction ba,
+  obtain ⟨c, bc, ca⟩ : ∃c, b < c ∧ c < a := dense (not_le.mp ba),
+  exact lt_irrefl _ (lt_of_lt_of_le bc (h ca))
+end
+
 end linear_order
 
 section lattice
@@ -341,18 +419,6 @@ set.ext $ by simp [Ico, Iio, iff_def, max_le_iff] {contextual:=tt}
 
 @[simp] lemma Ico_inter_Iio {a b c : α} : Ico a b ∩ Iio c = Ico a (min b c) :=
 set.ext $ by simp [Ico, Iio, iff_def, lt_min_iff] {contextual:=tt}
-
-/-- If two half-open intervals are disjoint and the endpoint of one lies in the other,
-  then it must be equal to the endpoint of the other. -/
-lemma eq_of_Ico_disjoint {x₁ x₂ y₁ y₂ : α}
-  (h : disjoint (Ico x₁ x₂) (Ico y₁ y₂)) (hx : x₁ < x₂) (hy : y₁ < y₂) (h2 : x₂ ∈ Ico y₁ y₂) :
-  y₁ = x₂ :=
-begin
-  apply le_antisymm h2.1, rw [←not_lt], intro h3,
-  apply not_disjoint_iff.mpr ⟨max y₁ x₁, _, _⟩ h,
-  simp [le_refl, h3, hx],
-  simp [le_refl, hy, lt_trans hx h2.2]
-end
 
 end decidable_linear_order
 

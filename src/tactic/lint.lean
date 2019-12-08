@@ -302,7 +302,7 @@ meta def instance_priority (d : declaration) : tactic (option string) := do
 @[linter, priority 1460] meta def linter.instance_priority : linter :=
 { test := instance_priority,
   no_errors_found := "All instance priorities are good",
-  errors_found := "DANGEROUS INSTANCE PRIORITIES.\n The following instances always apply, and therefore should have a priority < 1000" }
+  errors_found := "DANGEROUS INSTANCE PRIORITIES.\nThe following instances always apply, and therefore should have a priority < 1000.\nIf you don't know what priority to choose, use priority 100." }
 
 /-- Reports definitions and constants that are missing doc strings -/
 meta def doc_blame_report_defn : declaration → tactic (option string)
@@ -463,3 +463,13 @@ let ns := env.decl_filter_map $ λ dcl,
 { name := "Lint",
   descr := "Lint: Find common mistakes in current file.",
   action := λ es, do (_, s) ← lint, return [(s.to_string,"")] }
+
+/-- Tries to apply the `nolint` attribute to a list of declarations. Always succeeds, even if some
+of the declarations don't exist. -/
+meta def apply_nolint_tac (decls : list name) : tactic unit :=
+decls.mmap' (λ d, try (nolint_attr.set d () tt))
+
+/-- `apply_nolint id1 id2 ...` tries to apply the `nolint` attribute to `id1`, `id2`, ...
+It will always succeed, even if some of the declarations do not exist. -/
+@[user_command] meta def apply_nolint_cmd (_ : parse $ tk "apply_nolint") : parser unit :=
+ident_* >>= ↑apply_nolint_tac

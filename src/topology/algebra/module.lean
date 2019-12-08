@@ -97,7 +97,7 @@ by cases f; cases g; congr' 1; ext x; apply h
 theorem ext_iff {f g : β →L[α] γ} : f = g ↔ ∀ x, f x = g x :=
 ⟨λ h x, by rw h, by ext⟩
 
-variables (c : α) (f g : β →L[α] γ) (h h₂ : γ →L[α] δ) (x y z : β)
+variables (c : α) (f g : β →L[α] γ) (h : γ →L[α] δ) (x y z : β)
 
 -- make some straightforward lemmas available to `simp`.
 @[simp] lemma map_zero : f (0 : β) = 0 := (to_linear_map _).map_zero

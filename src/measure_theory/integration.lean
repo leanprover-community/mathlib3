@@ -779,7 +779,7 @@ begin
       refine inter_subset_inter (subset.refl _) _,
       assume x hx, exact le_trans hx (h_mono h x) },
     have h_meas : ∀n, is_measurable {a : α | ⇑(map c rs) a ≤ f n a} :=
-      assume n, measurable_le (simple_func.measurable _) (hf n),
+      assume n, is_measurable_le (simple_func.measurable _) (hf n),
     calc (r:ennreal) * integral (s.map c) = (rs.map c).range.sum (λr, r * volume ((rs.map c) ⁻¹' {r})) :
         by rw [← const_mul_integral, integral, eq_rs]
       ... ≤ (rs.map c).range.sum (λr, r * volume (⋃n, (rs.map c) ⁻¹' {r} ∩ {a | r ≤ f n a})) :

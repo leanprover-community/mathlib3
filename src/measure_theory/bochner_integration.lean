@@ -66,6 +66,47 @@ open_locale classical topological_space
 set_option class.instance_max_depth 100
 
 namespace measure_theory
+
+universes u v w
+variables {α : Type u} [measurable_space α] {β : Type v} [decidable_linear_order β] [has_zero β]
+
+local infixr ` →ₛ `:25 := simple_func
+
+namespace simple_func
+
+section pos_part
+
+/-- Positive part of a simple function. -/
+def pos_part (f : α →ₛ β) : α →ₛ β := f.map (λb, max b 0)
+
+/-- Negative part of a simple function. -/
+def neg_part [has_neg β] (f : α →ₛ β) : α →ₛ β := pos_part (-f)
+
+lemma pos_part_map_norm (f : α →ₛ ℝ) : (pos_part f).map norm = pos_part f :=
+begin
+  ext,
+  rw [map_apply, real.norm_eq_abs, abs_of_nonneg],
+  rw [pos_part, map_apply],
+  exact le_max_right _ _
+end
+
+lemma neg_part_map_norm (f : α →ₛ ℝ) : (neg_part f).map norm = neg_part f :=
+by { rw neg_part, exact pos_part_map_norm _ }
+
+lemma pos_part_sub_neg_part (f : α →ₛ ℝ) : f.pos_part - f.neg_part = f :=
+begin
+  simp only [pos_part, neg_part],
+  ext,
+  exact max_zero_sub_eq_self (f a)
+end
+
+end pos_part
+
+end simple_func
+
+end measure_theory
+
+namespace measure_theory
 open set lattice filter topological_space ennreal emetric
 
 universes u v w
@@ -246,6 +287,23 @@ begin
   { exact integrable_pair hf hg }, { refl }
 end
 ... = bintegral f + bintegral g : rfl
+
+lemma bintegral_neg {f : α →ₛ β} (hf : integrable f) : bintegral (-f) = - bintegral f :=
+calc bintegral (-f) = bintegral (f.map (has_neg.neg)) : rfl
+  ... = - bintegral f :
+  begin
+    rw [map_bintegral f _ hf neg_zero, bintegral, ← sum_neg_distrib],
+    refine finset.sum_congr rfl (λx h, smul_neg _ _),
+  end
+
+lemma bintegral_sub {f g : α →ₛ β} (hf : integrable f) (hg : integrable g) :
+  bintegral (f - g) = bintegral f - bintegral g :=
+begin
+  have : f - g = f + (-g) := rfl,
+  rw [this, bintegral_add hf _, bintegral_neg hg],
+  { refl },
+  exact integrable_neg hg
+end
 
 lemma bintegral_smul (r : ℝ) {f : α →ₛ β} (hf : integrable f) :
   bintegral (r • f) = r • bintegral f :=
@@ -657,13 +715,41 @@ variables {α β 𝕜}
 
 end coe_to_l1
 
+section pos_part
+
+/-- Positive part of a simple function in L1 space.  -/
+def pos_part (f : α →₁ₛ ℝ) : α →₁ₛ ℝ := ⟨l1.pos_part (f : α →₁ ℝ),
+begin
+  rcases f with ⟨f, s, hsi, hsf⟩,
+  use s.pos_part,
+  split,
+  { exact integrable_max_zero hsi },
+  { simp only [subtype.coe_mk],
+    rw [l1.coe_pos_part, ← hsf, ae_eq_fun.pos_part, ae_eq_fun.zero_def, comp₂_mk_mk, mk_eq_mk],
+    filter_upwards [],
+    simp only [mem_set_of_eq],
+    assume a,
+    refl }
+end ⟩
+
+/-- Negative part of a simple function in L1 space. -/
+def neg_part (f : α →₁ₛ ℝ) : α →₁ₛ ℝ := pos_part (-f)
+
+@[move_cast] lemma coe_pos_part (f : α →₁ₛ ℝ) : (f.pos_part : α →₁ ℝ) = (f : α →₁ ℝ).pos_part := rfl
+
+@[move_cast] lemma coe_neg_part (f : α →₁ₛ ℝ) : (f.neg_part : α →₁ ℝ) = (f : α →₁ ℝ).neg_part := rfl
+
+end pos_part
+
 section simple_func_integral
 /-! Define the Bochner integral on `α →₁ₛ β` and prove basic properties of this integral. -/
 
 variables [normed_space ℝ β]
 
 /-- The Bochner integral over simple functions in l1 space. -/
-def integral (f : α →₁ₛ β) : β := simple_func.bintegral (f.to_simple_func)
+def integral (f : α →₁ₛ β) : β := (f.to_simple_func).bintegral
+
+lemma integral_eq_bintegral (f : α →₁ₛ β) : integral f = (f.to_simple_func).bintegral := rfl
 
 lemma integral_eq_lintegral {f : α →₁ₛ ℝ} (h_pos : ∀ₘ a, 0 ≤ f.to_simple_func a) :
   integral f = ennreal.to_real (∫⁻ a, ennreal.of_real (f.to_simple_func a)) :=
@@ -715,6 +801,80 @@ begin
   exact norm_integral_le_norm _
 end
 
+section pos_part
+
+lemma pos_part_to_simple_func (f : α →₁ₛ ℝ) :
+  ∀ₘ a, f.pos_part.to_simple_func a = f.to_simple_func.pos_part a :=
+begin
+  have eq : ∀ a, f.to_simple_func.pos_part a = max (f.to_simple_func a) 0 := λa, rfl,
+  have ae_eq : ∀ₘ a, f.pos_part.to_simple_func a = max (f.to_simple_func a) 0,
+  { filter_upwards [to_simple_func_eq_to_fun f.pos_part, pos_part_to_fun (f : α →₁ ℝ),
+      to_simple_func_eq_to_fun f],
+    simp only [mem_set_of_eq],
+    assume a h₁ h₂ h₃,
+    rw [h₁, coe_pos_part, h₂, ← h₃] },
+  filter_upwards [ae_eq],
+  simp only [mem_set_of_eq],
+  assume a h,
+  rw [h, eq]
+end
+
+lemma neg_part_to_simple_func (f : α →₁ₛ ℝ) :
+  ∀ₘ a, f.neg_part.to_simple_func a = f.to_simple_func.neg_part a :=
+begin
+  rw [simple_func.neg_part, measure_theory.simple_func.neg_part],
+  filter_upwards [pos_part_to_simple_func (-f), neg_to_simple_func f],
+  simp only [mem_set_of_eq],
+  assume a h₁ h₂,
+  rw h₁,
+  show max _ _ = max _ _,
+  rw h₂,
+  refl
+end
+
+lemma integral_eq_norm_pos_part_sub (f : α →₁ₛ ℝ) : f.integral = ∥f.pos_part∥ - ∥f.neg_part∥ :=
+begin
+  have ae_eq₁ : ∀ₘ a, f.to_simple_func.pos_part a = (f.pos_part).to_simple_func.map norm a,
+  { filter_upwards [pos_part_to_simple_func f],
+    simp only [mem_set_of_eq],
+    assume a h,
+    rw [simple_func.map_apply, h],
+    conv_lhs { rw [← simple_func.pos_part_map_norm, simple_func.map_apply] } },
+  have ae_eq₂ : ∀ₘ a, f.to_simple_func.neg_part a = (f.neg_part).to_simple_func.map norm a,
+  { filter_upwards [neg_part_to_simple_func f],
+    simp only [mem_set_of_eq],
+    assume a h,
+    rw [simple_func.map_apply, h],
+    conv_lhs { rw [← simple_func.neg_part_map_norm, simple_func.map_apply] } },
+  have ae_eq : ∀ₘ a, f.to_simple_func.pos_part a - f.to_simple_func.neg_part a =
+    (f.pos_part).to_simple_func.map norm a - (f.neg_part).to_simple_func.map norm a,
+  { filter_upwards [ae_eq₁, ae_eq₂],
+    simp only [mem_set_of_eq],
+    assume a h₁ h₂,
+    rw [h₁, h₂] },
+  rw [integral, norm_eq_bintegral, norm_eq_bintegral, ← simple_func.bintegral_sub],
+  { show f.to_simple_func.bintegral =
+      ((f.pos_part.to_simple_func).map norm - f.neg_part.to_simple_func.map norm).bintegral,
+    apply simple_func.bintegral_congr f.integrable,
+    { show integrable (f.pos_part.to_simple_func.map norm - f.neg_part.to_simple_func.map norm),
+      refine integrable_of_ae_eq _ _,
+      { exact (f.to_simple_func.pos_part - f.to_simple_func.neg_part) },
+      { exact integrable_sub f.to_simple_func.pos_part.measurable f.to_simple_func.neg_part.measurable
+        (integrable_max_zero f.integrable) (integrable_max_zero $ integrable_neg f.integrable) },
+      exact ae_eq },
+    filter_upwards [ae_eq₁, ae_eq₂],
+    simp only [mem_set_of_eq],
+    assume a h₁ h₂, show _ = _ - _,
+    rw [← h₁, ← h₂],
+    have := f.to_simple_func.pos_part_sub_neg_part,
+    conv_lhs {rw ← this},
+    refl },
+  { refine integrable_of_ae_eq (integrable_max_zero f.integrable) ae_eq₁ },
+  { refine integrable_of_ae_eq (integrable_max_zero $ integrable_neg f.integrable) ae_eq₂ }
+end
+
+end pos_part
+
 end simple_func_integral
 
 end simple_func
@@ -738,6 +898,10 @@ def integral_clm : (α →₁ β) →L[ℝ] β :=
 def integral (f : α →₁ β) : β := (integral_clm).to_fun f
 
 lemma integral_eq (f : α →₁ β) : integral f = (integral_clm).to_fun f := rfl
+
+lemma integral_coe_eq_integral (f : α →₁ₛ β) :
+  integral (f : α →₁ β) = f.integral :=
+by { refine uniformly_extend_of_ind _ _ _ _, exact simple_func.integral_clm.uniform_continuous }
 
 variables (α β)
 @[simp] lemma integral_zero : integral (0 : α →₁ β) = 0 :=
@@ -770,6 +934,23 @@ calc ∥integral f∥ = ∥Integral f∥ : rfl
   ... ≤ ∥Integral∥ * ∥f∥ : le_op_norm _ _
   ... ≤ 1 * ∥f∥ : mul_le_mul_of_nonneg_right norm_Integral_le_one $ norm_nonneg _
   ... = ∥f∥ : one_mul _
+
+section pos_part
+
+lemma integral_eq_norm_pos_part_sub (f : α →₁ ℝ) : integral f = ∥pos_part f∥ - ∥neg_part f∥ :=
+begin
+  refine @is_closed_property _ _ _ (coe : (α →₁ₛ ℝ) → (α →₁ ℝ))
+    (λ f : α →₁ ℝ, integral f = ∥pos_part f∥ - ∥neg_part f∥)
+    l1.simple_func.dense_range (is_closed_eq _ _) _ f,
+  { exact cont _ },
+  { refine continuous.sub (continuous_norm.comp l1.continuous_pos_part) (continuous_norm.comp l1.continuous_neg_part) },
+  { assume s,
+    rw [integral_coe_eq_integral, ← simple_func.coe_pos_part, ← simple_func.coe_neg_part,
+    ← simple_func.norm_eq, ← simple_func.norm_eq],
+    exact simple_func.integral_eq_norm_pos_part_sub _}
+end
+
+end pos_part
 
 end integration_in_l1
 
@@ -890,7 +1071,7 @@ lemma norm_integral_le_lintegral_norm (f : α → β) :
 begin
   by_cases hfm : measurable f,
   by_cases hfi : integrable f,
-  { rw [integral, l1.lintegral_norm_eq_norm_of_fun f hfm hfi, dif_pos],
+  { rw [integral, ← l1.norm_of_fun_eq_lintegral_norm f hfm hfi, dif_pos],
     exact l1.norm_integral_le _, exact ⟨hfm, hfi⟩ },
   { rw [integral_eq_zero_of_non_integrable hfi, _root_.norm_zero],
     exact to_real_nonneg },
@@ -931,6 +1112,89 @@ begin
     have h₂ : integrable f := integrable_of_dominated_convergence bound_integrable h_bound h_lim,
     rw ← integral_sub (F_measurable _) h₁ f_measurable h₂,
     exact norm_integral_le_lintegral_norm _ }
+end
+
+/-- The Bochner integral of a real-valued function `f : α → ℝ` is the difference between the
+  integral of the positive part of `f` and the integral of the negative part of `f`.  -/
+lemma integral_eq_lintegral_max_sub_lintegral_min {f : α → ℝ}
+  (hfm : measurable f) (hfi : integrable f) : integral f =
+  ennreal.to_real (∫⁻ a, ennreal.of_real $ max (f a) 0) -
+  ennreal.to_real (∫⁻ a, ennreal.of_real $ - min (f a) 0) :=
+let f₁ : α →₁ ℝ := l1.of_fun f hfm hfi in
+have eq₁ : ennreal.to_real (∫⁻ a, ennreal.of_real $ max (f a) 0) = ∥l1.pos_part f₁∥ :=
+begin
+  rw l1.norm_eq_norm_to_fun,
+  congr' 1,
+  apply lintegral_congr_ae,
+  filter_upwards [l1.pos_part_to_fun f₁, l1.to_fun_of_fun f hfm hfi],
+  simp only [mem_set_of_eq],
+  assume a h₁ h₂,
+  rw [h₁, h₂, real.norm_eq_abs, abs_of_nonneg],
+  exact le_max_right _ _
+end,
+have eq₂ : ennreal.to_real (∫⁻ a, ennreal.of_real $ -min (f a) 0) = ∥l1.neg_part f₁∥ :=
+begin
+  rw l1.norm_eq_norm_to_fun,
+  congr' 1,
+  apply lintegral_congr_ae,
+  filter_upwards [l1.neg_part_to_fun_eq_min f₁, l1.to_fun_of_fun f hfm hfi],
+  simp only [mem_set_of_eq],
+  assume a h₁ h₂,
+  rw [h₁, h₂, real.norm_eq_abs, abs_of_nonneg],
+  rw [min_eq_neg_max_neg_neg, _root_.neg_neg, neg_zero],
+  exact le_max_right _ _
+end,
+begin
+  rw [eq₁, eq₂, integral, dif_pos],
+  rotate, { exact ⟨hfm, hfi⟩ },
+  exact l1.integral_eq_norm_pos_part_sub _
+end
+
+lemma integral_eq_lintegral_of_nonneg_ae {f : α → ℝ} (hf : ∀ₘ a, 0 ≤ f a) (hfm : measurable f) :
+  integral f = ennreal.to_real (∫⁻ a, ennreal.of_real $ f a) :=
+begin
+  by_cases hfi : integrable f,
+  { rw integral_eq_lintegral_max_sub_lintegral_min hfm hfi,
+    have h_min : (∫⁻ a, ennreal.of_real (-min (f a) 0)) = 0,
+    { rw lintegral_eq_zero_iff,
+      { filter_upwards [hf],
+        simp only [mem_set_of_eq],
+        assume a h,
+        simp only [min_eq_right h, neg_zero, ennreal.of_real_zero] },
+      { refine measurable_of_real.comp
+          (measurable.comp (measurable_neg measurable_id) $
+            measurable_min hfm measurable_const) } },
+    have h_max : (∫⁻ a, ennreal.of_real (max (f a) 0)) = (∫⁻ a, ennreal.of_real $ f a),
+    { apply lintegral_congr_ae,
+      filter_upwards [hf],
+      simp only [mem_set_of_eq],
+      assume a h,
+      rw max_eq_left h },
+    rw [h_min, h_max, zero_to_real, _root_.sub_zero] },
+  { rw integral_eq_zero_of_non_integrable hfi,
+    rw [integrable_iff_norm, lt_top_iff_ne_top, ne.def, not_not] at hfi,
+    have : (∫⁻ (a : α), ennreal.of_real (f a)) = (∫⁻ a, ennreal.of_real ∥f a∥),
+    { apply lintegral_congr_ae,
+      filter_upwards [hf],
+      simp only [mem_set_of_eq],
+      assume a h,
+      rw [real.norm_eq_abs, abs_of_nonneg h] },
+    rw [this, hfi], refl }
+end
+
+lemma integral_of_nonneg_ae {f : α → ℝ} (hf : ∀ₘ a, 0 ≤ f a) : 0 ≤ integral f :=
+begin
+  by_cases hfm : measurable f,
+  { rw integral_eq_lintegral_of_nonneg_ae hf hfm, exact to_real_nonneg },
+  { rw integral_eq_zero_of_non_measurable hfm }
+end
+
+lemma integral_of_nonpos_ae {f : α → ℝ} (hf : ∀ₘ a, f a ≤ 0) : integral f ≤ 0 :=
+begin
+  have hf : ∀ₘ a, 0 ≤ (-f) a,
+  { filter_upwards [hf], simp only [mem_set_of_eq], assume a h, rwa [pi.neg_apply, neg_nonneg] },
+  have : 0 ≤ integral (-f) := integral_of_nonneg_ae hf,
+  rwa [integral_neg, neg_nonneg] at this,
 end
 
 end properties

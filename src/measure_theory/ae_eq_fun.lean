@@ -541,6 +541,26 @@ end
 
 end normed_space
 
+section pos_part
+
+variables {γ : Type*} [topological_space γ] [decidable_linear_order γ] [ordered_topology γ]
+  [second_countable_topology γ] [has_zero γ]
+
+/-- Positive part of an `ae_eq_fun`. -/
+def pos_part (f : α →ₘ γ) : α →ₘ γ :=
+comp₂ max (measurable_max (measurable_fst measurable_id) (measurable_snd measurable_id)) f 0
+
+lemma pos_part_to_fun (f : α →ₘ γ) : ∀ₘ a, (pos_part f).to_fun a = max (f.to_fun a) (0:γ) :=
+begin
+  filter_upwards [comp₂_to_fun max (measurable_max (measurable_fst measurable_id)
+    (measurable_snd measurable_id)) f 0, @ae_eq_fun.zero_to_fun α γ],
+  simp only [mem_set_of_eq],
+  assume a h₁ h₂,
+  rw [pos_part, h₁, h₂]
+end
+
+end pos_part
+
 end ae_eq_fun
 
 end measure_theory

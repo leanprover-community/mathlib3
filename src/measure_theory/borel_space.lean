@@ -232,7 +232,7 @@ lemma measurable_mul
   {f : β → α} {g : β → α} : measurable f → measurable g → measurable (λa, f a * g a) :=
 measurable_of_continuous2 continuous_mul
 
-lemma measurable_le {α β}
+lemma is_measurable_le {α β}
   [topological_space α] [partial_order α] [ordered_topology α] [second_countable_topology α]
   [measurable_space β] {f : β → α} {g : β → α} (hf : measurable f) (hg : measurable g) :
   is_measurable {a | f a ≤ g a} :=
@@ -243,6 +243,18 @@ begin
   refine measurable.preimage _ this,
   exact measurable_prod_mk hf hg
 end
+
+lemma measurable_max {α β}
+  [topological_space α] [decidable_linear_order α] [ordered_topology α] [second_countable_topology α]
+  [measurable_space β] {f : β → α} {g : β → α} (hf : measurable f) (hg : measurable g) :
+  measurable (λa, max (f a) (g a)) :=
+measurable.if (is_measurable_le hf hg) hg hf
+
+lemma measurable_min {α β}
+  [topological_space α] [decidable_linear_order α] [ordered_topology α] [second_countable_topology α]
+  [measurable_space β] {f : β → α} {g : β → α} (hf : measurable f) (hg : measurable g) :
+  measurable (λa, min (f a) (g a)) :=
+measurable.if (is_measurable_le hf hg) hf hg
 
 -- generalize
 lemma measurable_coe_int_real : measurable (λa, a : ℤ → ℝ) :=

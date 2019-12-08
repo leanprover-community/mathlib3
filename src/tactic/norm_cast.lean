@@ -9,6 +9,26 @@ Normalizing casts inside expressions.
 import tactic.basic tactic.interactive tactic.converter.interactive
 import data.buffer.parser data.num.basic
 
+/-!
+# A tactic for normalizing casts inside expressions
+
+This tactic normalizes casts inside expressions.
+It can be thought of as a call to the simplifier with a specific set of lemmas to
+move casts upwards in the expression.
+It has special handling of numerals and a simple heuristic to help moving
+casts "past" binary operators.
+Contrary to simp, it should be safe to use as a non-terminating tactic.
+
+## Important definitions
+* `tactic.interactive.norm_cast`
+* `tactic.interactive.push_cast`
+* `tactic.interactive.exact_mod_cast`
+* `tactic.interactive.apply_mod_cast`
+* `tactic.interactive.rw_mod_cast`
+* `tactic.interactive.assumption_mod_cast`
+-/
+
+
 namespace tactic
 
 /--
@@ -260,8 +280,15 @@ The following auxiliary functions are used to handle numerals.
 meta def aux_num_prove_eq (a b : expr) : tactic expr :=
 do
   h ← to_expr ``(%%a = %%b),
-  (_, pr) ← solve_aux h `[push_cast],
+  s1 ← simp_attr.push_cast.get_cache,
+  s2 ← simp_lemmas.mk_default,
+  let s := simp_lemmas.join s1 s2,
+  (_, pr) ← simplify s [] h,
+  t ← infer_type pr,
+  some (_, tmp) ← expr.is_eq <$> infer_type pr,
+  is_def_eq tmp `(true),
   to_expr ``(eq.mpr %%pr trivial)
+
 
 -- if possible, rewrite (n : α) to ((n : ℕ) : α) where n is a numeral and α ≠ ℕ
 meta def aux_num_1 (_ : unit) (e : expr) : tactic (unit × expr × expr) :=
@@ -281,6 +308,7 @@ do
   `(@coe ℕ %%α %%h1 %%e') ← return e,
   n ← e'.to_num,
   new_e ← expr.of_num α n,
+  h ← to_expr ``(%%e = %%new_e),
   pr ← aux_num_prove_eq e new_e,
   return ((), new_e, pr)
 
@@ -302,7 +330,6 @@ do
 
   -- step 1: pre-processing of numerals
   ((), e1, pr1) ← simplify_top_down' () aux_num_1 e0 cfg,
-  h1 ← to_expr ``(%%e0 = %%e1),
 
   -- step 2: casts are moved upwards and eliminated
   ((), e2, pr2) ← simplify_bottom_up () (post s) e1 cfg,
@@ -313,7 +340,6 @@ do
 
   --step 4: post-processing of numerals
   ((), e4, pr4) ← simplify_top_down' () aux_num_2 e3 cfg,
-  h4 ← to_expr ``(%%e3 = %%e4),
 
   let new_e := e4,
   guard (¬ new_e =ₐ e),

@@ -97,7 +97,7 @@ by cases f; cases g; congr' 1; ext x; apply h
 theorem ext_iff {f g : β →L[α] γ} : f = g ↔ ∀ x, f x = g x :=
 ⟨λ h x, by rw h, by ext⟩
 
-variables (c : α) (f g : β →L[α] γ) (h : γ →L[α] δ) (x y z : β)
+variables (c : α) (f g : β →L[α] γ) (h h₂ : γ →L[α] δ) (x y z : β)
 
 -- make some straightforward lemmas available to `simp`.
 @[simp] lemma map_zero : f (0 : β) = 0 := (to_linear_map _).map_zero
@@ -179,6 +179,16 @@ by { ext, simp }
 @[simp] theorem zero_comp : (0 : γ →L[α] δ).comp f = 0 :=
 by { ext, simp }
 
+@[simp] lemma comp_add [topological_add_group γ] [topological_add_group δ]
+  (g : γ →L[α] δ) (f₁ f₂ : β →L[α] γ) :
+  g.comp (f₁ + f₂) = g.comp f₁ + g.comp f₂ :=
+by { ext, simp }
+
+@[simp] lemma add_comp [topological_add_group δ]
+  (g₁ g₂ : γ →L[α] δ) (f : β →L[α] γ) :
+  (g₁ + g₂).comp f = g₁.comp f + g₂.comp f :=
+by { ext, simp }
+
 instance : has_mul (β →L[α] β) := ⟨comp⟩
 
 instance [topological_add_group β] : ring (β →L[α] β) :=
@@ -204,16 +214,23 @@ variables
 {α : Type*} [comm_ring α] [topological_space α]
 {β : Type*} [topological_space β] [add_comm_group β]
 {γ : Type*} [topological_space γ] [add_comm_group γ]
-[module α β] [module α γ] [topological_module α γ]
+{δ : Type*} [topological_space δ] [add_comm_group δ]
+[module α β] [module α γ] [module α δ] [topological_module α δ]
 
-instance : has_scalar α (β →L[α] γ) :=
+instance : has_scalar α (β →L[α] δ) :=
 ⟨λ c f, ⟨c • f, continuous_smul continuous_const f.2⟩⟩
 
-variables (c : α) (f g : β →L[α] γ) (x y z : β)
+variables (c : α) (h : γ →L[α] δ) (f g : β →L[α] γ) (x y z : β)
+
+@[simp] lemma smul_comp : (c • h).comp f = c • (h.comp f) := rfl
+
+variable [topological_module α γ]
 
 @[simp] lemma smul_apply : (c • f) x = c • (f x) := rfl
 @[simp, move_cast] lemma coe_apply : (((c • f) : β →L[α] γ) : β →ₗ[α] γ) = c • (f : β →ₗ[α] γ) := rfl
 @[move_cast] lemma coe_apply' : (((c • f) : β →L[α] γ) : β → γ) = c • (f : β → γ) := rfl
+
+@[simp] lemma comp_smul : h.comp (c • f) = c • (h.comp f) := by { ext, simp }
 
 /-- The linear map `λ x, c x • f`.  Associates to a scalar-valued linear map and an element of
 `γ` the `γ`-valued linear map obtained by multiplying the two (a.k.a. tensoring by `γ`) -/

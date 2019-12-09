@@ -163,7 +163,7 @@ def det_minor (i j : fin (k+1)) (M : matrix (fin (k+1)) (fin (k+1)) R) : R :=
   right_inv := sorry
 }-/
 
-def rotate : perm (fin (k+1)) :=
+/-def rotate : perm (fin (k+1)) :=
 { to_fun := λ i, if h : i.1 < k then fin.succ ⟨i.1, h⟩ else ⟨0, nat.zero_lt_succ k⟩,
   inv_fun := λ i, if i.1 ≠ 0 then ⟨nat.pred i.1, lt_of_le_of_lt (nat.pred_le _) i.2⟩ else last k,
   left_inv := λ i, begin dsimp, by_cases hi : i.1 < k,
@@ -178,11 +178,104 @@ def rotate : perm (fin (k+1)) :=
         exact h (lt_of_lt_of_le (nat.pred_lt_pred hi i.2) (nat.pred_succ k ▸ le_refl k)) } },
     { rw [if_neg hi], split_ifs with h h,
       { rw [last_val] at h, exfalso, exact lt_irrefl _ h },
-      { rw [eq_iff_veq], symmetry, rwa [ne.def, not_not] at hi } } end }
+      { rw [eq_iff_veq], symmetry, rwa [ne.def, not_not] at hi } } end }-/
 
-lemma is_cycle_rotate : is_cycle (@rotate k) := sorry
+/-lemma fin_add_injective (i : fin k) : injective (fin.add i) := sorry
 
-def rotate_above (p : fin (k+1)) : perm (fin (k+1)) := sorry
+lemma fin_add_bijective (i : fin k) : bijective (fin.add i) :=
+fintype.injective_iff_bijective.mp $ fin_add_injective i-/
+
+def rotate (p : fin k) : perm (fin k) :=
+{ to_fun := fin.add p,
+  inv_fun := sorry,
+  left_inv := sorry,
+  right_inv := sorry }
+
+lemma is_cycle_rotate (p : fin k) : is_cycle (rotate p) := sorry
+
+/-def shift (k n : ℕ) (σ : perm (fin k)) : perm (fin (k + n)) :=
+{ to_fun := λ i, if h : n ≤ i.val then add_nat n (σ (sub_nat n i h)) else i,
+  inv_fun := λ i, if h : n ≤ i.val then add_nat n (σ.inv_fun (sub_nat n i h)) else i,
+  left_inv := λ i, begin dsimp, split_ifs with h h,
+    { rw [dif_pos h], }
+   end,
+  right_inv := sorry
+
+}
+
+def f (k n : ℕ) : monoid_hom (perm (fin k)) (perm (fin (k + n))) :=
+{ to_fun := λ σ i, if n ≤ i.val then add_nat n (σ (sub_nat n i h)) else i,
+  map_one' := sorry,
+  map_mul' := sorry
+}-/
+
+def rotate_above (p : fin (k+1)) : perm (fin (k+1)) :=
+{ to_fun := λ i, if h : i.1 < k then p.succ_above ⟨i.1, h⟩ else p,
+  inv_fun := sorry, --λ i, if h : i ≠ p then p.pred_above i h else i,
+  left_inv := sorry,
+  right_inv := sorry }
+
+lemma rotate_above_ne (p : fin (k+1)) (i : fin k) : rotate_above p i ≠ p :=
+sorry
+
+lemma is_cycle_rotate_above (p : fin (k+1)) : is_cycle (rotate_above p) := sorry
+
+lemma sign_rotate_above (p : fin (k+1)) : sign (rotate_above p) = (-1)^(k+1-p) := sorry
+
+def res {σ : perm (fin (k+1))} (h : σ (last k) = (last k)) : perm (fin k) :=
+{ to_fun := λ l, ⟨σ l, lt_of_le_of_ne sorry begin assume h, end⟩,
+  inv_fun := sorry,
+  left_inv := sorry,
+  right_inv := sorry
+}
+
+lemma laplace_expansion_aux (hk : k > 0) (M : matrix (fin (k+1)) (fin (k+1)) R) (i j : fin (k+1)) :
+  univ.sum (λ σ : { σ : perm (fin (k+1)) // σ.to_fun i = j }, ε σ.val * univ.prod (λ l, M (σ l) l)) =
+  M j i * (-1)^(i.1 + j.1) * det_minor j i M :=
+calc univ.sum (λ σ : { σ : perm (fin (k+1)) // σ.to_fun i = j }, ε σ.val * univ.prod (λ l, M (σ l) l)) =
+      M j i * univ.sum (λ σ : { σ : perm (fin (k+1)) // σ.to_fun i = j }, ε σ.val *
+        (erase univ i).prod (λ l, M (σ l) l)) :
+  begin rw [mul_sum], conv_rhs { congr, funext, skip, funext, rw [mul_comm, mul_assoc, mul_comm _ (M j i)],
+    rw [show M j i = M (x i) i, begin unfold_coes, sorry end],
+    rw [←@prod_insert _ _ _ _ (λ l : fin (k+1), M (x l) l) _ _ (not_mem_erase i _)],
+    rw [insert_erase (mem_univ _)] } end
+... = M j i * univ.sum (λ σ : { σ : perm (fin (k+1)) // σ.to_fun i = j }, ε σ.val *
+        univ.prod (λ l : fin k, M (σ $ rotate_above i l) (rotate_above i l))) :
+  begin congr, funext, apply congr_arg, symmetry,
+    refine prod_bij (λ l _, rotate_above i l)
+      (λ l _, by { rw [mem_erase], exact ⟨rotate_above_ne _ _, mem_univ _⟩ }) (λ _ _, rfl)
+      (λ _ _ _ _ h, sorry)
+      (λ l hl, ⟨fin.cast_le sorry ((rotate_above i).inv_fun l), mem_univ _, sorry⟩)end--⟨i.pred_above l (mem_erase.mp hl).1, mem_univ _, eq.symm $ succ_above_descend i l _⟩) end
+... = M j i * univ.sum (λ σ : { σ : perm (fin (k+1)) // σ.to_fun i = j }, ε σ.val *
+        univ.prod (λ l : fin k, M (rotate_above j $ (rotate_above j).inv_fun $ σ $ rotate_above i l) (rotate_above i l))) :
+  by { congr, funext, congr, funext, unfold_coes, rw [(rotate_above j).right_inv] }
+... = M j i * univ.sum (λ τ : perm (fin k), (-1)^(i.1 + j.1) * (ε τ *
+        univ.prod (λ l : fin k, M (succ_above j $ τ l) (succ_above i l)))) :
+  begin
+    apply congr_arg,
+    refine sum_bij (λ σ _, sorry) (λ _ _, mem_univ _) _
+      (λ σ₁ σ₂ _ _, by { rw [subtype.ext], exact shift_inv_inj hk i j _ _ σ₁.2 σ₂.2 })
+      (λ τ hτ, begin rw [←image_shift_inv hk i j, mem_image] at hτ,
+       cases hτ with σ h, cases h with hσ h2, existsi [σ, hσ], symmetry, exact h2 end), --make this nicer,
+    intros σ _,
+    rw [←mul_assoc],
+    congr,
+    sorry --the proof of the signs
+  end
+... = M j i * (-1)^(i.1 + j.1) * det_minor j i M : by { rw [←mul_sum, mul_assoc], refl }
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 lemma succ_above_injective2 (p : fin (k+1)) : injective (succ_above p) :=
 λ i j hij, by { let h := congr_arg (λ l, if h : l ≠ p then p.pred_above l h else i) hij,

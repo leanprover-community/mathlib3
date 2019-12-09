@@ -1021,7 +1021,7 @@ Transforms the goal into its contrapositive.
 This tactic normalizes casts inside expressions.
 It can be thought of as a call to the simplifier with a specific set of lemmas to
 move casts upwards in the expression.
-It has special handling of numerals and a simple heuristic to help moving
+It has special handling of numerals and a simple heuristic to help move
 casts "past" binary operators.
 Contrary to simp, it should be safe to use as a non-terminating tactic.
 

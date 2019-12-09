@@ -37,13 +37,46 @@ Step 5: Define the Bochner integral on L1 functions by extending the integral on
 
 ## Main statements
 
-`section bintegral` : basic properties of `simple_func.bintegral` proved.
+• Basic properties of the Bochner integral.
 
-`section instances` : `l1.simple_func` forms a `normed_space`.
+• The Lebesgue dominated convergence theorem : `tendsto_integral_of_dominated_convergence`
 
-`section coe_to_l1` : `coe` from `l1.simple_func` to `l1` is a uniform and dense embedding.
+See `section properties` at the end of the file to find these properties.
 
-`section simple_func_integral` : basic properties of `l1.simple_func.integral` proved.
+## Notes
+
+Some tips on how to prove a proposition if the API for the Bochner integral is not enough so that
+you need to unfold the definition of the Bochner integral and go back to simple functions.
+
+See `integral_eq_lintegral_max_sub_lintegral_min` for a complicated example, which proves that
+`∫ f = ∫⁻ f⁺ - ∫⁻ f⁻`, with the first integral sign being the Bochner integral of a real-valued
+function f : α → ℝ, and second and third integral sign being the integral on ennreal-valued
+functions (called `lintegral`). The proof of `integral_eq_lintegral_max_sub_lintegral_min` is
+scattered in sections with the name `pos_part`.
+
+Here are the usual steps of proving that a property `p`, say `∫ f = ∫⁻ f⁺ - ∫⁻ f⁻`, holds for all
+functions :
+
+(1) First go to the `L¹` space.
+
+For example, if you see `ennreal.to_real (∫⁻ a, ennreal.of_real $ ∥f a∥)`, that is the norm of `f` in
+`L¹` space. Rewrite using `l1.norm_of_fun_eq_lintegral_norm`.
+
+(2) Show that the set `{f ∈ L¹ | ∫ f = ∫⁻ f⁺ - ∫⁻ f⁻}` is closed in `L¹` using `is_closed_eq`.
+
+(3) Show that the property holds for all simple functions `s` in `L¹` space.
+
+Typically, you need to convert various notions to their `simple_func` counterpart, using lemmas like
+`l1.integral_coe_eq_integral`.
+
+(4) Since simple functions are dense in `L¹`,
+```
+univ = closure {s simple}
+     = closure {s simple | ∫ s = ∫⁻ s⁺ - ∫⁻ s⁻} : the property holds for all simple functions
+     ⊆ closure {f | ∫ f = ∫⁻ f⁺ - ∫⁻ f⁻}
+     = {f | ∫ f = ∫⁻ f⁺ - ∫⁻ f⁻} : closure of a closed set is itself
+```
+Use `is_closed_property` or `dense_range.induction_on` for this argument.
 
 ## Notations
 
@@ -56,7 +89,7 @@ Note : `ₛ` is typed using `\_s`. Sometimes it shows as a box if font is missin
 
 ## Tags
 
-Bochner integral, simple function, function space
+Bochner integral, simple function, function space, Lebesgue dominated convergence theorem
 
 -/
 
@@ -305,6 +338,12 @@ begin
   exact integrable_neg hg
 end
 
+-- Typeclass inference has difficulty finding `has_scalar ℝ β` where `β` is a `normed_space` on `ℝ`
+local attribute [instance, priority 10000]
+  mul_action.to_has_scalar distrib_mul_action.to_mul_action add_comm_group.to_add_comm_monoid
+  normed_group.to_add_comm_group normed_space.to_vector_space vector_space.to_module
+  module.to_semimodule
+
 lemma bintegral_smul (r : ℝ) {f : α →ₛ β} (hf : integrable f) :
   bintegral (r • f) = r • bintegral f :=
 calc bintegral (r • f) = sum f.range (λx, ennreal.to_real (volume (f ⁻¹' {x})) • r • x) :
@@ -407,10 +446,10 @@ protected def add_comm_group : add_comm_group (α →₁ₛ β) := subtype.add_c
 local attribute [instance] simple_func.add_comm_group simple_func.metric_space
   simple_func.emetric_space
 
-@[simp] lemma coe_zero : ((0 : α →₁ₛ β) : α →₁ β) = 0 := rfl
-@[simp] lemma coe_add (f g : α →₁ₛ β) : ((f + g : α →₁ₛ β) : α →₁ β) = f + g := rfl
-@[simp] lemma coe_neg (f : α →₁ₛ β) : ((-f : α →₁ₛ β) : α →₁ β) = -f := rfl
-@[simp] lemma coe_sub (f g : α →₁ₛ β) : ((f - g : α →₁ₛ β) : α →₁ β) = f - g := rfl
+@[simp, elim_cast] lemma coe_zero : ((0 : α →₁ₛ β) : α →₁ β) = 0 := rfl
+@[simp, move_cast] lemma coe_add (f g : α →₁ₛ β) : ((f + g : α →₁ₛ β) : α →₁ β) = f + g := rfl
+@[simp, move_cast] lemma coe_neg (f : α →₁ₛ β) : ((-f : α →₁ₛ β) : α →₁ β) = -f := rfl
+@[simp, move_cast] lemma coe_sub (f g : α →₁ₛ β) : ((f - g : α →₁ₛ β) : α →₁ β) = f - g := rfl
 @[simp] lemma edist_eq (f g : α →₁ₛ β) : edist f g = edist (f : α →₁ β) (g : α →₁ β) := rfl
 @[simp] lemma dist_eq (f g : α →₁ₛ β) : dist f g = dist (f : α →₁ β) (g : α →₁ β) := rfl
 
@@ -444,7 +483,8 @@ end ⟩⟩
 
 local attribute [instance] simple_func.has_scalar
 
-@[simp] lemma coe_smul (c : 𝕜) (f : α →₁ₛ β) : ((c • f : α →₁ₛ β) : α →₁ β) = c • (f : α →₁ β) := rfl
+@[simp, move_cast] lemma coe_smul (c : 𝕜) (f : α →₁ₛ β) :
+  ((c • f : α →₁ₛ β) : α →₁ β) = c • (f : α →₁ β) := rfl
 
 /-- Not declared as an instance as `α →₁ₛ β` will only be useful in the construction of the bochner
   integral. -/
@@ -768,6 +808,12 @@ begin
     { apply add_to_simple_func },
 end
 
+-- Typeclass inference has difficulty finding `has_scalar ℝ β` where `β` is a `normed_space` on `ℝ`
+local attribute [instance, priority 10000]
+  mul_action.to_has_scalar distrib_mul_action.to_mul_action add_comm_group.to_add_comm_monoid
+  normed_group.to_add_comm_group normed_space.to_vector_space vector_space.to_module
+  module.to_semimodule
+
 lemma integral_smul (r : ℝ) (f : α →₁ₛ β) : integral (r • f) = r • integral f :=
 begin
   simp only [integral],
@@ -899,7 +945,7 @@ def integral (f : α →₁ β) : β := (integral_clm).to_fun f
 
 lemma integral_eq (f : α →₁ β) : integral f = (integral_clm).to_fun f := rfl
 
-lemma integral_coe_eq_integral (f : α →₁ₛ β) :
+@[elim_cast] lemma integral_coe_eq_integral (f : α →₁ₛ β) :
   integral (f : α →₁ β) = f.integral :=
 by { refine uniformly_extend_of_ind _ _ _ _, exact simple_func.integral_clm.uniform_continuous }
 
@@ -943,10 +989,11 @@ begin
     (λ f : α →₁ ℝ, integral f = ∥pos_part f∥ - ∥neg_part f∥)
     l1.simple_func.dense_range (is_closed_eq _ _) _ f,
   { exact cont _ },
-  { refine continuous.sub (continuous_norm.comp l1.continuous_pos_part) (continuous_norm.comp l1.continuous_neg_part) },
+  { refine continuous.sub (continuous_norm.comp l1.continuous_pos_part)
+      (continuous_norm.comp l1.continuous_neg_part) },
   { assume s,
-    rw [integral_coe_eq_integral, ← simple_func.coe_pos_part, ← simple_func.coe_neg_part,
-    ← simple_func.norm_eq, ← simple_func.norm_eq],
+    norm_cast,
+    rw [← simple_func.norm_eq, ← simple_func.norm_eq],
     exact simple_func.integral_eq_norm_pos_part_sub _}
 end
 
@@ -1028,6 +1075,12 @@ begin
   { exact ⟨hfm, hfi⟩ },
   { exact ⟨measurable_sub hfm hgm, integrable_sub hfm hgm hfi hgi⟩ }
 end
+
+-- Typeclass inference has difficulty finding `has_scalar ℝ β` where `β` is a `normed_space` on `ℝ`
+local attribute [instance, priority 10000]
+  mul_action.to_has_scalar distrib_mul_action.to_mul_action add_comm_group.to_add_comm_monoid
+  normed_group.to_add_comm_group normed_space.to_vector_space vector_space.to_module
+  module.to_semimodule
 
 lemma integral_smul (r : ℝ) (f : α → β) : (∫ x, r • (f x)) = r • integral f :=
 begin
@@ -1146,8 +1199,8 @@ begin
 end,
 begin
   rw [eq₁, eq₂, integral, dif_pos],
-  rotate, { exact ⟨hfm, hfi⟩ },
-  exact l1.integral_eq_norm_pos_part_sub _
+  exact l1.integral_eq_norm_pos_part_sub _,
+  { exact ⟨hfm, hfi⟩ }
 end
 
 lemma integral_eq_lintegral_of_nonneg_ae {f : α → ℝ} (hf : ∀ₘ a, 0 ≤ f a) (hfm : measurable f) :
@@ -1182,20 +1235,44 @@ begin
     rw [this, hfi], refl }
 end
 
-lemma integral_of_nonneg_ae {f : α → ℝ} (hf : ∀ₘ a, 0 ≤ f a) : 0 ≤ integral f :=
+lemma integral_nonneg_of_nonneg_ae {f : α → ℝ} (hf : ∀ₘ a, 0 ≤ f a) : 0 ≤ integral f :=
 begin
   by_cases hfm : measurable f,
   { rw integral_eq_lintegral_of_nonneg_ae hf hfm, exact to_real_nonneg },
   { rw integral_eq_zero_of_non_measurable hfm }
 end
 
-lemma integral_of_nonpos_ae {f : α → ℝ} (hf : ∀ₘ a, f a ≤ 0) : integral f ≤ 0 :=
+lemma integral_nonpos_of_nonpos_ae {f : α → ℝ} (hf : ∀ₘ a, f a ≤ 0) : integral f ≤ 0 :=
 begin
   have hf : ∀ₘ a, 0 ≤ (-f) a,
   { filter_upwards [hf], simp only [mem_set_of_eq], assume a h, rwa [pi.neg_apply, neg_nonneg] },
-  have : 0 ≤ integral (-f) := integral_of_nonneg_ae hf,
+  have : 0 ≤ integral (-f) := integral_nonneg_of_nonneg_ae hf,
   rwa [integral_neg, neg_nonneg] at this,
 end
+
+lemma integral_le_integral_of_le_ae {f g : α → ℝ} (hfm : measurable f) (hfi : integrable f)
+   (hgm : measurable g) (hgi : integrable g) (h : ∀ₘ a, f a ≤ g a) : integral f ≤ integral g :=
+le_of_sub_nonneg
+begin
+  rw ← integral_sub hgm hgi hfm hfi,
+  apply integral_nonneg_of_nonneg_ae,
+  filter_upwards [h],
+  simp only [mem_set_of_eq],
+  assume a,
+  exact sub_nonneg_of_le
+end
+
+lemma norm_integral_le_integral_norm (f : α → ℝ) : ∥integral f∥ ≤ ∫ a, ∥f a∥ :=
+have le_ae : ∀ₘ (a : α), 0 ≤ ∥f a∥ := by filter_upwards [] λa, norm_nonneg _,
+classical.by_cases
+( λh : measurable f,
+  calc ∥integral f∥ ≤ ennreal.to_real (∫⁻ a, ennreal.of_real ∥f a∥) : norm_integral_le_lintegral_norm _
+    ... = ∫ a, ∥f a∥ : (integral_eq_lintegral_of_nonneg_ae le_ae $ measurable_norm h).symm )
+( λh : ¬measurable f,
+  begin
+    rw [integral_eq_zero_of_non_measurable h, _root_.norm_zero],
+    exact integral_nonneg_of_nonneg_ae le_ae
+  end )
 
 end properties
 

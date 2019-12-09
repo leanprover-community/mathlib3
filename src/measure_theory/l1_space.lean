@@ -60,7 +60,7 @@ open set lattice filter topological_space ennreal emetric
 
 universes u v w
 variables {α : Type u} [measure_space α]
-variables {β : Type v} [normed_group β]
+variables {β : Type v} [normed_group β] {γ : Type w} [normed_group γ]
 
 /-- A function is `integrable` if the integral of its pointwise norm is less than infinity. -/
 def integrable (f : α → β) : Prop := (∫⁻ a, nnnorm (f a)) < ⊤
@@ -104,7 +104,8 @@ end
 lemma integrable_iff_of_ae_eq {f g : α → β} (h : ∀ₘ a, f a = g a) : integrable f ↔ integrable g :=
 iff.intro (λhf, integrable_of_ae_eq hf h) (λhg, integrable_of_ae_eq hg (all_ae_eq_symm h))
 
-lemma integrable_of_ae_le {f g : α → ℝ} (h : ∀ₘ a, ∥f a∥ ≤ ∥g a∥) (hg : integrable g) : integrable f :=
+lemma integrable_of_le_ae {f : α → β} {g : α → γ} (h : ∀ₘ a, ∥f a∥ ≤ ∥g a∥) (hg : integrable g) :
+  integrable f :=
 begin
   simp only [integrable_iff_norm] at *,
   calc (∫⁻ a, ennreal.of_real ∥f a∥) ≤ (∫⁻ (a : α), ennreal.of_real ∥g a∥) :
@@ -144,7 +145,7 @@ lt_of_le_of_lt
 lemma integrable_zero : integrable (0 : α → β) :=
 by { have := coe_lt_top, simpa [integrable] }
 
-lemma lintegral_nnnorm_add {f g : α → β} (hf : measurable f) (hg : measurable g) :
+lemma lintegral_nnnorm_add {f : α → β} {g : α → γ} (hf : measurable f) (hg : measurable g) :
   (∫⁻ a, nnnorm (f a) + nnnorm (g a)) = (∫⁻ a, nnnorm (f a)) + ∫⁻ a, nnnorm (g a) :=
 lintegral_add (measurable_coe_nnnorm hf) (measurable_coe_nnnorm hg)
 
@@ -455,10 +456,10 @@ instance : emetric_space (α →₁ β) := subtype.emetric_space
 instance : metric_space (α →₁ β) := metric_space_emetric_ball 0 ⊤
 instance : add_comm_group (α →₁ β) := subtype.add_comm_group
 
-@[simp] lemma coe_zero : ((0 : α →₁ β) : α →ₘ β) = 0 := rfl
-@[simp] lemma coe_add (f g : α →₁ β) : ((f + g : α →₁ β) : α →ₘ β) = f + g := rfl
-@[simp] lemma coe_neg (f : α →₁ β) : ((-f : α →₁ β) : α →ₘ β) = -f := rfl
-@[simp] lemma coe_sub (f g : α →₁ β) : ((f - g : α →₁ β) : α →ₘ β) = f - g := rfl
+@[simp, elim_cast] lemma coe_zero : ((0 : α →₁ β) : α →ₘ β) = 0 := rfl
+@[simp, move_cast] lemma coe_add (f g : α →₁ β) : ((f + g : α →₁ β) : α →ₘ β) = f + g := rfl
+@[simp, move_cast] lemma coe_neg (f : α →₁ β) : ((-f : α →₁ β) : α →ₘ β) = -f := rfl
+@[simp, move_cast] lemma coe_sub (f g : α →₁ β) : ((f - g : α →₁ β) : α →ₘ β) = f - g := rfl
 @[simp] lemma edist_eq (f g : α →₁ β) : edist f g = edist (f : α →ₘ β) (g : α →ₘ β) := rfl
 
 lemma dist_eq (f g : α →₁ β) : dist f g = ennreal.to_real (edist (f : α →ₘ β) (g : α →ₘ β)) := rfl
@@ -477,7 +478,8 @@ variables {𝕜 : Type*} [normed_field 𝕜] [normed_space 𝕜 β]
 
 instance : has_scalar 𝕜 (α →₁ β) := ⟨λ x f, ⟨x • (f : α →ₘ β), ae_eq_fun.integrable_smul f.2⟩⟩
 
-@[simp] lemma coe_smul (c : 𝕜) (f : α →₁ β) : ((c • f : α →₁ β) : α →ₘ β) = c • (f : α →ₘ β) := rfl
+@[simp, move_cast] lemma coe_smul (c : 𝕜) (f : α →₁ β) :
+  ((c • f : α →₁ β) : α →ₘ β) = c • (f : α →ₘ β) := rfl
 
 instance : semimodule 𝕜 (α →₁ β) :=
 { one_smul  := λf, l1.eq (by { simp only [coe_smul], exact one_smul _ _ }),
@@ -682,5 +684,3 @@ end pos_part
 end l1
 
 end measure_theory
-
-#lint

@@ -31,3 +31,4 @@ import
   tactic.tfae
   tactic.apply_fun
   tactic.apply
+  tactic.suggest

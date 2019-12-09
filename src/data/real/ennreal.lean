@@ -67,8 +67,8 @@ lemma of_real_eq_coe_nnreal {x : real} (h : 0 ≤ x) :
   ennreal.of_real x = @coe nnreal ennreal _ (⟨x, h⟩ : nnreal) :=
 by { rw [coe_nnreal_eq], refl }
 
-@[simp, elim_cast] lemma coe_zero : ↑(0 : nnreal) = (0 : ennreal) := rfl
-@[simp, elim_cast] lemma coe_one : ↑(1 : nnreal) = (1 : ennreal) := rfl
+@[simp, squash_cast] lemma coe_zero : ↑(0 : nnreal) = (0 : ennreal) := rfl
+@[simp, squash_cast] lemma coe_one : ↑(1 : nnreal) = (1 : ennreal) := rfl
 
 @[simp] lemma to_real_nonneg {a : ennreal} : 0 ≤ a.to_real := by simp [ennreal.to_real]
 

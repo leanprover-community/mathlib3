@@ -690,7 +690,7 @@ variables {σ : Type*} {α : Type*} [comm_semiring α]
 instance coe_to_mv_power_series : has_coe (mv_polynomial σ α) (mv_power_series σ α) :=
 ⟨λ φ n, coeff n φ⟩
 
-@[simp, elim_cast] lemma coeff_coe (φ : mv_polynomial σ α) (n : σ →₀ ℕ) :
+@[simp, squash_cast] lemma coeff_coe (φ : mv_polynomial σ α) (n : σ →₀ ℕ) :
 mv_power_series.coeff α n ↑φ = coeff n φ := rfl
 
 @[simp, elim_cast] lemma coe_monomial (n : σ →₀ ℕ) (a : α) :
@@ -701,15 +701,15 @@ begin
   split_ifs with h₁ h₂; refl <|> subst m; contradiction
 end
 
-@[simp, elim_cast] lemma coe_zero : ((0 : mv_polynomial σ α) : mv_power_series σ α) = 0 := rfl
+@[simp, squash_cast] lemma coe_zero : ((0 : mv_polynomial σ α) : mv_power_series σ α) = 0 := rfl
 
-@[simp, elim_cast] lemma coe_one : ((1 : mv_polynomial σ α) : mv_power_series σ α) = 1 :=
+@[simp, squash_cast] lemma coe_one : ((1 : mv_polynomial σ α) : mv_power_series σ α) = 1 :=
 coe_monomial _ _
 
-@[simp, elim_cast] lemma coe_add (φ ψ : mv_polynomial σ α) :
+@[simp, move_cast] lemma coe_add (φ ψ : mv_polynomial σ α) :
   ((φ + ψ : mv_polynomial σ α) : mv_power_series σ α) = φ + ψ := rfl
 
-@[simp, elim_cast] lemma coe_mul (φ ψ : mv_polynomial σ α) :
+@[simp, move_cast] lemma coe_mul (φ ψ : mv_polynomial σ α) :
   ((φ * ψ : mv_polynomial σ α) : mv_power_series σ α) = φ * ψ :=
 mv_power_series.ext $ λ n,
 by simp only [coeff_coe, mv_power_series.coeff_mul, coeff_mul]
@@ -1414,7 +1414,7 @@ variables {σ : Type*} {α : Type*} [comm_semiring α]
 instance coe_to_power_series : has_coe (polynomial α) (power_series α) :=
 ⟨λ φ, power_series.mk $ λ n, coeff φ n⟩
 
-@[simp, elim_cast] lemma coeff_coe (φ : polynomial α) (n) :
+@[simp, squash_cast] lemma coeff_coe (φ : polynomial α) (n) :
   power_series.coeff α n φ = coeff φ n :=
 congr_arg (coeff φ) (finsupp.single_eq_same)
 
@@ -1429,18 +1429,18 @@ begin
   convert finsupp.single_apply,
 end
 
-@[simp, elim_cast] lemma coe_zero : ((0 : polynomial α) : power_series α) = 0 := rfl
+@[simp, squash_cast] lemma coe_zero : ((0 : polynomial α) : power_series α) = 0 := rfl
 
-@[simp, elim_cast] lemma coe_one : ((1 : polynomial α) : power_series α) = 1 :=
+@[simp, squash_cast] lemma coe_one : ((1 : polynomial α) : power_series α) = 1 :=
 begin
   have := coe_monomial 0 (1:α),
   rwa power_series.monomial_zero_eq_C_apply at this,
 end
 
-@[simp, elim_cast] lemma coe_add (φ ψ : polynomial α) :
+@[simp, move_cast] lemma coe_add (φ ψ : polynomial α) :
   ((φ + ψ : polynomial α) : power_series α) = φ + ψ := rfl
 
-@[simp, elim_cast] lemma coe_mul (φ ψ : polynomial α) :
+@[simp, move_cast] lemma coe_mul (φ ψ : polynomial α) :
   ((φ * ψ : polynomial α) : power_series α) = φ * ψ :=
 power_series.ext $ λ n,
 by simp only [coeff_coe, power_series.coeff_mul, coeff_mul]

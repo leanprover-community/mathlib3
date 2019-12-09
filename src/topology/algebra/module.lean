@@ -115,11 +115,11 @@ def zero : β →L[α] γ :=
 instance: has_zero (β →L[α] γ) := ⟨zero⟩
 
 @[simp] lemma zero_apply : (0 : β →L[α] γ) x = 0 := rfl
-@[simp, elim_cast] lemma coe_zero : ((0 : β →L[α] γ) : β →ₗ[α] γ) = 0 := rfl
+@[simp, squash_cast] lemma coe_zero : ((0 : β →L[α] γ) : β →ₗ[α] γ) = 0 := rfl
 /- no simp attribute on the next line as simp does not always simplify 0 x to x
 when 0 is the zero function, while it does for the zero continuous linear map,
 and this is the most important property we care about. -/
-@[elim_cast] lemma coe_zero' : ((0 : β →L[α] γ) : β → γ) = 0 := rfl
+@[squash_cast] lemma coe_zero' : ((0 : β →L[α] γ) : β → γ) = 0 := rfl
 
 /-- the identity map as a continuous linear map. -/
 def id : β →L[α] β :=
@@ -128,8 +128,8 @@ def id : β →L[α] β :=
 instance : has_one (β →L[α] β) := ⟨id⟩
 
 @[simp] lemma id_apply : (id : β →L[α] β) x = x := rfl
-@[simp, elim_cast] lemma coe_id : ((id : β →L[α] β) : β →ₗ[α] β) = linear_map.id := rfl
-@[simp, elim_cast] lemma coe_id' : ((id : β →L[α] β) : β → β) = _root_.id := rfl
+@[simp, squash_cast] lemma coe_id : ((id : β →L[α] β) : β →ₗ[α] β) = linear_map.id := rfl
+@[simp, squash_cast] lemma coe_id' : ((id : β →L[α] β) : β → β) = _root_.id := rfl
 
 @[simp] lemma one_apply : (1 : β →L[α] β) x = x := rfl
 

@@ -94,7 +94,7 @@ open label
 def label_to_string : label → string
 | Elim := "elim_cast"
 | Move := "move_cast"
-| Squsah := "squash_cast"
+| Squash := "squash_cast"
 
 instance : has_to_string label := ⟨label_to_string⟩
 

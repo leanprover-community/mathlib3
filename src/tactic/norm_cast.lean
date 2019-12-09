@@ -50,28 +50,16 @@ namespace expr
 
 open tactic expr
 
-meta def flip_eq (ty e : expr) : option (pexpr × pexpr) :=
-do
-  (a, b) ← is_eq ty,
-  let new_ty := ``(%%b = %%a),
-  let new_e := ``(eq.symm %%e),
-  return (new_ty, new_e)
-
-meta def flip_iff (ty e : expr) : option (pexpr × pexpr) :=
-do
-  (a, b) ← is_iff ty,
-  let new_ty := ``(%%b ↔ %%a),
-  let new_e := ``(iff.symm %%e),
-  return (new_ty, new_e)
-
 meta def flip : expr → expr → option (pexpr × pexpr)
+| `(%%a = %%b) e := some (``(%%b = %%a), ``(eq.symm %%e))
+| `(%%a ↔ %%b) e := some (``(%%b ↔ %%a), ``(iff.symm %%e))
 | (pi n bi d b) e := do
   (b', e') ← flip b (expr.lift_vars e 0 1 (var 0)),
   let d' := pexpr.of_expr d,
   let new_ty := pi n bi d' b',
   let new_e := lam n bi d' e',
-  (new_ty, new_e)
-| e ty := flip_eq e ty <|> flip_iff e ty
+  some (new_ty, new_e)
+| _ _ := none
 
 meta def reverse (ty e : expr) : tactic (expr × expr) :=
 do
@@ -95,19 +83,20 @@ open tactic expr
 
 --meta def new_name (n : name) : name := name.mk_string "reversed" n
 
-inductive lemma_type
-| Elim : lemma_type
-| Move : lemma_type
-| Squash : lemma_type
+@[derive decidable_eq]
+inductive label
+| Elim : label
+| Move : label
+| Squash : label
 
-open lemma_type
+open label
 
-def lemma_type_to_string : lemma_type → string
+def label_to_string : label → string
 | Elim := "elim_cast"
 | Move := "move_cast"
 | Squsah := "squash_cast"
 
-instance : has_to_string lemma_type := ⟨lemma_type_to_string⟩
+instance : has_to_string label := ⟨label_to_string⟩
 
 /-- rhs has the same number of or fewer casts at the beginning then lhs -/
 meta def same_or_fewer_initial_casts : expr → expr → bool | lhs rhs :=
@@ -128,7 +117,7 @@ private def squash_cast_fail :=
 "norm_cast lemmas starting with ↑↑ on the LHS must be squash_cast lemmas, " ++
   "but squash_cast lemmas must remove at least one ↑."
 
-meta def classify_type_aux (lhs rhs : expr) : tactic lemma_type :=
+meta def classify_type_aux (lhs rhs : expr) : tactic label :=
 let lhs_head := lhs.get_app_fn in
 if lhs_head.is_coe then
   let lhs_body := lhs.app_arg,
@@ -147,20 +136,13 @@ else if ! lhs.contains_coe' then
   fail "norm_cast lemmas must contain ↑"
 else return Elim
 
-meta def classify_type (ty : expr) : tactic lemma_type :=
+meta def classify_type (ty : expr) : tactic label :=
 do (args, tp) ← mk_local_pis ty,
 match tp with
 | `(%%lhs = %%rhs) := classify_type_aux lhs rhs
 | `(%%lhs ↔ %%rhs) := classify_type_aux lhs rhs
 | _ := fail "norm_cast lemmas must be = or ↔"
 end
-
-meta def classify_type_test (n : name) : tactic unit :=
-do
-  e ← mk_const n,
-  ty ← infer_type e,
-  cl ← classify_type ty,
-  trace $ to_string cl
 
 meta structure norm_cast_cache :=
 ( up : simp_lemmas )
@@ -207,21 +189,35 @@ do
   --let e := task_e.get,
   e ← mk_const decl,
   ty ← infer_type e,
-  cl ← classify_type ty,
-  match cl with
+  guess ← classify_type ty,
+  match guess with
   | Elim := add_elim cache e
   | Move := add_move cache e
   | Squash := add_squash cache e
   end
 
-meta def after_set (decl : name) (n : ℕ) (b : bool) :=
-classify_type_test decl <|> trace "classifier failed"
+mk_simp_attribute push_cast "The `push_cast` simp attribute uses `norm_cast` lemmas
+to move casts toward the leaf nodes of the expression."
+
+meta def after_set (attr : option label) (decl : name) (n : ℕ) (b : bool) : tactic unit :=
+do
+  e ← mk_const decl,
+  ty ← infer_type e,
+  guess ← classify_type ty <|> fail "classifier failed",
+  if guess ≠ Elim then simp_attr.push_cast.set decl () tt else skip,
+  match attr with
+  | none := skip
+  | (some attr) :=
+    if attr = guess then skip else trace $
+    "#check " ++ to_string decl ++ " -- is labeled " ++ to_string attr ++ " but the classifier guessed " ++ to_string guess
+  end
+
 
 @[user_attribute] meta def elim_cast_attr : user_attribute unit :=
 {
     name      := `elim_cast,
     descr     := "attribute for norm_cast",
-    after_set := some after_set,
+    after_set := some $ after_set (some Elim),
     before_unset := some $ λ _ _, tactic.skip,
     cache_cfg := {
         mk_cache     := λ _, skip,
@@ -233,7 +229,7 @@ classify_type_test decl <|> trace "classifier failed"
 {
     name      := `move_cast,
     descr     := "attribute for norm_cast",
-    after_set := some after_set,
+    after_set := some $ after_set (some Move),
     before_unset := some $ λ _ _, tactic.skip,
     cache_cfg := {
         mk_cache     := λ _, skip,
@@ -245,7 +241,7 @@ classify_type_test decl <|> trace "classifier failed"
 {
     name      := `squash_cast,
     descr     := "attribute for norm_cast",
-    after_set := some after_set,
+    after_set := some $ after_set (some Squash),
     before_unset := some $ λ _ _, tactic.skip,
     cache_cfg := {
         mk_cache     := λ _, skip,
@@ -283,17 +279,13 @@ do
 {
     name      := `norm_cast,
     descr     := "attribute for norm_cast",
-    after_set := some $ λ decl n b, classify_type_test decl,
+    after_set := some $ after_set none,
     before_unset := some $ λ _ _, tactic.skip,
     cache_cfg := {
         mk_cache     := mk_cache,
         dependencies := [],
     }
 }
-
---TODO: modify after_set in norm_cast_attr to add the push_cast attribute
-mk_simp_attribute push_cast "The `push_cast` simp attribute uses `norm_cast` lemmas
-to move casts toward the leaf nodes of the expression."
 
 end norm_cast
 
@@ -597,7 +589,6 @@ meta def norm_cast : conv unit := replace_lhs derive
 
 end conv.interactive
 
-
 -- lemmas defined in core
 attribute [norm_cast] int.coe_nat_zero
 attribute [norm_cast] int.coe_nat_one
@@ -612,33 +603,3 @@ attribute [norm_cast] int.coe_nat_mul
   {c : Prop} [decidable c] {a b : α} :
   ↑(ite c a b) = ite c (↑a : β) (↑b : β) :=
 by by_cases h : c; simp [h]
-
-namespace norm_cast.test
-
-open tactic expr norm_cast
-
-run_cmd classify_type_test `int.coe_nat_succ
-
-meta def check_attr_name (attr_name : name) : tactic unit :=
-attribute.get_instances attr_name >>= mmap' (λ n, (do
-  e ← mk_const n,
-  ty ← infer_type e,
-  guessed_attr ← classify_type ty,
-  when ((to_string guessed_attr : name) ≠ attr_name) $ trace format!"#check {n} -- has attribute {attr_name} but we guessed {to_string guessed_attr}")
-  <|> tactic.trace format!"#check {n}  -- has attribute {attr_name} but we failed to guess one")
-
-run_cmd do
-check_attr_name `move_cast,
-check_attr_name `elim_cast,
-check_attr_name `squash_cast
-
-run_cmd do
-cache ← norm_cast_attr.get_cache,
-trace "up:",
-trace cache.up,
-trace "down:",
-trace cache.down,
-trace "squash:",
-trace cache.squash
-
-end norm_cast.test

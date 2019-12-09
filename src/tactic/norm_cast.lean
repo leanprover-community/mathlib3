@@ -253,6 +253,11 @@ classify_type_test decl <|> trace "classifier failed"
     }
 }
 
+-- lemmas to handle the ≥, > and ≠ operators
+lemma ge_from_le {α} [has_le α] : ∀ (x y : α), x ≥ y ↔ y ≤ x := λ _ _, iff.rfl
+lemma gt_from_lt {α} [has_lt α] : ∀ (x y : α), x > y ↔ y < x := λ _ _, iff.rfl
+lemma ne_from_not_eq {α} : ∀ (x y : α), x ≠ y ↔ ¬(x = y) := λ _ _, iff.rfl
+
 meta def mk_cache (names : list name) : tactic norm_cast_cache :=
 do
   cache ← monad.foldl add_lemma empty_cache names,
@@ -262,6 +267,16 @@ do
   cache ← monad.foldl add_elim cache elim_lemmas,
   cache ← monad.foldl add_move cache move_lemmas,
   cache ← monad.foldl add_squash cache squash_lemmas,
+
+  new_up ← simp_lemmas.add_simp cache.up ``norm_cast.ge_from_le,
+  new_up ← simp_lemmas.add_simp new_up ``gt_from_lt,
+  new_up ← simp_lemmas.add_simp new_up ``ne_from_not_eq,
+  let cache : norm_cast_cache := {
+    up := new_up,
+    down := cache.down,
+    squash := cache.squash,
+  },
+
   return cache
 
 @[user_attribute] meta def norm_cast_attr : user_attribute norm_cast_cache :=
@@ -279,8 +294,6 @@ do
 --TODO: modify after_set in norm_cast_attr to add the push_cast attribute
 mk_simp_attribute push_cast "The `push_cast` simp attribute uses `norm_cast` lemmas
 to move casts toward the leaf nodes of the expression."
-
-
 
 end norm_cast
 
@@ -397,15 +410,13 @@ The following auxiliary functions are used to handle numerals.
 meta def aux_num_prove_eq (a b : expr) : tactic expr :=
 do
   h ← to_expr ``(%%a = %%b),
-  s1 ← simp_attr.push_cast.get_cache,
-  s2 ← simp_lemmas.mk_default,
-  let s := simp_lemmas.join s1 s2,
+  s1 ← simp_lemmas.mk_default,
+  cache ← norm_cast_attr.get_cache,
+  let s := simp_lemmas.join s1 cache.down,
   (_, pr) ← simplify s [] h,
-  t ← infer_type pr,
   some (_, tmp) ← expr.is_eq <$> infer_type pr,
   is_def_eq tmp `(true),
   to_expr ``(eq.mpr %%pr trivial)
-
 
 -- if possible, rewrite (n : α) to ((n : ℕ) : α) where n is a numeral and α ≠ ℕ
 meta def aux_num_1 (_ : unit) (e : expr) : tactic (unit × expr × expr) :=
@@ -449,7 +460,7 @@ do
   ((), e1, pr1) ← simplify_top_down' () aux_num_1 e0 cfg,
 
   -- step 2: casts are moved upwards and eliminated
-  let s2 := cache.down,
+  let s2 := cache.up,
   ((), e2, pr2) ← simplify_bottom_up () (post s2) e1 cfg,
 
   -- step 3: casts are squashed
@@ -586,11 +597,6 @@ meta def norm_cast : conv unit := replace_lhs derive
 
 end conv.interactive
 
--- TODO: these should be added manually by mk_cache
--- lemmas to handle the ≥, > and ≠ operators
-@[elim_cast] lemma ge_from_le {α} [has_le α] : ∀ (x y : α), x ≥ y ↔ y ≤ x := λ _ _, iff.rfl
-@[elim_cast] lemma gt_from_lt {α} [has_lt α] : ∀ (x y : α), x > y ↔ y < x := λ _ _, iff.rfl
-@[elim_cast] lemma ne_from_not_eq {α} : ∀ (x y : α), x ≠ y ↔ ¬(x = y) := λ _ _, iff.rfl
 
 -- lemmas defined in core
 attribute [norm_cast] int.coe_nat_zero
@@ -607,7 +613,7 @@ attribute [norm_cast] int.coe_nat_mul
   ↑(ite c a b) = ite c (↑a : β) (↑b : β) :=
 by by_cases h : c; simp [h]
 
-namespace test
+namespace norm_cast.test
 
 open tactic expr norm_cast
 
@@ -635,4 +641,4 @@ trace cache.down,
 trace "squash:",
 trace cache.squash
 
-end test
+end norm_cast.test

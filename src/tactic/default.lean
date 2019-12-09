@@ -25,6 +25,7 @@ import
   tactic.tidy
   tactic.abel
   tactic.ring
+  tactic.ring_exp
   tactic.linarith
   tactic.omega
   tactic.wlog

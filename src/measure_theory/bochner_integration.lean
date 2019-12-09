@@ -880,18 +880,21 @@ end
 
 lemma integral_eq_norm_pos_part_sub (f : α →₁ₛ ℝ) : f.integral = ∥f.pos_part∥ - ∥f.neg_part∥ :=
 begin
+  -- Convert things in `L¹` to their `simple_func` counterpart
   have ae_eq₁ : ∀ₘ a, f.to_simple_func.pos_part a = (f.pos_part).to_simple_func.map norm a,
   { filter_upwards [pos_part_to_simple_func f],
     simp only [mem_set_of_eq],
     assume a h,
     rw [simple_func.map_apply, h],
     conv_lhs { rw [← simple_func.pos_part_map_norm, simple_func.map_apply] } },
+  -- Convert things in `L¹` to their `simple_func` counterpart
   have ae_eq₂ : ∀ₘ a, f.to_simple_func.neg_part a = (f.neg_part).to_simple_func.map norm a,
   { filter_upwards [neg_part_to_simple_func f],
     simp only [mem_set_of_eq],
     assume a h,
     rw [simple_func.map_apply, h],
     conv_lhs { rw [← simple_func.neg_part_map_norm, simple_func.map_apply] } },
+  -- Convert things in `L¹` to their `simple_func` counterpart
   have ae_eq : ∀ₘ a, f.to_simple_func.pos_part a - f.to_simple_func.neg_part a =
     (f.pos_part).to_simple_func.map norm a - (f.neg_part).to_simple_func.map norm a,
   { filter_upwards [ae_eq₁, ae_eq₂],
@@ -985,12 +988,14 @@ section pos_part
 
 lemma integral_eq_norm_pos_part_sub (f : α →₁ ℝ) : integral f = ∥pos_part f∥ - ∥neg_part f∥ :=
 begin
+  -- Use `is_closed_property` and `is_closed_eq`
   refine @is_closed_property _ _ _ (coe : (α →₁ₛ ℝ) → (α →₁ ℝ))
     (λ f : α →₁ ℝ, integral f = ∥pos_part f∥ - ∥neg_part f∥)
     l1.simple_func.dense_range (is_closed_eq _ _) _ f,
   { exact cont _ },
   { refine continuous.sub (continuous_norm.comp l1.continuous_pos_part)
       (continuous_norm.comp l1.continuous_neg_part) },
+  -- Show that the property holds for all simple functions in the `L¹` space.
   { assume s,
     norm_cast,
     rw [← simple_func.norm_eq, ← simple_func.norm_eq],
@@ -1174,6 +1179,7 @@ lemma integral_eq_lintegral_max_sub_lintegral_min {f : α → ℝ}
   ennreal.to_real (∫⁻ a, ennreal.of_real $ max (f a) 0) -
   ennreal.to_real (∫⁻ a, ennreal.of_real $ - min (f a) 0) :=
 let f₁ : α →₁ ℝ := l1.of_fun f hfm hfi in
+-- Go to the `L¹` space
 have eq₁ : ennreal.to_real (∫⁻ a, ennreal.of_real $ max (f a) 0) = ∥l1.pos_part f₁∥ :=
 begin
   rw l1.norm_eq_norm_to_fun,
@@ -1185,6 +1191,7 @@ begin
   rw [h₁, h₂, real.norm_eq_abs, abs_of_nonneg],
   exact le_max_right _ _
 end,
+-- Go to the `L¹` space
 have eq₂ : ennreal.to_real (∫⁻ a, ennreal.of_real $ -min (f a) 0) = ∥l1.neg_part f₁∥ :=
 begin
   rw l1.norm_eq_norm_to_fun,

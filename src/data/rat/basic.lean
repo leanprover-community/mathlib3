@@ -491,7 +491,9 @@ ne_of_gt q.pos
 lemma eq_iff_mul_eq_mul {p q : ℚ} : p = q ↔ p.num * q.denom = q.num * p.denom :=
 begin
   conv_lhs { rw [←(@num_denom p), ←(@num_denom q)] },
-  exact rat.mk_eq (by exact_mod_cast p.denom_ne_zero) (by exact_mod_cast q.denom_ne_zero)
+  apply rat.mk_eq,
+  { exact_mod_cast p.denom_ne_zero },
+  { exact_mod_cast q.denom_ne_zero }
 end
 
 lemma mk_num_ne_zero_of_ne_zero {q : ℚ} {n d : ℤ} (hq : q ≠ 0) (hqnd : q = n /. d) : n ≠ 0 :=

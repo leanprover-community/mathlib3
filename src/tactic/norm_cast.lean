@@ -200,10 +200,10 @@ mk_simp_attribute push_cast "The `push_cast` simp attribute uses `norm_cast` lem
 to move casts toward the leaf nodes of the expression."
 
 meta def after_set (attr : option label) (decl : name) (n : ℕ) (b : bool) : tactic unit :=
-do
+( do
   e ← mk_const decl,
   ty ← infer_type e,
-  guess ← classify_type ty <|> fail "classifier failed",
+  guess ← classify_type ty,
   if guess ≠ Elim then simp_attr.push_cast.set decl () tt else skip,
   match attr with
   | none := skip
@@ -211,6 +211,7 @@ do
     if attr = guess then skip else trace $
     "#check " ++ to_string decl ++ " -- is labeled " ++ to_string attr ++ " but the classifier guessed " ++ to_string guess
   end
+) <|> (trace $ "#check " ++ to_string decl ++ " -- failed to classify")
 
 
 @[user_attribute] meta def elim_cast_attr : user_attribute unit :=

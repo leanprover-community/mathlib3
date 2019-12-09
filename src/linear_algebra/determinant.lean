@@ -6,6 +6,8 @@ Authors: Kenny Lau, Chris Hughes
 import data.matrix.basic
 import group_theory.perm.sign
 
+import data.polynomial
+
 universes u v w
 open equiv equiv.perm finset function
 
@@ -139,6 +141,85 @@ variables {l o : Type w} [fintype l] [decidable_eq l] [fintype o] [decidable_eq 
 
 def submatrix (A : matrix m n R) (row : l → m) (col : o → n) : matrix l o R :=
   λ i j, A (row i) (col j)
+
+def swap_subtype (i j : n) : {k // k ≠ i} → {k // k ≠ j} := subtype.map (swap i j)
+  (λ a hi, by { by_cases hj : a ≠ j, rwa [swap_apply_of_ne_of_ne hi hj],
+    rw [ne.def, not_not] at hj, symmetry, rw[hj] at hi, rwa [hj, swap_apply_right] })
+
+def minor2 (i j : n) (M : matrix n n R) : R :=
+det $ submatrix M (subtype.val ∘ swap_subtype i j) (subtype.val : {k : n // k ≠ i} → n)
+
+lemma laplace_expansion_aux (M : matrix n n R) (i j : n) :
+  univ.sum (λ σ : { σ : perm n // σ.to_fun i = j }, ε σ.val * univ.prod (λ l, M (σ l) l)) =
+  M j i * minor2 i j M :=
+calc univ.sum (λ σ : { σ : perm n // σ.to_fun i = j }, ε σ.val * univ.prod (λ l, M (σ l) l)) =
+      M j i * univ.sum (λ σ : { σ : perm n // σ.to_fun i = j }, ε σ.val *
+        (erase univ i).prod (λ l, M (σ l) l)) :
+  begin rw [mul_sum], conv_rhs { congr, funext, skip, funext, rw [mul_comm, mul_assoc, mul_comm _ (M j i)],
+    rw [show M j i = M (x i) i, begin unfold_coes, sorry end],
+    rw [←@prod_insert _ _ _ _ (λ l, M (x l) l) _ _ (not_mem_erase i _)],
+    rw [insert_erase (mem_univ _)] } end
+... = M j i * univ.sum (λ σ : { σ : perm n // σ.to_fun i = j }, ε σ.val *
+        (erase univ i).prod (λ l, M (equiv.swap i j $ equiv.swap i j $ σ l) l)) :
+  begin congr, funext, apply congr_arg, congr, funext, rw [swap_swap_apply] end
+... = M j i * univ.sum (λ τ : perm { k // k ≠ i }, ε τ * univ.prod (λ l, M (swap i j $ τ l) l)) :
+  begin
+    apply congr_arg,
+    refine sum_bij (λ σ _, subtype_congr (equiv.trans σ.1 (swap i j))
+        (λ l, begin rw [equiv.trans_apply, not_iff_not], unfold_coes,
+          exact ⟨λ h, by {rw [h, σ.2], exact swap_apply_right i j }, sorry⟩ end))
+      (λ _ _, mem_univ _) _
+      (λ σ₁ σ₂ _ _ h, by { rw [subtype.ext], ext l, by_cases hl : l = i,
+        { unfold_coes, rw [hl, σ₁.2, σ₂.2] },
+        { let h1 := congr_arg equiv.to_fun h,
+          have h2 := congr_fun h1 ⟨l, hl⟩,
+          have h3 := congr_arg (equiv.swap i j ∘ subtype.val) h2,
+          change equiv.swap i j (equiv.swap i j (σ₁.val l)) = equiv.swap i j (equiv.swap i j (σ₂.val l)) at h3,
+          rwa [swap_swap_apply, swap_swap_apply] at h3 } } )
+      (λ τ hτ, sorry ), --make this nicer,
+    intros σ _,
+    rw [show sign (subtype_congr (equiv.trans (σ.val) (swap i j)) _) = sign σ.val, from sorry],
+    apply congr_arg,
+    refine prod_bij (λ l hl, ⟨l, (mem_erase.mp hl).1⟩) (λ _ _, mem_univ _) (λ _ _, rfl) _ _,
+    { assume l1 l2 _ _ h, sorry },
+    { assume l _, exact ⟨l, mem_erase.mpr ⟨l.2, mem_univ _⟩, eq.symm (subtype.eta _ _)⟩ }
+  end
+... = M j i * minor2 i j M : rfl
+
+lemma laplace_expansion (M : matrix n n R) (i : n) : det M = univ.sum (λ j, M j i * minor2 i j M) :=
+begin
+  conv_rhs { congr, skip, funext, rw ←laplace_expansion_aux },
+  rw ←@sum_sigma _ _ _ (λ j, {σ : perm n // σ.to_fun i = j}) _ _
+    (λ σ, ε (σ.2.val) * univ.prod (λ l, M (σ.2 l) l)),
+  refine sum_bij (λ σ _, sigma.mk (σ i) ⟨σ, rfl⟩) (by simp [mem_sigma, mem_univ, and_self])
+    (λ _ _, rfl) _ _,
+  { intros _ _ _ _ h,
+    have h2, from (sigma.mk.inj h).1,
+    have h3, from type_eq_of_heq (sigma.mk.inj h).2,
+    have h4, from (sigma.mk.inj h).2,
+    sorry
+    --rw [@heq_iff_eq (perm (fin k)) (λ σ : perm (fin k), σ i = a₁ i)] at h3,
+    --rw [@heq_iff_eq _ (@subtype.mk (perm (fin k)) (λ (σ : perm (fin k)), σ i = a₁ i) a₁ _) (@subtype.mk (perm (fin k)) (λ (σ : perm (fin k)), σ i = a₂ i) a₂ _), subtype.mk_eq_mk] at h2,
+  },
+  { intros f h, existsi [f.snd.val, finset.mem_univ _],
+    refine sigma.eq (eq.symm $ f.snd.property) (subtype.eq _),
+    simp only [], congr, dsimp, unfold_coes, simp [f.snd.property], simp only [eq_rec_heq] }
+end
+
+open polynomial
+lemma test1 (i : n) (M : matrix n n R) :
+  submatrix (diagonal (λ _:n, (X : polynomial R)) - (λ k l, C (M k l))) (subtype.val ∘ swap_subtype i i) (subtype.val : {k : n // k ≠ i} → n) =
+  (diagonal (λ _, X)) - (λ k l, C (M (swap i i k) l)) :=
+begin
+funext k l,
+unfold submatrix swap_subtype,
+simp [subtype.map],
+dsimp,
+rw [swap_self],
+simp only [refl_apply, diagonal, subtype.ext],
+congr
+end
+
 
 /-noncomputable def bij : n ≃ fin (fintype.card n) :=
   classical.some $ trunc.exists_rep $ fintype.equiv_fin n

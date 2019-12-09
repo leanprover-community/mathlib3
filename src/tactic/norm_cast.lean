@@ -407,7 +407,7 @@ do
   let s := simp_lemmas.join s1 cache.down,
   (_, pr) ← simplify s [] h,
   some (_, tmp) ← expr.is_eq <$> infer_type pr,
-  is_def_eq tmp `(true),
+  is_def_eq tmp `(true) reducible,
   to_expr ``(eq.mpr %%pr trivial)
 
 -- if possible, rewrite (n : α) to ((n : ℕ) : α) where n is a numeral and α ≠ ℕ

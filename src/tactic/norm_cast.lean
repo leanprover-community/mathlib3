@@ -81,7 +81,8 @@ namespace norm_cast
 
 open tactic expr
 
---meta def new_name (n : name) : name := name.mk_string "reversed" n
+mk_simp_attribute push_cast "The `push_cast` simp attribute uses `norm_cast` lemmas
+to move casts toward the leaf nodes of the expression."
 
 @[derive decidable_eq]
 inductive label
@@ -185,8 +186,6 @@ do
 
 meta def add_lemma (cache : norm_cast_cache) (decl : name) : tactic norm_cast_cache :=
 do
-  --(declaration.thm n l ty task_e) ← get_decl decl | failed,
-  --let e := task_e.get,
   e ← mk_const decl,
   ty ← infer_type e,
   guess ← classify_type ty,
@@ -196,59 +195,13 @@ do
   | Squash := add_squash cache e
   end
 
-mk_simp_attribute push_cast "The `push_cast` simp attribute uses `norm_cast` lemmas
-to move casts toward the leaf nodes of the expression."
-
-meta def after_set (attr : option label) (decl : name) (n : ℕ) (b : bool) : tactic unit :=
+meta def after_set (decl : name) (n : ℕ) (b : bool) : tactic unit :=
 ( do
   e ← mk_const decl,
   ty ← infer_type e,
   guess ← classify_type ty,
-  if guess ≠ Elim then simp_attr.push_cast.set decl () tt else skip,
-  match attr with
-  | none := skip
-  | (some attr) :=
-    if attr = guess then skip else trace $
-    "#check " ++ to_string decl ++ " -- is labeled " ++ to_string attr ++ " but the classifier guessed " ++ to_string guess
-  end
-) <|> (trace $ "#check " ++ to_string decl ++ " -- failed to classify")
-
-
-@[user_attribute] meta def elim_cast_attr : user_attribute unit :=
-{
-    name      := `elim_cast,
-    descr     := "attribute for norm_cast",
-    after_set := some $ after_set (some Elim),
-    before_unset := some $ λ _ _, tactic.skip,
-    cache_cfg := {
-        mk_cache     := λ _, skip,
-        dependencies := [],
-    }
-}
-
-@[user_attribute] meta def move_cast_attr : user_attribute unit :=
-{
-    name      := `move_cast,
-    descr     := "attribute for norm_cast",
-    after_set := some $ after_set (some Move),
-    before_unset := some $ λ _ _, tactic.skip,
-    cache_cfg := {
-        mk_cache     := λ _, skip,
-        dependencies := [],
-    }
-}
-
-@[user_attribute] meta def squash_cast_attr : user_attribute unit :=
-{
-    name      := `squash_cast,
-    descr     := "attribute for norm_cast",
-    after_set := some $ after_set (some Squash),
-    before_unset := some $ λ _ _, tactic.skip,
-    cache_cfg := {
-        mk_cache     := λ _, skip,
-        dependencies := [],
-    }
-}
+  if guess ≠ Elim then simp_attr.push_cast.set decl () tt else skip
+) <|> fail "failed to classify"
 
 -- lemmas to handle the ≥, > and ≠ operators
 lemma ge_from_le {α} [has_le α] : ∀ (x y : α), x ≥ y ↔ y ≤ x := λ _ _, iff.rfl
@@ -280,13 +233,70 @@ do
 {
     name      := `norm_cast,
     descr     := "attribute for norm_cast",
-    after_set := some $ after_set none,
+    after_set := some after_set,
     before_unset := some $ λ _ _, tactic.skip,
     cache_cfg := {
         mk_cache     := mk_cache,
         dependencies := [],
     }
 }
+
+@[user_attribute] meta def elim_cast_attr : user_attribute unit :=
+{
+    name      := `elim_cast,
+    descr     := "attribute for norm_cast",
+    after_set := some $ λ decl _ _, tactic.skip,
+    before_unset := some $ λ _ _, tactic.skip,
+    cache_cfg := {
+        mk_cache     := λ _, skip,
+        dependencies := [],
+    }
+}
+
+@[user_attribute] meta def move_cast_attr : user_attribute unit :=
+{
+    name      := `move_cast,
+    descr     := "attribute for norm_cast",
+    after_set := some $ λ decl _ _, simp_attr.push_cast.set decl () tt,
+    before_unset := some $ λ _ _, tactic.skip,
+    cache_cfg := {
+        mk_cache     := λ _, skip,
+        dependencies := [],
+    }
+}
+
+@[user_attribute] meta def squash_cast_attr : user_attribute unit :=
+{
+    name      := `squash_cast,
+    descr     := "attribute for norm_cast",
+    after_set := some $ λ decl _ _, simp_attr.push_cast.set decl () tt,
+    before_unset := some $ λ _ _, tactic.skip,
+    cache_cfg := {
+        mk_cache     := λ _, skip,
+        dependencies := [],
+    }
+}
+
+meta def classifier_test_decl (attr : label) (decl : name) : tactic unit :=
+( do
+  e ← mk_const decl,
+  ty ← infer_type e,
+  guess ← classify_type ty,
+  if guess = attr then skip else trace $
+    "#check " ++ to_string decl ++ " -- labeled " ++ to_string attr ++ " but we guessed " ++ to_string guess
+) <|> (trace $ "#check " ++ to_string decl ++ " -- failed to classify")
+
+meta def classifier_test_attr (attr : label) : tactic unit :=
+do
+  trace $ "/- "  ++ to_string attr ++ " -/",
+  l ← attribute.get_instances (to_string attr : name),
+  _ ← monad.mapm (classifier_test_decl attr) l,
+  trace ""
+
+meta def classifier_test_all : tactic unit :=
+do
+  _ ← monad.mapm classifier_test_attr [Elim, Move, Squash],
+  skip
 
 end norm_cast
 

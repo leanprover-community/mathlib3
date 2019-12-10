@@ -47,8 +47,8 @@ open_locale classical
 
 -- To get a reasonable compile time for `continuous_equiv_fun_basis`, typeclass inference needs
 -- to be guided.
-local attribute [instance, priority 10000] pi.module normed_space.to_vector_space
-  vector_space.to_module submodule.add_comm_group submodule.module
+local attribute [instance, priority 10000] pi.module normed_space.to_module
+  submodule.add_comm_group submodule.module
   linear_map.finite_dimensional_range Pi.complete nondiscrete_normed_field.to_normed_field
 
 set_option class.instance_max_depth 100

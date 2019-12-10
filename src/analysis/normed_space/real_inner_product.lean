@@ -62,7 +62,7 @@ set_option default_priority 100 -- see Note [default priority]
 An inner product space is a real vector space with an additional operation called inner product.
 Inner product spaces over complex vector space will be defined in another file.
 -/
-class inner_product_space (α : Type*) extends add_comm_group α, vector_space ℝ α, has_inner α :=
+class inner_product_space (α : Type*) extends add_comm_group α, module ℝ α, has_inner α :=
 (comm      : ∀ x y, inner x y = inner y x)
 (nonneg    : ∀ x, 0 ≤ inner x x)
 (definite  : ∀ x, inner x x = 0 → x = 0)

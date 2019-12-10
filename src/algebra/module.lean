@@ -363,7 +363,8 @@ set_option default_priority 100 -- see Note [default priority]
   This is the traditional generalization of spaces like `ℝ^n`, which have a natural
   addition operation and a way to multiply them by real numbers, but no multiplication
   operation between vectors. -/
-class vector_space (α : Type u) (β : Type v) [discrete_field α] [add_comm_group β] extends module α β
+abbreviation vector_space (α : Type u) (β : Type v) [discrete_field α] [add_comm_group β] :=
+module α β
 end prio
 
 instance discrete_field.to_vector_space {α : Type*} [discrete_field α] : vector_space α α :=

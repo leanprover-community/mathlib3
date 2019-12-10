@@ -835,7 +835,7 @@ module.of_core $ by refine {smul := (•), ..};
     -mk_add, (mk_add p).symm, -mk_smul, (mk_smul p).symm]
 
 instance {K M} {R:discrete_field K} [add_comm_group M] [vector_space K M]
-  (p : submodule K M) : vector_space K (quotient p) := {}
+  (p : submodule K M) : vector_space K (quotient p) := by apply_instance
 
 end quotient
 

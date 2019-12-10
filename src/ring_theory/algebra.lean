@@ -106,7 +106,7 @@ by rw [smul_def, smul_def, mul_assoc]
 @[priority 100] -- see Note [lower instance priority]
 instance {F : Type u} {K : Type v} [discrete_field F] [ring K] [algebra F K] :
   vector_space F K :=
-@vector_space.mk F _ _ _ algebra.to_module
+by apply_instance
 
 /-- R[X] is the generator of the category R-Alg. -/
 instance polynomial (R : Type u) [comm_ring R] : algebra R (polynomial R) :=

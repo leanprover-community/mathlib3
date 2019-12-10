@@ -6,7 +6,7 @@ Authors: Sébastien Gouëzel
 
 import analysis.calculus.deriv
 
-/-! 
+/-!
 # The mean value inequality
 
 A bound on the derivative of a function implies that this function

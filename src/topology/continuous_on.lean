@@ -52,7 +52,7 @@ begin
 end
 
 lemma mem_nhds_within_iff_exists_mem_nhds_inter {t : set α} {a : α} {s : set α} :
-  t ∈ nhds_within a s ↔ ∃ u ∈ nhds a, u ∩ s ⊆ t :=
+  t ∈ nhds_within a s ↔ ∃ u ∈ 𝓝 a, u ∩ s ⊆ t :=
 begin
   rw [nhds_within, mem_inf_principal],
   split,

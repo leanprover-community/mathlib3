@@ -454,6 +454,52 @@ let ⟨n, hle, hlt⟩ := exists_int_pow_near' hr hw in
 ⟨w^n, by { rw norm_fpow; exact fpow_pos_of_pos (lt_trans zero_lt_one hw) _},
 by rwa norm_fpow⟩
 
+lemma tendsto_inv [normed_field α] {r : α} (r0 : r ≠ 0) : tendsto (λq, q⁻¹) (𝓝 r) (𝓝 r⁻¹) :=
+begin
+  refine metric.tendsto_nhds.2 (λε εpos, _),
+  let δ := min (ε/2/2 * ∥r∥^2) (∥r∥/2),
+  have norm_r_pos : 0 < ∥r∥ := (norm_pos_iff r).mpr r0,
+  have A : 0 < ε / 2 / 2 * ∥r∥ ^ 2 := mul_pos' (half_pos (half_pos εpos)) (pow_pos norm_r_pos 2),
+  have δpos : 0 < δ, by simp [half_pos norm_r_pos, A],
+  refine ⟨ball r δ, ball_mem_nhds r δpos, λx hx, _⟩,
+  have rx : ∥r∥/2 ≤ ∥x∥ := calc
+    ∥r∥/2 = ∥r∥ - ∥r∥/2 : by ring
+    ... ≤ ∥r∥ - ∥r - x∥ :
+    begin
+      apply sub_le_sub (le_refl _),
+      rw ← dist_eq_norm,
+      exact le_trans (le_of_lt (mem_ball'.1 hx)) (min_le_right _ _)
+    end
+    ... ≤ ∥r - (r - x)∥ : norm_sub_norm_le r (r - x)
+    ... = ∥x∥ : by simp,
+  have norm_x_pos : 0 < ∥x∥ := lt_of_lt_of_le (half_pos norm_r_pos) rx,
+  have : x⁻¹ - r⁻¹ = (r - x) * x⁻¹ * r⁻¹,
+    by rw [sub_mul, sub_mul, mul_inv_cancel ((norm_pos_iff x).mp norm_x_pos), one_mul, mul_comm,
+           ← mul_assoc, inv_mul_cancel r0, one_mul],
+  calc dist x⁻¹ r⁻¹ = ∥x⁻¹ - r⁻¹∥ : dist_eq_norm _ _
+  ... ≤ ∥r-x∥ * ∥x∥⁻¹ * ∥r∥⁻¹ : by rw [this, norm_mul, norm_mul, norm_inv, norm_inv]
+  ... ≤ (ε/2/2 * ∥r∥^2) * (2 * ∥r∥⁻¹) * (∥r∥⁻¹) : begin
+    apply_rules [mul_le_mul, inv_nonneg.2, le_of_lt A, norm_nonneg, inv_nonneg.2, mul_nonneg,
+                 (inv_le_inv norm_x_pos norm_r_pos).2, le_refl],
+    show ∥r - x∥ ≤ ε / 2 / 2 * ∥r∥ ^ 2,
+      by { rw ← dist_eq_norm, exact le_trans (le_of_lt (mem_ball'.1 hx)) (min_le_left _ _) },
+    show ∥x∥⁻¹ ≤ 2 * ∥r∥⁻¹,
+    { convert (inv_le_inv norm_x_pos (half_pos norm_r_pos)).2 rx,
+      rw [inv_div (ne.symm (ne_of_lt norm_r_pos)), div_eq_inv_mul, mul_comm],
+      norm_num },
+    show (0 : ℝ) ≤ 2, by norm_num
+  end
+  ... = ε/2 * (∥r∥ * ∥r∥⁻¹)^2 : by { generalize : ∥r∥⁻¹ = u, ring }
+  ... = ε/2 : by { rw [mul_inv_cancel (ne.symm (ne_of_lt norm_r_pos))], simp }
+  ... < ε : half_lt_self εpos
+end
+
+lemma continuous_on_inv [normed_field α] : continuous_on (λ(x:α), x⁻¹) {x | x ≠ 0} :=
+begin
+  assume x hx,
+  apply continuous_at.continuous_within_at,
+  exact (tendsto_inv hx)
+end
 
 instance : normed_field ℝ :=
 { norm := λ x, abs x,
@@ -463,6 +509,19 @@ instance : normed_field ℝ :=
 instance : nondiscrete_normed_field ℝ :=
 { non_trivial := ⟨2, by { unfold norm, rw abs_of_nonneg; norm_num }⟩ }
 end normed_field
+
+/-- If a function converges to a nonzero value, its inverse converges to the inverse of this value.
+We use the name `tendsto.inv'` as `tendsto.inv` is already used in multiplicative topological
+groups. -/
+lemma filter.tendsto.inv' [normed_field α] {l : filter β} {f : β → α} {y : α}
+  (hy : y ≠ 0) (h : tendsto f l (𝓝 y)) :
+  tendsto (λx, (f x)⁻¹) l (𝓝 y⁻¹) :=
+(normed_field.tendsto_inv hy).comp h
+
+lemma filter.tendsto.div [normed_field α] {l : filter β} {f g : β → α} {x y : α}
+  (hf : tendsto f l (𝓝 x)) (hg : tendsto g l (𝓝 y)) (hy : y ≠ 0) :
+  tendsto (λa, f a / g a) l (𝓝 (x / y)) :=
+hf.mul (hg.inv' hy)
 
 lemma real.norm_eq_abs (r : ℝ) : norm r = abs r := rfl
 

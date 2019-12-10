@@ -128,10 +128,16 @@ meta def add_prime : name → name
 | (name.mk_string s p) := name.mk_string (s ++ "'") p
 | n := (name.mk_string "x'" n)
 
+/-- `last_string n` returns the rightmost component of `n`, ignoring numeral components.
+For example, ``last_string `a.b.c.33`` will return `` `c ``. -/
 def last_string : name → string
 | anonymous        := "[anonymous]"
 | (mk_string s _)  := s
 | (mk_numeral _ n) := last_string n
+
+/-- `is_coe n` checks if `n` is the name of a coercion: `has_coe.coe`, `coe`, or `coe_fun` -/
+@[reducible] def is_coe (n : name) : Prop :=
+n = `has_coe.coe ∨ n = `coe ∨ n = `coe_fn
 
 end name
 
@@ -462,6 +468,15 @@ meta def local_binding_info : expr → binder_info
 `binder_info.default` -/
 meta def is_default_local : expr → bool
 | (expr.local_const _ _ binder_info.default _) := tt
+| _ := ff
+
+/-- `contains_coe e` returns `tt` if any constant appearing in `e` satisfies `name.is_coe`. -/
+meta def contains_coe (e : expr) : bool :=
+e.contains_constant name.is_coe
+
+/-- `is_coe e` returns `tt` if `e` is a constant with name satisfying `name.is_coe`. -/
+meta def is_coe : expr → bool
+| (expr.const n _) := n.is_coe
 | _ := ff
 
 end expr

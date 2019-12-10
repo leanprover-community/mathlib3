@@ -54,8 +54,6 @@ open tactic expr
 `flip tp prf` assumes that `prf` has type `tp`, and `tp` has the form `Π ..., b = a` or
 `Π ..., b ↔ a`. It returns two `pexpr`s. The first is the Prop `Π ..., a = b` and the second
 is a proof of this prop.
-
-TODO: skip pexpr?
 -/
 meta def flip : expr → expr → option (pexpr × pexpr)
 | `(%%a = %%b) e := some (``(%%b = %%a), ``(eq.symm %%e))
@@ -182,7 +180,7 @@ do
   return {
     up := new_up,
     down := new_down,
-    squash := cache.squash, }
+    squash := cache.squash }
 
 /-- `add_squash cache e` adds `e` as an `squash_cast` lemma to `cache`. -/
 meta def add_squash (cache : norm_cast_cache) (e : expr) : tactic norm_cast_cache :=
@@ -192,7 +190,7 @@ do
   return {
     up := cache.up,
     down := new_down,
-    squash := new_squash, }
+    squash := new_squash }
 
 /-- `add_lemma cache decl` infers the proper `norm_cast` attribute for `decl` and adds it to `cache`. -/
 meta def add_lemma (cache : norm_cast_cache) (decl : name) : tactic norm_cast_cache :=

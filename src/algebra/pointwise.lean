@@ -2,11 +2,34 @@
 Copyright (c) 2019 Johan Commelin. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johan Commelin
-
-Pointwise addition and multiplication of sets
 -/
 
 import data.set.finite data.set.lattice group_theory.group_action algebra.module
+
+/-!
+
+# Pointwise addition, multiplication, and scalar multiplication of sets.
+
+This file defines `pointwise_mul`: for a type `α` with multiplication,
+multiplication is defined on `set α` by taking `s * t` to be the set
+of all `x * y` where `x ∈ s` and `y ∈ t`.
+
+Pointwise multiplication on `set α` where `α` is a semigroup makes
+`set α` into a semigroup. If `α` is additionally a (commutative)
+monoid, `set α` becomes a (commutative) semiring with union as
+addition. These are given by `pointwise_mul_semigroup` and
+`pointwise_mul_semiring`.
+
+For a type `β` with scalar multiplication by another type `α`, this
+file defines `pointwise_smul`. Separately it defines `smul_set`, for
+scalar multiplication of `set β` by a single term of type `α`.
+
+## Implementation notes
+
+Elsewhere, one should register local instances to use the definitions
+in this file.
+
+-/
 
 namespace set
 open function

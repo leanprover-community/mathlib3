@@ -6,7 +6,7 @@ Author: Casper Putz
 Characteristic polynomials of matrices
 -/
 
-import data.polynomial linear_algebra.determinant
+import data.polynomial linear_algebra.determinant tactic.interactive
 
 /-!
 
@@ -73,7 +73,33 @@ lemma with_bot.coe_sum {ι : Type*} (s : finset ι) (f : ι → ℕ) :
   (↑(s.sum f) : with_bot ℕ) = s.sum (λ x, ↑(f x)) :=
 eq.symm $ sum_hom (λ n : ℕ, (n : with_bot ℕ))
 
+lemma cofactor_aux [comm_ring α] (i : n) (M : matrix n n α) :
+  cofactor i i (diagonal (λ _:n, (X : polynomial α)) - (λ i j, C (M i j))) =
+  char_polynomial (minor M (subtype.val : {k // k ≠ i} → n) subtype.val) := sorry
+
 variable [integral_domain α]
+
+lemma degree : degree (char_polynomial M) = fintype.card n :=
+begin
+unfreezeI,
+induction h : fintype.card n generalizing M n,
+{ unfold char_polynomial det,
+  have : (univ : finset n) = ∅, { rwa [←card_eq_zero, card_univ] },
+  rw [this], conv { congr, congr, congr, skip, funext, rw [prod_empty, mul_one] },
+  sorry },
+{ unfold char_polynomial,
+  let i : n_1, from sorry, --get from nonemptyness of n
+  rw [cofactor_expansion _ i, ←insert_erase (mem_univ i), sum_insert (not_mem_erase i _), add_comm],
+  convert degree_add_eq_of_degree_lt _,
+  { rw [degree_mul_eq], dsimp, rw [diagonal_val_eq, ←sub_eq_add_neg, degree_X_sub_C, add_comm],
+    rw [nat.succ_eq_add_one, with_bot.coe_add, with_bot.coe_one],
+    congr,
+    rw [←sub_eq_add_neg, cofactor_aux, ih],
+    rw [←nat.pred_succ n, ←h, ←@card_univ n_1, ←card_erase_of_mem (mem_univ i)],
+    refine fintype.card_of_subtype _ (λ _, by simp only [mem_erase, mem_univ, iff_self, and_true])},
+  sorry
+ }
+end
 
 lemma degree_prod {ι : Type*} [decidable_eq ι] (s : finset ι) (f : ι → polynomial α) :
   degree (s.prod f) = s.sum (λ i, degree (f i)) :=

@@ -426,7 +426,7 @@ meta def post (s : simp_lemmas) (_ : unit) (e : expr) : tactic (unit × expr × 
 The following auxiliary functions are used to handle numerals.
 -/
 
-/- prove ↑n = n where n is a numeral -/
+/-- prove ↑n = n where n is a numeral -/
 meta def aux_num_prove_eq (a b : expr) : tactic expr :=
 do
   h ← to_expr ``(%%a = %%b),
@@ -452,7 +452,7 @@ do
   return ((), new_e, pr)
 
 -- the `unit` argument is required by the `simplify` api.
-/- if possible, rewrite (↑n : α) to (n : α) where n is a numeral -/
+/-- if possible, rewrite (↑n : α) to (n : α) where n is a numeral -/
 @[nolint] meta def aux_num_2 (_ : unit) (e : expr) : tactic (unit × expr × expr) :=
 do
   `(@coe ℕ %%α %%h1 %%e') ← return e,

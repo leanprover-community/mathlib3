@@ -20,6 +20,9 @@ monoid, `set α` becomes a (commutative) semiring with union as
 addition. These are given by `pointwise_mul_semigroup` and
 `pointwise_mul_semiring`.
 
+Definitions and results are also transported to the additive theory
+via `to_additive`.
+
 For a type `β` with scalar multiplication by another type `α`, this
 file defines `pointwise_smul`. Separately it defines `smul_set`, for
 scalar multiplication of `set β` by a single term of type `α`.

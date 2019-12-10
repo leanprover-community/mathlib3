@@ -83,8 +83,6 @@ variables {I f}
 
 instance module         (α) {r : ring α}           [∀ i, add_comm_group $ f i]  [∀ i, module α $ f i]         : module α (Π i : I, f i)       := {..pi.semimodule I f α}
 
-instance vector_space   (α) {r : discrete_field α} [∀ i, add_comm_group $ f i]  [∀ i, vector_space α $ f i]   : vector_space α (Π i : I, f i) := by apply_instance
-
 instance left_cancel_semigroup [∀ i, left_cancel_semigroup $ f i] : left_cancel_semigroup (Π i : I, f i) :=
 by pi_instance
 
@@ -353,9 +351,6 @@ instance {r : semiring α} [add_comm_monoid β] [add_comm_monoid γ]
 
 instance {r : ring α} [add_comm_group β] [add_comm_group γ]
   [module α β] [module α γ] : module α (β × γ) := {}
-
-instance {r : discrete_field α} [add_comm_group β] [add_comm_group γ]
-  [vector_space α β] [vector_space α γ] : vector_space α (β × γ) := by apply_instance
 
 section substructures
 variables (s : set α) (t : set β)

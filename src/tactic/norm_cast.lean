@@ -128,12 +128,14 @@ if lhs_head.is_coe then
     else fail squash_cast_fail
   else /- !lhs_body_head.is_coe -/ if rhs.contains_coe then return move
   else return squash
-else if rhs.contains_coe then -- !lhs_head.is_coe
-  fail $ "norm_cast lemmas starting without ↑ on the LHS must be elim_cast lemmas," ++
-                       " but elim_cast lemmas cannot contain ↑ on the RHS"
 else if ! lhs.contains_coe then
-  fail "norm_cast lemmas must contain ↑"
-else return elim
+  fail "norm_cast lemmas must contain ↑ on the LHS"
+else
+  let rhs_head := rhs.get_app_fn in
+  if rhs.contains_coe && ! rhs_head.is_coe  then -- !lhs_head.is_coe
+    fail $ "norm_cast lemmas starting without ↑ on the LHS must be elim_cast lemmas." ++
+                       "If an elim_cast lemma has ↑ on the RHS, it must appear in the head position."
+  else return elim
 
 /-- TODO: update and describe -/
 meta def classify_type (ty : expr) : tactic label :=

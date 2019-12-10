@@ -661,7 +661,7 @@ instance : normed_space α (E × F) :=
   add_smul := λ r x y, prod.ext (add_smul _ _ _) (add_smul _ _ _),
   smul_add := λ r x y, prod.ext (smul_add _ _ _) (smul_add _ _ _),
   ..prod.normed_group,
-  ..prod.vector_space }
+  ..prod.module }
 
 /-- The product of finitely many normed spaces is a normed space, with the sup norm. -/
 instance pi.normed_space {E : ι → Type*} [fintype ι] [∀i, normed_group (E i)]

@@ -81,6 +81,19 @@ lemma tendsto_at_top_div [linear_ordered_field α]
   tendsto (λx, f x / r) l at_top :=
 tendsto_at_top_mul_right' (inv_pos hr) hf
 
+/-- The function `x ↦ x⁻¹` tends to `+∞` on the right of `0`. -/
+lemma tendsto_inv_zero_at_top [discrete_linear_ordered_field α] [topological_space α]
+  [orderable_topology α] : tendsto (λx:α, x⁻¹) (nhds_within (0 : α) (set.Ioi 0)) at_top :=
+begin
+  apply (tendsto_at_top _ _).2 (λb, _),
+  refine mem_nhds_within_Ioi_iff_exists_Ioo_subset.2 ⟨(max b 1)⁻¹, by simp [zero_lt_one], λx hx, _⟩,
+  calc b ≤ max b 1 : le_max_left _ _
+  ... ≤ x⁻¹ : begin
+    apply (le_inv _ hx.1).2 (le_of_lt hx.2),
+    exact lt_of_lt_of_le zero_lt_one (le_max_right _ _)
+  end
+end
+
 lemma summable_of_absolute_convergence_real {f : ℕ → ℝ} :
   (∃r, tendsto (λn, (range n).sum (λi, abs (f i))) at_top (𝓝 r)) → summable f
 | ⟨r, hr⟩ :=

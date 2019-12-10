@@ -325,10 +325,11 @@ lemma Ico_eq_Ico_iff (h : a₁ < b₁ ∨ a₂ < b₂) : Ico a₁ b₁ = Ico a�
     tauto
 end, λ ⟨h₁, h₂⟩, by rw [h₁, h₂]⟩
 
+open_locale classical
+
 @[simp] lemma Ioi_subset_Ioi_iff : Ioi b ⊆ Ioi a ↔ a ≤ b :=
 begin
   refine ⟨λh, _, λh, Ioi_subset_Ioi h⟩,
-  classical,
   by_contradiction ba,
   exact lt_irrefl _ (h (not_le.mp ba))
 end
@@ -336,7 +337,6 @@ end
 @[simp] lemma Ioi_subset_Ici_iff [densely_ordered α] : Ioi b ⊆ Ici a ↔ a ≤ b :=
 begin
   refine ⟨λh, _, λh, Ioi_subset_Ici h⟩,
-  classical,
   by_contradiction ba,
   obtain ⟨c, bc, ca⟩ : ∃c, b < c ∧ c < a := dense (not_le.mp ba),
   exact lt_irrefl _ (lt_of_lt_of_le ca (h bc))
@@ -345,7 +345,6 @@ end
 @[simp] lemma Iio_subset_Iio_iff : Iio a ⊆ Iio b ↔ a ≤ b :=
 begin
   refine ⟨λh, _, λh, Iio_subset_Iio h⟩,
-  classical,
   by_contradiction ab,
   exact lt_irrefl _ (h (not_le.mp ab))
 end
@@ -353,10 +352,33 @@ end
 @[simp] lemma Iio_subset_Iic_iff [densely_ordered α] : Iio a ⊆ Iic b ↔ a ≤ b :=
 begin
   refine ⟨λh, _, λh, Iio_subset_Iic h⟩,
-  classical,
   by_contradiction ba,
   obtain ⟨c, bc, ca⟩ : ∃c, b < c ∧ c < a := dense (not_le.mp ba),
   exact lt_irrefl _ (lt_of_lt_of_le bc (h ca))
+end
+
+@[simp] lemma Iic_union_Ici : Iic a ∪ Ici a = set.univ :=
+begin
+  refine univ_subset_iff.1 (λx hx, _),
+  by_cases h : x ≤ a,
+  { exact or.inl h },
+  { exact or.inr (le_of_lt (not_le.1 h)) }
+end
+
+@[simp] lemma Iio_union_Ici : Iio a ∪ Ici a = set.univ :=
+begin
+  refine univ_subset_iff.1 (λx hx, _),
+  by_cases h : x < a,
+  { exact or.inl h },
+  { exact or.inr (not_lt.1 h) }
+end
+
+@[simp] lemma Iic_union_Ioi : Iic a ∪ Ioi a = set.univ :=
+begin
+  refine univ_subset_iff.1 (λx hx, _),
+  by_cases h : x ≤ a,
+  { exact or.inl h },
+  { exact or.inr (not_le.1 h) }
 end
 
 end linear_order

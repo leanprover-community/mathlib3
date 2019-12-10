@@ -306,6 +306,13 @@ lemma has_fderiv_within_at_inter (h : t ∈ 𝓝 x) :
   has_fderiv_within_at f f' (s ∩ t) x ↔ has_fderiv_within_at f f' s x :=
 by simp [has_fderiv_within_at, nhds_within_restrict' s h]
 
+lemma has_fderiv_within_at.union (hs : has_fderiv_within_at f f' s x) (ht : has_fderiv_within_at f f' t x) :
+  has_fderiv_within_at f f' (s ∪ t) x :=
+begin
+  simp only [has_fderiv_within_at, nhds_within_union],
+  exact is_o_join hs ht,
+end
+
 lemma has_fderiv_within_at.nhds_within (h : has_fderiv_within_at f f' s x)
   (ht : s ∈ nhds_within x t) : has_fderiv_within_at f f' t x :=
 (has_fderiv_within_at_inter' ht).1 (h.mono (inter_subset_right _ _))
@@ -459,6 +466,10 @@ end
 lemma has_fderiv_within_at.congr_mono (h : has_fderiv_within_at f f' s x) (ht : ∀x ∈ t, f₁ x = f x)
   (hx : f₁ x = f x) (h₁ : t ⊆ s) : has_fderiv_within_at f₁ f' t x :=
 has_fderiv_at_filter.congr_of_mem_sets (h.mono h₁) (filter.mem_inf_sets_of_right ht) hx
+
+lemma has_fderiv_within_at.congr (h : has_fderiv_within_at f f' s x) (hs : ∀x ∈ s, f₁ x = f x)
+  (hx : f₁ x = f x) : has_fderiv_within_at f₁ f' s x :=
+h.congr_mono hs hx (subset.refl _)
 
 lemma has_fderiv_within_at.congr_of_mem_nhds_within (h : has_fderiv_within_at f f' s x)
   (h₁ : {y | f₁ y = f y} ∈ nhds_within x s) (hx : f₁ x = f x) : has_fderiv_within_at f₁ f' s x :=

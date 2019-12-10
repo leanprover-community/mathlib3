@@ -68,6 +68,11 @@ meta def flip : expr → expr → option (pexpr × pexpr)
   some (new_ty, new_e)
 | _ _ := none
 
+/--
+`flip tp prf` assumes that `prf` has type `tp`, and `tp` has the form `Π ..., b = a` or
+`Π ..., b ↔ a`. It returns two `expr`s. The first is the Prop `Π ..., a = b` and the second
+is a proof of this prop.
+ -/
 meta def reverse (ty e : expr) : tactic (expr × expr) :=
 do
   (new_ty, new_e) ← flip ty e,
@@ -201,7 +206,9 @@ do
   | squash := add_squash cache e
   end
 
-meta def after_set (decl : name) (n : ℕ) (b : bool) : tactic unit :=
+-- the priority `n` is unused but required for the user_attribute api.
+/-- Called after the `norm_cast` attribute is applied to a declaration. -/
+@[nolint] meta def after_set (decl : name) (n : ℕ) (b : bool) : tactic unit :=
 ( do
   e ← mk_const decl,
   ty ← infer_type e,
@@ -209,12 +216,14 @@ meta def after_set (decl : name) (n : ℕ) (b : bool) : tactic unit :=
   if guess ≠ elim then simp_attr.push_cast.set decl () tt else skip
 ) <|> fail "failed to classify"
 
--- these are ge_iff_le, etc
+-- these are `ge_iff_le`, etc in the library. I'm not sure why they're defined on preorders.
 -- lemmas to handle the ≥, > and ≠ operators
 lemma ge_from_le {α} [has_le α] : ∀ (x y : α), x ≥ y ↔ y ≤ x := λ _ _, iff.rfl
 lemma gt_from_lt {α} [has_lt α] : ∀ (x y : α), x > y ↔ y < x := λ _ _, iff.rfl
 lemma ne_from_not_eq {α} : ∀ (x y : α), x ≠ y ↔ ¬(x = y) := λ _ _, iff.rfl
 
+/-- `mk_cache names` creates a `norm_cast_cache`. It infers the proper `norm_cast` attributes
+for names in `names`, and collects the lemmas attributed with specific `norm_cast` attributes. -/
 meta def mk_cache (names : list name) : tactic norm_cast_cache :=
 do
   cache ← monad.foldl add_lemma empty_cache names,
@@ -397,10 +406,10 @@ when the squash_cast lemmas can prove that (↑(x : α) : γ) = (↑(↑(x : α)
 )
 | _ := failed
 
-/-
+/--
 assumption is used to discharge proofs in step 2
 -/
-meta def prove : tactic unit := assumption
+private meta def prove : tactic unit := assumption
 
 /-
 TODO: norm_cast takes a list of expressions to use as lemmas for the discharger
@@ -464,7 +473,8 @@ do
   pr ← aux_num_prove_eq e new_e,
   return ((), new_e, pr)
 
-meta def simplify_top_down' {α} (a : α) (pre : α → expr → tactic (α × expr × expr)) (e : expr) (cfg : simp_config := {}) : tactic (α × expr × expr) :=
+/-- A local variant on `simplify_top_down`. -/
+private meta def simplify_top_down' {α} (a : α) (pre : α → expr → tactic (α × expr × expr)) (e : expr) (cfg : simp_config := {}) : tactic (α × expr × expr) :=
 ext_simplify_core a cfg simp_lemmas.mk (λ _, failed)
   (λ a _ _ _ e, do (new_a, new_e, pr) ← pre a e, guard (¬ new_e =ₐ e), return (new_a, new_e, some pr, ff))
   (λ _ _ _ _ _, failed)

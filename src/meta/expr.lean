@@ -212,11 +212,15 @@ meta def int.mk_numeral (type has_zero has_one has_add has_neg : expr) : ℤ →
 | -[1+n] := let ne := (n+1).mk_numeral type has_zero has_one has_add in
             `(@has_neg.neg.{0} %%type %%has_neg %%ne)
 
+/-- `pos_num.to_pexpr α n` creates a numeral pre-expression in type `α`, with value corresponding to
+`n`. Since this is a `pexpr`, there is no check that `α` supports numeral expressions. -/
 meta def pos_num.to_pexpr (α : expr) : pos_num → pexpr
 | pos_num.one := ``(has_one.one %%α)
 | (pos_num.bit0 n) := ``(bit0 %%(pos_num.to_pexpr n))
 | (pos_num.bit1 n) := ``(bit1 %%(pos_num.to_pexpr n))
 
+/-- `num.to_pexpr α n` creates a numeral pre-expression in type `α`, with value corresponding to `n`.
+Since this is a `pexpr`, there is no check that `α` supports numeral expressions. -/
 meta def num.to_pexpr (α : expr) : num → pexpr
 | num.zero := ``(has_zero.zero %%α)
 | (num.pos n) := pos_num.to_pexpr α n

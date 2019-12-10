@@ -180,7 +180,7 @@ begin
   have : i ≠ i', { rintro rfl, apply not_le_of_lt (hi' 0).2, rw [hp0], refl },
   have := h.1 i i' this, rw [on_fun, to_set_disjoint, exists_fin_succ] at this,
   rcases this with h0|⟨j, hj⟩,
-  rw [hp0], symmetry, apply eq_of_Ico_disjoint h0 (by simp [hw]) (by simp [hw]) _,
+  rw [hp0], symmetry, apply eq_of_Ico_disjoint h0 (by simp [hw]) _,
   convert hi' 0, rw [hp0], refl,
   exfalso, apply not_disjoint_iff.mpr ⟨tail p j, hps j, hi' j.succ⟩ hj
 end

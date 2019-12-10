@@ -421,13 +421,47 @@ is_open_iff.2 $ λ y, exists_ball_subset_ball
 theorem ball_mem_nhds (x : α) {ε : ℝ} (ε0 : 0 < ε) : ball x ε ∈ 𝓝 x :=
 mem_nhds_sets is_open_ball (mem_ball_self ε0)
 
+@[nolint]
+theorem mem_nhds_within_iff {t : set α} : s ∈ nhds_within x t ↔ ∃ε>0, ball x ε ∩ t ⊆ s :=
+begin
+  rw [mem_nhds_within_iff_exists_mem_nhds_inter],
+  split,
+  { rintros ⟨u, hu, H⟩,
+    rcases mem_nhds_iff.1 hu with ⟨ε, ε_pos, hε⟩,
+    exact ⟨ε, ε_pos, subset.trans (inter_subset_inter_left _ hε) H⟩ },
+  { rintros ⟨ε, ε_pos, H⟩,
+    exact ⟨ball x ε, ball_mem_nhds x ε_pos, H⟩ }
+end
+
+@[nolint]
+theorem tendsto_nhds_within_nhds_within [metric_space β] {t : set β} {f : α → β} {a b} :
+  tendsto f (nhds_within a s) (nhds_within b t) ↔
+    ∀ ε > 0, ∃ δ > 0, ∀{x:α}, x ∈ s → dist x a < δ → f x ∈ t ∧ dist (f x) b < ε :=
+begin
+  split,
+  { assume H ε ε_pos,
+    have : ball b ε ∩ t ∈ nhds_within b t,
+      by { rw mem_nhds_within_iff, exact ⟨ε, ε_pos, subset.refl _⟩ },
+    rcases mem_nhds_within_iff.1 (H this) with ⟨δ, δ_pos, hδ⟩,
+    exact ⟨δ, δ_pos, λx xs dx, ⟨(hδ ⟨dx, xs⟩).2, (hδ ⟨dx, xs⟩).1⟩⟩ },
+  { assume H u hu,
+    rcases mem_nhds_within_iff.1 hu with ⟨ε, ε_pos, hε⟩,
+    rcases H ε ε_pos with ⟨δ, δ_pos, hδ⟩,
+    rw [mem_map, mem_nhds_within_iff],
+    exact ⟨δ, δ_pos, λx hx, hε ⟨(hδ hx.2 hx.1).2, (hδ hx.2 hx.1).1⟩⟩ }
+end
+
+@[nolint]
+theorem tendsto_nhds_within_nhds [metric_space β] {f : α → β} {a b} :
+  tendsto f (nhds_within a s) (𝓝 b) ↔
+    ∀ ε > 0, ∃ δ > 0, ∀{x:α}, x ∈ s → dist x a < δ → dist (f x) b < ε :=
+by { rw [← nhds_within_univ, tendsto_nhds_within_nhds_within], simp }
+
+@[nolint]
 theorem tendsto_nhds_nhds [metric_space β] {f : α → β} {a b} :
   tendsto f (𝓝 a) (𝓝 b) ↔
     ∀ ε > 0, ∃ δ > 0, ∀{x:α}, dist x a < δ → dist (f x) b < ε :=
-⟨λ H ε ε0, mem_nhds_iff.1 (H (ball_mem_nhds _ ε0)),
- λ H s hs,
-  let ⟨ε, ε0, hε⟩ := mem_nhds_iff.1 hs, ⟨δ, δ0, hδ⟩ := H _ ε0 in
-  mem_nhds_iff.2 ⟨δ, δ0, λ x h, hε (hδ h)⟩⟩
+by { rw [← nhds_within_univ, ← nhds_within_univ, tendsto_nhds_within_nhds_within], simp }
 
 theorem continuous_iff [metric_space β] {f : α → β} :
   continuous f ↔

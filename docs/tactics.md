@@ -191,6 +191,24 @@ by { abel at hyp, exact hyp }
 Evaluate expressions in the language of *commutative* (semi)rings.
 Based on [Proving Equalities in a Commutative Ring Done Right in Coq](http://www.cs.ru.nl/~freek/courses/tt-2014/read/10.1.1.61.3041.pdf) by Benjamin Grégoire and Assia Mahboubi.
 
+The variant `ring!` uses a more aggessive reducibility setting to determine equality of atoms.
+
+### ring_exp
+
+Evaluate expressions in *commutative* (semi)rings, allowing for variables in the exponent.
+
+This tactic extends `ring`: it should solve every goal that `ring` can solve.
+Additionally, it knows how to evaluate expressions with complicated exponents
+(where `ring` only understands constant exponents).
+The variants `ring_exp!` and `ring_exp_eq!` use a more aggessive reducibility setting to determine equality of atoms.
+
+For example:
+```lean
+example (n : ℕ) (m : ℤ) : 2^(n+1) * m = 2 * 2^n * m := by ring_exp
+example (a b : ℤ) (n : ℕ) : (a + b)^(n + 2) = (a^2 + b^2 + a * b + b * a) * (a + b)^n := by ring_exp
+example (x y : ℕ) : x + id y = y + id x := by ring_exp!
+```
+
 ### congr'
 
 Same as the `congr` tactic, but takes an optional argument which gives

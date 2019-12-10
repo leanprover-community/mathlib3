@@ -136,38 +136,39 @@ begin
     rw [is_semiring_hom.map_nat_cast _ f, int.cast_neg, int.cast_coe_nat] }
 end
 
-variables {m : Type u} [fintype m] [decidable_eq m]
-variables {l o : Type w} [fintype l] [decidable_eq l] [fintype o] [decidable_eq o]
-
-def submatrix (A : matrix m n R) (row : l → m) (col : o → n) : matrix l o R :=
-  λ i j, A (row i) (col j)
-
-def swap_subtype (i j : n) : {k // k ≠ i} → {k // k ≠ j} := subtype.map (swap i j)
+private def subtype_swap (i j : n) : {k // k ≠ i} → {k // k ≠ j} := subtype.map (swap i j)
   (λ a hi, by { by_cases hj : a ≠ j, rwa [swap_apply_of_ne_of_ne hi hj],
     rw [ne.def, not_not] at hj, symmetry, rw[hj] at hi, rwa [hj, swap_apply_right] })
 
-def minor2 (i j : n) (M : matrix n n R) : R :=
-det $ submatrix M (subtype.val ∘ swap_subtype i j) (subtype.val : {k : n // k ≠ i} → n)
+--TODO: rows and columns are currently switched in the definition
 
-lemma laplace_expansion_aux (M : matrix n n R) (i j : n) :
+/-- The (i,j)-th cofactor of M is (upto sign) the determinant of the submatrix of M obtained by
+removing its i-th row and j-th column. -/
+def cofactor (i j : n) (M : matrix n n R) : R :=
+(sign (swap i j) : ℤ) * (det $ minor M (subtype.val ∘ subtype_swap i j) (subtype.val : {k : n // k ≠ i} → n))
+
+lemma cofactor_expansion_aux (M : matrix n n R) (i j : n) :
   univ.sum (λ σ : { σ : perm n // σ.to_fun i = j }, ε σ.val * univ.prod (λ l, M (σ l) l)) =
-  M j i * minor2 i j M :=
+  M j i * cofactor i j M :=
+have hσ : ∀ (σ : { σ : perm n // σ.to_fun i = j }) l, l ≠ i ↔ (equiv.trans σ.1 (swap i j)) l ≠ i,
+  from λ σ l, by { rw [equiv.trans_apply, not_iff_not], unfold_coes,
+  exact ⟨λ h, by {rw [h, σ.2], exact swap_apply_right i j },
+    λ h, σ.val.injective $ (swap i j).injective $ eq.symm $
+        by { unfold_coes, rw [h, σ.2], exact swap_apply_right i j }⟩ },
 calc univ.sum (λ σ : { σ : perm n // σ.to_fun i = j }, ε σ.val * univ.prod (λ l, M (σ l) l)) =
       M j i * univ.sum (λ σ : { σ : perm n // σ.to_fun i = j }, ε σ.val *
-        (erase univ i).prod (λ l, M (σ l) l)) :
-  begin rw [mul_sum], conv_rhs { congr, funext, skip, funext, rw [mul_comm, mul_assoc, mul_comm _ (M j i)],
-    rw [show M j i = M (x i) i, begin unfold_coes, sorry end],
-    rw [←@prod_insert _ _ _ _ (λ l, M (x l) l) _ _ (not_mem_erase i _)],
-    rw [insert_erase (mem_univ _)] } end
-... = M j i * univ.sum (λ σ : { σ : perm n // σ.to_fun i = j }, ε σ.val *
         (erase univ i).prod (λ l, M (equiv.swap i j $ equiv.swap i j $ σ l) l)) :
-  begin congr, funext, apply congr_arg, congr, funext, rw [swap_swap_apply] end
-... = M j i * univ.sum (λ τ : perm { k // k ≠ i }, ε τ * univ.prod (λ l, M (swap i j $ τ l) l)) :
   begin
+    simp only [mul_sum, swap_swap_apply], congr, funext σ,
+    rw [←insert_erase (mem_univ i), prod_insert (not_mem_erase _ _), ←mul_assoc,
+      mul_comm _ (M _ _), mul_assoc],
+    congr, exact σ.2, exact eq.symm (insert_erase (mem_univ i)),
+  end
+... = M j i * (sign (swap i j) : ℤ) * univ.sum (λ τ : perm { k // k ≠ i }, ε τ * univ.prod (λ l, M (swap i j $ τ l) l)) :
+  begin
+    rw [mul_assoc, @mul_sum _ _ _ _ ↑(sign (swap i j) : ℤ)],
     apply congr_arg,
-    refine sum_bij (λ σ _, subtype_congr (equiv.trans σ.1 (swap i j))
-        (λ l, begin rw [equiv.trans_apply, not_iff_not], unfold_coes,
-          exact ⟨λ h, by {rw [h, σ.2], exact swap_apply_right i j }, sorry⟩ end))
+    refine sum_bij (λ σ _, subtype_congr (equiv.trans σ.1 (swap i j)) (hσ σ))
       (λ _ _, mem_univ _) _
       (λ σ₁ σ₂ _ _ h, by { rw [subtype.ext], ext l, by_cases hl : l = i,
         { unfold_coes, rw [hl, σ₁.2, σ₂.2] },
@@ -176,349 +177,54 @@ calc univ.sum (λ σ : { σ : perm n // σ.to_fun i = j }, ε σ.val * univ.prod
           have h3 := congr_arg (equiv.swap i j ∘ subtype.val) h2,
           change equiv.swap i j (equiv.swap i j (σ₁.val l)) = equiv.swap i j (equiv.swap i j (σ₂.val l)) at h3,
           rwa [swap_swap_apply, swap_swap_apply] at h3 } } )
-      (λ τ hτ, sorry ), --make this nicer,
+      (λ τ _, ⟨⟨equiv.trans (of_subtype τ) (swap i j),
+        begin change equiv.swap i j (of_subtype τ i) = j,
+          rw [of_subtype_apply_of_not_mem, swap_apply_left], rw [ne.def, not_not] end⟩, mem_univ _,
+          begin ext k, apply subtype.val_injective,
+            change (τ k).val = equiv.swap i j (equiv.swap i j (of_subtype τ k.val)),
+            rw [swap_swap_apply, of_subtype], dsimp, rw [dif_pos k.property],
+            exact congr_arg _ (congr_arg _ $ eq.symm $ subtype.eta _ _) end ⟩),
     intros σ _,
-    rw [show sign (subtype_congr (equiv.trans (σ.val) (swap i j)) _) = sign σ.val, from sorry],
-    apply congr_arg,
-    refine prod_bij (λ l hl, ⟨l, (mem_erase.mp hl).1⟩) (λ _ _, mem_univ _) (λ _ _, rfl) _ _,
-    { assume l1 l2 _ _ h, sorry },
-    { assume l _, exact ⟨l, mem_erase.mpr ⟨l.2, mem_univ _⟩, eq.symm (subtype.eta _ _)⟩ }
+    have hs : sign (swap i j * σ.val) = sign (subtype_congr (equiv.trans (σ.val) (swap i j)) (hσ σ) : perm {k // k ≠ i}),
+    { refine sign_bij (λ k hk, subtype.mk k (λ h, by { rw [h, mul_apply] at hk, unfold_coes at hk, rw [σ.2] at hk, exact hk (swap_apply_right i j) }))
+        (λ _ _ _, rfl) (λ _ _ _ _, congr_arg subtype.val)
+        (λ k hk, ⟨k.val, by { revert hk, contrapose!, intro hk, exact subtype.val_injective hk },
+          subtype.eta _ _⟩) },
+    rw_mod_cast [←hs, sign_mul, ←mul_assoc, ←units.coe_mul, ←mul_assoc, ←sign_mul, equiv.swap_mul_self, sign_one, one_mul],
+    exact congr_arg _ (prod_bij (λ l hl, ⟨l, (mem_erase.mp hl).1⟩) (λ _ _, mem_univ _) (λ _ _, rfl)
+      (λ _ _ _ _, congr_arg subtype.val)
+      (λ l _, ⟨l, mem_erase.mpr ⟨l.2, mem_univ _⟩, eq.symm (subtype.eta _ _)⟩))
   end
-... = M j i * minor2 i j M : rfl
+... = M j i * cofactor i j M : mul_assoc _ _ _
 
-lemma laplace_expansion (M : matrix n n R) (i : n) : det M = univ.sum (λ j, M j i * minor2 i j M) :=
+/-- The deteminant of M can be expanded as the sum over a the i-th row times the corresponding
+cofactor for each element. -/
+lemma cofactor_expansion (M : matrix n n R) (i : n) : det M = univ.sum (λ j, M j i * cofactor i j M) :=
 begin
-  conv_rhs { congr, skip, funext, rw ←laplace_expansion_aux },
-  rw ←@sum_sigma _ _ _ (λ j, {σ : perm n // σ.to_fun i = j}) _ _
-    (λ σ, ε (σ.2.val) * univ.prod (λ l, M (σ.2 l) l)),
-  refine sum_bij (λ σ _, sigma.mk (σ i) ⟨σ, rfl⟩) (by simp [mem_sigma, mem_univ, and_self])
-    (λ _ _, rfl) _ _,
-  { intros _ _ _ _ h,
-    have h2, from (sigma.mk.inj h).1,
-    have h3, from type_eq_of_heq (sigma.mk.inj h).2,
-    have h4, from (sigma.mk.inj h).2,
-    sorry
-    --rw [@heq_iff_eq (perm (fin k)) (λ σ : perm (fin k), σ i = a₁ i)] at h3,
-    --rw [@heq_iff_eq _ (@subtype.mk (perm (fin k)) (λ (σ : perm (fin k)), σ i = a₁ i) a₁ _) (@subtype.mk (perm (fin k)) (λ (σ : perm (fin k)), σ i = a₂ i) a₂ _), subtype.mk_eq_mk] at h2,
-  },
-  { intros f h, existsi [f.snd.val, finset.mem_univ _],
-    refine sigma.eq (eq.symm $ f.snd.property) (subtype.eq _),
-    simp only [], congr, dsimp, unfold_coes, simp [f.snd.property], simp only [eq_rec_heq] }
+  conv_rhs { congr, skip, funext, rw ←cofactor_expansion_aux },
+  rw ←@sum_sigma _ _ _ (λ j, {σ : perm n // σ.to_fun i = j}) _ _ (λ σ, ε (σ.2.val) * univ.prod (λ l, M (σ.2 l) l)),
+  symmetry, unfold det,
+  refine sum_bij (λ σ _, σ.snd.val) (λ _ _, mem_univ _) (λ _ _, rfl) _
+    (λ σ _, ⟨sigma.mk (σ i) (subtype.mk σ rfl), mem_univ _, rfl⟩),
+  { intros σ1 σ2 _ _ h,
+    have : σ1.fst = σ2.fst, { rw [←σ1.snd.property, ←σ2.snd.property, h] },
+    refine sigma.eq this (subtype.val_injective _),
+    { rw ←h, congr, { funext, exact (congr_arg _ $ eq.symm this) }, apply eq_rec_heq }}
 end
 
 open polynomial
+
 lemma test1 (i : n) (M : matrix n n R) :
-  submatrix (diagonal (λ _:n, (X : polynomial R)) - (λ k l, C (M k l))) (subtype.val ∘ swap_subtype i i) (subtype.val : {k : n // k ≠ i} → n) =
+  minor (diagonal (λ _:n, (X : polynomial R)) - (λ k l, C (M k l))) (subtype.val ∘ subtype_swap i i) (subtype.val : {k : n // k ≠ i} → n) =
   (diagonal (λ _, X)) - (λ k l, C (M (swap i i k) l)) :=
 begin
 funext k l,
-unfold submatrix swap_subtype,
+unfold minor subtype_swap,
 simp [subtype.map],
 dsimp,
 rw [swap_self],
 simp only [refl_apply, diagonal, subtype.ext],
 congr
 end
-
-
-/-noncomputable def bij : n ≃ fin (fintype.card n) :=
-  classical.some $ trunc.exists_rep $ fintype.equiv_fin n
-
-noncomputable def matrix_to_fin_matrix (M : matrix n m R) :
-  matrix (fin $ fintype.card n) (fin $ fintype.card m) R :=
-λ i j, M (bij.inv_fun i) (bij.inv_fun j)-/
-
-variable {k : ℕ}
-open fin
-
-def det_minor (i j : fin (k+1)) (M : matrix (fin (k+1)) (fin (k+1)) R) : R :=
-  det (submatrix M (succ_above i) (succ_above j))
-
-/-def rotate (p : fin (k+1)) : perm (fin (k+1)) :=
-{ to_fun := λ i, if h : i.1 < k then succ_above p ⟨i.1, h⟩ else i,
-  inv_fun := λ i, if h : i ≠ p then (pred_above p i h).cast_succ else p,
-  left_inv := λ i,begin dsimp, by_cases h : i.1 < k,
-    { rw [dif_pos h, dif_pos (succ_above_ne p _), pred_above_succ_above], exact cast_succ_cast_lt i h },
-    { rw [dif_neg h], split_ifs, { symmetry, assumption },   }
-     end,
-  right_inv := sorry
-}-/
-
-/-def rotate : perm (fin (k+1)) :=
-{ to_fun := λ i, if h : i.1 < k then fin.succ ⟨i.1, h⟩ else ⟨0, nat.zero_lt_succ k⟩,
-  inv_fun := λ i, if i.1 ≠ 0 then ⟨nat.pred i.1, lt_of_le_of_lt (nat.pred_le _) i.2⟩ else last k,
-  left_inv := λ i, begin dsimp, by_cases hi : i.1 < k,
-    { rw [dif_pos hi], split_ifs with h h, { rw [succ_val] at h, contradiction }, { rw [eq_iff_veq], refl } },
-    { rw [dif_neg hi], split_ifs with h h,
-      { rw [eq_iff_veq, last_val], exact le_antisymm (le_of_not_lt hi) (nat.le_of_lt_succ i.2) },
-      { contradiction } } end,
-  right_inv := λ i, begin dsimp, by_cases hi : i.1 ≠ 0,
-    { rw [if_pos hi], split_ifs with h h,
-      { rw [eq_iff_veq, succ_val], exact nat.succ_pred_eq_of_pos (nat.pos_of_ne_zero hi) },
-      { exfalso, dsimp at h,
-        exact h (lt_of_lt_of_le (nat.pred_lt_pred hi i.2) (nat.pred_succ k ▸ le_refl k)) } },
-    { rw [if_neg hi], split_ifs with h h,
-      { rw [last_val] at h, exfalso, exact lt_irrefl _ h },
-      { rw [eq_iff_veq], symmetry, rwa [ne.def, not_not] at hi } } end }-/
-
-/-lemma fin_add_injective (i : fin k) : injective (fin.add i) := sorry
-
-lemma fin_add_bijective (i : fin k) : bijective (fin.add i) :=
-fintype.injective_iff_bijective.mp $ fin_add_injective i-/
-
-def rotate (p : fin k) : perm (fin k) :=
-{ to_fun := fin.add p,
-  inv_fun := sorry,
-  left_inv := sorry,
-  right_inv := sorry }
-
-lemma is_cycle_rotate (p : fin k) : is_cycle (rotate p) := sorry
-
-/-def shift (k n : ℕ) (σ : perm (fin k)) : perm (fin (k + n)) :=
-{ to_fun := λ i, if h : n ≤ i.val then add_nat n (σ (sub_nat n i h)) else i,
-  inv_fun := λ i, if h : n ≤ i.val then add_nat n (σ.inv_fun (sub_nat n i h)) else i,
-  left_inv := λ i, begin dsimp, split_ifs with h h,
-    { rw [dif_pos h], }
-   end,
-  right_inv := sorry
-
-}
-
-def f (k n : ℕ) : monoid_hom (perm (fin k)) (perm (fin (k + n))) :=
-{ to_fun := λ σ i, if n ≤ i.val then add_nat n (σ (sub_nat n i h)) else i,
-  map_one' := sorry,
-  map_mul' := sorry
-}-/
-
-def rotate_above (p : fin (k+1)) : perm (fin (k+1)) :=
-{ to_fun := λ i, if h : i.1 < k then p.succ_above ⟨i.1, h⟩ else p,
-  inv_fun := sorry, --λ i, if h : i ≠ p then p.pred_above i h else i,
-  left_inv := sorry,
-  right_inv := sorry }
-
-lemma rotate_above_ne (p : fin (k+1)) (i : fin k) : rotate_above p i ≠ p :=
-sorry
-
-lemma is_cycle_rotate_above (p : fin (k+1)) : is_cycle (rotate_above p) := sorry
-
-lemma sign_rotate_above (p : fin (k+1)) : sign (rotate_above p) = (-1)^(k+1-p) := sorry
-
-def res {σ : perm (fin (k+1))} (h : σ (last k) = (last k)) : perm (fin k) :=
-{ to_fun := λ l, ⟨σ l, lt_of_le_of_ne sorry begin assume h, end⟩,
-  inv_fun := sorry,
-  left_inv := sorry,
-  right_inv := sorry
-}
-
-lemma laplace_expansion_aux (hk : k > 0) (M : matrix (fin (k+1)) (fin (k+1)) R) (i j : fin (k+1)) :
-  univ.sum (λ σ : { σ : perm (fin (k+1)) // σ.to_fun i = j }, ε σ.val * univ.prod (λ l, M (σ l) l)) =
-  M j i * (-1)^(i.1 + j.1) * det_minor j i M :=
-calc univ.sum (λ σ : { σ : perm (fin (k+1)) // σ.to_fun i = j }, ε σ.val * univ.prod (λ l, M (σ l) l)) =
-      M j i * univ.sum (λ σ : { σ : perm (fin (k+1)) // σ.to_fun i = j }, ε σ.val *
-        (erase univ i).prod (λ l, M (σ l) l)) :
-  begin rw [mul_sum], conv_rhs { congr, funext, skip, funext, rw [mul_comm, mul_assoc, mul_comm _ (M j i)],
-    rw [show M j i = M (x i) i, begin unfold_coes, sorry end],
-    rw [←@prod_insert _ _ _ _ (λ l : fin (k+1), M (x l) l) _ _ (not_mem_erase i _)],
-    rw [insert_erase (mem_univ _)] } end
-... = M j i * univ.sum (λ σ : { σ : perm (fin (k+1)) // σ.to_fun i = j }, ε σ.val *
-        univ.prod (λ l : fin k, M (σ $ rotate_above i l) (rotate_above i l))) :
-  begin congr, funext, apply congr_arg, symmetry,
-    refine prod_bij (λ l _, rotate_above i l)
-      (λ l _, by { rw [mem_erase], exact ⟨rotate_above_ne _ _, mem_univ _⟩ }) (λ _ _, rfl)
-      (λ _ _ _ _ h, sorry)
-      (λ l hl, ⟨fin.cast_le sorry ((rotate_above i).inv_fun l), mem_univ _, sorry⟩)end--⟨i.pred_above l (mem_erase.mp hl).1, mem_univ _, eq.symm $ succ_above_descend i l _⟩) end
-... = M j i * univ.sum (λ σ : { σ : perm (fin (k+1)) // σ.to_fun i = j }, ε σ.val *
-        univ.prod (λ l : fin k, M (rotate_above j $ (rotate_above j).inv_fun $ σ $ rotate_above i l) (rotate_above i l))) :
-  by { congr, funext, congr, funext, unfold_coes, rw [(rotate_above j).right_inv] }
-... = M j i * univ.sum (λ τ : perm (fin k), (-1)^(i.1 + j.1) * (ε τ *
-        univ.prod (λ l : fin k, M (succ_above j $ τ l) (succ_above i l)))) :
-  begin
-    apply congr_arg,
-    refine sum_bij (λ σ _, sorry) (λ _ _, mem_univ _) _
-      (λ σ₁ σ₂ _ _, by { rw [subtype.ext], exact shift_inv_inj hk i j _ _ σ₁.2 σ₂.2 })
-      (λ τ hτ, begin rw [←image_shift_inv hk i j, mem_image] at hτ,
-       cases hτ with σ h, cases h with hσ h2, existsi [σ, hσ], symmetry, exact h2 end), --make this nicer,
-    intros σ _,
-    rw [←mul_assoc],
-    congr,
-    sorry --the proof of the signs
-  end
-... = M j i * (-1)^(i.1 + j.1) * det_minor j i M : by { rw [←mul_sum, mul_assoc], refl }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-lemma succ_above_injective2 (p : fin (k+1)) : injective (succ_above p) :=
-λ i j hij, by { let h := congr_arg (λ l, if h : l ≠ p then p.pred_above l h else i) hij,
-  dsimp at h,
-  rwa [dif_pos (succ_above_ne p i), dif_pos (succ_above_ne p j),
-    pred_above_succ_above, pred_above_succ_above] at h }
-
-lemma succ_above_injective (p : fin (k+1)) : ∀ (i j : fin k),
-   succ_above p i = succ_above p j → i = j := succ_above_injective2 p
-
-def pred_above' (p : fin (k+1)) (hk : k > 0) (i : fin (k+1)) : fin k :=
-if h : i ≠ p then p.pred_above i h else ⟨0, hk⟩
-
-lemma succ_above_descend' (hk : k > 0) :
-  ∀ (p i : fin (k+1)) (h : i ≠ p), p.succ_above (pred_above' p hk i) = i := sorry
-
-lemma pred_above_succ_above' (hk : k > 0) (p : fin (k+1)) (i : fin k) (h : p.succ_above i ≠ p) :
-  pred_above' p hk (p.succ_above i) = i := sorry
-
-def shift_inv (hk : k > 0) (i : fin (k+1)) (σ : perm (fin (k+1))) : perm (fin k) :=
-{ to_fun := (pred_above' (σ i) hk) ∘ σ ∘ i.succ_above,
-  inv_fun := (pred_above' i hk) ∘ σ.inv_fun ∘ (σ i).succ_above,
-  left_inv := λ l, begin dsimp, unfold_coes,
-    rw [succ_above_descend', σ.left_inv, pred_above_succ_above' hk _ _ (succ_above_ne _ _)],
-    assume h, exact (succ_above_ne _ _) (σ.injective h) end,
-  right_inv := λ l, begin dsimp, unfold_coes,
-    rw [succ_above_descend', σ.right_inv, pred_above_succ_above' hk _ _ (succ_above_ne _ _)],
-    assume h, exact (succ_above_ne _ _) (inv_eq_iff_eq.mp h) end }
-
-lemma image_shift_inv (hk : k > 0) (i j : fin (k+1)) :
-  image (shift_inv hk i ∘ subtype.val) (@finset.univ {σ : perm (fin (k+1)) // σ.to_fun i = j} _) = univ := sorry
-
-lemma shift_inv_inj (hk : k > 0) (i j : fin (k+1)) (σ₁ σ₂ : perm (fin (k+1)))
-  (h₁ : σ₁ i = j) (h₂ : σ₂ i = j) : shift_inv hk i σ₁ = shift_inv hk i σ₂ → σ₁ = σ₂ :=
-sorry
-
-lemma shift_inv_prop (hk : k > 0) (i j : fin (k+1)) (σ : perm (fin (k+1))) (h : σ i = j) :
-  σ ∘ (succ_above i) = (succ_above j) ∘ (shift_inv hk i σ) :=
-sorry
-
-lemma laplace_expansion_aux (hk : k > 0) (M : matrix (fin (k+1)) (fin (k+1)) R) (i j : fin (k+1)) :
-  univ.sum (λ σ : { σ : perm (fin (k+1)) // σ.to_fun i = j }, ε σ.val * univ.prod (λ l, M (σ l) l)) =
-  M j i * (-1)^(i.1 + j.1) * det_minor j i M :=
-calc univ.sum (λ σ : { σ : perm (fin (k+1)) // σ.to_fun i = j }, ε σ.val * univ.prod (λ l, M (σ l) l)) =
-      M j i * univ.sum (λ σ : { σ : perm (fin (k+1)) // σ.to_fun i = j }, ε σ.val *
-        (erase univ i).prod (λ l, M (σ l) l)) :
-  begin rw [mul_sum], conv_rhs { congr, funext, skip, funext, rw [mul_comm, mul_assoc, mul_comm _ (M j i)],
-    rw [show M j i = M (x i) i, begin unfold_coes, sorry end],
-    rw [←@prod_insert _ _ _ _ (λ l : fin (k+1), M (x l) l) _ _ (not_mem_erase i _)],
-    rw [insert_erase (mem_univ _)] } end
-... = M j i * univ.sum (λ σ : { σ : perm (fin (k+1)) // σ.to_fun i = j }, ε σ.val *
-        univ.prod (λ l : fin k, M (σ $ succ_above i l) (succ_above i l))) :
-  begin congr, funext, apply congr_arg, symmetry,
-    refine prod_bij (λ l _, succ_above i l)
-      (λ l _, by { rw [mem_erase], exact ⟨succ_above_ne _ _, mem_univ _⟩ }) (λ _ _, rfl)
-      (λ _ _ _ _, succ_above_injective i _ _)
-      (λ l hl, ⟨i.pred_above l (mem_erase.mp hl).1, mem_univ _, eq.symm $ succ_above_descend i l _⟩) end
-... = M j i * univ.sum (λ σ : { σ : perm (fin (k+1)) // σ.to_fun i = j }, ε σ.val *
-        univ.prod (λ l : fin k, M (succ_above j $ shift_inv hk i σ l) (succ_above i l))) :
-  by { congr, funext, congr, funext, congr, exact congr_fun (shift_inv_prop hk i j σ.1 σ.2) l }
-... = M j i * univ.sum (λ τ : perm (fin k), (-1)^(i.1 + j.1) * (ε τ *
-        univ.prod (λ l : fin k, M (succ_above j $ τ l) (succ_above i l)))) :
-  begin
-    apply congr_arg,
-    refine sum_bij (λ σ _, shift_inv hk i σ) (λ _ _, mem_univ _) _
-      (λ σ₁ σ₂ _ _, by { rw [subtype.ext], exact shift_inv_inj hk i j _ _ σ₁.2 σ₂.2 })
-      (λ τ hτ, begin rw [←image_shift_inv hk i j, mem_image] at hτ,
-       cases hτ with σ h, cases h with hσ h2, existsi [σ, hσ], symmetry, exact h2 end), --make this nicer,
-    intros σ _,
-    rw [←mul_assoc],
-    congr,
-    sorry --the proof of the signs
-  end
-... = M j i * (-1)^(i.1 + j.1) * det_minor j i M : by { rw [←mul_sum, mul_assoc], refl }
-
-lemma laplace_expansion (hk : k > 0) (M : matrix (fin (k+1)) (fin (k+1)) R) (i : fin (k+1)) :
-  det M = univ.sum (λ j : fin (k+1), M j i * (-1)^(i.1 + j.1) * det_minor j i M) :=
-begin
-  conv_rhs { congr, skip, funext, rw ←laplace_expansion_aux hk },
-  rw ←@sum_sigma _ _ _ (λ j, {σ : perm (fin (k+1)) // σ.to_fun i = j}) _ _
-    (λ σ, ε (σ.2.val) * univ.prod (λ (l : fin (k+1)), M (σ.2 l) l)),
-  refine sum_bij (λ σ _, sigma.mk (σ i) ⟨σ, rfl⟩) (by simp [mem_sigma, mem_univ, and_self])
-    (λ _ _, rfl) _ _,
-  { intros _ _ _ _ h,
-    have h2, from (sigma.mk.inj h).1,
-    have h3, from type_eq_of_heq (sigma.mk.inj h).2,
-    have h4, from (sigma.mk.inj h).2,
-    sorry
-    --rw [@heq_iff_eq (perm (fin k)) (λ σ : perm (fin k), σ i = a₁ i)] at h3,
-    --rw [@heq_iff_eq _ (@subtype.mk (perm (fin k)) (λ (σ : perm (fin k)), σ i = a₁ i) a₁ _) (@subtype.mk (perm (fin k)) (λ (σ : perm (fin k)), σ i = a₂ i) a₂ _), subtype.mk_eq_mk] at h2,
-  },
-  { intros f h, existsi [f.snd.val, finset.mem_univ _],
-    refine sigma.eq (eq.symm $ f.snd.property) (subtype.eq _),
-    simp only [], congr, dsimp, unfold_coes, simp [f.snd.property], simp only [eq_rec_heq] }
-end
-
-/-
-/-lemma image_shift_inv (i j : fin (k+1)) :
-  image (shift_inv i j ∘ subtype.val) (@finset.univ {σ : perm (fin (k+1)) // σ.to_fun i = j} _) = univ := sorry
-
-lemma shift_inv_inj (i j : fin (k+1)) (σ₁ σ₂ : perm (fin (k+1))) :
-  shift_inv i j σ₁ = shift_inv i j σ₂ → σ₁ = σ₂ := sorry
-
-lemma shift_inv_prop (i j : fin (k+1)) (σ : perm (fin (k+1))) :
-  σ ∘ (succ_above i) = (succ_above j) ∘ (shift_inv i j σ) :=
-sorry-/
-
-lemma laplace_expansion_aux (M : matrix (fin (k+1)) (fin (k+1)) R) (i j : fin (k+1)) :
-  univ.sum (λ σ : { σ : perm (fin (k+1)) // σ.to_fun i = j }, ε σ.val * univ.prod (λ l, M (σ l) l)) =
-  M j i * (-1)^(i.1 + j.1) * det_minor j i M :=
-calc univ.sum (λ σ : { σ : perm (fin (k+1)) // σ.to_fun i = j }, ε σ.val * univ.prod (λ l, M (σ l) l)) =
-      M j i * univ.sum (λ σ : { σ : perm (fin (k+1)) // σ.to_fun i = j }, ε σ.val *
-        (erase univ i).prod (λ l, M (σ l) l)) :
-  begin rw [mul_sum], conv_rhs { congr, funext, skip, funext, rw [mul_comm, mul_assoc, mul_comm _ (M j i)],
-    rw [show M j i = M (x i) i, begin unfold_coes, sorry end],
-    rw [←@prod_insert _ _ _ _ (λ l : fin (k+1), M (x l) l) _ _ (not_mem_erase i _)],
-    rw [insert_erase (mem_univ _)] } end
-... = M j i * univ.sum (λ σ : { σ : perm (fin (k+1)) // σ.to_fun i = j }, ε σ.val *
-        univ.prod (λ l : fin k, M (σ $ succ_above i l) (succ_above i l))) :
-  begin congr, funext, apply congr_arg, symmetry,
-    refine prod_bij (λ l _, succ_above i l)
-      (λ l _, by { rw [mem_erase], exact ⟨succ_above_ne _ _, mem_univ _⟩ }) (λ _ _, rfl)
-      (λ _ _ _ _, succ_above_injective i _ _)
-      (λ l hl, ⟨i.pred_above l (mem_erase.mp hl).1, mem_univ _, eq.symm $ succ_above_descend i l _⟩) end
-... = M j i * univ.sum (λ σ : { σ : perm (fin (k+1)) // σ.to_fun i = j }, ε σ.val *
-        univ.prod (λ l : fin k, M (succ_above j $ shift_inv i j σ l) (succ_above i l))) :
-  by { congr, funext, congr, funext, congr, exact congr_fun (shift_inv_prop i j σ) l }
-... = M j i * univ.sum (λ τ : perm (fin k), (-1)^(i.1 + j.1) * (ε τ *
-        univ.prod (λ l : fin k, M (succ_above j $ τ l) (succ_above i l)))) :
-  begin
-    apply congr_arg,
-    refine sum_bij (λ σ _, shift_inv i j σ) (λ _ _, mem_univ _) _
-      (λ _ _ _ _, by { rw [subtype.ext], exact shift_inv_inj i j _ _ })
-      (λ τ hτ, begin rw [←image_shift_inv i j, mem_image] at hτ,
-       cases hτ with σ h, cases h with hσ h2, existsi [σ, hσ], symmetry, exact h2 end), --make this nicer,
-    intros σ _,
-    rw [←mul_assoc],
-    congr,
-    sorry --the proof of the signs
-  end
-... = M j i * (-1)^(i.1 + j.1) * det_minor j i M : by { rw [←mul_sum, mul_assoc], refl }
-
-lemma laplace_expansion (M : matrix (fin (k+1)) (fin (k+1)) R) (i : fin (k+1)) :
-  det M = univ.sum (λ j : fin (k+1), M j i * (-1)^(i.1 + j.1) * det_minor j i M) :=
-begin
-  conv_rhs { congr, skip, funext, rw ←laplace_expansion_aux },
-  rw ←@sum_sigma _ _ _ (λ j, {σ : perm (fin (k+1)) // σ.to_fun i = j}) _ _
-    (λ σ, ε (σ.2.val) * univ.prod (λ (l : fin (k+1)), M (σ.2 l) l)),
-  refine sum_bij (λ σ _, sigma.mk (σ i) ⟨σ, rfl⟩) (by simp [mem_sigma, mem_univ, and_self])
-    (λ _ _, rfl) _ _,
-  { intros _ _ _ _ h,
-    have h2, from (sigma.mk.inj h).1,
-    have h3, from type_eq_of_heq (sigma.mk.inj h).2,
-    have h4, from (sigma.mk.inj h).2,
-    sorry
-    --rw [@heq_iff_eq (perm (fin k)) (λ σ : perm (fin k), σ i = a₁ i)] at h3,
-    --rw [@heq_iff_eq _ (@subtype.mk (perm (fin k)) (λ (σ : perm (fin k)), σ i = a₁ i) a₁ _) (@subtype.mk (perm (fin k)) (λ (σ : perm (fin k)), σ i = a₂ i) a₂ _), subtype.mk_eq_mk] at h2,
-  },
-  { intros f h, existsi [f.snd.val, finset.mem_univ _],
-    refine sigma.eq (eq.symm $ f.snd.property) (subtype.eq _),
-    simp only [], congr, dsimp, unfold_coes, simp [f.snd.property], simp only [eq_rec_heq] }
-end
--/
 
 end matrix

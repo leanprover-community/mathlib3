@@ -51,6 +51,9 @@ lemma continuous_on.inv [topological_group α] [topological_space β] {f : β �
   (hf : continuous_on f s) : continuous_on (λx, (f x)⁻¹) s :=
 continuous_inv.comp_continuous_on hf
 
+/-- If a function converges to a value in a multiplicative topological group, then its inverse
+converges to the inverse of this value. For the version in normed fields assuming additionally
+that the limit is nonzero, use `tendsto.inv'`. -/
 @[to_additive]
 lemma filter.tendsto.inv [topological_group α] {f : β → α} {x : filter β} {a : α}
   (hf : tendsto f x (𝓝 a)) : tendsto (λx, (f x)⁻¹) x (𝓝 a⁻¹) :=

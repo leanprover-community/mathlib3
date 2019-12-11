@@ -43,7 +43,7 @@ meta def simps_add_projections : ∀(e : environment) (nm : name) (suffix : stri
   let rhs_ap := rhs.instantiate_lambdas_or_apps type_args,
   let str := tgt.get_app_fn.const_name,
   if e.is_structure str then do
-    projs ← e.get_projections str,
+    projs ← e.structure_fields_full str,
     [intro] ← return $ e.constructors_of str | fail "unreachable code (3)",
     let params := get_app_args tgt, -- the parameters of the structure
     if is_constant_of (get_app_fn rhs_ap) intro then do -- if the value is a constructor application

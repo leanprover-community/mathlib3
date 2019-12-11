@@ -328,6 +328,11 @@ begin
   rw nhds_prod_eq, exact le_inf ha hb
 end
 
+/-- Finite topological spaces are compact. -/
+@[priority 100] instance fintype.compact_space [fintype α] : compact_space α :=
+{ compact_univ := compact_of_finite set.finite_univ }
+
+/-- The product of two compact spaces is compact. -/
 instance [compact_space α] [compact_space β] : compact_space (α × β) :=
 ⟨begin
   have A : compact (set.prod (univ : set α) (univ : set β)) :=
@@ -336,6 +341,7 @@ instance [compact_space α] [compact_space β] : compact_space (α × β) :=
   rwa this at A,
 end⟩
 
+/-- The disjoint union of two compact spaces is compact. -/
 instance [compact_space α] [compact_space β] : compact_space (α ⊕ β) :=
 ⟨begin
   have A : compact (@sum.inl α β '' univ) := compact_image compact_univ continuous_inl,

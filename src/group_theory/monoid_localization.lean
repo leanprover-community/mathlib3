@@ -366,10 +366,10 @@ end
 
 variables {W : submonoid Z} (f)
 
-/- Given a `comm_monoid` homomorphism `f : X → Z` where for submonoids `Y ⊆ X, W ⊆ Z` we have
-   `f(Y) ⊆ W`, the monoid homomorphism from the localization of `X` at `Y` to the localization of
-   `Z` at `W` induced by the natural map from `Z` to the localization of `Z` at
-   `W` composed with `f`. -/
+/-- Given a `comm_monoid` homomorphism `f : X → Z` where for submonoids `Y ⊆ X, W ⊆ Z` we have
+    `f(Y) ⊆ W`, the monoid homomorphism from the localization of `X` at `Y` to the localization of
+    `Z` at `W` induced by the natural map from `Z` to the localization of `Z` at
+    `W` composed with `f`. -/
 def map (hf : ∀ y : Y, f y ∈ W) : monoid_localization X Y →* monoid_localization Z W :=
 lift' ((of W).comp f) ((to_units W).comp $ (f.comp Y.subtype).subtype_mk W hf) $ λ y, rfl
 

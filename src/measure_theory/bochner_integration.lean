@@ -37,11 +37,32 @@ Step 5: Define the Bochner integral on L1 functions by extending the integral on
 
 ## Main statements
 
-• Basic properties of the Bochner integral.
+• Basic properties of the Bochner integral on functions of type `α → β`, where `α` is a measure
+  space and `β` is a real normed space.
 
-• The Lebesgue dominated convergence theorem : `tendsto_integral_of_dominated_convergence`
+`integral_zero`                  : `∫ 0 = 0`
+`integral_add`                   : `∫ f + g = ∫ f + ∫ g`
+`integral_neg`                   : `∫ -f = - ∫ f`
+`integral_sub`                   : `∫ f - g = ∫ f - ∫ g`
+`integral_smul`                  : `∫ r • f = r • ∫ f`
+`integral_congr_ae`              : `∀ₘ a, f a = g a → ∫ f = ∫ g`
+`norm_integral_le_integral_norm` : `∥∫ f∥ ≤ ∫ ∥f∥
 
-See `section properties` at the end of the file to find these properties.
+• Basic properties of the Bochner integral on functions of type `α → ℝ`, where `α` is a measure
+  space.
+
+`integral_nonneg_of_nonneg_ae`  : `∀ₘ a, 0 ≤ f a → 0 ≤ ∫ f`
+`integral_nonpos_of_nonpos_ae`  : `∀ₘ a, f a ≤ 0 → ∫ f ≤ 0`
+`integral_le_integral_of_le_ae` : `∀ₘ a, f a ≤ g a → ∫ f ≤ ∫ g`
+
+• Propositions connecting the Bochner integral with the integral on `ennreal`-valued functions,
+  which is called `lintegral` and has the notation `∫⁻`.
+
+`integral_eq_lintegral_max_sub_lintegral_min` : `∫ f = ∫⁻ f⁺ - ∫⁻ f⁻`, where `f⁺` is the positive
+                                                  part of `f` and `f⁻` is the negative part of `f`.
+`integral_eq_lintegral_of_nonneg_ae`          : `∀ₘ a, 0 ≤ f a → ∫ f = ∫⁻ f`
+
+• `tendsto_integral_of_dominated_convergence` : the Lebesgue dominated convergence theorem
 
 ## Notes
 
@@ -97,6 +118,12 @@ noncomputable theory
 open_locale classical topological_space
 
 set_option class.instance_max_depth 100
+
+-- Typeclass inference has difficulty finding `has_scalar ℝ β` where `β` is a `normed_space` on `ℝ`
+local attribute [instance, priority 10000]
+  mul_action.to_has_scalar distrib_mul_action.to_mul_action add_comm_group.to_add_comm_monoid
+  normed_group.to_add_comm_group normed_space.to_vector_space vector_space.to_module
+  module.to_semimodule
 
 namespace measure_theory
 
@@ -338,12 +365,6 @@ begin
   exact integrable_neg hg
 end
 
--- Typeclass inference has difficulty finding `has_scalar ℝ β` where `β` is a `normed_space` on `ℝ`
-local attribute [instance, priority 10000]
-  mul_action.to_has_scalar distrib_mul_action.to_mul_action add_comm_group.to_add_comm_monoid
-  normed_group.to_add_comm_group normed_space.to_vector_space vector_space.to_module
-  module.to_semimodule
-
 lemma bintegral_smul (r : ℝ) {f : α →ₛ β} (hf : integrable f) :
   bintegral (r • f) = r • bintegral f :=
 calc bintegral (r • f) = sum f.range (λx, ennreal.to_real (volume (f ⁻¹' {x})) • r • x) :
@@ -481,7 +502,7 @@ begin
   { rw [coe_smul, subtype.coe_mk, ← hs], refl }
 end ⟩⟩
 
-local attribute [instance] simple_func.has_scalar
+local attribute [instance, priority 10000] simple_func.has_scalar
 
 @[simp, move_cast] lemma coe_smul (c : 𝕜) (f : α →₁ₛ β) :
   ((c • f : α →₁ₛ β) : α →₁ β) = c • (f : α →₁ β) := rfl
@@ -808,12 +829,6 @@ begin
     { apply add_to_simple_func },
 end
 
--- Typeclass inference has difficulty finding `has_scalar ℝ β` where `β` is a `normed_space` on `ℝ`
-local attribute [instance, priority 10000]
-  mul_action.to_has_scalar distrib_mul_action.to_mul_action add_comm_group.to_add_comm_monoid
-  normed_group.to_add_comm_group normed_space.to_vector_space vector_space.to_module
-  module.to_semimodule
-
 lemma integral_smul (r : ℝ) (f : α →₁ₛ β) : integral (r • f) = r • integral f :=
 begin
   simp only [integral],
@@ -1081,12 +1096,6 @@ begin
   { exact ⟨measurable_sub hfm hgm, integrable_sub hfm hgm hfi hgi⟩ }
 end
 
--- Typeclass inference has difficulty finding `has_scalar ℝ β` where `β` is a `normed_space` on `ℝ`
-local attribute [instance, priority 10000]
-  mul_action.to_has_scalar distrib_mul_action.to_mul_action add_comm_group.to_add_comm_monoid
-  normed_group.to_add_comm_group normed_space.to_vector_space vector_space.to_module
-  module.to_semimodule
-
 lemma integral_smul (r : ℝ) (f : α → β) : (∫ x, r • (f x)) = r • integral f :=
 begin
   by_cases r0 : r = 0,
@@ -1222,8 +1231,7 @@ begin
         assume a h,
         simp only [min_eq_right h, neg_zero, ennreal.of_real_zero] },
       { refine measurable_of_real.comp
-          (measurable.comp (measurable_neg measurable_id) $
-            measurable_min hfm measurable_const) } },
+          ((measurable_neg measurable_id).comp $ measurable_min hfm measurable_const) } },
     have h_max : (∫⁻ a, ennreal.of_real (max (f a) 0)) = (∫⁻ a, ennreal.of_real $ f a),
     { apply lintegral_congr_ae,
       filter_upwards [hf],
@@ -1269,7 +1277,7 @@ begin
   exact sub_nonneg_of_le
 end
 
-lemma norm_integral_le_integral_norm (f : α → ℝ) : ∥integral f∥ ≤ ∫ a, ∥f a∥ :=
+lemma norm_integral_le_integral_norm (f : α → β) : ∥integral f∥ ≤ ∫ a, ∥f a∥ :=
 have le_ae : ∀ₘ (a : α), 0 ≤ ∥f a∥ := by filter_upwards [] λa, norm_nonneg _,
 classical.by_cases
 ( λh : measurable f,

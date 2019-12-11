@@ -18,20 +18,20 @@ extending the integral on simple functions.
 
 The Bochner integral is defined following these steps:
 
-Step 1: Define the integral on simple functions of the type `simple_func α β` (notation : `α →ₛ β`)
+1. Define the integral on simple functions of the type `simple_func α β` (notation : `α →ₛ β`)
   where `β` is a real normed space.
 
   (See `simple_func.bintegral` and section `bintegral` for details. Also see `simple_func.integral`
   for the integral on simple functions of the type `simple_func α ennreal`.)
 
-Step 2: Use `simple_func α β` to cut out the simple functions from L1 functions, and define integral
+2. Use `simple_func α β` to cut out the simple functions from L1 functions, and define integral
   on these. The type of simple functions in L1 space is written as `α →₁ₛ β`.
 
-Step 3: Show that the embedding of `α →₁ₛ β` into L1 is a dense and uniform one.
+3. Show that the embedding of `α →₁ₛ β` into L1 is a dense and uniform one.
 
-Step 4: Show that the integral defined on `α →₁ₛ β` is a continuous linear map.
+4. Show that the integral defined on `α →₁ₛ β` is a continuous linear map.
 
-Step 5: Define the Bochner integral on L1 functions by extending the integral on integrable simple
+5. Define the Bochner integral on L1 functions by extending the integral on integrable simple
   functions `α →₁ₛ β` using `continuous_linear_map.extend`. Define the Bochner integral on functions
   as the Bochner integral of its equivalence class in L1 space.
 
@@ -40,27 +40,27 @@ Step 5: Define the Bochner integral on L1 functions by extending the integral on
 1. Basic properties of the Bochner integral on functions of type `α → β`, where `α` is a measure
    space and `β` is a real normed space.
 
-..* `integral_zero`                  : `∫ 0 = 0`
-..* `integral_add`                   : `∫ f + g = ∫ f + ∫ g`
-..* `integral_neg`                   : `∫ -f = - ∫ f`
-..* `integral_sub`                   : `∫ f - g = ∫ f - ∫ g`
-..* `integral_smul`                  : `∫ r • f = r • ∫ f`
-..* `integral_congr_ae`              : `∀ₘ a, f a = g a → ∫ f = ∫ g`
-..* `norm_integral_le_integral_norm` : `∥∫ f∥ ≤ ∫ ∥f∥
+  * `integral_zero`                  : `∫ 0 = 0`
+  * `integral_add`                   : `∫ f + g = ∫ f + ∫ g`
+  * `integral_neg`                   : `∫ -f = - ∫ f`
+  * `integral_sub`                   : `∫ f - g = ∫ f - ∫ g`
+  * `integral_smul`                  : `∫ r • f = r • ∫ f`
+  * `integral_congr_ae`              : `∀ₘ a, f a = g a → ∫ f = ∫ g`
+  * `norm_integral_le_integral_norm` : `∥∫ f∥ ≤ ∫ ∥f∥`
 
 2. Basic properties of the Bochner integral on functions of type `α → ℝ`, where `α` is a measure
   space.
 
-..* `integral_nonneg_of_nonneg_ae`  : `∀ₘ a, 0 ≤ f a → 0 ≤ ∫ f`
-..* `integral_nonpos_of_nonpos_ae`  : `∀ₘ a, f a ≤ 0 → ∫ f ≤ 0`
-..* `integral_le_integral_of_le_ae` : `∀ₘ a, f a ≤ g a → ∫ f ≤ ∫ g`
+  * `integral_nonneg_of_nonneg_ae`  : `∀ₘ a, 0 ≤ f a → 0 ≤ ∫ f`
+  * `integral_nonpos_of_nonpos_ae`  : `∀ₘ a, f a ≤ 0 → ∫ f ≤ 0`
+  * `integral_le_integral_of_le_ae` : `∀ₘ a, f a ≤ g a → ∫ f ≤ ∫ g`
 
 3. Propositions connecting the Bochner integral with the integral on `ennreal`-valued functions,
    which is called `lintegral` and has the notation `∫⁻`.
 
-..* `integral_eq_lintegral_max_sub_lintegral_min` : `∫ f = ∫⁻ f⁺ - ∫⁻ f⁻`, where `f⁺` is the positive
-                                                  part of `f` and `f⁻` is the negative part of `f`.
-..* `integral_eq_lintegral_of_nonneg_ae`          : `∀ₘ a, 0 ≤ f a → ∫ f = ∫⁻ f`
+  * `integral_eq_lintegral_max_sub_lintegral_min` : `∫ f = ∫⁻ f⁺ - ∫⁻ f⁻`, where `f⁺` is the positive
+                                                    part of `f` and `f⁻` is the negative part of `f`.
+  * `integral_eq_lintegral_of_nonneg_ae`          : `∀ₘ a, 0 ≤ f a → ∫ f = ∫⁻ f`
 
 4. `tendsto_integral_of_dominated_convergence` : the Lebesgue dominated convergence theorem
 
@@ -80,14 +80,14 @@ functions :
 
 1. First go to the `L¹` space.
 
-...For example, if you see `ennreal.to_real (∫⁻ a, ennreal.of_real $ ∥f a∥)`, that is the norm of `f` in
+   For example, if you see `ennreal.to_real (∫⁻ a, ennreal.of_real $ ∥f a∥)`, that is the norm of `f` in
 `L¹` space. Rewrite using `l1.norm_of_fun_eq_lintegral_norm`.
 
 2. Show that the set `{f ∈ L¹ | ∫ f = ∫⁻ f⁺ - ∫⁻ f⁻}` is closed in `L¹` using `is_closed_eq`.
 
 3. Show that the property holds for all simple functions `s` in `L¹` space.
 
-...Typically, you need to convert various notions to their `simple_func` counterpart, using lemmas like
+   Typically, you need to convert various notions to their `simple_func` counterpart, using lemmas like
 `l1.integral_coe_eq_integral`.
 
 4. Since simple functions are dense in `L¹`,

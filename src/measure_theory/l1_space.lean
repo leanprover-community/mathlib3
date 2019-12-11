@@ -7,20 +7,20 @@ Authors: Zhouhang Zhou
 import measure_theory.ae_eq_fun
 
 /-!
-# Integrable functions and L1 space
+# Integrable functions and `L¹` space
 
 In the first part of this file, the predicate `integrable` is defined and basic properties of
 integrable functions are proved.
 
-In the second part, the space L1 of equivalence classes of integrable functions under the relation
-of being almost everywhere equal is defined as a subspace of the space L0. See the file
-`src/measure_theory/ae_eq_fun.lean` for information on L0 space.
+In the second part, the space `L¹` of equivalence classes of integrable functions under the relation
+of being almost everywhere equal is defined as a subspace of the space `L⁰`. See the file
+`src/measure_theory/ae_eq_fun.lean` for information on `L⁰` space.
 
 ## Notation
 
-* `α →₁ β` is the type of L1 space, where `α` is a `measure_space` and `β` is a `normed_group` with
-  a `second_countable_topology`. `f : α →ₘ β` is a "function" in L1. In comments, `[f]` is also used
-  to denote an L1 function.
+* `α →₁ β` is the type of `L¹` space, where `α` is a `measure_space` and `β` is a `normed_group` with
+  a `second_countable_topology`. `f : α →ₘ β` is a "function" in `L¹`. In comments, `[f]` is also used
+  to denote an `L¹` function.
 
   `₁` can be typed as `\1`.
 
@@ -29,13 +29,13 @@ of being almost everywhere equal is defined as a subspace of the space L0. See t
 * Let `f : α → β` be a function, where `α` is a `measure_space` and `β` a `normed_group`.
   Then `f` is called `integrable` if `(∫⁻ a, nnnorm (f a)) < ⊤` holds.
 
-* The space L1 is defined as a subspace of L0 :
-  An `ae_eq_fun` `[f] : α →ₘ β` is in the space L1 if `edist [f] 0 < ⊤`, which means
-  `(∫⁻ a, edist (f a) 0) < ⊤` if we expand the definition of `edist` in L0.
+* The space `L¹` is defined as a subspace of `L⁰` :
+  An `ae_eq_fun` `[f] : α →ₘ β` is in the space `L¹` if `edist [f] 0 < ⊤`, which means
+  `(∫⁻ a, edist (f a) 0) < ⊤` if we expand the definition of `edist` in `L⁰`.
 
 ## Main statements
 
-L1, as a subspace, inherits most of the structures of L0.
+`L¹`, as a subspace, inherits most of the structures of `L⁰`.
 
 ## Implementation notes
 
@@ -314,7 +314,7 @@ end
 end dominated_convergence
 
 section pos_part
-/-! Lemmas used for defining the positive part of a L1 function -/
+/-! Lemmas used for defining the positive part of a `L¹` function -/
 
 lemma integrable_max_zero {f : α → ℝ} (hf : integrable f) : integrable (λa, max (f a) 0) :=
 begin
@@ -447,11 +447,11 @@ iff.intro (l1.eq) (congr_arg coe)
 
 /- TODO : order structure of l1-/
 
-/-- L1 space forms a `emetric_space`, with the emetric being inherited from almost everywhere
+/-- `L¹` space forms a `emetric_space`, with the emetric being inherited from almost everywhere
   functions, i.e., `edist f g = ∫⁻ a, edist (f a) (g a)`. -/
 instance : emetric_space (α →₁ β) := subtype.emetric_space
 
-/-- L1 space forms a `metric_space`, with the metric being inherited from almost everywhere
+/-- `L¹` space forms a `metric_space`, with the metric being inherited from almost everywhere
   functions, i.e., `edist f g = ennreal.to_real (∫⁻ a, edist (f a) (g a))`. -/
 instance : metric_space (α →₁ β) := metric_space_emetric_ball 0 ⊤
 instance : add_comm_group (α →₁ β) := subtype.add_comm_group
@@ -464,7 +464,7 @@ instance : add_comm_group (α →₁ β) := subtype.add_comm_group
 
 lemma dist_eq (f g : α →₁ β) : dist f g = ennreal.to_real (edist (f : α →ₘ β) (g : α →ₘ β)) := rfl
 
-/-- The norm on L1 space is defined to be `∥f∥ = ∫⁻ a, edist (f a) 0`. -/
+/-- The norm on `L¹` space is defined to be `∥f∥ = ∫⁻ a, edist (f a) 0`. -/
 instance : has_norm (α →₁ β) := ⟨λ f, dist f 0⟩
 
 lemma norm_eq (f : α →₁ β) : ∥f∥ = ennreal.to_real (edist (f : α →ₘ β) 0) := rfl
@@ -546,7 +546,7 @@ end of_fun
 
 section to_fun
 
-/-- Find a representative of a L1 function [f] -/
+/-- Find a representative of a `L¹` function [f] -/
 @[reducible]
 protected def to_fun (f : α →₁ β) : α → β := (f : α →ₘ β).to_fun
 
@@ -611,7 +611,7 @@ end to_fun
 
 section pos_part
 
-/-- Positive part of a function in L1 space. -/
+/-- Positive part of a function in `L¹` space. -/
 def pos_part (f : α →₁ ℝ) : α →₁ ℝ :=
 ⟨ ae_eq_fun.pos_part f,
   begin
@@ -619,7 +619,7 @@ def pos_part (f : α →₁ ℝ) : α →₁ ℝ :=
     exact integrable_max_zero f.integrable
   end ⟩
 
-/-- Negative part of a function in L1 space. -/
+/-- Negative part of a function in `L¹` space. -/
 def neg_part (f : α →₁ ℝ) : α →₁ ℝ := pos_part (-f)
 
 @[move_cast] lemma coe_pos_part (f : α →₁ ℝ) : (f.pos_part : α →ₘ ℝ) = (f : α →ₘ ℝ).pos_part := rfl

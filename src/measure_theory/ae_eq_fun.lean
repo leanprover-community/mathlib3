@@ -54,16 +54,13 @@ See `l1_space.lean` for `L¹` space.
 
 ## Implementation notes
 
-`f.to_fun`     : To find a representative of `f : α →ₘ β`, use `f.to_fun`.
+* `f.to_fun`     : To find a representative of `f : α →ₘ β`, use `f.to_fun`.
                  For each operation `op` in `L⁰`, there is a lemma called `op_to_fun`, characterizing,
                  say, `(f op g).to_fun`.
-
-`ae_eq_fun.mk` : To constructs an `L⁰` function `α →ₘ β` from a measurable function `f : α → β`,
+* `ae_eq_fun.mk` : To constructs an `L⁰` function `α →ₘ β` from a measurable function `f : α → β`,
                  use `ae_eq_fun.mk`
-
-`comp`         : Use `comp g f` to get `[g ∘ f]` from `g : β → γ` and `[f] : α →ₘ γ`
-
-`comp₂`        : Use `comp₂ g f₁ f₂ to get `[λa, g (f₁ a) (f₂ a)]`.
+* `comp`         : Use `comp g f` to get `[g ∘ f]` from `g : β → γ` and `[f] : α →ₘ γ`
+* `comp₂`        : Use `comp₂ g f₁ f₂ to get `[λa, g (f₁ a) (f₂ a)]`.
                  For example, `[f + g]` is `comp₂ (+)`
 
 
@@ -72,6 +69,7 @@ See `l1_space.lean` for `L¹` space.
 function space, almost everywhere equal, `L⁰`, ae_eq_fun
 
 -/
+
 noncomputable theory
 open_locale classical
 

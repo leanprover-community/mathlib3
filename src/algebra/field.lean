@@ -259,45 +259,11 @@ end
 
 end is_ring_hom
 
-/-!
-### field_simps
+section field_simp
 
-Simpset used to reduce an expression in a field to an expression of the form `n/d` where
-neither `n` nor `d` contains any division symbol, just using the simplifier to reduce the number
-of division symbols whenever possible by iterating the following steps:
-
-- write an inverse as a division
-- in any product, move the division to the right
-- if there are several divisions in a product, group them together at the end and write them as a
-  single division
-- reduce a sum to a common denominator
-
-If the goal is an equality, this simpset will also clear the denominators, so that the proof
-can normally be concluded by an application of `ring` or `ring_exp`.
-
-Note that this naive algorithm will not try to detect common factors in denominators to reduce the
-complexity of the resulting expression. Instead, it relies on the ability of `ring` to handle
-complicated expressions in the next step.
-
-As always with the simplifier, reduction steps will only be applied if the preconditions of the
-lemmas can be checked. This means that proofs that denominators are nonzero should be included. The
-fact that a product is nonzero when all factors are, and that a power of a nonzero number is
-nonzero, are included in the simpset, but more complicated assertions (especially dealing with sums)
-should be given explicitly. If your expression is not completely reduced by the simplifier
-invocation, check the denominators of the resulting expression and provide proofs that they are
-nonzero to enable further progress.
-
-Use as `simp [-one_div_eq_inv, h, ...] with field_simps` where `h, ...` contains enough information
-to let the simplifier derive that denominators do not vanish. The `-one_div_eq_inv` is necessary if
-there are terms of the form `x⁻¹` in your expression, to disable an unfortunate lemma that
-works against the above reduction process, but is marked as a simp lemma in core.
--/
-
-mk_simp_attribute field_simps "Use this simp set to reduce expressions in a field to a common
-denominator, and prove equalities by cancelling out denominators. This only works when proofs that
-the denominators are nonzero are included.
-Use as `simp [-one_div_eq_inv, h, ...] with field_simps` where `h, ...` contains enough information
-to let the simplifier derive that denominators do not vanish."
+mk_simp_attribute field_simps "The simpset `field_simps` is used by the tactic `field_simp` to
+reduce an expression in a field to an expression of the form `n / d` where `n` and `d` are
+division-free."
 
 lemma mul_div_assoc' {α : Type*} [division_ring α] (a b c : α) : a * (b / c) = (a * b) / c :=
 by simp [mul_div_assoc]
@@ -308,3 +274,5 @@ by simp [neg_div]
 attribute [field_simps] div_add_div_same inv_eq_one_div div_mul_eq_mul_div div_add' add_div'
 div_div_eq_div_mul mul_div_assoc' div_eq_div_iff div_eq_iff eq_div_iff mul_ne_zero'
 div_div_eq_mul_div neg_div' two_ne_zero
+
+end field_simp

@@ -123,11 +123,11 @@ by ring_exp
 -- with only `b⁻¹` an atom.
 example {α} [linear_ordered_field α] (a b c : α) : a*(-c/b)*(-c/b) = a*((c/b)*(c/b)) := by ring_exp
 
--- test that `simp with field_simps` works fine with powers and `ring_exp`.
+-- test that `simp with field_simp` works fine with powers and `ring_exp`.
 example (x y : ℚ) (n : ℕ) (hx : x ≠ 0) (hy : y ≠ 0) :
   1/ (2/(x / y))^(2 * n) + y / y^(n+1) - (x/y)^n * (x/(2 * y))^n / 2 ^n = 1/y^n :=
 begin
-  simp [-one_div_eq_inv, hx, hy] with field_simps,
+  field_simp [hx, hy],
   ring_exp
 end
 end complicated

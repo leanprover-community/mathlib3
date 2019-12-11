@@ -13,13 +13,13 @@ example (a n s: ℕ) : a * (n - s) = (n - s) * a := by ring
 example (x y z : ℚ) (hx : x ≠ 0) (hy : y ≠ 0) (hz : z ≠ 0) :
   x / (y / z) + y ⁻¹ + 1 / (y * -x) = -1/ (x * y) + (x * z + 1) / y :=
 begin
-  simp [-one_div_eq_inv, hx, hy, hz] with field_simps,
+  field_simp [hx, hy, hz],
   ring
 end
 
 example (a b c d x y : ℚ) (hx : x ≠ 0) (hy : y ≠ 0) :
   a + b / x + c / x^2 + d / x^3 = a + x⁻¹ * (y * b / y + (d / x + c) / x) :=
 begin
-  simp [-one_div_eq_inv, hx, hy] with field_simps,
+  field_simp [hx, hy],
   ring
 end

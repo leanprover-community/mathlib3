@@ -209,11 +209,12 @@ example (a b : ℤ) (n : ℕ) : (a + b)^(n + 2) = (a^2 + b^2 + a * b + b * a) * 
 example (x y : ℕ) : x + id y = y + id x := by ring_exp!
 ```
 
-### field_simps
+### field_simp
 
-Simpset used to reduce an expression in a field to an expression of the form `n / d` where
-neither `n` nor `d` contains any division symbol, just using the simplifier to reduce the number
-of division symbols whenever possible by iterating the following steps:
+The goal of `field_simp` is to reduce an expression in a field to an expression of the form `n / d`
+where neither `n` nor `d` contains any division symbol, just using the simplifier (with a carefully
+crafted simpset named `field_simps`) to reduce the number of division symbols whenever possible by
+iterating the following steps:
 
 - write an inverse as a division
 - in any product, move the division to the right
@@ -224,23 +225,29 @@ of division symbols whenever possible by iterating the following steps:
 If the goal is an equality, this simpset will also clear the denominators, so that the proof
 can normally be concluded by an application of `ring` or `ring_exp`.
 
-Note that this naive algorithm will not try to detect common factors in denominators to reduce the complexity of the resulting expression. Instead, it relies on the ability of `ring` to handle
+`field_simp [hx, hy]` is a short form for `simp [-one_div_eq_inv, hx, hy] with field_simps`
+
+Note that this naive algorithm will not try to detect common factors in denominators to reduce the
+complexity of the resulting expression. Instead, it relies on the ability of `ring` to handle
 complicated expressions in the next step.
 
 As always with the simplifier, reduction steps will only be applied if the preconditions of the
-lemmas can be checked. This means that proofs that denominators are nonzero should be included. The fact that a product is nonzero when all factors are, and that a power of a nonzero number is
-nonzero, are included in the simpset, but more complicated assertions (especially dealing with sums) should be given explicitly. If your expression is not completely reduced by the simplifier
+lemmas can be checked. This means that proofs that denominators are nonzero should be included. The
+fact that a product is nonzero when all factors are, and that a power of a nonzero number is
+nonzero, are included in the simpset, but more complicated assertions (especially dealing with sums)
+should be given explicitly. If your expression is not completely reduced by the simplifier
 invocation, check the denominators of the resulting expression and provide proofs that they are
 nonzero to enable further progress.
 
-Use as `simp [-one_div_eq_inv, h, ...] with field_simps` where `h, ...` contains enough information to let the simplifier derive that denominators do not vanish. The `-one_div_eq_inv` is necessary if there are terms of the form `x⁻¹` in your expression, to disable an unfortunate lemma that works against the above reduction process, but is marked as a simp lemma in core.
+The invocation of `field_simp` removes the lemma `one_div_eq_inv` (which is marked as a simp lemma
+in core) from the simpset, as this lemma works against the algorithm explained above.
 
 For example,
 ```lean
 example (a b c d x y : ℂ) (hx : x ≠ 0) (hy : y ≠ 0) :
   a + b / x + c / x^2 + d / x^3 = a + x⁻¹ * (y * b / y + (d / x + c) / x) :=
 begin
-  simp [-one_div_eq_inv, hx, hy] with field_simps,
+  field_simp [hx, hy],
   ring
 end
 ```

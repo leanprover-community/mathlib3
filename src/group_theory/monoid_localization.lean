@@ -44,7 +44,7 @@ The `private def` `r'.rel` and the lemmas `r'.add, r'.transitive` are to enable 
 congruence relation is a congruence relation.
 
 There is only a multiplicative version for any lemma or definition relying on a unit group of a
-`comm_monoid`; additive versions would require additive versions of the API for unit groups.
+`comm_monoid`; additive versions would require additive unit groups.
 
 ## Tags
 localization, monoid localization, quotient monoid, congruence relation

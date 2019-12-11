@@ -137,12 +137,12 @@ end submonoid
 variables (X)
 
 /-- The localization of a `comm_monoid` at one of its submonoids. -/
-@[to_additive add_localization "The localization of an `add_comm_monoid` at one of its submonoids."]
-def localization := Y.r.quotient
+@[to_additive add_monoid_add_localization "The localization of an `add_comm_monoid` at one of its submonoids."]
+def monoid_localization := Y.r.quotient
 
 variables {X Y}
 
-namespace localization
+namespace monoid_localization
 
 /-- For all `y` in `Y`, a submonoid of a `comm_monoid` `X`, `(1, 1) ∼ (y, y)` under the relation
     defining the localization of `X` at `Y`. -/
@@ -152,27 +152,27 @@ lemma one_rel (y : Y) : Y.r 1 (y, y) := by rw Y.r_eq_r'; use 1; norm_num
 /-- Given a `comm_monoid` `X` and submonoid `Y`, `mk` sends `x ∈ X`, `y ∈ Y` to the equivalence
     class of `(x, y)` in the localization of `X` at `Y`. -/
 @[to_additive "Given an `add_comm_monoid` `X` and submonoid `Y`, `mk` sends `x ∈ X`, `y ∈ Y` to the equivalence class of `(x, y)` in the localization of `X` at `Y`."]
-def mk (x : X) (y : Y) : localization X Y := Y.r.mk' (x, y)
+def mk (x : X) (y : Y) : monoid_localization X Y := Y.r.mk' (x, y)
 
 @[elab_as_eliminator, to_additive]
-theorem ind {p : localization X Y → Prop}
+theorem ind {p : monoid_localization X Y → Prop}
   (H : ∀ (y : X × Y), p (mk y.1 y.2)) (x) : p x :=
 by rcases x; convert H x; exact prod.mk.eta.symm
 
 @[elab_as_eliminator, to_additive]
-theorem induction_on {p : localization X Y → Prop} (x)
+theorem induction_on {p : monoid_localization X Y → Prop} (x)
   (H : ∀ (y : X × Y), p (mk y.1 y.2)) : p x := ind H x
 
 @[to_additive] lemma exists_rep (x) : ∃ y : X × Y, mk y.1 y.2 = x :=
 induction_on x $ λ y, ⟨y, rfl⟩
 
-@[to_additive] instance : has_mul (localization X Y) := Y.r.has_mul
+@[to_additive] instance : has_mul (monoid_localization X Y) := Y.r.has_mul
 
-@[to_additive] protected lemma mul_comm (x y : localization X Y) : x * y = y * x :=
+@[to_additive] protected lemma mul_comm (x y : monoid_localization X Y) : x * y = y * x :=
 quotient.induction_on₂' x y $ λ _ _, show quotient.mk' _ = _, by rw mul_comm; refl
 
-@[to_additive] instance : comm_monoid (localization X Y) :=
-{ mul_comm := localization.mul_comm, ..Y.r.monoid }
+@[to_additive] instance : comm_monoid (monoid_localization X Y) :=
+{ mul_comm := monoid_localization.mul_comm, ..Y.r.monoid }
 
 @[to_additive] protected lemma eq {a₁ b₁} {a₂ b₂ : Y} :
   mk a₁ a₂ = mk b₁ b₂ ↔ ∀ c : con (X × Y), (∀ y : Y, c 1 (y, y)) → c (a₁, a₂) (b₁, b₂) :=
@@ -183,12 +183,12 @@ Y.r.eq.trans $ iff.rfl
 ⟨λ h, let ⟨w, hw⟩ := show Y.r' (a₁, a₂) (b₁, b₂), by rw [←Y.r_eq_r', ←con.eq]; exact h in ⟨w, hw⟩,
  λ ⟨w, hw⟩, by erw [Y.r.eq, Y.r_eq_r']; exact ⟨w, hw⟩⟩
 
-@[to_additive] lemma r_of_eq {a₁ b₁} {a₂ b₂ : Y} (h : (a₂ : X) * b₁ = b₂ * a₁) :
+@[to_additive] lemma mk_eq_of_eq {a₁ b₁} {a₂ b₂ : Y} (h : (a₂ : X) * b₁ = b₂ * a₁) :
   mk a₁ a₂ = mk b₁ b₂ :=
-localization.eq'.2 $ ⟨1, by rw [mul_comm b₁, h, mul_comm a₁]⟩
+monoid_localization.eq'.2 $ ⟨1, by rw [mul_comm b₁, h, mul_comm a₁]⟩
 
 @[simp, to_additive] lemma mk_self' (x : Y) : mk (x : X) x = 1 :=
-localization.eq.2 $ λ c h, c.symm $ h x
+monoid_localization.eq.2 $ λ c h, c.symm $ h x
 
 @[simp, to_additive] lemma mk_self {x} (hx : x ∈ Y) : mk x ⟨x, hx⟩ = 1 :=
 mk_self' ⟨x, hx⟩
@@ -199,16 +199,14 @@ mk_self' ⟨x, hx⟩
 /-- Definition of the function on the localization of a `comm_monoid` at a submonoid induced by a
     function that is constant on the equivalence classes of the localization relation. -/
 @[simp, to_additive "Definition of the function on the localization of an `add_comm_monoid` at an `add_submonoid` induced by a function that is constant on the equivalence classes of the localization relation."]
-lemma lift_mk {β} (f : (X × Y) → β) (H : ∀ a b, Y.r a b → f a = f b) (x y) :
+lemma lift_on_beta {β} (f : (X × Y) → β) (H : ∀ a b, Y.r a b → f a = f b) (x y) :
 con.lift_on (mk x y) f H = f (x, y) := rfl
-
-namespace monoid
 
 /-- Natural homomorphism sending `x ∈ X`, `X` a `comm_monoid`, to the equivalence class of
     `(x, 1)` in the localization of `X` at a submonoid. For a `comm_ring` localization, this is
     a ring homomorphism named `localization.of`. -/
 @[to_additive "Natural homomorphism sending `x ∈ X`, `X` an `add_comm_monoid`, to the equivalence class of `(x, 0)` in the localization of `X` at a submonoid."]
-def of (Y) : X →* localization X Y :=
+def of (Y) : X →* monoid_localization X Y :=
 Y.r.mk'.comp ⟨λ x, (x, 1), refl 1, λ _ _, by simp only [prod.mk_mul_mk, one_mul]⟩
 
 @[to_additive] lemma of_ker_iff {x y} : con.ker (of Y) x y ↔ Y.r (x, 1) (y, 1) :=
@@ -232,11 +230,11 @@ by rw [mul_comm, mk_mul_cancel_right]
 
 /-- Natural homomorphism sending `y ∈ Y`, `Y` a submonoid of a `comm_monoid` `X`, to the units of
     the localization of `X` at `Y`. -/
-def to_units (Y : submonoid X) : Y →* units (localization X Y) :=
+def to_units (Y : submonoid X) : Y →* units (monoid_localization X Y) :=
 ⟨λ y, ⟨mk y 1, mk 1 y, by simp, by simp⟩, by simp; refl,
  λ _ _, by ext; convert (of Y).map_mul _ _⟩
 
-@[simp] lemma to_units_mk (y) : (to_units Y y : localization X Y) = mk y 1 := rfl
+@[simp] lemma to_units_mk (y) : (to_units Y y : monoid_localization X Y) = mk y 1 := rfl
 
 @[simp] lemma mk_is_unit (y : Y) : is_unit (mk (y : X) (1 : Y)) :=
 is_unit_unit $ to_units Y y
@@ -252,7 +250,7 @@ is_unit_unit $ to_units Y y
 @[simp] lemma of_is_unit' (x) (hx : x ∈ Y) : is_unit (of Y x) :=
 is_unit_unit $ to_units Y ⟨x, hx⟩
 
-lemma to_units_map_inv (g : localization X Y →* Z) (y) :
+lemma to_units_map_inv (g : monoid_localization X Y →* Z) (y) :
   g ↑(to_units Y y)⁻¹ = ↑(units.map g (to_units Y y))⁻¹ :=
 by rw [←units.coe_map, (units.map g).map_inv]
 
@@ -294,13 +292,13 @@ show f (1 : Y) * ↑(g 1)⁻¹ = f y * ↑(g y)⁻¹, by rw [H 1, H y]; simp [un
 /-- Given a `comm_monoid` homomorphism `f : X → Z` mapping elements of a submonoid `Y` to
     invertible elements of `Z`, the homomorphism from the localization of `X` at `Y` sending
     `⟦(x, y)⟧` to `f(x) * f(y)⁻¹`. -/
-def lift' (g : Y → units Z) (H : ∀ y : Y, f y = g y) : localization X Y →* Z :=
+def lift' (g : Y → units Z) (H : ∀ y : Y, f y = g y) : monoid_localization X Y →* Z :=
 Y.r.lift (aux f H) $ λ _ _ h, h _ $ r_le_ker_aux f H
 
 /-- Given a `comm_monoid` homomorphism `f : X → Z` mapping elements of a submonoid `Y` to
     invertible elements of `Z`, the homomorphism from the localization of `X` at `Y` sending
     `⟦(x, y)⟧` to `f(x) * f(y)⁻¹`, where `f(y)⁻¹` is chosen nonconstructively. -/
-noncomputable def lift (H : ∀ y : Y, is_unit (f y)) : localization X Y →* Z :=
+noncomputable def lift (H : ∀ y : Y, is_unit (f y)) : monoid_localization X Y →* Z :=
 lift' f _ $ λ _, classical.some_spec $ H _
 
 variables {f}
@@ -340,7 +338,7 @@ by ext; exact lift'_of H _
 @[simp] lemma lift_comp_of (H : ∀ y : Y, is_unit (f y)) :
   (lift f H).comp (of Y) = f := lift'_comp_of _
 
-@[simp] lemma lift'_apply_of (f' : localization X Y →* Z)
+@[simp] lemma lift'_apply_of (f' : monoid_localization X Y →* Z)
   (H : ∀ y : Y, f'.comp (of Y) y = g y) : lift' (f'.comp (of Y)) _ H = f' :=
 begin
   ext x,
@@ -353,11 +351,11 @@ begin
   simp only [mul_one, mk_mul_cancel_right, one_mul],
 end
 
-@[simp] lemma lift_apply_of (g : localization X Y →* Z) :
+@[simp] lemma lift_apply_of (g : monoid_localization X Y →* Z) :
   lift (g.comp $ of Y) (λ y, is_unit_unit $ units.map g $ to_units Y y) = g :=
 lift'_apply_of _ _
 
-lemma  funext (f g : localization X Y →* Z)
+lemma  funext (f g : monoid_localization X Y →* Z)
   (h : ∀ a, f.comp (of Y) a = g.comp (of Y) a) : f = g :=
 begin
   rw [←lift_apply_of f, ←lift_apply_of g],
@@ -372,7 +370,7 @@ variables {W : submonoid Z} (f)
    `f(Y) ⊆ W`, the monoid homomorphism from the localization of `X` at `Y` to the localization of
    `Z` at `W` induced by the natural map from `Z` to the localization of `Z` at
    `W` composed with `f`. -/
-def map (hf : ∀ y : Y, f y ∈ W) : localization X Y →* localization Z W :=
+def map (hf : ∀ y : Y, f y ∈ W) : monoid_localization X Y →* monoid_localization Z W :=
 lift' ((of W).comp f) ((to_units W).comp $ (f.comp Y.subtype).subtype_mk W hf) $ λ y, rfl
 
 variables {f}
@@ -391,14 +389,14 @@ lemma map_mk (hf : ∀ y : Y, f y ∈ W) (x y) :
   map f hf (mk x y) = mk (f x) ⟨f y, hf y⟩ :=
 (lift'_mk _ _ _).trans (mk_eq _ _).symm
 
-@[simp] lemma map_id (x : localization X Y) :
+@[simp] lemma map_id (x : monoid_localization X Y) :
   map (monoid_hom.id X) (λ (y : Y), y.2) x = x :=
 induction_on x $ λ ⟨w, z⟩, by rw map_mk; exact congr_arg _ (subtype.eq' rfl)
 
 lemma map_comp_map {A} [comm_monoid A] {V} {g : Z →* A}
   (hf : ∀ y : Y, f y ∈ W) (hg : ∀ w : W, g w ∈ V) :
   (map g hg).comp (map f hf) = map (g.comp f) (λ y, hg ⟨f y, hf y⟩) :=
-monoid.funext _ _ $ λ x, by simp only [map_of, monoid_hom.comp_apply]
+funext _ _ $ λ x, by simp only [map_of, monoid_hom.comp_apply]
 
 lemma map_map {A} [comm_monoid A] {V} {g : Z →* A}
   (hf : ∀ y : Y, f y ∈ W) (hg : ∀ w : W, g w ∈ V) (x) :
@@ -409,5 +407,5 @@ lemma map_ext (g : X →* Z) (hf : ∀ y : Y, f y ∈ W) (hg : ∀ y : Y, g y �
   (h : f = g) (x) : map f hf x = map g hg x :=
 induction_on x $ λ _, by {rw [map_mk, map_mk], congr; rw h; refl}
 
-end monoid
-end localization
+end monoid_localization
+

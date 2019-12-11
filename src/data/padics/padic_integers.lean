@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Robert Y. Lewis, Mario Carneiro
 -/
 
-import data.padics.padic_numbers ring_theory.ideals data.int.modeq
+import data.int.modeq data.padics.padic_numbers ring_theory.ideals ring_theory.algebra
 
 /-!
 # p-adic integers
@@ -271,6 +271,14 @@ instance complete : cau_seq.is_complete ℤ_[p] norm :=
     from padic_norm_e_lim_le zero_lt_one (λ _, padic_norm_z.le_one _),
   ⟨ ⟨_, hqn⟩,
     λ ε, by simpa [norm, padic_norm_z] using cau_seq.equiv_lim (cau_seq_to_rat_cau_seq f) ε⟩⟩
+
+instance coe_is_ring_hom : is_ring_hom (coe : ℤ_[p] → ℚ_[p]) :=
+{ map_one := rfl,
+  map_mul := coe_mul,
+  map_add := coe_add }
+
+instance : algebra ℤ_[p] ℚ_[p] :=
+@algebra.of_ring_hom ℤ_[p] _ _ _ (coe) padic_int.coe_is_ring_hom
 
 end padic_int
 

@@ -164,7 +164,7 @@ lemma lintegral_nnnorm_neg {f : α → β} :
   (∫⁻ (a : α), ↑(nnnorm ((-f) a))) = ∫⁻ (a : α), ↑(nnnorm ((f) a)) :=
 lintegral_congr_ae $ by { filter_upwards [], simp }
 
-lemma integrable_neg {f : α → β} : integrable f → integrable (-f) :=
+lemma integrable.neg {f : α → β} : integrable f → integrable (-f) :=
 assume hfi, calc _ = _ : lintegral_nnnorm_neg
                  ... < ⊤ : hfi
 
@@ -172,17 +172,17 @@ lemma integrable_neg_iff (f : α → β) : integrable (-f) ↔ integrable f :=
 begin
   split,
   { assume h,
-    have := integrable_neg h,
+    have := integrable.neg h,
     rwa _root_.neg_neg at this },
-  exact integrable_neg
+  exact integrable.neg
 end
 
 lemma integrable_sub {f g : α → β} (hf : measurable f) (hg : measurable g) :
   integrable f → integrable g → integrable (f - g) :=
 λ hfi hgi,
-  by { rw sub_eq_add_neg, refine integrable_add hf (measurable_neg hg) hfi (integrable_neg hgi) }
+  by { rw sub_eq_add_neg, refine integrable_add hf (measurable_neg hg) hfi (integrable.neg hgi) }
 
-lemma integrable_norm {f : α → β} (hfi : integrable f) : integrable (λa, ∥f a∥) :=
+lemma integrable.norm {f : α → β} (hfi : integrable f) : integrable (λa, ∥f a∥) :=
 have eq : (λa, (nnnorm ∥f a∥ : ennreal)) = λa, (nnnorm (f a) : ennreal),
   by { funext, rw nnnorm_norm },
 by { rwa [integrable, eq] }
@@ -316,7 +316,7 @@ end dominated_convergence
 section pos_part
 /-! Lemmas used for defining the positive part of a `L¹` function -/
 
-lemma integrable_max_zero {f : α → ℝ} (hf : integrable f) : integrable (λa, max (f a) 0) :=
+lemma integrable.max_zero {f : α → ℝ} (hf : integrable f) : integrable (λa, max (f a) 0) :=
 begin
   simp only [integrable_iff_norm] at *,
   calc (∫⁻ a, ennreal.of_real ∥max (f a) 0∥) ≤ (∫⁻ (a : α), ennreal.of_real ∥f a∥) :
@@ -331,12 +331,12 @@ begin
     ... < ⊤ : hf
 end
 
-lemma integrable_min_zero {f : α → ℝ} (hf : integrable f) : integrable (λa, min (f a) 0) :=
+lemma integrable.min_zero {f : α → ℝ} (hf : integrable f) : integrable (λa, min (f a) 0) :=
 begin
   have : (λa, min (f a) 0) = (λa, - max (-f a) 0),
   { funext, rw [min_eq_neg_max_neg_neg, neg_zero] },
   rw this,
-  exact integrable_neg (integrable_max_zero $ integrable_neg hf),
+  exact (integrable.max_zero hf.neg).neg,
 end
 
 end pos_part
@@ -344,7 +344,7 @@ end pos_part
 section normed_space
 variables {𝕜 : Type*} [normed_field 𝕜] [normed_space 𝕜 β]
 
-lemma integrable_smul (c : 𝕜) {f : α → β} : integrable f → integrable (c • f) :=
+lemma integrable.smul (c : 𝕜) {f : α → β} : integrable f → integrable (c • f) :=
 begin
   simp only [integrable], assume hfi,
   calc
@@ -369,9 +369,9 @@ lemma integrable_smul_iff {c : 𝕜} (hc : c ≠ 0) (f : α → β) : integrable
 begin
   split,
   { assume h,
-    have := integrable_smul c⁻¹ h,
+    have := integrable.smul c⁻¹ h,
     rwa [smul_smul, inv_mul_cancel hc, one_smul] at this },
-  exact integrable_smul _
+  exact integrable.smul _
 end
 
 end normed_space
@@ -402,8 +402,8 @@ begin
   simpa [mem_ball, zero_def]
 end
 
-lemma integrable_neg : ∀ {f : α →ₘ β}, integrable f → integrable (-f) :=
-by { rintros ⟨f, hf⟩, have := measure_theory.integrable_neg, simpa }
+lemma integrable.neg : ∀ {f : α →ₘ β}, integrable f → integrable (-f) :=
+by { rintros ⟨f, hf⟩, have := measure_theory.integrable.neg, simpa }
 
 lemma integrable_sub : ∀ {f g : α →ₘ β}, integrable f → integrable g → integrable (f - g) :=
 by { rintros ⟨f, hf⟩ ⟨g, hg⟩, have := measure_theory.integrable_sub hf hg, simpa [mem_ball, zero_def] }
@@ -411,13 +411,13 @@ by { rintros ⟨f, hf⟩ ⟨g, hg⟩, have := measure_theory.integrable_sub hf h
 protected lemma is_add_subgroup : is_add_subgroup (ball (0 : α →ₘ β) ⊤) :=
 { zero_mem := integrable_zero,
   add_mem := λ _ _, integrable_add,
-  neg_mem := λ _, integrable_neg }
+  neg_mem := λ _, integrable.neg }
 
 section normed_space
 variables {𝕜 : Type*} [normed_field 𝕜] [normed_space 𝕜 β]
 
 lemma integrable_smul : ∀ {c : 𝕜} {f : α →ₘ β}, integrable f → integrable (c • f) :=
-by { assume c, rintros ⟨f, hf⟩, simpa using integrable_smul _ }
+by { assume c, rintros ⟨f, hf⟩, simpa using integrable.smul _ }
 
 end normed_space
 
@@ -523,7 +523,7 @@ lemma of_fun_add (f g : α → β) (hfm hfi hgm hgi) :
 rfl
 
 lemma of_fun_neg (f : α → β) (hfm hfi) :
-  of_fun (-f) (measurable_neg hfm) (integrable_neg hfi) = - of_fun f hfm hfi := rfl
+  of_fun (-f) (measurable_neg hfm) (integrable.neg hfi) = - of_fun f hfm hfi := rfl
 
 lemma of_fun_sub (f g : α → β) (hfm hfi hgm hgi) :
   of_fun (f - g) (measurable_sub hfm hgm) (integrable_sub hfm hgm hfi hgi)
@@ -540,7 +540,7 @@ by { rw [norm_of_fun, lintegral_norm_eq_lintegral_edist] }
 variables {𝕜 : Type*} [normed_field 𝕜] [normed_space 𝕜 β]
 
 lemma of_fun_smul (f : α → β) (hfm hfi) (k : 𝕜) :
-  of_fun (k • f) (measurable_smul _ hfm) (integrable_smul _ hfi) = k • of_fun f hfm hfi := rfl
+  of_fun (k • f) (measurable_smul _ hfm) (integrable.smul _ hfi) = k • of_fun f hfm hfi := rfl
 
 end of_fun
 
@@ -616,7 +616,7 @@ def pos_part (f : α →₁ ℝ) : α →₁ ℝ :=
 ⟨ ae_eq_fun.pos_part f,
   begin
     rw [ae_eq_fun.integrable_to_fun, integrable_iff_of_ae_eq (pos_part_to_fun _)],
-    exact integrable_max_zero f.integrable
+    exact integrable.max_zero f.integrable
   end ⟩
 
 /-- Negative part of a function in `L¹` space. -/

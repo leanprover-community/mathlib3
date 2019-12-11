@@ -362,7 +362,7 @@ begin
   have : f - g = f + (-g) := rfl,
   rw [this, bintegral_add hf _, bintegral_neg hg],
   { refl },
-  exact integrable_neg hg
+  exact hg.neg
 end
 
 lemma bintegral_smul (r : ℝ) {f : α →ₛ β} (hf : integrable f) :
@@ -456,7 +456,7 @@ local attribute [instance] protected lemma is_add_subgroup : is_add_subgroup
   begin
     rintros f ⟨s, hsi, hs⟩,
     use -s, split,
-    { exact integrable_neg hsi },
+    { exact hsi.neg },
     { rw [coe_neg, ← hs], refl }
   end }
 
@@ -498,7 +498,7 @@ protected def has_scalar : has_scalar 𝕜 (α →₁ₛ β) := ⟨λk f, ⟨k �
 begin
   rcases f with ⟨f, ⟨s, hsi, hs⟩⟩,
   use k • s, split,
-  { exact integrable_smul _ hsi },
+  { exact integrable.smul _ hsi },
   { rw [coe_smul, subtype.coe_mk, ← hs], refl }
 end ⟩⟩
 
@@ -557,7 +557,7 @@ lemma of_simple_func_add (f g : α →ₛ β) (hf hg) :
     of_simple_func g hg := rfl
 
 lemma of_simple_func_neg (f : α →ₛ β) (hf) :
-  of_simple_func (-f) (integrable_neg hf) = -of_simple_func f hf := rfl
+  of_simple_func (-f) (integrable.neg hf) = -of_simple_func f hf := rfl
 
 lemma of_simple_func_sub (f g : α →ₛ β) (hf hg) :
   of_simple_func (f - g) (integrable_sub f.measurable g.measurable hf hg) = of_simple_func f hf -
@@ -566,7 +566,7 @@ lemma of_simple_func_sub (f g : α →ₛ β) (hf hg) :
 variables {𝕜 : Type*} [normed_field 𝕜] [normed_space 𝕜 β]
 
 lemma of_simple_func_smul (f : α →ₛ β) (hf) (c : 𝕜) :
-  of_simple_func (c • f) (integrable_smul _ hf) = c • of_simple_func f hf := rfl
+  of_simple_func (c • f) (integrable.smul _ hf) = c • of_simple_func f hf := rfl
 
 lemma norm_of_simple_func (f : α →ₛ β) (hf) : ∥of_simple_func f hf∥ = ennreal.to_real (∫⁻ a, edist (f a) 0) :=
 rfl
@@ -784,7 +784,7 @@ begin
   rcases f with ⟨f, s, hsi, hsf⟩,
   use s.pos_part,
   split,
-  { exact integrable_max_zero hsi },
+  { exact integrable.max_zero hsi },
   { simp only [subtype.coe_mk],
     rw [l1.coe_pos_part, ← hsf, ae_eq_fun.pos_part, ae_eq_fun.zero_def, comp₂_mk_mk, mk_eq_mk],
     filter_upwards [],
@@ -834,7 +834,7 @@ begin
   simp only [integral],
   rw ← simple_func.bintegral_smul _ f.integrable,
   apply simple_func.bintegral_congr (r • f).integrable,
-    { exact integrable_smul _ f.integrable },
+    { exact integrable.smul _ f.integrable },
     { apply smul_to_simple_func }
 end
 
@@ -924,7 +924,7 @@ begin
       refine integrable_of_ae_eq _ _,
       { exact (f.to_simple_func.pos_part - f.to_simple_func.neg_part) },
       { exact integrable_sub f.to_simple_func.pos_part.measurable f.to_simple_func.neg_part.measurable
-        (integrable_max_zero f.integrable) (integrable_max_zero $ integrable_neg f.integrable) },
+        (integrable.max_zero f.integrable) (integrable.max_zero f.integrable.neg) },
       exact ae_eq },
     filter_upwards [ae_eq₁, ae_eq₂],
     simp only [mem_set_of_eq],
@@ -933,8 +933,8 @@ begin
     have := f.to_simple_func.pos_part_sub_neg_part,
     conv_lhs {rw ← this},
     refl },
-  { refine integrable_of_ae_eq (integrable_max_zero f.integrable) ae_eq₁ },
-  { refine integrable_of_ae_eq (integrable_max_zero $ integrable_neg f.integrable) ae_eq₂ }
+  { refine integrable_of_ae_eq (integrable.max_zero f.integrable) ae_eq₁ },
+  { refine integrable_of_ae_eq (integrable.max_zero f.integrable.neg) ae_eq₂ }
 end
 
 end pos_part
@@ -1075,7 +1075,7 @@ begin
   { repeat { rw dif_pos },
     { rw ← l1.integral_neg, refl },
     { exact ⟨hfm, hfi⟩ },
-    { exact ⟨measurable_neg hfm, integrable_neg hfi⟩ } },
+    { exact ⟨measurable_neg hfm, integrable.neg hfi⟩ } },
   { repeat { rw dif_neg },
     { rw neg_zero },
     { rw not_and_distrib, exact or.inr hfi },
@@ -1106,7 +1106,7 @@ begin
   { rw dif_pos, rw dif_pos,
     { rw ← l1.integral_smul, refl  },
     { exact ⟨hfm, hfi⟩ },
-    { exact ⟨measurable_smul _ hfm, integrable_smul _ hfi⟩ } },
+    { exact ⟨measurable_smul _ hfm, integrable.smul _ hfi⟩ } },
   { repeat { rw dif_neg },
     { rw smul_zero },
     { rw not_and_distrib, exact or.inr hfi },

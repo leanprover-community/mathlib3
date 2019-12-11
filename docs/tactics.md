@@ -186,6 +186,23 @@ example {α : Type*} {a b : α} [add_comm_group α] (hyp : a + a - a = b - b) : 
 by { abel at hyp, exact hyp }
 ```
 
+### norm_num
+
+Normalises numerical expressions. It supports the operations
+  `+` `-` `*` `/` `^` `<` `≤` over ordered fields (or other
+  appropriate classes), as well as `-` `/` `%` over `ℤ` and `ℕ`.
+
+In practice, this means that certain goals of the form `A = B` or `A ≠ B`, where `A` and `B` are
+numerical expressions, can be solved with `norm_num`. The tactic may succeed even if `A` and `B`
+are real numbers, and may not time out even if the numerals involved are large.
+```lean
+import data.real.basic
+
+example : (2 : ℝ) + 2 = 4 := by norm_num
+example : (12345.2 : ℝ) < 12345.3 := by norm_num
+example : 123456789 + 987654321 = 1111111110 := by norm_num
+```
+
 ### ring
 
 Evaluate expressions in the language of *commutative* (semi)rings.

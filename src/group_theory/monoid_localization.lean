@@ -137,7 +137,7 @@ end submonoid
 variables (X)
 
 /-- The localization of a `comm_monoid` at one of its submonoids. -/
-@[to_additive add_monoid_add_localization "The localization of an `add_comm_monoid` at one of its submonoids."]
+@[to_additive add_monoid_localization "The localization of an `add_comm_monoid` at one of its submonoids."]
 def monoid_localization := Y.r.quotient
 
 variables {X Y}
@@ -408,4 +408,3 @@ lemma map_ext (g : X →* Z) (hf : ∀ y : Y, f y ∈ W) (hg : ∀ y : Y, g y �
 induction_on x $ λ _, by {rw [map_mk, map_mk], congr; rw h; refl}
 
 end monoid_localization
-

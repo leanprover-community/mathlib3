@@ -59,7 +59,7 @@ The Bochner integral is defined following these steps:
    which is called `lintegral` and has the notation `∫⁻`.
 
   * `integral_eq_lintegral_max_sub_lintegral_min` : `∫ f = ∫⁻ f⁺ - ∫⁻ f⁻`, where `f⁺` is the positive
-                                                    part of `f` and `f⁻` is the negative part of `f`.
+  part of `f` and `f⁻` is the negative part of `f`.
   * `integral_eq_lintegral_of_nonneg_ae`          : `∀ₘ a, 0 ≤ f a → ∫ f = ∫⁻ f`
 
 4. `tendsto_integral_of_dominated_convergence` : the Lebesgue dominated convergence theorem

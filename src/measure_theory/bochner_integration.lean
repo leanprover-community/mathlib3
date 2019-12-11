@@ -449,7 +449,7 @@ local attribute [instance] protected lemma is_add_subgroup : is_add_subgroup
   begin
     rintros f g ⟨s, hsi, hs⟩ ⟨t, hti, ht⟩,
     use s + t, split,
-    { exact integrable_add s.measurable t.measurable hsi hti },
+    { exact integrable.add s.measurable t.measurable hsi hti },
     { rw [coe_add, ← hs, ← ht], refl }
   end,
   neg_mem :=
@@ -553,14 +553,14 @@ lemma of_simple_func_eq_mk (f : α →ₛ β) (hf : integrable f) :
 lemma of_simple_func_zero : of_simple_func (0 : α →ₛ β) integrable_zero = 0 := rfl
 
 lemma of_simple_func_add (f g : α →ₛ β) (hf hg) :
-  of_simple_func (f + g) (integrable_add f.measurable g.measurable hf hg) = of_simple_func f hf +
+  of_simple_func (f + g) (integrable.add f.measurable g.measurable hf hg) = of_simple_func f hf +
     of_simple_func g hg := rfl
 
 lemma of_simple_func_neg (f : α →ₛ β) (hf) :
   of_simple_func (-f) (integrable.neg hf) = -of_simple_func f hf := rfl
 
 lemma of_simple_func_sub (f g : α →ₛ β) (hf hg) :
-  of_simple_func (f - g) (integrable_sub f.measurable g.measurable hf hg) = of_simple_func f hf -
+  of_simple_func (f - g) (integrable.sub f.measurable g.measurable hf hg) = of_simple_func f hf -
     of_simple_func g hg := rfl
 
 variables {𝕜 : Type*} [normed_field 𝕜] [normed_space 𝕜 β]
@@ -825,7 +825,7 @@ begin
   simp only [integral],
   rw ← simple_func.bintegral_add f.integrable g.integrable,
   apply simple_func.bintegral_congr (f + g).integrable,
-    { exact integrable_add f.measurable g.measurable f.integrable g.integrable },
+    { exact integrable.add f.measurable g.measurable f.integrable g.integrable },
     { apply add_to_simple_func },
 end
 
@@ -923,7 +923,7 @@ begin
     { show integrable (f.pos_part.to_simple_func.map norm - f.neg_part.to_simple_func.map norm),
       refine integrable_of_ae_eq _ _,
       { exact (f.to_simple_func.pos_part - f.to_simple_func.neg_part) },
-      { exact integrable_sub f.to_simple_func.pos_part.measurable f.to_simple_func.neg_part.measurable
+      { exact integrable.sub f.to_simple_func.pos_part.measurable f.to_simple_func.neg_part.measurable
         (integrable.max_zero f.integrable) (integrable.max_zero f.integrable.neg) },
       exact ae_eq },
     filter_upwards [ae_eq₁, ae_eq₂],
@@ -1065,7 +1065,7 @@ begin
   { rw ← l1.integral_add, refl },
   { exact ⟨hgm, hgi⟩ },
   { exact ⟨hfm, hfi⟩ },
-  { exact ⟨measurable_add hfm hgm, integrable_add hfm hgm hfi hgi⟩ }
+  { exact ⟨measurable.add hfm hgm, integrable.add hfm hgm hfi hgi⟩ }
 end
 
 lemma integral_neg (f : α → β) : integral (-f) = - integral f :=
@@ -1075,7 +1075,7 @@ begin
   { repeat { rw dif_pos },
     { rw ← l1.integral_neg, refl },
     { exact ⟨hfm, hfi⟩ },
-    { exact ⟨measurable_neg hfm, integrable.neg hfi⟩ } },
+    { exact ⟨measurable.neg hfm, integrable.neg hfi⟩ } },
   { repeat { rw dif_neg },
     { rw neg_zero },
     { rw not_and_distrib, exact or.inr hfi },
@@ -1093,7 +1093,7 @@ begin
   { rw ← l1.integral_sub, refl },
   { exact ⟨hgm, hgi⟩ },
   { exact ⟨hfm, hfi⟩ },
-  { exact ⟨measurable_sub hfm hgm, integrable_sub hfm hgm hfi hgi⟩ }
+  { exact ⟨measurable.sub hfm hgm, integrable.sub hfm hgm hfi hgi⟩ }
 end
 
 lemma integral_smul (r : ℝ) (f : α → β) : (∫ x, r • (f x)) = r • integral f :=
@@ -1112,7 +1112,7 @@ begin
     { rw not_and_distrib, exact or.inr hfi },
     { rw not_and_distrib,
       have : (λx, r • (f x)) = r • f, { funext, simp only [pi.smul_apply] },
-      rw [this, integrable_smul_iff r0], exact or.inr hfi } },
+      rw [this, integrable.smul_iff r0], exact or.inr hfi } },
   { repeat { rw dif_neg },
     { rw smul_zero },
     { rw not_and_distrib, exact or.inl hfm },
@@ -1231,7 +1231,7 @@ begin
         assume a h,
         simp only [min_eq_right h, neg_zero, ennreal.of_real_zero] },
       { refine measurable_of_real.comp
-          ((measurable_neg measurable_id).comp $ measurable_min hfm measurable_const) } },
+          ((measurable.neg measurable_id).comp $ measurable.min hfm measurable_const) } },
     have h_max : (∫⁻ a, ennreal.of_real (max (f a) 0)) = (∫⁻ a, ennreal.of_real $ f a),
     { apply lintegral_congr_ae,
       filter_upwards [hf],

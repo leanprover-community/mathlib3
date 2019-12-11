@@ -149,7 +149,7 @@ lemma lintegral_nnnorm_add {f : α → β} {g : α → γ} (hf : measurable f) (
   (∫⁻ a, nnnorm (f a) + nnnorm (g a)) = (∫⁻ a, nnnorm (f a)) + ∫⁻ a, nnnorm (g a) :=
 lintegral_add (measurable_coe_nnnorm hf) (measurable_coe_nnnorm hg)
 
-lemma integrable_add {f g : α → β} (hfm : measurable f) (hgm : measurable g) :
+lemma integrable.add {f g : α → β} (hfm : measurable f) (hgm : measurable g) :
   integrable f → integrable g → integrable (f + g) :=
 assume hfi hgi,
   calc
@@ -177,10 +177,10 @@ begin
   exact integrable.neg
 end
 
-lemma integrable_sub {f g : α → β} (hf : measurable f) (hg : measurable g) :
+lemma integrable.sub {f g : α → β} (hf : measurable f) (hg : measurable g) :
   integrable f → integrable g → integrable (f - g) :=
 λ hfi hgi,
-  by { rw sub_eq_add_neg, refine integrable_add hf (measurable_neg hg) hfi (integrable.neg hgi) }
+  by { rw sub_eq_add_neg, refine integrable.add hf (measurable.neg hg) hfi (integrable.neg hgi) }
 
 lemma integrable.norm {f : α → β} (hfi : integrable f) : integrable (λa, ∥f a∥) :=
 have eq : (λa, (nnnorm ∥f a∥ : ennreal)) = λa, (nnnorm (f a) : ennreal),
@@ -299,7 +299,7 @@ begin
   -- Using the dominated convergence theorem.
   refine tendsto_lintegral_of_dominated_convergence _ hb _ _,
   -- Show `λa, ∥f a - F n a∥` is measurable for all `n`
-  { exact λn, measurable.comp measurable_of_real (measurable_norm (measurable_sub (F_measurable n)
+  { exact λn, measurable.comp measurable_of_real (measurable_norm (measurable.sub (F_measurable n)
       f_measurable)) },
   -- Show `2 * bound` is integrable
   { rw integrable_iff_of_real at bound_integrable,
@@ -365,7 +365,7 @@ begin
     end
 end
 
-lemma integrable_smul_iff {c : 𝕜} (hc : c ≠ 0) (f : α → β) : integrable (c • f) ↔ integrable f :=
+lemma integrable.smul_iff {c : 𝕜} (hc : c ≠ 0) (f : α → β) : integrable (c • f) ↔ integrable f :=
 begin
   split,
   { assume h,
@@ -395,28 +395,28 @@ local attribute [simp] integrable_mk
 
 lemma integrable_zero : integrable (0 : α →ₘ β) := mem_ball_self coe_lt_top
 
-lemma integrable_add : ∀ {f g : α →ₘ β}, integrable f → integrable g → integrable (f + g) :=
+lemma integrable.add : ∀ {f g : α →ₘ β}, integrable f → integrable g → integrable (f + g) :=
 begin
   rintros ⟨f, hf⟩ ⟨g, hg⟩,
-  have := measure_theory.integrable_add hf hg,
+  have := measure_theory.integrable.add hf hg,
   simpa [mem_ball, zero_def]
 end
 
 lemma integrable.neg : ∀ {f : α →ₘ β}, integrable f → integrable (-f) :=
 by { rintros ⟨f, hf⟩, have := measure_theory.integrable.neg, simpa }
 
-lemma integrable_sub : ∀ {f g : α →ₘ β}, integrable f → integrable g → integrable (f - g) :=
-by { rintros ⟨f, hf⟩ ⟨g, hg⟩, have := measure_theory.integrable_sub hf hg, simpa [mem_ball, zero_def] }
+lemma integrable.sub : ∀ {f g : α →ₘ β}, integrable f → integrable g → integrable (f - g) :=
+by { rintros ⟨f, hf⟩ ⟨g, hg⟩, have := measure_theory.integrable.sub hf hg, simpa [mem_ball, zero_def] }
 
 protected lemma is_add_subgroup : is_add_subgroup (ball (0 : α →ₘ β) ⊤) :=
 { zero_mem := integrable_zero,
-  add_mem := λ _ _, integrable_add,
+  add_mem := λ _ _, integrable.add,
   neg_mem := λ _, integrable.neg }
 
 section normed_space
 variables {𝕜 : Type*} [normed_field 𝕜] [normed_space 𝕜 β]
 
-lemma integrable_smul : ∀ {c : 𝕜} {f : α →ₘ β}, integrable f → integrable (c • f) :=
+lemma integrable.smul : ∀ {c : 𝕜} {f : α →ₘ β}, integrable f → integrable (c • f) :=
 by { assume c, rintros ⟨f, hf⟩, simpa using integrable.smul _ }
 
 end normed_space
@@ -476,7 +476,7 @@ section normed_space
 
 variables {𝕜 : Type*} [normed_field 𝕜] [normed_space 𝕜 β]
 
-instance : has_scalar 𝕜 (α →₁ β) := ⟨λ x f, ⟨x • (f : α →ₘ β), ae_eq_fun.integrable_smul f.2⟩⟩
+instance : has_scalar 𝕜 (α →₁ β) := ⟨λ x f, ⟨x • (f : α →ₘ β), ae_eq_fun.integrable.smul f.2⟩⟩
 
 @[simp, move_cast] lemma coe_smul (c : 𝕜) (f : α →₁ β) :
   ((c • f : α →₁ β) : α →ₘ β) = c • (f : α →ₘ β) := rfl
@@ -518,15 +518,15 @@ by { rw ← l1.eq_iff, simp only [of_fun_eq_mk, mk_eq_mk] }
 lemma of_fun_zero : of_fun (0 : α → β) (@measurable_const _ _ _ _ (0:β)) integrable_zero = 0 := rfl
 
 lemma of_fun_add (f g : α → β) (hfm hfi hgm hgi) :
-  of_fun (f + g) (measurable_add hfm hgm) (integrable_add hfm hgm hfi hgi)
+  of_fun (f + g) (measurable.add hfm hgm) (integrable.add hfm hgm hfi hgi)
     = of_fun f hfm hfi + of_fun g hgm hgi :=
 rfl
 
 lemma of_fun_neg (f : α → β) (hfm hfi) :
-  of_fun (-f) (measurable_neg hfm) (integrable.neg hfi) = - of_fun f hfm hfi := rfl
+  of_fun (-f) (measurable.neg hfm) (integrable.neg hfi) = - of_fun f hfm hfi := rfl
 
 lemma of_fun_sub (f g : α → β) (hfm hfi hgm hgi) :
-  of_fun (f - g) (measurable_sub hfm hgm) (integrable_sub hfm hgm hfi hgi)
+  of_fun (f - g) (measurable.sub hfm hgm) (integrable.sub hfm hgm hfi hgi)
     = of_fun f hfm hfi - of_fun g hgm hgi :=
 rfl
 

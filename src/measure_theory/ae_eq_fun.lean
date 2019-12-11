@@ -160,7 +160,7 @@ def comp₂ {γ δ : Type*} [measurable_space γ] [measurable_space δ]
   (g : β → γ → δ) (hg : measurable (λp:β×γ, g p.1 p.2)) (f₁ : α →ₘ β) (f₂ : α →ₘ γ) : α →ₘ δ :=
 begin
   refine quotient.lift_on₂ f₁ f₂ (λf₁ f₂, mk (λa, g (f₁.1 a) (f₂.1 a)) $ _) _,
-  { exact measurable.comp hg (measurable_prod_mk f₁.2 f₂.2) },
+  { exact measurable.comp hg (measurable.prod_mk f₁.2 f₂.2) },
   { rintros ⟨f₁, hf₁⟩ ⟨f₂, hf₂⟩ ⟨g₁, hg₁⟩ ⟨g₂, hg₂⟩ h₁ h₂,
     refine quotient.sound _,
     filter_upwards [h₁, h₂],
@@ -170,13 +170,13 @@ end
 @[simp] lemma comp₂_mk_mk {γ δ : Type*} [measurable_space γ] [measurable_space δ]
   (g : β → γ → δ) (hg : measurable (λp:β×γ, g p.1 p.2)) (f₁ : α → β) (f₂ : α → γ) (hf₁ hf₂) :
   comp₂ g hg (mk f₁ hf₁) (mk f₂ hf₂) =
-    mk (λa, g (f₁ a) (f₂ a)) (measurable.comp hg (measurable_prod_mk hf₁ hf₂)) :=
+    mk (λa, g (f₁ a) (f₂ a)) (measurable.comp hg (measurable.prod_mk hf₁ hf₂)) :=
 rfl
 
 lemma comp₂_eq_mk_to_fun {γ δ : Type*} [measurable_space γ] [measurable_space δ]
   (g : β → γ → δ) (hg : measurable (λp:β×γ, g p.1 p.2)) (f₁ : α →ₘ β) (f₂ : α →ₘ γ) :
   comp₂ g hg f₁ f₂ = mk (λa, g (f₁.to_fun a) (f₂.to_fun a))
-    (hg.comp (measurable_prod_mk f₁.measurable f₂.measurable)) :=
+    (hg.comp (measurable.prod_mk f₁.measurable f₂.measurable)) :=
 by conv_lhs { rw [self_eq_mk f₁, self_eq_mk f₂, comp₂_mk_mk] }
 
 lemma comp₂_to_fun {γ δ : Type*} [measurable_space γ] [measurable_space δ]
@@ -197,8 +197,8 @@ end
     `(f a, g a)` for almost all `a` -/
 def lift_rel {γ : Type*} [measurable_space γ] (r : β → γ → Prop) (f : α →ₘ β) (g : α →ₘ γ) : Prop :=
 lift_pred (λp:β×γ, r p.1 p.2)
-  (comp₂ prod.mk (measurable_prod_mk
-    (measurable_fst measurable_id) (measurable_snd measurable_id)) f g)
+  (comp₂ prod.mk (measurable.prod_mk
+    (measurable.fst measurable_id) (measurable.snd measurable_id)) f g)
 
 lemma lift_rel_mk_mk {γ : Type*} [measurable_space γ] (r : β → γ → Prop)
   (f : α → β) (g : α → γ) (hf hg) : lift_rel r (mk f hf) (mk g hg) ↔ ∀ₘ a, r (f a) (g a) :=
@@ -264,12 +264,12 @@ variables {γ : Type*}
   [topological_space γ] [second_countable_topology γ] [add_monoid γ] [topological_add_monoid γ]
 
 protected def add : (α →ₘ γ) → (α →ₘ γ) → (α →ₘ γ) :=
-comp₂ (+) (measurable_add (measurable_fst measurable_id) (measurable_snd  measurable_id))
+comp₂ (+) (measurable.add (measurable.fst measurable_id) (measurable.snd  measurable_id))
 
 instance : has_add (α →ₘ γ) := ⟨ae_eq_fun.add⟩
 
 @[simp] lemma mk_add_mk (f g : α → γ) (hf hg) :
-   (mk f hf) + (mk g hg) = mk (f + g) (measurable_add hf hg) := rfl
+   (mk f hf) + (mk g hg) = mk (f + g) (measurable.add hf hg) := rfl
 
 lemma add_to_fun (f g : α →ₘ γ) : ∀ₘ a, (f + g).to_fun a = f.to_fun a + g.to_fun a :=
 comp₂_to_fun _ _ _ _
@@ -298,11 +298,11 @@ section add_group
 
 variables {γ : Type*} [topological_space γ] [add_group γ] [topological_add_group γ]
 
-protected def neg : (α →ₘ γ) → (α →ₘ γ) := comp has_neg.neg (measurable_neg measurable_id)
+protected def neg : (α →ₘ γ) → (α →ₘ γ) := comp has_neg.neg (measurable.neg measurable_id)
 
 instance : has_neg (α →ₘ γ) := ⟨ae_eq_fun.neg⟩
 
-@[simp] lemma neg_mk (f : α → γ) (hf) : -(mk f hf) = mk (-f) (measurable_neg hf) := rfl
+@[simp] lemma neg_mk (f : α → γ) (hf) : -(mk f hf) = mk (-f) (measurable.neg hf) := rfl
 
 lemma neg_to_fun (f : α →ₘ γ) : ∀ₘ a, (-f).to_fun a = - f.to_fun a := comp_to_fun _ _ _
 
@@ -314,7 +314,7 @@ instance : add_group (α →ₘ γ) :=
  }
 
 @[simp] lemma mk_sub_mk (f g : α → γ) (hf hg) :
-   (mk f hf) - (mk g hg) = mk (λa, (f a) - (g a)) (measurable_sub hf hg) := rfl
+   (mk f hf) - (mk g hg) = mk (λa, (f a) - (g a)) (measurable.sub hf hg) := rfl
 
 lemma sub_to_fun (f g : α →ₘ γ) : ∀ₘ a, (f - g).to_fun a = f.to_fun a - g.to_fun a :=
 begin
@@ -546,12 +546,12 @@ variables {γ : Type*} [topological_space γ] [decidable_linear_order γ] [order
 
 /-- Positive part of an `ae_eq_fun`. -/
 def pos_part (f : α →ₘ γ) : α →ₘ γ :=
-comp₂ max (measurable_max (measurable_fst measurable_id) (measurable_snd measurable_id)) f 0
+comp₂ max (measurable.max (measurable.fst measurable_id) (measurable.snd measurable_id)) f 0
 
 lemma pos_part_to_fun (f : α →ₘ γ) : ∀ₘ a, (pos_part f).to_fun a = max (f.to_fun a) (0:γ) :=
 begin
-  filter_upwards [comp₂_to_fun max (measurable_max (measurable_fst measurable_id)
-    (measurable_snd measurable_id)) f 0, @ae_eq_fun.zero_to_fun α γ],
+  filter_upwards [comp₂_to_fun max (measurable.max (measurable.fst measurable_id)
+    (measurable.snd measurable_id)) f 0, @ae_eq_fun.zero_to_fun α γ],
   simp only [mem_set_of_eq],
   assume a h₁ h₂,
   rw [pos_part, h₁, h₂]

@@ -8,42 +8,42 @@ import measure_theory.integration
 
 /-!
 
-# ALmost everywhere equal functions
+# Almost everywhere equal functions
 
 Two measurable functions are treated as identical if they are almost everywhere equal. We form the
 set of equivalence classes under the relation of being almost everywhere equal, which is sometimes
-known as the L0 space.
+known as the `L⁰` space.
 
-See `l1_space.lean` for L1 space.
+See `l1_space.lean` for `L¹` space.
 
 
 ## Notation
 
-* `α →ₘ β` is the type of L0 space, where `α` is a measure space and `β` is a measurable space.
-  `f : α →ₘ β` is a "function" in L0. In comments, `[f]` is also used to denote an L0 function.
+* `α →ₘ β` is the type of `L⁰` space, where `α` is a measure space and `β` is a measurable space.
+  `f : α →ₘ β` is a "function" in `L⁰`. In comments, `[f]` is also used to denote an `L⁰` function.
 
   `ₘ` can be typed as `\_m`. Sometimes it is shown as a box if font is missing.
 
 
 ## Main statements
 
-* The linear structure of L0 :
-    Addition and scalar multiplication are defined on L0 in the natural way, i.e.,
+* The linear structure of `L⁰` :
+    Addition and scalar multiplication are defined on `L⁰` in the natural way, i.e.,
     `[f] + [g] := [f + g]`, `c • [f] := [c • f]`. So defined, `α →ₘ β` inherits the linear structure
     of `β`. For example, if `β` is a module, then `α →ₘ β` is a module over the same ring.
 
     See `mk_add_mk`,  `neg_mk`,     `mk_sub_mk`,  `smul_mk`,
         `add_to_fun`, `neg_to_fun`, `sub_to_fun`, `smul_to_fun`
 
-* The order structure of L0 :
+* The order structure of `L⁰` :
     `≤` can be defined in a similar way: `[f] ≤ [g]` if `f a ≤ g a` for almost all `a` in domain.
     And `α →ₘ β` inherits the preorder and partial order of `β`.
 
-    TODO: Define `sup` and `inf` on L0 so that it forms a lattice. It seems that `β` must be a
+    TODO: Define `sup` and `inf` on `L⁰` so that it forms a lattice. It seems that `β` must be a
     linear order, since otherwise `f ⊔ g` may not be a measurable function.
 
-* Emetric on L0 :
-    If `β` is an `emetric_space`, then L0 can be made into an `emetric_space`, where
+* Emetric on `L⁰` :
+    If `β` is an `emetric_space`, then `L⁰` can be made into an `emetric_space`, where
     `edist [f] [g]` is defined to be `∫⁻ a, edist (f a) (g a)`.
 
     The integral used here is `lintegral : (α → ennreal) → ennreal`, which is defined in the file
@@ -55,10 +55,10 @@ See `l1_space.lean` for L1 space.
 ## Implementation notes
 
 `f.to_fun`     : To find a representative of `f : α →ₘ β`, use `f.to_fun`.
-                 For each operation `op` in L0, there is a lemma called `op_to_fun`, characterizing,
+                 For each operation `op` in `L⁰`, there is a lemma called `op_to_fun`, characterizing,
                  say, `(f op g).to_fun`.
 
-`ae_eq_fun.mk` : To constructs an L0 function `α →ₘ β` from a measurable function `f : α → β`,
+`ae_eq_fun.mk` : To constructs an `L⁰` function `α →ₘ β` from a measurable function `f : α → β`,
                  use `ae_eq_fun.mk`
 
 `comp`         : Use `comp g f` to get `[g ∘ f]` from `g : β → γ` and `[f] : α →ₘ γ`
@@ -69,7 +69,7 @@ See `l1_space.lean` for L1 space.
 
 ## Tags
 
-function space, almost everywhere equal, L0, ae_eq_fun
+function space, almost everywhere equal, `L⁰`, ae_eq_fun
 
 -/
 noncomputable theory
@@ -236,7 +236,7 @@ instance [partial_order β] : partial_order (α →ₘ β) :=
   end,
   .. ae_eq_fun.preorder }
 
-/- TODO: Prove L0 space is a lattice if β is linear order.
+/- TODO: Prove `L⁰` space is a lattice if β is linear order.
          What if β is only a lattice? -/
 
 -- instance [linear_order β] : semilattice_sup (α →ₘ β) :=
@@ -403,8 +403,8 @@ instance : vector_space 𝕜 (α →ₘ γ) := { .. ae_eq_fun.semimodule }
 
 end vector_space
 
-/- TODO : Prove that L0 is a complete space if the codomain is complete. -/
-/- TODO : Multiplicative structure of L0 if useful -/
+/- TODO : Prove that `L⁰` is a complete space if the codomain is complete. -/
+/- TODO : Multiplicative structure of `L⁰` if useful -/
 
 open ennreal
 

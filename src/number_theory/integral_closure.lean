@@ -49,11 +49,22 @@ end
 
 lemma rat.denom_eq_one_iff_padic_norm_le_one (r : ℚ) :
   r.denom = 1 ↔ (∀ p : ℕ, p.prime → by exactI ∥(r : ℚ_[p])∥ ≤ 1) :=
+calc r.denom = 1 ↔ (∀ p : ℕ, p.prime → 0 ≤ padic_val_rat p r) :
+    rat.denom_eq_one_iff_padic_val_rat_pos r
+  ... ↔ (∀ p : ℕ, p.prime → by exactI ∥(r : ℚ_[p])∥ ≤ 1) :
+    forall_congr $ λ p, forall_congr $ λ hp,
+      by exactI padic_val_rat_pos_iff_padic_norm_le_one p r
+
+lemma padic.norm_sum (p : ℕ) [p.prime] {α : Type*} [decidable_eq α] (s : finset α) (f : α → ℚ_[p]) :
+  ∥s.sum f∥ ≤ s.fold max 0 (λ a, ∥f a∥) :=
 begin
-  rw rat.denom_eq_one_iff_padic_val_rat_pos,
-  apply forall_congr, intros p,
-  apply forall_congr, intros hp,
-  exactI padic_val_rat_pos_iff_padic_norm_le_one p r
+  apply finset.induction_on s, { simp, },
+  clear s,
+  intros a s ha IH,
+  rw [finset.sum_insert ha, finset.fold_insert ha],
+  refine le_trans (padic_norm_e.nonarchimedean _ _) (max_le _ _),
+  { apply le_max_left, },
+  { refine le_trans IH (le_max_right _ _), }
 end
 
 lemma padic_int.is_integrally_closed (p : ℕ) [p.prime] : is_integrally_closed ℤ_[p] ℚ_[p] :=
@@ -74,13 +85,15 @@ lemma padic_int.is_integrally_closed (p : ℕ) [p.prime] : is_integrally_closed 
       apply fpow_pos_of_pos,
       exact lt_trans zero_lt_one H, },
     { apply ne_of_gt,
-      apply lt_of_le_of_lt (padic.norm_sum _ _),
+      refine lt_of_le_of_lt (padic.norm_sum _ _ _) _,
       rw finset.fold_max_lt,
       split,
-      { rw [← fpow_of_nat, normed_field.norm_fpow], apply fpow_pos_of_pos, exact lt_trans zero_lt_one H },
+      { rw [is_monoid_hom.map_pow (aeval ℤ_[p] ℚ_[p] x), aeval_X,
+          ← fpow_of_nat, normed_field.norm_fpow],
+        apply fpow_pos_of_pos, exact lt_trans zero_lt_one H },
       { intros i hi,
         suffices : ∥algebra_map ℚ_[p] (coeff f i)∥ * ∥x∥ ^ i < ∥x∥ ^ nat_degree f,
-        by simpa [eval₂_pow],
+        by simpa [aeval_def, eval₂_pow],
         refine lt_of_le_of_lt (mul_le_of_le_one_left _ _ : _ ≤ ∥x∥ ^ i) _,
         { rw [← fpow_of_nat], apply fpow_nonneg_of_nonneg, exact norm_nonneg _ },
         { exact (coeff f i).property },
@@ -104,22 +117,17 @@ theorem int.is_integrally_closed : is_integrally_closed ℤ ℚ :=
     replace hr := congr_arg (coe : ℚ → ℚ_[p]) hr,
     rw rat.cast_zero at hr,
     rw [aeval_def, ← polynomial.eval_map, polynomial.map_map],
-    have : (λ x : ℤ, algebra_map ℚ_[p] (x : ℤ_[p])) = (λ x, ((x : ℚ) : ℚ_[p])),
-    { change algebra_map ℚ_[p] ∘ (coe : ℤ → ℤ_[p]) = (coe : ℚ → ℚ_[p]) ∘ (coe : ℤ → ℚ),
+    have : (λ x : ℤ, algebra_map ℚ_[p] (x : ℤ_[p])) = (algebra_map ℚ_[p]) ∘ (algebra_map ℚ : ℤ → ℚ),
+    { change algebra_map ℚ_[p] ∘ (coe : ℤ → ℤ_[p]) = _,
       calc _ = int.cast : int.eq_cast' _
-          ... = _ : by { funext x, rw function.comp_apply, norm_cast } },
+         ... = _        : (int.eq_cast' _).symm },
     rw [this, ← hr], clear this,
-    rw [aeval_def, ← polynomial.eval_map],
-    sorry
-    -- contrapose! hr,
-    -- let p := nat.min_fac r.denom,
-    -- have hp : p.prime := nat.min_fac_prime hr,
-    -- rw [hf.as_sum, alg_hom.map_add, add_eq_zero_iff_eq_neg],
-    -- apply mt (congr_arg (padic_val_rat p)),
-    -- apply ne_of_lt,
-    -- rw [is_monoid_hom.map_pow (aeval ℤ ℚ r), aeval_X],
-    -- rw [padic_val_rat.neg, ← finset.sum_hom (aeval ℤ ℚ r)],
-    -- have : r ≠ 0, { rintro rfl, apply hr, refl },
-    -- resetI,
-    -- rw [padic_val_rat.pow p this],
+    rw [aeval_def],
+    symmetry,
+    have := polynomial.hom_eval₂ f (algebra_map ℚ : ℤ → ℚ) (algebra_map ℚ_[p] : ℚ → ℚ_[p]) r,
+    convert this,
+    let g := ((algebra_map ℚ_[p]) ∘ (algebra_map ℚ : ℤ → ℚ)),
+    let tmp₃ : _ := _,
+    refine @polynomial.eval_map ℤ ℚ_[p] _ f _ ((algebra_map ℚ_[p]) ∘ (algebra_map ℚ : ℤ → ℚ)) tmp₃ r,
+    refine @is_semiring_hom.comp _ _ _ _ _ _ _ _ _ _,
   end }

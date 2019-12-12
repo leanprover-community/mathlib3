@@ -46,9 +46,6 @@ congruence relation is a congruence relation.
 There is only a multiplicative version for any lemma or definition relying on a unit group of a
 `comm_monoid`; additive versions would require additive unit groups.
 
-
-mul_equiv_of_char_pred is purposely done 1. only classically; 2. not using isom thm
-similarly, the map mul equiv doesn't use the char pred because it makes the proof longer :/
 ## Tags
 localization, monoid localization, quotient monoid, congruence relation
 

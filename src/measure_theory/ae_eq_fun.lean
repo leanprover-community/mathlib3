@@ -8,42 +8,42 @@ import measure_theory.integration
 
 /-!
 
-# ALmost everywhere equal functions
+# Almost everywhere equal functions
 
 Two measurable functions are treated as identical if they are almost everywhere equal. We form the
 set of equivalence classes under the relation of being almost everywhere equal, which is sometimes
-known as the L0 space.
+known as the `L⁰` space.
 
-See `l1_space.lean` for L1 space.
+See `l1_space.lean` for `L¹` space.
 
 
 ## Notation
 
-* `α →ₘ β` is the type of L0 space, where `α` is a measure space and `β` is a measurable space.
-  `f : α →ₘ β` is a "function" in L0. In comments, `[f]` is also used to denote an L0 function.
+* `α →ₘ β` is the type of `L⁰` space, where `α` is a measure space and `β` is a measurable space.
+  `f : α →ₘ β` is a "function" in `L⁰`. In comments, `[f]` is also used to denote an `L⁰` function.
 
   `ₘ` can be typed as `\_m`. Sometimes it is shown as a box if font is missing.
 
 
 ## Main statements
 
-* The linear structure of L0 :
-    Addition and scalar multiplication are defined on L0 in the natural way, i.e.,
+* The linear structure of `L⁰` :
+    Addition and scalar multiplication are defined on `L⁰` in the natural way, i.e.,
     `[f] + [g] := [f + g]`, `c • [f] := [c • f]`. So defined, `α →ₘ β` inherits the linear structure
     of `β`. For example, if `β` is a module, then `α →ₘ β` is a module over the same ring.
 
     See `mk_add_mk`,  `neg_mk`,     `mk_sub_mk`,  `smul_mk`,
         `add_to_fun`, `neg_to_fun`, `sub_to_fun`, `smul_to_fun`
 
-* The order structure of L0 :
+* The order structure of `L⁰` :
     `≤` can be defined in a similar way: `[f] ≤ [g]` if `f a ≤ g a` for almost all `a` in domain.
     And `α →ₘ β` inherits the preorder and partial order of `β`.
 
-    TODO: Define `sup` and `inf` on L0 so that it forms a lattice. It seems that `β` must be a
+    TODO: Define `sup` and `inf` on `L⁰` so that it forms a lattice. It seems that `β` must be a
     linear order, since otherwise `f ⊔ g` may not be a measurable function.
 
-* Emetric on L0 :
-    If `β` is an `emetric_space`, then L0 can be made into an `emetric_space`, where
+* Emetric on `L⁰` :
+    If `β` is an `emetric_space`, then `L⁰` can be made into an `emetric_space`, where
     `edist [f] [g]` is defined to be `∫⁻ a, edist (f a) (g a)`.
 
     The integral used here is `lintegral : (α → ennreal) → ennreal`, which is defined in the file
@@ -54,24 +54,22 @@ See `l1_space.lean` for L1 space.
 
 ## Implementation notes
 
-`f.to_fun`     : To find a representative of `f : α →ₘ β`, use `f.to_fun`.
-                 For each operation `op` in L0, there is a lemma called `op_to_fun`, characterizing,
+* `f.to_fun`     : To find a representative of `f : α →ₘ β`, use `f.to_fun`.
+                 For each operation `op` in `L⁰`, there is a lemma called `op_to_fun`, characterizing,
                  say, `(f op g).to_fun`.
-
-`ae_eq_fun.mk` : To constructs an L0 function `α →ₘ β` from a measurable function `f : α → β`,
+* `ae_eq_fun.mk` : To constructs an `L⁰` function `α →ₘ β` from a measurable function `f : α → β`,
                  use `ae_eq_fun.mk`
-
-`comp`         : Use `comp g f` to get `[g ∘ f]` from `g : β → γ` and `[f] : α →ₘ γ`
-
-`comp₂`        : Use `comp₂ g f₁ f₂ to get `[λa, g (f₁ a) (f₂ a)]`.
+* `comp`         : Use `comp g f` to get `[g ∘ f]` from `g : β → γ` and `[f] : α →ₘ γ`
+* `comp₂`        : Use `comp₂ g f₁ f₂ to get `[λa, g (f₁ a) (f₂ a)]`.
                  For example, `[f + g]` is `comp₂ (+)`
 
 
 ## Tags
 
-function space, almost everywhere equal, L0, ae_eq_fun
+function space, almost everywhere equal, `L⁰`, ae_eq_fun
 
 -/
+
 noncomputable theory
 open_locale classical
 
@@ -162,7 +160,7 @@ def comp₂ {γ δ : Type*} [measurable_space γ] [measurable_space δ]
   (g : β → γ → δ) (hg : measurable (λp:β×γ, g p.1 p.2)) (f₁ : α →ₘ β) (f₂ : α →ₘ γ) : α →ₘ δ :=
 begin
   refine quotient.lift_on₂ f₁ f₂ (λf₁ f₂, mk (λa, g (f₁.1 a) (f₂.1 a)) $ _) _,
-  { exact measurable.comp hg (measurable_prod_mk f₁.2 f₂.2) },
+  { exact measurable.comp hg (measurable.prod_mk f₁.2 f₂.2) },
   { rintros ⟨f₁, hf₁⟩ ⟨f₂, hf₂⟩ ⟨g₁, hg₁⟩ ⟨g₂, hg₂⟩ h₁ h₂,
     refine quotient.sound _,
     filter_upwards [h₁, h₂],
@@ -172,13 +170,13 @@ end
 @[simp] lemma comp₂_mk_mk {γ δ : Type*} [measurable_space γ] [measurable_space δ]
   (g : β → γ → δ) (hg : measurable (λp:β×γ, g p.1 p.2)) (f₁ : α → β) (f₂ : α → γ) (hf₁ hf₂) :
   comp₂ g hg (mk f₁ hf₁) (mk f₂ hf₂) =
-    mk (λa, g (f₁ a) (f₂ a)) (measurable.comp hg (measurable_prod_mk hf₁ hf₂)) :=
+    mk (λa, g (f₁ a) (f₂ a)) (measurable.comp hg (measurable.prod_mk hf₁ hf₂)) :=
 rfl
 
 lemma comp₂_eq_mk_to_fun {γ δ : Type*} [measurable_space γ] [measurable_space δ]
   (g : β → γ → δ) (hg : measurable (λp:β×γ, g p.1 p.2)) (f₁ : α →ₘ β) (f₂ : α →ₘ γ) :
   comp₂ g hg f₁ f₂ = mk (λa, g (f₁.to_fun a) (f₂.to_fun a))
-    (hg.comp (measurable_prod_mk f₁.measurable f₂.measurable)) :=
+    (hg.comp (measurable.prod_mk f₁.measurable f₂.measurable)) :=
 by conv_lhs { rw [self_eq_mk f₁, self_eq_mk f₂, comp₂_mk_mk] }
 
 lemma comp₂_to_fun {γ δ : Type*} [measurable_space γ] [measurable_space δ]
@@ -199,8 +197,8 @@ end
     `(f a, g a)` for almost all `a` -/
 def lift_rel {γ : Type*} [measurable_space γ] (r : β → γ → Prop) (f : α →ₘ β) (g : α →ₘ γ) : Prop :=
 lift_pred (λp:β×γ, r p.1 p.2)
-  (comp₂ prod.mk (measurable_prod_mk
-    (measurable_fst measurable_id) (measurable_snd measurable_id)) f g)
+  (comp₂ prod.mk (measurable.prod_mk
+    (measurable.fst measurable_id) (measurable.snd measurable_id)) f g)
 
 lemma lift_rel_mk_mk {γ : Type*} [measurable_space γ] (r : β → γ → Prop)
   (f : α → β) (g : α → γ) (hf hg) : lift_rel r (mk f hf) (mk g hg) ↔ ∀ₘ a, r (f a) (g a) :=
@@ -236,7 +234,7 @@ instance [partial_order β] : partial_order (α →ₘ β) :=
   end,
   .. ae_eq_fun.preorder }
 
-/- TODO: Prove L0 space is a lattice if β is linear order.
+/- TODO: Prove `L⁰` space is a lattice if β is linear order.
          What if β is only a lattice? -/
 
 -- instance [linear_order β] : semilattice_sup (α →ₘ β) :=
@@ -266,12 +264,12 @@ variables {γ : Type*}
   [topological_space γ] [second_countable_topology γ] [add_monoid γ] [topological_add_monoid γ]
 
 protected def add : (α →ₘ γ) → (α →ₘ γ) → (α →ₘ γ) :=
-comp₂ (+) (measurable_add (measurable_fst measurable_id) (measurable_snd  measurable_id))
+comp₂ (+) (measurable.add (measurable.fst measurable_id) (measurable.snd  measurable_id))
 
 instance : has_add (α →ₘ γ) := ⟨ae_eq_fun.add⟩
 
 @[simp] lemma mk_add_mk (f g : α → γ) (hf hg) :
-   (mk f hf) + (mk g hg) = mk (f + g) (measurable_add hf hg) := rfl
+   (mk f hf) + (mk g hg) = mk (f + g) (measurable.add hf hg) := rfl
 
 lemma add_to_fun (f g : α →ₘ γ) : ∀ₘ a, (f + g).to_fun a = f.to_fun a + g.to_fun a :=
 comp₂_to_fun _ _ _ _
@@ -300,11 +298,11 @@ section add_group
 
 variables {γ : Type*} [topological_space γ] [add_group γ] [topological_add_group γ]
 
-protected def neg : (α →ₘ γ) → (α →ₘ γ) := comp has_neg.neg (measurable_neg measurable_id)
+protected def neg : (α →ₘ γ) → (α →ₘ γ) := comp has_neg.neg (measurable.neg measurable_id)
 
 instance : has_neg (α →ₘ γ) := ⟨ae_eq_fun.neg⟩
 
-@[simp] lemma neg_mk (f : α → γ) (hf) : -(mk f hf) = mk (-f) (measurable_neg hf) := rfl
+@[simp] lemma neg_mk (f : α → γ) (hf) : -(mk f hf) = mk (-f) (measurable.neg hf) := rfl
 
 lemma neg_to_fun (f : α →ₘ γ) : ∀ₘ a, (-f).to_fun a = - f.to_fun a := comp_to_fun _ _ _
 
@@ -316,7 +314,7 @@ instance : add_group (α →ₘ γ) :=
  }
 
 @[simp] lemma mk_sub_mk (f g : α → γ) (hf hg) :
-   (mk f hf) - (mk g hg) = mk (λa, (f a) - (g a)) (measurable_sub hf hg) := rfl
+   (mk f hf) - (mk g hg) = mk (λa, (f a) - (g a)) (measurable.sub hf hg) := rfl
 
 lemma sub_to_fun (f g : α →ₘ γ) : ∀ₘ a, (f - g).to_fun a = f.to_fun a - g.to_fun a :=
 begin
@@ -403,8 +401,8 @@ instance : vector_space 𝕜 (α →ₘ γ) := { .. ae_eq_fun.semimodule }
 
 end vector_space
 
-/- TODO : Prove that L0 is a complete space if the codomain is complete. -/
-/- TODO : Multiplicative structure of L0 if useful -/
+/- TODO : Prove that `L⁰` is a complete space if the codomain is complete. -/
+/- TODO : Multiplicative structure of `L⁰` if useful -/
 
 open ennreal
 
@@ -540,6 +538,26 @@ begin
 end
 
 end normed_space
+
+section pos_part
+
+variables {γ : Type*} [topological_space γ] [decidable_linear_order γ] [ordered_topology γ]
+  [second_countable_topology γ] [has_zero γ]
+
+/-- Positive part of an `ae_eq_fun`. -/
+def pos_part (f : α →ₘ γ) : α →ₘ γ :=
+comp₂ max (measurable.max (measurable.fst measurable_id) (measurable.snd measurable_id)) f 0
+
+lemma pos_part_to_fun (f : α →ₘ γ) : ∀ₘ a, (pos_part f).to_fun a = max (f.to_fun a) (0:γ) :=
+begin
+  filter_upwards [comp₂_to_fun max (measurable.max (measurable.fst measurable_id)
+    (measurable.snd measurable_id)) f 0, @ae_eq_fun.zero_to_fun α γ],
+  simp only [mem_set_of_eq],
+  assume a h₁ h₂,
+  rw [pos_part, h₁, h₂]
+end
+
+end pos_part
 
 end ae_eq_fun
 

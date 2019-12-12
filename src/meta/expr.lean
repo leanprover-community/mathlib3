@@ -7,13 +7,13 @@ import data.string.defs
 /-!
 # Additional operations on expr and related types
 
- This file defines basic operations on the types expr, name, declaration, level, environment.
+This file defines basic operations on the types expr, name, declaration, level, environment.
 
- This file is mostly for non-tactics. Tactics should generally be placed in `tactic.core`.
+This file is mostly for non-tactics. Tactics should generally be placed in `tactic.core`.
 
- ## Tags
+## Tags
 
- expr, name, declaration, level, environment, meta, metaprogramming, tactic
+expr, name, declaration, level, environment, meta, metaprogramming, tactic
 -/
 
 namespace binder_info
@@ -452,38 +452,14 @@ namespace environment
 meta def in_current_file' (env : environment) (n : name) : bool :=
 env.in_current_file n && (n ∉ [``quot, ``quot.mk, ``quot.lift, ``quot.ind])
 
-/-- Tests whether `n` is an inductive type with one constructor without indices.
-  If so, returns the number of paramaters and the name of the constructor.
-  Otherwise, returns `none`. -/
-meta def is_structure_like (env : environment) (n : name) : option (nat × name) :=
-do guardb (env.is_inductive n),
-  d ← (env.get n).to_option,
-  [intro] ← pure (env.constructors_of n) | none,
-  guard (env.inductive_num_indices n = 0),
-  some (env.inductive_num_params n, intro)
-
-/-- Tests whether `n` is a structure.
-  It will first test whether `n` is structure-like and then test that the first projection is
-  defined in the environment and is a projection. -/
+/-- Tests whether `n` is a structure. -/
 meta def is_structure (env : environment) (n : name) : bool :=
-option.is_some $ do
-  (nparams, intro) ← env.is_structure_like n,
-  di ← (env.get intro).to_option,
-  expr.pi x _ _ _ ← nparams.iterate
-    (λ e : option expr, do expr.pi _ _ _ body ← e | none, some body)
-    (some di.type) | none,
-  env.is_projection (n ++ x.deinternalize_field)
+(env.structure_fields n).is_some
 
-/-- Get all projections of the structure `n`. Returns `none` if `n` is not structure-like.
-  If `n` is not a structure, but is structure-like, this does not check whether the names
-  are existing declarations. -/
-meta def get_projections (env : environment) (n : name) : option (list name) := do
-  (nparams, intro) ← env.is_structure_like n,
-  di ← (env.get intro).to_option,
-  tgt ← nparams.iterate
-    (λ e : option expr, do expr.pi _ _ _ body ← e | none, some body)
-    (some di.type) | none,
-  return $ tgt.binding_names.map (λ x, n ++ x.deinternalize_field)
+/-- Get the full names of all projections of the structure `n`. Returns `none` if `n` is not a
+  structure. -/
+meta def structure_fields_full (env : environment) (n : name) : option (list name) :=
+(env.structure_fields n).map (list.map $ λ n', n ++ n')
 
 /-- Tests whether `nm` is a generalized inductive type that is not a normal inductive type.
   Note that `is_ginductive` returns `tt` even on regular inductive types.
@@ -594,7 +570,7 @@ do l' ← l.mfilter (λ⟨proj, val⟩, bnot <$> is_proof val),
 meta def is_eta_expansion (val : expr) : tactic (option expr) := do
   e ← get_env,
   type ← infer_type val,
-  projs ← e.get_projections type.get_app_fn.const_name,
+  projs ← e.structure_fields_full type.get_app_fn.const_name,
   let args := (val.get_app_args).drop type.get_app_args.length,
   is_eta_expansion_aux val (projs.zip args)
 

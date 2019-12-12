@@ -69,7 +69,7 @@ end
 
 lemma neg_lt_of_tendsto_zero_of_pos {f : ℕ → ℝ} (hf : tendsto f at_top (𝓝 0)) :
   ∀ {r : ℝ}, r > 0 → (-r : ℝ*) < of_seq f :=
-λ r hr, have hg : _ := tendsto.neg hf,
+λ r hr, have hg : _ := hf.neg,
 neg_lt_of_neg_lt (by rw [neg_zero] at hg; exact lt_of_tendsto_zero_of_pos hg hr)
 
 lemma gt_of_tendsto_zero_of_neg {f : ℕ → ℝ} (hf : tendsto f at_top (𝓝 0)) :
@@ -649,7 +649,7 @@ end
 theorem is_st_of_tendsto {f : ℕ → ℝ} {r : ℝ} (hf : tendsto f at_top (𝓝 r)) :
   is_st (of_seq f) r :=
 have hg : tendsto (λ n, f n - r) at_top (𝓝 0) :=
-  (sub_self r) ▸ (tendsto.sub hf tendsto_const_nhds),
+  (sub_self r) ▸ (hf.sub tendsto_const_nhds),
 by rw [←(zero_add r), ←(sub_add_cancel f (λ n, r))];
 exact is_st_add (infinitesimal_of_tendsto_zero hg) (is_st_refl_real r)
 

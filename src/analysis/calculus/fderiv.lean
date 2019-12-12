@@ -35,6 +35,11 @@ usual formulas (and existence assertions) for the derivative of
 * multiplication of two scalar functions
 * composition of functions (the chain rule)
 
+One can also interpret the derivative of a function `f : 𝕜 → E` as an element of `E` (by identifying
+a linear function from `𝕜` to `E` with its value at `1`). Results on the Fréchet derivative are
+translated to this more elementary point of view on the derivative in the file `deriv.lean`. The
+derivative of polynomials is handled there, as it is naturally one-dimensional.
+
 ## Implementation details
 
 The derivative is defined in terms of the `is_o` relation, but also
@@ -160,7 +165,7 @@ begin
   { conv in (nhds_within x s) { rw ← add_zero x },
     rw [← tendsto_iff_comap, nhds_within, tendsto_inf],
     split,
-    { apply tendsto.add tendsto_const_nhds (tangent_cone_at.lim_zero clim cdlim) },
+    { apply tendsto_const_nhds.add (tangent_cone_at.lim_zero clim cdlim) },
     { rwa tendsto_principal } },
   have : is_o (λ y, f y - f x - f' (y - x)) (λ y, y - x) (nhds_within x s) := h,
   have : is_o (λ n:ℕ, f (x + d n) - f x - f' ((x + d n) - x)) (λ n, (x + d n)  - x)
@@ -179,7 +184,7 @@ begin
     tendsto.comp f'.cont.continuous_at cdlim,
   have L3 : tendsto (λn:ℕ, (c n • (f (x + d n) - f x - f' (d n)) +  f' (c n • d n)))
             at_top (𝓝 (0 + f' v)) :=
-    tendsto.add L1 L2,
+    L1.add L2,
   have : (λn:ℕ, (c n • (f (x + d n) - f x - f' (d n)) +  f' (c n • d n)))
           = (λn: ℕ, c n • (f (x + d n) - f x)),
     by { ext n, simp [smul_add] },
@@ -248,22 +253,15 @@ begin
   { assume H,
     have : 𝓝 0 ≤ comap (λ (z : E), z + x) (𝓝 (0 + x)),
     { refine tendsto_iff_comap.mp _,
-      apply continuous.tendsto,
-      exact continuous.add continuous_id continuous_const },
+      exact (continuous_id.add continuous_const).tendsto _ },
     apply is_o.mono this,
-    convert is_o.comp H (λz, z + x),
-    { ext h, simp },
-    { ext h, simp },
-    { simp } },
+    convert is_o.comp H (λz, z + x) ; { try {ext}, simp } },
   { assume H,
     have : 𝓝 x ≤ comap (λ (z : E), z - x) (𝓝 (x - x)),
     { refine tendsto_iff_comap.mp _,
-      apply continuous.tendsto,
-      exact continuous.add continuous_id continuous_const },
+      exact (continuous_id.add continuous_const).tendsto _ },
     apply is_o.mono this,
-    convert is_o.comp H (λz, z - x),
-    { ext h, simp },
-    { simp } }
+    convert is_o.comp H (λz, z - x) ; { try {ext}, simp } }
 end
 
 theorem has_fderiv_at_filter.mono (h : has_fderiv_at_filter f f' x L₂) (hst : L₁ ≤ L₂) :
@@ -308,6 +306,10 @@ lemma has_fderiv_within_at_inter (h : t ∈ 𝓝 x) :
   has_fderiv_within_at f f' (s ∩ t) x ↔ has_fderiv_within_at f f' s x :=
 by simp [has_fderiv_within_at, nhds_within_restrict' s h]
 
+lemma has_fderiv_within_at.nhds_within (h : has_fderiv_within_at f f' s x)
+  (ht : s ∈ nhds_within x t) : has_fderiv_within_at f f' t x :=
+(has_fderiv_within_at_inter' ht).1 (h.mono (inter_subset_right _ _))
+
 lemma differentiable_within_at.has_fderiv_within_at (h : differentiable_within_at 𝕜 f s x) :
   has_fderiv_within_at f (fderiv_within 𝕜 f s x) s x :=
 begin
@@ -333,6 +335,15 @@ lemma has_fderiv_within_at.fderiv_within
   (h : has_fderiv_within_at f f' s x) (hxs : unique_diff_within_at 𝕜 s x) :
   fderiv_within 𝕜 f s x = f' :=
 by { ext, rw hxs.eq h h.differentiable_within_at.has_fderiv_within_at }
+
+/-- If `x` is not in the closure of `s`, then `f` has any derivative at `x` within `s`,
+as this statement is empty. -/
+lemma has_fderiv_within_at_of_not_mem_closure (h : x ∉ closure s) :
+  has_fderiv_within_at f f' s x :=
+begin
+  simp [mem_closure_iff_nhds_within_ne_bot] at h,
+  simp [has_fderiv_within_at, has_fderiv_at_filter, h, is_o]
+end
 
 lemma differentiable_within_at.mono (h : differentiable_within_at 𝕜 f t x) (st : s ⊆ t) :
   differentiable_within_at 𝕜 f s x :=
@@ -668,32 +679,32 @@ begin
   exact asymptotics.is_o_zero _ _
 end
 
-lemma continuous_linear_map.has_fderiv_within_at : has_fderiv_within_at e e s x :=
+protected lemma continuous_linear_map.has_fderiv_within_at : has_fderiv_within_at e e s x :=
 e.has_fderiv_at_filter
 
-lemma continuous_linear_map.has_fderiv_at : has_fderiv_at e e x  :=
+protected lemma continuous_linear_map.has_fderiv_at : has_fderiv_at e e x  :=
 e.has_fderiv_at_filter
 
-lemma continuous_linear_map.differentiable_at : differentiable_at 𝕜 e x :=
+protected lemma continuous_linear_map.differentiable_at : differentiable_at 𝕜 e x :=
 e.has_fderiv_at.differentiable_at
 
-lemma continuous_linear_map.differentiable_within_at : differentiable_within_at 𝕜 e s x :=
+protected lemma continuous_linear_map.differentiable_within_at : differentiable_within_at 𝕜 e s x :=
 e.differentiable_at.differentiable_within_at
 
-lemma continuous_linear_map.fderiv : fderiv 𝕜 e x = e :=
+protected lemma continuous_linear_map.fderiv : fderiv 𝕜 e x = e :=
 e.has_fderiv_at.fderiv
 
-lemma continuous_linear_map.fderiv_within (hxs : unique_diff_within_at 𝕜 s x) :
+protected lemma continuous_linear_map.fderiv_within (hxs : unique_diff_within_at 𝕜 s x) :
   fderiv_within 𝕜 e s x = e :=
 begin
   rw differentiable_at.fderiv_within e.differentiable_at hxs,
   exact e.fderiv
 end
 
-lemma continuous_linear_map.differentiable : differentiable 𝕜 e :=
+protected lemma continuous_linear_map.differentiable : differentiable 𝕜 e :=
 λx, e.differentiable_at
 
-lemma continuous_linear_map.differentiable_on : differentiable_on 𝕜 e s :=
+protected lemma continuous_linear_map.differentiable_on : differentiable_on 𝕜 e s :=
 e.differentiable.differentiable_on
 
 end continuous_linear_map
@@ -895,7 +906,7 @@ theorem has_fderiv_at_filter.tendsto_nhds
 begin
   have : tendsto (λ x', f x' - f x) L (𝓝 0),
   { refine h.is_O_sub.trans_tendsto (tendsto_le_left hL _),
-    rw ← sub_self x, exact tendsto.sub tendsto_id tendsto_const_nhds },
+    rw ← sub_self x, exact tendsto_id.sub tendsto_const_nhds },
   have := tendsto.add this tendsto_const_nhds,
   rw zero_add (f x) at this,
   exact this.congr (by simp)
@@ -963,7 +974,7 @@ begin
       have : 0 = ∥p - p∥, by simp,
       rw this,
       have : continuous (λx, ∥x-p∥) :=
-        continuous_norm.comp (continuous.sub continuous_id continuous_const),
+        continuous_norm.comp (continuous_id.sub continuous_const),
       exact this.tendsto p },
     simp only [forall_prop_of_false, not_false_iff, one_ne_zero, forall_true_iff] },
   simp only [one_mul, asymptotics.is_o_norm_right] at B,
@@ -1004,6 +1015,14 @@ h.differentiable.differentiable_on
 lemma is_bounded_bilinear_map.continuous (h : is_bounded_bilinear_map 𝕜 b) :
   continuous b :=
 h.differentiable.continuous
+
+lemma is_bounded_bilinear_map.continuous_left (h : is_bounded_bilinear_map 𝕜 b) {f : F} :
+  continuous (λe, b (e, f)) :=
+h.continuous.comp (continuous_id.prod_mk continuous_const)
+
+lemma is_bounded_bilinear_map.continuous_right (h : is_bounded_bilinear_map 𝕜 b) {e : E} :
+  continuous (λf, b (e, f)) :=
+h.continuous.comp (continuous_const.prod_mk continuous_id)
 
 end bilinear_map
 

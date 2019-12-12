@@ -1493,6 +1493,95 @@ by haveI := classical.prop_decidable;
    rw [fold, insert_val', ← fold_erase_dup_idem op, erase_dup_map_erase_dup_eq,
        fold_erase_dup_idem op]; simp only [map_cons, fold_cons_left, fold]
 
+lemma fold_op_rel_iff_and [decidable_eq α]
+  {r : β → β → Prop} (hr : ∀ {x y z}, r x (op y z) ↔ (r x y ∧ r x z)) {c : β} :
+  r c (s.fold op b f) ↔ (r c b ∧ ∀ x∈s, r c (f x)) :=
+begin
+  apply finset.induction_on s, { simp },
+  clear s, intros a s ha IH,
+  rw [finset.fold_insert ha, hr, IH, ← and_assoc, and_comm (r c (f a)), and_assoc],
+  apply and_congr iff.rfl,
+  split,
+  { rintro ⟨h₁, h₂⟩, intros b hb, rw finset.mem_insert at hb,
+    rcases hb with rfl|hb; solve_by_elim },
+  { intro h, split,
+    { exact h a (finset.mem_insert_self _ _), },
+    { intros b hb, apply h b, rw finset.mem_insert, right, exact hb } }
+end
+
+lemma fold_op_rel_iff_or [decidable_eq α]
+  {r : β → β → Prop} (hr : ∀ {x y z}, r x (op y z) ↔ (r x y ∨ r x z)) {c : β} :
+  r c (s.fold op b f) ↔ (r c b ∨ ∃ x∈s, r c (f x)) :=
+begin
+  apply finset.induction_on s, { simp },
+  clear s, intros a s ha IH,
+  rw [finset.fold_insert ha, hr, IH, ← or_assoc, or_comm (r c (f a)), or_assoc],
+  apply or_congr iff.rfl,
+  split,
+  { rintro (h₁|⟨x, hx, h₂⟩),
+    { use a, simp [h₁] },
+    { refine ⟨x, by simp [hx], h₂⟩ } },
+  { rintro ⟨x, hx, h⟩,
+    rw mem_insert at hx, cases hx,
+    { left, rwa hx at h },
+    { right, exact ⟨x, hx, h⟩ } }
+end
+
+omit hc ha
+
+section order
+variables [decidable_eq α] [decidable_linear_order β] (c : β)
+
+lemma le_fold_min : c ≤ s.fold min b f ↔ (c ≤ b ∧ ∀ x∈s, c ≤ f x) :=
+fold_op_rel_iff_and $ λ x y z, le_min_iff
+
+lemma fold_min_le : s.fold min b f ≤ c ↔ (b ≤ c ∨ ∃ x∈s, f x ≤ c) :=
+begin
+  show _ ≥ _ ↔ _,
+  apply fold_op_rel_iff_or,
+  intros x y z,
+  show _ ≤ _ ↔ _,
+  exact min_le_iff
+end
+
+lemma lt_fold_min : c < s.fold min b f ↔ (c < b ∧ ∀ x∈s, c < f x) :=
+fold_op_rel_iff_and $ λ x y z, lt_min_iff
+
+lemma fold_min_lt : s.fold min b f < c ↔ (b < c ∨ ∃ x∈s, f x < c) :=
+begin
+  show _ > _ ↔ _,
+  apply fold_op_rel_iff_or,
+  intros x y z,
+  show _ < _ ↔ _,
+  exact min_lt_iff
+end
+
+lemma fold_max_le : s.fold max b f ≤ c ↔ (b ≤ c ∧ ∀ x∈s, f x ≤ c) :=
+begin
+  show _ ≥ _ ↔ _,
+  apply fold_op_rel_iff_and,
+  intros x y z,
+  show _ ≤ _ ↔ _,
+  exact max_le_iff
+end
+
+lemma le_fold_max : c ≤ s.fold max b f ↔ (c ≤ b ∨ ∃ x∈s, c ≤ f x) :=
+fold_op_rel_iff_or $ λ x y z, le_max_iff
+
+lemma fold_max_lt : s.fold max b f < c ↔ (b < c ∧ ∀ x∈s, f x < c) :=
+begin
+  show _ > _ ↔ _,
+  apply fold_op_rel_iff_and,
+  intros x y z,
+  show _ < _ ↔ _,
+  exact max_lt_iff
+end
+
+lemma lt_fold_max : c < s.fold max b f ↔ (c < b ∨ ∃ x∈s, c < f x) :=
+fold_op_rel_iff_or $ λ x y z, lt_max_iff
+
+end order
+
 end fold
 
 section sup

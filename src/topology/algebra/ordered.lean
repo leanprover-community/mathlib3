@@ -11,8 +11,7 @@ import topology.algebra.group
 import topology.constructions
 
 open classical set lattice filter topological_space
-local attribute [instance] classical.prop_decidable -- TODO: use "open_locale classical"
-open_locale topological_space
+open_locale topological_space classical
 
 universes u v w
 variables {α : Type u} {β : Type v} {γ : Type w}
@@ -42,14 +41,20 @@ continuous_iff_is_closed.mp (hf.prod_mk hg) _ t.is_closed_le'
 lemma is_closed_le' (a : α) : is_closed {b | b ≤ a} :=
 is_closed_le continuous_id continuous_const
 
+lemma is_closed_Iic {a : α} : is_closed (Iic a) :=
+is_closed_le' a
+
 lemma is_closed_ge' (a : α) : is_closed {b | a ≤ b} :=
 is_closed_le continuous_const continuous_id
+
+lemma is_closed_Ici {a : α} : is_closed (Ici a) :=
+is_closed_ge' a
 
 instance : ordered_topology (order_dual α) :=
 ⟨continuous_swap _ (@ordered_topology.is_closed_le' α _ _ _)⟩
 
 lemma is_closed_Icc {a b : α} : is_closed (Icc a b) :=
-is_closed_inter (is_closed_ge' a) (is_closed_le' b)
+is_closed_inter is_closed_Ici is_closed_Iic
 
 lemma le_of_tendsto_of_tendsto {f g : β → α} {b : filter β} {a₁ a₂ : α} (hb : b ≠ ⊥)
   (hf : tendsto f b (𝓝 a₁)) (hg : tendsto g b (𝓝 a₂)) (h : {b | f b ≤ g b} ∈ b) :
@@ -94,8 +99,7 @@ instance ordered_topology.to_t2_space : t2_space α :=
 end partial_order
 
 section linear_order
-variables [topological_space α] [linear_order α] [t : ordered_topology α]
-include t
+variables [topological_space α] [linear_order α] [ordered_topology α]
 
 lemma is_open_lt [topological_space β] {f g : β → α} (hf : continuous f) (hg : continuous g) :
   is_open {b | f b < g b} :=
@@ -150,7 +154,7 @@ show tendsto ((λp:α×α, max p.1 p.2) ∘ (λb, (f b, g b))) b (𝓝 (max a₁
   from tendsto.comp
     begin
       rw [←nhds_prod_eq],
-      from continuous_iff_continuous_at.mp (continuous.max continuous_fst continuous_snd) _
+      from continuous_iff_continuous_at.mp (continuous_fst.max continuous_snd) _
     end
     (hf.prod_mk hg)
 
@@ -160,7 +164,7 @@ show tendsto ((λp:α×α, min p.1 p.2) ∘ (λb, (f b, g b))) b (𝓝 (min a₁
   from tendsto.comp
     begin
       rw [←nhds_prod_eq],
-      from continuous_iff_continuous_at.mp (continuous.min continuous_fst continuous_snd) _
+      from continuous_iff_continuous_at.mp (continuous_fst.min continuous_snd) _
     end
     (hf.prod_mk hg)
 
@@ -451,6 +455,190 @@ instance orderable_topology.regular_space : regular_space α :=
       by rw [←sup_principal, inf_sup_left, ht₁a, ht₂a, bot_sup_eq]⟩,
   ..orderable_topology.t2_space }
 
+/-- A set is a neighborhood of `a` if and only if it contains an interval `(l, u)` containing `a`,
+provided `a` is neither a bottom element nor a top element. -/
+lemma mem_nhds_iff_exists_Ioo_subset' {a l' u' : α} {s : set α}
+  (hl' : l' < a) (hu' : a < u') :
+  s ∈ 𝓝 a ↔ ∃l u, a ∈ Ioo l u ∧ Ioo l u ⊆ s :=
+begin
+  split,
+  { assume h,
+    rcases (mem_nhds_orderable_dest h).1 ⟨u', hu'⟩ with ⟨u, au, hu⟩,
+    rcases (mem_nhds_orderable_dest h).2 ⟨l', hl'⟩ with ⟨l, la, hl⟩,
+    refine ⟨l, u, ⟨la, au⟩, λx hx, _⟩,
+    by_cases hax : a ≤ x,
+    { exact hu _ hax hx.2 },
+    { exact hl _ hx.1 (le_of_not_ge hax) } },
+  { rintros ⟨l, u, ha, h⟩,
+    apply mem_sets_of_superset (mem_nhds_sets is_open_Ioo ha) h }
+end
+
+/-- A set is a neighborhood of `a` if and only if it contains an interval `(l, u)` containing `a`. -/
+lemma mem_nhds_iff_exists_Ioo_subset [no_top_order α] [no_bot_order α] {a : α} {s : set α} :
+  s ∈ 𝓝 a ↔ ∃l u, a ∈ Ioo l u ∧ Ioo l u ⊆ s :=
+let ⟨l', hl'⟩ := no_bot a in let ⟨u', hu'⟩ := no_top a in mem_nhds_iff_exists_Ioo_subset' hl' hu'
+
+/-!
+### Neighborhoods to the left and to the right
+
+Limits to the left and to the right of real functions are defined in terms of neighborhoods to
+the left and to the right, either open or closed, i.e., members of `nhds_within a (Ioi a)` and
+`nhds_wihin a (Ici a)` on the right, and similarly on the left. Such neighborhoods can be
+characterized as the sets containing suitable intervals to the right or to the left of `a`.
+We give now these characterizations. -/
+
+/-- A set is a neighborhood of `a` within `(a, +∞)` if and only if it contains an interval `(a, u)`
+with `a < u`, provided `a` is not a top element. -/
+lemma mem_nhds_within_Ioi_iff_exists_Ioo_subset' {a u' : α} {s : set α} (hu' : a < u') :
+  s ∈ nhds_within a (Ioi a) ↔ ∃u, a < u ∧ Ioo a u ⊆ s :=
+begin
+  split,
+  { assume h,
+    rcases mem_nhds_within_iff_exists_mem_nhds_inter.1 h with ⟨v, va, hv⟩,
+    rcases (mem_nhds_orderable_dest va).1 ⟨u', hu'⟩ with ⟨u, au, hu⟩,
+    refine ⟨u, au, λx hx, _⟩,
+    refine hv ⟨_, hx.1⟩,
+    exact hu _ (le_of_lt hx.1) hx.2 },
+  { rintros ⟨u, au, hu⟩,
+    rw mem_nhds_within_iff_exists_mem_nhds_inter,
+    refine ⟨Iio u, mem_nhds_sets is_open_Iio au, _⟩,
+    rwa [inter_comm, Ioi_inter_Iio] }
+end
+
+/-- A set is a neighborhood of `a` within `(a, +∞)` if and only if it contains an interval `(a, u)`
+with `a < u`. -/
+lemma mem_nhds_within_Ioi_iff_exists_Ioo_subset [no_top_order α] {a : α} {s : set α} :
+  s ∈ nhds_within a (Ioi a) ↔ ∃u, a < u ∧ Ioo a u ⊆ s :=
+let ⟨u', hu'⟩ := no_top a in mem_nhds_within_Ioi_iff_exists_Ioo_subset' hu'
+
+/-- A set is a neighborhood of `a` within `(a, +∞)` if and only if it contains an interval `(a, u]`
+with `a < u`. -/
+lemma mem_nhds_within_Ioi_iff_exists_Ioc_subset [no_top_order α] [densely_ordered α]
+  {a : α} {s : set α} : s ∈ nhds_within a (Ioi a) ↔ ∃u, a < u ∧ Ioc a u ⊆ s :=
+begin
+  rw mem_nhds_within_Ioi_iff_exists_Ioo_subset,
+  split,
+  { rintros ⟨u, au, as⟩,
+    rcases dense au with ⟨v, hv⟩,
+    exact ⟨v, hv.1, λx hx, as ⟨hx.1, lt_of_le_of_lt hx.2 hv.2⟩⟩ },
+  { rintros ⟨u, au, as⟩,
+    exact ⟨u, au, subset.trans Ioo_subset_Ioc_self as⟩ }
+end
+
+/-- A set is a neighborhood of `a` within `(-∞, a)` if and only if it contains an interval `(l, a)`
+with `l < a`, provided `a` is not a bottom element. -/
+lemma mem_nhds_within_Iio_iff_exists_Ioo_subset' {a l' : α} {s : set α} (hl' : l' < a) :
+  s ∈ nhds_within a (Iio a) ↔ ∃l, l < a ∧ Ioo l a ⊆ s :=
+begin
+  split,
+  { assume h,
+    rcases mem_nhds_within_iff_exists_mem_nhds_inter.1 h with ⟨v, va, hv⟩,
+    rcases (mem_nhds_orderable_dest va).2 ⟨l', hl'⟩ with ⟨l, la, hl⟩,
+    refine ⟨l, la, λx hx, _⟩,
+    refine hv ⟨_, hx.2⟩,
+    exact hl _ hx.1 (le_of_lt hx.2) },
+  { rintros ⟨l, la, ha⟩,
+    rw mem_nhds_within_iff_exists_mem_nhds_inter,
+    refine ⟨Ioi l, mem_nhds_sets is_open_Ioi la, _⟩,
+    rwa [Ioi_inter_Iio] }
+end
+
+/-- A set is a neighborhood of `a` within `(-∞, a)` if and only if it contains an interval `(l, a)`
+with `l < a`. -/
+lemma mem_nhds_within_Iio_iff_exists_Ioo_subset [no_bot_order α] {a : α} {s : set α} :
+  s ∈ nhds_within a (Iio a) ↔ ∃l, l < a ∧ Ioo l a ⊆ s :=
+let ⟨l', hl'⟩ := no_bot a in mem_nhds_within_Iio_iff_exists_Ioo_subset' hl'
+
+/-- A set is a neighborhood of `a` within `(-∞, a)` if and only if it contains an interval `[l, a)`
+with `l < a`. -/
+lemma mem_nhds_within_Iio_iff_exists_Ico_subset [no_bot_order α] [densely_ordered α]
+  {a : α} {s : set α} : s ∈ nhds_within a (Iio a) ↔ ∃l, l < a ∧ Ico l a ⊆ s :=
+begin
+  rw mem_nhds_within_Iio_iff_exists_Ioo_subset,
+  split,
+  { rintros ⟨l, la, as⟩,
+    rcases dense la with ⟨v, hv⟩,
+    refine ⟨v, hv.2, λx hx, as ⟨lt_of_lt_of_le hv.1 hx.1, hx.2⟩⟩, },
+  { rintros ⟨l, la, as⟩,
+    exact ⟨l, la, subset.trans Ioo_subset_Ico_self as⟩ }
+end
+
+/-- A set is a neighborhood of `a` within `[a, +∞)` if and only if it contains an interval `[a, u)`
+with `a < u`, provided `a` is not a top element. -/
+lemma mem_nhds_within_Ici_iff_exists_Ico_subset' {a u' : α} {s : set α} (hu' : a < u') :
+  s ∈ nhds_within a (Ici a) ↔ ∃u, a < u ∧ Ico a u ⊆ s :=
+begin
+  split,
+  { assume h,
+    rcases mem_nhds_within_iff_exists_mem_nhds_inter.1 h with ⟨v, va, hv⟩,
+    rcases (mem_nhds_orderable_dest va).1 ⟨u', hu'⟩ with ⟨u, au, hu⟩,
+    refine ⟨u, au, λx hx, _⟩,
+    refine hv ⟨_, hx.1⟩,
+    exact hu _ hx.1 hx.2 },
+  { rintros ⟨u, au, hu⟩,
+    rw mem_nhds_within_iff_exists_mem_nhds_inter,
+    refine ⟨Iio u, mem_nhds_sets is_open_Iio au, _⟩,
+    rwa [inter_comm, Ici_inter_Iio] }
+end
+
+/-- A set is a neighborhood of `a` within `[a, +∞)` if and only if it contains an interval `[a, u)`
+with `a < u`. -/
+lemma mem_nhds_within_Ici_iff_exists_Ico_subset [no_top_order α] {a : α} {s : set α} :
+  s ∈ nhds_within a (Ici a) ↔ ∃u, a < u ∧ Ico a u ⊆ s :=
+let ⟨u', hu'⟩ := no_top a in mem_nhds_within_Ici_iff_exists_Ico_subset' hu'
+
+/-- A set is a neighborhood of `a` within `[a, +∞)` if and only if it contains an interval `[a, u]`
+with `a < u`. -/
+lemma mem_nhds_within_Ici_iff_exists_Icc_subset [no_top_order α] [densely_ordered α]
+  {a : α} {s : set α} : s ∈ nhds_within a (Ici a) ↔ ∃u, a < u ∧ Icc a u ⊆ s :=
+begin
+  rw mem_nhds_within_Ici_iff_exists_Ico_subset,
+  split,
+  { rintros ⟨u, au, as⟩,
+    rcases dense au with ⟨v, hv⟩,
+    exact ⟨v, hv.1, λx hx, as ⟨hx.1, lt_of_le_of_lt hx.2 hv.2⟩⟩ },
+  { rintros ⟨u, au, as⟩,
+    exact ⟨u, au, subset.trans Ico_subset_Icc_self as⟩ }
+end
+
+/-- A set is a neighborhood of `a` within `(-∞, a]` if and only if it contains an interval `(l, a]`
+with `l < a`, provided `a` is not a bottom element. -/
+lemma mem_nhds_within_Iic_iff_exists_Ioc_subset' {a l' : α} {s : set α} (hl' : l' < a) :
+  s ∈ nhds_within a (Iic a) ↔ ∃l, l < a ∧ Ioc l a ⊆ s :=
+begin
+  split,
+  { assume h,
+    rcases mem_nhds_within_iff_exists_mem_nhds_inter.1 h with ⟨v, va, hv⟩,
+    rcases (mem_nhds_orderable_dest va).2 ⟨l', hl'⟩ with ⟨l, la, hl⟩,
+    refine ⟨l, la, λx hx, _⟩,
+    refine hv ⟨_, hx.2⟩,
+    exact hl _ hx.1 hx.2 },
+  { rintros ⟨l, la, ha⟩,
+    rw mem_nhds_within_iff_exists_mem_nhds_inter,
+    refine ⟨Ioi l, mem_nhds_sets is_open_Ioi la, _⟩,
+    rwa [Ioi_inter_Iic] }
+end
+
+/-- A set is a neighborhood of `a` within `(-∞, a]` if and only if it contains an interval `(l, a]`
+with `l < a`. -/
+lemma mem_nhds_within_Iic_iff_exists_Ioc_subset [no_bot_order α] {a : α} {s : set α} :
+  s ∈ nhds_within a (Iic a) ↔ ∃l, l < a ∧ Ioc l a ⊆ s :=
+let ⟨l', hl'⟩ := no_bot a in mem_nhds_within_Iic_iff_exists_Ioc_subset' hl'
+
+/-- A set is a neighborhood of `a` within `(-∞, a]` if and only if it contains an interval `[l, a]`
+with `l < a`. -/
+lemma mem_nhds_within_Iic_iff_exists_Icc_subset [no_bot_order α] [densely_ordered α]
+  {a : α} {s : set α} : s ∈ nhds_within a (Iic a) ↔ ∃l, l < a ∧ Icc l a ⊆ s :=
+begin
+  rw mem_nhds_within_Iic_iff_exists_Ioc_subset,
+  split,
+  { rintros ⟨l, la, as⟩,
+    rcases dense la with ⟨v, hv⟩,
+    refine ⟨v, hv.2, λx hx, as ⟨lt_of_lt_of_le hv.1 hx.1, hx.2⟩⟩, },
+  { rintros ⟨l, la, as⟩,
+    exact ⟨l, la, subset.trans Ioc_subset_Icc_self as⟩ }
+end
+
 end linear_order
 
 lemma preimage_neg [add_group α] : preimage (has_neg.neg : α → α) = image (has_neg.neg : α → α) :=
@@ -599,6 +787,92 @@ lemma bdd_above_of_compact {α : Type u} [topological_space α] [linear_order α
 
 end order_topology
 
+section decidable_linear_order
+
+variables [topological_space α] [decidable_linear_order α] [orderable_topology α] [densely_ordered α]
+
+/-- The closure of the interval `(a, +∞)` is the closed interval `[a, +∞)`, unless `a` is a top
+element. -/
+lemma closure_Ioi' {a b : α} (hab : a < b) :
+  closure (Ioi a) = Ici a :=
+begin
+  apply subset.antisymm,
+  { rw ← closure_eq_iff_is_closed.2 is_closed_Ici,
+    exact closure_mono Ioi_subset_Ici_self,
+    apply_instance },
+  { assume x hx,
+    by_cases h : x = a,
+    { rw h, exact mem_closure_of_is_glb is_glb_Ioi (ne_empty_of_mem hab) },
+    { exact subset_closure (lt_of_le_of_ne hx (ne.symm h)) } }
+end
+
+/-- The closure of the interval `(a, +∞)` is the closed interval `[a, +∞)`. -/
+lemma closure_Ioi (a : α) [no_top_order α] :
+  closure (Ioi a) = Ici a :=
+let ⟨b, hb⟩ := no_top a in closure_Ioi' hb
+
+/-- The closure of the interval `(-∞, a)` is the closed interval `(-∞, a]`, unless `a` is a bottom
+element. -/
+lemma closure_Iio' {a b : α} (hab : b < a) :
+  closure (Iio a) = Iic a :=
+begin
+  apply subset.antisymm,
+  { rw ← closure_eq_iff_is_closed.2 is_closed_Iic,
+    exact closure_mono Iio_subset_Iic_self,
+    apply_instance },
+  { assume x hx,
+    by_cases h : x = a,
+    { rw h, exact mem_closure_of_is_lub is_lub_Iio (ne_empty_of_mem hab) },
+    { apply subset_closure, by simpa [h] using lt_or_eq_of_le hx } }
+end
+
+/-- The closure of the interval `(-∞, a)` is the interval `(-∞, a]`. -/
+lemma closure_Iio (a : α) [no_bot_order α] :
+  closure (Iio a) = Iic a :=
+let ⟨b, hb⟩ := no_bot a in closure_Iio' hb
+
+/-- The closure of the open interval `(a, b)` is the closed interval `[a, b]`. -/
+lemma closure_Ioo {a b : α} (hab : a < b) :
+  closure (Ioo a b) = Icc a b :=
+begin
+  apply subset.antisymm,
+  { rw ← closure_eq_iff_is_closed.2 is_closed_Icc,
+    exact closure_mono Ioo_subset_Icc_self,
+    apply_instance },
+  { have ne_empty : Ioo a b ≠ ∅, by simpa [Ioo_eq_empty_iff],
+    assume x hx,
+    by_cases h : x = a,
+    { rw h, exact mem_closure_of_is_glb (is_glb_Ioo hab) ne_empty },
+    by_cases h' : x = b,
+    { rw h', refine mem_closure_of_is_lub (is_lub_Ioo hab) ne_empty },
+    exact subset_closure ⟨lt_of_le_of_ne hx.1 (ne.symm h), by simpa [h'] using lt_or_eq_of_le hx.2⟩ }
+end
+
+/-- The closure of the interval `(a, b]` is the closed interval `[a, b]`. -/
+lemma closure_Ioc {a b : α} (hab : a < b) :
+  closure (Ioc a b) = Icc a b :=
+begin
+  apply subset.antisymm,
+  { rw ← closure_eq_iff_is_closed.2 is_closed_Icc,
+    exact closure_mono Ioc_subset_Icc_self,
+    apply_instance },
+  { apply subset.trans _ (closure_mono Ioo_subset_Ioc_self),
+    rw closure_Ioo hab }
+end
+
+/-- The closure of the interval `[a, b)` is the closed interval `[a, b]`. -/
+lemma closure_Ico {a b : α} (hab : a < b) :
+  closure (Ico a b) = Icc a b :=
+begin
+  apply subset.antisymm,
+  { rw ← closure_eq_iff_is_closed.2 is_closed_Icc,
+    exact closure_mono Ico_subset_Icc_self,
+    apply_instance },
+  { apply subset.trans _ (closure_mono Ioo_subset_Ico_self),
+    rw closure_Ioo hab }
+end
+
+end decidable_linear_order
 
 section complete_linear_order
 
@@ -627,7 +901,7 @@ lemma Sup_of_continuous' {f : α → β} (Mf : continuous f) (Cf : monotone f)
 --This is a particular case of the more general is_lub_of_is_lub_of_tendsto
 (is_lub_iff_Sup_eq.1
   (is_lub_of_is_lub_of_tendsto (λ x hx y hy xy, Cf xy) is_lub_Sup hs $
-    tendsto_le_left inf_le_left (continuous.tendsto Mf _))).symm
+    tendsto_le_left inf_le_left (Mf.tendsto _))).symm
 
 /-- A continuous monotone function sending bot to bot sends supremum to supremum. -/
 lemma Sup_of_continuous {f : α → β} (Mf : continuous f) (Cf : monotone f)
@@ -649,7 +923,7 @@ lemma Inf_of_continuous' {f : α → β} (Mf : continuous f) (Cf : monotone f)
   {s : set α} (hs : s ≠ ∅) : f (Inf s) = Inf (f '' s) :=
 (is_glb_iff_Inf_eq.1
   (is_glb_of_is_glb_of_tendsto (λ x hx y hy xy, Cf xy) is_glb_Inf hs $
-    tendsto_le_left inf_le_left (continuous.tendsto Mf _))).symm
+    tendsto_le_left inf_le_left (Mf.tendsto _))).symm
 
 /-- A continuous monotone function sending top to top sends infimum to infimum. -/
 lemma Inf_of_continuous {f : α → β} (Mf : continuous f) (Cf : monotone f)
@@ -698,7 +972,7 @@ begin
   refine (is_lub_iff_eq_of_is_lub _).1
     (is_lub_cSup (mt image_eq_empty.1 ne) (bdd_above_of_bdd_above_of_monotone Cf H)),
   refine is_lub_of_is_lub_of_tendsto (λx hx y hy xy, Cf xy) (is_lub_cSup ne H) ne _,
-  exact tendsto_le_left inf_le_left (continuous.tendsto Mf _)
+  exact tendsto_le_left inf_le_left (Mf.tendsto _)
 end
 
 /-- A continuous monotone function sends indexed supremum to indexed supremum in conditionally complete
@@ -716,7 +990,7 @@ begin
   refine (is_glb_iff_eq_of_is_glb _).1
     (is_glb_cInf (mt image_eq_empty.1 ne) (bdd_below_of_bdd_below_of_monotone Cf H)),
   refine is_glb_of_is_glb_of_tendsto (λx hx y hy xy, Cf xy) (is_glb_cInf ne H) ne _,
-  exact tendsto_le_left inf_le_left (continuous.tendsto Mf _)
+  exact tendsto_le_left inf_le_left (Mf.tendsto _)
 end
 
 /-- A continuous monotone function sends indexed infimum to indexed infimum in conditionally complete

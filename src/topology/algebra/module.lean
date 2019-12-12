@@ -58,6 +58,55 @@ class topological_vector_space (α : Type u) (β : Type v)
   extends topological_module α β
 end prio
 
+section
+
+variables {α : Type*} {β : Type*}
+[ring α] [topological_space α]
+[topological_space β] [add_comm_group β]
+[module α β] [topological_module α β]
+
+/-- Scalar multiplication by a unit is a homeomorphism from a
+topological module onto itself. -/
+protected def homeomorph.smul_of_unit (a : units α) : β ≃ₜ β :=
+{ to_fun    := λ x, (a : α) • x,
+  inv_fun   := λ x, ((a⁻¹ : units α) : α) • x,
+  right_inv := λ x, calc (a : α) • ((a⁻¹ : units α) : α) • x = x :
+                 by rw [smul_smul, units.mul_inv, one_smul],
+  left_inv  := λ x, calc ((a⁻¹ : units α) : α) • (a : α) • x = x :
+                 by rw [smul_smul, units.inv_mul, one_smul],
+  continuous_to_fun  := continuous_smul continuous_const continuous_id,
+  continuous_inv_fun := continuous_smul continuous_const continuous_id }
+
+lemma is_open_map_smul_of_unit (a : units α) : is_open_map (λ (x : β), (a : α) • x) :=
+(homeomorph.smul_of_unit a).is_open_map
+
+lemma is_closed_map_smul_of_unit (a : units α) : is_closed_map (λ (x : β), (a : α) • x) :=
+(homeomorph.smul_of_unit a).is_closed_map
+
+end
+
+section
+
+variables {α : Type*} {β : Type*} {a : α}
+[discrete_field α] [topological_space α]
+[topological_space β] [add_comm_group β]
+[vector_space α β] [topological_vector_space α β]
+
+set_option class.instance_max_depth 36
+
+/-- Scalar multiplication by a non-zero field element is a
+homeomorphism from a topological vector space onto itself. -/
+protected def homeomorph.smul_of_ne_zero (ha : a ≠ 0) : β ≃ₜ β :=
+{.. homeomorph.smul_of_unit ((equiv.units_equiv_ne_zero _).inv_fun ⟨_, ha⟩)}
+
+lemma is_open_map_smul_of_ne_zero (ha : a ≠ 0) : is_open_map (λ (x : β), a • x) :=
+(homeomorph.smul_of_ne_zero ha).is_open_map
+
+lemma is_closed_map_smul_of_ne_zero (ha : a ≠ 0) : is_closed_map (λ (x : β), a • x) :=
+(homeomorph.smul_of_ne_zero ha).is_closed_map
+
+end
+
 /-- Continuous linear maps between modules. We only put the type classes that are necessary for the
 definition, although in applications β and γ will be topological modules over the topological
 ring α -/
@@ -137,13 +186,13 @@ section add
 variables [topological_add_group γ]
 
 instance : has_add (β →L[α] γ) :=
-⟨λ f g, ⟨f + g, continuous.add f.2 g.2⟩⟩
+⟨λ f g, ⟨f + g, f.2.add g.2⟩⟩
 
 @[simp] lemma add_apply : (f + g) x = f x + g x := rfl
 @[simp, move_cast] lemma coe_add : (((f + g) : β →L[α] γ) : β →ₗ[α] γ) = (f : β →ₗ[α] γ) + g := rfl
 @[move_cast] lemma coe_add' : (((f + g) : β →L[α] γ) : β → γ) = (f : β → γ) + g := rfl
 
-instance : has_neg (β →L[α] γ) := ⟨λ f, ⟨-f, continuous.neg f.2⟩⟩
+instance : has_neg (β →L[α] γ) := ⟨λ f, ⟨-f, f.2.neg⟩⟩
 
 @[simp] lemma neg_apply : (-f) x = - (f x) := rfl
 
@@ -167,6 +216,28 @@ def comp (g : γ →L[α] δ) (f : β →L[α] γ) : β →L[α] δ :=
 @[simp, move_cast] lemma coe_comp : ((h.comp f) : (β →ₗ[α] δ)) = (h : γ →ₗ[α] δ).comp f := rfl
 @[simp, move_cast] lemma coe_comp' : ((h.comp f) : (β → δ)) = (h : γ → δ) ∘ f := rfl
 
+@[simp] theorem comp_id : f.comp id = f :=
+ext $ λ x, rfl
+
+@[simp] theorem id_comp : id.comp f = f :=
+ext $ λ x, rfl
+
+@[simp] theorem comp_zero : f.comp (0 : δ →L[α] β) = 0 :=
+by { ext, simp }
+
+@[simp] theorem zero_comp : (0 : γ →L[α] δ).comp f = 0 :=
+by { ext, simp }
+
+@[simp] lemma comp_add [topological_add_group γ] [topological_add_group δ]
+  (g : γ →L[α] δ) (f₁ f₂ : β →L[α] γ) :
+  g.comp (f₁ + f₂) = g.comp f₁ + g.comp f₂ :=
+by { ext, simp }
+
+@[simp] lemma add_comp [topological_add_group δ]
+  (g₁ g₂ : γ →L[α] δ) (f : β →L[α] γ) :
+  (g₁ + g₂).comp f = g₁.comp f + g₂.comp f :=
+by { ext, simp }
+
 instance : has_mul (β →L[α] β) := ⟨comp⟩
 
 instance [topological_add_group β] : ring (β →L[α] β) :=
@@ -181,7 +252,7 @@ instance [topological_add_group β] : ring (β →L[α] β) :=
 
 /-- The cartesian product of two bounded linear maps, as a bounded linear map. -/
 def prod (f₁ : β →L[α] γ) (f₂ : β →L[α] δ) : β →L[α] (γ × δ) :=
-{ cont := continuous.prod_mk f₁.2 f₂.2,
+{ cont := f₁.2.prod_mk f₂.2,
   ..f₁.to_linear_map.prod f₂.to_linear_map }
 
 end general_ring
@@ -192,16 +263,23 @@ variables
 {α : Type*} [comm_ring α] [topological_space α]
 {β : Type*} [topological_space β] [add_comm_group β]
 {γ : Type*} [topological_space γ] [add_comm_group γ]
-[module α β] [module α γ] [topological_module α γ]
+{δ : Type*} [topological_space δ] [add_comm_group δ]
+[module α β] [module α γ] [module α δ] [topological_module α δ]
 
-instance : has_scalar α (β →L[α] γ) :=
+instance : has_scalar α (β →L[α] δ) :=
 ⟨λ c f, ⟨c • f, continuous_smul continuous_const f.2⟩⟩
 
-variables (c : α) (f g : β →L[α] γ) (x y z : β)
+variables (c : α) (h : γ →L[α] δ) (f g : β →L[α] γ) (x y z : β)
+
+@[simp] lemma smul_comp : (c • h).comp f = c • (h.comp f) := rfl
+
+variable [topological_module α γ]
 
 @[simp] lemma smul_apply : (c • f) x = c • (f x) := rfl
 @[simp, move_cast] lemma coe_apply : (((c • f) : β →L[α] γ) : β →ₗ[α] γ) = c • (f : β →ₗ[α] γ) := rfl
 @[move_cast] lemma coe_apply' : (((c • f) : β →L[α] γ) : β → γ) = c • (f : β → γ) := rfl
+
+@[simp] lemma comp_smul : h.comp (c • f) = c • (h.comp f) := by { ext, simp }
 
 /-- The linear map `λ x, c x • f`.  Associates to a scalar-valued linear map and an element of
 `γ` the `γ`-valued linear map obtained by multiplying the two (a.k.a. tensoring by `γ`) -/

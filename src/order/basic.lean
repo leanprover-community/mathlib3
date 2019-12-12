@@ -385,6 +385,7 @@ instance is_order_connected_of_is_strict_total_order'
 ⟨λ a b c h, (trichotomous _ _).imp_right (λ o,
   o.elim (λ e, e ▸ h) (λ h', trans h' h))⟩
 
+@[priority 100] -- see Note [lower instance priority]
 instance is_strict_total_order_of_is_strict_total_order'
   [is_strict_total_order' α r] : is_strict_total_order α r :=
 {..is_strict_weak_order_of_is_order_connected}
@@ -483,39 +484,39 @@ end
 by { classical, rw [not_iff_comm, not_bounded_iff] }
 
 namespace well_founded
+/-- If `r` is a well founded relation, then any nonempty set has a minimum element
+with respect to `r`. -/
 theorem has_min {α} {r : α → α → Prop} (H : well_founded r)
-  (p : set α) : p ≠ ∅ → ∃ a ∈ p, ∀ x ∈ p, ¬ r x a :=
-by classical; exact
-not_imp_comm.1 (λ he, set.eq_empty_iff_forall_not_mem.2 $ λ a,
-acc.rec_on (H.apply a) $ λ a H IH h,
-he ⟨_, h, λ y, imp_not_comm.1 (IH y)⟩)
+  (s : set α) : s.nonempty → ∃ a ∈ s, ∀ x ∈ s, ¬ r x a
+| ⟨a, ha⟩ := (acc.rec_on (H.apply a) $ λ x _ IH, classical.not_imp_not.1 $ λ hne hx, hne $
+  ⟨x, hx, λ y hy hyx, hne $ IH y hyx hy⟩) ha
 
 /-- The minimum element of a nonempty set in a well-founded order -/
 noncomputable def min {α} {r : α → α → Prop} (H : well_founded r)
-  (p : set α) (h : p ≠ ∅) : α :=
+  (p : set α) (h : p.nonempty) : α :=
 classical.some (H.has_min p h)
 
 theorem min_mem {α} {r : α → α → Prop} (H : well_founded r)
-  (p : set α) (h : p ≠ ∅) : H.min p h ∈ p :=
+  (p : set α) (h : p.nonempty) : H.min p h ∈ p :=
 let ⟨h, _⟩ := classical.some_spec (H.has_min p h) in h
 
 theorem not_lt_min {α} {r : α → α → Prop} (H : well_founded r)
-  (p : set α) (h : p ≠ ∅) {x} (xp : x ∈ p) : ¬ r x (H.min p h) :=
+  (p : set α) (h : p.nonempty) {x} (xp : x ∈ p) : ¬ r x (H.min p h) :=
 let ⟨_, h'⟩ := classical.some_spec (H.has_min p h) in h' _ xp
 
 open set
 protected noncomputable def sup {α} {r : α → α → Prop} (wf : well_founded r) (s : set α)
   (h : bounded r s) : α :=
-wf.min { x | ∀a ∈ s, r a x } (ne_empty_iff_exists_mem.mpr h)
+wf.min { x | ∀a ∈ s, r a x } h
 
 protected lemma lt_sup {α} {r : α → α → Prop} (wf : well_founded r) {s : set α} (h : bounded r s)
   {x} (hx : x ∈ s) : r x (wf.sup s h) :=
-min_mem wf { x | ∀a ∈ s, r a x } (ne_empty_iff_exists_mem.mpr h) x hx
+min_mem wf { x | ∀a ∈ s, r a x } h x hx
 
 section
 open_locale classical
 protected noncomputable def succ {α} {r : α → α → Prop} (wf : well_founded r) (x : α) : α :=
-if h : ∃y, r x y then wf.min { y | r x y } (ne_empty_iff_exists_mem.mpr h) else x
+if h : ∃y, r x y then wf.min { y | r x y } h else x
 
 protected lemma lt_succ {α} {r : α → α → Prop} (wf : well_founded r) {x : α} (h : ∃y, r x y) :
   r x (wf.succ x) :=
@@ -528,7 +529,7 @@ begin
   split,
   { intro h', have : ¬r x y,
     { intro hy, rw [well_founded.succ, dif_pos] at h',
-      exact wo.wf.not_lt_min _ (ne_empty_iff_exists_mem.mpr h) hy h' },
+      exact wo.wf.not_lt_min _ h hy h' },
     rcases trichotomous_of r x y with hy | hy | hy,
     exfalso, exact this hy,
     right, exact hy.symm,

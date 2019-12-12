@@ -46,6 +46,9 @@ congruence relation is a congruence relation.
 There is only a multiplicative version for any lemma or definition relying on a unit group of a
 `comm_monoid`; additive versions would require additive unit groups.
 
+
+mul_equiv_of_char_pred is purposely done 1. only classically; 2. not using isom thm
+similarly, the map mul equiv doesn't use the char pred because it makes the proof longer :/
 ## Tags
 localization, monoid localization, quotient monoid, congruence relation
 
@@ -168,11 +171,8 @@ induction_on x $ λ y, ⟨y, rfl⟩
 
 @[to_additive] instance : has_mul (monoid_localization X Y) := Y.r.has_mul
 
-@[to_additive] protected lemma mul_comm (x y : monoid_localization X Y) : x * y = y * x :=
-quotient.induction_on₂' x y $ λ _ _, show quotient.mk' _ = _, by rw mul_comm; refl
-
 @[to_additive] instance : comm_monoid (monoid_localization X Y) :=
-{ mul_comm := monoid_localization.mul_comm, ..Y.r.monoid }
+Y.r.comm_monoid
 
 @[to_additive] protected lemma eq {a₁ b₁} {a₂ b₂ : Y} :
   mk a₁ a₂ = mk b₁ b₂ ↔ ∀ c : con (X × Y), (∀ y : Y, c 1 (y, y)) → c (a₁, a₂) (b₁, b₂) :=
@@ -275,25 +275,31 @@ variables (f)
 def units_restrict (H : ∀ y : Y, f y = g y) : Y →* units Z :=
 ⟨g, units.ext $ (H 1) ▸ f.map_one, λ _ _, units_restrict_mul H⟩
 
+variables (g)
+
 /-- Given a `comm_monoid` homomorphism `f : X → Z` mapping elements of a submonoid `Y` to
     invertible elements of `Z`, the homomorphism from `X × Y` to `Z` sending `(x, y)` to
-    `f(x) * f(y)⁻¹`; this induces a homomorphism from the localization of `X` at `Y`. -/
+    `f(x) * f(y)⁻¹`; this induces a homomorphism from the localization of `X` at `Y`
+    (constructive version). -/
 def aux (H : ∀ y : Y, f y = g y) : X × Y →* Z :=
 (f.comp prod.monoid_hom.fst).mul $
   (units.coe_hom Z).comp ((units_restrict f H).comp prod.monoid_hom.snd).inv
 
+variables {g}
+
 /-- Given a `comm_monoid` homomorphism `f : X → Z` mapping elements of a submonoid `Y` to
     invertible elements of `Z`, the homomorphism from `X × Y` to `Z` sending `(x, y)` to
     `f(x) * f(y)⁻¹` is constant on the equivalence classes of the localization of `X` at `Y`. -/
-lemma r_le_ker_aux (H : ∀ y : Y, f y = g y) (y : Y) :
-  con.ker (aux f H) 1 (y, y) :=
-show f (1 : Y) * ↑(g 1)⁻¹ = f y * ↑(g y)⁻¹, by rw [H 1, H y]; simp [units.mul_inv]
+lemma r_le_ker_aux (H : ∀ y : Y, f y = g y) :
+  Y.r ≤ con.ker (aux f g H) :=
+con.Inf_le _ _ (λ y, show f (1 : Y) * ↑(g 1)⁻¹ = f y * ↑(g y)⁻¹, by
+  rw [H 1, H y]; simp [units.mul_inv])
 
 /-- Given a `comm_monoid` homomorphism `f : X → Z` mapping elements of a submonoid `Y` to
     invertible elements of `Z`, the homomorphism from the localization of `X` at `Y` sending
     `⟦(x, y)⟧` to `f(x) * f(y)⁻¹`. -/
 def lift' (g : Y → units Z) (H : ∀ y : Y, f y = g y) : monoid_localization X Y →* Z :=
-Y.r.lift (aux f H) $ λ _ _ h, h _ $ r_le_ker_aux f H
+Y.r.lift (aux f g H) $ r_le_ker_aux f H
 
 /-- Given a `comm_monoid` homomorphism `f : X → Z` mapping elements of a submonoid `Y` to
     invertible elements of `Z`, the homomorphism from the localization of `X` at `Y` sending

@@ -199,7 +199,7 @@ are real numbers, and may not time out even if the numerals involved are large.
 import data.real.basic
 
 example : (2 : ℝ) + 2 = 4 := by norm_num
-example : (12345.2 : ℝ) < 12345.3 := by norm_num
+example : (12345.2 : ℝ) ≠ 12345.3 := by norm_num
 example : 123456789 + 987654321 = 1111111110 := by norm_num
 ```
 

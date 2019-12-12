@@ -555,6 +555,7 @@ section normed_space
 
 section prio
 set_option default_priority 100 -- see Note [default priority]
+-- see Note[vector space definition] for why we extend `module`.
 /-- A normed space over a normed field is a vector space endowed with a norm which satisfies the
 equality `∥c • x∥ = ∥c∥ ∥x∥`. -/
 class normed_space (α : Type*) (β : Type*) [normed_field α] [normed_group β]

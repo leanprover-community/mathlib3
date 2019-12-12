@@ -58,6 +58,7 @@ export has_inner (inner)
 
 section prio
 set_option default_priority 100 -- see Note [default priority]
+-- see Note[vector space definition] for why we extend `module`.
 /--
 An inner product space is a real vector space with an additional operation called inner product.
 Inner product spaces over complex vector space will be defined in another file.

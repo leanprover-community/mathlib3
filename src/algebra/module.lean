@@ -358,6 +358,20 @@ end ideal
 
 section prio
 set_option default_priority 100 -- see Note [default priority]
+
+/- Note[vector space definition]:
+Vector spaces are defined as an `abbreviation` for modules,
+if the base ring is a field.
+(A previous definition made `vector_space` a structure
+defined to be `module`.
+This has as advantage that vector spaces are completely transparant
+for type class inference, which means that all instances for modules
+are immediately picked up for vector spaces as well.
+A cosmetic disadvantage is that one can not extend vector spaces an sich,
+in definitions such as `normed_space`.
+The solution is to extend `module` instead.
+-/
+
 /-- A vector space is the same as a module, except the scalar ring is actually
   a field. (This adds commutativity of the multiplication and existence of inverses.)
   This is the traditional generalization of spaces like `ℝ^n`, which have a natural

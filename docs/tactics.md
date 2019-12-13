@@ -188,19 +188,18 @@ by { abel at hyp, exact hyp }
 
 ### norm_num
 
-Normalises numerical expressions. It supports the operations
-  `+` `-` `*` `/` `^` `<` `≤` over ordered fields (or other
-  appropriate classes), as well as `-` `/` `%` over `ℤ` and `ℕ`.
-
-In practice, this means that certain goals of the form `A = B` or `A ≠ B`, where `A` and `B` are
-numerical expressions, can be solved with `norm_num`. The tactic may succeed even if `A` and `B`
-are real numbers, and may not time out even if the numerals involved are large.
+Normalises numerical expressions. It supports the operations `+` `-` `*` `/` `^` and `%` over numerical types such as `ℕ`, `ℤ`, `ℚ`, `ℝ`, `ℂ`, and can prove goals of the form `A = B`, `A ≠ B`, `A < B` and `A ≤ B`, where `A` and `B` are
+numerical expressions. It also has a relatively simple primality prover.
 ```lean
 import data.real.basic
 
 example : (2 : ℝ) + 2 = 4 := by norm_num
 example : (12345.2 : ℝ) ≠ 12345.3 := by norm_num
+example : (73 : ℝ) < 789/2 := by norm_num
 example : 123456789 + 987654321 = 1111111110 := by norm_num
+example : nat.prime (2^13 - 1) := by norm_num
+example : ¬ nat.prime (2^11 - 1) := by norm_num
+example (R : Type*) [ring R] : (2 : R) + 2 = 4 := by norm_num
 ```
 
 ### ring

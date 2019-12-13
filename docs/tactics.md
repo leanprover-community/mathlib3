@@ -201,6 +201,7 @@ example (R : Type*) [ring R] : (2 : R) + 2 = 4 := by norm_num
 example (F : Type*) [linear_ordered_field F] : (2 : F) + 2 < 5 := by norm_num
 example : nat.prime (2^13 - 1) := by norm_num
 example : ¬ nat.prime (2^11 - 1) := by norm_num
+example (x : ℝ) (h : x = 123 + 456) : x = 579 := by norm_num at h; assumption
 ```
 
 ### ring

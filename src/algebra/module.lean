@@ -363,7 +363,7 @@ set_option default_priority 100 -- see Note [default priority]
 Vector spaces are defined as an `abbreviation` for modules,
 if the base ring is a field.
 (A previous definition made `vector_space` a structure
-defined to be `module`.
+defined to be `module`.)
 This has as advantage that vector spaces are completely transparant
 for type class inference, which means that all instances for modules
 are immediately picked up for vector spaces as well.

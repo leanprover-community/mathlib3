@@ -197,9 +197,10 @@ example : (2 : ℝ) + 2 = 4 := by norm_num
 example : (12345.2 : ℝ) ≠ 12345.3 := by norm_num
 example : (73 : ℝ) < 789/2 := by norm_num
 example : 123456789 + 987654321 = 1111111110 := by norm_num
+example (R : Type*) [ring R] : (2 : R) + 2 = 4 := by norm_num
+example (F : Type*) [linear_ordered_field F] : (2 : F) + 2 < 5 := by norm_num
 example : nat.prime (2^13 - 1) := by norm_num
 example : ¬ nat.prime (2^11 - 1) := by norm_num
-example (R : Type*) [ring R] : (2 : R) + 2 = 4 := by norm_num
 ```
 
 ### ring

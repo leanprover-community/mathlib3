@@ -15,7 +15,7 @@ import tactic.abel
 The standard congruence relation (an equivalence relation preserving a binary operation) used to
 define commutative ring localizations does not rely on the ring's addition. For a commutative
 monoid `X` and submonoid `Y`, this relation can be expressed as
-`∀ (x₁, y₁) (x₂, y₂) ∈ X × Y, x ∼ y ↔ ∃ c ∈ Y, c * x₁ * y₂ = c * x₂ * y₁`, or, equivalently, as the
+`∀ (x₁, y₁) (x₂, y₂) : X × Y, x ∼ y ↔ ∃ c ∈ Y, c * x₁ * y₂ = c * x₂ * y₁`, or, equivalently, as the
 unique congruence relation `r` on `X × Y` such that for any other congruence relation `r'` on
 `X × Y` where for all `y ∈ Y`, `(1, 1) ∼ (y, y)` under `r'`, we have that `(x₁, y₁) ∼ (x₂, y₂)` by
 `r'` implies `(x₁, y₁) ∼ (x₂, y₂)` by `r`.
@@ -149,9 +149,9 @@ namespace monoid_localization
 @[to_additive "For all `y` in `Y`, a submonoid of an `add_comm_monoid` `X`, `(0, 0) ∼ (y, y)` under the relation defining the localization of `X` at `Y`."]
 lemma one_rel (y : Y) : Y.r 1 (y, y) := by rw Y.r_eq_r'; use 1; norm_num
 
-/-- Given a `comm_monoid` `X` and submonoid `Y`, `mk` sends `x ∈ X`, `y ∈ Y` to the equivalence
+/-- Given a `comm_monoid` `X` and submonoid `Y`, `mk` sends `x : X`, `y ∈ Y` to the equivalence
     class of `(x, y)` in the localization of `X` at `Y`. -/
-@[to_additive "Given an `add_comm_monoid` `X` and submonoid `Y`, `mk` sends `x ∈ X`, `y ∈ Y` to the equivalence class of `(x, y)` in the localization of `X` at `Y`."]
+@[to_additive "Given an `add_comm_monoid` `X` and submonoid `Y`, `mk` sends `x : X`, `y ∈ Y` to the equivalence class of `(x, y)` in the localization of `X` at `Y`."]
 def mk (x : X) (y : Y) : monoid_localization X Y := Y.r.mk' (x, y)
 
 @[elab_as_eliminator, to_additive]
@@ -199,10 +199,10 @@ mk_self' ⟨x, hx⟩
 lemma lift_on_beta {β} (f : (X × Y) → β) (H : ∀ a b, Y.r a b → f a = f b) (x y) :
 con.lift_on (mk x y) f H = f (x, y) := rfl
 
-/-- Natural homomorphism sending `x ∈ X`, `X` a `comm_monoid`, to the equivalence class of
+/-- Natural homomorphism sending `x : X`, `X` a `comm_monoid`, to the equivalence class of
     `(x, 1)` in the localization of `X` at a submonoid. For a `comm_ring` localization, this is
     a ring homomorphism named `localization.of`. -/
-@[to_additive "Natural homomorphism sending `x ∈ X`, `X` an `add_comm_monoid`, to the equivalence class of `(x, 0)` in the localization of `X` at a submonoid."]
+@[to_additive "Natural homomorphism sending `x : X`, `X` an `add_comm_monoid`, to the equivalence class of `(x, 0)` in the localization of `X` at a submonoid."]
 def of (Y) : X →* monoid_localization X Y :=
 Y.r.mk'.comp ⟨λ x, (x, 1), refl 1, λ _ _, by simp only [prod.mk_mul_mk, one_mul]⟩
 

@@ -421,12 +421,6 @@ theorem inter_empty_of_inter_sUnion_empty {s t : set α} {S : set (set α)} (hs 
 eq_empty_of_subset_empty $ by rw ← h; exact
 inter_subset_inter_right _ (subset_sUnion_of_mem hs)
 
-theorem Union_eq_sUnion_range (s : α → set β) : (⋃ i, s i) = ⋃₀ (range s) :=
-by rw [← image_univ, sUnion_image]; simp
-
-theorem Inter_eq_sInter_range {α I : Type} (s : I → set α) : (⋂ i, s i) = ⋂₀ (range s) :=
-by rw [← image_univ, sInter_image]; simp
-
 theorem range_sigma_eq_Union_range {γ : α → Type*} (f : sigma γ → β) :
   range f = ⋃ a, range (λ b, f ⟨a, b⟩) :=
 set.ext $ by simp

@@ -22,31 +22,52 @@ the tangent bundle, the cotangent bundle, differential forms (used to define de 
 and the bundle of Riemannian metrics. Therefore, it is worth defining a specific constructor for
 this kind of bundle, that we call basic smooth bundles.
 
-A basic smooth bundle is thus a smooth vector bundle over a smooth manifold which is trivial in
-coordinate charts. It can be constructed from a basic smooth bundled core, defined below, specifying
-the changes in the fiber when one goes from one coordinate chart to another one.
+A basic smooth bundle is thus a smooth bundle over a smooth manifold whose fiber is a vector space,
+and which is trivial in the coordinate charts of the base (We recall that in our notion of manifold
+there is a distinguished atlas, which does not need to be maximal: we require the triviality above
+this specific atlas). It can be constructed from a basic smooth bundled core, defined below,
+specifying the changes in the fiber when one goes from one coordinate chart to another one. We do
+not require that this changes in fiber are linear, but only diffeomorphisms.
 
 ## Main definitions
 
-`basic_smooth_bundle_core I M F`: M is a smooth manifold over the model with corners I on (𝕜, E, H),
-       and F is a normed vector space over 𝕜. This structure registers, for each pair of charts
-       of M, a smooth change of coordinates on F. This is the core structure from which one will
-       build a smooth vector bundle with fiber F over M.
-Let `Z` be a basic smooth bundle core over M with fiber F. We define
-`Z.to_topological_fiber_bundle_core`, the (topological) fiber bundle core associated to Z. From it,
-we get a space `Z.to_topological_fiber_bundle_core.total_space` (which as a Type is just M × F),
+* `basic_smooth_bundle_core I M F`: `M` is a smooth manifold over the model with corners `I` on
+       `(𝕜, E, H)`, and `F` is a normed vector space over `𝕜`. This structure registers, for each
+       pair of charts of `M`, a smooth change of coordinates on `F`. This is the core structure from
+       which one will build a smooth bundle with fiber `F` over `M`.
+
+Let `Z` be a basic smooth bundle core over `M` with fiber `F`. We define
+`Z.to_topological_fiber_bundle_core`, the (topological) fiber bundle core associated to `Z`. From it,
+we get a space `Z.to_topological_fiber_bundle_core.total_space` (which as a Type is just `M × F`),
 with the fiber bundle topology. It inherits a manifold structure (where the charts are in bijection
 with the charts of the basis). We show that this manifold is smooth.
 
 Then we use this machinery to construct the tangent bundle of a smooth manifold.
 
-* `tangent_bundle_core I M`: the basic smooth bundle core associated to a smooth manifold M over a
-                             model with corners I.
+* `tangent_bundle_core I M`: the basic smooth bundle core associated to a smooth manifold `M` over a
+                             model with corners `I`.
 * `tangent_bundle I M`     : the total space of `tangent_bundle_core I M`. It is itself a
                              smooth manifold over the model with corners `I.tangent`, the product of
                              `I` and the trivial model with corners on `E`.
-* `tangent_space I x`      : the tangent space to M at x
+* `tangent_space I x`      : the tangent space to `M` at `x`
 * `tangent_bundle.proj I M`: the projection from the tangent bundle to the base manifold
+
+## Implementation notes
+
+In the definition of a basic smooth bundle core, we do not require that the coordinate changes of
+the fibers are linear map, only that they are diffeomorphisms. Therefore, the fibers of the
+resulting fiber bundle do not inherit a vector space structure (as an algebraic object) in general.
+As the fiber, as a type, is just `F`, one can still always register the vector space structure, but
+it does not make sense to do so (i.e., it will not lead to any useful theorem) unless this structure
+is canonical, i.e., the coordinate changes are linear maps.
+
+For instance, we register the vector space structure on the fibers of the tangent bundle. However,
+we do not register the normed space structure coming from that of `F` (as it is not canonical, and
+we also want to keep the possibility to add a Riemannian structure on the manifold later on without
+having two competing normed space instances on the tangent spaces).
+
+We require `F` to be a normed space, and not just a topological vector space, as we want to talk
+about smooth functions on `F`. The notion of derivative requires a norm to be defined.
 
 ## TODO
 construct the cotangent bundle, and the bundles of differential forms. They should follow
@@ -62,9 +83,12 @@ universe u
 
 open topological_space set
 
-/-- Core structure used to create a smooth bundle above M (a manifold over the model with
-corner I) with fiber the normed vector space F over 𝕜, which is trivial in the chart domains of M.
-This structure registers the changes in the fibers when one changes coordinate charts in the base. -/
+/-- Core structure used to create a smooth bundle above `M` (a manifold over the model with
+corner I) with fiber the normed vector space `F` over `𝕜`, which is trivial in the chart domains of
+`M`. This structure registers the changes in the fibers when one changes coordinate charts in the
+base. We do not require the change of coordinates of the fibers to be linear, only smooth.
+Therefore, the fibers of the resulting bundle will not inherit a canonical vector space structure
+in general. -/
 structure basic_smooth_bundle_core {𝕜 : Type*} [nondiscrete_normed_field 𝕜]
 {E : Type u} [normed_group E] [normed_space 𝕜 E]
 {H : Type*} [topological_space H] (I : model_with_corners 𝕜 E H)
@@ -73,9 +97,9 @@ structure basic_smooth_bundle_core {𝕜 : Type*} [nondiscrete_normed_field 𝕜
 (coord_change      : atlas H M → atlas H M → H → F → F)
 (coord_change_self :
   ∀i : atlas H M, ∀ x ∈ i.1.target, ∀v, coord_change i i x v = v)
-(coord_change_comp : ∀i j 𝕜 : atlas H M,
-  ∀x ∈ ((i.1.symm.trans j.1).trans (j.1.symm.trans 𝕜.1)).source, ∀v,
-  (coord_change j 𝕜 ((i.1.symm.trans j.1).to_fun x)) (coord_change i j x v) = coord_change i 𝕜 x v)
+(coord_change_comp : ∀i j k : atlas H M,
+  ∀x ∈ ((i.1.symm.trans j.1).trans (j.1.symm.trans k.1)).source, ∀v,
+  (coord_change j k ((i.1.symm.trans j.1).to_fun x)) (coord_change i j x v) = coord_change i k x v)
 (coord_change_smooth : ∀i j : atlas H M,
   times_cont_diff_on 𝕜 ⊤ (λp : E × F, coord_change i j (I.inv_fun p.1) p.2)
   (set.prod (I.to_fun '' (i.1.symm.trans j.1).source) (univ : set F)))
@@ -97,8 +121,8 @@ def to_topological_fiber_bundle_core : topological_fiber_bundle_core (atlas H M)
   mem_base_set_at := λx, mem_chart_source H x,
   coord_change := λi j x v, Z.coord_change i j (i.1.to_fun x) v,
   coord_change_self := λi x hx v, Z.coord_change_self i (i.1.to_fun x) (i.1.map_source hx) v,
-  coord_change_comp := λi j 𝕜 x ⟨⟨hx1, hx2⟩, hx3⟩ v, begin
-    have := Z.coord_change_comp i j 𝕜 (i.1.to_fun x) _ v,
+  coord_change_comp := λi j k x ⟨⟨hx1, hx2⟩, hx3⟩ v, begin
+    have := Z.coord_change_comp i j k (i.1.to_fun x) _ v,
     convert this using 2,
     { simp [hx1] },
     { simp [local_equiv.trans_source, hx1, hx2, hx3, i.1.map_source, j.1.map_source] }
@@ -218,7 +242,8 @@ begin
     apply times_cont_diff_on.prod _ _ U,
     show times_cont_diff_on 𝕜 ⊤ (λ (p : E × F), (I.to_fun ∘ e'.to_fun ∘ e.inv_fun ∘ I.inv_fun) p.1)
          (set.prod (I.inv_fun ⁻¹' (e.symm.trans e').source ∩ range I.to_fun) (univ : set F)),
-    { -- the coordinate change on the base is just a coordinate change for M, smooth since M is smooth
+    { -- the coordinate change on the base is just a coordinate change for `M`, smooth since
+      -- `M` is smooth
       have A : times_cont_diff_on 𝕜 ⊤
         (I.to_fun ∘ (e.symm.trans e').to_fun ∘ I.inv_fun)
         (I.inv_fun ⁻¹' (e.symm.trans e').source ∩ range I.to_fun) :=
@@ -272,9 +297,9 @@ variables {𝕜 : Type*} [nondiscrete_normed_field 𝕜]
 
 set_option class.instance_max_depth 50
 
-/-- Basic smooth bundle core version of the tangent bundle of a smooth manifold M modelled over a
-model with corners (E, H). The fibers are equal to E, and the coordinate change in the fiber
-corresponds to the derivative of the coordinate change in M. -/
+/-- Basic smooth bundle core version of the tangent bundle of a smooth manifold `M` modelled over a
+model with corners `I` on `(E, H)`. The fibers are equal to `E`, and the coordinate change in the
+fiber corresponds to the derivative of the coordinate change in `M`. -/
 def tangent_bundle_core : basic_smooth_bundle_core I M E :=
 { coord_change := λi j x v, (fderiv_within 𝕜 (I.to_fun ∘ j.1.to_fun ∘ i.1.inv_fun ∘ I.inv_fun)
                             (range I.to_fun) (I.to_fun x) : E → E) v,
@@ -472,7 +497,7 @@ def tangent_bundle.proj : tangent_bundle I M → M :=
 
 variable {M}
 
-/-- The tangent space at a point of the manifold M. It is just E. -/
+/-- The tangent space at a point of the manifold `M`. It is just `E`. -/
 def tangent_space (x : M) : Type* :=
 (tangent_bundle_core I M).to_topological_fiber_bundle_core.fiber x
 

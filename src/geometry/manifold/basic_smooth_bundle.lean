@@ -96,11 +96,11 @@ structure basic_smooth_bundle_core {𝕜 : Type*} [nondiscrete_normed_field 𝕜
 (F : Type u) [normed_group F] [normed_space 𝕜 F] :=
 (coord_change      : atlas H M → atlas H M → H → F → F)
 (coord_change_self :
-  ∀i : atlas H M, ∀ x ∈ i.1.target, ∀v, coord_change i i x v = v)
-(coord_change_comp : ∀i j k : atlas H M,
-  ∀x ∈ ((i.1.symm.trans j.1).trans (j.1.symm.trans k.1)).source, ∀v,
+  ∀ i : atlas H M, ∀ x ∈ i.1.target, ∀ v, coord_change i i x v = v)
+(coord_change_comp : ∀ i j k : atlas H M,
+  ∀ x ∈ ((i.1.symm.trans j.1).trans (j.1.symm.trans k.1)).source, ∀ v,
   (coord_change j k ((i.1.symm.trans j.1).to_fun x)) (coord_change i j x v) = coord_change i k x v)
-(coord_change_smooth : ∀i j : atlas H M,
+(coord_change_smooth : ∀ i j : atlas H M,
   times_cont_diff_on 𝕜 ⊤ (λp : E × F, coord_change i j (I.inv_fun p.1) p.2)
   (set.prod (I.to_fun '' (i.1.symm.trans j.1).source) (univ : set F)))
 
@@ -216,7 +216,7 @@ begin
   source, and their inverses are smooth on the target. Since both objects are of the same type, it
   suffices to prove the first statement in A below, and then glue back the pieces at the end. -/
   let J := model_with_corners.to_local_equiv (I.prod (model_with_corners_self 𝕜 F)),
-  have A : ∀(e e' : local_homeomorph M H) (he : e ∈ atlas H M) (he' : e' ∈ atlas H M),
+  have A : ∀ (e e' : local_homeomorph M H) (he : e ∈ atlas H M) (he' : e' ∈ atlas H M),
     times_cont_diff_on 𝕜 ⊤
     (J.to_fun ∘ ((Z.chart e he).symm.trans (Z.chart e' he')).to_fun ∘ J.inv_fun)
     (J.inv_fun ⁻¹' ((Z.chart e he).symm.trans (Z.chart e' he')).source ∩ range J.to_fun),
@@ -319,7 +319,7 @@ def tangent_bundle_core : basic_smooth_bundle_core I M E :=
             (I.inv_fun ⁻¹' (i.1.symm.trans j.1).source ∩ range I.to_fun) p.1 : E → E) p.2)
       (set.prod (I.inv_fun ⁻¹' (i.1.symm.trans j.1).source ∩ range I.to_fun) univ) :=
       times_cont_diff_on_fderiv_within_apply A B lattice.le_top,
-    have D : ∀x ∈ (I.inv_fun ⁻¹' (i.1.symm.trans j.1).source ∩ range I.to_fun),
+    have D : ∀ x ∈ (I.inv_fun ⁻¹' (i.1.symm.trans j.1).source ∩ range I.to_fun),
       fderiv_within 𝕜 (I.to_fun ∘ j.1.to_fun ∘ i.1.inv_fun ∘ I.inv_fun)
             (range I.to_fun) x =
       fderiv_within 𝕜 (I.to_fun ∘ j.1.to_fun ∘ i.1.inv_fun ∘ I.inv_fun)
@@ -435,7 +435,7 @@ def tangent_bundle_core : basic_smooth_bundle_core I M E :=
              = fderiv_within 𝕜 (I.to_fun ∘ u.1.to_fun ∘ i.1.inv_fun ∘ I.inv_fun)
              (I.inv_fun ⁻¹' ((i.1.symm.trans j.1).trans (j.1.symm.trans u.1)).source ∩ range I.to_fun)
              (I.to_fun x),
-    { have E : ∀y ∈ (I.inv_fun ⁻¹' ((i.1.symm.trans j.1).trans (j.1.symm.trans u.1)).source ∩ range I.to_fun),
+    { have E : ∀ y ∈ (I.inv_fun ⁻¹' ((i.1.symm.trans j.1).trans (j.1.symm.trans u.1)).source ∩ range I.to_fun),
         ((I.to_fun ∘ u.1.to_fun ∘ j.1.inv_fun ∘ I.inv_fun)
                           ∘ (I.to_fun ∘ j.1.to_fun ∘ i.1.inv_fun ∘ I.inv_fun)) y =
         (I.to_fun ∘ u.1.to_fun ∘ i.1.inv_fun ∘ I.inv_fun) y,
@@ -539,7 +539,7 @@ topological_fiber_bundle_core.is_open_map_proj _
 @[simp] lemma tangent_bundle_model_space_chart_at (p : tangent_bundle I H) :
   (chart_at (H × E) p).to_local_equiv = local_equiv.refl (H × E) :=
 begin
-  have A : ∀x_fst, fderiv_within 𝕜 (I.to_fun ∘ I.inv_fun) (range I.to_fun) (I.to_fun x_fst)
+  have A : ∀ x_fst, fderiv_within 𝕜 (I.to_fun ∘ I.inv_fun) (range I.to_fun) (I.to_fun x_fst)
            = continuous_linear_map.id,
   { assume x_fst,
     have : fderiv_within 𝕜 (I.to_fun ∘ I.inv_fun) (range I.to_fun) (I.to_fun x_fst)
@@ -555,7 +555,7 @@ begin
           basic_smooth_bundle_core.to_topological_fiber_bundle_core, tangent_bundle_core],
     erw [local_equiv.refl_to_fun, local_equiv.refl_inv_fun, A],
     refl },
-  show ∀x, ((chart_at (H × E) p).to_local_equiv).inv_fun x = (local_equiv.refl (H × E)).inv_fun x,
+  show ∀ x, ((chart_at (H × E) p).to_local_equiv).inv_fun x = (local_equiv.refl (H × E)).inv_fun x,
   { rintros ⟨x_fst, x_snd⟩,
     simp [chart_at, manifold.chart_at, basic_smooth_bundle_core.chart,
           topological_fiber_bundle_core.local_triv, topological_fiber_bundle_core.local_triv',

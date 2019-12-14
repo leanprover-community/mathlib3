@@ -23,7 +23,7 @@ and the bundle of Riemannian metrics. Therefore, it is worth defining a specific
 this kind of bundle, that we call basic smooth bundles.
 
 A basic smooth bundle is thus a smooth bundle over a smooth manifold whose fiber is a vector space,
-and which is trivial in the coordinate charts of the base (We recall that in our notion of manifold
+and which is trivial in the coordinate charts of the base. (We recall that in our notion of manifold
 there is a distinguished atlas, which does not need to be maximal: we require the triviality above
 this specific atlas). It can be constructed from a basic smooth bundled core, defined below,
 specifying the changes in the fiber when one goes from one coordinate chart to another one. We do
@@ -31,10 +31,10 @@ not require that this changes in fiber are linear, but only diffeomorphisms.
 
 ## Main definitions
 
-* `basic_smooth_bundle_core I M F`: `M` is a smooth manifold over the model with corners `I` on
-       `(𝕜, E, H)`, and `F` is a normed vector space over `𝕜`. This structure registers, for each
-       pair of charts of `M`, a smooth change of coordinates on `F`. This is the core structure from
-       which one will build a smooth bundle with fiber `F` over `M`.
+* `basic_smooth_bundle_core I M F`: assuming that `M` is a smooth manifold over the model with
+  corners `I` on `(𝕜, E, H)`, and `F` is a normed vector space over `𝕜`, this structure registers,
+  for each pair of charts of `M`, a smooth change of coordinates on `F`. This is the core structure
+  from which one will build a smooth bundle with fiber `F` over `M`.
 
 Let `Z` be a basic smooth bundle core over `M` with fiber `F`. We define
 `Z.to_topological_fiber_bundle_core`, the (topological) fiber bundle core associated to `Z`. From it,
@@ -45,10 +45,10 @@ with the charts of the basis). We show that this manifold is smooth.
 Then we use this machinery to construct the tangent bundle of a smooth manifold.
 
 * `tangent_bundle_core I M`: the basic smooth bundle core associated to a smooth manifold `M` over a
-                             model with corners `I`.
+  model with corners `I`.
 * `tangent_bundle I M`     : the total space of `tangent_bundle_core I M`. It is itself a
-                             smooth manifold over the model with corners `I.tangent`, the product of
-                             `I` and the trivial model with corners on `E`.
+  smooth manifold over the model with corners `I.tangent`, the product of `I` and the trivial model
+  with corners on `E`.
 * `tangent_space I x`      : the tangent space to `M` at `x`
 * `tangent_bundle.proj I M`: the projection from the tangent bundle to the base manifold
 

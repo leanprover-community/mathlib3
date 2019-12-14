@@ -122,7 +122,7 @@ set_option class.instance_max_depth 100
 -- Typeclass inference has difficulty finding `has_scalar ℝ β` where `β` is a `normed_space` on `ℝ`
 local attribute [instance, priority 10000]
   mul_action.to_has_scalar distrib_mul_action.to_mul_action add_comm_group.to_add_comm_monoid
-  normed_group.to_add_comm_group normed_space.to_vector_space vector_space.to_module
+  normed_group.to_add_comm_group normed_space.to_module vector_space.to_module
   module.to_semimodule
 
 namespace measure_theory

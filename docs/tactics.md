@@ -186,6 +186,24 @@ example {α : Type*} {a b : α} [add_comm_group α] (hyp : a + a - a = b - b) : 
 by { abel at hyp, exact hyp }
 ```
 
+### norm_num
+
+Normalises numerical expressions. It supports the operations `+` `-` `*` `/` `^` and `%` over numerical types such as `ℕ`, `ℤ`, `ℚ`, `ℝ`, `ℂ`, and can prove goals of the form `A = B`, `A ≠ B`, `A < B` and `A ≤ B`, where `A` and `B` are
+numerical expressions. It also has a relatively simple primality prover.
+```lean
+import data.real.basic
+
+example : (2 : ℝ) + 2 = 4 := by norm_num
+example : (12345.2 : ℝ) ≠ 12345.3 := by norm_num
+example : (73 : ℝ) < 789/2 := by norm_num
+example : 123456789 + 987654321 = 1111111110 := by norm_num
+example (R : Type*) [ring R] : (2 : R) + 2 = 4 := by norm_num
+example (F : Type*) [linear_ordered_field F] : (2 : F) + 2 < 5 := by norm_num
+example : nat.prime (2^13 - 1) := by norm_num
+example : ¬ nat.prime (2^11 - 1) := by norm_num
+example (x : ℝ) (h : x = 123 + 456) : x = 579 := by norm_num at h; assumption
+```
+
 ### ring
 
 Evaluate expressions in the language of *commutative* (semi)rings.

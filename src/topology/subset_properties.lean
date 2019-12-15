@@ -10,7 +10,7 @@ connected, totally disconnected, totally separated.
 import topology.constructions
 
 open set filter lattice classical
-open_locale classical
+open_locale classical topological_space
 
 universes u v
 variables {α : Type u} {β : Type v} [topological_space α]
@@ -20,12 +20,12 @@ section compact
 
 /-- A set `s` is compact if for every filter `f` that contains `s`,
     every set of `f` also meets every neighborhood of some `a ∈ s`. -/
-def compact (s : set α) := ∀f, f ≠ ⊥ → f ≤ principal s → ∃a∈s, f ⊓ nhds a ≠ ⊥
+def compact (s : set α) := ∀f, f ≠ ⊥ → f ≤ principal s → ∃a∈s, f ⊓ 𝓝 a ≠ ⊥
 
 lemma compact_inter {s t : set α} (hs : compact s) (ht : is_closed t) : compact (s ∩ t) :=
 assume f hnf hstf,
-let ⟨a, hsa, (ha : f ⊓ nhds a ≠ ⊥)⟩ := hs f hnf (le_trans hstf (le_principal_iff.2 (inter_subset_left _ _))) in
-have ∀a, principal t ⊓ nhds a ≠ ⊥ → a ∈ t,
+let ⟨a, hsa, (ha : f ⊓ 𝓝 a ≠ ⊥)⟩ := hs f hnf (le_trans hstf (le_principal_iff.2 (inter_subset_left _ _))) in
+have ∀a, principal t ⊓ 𝓝 a ≠ ⊥ → a ∈ t,
   by intro a; rw [inf_comm]; rw [is_closed_iff_nhds] at ht; exact ht a,
 have a ∈ t,
   from this a $ neq_bot_of_le_neq_bot ha $ inf_le_inf (le_trans hstf (le_principal_iff.2 (inter_subset_right _ _))) (le_refl _),
@@ -39,32 +39,32 @@ lemma compact_of_is_closed_subset {s t : set α}
 by convert ← compact_inter hs ht; exact inter_eq_self_of_subset_right h
 
 lemma compact_adherence_nhdset {s t : set α} {f : filter α}
-  (hs : compact s) (hf₂ : f ≤ principal s) (ht₁ : is_open t) (ht₂ : ∀a∈s, nhds a ⊓ f ≠ ⊥ → a ∈ t) :
+  (hs : compact s) (hf₂ : f ≤ principal s) (ht₁ : is_open t) (ht₂ : ∀a∈s, 𝓝 a ⊓ f ≠ ⊥ → a ∈ t) :
   t ∈ f :=
 classical.by_cases mem_sets_of_neq_bot $
   assume : f ⊓ principal (- t) ≠ ⊥,
-  let ⟨a, ha, (hfa : f ⊓ principal (-t) ⊓ nhds a ≠ ⊥)⟩ := hs _ this $ inf_le_left_of_le hf₂ in
+  let ⟨a, ha, (hfa : f ⊓ principal (-t) ⊓ 𝓝 a ≠ ⊥)⟩ := hs _ this $ inf_le_left_of_le hf₂ in
   have a ∈ t,
     from ht₂ a ha $ neq_bot_of_le_neq_bot hfa $ le_inf inf_le_right $ inf_le_left_of_le inf_le_left,
-  have nhds a ⊓ principal (-t) ≠ ⊥,
+  have 𝓝 a ⊓ principal (-t) ≠ ⊥,
     from neq_bot_of_le_neq_bot hfa $ le_inf inf_le_right $ inf_le_left_of_le inf_le_right,
-  have ∀s∈(nhds a ⊓ principal (-t)).sets, s ≠ ∅,
+  have ∀s∈(𝓝 a ⊓ principal (-t)).sets, s ≠ ∅,
     from forall_sets_neq_empty_iff_neq_bot.mpr this,
   have false,
     from this _ ⟨t, mem_nhds_sets ht₁ ‹a ∈ t›, -t, subset.refl _, subset.refl _⟩ (inter_compl_self _),
   by contradiction
 
 lemma compact_iff_ultrafilter_le_nhds {s : set α} :
-  compact s ↔ (∀f, is_ultrafilter f → f ≤ principal s → ∃a∈s, f ≤ nhds a) :=
+  compact s ↔ (∀f, is_ultrafilter f → f ≤ principal s → ∃a∈s, f ≤ 𝓝 a) :=
 ⟨assume hs : compact s, assume f hf hfs,
   let ⟨a, ha, h⟩ := hs _ hf.left hfs in
   ⟨a, ha, le_of_ultrafilter hf h⟩,
 
-  assume hs : (∀f, is_ultrafilter f → f ≤ principal s → ∃a∈s, f ≤ nhds a),
+  assume hs : (∀f, is_ultrafilter f → f ≤ principal s → ∃a∈s, f ≤ 𝓝 a),
   assume f hf hfs,
-  let ⟨a, ha, (h : ultrafilter_of f ≤ nhds a)⟩ :=
+  let ⟨a, ha, (h : ultrafilter_of f ≤ 𝓝 a)⟩ :=
     hs (ultrafilter_of f) (ultrafilter_ultrafilter_of hf) (le_trans ultrafilter_of_le hfs) in
-  have ultrafilter_of f ⊓ nhds a ≠ ⊥,
+  have ultrafilter_of f ⊓ 𝓝 a ≠ ⊥,
     by simp only [inf_of_le_left, h]; exact (ultrafilter_ultrafilter_of hf).left,
   ⟨a, ha, neq_bot_of_le_neq_bot this (inf_le_inf ultrafilter_of_le (le_refl _))⟩⟩
 
@@ -86,7 +86,7 @@ classical.by_contradiction $ assume h,
   have f ≤ principal s, from infi_le_of_le ⟨∅, empty_subset _, finite_empty⟩ $
     show principal (s \ ⋃₀∅) ≤ principal s, from le_principal_iff.2 (diff_subset _ _),
   let
-    ⟨a, ha, (h : f ⊓ nhds a ≠ ⊥)⟩ := hs f ‹f ≠ ⊥› this,
+    ⟨a, ha, (h : f ⊓ 𝓝 a ≠ ⊥)⟩ := hs f ‹f ≠ ⊥› this,
     ⟨t, ht₁, (ht₂ : a ∈ t)⟩ := hc₂ ha
   in
   have f ≤ principal (-t),
@@ -123,16 +123,16 @@ section
 local attribute [instance, priority 1000] classical.prop_decidable
 lemma compact_of_finite_subcover {s : set α}
   (h : ∀c, (∀t∈c, is_open t) → s ⊆ ⋃₀ c → ∃c'⊆c, finite c' ∧ s ⊆ ⋃₀ c') : compact s :=
-assume f hfn hfs, classical.by_contradiction $ assume : ¬ (∃x∈s, f ⊓ nhds x ≠ ⊥),
-  have hf : ∀x∈s, nhds x ⊓ f = ⊥,
+assume f hfn hfs, classical.by_contradiction $ assume : ¬ (∃x∈s, f ⊓ 𝓝 x ≠ ⊥),
+  have hf : ∀x∈s, 𝓝 x ⊓ f = ⊥,
     by simpa only [not_exists, not_not, inf_comm],
   have ¬ ∃x∈s, ∀t∈f.sets, x ∈ closure t,
     from assume ⟨x, hxs, hx⟩,
-    have ∅ ∈ nhds x ⊓ f, by rw [empty_in_sets_eq_bot, hf x hxs],
+    have ∅ ∈ 𝓝 x ⊓ f, by rw [empty_in_sets_eq_bot, hf x hxs],
     let ⟨t₁, ht₁, t₂, ht₂, ht⟩ := by rw [mem_inf_sets] at this; exact this in
-    have ∅ ∈ nhds x ⊓ principal t₂,
-      from (nhds x ⊓ principal t₂).sets_of_superset (inter_mem_inf_sets ht₁ (subset.refl t₂)) ht,
-    have nhds x ⊓ principal t₂ = ⊥,
+    have ∅ ∈ 𝓝 x ⊓ principal t₂,
+      from (𝓝 x ⊓ principal t₂).sets_of_superset (inter_mem_inf_sets ht₁ (subset.refl t₂)) ht,
+    have 𝓝 x ⊓ principal t₂ = ⊥,
       by rwa [empty_in_sets_eq_bot] at this,
     by simp only [closure_eq_nhds] at hx; exact hx t₂ ht₂ this,
   have ∀x∈s, ∃t∈f.sets, x ∉ closure t, by simpa only [not_exists, not_forall],
@@ -191,10 +191,7 @@ lemma compact_Union_of_compact {f : β → set α} [fintype β]
 by rw ← bUnion_univ; exact compact_bUnion_of_compact finite_univ (λ i _, h i)
 
 lemma compact_of_finite {s : set α} (hs : finite s) : compact s :=
-let s' : set α := ⋃i ∈ s, {i} in
-have e : s' = s, from ext $ λi, by simp only [mem_bUnion_iff, mem_singleton_iff, exists_eq_right'],
-have compact s', from compact_bUnion_of_compact hs (λ_ _, compact_singleton),
-e ▸ this
+bUnion_of_singleton s ▸ compact_bUnion_of_compact hs (λ _ _, compact_singleton)
 
 lemma compact_union_of_compact {s t : set α} (hs : compact s) (ht : compact t) : compact (s ∪ t) :=
 by rw union_eq_Union; exact compact_Union_of_compact (λ b, by cases b; assumption)
@@ -331,6 +328,11 @@ begin
   rw nhds_prod_eq, exact le_inf ha hb
 end
 
+/-- Finite topological spaces are compact. -/
+@[priority 100] instance fintype.compact_space [fintype α] : compact_space α :=
+{ compact_univ := compact_of_finite set.finite_univ }
+
+/-- The product of two compact spaces is compact. -/
 instance [compact_space α] [compact_space β] : compact_space (α × β) :=
 ⟨begin
   have A : compact (set.prod (univ : set α) (univ : set β)) :=
@@ -339,6 +341,7 @@ instance [compact_space α] [compact_space β] : compact_space (α × β) :=
   rwa this at A,
 end⟩
 
+/-- The disjoint union of two compact spaces is compact. -/
 instance [compact_space α] [compact_space β] : compact_space (α ⊕ β) :=
 ⟨begin
   have A : compact (@sum.inl α β '' univ) := compact_image compact_univ continuous_inl,
@@ -358,7 +361,7 @@ begin
   simp [compact_iff_ultrafilter_le_nhds, nhds_pi],
   exact assume h f hf hfs,
     let p : Πi:ι, filter (π i) := λi, map (λx:Πi:ι, π i, x i) f in
-    have ∀i:ι, ∃a, a∈s i ∧ p i ≤ nhds a,
+    have ∀i:ι, ∃a, a∈s i ∧ p i ≤ 𝓝 a,
       from assume i, h i (p i) (ultrafilter_map hf) $
       show (λx:Πi:ι, π i, x i) ⁻¹' s i ∈ f.sets,
         from mem_sets_of_superset hfs $ assume x (hx : ∀i, x i ∈ s i), hx i,
@@ -394,7 +397,7 @@ Hausdorff spaces but not in general. This one is the precise condition on X need
 evaluation `map C(X, Y) × X → Y` to be continuous for all `Y` when `C(X, Y)` is given the
 compact-open topology. -/
 class locally_compact_space (α : Type*) [topological_space α] : Prop :=
-(local_compact_nhds : ∀ (x : α) (n ∈ nhds x), ∃ s ∈ nhds x, s ⊆ n ∧ compact s)
+(local_compact_nhds : ∀ (x : α) (n ∈ 𝓝 x), ∃ s ∈ 𝓝 x, s ⊆ n ∧ compact s)
 
 end compact
 
@@ -577,6 +580,7 @@ subset_connected_component
 class connected_space (α : Type u) [topological_space α] : Prop :=
 (is_connected_univ : is_connected (univ : set α))
 
+@[priority 100] -- see Note [lower instance priority]
 instance irreducible_space.connected_space (α : Type u) [topological_space α]
   [irreducible_space α] : connected_space α :=
 ⟨is_connected_of_is_irreducible $ irreducible_space.is_irreducible_univ α⟩
@@ -637,6 +641,7 @@ let ⟨r, hrt, hruv⟩ := ht u v hu hv (subset.trans hts hsuv) ⟨x, hxt, hxu⟩
 class totally_separated_space (α : Type u) [topological_space α] : Prop :=
 (is_totally_separated_univ : is_totally_separated (univ : set α))
 
+@[priority 100] -- see Note [lower instance priority]
 instance totally_separated_space.totally_disconnected_space (α : Type u) [topological_space α]
   [totally_separated_space α] : totally_disconnected_space α :=
 ⟨is_totally_disconnected_of_is_totally_separated $ totally_separated_space.is_totally_separated_univ α⟩

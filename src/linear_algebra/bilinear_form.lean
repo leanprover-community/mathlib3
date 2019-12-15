@@ -23,7 +23,7 @@ the notation B x y to refer to the function field, ie. B x y = B.bilin x y.
 
 ## References
 
-* https://en.wikipedia.org/wiki/Bilinear_form
+* <https://en.wikipedia.org/wiki/Bilinear_form>
 
 ## Tags
 
@@ -82,7 +82,7 @@ lemma sub_right (x y z : M) :
 B x (y - z) = B x y - B x z := by rw [sub_eq_add_neg, add_right, neg_right]; refl
 
 variable {D : bilin_form R M}
-@[extensionality] lemma ext (H : ∀ (x y : M), B x y = D x y) : B = D := by {cases B, cases D, congr, funext, exact H _ _}
+@[ext] lemma ext (H : ∀ (x y : M), B x y = D x y) : B = D := by {cases B, cases D, congr, funext, exact H _ _}
 
 instance : add_comm_group (bilin_form R M) :=
 { add := λ B D, { bilin := λ x y, B x y + D x y,

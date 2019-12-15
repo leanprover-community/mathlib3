@@ -79,6 +79,9 @@ necessary.
 `rcases` also has special support for quotient types: quotient induction into Prop works like
 matching on the constructor `quot.mk`.
 
+`rcases h : e with PAT` will do the same as `rcases e with PAT` with the exception that an assumption
+`h : e = PAT` will be added to the context.
+
 `rcases? e` will perform case splits on `e` in the same way as `rcases e`,
 but rather than accepting a pattern, it does a maximal cases and prints the
 pattern that would produce this case splitting. The default maximum depth is 5,
@@ -187,6 +190,24 @@ by { abel at hyp, exact hyp }
 
 Evaluate expressions in the language of *commutative* (semi)rings.
 Based on [Proving Equalities in a Commutative Ring Done Right in Coq](http://www.cs.ru.nl/~freek/courses/tt-2014/read/10.1.1.61.3041.pdf) by Benjamin Grégoire and Assia Mahboubi.
+
+The variant `ring!` uses a more aggessive reducibility setting to determine equality of atoms.
+
+### ring_exp
+
+Evaluate expressions in *commutative* (semi)rings, allowing for variables in the exponent.
+
+This tactic extends `ring`: it should solve every goal that `ring` can solve.
+Additionally, it knows how to evaluate expressions with complicated exponents
+(where `ring` only understands constant exponents).
+The variants `ring_exp!` and `ring_exp_eq!` use a more aggessive reducibility setting to determine equality of atoms.
+
+For example:
+```lean
+example (n : ℕ) (m : ℤ) : 2^(n+1) * m = 2 * 2^n * m := by ring_exp
+example (a b : ℤ) (n : ℕ) : (a + b)^(n + 2) = (a^2 + b^2 + a * b + b * a) * (a + b)^n := by ring_exp
+example (x y : ℕ) : x + id y = y + id x := by ring_exp!
+```
 
 ### congr'
 
@@ -349,7 +370,7 @@ unless they are explicitly included.
 ### ext1 / ext
 
  * `ext1 id` selects and apply one extensionality lemma (with
-    attribute `extensionality`), using `id`, if provided, to name a
+    attribute `ext`), using `id`, if provided, to name a
     local constant introduced by the lemma. If `id` is omitted, the
     local constant is named automatically, as per `intro`.
 
@@ -380,12 +401,12 @@ by applying functional extensionality and set extensionality.
 
 A maximum depth can be provided with `ext x y z : 3`.
 
-### The `extensionality` attribute
+### The `ext` attribute
 
  Tag lemmas of the form:
 
  ```lean
- @[extensionality]
+ @[ext]
  lemma my_collection.ext (a b : my_collection)
    (h : ∀ x, a.lookup x = b.lookup y) :
    a = b := ...
@@ -397,32 +418,32 @@ A maximum depth can be provided with `ext x y z : 3`.
  extensionality of multiple types that are definitionally equivalent.
 
  ```lean
- attribute [extensionality [(→),thunk,stream]] funext
+ attribute [ext [(→),thunk,stream]] funext
  ```
 
  Those parameters are cumulative. The following are equivalent:
 
  ```lean
- attribute [extensionality [(→),thunk]] funext
- attribute [extensionality [stream]] funext
+ attribute [ext [(→),thunk]] funext
+ attribute [ext [stream]] funext
  ```
 
  and
 
  ```lean
- attribute [extensionality [(→),thunk,stream]] funext
+ attribute [ext [(→),thunk,stream]] funext
  ```
 
  One removes type names from the list for one lemma with:
 
  ```lean
- attribute [extensionality [-stream,-thunk]] funext
+ attribute [ext [-stream,-thunk]] funext
  ```
 
- Finally, the following:
+ Also, the following:
 
  ```lean
- @[extensionality]
+ @[ext]
  lemma my_collection.ext (a b : my_collection)
    (h : ∀ x, a.lookup x = b.lookup y) :
    a = b := ...
@@ -431,7 +452,7 @@ A maximum depth can be provided with `ext x y z : 3`.
  is equivalent to
 
  ```lean
- @[extensionality *]
+ @[ext *]
  lemma my_collection.ext (a b : my_collection)
    (h : ∀ x, a.lookup x = b.lookup y) :
    a = b := ...
@@ -444,10 +465,28 @@ A maximum depth can be provided with `ext x y z : 3`.
  that referred to in the lemma statement.
 
  ```lean
- @[extensionality [*,my_type_synonym]]
+ @[ext [*,my_type_synonym]]
  lemma my_collection.ext (a b : my_collection)
    (h : ∀ x, a.lookup x = b.lookup y) :
    a = b := ...
+ ```
+
+ Attribute `ext` can be applied to a structure to generate its extensionality lemma:
+
+ ```
+ @[ext]
+ structure foo (α : Type*) :=
+ (x y : ℕ)
+ (z : {z // z < x})
+ (k : α)
+ (h : x < y)
+ ```
+
+ will generate:
+
+ ```
+ @[ext] lemma foo.ext : ∀ {α : Type u_1} (x y : foo α), x.x = y.x → x.y = y.y → x.z == y.z → x.k = y.k → x = y
+ lemma foo.ext_iff : ∀ {α : Type u_1} (x y : foo α), x = y ↔ x.x = y.x ∧ x.y = y.y ∧ x.z == y.z ∧ x.k = y.k
  ```
 
 ### refine_struct
@@ -1050,6 +1089,13 @@ int.cast_coe_nat : ∀ (n : ℕ), ↑↑n = ↑n
 int.cats_id : int.cast_id : ∀ (n : ℤ), ↑n = n
 ```
 
+`push_cast` rewrites the expression to move casts toward the leaf nodes.
+This uses `move_cast` lemmas in the "forward" direction.
+For example, `↑(a + b)` will be written to `↑a + ↑b`.
+It is equivalent to `simp only with push_cast`, and can also be used at hypotheses
+with `push_cast at h`.
+
+
 ### convert_to
 
 `convert_to g using n` attempts to change the current goal to `g`, but unlike `change`,
@@ -1172,7 +1218,7 @@ attribute [simp, reassoc] some_class.bar
 Instead of creating a new assumption from the result, `reassoc_of h` stands for the proof of that reassociated
 statement. This prevents poluting the local context with complicated assumptions used only once or twice.
 
-In the following, assumption `h` is needed in a reassociated form. Instead of proving it as a new goal and adding it as 
+In the following, assumption `h` is needed in a reassociated form. Instead of proving it as a new goal and adding it as
 an assumption, we use `reassoc_of h` as a rewrite rule which works just as well.
 
 ```lean
@@ -1186,7 +1232,7 @@ begin
 end
 ```
 
-Although `reassoc_of` is not a tactic or a meta program, its type is generated 
+Although `reassoc_of` is not a tactic or a meta program, its type is generated
 through meta-programming to make it usable inside normal expressions.
 
 ### lint
@@ -1198,19 +1244,24 @@ User commands to spot common mistakes in the code
 * `#lint_all`: check all declarations in the environment (the current file and all
   imported files)
 
-Five linters are run by default:
-1. `unused_arguments` checks for unused arguments in declarations
-2. `def_lemma` checks whether a declaration is incorrectly marked as a def/lemma
-3. `dup_namespce` checks whether a namespace is duplicated in the name of a declaration
-4. `illegal_constant` checks whether ≥/> is used in the declaration
-5. `doc_blame` checks for missing doc strings on definitions and constants.
+The following linters are run by default:
+1. `unused_arguments` checks for unused arguments in declarations.
+2. `def_lemma` checks whether a declaration is incorrectly marked as a def/lemma.
+3. `dup_namespce` checks whether a namespace is duplicated in the name of a declaration.
+4. `illegal_constant` checks whether ≥/> is used in the declaration.
+5. `instance_priority` checks that instances that always apply have priority below default.
+6. `doc_blame` checks for missing doc strings on definitions and constants.
 
-A sixth linter, `doc_blame_thm`, checks for missing doc strings on lemmas and theorems.
+Another linter, `doc_blame_thm`, checks for missing doc strings on lemmas and theorems.
 This is not run by default.
 
 The command `#list_linters` prints a list of the names of all available linters.
 
-You can append a `-` to any command (e.g. `#lint_mathlib-`) to omit the slow tests (4).
+You can append a `*` to any command (e.g. `#lint_mathlib*`) to omit the slow tests (4).
+
+You can append a `-` to any command (e.g. `#lint_mathlib-`) to run a silent lint
+that suppresses the output of passing checks.
+A silent lint will fail if any test fails.
 
 You can append a sequence of linter names to any command to run extra tests, in addition to the
 default ones. e.g. `#lint doc_blame_thm` will run all default tests and `doc_blame_thm`.
@@ -1222,6 +1273,8 @@ You can add custom linters by defining a term of type `linter` in the `linter` n
 A linter defined with the name `linter.my_new_check` can be run with `#lint my_new_check`
 or `lint only my_new_check`.
 If you add the attribute `@[linter]` to `linter.my_new_check` it will run by default.
+
+Adding the attribute `@[nolint]` to a declaration omits it from all linter checks.
 
 ### lift
 
@@ -1253,6 +1306,9 @@ Lift an expression to another type.
   specify it again as the third argument to `with`, like this: `lift n to ℕ using h with n rfl h`.
 * More generally, this can lift an expression from `α` to `β` assuming that there is an instance
   of `can_lift α β`. In this case the proof obligation is specified by `can_lift.cond`.
+* Given an instance `can_lift β γ`, it can also lift `α → β` to `α → γ`; more generally, given
+  `β : Π a : α, Type*`, `γ : Π a : α, Type*`, and `[Π a : α, can_lift (β a) (γ a)]`, it automatically
+  generates an instance `can_lift (Π a, β a) (Π a, γ a)`.
 
 ### import_private
 
@@ -1273,23 +1329,49 @@ See also additional documentation of `using_well_founded` in
 ### simps
 
 * The `@[simps]` attribute automatically derives lemmas specifying the projections of the declaration.
-* Example:
+* Example: (note that the forward and reverse functions are specified differently!)
   ```lean
-  @[simps] def refl (α) : α ≃ α := ⟨id, id, λ x, rfl, λ x, rfl⟩
+  @[simps] def refl (α) : α ≃ α := ⟨id, λ x, x, λ x, rfl, λ x, rfl⟩
   ```
   derives two simp-lemmas:
   ```lean
-  @[simp] lemma refl_to_fun (α) : (refl α).to_fun = id
-  @[simp] lemma refl_inv_fun (α) : (refl α).inv_fun = id
+  @[simp] lemma refl_to_fun (α) (x : α) : (refl α).to_fun x = id x
+  @[simp] lemma refl_inv_fun (α) (x : α) : (refl α).inv_fun x = x
   ```
 * It does not derive simp-lemmas for the prop-valued projections.
 * It will automatically reduce newly created beta-redexes, but not unfold any definitions.
 * If one of the fields itself is a structure, this command will recursively create
   simp-lemmas for all fields in that structure.
+* You can use `@[simps proj1 proj2 ...]` to only generate the projection lemmas for the specified
+  projections. For example:
+  ```lean
+  attribute [simps to_fun] refl
+  ```
 * If one of the values is an eta-expanded structure, we will eta-reduce this structure.
 * You can use `@[simps lemmas_only]` to derive the lemmas, but not mark them
   as simp-lemmas.
+* You can use `@[simps short_name]` to only use the name of the last projection for the name of the
+  generated lemmas.
+* The precise syntax is `('simps' 'lemmas_only'? 'short_name'? ident*)`.
 * If one of the projections is marked as a coercion, the generated lemmas do *not* use this
   coercion.
+* `@[simps]` reduces let-expressions where necessary.
 * If one of the fields is a partially applied constructor, we will eta-expand it
   (this likely never happens).
+
+### mk_simp_attribute
+
+The command `mk_simp_attribute simp_name "description"` creates a simp set with name `simp_name`.
+Lemmas tagged with `@[simp_name]` will be included when `simp with simp_name` is called.
+`mk_simp_attribute simp_name none` will use a default description.
+
+Appending the command with `with attr1 attr2 ...` will include all declarations tagged with
+`attr1`, `attr2`, ... in the new simp set.
+
+This command is preferred to using ``run_cmd mk_simp_attr `simp_name`` since it adds a doc string
+to the attribute that is defined. If you need to create a simp set in a file where this command is not
+available, you should use
+```lean
+run_cmd mk_simp_attr `simp_name
+run_cmd add_doc_string `simp_attr.simp_name "Description of the simp set here"
+```

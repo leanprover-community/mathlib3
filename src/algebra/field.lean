@@ -9,10 +9,12 @@ open set
 universe u
 variables {α : Type u}
 
--- Default priority sufficient as core version has custom-set lower priority (100)
 /-- Core version `division_ring_has_div` erratically requires two instances of `division_ring` -/
+-- priority 900 sufficient as core version has custom-set lower priority (100)
+@[priority 900] -- see Note [lower instance priority]
 instance division_ring_has_div' [division_ring α] : has_div α := ⟨algebra.div⟩
 
+@[priority 100] -- see Note [lower instance priority]
 instance division_ring.to_domain [s : division_ring α] : domain α :=
 { eq_zero_or_eq_zero_of_mul_eq_zero := λ a b h,
     classical.by_contradiction $ λ hn,
@@ -122,6 +124,7 @@ lemma div_eq_iff_mul_eq (hb : b ≠ 0) : a / b = c ↔ c * b = a :=
 
 end division_ring
 
+@[priority 100] -- see Note [lower instance priority]
 instance field.to_integral_domain [F : field α] : integral_domain α :=
 { ..F, ..division_ring.to_domain }
 
@@ -197,14 +200,12 @@ end
 
 end
 
-@[reducible] def is_field_hom {α β} [division_ring α] [division_ring β] (f : α → β) := is_ring_hom f
-
-namespace is_field_hom
+namespace is_ring_hom
 open is_ring_hom
 
 section
 variables {β : Type*} [division_ring α] [division_ring β]
-variables (f : α → β) [is_field_hom f] {x y : α}
+variables (f : α → β) [is_ring_hom f] {x y : α}
 
 lemma map_ne_zero : f x ≠ 0 ↔ x ≠ 0 :=
 ⟨mt $ λ h, h.symm ▸ map_zero f,
@@ -232,7 +233,7 @@ end
 
 section
 variables {β : Type*} [discrete_field α] [discrete_field β]
-variables (f : α → β) [is_field_hom f] {x y : α}
+variables (f : α → β) [is_ring_hom f] {x y : α}
 
 lemma map_inv : f x⁻¹ = (f x)⁻¹ :=
 classical.by_cases (by rintro rfl; simp only [map_zero f, inv_zero]) (map_inv' f)
@@ -242,4 +243,4 @@ lemma map_div : f (x / y) = f x / f y :=
 
 end
 
-end is_field_hom
+end is_ring_hom

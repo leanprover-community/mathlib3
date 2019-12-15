@@ -8,21 +8,18 @@ Nonnegative real numbers.
 import data.real.nnreal topology.instances.real topology.algebra.infinite_sum
 noncomputable theory
 open set topological_space metric
+open_locale topological_space
 
 namespace nnreal
 open_locale nnreal
 
-instance : topological_space ℝ≥0 := infer_instance
+instance : topological_space ℝ≥0 := infer_instance -- short-circuit type class inference
 
 instance : topological_semiring ℝ≥0 :=
-{ continuous_mul :=
-   continuous_subtype_mk _
-        (continuous_mul (continuous.comp continuous_subtype_val continuous_fst)
-                        (continuous.comp continuous_subtype_val continuous_snd)),
-  continuous_add :=
-    continuous_subtype_mk _
-          (continuous_add (continuous.comp continuous_subtype_val continuous_fst)
-                          (continuous.comp continuous_subtype_val continuous_snd)) }
+{ continuous_mul := continuous_subtype_mk _ $
+    (continuous_subtype_val.comp continuous_fst).mul (continuous_subtype_val.comp continuous_snd),
+  continuous_add := continuous_subtype_mk _ $
+    (continuous_subtype_val.comp continuous_fst).add (continuous_subtype_val.comp continuous_snd) }
 
 instance : second_countable_topology nnreal :=
 topological_space.subtype.second_countable_topology _ _
@@ -32,7 +29,7 @@ instance : orderable_topology ℝ≥0 :=
     (le_generate_from $ assume s hs,
     match s, hs with
     | _, ⟨⟨a, ha⟩, or.inl rfl⟩ := ⟨{b : ℝ | a < b}, is_open_lt' a, rfl⟩
-    | _, ⟨⟨a, ha⟩, or.inr rfl⟩ := ⟨{b : ℝ | b < a}, is_open_gt' a, set.ext $ assume b, iff.refl _⟩
+    | _, ⟨⟨a, ha⟩, or.inr rfl⟩ := ⟨{b : ℝ | b < a}, is_open_gt' a, set.ext $ assume b, iff.rfl⟩
     end)
     begin
       apply coinduced_le_iff_le_induced.1,
@@ -63,38 +60,38 @@ variable {α : Type*}
 open filter
 
 lemma continuous_of_real : continuous nnreal.of_real :=
-continuous_subtype_mk _ $ continuous_max continuous_id continuous_const
+continuous_subtype_mk _ $ continuous_id.max continuous_const
 
 lemma continuous_coe : continuous (coe : nnreal → ℝ) :=
 continuous_subtype_val
 
 lemma tendsto_coe {f : filter α} {m : α → nnreal} :
-  ∀{x : nnreal}, tendsto (λa, (m a : ℝ)) f (nhds (x : ℝ)) ↔ tendsto m f (nhds x)
+  ∀{x : nnreal}, tendsto (λa, (m a : ℝ)) f (𝓝 (x : ℝ)) ↔ tendsto m f (𝓝 x)
 | ⟨r, hr⟩ := by rw [nhds_subtype_eq_comap, tendsto_comap_iff]; refl
 
-lemma tendsto_of_real {f : filter α} {m : α → ℝ} {x : ℝ} (h : tendsto m f (nhds x)) :
-  tendsto (λa, nnreal.of_real (m a)) f (nhds (nnreal.of_real x)) :=
+lemma tendsto_of_real {f : filter α} {m : α → ℝ} {x : ℝ} (h : tendsto m f (𝓝 x)) :
+  tendsto (λa, nnreal.of_real (m a)) f (𝓝 (nnreal.of_real x)) :=
 tendsto.comp (continuous_iff_continuous_at.1 continuous_of_real _) h
 
-lemma tendsto_sub {f : filter α} {m n : α → nnreal} {r p : nnreal}
-  (hm : tendsto m f (nhds r)) (hn : tendsto n f (nhds p)) :
-  tendsto (λa, m a - n a) f (nhds (r - p)) :=
-tendsto_of_real $ tendsto_sub (tendsto_coe.2 hm) (tendsto_coe.2 hn)
+lemma tendsto.sub {f : filter α} {m n : α → nnreal} {r p : nnreal}
+  (hm : tendsto m f (𝓝 r)) (hn : tendsto n f (𝓝 p)) :
+  tendsto (λa, m a - n a) f (𝓝 (r - p)) :=
+tendsto_of_real $ (tendsto_coe.2 hm).sub (tendsto_coe.2 hn)
 
-lemma continuous_sub' : continuous (λp:nnreal×nnreal, p.1 - p.2) :=
-  continuous_subtype_mk _ (continuous_max
-    (continuous_sub (continuous.comp continuous_coe continuous_fst)
-                    (continuous.comp continuous_coe continuous_snd))
-                                                      continuous_const)
+lemma continuous_sub : continuous (λp:nnreal×nnreal, p.1 - p.2) :=
+continuous_subtype_mk _ $
+  ((continuous.comp continuous_coe continuous_fst).sub
+   (continuous.comp continuous_coe continuous_snd)).max continuous_const
 
-lemma continuous_sub [topological_space α] {f g : α → nnreal}
+lemma continuous.sub [topological_space α] {f g : α → nnreal}
   (hf : continuous f) (hg : continuous g) : continuous (λ a, f a - g a) :=
-continuous_sub'.comp (hf.prod_mk hg)
+continuous_sub.comp (hf.prod_mk hg)
 
-lemma has_sum_coe {f : α → nnreal} {r : nnreal} : has_sum (λa, (f a : ℝ)) (r : ℝ) ↔ has_sum f r :=
+@[elim_cast] lemma has_sum_coe {f : α → nnreal} {r : nnreal} :
+  has_sum (λa, (f a : ℝ)) (r : ℝ) ↔ has_sum f r :=
 by simp [has_sum, sum_coe.symm, tendsto_coe]
 
-lemma summable_coe {f : α → nnreal} : summable (λa, (f a : ℝ)) ↔ summable f :=
+@[elim_cast] lemma summable_coe {f : α → nnreal} : summable (λa, (f a : ℝ)) ↔ summable f :=
 begin
   simp [summable],
   split,
@@ -102,8 +99,19 @@ begin
   exact assume ⟨a, ha⟩, ⟨a.1, has_sum_coe.2 ha⟩
 end
 
-lemma tsum_coe {f : α → nnreal} (hf : summable f) : (∑a, (f a : ℝ)) = ↑(∑a, f a) :=
-tsum_eq_has_sum $ has_sum_coe.2 $ has_sum_tsum $ hf
+open_locale classical
+
+@[move_cast] lemma coe_tsum {f : α → nnreal} : ↑(∑a, f a) = (∑a, (f a : ℝ)) :=
+if hf : summable f
+then (eq.symm $ tsum_eq_has_sum $ has_sum_coe.2 $ has_sum_tsum $ hf)
+else by simp [tsum, hf, mt summable_coe.1 hf]
+
+lemma summable_comp_injective {β : Type*} {f : α → nnreal} (hf : summable f)
+  {i : β → α} (hi : function.injective i) :
+  summable (f ∘ i) :=
+nnreal.summable_coe.1 $
+show summable ((coe ∘ f) ∘ i),
+from summable_comp_of_summable_of_injective _ (nnreal.summable_coe.2 hf) hi
 
 end coe
 

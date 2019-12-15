@@ -758,6 +758,9 @@ theorem to_nat_eq_max : ∀ (a : ℤ), (to_nat a : ℤ) = max a 0
 @[simp] theorem to_nat_of_nonneg {a : ℤ} (h : 0 ≤ a) : (to_nat a : ℤ) = a :=
 by rw [to_nat_eq_max, max_eq_left h]
 
+@[simp] lemma to_nat_sub_of_le (a b : ℤ) (h : b ≤ a) : (to_nat (a + -b) : ℤ) = a + - b :=
+int.to_nat_of_nonneg (sub_nonneg_of_le h)
+
 @[simp] theorem to_nat_coe_nat (n : ℕ) : to_nat ↑n = n := rfl
 
 theorem le_to_nat (a : ℤ) : a ≤ to_nat a :=
@@ -1191,13 +1194,16 @@ funext $ int.eq_cast f (is_ring_hom.map_one f) (λ _ _, is_ring_hom.map_add f)
 @[simp, squash_cast] theorem cast_id (n : ℤ) : ↑n = n :=
 (eq_cast id rfl (λ _ _, rfl) n).symm
 
-@[simp, move_cast] theorem cast_min [decidable_linear_ordered_comm_ring α] {a b : ℤ} : (↑(min a b) : α) = min a b :=
+@[simp, move_cast] theorem cast_min [decidable_linear_ordered_comm_ring α] {a b : ℤ} :
+  (↑(min a b) : α) = min a b :=
 by by_cases a ≤ b; simp [h, min]
 
-@[simp, move_cast] theorem cast_max [decidable_linear_ordered_comm_ring α] {a b : ℤ} : (↑(max a b) : α) = max a b :=
+@[simp, move_cast] theorem cast_max [decidable_linear_ordered_comm_ring α] {a b : ℤ} :
+  (↑(max a b) : α) = max a b :=
 by by_cases a ≤ b; simp [h, max]
 
-@[simp, move_cast] theorem cast_abs [decidable_linear_ordered_comm_ring α] {q : ℤ} : ((abs q : ℤ) : α) = abs q :=
+@[simp, move_cast] theorem cast_abs [decidable_linear_ordered_comm_ring α] {q : ℤ} :
+  ((abs q : ℤ) : α) = abs q :=
 by simp [abs]
 
 end cast
@@ -1234,3 +1240,16 @@ int.decidable_le_le P _ _
 end decidable
 
 end int
+
+section ring_hom
+
+variables {α : Type*} {β : Type*} [ring α] [ring β]
+
+lemma is_ring_hom.map_int_cast (f : α → β) [is_ring_hom f] (n : ℤ) : f n = n :=
+int.eq_cast (λ n : ℤ, f n) (by simp [is_ring_hom.map_one f])
+  (by simp [is_ring_hom.map_add f]) _
+
+lemma ring_hom.map_int_cast (f : α →+* β) (n : ℤ) : f n = n :=
+is_ring_hom.map_int_cast _ _
+
+end ring_hom

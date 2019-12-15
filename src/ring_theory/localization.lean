@@ -112,7 +112,7 @@ instance of.is_ring_hom : is_ring_hom (of : α → localization α S) :=
 
 variables {S}
 
-instance : has_coe α (localization α S) := ⟨of⟩
+instance : has_coe_t α (localization α S) := ⟨of⟩ -- note [use has_coe_t]
 
 instance coe.is_ring_hom : is_ring_hom (coe : α → localization α S) :=
 localization.of.is_ring_hom
@@ -547,7 +547,7 @@ localization.map_coe _ _ _
   map f hf ∘ (of : A → fraction_ring A) = (of : B → fraction_ring B) ∘ f :=
 localization.map_comp_of _ _
 
-instance map.is_field_hom (hf : injective f) : is_field_hom (map f hf) :=
+instance map.is_ring_hom (hf : injective f) : is_ring_hom (map f hf) :=
 localization.map.is_ring_hom _ _
 
 def equiv_of_equiv (h : A ≃+* B) : fraction_ring A ≃+* fraction_ring B :=

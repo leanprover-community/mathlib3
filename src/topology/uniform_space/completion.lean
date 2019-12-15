@@ -41,7 +41,7 @@ noncomputable theory
 open filter set
 universes u v w x
 
-open_locale uniformity classical
+open_locale uniformity classical topological_space
 
 /-- Space of Cauchy filters
 
@@ -317,10 +317,10 @@ instance complete_space_separation [h : complete_space α] :
   have cauchy (f.comap (λx, ⟦x⟧)), from
     cauchy_comap comap_quotient_le_uniformity hf $
       comap_neq_bot_of_surj hf.left $ assume b, quotient.exists_rep _,
-  let ⟨x, (hx : f.comap (λx, ⟦x⟧) ≤ nhds x)⟩ := complete_space.complete this in
+  let ⟨x, (hx : f.comap (λx, ⟦x⟧) ≤ 𝓝 x)⟩ := complete_space.complete this in
   ⟨⟦x⟧, calc f = map (λx, ⟦x⟧) (f.comap (λx, ⟦x⟧)) :
       (map_comap $ univ_mem_sets' $ assume b, quotient.exists_rep _).symm
-    ... ≤ map (λx, ⟦x⟧) (nhds x) : map_mono hx
+    ... ≤ map (λx, ⟦x⟧) (𝓝 x) : map_mono hx
     ... ≤ _ : continuous_iff_continuous_at.mp uniform_continuous_quotient_mk.continuous _⟩⟩
 
 
@@ -341,7 +341,7 @@ instance : t2_space (completion α) := separated_t2
 instance : regular_space (completion α) := separated_regular
 
 /-- Automatic coercion from `α` to its completion. Not always injective. -/
-instance : has_coe α (completion α) := ⟨quotient.mk ∘ pure_cauchy⟩
+instance : has_coe_t α (completion α) := ⟨quotient.mk ∘ pure_cauchy⟩ -- note [use has_coe_t]
 
 protected lemma coe_eq : (coe : α → completion α) = quotient.mk ∘ pure_cauchy := rfl
 
@@ -361,8 +361,11 @@ lemma uniform_inducing_coe : uniform_inducing  (coe : α → completion α) :=
 
 variables {α}
 
-lemma dense : closure (range (coe : α → completion α)) = univ :=
-by rw [completion.coe_eq, range_comp]; exact quotient_dense_of_dense pure_cauchy_dense
+lemma dense : dense_range (coe : α → completion α) :=
+begin
+  rw [dense_range_iff_closure_range, completion.coe_eq, range_comp],
+  exact quotient_dense_of_dense pure_cauchy_dense
+end
 
 variables (α)
 
@@ -373,7 +376,7 @@ def cpkg {α : Type*} [uniform_space α] : abstract_completion α :=
   complete := by apply_instance,
   separation := by apply_instance,
   uniform_inducing := completion.uniform_inducing_coe α,
-  dense := (dense_range_iff_closure_eq _).2 completion.dense }
+  dense := completion.dense }
 
 local attribute [instance]
 abstract_completion.uniform_struct abstract_completion.complete abstract_completion.separation
@@ -394,26 +397,19 @@ lemma uniform_embedding_coe [separated α] : uniform_embedding  (coe : α → co
 variable {α}
 
 lemma dense_inducing_coe : dense_inducing (coe : α → completion α) :=
-{ dense := (dense_range_iff_closure_eq _).2 dense,
+{ dense := dense,
   ..(uniform_inducing_coe α).inducing }
 
 lemma dense_embedding_coe [separated α]: dense_embedding (coe : α → completion α) :=
 { inj := injective_separated_pure_cauchy,
   ..dense_inducing_coe }
 
-lemma dense₂ : closure (range (λx:α × β, ((x.1 : completion α), (x.2 : completion β)))) = univ :=
-by rw [← set.prod_range_range_eq, closure_prod_eq, dense, dense, univ_prod_univ]
+lemma dense₂ : dense_range (λx:α × β, ((x.1 : completion α), (x.2 : completion β))) :=
+dense.prod dense
 
 lemma dense₃ :
-  closure (range (λx:α × (β × γ), ((x.1 : completion α), ((x.2.1 : completion β), (x.2.2 : completion γ))))) = univ :=
-let a : α → completion α := coe, bc := λp:β × γ, ((p.1 : completion β), (p.2 : completion γ)) in
-show closure (range (λx:α × (β × γ), (a x.1, bc x.2))) = univ,
-begin
-  rw [← set.prod_range_range_eq, @closure_prod_eq _ _ _ _ (range a) (range bc), ← univ_prod_univ],
-  congr,
-  exact dense,
-  exact dense₂
-end
+  dense_range (λx:α × (β × γ), ((x.1 : completion α), ((x.2.1 : completion β), (x.2.2 : completion γ)))) :=
+dense.prod dense₂
 
 @[elab_as_eliminator]
 lemma induction_on {p : completion α → Prop}
@@ -437,27 +433,6 @@ lemma induction_on₃ {p : completion α → completion β → completion γ →
 have ∀x : completion α × completion β × completion γ, p x.1 x.2.1 x.2.2, from
   is_closed_property dense₃ hp $ assume ⟨a, b, c⟩, ih a b c,
 this (a, b, c)
-
-@[elab_as_eliminator]
-lemma induction_on₄ {δ : Type*} [uniform_space δ]
-  {p : completion α → completion β → completion γ → completion δ → Prop}
-  (a : completion α) (b : completion β) (c : completion γ) (d : completion δ)
-  (hp : is_closed {x : (completion α × completion β) × (completion γ × completion δ) | p x.1.1 x.1.2 x.2.1 x.2.2})
-  (ih : ∀(a:α) (b:β) (c:γ) (d : δ), p ↑a ↑b ↑c ↑d) : p a b c d :=
-let
-  ab := λp:α × β, ((p.1 : completion α), (p.2 : completion β)),
-  cd := λp:γ × δ, ((p.1 : completion γ), (p.2 : completion δ))
-in
-have dense₄ : closure (range (λx:(α × β) × (γ × δ), (ab x.1, cd x.2))) = univ,
-begin
-  rw [← set.prod_range_range_eq, @closure_prod_eq _ _ _ _ (range ab) (range cd), ← univ_prod_univ],
-  congr,
-  exact dense₂,
-  exact dense₂
-end,
-have ∀x:(completion α × completion β) × (completion γ × completion δ), p x.1.1 x.1.2 x.2.1 x.2.2, from
-  is_closed_property dense₄ hp (assume p:(α×β)×(γ×δ), ih p.1.1 p.1.2 p.2.1 p.2.2),
-this ((a, b), (c, d))
 
 lemma ext [t2_space β] {f g : completion α → β} (hf : continuous f) (hg : continuous g)
   (h : ∀a:α, f a = g a) : f = g :=
@@ -538,7 +513,7 @@ begin
   refine ⟨completion.extension (separation_quotient.lift (coe : α → completion α)),
     completion.map quotient.mk, _, _⟩,
   { assume a,
-    refine completion.induction_on a (is_closed_eq (continuous_map.comp continuous_extension) continuous_id) _,
+    refine induction_on a (is_closed_eq (continuous_map.comp continuous_extension) continuous_id) _,
     rintros ⟨a⟩,
     show completion.map quotient.mk (completion.extension (separation_quotient.lift coe) ↑⟦a⟧) = ↑⟦a⟧,
     rw [extension_coe (separation_quotient.uniform_continuous_lift _),

@@ -2,19 +2,27 @@
 Copyright (c) 2019 Sébastien Gouëzel. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Author: Sébastien Gouëzel
+-/
 
-The Gromov-Hausdorff distance on the space of nonempty compact metric spaces up to isometry.
+import topology.metric_space.closeds set_theory.cardinal topology.metric_space.gromov_hausdorff_realized
+topology.metric_space.completion
+
+/-!
+# Gromov-Hausdorff distance
+
+This file defines the Gromov-Hausdorff distance on the space of nonempty compact metric spaces
+up to isometry.
 
 We introduces the space of all nonempty compact metric spaces, up to isometry,
 called `GH_space`, and endow it with a metric space structure. The distance,
 known as the Gromov-Hausdorff distance, is defined as follows: given two
-nonempty compact spaces X and Y, their distance is the minimum Hausdorff distance
-between all possible isometric embeddings of X and Y in all metric spaces.
+nonempty compact spaces `X` and `Y`, their distance is the minimum Hausdorff distance
+between all possible isometric embeddings of `X` and `Y` in all metric spaces.
 To define properly the Gromov-Hausdorff space, we consider the non-empty
-compact subsets of ℓ^∞(ℝ) up to isometry, which is a well-defined type,
+compact subsets of `ℓ^∞(ℝ)` up to isometry, which is a well-defined type,
 and define the distance as the infimum of the Hausdorff distance over all
 embeddings in ℓ^∞(ℝ). We prove that this coincides with the previous description,
-as all separable metric spaces embed isometrically into ℓ^∞(ℝ), through an
+as all separable metric spaces embed isometrically into `ℓ^∞(ℝ)`, through an
 embedding called the Kuratowski embedding.
 To prove that we have a distance, we should show that if spaces can be coupled
 to be arbitrarily close, then they are isometric. More generally, the Gromov-Hausdorff
@@ -22,16 +30,16 @@ distance is realized, i.e., there is a coupling for which the Hausdorff distance
 is exactly the Gromov-Hausdorff distance. This follows from a compactness
 argument, essentially following from Arzela-Ascoli.
 
+## Main results
+
 We prove the most important properties of the Gromov-Hausdorff space: it is a polish space,
 i.e., it is complete and second countable. We also prove the Gromov compactness criterion.
+
 -/
-
-import topology.metric_space.closeds set_theory.cardinal topology.metric_space.gromov_hausdorff_realized
-topology.metric_space.completion
-
 
 noncomputable theory
 open_locale classical
+open_locale topological_space
 universes u v w
 
 open classical lattice set function topological_space filter metric quotient
@@ -219,7 +227,8 @@ begin
   have Bβ : ⟦B⟧ = to_GH_space β,
   { rw eq_to_GH_space_iff,
     exact ⟨λx, F (Ψ' x), ⟨(Kuratowski_embedding.isometry _).comp IΨ', by rw range_comp⟩⟩ },
-  refine cInf_le ⟨0, begin simp, assume t _ _ _ _ ht, rw ← ht, exact Hausdorff_dist_nonneg end⟩ _,
+  refine cInf_le ⟨0,
+    begin simp [lower_bounds], assume t _ _ _ _ ht, rw ← ht, exact Hausdorff_dist_nonneg end⟩ _,
   apply (mem_image _ _ _).2,
   existsi (⟨A, B⟩ : nonempty_compacts ℓ_infty_ℝ × nonempty_compacts ℓ_infty_ℝ),
   simp [Aα, Bβ]
@@ -505,7 +514,7 @@ end
 
 lemma to_GH_space_lipschitz :
   lipschitz_with 1 (nonempty_compacts.to_GH_space : nonempty_compacts α → GH_space) :=
-⟨zero_le_one, by { simp, exact GH_dist_le_nonempty_compacts_dist } ⟩
+lipschitz_with.one_mk GH_dist_le_nonempty_compacts_dist
 
 lemma to_GH_space_continuous :
   continuous (nonempty_compacts.to_GH_space : nonempty_compacts α → GH_space) :=
@@ -523,6 +532,8 @@ the two spaces, by gluing them (approximately) along the two matching subsets. -
 variables {α : Type u} [metric_space α] [compact_space α] [nonempty α]
           {β : Type v} [metric_space β] [compact_space β] [nonempty β]
 
+-- we want to ignore these instances in the following theorem
+local attribute [instance, priority 10] sum.topological_space sum.uniform_space
 /-- If there are subsets which are ε1-dense and ε3-dense in two spaces, and
 isometric up to ε2, then the Gromov-Hausdorff distance between the spaces is bounded by
 ε1 + ε2/2 + ε3. -/
@@ -727,7 +738,7 @@ a uniformly bounded diameter, and for all ε the number of balls of radius ε re
 to cover the space is uniformly bounded. This is an equivalence, but we only prove the
 interesting direction that these conditions imply compactness. -/
 lemma totally_bounded {t : set GH_space} {C : ℝ} {u : ℕ → ℝ} {K : ℕ → ℕ}
-  (ulim : tendsto u at_top (nhds 0))
+  (ulim : tendsto u at_top (𝓝 0))
   (hdiam : ∀p ∈ t, diam (univ : set (GH_space.rep p)) ≤ C)
   (hcov : ∀p ∈ t, ∀n:ℕ, ∃s : set (GH_space.rep p), cardinal.mk s ≤ K n ∧ univ ⊆ ⋃x∈s, ball x (u n)) :
   totally_bounded t :=
@@ -998,7 +1009,7 @@ begin
   -- therefore, it converges to a limit `L`
   rcases cauchy_seq_tendsto_of_complete this with ⟨L, hL⟩,
   -- the images of `X3 n` in the Gromov-Hausdorff space converge to the image of `L`
-  have M : tendsto (λn, (X3 n).to_GH_space) at_top (nhds L.to_GH_space) :=
+  have M : tendsto (λn, (X3 n).to_GH_space) at_top (𝓝 L.to_GH_space) :=
     tendsto.comp (to_GH_space_continuous.tendsto _) hL,
   -- By construction, the image of `X3 n` in the Gromov-Hausdorff space is `u n`.
   have : ∀n, (X3 n).to_GH_space = u n,

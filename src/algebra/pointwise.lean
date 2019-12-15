@@ -2,11 +2,37 @@
 Copyright (c) 2019 Johan Commelin. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johan Commelin
-
-Pointwise addition and multiplication of sets
 -/
 
-import data.set.finite data.set.lattice group_theory.group_action
+import data.set.finite data.set.lattice group_theory.group_action algebra.module
+
+/-!
+
+# Pointwise addition, multiplication, and scalar multiplication of sets.
+
+This file defines `pointwise_mul`: for a type `α` with multiplication,
+multiplication is defined on `set α` by taking `s * t` to be the set
+of all `x * y` where `x ∈ s` and `y ∈ t`.
+
+Pointwise multiplication on `set α` where `α` is a semigroup makes
+`set α` into a semigroup. If `α` is additionally a (commutative)
+monoid, `set α` becomes a (commutative) semiring with union as
+addition. These are given by `pointwise_mul_semigroup` and
+`pointwise_mul_semiring`.
+
+Definitions and results are also transported to the additive theory
+via `to_additive`.
+
+For a type `β` with scalar multiplication by another type `α`, this
+file defines `pointwise_smul`. Separately it defines `smul_set`, for
+scalar multiplication of `set β` by a single term of type `α`.
+
+## Implementation notes
+
+Elsewhere, one should register local instances to use the definitions
+in this file.
+
+-/
 
 namespace set
 open function
@@ -185,6 +211,15 @@ def pointwise_mul_comm_semiring [comm_monoid α] : comm_semiring (set α) :=
 
 local attribute [instance] pointwise_mul_semiring
 
+def comm_monoid [comm_monoid α] : comm_monoid (set α) :=
+@comm_semiring.to_comm_monoid (set α) pointwise_mul_comm_semiring
+
+def add_comm_monoid [add_comm_monoid α] : add_comm_monoid (set α) :=
+show @add_comm_monoid (additive (set (multiplicative α))),
+from @additive.add_comm_monoid _ set.comm_monoid
+
+attribute [to_additive set.add_comm_monoid] set.comm_monoid
+
 section is_mul_hom
 open is_mul_hom
 
@@ -245,4 +280,46 @@ end
 
 end monoid
 
+/-- Pointwise scalar multiplication by a set of scalars. -/
+def pointwise_smul [has_scalar α β] : has_scalar (set α) (set β) :=
+  ⟨λ s t, { x | ∃ a ∈ s, ∃ y ∈ t, x  = a • y }⟩
+
+/-- Scaling a set: multiplying every element by a scalar. -/
+def smul_set [has_scalar α β] : has_scalar α (set β) :=
+  ⟨λ a s, (λ y, a • y) '' s⟩
+
+local attribute [instance] pointwise_smul smul_set
+
+lemma smul_set_eq_pointwise_smul_singleton [has_scalar α β]
+  (a : α) (s : set β) : a • s = ({a} : set α) • s :=
+set.ext $ λ x, iff.intro
+  (λ ⟨_, ht, hx⟩, ⟨a, mem_singleton _, _, ht, hx.symm⟩)
+  (λ ⟨a', ha', y, hy, hx⟩, ⟨_, hy, by {
+    rw mem_singleton_iff at ha'; rw ha' at hx; exact hx.symm }⟩)
+
+/-- A set scaled by 1 is itself. -/
+lemma one_smul_set [monoid α] [mul_action α β] (s : set β) : (1 : α) • s = s :=
+set.ext $ λ x, iff.intro
+  (λ ⟨y, hy, hx⟩, by { rw ←hx, show (1 : α) • y ∈ s, by rwa one_smul })
+  (λ hx, ⟨x, hx, show (1 : α) • x = x, by rwa one_smul⟩)
+
 end set
+
+section
+
+open set
+
+variables {α : Type*} {β : Type*}
+
+local attribute [instance] set.smul_set
+
+/-- A nonempty set in a semimodule is scaled by zero to the singleton
+containing 0 in the semimodule. -/
+lemma zero_smul_set [semiring α] [add_comm_monoid β] [semimodule α β]
+  {s : set β} (h : s ≠ ∅) : (0 : α) • s = {(0 : β)} :=
+set.ext $ λ x, iff.intro
+(λ ⟨y, hy, hx⟩, mem_singleton_iff.mpr (by { rw ←hx; exact zero_smul α y}))
+(λ hx, let ⟨_, hs⟩ := set.ne_empty_iff_exists_mem.mp h in
+  ⟨_, hs, show (0 : α) • _ = x, by { rw mem_singleton_iff at hx; rw [hx, zero_smul] }⟩)
+
+end

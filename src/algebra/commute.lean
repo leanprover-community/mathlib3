@@ -31,7 +31,7 @@ rather than just `rw [hb.pow_left 5]`.
 Most of the proofs come from the properties of `semiconj_by`.
 -/
 
-/-- Two elements commute, if `a * b = b * a`. -/
+/-- Two elements commute iff `a * b = b * a`. -/
 def commute {S : Type*} [has_mul S] (a b : S) : Prop := semiconj_by a b b
 
 open_locale smul
@@ -225,12 +225,14 @@ section centralizer
 
 variables {S : Type*} [has_mul S]
 
-/-- Centralizer of an element `a : S` is the set of elements that commute with `a`. -/
+/-- Centralizer of an element `a : S` as the set of elements that commute with `a`; for `S` a
+    monoid, `submonoid.centralizer` is the centralizer as a submonoid. -/
 def centralizer (a : S) : set S := { x | commute a x }
 
 @[simp] theorem mem_centralizer {a b : S} : b ∈ centralizer a ↔ commute a b := iff.rfl
 
-/-- Centralizer of a set `T` is the set of elements that commute with all `a ∈ T`. -/
+/-- Centralizer of a set `T` as the set of elements of `S` that commute with all `a ∈ T`; for
+    `S` a monoid, `submonoid.set.centralizer` is the set centralizer as a submonoid. -/
 protected def set.centralizer (s : set S) : set S := { x | ∀ a ∈ s, commute a x }
 
 @[simp] protected theorem set.mem_centralizer (s : set S) {x : S} :
@@ -260,8 +262,21 @@ instance centralizer.is_submonoid : is_submonoid (centralizer a) :=
 { one_mem := commute.one_right a,
   mul_mem := λ _ _, commute.mul_right }
 
+/-- Centralizer of an element `a` of a monoid is the submonoid of elements that commute with `a`. -/
+def submonoid.centralizer : submonoid M :=
+{ carrier := centralizer a,
+  one_mem' := commute.one_right a,
+  mul_mem' := λ _ _, commute.mul_right }
+
 instance set.centralizer.is_submonoid : is_submonoid s.centralizer :=
 by rw s.centralizer_eq; apply_instance
+
+/-- Centralizer of a subset `T` of a monoid is the submonoid of elements that commute with
+    all `a ∈ T`. -/
+def submonoid.set.centralizer : submonoid M :=
+{ carrier := s.centralizer,
+  one_mem' := λ _ _, commute.one_right _,
+  mul_mem' := λ _ _ h1 h2 a h, commute.mul_right (h1 a h) $ h2 a h }
 
 @[simp] theorem monoid.centralizer_closure : (monoid.closure s).centralizer = s.centralizer :=
 set.subset.antisymm
@@ -310,8 +325,18 @@ instance centralizer.is_add_submonoid : is_add_submonoid (centralizer a) :=
 { zero_mem := commute.zero_right a,
   add_mem := λ _ _, commute.add_right }
 
+def centralizer.add_submonoid : add_submonoid A :=
+{ carrier := centralizer a,
+  zero_mem' := commute.zero_right a,
+  add_mem' := λ _ _, commute.add_right }
+
 instance set.centralizer.is_add_submonoid : is_add_submonoid s.centralizer :=
 by rw s.centralizer_eq; apply_instance
+
+def set.centralizer.add_submonoid : add_submonoid A :=
+{ carrier := s.centralizer,
+  zero_mem' := λ _ _, commute.zero_right _,
+  add_mem' := λ _ _ h1 h2 a h, commute.add_right (h1 a h) $ h2 a h }
 
 @[simp] lemma add_monoid.centralizer_closure : (add_monoid.closure s).centralizer = s.centralizer :=
 set.subset.antisymm

@@ -20,7 +20,7 @@ instance [has_lt ι] [∀ a, has_lt (β a)] : has_lt (pilex ι β) :=
 set_option eqn_compiler.zeta true
 
 instance [linear_order ι] [∀ a, partial_order (β a)] : partial_order (pilex ι β) :=
-let I : decidable_linear_order ι := classical.decidable_linear_order in
+let I := classical.DLO ι in
 have lt_not_symm : ∀ {x y : pilex ι β}, ¬ (x < y ∧ y < x),
   from λ x y ⟨⟨i, hi⟩, ⟨j, hj⟩⟩, begin
       rcases lt_trichotomy i j with hij | hij | hji,
@@ -67,8 +67,7 @@ instance [linear_order ι] (wf : well_founded ((<) : ι → ι → Prop)) [∀ a
 { le_total := λ x y, by classical; exact
     or_iff_not_imp_left.2 (λ hxy, begin
       have := not_or_distrib.1 hxy,
-      let i : ι := well_founded.min wf _
-        (set.ne_empty_iff_exists_mem.2 (classical.not_forall.1 (this.2 ∘ funext))),
+      let i : ι := well_founded.min wf _ (classical.not_forall.1 (this.2 ∘ funext)),
       have hjiyx : ∀ j < i, y j = x j,
       { assume j,
         rw [eq_comm, ← not_imp_not],

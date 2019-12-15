@@ -11,7 +11,7 @@ import topology.algebra.group
 import topology.constructions
 
 open classical set lattice filter topological_space
-local attribute [instance] classical.prop_decidable -- TODO: use "open_locale classical"
+open_locale topological_space classical
 
 universes u v w
 variables {α : Type u} {β : Type v} {γ : Type w}
@@ -41,29 +41,35 @@ continuous_iff_is_closed.mp (hf.prod_mk hg) _ t.is_closed_le'
 lemma is_closed_le' (a : α) : is_closed {b | b ≤ a} :=
 is_closed_le continuous_id continuous_const
 
+lemma is_closed_Iic {a : α} : is_closed (Iic a) :=
+is_closed_le' a
+
 lemma is_closed_ge' (a : α) : is_closed {b | a ≤ b} :=
 is_closed_le continuous_const continuous_id
+
+lemma is_closed_Ici {a : α} : is_closed (Ici a) :=
+is_closed_ge' a
 
 instance : ordered_topology (order_dual α) :=
 ⟨continuous_swap _ (@ordered_topology.is_closed_le' α _ _ _)⟩
 
 lemma is_closed_Icc {a b : α} : is_closed (Icc a b) :=
-is_closed_inter (is_closed_ge' a) (is_closed_le' b)
+is_closed_inter is_closed_Ici is_closed_Iic
 
 lemma le_of_tendsto_of_tendsto {f g : β → α} {b : filter β} {a₁ a₂ : α} (hb : b ≠ ⊥)
-  (hf : tendsto f b (nhds a₁)) (hg : tendsto g b (nhds a₂)) (h : {b | f b ≤ g b} ∈ b) :
+  (hf : tendsto f b (𝓝 a₁)) (hg : tendsto g b (𝓝 a₂)) (h : {b | f b ≤ g b} ∈ b) :
   a₁ ≤ a₂ :=
-have tendsto (λb, (f b, g b)) b (nhds (a₁, a₂)),
+have tendsto (λb, (f b, g b)) b (𝓝 (a₁, a₂)),
   by rw [nhds_prod_eq]; exact hf.prod_mk hg,
 show (a₁, a₂) ∈ {p:α×α | p.1 ≤ p.2},
   from mem_of_closed_of_tendsto hb this t.is_closed_le' h
 
 lemma le_of_tendsto {f : β → α} {a b : α} {x : filter β}
-  (nt : x ≠ ⊥) (lim : tendsto f x (nhds a)) (h : f ⁻¹' {c | c ≤ b} ∈ x) : a ≤ b :=
+  (nt : x ≠ ⊥) (lim : tendsto f x (𝓝 a)) (h : f ⁻¹' {c | c ≤ b} ∈ x) : a ≤ b :=
 le_of_tendsto_of_tendsto nt lim tendsto_const_nhds h
 
 lemma ge_of_tendsto {f : β → α} {a b : α} {x : filter β}
-  (nt : x ≠ ⊥) (lim : tendsto f x (nhds a)) (h : f ⁻¹' {c | b ≤ c} ∈ x) : b ≤ a :=
+  (nt : x ≠ ⊥) (lim : tendsto f x (𝓝 a)) (h : f ⁻¹' {c | b ≤ c} ∈ x) : b ≤ a :=
 le_of_tendsto_of_tendsto nt tendsto_const_nhds lim h
 
 @[simp] lemma closure_le_eq [topological_space β] {f g : β → α} (hf : continuous f) (hg : continuous g) :
@@ -79,6 +85,7 @@ private lemma is_closed_eq : is_closed {p : α × α | p.1 = p.2} :=
 by simp [le_antisymm_iff];
    exact is_closed_inter t.is_closed_le' (is_closed_le continuous_snd continuous_fst)
 
+@[priority 100] -- see Note [lower instance priority]
 instance ordered_topology.to_t2_space : t2_space α :=
 { t2 :=
   have is_open {p : α × α | p.1 ≠ p.2}, from is_closed_eq,
@@ -92,8 +99,7 @@ instance ordered_topology.to_t2_space : t2_space α :=
 end partial_order
 
 section linear_order
-variables [topological_space α] [linear_order α] [t : ordered_topology α]
-include t
+variables [topological_space α] [linear_order α] [ordered_topology α]
 
 lemma is_open_lt [topological_space β] {f g : β → α} (hf : continuous f) (hg : continuous g) :
   is_open {b | f b < g b} :=
@@ -132,33 +138,33 @@ lemma frontier_lt_subset_eq : frontier {b | f b < g b} ⊆ {b | f b = g b} :=
 by rw ← frontier_compl;
    convert frontier_le_subset_eq hg hf; simp [ext_iff, eq_comm]
 
-lemma continuous_max : continuous (λb, max (f b) (g b)) :=
+lemma continuous.max : continuous (λb, max (f b) (g b)) :=
 have ∀b∈frontier {b | f b ≤ g b}, g b = f b, from assume b hb, (frontier_le_subset_eq hf hg hb).symm,
 continuous_if this hg hf
 
-lemma continuous_min : continuous (λb, min (f b) (g b)) :=
+lemma continuous.min : continuous (λb, min (f b) (g b)) :=
 have ∀b∈frontier {b | f b ≤ g b}, f b = g b, from assume b hb, frontier_le_subset_eq hf hg hb,
 continuous_if this hf hg
 
 end
 
-lemma tendsto_max {b : filter β} {a₁ a₂ : α} (hf : tendsto f b (nhds a₁)) (hg : tendsto g b (nhds a₂)) :
-  tendsto (λb, max (f b) (g b)) b (nhds (max a₁ a₂)) :=
-show tendsto ((λp:α×α, max p.1 p.2) ∘ (λb, (f b, g b))) b (nhds (max a₁ a₂)),
+lemma tendsto.max {b : filter β} {a₁ a₂ : α} (hf : tendsto f b (𝓝 a₁)) (hg : tendsto g b (𝓝 a₂)) :
+  tendsto (λb, max (f b) (g b)) b (𝓝 (max a₁ a₂)) :=
+show tendsto ((λp:α×α, max p.1 p.2) ∘ (λb, (f b, g b))) b (𝓝 (max a₁ a₂)),
   from tendsto.comp
     begin
       rw [←nhds_prod_eq],
-      from continuous_iff_continuous_at.mp (continuous_max continuous_fst continuous_snd) _
+      from continuous_iff_continuous_at.mp (continuous_fst.max continuous_snd) _
     end
     (hf.prod_mk hg)
 
-lemma tendsto_min {b : filter β} {a₁ a₂ : α} (hf : tendsto f b (nhds a₁)) (hg : tendsto g b (nhds a₂)) :
-  tendsto (λb, min (f b) (g b)) b (nhds (min a₁ a₂)) :=
-show tendsto ((λp:α×α, min p.1 p.2) ∘ (λb, (f b, g b))) b (nhds (min a₁ a₂)),
+lemma tendsto.min {b : filter β} {a₁ a₂ : α} (hf : tendsto f b (𝓝 a₁)) (hg : tendsto g b (𝓝 a₂)) :
+  tendsto (λb, min (f b) (g b)) b (𝓝 (min a₁ a₂)) :=
+show tendsto ((λp:α×α, min p.1 p.2) ∘ (λb, (f b, g b))) b (𝓝 (min a₁ a₂)),
   from tendsto.comp
     begin
       rw [←nhds_prod_eq],
-      from continuous_iff_continuous_at.mp (continuous_min continuous_fst continuous_snd) _
+      from continuous_iff_continuous_at.mp (continuous_fst.min continuous_snd) _
     end
     (hf.prod_mk hg)
 
@@ -195,20 +201,20 @@ by rw [@is_open_iff_generate_intervals α _ _ t]; exact generate_open.basic _ �
 lemma is_open_gt' (a : α) : is_open {b:α | b < a} :=
 by rw [@is_open_iff_generate_intervals α _ _ t]; exact generate_open.basic _ ⟨a, or.inr rfl⟩
 
-lemma lt_mem_nhds {a b : α} (h : a < b) : {b | a < b} ∈ nhds b :=
+lemma lt_mem_nhds {a b : α} (h : a < b) : {b | a < b} ∈ 𝓝 b :=
 mem_nhds_sets (is_open_lt' _) h
 
-lemma le_mem_nhds {a b : α} (h : a < b) : {b | a ≤ b} ∈ nhds b :=
-(nhds b).sets_of_superset (lt_mem_nhds h) $ assume b hb, le_of_lt hb
+lemma le_mem_nhds {a b : α} (h : a < b) : {b | a ≤ b} ∈ 𝓝 b :=
+(𝓝 b).sets_of_superset (lt_mem_nhds h) $ assume b hb, le_of_lt hb
 
-lemma gt_mem_nhds {a b : α} (h : a < b) : {a | a < b} ∈ nhds a :=
+lemma gt_mem_nhds {a b : α} (h : a < b) : {a | a < b} ∈ 𝓝 a :=
 mem_nhds_sets (is_open_gt' _) h
 
-lemma ge_mem_nhds {a b : α} (h : a < b) : {a | a ≤ b} ∈ nhds a :=
-(nhds a).sets_of_superset (gt_mem_nhds h) $ assume b hb, le_of_lt hb
+lemma ge_mem_nhds {a b : α} (h : a < b) : {a | a ≤ b} ∈ 𝓝 a :=
+(𝓝 a).sets_of_superset (gt_mem_nhds h) $ assume b hb, le_of_lt hb
 
 lemma nhds_eq_orderable {a : α} :
-  nhds a = (⨅b<a, principal {c | b < c}) ⊓ (⨅b>a, principal {c | c < b}) :=
+  𝓝 a = (⨅b<a, principal {c | b < c}) ⊓ (⨅b>a, principal {c | c < b}) :=
 by rw [t.topology_eq_generate_intervals, nhds_generate_from];
 from le_antisymm
   (le_inf
@@ -223,14 +229,14 @@ from le_antisymm
     end)
 
 lemma tendsto_orderable {f : β → α} {a : α} {x : filter β} :
-  tendsto f x (nhds a) ↔ (∀a'<a, {b | a' < f b} ∈ x) ∧ (∀a'>a, {b | a' > f b} ∈ x) :=
+  tendsto f x (𝓝 a) ↔ (∀a'<a, {b | a' < f b} ∈ x) ∧ (∀a'>a, {b | a' > f b} ∈ x) :=
 by simp [@nhds_eq_orderable α _ _, tendsto_inf, tendsto_infi, tendsto_principal]
 
 /-- Also known as squeeze or sandwich theorem. -/
 lemma tendsto_of_tendsto_of_tendsto_of_le_of_le {f g h : β → α} {b : filter β} {a : α}
-  (hg : tendsto g b (nhds a)) (hh : tendsto h b (nhds a))
+  (hg : tendsto g b (𝓝 a)) (hh : tendsto h b (𝓝 a))
   (hgf : {b | g b ≤ f b} ∈ b) (hfh : {b | f b ≤ h b} ∈ b) :
-  tendsto f b (nhds a) :=
+  tendsto f b (𝓝 a) :=
 tendsto_orderable.2
   ⟨assume a' h',
     have {b : β | a' < g b} ∈ b, from (tendsto_orderable.1 hg).left a' h',
@@ -240,9 +246,9 @@ tendsto_orderable.2
     by filter_upwards [this, hfh] assume a h₁ h₂, lt_of_le_of_lt h₂ h₁⟩
 
 lemma nhds_orderable_unbounded {a : α} (hu : ∃u, a < u) (hl : ∃l, l < a) :
-  nhds a = (⨅l (h₂ : l < a) u (h₂ : a < u), principal {x | l < x ∧ x < u }) :=
+  𝓝 a = (⨅l (h₂ : l < a) u (h₂ : a < u), principal {x | l < x ∧ x < u }) :=
 let ⟨u, hu⟩ := hu, ⟨l, hl⟩ := hl in
-calc nhds a = (⨅b<a, principal {c | b < c}) ⊓ (⨅b>a, principal {c | c < b}) : nhds_eq_orderable
+calc 𝓝 a = (⨅b<a, principal {c | b < c}) ⊓ (⨅b>a, principal {c | c < b}) : nhds_eq_orderable
   ... = (⨅b<a, principal {c | b < c} ⊓ (⨅b>a, principal {c | c < b})) :
     binfi_inf hl
   ... = (⨅l<a, (⨅u>a, principal {c | c < u} ⊓ principal {c | l < c})) :
@@ -256,7 +262,7 @@ calc nhds a = (⨅b<a, principal {c | b < c}) ⊓ (⨅b>a, principal {c | c < b}
 
 lemma tendsto_orderable_unbounded {f : β → α} {a : α} {x : filter β}
   (hu : ∃u, a < u) (hl : ∃l, l < a) (h : ∀l u, l < a → a < u → {b | l < f b ∧ f b < u } ∈ x) :
-  tendsto f x (nhds a) :=
+  tendsto f x (𝓝 a) :=
 by rw [nhds_orderable_unbounded hu hl];
 from (tendsto_infi.2 $ assume l, tendsto_infi.2 $ assume hl,
   tendsto_infi.2 $ assume u, tendsto_infi.2 $ assume hu, tendsto_principal.2 $ h l u hl hu)
@@ -302,11 +308,11 @@ induced_orderable_topology' f @hf
   (λ a x ax, let ⟨b, ab, bx⟩ := H ax in ⟨b, hf.1 ab, le_of_lt bx⟩)
 
 lemma nhds_top_orderable [topological_space α] [order_top α] [orderable_topology α] :
-  nhds (⊤:α) = (⨅l (h₂ : l < ⊤), principal {x | l < x}) :=
+  𝓝 (⊤:α) = (⨅l (h₂ : l < ⊤), principal {x | l < x}) :=
 by rw [@nhds_eq_orderable α _ _]; simp [(>)]
 
 lemma nhds_bot_orderable [topological_space α] [order_bot α] [orderable_topology α] :
-  nhds (⊥:α) = (⨅l (h₂ : ⊥ < l), principal {x | x < l}) :=
+  𝓝 (⊥:α) = (⨅l (h₂ : ⊥ < l), principal {x | x < l}) :=
 by rw [@nhds_eq_orderable α _ _]; simp
 
 section linear_order
@@ -314,7 +320,7 @@ section linear_order
 variables [topological_space α] [linear_order α] [t : orderable_topology α]
 include t
 
-lemma mem_nhds_orderable_dest {a : α} {s : set α} (hs : s ∈ nhds a) :
+lemma mem_nhds_orderable_dest {a : α} {s : set α} (hs : s ∈ 𝓝 a) :
   ((∃u, u>a) → ∃u, a < u ∧ ∀b, a ≤ b → b < u → b ∈ s) ∧
   ((∃l, l<a) → ∃l, l < a ∧ ∀b, l < b → b ≤ a → b ∈ s) :=
 let ⟨t₁, ht₁, t₂, ht₂, hts⟩ :=
@@ -362,9 +368,9 @@ and.intro
   (assume hx, let ⟨l, hl, h⟩ := ht₁.left hx in ⟨l, hl, assume b hbl hb, hts ⟨h _ hbl, ht₂.right b hb⟩⟩)
 
 lemma mem_nhds_unbounded {a : α} {s : set α} (hu : ∃u, a < u) (hl : ∃l, l < a) :
-  s ∈ nhds a ↔ (∃l u, l < a ∧ a < u ∧ ∀b, l < b → b < u → b ∈ s) :=
+  s ∈ 𝓝 a ↔ (∃l u, l < a ∧ a < u ∧ ∀b, l < b → b < u → b ∈ s) :=
 let ⟨l, hl'⟩ := hl, ⟨u, hu'⟩ := hu in
-have nhds a = (⨅p : {l // l < a} × {u // a < u}, principal {x | p.1.val < x ∧ x < p.2.val }),
+have 𝓝 a = (⨅p : {l // l < a} × {u // a < u}, principal {x | p.1.val < x ∧ x < p.2.val }),
   by simp [nhds_orderable_unbounded hu hl, infi_subtype, infi_prod],
 iff.intro
   (assume hs, by rw [this] at hs; from infi_sets_induct hs
@@ -393,6 +399,7 @@ match dense_or_discrete a₁ a₂ with
       ... ≤ b₂ : h₁ _ hb₂⟩
 end
 
+@[priority 100] -- see Note [lower instance priority]
 instance orderable_topology.to_ordered_topology : ordered_topology α :=
 { is_closed_le' :=
     is_open_prod_iff.mpr $ assume a₁ a₂ (h : ¬ a₁ ≤ a₂),
@@ -400,13 +407,14 @@ instance orderable_topology.to_ordered_topology : ordered_topology α :=
       let ⟨u, v, hu, hv, ha₁, ha₂, h⟩ := order_separated h in
       ⟨v, u, hv, hu, ha₂, ha₁, assume ⟨b₁, b₂⟩ ⟨h₁, h₂⟩, not_le_of_gt $ h b₂ h₂ b₁ h₁⟩ }
 
-instance orderable_topology.t2_space : t2_space α := by apply_instance
+lemma orderable_topology.t2_space : t2_space α := by apply_instance
 
+@[priority 100] -- see Note [lower instance priority]
 instance orderable_topology.regular_space : regular_space α :=
 { regular := assume s a hs ha,
-    have -s ∈ nhds a, from mem_nhds_sets hs ha,
+    have -s ∈ 𝓝 a, from mem_nhds_sets hs ha,
     let ⟨h₁, h₂⟩ := mem_nhds_orderable_dest this in
-    have ∃t:set α, is_open t ∧ (∀l∈ s, l < a → l ∈ t) ∧ nhds a ⊓ principal t = ⊥,
+    have ∃t:set α, is_open t ∧ (∀l∈ s, l < a → l ∈ t) ∧ 𝓝 a ⊓ principal t = ⊥,
       from by_cases
         (assume h : ∃l, l < a,
           let ⟨l, hl, h⟩ := h₂ h in
@@ -414,16 +422,16 @@ instance orderable_topology.regular_space : regular_space α :=
           | or.inl ⟨b, hb₁, hb₂⟩ := ⟨{a | a < b}, is_open_gt' _,
               assume c hcs hca, show c < b,
                 from lt_of_not_ge $ assume hbc, h c (lt_of_lt_of_le hb₁ hbc) (le_of_lt hca) hcs,
-              inf_principal_eq_bot $ (nhds a).sets_of_superset (mem_nhds_sets (is_open_lt' _) hb₂) $
+              inf_principal_eq_bot $ (𝓝 a).sets_of_superset (mem_nhds_sets (is_open_lt' _) hb₂) $
                 assume x (hx : b < x), show ¬ x < b, from not_lt.2 $ le_of_lt hx⟩
           | or.inr ⟨h₁, h₂⟩ := ⟨{a' | a' < a}, is_open_gt' _, assume b hbs hba, hba,
-              inf_principal_eq_bot $ (nhds a).sets_of_superset (mem_nhds_sets (is_open_lt' _) hl) $
+              inf_principal_eq_bot $ (𝓝 a).sets_of_superset (mem_nhds_sets (is_open_lt' _) hl) $
                 assume x (hx : l < x), show ¬ x < a, from not_lt.2 $ h₁ _ hx⟩
           end)
         (assume : ¬ ∃l, l < a, ⟨∅, is_open_empty, assume l _ hl, (this ⟨l, hl⟩).elim,
           by rw [principal_empty, inf_bot_eq]⟩),
     let ⟨t₁, ht₁o, ht₁s, ht₁a⟩ := this in
-    have ∃t:set α, is_open t ∧ (∀u∈ s, u>a → u ∈ t) ∧ nhds a ⊓ principal t = ⊥,
+    have ∃t:set α, is_open t ∧ (∀u∈ s, u>a → u ∈ t) ∧ 𝓝 a ⊓ principal t = ⊥,
       from by_cases
         (assume h : ∃u, u > a,
           let ⟨u, hu, h⟩ := h₁ h in
@@ -431,10 +439,10 @@ instance orderable_topology.regular_space : regular_space α :=
           | or.inl ⟨b, hb₁, hb₂⟩ := ⟨{a | b < a}, is_open_lt' _,
               assume c hcs hca, show c > b,
                 from lt_of_not_ge $ assume hbc, h c (le_of_lt hca) (lt_of_le_of_lt hbc hb₂) hcs,
-              inf_principal_eq_bot $ (nhds a).sets_of_superset (mem_nhds_sets (is_open_gt' _) hb₁) $
+              inf_principal_eq_bot $ (𝓝 a).sets_of_superset (mem_nhds_sets (is_open_gt' _) hb₁) $
                 assume x (hx : b > x), show ¬ x > b, from not_lt.2 $ le_of_lt hx⟩
           | or.inr ⟨h₁, h₂⟩ := ⟨{a' | a' > a}, is_open_lt' _, assume b hbs hba, hba,
-              inf_principal_eq_bot $ (nhds a).sets_of_superset (mem_nhds_sets (is_open_gt' _) hu) $
+              inf_principal_eq_bot $ (𝓝 a).sets_of_superset (mem_nhds_sets (is_open_gt' _) hu) $
                 assume x (hx : u > x), show ¬ x > a, from not_lt.2 $ h₂ _ hx⟩
           end)
         (assume : ¬ ∃u, u > a, ⟨∅, is_open_empty, assume l _ hl, (this ⟨l, hl⟩).elim,
@@ -446,6 +454,190 @@ instance orderable_topology.regular_space : regular_space α :=
       (ne_iff_lt_or_gt.mp this).imp (ht₁s _ hx) (ht₂s _ hx),
       by rw [←sup_principal, inf_sup_left, ht₁a, ht₂a, bot_sup_eq]⟩,
   ..orderable_topology.t2_space }
+
+/-- A set is a neighborhood of `a` if and only if it contains an interval `(l, u)` containing `a`,
+provided `a` is neither a bottom element nor a top element. -/
+lemma mem_nhds_iff_exists_Ioo_subset' {a l' u' : α} {s : set α}
+  (hl' : l' < a) (hu' : a < u') :
+  s ∈ 𝓝 a ↔ ∃l u, a ∈ Ioo l u ∧ Ioo l u ⊆ s :=
+begin
+  split,
+  { assume h,
+    rcases (mem_nhds_orderable_dest h).1 ⟨u', hu'⟩ with ⟨u, au, hu⟩,
+    rcases (mem_nhds_orderable_dest h).2 ⟨l', hl'⟩ with ⟨l, la, hl⟩,
+    refine ⟨l, u, ⟨la, au⟩, λx hx, _⟩,
+    by_cases hax : a ≤ x,
+    { exact hu _ hax hx.2 },
+    { exact hl _ hx.1 (le_of_not_ge hax) } },
+  { rintros ⟨l, u, ha, h⟩,
+    apply mem_sets_of_superset (mem_nhds_sets is_open_Ioo ha) h }
+end
+
+/-- A set is a neighborhood of `a` if and only if it contains an interval `(l, u)` containing `a`. -/
+lemma mem_nhds_iff_exists_Ioo_subset [no_top_order α] [no_bot_order α] {a : α} {s : set α} :
+  s ∈ 𝓝 a ↔ ∃l u, a ∈ Ioo l u ∧ Ioo l u ⊆ s :=
+let ⟨l', hl'⟩ := no_bot a in let ⟨u', hu'⟩ := no_top a in mem_nhds_iff_exists_Ioo_subset' hl' hu'
+
+/-!
+### Neighborhoods to the left and to the right
+
+Limits to the left and to the right of real functions are defined in terms of neighborhoods to
+the left and to the right, either open or closed, i.e., members of `nhds_within a (Ioi a)` and
+`nhds_wihin a (Ici a)` on the right, and similarly on the left. Such neighborhoods can be
+characterized as the sets containing suitable intervals to the right or to the left of `a`.
+We give now these characterizations. -/
+
+/-- A set is a neighborhood of `a` within `(a, +∞)` if and only if it contains an interval `(a, u)`
+with `a < u`, provided `a` is not a top element. -/
+lemma mem_nhds_within_Ioi_iff_exists_Ioo_subset' {a u' : α} {s : set α} (hu' : a < u') :
+  s ∈ nhds_within a (Ioi a) ↔ ∃u, a < u ∧ Ioo a u ⊆ s :=
+begin
+  split,
+  { assume h,
+    rcases mem_nhds_within_iff_exists_mem_nhds_inter.1 h with ⟨v, va, hv⟩,
+    rcases (mem_nhds_orderable_dest va).1 ⟨u', hu'⟩ with ⟨u, au, hu⟩,
+    refine ⟨u, au, λx hx, _⟩,
+    refine hv ⟨_, hx.1⟩,
+    exact hu _ (le_of_lt hx.1) hx.2 },
+  { rintros ⟨u, au, hu⟩,
+    rw mem_nhds_within_iff_exists_mem_nhds_inter,
+    refine ⟨Iio u, mem_nhds_sets is_open_Iio au, _⟩,
+    rwa [inter_comm, Ioi_inter_Iio] }
+end
+
+/-- A set is a neighborhood of `a` within `(a, +∞)` if and only if it contains an interval `(a, u)`
+with `a < u`. -/
+lemma mem_nhds_within_Ioi_iff_exists_Ioo_subset [no_top_order α] {a : α} {s : set α} :
+  s ∈ nhds_within a (Ioi a) ↔ ∃u, a < u ∧ Ioo a u ⊆ s :=
+let ⟨u', hu'⟩ := no_top a in mem_nhds_within_Ioi_iff_exists_Ioo_subset' hu'
+
+/-- A set is a neighborhood of `a` within `(a, +∞)` if and only if it contains an interval `(a, u]`
+with `a < u`. -/
+lemma mem_nhds_within_Ioi_iff_exists_Ioc_subset [no_top_order α] [densely_ordered α]
+  {a : α} {s : set α} : s ∈ nhds_within a (Ioi a) ↔ ∃u, a < u ∧ Ioc a u ⊆ s :=
+begin
+  rw mem_nhds_within_Ioi_iff_exists_Ioo_subset,
+  split,
+  { rintros ⟨u, au, as⟩,
+    rcases dense au with ⟨v, hv⟩,
+    exact ⟨v, hv.1, λx hx, as ⟨hx.1, lt_of_le_of_lt hx.2 hv.2⟩⟩ },
+  { rintros ⟨u, au, as⟩,
+    exact ⟨u, au, subset.trans Ioo_subset_Ioc_self as⟩ }
+end
+
+/-- A set is a neighborhood of `a` within `(-∞, a)` if and only if it contains an interval `(l, a)`
+with `l < a`, provided `a` is not a bottom element. -/
+lemma mem_nhds_within_Iio_iff_exists_Ioo_subset' {a l' : α} {s : set α} (hl' : l' < a) :
+  s ∈ nhds_within a (Iio a) ↔ ∃l, l < a ∧ Ioo l a ⊆ s :=
+begin
+  split,
+  { assume h,
+    rcases mem_nhds_within_iff_exists_mem_nhds_inter.1 h with ⟨v, va, hv⟩,
+    rcases (mem_nhds_orderable_dest va).2 ⟨l', hl'⟩ with ⟨l, la, hl⟩,
+    refine ⟨l, la, λx hx, _⟩,
+    refine hv ⟨_, hx.2⟩,
+    exact hl _ hx.1 (le_of_lt hx.2) },
+  { rintros ⟨l, la, ha⟩,
+    rw mem_nhds_within_iff_exists_mem_nhds_inter,
+    refine ⟨Ioi l, mem_nhds_sets is_open_Ioi la, _⟩,
+    rwa [Ioi_inter_Iio] }
+end
+
+/-- A set is a neighborhood of `a` within `(-∞, a)` if and only if it contains an interval `(l, a)`
+with `l < a`. -/
+lemma mem_nhds_within_Iio_iff_exists_Ioo_subset [no_bot_order α] {a : α} {s : set α} :
+  s ∈ nhds_within a (Iio a) ↔ ∃l, l < a ∧ Ioo l a ⊆ s :=
+let ⟨l', hl'⟩ := no_bot a in mem_nhds_within_Iio_iff_exists_Ioo_subset' hl'
+
+/-- A set is a neighborhood of `a` within `(-∞, a)` if and only if it contains an interval `[l, a)`
+with `l < a`. -/
+lemma mem_nhds_within_Iio_iff_exists_Ico_subset [no_bot_order α] [densely_ordered α]
+  {a : α} {s : set α} : s ∈ nhds_within a (Iio a) ↔ ∃l, l < a ∧ Ico l a ⊆ s :=
+begin
+  rw mem_nhds_within_Iio_iff_exists_Ioo_subset,
+  split,
+  { rintros ⟨l, la, as⟩,
+    rcases dense la with ⟨v, hv⟩,
+    refine ⟨v, hv.2, λx hx, as ⟨lt_of_lt_of_le hv.1 hx.1, hx.2⟩⟩, },
+  { rintros ⟨l, la, as⟩,
+    exact ⟨l, la, subset.trans Ioo_subset_Ico_self as⟩ }
+end
+
+/-- A set is a neighborhood of `a` within `[a, +∞)` if and only if it contains an interval `[a, u)`
+with `a < u`, provided `a` is not a top element. -/
+lemma mem_nhds_within_Ici_iff_exists_Ico_subset' {a u' : α} {s : set α} (hu' : a < u') :
+  s ∈ nhds_within a (Ici a) ↔ ∃u, a < u ∧ Ico a u ⊆ s :=
+begin
+  split,
+  { assume h,
+    rcases mem_nhds_within_iff_exists_mem_nhds_inter.1 h with ⟨v, va, hv⟩,
+    rcases (mem_nhds_orderable_dest va).1 ⟨u', hu'⟩ with ⟨u, au, hu⟩,
+    refine ⟨u, au, λx hx, _⟩,
+    refine hv ⟨_, hx.1⟩,
+    exact hu _ hx.1 hx.2 },
+  { rintros ⟨u, au, hu⟩,
+    rw mem_nhds_within_iff_exists_mem_nhds_inter,
+    refine ⟨Iio u, mem_nhds_sets is_open_Iio au, _⟩,
+    rwa [inter_comm, Ici_inter_Iio] }
+end
+
+/-- A set is a neighborhood of `a` within `[a, +∞)` if and only if it contains an interval `[a, u)`
+with `a < u`. -/
+lemma mem_nhds_within_Ici_iff_exists_Ico_subset [no_top_order α] {a : α} {s : set α} :
+  s ∈ nhds_within a (Ici a) ↔ ∃u, a < u ∧ Ico a u ⊆ s :=
+let ⟨u', hu'⟩ := no_top a in mem_nhds_within_Ici_iff_exists_Ico_subset' hu'
+
+/-- A set is a neighborhood of `a` within `[a, +∞)` if and only if it contains an interval `[a, u]`
+with `a < u`. -/
+lemma mem_nhds_within_Ici_iff_exists_Icc_subset [no_top_order α] [densely_ordered α]
+  {a : α} {s : set α} : s ∈ nhds_within a (Ici a) ↔ ∃u, a < u ∧ Icc a u ⊆ s :=
+begin
+  rw mem_nhds_within_Ici_iff_exists_Ico_subset,
+  split,
+  { rintros ⟨u, au, as⟩,
+    rcases dense au with ⟨v, hv⟩,
+    exact ⟨v, hv.1, λx hx, as ⟨hx.1, lt_of_le_of_lt hx.2 hv.2⟩⟩ },
+  { rintros ⟨u, au, as⟩,
+    exact ⟨u, au, subset.trans Ico_subset_Icc_self as⟩ }
+end
+
+/-- A set is a neighborhood of `a` within `(-∞, a]` if and only if it contains an interval `(l, a]`
+with `l < a`, provided `a` is not a bottom element. -/
+lemma mem_nhds_within_Iic_iff_exists_Ioc_subset' {a l' : α} {s : set α} (hl' : l' < a) :
+  s ∈ nhds_within a (Iic a) ↔ ∃l, l < a ∧ Ioc l a ⊆ s :=
+begin
+  split,
+  { assume h,
+    rcases mem_nhds_within_iff_exists_mem_nhds_inter.1 h with ⟨v, va, hv⟩,
+    rcases (mem_nhds_orderable_dest va).2 ⟨l', hl'⟩ with ⟨l, la, hl⟩,
+    refine ⟨l, la, λx hx, _⟩,
+    refine hv ⟨_, hx.2⟩,
+    exact hl _ hx.1 hx.2 },
+  { rintros ⟨l, la, ha⟩,
+    rw mem_nhds_within_iff_exists_mem_nhds_inter,
+    refine ⟨Ioi l, mem_nhds_sets is_open_Ioi la, _⟩,
+    rwa [Ioi_inter_Iic] }
+end
+
+/-- A set is a neighborhood of `a` within `(-∞, a]` if and only if it contains an interval `(l, a]`
+with `l < a`. -/
+lemma mem_nhds_within_Iic_iff_exists_Ioc_subset [no_bot_order α] {a : α} {s : set α} :
+  s ∈ nhds_within a (Iic a) ↔ ∃l, l < a ∧ Ioc l a ⊆ s :=
+let ⟨l', hl'⟩ := no_bot a in mem_nhds_within_Iic_iff_exists_Ioc_subset' hl'
+
+/-- A set is a neighborhood of `a` within `(-∞, a]` if and only if it contains an interval `[l, a]`
+with `l < a`. -/
+lemma mem_nhds_within_Iic_iff_exists_Icc_subset [no_bot_order α] [densely_ordered α]
+  {a : α} {s : set α} : s ∈ nhds_within a (Iic a) ↔ ∃l, l < a ∧ Icc l a ⊆ s :=
+begin
+  rw mem_nhds_within_Iic_iff_exists_Ioc_subset,
+  split,
+  { rintros ⟨l, la, as⟩,
+    rcases dense la with ⟨v, hv⟩,
+    refine ⟨v, hv.2, λx hx, as ⟨lt_of_lt_of_le hv.1 hx.1, hx.2⟩⟩, },
+  { rintros ⟨l, la, as⟩,
+    exact ⟨l, la, subset.trans Ioc_subset_Icc_self as⟩ }
+end
 
 end linear_order
 
@@ -462,11 +654,11 @@ variables [topological_space α] [ordered_comm_group α] [topological_add_group 
 lemma neg_preimage_closure {s : set α} : (λr:α, -r) ⁻¹' closure s = closure ((λr:α, -r) '' s) :=
 have (λr:α, -r) ∘ (λr:α, -r) = id, from funext neg_neg,
 by rw [preimage_neg]; exact
-  (subset.antisymm (image_closure_subset_closure_image continuous_neg') $
+  (subset.antisymm (image_closure_subset_closure_image continuous_neg) $
     calc closure ((λ (r : α), -r) '' s) = (λr, -r) '' ((λr, -r) '' closure ((λ (r : α), -r) '' s)) :
         by rw [←image_comp, this, image_id]
       ... ⊆ (λr, -r) '' closure ((λr, -r) '' ((λ (r : α), -r) '' s)) :
-        mono_image $ image_closure_subset_closure_image continuous_neg'
+        mono_image $ image_closure_subset_closure_image continuous_neg
       ... = _ : by rw [←image_comp, this, image_id])
 
 end topological_add_group
@@ -477,7 +669,7 @@ variables [topological_space α] [topological_space β]
   [linear_order α] [linear_order β] [orderable_topology α] [orderable_topology β]
 
 lemma nhds_principal_ne_bot_of_is_lub {a : α} {s : set α} (ha : is_lub s a) (hs : s ≠ ∅) :
-  nhds a ⊓ principal s ≠ ⊥ :=
+  𝓝 a ⊓ principal s ≠ ⊥ :=
 let ⟨a', ha'⟩ := exists_mem_of_ne_empty hs in
 forall_sets_neq_empty_iff_neq_bot.mp $ assume t ht,
   let ⟨t₁, ht₁, t₂, ht₂, ht⟩ := mem_inf_sets.mp ht in
@@ -488,42 +680,42 @@ forall_sets_neq_empty_iff_neq_bot.mp $ assume t ht,
       have a ∈ t₂, from ht₂ $ by rwa [h],
       ne_empty_iff_exists_mem.mpr ⟨a, ht ⟨‹a ∈ t₁›, ‹a ∈ t₂›⟩⟩)
     (assume : a ≠ a',
-      have a' < a, from lt_of_le_of_ne (ha.left _ ‹a' ∈ s›) this.symm,
+      have a' < a, from lt_of_le_of_ne (ha.left ‹a' ∈ s›) this.symm,
       let ⟨l, hl, hlt₁⟩ := hl ⟨a', this⟩ in
       have ∃a'∈s, l < a',
         from classical.by_contradiction $ assume : ¬ ∃a'∈s, l < a',
           have ∀a'∈s, a' ≤ l, from assume a ha, not_lt.1 $ assume ha', this ⟨a, ha, ha'⟩,
-          have ¬ l < a, from not_lt.2 $ ha.right _ this,
+          have ¬ l < a, from not_lt.2 $ ha.right this,
           this ‹l < a›,
       let ⟨a', ha', ha'l⟩ := this in
-      have a' ∈ t₁, from hlt₁ _ ‹l < a'›  $ ha.left _ ha',
+      have a' ∈ t₁, from hlt₁ _ ‹l < a'›  $ ha.left ha',
       ne_empty_iff_exists_mem.mpr ⟨a', ht ⟨‹a' ∈ t₁›, ht₂ ‹a' ∈ s›⟩⟩)
 
 lemma nhds_principal_ne_bot_of_is_glb : ∀ {a : α} {s : set α}, is_glb s a → s ≠ ∅ →
-  nhds a ⊓ principal s ≠ ⊥ :=
+  𝓝 a ⊓ principal s ≠ ⊥ :=
 @nhds_principal_ne_bot_of_is_lub (order_dual α) _ _ _
 
 lemma is_lub_of_mem_nhds {s : set α} {a : α} {f : filter α}
-  (hsa : a ∈ upper_bounds s) (hsf : s ∈ f) (hfa : f ⊓ nhds a ≠ ⊥) : is_lub s a :=
+  (hsa : a ∈ upper_bounds s) (hsf : s ∈ f) (hfa : f ⊓ 𝓝 a ≠ ⊥) : is_lub s a :=
 ⟨hsa, assume b hb,
   not_lt.1 $ assume hba,
-  have s ∩ {a | b < a} ∈ f ⊓ nhds a,
+  have s ∩ {a | b < a} ∈ f ⊓ 𝓝 a,
     from inter_mem_inf_sets hsf (mem_nhds_sets (is_open_lt' _) hba),
   let ⟨x, ⟨hxs, hxb⟩⟩ := inhabited_of_mem_sets hfa this in
-  have b < b, from lt_of_lt_of_le hxb $ hb _ hxs,
+  have b < b, from lt_of_lt_of_le hxb $ hb hxs,
   lt_irrefl b this⟩
 
 lemma is_glb_of_mem_nhds : ∀ {s : set α} {a : α} {f : filter α},
-  a ∈ lower_bounds s → s ∈ f → f ⊓ nhds a ≠ ⊥ → is_glb s a :=
+  a ∈ lower_bounds s → s ∈ f → f ⊓ 𝓝 a ≠ ⊥ → is_glb s a :=
 @is_lub_of_mem_nhds (order_dual α) _ _ _
 
 lemma is_lub_of_is_lub_of_tendsto {f : α → β} {s : set α} {a : α} {b : β}
   (hf : ∀x∈s, ∀y∈s, x ≤ y → f x ≤ f y) (ha : is_lub s a) (hs : s ≠ ∅)
-  (hb : tendsto f (nhds a ⊓ principal s) (nhds b)) : is_lub (f '' s) b :=
-have hnbot : (nhds a ⊓ principal s) ≠ ⊥, from nhds_principal_ne_bot_of_is_lub ha hs,
+  (hb : tendsto f (𝓝 a ⊓ principal s) (𝓝 b)) : is_lub (f '' s) b :=
+have hnbot : (𝓝 a ⊓ principal s) ≠ ⊥, from nhds_principal_ne_bot_of_is_lub ha hs,
 have ∀a'∈s, ¬ b < f a',
   from assume a' ha' h,
-  have {x | x < f a'} ∈ nhds b, from mem_nhds_sets (is_open_gt' _) h,
+  have {x | x < f a'} ∈ 𝓝 b, from mem_nhds_sets (is_open_gt' _) h,
   let ⟨t₁, ht₁, t₂, ht₂, hs⟩ := mem_inf_sets.mp (hb this) in
   by_cases
     (assume h : a = a',
@@ -531,10 +723,10 @@ have ∀a'∈s, ¬ b < f a',
       have f a < f a', from hs this,
       lt_irrefl (f a') $ by rwa [h] at this)
     (assume h : a ≠ a',
-      have a' < a, from lt_of_le_of_ne (ha.left _ ha') h.symm,
-      have {x | a' < x} ∈ nhds a, from mem_nhds_sets (is_open_lt' _) this,
-      have {x | a' < x} ∩ t₁ ∈ nhds a, from inter_mem_sets this ht₁,
-      have ({x | a' < x} ∩ t₁) ∩ s ∈ nhds a ⊓ principal s,
+      have a' < a, from lt_of_le_of_ne (ha.left ha') h.symm,
+      have {x | a' < x} ∈ 𝓝 a, from mem_nhds_sets (is_open_lt' _) this,
+      have {x | a' < x} ∩ t₁ ∈ 𝓝 a, from inter_mem_sets this ht₁,
+      have ({x | a' < x} ∩ t₁) ∩ s ∈ 𝓝 a ⊓ principal s,
         from inter_mem_inf_sets this (subset.refl s),
       let ⟨x, ⟨hx₁, hx₂⟩, hx₃⟩ := inhabited_of_mem_sets hnbot this in
       have hxa' : f x < f a', from hs ⟨hx₂, ht₂ hx₃⟩,
@@ -543,22 +735,22 @@ have ∀a'∈s, ¬ b < f a',
 and.intro
   (assume b' ⟨a', ha', h_eq⟩, h_eq ▸ not_lt.1 $ this _ ha')
   (assume b' hb', le_of_tendsto hnbot hb $
-      mem_inf_sets_of_right $ assume x hx, hb' _ $ mem_image_of_mem _ hx)
+      mem_inf_sets_of_right $ assume x hx, hb' $ mem_image_of_mem _ hx)
 
 lemma is_glb_of_is_glb_of_tendsto {f : α → β} {s : set α} {a : α} {b : β}
   (hf : ∀x∈s, ∀y∈s, x ≤ y → f x ≤ f y) : is_glb s a → s ≠ ∅ →
-  tendsto f (nhds a ⊓ principal s) (nhds b) → is_glb (f '' s) b :=
+  tendsto f (𝓝 a ⊓ principal s) (𝓝 b) → is_glb (f '' s) b :=
 @is_lub_of_is_lub_of_tendsto (order_dual α) (order_dual β) _ _ _ _ _ _ f s a b
   (λ x hx y hy, hf y hy x hx)
 
 lemma is_glb_of_is_lub_of_tendsto : ∀ {f : α → β} {s : set α} {a : α} {b : β},
   (∀x∈s, ∀y∈s, x ≤ y → f y ≤ f x) → is_lub s a → s ≠ ∅ →
-  tendsto f (nhds a ⊓ principal s) (nhds b) → is_glb (f '' s) b :=
+  tendsto f (𝓝 a ⊓ principal s) (𝓝 b) → is_glb (f '' s) b :=
 @is_lub_of_is_lub_of_tendsto α (order_dual β) _ _ _ _ _ _
 
 lemma is_lub_of_is_glb_of_tendsto : ∀ {f : α → β} {s : set α} {a : α} {b : β},
   (∀x∈s, ∀y∈s, x ≤ y → f y ≤ f x) → is_glb s a → s ≠ ∅ →
-  tendsto f (nhds a ⊓ principal s) (nhds b) → is_lub (f '' s) b :=
+  tendsto f (𝓝 a ⊓ principal s) (𝓝 b) → is_lub (f '' s) b :=
 @is_glb_of_is_glb_of_tendsto α (order_dual β) _ _ _ _ _ _
 
 lemma mem_closure_of_is_lub {a : α} {s : set α} (ha : is_lub s a) (hs : s ≠ ∅) : a ∈ closure s :=
@@ -583,7 +775,7 @@ begin
     (λ x _, is_open_lt continuous_const continuous_id) _ with ⟨t, st, ft, ht⟩,
   { refine H ((bdd_below_finite ft).imp $ λ C hC y hy, _),
     rcases mem_bUnion_iff.1 (ht hy) with ⟨x, hx, xy⟩,
-    exact le_trans (hC _ hx) (le_of_lt xy) },
+    exact le_trans (hC hx) (le_of_lt xy) },
   { refine λ x hx, mem_bUnion_iff.2 (not_imp_comm.1 _ H),
     exact λ h, ⟨x, λ y hy, le_of_not_lt (h.imp $ λ ys, ⟨_, hy, ys⟩)⟩ }
 end
@@ -595,6 +787,92 @@ lemma bdd_above_of_compact {α : Type u} [topological_space α] [linear_order α
 
 end order_topology
 
+section decidable_linear_order
+
+variables [topological_space α] [decidable_linear_order α] [orderable_topology α] [densely_ordered α]
+
+/-- The closure of the interval `(a, +∞)` is the closed interval `[a, +∞)`, unless `a` is a top
+element. -/
+lemma closure_Ioi' {a b : α} (hab : a < b) :
+  closure (Ioi a) = Ici a :=
+begin
+  apply subset.antisymm,
+  { rw ← closure_eq_iff_is_closed.2 is_closed_Ici,
+    exact closure_mono Ioi_subset_Ici_self,
+    apply_instance },
+  { assume x hx,
+    by_cases h : x = a,
+    { rw h, exact mem_closure_of_is_glb is_glb_Ioi (ne_empty_of_mem hab) },
+    { exact subset_closure (lt_of_le_of_ne hx (ne.symm h)) } }
+end
+
+/-- The closure of the interval `(a, +∞)` is the closed interval `[a, +∞)`. -/
+lemma closure_Ioi (a : α) [no_top_order α] :
+  closure (Ioi a) = Ici a :=
+let ⟨b, hb⟩ := no_top a in closure_Ioi' hb
+
+/-- The closure of the interval `(-∞, a)` is the closed interval `(-∞, a]`, unless `a` is a bottom
+element. -/
+lemma closure_Iio' {a b : α} (hab : b < a) :
+  closure (Iio a) = Iic a :=
+begin
+  apply subset.antisymm,
+  { rw ← closure_eq_iff_is_closed.2 is_closed_Iic,
+    exact closure_mono Iio_subset_Iic_self,
+    apply_instance },
+  { assume x hx,
+    by_cases h : x = a,
+    { rw h, exact mem_closure_of_is_lub is_lub_Iio (ne_empty_of_mem hab) },
+    { apply subset_closure, by simpa [h] using lt_or_eq_of_le hx } }
+end
+
+/-- The closure of the interval `(-∞, a)` is the interval `(-∞, a]`. -/
+lemma closure_Iio (a : α) [no_bot_order α] :
+  closure (Iio a) = Iic a :=
+let ⟨b, hb⟩ := no_bot a in closure_Iio' hb
+
+/-- The closure of the open interval `(a, b)` is the closed interval `[a, b]`. -/
+lemma closure_Ioo {a b : α} (hab : a < b) :
+  closure (Ioo a b) = Icc a b :=
+begin
+  apply subset.antisymm,
+  { rw ← closure_eq_iff_is_closed.2 is_closed_Icc,
+    exact closure_mono Ioo_subset_Icc_self,
+    apply_instance },
+  { have ne_empty : Ioo a b ≠ ∅, by simpa [Ioo_eq_empty_iff],
+    assume x hx,
+    by_cases h : x = a,
+    { rw h, exact mem_closure_of_is_glb (is_glb_Ioo hab) ne_empty },
+    by_cases h' : x = b,
+    { rw h', refine mem_closure_of_is_lub (is_lub_Ioo hab) ne_empty },
+    exact subset_closure ⟨lt_of_le_of_ne hx.1 (ne.symm h), by simpa [h'] using lt_or_eq_of_le hx.2⟩ }
+end
+
+/-- The closure of the interval `(a, b]` is the closed interval `[a, b]`. -/
+lemma closure_Ioc {a b : α} (hab : a < b) :
+  closure (Ioc a b) = Icc a b :=
+begin
+  apply subset.antisymm,
+  { rw ← closure_eq_iff_is_closed.2 is_closed_Icc,
+    exact closure_mono Ioc_subset_Icc_self,
+    apply_instance },
+  { apply subset.trans _ (closure_mono Ioo_subset_Ioc_self),
+    rw closure_Ioo hab }
+end
+
+/-- The closure of the interval `[a, b)` is the closed interval `[a, b]`. -/
+lemma closure_Ico {a b : α} (hab : a < b) :
+  closure (Ico a b) = Icc a b :=
+begin
+  apply subset.antisymm,
+  { rw ← closure_eq_iff_is_closed.2 is_closed_Icc,
+    exact closure_mono Ico_subset_Icc_self,
+    apply_instance },
+  { apply subset.trans _ (closure_mono Ioo_subset_Ico_self),
+    rw closure_Ioo hab }
+end
+
+end decidable_linear_order
 
 section complete_linear_order
 
@@ -623,7 +901,7 @@ lemma Sup_of_continuous' {f : α → β} (Mf : continuous f) (Cf : monotone f)
 --This is a particular case of the more general is_lub_of_is_lub_of_tendsto
 (is_lub_iff_Sup_eq.1
   (is_lub_of_is_lub_of_tendsto (λ x hx y hy xy, Cf xy) is_lub_Sup hs $
-    tendsto_le_left inf_le_left (continuous.tendsto Mf _))).symm
+    tendsto_le_left inf_le_left (Mf.tendsto _))).symm
 
 /-- A continuous monotone function sending bot to bot sends supremum to supremum. -/
 lemma Sup_of_continuous {f : α → β} (Mf : continuous f) (Cf : monotone f)
@@ -645,7 +923,7 @@ lemma Inf_of_continuous' {f : α → β} (Mf : continuous f) (Cf : monotone f)
   {s : set α} (hs : s ≠ ∅) : f (Inf s) = Inf (f '' s) :=
 (is_glb_iff_Inf_eq.1
   (is_glb_of_is_glb_of_tendsto (λ x hx y hy xy, Cf xy) is_glb_Inf hs $
-    tendsto_le_left inf_le_left (continuous.tendsto Mf _))).symm
+    tendsto_le_left inf_le_left (Mf.tendsto _))).symm
 
 /-- A continuous monotone function sending top to top sends infimum to infimum. -/
 lemma Inf_of_continuous {f : α → β} (Mf : continuous f) (Cf : monotone f)
@@ -694,7 +972,7 @@ begin
   refine (is_lub_iff_eq_of_is_lub _).1
     (is_lub_cSup (mt image_eq_empty.1 ne) (bdd_above_of_bdd_above_of_monotone Cf H)),
   refine is_lub_of_is_lub_of_tendsto (λx hx y hy xy, Cf xy) (is_lub_cSup ne H) ne _,
-  exact tendsto_le_left inf_le_left (continuous.tendsto Mf _)
+  exact tendsto_le_left inf_le_left (Mf.tendsto _)
 end
 
 /-- A continuous monotone function sends indexed supremum to indexed supremum in conditionally complete
@@ -712,7 +990,7 @@ begin
   refine (is_glb_iff_eq_of_is_glb _).1
     (is_glb_cInf (mt image_eq_empty.1 ne) (bdd_below_of_bdd_below_of_monotone Cf H)),
   refine is_glb_of_is_glb_of_tendsto (λx hx y hy xy, Cf xy) (is_glb_cInf ne H) ne _,
-  exact tendsto_le_left inf_le_left (continuous.tendsto Mf _)
+  exact tendsto_le_left inf_le_left (Mf.tendsto _)
 end
 
 /-- A continuous monotone function sends indexed infimum to indexed infimum in conditionally complete
@@ -750,21 +1028,21 @@ section liminf_limsup
 section ordered_topology
 variables [semilattice_sup α] [topological_space α] [orderable_topology α]
 
-lemma is_bounded_le_nhds (a : α) : (nhds a).is_bounded (≤) :=
+lemma is_bounded_le_nhds (a : α) : (𝓝 a).is_bounded (≤) :=
 match forall_le_or_exists_lt_sup a with
-| or.inl h := ⟨a, show {x : α | x ≤ a} ∈ nhds a, from univ_mem_sets' h⟩
+| or.inl h := ⟨a, show {x : α | x ≤ a} ∈ 𝓝 a, from univ_mem_sets' h⟩
 | or.inr ⟨b, hb⟩ := ⟨b, ge_mem_nhds hb⟩
 end
 
 lemma is_bounded_under_le_of_tendsto {f : filter β} {u : β → α} {a : α}
-  (h : tendsto u f (nhds a)) : f.is_bounded_under (≤) u :=
+  (h : tendsto u f (𝓝 a)) : f.is_bounded_under (≤) u :=
 is_bounded_of_le h (is_bounded_le_nhds a)
 
-lemma is_cobounded_ge_nhds (a : α) : (nhds a).is_cobounded (≥) :=
+lemma is_cobounded_ge_nhds (a : α) : (𝓝 a).is_cobounded (≥) :=
 is_cobounded_of_is_bounded nhds_neq_bot (is_bounded_le_nhds a)
 
 lemma is_cobounded_under_ge_of_tendsto {f : filter β} {u : β → α} {a : α}
-  (hf : f ≠ ⊥) (h : tendsto u f (nhds a)) : f.is_cobounded_under (≥) u :=
+  (hf : f ≠ ⊥) (h : tendsto u f (𝓝 a)) : f.is_cobounded_under (≥) u :=
 is_cobounded_of_is_bounded (map_ne_bot hf) (is_bounded_under_le_of_tendsto h)
 
 end ordered_topology
@@ -772,21 +1050,21 @@ end ordered_topology
 section ordered_topology
 variables [semilattice_inf α] [topological_space α] [orderable_topology α]
 
-lemma is_bounded_ge_nhds (a : α) : (nhds a).is_bounded (≥) :=
+lemma is_bounded_ge_nhds (a : α) : (𝓝 a).is_bounded (≥) :=
 match forall_le_or_exists_lt_inf a with
-| or.inl h := ⟨a, show {x : α | a ≤ x} ∈ nhds a, from univ_mem_sets' h⟩
+| or.inl h := ⟨a, show {x : α | a ≤ x} ∈ 𝓝 a, from univ_mem_sets' h⟩
 | or.inr ⟨b, hb⟩ := ⟨b, le_mem_nhds hb⟩
 end
 
 lemma is_bounded_under_ge_of_tendsto {f : filter β} {u : β → α} {a : α}
-  (h : tendsto u f (nhds a)) : f.is_bounded_under (≥) u :=
+  (h : tendsto u f (𝓝 a)) : f.is_bounded_under (≥) u :=
 is_bounded_of_le h (is_bounded_ge_nhds a)
 
-lemma is_cobounded_le_nhds (a : α) : (nhds a).is_cobounded (≤) :=
+lemma is_cobounded_le_nhds (a : α) : (𝓝 a).is_cobounded (≤) :=
 is_cobounded_of_is_bounded nhds_neq_bot (is_bounded_ge_nhds a)
 
 lemma is_cobounded_under_le_of_tendsto {f : filter β} {u : β → α} {a : α}
-  (hf : f ≠ ⊥) (h : tendsto u f (nhds a)) : f.is_cobounded_under (≤) u :=
+  (hf : f ≠ ⊥) (h : tendsto u f (𝓝 a)) : f.is_cobounded_under (≤) u :=
 is_cobounded_of_is_bounded (map_ne_bot hf) (is_bounded_under_ge_of_tendsto h)
 
 end ordered_topology
@@ -810,38 +1088,38 @@ variables [topological_space α] [orderable_topology α]
 their common value, at least if the filter is eventually bounded above and below. -/
 theorem le_nhds_of_Limsup_eq_Liminf {f : filter α} {a : α}
   (hl : f.is_bounded (≤)) (hg : f.is_bounded (≥)) (hs : f.Limsup = a) (hi : f.Liminf = a) :
-  f ≤ nhds a :=
+  f ≤ 𝓝 a :=
 tendsto_orderable.2 $ and.intro
   (assume b hb, gt_mem_sets_of_Liminf_gt hg $ hi.symm ▸ hb)
   (assume b hb, lt_mem_sets_of_Limsup_lt hl $ hs.symm ▸ hb)
 
-theorem Limsup_nhds (a : α) : Limsup (nhds a) = a :=
+theorem Limsup_nhds (a : α) : Limsup (𝓝 a) = a :=
 cInf_intro (ne_empty_iff_exists_mem.2 $ is_bounded_le_nhds a)
-  (assume a' (h : {n : α | n ≤ a'} ∈ nhds a), show a ≤ a', from @mem_of_nhds α _ a _ h)
-  (assume b (hba : a < b), show ∃c (h : {n : α | n ≤ c} ∈ nhds a), c < b, from
+  (assume a' (h : {n : α | n ≤ a'} ∈ 𝓝 a), show a ≤ a', from @mem_of_nhds α _ a _ h)
+  (assume b (hba : a < b), show ∃c (h : {n : α | n ≤ c} ∈ 𝓝 a), c < b, from
     match dense_or_discrete a b with
     | or.inl ⟨c, hac, hcb⟩ := ⟨c, ge_mem_nhds hac, hcb⟩
-    | or.inr ⟨_, h⟩        := ⟨a, (nhds a).sets_of_superset (gt_mem_nhds hba) h, hba⟩
+    | or.inr ⟨_, h⟩        := ⟨a, (𝓝 a).sets_of_superset (gt_mem_nhds hba) h, hba⟩
     end)
 
-theorem Liminf_nhds : ∀ (a : α), Liminf (nhds a) = a :=
+theorem Liminf_nhds : ∀ (a : α), Liminf (𝓝 a) = a :=
 @Limsup_nhds (order_dual α) _ _ _
 
 /-- If a filter is converging, its limsup coincides with its limit. -/
-theorem Liminf_eq_of_le_nhds {f : filter α} {a : α} (hf : f ≠ ⊥) (h : f ≤ nhds a) : f.Liminf = a :=
+theorem Liminf_eq_of_le_nhds {f : filter α} {a : α} (hf : f ≠ ⊥) (h : f ≤ 𝓝 a) : f.Liminf = a :=
 have hb_ge : is_bounded (≥) f, from is_bounded_of_le h (is_bounded_ge_nhds a),
 have hb_le : is_bounded (≤) f, from is_bounded_of_le h (is_bounded_le_nhds a),
 le_antisymm
   (calc f.Liminf ≤ f.Limsup : Liminf_le_Limsup hf hb_le hb_ge
-    ... ≤ (nhds a).Limsup :
+    ... ≤ (𝓝 a).Limsup :
       Limsup_le_Limsup_of_le h (is_cobounded_of_is_bounded hf hb_ge) (is_bounded_le_nhds a)
     ... = a : Limsup_nhds a)
-  (calc a = (nhds a).Liminf : (Liminf_nhds a).symm
+  (calc a = (𝓝 a).Liminf : (Liminf_nhds a).symm
     ... ≤ f.Liminf :
       Liminf_le_Liminf_of_le h (is_bounded_ge_nhds a) (is_cobounded_of_is_bounded hf hb_le))
 
 /-- If a filter is converging, its liminf coincides with its limit. -/
-theorem Limsup_eq_of_le_nhds : ∀ {f : filter α} {a : α}, f ≠ ⊥ → f ≤ nhds a → f.Limsup = a :=
+theorem Limsup_eq_of_le_nhds : ∀ {f : filter α} {a : α}, f ≠ ⊥ → f ≤ 𝓝 a → f.Limsup = a :=
 @Liminf_eq_of_le_nhds (order_dual α) _ _ _
 
 end conditionally_complete_linear_order
@@ -853,17 +1131,17 @@ variables [complete_linear_order α] [topological_space α] [orderable_topology 
 /-- If the liminf and the limsup of a function coincide, then the limit of the function
 exists and has the same value -/
 theorem tendsto_of_liminf_eq_limsup {f : filter β} {u : β → α} {a : α}
-  (h : liminf f u = a ∧ limsup f u = a) : tendsto u f (nhds a) :=
+  (h : liminf f u = a ∧ limsup f u = a) : tendsto u f (𝓝 a) :=
   le_nhds_of_Limsup_eq_Liminf is_bounded_le_of_top is_bounded_ge_of_bot h.2 h.1
 
 /-- If a function has a limit, then its limsup coincides with its limit-/
 theorem limsup_eq_of_tendsto {f : filter β} {u : β → α} {a : α} (hf : f ≠ ⊥)
-  (h : tendsto u f (nhds a)) : limsup f u = a :=
+  (h : tendsto u f (𝓝 a)) : limsup f u = a :=
   Limsup_eq_of_le_nhds (map_ne_bot hf) h
 
 /-- If a function has a limit, then its liminf coincides with its limit-/
 theorem liminf_eq_of_tendsto {f : filter β} {u : β → α} {a : α} (hf : f ≠ ⊥)
-  (h : tendsto u f (nhds a)) : liminf f u = a :=
+  (h : tendsto u f (𝓝 a)) : liminf f u = a :=
   Liminf_eq_of_le_nhds (map_ne_bot hf) h
 
 end complete_linear_order
@@ -874,7 +1152,7 @@ end orderable_topology
 
 lemma orderable_topology_of_nhds_abs
   {α : Type*} [decidable_linear_ordered_comm_group α] [topological_space α]
-  (h_nhds : ∀a:α, nhds a = (⨅r>0, principal {b | abs (a - b) < r})) : orderable_topology α :=
+  (h_nhds : ∀a:α, 𝓝 a = (⨅r>0, principal {b | abs (a - b) < r})) : orderable_topology α :=
 orderable_topology.mk $ eq_of_nhds_eq_nhds $ assume a:α, le_antisymm_iff.mpr
 begin
   simp [infi_and, topological_space.nhds_generate_from,
@@ -905,20 +1183,20 @@ begin
 end
 
 lemma tendsto_at_top_supr_nat [topological_space α] [complete_linear_order α] [orderable_topology α]
-  (f : ℕ → α) (hf : monotone f) : tendsto f at_top (nhds (⨆i, f i)) :=
+  (f : ℕ → α) (hf : monotone f) : tendsto f at_top (𝓝 (⨆i, f i)) :=
 tendsto_orderable.2 $ and.intro
   (assume a ha, let ⟨n, hn⟩ := lt_supr_iff.1 ha in
     mem_at_top_sets.2 ⟨n, assume i hi, lt_of_lt_of_le hn (hf hi)⟩)
   (assume a ha, univ_mem_sets' (assume n, lt_of_le_of_lt (le_supr _ n) ha))
 
 lemma tendsto_at_top_infi_nat [topological_space α] [complete_linear_order α] [orderable_topology α]
-  (f : ℕ → α) (hf : ∀{n m}, n ≤ m → f m ≤ f n) : tendsto f at_top (nhds (⨅i, f i)) :=
+  (f : ℕ → α) (hf : ∀{n m}, n ≤ m → f m ≤ f n) : tendsto f at_top (𝓝 (⨅i, f i)) :=
 @tendsto_at_top_supr_nat (order_dual α) _ _ _ _ @hf
 
 lemma supr_eq_of_tendsto {α} [topological_space α] [complete_linear_order α] [orderable_topology α]
-  {f : ℕ → α} {a : α} (hf : monotone f) : tendsto f at_top (nhds a) → supr f = a :=
+  {f : ℕ → α} {a : α} (hf : monotone f) : tendsto f at_top (𝓝 a) → supr f = a :=
 tendsto_nhds_unique at_top_ne_bot (tendsto_at_top_supr_nat f hf)
 
 lemma infi_eq_of_tendsto {α} [topological_space α] [complete_linear_order α] [orderable_topology α]
-  {f : ℕ → α} {a : α} (hf : ∀n m, n ≤ m → f m ≤ f n) : tendsto f at_top (nhds a) → infi f = a :=
+  {f : ℕ → α} {a : α} (hf : ∀n m, n ≤ m → f m ≤ f n) : tendsto f at_top (𝓝 a) → infi f = a :=
 tendsto_nhds_unique at_top_ne_bot (tendsto_at_top_infi_nat f hf)

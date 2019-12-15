@@ -101,7 +101,7 @@ def coeff (n : σ →₀ ℕ) : (mv_power_series σ α) →+ α :=
 variables {α}
 
 /-- Two multivariate formal power series are equal if all their coefficients are equal.-/
-@[extensionality] lemma ext {φ ψ} (h : ∀ (n : σ →₀ ℕ), coeff α n φ = coeff α n ψ) :
+@[ext] lemma ext {φ ψ} (h : ∀ (n : σ →₀ ℕ), coeff α n φ = coeff α n ψ) :
   φ = ψ :=
 funext h
 
@@ -770,7 +770,7 @@ lemma coeff_def {s : unit →₀ ℕ} {n : ℕ} (h : s () = n) :
 by erw [coeff, ← h, ← finsupp.unique_single s]
 
 /-- Two formal power series are equal if all their coefficients are equal.-/
-@[extensionality] lemma ext {φ ψ : power_series α} (h : ∀ n, coeff α n φ = coeff α n ψ) :
+@[ext] lemma ext {φ ψ : power_series α} (h : ∀ n, coeff α n φ = coeff α n ψ) :
   φ = ψ :=
 mv_power_series.ext $ λ n,
 by { rw ← coeff_def, { apply h }, refl }

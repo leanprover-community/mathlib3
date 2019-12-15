@@ -276,6 +276,19 @@ end
 lemma continuous_nnnorm : continuous (nnnorm : α → nnreal) :=
 continuous_subtype_mk _ continuous_norm
 
+/-- If `∥y∥→∞`, then we can assume `y≠x` for any fixed `x`. -/
+lemma set_of_ne_mem_of_tendsto_norm_at_top {l : filter γ} {f : γ → α}
+  (h : tendsto (λ y, ∥f y∥) l at_top) (x : α) :
+  {y | f y ≠ x} ∈ l :=
+begin
+  have : {y | 1 + ∥x∥ ≤ ∥f y∥} ∈ l := h (mem_at_top (1 + ∥x∥)),
+  apply mem_sets_of_superset this,
+  assume y hy hxy,
+  subst x,
+  simp at hy,
+  exact not_le_of_lt zero_lt_one hy
+end
+
 /-- A normed group is a uniform additive group, i.e., addition and subtraction are uniformly
 continuous. -/
 @[priority 100] -- see Note [lower instance priority]

@@ -555,10 +555,11 @@ section normed_space
 
 section prio
 set_option default_priority 100 -- see Note [default priority]
+-- see Note[vector space definition] for why we extend `module`.
 /-- A normed space over a normed field is a vector space endowed with a norm which satisfies the
 equality `∥c • x∥ = ∥c∥ ∥x∥`. -/
 class normed_space (α : Type*) (β : Type*) [normed_field α] [normed_group β]
-  extends vector_space α β :=
+  extends module α β :=
 (norm_smul : ∀ (a:α) (b:β), norm (a • b) = has_norm.norm a * norm b)
 end prio
 
@@ -661,7 +662,7 @@ instance : normed_space α (E × F) :=
   add_smul := λ r x y, prod.ext (add_smul _ _ _) (add_smul _ _ _),
   smul_add := λ r x y, prod.ext (smul_add _ _ _) (smul_add _ _ _),
   ..prod.normed_group,
-  ..prod.vector_space }
+  ..prod.module }
 
 /-- The product of finitely many normed spaces is a normed space, with the sup norm. -/
 instance pi.normed_space {E : ι → Type*} [fintype ι] [∀i, normed_group (E i)]

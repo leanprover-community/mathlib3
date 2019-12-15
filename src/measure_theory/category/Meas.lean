@@ -88,8 +88,8 @@ end Meas
 
 instance Top.has_forget_to_Meas : has_forget₂ Top.{u} Meas.{u} :=
 bundled_hom.mk_has_forget₂
-  @measure_theory.borel
-  (λ X Y f, ⟨f.1, measure_theory.measurable_of_continuous f.2⟩)
+  borel
+  (λ X Y f, ⟨f.1, measurable_of_continuous f.2⟩)
   (by intros; refl)
 
 /-- The Borel functor, the canonical embedding of topological spaces into measurable spaces. -/

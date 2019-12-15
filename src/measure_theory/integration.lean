@@ -779,7 +779,7 @@ begin
       refine inter_subset_inter (subset.refl _) _,
       assume x hx, exact le_trans hx (h_mono h x) },
     have h_meas : ∀n, is_measurable {a : α | ⇑(map c rs) a ≤ f n a} :=
-      assume n, measurable_le (simple_func.measurable _) (hf n),
+      assume n, is_measurable_le (simple_func.measurable _) (hf n),
     calc (r:ennreal) * integral (s.map c) = (rs.map c).range.sum (λr, r * volume ((rs.map c) ⁻¹' {r})) :
         by rw [← const_mul_integral, integral, eq_rs]
       ... ≤ (rs.map c).range.sum (λr, r * volume (⋃n, (rs.map c) ⁻¹' {r} ∩ {a | r ≤ f n a})) :
@@ -851,7 +851,7 @@ calc (∫⁻ a, f a + g a) =
   begin
     rw [lintegral_supr],
     { congr, funext n, rw [← simple_func.add_integral, ← simple_func.lintegral_eq_integral], refl },
-    { assume n, exact measurable_add (eapprox f n).measurable (eapprox g n).measurable },
+    { assume n, exact measurable.add (eapprox f n).measurable (eapprox g n).measurable },
     { assume i j h a, exact add_le_add' (monotone_eapprox _ h _) (monotone_eapprox _ h _) }
   end
   ... = (⨆n, (eapprox f n).integral) + (⨆n, (eapprox g n).integral) :
@@ -1037,7 +1037,7 @@ lemma lintegral_sub {f g : α → ennreal} (hf : measurable f) (hg : measurable 
 begin
   rw [← ennreal.add_right_inj hg_fin,
         ennreal.sub_add_cancel_of_le (lintegral_le_lintegral_ae h_le),
-      ← lintegral_add (ennreal.measurable_sub hf hg) hg],
+      ← lintegral_add (ennreal.measurable.sub hf hg) hg],
   show  (∫⁻ (a : α), f a - g a + g a) = ∫⁻ (a : α), f a,
   apply lintegral_congr_ae, filter_upwards [h_le], simp only [add_comm, mem_set_of_eq],
   assume a ha, exact ennreal.add_sub_cancel_of_le ha
@@ -1064,7 +1064,7 @@ calc
   ... = ∫⁻ a, ⨆n, f 0 a - f n a : congr rfl (funext (assume a, ennreal.sub_infi))
   ... = ⨆n, ∫⁻ a, f 0 a - f n a :
     lintegral_supr_ae
-      (assume n, ennreal.measurable_sub (h_meas 0) (h_meas n))
+      (assume n, ennreal.measurable.sub (h_meas 0) (h_meas n))
       (assume n, by
         filter_upwards [h_mono n] assume a ha, ennreal.sub_le_sub (le_refl _) ha)
   ... = ⨆n, lintegral (f 0) - ∫⁻ a, f n a :

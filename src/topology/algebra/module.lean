@@ -51,11 +51,22 @@ class topological_module (α : Type u) (β : Type v)
   [module α β]
   extends topological_semimodule α β : Prop
 
+
+/- Note[topological vector space definition]:
+Topological vector spaces are defined as an `abbreviation` for topological modules,
+if the base ring is a field.
+This has as advantage that topological vector spaces are completely transparant
+for type class inference, which means that all instances for topological modules
+are immediately picked up for vector spaces as well.
+A cosmetic disadvantage is that one can not extend topological vector spaces.
+The solution is to extend `topological_module` instead.
+-/
+
 /-- A topological vector space is a topological module over a field. -/
-class topological_vector_space (α : Type u) (β : Type v)
+abbreviation topological_vector_space (α : Type u) (β : Type v)
   [discrete_field α] [topological_space α]
-  [topological_space β] [add_comm_group β] [vector_space α β]
-  extends topological_module α β
+  [topological_space β] [add_comm_group β] [module α β] :=
+topological_module α β
 end prio
 
 section

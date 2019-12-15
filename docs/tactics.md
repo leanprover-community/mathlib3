@@ -186,10 +186,46 @@ example {α : Type*} {a b : α} [add_comm_group α] (hyp : a + a - a = b - b) : 
 by { abel at hyp, exact hyp }
 ```
 
+### norm_num
+
+Normalises numerical expressions. It supports the operations `+` `-` `*` `/` `^` and `%` over numerical types such as `ℕ`, `ℤ`, `ℚ`, `ℝ`, `ℂ`, and can prove goals of the form `A = B`, `A ≠ B`, `A < B` and `A ≤ B`, where `A` and `B` are
+numerical expressions. It also has a relatively simple primality prover.
+```lean
+import data.real.basic
+
+example : (2 : ℝ) + 2 = 4 := by norm_num
+example : (12345.2 : ℝ) ≠ 12345.3 := by norm_num
+example : (73 : ℝ) < 789/2 := by norm_num
+example : 123456789 + 987654321 = 1111111110 := by norm_num
+example (R : Type*) [ring R] : (2 : R) + 2 = 4 := by norm_num
+example (F : Type*) [linear_ordered_field F] : (2 : F) + 2 < 5 := by norm_num
+example : nat.prime (2^13 - 1) := by norm_num
+example : ¬ nat.prime (2^11 - 1) := by norm_num
+example (x : ℝ) (h : x = 123 + 456) : x = 579 := by norm_num at h; assumption
+```
+
 ### ring
 
 Evaluate expressions in the language of *commutative* (semi)rings.
 Based on [Proving Equalities in a Commutative Ring Done Right in Coq](http://www.cs.ru.nl/~freek/courses/tt-2014/read/10.1.1.61.3041.pdf) by Benjamin Grégoire and Assia Mahboubi.
+
+The variant `ring!` uses a more aggessive reducibility setting to determine equality of atoms.
+
+### ring_exp
+
+Evaluate expressions in *commutative* (semi)rings, allowing for variables in the exponent.
+
+This tactic extends `ring`: it should solve every goal that `ring` can solve.
+Additionally, it knows how to evaluate expressions with complicated exponents
+(where `ring` only understands constant exponents).
+The variants `ring_exp!` and `ring_exp_eq!` use a more aggessive reducibility setting to determine equality of atoms.
+
+For example:
+```lean
+example (n : ℕ) (m : ℤ) : 2^(n+1) * m = 2 * 2^n * m := by ring_exp
+example (a b : ℤ) (n : ℕ) : (a + b)^(n + 2) = (a^2 + b^2 + a * b + b * a) * (a + b)^n := by ring_exp
+example (x y : ℕ) : x + id y = y + id x := by ring_exp!
+```
 
 ### congr'
 

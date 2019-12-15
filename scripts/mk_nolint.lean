@@ -25,7 +25,7 @@ open io io.fs
 /-- Defines the list of linters that will be considered. -/
 meta def active_linters :=
 [`linter.unused_arguments, `linter.dup_namespace, `linter.doc_blame,
- `linter.illegal_constants, `linter.def_lemma] --, `linter.instance_priority]
+ `linter.illegal_constants, `linter.def_lemma, `linter.instance_priority]
 
 /-- Runs when called with `lean --run` -/
 meta def main : io unit :=

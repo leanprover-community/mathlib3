@@ -480,7 +480,7 @@ end ring
 namespace field
 
 variables [Π i, field (G i)]
-variables (f : Π i j, i ≤ j → G i → G j) [Π i j hij, is_field_hom (f i j hij)]
+variables (f : Π i j, i ≤ j → G i → G j) [Π i j hij, is_ring_hom (f i j hij)]
 variables [directed_system G f]
 
 namespace direct_limit

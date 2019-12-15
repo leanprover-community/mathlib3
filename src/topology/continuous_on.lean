@@ -41,7 +41,7 @@ end
 theorem nhds_within_univ (a : α) : nhds_within a set.univ = 𝓝 a :=
 by rw [nhds_within, principal_univ, lattice.inf_top_eq]
 
-theorem mem_nhds_within (t : set α) (a : α) (s : set α) :
+theorem mem_nhds_within {t : set α} {a : α} {s : set α} :
   t ∈ nhds_within a s ↔ ∃ u, is_open u ∧ a ∈ u ∧ u ∩ s ⊆ t  :=
 begin
   rw [nhds_within, mem_inf_principal, mem_nhds_sets_iff], split,
@@ -49,6 +49,15 @@ begin
     exact ⟨u, openu, au, λ x ⟨xu, xs⟩, hu xu xs⟩ },
   rintros ⟨u, openu, au, hu⟩,
   exact ⟨u, λ x xu xs, hu ⟨xu, xs⟩, openu, au⟩
+end
+
+lemma mem_nhds_within_iff_exists_mem_nhds_inter {t : set α} {a : α} {s : set α} :
+  t ∈ nhds_within a s ↔ ∃ u ∈ 𝓝 a, u ∩ s ⊆ t :=
+begin
+  rw [nhds_within, mem_inf_principal],
+  split,
+  { exact λH, ⟨_, H, λx hx, hx.1 hx.2⟩ },
+  { exact λ⟨u, Hu, h⟩, mem_sets_of_superset Hu (λx xu xs, h ⟨xu, xs⟩ ) }
 end
 
 lemma mem_nhds_within_of_mem_nhds {s t : set α} {a : α} (h : s ∈ 𝓝 a) :
@@ -86,7 +95,7 @@ nhds_within_restrict' s (mem_nhds_sets h₁ h₀)
 theorem nhds_within_le_of_mem {a : α} {s t : set α} (h : s ∈ nhds_within a t) :
   nhds_within a t ≤ nhds_within a s :=
 begin
-  rcases (mem_nhds_within _ _ _).1 h with ⟨u, u_open, au, uts⟩,
+  rcases mem_nhds_within.1 h with ⟨u, u_open, au, uts⟩,
   have : nhds_within a t = nhds_within a (t ∩ u) := nhds_within_restrict _ au u_open,
   rw [this, inter_comm],
   exact nhds_within_mono _ uts
@@ -212,6 +221,12 @@ variables [topological_space β] [topological_space γ]
 if `f x` tends to `f x₀` when `x` tends to `x₀` while staying within `s`. -/
 def continuous_within_at (f : α → β) (s : set α) (x : α) : Prop :=
 tendsto f (nhds_within x s) (𝓝 (f x))
+
+/-- If a function is continuous within `s` at `x`, then it tends to `f x` within `s` by definition.
+We register this fact for use with the dot notation, especially to use `tendsto.comp` as
+`continuous_within_at.comp` will have a different meaning. -/
+lemma continuous_within_at.tendsto {f : α → β} {s : set α} {x : α} (h : continuous_within_at f s x) :
+  tendsto f (nhds_within x s) (𝓝 (f x)) := h
 
 /-- A function between topological spaces is continuous on a subset `s`
 when it's continuous at every point of `s` within `s`. -/
@@ -355,6 +370,10 @@ begin
   rw continuous_iff_continuous_on_univ at h,
   exact h.mono (subset_univ _)
 end
+
+lemma continuous.continuous_within_at {f : α → β} {s : set α} {x : α} (h : continuous f) :
+  continuous_within_at f s x :=
+tendsto_le_left lattice.inf_le_left (h.tendsto x)
 
 lemma continuous.comp_continuous_on {g : β → γ} {f : α → β} {s : set α}
   (hg : continuous g) (hf : continuous_on f s) :

@@ -72,15 +72,6 @@ run_cmd do
   e.get `name_clash_fst_2,
   e.get `name_clash_snd_3
 
-/- test whether environment.get_projections works correctly on all structures -/
-meta def test_projection (env : environment) (n : name) : tactic unit := do
-  ns ← env.get_projections n,
-  ns.mmap' $ λ n, if (env.is_projection n).is_some then skip else fail ns,
-  skip
-
-run_cmd do e ← get_env, e.mfold ()
-  (λ d _, if e.is_structure d.to_name then test_projection e d.to_name else skip)
-
 /- check projections for nested structures -/
 
 namespace count_nested

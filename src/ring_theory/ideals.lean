@@ -498,8 +498,8 @@ begin
   exact map_nonunit f a ha
 end
 
-instance map.is_field_hom (f : α → β) [is_local_ring_hom f] :
-  is_field_hom (map f) :=
+instance map.is_ring_hom (f : α → β) [is_local_ring_hom f] :
+  is_ring_hom (map f) :=
 ideal.quotient.is_ring_hom
 
 end residue_field

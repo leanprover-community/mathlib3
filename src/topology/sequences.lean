@@ -125,6 +125,12 @@ iff.intro
         ... = closure M            : sequential_space.sequential_closure_eq_closure M)))
   (is_seq_closed_of_is_closed M)
 
+/-- In a sequential space, a point belongs to the closure of a set iff it is a limit of a sequence
+taking values in this set. -/
+lemma mem_closure_iff_seq_limit [sequential_space α] {s : set α} {a : α} :
+  a ∈ closure s ↔ ∃ x : ℕ → α, (∀ n : ℕ, x n ∈ s) ∧ (x ⟶ a) :=
+by { rw ← sequential_space.sequential_closure_eq_closure, exact iff.rfl }
+
 /-- A function between topological spaces is sequentially continuous if it commutes with limit of
  convergent sequences. -/
 def sequentially_continuous (f : α → β) : Prop :=

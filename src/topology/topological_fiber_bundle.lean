@@ -264,7 +264,8 @@ include Z
 typeclass inference -/
 @[nolint] def fiber (x : B) := F
 
-instance (x : B) : topological_space (Z.fiber x) := by { dsimp [fiber], apply_instance }
+instance topological_space_fiber (x : B) : topological_space (Z.fiber x) :=
+by { dsimp [fiber], apply_instance }
 
 /-- Total space of a topological bundle created from core. It is equal to `B × F`, but as it is
 not marked as reducible, typeclass inference will not infer the wrong topology, and will use the

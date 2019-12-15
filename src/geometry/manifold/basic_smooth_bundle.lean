@@ -514,10 +514,11 @@ instance : manifold (H × E) (tangent_bundle I M) := by apply_instance
 instance : smooth_manifold_with_corners I.tangent (tangent_bundle I M) := by apply_instance
 
 local attribute [reducible] tangent_space topological_fiber_bundle_core.fiber
+local attribute [instance, priority 0] topological_fiber_bundle_core.topological_space_fiber
 
 variables {M} (x : M)
 
-instance : topological_vector_space 𝕜 (tangent_space I x) := by apply_instance
+instance : topological_module 𝕜 (tangent_space I x) := by apply_instance
 instance : topological_space (tangent_space I x) := by apply_instance
 instance : add_comm_group (tangent_space I x) := by apply_instance
 instance : topological_add_group (tangent_space I x) := by apply_instance

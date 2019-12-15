@@ -20,7 +20,7 @@ In a real normed space, we define the following objects and properties.
 * `segment x y` is the closed segment joining `x` and `y`.
 * A set `A` is `convex` if for any two points `x y ∈ A` it includes `segment x y`;
 * A function `f` is `convex_on` a set `D` if `D` is itself a convex set, and for any two points
-  `x y ∈ D` the segment joinint `(x, f x)` to `(y, f y)` is non-strictly above the graph of `f`;
+  `x y ∈ D` the segment joining `(x, f x)` to `(y, f y)` is (non-strictly) above the graph of `f`;
   equivalently, `convex_on f D` means that the epigraph `{p : α × ℝ | p.1 ∈ D ∧ f p.1 ≤ p.2}`
   is a convex set;
 * Center mass of a finite set of points with prescribed weights.

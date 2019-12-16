@@ -1000,6 +1000,124 @@ lemma cinfi_of_cinfi_of_monotone_of_continuous {f : α → β} {g : γ → α}
 by rw [infi, cInf_of_cInf_of_monotone_of_continuous Mf Cf
   (λ h, range_eq_empty.1 h ‹_›) H, ← range_comp]; refl
 
+/-- Intermediate Value Theorem for continuous functions on connected sets. -/
+lemma is_connected.intermediate_value {s : set α} (hs : is_connected s)
+  {a b : α} (ha : a ∈ s) (hb : b ∈ s) {f : α → β} (hf : continuous_on f s) {t : β}
+  (hfa : f a ≤ t) (hfb : t ≤ f b) : ∃ x ∈ s, f x = t :=
+begin
+  rcases continuous_on_iff_is_closed.1 hf (Iic t) is_closed_Iic with ⟨Sle, hle₁, hle₂⟩,
+  rcases continuous_on_iff_is_closed.1 hf (Ici t) is_closed_Ici with ⟨Sge, hge₁, hge₂⟩,
+  rcases (is_connected_closed_iff.1 hs Sle Sge hle₁ hge₁ _ _ _) with ⟨x, hx⟩,
+  refine ⟨x, hx.1, le_antisymm _ _⟩,
+  -- f x ≤ t
+  { have : x ∈ f ⁻¹' Iic t ∩ s, by { rw [hle₂], exact ⟨hx.2.1, hx.1⟩ },
+    exact this.1 },
+  -- t ≤ f x
+  { have : x ∈ f ⁻¹' Ici t ∩ s, by { rw [hge₂], exact ⟨hx.2.2, hx.1⟩ },
+    exact this.1 },
+  -- s ⊆ Sle ∪ Sge
+  { assume x hx,
+    have : x ∈ (Sle ∪ Sge) ∩ s,
+    { rw [inter_distrib_right, ← hle₂, ← hge₂, ← inter_distrib_right],
+      exact ⟨le_total (f x) t, hx⟩ },
+    exact this.1 },
+  -- (s ∩ Sle).nonempty
+  { rw [inter_comm, ← hle₂], exact ⟨a, hfa, ha⟩ },
+  -- (s ∩ Sge).nonempty
+  { rw [inter_comm, ← hge₂], exact ⟨b, hfb, hb⟩ }
+end
+
+/-- Intermediate Value Theorem for continuous functions on connected spaces. -/
+lemma intermediate_value_univ [connected_space α]
+  (a b : α) {f : α → β} (hf : continuous f) {t : β}
+  (hfa : f a ≤ t) (hfb : t ≤ f b) : ∃ x, f x = t :=
+let ⟨x, hx⟩ := (connected_space.is_connected_univ α).intermediate_value trivial trivial
+  hf.continuous_on hfa hfb in
+⟨x, hx.snd⟩
+
+section densely_ordered
+
+variables [densely_ordered β] {a b : β}
+
+lemma is_connected_Icc : is_connected (Icc a b) :=
+is_connected_closed_iff.2
+begin
+  rintros s t hs ht hab ⟨x, hx⟩ ⟨y, hy⟩,
+  wlog hxy : x ≤ y := le_total x y using [x y s t, y x t s],
+
+  -- `c = Sup (Icc x y ∩ s)` belongs to `Icc a b`, `s`, and `t`.
+  -- First two statements follow from general properties of `cSup`
+  let S := Icc x y ∩ s,
+  have xS : x ∈ S, from ⟨left_mem_Icc.2 hxy, hx.2⟩,
+  have Sne : S ≠ ∅, from ne_empty_iff_nonempty.2 ⟨x, xS⟩,
+  have Sbd : bdd_above S, from ⟨y, λ z hz, hz.1.2⟩,
+  let c := Sup S,
+  have c_mem : c ∈ S, from cSup_mem_of_is_closed Sne (is_closed_inter is_closed_Icc hs) Sbd,
+  have xyab : Icc x y ⊆ Icc a b := Icc_subset_Icc hx.1.1 hy.1.2,
+  have Sab : S ⊆ Icc a b := subset.trans (inter_subset_left _ _) xyab,
+  refine ⟨c, Sab c_mem, c_mem.2, _⟩,
+
+  -- Now we need to prove `c ∈ t`; we deduce it from `Ioc c y ⊆ (s ∪ t) \ s ⊆ t`
+  cases eq_or_lt_of_le c_mem.1.2 with hcy hcy, { exact hcy.symm ▸ hy.2 },
+  suffices : Icc c y ⊆ t, from this (left_mem_Icc.2 (le_of_lt hcy)),
+  rw [← closure_Ioc hcy, closure_subset_iff_subset_of_is_closed ht],
+  intros z hz,
+  have z_mem : z ∈ Icc x y, from Icc_subset_Icc_left c_mem.1.1 (Ioc_subset_Icc_self hz),
+  suffices : z ∈ t \ s, from and.left this,
+  rw [← union_diff_left],
+  exact ⟨hab $ xyab z_mem, λ zs, not_lt_of_le (le_cSup Sbd ⟨z_mem, zs⟩) hz.1⟩
+end
+
+lemma is_connected_Ici : is_connected (Ici a) :=
+is_connected_of_forall a $ λ b hb, ⟨Icc a b, λ x hx, hx.1, left_mem_Icc.2 hb,
+  right_mem_Icc.2 hb, is_connected_Icc⟩
+
+lemma is_connected_Iic : is_connected (Iic a) :=
+is_connected_of_forall a $ λ b hb, ⟨Icc b a, λ x hx, hx.2, right_mem_Icc.2 hb,
+  left_mem_Icc.2 hb, is_connected_Icc⟩
+
+lemma is_connected_Iio : is_connected (Iio a) :=
+is_connected_of_forall_pair $ λ x y hx hy, ⟨Icc (min x y) (max x y),
+  (Icc_subset_Iio_iff $ decidable.min_le_max x y).2 $ max_lt hx hy,
+  ⟨min_le_left x y, le_max_left x y⟩, ⟨min_le_right x y, le_max_right x y⟩, is_connected_Icc⟩
+
+lemma is_connected_Ioi : is_connected (Ioi a) :=
+is_connected_of_forall_pair $ λ x y hx hy, ⟨Icc (min x y) (max x y),
+  (Icc_subset_Ioi_iff $ decidable.min_le_max x y).2 $ lt_min hx hy,
+  ⟨min_le_left x y, le_max_left x y⟩, ⟨min_le_right x y, le_max_right x y⟩, is_connected_Icc⟩
+
+lemma is_connected_Ioo : is_connected (Ioo a b) :=
+is_connected_of_forall_pair $ λ x y hx hy, ⟨Icc (min x y) (max x y),
+  (Icc_subset_Ioo_iff $ decidable.min_le_max x y).2 ⟨lt_min hx.1 hy.1, max_lt hx.2 hy.2⟩,
+  ⟨min_le_left x y, le_max_left x y⟩, ⟨min_le_right x y, le_max_right x y⟩, is_connected_Icc⟩
+
+lemma is_connected_Ioc : is_connected (Ioc a b) :=
+is_connected_of_forall_pair $ λ x y hx hy, ⟨Icc (min x y) (max x y),
+  (Icc_subset_Ioc_iff $ decidable.min_le_max x y).2 ⟨lt_min hx.1 hy.1, max_le hx.2 hy.2⟩,
+  ⟨min_le_left x y, le_max_left x y⟩, ⟨min_le_right x y, le_max_right x y⟩, is_connected_Icc⟩
+
+lemma is_connected_Ico : is_connected (Ico a b) :=
+is_connected_of_forall_pair $ λ x y hx hy, ⟨Icc (min x y) (max x y),
+  (Icc_subset_Ico_iff $ decidable.min_le_max x y).2 ⟨le_min hx.1 hy.1, max_lt hx.2 hy.2⟩,
+  ⟨min_le_left x y, le_max_left x y⟩, ⟨min_le_right x y, le_max_right x y⟩, is_connected_Icc⟩
+
+@[priority 100]
+instance ordered_connected_space : connected_space β :=
+⟨is_connected_of_forall_pair $ λ x y hx hy, ⟨Icc (min x y) (max x y), subset_univ _,
+  ⟨min_le_left x y, le_max_left x y⟩, ⟨min_le_right x y, le_max_right x y⟩, is_connected_Icc⟩⟩
+
+/--Intermediate Value Theorem for continuous functions on closed intervals, case `f a ≤ t ≤ f b`.-/
+lemma intermediate_value_Icc {a b : β} (hab : a ≤ b) {f : β → α} (hf : continuous_on f (Icc a b))
+  {t : α} (ha : f a ≤ t) (hb : t ≤ f b) : ∃ x ∈ Icc a b, f x = t :=
+is_connected_Icc.intermediate_value (left_mem_Icc.2 hab) (right_mem_Icc.2 hab) hf ha hb
+
+/--Intermediate Value Theorem for continuous functions on closed intervals, case `f a ≥ t ≥ f b`.-/
+lemma intermediate_value_Icc' {a b : β} (hab : a ≤ b) {f : β → α} (hf : continuous_on f (Icc a b))
+  {t : α} (ha : t ≤ f a) (hb : f b ≤ t) : ∃ x ∈ Icc a b, f x = t :=
+is_connected_Icc.intermediate_value (right_mem_Icc.2 hab) (left_mem_Icc.2 hab) hf hb ha
+
+end densely_ordered
+
 /-- The extreme value theorem: a continuous function realizes its minimum on a compact set -/
 lemma exists_forall_le_of_compact_of_continuous {α : Type u} [topological_space α]
   (f : α → β) (hf : continuous f) (s : set α) (hs : compact s) (ne_s : s ≠ ∅) :

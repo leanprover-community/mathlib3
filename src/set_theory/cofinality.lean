@@ -359,7 +359,7 @@ theorem unbounded_of_unbounded_Union {α β : Type u} (r : α → α → Prop) [
   (s : β → set α)
   (h₁ : unbounded r $ ⋃x, s x) (h₂ : mk β < strict_order.cof r) : ∃x : β, unbounded r (s x) :=
 begin
-  rw [Union_eq_sUnion_range] at h₁,
+  rw [← sUnion_range] at h₁,
   have : mk ↥(range (λ (i : β), s i)) < strict_order.cof r := lt_of_le_of_lt mk_range_le h₂,
   rcases unbounded_of_unbounded_sUnion r h₁ this with ⟨_, ⟨x, rfl⟩, u⟩, exact ⟨x, u⟩
 end

@@ -7,7 +7,6 @@ Authors: Amelia Livingston
 import group_theory.congruence
 import algebra.associated
 import tactic.abel
-import tactic.ring
 
 /-
 

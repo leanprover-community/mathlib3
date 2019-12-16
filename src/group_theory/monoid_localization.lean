@@ -66,7 +66,7 @@ There is only a multiplicative version for any lemma or definition relying on a 
 We define the Grothendieck group of `X` as a quotient of `X × X` instead of as
 `monoid_localization X (⊤ : submonoid X)` for the sake of clarity. This does mean, however, we
 cannot make use of some appropriate lemmas from the `monoid_localization` namespace. We do not
-use the category theory library to define the adjunction, for the sake of clarity.
+use the category theory library to define the adjunction, also for the sake of clarity.
 
 ## Tags
 localization, monoid localization, quotient monoid, congruence relation, characteristic predicate,

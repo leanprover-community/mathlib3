@@ -805,6 +805,10 @@ begin
     rintros m ⟨e⟩, exact h m, }
 end
 
+lemma filter_eq' [decidable_eq β] (s : finset β) (b : β) :
+  s.filter(λ a, a = b) = ite (b ∈ s) {b} ∅ :=
+trans (filter_congr (λ _ _, ⟨eq.symm, eq.symm⟩)) (filter_eq s b)
+
 end filter
 
 /-! ### range -/

@@ -5,6 +5,7 @@ Authors: Kenny Lau, Chris Hughes
 -/
 import data.matrix.basic
 import group_theory.perm.sign
+import algebra.char_p
 
 universes u v
 open equiv equiv.perm finset function
@@ -104,15 +105,15 @@ instance : is_monoid_hom (det : matrix n n R → R) :=
   map_mul := det_mul }
 
 /-- Transposing a matrix preserves the determinant. -/
-@[simp] lemma det_transpose (M : matrix n n R) : matrix.det (M.transpose) = matrix.det M :=
+@[simp] lemma det_transpose (M : matrix n n R) : M.transpose.det = M.det :=
 begin
-apply finset.sum_bij (λ σ _, σ⁻¹),
-{ intros σ _, apply finset.mem_univ },
+apply sum_bij (λ σ _, σ⁻¹),
+{ intros σ _, apply mem_univ },
 { intros σ _,
-  rw [equiv.perm.sign_inv],
+  rw [sign_inv],
   congr' 1,
-  apply finset.prod_bij (λ i _, σ i),
-  { intros i _, apply finset.mem_univ },
+  apply prod_bij (λ i _, σ i),
+  { intros i _, apply mem_univ },
   { intros i _, simp },
   { intros i j _ _ h, simp at h, assumption },
   { intros i _, use σ⁻¹ i, finish }
@@ -120,5 +121,52 @@ apply finset.sum_bij (λ σ _, σ⁻¹),
 { intros σ σ' _ _ h, simp at h, assumption },
 { intros σ _, use σ⁻¹, finish }
 end
+
+/-- Permuting the columns changes the sign of the determinant. -/
+lemma det_permute (M : matrix n n R) (σ : perm n) : matrix.det (λ i, M (σ i)) = σ.sign * M.det :=
+begin
+unfold det,
+rw mul_sum,
+apply sum_bij (λ τ _, σ * τ),
+{ intros τ _, apply mem_univ },
+{ intros τ _,
+  show
+    ↑(sign τ) * finset.prod univ (λ i, M (σ.to_fun (τ.to_fun i)) i)
+    = ↑(sign σ) * (↑(sign (σ * τ)) * finset.prod univ (λ i, M (σ.to_fun (τ.to_fun i)) i)),
+  rw ←mul_assoc,
+  congr,
+  calc (↑(sign τ) : R)
+       = ↑(sign σ * sign σ * sign τ) :
+    by {conv_lhs {rw [←one_mul (sign τ), ←int.units_pow_two (sign σ)]}, norm_num}
+  ... = ↑(sign σ) * ↑(sign (σ * τ)) :
+    by simp only [mul_assoc, int.cast_mul, sign_mul, coe_coe, units.coe_mul] },
+{ intros τ τ' _ _, exact (mul_left_inj σ).mp },
+{ intros τ _, use σ⁻¹ * τ, use (mem_univ _), exact (mul_inv_cancel_left _ _).symm }
+end
+
+/-- The determinant is zero if the matrix contains a repeated column.
+
+  The proof shows `M.det = -M.det` and concludes `M.det = 0`,
+  so it doesn't work in characteristic `2`.
+-/
+lemma det_zero_of_column_eq_of_char_ne_two (char_ne_2 : ∀ (a : R), a = -a → a = 0)
+  (M : matrix n n R) (i j : n) (i_ne_j : i ≠ j) (hij : M i = M j) : M.det = 0 :=
+begin
+  suffices : M.det = - M.det, { apply char_ne_2, assumption },
+  have : (λ a, M (swap i j a)) = M,
+  { ext a b,
+    by_cases hi : a = i, { rw [hi, swap_apply_left, hij] },
+    by_cases hj : a = j, { rw [hj, swap_apply_right, hij] },
+    rw [swap_apply_of_ne_of_ne hi hj]
+  },
+  calc M.det = (-1 : units ℤ) * M.det : by rw [←sign_swap i_ne_j, ←det_permute M, this]
+         ... = -det M : by norm_num
+end
+
+/--
+  TODO: Generalize `det_zero_of_column_eq_of_char_ne_two`.
+-/
+lemma det_zero_of_column_eq
+  (M : matrix n n R) (i j : n) (i_ne_j : i ≠ j) (hij : M i = M j) : M.det = 0 := sorry
 
 end matrix

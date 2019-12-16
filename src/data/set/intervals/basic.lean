@@ -80,26 +80,26 @@ lemma left_mem_Ici : a ∈ Ici a := by simp
 @[simp] lemma right_mem_Ioc : b ∈ Ioc a b ↔ a < b := by simp [le_refl]
 lemma right_mem_Iic : a ∈ Iic a := by simp
 
-lemma dual_Ici : @Ici (order_dual α) _ a = @Iic α _ a := rfl
-lemma dual_Iic : @Iic (order_dual α) _ a = @Ici α _ a := rfl
-lemma dual_Ioi : @Ioi (order_dual α) _ a = @Iio α _ a := rfl
-lemma dual_Iio : @Iio (order_dual α) _ a = @Ioi α _ a := rfl
-lemma dual_Icc : @Icc (order_dual α) _ a b = @Icc α _ b a :=
+@[simp] lemma dual_Ici : @Ici (order_dual α) _ a = @Iic α _ a := rfl
+@[simp] lemma dual_Iic : @Iic (order_dual α) _ a = @Ici α _ a := rfl
+@[simp] lemma dual_Ioi : @Ioi (order_dual α) _ a = @Iio α _ a := rfl
+@[simp] lemma dual_Iio : @Iio (order_dual α) _ a = @Ioi α _ a := rfl
+@[simp] lemma dual_Icc : @Icc (order_dual α) _ a b = @Icc α _ b a :=
 set.ext $ λ x, and_comm _ _
-lemma dual_Ioc : @Ioc (order_dual α) _ a b = @Ico α _ b a :=
+@[simp] lemma dual_Ioc : @Ioc (order_dual α) _ a b = @Ico α _ b a :=
 set.ext $ λ x, and_comm _ _
-lemma dual_Ico : @Ico (order_dual α) _ a b = @Ioc α _ b a :=
+@[simp] lemma dual_Ico : @Ico (order_dual α) _ a b = @Ioc α _ b a :=
 set.ext $ λ x, and_comm _ _
-lemma dual_Ioo : @Ioo (order_dual α) _ a b = @Ioo α _ b a :=
+@[simp] lemma dual_Ioo : @Ioo (order_dual α) _ a b = @Ioo α _ b a :=
 set.ext $ λ x, and_comm _ _
 
-lemma nonempty_Icc : (Icc a b).nonempty ↔ a ≤ b :=
+@[simp] lemma nonempty_Icc : (Icc a b).nonempty ↔ a ≤ b :=
 ⟨λ ⟨x, hx⟩, le_trans hx.1 hx.2, λ h, ⟨a, left_mem_Icc.2 h⟩⟩
 
-lemma nonempty_Ico : (Ico a b).nonempty ↔ a < b :=
+@[simp] lemma nonempty_Ico : (Ico a b).nonempty ↔ a < b :=
 ⟨λ ⟨x, hx⟩, lt_of_le_of_lt hx.1 hx.2, λ h, ⟨a, left_mem_Ico.2 h⟩⟩
 
-lemma nonempty_Ioc : (Ioc a b).nonempty ↔ a < b :=
+@[simp] lemma nonempty_Ioc : (Ioc a b).nonempty ↔ a < b :=
 ⟨λ ⟨x, hx⟩, lt_of_lt_of_le hx.1 hx.2, λ h, ⟨b, right_mem_Ioc.2 h⟩⟩
 
 lemma nonempty_Ici : (Ici a).nonempty := ⟨a, left_mem_Ici⟩

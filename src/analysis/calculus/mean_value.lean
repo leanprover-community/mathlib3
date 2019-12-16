@@ -111,7 +111,7 @@ begin
     differentiable.add (differentiable_const _)
       (differentiable.smul' differentiable_id (differentiable_const _)),
   have segm : (λ (t : ℝ), x + t • (y - x)) '' Icc 0 1 ⊆ s,
-    by { rw image_Icc_zero_one_eq_segment, apply (convex_segment_iff _).1 hs x y xs ys },
+    by { rw [← segment_eq_image_Icc_zero_one], apply convex_segment_iff.1 hs x y xs ys },
   have : f x = g 0, by { simp only [g], rw [zero_smul, add_zero] },
   rw this,
   have : f y = g 1, by { simp only [g], rw one_smul, congr' 1, abel },

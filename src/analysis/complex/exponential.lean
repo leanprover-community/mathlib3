@@ -243,9 +243,9 @@ lemma continuous_cosh : continuous cosh :=
 differentiable_cosh.continuous
 
 lemma exists_exp_eq_of_pos {x : ℝ} (hx : 0 < x) : ∃ y, exp y = x :=
-have ∀ {z}, 1 ≤ z → ∃ y, exp y = z,
-  from λ z hz, intermediate_value_univ 0 (z - 1) continuous_exp (by simpa)
-    (by simpa using add_one_le_exp_of_nonneg (sub_nonneg.2 hz)),
+have ∀ {z:ℝ}, 1 ≤ z → z ∈ set.range exp,
+  from λ z hz, intermediate_value_univ 0 (z - 1) continuous_exp
+    ⟨by simpa, by simpa using add_one_le_exp_of_nonneg (sub_nonneg.2 hz)⟩,
 match le_total x 1 with
 | (or.inl hx1) := let ⟨y, hy⟩ := this (one_le_inv hx hx1) in
   ⟨-y, by rw [exp_neg, hy, inv_inv']⟩
@@ -371,11 +371,9 @@ show continuous ((log ∘ @subtype.val ℝ (λr, 0 < r)) ∘ λa, ⟨f a, h a⟩
 
 end prove_log_is_continuous
 
-lemma exists_cos_eq_zero : ∃ x ∈ set.Icc (1:ℝ) 2, cos x = 0 :=
-intermediate_value_Icc' (by norm_num)
-  continuous_cos.continuous_on
-  (le_of_lt cos_one_pos)
-  (le_of_lt cos_two_neg)
+lemma exists_cos_eq_zero : 0 ∈ cos '' set.Icc (1:ℝ) 2 :=
+intermediate_value_Icc' (by norm_num) continuous_cos.continuous_on
+  ⟨le_of_lt cos_two_neg, le_of_lt cos_one_pos⟩
 
 /-- The number π = 3.14159265... Defined here using choice as twice a zero of cos in [1,2], from
 which one can derive all its properties. For explicit bounds on π, see `data.real.pi`. -/
@@ -385,15 +383,15 @@ localized "notation `π` := real.pi" in real
 
 @[simp] lemma cos_pi_div_two : cos (π / 2) = 0 :=
 by rw [pi, mul_div_cancel_left _ (@two_ne_zero' ℝ _ _ _)];
-  exact (classical.some_spec exists_cos_eq_zero).snd
+  exact (classical.some_spec exists_cos_eq_zero).2
 
 lemma one_le_pi_div_two : (1 : ℝ) ≤ π / 2 :=
 by rw [pi, mul_div_cancel_left _ (@two_ne_zero' ℝ _ _ _)];
-  exact (classical.some_spec exists_cos_eq_zero).fst.1
+  exact (classical.some_spec exists_cos_eq_zero).1.1
 
 lemma pi_div_two_le_two : π / 2 ≤ 2 :=
 by rw [pi, mul_div_cancel_left _ (@two_ne_zero' ℝ _ _ _)];
-  exact (classical.some_spec exists_cos_eq_zero).fst.2
+  exact (classical.some_spec exists_cos_eq_zero).1.2
 
 lemma two_le_pi : (2 : ℝ) ≤ π :=
 (div_le_div_right (show (0 : ℝ) < 2, by norm_num)).1
@@ -663,13 +661,10 @@ begin
   linarith
 end
 
-lemma exists_sin_eq {x : ℝ} (hx : x ∈ set.Icc (-1:ℝ) 1) :
-  ∃ y ∈ set.Icc (-(π / 2)) (π / 2), sin y = x :=
-intermediate_value_Icc
+lemma exists_sin_eq : set.Icc (-1:ℝ) 1 ⊆  sin '' set.Icc (-(π / 2)) (π / 2) :=
+by convert intermediate_value_Icc
   (le_trans (neg_nonpos.2 (le_of_lt pi_div_two_pos)) (le_of_lt pi_div_two_pos))
-  continuous_sin.continuous_on
-  (by { rw [sin_neg, sin_pi_div_two], exact hx.1 })
-  (by { rw sin_pi_div_two, exact hx.2 })
+  continuous_sin.continuous_on; simp only [sin_neg, sin_pi_div_two]
 
 lemma sin_lt {x : ℝ} (h : 0 < x) : sin x < x :=
 begin
@@ -796,17 +791,17 @@ if hx : -1 ≤ x ∧ x ≤ 1 then classical.some (exists_sin_eq hx) else 0
 
 lemma arcsin_le_pi_div_two (x : ℝ) : arcsin x ≤ π / 2 :=
 if hx : -1 ≤ x ∧ x ≤ 1
-then by rw [arcsin, dif_pos hx]; exact (classical.some_spec (exists_sin_eq hx)).fst.2
+then by rw [arcsin, dif_pos hx]; exact (classical.some_spec (exists_sin_eq hx)).1.2
 else by rw [arcsin, dif_neg hx]; exact le_of_lt pi_div_two_pos
 
 lemma neg_pi_div_two_le_arcsin (x : ℝ) : -(π / 2) ≤ arcsin x :=
 if hx : -1 ≤ x ∧ x ≤ 1
-then by rw [arcsin, dif_pos hx]; exact (classical.some_spec (exists_sin_eq hx)).fst.1
+then by rw [arcsin, dif_pos hx]; exact (classical.some_spec (exists_sin_eq hx)).1.1
 else by rw [arcsin, dif_neg hx]; exact neg_nonpos.2 (le_of_lt pi_div_two_pos)
 
 lemma sin_arcsin {x : ℝ} (hx₁ : -1 ≤ x) (hx₂ : x ≤ 1) : sin (arcsin x) = x :=
 by rw [arcsin, dif_pos (and.intro hx₁ hx₂)];
-  exact (classical.some_spec (exists_sin_eq ⟨hx₁, hx₂⟩)).snd
+  exact (classical.some_spec (exists_sin_eq ⟨hx₁, hx₂⟩)).2
 
 lemma arcsin_sin {x : ℝ} (hx₁ : -(π / 2) ≤ x) (hx₂ : x ≤ π / 2) : arcsin (sin x) = x :=
 sin_inj_of_le_of_le_pi_div_two (neg_pi_div_two_le_arcsin _) (arcsin_le_pi_div_two _) hx₁ hx₂

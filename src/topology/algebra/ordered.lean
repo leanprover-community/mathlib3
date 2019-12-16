@@ -26,7 +26,7 @@ the order relation is closed. -/
 class ordered_topology (α : Type*) [t : topological_space α] [preorder α] : Prop :=
 (is_closed_le' : is_closed (λp:α×α, p.1 ≤ p.2))
 
-instance {α : Type*} : Π [topological_space α], topological_space (order_dual α) := id
+instance : Π [topological_space α], topological_space (order_dual α) := id
 
 section ordered_topology
 
@@ -75,6 +75,11 @@ le_of_tendsto_of_tendsto nt tendsto_const_nhds lim h
 @[simp] lemma closure_le_eq [topological_space β] {f g : β → α} (hf : continuous f) (hg : continuous g) :
   closure {b | f b ≤ g b} = {b | f b ≤ g b} :=
 closure_eq_iff_is_closed.mpr $ is_closed_le hf hg
+
+lemma closure_lt_subset_le [topological_space β] {f g : β → α} (hf : continuous f) (hg : continuous g) :
+  closure {b | f b < g b} ⊆ {b | f b ≤ g b} :=
+by { rw [←closure_le_eq hf hg], exact closure_mono (λ b, le_of_lt) }
+
 end preorder
 
 section partial_order
@@ -105,14 +110,14 @@ lemma is_open_lt [topological_space β] {f g : β → α} (hf : continuous f) (h
   is_open {b | f b < g b} :=
 by simp [lt_iff_not_ge, -not_le]; exact is_closed_le hg hf
 
-lemma is_open_Ioo {a b : α} : is_open (Ioo a b) :=
-is_open_and (is_open_lt continuous_const continuous_id) (is_open_lt continuous_id continuous_const)
-
 lemma is_open_Iio {a : α} : is_open (Iio a) :=
 is_open_lt continuous_id continuous_const
 
 lemma is_open_Ioi {a : α} : is_open (Ioi a) :=
 is_open_lt continuous_const continuous_id
+
+lemma is_open_Ioo {a b : α} : is_open (Ioo a b) :=
+is_open_inter is_open_Ioi is_open_Iio
 
 end linear_order
 
@@ -125,14 +130,12 @@ variables [topological_space β] (hf : continuous f) (hg : continuous g)
 include hf hg
 
 lemma frontier_le_subset_eq : frontier {b | f b ≤ g b} ⊆ {b | f b = g b} :=
-assume b ⟨hb₁, hb₂⟩,
-le_antisymm
-  (by simpa [closure_le_eq hf hg] using hb₁)
-  (not_lt.1 $ assume hb : f b < g b,
-    have {b | f b < g b} ⊆ interior {b | f b ≤ g b},
-      from (subset_interior_iff_subset_of_open $ is_open_lt hf hg).mpr $ assume x, le_of_lt,
-    have b ∈ interior {b | f b ≤ g b}, from this hb,
-    by exact hb₂ this)
+begin
+  rw [frontier_eq_closure_inter_closure, closure_le_eq hf hg],
+  rintros b ⟨hb₁, hb₂⟩,
+  refine le_antisymm hb₁ (closure_lt_subset_le hg hf _),
+  convert hb₂ using 2, simp only [not_le.symm], refl
+end
 
 lemma frontier_lt_subset_eq : frontier {b | f b < g b} ⊆ {b | f b = g b} :=
 by rw ← frontier_compl;
@@ -319,61 +322,45 @@ section linear_order
 variables [topological_space α] [linear_order α] [t : orderable_topology α]
 include t
 
-lemma mem_nhds_orderable_dest' {a : α} {s : set α} (hs : s ∈ 𝓝 a) :
-  (∀ u' ∈ Ioi a, ∃u ∈ Ioc a u', Ico a u ⊆ s) ∧
-  (∀ l' ∈ Iio a, ∃l ∈ Ico l' a, Ioc l a ⊆ s) :=
-let ⟨t₁, ht₁, t₂, ht₂, hts⟩ :=
-  mem_inf_sets.mp $ by rw [@nhds_eq_orderable α _ _ _] at hs; exact hs in
-have ht₁ : (∀ l' ∈ Iio a, ∃l ∈ Ico l' a, Ioc l a ⊆ t₁) ∧ (Ici a ⊆ t₁),
-  from infi_sets_induct ht₁
-    ⟨λ l' hl', ⟨l', left_mem_Ico.2 hl', subset_univ _⟩, subset_univ _⟩
-    (assume a' s₁ s₂ hs₁ ⟨hs₂, hs₃⟩,
-      begin
-        by_cases a' < a,
-        { simp [h] at hs₁,
-          letI := classical.DLO α,
-          exact ⟨assume x hx, let ⟨u, hu₁, hu₂⟩ := hs₂ _ hx in
-            ⟨max u a', ⟨le_max_left_of_le hu₁.1, max_lt hu₁.2 h⟩, assume b hb,
-              ⟨hs₁ $ lt_of_le_of_lt (le_max_right _ _) hb.1,
-                hu₂ ⟨lt_of_le_of_lt (le_max_left _ _) hb.1, hb.2⟩⟩⟩,
-            assume b hb, ⟨hs₁ $ lt_of_lt_of_le h hb, hs₃ hb⟩⟩ },
-        { simp [h] at hs₁, simp [hs₁],
-          exact ⟨by simpa using hs₂, hs₃⟩ }
-      end)
-    (assume s₁ s₂ h ih, and.intro
-      (assume l' hl', let ⟨u, hu₁, hu₂⟩ := ih.left l' hl' in ⟨u, hu₁, assume b hb, h $ hu₂ hb⟩)
-      (assume b hb, h $ ih.right hb)),
-have ht₂ : (∀ u' ∈ Ioi a, ∃u ∈ Ioc a u', Ico a u ⊆ t₂) ∧ (Iic a ⊆ t₂),
-  from infi_sets_induct ht₂
-    ⟨λ u' hu', ⟨u', right_mem_Ioc.2 hu', subset_univ _⟩, subset_univ _⟩
-    (assume a' s₁ s₂ hs₁ ⟨hs₂, hs₃⟩,
-      begin
-        by_cases a' > a,
-        { simp [h] at hs₁,
-          letI := classical.DLO α,
-          exact ⟨assume x hx, let ⟨u, hu₁, hu₂⟩ := hs₂ _ hx in
-            ⟨min u a', ⟨lt_min hu₁.1 h, min_le_left_of_le hu₁.2⟩, assume b hb,
-              ⟨hs₁ $ lt_of_lt_of_le hb.2 (min_le_right _ _),
-                hu₂ ⟨hb.1, lt_of_lt_of_le hb.2 (min_le_left _ _)⟩⟩⟩,
-            assume b hb, ⟨hs₁ $ lt_of_le_of_lt hb h, hs₃ hb⟩⟩ },
-        { simp [h] at hs₁, simp [hs₁],
-          exact ⟨by simpa using hs₂, hs₃⟩ }
-      end)
-    (assume s₁ s₂ h ih, and.intro
-      (assume u' hu', let ⟨u, hu₁, hu₂⟩ := ih.left u' hu' in ⟨u, hu₁, assume b hb, h $ hu₂ hb⟩)
-      (assume b hb, h $ ih.right hb)),
-and.intro
-  (assume u' hu', let ⟨u, hu, h⟩ := ht₂.left u' hu' in
-    ⟨u, hu, assume b hb, hts ⟨ht₁.right hb.1, h hb⟩⟩)
-  (assume l' hl', let ⟨l, hl, h⟩ := ht₁.left l' hl' in
-    ⟨l, hl, assume b hb, hts ⟨h hb, ht₂.right hb.2⟩⟩)
+lemma exists_Ico_subset_of_mem_nhds' {a : α} {s : set α} (hs : s ∈ 𝓝 a) {l : α} (hl : l < a) :
+  ∃ l' ∈ Ico l a, Ioc l' a ⊆ s :=
+begin
+  rw [nhds_eq_orderable a] at hs,
+  rcases hs with ⟨t₁, ht₁, t₂, ht₂, hts⟩,
 
-lemma mem_nhds_orderable_dest {a : α} {s : set α} (hs : s ∈ 𝓝 a) :
-  ((∃ u, a < u) → ∃u ∈ Ioi a, Ico a u ⊆ s) ∧
-  ((∃ l, l < a) → ∃l ∈ Iio a, Ioc l a ⊆ s) :=
-let ⟨h₁, h₂⟩ := mem_nhds_orderable_dest' hs in
-⟨λ ⟨u', hu'⟩, (h₁ u' hu').imp $ λ u hu, ⟨hu.fst.left, hu.snd⟩,
- λ ⟨l', hl'⟩, (h₂ l' hl').imp $ λ l hl, ⟨hl.fst.right, hl.snd⟩⟩
+  suffices : ∃ l' ∈ Ico l a, Ioi l' ⊆ t₁,
+  { have A : principal (Iic a) ≤ ⨅ b ∈ Ioi a, principal (Iio b),
+      from (le_infi $ λ b, le_infi $ λ hb, principal_mono.2 $ Iic_subset_Iio.2 hb),
+    have B : t₁ ∩ Iic a ⊆ s,
+      from subset.trans (inter_subset_inter_right _ (A ht₂)) hts,
+    from this.imp (λ l', Exists.imp $ λ hl' hl x hx, B ⟨hl hx.1, hx.2⟩) },
+  clear hts ht₂ t₂,
+
+  letI := classical.DLO α,
+  rw [mem_binfi, mem_bUnion_iff] at ht₁,
+  { rcases ht₁ with ⟨b, hb, hb'⟩,
+    exact ⟨max b l, ⟨le_max_right _ _, max_lt hb hl⟩,
+      λ x hx, hb' $ Ioi_subset_Ioi (le_max_left _ _) hx⟩ },
+  { intros b hb b' hb', simp only [mem_Iio] at hb hb',
+    use [max b b', max_lt hb hb'],
+    simp [le_refl] },
+  exact ⟨l, hl⟩
+end
+
+lemma exists_Ioc_subset_of_mem_nhds' {a : α} {s : set α} (hs : s ∈ 𝓝 a) {u : α} (hu : a < u) :
+  ∃ u' ∈ Ioc a u, Ico a u' ⊆ s :=
+begin
+  convert @exists_Ico_subset_of_mem_nhds' (order_dual α) _ _ _ _ _ hs _ hu,
+  ext, rw [dual_Ico, dual_Ioc]
+end
+
+lemma exists_Ico_subset_of_mem_nhds {a : α} {s : set α} (hs : s ∈ 𝓝 a) (h : ∃ l, l < a) :
+  ∃ l < a, Ioc l a ⊆ s :=
+let ⟨l', hl'⟩ := h in let ⟨l, hl⟩ := exists_Ico_subset_of_mem_nhds' hs hl' in ⟨l, hl.fst.2, hl.snd⟩
+
+lemma exists_Ioc_subset_of_mem_nhds {a : α} {s : set α} (hs : s ∈ 𝓝 a) (h : ∃ u, a < u) :
+  ∃ u (_ : a < u), Ico a u ⊆ s :=
+let ⟨l', hl'⟩ := h in let ⟨l, hl⟩ := exists_Ioc_subset_of_mem_nhds' hs hl' in ⟨l, hl.fst.1, hl.snd⟩
 
 lemma mem_nhds_unbounded {a : α} {s : set α} (hu : ∃u, a < u) (hl : ∃l, l < a) :
   s ∈ 𝓝 a ↔ (∃l u, l < a ∧ a < u ∧ ∀b, l < b → b < u → b ∈ s) :=
@@ -420,12 +407,11 @@ lemma orderable_topology.t2_space : t2_space α := by apply_instance
 @[priority 100] -- see Note [lower instance priority]
 instance orderable_topology.regular_space : regular_space α :=
 { regular := assume s a hs ha,
-    have -s ∈ 𝓝 a, from mem_nhds_sets hs ha,
-    let ⟨h₁, h₂⟩ := mem_nhds_orderable_dest this in
+    have hs' : -s ∈ 𝓝 a, from mem_nhds_sets hs ha,
     have ∃t:set α, is_open t ∧ (∀l∈ s, l < a → l ∈ t) ∧ 𝓝 a ⊓ principal t = ⊥,
       from by_cases
         (assume h : ∃l, l < a,
-          let ⟨l, hl, h⟩ := h₂ h in
+          let ⟨l, hl, h⟩ := exists_Ico_subset_of_mem_nhds hs' h in
           match dense_or_discrete l a with
           | or.inl ⟨b, hb₁, hb₂⟩ := ⟨{a | a < b}, is_open_gt' _,
               assume c hcs hca, show c < b,
@@ -442,7 +428,7 @@ instance orderable_topology.regular_space : regular_space α :=
     have ∃t:set α, is_open t ∧ (∀u∈ s, u>a → u ∈ t) ∧ 𝓝 a ⊓ principal t = ⊥,
       from by_cases
         (assume h : ∃u, u > a,
-          let ⟨u, hu, h⟩ := h₁ h in
+          let ⟨u, hu, h⟩ := exists_Ioc_subset_of_mem_nhds hs' h in
           match dense_or_discrete a u with
           | or.inl ⟨b, hb₁, hb₂⟩ := ⟨{a | b < a}, is_open_lt' _,
               assume c hcs hca, show c > b,
@@ -471,12 +457,12 @@ lemma mem_nhds_iff_exists_Ioo_subset' {a l' u' : α} {s : set α}
 begin
   split,
   { assume h,
-    rcases (mem_nhds_orderable_dest h).1 ⟨u', hu'⟩ with ⟨u, au, hu⟩,
-    rcases (mem_nhds_orderable_dest h).2 ⟨l', hl'⟩ with ⟨l, la, hl⟩,
-    refine ⟨l, u, ⟨la, au⟩, λx hx, _⟩,
-    by_cases hax : a ≤ x,
+    rcases exists_Ioc_subset_of_mem_nhds' h hu' with ⟨u, au, hu⟩,
+    rcases exists_Ico_subset_of_mem_nhds' h hl' with ⟨l, la, hl⟩,
+    refine ⟨l, u, ⟨la.2, au.1⟩, λx hx, _⟩,
+    cases le_total a x with hax hax,
     { exact hu ⟨hax, hx.2⟩ },
-    { exact hl ⟨hx.1, le_of_not_ge hax⟩ } },
+    { exact hl ⟨hx.1, hax⟩ } },
   { rintros ⟨l, u, ha, h⟩,
     apply mem_sets_of_superset (mem_nhds_sets is_open_Ioo ha) h }
 end
@@ -503,7 +489,7 @@ begin
   split,
   { assume h,
     rcases mem_nhds_within_iff_exists_mem_nhds_inter.1 h with ⟨v, va, hv⟩,
-    rcases (mem_nhds_orderable_dest va).1 ⟨u', hu'⟩ with ⟨u, au, hu⟩,
+    rcases exists_Ioc_subset_of_mem_nhds va ⟨u', hu'⟩ with ⟨u, au, hu⟩,
     refine ⟨u, au, λx hx, _⟩,
     refine hv ⟨_, hx.1⟩,
     exact hu ⟨le_of_lt hx.1, hx.2⟩ },
@@ -541,7 +527,7 @@ begin
   split,
   { assume h,
     rcases mem_nhds_within_iff_exists_mem_nhds_inter.1 h with ⟨v, va, hv⟩,
-    rcases (mem_nhds_orderable_dest va).2 ⟨l', hl'⟩ with ⟨l, la, hl⟩,
+    rcases exists_Ico_subset_of_mem_nhds va ⟨l', hl'⟩ with ⟨l, la, hl⟩,
     refine ⟨l, la, λx hx, _⟩,
     refine hv ⟨_, hx.2⟩,
     exact hl ⟨hx.1, le_of_lt hx.2⟩ },
@@ -579,7 +565,7 @@ begin
   split,
   { assume h,
     rcases mem_nhds_within_iff_exists_mem_nhds_inter.1 h with ⟨v, va, hv⟩,
-    rcases (mem_nhds_orderable_dest va).1 ⟨u', hu'⟩ with ⟨u, au, hu⟩,
+    rcases exists_Ioc_subset_of_mem_nhds va ⟨u', hu'⟩ with ⟨u, au, hu⟩,
     refine ⟨u, au, λx hx, _⟩,
     refine hv ⟨_, hx.1⟩,
     exact hu hx },
@@ -617,7 +603,7 @@ begin
   split,
   { assume h,
     rcases mem_nhds_within_iff_exists_mem_nhds_inter.1 h with ⟨v, va, hv⟩,
-    rcases (mem_nhds_orderable_dest va).2 ⟨l', hl'⟩ with ⟨l, la, hl⟩,
+    rcases exists_Ico_subset_of_mem_nhds va ⟨l', hl'⟩ with ⟨l, la, hl⟩,
     refine ⟨l, la, λx hx, _⟩,
     refine hv ⟨_, hx.2⟩,
     exact hl hx },
@@ -681,7 +667,6 @@ lemma nhds_principal_ne_bot_of_is_lub {a : α} {s : set α} (ha : is_lub s a) (h
 let ⟨a', ha'⟩ := exists_mem_of_ne_empty hs in
 forall_sets_neq_empty_iff_neq_bot.mp $ assume t ht,
   let ⟨t₁, ht₁, t₂, ht₂, ht⟩ := mem_inf_sets.mp ht in
-  let ⟨hu, hl⟩ := mem_nhds_orderable_dest ht₁ in
   by_cases
     (assume h : a = a',
       have a ∈ t₁, from mem_of_nhds ht₁,
@@ -689,7 +674,7 @@ forall_sets_neq_empty_iff_neq_bot.mp $ assume t ht,
       ne_empty_iff_exists_mem.mpr ⟨a, ht ⟨‹a ∈ t₁›, ‹a ∈ t₂›⟩⟩)
     (assume : a ≠ a',
       have a' < a, from lt_of_le_of_ne (ha.left ‹a' ∈ s›) this.symm,
-      let ⟨l, hl, hlt₁⟩ := hl ⟨a', this⟩ in
+      let ⟨l, hl, hlt₁⟩ := exists_Ico_subset_of_mem_nhds ht₁ ⟨a', this⟩ in
       have ∃a'∈s, l < a',
         from classical.by_contradiction $ assume : ¬ ∃a'∈s, l < a',
           have ∀a'∈s, a' ≤ l, from assume a ha, not_lt.1 $ assume ha', this ⟨a, ha, ha'⟩,

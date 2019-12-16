@@ -371,7 +371,7 @@ lemma nhds_le_of_le {f a} {s : set α} (h : a ∈ s) (o : is_open s) (sf : princ
 by rw nhds_def; exact infi_le_of_le s (infi_le_of_le ⟨h, o⟩ sf)
 
 lemma nhds_sets {a : α} : (𝓝 a).sets = {s | ∃t⊆s, is_open t ∧ a ∈ t} :=
-calc (𝓝 a).sets = (⋃s∈{s : set α| a ∈ s ∧ is_open s}, (principal s).sets) : infi_sets_eq'
+calc (𝓝 a).sets = (⋃s∈{s : set α| a ∈ s ∧ is_open s}, (principal s).sets) : binfi_sets_eq
   (assume x ⟨hx₁, hx₂⟩ y ⟨hy₁, hy₂⟩,
     ⟨x ∩ y, ⟨⟨hx₁, hy₁⟩, is_open_inter hx₂ hy₂⟩,
       le_principal_iff.2 (inter_subset_left _ _),

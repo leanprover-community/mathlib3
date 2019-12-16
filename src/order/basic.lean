@@ -128,6 +128,7 @@ by { rw [← not_le], intro h', apply not_le_of_lt h, exact hf h' }
 
 end monotone
 
+/-- Type tag for a set with dual order: `≤` means `≥` and `<` means `>`. -/
 def order_dual (α : Type*) := α
 
 namespace order_dual

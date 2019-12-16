@@ -322,12 +322,13 @@ section linear_order
 variables [topological_space α] [linear_order α] [t : orderable_topology α]
 include t
 
-lemma exists_Ico_subset_of_mem_nhds' {a : α} {s : set α} (hs : s ∈ 𝓝 a) {l : α} (hl : l < a) :
+lemma exists_Ioc_subset_of_mem_nhds' {a : α} {s : set α} (hs : s ∈ 𝓝 a) {l : α} (hl : l < a) :
   ∃ l' ∈ Ico l a, Ioc l' a ⊆ s :=
 begin
   rw [nhds_eq_orderable a] at hs,
   rcases hs with ⟨t₁, ht₁, t₂, ht₂, hts⟩,
 
+  -- First we show that `t₂` includes `(-∞, a]`, so it suffices to show `(l', ∞) ⊆ t₁`
   suffices : ∃ l' ∈ Ico l a, Ioi l' ⊆ t₁,
   { have A : principal (Iic a) ≤ ⨅ b ∈ Ioi a, principal (Iio b),
       from (le_infi $ λ b, le_infi $ λ hb, principal_mono.2 $ Iic_subset_Iio.2 hb),
@@ -336,6 +337,7 @@ begin
     from this.imp (λ l', Exists.imp $ λ hl' hl x hx, B ⟨hl hx.1, hx.2⟩) },
   clear hts ht₂ t₂,
 
+  -- Now we find `l` such that `(l', ∞) ⊆ t₁`
   letI := classical.DLO α,
   rw [mem_binfi, mem_bUnion_iff] at ht₁,
   { rcases ht₁ with ⟨b, hb, hb'⟩,
@@ -347,20 +349,20 @@ begin
   exact ⟨l, hl⟩
 end
 
-lemma exists_Ioc_subset_of_mem_nhds' {a : α} {s : set α} (hs : s ∈ 𝓝 a) {u : α} (hu : a < u) :
+lemma exists_Ico_subset_of_mem_nhds' {a : α} {s : set α} (hs : s ∈ 𝓝 a) {u : α} (hu : a < u) :
   ∃ u' ∈ Ioc a u, Ico a u' ⊆ s :=
 begin
-  convert @exists_Ico_subset_of_mem_nhds' (order_dual α) _ _ _ _ _ hs _ hu,
+  convert @exists_Ioc_subset_of_mem_nhds' (order_dual α) _ _ _ _ _ hs _ hu,
   ext, rw [dual_Ico, dual_Ioc]
 end
 
-lemma exists_Ico_subset_of_mem_nhds {a : α} {s : set α} (hs : s ∈ 𝓝 a) (h : ∃ l, l < a) :
+lemma exists_Ioc_subset_of_mem_nhds {a : α} {s : set α} (hs : s ∈ 𝓝 a) (h : ∃ l, l < a) :
   ∃ l < a, Ioc l a ⊆ s :=
-let ⟨l', hl'⟩ := h in let ⟨l, hl⟩ := exists_Ico_subset_of_mem_nhds' hs hl' in ⟨l, hl.fst.2, hl.snd⟩
+let ⟨l', hl'⟩ := h in let ⟨l, hl⟩ := exists_Ioc_subset_of_mem_nhds' hs hl' in ⟨l, hl.fst.2, hl.snd⟩
 
-lemma exists_Ioc_subset_of_mem_nhds {a : α} {s : set α} (hs : s ∈ 𝓝 a) (h : ∃ u, a < u) :
+lemma exists_Ico_subset_of_mem_nhds {a : α} {s : set α} (hs : s ∈ 𝓝 a) (h : ∃ u, a < u) :
   ∃ u (_ : a < u), Ico a u ⊆ s :=
-let ⟨l', hl'⟩ := h in let ⟨l, hl⟩ := exists_Ioc_subset_of_mem_nhds' hs hl' in ⟨l, hl.fst.1, hl.snd⟩
+let ⟨l', hl'⟩ := h in let ⟨l, hl⟩ := exists_Ico_subset_of_mem_nhds' hs hl' in ⟨l, hl.fst.1, hl.snd⟩
 
 lemma mem_nhds_unbounded {a : α} {s : set α} (hu : ∃u, a < u) (hl : ∃l, l < a) :
   s ∈ 𝓝 a ↔ (∃l u, l < a ∧ a < u ∧ ∀b, l < b → b < u → b ∈ s) :=
@@ -411,7 +413,7 @@ instance orderable_topology.regular_space : regular_space α :=
     have ∃t:set α, is_open t ∧ (∀l∈ s, l < a → l ∈ t) ∧ 𝓝 a ⊓ principal t = ⊥,
       from by_cases
         (assume h : ∃l, l < a,
-          let ⟨l, hl, h⟩ := exists_Ico_subset_of_mem_nhds hs' h in
+          let ⟨l, hl, h⟩ := exists_Ioc_subset_of_mem_nhds hs' h in
           match dense_or_discrete l a with
           | or.inl ⟨b, hb₁, hb₂⟩ := ⟨{a | a < b}, is_open_gt' _,
               assume c hcs hca, show c < b,
@@ -428,7 +430,7 @@ instance orderable_topology.regular_space : regular_space α :=
     have ∃t:set α, is_open t ∧ (∀u∈ s, u>a → u ∈ t) ∧ 𝓝 a ⊓ principal t = ⊥,
       from by_cases
         (assume h : ∃u, u > a,
-          let ⟨u, hu, h⟩ := exists_Ioc_subset_of_mem_nhds hs' h in
+          let ⟨u, hu, h⟩ := exists_Ico_subset_of_mem_nhds hs' h in
           match dense_or_discrete a u with
           | or.inl ⟨b, hb₁, hb₂⟩ := ⟨{a | b < a}, is_open_lt' _,
               assume c hcs hca, show c > b,
@@ -457,8 +459,8 @@ lemma mem_nhds_iff_exists_Ioo_subset' {a l' u' : α} {s : set α}
 begin
   split,
   { assume h,
-    rcases exists_Ioc_subset_of_mem_nhds' h hu' with ⟨u, au, hu⟩,
-    rcases exists_Ico_subset_of_mem_nhds' h hl' with ⟨l, la, hl⟩,
+    rcases exists_Ico_subset_of_mem_nhds' h hu' with ⟨u, au, hu⟩,
+    rcases exists_Ioc_subset_of_mem_nhds' h hl' with ⟨l, la, hl⟩,
     refine ⟨l, u, ⟨la.2, au.1⟩, λx hx, _⟩,
     cases le_total a x with hax hax,
     { exact hu ⟨hax, hx.2⟩ },
@@ -489,7 +491,7 @@ begin
   split,
   { assume h,
     rcases mem_nhds_within_iff_exists_mem_nhds_inter.1 h with ⟨v, va, hv⟩,
-    rcases exists_Ioc_subset_of_mem_nhds va ⟨u', hu'⟩ with ⟨u, au, hu⟩,
+    rcases exists_Ico_subset_of_mem_nhds va ⟨u', hu'⟩ with ⟨u, au, hu⟩,
     refine ⟨u, au, λx hx, _⟩,
     refine hv ⟨_, hx.1⟩,
     exact hu ⟨le_of_lt hx.1, hx.2⟩ },
@@ -527,7 +529,7 @@ begin
   split,
   { assume h,
     rcases mem_nhds_within_iff_exists_mem_nhds_inter.1 h with ⟨v, va, hv⟩,
-    rcases exists_Ico_subset_of_mem_nhds va ⟨l', hl'⟩ with ⟨l, la, hl⟩,
+    rcases exists_Ioc_subset_of_mem_nhds va ⟨l', hl'⟩ with ⟨l, la, hl⟩,
     refine ⟨l, la, λx hx, _⟩,
     refine hv ⟨_, hx.2⟩,
     exact hl ⟨hx.1, le_of_lt hx.2⟩ },
@@ -565,7 +567,7 @@ begin
   split,
   { assume h,
     rcases mem_nhds_within_iff_exists_mem_nhds_inter.1 h with ⟨v, va, hv⟩,
-    rcases exists_Ioc_subset_of_mem_nhds va ⟨u', hu'⟩ with ⟨u, au, hu⟩,
+    rcases exists_Ico_subset_of_mem_nhds va ⟨u', hu'⟩ with ⟨u, au, hu⟩,
     refine ⟨u, au, λx hx, _⟩,
     refine hv ⟨_, hx.1⟩,
     exact hu hx },
@@ -603,7 +605,7 @@ begin
   split,
   { assume h,
     rcases mem_nhds_within_iff_exists_mem_nhds_inter.1 h with ⟨v, va, hv⟩,
-    rcases exists_Ico_subset_of_mem_nhds va ⟨l', hl'⟩ with ⟨l, la, hl⟩,
+    rcases exists_Ioc_subset_of_mem_nhds va ⟨l', hl'⟩ with ⟨l, la, hl⟩,
     refine ⟨l, la, λx hx, _⟩,
     refine hv ⟨_, hx.2⟩,
     exact hl hx },
@@ -674,7 +676,7 @@ forall_sets_neq_empty_iff_neq_bot.mp $ assume t ht,
       ne_empty_iff_exists_mem.mpr ⟨a, ht ⟨‹a ∈ t₁›, ‹a ∈ t₂›⟩⟩)
     (assume : a ≠ a',
       have a' < a, from lt_of_le_of_ne (ha.left ‹a' ∈ s›) this.symm,
-      let ⟨l, hl, hlt₁⟩ := exists_Ico_subset_of_mem_nhds ht₁ ⟨a', this⟩ in
+      let ⟨l, hl, hlt₁⟩ := exists_Ioc_subset_of_mem_nhds ht₁ ⟨a', this⟩ in
       have ∃a'∈s, l < a',
         from classical.by_contradiction $ assume : ¬ ∃a'∈s, l < a',
           have ∀a'∈s, a' ≤ l, from assume a ha, not_lt.1 $ assume ha', this ⟨a, ha, ha'⟩,

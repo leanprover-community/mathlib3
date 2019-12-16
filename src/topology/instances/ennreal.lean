@@ -62,8 +62,8 @@ lemma embedding_coe : embedding (coe : nnreal → ennreal) :=
   { rw [orderable_topology.topology_eq_generate_intervals nnreal],
     refine le_generate_from (assume s ha, _),
     rcases ha with ⟨a, rfl | rfl⟩,
-    exact ⟨{b : ennreal | ↑a < b}, @is_open_lt' ennreal ennreal.topological_space _ _ _, by simp⟩,
-    exact ⟨{b : ennreal | b < ↑a}, @is_open_gt' ennreal ennreal.topological_space _ _ _, by simp⟩ }
+    exact ⟨Ioi a, is_open_Ioi, by simp [Ioi]⟩,
+    exact ⟨Iio a, is_open_Iio, by simp [Iio]⟩ }
   end⟩,
   assume a b, coe_eq_coe.1⟩
 
@@ -77,7 +77,7 @@ have {a : ennreal | a ≠ ⊤} = range (coe : nnreal → ennreal),
   from set.ext $ assume a, by cases a; simp [none_eq_top, some_eq_coe],
 this ▸ mem_nhds_sets is_open_ne_top coe_ne_top
 
-lemma tendsto_coe {f : filter α} {m : α → nnreal} {a : nnreal} :
+@[elim_cast] lemma tendsto_coe {f : filter α} {m : α → nnreal} {a : nnreal} :
   tendsto (λa, (m a : ennreal)) f (𝓝 ↑a) ↔ tendsto m f (𝓝 a) :=
 embedding_coe.tendsto_nhds_iff.symm
 
@@ -125,6 +125,10 @@ match s, hs with
     lt_trans (show (r : ennreal) < n, from (coe_nat n) ▸ coe_lt_coe.2 hrn) hnma
 | _, ⟨a,      or.inr rfl⟩, hr := (not_top_lt $ show ⊤ < a, from hr).elim
 end
+
+lemma tendsto_nat_nhds_top : tendsto (λ n : ℕ, ↑n) at_top (𝓝 ∞) :=
+tendsto_nhds_top $ λ n, mem_at_top_sets.2
+  ⟨n+1, λ m hm, ennreal.coe_nat_lt_coe_nat.2 $ nat.lt_of_succ_le hm⟩
 
 lemma nhds_top : 𝓝 ∞ = ⨅a ≠ ∞, principal (Ioi a) :=
 nhds_top_orderable.trans $ by simp [lt_top_iff_ne_top, Ioi]
@@ -273,6 +277,9 @@ end⟩
   using (ennreal.continuous_inv.tendsto a⁻¹).comp h,
   (ennreal.continuous_inv.tendsto a).comp⟩
 
+protected lemma tendsto_inv_nat_nhds_zero : tendsto (λ n : ℕ, (n : ennreal)⁻¹) at_top (𝓝 0) :=
+ennreal.inv_top ▸ ennreal.tendsto_inv_iff.2 tendsto_nat_nhds_top
+
 lemma Sup_add {s : set ennreal} (hs : s ≠ ∅) : Sup s + a = ⨆b∈s, b + a :=
 have Sup ((λb, b + a) '' s) = Sup s + a,
   from is_lub_iff_Sup_eq.mp $ is_lub_of_is_lub_of_tendsto
@@ -407,8 +414,30 @@ tendsto_orderable.2
 
 @[simp] protected lemma summable : summable f := ⟨_, ennreal.has_sum⟩
 
+lemma tsum_coe_ne_top_iff_summable {f : β → nnreal} :
+  (∑ b, (f b:ennreal)) ≠ ∞ ↔ summable f :=
+begin
+  refine ⟨λ h, _, λ h, ennreal.coe_tsum h ▸ ennreal.coe_ne_top⟩,
+  lift (∑ b, (f b:ennreal)) to nnreal using h with a ha,
+  refine ⟨a, ennreal.has_sum_coe.1 _⟩,
+  rw ha,
+  exact has_sum_tsum ennreal.summable
+end
+
 protected lemma tsum_eq_supr_sum : (∑a, f a) = (⨆s:finset α, s.sum f) :=
 tsum_eq_has_sum ennreal.has_sum
+
+protected lemma tsum_eq_top_of_eq_top : (∃ a, f a = ∞) → (∑ a, f a) = ∞
+| ⟨a, ha⟩ :=
+begin
+  rw [ennreal.tsum_eq_supr_sum],
+  apply le_antisymm le_top,
+  convert le_supr (λ s:finset α, s.sum f) (finset.singleton a),
+  rw [finset.sum_singleton, ha]
+end
+
+protected lemma ne_top_of_tsum_ne_top (h : (∑ a, f a) ≠ ∞) (a : α) : f a ≠ ∞ :=
+λ ha, h $ ennreal.tsum_eq_top_of_eq_top ⟨a, ha⟩
 
 protected lemma tsum_sigma {β : α → Type*} (f : Πa, β a → ennreal) :
   (∑p:Σa, β a, f p.1 p.2) = (∑a b, f a b) :=

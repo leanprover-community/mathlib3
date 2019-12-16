@@ -322,7 +322,7 @@ lemma convex_halfspace_ge {f : α → ℝ} (h : is_linear_map ℝ f) (r : ℝ) :
   convex {w | r ≤ f w} :=
 (convex_Ici r).is_linear_preimage h
 
-lemma convex_plane {f : α → ℝ} (h : is_linear_map ℝ f) (r : ℝ) :
+lemma convex_hyperplane {f : α → ℝ} (h : is_linear_map ℝ f) (r : ℝ) :
   convex {w | f w = r} :=
 begin
   show convex (f ⁻¹' {p | p = r}),

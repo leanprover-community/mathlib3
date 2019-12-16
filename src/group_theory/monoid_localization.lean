@@ -451,10 +451,10 @@ end
 
 open mul_equiv function
 
-/- Given `comm_monoid`s `X, Z`, submonoids `Y ⊆ X, W ⊆ Z` and an isomorphism `h` of `X, Z` such
-   that `h(Y) = Z,` the isomorphism between `monoid_localization X Y` and `monoid_localization Z W`
-   induced by the map sending `x : X` to the equivalence class of `(h x, 1)` in
-   `monoid_localization Z W`. -/
+/-- Given `comm_monoid`s `X, Z`, submonoids `Y ⊆ X, W ⊆ Z` and an isomorphism `h` of `X, Z` such
+    that `h(Y) = Z,` the isomorphism between `monoid_localization X Y` and
+    `monoid_localization Z W` induced by the map sending `x : X` to the equivalence class of
+    `(h x, 1)` in `monoid_localization Z W`. -/
 def mul_equiv_map (h : X ≃* Z) (H : h.to_monoid_hom.map Y = W) :
   monoid_localization X Y ≃* monoid_localization Z W :=
 by refine { to_fun := map h.to_monoid_hom $ λ y : Y, show h y ∈ W, from

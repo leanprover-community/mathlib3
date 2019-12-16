@@ -298,7 +298,7 @@ lemma has_fderiv_at.lim (hf : has_fderiv_at f f' x) (v : E) {α : Type*} {c : α
 begin
   refine (has_fderiv_within_at_univ.2 hf).lim _ (univ_mem_sets' (λ _, trivial)) hc _,
   assume U hU,
-  apply mem_sets_of_superset (set_of_ne_mem_of_tendsto_norm_at_top hc (0:𝕜)) _,
+  apply mem_sets_of_superset (ne_mem_of_tendsto_norm_at_top hc (0:𝕜)) _,
   assume y hy,
   rw [mem_preimage],
   convert mem_of_nhds hU,

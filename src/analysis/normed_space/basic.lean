@@ -277,7 +277,7 @@ lemma continuous_nnnorm : continuous (nnnorm : α → nnreal) :=
 continuous_subtype_mk _ continuous_norm
 
 /-- If `∥y∥→∞`, then we can assume `y≠x` for any fixed `x`. -/
-lemma set_of_ne_mem_of_tendsto_norm_at_top {l : filter γ} {f : γ → α}
+lemma ne_mem_of_tendsto_norm_at_top {l : filter γ} {f : γ → α}
   (h : tendsto (λ y, ∥f y∥) l at_top) (x : α) :
   {y | f y ≠ x} ∈ l :=
 begin

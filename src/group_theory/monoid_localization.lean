@@ -588,17 +588,18 @@ attribute [to_additive add_monoid_localization.away.neg_self] monoid_localizatio
 
 end add_monoid_localization
 
+namespace comm_monoid
 variables (X)
 
 /-- Given a `comm_monoid` `X`, the congruence relation defining the Grothendieck group of `X`:
     the localization of `X` at itself. -/
-@[to_additive add_completion.r "Given an `add_comm_monoid` `X`, the additive congruence relation defining the Grothendieck group of `X`: the localization of `X` at itself."]
+@[to_additive "Given an `add_comm_monoid` `X`, the additive congruence relation defining the Grothendieck group of `X`: the localization of `X` at itself."]
 protected def completion.r : con (X × X) :=
 ⟨λ x y, (⊤ : submonoid X).r (x.1, ⟨x.2, trivial⟩) (y.1, ⟨y.2, trivial⟩),
   ⟨λ _, con.refl _ _, λ _ _, con.symm _, λ _ _ _, con.trans _⟩, λ _ _ _ _, con.mul _⟩
 
 /-- The Grothendieck group of a `comm_monoid` `X`: the localization of `X` at itself. -/
-@[reducible, to_additive add_completion "The Grothendieck group of an `add_comm_monoid` `X`: the localization of `X` at itself."]
+@[reducible, to_additive "The Grothendieck group of an `add_comm_monoid` `X`: the localization of `X` at itself."]
 def completion := (completion.r X).quotient
 
 namespace completion
@@ -648,7 +649,7 @@ variables {X}
 
 @[simp, to_additive] lemma mk_mul_cancel_right (x y) :
   completion.mk (x * y) y = completion.of X x :=
-by rw [←one_mul y, ←mk_mul_mk]; simpa
+by rw [←one_mul y, ←mk_mul_mk, one_mul, mk_self, mul_one]; refl
 
 @[simp, to_additive] lemma mk_mul_cancel_left (x : X) (y : Y) :
   completion.mk ((y : X) * x) y = completion.of X x :=
@@ -723,7 +724,7 @@ def mul_equiv_of_group (G : Type*) [comm_group G] :
   right_inv := λ h, completion.induction_on h $ λ g h,
     begin
       show completion.mk (g * h⁻¹) 1 = completion.mk g h,
-      rw [←mul_one (completion.mk g h), ←mk_self h⁻¹, ←mul_inv_self h],
+      erw [←mul_one (completion.mk g h), ←mk_self h⁻¹, ←mul_inv_self h],
       refl
      end,
   map_mul' := λ g h, show completion.mk (g * h) 1 = completion.mk (g * h) (1 * 1), by rw mul_one }
@@ -756,7 +757,7 @@ variables (X) (G : Type*) [comm_group G]
     forgetful functor and `F` is the functor sending `comm_monoid`s to their Grothendieck group,
     and whose action on morphisms is defined by `completion.map`. Given `f ∈ Hom(X, Y),` we get a
     homomorphism sending `⟦(x, y)⟧ ∈ completion X` to `f x * (f y)⁻¹ ∈ Y`.  -/
-@[to_additive "`Hom(F(X), Y) ≃+ Hom(X, G(Y))`, where `X` is an `add_comm_monoid`, `Y` is an `add_comm_group`, `G` is the forgetful functor and `F` is the functor sending `add_comm_monoid`s to their Grothendieck group, and whose action on morphisms is defined by `add_completion.map`. Given `f ∈ Hom(X, Y),` we get a homomorphism sending `⟦(x, y)⟧ ∈ add_completion X` to `f x - f y ∈ Y`."]
+@[to_additive "`Hom(F(X), Y) ≃+ Hom(X, G(Y))`, where `X` is an `add_comm_monoid`, `Y` is an `add_comm_group`, `G` is the forgetful functor and `F` is the functor sending `add_comm_monoid`s to their Grothendieck group, and whose action on morphisms is defined by `completion.map`. Given `f ∈ Hom(X, Y),` we get a homomorphism sending `⟦(x, y)⟧ ∈ completion X` to `f x - f y ∈ Y`."]
 def hom_equiv : (X →* G) ≃* (completion X →* G) :=
 { to_fun := λ f, con.lift (completion.r X)
     ((f.comp prod.monoid_hom.fst).mul (f.comp prod.monoid_hom.snd).inv)
@@ -764,7 +765,7 @@ def hom_equiv : (X →* G) ≃* (completion X →* G) :=
        show f a.1 * (f a.2)⁻¹ = f b.1 * (f b.2)⁻¹, by
          rw [eq_mul_inv_iff_mul_eq, mul_comm, ←mul_assoc, mul_comm (f b.2), ←f.map_mul,
              ←mul_left_inj (f c), ←mul_assoc, ←f.map_mul, hc, mul_inv_eq_iff_eq_mul, mul_assoc,
-             f.map_mul, f.map_mul],
+             f.map_mul, f.map_mul]; refl,
   inv_fun := λ f, f.comp $ completion.of X,
   left_inv := λ f, monoid_hom.ext $ λ x,
     show f x * (f 1)⁻¹ = f x, by rw [f.map_one, one_inv, mul_one],
@@ -790,3 +791,4 @@ monoid_hom.ext $ λ y, completion.induction_on y $ λ x y, by
   show _ = _ * (f 1)⁻¹ * (f 1 * _); simpa
 
 end completion
+end comm_monoid

@@ -1000,44 +1000,32 @@ lemma cinfi_of_cinfi_of_monotone_of_continuous {f : α → β} {g : γ → α}
 by rw [infi, cInf_of_cInf_of_monotone_of_continuous Mf Cf
   (λ h, range_eq_empty.1 h ‹_›) H, ← range_comp]; refl
 
-/-- Intermediate Value Theorem for continuous functions on connected sets. -/
-lemma is_connected.intermediate_value {s : set α} (hs : is_connected s)
-  {a b : α} (ha : a ∈ s) (hb : b ∈ s) {f : α → β} (hf : continuous_on f s) {t : β}
-  (hfa : f a ≤ t) (hfb : t ≤ f b) : ∃ x ∈ s, f x = t :=
+lemma is_connected.forall_Icc_subset {s : set α} (hs : is_connected s)
+  {a b : α} (ha : a ∈ s) (hb : b ∈ s) :
+  Icc a b ⊆ s :=
 begin
-  rcases continuous_on_iff_is_closed.1 hf (Iic t) is_closed_Iic with ⟨Sle, hle₁, hle₂⟩,
-  rcases continuous_on_iff_is_closed.1 hf (Ici t) is_closed_Ici with ⟨Sge, hge₁, hge₂⟩,
-  rcases (is_connected_closed_iff.1 hs Sle Sge hle₁ hge₁ _ _ _) with ⟨x, hx⟩,
-  refine ⟨x, hx.1, le_antisymm _ _⟩,
-  -- f x ≤ t
-  { have : x ∈ f ⁻¹' Iic t ∩ s, by { rw [hle₂], exact ⟨hx.2.1, hx.1⟩ },
-    exact this.1 },
-  -- t ≤ f x
-  { have : x ∈ f ⁻¹' Ici t ∩ s, by { rw [hge₂], exact ⟨hx.2.2, hx.1⟩ },
-    exact this.1 },
-  -- s ⊆ Sle ∪ Sge
-  { assume x hx,
-    have : x ∈ (Sle ∪ Sge) ∩ s,
-    { rw [inter_distrib_right, ← hle₂, ← hge₂, ← inter_distrib_right],
-      exact ⟨le_total (f x) t, hx⟩ },
-    exact this.1 },
-  -- (s ∩ Sle).nonempty
-  { rw [inter_comm, ← hle₂], exact ⟨a, hfa, ha⟩ },
-  -- (s ∩ Sge).nonempty
-  { rw [inter_comm, ← hge₂], exact ⟨b, hfb, hb⟩ }
+  assume x hx,
+  obtain ⟨y, hy, hy'⟩ : (s ∩ ((Iic x) ∩ (Ici x))).nonempty,
+    from is_connected_closed_iff.1 hs (Iic x) (Ici x) is_closed_Iic is_closed_Ici
+      (λ y _, le_total y x) ⟨a, ha, hx.1⟩ ⟨b, hb, hx.2⟩,
+  exact le_antisymm hy'.1 hy'.2 ▸ hy
 end
 
+/-- Intermediate Value Theorem for continuous functions on connected sets. -/
+lemma is_connected.intermediate_value {γ : Type*} [topological_space γ] {s : set γ}
+  (hs : is_connected s) {a b : γ} (ha : a ∈ s) (hb : b ∈ s) {f : γ → α} (hf : continuous_on f s) :
+  Icc (f a) (f b) ⊆ f '' s :=
+(hs.image f hf).forall_Icc_subset (mem_image_of_mem f ha) (mem_image_of_mem f hb)
+
 /-- Intermediate Value Theorem for continuous functions on connected spaces. -/
-lemma intermediate_value_univ [connected_space α]
-  (a b : α) {f : α → β} (hf : continuous f) {t : β}
-  (hfa : f a ≤ t) (hfb : t ≤ f b) : ∃ x, f x = t :=
-let ⟨x, hx⟩ := (connected_space.is_connected_univ α).intermediate_value trivial trivial
-  hf.continuous_on hfa hfb in
-⟨x, hx.snd⟩
+lemma intermediate_value_univ {γ : Type*} [topological_space γ] [H : connected_space γ]
+  (a b : γ) {f : γ → α} (hf : continuous f) :
+  Icc (f a) (f b) ⊆ range f :=
+@image_univ _ _ f ▸ H.is_connected_univ.intermediate_value trivial trivial hf.continuous_on
 
 section densely_ordered
 
-variables [densely_ordered β] {a b : β}
+variables [densely_ordered α] {a b : α}
 
 lemma is_connected_Icc : is_connected (Icc a b) :=
 is_connected_closed_iff.2
@@ -1068,53 +1056,48 @@ begin
   exact ⟨hab $ xyab z_mem, λ zs, not_lt_of_le (le_cSup Sbd ⟨z_mem, zs⟩) hz.1⟩
 end
 
+lemma is_connected_iff_forall_Icc_subset {s : set α} :
+  is_connected s ↔ ∀ x y ∈ s, x ≤ y → Icc x y ⊆ s :=
+⟨λ h x y hx hy hxy, h.forall_Icc_subset hx hy, λ h, is_connected_of_forall_pair $ λ x y hx hy,
+  ⟨Icc (min x y) (max x y), h (min x y) (max x y)
+    ((min_choice x y).elim (λ h', by rwa h') (λ h', by rwa h'))
+    ((max_choice x y).elim (λ h', by rwa h') (λ h', by rwa h')) min_le_max,
+    ⟨min_le_left x y, le_max_left x y⟩, ⟨min_le_right x y, le_max_right x y⟩, is_connected_Icc⟩⟩
+
 lemma is_connected_Ici : is_connected (Ici a) :=
-is_connected_of_forall a $ λ b hb, ⟨Icc a b, λ x hx, hx.1, left_mem_Icc.2 hb,
-  right_mem_Icc.2 hb, is_connected_Icc⟩
+is_connected_iff_forall_Icc_subset.2 $ λ x y hx hy hxy, (Icc_subset_Ici_iff hxy).2 hx
 
 lemma is_connected_Iic : is_connected (Iic a) :=
-is_connected_of_forall a $ λ b hb, ⟨Icc b a, λ x hx, hx.2, right_mem_Icc.2 hb,
-  left_mem_Icc.2 hb, is_connected_Icc⟩
+is_connected_iff_forall_Icc_subset.2 $ λ x y hx hy hxy, (Icc_subset_Iic_iff hxy).2 hy
 
 lemma is_connected_Iio : is_connected (Iio a) :=
-is_connected_of_forall_pair $ λ x y hx hy, ⟨Icc (min x y) (max x y),
-  (Icc_subset_Iio_iff $ decidable.min_le_max x y).2 $ max_lt hx hy,
-  ⟨min_le_left x y, le_max_left x y⟩, ⟨min_le_right x y, le_max_right x y⟩, is_connected_Icc⟩
+is_connected_iff_forall_Icc_subset.2 $ λ x y hx hy hxy, (Icc_subset_Iio_iff hxy).2 hy
 
 lemma is_connected_Ioi : is_connected (Ioi a) :=
-is_connected_of_forall_pair $ λ x y hx hy, ⟨Icc (min x y) (max x y),
-  (Icc_subset_Ioi_iff $ decidable.min_le_max x y).2 $ lt_min hx hy,
-  ⟨min_le_left x y, le_max_left x y⟩, ⟨min_le_right x y, le_max_right x y⟩, is_connected_Icc⟩
+is_connected_iff_forall_Icc_subset.2 $ λ x y hx hy hxy, (Icc_subset_Ioi_iff hxy).2 hx
 
 lemma is_connected_Ioo : is_connected (Ioo a b) :=
-is_connected_of_forall_pair $ λ x y hx hy, ⟨Icc (min x y) (max x y),
-  (Icc_subset_Ioo_iff $ decidable.min_le_max x y).2 ⟨lt_min hx.1 hy.1, max_lt hx.2 hy.2⟩,
-  ⟨min_le_left x y, le_max_left x y⟩, ⟨min_le_right x y, le_max_right x y⟩, is_connected_Icc⟩
+is_connected_iff_forall_Icc_subset.2 $ λ x y hx hy hxy, (Icc_subset_Ioo_iff hxy).2 ⟨hx.1, hy.2⟩
 
 lemma is_connected_Ioc : is_connected (Ioc a b) :=
-is_connected_of_forall_pair $ λ x y hx hy, ⟨Icc (min x y) (max x y),
-  (Icc_subset_Ioc_iff $ decidable.min_le_max x y).2 ⟨lt_min hx.1 hy.1, max_le hx.2 hy.2⟩,
-  ⟨min_le_left x y, le_max_left x y⟩, ⟨min_le_right x y, le_max_right x y⟩, is_connected_Icc⟩
+is_connected_iff_forall_Icc_subset.2 $ λ x y hx hy hxy, (Icc_subset_Ioc_iff hxy).2 ⟨hx.1, hy.2⟩
 
 lemma is_connected_Ico : is_connected (Ico a b) :=
-is_connected_of_forall_pair $ λ x y hx hy, ⟨Icc (min x y) (max x y),
-  (Icc_subset_Ico_iff $ decidable.min_le_max x y).2 ⟨le_min hx.1 hy.1, max_lt hx.2 hy.2⟩,
-  ⟨min_le_left x y, le_max_left x y⟩, ⟨min_le_right x y, le_max_right x y⟩, is_connected_Icc⟩
+is_connected_iff_forall_Icc_subset.2 $ λ x y hx hy hxy, (Icc_subset_Ico_iff hxy).2 ⟨hx.1, hy.2⟩
 
 @[priority 100]
-instance ordered_connected_space : connected_space β :=
-⟨is_connected_of_forall_pair $ λ x y hx hy, ⟨Icc (min x y) (max x y), subset_univ _,
-  ⟨min_le_left x y, le_max_left x y⟩, ⟨min_le_right x y, le_max_right x y⟩, is_connected_Icc⟩⟩
+instance ordered_connected_space : connected_space α :=
+⟨is_connected_iff_forall_Icc_subset.2 $ λ x y hx hy hxy, subset_univ _⟩
 
 /--Intermediate Value Theorem for continuous functions on closed intervals, case `f a ≤ t ≤ f b`.-/
-lemma intermediate_value_Icc {a b : β} (hab : a ≤ b) {f : β → α} (hf : continuous_on f (Icc a b))
-  {t : α} (ha : f a ≤ t) (hb : t ≤ f b) : ∃ x ∈ Icc a b, f x = t :=
-is_connected_Icc.intermediate_value (left_mem_Icc.2 hab) (right_mem_Icc.2 hab) hf ha hb
+lemma intermediate_value_Icc {a b : α} (hab : a ≤ b) {f : α → β} (hf : continuous_on f (Icc a b)) :
+  Icc (f a) (f b) ⊆ f '' (Icc a b) :=
+is_connected_Icc.intermediate_value (left_mem_Icc.2 hab) (right_mem_Icc.2 hab) hf
 
 /--Intermediate Value Theorem for continuous functions on closed intervals, case `f a ≥ t ≥ f b`.-/
-lemma intermediate_value_Icc' {a b : β} (hab : a ≤ b) {f : β → α} (hf : continuous_on f (Icc a b))
-  {t : α} (ha : t ≤ f a) (hb : f b ≤ t) : ∃ x ∈ Icc a b, f x = t :=
-is_connected_Icc.intermediate_value (right_mem_Icc.2 hab) (left_mem_Icc.2 hab) hf hb ha
+lemma intermediate_value_Icc' {a b : α} (hab : a ≤ b) {f : α → β} (hf : continuous_on f (Icc a b)) :
+  Icc (f b) (f a) ⊆ f '' (Icc a b) :=
+is_connected_Icc.intermediate_value (right_mem_Icc.2 hab) (left_mem_Icc.2 hab) hf
 
 end densely_ordered
 

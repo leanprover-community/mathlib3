@@ -418,7 +418,8 @@ lemma mem_infi {f : ι → filter α} (h : directed (≥) f) (ne : nonempty ι) 
   s ∈ infi f ↔ s ∈ ⋃ i, (f i).sets :=
 show  s  ∈ (infi f).sets ↔ s ∈ ⋃ i, (f i).sets, by rw infi_sets_eq h ne
 
-lemma infi_sets_eq' {f : β → filter α} {s : set β}
+@[nolint] -- Intentional use of `≥`
+lemma binfi_sets_eq {f : β → filter α} {s : set β}
   (h : directed_on (f ⁻¹'o (≥)) s) (ne : ∃i, i ∈ s) :
   (⨅ i∈s, f i).sets = (⋃ i ∈ s, (f i).sets) :=
 let ⟨i, hi⟩ := ne in
@@ -427,6 +428,12 @@ calc (⨅ i ∈ s, f i).sets  = (⨅ t : {t // t ∈ s}, (f t.val)).sets : by rw
     (assume ⟨x, hx⟩ ⟨y, hy⟩, match h x hx y hy with ⟨z, h₁, h₂, h₃⟩ := ⟨⟨z, h₁⟩, h₂, h₃⟩ end)
     ⟨⟨i, hi⟩⟩
   ... = (⨆ t ∈ {t | t ∈ s}, (f t).sets) : by rw [supr_subtype]; refl
+
+@[nolint] -- Intentional use of `≥`
+lemma mem_binfi {f : β → filter α} {s : set β}
+  (h : directed_on (f ⁻¹'o (≥)) s) (ne : ∃i, i ∈ s) {t : set α} :
+  t ∈ (⨅ i∈s, f i) ↔ t ∈ ⋃ i ∈ s, (f i).sets :=
+by rw [← binfi_sets_eq h ne]
 
 lemma infi_sets_eq_finite (f : ι → filter α) :
   (⨅i, f i).sets = (⋃t:finset (plift ι), (⨅i∈t, f (plift.down i)).sets) :=

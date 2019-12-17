@@ -522,14 +522,14 @@ lemma measurable_smul' {α : Type*} {β : Type*} {γ : Type*}
   [semimodule α β] [topological_semimodule α β] [measurable_space γ]
   {f : γ → α} {g : γ → β} (hf : measurable f) (hg : measurable g) :
   measurable (λ c, f c • g c) :=
-measurable_of_continuous2 (continuous_smul continuous_fst continuous_snd) hf hg
+measurable_of_continuous2 (continuous_fst.smul continuous_snd) hf hg
 
 lemma measurable_smul {α : Type*} {β : Type*} {γ : Type*}
   [semiring α] [topological_space α]
   [topological_space β] [add_comm_monoid β]
   [semimodule α β] [topological_semimodule α β] [measurable_space γ]
   (c : α) {f : γ → β} (hf : measurable f) : measurable (λ x, c • f x) :=
-measurable.comp (measurable_of_continuous (continuous_smul continuous_const continuous_id)) hf
+measurable.comp (measurable_of_continuous (continuous_const.smul continuous_id)) hf
 
 lemma measurable_smul_iff {α : Type*} {β : Type*} {γ : Type*}
   [division_ring α] [topological_space α]

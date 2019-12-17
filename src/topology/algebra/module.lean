@@ -3,10 +3,29 @@ Copyright (c) 2019 Sébastien Gouëzel. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jan-David Salchow, Sébastien Gouëzel, Jean Lo
 
-Theory of topological modules and continuous linear maps.
 -/
 
 import topology.algebra.ring linear_algebra.basic ring_theory.algebra
+
+/-!
+# Theory of topological modules and continuous linear maps.
+
+We define classes `topological_semimodule`, `topological_module` and `topological_vector_spaces`,
+as extensions of the corresponding algebraic classes where the algebraic operations are continuous.
+
+We also define continuous linear maps, as linear maps between topological modules which are
+continuous. The set of continuous linear maps between the topological `α`-modules `β` and `γ` is
+denoted by `β →L[α] γ`.
+
+## Implementation notes
+
+Topological vector spaces are defined as an `abbreviation` for topological modules,
+if the base ring is a field. This has as advantage that topological vector spaces are completely
+transparent for type class inference, which means that all instances for topological modules
+are immediately picked up for vector spaces as well.
+A cosmetic disadvantage is that one can not extend topological vector spaces.
+The solution is to extend `topological_module` instead.
+-/
 
 open topological_space
 
@@ -31,12 +50,12 @@ variables {α : Type u} {β : Type v}
 [topological_space β] [add_comm_monoid β]
 [semimodule α β] [topological_semimodule α β]
 
-lemma continuous_smul' : continuous (λp:α×β, p.1 • p.2) :=
+lemma continuous_smul : continuous (λp:α×β, p.1 • p.2) :=
 topological_semimodule.continuous_smul α β
 
-lemma continuous_smul {γ : Type*} [topological_space γ] {f : γ → α} {g : γ → β}
+lemma continuous.smul {γ : Type*} [topological_space γ] {f : γ → α} {g : γ → β}
   (hf : continuous f) (hg : continuous g) : continuous (λp, f p • g p) :=
-continuous_smul'.comp (hf.prod_mk hg)
+continuous_smul.comp (hf.prod_mk hg)
 
 end
 
@@ -52,10 +71,10 @@ class topological_module (α : Type u) (β : Type v)
   extends topological_semimodule α β : Prop
 
 /-- A topological vector space is a topological module over a field. -/
-class topological_vector_space (α : Type u) (β : Type v)
+abbreviation topological_vector_space (α : Type u) (β : Type v)
   [discrete_field α] [topological_space α]
-  [topological_space β] [add_comm_group β] [vector_space α β]
-  extends topological_module α β
+  [topological_space β] [add_comm_group β] [module α β] :=
+topological_module α β
 end prio
 
 section
@@ -74,8 +93,8 @@ protected def homeomorph.smul_of_unit (a : units α) : β ≃ₜ β :=
                  by rw [smul_smul, units.mul_inv, one_smul],
   left_inv  := λ x, calc ((a⁻¹ : units α) : α) • (a : α) • x = x :
                  by rw [smul_smul, units.inv_mul, one_smul],
-  continuous_to_fun  := continuous_smul continuous_const continuous_id,
-  continuous_inv_fun := continuous_smul continuous_const continuous_id }
+  continuous_to_fun  := continuous_const.smul continuous_id,
+  continuous_inv_fun := continuous_const.smul continuous_id }
 
 lemma is_open_map_smul_of_unit (a : units α) : is_open_map (λ (x : β), (a : α) • x) :=
 (homeomorph.smul_of_unit a).is_open_map
@@ -267,7 +286,7 @@ variables
 [module α β] [module α γ] [module α δ] [topological_module α δ]
 
 instance : has_scalar α (β →L[α] δ) :=
-⟨λ c f, ⟨c • f, continuous_smul continuous_const f.2⟩⟩
+⟨λ c f, ⟨c • f, continuous_const.smul f.2⟩⟩
 
 variables (c : α) (h : γ →L[α] δ) (f g : β →L[α] γ) (x y z : β)
 
@@ -284,7 +303,7 @@ variable [topological_module α γ]
 /-- The linear map `λ x, c x • f`.  Associates to a scalar-valued linear map and an element of
 `γ` the `γ`-valued linear map obtained by multiplying the two (a.k.a. tensoring by `γ`) -/
 def smul_right (c : β →L[α] α) (f : γ) : β →L[α] γ :=
-{ cont := continuous_smul c.2 continuous_const,
+{ cont := c.2.smul continuous_const,
   ..c.to_linear_map.smul_right f }
 
 @[simp]
@@ -327,17 +346,5 @@ instance : algebra α (γ →L[α] γ) :=
   commutes' := λ _ _, ext $ λ _, map_smul _ _ _ }
 
 end comm_ring
-
-section field
-
-variables
-{α : Type*} [discrete_field α] [topological_space α]
-{β : Type*} [topological_space β] [add_comm_group β]
-{γ : Type*} [topological_space γ] [add_comm_group γ] [topological_add_group γ]
-[vector_space α β] [vector_space α γ] [topological_vector_space α γ]
-
-instance : vector_space α (β →L[α] γ) := { ..continuous_linear_map.module }
-
-end field
 
 end continuous_linear_map

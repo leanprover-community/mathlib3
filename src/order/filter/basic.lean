@@ -728,9 +728,7 @@ lemma gc_map_comap (m : α → β) : galois_connection (map m) (comap m) :=
 assume f g, map_le_iff_le_comap
 
 lemma map_mono : monotone (map m) := (gc_map_comap m).monotone_l
-lemma monotone_map (m : α → β) : monotone (map m) := map_mono
 lemma comap_mono : monotone (comap m) := (gc_map_comap m).monotone_u
-lemma monotone_comap (m : α → β) : monotone (comap m) := comap_mono
 
 @[simp] lemma map_bot : map m ⊥ = ⊥ := (gc_map_comap m).l_bot
 @[simp] lemma map_sup : map m (f₁ ⊔ f₂) = map m f₁ ⊔ map m f₂ := (gc_map_comap m).l_sup
@@ -763,7 +761,7 @@ le_antisymm
         assume i,
         exact (ht i).2
       end⟩)
-  (supr_le $ assume i, monotone_comap $ le_supr _ _)
+  (supr_le $ assume i, comap_mono $ le_supr _ _)
 
 lemma comap_Sup {s : set (filter β)} {m : α → β} : comap m (Sup s) = (⨆f∈s, comap m f) :=
 by simp only [Sup_eq_supr, comap_supr, eq_self_iff_true]
@@ -774,7 +772,7 @@ le_antisymm
     ⟨t₁ ∪ t₂,
       ⟨g₁.sets_of_superset ht₁ (subset_union_left _ _), g₂.sets_of_superset ht₂ (subset_union_right _ _)⟩,
       union_subset hs₁ hs₂⟩)
-  (sup_le (comap_mono le_sup_left) (comap_mono le_sup_right))
+  ((@comap_mono _ _ m).le_map_sup _ _)
 
 lemma map_comap {f : filter β} {m : α → β} (hf : range m ∈ f) : (f.comap m).map m = f :=
 le_antisymm
@@ -803,7 +801,7 @@ this ▸ hb
 lemma le_of_map_le_map_inj_iff {f g : filter α} {m : α → β} {s : set α}
   (hsf : s ∈ f) (hsg : s ∈ g) (hm : ∀x∈s, ∀y∈s, m x = m y → x = y) :
   map m f ≤ map m g ↔ f ≤ g :=
-iff.intro (le_of_map_le_map_inj' hsf hsg hm) map_mono
+iff.intro (le_of_map_le_map_inj' hsf hsg hm) (λ h, map_mono h)
 
 lemma eq_of_map_eq_map_inj' {f g : filter α} {m : α → β} {s : set α}
   (hsf : s ∈ f) (hsg : s ∈ g) (hm : ∀x∈s, ∀y∈s, m x = m y → x = y)
@@ -926,10 +924,13 @@ calc map m (⨅i (h : p i), f i) = map m (⨅i:subtype p, f i.val) : by simp onl
     ⟨⟨i, hi⟩⟩
   ... = (⨅i (h : p i), map m (f i)) : by simp only [infi_subtype, eq_self_iff_true]
 
+lemma map_inf_le {f g : filter α} {m : α → β} : map m (f ⊓ g) ≤ map m f ⊓ map m g :=
+(@map_mono _ _ m).map_inf_le f g
+
 lemma map_inf' {f g : filter α} {m : α → β} {t : set α} (htf : t ∈ f) (htg : t ∈ g)
   (h : ∀x∈t, ∀y∈t, m x = m y → x = y) : map m (f ⊓ g) = map m f ⊓ map m g :=
 begin
-  refine le_antisymm ((monotone_map m).map_inf_le _ _) (assume s hs, _),
+  refine le_antisymm map_inf_le (assume s hs, _),
   simp only [map, mem_inf_sets, exists_prop, mem_map, mem_preimage, mem_inf_sets] at hs ⊢,
   rcases hs with ⟨t₁, h₁, t₂, h₂, hs⟩,
   refine ⟨m '' (t₁ ∩ t), _, m '' (t₂ ∩ t), _, _⟩,

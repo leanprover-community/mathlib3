@@ -276,7 +276,7 @@ compact_of_is_closed_subset compact_univ h (subset_univ _)
 
 variables [topological_space β]
 
-lemma compact.image_on {s : set α} {f : α → β} (hs : compact s)
+lemma compact.image_of_continuous_on {s : set α} {f : α → β} (hs : compact s)
   (hf : continuous_on f s) : compact (f '' s) :=
 begin
   intros l lne ls,
@@ -290,7 +290,7 @@ end
 
 lemma compact.image {s : set α} {f : α → β} (hs : compact s) (hf : continuous f) :
   compact (f '' s) :=
-hs.image_on hf.continuous_on
+hs.image_of_continuous_on hf.continuous_on
 
 lemma compact_range [compact_space α] {f : α → β} (hf : continuous f) :
   compact (range f) :=
@@ -343,12 +343,14 @@ end
 
 /-- The product of two compact spaces is compact. -/
 instance [compact_space α] [compact_space β] : compact_space (α × β) :=
-⟨by convert compact_univ.prod compact_univ; [by simp, assumption, assumption]⟩
+⟨by { rw ← univ_prod_univ, exact compact_univ.prod compact_univ }⟩
 
 /-- The disjoint union of two compact spaces is compact. -/
 instance [compact_space α] [compact_space β] : compact_space (α ⊕ β) :=
-⟨by convert (compact_range continuous_inl).union (compact_range continuous_inr);
-  [by { ext x, cases x; simp }, assumption, assumption ]⟩
+⟨begin
+  rw ← range_inl_union_range_inr,
+  exact (compact_range continuous_inl).union (compact_range continuous_inr)
+end⟩
 
 section tychonoff
 variables {ι : Type*} {π : ι → Type*} [∀i, topological_space (π i)]
@@ -380,10 +382,7 @@ end tychonoff
 
 instance quot.compact_space {r : α → α → Prop} [compact_space α] :
   compact_space (quot r) :=
-⟨begin
-  convert ← compact_univ.image continuous_quot_mk; [skip, assumption],
-  rw [image_univ, range_iff_surjective], exact quot.exists_rep,
- end⟩
+⟨by { rw ← range_quot_mk, exact compact_range continuous_quot_mk }⟩
 
 instance quotient.compact_space {s : setoid α} [compact_space α] :
   compact_space (quotient s) :=

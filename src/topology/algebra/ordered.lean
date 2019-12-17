@@ -1000,7 +1000,7 @@ lemma compact.exists_forall_le {α : Type u} [topological_space α]
   {s : set α} (hs : compact s) (ne_s : s ≠ ∅) (f : α → β) (hf : continuous_on f s) :
   ∃x∈s, ∀y∈s, f x ≤ f y :=
 begin
-  have C : compact (f '' s) := hs.image_on hf,
+  have C : compact (f '' s) := hs.image_of_continuous_on hf,
   haveI := has_Inf_to_nonempty β,
   have B : bdd_below (f '' s) := bdd_below_of_compact C,
   have : Inf (f '' s) ∈ f '' s :=

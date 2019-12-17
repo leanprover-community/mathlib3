@@ -478,6 +478,7 @@ let ⟨m, hm, hsm, hmm⟩ := zorn.zorn_subset₀ { t : set α | is_irreducible t
     λ x hxc, set.subset_sUnion_of_mem hxc⟩) s H in
 ⟨m, hm, hsm, λ u hu hmu, hmm _ hu hmu⟩
 
+/-- A maximal irreducible set that contains a given point. -/
 def irreducible_component (x : α) : set α :=
 classical.some (exists_irreducible {x} is_irreducible_singleton)
 

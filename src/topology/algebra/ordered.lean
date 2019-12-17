@@ -135,6 +135,29 @@ is_open_lt continuous_const continuous_id
 lemma is_open_Ioo {a b : α} : is_open (Ioo a b) :=
 is_open_inter is_open_Ioi is_open_Iio
 
+lemma is_connected.forall_Icc_subset {s : set α} (hs : is_connected s)
+  {a b : α} (ha : a ∈ s) (hb : b ∈ s) :
+  Icc a b ⊆ s :=
+begin
+  assume x hx,
+  obtain ⟨y, hy, hy'⟩ : (s ∩ ((Iic x) ∩ (Ici x))).nonempty,
+    from is_connected_closed_iff.1 hs (Iic x) (Ici x) is_closed_Iic is_closed_Ici
+      (λ y _, le_total y x) ⟨a, ha, hx.1⟩ ⟨b, hb, hx.2⟩,
+  exact le_antisymm hy'.1 hy'.2 ▸ hy
+end
+
+/-- Intermediate Value Theorem for continuous functions on connected sets. -/
+lemma is_connected.intermediate_value {γ : Type*} [topological_space γ] {s : set γ}
+  (hs : is_connected s) {a b : γ} (ha : a ∈ s) (hb : b ∈ s) {f : γ → α} (hf : continuous_on f s) :
+  Icc (f a) (f b) ⊆ f '' s :=
+(hs.image f hf).forall_Icc_subset (mem_image_of_mem f ha) (mem_image_of_mem f hb)
+
+/-- Intermediate Value Theorem for continuous functions on connected spaces. -/
+lemma intermediate_value_univ {γ : Type*} [topological_space γ] [H : connected_space γ]
+  (a b : γ) {f : γ → α} (hf : continuous f) :
+  Icc (f a) (f b) ⊆ range f :=
+@image_univ _ _ f ▸ H.is_connected_univ.intermediate_value trivial trivial hf.continuous_on
+
 end linear_order
 
 section decidable_linear_order
@@ -1010,29 +1033,6 @@ lemma cinfi_of_cinfi_of_monotone_of_continuous {f : α → β} {g : γ → α}
   (Mf : continuous f) (Cf : monotone f) (H : bdd_below (range g)) : f (infi g) = infi (f ∘ g) :=
 by rw [infi, cInf_of_cInf_of_monotone_of_continuous Mf Cf
   (λ h, range_eq_empty.1 h ‹_›) H, ← range_comp]; refl
-
-lemma is_connected.forall_Icc_subset {s : set α} (hs : is_connected s)
-  {a b : α} (ha : a ∈ s) (hb : b ∈ s) :
-  Icc a b ⊆ s :=
-begin
-  assume x hx,
-  obtain ⟨y, hy, hy'⟩ : (s ∩ ((Iic x) ∩ (Ici x))).nonempty,
-    from is_connected_closed_iff.1 hs (Iic x) (Ici x) is_closed_Iic is_closed_Ici
-      (λ y _, le_total y x) ⟨a, ha, hx.1⟩ ⟨b, hb, hx.2⟩,
-  exact le_antisymm hy'.1 hy'.2 ▸ hy
-end
-
-/-- Intermediate Value Theorem for continuous functions on connected sets. -/
-lemma is_connected.intermediate_value {γ : Type*} [topological_space γ] {s : set γ}
-  (hs : is_connected s) {a b : γ} (ha : a ∈ s) (hb : b ∈ s) {f : γ → α} (hf : continuous_on f s) :
-  Icc (f a) (f b) ⊆ f '' s :=
-(hs.image f hf).forall_Icc_subset (mem_image_of_mem f ha) (mem_image_of_mem f hb)
-
-/-- Intermediate Value Theorem for continuous functions on connected spaces. -/
-lemma intermediate_value_univ {γ : Type*} [topological_space γ] [H : connected_space γ]
-  (a b : γ) {f : γ → α} (hf : continuous f) :
-  Icc (f a) (f b) ⊆ range f :=
-@image_univ _ _ f ▸ H.is_connected_univ.intermediate_value trivial trivial hf.continuous_on
 
 section densely_ordered
 

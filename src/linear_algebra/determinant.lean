@@ -6,8 +6,6 @@ Authors: Kenny Lau, Chris Hughes
 import data.matrix.basic
 import group_theory.perm.sign
 
-import data.polynomial
-
 universes u v w
 open equiv equiv.perm finset function
 
@@ -101,7 +99,7 @@ calc det (M * N) = univ.sum (λ σ : perm n, (univ.pi (λ a, univ)).sum
     (λ _ _ _ _, (mul_right_inj _).1) (λ τ _, ⟨τ * σ, by simp⟩))
 ... = det M * det N : by simp [det, mul_assoc, mul_sum, mul_comm, mul_left_comm]
 
-instance : is_monoid_hom (det : matrix n n R → R) :=
+/-instance : is_monoid_hom (det : matrix n n R → R) :=
 { map_one := det_one,
   map_mul := det_mul }
 
@@ -135,17 +133,18 @@ begin
     norm_cast,
     rw [is_semiring_hom.map_nat_cast _ f, int.cast_neg, int.cast_coe_nat] }
 end
+-/
 
-def subtype_swap (i j : n) : {k // k ≠ i} → {k // k ≠ j} := subtype.map (swap i j)
-  (λ a hi, by { by_cases hj : a ≠ j, rwa [swap_apply_of_ne_of_ne hi hj],
-    rw [ne.def, not_not] at hj, symmetry, rw[hj] at hi, rwa [hj, swap_apply_right] })
-
---TODO: rows and columns are currently switched in the definition
+/-- `subtype_swap` maps the subtype of `α` with `i` removed to the subtype of `α` with `j` removed
+by swapping `i` and `j`. -/
+def subtype_swap {α : Type*} [decidable_eq α] (i j : α) : {k // k ≠ i} → {k // k ≠ j} :=
+subtype.map (swap i j) (λ a hi, by { by_cases hj : a ≠ j, rwa [swap_apply_of_ne_of_ne hi hj],
+    rw [ne.def, not_not] at hj, symmetry, rwa [hj.symm, swap_apply_right] })
 
 /-- The (i,j)-th cofactor of M is (upto sign) the determinant of the submatrix of M obtained by
 removing its i-th row and j-th column. -/
 def cofactor (i j : n) (M : matrix n n R) : R :=
-(sign (swap i j) : ℤ) * (det $ minor M (subtype.val ∘ subtype_swap i j) (subtype.val : {k : n // k ≠ i} → n))
+ε (swap i j) * (det $ minor M (subtype.val ∘ subtype_swap i j) (subtype.val))
 
 lemma cofactor_expansion_aux (M : matrix n n R) (i j : n) :
   univ.sum (λ σ : { σ : perm n // σ.to_fun i = j }, ε σ.val * univ.prod (λ l, M (σ l) l)) =
@@ -164,9 +163,9 @@ calc univ.sum (λ σ : { σ : perm n // σ.to_fun i = j }, ε σ.val * univ.prod
       mul_comm _ (M _ _), mul_assoc],
     congr, exact σ.2, exact eq.symm (insert_erase (mem_univ i)),
   end
-... = M j i * (sign (swap i j) : ℤ) * univ.sum (λ τ : perm { k // k ≠ i }, ε τ * univ.prod (λ l, M (swap i j $ τ l) l)) :
+... = M j i * ε (swap i j) * univ.sum (λ τ : perm { k // k ≠ i }, ε τ * univ.prod (λ l, M (swap i j $ τ l) l)) :
   begin
-    rw [mul_assoc, @mul_sum _ _ _ _ ↑(sign (swap i j) : ℤ)],
+    rw [mul_assoc, @mul_sum _ _ _ _ (ε (swap i j))],
     apply congr_arg,
     refine sum_bij (λ σ _, subtype_congr (swap i j * σ.1) (hσ σ))
       (λ _ _, mem_univ _) _
@@ -186,7 +185,8 @@ calc univ.sum (λ σ : { σ : perm n // σ.to_fun i = j }, ε σ.val * univ.prod
             exact congr_arg _ (congr_arg _ $ eq.symm $ subtype.eta _ _) end ⟩),
     intros σ _,
     have hs : sign (swap i j * σ.val) = sign (subtype_congr (swap i j * σ.1) (hσ σ) : perm {k // k ≠ i}),
-    { refine sign_bij (λ k hk, subtype.mk k (λ h, by { rw [h, mul_apply] at hk, unfold_coes at hk, rw [σ.2] at hk, exact hk (swap_apply_right i j) }))
+    { refine sign_bij
+        (λ k hk, subtype.mk k (λ h, by { rw [h, mul_apply] at hk, unfold_coes at hk, rw [σ.2] at hk, exact hk (swap_apply_right i j) }))
         (λ _ _ _, rfl) (λ _ _ _ _, congr_arg subtype.val)
         (λ k hk, ⟨k.val, by { revert hk, contrapose!, intro hk, exact subtype.val_injective hk },
           subtype.eta _ _⟩) },
@@ -210,21 +210,6 @@ begin
     have : σ1.fst = σ2.fst, { rw [←σ1.snd.property, ←σ2.snd.property, h] },
     refine sigma.eq this (subtype.val_injective _),
     { rw ←h, congr, { funext, exact (congr_arg _ $ eq.symm this) }, apply eq_rec_heq }}
-end
-
-open polynomial
-
-lemma test1 (i : n) (M : matrix n n R) :
-  minor (diagonal (λ _:n, (X : polynomial R)) - (λ k l, C (M k l))) (subtype.val ∘ subtype_swap i i) (subtype.val : {k : n // k ≠ i} → n) =
-  (diagonal (λ _, X)) - (λ k l, C (M (swap i i k) l)) :=
-begin
-funext k l,
-unfold minor subtype_swap,
-simp [subtype.map],
-dsimp,
-rw [swap_self],
-simp only [refl_apply, diagonal, subtype.ext],
-congr
 end
 
 end matrix

@@ -23,7 +23,12 @@ iterating through the expression. In one performance test `pi_binders` was more 
 quicker than `mk_local_pis` (when applied to the type of all imported declarations 100x)."
 ```
 
-Since these notes are used in files imported by `tactic.core`, this file has no imports..
+These notes can be referenced in mathlib with the syntax `Note [note id]`.
+Often, these references will be made in code comments (`--`) that won't be displayed in docs.
+If such a reference is made in a doc string or module doc, it will be linked to the corresponding
+note in the doc display.
+
+Since these notes are used in files imported by `tactic.core`, this file has no imports.
 
 ## Implementation details
 

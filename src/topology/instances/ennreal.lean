@@ -725,28 +725,35 @@ have tendsto (λp:α×α, edist p.1 p.2) (𝓝 (a, b)) (𝓝 (edist a b)),
   from continuous_iff_continuous_at.mp continuous_edist' (a, b),
 tendsto.comp (by rw [nhds_prod_eq] at this; exact this) (hf.prod_mk hg)
 
-/-- If `edist (f n) (f (n+1))` is bounded above by a summable function `d : ℕ → ℝ≥0`,
+lemma cauchy_seq_of_edist_le_of_tsum_ne_top {f : ℕ → α} (d : ℕ → ennreal)
+  (hf : ∀ n, edist (f n) (f n.succ) ≤ d n) (hd : tsum d ≠ ∞) :
+  cauchy_seq f :=
+begin
+  lift d to (ℕ → nnreal) using (λ i, ennreal.ne_top_of_tsum_ne_top hd i),
+  rw ennreal.tsum_coe_ne_top_iff_summable at hd,
+  exact cauchy_seq_of_edist_le_of_summable d hf hd
+end
+
+/-- If `edist (f n) (f (n+1))` is bounded above by a function `d : ℕ → ennreal`,
 then the distance from `f n` to the limit is bounded by `∑_{k=n}^∞ d k`. -/
-lemma edist_le_tsum_of_edist_le_of_tendsto {f : ℕ → α} (d : ℕ → nnreal)
-  (hf : ∀ n, edist (f n) (f n.succ) ≤ d n) (hd : summable d)
+lemma edist_le_tsum_of_edist_le_of_tendsto {f : ℕ → α} (d : ℕ → ennreal)
+  (hf : ∀ n, edist (f n) (f n.succ) ≤ d n)
   {a : α} (ha : tendsto f at_top (𝓝 a)) (n : ℕ) :
-  edist (f n) a ≤ ↑∑ m, d (n + m) :=
+  edist (f n) a ≤ ∑ m, d (n + m) :=
 begin
   refine le_of_tendsto at_top_ne_bot (tendsto_edist tendsto_const_nhds ha)
     (mem_at_top_sets.2 ⟨n, λ m hnm, _⟩),
   refine le_trans (edist_le_Ico_sum_of_edist_le hnm (λ k _ _, hf k)) _,
-  norm_cast,
   rw [finset.sum_Ico_eq_sum_range],
-  refine sum_le_tsum _ (λ _ _, nnreal.coe_nonneg _) _,
-  exact nnreal.summable_comp_injective hd (add_left_injective n)
+  exact sum_le_tsum _ (λ _ _, zero_le _) ennreal.summable
 end
 
-/-- If `edist (f n) (f (n+1))` is bounded above by a summable function `d : ℕ → ℝ≥0`,
+/-- If `edist (f n) (f (n+1))` is bounded above by a function `d : ℕ → ennreal`,
 then the distance from `f 0` to the limit is bounded by `∑_{k=0}^∞ d k`. -/
-lemma edist_le_tsum_of_edist_le_of_tendsto₀ {f : ℕ → α} (d : ℕ → nnreal)
-  (hf : ∀ n, edist (f n) (f n.succ) ≤ d n) (hd : summable d)
+lemma edist_le_tsum_of_edist_le_of_tendsto₀ {f : ℕ → α} (d : ℕ → ennreal)
+  (hf : ∀ n, edist (f n) (f n.succ) ≤ d n)
   {a : α} (ha : tendsto f at_top (𝓝 a)) :
-  edist (f 0) a ≤ ↑∑ m, d m :=
-by simpa using edist_le_tsum_of_edist_le_of_tendsto d hf hd ha 0
+  edist (f 0) a ≤ ∑ m, d m :=
+by simpa using edist_le_tsum_of_edist_le_of_tendsto d hf ha 0
 
 end --section

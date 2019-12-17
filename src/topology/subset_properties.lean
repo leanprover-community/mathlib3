@@ -1,13 +1,20 @@
 /-
 Copyright (c) 2017 Johannes Hölzl. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Authors: Johannes Hölzl, Mario Carneiro
-
-Properties of subsets of topological spaces: compact, clopen, irreducible,
-connected, totally disconnected, totally separated.
+Authors: Johannes Hölzl, Mario Carneiro, Yury Kudryashov
 -/
 
 import topology.continuous_on
+
+/-!
+# Properties of subsets of topological spaces
+
+## Main definitions
+
+`compact`, `is_clopen`, `is_irreducible`, `is_connected`, `is_totally_disconnected`, `is_totally_separated`
+
+TODO: write better docs
+-/
 
 open set filter lattice classical
 open_locale classical topological_space
@@ -200,6 +207,8 @@ section tube_lemma
 
 variables [topological_space β]
 
+/-- `nhds_contain_boxes s t` means that any neighborhood of `s × t` in `α × β` includes
+a product of a neighborhood of `s` by a neighborhood of `t`. -/
 def nhds_contain_boxes (s : set α) (t : set β) : Prop :=
 ∀ (n : set (α × β)) (hn : is_open n) (hp : set.prod s t ⊆ n),
 ∃ (u : set α) (v : set β), is_open u ∧ is_open v ∧ s ⊆ u ∧ t ⊆ v ∧ set.prod u v ⊆ n
@@ -432,7 +441,7 @@ end clopen
 
 section irreducible
 
-/-- A irreducible set is one where there is no non-trivial pair of disjoint opens. -/
+/-- An irreducible set is one where there is no non-trivial pair of disjoint opens. -/
 def is_irreducible (s : set α) : Prop :=
 ∀ (u v : set α), is_open u → is_open v →
   (∃ x, x ∈ s ∩ u) → (∃ x, x ∈ s ∩ v) → ∃ x, x ∈ s ∩ (u ∩ v)
@@ -489,7 +498,7 @@ closure_eq_iff_is_closed.1 $ eq_irreducible_component
   (is_irreducible_closure is_irreducible_irreducible_component)
   subset_closure
 
-/-- A irreducible space is one where there is no non-trivial pair of disjoint opens. -/
+/-- An irreducible space is one where there is no non-trivial pair of disjoint opens. -/
 class irreducible_space (α : Type u) [topological_space α] : Prop :=
 (is_irreducible_univ : is_irreducible (univ : set α))
 
@@ -674,6 +683,7 @@ end connected
 
 section totally_disconnected
 
+/-- A set is called totally disconnected if all of its connected components are singletons. -/
 def is_totally_disconnected (s : set α) : Prop :=
 ∀ t, t ⊆ s → is_connected t → subsingleton t
 
@@ -684,6 +694,7 @@ theorem is_totally_disconnected_singleton {x} : is_totally_disconnected ({x} : s
 λ t ht _, ⟨λ ⟨p, hp⟩ ⟨q, hq⟩, subtype.eq $ show p = q,
 from (eq_of_mem_singleton (ht hp)).symm ▸ (eq_of_mem_singleton (ht hq)).symm⟩
 
+/-- A space is totally disconnected if all of its connected components are singletons. -/
 class totally_disconnected_space (α : Type u) [topological_space α] : Prop :=
 (is_totally_disconnected_univ : is_totally_disconnected (univ : set α))
 
@@ -691,6 +702,8 @@ end totally_disconnected
 
 section totally_separated
 
+/-- A set `s` is called totally separated if any two points of this set can be separated
+by two disjoint open sets covering `s`. -/
 def is_totally_separated (s : set α) : Prop :=
 ∀ x ∈ s, ∀ y ∈ s, x ≠ y → ∃ u v : set α, is_open u ∧ is_open v ∧
   x ∈ u ∧ y ∈ v ∧ s ⊆ u ∪ v ∧ u ∩ v = ∅
@@ -708,6 +721,8 @@ assume hxy : x ≠ y, let ⟨u, v, hu, hv, hxu, hyv, hsuv, huv⟩ := H x (hts hx
 let ⟨r, hrt, hruv⟩ := ht u v hu hv (subset.trans hts hsuv) ⟨x, hxt, hxu⟩ ⟨y, hyt, hyv⟩ in
 ((ext_iff _ _).1 huv r).1 hruv⟩
 
+/-- A space is totally separated if any two points can be separated by two disjoint open sets
+covering the whole space. -/
 class totally_separated_space (α : Type u) [topological_space α] : Prop :=
 (is_totally_separated_univ : is_totally_separated (univ : set α))
 

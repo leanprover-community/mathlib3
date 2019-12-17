@@ -60,7 +60,7 @@ begin
     by { ext x, exact f.pi_apply_eq_sum_univ x },
   rw this,
   refine continuous_finset_sum _ (λi hi, _),
-  exact continuous_smul (continuous_apply i) continuous_const
+  exact (continuous_apply i).smul continuous_const
 end
 
 section complete_field

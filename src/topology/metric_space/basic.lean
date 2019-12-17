@@ -1035,7 +1035,7 @@ section compact
 /-- Any compact set in a metric space can be covered by finitely many balls of a given positive
 radius -/
 lemma finite_cover_balls_of_compact {α : Type u} [metric_space α] {s : set α}
-  (hs : compact s) {e : ℝ} (he : e > 0) :
+  (hs : compact s) {e : ℝ} (he : 0 < e) :
   ∃t ⊆ s, finite t ∧ s ⊆ ⋃x∈t, ball x e :=
 begin
   apply hs.elim_finite_subcover_image,

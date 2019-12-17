@@ -1125,7 +1125,7 @@ begin
 end
 
 /-- The extreme value theorem: a continuous function realizes its maximum on a compact set -/
-lemma compact.exists_forall_ge {α : Type u} [topological_space α] {s : set α}:
+lemma compact.exists_forall_ge {α : Type u} [topological_space α]:
   ∀ {s : set α}, compact s → s ≠ ∅ → ∀ {f : α → β}, continuous_on f s →
   ∃x∈s, ∀y∈s, f y ≤ f x :=
 @compact.exists_forall_le (order_dual β) _ _ _ _ _

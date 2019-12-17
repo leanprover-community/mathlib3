@@ -45,7 +45,7 @@ open tactic
 
 /-- Creates a name to store `note_id`. -/
 private meta def get_name_for (note_id : string) : name :=
-name.mk_numeral ⟨note_id.hash, undefined⟩ `library_note
+`library_note <.> to_string note_id.hash
 
 /-- If `note_name` and `note` are `pexpr`s representing strings,
 `add_library_note note_name note` adds a declaration of type `string × string` and tags it with

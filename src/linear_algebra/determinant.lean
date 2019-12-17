@@ -103,4 +103,22 @@ instance : is_monoid_hom (det : matrix n n R → R) :=
 { map_one := det_one,
   map_mul := det_mul }
 
+/-- Transposing a matrix preserves the determinant. -/
+@[simp] lemma det_transpose (M : matrix n n R) : matrix.det (M.transpose) = matrix.det M :=
+begin
+apply finset.sum_bij (λ σ _, σ⁻¹),
+{ intros σ _, apply finset.mem_univ },
+{ intros σ _,
+  rw [equiv.perm.sign_inv],
+  congr' 1,
+  apply finset.prod_bij (λ i _, σ i),
+  { intros i _, apply finset.mem_univ },
+  { intros i _, simp },
+  { intros i j _ _ h, simp at h, assumption },
+  { intros i _, use σ⁻¹ i, finish }
+},
+{ intros σ σ' _ _ h, simp at h, assumption },
+{ intros σ _, use σ⁻¹, finish }
+end
+
 end matrix

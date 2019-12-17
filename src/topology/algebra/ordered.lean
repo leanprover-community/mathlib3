@@ -766,8 +766,8 @@ lemma bdd_below_of_compact {α : Type u} [topological_space α] [linear_order α
 begin
   by_contra H,
   letI := classical.DLO α,
-  rcases @compact_elim_finite_subcover_image α _ _ _ s (λ x, {b | x < b}) hs
-    (λ x _, is_open_lt continuous_const continuous_id) _ with ⟨t, st, ft, ht⟩,
+  rcases hs.elim_finite_subcover_image (λ x (_ : x ∈ s), @is_open_Ioi _ _ _ _ x) _
+    with ⟨t, st, ft, ht⟩,
   { refine H ((bdd_below_finite ft).imp $ λ C hC y hy, _),
     rcases mem_bUnion_iff.1 (ht hy) with ⟨x, hx, xy⟩,
     exact le_trans (hC hx) (le_of_lt xy) },
@@ -996,11 +996,11 @@ by rw [infi, cInf_of_cInf_of_monotone_of_continuous Mf Cf
   (λ h, range_eq_empty.1 h ‹_›) H, ← range_comp]; refl
 
 /-- The extreme value theorem: a continuous function realizes its minimum on a compact set -/
-lemma exists_forall_le_of_compact_of_continuous {α : Type u} [topological_space α]
-  (f : α → β) (hf : continuous f) (s : set α) (hs : compact s) (ne_s : s ≠ ∅) :
+lemma compact.exists_forall_le {α : Type u} [topological_space α]
+  {s : set α} (hs : compact s) (ne_s : s ≠ ∅) (f : α → β) (hf : continuous_on f s) :
   ∃x∈s, ∀y∈s, f x ≤ f y :=
 begin
-  have C : compact (f '' s) := compact_image hs hf,
+  have C : compact (f '' s) := hs.image_on hf,
   haveI := has_Inf_to_nonempty β,
   have B : bdd_below (f '' s) := bdd_below_of_compact C,
   have : Inf (f '' s) ∈ f '' s :=
@@ -1010,10 +1010,10 @@ begin
 end
 
 /-- The extreme value theorem: a continuous function realizes its maximum on a compact set -/
-lemma exists_forall_ge_of_compact_of_continuous {α : Type u} [topological_space α] :
-  ∀ f : α → β, continuous f → ∀ s : set α, compact s → s ≠ ∅ →
+lemma compact.exists_forall_ge {α : Type u} [topological_space α] {s : set α}:
+  ∀ {s : set α}, compact s → s ≠ ∅ → ∀ {f : α → β}, continuous_on f s →
   ∃x∈s, ∀y∈s, f y ≤ f x :=
-@exists_forall_le_of_compact_of_continuous (order_dual β) _ _ _ _ _
+@compact.exists_forall_le (order_dual β) _ _ _ _ _
 
 end conditionally_complete_linear_order
 

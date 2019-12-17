@@ -307,13 +307,18 @@ by ext; refl
 @[simp] lemma transpose_zero [has_zero α] : (0 : matrix m n α)ᵀ = 0 :=
 by ext i j; refl
 
-@[simp] lemma transpose_add [has_add α] (M : matrix m n α) (N : matrix m n α) :
-  (M + N)ᵀ = Mᵀ + Nᵀ  :=
+@[simp] lemma transpose_one [decidable_eq n] [has_zero α] [has_one α] : (1 : matrix n n α)ᵀ = 1 :=
 begin
   ext i j,
-  dsimp [transpose],
-  refl
+  unfold has_one.one transpose,
+  by_cases i = j,
+  { simp only [h, diagonal_val_eq] },
+  { simp only [diagonal_val_ne h, diagonal_val_ne (λ p, h (symm p))] }
 end
+
+@[simp] lemma transpose_add [has_add α] (M : matrix m n α) (N : matrix m n α) :
+  (M + N)ᵀ = Mᵀ + Nᵀ  :=
+by { ext i j, simp }
 
 @[simp] lemma transpose_mul [comm_ring α] (M : matrix m n α) (N : matrix n l α) :
   (M ⬝ N)ᵀ = Nᵀ ⬝ Mᵀ  :=

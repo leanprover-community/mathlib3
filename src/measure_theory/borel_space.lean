@@ -63,13 +63,13 @@ begin
     refine generate_from_le _, rintro _ ⟨a, rfl | rfl⟩; [skip, apply H],
     by_cases h : ∃ a', ∀ b, a < b ↔ a' ≤ b,
     { rcases h with ⟨a', ha'⟩,
-      rw (_ : {b | a < b} = -Iio a'), {exact (H _).compl _},
+      rw (_ : Ioi a = -Iio a'), {exact (H _).compl _},
       simp [set.ext_iff, ha'] },
     { rcases is_open_Union_countable
         (λ a' : {a' : α // a < a'}, {b | a'.1 < b})
         (λ a', is_open_lt' _) with ⟨v, ⟨hv⟩, vu⟩,
       simp [set.ext_iff] at vu,
-      have : {b | a < b} = ⋃ x : v, -Iio x.1.1,
+      have : Ioi a = ⋃ x : v, -Iio x.1.1,
       { simp [set.ext_iff],
         refine λ x, ⟨λ ax, _, λ ⟨a', ⟨h, av⟩, ax⟩, lt_of_lt_of_le h ax⟩,
         rcases (vu x).2 _ with ⟨a', h₁, h₂⟩,
@@ -96,13 +96,13 @@ begin
     refine generate_from_le _, rintro _ ⟨a, rfl | rfl⟩, {apply H},
     by_cases h : ∃ a', ∀ b, b < a ↔ b ≤ a',
     { rcases h with ⟨a', ha'⟩,
-      rw (_ : {b | b < a} = -{x | a' < x}), {exact (H _).compl _},
+      rw (_ : Iio a = -Ioi a'), {exact (H _).compl _},
       simp [set.ext_iff, ha'] },
     { rcases is_open_Union_countable
         (λ a' : {a' : α // a' < a}, {b | b < a'.1})
         (λ a', is_open_gt' _) with ⟨v, ⟨hv⟩, vu⟩,
       simp [set.ext_iff] at vu,
-      have : {b | b < a} = ⋃ x : v, -{b | x.1.1 < b},
+      have : Iio a = ⋃ x : v, -Ioi x.1.1,
       { simp [set.ext_iff],
         refine λ x, ⟨λ ax, _, λ ⟨a', ⟨h, av⟩, ax⟩, lt_of_le_of_lt ax h⟩,
         rcases (vu x).2 _ with ⟨a', h₁, h₂⟩,

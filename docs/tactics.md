@@ -1436,3 +1436,26 @@ available, you should use
 run_cmd mk_simp_attr `simp_name
 run_cmd add_doc_string `simp_attr.simp_name "Description of the simp set here"
 ```
+
+### library_note
+
+At various places in mathlib, we leave implementation notes that are referenced from many other
+files. To keep track of these notes, we use the command `library_note`. This makes it easy to
+retrieve a list of all notes, e.g. for documentation output.
+
+Syntax:
+```
+library_note "note id" "note message"
+```
+
+An example from `meta.expr`:
+
+```
+library_note "open expressions"
+"Some declarations work with open expressions, i.e. an expr that has free variables.
+Terms will free variables are not well-typed, and one should not use them in tactics like
+`infer_type` or `unify`. You can still do syntactic analysis/manipulation on them.
+The reason for working with open types is for performance: instantiating variables requires
+iterating through the expression. In one performance test `pi_binders` was more than 6x
+quicker than `mk_local_pis` (when applied to the type of all imported declarations 100x)."
+```

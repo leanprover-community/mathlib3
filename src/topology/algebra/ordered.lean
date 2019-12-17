@@ -2,13 +2,29 @@
 Copyright (c) 2017 Johannes Hölzl. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johannes Hölzl, Mario Carneiro
-
-Theory of ordered topology.
 -/
 import order.liminf_limsup
 import data.set.intervals
 import topology.algebra.group
 import topology.constructions
+
+/-! # Theory of ordered topology
+
+## Main definitions
+`ordered_topology` and `orderable_topology`
+
+TODO expand
+
+## Main statements
+
+This file contains the proofs of the following facts:
+
+* all intervals `I??` are connected,
+* Intermediate Value Theorem, both for connected sets and `Icc` intervals,
+* Extreme Value Theorem: a continuous function on a compact set takes its maximum value.
+
+TODO expand
+-/
 
 open classical set lattice filter topological_space
 open_locale topological_space classical

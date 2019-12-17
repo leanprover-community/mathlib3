@@ -207,8 +207,8 @@ section tube_lemma
 
 variables [topological_space β]
 
-/-- `nhds_contain_boxes s t` means that any neighborhood of `s × t` in `α × β` includes
-a product of a neighborhood of `s` by a neighborhood of `t`. -/
+/-- `nhds_contain_boxes s t` means that any open neighborhood of `s × t` in `α × β` includes
+a product of an open neighborhood of `s` by an open neighborhood of `t`. -/
 def nhds_contain_boxes (s : set α) (t : set β) : Prop :=
 ∀ (n : set (α × β)) (hn : is_open n) (hp : set.prod s t ⊆ n),
 ∃ (u : set α) (v : set β), is_open u ∧ is_open v ∧ s ⊆ u ∧ t ⊆ v ∧ set.prod u v ⊆ n
@@ -583,14 +583,12 @@ begin
   rintros u v hu hv huv ⟨_, ⟨x, xs, rfl⟩, xu⟩ ⟨_, ⟨y, ys, rfl⟩, yv⟩,
   rcases continuous_on_iff'.1 hf u hu with ⟨u', hu', u'_eq⟩,
   rcases continuous_on_iff'.1 hf v hv with ⟨v', hv', v'_eq⟩,
-
   -- Reformulate `huv : f '' s ⊆ u ∪ v` in terms of `u'` and `v'`
   replace huv : s ⊆ u' ∪ v',
   { rw [image_subset_iff, preimage_union] at huv,
     replace huv := subset_inter huv (subset.refl _),
     rw [inter_distrib_right, u'_eq, v'_eq, ← inter_distrib_right] at huv,
     exact (subset_inter_iff.1 huv).1 },
-
   -- Now `s ⊆ u' ∪ v'`, so we can apply `‹is_connected s›`
   obtain ⟨z, hz⟩ : (s ∩ (u' ∩ v')).nonempty,
   { refine H u' v' hu' hv' huv ⟨x, _⟩ ⟨y, _⟩; rw inter_comm,

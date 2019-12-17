@@ -1043,7 +1043,6 @@ is_connected_closed_iff.2
 begin
   rintros s t hs ht hab ⟨x, hx⟩ ⟨y, hy⟩,
   wlog hxy : x ≤ y := le_total x y using [x y s t, y x t s],
-
   -- `c = Sup (Icc x y ∩ s)` belongs to `Icc a b`, `s`, and `t`.
   -- First two statements follow from general properties of `cSup`
   let S := Icc x y ∩ s,
@@ -1055,7 +1054,6 @@ begin
   have xyab : Icc x y ⊆ Icc a b := Icc_subset_Icc hx.1.1 hy.1.2,
   have Sab : S ⊆ Icc a b := subset.trans (inter_subset_left _ _) xyab,
   refine ⟨c, Sab c_mem, c_mem.2, _⟩,
-
   -- Now we need to prove `c ∈ t`; we deduce it from `Ioc c y ⊆ (s ∪ t) \ s ⊆ t`
   cases eq_or_lt_of_le c_mem.1.2 with hcy hcy, { exact hcy.symm ▸ hy.2 },
   suffices : Icc c y ⊆ t, from this (left_mem_Icc.2 (le_of_lt hcy)),

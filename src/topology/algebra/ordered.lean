@@ -2,13 +2,29 @@
 Copyright (c) 2017 Johannes Hölzl. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johannes Hölzl, Mario Carneiro
-
-Theory of ordered topology.
 -/
 import order.liminf_limsup
 import data.set.intervals
 import topology.algebra.group
 import topology.constructions
+
+/-! # Theory of ordered topology
+
+## Main definitions
+`ordered_topology` and `orderable_topology`
+
+TODO expand
+
+## Main statements
+
+This file contains the proofs of the following facts:
+
+* all intervals `I??` are connected,
+* Intermediate Value Theorem, both for connected sets and `Icc` intervals,
+* Extreme Value Theorem: a continuous function on a compact set takes its maximum value.
+
+TODO expand
+-/
 
 open classical set lattice filter topological_space
 open_locale topological_space classical
@@ -118,6 +134,29 @@ is_open_lt continuous_const continuous_id
 
 lemma is_open_Ioo {a b : α} : is_open (Ioo a b) :=
 is_open_inter is_open_Ioi is_open_Iio
+
+lemma is_connected.forall_Icc_subset {s : set α} (hs : is_connected s)
+  {a b : α} (ha : a ∈ s) (hb : b ∈ s) :
+  Icc a b ⊆ s :=
+begin
+  assume x hx,
+  obtain ⟨y, hy, hy'⟩ : (s ∩ ((Iic x) ∩ (Ici x))).nonempty,
+    from is_connected_closed_iff.1 hs (Iic x) (Ici x) is_closed_Iic is_closed_Ici
+      (λ y _, le_total y x) ⟨a, ha, hx.1⟩ ⟨b, hb, hx.2⟩,
+  exact le_antisymm hy'.1 hy'.2 ▸ hy
+end
+
+/-- Intermediate Value Theorem for continuous functions on connected sets. -/
+lemma is_connected.intermediate_value {γ : Type*} [topological_space γ] {s : set γ}
+  (hs : is_connected s) {a b : γ} (ha : a ∈ s) (hb : b ∈ s) {f : γ → α} (hf : continuous_on f s) :
+  Icc (f a) (f b) ⊆ f '' s :=
+(hs.image f hf).forall_Icc_subset (mem_image_of_mem f ha) (mem_image_of_mem f hb)
+
+/-- Intermediate Value Theorem for continuous functions on connected spaces. -/
+lemma intermediate_value_univ {γ : Type*} [topological_space γ] [H : connected_space γ]
+  (a b : γ) {f : γ → α} (hf : continuous f) :
+  Icc (f a) (f b) ⊆ range f :=
+@image_univ _ _ f ▸ H.is_connected_univ.intermediate_value trivial trivial hf.continuous_on
 
 end linear_order
 
@@ -994,6 +1033,82 @@ lemma cinfi_of_cinfi_of_monotone_of_continuous {f : α → β} {g : γ → α}
   (Mf : continuous f) (Cf : monotone f) (H : bdd_below (range g)) : f (infi g) = infi (f ∘ g) :=
 by rw [infi, cInf_of_cInf_of_monotone_of_continuous Mf Cf
   (λ h, range_eq_empty.1 h ‹_›) H, ← range_comp]; refl
+
+section densely_ordered
+
+variables [densely_ordered α] {a b : α}
+
+lemma is_connected_Icc : is_connected (Icc a b) :=
+is_connected_closed_iff.2
+begin
+  rintros s t hs ht hab ⟨x, hx⟩ ⟨y, hy⟩,
+  wlog hxy : x ≤ y := le_total x y using [x y s t, y x t s],
+  -- `c = Sup (Icc x y ∩ s)` belongs to `Icc a b`, `s`, and `t`.
+  -- First two statements follow from general properties of `cSup`
+  let S := Icc x y ∩ s,
+  have xS : x ∈ S, from ⟨left_mem_Icc.2 hxy, hx.2⟩,
+  have Sne : S ≠ ∅, from ne_empty_iff_nonempty.2 ⟨x, xS⟩,
+  have Sbd : bdd_above S, from ⟨y, λ z hz, hz.1.2⟩,
+  let c := Sup S,
+  have c_mem : c ∈ S, from cSup_mem_of_is_closed Sne (is_closed_inter is_closed_Icc hs) Sbd,
+  have xyab : Icc x y ⊆ Icc a b := Icc_subset_Icc hx.1.1 hy.1.2,
+  have Sab : S ⊆ Icc a b := subset.trans (inter_subset_left _ _) xyab,
+  refine ⟨c, Sab c_mem, c_mem.2, _⟩,
+  -- Now we need to prove `c ∈ t`; we deduce it from `Ioc c y ⊆ (s ∪ t) \ s ⊆ t`
+  cases eq_or_lt_of_le c_mem.1.2 with hcy hcy, { exact hcy.symm ▸ hy.2 },
+  suffices : Icc c y ⊆ t, from this (left_mem_Icc.2 (le_of_lt hcy)),
+  rw [← closure_Ioc hcy, closure_subset_iff_subset_of_is_closed ht],
+  intros z hz,
+  have z_mem : z ∈ Icc x y, from Icc_subset_Icc_left c_mem.1.1 (Ioc_subset_Icc_self hz),
+  suffices : z ∈ t \ s, from and.left this,
+  rw [← union_diff_left],
+  exact ⟨hab $ xyab z_mem, λ zs, not_lt_of_le (le_cSup Sbd ⟨z_mem, zs⟩) hz.1⟩
+end
+
+lemma is_connected_iff_forall_Icc_subset {s : set α} :
+  is_connected s ↔ ∀ x y ∈ s, x ≤ y → Icc x y ⊆ s :=
+⟨λ h x y hx hy hxy, h.forall_Icc_subset hx hy, λ h, is_connected_of_forall_pair $ λ x y hx hy,
+  ⟨Icc (min x y) (max x y), h (min x y) (max x y)
+    ((min_choice x y).elim (λ h', by rwa h') (λ h', by rwa h'))
+    ((max_choice x y).elim (λ h', by rwa h') (λ h', by rwa h')) min_le_max,
+    ⟨min_le_left x y, le_max_left x y⟩, ⟨min_le_right x y, le_max_right x y⟩, is_connected_Icc⟩⟩
+
+lemma is_connected_Ici : is_connected (Ici a) :=
+is_connected_iff_forall_Icc_subset.2 $ λ x y hx hy hxy, (Icc_subset_Ici_iff hxy).2 hx
+
+lemma is_connected_Iic : is_connected (Iic a) :=
+is_connected_iff_forall_Icc_subset.2 $ λ x y hx hy hxy, (Icc_subset_Iic_iff hxy).2 hy
+
+lemma is_connected_Iio : is_connected (Iio a) :=
+is_connected_iff_forall_Icc_subset.2 $ λ x y hx hy hxy, (Icc_subset_Iio_iff hxy).2 hy
+
+lemma is_connected_Ioi : is_connected (Ioi a) :=
+is_connected_iff_forall_Icc_subset.2 $ λ x y hx hy hxy, (Icc_subset_Ioi_iff hxy).2 hx
+
+lemma is_connected_Ioo : is_connected (Ioo a b) :=
+is_connected_iff_forall_Icc_subset.2 $ λ x y hx hy hxy, (Icc_subset_Ioo_iff hxy).2 ⟨hx.1, hy.2⟩
+
+lemma is_connected_Ioc : is_connected (Ioc a b) :=
+is_connected_iff_forall_Icc_subset.2 $ λ x y hx hy hxy, (Icc_subset_Ioc_iff hxy).2 ⟨hx.1, hy.2⟩
+
+lemma is_connected_Ico : is_connected (Ico a b) :=
+is_connected_iff_forall_Icc_subset.2 $ λ x y hx hy hxy, (Icc_subset_Ico_iff hxy).2 ⟨hx.1, hy.2⟩
+
+@[priority 100]
+instance ordered_connected_space : connected_space α :=
+⟨is_connected_iff_forall_Icc_subset.2 $ λ x y hx hy hxy, subset_univ _⟩
+
+/--Intermediate Value Theorem for continuous functions on closed intervals, case `f a ≤ t ≤ f b`.-/
+lemma intermediate_value_Icc {a b : α} (hab : a ≤ b) {f : α → β} (hf : continuous_on f (Icc a b)) :
+  Icc (f a) (f b) ⊆ f '' (Icc a b) :=
+is_connected_Icc.intermediate_value (left_mem_Icc.2 hab) (right_mem_Icc.2 hab) hf
+
+/--Intermediate Value Theorem for continuous functions on closed intervals, case `f a ≥ t ≥ f b`.-/
+lemma intermediate_value_Icc' {a b : α} (hab : a ≤ b) {f : α → β} (hf : continuous_on f (Icc a b)) :
+  Icc (f b) (f a) ⊆ f '' (Icc a b) :=
+is_connected_Icc.intermediate_value (right_mem_Icc.2 hab) (left_mem_Icc.2 hab) hf
+
+end densely_ordered
 
 /-- The extreme value theorem: a continuous function realizes its minimum on a compact set -/
 lemma compact.exists_forall_le {α : Type u} [topological_space α]

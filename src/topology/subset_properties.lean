@@ -1,13 +1,20 @@
 /-
 Copyright (c) 2017 Johannes Hölzl. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Authors: Johannes Hölzl, Mario Carneiro
-
-Properties of subsets of topological spaces: compact, clopen, irreducible,
-connected, totally disconnected, totally separated.
+Authors: Johannes Hölzl, Mario Carneiro, Yury Kudryashov
 -/
 
 import topology.continuous_on
+
+/-!
+# Properties of subsets of topological spaces
+
+## Main definitions
+
+`compact`, `is_clopen`, `is_irreducible`, `is_connected`, `is_totally_disconnected`, `is_totally_separated`
+
+TODO: write better docs
+-/
 
 open set filter lattice classical
 open_locale classical topological_space
@@ -202,6 +209,8 @@ section tube_lemma
 
 variables [topological_space β]
 
+/-- `nhds_contain_boxes s t` means that any open neighborhood of `s × t` in `α × β` includes
+a product of an open neighborhood of `s` by an open neighborhood of `t`. -/
 def nhds_contain_boxes (s : set α) (t : set β) : Prop :=
 ∀ (n : set (α × β)) (hn : is_open n) (hp : set.prod s t ⊆ n),
 ∃ (u : set α) (v : set β), is_open u ∧ is_open v ∧ s ⊆ u ∧ t ⊆ v ∧ set.prod u v ⊆ n
@@ -399,6 +408,7 @@ end compact
 
 section clopen
 
+/-- A set is clopen if it is both open and closed. -/
 def is_clopen (s : set α) : Prop :=
 is_open s ∧ is_closed s
 
@@ -427,7 +437,7 @@ end clopen
 
 section irreducible
 
-/-- A irreducible set is one where there is no non-trivial pair of disjoint opens. -/
+/-- An irreducible set is one where there is no non-trivial pair of disjoint opens. -/
 def is_irreducible (s : set α) : Prop :=
 ∀ (u v : set α), is_open u → is_open v →
   (∃ x, x ∈ s ∩ u) → (∃ x, x ∈ s ∩ v) → ∃ x, x ∈ s ∩ (u ∩ v)
@@ -464,6 +474,7 @@ let ⟨m, hm, hsm, hmm⟩ := zorn.zorn_subset₀ { t : set α | is_irreducible t
     λ x hxc, set.subset_sUnion_of_mem hxc⟩) s H in
 ⟨m, hm, hsm, λ u hu hmu, hmm _ hu hmu⟩
 
+/-- A maximal irreducible set that contains a given point. -/
 def irreducible_component (x : α) : set α :=
 classical.some (exists_irreducible {x} is_irreducible_singleton)
 
@@ -484,7 +495,7 @@ closure_eq_iff_is_closed.1 $ eq_irreducible_component
   (is_irreducible_closure is_irreducible_irreducible_component)
   subset_closure
 
-/-- A irreducible space is one where there is no non-trivial pair of disjoint opens. -/
+/-- An irreducible space is one where there is no non-trivial pair of disjoint opens. -/
 class irreducible_space (α : Type u) [topological_space α] : Prop :=
 (is_irreducible_univ : is_irreducible (univ : set α))
 
@@ -511,33 +522,50 @@ is_connected_of_is_irreducible is_irreducible_empty
 theorem is_connected_singleton {x} : is_connected ({x} : set α) :=
 is_connected_of_is_irreducible is_irreducible_singleton
 
+/-- If any point of a set is joined to a fixed point by a connected subset,
+then the original set is connected as well. -/
+theorem is_connected_of_forall {s : set α} (x : α)
+  (H : ∀ y ∈ s, ∃ t ⊆ s, x ∈ t ∧ y ∈ t ∧ is_connected t) :
+  is_connected s :=
+begin
+  rintros u v hu hv hs ⟨z, zs, zu⟩ ⟨y, ys, yv⟩,
+  have xs : x ∈ s, by { rcases H y ys with ⟨t, ts, xt, yt, ht⟩, exact ts xt },
+  wlog xu : x ∈ u := hs xs using [u v y z, v u z y],
+  { rcases H y ys with ⟨t, ts, xt, yt, ht⟩,
+    have := ht u v hu hv(subset.trans ts hs) ⟨x, xt, xu⟩ ⟨y, yt, yv⟩,
+    exact this.imp (λ z hz, ⟨ts hz.1, hz.2⟩) },
+  { rw [union_comm v, inter_comm v] at this,
+    apply this; assumption }
+end
+
+/-- If any two points of a set are contained in a connected subset,
+then the original set is connected as well. -/
+theorem is_connected_of_forall_pair {s : set α}
+  (H : ∀ x y ∈ s, ∃ t ⊆ s, x ∈ t ∧ y ∈ t ∧ is_connected t) :
+  is_connected s :=
+begin
+  rintros u v hu hv hs ⟨x, xs, xu⟩ ⟨y, ys, yv⟩,
+  rcases H x y xs ys with ⟨t, ts, xt, yt, ht⟩,
+  have := ht u v hu hv(subset.trans ts hs) ⟨x, xt, xu⟩ ⟨y, yt, yv⟩,
+  exact this.imp (λ z hz, ⟨ts hz.1, hz.2⟩)
+end
+
+/-- A union of a family of connected sets with a common point is connected as well. -/
 theorem is_connected_sUnion (x : α) (c : set (set α)) (H1 : ∀ s ∈ c, x ∈ s)
   (H2 : ∀ s ∈ c, is_connected s) : is_connected (⋃₀ c) :=
 begin
-  rintro u v hu hv hUcuv ⟨y, hyUc, hyu⟩ ⟨z, hzUc, hzv⟩,
-  cases classical.em (c = ∅) with hc hc,
-  { rw [hc, sUnion_empty] at hyUc, exact hyUc.elim },
-  cases ne_empty_iff_exists_mem.1 hc with s hs,
-  cases hUcuv (mem_sUnion_of_mem (H1 s hs) hs) with hxu hxv,
-  { rcases hzUc with ⟨t, htc, hzt⟩,
-    specialize H2 t htc u v hu hv (subset.trans (subset_sUnion_of_mem htc) hUcuv),
-    cases H2 ⟨x, H1 t htc, hxu⟩ ⟨z, hzt, hzv⟩ with r hr,
-    exact ⟨r, mem_sUnion_of_mem hr.1 htc, hr.2⟩ },
-  { rcases hyUc with ⟨t, htc, hyt⟩,
-    specialize H2 t htc u v hu hv (subset.trans (subset_sUnion_of_mem htc) hUcuv),
-    cases H2 ⟨y, hyt, hyu⟩ ⟨x, H1 t htc, hxv⟩ with r hr,
-    exact ⟨r, mem_sUnion_of_mem hr.1 htc, hr.2⟩ }
+  apply is_connected_of_forall x,
+  rintros y ⟨s, sc, ys⟩,
+  exact ⟨s, subset_sUnion_of_mem sc, H1 s sc, ys, H2 s sc⟩
 end
 
-theorem is_connected_union (x : α) {s t : set α} (H1 : x ∈ s) (H2 : x ∈ t)
+theorem is_connected.union (x : α) {s t : set α} (H1 : x ∈ s) (H2 : x ∈ t)
   (H3 : is_connected s) (H4 : is_connected t) : is_connected (s ∪ t) :=
-have _ := is_connected_sUnion x {t,s}
-  (by rintro r (rfl | rfl | h); [exact H1, exact H2, exact h.elim])
-  (by rintro r (rfl | rfl | h); [exact H3, exact H4, exact h.elim]),
-have h2 : ⋃₀ {t, s} = s ∪ t, from (sUnion_insert _ _).trans (by rw sUnion_singleton),
-by rwa h2 at this
+sUnion_pair s t ▸ is_connected_sUnion x {s, t}
+  (by rintro r (rfl | rfl | h); [exact H2, exact H1, exact h.elim])
+  (by rintro r (rfl | rfl | h); [exact H4, exact H3, exact h.elim])
 
-theorem is_connected_closure {s : set α} (H : is_connected s) :
+theorem is_connected.closure {s : set α} (H : is_connected s) :
   is_connected (closure s) :=
 λ u v hu hv hcsuv ⟨y, hycs, hyu⟩ ⟨z, hzcs, hzv⟩,
 let ⟨p, hpu, hps⟩ := exists_mem_of_ne_empty (mem_closure_iff.1 hycs u hu hyu) in
@@ -545,6 +573,56 @@ let ⟨q, hqv, hqs⟩ := exists_mem_of_ne_empty (mem_closure_iff.1 hzcs v hv hzv
 let ⟨r, hrs, hruv⟩ := H u v hu hv (subset.trans subset_closure hcsuv) ⟨p, hps, hpu⟩ ⟨q, hqs, hqv⟩ in
 ⟨r, subset_closure hrs, hruv⟩
 
+theorem is_connected.image [topological_space β] {s : set α} (H : is_connected s)
+  (f : α → β) (hf : continuous_on f s) : is_connected (f '' s) :=
+begin
+  -- Unfold/destruct definitions in hypotheses
+  rintros u v hu hv huv ⟨_, ⟨x, xs, rfl⟩, xu⟩ ⟨_, ⟨y, ys, rfl⟩, yv⟩,
+  rcases continuous_on_iff'.1 hf u hu with ⟨u', hu', u'_eq⟩,
+  rcases continuous_on_iff'.1 hf v hv with ⟨v', hv', v'_eq⟩,
+  -- Reformulate `huv : f '' s ⊆ u ∪ v` in terms of `u'` and `v'`
+  replace huv : s ⊆ u' ∪ v',
+  { rw [image_subset_iff, preimage_union] at huv,
+    replace huv := subset_inter huv (subset.refl _),
+    rw [inter_distrib_right, u'_eq, v'_eq, ← inter_distrib_right] at huv,
+    exact (subset_inter_iff.1 huv).1 },
+  -- Now `s ⊆ u' ∪ v'`, so we can apply `‹is_connected s›`
+  obtain ⟨z, hz⟩ : (s ∩ (u' ∩ v')).nonempty,
+  { refine H u' v' hu' hv' huv ⟨x, _⟩ ⟨y, _⟩; rw inter_comm,
+    exacts [u'_eq ▸ ⟨xu, xs⟩, v'_eq ▸ ⟨yv, ys⟩] },
+  rw [← inter_self s, inter_assoc, inter_left_comm s u', ← inter_assoc,
+    inter_comm s, inter_comm s, ← u'_eq, ← v'_eq] at hz,
+  exact ⟨f z, ⟨z, hz.1.2, rfl⟩, hz.1.1, hz.2.1⟩
+end
+
+theorem is_connected_closed_iff {s : set α} :
+  is_connected s ↔ ∀ t t', is_closed t → is_closed t' → s ⊆ t ∪ t' →
+    (s ∩ t).nonempty → (s ∩ t').nonempty → (s ∩ (t ∩ t')).nonempty :=
+⟨begin
+  rintros h t t' ht ht' htt' ⟨x, xs, xt⟩ ⟨y, ys, yt'⟩,
+  by_contradiction h',
+  rw [← ne_empty_iff_nonempty, ne.def, not_not, ← subset_compl_iff_disjoint, compl_inter] at h',
+  have xt' : x ∉ t', from (h' xs).elim (absurd xt) id,
+  have yt : y ∉ t, from (h' ys).elim id (absurd yt'),
+  have := ne_empty_iff_exists_mem.2 (h (-t) (-t') (is_open_compl_iff.2 ht)
+    (is_open_compl_iff.2 ht') h' ⟨y, ys, yt⟩ ⟨x, xs, xt'⟩),
+  rw [ne.def, ← compl_union, ← subset_compl_iff_disjoint, compl_compl] at this,
+  contradiction
+end,
+begin
+  rintros h u v hu hv huv ⟨x, xs, xu⟩ ⟨y, ys, yv⟩,
+  by_contradiction h',
+  rw [← ne_empty_iff_exists_mem, ne.def, not_not, ← subset_compl_iff_disjoint, compl_inter] at h',
+  have xv : x ∉ v, from (h' xs).elim (absurd xu) id,
+  have yu : y ∉ u, from (h' ys).elim id (absurd yv),
+  have := ne_empty_iff_nonempty.2 (h (-u) (-v) (is_closed_compl_iff.2 hu)
+    (is_closed_compl_iff.2 hv) h' ⟨y, ys, yu⟩ ⟨x, xs, xv⟩),
+  rw [ne.def, ← compl_union, ← subset_compl_iff_disjoint, compl_compl] at this,
+  contradiction
+end⟩
+
+/-- The connected component of a point is the maximal connected set
+that contains this point. -/
 def connected_component (x : α) : set α :=
 ⋃₀ { s : set α | is_connected s ∧ x ∈ s }
 
@@ -562,7 +640,7 @@ theorem is_closed_connected_component {x : α} :
   is_closed (connected_component x) :=
 closure_eq_iff_is_closed.1 $ subset.antisymm
   (subset_connected_component
-    (is_connected_closure is_connected_connected_component)
+    is_connected_connected_component.closure
     (subset_closure mem_connected_component))
   subset_closure
 
@@ -600,6 +678,7 @@ end connected
 
 section totally_disconnected
 
+/-- A set is called totally disconnected if all of its connected components are singletons. -/
 def is_totally_disconnected (s : set α) : Prop :=
 ∀ t, t ⊆ s → is_connected t → subsingleton t
 
@@ -610,6 +689,7 @@ theorem is_totally_disconnected_singleton {x} : is_totally_disconnected ({x} : s
 λ t ht _, ⟨λ ⟨p, hp⟩ ⟨q, hq⟩, subtype.eq $ show p = q,
 from (eq_of_mem_singleton (ht hp)).symm ▸ (eq_of_mem_singleton (ht hq)).symm⟩
 
+/-- A space is totally disconnected if all of its connected components are singletons. -/
 class totally_disconnected_space (α : Type u) [topological_space α] : Prop :=
 (is_totally_disconnected_univ : is_totally_disconnected (univ : set α))
 
@@ -617,6 +697,8 @@ end totally_disconnected
 
 section totally_separated
 
+/-- A set `s` is called totally separated if any two points of this set can be separated
+by two disjoint open sets covering `s`. -/
 def is_totally_separated (s : set α) : Prop :=
 ∀ x ∈ s, ∀ y ∈ s, x ≠ y → ∃ u v : set α, is_open u ∧ is_open v ∧
   x ∈ u ∧ y ∈ v ∧ s ⊆ u ∪ v ∧ u ∩ v = ∅
@@ -634,6 +716,8 @@ assume hxy : x ≠ y, let ⟨u, v, hu, hv, hxu, hyv, hsuv, huv⟩ := H x (hts hx
 let ⟨r, hrt, hruv⟩ := ht u v hu hv (subset.trans hts hsuv) ⟨x, hxt, hxu⟩ ⟨y, hyt, hyv⟩ in
 ((ext_iff _ _).1 huv r).1 hruv⟩
 
+/-- A space is totally separated if any two points can be separated by two disjoint open sets
+covering the whole space. -/
 class totally_separated_space (α : Type u) [topological_space α] : Prop :=
 (is_totally_separated_univ : is_totally_separated (univ : set α))
 

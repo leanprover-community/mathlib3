@@ -348,7 +348,7 @@ instance [compact_space α] [compact_space β] : compact_space (α × β) :=
 /-- The disjoint union of two compact spaces is compact. -/
 instance [compact_space α] [compact_space β] : compact_space (α ⊕ β) :=
 ⟨by convert (compact_range continuous_inl).union (compact_range continuous_inr);
-  [by { ext x, cases x; simp }, assumption, assumption ]⟩
+  [by { ext x, cases x; simp }, assumption, assumption]⟩
 
 section tychonoff
 variables {ι : Type*} {π : ι → Type*} [∀i, topological_space (π i)]

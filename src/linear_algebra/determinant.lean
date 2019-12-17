@@ -287,7 +287,7 @@ The proof shows `M.det = -M.det` and concludes `M.det = 0`,
 so it doesn't work in characteristic `2`.
 -/
 lemma det_zero_of_column_eq_of_char_ne_two (char_ne_2 : ∀ (a : R), a = -a → a = 0)
-(M : matrix n n R) (i j : n) (i_ne_j : i ≠ j) (hij : M i = M j) : M.det = 0 :=
+{M : matrix n n R} {i j : n} (i_ne_j : i ≠ j) (hij : M i = M j) : M.det = 0 :=
 begin
 suffices : M.det = - M.det, { apply char_ne_2, assumption },
 have : (λ a, M (swap i j a)) = M,
@@ -307,6 +307,9 @@ end
 def identify_swaps [has_lt n] [decidable_rel ((<) : n → n → Prop)] (i j : n) (σ : perm n) : perm n :=
 if σ⁻¹ i > σ⁻¹ j then swap i j * σ else σ
 
+lemma swap_mul_self_mul (i j : n) (σ : perm n) : equiv.swap i j * (equiv.swap i j * σ) = σ :=
+by rw [←mul_assoc (swap i j) (swap i j) σ, equiv.perm.swap_mul_self, one_mul]
+
 lemma identify_swaps_iff_aux [has_lt n] [decidable_rel ((<) : n → n → Prop)] {i j : n} {σ τ : perm n}
   (h : identify_swaps i j τ = identify_swaps i j σ) : τ = σ ∨ τ = swap i j * σ :=
 begin
@@ -314,15 +317,18 @@ begin
   by_cases hσ : σ⁻¹ i > σ⁻¹ j;
   try {rw [if_pos hσ] at h}; try {rw [if_neg hσ] at h};
   by_cases hτ : τ⁻¹ i > τ⁻¹ j;
-  try {rw [if_pos hτ] at h}; try {rw [if_neg hτ] at h},
-  { finish },
-  { finish },
-  { apply or.inr, rw [←h, swap_mul_self_mul] },
-  { finish }
+  try {rw [if_pos hτ] at h}; try {rw [if_neg hτ] at h};
+  try {finish},
+  apply or.inr, rw [←h, swap_mul_self_mul]
 end
 
 lemma mul_swap_ne [has_lt n] [decidable_rel ((<) : n → n → Prop)] {i j : n} {σ : perm n}
-  (i_ne_j : i ≠ j) : swap i j * σ ≠ σ := sorry
+  (i_ne_j : i ≠ j) : swap i j * σ ≠ σ :=
+assume h, i_ne_j $
+have swap_id : swap i j = 1 := mul_right_cancel (trans h (one_mul σ).symm),
+calc
+  i = swap i j j : symm (swap_apply_right i j)
+  ... = j : congr_fun (show (swap i j).to_fun = id, by {rw [swap_id], refl}) j
 
 lemma identify_swaps_iff [decidable_linear_order n] {i j : n} (σ τ : perm n)
   (i_ne_j : i ≠ j) : (identify_swaps i j τ = identify_swaps i j σ) ↔ (τ = σ ∨ τ = swap i j * σ) :=
@@ -348,7 +354,7 @@ end
   which replaces the assumption on the ring `α` with one on the index set `n`.
 -/
 lemma det_zero_of_column_eq_of_lin [decidable_linear_order n]
-  (M : matrix n n R) (i j : n) (i_ne_j : i ≠ j) (hij : M i = M j) : M.det = 0 :=
+  {M : matrix n n R} {i j : n} (i_ne_j : i ≠ j) (hij : M i = M j) : M.det = 0 :=
 begin
 have swap_invariant : ∀ k l, M (swap i j k) l = M k l,
 { intros k l,

@@ -24,7 +24,7 @@ protected def lift (f : filter α) (g : set α → filter β) :=
 variables {f f₁ f₂ : filter α} {g g₁ g₂ : set α → filter β}
 
 lemma lift_sets_eq (hg : monotone g) : (f.lift g).sets = (⋃t∈f.sets, (g t).sets) :=
-infi_sets_eq'
+binfi_sets_eq
   (assume s hs t ht, ⟨s ∩ t, inter_mem_sets hs ht,
     hg $ inter_subset_left s t, hg $ inter_subset_right s t⟩)
   ⟨univ, univ_mem_sets⟩

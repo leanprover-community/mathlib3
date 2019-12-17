@@ -24,7 +24,7 @@ def list.to_alist [decidable_eq α] {β : α → Type v} (l : list (sigma β)) :
 
 namespace alist
 
-@[extensionality] theorem ext : ∀ {s t : alist β}, s.entries = t.entries → s = t
+@[ext] theorem ext : ∀ {s t : alist β}, s.entries = t.entries → s = t
 | ⟨l₁, h₁⟩ ⟨l₂, h₂⟩ H := by congr'
 
 /- keys -/

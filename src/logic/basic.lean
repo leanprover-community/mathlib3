@@ -23,7 +23,7 @@ attribute [inline] and.decidable or.decidable decidable.false xor.decidable iff.
 
 variables {α : Type*} {β : Type*}
 
-@[reducible] def hidden {a : α} := a
+@[reducible] def hidden {α : Sort*} {a : α} := a
 
 def empty.elim {C : Sort*} : empty → C.
 
@@ -581,6 +581,8 @@ or_iff_not_imp_right
 
 protected lemma not_not {p : Prop} : ¬¬p ↔ p := not_not
 
+protected theorem not_imp_not {p q : Prop} : (¬ p → ¬ q) ↔ (q → p) := not_imp_not
+
 protected lemma not_and_distrib {p q : Prop}: ¬(p ∧ q) ↔ ¬p ∨ ¬q := not_and_distrib
 
 protected lemma imp_iff_not_or {a b : Prop} : a → b ↔ ¬a ∨ b := imp_iff_not_or
@@ -608,7 +610,7 @@ by apply_instance
   * We make them lemmas, and not definitions, because otherwise later definitions will raise
     "failed to generate bytecode" errors when writing something like
     `letI := classical.dec_eq _`.
-  Cf. https://leanprover-community.github.io/archive/113488general/08268noncomputabletheorem.html -/
+  Cf. <https://leanprover-community.github.io/archive/113488general/08268noncomputabletheorem.html> -/
 
 @[elab_as_eliminator]
 noncomputable def {u} exists_cases {C : Sort u} (H0 : C) (H : ∀ a, p a → C) : C :=

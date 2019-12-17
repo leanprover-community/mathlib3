@@ -812,6 +812,11 @@ lemma abs_sum_le_sum_abs [discrete_linear_ordered_field α] {s : multiset α} :
   abs s.sum ≤ (s.map abs).sum :=
 le_sum_of_subadditive _ abs_zero abs_add s
 
+theorem dvd_sum [comm_semiring α] {a : α} {s : multiset α} : (∀ x ∈ s, a ∣ x) → a ∣ s.sum :=
+multiset.induction_on s (λ _, dvd_zero _)
+  (λ x s ih h, by rw sum_cons; exact dvd_add
+    (h _ (mem_cons_self _ _)) (ih (λ y hy, h _ (mem_cons.2 (or.inr hy)))))
+
 /- join -/
 
 /-- `join S`, where `S` is a multiset of multisets, is the lift of the list join
@@ -1929,7 +1934,7 @@ quot.induction_on s $ λ l, count_filter h
 theorem ext {s t : multiset α} : s = t ↔ ∀ a, count a s = count a t :=
 quotient.induction_on₂ s t $ λ l₁ l₂, quotient.eq.trans perm_iff_count
 
-@[extensionality]
+@[ext]
 theorem ext' {s t : multiset α} : (∀ a, count a s = count a t) → s = t :=
 ext.2
 

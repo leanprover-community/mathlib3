@@ -7,23 +7,23 @@ Authors: Andreas Swerdlow, Kenny Lau
 import data.equiv.algebra
 
 /-!
-# Ring antihomomorphisms, isomorphisms, antiisomorphisms and involutions  
+# Ring antihomomorphisms, isomorphisms, antiisomorphisms and involutions
 
-This file defines ring antihomomorphisms, antiisomorphism and involutions 
-and proves basic properties of them. 
- 
+This file defines ring antihomomorphisms, antiisomorphism and involutions
+and proves basic properties of them.
+
 ## Notations
 
-All types defined in this file are given a coercion to the underlying function. 
+All types defined in this file are given a coercion to the underlying function.
 
 ## References
 
-* https://en.wikipedia.org/wiki/Antihomomorphism
-* https://en.wikipedia.org/wiki/Involution_(mathematics)#Ring_theory
+* <https://en.wikipedia.org/wiki/Antihomomorphism>
+* <https://en.wikipedia.org/wiki/Involution_(mathematics)#Ring_theory>
 
 ## Tags
 
-Ring isomorphism, automorphism, antihomomorphism, antiisomorphism, antiautomorphism, involution  
+Ring isomorphism, automorphism, antihomomorphism, antiisomorphism, antiautomorphism, involution
 -/
 
 variables {R : Type*} {F : Type*}
@@ -38,6 +38,7 @@ namespace is_ring_anti_hom
 
 variables [ring R] [ring F] (f : R → F) [is_ring_anti_hom f]
 
+@[priority 100] -- see Note [lower instance priority]
 instance : is_add_group_hom f :=
 { to_is_add_hom := ⟨λ x y, is_ring_anti_hom.map_add f⟩ }
 

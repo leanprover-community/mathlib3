@@ -6,7 +6,7 @@
 [mergify]: https://mergify.io
 [mergify-status]: https://gh.mergify.io/badges/leanprover-community/mathlib.png?style=cut
 
-[Mathlib](https://leanprover-community.github.io) is a user maintained library for the [Lean theorem prover](https://leanprover.github.io). 
+[Mathlib](https://leanprover-community.github.io) is a user maintained library for the [Lean theorem prover](https://leanprover.github.io).
 It contains both programming infrastructure and mathematics, as well as tactics that use the former and allow to develop the later.
 
 ## Installation
@@ -16,6 +16,12 @@ You can find detailed instructions to install Lean, mathlib, and supporting tool
 * On [other Linux](docs/install/linux.md) distributions
 * On [MacOS](docs/install/macos.md)
 * On [Windows](docs/install/windows.md)
+
+## Experimenting
+
+Got everything installed? Why not start with the [tutorial project](https://github.com/leanprover-community/mathlib/blob/master/docs/install/project.md#working-on-an-existing-package)?
+
+For more pointers, see [Lean Links](https://leanprover-community.github.io/links/).
 
 ## Documentation
 
@@ -31,10 +37,10 @@ of mathlib consists of:
   and available [hole commands](docs/holes.md).
 - Documentation for people who would like to [contribute to mathlib](docs/contribute/index.md)
 
-Much of the discussion surrounding mathlib occurs in a 
+Much of the discussion surrounding mathlib occurs in a
 [Zulip chat room](https://leanprover.zulipchat.com/). Since this
-chatroom is only visible to registered users, we provide an 
-[openly accessible archive](https://leanprover-community.github.io/archive/) 
+chatroom is only visible to registered users, we provide an
+[openly accessible archive](https://leanprover-community.github.io/archive/)
 of the public discussions. This is useful for quick reference; for a
 better browsing interface, and to participate in the discussions, we strongly
 suggest joining the chat. Questions from users at all levels of expertise are
@@ -51,4 +57,5 @@ welcomed.
 * Simon Hudon (@cipher1024): all
 * Chris Hughes (@ChrisHughes24): group theory, ring theory, field theory
 * Robert Y. Lewis (@robertylewis): all
+* Patrick Massot (@patrickmassot): documentation, topology
 * Scott Morrison (@semorrison): category theory

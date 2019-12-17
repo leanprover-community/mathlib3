@@ -38,31 +38,38 @@ inner product space, norm, orthogonal projection
 *  [Clément & Martin, *The Lax-Milgram Theorem. A detailed proof to be formalized in Coq*]
 *  [Clément & Martin, *A Coq formal proof of the Lax–Milgram theorem*]
 
-The Coq code is available at the following address: http://www.lri.fr/~sboldo/elfic/index.html
+The Coq code is available at the following address: <http://www.lri.fr/~sboldo/elfic/index.html>
 -/
 
 noncomputable theory
 
 open real set lattice
+open_locale topological_space
 
 universes u v w
 
 variables {α : Type u} {F : Type v} {G : Type w}
 
+set_option class.instance_max_depth 40
+
 class has_inner (α : Type*) := (inner : α → α → ℝ)
 
 export has_inner (inner)
 
+section prio
+set_option default_priority 100 -- see Note [default priority]
+-- see Note[vector space definition] for why we extend `module`.
 /--
 An inner product space is a real vector space with an additional operation called inner product.
 Inner product spaces over complex vector space will be defined in another file.
 -/
-class inner_product_space (α : Type*) extends add_comm_group α, vector_space ℝ α, has_inner α :=
+class inner_product_space (α : Type*) extends add_comm_group α, module ℝ α, has_inner α :=
 (comm      : ∀ x y, inner x y = inner y x)
 (nonneg    : ∀ x, 0 ≤ inner x x)
 (definite  : ∀ x, inner x x = 0 → x = 0)
 (add_left  : ∀ x y z, inner (x + y) z = inner x z + inner y z)
 (smul_left : ∀ x y r, inner (r • x) y = r * inner x y)
+end prio
 
 variable [inner_product_space α]
 
@@ -140,6 +147,7 @@ end basic_properties
 section norm
 
 /-- An inner product naturally induces a norm. -/
+@[priority 100] -- see Note [lower instance priority]
 instance inner_product_space_has_norm : has_norm α := ⟨λx, sqrt (inner x x)⟩
 
 lemma norm_eq_sqrt_inner {x : α} : ∥x∥ = sqrt (inner x x) := rfl
@@ -178,6 +186,7 @@ lemma parallelogram_law_with_norm {x y : α} :
 by { simp only [(inner_self_eq_norm_square _).symm], exact parallelogram_law }
 
 /-- An inner product space forms a normed group w.r.t. its associated norm. -/
+@[priority 100] -- see Note [lower instance priority]
 instance inner_product_space_is_normed_group : normed_group α :=
 normed_group.of_core α
 { norm_eq_zero_iff := assume x, iff.intro
@@ -238,11 +247,11 @@ begin
     let w : ℕ → K := λ n, classical.some (h n),
     exact ⟨w, λ n, classical.some_spec (h n)⟩,
   rcases exists_seq with ⟨w, hw⟩,
-  have norm_tendsto : tendsto (λ n, ∥u - w n∥) at_top (nhds δ),
-    have h : tendsto (λ n:ℕ, δ) at_top (nhds δ),
+  have norm_tendsto : tendsto (λ n, ∥u - w n∥) at_top (𝓝 δ),
+    have h : tendsto (λ n:ℕ, δ) at_top (𝓝 δ),
       exact tendsto_const_nhds,
-    have h' : tendsto (λ n:ℕ, δ + 1 / (n + 1)) at_top (nhds δ),
-      convert tendsto_add h tendsto_one_div_add_at_top_nhds_0_nat, simp only [add_zero],
+    have h' : tendsto (λ n:ℕ, δ + 1 / (n + 1)) at_top (𝓝 δ),
+      convert h.add tendsto_one_div_add_at_top_nhds_0_nat, simp only [add_zero],
     exact tendsto_of_tendsto_of_tendsto_of_le_of_le h h'
       (by { rw mem_at_top_sets, use 0, assume n hn, exact δ_le _ })
       (by { rw mem_at_top_sets, use 0, assume n hn, exact le_of_lt (hw _) }),
@@ -304,26 +313,26 @@ begin
       ... = 8 * δ * div + 4 * div * div : by ring,
     exact add_nonneg (mul_nonneg (mul_nonneg (by norm_num) zero_le_δ) (le_of_lt nat.one_div_pos_of_nat))
       (mul_nonneg (mul_nonneg (by norm_num) (le_of_lt nat.one_div_pos_of_nat)) (le_of_lt nat.one_div_pos_of_nat)),
-    -- third goal : `tendsto (λ (n : ℕ), sqrt (b n)) at_top (nhds 0)`
+    -- third goal : `tendsto (λ (n : ℕ), sqrt (b n)) at_top (𝓝 0)`
     apply tendsto.comp,
     { convert continuous_sqrt.continuous_at, exact sqrt_zero.symm },
-    have eq₁ : tendsto (λ (n : ℕ), 8 * δ * (1 / (n + 1))) at_top (nhds (0:ℝ)),
-      convert tendsto_mul (@tendsto_const_nhds _ _ _ (8 * δ) _) tendsto_one_div_add_at_top_nhds_0_nat,
+    have eq₁ : tendsto (λ (n : ℕ), 8 * δ * (1 / (n + 1))) at_top (𝓝 (0:ℝ)),
+      convert (@tendsto_const_nhds _ _ _ (8 * δ) _).mul tendsto_one_div_add_at_top_nhds_0_nat,
       simp only [mul_zero],
-    have : tendsto (λ (n : ℕ), (4:ℝ) * (1 / (n + 1))) at_top (nhds (0:ℝ)),
-      convert tendsto_mul (@tendsto_const_nhds _ _ _ (4:ℝ) _) tendsto_one_div_add_at_top_nhds_0_nat,
+    have : tendsto (λ (n : ℕ), (4:ℝ) * (1 / (n + 1))) at_top (𝓝 (0:ℝ)),
+      convert (@tendsto_const_nhds _ _ _ (4:ℝ) _).mul tendsto_one_div_add_at_top_nhds_0_nat,
       simp only [mul_zero],
-    have eq₂ : tendsto (λ (n : ℕ), (4:ℝ) * (1 / (n + 1)) * (1 / (n + 1))) at_top (nhds (0:ℝ)),
-      convert tendsto_mul this tendsto_one_div_add_at_top_nhds_0_nat,
+    have eq₂ : tendsto (λ (n : ℕ), (4:ℝ) * (1 / (n + 1)) * (1 / (n + 1))) at_top (𝓝 (0:ℝ)),
+      convert this.mul tendsto_one_div_add_at_top_nhds_0_nat,
       simp only [mul_zero],
-    convert tendsto_add eq₁ eq₂, simp only [add_zero],
+    convert eq₁.add eq₂, simp only [add_zero],
   -- Step 3: By completeness of `K`, let `w : ℕ → K` converge to some `v : K`.
   -- Prove that it satisfies all requirements.
   rcases cauchy_seq_tendsto_of_is_complete h₁ (λ n, _) seq_is_cauchy with ⟨v, hv, w_tendsto⟩,
   use v, use hv,
   have h_cont : continuous (λ v, ∥u - v∥) :=
-    continuous.comp continuous_norm (continuous_sub continuous_const continuous_id),
-  have : tendsto (λ n, ∥u - w n∥) at_top (nhds ∥u - v∥),
+    continuous.comp continuous_norm (continuous.sub continuous_const continuous_id),
+  have : tendsto (λ n, ∥u - w n∥) at_top (𝓝 ∥u - v∥),
     convert (tendsto.comp h_cont.continuous_at w_tendsto),
   exact tendsto_nhds_unique at_top_ne_bot this norm_tendsto,
   exact subtype.mem _
@@ -349,9 +358,9 @@ begin
       begin
         simp only [pow_two], apply mul_self_le_mul_self (norm_nonneg _),
         rw eq, apply δ_le',
-        apply (convex_iff K).1 h hw hv,
+        apply convex_iff.1 h hw hv,
         repeat { exact subtype.mem _ },
-        exact le_of_lt hθ₁, exact hθ₂,
+        exact ⟨le_of_lt hθ₁, hθ₂⟩,
       end
       ... = ∥(u - v) - θ • (w - v)∥^2 :
       begin
@@ -416,7 +425,7 @@ This point `v` is usually called the orthogonal projection of `u` onto `K`.
 -/
 theorem exists_norm_eq_infi_of_complete_subspace (K : subspace ℝ α) (ne : nonempty K)
   (h : is_complete (↑K : set α)) : ∀ u : α, ∃ v ∈ K, ∥u - v∥ = ⨅ w : (↑K : set α), ∥u - w∥ :=
-exists_norm_eq_infi_of_complete_convex ne h (convex_submodule _)
+exists_norm_eq_infi_of_complete_convex ne h K.convex
 
 /--
 Characterization of minimizers in the above theorem.
@@ -430,7 +439,7 @@ iff.intro
 begin
   assume h,
   have h : ∀ w ∈ K, inner (u - v) (w - v) ≤ 0,
-    rw norm_eq_infi_iff_inner_le_zero at h, exact h, exact ne, exact convex_submodule _, exact hv,
+  { rwa [norm_eq_infi_iff_inner_le_zero] at h, exacts [ne, K.convex, hv] },
   assume w hw,
   have le : inner (u - v) w ≤ 0,
     let w' := w + v,
@@ -456,7 +465,7 @@ begin
     have h₁ := h w' this,
     exact le_of_eq h₁,
   rwa norm_eq_infi_iff_inner_le_zero,
-    exact ne, exact convex_submodule _, exact hv
+    exact ne, exact submodule.convex _, exact hv
 end
 
 end orthogonal

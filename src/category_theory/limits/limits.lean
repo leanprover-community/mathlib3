@@ -418,10 +418,12 @@ class has_limits :=
 
 variables {J C}
 
+@[priority 100] -- see Note [lower instance priority]
 instance has_limit_of_has_limits_of_shape
   {J : Type v} [small_category J] [H : has_limits_of_shape J C] (F : J ⥤ C) : has_limit F :=
 has_limits_of_shape.has_limit F
 
+@[priority 100] -- see Note [lower instance priority]
 instance has_limits_of_shape_of_has_limits
   {J : Type v} [small_category J] [H : has_limits.{v} C] : has_limits_of_shape J C :=
 has_limits.has_limits_of_shape C J
@@ -464,7 +466,7 @@ def limit.cone_morphism {F : J ⥤ C} [has_limit F] (c : cone F) :
   (limit.cone_morphism c).hom ≫ limit.π F j = c.π.app j :=
 by erw is_limit.fac
 
-@[extensionality] lemma limit.hom_ext {F : J ⥤ C} [has_limit F] {X : C} {f f' : X ⟶ limit F}
+@[ext] lemma limit.hom_ext {F : J ⥤ C} [has_limit F] {X : C} {f f' : X ⟶ limit F}
   (w : ∀ j, f ≫ limit.π F j = f' ≫ limit.π F j) : f = f' :=
 (limit.is_limit F).hom_ext w
 
@@ -677,10 +679,12 @@ class has_colimits :=
 
 variables {J C}
 
+@[priority 100] -- see Note [lower instance priority]
 instance has_colimit_of_has_colimits_of_shape
   {J : Type v} [small_category J] [H : has_colimits_of_shape J C] (F : J ⥤ C) : has_colimit F :=
 has_colimits_of_shape.has_colimit F
 
+@[priority 100] -- see Note [lower instance priority]
 instance has_colimits_of_shape_of_has_colimits
   {J : Type v} [small_category J] [H : has_colimits.{v} C] : has_colimits_of_shape J C :=
 has_colimits.has_colimits_of_shape C J
@@ -733,7 +737,7 @@ def colimit.cocone_morphism {F : J ⥤ C} [has_colimit F] (c : cocone F) :
   colimit.ι F j ≫ (colimit.cocone_morphism c).hom = c.ι.app j :=
 by erw is_colimit.fac
 
-@[extensionality] lemma colimit.hom_ext {F : J ⥤ C} [has_colimit F] {X : C} {f f' : colimit F ⟶ X}
+@[ext] lemma colimit.hom_ext {F : J ⥤ C} [has_colimit F] {X : C} {f f' : colimit F ⟶ X}
   (w : ∀ j, colimit.ι F j ≫ f = colimit.ι F j ≫ f') : f = f' :=
 (colimit.is_colimit F).hom_ext w
 

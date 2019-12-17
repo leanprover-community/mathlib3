@@ -29,7 +29,7 @@ fractions. We hence just call them `continued_fractions` in the library.
 
 ## References
 
-- https://en.wikipedia.org/wiki/Generalized_continued_fraction
+- <https://en.wikipedia.org/wiki/Generalized_continued_fraction>
 - [Wall, H.S., *Analytic Theory of Continued Fractions*][wall2018analytic]
 
 ## Tags
@@ -323,7 +323,7 @@ open generalized_continued_fraction as gcf
 protected lemma ext_iff {g g' : gcf α} : g = g' ↔ g.h = g'.h ∧ g.s = g'.s :=
 by { cases g, cases g', simp }
 
-@[extensionality]
+@[ext]
 protected lemma ext {g g' : gcf α} (hyp : g.h = g'.h ∧ g.s = g'.s) : g = g' :=
 generalized_continued_fraction.ext_iff.elim_right hyp
 

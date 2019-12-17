@@ -22,7 +22,7 @@ variables [monoid α] {a b c : units α}
 
 instance : has_coe (units α) α := ⟨val⟩
 
-@[extensionality] theorem ext : function.injective (coe : units α → α)
+@[ext] theorem ext : function.injective (coe : units α → α)
 | ⟨v, i₁, vi₁, iv₁⟩ ⟨v', i₂, vi₂, iv₂⟩ e :=
   by change v = v' at e; subst v'; congr;
       simpa only [iv₂, vi₁, one_mul, mul_one] using mul_assoc i₂ v i₁
@@ -84,6 +84,18 @@ instance [has_repr α] : has_repr (units α) := ⟨repr ∘ val⟩
 
 @[simp] theorem mul_right_inj (a : units α) {b c : α} : b * a = c * a ↔ b = c :=
 ⟨λ h, by simpa only [mul_inv_cancel_right] using congr_arg (* ↑(a⁻¹ : units α)) h, congr_arg _⟩
+
+theorem eq_mul_inv_iff_mul_eq {a b : α} : a = b * ↑c⁻¹ ↔ a * c = b :=
+⟨λ h, by rw [h, inv_mul_cancel_right], λ h, by rw [← h, mul_inv_cancel_right]⟩
+
+theorem eq_inv_mul_iff_mul_eq {a c : α} : a = ↑b⁻¹ * c ↔ ↑b * a = c :=
+⟨λ h, by rw [h, mul_inv_cancel_left], λ h, by rw [← h, inv_mul_cancel_left]⟩
+
+theorem inv_mul_eq_iff_eq_mul {b c : α} : ↑a⁻¹ * b = c ↔ b = a * c :=
+⟨λ h, by rw [← h, mul_inv_cancel_left], λ h, by rw [h, inv_mul_cancel_left]⟩
+
+theorem mul_inv_eq_iff_eq_mul {a c : α} : a * ↑b⁻¹ = c ↔ a = c * b :=
+⟨λ h, by rw [← h, inv_mul_cancel_right], λ h, by rw [h, mul_inv_cancel_right]⟩
 
 end units
 

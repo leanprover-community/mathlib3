@@ -2,6 +2,12 @@
 Copyright (c) 2019 Jeremy Avigad. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Author: Jeremy Avigad
+-/
+
+import analysis.normed_space.basic
+
+/-!
+# Asymptotics
 
 We introduce these relations:
 
@@ -24,25 +30,34 @@ norm explicitly.
 If `f` and `g` are functions to a normed field like the reals or complex numbers and `g` is always
 nonzero, we have
 
-  `is_o f g l ↔ tendsto (λ x, f x / (g x)) (nhds 0) l`.
+  `is_o f g l ↔ tendsto (λ x, f x / (g x)) (𝓝 0) l`.
 
 In fact, the right-to-left direction holds without the hypothesis on `g`, and in the other direction
 it suffices to assume that `f` is zero wherever `g` is. (This generalization is useful in defining
 the Fréchet derivative.)
 -/
-import analysis.normed_space.basic
+
 open filter
+open_locale topological_space
 
 namespace asymptotics
 
-variables {α : Type*} {β : Type*} {γ : Type*} {δ : Type*}
+variables {α : Type*} {β : Type*} {γ : Type*} {δ : Type*} {𝕜 : Type*} {𝕜' : Type*}
 
 section
 variables [has_norm β] [has_norm γ] [has_norm δ]
 
+/-- The Landau notation `is_O f g l` where `f` and `g` are two functions on a type `α` and `l` is
+a filter on `α`, means that eventually for `l`, `∥f∥` is bounded by a constant multiple of `∥g∥`.
+In other words, `∥f∥ / ∥g∥` is eventually bounded, modulo division by zero issues that are avoided
+by this definition. -/
 def is_O (f : α → β) (g : α → γ) (l : filter α) : Prop :=
 ∃ c > 0, { x | ∥ f x ∥ ≤ c * ∥ g x ∥ } ∈ l
 
+/-- The Landau notation `is_o f g l` where `f` and `g` are two functions on a type `α` and `l` is
+a filter on `α`, means that eventually for `l`, `∥f∥` is bounded by an arbitrarily small constant
+multiple of `∥g∥`. In other words, `∥f∥ / ∥g∥` tends to `0` along `l`, modulo division by zero
+issues that are avoided by this definition. -/
 def is_o (f : α → β) (g : α → γ) (l : filter α) : Prop :=
 ∀ c > 0, { x | ∥ f x ∥ ≤  c * ∥ g x ∥ } ∈ l
 
@@ -295,9 +310,8 @@ begin
   filter_upwards [hc₁, hc₂],
   intros x hx₁ hx₂,
   show ∥f₁ x + f₂ x∥ ≤ (c₁ + c₂) * ∥g x∥,
-  apply le_trans (norm_triangle _ _),
   rw add_mul,
-  exact add_le_add hx₁ hx₂
+  exact norm_add_le_of_le hx₁ hx₂
 end
 
 theorem is_o.add {f₁ f₂ : α → β} {g : α → γ} {l : filter α} (h₁ : is_o f₁ g l) (h₂ : is_o f₂ g l) :
@@ -306,8 +320,7 @@ begin
   intros c cpos,
   filter_upwards [h₁ (c / 2) (half_pos cpos), h₂ (c / 2) (half_pos cpos)],
   intros x hx₁ hx₂, dsimp at hx₁ hx₂,
-  apply le_trans (norm_triangle _ _),
-  apply le_trans (add_le_add hx₁ hx₂),
+  apply le_trans (norm_add_le_of_le hx₁ hx₂),
   rw [←mul_add, ←two_mul, ←mul_assoc, div_mul_cancel _ two_ne_zero]
 end
 
@@ -445,12 +458,12 @@ end
 end
 
 section
-variables [has_norm β] [normed_field γ]
+variables [has_norm β] [normed_field 𝕜]
 
 open normed_field
 
 theorem is_O_const_one (c : β) (l : filter α) :
-  is_O (λ x : α, c) (λ x, (1 : γ)) l :=
+  is_O (λ x : α, c) (λ x, (1 : 𝕜)) l :=
 begin
   rw is_O_iff,
   refine ⟨∥c∥, _⟩,
@@ -462,9 +475,9 @@ end
 end
 
 section
-variables [normed_field β] [normed_group γ]
+variables [normed_field 𝕜] [normed_group γ]
 
-theorem is_O_const_mul_left {f : α → β} {g : α → γ} {l : filter α} (h : is_O f g l) (c : β) :
+theorem is_O_const_mul_left {f : α → 𝕜} {g : α → γ} {l : filter α} (h : is_O f g l) (c : 𝕜) :
   is_O (λ x, c * f x) g l :=
  begin
   cases classical.em (c = 0) with h'' h'',
@@ -479,7 +492,7 @@ theorem is_O_const_mul_left {f : α → β} {g : α → γ} {l : filter α} (h :
   exact mul_le_mul_of_nonneg_left h₀ (norm_nonneg _)
 end
 
-theorem is_O_const_mul_left_iff {f : α → β} {g : α → γ} {l : filter α} {c : β} (hc : c ≠ 0) :
+theorem is_O_const_mul_left_iff {f : α → 𝕜} {g : α → γ} {l : filter α} {c : 𝕜} (hc : c ≠ 0) :
   is_O (λ x, c * f x) g l ↔ is_O f g l :=
 begin
   split,
@@ -489,8 +502,7 @@ begin
   intro h, apply is_O_const_mul_left h
 end
 
-theorem is_o_const_mul_left {f : α → β} {g : α → γ} {l : filter α}
-    (h : is_o f g l) (c : β) :
+theorem is_o_const_mul_left {f : α → 𝕜} {g : α → γ} {l : filter α} (h : is_o f g l) (c : 𝕜) :
   is_o (λ x, c * f x) g l :=
 begin
   cases classical.em (c = 0) with h'' h'',
@@ -504,7 +516,7 @@ begin
   rw [←mul_assoc, mul_div_cancel' _ cne0]
 end
 
-theorem is_o_const_mul_left_iff {f : α → β} {g : α → γ} {l : filter α} {c : β} (hc : c ≠ 0) :
+theorem is_o_const_mul_left_iff {f : α → 𝕜} {g : α → γ} {l : filter α} {c : 𝕜} (hc : c ≠ 0) :
   is_o (λ x, c * f x) g l ↔ is_o f g l :=
 begin
   split,
@@ -518,9 +530,9 @@ end
 end
 
 section
-variables [normed_group β] [normed_field γ]
+variables [normed_group β] [normed_field 𝕜]
 
-theorem is_O_of_is_O_const_mul_right {f : α → β} {g : α → γ} {l : filter α} {c : γ}
+theorem is_O_of_is_O_const_mul_right {f : α → β} {g : α → 𝕜} {l : filter α} {c : 𝕜}
     (h : is_O f (λ x, c * g x) l) :
   is_O f g l  :=
 begin
@@ -534,7 +546,7 @@ begin
   rw [normed_field.norm_mul, mul_assoc]
 end
 
-theorem is_O_const_mul_right_iff {f : α → β} {g : α → γ} {l : filter α} {c : γ} (hc : c ≠ 0) :
+theorem is_O_const_mul_right_iff {f : α → β} {g : α → 𝕜} {l : filter α} {c : 𝕜} (hc : c ≠ 0) :
   is_O f (λ x, c * g x) l ↔ is_O f g l :=
 begin
   split,
@@ -545,7 +557,7 @@ begin
   convert h, ext, rw [←mul_assoc, inv_mul_cancel hc, one_mul]
 end
 
-theorem is_o_of_is_o_const_mul_right {f : α → β} {g : α → γ} {l : filter α} {c : γ}
+theorem is_o_of_is_o_const_mul_right {f : α → β} {g : α → 𝕜} {l : filter α} {c : 𝕜}
     (h : is_o f (λ x, c * g x) l) :
   is_o f g l  :=
 begin
@@ -558,7 +570,7 @@ begin
   ext x, rw [normed_field.norm_mul, ←mul_assoc, div_mul_cancel _ cne0]
 end
 
-theorem is_o_const_mul_right {f : α → β} {g : α → γ} {l : filter α} {c : γ} (hc : c ≠ 0) :
+theorem is_o_const_mul_right {f : α → β} {g : α → 𝕜} {l : filter α} {c : 𝕜} (hc : c ≠ 0) :
   is_o f (λ x, c * g x) l ↔ is_o f g l :=
 begin
   split,
@@ -570,7 +582,7 @@ begin
 end
 
 theorem is_o_one_iff {f : α → β} {l : filter α} :
-  is_o f (λ x, (1 : γ)) l ↔ tendsto f l (nhds 0) :=
+  is_o f (λ x, (1 : 𝕜)) l ↔ tendsto f l (𝓝 0) :=
 begin
   rw [normed_group.tendsto_nhds_zero, is_o], split,
   { intros h e epos,
@@ -584,12 +596,12 @@ begin
 end
 
 theorem is_O_one_of_tendsto {f : α → β} {l : filter α} {y : β}
-  (h : tendsto f l (nhds y)) : is_O f (λ x, (1 : γ)) l :=
+  (h : tendsto f l (𝓝 y)) : is_O f (λ x, (1 : 𝕜)) l :=
 begin
   have Iy : ∥y∥ < ∥y∥ + 1 := lt_add_one _,
   refine ⟨∥y∥ + 1, lt_of_le_of_lt (norm_nonneg _) Iy, _⟩,
   simp only [mul_one, normed_field.norm_one],
-  have : tendsto (λx, ∥f x∥) l (nhds ∥y∥) :=
+  have : tendsto (λx, ∥f x∥) l (𝓝 ∥y∥) :=
     (continuous_norm.tendsto _).comp h,
   exact this (ge_mem_nhds Iy)
 end
@@ -600,20 +612,20 @@ section
 variables [normed_group β] [normed_group γ]
 
 theorem is_O.trans_tendsto {f : α → β} {g : α → γ} {l : filter α}
-    (h₁ : is_O f g l) (h₂ : tendsto g l (nhds 0)) :
-  tendsto f l (nhds 0) :=
+    (h₁ : is_O f g l) (h₂ : tendsto g l (𝓝 0)) :
+  tendsto f l (𝓝 0) :=
 (@is_o_one_iff _ _ ℝ _ _ _ _).1 $ h₁.trans_is_o $ is_o_one_iff.2 h₂
 
 theorem is_o.trans_tendsto {f : α → β} {g : α → γ} {l : filter α}
-  (h₁ : is_o f g l) : tendsto g l (nhds 0) → tendsto f l (nhds 0) :=
+  (h₁ : is_o f g l) : tendsto g l (𝓝 0) → tendsto f l (𝓝 0) :=
 h₁.to_is_O.trans_tendsto
 
 end
 
 section
-variables [normed_field β] [normed_field γ]
+variables [normed_field 𝕜] [normed_field 𝕜']
 
-theorem is_O_mul {f₁ f₂ : α → β} {g₁ g₂ : α → γ} {l : filter α}
+theorem is_O_mul {f₁ f₂ : α → 𝕜} {g₁ g₂ : α → 𝕜'} {l : filter α}
     (h₁ : is_O f₁ g₁ l) (h₂ : is_O f₂ g₂ l) :
   is_O (λ x, f₁ x * f₂ x) (λ x, g₁ x * g₂ x) l :=
 begin
@@ -626,7 +638,7 @@ begin
   exact mul_le_mul hx₁ hx₂ (norm_nonneg _) (mul_nonneg (le_of_lt c₁pos) (norm_nonneg _))
 end
 
-theorem is_o_mul_left {f₁ f₂ : α → β} {g₁ g₂ : α → γ} {l : filter α}
+theorem is_o_mul_left {f₁ f₂ : α → 𝕜} {g₁ g₂ : α → 𝕜'} {l : filter α}
     (h₁ : is_O f₁ g₁ l) (h₂ : is_o f₂ g₂ l) :
   is_o (λ x, f₁ x * f₂ x) (λ x, g₁ x * g₂ x) l :=
 begin
@@ -640,12 +652,12 @@ begin
   rw [mul_left_comm]
 end
 
-theorem is_o_mul_right {f₁ f₂ : α → β} {g₁ g₂ : α → γ} {l : filter α}
+theorem is_o_mul_right {f₁ f₂ : α → 𝕜} {g₁ g₂ : α → 𝕜'} {l : filter α}
     (h₁ : is_o f₁ g₁ l) (h₂ : is_O f₂ g₂ l) :
   is_o (λ x, f₁ x * f₂ x) (λ x, g₁ x * g₂ x) l :=
 by convert is_o_mul_left h₂ h₁; simp only [mul_comm]
 
-theorem is_o_mul {f₁ f₂ : α → β} {g₁ g₂ : α → γ} {l : filter α}
+theorem is_o_mul {f₁ f₂ : α → 𝕜} {g₁ g₂ : α → 𝕜'} {l : filter α}
     (h₁ : is_o f₁ g₁ l) (h₂ : is_o f₂ g₂ l) :
   is_o (λ x, f₁ x * f₂ x) (λ x, g₁ x * g₂ x) l :=
 is_o_mul_left h₁.to_is_O h₂
@@ -658,11 +670,11 @@ scalar multiplication is multiplication.
 -/
 
 section
-variables {K : Type*} [normed_field K] [normed_group β] [normed_space K β] [normed_group γ]
+variables [normed_field 𝕜] [normed_group β] [normed_space 𝕜 β] [normed_group γ]
 
 set_option class.instance_max_depth 43
 
-theorem is_O_const_smul_left {f : α → β} {g : α → γ} {l : filter α} (h : is_O f g l) (c : K) :
+theorem is_O_const_smul_left {f : α → β} {g : α → γ} {l : filter α} (h : is_O f g l) (c : 𝕜) :
   is_O (λ x, c • f x) g l :=
 begin
   rw [←is_O_norm_left], simp only [norm_smul],
@@ -671,7 +683,7 @@ begin
   apply h
 end
 
-theorem is_O_const_smul_left_iff {f : α → β} {g : α → γ} {l : filter α} {c : K} (hc : c ≠ 0) :
+theorem is_O_const_smul_left_iff {f : α → β} {g : α → γ} {l : filter α} {c : 𝕜} (hc : c ≠ 0) :
   is_O (λ x, c • f x) g l ↔ is_O f g l :=
 begin
   have cne0 : ∥c∥ ≠ 0, from mt (norm_eq_zero _).mp hc,
@@ -679,7 +691,7 @@ begin
   rw [is_O_const_mul_left_iff cne0, is_O_norm_left]
 end
 
-theorem is_o_const_smul_left {f : α → β} {g : α → γ} {l : filter α} (h : is_o f g l) (c : K) :
+theorem is_o_const_smul_left {f : α → β} {g : α → γ} {l : filter α} (h : is_o f g l) (c : 𝕜) :
   is_o (λ x, c • f x) g l :=
 begin
   rw [←is_o_norm_left], simp only [norm_smul],
@@ -688,7 +700,7 @@ begin
   apply h
 end
 
-theorem is_o_const_smul_left_iff {f : α → β} {g : α → γ} {l : filter α} {c : K} (hc : c ≠ 0) :
+theorem is_o_const_smul_left_iff {f : α → β} {g : α → γ} {l : filter α} {c : 𝕜} (hc : c ≠ 0) :
   is_o (λ x, c • f x) g l ↔ is_o f g l :=
 begin
   have cne0 : ∥c∥ ≠ 0, from mt (norm_eq_zero _).mp hc,
@@ -699,11 +711,11 @@ end
 end
 
 section
-variables {K : Type*} [normed_group β] [normed_field K] [normed_group γ] [normed_space K γ]
+variables [normed_group β] [normed_field 𝕜] [normed_group γ] [normed_space 𝕜 γ]
 
 set_option class.instance_max_depth 43
 
-theorem is_O_const_smul_right {f : α → β} {g : α → γ} {l : filter α} {c : K} (hc : c ≠ 0) :
+theorem is_O_const_smul_right {f : α → β} {g : α → γ} {l : filter α} {c : 𝕜} (hc : c ≠ 0) :
   is_O f (λ x, c • g x) l ↔ is_O f g l :=
 begin
   have cne0 : ∥c∥ ≠ 0, from mt (norm_eq_zero _).mp hc,
@@ -711,7 +723,7 @@ begin
   rw [is_O_const_mul_right_iff cne0, is_O_norm_right]
 end
 
-theorem is_o_const_smul_right {f : α → β} {g : α → γ} {l : filter α} {c : K} (hc : c ≠ 0) :
+theorem is_o_const_smul_right {f : α → β} {g : α → γ} {l : filter α} {c : 𝕜} (hc : c ≠ 0) :
   is_o f (λ x, c • g x) l ↔ is_o f g l :=
 begin
   have cne0 : ∥c∥ ≠ 0, from mt (norm_eq_zero _).mp hc,
@@ -722,12 +734,12 @@ end
 end
 
 section
-variables {K : Type*} [normed_field K] [normed_group β] [normed_space K β]
-[normed_group γ] [normed_space K γ]
+variables [normed_field 𝕜] [normed_group β] [normed_space 𝕜 β]
+[normed_group γ] [normed_space 𝕜 γ]
 
 set_option class.instance_max_depth 43
 
-theorem is_O_smul {k : α → K} {f : α → β} {g : α → γ} {l : filter α} (h : is_O f g l) :
+theorem is_O_smul {k : α → 𝕜} {f : α → β} {g : α → γ} {l : filter α} (h : is_O f g l) :
   is_O (λ x, k x • f x) (λ x, k x • g x) l :=
 begin
   rw [←is_O_norm_left, ←is_O_norm_right], simp only [norm_smul],
@@ -736,7 +748,7 @@ begin
   exact h
 end
 
-theorem is_o_smul {k : α → K} {f : α → β} {g : α → γ} {l : filter α} (h : is_o f g l) :
+theorem is_o_smul {k : α → 𝕜} {f : α → β} {g : α → γ} {l : filter α} (h : is_o f g l) :
   is_o (λ x, k x • f x) (λ x, k x • g x) l :=
 begin
   rw [←is_o_norm_left, ←is_o_norm_right], simp only [norm_smul],
@@ -748,13 +760,13 @@ end
 end
 
 section
-variables [normed_field β]
+variables [normed_field 𝕜]
 
-theorem tendsto_nhds_zero_of_is_o {f g : α → β} {l : filter α} (h : is_o f g l) :
-  tendsto (λ x, f x / (g x)) l (nhds 0) :=
+theorem tendsto_nhds_zero_of_is_o {f g : α → 𝕜} {l : filter α} (h : is_o f g l) :
+  tendsto (λ x, f x / (g x)) l (𝓝 0) :=
 have eq₁ : is_o (λ x, f x / g x) (λ x, g x / g x) l,
   from is_o_mul_right h (is_O_refl _ _),
-have eq₂ : is_O (λ x, g x / g x) (λ x, (1 : β)) l,
+have eq₂ : is_O (λ x, g x / g x) (λ x, (1 : 𝕜)) l,
   begin
     use [1, zero_lt_one],
     filter_upwards [univ_mem_sets], simp,
@@ -764,10 +776,10 @@ have eq₂ : is_O (λ x, g x / g x) (λ x, (1 : β)) l,
   end,
 is_o_one_iff.mp (eq₁.trans_is_O eq₂)
 
-private theorem is_o_of_tendsto {f g : α → β} {l : filter α}
-    (hgf : ∀ x, g x = 0 → f x = 0) (h : tendsto (λ x, f x / (g x)) l (nhds 0)) :
+private theorem is_o_of_tendsto {f g : α → 𝕜} {l : filter α}
+    (hgf : ∀ x, g x = 0 → f x = 0) (h : tendsto (λ x, f x / (g x)) l (𝓝 0)) :
   is_o f g l :=
-have eq₁ : is_o (λ x, f x / (g x)) (λ x, (1 : β)) l,
+have eq₁ : is_o (λ x, f x / (g x)) (λ x, (1 : 𝕜)) l,
   from is_o_one_iff.mpr h,
 have eq₂ : is_o (λ x, f x / g x * g x) g l,
   by convert is_o_mul_right eq₁ (is_O_refl _ _); simp,
@@ -782,10 +794,26 @@ have eq₃ : is_O f (λ x, f x / g x * g x) l,
   end,
 eq₃.trans_is_o eq₂
 
-theorem is_o_iff_tendsto {f g : α → β} {l : filter α}
+theorem is_o_iff_tendsto {f g : α → 𝕜} {l : filter α}
     (hgf : ∀ x, g x = 0 → f x = 0) :
-  is_o f g l ↔ tendsto (λ x, f x / (g x)) l (nhds 0) :=
+  is_o f g l ↔ tendsto (λ x, f x / (g x)) l (𝓝 0) :=
 iff.intro tendsto_nhds_zero_of_is_o (is_o_of_tendsto hgf)
+
+theorem is_o_pow_pow {m n : ℕ} (h : m < n) :
+  is_o (λ(x : 𝕜), x^n) (λx, x^m) (𝓝 0) :=
+begin
+  let p := n - m,
+  have nmp : n = m + p := (nat.add_sub_cancel' (le_of_lt h)).symm,
+  have : (λ(x : 𝕜), x^m) = (λx, x^m * 1), by simp,
+  simp only [this, pow_add, nmp],
+  refine is_o_mul_left (is_O_refl _ _) (is_o_one_iff.2 _),
+  convert (continuous_pow p).tendsto (0 : 𝕜),
+  exact (zero_pow (nat.sub_pos_of_lt h)).symm
+end
+
+theorem is_o_pow_id {n : ℕ} (h : 1 < n) :
+  is_o (λ(x : 𝕜), x^n) (λx, x) (𝓝 0) :=
+by { convert is_o_pow_pow h, simp }
 
 end
 

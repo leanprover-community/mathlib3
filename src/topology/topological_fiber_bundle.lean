@@ -106,6 +106,7 @@ Fiber bundle, topological bundle, vector bundle, local trivialization, structure
 variables {ι : Type*} {B : Type*} {F : Type*}
 
 open topological_space set
+open_locale topological_space
 
 section topological_fiber_bundle
 
@@ -148,7 +149,7 @@ begin
   /- Take a small enough open neighborhood u of `proj x`, contained in a trivialization domain o.
     One should show that its preimage is open. -/
   suffices : is_open (proj ⁻¹' u),
-  { have : proj ⁻¹' u ∈ nhds x := mem_nhds_sets this xu,
+  { have : proj ⁻¹' u ∈ 𝓝 x := mem_nhds_sets this xu,
     apply filter.mem_sets_of_superset this,
     exact preimage_mono (subset.trans (inter_subset_right _ _) st) },
   -- to do this, rewrite `proj ⁻¹' u` in terms of the trivialization, and use its continuity.
@@ -263,7 +264,8 @@ include Z
 typeclass inference -/
 @[nolint] def fiber (x : B) := F
 
-instance (x : B) : topological_space (Z.fiber x) := by { dsimp [fiber], apply_instance }
+instance topological_space_fiber (x : B) : topological_space (Z.fiber x) :=
+by { dsimp [fiber], apply_instance }
 
 /-- Total space of a topological bundle created from core. It is equal to `B × F`, but as it is
 not marked as reducible, typeclass inference will not infer the wrong topology, and will use the

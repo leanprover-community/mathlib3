@@ -5,7 +5,7 @@ Authors: Zhouhang Zhou
 
 The pointwise operations on filters have nice properties, such as
   • map m (f₁ * f₂) = map m f₁ * map m f₂
-  • nhds x * nhds y = nhds (x * y)
+  • 𝓝 x * 𝓝 y = 𝓝 (x * y)
 
 -/
 
@@ -193,7 +193,7 @@ end
 variables {m}
 
 @[to_additive]
-lemma tendsto_mul_mul [is_mul_hom m] {f₁ g₁ : filter α} {f₂ g₂ : filter β} :
+lemma tendsto.mul_mul [is_mul_hom m] {f₁ g₁ : filter α} {f₂ g₂ : filter β} :
   tendsto m f₁ f₂ → tendsto m g₁ g₂ → tendsto m (f₁ * g₁) (f₂ * g₂) :=
 assume hf hg, by { rw [tendsto, map_pointwise_mul m], exact pointwise_mul_le_mul hf hg }
 

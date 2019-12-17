@@ -75,6 +75,8 @@ assume p q h r s l, imp_congr h l
 lemma rel_not : (iff ⇒ iff) not not :=
 assume p q h, not_congr h
 
+@[priority 100] -- see Note [lower instance priority]
+-- (this is an instance is always applies, since the relation is an out-param)
 instance bi_total_eq {α : Type u₁} : relator.bi_total (@eq α) :=
 ⟨assume a, ⟨a, rfl⟩, assume a, ⟨a, rfl⟩⟩
 

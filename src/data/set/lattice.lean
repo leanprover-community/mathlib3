@@ -17,38 +17,21 @@ variables {α : Type u} {β : Type v} {γ : Type w} {ι : Sort x}
 namespace set
 
 instance lattice_set : complete_lattice (set α) :=
-{ lattice.complete_lattice .
-  le           := (⊆),
-  le_refl      := subset.refl,
-  le_trans     := assume a b c, subset.trans,
-  le_antisymm  := assume a b, subset.antisymm,
+{ le     := (⊆),
+  lt     := λ x y, x ⊆ y ∧ ¬ y ⊆ x,
+  sup    := (∪),
+  inf    := (∩),
+  top    := univ,
+  bot    := ∅,
+  Sup    := λs, {a | ∃ t ∈ s, a ∈ t },
+  Inf    := λs, {a | ∀ t ∈ s, a ∈ t },
 
-  lt           := λ x y, x ⊆ y ∧ ¬ y ⊆ x,
-  lt_iff_le_not_le := λ x y, iff.refl _,
+  le_Sup := assume s t t_in a a_in, ⟨t, ⟨t_in, a_in⟩⟩,
+  Sup_le := assume s t h a ⟨t', ⟨t'_in, a_in⟩⟩, h t' t'_in a_in,
 
-  sup          := (∪),
-  le_sup_left  := subset_union_left,
-  le_sup_right := subset_union_right,
-  sup_le       := assume a b c, union_subset,
-
-  inf          := (∩),
-  inf_le_left  := inter_subset_left,
-  inf_le_right := inter_subset_right,
-  le_inf       := assume a b c, subset_inter,
-
-  top          := {a | true },
-  le_top       := assume s a h, trivial,
-
-  bot          := ∅,
-  bot_le       := assume s a, false.elim,
-
-  Sup          := λs, {a | ∃ t ∈ s, a ∈ t },
-  le_Sup       := assume s t t_in a a_in, ⟨t, ⟨t_in, a_in⟩⟩,
-  Sup_le       := assume s t h a ⟨t', ⟨t'_in, a_in⟩⟩, h t' t'_in a_in,
-
-  Inf          := λs, {a | ∀ t ∈ s, a ∈ t },
-  le_Inf       := assume s t h a a_in t' t'_in, h t' t'_in a_in,
-  Inf_le       := assume s t t_in a h, h _ t_in }
+  le_Inf := assume s t h a a_in t' t'_in, h t' t'_in a_in,
+  Inf_le := assume s t t_in a h, h _ t_in,
+  .. (infer_instance : complete_lattice (α → Prop)) }
 
 instance : distrib_lattice (set α) :=
 { le_sup_inf := λ s t u x, or_and_distrib_left.2, ..set.lattice_set }
@@ -438,12 +421,6 @@ theorem inter_empty_of_inter_sUnion_empty {s t : set α} {S : set (set α)} (hs 
 eq_empty_of_subset_empty $ by rw ← h; exact
 inter_subset_inter_right _ (subset_sUnion_of_mem hs)
 
-theorem Union_eq_sUnion_range (s : α → set β) : (⋃ i, s i) = ⋃₀ (range s) :=
-by rw [← image_univ, sUnion_image]; simp
-
-theorem Inter_eq_sInter_range {α I : Type} (s : I → set α) : (⋂ i, s i) = ⋂₀ (range s) :=
-by rw [← image_univ, sInter_image]; simp
-
 theorem range_sigma_eq_Union_range {γ : α → Type*} (f : sigma γ → β) :
   range f = ⋃ a, range (λ b, f ⟨a, b⟩) :=
 set.ext $ by simp
@@ -668,7 +645,7 @@ set.ext $ by simp [seq]
 
 @[simp] lemma mem_seq_iff {s : set (α → β)} {t : set α} {b : β} :
   b ∈ seq s t ↔ ∃ (f ∈ s) (a ∈ t), (f : α → β) a = b :=
-iff.refl _
+iff.rfl
 
 lemma seq_subset {s : set (α → β)} {t : set α} {u : set β} :
   seq s t ⊆ u ↔ (∀f∈s, ∀a∈t, (f : α → β) a ∈ u) :=
@@ -803,7 +780,7 @@ end disjoint
 
 namespace set
 
-protected theorem disjoint_iff {s t : set α} : disjoint s t ↔ s ∩ t ⊆ ∅ := iff.refl _
+protected theorem disjoint_iff {s t : set α} : disjoint s t ↔ s ∩ t ⊆ ∅ := iff.rfl
 
 lemma not_disjoint_iff {s t : set α} : ¬disjoint s t ↔ ∃x, x ∈ s ∧ x ∈ t :=
 by { rw [set.disjoint_iff, subset_empty_iff], apply ne_empty_iff_exists_mem }

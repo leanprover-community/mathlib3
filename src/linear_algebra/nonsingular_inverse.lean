@@ -202,14 +202,14 @@ end adjugate
 section field
 variables [field α]
 
-/--
-  Defines an operation that returns the inverse of a nonsingular matrix.
+/-- The inverse of a nonsingular matrix.
 
   This is not the most general possible definition, so we don't instantiate `has_inv` (yet).
 -/
 def nonsing_inv (A : matrix n n α) : matrix n n α := (A.det)⁻¹ • adjugate A
 
-lemma mul_inv [decidable_linear_order n] (A : matrix n n α) (nonsing : A.det ≠ 0) :
+/-- The `nonsing_inv` of `A` is a right inverse. -/
+theorem mul_inv [decidable_linear_order n] (A : matrix n n α) (nonsing : A.det ≠ 0) :
   A ⬝ nonsing_inv A = 1 :=
 by { rw [nonsing_inv, mul_smul, mul_adjugate, smul_smul, inv_mul_cancel nonsing],
      -- TODO: why do we need to explicitly construct this instance?
@@ -217,7 +217,8 @@ by { rw [nonsing_inv, mul_smul, mul_adjugate, smul_smul, inv_mul_cancel nonsing]
        (λ _, @pi.mul_action n (λ _, α) α _
        (λ _, distrib_mul_action.to_mul_action α α))) (1 : matrix n n α) }
 
-lemma inv_mul [decidable_linear_order n] (A : matrix n n α) (nonsing : A.det ≠ 0) :
+/-- The `nonsing_inv` of `A` is a left inverse. -/
+theorem inv_mul [decidable_linear_order n] (A : matrix n n α) (nonsing : A.det ≠ 0) :
   nonsing_inv A ⬝ A = 1 :=
 by { rw [nonsing_inv, smul_mul, adjugate_mul, smul_smul, inv_mul_cancel nonsing],
   -- TODO: why do we need to explicitly construct this instance?

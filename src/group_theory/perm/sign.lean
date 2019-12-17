@@ -161,6 +161,9 @@ by rw [swap_mul_eq_mul_swap, inv_apply_self, inv_apply_self]
 @[simp] lemma swap_mul_self (i j : α) : equiv.swap i j * equiv.swap i j = 1 :=
 equiv.swap_swap i j
 
+@[simp] lemma swap_mul_self_mul (i j : α) (σ : perm α) : equiv.swap i j * (equiv.swap i j * σ) = σ :=
+by rw [←mul_assoc (swap i j) (swap i j) σ, swap_mul_self, one_mul]
+
 @[simp] lemma swap_swap_apply (i j k : α) : equiv.swap i j (equiv.swap i j k) = k :=
 equiv.swap_core_swap_core k i j
 

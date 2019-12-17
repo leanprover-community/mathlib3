@@ -62,8 +62,8 @@ lemma embedding_coe : embedding (coe : nnreal → ennreal) :=
   { rw [orderable_topology.topology_eq_generate_intervals nnreal],
     refine le_generate_from (assume s ha, _),
     rcases ha with ⟨a, rfl | rfl⟩,
-    exact ⟨{b : ennreal | ↑a < b}, @is_open_lt' ennreal ennreal.topological_space _ _ _, by simp⟩,
-    exact ⟨{b : ennreal | b < ↑a}, @is_open_gt' ennreal ennreal.topological_space _ _ _, by simp⟩ }
+    exact ⟨Ioi a, is_open_Ioi, by simp [Ioi]⟩,
+    exact ⟨Iio a, is_open_Iio, by simp [Iio]⟩ }
   end⟩,
   assume a b, coe_eq_coe.1⟩
 

@@ -1162,7 +1162,7 @@ eq_univ_iff_forall
 theorem range_inl_union_range_inr : range (@sum.inl α β) ∪ range sum.inr = univ :=
 ext $ λ x, by cases x; simp
 
-theorem range_quot_mk (r : α → α → Prop) : range (quot.mk r) = univ :=
+@[simp] theorem range_quot_mk (r : α → α → Prop) : range (quot.mk r) = univ :=
 range_iff_surjective.2 quot.exists_rep
 
 @[simp] theorem image_univ {ι : Type*} {f : ι → β} : f '' univ = range f :=

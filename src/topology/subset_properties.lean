@@ -570,19 +570,22 @@ let ⟨r, hrs, hruv⟩ := H u v hu hv (subset.trans subset_closure hcsuv) ⟨p, 
 theorem is_connected.image [topological_space β] {s : set α} (H : is_connected s)
   (f : α → β) (hf : continuous_on f s) : is_connected (f '' s) :=
 begin
+  -- Unfold/destruct definitions in hypotheses
   rintros u v hu hv huv ⟨_, ⟨x, xs, rfl⟩, xu⟩ ⟨_, ⟨y, ys, rfl⟩, yv⟩,
   rcases continuous_on_iff'.1 hf u hu with ⟨u', hu', u'_eq⟩,
   rcases continuous_on_iff'.1 hf v hv with ⟨v', hv', v'_eq⟩,
 
-  rw [image_subset_iff, preimage_union] at huv,
-  replace huv := subset_inter huv (subset.refl _),
-  rw [inter_distrib_right, u'_eq, v'_eq, ← inter_distrib_right] at huv,
-  replace huv := (subset_inter_iff.1 huv).1,
+  -- Reformulate `huv : f '' s ⊆ u ∪ v` in terms of `u'` and `v'`
+  replace huv : s ⊆ u' ∪ v',
+  { rw [image_subset_iff, preimage_union] at huv,
+    replace huv := subset_inter huv (subset.refl _),
+    rw [inter_distrib_right, u'_eq, v'_eq, ← inter_distrib_right] at huv,
+    exact (subset_inter_iff.1 huv).1 },
 
-  obtain ⟨z, hz⟩ : ∃ z, z ∈ s ∩ (u' ∩ v'),
+  -- Now `s ⊆ u' ∪ v'`, so we can apply `‹is_connected s›`
+  obtain ⟨z, hz⟩ : (s ∩ (u' ∩ v')).nonempty,
   { refine H u' v' hu' hv' huv ⟨x, _⟩ ⟨y, _⟩; rw inter_comm,
     exacts [u'_eq ▸ ⟨xu, xs⟩, v'_eq ▸ ⟨yv, ys⟩] },
-
   rw [← inter_self s, inter_assoc, inter_left_comm s u', ← inter_assoc,
     inter_comm s, inter_comm s, ← u'_eq, ← v'_eq] at hz,
   exact ⟨f z, ⟨z, hz.1.2, rfl⟩, hz.1.1, hz.2.1⟩

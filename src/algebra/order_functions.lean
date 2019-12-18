@@ -85,6 +85,7 @@ lemma max_min_distrib_left : max a (min b c) = min (max a b) (max a c) := sup_in
 lemma max_min_distrib_right : max (min a b) c = min (max a c) (max b c) := sup_inf_right
 lemma min_max_distrib_left : min a (max b c) = max (min a b) (min a c) := inf_sup_left
 lemma min_max_distrib_right : min (max a b) c = max (min a c) (min b c) := inf_sup_right
+lemma min_le_max : min a b ≤ max a b := le_trans (min_le_left a b) (le_max_left a b)
 
 instance max_idem : is_idempotent α max := by apply_instance -- short-circuit type class inference
 instance min_idem : is_idempotent α min := by apply_instance -- short-circuit type class inference
@@ -250,6 +251,29 @@ calc
 
 lemma max_le_add_of_nonneg {a b : α} (ha : a ≥ 0) (hb : b ≥ 0) : max a b ≤ a + b :=
 max_le_iff.2 (by split; simpa)
+
+lemma max_zero_sub_eq_self (a : α) : max a 0 - max (-a) 0 = a :=
+begin
+  rcases le_total a 0,
+  { rw [max_eq_right h, max_eq_left, zero_sub, neg_neg], { rwa [le_neg, neg_zero] } },
+  { rw [max_eq_left, max_eq_right, sub_zero], { rwa [neg_le, neg_zero] }, exact h }
+end
+
+lemma abs_max_sub_max_le_abs (a b c : α) : abs (max a c - max b c) ≤ abs (a - b) :=
+begin
+  simp only [max],
+  split_ifs,
+  { rw [sub_self, abs_zero], exact abs_nonneg _ },
+  { calc abs (c - b) = - (c - b) : abs_of_neg (sub_neg_of_lt (lt_of_not_ge h_1))
+      ... = b - c : neg_sub _ _
+      ... ≤ b - a : by { rw sub_le_sub_iff_left, exact h }
+      ... = - (a - b) : by rw neg_sub
+      ... ≤ abs (a - b) : neg_le_abs_self _ },
+  { calc abs (a - c) = a - c : abs_of_pos (sub_pos_of_lt (lt_of_not_ge h))
+      ... ≤ a - b : by { rw sub_le_sub_iff_left, exact h_1 }
+      ... ≤ abs (a - b) : le_abs_self _ },
+  { refl }
+end
 
 end decidable_linear_ordered_comm_group
 

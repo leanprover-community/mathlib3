@@ -189,12 +189,7 @@ begin
   let Ψ' : β → subtype s := λy, ⟨Ψ y, mem_union_right _ (mem_range_self _)⟩,
   have IΦ' : isometry Φ' := λx y, ha x y,
   have IΨ' : isometry Ψ' := λx y, hb x y,
-  have : compact s,
-  { apply compact_union_of_compact,
-    { rw ← image_univ,
-      apply compact_image compact_univ ha.continuous },
-    { rw ← image_univ,
-      apply compact_image compact_univ hb.continuous } },
+  have : compact s, from (compact_range ha.continuous).union (compact_range hb.continuous),
   letI : metric_space (subtype s) := by apply_instance,
   haveI : compact_space (subtype s) := ⟨compact_iff_compact_univ.1 ‹compact s›⟩,
   haveI : nonempty (subtype s) := ⟨Φ' xα⟩,
@@ -211,16 +206,10 @@ begin
   rw ← this,
   -- Let A and B be the images of α and β under this embedding. They are in ℓ^∞(ℝ), and
   -- their Hausdorff distance is the same as in the original space.
-  let A : nonempty_compacts ℓ_infty_ℝ := ⟨F '' (range Φ'), ⟨by simp, begin
-      rw [← range_comp, ← image_univ],
-      exact compact_image compact_univ
-            ((Kuratowski_embedding.isometry _).continuous.comp IΦ'.continuous),
-    end⟩⟩,
-  let B : nonempty_compacts ℓ_infty_ℝ := ⟨F '' (range Ψ'), ⟨by simp, begin
-      rw [← range_comp, ← image_univ],
-      exact compact_image compact_univ
-        ((Kuratowski_embedding.isometry _).continuous.comp IΨ'.continuous),
-    end⟩⟩,
+  let A : nonempty_compacts ℓ_infty_ℝ := ⟨F '' (range Φ'), ⟨by simp,
+      (compact_range IΦ'.continuous).image (Kuratowski_embedding.isometry _).continuous⟩⟩,
+  let B : nonempty_compacts ℓ_infty_ℝ := ⟨F '' (range Ψ'), ⟨by simp,
+      (compact_range IΨ'.continuous).image (Kuratowski_embedding.isometry _).continuous⟩⟩,
   have Aα : ⟦A⟧ = to_GH_space α,
   { rw eq_to_GH_space_iff,
     exact ⟨λx, F (Φ' x), ⟨(Kuratowski_embedding.isometry _).comp IΦ', by rw range_comp⟩⟩ },
@@ -262,7 +251,7 @@ begin
       { rw Ψrange,
         have : Φ xα ∈ p.val := begin rw ← Φrange, exact mem_range_self _ end,
         exact exists_dist_lt_of_Hausdorff_dist_lt this bound
-          (Hausdorff_edist_ne_top_of_ne_empty_of_bounded p.2.1 q.2.1 (bounded_of_compact p.2.2) (bounded_of_compact q.2.2)) },
+          (Hausdorff_edist_ne_top_of_ne_empty_of_bounded p.2.1 q.2.1 p.2.2.bounded q.2.2.bounded) },
       rcases this with ⟨y, hy, dy⟩,
       rcases mem_range.1 hy with ⟨z, hzy⟩,
       rw ← hzy at dy,
@@ -302,7 +291,7 @@ begin
             { apply mem_union_right, apply mem_range_self } },
           refine dist_le_diam_of_mem _ (A _) (A _),
           rw [Φrange, Ψrange],
-          exact bounded_of_compact (compact_union_of_compact p.2.2 q.2.2),
+          exact (p.2.2.union q.2.2).bounded,
         end
         ... ≤ 2 * diam (univ : set α) + 1 + 2 * diam (univ : set β) : I } },
     let Fb := candidates_b_of_candidates F Fgood,
@@ -313,7 +302,7 @@ begin
     { assume x,
       have : f (inl x) ∈ p.val, by { rw [← Φrange], apply mem_range_self },
       rcases exists_dist_lt_of_Hausdorff_dist_lt this hr
-        (Hausdorff_edist_ne_top_of_ne_empty_of_bounded p.2.1 q.2.1 (bounded_of_compact p.2.2) (bounded_of_compact q.2.2))
+        (Hausdorff_edist_ne_top_of_ne_empty_of_bounded p.2.1 q.2.1 p.2.2.bounded q.2.2.bounded)
         with ⟨z, zq, hz⟩,
       have : z ∈ range Ψ, by rwa [← Ψrange] at zq,
       rcases mem_range.1 this with ⟨y, hy⟩,
@@ -326,7 +315,7 @@ begin
     { assume y,
       have : f (inr y) ∈ q.val, by { rw [← Ψrange], apply mem_range_self },
       rcases exists_dist_lt_of_Hausdorff_dist_lt' this hr
-        (Hausdorff_edist_ne_top_of_ne_empty_of_bounded p.2.1 q.2.1 (bounded_of_compact p.2.2) (bounded_of_compact q.2.2))
+        (Hausdorff_edist_ne_top_of_ne_empty_of_bounded p.2.1 q.2.1 p.2.2.bounded q.2.2.bounded)
         with ⟨z, zq, hz⟩,
       have : z ∈ range Φ, by rwa [← Φrange] at zq,
       rcases mem_range.1 this with ⟨x, hx⟩,
@@ -413,15 +402,13 @@ instance GH_space_metric_space : metric_space GH_space :=
     rcases GH_dist_eq_Hausdorff_dist x.rep y.rep with ⟨Φ, Ψ, Φisom, Ψisom, DΦΨ⟩,
     rw [← dist_GH_dist, hxy] at DΦΨ,
     have : range Φ = range Ψ,
-    { have hΦ : compact (range Φ) :=
-        by { rw [← image_univ], exact compact_image compact_univ Φisom.continuous },
-      have hΨ : compact (range Ψ) :=
-        by { rw [← image_univ], exact compact_image compact_univ Ψisom.continuous },
+    { have hΦ : compact (range Φ) := compact_range Φisom.continuous,
+      have hΨ : compact (range Ψ) := compact_range Ψisom.continuous,
       apply (Hausdorff_dist_zero_iff_eq_of_closed _ _ _).1 (DΦΨ.symm),
       { exact closed_of_compact (range Φ) hΦ },
       { exact closed_of_compact (range Ψ) hΨ },
       { exact Hausdorff_edist_ne_top_of_ne_empty_of_bounded (by simp [-nonempty_subtype])
-          (by simp [-nonempty_subtype]) (bounded_of_compact hΦ) (bounded_of_compact hΨ) } },
+          (by simp [-nonempty_subtype]) hΦ.bounded hΨ.bounded } },
     have T : ((range Ψ) ≃ᵢ y.rep) = ((range Φ) ≃ᵢ y.rep), by rw this,
     have eΨ := cast T Ψisom.isometric_on_range.symm,
     have e := Φisom.isometric_on_range.trans eΨ,
@@ -460,12 +447,10 @@ instance GH_space_metric_space : metric_space GH_space :=
         begin
           refine Hausdorff_dist_triangle (Hausdorff_edist_ne_top_of_ne_empty_of_bounded
             (by simp [-nonempty_subtype]) (by simp [-nonempty_subtype]) _ _),
-          { rw [← image_univ],
-            exact bounded_of_compact (compact_image compact_univ (isometry.continuous
-              ((to_glue_l_isometry hΦ hΨ).comp (isometry_optimal_GH_injl X Y)))) },
-          { rw [← image_univ],
-            exact bounded_of_compact (compact_image compact_univ (isometry.continuous
-              ((to_glue_l_isometry hΦ hΨ).comp (isometry_optimal_GH_injr X Y)))) }
+          { exact (compact_range (isometry.continuous ((to_glue_l_isometry hΦ hΨ).comp
+              (isometry_optimal_GH_injl X Y)))).bounded },
+          { exact (compact_range (isometry.continuous ((to_glue_l_isometry hΦ hΨ).comp
+              (isometry_optimal_GH_injr X Y)))).bounded }
         end
       ... = Hausdorff_dist ((to_glue_l hΦ hΨ) '' (range (optimal_GH_injl X Y)))
                            ((to_glue_l hΦ hΨ) '' (range (optimal_GH_injr X Y)))
@@ -569,12 +554,12 @@ begin
     GH_dist_le_Hausdorff_dist Il Ir,
   have : Hausdorff_dist (range Fl) (range Fr) ≤ Hausdorff_dist (range Fl) (Fl '' s)
                                               + Hausdorff_dist (Fl '' s) (range Fr),
-  { have B : bounded (range Fl) := bounded_of_compact (compact_range Il.continuous),
+  { have B : bounded (range Fl) := (compact_range Il.continuous).bounded,
     exact Hausdorff_dist_triangle (Hausdorff_edist_ne_top_of_ne_empty_of_bounded (by simpa) (by simpa)
       B (bounded.subset (image_subset_range _ _) B)) },
   have : Hausdorff_dist (Fl '' s) (range Fr) ≤ Hausdorff_dist (Fl '' s) (Fr '' (range Φ))
                                              + Hausdorff_dist (Fr '' (range Φ)) (range Fr),
-  { have B : bounded (range Fr) := bounded_of_compact (compact_range Ir.continuous),
+  { have B : bounded (range Fr) := (compact_range Ir.continuous).bounded,
     exact Hausdorff_dist_triangle' (Hausdorff_edist_ne_top_of_ne_empty_of_bounded
       (by simpa [-nonempty_subtype]) (by simpa) (bounded.subset (image_subset_range _ _) B) B) },
   have : Hausdorff_dist (range Fl) (Fl '' s) ≤ ε1,
@@ -843,7 +828,7 @@ begin
           refine min_eq_right (int.to_nat_le_to_nat (floor_mono _)),
           refine mul_le_mul_of_nonneg_left (le_trans _ (le_max_left _ _)) (le_of_lt (inv_pos εpos)),
           change dist (x : p.rep) y ≤ C,
-          refine le_trans (dist_le_diam_of_mem (bounded_of_compact compact_univ) (mem_univ _) (mem_univ _)) _,
+          refine le_trans (dist_le_diam_of_mem compact_univ.bounded (mem_univ _) (mem_univ _)) _,
           exact hdiam p pt
         end,
       -- Express dist (Φ x) (Φ y) in terms of F q
@@ -857,7 +842,7 @@ begin
           refine min_eq_right (int.to_nat_le_to_nat (floor_mono _)),
           refine mul_le_mul_of_nonneg_left (le_trans _ (le_max_left _ _)) (le_of_lt (inv_pos εpos)),
           change dist (Ψ x : q.rep) (Ψ y) ≤ C,
-          refine le_trans (dist_le_diam_of_mem (bounded_of_compact compact_univ) (mem_univ _) (mem_univ _)) _,
+          refine le_trans (dist_le_diam_of_mem compact_univ.bounded (mem_univ _) (mem_univ _)) _,
           exact hdiam q qt
         end,
       -- use the equality between F p and F q to deduce that the distances have equal

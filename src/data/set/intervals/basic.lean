@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johannes Hölzl, Mario Carneiro, Patrick Massot
 -/
 
-import order.lattice algebra.order_functions tactic.tauto
+import order.lattice algebra.order_functions algebra.ordered_field tactic.tauto
 
 /-!
 # Intervals
@@ -80,6 +80,32 @@ lemma left_mem_Ici : a ∈ Ici a := by simp
 @[simp] lemma right_mem_Ioc : b ∈ Ioc a b ↔ a < b := by simp [le_refl]
 lemma right_mem_Iic : a ∈ Iic a := by simp
 
+@[simp] lemma dual_Ici : @Ici (order_dual α) _ a = @Iic α _ a := rfl
+@[simp] lemma dual_Iic : @Iic (order_dual α) _ a = @Ici α _ a := rfl
+@[simp] lemma dual_Ioi : @Ioi (order_dual α) _ a = @Iio α _ a := rfl
+@[simp] lemma dual_Iio : @Iio (order_dual α) _ a = @Ioi α _ a := rfl
+@[simp] lemma dual_Icc : @Icc (order_dual α) _ a b = @Icc α _ b a :=
+set.ext $ λ x, and_comm _ _
+@[simp] lemma dual_Ioc : @Ioc (order_dual α) _ a b = @Ico α _ b a :=
+set.ext $ λ x, and_comm _ _
+@[simp] lemma dual_Ico : @Ico (order_dual α) _ a b = @Ioc α _ b a :=
+set.ext $ λ x, and_comm _ _
+@[simp] lemma dual_Ioo : @Ioo (order_dual α) _ a b = @Ioo α _ b a :=
+set.ext $ λ x, and_comm _ _
+
+@[simp] lemma nonempty_Icc : (Icc a b).nonempty ↔ a ≤ b :=
+⟨λ ⟨x, hx⟩, le_trans hx.1 hx.2, λ h, ⟨a, left_mem_Icc.2 h⟩⟩
+
+@[simp] lemma nonempty_Ico : (Ico a b).nonempty ↔ a < b :=
+⟨λ ⟨x, hx⟩, lt_of_le_of_lt hx.1 hx.2, λ h, ⟨a, left_mem_Ico.2 h⟩⟩
+
+@[simp] lemma nonempty_Ioc : (Ioc a b).nonempty ↔ a < b :=
+⟨λ ⟨x, hx⟩, lt_of_lt_of_le hx.1 hx.2, λ h, ⟨b, right_mem_Ioc.2 h⟩⟩
+
+lemma nonempty_Ici : (Ici a).nonempty := ⟨a, left_mem_Ici⟩
+
+lemma nonempty_Iic : (Iic a).nonempty := ⟨a, right_mem_Iic⟩
+
 @[simp] lemma Ioo_eq_empty (h : b ≤ a) : Ioo a b = ∅ :=
 eq_empty_iff_forall_not_mem.2 $ λ x ⟨h₁, h₂⟩, not_le_of_lt (lt_trans h₁ h₂) h
 
@@ -107,6 +133,12 @@ ne_empty_iff_exists_mem.2 ⟨b, le_refl b⟩
 
 lemma Ici_ne_empty (a : α) : Ici a ≠ ∅ :=
 ne_empty_iff_exists_mem.2 ⟨a, le_refl a⟩
+
+lemma Ici_subset_Ioi : Ici a ⊆ Ioi b ↔ b < a :=
+⟨λ h, h left_mem_Ici, λ h x hx, lt_of_lt_of_le h hx⟩
+
+lemma Iic_subset_Iio : Iic a ⊆ Iio b ↔ a < b :=
+⟨λ h, h right_mem_Iic, λ h x hx, lt_of_le_of_lt hx h⟩
 
 lemma Ioo_subset_Ioo (h₁ : a₂ ≤ a₁) (h₂ : b₁ ≤ b₂) :
   Ioo a₁ b₁ ⊆ Ioo a₂ b₂ :=
@@ -426,10 +458,23 @@ section ordered_comm_group
 
 variables {α : Type u} [ordered_comm_group α]
 
+lemma image_add_left_Icc (a b c : α) : ((+) a) '' Icc b c = Icc (a + b) (a + c) :=
+begin
+  ext x,
+  split,
+  { rintros ⟨x, hx, rfl⟩,
+    exact ⟨add_le_add_left hx.1 a, add_le_add_left hx.2 a⟩},
+  { intro hx,
+    refine ⟨-a + x, _, add_neg_cancel_left _ _⟩,
+    exact ⟨le_neg_add_iff_add_le.2 hx.1, neg_add_le_iff_le_add.2 hx.2⟩ }
+end
+
+lemma image_add_right_Icc (a b c : α) : (λ x, x + c) '' Icc a b = Icc (a + c) (b + c) :=
+by convert image_add_left_Icc c a b using 1; simp only [add_comm _ c]
+
 lemma image_neg_Iio (r : α) : image (λz, -z) (Iio r) = Ioi (-r) :=
 begin
-  apply set.ext,
-  intros z,
+  ext z,
   apply iff.intro,
   { intros hz,
     apply exists.elim hz,
@@ -478,5 +523,41 @@ begin
 end
 
 end decidable_linear_ordered_comm_group
+
+section linear_ordered_field
+
+variables {α : Type u} [linear_ordered_field α]
+
+lemma image_mul_right_Icc' (a b : α) {c : α} (h : 0 < c) :
+  (λ x, x * c) '' Icc a b = Icc (a * c) (b * c) :=
+begin
+  ext x,
+  split,
+  { rintros ⟨x, hx, rfl⟩,
+    exact ⟨mul_le_mul_of_nonneg_right hx.1 (le_of_lt h),
+      mul_le_mul_of_nonneg_right hx.2 (le_of_lt h)⟩ },
+  { intro hx,
+    refine ⟨x / c, _, div_mul_cancel x (ne_of_gt h)⟩,
+    exact ⟨le_div_of_mul_le h hx.1, div_le_of_le_mul h (mul_comm b c ▸ hx.2)⟩ }
+end
+
+lemma image_mul_right_Icc {a b c : α} (hab : a ≤ b) (hc : 0 ≤ c) :
+  (λ x, x * c) '' Icc a b = Icc (a * c) (b * c) :=
+begin
+  cases eq_or_lt_of_le hc,
+  { subst c,
+    simp [(nonempty_Icc.2 hab).image_const] },
+  exact image_mul_right_Icc' a b ‹0 < c›
+end
+
+lemma image_mul_left_Icc' {a : α} (h : 0 < a) (b c : α) :
+  ((*) a) '' Icc b c = Icc (a * b) (a * c) :=
+by { convert image_mul_right_Icc' b c h using 1; simp only [mul_comm _ a] }
+
+lemma image_mul_left_Icc {a b c : α} (ha : 0 ≤ a) (hbc : b ≤ c) :
+  ((*) a) '' Icc b c = Icc (a * b) (a * c) :=
+by { convert image_mul_right_Icc hbc ha using 1; simp only [mul_comm _ a] }
+
+end linear_ordered_field
 
 end set

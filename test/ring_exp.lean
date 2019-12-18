@@ -122,6 +122,14 @@ by ring_exp
 -- Instead, we follow the `ring` tactic in interpreting `-c / b` as `-c * b⁻¹`,
 -- with only `b⁻¹` an atom.
 example {α} [linear_ordered_field α] (a b c : α) : a*(-c/b)*(-c/b) = a*((c/b)*(c/b)) := by ring_exp
+
+-- test that `field_simp` works fine with powers and `ring_exp`.
+example (x y : ℚ) (n : ℕ) (hx : x ≠ 0) (hy : y ≠ 0) :
+  1/ (2/(x / y))^(2 * n) + y / y^(n+1) - (x/y)^n * (x/(2 * y))^n / 2 ^n = 1/y^n :=
+begin
+  field_simp [hx, hy],
+  ring_exp
+end
 end complicated
 
 section benchmark

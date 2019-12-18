@@ -1,13 +1,20 @@
 /-
 Copyright (c) 2017 Johannes Hölzl. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Authors: Johannes Hölzl, Mario Carneiro
-
-Properties of subsets of topological spaces: compact, clopen, irreducible,
-connected, totally disconnected, totally separated.
+Authors: Johannes Hölzl, Mario Carneiro, Yury Kudryashov
 -/
 
-import topology.constructions
+import topology.continuous_on
+
+/-!
+# Properties of subsets of topological spaces
+
+## Main definitions
+
+`compact`, `is_clopen`, `is_irreducible`, `is_connected`, `is_totally_disconnected`, `is_totally_separated`
+
+TODO: write better docs
+-/
 
 open set filter lattice classical
 open_locale classical topological_space
@@ -22,23 +29,25 @@ section compact
     every set of `f` also meets every neighborhood of some `a ∈ s`. -/
 def compact (s : set α) := ∀f, f ≠ ⊥ → f ≤ principal s → ∃a∈s, f ⊓ 𝓝 a ≠ ⊥
 
-lemma compact_inter {s t : set α} (hs : compact s) (ht : is_closed t) : compact (s ∩ t) :=
+lemma compact.inter_right {s t : set α} (hs : compact s) (ht : is_closed t) : compact (s ∩ t) :=
 assume f hnf hstf,
 let ⟨a, hsa, (ha : f ⊓ 𝓝 a ≠ ⊥)⟩ := hs f hnf (le_trans hstf (le_principal_iff.2 (inter_subset_left _ _))) in
-have ∀a, principal t ⊓ 𝓝 a ≠ ⊥ → a ∈ t,
-  by intro a; rw [inf_comm]; rw [is_closed_iff_nhds] at ht; exact ht a,
 have a ∈ t,
-  from this a $ neq_bot_of_le_neq_bot ha $ inf_le_inf (le_trans hstf (le_principal_iff.2 (inter_subset_right _ _))) (le_refl _),
+  from ht.mem_of_nhds_within_ne_bot $ neq_bot_of_le_neq_bot (by { rw inf_comm at ha, exact ha }) $
+    inf_le_inf (le_refl _) (le_trans hstf (le_principal_iff.2 (inter_subset_right _ _))),
 ⟨a, ⟨hsa, this⟩, ha⟩
 
+lemma compact.inter_left {s t : set α} (ht : compact t) (hs : is_closed s) : compact (s ∩ t) :=
+inter_comm t s ▸ ht.inter_right hs
+
 lemma compact_diff {s t : set α} (hs : compact s) (ht : is_open t) : compact (s \ t) :=
-compact_inter hs (is_closed_compl_iff.mpr ht)
+hs.inter_right (is_closed_compl_iff.mpr ht)
 
 lemma compact_of_is_closed_subset {s t : set α}
   (hs : compact s) (ht : is_closed t) (h : t ⊆ s) : compact t :=
-by convert ← compact_inter hs ht; exact inter_eq_self_of_subset_right h
+inter_eq_self_of_subset_right h ▸ hs.inter_right ht
 
-lemma compact_adherence_nhdset {s t : set α} {f : filter α}
+lemma compact.adherence_nhdset {s t : set α} {f : filter α}
   (hs : compact s) (hf₂ : f ≤ principal s) (ht₁ : is_open t) (ht₂ : ∀a∈s, 𝓝 a ⊓ f ≠ ⊥ → a ∈ t) :
   t ∈ f :=
 classical.by_cases mem_sets_of_neq_bot $
@@ -46,9 +55,9 @@ classical.by_cases mem_sets_of_neq_bot $
   let ⟨a, ha, (hfa : f ⊓ principal (-t) ⊓ 𝓝 a ≠ ⊥)⟩ := hs _ this $ inf_le_left_of_le hf₂ in
   have a ∈ t,
     from ht₂ a ha $ neq_bot_of_le_neq_bot hfa $ le_inf inf_le_right $ inf_le_left_of_le inf_le_left,
-  have 𝓝 a ⊓ principal (-t) ≠ ⊥,
+  have nhds_within a (-t) ≠ ⊥,
     from neq_bot_of_le_neq_bot hfa $ le_inf inf_le_right $ inf_le_left_of_le inf_le_right,
-  have ∀s∈(𝓝 a ⊓ principal (-t)).sets, s ≠ ∅,
+  have ∀s∈ nhds_within a (-t), s ≠ ∅,
     from forall_sets_neq_empty_iff_neq_bot.mpr this,
   have false,
     from this _ ⟨t, mem_nhds_sets ht₁ ‹a ∈ t›, -t, subset.refl _, subset.refl _⟩ (inter_compl_self _),
@@ -68,7 +77,7 @@ lemma compact_iff_ultrafilter_le_nhds {s : set α} :
     by simp only [inf_of_le_left, h]; exact (ultrafilter_ultrafilter_of hf).left,
   ⟨a, ha, neq_bot_of_le_neq_bot this (inf_le_inf ultrafilter_of_le (le_refl _))⟩⟩
 
-lemma compact_elim_finite_subcover {s : set α} {c : set (set α)}
+lemma compact.elim_finite_subcover {s : set α} {c : set (set α)}
   (hs : compact s) (hc₁ : ∀t∈c, is_open t) (hc₂ : s ⊆ ⋃₀ c) : ∃c'⊆c, finite c' ∧ s ⊆ ⋃₀ c' :=
 classical.by_contradiction $ assume h,
   have h : ∀{c'}, c' ⊆ c → finite c' → ¬ s ⊆ ⋃₀ c',
@@ -98,14 +107,14 @@ classical.by_contradiction $ assume h,
     le_inf inf_le_right (inf_le_left_of_le ‹f ≤ principal (- t)›),
   this ‹a ∈ t›
 
-lemma compact_elim_finite_subcover_image {s : set α} {b : set β} {c : β → set α}
+lemma compact.elim_finite_subcover_image {s : set α} {b : set β} {c : β → set α}
   (hs : compact s) (hc₁ : ∀i∈b, is_open (c i)) (hc₂ : s ⊆ ⋃i∈b, c i) :
   ∃b'⊆b, finite b' ∧ s ⊆ ⋃i∈b', c i :=
 if h : b = ∅ then ⟨∅, empty_subset _, finite_empty, h ▸ hc₂⟩ else
 let ⟨i, hi⟩ := exists_mem_of_ne_empty h in
 have hc'₁ : ∀i∈c '' b, is_open i, from assume i ⟨j, hj, h⟩, h ▸ hc₁ _ hj,
 have hc'₂ : s ⊆ ⋃₀ (c '' b), by rwa set.sUnion_image,
-let ⟨d, hd₁, hd₂, hd₃⟩ := compact_elim_finite_subcover hs hc'₁ hc'₂ in
+let ⟨d, hd₁, hd₂, hd₃⟩ := hs.elim_finite_subcover hc'₁ hc'₂ in
 have ∀x : d, ∃i, i ∈ b ∧ c i = x, from assume ⟨x, hx⟩, hd₁ hx,
 let ⟨f', hf⟩ := axiom_of_choice this,
     f := λx:set α, (if h : x ∈ d then f' ⟨x, h⟩ else i : β) in
@@ -159,7 +168,7 @@ end
 
 lemma compact_iff_finite_subcover {s : set α} :
   compact s ↔ (∀c, (∀t∈c, is_open t) → s ⊆ ⋃₀ c → ∃c'⊆c, finite c' ∧ s ⊆ ⋃₀ c') :=
-⟨assume hc c, compact_elim_finite_subcover hc, compact_of_finite_subcover⟩
+⟨assume hc c, hc.elim_finite_subcover, compact_of_finite_subcover⟩
 
 lemma compact_empty : compact (∅ : set α) :=
 assume f hnf hsf, not.elim hnf $
@@ -170,11 +179,11 @@ compact_of_finite_subcover $ assume c hc₁ hc₂,
   let ⟨i, hic, hai⟩ := (show ∃i ∈ c, a ∈ i, from mem_sUnion.1 $ singleton_subset_iff.1 hc₂) in
   ⟨{i}, singleton_subset_iff.2 hic, finite_singleton _, by rwa [sUnion_singleton, singleton_subset_iff]⟩
 
-lemma compact_bUnion_of_compact {s : set β} {f : β → set α} (hs : finite s) :
+lemma set.finite.compact_bUnion {s : set β} {f : β → set α} (hs : finite s) :
   (∀i ∈ s, compact (f i)) → compact (⋃i ∈ s, f i) :=
 assume hf, compact_of_finite_subcover $ assume c c_open c_cover,
   have ∀i : subtype s, ∃c' ⊆ c, finite c' ∧ f i ⊆ ⋃₀ c', from
-    assume ⟨i, hi⟩, compact_elim_finite_subcover (hf i hi) c_open
+    assume ⟨i, hi⟩, (hf i hi).elim_finite_subcover c_open
       (calc f i ⊆ ⋃i ∈ s, f i : subset_bUnion_of_mem hi
             ... ⊆ ⋃₀ c        : c_cover),
   let ⟨finite_subcovers, h⟩ := axiom_of_choice this in
@@ -186,20 +195,22 @@ assume hf, compact_of_finite_subcover $ assume c c_open c_cover,
     ... ⊆ ⋃₀ c'                      : sUnion_mono (subset_Union _ _),
   ⟨c', ‹c' ⊆ c›, ‹finite c'›, this⟩
 
-lemma compact_Union_of_compact {f : β → set α} [fintype β]
+lemma compact_Union {f : β → set α} [fintype β]
   (h : ∀i, compact (f i)) : compact (⋃i, f i) :=
-by rw ← bUnion_univ; exact compact_bUnion_of_compact finite_univ (λ i _, h i)
+by rw ← bUnion_univ; exact finite_univ.compact_bUnion (λ i _, h i)
 
-lemma compact_of_finite {s : set α} (hs : finite s) : compact s :=
-bUnion_of_singleton s ▸ compact_bUnion_of_compact hs (λ _ _, compact_singleton)
+lemma set.finite.compact {s : set α} (hs : finite s) : compact s :=
+bUnion_of_singleton s ▸ hs.compact_bUnion (λ _ _, compact_singleton)
 
-lemma compact_union_of_compact {s t : set α} (hs : compact s) (ht : compact t) : compact (s ∪ t) :=
-by rw union_eq_Union; exact compact_Union_of_compact (λ b, by cases b; assumption)
+lemma compact.union {s t : set α} (hs : compact s) (ht : compact t) : compact (s ∪ t) :=
+by rw union_eq_Union; exact compact_Union (λ b, by cases b; assumption)
 
 section tube_lemma
 
 variables [topological_space β]
 
+/-- `nhds_contain_boxes s t` means that any open neighborhood of `s × t` in `α × β` includes
+a product of an open neighborhood of `s` by an open neighborhood of `t`. -/
 def nhds_contain_boxes (s : set α) (t : set β) : Prop :=
 ∀ (n : set (α × β)) (hn : is_open n) (hp : set.prod s t ⊆ n),
 ∃ (u : set α) (v : set β), is_open u ∧ is_open v ∧ s ⊆ u ∧ t ⊆ v ∧ set.prod u v ⊆ n
@@ -238,7 +249,7 @@ let ⟨uvs, h⟩ := classical.axiom_of_choice this in
 have us_cover : s ⊆ ⋃i, (uvs i).1, from
   assume x hx, set.subset_Union _ ⟨x,hx⟩ (by simpa using (h ⟨x,hx⟩).2.2.1),
 let ⟨s0, _, s0_fin, s0_cover⟩ :=
-  compact_elim_finite_subcover_image hs (λi _, (h i).1) $
+  hs.elim_finite_subcover_image (λi _, (h i).1) $
     by rw bUnion_univ; exact us_cover in
 let u := ⋃(i ∈ s0), (uvs i).1 in
 let v := ⋂(i ∈ s0), (uvs i).2 in
@@ -268,28 +279,35 @@ class compact_space (α : Type*) [topological_space α] : Prop :=
 
 lemma compact_univ [h : compact_space α] : compact (univ : set α) := h.compact_univ
 
-lemma compact_of_closed [compact_space α] {s : set α} (h : is_closed s) :
+lemma is_closed.compact [compact_space α] {s : set α} (h : is_closed s) :
   compact s :=
 compact_of_is_closed_subset compact_univ h (subset_univ _)
 
 variables [topological_space β]
 
-lemma compact_image {s : set α} {f : α → β} (hs : compact s) (hf : continuous f) :
+lemma compact.image_of_continuous_on {s : set α} {f : α → β} (hs : compact s)
+  (hf : continuous_on f s) : compact (f '' s) :=
+begin
+  intros l lne ls,
+  have ne_bot : l.comap f ⊓ principal s ≠ ⊥,
+    from comap_inf_principal_ne_bot_of_image_mem lne (le_principal_iff.1 ls),
+  rcases hs (l.comap f ⊓ principal s) ne_bot inf_le_right with ⟨a, has, ha⟩,
+  use [f a, mem_image_of_mem f has],
+  rw [inf_assoc, @inf_comm _ _ _ (𝓝 a)] at ha,
+  exact neq_bot_of_le_neq_bot (@@map_ne_bot f ha) (tendsto_comap.inf $ hf a has)
+end
+
+lemma compact.image {s : set α} {f : α → β} (hs : compact s) (hf : continuous f) :
   compact (f '' s) :=
-compact_of_finite_subcover $ assume c hco hcs,
-  have hdo : ∀t∈c, is_open (f ⁻¹' t), from assume t' ht, hf _ $ hco _ ht,
-  have hds : s ⊆ ⋃i∈c, f ⁻¹' i,
-    by simpa [subset_def, -mem_image] using hcs,
-  let ⟨d', hcd', hfd', hd'⟩ := compact_elim_finite_subcover_image hs hdo hds in
-  ⟨d', hcd', hfd', by simpa [subset_def, -mem_image, image_subset_iff] using hd'⟩
+hs.image_of_continuous_on hf.continuous_on
 
 lemma compact_range [compact_space α] {f : α → β} (hf : continuous f) :
   compact (range f) :=
-by rw ← image_univ; exact compact_image compact_univ hf
+by rw ← image_univ; exact compact_univ.image hf
 
-lemma compact_iff_compact_image_of_embedding {s : set α} {f : α → β} (hf : embedding f) :
+lemma embedding.compact_iff_compact_image {s : set α} {f : α → β} (hf : embedding f) :
   compact s ↔ compact (f '' s) :=
-iff.intro (assume h, compact_image h hf.continuous) $ assume h, begin
+iff.intro (assume h, h.image hf.continuous) $ assume h, begin
   rw compact_iff_ultrafilter_le_nhds at ⊢ h,
   intros u hu us',
   let u' : filter β := map f u,
@@ -304,7 +322,7 @@ end
 
 lemma compact_iff_compact_in_subtype {p : α → Prop} {s : set {a // p a}} :
   compact s ↔ compact (subtype.val '' s) :=
-compact_iff_compact_image_of_embedding embedding_subtype_val
+embedding_subtype_val.compact_iff_compact_image
 
 lemma compact_iff_compact_univ {s : set α} : compact s ↔ compact (univ : set (subtype s)) :=
 by rw [compact_iff_compact_in_subtype, image_univ, subtype.val_range]; refl
@@ -312,15 +330,15 @@ by rw [compact_iff_compact_in_subtype, image_univ, subtype.val_range]; refl
 lemma compact_iff_compact_space {s : set α} : compact s ↔ compact_space s :=
 compact_iff_compact_univ.trans ⟨λ h, ⟨h⟩, @compact_space.compact_univ _ _⟩
 
-lemma compact_prod (s : set α) (t : set β) (ha : compact s) (hb : compact t) : compact (set.prod s t) :=
+lemma compact.prod {s : set α} {t : set β} (hs : compact s) (ht : compact t) : compact (set.prod s t) :=
 begin
-  rw compact_iff_ultrafilter_le_nhds at ha hb ⊢,
+  rw compact_iff_ultrafilter_le_nhds at hs ht ⊢,
   intros f hf hfs,
   rw le_principal_iff at hfs,
-  rcases ha (map prod.fst f) (ultrafilter_map hf)
+  rcases hs (map prod.fst f) (ultrafilter_map hf)
     (le_principal_iff.2 (mem_map_sets_iff.2
       ⟨_, hfs, image_subset_iff.2 (λ s h, h.1)⟩)) with ⟨a, sa, ha⟩,
-  rcases hb (map prod.snd f) (ultrafilter_map hf)
+  rcases ht (map prod.snd f) (ultrafilter_map hf)
     (le_principal_iff.2 (mem_map_sets_iff.2
       ⟨_, hfs, image_subset_iff.2 (λ s h, h.2)⟩)) with ⟨b, tb, hb⟩,
   rw map_le_iff_le_comap at ha hb,
@@ -330,25 +348,17 @@ end
 
 /-- Finite topological spaces are compact. -/
 @[priority 100] instance fintype.compact_space [fintype α] : compact_space α :=
-{ compact_univ := compact_of_finite set.finite_univ }
+{ compact_univ := set.finite_univ.compact }
 
 /-- The product of two compact spaces is compact. -/
 instance [compact_space α] [compact_space β] : compact_space (α × β) :=
-⟨begin
-  have A : compact (set.prod (univ : set α) (univ : set β)) :=
-    compact_prod univ univ compact_univ compact_univ,
-  have : set.prod (univ : set α) (univ : set β) = (univ : set (α × β)) := by simp,
-  rwa this at A,
-end⟩
+⟨by { rw ← univ_prod_univ, exact compact_univ.prod compact_univ }⟩
 
 /-- The disjoint union of two compact spaces is compact. -/
 instance [compact_space α] [compact_space β] : compact_space (α ⊕ β) :=
 ⟨begin
-  have A : compact (@sum.inl α β '' univ) := compact_image compact_univ continuous_inl,
-  have B : compact (@sum.inr α β '' univ) := compact_image compact_univ continuous_inr,
-  have C := compact_union_of_compact A B,
-  have : (@sum.inl α β '' univ) ∪ (@sum.inr α β '' univ) = univ := by ext; cases x; simp,
-  rwa this at C,
+  rw ← range_inl_union_range_inr,
+  exact (compact_range continuous_inl).union (compact_range continuous_inr)
 end⟩
 
 section tychonoff
@@ -381,12 +391,7 @@ end tychonoff
 
 instance quot.compact_space {r : α → α → Prop} [compact_space α] :
   compact_space (quot r) :=
-⟨begin
-   have : quot.mk r '' univ = univ,
-     by rw [image_univ, range_iff_surjective]; exact quot.exists_rep,
-   rw ←this,
-   exact compact_image compact_univ continuous_quot_mk
- end⟩
+⟨by { rw ← range_quot_mk, exact compact_range continuous_quot_mk }⟩
 
 instance quotient.compact_space {s : setoid α} [compact_space α] :
   compact_space (quotient s) :=
@@ -403,6 +408,7 @@ end compact
 
 section clopen
 
+/-- A set is clopen if it is both open and closed. -/
 def is_clopen (s : set α) : Prop :=
 is_open s ∧ is_closed s
 
@@ -431,7 +437,7 @@ end clopen
 
 section irreducible
 
-/-- A irreducible set is one where there is no non-trivial pair of disjoint opens. -/
+/-- An irreducible set is one where there is no non-trivial pair of disjoint opens. -/
 def is_irreducible (s : set α) : Prop :=
 ∀ (u v : set α), is_open u → is_open v →
   (∃ x, x ∈ s ∩ u) → (∃ x, x ∈ s ∩ v) → ∃ x, x ∈ s ∩ (u ∩ v)
@@ -468,6 +474,7 @@ let ⟨m, hm, hsm, hmm⟩ := zorn.zorn_subset₀ { t : set α | is_irreducible t
     λ x hxc, set.subset_sUnion_of_mem hxc⟩) s H in
 ⟨m, hm, hsm, λ u hu hmu, hmm _ hu hmu⟩
 
+/-- A maximal irreducible set that contains a given point. -/
 def irreducible_component (x : α) : set α :=
 classical.some (exists_irreducible {x} is_irreducible_singleton)
 
@@ -488,7 +495,7 @@ closure_eq_iff_is_closed.1 $ eq_irreducible_component
   (is_irreducible_closure is_irreducible_irreducible_component)
   subset_closure
 
-/-- A irreducible space is one where there is no non-trivial pair of disjoint opens. -/
+/-- An irreducible space is one where there is no non-trivial pair of disjoint opens. -/
 class irreducible_space (α : Type u) [topological_space α] : Prop :=
 (is_irreducible_univ : is_irreducible (univ : set α))
 
@@ -515,33 +522,50 @@ is_connected_of_is_irreducible is_irreducible_empty
 theorem is_connected_singleton {x} : is_connected ({x} : set α) :=
 is_connected_of_is_irreducible is_irreducible_singleton
 
+/-- If any point of a set is joined to a fixed point by a connected subset,
+then the original set is connected as well. -/
+theorem is_connected_of_forall {s : set α} (x : α)
+  (H : ∀ y ∈ s, ∃ t ⊆ s, x ∈ t ∧ y ∈ t ∧ is_connected t) :
+  is_connected s :=
+begin
+  rintros u v hu hv hs ⟨z, zs, zu⟩ ⟨y, ys, yv⟩,
+  have xs : x ∈ s, by { rcases H y ys with ⟨t, ts, xt, yt, ht⟩, exact ts xt },
+  wlog xu : x ∈ u := hs xs using [u v y z, v u z y],
+  { rcases H y ys with ⟨t, ts, xt, yt, ht⟩,
+    have := ht u v hu hv(subset.trans ts hs) ⟨x, xt, xu⟩ ⟨y, yt, yv⟩,
+    exact this.imp (λ z hz, ⟨ts hz.1, hz.2⟩) },
+  { rw [union_comm v, inter_comm v] at this,
+    apply this; assumption }
+end
+
+/-- If any two points of a set are contained in a connected subset,
+then the original set is connected as well. -/
+theorem is_connected_of_forall_pair {s : set α}
+  (H : ∀ x y ∈ s, ∃ t ⊆ s, x ∈ t ∧ y ∈ t ∧ is_connected t) :
+  is_connected s :=
+begin
+  rintros u v hu hv hs ⟨x, xs, xu⟩ ⟨y, ys, yv⟩,
+  rcases H x y xs ys with ⟨t, ts, xt, yt, ht⟩,
+  have := ht u v hu hv(subset.trans ts hs) ⟨x, xt, xu⟩ ⟨y, yt, yv⟩,
+  exact this.imp (λ z hz, ⟨ts hz.1, hz.2⟩)
+end
+
+/-- A union of a family of connected sets with a common point is connected as well. -/
 theorem is_connected_sUnion (x : α) (c : set (set α)) (H1 : ∀ s ∈ c, x ∈ s)
   (H2 : ∀ s ∈ c, is_connected s) : is_connected (⋃₀ c) :=
 begin
-  rintro u v hu hv hUcuv ⟨y, hyUc, hyu⟩ ⟨z, hzUc, hzv⟩,
-  cases classical.em (c = ∅) with hc hc,
-  { rw [hc, sUnion_empty] at hyUc, exact hyUc.elim },
-  cases ne_empty_iff_exists_mem.1 hc with s hs,
-  cases hUcuv (mem_sUnion_of_mem (H1 s hs) hs) with hxu hxv,
-  { rcases hzUc with ⟨t, htc, hzt⟩,
-    specialize H2 t htc u v hu hv (subset.trans (subset_sUnion_of_mem htc) hUcuv),
-    cases H2 ⟨x, H1 t htc, hxu⟩ ⟨z, hzt, hzv⟩ with r hr,
-    exact ⟨r, mem_sUnion_of_mem hr.1 htc, hr.2⟩ },
-  { rcases hyUc with ⟨t, htc, hyt⟩,
-    specialize H2 t htc u v hu hv (subset.trans (subset_sUnion_of_mem htc) hUcuv),
-    cases H2 ⟨y, hyt, hyu⟩ ⟨x, H1 t htc, hxv⟩ with r hr,
-    exact ⟨r, mem_sUnion_of_mem hr.1 htc, hr.2⟩ }
+  apply is_connected_of_forall x,
+  rintros y ⟨s, sc, ys⟩,
+  exact ⟨s, subset_sUnion_of_mem sc, H1 s sc, ys, H2 s sc⟩
 end
 
-theorem is_connected_union (x : α) {s t : set α} (H1 : x ∈ s) (H2 : x ∈ t)
+theorem is_connected.union (x : α) {s t : set α} (H1 : x ∈ s) (H2 : x ∈ t)
   (H3 : is_connected s) (H4 : is_connected t) : is_connected (s ∪ t) :=
-have _ := is_connected_sUnion x {t,s}
-  (by rintro r (rfl | rfl | h); [exact H1, exact H2, exact h.elim])
-  (by rintro r (rfl | rfl | h); [exact H3, exact H4, exact h.elim]),
-have h2 : ⋃₀ {t, s} = s ∪ t, from (sUnion_insert _ _).trans (by rw sUnion_singleton),
-by rwa h2 at this
+sUnion_pair s t ▸ is_connected_sUnion x {s, t}
+  (by rintro r (rfl | rfl | h); [exact H2, exact H1, exact h.elim])
+  (by rintro r (rfl | rfl | h); [exact H4, exact H3, exact h.elim])
 
-theorem is_connected_closure {s : set α} (H : is_connected s) :
+theorem is_connected.closure {s : set α} (H : is_connected s) :
   is_connected (closure s) :=
 λ u v hu hv hcsuv ⟨y, hycs, hyu⟩ ⟨z, hzcs, hzv⟩,
 let ⟨p, hpu, hps⟩ := exists_mem_of_ne_empty (mem_closure_iff.1 hycs u hu hyu) in
@@ -549,6 +573,56 @@ let ⟨q, hqv, hqs⟩ := exists_mem_of_ne_empty (mem_closure_iff.1 hzcs v hv hzv
 let ⟨r, hrs, hruv⟩ := H u v hu hv (subset.trans subset_closure hcsuv) ⟨p, hps, hpu⟩ ⟨q, hqs, hqv⟩ in
 ⟨r, subset_closure hrs, hruv⟩
 
+theorem is_connected.image [topological_space β] {s : set α} (H : is_connected s)
+  (f : α → β) (hf : continuous_on f s) : is_connected (f '' s) :=
+begin
+  -- Unfold/destruct definitions in hypotheses
+  rintros u v hu hv huv ⟨_, ⟨x, xs, rfl⟩, xu⟩ ⟨_, ⟨y, ys, rfl⟩, yv⟩,
+  rcases continuous_on_iff'.1 hf u hu with ⟨u', hu', u'_eq⟩,
+  rcases continuous_on_iff'.1 hf v hv with ⟨v', hv', v'_eq⟩,
+  -- Reformulate `huv : f '' s ⊆ u ∪ v` in terms of `u'` and `v'`
+  replace huv : s ⊆ u' ∪ v',
+  { rw [image_subset_iff, preimage_union] at huv,
+    replace huv := subset_inter huv (subset.refl _),
+    rw [inter_distrib_right, u'_eq, v'_eq, ← inter_distrib_right] at huv,
+    exact (subset_inter_iff.1 huv).1 },
+  -- Now `s ⊆ u' ∪ v'`, so we can apply `‹is_connected s›`
+  obtain ⟨z, hz⟩ : (s ∩ (u' ∩ v')).nonempty,
+  { refine H u' v' hu' hv' huv ⟨x, _⟩ ⟨y, _⟩; rw inter_comm,
+    exacts [u'_eq ▸ ⟨xu, xs⟩, v'_eq ▸ ⟨yv, ys⟩] },
+  rw [← inter_self s, inter_assoc, inter_left_comm s u', ← inter_assoc,
+    inter_comm s, inter_comm s, ← u'_eq, ← v'_eq] at hz,
+  exact ⟨f z, ⟨z, hz.1.2, rfl⟩, hz.1.1, hz.2.1⟩
+end
+
+theorem is_connected_closed_iff {s : set α} :
+  is_connected s ↔ ∀ t t', is_closed t → is_closed t' → s ⊆ t ∪ t' →
+    (s ∩ t).nonempty → (s ∩ t').nonempty → (s ∩ (t ∩ t')).nonempty :=
+⟨begin
+  rintros h t t' ht ht' htt' ⟨x, xs, xt⟩ ⟨y, ys, yt'⟩,
+  by_contradiction h',
+  rw [← ne_empty_iff_nonempty, ne.def, not_not, ← subset_compl_iff_disjoint, compl_inter] at h',
+  have xt' : x ∉ t', from (h' xs).elim (absurd xt) id,
+  have yt : y ∉ t, from (h' ys).elim id (absurd yt'),
+  have := ne_empty_iff_exists_mem.2 (h (-t) (-t') (is_open_compl_iff.2 ht)
+    (is_open_compl_iff.2 ht') h' ⟨y, ys, yt⟩ ⟨x, xs, xt'⟩),
+  rw [ne.def, ← compl_union, ← subset_compl_iff_disjoint, compl_compl] at this,
+  contradiction
+end,
+begin
+  rintros h u v hu hv huv ⟨x, xs, xu⟩ ⟨y, ys, yv⟩,
+  by_contradiction h',
+  rw [← ne_empty_iff_exists_mem, ne.def, not_not, ← subset_compl_iff_disjoint, compl_inter] at h',
+  have xv : x ∉ v, from (h' xs).elim (absurd xu) id,
+  have yu : y ∉ u, from (h' ys).elim id (absurd yv),
+  have := ne_empty_iff_nonempty.2 (h (-u) (-v) (is_closed_compl_iff.2 hu)
+    (is_closed_compl_iff.2 hv) h' ⟨y, ys, yu⟩ ⟨x, xs, xv⟩),
+  rw [ne.def, ← compl_union, ← subset_compl_iff_disjoint, compl_compl] at this,
+  contradiction
+end⟩
+
+/-- The connected component of a point is the maximal connected set
+that contains this point. -/
 def connected_component (x : α) : set α :=
 ⋃₀ { s : set α | is_connected s ∧ x ∈ s }
 
@@ -566,7 +640,7 @@ theorem is_closed_connected_component {x : α} :
   is_closed (connected_component x) :=
 closure_eq_iff_is_closed.1 $ subset.antisymm
   (subset_connected_component
-    (is_connected_closure is_connected_connected_component)
+    is_connected_connected_component.closure
     (subset_closure mem_connected_component))
   subset_closure
 
@@ -604,6 +678,7 @@ end connected
 
 section totally_disconnected
 
+/-- A set is called totally disconnected if all of its connected components are singletons. -/
 def is_totally_disconnected (s : set α) : Prop :=
 ∀ t, t ⊆ s → is_connected t → subsingleton t
 
@@ -614,6 +689,7 @@ theorem is_totally_disconnected_singleton {x} : is_totally_disconnected ({x} : s
 λ t ht _, ⟨λ ⟨p, hp⟩ ⟨q, hq⟩, subtype.eq $ show p = q,
 from (eq_of_mem_singleton (ht hp)).symm ▸ (eq_of_mem_singleton (ht hq)).symm⟩
 
+/-- A space is totally disconnected if all of its connected components are singletons. -/
 class totally_disconnected_space (α : Type u) [topological_space α] : Prop :=
 (is_totally_disconnected_univ : is_totally_disconnected (univ : set α))
 
@@ -621,6 +697,8 @@ end totally_disconnected
 
 section totally_separated
 
+/-- A set `s` is called totally separated if any two points of this set can be separated
+by two disjoint open sets covering `s`. -/
 def is_totally_separated (s : set α) : Prop :=
 ∀ x ∈ s, ∀ y ∈ s, x ≠ y → ∃ u v : set α, is_open u ∧ is_open v ∧
   x ∈ u ∧ y ∈ v ∧ s ⊆ u ∪ v ∧ u ∩ v = ∅
@@ -638,6 +716,8 @@ assume hxy : x ≠ y, let ⟨u, v, hu, hv, hxu, hyv, hsuv, huv⟩ := H x (hts hx
 let ⟨r, hrt, hruv⟩ := ht u v hu hv (subset.trans hts hsuv) ⟨x, hxt, hxu⟩ ⟨y, hyt, hyv⟩ in
 ((ext_iff _ _).1 huv r).1 hruv⟩
 
+/-- A space is totally separated if any two points can be separated by two disjoint open sets
+covering the whole space. -/
 class totally_separated_space (α : Type u) [topological_space α] : Prop :=
 (is_totally_separated_univ : is_totally_separated (univ : set α))
 

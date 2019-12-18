@@ -45,11 +45,11 @@ roption.ext' (false_and _) (λ h, h.left.elim)
 @[simp] lemma add_top (x : enat) : x + ⊤ = ⊤ :=
 by rw [add_comm, top_add]
 
-@[simp, squash_cast] lemma coe_zero : ((0 : ℕ) : enat) = 0 := rfl
+@[simp, norm_cast squash] lemma coe_zero : ((0 : ℕ) : enat) = 0 := rfl
 
-@[simp, squash_cast] lemma coe_one : ((1 : ℕ) : enat) = 1 := rfl
+@[simp, norm_cast squash] lemma coe_one : ((1 : ℕ) : enat) = 1 := rfl
 
-@[simp, move_cast] lemma coe_add (x y : ℕ) : ((x + y : ℕ) : enat) = x + y :=
+@[simp, norm_cast move] lemma coe_add (x y : ℕ) : ((x + y : ℕ) : enat) = x + y :=
 roption.ext' (and_true _).symm (λ _ _, rfl)
 
 @[simp] lemma coe_add_get {x : ℕ} {y : enat} (h : ((x : enat) + y).dom) :
@@ -76,10 +76,10 @@ instance : partial_order enat :=
   le_antisymm := λ x y ⟨hxy₁, hxy₂⟩ ⟨hyx₁, hyx₂⟩, roption.ext' ⟨hyx₁, hxy₁⟩
     (λ _ _, le_antisymm (hxy₂ _) (hyx₂ _)) }
 
-@[simp, elim_cast] lemma coe_le_coe {x y : ℕ} : (x : enat) ≤ y ↔ x ≤ y :=
+@[simp, norm_cast elim] lemma coe_le_coe {x y : ℕ} : (x : enat) ≤ y ↔ x ≤ y :=
 ⟨λ ⟨_, h⟩, h trivial, λ h, ⟨λ _, trivial, λ _, h⟩⟩
 
-@[simp, elim_cast] lemma coe_lt_coe {x y : ℕ} : (x : enat) < y ↔ x < y :=
+@[simp, norm_cast elim] lemma coe_lt_coe {x y : ℕ} : (x : enat) < y ↔ x < y :=
 by rw [lt_iff_le_not_le, lt_iff_le_not_le, coe_le_coe, coe_le_coe]
 
 lemma get_le_get {x y : enat} {hx : x.dom} {hy : y.dom} :

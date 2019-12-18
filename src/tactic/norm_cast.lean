@@ -7,7 +7,9 @@ Normalizing casts inside expressions.
 -/
 
 import tactic.basic tactic.interactive tactic.converter.interactive
-import data.buffer.parser data.num.basic tactic.find
+--import data.buffer.parser data.num.basic tactic.find
+import data.buffer.parser data.num.basic
+import init.meta.lean.parser
 
 /-!
 # A tactic for normalizing casts inside expressions
@@ -28,6 +30,11 @@ Contrary to simp, it should be safe to use as a non-terminating tactic.
 * `tactic.interactive.assumption_mod_cast`
 -/
 
+
+-- lemmas to handle the ≥, > and ≠ operators
+lemma ge_from_le {α} [has_le α] : ∀ (x y : α), x ≥ y ↔ y ≤ x := λ _ _, iff.rfl
+lemma gt_from_lt {α} [has_lt α] : ∀ (x y : α), x > y ↔ y < x := λ _ _, iff.rfl
+lemma ne_from_not_eq {α} : ∀ (x y : α), x ≠ y ↔ ¬(x = y) := λ _ _, iff.rfl
 namespace tactic
 
 /--
@@ -88,7 +95,7 @@ mk_simp_attribute push_cast "The `push_cast` simp attribute uses `norm_cast` lem
 to move casts toward the leaf nodes of the expression."
 
 /-- A type used to classify `norm_cast` lemmas. -/
-@[derive decidable_eq]
+@[derive decidable_eq, derive has_reflect]
 inductive label
 | elim : label
 | move : label
@@ -96,13 +103,12 @@ inductive label
 
 open label
 
-/-- Convert `norm_cast.label` to `string`. -/
-def label.to_string : label → string
-| elim := "elim_cast"
-| move := "move_cast"
-| squash := "squash_cast"
+protected def label.to_string : label → string
+| elim := "elim"
+| move := "move"
+| squash := "squash"
 
-instance : has_to_string label := ⟨label.to_string⟩
+instance label.has_to_string : has_to_string label := ⟨label.to_string⟩
 
 /-- `same_or_fewer_initial_casts lhs rhs` checks whether `rhs` begins with the same number of or
 fewer applications of casts than `lhs`. -/
@@ -154,6 +160,7 @@ meta structure norm_cast_cache :=
 ( up : simp_lemmas )
 ( down : simp_lemmas )
 ( squash : simp_lemmas )
+meta def norm_cast_attr_ty : Type := user_attribute norm_cast_cache (option label)
 
 /-- Creates an empty `norm_cast_cache`. -/
 meta def empty_cache : norm_cast_cache :=
@@ -193,133 +200,80 @@ do
     squash := new_squash }
 
 /-- `add_lemma cache decl` infers the proper `norm_cast` attribute for `decl` and adds it to `cache`. -/
-meta def add_lemma (cache : norm_cast_cache) (decl : name) : tactic norm_cast_cache :=
+meta def add_lemma (attr : norm_cast_attr_ty) (cache : norm_cast_cache) (decl : name) : tactic norm_cast_cache :=
 do
   e ← mk_const decl,
   ty ← infer_type e,
-  guess ← classify_type ty,
-  match guess with
-  | elim := add_elim cache e
-  | move := add_move cache e
+  param ← attr.get_param decl,
+  l ← param <|> classify_type ty,
+  match l with
+  | elim   := add_elim cache e
+  | move   := add_move cache e
   | squash := add_squash cache e
   end
 
--- the priority `n` is unused but required for the user_attribute api.
-/-- Called after the `norm_cast` attribute is applied to a declaration. -/
-@[nolint] meta def after_set (decl : name) (n : ℕ) (b : bool) : tactic unit :=
-( do
-  e ← mk_const decl,
-  ty ← infer_type e,
-  guess ← classify_type ty,
-  if guess ≠ elim then simp_attr.push_cast.set decl () tt else skip
-) <|> fail "failed to classify"
-
--- these are `ge_iff_le`, etc in the library. I'm not sure why they're defined on preorders.
--- lemmas to handle the ≥, > and ≠ operators
-lemma ge_from_le {α} [has_le α] : ∀ (x y : α), x ≥ y ↔ y ≤ x := λ _ _, iff.rfl
-lemma gt_from_lt {α} [has_lt α] : ∀ (x y : α), x > y ↔ y < x := λ _ _, iff.rfl
-lemma ne_from_not_eq {α} : ∀ (x y : α), x ≠ y ↔ ¬(x = y) := λ _ _, iff.rfl
-
 /-- `mk_cache names` creates a `norm_cast_cache`. It infers the proper `norm_cast` attributes
 for names in `names`, and collects the lemmas attributed with specific `norm_cast` attributes. -/
-meta def mk_cache (names : list name) : tactic norm_cast_cache :=
+meta def mk_cache (attr : thunk norm_cast_attr_ty) (names : list name) : tactic norm_cast_cache :=
 do
-  cache ← monad.foldl add_lemma empty_cache names,
-  elim_lemmas ← attribute.get_instances `elim_cast >>= monad.mapm mk_const,
-  move_lemmas ← attribute.get_instances `move_cast >>= monad.mapm mk_const,
-  squash_lemmas ← attribute.get_instances `squash_cast >>= monad.mapm mk_const,
-  cache ← monad.foldl add_elim cache elim_lemmas,
-  cache ← monad.foldl add_move cache move_lemmas,
-  cache ← monad.foldl add_squash cache squash_lemmas,
-
-  new_up ← simp_lemmas.add_simp cache.up ``norm_cast.ge_from_le,
-  new_up ← simp_lemmas.add_simp new_up ``gt_from_lt,
-  new_up ← simp_lemmas.add_simp new_up ``ne_from_not_eq,
-  let cache : norm_cast_cache := {
+  cache ← monad.foldl (add_lemma (attr ())) empty_cache names,
+  new_up ← simp_lemmas.add_simp cache.up ``ge_from_le,
+  new_up ← simp_lemmas.add_simp new_up   ``gt_from_lt,
+  new_up ← simp_lemmas.add_simp new_up   ``ne_from_not_eq,
+  return {
     up := new_up,
     down := cache.down,
-    squash := cache.squash,
-  },
+    squash := cache.squash, }
 
-  return cache
+-- the priority `n` is unused but required for the user_attribute api.
+/-- Called after the `norm_cast` attribute is applied to a declaration. -/
+@[nolint] meta def after_set (attr : thunk norm_cast_attr_ty) (decl : name) (n : ℕ) (b : bool) : tactic unit :=
+do
+  e ← mk_const decl,
+  ty ← infer_type e,
+  param ← (attr ()).get_param decl,
+  l ← param <|> classify_type ty,
+  if l ≠ elim then simp_attr.push_cast.set decl () tt else skip
 
-/-- User attribute for lemmas to be used by the `norm_cast` tactic. The lemma kind will
-be inferred automatically. -/
-@[user_attribute] meta def norm_cast_attr : user_attribute norm_cast_cache :=
+def label.of_string : string -> option label
+| "elim" := some elim
+| "move" := some move
+| "squash" := some squash
+| _ := none
+
+-- parse a label manually added to the attribute
+meta def parse_label : lean.parser (option label) :=
+( do
+  n <- lean.parser.ident,
+  l <- label.of_string (to_string n) <|> failure,
+  return (some l)
+) <|> return none
+
+@[user_attribute] meta def norm_cast_attr : user_attribute norm_cast_cache (option label) :=
 {
     name      := `norm_cast,
     descr     := "attribute for norm_cast",
-    after_set := some after_set,
+    after_set := some $ after_set norm_cast_attr,
     before_unset := some $ λ _ _, tactic.skip,
     cache_cfg := {
-        mk_cache     := mk_cache,
+        mk_cache     := mk_cache norm_cast_attr,
         dependencies := [],
-    }
+    },
+    parser := parse_label,
 }
 
-/-- User attribute for lemmas to be used by the `norm_cast` tactic in the `elim_cast` stage. -/
-@[user_attribute] meta def elim_cast_attr : user_attribute unit :=
-{
-    name      := `elim_cast,
-    descr     := "attribute for norm_cast",
-    after_set := some $ λ decl _ _, tactic.skip,
-    before_unset := some $ λ _ _, tactic.skip,
-    cache_cfg := {
-        mk_cache     := λ _, skip,
-        dependencies := [],
-    }
-}
-
-/-- User attribute for lemmas to be used by the `norm_cast` tactic in the `move_cast` stage. -/
-@[user_attribute] meta def move_cast_attr : user_attribute unit :=
-{
-    name      := `move_cast,
-    descr     := "attribute for norm_cast",
-    after_set := some $ λ decl _ _, simp_attr.push_cast.set decl () tt,
-    before_unset := some $ λ _ _, tactic.skip,
-    cache_cfg := {
-        mk_cache     := λ _, skip,
-        dependencies := [],
-    }
-}
-
-/-- User attribute for lemmas to be used by the `norm_cast` tactic in the `squash_cast` stage. -/
-@[user_attribute] meta def squash_cast_attr : user_attribute unit :=
-{
-    name      := `squash_cast,
-    descr     := "attribute for norm_cast",
-    after_set := some $ λ decl _ _, simp_attr.push_cast.set decl () tt,
-    before_unset := some $ λ _ _, tactic.skip,
-    cache_cfg := {
-        mk_cache     := λ _, skip,
-        dependencies := [],
-    }
-}
-
-/-- `classifier_test_decl attr decl` tries to classify `decl` as a `norm_cast` lemma.
-If the guess is not `attr`, the difference is printed. -/
-meta def classifier_test_decl (attr : label) (decl : name) : tactic unit :=
-( do
+-- run the classifier on the type of a declaration
+meta def make_guess (decl : name) : tactic label :=
+do
   e ← mk_const decl,
   ty ← infer_type e,
-  guess ← classify_type ty,
-  if guess = attr then skip else trace $
-    "#check " ++ to_string decl ++ " -- labeled " ++ to_string attr ++
-    " but we guessed " ++ to_string guess
-) <|> (trace $ "#check " ++ to_string decl ++ " -- failed to classify")
+  classify_type ty
 
-/-- `classifier_test_attr attr` runs `classifier_test_decl attr` on all lemmas tagged with `attr`. -/
-meta def classifier_test_attr (attr : label) : tactic unit :=
+-- overwrite the classifier when a label is already present
+meta def get_label (decl : name) : tactic label :=
 do
-  trace $ "/- "  ++ to_string attr ++ " -/",
-  l ← attribute.get_instances (to_string attr : name),
-  _ ← monad.mapm (classifier_test_decl attr) l,
-  trace ""
-
-/-- Checks all `elim_`, `move_`, and `squash_cast` lemmas to see if they have been attributed
-correctly. -/
-meta def classifier_test_all : tactic unit :=
-monad.mapm classifier_test_attr [elim, move, squash] >> skip
+  param ← norm_cast_attr.get_param decl,
+  param <|> make_guess decl
 
 end norm_cast
 
@@ -649,3 +603,92 @@ attribute [norm_cast] int.coe_nat_mul
   {c : Prop} [decidable c] {a b : α} :
   ↑(ite c a b) = ite c (↑a : β) (↑b : β) :=
 by by_cases h : c; simp [h]
+
+/- scripts to compare two classifiers -/
+-- they are meant to be used before an update of the classifier,
+-- to make sure nothing is mislabeled
+
+namespace norm_cast
+
+open tactic expr label
+
+inductive test_result : Type
+| agree     : name → label → test_result         -- classifiers make same guess
+| disagree  : name → label → label → test_result -- classifiers make different guesses
+| progress  : name → label → test_result         -- first classifier fails
+| failure   : name → option label → test_result  -- second classifier fails
+
+open test_result
+
+def get_decl : test_result → name
+| (agree n _)      := n
+| (disagree n _ _) := n
+| (progress n _)   := n
+| (failure n _)    := n
+
+def get_first : test_result → option label
+| (agree _ l)      := some l
+| (disagree _ l _) := some l
+| (progress _ _)   := none
+| (failure _ ol)   := ol
+
+def get_second : test_result → option label
+| (agree _ l)      := some l
+| (disagree _ _ l) := some l
+| (progress _ l)   := some l
+| (failure _ _)    := none
+
+protected def test_result.to_string (tr : test_result) : string :=
+"#check " ++ to_string (get_decl tr)
+++ "\n  -- first: " ++ to_string (get_first tr)
+++ "\n  -- second: " ++ to_string (get_second tr)
+
+instance test_result.has_to_string : has_to_string test_result := ⟨test_result.to_string⟩
+
+-- a basic structure to sort test results
+structure test_cache : Type :=
+( a : list test_result ) -- agree
+( b : list test_result ) -- disagree
+( c : list test_result ) -- progress
+( d : list test_result ) -- failure
+
+-- sort a test result
+def aux : test_cache → test_result → test_cache
+| ⟨a, b, c, d⟩ r := match r with
+| (agree _ _)      := ⟨r::a, b, c, d⟩
+| (disagree _ _ _) := ⟨a, r::b, c, d⟩
+| (progress _ _)   := ⟨a, b, r::c, d⟩
+| (failure _ _)    := ⟨a, b, c, r::d⟩
+end
+
+-- run classifiers f and g on decl and output the result
+meta def test_decl (f g : name → tactic label) (decl : name) : tactic test_result :=
+do
+  first_guess ← (some <$> f decl) <|> return none,
+  second_guess ← (some <$> g decl) <|> return none,
+  return $ match (first_guess, second_guess) with
+  | (some a, some b) := if a = b then agree decl a else disagree decl a b
+  | (_, some l) := progress decl l
+  | (_, none) := failure decl first_guess
+  end
+
+-- run classifiers f and g on all lemmas with the norm_cast attribute and print the results
+meta def test_classifiers (f g : name → tactic label) : tactic unit :=
+do
+  decls ← attribute.get_instances `norm_cast,
+  res ← monad.mapm (test_decl f g) decls,
+  let ⟨l1, l2, l3, l4⟩ := list.foldl aux ⟨[], [], [], []⟩ res,
+  trace "\n/- classifiers disagree -/",
+  monad.mapm (trace ∘ to_string) l2,
+  trace "\n/- firt classifier can't guess -/",
+  monad.mapm (trace ∘ to_string) l3,
+  trace "\n/- second classifier can't guess -/",
+  monad.mapm (trace ∘ to_string) l4,
+  trace "\n/- classifiers agree -/",
+  monad.mapm (trace ∘ to_string) l1,
+  skip
+
+-- for instance, this command compare the classifiers with and without the manual overwrite
+--run_cmd test_classifiers make_guess get_label
+
+end norm_cast

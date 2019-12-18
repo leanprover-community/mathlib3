@@ -13,6 +13,8 @@ dirs="$root/src $root/test"
 for olean_file in `find $dirs -name "*.olean"`
 do
     lean_file=${olean_file/%.olean/.lean}
+    echo "$lean_file"
+    echo "$olean_file"
     if [ ! -e $lean_file ]; then
         echo "rm $olean_file"
         rm $olean_file

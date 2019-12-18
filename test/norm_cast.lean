@@ -72,12 +72,12 @@ instance [has_mul α] : mul_zero_class (with_zero α) :=
   mul_zero  := λ a, by cases a; refl,
   ..with_zero.has_zero }
 
-@[squash_cast] lemma coe_one [has_one α] : ((1 : α) : with_zero α) = 1 := rfl
+@[norm_cast] lemma coe_one [has_one α] : ((1 : α) : with_zero α) = 1 := rfl
 
-@[elim_cast] lemma coe_inj {a b : α} : (a : with_zero α) = b ↔ a = b :=
+@[norm_cast] lemma coe_inj {a b : α} : (a : with_zero α) = b ↔ a = b :=
 option.some_inj
 
-@[move_cast] lemma mul_coe {α : Type*} [has_mul α] (a b : α) :
+@[norm_cast] lemma mul_coe {α : Type*} [has_mul α] (a b : α) :
   ((a * b : α) : with_zero α) = (a : with_zero α) * b := rfl
 
 example [has_mul α] [has_one α] (x y : α) (h : (x : with_zero α) * y = 1) : x*y = 1 :=
@@ -99,4 +99,4 @@ begin
   assumption_mod_cast
 end
 
-example {x : ℚ} : ((x + 42 : ℚ) : ℝ) = x + 42 :=  by push_cast
+example {x : ℚ} : ((x + 42 : ℚ) : ℝ) = x + 42 := by push_cast

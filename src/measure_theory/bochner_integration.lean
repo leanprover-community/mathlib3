@@ -177,7 +177,7 @@ local infixr ` →ₛ `:25 := simple_func
 namespace simple_func
 
 section bintegral
-/-! 
+/-!
 ### The Bochner integral of simple functions
 
 Define the Bochner integral of simple functions of the type `α →ₛ β` where `β` is a normed group,
@@ -425,10 +425,10 @@ instance : has_coe (α →₁ₛ β) (α →₁ β) := ⟨subtype.val⟩
 protected lemma eq {f g : α →₁ₛ β} : (f : α →₁ β) = (g : α →₁ β) → f = g := subtype.eq
 protected lemma eq' {f g : α →₁ₛ β} : (f : α →ₘ β) = (g : α →ₘ β) → f = g := subtype.eq ∘ subtype.eq
 
-@[elim_cast] protected lemma eq_iff {f g : α →₁ₛ β} : (f : α →₁ β) = (g : α →₁ β) ↔ f = g :=
+@[norm_cast elim] protected lemma eq_iff {f g : α →₁ₛ β} : (f : α →₁ β) = (g : α →₁ β) ↔ f = g :=
 iff.intro (subtype.eq) (congr_arg coe)
 
-@[elim_cast] protected lemma eq_iff' {f g : α →₁ₛ β} : (f : α →ₘ β) = (g : α →ₘ β) ↔ f = g :=
+@[norm_cast elim] protected lemma eq_iff' {f g : α →₁ₛ β} : (f : α →ₘ β) = (g : α →ₘ β) ↔ f = g :=
 iff.intro (simple_func.eq') (congr_arg _)
 
 /-- L1 simple functions forms a `emetric_space`, with the emetric being inherited from L1 space,

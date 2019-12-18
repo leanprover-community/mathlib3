@@ -17,7 +17,7 @@ instance [has_neg α] : has_neg (completion α) := ⟨completion.map (λa, -a : 
 instance [has_add α] : has_add (completion α) := ⟨completion.map₂ (+)⟩
 
 -- TODO: switch sides once #1103 is fixed
-@[elim_cast]
+@[norm_cast elim]
 lemma uniform_space.completion.coe_zero [has_zero α] : 0 = ((0 : α) : completion α) := rfl
 end group
 
@@ -26,11 +26,11 @@ section uniform_add_group
 open uniform_space uniform_space.completion
 variables {α : Type*} [uniform_space α] [add_group α] [uniform_add_group α]
 
-@[move_cast]
+@[norm_cast move]
 lemma coe_neg (a : α) : ((- a : α) : completion α) = - a :=
 (map_coe uniform_continuous_neg a).symm
 
-@[move_cast]
+@[norm_cast move]
 lemma coe_add (a b : α) : ((a + b : α) : completion α) = a + b :=
 (map₂_coe_coe a b (+) uniform_continuous_add).symm
 

@@ -21,11 +21,11 @@ instance : has_one (completion α) := ⟨(1:α)⟩
 instance : has_mul (completion α) :=
   ⟨curry $ (dense_inducing_coe.prod dense_inducing_coe).extend (coe ∘ uncurry' (*))⟩
 
-@[squash_cast] lemma coe_one : ((1 : α) : completion α) = 1 := rfl
+@[norm_cast squash] lemma coe_one : ((1 : α) : completion α) = 1 := rfl
 
 variables {α} [topological_ring α]
 
-@[move_cast]
+@[norm_cast move]
 lemma coe_mul (a b : α) : ((a * b : α) : completion α) = a * b :=
 ((dense_inducing_coe.prod dense_inducing_coe).extend_eq_of_cont
   ((continuous_coe α).comp continuous_mul) (a, b)).symm

@@ -442,7 +442,7 @@ local attribute [instance] ae_eq_fun.is_add_subgroup
 instance : has_coe (α →₁ β) (α →ₘ β) := ⟨subtype.val⟩
 
 protected lemma eq {f g : α →₁ β} : (f : α →ₘ β) = (g : α →ₘ β) → f = g := subtype.eq
-@[elim_cast] protected lemma eq_iff {f g : α →₁ β} : (f : α →ₘ β) = (g : α →ₘ β) ↔ f = g :=
+@[norm_cast elim] protected lemma eq_iff {f g : α →₁ β} : (f : α →ₘ β) = (g : α →ₘ β) ↔ f = g :=
 iff.intro (l1.eq) (congr_arg coe)
 
 /- TODO : order structure of l1-/

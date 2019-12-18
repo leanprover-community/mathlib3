@@ -389,7 +389,7 @@ section tsum
 
 variables {f g : α → ennreal}
 
-@[elim_cast] protected lemma has_sum_coe {f : α → nnreal} {r : nnreal} :
+@[norm_cast elim] protected lemma has_sum_coe {f : α → nnreal} {r : nnreal} :
   has_sum (λa, (f a : ennreal)) ↑r ↔ has_sum f r :=
 have (λs:finset α, s.sum (coe ∘ f)) = (coe : nnreal → ennreal) ∘ (λs:finset α, s.sum f),
   from funext $ assume s, ennreal.coe_finset_sum.symm,

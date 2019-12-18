@@ -218,8 +218,7 @@ instance closeds.compact_space [compact_space α] : compact_space (closeds α) :
   -- `F` is ε-dense
   { assume u _,
     rcases main u.val with ⟨t0, t0s, Dut0⟩,
-    have : finite t0 := finite_subset fs t0s,
-    have : is_closed t0 := closed_of_compact _ (compact_of_finite this),
+    have : is_closed t0 := closed_of_compact _ (finite_subset fs t0s).compact,
     let t : closeds α := ⟨t0, this⟩,
     have : t ∈ F := t0s,
     have : edist u t < ε := lt_of_le_of_lt Dut0 δlt,
@@ -308,8 +307,8 @@ end
 the same statement for closed subsets -/
 instance nonempty_compacts.compact_space [compact_space α] : compact_space (nonempty_compacts α) :=
 ⟨begin
-  rw compact_iff_compact_image_of_embedding nonempty_compacts.to_closeds.uniform_embedding.embedding,
-  exact compact_of_closed nonempty_compacts.is_closed_in_closeds
+  rw embedding.compact_iff_compact_image nonempty_compacts.to_closeds.uniform_embedding.embedding,
+  exact nonempty_compacts.is_closed_in_closeds.compact
 end⟩
 
 /-- In a second countable space, the type of nonempty compact subsets is second countable -/
@@ -390,7 +389,7 @@ begin
         rw [h, Hausdorff_edist_empty t.property.1] at Dtc,
         exact not_top_lt Dtc },
       -- let `d` be the version of `c` in the type `nonempty_compacts α`
-      let d : nonempty_compacts α := ⟨c, ⟨‹c ≠ ∅›, compact_of_finite ‹finite c›⟩⟩,
+      let d : nonempty_compacts α := ⟨c, ⟨‹c ≠ ∅›, ‹finite c›.compact⟩⟩,
       have : c ⊆ s,
       { assume x hx,
         rcases (mem_image _ _ _).1 hx.1 with ⟨y, ⟨ya, yx⟩⟩,

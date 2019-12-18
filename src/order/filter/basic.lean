@@ -727,10 +727,8 @@ lemma map_le_iff_le_comap : map m f ≤ g ↔ f ≤ comap m g :=
 lemma gc_map_comap (m : α → β) : galois_connection (map m) (comap m) :=
 assume f g, map_le_iff_le_comap
 
-lemma map_mono (h : f₁ ≤ f₂) : map m f₁ ≤ map m f₂ := (gc_map_comap m).monotone_l h
-lemma monotone_map : monotone (map m) | a b := map_mono
-lemma comap_mono (h : g₁ ≤ g₂) : comap m g₁ ≤ comap m g₂ := (gc_map_comap m).monotone_u h
-lemma monotone_comap : monotone (comap m) | a b := comap_mono
+lemma map_mono : monotone (map m) := (gc_map_comap m).monotone_l
+lemma comap_mono : monotone (comap m) := (gc_map_comap m).monotone_u
 
 @[simp] lemma map_bot : map m ⊥ = ⊥ := (gc_map_comap m).l_bot
 @[simp] lemma map_sup : map m (f₁ ⊔ f₂) = map m f₁ ⊔ map m f₂ := (gc_map_comap m).l_sup
@@ -763,7 +761,7 @@ le_antisymm
         assume i,
         exact (ht i).2
       end⟩)
-  (supr_le $ assume i, monotone_comap $ le_supr _ _)
+  (supr_le $ assume i, comap_mono $ le_supr _ _)
 
 lemma comap_Sup {s : set (filter β)} {m : α → β} : comap m (Sup s) = (⨆f∈s, comap m f) :=
 by simp only [Sup_eq_supr, comap_supr, eq_self_iff_true]
@@ -774,7 +772,7 @@ le_antisymm
     ⟨t₁ ∪ t₂,
       ⟨g₁.sets_of_superset ht₁ (subset_union_left _ _), g₂.sets_of_superset ht₂ (subset_union_right _ _)⟩,
       union_subset hs₁ hs₂⟩)
-  (sup_le (comap_mono le_sup_left) (comap_mono le_sup_right))
+  ((@comap_mono _ _ m).le_map_sup _ _)
 
 lemma map_comap {f : filter β} {m : α → β} (hf : range m ∈ f) : (f.comap m).map m = f :=
 le_antisymm
@@ -803,7 +801,7 @@ this ▸ hb
 lemma le_of_map_le_map_inj_iff {f g : filter α} {m : α → β} {s : set α}
   (hsf : s ∈ f) (hsg : s ∈ g) (hm : ∀x∈s, ∀y∈s, m x = m y → x = y) :
   map m f ≤ map m g ↔ f ≤ g :=
-iff.intro (le_of_map_le_map_inj' hsf hsg hm) map_mono
+iff.intro (le_of_map_le_map_inj' hsf hsg hm) (λ h, map_mono h)
 
 lemma eq_of_map_eq_map_inj' {f g : filter α} {m : α → β} {s : set α}
   (hsf : s ∈ f) (hsg : s ∈ g) (hm : ∀x∈s, ∀y∈s, m x = m y → x = y)
@@ -846,13 +844,24 @@ forall_sets_neq_empty_iff_neq_bot.mp $ assume s ⟨t, ht, t_s⟩,
   let ⟨a, (ha : a ∈ preimage m t)⟩ := hm t ht in
   neq_bot_of_le_neq_bot (ne_empty_of_mem ha) t_s
 
-lemma comap_neq_bot_of_surj {f : filter β} {m : α → β}
-  (hf : f ≠ ⊥) (hm : ∀b, ∃a, m a = b) : comap m f ≠ ⊥ :=
+lemma comap_ne_bot_of_range_mem {f : filter β} {m : α → β}
+  (hf : f ≠ ⊥) (hm : range m ∈ f) : comap m f ≠ ⊥ :=
 comap_neq_bot $ assume t ht,
-  let
-    ⟨b, (hx : b ∈ t)⟩ := inhabited_of_mem_sets hf ht,
-    ⟨a, (ha : m a = b)⟩ := hm b
-  in ⟨a, ha.symm ▸ hx⟩
+  let ⟨_, ha, a, rfl⟩ := inhabited_of_mem_sets hf (inter_mem_sets ht hm)
+  in ⟨a, ha⟩
+
+lemma comap_inf_principal_ne_bot_of_image_mem {f : filter β} {m : α → β}
+  (hf : f ≠ ⊥) {s : set α} (hs : m '' s ∈ f) : (comap m f ⊓ principal s) ≠ ⊥ :=
+begin
+  refine compl_compl s ▸ mt mem_sets_of_neq_bot _,
+  rintros ⟨t, ht, hts⟩,
+  rcases inhabited_of_mem_sets hf (inter_mem_sets hs ht) with ⟨_, ⟨x, hxs, rfl⟩, hxt⟩,
+  exact absurd hxs (hts hxt)
+end
+
+lemma comap_neq_bot_of_surj {f : filter β} {m : α → β}
+  (hf : f ≠ ⊥) (hm : function.surjective m) : comap m f ≠ ⊥ :=
+comap_ne_bot_of_range_mem hf $ univ_mem_sets' hm
 
 @[simp] lemma map_eq_bot_iff : map m f = ⊥ ↔ f = ⊥ :=
 ⟨by rw [←empty_in_sets_eq_bot, ←empty_in_sets_eq_bot]; exact id,
@@ -915,12 +924,13 @@ calc map m (⨅i (h : p i), f i) = map m (⨅i:subtype p, f i.val) : by simp onl
     ⟨⟨i, hi⟩⟩
   ... = (⨅i (h : p i), map m (f i)) : by simp only [infi_subtype, eq_self_iff_true]
 
+lemma map_inf_le {f g : filter α} {m : α → β} : map m (f ⊓ g) ≤ map m f ⊓ map m g :=
+(@map_mono _ _ m).map_inf_le f g
+
 lemma map_inf' {f g : filter α} {m : α → β} {t : set α} (htf : t ∈ f) (htg : t ∈ g)
   (h : ∀x∈t, ∀y∈t, m x = m y → x = y) : map m (f ⊓ g) = map m f ⊓ map m g :=
 begin
-  refine le_antisymm
-    (le_inf (map_mono inf_le_left) (map_mono inf_le_right))
-    (assume s hs, _),
+  refine le_antisymm map_inf_le (assume s hs, _),
   simp only [map, mem_inf_sets, exists_prop, mem_map, mem_preimage, mem_inf_sets] at hs ⊢,
   rcases hs with ⟨t₁, h₁, t₂, h₂, hs⟩,
   refine ⟨m '' (t₁ ∩ t), _, m '' (t₂ ∩ t), _, _⟩,
@@ -932,9 +942,9 @@ begin
     { exact λ x ⟨_, hx⟩ y ⟨_, hy⟩, h x hx y hy } }
 end
 
-lemma map_inf {f g : filter α} {m : α → β} (h : ∀ x y, m x = m y → x = y) :
+lemma map_inf {f g : filter α} {m : α → β} (h : function.injective m) :
   map m (f ⊓ g) = map m f ⊓ map m g :=
-map_inf' univ_mem_sets univ_mem_sets (assume x _ y _, h x y)
+map_inf' univ_mem_sets univ_mem_sets (assume x _ y _ hxy, h hxy)
 
 lemma map_eq_comap_of_inverse {f : filter α} {m : α → β} {n : β → α}
   (h₁ : m ∘ n = id) (h₂ : n ∘ m = id) : map m f = comap n f :=
@@ -1185,6 +1195,10 @@ lemma tendsto_le_right {f : α → β} {x : filter α} {y z : filter β}
   (h₁ : y ≤ z) (h₂ : tendsto f x y) : tendsto f x z :=
 le_trans h₂ h₁
 
+lemma tendsto.ne_bot {f : α → β} {x : filter α} {y : filter β} (h : tendsto f x y) (hx : x ≠ ⊥) :
+  y ≠ ⊥ :=
+neq_bot_of_le_neq_bot (map_ne_bot hx) h
+
 lemma tendsto_map {f : α → β} {x : filter α} : tendsto f x (map f x) := le_refl (map f x)
 
 lemma tendsto_map' {f : β → γ} {g : α → β} {x : filter α} {y : filter γ}
@@ -1233,6 +1247,10 @@ le_trans (map_mono inf_le_left) h
 lemma tendsto_inf_right {f : α → β} {x₁ x₂ : filter α} {y : filter β}
   (h : tendsto f x₂ y) : tendsto f (x₁ ⊓ x₂) y  :=
 le_trans (map_mono inf_le_right) h
+
+lemma tendsto.inf {f : α → β} {x₁ x₂ : filter α} {y₁ y₂ : filter β}
+  (h₁ : tendsto f x₁ y₁) (h₂ : tendsto f x₂ y₂) : tendsto f (x₁ ⊓ x₂) (y₁ ⊓ y₂) :=
+tendsto_inf.2 ⟨tendsto_inf_left h₁, tendsto_inf_right h₂⟩
 
 lemma tendsto_infi {f : α → β} {x : filter α} {y : ι → filter β} :
   tendsto f x (⨅i, y i) ↔ ∀i, tendsto f x (y i) :=

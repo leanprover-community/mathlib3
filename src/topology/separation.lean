@@ -363,7 +363,7 @@ lemma normal_of_compact_t2 [compact_space α] [t2_space α] : normal_space α :=
 begin
   refine ⟨assume s t hs ht st, _⟩,
   simp only [disjoint_iff],
-  exact compact_compact_separated (compact_of_closed hs) (compact_of_closed ht) st.eq_bot
+  exact compact_compact_separated hs.compact ht.compact st.eq_bot
 end
 
 end normality

@@ -161,6 +161,15 @@ rfl
 @[simp] lemma cast_succ_inj {a b : fin n} : a.cast_succ = b.cast_succ ↔ a = b :=
 by simp [eq_iff_veq]
 
+lemma cast_succ_ne_last (a : fin n) : cast_succ a ≠ last n :=
+begin
+  by_contradiction h,
+  simp at h,
+  have : (cast_succ a).val = (last n).val, by rw [h],
+  simp only [last_val, cast_succ_val] at this,
+  exact ne_of_lt a.2 this,
+end
+
 def clamp (n m : ℕ) : fin (m + 1) := fin.of_nat $ min n m
 
 @[simp] lemma clamp_val (n m : ℕ) : (clamp n m).val = min n m :=

@@ -640,7 +640,7 @@ def get_second : test_result → option label
 
 protected def test_result.to_string (tr : test_result) : string :=
 "#check " ++ to_string (get_decl tr)
-++ "\n  -- first: " ++ to_string (get_first tr)
+++ "\n  -- first:  " ++ to_string (get_first tr)
 ++ "\n  -- second: " ++ to_string (get_second tr)
 
 instance test_result.has_to_string : has_to_string test_result := ⟨test_result.to_string⟩

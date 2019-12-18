@@ -97,9 +97,8 @@ begin
   suffices : ∀ (s:finset ℕ) b
     (cv : Icc a b ⊆ ⋃ i ∈ (↑s:set ℕ), Ioo (c i) (d i)),
     (of_real (b - a) : ennreal) ≤ s.sum (λ i, of_real (d i - c i)),
-  { rcases @compact_elim_finite_subcover_image _ _
-      _ (Icc a b) univ (λ i, Ioo (c i) (d i)) compact_Icc
-      (λ i _, is_open_Ioo) (by simpa using ss) with ⟨s, su, hf, hs⟩,
+  { rcases compact_Icc.elim_finite_subcover_image (λ (i : ℕ) (_ : i ∈ univ),
+      @is_open_Ioo _ _ _ _ (c i) (d i)) (by simpa using ss) with ⟨s, su, hf, hs⟩,
     have e : (⋃ i ∈ (↑hf.to_finset:set ℕ),
       Ioo (c i) (d i)) = (⋃ i ∈ s, Ioo (c i) (d i)), {simp [set.ext_iff]},
     rw ennreal.tsum_eq_supr_sum,

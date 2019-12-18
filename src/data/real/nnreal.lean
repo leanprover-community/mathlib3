@@ -389,7 +389,7 @@ by simp [zero_lt_iff_ne_zero]
 protected lemma mul_inv {r p : ℝ≥0} : (r * p)⁻¹ = p⁻¹ * r⁻¹ := nnreal.eq $ mul_inv' _ _
 
 protected lemma inv_pow' {r : ℝ≥0} {n : ℕ} : (r^n)⁻¹ = (r⁻¹)^n :=
-nnreal.eq $ by { push_cast, apply inv_pow' }
+nnreal.eq $ by { push_cast, exact (inv_pow' _ _).symm }
 
 @[simp] lemma inv_mul_cancel {r : ℝ≥0} (h : r ≠ 0) : r⁻¹ * r = 1 :=
 nnreal.eq $ inv_mul_cancel $ mt (@nnreal.eq_iff r 0).1 h

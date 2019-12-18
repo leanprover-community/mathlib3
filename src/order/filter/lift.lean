@@ -24,7 +24,7 @@ protected def lift (f : filter α) (g : set α → filter β) :=
 variables {f f₁ f₂ : filter α} {g g₁ g₂ : set α → filter β}
 
 lemma lift_sets_eq (hg : monotone g) : (f.lift g).sets = (⋃t∈f.sets, (g t).sets) :=
-infi_sets_eq'
+binfi_sets_eq
   (assume s hs t ht, ⟨s ∩ t, inter_mem_sets hs ht,
     hg $ inter_subset_left s t, hg $ inter_subset_right s t⟩)
   ⟨univ, univ_mem_sets⟩
@@ -57,13 +57,13 @@ infi_le_infi $ assume s, infi_le_infi $ assume hs, hg s hs
 
 lemma map_lift_eq {m : β → γ} (hg : monotone g) : map m (f.lift g) = f.lift (map m ∘ g) :=
 have monotone (map m ∘ g),
-  from monotone_map.comp hg,
+  from map_mono.comp hg,
 filter_eq $ set.ext $
   by simp only [mem_lift_sets, hg, @mem_lift_sets _ _ f _ this, exists_prop, forall_const, mem_map, iff_self, function.comp_app]
 
 lemma comap_lift_eq {m : γ → β} (hg : monotone g) : comap m (f.lift g) = f.lift (comap m ∘ g) :=
 have monotone (comap m ∘ g),
-  from monotone_comap.comp hg,
+  from comap_mono.comp hg,
 filter_eq $ set.ext begin
   simp only [hg, @mem_lift_sets _ _ f _ this, comap, mem_lift_sets, mem_set_of_eq, exists_prop,
     function.comp_apply],

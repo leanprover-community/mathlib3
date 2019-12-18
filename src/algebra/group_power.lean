@@ -486,7 +486,7 @@ begin
   exact or.cases_on (mul_eq_zero.1 H) id ih
 end
 
-theorem pow_ne_zero [domain α] {a : α} (n : ℕ) (h : a ≠ 0) : a ^ n ≠ 0 :=
+@[field_simps] theorem pow_ne_zero [domain α] {a : α} (n : ℕ) (h : a ≠ 0) : a ^ n ≠ 0 :=
 mt pow_eq_zero h
 
 @[simp] theorem one_div_pow [division_ring α] {a : α} (ha : a ≠ 0) (n : ℕ) : (1 / a) ^ n = 1 / a ^ n :=
@@ -510,8 +510,11 @@ by induction n with n ih; [exact (abs_one).symm,
 lemma abs_neg_one_pow [decidable_linear_ordered_comm_ring α] (n : ℕ) : abs ((-1 : α)^n) = 1 :=
 by rw [←pow_abs, abs_neg, abs_one, one_pow]
 
-lemma inv_pow' [discrete_field α] (a : α) (n : ℕ) : (a ^ n)⁻¹ = a⁻¹ ^ n :=
+@[field_simps] lemma inv_pow' [discrete_field α] (a : α) (n : ℕ) : a⁻¹ ^ n = (a ^ n)⁻¹ :=
 by induction n; simp [*, pow_succ, mul_inv', mul_comm]
+
+@[field_simps] lemma pow_div [discrete_field α] (a b : α) (n : ℕ) : (a / b)^n = a^n / b^n :=
+by simp [div_eq_mul_inv, mul_pow, inv_pow']
 
 lemma pow_inv [division_ring α] (a : α) : ∀ n : ℕ, a ≠ 0 → (a^n)⁻¹ = (a⁻¹)^n
 | 0     ha := inv_one

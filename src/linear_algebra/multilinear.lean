@@ -10,8 +10,9 @@ import linear_algebra.basic
 # Multilinear maps
 
 We define multilinear maps as maps from `ι → M₁` to `M₂` which are linear in each coordinate. Here,
-`M₁` and `M₂` are modules over a ring `R`. This space, denoted by `multilinear_map R ι M₁ M₂`,
-inherits a module structure by pointwise addition and multiplication.
+`M₁` and `M₂` are modules over a ring `R`, and `ι` is an arbitrary type (although some statements
+will require it to be a fintype). This space, denoted by `multilinear_map R ι M₁ M₂`, inherits a
+module structure by pointwise addition and multiplication.
 
 ## Main definitions
 

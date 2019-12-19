@@ -220,7 +220,7 @@ dif_pos rfl
 @[simp] lemma update_noteq {a a' : α} {v : β a'} {f : Πa, β a} (h : a ≠ a') : update f a' v a = f a :=
 dif_neg h
 
-lemma update_eq_self {a : α} {f : Πa, β a} : update f a (f a) = f :=
+@[simp] lemma update_eq_self {a : α} {f : Πa, β a} : update f a (f a) = f :=
 begin
   refine funext (λi, _),
   by_cases h : i = a,

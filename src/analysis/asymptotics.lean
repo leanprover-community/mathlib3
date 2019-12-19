@@ -30,7 +30,7 @@ norm explicitly.
 If `f` and `g` are functions to a normed field like the reals or complex numbers and `g` is always
 nonzero, we have
 
-  `is_o f g l ↔ tendsto (λ x, f x / (g x)) (𝓝 0) l`.
+  `is_o f g l ↔ tendsto (λ x, f x / (g x)) l (𝓝 0)`.
 
 In fact, the right-to-left direction holds without the hypothesis on `g`, and in the other direction
 it suffices to assume that `f` is zero wherever `g` is. (This generalization is useful in defining

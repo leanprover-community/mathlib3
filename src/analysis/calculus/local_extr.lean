@@ -4,15 +4,9 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Yury Kudryashov
 -/
 
-import analysis.calculus.deriv
+import topology.local_extr analysis.calculus.deriv
 
 /-! # Local extrema of smooth functions
-
-## Main definitions
-
-* `is_local_min f a` : `f a ≤ f x` in some neighborhood of `a`;
-* `is_local_max f a` : `f x ≤ f a` in some neighborhood of `a`;
-* `is_local_extr f a` : one of the above.
 
 ## Main statements
 
@@ -31,100 +25,125 @@ universes u v
 open filter set
 open_locale topological_space classical
 
-section defs
-
-variables {α : Type u} {β : Type v} [topological_space α] [preorder β]
-  (f : α → β) (a : α)
-
-/-- `a` is a local minimum of `f` if `f a ≤ f x` in a neighborhood of `a`. -/
-def is_local_min : Prop := {x | f a ≤ f x} ∈ 𝓝 a
-
-/-- `a` is a local maximum of `f` if `f x ≤ f a` in a neighborhood of `a`. -/
-def is_local_max : Prop := {x | f x ≤ f a} ∈ 𝓝 a
-
-/-- `a` is a local extremum of `f` if it is either a local minimum, or a local maximum. -/
-def is_local_extr : Prop := is_local_min f a ∨ is_local_max f a
-
-variables {f a}
-
-lemma is_local_min_const {b : β} : is_local_min (λ _, b) a :=
-univ_mem_sets' $ λ _, le_refl _
-
-lemma is_local_max_const {b : β} : is_local_max (λ _, b) a :=
-univ_mem_sets' $ λ _, le_refl _
-
-end defs
-
-section ordered_comm_monoid
-
-variables {α : Type u} {G : Type v} [topological_space α] [ordered_comm_monoid G]
-  {f g : α → G} {a : α}
-
-lemma is_local_min.add (hf : is_local_min f a) (hg : is_local_min g a) : is_local_min (f + g) a :=
-mem_sets_of_superset (inter_mem_sets hf hg) $ λ x ⟨hfx, hgx⟩, add_le_add' hfx hgx
-
-lemma is_local_max.add (hf : is_local_max f a) (hg : is_local_max g a) : is_local_max (f + g) a :=
-mem_sets_of_superset (inter_mem_sets hf hg) $ λ x ⟨hfx, hgx⟩, add_le_add' hfx hgx
-
-lemma is_local_min.add_left (hf : is_local_min f a) (b : G) :
-  is_local_min (λ x, b + f x) a :=
-is_local_min_const.add hf
-
-lemma is_local_min.add_right (hf : is_local_min f a) (b : G) :
-  is_local_min (λ x, f x + b) a :=
-hf.add is_local_min_const
-
-lemma is_local_max.add_left (hf : is_local_max f a) (b : G) :
-  is_local_max (λ x, b + f x) a :=
-is_local_max_const.add hf
-
-lemma is_local_max.add_right (hf : is_local_max f a) (b : G) :
-  is_local_max (λ x, f x + b) a :=
-hf.add is_local_max_const
-
-end ordered_comm_monoid
-
-section ordered_comm_group
-
-variables {α : Type u} {G : Type v} [topological_space α] [ordered_comm_group G]
-  {f g : α → G} {a : α}
-
-lemma is_local_min.neg (hf : is_local_min f a) : is_local_max (-f) a :=
-mem_sets_of_superset hf $ λ x, neg_le_neg
-
-lemma is_local_max.neg (hf : is_local_max f a) : is_local_min (-f) a :=
-mem_sets_of_superset hf $ λ x, neg_le_neg
-
-lemma is_local_min.sub (hf : is_local_min f a) (hg : is_local_max g a) :
-  is_local_min (f - g) a :=
-hf.add hg.neg
-
-lemma is_local_max.sub (hf : is_local_max f a) (hg : is_local_min g a) :
-  is_local_max (f - g) a :=
-hf.add hg.neg
-
-end ordered_comm_group
-
 section vector_space
 
 variables {E : Type u} [normed_group E] [normed_space ℝ E] {f : E → ℝ} {a : E}
   {f' : E →L[ℝ] ℝ}
 
+/-- "Positive" tangent cone to `s` at `x`; the definition differs fron `tangent_cone_at`
+by the requirement. One can think about `pos_tangent_cone_at` as `tangent_cone_at nnreal`
+but we have no theory of normed semifields yet. -/
+def pos_tangent_cone_at (s : set E) (x : E) : set E :=
+{y : E | ∃(c : ℕ → ℝ) (d : ℕ → E), {n:ℕ | x + d n ∈ s} ∈ (at_top : filter ℕ) ∧
+  (tendsto c at_top at_top) ∧ (tendsto (λn, c n • d n) at_top (𝓝 y))}
+
+lemma pos_tangent_cone_at_mono : monotone (λ s, pos_tangent_cone_at s a) :=
+begin
+  rintros s t hst y ⟨c, d, hd, hc, hcd⟩,
+  exact ⟨c, d, mem_sets_of_superset hd $ λ h hn, hst hn, hc, hcd⟩
+end
+
+lemma mem_pos_tangent_cone_at_of_segment_subset {s : set E} {x y : E} (h : segment x y ⊆ s) :
+  y - x ∈ pos_tangent_cone_at s x :=
+begin
+  let c := λn:ℕ, (2:ℝ)^n,
+  let d := λn:ℕ, (c n)⁻¹ • (y-x),
+  refine ⟨c, d, filter.univ_mem_sets' (λn, h _), _, _⟩,
+  show x + d n ∈ segment x y,
+  { refine ⟨(c n)⁻¹, ⟨_, _⟩, _⟩,
+    { rw inv_nonneg, apply pow_nonneg, norm_num },
+    { apply inv_le_one, apply one_le_pow_of_one_le, norm_num },
+    { simp only [d], abel } },
+  show tendsto c at_top at_top,
+  { exact tendsto_pow_at_top_at_top_of_gt_1 one_lt_two },
+  show filter.tendsto (λ (n : ℕ), c n • d n) filter.at_top (𝓝 (y - x)),
+  { have : (λ (n : ℕ), c n • d n) = (λn, y - x),
+    { ext n,
+      simp only [d, smul_smul],
+      rw [mul_inv_cancel, one_smul],
+      exact pow_ne_zero _ (by norm_num) },
+    rw this,
+    apply tendsto_const_nhds }
+end
+
+lemma pos_tangent_cone_at_univ : pos_tangent_cone_at univ a = univ :=
+eq_univ_iff_forall.2
+begin
+  assume x,
+  rw [← add_sub_cancel x a],
+  exact mem_pos_tangent_cone_at_of_segment_subset (subset_univ _)
+end
+
+lemma is_local_max_on.has_fderiv_within_at_nonpos {s : set E} (h : is_local_max_on f a s)
+  (hf : has_fderiv_within_at f f' s a) {y} (hy : y ∈ pos_tangent_cone_at s a) :
+  f' y ≤ 0 :=
+begin
+  rcases hy with ⟨c, d, hd, hc, hcd⟩,
+  have hc' : tendsto (λ n, ∥c n∥) at_top at_top,
+    from tendsto_at_top_mono _ (λ n, le_abs_self _) hc,
+  refine le_of_tendsto at_top_ne_bot (hf.lim at_top hd hc' hcd) _,
+  replace hd : tendsto (λ n, a + d n) at_top (nhds_within (a + 0) s),
+   -- TODO use `tendsto.inf`once #1809 is landed
+  from tendsto_inf.2 ⟨tendsto_const_nhds.add (tangent_cone_at.lim_zero _ hc' hcd),
+    by rwa tendsto_principal⟩,
+  rw [add_zero] at hd,
+  replace h : {n : ℕ | f (a + d n) ≤ f a} ∈ at_top, from mem_map.1 (hd h),
+  replace hc : {n | 0 ≤ c n} ∈ at_top, from mem_map.1 (hc (mem_at_top (0:ℝ))),
+  filter_upwards [h, hc],
+  simp only [mem_set_of_eq, smul_eq_mul, mem_preimage, subset_def],
+  assume n hnf hn,
+  exact mul_nonpos_of_nonneg_of_nonpos hn (sub_nonpos.2 hnf)
+end
+
+lemma is_local_max_on.fderiv_within_nonpos {s : set E} (h : is_local_max_on f a s)
+  (hf : differentiable_within_at ℝ f s a) {y} (hy : y ∈ pos_tangent_cone_at s a) :
+  (fderiv_within ℝ f s a : E → ℝ) y ≤ 0 :=
+h.has_fderiv_within_at_nonpos hf.has_fderiv_within_at hy
+
+lemma is_local_max_on.has_fderiv_within_at_eq_zero {s : set E} (h : is_local_max_on f a s)
+  (hf : has_fderiv_within_at f f' s a) {y} (hy : y ∈ pos_tangent_cone_at s a)
+  (hy' : -y ∈ pos_tangent_cone_at s a) :
+  f' y = 0 :=
+le_antisymm (h.has_fderiv_within_at_nonpos hf hy) $
+  by simpa using h.has_fderiv_within_at_nonpos hf hy'
+
+lemma is_local_max_on.fderiv_within_eq_zero {s : set E} (h : is_local_max_on f a s)
+  {y} (hy : y ∈ pos_tangent_cone_at s a) (hy' : -y ∈ pos_tangent_cone_at s a) :
+  (fderiv_within ℝ f s a : E → ℝ) y = 0 :=
+if hf : differentiable_within_at ℝ f s a
+then h.has_fderiv_within_at_eq_zero hf.has_fderiv_within_at hy hy'
+else by { rw fderiv_within_zero_of_not_differentiable_within_at hf, refl }
+
+lemma is_local_min_on.has_fderiv_within_at_nonneg {s : set E} (h : is_local_min_on f a s)
+  (hf : has_fderiv_within_at f f' s a) {y} (hy : y ∈ pos_tangent_cone_at s a) :
+  0 ≤ f' y :=
+by simpa using h.neg.has_fderiv_within_at_nonpos hf.neg hy
+
+lemma is_local_min_on.fderiv_within_nonneg {s : set E} (h : is_local_min_on f a s)
+  (hf : differentiable_within_at ℝ f s a) {y} (hy : y ∈ pos_tangent_cone_at s a) :
+  (0:ℝ) ≤ (fderiv_within ℝ f s a : E → ℝ) y :=
+h.has_fderiv_within_at_nonneg hf.has_fderiv_within_at hy
+
+lemma is_local_min_on.has_fderiv_within_at_eq_zero {s : set E} (h : is_local_min_on f a s)
+  (hf : has_fderiv_within_at f f' s a) {y} (hy : y ∈ pos_tangent_cone_at s a)
+  (hy' : -y ∈ pos_tangent_cone_at s a) :
+  f' y = 0 :=
+by simpa using h.neg.has_fderiv_within_at_eq_zero hf.neg hy hy'
+
+lemma is_local_min_on.fderiv_within_eq_zero {s : set E} (h : is_local_min_on f a s)
+  {y} (hy : y ∈ pos_tangent_cone_at s a) (hy' : -y ∈ pos_tangent_cone_at s a) :
+  (fderiv_within ℝ f s a : E → ℝ) y = 0 :=
+if hf : differentiable_within_at ℝ f s a
+then h.has_fderiv_within_at_eq_zero hf.has_fderiv_within_at hy hy'
+else by { rw fderiv_within_zero_of_not_differentiable_within_at hf, refl }
+
+/-- The derivative at a local minimum equals zero. -/
 lemma is_local_min.has_fderiv_at_eq_zero (h : is_local_min f a) (hf : has_fderiv_at f f' a) :
   f' = 0 :=
 begin
-  suffices : ∀ v : E, (0:ℝ) ≤ f' v,
-  { ext v,
-    exact le_antisymm (by simpa using this (-v)) (this v) },
-  refine λ v, ge_of_tendsto at_top_ne_bot (hf.lim_real v) _,
-  apply mp_sets (mem_at_top (1:ℝ)),
-  have : tendsto (λ b:ℝ, a + b⁻¹ • v) at_top (𝓝 (a + (0:ℝ) • v)),
-    from tendsto_const_nhds.add (tendsto_smul tendsto_inverse_at_top_nhds_0 tendsto_const_nhds),
-  rw [zero_smul, add_zero] at this,
-  apply mem_sets_of_superset (mem_map.1 $ this h),
-  simp only [mem_set_of_eq, smul_eq_mul, mem_preimage],
-  assume c hfc hc,
-  exact mul_nonneg (le_trans zero_le_one hc) (sub_nonneg.2 hfc)
+  ext y,
+  apply (h.on univ).has_fderiv_within_at_eq_zero hf.has_fderiv_within_at;
+    rw pos_tangent_cone_at_univ; apply mem_univ
 end
 
 /-- The derivative at a local minimum equals zero. -/
@@ -188,13 +207,12 @@ include hab hfc hfI
 lemma exists_global_extr_Ioo :
   ∃ c ∈ Ioo a b, (∀ x ∈ Icc a b, f c ≤ f x) ∨ (∀ x ∈ Icc a b, f x ≤ f c) :=
 begin
+  have ne : Icc a b ≠ ∅, from ne_empty_of_mem (left_mem_Icc.2 (le_of_lt hab)),
   -- Consider absolute min and max points
   obtain ⟨c, cmem, cle⟩ : ∃ c ∈ Icc a b, ∀ x ∈ Icc a b, f c ≤ f x,
-    from exists_forall_le_of_compact_of_continuous f hfc (Icc a b) compact_Icc
-      (ne_empty_of_mem $ left_mem_Icc.2 $ le_of_lt hab),
+    from compact_Icc.exists_forall_le ne f hfc.continuous_on,
   obtain ⟨C, Cmem, Cge⟩ : ∃ C ∈ Icc a b, ∀ x ∈ Icc a b, f x ≤ f C,
-    from exists_forall_ge_of_compact_of_continuous f hfc (Icc a b) compact_Icc
-      (ne_empty_of_mem $ left_mem_Icc.2 $ le_of_lt hab),
+    from compact_Icc.exists_forall_ge ne f hfc.continuous_on,
   by_cases hc : f c = f a,
   { by_cases hC : f C = f a,
     { have : ∀ x ∈ Icc a b, f x = f a,

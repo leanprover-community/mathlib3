@@ -218,7 +218,7 @@ begin
 end
 
 --TODO: move
-lemma is_linear_map_smul' {α R : Type*} [add_comm_group α] [comm_ring R] [module R α] (a : α) :
+lemma is_linear_map_smul' {α R : Type*} [add_comm_group α] [ring R] [module R α] (a : α) :
   is_linear_map R (λ (c : R), c • a) :=
 begin
   refine is_linear_map.mk (λ x y, add_smul x y a) _,

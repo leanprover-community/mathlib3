@@ -99,10 +99,6 @@ calc det (M * N) = univ.sum (λ σ : perm n, (univ.pi (λ a, univ)).sum
     (λ _ _ _ _, (mul_right_inj _).1) (λ τ _, ⟨τ * σ, by simp⟩))
 ... = det M * det N : by simp [det, mul_assoc, mul_sum, mul_comm, mul_left_comm]
 
-/-instance : is_monoid_hom (det : matrix n n R → R) :=
-{ map_one := det_one,
-  map_mul := det_mul }
-
 @[simp] lemma det_neg_one : det (-1 : matrix n n R) = (-1) ^ fintype.card n :=
 by { rw [←diagonal_one, diagonal_neg, det_diagonal, finset.prod_const], refl }
 
@@ -133,83 +129,60 @@ begin
     norm_cast,
     rw [is_semiring_hom.map_nat_cast _ f, int.cast_neg, int.cast_coe_nat] }
 end
--/
-
-/-- `subtype_swap` maps the subtype of `α` with `i` removed to the subtype of `α` with `j` removed
-by swapping `i` and `j`. -/
-def subtype_swap {α : Type*} [decidable_eq α] (i j : α) : {k // k ≠ i} → {k // k ≠ j} :=
-subtype.map (swap i j) (λ a hi, by { by_cases hj : a ≠ j, rwa [swap_apply_of_ne_of_ne hi hj],
-    rw [ne.def, not_not] at hj, symmetry, rwa [hj.symm, swap_apply_right] })
 
 /-- The (i,j)-th cofactor of M is (upto sign) the determinant of the submatrix of M obtained by
 removing its i-th row and j-th column. -/
 def cofactor (i j : n) (M : matrix n n R) : R :=
-ε (swap i j) * (det $ minor M (subtype.val ∘ subtype_swap i j) (subtype.val))
+ε (swap i j) * (det $ minor M (swap i j ∘ subtype.val) (subtype.val : {k // k ≠ j} → n))
 
 lemma cofactor_expansion_aux (M : matrix n n R) (i j : n) :
-  univ.sum (λ σ : { σ : perm n // σ.to_fun i = j }, ε σ.val * univ.prod (λ l, M (σ l) l)) =
-  M j i * cofactor i j M :=
-have hσ : ∀ (σ : { σ : perm n // σ.to_fun i = j }) l, l ≠ i ↔ (swap i j * σ.1) l ≠ i,
-  from λ σ l, by { rw [mul_apply, not_iff_not], unfold_coes,
-  exact ⟨λ h, by {rw [h, σ.2], exact swap_apply_right i j },
+  univ.sum (λ σ : {σ : perm n // σ j = i}, ε σ.val * univ.prod (λ l, M (σ l) l)) =
+  M i j * cofactor i j M :=
+have hsσ : ∀ (σ : {σ : perm n // σ j = i}) l, (swap i j * σ.val) l ≠ l → l ≠ j,
+  { intros σ k, contrapose!, intro h, rw [h, mul_apply, σ.2], exact swap_apply_left _ _ },
+have hσ : ∀ (σ : { σ : perm n // σ j = i }) l, l ≠ j ↔ (swap i j * σ) l ≠ j,
+  from λ σ l, by { rw [mul_apply, not_iff_not], change l = j ↔ ⇑(swap i j) (σ.val l) = j,
+  exact ⟨λ h, by { rw [h, σ.2], exact swap_apply_left i j },
     λ h, σ.val.injective $ (swap i j).injective $ eq.symm $
-        by { unfold_coes, rw [h, σ.2], exact swap_apply_right i j }⟩ },
-calc univ.sum (λ σ : { σ : perm n // σ.to_fun i = j }, ε σ.val * univ.prod (λ l, M (σ l) l)) =
-      M j i * univ.sum (λ σ : { σ : perm n // σ.to_fun i = j }, ε σ.val *
-        (erase univ i).prod (λ l, M (equiv.swap i j $ equiv.swap i j $ σ l) l)) :
-  begin
-    simp only [mul_sum, swap_swap_apply], congr, funext σ,
-    rw [←insert_erase (mem_univ i), prod_insert (not_mem_erase _ _), ←mul_assoc,
-      mul_comm _ (M _ _), mul_assoc],
-    congr, exact σ.2, exact eq.symm (insert_erase (mem_univ i)),
-  end
-... = M j i * ε (swap i j) * univ.sum (λ τ : perm { k // k ≠ i }, ε τ * univ.prod (λ l, M (swap i j $ τ l) l)) :
-  begin
-    rw [mul_assoc, @mul_sum _ _ _ _ (ε (swap i j))],
-    apply congr_arg,
-    refine sum_bij (λ σ _, subtype_congr (swap i j * σ.1) (hσ σ))
-      (λ _ _, mem_univ _) _
-      (λ σ₁ σ₂ _ _ h, by { rw [subtype.ext], ext l, by_cases hl : l = i,
-        { unfold_coes, rw [hl, σ₁.2, σ₂.2] },
-        { let h1 := congr_arg equiv.to_fun h,
-          have h2 := congr_fun h1 ⟨l, hl⟩,
-          have h3 := congr_arg (equiv.swap i j ∘ subtype.val) h2,
-          change equiv.swap i j (equiv.swap i j (σ₁.val l)) = equiv.swap i j (equiv.swap i j (σ₂.val l)) at h3,
-          rwa [swap_swap_apply, swap_swap_apply] at h3 } } )
-      (λ τ _, ⟨⟨(swap i j) * (of_subtype τ),
-        begin change equiv.swap i j (of_subtype τ i) = j,
-          rw [of_subtype_apply_of_not_mem, swap_apply_left], rw [ne.def, not_not] end⟩, mem_univ _,
-          begin ext k, apply subtype.val_injective,
-            change (τ k).val = equiv.swap i j (equiv.swap i j (of_subtype τ k.val)),
-            rw [swap_swap_apply, of_subtype], dsimp, rw [dif_pos k.property],
-            exact congr_arg _ (congr_arg _ $ eq.symm $ subtype.eta _ _) end ⟩),
-    intros σ _,
-    have hs : sign (swap i j * σ.val) = sign (subtype_congr (swap i j * σ.1) (hσ σ) : perm {k // k ≠ i}),
-    { refine sign_bij
-        (λ k hk, subtype.mk k (λ h, by { rw [h, mul_apply] at hk, unfold_coes at hk, rw [σ.2] at hk, exact hk (swap_apply_right i j) }))
-        (λ _ _ _, rfl) (λ _ _ _ _, congr_arg subtype.val)
-        (λ k hk, ⟨k.val, by { revert hk, contrapose!, intro hk, exact subtype.val_injective hk },
-          subtype.eta _ _⟩) },
-    rw_mod_cast [←hs, sign_mul, ←mul_assoc, ←units.coe_mul, ←mul_assoc, ←sign_mul, equiv.swap_mul_self, sign_one, one_mul],
-    exact congr_arg _ (prod_bij (λ l hl, ⟨l, (mem_erase.mp hl).1⟩) (λ _ _, mem_univ _) (λ _ _, rfl)
-      (λ _ _ _ _, congr_arg subtype.val)
-      (λ l _, ⟨l, mem_erase.mpr ⟨l.2, mem_univ _⟩, eq.symm (subtype.eta _ _)⟩))
-  end
-... = M j i * cofactor i j M : mul_assoc _ _ _
+        by { rw [h, σ.2], exact swap_apply_left i j }⟩ },
+calc univ.sum (λ σ : { σ : perm n // σ j = i }, ε σ.val * univ.prod (λ l, M (σ.val l) l))
+    = M i j * univ.sum (λ σ : { σ : perm n // σ j = i }, ε σ.val *
+        (erase univ j).prod (λ l, M (swap i j $ swap i j $ σ l) l)) :
+  by { rw [mul_sum],
+    refine sum_congr rfl (λ σ _, _),
+    rw [←insert_erase (mem_univ j), prod_insert (not_mem_erase _ _), ←mul_assoc, mul_comm _ (M _ _),
+      mul_assoc, insert_erase (mem_univ j), σ.2], congr, finish [swap_swap_apply] }
+... = M i j * ε (swap i j) * univ.sum (λ τ : perm { k // k ≠ j }, ε τ * univ.prod (λ l, M (swap i j $ τ l) l)) :
+  by { rw [mul_assoc, @mul_sum _ _ _ _ (ε (swap i j))],
+    refine congr_arg _ (sum_bij (λ σ _, subtype_perm (swap i j * σ.val) (hσ σ)) (λ _ _, mem_univ _)
+      (λ σ _,
+        by { rw_mod_cast [sign_subtype_perm _ _ (hsσ _), sign_mul, ←mul_assoc, ←units.coe_mul,
+          ←mul_assoc, ←sign_mul, equiv.swap_mul_self, sign_one, one_mul],
+        exact congr_arg _ (prod_bij (λ l hl, ⟨l, (mem_erase.mp hl).1⟩) (λ _ _, mem_univ _)
+          (λ _ _, rfl) (λ _ _ _ _, congr_arg subtype.val)
+          (λ l _, ⟨l, mem_erase.mpr ⟨l.2, mem_univ _⟩, eq.symm (subtype.eta _ _)⟩)) })
+      (λ σ₁ σ₂ _ _ h, by { rw [subtype.ext],
+        simpa [of_subtype_subtype_perm _ (hsσ _)] using congr_arg of_subtype h })
+      (λ τ _, ⟨⟨swap i j * of_subtype τ, by { change equiv.swap i j (of_subtype τ j) = i,
+          finish [of_subtype_apply_of_not_mem, swap_apply_left] }⟩,
+        mem_univ _,
+        by { change τ = subtype_perm (swap i j * swap i j * of_subtype τ) _,
+          simp only [equiv.swap_mul_self, one_mul, subtype_perm_of_subtype] } ⟩)) }
+... = M i j * cofactor i j M : mul_assoc _ _ _
 
 /-- The deteminant of M can be expanded as the sum over a the i-th row times the corresponding
 cofactor for each element. -/
-lemma cofactor_expansion (M : matrix n n R) (i : n) : det M = univ.sum (λ j, M j i * cofactor i j M) :=
-begin
-  conv_rhs { congr, skip, funext, rw ←cofactor_expansion_aux },
-  rw ←@sum_sigma _ _ _ (λ j, {σ : perm n // σ.to_fun i = j}) _ _ (λ σ, ε (σ.2.val) * univ.prod (λ l, M (σ.2 l) l)),
-  symmetry,
-  refine sum_bij (λ σ _, σ.snd.val) (λ _ _, mem_univ _) (λ _ _, rfl) _
-    (λ σ _, ⟨sigma.mk (σ i) (subtype.mk σ rfl), mem_univ _, rfl⟩),
-  { intros σ1 σ2 _ _ h,
-    have : σ1.fst = σ2.fst, { rw [←σ1.snd.property, ←σ2.snd.property, h] },
-    refine sigma.eq this (subtype.val_injective _),
-    { rw ←h, congr, { funext, exact (congr_arg _ $ eq.symm this) }, apply eq_rec_heq }}
-end
+lemma cofactor_expansion (M : matrix n n R) (i : n) :
+  det M = univ.sum (λ j, M i j * cofactor i j M) :=
+calc det M = (finset.sigma univ (λ j, @univ {σ : perm n // σ j = i} _)).sum
+    (λ σ : Σ (j : n), {σ : perm n // σ j = i}, ε σ.2.val * univ.prod (λ l, M (σ.2 l) l)) :
+  eq.symm (sum_bij (λ σ _, σ.snd.val) (λ _ _, mem_univ _) (λ _ _, rfl)
+    (λ σ1 σ2 _ _ h, by { have h1 : σ1.fst = σ2.fst,
+        { apply equiv.injective σ1.2.1, rw [σ1.snd.property, h, σ2.snd.property] },
+      refine sigma.eq h1 (subtype.val_injective _),
+      rw ←h, congr, { rw h1 }, exact eq_rec_heq _ _ } )
+    (λ σ _, ⟨sigma.mk (σ.inv_fun i) ⟨σ, σ.right_inv i⟩ , mem_univ _, rfl⟩))
+... = univ.sum (λ j, univ.sum (λ σ : {σ : perm n // σ j = i}, ε σ.val * univ.prod (λ l, M (σ l) l))) : sum_sigma
+... = univ.sum (λ j, M i j * cofactor i j M) : sum_congr rfl (λ j _, cofactor_expansion_aux M i j)
 
 end matrix

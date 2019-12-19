@@ -49,15 +49,27 @@ lemma char_matrix_apply [comm_ring α] (i j : n) : char_matrix M i j =
   if i = j then X - C (M i i) else -C (M i j) :=
 by { unfold char_matrix diagonal, dsimp, split_ifs with h h, rw [h], rw [zero_add] }
 
+lemma degree_char_matrix_diag [nonzero_comm_ring α] (i : n) : degree (char_matrix M i i) = 1 :=
+by { rw [char_matrix_apply, if_pos rfl, degree_X_sub_C] }
+
+lemma degree_char_matrix [comm_ring α] {i j : n} (h : i ≠ j) : degree (char_matrix M i j) ≤ 0 :=
+by { rw [char_matrix_apply, if_neg h, degree_neg], exact degree_C_le }
+
+lemma degree_char_matrix_le [nonzero_comm_ring α] (i j : n) : degree (char_matrix M i j) ≤ 1 :=
+classical.by_cases
+  (λ h : i = j, h ▸ le_of_eq (degree_char_matrix_diag M i))
+  (λ h, le_trans (degree_char_matrix M h)
+    (by { rw [←with_bot.coe_zero, ←with_bot.coe_one, with_bot.coe_le_coe], exact zero_le_one }))
+
 /-- The evaluation of the characteristic polynomial of `M` at `b` is equal to `det (Iₙb - M)`.-/
 lemma eval [comm_ring α] (b : α) : eval b (char_polynomial M) = det (diagonal (λ _, b) - M) :=
 begin
   change (λ p : polynomial α, eval b p) (det (diagonal (λ _:n, X) - λ (i j : n), C (M i j))) = _,
   rw [det_map_hom (λ p : polynomial α, eval b p)],
-  congr, ext, simp [diagonal],
+  congr, ext, dsimp [diagonal],
   split_ifs,
-  exact eval_X,
-  exact eval_zero
+  rw [eval_add, eval_X, eval_neg, eval_C],
+  rw [eval_add, eval_zero, eval_neg, eval_C]
 end
 
 /-- The constant coefficient of the characteristic polynomial of `M` is `±det M`. -/
@@ -69,7 +81,7 @@ lemma degree_prod [integral_domain α] {ι : Type*} [decidable_eq ι] (s : finse
   degree (s.prod f) = s.sum (λ i, degree (f i)) :=
 finset.induction_on s
   (by { rw [prod_empty, sum_empty, degree_one] })
-  (by { intros i s hs h, rw [sum_insert hs, prod_insert hs, degree_mul_eq, h] })
+  (λ _ _ hs h, by { rw [sum_insert hs, prod_insert hs, degree_mul_eq, h] })
 
 --TODO: move
 instance with_bot.is_add_monoid_hom {α : Type u} [add_monoid α] : is_add_monoid_hom (coe : α → with_bot α) :=
@@ -92,35 +104,27 @@ begin
 end
 
 lemma degree_aux (i : n) (hn : fintype.card n ≠ 0) :
-  degree ((erase univ i).sum (λ j, char_matrix M j i * cofactor i j (char_matrix M))) < fintype.card n :=
+  degree ((erase univ i).sum (λ j, char_matrix M i j * cofactor i j (char_matrix M))) < fintype.card n :=
 begin
   have : (nat.pred $ fintype.card n : with_bot ℕ) < (fintype.card n),
     from with_bot.coe_lt_coe.mpr (nat.pred_lt hn),
   refine lt_of_le_of_lt (degree_sum_le _ _) (lt_of_le_of_lt (sup_le (λ j hji, _)) this),
   rw [mem_erase] at hji,
-  rw [degree_mul_eq, char_matrix_apply, if_neg hji.1, degree_neg, ←zero_add (coe _)],
-  refine add_le_add' degree_C_le _,
+  rw [degree_mul_eq, ←zero_add (coe _)],
+  refine add_le_add' (degree_char_matrix M hji.1.symm) _,
   rw [cofactor, degree_mul_eq, equiv.perm.sign_swap (ne.symm hji.1), units.coe_neg, int.cast_neg,
     degree_neg, units.coe_one, int.cast_one, degree_one, zero_add],
   convert degree_det_le (λ k l, (_ : _ ≤ ↑1)),
-  { rw [fintype.card_of_subtype (erase univ i), card_erase_of_mem (mem_univ i), ←fintype.card, mul_one],
+  { rw [fintype.card_of_subtype (erase univ j), card_erase_of_mem (mem_univ j), ←fintype.card, mul_one],
       intro, simp only [mem_erase, mem_univ, and_true] }, apply_instance,
   change degree (char_matrix M (equiv.swap i j k.val) l.val) ≤ 1,
-  rw [char_matrix_apply],
-  split_ifs with h h,
-  { rw [degree_X_sub_C], exact le_refl 1 },
-  { rw [degree_neg],
-    refine le_trans degree_C_le _,
-    rw [←with_bot.coe_zero, ←with_bot.coe_one, with_bot.coe_le_coe], exact zero_le_one }
+  exact degree_char_matrix_le M _ _
 end
 
-lemma subtype_swap_self (i : n) : subtype_swap i i = id :=
-begin rw [subtype_swap], conv { congr, congr, rw [equiv.swap_self, equiv.refl] }, exact subtype.map_id end
-
 lemma cofactor_diag_apply (i : n) : cofactor i i (char_matrix M) =
-  char_polynomial (minor M (subtype.val ∘ subtype_swap i i) subtype.val) :=
-by { unfold cofactor char_polynomial,
-  rw [subtype_swap_self, function.comp.right_id, equiv.swap_self, equiv.perm.sign_refl, units.coe_one, int.cast_one, one_mul],
+  char_polynomial (minor M (equiv.swap i i ∘ subtype.val) (subtype.val :  {k // k ≠ i} → n)) :=
+by { unfold cofactor,
+  rw [equiv.swap_self, equiv.perm.sign_refl, units.coe_one, int.cast_one, one_mul],
   congr, unfold minor, ext,
   finish [char_matrix_apply, subtype.ext] }
 
@@ -132,6 +136,13 @@ instance ulift.add_monoid {β : Type w} [add_monoid β] : add_monoid (ulift β) 
   add_zero := λ x, ulift.ext _ _ (add_monoid.add_zero _),
   add_assoc := λ x y z, ulift.ext _ _ (add_monoid.add_assoc _ _ _) }
 
+--TODO: move
+lemma equiv.perm.empty (h0 : (univ : finset n) = ∅) :
+  (univ : finset (equiv.perm n)) = finset.singleton 1 :=
+finset.ext.2 (λ σ, ⟨λ _,
+    by { rw [mem_singleton], ext i, exact absurd (by rw ←h0; exact mem_univ i) (not_mem_empty i) },
+  λ _, mem_univ _⟩)
+
 lemma char_polynomial_aux {β : Type w} [add_monoid β] (f : polynomial α → β)
   (hmul : ∀ p q, f (p * q) = f p + f q)
   (hadd : ∀ p q, degree q < degree p → f (q + p) = f p) :
@@ -140,12 +151,9 @@ begin
   unfreezeI,
   induction h : fintype.card n generalizing n β,
   { unfold char_polynomial det, congr,
-    have h0 : (univ : finset n) = ∅, { rwa [←card_eq_zero, card_univ] },
-    have : (univ : finset (equiv.perm n)) = finset.singleton 1, from finset.ext.2 --make this a seperate lemma
-      (λ σ, ⟨λ _, by { rw [mem_singleton], ext i,
-                       exact absurd (by rw ←h0; exact mem_univ i) (not_mem_empty i) },
-             λ _, mem_univ _⟩),
-    rw [this, sum_singleton, equiv.perm.sign_one, h0, prod_empty, mul_one], exact nat.cast_one },
+    have h0 : (univ : finset n) = ∅, by { rwa [←card_eq_zero, card_univ] },
+    rw [equiv.perm.empty h0, sum_singleton, equiv.perm.sign_one, h0, prod_empty, mul_one],
+    exact nat.cast_one },
   { unfold char_polynomial,
     -- n_1 is nonempty so we can get some row index i
     let i : n_1 := classical.choice (fintype.card_pos_iff.mp (eq.symm h ▸ nat.succ_pos n)),
@@ -156,16 +164,15 @@ begin
     rw [hadd],
     { rw [pow_succ, hmul, hmul, char_matrix_apply, if_pos rfl, sub_eq_add_neg, add_comm, hadd,
         cofactor_diag_apply, ih _ f hmul hadd this],
-      rw [degree_neg],
+      rw [degree_neg, degree_X],
       refine lt_of_le_of_lt degree_C_le _,
-      rw [degree_X, ←with_bot.coe_zero, ←with_bot.coe_one, with_bot.coe_lt_coe],
+      rw [←with_bot.coe_one, ←with_bot.coe_zero, with_bot.coe_lt_coe],
       exact zero_lt_one },
-    { rw [cofactor_diag_apply, degree_mul_eq, char_matrix_apply, if_pos rfl, degree_X_sub_C],
+    { rw [cofactor_diag_apply, degree_mul_eq, degree_char_matrix_diag],
       refine lt_of_lt_of_le (degree_aux _ _ _) (le_of_eq _), {rw [h], exact nat.succ_ne_zero _},
       rw [h, nat.succ_eq_add_one, with_bot.coe_add, with_bot.coe_one, add_comm], congr, symmetry,
       rw [←@degree_X_pow α _ n],
       refine ulift.up.inj.{w} (ih _ (ulift.up ∘ degree) _ _ this),
-      --refine ulift.up.inj.{w} (@ih _ _ _ _ (multiplicative $ ulift $ with_bot ℕ) _ (ulift.up ∘ degree) _ _ _ this), --for multiplicative version
       finish [degree_mul_eq],
       finish using [degree_add_eq_of_degree_lt] } }
 end

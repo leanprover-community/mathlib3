@@ -193,6 +193,8 @@ begin
   exact ne_of_gt (sub_pos.2 hab)
 end
 
+omit hff'
+
 lemma exists_ratio_deriv_eq_ratio_slope :
   ∃ c ∈ Ioo a b, (g b - g a) * (deriv f c) = (f b - f a) * (deriv g c) :=
 exists_ratio_has_deriv_at_eq_ratio_slope f (deriv f) hab hfc

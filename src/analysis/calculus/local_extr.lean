@@ -30,7 +30,7 @@ section vector_space
 variables {E : Type u} [normed_group E] [normed_space ℝ E] {f : E → ℝ} {a : E}
   {f' : E →L[ℝ] ℝ}
 
-/-- "Positive" tangent cone to `s` at `x`; the definition differs fron `tangent_cone_at`
+/-- "Positive" tangent cone to `s` at `x`; the definition differs from `tangent_cone_at`
 by the requirement. One can think about `pos_tangent_cone_at` as `tangent_cone_at nnreal`
 but we have no theory of normed semifields yet. -/
 def pos_tangent_cone_at (s : set E) (x : E) : set E :=

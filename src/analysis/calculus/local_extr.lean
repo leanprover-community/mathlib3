@@ -83,7 +83,6 @@ begin
     from tendsto_at_top_mono _ (λ n, le_abs_self _) hc,
   refine le_of_tendsto at_top_ne_bot (hf.lim at_top hd hc' hcd) _,
   replace hd : tendsto (λ n, a + d n) at_top (nhds_within (a + 0) s),
-   -- TODO use `tendsto.inf`once #1809 is landed
   from tendsto_inf.2 ⟨tendsto_const_nhds.add (tangent_cone_at.lim_zero _ hc' hcd),
     by rwa tendsto_principal⟩,
   rw [add_zero] at hd,
@@ -166,6 +165,7 @@ lemma is_local_extr.has_fderiv_at_eq_zero (h : is_local_extr f a) :
   has_fderiv_at f f' a → f' = 0 :=
 h.elim is_local_min.has_fderiv_at_eq_zero is_local_max.has_fderiv_at_eq_zero
 
+/-- Fermat's Theorem: the derivative of a function at a local extremum equals zero. -/
 lemma is_local_extr.fderiv_eq_zero (h : is_local_extr f a) : fderiv ℝ f a = 0 :=
 h.elim is_local_min.fderiv_eq_zero is_local_max.fderiv_eq_zero
 
@@ -175,27 +175,33 @@ section real
 
 variables {f : ℝ → ℝ} {f' : ℝ} {a b : ℝ}
 
+/-- Fermat's Theorem: the derivative of a function at a local extremum equals zero. -/
 lemma is_local_min.has_deriv_at_eq_zero (h : is_local_min f a) (hf : has_deriv_at f f' a) :
   f' = 0 :=
 by simpa using continuous_linear_map.ext_iff.1
   (h.has_fderiv_at_eq_zero (has_deriv_at_iff_has_fderiv_at.1 hf)) 1
 
+/-- Fermat's Theorem: the derivative of a function at a local extremum equals zero. -/
 lemma is_local_min.deriv_eq_zero (h : is_local_min f a) : deriv f a = 0 :=
 if hf : differentiable_at ℝ f a then h.has_deriv_at_eq_zero hf.has_deriv_at
 else deriv_zero_of_not_differentiable_at hf
 
+/-- Fermat's Theorem: the derivative of a function at a local extremum equals zero. -/
 lemma is_local_max.has_deriv_at_eq_zero (h : is_local_max f a) (hf : has_deriv_at f f' a) :
   f' = 0 :=
 neg_eq_zero.1 $ h.neg.has_deriv_at_eq_zero hf.neg
 
+/-- Fermat's Theorem: the derivative of a function at a local extremum equals zero. -/
 lemma is_local_max.deriv_eq_zero (h : is_local_max f a) : deriv f a = 0 :=
 if hf : differentiable_at ℝ f a then h.has_deriv_at_eq_zero hf.has_deriv_at
 else deriv_zero_of_not_differentiable_at hf
 
+/-- Fermat's Theorem: the derivative of a function at a local extremum equals zero. -/
 lemma is_local_extr.has_deriv_at_eq_zero (h : is_local_extr f a) :
   has_deriv_at f f' a → f' = 0 :=
 h.elim is_local_min.has_deriv_at_eq_zero is_local_max.has_deriv_at_eq_zero
 
+/-- Fermat's Theorem: the derivative of a function at a local extremum equals zero. -/
 lemma is_local_extr.deriv_eq_zero (h : is_local_extr f a) : deriv f a = 0 :=
 h.elim is_local_min.deriv_eq_zero is_local_max.deriv_eq_zero
 
@@ -207,6 +213,8 @@ variables (f f' : ℝ → ℝ) {a b : ℝ} (hab : a < b) (hfc : continuous_on f 
 
 include hab hfc hfI
 
+/-- A continuous function on a closed interval with `f a = f b` takes either its maximum
+or its minimum value at a point in the interior of the interval. -/
 lemma exists_Ioo_extr_on_Icc : ∃ c ∈ Ioo a b, is_extr_on f (Icc a b) c :=
 begin
   have ne : Icc a b ≠ ∅, from ne_empty_of_mem (left_mem_Icc.2 (le_of_lt hab)),
@@ -231,6 +239,8 @@ begin
       exacts [λ h, by rw h, λ h, by rw [h, hfI]] }
 end
 
+/-- A continuous function on a closed interval with `f a = f b` has a local extremum at some
+point of the corresponding open interval. -/
 lemma exists_local_extr_Ioo : ∃ c ∈ Ioo a b, is_local_extr f c :=
 let ⟨c, cmem, hc⟩ := exists_Ioo_extr_on_Icc f hab hfc hfI
 in ⟨c, cmem, hc.is_local_extr $ mem_nhds_sets_iff.2 ⟨Ioo a b, Ioo_subset_Icc_self, is_open_Ioo, cmem⟩⟩

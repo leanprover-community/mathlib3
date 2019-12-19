@@ -468,10 +468,10 @@ protected def add_comm_group : add_comm_group (α →₁ₛ β) := subtype.add_c
 local attribute [instance] simple_func.add_comm_group simple_func.metric_space
   simple_func.emetric_space
 
-@[simp, elim_cast] lemma coe_zero : ((0 : α →₁ₛ β) : α →₁ β) = 0 := rfl
-@[simp, move_cast] lemma coe_add (f g : α →₁ₛ β) : ((f + g : α →₁ₛ β) : α →₁ β) = f + g := rfl
-@[simp, move_cast] lemma coe_neg (f : α →₁ₛ β) : ((-f : α →₁ₛ β) : α →₁ β) = -f := rfl
-@[simp, move_cast] lemma coe_sub (f g : α →₁ₛ β) : ((f - g : α →₁ₛ β) : α →₁ β) = f - g := rfl
+@[simp, norm_cast elim] lemma coe_zero : ((0 : α →₁ₛ β) : α →₁ β) = 0 := rfl
+@[simp, norm_cast move] lemma coe_add (f g : α →₁ₛ β) : ((f + g : α →₁ₛ β) : α →₁ β) = f + g := rfl
+@[simp, norm_cast move] lemma coe_neg (f : α →₁ₛ β) : ((-f : α →₁ₛ β) : α →₁ β) = -f := rfl
+@[simp, norm_cast move] lemma coe_sub (f g : α →₁ₛ β) : ((f - g : α →₁ₛ β) : α →₁ β) = f - g := rfl
 @[simp] lemma edist_eq (f g : α →₁ₛ β) : edist f g = edist (f : α →₁ β) (g : α →₁ β) := rfl
 @[simp] lemma dist_eq (f g : α →₁ₛ β) : dist f g = dist (f : α →₁ β) (g : α →₁ β) := rfl
 
@@ -505,7 +505,7 @@ end ⟩⟩
 
 local attribute [instance, priority 10000] simple_func.has_scalar
 
-@[simp, move_cast] lemma coe_smul (c : 𝕜) (f : α →₁ₛ β) :
+@[simp, norm_cast move] lemma coe_smul (c : 𝕜) (f : α →₁ₛ β) :
   ((c • f : α →₁ₛ β) : α →₁ β) = c • (f : α →₁ β) := rfl
 
 /-- Not declared as an instance as `α →₁ₛ β` will only be useful in the construction of the bochner
@@ -797,9 +797,9 @@ end ⟩
 /-- Negative part of a simple function in L1 space. -/
 def neg_part (f : α →₁ₛ ℝ) : α →₁ₛ ℝ := pos_part (-f)
 
-@[move_cast] lemma coe_pos_part (f : α →₁ₛ ℝ) : (f.pos_part : α →₁ ℝ) = (f : α →₁ ℝ).pos_part := rfl
+@[norm_cast move] lemma coe_pos_part (f : α →₁ₛ ℝ) : (f.pos_part : α →₁ ℝ) = (f : α →₁ ℝ).pos_part := rfl
 
-@[move_cast] lemma coe_neg_part (f : α →₁ₛ ℝ) : (f.neg_part : α →₁ ℝ) = (f : α →₁ ℝ).neg_part := rfl
+@[norm_cast move] lemma coe_neg_part (f : α →₁ₛ ℝ) : (f.neg_part : α →₁ ℝ) = (f : α →₁ ℝ).neg_part := rfl
 
 end pos_part
 
@@ -964,7 +964,7 @@ def integral (f : α →₁ β) : β := (integral_clm).to_fun f
 
 lemma integral_eq (f : α →₁ β) : integral f = (integral_clm).to_fun f := rfl
 
-@[elim_cast] lemma integral_coe_eq_integral (f : α →₁ₛ β) :
+@[norm_cast elim] lemma integral_coe_eq_integral (f : α →₁ₛ β) :
   integral (f : α →₁ β) = f.integral :=
 by { refine uniformly_extend_of_ind _ _ _ _, exact simple_func.integral_clm.uniform_continuous }
 

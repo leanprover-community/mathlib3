@@ -77,7 +77,7 @@ have {a : ennreal | a ≠ ⊤} = range (coe : nnreal → ennreal),
   from set.ext $ assume a, by cases a; simp [none_eq_top, some_eq_coe],
 this ▸ mem_nhds_sets is_open_ne_top coe_ne_top
 
-@[elim_cast] lemma tendsto_coe {f : filter α} {m : α → nnreal} {a : nnreal} :
+@[norm_cast elim] lemma tendsto_coe {f : filter α} {m : α → nnreal} {a : nnreal} :
   tendsto (λa, (m a : ennreal)) f (𝓝 ↑a) ↔ tendsto m f (𝓝 a) :=
 embedding_coe.tendsto_nhds_iff.symm
 

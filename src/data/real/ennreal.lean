@@ -623,10 +623,10 @@ le_antisymm
     by rintros b rfl; rwa [← coe_mul, ← coe_one, coe_le_coe, ← nnreal.inv_le hr] at hb)
   (Inf_le $ by simp; rw [← coe_mul, nnreal.mul_inv_cancel hr]; exact le_refl 1)
 
-@[norm_cast elim] lemma coe_inv_two : ((2⁻¹:nnreal):ennreal) = 2⁻¹ :=
+@[norm_cast move] lemma coe_inv_two : ((2⁻¹:nnreal):ennreal) = 2⁻¹ :=
 by rw [coe_inv (ne_of_gt zero_lt_two), coe_two]
 
-@[simp, norm_cast elim] lemma coe_div (hr : r ≠ 0) : (↑(p / r) : ennreal) = p / r :=
+@[simp, norm_cast move] lemma coe_div (hr : r ≠ 0) : (↑(p / r) : ennreal) = p / r :=
 show ↑(p * r⁻¹) = ↑p * (↑r)⁻¹, by rw [coe_mul, coe_inv hr]
 
 @[simp] lemma inv_one : (1:ennreal)⁻¹ = 1 :=
@@ -802,9 +802,9 @@ lemma one_half_lt_one : (2⁻¹:ennreal) < 1 := inv_lt_one.2 $ one_lt_two
 lemma half_lt_self {a : ennreal} (hz : a ≠ 0) (ht : a ≠ ⊤) : a / 2 < a :=
 begin
   lift a to nnreal using ht,
-  norm_cast at *,
-  rw [← coe_div _root_.two_ne_zero'], -- `norm_cast` fails to apply `coe_div`
-  norm_cast,
+  have h : (2 : ennreal) = ((2 : nnreal) : ennreal), from rfl,
+  rw [h, ← coe_div _root_.two_ne_zero', coe_lt_coe], -- `norm_cast` fails to apply `coe_div`
+  norm_cast at hz,
   exact nnreal.half_lt_self hz
 end
 

@@ -35,12 +35,50 @@ of avoiding subtype inclusion issues. This is the definition we use, based on `f
 allows to change the value of `f` at `i`.
 -/
 
-open function fin
+open function fin set
 
 universes u v v' w u'
 variables {R : Type u} {ι : Type u'} {n : ℕ} {M : Type v'} {M₁ : ι → Type v} {M₂ : Type w}
 [decidable_eq ι]
 
+/-- Embedding a type `α` in a type `β`, covering all of `β` but one element `i` called the hole. -/
+structure embed_but_one (α : Type u) (β : Type v) :=
+(to_fun : α → β)
+(inj_to_fun : injective to_fun)
+(hole : β)
+(range : range to_fun = univ - {hole})
+
+instance {α : Type u} {β : Type v} : has_coe_to_fun (embed_but_one α β) := ⟨_, embed_but_one.to_fun⟩
+
+namespace embed_but_one
+
+
+/-- The tail of an `n+1`-tuple, i.e., its last `n` entries -/
+def tail {α : Type u} (β : fin (n+1) → Type v) (f : Π(i : fin (n+1)), β i) : Π(i : fin n), β (i.succ) :=
+  λ i, f i.succ
+
+/-- Adding an element at the beginning of an `n`-tuple, to get an `n+1`-tuple -/
+def cons {α : Type u} (β : fin (n+1) → Type v) (f : Π(i : fin n), β i.succ) (x : β 0) :
+  Π(i : fin (n+1)), β i :=
+λ j, fin.cases x f j
+
+@[simp] lemma tail_cons {α} (x : α) (p : fin n → α) : tail (cons x p) = p :=
+by simp [tail, cons]
+
+@[simp] lemma cons_succ {α} (x : α) (p : fin n → α) (i : fin n) : cons x p i.succ = p i :=
+by simp [cons]
+
+
+variables {α : Type u} {β : Type v} {γ : β → Type w} (e : embed_but_one α β)
+
+def tail (f : Π(b : β), γ b) : Π(a : α), γ (e a) :=
+λi, f (e i)
+
+def cons {α : Type u} {β : Type v} {γ : β → Type w} (e : embed_but_one α β)
+  (f : Π(a : α), γ (e a)) (x : γ (e.hole)) : Π(b : β), γ b :=
+λb, sorry
+
+end embed_but_one
 
 /-- Multilinear maps over the ring `R`, from `Πi, M₁ i` to `M₂` where `M₁ i` and `M₂` are modules
 over `R`. -/

@@ -1,12 +1,12 @@
 # Mathlib tactics
 
-In addition to [core tactics](https://leanprover.github.io/reference/tactics.html),
+In addition to the [tactics found in the core library](https://leanprover.github.io/reference/tactics.html),
 mathlib provides a number of specific interactive tactics.
-Here we document the mostly commonly used ones.
+Here we document the mostly commonly used ones, as well as some underdocumented tactics from core.
 
-## congruence closure (cc)
+## cc (congruence closure)
 
-The congruence closure tactic  tries to solve the goal by chaining
+The congruence closure tactic `cc` tries to solve the goal by chaining
 equalities from context and applying congruence (ie if `a = b` then `f a = f b`).
 It is a finishing tactic, ie is meant to close
 the current goal, not to make some inconclusive progress.
@@ -154,11 +154,11 @@ have h : type,
 rcases h with ⟨patt⟩
 ```
 
- The syntax `obtain ⟨patt⟩ : type := proof` is also supported.
+The syntax `obtain ⟨patt⟩ : type := proof` is also supported.
 
- If `⟨patt⟩` is omitted, `rcases` will try to infer the pattern.
+If `⟨patt⟩` is omitted, `rcases` will try to infer the pattern.
 
- If `type` is omitted, `:= proof` is required.
+If `type` is omitted, `:= proof` is required.
 
 
 ## simpa

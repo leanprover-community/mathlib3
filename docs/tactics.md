@@ -38,9 +38,7 @@ The `cc` implementation in Lean does a few more tricks: for example it
 derives `a=b` from `nat.succ a = nat.succ b`, and `nat.succ a !=
 nat.zero` for any `a`.
 
-### References
-
-* The starting point is Nelson, Oppen, [Fast decision procedures based on congruence closure](http://www.cs.colorado.edu/~bec/courses/csci5535-s09/reading/nelson-oppen-congruence.pdf), Journal of the ACM (1980)
+* The starting reference point is Nelson, Oppen, [Fast decision procedures based on congruence closure](http://www.cs.colorado.edu/~bec/courses/csci5535-s09/reading/nelson-oppen-congruence.pdf), Journal of the ACM (1980)
 
 * The congruence lemmas for dependent type theory as used in Lean are described in [Congruence closure in intensional type theory](https://leanprover.github.io/papers/congr.pdf) (de Moura, Selsam IJCAR 2016).
 

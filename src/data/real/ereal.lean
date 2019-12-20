@@ -13,8 +13,10 @@ This file defines `ereal`, the real numbers together with a top and bottom eleme
 referred to as ⊤ and ⊥.
 
 Addition and multiplication are problematic in the presence of ±∞, but
-negation is not, so we define negation. `ereal` is a `complete_lattice`
-but type class inference
+negation has a natural definition and satisfies the usual properties.
+`ereal` is a `complete_lattice`; this is now deduced by type class inference from
+the fact that `with_top (with_bot L)` is a complete lattice if `L` is
+a conditionally complete lattice
 
 ## Tags
 
@@ -22,7 +24,9 @@ real, ereal, complete lattice
 -/
 
 /-- ereal : The type $$[-\infty,+\infty]$$ or `[-∞, ∞]` -/
-@[derive [linear_order, lattice.order_bot, lattice.order_top]] def ereal := with_bot (with_top ℝ)
+@[derive [linear_order, lattice.order_bot, lattice.order_top,
+  lattice.has_Sup, lattice.complete_lattice]]
+def ereal := with_top (with_bot ℝ)
 
 namespace ereal
 instance : has_coe ℝ ereal := ⟨some ∘ some⟩
@@ -46,11 +50,11 @@ instance : has_neg ereal := ⟨ereal.neg⟩
 
 /-- if -a ≤ b then -b ≤ a on ereal -/
 protected theorem neg_le_of_neg_le : ∀ {a b : ereal} (h : -a ≤ b), -b ≤ a
-| ⊥ ⊥ h := by cases (lattice.le_bot_iff.1 h)
-| ⊥ (some b) h := by { cases (lattice.top_le_iff.1 h), exact le_refl _ }
-| ⊤ b h := lattice.le_top
+| ⊥ ⊥ h := h
+| ⊥ (some b) h := by cases (lattice.top_le_iff.1 h)
+| ⊤ l h := lattice.le_top
 | (a : ℝ) ⊥ h := by cases (lattice.le_bot_iff.1 h)
-| (a : ℝ) ⊤ h := lattice.bot_le
+| l ⊤ h := lattice.bot_le
 | (a : ℝ) (b : ℝ) h := by { norm_cast at h ⊢, exact _root_.neg_le_of_neg_le h }
 
 /-- -a ≤ b ↔ -b ≤ a on ereal-/
@@ -67,88 +71,4 @@ protected theorem neg_neg : ∀ (a : ereal), - (- a) = a
 theorem le_neg_of_le_neg {a b : ereal} (h : a ≤ -b) : b ≤ -a :=
 by rwa [←ereal.neg_neg b, ereal.neg_le, ereal.neg_neg]
 
-/-- The claim that a set of ereals has a supremum in ereal -/
-def has_Sup (X : set ereal) : Prop := ∃ l : ereal, is_lub X l
-
-open_locale classical
-
-/-- A set of ereals has a Sup in ereal -/
-theorem Sup_exists (X : set ereal) : has_Sup X :=
-  let Xoc : set (with_top ℝ) := some ⁻¹' X in
-if h : Xoc = ∅ then ⟨⊥, ⟨
-    by
-    { rintro (⟨⟩|x) hx, exact le_refl ⊥,
-      exfalso,
-      apply set.not_mem_empty x,
-      rw ←h,
-      exact hx,
-    },
-    λ u hu, lattice.bot_le⟩
-  ⟩ else if htop : ⊤ ∈ Xoc then ⟨⊤, ⟨λ _ _, lattice.le_top, λ x hx, hx htop⟩⟩ else
-    let Xoo : set ℝ := some ⁻¹' Xoc in
-    begin
-    by_cases h2 : nonempty (upper_bounds Xoo),
-    { rcases h2 with ⟨b, hb⟩,
-      use (real.Sup Xoo : ereal),
-      split,
-      { rintros (⟨⟩|⟨⟩|x) hx,
-        { exact lattice.bot_le},
-        { exact false.elim (htop hx)},
-        { change (x : ereal) ≤ _,
-          simp [real.le_Sup _ ⟨b, hb⟩ hx]},
-      },
-      { intros c hc,
-        cases c with c,
-        { cases (set.exists_mem_of_ne_empty h) with x hx,
-          cases (lattice.le_bot_iff.1 (hc hx))},
-        cases c with c, {unfold_coes, simp},
-        suffices : real.Sup Xoo ≤ c,
-        { unfold_coes, simp [this]},
-        refine (real.Sup_le Xoo _ ⟨b, hb⟩).2 _,
-        { rcases (set.exists_mem_of_ne_empty h) with ⟨⟨⟩ | ⟨x⟩, hx⟩, contradiction,
-          exact ⟨x, hx⟩},
-        intros x hx,
-        simpa using hc hx
-      }
-    },
-    { use ⊤,
-      split, intros x hx, exact lattice.le_top,
-      intros b hb,
-      rw lattice.top_le_iff,
-      cases b with b,
-      { exfalso,
-        apply h,
-        ext x,
-        split, swap, rintro ⟨⟩,
-        intro hx,
-        cases (lattice.le_bot_iff.1 (hb hx))},
-      { cases b with b, refl,
-        exfalso,
-        apply h2,
-        use b,
-        intros x hx,
-        replace hb := hb hx,
-        simpa using hb},
-    }
-  end
-
-noncomputable def Sup := λ X, classical.some (Sup_exists X)
-
-noncomputable instance : lattice.has_Sup ereal := ⟨Sup⟩
-
-/-- `ereal` is a complete lattice -/
-noncomputable instance : lattice.complete_lattice (ereal) :=
-{ top := ⊤,
-  le_top := λ _, lattice.le_top,
-  bot := ⊥,
-  bot_le := @lattice.bot_le _ _,
-  Sup := ereal.Sup,
-  Inf := λ X, -classical.some (Sup_exists ({mx | ∃ x ∈ X, mx = -x})),
-  le_Sup := λ X x hx, (classical.some_spec (Sup_exists X)).1 hx,
-  Sup_le := λ X b hb, (classical.some_spec (Sup_exists X)).2 hb,
-  Inf_le := λ X x hx, ereal.neg_le_of_neg_le $ (classical.some_spec (Sup_exists ({mx | ∃ x ∈ X, mx = -x}))).1 ⟨x, hx, rfl⟩,
-  le_Inf := λ X b hb, ereal.le_neg_of_le_neg $ (classical.some_spec (Sup_exists ({mx | ∃ x ∈ X, mx = -x}))).2
-    (λ mx ⟨h, hx, hmx⟩, ereal.le_neg_of_le_neg $ hb _ $ by rwa [hmx, ereal.neg_neg]),
-  ..with_bot.lattice }
-
-  end ereal
+end ereal

@@ -10,7 +10,7 @@ This design decision has consequences, which were also consequences for Bourbaki
 
 [Editor's note: my impression is that one place where mathematicians really play fast and loose is when it comes to manipulating finite sets; mathematicians have a robust intuitive feeling for how one can manipulate them and often do things such as re-arranging finite sums in a way which mathlib currently struggles to emulate; however the interface is being actively worked upon, and will get better over time. Another place where beginners seem to struggle is that mathematicians often move between natural, integer, rational, real and complex numbers without any comment; all of these types are different in Lean and one has to explicitly move from one type to another, and there is currently a "knack" to making this happen seamlessly in Lean.]
 
-# What is currently in mathlib?
+## What is currently in mathlib?
 
 Because of the nature of the way mathematics is being built here, as already mentioned above, mathematicians might find what is in mathlib surprising. However, as it grows, it will begin to reflect more accurately what mathematicians actually care about. Many of the key definitions in mathlib come with robust API's, but mathematicians need to be clear what this means. A basic robust API for the theory of groups does not mean Sylow's theorems or even the first isomorphism theorem. It means simply that users have easy access to the definition and basic properties of groups such as `(a b)^(-1) = b^(-1) a^(-1)`, or that `a c = b c -> a = b`. The harder stuff comes later.
 

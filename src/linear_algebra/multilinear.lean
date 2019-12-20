@@ -9,27 +9,27 @@ import linear_algebra.basic
 /-!
 # Multilinear maps
 
-We define multilinear maps as maps from `ι → M₁` to `M₂` which are linear in each coordinate. Here,
-`M₁` and `M₂` are modules over a ring `R`, and `ι` is an arbitrary type (although some statements
-will require it to be a fintype). This space, denoted by `multilinear_map R ι M₁ M₂`, inherits a
-module structure by pointwise addition and multiplication.
+We define multilinear maps as maps from `Π(i : ι), M₁ i` to `M₂` which are linear in each
+coordinate. Here, `M₁ i` and `M₂` are modules over a ring `R`, and `ι` is an arbitrary type
+(although some statements will require it to be a fintype). This space, denoted by
+`multilinear_map R ι M₁ M₂`, inherits a module structure by pointwise addition and multiplication.
 
 ## Main definitions
 
-* `multilinear_map R ι M₁ M₂` is the space of multilinear maps from `ι → M₁` to `M₂`.
-* `linear_to_multilinear_equiv_multilinear R M₁ M₂ n` registers the linear equivalence between
-  the space of linear maps from `M₁` to the space of multilinear maps on `M₁^n`, and the space of
-  multilinear maps on `M₁^(n+1)`, obtained by separating the first variable from the other ones.
-* `multilinear_to_linear_equiv_multilinear R M₁ M₂ n` registers the linear equivalence between
-  the space of multilinear maps on `M₁^n` to the space of linear maps on `M₁`, and the space of
-  multilinear maps on `M₁^(n+1)`, obtained by separating the first variable from the other ones.
+* `multilinear_map R ι M₁ M₂` is the space of multilinear maps from `Π(i : ι), M₁ i` to `M₂`.
+* `linear_to_multilinear_equiv_multilinear R n M M₂` registers the linear equivalence between
+  the space of linear maps from `M` to the space of multilinear maps on `M^n`, and the space of
+  multilinear maps on `M^(n+1)`, obtained by separating the first variable from the other ones.
+* `multilinear_to_linear_equiv_multilinear R n M M₂` registers the linear equivalence between
+  the space of multilinear maps on `M^n` to the space of linear maps on `M`, and the space of
+  multilinear maps on `M^(n+1)`, obtained by separating the first variable from the other ones.
 
 ## Implementation notes
 
 Expressing that a map is linear along the `i`-th coordinate when all other coordinates are fixed
 can be done in two (equivalent) different ways:
-* fixing a function `f : ι - i → M₂`, and then choosing separately the `i`-th coordinate
-* fixing a function `f : ι → M₂`, and then modifying its `i`-th coordinate
+* fixing a function `f : Π(j : ι - i), M₁ (j.val)`, and then choosing separately the `i`-th coordinate
+* fixing a function `f : Πj, M₁ j → M₂`, and then modifying its `i`-th coordinate
 The second way is more articial as the value of `f` at `i` is not relevant, but it has the advantage
 of avoiding subtype inclusion issues. This is the definition we use, based on `function.update` that
 allows to change the value of `f` at `i`.
@@ -37,24 +37,28 @@ allows to change the value of `f` at `i`.
 
 open function fin
 
-universes u v w u'
-variables {R : Type u} {ι : Type u'} {M₁ : Type v} {M₂ : Type w} [decidable_eq ι]
+universes u v v' w u'
+variables {R : Type u} {ι : Type u'} {n : ℕ} {M : Type v'} {M₁ : ι → Type v} {M₂ : Type w}
+[decidable_eq ι]
 
-/-- Multilinear maps over the ring `R`, from `(ι → M₁)` to `M₂` where `M₁` and `M₂` are modules
+
+/-- Multilinear maps over the ring `R`, from `Πi, M₁ i` to `M₂` where `M₁ i` and `M₂` are modules
 over `R`. -/
-structure multilinear_map (R : Type u) (ι : Type u') (M₁ : Type v) (M₂ : Type w)
-  [decidable_eq ι] [ring R] [add_comm_group M₁] [add_comm_group M₂] [module R M₁] [module R M₂] :=
-(to_fun : (ι → M₁) → M₂)
-(add : ∀(f : ι → M₁) (i : ι) (x y : M₁),
+structure multilinear_map (R : Type u) (ι : Type u') (M₁ : ι → Type v) (M₂ : Type w)
+  [decidable_eq ι] [ring R] [∀i, add_comm_group (M₁ i)] [add_comm_group M₂] [∀i, module R (M₁ i)]
+  [module R M₂] :=
+(to_fun : (Πi, M₁ i) → M₂)
+(add : ∀(f : Πi, M₁ i) (i : ι) (x y : M₁ i),
   to_fun (update f i (x + y)) = to_fun (update f i x) + to_fun (update f i y))
-(smul : ∀(f : ι → M₁) (i : ι) (x : M₁) (c : R),
+(smul : ∀(f : Πi, M₁ i) (i : ι) (x : M₁ i) (c : R),
   to_fun (update f i (c • x)) = c • to_fun (update f i x))
 
 namespace multilinear_map
 
 section ring
 
-variables [ring R] [add_comm_group M₁] [add_comm_group M₂] [module R M₁] [module R M₂]
+variables [ring R] [∀i, add_comm_group (M₁ i)] [add_comm_group M] [add_comm_group M₂]
+[∀i, module R (M₁ i)] [module R M] [module R M₂]
 (m m' : multilinear_map R ι M₁ M₂)
 
 instance : has_coe_to_fun (multilinear_map R ι M₁ M₂) := ⟨_, to_fun⟩
@@ -62,17 +66,17 @@ instance : has_coe_to_fun (multilinear_map R ι M₁ M₂) := ⟨_, to_fun⟩
 @[ext] theorem ext {m m' : multilinear_map R ι M₁ M₂} (H : ∀ x, m x = m' x) : m = m' :=
 by cases m; cases m'; congr'; exact funext H
 
-@[simp] lemma map_add (f : ι → M₁) (i : ι) (x y : M₁) :
+@[simp] lemma map_add (f : Πi, M₁ i) (i : ι) (x y : M₁ i) :
   m (update f i (x + y)) = m (update f i x) + m (update f i y) :=
 m.add f i x y
 
-@[simp] lemma map_smul (f : ι → M₁) (i : ι) (x : M₁) (c : R) :
+@[simp] lemma map_smul (f : Πi, M₁ i) (i : ι) (x : M₁ i) (c : R) :
   m (update f i (c • x)) = c • m (update f i x) :=
 m.smul f i x c
 
-lemma map_coord_zero {f : ι → M₁} (i : ι) (h : f i = 0) : m f = 0 :=
+lemma map_coord_zero {f : Πi, M₁ i} (i : ι) (h : f i = 0) : m f = 0 :=
 begin
-  have : (0 : R) • (0 : M₁) = 0, by simp,
+  have : (0 : R) • (0 : M₁ i) = 0, by simp,
   rw [← @update_eq_self _ _ _ i f, h, ← this, m.map_smul, zero_smul]
 end
 
@@ -85,17 +89,17 @@ end
 instance : has_add (multilinear_map R ι M₁ M₂) :=
 ⟨λm m', ⟨λx, m x + m' x, λf i x y, by simp, λf i x c, by simp [smul_add]⟩⟩
 
-@[simp] lemma add_apply (f : ι → M₁) : (m + m') f = m f + m' f := rfl
+@[simp] lemma add_apply (f : Πi, M₁ i) : (m + m') f = m f + m' f := rfl
 
 instance : has_neg (multilinear_map R ι M₁ M₂) :=
 ⟨λ m, ⟨λ f, - m f, λf i x y, by simp, λf i x c, by simp⟩⟩
 
-@[simp] lemma neg_apply (f : ι → M₁) : (-m) f = - (m f) := rfl
+@[simp] lemma neg_apply (f : Πi, M₁ i) : (-m) f = - (m f) := rfl
 
 instance : has_zero (multilinear_map R ι M₁ M₂) :=
 ⟨⟨λ _, 0, λf i x y, by simp, λf i x c, by simp⟩⟩
 
-@[simp] lemma zero_apply (f : ι → M₁) : (0 : multilinear_map R ι M₁ M₂) f = 0 := rfl
+@[simp] lemma zero_apply (f : Πi, M₁ i) : (0 : multilinear_map R ι M₁ M₂) f = 0 := rfl
 
 instance : add_comm_group (multilinear_map R ι M₁ M₂) :=
 by refine {zero := 0, add := (+), neg := has_neg.neg, ..};
@@ -103,22 +107,22 @@ by refine {zero := 0, add := (+), neg := has_neg.neg, ..};
 
 /-- If `m` is a multilinear map, then `m.to_linear_map f i` is the linear map obtained by fixing all
 coordinates but `i` equal to those of `f`, and varying the `i`-th coordinate. -/
-def to_linear_map (f : ι → M₁) (i : ι) : M₁ →ₗ[R] M₂ :=
+def to_linear_map (f : Πi, M₁ i) (i : ι) : M₁ i →ₗ[R] M₂ :=
 { to_fun := λx, m (update f i x),
   add    := λx y, by simp,
   smul   := λx c, by simp }
 
-/-- In the specific case of multilinear maps on `fin (n+1)` where one can build an element of
-`M₁^(n+1)` using `cons`, one can express directly the additivity of a multilinear map along the
+/-- In the specific case of multilinear maps on `M^(n+1)` where one can build an element of
+`M^(n+1)` using `cons`, one can express directly the additivity of a multilinear map along the
 first variable. -/
-lemma cons_add {n : ℕ} (m : multilinear_map R (fin (n+1)) M₁ M₂) (f : fin n → M₁) (x y : M₁) :
+lemma cons_add (m : multilinear_map R (fin (n+1)) (λi, M) M₂) (f : fin n → M) (x y : M) :
   m (cons (x+y) f) = m (cons x f) + m (cons y f) :=
 by rw [← update_cons_zero f x (x+y), m.map_add, update_cons_zero, update_cons_zero]
 
-/-- In the specific case of multilinear maps on `fin (n+1)` where one can build an element of
-`M₁^(n+1)` using `cons`, one can express directly the multiplicativity of a multilinear map along
+/-- In the specific case of multilinear maps on `M^(n+1)` where one can build an element of
+`M^(n+1)` using `cons`, one can express directly the multiplicativity of a multilinear map along
 the first variable. -/
-lemma cons_smul {n : ℕ} (m : multilinear_map R (fin (n+1)) M₁ M₂) (f : fin n → M₁) (c : R) (x : M₁) :
+lemma cons_smul (m : multilinear_map R (fin (n+1)) (λi, M) M₂) (f : fin n → M) (c : R) (x : M) :
   m (cons (c • x) f) = c • m (cons x f) :=
 by rw [← update_cons_zero f x (c • x), m.map_smul, update_cons_zero]
 
@@ -126,14 +130,14 @@ end ring
 
 section comm_ring
 
-variables [comm_ring R] [add_comm_group M₁] [add_comm_group M₂]
-[module R M₁] [module R M₂]
+variables [comm_ring R] [∀i, add_comm_group (M₁ i)] [add_comm_group M] [add_comm_group M₂]
+[∀i, module R (M₁ i)] [module R M] [module R M₂]
 (m m' : multilinear_map R ι M₁ M₂)
 
 instance : has_scalar R (multilinear_map R ι M₁ M₂) := ⟨λ c m,
   ⟨λ f, c • m f, λf i x y, by simp [smul_add], λf i x d, by simp [smul_smul, mul_comm]⟩⟩
 
-@[simp] lemma smul_apply (c : R) (f : ι → M₁) : (c • m) f = c • m f := rfl
+@[simp] lemma smul_apply (c : R) (f : Πi, M₁ i) : (c • m) f = c • m f := rfl
 
 /-- The space of multilinear maps is a module over `R`, for the pointwise addition and scalar
 multiplication. -/
@@ -141,13 +145,13 @@ instance : module R (multilinear_map R ι M₁ M₂) :=
 module.of_core $ by refine { smul := (•), ..};
   intros; ext; simp [smul_add, add_smul, smul_smul]
 
-variables (R M₁ M₂)
+variables (R n M M₂)
 
-/-- The space of multilinear maps on `M₁^(n+1)` is canonically isomorphic to the space of linear
-maps from `M₁` to the space of multilinear maps on `M₁^n`, by separating the first variable. We
-register this isomorphism in `linear_to_multilinear_equiv_multilinear R M₁ M₂ n`. -/
-def linear_to_multilinear_equiv_multilinear (n : ℕ) :
-  (M₁ →ₗ[R] (multilinear_map R (fin n) M₁ M₂)) ≃ₗ[R] (multilinear_map R (fin (n+1)) M₁ M₂) :=
+/-- The space of multilinear maps on `M^(n+1)` is canonically isomorphic to the space of linear
+maps from `M` to the space of multilinear maps on `M^n`, by separating the first variable. We
+register this isomorphism in `linear_to_multilinear_equiv_multilinear R n M M₂`. -/
+def linear_to_multilinear_equiv_multilinear :
+  (M →ₗ[R] (multilinear_map R (fin n) (λi, M) M₂)) ≃ₗ[R] (multilinear_map R (fin (n+1)) (λi, M) M₂) :=
 { to_fun  := λm,
     { -- define an `n+1` multilinear map from a linear map into `n` multilinear maps
       to_fun := λf, m (f 0) (tail f),
@@ -199,12 +203,12 @@ def linear_to_multilinear_equiv_multilinear (n : ℕ) :
   end }
 
 
-/-- The space of multilinear maps on `M₁^(n+1)` is canonically isomorphic to the space of linear
-maps from the space of multilinear maps on `M₁^n` to the space of linear maps on `M₁`, by
+/-- The space of multilinear maps on `M^(n+1)` is canonically isomorphic to the space of linear
+maps from the space of multilinear maps on `M^n` to the space of linear maps on `M`, by
 separating the first variable. We register this isomorphism in
-`multilinear_to_linear_equiv_multilinear R M₁ M₂ n`. -/
-def multilinear_to_linear_equiv_multilinear (n : ℕ) :
-  (multilinear_map R (fin n) M₁ (M₁ →ₗ[R] M₂)) ≃ₗ[R] (multilinear_map R (fin (n+1)) M₁ M₂) :=
+`multilinear_to_linear_equiv_multilinear R n M M₂`. -/
+def multilinear_to_linear_equiv_multilinear :
+  (multilinear_map R (fin n) (λi, M) (M →ₗ[R] M₂)) ≃ₗ[R] (multilinear_map R (fin (n+1)) (λi, M) M₂) :=
 { to_fun  := λm,
     { -- define an `n+1` multilinear map from an `n` multilinear map into linear maps
       to_fun := λf, m (tail f) (f 0),

@@ -119,7 +119,7 @@ tendsto_iff_norm_tendsto_zero.2 $
       calc ∥f e - f x∥ = ∥hf.mk' f (e - x)∥ : by rw (hf.mk' _).map_sub e x; refl
                    ... ≤ M * ∥e - x∥        : hM (e - x))
     (suffices (λ (e : E), M * ∥e - x∥) →_{x} (M * 0), by simpa,
-      tendsto_mul tendsto_const_nhds (lim_norm _))
+      tendsto_const_nhds.mul (lim_norm _))
 
 lemma continuous (hf : is_bounded_linear_map 𝕜 f) : continuous f :=
 continuous_iff_continuous_at.2 $ λ _, hf.tendsto _
@@ -259,6 +259,18 @@ lemma is_bounded_bilinear_map_apply :
   add_right  := by simp,
   smul_right := by simp,
   bound      := ⟨1, zero_lt_one, by simp [continuous_linear_map.le_op_norm]⟩ }
+
+/-- The function `continuous_linear_map.smul_right`, associating to a continuous linear map
+`f : E → 𝕜` and a scalar `c : F` the tensor product `f ⊗ c` as a continuous linear map from `E` to
+`F`, is a bounded bilinear map. -/
+lemma is_bounded_bilinear_map_smul_right :
+  is_bounded_bilinear_map 𝕜
+    (λp, (continuous_linear_map.smul_right : (E →L[𝕜] 𝕜) → F → (E →L[𝕜] F)) p.1 p.2) :=
+{ add_left   := λm₁ m₂ f, by { ext z, simp [add_smul] },
+  smul_left  := λc m f, by { ext z, simp [mul_smul] },
+  add_right  := λm f₁ f₂, by { ext z, simp [smul_add] },
+  smul_right := λc m f, by { ext z, simp [smul_smul, mul_comm] },
+  bound      := ⟨1, zero_lt_one, λm f, by simp⟩ }
 
 /-- Definition of the derivative of a bilinear map `f`, given at a point `p` by
 `q ↦ f(p.1, q.2) + f(q.1, p.2)` as in the standard formula for the derivative of a product.

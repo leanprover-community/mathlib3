@@ -858,7 +858,7 @@ begin
     simp [submodule.mem_span_singleton] }
 end
 
-lemma linear_equiv.is_basis (hs : is_basis R v)
+protected lemma linear_equiv.is_basis (hs : is_basis R v)
   (f : M ≃ₗ[R] M') : is_basis R (f ∘ v) :=
 begin
   split,

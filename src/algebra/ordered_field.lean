@@ -135,20 +135,6 @@ lemma half_lt_self : 0 < a → a / 2 < a := div_two_lt_of_pos
 
 lemma one_half_lt_one : (1 / 2 : α) < 1 := half_lt_self zero_lt_one
 
-lemma ivl_translate : (λx, x + c) '' {r:α | a ≤ r ∧ r ≤ b } = {r:α | a + c ≤ r ∧ r ≤ b + c} :=
-calc (λx, x + c) '' {r | a ≤ r ∧ r ≤ b } = (λx, x - c) ⁻¹' {r | a ≤ r ∧ r ≤ b } :
-    congr_fun (set.image_eq_preimage_of_inverse
-      (assume a, add_sub_cancel a c) (assume b, sub_add_cancel b c)) _
-  ... = {r | a + c ≤ r ∧ r ≤ b + c} :
-    set.ext $ by simp [-sub_eq_add_neg, le_sub_iff_add_le, sub_le_iff_le_add]
-
-lemma ivl_stretch (hc : 0 < c) : (λx, x * c) '' {r | a ≤ r ∧ r ≤ b } = {r | a * c ≤ r ∧ r ≤ b * c} :=
-calc (λx, x * c) '' {r | a ≤ r ∧ r ≤ b } = (λx, x / c) ⁻¹' {r | a ≤ r ∧ r ≤ b } :
-    congr_fun (set.image_eq_preimage_of_inverse
-      (assume a, mul_div_cancel _ $ ne_of_gt hc) (assume b, div_mul_cancel _ $ ne_of_gt hc)) _
-  ... = {r | a * c ≤ r ∧ r ≤ b * c} :
-    set.ext $ by simp [le_div_iff, div_le_iff, hc]
-
 @[priority 100] -- see Note [lower instance priority]
 instance linear_ordered_field.to_densely_ordered : densely_ordered α :=
 { dense := assume a₁ a₂ h, ⟨(a₁ + a₂) / 2,

@@ -225,7 +225,7 @@ begin
 end
 
 --TODO: move
-lemma is_linear_map_smul' {α R : Type*} [add_comm_group α] [comm_ring R] [module R α] (a : α) :
+lemma is_linear_map_smul' {α R : Type*} [add_comm_group α] [ring R] [module R α] (a : α) :
   is_linear_map R (λ (c : R), c • a) :=
 begin
   refine is_linear_map.mk (λ x y, add_smul x y a) _,
@@ -363,15 +363,25 @@ lemma mul_mem_right (h : a ∈ I) : a * b ∈ I := mul_comm b a ▸ I.mul_mem_le
 
 end ideal
 
-section prio
-set_option default_priority 100 -- see Note [default priority]
+library_note "vector space definition"
+"Vector spaces are defined as an `abbreviation` for modules,
+if the base ring is a field.
+(A previous definition made `vector_space` a structure
+defined to be `module`.)
+This has as advantage that vector spaces are completely transparant
+for type class inference, which means that all instances for modules
+are immediately picked up for vector spaces as well.
+A cosmetic disadvantage is that one can not extend vector spaces an sich,
+in definitions such as `normed_space`.
+The solution is to extend `module` instead."
+
 /-- A vector space is the same as a module, except the scalar ring is actually
   a field. (This adds commutativity of the multiplication and existence of inverses.)
   This is the traditional generalization of spaces like `ℝ^n`, which have a natural
   addition operation and a way to multiply them by real numbers, but no multiplication
   operation between vectors. -/
-class vector_space (α : Type u) (β : Type v) [discrete_field α] [add_comm_group β] extends module α β
-end prio
+abbreviation vector_space (α : Type u) (β : Type v) [discrete_field α] [add_comm_group β] :=
+module α β
 
 instance discrete_field.to_vector_space {α : Type*} [discrete_field α] : vector_space α α :=
 { .. ring.to_module }
@@ -431,6 +441,8 @@ instance : module ℤ M :=
   smul_zero := gsmul_zero }
 
 end add_comm_group
+
+lemma gsmul_eq_smul {M : Type*} [add_comm_group M] (n : ℤ) (x : M) : gsmul n x = n • x := rfl
 
 def is_add_group_hom.to_linear_map [add_comm_group α] [add_comm_group β]
   (f : α → β) [is_add_group_hom f] : α →ₗ[ℤ] β :=

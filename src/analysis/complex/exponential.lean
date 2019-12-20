@@ -3,7 +3,7 @@ Copyright (c) 2018 Chris Hughes. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Chris Hughes, Abhimanyu Pallavi Sudhir, Jean Lo, Calle Sönne
 -/
-import tactic.linarith data.complex.exponential
+import tactic.linarith data.complex.exponential analysis.specific_limits
       group_theory.quotient_group analysis.complex.basic
 
 
@@ -127,10 +127,8 @@ lemma continuous_cos : continuous cos :=
 differentiable_cos.continuous
 
 lemma continuous_tan : continuous (λ x : {x // cos x ≠ 0}, tan x) :=
-continuous_mul
-  (continuous_sin.comp continuous_subtype_val)
-  (continuous_inv subtype.property
-    (continuous_cos.comp continuous_subtype_val))
+(continuous_sin.comp continuous_subtype_val).mul
+  (continuous.inv subtype.property (continuous_cos.comp continuous_subtype_val))
 
 /-- The complex hyperbolic sine function is everywhere differentiable, with the derivative `sinh x`. -/
 lemma has_deriv_at_sinh (x : ℂ) : has_deriv_at sinh (cosh x) x :=
@@ -216,9 +214,8 @@ differentiable_cos.continuous
 
 lemma continuous_tan : continuous (λ x : {x // cos x ≠ 0}, tan x) :=
 by simp only [tan_eq_sin_div_cos]; exact
-continuous_mul
-  (continuous_sin.comp continuous_subtype_val)
-  (continuous_inv subtype.property
+  (continuous_sin.comp continuous_subtype_val).mul
+  (continuous.inv subtype.property
     (continuous_cos.comp continuous_subtype_val))
 
 lemma has_deriv_at_sinh (x : ℝ) : has_deriv_at sinh (cosh x) x :=
@@ -245,19 +242,18 @@ lemma differentiable_cosh : differentiable ℝ cosh :=
 lemma continuous_cosh : continuous cosh :=
 differentiable_cosh.continuous
 
-private lemma exists_exp_eq_of_one_le {x : ℝ} (hx : 1 ≤ x) : ∃ y, exp y = x :=
-let ⟨y, hy⟩ := @intermediate_value real.exp 0 (x - 1) x
-  (λ _ _ _, continuous_iff_continuous_at.1 continuous_exp _) (by simpa)
-  (by simpa using add_one_le_exp_of_nonneg (sub_nonneg.2 hx)) (sub_nonneg.2 hx) in
-⟨y, hy.2.2⟩
-
 lemma exists_exp_eq_of_pos {x : ℝ} (hx : 0 < x) : ∃ y, exp y = x :=
+have ∀ {z:ℝ}, 1 ≤ z → z ∈ set.range exp,
+  from λ z hz, intermediate_value_univ 0 (z - 1) continuous_exp
+    ⟨by simpa, by simpa using add_one_le_exp_of_nonneg (sub_nonneg.2 hz)⟩,
 match le_total x 1 with
-| (or.inl hx1) := let ⟨y, hy⟩ := exists_exp_eq_of_one_le (one_le_inv hx hx1) in
+| (or.inl hx1) := let ⟨y, hy⟩ := this (one_le_inv hx hx1) in
   ⟨-y, by rw [exp_neg, hy, inv_inv']⟩
-| (or.inr hx1) := exists_exp_eq_of_one_le hx1
+| (or.inr hx1) := this hx1
 end
 
+/-- The real logarithm function, equal to `0` for `x ≤ 0` and to the inverse of the exponential
+for `x > 0`. -/
 noncomputable def log (x : ℝ) : ℝ :=
 if hx : 0 < x then classical.some (exists_exp_eq_of_pos hx) else 0
 
@@ -345,10 +341,10 @@ begin
   have H1 : tendsto f₁ (𝓝 ⟨1, zero_lt_one⟩) (𝓝 (log (x.1*1))),
     have : f₁ = λ h:{h:ℝ // 0 < h}, log x.1 + log h.1,
       ext h, rw ← log_mul x.2 h.2,
-    simp only [this, log_mul x.2 zero_lt_one, log_one], exact
-      tendsto_add tendsto_const_nhds (tendsto.comp tendsto_log_one_zero continuous_at_subtype_val),
+    simp only [this, log_mul x.2 zero_lt_one, log_one],
+    exact tendsto_const_nhds.add (tendsto.comp tendsto_log_one_zero continuous_at_subtype_val),
   have H2 : tendsto f₂ (𝓝 x) (𝓝 ⟨x.1⁻¹ * x.1, mul_pos (inv_pos x.2) x.2⟩),
-    rw tendsto_subtype_rng, exact tendsto_mul tendsto_const_nhds continuous_at_subtype_val,
+    rw tendsto_subtype_rng, exact tendsto_const_nhds.mul continuous_at_subtype_val,
   suffices h : tendsto (f₁ ∘ f₂) (𝓝 x) (𝓝 (log x.1)),
   begin
     convert h, ext y,
@@ -375,27 +371,27 @@ show continuous ((log ∘ @subtype.val ℝ (λr, 0 < r)) ∘ λa, ⟨f a, h a⟩
 
 end prove_log_is_continuous
 
-lemma exists_cos_eq_zero : ∃ x, 1 ≤ x ∧ x ≤ 2 ∧ cos x = 0 :=
-real.intermediate_value'
-  (λ x _ _, continuous_iff_continuous_at.1 continuous_cos _)
-  (le_of_lt cos_one_pos)
-  (le_of_lt cos_two_neg) (by norm_num)
+lemma exists_cos_eq_zero : 0 ∈ cos '' set.Icc (1:ℝ) 2 :=
+intermediate_value_Icc' (by norm_num) continuous_cos.continuous_on
+  ⟨le_of_lt cos_two_neg, le_of_lt cos_one_pos⟩
 
+/-- The number π = 3.14159265... Defined here using choice as twice a zero of cos in [1,2], from
+which one can derive all its properties. For explicit bounds on π, see `data.real.pi`. -/
 noncomputable def pi : ℝ := 2 * classical.some exists_cos_eq_zero
 
 localized "notation `π` := real.pi" in real
 
 @[simp] lemma cos_pi_div_two : cos (π / 2) = 0 :=
 by rw [pi, mul_div_cancel_left _ (@two_ne_zero' ℝ _ _ _)];
-  exact (classical.some_spec exists_cos_eq_zero).2.2
+  exact (classical.some_spec exists_cos_eq_zero).2
 
 lemma one_le_pi_div_two : (1 : ℝ) ≤ π / 2 :=
 by rw [pi, mul_div_cancel_left _ (@two_ne_zero' ℝ _ _ _)];
-  exact (classical.some_spec exists_cos_eq_zero).1
+  exact (classical.some_spec exists_cos_eq_zero).1.1
 
 lemma pi_div_two_le_two : π / 2 ≤ 2 :=
 by rw [pi, mul_div_cancel_left _ (@two_ne_zero' ℝ _ _ _)];
-  exact (classical.some_spec exists_cos_eq_zero).2.1
+  exact (classical.some_spec exists_cos_eq_zero).1.2
 
 lemma two_le_pi : (2 : ℝ) ≤ π :=
 (div_le_div_right (show (0 : ℝ) < 2, by norm_num)).1
@@ -665,11 +661,10 @@ begin
   linarith
 end
 
-lemma exists_sin_eq {x : ℝ} (hx₁ : -1 ≤ x) (hx₂ : x ≤ 1) : ∃ y, -(π / 2) ≤ y ∧ y ≤ π / 2 ∧ sin y = x :=
-@real.intermediate_value sin (-(π / 2)) (π / 2) x
-  (λ _ _ _, continuous_iff_continuous_at.1 continuous_sin _)
-  (by rwa [sin_neg, sin_pi_div_two]) (by rwa sin_pi_div_two)
+lemma exists_sin_eq : set.Icc (-1:ℝ) 1 ⊆  sin '' set.Icc (-(π / 2)) (π / 2) :=
+by convert intermediate_value_Icc
   (le_trans (neg_nonpos.2 (le_of_lt pi_div_two_pos)) (le_of_lt pi_div_two_pos))
+  continuous_sin.continuous_on; simp only [sin_neg, sin_pi_div_two]
 
 lemma sin_lt {x : ℝ} (h : 0 < x) : sin x < x :=
 begin
@@ -688,7 +683,7 @@ end
 
 /- note 1: this inequality is not tight, the tighter inequality is sin x > x - x ^ 3 / 6.
    note 2: this is also true for x > 1, but it's nontrivial for x just above 1. -/
-lemma sin_gt_sub_cube {x : ℝ} (h : 0 < x) (h' : x ≤ 1) : sin x > x - x ^ 3 / 4 :=
+lemma sin_gt_sub_cube {x : ℝ} (h : 0 < x) (h' : x ≤ 1) : x - x ^ 3 / 4 < sin x :=
 begin
   have hx : abs x = x := abs_of_nonneg (le_of_lt h),
   have : abs x ≤ 1, rwa [hx],
@@ -792,21 +787,21 @@ end angle
 /-- Inverse of the `sin` function, returns values in the range `-π / 2 ≤ arcsin x` and `arcsin x ≤ π / 2`.
   If the argument is not between `-1` and `1` it defaults to `0` -/
 noncomputable def arcsin (x : ℝ) : ℝ :=
-if hx : -1 ≤ x ∧ x ≤ 1 then classical.some (exists_sin_eq hx.1 hx.2) else 0
+if hx : -1 ≤ x ∧ x ≤ 1 then classical.some (exists_sin_eq hx) else 0
 
 lemma arcsin_le_pi_div_two (x : ℝ) : arcsin x ≤ π / 2 :=
 if hx : -1 ≤ x ∧ x ≤ 1
-then by rw [arcsin, dif_pos hx]; exact (classical.some_spec (exists_sin_eq hx.1 hx.2)).2.1
+then by rw [arcsin, dif_pos hx]; exact (classical.some_spec (exists_sin_eq hx)).1.2
 else by rw [arcsin, dif_neg hx]; exact le_of_lt pi_div_two_pos
 
 lemma neg_pi_div_two_le_arcsin (x : ℝ) : -(π / 2) ≤ arcsin x :=
 if hx : -1 ≤ x ∧ x ≤ 1
-then by rw [arcsin, dif_pos hx]; exact (classical.some_spec (exists_sin_eq hx.1 hx.2)).1
+then by rw [arcsin, dif_pos hx]; exact (classical.some_spec (exists_sin_eq hx)).1.1
 else by rw [arcsin, dif_neg hx]; exact neg_nonpos.2 (le_of_lt pi_div_two_pos)
 
 lemma sin_arcsin {x : ℝ} (hx₁ : -1 ≤ x) (hx₂ : x ≤ 1) : sin (arcsin x) = x :=
 by rw [arcsin, dif_pos (and.intro hx₁ hx₂)];
-  exact (classical.some_spec (exists_sin_eq hx₁ hx₂)).2.2
+  exact (classical.some_spec (exists_sin_eq ⟨hx₁, hx₂⟩)).2
 
 lemma arcsin_sin {x : ℝ} (hx₁ : -(π / 2) ≤ x) (hx₂ : x ≤ π / 2) : arcsin (sin x) = x :=
 sin_inj_of_le_of_le_pi_div_two (neg_pi_div_two_le_arcsin _) (arcsin_le_pi_div_two _) hx₁ hx₂
@@ -1389,6 +1384,9 @@ by simp [cos_add, sin_add, cos_int_mul_two_pi]
 
 section pow
 
+/-- The complex power function `x^y`, given by `x^y = exp(y log x)` (where `log` is the principal
+determination of the logarithm), unless `x = 0` where one sets `0^0 = 1` and `0^y = 0` for
+`y ≠ 0`. -/
 noncomputable def cpow (x y : ℂ) : ℂ :=
 if x = 0
   then if y = 0
@@ -1471,6 +1469,10 @@ end complex
 
 namespace real
 
+/-- The real power function `x^y`, defined as the real part of the complex power function.
+For `x > 0`, it is equal to `exp(y log x)`. For `x = 0`, one sets `0^0=1` and `0^y=0` for `y ≠ 0`.
+For `x < 0`, the definition is somewhat arbitary as it depends on the choice of a complex
+determination of the logarithm. With our conventions, it is equal to `exp (y log (-x)) cos (πy)`. -/
 noncomputable def rpow (x y : ℝ) := ((x : ℂ) ^ (y : ℂ)).re
 
 noncomputable instance : has_pow ℝ ℝ := ⟨rpow⟩
@@ -1690,23 +1692,22 @@ section prove_rpow_is_continuous
 lemma continuous_rpow_aux1 : continuous (λp : {p:ℝ×ℝ // 0 < p.1}, p.val.1 ^ p.val.2) :=
 suffices h : continuous (λ p : {p:ℝ×ℝ // 0 < p.1 }, exp (log p.val.1 * p.val.2)),
   by { convert h, ext p, rw rpow_def_of_pos p.2 },
-continuous_exp.comp $ continuous_mul
+continuous_exp.comp $
   (show continuous ((λp:{p:ℝ//0 < p}, log (p.val)) ∘ (λp:{p:ℝ×ℝ//0<p.fst}, ⟨p.val.1, p.2⟩)), from
-    continuous_log'.comp $ continuous_subtype_mk _ $ continuous_fst.comp continuous_subtype_val)
+    continuous_log'.comp $ continuous_subtype_mk _ $ continuous_fst.comp continuous_subtype_val).mul
   (continuous_snd.comp $ continuous_subtype_val.comp continuous_id)
 
 lemma continuous_rpow_aux2 : continuous (λ p : {p:ℝ×ℝ // p.1 < 0}, p.val.1 ^ p.val.2) :=
 suffices h : continuous (λp:{p:ℝ×ℝ // p.1 < 0}, exp (log (-p.val.1) * p.val.2) * cos (p.val.2 * π)),
   by { convert h, ext p, rw [rpow_def_of_neg p.2] },
-continuous_mul
-  (continuous_exp.comp $ continuous_mul
+  (continuous_exp.comp $
     (show continuous $ (λp:{p:ℝ//0<p},
             log (p.val))∘(λp:{p:ℝ×ℝ//p.1<0}, ⟨-p.val.1, neg_pos_of_neg p.2⟩),
-     from continuous_log'.comp $ continuous_subtype_mk _ $ continuous_neg'.comp $
-            continuous_fst.comp continuous_subtype_val)
-    (continuous_snd.comp $ continuous_subtype_val.comp continuous_id))
-  (continuous_cos.comp $ continuous_mul
-    (continuous_snd.comp $ continuous_subtype_val.comp continuous_id) continuous_const)
+     from continuous_log'.comp $ continuous_subtype_mk _ $ continuous_neg.comp $
+            continuous_fst.comp continuous_subtype_val).mul
+    (continuous_snd.comp $ continuous_subtype_val.comp continuous_id)).mul
+  (continuous_cos.comp $
+    (continuous_snd.comp $ continuous_subtype_val.comp continuous_id).mul continuous_const)
 
 lemma continuous_at_rpow_of_ne_zero (hx : x ≠ 0) (y : ℝ) :
   continuous_at (λp:ℝ×ℝ, p.1^p.2) (x, y) :=
@@ -1799,5 +1800,65 @@ lemma continuous_sqrt : continuous sqrt :=
 by rw sqrt_eq_rpow; exact continuous_rpow_of_pos (λa, by norm_num) continuous_id continuous_const
 
 end sqrt
+
+section exp
+
+/-- The real exponential function tends to +infinity at +infinity -/
+lemma tendsto_exp_at_top : tendsto exp at_top at_top :=
+begin
+  have A : tendsto (λx:ℝ, x + 1) at_top at_top :=
+    tendsto_at_top_add_const_right at_top 1 tendsto_id,
+  have B : {x : ℝ | x + 1 ≤ exp x} ∈ at_top,
+  { have : {x : ℝ | 0 ≤ x} ∈ at_top := mem_at_top 0,
+    filter_upwards [this],
+    exact λx hx, add_one_le_exp_of_nonneg hx },
+  exact tendsto_at_top_mono' at_top B A
+end
+
+/-- The real exponential function tends to 0 at -infinity or, equivalently, `exp(-x)` tends to `0`
+at +infinity -/
+lemma tendsto_exp_neg_at_top_nhds_0 : tendsto (λx, exp (-x)) at_top (𝓝 0) :=
+(tendsto.comp tendsto_inverse_at_top_nhds_0 (tendsto_exp_at_top)).congr (λx, (exp_neg x).symm)
+
+/-- The function `exp(x)/x^n` tends to +infinity at +infinity, for any natural number `n` -/
+lemma tendsto_exp_div_pow_at_top (n : ℕ) : tendsto (λx, exp x / x^n) at_top at_top :=
+begin
+  have n_pos : (0 : ℝ) < n + 1 := nat.cast_add_one_pos n,
+  have n_ne_zero : (n : ℝ) + 1 ≠ 0 := ne_of_gt n_pos,
+  have A : ∀x:ℝ, 0 < x → exp (x / (n+1)) / (n+1)^n ≤ exp x / x^n,
+  { assume x hx,
+    let y := x / (n+1),
+    have y_pos : 0 < y := div_pos hx n_pos,
+    have : exp (x / (n+1)) ≤ (n+1)^n * (exp x / x^n), from calc
+      exp y = exp y * 1 : by simp
+      ... ≤ exp y * (exp y / y)^n : begin
+          apply mul_le_mul_of_nonneg_left (one_le_pow_of_one_le _ n) (le_of_lt (exp_pos _)),
+          apply one_le_div_of_le _ y_pos,
+          apply le_trans _ (add_one_le_exp_of_nonneg (le_of_lt y_pos)),
+          exact le_add_of_le_of_nonneg (le_refl _) (zero_le_one)
+        end
+      ... = exp y * exp (n * y) / y^n :
+        by rw [div_pow _ (ne_of_gt y_pos), exp_nat_mul, mul_div_assoc]
+      ... = exp ((n + 1) * y) / y^n :
+        by rw [← exp_add, add_mul, one_mul, add_comm]
+      ... = exp x / (x / (n+1))^n :
+        by { dsimp [y], rw mul_div_cancel' _ n_ne_zero }
+      ... = (n+1)^n * (exp x / x^n) :
+        by rw [← mul_div_assoc, div_pow _ n_ne_zero, div_div_eq_mul_div, mul_comm],
+    rwa div_le_iff' (pow_pos n_pos n) },
+  have B : {x : ℝ | exp (x / (n+1)) / (n+1)^n ≤ exp x / x^n} ∈ at_top :=
+    mem_at_top_sets.2 ⟨1, λx hx, A _ (lt_of_lt_of_le zero_lt_one hx)⟩,
+  have C : tendsto (λx, exp (x / (n+1)) / (n+1)^n) at_top at_top :=
+    tendsto_at_top_div (pow_pos n_pos n)
+      (tendsto_exp_at_top.comp (tendsto_at_top_div (nat.cast_add_one_pos n) tendsto_id)),
+  exact tendsto_at_top_mono' at_top B C
+end
+
+/-- The function `x^n * exp(-x)` tends to `0` at +infinity, for any natural number `n`. -/
+lemma tendsto_pow_mul_exp_neg_at_top_nhds_0 (n : ℕ) : tendsto (λx, x^n * exp (-x)) at_top (𝓝 0) :=
+(tendsto_inverse_at_top_nhds_0.comp (tendsto_exp_div_pow_at_top n)).congr $ λx,
+  by rw [function.comp_app, inv_eq_one_div, div_div_eq_mul_div, one_mul, div_eq_mul_inv, exp_neg]
+
+end exp
 
 end real

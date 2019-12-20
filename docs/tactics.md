@@ -186,10 +186,89 @@ example {α : Type*} {a b : α} [add_comm_group α] (hyp : a + a - a = b - b) : 
 by { abel at hyp, exact hyp }
 ```
 
+### norm_num
+
+Normalises numerical expressions. It supports the operations `+` `-` `*` `/` `^` and `%` over numerical types such as `ℕ`, `ℤ`, `ℚ`, `ℝ`, `ℂ`, and can prove goals of the form `A = B`, `A ≠ B`, `A < B` and `A ≤ B`, where `A` and `B` are
+numerical expressions. It also has a relatively simple primality prover.
+```lean
+import data.real.basic
+
+example : (2 : ℝ) + 2 = 4 := by norm_num
+example : (12345.2 : ℝ) ≠ 12345.3 := by norm_num
+example : (73 : ℝ) < 789/2 := by norm_num
+example : 123456789 + 987654321 = 1111111110 := by norm_num
+example (R : Type*) [ring R] : (2 : R) + 2 = 4 := by norm_num
+example (F : Type*) [linear_ordered_field F] : (2 : F) + 2 < 5 := by norm_num
+example : nat.prime (2^13 - 1) := by norm_num
+example : ¬ nat.prime (2^11 - 1) := by norm_num
+example (x : ℝ) (h : x = 123 + 456) : x = 579 := by norm_num at h; assumption
+```
+
 ### ring
 
 Evaluate expressions in the language of *commutative* (semi)rings.
 Based on [Proving Equalities in a Commutative Ring Done Right in Coq](http://www.cs.ru.nl/~freek/courses/tt-2014/read/10.1.1.61.3041.pdf) by Benjamin Grégoire and Assia Mahboubi.
+
+The variant `ring!` uses a more aggessive reducibility setting to determine equality of atoms.
+
+### ring_exp
+
+Evaluate expressions in *commutative* (semi)rings, allowing for variables in the exponent.
+
+This tactic extends `ring`: it should solve every goal that `ring` can solve.
+Additionally, it knows how to evaluate expressions with complicated exponents
+(where `ring` only understands constant exponents).
+The variants `ring_exp!` and `ring_exp_eq!` use a more aggessive reducibility setting to determine equality of atoms.
+
+For example:
+```lean
+example (n : ℕ) (m : ℤ) : 2^(n+1) * m = 2 * 2^n * m := by ring_exp
+example (a b : ℤ) (n : ℕ) : (a + b)^(n + 2) = (a^2 + b^2 + a * b + b * a) * (a + b)^n := by ring_exp
+example (x y : ℕ) : x + id y = y + id x := by ring_exp!
+```
+
+### field_simp
+
+The goal of `field_simp` is to reduce an expression in a field to an expression of the form `n / d`
+where neither `n` nor `d` contains any division symbol, just using the simplifier (with a carefully
+crafted simpset named `field_simps`) to reduce the number of division symbols whenever possible by
+iterating the following steps:
+
+- write an inverse as a division
+- in any product, move the division to the right
+- if there are several divisions in a product, group them together at the end and write them as a
+  single division
+- reduce a sum to a common denominator
+
+If the goal is an equality, this simpset will also clear the denominators, so that the proof
+can normally be concluded by an application of `ring` or `ring_exp`.
+
+`field_simp [hx, hy]` is a short form for `simp [-one_div_eq_inv, hx, hy] with field_simps`
+
+Note that this naive algorithm will not try to detect common factors in denominators to reduce the
+complexity of the resulting expression. Instead, it relies on the ability of `ring` to handle
+complicated expressions in the next step.
+
+As always with the simplifier, reduction steps will only be applied if the preconditions of the
+lemmas can be checked. This means that proofs that denominators are nonzero should be included. The
+fact that a product is nonzero when all factors are, and that a power of a nonzero number is
+nonzero, are included in the simpset, but more complicated assertions (especially dealing with sums)
+should be given explicitly. If your expression is not completely reduced by the simplifier
+invocation, check the denominators of the resulting expression and provide proofs that they are
+nonzero to enable further progress.
+
+The invocation of `field_simp` removes the lemma `one_div_eq_inv` (which is marked as a simp lemma
+in core) from the simpset, as this lemma works against the algorithm explained above.
+
+For example,
+```lean
+example (a b c d x y : ℂ) (hx : x ≠ 0) (hy : y ≠ 0) :
+  a + b / x + c / x^2 + d / x^3 = a + x⁻¹ * (y * b / y + (d / x + c) / x) :=
+begin
+  field_simp [hx, hy],
+  ring
+end
+```
 
 ### congr'
 
@@ -470,7 +549,7 @@ A maximum depth can be provided with `ext x y z : 3`.
  @[ext] lemma foo.ext : ∀ {α : Type u_1} (x y : foo α), x.x = y.x → x.y = y.y → x.z == y.z → x.k = y.k → x = y
  lemma foo.ext_iff : ∀ {α : Type u_1} (x y : foo α), x = y ↔ x.x = y.x ∧ x.y = y.y ∧ x.z == y.z ∧ x.k = y.k
  ```
- 
+
 ### refine_struct
 
 `refine_struct { .. }` acts like `refine` but works only with structure instance
@@ -1288,6 +1367,9 @@ Lift an expression to another type.
   specify it again as the third argument to `with`, like this: `lift n to ℕ using h with n rfl h`.
 * More generally, this can lift an expression from `α` to `β` assuming that there is an instance
   of `can_lift α β`. In this case the proof obligation is specified by `can_lift.cond`.
+* Given an instance `can_lift β γ`, it can also lift `α → β` to `α → γ`; more generally, given
+  `β : Π a : α, Type*`, `γ : Π a : α, Type*`, and `[Π a : α, can_lift (β a) (γ a)]`, it automatically
+  generates an instance `can_lift (Π a, β a) (Π a, γ a)`.
 
 ### import_private
 
@@ -1337,3 +1419,57 @@ See also additional documentation of `using_well_founded` in
 * `@[simps]` reduces let-expressions where necessary.
 * If one of the fields is a partially applied constructor, we will eta-expand it
   (this likely never happens).
+
+### mk_simp_attribute
+
+The command `mk_simp_attribute simp_name "description"` creates a simp set with name `simp_name`.
+Lemmas tagged with `@[simp_name]` will be included when `simp with simp_name` is called.
+`mk_simp_attribute simp_name none` will use a default description.
+
+Appending the command with `with attr1 attr2 ...` will include all declarations tagged with
+`attr1`, `attr2`, ... in the new simp set.
+
+This command is preferred to using ``run_cmd mk_simp_attr `simp_name`` since it adds a doc string
+to the attribute that is defined. If you need to create a simp set in a file where this command is not
+available, you should use
+```lean
+run_cmd mk_simp_attr `simp_name
+run_cmd add_doc_string `simp_attr.simp_name "Description of the simp set here"
+```
+
+### library_note
+
+At various places in mathlib, we leave implementation notes that are referenced from many other
+files. To keep track of these notes, we use the command `library_note`. This makes it easy to
+retrieve a list of all notes, e.g. for documentation output.
+
+These notes can be referenced in mathlib with the syntax `Note [note id]`.
+Often, these references will be made in code comments (`--`) that won't be displayed in docs.
+If such a reference is made in a doc string or module doc, it will be linked to the corresponding
+note in the doc display.
+
+Syntax:
+```
+library_note "note id" "note message"
+```
+
+An example from `meta.expr`:
+
+```
+library_note "open expressions"
+"Some declarations work with open expressions, i.e. an expr that has free variables.
+Terms will free variables are not well-typed, and one should not use them in tactics like
+`infer_type` or `unify`. You can still do syntactic analysis/manipulation on them.
+The reason for working with open types is for performance: instantiating variables requires
+iterating through the expression. In one performance test `pi_binders` was more than 6x
+quicker than `mk_local_pis` (when applied to the type of all imported declarations 100x)."
+```
+
+This note can be referenced near a usage of `pi_binders`:
+
+
+```
+-- See Note [open expressions]
+/-- behavior of f -/
+def f := pi_binders ...
+```

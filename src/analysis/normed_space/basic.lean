@@ -207,6 +207,12 @@ nnreal.eq $ norm_neg g
 lemma nndist_nnnorm_nnnorm_le (g h : α) : nndist (nnnorm g) (nnnorm h) ≤ nnnorm (g - h) :=
 nnreal.coe_le.2 $ dist_norm_norm_le g h
 
+lemma of_real_norm_eq_coe_nnnorm (x : β) : ennreal.of_real ∥x∥ = (nnnorm x : ennreal) :=
+ennreal.of_real_eq_coe_nnreal _
+
+lemma edist_eq_coe_nnnorm (x : β) : edist x 0 = (nnnorm x : ennreal) :=
+by { rw [edist_dist, dist_eq_norm, _root_.sub_zero, of_real_norm_eq_coe_nnnorm] }
+
 end nnnorm
 
 /-- A submodule of a normed group is also a normed group, with the restriction of the norm.
@@ -269,6 +275,19 @@ end
 
 lemma continuous_nnnorm : continuous (nnnorm : α → nnreal) :=
 continuous_subtype_mk _ continuous_norm
+
+/-- If `∥y∥→∞`, then we can assume `y≠x` for any fixed `x`. -/
+lemma ne_mem_of_tendsto_norm_at_top {l : filter γ} {f : γ → α}
+  (h : tendsto (λ y, ∥f y∥) l at_top) (x : α) :
+  {y | f y ≠ x} ∈ l :=
+begin
+  have : {y | 1 + ∥x∥ ≤ ∥f y∥} ∈ l := h (mem_at_top (1 + ∥x∥)),
+  apply mem_sets_of_superset this,
+  assume y hy hxy,
+  subst x,
+  simp at hy,
+  exact not_le_of_lt zero_lt_one hy
+end
 
 /-- A normed group is a uniform additive group, i.e., addition and subtraction are uniformly
 continuous. -/
@@ -337,12 +356,12 @@ instance normed_ring_top_monoid [normed_ring α] : topological_monoid α :=
       apply squeeze_zero,
       { intro, apply norm_nonneg },
       { simp only [this], intro, apply norm_add_le },
-      { rw ←zero_add (0 : ℝ), apply tendsto_add,
+      { rw ←zero_add (0 : ℝ), apply tendsto.add,
         { apply squeeze_zero,
           { intro, apply norm_nonneg },
           { intro t, show ∥t.fst * t.snd - t.fst * x.snd∥ ≤ ∥t.fst∥ * ∥t.snd - x.snd∥,
             rw ←mul_sub, apply norm_mul_le },
-          { rw ←mul_zero (∥x.fst∥), apply tendsto_mul,
+          { rw ←mul_zero (∥x.fst∥), apply tendsto.mul,
             { apply continuous_iff_continuous_at.1,
               apply continuous_norm.comp continuous_fst },
             { apply tendsto_iff_norm_tendsto_zero.1,
@@ -352,7 +371,7 @@ instance normed_ring_top_monoid [normed_ring α] : topological_monoid α :=
           { intro, apply norm_nonneg },
           { intro t, show ∥t.fst * x.snd - x.fst * x.snd∥ ≤ ∥t.fst - x.fst∥ * ∥x.snd∥,
             rw ←sub_mul, apply norm_mul_le },
-          { rw ←zero_mul (∥x.snd∥), apply tendsto_mul,
+          { rw ←zero_mul (∥x.snd∥), apply tendsto.mul,
             { apply tendsto_iff_norm_tendsto_zero.1,
               apply continuous_iff_continuous_at.1,
               apply continuous_fst },
@@ -448,6 +467,52 @@ let ⟨n, hle, hlt⟩ := exists_int_pow_near' hr hw in
 ⟨w^n, by { rw norm_fpow; exact fpow_pos_of_pos (lt_trans zero_lt_one hw) _},
 by rwa norm_fpow⟩
 
+lemma tendsto_inv [normed_field α] {r : α} (r0 : r ≠ 0) : tendsto (λq, q⁻¹) (𝓝 r) (𝓝 r⁻¹) :=
+begin
+  refine metric.tendsto_nhds.2 (λε εpos, _),
+  let δ := min (ε/2/2 * ∥r∥^2) (∥r∥/2),
+  have norm_r_pos : 0 < ∥r∥ := (norm_pos_iff r).mpr r0,
+  have A : 0 < ε / 2 / 2 * ∥r∥ ^ 2 := mul_pos' (half_pos (half_pos εpos)) (pow_pos norm_r_pos 2),
+  have δpos : 0 < δ, by simp [half_pos norm_r_pos, A],
+  refine ⟨ball r δ, ball_mem_nhds r δpos, λx hx, _⟩,
+  have rx : ∥r∥/2 ≤ ∥x∥ := calc
+    ∥r∥/2 = ∥r∥ - ∥r∥/2 : by ring
+    ... ≤ ∥r∥ - ∥r - x∥ :
+    begin
+      apply sub_le_sub (le_refl _),
+      rw ← dist_eq_norm,
+      exact le_trans (le_of_lt (mem_ball'.1 hx)) (min_le_right _ _)
+    end
+    ... ≤ ∥r - (r - x)∥ : norm_sub_norm_le r (r - x)
+    ... = ∥x∥ : by simp,
+  have norm_x_pos : 0 < ∥x∥ := lt_of_lt_of_le (half_pos norm_r_pos) rx,
+  have : x⁻¹ - r⁻¹ = (r - x) * x⁻¹ * r⁻¹,
+    by rw [sub_mul, sub_mul, mul_inv_cancel ((norm_pos_iff x).mp norm_x_pos), one_mul, mul_comm,
+           ← mul_assoc, inv_mul_cancel r0, one_mul],
+  calc dist x⁻¹ r⁻¹ = ∥x⁻¹ - r⁻¹∥ : dist_eq_norm _ _
+  ... ≤ ∥r-x∥ * ∥x∥⁻¹ * ∥r∥⁻¹ : by rw [this, norm_mul, norm_mul, norm_inv, norm_inv]
+  ... ≤ (ε/2/2 * ∥r∥^2) * (2 * ∥r∥⁻¹) * (∥r∥⁻¹) : begin
+    apply_rules [mul_le_mul, inv_nonneg.2, le_of_lt A, norm_nonneg, inv_nonneg.2, mul_nonneg,
+                 (inv_le_inv norm_x_pos norm_r_pos).2, le_refl],
+    show ∥r - x∥ ≤ ε / 2 / 2 * ∥r∥ ^ 2,
+      by { rw ← dist_eq_norm, exact le_trans (le_of_lt (mem_ball'.1 hx)) (min_le_left _ _) },
+    show ∥x∥⁻¹ ≤ 2 * ∥r∥⁻¹,
+    { convert (inv_le_inv norm_x_pos (half_pos norm_r_pos)).2 rx,
+      rw [inv_div (ne.symm (ne_of_lt norm_r_pos)), div_eq_inv_mul, mul_comm],
+      norm_num },
+    show (0 : ℝ) ≤ 2, by norm_num
+  end
+  ... = ε/2 * (∥r∥ * ∥r∥⁻¹)^2 : by { generalize : ∥r∥⁻¹ = u, ring }
+  ... = ε/2 : by { rw [mul_inv_cancel (ne.symm (ne_of_lt norm_r_pos))], simp }
+  ... < ε : half_lt_self εpos
+end
+
+lemma continuous_on_inv [normed_field α] : continuous_on (λ(x:α), x⁻¹) {x | x ≠ 0} :=
+begin
+  assume x hx,
+  apply continuous_at.continuous_within_at,
+  exact (tendsto_inv hx)
+end
 
 instance : normed_field ℝ :=
 { norm := λ x, abs x,
@@ -457,6 +522,19 @@ instance : normed_field ℝ :=
 instance : nondiscrete_normed_field ℝ :=
 { non_trivial := ⟨2, by { unfold norm, rw abs_of_nonneg; norm_num }⟩ }
 end normed_field
+
+/-- If a function converges to a nonzero value, its inverse converges to the inverse of this value.
+We use the name `tendsto.inv'` as `tendsto.inv` is already used in multiplicative topological
+groups. -/
+lemma filter.tendsto.inv' [normed_field α] {l : filter β} {f : β → α} {y : α}
+  (hy : y ≠ 0) (h : tendsto f l (𝓝 y)) :
+  tendsto (λx, (f x)⁻¹) l (𝓝 y⁻¹) :=
+(normed_field.tendsto_inv hy).comp h
+
+lemma filter.tendsto.div [normed_field α] {l : filter β} {f g : β → α} {x y : α}
+  (hf : tendsto f l (𝓝 x)) (hg : tendsto g l (𝓝 y)) (hy : y ≠ 0) :
+  tendsto (λa, f a / g a) l (𝓝 (x / y)) :=
+hf.mul (hg.inv' hy)
 
 lemma real.norm_eq_abs (r : ℝ) : norm r = abs r := rfl
 
@@ -490,10 +568,11 @@ section normed_space
 
 section prio
 set_option default_priority 100 -- see Note [default priority]
+-- see Note[vector space definition] for why we extend `module`.
 /-- A normed space over a normed field is a vector space endowed with a norm which satisfies the
 equality `∥c • x∥ = ∥c∥ ∥x∥`. -/
 class normed_space (α : Type*) (β : Type*) [normed_field α] [normed_group β]
-  extends vector_space α β :=
+  extends module α β :=
 (norm_smul : ∀ (a:α) (b:β), norm (a • b) = has_norm.norm a * norm b)
 end prio
 
@@ -533,16 +612,16 @@ begin
     have limf': tendsto (λ x, ∥f x - s∥) e (𝓝 0) := tendsto_iff_norm_tendsto_zero.1 limf,
     have limg' : tendsto (λ x, ∥g x∥) e (𝓝 ∥b∥) := filter.tendsto.comp (continuous_iff_continuous_at.1 continuous_norm _) limg,
 
-    have lim1 := tendsto_mul limf' limg',
+    have lim1 := limf'.mul limg',
     simp only [zero_mul, sub_eq_add_neg] at lim1,
 
     have limg3 := tendsto_iff_norm_tendsto_zero.1 limg,
 
-    have lim2 := tendsto_mul (tendsto_const_nhds : tendsto _ _ (𝓝 ∥ s ∥)) limg3,
+    have lim2 := (tendsto_const_nhds : tendsto _ _ (𝓝 ∥ s ∥)).mul limg3,
     simp only [sub_eq_add_neg, mul_zero] at lim2,
 
     rw [show (0:ℝ) = 0 + 0, by simp],
-    exact tendsto_add lim1 lim2  }
+    exact lim1.add lim2  }
 end
 
 lemma tendsto_smul_const {g : γ → F} {e : filter γ} (s : α) {b : F} :
@@ -596,7 +675,7 @@ instance : normed_space α (E × F) :=
   add_smul := λ r x y, prod.ext (add_smul _ _ _) (add_smul _ _ _),
   smul_add := λ r x y, prod.ext (smul_add _ _ _) (smul_add _ _ _),
   ..prod.normed_group,
-  ..prod.vector_space }
+  ..prod.module }
 
 /-- The product of finitely many normed spaces is a normed space, with the sup norm. -/
 instance pi.normed_space {E : ι → Type*} [fintype ι] [∀i, normed_group (E i)]

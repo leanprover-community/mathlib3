@@ -7,15 +7,18 @@ import data.string.defs
 /-!
 # Additional operations on expr and related types
 
- This file defines basic operations on the types expr, name, declaration, level, environment.
+This file defines basic operations on the types expr, name, declaration, level, environment.
 
- This file is mostly for non-tactics. Tactics should generally be placed in `tactic.core`.
+This file is mostly for non-tactics. Tactics should generally be placed in `tactic.core`.
 
- ## Tags
- expr, name, declaration, level, environment, meta, metaprogramming, tactic
+## Tags
+
+expr, name, declaration, level, environment, meta, metaprogramming, tactic
 -/
 
 namespace binder_info
+
+/-! ### Declarations about `binder_info` -/
 
 instance : inhabited binder_info := ⟨ binder_info.default ⟩
 
@@ -29,6 +32,8 @@ def brackets : binder_info → string × string
 end binder_info
 
 namespace name
+
+/-! ### Declarations about `name` -/
 
 /-- Find the largest prefix `n` of a `name` such that `f n ≠ none`, then replace this prefix
 with the value of `f n`. -/
@@ -132,6 +137,8 @@ end name
 
 namespace level
 
+/-! ### Declarations about `level` -/
+
 /-- Tests whether a universe level is non-zero for all assignments of its variables -/
 meta def nonzero : level → bool
 | (succ _) := tt
@@ -140,6 +147,8 @@ meta def nonzero : level → bool
 | _ := ff
 
 end level
+
+/-! ### Declarations about `binder` -/
 
 /-- The type of binders containing a name, the binding info and the binding type -/
 @[derive decidable_eq]
@@ -164,7 +173,15 @@ meta instance : has_to_tactic_format binder :=
 
 end binder
 
-/- converting between expressions and numerals -/
+/-!
+### Converting between expressions and numerals
+
+There are a number of ways to convert between expressions and numerals, depending on the input and
+output types and whether you want to infer the necessary type classes.
+
+See also the tactics `expr.of_nat`, `expr.of_int`, `expr.of_rat`.
+-/
+
 
 /--
 `nat.mk_numeral n` embeds `n` as a numeral expression inside a type with 0, 1, and +.
@@ -211,7 +228,22 @@ protected meta def to_int : expr → option ℤ
 | `(has_neg.neg %%e) := do n ← e.to_nat, some (-n)
 | e                  := coe <$> e.to_nat
 
+/--
+ is_num_eq n1 n2 returns true if n1 and n2 are both numerals with the same numeral structure,
+ ignoring differences in type and type class arguments.
+-/
+meta def is_num_eq : expr → expr → bool
+| `(@has_zero.zero _ _) `(@has_zero.zero _ _) := tt
+| `(@has_one.one _ _) `(@has_one.one _ _) := tt
+| `(bit0 %%a) `(bit0 %%b) := a.is_num_eq b
+| `(bit1 %%a) `(bit1 %%b) := a.is_num_eq b
+| `(-%%a) `(-%%b) := a.is_num_eq b
+| `(%%a/%%a') `(%%b/%%b') :=  a.is_num_eq b
+| _ _ := ff
+
 end expr
+
+/-! ### Declarations about `expr` -/
 
 namespace expr
 open tactic
@@ -278,19 +310,6 @@ e.fold mk_name_set $ λ e' _ l,
 meta def contains_constant (e : expr) (p : name → Prop) [decidable_pred p] : bool :=
 e.fold ff (λ e' _ b, if p (e'.const_name) then tt else b)
 
-/--
- is_num_eq n1 n2 returns true if n1 and n2 are both numerals with the same numeral structure,
- ignoring differences in type and type class arguments.
--/
-meta def is_num_eq : expr → expr → bool
-| `(@has_zero.zero _ _) `(@has_zero.zero _ _) := tt
-| `(@has_one.one _ _) `(@has_one.one _ _) := tt
-| `(bit0 %%a) `(bit0 %%b) := a.is_num_eq b
-| `(bit1 %%a) `(bit1 %%b) := a.is_num_eq b
-| `(-%%a) `(-%%b) := a.is_num_eq b
-| `(%%a/%%a') `(%%b/%%b') :=  a.is_num_eq b
-| _ _ := ff
-
 /-- Simplifies the expression `t` with the specified options.
   The result is `(new_e, pr)` with the new expression `new_e` and a proof
   `pr : e = new_e`. -/
@@ -350,17 +369,16 @@ meta def instantiate_lambdas_or_apps : list expr → expr → expr
 | es      (elet _ _ v b) := instantiate_lambdas_or_apps es $ b.instantiate_var v
 | es      e              := mk_app e es
 
-/- Note [open expressions]:
-  Some declarations work with open expressions, i.e. an expr that has free variables.
-  Terms will free variables are not well-typed, and one should not use them in tactics like
-  `infer_type` or `unify`. You can still do syntactic analysis/manipulation on them.
-  The reason for working with open types is for performance: instantiating variables requires
-  iterating through the expression. In one performance test `pi_binders` was more than 6x
-  quicker than `mk_local_pis` (when applied to the type of all imported declarations 100x).
-  -/
+library_note "open expressions"
+"Some declarations work with open expressions, i.e. an expr that has free variables.
+Terms will free variables are not well-typed, and one should not use them in tactics like
+`infer_type` or `unify`. You can still do syntactic analysis/manipulation on them.
+The reason for working with open types is for performance: instantiating variables requires
+iterating through the expression. In one performance test `pi_binders` was more than 6x
+quicker than `mk_local_pis` (when applied to the type of all imported declarations 100x)."
 
 /-- Get the codomain/target of a pi-type.
-  This definition doesn't Instantiate bound variables, and therefore produces a term that is open.-/
+  This definition doesn't instantiate bound variables, and therefore produces a term that is open.-/
 meta def pi_codomain : expr → expr -- see note [open expressions]
 | (pi n bi d b) := pi_codomain b
 | e             := e
@@ -372,7 +390,7 @@ meta def pi_binders_aux : list binder → expr → list binder × expr
 | es e             := (es, e)
 
 /-- Get the binders and codomain of a pi-type.
-  This definition doesn't Instantiate bound variables, and therefore produces a term that is open.
+  This definition doesn't instantiate bound variables, and therefore produces a term that is open.
   The.tactic `get_pi_binders` in `tactic.core` does the same, but also instantiates the
   free variables -/
 meta def pi_binders (e : expr) : list binder × expr := -- see note [open expressions]
@@ -424,6 +442,8 @@ meta def is_default_local : expr → bool
 
 end expr
 
+/-! ### Declarations about `environment` -/
+
 namespace environment
 
 /-- Tests whether a name is declared in the current file. Fixes an error in `in_current_file`
@@ -431,38 +451,14 @@ namespace environment
 meta def in_current_file' (env : environment) (n : name) : bool :=
 env.in_current_file n && (n ∉ [``quot, ``quot.mk, ``quot.lift, ``quot.ind])
 
-/-- Tests whether `n` is an inductive type with one constructor without indices.
-  If so, returns the number of paramaters and the name of the constructor.
-  Otherwise, returns `none`. -/
-meta def is_structure_like (env : environment) (n : name) : option (nat × name) :=
-do guardb (env.is_inductive n),
-  d ← (env.get n).to_option,
-  [intro] ← pure (env.constructors_of n) | none,
-  guard (env.inductive_num_indices n = 0),
-  some (env.inductive_num_params n, intro)
-
-/-- Tests whether `n` is a structure.
-  It will first test whether `n` is structure-like and then test that the first projection is
-  defined in the environment and is a projection. -/
+/-- Tests whether `n` is a structure. -/
 meta def is_structure (env : environment) (n : name) : bool :=
-option.is_some $ do
-  (nparams, intro) ← env.is_structure_like n,
-  di ← (env.get intro).to_option,
-  expr.pi x _ _ _ ← nparams.iterate
-    (λ e : option expr, do expr.pi _ _ _ body ← e | none, some body)
-    (some di.type) | none,
-  env.is_projection (n ++ x.deinternalize_field)
+(env.structure_fields n).is_some
 
-/-- Get all projections of the structure `n`. Returns `none` if `n` is not structure-like.
-  If `n` is not a structure, but is structure-like, this does not check whether the names
-  are existing declarations. -/
-meta def get_projections (env : environment) (n : name) : option (list name) := do
-  (nparams, intro) ← env.is_structure_like n,
-  di ← (env.get intro).to_option,
-  tgt ← nparams.iterate
-    (λ e : option expr, do expr.pi _ _ _ body ← e | none, some body)
-    (some di.type) | none,
-  return $ tgt.binding_names.map (λ x, n ++ x.deinternalize_field)
+/-- Get the full names of all projections of the structure `n`. Returns `none` if `n` is not a
+  structure. -/
+meta def structure_fields_full (env : environment) (n : name) : option (list name) :=
+(env.structure_fields n).map (list.map $ λ n', n ++ n')
 
 /-- Tests whether `nm` is a generalized inductive type that is not a normal inductive type.
   Note that `is_ginductive` returns `tt` even on regular inductive types.
@@ -510,10 +506,16 @@ s.is_prefix_of $ (e.decl_olean n).get_or_else ""
 
 end environment
 
+/-!
+### `is_eta_expansion`
+
+ In this section we define the tactic `is_eta_expansion` which checks whether an expression
+  is an eta-expansion of a structure. (not to be confused with eta-expanion for `λ`).
+
+-/
 
 namespace expr
-/- In this section we define the tactic `is_eta_expansion` which checks whether an expression
-  is an eta-expansion of a structure. (not to be confused with eta-expanion for `λ`). -/
+
 open tactic
 
 /-- `is_eta_expansion_of args univs l` checks whether for all elements `(nm, pr)` in `l` we have
@@ -567,11 +569,13 @@ do l' ← l.mfilter (λ⟨proj, val⟩, bnot <$> is_proof val),
 meta def is_eta_expansion (val : expr) : tactic (option expr) := do
   e ← get_env,
   type ← infer_type val,
-  projs ← e.get_projections type.get_app_fn.const_name,
+  projs ← e.structure_fields_full type.get_app_fn.const_name,
   let args := (val.get_app_args).drop type.get_app_args.length,
   is_eta_expansion_aux val (projs.zip args)
 
 end expr
+
+/-! ### Declarations about `declaration` -/
 
 namespace declaration
 open tactic

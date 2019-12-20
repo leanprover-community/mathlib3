@@ -35,16 +35,19 @@ noncomputable def finite.to_finset {s : set α} (h : finite s) : finset α :=
 lemma finite.coe_to_finset {α} {s : set α} (h : finite s) : ↑h.to_finset = s :=
 by { ext, apply mem_to_finset }
 
-lemma exists_finset_of_finite {s : set α} (h : finite s) : ∃(s' : finset α), ↑s' = s :=
-⟨h.to_finset, h.coe_to_finset⟩
-
 theorem finite.exists_finset {s : set α} : finite s →
   ∃ s' : finset α, ∀ a : α, a ∈ s' ↔ a ∈ s
 | ⟨h⟩ := by exactI ⟨to_finset s, λ _, mem_to_finset⟩
 
 theorem finite.exists_finset_coe {s : set α} (hs : finite s) :
   ∃ s' : finset α, ↑s' = s :=
-let ⟨s', h⟩ := hs.exists_finset in ⟨s', set.ext h⟩
+⟨hs.to_finset, hs.coe_to_finset⟩
+
+/-- Finite sets can be lifted to finsets. -/
+instance : can_lift (set α) (finset α) :=
+{ coe := coe,
+  cond := finite,
+  prf := λ s hs, hs.exists_finset_coe }
 
 theorem finite_mem_finset (s : finset α) : finite {a | a ∈ s} :=
 ⟨fintype.of_finset s (λ _, iff.rfl)⟩
@@ -451,6 +454,51 @@ lemma to_finset_inter {α : Type*} [fintype α] (s t : set α) [decidable_eq α]
 by ext; simp
 
 end
+
+section
+
+variables [semilattice_sup α] [nonempty α] {s : set α}
+
+/--A finite set is bounded above.-/
+lemma bdd_above_finite (hs : finite s) : bdd_above s :=
+finite.induction_on hs bdd_above_empty $ λ a s _ _, bdd_above_insert.2
+
+/--A finite union of sets which are all bounded above is still bounded above.-/
+lemma bdd_above_finite_union {I : set β} {S : β → set α} (H : finite I) :
+(bdd_above (⋃i∈I, S i)) ↔ (∀i ∈ I, bdd_above (S i)) :=
+⟨λ (bdd : bdd_above (⋃i∈I, S i)) i (hi : i ∈ I),
+  bdd_above_subset (subset_bUnion_of_mem hi) bdd,
+show (∀i ∈ I, bdd_above (S i)) → (bdd_above (⋃i∈I, S i)), from
+finite.induction_on H
+  (λ _, by rw bUnion_empty; exact bdd_above_empty)
+  (λ x s hn hf IH h, by simp only [
+      set.mem_insert_iff, or_imp_distrib, forall_and_distrib, forall_eq] at h;
+    rw [set.bUnion_insert, bdd_above_union]; exact ⟨h.1, IH h.2⟩)⟩
+
+end
+
+section
+
+variables [semilattice_inf α] [nonempty α] {s : set α}
+
+/--A finite set is bounded below.-/
+lemma bdd_below_finite (hs : finite s) : bdd_below s :=
+finite.induction_on hs bdd_below_empty $ λ a s _ _, bdd_below_insert.2
+
+/--A finite union of sets which are all bounded below is still bounded below.-/
+lemma bdd_below_finite_union {I : set β} {S : β → set α} (H : finite I) :
+(bdd_below (⋃i∈I, S i)) ↔ (∀i ∈ I, bdd_below (S i)) :=
+⟨λ (bdd : bdd_below (⋃i∈I, S i)) i (hi : i ∈ I),
+  bdd_below_subset (subset_bUnion_of_mem hi) bdd,
+show (∀i ∈ I, bdd_below (S i)) → (bdd_below (⋃i∈I, S i)), from
+finite.induction_on H
+  (λ _, by rw bUnion_empty; exact bdd_below_empty)
+  (λ x s hn hf IH h, by simp only [
+      set.mem_insert_iff, or_imp_distrib, forall_and_distrib, forall_eq] at h;
+    rw [set.bUnion_insert, bdd_below_union]; exact ⟨h.1, IH h.2⟩)⟩
+
+end
+
 end set
 
 namespace finset

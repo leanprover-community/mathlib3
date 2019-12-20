@@ -47,7 +47,7 @@ begin
   unfold half_pow,
   rw ← ennreal.of_real_zero,
   apply ennreal.tendsto_of_real,
-  exact tendsto_pow_at_top_nhds_0_of_lt_1 (by norm_num) (by norm_num)
+  exact _root_.tendsto_pow_at_top_nhds_0_of_lt_1 (by norm_num) (by norm_num)
 end
 
 lemma half_pow_add_succ (n : ℕ) : half_pow (n+1) + half_pow (n+1) = half_pow n :=
@@ -108,7 +108,7 @@ begin
   refine emetric.cauchy_seq_iff_le_tendsto_0.2 ⟨λn:ℕ, 2 * half_pow n, ⟨_, _⟩⟩,
   { exact λk l N hk hl, edist_le_two_mul_half_pow hk hl h },
   { have : tendsto (λn, 2 * half_pow n) at_top (𝓝 (2 * 0)) :=
-      ennreal.tendsto_mul_right half_pow_tendsto_zero (by simp),
+      ennreal.tendsto.mul_right half_pow_tendsto_zero (by simp),
     simpa using this }
 end
 

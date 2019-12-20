@@ -29,11 +29,11 @@ variables {α} [topological_ring α]
 @[move_cast]
 lemma coe_mul (a b : α) : ((a * b : α) : completion α) = a * b :=
 ((dense_inducing_coe.prod dense_inducing_coe).extend_eq_of_cont
-  ((continuous_coe α).comp continuous_mul') (a, b)).symm
+  ((continuous_coe α).comp continuous_mul) (a, b)).symm
 
 variables [uniform_add_group α]
 
-lemma continuous_mul' : continuous (λ p : completion α × completion α, p.1 * p.2) :=
+lemma continuous_mul : continuous (λ p : completion α × completion α, p.1 * p.2) :=
 begin
   haveI : is_Z_bilin ((coe ∘ uncurry' (*)) : α × α → completion α) :=
   { add_left := begin
@@ -47,45 +47,45 @@ begin
       rw_mod_cast mul_add
     end },
   have : continuous ((coe ∘ uncurry' (*)) : α × α → completion α),
-    from (continuous_coe α).comp continuous_mul',
+    from (continuous_coe α).comp continuous_mul,
   convert dense_inducing_coe.extend_Z_bilin dense_inducing_coe this,
   simp only [(*), curry, prod.mk.eta]
 end
 
-lemma continuous_mul {β : Type*} [topological_space β] {f g : β → completion α}
+lemma continuous.mul {β : Type*} [topological_space β] {f g : β → completion α}
   (hf : continuous f) (hg : continuous g) : continuous (λb, f b * g b) :=
-continuous_mul'.comp (continuous.prod_mk hf hg)
+continuous_mul.comp (continuous.prod_mk hf hg)
 
 instance : ring (completion α) :=
 { one_mul       := assume a, completion.induction_on a
-    (is_closed_eq (continuous_mul continuous_const continuous_id) continuous_id)
+    (is_closed_eq (continuous.mul continuous_const continuous_id) continuous_id)
     (assume a, by rw [← coe_one, ← coe_mul, one_mul]),
   mul_one       := assume a, completion.induction_on a
-    (is_closed_eq (continuous_mul continuous_id continuous_const) continuous_id)
+    (is_closed_eq (continuous.mul continuous_id continuous_const) continuous_id)
     (assume a, by rw [← coe_one, ← coe_mul, mul_one]),
   mul_assoc     := assume a b c, completion.induction_on₃ a b c
     (is_closed_eq
-      (continuous_mul (continuous_mul continuous_fst (continuous_fst.comp continuous_snd))
+      (continuous.mul (continuous.mul continuous_fst (continuous_fst.comp continuous_snd))
         (continuous_snd.comp continuous_snd))
-      (continuous_mul continuous_fst
-        (continuous_mul (continuous_fst.comp continuous_snd) (continuous_snd.comp continuous_snd))))
+      (continuous.mul continuous_fst
+        (continuous.mul (continuous_fst.comp continuous_snd) (continuous_snd.comp continuous_snd))))
     (assume a b c, by rw [← coe_mul, ← coe_mul, ← coe_mul, ← coe_mul, mul_assoc]),
   left_distrib  := assume a b c, completion.induction_on₃ a b c
     (is_closed_eq
-      (continuous_mul continuous_fst (continuous_add
+      (continuous.mul continuous_fst (continuous.add
         (continuous_fst.comp continuous_snd)
         (continuous_snd.comp continuous_snd)))
-      (continuous_add
-        (continuous_mul continuous_fst (continuous_fst.comp continuous_snd))
-        (continuous_mul continuous_fst (continuous_snd.comp continuous_snd))))
+      (continuous.add
+        (continuous.mul continuous_fst (continuous_fst.comp continuous_snd))
+        (continuous.mul continuous_fst (continuous_snd.comp continuous_snd))))
     (assume a b c, by rw [← coe_add, ← coe_mul, ← coe_mul, ← coe_mul, ←coe_add, mul_add]),
   right_distrib := assume a b c, completion.induction_on₃ a b c
     (is_closed_eq
-      (continuous_mul (continuous_add continuous_fst
+      (continuous.mul (continuous.add continuous_fst
         (continuous_fst.comp continuous_snd)) (continuous_snd.comp continuous_snd))
-      (continuous_add
-        (continuous_mul continuous_fst (continuous_snd.comp continuous_snd))
-        (continuous_mul (continuous_fst.comp continuous_snd) (continuous_snd.comp continuous_snd))))
+      (continuous.add
+        (continuous.mul continuous_fst (continuous_snd.comp continuous_snd))
+        (continuous.mul (continuous_fst.comp continuous_snd) (continuous_snd.comp continuous_snd))))
     (assume a b c, by rw [← coe_add, ← coe_mul, ← coe_mul, ← coe_mul, ←coe_add, add_mul]),
   ..completion.add_comm_group, ..completion.has_mul α, ..completion.has_one α }
 
@@ -102,24 +102,23 @@ have hf : uniform_continuous f, from uniform_continuous_of_continuous hf,
 { map_one := by rw [← coe_one, extension_coe hf, is_ring_hom.map_one f],
   map_add := assume a b, completion.induction_on₂ a b
     (is_closed_eq
-      (continuous_extension.comp continuous_add')
-      (continuous_add (continuous_extension.comp continuous_fst)
+      (continuous_extension.comp continuous_add)
+      ((continuous_extension.comp continuous_fst).add
                       (continuous_extension.comp continuous_snd)))
     (assume a b,
       by rw [← coe_add, extension_coe hf, extension_coe hf, extension_coe hf,
              is_add_hom.map_add f]),
   map_mul := assume a b, completion.induction_on₂ a b
     (is_closed_eq
-      (continuous_extension.comp continuous_mul')
-      (_root_.continuous_mul (continuous_extension.comp continuous_fst)
-                             (continuous_extension.comp continuous_snd)))
+      (continuous_extension.comp continuous_mul)
+      ((continuous_extension.comp continuous_fst).mul (continuous_extension.comp continuous_snd)))
     (assume a b,
       by rw [← coe_mul, extension_coe hf, extension_coe hf, extension_coe hf, is_ring_hom.map_mul f]) }
 
 instance top_ring_compl : topological_ring (completion α) :=
-{ continuous_add := continuous_add',
-  continuous_mul := continuous_mul',
-  continuous_neg := continuous_neg' }
+{ continuous_add := continuous_add,
+  continuous_mul := continuous_mul,
+  continuous_neg := continuous_neg }
 
 instance is_ring_hom_map : is_ring_hom (completion.map f) :=
 (completion.is_ring_hom_extension $ (continuous_coe β).comp hf : _)
@@ -128,8 +127,8 @@ variables (R : Type*) [comm_ring R] [uniform_space R] [uniform_add_group R] [top
 
 instance : comm_ring (completion R) :=
 { mul_comm := assume a b, completion.induction_on₂ a b
-      (is_closed_eq (continuous_mul continuous_fst continuous_snd)
-                    (continuous_mul continuous_snd continuous_fst))
+      (is_closed_eq (continuous_fst.mul continuous_snd)
+                    (continuous_snd.mul continuous_fst))
       (assume a b, by rw [← coe_mul, ← coe_mul, mul_comm]),
  ..completion.ring }
 

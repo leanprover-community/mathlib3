@@ -135,7 +135,7 @@ lemma mem_nhds_of_is_topological_basis {a : α} {s : set α} {b : set (set α)}
   (hb : is_topological_basis b) : s ∈ 𝓝 a ↔ ∃t∈b, a ∈ t ∧ t ⊆ s :=
 begin
   change s ∈ (𝓝 a).sets ↔ ∃t∈b, a ∈ t ∧ t ⊆ s,
-  rw [hb.2.2, nhds_generate_from, infi_sets_eq'],
+  rw [hb.2.2, nhds_generate_from, binfi_sets_eq],
   { simp only [mem_bUnion_iff, exists_prop, mem_set_of_eq, and_assoc, and.left_comm], refl },
   { exact assume s ⟨hs₁, hs₂⟩ t ⟨ht₁, ht₂⟩,
       have a ∈ s ∩ t, from ⟨hs₁, ht₁⟩,

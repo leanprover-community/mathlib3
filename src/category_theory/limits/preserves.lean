@@ -7,21 +7,6 @@ import category_theory.limits.limits
 
 /-!
 # Preservation and reflection of (co)limits.
--/
-
-open category_theory
-
-namespace category_theory.limits
-
-universes v u₁ u₂ u₃ -- declare the `v`'s first; see `category_theory.category` for an explanation
-
-variables {C : Type u₁} [𝒞 : category.{v} C]
-variables {D : Type u₂} [𝒟 : category.{v} D]
-include 𝒞 𝒟
-
-variables {J : Type v} [small_category J] {K : J ⥤ C}
-
-/- Note on "preservation of (co)limits"
 
 There are various distinct notions of "preserving limits". The one we
 aim to capture here is: A functor F : C → D "preserves limits" if it
@@ -45,8 +30,19 @@ certain form, we say that a functor F preserves the limit of a
 diagram K if F sends every limit cone on K to a limit cone. This is
 vacuously satisfied when K does not admit a limit, which is consistent
 with the above definition of "preserves limits".
-
 -/
+
+open category_theory
+
+namespace category_theory.limits
+
+universes v u₁ u₂ u₃ -- declare the `v`'s first; see `category_theory.category` for an explanation
+
+variables {C : Type u₁} [𝒞 : category.{v} C]
+variables {D : Type u₂} [𝒟 : category.{v} D]
+include 𝒞 𝒟
+
+variables {J : Type v} [small_category J] {K : J ⥤ C}
 
 class preserves_limit (K : J ⥤ C) (F : C ⥤ D) : Type (max u₁ u₂ v) :=
 (preserves : Π {c : cone K}, is_limit c → is_limit (F.map_cone c))

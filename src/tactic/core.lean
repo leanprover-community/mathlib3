@@ -3,7 +3,7 @@ Copyright (c) 2018 Mario Carneiro. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Mario Carneiro, Simon Hudon, Scott Morrison, Keeley Hoek
 -/
-import data.dlist.basic category.basic meta.expr meta.rb_map data.bool
+import data.dlist.basic category.basic meta.expr meta.rb_map data.bool tactic.library_note
 
 namespace expr
 open tactic
@@ -152,7 +152,7 @@ meta def eval_expr' (α : Type*) [_inst_1 : reflected α] (e : expr) : tactic α
 mk_app ``id [e] >>= eval_expr α
 
 /-- `mk_fresh_name` returns identifiers starting with underscores,
-which are not legal when emitted by tactic programs. `mk_user_fresh_name` 
+which are not legal when emitted by tactic programs. `mk_user_fresh_name`
 turns the useful source of random names provided by `mk_fresh_name` into
 names which are usable by tactic programs.
 
@@ -1440,5 +1440,23 @@ do n  ← ident,
    let new_not := sformat!"local notation `{n.update_prefix name.anonymous}` := {new_n}",
    emit_command_here $ new_not,
    skip .
+
+/--
+The command `mk_simp_attribute simp_name "description"` creates a simp set with name `simp_name`.
+Lemmas tagged with `@[simp_name]` will be included when `simp with simp_name` is called.
+`mk_simp_attribute simp_name none` will use a default description.
+
+Appending the command with `with attr1 attr2 ...` will include all declarations tagged with
+`attr1`, `attr2`, ... in the new simp set.
+-/
+@[user_command]
+meta def mk_simp_attribute_cmd (_ : parse $ tk "mk_simp_attribute") : lean.parser unit :=
+do n ← ident,
+   d ← parser.pexpr,
+   d ← to_expr ``(%%d : option string),
+   descr ← eval_expr (option string) d,
+   with_list ← types.with_ident_list <|> return [],
+   mk_simp_attr n with_list,
+   add_doc_string (name.append `simp_attr n) $ descr.get_or_else $ "simp set for " ++ to_string n
 
 end tactic

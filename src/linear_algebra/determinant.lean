@@ -1,7 +1,7 @@
 /-
 Copyright (c) 2018 Kenny Lau. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Authors: Kenny Lau, Chris Hughes
+Authors: Kenny Lau, Chris Hughes, Tim Baanen
 -/
 import data.matrix.basic
 import group_theory.perm.sign
@@ -144,13 +144,25 @@ apply sum_bij (λ τ _, σ * τ),
 { intros τ _, use σ⁻¹ * τ, use (mem_univ _), exact (mul_inv_cancel_left _ _).symm }
 end
 
+section det_zero
+/-! ### `det_zero` section
+
+  In this section, we give two proofs that a matrix with two identical columns
+  has determinant equal to zero. The first one,
+  `det_zero_of_column_eq_of_char_ne_two` is short but doesn't work in
+  characteristic `2`. The second one, `det_zero_of_column_eq` works in all
+  characteristics, but is more complicated.
+-/
+
+variables {M : matrix n n R} {i j : n} (i_ne_j : i ≠ j) (hij : M i = M j)
+
+include i_ne_j hij
 /-- The determinant is zero if the matrix contains a repeated column.
 
-The proof shows `M.det = -M.det` and concludes `M.det = 0`,
-so it doesn't work in characteristic `2`.
+  The proof shows `M.det = -M.det` and concludes `M.det = 0`,
+  so it doesn't work in characteristic `2`.
 -/
-lemma det_zero_of_column_eq_of_char_ne_two (char_ne_2 : ∀ (a : R), a = -a → a = 0)
-{M : matrix n n R} {i j : n} (i_ne_j : i ≠ j) (hij : M i = M j) : M.det = 0 :=
+lemma det_zero_of_column_eq_of_char_ne_two (char_ne_2 : ∀ (a : R), a = -a → a = 0) : M.det = 0 :=
 begin
 suffices : M.det = - M.det, { apply char_ne_2, assumption },
 have : (λ a, M (swap i j a)) = M,
@@ -163,95 +175,53 @@ calc M.det = (-1 : units ℤ) * M.det : by rw [←sign_swap i_ne_j, ←det_permu
        ... = -det M : by norm_num
 end
 
-/-- 
-  Helper function for `det_zero_of_column_eq_of_has_lt`:
-  identifies two permutations that differ by a `swap i j` by mapping them to the same value.
--/
-def identify_swaps [has_lt n] [decidable_rel ((<) : n → n → Prop)] (i j : n) (σ : perm n) : perm n :=
-if σ⁻¹ i > σ⁻¹ j then swap i j * σ else σ
+/-- All terms in the determinant that are equal up to swapping `i` and `j` will cancel. -/
+def mod_swap : setoid (perm n) :=
+⟨ λ σ τ, σ = τ ∨ σ = swap i j * τ
+, λ σ, or.inl (refl σ)
+, λ σ τ h, or.cases_on h
+  (λ h, or.inl h.symm)
+  (λ h, or.inr (by rw [h, swap_mul_self_mul]))
+, λ σ τ υ hστ hτυ, by cases hστ; cases hτυ; try {rw [hστ, hτυ, swap_mul_self_mul]}; finish
+⟩
 
-lemma identify_swaps_iff_aux [has_lt n] [decidable_rel ((<) : n → n → Prop)] {i j : n} {σ τ : perm n}
-  (h : identify_swaps i j τ = identify_swaps i j σ) : τ = σ ∨ τ = swap i j * σ :=
+instance : decidable_rel (mod_swap i_ne_j hij).r := λ σ τ, or.decidable
+
+/-- If a matrix has a repeated column, the determinant will be zero. -/
+theorem det_zero_of_column_eq : M.det = 0 :=
 begin
-  unfold identify_swaps at h,
-  by_cases hσ : σ⁻¹ i > σ⁻¹ j;
-  try {rw [if_pos hσ] at h}; try {rw [if_neg hσ] at h};
-  by_cases hτ : τ⁻¹ i > τ⁻¹ j;
-  try {rw [if_pos hτ] at h}; try {rw [if_neg hτ] at h};
-  try {finish},
-  apply or.inr, rw [←h, swap_mul_self_mul]
-end
-
-lemma identify_swaps_iff [decidable_linear_order n] {i j : n} (σ τ : perm n)
-  (i_ne_j : i ≠ j) : (identify_swaps i j τ = identify_swaps i j σ) ↔ (τ = σ ∨ τ = swap i j * σ) :=
-begin
-  split,
-  { apply identify_swaps_iff_aux },
-  { intros h, cases h; rw [h],
-    unfold identify_swaps,
-    have σswap_i : (σ⁻¹ * swap i j) i = σ⁻¹ j := by simp,
-    have σswap_j : (σ⁻¹ * swap i j) j = σ⁻¹ i := by simp,
-    rw [mul_inv_rev, swap_inv, σswap_i, σswap_j],
-    by_cases σ⁻¹ i > σ⁻¹ j,
-    { have : ¬(σ⁻¹ j > σ⁻¹ i) := assume i_lt_j, lt_asymm h i_lt_j, 
-      rw [if_pos h, if_neg this] },
-    { have : σ⁻¹ i ≠ σ⁻¹ j := assume eq, i_ne_j (injective_of_left_inverse σ.4 eq),
-      have : σ⁻¹ j > σ⁻¹ i := lt_of_le_of_ne (le_of_not_lt h) this,
-      rw [if_neg h, if_pos this, swap_mul_self_mul] },
-  },
-end
-
-/--
-  A version of `det_zero_of_column_eq_of_char_ne_two`
-  which replaces the assumption on the ring `α` with one on the index set `n`.
-
-  TODO: can we get rid of the `[decidable_linear_order n]` assumption,
-  by choosing an arbitrary order (which should work because `n` is finite)?
--/
-lemma det_zero_of_column_eq_of_lin [decidable_linear_order n]
-  {M : matrix n n R} {i j : n} (i_ne_j : i ≠ j) (hij : M i = M j) : M.det = 0 :=
-begin
-have swap_invariant : ∀ k l, M (swap i j k) l = M k l,
-{ intros k l,
+have swap_invariant : ∀ k, M (swap i j k) = M k,
+{ intros k,
   rw [swap_apply_def],
   by_cases k = i, { rw [if_pos h, h, ←hij] },
   rw [if_neg h],
   by_cases k = j, { rw [if_pos h, h, hij] },
   rw [if_neg h] },
 
-suffices : sum (univ.image (identify_swaps i j))
-             (λ (σ : perm n),
-                ε σ * univ.prod (λ (k : n), M (σ.to_fun k) k) +
-                ε (swap i j * σ) * univ.prod (λ (k : n), M ((swap i j * σ).to_fun k) k)) =
-           sum univ (λ (σ : perm n), ε σ * univ.prod (λ (k : n), M (σ.to_fun k) k)),
-{ calc det M
-    = sum (univ.image (identify_swaps i j)) (λ (σ : perm n),
-      ε σ * univ.prod (λ (k : n), M (σ.to_fun k) k) +
-      ε (swap i j * σ) * univ.prod (λ (k : n), M ((swap i j * σ).to_fun k) k)) : symm this
-... = sum (univ.image (identify_swaps i j)) (λ (σ : perm n),
-      ε σ * univ.prod (λ (k : n), M (σ.to_fun k) k) +
-      ε (swap i j * σ) * univ.prod (λ (k : n), M (swap i j (σ.to_fun k)) k)) : rfl
-... = sum (univ.image (identify_swaps i j)) (λ (σ : perm n),
-      ε σ * univ.prod (λ (k : n), M (σ.to_fun k) k) +
-      -1 * ε σ * univ.prod (λ (k : n), M (σ.to_fun k) k)) :
-  by { congr, ext σ, congr,
-    { rw [sign_mul, sign_swap i_ne_j], norm_cast },
-    ext k, apply swap_invariant }
-... = sum (univ.image (identify_swaps i j)) (λ (σ : perm n), 0) : by { congr, ext σ, ring }
-... = 0 : sum_const_zero },
+have : ∀ σ, _root_.disjoint (_root_.singleton σ) (_root_.singleton (swap i j * σ)),
+{ intros σ,
+  rw [finset.singleton_eq_singleton, finset.singleton_eq_singleton, disjoint_singleton],
+  apply (not_congr mem_singleton).mpr,
+  intro h,
+  apply i_ne_j,
+  calc i = σ (σ⁻¹ i) : (symm_apply_eq σ).mp rfl
+     ... = (swap i j * σ) (σ⁻¹ i) : by rw h
+     ... = (swap i j) (σ (σ⁻¹ i)) : rfl
+     ... = (swap i j) i : by erw [←(symm_apply_eq σ).mp (refl (σ⁻¹ i))]
+     ... = j : swap_apply_left i j
+  },
 
-apply sum_image',
+apply @finset.sum_cancels _ _ _ _ _ (mod_swap i_ne_j hij),
 intros σ _,
-rw [@filter_congr _ (λ τ, identify_swaps i j τ = identify_swaps i j σ) _ _ _ _
-  (λ τ _, identify_swaps_iff σ τ i_ne_j)],
-have : swap i j * σ ∉ finset.singleton σ :=
-  (not_congr (mem_singleton.trans (swap_mul_eq_iff σ))).mpr i_ne_j,
-simp only [filter_or, filter_eq', if_pos (mem_univ _), insert_empty_eq_singleton,
-           sum_union (disjoint_singleton.mpr this), sum_singleton],
-
-by_cases σ⁻¹ i > σ⁻¹ j,
-{ rw [identify_swaps, if_pos h, swap_mul_self_mul], ring },
-{ rw [identify_swaps, if_neg h] }
+erw [filter_or, filter_eq', filter_eq', if_pos (mem_univ σ), if_pos (mem_univ (swap i j * σ)),
+  sum_union (this σ), sum_singleton, sum_singleton],
+convert add_right_neg (↑↑(sign σ) * finset.prod univ (λ (i : n), M (σ i) i)),
+rw [neg_mul_eq_neg_mul],
+congr,
+{ rw [sign_mul, sign_swap i_ne_j], norm_num },
+ext j, rw [mul_apply, swap_invariant]
 end
+
+end det_zero
 
 end matrix

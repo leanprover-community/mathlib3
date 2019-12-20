@@ -458,6 +458,22 @@ begin
     congr' 1,
     rw mul_comm }
 end
+    
+/-- If we can partition a product into subsets that cancel out, then the whole product cancels. -/
+@[to_additive]
+lemma finset.prod_cancels_of_partition_cancels [R : setoid α] [decidable_rel R.r]
+  (h : ∀ x ∈ s, (s.filter (λy, y ≈ x)).prod f = 1) : s.prod f = 1 :=
+begin
+suffices : (s.image quotient.mk).prod (λ xbar, (s.filter (λ y, ⟦y⟧ = xbar)).prod f) = s.prod f,
+  { rw [←this, ←finset.prod_eq_one],
+    intros xbar xbar_in_s,
+    rcases (mem_image).mp xbar_in_s with ⟨x, x_in_s, xbar_eq_x⟩,
+    rw [←xbar_eq_x, filter_congr (λ y _, @quotient.eq _ R y x)],
+    apply h x x_in_s },
+  apply finset.prod_image' f,
+  intros,
+  refl
+end
 
 end comm_monoid
 

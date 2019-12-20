@@ -13,10 +13,8 @@ This file defines `ereal`, the real numbers together with a top and bottom eleme
 referred to as ⊤ and ⊥.
 
 Addition and multiplication are problematic in the presence of ±∞, but
-negation is not, so we define negation. The main work is defining
-Sup : set ereal → ereal and proving that it is a Sup in all cases.
-Once we have, this, it is not hard to give a complete lattice
-structure on `ereal`.
+negation is not, so we define negation. `ereal` is a `complete_lattice`
+but type class inference
 
 ## Tags
 

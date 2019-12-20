@@ -1,3 +1,10 @@
+/-
+  Copyright (c) 2019 Tim Baanen. All rights reserved.
+  Released under Apache 2.0 license as described in the file LICENSE.
+  Author: Tim Baanen.
+
+  Inverses for nonsingular square matrices.
+-/
 import algebra.big_operators
 import data.matrix.basic
 import linear_algebra.determinant
@@ -7,16 +14,30 @@ import tactic.omega
 import tactic.ring
 
 /-!
-In this file, we define an inverse for square matrices of full rank.
-This inverse is defined, but doesn't have nice properties,
-if the matrix is not square or not of full rank.
-In that case, a pseudoinverse might be a better choice.
-Unfortunately, defining and proving properties of pseudoinverses takes
-a bit more work, so it isn't implemented yet.
+# Nonsingular inverses
 
-To make computations easier, we use `fin n.succ` to index the matrices in definitions.
-Conversion from and to an arbitrary `fintype m` can be done by the user if needed.
-(Or just define and use the pseudoinverse!)
+In this file, we define an inverse for square matrices of invertible
+determinant. For matrices that are not square or not of full rank, there is a
+more general notion of pseudoinverses. Unfortunately, the definition of
+pseudoinverses is typically in terms of inverses of nonsingular matrices, so we
+need to define those first. The file also doesn't define a `has_inv` instance
+for `matrix` so that can be used for the pseudoinverse instead.
+
+The definition of inverse used in this file is the one given by Cramer's rule.
+The vectors returned by Cramer's rule are given by the linear map `cramer`. Each
+coordinate of the vector is also a linear function, `cramer_at`. Using Cramer's
+rule, we can compute for each matrix `A` the matrix `adjugate A`, which we then
+prove behaves like `det A • A⁻¹`. Finally, we show that dividing the adjugate by
+`det A` (if possible), giving a matrix `nonsing_inv A`, will result in a
+multiplicative inverse to `A`.
+
+## References
+
+  * https://en.wikipedia.org/wiki/Cramer's_rule#Finding_inverse_matrix
+
+## Tags
+
+matrix inverse, cramer, cramer's rule, adjugate
 -/
 
 namespace matrix
@@ -25,23 +46,46 @@ variables {n : Type u} [fintype n] [decidable_eq n] {α : Type v}
 open_locale matrix
 open equiv equiv.perm finset
 
+section replace
+
+/-- Replace the `i`th column of matrix `A` with the values in `b`. -/
 def replace_column (A : matrix n n α) (i : n) (b : n → α) : matrix n n α :=
-λ i' j, if i = i' then b j else A i' j
+function.update A i b
 
-lemma replace_column_val (A : matrix n n α) (i : n) (b : n → α) (i' j : n) :
-replace_column A i b i' j = if i = i' then b j else A i' j := rfl
-
-lemma replace_column_self (A : matrix n n α) (i : n) (b : n → α) :
-replace_column A i b i = b := by {ext, exact if_pos rfl}
-
-lemma replace_column_ne (A : matrix n n α) (i : n) (b : n → α) (j : n) :
-i ≠ j → replace_column A i b j = A j := by {intro h, ext, exact if_neg h}
-
+/-- Replace the `i`th row of matrix `A` with the values in `b`. -/
 def replace_row (A : matrix n n α) (j : n) (b : n → α) : matrix n n α :=
-λ i j', if j = j' then b i else A i j'
+λ i, function.update (A i) j (b i)
 
-lemma replace_column_transpose (A : matrix n n α) (i : n) (b : n → α) :
-  replace_column Aᵀ i b = (replace_row A i b)ᵀ := by {ext i j, refl}
+variables {A : matrix n n α} {i j : n} {b : n → α}
+
+lemma replace_column_self : replace_column A i b i = b := function.update_same
+lemma replace_row_self : replace_row A j b i j = b i := function.update_same
+
+lemma replace_column_ne {i' : n} : i' ≠ i → replace_column A i b i' = A i' :=
+function.update_noteq
+lemma replace_row_ne {j' : n} : j' ≠ j → replace_row A j b i j' = A i j' :=
+function.update_noteq
+
+lemma replace_column_val {i' : n} : replace_column A i b i' j = if i' = i then b j else A i' j :=
+begin
+by_cases i' = i,
+{ rw [h, replace_column_self, if_pos rfl] },
+{ rw [replace_column_ne h, if_neg h] }
+end
+lemma replace_row_val {j' : n} : replace_row A j b i j' = if j' = j then b i else A i j' :=
+begin
+by_cases j' = j,
+{ rw [h, replace_row_self, if_pos rfl] },
+{ rw [replace_row_ne h, if_neg h] }
+end
+
+lemma replace_column_transpose : replace_column Aᵀ i b = (replace_row A i b)ᵀ :=
+begin
+ext i' j,
+rw [transpose_val, replace_column_val, replace_row_val],
+refl
+end
+end replace
 
 section cramer
 variables [comm_ring α] (A : matrix n n α) (b : n → α)
@@ -146,7 +190,7 @@ begin
   repeat {erw [filter_filter]},
 
   by_cases i = σ j,
-  { -- Everything except `(i , j)` = `(σ j , j)` is given by A, and the rest is a single `1`.
+  { -- Everything except `(i , j)` (= `(σ j , j)`) is given by A, and the rest is a single `1`.
     congr; ext j',
     have := (@equiv.injective _ _ σ j j' : σ j = σ j' → j = j'),
     finish,

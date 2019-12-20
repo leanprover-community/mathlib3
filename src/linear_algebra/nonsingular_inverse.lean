@@ -61,6 +61,11 @@ variables {A : matrix n n α} {i j : n} {b : n → α}
 lemma replace_column_self : replace_column A i b i = b := function.update_same
 lemma replace_row_self : replace_row A j b i j = b i := function.update_same
 
+lemma replace_column_eq {i' : n} (h : i = i') : replace_column A i b i' = b :=
+by {rw [h], apply replace_column_self}
+lemma replace_row_eq {j' : n} (h : j = j') : replace_row A j b i j' = b i :=
+by {rw [h], apply replace_row_self}
+
 lemma replace_column_ne {i' : n} : i' ≠ i → replace_column A i b i' = A i' :=
 function.update_noteq
 lemma replace_row_ne {j' : n} : j' ≠ j → replace_row A j b i j' = A i j' :=
@@ -88,28 +93,34 @@ end
 end replace
 
 section cramer
+/--
+  ### `cramer` section
+
+  Introduce the linear map `cramer` with values defined by `cramer_map`,
+  its variant `cramer_at` and some basic computation rules.
+-/
 variables [comm_ring α] (A : matrix n n α) (b : n → α)
 
+/--
+  The `cramer_map` sends a matrix `A` and vector `b` to the vector `x`,
+  such that `A ⬝x = b`.
+-/
 def cramer_map (i : n) : α := (A.replace_column i b)ᵀ.det
 lemma cramer_map_val (i : n) : cramer_map A b i = (A.replace_column i b)ᵀ.det := rfl
 
-lemma vec.smul_val {α} [semiring α] (s : α) (x : n → α) (i : n) : (s • x) i = s * x i := rfl
-lemma vec.add_val (x y : n → α) (i : n) : (x + y) i = x i + y i := rfl
-
 lemma cramer_at_is_linear (i : n) : is_linear_map α (λ b, cramer_map A b i) := begin
-have : Π (f : n → n) (i : n) (x : n → α),
+have : Π {f : n → n} {i : n} (x : n → α),
   finset.prod univ (λ (i' : n), (replace_column A i x)ᵀ (f i') i')
-  = finset.prod univ (λ (i' : n), if i = i' then x (f i') else A i' (f i')),
-{ intros, congr },
+  = finset.prod univ (λ (i' : n), if i' = i then x (f i') else A i' (f i')),
+{ intros, congr, ext i', rw [transpose_val, replace_column_val] },
 split,
 { intros x y,
   rw [cramer_map, det, cramer_map, det, cramer_map, det, ←sum_add_distrib],
   congr, ext σ,
   rw [←mul_add ↑↑(sign σ)],
   congr,
-  erw [this _ _ (x + y), this _ _ x, this _ _ y,
-    finset.prod_ite _ _ id, finset.prod_ite _ _ id, finset.prod_ite _ _ id,
-    finset.filter_eq, if_pos (mem_univ i),
+  repeat { erw [this, finset.prod_ite _ _ (id : α → α)] },
+  erw [finset.filter_eq', if_pos (mem_univ i),
     prod_singleton, prod_singleton, prod_singleton,
     ←add_mul],
   refl
@@ -118,49 +129,58 @@ split,
   rw [smul_eq_mul, cramer_map, cramer_map, det, det, mul_sum],
   congr, ext σ,
   rw [←mul_assoc, mul_comm c, mul_assoc], congr,
-  erw [this _ _ (c • x), this _ _ x,
-    finset.prod_ite _ _ id, finset.prod_ite _ _ id,
-    finset.filter_eq, if_pos (mem_univ i),
+  repeat { erw [this, finset.prod_ite _ _ (id : α → α)] },
+  erw [finset.filter_eq', if_pos (mem_univ i),
     prod_singleton, prod_singleton, mul_assoc],
   refl
-  }
+}
 end
+
+/-- The coordinates of the linear map associated to Cramer's rule.
+
+  Compare `cramer`.
+  We also introduce this variant because we want to use two variants of 
+-/
 def cramer_at (i : n) : (n → α) →ₗ[α] α :=
 is_linear_map.mk' (λ b, cramer_map A b i) (cramer_at_is_linear A i)
 
 lemma cramer_at_val (i : n) : (cramer_at A i).to_fun b = cramer_map A b i := rfl
 
-lemma cramer_map_is_linear : is_linear_map α (cramer_map A) := begin
+lemma cramer_is_linear : is_linear_map α (cramer_map A) := begin
 split; intros; ext i,
-{ rw [vec.add_val], apply (cramer_at_is_linear A i).1 },
-{ rw [vec.smul_val], apply (cramer_at_is_linear A i).2 }
+{ apply (cramer_at_is_linear A i).1 },
+{ apply (cramer_at_is_linear A i).2 }
 end
-def cramer : (n → α) →ₗ[α] (n → α) := is_linear_map.mk' (cramer_map A) (cramer_map_is_linear A)
+/-- The linear map of vectors associated to Cramer's rule. -/
+def cramer : (n → α) →ₗ[α] (n → α) := is_linear_map.mk' (cramer_map A) (cramer_is_linear A)
 
 lemma cramer_val (i : n) : (cramer A).to_fun b i = cramer_map A b i := rfl
 
 lemma mul_cramer_map_val (c : α) (i : n) : c * cramer_map A b i = cramer_map A (c • b) i :=
-by simp [(cramer_map_is_linear A).2]
+by simp only [(cramer_is_linear A).2, smul_eq_mul, pi.smul_apply]
 lemma cramer_map_mul_val (c : α) (i : n) : cramer_map A b i * c = cramer_map A (c • b) i :=
 trans (mul_comm _ _) (mul_cramer_map_val _ _ _ _)
 
-lemma cramer_column [decidable_linear_order n] (i : n) :
+/-- Applying Cramer's rule to a column of the matrix gives a scaled basis vector. -/
+lemma cramer_column_self [decidable_linear_order n] (i : n) :
 (cramer A).to_fun (A i) = (λ j, if i = j then A.det else 0) :=
 begin
 ext j,
 rw cramer_val,
 by_cases i = j,
-{ rw [if_pos h, ←h, cramer_map, det_transpose, replace_column],
-  congr, ext i' j,
-  by_cases h : i = i', { rw [if_pos h, h] }, { rw [if_neg h]} },
-rw [if_neg h, cramer_map, det_transpose],
-apply det_zero_of_column_eq_of_lin h,
-rw [replace_column_self, replace_column_ne],
-intro j_eq_i,
-exact h j_eq_i.symm
+{ -- i = j: this entry should be `A.det`
+  rw [if_pos h, ←h, cramer_map, det_transpose],
+  congr, ext i',
+  by_cases h : i' = i, { rw [h, replace_column_self] }, { rw [replace_column_ne h]} },
+{ -- i ≠ j: this entry should be 0
+  rw [if_neg h, cramer_map, det_transpose],
+  apply det_zero_of_column_eq_of_lin h,
+  rw [replace_column_self, replace_column_ne],
+  apply h }
 end
 
-lemma sum_cramer {β} (s : finset β) (i : n) (f : n → β → α) :
+/-- Use linearity of `cramer` to switch the order of `cramer_at` and `finset.sum`. -/
+lemma sum_cramer_at {β} (s : finset β) (i : n) (f : n → β → α) :
 s.sum (λ x, (cramer_at A i).to_fun (λ j, f j x)) = (cramer_at A i).to_fun (λ j, s.sum (λ x, f j x))
 := calc s.sum (λ x, (cramer_at A i).to_fun (λ j, f j x))
   = (cramer_at A i).to_fun (sum s (λ (x : β) (j : n), f j x)) :
@@ -171,6 +191,11 @@ by {congr, ext j, apply pi.finset_sum_apply}
 end cramer
 
 section adjugate
+/-! ### `adjugate` section
+
+Define the `adjugate` matrix and a few equations.
+-/
+
 variable [comm_ring α]
 def adjugate (A : matrix n n α) : matrix n n α := λ i, cramer_map A (λ j, if i = j then 1 else 0)
 
@@ -185,33 +210,25 @@ begin
   apply finset.sum_congr rfl,
   intros σ _,
   congr' 1,
-  repeat {erw [prod_ite _ _ id]},
-  repeat {erw [prod_const_one, one_mul]},
-  repeat {erw [filter_filter]},
 
   by_cases i = σ j,
   { -- Everything except `(i , j)` (= `(σ j , j)`) is given by A, and the rest is a single `1`.
     congr; ext j',
     have := (@equiv.injective _ _ σ j j' : σ j = σ j' → j = j'),
-    finish,
+    rw [replace_column_val, replace_row_val],
     finish },
   { -- Otherwise, we need to show that there is a `0` somewhere in the product.
-    have filter_col : σ⁻¹ i ∈ filter (λ (a : n), i = σ.to_fun a ∧ (λ (x : n), ¬j = x) a) univ,
-    { apply mem_filter.mpr,
-      split, { apply mem_univ },
-      split, { exact (symm_apply_eq σ).mp rfl },
-      intro j_eq_inv_i,
-      apply h,
-      simp [j_eq_inv_i]
+    have : univ.prod (λ (j' : n), replace_row A j (λ (i' : n), ite (i = i') 1 0) (σ j') j') = 0,
+    { apply prod_eq_zero (mem_univ j),
+      rw [replace_row_self],
+      exact if_neg h
     },
-    have filter_row : j ∈ (filter (λ x, j = x ∧ i ≠ σ.to_fun x) univ),
-    { apply mem_filter.mpr,
-      split, { apply mem_univ },
-      split, { refl },
-      finish
-    },
-    erw [@prod_eq_zero _ α _ (λ x, id 0) (σ⁻¹ i) _ _ filter_col rfl, zero_mul,
-         @prod_eq_zero _ α _ (λ x, id 0) j _ _ filter_row rfl, zero_mul]
+    rw this,
+    apply prod_eq_zero (mem_univ (σ⁻¹ i)),
+    erw [replace_column_eq (apply_symm_apply σ i).symm],
+    apply if_neg,
+    intro h',
+    exact h ((symm_apply_eq σ).mp h'.symm)
   }
 end
 
@@ -226,11 +243,11 @@ begin
       : by {congr, ext, rw [cramer_at_val, mul_cramer_map_val], congr, ext,
             simp only [smul_val, smul_eq_mul, mul_ite, pi.smul_apply]}
     ... = (cramer_at A j).to_fun (λ j, sum univ (λ (k : n), if k = j then A i k else 0))
-      : @sum_cramer n _ _ α _ A n univ j (λ (j k : n), if k = j then A i k else 0)
+      : @sum_cramer_at n _ _ α _ A n univ j (λ (j k : n), if k = j then A i k else 0)
     ... = cramer_map A (A i) j : by { rw [cramer_at_val], congr, ext,
       erw [sum_ite (A i) (λ _, 0) id, sum_const_zero, filter_eq', if_pos (mem_univ _), sum_singleton],
       apply add_zero }
-    ... = if i = j then det A else 0 : by rw [←cramer_val, cramer_column]
+    ... = if i = j then det A else 0 : by rw [←cramer_val, cramer_column_self]
     ... = det A * (1 : matrix n n α) i j : by simp [one_val]
 end
 
@@ -243,7 +260,7 @@ calc adjugate A ⬝ A = (Aᵀ ⬝ (adjugate Aᵀ))ᵀ :
 
 end adjugate
 
-section field
+section inv
 variables [field α]
 
 /-- The inverse of a nonsingular matrix.
@@ -251,6 +268,12 @@ variables [field α]
   This is not the most general possible definition, so we don't instantiate `has_inv` (yet).
 -/
 def nonsing_inv (A : matrix n n α) : matrix n n α := (A.det)⁻¹ • adjugate A
+
+lemma nonsing_inv_val (A : matrix n n α) (i j : n) :
+  A.nonsing_inv i j = (A.det)⁻¹ * adjugate A i j := rfl
+
+lemma transpose_inv (A : matrix n n α) : (A.nonsing_inv)ᵀ = (Aᵀ).nonsing_inv :=
+by {ext, simp [transpose_val, nonsing_inv_val, det_transpose, (adjugate_transpose A).symm]}
 
 /-- The `nonsing_inv` of `A` is a right inverse. -/
 theorem mul_inv [decidable_linear_order n] (A : matrix n n α) (nonsing : A.det ≠ 0) :
@@ -264,11 +287,10 @@ by { rw [nonsing_inv, mul_smul, mul_adjugate, smul_smul, inv_mul_cancel nonsing]
 /-- The `nonsing_inv` of `A` is a left inverse. -/
 theorem inv_mul [decidable_linear_order n] (A : matrix n n α) (nonsing : A.det ≠ 0) :
   nonsing_inv A ⬝ A = 1 :=
-by { rw [nonsing_inv, smul_mul, adjugate_mul, smul_smul, inv_mul_cancel nonsing],
-  -- TODO: why do we need to explicitly construct this instance?
-  exact @one_smul α (matrix n n α) _ (@pi.mul_action n (λ _, n → α) α _
-  (λ _, @pi.mul_action n (λ _, α) α _
-  (λ _, distrib_mul_action.to_mul_action α α))) (1 : matrix n n α) }
+calc nonsing_inv A ⬝ A
+    = (Aᵀ ⬝ nonsing_inv (Aᵀ))ᵀ : by rw [transpose_mul, transpose_inv, transpose_transpose]
+... = 1ᵀ                       : by rw [mul_inv (Aᵀ) (nonsing ∘ trans (det_transpose A).symm)]
+... = 1                        : transpose_one
 
-end field
+end inv
 end matrix

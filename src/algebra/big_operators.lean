@@ -428,10 +428,10 @@ end comm_monoid
 
 attribute [to_additive] prod_hom
 
-lemma sum_smul [add_comm_monoid β] (s : finset α) (n : ℕ) (f : α → β) :
+lemma sum_smul' [add_comm_monoid β] (s : finset α) (n : ℕ) (f : α → β) :
   s.sum (λ x, add_monoid.smul n (f x)) = add_monoid.smul n (s.sum f) :=
 @prod_pow _ (multiplicative β) _ _ _ _
-attribute [to_additive sum_smul] prod_pow
+attribute [to_additive sum_smul'] prod_pow
 
 @[simp] lemma sum_const [add_comm_monoid β] (b : β) :
   s.sum (λ a, b) = add_monoid.smul s.card b :=

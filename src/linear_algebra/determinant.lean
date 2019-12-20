@@ -207,14 +207,7 @@ have : ∀ σ, _root_.disjoint (_root_.singleton σ) (_root_.singleton (swap i j
 { intros σ,
   rw [finset.singleton_eq_singleton, finset.singleton_eq_singleton, disjoint_singleton],
   apply (not_congr mem_singleton).mpr,
-  intro h,
-  apply i_ne_j,
-  calc i = σ (σ⁻¹ i) : (symm_apply_eq σ).mp rfl
-     ... = (swap i j * σ) (σ⁻¹ i) : by rw h
-     ... = (swap i j) (σ (σ⁻¹ i)) : rfl
-     ... = (swap i j) i : by erw [←(symm_apply_eq σ).mp (refl (σ⁻¹ i))]
-     ... = j : swap_apply_left i j
-  },
+  exact (not_congr (swap_mul_eq_iff σ)).mpr i_ne_j },
 
 apply @finset.sum_cancels_of_partition_cancels _ _ _ _ _ (mod_swap i j),
 intros σ _,

@@ -369,14 +369,13 @@ meta def instantiate_lambdas_or_apps : list expr → expr → expr
 | es      (elet _ _ v b) := instantiate_lambdas_or_apps es $ b.instantiate_var v
 | es      e              := mk_app e es
 
-/- Note [open expressions]:
-  Some declarations work with open expressions, i.e. an expr that has free variables.
-  Terms will free variables are not well-typed, and one should not use them in tactics like
-  `infer_type` or `unify`. You can still do syntactic analysis/manipulation on them.
-  The reason for working with open types is for performance: instantiating variables requires
-  iterating through the expression. In one performance test `pi_binders` was more than 6x
-  quicker than `mk_local_pis` (when applied to the type of all imported declarations 100x).
-  -/
+library_note "open expressions"
+"Some declarations work with open expressions, i.e. an expr that has free variables.
+Terms will free variables are not well-typed, and one should not use them in tactics like
+`infer_type` or `unify`. You can still do syntactic analysis/manipulation on them.
+The reason for working with open types is for performance: instantiating variables requires
+iterating through the expression. In one performance test `pi_binders` was more than 6x
+quicker than `mk_local_pis` (when applied to the type of all imported declarations 100x)."
 
 /-- Get the codomain/target of a pi-type.
   This definition doesn't instantiate bound variables, and therefore produces a term that is open.-/
@@ -452,38 +451,14 @@ namespace environment
 meta def in_current_file' (env : environment) (n : name) : bool :=
 env.in_current_file n && (n ∉ [``quot, ``quot.mk, ``quot.lift, ``quot.ind])
 
-/-- Tests whether `n` is an inductive type with one constructor without indices.
-  If so, returns the number of paramaters and the name of the constructor.
-  Otherwise, returns `none`. -/
-meta def is_structure_like (env : environment) (n : name) : option (nat × name) :=
-do guardb (env.is_inductive n),
-  d ← (env.get n).to_option,
-  [intro] ← pure (env.constructors_of n) | none,
-  guard (env.inductive_num_indices n = 0),
-  some (env.inductive_num_params n, intro)
-
-/-- Tests whether `n` is a structure.
-  It will first test whether `n` is structure-like and then test that the first projection is
-  defined in the environment and is a projection. -/
+/-- Tests whether `n` is a structure. -/
 meta def is_structure (env : environment) (n : name) : bool :=
-option.is_some $ do
-  (nparams, intro) ← env.is_structure_like n,
-  di ← (env.get intro).to_option,
-  expr.pi x _ _ _ ← nparams.iterate
-    (λ e : option expr, do expr.pi _ _ _ body ← e | none, some body)
-    (some di.type) | none,
-  env.is_projection (n ++ x.deinternalize_field)
+(env.structure_fields n).is_some
 
-/-- Get all projections of the structure `n`. Returns `none` if `n` is not structure-like.
-  If `n` is not a structure, but is structure-like, this does not check whether the names
-  are existing declarations. -/
-meta def get_projections (env : environment) (n : name) : option (list name) := do
-  (nparams, intro) ← env.is_structure_like n,
-  di ← (env.get intro).to_option,
-  tgt ← nparams.iterate
-    (λ e : option expr, do expr.pi _ _ _ body ← e | none, some body)
-    (some di.type) | none,
-  return $ tgt.binding_names.map (λ x, n ++ x.deinternalize_field)
+/-- Get the full names of all projections of the structure `n`. Returns `none` if `n` is not a
+  structure. -/
+meta def structure_fields_full (env : environment) (n : name) : option (list name) :=
+(env.structure_fields n).map (list.map $ λ n', n ++ n')
 
 /-- Tests whether `nm` is a generalized inductive type that is not a normal inductive type.
   Note that `is_ginductive` returns `tt` even on regular inductive types.
@@ -594,7 +569,7 @@ do l' ← l.mfilter (λ⟨proj, val⟩, bnot <$> is_proof val),
 meta def is_eta_expansion (val : expr) : tactic (option expr) := do
   e ← get_env,
   type ← infer_type val,
-  projs ← e.get_projections type.get_app_fn.const_name,
+  projs ← e.structure_fields_full type.get_app_fn.const_name,
   let args := (val.get_app_args).drop type.get_app_args.length,
   is_eta_expansion_aux val (projs.zip args)
 

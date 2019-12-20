@@ -51,6 +51,11 @@ lemma prod_insert [decidable_eq α] : a ∉ s → (insert a s).prod f = f a * s.
 lemma prod_singleton : (singleton a).prod f = f a :=
 eq.trans fold_singleton $ mul_one _
 
+@[to_additive]
+lemma prod_pair [decidable_eq α] {a b : α} (h : a ≠ b) :
+  ({a, b} : finset α).prod f = f a * f b :=
+by simp [prod_insert (not_mem_singleton.2 h.symm), mul_comm]
+
 @[simp] lemma prod_const_one : s.prod (λx, (1 : β)) = 1 :=
 by simp only [finset.prod, multiset.map_const, multiset.prod_repeat, one_pow]
 @[simp] lemma sum_const_zero {β} {s : finset α} [add_comm_monoid β] : s.sum (λx, (0 : β)) = 0 :=

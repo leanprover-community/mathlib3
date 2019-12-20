@@ -4,14 +4,21 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jeremy Avigad, Leonardo de Moura
 -/
 
+import tactic.library_note
+
 /-!
+# Basic logic properties
+
+This file is one of the earliest imports in mathlib.
+
+## Implementation notes
+
 Theorems that require decidability hypotheses are in the namespace "decidable".
 Classical versions are in the namespace "classical".
 
-Note: in the presence of automation, this whole file may be unnecessary. On the other hand,
+In the presence of automation, this whole file may be unnecessary. On the other hand,
 maybe it is useful for writing automation.
 -/
-
 
 
 section miscellany
@@ -35,7 +42,7 @@ instance : decidable_eq empty := λa, a.elim
   {α} [subsingleton α] : decidable_eq α
 | a b := is_true (subsingleton.elim a b)
 
-/- Add an instance to "undo" coercion transitivity into a chain of coercions, because
+/-- Add an instance to "undo" coercion transitivity into a chain of coercions, because
    most simp lemmas are stated with respect to simple coercions and will not match when
    part of a chain. -/
 @[simp] theorem coe_coe {α β γ} [has_coe α β] [has_coe_t β γ]
@@ -95,8 +102,8 @@ lemma ne_comm {α} {a b : α} : a ≠ b ↔ b ≠ a := ⟨ne.symm, ne.symm⟩
 
 end miscellany
 
-/-
-    propositional connectives
+/-!
+### Declarations about propositional connectives
 -/
 
 @[simp] theorem false_ne_true : false ≠ true
@@ -105,7 +112,7 @@ end miscellany
 section propositional
 variables {a b c d : Prop}
 
-/- implies -/
+/-! ### Declarations about `implies` -/
 
 theorem iff_of_eq (e : a = b) : a ↔ b := e ▸ iff.rfl
 
@@ -138,7 +145,7 @@ iff_true_intro $ λ_, trivial
 @[simp] theorem imp_iff_right (ha : a) : (a → b) ↔ b :=
 ⟨λf, f ha, imp_intro⟩
 
-/- not -/
+/-! ### Declarations about `not` -/
 
 def not.elim {α : Sort*} (H1 : ¬a) (H2 : a) : α := absurd H2 H1
 
@@ -176,7 +183,7 @@ theorem imp.swap : (a → b → c) ↔ (b → a → c) :=
 theorem imp_not_comm : (a → ¬b) ↔ (b → ¬a) :=
 imp.swap
 
-/- and -/
+/-! ### Declarations about `and` -/
 
 theorem not_and_of_not_left (b : Prop) : ¬a → ¬(a ∧ b) :=
 mt and.left
@@ -211,7 +218,7 @@ iff.intro and.right (λ hb, ⟨h hb, hb⟩)
 lemma and.congr_right_iff : (a ∧ b ↔ a ∧ c) ↔ (a → (b ↔ c)) :=
 ⟨λ h ha, by simp [ha] at h; exact h, and_congr_right⟩
 
-/- or -/
+/-! ### Declarations about `or` -/
 
 theorem or_of_or_of_imp_of_imp (h₁ : a ∨ b) (h₂ : a → c) (h₃ : b → d) : c ∨ d :=
 or.imp h₂ h₃ h₁
@@ -238,7 +245,7 @@ or.comm.trans or_iff_not_imp_left
 theorem not_imp_not [decidable a] : (¬ a → ¬ b) ↔ (b → a) :=
 ⟨assume h hb, by_contradiction $ assume na, h na hb, mt⟩
 
-/- distributivity -/
+/-! ### Declarations about distributivity -/
 
 theorem and_or_distrib_left : a ∧ (b ∨ c) ↔ (a ∧ b) ∨ (a ∧ c) :=
 ⟨λ ⟨ha, hbc⟩, hbc.imp (and.intro ha) (and.intro ha),
@@ -254,7 +261,7 @@ theorem or_and_distrib_left : a ∨ (b ∧ c) ↔ (a ∨ b) ∧ (a ∨ c) :=
 theorem and_or_distrib_right : (a ∧ b) ∨ c ↔ (a ∨ c) ∧ (b ∨ c) :=
 (or.comm.trans or_and_distrib_left).trans (and_congr or.comm or.comm)
 
-/- iff -/
+/-! Declarations about `iff` -/
 
 theorem iff_of_true (ha : a) (hb : b) : a ↔ b :=
 ⟨λ_, hb, λ _, ha⟩
@@ -335,7 +342,7 @@ def decidable_of_bool : ∀ (b : bool) (h : b ↔ a), decidable a
 | tt h := is_true (h.1 rfl)
 | ff h := is_false (mt h.2 bool.ff_ne_tt)
 
-/- de morgan's laws -/
+/-! ### De Morgan's laws -/
 
 theorem not_and_of_not_or_not (h : ¬ a ∨ ¬ b) : ¬ (a ∧ b)
 | ⟨ha, hb⟩ := or.elim h (absurd ha) (absurd hb)
@@ -363,7 +370,7 @@ by rw [← not_and_distrib, not_not]
 
 end propositional
 
-/- equality -/
+/-! ### Declarations about equality -/
 
 section equality
 variables {α : Sort*} {a b : α}
@@ -406,9 +413,7 @@ by { subst hx, subst hy }
 
 end equality
 
-/-
-  quantifiers
--/
+/-! ### Declarations about quantifiers -/
 
 section quantifiers
 variables {α : Sort*} {β : Sort*} {p q : α → Prop} {b : Prop}
@@ -552,7 +557,7 @@ mt Exists.fst
 
 end quantifiers
 
-/- classical versions -/
+/-! ### Classical versions of earlier lemmas -/
 
 namespace classical
 variables {α : Sort*} {p : α → Prop}
@@ -581,6 +586,8 @@ or_iff_not_imp_right
 
 protected lemma not_not {p : Prop} : ¬¬p ↔ p := not_not
 
+protected theorem not_imp_not {p q : Prop} : (¬ p → ¬ q) ↔ (q → p) := not_imp_not
+
 protected lemma not_and_distrib {p q : Prop}: ¬(p ∧ q) ↔ ¬p ∨ ¬q := not_and_distrib
 
 protected lemma imp_iff_not_or {a b : Prop} : a → b ↔ ¬a ∨ b := imp_iff_not_or
@@ -601,14 +608,14 @@ by apply_instance
 noncomputable lemma dec_eq (α : Sort*) : decidable_eq α := -- see Note [classical lemma]
 by apply_instance
 
-/- Note [classical lemma]:
-  We make decidability results that depends on `classical.choice` noncomputable lemmas.
-  * We have to mark them as noncomputable, because otherwise Lean will try to generate bytecode
-    for them, and fail because it depends on `classical.choice`.
-  * We make them lemmas, and not definitions, because otherwise later definitions will raise
-    "failed to generate bytecode" errors when writing something like
-    `letI := classical.dec_eq _`.
-  Cf. <https://leanprover-community.github.io/archive/113488general/08268noncomputabletheorem.html> -/
+library_note "classical lemma"
+"We make decidability results that depends on `classical.choice` noncomputable lemmas.
+* We have to mark them as noncomputable, because otherwise Lean will try to generate bytecode
+  for them, and fail because it depends on `classical.choice`.
+* We make them lemmas, and not definitions, because otherwise later definitions will raise
+  \"failed to generate bytecode\" errors when writing something like
+  `letI := classical.dec_eq _`.
+Cf. <https://leanprover-community.github.io/archive/113488general/08268noncomputabletheorem.html>"
 
 @[elab_as_eliminator]
 noncomputable def {u} exists_cases {C : Sort u} (H0 : C) (H : ∀ a, p a → C) : C :=
@@ -629,9 +636,7 @@ noncomputable def {u} exists.classical_rec_on
  {α} {p : α → Prop} (h : ∃ a, p a) {C : Sort u} (H : ∀ a, p a → C) : C :=
 H (classical.some h) (classical.some_spec h)
 
-/-
-   bounded quantifiers
--/
+/-! ### Declarations about bounded quantifiers -/
 
 section bounded_quantifiers
 variables {α : Sort*} {r p q : α → Prop} {P Q : ∀ x, p x → Prop} {b : Prop}

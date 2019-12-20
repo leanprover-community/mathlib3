@@ -5,7 +5,7 @@ Authors: Chris Hughes, Johannes Hölzl, Jens Wagemaker
 
 Theory of univariate polynomials, represented as `ℕ →₀ α`, where α is a commutative semiring.
 -/
-import data.finsupp algebra.gcd_domain ring_theory.euclidean_domain tactic.ring ring_theory.multiplicity
+import data.finsupp algebra.gcd_domain ring_theory.euclidean_domain tactic.ring_exp ring_theory.multiplicity
 
 noncomputable theory
 local attribute [instance, priority 100] classical.prop_decidable
@@ -2174,34 +2174,34 @@ by rw [div_def, mul_comm, degree_mul_leading_coeff_inv _ hq0];
   exact degree_div_by_monic_lt _ (monic_mul_leading_coeff_inv hq0) hp
     (by rw degree_mul_leading_coeff_inv _ hq0; exact hq)
 
-@[simp] lemma degree_map [discrete_field β] (p : polynomial α) (f : α → β) [is_field_hom f] :
+@[simp] lemma degree_map [discrete_field β] (p : polynomial α) (f : α → β) [is_ring_hom f] :
   degree (p.map f) = degree p :=
-p.degree_map_eq_of_injective (is_field_hom.injective f)
+p.degree_map_eq_of_injective (is_ring_hom.injective f)
 
-@[simp] lemma nat_degree_map [discrete_field β] (f : α → β) [is_field_hom f] :
+@[simp] lemma nat_degree_map [discrete_field β] (f : α → β) [is_ring_hom f] :
   nat_degree (p.map f) = nat_degree p :=
 nat_degree_eq_of_degree_eq (degree_map _ f)
 
-@[simp] lemma leading_coeff_map [discrete_field β] (f : α → β) [is_field_hom f] :
+@[simp] lemma leading_coeff_map [discrete_field β] (f : α → β) [is_ring_hom f] :
   leading_coeff (p.map f) = f (leading_coeff p) :=
 by simp [leading_coeff, coeff_map f]
 
-lemma map_div [discrete_field β] (f : α → β) [is_field_hom f] :
+lemma map_div [discrete_field β] (f : α → β) [is_ring_hom f] :
   (p / q).map f = p.map f / q.map f :=
 if hq0 : q = 0 then by simp [hq0]
 else
 by rw [div_def, div_def, map_mul, map_div_by_monic f (monic_mul_leading_coeff_inv hq0)];
-  simp [is_field_hom.map_inv f, leading_coeff, coeff_map f]
+  simp [is_ring_hom.map_inv f, leading_coeff, coeff_map f]
 
-lemma map_mod [discrete_field β] (f : α → β) [is_field_hom f] :
+lemma map_mod [discrete_field β] (f : α → β) [is_ring_hom f] :
   (p % q).map f = p.map f % q.map f :=
 if hq0 : q = 0 then by simp [hq0]
-else by rw [mod_def, mod_def, leading_coeff_map f, ← is_field_hom.map_inv f, ← map_C f,
+else by rw [mod_def, mod_def, leading_coeff_map f, ← is_ring_hom.map_inv f, ← map_C f,
   ← map_mul f, map_mod_by_monic f (monic_mul_leading_coeff_inv hq0)]
 
-@[simp] lemma map_eq_zero [discrete_field β] (f : α → β) [is_field_hom f] :
+@[simp] lemma map_eq_zero [discrete_field β] (f : α → β) [is_ring_hom f] :
   p.map f = 0 ↔ p = 0 :=
-by simp [polynomial.ext_iff, is_field_hom.map_eq_zero f, coeff_map]
+by simp [polynomial.ext_iff, is_ring_hom.map_eq_zero f, coeff_map]
 
 lemma exists_root_of_degree_eq_one (h : degree p = 1) : ∃ x, is_root p x :=
 ⟨-(p.coeff 0 / p.coeff 1),
@@ -2387,10 +2387,11 @@ def pow_add_expansion {α : Type*} [comm_semiring α] (x y : α) : ∀ (n : ℕ)
 | (n+2) :=
   begin
     cases pow_add_expansion (n+1) with z hz,
-    rw [_root_.pow_succ, hz],
-    existsi (x*z + (n+1)*x^n+z*y),
-    simp [_root_.pow_succ],
-    ring
+    existsi x*z + (n+1)*x^n+z*y,
+    calc (x + y) ^ (n + 2) = (x + y) * (x + y) ^ (n + 1) : by ring_exp
+    ... = (x + y) * (x ^ (n + 1) + ↑(n + 1) * x ^ (n + 1 - 1) * y + z * y ^ 2) : by rw hz
+    ... = x ^ (n + 2) + ↑(n + 2) * x ^ (n + 1) * y + (x*z + (n+1)*x^n+z*y) * y ^ 2 :
+      by { push_cast, ring_exp! }
   end
 
 variables [comm_ring α]
@@ -2432,12 +2433,12 @@ def pow_sub_pow_factor (x y : α) : Π {i : ℕ},{z : α // x^i - y^i = z*(x - y
 | 1 := ⟨1, by simp⟩
 | (k+2) :=
   begin
-    cases pow_sub_pow_factor with z hz,
+    cases @pow_sub_pow_factor (k+1) with z hz,
     existsi z*x + y^(k+1),
-    rw [_root_.pow_succ x, _root_.pow_succ y, ←sub_add_sub_cancel (x*x^(k+1)) (x*y^(k+1)),
-        ←mul_sub x, hz],
-    simp only [_root_.pow_succ],
-    ring
+    calc x ^ (k + 2) - y ^ (k + 2)
+        = x * (x ^ (k + 1) - y ^ (k + 1)) + (x * y ^ (k + 1) - y ^ (k + 2)) : by ring_exp
+    ... = x * (z * (x - y)) + (x * y ^ (k + 1) - y ^ (k + 2)) : by rw hz
+    ... = (z * x + y ^ (k + 1)) * (x - y) : by ring_exp
   end
 
 def eval_sub_factor (f : polynomial α) (x y : α) :

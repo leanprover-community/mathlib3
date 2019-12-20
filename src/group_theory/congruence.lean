@@ -509,6 +509,14 @@ instance monoid : monoid c.quotient :=
   mul_one := λ x, quotient.induction_on' x $ λ _, congr_arg coe $ mul_one _,
   one_mul := λ x, quotient.induction_on' x $ λ _, congr_arg coe $ one_mul _ }
 
+
+/-- The quotient of a `comm_monoid` by a congruence relation is a `comm_monoid`. -/
+@[to_additive add_comm_monoid "The quotient of an `add_comm_monoid` by an additive congruence relation is an `add_comm_monoid`."]
+instance comm_monoid {α : Type*} [comm_monoid α] (c : con α) :
+  comm_monoid c.quotient :=
+{ mul_comm := λ x y, con.induction_on₂ x y $ λ w z, by rw [←coe_mul, ←coe_mul, mul_comm],
+  ..c.monoid}
+
 variables {c}
 
 /-- The 1 of the quotient of a monoid by a congruence relation is the equivalence class of the
@@ -670,6 +678,8 @@ lemma lift_surjective_of_surjective (h : c ≤ ker f) (hf : surjective f) :
   surjective (c.lift f h) :=
 λ y, exists.elim (hf y) $ λ w hw, ⟨w, (lift_mk' h w).symm ▸ hw⟩
 
+variables (c f)
+
 /-- Given a monoid homomorphism `f` from `M` to `P`, the kernel of `f` is the unique congruence
     relation on `M` whose induced map from the quotient of `M` to `P` is injective. -/
 @[to_additive "Given an `add_monoid` homomorphism `f` from `M` to `P`, the kernel of `f` is the unique additive congruence relation on `M` whose induced map from the quotient of `M` to `P` is injective."]
@@ -677,10 +687,14 @@ lemma ker_eq_lift_of_injective (H : c ≤ ker f) (h : injective (c.lift f H)) :
   ker f = c :=
 to_setoid_inj $ ker_eq_lift_of_injective f H h
 
+variables {c}
+
 /-- The homomorphism induced on the quotient of a monoid by the kernel of a monoid homomorphism. -/
 @[to_additive "The homomorphism induced on the quotient of an `add_monoid` by the kernel of an `add_monoid` homomorphism."]
-def ker_lift (f : M →* P) : (ker f).quotient →* P :=
+def ker_lift : (ker f).quotient →* P :=
 (ker f).lift f $ λ _ _, id
+
+variables {f}
 
 /-- The diagram described by the universal property for quotients of monoids, when the congruence
     relation is the kernel of the homomorphism, commutes. -/

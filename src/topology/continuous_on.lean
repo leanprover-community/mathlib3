@@ -52,7 +52,7 @@ begin
 end
 
 lemma mem_nhds_within_iff_exists_mem_nhds_inter {t : set α} {a : α} {s : set α} :
-  t ∈ nhds_within a s ↔ ∃ u ∈ nhds a, u ∩ s ⊆ t :=
+  t ∈ nhds_within a s ↔ ∃ u ∈ 𝓝 a, u ∩ s ⊆ t :=
 begin
   rw [nhds_within, mem_inf_principal],
   split,
@@ -185,6 +185,14 @@ begin
       exact ⟨u, u_open, xu, subset.refl _⟩ },
     exact forall_sets_neq_empty_iff_neq_bot.2 h (u ∩ s) this }
 end
+
+lemma nhds_within_ne_bot_of_mem {s : set α} {x : α} (hx : x ∈ s) :
+  nhds_within x s ≠ ⊥ :=
+mem_closure_iff_nhds_within_ne_bot.1 $ subset_closure hx
+
+lemma is_closed.mem_of_nhds_within_ne_bot {s : set α} (hs : is_closed s)
+  {x : α} (hx : nhds_within x s ≠ ⊥) : x ∈ s :=
+by simpa only [closure_eq_of_is_closed hs] using mem_closure_iff_nhds_within_ne_bot.2 hx
 
 /-
 nhds_within and subtypes

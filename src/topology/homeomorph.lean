@@ -72,16 +72,14 @@ le_antisymm
     rwa [coinduced_compose, self_comp_symm, coinduced_id] at this,
   end
 
+protected lemma embedding (h : α ≃ₜ β) : embedding h :=
+⟨⟨h.induced_eq.symm⟩, h.to_equiv.injective⟩
+
 lemma compact_image {s : set α} (h : α ≃ₜ β) : compact (h '' s) ↔ compact s :=
-⟨λ hs, by have := compact_image hs h.symm.continuous;
-  rwa [← image_comp, symm_comp_self, image_id] at this,
-λ hs, compact_image hs h.continuous⟩
+h.embedding.compact_iff_compact_image.symm
 
 lemma compact_preimage {s : set β} (h : α ≃ₜ β) : compact (h ⁻¹' s) ↔ compact s :=
 by rw ← image_symm; exact h.symm.compact_image
-
-protected lemma embedding (h : α ≃ₜ β) : embedding h :=
-⟨⟨h.induced_eq.symm⟩, h.to_equiv.injective⟩
 
 protected lemma dense_embedding (h : α ≃ₜ β) : dense_embedding h :=
 { dense   := assume a, by rw [h.range_coe, closure_univ]; trivial,

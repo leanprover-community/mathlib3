@@ -75,11 +75,8 @@ lemma mod_mem_iff {S : ideal α} {x y : α} (hy : y ∈ S) : x % y ∈ S ↔ x �
 @[priority 100] -- see Note [lower instance priority]
 instance euclidean_domain.to_principal_ideal_domain : principal_ideal_domain α :=
 { principal := λ S, by exactI
-    ⟨if h : {x : α | x ∈ S ∧ x ≠ 0} = ∅
-    then ⟨0, submodule.ext $ λ a, by rw [← @submodule.bot_coe α α _ _ ring.to_module, span_eq, submodule.mem_bot]; exact
-      ⟨λ haS, by_contradiction $ λ ha0, eq_empty_iff_forall_not_mem.1 h a ⟨haS, ha0⟩,
-      λ h₁, h₁.symm ▸ S.zero_mem⟩⟩
-    else
+    ⟨if h : {x : α | x ∈ S ∧ x ≠ 0}.nonempty
+    then
     have wf : well_founded euclidean_domain.r := euclidean_domain.r_well_founded α,
     have hmin : well_founded.min wf {x : α | x ∈ S ∧ x ≠ 0} h ∈ S ∧
         well_founded.min wf {x : α | x ∈ S ∧ x ≠ 0} h ≠ 0,
@@ -92,7 +89,10 @@ instance euclidean_domain.to_principal_ideal_domain : principal_ideal_domain α 
           from λ h₁, well_founded.not_lt_min wf _ h h₁ (mod_lt x hmin.2),
         have x % well_founded.min wf {x : α | x ∈ S ∧ x ≠ 0} h = 0, by finish [(mod_mem_iff hmin.1).2 hx],
         by simp *),
-      λ hx, let ⟨y, hy⟩ := mem_span_singleton.1 hx in hy.symm ▸ ideal.mul_mem_right _ hmin.1⟩⟩⟩ }
+      λ hx, let ⟨y, hy⟩ := mem_span_singleton.1 hx in hy.symm ▸ ideal.mul_mem_right _ hmin.1⟩⟩
+    else ⟨0, submodule.ext $ λ a, by rw [← @submodule.bot_coe α α _ _ ring.to_module, span_eq, submodule.mem_bot]; exact
+      ⟨λ haS, by_contradiction $ λ ha0, h ⟨a, ⟨haS, ha0⟩⟩,
+      λ h₁, h₁.symm ▸ S.zero_mem⟩⟩⟩ }
 
 end
 

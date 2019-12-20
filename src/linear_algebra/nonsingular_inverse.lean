@@ -268,7 +268,7 @@ calc adjugate A ⬝ A = (Aᵀ ⬝ (adjugate Aᵀ))ᵀ :
 end adjugate
 
 section inv
-variables [field α]
+variables [comm_ring α] [has_inv α]
 
 /-- The inverse of a nonsingular matrix.
 
@@ -283,20 +283,21 @@ lemma transpose_nonsing_inv (A : matrix n n α) : (A.nonsing_inv)ᵀ = (Aᵀ).no
 by {ext, simp [transpose_val, nonsing_inv_val, det_transpose, (adjugate_transpose A).symm]}
 
 /-- The `nonsing_inv` of `A` is a right inverse. -/
-theorem mul_nonsing_inv (A : matrix n n α) (nonsing : A.det ≠ 0) :
+theorem mul_nonsing_inv (A : matrix n n α) (inv_mul_cancel : A.det⁻¹ * A.det = 1) :
   A ⬝ nonsing_inv A = 1 :=
-by { rw [nonsing_inv, mul_smul, mul_adjugate, smul_smul, inv_mul_cancel nonsing],
+by { rw [nonsing_inv, mul_smul, mul_adjugate, smul_smul, inv_mul_cancel],
      -- TODO: why do we need to explicitly construct this instance?
      exact @one_smul α (matrix n n α) _ (@pi.mul_action n (λ _, n → α) α _
        (λ _, @pi.mul_action n (λ _, α) α _
        (λ _, distrib_mul_action.to_mul_action α α))) (1 : matrix n n α) }
 
 /-- The `nonsing_inv` of `A` is a left inverse. -/
-theorem nonsing_inv_mul (A : matrix n n α) (nonsing : A.det ≠ 0) :
+theorem nonsing_inv_mul (A : matrix n n α) (inv_mul_cancel : A.det⁻¹ * A.det = 1) :
   nonsing_inv A ⬝ A = 1 :=
+have inv_mul_cancel' : (det Aᵀ)⁻¹ * det Aᵀ = 1 := by {rw det_transpose, assumption},
 calc nonsing_inv A ⬝ A
     = (Aᵀ ⬝ nonsing_inv (Aᵀ))ᵀ : by rw [transpose_mul, transpose_nonsing_inv, transpose_transpose]
-... = 1ᵀ                       : by rw [mul_nonsing_inv Aᵀ (nonsing ∘ trans (det_transpose A).symm)]
+... = 1ᵀ                       : by rw [mul_nonsing_inv Aᵀ inv_mul_cancel']
 ... = 1                        : transpose_one
 
 end inv

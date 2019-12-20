@@ -31,15 +31,18 @@ run_cmd tactic.skip -- this serves as a "barrier" between `import` and `#find`
 
 ## find
 
-The `find` command from `tactic.find` allows to find lemmas using
-pattern matching. For instance:
+The `find` command from `tactic.find` allows to find definitions lemmas using
+pattern matching on the type. For instance:
 
 ```lean
 import tactic.find
 
 #find _ + _ = _ + _
 #find (_ : ℕ) + _ = _ + _
+#find ℕ → ℕ
 ```
+
+The tactic `library_search` is an alternate way to find lemmas in the library.
 
 ## Localized notation
 

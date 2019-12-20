@@ -162,7 +162,7 @@ lemma cramer_map_mul_val (c : α) (i : n) : cramer_map A b i * c = cramer_map A 
 trans (mul_comm _ _) (mul_cramer_map_val _ _ _ _)
 
 /-- Applying Cramer's rule to a column of the matrix gives a scaled basis vector. -/
-lemma cramer_column_self [decidable_linear_order n] (i : n) :
+lemma cramer_column_self (i : n) :
 (cramer A).to_fun (A i) = (λ j, if i = j then A.det else 0) :=
 begin
 ext j,
@@ -174,7 +174,7 @@ by_cases i = j,
   by_cases h : i' = i, { rw [h, replace_column_self] }, { rw [replace_column_ne h]} },
 { -- i ≠ j: this entry should be 0
   rw [if_neg h, cramer_map, det_transpose],
-  apply det_zero_of_column_eq_of_lin h,
+  apply det_zero_of_column_eq h,
   rw [replace_column_self, replace_column_ne],
   apply h }
 end
@@ -197,6 +197,13 @@ Define the `adjugate` matrix and a few equations.
 -/
 
 variable [comm_ring α]
+/-- The adjugate matrix is the transpose of the cofactor matrix.
+
+  Typically, the cofactor matrix is defined by taking the determinant of minors,
+  i.e. the matrix with a row and column removed. However, the proof of
+  `adjugate_mul` becomes a lot easier if we can express the matrix in terms of
+  `cramer_map`, as we do here.
+-/
 def adjugate (A : matrix n n α) : matrix n n α := λ i, cramer_map A (λ j, if i = j then 1 else 0)
 
 lemma adjugate_val (A : matrix n n α) (i j : n) :
@@ -232,7 +239,7 @@ begin
   }
 end
 
-lemma mul_adjugate [decidable_linear_order n] (A : matrix n n α) : A ⬝adjugate A = A.det • 1 :=
+lemma mul_adjugate (A : matrix n n α) : A ⬝adjugate A = A.det • 1 :=
 begin
   ext i j,
   rw [mul_val, smul_val],
@@ -251,7 +258,7 @@ begin
     ... = det A * (1 : matrix n n α) i j : by simp [one_val]
 end
 
-lemma adjugate_mul [decidable_linear_order n] (A : matrix n n α) : adjugate A ⬝ A = A.det • 1 :=
+lemma adjugate_mul (A : matrix n n α) : adjugate A ⬝ A = A.det • 1 :=
 calc adjugate A ⬝ A = (Aᵀ ⬝ (adjugate Aᵀ))ᵀ :
   by rw [←adjugate_transpose, ←transpose_mul, transpose_transpose]
 ... = (A.det • 1)ᵀ : by rw [mul_adjugate (Aᵀ), det_transpose]
@@ -276,7 +283,7 @@ lemma transpose_inv (A : matrix n n α) : (A.nonsing_inv)ᵀ = (Aᵀ).nonsing_in
 by {ext, simp [transpose_val, nonsing_inv_val, det_transpose, (adjugate_transpose A).symm]}
 
 /-- The `nonsing_inv` of `A` is a right inverse. -/
-theorem mul_inv [decidable_linear_order n] (A : matrix n n α) (nonsing : A.det ≠ 0) :
+theorem mul_inv (A : matrix n n α) (nonsing : A.det ≠ 0) :
   A ⬝ nonsing_inv A = 1 :=
 by { rw [nonsing_inv, mul_smul, mul_adjugate, smul_smul, inv_mul_cancel nonsing],
      -- TODO: why do we need to explicitly construct this instance?
@@ -285,7 +292,7 @@ by { rw [nonsing_inv, mul_smul, mul_adjugate, smul_smul, inv_mul_cancel nonsing]
        (λ _, distrib_mul_action.to_mul_action α α))) (1 : matrix n n α) }
 
 /-- The `nonsing_inv` of `A` is a left inverse. -/
-theorem inv_mul [decidable_linear_order n] (A : matrix n n α) (nonsing : A.det ≠ 0) :
+theorem inv_mul (A : matrix n n α) (nonsing : A.det ≠ 0) :
   nonsing_inv A ⬝ A = 1 :=
 calc nonsing_inv A ⬝ A
     = (Aᵀ ⬝ nonsing_inv (Aᵀ))ᵀ : by rw [transpose_mul, transpose_inv, transpose_transpose]

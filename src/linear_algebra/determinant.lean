@@ -16,6 +16,7 @@ variables {n : Type u} [fintype n] [decidable_eq n] {R : Type v} [comm_ring R]
 
 local notation `ε` σ:max := ((sign σ : ℤ ) : R)
 
+/-- The determinant of a matrix given by the Leibniz formula. -/
 definition det (M : matrix n n R) : R :=
 univ.sum (λ (σ : perm n), ε σ * univ.prod (λ i, M (σ i) i))
 
@@ -154,6 +155,23 @@ section det_zero
   characteristics, but is more complicated.
 -/
 
+/--
+  `mod_swap i j` contains permutations up to swapping `i` and `j`.
+
+  We use this to partition permutations in the expression for the determinant,
+  such that each partitions sums up to `0`.
+-/
+def mod_swap {n : Type u} [decidable_eq n] (i j : n) : setoid (perm n) :=
+⟨ λ σ τ, σ = τ ∨ σ = swap i j * τ
+, λ σ, or.inl (refl σ)
+, λ σ τ h, or.cases_on h
+(λ h, or.inl h.symm)
+(λ h, or.inr (by rw [h, swap_mul_self_mul]))
+, λ σ τ υ hστ hτυ, by cases hστ; cases hτυ; try {rw [hστ, hτυ, swap_mul_self_mul]}; finish
+⟩
+
+instance (i j : n) : decidable_rel (mod_swap i j).r := λ σ τ, or.decidable
+
 variables {M : matrix n n R} {i j : n} (i_ne_j : i ≠ j) (hij : M i = M j)
 
 include i_ne_j hij
@@ -174,18 +192,6 @@ have : (λ a, M (swap i j a)) = M,
 calc M.det = (-1 : units ℤ) * M.det : by rw [←sign_swap i_ne_j, ←det_permute M, this]
        ... = -det M : by norm_num
 end
-
-/-- All terms in the determinant that are equal up to swapping `i` and `j` will cancel. -/
-def mod_swap : setoid (perm n) :=
-⟨ λ σ τ, σ = τ ∨ σ = swap i j * τ
-, λ σ, or.inl (refl σ)
-, λ σ τ h, or.cases_on h
-  (λ h, or.inl h.symm)
-  (λ h, or.inr (by rw [h, swap_mul_self_mul]))
-, λ σ τ υ hστ hτυ, by cases hστ; cases hτυ; try {rw [hστ, hτυ, swap_mul_self_mul]}; finish
-⟩
-
-instance : decidable_rel (mod_swap i_ne_j hij).r := λ σ τ, or.decidable
 
 /-- If a matrix has a repeated column, the determinant will be zero. -/
 theorem det_zero_of_column_eq : M.det = 0 :=
@@ -211,7 +217,7 @@ have : ∀ σ, _root_.disjoint (_root_.singleton σ) (_root_.singleton (swap i j
      ... = j : swap_apply_left i j
   },
 
-apply @finset.sum_cancels _ _ _ _ _ (mod_swap i_ne_j hij),
+apply @finset.sum_cancels_of_partition_cancels _ _ _ _ _ (mod_swap i j),
 intros σ _,
 erw [filter_or, filter_eq', filter_eq', if_pos (mem_univ σ), if_pos (mem_univ (swap i j * σ)),
   sum_union (this σ), sum_singleton, sum_singleton],

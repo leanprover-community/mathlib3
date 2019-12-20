@@ -5,7 +5,6 @@ Authors: Kenny Lau, Chris Hughes, Tim Baanen
 -/
 import data.matrix.basic
 import group_theory.perm.sign
-import algebra.char_p
 
 universes u v
 open equiv equiv.perm finset function

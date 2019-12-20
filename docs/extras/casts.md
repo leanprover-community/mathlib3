@@ -1,10 +1,12 @@
-# Coercions from numbers #
+# Coercions from numbers
 
 This document is not about coercions in general -- see [section 10.6 of TPIL](https://leanprover.github.io/theorem_proving_in_lean/type_classes.html#coercions-using-type-classes) for a general overview. This is an overview of how to work with the coercions `ℕ → ℤ → ℚ → ℝ → ℂ` (maps which mathematicians fondly call "the identity function", and which computer scientists call `↑`) and also the natural coercions from `ℤ` to a general ring and so on.
 
 In brief: this document might help if you have three integers `x y z`, a proof that `x * y = z`, and your goal is `↑x * ↑y = ↑z`, something which you suspect is a statement about real numbers.
 
-# The problems people have with coercions.
+Note: since the `norm_cast` tactic was added to mathlib, much of this discussion is obsolete.
+
+## The problems people have with coercions
 
 Here are two types of problems that people run into with coercions.
 
@@ -27,12 +29,12 @@ H : a + b * c = 12
 
 These two problems are of a slightly different nature, and require two different solutions. In the next few sections I explain what I hope are enough tricks to make solving questions like this easy. But first here's a warning.
 
-# A subtlety with automatic coercions
+## A subtlety with automatic coercions
 
 Before we go on, let me get this potentially confusing issue out of the way. Because there's a coercion from `ℤ` to `ℝ` one can just write `a : ℝ` if `a` is an integer, and Lean knows you mean the corresponding real number. Watch out for this gotcha though:
 
 ```lean
-variables (a b : ℤ) 
+variables (a b : ℤ)
 
 #check ((a + b) : ℝ) -- ↑a + ↑b : ℝ
 #check ((a + b : ℤ) : ℝ) -- ↑(a + b) : ℝ
@@ -40,7 +42,7 @@ variables (a b : ℤ)
 
 I was initially surprised that these two terms didn't evaluate to exactly the same thing. What is happening here is that Lean figures out what is going on from the outside in. So for the first term, Lean knows that the type of `a + b` is supposed to be `ℝ`, so it then decides that the addition we want must be `real.add`, so it then decides that we must want `a` and `b` to be reals, giving us `↑a + ↑b`. In the second term, we explicitly say that we want `a + b` to be treated like an integer, and so Lean uses integer addition.
 
-### "Obvious in maths" goals.
+### "Obvious in maths" goals
 
 These are goals where there is no extra hypothesis or implication sign needed, they are just goals which are of the form `X = X'` where `X` and `X'` are "obviously equal" modulo the fact that calculations like additions might be taking place in different types. Goals like this should all be provable with `simp`. Examples:
 
@@ -91,7 +93,7 @@ In this example, a hypothesis says that `a + b * c = 12` (this is a statement ab
 Unfortunately, things can be harder when one is going the other way around.
 
 ```lean
-example (a b c : ℤ) (H : (a : ℝ) + b * c = 12) : 
+example (a b c : ℤ) (H : (a : ℝ) + b * c = 12) :
 a + b * c = 12 :=
 /-
 a b c : ℤ,
@@ -151,7 +153,7 @@ example (q r : ℝ) : (q : ℂ) = r → q = r := by simp
 
 Hopefully these clues will be enough to get beginners through. Remember that numerals sometimes need coercing too, and  `↑7 = 7` might not be true by `refl` -- although it will be provable using `simp`.
 
-# More information about what is going on.
+## More information about what is going on
 
 The rest of this document gives more background about what is actually going on here. If anyone finds that they are having to read it without really wanting to, e.g. because they have a goal which the techniques above won't solve, they might want to let me (Kevin Buzzard) know so I can try to make the simple helpful bit better.
 
@@ -177,13 +179,13 @@ import data.complex.basic
 
 def from_R_to_C (r : ℝ) : ℂ := r
 
-#print from_R_to_C 
+#print from_R_to_C
 -- def from_R_to_C : ℝ → ℂ := λ (r : ℝ), ↑r
 ```
 
 Looking at the definition of the function, we see that Lean is using `↑` to mean "use a coercion".
 
-# How do I know which coercion the arrow means?
+## How do I know which coercion the arrow means?
 
 If the tricks at the top work for you, you might not even have to worry about exactly what `↑a` means. But if you do not understand what your goal says, because you have lost track of whether `↑a` means the rational number `a`, or the real number `a` or the complex number `a`, and you do need to know, then try writing `set_option pp.all true` before your theorem and then taking another look. For example, what was `↑(a + b) = ↑a + ↑b` above might now become around 25 lines of output, starting with
 
@@ -197,11 +199,11 @@ If the tricks at the top work for you, you might not even have to worry about ex
 
 and the very first line tells you that the goal is an equality between two real numbers (and the second line indicates that the left hand side of this equality is a coercion from the integers).
 
-# "Special" coercions.
+## "Special" coercions
 
-The coercion from `ℕ` to `ℤ` is not defined as the one coming from the fact that `ℤ` is a ring; it is more computationally efficient to use the constructor. The two functions are equal, but this is a theorem and not a definition. The coercion from `ℚ` to `ℝ` is noncomputable (although it doesn't have to be), and the coercion from `ℝ` to `ℂ` is defined by hand rather than being part of a general scheme of maps from `ℝ` to lots of places. 
+The coercion from `ℕ` to `ℤ` is not defined as the one coming from the fact that `ℤ` is a ring; it is more computationally efficient to use the constructor. The two functions are equal, but this is a theorem and not a definition. The coercion from `ℚ` to `ℝ` is noncomputable (although it doesn't have to be), and the coercion from `ℝ` to `ℂ` is defined by hand rather than being part of a general scheme of maps from `ℝ` to lots of places.
 
-# Examples of names.
+## Examples of names
 
 If you do want to prove "trivial in maths" goals "by hand" for some reason, then you can write `set_option trace.simplify.rewrite true` before your theorem, see what `simp` is doing, and then mimic it.
 

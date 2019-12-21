@@ -65,7 +65,7 @@ lemma smul_sum {α : Type u} {M : Type v} {R : Type w}
   [ring R] [add_comm_group M] [module R M]
   {s : finset α} {a : R} {f : α → M} :
   a • (s.sum f) = s.sum (λc, a • f c) :=
-(finset.sum_hom ((•) a)).symm
+(s.sum_hom ((•) a)).symm
 
 lemma smul_sum' {α : Type u} {M : Type v} {R : Type w}
   [ring R] [add_comm_group M] [module R M]
@@ -75,7 +75,7 @@ begin
 -- TODO : where should I put this instance?
   haveI : is_add_monoid_hom (λ (r : R), r • x) :=
     { map_add := λ a b, add_smul _ _ _, map_zero := zero_smul _ _ },
-  exact (finset.sum_hom (λ (r : R), r • x)).symm
+  exact (s.sum_hom (λ (r : R), r • x)).symm
 end
 
 end finset
@@ -176,7 +176,7 @@ instance linear_map_apply_is_add_group_hom (a : M) :
 
 lemma sum_apply (t : finset ι) (f : ι → M →ₗ[R] M₂) (b : M) :
   t.sum f b = t.sum (λd, f d b) :=
-(@finset.sum_hom _ _ _ t f _ _ (λ g : M →ₗ[R] M₂, g b) _).symm
+(t.sum_hom (λ g : M →ₗ[R] M₂, g b)).symm
 
 @[simp] lemma sub_apply (x : M) : (f - g) x = f x - g x := rfl
 

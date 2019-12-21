@@ -1104,19 +1104,21 @@ by induction l; [refl, simp only [*, concat_eq_append, cons_append, map, map_app
 theorem map_id' {f : α → α} (h : ∀ x, f x = x) (l : list α) : map f l = l :=
 by induction l; [refl, simp only [*, map]]; split; refl
 
-@[simp] theorem foldl_map (g : β → γ) (f : α → γ → α) (a : α) (l : list β) : foldl f a (map g l) = foldl (λx y, f x (g y)) a l :=
+@[simp] theorem foldl_map (g : β → γ) (f : α → γ → α) (a : α) (l : list β) :
+  foldl f a (map g l) = foldl (λx y, f x (g y)) a l :=
 by revert a; induction l; intros; [refl, simp only [*, map, foldl]]
 
-@[simp] theorem foldr_map (g : β → γ) (f : γ → α → α) (a : α) (l : list β) : foldr f a (map g l) = foldr (f ∘ g) a l :=
+@[simp] theorem foldr_map (g : β → γ) (f : γ → α → α) (a : α) (l : list β) :
+  foldr f a (map g l) = foldr (f ∘ g) a l :=
 by revert a; induction l; intros; [refl, simp only [*, map, foldr]]
 
-theorem foldl_hom (f : α → β) (g : α → γ → α) (g' : β → γ → β) (a : α)
-  (h : ∀a x, f (g a x) = g' (f a) x) (l : list γ) : f (foldl g a l) = foldl g' (f a) l :=
-by revert a; induction l; intros; [refl, simp only [*, foldl]]
+theorem foldl_hom (l : list γ) {f : α → β} {op : α → γ → α} {op' : β → γ → β} (a : α)
+  (h : ∀a x, f (op a x) = op' (f a) x) : foldl op' (f a) l = f (foldl op a l) :=
+eq.symm $ by { revert a, induction l; intros; [refl, simp only [*, foldl]] }
 
-theorem foldr_hom (f : α → β) (g : γ → α → α) (g' : γ → β → β) (a : α)
-  (h : ∀x a, f (g x a) = g' x (f a)) (l : list γ) : f (foldr g a l) = foldr g' (f a) l :=
-by revert a; induction l; intros; [refl, simp only [*, foldr]]
+theorem foldr_hom (l : list γ) {f : α → β} {op : γ → α → α} {op' : γ → β → β} {a : α} {b : β}
+  (ha : f a = b) (h : ∀x a, f (op x a) = op' x (f a)) : foldr op' b l = f (foldr op a l) :=
+by { subst b, revert a, induction l; intros; [refl, simp only [*, foldr]] }
 
 theorem eq_nil_of_map_eq_nil {f : α → β} {l : list α} (h : map f l = nil) : l = nil :=
 eq_nil_of_length_eq_zero $ by rw [← length_map f l, h]; refl
@@ -1506,6 +1508,18 @@ calc (l₁ ++ l₂).prod = foldl (*) (foldl (*) 1 l₁ * 1) l₂ : by simp [list
 @[simp, to_additive]
 theorem prod_join {l : list (list α)} : l.join.prod = (l.map list.prod).prod :=
 by induction l; [refl, simp only [*, list.join, map, prod_append, prod_cons]]
+
+@[to_additive]
+theorem prod_hom_rel {α β γ : Type*} [monoid β] [monoid γ] (l : list α) {r : β → γ → Prop}
+  {f : α → β} {g : α → γ} (h₁ : r 1 1) (h₂ : ∀⦃a b c⦄, r b c → r (f a * b) (g a * c)) :
+  r (l.map f).prod (l.map g).prod :=
+list.rec_on l h₁ (λ a l hl, by simp only [map_cons, prod_cons, h₂ hl])
+
+@[to_additive]
+theorem prod_hom [monoid β] (l : list α) (f : α → β) [is_monoid_hom f] :
+  (l.map f).prod = f l.prod :=
+by { simp only [prod, foldl_map, (is_monoid_hom.map_one f).symm],
+  exact l.foldl_hom 1 (is_monoid_hom.map_mul f) }
 
 end monoid
 
@@ -5144,3 +5158,8 @@ end list
 theorem option.to_list_nodup {α} : ∀ o : option α, o.to_list.nodup
 | none     := list.nodup_nil
 | (some x) := list.nodup_singleton x
+
+@[to_additive]
+theorem monoid_hom.map_list_prod {α β : Type*} [monoid α] [monoid β] (f : α →* β) (l : list α) :
+  f l.prod = (l.map f).prod :=
+(l.prod_hom f).symm

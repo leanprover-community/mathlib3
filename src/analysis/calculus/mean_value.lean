@@ -21,7 +21,7 @@ variables {E : Type*} [normed_group E] [normed_space ℝ E]
 
 open metric set lattice asymptotics continuous_linear_map
 
-/-! ### Vector-valued functions -/
+/-! ### Vector-valued functions `f : E → F` -/
 
 /-- The mean value theorem along a segment: a bound on the derivative of a function along a segment
 implies a bound on the distance of the endpoints images -/
@@ -141,6 +141,8 @@ begin
   rw [this]
 end
 
+/-- If a function has zero Fréchet derivative at every point of a convex set,
+then it is a constant on this set. -/
 theorem convex.is_const_of_fderiv_within_eq_zero {s : set E} (hs : convex s)
   {f : E → F} (hf : differentiable_on ℝ f s) (hf' : ∀ x ∈ s, fderiv_within ℝ f s x = 0)
   {x y : E} (hx : x ∈ s) (hy : y ∈ s) :
@@ -150,15 +152,15 @@ have bound : ∀ x ∈ s, ∥fderiv_within ℝ f s x∥ ≤ 0,
 by simpa only [(dist_eq_norm _ _).symm, zero_mul, dist_le_zero, eq_comm]
   using norm_image_sub_le_of_norm_deriv_le_convex hf bound hs hx hy
 
-/-! ### `ℝ`-valued functions. -/
+/-! ### Functions `[a, b] → ℝ`. -/
 
 section interval
 
 -- Declare all variables here to make sure they come in a correct order
 variables (f f' : ℝ → ℝ) {a b : ℝ} (hab : a < b) (hfc : continuous_on f (Icc a b))
-  (hff' : ∀ x ∈ Ioo a b, has_deriv_at f (f' x) x) (hfd : ∀ x ∈ Ioo a b, differentiable_at ℝ f x)
+  (hff' : ∀ x ∈ Ioo a b, has_deriv_at f (f' x) x) (hfd : differentiable_on ℝ f (Ioo a b))
   (g g' : ℝ → ℝ) (hgc : continuous_on g (Icc a b)) (hgg' : ∀ x ∈ Ioo a b, has_deriv_at g (g' x) x)
-  (hgd : ∀ x ∈ Ioo a b, differentiable_at ℝ g x)
+  (hgd : differentiable_on ℝ g (Ioo a b))
 
 include hab hfc hff' hgc hgg'
 
@@ -183,6 +185,7 @@ end
 
 omit hgc hgg'
 
+/-- Mean Value Theorem, `has_deriv_at` version -/
 lemma exists_has_deriv_at_eq_slope : ∃ c ∈ Ioo a b, f' c = (f b - f a) / (b - a) :=
 begin
   rcases exists_ratio_has_deriv_at_eq_ratio_slope f f' hab hfc hff'

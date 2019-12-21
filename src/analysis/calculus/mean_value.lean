@@ -201,9 +201,11 @@ omit hff'
 lemma exists_ratio_deriv_eq_ratio_slope :
   ∃ c ∈ Ioo a b, (g b - g a) * (deriv f c) = (f b - f a) * (deriv g c) :=
 exists_ratio_has_deriv_at_eq_ratio_slope f (deriv f) hab hfc
-  (λ x hx, (hfd x hx).has_deriv_at) g (deriv g) hgc (λ x hx, (hgd x hx).has_deriv_at)
+  (λ x hx, ((hfd x hx).differentiable_at $ mem_nhds_sets is_open_Ioo hx).has_deriv_at)
+  g (deriv g) hgc (λ x hx, ((hgd x hx).differentiable_at $ mem_nhds_sets is_open_Ioo hx).has_deriv_at)
 
 lemma exists_deriv_eq_slope : ∃ c ∈ Ioo a b, deriv f c = (f b - f a) / (b - a) :=
-exists_has_deriv_at_eq_slope f (deriv f) hab hfc (λ x hx, (hfd x hx).has_deriv_at)
+exists_has_deriv_at_eq_slope f (deriv f) hab hfc
+  (λ x hx, ((hfd x hx).differentiable_at $ mem_nhds_sets is_open_Ioo hx).has_deriv_at)
 
 end interval

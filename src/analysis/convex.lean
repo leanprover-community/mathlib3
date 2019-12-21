@@ -426,6 +426,50 @@ begin
     { intros hxy, rw [hxy, ←add_smul, hab, one_smul, ←add_mul,hab,one_mul] } }
 end
 
+lemma convex_on_linorder_lt [linear_order α] {f : α → ℝ} : convex_on D f ↔
+  convex D ∧ ∀ {x y : α} {a b : ℝ}, x ∈ D → y ∈ D → x < y → 0 < a → 0 < b → a + b = 1 →
+    f (a • x + b • y) ≤ a * f x + b * f y :=
+convex_on_linorder.trans $ and_congr iff.rfl $ iff.intro
+begin
+  assume h x y a b hx hy hxy ha hb hab,
+  exact h hx hy hxy (le_of_lt ha) (le_of_lt hb) hab
+end
+begin
+  assume h x y a b hx hy hxy ha hb hab,
+  cases eq_or_lt_of_le ha with ha ha,
+    by { subst a, rw [zero_add] at hab, subst b, simp },
+  cases eq_or_lt_of_le hb with hb hb,
+    by { subst b, rw [add_zero] at hab, subst a, simp },
+  exact h hx hy hxy ha hb hab
+end
+
+/-- This way of proving convexity of a function is used in the proof
+of convexity of a function with a monotone derivative. -/
+lemma convex_on_real_of_slope_mono_adjacent {D : set ℝ} (hD : convex D) {f : ℝ → ℝ}
+  (hf : ∀ {x y z : ℝ}, x ∈ D → z ∈ D → x < y → y < z →
+    (f y - f x) / (y - x) ≤ (f z - f y) / (z - y)) :
+  convex_on D f :=
+convex_on_linorder_lt.2 $ and.intro hD
+begin
+  assume x z a b hx hz hxz ha hb hab,
+  let y := a * x + b * z,
+  have hxy : x < y,
+  { rw [← one_mul x, ← hab, add_mul],
+    exact add_lt_add_left ((mul_lt_mul_left hb).2 hxz) _ },
+  have hyz : y < z,
+  { rw [← one_mul z, ← hab, add_mul],
+    exact add_lt_add_right ((mul_lt_mul_left ha).2 hxz) _ },
+  have : (f y - f x) * (z - y) ≤ (f z - f y) * (y - x),
+    from (div_le_div_iff (sub_pos.2 hxy) (sub_pos.2 hyz)).1 (hf hx hz hxy hyz),
+  have A : z - y + (y - x) = z - x, by abel,
+  have B : 0 < z - x, from sub_pos.2 (lt_trans hxy hyz),
+  rw [sub_mul, sub_mul, sub_le_iff_le_add', ← add_sub_assoc, le_sub_iff_add_le, ← mul_add, A,
+    ← le_div_iff B, add_div, mul_div_assoc, mul_div_assoc,
+    mul_comm (f x), mul_comm (f z)] at this,
+  rw [eq_comm, ← sub_eq_iff_eq_add] at hab; subst a,
+  convert this; symmetry; simp only [div_eq_iff (ne_of_gt B), y]; ring
+end
+
 lemma convex_on.subset (h_convex_on : convex_on D f) (h_subset : A ⊆ D) (h_convex : convex A) :
   convex_on A f :=
 begin

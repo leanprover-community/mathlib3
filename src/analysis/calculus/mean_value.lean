@@ -221,3 +221,79 @@ exists_has_deriv_at_eq_slope f (deriv f) hab hfc
   (λ x hx, ((hfd x hx).differentiable_at $ mem_nhds_sets is_open_Ioo hx).has_deriv_at)
 
 end interval
+
+theorem convex.mul_sub_le_image_sub_of_le_deriv {D : set ℝ} (hD : convex D) {f : ℝ → ℝ}
+  (hf : continuous_on f D) (hf' : differentiable_on ℝ f (interior D))
+  {C} (hf'_ge : ∀ x ∈ interior D, C ≤ deriv f x) :
+  ∀ x y ∈ D, x ≤ y → C * (y - x) ≤ f y - f x :=
+begin
+  assume x y hx hy hxy,
+  cases eq_or_lt_of_le hxy with hxy' hxy', by rw [hxy', sub_self, sub_self, mul_zero],
+  have hxyD : Icc x y ⊆ D, from convex_real_iff.1 hD hx hy,
+  have hxyD' : Ioo x y ⊆ interior D,
+    from subset_sUnion_of_mem ⟨is_open_Ioo, subset.trans Ioo_subset_Icc_self hxyD⟩,
+  obtain ⟨a, a_mem, ha⟩ : ∃ a ∈ Ioo x y, deriv f a = (f y - f x) / (y - x),
+    from exists_deriv_eq_slope f hxy' (hf.mono hxyD) (hf'.mono hxyD'),
+  have : C ≤ (f y - f x) / (y - x), by { rw [← ha], exact hf'_ge _ (hxyD' a_mem) },
+  exact (le_div_iff (sub_pos.2 hxy')).1 this
+end
+
+theorem convex.image_sub_le_mul_sub_of_deriv_le {D : set ℝ} (hD : convex D) {f : ℝ → ℝ}
+  (hf : continuous_on f D) (hf' : differentiable_on ℝ f (interior D))
+  {C} (le_hf' : ∀ x ∈ interior D, deriv f x ≤ C) :
+  ∀ x y ∈ D, x ≤ y → f y - f x ≤ C * (y - x) :=
+begin
+  assume x y hx hy hxy,
+  have hf'_ge : ∀ x ∈ interior D, -C ≤ deriv (λ y, -f y) x,
+  { assume x hx,
+    rw [deriv_neg, neg_le_neg_iff],
+    exacts [le_hf' x hx, (hf' x hx).differentiable_at $ mem_nhds_sets is_open_interior hx] },
+  simpa [-neg_le_neg_iff]
+    using neg_le_neg (hD.mul_sub_le_image_sub_of_le_deriv hf.neg hf'.neg hf'_ge x y hx hy hxy)
+end
+
+theorem convex.mono_of_deriv_nonneg {D : set ℝ} (hD : convex D) {f : ℝ → ℝ}
+  (hf : continuous_on f D) (hf' : differentiable_on ℝ f (interior D))
+  (hf'_nonneg : ∀ x ∈ interior D, 0 ≤ deriv f x) :
+  ∀ x y ∈ D, x ≤ y → f x ≤ f y :=
+by simpa only [zero_mul, sub_nonneg] using hD.mul_sub_le_image_sub_of_le_deriv hf hf' hf'_nonneg
+
+theorem convex.antimono_of_deriv_nonpos {D : set ℝ} (hD : convex D) {f : ℝ → ℝ}
+  (hf : continuous_on f D) (hf' : differentiable_on ℝ f (interior D))
+  (hf'_nonpos : ∀ x ∈ interior D, deriv f x ≤ 0) :
+  ∀ x y ∈ D, x ≤ y → f y ≤ f x :=
+by simpa only [zero_mul, sub_nonpos] using hD.image_sub_le_mul_sub_of_deriv_le hf hf' hf'_nonpos
+
+theorem convex_on_of_deriv_mono {D : set ℝ} (hD : convex D) {f : ℝ → ℝ}
+  (hf : continuous_on f D) (hf' : differentiable_on ℝ f (interior D))
+  (hf'_mono : ∀ x y ∈ interior D, x ≤ y → deriv f x ≤ deriv f y) :
+  convex_on D f :=
+convex_on_real_of_slope_mono_adjacent hD
+begin
+  intros x y z hx hz hxy hyz,
+  -- First we prove some trivial inclusions
+  have hxzD : Icc x z ⊆ D, from convex_real_iff.1 hD hx hz,
+  have hxyD : Icc x y ⊆ D, from subset.trans (Icc_subset_Icc_right $ le_of_lt hyz) hxzD,
+  have hxyD' : Ioo x y ⊆ interior D,
+    from subset_sUnion_of_mem ⟨is_open_Ioo, subset.trans Ioo_subset_Icc_self hxyD⟩,
+  have hyzD : Icc y z ⊆ D, from subset.trans (Icc_subset_Icc_left $ le_of_lt hxy) hxzD,
+  have hyzD' : Ioo y z ⊆ interior D,
+    from subset_sUnion_of_mem ⟨is_open_Ioo, subset.trans Ioo_subset_Icc_self hyzD⟩,
+  -- Then we apply MVT to both `[x, y]` and `[y, z]`
+  obtain ⟨a, ⟨hxa, hay⟩, ha⟩ : ∃ a ∈ Ioo x y, deriv f a = (f y - f x) / (y - x),
+    from exists_deriv_eq_slope f hxy (hf.mono hxyD) (hf'.mono hxyD'),
+  obtain ⟨b, ⟨hyb, hbz⟩, hb⟩ : ∃ b ∈ Ioo y z, deriv f b = (f z - f y) / (z - y),
+    from exists_deriv_eq_slope f hyz (hf.mono hyzD) (hf'.mono hyzD'),
+  rw [← ha, ← hb],
+  exact hf'_mono a b (hxyD' ⟨hxa, hay⟩) (hyzD' ⟨hyb, hbz⟩) (le_of_lt $ lt_trans hay hyb)
+end
+
+theorem convex_on_of_deriv2_nonneg {D : set ℝ} (hD : convex D) {f : ℝ → ℝ}
+  (hf : continuous_on f D) (hf' : differentiable_on ℝ f (interior D))
+  (hf'' : differentiable_on ℝ (deriv f) (interior D))
+  (hf''_nonneg : ∀ x ∈ interior D, 0 ≤ (deriv^[2] f x)) :
+  convex_on D f :=
+convex_on_of_deriv_mono hD hf hf' $
+assume x y hx hy hxy,
+hD.interior.mono_of_deriv_nonneg hf''.continuous_on (by rwa [interior_interior])
+  (by rwa [interior_interior]) _ _ hx hy hxy

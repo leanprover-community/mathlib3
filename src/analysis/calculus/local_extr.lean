@@ -8,16 +8,34 @@ import topology.local_extr analysis.calculus.deriv
 
 /-! # Local extrema of smooth functions
 
+## Main definitions
+
+In a real normed space `E` We define `pos_tangent_cone_at (s : set E) (x : E)`.
+This would be the same as `tangent_cone_at ℝ≥0 s x` if we had a theory of normed semifields.
+This set is used in the proof of Fermat's Theorem (see below), and can be used to formalize
+[Lagrange multipliers](https://en.wikipedia.org/wiki/Lagrange_multiplier) and/or
+[Karush–Kuhn–Tucker conditions](https://en.wikipedia.org/wiki/Karush–Kuhn–Tucker_conditions).
+
 ## Main statements
 
-Rolle's Theorem, Lagrange's and Cauchy's Mean Value Theorems.
+First we prove that `0 ≤ f' y` whenever `a` is a local maximum of `f` on `s`,
+`f` has derivative `f'` at `a` within `s`, and `y` belongs to the positive tangent cone
+of `s` at `a`. Hence if both `y` and `-y` belong to the positive tangent cone, then `f' y = 0`.
+These facts are used to prove Fermat's Theorem: the derivative of a differentiable function
+at a local extremum point equals zero.
 
-TODO:
+Then we use Fermat's Theorem to prove Rolle's Theorem: given a function `f` continuous on `[a, b]`
+and differentiable on `(a, b)`, there exists `c ∈ (a, b)` such that `f' c = 0`.
 
-* if `deriv f` is positive on an interval, then `f` is strictly increasing;
-* similarly for negative/nonpositive/nonnegative;
-* in particular, if `∀ x, deriv f x = 0`, then `f = const`.
-* possibly move some lemmas to other file(s)
+## Implementation notes
+
+For each mathematical fact we prove several versions of its formalization:
+
+* for maximums and minimums;
+* using `has_fderiv*`/`has_deriv*` or `fderiv*`/`deriv*`.
+
+For the `fderiv*`/`deriv*` versions we omit the differentiability condition whenever it is possible
+due to the fact that `fderiv` and `deriv` are defined to be zero for non-differentiable functions.
 -/
 
 universes u v
@@ -74,6 +92,8 @@ begin
   exact mem_pos_tangent_cone_at_of_segment_subset (subset_univ _)
 end
 
+/-- If `f` has a local max on `s` at `a`, `f'` is the derivative of `f` at `a` within `s`, and
+`y` belongs to the positive tangent cone of s at a, then `f' y ≤ 0`. -/
 lemma is_local_max_on.has_fderiv_within_at_nonpos {s : set E} (h : is_local_max_on f s a)
   (hf : has_fderiv_within_at f f' s a) {y} (hy : y ∈ pos_tangent_cone_at s a) :
   f' y ≤ 0 :=
@@ -94,11 +114,15 @@ begin
   exact mul_nonpos_of_nonneg_of_nonpos hn (sub_nonpos.2 hnf)
 end
 
+/-- If `f` has a local max on `s` at `a`, `f` is differentiable at `a` within `s`, and
+`y` belongs to the positive tangent cone of s at a, then `f' y ≤ 0`. -/
 lemma is_local_max_on.fderiv_within_nonpos {s : set E} (h : is_local_max_on f s a)
   (hf : differentiable_within_at ℝ f s a) {y} (hy : y ∈ pos_tangent_cone_at s a) :
   (fderiv_within ℝ f s a : E → ℝ) y ≤ 0 :=
 h.has_fderiv_within_at_nonpos hf.has_fderiv_within_at hy
 
+/-- If `f` has a local max on `s` at `a`, `f'` is a derivative of `f` at `a` within `s`, and
+both `y` and `-y` belong to the positive tangent cone of s at a, then `f' y ≤ 0`. -/
 lemma is_local_max_on.has_fderiv_within_at_eq_zero {s : set E} (h : is_local_max_on f s a)
   (hf : has_fderiv_within_at f f' s a) {y} (hy : y ∈ pos_tangent_cone_at s a)
   (hy' : -y ∈ pos_tangent_cone_at s a) :
@@ -106,6 +130,8 @@ lemma is_local_max_on.has_fderiv_within_at_eq_zero {s : set E} (h : is_local_max
 le_antisymm (h.has_fderiv_within_at_nonpos hf hy) $
   by simpa using h.has_fderiv_within_at_nonpos hf hy'
 
+/-- If `f` has a local max on `s` at `a` and both `y` and `-y` belong to the positive tangent cone
+of s at a, then `f' y = 0`. -/
 lemma is_local_max_on.fderiv_within_eq_zero {s : set E} (h : is_local_max_on f s a)
   {y} (hy : y ∈ pos_tangent_cone_at s a) (hy' : -y ∈ pos_tangent_cone_at s a) :
   (fderiv_within ℝ f s a : E → ℝ) y = 0 :=
@@ -113,22 +139,30 @@ if hf : differentiable_within_at ℝ f s a
 then h.has_fderiv_within_at_eq_zero hf.has_fderiv_within_at hy hy'
 else by { rw fderiv_within_zero_of_not_differentiable_within_at hf, refl }
 
+/-- If `f` has a local min on `s` at `a`, `f'` is the derivative of `f` at `a` within `s`, and
+`y` belongs to the positive tangent cone of s at a, then `0 ≤ f' y`. -/
 lemma is_local_min_on.has_fderiv_within_at_nonneg {s : set E} (h : is_local_min_on f s a)
   (hf : has_fderiv_within_at f f' s a) {y} (hy : y ∈ pos_tangent_cone_at s a) :
   0 ≤ f' y :=
 by simpa using h.neg.has_fderiv_within_at_nonpos hf.neg hy
 
+/-- If `f` has a local min on `s` at `a`, `f` is differentiable at `a` within `s`, and
+`y` belongs to the positive tangent cone of s at a, then `0 ≤ f' y`. -/
 lemma is_local_min_on.fderiv_within_nonneg {s : set E} (h : is_local_min_on f s a)
   (hf : differentiable_within_at ℝ f s a) {y} (hy : y ∈ pos_tangent_cone_at s a) :
   (0:ℝ) ≤ (fderiv_within ℝ f s a : E → ℝ) y :=
 h.has_fderiv_within_at_nonneg hf.has_fderiv_within_at hy
 
+/-- If `f` has a local max on `s` at `a`, `f'` is a derivative of `f` at `a` within `s`, and
+both `y` and `-y` belong to the positive tangent cone of s at a, then `f' y ≤ 0`. -/
 lemma is_local_min_on.has_fderiv_within_at_eq_zero {s : set E} (h : is_local_min_on f s a)
   (hf : has_fderiv_within_at f f' s a) {y} (hy : y ∈ pos_tangent_cone_at s a)
   (hy' : -y ∈ pos_tangent_cone_at s a) :
   f' y = 0 :=
 by simpa using h.neg.has_fderiv_within_at_eq_zero hf.neg hy hy'
 
+/-- If `f` has a local min on `s` at `a` and both `y` and `-y` belong to the positive tangent cone
+of s at a, then `f' y = 0`. -/
 lemma is_local_min_on.fderiv_within_eq_zero {s : set E} (h : is_local_min_on f s a)
   {y} (hy : y ∈ pos_tangent_cone_at s a) (hy' : -y ∈ pos_tangent_cone_at s a) :
   (fderiv_within ℝ f s a : E → ℝ) y = 0 :=

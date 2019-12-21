@@ -1,7 +1,7 @@
 /-
 Copyright (c) 2019 Sébastien Gouëzel. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Authors: Sébastien Gouëzel
+Authors: Sébastien Gouëzel, Yury Kudryashov
 -/
 
 import analysis.calculus.local_extr
@@ -9,9 +9,19 @@ import analysis.calculus.local_extr
 /-!
 # The mean value inequality and equalities
 
-A bound on the derivative of a function implies that this function
-is Lipschitz continuous for the same bound, on a segment or more generally in a convex set.
-This is proved in `norm_image_sub_le_of_norm_deriv_le_convex`.
+In this file we prove the following facts:
+
+* `convex.norm_image_sub_le_of_norm_deriv_le` : if `f` is differentaible on a convex set `s`
+  and the norm of its derivative is bounded by `C`, then `f` is Lipschitz continuous on `s` with
+  constant `C`.
+
+* `convex.is_const_of_fderiv_within_eq_zero` : if a function has derivative `0` on a convex set `s`,
+  then it is a constant on `s`.
+
+* `exists_ratio_has_deriv_at_eq_ratio_slope` and `exists_ratio_deriv_eq_ratio_slope` :
+  Cauchy's Mean Value Theorem.
+
+* `exists_has_deriv_at_eq_slope` and `exists_deriv_eq_slope` : Lagrange's Mean Value Theorem.
 -/
 
 set_option class.instance_max_depth 120
@@ -99,7 +109,7 @@ end
 
 /-- The mean value theorem on a convex set: if the derivative of a function is bounded by C, then
 the function is C-Lipschitz -/
-theorem norm_image_sub_le_of_norm_deriv_le_convex {f : E → F} {C : ℝ} {s : set E} {x y : E}
+theorem convex.norm_image_sub_le_of_norm_deriv_le {f : E → F} {C : ℝ} {s : set E} {x y : E}
   (hf : differentiable_on ℝ f s) (bound : ∀x∈s, ∥fderiv_within ℝ f s x∥ ≤ C)
   (hs : convex s) (xs : x ∈ s) (ys : y ∈ s) : ∥f y - f x∥ ≤ C * ∥y - x∥ :=
 begin
@@ -150,7 +160,7 @@ theorem convex.is_const_of_fderiv_within_eq_zero {s : set E} (hs : convex s)
 have bound : ∀ x ∈ s, ∥fderiv_within ℝ f s x∥ ≤ 0,
   from λ x hx, by simp only [hf' x hx, _root_.norm_zero],
 by simpa only [(dist_eq_norm _ _).symm, zero_mul, dist_le_zero, eq_comm]
-  using norm_image_sub_le_of_norm_deriv_le_convex hf bound hs hx hy
+  using hs.norm_image_sub_le_of_norm_deriv_le hf bound hx hy
 
 /-! ### Functions `[a, b] → ℝ`. -/
 
@@ -164,7 +174,7 @@ variables (f f' : ℝ → ℝ) {a b : ℝ} (hab : a < b) (hfc : continuous_on f 
 
 include hab hfc hff' hgc hgg'
 
-/-- Cauchy version of the Mean Value Theorem -/
+/-- Cauchy's Mean Value Theorem, `has_deriv_at` version. -/
 lemma exists_ratio_has_deriv_at_eq_ratio_slope :
   ∃ c ∈ Ioo a b, (g b - g a) * f' c = (f b - f a) * g' c :=
 begin
@@ -185,7 +195,7 @@ end
 
 omit hgc hgg'
 
-/-- Mean Value Theorem, `has_deriv_at` version -/
+/-- Lagrange's Mean Value Theorem, `has_deriv_at` version -/
 lemma exists_has_deriv_at_eq_slope : ∃ c ∈ Ioo a b, f' c = (f b - f a) / (b - a) :=
 begin
   rcases exists_ratio_has_deriv_at_eq_ratio_slope f f' hab hfc hff'
@@ -198,12 +208,14 @@ end
 
 omit hff'
 
+/-- Cauchy's Mean Value Theorem, `deriv` version. -/
 lemma exists_ratio_deriv_eq_ratio_slope :
   ∃ c ∈ Ioo a b, (g b - g a) * (deriv f c) = (f b - f a) * (deriv g c) :=
 exists_ratio_has_deriv_at_eq_ratio_slope f (deriv f) hab hfc
   (λ x hx, ((hfd x hx).differentiable_at $ mem_nhds_sets is_open_Ioo hx).has_deriv_at)
   g (deriv g) hgc (λ x hx, ((hgd x hx).differentiable_at $ mem_nhds_sets is_open_Ioo hx).has_deriv_at)
 
+/-- Lagrange's Mean Value Theorem, `deriv` version. -/
 lemma exists_deriv_eq_slope : ∃ c ∈ Ioo a b, deriv f c = (f b - f a) / (b - a) :=
 exists_has_deriv_at_eq_slope f (deriv f) hab hfc
   (λ x hx, ((hfd x hx).differentiable_at $ mem_nhds_sets is_open_Ioo hx).has_deriv_at)

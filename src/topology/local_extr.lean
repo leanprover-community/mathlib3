@@ -8,11 +8,26 @@ import order.filter.extr topology.continuous_on
 
 /-! # Local extrema of functions on topological spaces
 
+## Main definitions
+
 This file defines special versions of `is_*_filter f a l`, `*=min/max/extr`,
 from `order/filter/extr` for two kinds of filters: `nhds_within` and `nhds`.
+These versions are called `is_local_*_on` and `is_local_*`, respectively.
 
-Most statements in this file repeat those from `order/filter/extr`, and are needed only to make
-dot notation return output of a correct type instead of just `is_min/max_filter`.
+## Main statements
+
+Many lemmas in this file restate those from `order/filter/extr`, and you can find
+a detailed documentation there. These convenience lemmas are provided only to make the dot notation
+return propositions of expected types, not just `is_*_filter`.
+
+Here is the list of statements specific to these two types of filters:
+
+* `is_local_*.on`, `is_local_*_on.on_subset`: restrict to a subset;
+* `is_local_*_on.inter` : intersect the set with another one;
+* `is_*_on.localize` : a global extremum is a local extremum too.
+* `is_[local_]*_on.is_local_*` : if we have `is_local_*_on f s a` and `s ∈ 𝓝 a`,
+  then we have `is_local_* f a`.
+
 -/
 
 universes u v w x
@@ -86,13 +101,13 @@ hf.on_subset (inter_subset_left s t)
 lemma is_local_extr_on.inter (hf : is_local_extr_on f s a) (t) : is_local_extr_on f (s ∩ t) a :=
 hf.on_subset (inter_subset_left s t)
 
-lemma is_min_on.is_local_min_on (hf : is_min_on f s a) : is_local_min_on f s a :=
+lemma is_min_on.localize (hf : is_min_on f s a) : is_local_min_on f s a :=
 hf.filter_mono $ lattice.inf_le_right
 
-lemma is_max_on.is_local_max_on (hf : is_max_on f s a) : is_local_max_on f s a :=
+lemma is_max_on.localize (hf : is_max_on f s a) : is_local_max_on f s a :=
 hf.filter_mono $ lattice.inf_le_right
 
-lemma is_extr_on.is_local_extr_on (hf : is_extr_on f s a) : is_local_extr_on f s a :=
+lemma is_extr_on.localize (hf : is_extr_on f s a) : is_local_extr_on f s a :=
 hf.filter_mono $ lattice.inf_le_right
 
 lemma is_local_min_on.is_local_min (hf : is_local_min_on f s a) (hs : s ∈ 𝓝 a) : is_local_min f a :=
@@ -107,13 +122,13 @@ lemma is_local_extr_on.is_local_extr (hf : is_local_extr_on f s a) (hs : s ∈ �
 hf.elim (λ hf, (hf.is_local_min hs).is_extr) (λ hf, (hf.is_local_max hs).is_extr)
 
 lemma is_min_on.is_local_min (hf : is_min_on f s a) (hs : s ∈ 𝓝 a) : is_local_min f a :=
-hf.is_local_min_on.is_local_min hs
+hf.localize.is_local_min hs
 
 lemma is_max_on.is_local_max (hf : is_max_on f s a) (hs : s ∈ 𝓝 a) : is_local_max f a :=
-hf.is_local_max_on.is_local_max hs
+hf.localize.is_local_max hs
 
 lemma is_extr_on.is_local_extr (hf : is_extr_on f s a) (hs : s ∈ 𝓝 a) : is_local_extr f a :=
-hf.is_local_extr_on.is_local_extr hs
+hf.localize.is_local_extr hs
 
 /-! ### Constant -/
 

@@ -8,6 +8,8 @@ import order.filter.basic logic.relator tactic.alias
 
 /-! # Minimum and maximum w.r.t. a filter and on a aet
 
+## Main Definitions
+
 This file defines six predicates of the form `is_A_B`, where `A` is `min`, `max`, or `extr`,
 and `B` is `filter` or `on`.
 
@@ -17,7 +19,56 @@ and `B` is `filter` or `on`.
 
 Similar predicates with `_on` suffix are particular cases for `l = principal s`.
 
-We also define various operations on these statements.
+## Main statements
+
+### Change of the filter (set) argument
+
+* `is_*_filter.filter_mono` : replace the filter with a smaller one;
+* `is_*_filter.filter_inf` : replace a filter `l` with `l ⊓ l'`;
+* `is_*_on.on_subset` : restrict to a smaller set;
+* `is_*_on.inter` : replace a set `s` wtih `s ∩ t`.
+
+### Composition
+
+* `is_*_*.comp_mono` : if `x` is an extremum for `f` and `g` is a monotone function,
+  then `x` is an extremum for `g ∘ f`;
+* `is_*_*.comp_antimono` : similarly for the case of monotonically decreasing `g`;
+* `is_*_*.bicomp_mono` : if `x` is an extremum of the same type for `f` and `g`
+  and a binary operation `op` is monotone in both arguments, then `x` is an extremum
+  of the same type for `λ x, op (f x) (g x)`.
+* `is_*_filter.comp_tendsto` : if `g x` is an extremum for `f` w.r.t. `l'` and `tendsto g l l'`,
+  then `x` is an extremum for `f ∘ g` w.r.t. `l`.
+* `is_*_on.on_preimage` : if `g x` is an extremum for `f` on `s`, then `x` is an extremum
+  for `f ∘ g` on `g ⁻¹' s`.
+
+### Algebraic operations
+
+* `is_*_*.add` : if `x` is an extremum of the same type for two functions,
+  then it is an extremum of the same type for their sum;
+* `is_*_*.neg` : if `x` is an extremum for `f`, then it is an extremum
+  of the opposite type for `-f`;
+* `is_*_*.sub` : if `x` is an a minimum for `f` and a maximum for `g`,
+  then it is a minimum for `f - g` and a maximum for `g - f`;
+* `is_*_*.max`, `is_*_*.min`, `is_*_*.sup`, `is_*_*.inf` : similarly for `is_*_*.add`
+  for pointwise `max`, `min`, `sup`, `inf`, respectively.
+
+
+### Miscelanous definitions
+
+* `is_*_*_const` : any point is both a minimum and maximum for a constant function;
+* `is_min/max_*.is_ext` : any minimum/maximum point is an extremum;
+* `is_*_*.dual`, `is_*_*.undual`: conversion between codomains `α` and `dual α`;
+
+## Missing features (TODO)
+
+* Multiplication and division;
+* `is_*_*.bicompl` : if `x` is a minimum for `f`, `y` is a minimum for `g`, and `op` is a monotone
+  binary operation, then `(x, y)` is a minimum for `uncurry' (bicompl op f g)`. From this point of view,
+  `is_*_*.bicomp` is a composition
+* It would be nice to have a tactic that specializes `comp_(anti)mono` or `bicomp_mono`
+  based on a proof of monotonicity of a given (binary) function. The tactic should maintain a `meta`
+  list of known (anti)monotone (binary) functions with their names, as well as a list of special
+  types of filters, and define the missing lemmas once one of these two lists grows.
 -/
 
 universes u v w x

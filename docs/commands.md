@@ -261,7 +261,7 @@ iff_true_intro : ∀ {a : Prop}, a → (a ↔ true)
 
 ```
 
-# where
+## where
 
 When working in a Lean file with namespaces, parameters, and variables,
 it can be confusing to identify what the current "parser context" is.

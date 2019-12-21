@@ -38,47 +38,8 @@ allows to change the value of `f` at `i`.
 open function fin set
 
 universes u v v' w u'
-variables {R : Type u} {ι : Type u'} {n : ℕ} {M : Type v'} {M₁ : ι → Type v} {M₂ : Type w}
+variables {R : Type u} {ι : Type u'} {n : ℕ} {M : fin n.succ → Type v'} {M₁ : ι → Type v} {M₂ : Type w}
 [decidable_eq ι]
-
-/-- Embedding a type `α` in a type `β`, covering all of `β` but one element `i` called the hole. -/
-structure embed_but_one (α : Type u) (β : Type v) :=
-(to_fun : α → β)
-(inj_to_fun : injective to_fun)
-(hole : β)
-(range : range to_fun = univ - {hole})
-
-instance {α : Type u} {β : Type v} : has_coe_to_fun (embed_but_one α β) := ⟨_, embed_but_one.to_fun⟩
-
-namespace embed_but_one
-
-
-/-- The tail of an `n+1`-tuple, i.e., its last `n` entries -/
-def tail {α : Type u} (β : fin (n+1) → Type v) (f : Π(i : fin (n+1)), β i) : Π(i : fin n), β (i.succ) :=
-  λ i, f i.succ
-
-/-- Adding an element at the beginning of an `n`-tuple, to get an `n+1`-tuple -/
-def cons {α : Type u} (β : fin (n+1) → Type v) (f : Π(i : fin n), β i.succ) (x : β 0) :
-  Π(i : fin (n+1)), β i :=
-λ j, fin.cases x f j
-
-@[simp] lemma tail_cons {α} (x : α) (p : fin n → α) : tail (cons x p) = p :=
-by simp [tail, cons]
-
-@[simp] lemma cons_succ {α} (x : α) (p : fin n → α) (i : fin n) : cons x p i.succ = p i :=
-by simp [cons]
-
-
-variables {α : Type u} {β : Type v} {γ : β → Type w} (e : embed_but_one α β)
-
-def tail (f : Π(b : β), γ b) : Π(a : α), γ (e a) :=
-λi, f (e i)
-
-def cons {α : Type u} {β : Type v} {γ : β → Type w} (e : embed_but_one α β)
-  (f : Π(a : α), γ (e a)) (x : γ (e.hole)) : Π(b : β), γ b :=
-λb, sorry
-
-end embed_but_one
 
 /-- Multilinear maps over the ring `R`, from `Πi, M₁ i` to `M₂` where `M₁ i` and `M₂` are modules
 over `R`. -/
@@ -95,8 +56,8 @@ namespace multilinear_map
 
 section ring
 
-variables [ring R] [∀i, add_comm_group (M₁ i)] [add_comm_group M] [add_comm_group M₂]
-[∀i, module R (M₁ i)] [module R M] [module R M₂]
+variables [ring R] [∀i, add_comm_group (M i)] [∀i, add_comm_group (M₁ i)] [add_comm_group M₂]
+[∀i, module R (M i)] [∀i, module R (M₁ i)] [module R M₂]
 (m m' : multilinear_map R ι M₁ M₂)
 
 instance : has_coe_to_fun (multilinear_map R ι M₁ M₂) := ⟨_, to_fun⟩
@@ -153,23 +114,23 @@ def to_linear_map (f : Πi, M₁ i) (i : ι) : M₁ i →ₗ[R] M₂ :=
 /-- In the specific case of multilinear maps on `M^(n+1)` where one can build an element of
 `M^(n+1)` using `cons`, one can express directly the additivity of a multilinear map along the
 first variable. -/
-lemma cons_add (m : multilinear_map R (fin (n+1)) (λi, M) M₂) (f : fin n → M) (x y : M) :
+lemma cons_add (m : multilinear_map R (fin n.succ) M M₂) (f : Π(i : fin n), M i.succ) (x y : M 0) :
   m (cons (x+y) f) = m (cons x f) + m (cons y f) :=
-by rw [← update_cons_zero f x (x+y), m.map_add, update_cons_zero, update_cons_zero]
+by rw [← update_cons_zero x f (x+y), m.map_add, update_cons_zero, update_cons_zero]
 
 /-- In the specific case of multilinear maps on `M^(n+1)` where one can build an element of
 `M^(n+1)` using `cons`, one can express directly the multiplicativity of a multilinear map along
 the first variable. -/
-lemma cons_smul (m : multilinear_map R (fin (n+1)) (λi, M) M₂) (f : fin n → M) (c : R) (x : M) :
+lemma cons_smul (m : multilinear_map R (fin n.succ) M M₂) (f : Π(i : fin n), M i.succ) (c : R) (x : M 0) :
   m (cons (c • x) f) = c • m (cons x f) :=
-by rw [← update_cons_zero f x (c • x), m.map_smul, update_cons_zero]
+by rw [← update_cons_zero x f (c • x), m.map_smul, update_cons_zero]
 
 end ring
 
 section comm_ring
 
-variables [comm_ring R] [∀i, add_comm_group (M₁ i)] [add_comm_group M] [add_comm_group M₂]
-[∀i, module R (M₁ i)] [module R M] [module R M₂]
+variables [comm_ring R] [∀i, add_comm_group (M₁ i)] [∀i, add_comm_group (M i)] [add_comm_group M₂]
+[∀i, module R (M i)] [∀i, module R (M₁ i)] [module R M₂]
 (m m' : multilinear_map R ι M₁ M₂)
 
 instance : has_scalar R (multilinear_map R ι M₁ M₂) := ⟨λ c m,
@@ -189,7 +150,8 @@ variables (R n M M₂)
 maps from `M` to the space of multilinear maps on `M^n`, by separating the first variable. We
 register this isomorphism in `linear_to_multilinear_equiv_multilinear R n M M₂`. -/
 def linear_to_multilinear_equiv_multilinear :
-  (M →ₗ[R] (multilinear_map R (fin n) (λi, M) M₂)) ≃ₗ[R] (multilinear_map R (fin (n+1)) (λi, M) M₂) :=
+  (M 0 →ₗ[R] (multilinear_map R (fin n) (λ(i : fin n), M i.succ) M₂))
+  ≃ₗ[R] (multilinear_map R (fin n.succ) M M₂) :=
 { to_fun  := λm,
     { -- define an `n+1` multilinear map from a linear map into `n` multilinear maps
       to_fun := λf, m (f 0) (tail f),
@@ -246,7 +208,8 @@ maps from the space of multilinear maps on `M^n` to the space of linear maps on 
 separating the first variable. We register this isomorphism in
 `multilinear_to_linear_equiv_multilinear R n M M₂`. -/
 def multilinear_to_linear_equiv_multilinear :
-  (multilinear_map R (fin n) (λi, M) (M →ₗ[R] M₂)) ≃ₗ[R] (multilinear_map R (fin (n+1)) (λi, M) M₂) :=
+  (multilinear_map R (fin n) (λi, M i.succ) ((M 0) →ₗ[R] M₂))
+  ≃ₗ[R] (multilinear_map R (fin n.succ) M M₂) :=
 { to_fun  := λm,
     { -- define an `n+1` multilinear map from an `n` multilinear map into linear maps
       to_fun := λf, m (tail f) (f 0),

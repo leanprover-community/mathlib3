@@ -266,26 +266,31 @@ lemma exists_fin_succ {P : fin (n+1) → Prop} :
 end rec
 
 section tuple
-/- We can think of the type `fin n → α` as `n`-tuples in `α`. Here are some relevant operations. -/
+/- We can think of the type `Π(i : fin n), α i` as `n`-tuples of elements of possibly varying type
+`α i`. A particular case is `fin n → α` of elements with all the same type. Here are some relevant
+operations. -/
 
-/-- The tail of an `n+1`-tuple, i.e., its last `n` entries -/
-def tail {α} (p : fin (n+1) → α) : fin n → α := λ i, p i.succ
+variables {α : fin (n+1) → Type u} (x : α 0) (q : Πi, α i) (p : Π(i : fin n), α (i.succ))
+(i : fin n) (y : α i.succ) (z : α 0)
+
+/-- The tail of an `n+1` tuple, i.e., its last `n` entries -/
+def tail (q : Πi, α i) : (Π(i : fin n), α (i.succ)) := λ i, q i.succ
+
 /-- Adding an element at the beginning of an `n`-tuple, to get an `n+1`-tuple -/
-def cons {α} (x : α) (v : fin n → α) : fin (n+1) → α :=
-λ j, fin.cases x v j
+def cons (x : α 0) (p : Π(i : fin n), α (i.succ)) : Πi, α i :=
+λ j, fin.cases x p j
 
-@[simp] lemma tail_cons {α} (x : α) (p : fin n → α) : tail (cons x p) = p :=
+@[simp] lemma tail_cons : tail (cons x p) = p :=
 by simp [tail, cons]
 
-@[simp] lemma cons_succ {α} (x : α) (p : fin n → α) (i : fin n) : cons x p i.succ = p i :=
+@[simp] lemma cons_succ : cons x p i.succ = p i :=
 by simp [cons]
 
-@[simp] lemma cons_zero {α} (x : α) (p : fin n → α) : cons x p 0 = x :=
+@[simp] lemma cons_zero : cons x p 0 = x :=
 by simp [cons]
 
 /-- Updating a tuple and adding an element at the beginning commute. -/
-@[simp] lemma cons_update {α} {n : ℕ} (f : fin n → α) (i : fin n) (x y : α) :
-  cons x (update f i y) = update (cons x f) i.succ y :=
+@[simp] lemma cons_update : cons x (update p i y) = update (cons x p) i.succ y :=
 begin
   ext j,
   by_cases h : j = 0,
@@ -300,8 +305,7 @@ begin
 end
 
 /-- Adding an element at the beginning of a tuple and then updating it amounts to adding it directly. -/
-lemma update_cons_zero {α} {n : ℕ} (f : fin n → α) (x y : α) :
-  update (cons x f) 0 y = cons y f :=
+lemma update_cons_zero : update (cons x p) 0 z = cons z p :=
 begin
   ext j,
   by_cases h : j = 0,
@@ -313,8 +317,7 @@ begin
 end
 
 /-- Concatenating the first element of a tuple with its tail gives back the original tuple -/
-@[simp] lemma cons_self_tail {α} {n : ℕ} (f : fin (n+1) → α) :
-  cons (f 0) (tail f) = f :=
+@[simp] lemma cons_self_tail : cons (q 0) (tail q) = q :=
 begin
   ext j,
   by_cases h : j = 0,
@@ -325,90 +328,18 @@ begin
 end
 
 /-- Updating the first element of a tuple does not change the tail. -/
-@[simp] lemma tail_update_zero {α} {n : ℕ} (f : fin (n+1) → α) (x : α) :
-  tail (update f 0 x) = tail f :=
+@[simp] lemma tail_update_zero : tail (update q 0 z) = tail q :=
 by { ext j, simp [tail, fin.succ_ne_zero] }
 
 /-- Updating a nonzero element and taking the tail commute. -/
-@[simp] lemma tail_update_succ {α} {n : ℕ} (f : fin (n+1) → α) (i : fin n) (x : α) :
-  tail (update f i.succ x) = update (tail f) i x :=
-update_comp f (fin.injective_succ n) i x
-
-end tuple
-
-
-section dep_tuple
-/- We can think of the type `Π(i : fin n), α i` as an `n-tuple of elements of various types. Here
-are some relevant operations -/
-variables {α : fin (n+1) → Type u}
-
-/-- The tail of an `n+1`-dependent tuple, i.e., its last `n` entries -/
-def dep_tail (p : Πi,  α i) : (Π(i : fin n), α (i.succ)) := λ i, p i.succ
-
-/-- Adding an element at the beginning of a dependent `n`-tuple, to get an `n+1`-tuple -/
-def dep_cons (x : α 0) (v : Π(i : fin n), α (i.succ)) : Πi,  α i :=
-λ j, fin.cases x v j
-
-@[simp] lemma dep_tail_cons (x : α 0) (p : Π(i : fin n), α (i.succ)) : dep_tail (dep_cons x p) = p :=
-by simp [dep_tail, dep_cons]
-
-@[simp] lemma dep_cons_succ (x : α 0) (p : Π(i : fin n), α (i.succ)) (i : fin n) :
-  dep_cons x p i.succ = p i :=
-by simp [dep_cons]
-
-@[simp] lemma dep_cons_zero (x : α 0) (p : Π(i : fin n), α (i.succ)) : dep_cons x p 0 = x :=
-by simp [dep_cons]
-
-/-- Updating a tuple and adding an element at the beginning commute. -/
-@[simp] lemma cons_update {α} {n : ℕ} (f : fin n → α) (i : fin n) (x y : α) :
-  cons x (update f i y) = update (cons x f) i.succ y :=
+@[simp] lemma tail_update_succ :
+  tail (update q i.succ y) = update (tail q) i y :=
 begin
   ext j,
-  by_cases h : j = 0,
-  { rw h, simp [ne.symm (succ_ne_zero i)] },
-  { let j' := pred j h,
-    have : j'.succ = j := succ_pred j h,
-    rw [← this, cons_succ],
-    by_cases h' : j' = i,
-    { rw h', simp },
-    { have : j'.succ ≠ i.succ, by rwa [ne.def, succ_inj],
-      rw [update_noteq h', update_noteq this, cons_succ] } }
+  by_cases h : j = i,
+  { rw h, simp [tail] },
+  { simp [tail, (fin.injective_succ n).ne h, h] }
 end
-
-/-- Adding an element at the beginning of a tuple and then updating it amounts to adding it directly. -/
-lemma update_cons_zero {α} {n : ℕ} (f : fin n → α) (x y : α) :
-  update (cons x f) 0 y = cons y f :=
-begin
-  ext j,
-  by_cases h : j = 0,
-  { rw h, simp },
-  { simp only [h, update_noteq, ne.def, not_false_iff],
-    let j' := pred j h,
-    have : j'.succ = j := succ_pred j h,
-    rw [← this, cons_succ, cons_succ] }
-end
-
-/-- Concatenating the first element of a tuple with its tail gives back the original tuple -/
-@[simp] lemma cons_self_tail {α} {n : ℕ} (f : fin (n+1) → α) :
-  cons (f 0) (tail f) = f :=
-begin
-  ext j,
-  by_cases h : j = 0,
-  { rw h, simp },
-  { let j' := pred j h,
-    have : j'.succ = j := succ_pred j h,
-    rw [← this, tail, cons_succ] }
-end
-
-/-- Updating the first element of a tuple does not change the tail. -/
-@[simp] lemma tail_update_zero {α} {n : ℕ} (f : fin (n+1) → α) (x : α) :
-  tail (update f 0 x) = tail f :=
-by { ext j, simp [tail, fin.succ_ne_zero] }
-
-/-- Updating a nonzero element and taking the tail commute. -/
-@[simp] lemma tail_update_succ {α} {n : ℕ} (f : fin (n+1) → α) (i : fin n) (x : α) :
-  tail (update f i.succ x) = update (tail f) i x :=
-update_comp f (fin.injective_succ n) i x
 
 end tuple
 

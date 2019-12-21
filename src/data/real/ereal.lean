@@ -10,13 +10,13 @@ import data.real.basic
 # The extended reals [-∞, ∞].
 
 This file defines `ereal`, the real numbers together with a top and bottom element,
-referred to as ⊤ and ⊥.
+referred to as ⊤ and ⊥. It is implemented as `with_top (with_bot ℝ)`
 
 Addition and multiplication are problematic in the presence of ±∞, but
 negation has a natural definition and satisfies the usual properties.
 `ereal` is a `complete_lattice`; this is now deduced by type class inference from
 the fact that `with_top (with_bot L)` is a complete lattice if `L` is
-a conditionally complete lattice
+a conditionally complete lattice.
 
 ## Tags
 
@@ -48,6 +48,19 @@ instance : has_neg ereal := ⟨ereal.neg⟩
 
 @[move_cast] protected lemma neg_def (x : ℝ) : ((-x : ℝ) : ereal) = -x := rfl
 
+/-- - -a = a on ereal -/
+protected theorem neg_neg : ∀ (a : ereal), - (- a) = a
+| ⊥ := rfl
+| ⊤ := rfl
+| (a : ℝ) := by { norm_cast, simp [neg_neg a] }
+
+theorem neg_inj (a b : ereal) (h : -a = -b) : a = b := by rw [←ereal.neg_neg a, h, ereal.neg_neg b]
+
+/-- Even though ereal is not an additive group, -a = b ↔ -b = a still holds -/
+theorem neg_eq_iff_neg_eq {a b : ereal} : -a = b ↔ -b = a :=
+⟨by {intro h, rw ←h, exact ereal.neg_neg a},
+ by {intro h, rw ←h, exact ereal.neg_neg b}⟩
+
 /-- if -a ≤ b then -b ≤ a on ereal -/
 protected theorem neg_le_of_neg_le : ∀ {a b : ereal} (h : -a ≤ b), -b ≤ a
 | ⊥ ⊥ h := h
@@ -60,12 +73,6 @@ protected theorem neg_le_of_neg_le : ∀ {a b : ereal} (h : -a ≤ b), -b ≤ a
 /-- -a ≤ b ↔ -b ≤ a on ereal-/
 protected theorem neg_le {a b : ereal} : -a ≤ b ↔ -b ≤ a :=
 ⟨ereal.neg_le_of_neg_le, ereal.neg_le_of_neg_le⟩
-
-/-- - -a = a on ereal -/
-protected theorem neg_neg : ∀ (a : ereal), - (- a) = a
-| ⊥ := rfl
-| ⊤ := rfl
-| (a : ℝ) := by { norm_cast, simp [neg_neg a] }
 
 /-- a ≤ -b → b ≤ -a on ereal -/
 theorem le_neg_of_le_neg {a b : ereal} (h : a ≤ -b) : b ≤ -a :=

@@ -489,19 +489,19 @@ begin
   simpa,
 end
 
-variables (f)
+variables (Y f)
 
 /-- Given a `comm_monoid` `X` and a submonoid `Y ⊆ X`, the predicate characterizing `comm_monoid`s
     isomorphic to the localization of `X` at `Y`. These are precisely the images of the
     homomorphisms from the localization of `X` at `Y` induced by `comm_monoid` homomorphisms `f`
     such that `f(Y)` consists of invertible elements, and for all `x, y : X`, `f(x) = f(y)` iff
     `∃ c ∈ Y, c * x = c * y`. -/
-def char_pred (H : ∀ y : Y, is_unit (f y)) :=
+def char_pred :=
 (∀ z : Z, ∃ x : X × Y, f x.1 = z * f x.2) ∧ ∀ x y, f x = f y ↔ of Y x = of Y y
 
-variables {f}
+variables {Y f}
 
-lemma lift_inj_of_char_pred (H : ∀ y : Y, is_unit (f y)) (Hp : char_pred f H) :
+lemma lift_inj_of_char_pred (H : ∀ y : Y, is_unit (f y)) (Hp : char_pred Y f) :
   injective (lift f H) :=
 λ x y, induction_on x $ λ w, induction_on y $ λ z hf,
   mk_eq_iff_of_eq.2 $ (Hp.2 _ _).1 $ (lift'_eq_iff _).1 hf
@@ -511,7 +511,7 @@ variables (f)
 /-- Given `comm_monoid`s `X, Z`, a submonoid `Y ⊆ X`, and a homomorphism `f : X → Z` satsifying
     the predicate characterizing monoids isomorphic to `monoid_localization X Y`, the homomorphism
     from `monoid_localization X Y` to `Z` induced by `f` is an isomorphism. -/
-noncomputable def mul_equiv_of_char_pred (H : ∀ y : Y, is_unit (f y)) (Hp : char_pred f H) :
+noncomputable def mul_equiv_of_char_pred (H : ∀ y : Y, is_unit (f y)) (Hp : char_pred Y f) :
   monoid_localization X Y ≃* Z :=
 { to_fun := lift f H,
   inv_fun := λ y, classical.some $ (lift_surjective_iff H).1 Hp.1 y,
@@ -524,7 +524,7 @@ noncomputable def mul_equiv_of_char_pred (H : ∀ y : Y, is_unit (f y)) (Hp : ch
     localization of `X` at `Y` and `Z`, the map sending `x : X` to `h(⟦(x, 1)⟧)` satisfies the
     localization characteristic predicate. -/
 lemma char_pred_of_mul_equiv (h : monoid_localization X Y ≃* Z) :
-  char_pred (h.to_monoid_hom.comp $ of Y) map_units_of_comp_of :=
+  char_pred Y (h.to_monoid_hom.comp $ of Y) :=
 ⟨(lift_surjective_iff map_units_of_comp_of).2 $ λ x,
    let ⟨p, hp⟩ := h.to_equiv.surjective x in ⟨p, by erw [←hp, lift_apply_of]; refl⟩,
  λ _ _, show h _ = h _ ↔ _, from ⟨λ H, h.to_equiv.injective H, congr_arg h⟩⟩
@@ -533,7 +533,7 @@ lemma char_pred_of_mul_equiv (h : monoid_localization X Y ≃* Z) :
     `f(Y) ⊆ units Z` and `f` induces an isomorphism between the localization of `X` at `Y` and `Z`,
     then `f` satisfies the localization characteristic predicate. -/
 lemma char_pred_of_equiv (H : ∀ y : Y, is_unit (f y)) (h : monoid_localization X Y ≃ Z)
-  (hf : (h : monoid_localization X Y → Z) = lift f H) : char_pred f H :=
+  (hf : (h : monoid_localization X Y → Z) = lift f H) : char_pred Y f :=
 ⟨(lift_surjective_iff H).2 $ λ x, let ⟨p, hp⟩ := h.surjective x in ⟨p, by rw [←hp, ←hf]; refl⟩,
  λ x y, (of_ker_iff.trans $ by
    rw ←con.ker_eq_lift_of_injective Y.r
@@ -544,7 +544,7 @@ lemma char_pred_of_equiv (H : ∀ y : Y, is_unit (f y)) (h : monoid_localization
 
 /-- The localization of a `comm_monoid` `X` at a submonoid `Y ⊆ X` satisfies the predicate
     characterizing `comm_monoid`s isomorphic to the localization of `X` at `Y`. -/
-lemma char_pred_of_localization : char_pred (of Y) (λ y, ⟨to_units Y y, rfl⟩) :=
+lemma char_pred_of_localization : char_pred Y (of Y) :=
 let H : ∀ y : Y, is_unit (of Y y) := λ y, ⟨to_units Y y, rfl⟩ in
 ⟨λ y, monoid_localization.induction_on y $ λ x,
   ⟨x, by rw [mk_mul_of, mk_mul_cancel_left]⟩, by tauto⟩
@@ -635,8 +635,8 @@ protected def r (x y : X × X) := (⊤ : submonoid X).r (x.1, ⟨x.2, trivial⟩
 /-- The function on the Grothendieck group of a `comm_monoid` X induced by a function on `X × X`
     that is constant on the localization relation's equivalence classes. -/
 @[elab_as_eliminator, to_additive "The function on the Grothendieck group of an `add_comm_monoid` X induced by a function on `X × X` that is constant on the localization relation's equivalence classes."]
-protected def lift_on (q : completion X) (f : X × X → Z)
-  (h : ∀ a b, completion.r a b → f a = f b) : Z := con.lift_on q
+protected def lift_on {β : Type*} (q : completion X) (f : X × X → β)
+  (h : ∀ a b, completion.r a b → f a = f b) : β := con.lift_on q
   (λ x, f (x.1, x.2)) $ λ a b H, h (a.1, a.2) (b.1, b.2) $ by
     unfold completion.r; simpa using H
 

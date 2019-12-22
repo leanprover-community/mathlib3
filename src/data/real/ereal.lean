@@ -21,6 +21,16 @@ a conditionally complete lattice.
 ## Tags
 
 real, ereal, complete lattice
+
+## TODO
+
+abs : ereal → ennreal
+
+In Isabelle they define + - * and / (making junk choices for things like -∞ + ∞)
+and then prove whatever bits of the ordered ring/field axioms still hold. They
+also do some limits stuff (liminf/limsup etc).
+See https://isabelle.in.tum.de/dist/library/HOL/HOL-Library/Extended_Real.html
+
 -/
 
 /-- ereal : The type $$[-\infty,+\infty]$$ or `[-∞, ∞]` -/

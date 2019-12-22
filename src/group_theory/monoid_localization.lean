@@ -496,6 +496,7 @@ variables (Y f)
     homomorphisms from the localization of `X` at `Y` induced by `comm_monoid` homomorphisms `f`
     such that `f(Y)` consists of invertible elements, and for all `x, y : X`, `f(x) = f(y)` iff
     `∃ c ∈ Y, c * x = c * y`. -/
+@[to_additive "Given an `add_comm_monoid` `X` and a submonoid `Y ⊆ X`, the predicate characterizing `add_comm_monoid`s isomorphic to the localization of `X` at `Y`. These are precisely the images of the homomorphisms from the localization of `X` at `Y` induced by `add_comm_monoid` homomorphisms `f` such that `f(Y)` consists of invertible elements, and for all `x, y : X`, `f(x) = f(y)` iff `∃ c ∈ Y, c + x = c + y`."]
 def char_pred :=
 (∀ z : Z, ∃ x : X × Y, f x.1 = z * f x.2) ∧ ∀ x y, f x = f y ↔ of Y x = of Y y
 
@@ -545,7 +546,6 @@ lemma char_pred_of_equiv (H : ∀ y : Y, is_unit (f y)) (h : monoid_localization
 /-- The localization of a `comm_monoid` `X` at a submonoid `Y ⊆ X` satisfies the predicate
     characterizing `comm_monoid`s isomorphic to the localization of `X` at `Y`. -/
 lemma char_pred_of_localization : char_pred Y (of Y) :=
-let H : ∀ y : Y, is_unit (of Y y) := λ y, ⟨to_units Y y, rfl⟩ in
 ⟨λ y, monoid_localization.induction_on y $ λ x,
   ⟨x, by rw [mk_mul_of, mk_mul_cancel_left]⟩, by tauto⟩
 

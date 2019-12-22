@@ -174,7 +174,7 @@ def pi {ι : Type*} {f : ι → Type*} [Π i, has_mul (f i)]
 
 variables (c)
 
-@[simp, to_additive] lemma coe_eq : c.to_setoid.r = c := rfl
+@[simp, to_additive] lemma to_setoid_eq : c.to_setoid.rel = c := rfl
 
 -- Quotients
 

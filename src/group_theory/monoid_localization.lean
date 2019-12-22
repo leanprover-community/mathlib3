@@ -8,8 +8,7 @@ import group_theory.congruence
 import algebra.associated
 import tactic.abel
 
-/-
-
+/-!
 # Localizations of commutative monoids
 
 The standard congruence relation (an equivalence relation preserving a binary operation) used to
@@ -63,16 +62,14 @@ congruence relation is a congruence relation.
 There is only a multiplicative version for any lemma or definition relying on a unit group of a
 `comm_monoid`; additive versions would require additive unit groups.
 
-We define the Grothendieck group of `X` as a quotient of `X × X` instead of as
-`monoid_localization X (⊤ : submonoid X)` for the sake of clarity. This does mean, however, we
-cannot make use of some appropriate lemmas from the `monoid_localization` namespace. We do not
-use the category theory library to define the adjunction, also for the sake of clarity.
+We do not use the category theory library to define the adjunction (`hom_equiv` and
+`hom_equiv_naturality_left_symm`) also for the sake of clarity.
 
 ## Tags
 localization, monoid localization, quotient monoid, congruence relation, characteristic predicate,
 group completion, Grothendieck group
-
 -/
+
 variables {X : Type*}
 
 namespace submonoid
@@ -195,13 +192,13 @@ induction_on x $ λ y, ⟨y, rfl⟩
 Y.r.comm_monoid
 
 @[to_additive] protected lemma eq {a₁ b₁} {a₂ b₂ : Y} :
-  mk a₁ a₂ = mk b₁ b₂ ↔ ∀ c : con (X × Y), (∀ y : Y, c 1 (y, y)) → c (a₁, a₂) (b₁, b₂) :=
+  mk a₁ a₂ = mk b₁ b₂ ↔ Y.r (a₁, a₂) (b₁, b₂) :=
 Y.r.eq.trans $ iff.rfl
 
 @[to_additive] protected lemma eq' {a₁ b₁} {a₂ b₂ : Y} :
   mk a₁ a₂ = mk b₁ b₂ ↔ ∃ c : Y, (c : X) * (a₁ * b₂) = c * (b₁ * a₂) :=
 ⟨λ h, let ⟨w, hw⟩ := show Y.r' (a₁, a₂) (b₁, b₂), by rw [←Y.r_eq_r', ←con.eq]; exact h in ⟨w, hw⟩,
- λ ⟨w, hw⟩, by erw [Y.r.eq, Y.r_eq_r']; exact ⟨w, hw⟩⟩
+ λ ⟨w, hw⟩, Y.r.eq.2 $ by rw [Y.r_eq_r']; exact ⟨w, hw⟩⟩
 
 @[to_additive] lemma mk_eq_of_eq {a₁ b₁} {a₂ b₂ : Y} (h : (a₂ : X) * b₁ = b₂ * a₁) :
   mk a₁ a₂ = mk b₁ b₂ :=
@@ -236,6 +233,9 @@ con.eq _
 
 @[simp, to_additive] lemma of_mul_mk (x y v) : of Y x * mk y v = mk (x * y) v :=
 by rw [of_eq_mk, mk_mul_mk, one_mul]
+
+@[simp, to_additive] lemma mk_mul_of (x y v) : mk y v * of Y x = mk (x * y) v :=
+by rw [mul_comm, of_mul_mk]
 
 @[to_additive] lemma mk_eq_mul_mk_one (x y) : mk x y = of Y x * mk 1 y :=
 by rw [of_mul_mk, mul_one]
@@ -374,8 +374,7 @@ begin
   ext x,
   apply induction_on x,
   intros,
-  rw [lift'_mk, ←units.mul_right_inj (g y.2), mul_assoc, units.inv_mul, ←H y.2,
-      mul_one, mk_eq_mul_mk_one],
+  rw [lift'_mk, units.mul_inv_eq_iff_eq_mul, ←H y.2, mk_eq_mul_mk_one],
   show f' _ = f' (mk _ _ * _) * f' (mk _ _),
   rw [←f'.map_mul, mk_mul_mk, mk_mul_mk],
   simp only [mul_one, mk_mul_cancel_right, one_mul],
@@ -393,6 +392,21 @@ begin
   ext,
   convert h x,
 end
+
+lemma lift_surjective_iff (H : ∀ y : Y, is_unit (f y)) :
+  (∀ z : Z, ∃ x : X × Y, f x.1 = z * f x.2) ↔ function.surjective (lift f H) :=
+⟨λ h z, let ⟨x, hx⟩ := h z in ⟨monoid_localization.mk x.1 x.2, by
+  rw [lift_mk, hx, units.mul_inv_eq_iff_eq_mul];
+  exact congr_arg ((*) z) (classical.some_spec $ H x.2)⟩,
+ λ h z, let ⟨x, hx⟩ := h z in
+  begin
+    revert hx,
+    apply monoid_localization.induction_on x,
+    intros y hy,
+    use y,
+    rw [lift_mk, units.mul_inv_eq_iff_eq_mul] at hy, rw hy,
+    exact congr_arg ((*) z) (classical.some_spec $ H y.2).symm
+  end⟩
 
 variables {W : submonoid Z} (f)
 
@@ -483,13 +497,13 @@ variables (f)
     such that `f(Y)` consists of invertible elements, and for all `x, y : X`, `f(x) = f(y)` iff
     `∃ c ∈ Y, c * x = c * y`. -/
 def char_pred (H : ∀ y : Y, is_unit (f y)) :=
-surjective (lift f H) ∧ ∀ x y, f x = f y ↔ of Y x = of Y y
+(∀ z : Z, ∃ x : X × Y, f x.1 = z * f x.2) ∧ ∀ x y, f x = f y ↔ of Y x = of Y y
 
 variables {f}
 
 lemma lift_inj_of_char_pred (H : ∀ y : Y, is_unit (f y)) (Hp : char_pred f H) :
   injective (lift f H) :=
-λ x y, induction_on x $ λ _, induction_on y $ λ _ hf,
+λ x y, induction_on x $ λ w, induction_on y $ λ z hf,
   mk_eq_iff_of_eq.2 $ (Hp.2 _ _).1 $ (lift'_eq_iff _).1 hf
 
 variables (f)
@@ -500,10 +514,10 @@ variables (f)
 noncomputable def mul_equiv_of_char_pred (H : ∀ y : Y, is_unit (f y)) (Hp : char_pred f H) :
   monoid_localization X Y ≃* Z :=
 { to_fun := lift f H,
-  inv_fun := λ y, classical.some $ Hp.1 y,
+  inv_fun := λ y, classical.some $ (lift_surjective_iff H).1 Hp.1 y,
   left_inv := right_inverse_of_injective_of_left_inverse
-    (lift_inj_of_char_pred H Hp) $ λ y, classical.some_spec $ Hp.1 y,
-  right_inv := λ y, classical.some_spec $ Hp.1 y,
+    (lift_inj_of_char_pred H Hp) $ λ y, classical.some_spec $ (lift_surjective_iff H).1 Hp.1 y,
+  right_inv := λ y, classical.some_spec $ (lift_surjective_iff H).1 Hp.1 y,
   map_mul' := (lift f H).map_mul }
 
 /-- Given `comm_monoid`s `X, Z`, a submonoid `Y ⊆ X` and an isomorphism `h` between the
@@ -511,7 +525,8 @@ noncomputable def mul_equiv_of_char_pred (H : ∀ y : Y, is_unit (f y)) (Hp : ch
     localization characteristic predicate. -/
 lemma char_pred_of_mul_equiv (h : monoid_localization X Y ≃* Z) :
   char_pred (h.to_monoid_hom.comp $ of Y) map_units_of_comp_of :=
-⟨λ x, let ⟨p, hp⟩ := h.to_equiv.surjective x in ⟨p, by erw [←hp, lift_apply_of]; refl⟩,
+⟨(lift_surjective_iff map_units_of_comp_of).2 $ λ x,
+   let ⟨p, hp⟩ := h.to_equiv.surjective x in ⟨p, by erw [←hp, lift_apply_of]; refl⟩,
  λ _ _, show h _ = h _ ↔ _, from ⟨λ H, h.to_equiv.injective H, congr_arg h⟩⟩
 
 /-- Given `comm_monoid`s `X, Z`, a submonoid `Y ⊆ X` and a homomorphism `f : X → Z`, if
@@ -519,7 +534,7 @@ lemma char_pred_of_mul_equiv (h : monoid_localization X Y ≃* Z) :
     then `f` satisfies the localization characteristic predicate. -/
 lemma char_pred_of_equiv (H : ∀ y : Y, is_unit (f y)) (h : monoid_localization X Y ≃ Z)
   (hf : (h : monoid_localization X Y → Z) = lift f H) : char_pred f H :=
-⟨λ x, let ⟨p, hp⟩ := h.surjective x in ⟨p, by rw [←hp, ←hf]; refl⟩,
+⟨(lift_surjective_iff H).2 $ λ x, let ⟨p, hp⟩ := h.surjective x in ⟨p, by rw [←hp, ←hf]; refl⟩,
  λ x y, (of_ker_iff.trans $ by
    rw ←con.ker_eq_lift_of_injective Y.r
      (aux f (λ _, classical.some $ H _) $ λ _, classical.some_spec $ H _)
@@ -532,8 +547,7 @@ lemma char_pred_of_equiv (H : ∀ y : Y, is_unit (f y)) (h : monoid_localization
 lemma char_pred_of_localization : char_pred (of Y) (λ y, ⟨to_units Y y, rfl⟩) :=
 let H : ∀ y : Y, is_unit (of Y y) := λ y, ⟨to_units Y y, rfl⟩ in
 ⟨λ y, monoid_localization.induction_on y $ λ x,
-  ⟨mk x.1 x.2, by rw [lift_mk, units.mul_inv_eq_iff_eq_mul, ←classical.some_spec (H x.2)];
-    erw mk_mul_mk; rw [mul_one, mk_mul_cancel_right]⟩, by tauto⟩
+  ⟨x, by rw [mk_mul_of, mk_mul_cancel_left]⟩, by tauto⟩
 
 /-- The localization of a `comm_monoid` `X` at the submonoid generated by an element `x : X`. -/
 @[reducible] def away (x) := monoid_localization X $ submonoid.powers x
@@ -599,50 +613,32 @@ end add_monoid_localization
 namespace comm_monoid
 variables (X)
 
-/-- Given a `comm_monoid` `X`, the congruence relation defining the Grothendieck group of `X`:
-    the localization of `X` at itself. -/
-@[to_additive "Given an `add_comm_monoid` `X`, the additive congruence relation defining the Grothendieck group of `X`: the localization of `X` at itself."]
-protected def completion.r : con (X × X) :=
-⟨λ x y, (⊤ : submonoid X).r (x.1, ⟨x.2, trivial⟩) (y.1, ⟨y.2, trivial⟩),
-  ⟨λ _, con.refl _ _, λ _ _, con.symm _, λ _ _ _, con.trans _⟩, λ _ _ _ _, con.mul _⟩
-
 /-- The Grothendieck group of a `comm_monoid` `X`: the localization of `X` at itself. -/
 @[reducible, to_additive "The Grothendieck group of an `add_comm_monoid` `X`: the localization of `X` at itself."]
-def completion := (completion.r X).quotient
+abbreviation completion := monoid_localization X (⊤ : submonoid X)
 
 namespace completion
-
+open monoid_localization
 variables {X}
 
 /-- The quotient map sending elements `x, y` of a `comm_monoid` `X` to the equivalence
     class of `(x, y)` in the localization of `X` at itself. -/
 @[to_additive "The quotient map sending elements `x, y` of an `add_comm_monoid` `X` to the equivalence class of `(x, y)` in the localization of `X` at itself."]
-protected def mk (x y) : completion X := quotient.mk' (x, y)
+protected def mk (x y) : completion X :=
+  monoid_localization.mk x (⟨y, trivial⟩ : (⊤ : submonoid X))
 
-@[elab_as_eliminator, to_additive]
-protected lemma induction_on {C : completion X → Prop} (q : completion X)
-  (H : ∀ x y, C (completion.mk x y)) : C q :=
-con.induction_on q $ λ y, by rw ←@prod.mk.eta _ _ y; exact H y.1 y.2
+/-- Given a `comm_monoid` `X`, the congruence relation defining the Grothendieck group of `X`:
+    the localization of `X` at itself. -/
+@[to_additive "Given an `add_comm_monoid` `X`, the additive congruence relation defining the Grothendieck group of `X`: the localization of `X` at itself."]
+protected def r (x y : X × X) := (⊤ : submonoid X).r (x.1, ⟨x.2, trivial⟩) (y.1, ⟨y.2, trivial⟩)
 
-@[to_additive] protected lemma eq {x y : X × X} :
-  completion.mk x.1 x.2 = completion.mk y.1 y.2 ↔ completion.r X x y :=
-(completion.r X).eq
-
-@[to_additive] protected lemma eq' {x₁ y₁ x₂ y₂} :
-  completion.mk x₁ x₂ = completion.mk y₁ y₂ ↔ ∃ c : X, c * (x₁ * y₂) = c * (y₁ * x₂) :=
-begin
-  rw @completion.eq _ _ (_, _) (_, _),
-  show (⊤ : submonoid X).r _ _ ↔ _,
-  rw submonoid.r_eq_r',
-  exact ⟨λ ⟨t, ht⟩, ⟨t, by simpa using ht⟩,
-    λ ⟨t, ht⟩, ⟨⟨t, trivial⟩, by simpa using ht⟩⟩
-end
-
-@[simp, to_additive] lemma mk_mul_mk (x₁ y₁ x₂ y₂ : X) :
-  completion.mk x₁ x₂ * completion.mk y₁ y₂ = completion.mk (x₁ * y₁) (x₂ * y₂) := rfl
-
-@[simp, to_additive] lemma mk_self (x : X) : completion.mk x x = 1 :=
-(con.eq _).2 $ λ c h, c.symm $ h (⟨x, trivial⟩ : (⊤ : submonoid X))
+/-- The function on the quotient by a congruence relation `c` induced by a function that is
+    constant on `c`'s equivalence classes. -/
+@[elab_as_eliminator, to_additive "The function on the quotient by a congruence relation `c` induced by a function that is constant on `c`'s equivalence classes."]
+protected def lift_on (q : completion X) (f : X × X → Z)
+  (h : ∀ a b, completion.r a b → f a = f b) : Z := con.lift_on q
+  (λ x, f (x.1, x.2)) $ λ a b H, h (a.1, a.2) (b.1, b.2) $ by
+    unfold completion.r; simpa using H
 
 variables (X)
 
@@ -655,18 +651,10 @@ protected def of : X →* completion X :=
 
 variables {X}
 
-@[simp, to_additive] lemma mk_mul_cancel_right (x y) :
-  completion.mk (x * y) y = completion.of X x :=
-by rw [←one_mul y, ←mk_mul_mk, one_mul, mk_self, mul_one]; refl
-
-@[simp, to_additive] lemma mk_mul_cancel_left (x : X) (y : Y) :
-  completion.mk ((y : X) * x) y = completion.of X x :=
-by rw [mul_comm, mk_mul_cancel_right]
-
 @[to_additive] instance : has_inv (completion X) :=
-⟨λ y, con.lift_on y (λ (x : X × X), completion.mk x.2 x.1) $
-  λ a b h, let ⟨c, hc⟩ := completion.eq'.1 $ completion.eq.2 h in
-  completion.eq'.2 ⟨c, by rw [mul_comm b.2, hc, mul_comm a.2]⟩⟩
+⟨λ y, completion.lift_on y (λ x, completion.mk x.2 x.1) $ λ a b h,
+let ⟨c, hc⟩ := monoid_localization.eq'.1 $ (con.eq _).2 h in
+  monoid_localization.eq'.2 ⟨c, by rw [mul_comm a.2, mul_comm b.2]; simpa using hc.symm⟩⟩
 
 @[simp, to_additive] lemma inv_apply (x :  X × X) :
 (completion.mk x.1 x.2)⁻¹ = completion.mk x.2 x.1 := rfl
@@ -675,8 +663,9 @@ by rw [mul_comm, mk_mul_cancel_right]
 begin
   apply con.induction_on x,
   intro y,
-  show completion.mk _ _ = 1,
-  rw [mul_comm, mk_self],
+  show completion.mk ((y.2 : X) * y.1) (y.1 * y.2) = 1,
+  rw mul_comm,
+  exact mk_self _,
 end
 
 @[to_additive] instance : comm_group (completion X) :=
@@ -684,80 +673,41 @@ end
    mul_left_inv := completion.mul_left_inv,
    ..con.comm_monoid _ }
 
-@[to_additive] lemma mk_eq (x y) :
-  completion.mk x y = completion.of X x * (completion.of X y)⁻¹ :=
-eq_mul_inv_of_mul_eq $ by erw mk_mul_mk; rw [mul_comm, ←mk_mul_mk]; simpa
-
-variables (X)
-
-/-- The Grothendieck group of a `comm_monoid` `X` is (isomorphic to) the localization of `X` at
-    itself. This is an isomorphism rather than an equality, because the Grothendieck group is
-    defined as a quotient of `X × X`, rather than of `X × (⊤ : submonoid X)`, for clarity. -/
-@[to_additive "The Grothendieck group of an `add_comm_monoid` `X` is isomorphic to the localization of `X` at itself. This is an isomorphism rather than an equality, because the Grothendieck group is defined as a quotient of `X × X`, rather than of `X × (⊤ : submonoid X)`, for clarity."]
-def completion_equiv_localization :
-  completion X ≃* monoid_localization X (⊤ : submonoid X) :=
-{ to_fun := λ y, con.lift_on y (λ x, monoid_localization.mk x.1
-    (⟨x.2, trivial⟩ : (⊤ : submonoid X))) $ λ _ _ h, (con.eq _).2 h,
-  inv_fun := λ y, con.lift_on y (λ x, completion.mk x.1 x.2) $
-    λ a b h, (con.eq _).2 $ by rw [←@prod.mk.eta _ _ a, ←@prod.mk.eta _ _ b,
-      ←subtype.eta a.2 trivial, ←subtype.eta b.2 trivial] at h; exact h,
-  left_inv := λ y, completion.induction_on y $ λ _ _, rfl,
-  right_inv := λ y, monoid_localization.induction_on y $ λ x,
-    begin
-      dsimp,
-      erw monoid_localization.lift_on_beta,
-        dsimp,
-        rw subtype.coe_eta,
-        refl,
-      exact λ _ _, (con.eq _).2,
-    end,
-  map_mul' := λ x y, con.induction_on₂ x y $ λ _ _, rfl }
-
-variables {X}
-
 /-- The localization of a `comm_group` `G` at itself is (isomorphic to) `G`. -/
-@[to_additive "The localization of an `add_comm_group` `G` at itself is (isomorphic to) `G`."]
 def mul_equiv_of_group (G : Type*) [comm_group G] :
   G ≃* completion G :=
-{ to_fun := λ g, completion.mk g 1,
-  inv_fun := λ h, con.lift_on h (λ g, g.1 * g.2⁻¹) $ λ a b h,
-    begin
-      dsimp,
-      obtain ⟨c, hc⟩ := completion.eq'.1 (completion.eq.2 h),
-      rw eq_mul_inv_of_mul_eq (mul_left_cancel hc),
-      assoc_rw mul_comm b.2⁻¹,
-      simp
-    end,
-  left_inv := λ g, show g * 1⁻¹ = g, by rw [one_inv, mul_one],
-  right_inv := λ h, completion.induction_on h $ λ g h,
-    begin
-      show completion.mk (g * h⁻¹) 1 = completion.mk g h,
-      erw [←mul_one (completion.mk g h), ←mk_self h⁻¹, ←mul_inv_self h],
-      refl
-     end,
-  map_mul' := λ g h, show completion.mk (g * h) 1 = completion.mk (g * h) (1 * 1), by rw mul_one }
+{ to_fun := completion.of G,
+  inv_fun := monoid_localization.lift' (monoid_hom.id G) (λ (g : (⊤ : submonoid G)),
+    _root_.to_units G (g : G)) $ λ g, rfl,
+  left_inv := λ x, by erw lift'_of; refl,
+  right_inv := λ x, monoid_localization.induction_on x $ λ y, by
+    show completion.of G (y.1 * (y.2 : G)⁻¹) = _;
+    erw [←mk_mul_cancel_right _ y.2, inv_mul_cancel_right],
+  map_mul' := monoid_hom.map_mul _ }
 
 /-- Given `comm_monoid`s `X, Z`, a homomorphism `f : X → Z` induces a homomorphism from the
     Grothendieck group of `X` to the Grothendieck group of `Z` sending `⟦(x, y)⟧` to
     `⟦(f x, f y)⟧`. -/
 @[to_additive "Given `add_comm_monoid`s `X, Z`, a homomorphism `f : X → Z` induces a homomorphism from the Grothendieck group of `X` to the Grothendieck group of `Z` sending `⟦(x, y)⟧` to `⟦(f x, f y)⟧`."]
 protected def map (f : X →* Z) : completion X →* completion Z :=
-{ to_fun := λ y, con.lift_on y (λ x, completion.mk (f x.1) (f x.2)) $ λ _ _ h,
-    let ⟨c, hc⟩ := completion.eq'.1 (completion.eq.2 h) in
-      completion.eq'.2 ⟨f c, by rw [←f.map_mul, ←f.map_mul, hc]; simp only [f.map_mul]⟩,
+{ to_fun := λ y, completion.lift_on y (λ x, completion.mk (f x.1) (f x.2)) $ λ x y h,
+    let ⟨c, hc⟩ := monoid_localization.eq'.1 $ monoid_localization.eq.2 h in
+    monoid_localization.eq'.2 ⟨⟨f c, trivial⟩, by erw [←f.map_mul, ←f.map_mul, hc];
+      simp only [f.map_mul, subtype.coe_mk]⟩,
   map_one' := mk_self _,
   map_mul' := λ x y, con.induction_on₂ x y $ λ _ _,
     show completion.mk _ _ = completion.mk _ _ * completion.mk _ _, by
       erw [f.map_mul, f.map_mul]; refl }
 
 @[to_additive] lemma map_id : completion.map (monoid_hom.id X) = monoid_hom.id (completion X) :=
-monoid_hom.ext $ λ y, completion.induction_on y $ λ _ _, rfl
+monoid_hom.ext $ λ y, monoid_localization.induction_on y $ λ x,
+  show monoid_localization.mk x.1 _ = _, by erw subtype.coe_eta; refl
 
 variables {A : Type*} [comm_monoid A]
 
 @[to_additive] lemma map_comp (f : X →* Z) (g : Z →* A) :
   completion.map (g.comp f) = (completion.map g).comp (completion.map f) :=
-monoid_hom.ext $ λ y, completion.induction_on y $ λ _ _, rfl
+monoid_hom.ext $ λ y, monoid_localization.induction_on y $ λ _, rfl
 
 variables (X) (G : Type*) [comm_group G]
 
@@ -767,36 +717,49 @@ variables (X) (G : Type*) [comm_group G]
     homomorphism sending `⟦(x, y)⟧ ∈ completion X` to `f x * (f y)⁻¹ ∈ Y`.  -/
 @[to_additive "`Hom(F(X), Y) ≃+ Hom(X, G(Y))`, where `X` is an `add_comm_monoid`, `Y` is an `add_comm_group`, `G` is the forgetful functor and `F` is the functor sending `add_comm_monoid`s to their Grothendieck group, and whose action on morphisms is defined by `completion.map`. Given `f ∈ Hom(X, Y),` we get a homomorphism sending `⟦(x, y)⟧ ∈ completion X` to `f x - f y ∈ Y`."]
 def hom_equiv : (X →* G) ≃* (completion X →* G) :=
-{ to_fun := λ f, con.lift (completion.r X)
-    ((f.comp prod.monoid_hom.fst).mul (f.comp prod.monoid_hom.snd).inv)
-     $ λ a b h, let ⟨c, hc⟩ := completion.eq'.1 (completion.eq.2 h) in
-       show f a.1 * (f a.2)⁻¹ = f b.1 * (f b.2)⁻¹, by
+{ to_fun := λ f, con.lift (submonoid.r (⊤ : submonoid X))
+    (⟨λ x, f x.1 * (f x.2)⁻¹, by simp, λ x y, by simp only [mul_inv_rev, prod.snd_mul,
+      prod.fst_mul, f.map_mul, submonoid.coe_mul]; ac_refl⟩)
+     $ λ a b h,
+       begin
+         rw [con.to_setoid_eq, ←@prod.mk.eta _ _ a, ←@prod.mk.eta _ _ b] at h,
+         obtain ⟨c, hc⟩ := monoid_localization.eq'.1 (monoid_localization.eq.2 h),
+         show f a.1 * (f a.2)⁻¹ = f b.1 * (f b.2)⁻¹,
          rw [eq_mul_inv_iff_mul_eq, mul_comm, ←mul_assoc, mul_comm (f b.2), ←f.map_mul,
              ←mul_left_inj (f c), ←mul_assoc, ←f.map_mul, hc, mul_inv_eq_iff_eq_mul, mul_assoc,
-             f.map_mul, f.map_mul]; refl,
+             f.map_mul, f.map_mul],
+         refl,
+       end,
   inv_fun := λ f, f.comp $ completion.of X,
   left_inv := λ f, monoid_hom.ext $ λ x,
     show f x * (f 1)⁻¹ = f x, by rw [f.map_one, one_inv, mul_one],
-  right_inv := λ f, monoid_hom.ext $ λ y, completion.induction_on y $ λ x y,
+  right_inv := λ f, monoid_hom.ext $ λ y, monoid_localization.induction_on y $ λ x,
     begin
-      show f (completion.mk x 1) * (f (completion.mk y 1))⁻¹ = f (completion.mk x y),
-      rw [mul_inv_eq_iff_eq_mul, ←f.map_mul, mk_mul_mk, mul_comm, ←mk_mul_mk, mk_self, one_mul]
+      dsimp,
+      show f (completion.mk x.1 1) * (f (monoid_localization.mk x.2 1))⁻¹ = _,
+      rw [mul_inv_eq_iff_eq_mul, ←f.map_mul, mk_mul_mk, mul_one, mk_mul_cancel_right],
+      refl,
     end,
-  map_mul' := λ f g, monoid_hom.ext $ λ x, completion.induction_on x $ λ x y,
-    show f x * g x * (f y * g y)⁻¹ = f x * (f y)⁻¹ * (g x * (g y)⁻¹),
+  map_mul' := λ f g, monoid_hom.ext $ λ y, monoid_localization.induction_on y $ λ x,
+    show f x.1 * g x.1 * (f x.2 * g x.2)⁻¹ = f x.1 * (f x.2)⁻¹ * (g x.1 * (g x.2)⁻¹),
       by rw mul_inv; ac_refl }
 
 variables {X G}
 
 @[to_additive] lemma hom_equiv_naturality_left_symm (f : X →* Z) (g : Z →* G) :
  (hom_equiv X G) (g.comp f) = ((hom_equiv Z G) g).comp (completion.map f) :=
-monoid_hom.ext $ λ x, completion.induction_on x $ λ _ _, rfl
+monoid_hom.ext $ λ x, monoid_localization.induction_on x $ λ _, rfl
 
-@[to_additive] lemma hom_equiv_unique (f : X →* G) (g : completion X →* G)
+lemma hom_equiv_unique (f : X →* G) (g : completion X →* G)
   (H : ∀ x, f x = g (completion.of X x)) : g = hom_equiv X G f :=
-monoid_hom.ext $ λ y, completion.induction_on y $ λ x y, by
-  rw [mk_eq, g.map_mul, g.map_inv, ←H, ←H, monoid_hom.map_mul];
-  show _ = _ * (f 1)⁻¹ * (f 1 * _); simpa
+monoid_hom.ext $ λ y, monoid_localization.induction_on y $ λ x,
+  begin
+    erw [mk_eq, g.map_mul, ←H],
+    rw [to_units_map_inv, units.mul_inv_eq_iff_eq_mul],
+    show _ = (f (x.1 * 1)) * (f (1 * x.2))⁻¹ * g (completion.of X x.2),
+    rw ←H,
+    simp
+  end
 
 end completion
 end comm_monoid

@@ -243,6 +243,14 @@ def id : β →ₗ[α] β := ⟨id, by simp, by simp⟩
 
 @[simp] lemma id_apply (x : β) : @id α β _ _ _ x = x := rfl
 
+def iterate (f : β →ₗ[α] β) : ℕ → (β →ₗ[α] β)
+| 0       := id
+| (n + 1) := comp f (iterate n)
+
+lemma iterate_surjective (f : β →ₗ[α] β) (h : surjective f) : ∀ n, surjective (iterate f n)
+| 0       := surjective_id
+| (n + 1) := surjective_comp h (iterate_surjective n)
+
 end linear_map
 
 namespace is_linear_map

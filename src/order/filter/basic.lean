@@ -1291,6 +1291,19 @@ begin
   rw if_neg h, exact hp₁ h
 end
 
+/-- If `tendsto f a b`, then for any sequence of sets `s n ∈ b` there is a subsequence with
+`f (x n) ∈ s n`. This is useful to extract a subsequence with a prescribed convergence rate. -/
+lemma tendsto.exists_subseq_controlled {a : filter α} {b : filter β} {f : α → β} (hf : tendsto f a b)
+  (ha : a ≠ ⊥) {s : ℕ → set β} (hs : ∀ n, s n ∈ b) :
+  ∃ x : ℕ → α, ∀ {m n}, m ≤ n → f (x n) ∈ s m :=
+begin
+  let t := λ n:ℕ, ⋂ m ∈ Iic n, f ⁻¹' s m,
+  have t_mem : ∀ n, t n ∈ a, from λ n, Inter_mem_sets (finite_le_nat n) (λ m _, hf $ hs m),
+  choose x hx using λ n, inhabited_of_mem_sets (map_ne_bot ha) (t_mem n),
+  refine ⟨x, λ m n hmn, _⟩,
+  have : t n ⊆  f ⁻¹' s m, from bInter_subset_of_mem hmn,
+  exact this (hx _)
+end
 
 section prod
 variables {s : set α} {t : set β} {f : filter α} {g : filter β}

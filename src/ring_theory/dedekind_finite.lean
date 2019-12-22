@@ -6,7 +6,7 @@ import ring_theory.noetherian
 import ring_theory.adjoin
 import data.matrix.basic
 
-run_cmd tactic.skip
+namespace dedekind_finite
 
 section
 
@@ -158,15 +158,13 @@ example (G : Type*) [monoid G] : G := 1 * 1
 instance dedekind_finite_of_finite [fintype R] : dedekind_finite R := begin
     --TODO why is this needed?
     haveI : is_noetherian_ring R := ring.is_noetherian_of_fintype R R,
-    exactI dedekind_finite_of_noetherian R,
+    exactI dedekind_finite.dedekind_finite_of_noetherian R,
 end
 end
 
 section
 
-private lemma aux0 {i j : ℕ} (h : i ≤ j) (hji : j - i = 0) : i = j := by omega
-
-private lemma aux01 {i j : ℕ} : j - i = j + 1 - (i + 1) := by omega
+private lemma aux1 {i j : ℕ} : j - i = j + 1 - (i + 1) := by omega
 
 variable {R : Type*}
 
@@ -182,135 +180,122 @@ lemma mul_eq_one_pow_mul_pow_eq [ring R] {a b : R} (hab : a * b = 1) : ∀ (i j 
         rw mul_one, rw mul_eq_one_pow_mul_pow_eq i j,
         apply' if_congr (iff.symm nat.lt_succ_iff),
         apply' congr_arg ((^) b),
-        exact aux01,
+        exact aux1,
         apply' congr_arg ((^) a),
-        exact aux01,
+        exact aux1,
     end
 
-private lemma aux1  {j k : ℕ} (hj : 0 < j) (hk : 0 < k) (H : j < k) :
-  0 < k - 1 - (j - 1) := by omega
+private lemma aux3 {j k : ℕ}
+  (H : k < j) (hjk : ¬j = k + 1) : ¬j ≤ k + 1 :=
+by omega
 
-private lemma aux2  {j k : ℕ} (hj : 0 < j) (hk : 0 < k) (H : j < k) :
-  j ≤ k - 1 := by omega
 
-private lemma aux3  {j k : ℕ} (hj : 0 < j) (hk : 0 < k) (H : j < k) :
-  j - 1 ≤ k := by omega
+private lemma aux4 {j k l : ℕ}
+  (H : k< j)  :
+ j - (k + 1) + (l + 1) = j - k + l :=
+ by omega
 
-private lemma aux4  {j k : ℕ} (hj : 0 < j) (hk : 0 < k) (H : j < k) :
-  j - 1 ≤ k - 1 := by omega
+private lemma aux5 {j k l : ℕ}
+  (H : k < j)  :
+  j + 1 - (k + 1) + (l + 1) = j + 1 - k + l :=
+ by omega
 
-private lemma aux5  {j : ℕ} (hj : 0 < j) : ¬j ≤ j - 1 := by omega
-
-private lemma aux6  {j k l : ℕ} (hk : 0 < k) (hl : 0 < l) (H : k < j) :
-  j - (k - 1) + (l - 1) = j - k + l := by omega
-
-private lemma aux7  {j k : ℕ} (hj : 0 < j) (hk : 0 < k) (H : k < j) :
-  j - 1 - (k - 1) = j - k := by omega
-
-private lemma aux8  {j k l : ℕ}
-(hj : 0 < j) (hk : 0 < k) (hl : 0 < l) (H : k < j) :
-  j - 1 - (k - 1) + (l - 1) = j - k + (l - 1) := congr_arg (λ x, x + (l - 1)) (aux7 hj hk H)
-
-private lemma aux9  {j k l : ℕ}
-(hj : 0 < j) (hk : 0 < k) (hl : 0 < l) (H : k < j) :
-  j - 1 - (k - 1) + (l - 1) = j - 1 - k + l := begin
-    rw aux8 hj hk hl H,
-    omega,
-  end
-
-private lemma aux10  {j k l : ℕ} (hj : 0 < j) (hk : 0 < k) (hl : 0 < l) (H : k < j) : ¬j ≤ k - 1 := by omega
-
-private lemma aux11  {j k : ℕ} (hj : 0 < j) (hk : 0 < k) (H : k < j)
-  (hjk : ¬j - 1 = k) : ¬j - 1 ≤ k := by omega
-
-private lemma aux12  {j k : ℕ} (hj : 0 < j) (hk : 0 < k) (H : k < j) :
-  ¬j - 1 ≤ k - 1 := by omega
-
-private def e (a b : R) [ring R] (i j : ℕ) : R := b^(i - 1) * a^(j-1) - b^i * a^j
+private def e (a b : R) [ring R] (i j : ℕ) : R := b^i * a^j - b^(i + 1) * a^(j + 1)
 
 lemma e_orthogonal [ring R] {a b : R} (hab : a * b = 1) :
-∀ {i j k l : ℕ} (hi : 0 < i) (hj : 0 < j) (hk : 0 < k) (hl : 0 < l),
+∀ {i j k l : ℕ},
 (e a b i j) * (e a b k l) = if j = k then e a b i l else (0 : R) :=
 begin
     intros,
     rw [e,e,e], rw [mul_sub, sub_mul, sub_mul], rw sub_right_comm,
     rw mul_assoc, rw mul_assoc, rw mul_assoc, rw mul_assoc,
-    rw ← sub_add, rw ← mul_sub (b ^ (i-1)), rw ← sub_sub_assoc_swap,
-    rw ← mul_sub (b ^ (i)), rw ← mul_assoc, rw ← mul_assoc, rw ← mul_assoc,
+    rw ← sub_add, rw ← mul_sub (b ^ i), rw ← sub_sub_assoc_swap,
+    rw ← mul_sub (b ^ (i + 1)), rw ← mul_assoc, rw ← mul_assoc, rw ← mul_assoc,
     rw ← mul_assoc,
-    rw mul_eq_one_pow_mul_pow_eq hab (j - 1) (k - 1),
-    rw mul_eq_one_pow_mul_pow_eq hab (j - 1) (k),
-    rw mul_eq_one_pow_mul_pow_eq hab (j) (k - 1),
-    rw mul_eq_one_pow_mul_pow_eq hab (j) (k),
+    rw mul_eq_one_pow_mul_pow_eq hab j k,
+    rw mul_eq_one_pow_mul_pow_eq hab j (k + 1),
+    rw mul_eq_one_pow_mul_pow_eq hab (j + 1) k,
+    rw mul_eq_one_pow_mul_pow_eq hab (j + 1) (k + 1),
     rcases lt_trichotomy j k with H | rfl | H,
     {
         conv_rhs {rw if_neg (ne_of_lt H),},
 
         -- TODO omega gets stuck on instances
-        rw if_pos (aux4 hj hk H), rw if_pos (aux3 hj hk H),
-        rw if_pos (aux2 hj hk H), rw if_pos (le_of_lt H),
-        rw ← nat.succ_pred_eq_of_pos ( _ : k- 1 - (j -1) > 0),
-        rw ← nat.succ_pred_eq_of_pos ( _ : k - (j -1) > 0),
+        rw if_pos (le_of_lt H),
+        rw if_pos,
+        rw if_pos,
+        swap, exact H,
+        rw if_pos,
+        swap, exact le_add_right H,
+        rw ← nat.succ_pred_eq_of_pos (nat.lt_sub_left_of_add_lt H : k - j > 0),
+        rw ← nat.succ_pred_eq_of_pos (_ : k + 1 - j > 0),
         rw pow_succ, rw pow_succ, rw mul_assoc, rw mul_assoc,
         rw ← mul_sub b, rw ← mul_assoc, rw ← pow_succ',
-        rw nat.sub_add_cancel (_ : i ≥ 1),
-        rw ← mul_sub (b ^ i),
+        rw ← mul_sub (b ^ (i + 1)),
         convert mul_zero _,
         rw nat.pred_eq_sub_one, rw nat.pred_eq_sub_one,
-        rw sub_sub_assoc_swap, rw nat.sub_sub_sub_cancel_right,
-        rw nat.sub_sub_assoc, rw nat.add_sub_cancel,
+        rw sub_sub_assoc_swap, rw (nat.succ_sub_succ k j : k + 1 - j - 1 = k - j),
+        rw (_ : k + 1 - j - 1 = k - j),
+        swap,
+        exact nat.succ_sub_succ k j,
         rw nat.sub_sub, rw add_comm j 1,
         rw ← nat.sub_sub,
         abel,
         any_goals {linarith,},
         {apply nat.sub_pos_of_lt,
-        transitivity j,
-        exact buffer.lt_aux_2 hj, -- TODO LOL ty library_search
-        linarith,},
-        exact (aux1 hj hk H),
+        transitivity k,
+        exact H,
+        exact lt_add_one k,},
     },
     {
         conv_rhs {rw if_pos,},
 
-        rw if_pos (le_refl (j - 1)), rw if_pos (nat.sub_le j 1),
-        rw if_neg (aux5 hj), rw if_pos (le_refl j),
+        rw if_pos (le_refl j), rw if_pos (nat.le_succ j),
+        rw if_neg,
+        swap,
+        exact nat.lt_irrefl j,
+        rw if_pos (le_refl (j + 1)),
 
         rw nat.sub_self, rw pow_zero, rw one_mul,
-        rw (nat.sub_sub_self hj : j - (j - 1) = 1),
+        rw (nat.sub_eq_of_eq_add rfl : j + 1 - j = 1),
         rw ← pow_add, rw pow_one, rw nat.sub_self, rw pow_zero,
-        rw one_mul, rw add_comm, rw nat.sub_add_cancel hl,
+        rw one_mul, rw add_comm,
         rw sub_self, rw mul_zero, rw sub_zero, rw mul_sub,
-        rw ← mul_assoc, rw ← pow_succ', rw nat.sub_add_cancel hi,
+        rw ← mul_assoc, rw ← pow_succ',
     },
     {
         conv_rhs {rw if_neg (ne_of_gt H),},
 
-        rw if_neg (aux12 hj hk H),
-        have : ite (j - 1 ≤ k) (b ^ (k - (j - 1))) (a ^ (j - 1 - k)) = a ^ (j - 1 - k) :=
+        rw if_neg (not_le.mpr H),
+        have : ite (j ≤ k + 1) (b ^ (k + 1 - j)) (a ^ (j - (k + 1))) = a ^ (j - (k + 1)) :=
         begin
-            by_cases hjk : j - 1 = k,
+            by_cases hjk : j = k + 1,
             {
                 rw if_pos (le_of_eq hjk), rw [← hjk],
                 rw nat.sub_self, refl,
             },
             {
-                rw if_neg, exact aux11 hj hk H hjk,
+                rw if_neg, exact aux3 H hjk,
             }
         end,
-        rw this, rw if_neg (aux10 hj hk hl H), rw if_neg,
+        rw this, rw if_neg,
+        swap,
+        exact (nat.nat.lt_asymm H),
+        rw if_neg,
+        swap,
+        exact nat.le_lt_antisymm H,
         rw ← pow_add, rw ← pow_add, rw ← pow_add, rw ← pow_add,
-        rw (aux9 hj hk hl H : j - 1 - (k - 1) + (l - 1) = j - 1 - k + l),
+        rw (aux4 H : j - (k + 1) + (l + 1) = j - k + l),
         rw sub_self, rw mul_zero, rw zero_sub,
-        rw (aux6 hk hl H : j - (k - 1) + (l - 1) = j - k + l),
+        rw (aux5 H : j + 1 - (k + 1) + (l + 1) = j + 1 - k + l),
         rw sub_self, rw mul_zero, rw neg_zero,
-        linarith,
     }
 end
 
-lemma e_ne_pow_two [ring R] {a b : R} (hab : a * b = 1) {i j : ℕ} (hij : i ≠ j) (hi : 0 < i) (hj : 0 < j) : (e a b i j) ^ 2 = (0 : R) :=
+lemma e_ne_pow_two [ring R] {a b : R} (hab : a * b = 1) {i j : ℕ} (hij : i ≠ j) : (e a b i j) ^ 2 = (0 : R) :=
 begin
     rw [pow_two],
-    rw e_orthogonal hab hi hj hi hj,
+    rw e_orthogonal hab,
     rw if_neg (ne.symm hij),
 end
 
@@ -324,16 +309,16 @@ instance dedekind_finite_of_fin_nilpotents (R : Type*) [ring R] (h : (nilpotents
     rcases h with ⟨a, b, hab, hba⟩,
     haveI : infinite (nilpotents R) :=
     begin
-        let e1 : ℕ → nilpotents R := (λ n, ⟨e a b 1 (n + 2), 2, e_ne_pow_two hab (ne_of_lt (by linarith)) zero_lt_one (nat.succ_pos (n + 1)), ⟩),
+        let e1 : ℕ → nilpotents R := (λ n, ⟨e a b 0 (n + 1), 2, e_ne_pow_two hab (ne.symm (nat.succ_ne_zero n)) ⟩),
         refine infinite.of_injective e1 _,
         intros n m hnm,
         by_contradiction,
         simp [e1] at hnm,
         have :=
-        calc 1 - b * a = e a b 1 1                         : by simp [e]
-                  ...  = e a b 1 (n + 2) * e a b (n + 2) 1 : by rw [e_orthogonal hab zero_lt_one (nat.succ_pos (n + 1) : 0 < n + 2) (nat.succ_pos (n + 1) : 0 < n + 2) zero_lt_one, if_pos (rfl)]
-                  ...  = e a b 1 (m + 2) * e a b (n + 2) 1 : by rw hnm
-                  ...  = 0                                 : by rw [e_orthogonal hab zero_lt_one (nat.succ_pos (m + 1) : 0 < m + 2) (nat.succ_pos (n + 1) : 0 < n + 2) zero_lt_one, if_neg]; intro; exact a_1 ((add_right_inj 2).mp (eq.symm a_2)),
+        calc 1 - b * a = e a b 0 0                         : by simp [e]
+                  ...  = e a b 0 (n + 1) * e a b (n + 1) 0 : by rw [e_orthogonal hab, if_pos (rfl)]
+                  ...  = e a b 0 (m + 1) * e a b (n + 1) 0 : by rw hnm
+                  ...  = 0                                 : by rw [e_orthogonal hab, if_neg]; intro; exact a_1 ((add_right_inj 1).mp (eq.symm a_2)),
         rw sub_eq_zero at this,
         exact absurd (eq.symm this) hba,
     end,
@@ -344,3 +329,5 @@ end⟩
 
 end
 #lint
+
+end dedekind_finite

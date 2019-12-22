@@ -632,9 +632,9 @@ protected def mk (x y) : completion X :=
 @[to_additive "Given an `add_comm_monoid` `X`, the additive congruence relation defining the Grothendieck group of `X`: the localization of `X` at itself."]
 protected def r (x y : X × X) := (⊤ : submonoid X).r (x.1, ⟨x.2, trivial⟩) (y.1, ⟨y.2, trivial⟩)
 
-/-- The function on the quotient by a congruence relation `c` induced by a function that is
-    constant on `c`'s equivalence classes. -/
-@[elab_as_eliminator, to_additive "The function on the quotient by a congruence relation `c` induced by a function that is constant on `c`'s equivalence classes."]
+/-- The function on the Grothendieck group of a `comm_monoid` X induced by a function on `X × X`
+    that is constant on the localization relation's equivalence classes. -/
+@[elab_as_eliminator, to_additive "The function on the Grothendieck group of an `add_comm_monoid` X induced by a function on `X × X` that is constant on the localization relation's equivalence classes."]
 protected def lift_on (q : completion X) (f : X × X → Z)
   (h : ∀ a b, completion.r a b → f a = f b) : Z := con.lift_on q
   (λ x, f (x.1, x.2)) $ λ a b H, h (a.1, a.2) (b.1, b.2) $ by

@@ -63,7 +63,7 @@ There is only a multiplicative version for any lemma or definition relying on a 
 `comm_monoid`; additive versions would require additive unit groups.
 
 We do not use the category theory library to define the adjunction (`hom_equiv` and
-`hom_equiv_naturality_left_symm`) also for the sake of clarity.
+`hom_equiv_naturality_left_symm`) for the sake of clarity.
 
 ## Tags
 localization, monoid localization, quotient monoid, congruence relation, characteristic predicate,

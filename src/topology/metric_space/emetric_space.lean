@@ -193,20 +193,11 @@ emetric_space.uniformity_edist _
 
 /-- Reformulation of the uniform structure in terms of the extended distance on a subtype -/
 theorem uniformity_edist'' : 𝓤 α = (⨅ε:{ε:ennreal // ε>0}, principal {p:α×α | edist p.1 p.2 < ε.val}) :=
-by simp [infi_subtype]; exact uniformity_edist'
-
-theorem uniformity_edist_nnreal :
-  𝓤 α = (⨅(ε:nnreal) (h : ε > 0), principal {p:α×α | edist p.1 p.2 < ε}) :=
-begin
-  rw [uniformity_edist', ennreal.infi_ennreal, inf_of_le_left],
-  { congr, funext ε, refine infi_congr_Prop ennreal.coe_pos _, assume h, refl },
-  refine le_infi (assume h, infi_le_of_le 1 $ infi_le_of_le ennreal.zero_lt_one $ _),
-  exact principal_mono.2 (assume p h, lt_of_lt_of_le h le_top)
-end
+by { simp only [infi_subtype], exact uniformity_edist' }
 
 /-- Characterization of the elements of the uniformity in terms of the extended distance -/
 theorem mem_uniformity_edist {s : set (α×α)} :
-  s ∈ 𝓤 α ↔ (∃ε>0, ∀{a b:α}, edist a b < ε → (a, b) ∈ s) :=
+  s ∈ 𝓤 α ↔ (∃ε>0, ∀ ⦃a b:α⦄, edist a b < ε → (a, b) ∈ s) :=
 begin
   rw [uniformity_edist'', mem_infi],
   simp [subset_def],
@@ -219,7 +210,37 @@ theorem edist_mem_uniformity {ε:ennreal} (ε0 : 0 < ε) :
   {p:α×α | edist p.1 p.2 < ε} ∈ 𝓤 α :=
 mem_uniformity_edist.2 ⟨ε, ε0, λ a b, id⟩
 
+theorem uniformity_edist_nnreal :
+  𝓤 α = (⨅(ε:nnreal) (h : ε > 0), principal {p:α×α | edist p.1 p.2 < ε}) :=
+begin
+  rw [uniformity_edist', ennreal.infi_ennreal, inf_of_le_left],
+  { congr, funext ε, refine infi_congr_Prop ennreal.coe_pos _, assume h, refl },
+  refine le_infi (assume h, infi_le_of_le 1 $ infi_le_of_le ennreal.zero_lt_one $ _),
+  exact principal_mono.2 (assume p h, lt_of_lt_of_le h le_top)
+end
+
+theorem mem_uniformity_edist_inv_nat {s : set (α×α)} :
+  s ∈ 𝓤 α ↔ (∃n:ℕ, ∀ ⦃a b:α⦄, edist a b < n⁻¹ → (a, b) ∈ s) :=
+begin
+  refine mem_uniformity_edist.trans ⟨λ hs, _, λ hs, _⟩,
+  { rcases hs with ⟨ε, ε_pos, hε⟩,
+    rcases ennreal.exists_inv_nat_lt (ne_of_gt ε_pos) with ⟨n, hn⟩,
+    exact ⟨n, λ a b hab, hε (lt_trans hab hn)⟩ },
+  { rcases hs with ⟨n, hn⟩,
+    exact ⟨n⁻¹, ennreal.inv_pos.2 ennreal.coe_nat_ne_top, hn⟩ }
+end
+
+theorem uniformity_edist_inv_nat :
+  𝓤 α = (⨅ n:ℕ, principal {p:α×α | edist p.1 p.2 < n⁻¹}) :=
+begin
+  refine eq_infi_of_mem_sets_iff_exists_mem (λ s, mem_uniformity_edist_inv_nat.trans _),
+  exact exists_congr (λn, by simp only [prod.forall, mem_principal_sets, subset_def, mem_set_of_eq])
+end
+
 namespace emetric
+
+theorem uniformity_has_countable_basis : has_countable_basis (𝓤 α) :=
+has_countable_basis_of_seq _ _ uniformity_edist_inv_nat
 
 /-- ε-δ characterization of uniform continuity on emetric spaces -/
 theorem uniform_continuous_iff [emetric_space β] {f : α → β} :
@@ -273,6 +294,23 @@ cauchy_iff.trans $ and_congr iff.rfl
  λ H r ru, let ⟨ε, ε0, hε⟩ := mem_uniformity_edist.1 ru,
                ⟨t, tf, h⟩ := H ε ε0 in
    ⟨t, tf, λ ⟨x, y⟩ ⟨hx, hy⟩, hε (h x y hx hy)⟩⟩
+
+/-- A very useful criterion to show that a space is complete is to show that all sequences
+which satisfy a bound of the form `edist (u n) (u m) < B N` for all `n m ≥ N` are
+converging. This is often applied for `B N = 2^{-N}`, i.e., with a very fast convergence to
+`0`, which makes it possible to use arguments of converging series, while this is impossible
+to do in general for arbitrary Cauchy sequences. -/
+theorem complete_of_convergent_controlled_sequences (B : ℕ → ennreal) (hB : ∀n, 0 < B n)
+  (H : ∀u : ℕ → α, (∀N n m : ℕ, N ≤ n → N ≤ m → edist (u n) (u m) < B N) → ∃x, tendsto u at_top (𝓝 x)) :
+  complete_space α :=
+uniform_space.complete_of_convergent_controlled_sequences
+  uniformity_has_countable_basis
+  (λ n, {p:α×α | edist p.1 p.2 < B n}) (λ n, edist_mem_uniformity $ hB n) H
+
+/-- A sequentially complete emetric space is complete. -/
+theorem complete_of_cauchy_seq_tendsto :
+  (∀ u : ℕ → α, cauchy_seq u → ∃a, tendsto u at_top (𝓝 a)) → complete_space α :=
+uniform_space.complete_of_cauchy_seq_tendsto uniformity_has_countable_basis
 
 end emetric
 
@@ -638,19 +676,7 @@ section first_countable
 @[priority 100] -- see Note [lower instance priority]
 instance (α : Type u) [emetric_space α] :
   topological_space.first_countable_topology α :=
-⟨assume a, ⟨⋃ i:ℕ, {ball a i⁻¹},
-  countable_Union $ assume n, countable_singleton _,
-  suffices (⨅ i:{ i : ennreal // i > 0}, principal (ball a i)) = ⨅ (n : ℕ), principal (ball a n⁻¹),
-    by simpa [nhds_eq, @infi_comm _ _ ℕ],
-  begin
-    apply le_antisymm,
-    { refine le_infi (assume n, infi_le_of_le _ _),
-      exact ⟨n⁻¹, by apply bot_lt_iff_ne_bot.2; simp⟩,
-      exact le_refl _ },
-    refine le_infi (assume ε, _),
-    rcases ennreal.exists_inv_nat_lt (bot_lt_iff_ne_bot.1 ε.2) with ⟨n, εn⟩,
-    exact infi_le_of_le n (principal_mono.2 $ ball_subset_ball $ le_of_lt εn)
-  end⟩⟩
+uniform_space.first_countable_topology uniformity_has_countable_basis
 
 end first_countable
 

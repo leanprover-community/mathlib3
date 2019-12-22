@@ -53,7 +53,7 @@ Similar predicates with `_on` suffix are particular cases for `l = principal s`.
   for pointwise `max`, `min`, `sup`, `inf`, respectively.
 
 
-### Miscelanous definitions
+### Miscellaneous definitions
 
 * `is_*_*_const` : any point is both a minimum and maximum for a constant function;
 * `is_min/max_*.is_ext` : any minimum/maximum point is an extremum;

@@ -1294,7 +1294,7 @@ end
 /-- If `tendsto f a b`, then for any sequence of sets `s n ∈ b` there is a subsequence with
 `f (x n) ∈ s n`. This is useful to extract a subsequence with a prescribed convergence rate. -/
 lemma tendsto.exists_subseq_controlled {a : filter α} {b : filter β} {f : α → β} (hf : tendsto f a b)
-  (ha : a ≠ ⊥) {s : ℕ → set β} (hs : ∀ n, s n ∈ b) :
+  (ha : a ≠ ⊥) (s : ℕ → set β) (hs : ∀ n, s n ∈ b) :
   ∃ x : ℕ → α, ∀ {m n}, m ≤ n → f (x n) ∈ s m :=
 begin
   let t := λ n:ℕ, ⋂ m ∈ Iic n, f ⁻¹' s m,
@@ -1456,6 +1456,9 @@ def at_bot [preorder α] : filter α := ⨅ a, principal {b | b ≤ a}
 lemma mem_at_top [preorder α] (a : α) : {b : α | a ≤ b} ∈ @at_top α _ :=
 mem_infi_sets a $ subset.refl _
 
+lemma mem_at_bot [preorder α] (a : α) : {b : α | b ≤ a} ∈ @at_bot α _ :=
+mem_infi_sets a $ subset.refl _
+
 @[simp] lemma at_top_ne_bot [nonempty α] [semilattice_sup α] : (at_top : filter α) ≠ ⊥ :=
 infi_neq_bot_of_directed (by apply_instance)
   (assume a b, ⟨a ⊔ b, by simp only [ge, le_principal_iff, forall_const, set_of_subset_set_of,
@@ -1493,9 +1496,23 @@ lemma tendsto_at_top_mono [preorder β] (l : filter α) :
   monotone (λ f : α → β, tendsto f l at_top) :=
 λ f₁ f₂ h, tendsto_at_top_mono' l $ univ_mem_sets' h
 
+/-- If `f : α → β`, `tendsto f a at_top`, then for any sequence `b : ℕ → β` there is a subsequence
+`f (x n)` such that `b m ≤ f (x n)` whenever `m ≤ n`. This is useful to extract a subsequence with
+a prescribed convergence rate. -/
+lemma tendsto.exists_subseq_ge [preorder β] {l : filter α} {f : α → β} (h : tendsto f l at_top)
+  (hl : l ≠ ⊥) (b : ℕ → β) : ∃ x : ℕ → α, ∀ {m n}, m ≤ n → b m ≤ f (x n) :=
+h.exists_subseq_controlled hl (λ n, Ici (b n)) (λ n, mem_at_top (b n))
+
 section ordered_monoid
 
 variables [ordered_cancel_comm_monoid β] (l : filter α) {f g : α → β}
+
+/-- If `f : α → β`, `tendsto f a at_bot`, then for any sequence `b : ℕ → β` there is a subsequence
+`f (x n)` such that `f (x n) ≤ b m` whenever `m ≤ n`. This is useful to extract a subsequence with
+a prescribed convergence rate. -/
+lemma tendsto.exists_subseq_le [preorder β] {l : filter α} {f : α → β} (h : tendsto f l at_top)
+  (hl : l ≠ ⊥) (b : ℕ → β) : ∃ x : ℕ → α, ∀ {m n}, m ≤ n → f (x n) ≤ b m :=
+h.exists_subseq_controlled hl (λ n, Iic (b n)) (λ n, mem_at_bot (b n))
 
 lemma tendsto_at_top_add_nonneg_left' (hf : {x | 0 ≤ f x} ∈ l) (hg : tendsto g l at_top) :
   tendsto (λ x, f x + g x) l at_top :=

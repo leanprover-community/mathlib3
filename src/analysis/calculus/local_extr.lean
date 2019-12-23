@@ -10,7 +10,7 @@ import topology.local_extr analysis.calculus.deriv
 
 ## Main definitions
 
-In a real normed space `E` We define `pos_tangent_cone_at (s : set E) (x : E)`.
+In a real normed space `E` we define `pos_tangent_cone_at (s : set E) (x : E)`.
 This would be the same as `tangent_cone_at ℝ≥0 s x` if we had a theory of normed semifields.
 This set is used in the proof of Fermat's Theorem (see below), and can be used to formalize
 [Lagrange multipliers](https://en.wikipedia.org/wiki/Lagrange_multiplier) and/or

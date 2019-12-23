@@ -46,10 +46,7 @@ open filter metric
 
 private lemma comp_tendsto_lim {p : ℕ} [p.prime] {F : polynomial ℤ_[p]} (ncs : cau_seq ℤ_[p] norm) :
   tendsto (λ i, F.eval (ncs i)) at_top (𝓝 (F.eval ncs.lim)) :=
-@tendsto.comp _ _ _ ncs
-  (λ k, F.eval k)
-  _ _ _
-  (continuous_iff_continuous_at.1 F.continuous_eval _) (tendsto_limit ncs)
+(F.continuous_eval.tendsto _).comp ncs.tendsto_limit
 
 section
 parameters {p : ℕ} [nat.prime p] {ncs : cau_seq ℤ_[p] norm} {F : polynomial ℤ_[p]} {a : ℤ_[p]}
@@ -363,9 +360,7 @@ tendsto.congr'
 
 private lemma newton_seq_dist_tendsto' :
   tendsto (λ n, ∥newton_cau_seq n - a∥) at_top (𝓝 ∥soln - a∥) :=
-tendsto.comp (continuous_iff_continuous_at.1 continuous_norm _)
-             ((tendsto_limit _).sub tendsto_const_nhds)
-
+(continuous_norm.tendsto _).comp (newton_cau_seq.tendsto_limit.sub tendsto_const_nhds)
 
 private lemma soln_dist_to_a : ∥soln - a∥ = ∥F.eval a∥ / ∥F.derivative.eval a∥ :=
 tendsto_nhds_unique at_top_ne_bot newton_seq_dist_tendsto' newton_seq_dist_tendsto

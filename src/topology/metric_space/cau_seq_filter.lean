@@ -19,9 +19,8 @@ open set filter
 open_locale topological_space classical
 
 variable {β : Type v}
-namespace sequentially_complete
 
-lemma tendsto_limit [normed_ring β] [hn : is_absolute_value (norm : β → ℝ)]
+lemma cau_seq.tendsto_limit [normed_ring β] [hn : is_absolute_value (norm : β → ℝ)]
   (f : cau_seq β norm) [cau_seq.is_complete β norm] :
   tendsto f at_top (𝓝 f.lim) :=
 _root_.tendsto_nhds.mpr
@@ -55,7 +54,7 @@ instance normed_field.is_absolute_value : is_absolute_value (norm : β → ℝ) 
 
 open metric
 
-lemma cauchy_of_filter_cauchy (f : ℕ → β) (hf : cauchy_seq f) :
+lemma cauchy_seq.is_cau_seq {f : ℕ → β} (hf : cauchy_seq f) :
   is_cau_seq norm f :=
 begin
   cases cauchy_iff.1 hf with hf1 hf2,
@@ -69,7 +68,7 @@ begin
   apply set.mk_mem_prod; solve_by_elim [le_refl]
 end
 
-lemma filter_cauchy_of_cauchy (f : cau_seq β norm) : cauchy_seq f :=
+lemma cau_seq.cauchy_seq (f : cau_seq β norm) : cauchy_seq f :=
 begin
   apply cauchy_iff.2,
   split,
@@ -91,8 +90,8 @@ end
 /-- In a normed field, `cau_seq` coincides with the usual notion of Cauchy sequences. -/
 lemma cau_seq_iff_cauchy_seq {α : Type u} [normed_field α] {u : ℕ → α} :
   is_cau_seq norm u ↔ cauchy_seq u :=
-⟨λh, filter_cauchy_of_cauchy ⟨u, h⟩,
- λh, cauchy_of_filter_cauchy u h⟩
+⟨λh, cau_seq.cauchy_seq ⟨u, h⟩,
+ λh, h.is_cau_seq⟩
 
 /-- A complete normed field is complete as a metric space, as Cauchy sequences converge by
 assumption and this suffices to characterize completeness. -/
@@ -109,5 +108,3 @@ begin
   existsi N,
   simpa [dist_eq_norm] using hN
 end
-
-end sequentially_complete

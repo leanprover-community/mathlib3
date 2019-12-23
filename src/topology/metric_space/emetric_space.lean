@@ -197,7 +197,7 @@ by { simp only [infi_subtype], exact uniformity_edist' }
 
 /-- Characterization of the elements of the uniformity in terms of the extended distance -/
 theorem mem_uniformity_edist {s : set (α×α)} :
-  s ∈ 𝓤 α ↔ (∃ε>0, ∀ ⦃a b:α⦄, edist a b < ε → (a, b) ∈ s) :=
+  s ∈ 𝓤 α ↔ (∃ε>0, ∀{a b:α}, edist a b < ε → (a, b) ∈ s) :=
 begin
   rw [uniformity_edist'', mem_infi],
   simp [subset_def],
@@ -220,7 +220,7 @@ begin
 end
 
 theorem mem_uniformity_edist_inv_nat {s : set (α×α)} :
-  s ∈ 𝓤 α ↔ (∃n:ℕ, ∀ ⦃a b:α⦄, edist a b < n⁻¹ → (a, b) ∈ s) :=
+  s ∈ 𝓤 α ↔ (∃n:ℕ, ∀ a b : α, edist a b < n⁻¹ → (a, b) ∈ s) :=
 begin
   refine mem_uniformity_edist.trans ⟨λ hs, _, λ hs, _⟩,
   { rcases hs with ⟨ε, ε_pos, hε⟩,

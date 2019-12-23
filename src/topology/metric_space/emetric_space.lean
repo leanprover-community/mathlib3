@@ -278,13 +278,6 @@ end emetric
 
 open emetric
 
-/-- If `f x → a` along `l` and `r n` is a sequence of positive numbers, then there exists
-a subsequence such that `f (x n) ∈ ball a (r m)` whenever `m ≤ n`. -/
-lemma tendsto.exists_subseq_mem_eball {l : filter β} {f : β → α} {a : α} (hf : tendsto f l (𝓝 a))
-  (hl : l ≠ ⊥) {r : ℕ → ℝ} (hr : ∀ n, 0 < r n) :
-  ∃ x : ℕ → β, ∀ {m n}, m ≤ n → f (x n) ∈ ball a (r m) :=
-hf.exists_subseq_controlled hl (λ n, ball a (r n)) (λ n, ball_mem_nhds a (hr n))
-
 /-- An emetric space is separated -/
 @[priority 100] -- see Note [lower instance priority]
 instance to_separated : separated α :=
@@ -778,3 +771,14 @@ le_trans (diam_mono ball_subset_closed_ball) diam_closed_ball
 end diam
 
 end emetric --namespace
+
+open emetric
+
+/-- If `f x → a` along `l` and `r n` is a sequence of positive numbers, then there exists
+a subsequence such that `f (x n) ∈ ball a (r m)` whenever `m ≤ n`. -/
+lemma tendsto.exists_subseq_mem_eball {l : filter β} {f : β → α} {a : α} (hf : tendsto f l (𝓝 a))
+  (hl : l ≠ ⊥) {r : ℕ → ennreal} (hr : ∀ n, 0 < r n) :
+  ∃ x : ℕ → β, ∀ {m n}, m ≤ n → f (x n) ∈ ball a (r m) :=
+hf.exists_subseq_controlled hl (λ n, ball a (r n)) (λ n, ball_mem_nhds a (hr n))
+
+

@@ -18,16 +18,23 @@ This set is used in the proof of Fermat's Theorem (see below), and can be used t
 
 ## Main statements
 
-First we prove that `0 ≤ f' y` whenever `a` is a local maximum of `f` on `s`,
-`f` has derivative `f'` at `a` within `s`, and `y` belongs to the positive tangent cone
-of `s` at `a`. Hence if both `y` and `-y` belong to the positive tangent cone, then `f' y = 0`.
-These facts are used to prove
-[Fermat's Theorem](https://en.wikipedia.org/wiki/Fermat's_theorem_(stationary_points)):
-the derivative of a differentiable function at a local extremum point equals zero.
+For each theorem name listed below, we also prove similar theorems for `min`, `extr` (if applicable)`,
+and `(f)deriv` instead of `has_fderiv`.
 
-Then we use Fermat's Theorem to prove
-[Rolle's Theorem](https://en.wikipedia.org/wiki/Rolle's_theorem): given a function `f` continuous
-on `[a, b]` and differentiable on `(a, b)`, there exists `c ∈ (a, b)` such that `f' c = 0`.
+* `is_local_max_on.has_fderiv_within_at_nonpos` : `0 ≤ f' y` whenever `a` is a local maximum
+  of `f` on `s`, `f` has derivative `f'` at `a` within `s`, and `y` belongs to the positive tangent
+  cone of `s` at `a`.
+
+* `is_local_max_on.has_fderiv_within_at_eq_zero` : In the settings of the previous theorem, if both
+  `y` and `-y` belong to the positive tangent cone, then `f' y = 0`.
+
+* `is_local_max.has_fderiv_at_eq_zero` :
+  [Fermat's Theorem](https://en.wikipedia.org/wiki/Fermat's_theorem_(stationary_points)),
+  the derivative of a differentiable function at a local extremum point equals zero.
+
+* `exists_has_deriv_at_eq_zero` :
+  [Rolle's Theorem](https://en.wikipedia.org/wiki/Rolle's_theorem): given a function `f` continuous
+  on `[a, b]` and differentiable on `(a, b)`, there exists `c ∈ (a, b)` such that `f' c = 0`.
 
 ## Implementation notes
 

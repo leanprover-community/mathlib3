@@ -421,6 +421,8 @@ is_open_iff.2 $ λ y, exists_ball_subset_ball
 theorem ball_mem_nhds (x : α) {ε : ℝ} (ε0 : 0 < ε) : ball x ε ∈ 𝓝 x :=
 mem_nhds_sets is_open_ball (mem_ball_self ε0)
 
+/-- If `f x → a` along `l` and `r n` is a sequence of positive numbers, then there exists
+a subsequence such that `f (x n) ∈ ball a (r m)` whenever `m ≤ n`. -/
 lemma tendsto.exists_subseq_mem_ball {l : filter β} {f : β → α} {a : α} (hf : tendsto f l (𝓝 a))
   (hl : l ≠ ⊥) {r : ℕ → ℝ} (hr : ∀ n, 0 < r n) :
   ∃ x : ℕ → β, ∀ {m n}, m ≤ n → f (x n) ∈ ball a (r m) :=

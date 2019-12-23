@@ -21,11 +21,13 @@ This set is used in the proof of Fermat's Theorem (see below), and can be used t
 First we prove that `0 ≤ f' y` whenever `a` is a local maximum of `f` on `s`,
 `f` has derivative `f'` at `a` within `s`, and `y` belongs to the positive tangent cone
 of `s` at `a`. Hence if both `y` and `-y` belong to the positive tangent cone, then `f' y = 0`.
-These facts are used to prove Fermat's Theorem: the derivative of a differentiable function
-at a local extremum point equals zero.
+These facts are used to prove
+[Fermat's Theorem](https://en.wikipedia.org/wiki/Fermat's_theorem_(stationary_points):
+the derivative of a differentiable function at a local extremum point equals zero.
 
-Then we use Fermat's Theorem to prove Rolle's Theorem: given a function `f` continuous on `[a, b]`
-and differentiable on `(a, b)`, there exists `c ∈ (a, b)` such that `f' c = 0`.
+Then we use Fermat's Theorem to prove
+[Rolle's Theorem](https://en.wikipedia.org/wiki/Rolle's_theorem): given a function `f` continuous
+on `[a, b]` and differentiable on `(a, b)`, there exists `c ∈ (a, b)` such that `f' c = 0`.
 
 ## Implementation notes
 
@@ -48,9 +50,9 @@ section vector_space
 variables {E : Type u} [normed_group E] [normed_space ℝ E] {f : E → ℝ} {a : E}
   {f' : E →L[ℝ] ℝ}
 
-/-- "Positive" tangent cone to `s` at `x`; the definition differs from `tangent_cone_at`
-by the requirement. One can think about `pos_tangent_cone_at` as `tangent_cone_at nnreal`
-but we have no theory of normed semifields yet. -/
+/-- "Positive" tangent cone to `s` at `x`; the only difference from `tangent_cone_at`
+is that we require `c n → ∞` instead of `∥c n∥ → ∞`. One can think about `pos_tangent_cone_at`
+as `tangent_cone_at nnreal` but we have no theory of normed semifields yet. -/
 def pos_tangent_cone_at (s : set E) (x : E) : set E :=
 {y : E | ∃(c : ℕ → ℝ) (d : ℕ → E), {n:ℕ | x + d n ∈ s} ∈ (at_top : filter ℕ) ∧
   (tendsto c at_top at_top) ∧ (tendsto (λn, c n • d n) at_top (𝓝 y))}

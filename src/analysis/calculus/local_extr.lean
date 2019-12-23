@@ -21,7 +21,7 @@ This set is used in the proof of Fermat's Theorem (see below), and can be used t
 For each theorem name listed below, we also prove similar theorems for `min`, `extr` (if applicable)`,
 and `(f)deriv` instead of `has_fderiv`.
 
-* `is_local_max_on.has_fderiv_within_at_nonpos` : `0 ≤ f' y` whenever `a` is a local maximum
+* `is_local_max_on.has_fderiv_within_at_nonpos` : `f' y ≤ 0` whenever `a` is a local maximum
   of `f` on `s`, `f` has derivative `f'` at `a` within `s`, and `y` belongs to the positive tangent
   cone of `s` at `a`.
 

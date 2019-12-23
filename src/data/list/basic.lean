@@ -1112,13 +1112,13 @@ by revert a; induction l; intros; [refl, simp only [*, map, foldl]]
   foldr f a (map g l) = foldr (f ∘ g) a l :=
 by revert a; induction l; intros; [refl, simp only [*, map, foldr]]
 
-theorem foldl_hom (l : list γ) {f : α → β} {op : α → γ → α} {op' : β → γ → β} (a : α)
+theorem foldl_hom (l : list γ) (f : α → β) (op : α → γ → α) (op' : β → γ → β) (a : α)
   (h : ∀a x, f (op a x) = op' (f a) x) : foldl op' (f a) l = f (foldl op a l) :=
 eq.symm $ by { revert a, induction l; intros; [refl, simp only [*, foldl]] }
 
-theorem foldr_hom (l : list γ) {f : α → β} {op : γ → α → α} {op' : γ → β → β} {a : α} {b : β}
-  (ha : f a = b) (h : ∀x a, f (op x a) = op' x (f a)) : foldr op' b l = f (foldr op a l) :=
-by { subst b, revert a, induction l; intros; [refl, simp only [*, foldr]] }
+theorem foldr_hom (l : list γ) (f : α → β) (op : γ → α → α) (op' : γ → β → β) (a : α)
+  (h : ∀x a, f (op x a) = op' x (f a)) : foldr op' (f a) l = f (foldr op a l) :=
+by { revert a, induction l; intros; [refl, simp only [*, foldr]] }
 
 theorem eq_nil_of_map_eq_nil {f : α → β} {l : list α} (h : map f l = nil) : l = nil :=
 eq_nil_of_length_eq_zero $ by rw [← length_map f l, h]; refl
@@ -1519,7 +1519,7 @@ list.rec_on l h₁ (λ a l hl, by simp only [map_cons, prod_cons, h₂ hl])
 theorem prod_hom [monoid β] (l : list α) (f : α → β) [is_monoid_hom f] :
   (l.map f).prod = f l.prod :=
 by { simp only [prod, foldl_map, (is_monoid_hom.map_one f).symm],
-  exact l.foldl_hom 1 (is_monoid_hom.map_mul f) }
+  exact l.foldl_hom _ _ _ 1 (is_monoid_hom.map_mul f) }
 
 end monoid
 

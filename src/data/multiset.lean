@@ -1109,7 +1109,7 @@ instance : has_sub (multiset α) := ⟨multiset.sub⟩
 theorem sub_eq_fold_erase (s t : multiset α) : s - t = foldl erase erase_comm s t :=
 quotient.induction_on₂ s t $ λ l₁ l₂,
 show ↑(l₁.diff l₂) = foldl erase erase_comm ↑l₁ ↑l₂,
-by { rw diff_eq_foldl l₁ l₂, symmetry, exact foldl_hom _ _ (λ x y, rfl) }
+by { rw diff_eq_foldl l₁ l₂, symmetry, exact foldl_hom _ _ _ _ _ (λ x y, rfl) }
 
 @[simp] theorem sub_zero (s : multiset α) : s - 0 = s :=
 quot.induction_on s $ λ l, rfl

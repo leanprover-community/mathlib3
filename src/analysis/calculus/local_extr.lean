@@ -22,7 +22,7 @@ First we prove that `0 ≤ f' y` whenever `a` is a local maximum of `f` on `s`,
 `f` has derivative `f'` at `a` within `s`, and `y` belongs to the positive tangent cone
 of `s` at `a`. Hence if both `y` and `-y` belong to the positive tangent cone, then `f' y = 0`.
 These facts are used to prove
-[Fermat's Theorem](https://en.wikipedia.org/wiki/Fermat's_theorem_(stationary_points):
+[Fermat's Theorem](https://en.wikipedia.org/wiki/Fermat's_theorem_(stationary_points)):
 the derivative of a differentiable function at a local extremum point equals zero.
 
 Then we use Fermat's Theorem to prove
@@ -38,6 +38,16 @@ For each mathematical fact we prove several versions of its formalization:
 
 For the `fderiv*`/`deriv*` versions we omit the differentiability condition whenever it is possible
 due to the fact that `fderiv` and `deriv` are defined to be zero for non-differentiable functions.
+
+## References
+
+* [Fermat's Theorem](https://en.wikipedia.org/wiki/Fermat's_theorem_(stationary_points));
+* [Rolle's Theorem](https://en.wikipedia.org/wiki/Rolle's_theorem);
+* [Tangent cone](https://en.wikipedia.org/wiki/Tangent_cone);
+
+## Tags
+
+local extremum, Fermat's Theorem, Rolle's Theorem
 -/
 
 universes u v

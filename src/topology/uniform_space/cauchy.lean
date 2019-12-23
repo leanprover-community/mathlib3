@@ -349,7 +349,8 @@ lemma compact_of_totally_bounded_is_closed [complete_space α] {s : set α}
 
 In this section we prove that a uniform space is complete provided that it is sequentially complete
 (i.e., any Cauchy sequence converges) and its uniformity filter admits a countable generating set.
-In particular, this applies to (e)metric spaces, see file `topology/metric_space/cau_seq_filter`.
+In particular, this applies to (e)metric spaces, see file `topology/metric_space/emetric_space` and
+`topology/metric_space/basic`.
 
 More precisely, we assume that there is a sequence of entourages `U_n` such that any other
 entourage includes one of `U_n`. Then any Cauchy filter `f` generates a decreasing sequence of

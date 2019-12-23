@@ -314,7 +314,7 @@ begin
   exact le_trans (mul_le_inf) (lattice.inf_le_left)
 end
 
-/-- Radical of an ideal `I` consists of elements `r` such that `r^n ∈ I` for some `n`. -/
+/-- The radical of an ideal `I` consists of the elements `r` such that `r^n ∈ I` for some `n`. -/
 def radical (I : ideal R) : ideal R :=
 { carrier := { r | ∃ n : ℕ, r ^ n ∈ I },
   zero := ⟨1, (pow_one (0:R)).symm ▸ I.zero_mem⟩,

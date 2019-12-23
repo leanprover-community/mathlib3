@@ -611,7 +611,7 @@ which satisfy a bound of the form `dist (u n) (u m) < B N` for all `n m ≥ N` a
 converging. This is often applied for `B N = 2^{-N}`, i.e., with a very fast convergence to
 `0`, which makes it possible to use arguments of converging series, while this is impossible
 to do in general for arbitrary Cauchy sequences. -/
-theorem complete_of_convergent_controlled_sequences (B : ℕ → real) (hB : ∀n, 0 < B n)
+theorem metric.complete_of_convergent_controlled_sequences (B : ℕ → real) (hB : ∀n, 0 < B n)
   (H : ∀u : ℕ → α, (∀N n m : ℕ, N ≤ n → N ≤ m → dist (u n) (u m) < B N) → ∃x, tendsto u at_top (𝓝 x)) :
   complete_space α :=
 begin
@@ -626,7 +626,7 @@ begin
     exact Hu N n m hn hm }
 end
 
-theorem complete_of_cauchy_seq_tendsto :
+theorem metric.complete_of_cauchy_seq_tendsto :
   (∀ u : ℕ → α, cauchy_seq u → ∃a, tendsto u at_top (𝓝 a)) → complete_space α :=
 emetric.complete_of_cauchy_seq_tendsto
 

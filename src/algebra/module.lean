@@ -54,6 +54,12 @@ instance smul.is_add_monoid_hom {r : α} : is_add_monoid_hom (λ x : β, r • x
 lemma semimodule.eq_zero_of_zero_eq_one (zero_eq_one : (0 : α) = 1) : x = 0 :=
 by rw [←one_smul α x, ←zero_eq_one, zero_smul]
 
+/-- R-linearity of finite sums of elements of an R-semimodule. -/
+lemma finset.sum_smul {α : Type*} {R : Type*} [semiring R] {M : Type*} [add_comm_monoid M]
+  [semimodule R M] (s : finset α) (r : R) (f : α → M) :
+    s.sum (λ (x : α), (r • (f x))) = r • (s.sum f) :=
+s.sum_hom _
+
 end semimodule
 
 section prio
@@ -218,7 +224,7 @@ begin
 end
 
 --TODO: move
-lemma is_linear_map_smul' {α R : Type*} [add_comm_group α] [comm_ring R] [module R α] (a : α) :
+lemma is_linear_map_smul' {α R : Type*} [add_comm_group α] [ring R] [module R α] (a : α) :
   is_linear_map R (λ (c : R), c • a) :=
 begin
   refine is_linear_map.mk (λ x y, add_smul x y a) _,

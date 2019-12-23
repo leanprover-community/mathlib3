@@ -1456,6 +1456,9 @@ def at_bot [preorder α] : filter α := ⨅ a, principal {b | b ≤ a}
 lemma mem_at_top [preorder α] (a : α) : {b : α | a ≤ b} ∈ @at_top α _ :=
 mem_infi_sets a $ subset.refl _
 
+lemma mem_at_bot [preorder α] (a : α) : {b : α | b ≤ a} ∈ @at_bot α _ :=
+mem_infi_sets a $ subset.refl _
+
 @[simp] lemma at_top_ne_bot [nonempty α] [semilattice_sup α] : (at_top : filter α) ≠ ⊥ :=
 infi_neq_bot_of_directed (by apply_instance)
   (assume a b, ⟨a ⊔ b, by simp only [ge, le_principal_iff, forall_const, set_of_subset_set_of,
@@ -1499,6 +1502,13 @@ a prescribed convergence rate. -/
 lemma tendsto.exists_subseq_ge [preorder β] {l : filter α} {f : α → β} (h : tendsto f l at_top)
   (hl : l ≠ ⊥) (b : ℕ → β) : ∃ x : ℕ → α, ∀ {m n}, m ≤ n → b m ≤ f (x n) :=
 h.exists_subseq_controlled hl (λ n, Ici (b n)) (λ n, mem_at_top (b n))
+
+/-- If `f : α → β`, `tendsto f a at_bot`, then for any sequence `b : ℕ → β` there is a subsequence
+`f (x n)` such that `f (x n) ≤ b m` whenever `m ≤ n`. This is useful to extract a subsequence with
+a prescribed convergence rate. -/
+lemma tendsto.exists_subseq_le [preorder β] {l : filter α} {f : α → β} (h : tendsto f l at_bot)
+  (hl : l ≠ ⊥) (b : ℕ → β) : ∃ x : ℕ → α, ∀ {m n}, m ≤ n → f (x n) ≤ b m :=
+h.exists_subseq_controlled hl (λ n, Iic (b n)) (λ n, mem_at_bot (b n))
 
 section ordered_monoid
 

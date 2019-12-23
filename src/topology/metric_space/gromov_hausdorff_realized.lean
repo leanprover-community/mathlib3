@@ -401,7 +401,7 @@ variables (α : Type u) (β : Type v) [metric_space α] [compact_space α] [none
 we can finally select a candidate minimizing HD. This will be the candidate realizing the
 optimal coupling. -/
 private lemma exists_minimizer : ∃f ∈ candidates_b α β, ∀g ∈ candidates_b α β, HD f ≤ HD g :=
-compact_candidates_b.exists_forall_le candidates_b_ne_empty _ HD_continuous.continuous_on
+compact_candidates_b.exists_forall_le candidates_b_ne_empty HD_continuous.continuous_on
 
 private definition optimal_GH_dist : Cb α β := classical.some (exists_minimizer α β)
 

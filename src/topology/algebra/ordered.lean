@@ -1112,7 +1112,7 @@ end densely_ordered
 
 /-- The extreme value theorem: a continuous function realizes its minimum on a compact set -/
 lemma compact.exists_forall_le {α : Type u} [topological_space α]
-  {s : set α} (hs : compact s) (ne_s : s ≠ ∅) (f : α → β) (hf : continuous_on f s) :
+  {s : set α} (hs : compact s) (ne_s : s ≠ ∅) {f : α → β} (hf : continuous_on f s) :
   ∃x∈s, ∀y∈s, f x ≤ f y :=
 begin
   have C : compact (f '' s) := hs.image_of_continuous_on hf,

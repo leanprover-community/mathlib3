@@ -2,12 +2,17 @@
 Copyright (c) 2018 Robert Y. Lewis. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Robert Y. Lewis, Sébastien Gouëzel
-Characterize completeness of metric spaces in terms of Cauchy sequences.
-In particular, reconcile the filter notion of Cauchy-ness with the cau_seq notion on normed spaces.
 -/
 
 import topology.uniform_space.basic analysis.normed_space.basic data.real.cau_seq
 import tactic.linarith
+
+/-! # Completeness in terms of `cauchy` filters vs `is_cau_seq` sequnces
+
+In this file we apply `metric.complete_of_cauchy_seq_tendsto` to prove that a `normed_ring`
+is complete in terms of `cauchy` filter if and only if it is complete in terms
+of `cau_seq` Cauchy sequences.
+-/
 
 universes u v
 open set filter
@@ -15,9 +20,6 @@ open_locale topological_space classical
 
 variable {β : Type v}
 namespace sequentially_complete
-
-/- Now, we will apply these results to `cau_seq`, i.e., "Cauchy sequences" defined by a
-multiplicative absolute value on normed fields. -/
 
 lemma tendsto_limit [normed_ring β] [hn : is_absolute_value (norm : β → ℝ)]
   (f : cau_seq β norm) [cau_seq.is_complete β norm] :

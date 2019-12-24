@@ -124,8 +124,11 @@ end
 lemma differentiable_cos : differentiable ℂ cos :=
 λx, (has_deriv_at_cos x).differentiable_at
 
-@[simp] lemma deriv_cos : deriv cos = (λ x, -sin x) :=
-funext $ λ x, (has_deriv_at_cos x).deriv
+lemma deriv_cos : deriv cos x = -sin x :=
+(has_deriv_at_cos x).deriv
+
+@[simp] lemma deriv_cos' : deriv cos = (λ x, -sin x) :=
+funext $ λ x, deriv_cos
 
 lemma continuous_cos : continuous cos :=
 differentiable_cos.continuous
@@ -214,8 +217,11 @@ lemma has_deriv_at_cos (x : ℝ) : has_deriv_at cos (-sin x) x :=
 lemma differentiable_cos : differentiable ℝ cos :=
 λx, (has_deriv_at_cos x).differentiable_at
 
-@[simp] lemma deriv_cos : deriv cos = (λ x, - sin x) :=
-funext $ λ x, (has_deriv_at_cos x).deriv
+lemma deriv_cos : deriv cos x = - sin x :=
+(has_deriv_at_cos x).deriv
+
+@[simp] lemma deriv_cos' : deriv cos = (λ x, - sin x) :=
+funext $ λ _, deriv_cos
 
 lemma continuous_cos : continuous cos :=
 differentiable_cos.continuous

@@ -321,7 +321,7 @@ has_deriv_at_filter_id _ _
 lemma deriv_id : deriv id x = 1 :=
 has_deriv_at.deriv (has_deriv_at_id x)
 
-@[simp] lemma deriv_id' : deriv (@id ℝ) = λ _, 1 :=
+@[simp] lemma deriv_id' : deriv (@id 𝕜) = λ _, 1 :=
 funext deriv_id
 
 lemma deriv_within_id (hxs : unique_diff_within_at 𝕜 s x) : deriv_within id s x = 1 :=

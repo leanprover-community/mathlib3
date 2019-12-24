@@ -236,20 +236,48 @@ def comp (f : γ →ₗ[α] δ) (g : β →ₗ[α] γ) : β →ₗ[α] δ := ⟨
 
 @[simp] lemma comp_apply (f : γ →ₗ[α] δ) (g : β →ₗ[α] γ) (x : β) : f.comp g x = f (g x) := rfl
 
+
 omit mγ mδ
 variables [rα] [gβ] [mβ]
 
 def id : β →ₗ[α] β := ⟨id, by simp, by simp⟩
 
+
 @[simp] lemma id_apply (x : β) : @id α β _ _ _ x = x := rfl
+
+include mγ
+@[simp] lemma id_comp (f : β →ₗ[α] γ) : comp (id : γ →ₗ[α] γ) f = f := by ext; simp
+@[simp] lemma comp_id (f : β →ₗ[α] γ) : comp f (id : β →ₗ[α] β) = f := by ext; simp
+omit mγ
 
 def iterate (f : β →ₗ[α] β) : ℕ → (β →ₗ[α] β)
 | 0       := id
-| (n + 1) := comp f (iterate n)
+| (n + 1) := comp (iterate n) f
 
-lemma iterate_surjective (f : β →ₗ[α] β) (h : surjective f) : ∀ n, surjective (iterate f n)
+lemma iterate_succ (f : β →ₗ[α] β) : ∀ n, (iterate f (n + 1)) = comp (iterate f n) f := λ n, rfl
+
+theorem iterate_add (f : β →ₗ[α] β) : ∀ (m n : ℕ), iterate f (m + n) = comp (iterate f m) (iterate f n)
+| m 0       := by rw [add_zero,iterate]; rw comp_id
+| m (n + 1) := by rw [← add_assoc, iterate_succ, iterate_add m n]; refl
+
+lemma iterate_succ' (f : β →ₗ[α] β) : ∀ n, (iterate f (n + 1)) = comp f (iterate f n)
+:= λ n, by rw [add_comm, iterate_add]; refl
+
+@[simp] lemma iterate_to_fun (f : β →ₗ[α] β) : ∀ n, (iterate f n).to_fun = nat.iterate f.to_fun n
+| 0       := rfl
+| (n + 1) := by change function.comp (iterate f n).to_fun f.to_fun = function.comp (nat.iterate f.to_fun n) f.to_fun; rw iterate_to_fun n
+
+lemma iterate_surj {f : β →ₗ[α] β} (h : surjective f) : ∀ n, surjective (iterate f n)
 | 0       := surjective_id
-| (n + 1) := surjective_comp h (iterate_surjective n)
+| (n + 1) := surjective_comp (iterate_surj n) h
+
+lemma iterate_inj {f : β →ₗ[α] β} (h : injective f) : ∀ n, injective (iterate f n)
+| 0       := injective_id
+| (n + 1) := injective_comp (iterate_inj n) h
+
+lemma iterate_bij {f : β →ₗ[α] β} (h : bijective f) : ∀ n, bijective (iterate f n)
+| 0       := bijective_id
+| (n + 1) := bijective_comp (iterate_bij n) h
 
 end linear_map
 

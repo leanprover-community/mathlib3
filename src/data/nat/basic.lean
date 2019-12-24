@@ -898,6 +898,13 @@ theorem iterate_inj {α : Type u} {op : α → α} (Hinj : function.injective op
 by induction n with n ih; simp only [iterate_zero, iterate_succ'] at H;
 [exact H, exact ih (Hinj H)]
 
+theorem iterate_surj {α : Type u} {op : α → α} (Hsurj : function.surjective op) (n : ℕ) :
+  function.surjective (op^[n]) := λ x,
+by induction n with n ih; simp [iterate_zero, iterate_succ]; cases ih; cases (Hsurj ih_w); exact ⟨w, h.symm ▸ ih_h⟩
+
+theorem iterate_bij {α : Type u} {op : α → α} (Hbij : function.bijective op) (n : ℕ) :
+  function.bijective (op^[n]) := ⟨iterate_inj Hbij.1 n, iterate_surj Hbij.2 n⟩
+
 end
 
 /- size and shift -/

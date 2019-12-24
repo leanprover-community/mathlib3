@@ -116,12 +116,6 @@ variables [module R M] [module R M₂] [module R M₃] [module R M₄]
 variables (f g : M →ₗ[R] M₂)
 include R
 
-@[simp] theorem comp_id : f.comp id = f :=
-linear_map.ext $ λ x, rfl
-
-@[simp] theorem id_comp : id.comp f = f :=
-linear_map.ext $ λ x, rfl
-
 theorem comp_assoc (g : M₂ →ₗ[R] M₃) (h : M₃ →ₗ[R] M₄) : (h.comp g).comp f = h.comp (g.comp f) :=
 rfl
 

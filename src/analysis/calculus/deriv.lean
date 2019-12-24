@@ -217,6 +217,10 @@ lemma has_deriv_within_at.nhds_within (h : has_deriv_within_at f f' s x)
   (ht : s ∈ nhds_within x t) : has_deriv_within_at f f' t x :=
 (has_deriv_within_at_inter' ht).1 (h.mono (inter_subset_right _ _))
 
+lemma has_deriv_within_at.has_deriv_at (h : has_deriv_within_at f f' s x) (hs : s ∈ 𝓝 x) :
+  has_deriv_at f f' x :=
+has_fderiv_within_at.has_fderiv_at h hs
+
 lemma differentiable_within_at.has_deriv_within_at (h : differentiable_within_at 𝕜 f s x) :
   has_deriv_within_at f (deriv_within f s x) s x :=
 show has_fderiv_within_at _ _ _ _, by { convert h.has_fderiv_within_at, simp [deriv_within] }

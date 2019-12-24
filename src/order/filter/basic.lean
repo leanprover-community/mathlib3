@@ -363,7 +363,7 @@ lemma principal_mono {s t : set α} : principal s ≤ principal t ↔ s ⊆ t :=
 by simp only [le_principal_iff, iff_self, mem_principal_sets]
 
 lemma monotone_principal : monotone (principal : set α → filter α) :=
-by simp only [monotone, principal_mono]; exact assume a b h, h
+λ _ _, principal_mono.2
 
 @[simp] lemma principal_eq_iff_eq {s t : set α} : principal s = principal t ↔ s = t :=
 by simp only [le_antisymm_iff, le_principal_iff, mem_principal_sets]; refl
@@ -396,6 +396,26 @@ have ∅ ∈ f ⊓ principal (- s), from h.symm ▸ mem_bot_sets,
 let ⟨s₁, hs₁, s₂, (hs₂ : -s ⊆ s₂), (hs : s₁ ∩ s₂ ⊆ ∅)⟩ := this in
 by filter_upwards [hs₁] assume a ha, classical.by_contradiction $ assume ha', hs ⟨ha, hs₂ ha'⟩
 
+lemma eq_Inf_of_mem_sets_iff_exists_mem {S : set (filter α)} {l : filter α}
+  (h : ∀ {s}, s ∈ l ↔ ∃ f ∈ S, s ∈ f) : l = Inf S :=
+le_antisymm (le_Inf $ λ f hf s hs, h.2 ⟨f, hf, hs⟩)
+  (λ s hs, let ⟨f, hf, hs⟩ := h.1 hs in (Inf_le hf : Inf S ≤ f) hs)
+
+lemma eq_infi_of_mem_sets_iff_exists_mem {f : ι → filter α} {l : filter α}
+  (h : ∀ {s}, s ∈ l ↔ ∃ i, s ∈ f i) :
+  l = infi f :=
+eq_Inf_of_mem_sets_iff_exists_mem $ λ s, h.trans exists_range_iff.symm
+
+lemma eq_binfi_of_mem_sets_iff_exists_mem {f : ι → filter α} {p : ι  → Prop} {l : filter α}
+  (h : ∀ {s}, s ∈ l ↔ ∃ i (_ : p i), s ∈ f i) :
+  l = ⨅ i (_ : p i), f i :=
+begin
+  rw [infi_subtype'],
+  apply eq_infi_of_mem_sets_iff_exists_mem,
+  intro s,
+  exact h.trans ⟨λ ⟨i, pi, si⟩, ⟨⟨i, pi⟩, si⟩, λ ⟨⟨i, pi⟩, si⟩, ⟨i, pi, si⟩⟩
+end
+
 lemma infi_sets_eq {f : ι → filter α} (h : directed (≥) f) (ne : nonempty ι) :
   (infi f).sets = (⋃ i, (f i).sets) :=
 let ⟨i⟩ := ne, u := { filter .
@@ -410,9 +430,8 @@ let ⟨i⟩ := ne, u := { filter .
       rcases h a b with ⟨c, ha, hb⟩,
       exact ⟨c, inter_mem_sets (ha hx) (hb hy)⟩
     end } in
-subset.antisymm
-  (show u ≤ infi f, from le_infi $ assume i, le_supr (λi, (f i).sets) i)
-  (Union_subset $ assume i, infi_le f i)
+have u = infi f, from eq_infi_of_mem_sets_iff_exists_mem (λ s, by simp only [mem_Union]),
+congr_arg filter.sets this.symm
 
 lemma mem_infi {f : ι → filter α} (h : directed (≥) f) (ne : nonempty ι) (s) :
   s ∈ infi f ↔ s ∈ ⋃ i, (f i).sets :=

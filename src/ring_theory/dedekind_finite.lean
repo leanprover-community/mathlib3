@@ -12,49 +12,44 @@ section
 
 variables (R : Type*)
 
-class dedekind_finite extends ring R :=
-( inv_comm : ∀ a b : R, a * b = 1 → b * a = 1 )
+class is_dedekind_finite_ring [ring R] :=
+(inv_comm : ∀ a b : R, a * b = 1 → b * a = 1)
+
+--class dedekind_finite extends ring R, right_inv_is_left_inv R
 
 @[priority 100]
-instance dedekind_finite_of_comm_ring [comm_ring R] : dedekind_finite R :=
+instance is_dedekind_finite_ring_of_comm_ring [comm_ring R] : is_dedekind_finite_ring R :=
 ⟨λ a b h, h ▸ mul_comm b a⟩
 
 end
 section
-universes u v w
-variable {I : Type u}     -- The indexing type
-variable {f : I → Type v} -- The family of types already equiped with instances
-variables (x y : Π i, f i) (i : I)
-instance pi.dedekind_finite [∀ i, dedekind_finite $ f i] : dedekind_finite (Π i : I, f i) := by pi_instance
+
+instance is_dedekind_finite_ring_pi {ι : Type*} {α : ι → Type*}
+  [∀ i, ring $ α i] [∀ i, is_dedekind_finite_ring $ α i] : is_dedekind_finite_ring (Π i, α i) := by pi_instance
 
 end
 section
-universe u
-variables (R : Type u)
-/-  TODO
-instance asubset.ring {S : set R} [is_subring S] : ring S :=
-by apply_instance
-instance asubtype.ring {S : set R} [is_subring S] : ring (subtype S) := subset.ring
+variables (R : Type*)
 
-instance subring.dedekind_finite [dedekind_finite R] (S : set R) [is_subring S] : dedekind_finite S :=
+instance subring.is_dedekind_finite_ring [ring R] [is_dedekind_finite_ring R] (S : set R) [is_subring S] : is_dedekind_finite_ring S :=
 by subtype_instance
- -/
+
 def is_nilpotent {R : Type*} [ring R] (a : R) := ∃ n : ℕ, a^n = 0
 def nilpotents [ring R] := { a : R | is_nilpotent a }
 
-class reduced extends ring R :=
+class is_reduced_ring [ring R] :=
 (no_nilpotents : ∀ a : R, ∀ n : ℕ, a^n = 0 → a = 0)
 
 lemma zero_nilpotent [ring R] : is_nilpotent (0 : R) := ⟨1, pow_one 0⟩
 lemma zero_in_nilpotents [ring R] : (0 : R) ∈ nilpotents R := zero_nilpotent R
 
-lemma nilpotents_of_reduced [reduced R] : nilpotents R = {0} :=
+lemma nilpotents_of_reduced [ring R] [is_reduced_ring R] : nilpotents R = {0} :=
 begin
 apply' set.eq_of_subset_of_subset,
 {
     rintros x ⟨n, hn⟩,
     rw set.mem_singleton_iff,
-    exact reduced.no_nilpotents x n hn,
+    exact is_reduced_ring.no_nilpotents _ n hn,
 },
 {
     rw set.singleton_subset_iff,
@@ -62,37 +57,39 @@ apply' set.eq_of_subset_of_subset,
 }
 end
 
-class reversible extends ring R :=
+class is_reversible_ring [ring R] :=
 (zero_div_comm : ∀ a b : R, a * b = 0 → b * a = 0)
 
 @[priority 100]
-instance reversible_of_domain [domain R] : reversible R :=
-⟨ λ a b h,
+instance is_reversible_ring_of_domain [domain R] : is_reversible_ring R :=
+⟨λ a b h,
 begin
     cases domain.eq_zero_or_eq_zero_of_mul_eq_zero a b h,
     { rw h_1, rw [mul_zero], },
     { rw h_1, rw [zero_mul], },
 end⟩
 
-@[priority 100]
-instance reversible_of_reduced [reduced R] : reversible R :=
-⟨ λ a b h,
-begin
-    apply reduced.no_nilpotents (b * a) 2,
-    rw [pow_two, ← mul_assoc, mul_assoc b, h, mul_zero, zero_mul],
-end⟩
-@[priority 100]
-instance reversible_of_comm_ring [comm_ring R] : reversible R :=
-⟨ λ a b h, h ▸ mul_comm b a⟩
 
 @[priority 100]
-instance dedekind_finite_of_reversible [reversible R] : dedekind_finite R :=
-⟨ λ a b h,
+instance reversible_of_reduced [ring R] [is_reduced_ring R] : is_reversible_ring R :=
+⟨λ a b h,
+begin
+    apply is_reduced_ring.no_nilpotents (b * a) 2,
+    rw [pow_two, ← mul_assoc, mul_assoc b, h, mul_zero, zero_mul],
+end⟩
+
+@[priority 100]
+instance reversible_of_comm_ring [comm_ring R] : is_reversible_ring R :=
+⟨λ a b h, h ▸ mul_comm b a⟩
+
+@[priority 100]
+instance is_dedekind_finite_ring_of_reversible [ring R] [is_reversible_ring R] : is_dedekind_finite_ring R :=
+⟨λ a b h,
 begin
     have :=
     calc (b * a - 1) * b = b * (a * b) - b : by rw [sub_mul, one_mul, mul_assoc]
                     ...  = 0               : by rw [h, mul_one, sub_self],
-    have : b * (b * a - 1) = 0 := reversible.zero_div_comm _ _ this,
+    have : b * (b * a - 1) = 0 := is_reversible_ring.zero_div_comm _ _ this,
     rw [mul_sub, mul_one, ← mul_assoc, ← pow_two, sub_eq_zero] at this,
     have abba_eq_one := congr_arg ((*) a) this,
     rw [h] at abba_eq_one,
@@ -103,7 +100,7 @@ begin
 end⟩
 
 @[priority 100]
-instance dedekind_finite_of_reduced [reduced R] : dedekind_finite R := by apply_instance
+instance is_dedekind_finite_ring_of_reduced [ring R] [is_reduced_ring R] : is_dedekind_finite_ring R := by apply_instance
 
 
 variable [ring R]
@@ -112,11 +109,9 @@ open linear_map
 open_locale classical
 
 
-example (G : Type*) [monoid G] : G := 1 * 1
-
 @[priority 100]
-instance dedekind_finite_of_noetherian [is_noetherian_ring R] : dedekind_finite R :=
-⟨ λ a b h,
+instance is_dedekind_finite_ring_of_noetherian [is_noetherian_ring R] : is_dedekind_finite_ring R :=
+⟨λ a b h,
 begin
     have : is_linear_map R _ := is_linear_map.is_linear_map_smul' b,
     set f : R →ₗ[R] R := is_linear_map.mk' _ this,
@@ -128,10 +123,10 @@ begin
     suffices : ∃ n, ordf n = ordf (n + 1),
     begin
         obtain ⟨n, hn⟩ := this,
-        have pow_surj := iterate_surjective f f_surj n,
+        have pow_surj := iterate_surj f_surj n,
         obtain ⟨c, hc⟩ := pow_surj (b * a - 1),
         have :=
-        calc iterate f (n + 1) c = f (b * a - 1)   : by rw [iterate, linear_map.comp_apply, hc]
+        calc iterate f (n + 1) c = f (b * a - 1)   : by rw [iterate_succ', comp_apply, hc]
                             ...  = (b * a - 1) * b : by simp [f]
                             ...  = 0               : by rw [sub_mul, one_mul, mul_assoc, h, mul_one, sub_self],
         rw ← linear_map.mem_ker at this,
@@ -145,20 +140,17 @@ begin
     by_contradiction ho,
     apply this,
     push_neg at ho,
-    have : ∀ n, ordf n ≤ ordf (n + 1) := λ n x hx, begin simp [ordf, iterate] at hx ⊢, rw [hx, zero_mul], end,
+    have : ∀ n, ordf n ≤ ordf (n + 1) := λ n x hx, begin simp [ordf, iterate_succ'] at hx ⊢, rw [hx, zero_mul], end,
     have : ∀ n, ordf (n + 1) > ordf n := λ n, lt_of_le_of_ne (this n) (ho n),
     have := order_embedding.nat_gt _ this,
     exact nonempty.intro this,
 end⟩
 
-example (G : Type*) [monoid G] : G := 1 * 1
-
-
 @[priority 100]
-instance dedekind_finite_of_finite [fintype R] : dedekind_finite R := begin
+instance is_dedekind_finite_ring_of_finite [fintype R] [ring R] : is_dedekind_finite_ring R := begin
     --TODO why is this needed?
     haveI : is_noetherian_ring R := ring.is_noetherian_of_fintype R R,
-    exactI dedekind_finite.dedekind_finite_of_noetherian R,
+    exactI dedekind_finite.is_dedekind_finite_ring_of_noetherian R,
 end
 end
 
@@ -189,9 +181,8 @@ private lemma aux3 {j k : ℕ}
   (H : k < j) (hjk : ¬j = k + 1) : ¬j ≤ k + 1 :=
 by omega
 
-
 private lemma aux4 {j k l : ℕ}
-  (H : k< j)  :
+  (H : k < j)  :
  j - (k + 1) + (l + 1) = j - k + l :=
  by omega
 
@@ -302,7 +293,7 @@ end
 open_locale classical
 
 @[priority 100]
-instance dedekind_finite_of_fin_nilpotents (R : Type*) [ring R] (h : (nilpotents R).finite) : dedekind_finite R :=
+instance is_dedekind_finite_ring_of_fin_nilpotents (R : Type*) [ring R] (h : (nilpotents R).finite) : is_dedekind_finite_ring R :=
 ⟨begin
     unfreezeI,
     contrapose! h,

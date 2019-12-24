@@ -245,10 +245,11 @@ def id : β →ₗ[α] β := ⟨id, by simp, by simp⟩
 
 @[simp] lemma id_apply (x : β) : @id α β _ _ _ x = x := rfl
 
-include mγ
-@[simp] lemma id_comp (f : β →ₗ[α] γ) : comp (id : γ →ₗ[α] γ) f = f := by ext; simp
-@[simp] lemma comp_id (f : β →ₗ[α] γ) : comp f (id : β →ₗ[α] β) = f := by ext; simp
-omit mγ
+@[simp] theorem comp_id : f.comp id = f :=
+linear_map.ext $ λ x, rfl
+
+@[simp] theorem id_comp : id.comp f = f :=
+linear_map.ext $ λ x, rfl
 
 def iterate (f : β →ₗ[α] β) : ℕ → (β →ₗ[α] β)
 | 0       := id

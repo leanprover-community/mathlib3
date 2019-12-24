@@ -147,7 +147,7 @@ begin
 end⟩
 
 @[priority 100]
-instance is_dedekind_finite_ring_of_finite [fintype R] [ring R] : is_dedekind_finite_ring R := begin
+instance is_dedekind_finite_ring_of_finite [fintype R] : is_dedekind_finite_ring R := begin
     --TODO why is this needed?
     haveI : is_noetherian_ring R := ring.is_noetherian_of_fintype R R,
     exactI dedekind_finite.is_dedekind_finite_ring_of_noetherian R,
@@ -319,6 +319,5 @@ instance is_dedekind_finite_ring_of_fin_nilpotents (R : Type*) [ring R] (h : (ni
 end⟩
 
 end
-#lint
 
 end dedekind_finite

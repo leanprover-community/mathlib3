@@ -452,7 +452,7 @@ have ¬differentiable_at 𝕜 (λ y, -f y) x, from λ h', by simpa only [neg_neg
 by simp only [deriv_zero_of_not_differentiable_at h,
   deriv_zero_of_not_differentiable_at this, neg_zero]
 
-lemma deriv_neg' : deriv (λy, -f y) = (λ x, - deriv f x) :=
+@[simp] lemma deriv_neg' : deriv (λy, -f y) = (λ x, - deriv f x) :=
 funext $ λ x, deriv_neg
 
 end neg

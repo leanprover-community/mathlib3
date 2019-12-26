@@ -87,14 +87,14 @@ begin
      definition of `δ`. -/
   let t := s ∩ ball x δ,
   have diff_t : differentiable_on ℝ f t := f_diff.mono (inter_subset_left _ _),
-  have t_conv : convex t := convex_inter _ _ s_conv (convex_ball _ _),
+  have t_conv : convex t := s_conv.inter (convex_ball _ _),
   have cxnt : cx n ∈ t := ⟨cxs n, hnx⟩,
   have cynt : cy n ∈ t,
   { refine ⟨cys n, _⟩,
     calc dist (cy n) x ≤ dist (cy n) y + dist y x : dist_triangle _ _ _
     ... < δ/2 + δ/2 : add_lt_add hny hy.1
     ... = δ : by ring },
-  refine norm_image_sub_le_of_norm_deriv_le_convex diff_t (λz zt, _) t_conv cxnt cynt,
+  refine t_conv.norm_image_sub_le_of_norm_deriv_le diff_t (λz zt, _) cxnt cynt,
   have : fderiv_within ℝ f t z = fderiv ℝ f z,
   { have t_open : is_open t := is_open_inter s_open is_open_ball,
     rw differentiable_at.fderiv_within _ (t_open.unique_diff_on z zt),

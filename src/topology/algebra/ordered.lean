@@ -286,6 +286,14 @@ tendsto_orderable.2
     have {b : β | h b < a'} ∈ b, from (tendsto_orderable.1 hh).right a' h',
     by filter_upwards [this, hfh] assume a h₁ h₂, lt_of_le_of_lt h₂ h₁⟩
 
+/-- Also known as squeeze or sandwich theorem; see `tendsto_of_tendsto_of_tendsto_of_le_of_le`
+for the general case. -/
+lemma squeeze_zero [has_zero α] {f g : β → α} {b : filter β} (hf : ∀t, 0 ≤ f t)
+  (hft : ∀t, f t ≤ g t) (g0 : tendsto g b (𝓝 0)) :
+  tendsto f b (𝓝 0) :=
+tendsto_of_tendsto_of_tendsto_of_le_of_le tendsto_const_nhds g0
+  (univ_mem_sets' hf) (univ_mem_sets' hft)
+
 lemma nhds_orderable_unbounded {a : α} (hu : ∃u, a < u) (hl : ∃l, l < a) :
   𝓝 a = (⨅l (h₂ : l < a) u (h₂ : a < u), principal (Ioo l u)) :=
 let ⟨u, hu⟩ := hu, ⟨l, hl⟩ := hl in

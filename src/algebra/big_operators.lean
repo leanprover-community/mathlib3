@@ -51,6 +51,11 @@ lemma prod_insert [decidable_eq α] : a ∉ s → (insert a s).prod f = f a * s.
 lemma prod_singleton : (singleton a).prod f = f a :=
 eq.trans fold_singleton $ mul_one _
 
+@[to_additive]
+lemma prod_pair [decidable_eq α] {a b : α} (h : a ≠ b) :
+  ({a, b} : finset α).prod f = f a * f b :=
+by simp [prod_insert (not_mem_singleton.2 h.symm), mul_comm]
+
 @[simp] lemma prod_const_one : s.prod (λx, (1 : β)) = 1 :=
 by simp only [finset.prod, multiset.map_const, multiset.prod_repeat, one_pow]
 @[simp] lemma sum_const_zero {β} {s : finset α} [add_comm_monoid β] : s.sum (λx, (0 : β)) = 0 :=
@@ -423,10 +428,10 @@ end comm_monoid
 
 attribute [to_additive] prod_hom
 
-lemma sum_smul [add_comm_monoid β] (s : finset α) (n : ℕ) (f : α → β) :
+lemma sum_smul' [add_comm_monoid β] (s : finset α) (n : ℕ) (f : α → β) :
   s.sum (λ x, add_monoid.smul n (f x)) = add_monoid.smul n (s.sum f) :=
 @prod_pow _ (multiplicative β) _ _ _ _
-attribute [to_additive sum_smul] prod_pow
+attribute [to_additive sum_smul'] prod_pow
 
 @[simp] lemma sum_const [add_comm_monoid β] (b : β) :
   s.sum (λ a, b) = add_monoid.smul s.card b :=

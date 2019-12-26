@@ -53,6 +53,14 @@ section group
   ⟨λ h, by rw [← inv_inv a, h, inv_inv], congr_arg _⟩
 
   @[to_additive]
+  theorem mul_left_surjective (a : α) : function.surjective ((*) a) :=
+  λ x, ⟨a⁻¹ * x, mul_inv_cancel_left a x⟩
+
+  @[to_additive]
+  theorem mul_right_surjective (a : α) : function.surjective (λ x, x * a) :=
+  λ x, ⟨x * a⁻¹, inv_mul_cancel_right x a⟩
+
+  @[to_additive]
   theorem eq_of_inv_eq_inv : a⁻¹ = b⁻¹ → a = b :=
   inv_inj'.1
 
@@ -117,28 +125,24 @@ section group
   ⟨λ h, by rw [← h, inv_mul_cancel_right], λ h, by rw [h, mul_inv_cancel_right]⟩
 
   @[to_additive]
-  theorem mul_inv_eq_one {a b : α} : a * b⁻¹ = 1 ↔ a = b :=
+  theorem mul_inv_eq_one : a * b⁻¹ = 1 ↔ a = b :=
   by rw [mul_eq_one_iff_eq_inv, inv_inv]
 
   @[to_additive]
-  theorem inv_comm_of_comm {a b : α} (H : a * b = b * a) : a⁻¹ * b = b * a⁻¹ :=
+  theorem inv_comm_of_comm (H : a * b = b * a) : a⁻¹ * b = b * a⁻¹ :=
   begin
     have : a⁻¹ * (b * a) * a⁻¹ = a⁻¹ * (a * b) * a⁻¹ :=
       congr_arg (λ x:α, a⁻¹ * x * a⁻¹) H.symm,
     rwa [inv_mul_cancel_left, mul_assoc, mul_inv_cancel_right] at this
   end
 
-@[to_additive]
-lemma mul_left_eq_self {α : Type*} [group α] {a b : α} :
-  a * b = b ↔ a = 1 :=
+@[simp, to_additive]
+lemma mul_left_eq_self : a * b = b ↔ a = 1 :=
 ⟨λ h, @mul_right_cancel _ _ a b 1 (by simp [h]), λ h, by simp [h]⟩
 
-@[to_additive]
-lemma mul_right_eq_self {α : Type*} [group α] {a b : α} :
-  a * b = a ↔ b = 1 :=
+@[simp, to_additive]
+lemma mul_right_eq_self : a * b = a ↔ b = 1 :=
 ⟨λ h, @mul_left_cancel _ _ a b 1 (by simp [h]), λ h, by simp [h]⟩
-
-attribute [simp] mul_left_eq_self mul_right_eq_self add_left_eq_self add_right_eq_self
 
 end group
 

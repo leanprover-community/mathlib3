@@ -972,11 +972,15 @@ eq_univ_of_forall $ by simp [image]; exact H
 @[simp] theorem image_singleton {f : α → β} {a : α} : f '' {a} = {f a} :=
 ext $ λ x, by simp [image]; rw eq_comm
 
+theorem nonempty.image_const {s : set α} (hs : s.nonempty) (a : β) : (λ _, a) '' s = {a} :=
+ext $ λ x, ⟨λ ⟨y, _, h⟩, h ▸ mem_singleton _,
+  λ h, (eq_of_mem_singleton h).symm ▸ hs.imp (λ y hy, ⟨hy, rfl⟩)⟩
+
 @[simp] lemma image_eq_empty {α β} {f : α → β} {s : set α} : f '' s = ∅ ↔ s = ∅ :=
 by simp only [eq_empty_iff_forall_not_mem]; exact
 ⟨λ H a ha, H _ ⟨_, ha, rfl⟩, λ H b ⟨_, ha, _⟩, H _ ha⟩
 
-lemma inter_singleton_ne_empty {α : Type*} {s : set α} {a : α} : s ∩ {a} ≠ ∅ ↔ a ∈ s :=
+lemma inter_singleton_ne_empty {s : set α} {a : α} : s ∩ {a} ≠ ∅ ↔ a ∈ s :=
 by finish  [set.inter_singleton_eq_empty]
 
 theorem fix_set_compl (t : set α) : compl t = - t := rfl
@@ -1154,6 +1158,12 @@ theorem range_iff_surjective : range f = univ ↔ surjective f :=
 eq_univ_iff_forall
 
 @[simp] theorem range_id : range (@id α) = univ := range_iff_surjective.2 surjective_id
+
+theorem range_inl_union_range_inr : range (@sum.inl α β) ∪ range sum.inr = univ :=
+ext $ λ x, by cases x; simp
+
+@[simp] theorem range_quot_mk (r : α → α → Prop) : range (quot.mk r) = univ :=
+range_iff_surjective.2 quot.exists_rep
 
 @[simp] theorem image_univ {ι : Type*} {f : ι → β} : f '' univ = range f :=
 ext $ by simp [image, range]

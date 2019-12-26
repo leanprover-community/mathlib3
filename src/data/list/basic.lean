@@ -1573,6 +1573,8 @@ theorem cons_iff {r : α → α → Prop} [is_irrefl α r] {a l₁ l₂} :
   lex r (a :: l₁) (a :: l₂) ↔ lex r l₁ l₂ :=
 ⟨λ h, by cases h with _ _ _ _ _ h _ _ _ _ h;
   [exact h, exact (irrefl_of r a h).elim], lex.cons⟩
+  
+@[simp] theorem not_nil_right (r : α → α → Prop) (l : list α) : ¬ lex r l [].
 
 instance is_order_connected (r : α → α → Prop)
   [is_order_connected α r] [is_trichotomous α r] :
@@ -4452,6 +4454,7 @@ theorem reverse_range' : ∀ s n : ℕ,
     nil_append, eq_self_iff_true, true_and, map_map]
   using reverse_range' s n
 
+/-- All elements of `fin n`, from `0` to `n-1`. -/
 def fin_range (n : ℕ) : list (fin n) :=
 (range n).pmap fin.mk (λ _, list.mem_range.1)
 

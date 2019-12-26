@@ -155,38 +155,38 @@ uniqueness of the derivative. -/
 `c n * d n` tends to `v`, then `c n * (f (x + d n) - f x)` tends to `f' v`. This lemma expresses
 this fact, for functions having a derivative within a set. Its specific formulation is useful for
 tangent cone related discussions. -/
-theorem has_fderiv_within_at.lim (h : has_fderiv_within_at f f' s x)
-  {c : ℕ → 𝕜} {d : ℕ → E} {v : E} (dtop : {n : ℕ | x + d n ∈ s} ∈ (at_top : filter ℕ))
-  (clim : tendsto (λ (n : ℕ), ∥c n∥) at_top at_top)
-  (cdlim : tendsto (λ (n : ℕ), c n • d n) at_top (𝓝 v)) :
-  tendsto (λn, c n • (f (x + d n) - f x)) at_top (𝓝 (f' v)) :=
+theorem has_fderiv_within_at.lim (h : has_fderiv_within_at f f' s x) {α : Type*} (l : filter α)
+  {c : α → 𝕜} {d : α → E} {v : E} (dtop : {n | x + d n ∈ s} ∈ l)
+  (clim : tendsto (λ n, ∥c n∥) l at_top)
+  (cdlim : tendsto (λ n, c n • d n) l (𝓝 v)) :
+  tendsto (λn, c n • (f (x + d n) - f x)) l (𝓝 (f' v)) :=
 begin
-  have at_top_is_finer : at_top ≤ comap (λ (n : ℕ), x + d n) (nhds_within x s),
+  have at_top_is_finer : l ≤ comap (λ n, x + d n) (nhds_within x s),
   { conv in (nhds_within x s) { rw ← add_zero x },
     rw [← tendsto_iff_comap, nhds_within, tendsto_inf],
     split,
-    { apply tendsto_const_nhds.add (tangent_cone_at.lim_zero clim cdlim) },
+    { apply tendsto_const_nhds.add (tangent_cone_at.lim_zero l clim cdlim) },
     { rwa tendsto_principal } },
   have : is_o (λ y, f y - f x - f' (y - x)) (λ y, y - x) (nhds_within x s) := h,
-  have : is_o (λ n:ℕ, f (x + d n) - f x - f' ((x + d n) - x)) (λ n, (x + d n)  - x)
+  have : is_o (λ n, f (x + d n) - f x - f' ((x + d n) - x)) (λ n, (x + d n)  - x)
     ((nhds_within x s).comap (λn, x+ d n)) := is_o.comp this _,
-  have : is_o (λ n:ℕ, f (x + d n) - f x - f' (d n)) d
+  have : is_o (λ n, f (x + d n) - f x - f' (d n)) d
     ((nhds_within x s).comap (λn, x + d n)) := by simpa,
-  have : is_o (λn:ℕ, f (x + d n) - f x - f' (d n)) d at_top :=
+  have : is_o (λn, f (x + d n) - f x - f' (d n)) d l :=
     is_o.mono at_top_is_finer this,
-  have : is_o (λn:ℕ, c n • (f (x + d n) - f x - f' (d n))) (λn, c n • d n) at_top :=
+  have : is_o (λn, c n • (f (x + d n) - f x - f' (d n))) (λn, c n • d n) l :=
     is_o_smul this,
-  have : is_o (λn:ℕ, c n • (f (x + d n) - f x - f' (d n))) (λn, (1:ℝ)) at_top :=
+  have : is_o (λn, c n • (f (x + d n) - f x - f' (d n))) (λn, (1:ℝ)) l :=
     this.trans_is_O (is_O_one_of_tendsto cdlim),
-  have L1 : tendsto (λn:ℕ, c n • (f (x + d n) - f x - f' (d n))) at_top (𝓝 0) :=
+  have L1 : tendsto (λn, c n • (f (x + d n) - f x - f' (d n))) l (𝓝 0) :=
     is_o_one_iff.1 this,
-  have L2 : tendsto (λn:ℕ, f' (c n • d n)) at_top (𝓝 (f' v)) :=
+  have L2 : tendsto (λn, f' (c n • d n)) l (𝓝 (f' v)) :=
     tendsto.comp f'.cont.continuous_at cdlim,
-  have L3 : tendsto (λn:ℕ, (c n • (f (x + d n) - f x - f' (d n)) +  f' (c n • d n)))
-            at_top (𝓝 (0 + f' v)) :=
+  have L3 : tendsto (λn, (c n • (f (x + d n) - f x - f' (d n)) +  f' (c n • d n)))
+            l (𝓝 (0 + f' v)) :=
     L1.add L2,
-  have : (λn:ℕ, (c n • (f (x + d n) - f x - f' (d n)) +  f' (c n • d n)))
-          = (λn: ℕ, c n • (f (x + d n) - f x)),
+  have : (λn, (c n • (f (x + d n) - f x - f' (d n)) +  f' (c n • d n)))
+          = (λn, c n • (f (x + d n) - f x)),
     by { ext n, simp [smul_add] },
   rwa [this, zero_add] at L3
 end
@@ -197,7 +197,7 @@ theorem unique_diff_within_at.eq (H : unique_diff_within_at 𝕜 s x)
 begin
   have A : ∀y ∈ tangent_cone_at 𝕜 s x, f' y = f₁' y,
   { rintros y ⟨c, d, dtop, clim, cdlim⟩,
-    exact tendsto_nhds_unique (by simp) (h.lim dtop clim cdlim) (h₁.lim dtop clim cdlim) },
+    exact tendsto_nhds_unique (by simp) (h.lim at_top dtop clim cdlim) (h₁.lim at_top dtop clim cdlim) },
   have B : ∀y ∈ submodule.span 𝕜 (tangent_cone_at 𝕜 s x), f' y = f₁' y,
   { assume y hy,
     apply submodule.span_induction hy,
@@ -291,6 +291,20 @@ lemma has_fderiv_at.differentiable_at (h : has_fderiv_at f f' x) : differentiabl
   has_fderiv_within_at f f' univ x ↔ has_fderiv_at f f' x :=
 by { simp only [has_fderiv_within_at, nhds_within_univ], refl }
 
+/-- Directional derivative agrees with `has_fderiv`. -/
+lemma has_fderiv_at.lim (hf : has_fderiv_at f f' x) (v : E) {α : Type*} {c : α → 𝕜}
+  {l : filter α} (hc : tendsto (λ n, ∥c n∥) l at_top) :
+  tendsto (λ n, (c n) • (f (x + (c n)⁻¹ • v) - f x)) l (𝓝 (f' v)) :=
+begin
+  refine (has_fderiv_within_at_univ.2 hf).lim _ (univ_mem_sets' (λ _, trivial)) hc _,
+  assume U hU,
+  apply mem_sets_of_superset (ne_mem_of_tendsto_norm_at_top hc (0:𝕜)) _,
+  assume y hy,
+  rw [mem_preimage],
+  convert mem_of_nhds hU,
+  rw [← mul_smul, mul_inv_cancel hy, one_smul]
+end
+
 theorem has_fderiv_at_unique
   (h₀ : has_fderiv_at f f₀' x) (h₁ : has_fderiv_at f f₁' x) : f₀' = f₁' :=
 begin
@@ -316,6 +330,10 @@ end
 lemma has_fderiv_within_at.nhds_within (h : has_fderiv_within_at f f' s x)
   (ht : s ∈ nhds_within x t) : has_fderiv_within_at f f' t x :=
 (has_fderiv_within_at_inter' ht).1 (h.mono (inter_subset_right _ _))
+
+lemma has_fderiv_within_at.has_fderiv_at (h : has_fderiv_within_at f f' s x) (hs : s ∈ 𝓝 x) :
+  has_fderiv_at f f' x :=
+by rwa [← univ_inter s, has_fderiv_within_at_inter hs, has_fderiv_within_at_univ] at h
 
 lemma differentiable_within_at.has_fderiv_within_at (h : differentiable_within_at 𝕜 f s x) :
   has_fderiv_within_at f (fderiv_within 𝕜 f s x) s x :=
@@ -361,10 +379,7 @@ end
 
 lemma differentiable_within_at_univ :
   differentiable_within_at 𝕜 f univ x ↔ differentiable_at 𝕜 f x :=
-begin
-  simp [differentiable_within_at, has_fderiv_within_at, nhds_within_univ],
-  refl
-end
+by simp only [differentiable_within_at, has_fderiv_within_at_univ, differentiable_at]
 
 lemma differentiable_within_at_inter (ht : t ∈ 𝓝 x) :
   differentiable_within_at 𝕜 f (s ∩ t) x ↔ differentiable_within_at 𝕜 f s x :=
@@ -382,10 +397,7 @@ lemma differentiable_at.differentiable_within_at
 
 lemma differentiable_within_at.differentiable_at
   (h : differentiable_within_at 𝕜 f s x) (hs : s ∈ 𝓝 x) : differentiable_at 𝕜 f x :=
-begin
-  have : s = univ ∩ s, by rw univ_inter,
-  rwa [this, differentiable_within_at_inter hs, differentiable_within_at_univ] at h
-end
+h.imp (λ f' hf', hf'.has_fderiv_at hs)
 
 lemma differentiable_at.fderiv_within
   (h : differentiable_at 𝕜 f x) (hxs : unique_diff_within_at 𝕜 s x) :
@@ -1325,9 +1337,9 @@ section
 
 variables {E : Type*} [normed_group E] [normed_space ℝ E]
 variables {F : Type*} [normed_group F] [normed_space ℝ F]
-variables {G : Type*} [normed_group G] [normed_space ℝ G]
+variables {f : E → F} {f' : E →L[ℝ] F} {x : E}
 
-theorem has_fderiv_at_filter_real_equiv {f : E → F} {f' : E →L[ℝ] F} {x : E} {L : filter E} :
+theorem has_fderiv_at_filter_real_equiv {L : filter E} :
   tendsto (λ x' : E, ∥x' - x∥⁻¹ * ∥f x' - f x - f' (x' - x)∥) L (𝓝 0) ↔
   tendsto (λ x' : E, ∥x' - x∥⁻¹ • (f x' - f x - f' (x' - x))) L (𝓝 0) :=
 begin
@@ -1335,6 +1347,14 @@ begin
   rw [tendsto_iff_norm_tendsto_zero], refine tendsto.congr'r (λ x', _),
   have : ∥x' + -x∥⁻¹ ≥ 0, from inv_nonneg.mpr (norm_nonneg _),
   simp [norm_smul, real.norm_eq_abs, abs_of_nonneg this]
+end
+
+lemma has_fderiv_at.lim_real (hf : has_fderiv_at f f' x) (v : E) :
+  tendsto (λ (c:ℝ), c • (f (x + c⁻¹ • v) - f x)) at_top (𝓝 (f' v)) :=
+begin
+  apply hf.lim v,
+  rw tendsto_at_top_at_top,
+  exact λ b, ⟨b, λ a ha, le_trans ha (le_abs_self _)⟩
 end
 
 end
@@ -1353,7 +1373,7 @@ lemma has_fderiv_within_at.image_tangent_cone_subset {x : E} (h : has_fderiv_wit
 begin
   rw image_subset_iff,
   rintros v ⟨c, d, dtop, clim, cdlim⟩,
-  refine ⟨c, (λn, f (x + d n) - f x), mem_sets_of_superset dtop _, clim, h.lim dtop clim cdlim⟩,
+  refine ⟨c, (λn, f (x + d n) - f x), mem_sets_of_superset dtop _, clim, h.lim at_top dtop clim cdlim⟩,
   simp [-mem_image, mem_image_of_mem] {contextual := tt}
 end
 

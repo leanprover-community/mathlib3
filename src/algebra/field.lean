@@ -165,8 +165,22 @@ lemma div_eq_div_iff (hb : b ≠ 0) (hd : d ≠ 0) : a / b = c / d ↔ a * d = c
 by rw [← mul_assoc, div_mul_cancel _ hb,
        ← mul_assoc, mul_right_comm, div_mul_cancel _ hd]
 
+lemma div_eq_iff (hb : b ≠ 0) : a / b = c ↔ a = c * b :=
+by simpa using @div_eq_div_iff _ _ a b c 1 hb one_ne_zero
+
+lemma eq_div_iff (hb : b ≠ 0) : c = a / b ↔ c * b = a :=
+by simpa using @div_eq_div_iff _ _ c 1 a b one_ne_zero hb
+
 lemma field.div_div_cancel (ha : a ≠ 0) (hb : b ≠ 0) : a / (a / b) = b :=
 by rw [div_eq_mul_inv, inv_div ha hb, mul_div_cancel' _ ha]
+
+lemma add_div' (a b c : α) (hc : c ≠ 0) :
+  b + a / c = (b * c + a) / c :=
+by simpa using div_add_div b a one_ne_zero hc
+
+lemma div_add' (a b c : α) (hc : c ≠ 0) :
+  a / c + b = (a + b * c) / c :=
+by simpa using div_add_div b a one_ne_zero hc
 
 end
 
@@ -244,3 +258,21 @@ lemma map_div : f (x / y) = f x / f y :=
 end
 
 end is_ring_hom
+
+section field_simp
+
+mk_simp_attribute field_simps "The simpset `field_simps` is used by the tactic `field_simp` to
+reduce an expression in a field to an expression of the form `n / d` where `n` and `d` are
+division-free."
+
+lemma mul_div_assoc' {α : Type*} [division_ring α] (a b c : α) : a * (b / c) = (a * b) / c :=
+by simp [mul_div_assoc]
+
+lemma neg_div' {α : Type*} [division_ring α] (a b : α) : - (b / a) = (-b) / a :=
+by simp [neg_div]
+
+attribute [field_simps] div_add_div_same inv_eq_one_div div_mul_eq_mul_div div_add' add_div'
+div_div_eq_div_mul mul_div_assoc' div_eq_div_iff div_eq_iff eq_div_iff mul_ne_zero'
+div_div_eq_mul_div neg_div' two_ne_zero
+
+end field_simp

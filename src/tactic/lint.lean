@@ -269,33 +269,31 @@ meta def instance_priority (d : declaration) : tactic (option string) := do
   let always_applies := relevant_args.all expr.is_var ∧ relevant_args.nodup,
   if always_applies then return $ some "set priority below 1000" else return none
 
-/- Note [lower instance priority]:
-  Certain instances always apply during type-class resolution. For example, the instance
-  `add_comm_group.to_add_group {α} [add_comm_group α] : add_group α` applies to all type-class
-  resolution problems of the form `add_group _`, and type-class inference will then do an
-  exhaustive search to find a commutative group. These instances take a long time to fail.
-  Other instances will only apply if the goal has a certain shape. For example
-  `int.add_group : add_group ℤ` or
-  `add_group.prod {α β} [add_group α] [add_group β] : add_group (α × β)`. Usually these instances
-  will fail quickly, and when they apply, they are almost the desired instance.
-  For this reason, we want the instances of the second type (that only apply in specific cases) to
-  always have higher priority than the instances of the first type (that always apply).
-  See also #1561.
+library_note "lower instance priority"
+"Certain instances always apply during type-class resolution. For example, the instance
+`add_comm_group.to_add_group {α} [add_comm_group α] : add_group α` applies to all type-class
+resolution problems of the form `add_group _`, and type-class inference will then do an
+exhaustive search to find a commutative group. These instances take a long time to fail.
+Other instances will only apply if the goal has a certain shape. For example
+`int.add_group : add_group ℤ` or
+`add_group.prod {α β} [add_group α] [add_group β] : add_group (α × β)`. Usually these instances
+will fail quickly, and when they apply, they are almost the desired instance.
+For this reason, we want the instances of the second type (that only apply in specific cases) to
+always have higher priority than the instances of the first type (that always apply).
+See also #1561.
 
-  Therefore, if we create an instance that always applies, we set the priority of these instances to
-  100 (or something similar, which is below the default value of 1000).
--/
+Therefore, if we create an instance that always applies, we set the priority of these instances to
+100 (or something similar, which is below the default value of 1000)."
 
-/- Note [default priority]:
-  Instances that always apply should be applied after instances that only apply in specific cases,
-  see note [lower instance priority] above.
+library_note "default priority"
+"Instances that always apply should be applied after instances that only apply in specific cases,
+see note [lower instance priority] above.
 
-  Classes that use the `extends` keyword automatically generate instances that always apply.
-  Therefore, we set the priority of these instances to 100 (or something similar, which is below the
-  default value of 1000) using `set_option default_priority 100`.
-  We have to put this option inside a section, so that the default priority is the default
-  1000 outside the section.
--/
+Classes that use the `extends` keyword automatically generate instances that always apply.
+Therefore, we set the priority of these instances to 100 (or something similar, which is below the
+default value of 1000) using `set_option default_priority 100`.
+We have to put this option inside a section, so that the default priority is the default
+1000 outside the section."
 
 /-- A linter object for checking instance priorities of instances that always apply.
   This is in the default linter set. -/

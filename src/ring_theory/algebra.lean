@@ -103,11 +103,6 @@ by rw [smul_def, smul_def, left_comm]
   (r • x) * y = r • (x * y) :=
 by rw [smul_def, smul_def, mul_assoc]
 
-@[priority 100] -- see Note [lower instance priority]
-instance {F : Type u} {K : Type v} [discrete_field F] [ring K] [algebra F K] :
-  vector_space F K :=
-@vector_space.mk F _ _ _ algebra.to_module
-
 /-- R[X] is the generator of the category R-Alg. -/
 instance polynomial (R : Type u) [comm_ring R] : algebra R (polynomial R) :=
 { to_fun := polynomial.C,
@@ -337,6 +332,10 @@ def aeval : polynomial R →ₐ[R] A :=
 
 theorem aeval_def (p : polynomial R) : aeval R A x p = eval₂ (algebra_map A) x p := rfl
 
+@[simp] lemma aeval_X : aeval R A x X = x := eval₂_X _ x
+
+@[simp] lemma aeval_C (r : R) : aeval R A x (C r) = algebra_map A r := eval₂_C _ x
+
 instance aeval.is_ring_hom : is_ring_hom (aeval R A x) :=
 by apply_instance
 
@@ -365,6 +364,10 @@ def aeval : mv_polynomial σ R →ₐ[R] A :=
   ..ring_hom.of (eval₂ (algebra_map A) subtype.val) }
 
 theorem aeval_def (p : mv_polynomial σ R) : aeval R A σ p = eval₂ (algebra_map A) subtype.val p := rfl
+
+@[simp] lemma aeval_X (s : σ) : aeval R A σ (X s) = s := eval₂_X _ _ _
+
+@[simp] lemma aeval_C (r : R) : aeval R A σ (C r) = algebra_map A r := eval₂_C _ _ _
 
 instance aeval.is_ring_hom : is_ring_hom (aeval R A σ) :=
 by apply_instance
@@ -571,7 +574,9 @@ def alg_hom_int
 
 /-- CRing ⥤ ℤ-Alg -/
 instance algebra_int : algebra ℤ R :=
-algebra.of_ring_hom coe $ by constructor; intros; simp
+{ to_fun := coe,
+  commutes' := λ _ _, mul_comm _ _,
+  smul_def' := λ _ _, gsmul_eq_mul _ _ }
 
 variables {R}
 /-- CRing ⥤ ℤ-Alg -/

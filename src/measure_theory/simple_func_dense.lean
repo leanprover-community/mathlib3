@@ -243,8 +243,8 @@ let G : ℕ → α → ennreal := λn x, nndist (F n x) (f x) in
 let g : α → ennreal := λx, nnnorm (f x) + nnnorm (f x) + nnnorm (f x) in
 have hF_meas : ∀ n, measurable (G n) := λ n, measurable.comp measurable_coe $
   measurable_nndist (F n).measurable hfm,
-have hg_meas : measurable g := measurable.comp measurable_coe $ measurable_add
-  (measurable_add (measurable_nnnorm hfm) (measurable_nnnorm hfm)) (measurable_nnnorm hfm),
+have hg_meas : measurable g := measurable.comp measurable_coe $ measurable.add
+  (measurable.add (measurable_nnnorm hfm) (measurable_nnnorm hfm)) (measurable_nnnorm hfm),
 have h_bound : ∀ n, ∀ₘ x, G n x ≤ g x := λ n, all_ae_of_all $ λ x, coe_le_coe.2 $
   calc
     nndist (F n x) (f x) ≤ nndist (F n x) 0 + nndist 0 (f x) : nndist_triangle _ _ _
@@ -254,7 +254,7 @@ have h_finite : lintegral g < ⊤ :=
   calc
     (∫⁻ x, nnnorm (f x) + nnnorm (f x) + nnnorm (f x)) =
       (∫⁻ x, nnnorm (f x)) + (∫⁻ x, nnnorm (f x)) + (∫⁻ x, nnnorm (f x)) :
-    by rw [lintegral_add, lintegral_add]; simp only [measurable_coe_nnnorm hfm, measurable_add]
+    by rw [lintegral_add, lintegral_add]; simp only [measurable_coe_nnnorm hfm, measurable.add]
     ... < ⊤ : by { simp only [and_self, add_lt_top], exact hfi},
 have h_lim : ∀ₘ x, tendsto (λ n, G n x) at_top (𝓝 0) := all_ae_of_all $ λ x,
   begin

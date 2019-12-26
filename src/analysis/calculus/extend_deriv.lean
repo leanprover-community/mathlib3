@@ -72,12 +72,12 @@ begin
     have op : is_open (B ∩ s) := is_open_inter is_open_ball s_open,
     rw differentiable_at.fderiv_within _ (op.unique_diff_on z z_in),
     exact (diff z z_in).differentiable_at (mem_nhds_sets op z_in) },
-  refine continuous_within_at.closure_le _ _ key ;
-  try { -- common start for both continuity proofs
+  rintros ⟨u, v⟩ uv_in,
+  refine continuous_within_at.closure_le uv_in _ _ key,
+  all_goals { -- common start for both continuity proofs
     have : (B ∩ s).prod (B ∩ s) ⊆ s.prod s, by mono ; exact inter_subset_right _ _,
-    rintros ⟨u, v⟩ mem,
     obtain ⟨u_in, v_in⟩ : u ∈ closure s ∧ v ∈ closure s,
-      by simpa [closure_prod_eq] using closure_mono this mem,
+      by simpa [closure_prod_eq] using closure_mono this uv_in,
     apply continuous_within_at.mono _ this,
     simp only [continuous_within_at, nhds_prod_eq] },
   { rw nhds_within_prod_eq,

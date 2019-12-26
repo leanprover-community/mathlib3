@@ -97,20 +97,26 @@ lemma closure_lt_subset_le [topological_space β] {f g : β → α} (hf : contin
 by { rw [←closure_le_eq hf hg], exact closure_mono (λ b, le_of_lt) }
 
 lemma continuous_within_at.closure_le [topological_space β]
- {f g : β → α} {s : set β}
- (hf : ∀ x ∈ closure s, continuous_within_at f s x)
- (hg : ∀ x ∈ closure s, continuous_within_at g s x)
- (h : ∀ x ∈ s, f x ≤ g x) : ∀ x ∈ closure s, f x ≤ g x :=
+ {f g : β → α} {s : set β} {x : β} (hx : x ∈ closure s)
+ (hf : continuous_within_at f s x)
+ (hg : continuous_within_at g s x)
+ (h : ∀ y ∈ s, f y ≤ g y) : f x ≤ g x :=
 begin
   let ψ := λ x, (f x, g x),
-  have cont : ∀ x ∈ closure s, continuous_within_at ψ s x,
-    from λ x x_in, continuous_within_at.prod (hf _ x_in) (hg _ x_in),
-  change closure s ⊆ ψ ⁻¹' {p | p.1 ≤ p.2},
-  change s ⊆ ψ ⁻¹' {p | p.1 ≤ p.2} at h,
-  rw ← image_subset_iff at *,
-  calc ψ '' closure s ⊆ closure (ψ '' s) : continuous_within_at.image_closure cont
-  ... ⊆ closure {p | p.1 ≤ p.2} : closure_mono h
-  ... = {p | p.1 ≤ p.2} : closure_eq_iff_is_closed.2 (ordered_topology.is_closed_le' _)
+  have cont : continuous_within_at ψ s x,
+    from continuous_within_at.prod hf hg,
+  let H :=  {p : α × α | p.1 ≤ p.2},
+  change ψ x ∈ H,
+  suffices : ψ x ∈ closure H,
+    by rwa ← (closure_eq_iff_is_closed.2 (ordered_topology.is_closed_le' α) : closure H = H),
+  rw [closure_eq_nhds, mem_set_of_eq] at *,
+  have hψ : map ψ (principal s) ≤ principal H,
+    by rwa [map_principal, principal_mono, image_subset_iff],
+  apply neq_bot_of_le_neq_bot (map_ne_bot hx : map ψ (𝓝 x ⊓ principal s) ≠ ⊥),
+  calc
+  map ψ (𝓝 x ⊓ principal s) = map ψ ((𝓝 x ⊓ principal s) ⊓ principal s) : by rw [inf_assoc, inf_idem]
+  ... ≤  map ψ (𝓝 x ⊓ principal s) ⊓ map ψ (principal s) : filter.map_inf_le
+  ... ≤ 𝓝 (ψ x) ⊓ (principal H) : inf_le_inf cont hψ
 end
 end preorder
 

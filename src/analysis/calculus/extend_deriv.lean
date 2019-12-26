@@ -5,6 +5,7 @@ Authors: Sébastien Gouëzel
 -/
 
 import analysis.calculus.mean_value topology.sequences
+import tactic.monotonicity
 
 /-!
 # Extending differentiability to the boundary
@@ -27,6 +28,7 @@ variables {E : Type*} [normed_group E] [normed_space ℝ E]
 
 open filter set metric continuous_linear_map
 open_locale topological_space
+local attribute [mono] prod_mono
 
 /-- If a function `f` is differentiable in a convex open set and continuous on its closure, and its
 derivative converges to `0` at a point on the boundary, then `f` is differentiable there with
@@ -43,65 +45,48 @@ begin
   -- statement is empty otherwise
   by_cases hx : x ∉ closure s,
   { rw ← closure_closure at hx, exact has_fderiv_within_at_of_not_mem_closure hx },
-  replace hx : x ∈ closure s, by simpa using hx,
+  push_neg at hx,
   /- One needs to show that `∥f y - f x∥ ≤ ε ∥y - x∥` for `y` close to `x` in `closure s`, where
   `ε` is an arbitrary positive constant. By continuity of the functions, it suffices to prove this
   for nearby points inside `s`. In a neighborhood of `x`, the derivative of `f` is arbitrarily small
   by assumption. The mean value inequality ensures that `f` is `ε`-Lipschitz there, concluding the
   proof. -/
   assume ε ε_pos,
-  obtain ⟨δ, δ_pos, hδ⟩ : ∃δ>0, ∀ y ∈ s, dist y x < δ → dist (fderiv ℝ f y) 0 < ε :=
-    tendsto_nhds_within_nhds.1 h ε ε_pos,
-  refine mem_nhds_within_iff.2 ⟨δ/2, half_pos δ_pos, λy hy, _⟩,
-  suffices : ∥f y - f x∥ ≤ ε * ∥y - x∥, by simpa,
-  -- approximate `x` (in the closure of `s`) with a sequence `cx n` in `s`
-  obtain ⟨cx, cxs, cx_lim⟩ : ∃ (cx : ℕ → E), (∀ (n : ℕ), cx n ∈ s) ∧ tendsto cx at_top (𝓝 x) :=
-    mem_closure_iff_seq_limit.1 hx,
-  have cx_lim' : tendsto cx at_top (nhds_within x s),
-  { rw [nhds_within, tendsto_inf, tendsto_principal],
-    exact ⟨cx_lim, by simp [cxs]⟩ },
-  -- approximate `y` (in the closure of `s`) with a sequence `cy n` in `s`
-  obtain ⟨cy, cys, cy_lim⟩ : ∃ (cy : ℕ → E), (∀ (n : ℕ), cy n ∈ s) ∧ tendsto cy at_top (𝓝 y) :=
-    mem_closure_iff_seq_limit.1 hy.2,
-  have cy_lim' : tendsto cy at_top (nhds_within y s),
-  { rw [nhds_within, tendsto_inf, tendsto_principal],
-    exact ⟨cy_lim, by simp [cys]⟩ },
-  -- by continuity, it suffices to show that `∥f (cy n) - f (cx n)∥ ≤ ε * ∥(cy n) - (cx n)∥` for
-  -- large `n`, and then pass to the limit in `n`.
-  suffices A : {n | ∥f (cy n) - f (cx n)∥ ≤ ε * ∥(cy n) - (cx n)∥} ∈ at_top,
-  { have B : tendsto (λn, ∥f (cy n) - f (cx n)∥) at_top (𝓝 (∥f y - f x∥)),
-    { apply tendsto.comp continuous_norm.continuous_at,
-      exact ((f_cont y hy.2).tendsto.comp cy_lim').sub ((f_cont x hx).tendsto.comp cx_lim') },
-    have C : tendsto (λn, ε * ∥cy n - cx n∥) at_top (𝓝 (ε * ∥y - x∥)) :=
-      tendsto_const_nhds.mul (tendsto.comp continuous_norm.continuous_at (cy_lim.sub cx_lim)),
-    exact le_of_tendsto_of_tendsto (by simp) B C A },
-  -- for large `n`, both `cx n` and `cy n` are close to `x`.
-  have T₁ : {n | cx n ∈ ball x δ} ∈ at_top :=
-    mem_map.1 (cx_lim (ball_mem_nhds x δ_pos)),
-  have T₂ : {n | cy n ∈ ball y (δ/2)} ∈ at_top :=
-    mem_map.1 (cy_lim (ball_mem_nhds y (half_pos δ_pos))),
-  filter_upwards [T₁, T₂],
-  assume n hnx hny,
-  /- we will apply the mean value inequality to the set `t := s ∩ ball x δ`: it contains `cx n`
-     and `cy n` when `n` is large, it is convex, and the derivative of `f` is small there by
-     definition of `δ`. -/
-  let t := s ∩ ball x δ,
-  have diff_t : differentiable_on ℝ f t := f_diff.mono (inter_subset_left _ _),
-  have t_conv : convex t := s_conv.inter (convex_ball _ _),
-  have cxnt : cx n ∈ t := ⟨cxs n, hnx⟩,
-  have cynt : cy n ∈ t,
-  { refine ⟨cys n, _⟩,
-    calc dist (cy n) x ≤ dist (cy n) y + dist y x : dist_triangle _ _ _
-    ... < δ/2 + δ/2 : add_lt_add hny hy.1
-    ... = δ : by ring },
-  refine t_conv.norm_image_sub_le_of_norm_deriv_le diff_t (λz zt, _) cxnt cynt,
-  have : fderiv_within ℝ f t z = fderiv ℝ f z,
-  { have t_open : is_open t := is_open_inter s_open is_open_ball,
-    rw differentiable_at.fderiv_within _ (t_open.unique_diff_on z zt),
-    apply (diff_t z zt).differentiable_at,
-    apply mem_nhds_sets t_open zt },
-  rw [this, ← dist_zero_right],
-  exact le_of_lt (hδ zt.1 zt.2)
+  obtain ⟨δ, δ_pos, hδ⟩ : ∃ δ > 0, ∀ y ∈ s, dist y x < δ → ∥fderiv ℝ f y∥ < ε,
+    by simpa [dist_zero_right] using tendsto_nhds_within_nhds.1 h ε ε_pos,
+  set B := ball x δ,
+  suffices : ∀ y ∈ B ∩ (closure s), ∥f y - f x∥ ≤ ε * ∥y - x∥,
+    from mem_nhds_within_iff.2 ⟨δ, δ_pos, λy hy, by simpa using this y hy⟩,
+  suffices : ∀ p : E × E, p ∈ closure ((B ∩ s).prod (B ∩ s)) → ∥f p.2 - f p.1∥ ≤ ε * ∥p.2 - p.1∥,
+  { rw closure_prod_eq at this,
+    intros y y_in,
+    apply this ⟨x, y⟩,
+    have : B ∩ closure s ⊆ closure (B ∩ s), from closure_inter_open is_open_ball,
+    exact ⟨this ⟨mem_ball_self δ_pos, hx⟩, this y_in⟩ },
+  have key : ∀ p : E × E, p ∈ (B ∩ s).prod (B ∩ s) → ∥f p.2 - f p.1∥ ≤ ε * ∥p.2 - p.1∥,
+  { rintros ⟨u, v⟩ ⟨u_in, v_in⟩,
+    have conv : convex (B ∩ s) := (convex_ball _ _).inter s_conv,
+    have diff : differentiable_on ℝ f (B ∩ s) := f_diff.mono (inter_subset_right _ _),
+    refine conv.norm_image_sub_le_of_norm_deriv_le diff (λz z_in, _) u_in v_in,
+    convert le_of_lt (hδ _ z_in.2 z_in.1),
+    have op : is_open (B ∩ s) := is_open_inter is_open_ball s_open,
+    rw differentiable_at.fderiv_within _ (op.unique_diff_on z z_in),
+    exact (diff z z_in).differentiable_at (mem_nhds_sets op z_in) },
+  refine continuous_within_at.closure_le _ _ key ;
+  try { -- common start for both continuity proofs
+    have : (B ∩ s).prod (B ∩ s) ⊆ s.prod s, by mono ; exact inter_subset_right _ _,
+    rintros ⟨u, v⟩ mem,
+    obtain ⟨u_in, v_in⟩ : u ∈ closure s ∧ v ∈ closure s,
+      by simpa [closure_prod_eq] using closure_mono this mem,
+    apply continuous_within_at.mono _ this,
+    simp only [continuous_within_at, nhds_prod_eq] },
+  { rw nhds_within_prod_eq,
+    exact tendsto.comp continuous_norm.continuous_at
+      ((tendsto.comp (f_cont v v_in) tendsto_snd).sub $ tendsto.comp (f_cont u u_in) tendsto_fst) },
+  { apply tendsto_nhds_within_of_tendsto_nhds,
+    rw nhds_prod_eq,
+    exact tendsto_const_nhds.mul
+      (tendsto.comp continuous_norm.continuous_at $ tendsto_snd.sub tendsto_fst) },
 end
 
 /-- If a function `f` is differentiable in a convex open set and continuous on its closure, and its

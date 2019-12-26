@@ -96,6 +96,22 @@ lemma closure_lt_subset_le [topological_space β] {f g : β → α} (hf : contin
   closure {b | f b < g b} ⊆ {b | f b ≤ g b} :=
 by { rw [←closure_le_eq hf hg], exact closure_mono (λ b, le_of_lt) }
 
+lemma continuous_within_at.closure_le [topological_space β]
+ {f g : β → α} {s : set β}
+ (hf : ∀ x ∈ closure s, continuous_within_at f s x)
+ (hg : ∀ x ∈ closure s, continuous_within_at g s x)
+ (h : ∀ x ∈ s, f x ≤ g x) : ∀ x ∈ closure s, f x ≤ g x :=
+begin
+  let ψ := λ x, (f x, g x),
+  have cont : ∀ x ∈ closure s, continuous_within_at ψ s x,
+    from λ x x_in, continuous_within_at.prod (hf _ x_in) (hg _ x_in),
+  change closure s ⊆ ψ ⁻¹' {p | p.1 ≤ p.2},
+  change s ⊆ ψ ⁻¹' {p | p.1 ≤ p.2} at h,
+  rw ← image_subset_iff at *,
+  calc ψ '' closure s ⊆ closure (ψ '' s) : continuous_within_at.image_closure cont
+  ... ⊆ closure {p | p.1 ≤ p.2} : closure_mono h
+  ... = {p | p.1 ≤ p.2} : closure_eq_iff_is_closed.2 (ordered_topology.is_closed_le' _)
+end
 end preorder
 
 section partial_order

@@ -124,7 +124,7 @@ end
 lemma differentiable_cos : differentiable ℂ cos :=
 λx, (has_deriv_at_cos x).differentiable_at
 
-lemma deriv_cos : deriv cos x = -sin x :=
+lemma deriv_cos {x : ℂ} : deriv cos x = -sin x :=
 (has_deriv_at_cos x).deriv
 
 @[simp] lemma deriv_cos' : deriv cos = (λ x, -sin x) :=

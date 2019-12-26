@@ -39,6 +39,7 @@ def of_left_inverse [encodable α]
   (f : β → α) (finv : α → β) (linv : ∀ b, finv (f b) = b) : encodable β :=
 of_left_injection f (some ∘ finv) (λ b, congr_arg some (linv b))
 
+/-- If `α` is encodable and `β ≃ α`, then so is `β` -/
 def of_equiv (α) [encodable α] (e : β ≃ α) : encodable β :=
 of_left_inverse e e.symm e.left_inv
 
@@ -318,7 +319,7 @@ begin
   { exact (classical.some_spec (hf p a)).1 }
 end
 
-lemma rel_sequence {r : β → β → Prop} (hr : reflexive r) {f : α → β} (hf : directed r f) (a : α) :
+lemma rel_sequence {r : β → β → Prop} {f : α → β} (hf : directed r f) (a : α) :
   r (f a) (f (hf.sequence f (encode a + 1))) :=
 begin
   simp only [directed.sequence, encodek],
@@ -331,7 +332,7 @@ lemma sequence_mono : monotone (f ∘ (hf.sequence f)) :=
 monotone_of_monotone_nat $ hf.sequence_mono_nat le_refl
 
 lemma le_sequence (a : α) : f a ≤ f (hf.sequence f (encode a + 1)) :=
-hf.rel_sequence le_refl a
+hf.rel_sequence a
 
 end directed
 

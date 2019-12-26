@@ -297,7 +297,7 @@ variables {α : Type*} {β : Type*} [encodable α] [inhabited α]
 
 /-- Given a `directed r` function `f : α → β` defined on an encodable inhabited type,
 construct a noncomputable sequence such that `r (f (x n)) (f (x (n + 1)))`
-and `r a (f (x (encode a + 1))`. -/
+and `r (f a) (f (x (encode a + 1))`. -/
 protected noncomputable def sequence {r : β → β → Prop} (f : α → β) (hf : directed r f) : ℕ → α
 | 0       := default α
 | (n + 1) :=

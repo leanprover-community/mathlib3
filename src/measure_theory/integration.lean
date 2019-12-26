@@ -20,9 +20,9 @@ namespace measure_theory
 
 variables {α : Type*} {β : Type*} {γ : Type*} {δ : Type*}
 
-/-- A function from `f` a measurable space to any type is called *simple*,
+/-- A function `f` from a measurable space to any type is called *simple*,
 if every preimage `f ⁻¹' {x}` is measurable, and the range is finite. This structure bundles
-a function with the properties. -/
+a function with these properties. -/
 structure {u v} simple_func (α : Type u) [measurable_space α] (β : Type v) :=
 (to_fun : α → β)
 (measurable_sn : ∀ x, is_measurable (to_fun ⁻¹' {x}))
@@ -40,7 +40,7 @@ instance has_coe_to_fun : has_coe_to_fun (α →ₛ β) := ⟨_, to_fun⟩
 by cases f; cases g; congr; exact funext H
 
 /-- Range of a simple function `α →ₛ β` as a `finset β`. -/
-protected def range (f : α →ₛ β) : finset β:= f.finite.to_finset
+protected def range (f : α →ₛ β) : finset β := f.finite.to_finset
 
 @[simp] theorem mem_range {f : α →ₛ β} {b} : b ∈ f.range ↔ ∃ a, f a = b :=
 finite.mem_to_finset

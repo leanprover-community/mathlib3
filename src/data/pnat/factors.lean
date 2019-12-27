@@ -100,7 +100,7 @@ def prod (v : prime_multiset) : ℕ+ := (v : multiset pnat).prod
 theorem coe_prod (v : prime_multiset) : (v.prod : ℕ) = (v : multiset ℕ).prod :=
 begin
   let h : (v.prod : ℕ) = ((v.map coe).map coe).prod :=
-  (multiset.prod_hom coe v.to_pnat_multiset).symm,
+  (v.to_pnat_multiset.prod_hom coe).symm,
   rw [multiset.map_map] at h,
   have : (coe : ℕ+ → ℕ) ∘ (coe : nat.primes → ℕ+) = coe := funext (λ p, rfl),
   rw[this] at h, exact h,

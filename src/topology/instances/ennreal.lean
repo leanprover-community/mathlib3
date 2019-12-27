@@ -564,7 +564,7 @@ lemma has_sum_iff_tendsto_nat_of_nonneg {f : ℕ → ℝ} (hf : ∀i, 0 ≤ f i)
   have r_eq : r = r' := rfl,
   begin
     rw [f_eq, r_eq, nnreal.has_sum_coe, nnreal.has_sum_iff_tendsto_nat, ← nnreal.tendsto_coe],
-    simp only [nnreal.sum_coe],
+    simp only [nnreal.coe_sum],
     exact hfr
   end⟩
 

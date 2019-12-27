@@ -213,6 +213,13 @@ lemma has_deriv_within_at_inter (h : t ∈ 𝓝 x) :
   has_deriv_within_at f f' (s ∩ t) x ↔ has_deriv_within_at f f' s x :=
 has_fderiv_within_at_inter h
 
+lemma has_deriv_within_at.union (hs : has_deriv_within_at f f' s x) (ht : has_deriv_within_at f f' t x) :
+  has_deriv_within_at f f' (s ∪ t) x :=
+begin
+  simp only [has_deriv_within_at, nhds_within_union],
+  exact is_o_join hs ht,
+end
+
 lemma has_deriv_within_at.nhds_within (h : has_deriv_within_at f f' s x)
   (ht : s ∈ nhds_within x t) : has_deriv_within_at f f' t x :=
 (has_deriv_within_at_inter' ht).1 (h.mono (inter_subset_right _ _))
@@ -282,6 +289,10 @@ lemma has_deriv_within_at.congr_mono (h : has_deriv_within_at f f' s x) (ht : �
   (hx : f₁ x = f x) (h₁ : t ⊆ s) : has_deriv_within_at f₁ f' t x :=
 has_fderiv_within_at.congr_mono h ht hx h₁
 
+lemma has_deriv_within_at.congr (h : has_deriv_within_at f f' s x) (hs : ∀x ∈ s, f₁ x = f x)
+  (hx : f₁ x = f x) : has_deriv_within_at f₁ f' s x :=
+h.congr_mono hs hx (subset.refl _)
+
 lemma has_deriv_within_at.congr_of_mem_nhds_within (h : has_deriv_within_at f f' s x)
   (h₁ : {y | f₁ y = f y} ∈ nhds_within x s) (hx : f₁ x = f x) : has_deriv_within_at f₁ f' s x :=
 has_deriv_at_filter.congr_of_mem_sets h h₁ hx
@@ -318,8 +329,11 @@ has_deriv_at_filter_id _ _
 theorem has_deriv_at_id : has_deriv_at id 1 x :=
 has_deriv_at_filter_id _ _
 
-@[simp] lemma deriv_id : deriv id x = 1 :=
+lemma deriv_id : deriv id x = 1 :=
 has_deriv_at.deriv (has_deriv_at_id x)
+
+@[simp] lemma deriv_id' : deriv (@id 𝕜) = λ _, 1 :=
+funext deriv_id
 
 lemma deriv_within_id (hxs : unique_diff_within_at 𝕜 s x) : deriv_within id s x = 1 :=
 by { unfold deriv_within, rw fderiv_within_id, simp, assumption }
@@ -341,6 +355,9 @@ has_deriv_at_filter_const _ _ _
 
 lemma deriv_const : deriv (λ x, c) x = 0 :=
 has_deriv_at.deriv (has_deriv_at_const x c)
+
+@[simp] lemma deriv_const' : deriv (λ x:𝕜, c) = λ x, 0 :=
+funext (λ x, deriv_const x c)
 
 lemma deriv_within_const (hxs : unique_diff_within_at 𝕜 s x) : deriv_within (λ x, c) s x = 0 :=
 by { rw (differentiable_at_const _).deriv_within hxs, apply deriv_const }
@@ -440,8 +457,14 @@ lemma deriv_within_neg (hxs : unique_diff_within_at 𝕜 s x)
   deriv_within (λy, -f y) s x = - deriv_within f s x :=
 h.has_deriv_within_at.neg.deriv_within hxs
 
-lemma deriv_neg (h : differentiable_at 𝕜 f x) : deriv (λy, -f y) x = - deriv f x :=
-h.has_deriv_at.neg.deriv
+lemma deriv_neg : deriv (λy, -f y) x = - deriv f x :=
+if h : differentiable_at 𝕜 f x then h.has_deriv_at.neg.deriv else
+have ¬differentiable_at 𝕜 (λ y, -f y) x, from λ h', by simpa only [neg_neg] using h'.neg,
+by simp only [deriv_zero_of_not_differentiable_at h,
+  deriv_zero_of_not_differentiable_at this, neg_zero]
+
+@[simp] lemma deriv_neg' : deriv (λy, -f y) = (λ x, - deriv f x) :=
+funext $ λ x, deriv_neg
 
 end neg
 
@@ -960,14 +983,14 @@ lemma differentiable_pow : differentiable 𝕜 (λx:𝕜, x^n) :=
 lemma differentiable_on_pow : differentiable_on 𝕜 (λx, x^n) s :=
 differentiable_pow.differentiable_on
 
-@[simp] lemma deriv_pow : deriv (λx, x^n) x = (n : 𝕜) * x^(n-1) :=
+lemma deriv_pow : deriv (λx, x^n) x = (n : 𝕜) * x^(n-1) :=
 (has_deriv_at_pow n x).deriv
+
+@[simp] lemma deriv_pow' : deriv (λx, x^n) = λ x, (n : 𝕜) * x^(n-1) :=
+funext $ λ x, deriv_pow
 
 lemma deriv_within_pow (hxs : unique_diff_within_at 𝕜 s x) :
   deriv_within (λx, x^n) s x = (n : 𝕜) * x^(n-1) :=
-begin
-  rw differentiable_at.deriv_within differentiable_at_pow hxs,
-  exact deriv_pow
-end
+by rw [differentiable_at_pow.deriv_within hxs, deriv_pow]
 
 end pow

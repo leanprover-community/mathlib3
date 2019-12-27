@@ -102,22 +102,12 @@ lemma continuous_within_at.closure_le [topological_space β]
  (hg : continuous_within_at g s x)
  (h : ∀ y ∈ s, f y ≤ g y) : f x ≤ g x :=
 begin
-  let ψ := λ x, (f x, g x),
-  have cont : continuous_within_at ψ s x,
-    from continuous_within_at.prod hf hg,
-  let H :=  {p : α × α | p.1 ≤ p.2},
-  change ψ x ∈ H,
-  suffices : ψ x ∈ closure H,
-    by rwa ← (closure_eq_iff_is_closed.2 (ordered_topology.is_closed_le' α) : closure H = H),
-  rw [closure_eq_nhds, mem_set_of_eq] at *,
-  have hψ : map ψ (principal s) ≤ principal H,
-    by rwa [map_principal, principal_mono, image_subset_iff],
-  apply neq_bot_of_le_neq_bot (map_ne_bot hx : map ψ (𝓝 x ⊓ principal s) ≠ ⊥),
-  calc
-  map ψ (𝓝 x ⊓ principal s) = map ψ ((𝓝 x ⊓ principal s) ⊓ principal s) : by rw [inf_assoc, inf_idem]
-  ... ≤  map ψ (𝓝 x ⊓ principal s) ⊓ map ψ (principal s) : filter.map_inf_le
-  ... ≤ 𝓝 (ψ x) ⊓ (principal H) : inf_le_inf cont hψ
+  show (f x, g x) ∈ {p : α × α | p.1 ≤ p.2},
+  suffices : (f x, g x) ∈ closure {p : α × α | p.1 ≤ p.2},
+    by rwa ← closure_eq_iff_is_closed.2 (ordered_topology.is_closed_le' α),
+  exact (continuous_within_at.prod hf hg).mem_closure hx h
 end
+
 end preorder
 
 section partial_order

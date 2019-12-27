@@ -325,6 +325,10 @@ lemma continuous_within_at.mem_closure_image  {f : α → β} {s : set α} {x : 
 mem_closure_of_tendsto (mem_closure_iff_nhds_within_ne_bot.1 hx) h $
 mem_sets_of_superset self_mem_nhds_within (subset_preimage_image f s)
 
+lemma continuous_within_at.mem_closure {f : α → β} {s : set α} {x : α} {A : set β}
+  (h : continuous_within_at f s x) (hx : x ∈ closure s) (hA : s ⊆ f⁻¹' A) : f x ∈ closure A :=
+closure_mono (image_subset_iff.2 hA) (h.mem_closure_image hx)
+
 lemma continuous_within_at.image_closure {f : α → β} {s : set α}
   (hf : ∀ x ∈ closure s, continuous_within_at f s x) :
   f '' (closure s) ⊆ closure (f '' s) :=

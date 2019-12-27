@@ -190,7 +190,7 @@ begin
   /- This is a specialization of `has_fderiv_at_boundary_of_differentiable`. To be in the setting of
   this theorem, we need to work on an open interval with closure contained in `s ∪ {a}`, that we
   call `t = (b, a)`. Then, we check all the assumptions of this theorem and we apply it. -/
-  obtain ⟨b, ba, sab⟩ : ∃ (b : ℝ), b < a ∧ Ico b a ⊆ s :=
+  obtain ⟨b, ba, sab⟩ : ∃ b ∈ Iio a, Ico b a ⊆ s :=
     mem_nhds_within_Iio_iff_exists_Ico_subset.1 hs,
   let t := Ioo b a,
   have ts : t ⊆ s := subset.trans Ioo_subset_Ico_self sab,

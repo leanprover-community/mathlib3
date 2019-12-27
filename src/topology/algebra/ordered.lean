@@ -63,7 +63,7 @@ statements.
 * `compact.exists_forall_le`, `compact.exists_forall_ge` : extreme value theorem, a continuous
   function on a compact set takes its minimum and maximum values.
 * `is_closed.Icc_subset_of_forall_mem_nhds_within` : “Continuous induction” principle;
-  if `s ∩ [a, b]` is closed, `a ∈ s`, and for each `x ∈ [a, b) ∩ s` some its right neighborhood
+  if `s ∩ [a, b]` is closed, `a ∈ s`, and for each `x ∈ [a, b) ∩ s` some of its right neighborhoods
   is included `s`, then `[a, b] ⊆ s`.
 * `is_closed.Icc_subset_of_forall_exists_gt`, `is_closed.mem_of_ge_of_forall_exists_gt` : two
   other versions of the “continuous induction” principle.

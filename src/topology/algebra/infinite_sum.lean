@@ -635,6 +635,7 @@ by simpa only [zero_add] using dist_le_tsum_of_dist_le_of_tendsto d hf hd ha 0
 lemma dist_le_tsum_dist_of_tendsto [metric_space α] {f : ℕ → α}
   (h : summable (λn, dist (f n) (f n.succ))) {a : α} (ha : tendsto f at_top (𝓝 a)) (n) :
   dist (f n) a ≤ ∑ m, dist (f (n+m)) (f (n+m).succ) :=
+show dist (f n) a ≤ ∑ m, (λx, dist (f x) (f x.succ)) (n + m), from
 dist_le_tsum_of_dist_le_of_tendsto (λ n, dist (f n) (f n.succ)) (λ _, le_refl _) h ha n
 
 lemma dist_le_tsum_dist_of_tendsto₀ [metric_space α] {f : ℕ → α}

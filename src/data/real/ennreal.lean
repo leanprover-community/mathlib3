@@ -197,11 +197,11 @@ by simpa only [lt_top_iff_ne_top] using pow_ne_top
 
 @[simp, move_cast] lemma coe_finset_sum {s : finset α} {f : α → nnreal} :
   ↑(s.sum f) = (s.sum (λa, f a) : ennreal) :=
-(finset.sum_hom coe).symm
+(s.sum_hom coe).symm
 
 @[simp, move_cast] lemma coe_finset_prod {s : finset α} {f : α → nnreal} :
   ↑(s.prod f) = (s.prod (λa, f a) : ennreal) :=
-(finset.prod_hom coe).symm
+(s.prod_hom coe).symm
 
 section order
 
@@ -544,7 +544,7 @@ end
 /-- seeing `ennreal` as `real` does not change their sum, unless one of the `ennreal` is infinity -/
 lemma to_real_sum [decidable_eq α] {s : finset α} {f : α → ennreal} (hf : ∀a∈s, f a < ⊤) :
   ennreal.to_real (s.sum f) = s.sum (λa, ennreal.to_real (f a)) :=
-by { rw [ennreal.to_real, to_nnreal_sum hf, nnreal.sum_coe], refl }
+by { rw [ennreal.to_real, to_nnreal_sum hf, nnreal.coe_sum], refl }
 
 end sum
 

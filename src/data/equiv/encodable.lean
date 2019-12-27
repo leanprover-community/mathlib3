@@ -304,18 +304,17 @@ protected noncomputable def sequence {r : β → β → Prop} (f : α → β) (h
 | (n + 1) :=
   let p := sequence n in
   match decode α n with
-  | none     := p
+  | none     := classical.some (hf p p)
   | (some a) := classical.some (hf p a)
   end
 
-lemma sequence_mono_nat {r : β → β → Prop} (hr : reflexive r) {f : α → β}
-  (hf : directed r f) (n : ℕ) :
+lemma sequence_mono_nat {r : β → β → Prop} {f : α → β} (hf : directed r f) (n : ℕ) :
   r (f (hf.sequence f n)) (f (hf.sequence f (n+1))) :=
 begin
   dsimp [directed.sequence],
   generalize eq : hf.sequence f n = p,
   cases h : decode α n with a,
-  { exact hr _ },
+  { exact (classical.some_spec (hf p p)).1 },
   { exact (classical.some_spec (hf p a)).1 }
 end
 
@@ -329,7 +328,7 @@ end
 variables [preorder β] {f : α → β} (hf : directed (≤) f)
 
 lemma sequence_mono : monotone (f ∘ (hf.sequence f)) :=
-monotone_of_monotone_nat $ hf.sequence_mono_nat le_refl
+monotone_of_monotone_nat $ hf.sequence_mono_nat
 
 lemma le_sequence (a : α) : f a ≤ f (hf.sequence f (encode a + 1)) :=
 hf.rel_sequence a

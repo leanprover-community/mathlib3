@@ -522,12 +522,19 @@ characterized as the sets containing suitable intervals to the right or to the l
 We give now these characterizations. -/
 
 -- NB: If you extend the list, append to the end please to avoid breaking the API
-/-- A few statements equivalent to `s ∈ nhds_within a (Ioi a)`. Most implications don't require
-`(a, +∞)` to be nonempty however if `(a, +∞)` is empty, then `nhds_within (a, +∞)=⊥`, and we
-don't care too much about this case. -/
-lemma tfae_mem_nhds_within_Ioi {a u' : α} (hu' : a < u') (s : set α) :
-  tfae [s ∈ nhds_within a (Ioi a), s ∈ nhds_within a (Ioc a u'), s ∈ nhds_within a (Ioo a u'),
-    ∃ u ∈ Ioc a u', Ioo a u ⊆ s, ∃ u ∈ Ioi a, Ioo a u ⊆ s] :=
+/-- The following statements are equivalent:
+
+0. `s` is a neighborhood of `a` within `(a, +∞)`
+1. `s` is a neighborhood of `a` within `(a, b]`
+2. `s` is a neighborhood of `a` within `(a, b)`
+3. `s` includes `(a, u)` for some `u ∈ (a, b]`
+4. `s` includes `(a, u)` for some `u > a` -/
+lemma tfae_mem_nhds_within_Ioi {a b : α} (hab : a < b) (s : set α) :
+  tfae [s ∈ nhds_within a (Ioi a), -- 0 : `s` is a neighborhood of `a` within `(a, +∞)`
+    s ∈ nhds_within a (Ioc a b),   -- 1 : `s` is a neighborhood of `a` within `(a, b]`
+    s ∈ nhds_within a (Ioo a b),   -- 2 : `s` is a neighborhood of `a` within `(a, b)`
+    ∃ u ∈ Ioc a b, Ioo a u ⊆ s,    -- 3 : `s` includes `(a, u)` for some `u ∈ (a, b]`
+    ∃ u ∈ Ioi a, Ioo a u ⊆ s] :=   -- 4 : `s` includes `(a, u)` for some `u > a`
 begin
   tfae_have : 1 → 2, from λ h, nhds_within_mono _ Ioc_subset_Ioi_self h,
   tfae_have : 2 → 3, from λ h, nhds_within_mono _ Ioo_subset_Ioc_self h,
@@ -538,7 +545,7 @@ begin
   tfae_have : 3 → 4,
   { assume h,
     rcases mem_nhds_within_iff_exists_mem_nhds_inter.1 h with ⟨v, va, hv⟩,
-    rcases exists_Ico_subset_of_mem_nhds' va hu' with ⟨u, au, hu⟩,
+    rcases exists_Ico_subset_of_mem_nhds' va hab with ⟨u, au, hu⟩,
     refine ⟨u, au, λx hx, _⟩,
     refine hv ⟨hu ⟨le_of_lt hx.1, hx.2⟩, _⟩,
     exact Ioo_subset_Ioo_right au.2 hx  },
@@ -579,14 +586,21 @@ begin
     exact ⟨u, au, subset.trans Ioo_subset_Ioc_self as⟩ }
 end
 
-/-- A few statements equivalent to `s ∈ nhds_within a (Iio a)`. Most implications don't require
-`(-∞, a)` to be nonempty however if `(-∞, a)` is empty, then `nhds_within (-∞, a)=⊥`, and we
-don't care too much about this case. -/
-lemma tfae_mem_nhds_within_Iio {l' a : α} (hl' : l' < a) (s : set α) :
-  tfae [s ∈ nhds_within a (Iio a), s ∈ nhds_within a (Ico l' a), s ∈ nhds_within a (Ioo l' a),
-    ∃ l ∈ Ico l' a, Ioo l a ⊆ s, ∃ l ∈ Iio a, Ioo l a ⊆ s] :=
+/-- The following statements are equivalent:
+
+0. `s` is a neighborhood of `b` within `(-∞, b)`
+1. `s` is a neighborhood of `b` within `[a, b)`
+2. `s` is a neighborhood of `b` within `(a, b)`
+3. `s` includes `(l, b)` for some `l ∈ [a, b)`
+4. `s` includes `(l, b)` for some `l < b` -/
+lemma tfae_mem_nhds_within_Iio {a b : α} (h : a < b) (s : set α) :
+  tfae [s ∈ nhds_within b (Iio b), -- 0 : `s` is a neighborhood of `b` within `(-∞, b)`
+    s ∈ nhds_within b (Ico a b),   -- 1 : `s` is a neighborhood of `b` within `[a, b)`
+    s ∈ nhds_within b (Ioo a b),   -- 2 : `s` is a neighborhood of `b` within `(a, b)`
+    ∃ l ∈ Ico a b, Ioo l b ⊆ s,    -- 3 : `s` includes `(l, b)` for some `l ∈ [a, b)`
+    ∃ l ∈ Iio b, Ioo l b ⊆ s] :=   -- 4 : `s` includes `(l, b)` for some `l < b`
 begin
-  have := @tfae_mem_nhds_within_Ioi (order_dual α) _ _ _ _ _ hl' s,
+  have := @tfae_mem_nhds_within_Ioi (order_dual α) _ _ _ _ _ h s,
   -- If we call `convert` here, it generates wrong equations, so we need to simplify first
   simp only [exists_prop] at this ⊢,
   rw [dual_Ioi, dual_Ioc, dual_Ioo] at this,

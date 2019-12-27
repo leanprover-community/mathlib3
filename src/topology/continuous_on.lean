@@ -127,6 +127,11 @@ theorem nhds_within_inter' (a : α) (s t : set α) :
   nhds_within a (s ∩ t) = (nhds_within a s) ⊓ principal t :=
 by { unfold nhds_within, rw [←inf_principal, lattice.inf_assoc] }
 
+lemma nhds_within_prod_eq {α : Type*} [topological_space α] {β : Type*} [topological_space β]
+  (a : α) (b : β) (s : set α) (t : set β) :
+  nhds_within (a, b) (s.prod t) = (nhds_within a s).prod (nhds_within b t) :=
+by { unfold nhds_within, rw [nhds_prod_eq, ←filter.prod_inf_prod, filter.prod_principal_principal] }
+
 theorem tendsto_if_nhds_within {f g : α → β} {p : α → Prop} [decidable_pred p]
     {a : α} {s : set α} {l : filter β}
     (h₀ : tendsto f (nhds_within a (s ∩ p)) l)
@@ -319,6 +324,18 @@ lemma continuous_within_at.mem_closure_image  {f : α → β} {s : set α} {x : 
   (h : continuous_within_at f s x) (hx : x ∈ closure s) : f x ∈ closure (f '' s) :=
 mem_closure_of_tendsto (mem_closure_iff_nhds_within_ne_bot.1 hx) h $
 mem_sets_of_superset self_mem_nhds_within (subset_preimage_image f s)
+
+lemma continuous_within_at.mem_closure {f : α → β} {s : set α} {x : α} {A : set β}
+  (h : continuous_within_at f s x) (hx : x ∈ closure s) (hA : s ⊆ f⁻¹' A) : f x ∈ closure A :=
+closure_mono (image_subset_iff.2 hA) (h.mem_closure_image hx)
+
+lemma continuous_within_at.image_closure {f : α → β} {s : set α}
+  (hf : ∀ x ∈ closure s, continuous_within_at f s x) :
+  f '' (closure s) ⊆ closure (f '' s) :=
+begin
+  rintros _ ⟨x, hx, rfl⟩,
+  exact (hf x hx).mem_closure_image hx
+end
 
 lemma continuous_on.congr_mono {f g : α → β} {s s₁ : set α} (h : continuous_on f s)
   (h' : ∀x ∈ s₁, g x = f x) (h₁ : s₁ ⊆ s) : continuous_on g s₁ :=

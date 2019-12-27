@@ -361,7 +361,7 @@ begin
     { intros c f, apply subtype.eq,
       change s.attach.sum (λ i, (c • f i) • _) = _,
       simp only [smul_eq_mul, mul_smul],
-      exact finset.sum_hom _ } },
+      exact s.attach.sum_hom _ } },
   rw linear_map.range_eq_top,
   rintro ⟨n, hn⟩, change n ∈ N at hn,
   rw [← hs, ← set.image_id ↑s, finsupp.mem_span_iff_total] at hn,

@@ -329,8 +329,11 @@ has_deriv_at_filter_id _ _
 theorem has_deriv_at_id : has_deriv_at id 1 x :=
 has_deriv_at_filter_id _ _
 
-@[simp] lemma deriv_id : deriv id x = 1 :=
+lemma deriv_id : deriv id x = 1 :=
 has_deriv_at.deriv (has_deriv_at_id x)
+
+@[simp] lemma deriv_id' : deriv (@id 𝕜) = λ _, 1 :=
+funext deriv_id
 
 lemma deriv_within_id (hxs : unique_diff_within_at 𝕜 s x) : deriv_within id s x = 1 :=
 by { unfold deriv_within, rw fderiv_within_id, simp, assumption }
@@ -352,6 +355,9 @@ has_deriv_at_filter_const _ _ _
 
 lemma deriv_const : deriv (λ x, c) x = 0 :=
 has_deriv_at.deriv (has_deriv_at_const x c)
+
+@[simp] lemma deriv_const' : deriv (λ x:𝕜, c) = λ x, 0 :=
+funext (λ x, deriv_const x c)
 
 lemma deriv_within_const (hxs : unique_diff_within_at 𝕜 s x) : deriv_within (λ x, c) s x = 0 :=
 by { rw (differentiable_at_const _).deriv_within hxs, apply deriv_const }
@@ -451,8 +457,14 @@ lemma deriv_within_neg (hxs : unique_diff_within_at 𝕜 s x)
   deriv_within (λy, -f y) s x = - deriv_within f s x :=
 h.has_deriv_within_at.neg.deriv_within hxs
 
-lemma deriv_neg (h : differentiable_at 𝕜 f x) : deriv (λy, -f y) x = - deriv f x :=
-h.has_deriv_at.neg.deriv
+lemma deriv_neg : deriv (λy, -f y) x = - deriv f x :=
+if h : differentiable_at 𝕜 f x then h.has_deriv_at.neg.deriv else
+have ¬differentiable_at 𝕜 (λ y, -f y) x, from λ h', by simpa only [neg_neg] using h'.neg,
+by simp only [deriv_zero_of_not_differentiable_at h,
+  deriv_zero_of_not_differentiable_at this, neg_zero]
+
+@[simp] lemma deriv_neg' : deriv (λy, -f y) = (λ x, - deriv f x) :=
+funext $ λ x, deriv_neg
 
 end neg
 
@@ -971,14 +983,14 @@ lemma differentiable_pow : differentiable 𝕜 (λx:𝕜, x^n) :=
 lemma differentiable_on_pow : differentiable_on 𝕜 (λx, x^n) s :=
 differentiable_pow.differentiable_on
 
-@[simp] lemma deriv_pow : deriv (λx, x^n) x = (n : 𝕜) * x^(n-1) :=
+lemma deriv_pow : deriv (λx, x^n) x = (n : 𝕜) * x^(n-1) :=
 (has_deriv_at_pow n x).deriv
+
+@[simp] lemma deriv_pow' : deriv (λx, x^n) = λ x, (n : 𝕜) * x^(n-1) :=
+funext $ λ x, deriv_pow
 
 lemma deriv_within_pow (hxs : unique_diff_within_at 𝕜 s x) :
   deriv_within (λx, x^n) s x = (n : 𝕜) * x^(n-1) :=
-begin
-  rw differentiable_at.deriv_within differentiable_at_pow hxs,
-  exact deriv_pow
-end
+by rw [differentiable_at_pow.deriv_within hxs, deriv_pow]
 
 end pow

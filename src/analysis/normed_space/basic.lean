@@ -421,7 +421,7 @@ is_monoid_hom.map_pow norm a
 
 @[simp] lemma norm_prod {β : Type*} [normed_field α] (s : finset β) (f : β → α) :
   ∥s.prod f∥ = s.prod (λb, ∥f b∥) :=
-eq.symm (finset.prod_hom norm)
+eq.symm (s.prod_hom norm)
 
 @[simp] lemma norm_div {α : Type*} [normed_field α] (a b : α) : ∥a/b∥ = ∥a∥/∥b∥ :=
 if hb : b = 0 then by simp [hb] else

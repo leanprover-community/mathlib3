@@ -15,6 +15,9 @@ open classical function lattice filter finset metric
 
 variables {α : Type*} {β : Type*} {ι : Type*}
 
+lemma tendsto_norm_at_top_at_top : tendsto (norm : ℝ → ℝ) at_top at_top :=
+tendsto_abs_at_top_at_top
+
 /-- If a function tends to infinity along a filter, then this function multiplied by a positive
 constant (on the left) also tends to infinity. The archimedean assumption is convenient to get a
 statement that works on `ℕ`, `ℤ` and `ℝ`, although not necessary (a version in ordered fields is
@@ -110,17 +113,40 @@ lemma tendsto_pow_at_top_at_top_of_gt_1 {r : ℝ} (h : 1 < r) :
   ⟨n, λ m hnm, le_of_lt $
     lt_of_lt_of_le hn (pow_le_pow (le_of_lt h) hnm)⟩
 
+lemma tendsto_inverse_at_top_nhds_within_0 :
+  tendsto (λr:ℝ, r⁻¹) at_top (nhds_within 0 (set.Ioi 0)) :=
+begin
+  rw tendsto_at_top',
+  assume s hs,
+  rw mem_nhds_within_Ioi_iff_exists_Ioc_subset at hs,
+  rcases hs with ⟨C, C0, hC⟩,
+  refine ⟨C⁻¹, λ x hx, hC _⟩,
+  have : 0 < x, from lt_of_lt_of_le (inv_pos C0) hx,
+  exact ⟨inv_pos this, (inv_le C0 this).1 hx⟩
+end
+
+lemma tendsto_inverse_nhds_within_0_at_top :
+  tendsto (λ r:ℝ, r⁻¹) (nhds_within 0 (set.Ioi 0)) at_top :=
+begin
+  simp only [filter.tendsto_at_top, mem_nhds_within_Ioi_iff_exists_Ioc_subset],
+  intro C,
+  have : (0:ℝ) < max C 1, from lt_max_iff.2 (or.inr zero_lt_one),
+  refine ⟨(max C 1)⁻¹, inv_pos this, _⟩,
+  rintros x ⟨hx0, hxC⟩,
+  exact le_trans (le_max_left C 1) ((le_inv hx0 this).1 hxC)
+end
+
+lemma normed_field.tendsto_norm_nhds_within_0 {𝕜 : Type*} [normed_field 𝕜] :
+  tendsto (norm : 𝕜 → ℝ) (nhds_within 0 {x | x ≠ 0}) (nhds_within 0 (set.Ioi 0)) :=
+lim_norm_zero.inf $ tendsto_principal_principal.2 $ λ x hx, (norm_pos_iff _).2 hx
+
+lemma normed_field.tendsto_norm_inverse_nhds_within_0_at_top {𝕜 : Type*} [normed_field 𝕜] :
+  tendsto (λ x:𝕜, ∥x⁻¹∥) (nhds_within 0 {x | x ≠ 0}) at_top :=
+(tendsto_inverse_nhds_within_0_at_top.comp normed_field.tendsto_norm_nhds_within_0).congr $
+  λ x, (normed_field.norm_inv x).symm
+
 lemma tendsto_inverse_at_top_nhds_0 : tendsto (λr:ℝ, r⁻¹) at_top (𝓝 0) :=
-tendsto_orderable_unbounded (no_top 0) (no_bot 0) $ assume l u hl hu,
-  mem_at_top_sets.mpr ⟨u⁻¹ + 1, assume b hb,
-    have u⁻¹ < b, from lt_of_lt_of_le (lt_add_of_pos_right _ zero_lt_one) hb,
-    ⟨lt_trans hl $ inv_pos $ lt_trans (inv_pos hu) this,
-    lt_of_one_div_lt_one_div hu $
-    begin
-      rw [inv_eq_one_div],
-      simp [-one_div_eq_inv, div_div_eq_mul_div, div_one],
-      simp [this]
-    end⟩⟩
+tendsto_le_right inf_le_left tendsto_inverse_at_top_nhds_within_0
 
 lemma tendsto_pow_at_top_nhds_0_of_lt_1 {r : ℝ} (h₁ : 0 ≤ r) (h₂ : r < 1) :
   tendsto (λn:ℕ, r^n) at_top (𝓝 0) :=

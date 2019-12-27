@@ -1115,8 +1115,7 @@ by rw [infi, cInf_of_cInf_of_monotone_of_continuous Mf Cf
   (λ h, range_eq_empty.1 h ‹_›) H, ← range_comp]; refl
 
 /-- A "continuous induction principle" for a closed interval: if a set `s` meets `[a, b]`
-on a closed subset, contains the left endpoint of a closed interval `[a, b]`, and the set
-`s ∩ [a, b)` has no maximal point, then `b ∈ s`. -/
+on a closed subset, contains `a`, and the set `s ∩ [a, b)` has no maximal point, then `b ∈ s`. -/
 lemma is_closed.mem_of_ge_of_forall_exists_gt {a b : α} {s : set α} (hs : is_closed (s ∩ Icc a b))
   (ha : a ∈ s) (hab : a ≤ b) (hgt : ∀ x ∈ s ∩ Ico a b, (s ∩ Ioc x b).nonempty) :
   b ∈ s :=
@@ -1135,8 +1134,8 @@ begin
 end
 
 /-- A "continuous induction principle" for a closed interval: if a set `s` meets `[a, b]`
-on a closed subset, contains the left endpoint of a closed interval `[a, b]`, and for any
-`a ≤ x < y ≤ b`, `x ∈ s`, the set `s ∩ (x, y]` is not empty, then `[a, b] ⊆ s`. -/
+on a closed subset, contains `a`, and for any `a ≤ x < y ≤ b`, `x ∈ s`, the set `s ∩ (x, y]`
+is not empty, then `[a, b] ⊆ s`. -/
 lemma is_closed.Icc_subset_of_forall_exists_gt {a b : α} {s : set α} (hs : is_closed (s ∩ Icc a b))
   (ha : a ∈ s) (hab : a ≤ b) (hgt : ∀ y ∈ Icc a b, ∀ x ∈ s ∩ Ico a y,  (s ∩ Ioc x y).nonempty) :
   Icc a b ⊆ s :=
@@ -1156,9 +1155,8 @@ section densely_ordered
 variables [densely_ordered α] {a b : α}
 
 /-- A "continuous induction principle" for a closed interval: if a set `s` meets `[a, b]`
-on a closed subset, contains the left endpoint of a closed interval `[a, b]`, and for any
-`x ∈ s ∩ [a, b)` the set `s` includes some open neighborhood of `x` within `(x, +∞)`,
-then `[a, b] ⊆ s`. -/
+on a closed subset, contains `a`, and for any `x ∈ s ∩ [a, b)` the set `s` includes some open
+neighborhood of `x` within `(x, +∞)`, then `[a, b] ⊆ s`. -/
 lemma is_closed.Icc_subset_of_forall_mem_nhds_within {a b : α} {s : set α}
   (hs : is_closed (s ∩ Icc a b)) (ha : a ∈ s) (hab : a ≤ b)
   (hgt : ∀ x ∈ s ∩ Ico a b, s ∈ nhds_within x (Ioi x)) :

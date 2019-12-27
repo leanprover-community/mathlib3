@@ -213,6 +213,13 @@ lemma has_deriv_within_at_inter (h : t ∈ 𝓝 x) :
   has_deriv_within_at f f' (s ∩ t) x ↔ has_deriv_within_at f f' s x :=
 has_fderiv_within_at_inter h
 
+lemma has_deriv_within_at.union (hs : has_deriv_within_at f f' s x) (ht : has_deriv_within_at f f' t x) :
+  has_deriv_within_at f f' (s ∪ t) x :=
+begin
+  simp only [has_deriv_within_at, nhds_within_union],
+  exact is_o_join hs ht,
+end
+
 lemma has_deriv_within_at.nhds_within (h : has_deriv_within_at f f' s x)
   (ht : s ∈ nhds_within x t) : has_deriv_within_at f f' t x :=
 (has_deriv_within_at_inter' ht).1 (h.mono (inter_subset_right _ _))
@@ -281,6 +288,10 @@ by rwa has_deriv_at_filter_congr_of_mem_sets hx hL rfl
 lemma has_deriv_within_at.congr_mono (h : has_deriv_within_at f f' s x) (ht : ∀x ∈ t, f₁ x = f x)
   (hx : f₁ x = f x) (h₁ : t ⊆ s) : has_deriv_within_at f₁ f' t x :=
 has_fderiv_within_at.congr_mono h ht hx h₁
+
+lemma has_deriv_within_at.congr (h : has_deriv_within_at f f' s x) (hs : ∀x ∈ s, f₁ x = f x)
+  (hx : f₁ x = f x) : has_deriv_within_at f₁ f' s x :=
+h.congr_mono hs hx (subset.refl _)
 
 lemma has_deriv_within_at.congr_of_mem_nhds_within (h : has_deriv_within_at f f' s x)
   (h₁ : {y | f₁ y = f y} ∈ nhds_within x s) (hx : f₁ x = f x) : has_deriv_within_at f₁ f' s x :=

@@ -353,7 +353,7 @@ lemma frontier_inter_subset (s t : set α) :
   frontier (s ∩ t) ⊆ (frontier s ∩ closure t) ∪ (closure s ∩ frontier t) :=
 begin
   simp only [frontier_eq_closure_inter_closure, compl_inter, closure_union],
-  convert inter_subset_inter_left (closure_inter_subset_inter_closure s t),
+  convert inter_subset_inter_left _ (closure_inter_subset_inter_closure s t),
   simp only [inter_distrib_left, inter_distrib_right, inter_assoc],
   congr' 2,
   apply inter_comm

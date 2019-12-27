@@ -65,8 +65,12 @@ end
 lemma differentiable_exp : differentiable ℂ exp :=
 λx, (has_deriv_at_exp x).differentiable_at
 
-@[simp] lemma deriv_exp {x : ℂ} : deriv exp x = exp x :=
-(has_deriv_at_exp x).deriv
+@[simp] lemma deriv_exp : deriv exp = exp :=
+funext $ λ x, (has_deriv_at_exp x).deriv
+
+@[simp] lemma iter_deriv_exp : ∀ n : ℕ, (deriv^[n] exp) = exp
+| 0 := rfl
+| (n+1) := by rw [nat.iterate_succ, deriv_exp, iter_deriv_exp n]
 
 lemma continuous_exp : continuous exp :=
 differentiable_exp.continuous
@@ -93,8 +97,8 @@ end
 lemma differentiable_sin : differentiable ℂ sin :=
 λx, (has_deriv_at_sin x).differentiable_at
 
-@[simp] lemma deriv_sin {x : ℂ} : deriv sin x = cos x :=
-(has_deriv_at_sin x).deriv
+@[simp] lemma deriv_sin : deriv sin = cos :=
+funext $ λ x, (has_deriv_at_sin x).deriv
 
 lemma continuous_sin : continuous sin :=
 differentiable_sin.continuous
@@ -120,8 +124,11 @@ end
 lemma differentiable_cos : differentiable ℂ cos :=
 λx, (has_deriv_at_cos x).differentiable_at
 
-@[simp] lemma deriv_cos {x : ℂ} : deriv cos x = -sin x :=
+lemma deriv_cos {x : ℂ} : deriv cos x = -sin x :=
 (has_deriv_at_cos x).deriv
+
+@[simp] lemma deriv_cos' : deriv cos = (λ x, -sin x) :=
+funext $ λ x, deriv_cos
 
 lemma continuous_cos : continuous cos :=
 differentiable_cos.continuous
@@ -144,8 +151,8 @@ end
 lemma differentiable_sinh : differentiable ℂ sinh :=
 λx, (has_deriv_at_sinh x).differentiable_at
 
-@[simp] lemma deriv_sinh {x : ℂ} : deriv sinh x = cosh x :=
-(has_deriv_at_sinh x).deriv
+@[simp] lemma deriv_sinh : deriv sinh = cosh :=
+funext $ λ x, (has_deriv_at_sinh x).deriv
 
 lemma continuous_sinh : continuous sinh :=
 differentiable_sinh.continuous
@@ -164,8 +171,8 @@ end
 lemma differentiable_cosh : differentiable ℂ cosh :=
 λx, (has_deriv_at_cosh x).differentiable_at
 
-@[simp] lemma deriv_cosh {x : ℂ} : deriv cosh x = sinh x :=
-(has_deriv_at_cosh x).deriv
+@[simp] lemma deriv_cosh : deriv cosh = sinh :=
+funext $ λ x, (has_deriv_at_cosh x).deriv
 
 lemma continuous_cosh : continuous cosh :=
 differentiable_cosh.continuous
@@ -182,8 +189,12 @@ has_deriv_at_real_of_complex (complex.has_deriv_at_exp x)
 lemma differentiable_exp : differentiable ℝ exp :=
 λx, (has_deriv_at_exp x).differentiable_at
 
-@[simp] lemma deriv_exp : deriv exp x = exp x :=
-(has_deriv_at_exp x).deriv
+@[simp] lemma deriv_exp : deriv exp = exp :=
+funext $ λ x, (has_deriv_at_exp x).deriv
+
+@[simp] lemma iter_deriv_exp : ∀ n : ℕ, (deriv^[n] exp) = exp
+| 0 := rfl
+| (n+1) := by rw [nat.iterate_succ, deriv_exp, iter_deriv_exp n]
 
 lemma continuous_exp : continuous exp :=
 differentiable_exp.continuous
@@ -194,8 +205,8 @@ has_deriv_at_real_of_complex (complex.has_deriv_at_sin x)
 lemma differentiable_sin : differentiable ℝ sin :=
 λx, (has_deriv_at_sin x).differentiable_at
 
-@[simp] lemma deriv_sin : deriv sin x = cos x :=
-(has_deriv_at_sin x).deriv
+@[simp] lemma deriv_sin : deriv sin = cos :=
+funext $ λ x, (has_deriv_at_sin x).deriv
 
 lemma continuous_sin : continuous sin :=
 differentiable_sin.continuous
@@ -206,8 +217,11 @@ lemma has_deriv_at_cos (x : ℝ) : has_deriv_at cos (-sin x) x :=
 lemma differentiable_cos : differentiable ℝ cos :=
 λx, (has_deriv_at_cos x).differentiable_at
 
-@[simp] lemma deriv_cos : deriv cos x = - sin x :=
+lemma deriv_cos : deriv cos x = - sin x :=
 (has_deriv_at_cos x).deriv
+
+@[simp] lemma deriv_cos' : deriv cos = (λ x, - sin x) :=
+funext $ λ _, deriv_cos
 
 lemma continuous_cos : continuous cos :=
 differentiable_cos.continuous
@@ -224,8 +238,8 @@ has_deriv_at_real_of_complex (complex.has_deriv_at_sinh x)
 lemma differentiable_sinh : differentiable ℝ sinh :=
 λx, (has_deriv_at_sinh x).differentiable_at
 
-@[simp] lemma deriv_sinh : deriv sinh x = cosh x :=
-(has_deriv_at_sinh x).deriv
+@[simp] lemma deriv_sinh : deriv sinh = cosh :=
+funext $ λ x, (has_deriv_at_sinh x).deriv
 
 lemma continuous_sinh : continuous sinh :=
 differentiable_sinh.continuous
@@ -236,8 +250,8 @@ has_deriv_at_real_of_complex (complex.has_deriv_at_cosh x)
 lemma differentiable_cosh : differentiable ℝ cosh :=
 λx, (has_deriv_at_cosh x).differentiable_at
 
-@[simp] lemma deriv_cosh : deriv cosh x = sinh x :=
-(has_deriv_at_cosh x).deriv
+@[simp] lemma deriv_cosh : deriv cosh = sinh :=
+funext $ λ x, (has_deriv_at_cosh x).deriv
 
 lemma continuous_cosh : continuous cosh :=
 differentiable_cosh.continuous

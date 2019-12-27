@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Sébastien Gouëzel
 -/
 
-import analysis.convex analysis.normed_space.bounded_linear_maps
+import analysis.convex analysis.normed_space.bounded_linear_maps analysis.specific_limits
 
 /-!
 # Tangent cone

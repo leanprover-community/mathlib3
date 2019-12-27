@@ -372,7 +372,7 @@ end
 @[simp] lemma comp_C : p.comp (C a) = C (p.eval a) :=
 begin
   dsimp [comp, eval₂, eval, finsupp.sum],
-  rw [← sum_hom (@C α _)],
+  rw [← p.support.sum_hom (@C α _)],
   apply finset.sum_congr rfl; simp
 end
 
@@ -520,7 +520,7 @@ end
 -- TODO find a home (this file)
 @[simp] lemma finset_sum_coeff (s : finset β) (f : β → polynomial α) (n : ℕ) :
   coeff (s.sum f) n = s.sum (λ b, coeff (f b) n) :=
-(finset.sum_hom (λ q : polynomial α, q.coeff n)).symm
+(s.sum_hom (λ q : polynomial α, q.coeff n)).symm
 
 -- We need the explicit `decidable` argument here because an exotic one shows up in a moment!
 lemma ite_le_nat_degree_coeff (p : polynomial α) (n : ℕ) (I : decidable (n < 1 + nat_degree p)) :
@@ -577,7 +577,7 @@ lemma coeff_map (n : ℕ) : coeff (p.map f) n = f (coeff p n) :=
 begin
   rw [map, eval₂, coeff_sum],
   conv_rhs { rw [← sum_C_mul_X_eq p, coeff_sum, finsupp.sum,
-    ← finset.sum_hom f], },
+    ← p.support.sum_hom f], },
   refine finset.sum_congr rfl (λ x hx, _),
   simp [function.comp, coeff_C_mul_X, is_semiring_hom.map_mul f],
   split_ifs; simp [is_semiring_hom.map_zero f],
@@ -2307,7 +2307,7 @@ instance : is_add_monoid_hom (derivative : polynomial α → polynomial α) :=
 
 @[simp] lemma derivative_sum {s : finset β} {f : β → polynomial α} :
   derivative (s.sum f) = s.sum (λb, derivative (f b)) :=
-(finset.sum_hom derivative).symm
+(s.sum_hom derivative).symm
 
 @[simp] lemma derivative_mul {f g : polynomial α} :
   derivative (f * g) = derivative f * g + f * derivative g :=

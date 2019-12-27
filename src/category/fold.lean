@@ -327,9 +327,8 @@ begin
   { induction ys with _ tl ih,
     { simp only [list.length, list.foldl_nil] },
     { simp only [list.foldl, list.length],
-      transitivity list.foldl f 0 tl + 1,
-      { exact eq.symm (list.foldl_hom (+1) f f 0 (λ _ _, rfl) _) },
-      { rw ih } } }
+      rw [← ih],
+      exact tl.foldl_hom (λx, x+1) f f 0 (λ n x, rfl) } }
 end
 
 variables {m : Type u → Type u} [monad m] [is_lawful_monad m]

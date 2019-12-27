@@ -262,12 +262,24 @@ class no_bot_order (α : Type u) [preorder α] : Prop :=
 lemma no_bot [preorder α] [no_bot_order α] : ∀a:α, ∃a', a' < a :=
 no_bot_order.no_bot
 
+instance order_dual.no_top_order (α : Type u) [preorder α] [no_bot_order α] :
+  no_top_order (order_dual α) :=
+⟨λ a, @no_bot α _ _ a⟩
+
+instance order_dual.no_bot_order (α : Type u) [preorder α] [no_top_order α] :
+  no_bot_order (order_dual α) :=
+⟨λ a, @no_top α _ _ a⟩
+
 /-- An order is dense if there is an element between any pair of distinct elements. -/
 class densely_ordered (α : Type u) [preorder α] : Prop :=
 (dense : ∀a₁ a₂:α, a₁ < a₂ → ∃a, a₁ < a ∧ a < a₂)
 
 lemma dense [preorder α] [densely_ordered α] : ∀{a₁ a₂:α}, a₁ < a₂ → ∃a, a₁ < a ∧ a < a₂ :=
 densely_ordered.dense
+
+instance order_dual.densely_ordered (α : Type u) [preorder α] [densely_ordered α] :
+  densely_ordered (order_dual α) :=
+⟨λ a₁ a₂ ha, (@dense α _ _ _ _ ha).imp $ λ a, and.symm⟩
 
 lemma le_of_forall_le_of_dense [linear_order α] [densely_ordered α] {a₁ a₂ : α} (h : ∀a₃>a₂, a₁ ≤ a₃) :
   a₁ ≤ a₂ :=

@@ -153,7 +153,7 @@ begin
   /- This is a specialization of `has_fderiv_at_boundary_of_tendsto_fderiv`. To be in the setting of
   this theorem, we need to work on an open interval with closure contained in `s ∪ {a}`, that we
   call `t = (a, b)`. Then, we check all the assumptions of this theorem and we apply it. -/
-  obtain ⟨b, ab, sab⟩ : ∃ (b : ℝ), a < b ∧ Ioc a b ⊆ s :=
+  obtain ⟨b, ab, sab⟩ : ∃ b ∈ Ioi a, Ioc a b ⊆ s :=
     mem_nhds_within_Ioi_iff_exists_Ioc_subset.1 hs,
   let t := Ioo a b,
   have ts : t ⊆ s := subset.trans Ioo_subset_Ioc_self sab,

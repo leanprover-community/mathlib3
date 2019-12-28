@@ -171,6 +171,37 @@ theorem has_deriv_at_iff_tendsto : has_deriv_at f f' x ↔
   tendsto (λ x', ∥x' - x∥⁻¹ * ∥f x' - f x - (x' - x) • f'∥) (𝓝 x) (𝓝 0) :=
 has_fderiv_at_filter_iff_tendsto
 
+/-- If the domain has dimension one, then Fréchet derivative is equivalent to the classical
+definition with a limit. In this version we have to take the limit along the subset `-{x}`,
+because for `y=x` the slope equals zero due to the convention `0⁻¹=0`. -/
+lemma has_deriv_at_filter_iff_tendsto_slope {x : 𝕜} {L : filter 𝕜} :
+  has_deriv_at_filter f f' x L ↔
+    tendsto (λ y, (y - x)⁻¹ • (f y - f x)) (L ⊓ principal (-{x})) (𝓝 f') :=
+begin
+  conv_lhs { simp only [has_deriv_at_filter_iff_tendsto, (normed_field.norm_inv _).symm,
+    (norm_smul _ _).symm, tendsto_zero_iff_norm_tendsto_zero.symm] },
+  conv_rhs { rw [← nhds_translation f', tendsto_comap_iff] },
+  refine (tendsto_inf_principal_nhds_iff_of_forall_eq $ by simp).symm.trans (tendsto_congr' _),
+  rw mem_inf_principal,
+  refine univ_mem_sets' (λ z hz, _),
+  have : z ≠ x, by simpa [function.comp] using hz,
+  simp only [mem_set_of_eq],
+  rw [smul_sub, ← mul_smul, inv_mul_cancel (sub_ne_zero.2 this), one_smul]
+end
+
+lemma has_deriv_within_at_iff_tendsto_slope {x : 𝕜} {s : set 𝕜} :
+  has_deriv_within_at f f' s x ↔
+    tendsto (λ y, (y - x)⁻¹ • (f y - f x)) (nhds_within x (s \ {x})) (𝓝 f') :=
+begin
+  simp only [has_deriv_within_at, nhds_within, diff_eq, lattice.inf_assoc.symm, inf_principal.symm],
+  exact has_deriv_at_filter_iff_tendsto_slope
+end
+
+lemma has_deriv_at_iff_tendsto_slope {x : 𝕜} :
+  has_deriv_at f f' x ↔
+    tendsto (λ y, (y - x)⁻¹ • (f y - f x)) (nhds_within x (-{x})) (𝓝 f') :=
+has_deriv_at_filter_iff_tendsto_slope
+
 theorem has_deriv_at_iff_is_o_nhds_zero : has_deriv_at f f' x ↔
   is_o (λh, f (x + h) - f x - h • f') (λh, h) (𝓝 0) :=
 has_fderiv_at_iff_is_o_nhds_zero

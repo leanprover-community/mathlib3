@@ -1832,7 +1832,7 @@ end
 /-- The real exponential function tends to 0 at -infinity or, equivalently, `exp(-x)` tends to `0`
 at +infinity -/
 lemma tendsto_exp_neg_at_top_nhds_0 : tendsto (λx, exp (-x)) at_top (𝓝 0) :=
-(tendsto.comp tendsto_inverse_at_top_nhds_0 (tendsto_exp_at_top)).congr (λx, (exp_neg x).symm)
+(tendsto_inv_at_top_zero.comp (tendsto_exp_at_top)).congr (λx, (exp_neg x).symm)
 
 /-- The function `exp(x)/x^n` tends to +infinity at +infinity, for any natural number `n` -/
 lemma tendsto_exp_div_pow_at_top (n : ℕ) : tendsto (λx, exp x / x^n) at_top at_top :=
@@ -1870,7 +1870,7 @@ end
 
 /-- The function `x^n * exp(-x)` tends to `0` at +infinity, for any natural number `n`. -/
 lemma tendsto_pow_mul_exp_neg_at_top_nhds_0 (n : ℕ) : tendsto (λx, x^n * exp (-x)) at_top (𝓝 0) :=
-(tendsto_inverse_at_top_nhds_0.comp (tendsto_exp_div_pow_at_top n)).congr $ λx,
+(tendsto_inv_at_top_zero.comp (tendsto_exp_div_pow_at_top n)).congr $ λx,
   by rw [function.comp_app, inv_eq_one_div, div_div_eq_mul_div, one_mul, div_eq_mul_inv, exp_neg]
 
 end exp

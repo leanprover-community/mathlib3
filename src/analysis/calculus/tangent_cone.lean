@@ -95,8 +95,7 @@ lemma tangent_cone_at.lim_zero {α : Type*} (l : filter α) {c : α → 𝕜} {d
   (hc : tendsto (λn, ∥c n∥) l at_top) (hd : tendsto (λn, c n • d n) l (𝓝 y)) :
   tendsto d l (𝓝 0) :=
 begin
-  have A : tendsto (λn, ∥c n∥⁻¹) l (𝓝 0) :=
-    tendsto_inverse_at_top_nhds_0.comp hc,
+  have A : tendsto (λn, ∥c n∥⁻¹) l (𝓝 0) := tendsto_inv_at_top_zero.comp hc,
   have B : tendsto (λn, ∥c n • d n∥) l (𝓝 ∥y∥) :=
     (continuous_norm.tendsto _).comp hd,
   have C : tendsto (λn, ∥c n∥⁻¹ * ∥c n • d n∥) l (𝓝 (0 * ∥y∥)) := A.mul B,

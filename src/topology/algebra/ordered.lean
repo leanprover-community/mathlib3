@@ -1452,3 +1452,6 @@ tendsto_nhds_unique at_top_ne_bot (tendsto_at_top_supr_nat f hf)
 lemma infi_eq_of_tendsto {α} [topological_space α] [complete_linear_order α] [orderable_topology α]
   {f : ℕ → α} {a : α} (hf : ∀n m, n ≤ m → f m ≤ f n) : tendsto f at_top (𝓝 a) → infi f = a :=
 tendsto_nhds_unique at_top_ne_bot (tendsto_at_top_infi_nat f hf)
+
+lemma tendsto_abs_at_top_at_top [decidable_linear_ordered_comm_group α] : tendsto (abs : α → α) at_top at_top :=
+tendsto_at_top_mono _ (λ n, le_abs_self _) tendsto_id

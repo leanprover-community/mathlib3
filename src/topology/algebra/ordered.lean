@@ -1149,7 +1149,7 @@ end
 on a closed subset, contains `a`, and for any `a ≤ x < y ≤ b`, `x ∈ s`, the set `s ∩ (x, y]`
 is not empty, then `[a, b] ⊆ s`. -/
 lemma is_closed.Icc_subset_of_forall_exists_gt {a b : α} {s : set α} (hs : is_closed (s ∩ Icc a b))
-  (ha : a ∈ s) (hab : a ≤ b) (hgt : ∀ y ∈ Icc a b, ∀ x ∈ s ∩ Ico a y,  (s ∩ Ioc x y).nonempty) :
+  (ha : a ∈ s) (hgt : ∀ y ∈ Icc a b, ∀ x ∈ s ∩ Ico a y,  (s ∩ Ioc x y).nonempty) :
   Icc a b ⊆ s :=
 begin
   assume y hy,
@@ -1170,11 +1170,11 @@ variables [densely_ordered α] {a b : α}
 on a closed subset, contains `a`, and for any `x ∈ s ∩ [a, b)` the set `s` includes some open
 neighborhood of `x` within `(x, +∞)`, then `[a, b] ⊆ s`. -/
 lemma is_closed.Icc_subset_of_forall_mem_nhds_within {a b : α} {s : set α}
-  (hs : is_closed (s ∩ Icc a b)) (ha : a ∈ s) (hab : a ≤ b)
+  (hs : is_closed (s ∩ Icc a b)) (ha : a ∈ s)
   (hgt : ∀ x ∈ s ∩ Ico a b, s ∈ nhds_within x (Ioi x)) :
   Icc a b ⊆ s :=
 begin
-  apply hs.Icc_subset_of_forall_exists_gt ha hab,
+  apply hs.Icc_subset_of_forall_exists_gt ha,
   rintros y hy x ⟨hxs, hxay⟩,
   have : Ioc x y ∈ nhds_within x (Ioi x),
     from mem_nhds_within.2 ⟨Iio y, is_open_Iio, hxay.2, λ z hz, ⟨hz.2, le_of_lt hz.1⟩⟩,
@@ -1196,7 +1196,7 @@ begin
   by_contradiction hst,
   suffices : Icc x y ⊆ s,
     from hst ⟨y, xyab $ right_mem_Icc.2 hxy, this $ right_mem_Icc.2 hxy, hy.2⟩,
-  apply (is_closed_inter hs is_closed_Icc).Icc_subset_of_forall_mem_nhds_within hx.2 hxy,
+  apply (is_closed_inter hs is_closed_Icc).Icc_subset_of_forall_mem_nhds_within hx.2,
   rintros z ⟨zs, hz⟩,
   have zt : z ∈ -t, from λ zt, hst ⟨z, xyab $ Ico_subset_Icc_self hz, zs, zt⟩,
   have : -t ∩ Ioc z y ∈ nhds_within z (Ioi z),

@@ -996,7 +996,7 @@ by rw [differentiable_at_pow.deriv_within hxs, deriv_pow]
 end pow
 
 /-- If the domain has dimension one, then Fréchet derivative is equivalent to the classical
-definitio with a limit. -/
+definition with a limit. -/
 lemma has_deriv_at_filter_iff_tendsto_slope {x : 𝕜} {L : filter 𝕜} :
   has_deriv_at_filter f f' x L ↔
     tendsto (λ y, (y - x)⁻¹ • (f y - f x)) (L ⊓ principal {y | y ≠ x}) (𝓝 f') :=

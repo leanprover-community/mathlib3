@@ -182,9 +182,9 @@ begin
     { split_ifs with h, { apply hg1 }, rw sub_self, exact (f i).zero_mem },
     { intros hjs hji, rw dif_pos, { apply hg2 }, exact ⟨hjs, hji⟩ } },
   rcases this with ⟨g, hgi, hgj⟩, use (s.erase i).prod g, split,
-  { rw [← quotient.eq, quotient.mk_one, ← finset.prod_hom (quotient.mk (f i))],
+  { rw [← quotient.eq, quotient.mk_one, ← finset.prod_hom _ (quotient.mk (f i))],
     apply finset.prod_eq_one, intros, rw [← quotient.mk_one, quotient.eq], apply hgi },
-  intros j hjs hji, rw [← quotient.eq_zero_iff_mem, ← finset.prod_hom (quotient.mk (f j))],
+  intros j hjs hji, rw [← quotient.eq_zero_iff_mem, ← finset.prod_hom _ (quotient.mk (f j))],
   refine finset.prod_eq_zero (finset.mem_erase_of_ne_of_mem hji hjs) _,
   rw quotient.eq_zero_iff_mem, exact hgj j hjs hji
 end
@@ -201,7 +201,7 @@ begin
   rcases this with ⟨φ, hφ1, hφ2⟩,
   use finset.univ.sum (λ i, g i * φ i),
   intros i,
-  rw [← quotient.eq, ← finset.sum_hom (quotient.mk (f i))],
+  rw [← quotient.eq, ← finset.univ.sum_hom (quotient.mk (f i))],
   refine eq.trans (finset.sum_eq_single i _ _) _,
   { intros j _ hji, rw quotient.eq_zero_iff_mem, exact (f i).mul_mem_left (hφ2 j i hji) },
   { intros hi, exact (hi $ finset.mem_univ i).elim },
@@ -314,6 +314,7 @@ begin
   exact le_trans (mul_le_inf) (lattice.inf_le_left)
 end
 
+/-- The radical of an ideal `I` consists of the elements `r` such that `r^n ∈ I` for some `n`. -/
 def radical (I : ideal R) : ideal R :=
 { carrier := { r | ∃ n : ℕ, r ^ n ∈ I },
   zero := ⟨1, (pow_one (0:R)).symm ▸ I.zero_mem⟩,
@@ -417,6 +418,7 @@ variables {I J : ideal R} {K L : ideal S}
 def map (I : ideal R) : ideal S :=
 span (f '' I)
 
+/-- `I.comap f` is the preimage of `I` under `f`. -/
 def comap (I : ideal S) : ideal R :=
 { carrier := f ⁻¹' I,
   zero := show f 0 ∈ I, by rw is_ring_hom.map_zero f; exact I.zero_mem,

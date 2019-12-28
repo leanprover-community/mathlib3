@@ -22,6 +22,19 @@ In this file we prove the following facts:
   Cauchy's Mean Value Theorem.
 
 * `exists_has_deriv_at_eq_slope` and `exists_deriv_eq_slope` : Lagrange's Mean Value Theorem.
+
+* `convex.image_sub_lt_mul_sub_of_deriv_lt`, `convex.mul_sub_lt_image_sub_of_lt_deriv`,
+  `convex.image_sub_le_mul_sub_of_deriv_le`, `convex.mul_sub_le_image_sub_of_le_deriv`,
+  if `∀ x, C (</≤/>/≥) (f' x)`, then `C * (y - x) (</≤/>/≥) (f y - f x)` whenever `x < y`.
+
+* `convex.mono_of_deriv_nonneg`, `convex.antimono_of_deriv_nonpos`,
+  `convex.strict_mono_of_deriv_pos`, `convex.strict_antimono_of_deriv_neg` :
+  if the derivative of a function is non-negative/non-positive/positive/negative, then
+  the function is monotone/monotonically decreasing/strictly monotone/strictly monotonically
+  decreasing.
+
+* `convex_on_of_deriv_mono`, `convex_on_of_deriv2_nonneg` : if the derivative of a function
+  is increasing or its second derivative is nonnegative, then the original function is convex.
 -/
 
 set_option class.instance_max_depth 120
@@ -222,6 +235,30 @@ exists_has_deriv_at_eq_slope f (deriv f) hab hfc
 
 end interval
 
+/-- Let `f` be a function continuous on a convex (or, equivalently, connected) subset `D`
+of the real line. If `f` is differentiable on the interior of `D` and `C < f'`, then
+`f` grows faster than `C * x` on `D`, i.e., `C * (y - x) < f y - f x` whenever `x, y ∈ D`,
+`x < y`. -/
+theorem convex.mul_sub_lt_image_sub_of_lt_deriv {D : set ℝ} (hD : convex D) {f : ℝ → ℝ}
+  (hf : continuous_on f D) (hf' : differentiable_on ℝ f (interior D))
+  {C} (hf'_gt : ∀ x ∈ interior D, C < deriv f x) :
+  ∀ x y ∈ D, x < y → C * (y - x) < f y - f x :=
+begin
+  assume x y hx hy hxy,
+  -- cases eq_or_lt_of_le hxy with hxy' hxy', by rw [hxy', sub_self, sub_self, mul_zero],
+  have hxyD : Icc x y ⊆ D, from convex_real_iff.1 hD hx hy,
+  have hxyD' : Ioo x y ⊆ interior D,
+    from subset_sUnion_of_mem ⟨is_open_Ioo, subset.trans Ioo_subset_Icc_self hxyD⟩,
+  obtain ⟨a, a_mem, ha⟩ : ∃ a ∈ Ioo x y, deriv f a = (f y - f x) / (y - x),
+    from exists_deriv_eq_slope f hxy (hf.mono hxyD) (hf'.mono hxyD'),
+  have : C < (f y - f x) / (y - x), by { rw [← ha], exact hf'_gt _ (hxyD' a_mem) },
+  exact (lt_div_iff (sub_pos.2 hxy)).1 this
+end
+
+/-- Let `f` be a function continuous on a convex (or, equivalently, connected) subset `D`
+of the real line. If `f` is differentiable on the interior of `D` and `C ≤ f'`, then
+`f` grows at least as fast as `C * x` on `D`, i.e., `C * (y - x) ≤ f y - f x` whenever `x, y ∈ D`,
+`x ≤ y`. -/
 theorem convex.mul_sub_le_image_sub_of_le_deriv {D : set ℝ} (hD : convex D) {f : ℝ → ℝ}
   (hf : continuous_on f D) (hf' : differentiable_on ℝ f (interior D))
   {C} (hf'_ge : ∀ x ∈ interior D, C ≤ deriv f x) :
@@ -238,6 +275,28 @@ begin
   exact (le_div_iff (sub_pos.2 hxy')).1 this
 end
 
+/-- Let `f` be a function continuous on a convex (or, equivalently, connected) subset `D`
+of the real line. If `f` is differentiable on the interior of `D` and `f' C C`, then
+`f` grows slower than `C * x` on `D`, i.e., `f y - f x < C * (y - x)` whenever `x, y ∈ D`,
+`x < y`. -/
+theorem convex.image_sub_lt_mul_sub_of_deriv_lt {D : set ℝ} (hD : convex D) {f : ℝ → ℝ}
+  (hf : continuous_on f D) (hf' : differentiable_on ℝ f (interior D))
+  {C} (lt_hf' : ∀ x ∈ interior D, deriv f x < C) :
+  ∀ x y ∈ D, x < y → f y - f x < C * (y - x) :=
+begin
+  assume x y hx hy hxy,
+  have hf'_gt : ∀ x ∈ interior D, -C < deriv (λ y, -f y) x,
+  { assume x hx,
+    rw [deriv_neg, neg_lt_neg_iff],
+    exact lt_hf' x hx },
+  simpa [-neg_lt_neg_iff]
+    using neg_lt_neg (hD.mul_sub_lt_image_sub_of_lt_deriv hf.neg hf'.neg hf'_gt x y hx hy hxy)
+end
+
+/-- Let `f` be a function continuous on a convex (or, equivalently, connected) subset `D`
+of the real line. If `f` is differentiable on the interior of `D` and `f' ≤ C`, then
+`f` grows at most as fast as `C * x` on `D`, i.e., `f y - f x ≤ C * (y - x)` whenever `x, y ∈ D`,
+`x ≤ y`. -/
 theorem convex.image_sub_le_mul_sub_of_deriv_le {D : set ℝ} (hD : convex D) {f : ℝ → ℝ}
   (hf : continuous_on f D) (hf' : differentiable_on ℝ f (interior D))
   {C} (le_hf' : ∀ x ∈ interior D, deriv f x ≤ C) :
@@ -247,17 +306,41 @@ begin
   have hf'_ge : ∀ x ∈ interior D, -C ≤ deriv (λ y, -f y) x,
   { assume x hx,
     rw [deriv_neg, neg_le_neg_iff],
-    exacts [le_hf' x hx, (hf' x hx).differentiable_at $ mem_nhds_sets is_open_interior hx] },
+    exact le_hf' x hx },
   simpa [-neg_le_neg_iff]
     using neg_le_neg (hD.mul_sub_le_image_sub_of_le_deriv hf.neg hf'.neg hf'_ge x y hx hy hxy)
 end
 
+/-- Let `f` be a function continuous on a convex (or, equivalently, connected) subset `D`
+of the real line. If `f` is differentiable on the interior of `D` and `f'` is positive, then
+`f` is a strictly monotonically increasing function on `D`. -/
+theorem convex.strict_mono_of_deriv_pos {D : set ℝ} (hD : convex D) {f : ℝ → ℝ}
+  (hf : continuous_on f D) (hf' : differentiable_on ℝ f (interior D))
+  (hf'_pos : ∀ x ∈ interior D, 0 < deriv f x) :
+  ∀ x y ∈ D, x < y → f x < f y :=
+by simpa only [zero_mul, sub_pos] using hD.mul_sub_lt_image_sub_of_lt_deriv hf hf' hf'_pos
+
+/-- Let `f` be a function continuous on a convex (or, equivalently, connected) subset `D`
+of the real line. If `f` is differentiable on the interior of `D` and `f'` is nonnegative, then
+`f` is a monotonically increasing function on `D`. -/
 theorem convex.mono_of_deriv_nonneg {D : set ℝ} (hD : convex D) {f : ℝ → ℝ}
   (hf : continuous_on f D) (hf' : differentiable_on ℝ f (interior D))
   (hf'_nonneg : ∀ x ∈ interior D, 0 ≤ deriv f x) :
   ∀ x y ∈ D, x ≤ y → f x ≤ f y :=
 by simpa only [zero_mul, sub_nonneg] using hD.mul_sub_le_image_sub_of_le_deriv hf hf' hf'_nonneg
 
+/-- Let `f` be a function continuous on a convex (or, equivalently, connected) subset `D`
+of the real line. If `f` is differentiable on the interior of `D` and `f'` is negative, then
+`f` is a strictly monotonically decreasing function on `D`. -/
+theorem convex.strict_antimono_of_deriv_neg {D : set ℝ} (hD : convex D) {f : ℝ → ℝ}
+  (hf : continuous_on f D) (hf' : differentiable_on ℝ f (interior D))
+  (hf'_neg : ∀ x ∈ interior D, deriv f x < 0) :
+  ∀ x y ∈ D, x < y → f y < f x :=
+by simpa only [zero_mul, sub_lt_zero] using hD.image_sub_lt_mul_sub_of_deriv_lt hf hf' hf'_neg
+
+/-- Let `f` be a function continuous on a convex (or, equivalently, connected) subset `D`
+of the real line. If `f` is differentiable on the interior of `D` and `f'` is nonpositive, then
+`f` is a monotonically decreasing function on `D`. -/
 theorem convex.antimono_of_deriv_nonpos {D : set ℝ} (hD : convex D) {f : ℝ → ℝ}
   (hf : continuous_on f D) (hf' : differentiable_on ℝ f (interior D))
   (hf'_nonpos : ∀ x ∈ interior D, deriv f x ≤ 0) :

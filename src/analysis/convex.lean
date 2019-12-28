@@ -412,35 +412,24 @@ begin
   simpa [hab, zero_lt_one] using h hx hy ha hb,
 end⟩
 
-lemma convex_on_linorder [linear_order α] {f : α → ℝ} : convex_on D f ↔
-  convex D ∧ ∀ {x y : α} {a b : ℝ}, x ∈ D → y ∈ D → x < y → 0 ≤ a → 0 ≤ b → a + b = 1 →
-    f (a • x + b • y) ≤ a * f x + b * f y :=
+/-- For functions on linear ordered sets, it suffices to verify the requirements for `x < y`
+and positive `a`, `b`. The main use case is `α = ℝ` however one can apply it, e.g., to `ℝ^n` with
+lexicographic order. -/
+lemma linear_order.convex_on_of_lt [linear_order α] {f : α → ℝ} (hD : convex D)
+  (hf : ∀ {x y : α} {a b : ℝ}, x ∈ D → y ∈ D → x < y → 0 < a → 0 < b → a + b = 1 →
+    f (a • x + b • y) ≤ a * f x + b * f y) : convex_on D f :=
 begin
-  refine and_congr iff.rfl ⟨_, _⟩; intros h x y a b hx hy,
-  { intro hxy, exact h hx hy },
-  { intros ha hb hab,
-    wlog hxy : x<=y using [x y a b, y x b a],
-    exact le_total _ _,
-    apply or.elim (lt_or_eq_of_le hxy),
-    { intros hxy, exact h hx hy hxy ha hb hab },
-    { intros hxy, rw [hxy, ←add_smul, hab, one_smul, ←add_mul,hab,one_mul] } }
-end
-
-lemma convex_on_linorder_lt [linear_order α] {f : α → ℝ} : convex_on D f ↔
-  convex D ∧ ∀ {x y : α} {a b : ℝ}, x ∈ D → y ∈ D → x < y → 0 < a → 0 < b → a + b = 1 →
-    f (a • x + b • y) ≤ a * f x + b * f y :=
-convex_on_linorder.trans $ and_congr iff.rfl $ iff.intro
-begin
-  assume h x y a b hx hy hxy ha hb hab,
-  exact h hx hy hxy (le_of_lt ha) (le_of_lt hb) hab
-end
-begin
-  assume h x y a b hx hy hxy ha hb hab,
-  cases eq_or_lt_of_le ha with ha ha,
-    by { subst a, rw [zero_add] at hab, subst b, simp },
-  cases eq_or_lt_of_le hb with hb hb,
-    by { subst b, rw [add_zero] at hab, subst a, simp },
-  exact h hx hy hxy ha hb hab
+  use hD,
+  intros x y a b hx hy ha hb hab,
+  wlog hxy : x<=y using [x y a b, y x b a],
+  { exact le_total _ _ },
+  { cases eq_or_lt_of_le hxy with hxy hxy,
+      by { subst y, rw [← add_smul, ← add_mul, hab, one_smul, one_mul] },
+    cases eq_or_lt_of_le ha with ha ha,
+      by { subst a, rw [zero_add] at hab, subst b, simp },
+    cases eq_or_lt_of_le hb with hb hb,
+      by { subst b, rw [add_zero] at hab, subst a, simp },
+    exact hf hx hy hxy ha hb hab }
 end
 
 /-- This way of proving convexity of a function is used in the proof
@@ -449,7 +438,7 @@ lemma convex_on_real_of_slope_mono_adjacent {D : set ℝ} (hD : convex D) {f : �
   (hf : ∀ {x y z : ℝ}, x ∈ D → z ∈ D → x < y → y < z →
     (f y - f x) / (y - x) ≤ (f z - f y) / (z - y)) :
   convex_on D f :=
-convex_on_linorder_lt.2 $ and.intro hD
+linear_order.convex_on_of_lt hD
 begin
   assume x z a b hx hz hxz ha hb hab,
   let y := a * x + b * z,

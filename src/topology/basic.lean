@@ -569,8 +569,8 @@ lemma mem_closure_of_tendsto {f : β → α} {b : filter β} {a : α} {s : set �
 mem_of_closed_of_tendsto hb hf (is_closed_closure) $
   filter.mem_sets_of_superset h (preimage_mono subset_closure)
 
-/-- If `f` sends the complement to `s` to a single point `a`, then for any filter `l` we have
-`tendsto f (l ⊓ principal s) (𝓝 a) ↔ tendsto f l (𝓝 a)`. -/
+/-- Suppose that `f` sends the complement to `s` to a single point `a`, and `l` is some filter.
+Then `f` tends to `a` along `l` restricted to `s` if and only it tends to `a` along `l`. -/
 lemma tendsto_inf_principal_nhds_iff_of_forall_eq {f : β → α} {l : filter β} {s : set β}
   {a : α} (h : ∀ x ∉ s, f x = a) :
   tendsto f (l ⊓ principal s) (𝓝 a) ↔ tendsto f l (𝓝 a) :=

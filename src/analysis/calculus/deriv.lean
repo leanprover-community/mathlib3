@@ -197,7 +197,7 @@ begin
   exact has_deriv_at_filter_iff_tendsto_slope
 end
 
-lemma has_deriv_at_iff_tendsto_slope {x : 𝕜} {s : set 𝕜} :
+lemma has_deriv_at_iff_tendsto_slope {x : 𝕜} :
   has_deriv_at f f' x ↔
     tendsto (λ y, (y - x)⁻¹ • (f y - f x)) (nhds_within x (-{x})) (𝓝 f') :=
 has_deriv_at_filter_iff_tendsto_slope

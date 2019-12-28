@@ -245,7 +245,6 @@ theorem convex.mul_sub_lt_image_sub_of_lt_deriv {D : set ℝ} (hD : convex D) {f
   ∀ x y ∈ D, x < y → C * (y - x) < f y - f x :=
 begin
   assume x y hx hy hxy,
-  -- cases eq_or_lt_of_le hxy with hxy' hxy', by rw [hxy', sub_self, sub_self, mul_zero],
   have hxyD : Icc x y ⊆ D, from convex_real_iff.1 hD hx hy,
   have hxyD' : Ioo x y ⊆ interior D,
     from subset_sUnion_of_mem ⟨is_open_Ioo, subset.trans Ioo_subset_Icc_self hxyD⟩,

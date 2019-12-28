@@ -275,7 +275,7 @@ begin
 end
 
 /-- Let `f` be a function continuous on a convex (or, equivalently, connected) subset `D`
-of the real line. If `f` is differentiable on the interior of `D` and `f' C C`, then
+of the real line. If `f` is differentiable on the interior of `D` and `f' < C`, then
 `f` grows slower than `C * x` on `D`, i.e., `f y - f x < C * (y - x)` whenever `x, y ∈ D`,
 `x < y`. -/
 theorem convex.image_sub_lt_mul_sub_of_deriv_lt {D : set ℝ} (hD : convex D) {f : ℝ → ℝ}

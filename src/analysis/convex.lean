@@ -412,7 +412,8 @@ begin
   simpa [hab, zero_lt_one] using h hx hy ha hb,
 end⟩
 
-/-- For functions on linear ordered sets, it suffices to verify the requirements for `x < y`
+/-- For a function on a convex set in a linear ordered space, in order to prove that it is convex
+it suffices to verify the inequality `f (a • x + b • y) ≤ a * f x + b * f y` only for `x < y`
 and positive `a`, `b`. The main use case is `α = ℝ` however one can apply it, e.g., to `ℝ^n` with
 lexicographic order. -/
 lemma linear_order.convex_on_of_lt [linear_order α] {f : α → ℝ} (hD : convex D)
@@ -432,8 +433,10 @@ begin
     exact hf hx hy hxy ha hb hab }
 end
 
-/-- This way of proving convexity of a function is used in the proof
-of convexity of a function with a monotone derivative. -/
+/-- For a function `f` defined on a convex subset `D` of `ℝ`, if for any three points `x<y<z`
+the slope of the secant line of `f` on `[x, y]` is less than or equal to the slope
+of the secant line of `f` on `[x, z]`, then `f` is convex on `D`. This way of proving convexity
+of a function is used in the proof of convexity of a function with a monotone derivative. -/
 lemma convex_on_real_of_slope_mono_adjacent {D : set ℝ} (hD : convex D) {f : ℝ → ℝ}
   (hf : ∀ {x y z : ℝ}, x ∈ D → z ∈ D → x < y → y < z →
     (f y - f x) / (y - x) ≤ (f z - f y) / (z - y)) :

@@ -346,6 +346,8 @@ theorem convex.antimono_of_deriv_nonpos {D : set ℝ} (hD : convex D) {f : ℝ �
   ∀ x y ∈ D, x ≤ y → f y ≤ f x :=
 by simpa only [zero_mul, sub_nonpos] using hD.image_sub_le_mul_sub_of_deriv_le hf hf' hf'_nonpos
 
+/-- If a function `f` is continuous on convex set `D ⊆ ℝ`, is differentiable on its interior,
+and `f'` is monotone on the interior, then `f` is convex on `D`. -/
 theorem convex_on_of_deriv_mono {D : set ℝ} (hD : convex D) {f : ℝ → ℝ}
   (hf : continuous_on f D) (hf' : differentiable_on ℝ f (interior D))
   (hf'_mono : ∀ x y ∈ interior D, x ≤ y → deriv f x ≤ deriv f y) :
@@ -370,6 +372,15 @@ begin
   exact hf'_mono a b (hxyD' ⟨hxa, hay⟩) (hyzD' ⟨hyb, hbz⟩) (le_of_lt $ lt_trans hay hyb)
 end
 
+/-- If a function `f` is continuous on convex set `D ⊆ ℝ`, is differentiable on its interior,
+and `f'` is monotone on the interior, then `f` is convex on `ℝ`. -/
+theorem convex_on_univ_of_deriv_mono {f : ℝ → ℝ} (hf : differentiable ℝ f)
+  (hf'_mono : monotone (deriv f)) : convex_on univ f :=
+convex_on_of_deriv_mono convex_univ hf.continuous.continuous_on hf.differentiable_on
+  (λ x y _ _ h, hf'_mono h)
+
+/-- If a function `f` is continuous on convex set `D ⊆ ℝ`, is twice differentiable on its interior,
+and `f''` is nonnegative on the interior, then `f` is convex on `D`. -/
 theorem convex_on_of_deriv2_nonneg {D : set ℝ} (hD : convex D) {f : ℝ → ℝ}
   (hf : continuous_on f D) (hf' : differentiable_on ℝ f (interior D))
   (hf'' : differentiable_on ℝ (deriv f) (interior D))
@@ -379,3 +390,11 @@ convex_on_of_deriv_mono hD hf hf' $
 assume x y hx hy hxy,
 hD.interior.mono_of_deriv_nonneg hf''.continuous_on (by rwa [interior_interior])
   (by rwa [interior_interior]) _ _ hx hy hxy
+
+/-- If a function `f` is twice differentiable on `ℝ`, and `f''` is nonnegative on `ℝ`,
+then `f` is convex on `ℝ`. -/
+theorem convex_on_univ_of_deriv2_nonneg {f : ℝ → ℝ} (hf' : differentiable ℝ f)
+  (hf'' : differentiable ℝ (deriv f)) (hf''_nonneg : ∀ x, 0 ≤ (deriv^[2] f x)) :
+  convex_on univ f :=
+convex_on_of_deriv2_nonneg convex_univ hf'.continuous.continuous_on hf'.differentiable_on
+  hf''.differentiable_on (λ x _, hf''_nonneg x)

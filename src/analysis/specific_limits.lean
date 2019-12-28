@@ -104,10 +104,15 @@ begin
   assume s hs,
   rw mem_nhds_within_Ioi_iff_exists_Ioc_subset at hs,
   rcases hs with ⟨C, C0, hC⟩,
+  change 0 < C at C0,
   refine filter.mem_map.2 (mem_sets_of_superset (mem_at_top C⁻¹) (λ x hx, hC _)),
   have : 0 < x, from lt_of_lt_of_le (inv_pos C0) hx,
   exact ⟨inv_pos this, (inv_le C0 this).1 hx⟩
 end
+
+lemma tendsto_inv_at_top_zero [discrete_linear_ordered_field α] [topological_space α]
+  [orderable_topology α] : tendsto (λr:α, r⁻¹) at_top (𝓝 0) :=
+tendsto_le_right inf_le_left tendsto_inv_at_top_zero'
 
 lemma summable_of_absolute_convergence_real {f : ℕ → ℝ} :
   (∃r, tendsto (λn, (range n).sum (λi, abs (f i))) at_top (𝓝 r)) → summable f
@@ -133,16 +138,13 @@ lemma normed_field.tendsto_norm_inverse_nhds_within_0_at_top {𝕜 : Type*} [nor
   tendsto (λ x:𝕜, ∥x⁻¹∥) (nhds_within 0 {x | x ≠ 0}) at_top :=
 (tendsto_inv_zero_at_top.comp lim_norm_zero').congr $ λ x, (normed_field.norm_inv x).symm
 
-lemma tendsto_inverse_at_top_nhds_0 : tendsto (λr:ℝ, r⁻¹) at_top (𝓝 0) :=
-tendsto_le_right inf_le_left tendsto_inv_at_top_zero'
-
 lemma tendsto_pow_at_top_nhds_0_of_lt_1 {r : ℝ} (h₁ : 0 ≤ r) (h₂ : r < 1) :
   tendsto (λn:ℕ, r^n) at_top (𝓝 0) :=
 by_cases
   (assume : r = 0, (tendsto_add_at_top_iff_nat 1).mp $ by simp [pow_succ, this, tendsto_const_nhds])
   (assume : r ≠ 0,
     have tendsto (λn, (r⁻¹ ^ n)⁻¹) at_top (𝓝 0),
-      from tendsto.comp tendsto_inverse_at_top_nhds_0
+      from tendsto_inv_at_top_zero.comp
         (tendsto_pow_at_top_at_top_of_gt_1 $ one_lt_inv (lt_of_le_of_ne h₁ this.symm) h₂),
     tendsto.congr' (univ_mem_sets' $ by simp *) this)
 
@@ -176,7 +178,7 @@ tendsto_coe_nat_real_at_top_iff.1 $
   by simpa using tendsto_pow_at_top_at_top_of_gt_1 hr
 
 lemma tendsto_inverse_at_top_nhds_0_nat : tendsto (λ n : ℕ, (n : ℝ)⁻¹) at_top (𝓝 0) :=
-tendsto.comp tendsto_inverse_at_top_nhds_0 (tendsto_coe_nat_real_at_top_iff.2 tendsto_id)
+tendsto_inv_at_top_zero.comp (tendsto_coe_nat_real_at_top_iff.2 tendsto_id)
 
 lemma tendsto_const_div_at_top_nhds_0_nat (C : ℝ) : tendsto (λ n : ℕ, C / n) at_top (𝓝 0) :=
 by simpa only [mul_zero] using tendsto_const_nhds.mul tendsto_inverse_at_top_nhds_0_nat

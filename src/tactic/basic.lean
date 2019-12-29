@@ -18,6 +18,7 @@ import
   tactic.rcases
   tactic.rename
   tactic.replacer
+  tactic.rename_var
   tactic.restate_axiom
   tactic.rewrite
   tactic.lint

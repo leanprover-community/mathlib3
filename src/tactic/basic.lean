@@ -13,6 +13,7 @@ import
   tactic.push_neg
   tactic.rcases
   tactic.replacer
+  tactic.rename_var
   tactic.restate_axiom
   tactic.rewrite
   tactic.lint

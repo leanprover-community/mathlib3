@@ -1296,6 +1296,21 @@ end
 Although `reassoc_of` is not a tactic or a meta program, its type is generated
 through meta-programming to make it usable inside normal expressions.
 
+### rename_var
+
+`rename_var old new` renames variable `old` to `new` in the goal.
+`rename_var old new at h` does the same in hypothesis `h`.
+This is meant for teaching bound variables only, Lean will never need such a renaming.
+
+```lean
+example (P : ℕ →  ℕ → Prop) (h : ∀ n, ∃ m, P n m) : ∀ l, ∃ m, P l m :=
+begin
+  rename_var n q at h, -- h is now ∀ (q : ℕ), ∃ (m : ℕ), P q m,
+  rename_var m n, -- goal is now ∀ (l : ℕ), ∃ (n : ℕ), P k n,
+  exact h -- Lean does not care about those bound variable names
+end
+```
+
 ### lint
 User commands to spot common mistakes in the code
 

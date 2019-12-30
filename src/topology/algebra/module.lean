@@ -141,6 +141,9 @@ structure continuous_linear_map
 
 notation M ` →L[`:25 R `] ` M₂ := continuous_linear_map R M M₂
 
+/-- Continuous linear equivalences between modules. We only put the type classes that are necessary
+for the definition, although in applications M and M₂ will be topological modules over the
+topological ring R-/
 structure continuous_linear_equiv
   (R : Type*) [ring R]
   (M : Type*) [topological_space M] [add_comm_group M]

@@ -31,7 +31,7 @@ coordinate. Here, `M₁ i` and `M₂` are modules over a ring `R`, and `ι` is a
 Expressing that a map is linear along the `i`-th coordinate when all other coordinates are fixed
 can be done in two (equivalent) different ways:
 * fixing a function `f : Π(j : ι - i), M₁ (j.val)`, and then choosing separately the `i`-th coordinate
-* fixing a function `f : Πj, M₁ j → M₂`, and then modifying its `i`-th coordinate
+* fixing a function `f : Πj, M₁ j`, and then modifying its `i`-th coordinate
 The second way is more artificial as the value of `f` at `i` is not relevant, but it has the advantage
 of avoiding subtype inclusion issues. This is the definition we use, based on `function.update` that
 allows to change the value of `f` at `i`.

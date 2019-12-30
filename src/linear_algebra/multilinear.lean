@@ -113,16 +113,16 @@ def to_linear_map (f : Πi, M₁ i) (i : ι) : M₁ i →ₗ[R] M₂ :=
   add    := λx y, by simp,
   smul   := λx c, by simp }
 
-/-- In the specific case of multilinear maps index by `fin (n+1)`, where one can build an element of
-`Π(i : fin (n+1)), M i` using `cons`, one can express directly the additivity of a multilinear map
-along the first variable. -/
+/-- In the specific case of multilinear maps on spaces indexed by `fin (n+1)`, where one can build
+an element of `Π(i : fin (n+1)), M i` using `cons`, one can express directly the additivity of a
+multilinear map along the first variable. -/
 lemma cons_add (m : multilinear_map R M M₂) (f : Π(i : fin n), M i.succ) (x y : M 0) :
   m (cons (x+y) f) = m (cons x f) + m (cons y f) :=
 by rw [← update_cons_zero x f (x+y), m.map_add, update_cons_zero, update_cons_zero]
 
-/-- In the specific case of multilinear maps index by `fin (n+1)`, where one can build an element of
-`Π(i : fin (n+1)), M i` using `cons`, one can express directly the multiplicativity of a
-multilinear map along the first variable. -/
+/-- In the specific case of multilinear maps on spaces indexed by `fin (n+1)`, where one can build
+an element of `Π(i : fin (n+1)), M i` using `cons`, one can express directly the multiplicativity
+of a multilinear map along the first variable. -/
 lemma cons_smul (m : multilinear_map R M M₂) (f : Π(i : fin n), M i.succ) (c : R) (x : M 0) :
   m (cons (c • x) f) = c • m (cons x f) :=
 by rw [← update_cons_zero x f (c • x), m.map_smul, update_cons_zero]

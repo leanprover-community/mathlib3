@@ -2,6 +2,7 @@ import tactic.interactive
 
 open expr
 
+/-- Rename bound variable `old` to `new` in an `expr`-/
 meta def expr.rename_var (old new : name) : expr → expr
 | (pi n bi t b) := (pi (if n = old then new else n) bi (expr.rename_var t) (expr.rename_var b))
 | (lam n bi t b) := (lam (if n = old then new else n) bi (expr.rename_var t) (expr.rename_var b))
@@ -9,6 +10,7 @@ meta def expr.rename_var (old new : name) : expr → expr
 | e := e
 
 namespace tactic
+/-- Rename bound variable `old` to `new` in goal -/
 meta def rename_var_at_goal (old new : name) : tactic unit :=
 do
   old_tgt ← target,
@@ -16,6 +18,7 @@ do
   swap,
   get_local `htarget >>= tactic.exact
 
+/-- Rename bound variable `old` to `new` in assumption `h` -/
 meta def rename_var_at_hyp (old new h : name) : tactic unit :=
 do
   old_e ← get_local h >>= infer_type,

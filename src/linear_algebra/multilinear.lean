@@ -23,7 +23,7 @@ coordinate. Here, `M₁ i` and `M₂` are modules over a ring `R`, and `ι` is a
   variable from the other ones.
 * `multilinear_to_linear_equiv_multilinear R M₁ M₂` registers the linear equivalence between
   the space of multilinear maps on `Π(i : fin n), M₁ i.succ` to the space of linear maps on `M₁ 0`,
-  and the space of multilinear maps on ``Π(i : fin (n+1)), M₁ i``, obtained by separating the first
+  and the space of multilinear maps on `Π(i : fin (n+1)), M₁ i`, obtained by separating the first
   variable from the other ones.
 
 ## Implementation notes
@@ -113,16 +113,16 @@ def to_linear_map (f : Πi, M₁ i) (i : ι) : M₁ i →ₗ[R] M₂ :=
   add    := λx y, by simp,
   smul   := λx c, by simp }
 
-/-- In the specific case of multilinear maps on `M^(n+1)` where one can build an element of
-`M^(n+1)` using `cons`, one can express directly the additivity of a multilinear map along the
-first variable. -/
+/-- In the specific case of multilinear maps index by `fin (n+1)`, where one can build an element of
+`Π(i : fin (n+1)), M i` using `cons`, one can express directly the additivity of a multilinear map
+along the first variable. -/
 lemma cons_add (m : multilinear_map R M M₂) (f : Π(i : fin n), M i.succ) (x y : M 0) :
   m (cons (x+y) f) = m (cons x f) + m (cons y f) :=
 by rw [← update_cons_zero x f (x+y), m.map_add, update_cons_zero, update_cons_zero]
 
-/-- In the specific case of multilinear maps on `M^(n+1)` where one can build an element of
-`M^(n+1)` using `cons`, one can express directly the multiplicativity of a multilinear map along
-the first variable. -/
+/-- In the specific case of multilinear maps index by `fin (n+1)`, where one can build an element of
+`Π(i : fin (n+1)), M i` using `cons`, one can express directly the multiplicativity of a
+multilinear map along the first variable. -/
 lemma cons_smul (m : multilinear_map R M M₂) (f : Π(i : fin n), M i.succ) (c : R) (x : M 0) :
   m (cons (c • x) f) = c • m (cons x f) :=
 by rw [← update_cons_zero x f (c • x), m.map_smul, update_cons_zero]
@@ -146,7 +146,7 @@ instance : module R (multilinear_map R M₁ M₂) :=
 module.of_core $ by refine { smul := (•), ..};
   intros; ext; simp [smul_add, add_smul, smul_smul]
 
-variables (R n M M₂)
+variables (R M M₂)
 
 /-- The space of multilinear maps on `Π(i : fin (n+1)), M i` is canonically isomorphic to the space
 of linear maps from `M 0` to the space of multilinear maps on `Π(i : fin n), M i.succ `, by

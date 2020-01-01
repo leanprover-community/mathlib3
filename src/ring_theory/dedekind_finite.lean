@@ -1,5 +1,6 @@
 import linear_algebra.basic
 import data.nat.basic
+import data.pnat.basic
 import tactic.apply
 import tactic.omega
 import ring_theory.noetherian
@@ -36,6 +37,7 @@ by subtype_instance
 
 def is_nilpotent {R : Type*} [ring R] (a : R) := ∃ n : ℕ, a^n = 0
 def nilpotents [ring R] := { a : R | is_nilpotent a }
+-- TODO would be nice to set this up as the radical of the zero ideal but currently there doesn't seem to be much about one-sided ideals in non-comm rings
 
 class is_reduced_ring [ring R] :=
 (no_nilpotents : ∀ a : R, ∀ n : ℕ, a^n = 0 → a = 0)
@@ -107,6 +109,105 @@ variable [ring R]
 
 open linear_map
 open_locale classical
+open function
+
+
+variables {α : Type*} {β : Type*} [ring α] [add_comm_group β] [module α β]
+lemma inj_of_iterate_inj {f : β →ₗ[α] β} {n : ℕ} (hn : n ≠ 0) (h : injective (iterate f n)) : injective f :=
+begin
+rw ← nat.succ_pred_eq_of_pos (zero_lt_iff_ne_zero.mpr hn) at h,
+exact injective.of_comp h,
+end
+
+
+
+
+variables {γ : Type*} [preorder γ]
+
+noncomputable def strict_monotone_inc_subseq {f : ℕ → γ} (h : ∀ n, ∃ m, f n < f (n + m)) : ℕ → ℕ
+| 0       := 0
+| (n + 1) := (strict_monotone_inc_subseq n) + classical.some (h (strict_monotone_inc_subseq n))
+
+lemma strict_monotone_inc_subseq_spec (f : ℕ → γ) (h : ∀ n, ∃ m, f n < f (n + m)) :
+  strict_mono (f ∘ (strict_monotone_inc_subseq h)) :=
+begin
+    refine strict_mono.nat _,
+    intro n,
+    rw comp_app,
+    rw comp_app,
+    rw [strict_monotone_inc_subseq],
+
+    convert classical.some_spec (h (strict_monotone_inc_subseq h n)),
+    simp only [add_comm],
+end
+
+
+
+
+
+
+-- TODO artinian version of ring stuff?
+
+
+
+theorem noeth_mod_surj_inj {R : Type*} [ring R] {M : Type*} [add_comm_group M] [module R M] [is_noetherian R M] {f : M →ₗ[R] M} (f_surj : function.surjective f) : function.injective f :=
+begin
+    have := well_founded_submodule_gt R M,
+    rw order_embedding.well_founded_iff_no_descending_seq at this,
+    set ordf : ℕ → submodule R M := λ n, linear_map.ker (iterate f n),
+    suffices : ∃ n (h : n ≠ 0), ∀ m, ordf n = ordf (n + m),
+    begin
+        obtain ⟨n, hne, hn⟩ := this,
+        have pow_surj := iterate_surj f_surj n,
+        have : ordf n ⊓ linear_map.range (iterate f n) = ⊥ :=
+        begin
+            ext,
+            rw [submodule.mem_inf, mem_ker, mem_range, submodule.mem_bot],
+            split,
+            {
+                rintro ⟨h₁, ⟨y, h₂⟩⟩,
+                rw ← h₂ at h₁, rw ← linear_map.comp_apply at h₁,
+                rw ← iterate_add at h₁, rw ← mem_ker at h₁,
+                have : ker (iterate f n) = ker (iterate f (n + n)) := hn n,
+                rw ← this at h₁, rw mem_ker at h₁,
+                rw h₁ at h₂, exact h₂.symm,
+            },
+            intro,
+            rw [a, map_zero],
+            use 0,
+            rw map_zero,
+
+        end,
+        have range_eq_top : range (iterate f n) = ⊤ := range_eq_top.mpr pow_surj,
+        have : ordf n = ⊥ := by simpa [range_eq_top] using this,
+        have : function.injective (iterate f n) := ker_eq_bot.mp this,
+        exact inj_of_iterate_inj hne this,
+    end,
+    contrapose! this,
+    refine nonempty.intro _,
+    have bbbb : ∀ n, ∃ (m : ℕ), (λ (n : ℕ), ordf (n + 1)) n < (λ (n : ℕ), ordf (n + 1)) (n + m) :=
+    (λ n, (begin
+        have aaaaa : ∀ n m, ordf (n + 1) ≤ ordf (n + m + 1) :=
+        λ n m x hx,
+        begin
+            simp only [ordf, mem_ker, submodule.mem_coe, add_comm, add_left_comm] at hx ⊢,
+            rw add_comm m, rw ← add_assoc, rw add_comm, rw iterate_add,
+            simp only [hx, linear_map.map_zero, linear_map.comp_apply]
+        end,
+        have := (this (n + 1) (nat.succ_ne_zero n)),
+        cases this with m hm,
+        use m,
+        simp only [],
+        refine lt_of_le_of_ne _ _,
+        exact (aaaaa n m),
+        rw add_assoc, rw add_comm m, rw ← add_assoc,
+        exact hm,
+    end)),
+    refine order_embedding.of_monotone ((λ (n : ℕ), ordf (n + 1)) ∘ strict_monotone_inc_subseq bbbb) _,
+    have := strict_monotone_inc_subseq_spec (λ n, ordf (n + 1)) bbbb,
+    intros a b hab,
+    exact this hab,
+end
 
 
 @[priority 100]
@@ -116,6 +217,13 @@ begin
     have : is_linear_map R _ := is_linear_map.is_linear_map_smul' b,
     set f : R →ₗ[R] R := is_linear_map.mk' _ this,
     have f_surj : function.surjective f := λ x, ⟨x * a, by simp [mul_assoc, h]⟩,
+    have f_inj := noeth_mod_surj_inj f_surj,
+    exact sub_eq_zero.mp (f_inj (
+        calc f (b * a - 1) = (b * a - 1) * b : by simp only [is_linear_map.mk'_apply, smul_eq_mul, sub_eq_add_neg]
+                       ... = b * a * b - b   : by rw [sub_mul, one_mul]
+                       ... = 0               : by rw [mul_assoc, h, mul_one, sub_self]
+                       ... = f 0             : by simp only [zero_mul, is_linear_map.mk'_apply, smul_eq_mul])),
+    /-
     have := well_founded_submodule_gt R R,
     rw order_embedding.well_founded_iff_no_descending_seq at this,
     set ordf : ℕ → submodule R R := λ n, linear_map.ker (iterate f n),
@@ -143,7 +251,7 @@ begin
     have : ∀ n, ordf n ≤ ordf (n + 1) := λ n x hx, begin simp [ordf, iterate_succ'] at hx ⊢, rw [hx, zero_mul], end,
     have : ∀ n, ordf (n + 1) > ordf n := λ n, lt_of_le_of_ne (this n) (ho n),
     have := order_embedding.nat_gt _ this,
-    exact nonempty.intro this,
+    exact nonempty.intro this,-/
 end⟩
 
 @[priority 100]
@@ -319,5 +427,6 @@ instance is_dedekind_finite_ring_of_fin_nilpotents (R : Type*) [ring R] (h : (ni
 end⟩
 
 end
+#lint
 
 end dedekind_finite

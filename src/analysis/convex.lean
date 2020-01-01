@@ -412,18 +412,54 @@ begin
   simpa [hab, zero_lt_one] using h hx hy ha hb,
 end⟩
 
-lemma convex_on_linorder [linear_order α] {f : α → ℝ} : convex_on D f ↔
-  convex D ∧ ∀ {x y : α} {a b : ℝ}, x ∈ D → y ∈ D → x < y → 0 ≤ a → 0 ≤ b → a + b = 1 →
-    f (a • x + b • y) ≤ a * f x + b * f y :=
+/-- For a function on a convex set in a linear ordered space, in order to prove that it is convex
+it suffices to verify the inequality `f (a • x + b • y) ≤ a * f x + b * f y` only for `x < y`
+and positive `a`, `b`. The main use case is `α = ℝ` however one can apply it, e.g., to `ℝ^n` with
+lexicographic order. -/
+lemma linear_order.convex_on_of_lt [linear_order α] {f : α → ℝ} (hD : convex D)
+  (hf : ∀ {x y : α} {a b : ℝ}, x ∈ D → y ∈ D → x < y → 0 < a → 0 < b → a + b = 1 →
+    f (a • x + b • y) ≤ a * f x + b * f y) : convex_on D f :=
 begin
-  refine and_congr iff.rfl ⟨_, _⟩; intros h x y a b hx hy,
-  { intro hxy, exact h hx hy },
-  { intros ha hb hab,
-    wlog hxy : x<=y using [x y a b, y x b a],
-    exact le_total _ _,
-    apply or.elim (lt_or_eq_of_le hxy),
-    { intros hxy, exact h hx hy hxy ha hb hab },
-    { intros hxy, rw [hxy, ←add_smul, hab, one_smul, ←add_mul,hab,one_mul] } }
+  use hD,
+  intros x y a b hx hy ha hb hab,
+  wlog hxy : x<=y using [x y a b, y x b a],
+  { exact le_total _ _ },
+  { cases eq_or_lt_of_le hxy with hxy hxy,
+      by { subst y, rw [← add_smul, ← add_mul, hab, one_smul, one_mul] },
+    cases eq_or_lt_of_le ha with ha ha,
+      by { subst a, rw [zero_add] at hab, subst b, simp },
+    cases eq_or_lt_of_le hb with hb hb,
+      by { subst b, rw [add_zero] at hab, subst a, simp },
+    exact hf hx hy hxy ha hb hab }
+end
+
+/-- For a function `f` defined on a convex subset `D` of `ℝ`, if for any three points `x<y<z`
+the slope of the secant line of `f` on `[x, y]` is less than or equal to the slope
+of the secant line of `f` on `[x, z]`, then `f` is convex on `D`. This way of proving convexity
+of a function is used in the proof of convexity of a function with a monotone derivative. -/
+lemma convex_on_real_of_slope_mono_adjacent {D : set ℝ} (hD : convex D) {f : ℝ → ℝ}
+  (hf : ∀ {x y z : ℝ}, x ∈ D → z ∈ D → x < y → y < z →
+    (f y - f x) / (y - x) ≤ (f z - f y) / (z - y)) :
+  convex_on D f :=
+linear_order.convex_on_of_lt hD
+begin
+  assume x z a b hx hz hxz ha hb hab,
+  let y := a * x + b * z,
+  have hxy : x < y,
+  { rw [← one_mul x, ← hab, add_mul],
+    exact add_lt_add_left ((mul_lt_mul_left hb).2 hxz) _ },
+  have hyz : y < z,
+  { rw [← one_mul z, ← hab, add_mul],
+    exact add_lt_add_right ((mul_lt_mul_left ha).2 hxz) _ },
+  have : (f y - f x) * (z - y) ≤ (f z - f y) * (y - x),
+    from (div_le_div_iff (sub_pos.2 hxy) (sub_pos.2 hyz)).1 (hf hx hz hxy hyz),
+  have A : z - y + (y - x) = z - x, by abel,
+  have B : 0 < z - x, from sub_pos.2 (lt_trans hxy hyz),
+  rw [sub_mul, sub_mul, sub_le_iff_le_add', ← add_sub_assoc, le_sub_iff_add_le, ← mul_add, A,
+    ← le_div_iff B, add_div, mul_div_assoc, mul_div_assoc,
+    mul_comm (f x), mul_comm (f z)] at this,
+  rw [eq_comm, ← sub_eq_iff_eq_add] at hab; subst a,
+  convert this; symmetry; simp only [div_eq_iff (ne_of_gt B), y]; ring
 end
 
 lemma convex_on.subset (h_convex_on : convex_on D f) (h_subset : A ⊆ D) (h_convex : convex A) :
@@ -637,8 +673,8 @@ lemma convex.closure {A : set α} (hA : convex A) : convex (closure A) :=
 let f : α → α → α := λ x' y', a • x' + b • y' in
 have hf : continuous ((λ p : α × α, p.fst + p.snd) ∘ (λ p : α × α, (a • p.fst, b • p.snd))), from
   continuous.comp continuous_add (continuous.prod_mk
-    (continuous_smul continuous_const continuous_fst)
-    (continuous_smul continuous_const continuous_snd)),
+    (continuous_const.smul continuous_fst)
+    (continuous_const.smul continuous_snd)),
 show f x y ∈ closure A, from
   mem_closure_of_continuous2 hf hx hy (λ x' hx' y' hy', subset_closure
   (hA hx' hy' ha hb hab))

@@ -386,8 +386,8 @@ have eq : _ := uniformly_extend_of_ind h_e h_dense f.uniform_continuous,
   smul := λk,
   begin
     refine is_closed_property h_dense (is_closed_eq _ _) _,
-    { exact cont.comp (continuous_smul continuous_const continuous_id)  },
-    { exact (continuous_smul continuous_const continuous_id).comp cont },
+    { exact cont.comp (continuous_const.smul continuous_id)  },
+    { exact (continuous_const.smul continuous_id).comp cont },
     { assume x, rw ← map_smul, simp only [eq], exact map_smul _ _ _  },
   end,
   cont := cont

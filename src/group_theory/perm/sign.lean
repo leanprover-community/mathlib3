@@ -501,7 +501,7 @@ have h₁ : l.map sign = list.repeat (-1) l.length :=
   list.eq_repeat.2 ⟨by simp, λ u hu,
   let ⟨g, hg⟩ := list.mem_map.1 hu in
   hg.2 ▸ sign_eq_of_is_swap (hl _ hg.1)⟩,
-by rw [← list.prod_repeat, ← h₁, ← is_group_hom.map_prod (@sign α _ _)]
+by rw [← list.prod_repeat, ← h₁, list.prod_hom _ (@sign α _ _)]
 
 lemma sign_surjective (hα : 1 < fintype.card α) : function.surjective (sign : perm α → units ℤ) :=
 λ a, (int.units_eq_one_or a).elim
@@ -522,14 +522,14 @@ have ∀ {f}, is_swap f → s f = -1 :=
   have ∀ a ∈ l.map s, a = (1 : units ℤ) := λ a ha,
     let ⟨g, hg⟩ := list.mem_map.1 ha in hg.2 ▸ this _ (hl.2 _ hg.1),
   have s l.prod = 1,
-    by rw [is_group_hom.map_prod s, list.eq_repeat'.2 this, list.prod_repeat, one_pow],
+    by rw [← l.prod_hom s, list.eq_repeat'.2 this, list.prod_repeat, one_pow],
   by rw [hl.1, hg] at this;
     exact absurd this dec_trivial),
 funext $ λ f,
 let ⟨l, hl₁, hl₂⟩ := trunc.out (trunc_swap_factors f) in
 have hsl : ∀ a ∈ l.map s, a = (-1 : units ℤ) := λ a ha,
   let ⟨g, hg⟩ := list.mem_map.1 ha in hg.2 ▸  this (hl₂ _ hg.1),
-by rw [← hl₁, is_group_hom.map_prod s, list.eq_repeat'.2 hsl, list.length_map,
+by rw [← hl₁, ← l.prod_hom s, list.eq_repeat'.2 hsl, list.length_map,
      list.prod_repeat, sign_prod_list_swap hl₂]
 
 lemma sign_subtype_perm (f : perm α) {p : α → Prop} [decidable_pred p]
@@ -540,7 +540,7 @@ have hl' : ∀ g' ∈ l.1.map of_subtype, is_swap g' :=
   let ⟨g, hg⟩ := list.mem_map.1 hg' in
   hg.2 ▸ is_swap_of_subtype (l.2.2 _ hg.1),
 have hl'₂ : (l.1.map of_subtype).prod = f,
-  by rw [← is_group_hom.map_prod of_subtype l.1, l.2.1, of_subtype_subtype_perm _ h₂],
+  by rw [l.1.prod_hom of_subtype, l.2.1, of_subtype_subtype_perm _ h₂],
 by conv {congr, rw ← l.2.1, skip, rw ← hl'₂};
   rw [sign_prod_list_swap l.2.2, sign_prod_list_swap hl', list.length_map]
 

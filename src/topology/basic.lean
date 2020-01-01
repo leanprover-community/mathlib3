@@ -266,6 +266,13 @@ lemma closure_subset_iff_subset_of_is_closed {s t : set α} (h₁ : is_closed t)
 lemma closure_mono {s t : set α} (h : s ⊆ t) : closure s ⊆ closure t :=
 closure_minimal (subset.trans h subset_closure) is_closed_closure
 
+lemma monotone_closure (α : Type*) [topological_space α] : monotone (@closure α _) :=
+λ _ _, closure_mono
+
+lemma closure_inter_subset_inter_closure (s t : set α) :
+  closure (s ∩ t) ⊆ closure s ∩ closure t :=
+(monotone_closure α).map_inf_le s t
+
 lemma is_closed_of_closure_subset {s : set α} (h : closure s ⊆ s) : is_closed s :=
 by rw subset.antisymm subset_closure h; exact is_closed_closure
 
@@ -290,7 +297,7 @@ closure_eq_of_is_closed is_closed_closure
 @[simp] lemma closure_union {s t : set α} : closure (s ∪ t) = closure s ∪ closure t :=
 subset.antisymm
   (closure_minimal (union_subset_union subset_closure subset_closure) $ is_closed_union is_closed_closure is_closed_closure)
-  (union_subset (closure_mono $ subset_union_left _ _) (closure_mono $ subset_union_right _ _))
+  ((monotone_closure α).le_map_sup s t)
 
 lemma interior_subset_closure {s : set α} : interior s ⊆ closure s :=
 subset.trans interior_subset subset_closure
@@ -342,6 +349,27 @@ by rw [closure_compl, frontier, diff_eq]
 @[simp] lemma frontier_compl (s : set α) : frontier (-s) = frontier s :=
 by simp only [frontier_eq_closure_inter_closure, lattice.neg_neg, inter_comm]
 
+lemma frontier_inter_subset (s t : set α) :
+  frontier (s ∩ t) ⊆ (frontier s ∩ closure t) ∪ (closure s ∩ frontier t) :=
+begin
+  simp only [frontier_eq_closure_inter_closure, compl_inter, closure_union],
+  convert inter_subset_inter_left _ (closure_inter_subset_inter_closure s t),
+  simp only [inter_distrib_left, inter_distrib_right, inter_assoc],
+  congr' 2,
+  apply inter_comm
+end
+
+lemma frontier_union_subset (s t : set α) :
+  frontier (s ∪ t) ⊆ (frontier s ∩ closure (-t)) ∪ (closure (-s) ∩ frontier t) :=
+by simpa only [frontier_compl, (compl_union _ _).symm]
+  using frontier_inter_subset (-s) (-t)
+
+lemma is_closed.frontier_eq {s : set α} (hs : is_closed s) : frontier s = s \ interior s :=
+by rw [frontier, closure_eq_of_is_closed hs]
+
+lemma is_open.frontier_eq {s : set α} (hs : is_open s) : frontier s = closure s \ s :=
+by rw [frontier, interior_eq_of_open hs]
+
 /-- The frontier of a set is closed. -/
 lemma is_closed_frontier {s : set α} : is_closed (frontier s) :=
 by rw frontier_eq_closure_inter_closure; exact is_closed_inter is_closed_closure is_closed_closure
@@ -349,7 +377,7 @@ by rw frontier_eq_closure_inter_closure; exact is_closed_inter is_closed_closure
 /-- The frontier of a set has no interior point. -/
 lemma interior_frontier {s : set α} (h : is_closed s) : interior (frontier s) = ∅ :=
 begin
-  have A : frontier s = s \ interior s, by rw [frontier, closure_eq_of_is_closed h],
+  have A : frontier s = s \ interior s, from h.frontier_eq,
   have B : interior (frontier s) ⊆ interior s, by rw A; exact interior_mono (diff_subset _ _),
   have C : interior (frontier s) ⊆ frontier s := interior_subset,
   have : interior (frontier s) ⊆ (interior s) ∩ (s \ interior s) :=
@@ -541,6 +569,23 @@ lemma mem_closure_of_tendsto {f : β → α} {b : filter β} {a : α} {s : set �
 mem_of_closed_of_tendsto hb hf (is_closed_closure) $
   filter.mem_sets_of_superset h (preimage_mono subset_closure)
 
+/-- Suppose that `f` sends the complement to `s` to a single point `a`, and `l` is some filter.
+Then `f` tends to `a` along `l` restricted to `s` if and only it tends to `a` along `l`. -/
+lemma tendsto_inf_principal_nhds_iff_of_forall_eq {f : β → α} {l : filter β} {s : set β}
+  {a : α} (h : ∀ x ∉ s, f x = a) :
+  tendsto f (l ⊓ principal s) (𝓝 a) ↔ tendsto f l (𝓝 a) :=
+begin
+  rw [tendsto_iff_comap, tendsto_iff_comap],
+  replace h : principal (-s) ≤ comap f (𝓝 a),
+  { rintros U ⟨t, ht, htU⟩ x hx,
+    have : f x ∈ t, from (h x hx).symm ▸ mem_of_nhds ht,
+    exact htU this },
+  refine ⟨λ h', _, le_trans inf_le_left⟩,
+  have := sup_le h' h,
+  rw [sup_inf_right, sup_principal, union_compl_self, principal_univ,
+    inf_top_eq, sup_le_iff] at this,
+  exact this.1
+end
 
 section lim
 variables [inhabited α]

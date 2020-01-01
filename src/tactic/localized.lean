@@ -55,9 +55,6 @@ do ns ← many ident,
    cmds ← get_localized ns,
    cmds.mmap' emit_code_here
 
-def string_hash (s : string) : ℕ :=
-s.fold 1 (λ h c, (33*h + c.val) % unsigned_sz)
-
 /-- Add a new command to a notation namespace and execute it right now.
   The new command is added as a declaration to the environment with name `_localized_decl.<number>`.
   This declaration has attribute `_localized` and as value a name-string pair. -/
@@ -70,7 +67,7 @@ do cmd ← parser.pexpr, cmd ← i_to_expr cmd, cmd ← eval_expr string cmd,
    nm ← ident,
    env ← get_env,
    let dummy_decl_name := mk_num_name `_localized_decl
-     ((string_hash (cmd ++ nm.to_string) + env.fingerprint) % unsigned_sz),
+     ((string.hash (cmd ++ nm.to_string) + env.fingerprint) % unsigned_sz),
    add_decl (declaration.defn dummy_decl_name [] `(name × string)
     (reflect (⟨nm, cmd⟩ : name × string)) (reducibility_hints.regular 1 tt) ff),
    localized_attr.set dummy_decl_name unit.star tt

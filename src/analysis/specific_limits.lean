@@ -15,6 +15,9 @@ open classical function lattice filter finset metric
 
 variables {α : Type*} {β : Type*} {ι : Type*}
 
+lemma tendsto_norm_at_top_at_top : tendsto (norm : ℝ → ℝ) at_top at_top :=
+tendsto_abs_at_top_at_top
+
 /-- If a function tends to infinity along a filter, then this function multiplied by a positive
 constant (on the left) also tends to infinity. The archimedean assumption is convenient to get a
 statement that works on `ℕ`, `ℤ` and `ℝ`, although not necessary (a version in ordered fields is
@@ -81,6 +84,36 @@ lemma tendsto_at_top_div [linear_ordered_field α]
   tendsto (λx, f x / r) l at_top :=
 tendsto_at_top_mul_right' (inv_pos hr) hf
 
+/-- The function `x ↦ x⁻¹` tends to `+∞` on the right of `0`. -/
+lemma tendsto_inv_zero_at_top [discrete_linear_ordered_field α] [topological_space α]
+  [orderable_topology α] : tendsto (λx:α, x⁻¹) (nhds_within (0 : α) (set.Ioi 0)) at_top :=
+begin
+  apply (tendsto_at_top _ _).2 (λb, _),
+  refine mem_nhds_within_Ioi_iff_exists_Ioo_subset.2 ⟨(max b 1)⁻¹, by simp [zero_lt_one], λx hx, _⟩,
+  calc b ≤ max b 1 : le_max_left _ _
+  ... ≤ x⁻¹ : begin
+    apply (le_inv _ hx.1).2 (le_of_lt hx.2),
+    exact lt_of_lt_of_le zero_lt_one (le_max_right _ _)
+  end
+end
+
+/-- The function `r ↦ r⁻¹` tends to `0` on the right as `r → +∞`. -/
+lemma tendsto_inv_at_top_zero' [discrete_linear_ordered_field α] [topological_space α]
+  [orderable_topology α] : tendsto (λr:α, r⁻¹) at_top (nhds_within (0 : α) (set.Ioi 0)) :=
+begin
+  assume s hs,
+  rw mem_nhds_within_Ioi_iff_exists_Ioc_subset at hs,
+  rcases hs with ⟨C, C0, hC⟩,
+  change 0 < C at C0,
+  refine filter.mem_map.2 (mem_sets_of_superset (mem_at_top C⁻¹) (λ x hx, hC _)),
+  have : 0 < x, from lt_of_lt_of_le (inv_pos C0) hx,
+  exact ⟨inv_pos this, (inv_le C0 this).1 hx⟩
+end
+
+lemma tendsto_inv_at_top_zero [discrete_linear_ordered_field α] [topological_space α]
+  [orderable_topology α] : tendsto (λr:α, r⁻¹) at_top (𝓝 0) :=
+tendsto_le_right inf_le_left tendsto_inv_at_top_zero'
+
 lemma summable_of_absolute_convergence_real {f : ℕ → ℝ} :
   (∃r, tendsto (λn, (range n).sum (λi, abs (f i))) at_top (𝓝 r)) → summable f
 | ⟨r, hr⟩ :=
@@ -97,17 +130,13 @@ lemma tendsto_pow_at_top_at_top_of_gt_1 {r : ℝ} (h : 1 < r) :
   ⟨n, λ m hnm, le_of_lt $
     lt_of_lt_of_le hn (pow_le_pow (le_of_lt h) hnm)⟩
 
-lemma tendsto_inverse_at_top_nhds_0 : tendsto (λr:ℝ, r⁻¹) at_top (𝓝 0) :=
-tendsto_orderable_unbounded (no_top 0) (no_bot 0) $ assume l u hl hu,
-  mem_at_top_sets.mpr ⟨u⁻¹ + 1, assume b hb,
-    have u⁻¹ < b, from lt_of_lt_of_le (lt_add_of_pos_right _ zero_lt_one) hb,
-    ⟨lt_trans hl $ inv_pos $ lt_trans (inv_pos hu) this,
-    lt_of_one_div_lt_one_div hu $
-    begin
-      rw [inv_eq_one_div],
-      simp [-one_div_eq_inv, div_div_eq_mul_div, div_one],
-      simp [this]
-    end⟩⟩
+lemma lim_norm_zero' {𝕜 : Type*} [normed_group 𝕜] :
+  tendsto (norm : 𝕜 → ℝ) (nhds_within 0 {x | x ≠ 0}) (nhds_within 0 (set.Ioi 0)) :=
+lim_norm_zero.inf $ tendsto_principal_principal.2 $ λ x hx, (norm_pos_iff _).2 hx
+
+lemma normed_field.tendsto_norm_inverse_nhds_within_0_at_top {𝕜 : Type*} [normed_field 𝕜] :
+  tendsto (λ x:𝕜, ∥x⁻¹∥) (nhds_within 0 {x | x ≠ 0}) at_top :=
+(tendsto_inv_zero_at_top.comp lim_norm_zero').congr $ λ x, (normed_field.norm_inv x).symm
 
 lemma tendsto_pow_at_top_nhds_0_of_lt_1 {r : ℝ} (h₁ : 0 ≤ r) (h₂ : r < 1) :
   tendsto (λn:ℕ, r^n) at_top (𝓝 0) :=
@@ -115,9 +144,23 @@ by_cases
   (assume : r = 0, (tendsto_add_at_top_iff_nat 1).mp $ by simp [pow_succ, this, tendsto_const_nhds])
   (assume : r ≠ 0,
     have tendsto (λn, (r⁻¹ ^ n)⁻¹) at_top (𝓝 0),
-      from tendsto.comp tendsto_inverse_at_top_nhds_0
+      from tendsto_inv_at_top_zero.comp
         (tendsto_pow_at_top_at_top_of_gt_1 $ one_lt_inv (lt_of_le_of_ne h₁ this.symm) h₂),
     tendsto.congr' (univ_mem_sets' $ by simp *) this)
+
+lemma nnreal.tendsto_pow_at_top_nhds_0_of_lt_1 {r : nnreal} (hr : r < 1) :
+  tendsto (λ n:ℕ, r^n) at_top (𝓝 0) :=
+nnreal.tendsto_coe.1 $ by simp only [nnreal.coe_pow, nnreal.coe_zero,
+  tendsto_pow_at_top_nhds_0_of_lt_1 r.coe_nonneg hr]
+
+lemma ennreal.tendsto_pow_at_top_nhds_0_of_lt_1 {r : ennreal} (hr : r < 1) :
+  tendsto (λ n:ℕ, r^n) at_top (𝓝 0) :=
+begin
+  rcases ennreal.lt_iff_exists_coe.1 hr with ⟨r, rfl, hr'⟩,
+  rw [← ennreal.coe_zero],
+  norm_cast at *,
+  apply nnreal.tendsto_pow_at_top_nhds_0_of_lt_1 hr
+end
 
 lemma tendsto_pow_at_top_nhds_0_of_lt_1_normed_field {K : Type*} [normed_field K] {ξ : K}
   (_ : ∥ξ∥ < 1) : tendsto (λ n : ℕ, ξ^n) at_top (𝓝 0) :=
@@ -135,7 +178,7 @@ tendsto_coe_nat_real_at_top_iff.1 $
   by simpa using tendsto_pow_at_top_at_top_of_gt_1 hr
 
 lemma tendsto_inverse_at_top_nhds_0_nat : tendsto (λ n : ℕ, (n : ℝ)⁻¹) at_top (𝓝 0) :=
-tendsto.comp tendsto_inverse_at_top_nhds_0 (tendsto_coe_nat_real_at_top_iff.2 tendsto_id)
+tendsto_inv_at_top_zero.comp (tendsto_coe_nat_real_at_top_iff.2 tendsto_id)
 
 lemma tendsto_const_div_at_top_nhds_0_nat (C : ℝ) : tendsto (λ n : ℕ, C / n) at_top (𝓝 0) :=
 by simpa only [mul_zero] using tendsto_const_nhds.mul tendsto_inverse_at_top_nhds_0_nat
@@ -186,7 +229,7 @@ lemma summable_geometric_two' (a : ℝ) : summable (λ n:ℕ, (a / 2) / 2 ^ n) :
 lemma tsum_geometric_two' (a : ℝ) : (∑ n:ℕ, (a / 2) / 2^n) = a :=
 tsum_eq_has_sum $ has_sum_geometric_two' a
 
-lemma has_sum_geometric_nnreal {r : nnreal} (hr : r < 1) :
+lemma nnreal.has_sum_geometric {r : nnreal} (hr : r < 1) :
   has_sum (λ n : ℕ, r ^ n) (1 - r)⁻¹ :=
 begin
   apply nnreal.has_sum_coe.1,
@@ -195,11 +238,28 @@ begin
   exact has_sum_geometric r.coe_nonneg hr
 end
 
-lemma summable_geometric_nnreal {r : nnreal} (hr : r < 1) : summable (λn:ℕ, r ^ n) :=
-⟨_, has_sum_geometric_nnreal hr⟩
+lemma nnreal.summable_geometric {r : nnreal} (hr : r < 1) : summable (λn:ℕ, r ^ n) :=
+⟨_, nnreal.has_sum_geometric hr⟩
 
 lemma tsum_geometric_nnreal {r : nnreal} (hr : r < 1) : (∑n:ℕ, r ^ n) = (1 - r)⁻¹ :=
-tsum_eq_has_sum (has_sum_geometric_nnreal hr)
+tsum_eq_has_sum (nnreal.has_sum_geometric hr)
+
+/-- The series `pow r` converges to `(1-r)⁻¹`. For `r < 1` the RHS is a finite number,
+and for `1 ≤ r` the RHS equals `∞`. -/
+lemma ennreal.tsum_geometric (r : ennreal) : (∑n:ℕ, r ^ n) = (1 - r)⁻¹ :=
+begin
+  cases lt_or_le r 1 with hr hr,
+  { rcases ennreal.lt_iff_exists_coe.1 hr with ⟨r, rfl, hr'⟩,
+    norm_cast at *,
+    convert ennreal.tsum_coe_eq (nnreal.has_sum_geometric hr),
+    rw [ennreal.coe_inv $ ne_of_gt $ nnreal.sub_pos.2 hr] },
+  { rw [ennreal.sub_eq_zero_of_le hr, ennreal.inv_zero, ennreal.tsum_eq_supr_nat, supr_eq_top],
+    refine λ a ha, (ennreal.exists_nat_gt (lt_top_iff_ne_top.1 ha)).imp
+      (λ n hn, lt_of_lt_of_le hn _),
+    have : ∀ k:ℕ, 1 ≤ r^k, by simpa using canonically_ordered_semiring.pow_le_pow_of_le_left hr,
+    calc (n:ennreal) = (range n).sum (λ _, 1) : by rw [sum_const, add_monoid.smul_one, card_range]
+    ... ≤ (range n).sum (pow r) : sum_le_sum (λ k _, this k) }
+end
 
 /-- For any positive `ε`, define on an encodable type a positive sequence with sum less than `ε` -/
 def pos_sum_of_encodable {ε : ℝ} (hε : 0 < ε)
@@ -218,40 +278,76 @@ end
 
 section edist_le_geometric
 
-variables [emetric_space α] (r C : nnreal) (hr : r < 1) {f : ℕ → α}
+variables [emetric_space α] (r C : ennreal) (hr : r < 1) (hC : C ≠ ⊤) {f : ℕ → α}
   (hu : ∀n, edist (f n) (f (n+1)) ≤ C * r^n)
 
-include hr hu
+include hr hC hu
 
-/-- If `edist (f n) (f (n+1))` is bounded by `C * r^n`, `r < 1`, then `f` is a Cauchy sequence.-/
+/-- If `edist (f n) (f (n+1))` is bounded by `C * r^n`, `C ≠ ∞`, `r < 1`,
+then `f` is a Cauchy sequence.-/
 lemma cauchy_seq_of_edist_le_geometric : cauchy_seq f :=
 begin
-  norm_cast at hu,
-  exact cauchy_seq_of_edist_le_of_summable _ hu
-   (summable_mul_left C $ summable_geometric_nnreal hr)
+  refine cauchy_seq_of_edist_le_of_tsum_ne_top _ hu _,
+  rw [ennreal.mul_tsum, ennreal.tsum_geometric],
+  refine ennreal.mul_ne_top hC (ennreal.inv_ne_top.2 _),
+  exact ne_of_gt (ennreal.zero_lt_sub_iff_lt.2 hr)
 end
 
-/-- If `edist (f n) (f (n+1))` is bounded by `C * r^n`, `r < 1`, then the distance from
+omit hr hC
+
+/-- If `edist (f n) (f (n+1))` is bounded by `C * r^n`, then the distance from
 `f n` to the limit of `f` is bounded above by `C * r^n / (1 - r)`. -/
 lemma edist_le_of_edist_le_geometric_of_tendsto {a : α} (ha : tendsto f at_top (𝓝 a)) (n : ℕ) :
   edist (f n) a ≤ (C * r^n) / (1 - r) :=
 begin
-  norm_cast at hu,
-  rw [← ennreal.coe_one], rw_mod_cast [← ennreal.coe_div (ne_of_gt $ nnreal.sub_pos.2 hr)],
-  convert edist_le_tsum_of_edist_le_of_tendsto _ hu
-    (summable_mul_left C $ summable_geometric_nnreal hr) ha _,
-  refine eq.symm (tsum_eq_has_sum _),
-  simp only [pow_add, nnreal.div_def, mul_assoc],
-  exact has_sum_mul_left C (has_sum_mul_left (r ^ n) (has_sum_geometric_nnreal hr))
+  convert edist_le_tsum_of_edist_le_of_tendsto _ hu ha _,
+  simp only [pow_add, ennreal.mul_tsum, ennreal.tsum_geometric, ennreal.div_def, mul_assoc]
 end
 
-/-- If `edist (f n) (f (n+1))` is bounded by `C * r^n`, `r < 1`, then the distance from
+/-- If `edist (f n) (f (n+1))` is bounded by `C * r^n`, then the distance from
 `f 0` to the limit of `f` is bounded above by `C / (1 - r)`. -/
 lemma edist_le_of_edist_le_geometric_of_tendsto₀ {a : α} (ha : tendsto f at_top (𝓝 a)) :
   edist (f 0) a ≤ C / (1 - r) :=
-by simpa only [pow_zero, mul_one] using edist_le_of_edist_le_geometric_of_tendsto r C hr hu ha 0
+by simpa only [pow_zero, mul_one] using edist_le_of_edist_le_geometric_of_tendsto r C hu ha 0
 
 end edist_le_geometric
+
+section edist_le_geometric_two
+
+variables [emetric_space α] (C : ennreal) (hC : C ≠ ⊤) {f : ℕ → α}
+  (hu : ∀n, edist (f n) (f (n+1)) ≤ C / 2^n) {a : α} (ha : tendsto f at_top (𝓝 a))
+
+include hC hu
+
+/-- If `edist (f n) (f (n+1))` is bounded by `C * 2^-n`, then `f` is a Cauchy sequence.-/
+lemma cauchy_seq_of_edist_le_geometric_two : cauchy_seq f :=
+begin
+  simp only [ennreal.div_def, ennreal.inv_pow'] at hu,
+  refine cauchy_seq_of_edist_le_geometric 2⁻¹ C _ hC hu,
+  simp [ennreal.one_lt_two]
+end
+
+omit hC
+include ha
+
+/-- If `edist (f n) (f (n+1))` is bounded by `C * 2^-n`, then the distance from
+`f n` to the limit of `f` is bounded above by `2 * C * 2^-n`. -/
+lemma edist_le_of_edist_le_geometric_two_of_tendsto (n : ℕ) :
+  edist (f n) a ≤ 2 * C / 2^n :=
+begin
+  simp only [ennreal.div_def, ennreal.inv_pow'] at hu,
+  rw [ennreal.div_def, mul_assoc, mul_comm, ennreal.inv_pow'],
+  convert edist_le_of_edist_le_geometric_of_tendsto 2⁻¹ C hu ha n,
+  rw [ennreal.one_sub_inv_two, ennreal.inv_inv]
+end
+
+/-- If `edist (f n) (f (n+1))` is bounded by `C * 2^-n`, then the distance from
+`f 0` to the limit of `f` is bounded above by `2 * C`. -/
+lemma edist_le_of_edist_le_geometric_two_of_tendsto₀: edist (f 0) a ≤ 2 * C :=
+by simpa only [pow_zero, ennreal.div_def, ennreal.inv_one, mul_one]
+  using edist_le_of_edist_le_geometric_two_of_tendsto C hu ha 0
+
+end edist_le_geometric_two
 
 section le_geometric
 

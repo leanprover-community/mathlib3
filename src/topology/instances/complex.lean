@@ -119,7 +119,8 @@ instance : topological_ring ℂ :=
 
 instance : topological_semiring ℂ := by apply_instance -- short-circuit type class inference
 
-def real_prod_homeo : homeomorph ℂ (ℝ × ℝ) :=
+/-- `ℂ` is homeomorphic to the real plane with `max` norm. -/
+def real_prod_homeo : ℂ ≃ₜ (ℝ × ℝ) :=
 { to_equiv := real_prod_equiv,
   continuous_to_fun := continuous_re.prod_mk continuous_im,
   continuous_inv_fun := show continuous (λ p : ℝ × ℝ, complex.mk p.1 p.2),
@@ -131,7 +132,7 @@ instance : proper_space ℂ :=
 ⟨λx r, begin
   refine real_prod_homeo.symm.compact_preimage.1
     (compact_of_is_closed_subset
-      (compact_prod _ _ (proper_space.compact_ball x.re r) (proper_space.compact_ball x.im r))
+      ((proper_space.compact_ball x.re r).prod (proper_space.compact_ball x.im r))
       (continuous_iff_is_closed.1 real_prod_homeo.symm.continuous _ is_closed_ball) _),
   exact λ p h, ⟨
     le_trans (abs_re_le_abs (⟨p.1, p.2⟩ - x)) h,

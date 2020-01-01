@@ -606,6 +606,30 @@ def emetric_space.to_metric_space {α : Type u} [e : emetric_space α] (h : ∀x
   metric_space α :=
 emetric_space.to_metric_space_of_dist (λx y, ennreal.to_real (edist x y)) h (λx y, rfl)
 
+/-- A very useful criterion to show that a space is complete is to show that all sequences
+which satisfy a bound of the form `dist (u n) (u m) < B N` for all `n m ≥ N` are
+converging. This is often applied for `B N = 2^{-N}`, i.e., with a very fast convergence to
+`0`, which makes it possible to use arguments of converging series, while this is impossible
+to do in general for arbitrary Cauchy sequences. -/
+theorem metric.complete_of_convergent_controlled_sequences (B : ℕ → real) (hB : ∀n, 0 < B n)
+  (H : ∀u : ℕ → α, (∀N n m : ℕ, N ≤ n → N ≤ m → dist (u n) (u m) < B N) → ∃x, tendsto u at_top (𝓝 x)) :
+  complete_space α :=
+begin
+  -- this follows from the same criterion in emetric spaces. We just need to translate
+  -- the convergence assumption from `dist` to `edist`
+  apply emetric.complete_of_convergent_controlled_sequences (λn, ennreal.of_real (B n)),
+  { simp [hB] },
+  { assume u Hu,
+    apply H,
+    assume N n m hn hm,
+    rw [← ennreal.of_real_lt_of_real_iff (hB N), ← edist_dist],
+    exact Hu N n m hn hm }
+end
+
+theorem metric.complete_of_cauchy_seq_tendsto :
+  (∀ u : ℕ → α, cauchy_seq u → ∃a, tendsto u at_top (𝓝 a)) → complete_space α :=
+emetric.complete_of_cauchy_seq_tendsto
+
 section real
 
 /-- Instantiate the reals as a metric space. -/
@@ -1035,15 +1059,17 @@ section compact
 /-- Any compact set in a metric space can be covered by finitely many balls of a given positive
 radius -/
 lemma finite_cover_balls_of_compact {α : Type u} [metric_space α] {s : set α}
-  (hs : compact s) {e : ℝ} (he : e > 0) :
+  (hs : compact s) {e : ℝ} (he : 0 < e) :
   ∃t ⊆ s, finite t ∧ s ⊆ ⋃x∈t, ball x e :=
 begin
-  apply compact_elim_finite_subcover_image hs,
+  apply hs.elim_finite_subcover_image,
   { simp [is_open_ball] },
   { intros x xs,
     simp,
     exact ⟨x, ⟨xs, by simpa⟩⟩ }
 end
+
+alias finite_cover_balls_of_compact ← compact.finite_cover_balls
 
 end compact
 
@@ -1068,7 +1094,7 @@ lemma proper_space_of_compact_closed_ball_of_le
       apply inter_eq_self_of_subset_right,
       exact closed_ball_subset_closed_ball (le_of_lt (not_le.1 hr)) },
     rw this,
-    exact compact_inter (h x R (le_refl _)) is_closed_ball }
+    exact (h x R (le_refl _)).inter_right is_closed_ball }
 end⟩
 
 /- A compact metric space is proper -/
@@ -1195,7 +1221,7 @@ lemma second_countable_of_countable_discretization {α : Type u} [metric_space �
   second_countable_topology α :=
 begin
   classical, by_cases hs : (univ : set α) = ∅,
-  { haveI : compact_space α := ⟨by rw hs; exact compact_of_finite (set.finite_empty)⟩, by apply_instance },
+  { haveI : compact_space α := ⟨by rw hs; exact compact_empty⟩, by apply_instance },
   rcases exists_mem_of_ne_empty hs with ⟨x0, hx0⟩,
   letI : inhabited α := ⟨x0⟩,
   refine second_countable_of_almost_dense_set (λε ε0, _),
@@ -1303,9 +1329,11 @@ lemma bounded_of_compact {s : set α} (h : compact s) : bounded s :=
 let ⟨t, ht, fint, subs⟩ := finite_cover_balls_of_compact h zero_lt_one in
 bounded.subset subs $ (bounded_bUnion fint).2 $ λ i hi, bounded_ball
 
+alias bounded_of_compact ← compact.bounded
+
 /-- A finite set is bounded -/
 lemma bounded_of_finite {s : set α} (h : finite s) : bounded s :=
-bounded_of_compact $ compact_of_finite h
+h.compact.bounded
 
 /-- A singleton is bounded -/
 lemma bounded_singleton {x : α} : bounded ({x} : set α) :=
@@ -1319,12 +1347,12 @@ exists_congr $ λ C, ⟨
 
 /-- In a compact space, all sets are bounded -/
 lemma bounded_of_compact_space [compact_space α] : bounded s :=
-(bounded_of_compact compact_univ).subset (subset_univ _)
+compact_univ.bounded.subset (subset_univ _)
 
 /-- In a proper space, a set is compact if and only if it is closed and bounded -/
 lemma compact_iff_closed_bounded [proper_space α] :
   compact s ↔ is_closed s ∧ bounded s :=
-⟨λ h, ⟨closed_of_compact _ h, bounded_of_compact h⟩, begin
+⟨λ h, ⟨closed_of_compact _ h, h.bounded⟩, begin
   rintro ⟨hc, hb⟩,
   classical, by_cases s = ∅, {simp [h, compact_empty]},
   rcases exists_mem_of_ne_empty h with ⟨x, hx⟩,
@@ -1351,7 +1379,7 @@ begin
       exact mul_le_mul_of_nonneg_left (add_le_add hx hy) (le_max_right _ _)
     end⟩,
   have : compact K := compact_iff_closed_bounded.2 ⟨A, B⟩,
-  have C : compact (f '' K) := compact_image this f_cont,
+  have C : compact (f '' K) := this.image f_cont,
   have : f '' K = closed_ball x₀ r,
     by { rw image_preimage_eq_of_subset, rw hf, exact subset_univ _ },
   rwa this at C

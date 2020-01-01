@@ -78,13 +78,29 @@ instance : is_semiring_hom (coe : ℝ≥0 → ℝ) := by refine_struct {..}; int
 @[move_cast] lemma coe_pow (r : ℝ≥0) (n : ℕ) : ((r^n : ℝ≥0) : ℝ) = r^n :=
 is_monoid_hom.map_pow coe r n
 
-@[move_cast] lemma sum_coe {α} {s : finset α} {f : α → ℝ≥0} :
-  ↑(s.sum f) = s.sum (λa, (f a : ℝ)) :=
-eq.symm $ finset.sum_hom _
+@[move_cast] lemma coe_list_sum (l : list ℝ≥0) :
+  ((l.sum : ℝ≥0) : ℝ) = (l.map coe).sum :=
+eq.symm $ l.sum_hom coe
 
-@[move_cast] lemma prod_coe {α} {s : finset α} {f : α → ℝ≥0} :
+@[move_cast] lemma coe_list_prod (l : list ℝ≥0) :
+  ((l.prod : ℝ≥0) : ℝ) = (l.map coe).prod :=
+eq.symm $ l.prod_hom coe
+
+@[move_cast] lemma coe_multiset_sum (s : multiset ℝ≥0) :
+  ((s.sum : ℝ≥0) : ℝ) = (s.map coe).sum :=
+eq.symm $ s.sum_hom coe
+
+@[move_cast] lemma coe_multiset_prod (s : multiset ℝ≥0) :
+  ((s.prod : ℝ≥0) : ℝ) = (s.map coe).prod :=
+eq.symm $ s.prod_hom coe
+
+@[move_cast] lemma coe_sum {α} {s : finset α} {f : α → ℝ≥0} :
+  ↑(s.sum f) = s.sum (λa, (f a : ℝ)) :=
+eq.symm $ s.sum_hom coe
+
+@[move_cast] lemma coe_prod {α} {s : finset α} {f : α → ℝ≥0} :
   ↑(s.prod f) = s.prod (λa, (f a : ℝ)) :=
-eq.symm $ finset.prod_hom _
+eq.symm $ s.prod_hom coe
 
 @[move_cast] lemma smul_coe (r : ℝ≥0) (n : ℕ) : ↑(add_monoid.smul n r) = add_monoid.smul n (r:ℝ) :=
 is_add_monoid_hom.map_smul coe r n
@@ -389,7 +405,7 @@ by simp [zero_lt_iff_ne_zero]
 protected lemma mul_inv {r p : ℝ≥0} : (r * p)⁻¹ = p⁻¹ * r⁻¹ := nnreal.eq $ mul_inv' _ _
 
 protected lemma inv_pow' {r : ℝ≥0} {n : ℕ} : (r^n)⁻¹ = (r⁻¹)^n :=
-nnreal.eq $ by { push_cast, apply inv_pow' }
+nnreal.eq $ by { push_cast, exact (inv_pow' _ _).symm }
 
 @[simp] lemma inv_mul_cancel {r : ℝ≥0} (h : r ≠ 0) : r⁻¹ * r = 1 :=
 nnreal.eq $ inv_mul_cancel $ mt (@nnreal.eq_iff r 0).1 h

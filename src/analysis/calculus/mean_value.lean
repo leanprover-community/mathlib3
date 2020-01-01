@@ -1,17 +1,40 @@
 /-
 Copyright (c) 2019 Sébastien Gouëzel. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Authors: Sébastien Gouëzel
+Authors: Sébastien Gouëzel, Yury Kudryashov
 -/
 
-import analysis.calculus.deriv
+import analysis.calculus.local_extr
 
 /-!
-# The mean value inequality
+# The mean value inequality and equalities
 
-A bound on the derivative of a function implies that this function
-is Lipschitz continuous for the same bound, on a segment or more generally in a convex set.
-This is proved in `norm_image_sub_le_of_norm_deriv_le_convex`.
+In this file we prove the following facts:
+
+* `convex.norm_image_sub_le_of_norm_deriv_le` : if `f` is differentaible on a convex set `s`
+  and the norm of its derivative is bounded by `C`, then `f` is Lipschitz continuous on `s` with
+  constant `C`.
+
+* `convex.is_const_of_fderiv_within_eq_zero` : if a function has derivative `0` on a convex set `s`,
+  then it is a constant on `s`.
+
+* `exists_ratio_has_deriv_at_eq_ratio_slope` and `exists_ratio_deriv_eq_ratio_slope` :
+  Cauchy's Mean Value Theorem.
+
+* `exists_has_deriv_at_eq_slope` and `exists_deriv_eq_slope` : Lagrange's Mean Value Theorem.
+
+* `convex.image_sub_lt_mul_sub_of_deriv_lt`, `convex.mul_sub_lt_image_sub_of_lt_deriv`,
+  `convex.image_sub_le_mul_sub_of_deriv_le`, `convex.mul_sub_le_image_sub_of_le_deriv`,
+  if `∀ x, C (</≤/>/≥) (f' x)`, then `C * (y - x) (</≤/>/≥) (f y - f x)` whenever `x < y`.
+
+* `convex.mono_of_deriv_nonneg`, `convex.antimono_of_deriv_nonpos`,
+  `convex.strict_mono_of_deriv_pos`, `convex.strict_antimono_of_deriv_neg` :
+  if the derivative of a function is non-negative/non-positive/positive/negative, then
+  the function is monotone/monotonically decreasing/strictly monotone/strictly monotonically
+  decreasing.
+
+* `convex_on_of_deriv_mono`, `convex_on_of_deriv2_nonneg` : if the derivative of a function
+  is increasing or its second derivative is nonnegative, then the original function is convex.
 -/
 
 set_option class.instance_max_depth 120
@@ -20,6 +43,8 @@ variables {E : Type*} [normed_group E] [normed_space ℝ E]
           {F : Type*} [normed_group F] [normed_space ℝ F]
 
 open metric set lattice asymptotics continuous_linear_map
+
+/-! ### Vector-valued functions `f : E → F` -/
 
 /-- The mean value theorem along a segment: a bound on the derivative of a function along a segment
 implies a bound on the distance of the endpoints images -/
@@ -97,7 +122,7 @@ end
 
 /-- The mean value theorem on a convex set: if the derivative of a function is bounded by C, then
 the function is C-Lipschitz -/
-theorem norm_image_sub_le_of_norm_deriv_le_convex {f : E → F} {C : ℝ} {s : set E} {x y : E}
+theorem convex.norm_image_sub_le_of_norm_deriv_le {f : E → F} {C : ℝ} {s : set E} {x y : E}
   (hf : differentiable_on ℝ f s) (bound : ∀x∈s, ∥fderiv_within ℝ f s x∥ ≤ C)
   (hs : convex s) (xs : x ∈ s) (ys : y ∈ s) : ∥f y - f x∥ ≤ C * ∥y - x∥ :=
 begin
@@ -138,3 +163,306 @@ begin
       by rw [deriv_const, smul_zero, zero_add, deriv_id, one_smul],
   rw [this]
 end
+
+/-- If a function has zero Fréchet derivative at every point of a convex set,
+then it is a constant on this set. -/
+theorem convex.is_const_of_fderiv_within_eq_zero {s : set E} (hs : convex s)
+  {f : E → F} (hf : differentiable_on ℝ f s) (hf' : ∀ x ∈ s, fderiv_within ℝ f s x = 0)
+  {x y : E} (hx : x ∈ s) (hy : y ∈ s) :
+  f x = f y :=
+have bound : ∀ x ∈ s, ∥fderiv_within ℝ f s x∥ ≤ 0,
+  from λ x hx, by simp only [hf' x hx, _root_.norm_zero],
+by simpa only [(dist_eq_norm _ _).symm, zero_mul, dist_le_zero, eq_comm]
+  using hs.norm_image_sub_le_of_norm_deriv_le hf bound hx hy
+
+theorem is_const_of_fderiv_eq_zero {f : E → F} (hf : differentiable ℝ f)
+  (hf' : ∀ x, fderiv ℝ f x = 0) (x y : E) :
+  f x = f y :=
+convex_univ.is_const_of_fderiv_within_eq_zero hf.differentiable_on
+  (λ x _, by rw fderiv_within_univ; exact hf' x) trivial trivial
+
+/-! ### Functions `[a, b] → ℝ`. -/
+
+section interval
+
+-- Declare all variables here to make sure they come in a correct order
+variables (f f' : ℝ → ℝ) {a b : ℝ} (hab : a < b) (hfc : continuous_on f (Icc a b))
+  (hff' : ∀ x ∈ Ioo a b, has_deriv_at f (f' x) x) (hfd : differentiable_on ℝ f (Ioo a b))
+  (g g' : ℝ → ℝ) (hgc : continuous_on g (Icc a b)) (hgg' : ∀ x ∈ Ioo a b, has_deriv_at g (g' x) x)
+  (hgd : differentiable_on ℝ g (Ioo a b))
+
+include hab hfc hff' hgc hgg'
+
+/-- Cauchy's Mean Value Theorem, `has_deriv_at` version. -/
+lemma exists_ratio_has_deriv_at_eq_ratio_slope :
+  ∃ c ∈ Ioo a b, (g b - g a) * f' c = (f b - f a) * g' c :=
+begin
+  let h := λ x, (g b - g a) * f x - (f b - f a) * g x,
+  have hI : h a = h b,
+  { simp only [h], ring },
+  let h' := λ x, (g b - g a) * f' x - (f b - f a) * g' x,
+  have hhh' : ∀ x ∈ Ioo a b, has_deriv_at h (h' x) x,
+  { assume x hx,
+    convert ((has_deriv_at_const x (g b - g a)).mul (hff' x hx)).sub
+      ((has_deriv_at_const x (f b - f a)).mul (hgg' x hx)),
+    simp only [h', mul_zero, add_zero] },
+  have hhc : continuous_on h (Icc a b),
+    from (continuous_on_const.mul hfc).sub (continuous_on_const.mul hgc),
+  rcases exists_has_deriv_at_eq_zero h h' hab hhc hI hhh' with ⟨c, cmem, hc⟩,
+  exact ⟨c, cmem, sub_eq_zero.1 hc⟩
+end
+
+omit hgc hgg'
+
+/-- Lagrange's Mean Value Theorem, `has_deriv_at` version -/
+lemma exists_has_deriv_at_eq_slope : ∃ c ∈ Ioo a b, f' c = (f b - f a) / (b - a) :=
+begin
+  rcases exists_ratio_has_deriv_at_eq_ratio_slope f f' hab hfc hff'
+    id 1 continuous_id.continuous_on (λ x hx, has_deriv_at_id x) with ⟨c, cmem, hc⟩,
+  use [c, cmem],
+  simp only [_root_.id, pi.one_apply, mul_one] at hc,
+  rw [← hc, mul_div_cancel_left],
+  exact ne_of_gt (sub_pos.2 hab)
+end
+
+omit hff'
+
+/-- Cauchy's Mean Value Theorem, `deriv` version. -/
+lemma exists_ratio_deriv_eq_ratio_slope :
+  ∃ c ∈ Ioo a b, (g b - g a) * (deriv f c) = (f b - f a) * (deriv g c) :=
+exists_ratio_has_deriv_at_eq_ratio_slope f (deriv f) hab hfc
+  (λ x hx, ((hfd x hx).differentiable_at $ mem_nhds_sets is_open_Ioo hx).has_deriv_at)
+  g (deriv g) hgc (λ x hx, ((hgd x hx).differentiable_at $ mem_nhds_sets is_open_Ioo hx).has_deriv_at)
+
+/-- Lagrange's Mean Value Theorem, `deriv` version. -/
+lemma exists_deriv_eq_slope : ∃ c ∈ Ioo a b, deriv f c = (f b - f a) / (b - a) :=
+exists_has_deriv_at_eq_slope f (deriv f) hab hfc
+  (λ x hx, ((hfd x hx).differentiable_at $ mem_nhds_sets is_open_Ioo hx).has_deriv_at)
+
+end interval
+
+/-- Let `f` be a function continuous on a convex (or, equivalently, connected) subset `D`
+of the real line. If `f` is differentiable on the interior of `D` and `C < f'`, then
+`f` grows faster than `C * x` on `D`, i.e., `C * (y - x) < f y - f x` whenever `x, y ∈ D`,
+`x < y`. -/
+theorem convex.mul_sub_lt_image_sub_of_lt_deriv {D : set ℝ} (hD : convex D) {f : ℝ → ℝ}
+  (hf : continuous_on f D) (hf' : differentiable_on ℝ f (interior D))
+  {C} (hf'_gt : ∀ x ∈ interior D, C < deriv f x) :
+  ∀ x y ∈ D, x < y → C * (y - x) < f y - f x :=
+begin
+  assume x y hx hy hxy,
+  have hxyD : Icc x y ⊆ D, from convex_real_iff.1 hD hx hy,
+  have hxyD' : Ioo x y ⊆ interior D,
+    from subset_sUnion_of_mem ⟨is_open_Ioo, subset.trans Ioo_subset_Icc_self hxyD⟩,
+  obtain ⟨a, a_mem, ha⟩ : ∃ a ∈ Ioo x y, deriv f a = (f y - f x) / (y - x),
+    from exists_deriv_eq_slope f hxy (hf.mono hxyD) (hf'.mono hxyD'),
+  have : C < (f y - f x) / (y - x), by { rw [← ha], exact hf'_gt _ (hxyD' a_mem) },
+  exact (lt_div_iff (sub_pos.2 hxy)).1 this
+end
+
+/-- Let `f : ℝ → ℝ` be a differentiable function. If `C < f'`, then `f` grows faster than
+`C * x`, i.e., `C * (y - x) < f y - f x` whenever `x < y`. -/
+theorem mul_sub_lt_image_sub_of_lt_deriv {f : ℝ → ℝ} (hf : differentiable ℝ f)
+  {C} (hf'_gt : ∀ x, C < deriv f x) ⦃x y⦄ (hxy : x < y) :
+  C * (y - x) < f y - f x :=
+convex_univ.mul_sub_lt_image_sub_of_lt_deriv hf.continuous.continuous_on hf.differentiable_on
+  (λ x _, hf'_gt x) x y trivial trivial hxy
+
+/-- Let `f` be a function continuous on a convex (or, equivalently, connected) subset `D`
+of the real line. If `f` is differentiable on the interior of `D` and `C ≤ f'`, then
+`f` grows at least as fast as `C * x` on `D`, i.e., `C * (y - x) ≤ f y - f x` whenever `x, y ∈ D`,
+`x ≤ y`. -/
+theorem convex.mul_sub_le_image_sub_of_le_deriv {D : set ℝ} (hD : convex D) {f : ℝ → ℝ}
+  (hf : continuous_on f D) (hf' : differentiable_on ℝ f (interior D))
+  {C} (hf'_ge : ∀ x ∈ interior D, C ≤ deriv f x) :
+  ∀ x y ∈ D, x ≤ y → C * (y - x) ≤ f y - f x :=
+begin
+  assume x y hx hy hxy,
+  cases eq_or_lt_of_le hxy with hxy' hxy', by rw [hxy', sub_self, sub_self, mul_zero],
+  have hxyD : Icc x y ⊆ D, from convex_real_iff.1 hD hx hy,
+  have hxyD' : Ioo x y ⊆ interior D,
+    from subset_sUnion_of_mem ⟨is_open_Ioo, subset.trans Ioo_subset_Icc_self hxyD⟩,
+  obtain ⟨a, a_mem, ha⟩ : ∃ a ∈ Ioo x y, deriv f a = (f y - f x) / (y - x),
+    from exists_deriv_eq_slope f hxy' (hf.mono hxyD) (hf'.mono hxyD'),
+  have : C ≤ (f y - f x) / (y - x), by { rw [← ha], exact hf'_ge _ (hxyD' a_mem) },
+  exact (le_div_iff (sub_pos.2 hxy')).1 this
+end
+
+/-- Let `f : ℝ → ℝ` be a differentiable function. If `C ≤ f'`, then `f` grows at least as fast
+as `C * x`, i.e., `C * (y - x) ≤ f y - f x` whenever `x ≤ y`. -/
+theorem mul_sub_le_image_sub_of_le_deriv {f : ℝ → ℝ} (hf : differentiable ℝ f)
+  {C} (hf'_ge : ∀ x, C ≤ deriv f x) ⦃x y⦄ (hxy : x ≤ y) :
+  C * (y - x) ≤ f y - f x :=
+convex_univ.mul_sub_le_image_sub_of_le_deriv hf.continuous.continuous_on hf.differentiable_on
+  (λ x _, hf'_ge x) x y trivial trivial hxy
+
+/-- Let `f` be a function continuous on a convex (or, equivalently, connected) subset `D`
+of the real line. If `f` is differentiable on the interior of `D` and `f' < C`, then
+`f` grows slower than `C * x` on `D`, i.e., `f y - f x < C * (y - x)` whenever `x, y ∈ D`,
+`x < y`. -/
+theorem convex.image_sub_lt_mul_sub_of_deriv_lt {D : set ℝ} (hD : convex D) {f : ℝ → ℝ}
+  (hf : continuous_on f D) (hf' : differentiable_on ℝ f (interior D))
+  {C} (lt_hf' : ∀ x ∈ interior D, deriv f x < C) :
+  ∀ x y ∈ D, x < y → f y - f x < C * (y - x) :=
+begin
+  assume x y hx hy hxy,
+  have hf'_gt : ∀ x ∈ interior D, -C < deriv (λ y, -f y) x,
+  { assume x hx,
+    rw [deriv_neg, neg_lt_neg_iff],
+    exact lt_hf' x hx },
+  simpa [-neg_lt_neg_iff]
+    using neg_lt_neg (hD.mul_sub_lt_image_sub_of_lt_deriv hf.neg hf'.neg hf'_gt x y hx hy hxy)
+end
+
+/-- Let `f : ℝ → ℝ` be a differentiable function. If `f' < C`, then `f` grows slower than
+`C * x` on `D`, i.e., `f y - f x < C * (y - x)` whenever `x < y`. -/
+theorem image_sub_lt_mul_sub_of_deriv_lt {f : ℝ → ℝ} (hf : differentiable ℝ f)
+  {C} (lt_hf' : ∀ x, deriv f x < C) ⦃x y⦄ (hxy : x < y) :
+  f y - f x < C * (y - x) :=
+convex_univ.image_sub_lt_mul_sub_of_deriv_lt hf.continuous.continuous_on hf.differentiable_on
+  (λ x _, lt_hf' x) x y trivial trivial hxy
+
+/-- Let `f` be a function continuous on a convex (or, equivalently, connected) subset `D`
+of the real line. If `f` is differentiable on the interior of `D` and `f' ≤ C`, then
+`f` grows at most as fast as `C * x` on `D`, i.e., `f y - f x ≤ C * (y - x)` whenever `x, y ∈ D`,
+`x ≤ y`. -/
+theorem convex.image_sub_le_mul_sub_of_deriv_le {D : set ℝ} (hD : convex D) {f : ℝ → ℝ}
+  (hf : continuous_on f D) (hf' : differentiable_on ℝ f (interior D))
+  {C} (le_hf' : ∀ x ∈ interior D, deriv f x ≤ C) :
+  ∀ x y ∈ D, x ≤ y → f y - f x ≤ C * (y - x) :=
+begin
+  assume x y hx hy hxy,
+  have hf'_ge : ∀ x ∈ interior D, -C ≤ deriv (λ y, -f y) x,
+  { assume x hx,
+    rw [deriv_neg, neg_le_neg_iff],
+    exact le_hf' x hx },
+  simpa [-neg_le_neg_iff]
+    using neg_le_neg (hD.mul_sub_le_image_sub_of_le_deriv hf.neg hf'.neg hf'_ge x y hx hy hxy)
+end
+
+/-- Let `f : ℝ → ℝ` be a differentiable function. If `f' ≤ C`, then `f` grows at most as fast
+as `C * x`, i.e., `f y - f x ≤ C * (y - x)` whenever `x ≤ y`. -/
+theorem image_sub_le_mul_sub_of_deriv_le {f : ℝ → ℝ} (hf : differentiable ℝ f)
+  {C} (le_hf' : ∀ x, deriv f x ≤ C) ⦃x y⦄ (hxy : x ≤ y) :
+  f y - f x ≤ C * (y - x) :=
+convex_univ.image_sub_le_mul_sub_of_deriv_le hf.continuous.continuous_on hf.differentiable_on
+  (λ x _, le_hf' x) x y trivial trivial hxy
+
+/-- Let `f` be a function continuous on a convex (or, equivalently, connected) subset `D`
+of the real line. If `f` is differentiable on the interior of `D` and `f'` is positive, then
+`f` is a strictly monotonically increasing function on `D`. -/
+theorem convex.strict_mono_of_deriv_pos {D : set ℝ} (hD : convex D) {f : ℝ → ℝ}
+  (hf : continuous_on f D) (hf' : differentiable_on ℝ f (interior D))
+  (hf'_pos : ∀ x ∈ interior D, 0 < deriv f x) :
+  ∀ x y ∈ D, x < y → f x < f y :=
+by simpa only [zero_mul, sub_pos] using hD.mul_sub_lt_image_sub_of_lt_deriv hf hf' hf'_pos
+
+/-- Let `f : ℝ → ℝ` be a differentiable function. If `f'` is positive, then
+`f` is a strictly monotonically increasing function. -/
+theorem strict_mono_of_deriv_pos {f : ℝ → ℝ} (hf : differentiable ℝ f)
+  (hf'_pos : ∀ x, 0 < deriv f x) :
+  strict_mono f :=
+λ x y hxy, convex_univ.strict_mono_of_deriv_pos hf.continuous.continuous_on hf.differentiable_on
+  (λ x _, hf'_pos x) x y trivial trivial hxy
+
+/-- Let `f` be a function continuous on a convex (or, equivalently, connected) subset `D`
+of the real line. If `f` is differentiable on the interior of `D` and `f'` is nonnegative, then
+`f` is a monotonically increasing function on `D`. -/
+theorem convex.mono_of_deriv_nonneg {D : set ℝ} (hD : convex D) {f : ℝ → ℝ}
+  (hf : continuous_on f D) (hf' : differentiable_on ℝ f (interior D))
+  (hf'_nonneg : ∀ x ∈ interior D, 0 ≤ deriv f x) :
+  ∀ x y ∈ D, x ≤ y → f x ≤ f y :=
+by simpa only [zero_mul, sub_nonneg] using hD.mul_sub_le_image_sub_of_le_deriv hf hf' hf'_nonneg
+
+/-- Let `f : ℝ → ℝ` be a differentiable function. If `f'` is nonnegative, then
+`f` is a monotonically increasing function. -/
+theorem mono_of_deriv_nonneg {f : ℝ → ℝ} (hf : differentiable ℝ f) (hf' : ∀ x, 0 ≤ deriv f x) :
+  monotone f :=
+λ x y hxy, convex_univ.mono_of_deriv_nonneg hf.continuous.continuous_on hf.differentiable_on
+  (λ x _, hf' x) x y trivial trivial hxy
+
+/-- Let `f` be a function continuous on a convex (or, equivalently, connected) subset `D`
+of the real line. If `f` is differentiable on the interior of `D` and `f'` is negative, then
+`f` is a strictly monotonically decreasing function on `D`. -/
+theorem convex.strict_antimono_of_deriv_neg {D : set ℝ} (hD : convex D) {f : ℝ → ℝ}
+  (hf : continuous_on f D) (hf' : differentiable_on ℝ f (interior D))
+  (hf'_neg : ∀ x ∈ interior D, deriv f x < 0) :
+  ∀ x y ∈ D, x < y → f y < f x :=
+by simpa only [zero_mul, sub_lt_zero] using hD.image_sub_lt_mul_sub_of_deriv_lt hf hf' hf'_neg
+
+/-- Let `f : ℝ → ℝ` be a differentiable function. If `f'` is negative, then
+`f` is a strictly monotonically decreasing function. -/
+theorem strict_antimono_of_deriv_neg {f : ℝ → ℝ} (hf : differentiable ℝ f)
+  (hf' : ∀ x, deriv f x < 0) :
+  ∀ ⦃x y⦄, x < y → f y < f x :=
+λ x y hxy, convex_univ.strict_antimono_of_deriv_neg hf.continuous.continuous_on hf.differentiable_on
+  (λ x _, hf' x) x y trivial trivial hxy
+
+/-- Let `f` be a function continuous on a convex (or, equivalently, connected) subset `D`
+of the real line. If `f` is differentiable on the interior of `D` and `f'` is nonpositive, then
+`f` is a monotonically decreasing function on `D`. -/
+theorem convex.antimono_of_deriv_nonpos {D : set ℝ} (hD : convex D) {f : ℝ → ℝ}
+  (hf : continuous_on f D) (hf' : differentiable_on ℝ f (interior D))
+  (hf'_nonpos : ∀ x ∈ interior D, deriv f x ≤ 0) :
+  ∀ x y ∈ D, x ≤ y → f y ≤ f x :=
+by simpa only [zero_mul, sub_nonpos] using hD.image_sub_le_mul_sub_of_deriv_le hf hf' hf'_nonpos
+
+/-- Let `f : ℝ → ℝ` be a differentiable function. If `f'` is nonpositive, then
+`f` is a monotonically decreasing function. -/
+theorem antimono_of_deriv_nonpos {f : ℝ → ℝ} (hf : differentiable ℝ f) (hf' : ∀ x, deriv f x ≤ 0) :
+  ∀ ⦃x y⦄, x ≤ y → f y ≤ f x :=
+λ x y hxy, convex_univ.antimono_of_deriv_nonpos hf.continuous.continuous_on hf.differentiable_on
+  (λ x _, hf' x) x y trivial trivial hxy
+
+/-- If a function `f` is continuous on a convex set `D ⊆ ℝ`, is differentiable on its interior,
+and `f'` is monotone on the interior, then `f` is convex on `D`. -/
+theorem convex_on_of_deriv_mono {D : set ℝ} (hD : convex D) {f : ℝ → ℝ}
+  (hf : continuous_on f D) (hf' : differentiable_on ℝ f (interior D))
+  (hf'_mono : ∀ x y ∈ interior D, x ≤ y → deriv f x ≤ deriv f y) :
+  convex_on D f :=
+convex_on_real_of_slope_mono_adjacent hD
+begin
+  intros x y z hx hz hxy hyz,
+  -- First we prove some trivial inclusions
+  have hxzD : Icc x z ⊆ D, from convex_real_iff.1 hD hx hz,
+  have hxyD : Icc x y ⊆ D, from subset.trans (Icc_subset_Icc_right $ le_of_lt hyz) hxzD,
+  have hxyD' : Ioo x y ⊆ interior D,
+    from subset_sUnion_of_mem ⟨is_open_Ioo, subset.trans Ioo_subset_Icc_self hxyD⟩,
+  have hyzD : Icc y z ⊆ D, from subset.trans (Icc_subset_Icc_left $ le_of_lt hxy) hxzD,
+  have hyzD' : Ioo y z ⊆ interior D,
+    from subset_sUnion_of_mem ⟨is_open_Ioo, subset.trans Ioo_subset_Icc_self hyzD⟩,
+  -- Then we apply MVT to both `[x, y]` and `[y, z]`
+  obtain ⟨a, ⟨hxa, hay⟩, ha⟩ : ∃ a ∈ Ioo x y, deriv f a = (f y - f x) / (y - x),
+    from exists_deriv_eq_slope f hxy (hf.mono hxyD) (hf'.mono hxyD'),
+  obtain ⟨b, ⟨hyb, hbz⟩, hb⟩ : ∃ b ∈ Ioo y z, deriv f b = (f z - f y) / (z - y),
+    from exists_deriv_eq_slope f hyz (hf.mono hyzD) (hf'.mono hyzD'),
+  rw [← ha, ← hb],
+  exact hf'_mono a b (hxyD' ⟨hxa, hay⟩) (hyzD' ⟨hyb, hbz⟩) (le_of_lt $ lt_trans hay hyb)
+end
+
+/-- If a function `f` is continuous on a convex set `D ⊆ ℝ`, is differentiable on its interior,
+and `f'` is monotone on the interior, then `f` is convex on `ℝ`. -/
+theorem convex_on_univ_of_deriv_mono {f : ℝ → ℝ} (hf : differentiable ℝ f)
+  (hf'_mono : monotone (deriv f)) : convex_on univ f :=
+convex_on_of_deriv_mono convex_univ hf.continuous.continuous_on hf.differentiable_on
+  (λ x y _ _ h, hf'_mono h)
+
+/-- If a function `f` is continuous on a convex set `D ⊆ ℝ`, is twice differentiable on its interior,
+and `f''` is nonnegative on the interior, then `f` is convex on `D`. -/
+theorem convex_on_of_deriv2_nonneg {D : set ℝ} (hD : convex D) {f : ℝ → ℝ}
+  (hf : continuous_on f D) (hf' : differentiable_on ℝ f (interior D))
+  (hf'' : differentiable_on ℝ (deriv f) (interior D))
+  (hf''_nonneg : ∀ x ∈ interior D, 0 ≤ (deriv^[2] f x)) :
+  convex_on D f :=
+convex_on_of_deriv_mono hD hf hf' $
+assume x y hx hy hxy,
+hD.interior.mono_of_deriv_nonneg hf''.continuous_on (by rwa [interior_interior])
+  (by rwa [interior_interior]) _ _ hx hy hxy
+
+/-- If a function `f` is twice differentiable on `ℝ`, and `f''` is nonnegative on `ℝ`,
+then `f` is convex on `ℝ`. -/
+theorem convex_on_univ_of_deriv2_nonneg {f : ℝ → ℝ} (hf' : differentiable ℝ f)
+  (hf'' : differentiable ℝ (deriv f)) (hf''_nonneg : ∀ x, 0 ≤ (deriv^[2] f x)) :
+  convex_on univ f :=
+convex_on_of_deriv2_nonneg convex_univ hf'.continuous.continuous_on hf'.differentiable_on
+  hf''.differentiable_on (λ x _, hf''_nonneg x)

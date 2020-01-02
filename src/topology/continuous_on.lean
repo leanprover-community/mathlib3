@@ -437,8 +437,18 @@ h.congr_of_mem_nhds_within (mem_sets_of_superset self_mem_nhds_within h₁) hx
 lemma continuous_on_const {s : set α} {c : β} : continuous_on (λx, c) s :=
 continuous_const.continuous_on
 
+lemma continuous_within_at_const {b : β} {s : set α} {x : α} :
+  continuous_within_at (λ _:α, b) s x :=
+continuous_const.continuous_within_at
+
+lemma continuous_on_id {s : set α} : continuous_on id s :=
+continuous_id.continuous_on
+
+lemma continuous_within_at_id {s : set α} {x : α} : continuous_within_at id s x :=
+continuous_id.continuous_within_at
+
 lemma continuous_on_open_iff {f : α → β} {s : set α} (hs : is_open s) :
-  continuous_on f s ↔ (∀t, _root_.is_open t → is_open (s ∩ f⁻¹' t)) :=
+  continuous_on f s ↔ (∀t, is_open t → is_open (s ∩ f⁻¹' t)) :=
 begin
   rw continuous_on_iff',
   split,

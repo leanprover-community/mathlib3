@@ -70,20 +70,9 @@ derivative, differentiable, Fréchet, calculus
 -/
 
 open filter asymptotics continuous_linear_map set
-open_locale topological_space
+open_locale topological_space classical
 
 noncomputable theory
-local attribute [instance, priority 10] classical.decidable_inhabited classical.prop_decidable
--- local attribute [instance, priority 10000] continuous_linear_map.add_comm_group
---   continuous_linear_map.module normed_field.normed_field normed_field.nondiscrete_normed_field
--- local attribute [instance, priority 5000] normed_space.to_module
---   module.to_semimodule semimodule.to_distrib_mul_action distrib_mul_action.to_mul_action
---   mul_action.to_has_scalar add_comm_group.to_add_comm_monoid
---   add_comm_monoid.to_add_monoid ring.to_monoid ring.to_semiring
---   nondiscrete_normed_field.to_normed_field
---   normed_group.to_add_comm_group normed_field.to_discrete_field discrete_field.to_field
---   field.to_division_ring field.to_comm_ring comm_ring.to_ring uniform_space.to_topological_space
---   metric_space.to_uniform_space' normed_group.to_has_norm
 
 set_option class.instance_max_depth 90
 
@@ -1659,7 +1648,6 @@ variables {E : Type*} [normed_group E] [normed_space ℝ E]
 variables {F : Type*} [normed_group F] [normed_space ℝ F]
 variables {f : E → F} {f' : E →L[ℝ] F} {x : E}
 
--- set_option trace.class_instances true
 theorem has_fderiv_at_filter_real_equiv {L : filter E} :
   tendsto (λ x' : E, ∥x' - x∥⁻¹ * ∥f x' - f x - f' (x' - x)∥) L (𝓝 0) ↔
   tendsto (λ x' : E, ∥x' - x∥⁻¹ • (f x' - f x - f' (x' - x))) L (𝓝 0) :=
@@ -1669,8 +1657,6 @@ begin
   have : ∥x' + -x∥⁻¹ ≥ 0, from inv_nonneg.mpr (norm_nonneg _),
   simp [norm_smul, real.norm_eq_abs, abs_of_nonneg this]
 end
-
--- set_option trace.class_instances false
 
 lemma has_fderiv_at.lim_real (hf : has_fderiv_at f f' x) (v : E) :
   tendsto (λ (c:ℝ), c • (f (x + c⁻¹ • v) - f x)) at_top (𝓝 (f' v)) :=

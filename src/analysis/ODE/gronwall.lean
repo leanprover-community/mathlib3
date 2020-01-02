@@ -8,7 +8,7 @@ import analysis.calculus.mean_value analysis.complex.exponential
 /-!
 # Grönwall's inequality
 
-In this file we prove a generalized Gronwall's inequality, and use to to prove
+In this file we prove a generalized Grönwall's inequality, and use to to prove
 uniqueness (but not existence) of solutions of ODEs with Lipschitz continuous right hand sides.
 
 The proofs are based on [Hubbard and West, *Differential Equations: A Dynamical Systems
@@ -21,7 +21,7 @@ variables {E : Type*} [normed_group E] [normed_space ℝ E]
 open metric set lattice asymptotics filter real
 open_locale classical
 
-/-- Upper bound used in several Gronwall-like inequalities. -/
+/-- Upper bound used in several Grönwall-like inequalities. -/
 noncomputable def gronwall_bound (δ K ε x : ℝ) : ℝ :=
 δ * exp (K * x) + (ε / K) * (exp (K * x) - 1)
 
@@ -75,7 +75,7 @@ begin
     ((continuous_within_at_id.mul continuous_within_at_const).mul continuous_within_at_const)
 end
 
-/-- Generalized Gronwall's inequality: if `f` and `g` are two approximate solutions
+/-- Generalized Grönwall's inequality: if `f` and `g` are two approximate solutions
 of the same ODE, then the distance between them can't grow faster than exponentially. -/
 theorem dist_le_of_approx_trajectories_ODE_of_mem_set {v : ℝ → E → E} {s : ℝ → set E}
   {K : ℝ} (hK : 0 < K) (hv : ∀ t, ∀ x y ∈ s t, dist (v t x) (v t y) ≤ K * dist x y)
@@ -104,7 +104,7 @@ begin
   rw [dist_eq_norm, add_comm]
 end
 
-/-- Generalized Gronwall's inequality: if `f` and `g` are two approximate solutions
+/-- Generalized Grönwall's inequality: if `f` and `g` are two approximate solutions
 of the same ODE, then the distance between them can't grow faster than exponentially. -/
 theorem dist_le_of_approx_trajectories_ODE {v : ℝ → E → E}
   {K : nnreal} (hK : 0 < K) (hv : ∀ t, lipschitz_with K (v t))
@@ -121,7 +121,7 @@ have hfs : ∀ t ∈ Ico a b, f t ∈ (@univ E), from λ t ht, trivial,
 dist_le_of_approx_trajectories_ODE_of_mem_set hK (λ t x y hx hy, hv t x y)
   hf hf' f_bound hfs hg hg' g_bound (λ t ht, trivial) ha
 
-/-- Gronwall's inequality: if `f` and `g` are two solutions of the same ODE,
+/-- Grönwall's inequality: if `f` and `g` are two solutions of the same ODE,
 then the distance between them can't grow faster than exponentially. -/
 theorem dist_le_of_trajectories_ODE_of_mem_set {v : ℝ → E → E} {s : ℝ → set E}
   {K : ℝ} (hK : 0 < K) (hv : ∀ t, ∀ x y ∈ s t, dist (v t x) (v t y) ≤ K * dist x y)
@@ -145,7 +145,7 @@ begin
   rwa [zero_add, gronwall_bound_ε0] at this,
 end
 
-/-- Gronwall's inequality: if `f` and `g` are two solutions of the same ODE,
+/-- Grönwall's inequality: if `f` and `g` are two solutions of the same ODE,
 then the distance between them can't grow faster than exponentially. -/
 theorem dist_le_of_trajectories_ODE {v : ℝ → E → E}
   {K : nnreal} (hK : 0 < K) (hv : ∀ t, lipschitz_with K (v t))

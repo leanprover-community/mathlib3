@@ -2,11 +2,27 @@
 Copyright (c) 2017 Johannes Hölzl. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johannes Hölzl, Jeremy Avigad
-
-Theory of filters on sets.
 -/
 import order.galois_connection order.zorn
 import data.set.finite
+
+/-! # Theory of filters on sets
+
+## Main definitions
+
+* `filter` : filter on a set;
+* `at_top`, `at_bot`, `cofinite`, `principal` : specific filters;
+* `map`, `comap`, `join` : operations on filters;
+* `filter_upwards [h₁, ..., hₙ]` : takes a list of proofs `hᵢ : sᵢ ∈ f`, and replaces a goal `s ∈ f`
+  with `∀ x, x ∈ s₁ → ... → x ∈ sₙ → x ∈ s`;
+* `eventually` : `f.eventually p` means `{x | p x} ∈ f`;
+* `frequently` : `f.frequently p` means `{x | ¬p x} ∉ f`.
+
+## Notations
+
+* `∀ᶠ x in f, p x` : `f.eventually p`;
+* `∃ᶠ x in f, p x` : `f.frequently p`.
+-/
 open lattice set
 
 universes u v w x y
@@ -534,6 +550,90 @@ begin
     assume p hpa hp ht,
     exact ⟨p a, hpa, (s.inf p), ⟨⟨p, hp, le_refl _⟩, ht⟩⟩ }
 end
+
+/-! ### Eventually -/
+
+/-- `f.eventually p` or `∀ᶠ x in f, p x` mean that `{x | p x} ∈ f`. E.g., `∀ᶠ x in at_top, p x`
+means that `p` holds true for sufficiently large `x`. -/
+protected def eventually (p : α → Prop) (f : filter α) : Prop := {x | p x} ∈ f
+
+notation `∀ᶠ` binders ` in ` f `, ` r:(scoped p, filter.eventually p f) := r
+
+protected lemma eventually.and {p q : α → Prop} {f : filter α} :
+  f.eventually p → f.eventually q → ∀ᶠ x in f, p x ∧ q x :=
+inter_mem_sets
+
+lemma eventually_true (f : filter α) : ∀ᶠ x in f, true := univ_mem_sets
+
+lemma eventually_of_forall {p : α → Prop} (f : filter α) (hp : ∀ x, p x) :
+  ∀ᶠ x in f, p x :=
+univ_mem_sets' hp
+
+lemma eventually_false_iff_eq_bot {f : filter α} :
+  (∀ᶠ x in f, false) ↔ f = ⊥ :=
+empty_in_sets_eq_bot
+
+lemma eventually.mp {p q : α → Prop} {f : filter α} (hp : ∀ᶠ x in f, p x)
+  (hq : ∀ᶠ x in f, p x → q x) :
+  ∀ᶠ x in f, q x :=
+mp_sets hp hq
+
+lemma eventually.mono {p q : α → Prop} {f : filter α} (hp : ∀ᶠ x in f, p x)
+  (hq : ∀ x, p x → q x) :
+  ∀ᶠ x in f, q x :=
+hp.mp (f.eventually_of_forall hq)
+
+/-! ### Frequently -/
+
+/-- `f.frequently p` or `∃ᶠ x in f, p x` mean that `{x | ¬p x} ∉ f`. E.g., `∃ᶠ x in at_top, p x`
+means that there exist arbitrarily large `x` for which `p` holds true. -/
+protected def frequently (p : α → Prop) (f : filter α) : Prop := ¬∀ᶠ x in f, ¬p x
+
+notation `∃ᶠ` binders ` in ` f `, ` r:(scoped p, filter.frequently p f) := r
+
+lemma eventually.frequently {f : filter α} (hf : f ≠ ⊥) {p : α → Prop} (h : ∀ᶠ x in f, p x) :
+  ∃ᶠ x in f, p x :=
+begin
+  assume h',
+  have := h.and h',
+  simp only [and_not_self, eventually_false_iff_eq_bot] at this,
+  exact hf this
+end
+
+lemma frequently.mp {p q : α → Prop} {f : filter α} (h : ∃ᶠ x in f, p x)
+  (hpq : ∀ᶠ x in f, p x → q x) :
+  ∃ᶠ x in f, q x :=
+mt (λ hq, hq.mp $ hpq.mono $ λ x, mt) h
+
+lemma frequently.mono {p q : α → Prop} {f : filter α} (h : ∃ᶠ x in f, p x)
+  (hpq : ∀ x, p x → q x) :
+  ∃ᶠ x in f, q x :=
+h.mp (f.eventually_of_forall hpq)
+
+lemma frequently.and_eventually {p q : α → Prop} {f : filter α}
+  (hp : ∃ᶠ x in f, p x) (hq : ∀ᶠ x in f, q x) :
+  ∃ᶠ x in f, p x ∧ q x :=
+begin
+  refine mt (λ h, hq.mp $ h.mono _) hp,
+  assume x hpq hq hp,
+  exact hpq ⟨hp, hq⟩
+end
+
+lemma frequently.exists {p : α → Prop} {f : filter α} (hp : ∃ᶠ x in f, p x) : ∃ x, p x :=
+begin
+  by_contradiction H,
+  replace H : ∀ᶠ x in f, ¬ p x, from f.eventually_of_forall (not_exists.1 H),
+  exact hp H
+end
+
+lemma eventually.exists {p : α → Prop} {f : filter α} (hp : ∀ᶠ x in f, p x) (hf : f ≠ ⊥) :
+  ∃ x, p x :=
+(hp.frequently hf).exists
+
+lemma frequently_iff_forall_eventually_exists_and {p : α → Prop} {f : filter α} :
+  (∃ᶠ x in f, p x) ↔ ∀ {q : α → Prop}, (∀ᶠ x in f, q x) → ∃ x, p x ∧ q x :=
+⟨assume hp q hq, (hp.and_eventually hq).exists,
+  assume H hp, by simpa only [and_not_self, exists_false] using H hp⟩
 
 /- principal equations -/
 
@@ -1860,9 +1960,8 @@ lemma tendsto_iff_ultrafilter (f : α → β) (l₁ : filter α) (l₂ : filter 
 ⟨assume h g u gx, le_trans (map_mono gx) h,
  assume h, by rw [sup_of_ultrafilters l₁]; simpa only [tendsto, map_supr, supr_le_iff]⟩
 
-/- The ultrafilter monad. The monad structure on ultrafilters is the
+/-- The ultrafilter monad. The monad structure on ultrafilters is the
   restriction of the one on filters. -/
-
 def ultrafilter (α : Type u) : Type u := {f : filter α // is_ultrafilter f}
 
 def ultrafilter.map (m : α → β) (u : ultrafilter α) : ultrafilter β :=

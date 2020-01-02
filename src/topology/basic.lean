@@ -695,6 +695,12 @@ lemma continuous_iff_continuous_at {f : α → β} : continuous f ↔ ∀ x, con
 lemma continuous_const {b : β} : continuous (λa:α, b) :=
 continuous_iff_continuous_at.mpr $ assume a, tendsto_const_nhds
 
+lemma continuous_at_const {x : α} {b : β} : continuous_at (λ a:α, b) x :=
+continuous_const.continuous_at
+
+lemma continuous_at_id {x : α} : continuous_at id x :=
+continuous_id.continuous_at
+
 lemma continuous_iff_is_closed {f : α → β} :
   continuous f ↔ (∀s, is_closed s → is_closed (f ⁻¹' s)) :=
 ⟨assume hf s hs, hf (-s) hs,

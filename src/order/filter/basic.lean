@@ -570,7 +570,7 @@ hp.mp (f.eventually_of_forall hq)
 /-! ### Frequently -/
 
 /-- `f.frequently p` or `∀ᶠ x in f, p x` mean that `{x | ¬p x} ∉ f`. E.g., `∃ᶠ x in at_top, p x`
-means that `p` holds true for arbitrarily large `x`. -/
+means that there exist arbitrarily large `x` for which `p` holds true. -/
 protected def frequently (p : α → Prop) (f : filter α) : Prop := ¬∀ᶠ x in f, ¬p x
 
 notation `∃ᶠ` binders ` in ` f `, ` r:(scoped p, filter.frequently p f) := r

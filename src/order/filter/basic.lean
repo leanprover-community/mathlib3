@@ -2,11 +2,27 @@
 Copyright (c) 2017 Johannes Hölzl. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johannes Hölzl, Jeremy Avigad
-
-Theory of filters on sets.
 -/
 import order.galois_connection order.zorn
 import data.set.finite
+
+/-! # Theory of filters on sets
+
+## Main definitions
+
+* `filter` : filter no a set;
+* `at_top`, `at_bot`, `cofinite`, `principal` : specific filters;
+* `map`, `comap`, `join` : operations on filters;
+* `filter_upwards [h₁, ..., hₙ]` : takes a list of proofs `hᵢ : sᵢ ∈ f`, and replaces a goal `s ∈ f`
+  with `∀ x, x ∈ s₁ → ... → x ∈ sₙ → x ∈ s`;
+* `eventually` : `f.eventually p` means `{x | p x} ∈ f`;
+* `frequently` : `f.frequently p` means `{x | ¬p x} ∉ f`.
+
+## Notations
+
+* `∀ᶠ x in f, p x` : `f.eventually p`;
+* `∃ᶠ x in f, p x` : `f.frequently p`.
+-/
 open lattice set
 
 universes u v w x y

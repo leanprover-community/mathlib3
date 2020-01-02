@@ -10,7 +10,7 @@ import data.set.finite
 
 ## Main definitions
 
-* `filter` : filter no a set;
+* `filter` : filter on a set;
 * `at_top`, `at_bot`, `cofinite`, `principal` : specific filters;
 * `map`, `comap`, `join` : operations on filters;
 * `filter_upwards [h₁, ..., hₙ]` : takes a list of proofs `hᵢ : sᵢ ∈ f`, and replaces a goal `s ∈ f`

@@ -575,11 +575,10 @@ le_antisymm
   (le_infi $ assume r, le_infi $ assume hr, infi_le_of_le ⟨r, le_of_lt hr⟩ $ infi_le _ hr)
 
 section
-variables [emetric_space β]
 open lattice ennreal filter emetric
 
 /-- In an emetric ball, the distance between points is everywhere finite -/
-lemma edist_ne_top_of_mem_ball {a : β} {r : ennreal} (x y : ball a r) : edist x.1 y.1 ≠ ⊤ :=
+lemma edist_ne_top_of_mem_ball [pre_emetric_space β] {a : β} {r : ennreal} (x y : ball a r) : edist x.1 y.1 ≠ ⊤ :=
 lt_top_iff_ne_top.1 $
 calc edist x y ≤ edist a x + edist a y : edist_triangle_left x.1 y.1 a
   ... < r + r : by rw [edist_comm a x, edist_comm a y]; exact add_lt_add x.2 y.2
@@ -587,18 +586,18 @@ calc edist x y ≤ edist a x + edist a y : edist_triangle_left x.1 y.1 a
 
 /-- Each ball in an extended metric space gives us a metric space, as the edist
 is everywhere finite. -/
-def metric_space_emetric_ball (a : β) (r : ennreal) : metric_space (ball a r) :=
+def metric_space_emetric_ball [emetric_space β] (a : β) (r : ennreal) : metric_space (ball a r) :=
 emetric_space.to_metric_space edist_ne_top_of_mem_ball
 
 local attribute [instance] metric_space_emetric_ball
 
-lemma nhds_eq_nhds_emetric_ball (a x : β) (r : ennreal) (h : x ∈ ball a r) :
+lemma nhds_eq_nhds_emetric_ball [emetric_space β] (a x : β) (r : ennreal) (h : x ∈ ball a r) :
   𝓝 x = map (coe : ball a r → β) (𝓝 ⟨x, h⟩) :=
 (map_nhds_subtype_val_eq _ $ mem_nhds_sets emetric.is_open_ball h).symm
 end
 
 section
-variable [emetric_space α]
+variable [pre_emetric_space α]
 open emetric
 
 /-- Yet another metric characterization of Cauchy sequences on integers. This one is often the

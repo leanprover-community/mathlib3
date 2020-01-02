@@ -573,7 +573,7 @@ open finset.Ico filter
 
 /-- If the extended distance between consequent points of a sequence is estimated
 by a summable series of `nnreal`s, then the original sequence is a Cauchy sequence. -/
-lemma cauchy_seq_of_edist_le_of_summable [emetric_space α] {f : ℕ → α} (d : ℕ → nnreal)
+lemma cauchy_seq_of_edist_le_of_summable [pre_emetric_space α] {f : ℕ → α} (d : ℕ → nnreal)
   (hf : ∀ n, edist (f n) (f n.succ) ≤ d n) (hd : summable d) : cauchy_seq f :=
 begin
   refine emetric.cauchy_seq_iff_nnreal.2 (λ ε εpos, _),

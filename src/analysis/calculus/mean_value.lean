@@ -42,83 +42,176 @@ set_option class.instance_max_depth 120
 variables {E : Type*} [normed_group E] [normed_space ℝ E]
           {F : Type*} [normed_group F] [normed_space ℝ F]
 
-open metric set lattice asymptotics continuous_linear_map
+open metric set lattice asymptotics continuous_linear_map filter
+open_locale classical
+
+/-! ### Vector-valued functions `f : ℝ → E` -/
+
+section
+
+variables {f : ℝ → E} {a b : ℝ}
+
+/-- General fencing theorem for continuous functions with an estimate on the derivative.
+Let `f` and `B` be continuous functions on `[a, b]` such that
+
+* `∥f a∥ ≤ B a`;
+* `B` has a right derivative at every point `[a, b)`;
+* for each `x ∈ [a, b)` the right-side limit superior of the norm of `(f z - f x) / (z - x)`
+  is bounded above by a function `f'` which is strictly less than `B'`.
+
+Then `∥f x∥ ≤ B x` everywhere on `[a, b]`. Most probably you want to use
+`image_norm_le_of_norm_deriv_right_le_deriv_boundary`. -/
+lemma image_norm_le_of_norm_limsup_slope_right_le_deriv_boundary {f' : ℝ → ℝ}
+  (hf : continuous_on f (Icc a b))
+  -- This `tendsto` actually says `limsup ∥z - x∥⁻¹ * ∥f z - f x∥ ≤ f' x`
+  (hf' : ∀ x ∈ Ico a b, tendsto (λ z, ∥z - x∥⁻¹ * ∥f z - f x∥) (nhds_within x (Ioi x))
+      (⨅ r ∈ Ioi (f' x), principal (Iio r)))
+  {B B' : ℝ → ℝ} (ha : ∥f a∥ ≤ B a) (hB : continuous_on B (Icc a b))
+  (hB' : ∀ x ∈ Ico a b, has_deriv_within_at B (B' x) (Ioi x) x)
+  (bound : ∀ x ∈ Ico a b, ∥f x∥ = B x → f' x < B' x) :
+  ∀ ⦃x⦄, x ∈ Icc a b → ∥f x∥ ≤ B x :=
+begin
+  change Icc a b ⊆ {x | ∥f x∥ ≤ B x},
+  set s := {x | ∥f x∥ ≤ B x} ∩ Icc a b,
+  have A : continuous_on (λ x, (∥f x∥, B x)) (Icc a b),
+    from (continuous_norm.comp_continuous_on hf).prod hB,
+  have : is_closed s,
+  { simp only [s, inter_comm],
+    exact A.preimage_closed_of_closed is_closed_Icc (ordered_topology.is_closed_le' _) },
+  apply this.Icc_subset_of_forall_mem_nhds_within ha,
+  rintros x ⟨hxB, xab⟩,
+  change ∥f x∥ ≤ B x at hxB,
+  have H : Ioc x b ⊆ Icc a b, from subset.trans Ioc_subset_Icc_self (Icc_subset_Icc_left xab.1),
+  have H' : Ioc x b ⊆ Icc a b \ {x}, from λ z hz, ⟨H hz, mt eq_of_mem_singleton (ne_of_gt hz.1)⟩,
+  cases lt_or_eq_of_le hxB with hxB hxB,
+  { -- If `∥f x∥ < B x`, then all we need is continuity of both sides
+    have : {x | ∥f x∥ < B x} ∈ nhds_within x (Icc a b),
+      from A x (Ico_subset_Icc_self xab) (mem_nhds_sets
+        (is_open_lt continuous_fst continuous_snd) hxB),
+    apply mem_sets_of_superset (nhds_within_le_of_mem (Icc_mem_nhds_within_Ioi xab.1 xab.2) this),
+    intros y hy,
+    simp only [mem_set_of_eq] at hy ⊢,
+    exact le_of_lt hy },
+  { rcases dense (bound x xab hxB) with ⟨r, fr, rB⟩,
+    have H1 : {z | ∥z - x∥⁻¹ * ∥f z - f x∥ ∈ Iio r} ∈ (nhds_within x (Ioi x)),
+      from hf' x xab (mem_infi_sets r $ mem_infi_sets fr $ mem_principal_self _),
+    have H2 : {z : ℝ | r < (z - x)⁻¹ * (B z - B x) } ∈ nhds_within x (Ioi x),
+      from (has_deriv_within_at_iff_tendsto_slope' $ lt_irrefl x).1 (hB' x xab)
+        (mem_nhds_sets is_open_Ioi rB),
+    filter_upwards [H1, H2, self_mem_nhds_within],
+    simp only [mem_set_of_eq],
+    intros z hfz hBz hzx,
+    replace hzx : 0 < z - x, from sub_pos.2 hzx,
+    rw [← div_eq_inv_mul, lt_div_iff hzx] at hBz,
+    rw [mem_Iio, real.norm_eq_abs, abs_of_pos hzx, ← div_eq_inv_mul, div_lt_iff hzx] at hfz,
+    have : ∥f z∥ - ∥f x∥ ≤ B z - B x,
+      from le_trans (norm_sub_norm_le (f z) (f x)) (le_of_lt $ lt_trans hfz hBz),
+    rwa [hxB, sub_le_sub_iff_right] at this }
+end
+
+/-- General fencing theorem for continuous functions with an estimate on the derivative.
+Let `f` and `B` be continuous functions on `[a, b]` such that
+
+* `∥f a∥ ≤ B a`;
+* both `f` and `B` have right derivatives at every point `[a, b)`;
+* the norm of `f'` is strictly less than `B'`.
+
+Then `∥f x∥ ≤ B x` everywhere on `[a, b]`. We use one-sided derivatives in the assumptions
+to make this theorem work for piecewise differentiable functions.
+-/
+lemma image_norm_le_of_norm_deriv_right_le_deriv_boundary' {f' : ℝ → E}
+  (hf : continuous_on f (Icc a b))
+  (hf' : ∀ x ∈ Ico a b, has_deriv_within_at f (f' x) (Ioi x) x)
+  {B B' : ℝ → ℝ} (ha : ∥f a∥ ≤ B a) (hB : continuous_on B (Icc a b))
+  (hB' : ∀ x ∈ Ico a b, has_deriv_within_at B (B' x) (Ioi x) x)
+  (bound : ∀ x ∈ Ico a b, ∥f x∥ = B x → ∥f' x∥ < B' x) :
+  ∀ ⦃x⦄, x ∈ Icc a b → ∥f x∥ ≤ B x :=
+begin
+  refine image_norm_le_of_norm_limsup_slope_right_le_deriv_boundary hf _ ha hB hB' bound,
+  assume x hx,
+  convert tendsto_le_right _
+    ((has_deriv_within_at_iff_tendsto_slope' $ lt_irrefl x).1 (hf' x hx)).norm,
+  { ext z, rw [norm_smul, normed_field.norm_inv] },
+  rw (nhds_eq_orderable ∥f' x∥),
+  exact inf_le_right
+end
+
+lemma image_norm_le_of_norm_deriv_right_le_deriv_boundary {f' : ℝ → E}
+  (hf : continuous_on f (Icc a b))
+  (hf' : ∀ x ∈ Ico a b, has_deriv_within_at f (f' x) (Ioi x) x)
+  {B : ℝ → ℝ} (ha : ∥f a∥ ≤ B a) (hB : differentiable ℝ B)
+  (bound : ∀ x ∈ Ico a b, ∥f x∥ = B x → ∥f' x∥ < deriv B x) :
+  ∀ ⦃x⦄, x ∈ Icc a b → ∥f x∥ ≤ B x :=
+image_norm_le_of_norm_deriv_right_le_deriv_boundary' hf hf' ha hB.continuous.continuous_on
+  (λ x hx, (hB x).has_deriv_at.has_deriv_within_at) bound
+
+theorem norm_image_sub_le_of_norm_deriv_right_le_segment {f' : ℝ → E} {C : ℝ}
+  (hf : continuous_on f (Icc a b))
+  (hf' : ∀ x ∈ Ico a b, has_deriv_within_at f (f' x) (Ioi x) x)
+  (bound : ∀x ∈ Ico a b, ∥f' x∥ ≤ C) :
+  ∀ x ∈ Icc a b, ∥f x - f a∥ ≤ C * (x - a) :=
+begin
+  suffices : ∀ D (H : C < D), ∀ x ∈ Icc a b, ∥f x - f a∥ ≤ D * (x - a),
+  { assume x hx,
+    cases eq_or_lt_of_le hx.1 with hx' hx', by simp [hx'],
+    refine le_of_forall_le_of_dense (λ D' hD, _),
+    rw [gt_iff_lt, ← lt_div_iff (sub_pos.2 hx')] at hD,
+    convert this _ hD x hx,
+    rw [div_mul_cancel _ (ne_of_gt (sub_pos.2 hx'))] },
+  assume D hD,
+  let g := λ x, f x - f a,
+  have hg : continuous_on g (Icc a b), from hf.sub continuous_on_const,
+  have hg' : ∀ x ∈ Ico a b, has_deriv_within_at g (f' x) (Ioi x) x,
+  { assume x hx,
+    simpa using (hf' x hx).sub (has_deriv_within_at_const _ _ _) },
+  let B := λ x, D * (x - a),
+  have hB : ∀ x, has_deriv_at B D x,
+  { assume x,
+    simpa using (has_deriv_at_const x D).mul ((has_deriv_at_id x).sub (has_deriv_at_const x a)) },
+  convert image_norm_le_of_norm_deriv_right_le_deriv_boundary hg hg' _ (λ x, (hB x).differentiable_at) _,
+  { simp only [g, B] },
+  { simp only [g, B], rw [sub_self, _root_.norm_zero, sub_self, mul_zero] },
+  assume x hx hfx,
+  rw [(hB x).deriv],
+  exact lt_of_le_of_lt (bound x hx) hD
+end
+
+theorem norm_image_sub_le_of_norm_deriv_le_segment' {f' : ℝ → E} {C : ℝ}
+  (hf : ∀ x ∈ Icc a b, has_deriv_within_at f (f' x) (Icc a b) x)
+  (bound : ∀x ∈ Ico a b, ∥f' x∥ ≤ C) :
+  ∀ x ∈ Icc a b, ∥f x - f a∥ ≤ C * (x - a) :=
+begin
+  refine norm_image_sub_le_of_norm_deriv_right_le_segment
+    (λ x hx, (hf x hx).continuous_within_at) (λ x hx, _) bound,
+  apply (hf x $ Ico_subset_Icc_self hx).nhds_within,
+  exact Icc_mem_nhds_within_Ioi hx.1 hx.2
+end
+
+theorem norm_image_sub_le_of_norm_deriv_le_segment {C : ℝ} (hf : differentiable_on ℝ f (Icc a b))
+  (bound : ∀x ∈ Ico a b, ∥deriv_within f (Icc a b) x∥ ≤ C) :
+  ∀ x ∈ Icc a b, ∥f x - f a∥ ≤ C * (x - a) :=
+begin
+  refine norm_image_sub_le_of_norm_deriv_le_segment' _ bound,
+  exact λ x hx, (hf x  hx).has_deriv_within_at
+end
+
+theorem norm_image_sub_le_of_norm_deriv_le_segment_01' {f' : ℝ → E} {C : ℝ}
+  (hf : ∀ x ∈ Icc (0:ℝ) 1, has_deriv_within_at f (f' x) (Icc (0:ℝ) 1) x)
+  (bound : ∀x ∈ Ico (0:ℝ) 1, ∥f' x∥ ≤ C) :
+  ∥f 1 - f 0∥ ≤ C :=
+by simpa only [sub_zero, mul_one]
+  using norm_image_sub_le_of_norm_deriv_le_segment' hf bound 1 (right_mem_Icc.2 zero_le_one)
+
+theorem norm_image_sub_le_of_norm_deriv_le_segment_01 {C : ℝ}
+  (hf : differentiable_on ℝ f (Icc (0:ℝ) 1))
+  (bound : ∀x ∈ Ico (0:ℝ) 1, ∥deriv_within f (Icc (0:ℝ) 1) x∥ ≤ C) :
+  ∥f 1 - f 0∥ ≤ C :=
+by simpa only [sub_zero, mul_one]
+  using norm_image_sub_le_of_norm_deriv_le_segment hf bound 1 (right_mem_Icc.2 zero_le_one)
+
+end
 
 /-! ### Vector-valued functions `f : E → F` -/
-
-/-- The mean value theorem along a segment: a bound on the derivative of a function along a segment
-implies a bound on the distance of the endpoints images -/
-theorem norm_image_sub_le_of_norm_deriv_le_segment {f : ℝ → F} {C : ℝ}
-  (hf : differentiable_on ℝ f (Icc 0 1))
-  (bound : ∀t ∈ Icc (0:ℝ) 1, ∥deriv_within f (Icc 0 1) t∥ ≤ C) :
-  ∥f 1 - f 0∥ ≤ C :=
-begin
-  /- Let D > C. We will show that, for all t ∈ [0,1], one has ∥f t - f 0∥ ≤ D * t. This is true
-  for t=0. Let k be maximal in [0,1] for which this holds. By continuity of all functions, the
-  maximum is realized. If k were <1, then a point x slightly to its right would satisfy
-  ∥f x - f k∥ ≤ D * (k-x), since the differential of f at k has norm at most C < D. Therefore,
-  the point x also satisfies ∥f x - f 0∥ ≤ D * x, contradicting the maximality of k. Hence, k = 1. -/
-  refine le_of_forall_le_of_dense (λD hD, _),
-  let K := {t ∈ Icc (0 : ℝ) 1 | ∥f t - f 0∥ ≤ D * t},
-  let k := Sup K,
-  have k_mem_K : k ∈ K,
-  { refine cSup_mem_of_is_closed _ _ _,
-    show K ≠ ∅,
-    { have : (0 : ℝ) ∈ K, by simp [K, le_refl, zero_le_one],
-      apply ne_empty_of_mem this },
-    show bdd_above K, from ⟨1, λy hy, hy.1.2⟩,
-    have A : continuous_on (λt:ℝ, (∥f t - f 0∥, D * t)) (Icc 0 1),
-    { apply continuous_on.prod,
-      { refine continuous_norm.comp_continuous_on _,
-        apply continuous_on.sub hf.continuous_on continuous_on_const },
-      { exact (continuous_const.mul continuous_id).continuous_on } },
-    show is_closed K, from
-      A.preimage_closed_of_closed is_closed_Icc (ordered_topology.is_closed_le' _) },
-  have : k = 1,
-  { by_contradiction k_ne_1,
-    have k_lt_1 : k < 1 := lt_of_le_of_ne k_mem_K.1.2 k_ne_1,
-    have : 0 ≤ k := k_mem_K.1.1,
-    let g := deriv_within f (Icc 0 1) k,
-    let h := λx, f x - f k - (x-k) • g,
-    have : is_o (λ x, h x) (λ x, x - k) (nhds_within k (Icc 0 1)) :=
-      (hf k k_mem_K.1).has_deriv_within_at,
-    have : {x | ∥h x∥ ≤ (D-C) * ∥x-k∥} ∈ nhds_within k (Icc 0 1) :=
-      this (D-C) (sub_pos_of_lt hD),
-    rcases mem_nhds_within.1 this with ⟨s, s_open, ks, hs⟩,
-    rcases is_open_iff.1 s_open k ks with ⟨ε, εpos, hε⟩,
-    change 0 < ε at εpos,
-    let δ := min ε (1-k),
-    have δpos : 0 < δ, by simp [δ, εpos, k_lt_1],
-    let x := k + δ/2,
-    have k_lt_x : k < x, by { simp only [x], linarith },
-    have x_lt_1 : x < 1 := calc
-      x < k + δ : add_lt_add_left (half_lt_self δpos) _
-      ... ≤ k + (1-k) : add_le_add_left (min_le_right _ _) _
-      ... = 1 : by ring,
-    have xε : x ∈ ball k ε,
-    { simp [dist, x, abs_of_nonneg (le_of_lt (half_pos δpos))],
-      exact lt_of_lt_of_le (half_lt_self δpos) (min_le_left _ _) },
-    have xI : x ∈ Icc (0:ℝ) 1 :=
-      ⟨le_of_lt (lt_of_le_of_lt (k_mem_K.1.1) k_lt_x), le_of_lt x_lt_1⟩,
-    have Ih : ∥h x∥ ≤ (D - C) * ∥x - k∥ :=
-      hs ⟨hε xε, xI⟩,
-    have I : ∥f x - f k∥ ≤ D * (x-k) := calc
-      ∥f x - f k∥ = ∥(x-k) • g + h x∥ : by { congr' 1, simp only [h], abel }
-      ... ≤ ∥g∥ * ∥x-k∥ + (D-C) * ∥x-k∥ : norm_add_le_of_le (by rw [norm_smul, mul_comm]) Ih
-      ... ≤ C * ∥x-k∥ + (D-C) * ∥x-k∥ :
-        add_le_add_right (mul_le_mul_of_nonneg_right (bound k k_mem_K.1) (norm_nonneg _)) _
-      ... = D * ∥x-k∥ : by ring
-      ... = D * (x-k) : by simp [norm, abs_of_nonneg (le_of_lt (half_pos δpos))],
-    have : ∥f x - f 0∥ ≤ D * x := calc
-      ∥f x - f 0∥ = ∥(f x - f k) + (f k - f 0)∥ : by { congr' 1, abel }
-      ... ≤ D * (x - k) + D * k : norm_add_le_of_le I (k_mem_K.2)
-      ... = D * x : by ring,
-    have xK : x ∈ K := ⟨xI, this⟩,
-    have : x ≤ k := le_cSup ⟨1, λy hy, hy.1.2⟩ xK,
-    exact (not_le_of_lt k_lt_x) this },
-  rw this at k_mem_K,
-  simpa [this] using k_mem_K.2
-end
 
 /-- The mean value theorem on a convex set: if the derivative of a function is bounded by C, then
 the function is C-Lipschitz -/
@@ -131,34 +224,27 @@ begin
   We just have to check the differentiability of the composition and bounds on its derivative,
   which is straightforward but tedious for lack of automation. -/
   have C0 : 0 ≤ C := le_trans (norm_nonneg _) (bound x xs),
-  let g := λ(t:ℝ), f (x + t • (y-x)),
-  have D1 : differentiable ℝ (λt:ℝ, x + t • (y-x)) :=
-      (differentiable_id.smul_const (y - x)).const_add x,
-  have segm : (λ (t : ℝ), x + t • (y - x)) '' Icc 0 1 ⊆ s,
-    by { rw [← segment_eq_image_Icc_zero_one], apply convex_segment_iff.1 hs x y xs ys },
-  have : f x = g 0, by { simp only [g], rw [zero_smul, add_zero] },
+  set g : ℝ → E := λ t, x + t • (y - x),
+  have Dg : ∀ t, has_deriv_at g (y-x) t,
+  { intro t,
+    simpa using (has_deriv_at_const t x).add
+      ((has_deriv_at_id t).smul' (has_deriv_at_const t (y-x))) },
+  have segm : Icc 0 1 ⊆ g ⁻¹' s,
+  { rw [← image_subset_iff, ← segment_eq_image_Icc_zero_one],
+    apply convex_segment_iff.1 hs x y xs ys },
+  have : f x = f (g 0), by { simp only [g], rw [zero_smul, add_zero] },
   rw this,
-  have : f y = g 1, by { simp only [g], rw one_smul, congr' 1, abel },
+  have : f y = f (g 1), by { simp only [g], rw [one_smul, add_sub_cancel'_right] },
   rw this,
-  apply norm_image_sub_le_of_norm_deriv_le_segment
-    (hf.comp D1.differentiable_on (image_subset_iff.1 segm)) (λt ht, _),
-  /- It remains to check that the derivative of g is bounded by C ∥y-x∥ at any t ∈ [0,1] -/
-  have t_s : x + t • (y-x) ∈ s := segm (mem_image_of_mem _ ht),
-  /- Expand the derivative of the composition, and bound its norm by the product of the norms -/
-  rw fderiv_within.comp_deriv_within t (hf _ t_s) ((D1 t).differentiable_within_at)
-    (image_subset_iff.1 segm) (unique_diff_on_Icc_zero_one t ht),
-  refine le_trans (le_op_norm _ _) (mul_le_mul (bound _ t_s) _ (norm_nonneg _) C0),
-  have : deriv_within (λ (t : ℝ), x + t • (y - x)) (Icc 0 1) t = y - x := calc
-    deriv_within (λ (t : ℝ), x + t • (y - x)) (Icc 0 1) t
-    = deriv (λ (t : ℝ), x + t • (y - x)) t :
-      differentiable_at.deriv_within (D1 t) (unique_diff_on_Icc_zero_one t ht)
-    ... = deriv (λ (t : ℝ), t • (y-x)) t :
-      deriv_const_add x ((differentiable_id.smul_const (y - x)) t)
-    ... = (deriv (@_root_.id ℝ) t) • (y - x) :
-      deriv_smul_const differentiable_at_id _
-    ... = y - x :
-      by rw [deriv_id, one_smul],
-  rw [this]
+  have D2: ∀ t ∈ Icc (0:ℝ) 1, has_deriv_within_at (f ∘ g)
+    ((fderiv_within ℝ f s (g t) : E → F) (y-x)) (Icc (0:ℝ) 1) t,
+  { intros t ht,
+    exact (hf (g t) $ segm ht).has_fderiv_within_at.comp_has_deriv_within_at _
+      (Dg t).has_deriv_within_at segm },
+  apply norm_image_sub_le_of_norm_deriv_le_segment_01' D2,
+  assume t ht,
+  refine le_trans (le_op_norm _ _) (mul_le_mul_of_nonneg_right _ (norm_nonneg _)),
+  exact bound (g t) (segm $ Ico_subset_Icc_self ht)
 end
 
 /-- If a function has zero Fréchet derivative at every point of a convex set,

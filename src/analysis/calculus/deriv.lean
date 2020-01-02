@@ -467,14 +467,141 @@ lemma deriv_add
   deriv (λy, f y + g y) x = deriv f x + deriv g x :=
 (hf.has_deriv_at.add hg.has_deriv_at).deriv
 
+theorem has_deriv_at_filter.add_const
+  (hf : has_deriv_at_filter f f' x L) (c : F) :
+  has_deriv_at_filter (λ y, f y + c) f' x L :=
+add_zero f' ▸ hf.add (has_deriv_at_filter_const x L c)
+
+theorem has_deriv_within_at.add_const
+  (hf : has_deriv_within_at f f' s x) (c : F) :
+  has_deriv_within_at (λ y, f y + c) f' s x :=
+hf.add_const c
+
+theorem has_deriv_at.add_const
+  (hf : has_deriv_at f f' x) (c : F) :
+  has_deriv_at (λ x, f x + c) f' x :=
+hf.add_const c
+
+lemma deriv_within_add_const (hxs : unique_diff_within_at 𝕜 s x)
+  (hf : differentiable_within_at 𝕜 f s x) (c : F) :
+  deriv_within (λy, f y + c) s x = deriv_within f s x :=
+(hf.has_deriv_within_at.add_const c).deriv_within hxs
+
+lemma deriv_add_const (hf : differentiable_at 𝕜 f x) (c : F) :
+  deriv (λy, f y + c) x = deriv f x :=
+(hf.has_deriv_at.add_const c).deriv
+
+theorem has_deriv_at_filter.const_add (c : F) (hf : has_deriv_at_filter f f' x L) :
+  has_deriv_at_filter (λ y, c + f y) f' x L :=
+zero_add f' ▸ (has_deriv_at_filter_const x L c).add hf
+
+theorem has_deriv_within_at.const_add (c : F) (hf : has_deriv_within_at f f' s x) :
+  has_deriv_within_at (λ y, c + f y) f' s x :=
+hf.const_add c
+
+theorem has_deriv_at.const_add (c : F) (hf : has_deriv_at f f' x) :
+  has_deriv_at (λ x, c + f x) f' x :=
+hf.const_add c
+
+lemma deriv_within_const_add (hxs : unique_diff_within_at 𝕜 s x)
+  (c : F) (hf : differentiable_within_at 𝕜 f s x) :
+  deriv_within (λy, c + f y) s x = deriv_within f s x :=
+(hf.has_deriv_within_at.const_add c).deriv_within hxs
+
+lemma deriv_const_add (c : F) (hf : differentiable_at 𝕜 f x) :
+  deriv (λy, c + f y) x = deriv f x :=
+(hf.has_deriv_at.const_add c).deriv
+
 end add
+
+section mul_vector
+/-! ### Derivative of the multiplication of a scalar function and a vector function -/
+variables {c : 𝕜 → 𝕜} {c' : 𝕜}
+
+theorem has_deriv_within_at.smul
+  (hc : has_deriv_within_at c c' s x) (hf : has_deriv_within_at f f' s x) :
+  has_deriv_within_at (λ y, c y • f y) (c x • f' + c' • f x) s x :=
+begin
+  show has_fderiv_within_at _ _ _ _,
+  convert has_fderiv_within_at.smul hc hf,
+  ext,
+  simp [smul_add, (mul_smul _ _ _).symm, mul_comm]
+end
+
+theorem has_deriv_at.smul
+  (hc : has_deriv_at c c' x) (hf : has_deriv_at f f' x) :
+  has_deriv_at (λ y, c y • f y) (c x • f' + c' • f x) x :=
+begin
+  rw [← has_deriv_within_at_univ] at *,
+  exact hc.smul hf
+end
+
+lemma deriv_within_smul (hxs : unique_diff_within_at 𝕜 s x)
+  (hc : differentiable_within_at 𝕜 c s x) (hf : differentiable_within_at 𝕜 f s x) :
+  deriv_within (λ y, c y • f y) s x = c x • deriv_within f s x + (deriv_within c s x) • f x :=
+(hc.has_deriv_within_at.smul hf.has_deriv_within_at).deriv_within hxs
+
+lemma deriv_smul (hc : differentiable_at 𝕜 c x) (hf : differentiable_at 𝕜 f x) :
+  deriv (λ y, c y • f y) x = c x • deriv f x + (deriv c x) • f x :=
+(hc.has_deriv_at.smul hf.has_deriv_at).deriv
+
+theorem has_deriv_within_at.smul_const
+  (hc : has_deriv_within_at c c' s x) (f : F) :
+  has_deriv_within_at (λ y, c y • f) (c' • f) s x :=
+begin
+  have := hc.smul (has_deriv_within_at_const x s f),
+  rwa [smul_zero, zero_add] at this
+end
+
+theorem has_deriv_at.smul_const
+  (hc : has_deriv_at c c' x) (f : F) :
+  has_deriv_at (λ y, c y • f) (c' • f) x :=
+begin
+  rw [← has_deriv_within_at_univ] at *,
+  exact hc.smul_const f
+end
+
+lemma deriv_within_smul_const (hxs : unique_diff_within_at 𝕜 s x)
+  (hc : differentiable_within_at 𝕜 c s x) (f : F) :
+  deriv_within (λ y, c y • f) s x = (deriv_within c s x) • f :=
+(hc.has_deriv_within_at.smul_const f).deriv_within hxs
+
+lemma deriv_smul_const (hc : differentiable_at 𝕜 c x) (f : F) :
+  deriv (λ y, c y • f) x = (deriv c x) • f :=
+(hc.has_deriv_at.smul_const f).deriv
+
+theorem has_deriv_within_at.const_smul
+  (c : 𝕜) (hf : has_deriv_within_at f f' s x) :
+  has_deriv_within_at (λ y, c • f y) (c • f') s x :=
+begin
+  convert (has_deriv_within_at_const x s c).smul hf,
+  rw [zero_smul, add_zero]
+end
+
+theorem has_deriv_at.const_smul (c : 𝕜) (hf : has_deriv_at f f' x) :
+  has_deriv_at (λ y, c • f y) (c • f') x :=
+begin
+  rw [← has_deriv_within_at_univ] at *,
+  exact hf.const_smul c
+end
+
+lemma deriv_within_const_smul (hxs : unique_diff_within_at 𝕜 s x)
+  (c : 𝕜) (hf : differentiable_within_at 𝕜 f s x) :
+  deriv_within (λ y, c • f y) s x = c • deriv_within f s x :=
+(hf.has_deriv_within_at.const_smul c).deriv_within hxs
+
+lemma deriv_const_smul (c : 𝕜) (hf : differentiable_at 𝕜 f x) :
+  deriv (λ y, c • f y) x = c • deriv f x :=
+(hf.has_deriv_at.const_smul c).deriv
+
+end mul_vector
 
 section neg
 /-! ### Derivative of the negative of a function -/
 
 theorem has_deriv_at_filter.neg (h : has_deriv_at_filter f f' x L) :
   has_deriv_at_filter (λ x, -f x) (-f') x L :=
-(h.smul (-1)).congr (by simp) (by simp)
+h.neg.congr (by simp) (by simp)
 
 theorem has_deriv_within_at.neg (h : has_deriv_within_at f f' s x) :
   has_deriv_within_at (λ x, -f x) (-f') s x :=
@@ -530,6 +657,51 @@ lemma deriv_sub
 theorem has_deriv_at_filter.is_O_sub (h : has_deriv_at_filter f f' x L) :
   is_O (λ x', f x' - f x) (λ x', x' - x) L :=
 has_fderiv_at_filter.is_O_sub h
+
+theorem has_deriv_at_filter.sub_const
+  (hf : has_deriv_at_filter f f' x L) (c : F) :
+  has_deriv_at_filter (λ x, f x - c) f' x L :=
+hf.add_const (-c)
+
+theorem has_deriv_within_at.sub_const
+  (hf : has_deriv_within_at f f' s x) (c : F) :
+  has_deriv_within_at (λ x, f x - c) f' s x :=
+hf.sub_const c
+
+theorem has_deriv_at.sub_const
+  (hf : has_deriv_at f f' x) (c : F) :
+  has_deriv_at (λ x, f x - c) f' x :=
+hf.sub_const c
+
+lemma deriv_within_sub_const (hxs : unique_diff_within_at 𝕜 s x)
+  (hf : differentiable_within_at 𝕜 f s x) (c : F) :
+  deriv_within (λy, f y - c) s x = deriv_within f s x :=
+(hf.has_deriv_within_at.sub_const c).deriv_within hxs
+
+lemma deriv_sub_const (c : F) (hf : differentiable_at 𝕜 f x) :
+  deriv (λ y, f y - c) x = deriv f x :=
+(hf.has_deriv_at.sub_const c).deriv
+
+theorem has_deriv_at_filter.const_sub (c : F) (hf : has_deriv_at_filter f f' x L) :
+  has_deriv_at_filter (λ x, c - f x) (-f') x L :=
+hf.neg.const_add c
+
+theorem has_deriv_within_at.const_sub (c : F) (hf : has_deriv_within_at f f' s x) :
+  has_deriv_within_at (λ x, c - f x) (-f') s x :=
+hf.const_sub c
+
+theorem has_deriv_at.const_sub (c : F) (hf : has_deriv_at f f' x) :
+  has_deriv_at (λ x, c - f x) (-f') x :=
+hf.const_sub c
+
+lemma deriv_within_const_sub (hxs : unique_diff_within_at 𝕜 s x)
+  (c : F) (hf : differentiable_within_at 𝕜 f s x) :
+  deriv_within (λy, c - f y) s x = -deriv_within f s x :=
+(hf.has_deriv_within_at.const_sub c).deriv_within hxs
+
+lemma deriv_const_sub (c : F) (hf : differentiable_at 𝕜 f x) :
+  deriv (λ y, c - f y) x = -deriv f x :=
+(hf.has_deriv_at.const_sub c).deriv
 
 end sub
 
@@ -695,70 +867,79 @@ end
 
 end composition_vector
 
-section mul_vector
-/-! ### Derivative of the multiplication of a scalar function and a vector function -/
-variables {c : 𝕜 → 𝕜} {c' : 𝕜}
-
-theorem has_deriv_within_at.smul'
-  (hc : has_deriv_within_at c c' s x) (hf : has_deriv_within_at f f' s x) :
-  has_deriv_within_at (λ y, c y • f y) (c x • f' + c' • f x) s x :=
-begin
-  show has_fderiv_within_at _ _ _ _,
-  convert has_fderiv_within_at.smul' hc hf,
-  ext,
-  simp [smul_add, (mul_smul _ _ _).symm, mul_comm]
-end
-
-theorem has_deriv_at.smul'
-  (hc : has_deriv_at c c' x) (hf : has_deriv_at f f' x) :
-  has_deriv_at (λ y, c y • f y) (c x • f' + c' • f x) x :=
-begin
-  show has_fderiv_at _ _ _,
-  convert has_fderiv_at.smul' hc hf,
-  ext,
-  simp [smul_add, (mul_smul _ _ _).symm, mul_comm]
-end
-
-lemma deriv_within_smul' (hxs : unique_diff_within_at 𝕜 s x)
-  (hc : differentiable_within_at 𝕜 c s x) (hf : differentiable_within_at 𝕜 f s x) :
-  deriv_within (λ y, c y • f y) s x = c x • deriv_within f s x + (deriv_within c s x) • f x :=
-(hc.has_deriv_within_at.smul' hf.has_deriv_within_at).deriv_within hxs
-
-lemma deriv_smul' (hc : differentiable_at 𝕜 c x) (hf : differentiable_at 𝕜 f x) :
-  deriv (λ y, c y • f y) x = c x • deriv f x + (deriv c x) • f x :=
-(hc.has_deriv_at.smul' hf.has_deriv_at).deriv
-
-end mul_vector
-
 section mul
 /-! ### Derivative of the multiplication of two scalar functions -/
 variables {c d : 𝕜 → 𝕜} {c' d' : 𝕜}
 
 theorem has_deriv_within_at.mul
   (hc : has_deriv_within_at c c' s x) (hd : has_deriv_within_at d d' s x) :
-  has_deriv_within_at (λ y, c y * d y) (c x * d' + d x * c') s x :=
+  has_deriv_within_at (λ y, c y * d y) (c' * d x + c x * d') s x :=
 begin
-  show has_fderiv_within_at _ _ _ _,
-  convert has_fderiv_within_at.mul hc hd,
-  ext, simp, ring,
+  convert hc.smul hd using 1,
+  rw [smul_eq_mul, smul_eq_mul, add_comm]
 end
 
 theorem has_deriv_at.mul (hc : has_deriv_at c c' x) (hd : has_deriv_at d d' x) :
-  has_deriv_at (λ y, c y * d y) (c x * d' + d x * c') x :=
+  has_deriv_at (λ y, c y * d y) (c' * d x + c x * d') x :=
 begin
-  show has_fderiv_at _ _ _,
-  convert has_fderiv_at.mul hc hd,
-  ext, simp, ring,
+  rw [← has_deriv_within_at_univ] at *,
+  exact hc.mul hd
 end
 
 lemma deriv_within_mul (hxs : unique_diff_within_at 𝕜 s x)
   (hc : differentiable_within_at 𝕜 c s x) (hd : differentiable_within_at 𝕜 d s x) :
-  deriv_within (λ y, c y * d y) s x = c x * deriv_within d s x + d x * deriv_within c s x :=
+  deriv_within (λ y, c y * d y) s x = deriv_within c s x * d x + c x * deriv_within d s x :=
 (hc.has_deriv_within_at.mul hd.has_deriv_within_at).deriv_within hxs
 
 lemma deriv_mul (hc : differentiable_at 𝕜 c x) (hd : differentiable_at 𝕜 d x) :
-  deriv (λ y, c y * d y) x = c x * deriv d x + d x * deriv c x :=
+  deriv (λ y, c y * d y) x = deriv c x * d x + c x * deriv d x :=
 (hc.has_deriv_at.mul hd.has_deriv_at).deriv
+
+theorem has_deriv_within_at.mul_const (hc : has_deriv_within_at c c' s x) (d : 𝕜) :
+  has_deriv_within_at (λ y, c y * d) (c' * d) s x :=
+begin
+  convert hc.mul (has_deriv_within_at_const x s d),
+  rw [mul_zero, add_zero]
+end
+
+theorem has_deriv_at.mul_const (hc : has_deriv_at c c' x) (d : 𝕜) :
+  has_deriv_at (λ y, c y * d) (c' * d) x :=
+begin
+  rw [← has_deriv_within_at_univ] at *,
+  exact hc.mul_const d  
+end
+
+lemma deriv_within_mul_const (hxs : unique_diff_within_at 𝕜 s x)
+  (hc : differentiable_within_at 𝕜 c s x) (d : 𝕜) :
+  deriv_within (λ y, c y * d) s x = deriv_within c s x * d :=
+(hc.has_deriv_within_at.mul_const d).deriv_within hxs
+
+lemma deriv_mul_const (hc : differentiable_at 𝕜 c x) (d : 𝕜) :
+  deriv (λ y, c y * d) x = deriv c x * d :=
+(hc.has_deriv_at.mul_const d).deriv
+
+theorem has_deriv_within_at.const_mul (c : 𝕜) (hd : has_deriv_within_at d d' s x) :
+  has_deriv_within_at (λ y, c * d y) (c * d') s x :=
+begin
+  convert (has_deriv_within_at_const x s c).mul hd,
+  rw [zero_mul, zero_add]
+end
+
+theorem has_deriv_at.const_mul (c : 𝕜) (hd : has_deriv_at d d' x) :
+  has_deriv_at (λ y, c * d y) (c * d') x :=
+begin
+  rw [← has_deriv_within_at_univ] at *,
+  exact hd.const_mul c
+end
+
+lemma deriv_within_const_mul (hxs : unique_diff_within_at 𝕜 s x)
+  (c : 𝕜) (hd : differentiable_within_at 𝕜 d s x) :
+  deriv_within (λ y, c * d y) s x = c * deriv_within d s x :=
+(hd.has_deriv_within_at.const_mul c).deriv_within hxs
+
+lemma deriv_const_mul (c : 𝕜) (hd : differentiable_at 𝕜 d x) :
+  deriv (λ y, c * d y) x = c * deriv d x :=
+(hd.has_deriv_at.const_mul c).deriv
 
 end mul
 
@@ -834,7 +1015,7 @@ end
 
 lemma has_fderiv_at_inv (x_ne_zero : x ≠ 0) :
   has_fderiv_at (λx, x⁻¹) (smul_right 1 (-(x^2)⁻¹) : 𝕜 →L[𝕜] 𝕜) x :=
-by simpa [has_deriv_at_iff_has_fderiv_at] using has_deriv_at_inv x_ne_zero
+has_deriv_at_inv x_ne_zero
 
 lemma has_fderiv_within_at_inv (x_ne_zero : x ≠ 0) :
   has_fderiv_within_at (λx, x⁻¹) (smul_right 1 (-(x^2)⁻¹) : 𝕜 →L[𝕜] 𝕜) s x :=

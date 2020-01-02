@@ -202,10 +202,7 @@ begin
   { simp only [h], ring },
   let h' := λ x, (g b - g a) * f' x - (f b - f a) * g' x,
   have hhh' : ∀ x ∈ Ioo a b, has_deriv_at h (h' x) x,
-  { assume x hx,
-    convert ((has_deriv_at_const x (g b - g a)).mul (hff' x hx)).sub
-      ((has_deriv_at_const x (f b - f a)).mul (hgg' x hx)),
-    simp only [h', mul_zero, add_zero] },
+    from λ x hx, ((hff' x hx).const_mul (g b - g a)).sub ((hgg' x hx).const_mul (f b - f a)),
   have hhc : continuous_on h (Icc a b),
     from (continuous_on_const.mul hfc).sub (continuous_on_const.mul hgc),
   rcases exists_has_deriv_at_eq_zero h h' hab hhc hI hhh' with ⟨c, cmem, hc⟩,

@@ -73,6 +73,8 @@ open continuous_linear_map (smul_right smul_right_one_eq_iff)
 set_option class.instance_max_depth 100
 
 variables {𝕜 : Type u} [nondiscrete_normed_field 𝕜]
+
+section
 variables {F : Type v} [normed_group F] [normed_space 𝕜 F]
 variables {E : Type w} [normed_group E] [normed_space 𝕜 E]
 
@@ -1102,10 +1104,12 @@ lemma deriv_div
 ((hc.has_deriv_at).div (hd.has_deriv_at) hx).deriv
 
 end division
+end
 
 namespace polynomial
 /-! ### Derivative of a polynomial -/
 
+variables {x : 𝕜} {s : set 𝕜}
 variable (p : polynomial 𝕜)
 
 /-- The derivative (in the analysis sense) of a polynomial `p` is given by `p.derivative`. -/
@@ -1182,6 +1186,7 @@ end polynomial
 
 section pow
 /-! ### Derivative of `x ↦ x^n` for `n : ℕ` -/
+variables {x : 𝕜} {s : set 𝕜}
 variable {n : ℕ }
 
 lemma has_deriv_at_pow (n : ℕ) (x : 𝕜) : has_deriv_at (λx, x^n) ((n : 𝕜) * x^(n-1)) x :=
@@ -1218,3 +1223,83 @@ lemma deriv_within_pow (hxs : unique_diff_within_at 𝕜 s x) :
 by rw [differentiable_at_pow.deriv_within hxs, deriv_pow]
 
 end pow
+
+/-! ### Upper estimates on liminf and limsup -/
+
+section real
+
+variables {f : ℝ → ℝ} {f' : ℝ} {s : set ℝ} {x : ℝ} (hs : x ∉ s) (hf : has_deriv_within_at f f' s x)
+  {r : ℝ} (hr : f' < r)
+
+lemma has_deriv_within_at.limsup_slope_le :
+  ∀ᶠ z in nhds_within x (s \ {x}), (z - x)⁻¹ * (f z - f x) < r :=
+has_deriv_within_at_iff_tendsto_slope.1 hf (mem_nhds_sets is_open_Iio hr)
+
+lemma has_deriv_within_at.limsup_slope_le' :
+  ∀ᶠ z in nhds_within x s, (z - x)⁻¹ * (f z - f x) < r :=
+(has_deriv_within_at_iff_tendsto_slope' hs).1 hf (mem_nhds_sets is_open_Iio hr)
+
+lemma has_deriv_within_at.liminf_right_slope_le
+  (hf : has_deriv_within_at f f' (Ioi x) x) (hr : f' < r) :
+  ∃ᶠ z in nhds_within x (Ioi x), (z - x)⁻¹ * (f z - f x) < r :=
+(hf.limsup_slope_le' (lt_irrefl x) hr).frequently (nhds_within_Ioi_self_ne_bot x)
+
+end real
+
+section real_space
+
+open metric
+
+variables {E : Type u} [normed_group E] [normed_space ℝ E] {f : ℝ → E} {f' : E} {s : set ℝ} {x : ℝ}
+  (hs : x ∉ s) (hf : has_deriv_within_at f f' s x) (hf_right : has_deriv_within_at f f' (Ioi x) x)
+  {r : ℝ} (hr : ∥f'∥ < r)
+
+include hf hr
+
+lemma has_deriv_within_at.limsup_norm_slope_le :
+  ∀ᶠ z in nhds_within x (s \ {x}), ∥z - x∥⁻¹ * ∥f z - f x∥ < r :=
+begin
+  replace hr : f' ∈ ball (0:E) r, by rwa [mem_ball, dist_zero_right],
+  have := has_deriv_within_at_iff_tendsto_slope.1 hf (mem_nhds_sets is_open_ball hr),
+  rw mem_map at this,
+  filter_upwards [this],
+  assume z hz,
+  simp only [mem_set_of_eq, mem_ball, dist_zero_right, norm_smul] at hz ⊢,
+  rwa [← normed_field.norm_inv]
+end
+
+lemma has_deriv_within_at.limsup_norm_slope_le' :
+  ∀ᶠ z in nhds_within x s, ∥z - x∥⁻¹ * ∥f z - f x∥ < r :=
+diff_singleton_eq_self hs ▸ hf.limsup_norm_slope_le hr
+
+lemma has_deriv_within_at.limsup_slope_norm_le :
+  ∀ᶠ z in nhds_within x (s \ {x}), ∥z - x∥⁻¹ * (∥f z∥ - ∥f x∥) < r :=
+begin
+  apply (hf.limsup_norm_slope_le hr).mono,
+  assume z hz,
+  refine lt_of_le_of_lt (mul_le_mul_of_nonneg_left (norm_sub_norm_le _ _) _) hz,
+  exact inv_nonneg.2 (norm_nonneg _)
+end
+
+lemma has_deriv_within_at.limsup_slope_norm_le' :
+  ∀ᶠ z in nhds_within x s, ∥z - x∥⁻¹ * (∥f z∥ - ∥f x∥) < r :=
+diff_singleton_eq_self hs ▸ hf.limsup_slope_norm_le hr
+
+omit hf
+include hf_right
+
+lemma has_deriv_within_at.liminf_right_norm_slope_le :
+  ∃ᶠ z in nhds_within x (Ioi x), ∥z - x∥⁻¹ * ∥f z - f x∥ < r :=
+(hf_right.limsup_norm_slope_le' (lt_irrefl x) hr).frequently (nhds_within_Ioi_self_ne_bot x)
+
+lemma has_deriv_within_at.liminf_right_slope_norm_le :
+  ∃ᶠ z in nhds_within x (Ioi x), (z - x)⁻¹ * (∥f z∥ - ∥f x∥) < r :=
+begin
+  have := (hf_right.limsup_slope_norm_le' (lt_irrefl x) hr).frequently
+    (nhds_within_Ioi_self_ne_bot x),
+  refine this.mp (eventually.mono self_mem_nhds_within _),
+  assume z hxz hz,
+  rwa [real.norm_eq_abs, abs_of_pos (sub_pos.2 hxz)] at hz
+end
+
+end real_space

@@ -1,5 +1,33 @@
+/-
+Copyright (c) 2019 Patrick Massot. All rights reserved.
+Released under Apache 2.0 license as described in the file LICENSE.
+Authors: Patrick Massot
+-/
+
 import tactic.interactive
 
+/-!
+# Rename bound variable tactic
+
+This files defines a tactic `rename_var` whose main purpose is to teach
+renaming of bound variables.
+
+* `rename_var old new` renames variable `old` to `new` in the goal.
+* `rename_var old new at h` does the same in hypothesis `h`.
+
+```lean
+example (P : ℕ →  ℕ → Prop) (h : ∀ n, ∃ m, P n m) : ∀ l, ∃ m, P l m :=
+begin
+  rename_var n q at h, -- h is now ∀ (q : ℕ), ∃ (m : ℕ), P q m,
+  rename_var m n, -- goal is now ∀ (l : ℕ), ∃ (n : ℕ), P k n,
+  exact h -- Lean does not care about those bound variable names
+end
+```lean
+
+## Tags
+
+teaching, tactic
+-/
 open expr
 
 /-- Rename bound variable `old` to `new` in an `expr`-/

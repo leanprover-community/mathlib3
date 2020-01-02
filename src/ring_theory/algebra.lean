@@ -391,6 +391,9 @@ iff.rfl
   (h : ∀ x : A, x ∈ S ↔ x ∈ T) : S = T :=
 by cases S; cases T; congr; ext x; exact h x
 
+@[extensionality] theorem ext_iff {S T : subalgebra R A} : S = T ↔ S.carrier = T.carrier :=
+⟨congr_arg subalgebra.carrier, λ h, ext $ (set.ext_iff _ _).mp h⟩
+
 variables (S : subalgebra R A)
 
 instance : is_subring (S : set A) := S.subring

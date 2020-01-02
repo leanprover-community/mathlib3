@@ -4,8 +4,6 @@ import ring_theory.polynomial ring_theory.integral_closure ring_theory.adjoin
 import algebra.big_operators
 import field_theory.minimal_polynomial
 
-import ring_theory.ideals --for local_ring
-
 universes u v w
 
 class field_extension (α : Type u) (β : Type v) [discrete_field α] [discrete_field β] extends algebra α β
@@ -286,7 +284,142 @@ section adjoin
 
 open polynomial algebra minimal_polynomial vector_space
 
+variables {R : Type u} {A : Type v} [discrete_field R] [discrete_field A] [algebra R A]
+
+variables {a : A} (ha : is_integral R a)
+
+noncomputable instance prhint : ring (polynomial R) := comm_ring.to_ring _
+noncomputable instance qrhint (I : ideal (polynomial R)) : ring I.quotient := comm_ring.to_ring _
+instance qhomhint {S : Type*} [comm_ring S] {f : R → S} [is_ring_hom f] {I : ideal S} :
+  is_ring_hom (ideal.quotient.mk I ∘ f) := is_ring_hom.comp _ _
+
+variable (I : ideal (polynomial R))
+#check algebra R I.quotient
+#check of_ring_hom (ideal.quotient.mk I ∘ polynomial.C) _
+
+/--  -/
+noncomputable instance quotient_algebra (I : ideal (polynomial R)) :
+  algebra R I.quotient := of_ring_hom (ideal.quotient.mk I ∘ polynomial.C) qhomhint
+
+def qaeval_ring_hom {S T : Type*} [comm_ring S] [comm_ring T] (f : S → T) [is_ring_hom f]
+  {I : ideal S} (h : ∀ a ∈ I, f a = 0) : I.quotient →+* T := ring_hom.of (ideal.quotient.lift I f h)
+
+/-noncomputable def qaeval {I : ideal (polynomial R)} (h : ∀ i ∈ I, aeval R A a i = 0) :
+  I.quotient →ₐ[R] A :=
+{ commutes' := alg_hom.commutes (aeval R A a),
+  ..qaeval_ring_hom (aeval R A a) h }-/
+
+noncomputable def qaeval :
+  (ideal.span {minimal_polynomial ha} : ideal (polynomial R)).quotient →ₐ[R] A :=
+{ commutes' := alg_hom.commutes (aeval R A a),
+  ..qaeval_ring_hom (aeval R A a)
+      begin intros _ h, cases ideal.mem_span_singleton'.mp h with p hp,
+        rw [←hp, aeval_def, eval₂_mul, ←aeval_def R A a (minimal_polynomial ha),
+        minimal_polynomial.aeval ha, mul_zero]
+      end }
+
+lemma qaeval_apply (p : polynomial R) : (qaeval ha (ideal.quotient.mk _ p)) = aeval R A a p := sorry
+
+/-- The map `R[x] / (mₐ) → A` maps surjectively onto is R[a]. -/
+lemma qaeval_range [decidable_eq R] [decidable_eq A] :
+  (qaeval ha).range = adjoin R {a} :=
+calc (qaeval ha).range = (polynomial.aeval R A a).range : sorry
+                   ... = adjoin R {a} : eq.symm (adjoin_singleton_eq_range R a)
+
+/-- The map `R[x] / (mₐ) → A` has trivial kernel. -/
+lemma qaeval_ker : is_ring_hom.ker (qaeval ha) = ⊥ :=
+suffices is_ring_hom.ker (polynomial.aeval R A a) ≤
+  ideal.span ({minimal_polynomial ha} : set (polynomial R)), from
+  begin ext, rw [submodule.mem_bot, is_ring_hom.mem_ker],
+    induction x,
+    change qaeval ha (ideal.quotient.mk _ x) = 0 ↔ (ideal.quotient.mk _ x) = 0,
+    rw [qaeval_apply, ←is_ring_hom.mem_ker (aeval R A a), ←ideal.quotient.mk_zero, ideal.quotient.eq, sub_zero],
+    rw [←submodule.mem_coe, ←submodule.mem_coe], revert x, rw [←set.ext_iff, submodule.ext'_iff],
+    refine le_antisymm this _,
+    rw [ideal.span_le, set.singleton_subset_iff, submodule.mem_coe, is_ring_hom.mem_ker],
+    exact minimal_polynomial.aeval ha,
+    refl
+  end,
+begin
+  rw [submodule.le_def, set.subset_def],
+  intros x hx,
+  rw [submodule.mem_coe, is_ring_hom.mem_ker] at hx,
+  have : minimal_polynomial ha ∣ x, from minimal_polynomial.dvd ha hx,
+  exact ideal.mem_span_singleton.mpr this
+end
+
+/-- The map `R[x] / (mₐ) → A` has trivial kernel (as a linear map). -/
+lemma qaeval_ker_l : (qaeval ha).to_linear_map.ker = ⊥ :=
+begin
+  ext,
+  rw [linear_map.mem_ker],
+  change (qaeval ha) x = 0 ↔ x ∈ ⊥,
+  rw [←is_ring_hom.mem_ker (qaeval ha)],
+  rw [←submodule.mem_coe, ←submodule.mem_coe], revert x, rw [←set.ext_iff, submodule.ext'_iff],
+  exact qaeval_ker ha,
+end
+
+/--  -/
+--noncomputable instance quotient_algebra2 :
+--  algebra R (ideal.span {minimal_polynomial ha} : ideal (polynomial R)).quotient :=
+--of_ring_hom (ideal.quotient.mk _ ∘ polynomial.C) (is_ring_hom.comp _ _)
+
+/-- The evaluating an element of `R[x] / (mₐ)` at `a` map where `mₐ(x)` is the minimal polynomial
+of a over R gives a well-defined R-algebra homomorphism `R[x] / (mₐ) → A`. -/
+/-noncomputable def qaeval :
+  (ideal.span {minimal_polynomial ha} : ideal (polynomial R)).quotient →ₐ[R] A :=
+{ commutes' := alg_hom.commutes (aeval R A a),
+  ..ring_hom.of
+    (ideal.quotient.lift _ (polynomial.aeval R A a)
+      begin intros _ h, cases ideal.mem_span_singleton'.mp h with p hp,
+        rw [←hp, aeval_def, eval₂_mul, ←aeval_def R A a (minimal_polynomial ha),
+        minimal_polynomial.aeval ha, mul_zero]
+      end) }
+
+/-- The map `R[x] / (mₐ) → A` maps surjectively onto is R[a]. -/
+lemma qaeval_range [decidable_eq R] [decidable_eq A] :
+  (qaeval ha).range = adjoin R {a} :=
+calc (qaeval ha).range = (polynomial.aeval R A a).range : sorry
+                   ... = adjoin R {a} : eq.symm (adjoin_singleton_eq_range R a)
+
+/-- The map `R[x] / (mₐ) → A` has trivial kernel. -/
+lemma qaeval_ker : is_ring_hom.ker (qaeval ha) = ⊥ :=
+suffices is_ring_hom.ker (polynomial.aeval R A a) ≤ ideal.span ({minimal_polynomial ha} : set (polynomial R)), from sorry,
+begin
+  rw [submodule.le_def, set.subset_def],
+  intros x hx,
+  rw [submodule.mem_coe, is_ring_hom.mem_ker] at hx,
+  have : minimal_polynomial ha ∣ x, from sorry, --minimal_polynomial.dvd ha hx,
+  exact ideal.mem_span_singleton.mpr this
+end
+
+/-- The map `R[x] / (mₐ) → A` has trivial kernel (as a linear map). -/
+lemma qaeval_ker_l : (qaeval ha).to_linear_map.ker = ⊥ := sorry
+
+lemma aeval_ker : ↑(aeval R A a).to_linear_map.ker =
+  (ideal.span ({minimal_polynomial ha} : set (polynomial R)) : set (polynomial R)) := sorry
+
+lemma aeval_range [decidable_eq R] [decidable_eq A] :
+  (aeval R A a).to_linear_map.range = (adjoin R ({a} : set A)).to_submodule := sorry
+--congr_arg subalgebra.to_submodule $ eq.symm (adjoin_singleton_eq_range R a)
+
+--lemma dim_adjoin [discrete_field R] : dim R (adjoin R ({a} : set A)) =
+-/
+end adjoin
+
+section adjoin
+
+open polynomial algebra minimal_polynomial vector_space
+
 variables (K : Type u) {L : Type v} [discrete_field K] [discrete_field L] [algebra K L]
+
+variables {a : L} (ha : is_integral K a)
+#check (ideal.span {minimal_polynomial ha} : ideal (polynomial K)).quotient
+#check ideal.quotient.lift
+
+def pol_map {a : L} (ha : is_integral K a) :
+  (ideal.span {minimal_polynomial ha} : ideal (polynomial K)).quotient → adjoin K ({a} : set L) :=
+sorry
 
 lemma mem_adjoin_of_mem {s : set L} {a : L} (h : a ∈ s) : a ∈ adjoin K s :=
 subalgebra.mem_coe.mp $ set.mem_of_mem_of_subset h algebra.subset_adjoin
@@ -309,36 +442,12 @@ lemma is_basis_adjoin_basis {a : L} (ha : is_integral K a) : is_basis K (adjoin_
 begin
   split,
   { rw [linear_independent_iff],
-    assume f hf,
+    intros f hf,
     rw [finsupp.total_apply] at hf,
-    replace hf := congr_arg subtype.val hf,
-    unfold finsupp.sum at hf,
-    rw [←finset.sum_hom (subtype.val : _ → L)] at hf,
-    { conv_lhs at hf { congr, skip, funext, rw [algebra.smul_def, algebra_map] },
-      unfold algebra.to_fun at hf,
-      conv_lhs at hf { congr, skip, funext, rw [subtype_val.is_monoid_hom.map_mul], dsimp },
-      change f.sum (λ i b, algebra_map L b * a^i.val) = 0 at hf,
-      have : ∀ j:ℕ, (λ (i:ℕ) (b:K), algebra_map L b * a^i) j 0 = 0,
-        { intro _, dsimp, rw [algebra.map_zero, zero_mul] },
-      rw [←finsupp.sum_map_domain_index this] at hf,
-      { let v := @fin.val (nat_degree $ minimal_polynomial ha),
-        let p := f.map_domain v,
-        have hpd : ¬degree (minimal_polynomial ha) ≤ degree p, from not_le_of_lt (by
-        { have : ∀ n ≥ nat_degree (minimal_polynomial ha), coeff p n = 0,
-          { intros n hd,
-            apply finsupp.map_domain_notin_range f n,
-            intro hn,
-            rw [set.mem_range] at hn,
-            cases hn with y hy,
-            exact (not_lt_of_le hd) (hy ▸ y.is_lt) },
-          sorry }),
-        have hp : p = 0, from classical.by_contradiction
-          (λ hn0, hpd $ minimal_polynomial.degree_le_of_ne_zero ha hn0 hf),
-        have h : p = (finsupp.map_domain v) 0, { rwa [hp, finsupp.map_domain_zero] },
-        rwa [function.injective.eq_iff (finsupp.injective_map_domain _)] at h,
-        exact λ x y, (fin.ext_iff x y).mpr },
-      { assume _ _ _, simp only [algebra.map_add, add_mul] } },
-      { sorry } },
+    conv_lhs at hf { congr, skip, funext, rw [adjoin_basis, aeval_def], },
+
+
+   },
   { rw [submodule.eq_top_iff'],
       intro g,
       rw [←set.image_univ, finsupp.mem_span_iff_total],

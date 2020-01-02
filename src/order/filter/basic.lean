@@ -557,6 +557,16 @@ lemma eventually_false_iff_eq_bot {f : filter α} :
   (∀ᶠ x in f, false) ↔ f = ⊥ :=
 empty_in_sets_eq_bot
 
+lemma eventually.mp {p q : α → Prop} {f : filter α} (hp : ∀ᶠ x in f, p x)
+  (hq : ∀ᶠ x in f, p x → q x) :
+  ∀ᶠ x in f, q x :=
+mp_sets hp hq
+
+lemma eventually.mono {p q : α → Prop} {f : filter α} (hp : ∀ᶠ x in f, p x)
+  (hq : ∀ x, p x → q x) :
+  ∀ᶠ x in f, q x :=
+hp.mp (f.eventually_of_forall hq)
+
 /-! ### Frequently -/
 
 /-- `f.eventually p` or `∀ᶠ x in f, p x` mean that `{x | ¬p x} ∉ f`. E.g., `∃ᶠ x in at_top, p x`
@@ -565,8 +575,8 @@ protected def frequently (p : α → Prop) (f : filter α) : Prop := ¬∀ᶠ x 
 
 notation `∃ᶠ` binders ` in ` f `, ` r:(scoped p, filter.frequently p f) := r
 
-lemma eventually.frequently {f : filter α} (hf : f ≠ ⊥) {p : α → Prop} (h : f.eventually p) :
-  f.frequently p :=
+lemma eventually.frequently {f : filter α} (hf : f ≠ ⊥) {p : α → Prop} (h : ∀ᶠ x in f, p x) :
+  ∃ᶠ x in f, p x :=
 begin
   assume h',
   have := h.and h',
@@ -574,15 +584,22 @@ begin
   exact hf this
 end
 
-lemma frequently.inter_eventually {p q : α → Prop} {f : filter α}
+lemma frequently.mp {p q : α → Prop} {f : filter α} (h : ∃ᶠ x in f, p x)
+  (hpq : ∀ᶠ x in f, p x → q x) :
+  ∃ᶠ x in f, q x :=
+mt (λ hq, hq.mp $ hpq.mono $ λ x, mt) h
+
+lemma frequently.mono {p q : α → Prop} {f : filter α} (h : ∃ᶠ x in f, p x)
+  (hpq : ∀ x, p x → q x) :
+  ∃ᶠ x in f, q x :=
+h.mp (f.eventually_of_forall hpq)
+
+lemma frequently.and_eventually {p q : α → Prop} {f : filter α}
   (hp : ∃ᶠ x in f, p x) (hq : ∀ᶠ x in f, q x) :
   ∃ᶠ x in f, p x ∧ q x :=
 begin
-  assume h,
-  apply hp,
-  filter_upwards [h, hq],
-  simp only [mem_set_of_eq],
-  assume a hpq hq hp,
+  refine mt (λ h, hq.mp $ h.mono _) hp,
+  assume x hpq hq hp,
   exact hpq ⟨hp, hq⟩
 end
 
@@ -593,9 +610,13 @@ begin
   exact hp H
 end
 
+lemma eventually.exists {p : α → Prop} {f : filter α} (hp : ∀ᶠ x in f, p x) (hf : f ≠ ⊥) :
+  ∃ x, p x :=
+(hp.frequently hf).exists
+
 lemma frequently_iff_forall_eventually_exists_and {p : α → Prop} {f : filter α} :
   (∃ᶠ x in f, p x) ↔ ∀ {q : α → Prop}, (∀ᶠ x in f, q x) → ∃ x, p x ∧ q x :=
-⟨assume hp q hq, (hp.inter_eventually hq).exists,
+⟨assume hp q hq, (hp.and_eventually hq).exists,
   assume H hp, by simpa only [and_not_self, exists_false] using H hp⟩
 
 /- principal equations -/

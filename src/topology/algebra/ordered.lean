@@ -614,6 +614,10 @@ filter.ext $ λ s, (tfae_mem_nhds_within_Ioi h s).out 1 0
   nhds_within a (Ioo a b) = nhds_within a (Ioi a) :=
 filter.ext $ λ s, (tfae_mem_nhds_within_Ioi hu s).out 2 0
 
+lemma mem_nhds_within_Ioi_iff_exists_mem_Ioc_Ioo_subset {a u' : α} {s : set α} (hu' : a < u') :
+  s ∈ nhds_within a (Ioi a) ↔ ∃u ∈ Ioc a u', Ioo a u ⊆ s :=
+(tfae_mem_nhds_within_Ioi hu' s).out 0 3
+
 /-- A set is a neighborhood of `a` within `(a, +∞)` if and only if it contains an interval `(a, u)`
 with `a < u < u'`, provided `a` is not a top element. -/
 lemma mem_nhds_within_Ioi_iff_exists_Ioo_subset' {a u' : α} {s : set α} (hu' : a < u') :
@@ -639,6 +643,22 @@ begin
   { rintros ⟨u, au, as⟩,
     exact ⟨u, au, subset.trans Ioo_subset_Ioc_self as⟩ }
 end
+
+lemma Ioo_mem_nhds_within_Ioi {a b c : α} (H : b ∈ Ico a c) :
+  Ioo a c ∈ nhds_within b (Ioi b) :=
+(mem_nhds_within_Ioi_iff_exists_Ioo_subset' H.2).2 ⟨c, H.2, Ioo_subset_Ioo_left H.1⟩
+
+lemma Ioc_mem_nhds_within_Ioi {a b c : α} (H : b ∈ Ico a c) :
+  Ioc a c ∈ nhds_within b (Ioi b) :=
+mem_sets_of_superset (Ioo_mem_nhds_within_Ioi H) Ioo_subset_Ioc_self
+
+lemma Ico_mem_nhds_within_Ioi {a b c : α} (H : b ∈ Ico a c) :
+  Ico a c ∈ nhds_within b (Ioi b) :=
+mem_sets_of_superset (Ioo_mem_nhds_within_Ioi H) Ioo_subset_Ico_self
+
+lemma Icc_mem_nhds_within_Ioi {a b c : α} (H : b ∈ Ico a c) :
+  Icc a c ∈ nhds_within b (Ioi b) :=
+mem_sets_of_superset (Ioo_mem_nhds_within_Ioi H) Ioo_subset_Icc_self
 
 /-- The following statements are equivalent:
 
@@ -668,6 +688,10 @@ filter.ext $ λ s, (tfae_mem_nhds_within_Iio h s).out 1 0
 @[simp] lemma nhds_within_Ioo_eq_nhds_within_Iio {a b : α} (h : a < b) :
   nhds_within b (Ioo a b) = nhds_within b (Iio b) :=
 filter.ext $ λ s, (tfae_mem_nhds_within_Iio h s).out 2 0
+
+lemma mem_nhds_within_Iio_iff_exists_mem_Ico_Ioo_subset {a l' : α} {s : set α} (hl' : l' < a) :
+  s ∈ nhds_within a (Iio a) ↔ ∃l ∈ Ico l' a, Ioo l a ⊆ s :=
+(tfae_mem_nhds_within_Iio hl' s).out 0 3
 
 /-- A set is a neighborhood of `a` within `(-∞, a)` if and only if it contains an interval `(l, a)`
 with `l < a`, provided `a` is not a bottom element. -/
@@ -1171,7 +1195,7 @@ end
 on a closed subset, contains `a`, and for any `a ≤ x < y ≤ b`, `x ∈ s`, the set `s ∩ (x, y]`
 is not empty, then `[a, b] ⊆ s`. -/
 lemma is_closed.Icc_subset_of_forall_exists_gt {a b : α} {s : set α} (hs : is_closed (s ∩ Icc a b))
-  (ha : a ∈ s) (hgt : ∀ y ∈ Icc a b, ∀ x ∈ s ∩ Ico a y,  (s ∩ Ioc x y).nonempty) :
+  (ha : a ∈ s) (hgt : ∀ x ∈ s ∩ Ico a b, ∀ y ∈ Ioi x,  (s ∩ Ioc x y).nonempty) :
   Icc a b ⊆ s :=
 begin
   assume y hy,
@@ -1181,7 +1205,8 @@ begin
     rw [inter_assoc],
     congr,
     exact (inter_eq_self_of_subset_right $ Icc_subset_Icc_right hy.2).symm },
-  exact is_closed.mem_of_ge_of_forall_exists_gt this ha hy.1 (hgt y hy)
+  exact is_closed.mem_of_ge_of_forall_exists_gt this ha hy.1
+    (λ x hx, hgt x ⟨hx.1, Ico_subset_Ico_right hy.2 hx.2⟩ y hx.2.2)
 end
 
 section densely_ordered
@@ -1197,15 +1222,10 @@ lemma is_closed.Icc_subset_of_forall_mem_nhds_within {a b : α} {s : set α}
   Icc a b ⊆ s :=
 begin
   apply hs.Icc_subset_of_forall_exists_gt ha,
-  rintros y hy x ⟨hxs, hxay⟩,
-  have : Ioc x y ∈ nhds_within x (Ioi x),
-    from mem_nhds_within.2 ⟨Iio y, is_open_Iio, hxay.2, λ z hz, ⟨hz.2, le_of_lt hz.1⟩⟩,
+  rintros x ⟨hxs, hxab⟩ y hyxb,
   have : s ∩ Ioc x y ∈ nhds_within x (Ioi x),
-    from inter_mem_sets (hgt x ⟨hxs, Ico_subset_Ico_right hy.2 hxay⟩) this,
-  refine inhabited_of_mem_sets (mem_closure_iff_nhds_within_ne_bot.1 _) this,
-  have : x < b, from lt_of_lt_of_le hxay.2 hy.2,
-  rw [closure_Ioi' this],
-  exact left_mem_Ici
+    from inter_mem_sets (hgt x ⟨hxs, hxab⟩) (Ioc_mem_nhds_within_Ioi ⟨le_refl _, hyxb⟩),
+  exact inhabited_of_mem_sets (nhds_within_Ioi_self_ne_bot' hxab.2) this
 end
 
 /-- A closed interval is connected. -/

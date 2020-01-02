@@ -714,21 +714,21 @@ begin
   simp only [dual_Ioc], refl
 end
 
-lemma Ioo_mem_nhds_within_Iio {a b c : α} (h₁ : a < b) (h₂ : b ≤ c) :
+lemma Ioo_mem_nhds_within_Iio {a b c : α} (h : b ∈ Ioc a c) :
   Ioo a c ∈ nhds_within b (Iio b) :=
-(mem_nhds_within_Iio_iff_exists_Ioo_subset' h₁).2 ⟨a, h₁, Ioo_subset_Ioo_right h₂⟩
+(mem_nhds_within_Iio_iff_exists_Ioo_subset' h.1).2 ⟨a, h.1, Ioo_subset_Ioo_right h.2⟩
 
-lemma Ioc_mem_nhds_within_Iio {a b c : α} (h₁ : a < b) (h₂ : b ≤ c) :
+lemma Ioc_mem_nhds_within_Iio {a b c : α} (h : b ∈ Ioc a c) :
   Ioc a c ∈ nhds_within b (Iio b) :=
-mem_sets_of_superset (Ioo_mem_nhds_within_Iio h₁ h₂) Ioo_subset_Ioc_self
+mem_sets_of_superset (Ioo_mem_nhds_within_Iio h) Ioo_subset_Ioc_self
 
-lemma Ico_mem_nhds_within_Iio {a b c : α} (h₁ : a < b) (h₂ : b ≤ c) :
+lemma Ico_mem_nhds_within_Iio {a b c : α} (h : b ∈ Ioc a c) :
   Ico a c ∈ nhds_within b (Iio b) :=
-mem_sets_of_superset (Ioo_mem_nhds_within_Iio h₁ h₂) Ioo_subset_Ico_self
+mem_sets_of_superset (Ioo_mem_nhds_within_Iio h) Ioo_subset_Ico_self
 
-lemma Icc_mem_nhds_within_Iio {a b c : α} (h₁ : a < b) (h₂ : b ≤ c) :
+lemma Icc_mem_nhds_within_Iio {a b c : α} (h : b ∈ Ioc a c) :
   Icc a c ∈ nhds_within b (Iio b) :=
-mem_sets_of_superset (Ioo_mem_nhds_within_Iio h₁ h₂) Ioo_subset_Icc_self
+mem_sets_of_superset (Ioo_mem_nhds_within_Iio h) Ioo_subset_Icc_self
 
 /-- A set is a neighborhood of `a` within `[a, +∞)` if and only if it contains an interval `[a, u)`
 with `a < u`, provided `a` is not a top element. -/

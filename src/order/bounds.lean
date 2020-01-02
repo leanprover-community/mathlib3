@@ -180,16 +180,12 @@ begin
   exact lt_irrefl _ (lt_of_lt_of_le az (hy zy)),
 end
 
-end linear_order
-
-section decidable_linear_order
-variables [decidable_linear_order α] [densely_ordered α]
+local attribute [instance] classical.DLO
 
 lemma is_glb_Ioo (hab : a₁ < a₂) : is_glb (Ioo a₁ a₂) a₁ :=
 begin
-  refine ⟨λx hx, le_of_lt hx.1, λy hy, _⟩,
-  by_contradiction h,
-  have : a₁ < min a₂ y, by { rw lt_min_iff, exact ⟨hab, not_le.1 h⟩ },
+  refine ⟨λx hx, le_of_lt hx.1, λy hy, le_of_not_lt $ λ h, _⟩,
+  have : a₁ < min a₂ y, by { rw lt_min_iff, exact ⟨hab, h⟩ },
   rcases dense this with ⟨z, az, zy⟩,
   rw lt_min_iff at zy,
   exact lt_irrefl _ (lt_of_le_of_lt (hy ⟨az, zy.1⟩) zy.2)
@@ -197,9 +193,8 @@ end
 
 lemma is_glb_Ioc (hab : a₁ < a₂) : is_glb (Ioc a₁ a₂) a₁ :=
 begin
-  refine ⟨λx hx, le_of_lt hx.1, λy hy, _⟩,
-  by_contradiction h,
-  have : a₁ < min a₂ y, by { rw lt_min_iff, exact ⟨hab, not_le.1 h⟩ },
+  refine ⟨λx hx, le_of_lt hx.1, λy hy, le_of_not_lt $ λ h, _⟩,
+  have : a₁ < min a₂ y, by { rw lt_min_iff, exact ⟨hab, h⟩ },
   rcases dense this with ⟨z, az, zy⟩,
   rw lt_min_iff at zy,
   exact lt_irrefl _ (lt_of_le_of_lt (hy ⟨az, le_of_lt zy.1⟩) zy.2)
@@ -207,9 +202,8 @@ end
 
 lemma is_lub_Ioo (hab : a₁ < a₂) : is_lub (Ioo a₁ a₂) a₂ :=
 begin
-  refine ⟨λx hx, le_of_lt hx.2, λy hy, _⟩,
-  by_contradiction h,
-  have : max a₁ y < a₂, by { rw max_lt_iff, exact ⟨hab, not_le.1 h⟩ },
+  refine ⟨λx hx, le_of_lt hx.2, λy hy, le_of_not_lt $ λ h, _⟩,
+  have : max a₁ y < a₂, by { rw max_lt_iff, exact ⟨hab, h⟩ },
   rcases dense this with ⟨z, az, zy⟩,
   rw max_lt_iff at az,
   exact lt_irrefl _ (lt_of_lt_of_le az.2 (hy ⟨az.1, zy⟩))
@@ -217,15 +211,14 @@ end
 
 lemma is_lub_Ico (hab : a₁ < a₂) : is_lub (Ico a₁ a₂) a₂ :=
 begin
-  refine ⟨λx hx, le_of_lt hx.2, λy hy, _⟩,
-  by_contradiction h,
-  have : max a₁ y < a₂, by { rw max_lt_iff, exact ⟨hab, not_le.1 h⟩ },
+  refine ⟨λx hx, le_of_lt hx.2, λy hy, le_of_not_lt $ λ h, _⟩,
+  have : max a₁ y < a₂, by { rw max_lt_iff, exact ⟨hab, h⟩ },
   rcases dense this with ⟨z, az, zy⟩,
   rw max_lt_iff at az,
   exact lt_irrefl _ (lt_of_lt_of_le az.2 (hy ⟨le_of_lt az.1, zy⟩))
 end
 
-end decidable_linear_order
+end linear_order
 
 section preorder
 variables [preorder α] [preorder β]

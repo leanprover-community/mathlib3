@@ -913,9 +913,9 @@ lemma bdd_above_of_compact {α : Type u} [topological_space α] [linear_order α
 
 end order_topology
 
-section decidable_linear_order
+section linear_order
 
-variables [topological_space α] [decidable_linear_order α] [orderable_topology α] [densely_ordered α]
+variables [topological_space α] [linear_order α] [orderable_topology α] [densely_ordered α]
 
 /-- The closure of the interval `(a, +∞)` is the closed interval `[a, +∞)`, unless `a` is a top
 element. -/
@@ -923,9 +923,7 @@ lemma closure_Ioi' {a b : α} (hab : a < b) :
   closure (Ioi a) = Ici a :=
 begin
   apply subset.antisymm,
-  { rw ← closure_eq_iff_is_closed.2 is_closed_Ici,
-    exact closure_mono Ioi_subset_Ici_self,
-    apply_instance },
+  { exact closure_minimal Ioi_subset_Ici_self is_closed_Ici },
   { assume x hx,
     by_cases h : x = a,
     { rw h, exact mem_closure_of_is_glb is_glb_Ioi (ne_empty_of_mem hab) },
@@ -943,9 +941,7 @@ lemma closure_Iio' {a b : α} (hab : b < a) :
   closure (Iio a) = Iic a :=
 begin
   apply subset.antisymm,
-  { rw ← closure_eq_iff_is_closed.2 is_closed_Iic,
-    exact closure_mono Iio_subset_Iic_self,
-    apply_instance },
+  { exact closure_minimal Iio_subset_Iic_self is_closed_Iic },
   { assume x hx,
     by_cases h : x = a,
     { rw h, exact mem_closure_of_is_lub is_lub_Iio (ne_empty_of_mem hab) },
@@ -962,9 +958,7 @@ lemma closure_Ioo {a b : α} (hab : a < b) :
   closure (Ioo a b) = Icc a b :=
 begin
   apply subset.antisymm,
-  { rw ← closure_eq_iff_is_closed.2 is_closed_Icc,
-    exact closure_mono Ioo_subset_Icc_self,
-    apply_instance },
+  { exact closure_minimal Ioo_subset_Icc_self is_closed_Icc },
   { have ne_empty : Ioo a b ≠ ∅, by simpa [Ioo_eq_empty_iff],
     assume x hx,
     by_cases h : x = a,
@@ -979,9 +973,7 @@ lemma closure_Ioc {a b : α} (hab : a < b) :
   closure (Ioc a b) = Icc a b :=
 begin
   apply subset.antisymm,
-  { rw ← closure_eq_iff_is_closed.2 is_closed_Icc,
-    exact closure_mono Ioc_subset_Icc_self,
-    apply_instance },
+  { exact closure_minimal Ioc_subset_Icc_self is_closed_Icc },
   { apply subset.trans _ (closure_mono Ioo_subset_Ioc_self),
     rw closure_Ioo hab }
 end
@@ -991,14 +983,44 @@ lemma closure_Ico {a b : α} (hab : a < b) :
   closure (Ico a b) = Icc a b :=
 begin
   apply subset.antisymm,
-  { rw ← closure_eq_iff_is_closed.2 is_closed_Icc,
-    exact closure_mono Ico_subset_Icc_self,
-    apply_instance },
+  { exact closure_minimal Ico_subset_Icc_self is_closed_Icc },
   { apply subset.trans _ (closure_mono Ioo_subset_Ico_self),
     rw closure_Ioo hab }
 end
 
-end decidable_linear_order
+lemma nhds_within_Ioi_ne_bot' {a b c : α} (H₁ : a < c) (H₂ : a ≤ b) :
+  nhds_within b (Ioi a) ≠ ⊥ :=
+mem_closure_iff_nhds_within_ne_bot.1 $ by { rw [closure_Ioi' H₁], exact H₂ }
+
+lemma nhds_within_Ioi_ne_bot [no_top_order α] {a b : α} (H : a ≤ b) :
+  nhds_within b (Ioi a) ≠ ⊥ :=
+let ⟨c, hc⟩ := no_top a in nhds_within_Ioi_ne_bot' hc H
+
+lemma nhds_within_Ioi_self_ne_bot' {a b : α} (H : a < b) :
+  nhds_within a (Ioi a) ≠ ⊥ :=
+nhds_within_Ioi_ne_bot' H (le_refl a)
+
+lemma nhds_within_Ioi_self_ne_bot [no_top_order α] (a : α) :
+  nhds_within a (Ioi a) ≠ ⊥ :=
+nhds_within_Ioi_ne_bot (le_refl a)
+
+lemma nhds_within_Iio_ne_bot' {a b c : α} (H₁ : a < c) (H₂ : b ≤ c) :
+  nhds_within b (Iio c) ≠ ⊥ :=
+mem_closure_iff_nhds_within_ne_bot.1 $ by { rw [closure_Iio' H₁], exact H₂ }
+
+lemma nhds_within_Iio_ne_bot [no_bot_order α] {a b : α} (H : a ≤ b) :
+  nhds_within a (Iio b) ≠ ⊥ :=
+let ⟨c, hc⟩ := no_bot b in nhds_within_Iio_ne_bot' hc H
+
+lemma nhds_within_Iio_self_ne_bot' {a b : α} (H : a < b) :
+  nhds_within b (Iio b) ≠ ⊥ :=
+nhds_within_Iio_ne_bot' H (le_refl b)
+
+lemma nhds_within_Iio_self_ne_bot [no_bot_order α] (a : α) :
+  nhds_within a (Iio a) ≠ ⊥ :=
+nhds_within_Iio_ne_bot (le_refl a)
+
+end linear_order
 
 section complete_linear_order
 

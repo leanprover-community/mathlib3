@@ -133,8 +133,7 @@ begin
   have C0 : 0 ≤ C := le_trans (norm_nonneg _) (bound x xs),
   let g := λ(t:ℝ), f (x + t • (y-x)),
   have D1 : differentiable ℝ (λt:ℝ, x + t • (y-x)) :=
-    differentiable.add (differentiable_const _)
-      (differentiable.smul' differentiable_id (differentiable_const _)),
+      (differentiable_id.smul_const (y - x)).const_add x,
   have segm : (λ (t : ℝ), x + t • (y - x)) '' Icc 0 1 ⊆ s,
     by { rw [← segment_eq_image_Icc_zero_one], apply convex_segment_iff.1 hs x y xs ys },
   have : f x = g 0, by { simp only [g], rw [zero_smul, add_zero] },
@@ -153,14 +152,12 @@ begin
     deriv_within (λ (t : ℝ), x + t • (y - x)) (Icc 0 1) t
     = deriv (λ (t : ℝ), x + t • (y - x)) t :
       differentiable_at.deriv_within (D1 t) (unique_diff_on_Icc_zero_one t ht)
-    ... = deriv (λ (t : ℝ), x) t + deriv (λ (t : ℝ), t • (y-x)) t :
-      deriv_add (differentiable_at_const _) ((differentiable.smul' differentiable_id (differentiable_const _)) t)
     ... = deriv (λ (t : ℝ), t • (y-x)) t :
-      by rw [deriv_const, zero_add]
-    ... = t • deriv (λ (t : ℝ), (y-x)) t + (deriv (@_root_.id ℝ) t) • (y - x) :
-      deriv_smul' differentiable_at_id (differentiable_at_const _)
+      deriv_const_add x ((differentiable_id.smul_const (y - x)) t)
+    ... = (deriv (@_root_.id ℝ) t) • (y - x) :
+      deriv_smul_const differentiable_at_id _
     ... = y - x :
-      by rw [deriv_const, smul_zero, zero_add, deriv_id, one_smul],
+      by rw [deriv_id, one_smul],
   rw [this]
 end
 

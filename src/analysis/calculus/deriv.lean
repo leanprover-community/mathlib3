@@ -53,6 +53,10 @@ We also show the existence and compute the derivatives of:
   - division
   - polynomials
 
+For most binary operations we also define `const_op` and `op_const` theorems for the cases when
+the first or second argument is a constant. This makes writing chains of `has_deriv_at`'s easier,
+and they more frequently lead to the desired result.
+
 ## Implementation notes
 
 Most of the theorems are direct restatements of the corresponding theorems

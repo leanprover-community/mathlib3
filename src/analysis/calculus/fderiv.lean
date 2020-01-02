@@ -35,6 +35,10 @@ usual formulas (and existence assertions) for the derivative of
 * multiplication of two scalar functions
 * composition of functions (the chain rule)
 
+For most binary operations we also define `const_op` and `op_const` theorems for the cases when
+the first or second argument is a constant. This makes writing chains of `has_deriv_at`'s easier,
+and they more frequently lead to the desired result.
+
 One can also interpret the derivative of a function `f : 𝕜 → E` as an element of `E` (by identifying
 a linear function from `𝕜` to `E` with its value at `1`). Results on the Fréchet derivative are
 translated to this more elementary point of view on the derivative in the file `deriv.lean`. The

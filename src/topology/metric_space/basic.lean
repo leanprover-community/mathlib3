@@ -49,6 +49,10 @@ export has_dist (dist)
 section prio
 set_option default_priority 100 -- see Note [default priority]
 
+/-- Premetric space
+
+A premetric space is a space endowed with a "distance" function satisfying the triangular inequality,
+but `dist x y = 0` does not imply x = y. -/
 class premetric_space (α : Type u) extends has_dist α : Type u :=
 (dist_self : ∀ x : α, dist x x = 0)
 (dist_comm : ∀ x y : α, dist x y = dist y x)
@@ -57,6 +61,7 @@ class premetric_space (α : Type u) extends has_dist α : Type u :=
 (edist_dist : ∀ x y : α, edist x y = ennreal.of_real (dist x y) . control_laws_tac)
 (to_uniform_space : uniform_space α := uniform_space_of_dist dist dist_self dist_comm dist_triangle)
 (uniformity_dist : 𝓤 α = ⨅ ε>0, principal {p:α×α | dist p.1 p.2 < ε} . control_laws_tac)
+
 /-- Metric space
 
 Each metric space induces a canonical `uniform_space` and hence a canonical `topological_space`.
@@ -577,6 +582,10 @@ lemma metric.emetric_closed_ball {x : α} {ε : ℝ} (h : 0 ≤ ε) :
   emetric.closed_ball x (ennreal.of_real ε) = closed_ball x ε :=
 by ext y; simp [edist_dist]; rw ennreal.of_real_le_of_real_iff h
 
+/-- Auxiliary function to replace the uniformity on a metric space with
+a uniformity which is equal to the original one, but maybe not defeq.
+This is useful if one wants to construct an metric space with a
+specified uniformity. -/
 def premetric_space.replace_uniformity {α} [U : uniform_space α] (m : premetric_space α)
   (H : @uniformity _ U = @uniformity _ (premetric_space.to_uniform_space α)) :
   premetric_space α :=
@@ -589,6 +598,10 @@ def premetric_space.replace_uniformity {α} [U : uniform_space α] (m : premetri
   to_uniform_space   := U,
   uniformity_dist    := H.trans (premetric_space.uniformity_dist α) }
 
+/-- Auxiliary function to replace the uniformity on a premetric space with
+a uniformity which is equal to the original one, but maybe not defeq.
+This is useful if one wants to construct an premetric space with a
+specified uniformity. -/
 def metric_space.replace_uniformity {α} [U : uniform_space α] (m : metric_space α)
   (H : @uniformity _ U = @uniformity _ (premetric_space.to_uniform_space α)) :
   metric_space α :=
@@ -602,6 +615,11 @@ def metric_space.replace_uniformity {α} [U : uniform_space α] (m : metric_spac
   to_uniform_space   := U,
   uniformity_dist    := H.trans (premetric_space.uniformity_dist α) }
 
+/-- One gets a metric space from an emetric space if the edistance
+is everywhere finite, by pushing the edistance to reals. We set it up so that the edist and the
+uniformity are defeq in the metric space and the emetric space. In this definition, the distance
+is given separately, to be able to prescribe some expression which is not defeq to the push-forward
+of the edistance to reals. -/
 def pre_emetric_space.to_premetric_space_of_dist {α : Type u} [e : pre_emetric_space α]
   (dist : α → α → ℝ)
   (edist_ne_top : ∀x y: α, edist x y ≠ ⊤)
@@ -648,6 +666,9 @@ let m : metric_space α :=
   edist_dist := λx y, by simp [h, ennreal.of_real_to_real, edist_ne_top] } in
 metric_space.replace_uniformity m (by rw [uniformity_edist, uniformity_edist']; refl)
 
+/-- One gets a metric space from an emetric space if the edistance
+is everywhere finite, by pushing the edistance to reals. We set it up so that the edist and the
+uniformity are defeq in the metric space and the emetric space. -/
 def pre_emetric_space.to_premetric_space {α : Type u} [e : pre_emetric_space α] (h : ∀x y: α, edist x y ≠ ⊤) :
   premetric_space α :=
 pre_emetric_space.to_premetric_space_of_dist (λx y, ennreal.to_real (edist x y)) h (λx y, rfl)
@@ -847,8 +868,9 @@ lemma cauchy_seq_iff_le_tendsto_0 {s : ℕ → α} : cauchy_seq s ↔ ∃ b : �
 
 end cauchy_seq
 
-def premetric_space.induced {α β} (f : α → β) (hf : function.injective f)
-  (m : premetric_space β) : premetric_space α :=
+/-- The premetric induced by a function taking values in a premetric space.
+    The function does not need to be injective. -/
+def premetric_space.induced {α β} (f : α → β) (m : premetric_space β) : premetric_space α :=
 { dist               := λ x y, dist (f x) (f y),
   dist_self          := λ x, dist_self _,
   dist_comm          := λ x y, dist_comm _ _,
@@ -867,14 +889,15 @@ def premetric_space.induced {α β} (f : α → β) (hf : function.injective f)
       exact ⟨_, dist_mem_uniformity ε0, λ ⟨a, b⟩, hε⟩ }
   end }
 
+/-- The metric induced by an injective function taking values in a metric space. -/
 def metric_space.induced {α β} (f : α → β) (hf : function.injective f)
   (m : metric_space β) : metric_space α :=
 { eq_of_dist_eq_zero := λ x y h, hf (dist_eq_zero.1 h),
-  .. premetric_space.induced f hf m.to_premetric_space }
+  .. premetric_space.induced f m.to_premetric_space }
 
 instance subtype.premetric_space {α : Type*} {p : α → Prop} [t : premetric_space α] :
   premetric_space (subtype p) :=
-premetric_space.induced subtype.val (λ x y, subtype.eq) t
+premetric_space.induced subtype.val t
 
 instance subtype.metric_space {α : Type*} {p : α → Prop} [t : metric_space α] :
   metric_space (subtype p) :=
@@ -1084,7 +1107,7 @@ lemma dist_pi_def (f g : Πb, π b) :
   dist f g = (sup univ (λb, nndist (f b) (g b)) : nnreal) := rfl
 
 /-- A finite product of metric spaces is a metric space, with the sup distance. -/
-instance metric_space_pi {π : β → Type*} [fintype β] [∀b, metric_space (π b)] : metric_space (Πb, π b) :=
+instance metric_space_pi {β} {π : β → Type*} [fintype β] [∀b, metric_space (π b)] : metric_space (Πb, π b) :=
 { eq_of_dist_eq_zero :=
   begin
     assume f g h,

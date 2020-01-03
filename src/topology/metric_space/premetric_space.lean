@@ -23,25 +23,8 @@ noncomputable theory
 universes u v
 variables {α : Type u}
 
-section prio
-set_option default_priority 100 -- see Note [default priority]
-class premetric_space (α : Type u) extends has_dist α : Type u :=
-(dist_self : ∀ x : α, dist x x = 0)
-(dist_comm : ∀ x y : α, dist x y = dist y x)
-(dist_triangle : ∀ x y z : α, dist x z ≤ dist x y + dist y z)
-end prio
-
 namespace premetric
 section
-
-protected lemma dist_nonneg {α : Type u} [premetric_space α] {x y : α} : 0 ≤ dist x y :=
-begin
-  have := calc
-    0 = dist x x : (premetric_space.dist_self _).symm
-    ... ≤ dist x y + dist y x : premetric_space.dist_triangle _ _ _
-    ... = dist x y + dist x y : by simp [premetric_space.dist_comm],
-  by linarith
-end
 
 /-- The canonical equivalence relation on a premetric space. -/
 def dist_setoid (α : Type u) [premetric_space α] : setoid α :=
@@ -52,7 +35,7 @@ begin
   { exact premetric_space.dist_self },
   { assume x y h, rwa premetric_space.dist_comm },
   { assume x y z hxy hyz,
-    refine le_antisymm _ premetric.dist_nonneg,
+    refine le_antisymm _ dist_nonneg,
     calc dist x z ≤ dist x y + dist y z : premetric_space.dist_triangle _ _ _
          ... = 0 + 0 : by rw [hxy, hyz]
          ... = 0 : by simp }

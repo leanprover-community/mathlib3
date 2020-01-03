@@ -91,6 +91,11 @@ uniform_space.of_core {
 section prio
 set_option default_priority 100 -- see Note [default priority]
 
+/-- Extended premetric space, with an extended distance `edist` possibly taking the
+value ∞
+
+A premetric space is a space endowed with a "distance" function satisfying the triangular inequality,
+but `dist x y = 0` does not imply x = y. -/
 class pre_emetric_space (α : Type u) extends has_edist α : Type u :=
 (edist_self : ∀ x : α, edist x x = 0)
 (edist_comm : ∀ x y : α, edist x y = edist y x)
@@ -333,6 +338,10 @@ instance to_separated {α} [emetric_space α] : separated α :=
 separated_def.2 $ λ x y h, eq_of_forall_edist_le $
 λ ε ε0, le_of_lt (h _ (edist_mem_uniformity ε0))
 
+/-- Auxiliary function to replace the uniformity on an extended premetric space with
+a uniformity which is equal to the original one, but maybe not defeq.
+This is useful if one wants to construct an extended premetric space with a
+specified uniformity. -/
 def pre_emetric_space.replace_uniformity {α} [U : uniform_space α] (m : pre_emetric_space α)
   (H : @uniformity _ U = @uniformity _ (pre_emetric_space.to_uniform_space α)) :
   pre_emetric_space α :=
@@ -358,8 +367,9 @@ def emetric_space.replace_uniformity {α} [U : uniform_space α] (m : emetric_sp
   to_uniform_space    := U,
   uniformity_edist    := H.trans (@pre_emetric_space.uniformity_edist α _) }
 
-def pre_emetric_space.induced {α β} (f : α → β) (hf : function.injective f)
-  (m : pre_emetric_space β) : pre_emetric_space α :=
+/-- The extended premetric induced by a function taking values in an extended premetric space.
+    The function does not need to be injective. -/
+def pre_emetric_space.induced {α β} (f : α → β) (m : pre_emetric_space β) : pre_emetric_space α :=
 { edist               := λ x y, edist (f x) (f y),
   edist_self          := λ x, edist_self _,
   edist_comm          := λ x y, edist_comm _ _,
@@ -397,7 +407,7 @@ def emetric_space.induced {α β} (f : α → β) (hf : function.injective f)
   end }
 
 instance {α} {p : α → Prop} [t : pre_emetric_space α] : pre_emetric_space (subtype p) :=
-t.induced subtype.val (λ x y, subtype.eq)
+t.induced subtype.val
 
 /-- Emetric space instance on subsets of emetric spaces -/
 instance {α} {p : α → Prop} [t : emetric_space α] : emetric_space (subtype p) :=
@@ -885,3 +895,45 @@ le_trans (diam_mono ball_subset_closed_ball) diam_closed_ball
 end diam
 
 end emetric --namespace
+
+#lint
+/-
+emetric_space.lean:889:0: information trace output
+/- Note: This command is still in development. -/
+/- Checking 91 declarations in the current file -/
+
+/- OK: All declarations correctly marked as def/lemma. -/
+/- OK: No declarations have a duplicate namespace. -/
+/- ILLEGAL CONSTANTS IN DECLARATIONS: -/
+#print emetric.cauchy_iff /- the type contains ≥/>. Use ≤/< instead. -/
+#print emetric.uniform_continuous_iff /- the type contains ≥/>. Use ≤/< instead. -/
+#print emetric.totally_bounded_iff' /- the type contains ≥/>. Use ≤/< instead. -/
+#print emetric.tendsto_at_top /- the type contains ≥/>. Use ≤/< instead. -/
+#print emetric.mem_nhds_iff /- the type contains ≥/>. Use ≤/< instead. -/
+#print emetric.cauchy_seq_iff /- the type contains ≥/>. Use ≤/< instead. -/
+#print emetric.tendsto_nhds /- the type contains ≥/>. Use ≤/< instead. -/
+#print emetric.mem_closure_iff' /- the type contains ≥/>. Use ≤/< instead. -/
+#print emetric.uniform_embedding_iff /- the type contains ≥/>. Use ≤/< instead. -/
+#print emetric.uniform_embedding_iff' /- the type contains ≥/>. Use ≤/< instead. -/
+#print emetric.cauchy_seq_iff' /- the type contains ≥/>. Use ≤/< instead. -/
+#print mem_uniformity_edist /- the type contains ≥/>. Use ≤/< instead. -/
+#print emetric.nhds_eq /- the type contains ≥/>. Use ≤/< instead. -/
+#print emetric.exists_ball_subset_ball /- the type contains ≥/>. Use ≤/< instead. -/
+#print emetric.totally_bounded_iff /- the type contains ≥/>. Use ≤/< instead. -/
+#print uniformity_edist' /- the type contains ≥/>. Use ≤/< instead. -/
+#print uniformity_edist'' /- the type contains ≥/>. Use ≤/< instead. -/
+#print uniformity_edist_nnreal /- the type contains ≥/>. Use ≤/< instead. -/
+#print uniformity_dist_of_mem_uniformity /- the type contains ≥/>. Use ≤/< instead. -/
+#print eq_of_forall_edist_le /- the type contains ≥/>. Use ≤/< instead. -/
+#print emetric.is_open_iff /- the type contains ≥/>. Use ≤/< instead. -/
+
+/- OK: All instance priorities are good. -/
+/- DEFINITIONS ARE MISSING DOCUMENTATION STRINGS: -/
+#print pre_emetric_space /- constant missing doc string -/
+#print has_edist /- constant missing doc string -/
+#print pre_emetric_space.induced /- def missing doc string -/
+#print pre_emetric_space.replace_uniformity /- def missing doc string -/
+
+
+
+-/

@@ -578,7 +578,7 @@ section
 open lattice ennreal filter emetric
 
 /-- In an emetric ball, the distance between points is everywhere finite -/
-lemma edist_ne_top_of_mem_ball [pre_emetric_space β] {a : β} {r : ennreal} (x y : ball a r) : edist x.1 y.1 ≠ ⊤ :=
+lemma edist_ne_top_of_mem_ball [epremetric_space β] {a : β} {r : ennreal} (x y : ball a r) : edist x.1 y.1 ≠ ⊤ :=
 lt_top_iff_ne_top.1 $
 calc edist x y ≤ edist a x + edist a y : edist_triangle_left x.1 y.1 a
   ... < r + r : by rw [edist_comm a x, edist_comm a y]; exact add_lt_add x.2 y.2
@@ -597,7 +597,7 @@ lemma nhds_eq_nhds_emetric_ball [emetric_space β] (a x : β) (r : ennreal) (h :
 end
 
 section
-variable [pre_emetric_space α]
+variable [epremetric_space α]
 open emetric
 
 /-- Yet another metric characterization of Cauchy sequences on integers. This one is often the
@@ -723,6 +723,25 @@ theorem tendsto_edist {f g : β → α} {x : filter β} {a b : α}
 have tendsto (λp:α×α, edist p.1 p.2) (𝓝 (a, b)) (𝓝 (edist a b)),
   from continuous_iff_continuous_at.mp continuous_edist' (a, b),
 tendsto.comp (by rw [nhds_prod_eq] at this; exact this) (hf.prod_mk hg)
+
+lemma nhds_comap_edist (a : α) : (𝓝 (0 : ennreal)).comap (λa', edist a' a) = 𝓝 a :=
+have h₁ : ∀ε, (λa', edist a' a) ⁻¹' Iio ε ⊆ ball a ε,
+  by simp [subset_def],
+have h₂ : tendsto (λa', edist a' a) (𝓝 a) (𝓝 (edist a a)),
+  from tendsto_edist tendsto_id tendsto_const_nhds,
+le_antisymm
+begin
+  simp only [emetric.nhds_eq, ennreal.nhds_zero, comap_infi, comap_principal, le_infi_iff],
+  rintros ⟨ε, ε0⟩,
+  refine infi_le_of_le ε (infi_le_of_le _ _),
+  { rwa ← zero_lt_iff_ne_zero },
+  { rw principal_mono, exact h₁ _ }
+end
+(by simpa [map_le_iff_le_comap.symm] using h₂)
+
+lemma tendsto_iff_edist_tendsto_zero {f : β → α} {x : filter β} {a : α} :
+  (tendsto f x (𝓝 a)) ↔ (tendsto (λb, edist (f b) a) x (𝓝 0)) :=
+by rw [← nhds_comap_edist a, tendsto_comap_iff]
 
 lemma cauchy_seq_of_edist_le_of_tsum_ne_top {f : ℕ → α} (d : ℕ → ennreal)
   (hf : ∀ n, edist (f n) (f n.succ) ≤ d n) (hd : tsum d ≠ ∞) :

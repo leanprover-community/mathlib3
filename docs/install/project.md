@@ -28,7 +28,7 @@ terminal.
 If you want to make sure everything is working, you can start by
 creating, say `my_project/src/test.lean` containing:
 ```lean
-import topology.basic
+import analysis.topology.topological_space
 
 #check topological_space
 ```

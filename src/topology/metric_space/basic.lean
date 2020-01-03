@@ -546,7 +546,7 @@ by simpa [infi_subtype] using @metric.uniformity_edist' α _
 
 /-- A metric space induces an emetric space -/
 @[priority 100] -- see Note [lower instance priority]
-instance premetric_space.to_emetric_space : pre_emetric_space α :=
+instance premetric_space.to_emetric_space : epremetric_space α :=
 { edist               := edist,
   edist_self          := by simp [edist_dist],
   edist_comm          := by simp only [edist_dist, dist_comm]; simp,
@@ -620,7 +620,7 @@ is everywhere finite, by pushing the edistance to reals. We set it up so that th
 uniformity are defeq in the metric space and the emetric space. In this definition, the distance
 is given separately, to be able to prescribe some expression which is not defeq to the push-forward
 of the edistance to reals. -/
-def pre_emetric_space.to_premetric_space_of_dist {α : Type u} [e : pre_emetric_space α]
+def epremetric_space.to_premetric_space_of_dist {α : Type u} [e : epremetric_space α]
   (dist : α → α → ℝ)
   (edist_ne_top : ∀x y: α, edist x y ≠ ⊤)
   (h : ∀x y, dist x y = ennreal.to_real (edist x y)) :
@@ -669,9 +669,9 @@ metric_space.replace_uniformity m (by rw [uniformity_edist, uniformity_edist']; 
 /-- One gets a metric space from an emetric space if the edistance
 is everywhere finite, by pushing the edistance to reals. We set it up so that the edist and the
 uniformity are defeq in the metric space and the emetric space. -/
-def pre_emetric_space.to_premetric_space {α : Type u} [e : pre_emetric_space α] (h : ∀x y: α, edist x y ≠ ⊤) :
+def epremetric_space.to_premetric_space {α : Type u} [e : epremetric_space α] (h : ∀x y: α, edist x y ≠ ⊤) :
   premetric_space α :=
-pre_emetric_space.to_premetric_space_of_dist (λx y, ennreal.to_real (edist x y)) h (λx y, rfl)
+epremetric_space.to_premetric_space_of_dist (λx y, ennreal.to_real (edist x y)) h (λx y, rfl)
 
 /-- One gets a metric space from an emetric space if the edistance
 is everywhere finite, by pushing the edistance to reals. We set it up so that the edist and the
@@ -1082,7 +1082,7 @@ begin
   /- we construct the instance from the emetric space instance to avoid checking again that the
   uniformity is the same as the product uniformity, but we register nevertheless a nice formula
   for the distance -/
-  refine pre_emetric_space.to_premetric_space_of_dist
+  refine epremetric_space.to_premetric_space_of_dist
     (λf g, ((sup univ (λb, nndist (f b) (g b)) : nnreal) : ℝ)) _ _,
   show ∀ (x y : Π (b : β), π b), edist x y ≠ ⊤,
   { assume x y,

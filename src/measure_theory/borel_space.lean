@@ -572,7 +572,7 @@ lemma measurable_nndist {α : Type*} [metric_space α] [second_countable_topolog
 	measurable (λ b, nndist (f b) (g b)) :=
 measurable.comp measurable_nndist' (measurable.prod_mk hf hg)
 
-lemma measurable_edist' {α : Type*} [pre_emetric_space α] [second_countable_topology α] :
+lemma measurable_edist' {α : Type*} [epremetric_space α] [second_countable_topology α] :
   measurable (λp:α×α, edist p.1 p.2) :=
 begin
   rw [borel_prod],
@@ -580,7 +580,7 @@ begin
   exact continuous_edist continuous_fst continuous_snd
 end
 
-lemma measurable_edist {α : Type*} [pre_emetric_space α] [second_countable_topology α]
+lemma measurable_edist {α : Type*} [epremetric_space α] [second_countable_topology α]
   [measurable_space β] {f g : β → α} (hf : measurable f) (hg : measurable g) :
 	measurable (λ b, edist (f b) (g b)) :=
 measurable.comp measurable_edist' (measurable.prod_mk hf hg)

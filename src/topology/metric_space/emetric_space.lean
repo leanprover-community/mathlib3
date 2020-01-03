@@ -96,7 +96,7 @@ value ∞
 
 A premetric space is a space endowed with a "distance" function satisfying the triangular inequality,
 but `dist x y = 0` does not imply x = y. -/
-class pre_emetric_space (α : Type u) extends has_edist α : Type u :=
+class epremetric_space (α : Type u) extends has_edist α : Type u :=
 (edist_self : ∀ x : α, edist x x = 0)
 (edist_comm : ∀ x y : α, edist x y = edist y x)
 (edist_triangle : ∀ x y z : α, edist x z ≤ edist x y + edist y z)
@@ -115,14 +115,14 @@ on a product.
 
 Continuity of `edist` is finally proving in `topology.instances.ennreal`
 -/
-class emetric_space (α : Type u) extends pre_emetric_space α : Type u :=
+class emetric_space (α : Type u) extends epremetric_space α : Type u :=
 (eq_of_edist_eq_zero : ∀ {x y : α}, edist x y = 0 → x = y)
 end prio
 
 /- emetric spaces are less common than metric spaces. Therefore, we work in a dedicated
 namespace, while notions associated to metric spaces are mostly in the root namespace. -/
 
-export pre_emetric_space (edist_self edist_comm edist_triangle)
+export epremetric_space (edist_self edist_comm edist_triangle)
 export emetric_space (eq_of_edist_eq_zero)
 
 attribute [simp] edist_self
@@ -146,11 +146,11 @@ theorem eq_of_forall_edist_le {x y : α} (h : ∀ε, ε > 0 → edist x y ≤ ε
 eq_of_edist_eq_zero (eq_of_le_of_forall_le_of_dense bot_le h)
 end emetric
 
-variables [pre_emetric_space α]
+variables [epremetric_space α]
 
 @[priority 100] -- see Note [lower instance priority]
-instance pre_emetric_space.to_uniform_space' : uniform_space α :=
-pre_emetric_space.to_uniform_space α
+instance epremetric_space.to_uniform_space' : uniform_space α :=
+epremetric_space.to_uniform_space α
 
 /-- Triangle inequality for the extended distance -/
 theorem edist_triangle_left (x y z : α) : edist x y ≤ edist z x + edist z y :=
@@ -203,7 +203,7 @@ finset.Ico.zero_bot n ▸ edist_le_Ico_sum_of_edist_le (zero_le n) (λ _ _, hd)
 
 /-- Reformulation of the uniform structure in terms of the extended distance -/
 theorem uniformity_edist' : 𝓤 α = (⨅ ε>0, principal {p:α×α | edist p.1 p.2 < ε}) :=
-pre_emetric_space.uniformity_edist _
+epremetric_space.uniformity_edist _
 
 /-- Reformulation of the uniform structure in terms of the extended distance on a subtype -/
 theorem uniformity_edist'' : 𝓤 α = (⨅ε:{ε:ennreal // ε>0}, principal {p:α×α | edist p.1 p.2 < ε.val}) :=
@@ -257,7 +257,7 @@ theorem uniformity_has_countable_basis : has_countable_basis (𝓤 α) :=
 has_countable_basis_of_seq _ _ uniformity_edist_inv_nat
 
 /-- ε-δ characterization of uniform continuity on emetric spaces -/
-theorem uniform_continuous_iff [pre_emetric_space β] {f : α → β} :
+theorem uniform_continuous_iff [epremetric_space β] {f : α → β} :
   uniform_continuous f ↔ ∀ ε > 0, ∃ δ > 0,
     ∀{a b:α}, edist a b < δ → edist (f a) (f b) < ε :=
 uniform_continuous_def.trans
@@ -267,7 +267,7 @@ uniform_continuous_def.trans
   mem_uniformity_edist.2 ⟨δ, δ0, λ a b h, hε (hδ h)⟩⟩
 
 /-- ε-δ characterization of uniform embeddings on emetric spaces -/
-theorem uniform_embedding_iff [pre_emetric_space β] {f : α → β} :
+theorem uniform_embedding_iff [epremetric_space β] {f : α → β} :
   uniform_embedding f ↔ function.injective f ∧ uniform_continuous f ∧
     ∀ δ > 0, ∃ ε > 0, ∀ {a b : α}, edist (f a) (f b) < ε → edist a b < δ :=
 uniform_embedding_def'.trans $ and_congr iff.rfl $ and_congr iff.rfl
@@ -330,7 +330,7 @@ end emetric
 
 open emetric
 
--- TODO : pre_emetric + t0 = emetric
+-- TODO : epremetric + t0 = emetric
 
 /-- An emetric space is separated -/
 @[priority 100] -- see Note [lower instance priority]
@@ -342,22 +342,22 @@ separated_def.2 $ λ x y h, eq_of_forall_edist_le $
 a uniformity which is equal to the original one, but maybe not defeq.
 This is useful if one wants to construct an extended premetric space with a
 specified uniformity. -/
-def pre_emetric_space.replace_uniformity {α} [U : uniform_space α] (m : pre_emetric_space α)
-  (H : @uniformity _ U = @uniformity _ (pre_emetric_space.to_uniform_space α)) :
-  pre_emetric_space α :=
+def epremetric_space.replace_uniformity {α} [U : uniform_space α] (m : epremetric_space α)
+  (H : @uniformity _ U = @uniformity _ (epremetric_space.to_uniform_space α)) :
+  epremetric_space α :=
 { edist               := @edist _ m.to_has_edist,
   edist_self          := edist_self,
   edist_comm          := edist_comm,
   edist_triangle      := edist_triangle,
   to_uniform_space    := U,
-  uniformity_edist    := H.trans (@pre_emetric_space.uniformity_edist α _) }
+  uniformity_edist    := H.trans (@epremetric_space.uniformity_edist α _) }
 
 /-- Auxiliary function to replace the uniformity on an emetric space with
 a uniformity which is equal to the original one, but maybe not defeq.
 This is useful if one wants to construct an emetric space with a
 specified uniformity. -/
 def emetric_space.replace_uniformity {α} [U : uniform_space α] (m : emetric_space α)
-  (H : @uniformity _ U = @uniformity _ (pre_emetric_space.to_uniform_space α)) :
+  (H : @uniformity _ U = @uniformity _ (epremetric_space.to_uniform_space α)) :
   emetric_space α :=
 { edist               := @edist _ m.to_has_edist,
   edist_self          := edist_self,
@@ -365,11 +365,11 @@ def emetric_space.replace_uniformity {α} [U : uniform_space α] (m : emetric_sp
   edist_comm          := edist_comm,
   edist_triangle      := edist_triangle,
   to_uniform_space    := U,
-  uniformity_edist    := H.trans (@pre_emetric_space.uniformity_edist α _) }
+  uniformity_edist    := H.trans (@epremetric_space.uniformity_edist α _) }
 
 /-- The extended premetric induced by a function taking values in an extended premetric space.
     The function does not need to be injective. -/
-def pre_emetric_space.induced {α β} (f : α → β) (m : pre_emetric_space β) : pre_emetric_space α :=
+def epremetric_space.induced {α β} (f : α → β) (m : epremetric_space β) : epremetric_space α :=
 { edist               := λ x y, edist (f x) (f y),
   edist_self          := λ x, edist_self _,
   edist_comm          := λ x y, edist_comm _ _,
@@ -406,7 +406,7 @@ def emetric_space.induced {α β} (f : α → β) (hf : function.injective f)
       exact ⟨_, edist_mem_uniformity ε0, λ ⟨a, b⟩, hε⟩ }
   end }
 
-instance {α} {p : α → Prop} [t : pre_emetric_space α] : pre_emetric_space (subtype p) :=
+instance {α} {p : α → Prop} [t : epremetric_space α] : epremetric_space (subtype p) :=
 t.induced subtype.val
 
 /-- Emetric space instance on subsets of emetric spaces -/
@@ -418,7 +418,7 @@ the original distance, by definition -/
 theorem subtype.edist_eq {p : α → Prop} (x y : subtype p) :
   edist x y = edist x.1 y.1 := rfl
 
-instance prod.pre_emetric_space_max [pre_emetric_space β] : pre_emetric_space (α × β) :=
+instance prod.epremetric_space_max [epremetric_space β] : epremetric_space (α × β) :=
 { edist := λ x y, max (edist x.1 y.1) (edist x.2 y.2),
   edist_self := λ x, by simp,
   edist_comm := λ x y, by simp [edist_comm],
@@ -427,7 +427,7 @@ instance prod.pre_emetric_space_max [pre_emetric_space β] : pre_emetric_space (
     (le_trans (edist_triangle _ _ _) (add_le_add' (le_max_right _ _) (le_max_right _ _))),
   uniformity_edist := begin
     refine uniformity_prod.trans _,
-    simp [pre_emetric_space.uniformity_edist, comap_infi],
+    simp [epremetric_space.uniformity_edist, comap_infi],
     rw ← infi_inf_eq, congr, funext,
     rw ← infi_inf_eq, congr, funext,
     simp [inf_principal, ext_iff, max_lt_iff]
@@ -444,16 +444,16 @@ instance prod.emetric_space_max {α} [emetric_space α] [emetric_space β] : eme
     have B : x.snd = y.snd := edist_le_zero.1 h₂,
     exact prod.ext_iff.2 ⟨A, B⟩
   end,
-  .. prod.pre_emetric_space_max }
+  .. prod.epremetric_space_max }
 
-lemma prod.edist_eq [pre_emetric_space β] {x y : α × β} :
+lemma prod.edist_eq [epremetric_space β] {x y : α × β} :
   edist x y = max (edist x.1 y.1) (edist x.2 y.2) := rfl
 
 section pi
 open finset
 variables {π : β → Type*} [fintype β]
 
-instance pre_emetric_space_pi [∀b, pre_emetric_space (π b)] : pre_emetric_space (Πb, π b) :=
+instance epremetric_space_pi [∀b, epremetric_space (π b)] : epremetric_space (Πb, π b) :=
 { edist := λ f g, finset.sup univ (λb, edist (f b) (g b)),
   edist_self := assume f, bot_unique $ finset.sup_le $ by simp,
   edist_comm := assume f g, by unfold edist; congr; funext a; exact edist_comm _ _,
@@ -465,7 +465,7 @@ instance pre_emetric_space_pi [∀b, pre_emetric_space (π b)] : pre_emetric_spa
     end,
   to_uniform_space := Pi.uniform_space _,
   uniformity_edist := begin
-    simp only [Pi.uniformity, pre_emetric_space.uniformity_edist, comap_infi, gt_iff_lt, preimage_set_of_eq,
+    simp only [Pi.uniformity, epremetric_space.uniformity_edist, comap_infi, gt_iff_lt, preimage_set_of_eq,
           comap_principal],
     rw infi_comm, congr, funext ε,
     rw infi_comm, congr, funext εpos,
@@ -486,7 +486,7 @@ instance emetric_space_pi [∀b, emetric_space (π b)] : emetric_space (Πb, π 
       exact (funext $ assume b, edist_le_zero.1 $ eq1 b $ mem_univ b),
     end }
 
-variables [∀b, pre_emetric_space (π b)]
+variables [∀b, epremetric_space (π b)]
 
 lemma edist_pi_def (f g : Πb, π b) : edist f g = sup univ (λb, edist (f b) (g b)) := rfl
 
@@ -712,7 +712,7 @@ theorem totally_bounded_iff' {s : set α} :
 
 section pi
 open finset emetric
-variables {π : β → Type*} [fintype β] [∀b, pre_emetric_space (π b)]
+variables {π : β → Type*} [fintype β] [∀b, epremetric_space (π b)]
 
 /-- An open ball in a product space is a product of open balls. The assumption `0 < r`
 is necessary for the case of the empty product. -/
@@ -772,7 +772,7 @@ end compact
 section first_countable
 
 @[priority 100] -- see Note [lower instance priority]
-instance (α : Type u) [pre_emetric_space α] :
+instance (α : Type u) [epremetric_space α] :
   topological_space.first_countable_topology α :=
 uniform_space.first_countable_topology uniformity_has_countable_basis
 
@@ -785,7 +785,7 @@ open topological_space
 the balls centered at points in a dense subset, and with rational radii. We do not register
 this as an instance, as there is already an instance going in the other direction
 from second countable spaces to separable spaces, and we want to avoid loops. -/
-lemma second_countable_of_separable (α : Type u) [pre_emetric_space α] [separable_space α] :
+lemma second_countable_of_separable (α : Type u) [epremetric_space α] [separable_space α] :
   second_countable_topology α :=
 let ⟨S, ⟨S_countable, S_dense⟩⟩ := separable_space.exists_countable_closure_eq_univ α in
 ⟨⟨⋃x ∈ S, ⋃ (n : nat), {ball x (n⁻¹)},

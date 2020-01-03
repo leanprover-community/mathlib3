@@ -544,9 +544,9 @@ end
 theorem uniformity_edist : 𝓤 α = (⨅ ε>0, principal {p:α×α | edist p.1 p.2 < ε}) :=
 by simpa [infi_subtype] using @metric.uniformity_edist' α _
 
-/-- A metric space induces an emetric space -/
+/-- A premetric space induces an epremetric space -/
 @[priority 100] -- see Note [lower instance priority]
-instance premetric_space.to_emetric_space : epremetric_space α :=
+instance premetric_space.to_epremetric_space : epremetric_space α :=
 { edist               := edist,
   edist_self          := by simp [edist_dist],
   edist_comm          := by simp only [edist_dist, dist_comm]; simp,
@@ -563,7 +563,7 @@ instance premetric_space.to_emetric_space : epremetric_space α :=
 @[priority 100] -- see Note [lower instance priority]
 instance metric_space.to_emetric_space {α : Type*} [metric_space α] : emetric_space α :=
 { eq_of_edist_eq_zero := assume x y, by simp [premetric_space.edist_dist],
-  ..premetric_space.to_emetric_space }
+  ..premetric_space.to_epremetric_space }
 
 /-- Balls defined using the distance or the edistance coincide -/
 lemma metric.emetric_ball {x : α} {ε : ℝ} : emetric.ball x (ennreal.of_real ε) = ball x ε :=

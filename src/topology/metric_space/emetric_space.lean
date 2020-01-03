@@ -141,7 +141,6 @@ theorem eq_of_forall_edist_le {x y : α} (h : ∀ε, ε > 0 → edist x y ≤ ε
 eq_of_edist_eq_zero (eq_of_le_of_forall_le_of_dense bot_le h)
 end emetric
 
-section pre_emetric
 variables [pre_emetric_space α]
 
 @[priority 100] -- see Note [lower instance priority]
@@ -247,10 +246,7 @@ begin
   exact exists_congr (λn, by simp only [prod.forall, mem_principal_sets, subset_def, mem_set_of_eq])
 end
 
-end pre_emetric
-
 namespace emetric
-variables [pre_emetric_space α]
 
 theorem uniformity_has_countable_basis : has_countable_basis (𝓤 α) :=
 has_countable_basis_of_seq _ _ uniformity_edist_inv_nat
@@ -278,7 +274,7 @@ uniform_embedding_def'.trans $ and_congr iff.rfl $ and_congr iff.rfl
 
 /-- A map between emetric spaces is a uniform embedding if and only if the edistance between `f x`
 and `f y` is controlled in terms of the distance between `x` and `y` and conversely. -/
-theorem uniform_embedding_iff' {α : Type*} [emetric_space α] [emetric_space β] {f : α → β} :
+theorem uniform_embedding_iff' {α} [emetric_space α] [emetric_space β] {f : α → β} :
   uniform_embedding f ↔
   (∀ ε > 0, ∃ δ > 0, ∀ {a b : α}, edist a b < δ → edist (f a) (f b) < ε) ∧
   (∀ δ > 0, ∃ ε > 0, ∀ {a b : α}, edist (f a) (f b) < ε → edist a b < δ) :=
@@ -333,7 +329,7 @@ open emetric
 
 /-- An emetric space is separated -/
 @[priority 100] -- see Note [lower instance priority]
-instance to_separated [emetric_space α] : separated α :=
+instance to_separated {α} [emetric_space α] : separated α :=
 separated_def.2 $ λ x y h, eq_of_forall_edist_le $
 λ ε ε0, le_of_lt (h _ (edist_mem_uniformity ε0))
 
@@ -400,19 +396,19 @@ def emetric_space.induced {α β} (f : α → β) (hf : function.injective f)
       exact ⟨_, edist_mem_uniformity ε0, λ ⟨a, b⟩, hε⟩ }
   end }
 
-instance {α : Type*} {p : α → Prop} [t : pre_emetric_space α] : pre_emetric_space (subtype p) :=
+instance {α} {p : α → Prop} [t : pre_emetric_space α] : pre_emetric_space (subtype p) :=
 t.induced subtype.val (λ x y, subtype.eq)
 
 /-- Emetric space instance on subsets of emetric spaces -/
-instance {α : Type*} {p : α → Prop} [t : emetric_space α] : emetric_space (subtype p) :=
+instance {α} {p : α → Prop} [t : emetric_space α] : emetric_space (subtype p) :=
 t.induced subtype.val (λ x y, subtype.eq)
 
 /-- The extended distance on a subset of an emetric space is the restriction of
 the original distance, by definition -/
-theorem subtype.edist_eq [pre_emetric_space α] {p : α → Prop} (x y : subtype p) :
+theorem subtype.edist_eq {p : α → Prop} (x y : subtype p) :
   edist x y = edist x.1 y.1 := rfl
 
-instance prod.pre_emetric_space_max [pre_emetric_space α] [pre_emetric_space β] : pre_emetric_space (α × β) :=
+instance prod.pre_emetric_space_max [pre_emetric_space β] : pre_emetric_space (α × β) :=
 { edist := λ x y, max (edist x.1 y.1) (edist x.2 y.2),
   edist_self := λ x, by simp,
   edist_comm := λ x y, by simp [edist_comm],
@@ -431,7 +427,7 @@ instance prod.pre_emetric_space_max [pre_emetric_space α] [pre_emetric_space β
 /-- The product of two emetric spaces, with the max distance, is an extended
 metric spaces. We make sure that the uniform structure thus constructed is the one
 corresponding to the product of uniform spaces, to avoid diamond problems. -/
-instance prod.emetric_space_max [emetric_space α] [emetric_space β] : emetric_space (α × β) :=
+instance prod.emetric_space_max {α} [emetric_space α] [emetric_space β] : emetric_space (α × β) :=
 { eq_of_edist_eq_zero := λ x y h, begin
     cases max_le_iff.1 (le_of_eq h) with h₁ h₂,
     have A : x.fst = y.fst := edist_le_zero.1 h₁,
@@ -439,6 +435,9 @@ instance prod.emetric_space_max [emetric_space α] [emetric_space β] : emetric_
     exact prod.ext_iff.2 ⟨A, B⟩
   end,
   .. prod.pre_emetric_space_max }
+
+lemma prod.edist_eq [pre_emetric_space β] {x y : α × β} :
+  edist x y = max (edist x.1 y.1) (edist x.2 y.2) := rfl
 
 section pi
 open finset
@@ -477,10 +476,29 @@ instance emetric_space_pi [∀b, emetric_space (π b)] : emetric_space (Πb, π 
       exact (funext $ assume b, edist_le_zero.1 $ eq1 b $ mem_univ b),
     end }
 
+variables [∀b, pre_emetric_space (π b)]
+
+lemma edist_pi_def (f g : Πb, π b) : edist f g = sup univ (λb, edist (f b) (g b)) := rfl
+
+lemma edist_pi_lt_iff {f g : Πb, π b} {r : ennreal} (hr : 0 < r) :
+  edist f g < r ↔ ∀b, edist (f b) (g b) < r :=
+begin
+  rw [edist_pi_def, finset.sup_lt_iff],
+  { simp only [forall_prop_of_true, finset.mem_univ, iff_self] },
+  { exact hr }
+end
+
+lemma edist_pi_le_iff {f g : Πb, π b} {r : ennreal} :
+  edist f g ≤ r ↔ ∀b, edist (f b) (g b) ≤ r :=
+begin
+  rw [edist_pi_def, finset.sup_le_iff],
+  simp only [forall_prop_of_true, finset.mem_univ, iff_self]
+end
+
 end pi
 
 namespace emetric
-variables [pre_emetric_space α] {x y z : α} {ε ε₁ ε₂ : ennreal} {s : set α}
+variables {x y z : α} {ε ε₁ ε₂ : ennreal} {s : set α}
 
 /-- `emetric.ball x ε` is the set of all points `y` with `edist y x < ε` -/
 def ball (x : α) (ε : ennreal) : set α := {y | edist y x < ε}
@@ -681,6 +699,24 @@ theorem totally_bounded_iff' {s : set α} :
  λ H r ru, let ⟨ε, ε0, hε⟩ := mem_uniformity_edist.1 ru,
                ⟨t, _, ft, h⟩ := H ε ε0 in
   ⟨t, ft, subset.trans h $ Union_subset_Union $ λ y, Union_subset_Union $ λ yt z, hε⟩⟩
+
+section pi
+open finset emetric
+variables {π : β → Type*} [fintype β] [∀b, pre_emetric_space (π b)]
+
+/-- An open ball in a product space is a product of open balls. The assumption `0 < r`
+is necessary for the case of the empty product. -/
+lemma ball_pi (x : Πb, π b) {r : ennreal} (hr : 0 < r) :
+  ball x r = { y | ∀b, y b ∈ ball (x b) r } :=
+by { ext p, simp [edist_pi_lt_iff hr] }
+
+/-- A closed ball in a product space is a product of closed balls. The assumption `0 ≤ r`
+is necessary for the case of the empty product. -/
+lemma closed_ball_pi (x : Πb, π b) {r : ennreal} :
+  closed_ball x r = { y | ∀b, y b ∈ closed_ball (x b) r } :=
+by { ext p, simp [edist_pi_le_iff] }
+
+end pi
 
 section compact
 

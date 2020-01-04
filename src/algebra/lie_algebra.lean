@@ -396,5 +396,3 @@ square matrices over a commutative ring.
 def matrix.lie_algebra (n : Type u) (R : Type v)
   [fintype n] [decidable_eq n] [comm_ring R] : lie_algebra R (matrix n n R) :=
 lie_algebra.of_associative_algebra (matrix n n R)
-
-#lint

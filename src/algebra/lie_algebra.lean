@@ -307,8 +307,8 @@ instance lie_submodule_has_mem [lie_module R L M] :
   has_mem M (lie_submodule R L M) := ⟨λ x M', x ∈ (M' : set M)⟩
 
 instance lie_submodule_lie_module [α : lie_module R L M] [M' : lie_submodule R L M] :
-  lie_module R L M' := ⟨{
-  add     := by { intros, ext, apply set_coe.ext,
+  lie_module R L M' :=
+⟨{add     := by { intros, ext, apply set_coe.ext,
                   rw [linear_map.coe_mk, subtype.coe_mk, linear_map.add], refl, },
   smul    := by { intros, ext, apply set_coe.ext,
                   rw [linear_map.coe_mk, subtype.coe_mk, linear_map.smul], refl, },
@@ -356,8 +356,8 @@ instance lie_quotient_has_bracket (I : lie_ideal R L) : has_bracket (quotient I)
   have h : ⁅x₁, x₂⁆ - ⁅y₁, y₂⁆ = ⁅x₁, x₂ - y₂⁆ + ⁅x₁ - y₁, y₂⁆ := by { simp [-lie_skew], },
   rw h,
   apply submodule.add_mem,
-  { apply lie_bracket_mem_right R L I x₁ (x₂ - y₂) h₂, },
-  { apply lie_bracket_mem_left R L I (x₁ - y₁) y₂ h₁, }, }⟩
+  { apply lie_mem_right R L I x₁ (x₂ - y₂) h₂, },
+  { apply lie_mem_left R L I (x₁ - y₁) y₂ h₁, }, }⟩
 
 @[simp] theorem mk_bracket (I : lie_ideal R L) (x y : L) :
   (mk ⁅x, y⁆ : quotient I) = ⁅mk x, mk y⁆ := rfl

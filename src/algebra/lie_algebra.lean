@@ -305,10 +305,10 @@ instance lie_submodule_coe_submodule [lie_module R L M] :
   has_coe (lie_submodule R L M) (submodule R M) := ⟨lie_submodule.to_submodule⟩
 
 instance lie_submodule_has_mem [lie_module R L M] :
-  has_mem M (lie_submodule R L M) := ⟨λ x M', x ∈ (M' : set M)⟩
+  has_mem M (lie_submodule R L M) := ⟨λ x N, x ∈ (N : set M)⟩
 
-instance lie_submodule_lie_module [α : lie_module R L M] [M' : lie_submodule R L M] :
-  lie_module R L M' :=
+instance lie_submodule_lie_module [α : lie_module R L M] [N : lie_submodule R L M] :
+  lie_module R L N :=
 ⟨{add     := by { intros, ext, apply set_coe.ext,
                   rw [linear_map.coe_mk, subtype.coe_mk, linear_map.add], refl, },
   smul    := by { intros, ext, apply set_coe.ext,
@@ -316,7 +316,7 @@ instance lie_submodule_lie_module [α : lie_module R L M] [M' : lie_submodule R 
   bracket := by { intros, ext, apply set_coe.ext,
                   rw [linear_map.coe_mk, subtype.coe_mk, lie_algebra.morphism.bracket], refl, },
   to_fun  := λ x, {
-    to_fun := λ m, ⟨α.action.to_fun x m, M'.bracket m.property⟩,
+    to_fun := λ m, ⟨α.action.to_fun x m, N.bracket m.property⟩,
     add    := by { intros, apply set_coe.ext, simp, },
     smul   := by { intros, apply set_coe.ext, simp, }}}⟩
 
@@ -339,24 +339,31 @@ def lie_ideal_subalgebra (I : lie_ideal R L) : lie_subalgebra R L := {
 
 end lie_module
 
-namespace lie_quotient
+namespace lie_submodule
 
 variables {R : Type u} {L : Type v} [comm_ring R] [add_comm_group L] [lie_algebra R L]
+variables {M : Type v} [add_comm_group M] [module R M] [lie_module R L M]
+variables (N : lie_submodule R L M) (I : lie_ideal R L)
 
 /--
-The quotient of a Lie algebra by a Lie ideal. It is a Lie algebra.
+The quotient of a Lie module by a Lie submodule. It is a Lie module.
 -/
-abbreviation quotient (I : lie_ideal R L) := submodule.quotient I.to_submodule
+abbreviation quotient := N.to_submodule.quotient
+
+namespace quotient
+
+variables {N I}
 
 /--
-Map sending an element of `L` to the corresponding element of `L/I`, when `I` is a lie_ideal of `L`.
+Map sending an element of `M` to the corresponding element of `M/N`, when `N` is a lie_submodule of
+the lie_module `N`.
 -/
-abbreviation mk {I : lie_ideal R L} : L → I.to_submodule.quotient := submodule.quotient.mk
+abbreviation mk : M → N.quotient := submodule.quotient.mk
 
-lemma is_quotient_mk {I : lie_ideal R L} (x : L) :
-  quotient.mk' x = (mk x : quotient I) := by { intros, refl, }
+lemma is_quotient_mk (m : M) :
+  quotient.mk' m = (mk m : N.quotient) := by { intros, refl, }
 
-instance lie_quotient_has_bracket (I : lie_ideal R L) : has_bracket (quotient I) := ⟨by {
+instance lie_quotient_has_bracket : has_bracket (quotient I) := ⟨by {
   intros x y,
   apply quotient.lift_on₂' x y (λ x' y', mk ⁅x', y'⁆),
   intros x₁ x₂ y₁ y₂ h₁ h₂,
@@ -367,10 +374,10 @@ instance lie_quotient_has_bracket (I : lie_ideal R L) : has_bracket (quotient I)
   { apply lie_mem_right R L I x₁ (x₂ - y₂) h₂, },
   { apply lie_mem_left R L I (x₁ - y₁) y₂ h₁, }, }⟩
 
-@[simp] theorem mk_bracket (I : lie_ideal R L) (x y : L) :
+@[simp] theorem mk_bracket (x y : L) :
   (mk ⁅x, y⁆ : quotient I) = ⁅mk x, mk y⁆ := rfl
 
-instance lie_quotient_lie_algebra (I : lie_ideal R L) : lie_algebra R (quotient I) := {
+instance lie_quotient_lie_algebra : lie_algebra R (quotient I) := {
   add_lie  := by { intros x' y' z', apply quotient.induction_on₃' x' y' z', intros x y z,
                    repeat { rw is_quotient_mk <|>
                             rw ←mk_bracket <|>
@@ -395,7 +402,9 @@ instance lie_quotient_lie_algebra (I : lie_ideal R L) : lie_algebra R (quotient 
                             rw ←submodule.quotient.mk_smul, },
                    apply congr_arg, apply lie_smul, } }
 
-end lie_quotient
+end quotient
+
+end lie_submodule
 
 /--
 An important class of Lie algebras are those arising from the associative algebra structure on

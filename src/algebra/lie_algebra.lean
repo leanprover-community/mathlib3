@@ -326,7 +326,7 @@ abbreviation lie_ideal := lie_submodule R L L
 
 lemma lie_mem_right (I : lie_ideal R L) (x y : L) (h : y ∈ I) : ⁅x, y⁆ ∈ I := I.bracket h
 
-lemma lie_bracket_mem_left (I : lie_ideal R L) (x y : L) (h : x ∈ I) : ⁅x, y⁆ ∈ I := by {
+lemma lie_mem_left (I : lie_ideal R L) (x y : L) (h : x ∈ I) : ⁅x, y⁆ ∈ I := by {
   rw [←lie_skew, ←neg_lie], apply lie_mem_right, assumption, }
 
 end lie_module

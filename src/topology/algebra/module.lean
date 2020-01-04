@@ -64,7 +64,7 @@ end
 section prio
 set_option default_priority 100 -- see Note [default priority]
 /-- A topological module, over a ring which is also a topological space, is a module in which
-scalar multiplication is continuous. In applications, R will be a topological ring and M a
+scalar multiplication is continuous. In applications, `R` will be a topological ring and `M` a
 topological additive group, but this is not needed for the definition -/
 class topological_module (R : Type u) (M : Type v)
   [ring R] [topological_space R]
@@ -129,8 +129,8 @@ lemma is_closed_map_smul_of_ne_zero (ha : a ≠ 0) : is_closed_map (λ (x : M), 
 end
 
 /-- Continuous linear maps between modules. We only put the type classes that are necessary for the
-definition, although in applications M and M₂ will be topological modules over the topological
-ring R -/
+definition, although in applications `M` and `M₂` will be topological modules over the topological
+ring `R`. -/
 structure continuous_linear_map
   (R : Type*) [ring R]
   (M : Type*) [topological_space M] [add_comm_group M]
@@ -142,8 +142,8 @@ structure continuous_linear_map
 notation M ` →L[`:25 R `] ` M₂ := continuous_linear_map R M M₂
 
 /-- Continuous linear equivalences between modules. We only put the type classes that are necessary
-for the definition, although in applications M and M₂ will be topological modules over the
-topological ring R-/
+for the definition, although in applications `M` and `M₂` will be topological modules over the
+topological ring `R`. -/
 structure continuous_linear_equiv
   (R : Type*) [ring R]
   (M : Type*) [topological_space M] [add_comm_group M]
@@ -200,8 +200,8 @@ instance: has_zero (M →L[R] M₂) := ⟨zero⟩
 
 @[simp] lemma zero_apply : (0 : M →L[R] M₂) x = 0 := rfl
 @[simp, elim_cast] lemma coe_zero : ((0 : M →L[R] M₂) : M →ₗ[R] M₂) = 0 := rfl
-/- no simp attribute on the next line as simp does not always simplify 0 x to x
-when 0 is the zero function, while it does for the zero continuous linear map,
+/- no simp attribute on the next line as simp does not always simplify `0 x` to `0`
+when `0` is the zero function, while it does for the zero continuous linear map,
 and this is the most important property we care about. -/
 @[elim_cast] lemma coe_zero' : ((0 : M →L[R] M₂) : M → M₂) = 0 := rfl
 
@@ -377,11 +377,15 @@ def to_continuous_linear_map (e : M ≃L[R] M₂) : M →L[R] M₂ :=
 { cont := e.continuous_to_fun,
   ..e.to_linear_equiv.to_linear_map }
 
+/-- Coerce continuous linear equivs to continuous linear maps. -/
 instance : has_coe (M ≃L[R] M₂) (M →L[R] M₂) := ⟨to_continuous_linear_map⟩
+
+/-- Coerce continuous linear equivs to maps. -/
+instance : has_coe_to_fun (M ≃L[R] M₂) := ⟨_, λ f, ((f : M →L[R] M₂) : M → M₂)⟩
 
 @[simp] theorem coe_apply (e : M ≃L[R] M₂) (b : M) : (e : M →L[R] M₂) b = e b := rfl
 
-lemma coe_coe (e : M ≃L[R] M₂) : ((e : M →L[R] M₂) : M → M₂) = e := rfl
+@[squash_cast] lemma coe_coe (e : M ≃L[R] M₂) : ((e : M →L[R] M₂) : M → M₂) = e := rfl
 
 @[ext] lemma ext {f g : M ≃L[R] M₂} (h : (f : M → M₂) = g) : f = g :=
 begin
@@ -394,21 +398,30 @@ begin
 end
 
 /-- A continuous linear equivalence induces a homeomorphism. -/
-def to_homeomorph (e : M ≃L[R] M₂) : M ≃ₜ M₂ :=
-{ ..e }
+def to_homeomorph (e : M ≃L[R] M₂) : M ≃ₜ M₂ := { ..e }
+
+-- Make some straightforward lemmas available to `simp`.
+@[simp] lemma map_zero (e : M ≃L[R] M₂) : e (0 : M) = 0 := (e : M →L[R] M₂).map_zero
+@[simp] lemma map_add (e : M ≃L[R] M₂) (x y : M) : e (x + y) = e x + e y :=
+(e : M →L[R] M₂).map_add x y
+@[simp] lemma map_sub (e : M ≃L[R] M₂) (x y : M) : e (x - y) = e x - e y :=
+(e : M →L[R] M₂).map_sub x y
+@[simp] lemma map_smul (e : M ≃L[R] M₂) (c : R) (x : M) : e (c • x) = c • (e x) :=
+(e : M →L[R] M₂).map_smul c x
+@[simp] lemma map_neg (e : M ≃L[R] M₂) (x : M) : e (-x) = -e x := (e : M →L[R] M₂).map_neg x
 
 section
 variable (M)
 
 /-- The identity map as a continuous linear equivalence. -/
-def refl : M ≃L[R] M :=
+@[refl] protected def refl : M ≃L[R] M :=
 { continuous_to_fun := continuous_id,
   continuous_inv_fun := continuous_id,
   .. linear_equiv.refl M }
 end
 
 /-- The inverse of a continuous linear equivalence as a continuous linear equivalence-/
-def symm (e : M ≃L[R] M₂) : M₂ ≃L[R] M :=
+@[symm] protected def symm (e : M ≃L[R] M₂) : M₂ ≃L[R] M :=
 { continuous_to_fun := e.continuous_inv_fun,
   continuous_inv_fun := e.continuous_to_fun,
   .. e.to_linear_equiv.symm }
@@ -418,7 +431,7 @@ def symm (e : M ≃L[R] M₂) : M₂ ≃L[R] M :=
 by { ext, refl }
 
 /-- The composition of two continuous linear equivalences as a continuous linear equivalence. -/
-def trans (e₁ : M ≃L[R] M₂) (e₂ : M₂ ≃L[R] M₃) : M ≃L[R] M₃ :=
+@[trans] protected def trans (e₁ : M ≃L[R] M₂) (e₂ : M₂ ≃L[R] M₃) : M ≃L[R] M₃ :=
 { continuous_to_fun := e₂.continuous_to_fun.comp e₁.continuous_to_fun,
   continuous_inv_fun := e₁.continuous_inv_fun.comp e₂.continuous_inv_fun,
   .. e₁.to_linear_equiv.trans e₂.to_linear_equiv }

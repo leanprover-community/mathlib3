@@ -211,7 +211,8 @@ theorem linear_equiv.is_bounded_inv (e : E ≃ₗ[𝕜] F) (h : is_bounded_linea
   ..e.symm }
 
 /-- Associating to a linear equivalence between Banach spaces a continuous linear equivalence when
-the direct map is continuous. -/
+the direct map is continuous, thanks to the Banach open mapping theorem that ensures that the
+inverse map is also continuous. -/
 def linear_equiv.to_continuous_linear_equiv_of_continuous (e : E ≃ₗ[𝕜] F) (h : continuous e) :
   E ≃L[𝕜] F :=
 { continuous_to_fun := h,

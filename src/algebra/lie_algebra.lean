@@ -259,13 +259,13 @@ A Lie subalgebra of a Lie algebra is submodule that is closed under the Lie brac
 This is a sufficient condition for the subset itself to form a Lie algebra.
 -/
 structure lie_subalgebra extends submodule R L :=
-(bracket : ∀ {x y}, x ∈ carrier → y ∈ carrier → ⁅x, y⁆ ∈ carrier)
+(lie_mem : ∀ {x y}, x ∈ carrier → y ∈ carrier → ⁅x, y⁆ ∈ carrier)
 
 instance lie_subalgebra_coe_submodule : has_coe (lie_subalgebra R L) (submodule R L) :=
 ⟨lie_subalgebra.to_submodule⟩
 
 instance lie_subalgebra_lie_algebra [L' : lie_subalgebra R L] : lie_algebra R L' := {
-  bracket  := λ x y, ⟨⁅x.val, y.val⁆, L'.bracket x.property y.property⟩,
+  bracket  := λ x y, ⟨⁅x.val, y.val⁆, L'.lie_mem x.property y.property⟩,
   lie_add  := by { intros, apply set_coe.ext, apply lie_add, },
   add_lie  := by { intros, apply set_coe.ext, apply add_lie, },
   lie_self := by { intros, apply set_coe.ext, apply lie_self, },

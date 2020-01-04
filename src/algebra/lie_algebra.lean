@@ -285,7 +285,8 @@ set_option default_priority 100 -- see Note [default priority]
 A Lie module is a module over a commutative ring, together with a linear action of a Lie algebra
 on this module, such that the Lie bracket acts as the commutator of endomorphisms.
 -/
-class lie_module := (action : L →ₗ⁅R⁆ module.End R M)
+class lie_module :=
+(action : L →ₗ⁅R⁆ module.End R M)
 end prio
 
 /--

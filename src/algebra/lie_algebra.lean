@@ -329,6 +329,9 @@ lemma lie_mem_right (I : lie_ideal R L) (x y : L) (h : y ∈ I) : ⁅x, y⁆ ∈
 lemma lie_mem_left (I : lie_ideal R L) (x y : L) (h : x ∈ I) : ⁅x, y⁆ ∈ I := by {
   rw [←lie_skew, ←neg_lie], apply lie_mem_right, assumption, }
 
+/--
+An ideal of a Lie algebra is a Lie subalgebra.
+-/
 def lie_ideal_subalgebra (I : lie_ideal R L) : lie_subalgebra R L := {
   lie_mem := by { intros x y hx hy, apply lie_mem_right, exact hy, },
   ..I.to_submodule, }

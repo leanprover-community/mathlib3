@@ -192,8 +192,9 @@ infixr ` →ₗ⁅⁆ `:25 := morphism _
 notation L ` →ₗ⁅`:25 R:25 `⁆ `:0 L':0 := morphism R L L'
 
 instance (R : Type u) (L : Type v) (L' : Type v)
-  [comm_ring R] [add_comm_group L] [lie_algebra R L] [add_comm_group L'] [lie_algebra R L']
-  : has_coe_to_fun (L →ₗ⁅R⁆ L') := ⟨_, linear_map.to_fun ∘ morphism.to_linear_map⟩
+  [comm_ring R] [add_comm_group L] [lie_algebra R L] [add_comm_group L'] [lie_algebra R L'] :
+  has_coe_to_fun (L →ₗ⁅R⁆ L') := ⟨_, linear_map.to_fun ∘ morphism.to_linear_map⟩
+
 variables {R : Type u} {L : Type v} [comm_ring R] [add_comm_group L] [lie_algebra R L]
 
 /--
@@ -299,14 +300,14 @@ This is a sufficient condition for the subset itself to form a Lie module.
 structure lie_submodule [lie_module R L M] extends submodule R M :=
 (bracket : ∀ {x m}, m ∈ carrier → lie_module.action R L M x m ∈ carrier)
 
-instance lie_submodule_coe_submodule [lie_module R L M]
-  : has_coe (lie_submodule R L M) (submodule R M) := ⟨lie_submodule.to_submodule⟩
+instance lie_submodule_coe_submodule [lie_module R L M] :
+  has_coe (lie_submodule R L M) (submodule R M) := ⟨lie_submodule.to_submodule⟩
 
-instance lie_submodule_has_mem [lie_module R L M]
-  : has_mem M (lie_submodule R L M) := ⟨λ x M', x ∈ (M' : set M)⟩
+instance lie_submodule_has_mem [lie_module R L M] :
+  has_mem M (lie_submodule R L M) := ⟨λ x M', x ∈ (M' : set M)⟩
 
-instance lie_submodule_lie_module [α : lie_module R L M] [M' : lie_submodule R L M]
-  : lie_module R L M' := ⟨{
+instance lie_submodule_lie_module [α : lie_module R L M] [M' : lie_submodule R L M] :
+  lie_module R L M' := ⟨{
   add     := by { intros, ext, apply set_coe.ext,
                   rw [linear_map.coe_mk, subtype.coe_mk, linear_map.add], refl, },
   smul    := by { intros, ext, apply set_coe.ext,
@@ -344,8 +345,8 @@ Map sending an element of `L` to the corresponding element of `L/I`, when `I` is
 -/
 abbreviation mk {I : lie_ideal R L} : L → I.to_submodule.quotient := submodule.quotient.mk
 
-lemma is_quotient_mk {I : lie_ideal R L} (w : L)
-  : quotient.mk' w = (mk w : quotient I) := by { intros, refl, }
+lemma is_quotient_mk {I : lie_ideal R L} (x : L) :
+  quotient.mk' x = (mk x : quotient I) := by { intros, refl, }
 
 instance lie_quotient_has_bracket (I : lie_ideal R L) : has_bracket (quotient I) := ⟨by {
   intros x y,

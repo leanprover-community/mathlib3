@@ -18,13 +18,55 @@ TODO expand
 
 ## Main statements
 
-This file contains the proofs of the following facts:
+This file contains the proofs of the following facts. For exact requirements (`ordered_topology`
+vs `orderable_topology`, `preorder` vs `partial_order` vs `linear_order` etc) see their
+statements.
 
-* all intervals `I??` are connected,
-* Intermediate Value Theorem, both for connected sets and `Icc` intervals,
-* Extreme Value Theorem: a continuous function on a compact set takes its maximum value.
+### Open / closed sets
 
-TODO expand
+* `is_open_lt` : if `f` and `g` are continuous functions, then `{x | f x < g x}` is open;
+* `is_open_Iio`, `is_open_Ioi`, `is_open_Ioo` : open intervals are open;
+* `is_closed_le` : if `f` and `g` are continuous functions, then `{x | f x ≤ g x}` is closed;
+* `is_closed_Iic`, `is_closed_Ici`, `is_closed_Icc` : closed intervals are closed;
+* `frontier_le_subset_eq`, `frontier_lt_subset_eq` : frontiers of both `{x | f x ≤ g x}`
+  and `{x | f x < g x}` are included by `{x | f x = g x}`;
+* `exists_Ioc_subset_of_mem_nhds`, `exists_Ico_subset_of_mem_nhds` : if `x < y`, then any
+  neighborhood of `x` includes an interval `[x, z)` for some `z ∈ (x, y]`, and any neighborhood
+  of `y` includes an interval `(z, y]` for some `z ∈ [x, y)`.
+
+### Convergence and inequalities
+
+* `le_of_tendsto_of_tendsto` : if `f` converges to `a`, `g` converges to `b`, and eventually
+  `f x ≤ g x`, then `a ≤ b`
+* `le_of_tendsto`, `ge_of_tendsto` : if `f` fonverges to `a` and eventually `f x ≤ b`
+  (resp., `b ≤ f x`), then `a ≤ b` (resp., `b ≤ a);
+
+### Min, max, `Sup` and `Inf`
+
+* `continuous.min`, `continuous.max`: pointwise `min`/`max` of two continuous functions is continuous.
+* `tendsto.min`, `tendsto.max` : if `f` tends to `a` and `g` tends to `b`, then their pointwise
+  `min`/`max` tend to `min a b` and `max a b`, respectively.
+* `tendsto_of_tendsto_of_tendsto_of_le_of_le` : theorem known as squeeze theorem,
+  sandwich theorem, theorem of Carabinieri, and two policemen (and a drunk) theorem; if `g` and `h`
+  both converge to `a`, and eventually `g x ≤ f x ≤ h x`, then `f` converges to `a`.
+
+### Connected sets and Intermediate Value Theorem
+
+* `is_connected_I??` : all intervals `I??` are connected,
+* `is_connected.intermediate_value`, `intermediate_value_univ` : Intermediate Value Theorem for
+  connected sets and connected spaces, respectively;
+* `intermediate_value_Icc`, `intermediate_value_Icc'`: Intermediate Value Theorem for functions
+  on closed intervals.
+
+### Miscellaneous facts
+
+* `compact.exists_forall_le`, `compact.exists_forall_ge` : extreme value theorem, a continuous
+  function on a compact set takes its minimum and maximum values.
+* `is_closed.Icc_subset_of_forall_mem_nhds_within` : “Continuous induction” principle;
+  if `s ∩ [a, b]` is closed, `a ∈ s`, and for each `x ∈ [a, b) ∩ s` some of its right neighborhoods
+  is included `s`, then `[a, b] ⊆ s`.
+* `is_closed.Icc_subset_of_forall_exists_gt`, `is_closed.mem_of_ge_of_forall_exists_gt` : two
+  other versions of the “continuous induction” principle.
 -/
 
 open classical set lattice filter topological_space
@@ -572,6 +614,10 @@ filter.ext $ λ s, (tfae_mem_nhds_within_Ioi h s).out 1 0
   nhds_within a (Ioo a b) = nhds_within a (Ioi a) :=
 filter.ext $ λ s, (tfae_mem_nhds_within_Ioi hu s).out 2 0
 
+lemma mem_nhds_within_Ioi_iff_exists_mem_Ioc_Ioo_subset {a u' : α} {s : set α} (hu' : a < u') :
+  s ∈ nhds_within a (Ioi a) ↔ ∃u ∈ Ioc a u', Ioo a u ⊆ s :=
+(tfae_mem_nhds_within_Ioi hu' s).out 0 3
+
 /-- A set is a neighborhood of `a` within `(a, +∞)` if and only if it contains an interval `(a, u)`
 with `a < u < u'`, provided `a` is not a top element. -/
 lemma mem_nhds_within_Ioi_iff_exists_Ioo_subset' {a u' : α} {s : set α} (hu' : a < u') :
@@ -597,6 +643,22 @@ begin
   { rintros ⟨u, au, as⟩,
     exact ⟨u, au, subset.trans Ioo_subset_Ioc_self as⟩ }
 end
+
+lemma Ioo_mem_nhds_within_Ioi {a b c : α} (H : b ∈ Ico a c) :
+  Ioo a c ∈ nhds_within b (Ioi b) :=
+(mem_nhds_within_Ioi_iff_exists_Ioo_subset' H.2).2 ⟨c, H.2, Ioo_subset_Ioo_left H.1⟩
+
+lemma Ioc_mem_nhds_within_Ioi {a b c : α} (H : b ∈ Ico a c) :
+  Ioc a c ∈ nhds_within b (Ioi b) :=
+mem_sets_of_superset (Ioo_mem_nhds_within_Ioi H) Ioo_subset_Ioc_self
+
+lemma Ico_mem_nhds_within_Ioi {a b c : α} (H : b ∈ Ico a c) :
+  Ico a c ∈ nhds_within b (Ioi b) :=
+mem_sets_of_superset (Ioo_mem_nhds_within_Ioi H) Ioo_subset_Ico_self
+
+lemma Icc_mem_nhds_within_Ioi {a b c : α} (H : b ∈ Ico a c) :
+  Icc a c ∈ nhds_within b (Ioi b) :=
+mem_sets_of_superset (Ioo_mem_nhds_within_Ioi H) Ioo_subset_Icc_self
 
 /-- The following statements are equivalent:
 
@@ -626,6 +688,10 @@ filter.ext $ λ s, (tfae_mem_nhds_within_Iio h s).out 1 0
 @[simp] lemma nhds_within_Ioo_eq_nhds_within_Iio {a b : α} (h : a < b) :
   nhds_within b (Ioo a b) = nhds_within b (Iio b) :=
 filter.ext $ λ s, (tfae_mem_nhds_within_Iio h s).out 2 0
+
+lemma mem_nhds_within_Iio_iff_exists_mem_Ico_Ioo_subset {a l' : α} {s : set α} (hl' : l' < a) :
+  s ∈ nhds_within a (Iio a) ↔ ∃l ∈ Ico l' a, Ioo l a ⊆ s :=
+(tfae_mem_nhds_within_Iio hl' s).out 0 3
 
 /-- A set is a neighborhood of `a` within `(-∞, a)` if and only if it contains an interval `(l, a)`
 with `l < a`, provided `a` is not a bottom element. -/
@@ -871,9 +937,9 @@ lemma bdd_above_of_compact {α : Type u} [topological_space α] [linear_order α
 
 end order_topology
 
-section decidable_linear_order
+section linear_order
 
-variables [topological_space α] [decidable_linear_order α] [orderable_topology α] [densely_ordered α]
+variables [topological_space α] [linear_order α] [orderable_topology α] [densely_ordered α]
 
 /-- The closure of the interval `(a, +∞)` is the closed interval `[a, +∞)`, unless `a` is a top
 element. -/
@@ -881,9 +947,7 @@ lemma closure_Ioi' {a b : α} (hab : a < b) :
   closure (Ioi a) = Ici a :=
 begin
   apply subset.antisymm,
-  { rw ← closure_eq_iff_is_closed.2 is_closed_Ici,
-    exact closure_mono Ioi_subset_Ici_self,
-    apply_instance },
+  { exact closure_minimal Ioi_subset_Ici_self is_closed_Ici },
   { assume x hx,
     by_cases h : x = a,
     { rw h, exact mem_closure_of_is_glb is_glb_Ioi (ne_empty_of_mem hab) },
@@ -901,9 +965,7 @@ lemma closure_Iio' {a b : α} (hab : b < a) :
   closure (Iio a) = Iic a :=
 begin
   apply subset.antisymm,
-  { rw ← closure_eq_iff_is_closed.2 is_closed_Iic,
-    exact closure_mono Iio_subset_Iic_self,
-    apply_instance },
+  { exact closure_minimal Iio_subset_Iic_self is_closed_Iic },
   { assume x hx,
     by_cases h : x = a,
     { rw h, exact mem_closure_of_is_lub is_lub_Iio (ne_empty_of_mem hab) },
@@ -920,9 +982,7 @@ lemma closure_Ioo {a b : α} (hab : a < b) :
   closure (Ioo a b) = Icc a b :=
 begin
   apply subset.antisymm,
-  { rw ← closure_eq_iff_is_closed.2 is_closed_Icc,
-    exact closure_mono Ioo_subset_Icc_self,
-    apply_instance },
+  { exact closure_minimal Ioo_subset_Icc_self is_closed_Icc },
   { have ne_empty : Ioo a b ≠ ∅, by simpa [Ioo_eq_empty_iff],
     assume x hx,
     by_cases h : x = a,
@@ -937,9 +997,7 @@ lemma closure_Ioc {a b : α} (hab : a < b) :
   closure (Ioc a b) = Icc a b :=
 begin
   apply subset.antisymm,
-  { rw ← closure_eq_iff_is_closed.2 is_closed_Icc,
-    exact closure_mono Ioc_subset_Icc_self,
-    apply_instance },
+  { exact closure_minimal Ioc_subset_Icc_self is_closed_Icc },
   { apply subset.trans _ (closure_mono Ioo_subset_Ioc_self),
     rw closure_Ioo hab }
 end
@@ -949,14 +1007,44 @@ lemma closure_Ico {a b : α} (hab : a < b) :
   closure (Ico a b) = Icc a b :=
 begin
   apply subset.antisymm,
-  { rw ← closure_eq_iff_is_closed.2 is_closed_Icc,
-    exact closure_mono Ico_subset_Icc_self,
-    apply_instance },
+  { exact closure_minimal Ico_subset_Icc_self is_closed_Icc },
   { apply subset.trans _ (closure_mono Ioo_subset_Ico_self),
     rw closure_Ioo hab }
 end
 
-end decidable_linear_order
+lemma nhds_within_Ioi_ne_bot' {a b c : α} (H₁ : a < c) (H₂ : a ≤ b) :
+  nhds_within b (Ioi a) ≠ ⊥ :=
+mem_closure_iff_nhds_within_ne_bot.1 $ by { rw [closure_Ioi' H₁], exact H₂ }
+
+lemma nhds_within_Ioi_ne_bot [no_top_order α] {a b : α} (H : a ≤ b) :
+  nhds_within b (Ioi a) ≠ ⊥ :=
+let ⟨c, hc⟩ := no_top a in nhds_within_Ioi_ne_bot' hc H
+
+lemma nhds_within_Ioi_self_ne_bot' {a b : α} (H : a < b) :
+  nhds_within a (Ioi a) ≠ ⊥ :=
+nhds_within_Ioi_ne_bot' H (le_refl a)
+
+lemma nhds_within_Ioi_self_ne_bot [no_top_order α] (a : α) :
+  nhds_within a (Ioi a) ≠ ⊥ :=
+nhds_within_Ioi_ne_bot (le_refl a)
+
+lemma nhds_within_Iio_ne_bot' {a b c : α} (H₁ : a < c) (H₂ : b ≤ c) :
+  nhds_within b (Iio c) ≠ ⊥ :=
+mem_closure_iff_nhds_within_ne_bot.1 $ by { rw [closure_Iio' H₁], exact H₂ }
+
+lemma nhds_within_Iio_ne_bot [no_bot_order α] {a b : α} (H : a ≤ b) :
+  nhds_within a (Iio b) ≠ ⊥ :=
+let ⟨c, hc⟩ := no_bot b in nhds_within_Iio_ne_bot' hc H
+
+lemma nhds_within_Iio_self_ne_bot' {a b : α} (H : a < b) :
+  nhds_within b (Iio b) ≠ ⊥ :=
+nhds_within_Iio_ne_bot' H (le_refl b)
+
+lemma nhds_within_Iio_self_ne_bot [no_bot_order α] (a : α) :
+  nhds_within a (Iio a) ≠ ⊥ :=
+nhds_within_Iio_ne_bot (le_refl a)
+
+end linear_order
 
 section complete_linear_order
 
@@ -1084,35 +1172,81 @@ lemma cinfi_of_cinfi_of_monotone_of_continuous {f : α → β} {g : γ → α}
 by rw [infi, cInf_of_cInf_of_monotone_of_continuous Mf Cf
   (λ h, range_eq_empty.1 h ‹_›) H, ← range_comp]; refl
 
+/-- A "continuous induction principle" for a closed interval: if a set `s` meets `[a, b]`
+on a closed subset, contains `a`, and the set `s ∩ [a, b)` has no maximal point, then `b ∈ s`. -/
+lemma is_closed.mem_of_ge_of_forall_exists_gt {a b : α} {s : set α} (hs : is_closed (s ∩ Icc a b))
+  (ha : a ∈ s) (hab : a ≤ b) (hgt : ∀ x ∈ s ∩ Ico a b, (s ∩ Ioc x b).nonempty) :
+  b ∈ s :=
+begin
+  let S := s ∩ Icc a b,
+  replace ha : a ∈ S, from ⟨ha, left_mem_Icc.2 hab⟩,
+  have Sne: S ≠ ∅, from ne_empty_of_mem ha,
+  have Sbd : bdd_above S, from ⟨b, λ z hz, hz.2.2⟩,
+  let c := Sup (s ∩ Icc a b),
+  have c_mem : c ∈ S, from cSup_mem_of_is_closed Sne hs Sbd,
+  have c_le : c ≤ b, from cSup_le Sne (λ x hx, hx.2.2),
+  cases eq_or_lt_of_le c_le with hc hc, from hc ▸ c_mem.1,
+  exfalso,
+  rcases hgt c ⟨c_mem.1, c_mem.2.1, hc⟩ with ⟨x, xs, cx, xb⟩,
+  exact not_lt_of_le (le_cSup Sbd ⟨xs, le_trans (le_cSup Sbd ha) (le_of_lt cx), xb⟩) cx
+end
+
+/-- A "continuous induction principle" for a closed interval: if a set `s` meets `[a, b]`
+on a closed subset, contains `a`, and for any `a ≤ x < y ≤ b`, `x ∈ s`, the set `s ∩ (x, y]`
+is not empty, then `[a, b] ⊆ s`. -/
+lemma is_closed.Icc_subset_of_forall_exists_gt {a b : α} {s : set α} (hs : is_closed (s ∩ Icc a b))
+  (ha : a ∈ s) (hgt : ∀ x ∈ s ∩ Ico a b, ∀ y ∈ Ioi x,  (s ∩ Ioc x y).nonempty) :
+  Icc a b ⊆ s :=
+begin
+  assume y hy,
+  have : is_closed (s ∩ Icc a y),
+  { suffices : s ∩ Icc a y = s ∩ Icc a b ∩ Icc a y,
+    { rw this, exact is_closed_inter hs is_closed_Icc },
+    rw [inter_assoc],
+    congr,
+    exact (inter_eq_self_of_subset_right $ Icc_subset_Icc_right hy.2).symm },
+  exact is_closed.mem_of_ge_of_forall_exists_gt this ha hy.1
+    (λ x hx, hgt x ⟨hx.1, Ico_subset_Ico_right hy.2 hx.2⟩ y hx.2.2)
+end
+
 section densely_ordered
 
 variables [densely_ordered α] {a b : α}
 
+/-- A "continuous induction principle" for a closed interval: if a set `s` meets `[a, b]`
+on a closed subset, contains `a`, and for any `x ∈ s ∩ [a, b)` the set `s` includes some open
+neighborhood of `x` within `(x, +∞)`, then `[a, b] ⊆ s`. -/
+lemma is_closed.Icc_subset_of_forall_mem_nhds_within {a b : α} {s : set α}
+  (hs : is_closed (s ∩ Icc a b)) (ha : a ∈ s)
+  (hgt : ∀ x ∈ s ∩ Ico a b, s ∈ nhds_within x (Ioi x)) :
+  Icc a b ⊆ s :=
+begin
+  apply hs.Icc_subset_of_forall_exists_gt ha,
+  rintros x ⟨hxs, hxab⟩ y hyxb,
+  have : s ∩ Ioc x y ∈ nhds_within x (Ioi x),
+    from inter_mem_sets (hgt x ⟨hxs, hxab⟩) (Ioc_mem_nhds_within_Ioi ⟨le_refl _, hyxb⟩),
+  exact inhabited_of_mem_sets (nhds_within_Ioi_self_ne_bot' hxab.2) this
+end
+
+/-- A closed interval is connected. -/
 lemma is_connected_Icc : is_connected (Icc a b) :=
 is_connected_closed_iff.2
 begin
   rintros s t hs ht hab ⟨x, hx⟩ ⟨y, hy⟩,
   wlog hxy : x ≤ y := le_total x y using [x y s t, y x t s],
-  -- `c = Sup (Icc x y ∩ s)` belongs to `Icc a b`, `s`, and `t`.
-  -- First two statements follow from general properties of `cSup`
-  let S := Icc x y ∩ s,
-  have xS : x ∈ S, from ⟨left_mem_Icc.2 hxy, hx.2⟩,
-  have Sne : S ≠ ∅, from ne_empty_iff_nonempty.2 ⟨x, xS⟩,
-  have Sbd : bdd_above S, from ⟨y, λ z hz, hz.1.2⟩,
-  let c := Sup S,
-  have c_mem : c ∈ S, from cSup_mem_of_is_closed Sne (is_closed_inter is_closed_Icc hs) Sbd,
   have xyab : Icc x y ⊆ Icc a b := Icc_subset_Icc hx.1.1 hy.1.2,
-  have Sab : S ⊆ Icc a b := subset.trans (inter_subset_left _ _) xyab,
-  refine ⟨c, Sab c_mem, c_mem.2, _⟩,
-  -- Now we need to prove `c ∈ t`; we deduce it from `Ioc c y ⊆ (s ∪ t) \ s ⊆ t`
-  cases eq_or_lt_of_le c_mem.1.2 with hcy hcy, { exact hcy.symm ▸ hy.2 },
-  suffices : Icc c y ⊆ t, from this (left_mem_Icc.2 (le_of_lt hcy)),
-  rw [← closure_Ioc hcy, closure_subset_iff_subset_of_is_closed ht],
-  intros z hz,
-  have z_mem : z ∈ Icc x y, from Icc_subset_Icc_left c_mem.1.1 (Ioc_subset_Icc_self hz),
-  suffices : z ∈ t \ s, from and.left this,
-  rw [← union_diff_left],
-  exact ⟨hab $ xyab z_mem, λ zs, not_lt_of_le (le_cSup Sbd ⟨z_mem, zs⟩) hz.1⟩
+  by_contradiction hst,
+  suffices : Icc x y ⊆ s,
+    from hst ⟨y, xyab $ right_mem_Icc.2 hxy, this $ right_mem_Icc.2 hxy, hy.2⟩,
+  apply (is_closed_inter hs is_closed_Icc).Icc_subset_of_forall_mem_nhds_within hx.2,
+  rintros z ⟨zs, hz⟩,
+  have zt : z ∈ -t, from λ zt, hst ⟨z, xyab $ Ico_subset_Icc_self hz, zs, zt⟩,
+  have : -t ∩ Ioc z y ∈ nhds_within z (Ioi z),
+  { rw [← nhds_within_Ioc_eq_nhds_within_Ioi hz.2],
+    exact mem_nhds_within.2 ⟨-t, ht, zt, subset.refl _⟩},
+  apply mem_sets_of_superset this,
+  have : Ioc z y ⊆ s ∪ t, from λ w hw, hab (xyab ⟨le_trans hz.1 (le_of_lt hw.1), hw.2⟩),
+  exact λ w ⟨wt, wzy⟩, (this wzy).elim id (λ h, (wt h).elim)
 end
 
 lemma is_connected_iff_forall_Icc_subset {s : set α} :

@@ -33,9 +33,9 @@ See https://isabelle.in.tum.de/dist/library/HOL/HOL-Library/Extended_Real.html
 
 -/
 
-/-- ereal : The type $$[-\infty,+\infty]$$ or `[-∞, ∞]` -/
+/-- ereal : The type `[-∞, ∞]` -/
 @[derive [linear_order, lattice.order_bot, lattice.order_top,
-  lattice.has_Sup, lattice.complete_lattice]]
+  lattice.has_Sup, lattice.has_Inf, lattice.complete_lattice]]
 def ereal := with_top (with_bot ℝ)
 
 namespace ereal
@@ -48,6 +48,7 @@ by { unfold_coes, norm_num }
 by { unfold_coes, simp [option.some_inj] }
 
 /- neg -/
+
 /-- negation on ereal -/
 protected def neg : ereal → ereal
 | ⊥       := ⊤

@@ -98,11 +98,11 @@ The 𝓝 filter and the subspace topology.
 
 theorem mem_nhds_subtype (s : set α) (a : {x // x ∈ s}) (t : set {x // x ∈ s}) :
   t ∈ 𝓝 a ↔ ∃ u ∈ 𝓝 a.val, (@subtype.val α s) ⁻¹' u ⊆ t :=
-by rw mem_nhds_induced
+by apply mem_nhds_induced
 
 theorem nhds_subtype (s : set α) (a : {x // x ∈ s}) :
   𝓝 a = comap subtype.val (𝓝 a.val) :=
-by rw nhds_induced
+by apply nhds_induced
 
 end topα
 
@@ -297,7 +297,7 @@ begin
   rw [is_open_map_iff_nhds_le],
   rintros ⟨a, b⟩,
   rw [nhds_prod_eq, nhds_prod_eq, ← filter.prod_map_map_eq],
-  exact filter.prod_mono ((is_open_map_iff_nhds_le f).1 hf a) ((is_open_map_iff_nhds_le g).1 hg b)
+  exact filter.prod_mono (is_open_map_iff_nhds_le.1 hf a) (is_open_map_iff_nhds_le.1 hg b)
 end
 
 protected lemma open_embedding.prod {f : α → β} {g : γ → δ}

@@ -299,7 +299,7 @@ A Lie submodule of a Lie module is a submodule that is closed under the Lie brac
 This is a sufficient condition for the subset itself to form a Lie module.
 -/
 structure lie_submodule [lie_module R L M] extends submodule R M :=
-(bracket : ∀ {x m}, m ∈ carrier → lie_module.action R L M x m ∈ carrier)
+(lie_mem : ∀ {x m}, m ∈ carrier → lie_module.action R L M x m ∈ carrier)
 
 instance lie_submodule_coe_submodule [lie_module R L M] :
   has_coe (lie_submodule R L M) (submodule R M) := ⟨lie_submodule.to_submodule⟩
@@ -307,7 +307,7 @@ instance lie_submodule_coe_submodule [lie_module R L M] :
 instance lie_submodule_has_mem [lie_module R L M] :
   has_mem M (lie_submodule R L M) := ⟨λ x N, x ∈ (N : set M)⟩
 
-instance lie_submodule_lie_module [α : lie_module R L M] [N : lie_submodule R L M] :
+instance lie_submodule_lie_module [α : lie_module R L M] (N : lie_submodule R L M) :
   lie_module R L N :=
 ⟨{add     := by { intros, ext, apply set_coe.ext,
                   rw [linear_map.coe_mk, subtype.coe_mk, linear_map.add], refl, },
@@ -316,7 +316,7 @@ instance lie_submodule_lie_module [α : lie_module R L M] [N : lie_submodule R L
   bracket := by { intros, ext, apply set_coe.ext,
                   rw [linear_map.coe_mk, subtype.coe_mk, lie_algebra.morphism.bracket], refl, },
   to_fun  := λ x, {
-    to_fun := λ m, ⟨α.action.to_fun x m, N.bracket m.property⟩,
+    to_fun := λ m, ⟨α.action.to_fun x m, N.lie_mem m.property⟩,
     add    := by { intros, apply set_coe.ext, simp, },
     smul   := by { intros, apply set_coe.ext, simp, }}}⟩
 
@@ -325,7 +325,7 @@ An ideal of a Lie algebra is a Lie submodule of the Lie algebra as a Lie module 
 -/
 abbreviation lie_ideal := lie_submodule R L L
 
-lemma lie_mem_right (I : lie_ideal R L) (x y : L) (h : y ∈ I) : ⁅x, y⁆ ∈ I := I.bracket h
+lemma lie_mem_right (I : lie_ideal R L) (x y : L) (h : y ∈ I) : ⁅x, y⁆ ∈ I := I.lie_mem h
 
 lemma lie_mem_left (I : lie_ideal R L) (x y : L) (h : x ∈ I) : ⁅x, y⁆ ∈ I := by {
   rw [←lie_skew, ←neg_lie], apply lie_mem_right, assumption, }
@@ -361,7 +361,7 @@ the lie_module `N`.
 abbreviation mk : M → N.quotient := submodule.quotient.mk
 
 lemma is_quotient_mk (m : M) :
-  quotient.mk' m = (mk m : N.quotient) := by { intros, refl, }
+  quotient.mk' m = (mk m : N.quotient) := rfl
 
 instance lie_quotient_has_bracket : has_bracket (quotient I) := ⟨by {
   intros x y,
@@ -374,7 +374,7 @@ instance lie_quotient_has_bracket : has_bracket (quotient I) := ⟨by {
   { apply lie_mem_right R L I x₁ (x₂ - y₂) h₂, },
   { apply lie_mem_left R L I (x₁ - y₁) y₂ h₁, }, }⟩
 
-@[simp] theorem mk_bracket (x y : L) :
+@[simp] lemma mk_bracket (x y : L) :
   (mk ⁅x, y⁆ : quotient I) = ⁅mk x, mk y⁆ := rfl
 
 instance lie_quotient_lie_algebra : lie_algebra R (quotient I) := {

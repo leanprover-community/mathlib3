@@ -569,6 +569,23 @@ lemma mem_closure_of_tendsto {f : β → α} {b : filter β} {a : α} {s : set �
 mem_of_closed_of_tendsto hb hf (is_closed_closure) $
   filter.mem_sets_of_superset h (preimage_mono subset_closure)
 
+/-- Suppose that `f` sends the complement to `s` to a single point `a`, and `l` is some filter.
+Then `f` tends to `a` along `l` restricted to `s` if and only it tends to `a` along `l`. -/
+lemma tendsto_inf_principal_nhds_iff_of_forall_eq {f : β → α} {l : filter β} {s : set β}
+  {a : α} (h : ∀ x ∉ s, f x = a) :
+  tendsto f (l ⊓ principal s) (𝓝 a) ↔ tendsto f l (𝓝 a) :=
+begin
+  rw [tendsto_iff_comap, tendsto_iff_comap],
+  replace h : principal (-s) ≤ comap f (𝓝 a),
+  { rintros U ⟨t, ht, htU⟩ x hx,
+    have : f x ∈ t, from (h x hx).symm ▸ mem_of_nhds ht,
+    exact htU this },
+  refine ⟨λ h', _, le_trans inf_le_left⟩,
+  have := sup_le h' h,
+  rw [sup_inf_right, sup_principal, union_compl_self, principal_univ,
+    inf_top_eq, sup_le_iff] at this,
+  exact this.1
+end
 
 section lim
 variables [inhabited α]
@@ -677,6 +694,12 @@ lemma continuous_iff_continuous_at {f : α → β} : continuous f ↔ ∀ x, con
 
 lemma continuous_const {b : β} : continuous (λa:α, b) :=
 continuous_iff_continuous_at.mpr $ assume a, tendsto_const_nhds
+
+lemma continuous_at_const {x : α} {b : β} : continuous_at (λ a:α, b) x :=
+continuous_const.continuous_at
+
+lemma continuous_at_id {x : α} : continuous_at id x :=
+continuous_id.continuous_at
 
 lemma continuous_iff_is_closed {f : α → β} :
   continuous f ↔ (∀s, is_closed s → is_closed (f ⁻¹' s)) :=

@@ -501,6 +501,31 @@ end prod
 
 end local_equiv
 
+namespace set
+open_locale classical
+
+-- All arguments are explicit to avoid missing information in the pretty printer output
+/-- A bijection between two sets `s : set α` and `t : set β` provides a local equivalence
+between `α` and `β`. -/
+noncomputable def bij_on.to_local_equiv [nonempty α] (f : α → β) (s : set α) (t : set β)
+  (hf : bij_on f s t) :
+  local_equiv α β :=
+{ to_fun := f,
+  inv_fun := inv_fun_on f s,
+  source := s,
+  target := t,
+  map_source := hf.maps_to,
+  map_target := λ y hy, inv_fun_on_mem $ mem_image_iff_bex.1 $ hf.surj_on hy,
+  left_inv := λ x hx, inv_fun_on_eq' hf.inj_on hx,
+  right_inv := λ y hy, inv_fun_on_eq $ mem_image_iff_bex.1 $ hf.surj_on hy }
+
+/-- A map injective on a subset of its domain provides a local equivalence. -/
+noncomputable def inj_on.to_local_equiv [nonempty α] (f : α → β) (s : set α) (hf : inj_on f s) :
+  local_equiv α β :=
+hf.bij_on_image.to_local_equiv f s (f '' s)
+
+end set
+
 namespace equiv
 /- equivs give rise to local_equiv. We set up simp lemmas to reduce most properties of the local
 equiv to that of the equiv. -/

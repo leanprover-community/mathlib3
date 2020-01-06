@@ -15,6 +15,23 @@ In this file we prove the following facts:
   and the norm of its derivative is bounded by `C`, then `f` is Lipschitz continuous on `s` with
   constant `C`.
 
+* `image_le_of*`, `image_norm_le_of_*` : several similar lemmas deducing `f x ≤ B x` or
+  `∥f x∥ ≤ B x` from upper estimates on `f'` or `∥f'∥`, respectively. These lemmas differ by
+  their assumptions:
+
+  * `of_liminf_*` lemmas assume that limit inferior of some ratio is less than `B' x`;
+  * `of_deriv_right_*`, `of_norm_deriv_right_*` lemmas assume that the right derivative
+    or its norm is less than `B' x`;
+  * `of_*_lt_*` lemmas assume a strict inequality whenever `f x = B x` or `∥f x∥ = B x`;
+  * `of_*_le_*` lemmas assume a non-strict inequality everywhere on `[a, b)`;
+  * name of a lemma ends with `'` if (1) it assumes that `B` is continuous on `[a, b]`
+    and has a right derivative at every point of `[a, b)`, and (2) the lemma has
+    a counterpart assuming that `B` is differentiable everywhere on `ℝ`
+
+* `norm_image_sub_le_*_segment` : if derivative of `f` on `[a, b]` is bounded above
+  by a constant `C`, then `∥f x - f a∥ ≤ C * ∥x - a∥`; several versions deal with
+  right derivative and derivative within `[a, b]` (`has_deriv_within_at` or `deriv_within`).
+
 * `convex.is_const_of_fderiv_within_eq_zero` : if a function has derivative `0` on a convex set `s`,
   then it is a constant on `s`.
 
@@ -51,9 +68,10 @@ open_locale classical topological_space
 Let `f` and `B` be continuous functions on `[a, b]` such that
 
 * `f a ≤ B a`;
-* `B` has a right derivative at every point `[a, b)`;
+* `B` has right derivative `B'` at every point of `[a, b)`;
 * for each `x ∈ [a, b)` the right-side limit inferior of `(f z - f x) / (z - x)`
-  is bounded above by a function `f'` which is strictly less than `B'`.
+  is bounded above by a function `f'`;
+* we have `f' x < B' x` whenever `f x = B x`.
 
 Then `f x ≤ B x` everywhere on `[a, b]`. -/
 lemma image_le_of_liminf_slope_right_lt_deriv_boundary {f f' : ℝ → ℝ} {a b : ℝ}
@@ -100,6 +118,15 @@ begin
     exact this }
 end
 
+/-- General fencing theorem for continuous functions with an estimate on the derivative.
+Let `f` and `B` be continuous functions on `[a, b]` such that
+
+* `f a ≤ B a`;
+* `B` has right derivative `B'` at every point of `[a, b)`;
+* for each `x ∈ [a, b)` the right-side limit inferior of `(f z - f x) / (z - x)`
+  is bounded above by `B'`.
+
+Then `f x ≤ B x` everywhere on `[a, b]`. -/
 lemma image_le_of_liminf_slope_right_le_deriv_boundary {f : ℝ → ℝ} {a b : ℝ}
   (hf : continuous_on f (Icc a b))
   {B B' : ℝ → ℝ} (ha : f a ≤ B a) (hB : continuous_on B (Icc a b))
@@ -127,6 +154,15 @@ begin
   convert continuous_within_at_const.closure_le _ this (Hr x hx); simp [closure_Ioi]
 end
 
+/-- General fencing theorem for continuous functions with an estimate on the derivative.
+Let `f` and `B` be continuous functions on `[a, b]` such that
+
+* `f a ≤ B a`;
+* `B` has right derivative `B'` at every point of `[a, b)`;
+* `f` has right derivative `f'` at every point of `[a, b)`;
+* we have `f' x < B' x` whenever `f x = B x`.
+
+Then `f x ≤ B x` everywhere on `[a, b]`. -/
 lemma image_le_of_deriv_right_lt_deriv_boundary' {f f' : ℝ → ℝ} {a b : ℝ}
   (hf : continuous_on f (Icc a b))
   (hf' : ∀ x ∈ Ico a b, has_deriv_within_at f (f' x) (Ioi x) x)
@@ -137,6 +173,15 @@ lemma image_le_of_deriv_right_lt_deriv_boundary' {f f' : ℝ → ℝ} {a b : ℝ
 image_le_of_liminf_slope_right_lt_deriv_boundary hf
   (λ x hx r hr, (hf' x hx).liminf_right_slope_le hr) ha hB hB' bound
 
+/-- General fencing theorem for continuous functions with an estimate on the derivative.
+Let `f` and `B` be continuous functions on `[a, b]` such that
+
+* `f a ≤ B a`;
+* `B` has derivative `B'` everywhere on `ℝ`;
+* `f` has right derivative `f'` at every point of `[a, b)`;
+* we have `f' x < B' x` whenever `f x = B x`.
+
+Then `f x ≤ B x` everywhere on `[a, b]`. -/
 lemma image_le_of_deriv_right_lt_deriv_boundary {f f' : ℝ → ℝ} {a b : ℝ}
   (hf : continuous_on f (Icc a b))
   (hf' : ∀ x ∈ Ico a b, has_deriv_within_at f (f' x) (Ioi x) x)
@@ -147,6 +192,15 @@ image_le_of_deriv_right_lt_deriv_boundary' hf hf' ha
   (λ x hx, (hB x).continuous_at.continuous_within_at)
   (λ x hx, (hB x).has_deriv_within_at) bound
 
+/-- General fencing theorem for continuous functions with an estimate on the derivative.
+Let `f` and `B` be continuous functions on `[a, b]` such that
+
+* `f a ≤ B a`;
+* `B` has derivative `B'` everywhere on `ℝ`;
+* `f` has right derivative `f'` at every point of `[a, b)`;
+* we have `f' x ≤ B' x` on `[a, b)`.
+
+Then `f x ≤ B x` everywhere on `[a, b]`. -/
 lemma image_le_of_deriv_right_le_deriv_boundary {f f' : ℝ → ℝ} {a b : ℝ}
   (hf : continuous_on f (Icc a b))
   (hf' : ∀ x ∈ Ico a b, has_deriv_within_at f (f' x) (Ioi x) x)
@@ -167,12 +221,12 @@ variables {f : ℝ → E} {a b : ℝ}
 Let `f` and `B` be continuous functions on `[a, b]` such that
 
 * `∥f a∥ ≤ B a`;
-* `B` has a right derivative at every point `[a, b)`;
-* for each `x ∈ [a, b)` the right-side limit inferior of the norm of `(f z - f x) / (z - x)`
-  is bounded above by a function `f'` which is strictly less than `B'`.
+* `B` has right derivative at every point of `[a, b)`;
+* for each `x ∈ [a, b)` the right-side limit inferior of `(∥f z∥ - ∥f x∥) / (z - x)`
+  is bounded above by a function `f'`;
+* we have `f' x < B' x` whenever `∥f x∥ = B x`.
 
-Then `∥f x∥ ≤ B x` everywhere on `[a, b]`. Most probably you want to use
-`image_norm_le_of_norm_deriv_right_le_deriv_boundary`. -/
+Then `∥f x∥ ≤ B x` everywhere on `[a, b]`. -/
 lemma image_norm_le_of_liminf_right_slope_norm_lt_deriv_boundary {E : Type*} [normed_group E]
   {f : ℝ → E} {f' : ℝ → ℝ} (hf : continuous_on f (Icc a b))
   -- `hf'` actually says `liminf ∥z - x∥⁻¹ * (∥f z∥ - ∥f x∥) ≤ f' x`
@@ -189,8 +243,8 @@ image_le_of_liminf_slope_right_lt_deriv_boundary (continuous_norm.comp_continuou
 Let `f` and `B` be continuous functions on `[a, b]` such that
 
 * `∥f a∥ ≤ B a`;
-* both `f` and `B` have right derivatives at every point `[a, b)`;
-* the norm of `f'` is strictly less than `B'`.
+* `f` and `B` have right derivatives `f'` and `B'` respectively at every point of `[a, b)`;
+* the norm of `f'` is strictly less than `B'` whenever `∥f x∥ = B x`.
 
 Then `∥f x∥ ≤ B x` everywhere on `[a, b]`. We use one-sided derivatives in the assumptions
 to make this theorem work for piecewise differentiable functions.
@@ -205,6 +259,17 @@ lemma image_norm_le_of_norm_deriv_right_lt_deriv_boundary' {f' : ℝ → E}
 image_norm_le_of_liminf_right_slope_norm_lt_deriv_boundary hf
   (λ x hx r hr, (hf' x hx).liminf_right_slope_norm_le hr) ha hB hB' bound
 
+/-- General fencing theorem for continuous functions with an estimate on the norm of the derivative.
+Let `f` and `B` be continuous functions on `[a, b]` such that
+
+* `∥f a∥ ≤ B a`;
+* `f` has right derivative `f'` at every point of `[a, b)`;
+* `B` has derivative `B'` everywhere on `ℝ`;
+* the norm of `f'` is strictly less than `B'` whenever `∥f x∥ = B x`.
+
+Then `∥f x∥ ≤ B x` everywhere on `[a, b]`. We use one-sided derivatives in the assumptions
+to make this theorem work for piecewise differentiable functions.
+-/
 lemma image_norm_le_of_norm_deriv_right_lt_deriv_boundary {f' : ℝ → E}
   (hf : continuous_on f (Icc a b))
   (hf' : ∀ x ∈ Ico a b, has_deriv_within_at f (f' x) (Ioi x) x)
@@ -215,6 +280,16 @@ image_norm_le_of_norm_deriv_right_lt_deriv_boundary' hf hf' ha
   (λ x hx, (hB x).continuous_at.continuous_within_at)
   (λ x hx, (hB x).has_deriv_within_at) bound
 
+/-- General fencing theorem for continuous functions with an estimate on the norm of the derivative.
+Let `f` and `B` be continuous functions on `[a, b]` such that
+
+* `∥f a∥ ≤ B a`;
+* `f` and `B` have right derivatives `f'` and `B'` respectively at every point of `[a, b)`;
+* we have `∥f' x∥ ≤ B x` everywhere on `[a, b)`.
+
+Then `∥f x∥ ≤ B x` everywhere on `[a, b]`. We use one-sided derivatives in the assumptions
+to make this theorem work for piecewise differentiable functions.
+-/
 lemma image_norm_le_of_norm_deriv_right_le_deriv_boundary' {f' : ℝ → E}
   (hf : continuous_on f (Icc a b))
   (hf' : ∀ x ∈ Ico a b, has_deriv_within_at f (f' x) (Ioi x) x)
@@ -225,6 +300,17 @@ lemma image_norm_le_of_norm_deriv_right_le_deriv_boundary' {f' : ℝ → E}
 image_le_of_liminf_slope_right_le_deriv_boundary (continuous_norm.comp_continuous_on hf) ha hB hB' $
   (λ x hx r hr, (hf' x hx).liminf_right_slope_norm_le (lt_of_le_of_lt (bound x hx) hr))
 
+/-- General fencing theorem for continuous functions with an estimate on the norm of the derivative.
+Let `f` and `B` be continuous functions on `[a, b]` such that
+
+* `∥f a∥ ≤ B a`;
+* `f` has right derivative `f'` at every point of `[a, b)`;
+* `B` has derivative `B'` everywhere on `ℝ`;
+* we have `∥f' x∥ ≤ B x` everywhere on `[a, b)`.
+
+Then `∥f x∥ ≤ B x` everywhere on `[a, b]`. We use one-sided derivatives in the assumptions
+to make this theorem work for piecewise differentiable functions.
+-/
 lemma image_norm_le_of_norm_deriv_right_le_deriv_boundary {f' : ℝ → E}
   (hf : continuous_on f (Icc a b))
   (hf' : ∀ x ∈ Ico a b, has_deriv_within_at f (f' x) (Ioi x) x)
@@ -235,6 +321,8 @@ image_norm_le_of_norm_deriv_right_le_deriv_boundary' hf hf' ha
   (λ x hx, (hB x).continuous_at.continuous_within_at)
   (λ x hx, (hB x).has_deriv_within_at) bound
 
+/-- A function on `[a, b]` with the norm of the right derivative bounded by `C`
+satisfies `∥f x - f a∥ ≤ C * (x - a)`. -/
 theorem norm_image_sub_le_of_norm_deriv_right_le_segment {f' : ℝ → E} {C : ℝ}
   (hf : continuous_on f (Icc a b))
   (hf' : ∀ x ∈ Ico a b, has_deriv_within_at f (f' x) (Ioi x) x)
@@ -255,6 +343,9 @@ begin
   { simp only [g, B], rw [sub_self, _root_.norm_zero, sub_self, mul_zero] }
 end
 
+/-- A function on `[a, b]` with the norm of the derivative within `[a, b]`
+bounded by `C` satisfies `∥f x - f a∥ ≤ C * (x - a)`, `has_deriv_within_at`
+version. -/
 theorem norm_image_sub_le_of_norm_deriv_le_segment' {f' : ℝ → E} {C : ℝ}
   (hf : ∀ x ∈ Icc a b, has_deriv_within_at f (f' x) (Icc a b) x)
   (bound : ∀x ∈ Ico a b, ∥f' x∥ ≤ C) :
@@ -266,6 +357,9 @@ begin
   exact Icc_mem_nhds_within_Ioi hx
 end
 
+/-- A function on `[a, b]` with the norm of the derivative within `[a, b]`
+bounded by `C` satisfies `∥f x - f a∥ ≤ C * (x - a)`, `deriv_within`
+version. -/
 theorem norm_image_sub_le_of_norm_deriv_le_segment {C : ℝ} (hf : differentiable_on ℝ f (Icc a b))
   (bound : ∀x ∈ Ico a b, ∥deriv_within f (Icc a b) x∥ ≤ C) :
   ∀ x ∈ Icc a b, ∥f x - f a∥ ≤ C * (x - a) :=
@@ -274,6 +368,9 @@ begin
   exact λ x hx, (hf x  hx).has_deriv_within_at
 end
 
+/-- A function on `[0, 1]` with the norm of the derivative within `[0, 1]`
+bounded by `C` satisfies `∥f 1 - f 0∥ ≤ C`, `has_deriv_within_at`
+version. -/
 theorem norm_image_sub_le_of_norm_deriv_le_segment_01' {f' : ℝ → E} {C : ℝ}
   (hf : ∀ x ∈ Icc (0:ℝ) 1, has_deriv_within_at f (f' x) (Icc (0:ℝ) 1) x)
   (bound : ∀x ∈ Ico (0:ℝ) 1, ∥f' x∥ ≤ C) :
@@ -281,6 +378,8 @@ theorem norm_image_sub_le_of_norm_deriv_le_segment_01' {f' : ℝ → E} {C : ℝ
 by simpa only [sub_zero, mul_one]
   using norm_image_sub_le_of_norm_deriv_le_segment' hf bound 1 (right_mem_Icc.2 zero_le_one)
 
+/-- A function on `[0, 1]` with the norm of the derivative within `[0, 1]`
+bounded by `C` satisfies `∥f 1 - f 0∥ ≤ C`, `deriv_within` version. -/
 theorem norm_image_sub_le_of_norm_deriv_le_segment_01 {C : ℝ}
   (hf : differentiable_on ℝ f (Icc (0:ℝ) 1))
   (bound : ∀x ∈ Ico (0:ℝ) 1, ∥deriv_within f (Icc (0:ℝ) 1) x∥ ≤ C) :

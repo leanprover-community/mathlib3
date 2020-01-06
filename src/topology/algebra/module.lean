@@ -409,6 +409,8 @@ def to_homeomorph (e : M ≃L[R] M₂) : M ≃ₜ M₂ := { ..e }
 @[simp] lemma map_smul (e : M ≃L[R] M₂) (c : R) (x : M) : e (c • x) = c • (e x) :=
 (e : M →L[R] M₂).map_smul c x
 @[simp] lemma map_neg (e : M ≃L[R] M₂) (x : M) : e (-x) = -e x := (e : M →L[R] M₂).map_neg x
+@[simp] lemma map_eq_zero_iff (e : M ≃L[R] M₂) {x : M} : e x = 0 ↔ x = 0 :=
+e.to_linear_equiv.map_eq_zero_iff
 
 section
 variable (M)
@@ -442,5 +444,13 @@ by { ext, refl }
 
 @[simp] theorem apply_symm_apply (e : M ≃L[R] M₂) (c : M₂) : e (e.symm c) = c := e.1.6 c
 @[simp] theorem symm_apply_apply (e : M ≃L[R] M₂) (b : M) : e.symm (e b) = b := e.1.5 b
+
+@[simp] theorem coe_comp_coe_symm (e : M ≃L[R] M₂) :
+  (e : M →L[R] M₂).comp (e.symm : M₂ →L[R] M) = continuous_linear_map.id :=
+continuous_linear_map.ext e.apply_symm_apply
+
+@[simp] theorem coe_symm_comp_coe (e : M ≃L[R] M₂) :
+  (e.symm : M₂ →L[R] M).comp (e : M →L[R] M₂) = continuous_linear_map.id :=
+continuous_linear_map.ext e.symm_apply_apply
 
 end continuous_linear_equiv

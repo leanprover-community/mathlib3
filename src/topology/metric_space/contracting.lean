@@ -14,12 +14,12 @@ In this file we prove the Banach fixed point theorem, some explicit estimates on
 of convergence, and some properties of the map sending a contracting map to its fixed point.
 -/
 
-universes u v
+universe u
 
 open_locale nnreal topological_space
 open filter
 
-variables {α : Type u} {ι : Sort v}
+variables {α : Type u}
 
 /-- If the iterates `f^[n] x₀` converge to `x` and `f` is continuous at `x`,
 then `x` is a fixed point for `f`. -/
@@ -33,13 +33,15 @@ begin
   exact tendsto.comp hf hx
 end
 
+variables [metric_space α]
+
 /-- A map is said to be `contracting_with K`, if `K < 1` and `f` is `lipschitz_with K`. -/
-def contracting_with [metric_space α] (K : ℝ≥0) (f : α → α) :=
+def contracting_with (K : ℝ≥0) (f : α → α) :=
 (K < 1) ∧ lipschitz_with K f
 
 namespace contracting_with
 
-variables [metric_space α] {K : ℝ≥0} {f : α → α} (hf : contracting_with K f)
+variables {K : ℝ≥0} {f : α → α} (hf : contracting_with K f)
 
 include hf
 

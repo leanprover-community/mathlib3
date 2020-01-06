@@ -5,8 +5,8 @@ Isometries of emetric and metric spaces
 Authors: Sébastien Gouëzel
 -/
 
-import topology.metric_space.basic
-topology.bounded_continuous_function analysis.normed_space.basic topology.opens
+import topology.metric_space.basic topology.bounded_continuous_function
+  analysis.normed_space.basic topology.opens topology.metric_space.contracting
 
 /-!
 # Isometries
@@ -68,7 +68,6 @@ theorem isometry.comp {g : β → γ} {f : α → β} (hg : isometry g) (hf : is
 assume x y, calc
   edist ((g ∘ f) x) ((g ∘ f) y) = edist (f x) (f y) : hg _ _
                             ... = edist x y : hf _ _
-
 /-- An isometry is an embedding -/
 theorem isometry.uniform_embedding (hf : isometry f) : uniform_embedding f :=
 begin
@@ -109,6 +108,9 @@ end
 /-- The injection from a subtype is an isometry -/
 lemma isometry_subtype_val {s : set α} : isometry (subtype.val : s → α) :=
 λx y, rfl
+
+lemma isometry.restrict (hf : isometry f) (s : set α) : isometry (restrict f s) :=
+hf.comp isometry_subtype_val
 
 end emetric_isometry --section
 
@@ -170,13 +172,13 @@ lemma self_comp_symm (h : α ≃ᵢ β) : ⇑h ∘ ⇑h.symm = id :=
 funext $ assume a, h.to_equiv.right_inv a
 
 lemma range_coe (h : α ≃ᵢ β) : range h = univ :=
-eq_univ_of_forall $ assume b, ⟨h.symm b, congr_fun h.self_comp_symm b⟩
+h.to_equiv.range_eq_univ
 
 lemma image_symm (h : α ≃ᵢ β) : image h.symm = preimage h :=
-image_eq_preimage_of_inverse h.symm.to_equiv.left_inv h.symm.to_equiv.right_inv
+funext h.symm.to_equiv.image_eq_preimage
 
 lemma preimage_symm (h : α ≃ᵢ β) : preimage h.symm = image h :=
-(image_eq_preimage_of_inverse h.to_equiv.left_inv h.to_equiv.right_inv).symm
+(funext h.to_equiv.image_eq_preimage).symm
 
 end isometric
 
@@ -215,6 +217,39 @@ begin
   refine isometry_emetric_iff_metric.2 (λx y, _),
   rw [dist_eq_norm, dist_eq_norm, ← algebra.map_sub, norm_algebra_map_eq],
 end
+
+lemma lipschitz_with.injective_add_isometry [metric_space α] [normed_group β] {f : α → β}
+  {c : nnreal} (hf : lipschitz_with c f) (hc : c < 1) {e : α → β} (he : isometry e) :
+  injective (λ x, f x + e x) :=
+begin
+  assume x y hxy,
+  have A : dist (f x) (f y) ≤ c * dist x y := hf x y,
+  have B : dist (f x) (f y) = dist (e x) (e y),
+  { rw [dist_eq_norm, dist_eq_norm, norm_sub_rev],
+    apply congr_arg,
+    rw [← sub_eq_iff_eq_add] at hxy,
+    simp only [hxy.symm],
+    abel },
+  have : 0 ≤ ((c:ℝ) - 1) * dist x y,
+    by simpa only [sub_mul, one_mul, sub_nonneg, B, he.dist_eq] using A,
+  exact dist_le_zero.1 (nonpos_of_mul_nonneg_right this (sub_lt_zero.2 hc))
+end
+
+lemma lipschitz_with.inj_on_add_isometry [metric_space α] [normed_group β] {f : α → β}
+  {s : set α} {c : nnreal} (hf : lipschitz_with c (restrict f s)) (hc : c < 1)
+  {e : α → β} (he : isometry e) :
+  inj_on (λ x, f x + e x) s :=
+inj_on_iff_injective.2 $ hf.injective_add_isometry hc (he.restrict s)
+
+lemma contracting_with.injective_add_id [normed_group α] {f : α → α}
+  {c : nnreal} (hf : contracting_with c f) :
+  injective (λ x, f x + x) :=
+hf.2.injective_add_isometry hf.1 isometry_id
+
+lemma lipschitz_with.inj_on_add_id [normed_group α] {f : α → α} {s : set α}
+  {c : nnreal} (hf : lipschitz_with c (restrict f s)) (hc : c < 1) :
+  inj_on (λ x, f x + x) s :=
+hf.inj_on_add_isometry hc isometry_id
 
 /-- The space of bounded sequences, with its sup norm -/
 @[reducible] def ℓ_infty_ℝ : Type := bounded_continuous_function ℕ ℝ

@@ -83,7 +83,7 @@ lemma inj_on_comp_of_injective_left {g : β → γ} {f : α → β} {a : set α}
   (hf : inj_on f a) : inj_on (g ∘ f) a :=
 inj_on_comp (maps_to_univ _ _) (injective_iff_inj_on_univ.mp hg) hf
 
-lemma inj_on_iff_injective {f : α → β} {s : set α} : inj_on f s ↔ injective (λ x:s, f x.1) :=
+lemma inj_on_iff_injective {f : α → β} {s : set α} : inj_on f s ↔ injective (restrict f s) :=
 ⟨λ H a b h, subtype.eq $ H a.2 b.2 h,
  λ H a b as bs h, congr_arg subtype.val $ @H ⟨a, as⟩ ⟨b, bs⟩ h⟩
 

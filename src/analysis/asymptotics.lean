@@ -600,18 +600,18 @@ theorem is_o_refl_left : is_o (λ x, f' x - f' x) g' l :=
 
 variables {g' l}
 
-theorem is_O_with_zero_right_iff (hc : 0 < c) :
+theorem is_O_with_zero_right_iff :
   is_O_with c f' (λ x, (0 : F')) l ↔ {x | f' x = 0} ∈ l :=
-by simp only [is_O_with, exists_prop, hc, true_and, norm_zero, mul_zero, norm_le_zero_iff]
+by simp only [is_O_with, exists_prop, true_and, norm_zero, mul_zero, norm_le_zero_iff]
 
 theorem is_O_zero_right_iff : is_O f' (λ x, (0 : F')) l ↔ {x | f' x = 0} ∈ l :=
-⟨λ h, let ⟨c, cpos, hc⟩ := h.exists_pos in  (is_O_with_zero_right_iff cpos).1 hc,
-  λ h, ((is_O_with_zero_right_iff zero_lt_one).2 h).is_O⟩
+⟨λ h, let ⟨c, hc⟩ := h in  (is_O_with_zero_right_iff).1 hc,
+  λ h, (is_O_with_zero_right_iff.2 h).is_O⟩
 
 theorem is_o_zero_right_iff :
   is_o f' (λ x, (0 : F')) l ↔ {x | f' x = 0} ∈ l :=
 ⟨λ h, is_O_zero_right_iff.1 h.is_O,
-  λ h c hc, (is_O_with_zero_right_iff hc).2 h⟩
+  λ h c hc, is_O_with_zero_right_iff.2 h⟩
 
 theorem is_O_with_const_const (c : E) {c' : F'} (hc' : c' ≠ 0) (l : filter α) :
   is_O_with (∥c∥ / ∥c'∥) (λ x : α, c) (λ x, c') l :=

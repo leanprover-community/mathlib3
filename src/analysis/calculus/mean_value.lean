@@ -52,7 +52,7 @@ Let `f` and `B` be continuous functions on `[a, b]` such that
 
 * `f a ≤ B a`;
 * `B` has a right derivative at every point `[a, b)`;
-* for each `x ∈ [a, b)` the right-side limit inferior of the norm of `(f z - f x) / (z - x)`
+* for each `x ∈ [a, b)` the right-side limit inferior of `(f z - f x) / (z - x)`
   is bounded above by a function `f'` which is strictly less than `B'`.
 
 Then `f x ≤ B x` everywhere on `[a, b]`. -/

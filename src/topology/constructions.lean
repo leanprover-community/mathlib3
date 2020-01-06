@@ -98,11 +98,11 @@ The 𝓝 filter and the subspace topology.
 
 theorem mem_nhds_subtype (s : set α) (a : {x // x ∈ s}) (t : set {x // x ∈ s}) :
   t ∈ 𝓝 a ↔ ∃ u ∈ 𝓝 a.val, (@subtype.val α s) ⁻¹' u ⊆ t :=
-by apply mem_nhds_induced
+mem_nhds_induced subtype.val a t
 
 theorem nhds_subtype (s : set α) (a : {x // x ∈ s}) :
   𝓝 a = comap subtype.val (𝓝 a.val) :=
-by apply nhds_induced
+nhds_induced subtype.val a
 
 end topα
 
@@ -370,24 +370,32 @@ lemma embedding_subtype_val : embedding (@subtype.val α p) :=
 lemma continuous_subtype_val : continuous (@subtype.val α p) :=
 continuous_induced_dom
 
-lemma subtype_val.open_embedding {s : set α} (hs : is_open s) :
-  open_embedding (subtype.val : {x // x ∈ s} → α) :=
+lemma is_open.open_embedding_subtype_val {s : set α} (hs : is_open s) :
+  open_embedding (subtype.val : s → α) :=
 { induced := rfl,
   inj := subtype.val_injective,
   open_range := (subtype.val_range : range subtype.val = s).symm ▸  hs }
 
-lemma subtype_val.closed_embedding {s : set α} (hs : is_closed s) :
+lemma is_open.is_open_map_subtype_val {s : set α} (hs : is_open s) :
+  is_open_map (subtype.val : s → α) :=
+hs.open_embedding_subtype_val.is_open_map
+
+lemma is_open_map.restrict {f : α → β} (hf : is_open_map f) {s : set α} (hs : is_open s) :
+  is_open_map (function.restrict f s) :=
+hf.comp hs.is_open_map_subtype_val
+
+lemma is_closed.closed_embedding_subtype_val {s : set α} (hs : is_closed s) :
   closed_embedding (subtype.val : {x // x ∈ s} → α) :=
 { induced := rfl,
   inj := subtype.val_injective,
   closed_range := (subtype.val_range : range subtype.val = s).symm ▸ hs }
 
-lemma continuous_subtype_mk {f : β → α}
+lemma continuous.subtype_mk {f : β → α}
   (hp : ∀x, p (f x)) (h : continuous f) : continuous (λx, (⟨f x, hp x⟩ : subtype p)) :=
 continuous_induced_rng h
 
 lemma continuous_inclusion {s t : set α} (h : s ⊆ t) : continuous (inclusion h) :=
-continuous_subtype_mk _ continuous_subtype_val
+continuous_subtype_val.subtype_mk _
 
 lemma continuous_at_subtype_val {p : α → Prop} {a : subtype p} :
   continuous_at subtype.val a :=

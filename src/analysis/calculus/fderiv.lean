@@ -175,7 +175,7 @@ begin
     this.comp_tendsto tendsto_arg,
   have : is_o (λ n, f (x + d n) - f x - f' (d n)) d l := by simpa only [add_sub_cancel'],
   have : is_o (λn, c n • (f (x + d n) - f x - f' (d n))) (λn, c n • d n) l :=
-    this.smul_same_left c,
+    (is_O_refl c l).smul_is_o this,
   have : is_o (λn, c n • (f (x + d n) - f x - f' (d n))) (λn, (1:ℝ)) l :=
     this.trans_is_O (is_O_one_of_tendsto ℝ cdlim),
   have L1 : tendsto (λn, c n • (f (x + d n) - f x - f' (d n))) l (𝓝 0) :=
@@ -1170,8 +1170,7 @@ begin
     ... = C * (∥x-p∥ * ∥x-p∥) : mul_assoc _ _ _ end)⟩,
   have B : asymptotics.is_o (λ (x : E × F), ∥x - p∥ * ∥x - p∥)
     (λx, 1 * ∥x - p∥) (𝓝 p),
-  { apply asymptotics.is_o.mul_same_right,
-    apply asymptotics.is_o.norm_left,
+  { refine asymptotics.is_o.mul_is_O (asymptotics.is_o.norm_left _) (asymptotics.is_O_refl _ _),
     apply (asymptotics.is_o_one_iff ℝ).2,
     rw [← sub_self p],
     exact tendsto_id.sub tendsto_const_nhds },

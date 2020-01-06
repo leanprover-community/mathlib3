@@ -817,36 +817,6 @@ is_o_const_mul_right_iff' $ is_unit.mk0 c hc
 
 /-! ### Multiplication -/
 
-theorem is_O_with.mul_same_left {f₂ g : α → 𝕜} (f₁ : α → 𝕜) (h : is_O_with c f₂ g l) :
-  is_O_with c (λ x, f₁ x * f₂ x) (λ x, f₁ x * g x) l :=
-begin
-  apply mem_sets_of_superset h,
-  intros x hx,
-  simp only [mem_set_of_eq, normed_field.norm_mul] at hx ⊢,
-  rw [mul_left_comm],
-  exact mul_le_mul_of_nonneg_left hx (norm_nonneg _)
-end
-
-theorem is_O.mul_same_left {f₂ g : α → 𝕜} (f₁ : α → 𝕜) (h : is_O f₂ g l) :
-  is_O (λ x, f₁ x * f₂ x) (λ x, f₁ x * g x) l :=
-let ⟨c, hc⟩ := h in (hc.mul_same_left f₁).is_O
-
-theorem is_o.mul_same_left {f₂ g : α → 𝕜} (f₁ : α → 𝕜) (h : is_o f₂ g l) :
-  is_o (λ x, f₁ x * f₂ x) (λ x, f₁ x * g x) l :=
-λ c hc, (h hc).mul_same_left f₁
-
-theorem is_O_with.mul_same_right {f₁ g : α → 𝕜} (h : is_O_with c f₁ g l) (f₂ : α → 𝕜) :
-  is_O_with c (λ x, f₁ x * f₂ x) (λ x, g x * f₂ x) l :=
-(h.mul_same_left f₂).congr rfl (λ x, mul_comm _ _) (λ x, mul_comm _ _)
-
-theorem is_O.mul_same_right {f₁ g : α → 𝕜} (h : is_O f₁ g l) (f₂ : α → 𝕜) :
-  is_O (λ x, f₁ x * f₂ x) (λ x, g x * f₂ x) l :=
-let ⟨c, hc⟩ := h in (hc.mul_same_right f₂).is_O
-
-theorem is_o.mul_same_right {f₁ g : α → 𝕜} (h : is_o f₁ g l) (f₂ : α → 𝕜) :
-  is_o (λ x, f₁ x * f₂ x) (λ x, g x * f₂ x) l :=
-λ c hc, (h hc).mul_same_right f₂
-
 theorem is_O_with.mul {f₁ f₂ : α → R} {g₁ g₂ : α → 𝕜} {c₁ c₂ : ℝ}
   (h₁ : is_O_with c₁ f₁ g₁ l) (h₂ : is_O_with c₂ f₂ g₂ l) :
   is_O_with (c₁ * c₂) (λ x, f₁ x * f₂ x) (λ x, g₁ x * g₂ x) l :=
@@ -941,19 +911,6 @@ section smul
 
 variables [normed_space 𝕜 E'] [normed_space 𝕜 F']
 
-theorem is_O_with.smul_same_left (k : α → 𝕜) (h : is_O_with c f' g' l) :
-  is_O_with c (λ x, k x • f' x) (λ x, k x • g' x) l :=
-by refine ((h.norm_norm.mul_same_left (norm ∘ k)).congr rfl _ _).of_norm_norm;
-  intros; simp only [function.comp, norm_smul]
-
-theorem is_O.smul_same_left (k : α → 𝕜) (h : is_O f' g' l) :
-  is_O (λ x, k x • f' x) (λ x, k x • g' x) l :=
-let ⟨c, hc⟩ := h in (hc.smul_same_left k).is_O
-
-theorem is_o.smul_same_left (k : α → 𝕜) (h : is_o f' g' l) :
-  is_o (λ x, k x • f' x) (λ x, k x • g' x) l :=
-λ c hc, (h hc).smul_same_left k
-
 theorem is_O_with.smul {k₁ k₂ : α → 𝕜} (h₁ : is_O_with c k₁ k₂ l) (h₂ : is_O_with c' f' g' l) :
   is_O_with (c * c') (λ x, k₁ x • f' x) (λ x, k₂ x • g' x) l :=
 by refine ((h₁.norm_norm.mul h₂.norm_norm).congr rfl _ _).of_norm_norm;
@@ -986,7 +943,7 @@ end smul
 theorem is_o.tendsto_0 {f g : α → 𝕜} {l : filter α} (h : is_o f g l) :
   tendsto (λ x, f x / (g x)) l (𝓝 0) :=
 have eq₁ : is_o (λ x, f x / g x) (λ x, g x / g x) l,
-  from h.mul_same_right _,
+  from h.mul_is_O (is_O_refl _ _),
 have eq₂ : is_O (λ x, g x / g x) (λ x, (1 : 𝕜)) l,
   from is_O_of_le _ (λ x, by by_cases h : ∥g x∥ = 0; simp [h, zero_le_one]),
 (is_o_one_iff 𝕜).mp (eq₁.trans_is_O eq₂)
@@ -1021,7 +978,7 @@ begin
   have nmp : n = m + p := (nat.add_sub_cancel' (le_of_lt h)).symm,
   have : (λ(x : 𝕜), x^m) = (λx, x^m * 1), by simp only [mul_one],
   simp only [this, pow_add, nmp],
-  refine is_o.mul_same_left _ ((is_o_one_iff _).2 _),
+  refine is_O.mul_is_o (is_O_refl _ _) ((is_o_one_iff _).2 _),
   convert (continuous_pow p).tendsto (0 : 𝕜),
   exact (zero_pow (nat.sub_pos_of_lt h)).symm
 end

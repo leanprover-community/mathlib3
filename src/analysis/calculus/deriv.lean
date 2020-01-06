@@ -1250,13 +1250,16 @@ section real_space
 
 open metric
 
-variables {E : Type u} [normed_group E] [normed_space ℝ E] {f : ℝ → E} {f' : E} {s : set ℝ} {x : ℝ}
-  (hs : x ∉ s) (hf : has_deriv_within_at f f' s x) (hf_right : has_deriv_within_at f f' (Ioi x) x)
-  {r : ℝ} (hr : ∥f'∥ < r)
+variables {E : Type u} [normed_group E] [normed_space ℝ E] {f : ℝ → E} {f' : E} {s : set ℝ}
+  {x r : ℝ}
 
-include hf hr
-
-lemma has_deriv_within_at.limsup_norm_slope_le :
+/-- If `f` has derivative `f'` within `s` at `x`, then for any `r > ∥f'∥` the ratio
+`∥f z - f x∥ / ∥z - x∥` is less than `r` in some punctured neighborhood of `x` within `s`.
+In other words, the limit superior of this ratio as `z` tends to `x` along `s \ {x}`
+is less than or equal to `∥f'∥`. If `x ∉ s`, we can replace `s \ {x}` with `s`,
+see `has_deriv_within_at.limsup_norm_slope_le'`. -/
+lemma has_deriv_within_at.limsup_norm_slope_le
+  (hf : has_deriv_within_at f f' s x) (hr : ∥f'∥ < r) :
   ∀ᶠ z in nhds_within x (s \ {x}), ∥z - x∥⁻¹ * ∥f z - f x∥ < r :=
 begin
   replace hr : f' ∈ ball (0:E) r, by rwa [mem_ball, dist_zero_right],
@@ -1268,11 +1271,26 @@ begin
   rwa [← normed_field.norm_inv]
 end
 
-lemma has_deriv_within_at.limsup_norm_slope_le' :
+/-- If `f` has derivative `f'` within `s` at `x ∉ s`, then for any `r > ∥f'∥` the ratio
+`∥f z - f x∥ / ∥z - x∥` is less than `r` in some neighborhood of `x` within `s`.
+In other words, the limit superior of this ratio as `z` tends to `x` along `s`
+is less than or equal to `∥f'∥`. See also `has_deriv_within_at.limsup_norm_slope_le`
+for a version without the assumption `x ∉ s`. -/
+lemma has_deriv_within_at.limsup_norm_slope_le'
+  (hf : has_deriv_within_at f f' s x) (hs : x ∉ s) (hr : ∥f'∥ < r) :
   ∀ᶠ z in nhds_within x s, ∥z - x∥⁻¹ * ∥f z - f x∥ < r :=
 diff_singleton_eq_self hs ▸ hf.limsup_norm_slope_le hr
 
-lemma has_deriv_within_at.limsup_slope_norm_le :
+/-- If `f` has derivative `f'` within `s` at `x`, then for any `r > ∥f'∥` the ratio
+`(∥f z∥ - ∥f x∥) / ∥z - x∥` is less than `r` in some punctured neighborhood of `x` within `s`.
+In other words, the limit superior of this ratio as `z` tends to `x` along `s \ {x}`
+is less than or equal to `∥f'∥`. If `x ∉ s`, we can replace `s \ {x}` with `s`,
+see `has_deriv_within_at.limsup_slope_norm_le'`.
+
+This lemma is a weaker version of `has_deriv_within_at.limsup_norm_slope_le`
+where `∥f z∥ - ∥f x∥` is replaced by `∥f z - f x∥`. -/
+lemma has_deriv_within_at.limsup_slope_norm_le
+  (hf : has_deriv_within_at f f' s x) (hr : ∥f'∥ < r) :
   ∀ᶠ z in nhds_within x (s \ {x}), ∥z - x∥⁻¹ * (∥f z∥ - ∥f x∥) < r :=
 begin
   apply (hf.limsup_norm_slope_le hr).mono,
@@ -1281,21 +1299,45 @@ begin
   exact inv_nonneg.2 (norm_nonneg _)
 end
 
-lemma has_deriv_within_at.limsup_slope_norm_le' :
+/-- If `f` has derivative `f'` within `s` at `x ∉ s`, then for any `r > ∥f'∥` the ratio
+`(∥f z∥ - ∥f x∥) / ∥z - x∥` is less than `r` in some neighborhood of `x` within `s`.
+In other words, the limit superior of this ratio as `z` tends to `x` along `s`
+is less than or equal to `∥f'∥`. See also `has_deriv_within_at.limsup_slope_norm_le`
+for a version without the assumption `x ∉ s`.
+
+This lemma is a weaker version of `has_deriv_within_at.limsup_norm_slope_le'`
+where `∥f z∥ - ∥f x∥` is replaced by `∥f z - f x∥`. -/
+lemma has_deriv_within_at.limsup_slope_norm_le'
+  (hf : has_deriv_within_at f f' s x) (hs : x ∉ s) (hr : ∥f'∥ < r) :
   ∀ᶠ z in nhds_within x s, ∥z - x∥⁻¹ * (∥f z∥ - ∥f x∥) < r :=
 diff_singleton_eq_self hs ▸ hf.limsup_slope_norm_le hr
 
-omit hf
-include hf_right
-
-lemma has_deriv_within_at.liminf_right_norm_slope_le :
+/-- If `f` has derivative `f'` within `(x, +∞)` at `x`, then for any `r > ∥f'∥` the ratio
+`∥f z - f x∥ / ∥z - x∥` is frequently less than `r` as `z → x+0`.
+In other words, the limit inferior of this ratio as `z` tends to `x+0`
+is less than or equal to `∥f'∥`. See also `has_deriv_within_at.limsup_norm_slope_le'`
+for a stronger version using limit superior and any set `s`, `x ∉ s`. -/
+lemma has_deriv_within_at.liminf_right_norm_slope_le
+  (hf : has_deriv_within_at f f' (Ioi x) x) (hr : ∥f'∥ < r) :
   ∃ᶠ z in nhds_within x (Ioi x), ∥z - x∥⁻¹ * ∥f z - f x∥ < r :=
-(hf_right.limsup_norm_slope_le' (lt_irrefl x) hr).frequently (nhds_within_Ioi_self_ne_bot x)
+(hf.limsup_norm_slope_le' (lt_irrefl x) hr).frequently (nhds_within_Ioi_self_ne_bot x)
 
-lemma has_deriv_within_at.liminf_right_slope_norm_le :
+/-- If `f` has derivative `f'` within `(x, +∞)` at `x`, then for any `r > ∥f'∥` the ratio
+`(∥f z∥ - ∥f x∥) / (z - x)` is frequently less than `r` as `z → x+0`.
+In other words, the limit inferior of this ratio as `z` tends to `x+0`
+is less than or equal to `∥f'∥`.
+
+See also
+
+* `has_deriv_within_at.limsup_norm_slope_le'` for a stronger version using
+  limit superior and any set `s`, `x ∉ s`;
+* `has_deriv_within_at.liminf_right_norm_slope_le` for a stronger version using
+  `∥f z - f x∥` instead of `∥f z∥ - ∥f x∥`. -/
+lemma has_deriv_within_at.liminf_right_slope_norm_le
+  (hf : has_deriv_within_at f f' (Ioi x) x) (hr : ∥f'∥ < r) :
   ∃ᶠ z in nhds_within x (Ioi x), (z - x)⁻¹ * (∥f z∥ - ∥f x∥) < r :=
 begin
-  have := (hf_right.limsup_slope_norm_le' (lt_irrefl x) hr).frequently
+  have := (hf.limsup_slope_norm_le' (lt_irrefl x) hr).frequently
     (nhds_within_Ioi_self_ne_bot x),
   refine this.mp (eventually.mono self_mem_nhds_within _),
   assume z hxz hz,

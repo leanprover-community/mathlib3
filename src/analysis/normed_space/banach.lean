@@ -198,7 +198,7 @@ begin
 end
 
 /-- If a bounded linear map is a bijection, then its inverse is also a bounded linear map. -/
-theorem linear_equiv.is_bounded_inv (e : linear_equiv 𝕜 E F) (h : is_bounded_linear_map 𝕜 e.to_fun) :
+theorem linear_equiv.is_bounded_inv (e : E ≃ₗ[𝕜] F) (h : is_bounded_linear_map 𝕜 e.to_fun) :
   is_bounded_linear_map 𝕜 e.inv_fun :=
 { bound := begin
     have : surjective e.to_fun := (equiv.bijective e.to_equiv).2,
@@ -209,3 +209,13 @@ theorem linear_equiv.is_bounded_inv (e : linear_equiv 𝕜 E F) (h : is_bounded_
     rwa ← this
   end,
   ..e.symm }
+
+/-- Associating to a linear equivalence between Banach spaces a continuous linear equivalence when
+the direct map is continuous, thanks to the Banach open mapping theorem that ensures that the
+inverse map is also continuous. -/
+def linear_equiv.to_continuous_linear_equiv_of_continuous (e : E ≃ₗ[𝕜] F) (h : continuous e) :
+  E ≃L[𝕜] F :=
+{ continuous_to_fun := h,
+  continuous_inv_fun :=
+    let f : E →L[𝕜] F := { cont := h, ..e} in (e.is_bounded_inv f.is_bounded_linear_map).continuous,
+  ..e }

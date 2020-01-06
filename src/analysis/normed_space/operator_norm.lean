@@ -68,7 +68,7 @@ begin
     have : (f : E → 𝕜) = (λx, 0), by { ext x, simpa using hf x },
     rw this,
     exact continuous_const },
-  { /- if f is not zero, we use an element x₀ ∉ ker f such taht ∥x₀∥ ≤ 2 ∥x₀ - y∥ for all y ∈ ker f,
+  { /- if f is not zero, we use an element x₀ ∉ ker f such that ∥x₀∥ ≤ 2 ∥x₀ - y∥ for all y ∈ ker f,
     given by Riesz's lemma, and prove that 2 ∥f x₀∥ / ∥x₀∥ gives a bound on the operator norm of f.
     For this, start from an arbitrary x and note that y = x₀ - (f x₀ / f x) x belongs to the kernel
     of f. Applying the above inequality to x₀ and y readily gives the conclusion. -/

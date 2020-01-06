@@ -30,19 +30,15 @@ theorem chain.total_of_refl [is_refl α r]
   x ≺ y ∨ y ≺ x :=
 if e : x = y then or.inl (e ▸ refl _) else H _ hx _ hy e
 
-theorem chain.directed [is_refl α r]
-  {c} (H : chain c) {x y} (hx : x ∈ c) (hy : y ∈ c) :
-  ∃ z, z ∈ c ∧ x ≺ z ∧ y ≺ z :=
-match H.total_of_refl hx hy with
-| or.inl h := ⟨y, hy, h, refl _⟩
-| or.inr h := ⟨x, hx, refl _, h⟩
-end
-
 theorem chain.mono {c c'} : c' ⊆ c → chain c → chain c' :=
 pairwise_on.mono
 
 theorem chain.directed_on [is_refl α r] {c} (H : chain c) : directed_on (≺) c :=
-λ x xc y yc, let ⟨z, hz, h⟩ := H.directed xc yc in ⟨z, hz, h⟩
+assume x hx y hy,
+match H.total_of_refl hx hy with
+| or.inl h := ⟨y, hy, h, refl _⟩
+| or.inr h := ⟨x, hx, refl _, h⟩
+end
 
 theorem chain_insert {c : set α} {a : α} (hc : chain c) (ha : ∀b∈c, b ≠ a → a ≺ b ∨ b ≺ a) :
   chain (insert a c) :=
@@ -50,11 +46,15 @@ forall_insert_of_forall
   (assume x hx, forall_insert_of_forall (hc x hx) (assume hneq, (ha x hx hneq).symm))
   (forall_insert_of_forall (assume x hx hneq, ha x hx $ assume h', hneq h'.symm) (assume h, (h rfl).rec _))
 
-def super_chain (c₁ c₂ : set α) := chain c₂ ∧ c₁ ⊂ c₂
+/-- `super_chain c₁ c₂` means that `c₂ is a chain that strictly includes `c₁`. -/
+def super_chain (c₁ c₂ : set α) : Prop := chain c₂ ∧ c₁ ⊂ c₂
 
+/-- A chain `c` is a maximal chain if there does not exists a chain strictly including `c`. -/
 def is_max_chain (c : set α) := chain c ∧ ¬ (∃c', super_chain c c')
 
-def succ_chain (c : set α) :=
+/-- Given a set `c`, if there exists a chain `c'` strictly including `c`, then `succ_chain c`
+is one of these chains. Otherwise it is `c`. -/
+def succ_chain (c : set α) : set α :=
 if h : ∃c', chain c ∧ super_chain c c' then some h else c
 
 theorem succ_spec {c : set α} (h : ∃c', chain c ∧ super_chain c c') :
@@ -84,6 +84,7 @@ if h : ∃c', chain c ∧ super_chain c c' then
   this.right.left
 else by simp [succ_chain, dif_neg, h, subset.refl]
 
+/-- Set of sets reachable from `∅` using `succ_chain` and `⋃₀`. -/
 inductive chain_closure : set α → Prop
 | succ : ∀{s}, chain_closure s → chain_closure (succ_chain s)
 | union : ∀{s}, (∀a∈s, chain_closure a) → chain_closure (⋃₀ s)
@@ -186,6 +187,7 @@ begin
         (assume : t₂ ⊆ t₁, h t₁ ht₁ c₁ hc₁ c₂ (this hc₂) hneq) }
 end
 
+/-- `max_chain` is the union of all sets in the chain closure. -/
 def max_chain := ⋃₀ chain_closure
 
 /-- Hausdorff's maximality principle
@@ -222,7 +224,7 @@ let ⟨ub, (hub : ∀a∈max_chain, a ≺ ub)⟩ := this in
 end chain
 
 theorem zorn_partial_order {α : Type u} [partial_order α]
-  (h : ∀c:set α, @chain α (≤) c → ∃ub, ∀a∈c, a ≤ ub) : ∃m:α, ∀a, m ≤ a → a = m :=
+  (h : ∀c:set α, chain (≤) c → ∃ub, ∀a∈c, a ≤ ub) : ∃m:α, ∀a, m ≤ a → a = m :=
 let ⟨m, hm⟩ := @exists_maximal_of_chains_bounded α (≤) h (assume a b c, le_trans) in
 ⟨m, assume a ha, le_antisymm (hm a ha) ha⟩
 
@@ -271,9 +273,9 @@ begin
 end
 
 theorem chain.total {α : Type u} [preorder α]
-  {c} (H : @chain α (≤) c) :
+  {c : set α} (H : chain (≤) c) :
   ∀ {x y}, x ∈ c → y ∈ c → x ≤ y ∨ y ≤ x :=
-@chain.total_of_refl _ (≤) ⟨le_refl⟩ _ H
+λ x y, H.total_of_refl
 
 theorem chain.image {α β : Type*} (r : α → α → Prop)
   (s : β → β → Prop) (f : α → β)

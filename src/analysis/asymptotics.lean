@@ -606,7 +606,7 @@ by simp only [is_O_with, exists_prop, true_and, norm_zero, mul_zero, norm_le_zer
 
 theorem is_O_zero_right_iff : is_O f' (λ x, (0 : F')) l ↔ {x | f' x = 0} ∈ l :=
 ⟨λ h, let ⟨c, hc⟩ := h in  (is_O_with_zero_right_iff).1 hc,
-  λ h, (is_O_with_zero_right_iff.2 h).is_O⟩
+  λ h, (is_O_with_zero_right_iff.2 h : is_O_with 1 _ _ _).is_O⟩
 
 theorem is_o_zero_right_iff :
   is_o f' (λ x, (0 : F')) l ↔ {x | f' x = 0} ∈ l :=

@@ -334,17 +334,30 @@ open set lattice
 instance : partial_order (submodule R M) :=
 partial_order.lift (coe : submodule R M → set M) (λ a b, ext') (by apply_instance)
 
-lemma le_def {p p' : submodule R M} : p ≤ p' ↔ (p : set M) ⊆ p' := iff.rfl
+variables {p p'}
 
-lemma le_def' {p p' : submodule R M} : p ≤ p' ↔ ∀ x ∈ p, x ∈ p' := iff.rfl
+lemma le_def : p ≤ p' ↔ (p : set M) ⊆ p' := iff.rfl
+
+lemma le_def' : p ≤ p' ↔ ∀ x ∈ p, x ∈ p' := iff.rfl
+
+lemma lt_def : p < p' ↔ (p : set M) ⊂ p' := iff.rfl
+
+lemma not_le_iff_exists : ¬ (p ≤ p') ↔ ∃ x ∈ p, x ∉ p' := not_subset
+
+lemma exists_of_lt {p p' : submodule R M} : p < p' → ∃ x ∈ p', x ∉ p := exists_of_ssubset
+
+lemma lt_iff_le_and_exists : p < p' ↔ p ≤ p' ∧ ∃ x ∈ p', x ∉ p :=
+by rw [lt_iff_le_not_le, not_le_iff_exists]
 
 /-- If two submodules p and p' satisfy p ⊆ p', then `of_le p p'` is the linear map version of this
 inclusion. -/
-def of_le {p p' : submodule R M} (h : p ≤ p') : p →ₗ[R] p' :=
+def of_le (h : p ≤ p') : p →ₗ[R] p' :=
 linear_map.cod_restrict _ p.subtype $ λ ⟨x, hx⟩, h hx
 
-@[simp] theorem of_le_apply {p p' : submodule R M} (h : p ≤ p')
+@[simp] theorem of_le_apply (h : p ≤ p')
   (x : p) : (of_le h x : M) = x := rfl
+
+variables (p p')
 
 lemma subtype_comp_of_le (p q : submodule R M) (h : p ≤ q) :
   (submodule.subtype q).comp (of_le h) = submodule.subtype p :=

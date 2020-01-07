@@ -417,20 +417,65 @@ end⟩
 end
 end dedekind_finite
 section
-variables  {R : Type*} [comm_ring R] {M : Type*} [add_comm_group M] [module R M] (f : M →ₗ[R] M)
+variables  {R : Type*} [nonzero_comm_ring R] {M : Type*} [add_comm_group M] [module R M] (f : M →ₗ[R] M)
 
 noncomputable theory
 
-instance module_polynomial_ring_endo : module (polynomial R) M := { smul := λ r m, r.support.sum (λ i, r.coeff i • f.iterate i m),
-  one_smul := λ b, begin simp, rw (sorry : (1 : polynomial R).support = {0}), simp, refl, end,
-  mul_smul := λ x y b, begin sorry end,
-  smul_add := sorry,
-  smul_zero := λ r, begin simp, end,
-  add_smul := λ x y m, begin simp, sorry end,
-  zero_smul := λ m, begin simp, end }
+
 
 lemma linear_map.iterate_zero : f.iterate 0 = 1 := rfl
-lemma linear_map.iterate_one : f.iterate 1 = f :=by simp [linear_map.iterate_succ, linear_map.iterate_zero]
+lemma linear_map.iterate_one : f.iterate 1 = f :=
+    by simp [linear_map.iterate_succ, linear_map.iterate_zero]; exact linear_map.id_comp _
+
+-- if I dont have this some nat decidable instances crop up later and make some "same" finsets different
+local attribute [instance, priority 1000] classical.prop_decidable
+
+
+set_option pp.all false
+instance module_polynomial_ring_endo : module (polynomial R) M := { smul := λ r m, r.support.sum (λ i, r.coeff i • f.iterate i m),
+  one_smul := λ b, begin simp only [polynomial.coeff_one],
+  erw (finsupp.support_single_ne_zero (zero_ne_one.symm) : (1 : polynomial R).support = {0}),
+    suffices : (linear_map.iterate f 0) b = b,
+    by simp [this],
+    rw [linear_map.iterate_zero, linear_map.one_app],
+end,
+  mul_smul := λ x y b, begin simp,have := one_smul (polynomial R), end,
+  smul_add := λ x m n, begin
+    simp,
+    conv_lhs{congr,skip, funext,
+    rw smul_add,},
+    rw finset.sum_add_distrib,
+  end,
+  smul_zero := λ r, begin simp, end,
+  add_smul := λ x y m, begin
+    simp,
+    conv_lhs{congr,skip, funext,
+    rw add_smul,},
+    rw finset.sum_subset finsupp.support_add,
+    rw finset.sum_add_distrib,
+
+    rw finset.sum_subset (finset.subset_union_left x.support y.support),
+    rw finset.sum_subset (finset.subset_union_right x.support y.support),
+
+    intros,
+    have : polynomial.coeff y x_1 = 0 := finsupp.not_mem_support_iff.mp a,
+    rw this,
+    rw zero_smul,
+
+    intros,
+    have : polynomial.coeff x x_1 = 0 := finsupp.not_mem_support_iff.mp a,
+    rw this,
+    rw zero_smul,
+
+    intros,
+    rw ← add_smul,
+    rw ← polynomial.coeff_add,
+    have : polynomial.coeff (x + y) x_1 = 0 := finsupp.not_mem_support_iff.mp a,
+    rw this,
+    rw zero_smul,
+   end,
+  zero_smul := λ m, begin simp, end }
+
 
 
 theorem fg_comm_mod_surj_inj (hfg : (⊤ : submodule R M).fg) (f_surj : function.surjective f)

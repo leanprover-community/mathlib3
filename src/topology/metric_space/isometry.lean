@@ -67,7 +67,8 @@ lemma isometry_id : isometry (id : α → α) :=
 theorem isometry.comp {g : β → γ} {f : α → β} (hg : isometry g) (hf : isometry f) : isometry (g ∘ f) :=
 assume x y, calc
   edist ((g ∘ f) x) ((g ∘ f) y) = edist (f x) (f y) : hg _ _
-                            ... = edist x y : hf _ _
+                             ... = edist x y : hf _ _
+
 /-- An isometry is an embedding -/
 theorem isometry.uniform_embedding (hf : isometry f) : uniform_embedding f :=
 begin

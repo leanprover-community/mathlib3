@@ -1724,6 +1724,16 @@ begin
       closure_mono (image_subset_iff.mpr B)
 end
 
+lemma has_fderiv_within_at.unique_diff_within_at_of_continuous_linear_equiv
+  {x : E} (e' : E ≃L[𝕜] F) (h : has_fderiv_within_at f (e' : E →L[𝕜] F) s x)
+  (hs : unique_diff_within_at 𝕜 s x) :
+  unique_diff_within_at 𝕜 (f '' s) (f x) :=
+begin
+  apply h.unique_diff_within_at hs,
+  have : range (e' : E →L[𝕜] F) = univ := e'.to_linear_equiv.to_equiv.range_eq_univ,
+  rw [this, closure_univ]
+end
+
 end tangent_cone
 
 section restrict_scalars

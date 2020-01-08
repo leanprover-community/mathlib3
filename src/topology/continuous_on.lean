@@ -337,6 +337,30 @@ begin
   exact (hf x hx).mem_closure_image hx
 end
 
+theorem is_open_map.continuous_on_image_of_left_inv_on {f : α → β} {s : set α}
+  (h : is_open_map (function.restrict f s)) {finv : β → α} (hleft : left_inv_on finv f s) :
+  continuous_on finv (f '' s) :=
+begin
+  rintros _ ⟨x, xs, rfl⟩ t ht,
+  rw [hleft x xs] at ht,
+  replace h := h.nhds_le ⟨x, xs⟩,
+  apply mem_nhds_within_of_mem_nhds,
+  apply h,
+  erw [map_compose.symm, function.comp, mem_map, ← nhds_within_eq_map_subtype_val],
+  apply mem_sets_of_superset (inter_mem_nhds_within _ ht),
+  assume y hy,
+  rw [mem_set_of_eq, mem_preimage, hleft _ hy.1],
+  exact hy.2
+end
+
+theorem is_open_map.continuous_on_range_of_left_inverse {f : α → β} (hf : is_open_map f)
+  {finv : β → α} (hleft : function.left_inverse finv f) :
+  continuous_on finv (range f) :=
+begin
+  rw [← image_univ],
+  exact (hf.restrict is_open_univ).continuous_on_image_of_left_inv_on (λ x _, hleft x)
+end
+
 lemma continuous_on.congr_mono {f g : α → β} {s s₁ : set α} (h : continuous_on f s)
   (h' : ∀x ∈ s₁, g x = f x) (h₁ : s₁ ⊆ s) : continuous_on g s₁ :=
 begin

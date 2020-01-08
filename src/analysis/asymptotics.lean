@@ -19,6 +19,10 @@ Here `l` is any filter on the domain of `f` and `g`, which are assumed to be the
 of `f` and `g` do not need to be the same; all that is needed that there is a norm associated with
 these types, and it is the norm that is compared asymptotically.
 
+The relation `is_O_with c` is introduced to factor out common algebraic arguments in the proofs of
+similar properties of `is_O` and `is_o`. Usually proofs outside of this file should use `is_O`
+instead.
+
 Often the ranges of `f` and `g` will be the real numbers, in which case the norm is the absolute
 value. In general, we have
 
@@ -58,7 +62,7 @@ section defs
 /-- This version of the Landau notation `is_O_with C f g l` where `f` and `g` are two functions on
 a type `α` and `l` is a filter on `α`, means that eventually for `l`, `∥f∥` is bounded by `C * ∥g∥`.
 In other words, `∥f∥ / ∥g∥` is eventually bounded by `C`, modulo division by zero issues that are
-avoided by this definition. -/
+avoided by this definition. Probably you want to use `is_O` instead of this relation. -/
 def is_O_with (c : ℝ) (f : α → E) (g : α → F) (l : filter α) : Prop :=
 { x | ∥ f x ∥ ≤ c * ∥ g x ∥ } ∈ l
 

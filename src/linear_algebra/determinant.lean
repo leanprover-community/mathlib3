@@ -147,11 +147,7 @@ end
 section det_zero
 /-! ### `det_zero` section
 
-  In this section, we give two proofs that a matrix with two identical columns
-  has determinant equal to zero. The first one,
-  `det_zero_of_column_eq_of_char_ne_two` is short but doesn't work in
-  characteristic `2`. The second one, `det_zero_of_column_eq` works in all
-  characteristics, but is more complicated.
+  Prove that a matrix with a repeated column has determinant equal to zero.
 -/
 
 /--
@@ -174,24 +170,6 @@ instance (i j : n) : decidable_rel (mod_swap i j).r := λ σ τ, or.decidable
 variables {M : matrix n n R} {i j : n} (i_ne_j : i ≠ j) (hij : M i = M j)
 
 include i_ne_j hij
-/-- The determinant is zero if the matrix contains a repeated column.
-
-  The proof shows `M.det = -M.det` and concludes `M.det = 0`,
-  so it doesn't work in characteristic `2`.
--/
-lemma det_zero_of_column_eq_of_char_ne_two (char_ne_2 : ∀ (a : R), a = -a → a = 0) : M.det = 0 :=
-begin
-suffices : M.det = - M.det, { apply char_ne_2, assumption },
-have : (λ a, M (swap i j a)) = M,
-{ ext a b,
-  by_cases hi : a = i, { rw [hi, swap_apply_left, hij] },
-  by_cases hj : a = j, { rw [hj, swap_apply_right, hij] },
-  rw [swap_apply_of_ne_of_ne hi hj]
-},
-calc M.det = (-1 : units ℤ) * M.det : by rw [←sign_swap i_ne_j, ←det_permute M, this]
-       ... = -det M : by norm_num
-end
-
 /-- If a matrix has a repeated column, the determinant will be zero. -/
 theorem det_zero_of_column_eq : M.det = 0 :=
 begin

@@ -262,7 +262,7 @@ lemma has_deriv_within_at.union (hs : has_deriv_within_at f f' s x) (ht : has_de
   has_deriv_within_at f f' (s ∪ t) x :=
 begin
   simp only [has_deriv_within_at, nhds_within_union],
-  exact is_o_join hs ht,
+  exact hs.join ht,
 end
 
 lemma has_deriv_within_at.nhds_within (h : has_deriv_within_at f f' s x)
@@ -967,38 +967,35 @@ begin
   have : is_o (λ (h : 𝕜), h^2 * (1 + h)⁻¹) (λ (h : 𝕜), h * 1) (𝓝 0),
   { have : tendsto (λ (h : 𝕜), (1 + h)⁻¹) (𝓝 0) (𝓝 (1 + 0)⁻¹) :=
       ((tendsto_const_nhds).add tendsto_id).inv' (by norm_num),
-    exact is_o_mul_right (is_o_pow_id (by norm_num)) (is_O_one_of_tendsto this) },
-  apply (is_o_congr _ _).2 this,
-  { have : metric.ball (0 : 𝕜) (∥(1:𝕜)∥) ∈ 𝓝 (0 : 𝕜),
-    { apply mem_nhds_sets metric.is_open_ball,
-      simp [zero_lt_one] },
+    exact is_o.mul_is_O (is_o_pow_id one_lt_two) (is_O_one_of_tendsto _ this) },
+  apply this.congr' _ _,
+  { have : metric.ball (0 : 𝕜) 1 ∈ 𝓝 (0 : 𝕜),
+      from metric.ball_mem_nhds 0 zero_lt_one,
     filter_upwards [this],
     assume h hx,
     have : 0 < ∥1 + h∥ := calc
-      0 < ∥(1:𝕜)∥ - ∥-h∥ : by rwa [norm_neg, sub_pos, ← dist_zero_right h]
+      0 < ∥(1:𝕜)∥ - ∥-h∥ : by rwa [norm_neg, sub_pos, ← dist_zero_right h, normed_field.norm_one]
       ... ≤ ∥1 - -h∥ : norm_sub_norm_le _ _
       ... = ∥1 + h∥ : by simp,
     have : 1 + h ≠ 0 := (norm_pos_iff (1 + h)).mp this,
-    calc (1 + h)⁻¹ - 1⁻¹ - h * -1 =
-      (1+h)⁻¹ - ((1+h) * (1+h)⁻¹) + h * ((1+h) * (1+h)⁻¹) :
-        by { simp only [mul_inv_cancel this], simp }
-      ... = h^2 * (1+h)⁻¹ : by { generalize : (1+h)⁻¹ = y, ring } },
-  { convert univ_mem_sets, simp }
+    simp only [mem_set_of_eq, smul_eq_mul, inv_one],
+    field_simp [this, -add_comm],
+    ring },
+  { exact univ_mem_sets' mul_one }
 end
 
 theorem has_deriv_at_inv (x_ne_zero : x ≠ 0) :
   has_deriv_at (λy, y⁻¹) (-(x^2)⁻¹) x :=
 begin
   have A : has_deriv_at (λy, y⁻¹) (-1) (x⁻¹ * x : 𝕜),
-    by { simp [inv_mul_cancel x_ne_zero, has_deriv_at_inv_one] },
+    by { simp only [inv_mul_cancel x_ne_zero, has_deriv_at_inv_one] },
   have B : has_deriv_at (λy, x⁻¹ * y) (x⁻¹) x,
-    by { convert ((has_deriv_at_const x (x⁻¹)).mul (has_deriv_at_id x)), simp },
-  convert (has_deriv_at_const _ (x⁻¹)).mul (A.comp x B : _),
+    by simpa only [mul_one] using (has_deriv_at_id x).const_mul x⁻¹,
+  convert (A.comp x B : _).const_mul x⁻¹,
   { ext y,
-    have : x⁻¹ * (y⁻¹ * x) = y⁻¹,
-      by rw [← mul_assoc, mul_comm, ← mul_assoc, mul_inv_cancel x_ne_zero, one_mul],
-    simp [mul_inv', this] },
-  { simp [pow_two, mul_inv'] }
+    rw [function.comp_apply, mul_inv', inv_inv', mul_comm, mul_assoc, mul_inv_cancel x_ne_zero,
+      mul_one] },
+  { rw [pow_two, mul_inv', smul_eq_mul, mul_neg_one, neg_mul_eq_mul_neg] }
 end
 
 theorem has_deriv_within_at_inv (x_ne_zero : x ≠ 0) (s : set 𝕜) :

@@ -158,16 +158,15 @@ section
 open asymptotics filter
 
 theorem is_O_id (l : filter E) : is_O f (λ x, x) l :=
-let ⟨M, hMp, hM⟩ := f.bound in
-⟨M, hMp, mem_sets_of_superset univ_mem_sets (λ x _, hM x)⟩
+let ⟨M, hMp, hM⟩ := f.bound in is_O_of_le' l hM
 
 theorem is_O_comp {E : Type*} (g : F →L[𝕜] G) (f : E → F) (l : filter E) :
   is_O (λ x', g (f x')) f l :=
-((g.is_O_id ⊤).comp _).mono (map_le_iff_le_comap.mp lattice.le_top)
+(g.is_O_id ⊤).comp_tendsto lattice.le_top
 
 theorem is_O_sub (f : E →L[𝕜] F) (l : filter E) (x : E) :
   is_O (λ x', f (x' - x)) (λ x', x' - x) l :=
-is_O_comp f _ l
+f.is_O_comp _ l
 
 end
 

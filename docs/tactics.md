@@ -1095,6 +1095,12 @@ Transforms the goal into its contrapositive.
 
 `contrapose h with new_h` uses the name `new_h` for the introduced hypothesis
 
+### tautology
+
+This tactic (with shorthand `tauto`) breaks down assumptions of the form `_ ∧ _`, `_ ∨ _`, `_ ↔ _` and `∃ _, _`
+and splits a goal of the form `_ ∧ _`, `_ ↔ _` or `∃ _, _` until it can be discharged
+using `reflexivity` or `solve_by_elim`.
+
 ### norm_cast
 
 This tactic normalizes casts inside expressions.

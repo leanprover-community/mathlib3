@@ -138,8 +138,9 @@ end
 
 /-- The coordinates of the linear map associated to Cramer's rule.
 
-  Compare `cramer`.
-  We also introduce this variant because we want to use two variants of 
+  Later, we use `cramer_at` to define the map on vectors `cramer`.
+  Depending on whether working coordinatewise is useful,
+  either version of Cramer's rule could be applied.
 -/
 def cramer_at (i : n) : (n → α) →ₗ[α] α :=
 is_linear_map.mk' (λ b, cramer_map A b i) (cramer_at_is_linear A i)
@@ -194,6 +195,8 @@ section adjugate
 /-! ### `adjugate` section
 
 Define the `adjugate` matrix and a few equations.
+These will hold for any matrix over a commutative ring,
+while the `inv` section is specifically for invertible matrices.
 -/
 
 variable [comm_ring α]
@@ -268,6 +271,12 @@ calc adjugate A ⬝ A = (Aᵀ ⬝ (adjugate Aᵀ))ᵀ :
 end adjugate
 
 section inv
+/-! ### `inv` section
+
+Defines the matrix `nonsing_inv A` and proves it is the inverse matrix
+of a square matrix `A` as long as `det A` has a multiplicative inverse.
+-/
+
 variables [comm_ring α] [has_inv α]
 
 /-- The inverse of a nonsingular matrix.

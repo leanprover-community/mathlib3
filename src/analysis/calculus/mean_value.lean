@@ -83,7 +83,7 @@ begin
     have : is_o (λ x, h x) (λ x, x - k) (nhds_within k (Icc 0 1)) :=
       (hf k k_mem_K.1).has_deriv_within_at,
     have : {x | ∥h x∥ ≤ (D-C) * ∥x-k∥} ∈ nhds_within k (Icc 0 1) :=
-      this (D-C) (sub_pos_of_lt hD),
+      this (sub_pos_of_lt hD),
     rcases mem_nhds_within.1 this with ⟨s, s_open, ks, hs⟩,
     rcases is_open_iff.1 s_open k ks with ⟨ε, εpos, hε⟩,
     change 0 < ε at εpos,

@@ -1095,6 +1095,22 @@ Transforms the goal into its contrapositive.
 
 `contrapose h with new_h` uses the name `new_h` for the introduced hypothesis
 
+### tautology
+
+This tactic (with shorthand `tauto`) breaks down assumptions of the form `_ ∧ _`, `_ ∨ _`, `_ ↔ _` and `∃ _, _`
+and splits a goal of the form `_ ∧ _`, `_ ↔ _` or `∃ _, _` until it can be discharged
+using `reflexivity` or `solve_by_elim`. This is a finishing tactic: it
+either closes the goal of raises an error.
+
+The variants `tautology!` or `tauto!` use the law of excluded middle.
+
+For instance, one can write:
+```lean
+example (p q r : Prop) [decidable p] [decidable r] : p ∨ (q ∧ r) ↔ (p ∨ q) ∧ (r ∨ p ∨ r) := by tauto
+```
+and the decidability assumptions can be dropped if `tauto!` is used
+instead of `tauto`.
+
 ### norm_cast
 
 This tactic normalizes casts inside expressions.

@@ -8,7 +8,7 @@ import analysis.calculus.mean_value analysis.complex.exponential
 /-!
 # Grönwall's inequality
 
-In this file we prove a generalized Grönwall's inequality, and use to to prove
+In this file we prove a generalized Grönwall's inequality, and use it to prove
 uniqueness (but not existence) of solutions of ODEs with Lipschitz continuous right hand sides.
 
 The proofs are based on [Hubbard and West, *Differential Equations: A Dynamical Systems

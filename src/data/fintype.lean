@@ -216,12 +216,10 @@ lemma finset.card_univ_diff [fintype α] [decidable_eq α] (s : finset α) :
 finset.card_sdiff (subset_univ s)
 
 instance (n : ℕ) : fintype (fin n) :=
-⟨⟨list.pmap fin.mk (list.range n) (λ a, list.mem_range.1),
-  list.nodup_pmap (λ a _ b _, congr_arg fin.val) (list.nodup_range _)⟩,
-λ ⟨m, h⟩, list.mem_pmap.2 ⟨m, list.mem_range.2 h, rfl⟩⟩
+⟨⟨list.fin_range n, list.nodup_fin_range n⟩, list.mem_fin_range⟩
 
 @[simp] theorem fintype.card_fin (n : ℕ) : fintype.card (fin n) = n :=
-by rw [fin.fintype]; simp [fintype.card, card, univ]
+list.length_fin_range n
 
 @[instance, priority 10] def unique.fintype {α : Type*} [unique α] : fintype α :=
 ⟨finset.singleton (default α), λ x, by rw [unique.eq_default x]; simp⟩

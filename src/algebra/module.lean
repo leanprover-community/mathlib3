@@ -54,6 +54,12 @@ instance smul.is_add_monoid_hom {r : α} : is_add_monoid_hom (λ x : β, r • x
 lemma semimodule.eq_zero_of_zero_eq_one (zero_eq_one : (0 : α) = 1) : x = 0 :=
 by rw [←one_smul α x, ←zero_eq_one, zero_smul]
 
+/-- R-linearity of finite sums of elements of an R-semimodule. -/
+lemma finset.sum_smul {α : Type*} {R : Type*} [semiring R] {M : Type*} [add_comm_monoid M]
+  [semimodule R M] (s : finset α) (r : R) (f : α → M) :
+    s.sum (λ (x : α), (r • (f x))) = r • (s.sum f) :=
+s.sum_hom _
+
 end semimodule
 
 section prio
@@ -177,7 +183,7 @@ by simp [map_neg, map_add]
 
 @[simp] lemma map_sum {ι} {t : finset ι} {g : ι → β} :
   f (t.sum g) = t.sum (λi, f (g i)) :=
-(finset.sum_hom f).symm
+(t.sum_hom f).symm
 
 include mδ
 
@@ -218,7 +224,7 @@ begin
 end
 
 --TODO: move
-lemma is_linear_map_smul' {α R : Type*} [add_comm_group α] [comm_ring R] [module R α] (a : α) :
+lemma is_linear_map_smul' {α R : Type*} [add_comm_group α] [ring R] [module R α] (a : α) :
   is_linear_map R (λ (c : R), c • a) :=
 begin
   refine is_linear_map.mk (λ x y, add_smul x y a) _,
@@ -356,8 +362,8 @@ lemma mul_mem_right (h : a ∈ I) : a * b ∈ I := mul_comm b a ▸ I.mul_mem_le
 
 end ideal
 
-/- Note[vector space definition]:
-Vector spaces are defined as an `abbreviation` for modules,
+library_note "vector space definition"
+"Vector spaces are defined as an `abbreviation` for modules,
 if the base ring is a field.
 (A previous definition made `vector_space` a structure
 defined to be `module`.)
@@ -366,8 +372,7 @@ for type class inference, which means that all instances for modules
 are immediately picked up for vector spaces as well.
 A cosmetic disadvantage is that one can not extend vector spaces an sich,
 in definitions such as `normed_space`.
-The solution is to extend `module` instead.
--/
+The solution is to extend `module` instead."
 
 /-- A vector space is the same as a module, except the scalar ring is actually
   a field. (This adds commutativity of the multiplication and existence of inverses.)

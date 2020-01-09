@@ -401,7 +401,7 @@ variables (α : Type u) (β : Type v) [metric_space α] [compact_space α] [none
 we can finally select a candidate minimizing HD. This will be the candidate realizing the
 optimal coupling. -/
 private lemma exists_minimizer : ∃f ∈ candidates_b α β, ∀g ∈ candidates_b α β, HD f ≤ HD g :=
-exists_forall_le_of_compact_of_continuous _ HD_continuous _ compact_candidates_b candidates_b_ne_empty
+compact_candidates_b.exists_forall_le candidates_b_ne_empty HD_continuous.continuous_on
 
 private definition optimal_GH_dist : Cb α β := classical.some (exists_minimizer α β)
 
@@ -463,9 +463,8 @@ instance compact_space_optimal_GH_coupling : compact_space (optimal_GH_coupling 
       rw this,
       exact mem_union_right _ (mem_image_of_mem _ (mem_univ _)) } },
   rw this,
-  exact compact_union_of_compact
-    (compact_image (compact_univ) (isometry_optimal_GH_injl α β).continuous)
-    (compact_image (compact_univ) (isometry_optimal_GH_injr α β).continuous)
+  exact (compact_univ.image (isometry_optimal_GH_injl α β).continuous).union
+    (compact_univ.image (isometry_optimal_GH_injr α β).continuous)
 end⟩
 
 /-- For any candidate f, HD(f) is larger than or equal to the Hausdorff distance in the

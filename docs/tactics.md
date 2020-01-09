@@ -1095,6 +1095,22 @@ Transforms the goal into its contrapositive.
 
 `contrapose h with new_h` uses the name `new_h` for the introduced hypothesis
 
+### tautology
+
+This tactic (with shorthand `tauto`) breaks down assumptions of the form `_ ∧ _`, `_ ∨ _`, `_ ↔ _` and `∃ _, _`
+and splits a goal of the form `_ ∧ _`, `_ ↔ _` or `∃ _, _` until it can be discharged
+using `reflexivity` or `solve_by_elim`. This is a finishing tactic: it
+either closes the goal of raises an error.
+
+The variants `tautology!` or `tauto!` use the law of excluded middle.
+
+For instance, one can write:
+```lean
+example (p q r : Prop) [decidable p] [decidable r] : p ∨ (q ∧ r) ↔ (p ∨ q) ∧ (r ∨ p ∨ r) := by tauto
+```
+and the decidability assumptions can be dropped if `tauto!` is used
+instead of `tauto`.
+
 ### norm_cast
 
 This tactic normalizes casts inside expressions.
@@ -1435,4 +1451,41 @@ available, you should use
 ```lean
 run_cmd mk_simp_attr `simp_name
 run_cmd add_doc_string `simp_attr.simp_name "Description of the simp set here"
+```
+
+### library_note
+
+At various places in mathlib, we leave implementation notes that are referenced from many other
+files. To keep track of these notes, we use the command `library_note`. This makes it easy to
+retrieve a list of all notes, e.g. for documentation output.
+
+These notes can be referenced in mathlib with the syntax `Note [note id]`.
+Often, these references will be made in code comments (`--`) that won't be displayed in docs.
+If such a reference is made in a doc string or module doc, it will be linked to the corresponding
+note in the doc display.
+
+Syntax:
+```
+library_note "note id" "note message"
+```
+
+An example from `meta.expr`:
+
+```
+library_note "open expressions"
+"Some declarations work with open expressions, i.e. an expr that has free variables.
+Terms will free variables are not well-typed, and one should not use them in tactics like
+`infer_type` or `unify`. You can still do syntactic analysis/manipulation on them.
+The reason for working with open types is for performance: instantiating variables requires
+iterating through the expression. In one performance test `pi_binders` was more than 6x
+quicker than `mk_local_pis` (when applied to the type of all imported declarations 100x)."
+```
+
+This note can be referenced near a usage of `pi_binders`:
+
+
+```
+-- See Note [open expressions]
+/-- behavior of f -/
+def f := pi_binders ...
 ```

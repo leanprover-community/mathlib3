@@ -574,7 +574,9 @@ def alg_hom_int
 
 /-- CRing ⥤ ℤ-Alg -/
 instance algebra_int : algebra ℤ R :=
-algebra.of_ring_hom coe $ by constructor; intros; simp
+{ to_fun := coe,
+  commutes' := λ _ _, mul_comm _ _,
+  smul_def' := λ _ _, gsmul_eq_mul _ _ }
 
 variables {R}
 /-- CRing ⥤ ℤ-Alg -/

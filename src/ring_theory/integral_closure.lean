@@ -118,7 +118,7 @@ begin
     replace hpx := congr_arg subtype.val hpx,
     refine ⟨p, hpm, eq.trans _ hpx⟩,
     simp only [aeval_def, eval₂, finsupp.sum],
-    rw ← finset.sum_hom subtype.val,
+    rw ← p.support.sum_hom subtype.val,
     { refine finset.sum_congr rfl (λ n hn, _),
       change _ = _ * _,
       rw is_semiring_hom.map_pow subtype.val, refl,

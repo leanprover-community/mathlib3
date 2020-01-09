@@ -411,9 +411,8 @@ calc fintype.card s = s.to_finset.card : fintype.card_of_finset' _ (by simp)
 
 lemma eq_of_subset_of_card_le {s t : set α} [fintype s] [fintype t]
    (hsub : s ⊆ t) (hcard : fintype.card t ≤ fintype.card s) : s = t :=
-classical.by_contradiction (λ h, lt_irrefl (fintype.card t)
-  (have fintype.card s < fintype.card t := set.card_lt_card ⟨hsub, h⟩,
-    by rwa [le_antisymm (card_le_of_subset hsub) hcard] at this))
+(eq_or_ssubset_of_subset hsub).elim id
+  (λ h, absurd hcard $ not_le_of_lt $ card_lt_card h)
 
 lemma card_range_of_injective [fintype α] {f : α → β} (hf : injective f)
   [fintype (range f)] : fintype.card (range f) = fintype.card α :=

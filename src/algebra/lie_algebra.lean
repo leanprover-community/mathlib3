@@ -3,7 +3,7 @@ Copyright (c) 2019 Oliver Nash. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Oliver Nash
 -/
-import ring_theory.algebra data.matrix.basic
+import ring_theory.algebra data.matrix.basic linear_algebra.linear_action
 
 /-!
 # Lie algebras
@@ -193,7 +193,11 @@ notation L ` →ₗ⁅`:25 R:25 `⁆ `:0 L':0 := morphism R L L'
 
 instance (R : Type u) (L : Type v) (L' : Type v)
   [comm_ring R] [add_comm_group L] [lie_algebra R L] [add_comm_group L'] [lie_algebra R L'] :
-  has_coe_to_fun (L →ₗ⁅R⁆ L') := ⟨_, linear_map.to_fun ∘ morphism.to_linear_map⟩
+  has_coe (L →ₗ⁅R⁆ L') (L →ₗ[R] L') := ⟨morphism.to_linear_map⟩
+
+@[simp] lemma morphism_bracket {R : Type u} {L : Type v} {L' : Type v}
+  [comm_ring R] [add_comm_group L] [lie_algebra R L] [add_comm_group L'] [lie_algebra R L']
+  (f : L →ₗ⁅R⁆ L') (x y : L) : f ⁅x, y⁆ = ⁅f x, f y⁆ := morphism.bracket f
 
 variables {R : Type u} {L : Type v} [comm_ring R] [add_comm_group L] [lie_algebra R L]
 
@@ -214,6 +218,10 @@ instance of_endomorphism_algebra (M : Type v)
   [add_comm_group M] [module R M] : lie_algebra R (module.End R M) :=
 of_associative_algebra (module.End R M)
 
+@[simp] lemma endo_algebra_bracket (M : Type v)
+  [add_comm_group M] [module R M] (f g : module.End R M) :
+  ⁅f, g⁆ = f.comp g - g.comp f := rfl
+
 /--
 The adjoint action of a Lie algebra on itself.
 -/
@@ -222,15 +230,14 @@ def Ad (x : L) : L →ₗ[R] L :=
   add    := by { intros, apply lie_add },
   smul   := by { intros, apply lie_smul } }
 
+@[simp] lemma Ad_action (x y : L) : ((Ad x) : L →ₗ[R] L) y = ⁅x, y⁆ := rfl
+
 set_option class.instance_max_depth 35
 lemma is_morphism_Ad (x y : L) : (Ad ⁅x, y⁆ : L →ₗ[R] L) = ⁅Ad x, Ad y⁆ :=
 begin
   ext z,
-  suffices : ⁅⁅x, y⁆, z⁆ = ⁅x, ⁅y, z⁆⁆ + ⁅⁅x, z⁆, y⁆, by {
-    dunfold of_endomorphism_algebra of_associative_algebra Ad
-            has_bracket.bracket ring_commutator.commutator,
-    simpa using this,
-  },
+  rw endo_algebra_bracket,
+  suffices : ⁅⁅x, y⁆, z⁆ = ⁅x, ⁅y, z⁆⁆ + ⁅⁅x, z⁆, y⁆, by simpa,
   rw [eq_comm, ←lie_skew ⁅x, y⁆ z, ←lie_skew ⁅x, z⁆ y, ←lie_skew x z, lie_neg, neg_neg,
       ←sub_eq_zero_iff_eq, sub_neg_eq_add, lie_ring.jacobi],
 end
@@ -240,8 +247,8 @@ The bracket of a Lie algebra as a bilinear map.
 -/
 def bil_lie : L →ₗ[R] L →ₗ[R] L :=
 { to_fun := Ad,
-  add    := by { unfold Ad, intros, ext, simp [add_lie], },
-  smul   := by { unfold Ad, intros, ext, simp, } }
+  add    := by { intros, ext, simp, },
+  smul   := by { intros, ext, simp, } }
 
 /--
 The bracket of a Lie algebra as a morphism of Lie algebras.
@@ -285,21 +292,35 @@ set_option default_priority 100 -- see Note [default priority]
 A Lie module is a module over a commutative ring, together with a linear action of a Lie algebra
 on this module, such that the Lie bracket acts as the commutator of endomorphisms.
 -/
-class lie_module :=
-(action : L →ₗ⁅R⁆ module.End R M)
+class lie_module extends linear_action R L M :=
+(lie_smul : ∀ (l l' : L) (m : M), ⁅l, l'⁆ • m = l • (l' • m) - l' • (l • m))
 end prio
+
+@[simp] lemma lie_module_lie_smul [lie_module R L M]
+  (l l' : L) (m : M) : ⁅l, l'⁆ • m = l • (l' • m) - l' • (l • m) := lie_module.lie_smul R l l' m
+
+lemma of_endo_map_action (α : L →ₗ⁅R⁆ module.End R M) (x : L) (m : M) :
+  @has_scalar.smul L M (linear_action.of_endo_map R L M α).to_has_scalar x m = α x m := rfl
+
+def lie_module.of_endo_morphism (α : L →ₗ⁅R⁆ module.End R M) : lie_module R L M := {
+  lie_smul := by { intros x y m,
+                   rw [of_endo_map_action,
+                       lie_algebra.morphism_bracket,
+                       lie_algebra.endo_algebra_bracket], refl, },
+  ..(linear_action.of_endo_map R L M α) }
 
 /--
 Every Lie algebra is a module over itself.
 -/
-instance lie_algebra_self_module : lie_module R L L := ⟨lie_algebra.bil_lie_morphism⟩
+instance lie_algebra_self_module : lie_module R L L :=
+  lie_module.of_endo_morphism R L L (lie_algebra.bil_lie_morphism : L →ₗ⁅R⁆ module.End R L)
 
 /--
 A Lie submodule of a Lie module is a submodule that is closed under the Lie bracket.
 This is a sufficient condition for the subset itself to form a Lie module.
 -/
 structure lie_submodule [lie_module R L M] extends submodule R M :=
-(lie_mem : ∀ {x m}, m ∈ carrier → lie_module.action R L M x m ∈ carrier)
+(lie_mem : ∀ {x : L} {m : M}, m ∈ carrier → x • m ∈ carrier)
 
 instance lie_submodule_coe_submodule [lie_module R L M] :
   has_coe (lie_submodule R L M) (submodule R M) := ⟨lie_submodule.to_submodule⟩
@@ -307,18 +328,14 @@ instance lie_submodule_coe_submodule [lie_module R L M] :
 instance lie_submodule_has_mem [lie_module R L M] :
   has_mem M (lie_submodule R L M) := ⟨λ x N, x ∈ (N : set M)⟩
 
-instance lie_submodule_lie_module [α : lie_module R L M] (N : lie_submodule R L M) :
-  lie_module R L N :=
-⟨{add     := by { intros, ext, apply set_coe.ext,
-                  rw [linear_map.coe_mk, subtype.coe_mk, linear_map.add], refl, },
-  smul    := by { intros, ext, apply set_coe.ext,
-                  rw [linear_map.coe_mk, subtype.coe_mk, linear_map.smul], refl, },
-  bracket := by { intros, ext, apply set_coe.ext,
-                  rw [linear_map.coe_mk, subtype.coe_mk, lie_algebra.morphism.bracket], refl, },
-  to_fun  := λ x, {
-    to_fun := λ m, ⟨α.action.to_fun x m, N.lie_mem m.property⟩,
-    add    := by { intros, apply set_coe.ext, simp, },
-    smul   := by { intros, apply set_coe.ext, simp, }}}⟩
+instance lie_submodule_lie_module [lie_module R L M] (N : lie_submodule R L M) :
+  lie_module R L N := {
+  smul       := λ x m, ⟨x • m.val, N.lie_mem m.property⟩,
+  add_smul   := by { intros x y m, apply set_coe.ext, apply add_action.add_smul, },
+  smul_add   := by { intros x m n, apply set_coe.ext, apply add_action.smul_add, },
+  smul_smul  := by { intros r x y, apply set_coe.ext, apply linear_action.smul_smul, },
+  smul_smul' := by { intros r x y, apply set_coe.ext, apply linear_action.smul_smul', },
+  lie_smul   := by { intros x y m, apply set_coe.ext, apply lie_module.lie_smul, } }
 
 /--
 An ideal of a Lie algebra is a Lie submodule of the Lie algebra as a Lie module over itself.

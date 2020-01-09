@@ -214,13 +214,13 @@ variables {α : Sort u} {β : α → Sort v} {α' : Sort w} [decidable_eq α] [d
 def update (f : Πa, β a) (a' : α) (v : β a') (a : α) : β a :=
 if h : a = a' then eq.rec v h.symm else f a
 
-@[simp] lemma update_same {a : α} {v : β a} {f : Πa, β a} : update f a v a = v :=
+@[simp] lemma update_same (a : α) (v : β a) (f : Πa, β a) : update f a v a = v :=
 dif_pos rfl
 
-@[simp] lemma update_noteq {a a' : α} {v : β a'} {f : Πa, β a} (h : a ≠ a') : update f a' v a = f a :=
+@[simp] lemma update_noteq {a a' : α} (h : a ≠ a') (v : β a') (f : Πa, β a) : update f a' v a = f a :=
 dif_neg h
 
-@[simp] lemma update_eq_self {a : α} {f : Πa, β a} : update f a (f a) = f :=
+@[simp] lemma update_eq_self (a : α) (f : Πa, β a) : update f a (f a) = f :=
 begin
   refine funext (λi, _),
   by_cases h : i = a,

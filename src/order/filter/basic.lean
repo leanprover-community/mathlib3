@@ -507,7 +507,7 @@ begin
       have : ∀a'∈s, function.update p a t₁ a' = p a',
         from assume a' ha',
         have a' ≠ a, from assume h, has $ h ▸ ha',
-        function.update_noteq this,
+        function.update_noteq this _ _,
       have eq : s.inf (λj, function.update p a t₁ j) = s.inf (λj, p j) :=
         finset.inf_congr rfl this,
       simp only [this, ht₁, hp, function.update_same, true_and, imp_true_iff, eq] {contextual := tt},

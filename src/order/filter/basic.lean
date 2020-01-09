@@ -2,11 +2,27 @@
 Copyright (c) 2017 Johannes Hölzl. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johannes Hölzl, Jeremy Avigad
-
-Theory of filters on sets.
 -/
 import order.galois_connection order.zorn
 import data.set.finite
+
+/-! # Theory of filters on sets
+
+## Main definitions
+
+* `filter` : filter on a set;
+* `at_top`, `at_bot`, `cofinite`, `principal` : specific filters;
+* `map`, `comap`, `join` : operations on filters;
+* `filter_upwards [h₁, ..., hₙ]` : takes a list of proofs `hᵢ : sᵢ ∈ f`, and replaces a goal `s ∈ f`
+  with `∀ x, x ∈ s₁ → ... → x ∈ sₙ → x ∈ s`;
+* `eventually` : `f.eventually p` means `{x | p x} ∈ f`;
+* `frequently` : `f.frequently p` means `{x | ¬p x} ∉ f`.
+
+## Notations
+
+* `∀ᶠ x in f, p x` : `f.eventually p`;
+* `∃ᶠ x in f, p x` : `f.frequently p`.
+-/
 open lattice set
 
 universes u v w x y
@@ -363,7 +379,7 @@ lemma principal_mono {s t : set α} : principal s ≤ principal t ↔ s ⊆ t :=
 by simp only [le_principal_iff, iff_self, mem_principal_sets]
 
 lemma monotone_principal : monotone (principal : set α → filter α) :=
-by simp only [monotone, principal_mono]; exact assume a b h, h
+λ _ _, principal_mono.2
 
 @[simp] lemma principal_eq_iff_eq {s t : set α} : principal s = principal t ↔ s = t :=
 by simp only [le_antisymm_iff, le_principal_iff, mem_principal_sets]; refl
@@ -396,6 +412,26 @@ have ∅ ∈ f ⊓ principal (- s), from h.symm ▸ mem_bot_sets,
 let ⟨s₁, hs₁, s₂, (hs₂ : -s ⊆ s₂), (hs : s₁ ∩ s₂ ⊆ ∅)⟩ := this in
 by filter_upwards [hs₁] assume a ha, classical.by_contradiction $ assume ha', hs ⟨ha, hs₂ ha'⟩
 
+lemma eq_Inf_of_mem_sets_iff_exists_mem {S : set (filter α)} {l : filter α}
+  (h : ∀ {s}, s ∈ l ↔ ∃ f ∈ S, s ∈ f) : l = Inf S :=
+le_antisymm (le_Inf $ λ f hf s hs, h.2 ⟨f, hf, hs⟩)
+  (λ s hs, let ⟨f, hf, hs⟩ := h.1 hs in (Inf_le hf : Inf S ≤ f) hs)
+
+lemma eq_infi_of_mem_sets_iff_exists_mem {f : ι → filter α} {l : filter α}
+  (h : ∀ {s}, s ∈ l ↔ ∃ i, s ∈ f i) :
+  l = infi f :=
+eq_Inf_of_mem_sets_iff_exists_mem $ λ s, h.trans exists_range_iff.symm
+
+lemma eq_binfi_of_mem_sets_iff_exists_mem {f : ι → filter α} {p : ι  → Prop} {l : filter α}
+  (h : ∀ {s}, s ∈ l ↔ ∃ i (_ : p i), s ∈ f i) :
+  l = ⨅ i (_ : p i), f i :=
+begin
+  rw [infi_subtype'],
+  apply eq_infi_of_mem_sets_iff_exists_mem,
+  intro s,
+  exact h.trans ⟨λ ⟨i, pi, si⟩, ⟨⟨i, pi⟩, si⟩, λ ⟨⟨i, pi⟩, si⟩, ⟨i, pi, si⟩⟩
+end
+
 lemma infi_sets_eq {f : ι → filter α} (h : directed (≥) f) (ne : nonempty ι) :
   (infi f).sets = (⋃ i, (f i).sets) :=
 let ⟨i⟩ := ne, u := { filter .
@@ -410,9 +446,8 @@ let ⟨i⟩ := ne, u := { filter .
       rcases h a b with ⟨c, ha, hb⟩,
       exact ⟨c, inter_mem_sets (ha hx) (hb hy)⟩
     end } in
-subset.antisymm
-  (show u ≤ infi f, from le_infi $ assume i, le_supr (λi, (f i).sets) i)
-  (Union_subset $ assume i, infi_le f i)
+have u = infi f, from eq_infi_of_mem_sets_iff_exists_mem (λ s, by simp only [mem_Union]),
+congr_arg filter.sets this.symm
 
 lemma mem_infi {f : ι → filter α} (h : directed (≥) f) (ne : nonempty ι) (s) :
   s ∈ infi f ↔ s ∈ ⋃ i, (f i).sets :=
@@ -507,7 +542,7 @@ begin
       have : ∀a'∈s, function.update p a t₁ a' = p a',
         from assume a' ha',
         have a' ≠ a, from assume h, has $ h ▸ ha',
-        function.update_noteq this,
+        function.update_noteq this _ _,
       have eq : s.inf (λj, function.update p a t₁ j) = s.inf (λj, p j) :=
         finset.inf_congr rfl this,
       simp only [this, ht₁, hp, function.update_same, true_and, imp_true_iff, eq] {contextual := tt},
@@ -515,6 +550,90 @@ begin
     assume p hpa hp ht,
     exact ⟨p a, hpa, (s.inf p), ⟨⟨p, hp, le_refl _⟩, ht⟩⟩ }
 end
+
+/-! ### Eventually -/
+
+/-- `f.eventually p` or `∀ᶠ x in f, p x` mean that `{x | p x} ∈ f`. E.g., `∀ᶠ x in at_top, p x`
+means that `p` holds true for sufficiently large `x`. -/
+protected def eventually (p : α → Prop) (f : filter α) : Prop := {x | p x} ∈ f
+
+notation `∀ᶠ` binders ` in ` f `, ` r:(scoped p, filter.eventually p f) := r
+
+protected lemma eventually.and {p q : α → Prop} {f : filter α} :
+  f.eventually p → f.eventually q → ∀ᶠ x in f, p x ∧ q x :=
+inter_mem_sets
+
+lemma eventually_true (f : filter α) : ∀ᶠ x in f, true := univ_mem_sets
+
+lemma eventually_of_forall {p : α → Prop} (f : filter α) (hp : ∀ x, p x) :
+  ∀ᶠ x in f, p x :=
+univ_mem_sets' hp
+
+lemma eventually_false_iff_eq_bot {f : filter α} :
+  (∀ᶠ x in f, false) ↔ f = ⊥ :=
+empty_in_sets_eq_bot
+
+lemma eventually.mp {p q : α → Prop} {f : filter α} (hp : ∀ᶠ x in f, p x)
+  (hq : ∀ᶠ x in f, p x → q x) :
+  ∀ᶠ x in f, q x :=
+mp_sets hp hq
+
+lemma eventually.mono {p q : α → Prop} {f : filter α} (hp : ∀ᶠ x in f, p x)
+  (hq : ∀ x, p x → q x) :
+  ∀ᶠ x in f, q x :=
+hp.mp (f.eventually_of_forall hq)
+
+/-! ### Frequently -/
+
+/-- `f.frequently p` or `∃ᶠ x in f, p x` mean that `{x | ¬p x} ∉ f`. E.g., `∃ᶠ x in at_top, p x`
+means that there exist arbitrarily large `x` for which `p` holds true. -/
+protected def frequently (p : α → Prop) (f : filter α) : Prop := ¬∀ᶠ x in f, ¬p x
+
+notation `∃ᶠ` binders ` in ` f `, ` r:(scoped p, filter.frequently p f) := r
+
+lemma eventually.frequently {f : filter α} (hf : f ≠ ⊥) {p : α → Prop} (h : ∀ᶠ x in f, p x) :
+  ∃ᶠ x in f, p x :=
+begin
+  assume h',
+  have := h.and h',
+  simp only [and_not_self, eventually_false_iff_eq_bot] at this,
+  exact hf this
+end
+
+lemma frequently.mp {p q : α → Prop} {f : filter α} (h : ∃ᶠ x in f, p x)
+  (hpq : ∀ᶠ x in f, p x → q x) :
+  ∃ᶠ x in f, q x :=
+mt (λ hq, hq.mp $ hpq.mono $ λ x, mt) h
+
+lemma frequently.mono {p q : α → Prop} {f : filter α} (h : ∃ᶠ x in f, p x)
+  (hpq : ∀ x, p x → q x) :
+  ∃ᶠ x in f, q x :=
+h.mp (f.eventually_of_forall hpq)
+
+lemma frequently.and_eventually {p q : α → Prop} {f : filter α}
+  (hp : ∃ᶠ x in f, p x) (hq : ∀ᶠ x in f, q x) :
+  ∃ᶠ x in f, p x ∧ q x :=
+begin
+  refine mt (λ h, hq.mp $ h.mono _) hp,
+  assume x hpq hq hp,
+  exact hpq ⟨hp, hq⟩
+end
+
+lemma frequently.exists {p : α → Prop} {f : filter α} (hp : ∃ᶠ x in f, p x) : ∃ x, p x :=
+begin
+  by_contradiction H,
+  replace H : ∀ᶠ x in f, ¬ p x, from f.eventually_of_forall (not_exists.1 H),
+  exact hp H
+end
+
+lemma eventually.exists {p : α → Prop} {f : filter α} (hp : ∀ᶠ x in f, p x) (hf : f ≠ ⊥) :
+  ∃ x, p x :=
+(hp.frequently hf).exists
+
+lemma frequently_iff_forall_eventually_exists_and {p : α → Prop} {f : filter α} :
+  (∃ᶠ x in f, p x) ↔ ∀ {q : α → Prop}, (∀ᶠ x in f, q x) → ∃ x, p x ∧ q x :=
+⟨assume hp q hq, (hp.and_eventually hq).exists,
+  assume H hp, by simpa only [and_not_self, exists_false] using H hp⟩
 
 /- principal equations -/
 
@@ -1164,17 +1283,21 @@ lemma tendsto_iff_comap {f : α → β} {l₁ : filter α} {l₂ : filter β} :
   tendsto f l₁ l₂ ↔ l₁ ≤ l₂.comap f :=
 map_le_iff_le_comap
 
+lemma tendsto_congr' {f₁ f₂ : α → β} {l₁ : filter α} {l₂ : filter β}
+  (hl : {x | f₁ x = f₂ x} ∈ l₁) :  tendsto f₁ l₁ l₂ ↔ tendsto f₂ l₁ l₂ :=
+by rw [tendsto, tendsto, map_cong hl]
+
 lemma tendsto.congr' {f₁ f₂ : α → β} {l₁ : filter α} {l₂ : filter β}
   (hl : {x | f₁ x = f₂ x} ∈ l₁) (h : tendsto f₁ l₁ l₂) : tendsto f₂ l₁ l₂ :=
-by rwa [tendsto, ←map_cong hl]
+(tendsto_congr' hl).1 h
 
-theorem tendsto.congr'r {f₁ f₂ : α → β} {l₁ : filter α} {l₂ : filter β}
+theorem tendsto_congr {f₁ f₂ : α → β} {l₁ : filter α} {l₂ : filter β}
   (h : ∀ x, f₁ x = f₂ x) : tendsto f₁ l₁ l₂ ↔ tendsto f₂ l₁ l₂ :=
-iff_of_eq (by congr'; exact funext h)
+tendsto_congr' (univ_mem_sets' h)
 
 theorem tendsto.congr {f₁ f₂ : α → β} {l₁ : filter α} {l₂ : filter β}
   (h : ∀ x, f₁ x = f₂ x) : tendsto f₁ l₁ l₂ → tendsto f₂ l₁ l₂ :=
-(tendsto.congr'r h).1
+(tendsto_congr h).1
 
 lemma tendsto_id' {x y : filter α} : x ≤ y → tendsto id x y :=
 by simp only [tendsto, map_id, forall_true_iff] {contextual := tt}
@@ -1837,9 +1960,8 @@ lemma tendsto_iff_ultrafilter (f : α → β) (l₁ : filter α) (l₂ : filter 
 ⟨assume h g u gx, le_trans (map_mono gx) h,
  assume h, by rw [sup_of_ultrafilters l₁]; simpa only [tendsto, map_supr, supr_le_iff]⟩
 
-/- The ultrafilter monad. The monad structure on ultrafilters is the
+/-- The ultrafilter monad. The monad structure on ultrafilters is the
   restriction of the one on filters. -/
-
 def ultrafilter (α : Type u) : Type u := {f : filter α // is_ultrafilter f}
 
 def ultrafilter.map (m : α → β) (u : ultrafilter α) : ultrafilter β :=

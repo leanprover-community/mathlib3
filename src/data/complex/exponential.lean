@@ -399,6 +399,15 @@ by rw lim_mul_lim;
 
 attribute [irreducible] complex.exp
 
+lemma exp_list_sum (l : list ℂ) : exp l.sum = (l.map exp).prod :=
+@monoid_hom.map_list_prod (multiplicative ℂ) ℂ _ _ ⟨exp, exp_zero, exp_add⟩ l
+
+lemma exp_multiset_sum (s : multiset ℂ) : exp s.sum = (s.map exp).prod :=
+@monoid_hom.map_multiset_prod (multiplicative ℂ) ℂ _ _ ⟨exp, exp_zero, exp_add⟩ s
+
+lemma exp_sum {α : Type*} (s : finset α) (f : α → ℂ) : exp (s.sum f) = s.prod (exp ∘ f) :=
+@monoid_hom.map_prod α (multiplicative ℂ) ℂ _ _ ⟨exp, exp_zero, exp_add⟩ f s
+
 lemma exp_nat_mul (x : ℂ) : ∀ n : ℕ, exp(n*x) = (exp x)^n
 | 0 := by rw [nat.cast_zero, zero_mul, exp_zero, pow_zero]
 | (nat.succ n) := by rw [pow_succ', nat.cast_add_one, add_mul, exp_add, ←exp_nat_mul, one_mul]
@@ -420,7 +429,7 @@ begin
   rw [← lim_conj],
   refine congr_arg lim (cau_seq.ext (λ _, _)),
   dsimp [exp', function.comp, cau_seq_conj],
-  rw ← sum_hom conj,
+  rw ← sum_hom _ conj,
   refine sum_congr rfl (λ n hn, _),
   rw [conj_div, conj_pow, ← of_real_nat_cast, conj_of_real]
 end
@@ -699,6 +708,15 @@ by simp [real.exp]
 
 lemma exp_add : exp (x + y) = exp x * exp y :=
 by simp [exp_add, exp]
+
+lemma exp_list_sum (l : list ℝ) : exp l.sum = (l.map exp).prod :=
+@monoid_hom.map_list_prod (multiplicative ℝ) ℝ _ _ ⟨exp, exp_zero, exp_add⟩ l
+
+lemma exp_multiset_sum (s : multiset ℝ) : exp s.sum = (s.map exp).prod :=
+@monoid_hom.map_multiset_prod (multiplicative ℝ) ℝ _ _ ⟨exp, exp_zero, exp_add⟩ s
+
+lemma exp_sum {α : Type*} (s : finset α) (f : α → ℝ) : exp (s.sum f) = s.prod (exp ∘ f) :=
+@monoid_hom.map_prod α (multiplicative ℝ) ℝ _ _ ⟨exp, exp_zero, exp_add⟩ f s
 
 lemma exp_nat_mul (x : ℝ) : ∀ n : ℕ, exp(n*x) = (exp x)^n
 | 0 := by rw [nat.cast_zero, zero_mul, exp_zero, pow_zero]

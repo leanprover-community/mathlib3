@@ -15,7 +15,7 @@ if hp0 : 0 < degree p
 then let ⟨r, hr0, hr⟩ := polynomial.tendsto_infinity complex.abs hp0 ((p.eval 0).abs) in
   let ⟨x, hx₁, hx₂⟩ := (proper_space.compact_ball (0:ℂ) r).exists_forall_le
     (set.ne_empty_iff_exists_mem.2 ⟨0, by simp [le_of_lt hr0]⟩)
-    (λ z, abs (p.eval z)) (continuous_abs.comp p.continuous_eval).continuous_on in
+    (continuous_abs.comp p.continuous_eval).continuous_on in
   ⟨x, λ y, if hy : y.abs ≤ r then hx₂ y $ by simpa [complex.dist_eq] using hy
     else le_trans (hx₂ _ (by simp [le_of_lt hr0])) (le_of_lt (hr y (lt_of_not_ge hy)))⟩
 else ⟨p.coeff 0, by rw [eq_C_of_degree_le_zero (le_of_not_gt hp0)]; simp⟩

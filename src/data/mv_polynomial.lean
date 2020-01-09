@@ -155,7 +155,7 @@ instance coeff.is_add_monoid_hom (m : σ →₀ ℕ) :
 
 lemma coeff_sum {X : Type*} (s : finset X) (f : X → mv_polynomial σ α) (m : σ →₀ ℕ) :
   coeff m (s.sum f) = s.sum (λ x, coeff m (f x)) :=
-(finset.sum_hom _).symm
+(s.sum_hom _).symm
 
 lemma monic_monomial_eq (m) : monomial m (1:α) = (m.prod $ λn e, X n ^ e : mv_polynomial σ α) :=
 by simp [monomial_eq]
@@ -364,11 +364,11 @@ variables [is_semiring_hom f]
 
 @[simp] lemma eval₂_prod (s : finset γ) (p : γ → mv_polynomial σ α) :
   eval₂ f g (s.prod p) = s.prod (λ x, eval₂ f g $ p x) :=
-(finset.prod_hom _).symm
+(s.prod_hom _).symm
 
 @[simp] lemma eval₂_sum (s : finset γ) (p : γ → mv_polynomial σ α) :
   eval₂ f g (s.sum p) = s.sum (λ x, eval₂ f g $ p x) :=
-(finset.sum_hom _).symm
+(s.sum_hom _).symm
 
 attribute [to_additive] eval₂_prod
 

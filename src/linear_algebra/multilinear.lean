@@ -1,5 +1,5 @@
 /-
-Copyright (c) 2019 Sébastien Gouëzel. All rights reserved.
+Copyright (c) 2020 Sébastien Gouëzel. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Sébastien Gouëzel
 -/
@@ -78,7 +78,7 @@ f.smul m i x c
 lemma map_coord_zero {m : Πi, M₁ i} (i : ι) (h : m i = 0) : f m = 0 :=
 begin
   have : (0 : R) • (0 : M₁ i) = 0, by simp,
-  rw [← @update_eq_self _ _ _ i m, h, ← this, f.map_smul, zero_smul]
+  rw [← update_eq_self i m, h, ← this, f.map_smul, zero_smul]
 end
 
 @[simp] lemma map_zero [nonempty ι] : f 0 = 0 :=

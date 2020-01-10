@@ -512,9 +512,11 @@ measurable_of_continuous ennreal.continuous_of_real
 
 end ennreal
 
+namespace measure_theory
+
 open topological_space
 
-lemma measurable.smul' {α : Type*} {β : Type*} {γ : Type*}
+lemma measurable_smul' {α : Type*} {β : Type*} {γ : Type*}
   [semiring α] [topological_space α] [second_countable_topology α]
   [topological_space β] [add_comm_monoid β] [second_countable_topology β]
   [semimodule α β] [topological_semimodule α β] [measurable_space γ]
@@ -522,7 +524,7 @@ lemma measurable.smul' {α : Type*} {β : Type*} {γ : Type*}
   measurable (λ c, f c • g c) :=
 measurable_of_continuous2 (continuous_fst.smul continuous_snd) hf hg
 
-lemma measurable.smul {α : Type*} {β : Type*} {γ : Type*}
+lemma measurable_smul {α : Type*} {β : Type*} {γ : Type*}
   [semiring α] [topological_space α]
   [topological_space β] [add_comm_monoid β]
   [semimodule α β] [topological_semimodule α β] [measurable_space γ]
@@ -539,10 +541,10 @@ begin
   assume h,
   have eq : (λ (x : γ), c⁻¹ • (λ (x : γ), c • f x) x) = f,
   { funext, rw [smul_smul, inv_mul_cancel hc, one_smul] },
-  have := h.smul c⁻¹,
+  have := measurable_smul c⁻¹ h,
   rwa eq at this
 end
-$ measurable.smul c
+$ measurable_smul c
 
 lemma measurable_dist' {α : Type*} [metric_space α] [second_countable_topology α] :
   measurable (λp:α×α, dist p.1 p.2) :=
@@ -552,10 +554,10 @@ begin
   exact continuous_dist continuous_fst continuous_snd
 end
 
-lemma measurable.dist {α : Type*} [metric_space α] [second_countable_topology α]
+lemma measurable_dist {α : Type*} [metric_space α] [second_countable_topology α]
   [measurable_space β] {f g : β → α} (hf : measurable f) (hg : measurable g) :
 	measurable (λ b, dist (f b) (g b)) :=
-measurable_dist'.comp (measurable.prod_mk hf hg)
+measurable.comp measurable_dist' (measurable.prod_mk hf hg)
 
 lemma measurable_nndist' {α : Type*} [metric_space α] [second_countable_topology α] :
   measurable (λp:α×α, nndist p.1 p.2) :=
@@ -565,10 +567,10 @@ begin
   exact continuous_nndist continuous_fst continuous_snd
 end
 
-lemma measurable.nndist {α : Type*} [metric_space α] [second_countable_topology α]
+lemma measurable_nndist {α : Type*} [metric_space α] [second_countable_topology α]
   [measurable_space β] {f g : β → α} (hf : measurable f) (hg : measurable g) :
 	measurable (λ b, nndist (f b) (g b)) :=
-measurable_nndist'.comp (measurable.prod_mk hf hg)
+measurable.comp measurable_nndist' (measurable.prod_mk hf hg)
 
 lemma measurable_edist' {α : Type*} [emetric_space α] [second_countable_topology α] :
   measurable (λp:α×α, edist p.1 p.2) :=
@@ -578,25 +580,27 @@ begin
   exact continuous_edist continuous_fst continuous_snd
 end
 
-lemma measurable.edist {α : Type*} [emetric_space α] [second_countable_topology α]
+lemma measurable_edist {α : Type*} [emetric_space α] [second_countable_topology α]
   [measurable_space β] {f g : β → α} (hf : measurable f) (hg : measurable g) :
 	measurable (λ b, edist (f b) (g b)) :=
-measurable_edist'.comp (measurable.prod_mk hf hg)
+measurable.comp measurable_edist' (measurable.prod_mk hf hg)
 
 lemma measurable_norm' {α : Type*} [normed_group α] : measurable (norm : α → ℝ) :=
 measurable_of_continuous continuous_norm
 
-lemma measurable.norm {α : Type*} [normed_group α] [measurable_space β]
+lemma measurable_norm {α : Type*} [normed_group α] [measurable_space β]
   {f : β → α} (hf : measurable f) : measurable (λa, norm (f a)) :=
-measurable_norm'.comp hf
+measurable.comp measurable_norm' hf
 
 lemma measurable_nnnorm' {α : Type*} [normed_group α] : measurable (nnnorm : α → nnreal) :=
 measurable_of_continuous continuous_nnnorm
 
-lemma measurable.nnnorm {α : Type*} [normed_group α] [measurable_space β]
+lemma measurable_nnnorm {α : Type*} [normed_group α] [measurable_space β]
   {f : β → α} (hf : measurable f) : measurable (λa, nnnorm (f a)) :=
-measurable_nnnorm'.comp hf
+measurable.comp measurable_nnnorm' hf
 
-lemma measurable.coe_nnnorm {α : Type*} [normed_group α] [measurable_space β]
+lemma measurable_coe_nnnorm {α : Type*} [normed_group α] [measurable_space β]
   {f : β → α} (hf : measurable f) : measurable (λa, (nnnorm (f a) : ennreal)) :=
-ennreal.measurable_coe.comp $ hf.nnnorm
+measurable.comp ennreal.measurable_coe $ measurable_nnnorm hf
+
+end measure_theory

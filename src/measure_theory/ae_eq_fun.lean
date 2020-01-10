@@ -347,11 +347,11 @@ variables {γ : Type*} [topological_space γ]
           [add_comm_monoid γ] [semimodule 𝕜 γ] [topological_semimodule 𝕜 γ]
 
 protected def smul : 𝕜 → (α →ₘ γ) → (α →ₘ γ) :=
-λ c f, comp (has_scalar.smul c) (measurable.smul _ measurable_id) f
+λ c f, comp (has_scalar.smul c) (measurable_smul _ measurable_id) f
 
 instance : has_scalar 𝕜 (α →ₘ γ) := ⟨ae_eq_fun.smul⟩
 
-@[simp] lemma smul_mk (c : 𝕜) (f : α → γ) (hf) : c • (mk f hf) = mk (c • f) (measurable.smul _ hf) :=
+@[simp] lemma smul_mk (c : 𝕜) (f : α → γ) (hf) : c • (mk f hf) = mk (c • f) (measurable_smul _ hf) :=
 rfl
 
 lemma smul_to_fun (c : 𝕜) (f : α →ₘ γ) : ∀ₘ a, (c • f).to_fun a = c • f.to_fun a :=
@@ -528,7 +528,7 @@ begin
   exact calc
     (∫⁻ (a : α), nndist (x • f a) 0) = (∫⁻ (a : α), (nnnorm x) * nnnorm (f a)) :
       lintegral_congr_ae $ by { filter_upwards [], assume a, simp [nndist_eq_nnnorm, nnnorm_smul] }
-    ... = _ : lintegral_const_mul _ (measurable.coe_nnnorm hf)
+    ... = _ : lintegral_const_mul _ (measurable_coe_nnnorm hf)
     ... = _ :
     begin
       convert rfl,

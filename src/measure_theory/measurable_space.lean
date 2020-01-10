@@ -389,9 +389,6 @@ assume s hs, show is_measurable {b : β | a ∈ s}, from
     (assume h : a ∈ s, by simp [h]; from is_measurable.univ)
     (assume h : a ∉ s, by simp [h]; from is_measurable.empty)
 
-lemma measurable_zero {α β} [measurable_space α] [has_zero α] [measurable_space β] :
-  measurable (λb:β, (0:α)) := measurable_const
-
 end measurable_functions
 
 section constructions

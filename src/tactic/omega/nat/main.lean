@@ -1,10 +1,8 @@
-/-
-Copyright (c) 2019 Seul Baek. All rights reserved.
+/- Copyright (c) 2019 Seul Baek. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Author: Seul Baek
 
-Main procedure for linear natural number arithmetic.
--/
+Main procedure for linear natural number arithmetic. -/
 
 import tactic.omega.prove_unsats
 import tactic.omega.nat.dnf
@@ -89,16 +87,14 @@ meta def prove_sub_free : preform → tactic expr
      return `(@and.intro (preform.sub_free %%`(p))
        (preform.sub_free %%`(q)) %%x %%y)
 
-/- Given a p : preform, return the expr of a term t : p.unsat,
-   where p is subtraction- and negation-free. -/
+/-- Given a p : preform, return the expr of a term t : p.unsat, where p is subtraction- and negation-free. -/
 meta def prove_unsat_sub_free (p : preform) : tactic expr :=
 do x ← prove_neg_free p,
    y ← prove_sub_free p,
    z ← prove_unsats (dnf p),
    return `(unsat_of_unsat_dnf %%`(p) %%x %%y %%z)
 
-/- Given a p : preform, return the expr of a term t : p.unsat,
-   where p is negation-free. -/
+/-- Given a p : preform, return the expr of a term t : p.unsat, where p is negation-free. -/
 meta def prove_unsat_neg_free : preform → tactic expr | p :=
 match p.sub_terms with
 | none         := prove_unsat_sub_free p
@@ -107,8 +103,7 @@ match p.sub_terms with
      return `(unsat_of_unsat_sub_elim %%`(t) %%`(s) %%`(p) %%x)
 end
 
-/- Given a (m : nat) and (p : preform),
-   return the expr of (t : univ_close m p) -/
+/-- Given a (m : nat) and (p : preform), return the expr of (t : univ_close m p). -/
 meta def prove_univ_close (m : nat) (p : preform) : tactic expr :=
 do x ← prove_unsat_neg_free (neg_elim (¬*p)),
    to_expr ``(univ_close_of_unsat_neg_elim_not %%`(m) %%`(p) %%x)
@@ -248,10 +243,8 @@ meta def intro_nats : tactic unit :=
 do (expr.pi _ _ `(nat) _) ← target,
    intro_nats_core
 
-/-
-If the goal has universal quantifiers over natural, introduce all of them.
-Otherwise, revert all hypotheses that are formulas of linear natural number arithmetic.
--/
+/-- If the goal has universal quantifiers over natural, introduce all of them.
+Otherwise, revert all hypotheses that are formulas of linear natural number arithmetic. -/
 meta def preprocess : tactic unit :=
 intro_nats <|> (revert_cond_all wfx >> desugar)
 
@@ -260,8 +253,6 @@ end omega
 
 open omega.nat
 
-/-
-The core omega tactic for natural numbers
--/
+/-- The core omega tactic for natural numbers. -/
 meta def omega_nat (is_manual : bool) : tactic unit :=
 desugar ; (if is_manual then skip else preprocess) ; prove >>= apply >> skip

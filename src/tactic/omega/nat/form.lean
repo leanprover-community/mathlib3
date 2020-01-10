@@ -1,10 +1,8 @@
-/-
-Copyright (c) 2019 Seul Baek. All rights reserved.
+/- Copyright (c) 2019 Seul Baek. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Author: Seul Baek
 
-Linear natural number arithmetic preformulas in pre-normalized preform.
--/
+Linear natural number arithmetic preformulas in pre-normalized preform. -/
 
 import tactic.omega.nat.preterm
 
@@ -164,6 +162,7 @@ begin
   rw classical.not_exists_not, intro h, assumption
 end
 
+/-- Tactic for setting up proof by induction over preforms. -/
 meta def preform.induce (t : tactic unit := tactic.skip) : tactic unit :=
 `[ intro p, induction p with t s t s p ih p q ihp ihq p q ihp ihq; t ]
 

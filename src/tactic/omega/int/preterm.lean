@@ -1,33 +1,27 @@
-/-
-Copyright (c) 2019 Seul Baek. All rights reserved.
+/- Copyright (c) 2019 Seul Baek. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Author: Seul Baek
 
-Linear integer arithmetic terms in pre-normalized form.
--/
+Linear integer arithmetic terms in pre-normalized form. -/
 
 import tactic.split_ifs tactic.omega.term
 
 namespace omega
 namespace int
 
-/-
-The shadow syntax for arithmetic terms. All constants are reified to `cst`
+/-- The shadow syntax for arithmetic terms. All constants are reified to `cst`
 (e.g., `-5` is reified to `cst -5`) and all other atomic terms are reified to
 `exp` (e.g., `-5 * (gcd 14 -7)` is reified to `exp -5 \`(gcd 14 -7)`).
 `exp` accepts a coefficient of type `int` as its first argument because
-multiplication by constant is allowed by the omega test.
--/
+multiplication by constant is allowed by the omega test. -/
 meta inductive exprterm : Type
 | cst : int → exprterm
 | exp : int → expr → exprterm
 | add : exprterm → exprterm → exprterm
 
-/-
-Similar to `exprterm`, except that all exprs are now replaced with
+/-- Similar to `exprterm`, except that all exprs are now replaced with
 de Brujin indices of type `nat`. This is akin to generalizing over
-the terms represented by the said exprs.
--/
+the terms represented by the said exprs. -/
 @[derive has_reflect]
 inductive preterm : Type
 | cst : int → preterm

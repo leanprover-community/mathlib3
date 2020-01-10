@@ -1,17 +1,16 @@
-/-
-Copyright (c) 2019 Seul Baek. All rights reserved.
+/- Copyright (c) 2019 Seul Baek. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Author: Seul Baek
 
-(([t₁,...tₘ],[s₁,...,sₙ]) : clause) encodes the constraints
-0 = ⟦t₁⟧ ∧ ... ∧ 0 = ⟦tₘ⟧ ∧ 0 ≤ ⟦s₁⟧ ∧ ... ∧ 0 ≤ ⟦sₙ⟧, where
-⟦t⟧ is the value of (t : term).
--/
+Definition of linear constrain clauses. -/
 
 import tactic.omega.term
 
 namespace omega
 
+/-- (([t₁,...tₘ],[s₁,...,sₙ]) : clause) encodes the constraints
+0 = ⟦t₁⟧ ∧ ... ∧ 0 = ⟦tₘ⟧ ∧ 0 ≤ ⟦s₁⟧ ∧ ... ∧ 0 ≤ ⟦sₙ⟧, where
+⟦t⟧ is the value of (t : term). -/
 @[reducible] def clause := (list term) × (list term)
 
 namespace clause

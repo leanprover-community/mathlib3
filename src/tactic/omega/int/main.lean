@@ -1,10 +1,8 @@
-/-
-Copyright (c) 2019 Seul Baek. All rights reserved.
+/- Copyright (c) 2019 Seul Baek. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Author: Seul Baek
 
-Main procedure for linear integer arithmetic.
--/
+Main procedure for linear integer arithmetic. -/
 
 import tactic.omega.prove_unsats
 import tactic.omega.int.dnf
@@ -40,7 +38,7 @@ begin
   exact h1
 end
 
-/- Given a (p : preform), return the expr of a (t : univ_close m p) -/
+/-- Given a (p : preform), return the expr of a (t : univ_close m p) -/
 meta def prove_univ_close (m : nat) (p : preform) : tactic expr :=
 do x ← prove_unsats (dnf (¬*p)),
    return `(univ_close_of_unsat_clausify %%`(m) %%`(p) %%x)
@@ -61,43 +59,6 @@ meta def to_exprterm : expr → tactic exprterm
   ( do z ← eval_expr' int x,
        return (exprterm.cst z) ) <|>
   ( return $ exprterm.exp 1 x )
-
--- meta def to_exprterm : expr → tactic exprterm
--- | `(%%x * %%y) :=
---   do m ← eval_expr' nat y,
---      return (exprterm.exp m x)
--- | `(%%t1x + %%t2x) :=
---   do t1 ← to_exprterm t1x,
---      t2 ← to_exprterm t2x,
---      return (exprterm.add t1 t2)
--- | `(%%t1x - %%t2x) :=
---   do t1 ← to_exprterm t1x,
---      t2 ← to_exprterm t2x,
---      return (exprterm.sub t1 t2)
--- | x :=
---   ( do m ← eval_expr' nat x,
---        return (exprterm.cst m) ) <|>
---   ( return $ exprterm.exp 1 x )
-
--- meta def to_preform_core : expr → tactic preform
--- | `(%%tx1 = %%tx2) :=
---   do t1 ← to_preterm tx1,
---      t2 ← to_preterm tx2,
---      return (t1 =* t2)
--- | `(%%tx1 ≤ %%tx2) :=
---   do t1 ← to_preterm tx1,
---      t2 ← to_preterm tx2,
---      return (t1 ≤* t2)
--- | `(¬ %%px) := do p ← to_preform_core px, return (¬* p)
--- | `(%%px ∨ %%qx) :=
---   do p ← to_preform_core px,
---      q ← to_preform_core qx,
---      return (p ∨* q)
--- | `(%%px ∧ %%qx) :=
---   do p ← to_preform_core px,
---      q ← to_preform_core qx,
---      return (p ∧* q)
--- | x := trace "Cannot reify expr : " >> trace x >> failed
 
 meta def to_exprform : expr → tactic exprform
 | `(%%tx1 = %%tx2) :=
@@ -213,10 +174,8 @@ meta def intro_ints : tactic unit :=
 do (expr.pi _ _ `(int) _) ← target,
    intro_ints_core
 
-/-
-If the goal has universal quantifiers over integers, introduce all of them.
-Otherwise, revert all hypotheses that are formulas of linear integer arithmetic.
--/
+/-- If the goal has universal quantifiers over integers, introduce all of them.
+Otherwise, revert all hypotheses that are formulas of linear integer arithmetic. -/
 meta def preprocess : tactic unit :=
 intro_ints <|> (revert_cond_all wfx >> desugar)
 
@@ -225,8 +184,6 @@ end omega
 
 open omega.int
 
-/-
-The core omega tactic for integers
--/
+/-- The core omega tactic for integers. -/
 meta def omega_int (is_manual : bool) : tactic unit :=
 desugar ; (if is_manual then skip else preprocess) ; prove >>= apply >> skip

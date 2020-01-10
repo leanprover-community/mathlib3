@@ -1,11 +1,9 @@
-/-
-Copyright (c) 2019 Seul Baek. All rights reserved.
+/- Copyright (c) 2019 Seul Baek. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Author: Seul Baek
 
 A tactic for finding a sequence of equality
-elimination rules for a given set of constraints.
--/
+elimination rules for a given set of constraints. -/
 
 import tactic.omega.eq_elim
 
@@ -74,8 +72,8 @@ if i ∣ t.fst
 then add_ee (ee.factor i) >> pure (t.div i)
 else abort
 
-/- If list has a nonzero element, return the minimum element
-   (by absolute value) with its index. Otherwise, return none. -/
+/-- If list has a nonzero element, return the minimum element
+(by absolute value) with its index. Otherwise, return none. -/
 meta def find_min_coeff_core : list int → eqelim (int × nat)
 | []      := abort
 | (i::is) := (do

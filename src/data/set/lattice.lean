@@ -18,7 +18,7 @@ namespace set
 
 instance lattice_set : complete_lattice (set α) :=
 { le     := (⊆),
-  lt     := λ x y, x ⊆ y ∧ ¬ y ⊆ x,
+  lt     := (⊂),
   sup    := (∪),
   inf    := (∩),
   top    := univ,

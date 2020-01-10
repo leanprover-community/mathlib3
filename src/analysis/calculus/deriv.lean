@@ -73,6 +73,8 @@ open continuous_linear_map (smul_right smul_right_one_eq_iff)
 set_option class.instance_max_depth 100
 
 variables {𝕜 : Type u} [nondiscrete_normed_field 𝕜]
+
+section
 variables {F : Type v} [normed_group F] [normed_space 𝕜 F]
 variables {E : Type w} [normed_group E] [normed_space 𝕜 E]
 
@@ -201,6 +203,14 @@ begin
   exact has_deriv_at_filter_iff_tendsto_slope
 end
 
+lemma has_deriv_within_at_iff_tendsto_slope' {x : 𝕜} {s : set 𝕜} (hs : x ∉ s) :
+  has_deriv_within_at f f' s x ↔
+    tendsto (λ y, (y - x)⁻¹ • (f y - f x)) (nhds_within x s) (𝓝 f') :=
+begin
+  convert ← has_deriv_within_at_iff_tendsto_slope,
+  exact diff_singleton_eq_self hs
+end
+
 lemma has_deriv_at_iff_tendsto_slope {x : 𝕜} :
   has_deriv_at f f' x ↔
     tendsto (λ y, (y - x)⁻¹ • (f y - f x)) (nhds_within x (-{x})) (𝓝 f') :=
@@ -252,7 +262,7 @@ lemma has_deriv_within_at.union (hs : has_deriv_within_at f f' s x) (ht : has_de
   has_deriv_within_at f f' (s ∪ t) x :=
 begin
   simp only [has_deriv_within_at, nhds_within_union],
-  exact is_o_join hs ht,
+  exact hs.join ht,
 end
 
 lemma has_deriv_within_at.nhds_within (h : has_deriv_within_at f f' s x)
@@ -957,38 +967,35 @@ begin
   have : is_o (λ (h : 𝕜), h^2 * (1 + h)⁻¹) (λ (h : 𝕜), h * 1) (𝓝 0),
   { have : tendsto (λ (h : 𝕜), (1 + h)⁻¹) (𝓝 0) (𝓝 (1 + 0)⁻¹) :=
       ((tendsto_const_nhds).add tendsto_id).inv' (by norm_num),
-    exact is_o_mul_right (is_o_pow_id (by norm_num)) (is_O_one_of_tendsto this) },
-  apply (is_o_congr _ _).2 this,
-  { have : metric.ball (0 : 𝕜) (∥(1:𝕜)∥) ∈ 𝓝 (0 : 𝕜),
-    { apply mem_nhds_sets metric.is_open_ball,
-      simp [zero_lt_one] },
+    exact is_o.mul_is_O (is_o_pow_id one_lt_two) (is_O_one_of_tendsto _ this) },
+  apply this.congr' _ _,
+  { have : metric.ball (0 : 𝕜) 1 ∈ 𝓝 (0 : 𝕜),
+      from metric.ball_mem_nhds 0 zero_lt_one,
     filter_upwards [this],
     assume h hx,
     have : 0 < ∥1 + h∥ := calc
-      0 < ∥(1:𝕜)∥ - ∥-h∥ : by rwa [norm_neg, sub_pos, ← dist_zero_right h]
+      0 < ∥(1:𝕜)∥ - ∥-h∥ : by rwa [norm_neg, sub_pos, ← dist_zero_right h, normed_field.norm_one]
       ... ≤ ∥1 - -h∥ : norm_sub_norm_le _ _
       ... = ∥1 + h∥ : by simp,
     have : 1 + h ≠ 0 := (norm_pos_iff (1 + h)).mp this,
-    calc (1 + h)⁻¹ - 1⁻¹ - h * -1 =
-      (1+h)⁻¹ - ((1+h) * (1+h)⁻¹) + h * ((1+h) * (1+h)⁻¹) :
-        by { simp only [mul_inv_cancel this], simp }
-      ... = h^2 * (1+h)⁻¹ : by { generalize : (1+h)⁻¹ = y, ring } },
-  { convert univ_mem_sets, simp }
+    simp only [mem_set_of_eq, smul_eq_mul, inv_one],
+    field_simp [this, -add_comm],
+    ring },
+  { exact univ_mem_sets' mul_one }
 end
 
 theorem has_deriv_at_inv (x_ne_zero : x ≠ 0) :
   has_deriv_at (λy, y⁻¹) (-(x^2)⁻¹) x :=
 begin
   have A : has_deriv_at (λy, y⁻¹) (-1) (x⁻¹ * x : 𝕜),
-    by { simp [inv_mul_cancel x_ne_zero, has_deriv_at_inv_one] },
+    by { simp only [inv_mul_cancel x_ne_zero, has_deriv_at_inv_one] },
   have B : has_deriv_at (λy, x⁻¹ * y) (x⁻¹) x,
-    by { convert ((has_deriv_at_const x (x⁻¹)).mul (has_deriv_at_id x)), simp },
-  convert (has_deriv_at_const _ (x⁻¹)).mul (A.comp x B : _),
+    by simpa only [mul_one] using (has_deriv_at_id x).const_mul x⁻¹,
+  convert (A.comp x B : _).const_mul x⁻¹,
   { ext y,
-    have : x⁻¹ * (y⁻¹ * x) = y⁻¹,
-      by rw [← mul_assoc, mul_comm, ← mul_assoc, mul_inv_cancel x_ne_zero, one_mul],
-    simp [mul_inv', this] },
-  { simp [pow_two, mul_inv'] }
+    rw [function.comp_apply, mul_inv', inv_inv', mul_comm, mul_assoc, mul_inv_cancel x_ne_zero,
+      mul_one] },
+  { rw [pow_two, mul_inv', smul_eq_mul, mul_neg_one, neg_mul_eq_mul_neg] }
 end
 
 theorem has_deriv_within_at_inv (x_ne_zero : x ≠ 0) (s : set 𝕜) :
@@ -1094,10 +1101,12 @@ lemma deriv_div
 ((hc.has_deriv_at).div (hd.has_deriv_at) hx).deriv
 
 end division
+end
 
 namespace polynomial
 /-! ### Derivative of a polynomial -/
 
+variables {x : 𝕜} {s : set 𝕜}
 variable (p : polynomial 𝕜)
 
 /-- The derivative (in the analysis sense) of a polynomial `p` is given by `p.derivative`. -/
@@ -1174,6 +1183,7 @@ end polynomial
 
 section pow
 /-! ### Derivative of `x ↦ x^n` for `n : ℕ` -/
+variables {x : 𝕜} {s : set 𝕜}
 variable {n : ℕ }
 
 lemma has_deriv_at_pow (n : ℕ) (x : 𝕜) : has_deriv_at (λx, x^n) ((n : 𝕜) * x^(n-1)) x :=
@@ -1210,3 +1220,103 @@ lemma deriv_within_pow (hxs : unique_diff_within_at 𝕜 s x) :
 by rw [differentiable_at_pow.deriv_within hxs, deriv_pow]
 
 end pow
+
+/-! ### Upper estimates on liminf and limsup -/
+
+section real
+
+variables {f : ℝ → ℝ} {f' : ℝ} {s : set ℝ} {x : ℝ} {r : ℝ}
+
+lemma has_deriv_within_at.limsup_slope_le (hf : has_deriv_within_at f f' s x) (hr : f' < r) :
+  ∀ᶠ z in nhds_within x (s \ {x}), (z - x)⁻¹ * (f z - f x) < r :=
+has_deriv_within_at_iff_tendsto_slope.1 hf (mem_nhds_sets is_open_Iio hr)
+
+lemma has_deriv_within_at.limsup_slope_le' (hf : has_deriv_within_at f f' s x)
+  (hs : x ∉ s) (hr : f' < r) :
+  ∀ᶠ z in nhds_within x s, (z - x)⁻¹ * (f z - f x) < r :=
+(has_deriv_within_at_iff_tendsto_slope' hs).1 hf (mem_nhds_sets is_open_Iio hr)
+
+lemma has_deriv_within_at.liminf_right_slope_le
+  (hf : has_deriv_within_at f f' (Ioi x) x) (hr : f' < r) :
+  ∃ᶠ z in nhds_within x (Ioi x), (z - x)⁻¹ * (f z - f x) < r :=
+(hf.limsup_slope_le' (lt_irrefl x) hr).frequently (nhds_within_Ioi_self_ne_bot x)
+
+end real
+
+section real_space
+
+open metric
+
+variables {E : Type u} [normed_group E] [normed_space ℝ E] {f : ℝ → E} {f' : E} {s : set ℝ}
+  {x r : ℝ}
+
+/-- If `f` has derivative `f'` within `s` at `x`, then for any `r > ∥f'∥` the ratio
+`∥f z - f x∥ / ∥z - x∥` is less than `r` in some neighborhood of `x` within `s`.
+In other words, the limit superior of this ratio as `z` tends to `x` along `s`
+is less than or equal to `∥f'∥`. -/
+lemma has_deriv_within_at.limsup_norm_slope_le
+  (hf : has_deriv_within_at f f' s x) (hr : ∥f'∥ < r) :
+  ∀ᶠ z in nhds_within x s, ∥z - x∥⁻¹ * ∥f z - f x∥ < r :=
+begin
+  have hr₀ : 0 < r, from lt_of_le_of_lt (norm_nonneg f') hr,
+  have A : ∀ᶠ z in nhds_within x (s \ {x}), ∥(z - x)⁻¹ • (f z - f x)∥ ∈ Iio r,
+    from (has_deriv_within_at_iff_tendsto_slope.1 hf).norm (mem_nhds_sets is_open_Iio hr),
+  have B : ∀ᶠ z in nhds_within x {x}, ∥(z - x)⁻¹ • (f z - f x)∥ ∈ Iio r,
+    from mem_sets_of_superset self_mem_nhds_within
+      (singleton_subset_iff.2 $ by simp [hr₀]),
+  have C := mem_sup_sets.2 ⟨A, B⟩,
+  rw [← nhds_within_union, diff_union_self, nhds_within_union, mem_sup_sets] at C,
+  filter_upwards [C.1],
+  simp only [mem_set_of_eq, norm_smul, mem_Iio, normed_field.norm_inv],
+  exact λ _, id
+end
+
+/-- If `f` has derivative `f'` within `s` at `x`, then for any `r > ∥f'∥` the ratio
+`(∥f z∥ - ∥f x∥) / ∥z - x∥` is less than `r` in some neighborhood of `x` within `s`.
+In other words, the limit superior of this ratio as `z` tends to `x` along `s`
+is less than or equal to `∥f'∥`.
+
+This lemma is a weaker version of `has_deriv_within_at.limsup_norm_slope_le`
+where `∥f z∥ - ∥f x∥` is replaced by `∥f z - f x∥`. -/
+lemma has_deriv_within_at.limsup_slope_norm_le
+  (hf : has_deriv_within_at f f' s x) (hr : ∥f'∥ < r) :
+  ∀ᶠ z in nhds_within x s, ∥z - x∥⁻¹ * (∥f z∥ - ∥f x∥) < r :=
+begin
+  apply (hf.limsup_norm_slope_le hr).mono,
+  assume z hz,
+  refine lt_of_le_of_lt (mul_le_mul_of_nonneg_left (norm_sub_norm_le _ _) _) hz,
+  exact inv_nonneg.2 (norm_nonneg _)
+end
+
+/-- If `f` has derivative `f'` within `(x, +∞)` at `x`, then for any `r > ∥f'∥` the ratio
+`∥f z - f x∥ / ∥z - x∥` is frequently less than `r` as `z → x+0`.
+In other words, the limit inferior of this ratio as `z` tends to `x+0`
+is less than or equal to `∥f'∥`. See also `has_deriv_within_at.limsup_norm_slope_le`
+for a stronger version using limit superior and any set `s`. -/
+lemma has_deriv_within_at.liminf_right_norm_slope_le
+  (hf : has_deriv_within_at f f' (Ioi x) x) (hr : ∥f'∥ < r) :
+  ∃ᶠ z in nhds_within x (Ioi x), ∥z - x∥⁻¹ * ∥f z - f x∥ < r :=
+(hf.limsup_norm_slope_le hr).frequently (nhds_within_Ioi_self_ne_bot x)
+
+/-- If `f` has derivative `f'` within `(x, +∞)` at `x`, then for any `r > ∥f'∥` the ratio
+`(∥f z∥ - ∥f x∥) / (z - x)` is frequently less than `r` as `z → x+0`.
+In other words, the limit inferior of this ratio as `z` tends to `x+0`
+is less than or equal to `∥f'∥`.
+
+See also
+
+* `has_deriv_within_at.limsup_norm_slope_le` for a stronger version using
+  limit superior and any set `s`;
+* `has_deriv_within_at.liminf_right_norm_slope_le` for a stronger version using
+  `∥f z - f x∥` instead of `∥f z∥ - ∥f x∥`. -/
+lemma has_deriv_within_at.liminf_right_slope_norm_le
+  (hf : has_deriv_within_at f f' (Ioi x) x) (hr : ∥f'∥ < r) :
+  ∃ᶠ z in nhds_within x (Ioi x), (z - x)⁻¹ * (∥f z∥ - ∥f x∥) < r :=
+begin
+  have := (hf.limsup_slope_norm_le hr).frequently (nhds_within_Ioi_self_ne_bot x),
+  refine this.mp (eventually.mono self_mem_nhds_within _),
+  assume z hxz hz,
+  rwa [real.norm_eq_abs, abs_of_pos (sub_pos_of_lt hxz)] at hz
+end
+
+end real_space

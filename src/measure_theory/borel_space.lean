@@ -53,11 +53,11 @@ le_antisymm
 
 lemma borel_eq_generate_Iio (α)
   [topological_space α] [second_countable_topology α]
-  [linear_order α] [orderable_topology α] :
+  [linear_order α] [order_topology α] :
   borel α = generate_from (range Iio) :=
 begin
   refine le_antisymm _ (generate_from_le _),
-  { rw borel_eq_generate_from_of_subbasis (orderable_topology.topology_eq_generate_intervals α),
+  { rw borel_eq_generate_from_of_subbasis (order_topology.topology_eq_generate_intervals α),
     have H : ∀ a:α, is_measurable (measurable_space.generate_from (range Iio)) (Iio a) :=
       λ a, generate_measurable.basic _ ⟨_, rfl⟩,
     refine generate_from_le _, rintro _ ⟨a, rfl | rfl⟩; [skip, apply H],
@@ -86,11 +86,11 @@ end
 
 lemma borel_eq_generate_Ioi (α)
   [topological_space α] [second_countable_topology α]
-  [linear_order α] [orderable_topology α] :
+  [linear_order α] [order_topology α] :
   borel α = generate_from (range (λ a, {x | a < x})) :=
 begin
   refine le_antisymm _ (generate_from_le _),
-  { rw borel_eq_generate_from_of_subbasis (orderable_topology.topology_eq_generate_intervals α),
+  { rw borel_eq_generate_from_of_subbasis (order_topology.topology_eq_generate_intervals α),
     have H : ∀ a:α, is_measurable (measurable_space.generate_from (range (λ a, {x | a < x}))) {x | a < x} :=
       λ a, generate_measurable.basic _ ⟨_, rfl⟩,
     refine generate_from_le _, rintro _ ⟨a, rfl | rfl⟩, {apply H},
@@ -232,11 +232,11 @@ lemma measurable.mul
 measurable_of_continuous2 continuous_mul
 
 lemma is_measurable_le {α β}
-  [topological_space α] [partial_order α] [ordered_topology α] [second_countable_topology α]
+  [topological_space α] [partial_order α] [order_closed_topology α] [second_countable_topology α]
   [measurable_space β] {f : β → α} {g : β → α} (hf : measurable f) (hg : measurable g) :
   is_measurable {a | f a ≤ g a} :=
 have is_measurable {p : α × α | p.1 ≤ p.2},
-  by rw borel_prod; exact is_measurable_of_is_closed (ordered_topology.is_closed_le' _),
+  by rw borel_prod; exact is_measurable_of_is_closed (order_closed_topology.is_closed_le' _),
 show is_measurable {a | (f a, g a).1 ≤ (f a, g a).2},
 begin
   refine measurable.preimage _ this,
@@ -244,13 +244,13 @@ begin
 end
 
 lemma measurable.max {α β}
-  [topological_space α] [decidable_linear_order α] [ordered_topology α] [second_countable_topology α]
+  [topological_space α] [decidable_linear_order α] [order_closed_topology α] [second_countable_topology α]
   [measurable_space β] {f : β → α} {g : β → α} (hf : measurable f) (hg : measurable g) :
   measurable (λa, max (f a) (g a)) :=
 measurable.if (is_measurable_le hf hg) hg hf
 
 lemma measurable.min {α β}
-  [topological_space α] [decidable_linear_order α] [ordered_topology α] [second_countable_topology α]
+  [topological_space α] [decidable_linear_order α] [order_closed_topology α] [second_countable_topology α]
   [measurable_space β] {f : β → α} {g : β → α} (hf : measurable f) (hg : measurable g) :
   measurable (λa, min (f a) (g a)) :=
 measurable.if (is_measurable_le hf hg) hf hg
@@ -259,8 +259,8 @@ measurable.if (is_measurable_le hf hg) hf hg
 lemma measurable_coe_int_real : measurable (λa, a : ℤ → ℝ) :=
 assume s (hs : is_measurable s), by trivial
 
-section ordered_topology
-variables [linear_order α] [ordered_topology α] {a b c : α}
+section order_closed_topology
+variables [linear_order α] [order_closed_topology α] {a b c : α}
 
 lemma is_measurable_Ioo : is_measurable (Ioo a b) := is_measurable_of_is_open is_open_Ioo
 
@@ -270,10 +270,10 @@ lemma is_measurable_Ico : is_measurable (Ico a b) :=
 (is_measurable_of_is_closed $ is_closed_le continuous_const continuous_id).inter
   is_measurable_Iio
 
-end ordered_topology
+end order_closed_topology
 
 lemma measurable.is_lub {α} [topological_space α] [linear_order α]
-  [orderable_topology α] [second_countable_topology α]
+  [order_topology α] [second_countable_topology α]
   {β} [measurable_space β] {ι} [encodable ι]
   {f : ι → β → α} {g : β → α} (hf : ∀ i, measurable (f i))
   (hg : ∀ b, is_lub {a | ∃ i, f i b = a} (g b)) :
@@ -291,7 +291,7 @@ begin
 end
 
 lemma measurable.is_glb {α} [topological_space α] [linear_order α]
-  [orderable_topology α] [second_countable_topology α]
+  [order_topology α] [second_countable_topology α]
   {β} [measurable_space β] {ι} [encodable ι]
   {f : ι → β → α} {g : β → α} (hf : ∀ i, measurable (f i))
   (hg : ∀ b, is_glb {a | ∃ i, f i b = a} (g b)) :
@@ -309,14 +309,14 @@ begin
 end
 
 lemma measurable.supr {α} [topological_space α] [complete_linear_order α]
-  [orderable_topology α] [second_countable_topology α]
+  [order_topology α] [second_countable_topology α]
   {β} [measurable_space β] {ι} [encodable ι]
   {f : ι → β → α} (hf : ∀ i, measurable (f i)) :
   measurable (λ b, ⨆ i, f i b) :=
 measurable.is_lub hf $ λ b, is_lub_supr
 
 lemma measurable.infi {α} [topological_space α] [complete_linear_order α]
-  [orderable_topology α] [second_countable_topology α]
+  [order_topology α] [second_countable_topology α]
   {β} [measurable_space β] {ι} [encodable ι]
   {f : ι → β → α} (hf : ∀ i, measurable (f i)) :
   measurable (λ b, ⨅ i, f i b) :=

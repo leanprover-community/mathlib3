@@ -125,7 +125,7 @@ lemma lintegral_edist_triangle [second_countable_topology β] {f g h : α → β
   (hf : measurable f) (hg : measurable g) (hh : measurable h) :
   (∫⁻ a, edist (f a) (g a)) ≤ (∫⁻ a, edist (f a) (h a)) + ∫⁻ a, edist (g a) (h a) :=
 begin
-  rw ← lintegral_add (measurable_edist hf hh) (measurable_edist hg hh),
+  rw ← lintegral_add (measurable.edist hf hh) (measurable.edist hg hh),
   apply lintegral_le_lintegral,
   assume a,
   have := edist_triangle (f a) (h a) (g a),
@@ -147,7 +147,7 @@ by { have := coe_lt_top, simpa [integrable] }
 
 lemma lintegral_nnnorm_add {f : α → β} {g : α → γ} (hf : measurable f) (hg : measurable g) :
   (∫⁻ a, nnnorm (f a) + nnnorm (g a)) = (∫⁻ a, nnnorm (f a)) + ∫⁻ a, nnnorm (g a) :=
-lintegral_add (measurable_coe_nnnorm hf) (measurable_coe_nnnorm hg)
+lintegral_add (measurable.coe_nnnorm hf) (measurable.coe_nnnorm hg)
 
 lemma integrable.add {f g : α → β} (hfm : measurable f) (hgm : measurable g) :
   integrable f → integrable g → integrable (f + g) :=
@@ -299,7 +299,7 @@ begin
   -- Using the dominated convergence theorem.
   refine tendsto_lintegral_of_dominated_convergence _ hb _ _,
   -- Show `λa, ∥f a - F n a∥` is measurable for all `n`
-  { exact λn, measurable.comp measurable_of_real (measurable_norm (measurable.sub (F_measurable n)
+  { exact λn, measurable.comp measurable_of_real (measurable.norm (measurable.sub (F_measurable n)
       f_measurable)) },
   -- Show `2 * bound` is integrable
   { rw integrable_iff_of_real at bound_integrable,
@@ -365,7 +365,7 @@ begin
     end
 end
 
-lemma integrable.smul_iff {c : 𝕜} (hc : c ≠ 0) (f : α → β) : integrable (c • f) ↔ integrable f :=
+lemma integrable_smul_iff {c : 𝕜} (hc : c ≠ 0) (f : α → β) : integrable (c • f) ↔ integrable f :=
 begin
   split,
   { assume h,
@@ -429,7 +429,7 @@ variables (α β)
 /-- The space of equivalence classes of integrable (and measurable) functions, where two integrable
     functions are equivalent if they agree almost everywhere, i.e., they differ on a set of measure
     `0`. -/
-def l1 : Type* := subtype (@ae_eq_fun.integrable α _ β _ _)
+def l1 : Type (max u v) := subtype (@ae_eq_fun.integrable α _ β _ _)
 
 infixr ` →₁ `:25 := l1
 
@@ -540,7 +540,7 @@ by { rw [norm_of_fun, lintegral_norm_eq_lintegral_edist] }
 variables {𝕜 : Type*} [normed_field 𝕜] [normed_space 𝕜 β]
 
 lemma of_fun_smul (f : α → β) (hfm hfi) (k : 𝕜) :
-  of_fun (k • f) (measurable_smul _ hfm) (integrable.smul _ hfi) = k • of_fun f hfm hfi := rfl
+  of_fun (k • f) (measurable.smul _ hfm) (integrable.smul _ hfi) = k • of_fun f hfm hfi := rfl
 
 end of_fun
 

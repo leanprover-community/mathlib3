@@ -13,6 +13,7 @@ def term : Type := int × list int
 
 namespace term
 
+/-- Evaluate a term using the valuation v. -/
 @[simp] def val (v : nat → int) : term → int
 | (b,as) := b + coeffs.val v as
 

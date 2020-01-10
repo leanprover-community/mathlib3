@@ -2,7 +2,7 @@
 Released under Apache 2.0 license as described in the file LICENSE.
 Author: Seul Baek
 
-A tactic which performs Fourier–Motzkin elimination to find
+Tactic for performing Fourier–Motzkin elimination to find
 a contradictory linear combination of input constraints. -/
 
 import tactic.omega.term data.list.min_max
@@ -50,6 +50,8 @@ meta def find_scalars_core : nat → list (list nat × term) → tactic (list na
   do new ← elim_var m neg pos,
      find_scalars_core m (new ++ zero)
 
+/-- Tactic for performing Fourier–Motzkin elimination to find
+a contradictory linear combination of input constraints. -/
 meta def find_scalars (ts : list term) : tactic (list nat) :=
 find_scalars_core
   (ts.map (λ t : term, t.snd.length)).maximum.iget

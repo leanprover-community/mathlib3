@@ -105,6 +105,7 @@ begin
   rw classical.not_exists_not, intro h, assumption
 end
 
+/-- Tactic for setting up proof by induction over preforms. -/
 meta def preform.induce (t : tactic unit := tactic.skip) : tactic unit :=
 `[ intro p, induction p with t s t s p ih p q ihp ihq p q ihp ihq; t]
 

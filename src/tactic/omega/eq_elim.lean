@@ -308,6 +308,7 @@ meta instance has_to_format : has_to_format ee := ⟨λ x, x.repr⟩
 
 end ee
 
+/-- Apply a given sequence of equality elimination steps to a clause. -/
 def eq_elim : list ee → clause → clause
 | []     ([], les)     := ([],les)
 | []     ((_::_), les) := ([],[])
@@ -425,6 +426,7 @@ lemma sat_eq_elim :
     { apply h2 _ h4 }
   end
 
+/-- If the result of equality elimination is unsatisfiable, the original clause is unsatisfiable. -/
 lemma unsat_of_unsat_eq_elim (ee : list ee) (c : clause) :
   (eq_elim ee c).unsat → c.unsat :=
 by {intros h1 h2, apply h1, apply sat_eq_elim h2}

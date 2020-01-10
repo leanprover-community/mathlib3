@@ -33,6 +33,7 @@ localized "notation p ` ∧* ` q := omega.nat.preform.and p q" in omega.nat
 
 namespace preform
 
+/-- Evaluate a preform into prop using the valuation v. -/
 @[simp] def holds (v : nat → nat) : preform → Prop
 | (t =* s) := t.val v = s.val v
 | (t ≤* s) := t.val v ≤ s.val v

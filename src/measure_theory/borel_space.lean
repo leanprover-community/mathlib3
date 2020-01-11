@@ -544,7 +544,7 @@ begin
 end
 $ measurable.smul c
 
-lemma measurable_dist' {α : Type*} [metric_space α] [second_countable_topology α] :
+lemma measurable_dist {α : Type*} [metric_space α] [second_countable_topology α] :
   measurable (λp:α×α, dist p.1 p.2) :=
 begin
   rw [borel_prod],
@@ -555,9 +555,9 @@ end
 lemma measurable.dist {α : Type*} [metric_space α] [second_countable_topology α]
   [measurable_space β] {f g : β → α} (hf : measurable f) (hg : measurable g) :
 	measurable (λ b, dist (f b) (g b)) :=
-measurable_dist'.comp (measurable.prod_mk hf hg)
+measurable_dist.comp (measurable.prod_mk hf hg)
 
-lemma measurable_nndist' {α : Type*} [metric_space α] [second_countable_topology α] :
+lemma measurable_nndist {α : Type*} [metric_space α] [second_countable_topology α] :
   measurable (λp:α×α, nndist p.1 p.2) :=
 begin
   rw [borel_prod],
@@ -568,9 +568,9 @@ end
 lemma measurable.nndist {α : Type*} [metric_space α] [second_countable_topology α]
   [measurable_space β] {f g : β → α} (hf : measurable f) (hg : measurable g) :
 	measurable (λ b, nndist (f b) (g b)) :=
-measurable_nndist'.comp (measurable.prod_mk hf hg)
+measurable_nndist.comp (measurable.prod_mk hf hg)
 
-lemma measurable_edist' {α : Type*} [emetric_space α] [second_countable_topology α] :
+lemma measurable_edist {α : Type*} [emetric_space α] [second_countable_topology α] :
   measurable (λp:α×α, edist p.1 p.2) :=
 begin
   rw [borel_prod],
@@ -581,21 +581,21 @@ end
 lemma measurable.edist {α : Type*} [emetric_space α] [second_countable_topology α]
   [measurable_space β] {f g : β → α} (hf : measurable f) (hg : measurable g) :
 	measurable (λ b, edist (f b) (g b)) :=
-measurable_edist'.comp (measurable.prod_mk hf hg)
+measurable_edist.comp (measurable.prod_mk hf hg)
 
-lemma measurable_norm' {α : Type*} [normed_group α] : measurable (norm : α → ℝ) :=
+lemma measurable_norm {α : Type*} [normed_group α] : measurable (norm : α → ℝ) :=
 measurable_of_continuous continuous_norm
 
 lemma measurable.norm {α : Type*} [normed_group α] [measurable_space β]
   {f : β → α} (hf : measurable f) : measurable (λa, norm (f a)) :=
-measurable_norm'.comp hf
+measurable_norm.comp hf
 
-lemma measurable_nnnorm' {α : Type*} [normed_group α] : measurable (nnnorm : α → nnreal) :=
+lemma measurable_nnnorm {α : Type*} [normed_group α] : measurable (nnnorm : α → nnreal) :=
 measurable_of_continuous continuous_nnnorm
 
 lemma measurable.nnnorm {α : Type*} [normed_group α] [measurable_space β]
   {f : β → α} (hf : measurable f) : measurable (λa, nnnorm (f a)) :=
-measurable_nnnorm'.comp hf
+measurable_nnnorm.comp hf
 
 lemma measurable.coe_nnnorm {α : Type*} [normed_group α] [measurable_space β]
   {f : β → α} (hf : measurable f) : measurable (λa, (nnnorm (f a) : ennreal)) :=

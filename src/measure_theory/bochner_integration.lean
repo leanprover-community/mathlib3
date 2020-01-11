@@ -1069,7 +1069,7 @@ lemma integral_neg (f : α → β) : integral (-f) = - integral f :=
 begin
   by_cases hf : measurable f ∧ integrable f,
   { rw [integral_eq f hf.1 hf.2, integral_eq (- f) hf.1.neg hf.2.neg, l1.of_fun_neg,
-l1.integral_neg] },
+    l1.integral_neg] },
   { have hf' : ¬(measurable (-f) ∧ integrable (-f)),
     { rwa [measurable_neg_iff, integrable_neg_iff] },
     rw [integral_undef hf, integral_undef hf', neg_zero] }
@@ -1096,8 +1096,7 @@ lemma integral_congr_ae (hfm : measurable f) (hgm : measurable g) (h : ∀ₘ a,
 begin
   by_cases hfi : integrable f,
   { have hgi : integrable g := integrable_of_ae_eq hfi h,
-    rw [integral_eq f hfm hfi, integral_eq g hgm hgi, (l1.of_fun_eq_of_fun f g hfm hfi hgm hgi).2 h]
-},
+    rw [integral_eq f hfm hfi, integral_eq g hgm hgi, (l1.of_fun_eq_of_fun f g hfm hfi hgm hgi).2 h] },
   { have hgi : ¬ integrable g, { rw integrable_iff_of_ae_eq h at hfi, exact hfi },
     rw [integral_non_integrable hfi, integral_non_integrable hgi] },
 end

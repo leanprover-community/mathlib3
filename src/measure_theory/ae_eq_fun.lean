@@ -440,7 +440,7 @@ section
 variables {γ : Type*} [emetric_space γ] [second_countable_topology γ]
 
 /-- `comp_edist [f] [g] a` will return `edist (f a) (g a) -/
-def comp_edist (f g : α →ₘ γ) : α →ₘ ennreal := comp₂ edist measurable_edist' f g
+def comp_edist (f g : α →ₘ γ) : α →ₘ ennreal := comp₂ edist measurable_edist f g
 
 lemma comp_edist_to_fun (f g : α →ₘ γ) :
   ∀ₘ a, (comp_edist f g).to_fun a = edist (f.to_fun a) (g.to_fun a) :=

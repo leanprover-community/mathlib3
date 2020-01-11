@@ -176,6 +176,19 @@ begin
   rw linear_equiv.symm_apply_apply
 end
 
+/-- The continuous linear map induced by a linear map on a finite dimensional space -/
+def linear_map.to_continuous_linear_map [finite_dimensional 𝕜 E] (f : E →ₗ[𝕜] F) : E →L[𝕜] F :=
+{ cont := f.continuous_of_finite_dimensional, ..f }
+
+/-- The continuous linear equivalence induced by a linear equivalence on a finite dimensional space. -/
+def linear_equiv.to_continuous_linear_equiv [finite_dimensional 𝕜 E] (e : E ≃ₗ[𝕜] F) : E ≃L[𝕜] F :=
+{ continuous_to_fun := e.to_linear_map.continuous_of_finite_dimensional,
+  continuous_inv_fun := begin
+    haveI : finite_dimensional 𝕜 F := e.finite_dimensional,
+    exact e.symm.to_linear_map.continuous_of_finite_dimensional
+  end,
+  ..e }
+
 /-- Any finite-dimensional vector space over a complete field is complete.
 We do not register this as an instance to avoid an instance loop when trying to prove the
 completeness of `𝕜`, and the search for `𝕜` as an unknown metavariable. Declare the instance

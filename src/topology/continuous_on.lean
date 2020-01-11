@@ -320,6 +320,11 @@ lemma continuous_within_at_inter {f : α → β} {s t : set α} {x : α} (h : t 
   continuous_within_at f (s ∩ t) x ↔ continuous_within_at f s x :=
 by simp [continuous_within_at, nhds_within_restrict' s h]
 
+lemma continuous_within_at.union {f : α → β} {s t : set α} {x : α}
+  (hs : continuous_within_at f s x) (ht : continuous_within_at f t x) :
+  continuous_within_at f (s ∪ t) x :=
+by simp only [continuous_within_at, nhds_within_union, tendsto, map_sup, lattice.sup_le_iff.2 ⟨hs, ht⟩]
+
 lemma continuous_within_at.mem_closure_image  {f : α → β} {s : set α} {x : α}
   (h : continuous_within_at f s x) (hx : x ∈ closure s) : f x ∈ closure (f '' s) :=
 mem_closure_of_tendsto (mem_closure_iff_nhds_within_ne_bot.1 hx) h $

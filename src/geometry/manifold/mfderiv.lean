@@ -290,7 +290,12 @@ def written_in_ext_chart_at (x : M) (f : M → M') : E → E' :=
 
 /-- `mdifferentiable_within_at I I' f s x` indicates that the function `f` between manifolds
 has a derivative at the point `x` within the set `s`.
-This is a generalization of `differentiable_within_at` to manifolds. -/
+This is a generalization of `differentiable_within_at` to manifolds.
+
+We require continuity in the definition, as otherwise points close to `x` in `s` could be sent by
+`f` outside of the chart domain around `f x`. Then the chart could do anything to the image point,
+and in particular by coincidence `written_in_ext_chart_at I I' x f` could be differentiable, while
+this would not mean anything relevant. -/
 def mdifferentiable_within_at (f : M → M') (s : set M) (x : M) :=
 continuous_within_at f s x ∧
 differentiable_within_at 𝕜 (written_in_ext_chart_at I I' x f)
@@ -298,7 +303,12 @@ differentiable_within_at 𝕜 (written_in_ext_chart_at I I' x f)
 
 /-- `mdifferentiable_at I I' f x` indicates that the function `f` between manifolds
 has a derivative at the point `x`.
-This is a generalization of `mdifferentiable_at` to manifolds. -/
+This is a generalization of `mdifferentiable_at` to manifolds.
+
+We require continuity in the definition, as otherwise points close to `x` could be sent by
+`f` outside of the chart domain around `f x`. Then the chart could do anything to the image point,
+and in particular by coincidence `written_in_ext_chart_at I I' x f` could be differentiable, while
+this would not mean anything relevant. -/
 def mdifferentiable_at (f : M → M') (x : M) :=
 continuous_at f x ∧
 differentiable_within_at 𝕜 (written_in_ext_chart_at I I' x f) (range I.to_fun)
@@ -328,10 +338,12 @@ map from the tangent space at `x` to the tangent space at `f x`.
 
 This is a generalization of `has_fderiv_within_at` to manifolds (as indicated by the prefix `m`).
 The order of arguments is changed as the type of the derivative `f'` depends on the choice of
-`x`. This only makes sense if the function is continuous within `s` at `x`, as otherwise the
-function read in charts does not make sense as one can not use one single chart for the image.
-Hence, we need to add `continuous_within_at` as an assumption. Otherwise, this is the same
-definition read in charts. -/
+`x`.
+
+We require continuity in the definition, as otherwise points close to `x` in `s` could be sent by
+`f` outside of the chart domain around `f x`. Then the chart could do anything to the image point,
+and in particular by coincidence `written_in_ext_chart_at I I' x f` could be differentiable, while
+this would not mean anything relevant. -/
 def has_mfderiv_within_at (f : M → M') (s : set M) (x : M)
   (f' : tangent_space I x →L[𝕜] tangent_space I' (f x)) :=
 continuous_within_at f s x ∧
@@ -342,11 +354,10 @@ has_fderiv_within_at (written_in_ext_chart_at I I' x f : E → E') f'
 has, at the point `x`, the derivative `f'`. Here, `f'` is a continuous linear
 map from the tangent space at `x` to the tangent space at `f x`.
 
-This is a generalization of `has_fderiv_at` to manifolds (as indicated by the prefix `m`).
-The order of arguments is changed as the type of the derivative `f'` depends on the choice of
-`x`. This only makes sense if the function is continuous at `x`, as otherwise the function
-read in charts does not make sense as one can not use one single chart for the image. Hence, we need
-to add `continuous_at` as an assumption. Otherwise, this is the same definition read in charts. -/
+We require continuity in the definition, as otherwise points close to `x` `s` could be sent by
+`f` outside of the chart domain around `f x`. Then the chart could do anything to the image point,
+and in particular by coincidence `written_in_ext_chart_at I I' x f` could be differentiable, while
+this would not mean anything relevant. -/
 def has_mfderiv_at (f : M → M') (x : M)
   (f' : tangent_space I x →L[𝕜] tangent_space I' (f x)) :=
 continuous_at f x ∧

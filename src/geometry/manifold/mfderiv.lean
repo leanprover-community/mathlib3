@@ -290,7 +290,7 @@ def written_in_ext_chart_at (x : M) (f : M → M') : E → E' :=
 
 /-- `mdifferentiable_within_at I I' f s x` indicates that the function `f` between manifolds
 has a derivative at the point `x` within the set `s`.
-This is a generalization of `mdifferentiable_within_at` to manifolds. -/
+This is a generalization of `differentiable_within_at` to manifolds. -/
 def mdifferentiable_within_at (f : M → M') (s : set M) (x : M) :=
 continuous_within_at f s x ∧
 differentiable_within_at 𝕜 (written_in_ext_chart_at I I' x f)

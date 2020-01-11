@@ -97,16 +97,26 @@ to move casts toward the leaf nodes of the expression."
 /-- A type used to classify `norm_cast` lemmas. -/
 @[derive decidable_eq, derive has_reflect]
 inductive label
-| elim : label
-| move : label
+| elim   : label
+| move   : label
+| push   : label
 | squash : label
 
 open label
 
 protected def label.to_string : label → string
-| elim := "elim"
-| move := "move"
+| elim   := "elim"
+| move   := "move"
+| push   := "push"
 | squash := "squash"
+
+def label.of_string : string -> option label
+| "elim" := some elim
+| "move" := some move
+| "push" := some push
+| "squash" := some squash
+| _ := none
+
 
 instance label.has_to_string : has_to_string label := ⟨label.to_string⟩
 
@@ -136,7 +146,7 @@ if lhs_head.is_coe then
       return squash
     else fail squash_cast_fail
   else /- !lhs_body_head.is_coe -/ if rhs.contains_coe then return move
-  else return squash
+  else return push
 else if ! lhs.contains_coe then
   fail "norm_cast lemmas must contain ↑ on the LHS"
 else
@@ -173,8 +183,8 @@ meta def add_elim (cache : norm_cast_cache) (e : expr) : tactic norm_cast_cache 
 do
   new_up ← simp_lemmas.add cache.up e,
   return
-  { up := new_up,
-    down := cache.down,
+  { up     := new_up,
+    down   := cache.down,
     squash := cache.squash }
 
 /-- `add_move cache e` adds `e` as a `move_cast` lemma to `cache`. -/
@@ -185,8 +195,17 @@ do
   new_up ← simp_lemmas.add cache.up rev_e,
   new_down ← simp_lemmas.add cache.down e,
   return {
-    up := new_up,
-    down := new_down,
+    up     := new_up,
+    down   := new_down,
+    squash := cache.squash }
+
+/-- `add_push cache e` adds `e` as an `push_cast` lemma to `cache`. -/
+meta def add_push (cache : norm_cast_cache) (e : expr) : tactic norm_cast_cache :=
+do
+  new_down ← simp_lemmas.add cache.down e,
+  return {
+    up     := cache.up,
+    down   := new_down,
     squash := cache.squash }
 
 /-- `add_squash cache e` adds `e` as an `squash_cast` lemma to `cache`. -/
@@ -195,8 +214,8 @@ do
   new_squash ← simp_lemmas.add cache.squash e,
   new_down ← simp_lemmas.add cache.down e,
   return {
-    up := cache.up,
-    down := new_down,
+    up     := cache.up,
+    down   := new_down,
     squash := new_squash }
 
 /-- `add_lemma cache decl` infers the proper `norm_cast` attribute for `decl` and adds it to `cache`. -/
@@ -209,6 +228,7 @@ do
   match l with
   | elim   := add_elim cache e
   | move   := add_move cache e
+  | push   := add_push cache e
   | squash := add_squash cache e
   end
 
@@ -221,8 +241,8 @@ do
   new_up ← simp_lemmas.add_simp new_up   ``gt_from_lt,
   new_up ← simp_lemmas.add_simp new_up   ``ne_from_not_eq,
   return {
-    up := new_up,
-    down := cache.down,
+    up     := new_up,
+    down   := cache.down,
     squash := cache.squash, }
 
 -- the priority `n` is unused but required for the user_attribute api.
@@ -234,12 +254,6 @@ do
   param ← (attr ()).get_param decl,
   l ← param <|> classify_type ty,
   if l ≠ elim then simp_attr.push_cast.set decl () tt else skip
-
-def label.of_string : string -> option label
-| "elim" := some elim
-| "move" := some move
-| "squash" := some squash
-| _ := none
 
 -- parse a label manually added to the attribute
 meta def parse_label : lean.parser (option label) :=

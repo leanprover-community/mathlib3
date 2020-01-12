@@ -293,20 +293,22 @@ A Lie module is a module over a commutative ring, together with a linear action 
 on this module, such that the Lie bracket acts as the commutator of endomorphisms.
 -/
 class lie_module extends linear_action R L M :=
-(lie_smul : ∀ (l l' : L) (m : M), ⁅l, l'⁆ • m = l • (l' • m) - l' • (l • m))
+(lie_act : ∀ (l l' : L) (m : M), act ⁅l, l'⁆ m = act l (act l' m) -
+                                                 act l' (act l m))
 end prio
 
-@[simp] lemma lie_module_lie_smul [lie_module R L M]
-  (l l' : L) (m : M) : ⁅l, l'⁆ • m = l • (l' • m) - l' • (l • m) := lie_module.lie_smul R l l' m
+@[simp] lemma lie_act [lie_module R L M]
+  (l l' : L) (m : M) : linear_action.act R ⁅l, l'⁆ m =
+                       linear_action.act R l (linear_action.act R l' m) -
+                       linear_action.act R l' (linear_action.act R l m) :=
+  lie_module.lie_act R l l' m
 
-lemma of_endo_map_action (α : L →ₗ⁅R⁆ module.End R M) (x : L) (m : M) :
-  @has_scalar.smul L M (linear_action.of_endo_map R L M α).to_has_scalar x m = α x m := rfl
+protected lemma of_endo_map_action (α : L →ₗ⁅R⁆ module.End R M) (x : L) (m : M) :
+  @linear_action.act R _ _ _ _ _ _ _ (linear_action.of_endo_map R L M α) x m = α x m := rfl
 
 def lie_module.of_endo_morphism (α : L →ₗ⁅R⁆ module.End R M) : lie_module R L M := {
-  lie_smul := by { intros x y m,
-                   rw [of_endo_map_action,
-                       lie_algebra.morphism_bracket,
-                       lie_algebra.endo_algebra_bracket], refl, },
+  lie_act := by { intros x y m, rw [of_endo_map_action, lie_algebra.morphism_bracket,
+                                    lie_algebra.endo_algebra_bracket], refl, },
   ..(linear_action.of_endo_map R L M α) }
 
 /--
@@ -320,7 +322,7 @@ A Lie submodule of a Lie module is a submodule that is closed under the Lie brac
 This is a sufficient condition for the subset itself to form a Lie module.
 -/
 structure lie_submodule [lie_module R L M] extends submodule R M :=
-(lie_mem : ∀ {x : L} {m : M}, m ∈ carrier → x • m ∈ carrier)
+(lie_mem : ∀ {x : L} {m : M}, m ∈ carrier → linear_action.act R x m ∈ carrier)
 
 instance lie_submodule_coe_submodule [lie_module R L M] :
   has_coe (lie_submodule R L M) (submodule R M) := ⟨lie_submodule.to_submodule⟩
@@ -330,12 +332,12 @@ instance lie_submodule_has_mem [lie_module R L M] :
 
 instance lie_submodule_lie_module [lie_module R L M] (N : lie_submodule R L M) :
   lie_module R L N := {
-  smul       := λ x m, ⟨x • m.val, N.lie_mem m.property⟩,
-  add_smul   := by { intros x y m, apply set_coe.ext, apply add_action.add_smul, },
-  smul_add   := by { intros x m n, apply set_coe.ext, apply add_action.smul_add, },
-  smul_smul  := by { intros r x y, apply set_coe.ext, apply linear_action.smul_smul, },
-  smul_smul' := by { intros r x y, apply set_coe.ext, apply linear_action.smul_smul', },
-  lie_smul   := by { intros x y m, apply set_coe.ext, apply lie_module.lie_smul, } }
+  act      := λ x m, ⟨linear_action.act R x m.val, N.lie_mem m.property⟩,
+  add_act  := by { intros x y m, apply set_coe.ext, apply linear_action.add_act, },
+  act_add  := by { intros x m n, apply set_coe.ext, apply linear_action.act_add, },
+  act_smul := by { intros r x y, apply set_coe.ext, apply linear_action.act_smul, },
+  smul_act := by { intros r x y, apply set_coe.ext, apply linear_action.smul_act, },
+  lie_act  := by { intros x y m, apply set_coe.ext, apply lie_module.lie_act, } }
 
 /--
 An ideal of a Lie algebra is a Lie submodule of the Lie algebra as a Lie module over itself.

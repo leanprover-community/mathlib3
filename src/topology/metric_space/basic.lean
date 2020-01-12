@@ -645,8 +645,8 @@ theorem real.dist_eq (x y : ℝ) : dist x y = abs (x - y) := rfl
 theorem real.dist_0_eq_abs (x : ℝ) : dist x 0 = abs x :=
 by simp [real.dist_eq]
 
-instance : orderable_topology ℝ :=
-orderable_topology_of_nhds_abs $ λ x, begin
+instance : order_topology ℝ :=
+order_topology_of_nhds_abs $ λ x, begin
   simp only [show ∀ r, {b : ℝ | abs (x - b) < r} = ball x r,
     by simp [-sub_eq_add_neg, abs_sub, ball, real.dist_eq]],
   apply le_antisymm,

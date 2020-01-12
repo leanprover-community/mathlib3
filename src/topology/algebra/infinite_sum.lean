@@ -453,7 +453,7 @@ end tsum
 end topological_semiring
 
 section order_topology
-variables [ordered_comm_monoid α] [topological_space α] [ordered_topology α]
+variables [ordered_comm_monoid α] [topological_space α] [order_closed_topology α]
 variables {f g : β → α} {a a₁ a₂ : α}
 
 lemma has_sum_le (h : ∀b, f b ≤ g b) (hf : has_sum f a₁) (hg : has_sum g a₂) : a₁ ≤ a₂ :=

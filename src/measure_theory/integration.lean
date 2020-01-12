@@ -303,7 +303,7 @@ of the set `{i k | k ≤ n ∧ i k ≤ f a}`, see `approx_apply` and `supr_appro
 def approx (i : ℕ → β) (f : α → β) (n : ℕ) : α →ₛ β :=
 (finset.range n).sup (λk, restrict (const α (i k)) {a:α | i k ≤ f a})
 
-lemma approx_apply [topological_space β] [ordered_topology β] {i : ℕ → β} {f : α → β} {n : ℕ}
+lemma approx_apply [topological_space β] [order_closed_topology β] {i : ℕ → β} {f : α → β} {n : ℕ}
   (a : α) (hf : _root_.measurable f) :
   (approx i f n : α →ₛ β) a = (finset.range n).sup (λk, if i k ≤ f a then i k else 0) :=
 begin
@@ -319,7 +319,7 @@ end
 lemma monotone_approx (i : ℕ → β) (f : α → β) : monotone (approx i f) :=
 assume n m h, finset.sup_mono $ finset.range_subset.2 h
 
-lemma approx_comp [topological_space β] [ordered_topology β] [measurable_space γ]
+lemma approx_comp [topological_space β] [order_closed_topology β] [measurable_space γ]
   {i : ℕ → β} {f : γ → β} {g : α → γ} {n : ℕ} (a : α)
   (hf : _root_.measurable f) (hg : _root_.measurable g) :
   (approx i (f ∘ g) n : α →ₛ β) a = (approx i f n : γ →ₛ β) (g a) :=
@@ -327,7 +327,7 @@ by rw [approx_apply _ hf, approx_apply _ (hf.comp hg)]
 
 end
 
-lemma supr_approx_apply [topological_space β] [complete_lattice β] [ordered_topology β] [has_zero β]
+lemma supr_approx_apply [topological_space β] [complete_lattice β] [order_closed_topology β] [has_zero β]
   (i : ℕ → β) (f : α → β) (a : α) (hf : _root_.measurable f) (h_zero : (0 : β) = ⊥) :
   (⨆n, (approx i f n : α →ₛ β) a) = (⨆k (h : i k ≤ f a), i k) :=
 begin

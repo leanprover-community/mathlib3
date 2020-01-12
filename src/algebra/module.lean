@@ -309,10 +309,10 @@ instance : has_zero p := ⟨⟨0, zero_mem _⟩⟩
 instance : has_neg p := ⟨λx, ⟨-x.1, neg_mem _ x.2⟩⟩
 instance : has_scalar α p := ⟨λ c x, ⟨c • x.1, smul_mem _ c x.2⟩⟩
 
-@[simp] lemma coe_add (x y : p) : (↑(x + y) : β) = ↑x + ↑y := rfl
-@[simp] lemma coe_zero : ((0 : p) : β) = 0 := rfl
-@[simp] lemma coe_neg (x : p) : ((-x : p) : β) = -x := rfl
-@[simp] lemma coe_smul (r : α) (x : p) : ((r • x : p) : β) = r • ↑x := rfl
+@[simp, move_cast] lemma coe_add (x y : p) : (↑(x + y) : β) = ↑x + ↑y := rfl
+@[simp, elim_cast] lemma coe_zero : ((0 : p) : β) = 0 := rfl
+@[simp, move_cast] lemma coe_neg (x : p) : ((-x : p) : β) = -x := rfl
+@[simp, move_cast] lemma coe_smul (r : α) (x : p) : ((r • x : p) : β) = r • ↑x := rfl
 
 instance : add_comm_group p :=
 by refine {add := (+), zero := 0, neg := has_neg.neg, ..};
@@ -323,7 +323,7 @@ instance submodule_is_add_subgroup : is_add_subgroup (p : set β) :=
   add_mem  := p.add,
   neg_mem  := λ _, p.neg_mem }
 
-lemma coe_sub (x y : p) : (↑(x - y) : β) = ↑x - ↑y := by simp
+@[move_cast] lemma coe_sub (x y : p) : (↑(x - y) : β) = ↑x - ↑y := by simp
 
 instance : module α p :=
 by refine {smul := (•), ..};

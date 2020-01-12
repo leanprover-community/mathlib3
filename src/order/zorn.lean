@@ -199,7 +199,8 @@ classical.by_contradiction $
 assume : ¬ is_max_chain (⋃₀ chain_closure),
 have super_chain (⋃₀ chain_closure) (succ_chain (⋃₀ chain_closure)),
   from super_of_not_max (chain_chain_closure chain_closure_closure) this,
-let ⟨h₁, h₂, (h₃ : (⋃₀ chain_closure) ≠ succ_chain (⋃₀ chain_closure))⟩ := this in
+let ⟨h₁, H⟩ := this,
+  ⟨h₂, (h₃ : (⋃₀ chain_closure) ≠ succ_chain (⋃₀ chain_closure))⟩ := ssubset_iff_subset_ne.1 H in
 have succ_chain (⋃₀ chain_closure) = (⋃₀ chain_closure),
   from (chain_closure_succ_fixpoint_iff chain_closure_closure).mpr rfl,
 h₃ this.symm

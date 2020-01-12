@@ -8,11 +8,25 @@ import analysis.calculus.mean_value analysis.complex.exponential
 /-!
 # Grönwall's inequality
 
-In this file we prove a generalized Grönwall's inequality, and use it to prove
-uniqueness (but not existence) of solutions of ODEs with Lipschitz continuous right hand sides.
+The main technical result of this file is the Grönwall-like inequality
+`norm_le_gronwall_bound_of_norm_deriv_right_le`. It states that if `f : ℝ → E` satisfies `∥f a∥ ≤ δ`
+and `∀ x ∈ [a, b), ∥f' x∥ ≤ K * ∥f x∥ + ε`, then for all `x ∈ [a, b]` we have `∥f x∥ ≤ δ * exp (K *
+x) + (ε / K) * (exp (K * x) - 1)`. This inequality is a generalization of a special case of
+Grönwall's inequality. Namely, we use a constant `K` instead of a time-dependent upper bound `K x`
+but we add an additive constant `ε`.
 
-The proofs are based on [Hubbard and West, *Differential Equations: A Dynamical Systems
-Approach*, Sec. 4.5][HubbardWest-ode].
+Then we use this inequality to prove some estimates on the possible rate of growth of the distance
+between two approximate or exact solutions of an ordinary differential equation.
+
+The proofs are based on [Hubbard and West, *Differential Equations: A Dynamical Systems Approach*,
+Sec. 4.5][HubbardWest-ode], where `norm_le_gronwall_bound_of_norm_deriv_right_le` is called
+“Fundamental Inequality”.
+
+## TODO
+
+- Once we have FTC, prove an inequality for a function satisfying `∥f' x∥ ≤ K x * ∥f x∥ + ε`,
+  or more generally `\liminf_{y→x+0}\frac{f y - f x}{y - x} ≤ K x * f x + ε` with any sign
+  of `K x` and `f x`.
 -/
 
 variables {E : Type*} [normed_group E] [normed_space ℝ E]
@@ -21,64 +35,125 @@ variables {E : Type*} [normed_group E] [normed_space ℝ E]
 open metric set lattice asymptotics filter real
 open_locale classical
 
+/-! ### Technical lemmas about `gronwall_bound` -/
+
 /-- Upper bound used in several Grönwall-like inequalities. -/
 noncomputable def gronwall_bound (δ K ε x : ℝ) : ℝ :=
-δ * exp (K * x) + (ε / K) * (exp (K * x) - 1)
+if K = 0 then δ + ε * x else δ * exp (K * x) + (ε / K) * (exp (K * x) - 1)
 
-lemma has_deriv_at_gronwall_bound (δ K ε x : ℝ) (hK : K ≠ 0) :
+lemma gronwall_bound_K0 (δ ε : ℝ) : gronwall_bound δ 0 ε = λ x, δ + ε * x :=
+funext $ λ x, if_pos rfl
+
+lemma gronwall_bound_of_K_ne_0 {δ K ε : ℝ} (hK : K ≠ 0) :
+  gronwall_bound δ K ε = λ x, δ * exp (K * x) + (ε / K) * (exp (K * x) - 1) :=
+funext $ λ x, if_neg hK
+
+lemma has_deriv_at_gronwall_bound (δ K ε x : ℝ) :
   has_deriv_at (gronwall_bound δ K ε) (K * (gronwall_bound δ K ε x) + ε) x :=
 begin
-  convert (((has_deriv_at_id x).const_mul K).rexp.const_mul δ).add
-    ((((has_deriv_at_id x).const_mul K).rexp.sub_const 1).const_mul (ε / K)) using 1,
-  simp only [gronwall_bound, id, mul_add, (mul_assoc _ _ _).symm, mul_comm _ K,
-    mul_div_cancel' _ hK],
-  ring
+  by_cases hK : K = 0,
+  { subst K,
+    simp only [gronwall_bound_K0, zero_mul, zero_add],
+    convert ((has_deriv_at_id x).const_mul ε).const_add δ,
+    rw [mul_one] },
+  { simp only [gronwall_bound_of_K_ne_0 hK],
+    convert (((has_deriv_at_id x).const_mul K).rexp.const_mul δ).add
+      ((((has_deriv_at_id x).const_mul K).rexp.sub_const 1).const_mul (ε / K)) using 1,
+    simp only [id, mul_add, (mul_assoc _ _ _).symm, mul_comm _ K, mul_div_cancel' _ hK],
+    ring }
 end
 
-lemma has_deriv_at_gronwall_bound_shift (δ K ε x a : ℝ) (hK : K ≠ 0) :
+lemma has_deriv_at_gronwall_bound_shift (δ K ε x a : ℝ) :
   has_deriv_at (λ y, gronwall_bound δ K ε (y - a)) (K * (gronwall_bound δ K ε (x - a)) + ε) x :=
 begin
-  convert (has_deriv_at_gronwall_bound δ K ε _ hK).comp x ((has_deriv_at_id x).sub_const a),
+  convert (has_deriv_at_gronwall_bound δ K ε _).comp x ((has_deriv_at_id x).sub_const a),
   rw [id, one_smul]
 end
 
 lemma gronwall_bound_x0 (δ K ε : ℝ) : gronwall_bound δ K ε 0 = δ :=
-by simp only [gronwall_bound, mul_zero, exp_zero, sub_self, mul_one, add_zero]
+begin
+  by_cases hK : K = 0,
+  { simp only [gronwall_bound, if_pos hK, mul_zero, add_zero] },
+  { simp only [gronwall_bound, if_neg hK, mul_zero, exp_zero, sub_self, mul_one, add_zero] }
+end
 
 lemma gronwall_bound_ε0 (δ K x : ℝ) : gronwall_bound δ K 0 x = δ * exp (K * x) :=
-by simp only [gronwall_bound, zero_div, zero_mul, add_zero]
+begin
+  by_cases hK : K = 0,
+  { simp only [gronwall_bound_K0, hK, zero_mul, exp_zero, add_zero, mul_one] },
+  { simp only [gronwall_bound_of_K_ne_0 hK, zero_div, zero_mul, add_zero] }
+end
 
 lemma gronwall_bound_ε0_δ0 (K x : ℝ) : gronwall_bound 0 K 0 x = 0 :=
 by simp only [gronwall_bound_ε0, zero_mul]
 
-theorem norm_le_gronwall_bound_of_norm_deriv_right_le {f f' : ℝ → E} {δ K ε : ℝ} {a b : ℝ}
-  (hK : 0 < K) (hf : continuous_on f (Icc a b))
-  (hf' : ∀ x ∈ Ico a b, has_deriv_within_at f (f' x) (Ioi x) x)
-  (ha : ∥f a∥ ≤ δ) (bound : ∀ x ∈ Ico a b, ∥f' x∥ ≤ K * ∥f x∥ + ε) :
-  ∀ x ∈ Icc a b, ∥f x∥ ≤ gronwall_bound δ K ε (x - a) :=
+lemma gronwall_bound_continuous_ε (δ K x : ℝ) : continuous (λ ε, gronwall_bound δ K ε x) :=
 begin
-  have H : ∀ x ∈ Icc a b, ∀ ε' ∈ Ioi ε, ∥f x∥ ≤ gronwall_bound δ K ε' (x - a),
+  by_cases hK : K = 0,
+  { simp only [gronwall_bound_K0, hK],
+    exact continuous_const.add (continuous_id.mul continuous_const) },
+  { simp only [gronwall_bound_of_K_ne_0 hK],
+    exact continuous_const.add ((continuous_id.mul continuous_const).mul continuous_const) }
+end
+
+/-! ### Inequality and corollaries -/
+
+/-- A Grönwall-like inequality: if `f : ℝ → ℝ` is continuous on `[a, b]` and satisfies
+the inequalities `f a ≤ δ` and
+`∀ x ∈ [a, b), \liminf_{z→x+0}\frac{f z - f x}{z - x} ≤ K * (f x) + ε`, then `f x`
+is bounded by `gronwall_bound δ K ε (x - a)` on `[a, b]`.
+
+This inequality is a generalization of a special case of the Grönwall's inequality. Namely, we
+use a constant `K` instead of a function `K x` but we add a constant `ε`.
+
+See also `norm_le_gronwall_bound_of_norm_deriv_right_le` for a version bounding `∥f x∥`,
+`f : ℝ → E`. -/
+theorem le_gronwall_bound_of_liminf_deriv_right_le {f f' : ℝ → ℝ} {δ K ε : ℝ} {a b : ℝ}
+  (hf : continuous_on f (Icc a b))
+  (hf' : ∀ x ∈ Ico a b, ∀ r, f' x < r →
+    ∃ᶠ z in nhds_within x (Ioi x), (z - x)⁻¹ * (f z - f x) < r)
+  (ha : f a ≤ δ) (bound : ∀ x ∈ Ico a b, f' x ≤ K * f x + ε) :
+  ∀ x ∈ Icc a b, f x ≤ gronwall_bound δ K ε (x - a) :=
+begin
+  have H : ∀ x ∈ Icc a b, ∀ ε' ∈ Ioi ε, f x ≤ gronwall_bound δ K ε' (x - a),
   { assume x hx ε' hε',
-    apply image_norm_le_of_norm_deriv_right_lt_deriv_boundary hf hf',
+    apply image_le_of_liminf_slope_right_lt_deriv_boundary hf hf',
     { rwa [sub_self, gronwall_bound_x0] },
-    { exact λ x, has_deriv_at_gronwall_bound_shift δ K ε' x a (ne_of_gt hK) },
+    { exact λ x, has_deriv_at_gronwall_bound_shift δ K ε' x a },
     { assume x hx hfB,
       rw [← hfB],
       apply lt_of_le_of_lt (bound x hx),
       exact add_lt_add_left hε' _ },
     { exact hx } },
   assume x hx,
-  change ∥f x∥ ≤ (λ ε', gronwall_bound δ K ε' (x - a)) ε,
+  change f x ≤ (λ ε', gronwall_bound δ K ε' (x - a)) ε,
   convert continuous_within_at_const.closure_le _ _ (H x hx),
   { simp only [closure_Ioi, left_mem_Ici] },
-  exact continuous_within_at_const.add
-    ((continuous_within_at_id.mul continuous_within_at_const).mul continuous_within_at_const)
+  exact (gronwall_bound_continuous_ε δ K (x - a)).continuous_within_at
 end
 
-/-- Generalized Grönwall's inequality: if `f` and `g` are two approximate solutions
-of the same ODE, then the distance between them can't grow faster than exponentially. -/
+/-- A Grönwall-like inequality: if `f : ℝ → E` is continuous on `[a, b]`, has right derivative
+`f' x` at every point `x ∈ [a, b)`, and satisfies the inequalities `∥f a∥ ≤ δ`,
+`∀ x ∈ [a, b), ∥f' x∥ ≤ K * ∥f x∥ + ε`, then `∥f x∥` is bounded by `gronwall_bound δ K ε (x - a)`
+on `[a, b]`.
+
+This inequality is a generalization of a special case of the Grönwall's inequality. Namely, we
+use a constant `K` instead of a function `K x` but we add a constant `ε`. -/
+theorem norm_le_gronwall_bound_of_norm_deriv_right_le {f f' : ℝ → E} {δ K ε : ℝ} {a b : ℝ}
+  (hf : continuous_on f (Icc a b)) (hf' : ∀ x ∈ Ico a b, has_deriv_within_at f (f' x) (Ioi x) x)
+  (ha : ∥f a∥ ≤ δ) (bound : ∀ x ∈ Ico a b, ∥f' x∥ ≤ K * ∥f x∥ + ε) :
+  ∀ x ∈ Icc a b, ∥f x∥ ≤ gronwall_bound δ K ε (x - a) :=
+le_gronwall_bound_of_liminf_deriv_right_le (continuous_norm.comp_continuous_on hf)
+  (λ x hx r hr, (hf' x hx).liminf_right_slope_norm_le hr) ha bound
+
+/-- If `f` and `g` are two approximate solutions of the same ODE, then the distance between them
+can't grow faster than exponentially. This is a simple corollary of Grönwall's inequality, and some
+people call this Grönwall's inequality too.
+
+This version assumes all inequalities to be true in some time-dependent set `s t`,
+and assumes that the solutions never leave this set. -/
 theorem dist_le_of_approx_trajectories_ODE_of_mem_set {v : ℝ → E → E} {s : ℝ → set E}
-  {K : ℝ} (hK : 0 < K) (hv : ∀ t, ∀ x y ∈ s t, dist (v t x) (v t y) ≤ K * dist x y)
+  {K : ℝ} (hv : ∀ t, ∀ x y ∈ s t, dist (v t x) (v t y) ≤ K * dist x y)
   {f g f' g' : ℝ → E} {a b : ℝ} {εf εg δ : ℝ}
   (hf : continuous_on f (Icc a b))
   (hf' : ∀ t ∈ Ico a b, has_deriv_within_at f (f' t) (Ioi t) t)
@@ -94,7 +169,7 @@ begin
   simp only [dist_eq_norm] at ha ⊢,
   have h_deriv : ∀ t ∈ Ico a b, has_deriv_within_at (λ t, f t - g t) (f' t - g' t) (Ioi t) t,
     from λ t ht, (hf' t ht).sub (hg' t ht),
-  apply norm_le_gronwall_bound_of_norm_deriv_right_le hK (hf.sub hg) h_deriv ha,
+  apply norm_le_gronwall_bound_of_norm_deriv_right_le (hf.sub hg) h_deriv ha,
   assume t ht,
   have := dist_triangle4_right (f' t) (g' t) (v t (f t)) (v t (g t)),
   rw [dist_eq_norm] at this,
@@ -104,10 +179,13 @@ begin
   rw [dist_eq_norm, add_comm]
 end
 
-/-- Generalized Grönwall's inequality: if `f` and `g` are two approximate solutions
-of the same ODE, then the distance between them can't grow faster than exponentially. -/
+/-- If `f` and `g` are two approximate solutions of the same ODE, then the distance between them
+can't grow faster than exponentially. This is a simple corollary of Grönwall's inequality, and some
+people call this Grönwall's inequality too.
+
+This version assumes all inequalities to be true in the whole space. -/
 theorem dist_le_of_approx_trajectories_ODE {v : ℝ → E → E}
-  {K : nnreal} (hK : 0 < K) (hv : ∀ t, lipschitz_with K (v t))
+  {K : nnreal} (hv : ∀ t, lipschitz_with K (v t))
   {f g f' g' : ℝ → E} {a b : ℝ} {εf εg δ : ℝ}
   (hf : continuous_on f (Icc a b))
   (hf' : ∀ t ∈ Ico a b, has_deriv_within_at f (f' t) (Ioi t) t)
@@ -118,13 +196,17 @@ theorem dist_le_of_approx_trajectories_ODE {v : ℝ → E → E}
   (ha : dist (f a) (g a) ≤ δ) :
   ∀ t ∈ Icc a b, dist (f t) (g t) ≤ gronwall_bound δ K (εf + εg) (t - a) :=
 have hfs : ∀ t ∈ Ico a b, f t ∈ (@univ E), from λ t ht, trivial,
-dist_le_of_approx_trajectories_ODE_of_mem_set hK (λ t x y hx hy, hv t x y)
-  hf hf' f_bound hfs hg hg' g_bound (λ t ht, trivial) ha
+dist_le_of_approx_trajectories_ODE_of_mem_set (λ t x y hx hy, hv t x y) hf hf' f_bound hfs
+  hg hg' g_bound (λ t ht, trivial) ha
 
-/-- Grönwall's inequality: if `f` and `g` are two solutions of the same ODE,
-then the distance between them can't grow faster than exponentially. -/
+/-- If `f` and `g` are two exact solutions of the same ODE, then the distance between them
+can't grow faster than exponentially. This is a simple corollary of Grönwall's inequality, and some
+people call this Grönwall's inequality too.
+
+This version assumes all inequalities to be true in some time-dependent set `s t`,
+and assumes that the solutions never leave this set. -/
 theorem dist_le_of_trajectories_ODE_of_mem_set {v : ℝ → E → E} {s : ℝ → set E}
-  {K : ℝ} (hK : 0 < K) (hv : ∀ t, ∀ x y ∈ s t, dist (v t x) (v t y) ≤ K * dist x y)
+  {K : ℝ} (hv : ∀ t, ∀ x y ∈ s t, dist (v t x) (v t y) ≤ K * dist x y)
   {f g : ℝ → E} {a b : ℝ} {δ : ℝ}
   (hf : continuous_on f (Icc a b))
   (hf' : ∀ t ∈ Ico a b, has_deriv_within_at f (v t (f t)) (Ioi t) t)
@@ -140,15 +222,18 @@ begin
   have g_bound : ∀ t ∈ Ico a b, dist (v t (g t)) (v t (g t)) ≤ 0,
     by { intros, rw [dist_self] },
   assume t ht,
-  have := dist_le_of_approx_trajectories_ODE_of_mem_set hK hv hf hf' f_bound hfs hg hg' g_bound
+  have := dist_le_of_approx_trajectories_ODE_of_mem_set hv hf hf' f_bound hfs hg hg' g_bound
     hgs ha t ht,
   rwa [zero_add, gronwall_bound_ε0] at this,
 end
 
-/-- Grönwall's inequality: if `f` and `g` are two solutions of the same ODE,
-then the distance between them can't grow faster than exponentially. -/
+/-- If `f` and `g` are two exact solutions of the same ODE, then the distance between them
+can't grow faster than exponentially. This is a simple corollary of Grönwall's inequality, and some
+people call this Grönwall's inequality too.
+
+This version assumes all inequalities to be true in the whole space. -/
 theorem dist_le_of_trajectories_ODE {v : ℝ → E → E}
-  {K : nnreal} (hK : 0 < K) (hv : ∀ t, lipschitz_with K (v t))
+  {K : nnreal} (hv : ∀ t, lipschitz_with K (v t))
   {f g : ℝ → E} {a b : ℝ} {δ : ℝ}
   (hf : continuous_on f (Icc a b))
   (hf' : ∀ t ∈ Ico a b, has_deriv_within_at f (v t (f t)) (Ioi t) t)
@@ -157,14 +242,14 @@ theorem dist_le_of_trajectories_ODE {v : ℝ → E → E}
   (ha : dist (f a) (g a) ≤ δ) :
   ∀ t ∈ Icc a b, dist (f t) (g t) ≤ δ * exp (K * (t - a)) :=
 have hfs : ∀ t ∈ Ico a b, f t ∈ (@univ E), from λ t ht, trivial,
-dist_le_of_trajectories_ODE_of_mem_set hK (λ t x y hx hy, hv t x y)
-  hf hf' hfs hg hg' (λ t ht, trivial) ha
+dist_le_of_trajectories_ODE_of_mem_set (λ t x y hx hy, hv t x y) hf hf' hfs
+  hg hg' (λ t ht, trivial) ha
 
 /-- There exists only one solution of an ODE \(\dot x=v(t, x)\) in a set `s ⊆ ℝ × E` with
 a given initial value provided that RHS is Lipschits continuous in `x` within `s`,
 and we consider only solutions included in `s`. -/
 theorem ODE_solution_unique_of_mem_set {v : ℝ → E → E} {s : ℝ → set E}
-  {K : ℝ} (hK : 0 < K) (hv : ∀ t, ∀ x y ∈ s t, dist (v t x) (v t y) ≤ K * dist x y)
+  {K : ℝ} (hv : ∀ t, ∀ x y ∈ s t, dist (v t x) (v t y) ≤ K * dist x y)
   {f g : ℝ → E} {a b : ℝ}
   (hf : continuous_on f (Icc a b))
   (hf' : ∀ t ∈ Ico a b, has_deriv_within_at f (v t (f t)) (Ioi t) t)
@@ -175,18 +260,16 @@ theorem ODE_solution_unique_of_mem_set {v : ℝ → E → E} {s : ℝ → set E}
   (ha : f a = g a) :
   ∀ t ∈ Icc a b, f t = g t :=
 begin
-  have ha : dist (f a) (g a) ≤ 0,
-    from dist_le_zero.2 ha,
   assume t ht,
-  have := dist_le_of_trajectories_ODE_of_mem_set hK hv hf hf' hfs hg hg' hgs ha t ht,
-  rw [zero_mul] at this,
-  exact dist_le_zero.1 this
+  have := dist_le_of_trajectories_ODE_of_mem_set hv hf hf' hfs hg hg' hgs
+    (dist_le_zero.2 ha) t ht,
+  rwa [zero_mul, dist_le_zero] at this
 end
 
 /-- There exists only one solution of an ODE \(\dot x=v(t, x)\) with
 a given initial value provided that RHS is Lipschits continuous in `x`. -/
 theorem ODE_solution_unique {v : ℝ → E → E}
-  {K : nnreal} (hK : 0 < K) (hv : ∀ t, lipschitz_with K (v t))
+  {K : nnreal} (hv : ∀ t, lipschitz_with K (v t))
   {f g : ℝ → E} {a b : ℝ}
   (hf : continuous_on f (Icc a b))
   (hf' : ∀ t ∈ Ico a b, has_deriv_within_at f (v t (f t)) (Ioi t) t)
@@ -195,5 +278,5 @@ theorem ODE_solution_unique {v : ℝ → E → E}
   (ha : f a = g a) :
   ∀ t ∈ Icc a b, f t = g t :=
 have hfs : ∀ t ∈ Ico a b, f t ∈ (@univ E), from λ t ht, trivial,
-ODE_solution_unique_of_mem_set hK (λ t x y hx hy, hv t x y)
+ODE_solution_unique_of_mem_set (λ t x y hx hy, hv t x y)
   hf hf' hfs hg hg' (λ t ht, trivial) ha

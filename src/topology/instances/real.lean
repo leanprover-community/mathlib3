@@ -107,8 +107,8 @@ uniform_add_group.mk' rat.uniform_continuous_add rat.uniform_continuous_neg
 instance : topological_add_group ℝ := by apply_instance
 instance : topological_add_group ℚ := by apply_instance
 
-instance : orderable_topology ℚ :=
-induced_orderable_topology _ (λ x y, rat.cast_lt) (@exists_rat_btwn _ _ _)
+instance : order_topology ℚ :=
+induced_order_topology _ (λ x y, rat.cast_lt) (@exists_rat_btwn _ _ _)
 
 lemma real.is_topological_basis_Ioo_rat :
   @is_topological_basis ℝ _ (⋃(a b : ℚ) (h : a < b), {Ioo a b}) :=

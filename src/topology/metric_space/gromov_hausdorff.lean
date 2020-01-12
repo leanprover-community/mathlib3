@@ -369,8 +369,8 @@ end
 
 -- without the next two lines, `{ exact closed_of_compact (range Φ) hΦ }` in the next
 -- proof is very slow, as the `t2_space` instance is very hard to find
-local attribute [instance, priority 10] orderable_topology.t2_space
-local attribute [instance, priority 10] ordered_topology.to_t2_space
+local attribute [instance, priority 10] order_topology.t2_space
+local attribute [instance, priority 10] order_closed_topology.to_t2_space
 
 /-- The Gromov-Hausdorff distance defines a genuine distance on the Gromov-Hausdorff space. -/
 instance GH_space_metric_space : metric_space GH_space :=

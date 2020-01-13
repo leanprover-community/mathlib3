@@ -306,6 +306,10 @@ end prio
 protected lemma of_endo_map_action (α : L →ₗ⁅R⁆ module.End R M) (x : L) (m : M) :
   @linear_action.act R _ _ _ _ _ _ _ (linear_action.of_endo_map R L M α) x m = α x m := rfl
 
+/--
+A Lie morphism from a Lie algebra to the endomorphism algebra of a module yields
+a Lie module structure.
+-/
 def lie_module.of_endo_morphism (α : L →ₗ⁅R⁆ module.End R M) : lie_module R L M := {
   lie_act := by { intros x y m, rw [of_endo_map_action, lie_algebra.morphism_bracket,
                                     lie_algebra.endo_algebra_bracket], refl, },

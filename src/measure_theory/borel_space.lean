@@ -210,7 +210,7 @@ lemma measurable.neg
 
 lemma measurable_neg_iff
   [add_group α] [topological_add_group α] [measurable_space β] (f : β → α) :
-  measurable (-f) ↔ measurable f :=
+  measurable (λa, -f a) ↔ measurable f :=
 iff.intro
 begin
   assume h,

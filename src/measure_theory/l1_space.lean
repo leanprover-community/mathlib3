@@ -113,6 +113,10 @@ begin
     ... < ⊤ : hg
 end
 
+lemma integrable_of_le {f : α → β} {g : α → γ} (h : ∀a, ∥f a∥ ≤ ∥g a∥) (hg : integrable g) :
+  integrable f :=
+integrable_of_le_ae (by filter_upwards [] h) hg
+
 lemma lintegral_nnnorm_eq_lintegral_edist (f : α → β) :
   (∫⁻ a, nnnorm (f a)) = ∫⁻ a, edist (f a) 0 :=
 by { congr, funext, rw edist_eq_coe_nnnorm }
@@ -149,38 +153,37 @@ lemma lintegral_nnnorm_add {f : α → β} {g : α → γ} (hf : measurable f) (
   (∫⁻ a, nnnorm (f a) + nnnorm (g a)) = (∫⁻ a, nnnorm (f a)) + ∫⁻ a, nnnorm (g a) :=
 lintegral_add (measurable.coe_nnnorm hf) (measurable.coe_nnnorm hg)
 
-lemma integrable.add {f g : α → β} (hfm : measurable f) (hgm : measurable g) :
-  integrable f → integrable g → integrable (f + g) :=
-assume hfi hgi,
-  calc
-    (∫⁻ (a : α), ↑(nnnorm ((f + g) a))) ≤ ∫⁻ (a : α), ↑(nnnorm (f a)) + ↑(nnnorm (g a)) :
-      lintegral_le_lintegral _ _
-        (assume a, by { simp only [coe_add.symm, coe_le_coe], exact nnnorm_add_le _ _ })
-    ... = _ :
-      lintegral_nnnorm_add hfm hgm
-    ... < ⊤ : add_lt_top.2 ⟨hfi, hgi⟩
+lemma integrable.add {f g : α → β} (hfm : measurable f) (hfi : integrable f) (hgm : measurable g)
+  (hgi : integrable g): integrable (λa, f a + g a) :=
+calc
+  (∫⁻ (a : α), ↑(nnnorm ((f + g) a))) ≤ ∫⁻ (a : α), ↑(nnnorm (f a)) + ↑(nnnorm (g a)) :
+    lintegral_le_lintegral _ _
+      (assume a, by { simp only [coe_add.symm, coe_le_coe], exact nnnorm_add_le _ _ })
+  ... = _ :
+    lintegral_nnnorm_add hfm hgm
+  ... < ⊤ : add_lt_top.2 ⟨hfi, hgi⟩
 
 lemma lintegral_nnnorm_neg {f : α → β} :
   (∫⁻ (a : α), ↑(nnnorm ((-f) a))) = ∫⁻ (a : α), ↑(nnnorm ((f) a)) :=
 lintegral_congr_ae $ by { filter_upwards [], simp }
 
-lemma integrable.neg {f : α → β} : integrable f → integrable (-f) :=
+lemma integrable.neg {f : α → β} : integrable f → integrable (λa, -f a) :=
 assume hfi, calc _ = _ : lintegral_nnnorm_neg
                  ... < ⊤ : hfi
 
-lemma integrable_neg_iff (f : α → β) : integrable (-f) ↔ integrable f :=
+lemma integrable_neg_iff (f : α → β) : integrable (λa, -f a) ↔ integrable f :=
 begin
   split,
   { assume h,
     have := integrable.neg h,
-    rwa _root_.neg_neg at this },
+    simp only [_root_.neg_neg] at this,
+    assumption },
   exact integrable.neg
 end
 
-lemma integrable.sub {f g : α → β} (hf : measurable f) (hg : measurable g) :
-  integrable f → integrable g → integrable (f - g) :=
-λ hfi hgi,
-  by { rw sub_eq_add_neg, refine integrable.add hf (measurable.neg hg) hfi (integrable.neg hgi) }
+lemma integrable.sub {f g : α → β} (hfm : measurable f) (hfi : integrable f) (hgm : measurable g)
+  (hgi : integrable g) : integrable (λa, f a - g a) :=
+by { simp only [sub_eq_add_neg], exact hfi.add hfm (measurable.neg hgm) (integrable.neg hgi) }
 
 lemma integrable.norm {f : α → β} (hfi : integrable f) : integrable (λa, ∥f a∥) :=
 have eq : (λa, (nnnorm ∥f a∥ : ennreal)) = λa, (nnnorm (f a) : ennreal),
@@ -344,7 +347,7 @@ end pos_part
 section normed_space
 variables {𝕜 : Type*} [normed_field 𝕜] [normed_space 𝕜 β]
 
-lemma integrable.smul (c : 𝕜) {f : α → β} : integrable f → integrable (c • f) :=
+lemma integrable.smul (c : 𝕜) {f : α → β} : integrable f → integrable (λa, c • f a) :=
 begin
   simp only [integrable], assume hfi,
   calc
@@ -365,12 +368,13 @@ begin
     end
 end
 
-lemma integrable_smul_iff {c : 𝕜} (hc : c ≠ 0) (f : α → β) : integrable (c • f) ↔ integrable f :=
+lemma integrable_smul_iff {c : 𝕜} (hc : c ≠ 0) (f : α → β) : integrable (λa, c • f a) ↔ integrable f :=
 begin
   split,
   { assume h,
     have := integrable.smul c⁻¹ h,
-    rwa [smul_smul, inv_mul_cancel hc, one_smul] at this },
+    simp only [smul_smul, inv_mul_cancel hc, one_smul] at this,
+    assumption },
   exact integrable.smul _
 end
 
@@ -398,15 +402,21 @@ lemma integrable_zero : integrable (0 : α →ₘ β) := mem_ball_self coe_lt_to
 lemma integrable.add : ∀ {f g : α →ₘ β}, integrable f → integrable g → integrable (f + g) :=
 begin
   rintros ⟨f, hf⟩ ⟨g, hg⟩,
-  have := measure_theory.integrable.add hf hg,
-  simpa [mem_ball, zero_def]
+  simp only [mem_ball, zero_def, mk_add_mk, integrable_mk, quot_mk_eq_mk],
+  assume hfi hgi,
+  exact hfi.add hf hg hgi
 end
 
 lemma integrable.neg : ∀ {f : α →ₘ β}, integrable f → integrable (-f) :=
 by { rintros ⟨f, hf⟩, have := measure_theory.integrable.neg, simpa }
 
 lemma integrable.sub : ∀ {f g : α →ₘ β}, integrable f → integrable g → integrable (f - g) :=
-by { rintros ⟨f, hf⟩ ⟨g, hg⟩, have := measure_theory.integrable.sub hf hg, simpa [mem_ball, zero_def] }
+begin
+  rintros ⟨f, hfm⟩ ⟨g, hgm⟩,
+  simp only [mem_ball, zero_def, mk_sub_mk, integrable_mk, quot_mk_eq_mk],
+  assume hfi hgi,
+  exact hfi.sub hfm hgm hgi
+end
 
 protected lemma is_add_subgroup : is_add_subgroup (ball (0 : α →ₘ β) ⊤) :=
 { zero_mem := integrable_zero,
@@ -515,18 +525,18 @@ lemma of_fun_eq_of_fun (f g : α → β) (hfm hfi hgm hgi) :
   of_fun f hfm hfi = of_fun g hgm hgi ↔ ∀ₘ a, f a = g a :=
 by { rw ← l1.eq_iff, simp only [of_fun_eq_mk, mk_eq_mk] }
 
-lemma of_fun_zero : of_fun (0 : α → β) (@measurable_const _ _ _ _ (0:β)) integrable_zero = 0 := rfl
+lemma of_fun_zero : of_fun (λa:α, (0:β)) (@measurable_const _ _ _ _ (0:β)) integrable_zero = 0 := rfl
 
 lemma of_fun_add (f g : α → β) (hfm hfi hgm hgi) :
-  of_fun (f + g) (measurable.add hfm hgm) (integrable.add hfm hgm hfi hgi)
+  of_fun (λa, f a + g a) (measurable.add hfm hgm) (integrable.add hfm hfi hgm hgi)
     = of_fun f hfm hfi + of_fun g hgm hgi :=
 rfl
 
 lemma of_fun_neg (f : α → β) (hfm hfi) :
-  of_fun (-f) (measurable.neg hfm) (integrable.neg hfi) = - of_fun f hfm hfi := rfl
+  of_fun (λa, - f a) (measurable.neg hfm) (integrable.neg hfi) = - of_fun f hfm hfi := rfl
 
 lemma of_fun_sub (f g : α → β) (hfm hfi hgm hgi) :
-  of_fun (f - g) (measurable.sub hfm hgm) (integrable.sub hfm hgm hfi hgi)
+  of_fun (λa, f a - g a) (measurable.sub hfm hgm) (integrable.sub hfm hfi hgm hgi)
     = of_fun f hfm hfi - of_fun g hgm hgi :=
 rfl
 
@@ -540,7 +550,7 @@ by { rw [norm_of_fun, lintegral_norm_eq_lintegral_edist] }
 variables {𝕜 : Type*} [normed_field 𝕜] [normed_space 𝕜 β]
 
 lemma of_fun_smul (f : α → β) (hfm hfi) (k : 𝕜) :
-  of_fun (k • f) (measurable.smul _ hfm) (integrable.smul _ hfi) = k • of_fun f hfm hfi := rfl
+  of_fun (λa, k • f a) (measurable.smul _ hfm) (integrable.smul _ hfi) = k • of_fun f hfm hfi := rfl
 
 end of_fun
 

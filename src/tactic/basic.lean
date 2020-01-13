@@ -4,6 +4,9 @@ import
   tactic.converter.interactive
   tactic.core
   tactic.ext
+  tactic.elide
+  tactic.explode
+  tactic.find
   tactic.generalize_proofs
   tactic.interactive
   tactic.suggest

@@ -2,14 +2,43 @@
 
 In addition to the [tactics found in the core library](https://leanprover.github.io/reference/tactics.html),
 mathlib provides a number of specific interactive tactics.
-Here we document the mostly commonly used ones, as well as some underdocumented tactics from core.
+Here we document the most commonly used ones, as well as [some underdocumented tactics from core](#lean-core-library-tactics).
 
-## cc (congruence closure)
+To import the "basic" subset of mathlib tactics, put the following at the top of your Lean file:
+```lean
+import tactic.basic
+```
+The basic tactics are listed in [this section](#basic-mathlib-tactics).
+
+All other mathlib tactics are listed in [this section](#other-mathlib-tactics). To import all mathlib tactics, use the following instead:
+```lean
+import tactic
+```
+
+## Lean core library tactics
+
+All of the tactics in this section are automatically imported by Lean by default.
+
+### simp
+
+[[source]](https://github.com/leanprover/lean/blob/master/library/init/meta/interactive.lean) [Lean core library tactic, auto-imported by default]
+
+An introduction to `simp` can be found at [docs/extras/simp.md](extras/simp.md). See also the following related mathlib tactics:
+- [`simpa`](#simpa)
+- [`squeeze_simp` / `squeeze_simpa`](#squeeze_simp--squeeze_simpa)
+- The [`simps`](#simps) user attribute
+- [`field_simp`](#field_simp)
+- The [`mk_simp_attribute`](commands.md#mk_simp_attribute) user command
+
+### cc (congruence closure)
+
+[[source]](https://github.com/leanprover/lean/blob/master/library/init/meta/smt/congruence_closure.lean) [Lean core library tactic, auto-imported by default]
 
 The congruence closure tactic `cc` tries to solve the goal by chaining
-equalities from context and applying congruence (ie if `a = b` then `f a = f b`).
-It is a finishing tactic, ie is meant to close
+equalities from context and applying congruence (i.e. if `a = b` then `f a = f b`).
+It is a finishing tactic, i.e. is meant to close
 the current goal, not to make some inconclusive progress.
+
 A mostly trivial example would be:
 
 ```lean
@@ -42,59 +71,68 @@ nat.zero` for any `a`.
 
 * The congruence lemmas for dependent type theory as used in Lean are described in [Congruence closure in intensional type theory](https://leanprover.github.io/papers/congr.pdf) (de Moura, Selsam IJCAR 2016).
 
+### conv
 
+[[source]](https://github.com/leanprover/lean/blob/master/library/init/meta/converter/interactive.lean) [Lean core library tactic, auto-imported by default]
 
-## tfae
+An introduction to the `conv` tactic can be found in [docs/extras/conv.md](extras/conv.md).
 
-The `tfae` tactic suite is a set of tactics that help with proving that certain
-propositions are equivalent.
-In `data/list/basic.lean` there is a section devoted to propositions of the
-form
+Inside `conv` blocks mathlib currently
+additionally provides
+   * `erw`,
+   * `ring` and `ring2`,
+   * `norm_num`, and
+   * `conv` (within another `conv`).
+Using `conv` inside a `conv` block allows the user to return to the previous
+state of the outer `conv` block after it is finished. Thus you can continue
+editing an expression without having to start a new `conv` block and re-scoping
+everything. For example:
+
 ```lean
-tfae [p1, p2, ..., pn]
+example (a b c d : ℕ) (h₁ : b = c) (h₂ : a + c = a + d) : a + b = a + d :=
+by conv {
+  to_lhs,
+  conv {
+    congr, skip,
+    rw h₁,
+  },
+  rw h₂,
+}
 ```
-where `p1`, `p2`, through, `pn` are terms of type `Prop`.
-This proposition asserts that all the `pi` are pairwise equivalent.
-There are results that allow to extract the equivalence
-of two propositions `pi` and `pj`.
 
-To prove a goal of the form `tfae [p1, p2, ..., pn]`, there are two
-tactics.  The first tactic is `tfae_have`.  As an argument it takes an
-expression of the form `i arrow j`, where `i` and `j` are two positive
-natural numbers, and `arrow` is an arrow such as `→`, `->`, `←`, `<-`,
-`↔`, or `<->`.  The tactic `tfae_have : i arrow j` sets up a subgoal in
-which the user has to prove the equivalence (or implication) of `pi` and `pj`.
+Without `conv` the above example would need to be proved using two successive
+`conv` blocks each beginning with `to_lhs`.
 
-The remaining tactic, `tfae_finish`, is a finishing tactic. It
-collects all implications and equivalences from the local context and
-computes their transitive closure to close the
-main goal.
-
-`tfae_have` and `tfae_finish` can be used together in a proof as
-follows:
+Also, as a shorthand `conv_lhs` and `conv_rhs` are provided, so that
 
 ```lean
-example (a b c d : Prop) : tfae [a,b,c,d] :=
+example : 0 + 0 = 0 :=
 begin
-  tfae_have : 3 → 1,
-  { /- prove c → a -/ },
-  tfae_have : 2 → 3,
-  { /- prove b → c -/ },
-  tfae_have : 2 ← 1,
-  { /- prove a → b -/ },
-  tfae_have : 4 ↔ 2,
-  { /- prove d ↔ b -/ },
-    -- a b c d : Prop,
-    -- tfae_3_to_1 : c → a,
-    -- tfae_2_to_3 : b → c,
-    -- tfae_1_to_2 : a → b,
-    -- tfae_4_iff_2 : d ↔ b
-    -- ⊢ tfae [a, b, c, d]
-  tfae_finish,
+  conv_lhs { simp }
 end
 ```
 
-## rcases
+just means
+
+```lean
+example : 0 + 0 = 0 :=
+begin
+  conv { to_lhs, simp }
+end
+```
+
+and likewise for `to_rhs`.
+
+## basic mathlib tactics
+
+You can import all of the tactics in this section by including the following at the top of a Lean file:
+```lean
+import tactic.basic
+```
+
+### rcases
+
+[[source]](../src/tactic/rcases.lean) [mathlib tactic: `import tactic.rcases` or `import tactic.basic`]
 
 The `rcases` tactic is the same as `cases`, but with more flexibility in the
 `with` pattern syntax to allow for recursive case splitting. The pattern syntax
@@ -116,7 +154,7 @@ arguments, such as `⟨a, b, c⟩` for splitting on `∃ x, ∃ y, p x`, then it
 will be treated as `⟨a, ⟨b, c⟩⟩`, splitting the last parameter as
 necessary.
 
-`rcases` also has special support for quotient types: quotient induction into Prop works like
+`rcases` also has special support for quotient types: quotient induction into `Prop` works like
 matching on the constructor `quot.mk`.
 
 `rcases h : e with PAT` will do the same as `rcases e with PAT` with the exception that an assumption
@@ -127,7 +165,9 @@ but rather than accepting a pattern, it does a maximal cases and prints the
 pattern that would produce this case splitting. The default maximum depth is 5,
 but this can be modified with `rcases? e : n`.
 
-## rintro
+### rintro
+
+[[source]](../src/tactic/rcases.lean) [mathlib tactic: `import tactic.rcases` or `import tactic.basic`]
 
 The `rintro` tactic is a combination of the `intros` tactic with `rcases` to
 allow for destructuring patterns while introducing variables. See `rcases` for
@@ -140,7 +180,9 @@ two subgoals, one with variables `a d e` and the other with `b c d e`.
 result. Like `rcases?`, `rintro? : n` allows for modifying the
 depth of splitting; the default is 5.
 
-## obtain
+### obtain
+
+[[source]](../src/tactic/rcases.lean) [mathlib tactic: `import tactic.rcases` or `import tactic.basic`]
 
 The `obtain` tactic is a combination of `have` and `rcases`.
 ```lean
@@ -160,8 +202,9 @@ If `⟨patt⟩` is omitted, `rcases` will try to infer the pattern.
 
 If `type` is omitted, `:= proof` is required.
 
+### simpa
 
-## simpa
+[[source]](../src/tactic/simpa.lean) [mathlib tactic: `import tactic.simpa` or `import tactic.basic`]
 
 This is a "finishing" tactic modification of `simp`. It has two forms.
 
@@ -176,7 +219,9 @@ This is a "finishing" tactic modification of `simp`. It has two forms.
   hypothesis `this` if present in the context, then try to close the goal using
   the `assumption` tactic.
 
-## replace
+### replace
+
+[[source]](../src/tactic/core.lean) [mathlib tactic: `import tactic.core` or `import tactic.basic`]
 
 Acts like `have`, but removes a hypothesis with the same name as
 this one. For example if the state is `h : p ⊢ goal` and `f : p → q`,
@@ -185,7 +230,9 @@ where `have h := f h` would result in the state `h : p, h : q ⊢ goal`.
 This can be used to simulate the `specialize` and `apply at` tactics
 of Coq.
 
-## elide/unelide
+### elide/unelide
+
+[[source]](../src/tactic/elide.lean) [mathlib tactic: `import tactic.elide` or `import tactic.basic`]
 
 The `elide n (at ...)` tactic hides all subterms of the target goal or hypotheses
 beyond depth `n` by replacing them with `hidden`, which is a variant
@@ -196,78 +243,9 @@ through the abbreviation, but if you want to unhide the term you can use
 The `unelide (at ...)` tactic removes all `hidden` subterms in the target
 types (usually added by `elide`).
 
-## finish/clarify/safe
+### field_simp
 
-These tactics do straightforward things: they call the simplifier, split conjunctive assumptions,
-eliminate existential quantifiers on the left, and look for contradictions. They rely on ematching
-and congruence closure to try to finish off a goal at the end.
-
-The procedures *do* split on disjunctions and recreate the smt state for each terminal call, so
-they are only meant to be used on small, straightforward problems.
-
-* finish:  solves the goal or fails
-* clarify: makes as much progress as possible while not leaving more than one goal
-* safe:    splits freely, finishes off whatever subgoals it can, and leaves the rest
-
-All accept an optional list of simplifier rules, typically definitions that should be expanded.
-(The equations and identities should not refer to the local context.) All also accept an optional list of `ematch` lemmas, which must be preceded by `using`.
-
-## abel
-
-Evaluate expressions in the language of *additive*, commutative monoids and groups.
-It attempts to prove the goal outright if there is no `at`
-specifier and the target is an equality, but if this
-fails, it falls back to rewriting all monoid expressions into a normal form.
-If there is an `at` specifier, it rewrites the given target into a normal form.
-```lean
-example {α : Type*} {a b : α} [add_comm_monoid α] : a + (b + a) = a + a + b := by abel
-example {α : Type*} {a b : α} [add_comm_group α] : (a + b) - ((b + a) + a) = -a := by abel
-example {α : Type*} {a b : α} [add_comm_group α] (hyp : a + a - a = b - b) : a = 0 :=
-by { abel at hyp, exact hyp }
-```
-
-## norm_num
-
-Normalises numerical expressions. It supports the operations `+` `-` `*` `/` `^` and `%` over numerical types such as `ℕ`, `ℤ`, `ℚ`, `ℝ`, `ℂ`, and can prove goals of the form `A = B`, `A ≠ B`, `A < B` and `A ≤ B`, where `A` and `B` are
-numerical expressions. It also has a relatively simple primality prover.
-```lean
-import data.real.basic
-
-example : (2 : ℝ) + 2 = 4 := by norm_num
-example : (12345.2 : ℝ) ≠ 12345.3 := by norm_num
-example : (73 : ℝ) < 789/2 := by norm_num
-example : 123456789 + 987654321 = 1111111110 := by norm_num
-example (R : Type*) [ring R] : (2 : R) + 2 = 4 := by norm_num
-example (F : Type*) [linear_ordered_field F] : (2 : F) + 2 < 5 := by norm_num
-example : nat.prime (2^13 - 1) := by norm_num
-example : ¬ nat.prime (2^11 - 1) := by norm_num
-example (x : ℝ) (h : x = 123 + 456) : x = 579 := by norm_num at h; assumption
-```
-
-## ring
-
-Evaluate expressions in the language of *commutative* (semi)rings.
-Based on [Proving Equalities in a Commutative Ring Done Right in Coq](http://www.cs.ru.nl/~freek/courses/tt-2014/read/10.1.1.61.3041.pdf) by Benjamin Grégoire and Assia Mahboubi.
-
-The variant `ring!` uses a more aggessive reducibility setting to determine equality of atoms.
-
-## ring_exp
-
-Evaluate expressions in *commutative* (semi)rings, allowing for variables in the exponent.
-
-This tactic extends `ring`: it should solve every goal that `ring` can solve.
-Additionally, it knows how to evaluate expressions with complicated exponents
-(where `ring` only understands constant exponents).
-The variants `ring_exp!` and `ring_exp_eq!` use a more aggessive reducibility setting to determine equality of atoms.
-
-For example:
-```lean
-example (n : ℕ) (m : ℤ) : 2^(n+1) * m = 2 * 2^n * m := by ring_exp
-example (a b : ℤ) (n : ℕ) : (a + b)^(n + 2) = (a^2 + b^2 + a * b + b * a) * (a + b)^n := by ring_exp
-example (x y : ℕ) : x + id y = y + id x := by ring_exp!
-```
-
-## field_simp
+[[source]](../src/tactic/interactive.lean) [mathlib tactic: `import tactic.interactive` or `import tactic.basic`]
 
 The goal of `field_simp` is to reduce an expression in a field to an expression of the form `n / d`
 where neither `n` nor `d` contains any division symbol, just using the simplifier (with a carefully
@@ -310,7 +288,9 @@ begin
 end
 ```
 
-## congr'
+### congr'
+
+[[source]](../src/tactic/interactive.lean) [mathlib tactic: `import tactic.interactive` or `import tactic.basic`]
 
 Same as the `congr` tactic, but takes an optional argument which gives
 the depth of recursive applications. This is useful when `congr`
@@ -319,7 +299,9 @@ is too aggressive in breaking down the goal. For example, given
 and `⊢ y = x`, while `congr' 2` produces the intended `⊢ x + y = y + x`.
 If, at any point, a subgoal matches a hypothesis then the subgoal will be closed.
 
-## convert
+### convert
+
+[[source]](../src/tactic/interactive.lean) [mathlib tactic: `import tactic.interactive` or `import tactic.basic`]
 
 The `exact e` and `refine e` tactics require a term `e` whose type is
 definitionally equal to the goal. `convert e` is similar to `refine
@@ -350,11 +332,15 @@ the goal equals the type of `e`, then simplifying it using
 depth of matching (like `congr' n`). In the example, `convert e using
 1` would produce a new goal `⊢ n + n + 1 = 2 * n + 1`.
 
-## unfold_coes
+### unfold_coes
+
+[[source]](../src/tactic/interactive.lean) [mathlib tactic: `import tactic.interactive` or `import tactic.basic`]
 
 Unfold coercion-related definitions
 
-## Instance cache tactics
+### Instance cache tactics
+
+[[source]](../src/tactic/cache.lean) [mathlib tactic: `import tactic.cache` or `import tactic.basic`]
 
 For performance reasons, Lean does not automatically update its database
 of class instances during a proof. The group of tactics described below
@@ -365,6 +351,7 @@ can find a registered instance of `inhabited α`. Because the database of
 such instance is not automatically updated during a proof, the following
 attempt won't work (Lean will not pick up the instance from the local
 context):
+
 ```lean
 def my_id (α : Type) : α → α :=
 begin
@@ -373,7 +360,8 @@ begin
   exact default α, -- Won't work!
 end
 ```
-However, it will work, producing the identity function, if one replaces have by its variant `haveI` described below.
+
+However, it will work, producing the identity function, if one replaces `have` by its variant `haveI` described below.
 
 * `resetI`: Reset the instance cache. This allows any instances
   currently in the context to be used in typeclass inference.
@@ -388,12 +376,14 @@ However, it will work, producing the identity function, if one replaces have by 
   to the context so that they can be used in typeclass inference. The syntax
   `haveI := <proof>` and `haveI : t := <proof>` is supported, but
   `haveI : t, from _` and `haveI : t, { <proof> }` are not; in these cases
-  use `have : t, { <proof> }, resetI` directly).
+  use `have : t, { <proof> }, resetI` directly.
 
 * `exactI`: `resetI` followed by `exact`. Like `exact`, but uses all
   variables in the context for typeclass inference.
 
-## suggest
+### suggest
+
+[[source]](../src/tactic/suggest.lean) [mathlib tactic: `import tactic.suggest` or `import tactic.basic`]
 
 `suggest` lists possible usages of the `refine` tactic and leaves the tactic state unchanged.
 It is intended as a complement of the search function in your editor, the `#find` tactic, and `library_search`.
@@ -402,7 +392,7 @@ It is intended as a complement of the search function in your editor, the `#find
 
 For performance reasons `suggest` uses monadic lazy lists (`mllist`). This means that `suggest` might miss some results if `num` is not large enough. However, because `suggest` uses monadic lazy lists, smaller values of `num` run faster than larger values.
 
-An example of `suggest` in action,
+As an example of `suggest` in action,
 
 ```lean
 example (n : nat) : n < n + 1 :=
@@ -421,13 +411,16 @@ refine lt_of_not_ge _
 ...
 ```
 
-## library_search
+### library_search
+
+[[source]](../src/tactic/suggest.lean) [mathlib tactic: `import tactic.suggest` or `import tactic.basic`]
 
 `library_search` is a tactic to identify existing lemmas in the library. It tries to close the
 current goal by applying a lemma from the library, then discharging any new goals using
 `solve_by_elim`.
 
 Typical usage is:
+
 ```
 example (n m k : ℕ) : n * (m - k) = n * m - n * k :=
 by library_search -- exact nat.mul_sub_left_distrib n m k
@@ -436,13 +429,18 @@ by library_search -- exact nat.mul_sub_left_distrib n m k
 `library_search` prints a trace message showing the proof it found, shown above as a comment.
 Typically you will then copy and paste this proof, replacing the call to `library_search`.
 
+### solve_by_elim
 
-## solve_by_elim
+[[source]](../src/tactic/solve_by_elim.lean) [mathlib tactic: `import tactic.solve_by_elim` or `import tactic.basic`]
 
 The tactic `solve_by_elim` repeatedly applies assumptions to the current goal, and succeeds if this eventually discharges the main goal.
+
+Calling
+
 ```lean
 solve_by_elim { discharger := `[cc] }
 ```
+
 also attempts to discharge the goal using congruence closure before each round of applying assumptions.
 
 `solve_by_elim*` tries to solve all goals together, using backtracking if a solution for one goal
@@ -457,129 +455,134 @@ attributes).
 unless they are explicitly included.
 * `solve_by_elim [-id_1, ... -id_n]` uses the default assumptions, removing the specified ones.
 
-## ext1 / ext
+### ext1 / ext
 
- * `ext1 id` selects and apply one extensionality lemma (with
-    attribute `ext`), using `id`, if provided, to name a
-    local constant introduced by the lemma. If `id` is omitted, the
-    local constant is named automatically, as per `intro`.
+[[source]](../src/tactic/ext.lean) [mathlib tactic: `import tactic.ext` or `import tactic.basic`]
 
- * `ext` applies as many extensionality lemmas as possible;
- * `ext ids`, with `ids` a list of identifiers, finds extentionality
-    and applies them until it runs out of identifiers in `ids` to name
-    the local constants.
+* `ext1 id` selects and apply one extensionality lemma (with
+  attribute `ext`), using `id`, if provided, to name a
+  local constant introduced by the lemma. If `id` is omitted, the
+  local constant is named automatically, as per `intro`.
+* `ext` applies as many extensionality lemmas as possible;
+* `ext ids`, with `ids` a list of identifiers, finds extentionality
+  and applies them until it runs out of identifiers in `ids` to name
+  the local constants.
 
 When trying to prove:
 
-  ```lean
-  α β : Type,
-  f g : α → set β
-  ⊢ f = g
-  ```
+```lean
+α β : Type,
+f g : α → set β
+⊢ f = g
+```
 
 applying `ext x y` yields:
 
-  ```lean
-  α β : Type,
-  f g : α → set β,
-  x : α,
-  y : β
-  ⊢ y ∈ f x ↔ y ∈ g x
-  ```
+```lean
+α β : Type,
+f g : α → set β,
+x : α,
+y : β
+⊢ y ∈ f x ↔ y ∈ g x
+```
 
 by applying functional extensionality and set extensionality.
 
 A maximum depth can be provided with `ext x y z : 3`.
 
-## The `ext` attribute
+### The `ext` attribute
 
- Tag lemmas of the form:
+[[source]](../src/tactic/ext.lean) [mathlib tactic: `import tactic.ext` or `import tactic.basic`]
 
- ```lean
- @[ext]
- lemma my_collection.ext (a b : my_collection)
-   (h : ∀ x, a.lookup x = b.lookup y) :
-   a = b := ...
- ```
+Tag lemmas of the form:
 
- The attribute indexes extensionality lemma using the type of the
- objects (i.e. `my_collection`) which it gets from the statement of
- the lemma.  In some cases, the same lemma can be used to state the
- extensionality of multiple types that are definitionally equivalent.
+```lean
+@[ext]
+lemma my_collection.ext (a b : my_collection)
+  (h : ∀ x, a.lookup x = b.lookup y) :
+  a = b := ...
+```
 
- ```lean
- attribute [ext [(→),thunk,stream]] funext
- ```
+The attribute indexes extensionality lemma using the type of the
+objects (i.e. `my_collection`) which it gets from the statement of
+the lemma.  In some cases, the same lemma can be used to state the
+extensionality of multiple types that are definitionally equivalent.
 
- Those parameters are cumulative. The following are equivalent:
+```lean
+attribute [ext [(→),thunk,stream]] funext
+```
 
- ```lean
- attribute [ext [(→),thunk]] funext
- attribute [ext [stream]] funext
- ```
+Those parameters are cumulative. The following are equivalent:
 
- and
+```lean
+attribute [ext [(→),thunk]] funext
+attribute [ext [stream]] funext
+```
 
- ```lean
- attribute [ext [(→),thunk,stream]] funext
- ```
+and
 
- One removes type names from the list for one lemma with:
+```lean
+attribute [ext [(→),thunk,stream]] funext
+```
 
- ```lean
- attribute [ext [-stream,-thunk]] funext
- ```
+One removes type names from the list for one lemma with:
 
- Also, the following:
+```lean
+attribute [ext [-stream,-thunk]] funext
+```
 
- ```lean
- @[ext]
- lemma my_collection.ext (a b : my_collection)
-   (h : ∀ x, a.lookup x = b.lookup y) :
-   a = b := ...
- ```
+Also, the following:
 
- is equivalent to
+```lean
+@[ext]
+lemma my_collection.ext (a b : my_collection)
+  (h : ∀ x, a.lookup x = b.lookup y) :
+  a = b := ...
+```
 
- ```lean
- @[ext *]
- lemma my_collection.ext (a b : my_collection)
-   (h : ∀ x, a.lookup x = b.lookup y) :
-   a = b := ...
- ```
+is equivalent to
 
- The `*` parameter indicates to simply infer the
- type from the lemma's statement.
+```lean
+@[ext *]
+lemma my_collection.ext (a b : my_collection)
+  (h : ∀ x, a.lookup x = b.lookup y) :
+  a = b := ...
+```
 
- This allows us specify type synonyms along with the type
- that referred to in the lemma statement.
+The `*` parameter indicates to simply infer the
+type from the lemma's statement.
 
- ```lean
- @[ext [*,my_type_synonym]]
- lemma my_collection.ext (a b : my_collection)
-   (h : ∀ x, a.lookup x = b.lookup y) :
-   a = b := ...
- ```
+This allows us specify type synonyms along with the type
+that referred to in the lemma statement.
 
- Attribute `ext` can be applied to a structure to generate its extensionality lemma:
+```lean
+@[ext [*,my_type_synonym]]
+lemma my_collection.ext (a b : my_collection)
+  (h : ∀ x, a.lookup x = b.lookup y) :
+  a = b := ...
+```
 
- ```
- @[ext]
- structure foo (α : Type*) :=
- (x y : ℕ)
- (z : {z // z < x})
- (k : α)
- (h : x < y)
- ```
+Attribute `ext` can be applied to a structure to generate its extensionality lemma:
 
- will generate:
+```
+@[ext]
+structure foo (α : Type*) :=
+(x y : ℕ)
+(z : {z // z < x})
+(k : α)
+(h : x < y)
+```
 
- ```
- @[ext] lemma foo.ext : ∀ {α : Type u_1} (x y : foo α), x.x = y.x → x.y = y.y → x.z == y.z → x.k = y.k → x = y
- lemma foo.ext_iff : ∀ {α : Type u_1} (x y : foo α), x = y ↔ x.x = y.x ∧ x.y = y.y ∧ x.z == y.z ∧ x.k = y.k
- ```
+will generate:
 
-## refine_struct
+```
+@[ext] lemma foo.ext : ∀ {α : Type u_1} (x y : foo α), x.x = y.x → x.y = y.y → x.z == y.z → x.k = y.k → x = y
+lemma foo.ext_iff : ∀ {α : Type u_1} (x y : foo α), x = y ↔ x.x = y.x ∧ x.y = y.y ∧ x.z == y.z ∧ x.k = y.k
+```
+
+### refine_struct
+
+[[source]](../src/tactic/interactive.lean) [mathlib tactic: `import tactic.interactive` or `import tactic.basic`]
 
 `refine_struct { .. }` acts like `refine` but works only with structure instance
 literals. It creates a goal for each missing field and tags it with the name of the
@@ -608,14 +611,18 @@ refine_struct ({ .. } : semigroup α),
 { have_field, ... },
 { have_field, ... },
 ```
+
 behaves like
+
 ```lean
 refine_struct ({ .. } : semigroup α),
 { have field := @semigroup.mul, ... },
 { have field := @semigroup.mul_assoc, ... },
 ```
 
-## apply_rules
+### apply_rules
+
+[[source]](../src/tactic/interactive.lean) [mathlib tactic: `import tactic.interactive` or `import tactic.basic`]
 
 `apply_rules hs n` applies the list of lemmas `hs` and `assumption` on the
 first goal and the resulting subgoals, iteratively, at most `n` times.
@@ -642,7 +649,9 @@ by apply_rules [mono_rules]
 by apply_rules mono_rules
 ```
 
-## h_generalize
+### h_generalize
+
+[[source]](../src/tactic/interactive.lean) [mathlib tactic: `import tactic.interactive` or `import tactic.basic`]
 
 `h_generalize Hx : e == x` matches on `cast _ e` in the goal and replaces it with
 `x`. It also adds `Hx : e == x` as an assumption. If `cast _ e` appears multiple
@@ -650,147 +659,15 @@ times (not necessarily with the same proof), they are all replaced by `x`. `cast
 `eq.mp`, `eq.mpr`, `eq.subst`, `eq.substr`, `eq.rec` and `eq.rec_on` are all treated
 as casts.
 
- - `h_generalize Hx : e == x with h` adds hypothesis `α = β` with `e : α, x : β`;
- - `h_generalize Hx : e == x with _` chooses automatically chooses the name of
-    assumption `α = β`;
-  - `h_generalize! Hx : e == x` reverts `Hx`;
-  - when `Hx` is omitted, assumption `Hx : e == x` is not added.
+- `h_generalize Hx : e == x with h` adds hypothesis `α = β` with `e : α, x : β`;
+- `h_generalize Hx : e == x with _` chooses automatically chooses the name of
+  assumption `α = β`;
+- `h_generalize! Hx : e == x` reverts `Hx`;
+- when `Hx` is omitted, assumption `Hx : e == x` is not added.
 
-## pi_instance
+### squeeze_simp / squeeze_simpa
 
-`pi_instance` constructs an instance of `my_class (Π i : I, f i)`
-where we know `Π i, my_class (f i)`. If an order relation is required,
-it defaults to `pi.partial_order`. Any field of the instance that
-`pi_instance` cannot construct is left untouched and generated as a
-new goal.
-
-## assoc_rewrite
-
-`assoc_rewrite [h₀, ← h₁] at ⊢ h₂` behaves like
-`rewrite [h₀, ← h₁] at ⊢ h₂` with the exception that associativity is
-used implicitly to make rewriting possible.
-
-## restate_axiom
-
-`restate_axiom` makes a new copy of a structure field, first definitionally simplifying the type.
-This is useful to remove `auto_param` or `opt_param` from the statement.
-
-As an example, we have:
-```lean
-structure A :=
-(x : ℕ)
-(a' : x = 1 . skip)
-
-example (z : A) : z.x = 1 := by rw A.a' -- rewrite tactic failed, lemma is not an equality nor a iff
-
-restate_axiom A.a'
-example (z : A) : z.x = 1 := by rw A.a
-```
-
-By default, `restate_axiom` names the new lemma by removing a trailing `'`, or otherwise appending
-`_lemma` if there is no trailing `'`. You can also give `restate_axiom` a second argument to
-specify the new name, as in
-```lean
-restate_axiom A.a f
-example (z : A) : z.x = 1 := by rw A.f
-```
-
-## def_replacer
-
-`def_replacer foo` sets up a stub definition `foo : tactic unit`, which can
-effectively be defined and re-defined later, by tagging definitions with `@[foo]`.
-
-- `@[foo] meta def foo_1 : tactic unit := ...` replaces the current definition of `foo`.
-- `@[foo] meta def foo_2 (old : tactic unit) : tactic unit := ...` replaces the current
-  definition of `foo`, and provides access to the previous definition via `old`.
-  (The argument can also be an `option (tactic unit)`, which is provided as `none` if
-  this is the first definition tagged with `@[foo]` since `def_replacer` was invoked.)
-
-`def_replacer foo : α → β → tactic γ` allows the specification of a replacer with
-custom input and output types. In this case all subsequent redefinitions must have the
-same type, or the type `α → β → tactic γ → tactic γ` or
-`α → β → option (tactic γ) → tactic γ` analogously to the previous cases.
-
-## tidy
-
-`tidy` attempts to use a variety of conservative tactics to solve the goals.
-In particular, `tidy` uses the `chain` tactic to repeatedly apply a list of tactics to
-the goal and recursively on new goals, until no tactic makes further progress.
-
-`tidy` can report the tactic script it found using `tidy?`. As an example
-```lean
-example : ∀ x : unit, x = unit.star :=
-begin
-  tidy? -- Prints the trace message: "intros x, exact dec_trivial"
-end
-```
-
-The default list of tactics can be found by looking up the definition of
-[`default_tidy_tactics`](https://github.com/leanprover/mathlib/blob/master/tactic/tidy.lean).
-
-This list can be overriden using `tidy { tactics :=  ... }`. (The list must be a list of
-`tactic string`, so that `tidy?` can report a usable tactic script.)
-
-## linarith
-
-`linarith` attempts to find a contradiction between hypotheses that are linear (in)equalities.
-Equivalently, it can prove a linear inequality by assuming its negation and proving `false`.
-
-In theory, `linarith` should prove any goal that is true in the theory of linear arithmetic over the rationals. While there is some special handling for non-dense orders like `nat` and `int`, this tactic is not complete for these theories and will not prove every true goal.
-
-An example:
-```lean
-example (x y z : ℚ) (h1 : 2*x  < 3*y) (h2 : -4*x + 2*z < 0)
-        (h3 : 12*y - 4* z < 0)  : false :=
-by linarith
-```
-
-`linarith` will use all appropriate hypotheses and the negation of the goal, if applicable.
-
-`linarith [t1, t2, t3]` will additionally use proof terms `t1, t2, t3`.
-
-`linarith only [h1, h2, h3, t1, t2, t3]` will use only the goal (if relevant), local hypotheses
-h1, h2, h3, and proofs t1, t2, t3. It will ignore the rest of the local context.
-
-`linarith!` will use a stronger reducibility setting to try to identify atoms. For example,
-```lean
-example (x : ℚ) : id x ≥ x :=
-by linarith
-```
-will fail, because `linarith` will not identify `x` and `id x`. `linarith!` will.
-This can sometimes be expensive.
-
-`linarith {discharger := tac, restrict_type := tp, exfalso := ff}` takes a config object with three optional
-arguments.
-* `discharger` specifies a tactic to be used for reducing an algebraic equation in the
-proof stage. The default is `ring`. Other options currently include `ring SOP` or `simp` for basic
-problems.
-* `restrict_type` will only use hypotheses that are inequalities over `tp`. This is useful
-if you have e.g. both integer and rational valued inequalities in the local context, which can
-sometimes confuse the tactic.
-* If `exfalso` is false, `linarith` will fail when the goal is neither an inequality nor `false`. (True by default.)
-
-## choose
-
-`choose a b h using hyp` takes an hypothesis `hyp` of the form
-`∀ (x : X) (y : Y), ∃ (a : A) (b : B), P x y a b` for some `P : X → Y → A → B → Prop` and outputs
-into context a function `a : X → Y → A`, `b : X → Y → B` and a proposition `h` stating
-`∀ (x : X) (y : Y), P x y (a x y) (b x y)`. It presumably also works with dependent versions.
-
-Example:
-
-```lean
-example (h : ∀n m : ℕ, ∃i j, m = n + i ∨ m + j = n) : true :=
-begin
-  choose i j h using h,
-  guard_hyp i := ℕ → ℕ → ℕ,
-  guard_hyp j := ℕ → ℕ → ℕ,
-  guard_hyp h := ∀ (n m : ℕ), m = n + i n m ∨ m + j n m = n,
-  trivial
-end
-```
-
-## squeeze_simp / squeeze_simpa
+[[source]](../src/tactic/squeeze.lean) [mathlib tactic: `import tactic.squeeze` or `import tactic.basic`]
 
 `squeeze_simp` and `squeeze_simpa` perform the same task with
 the difference that `squeeze_simp` relates to `simp` while
@@ -827,175 +704,23 @@ example : 0 + 1 = 1 + 0 := by simp only [add_zero, eq_self_iff_true, zero_add]
 This tactic is useful for speeding up the compilation of a complete file.
 Steps:
 
-   1. search and replace ` simp` with ` squeeze_simp` (the space helps avoid the
-      replacement of `simp` in `@[simp]`) throughout the file.
-   2. Starting at the beginning of the file, go to each printout in turn, copy
-      the suggestion in place of `squeeze_simp`.
-   3. after all the suggestions were applied, search and replace `squeeze_simp` with
-      `simp` to remove the occurrences of `squeeze_simp` that did not produce a suggestion.
+1. search and replace ` simp` with ` squeeze_simp` (the space helps avoid the
+  replacement of `simp` in `@[simp]`) throughout the file.
+2. Starting at the beginning of the file, go to each printout in turn, copy
+  the suggestion in place of `squeeze_simp`.
+3. after all the suggestions were applied, search and replace `squeeze_simp` with
+  `simp` to remove the occurrences of `squeeze_simp` that did not produce a suggestion.
 
 Known limitation(s):
-  * in cases where `squeeze_simp` is used after a `;` (e.g. `cases x; squeeze_simp`),
-    `squeeze_simp` will produce as many suggestions as the number of goals it is applied to.
-    It is likely that none of the suggestion is a good replacement but they can all be
-    combined by concatenating their list of lemmas.
+* in cases where `squeeze_simp` is used after a `;` (e.g. `cases x; squeeze_simp`),
+  `squeeze_simp` will produce as many suggestions as the number of goals it is applied to.
+  It is likely that none of the suggestion is a good replacement but they can all be
+  combined by concatenating their list of lemmas.
 
-## fin_cases
-`fin_cases h` performs case analysis on a hypothesis of the form
-1) `h : A`, where `[fintype A]` is available, or
-2) `h ∈ A`, where `A : finset X`, `A : multiset X` or `A : list X`.
+### use
 
-`fin_cases *` performs case analysis on all suitable hypotheses.
+[[source]](../src/tactic/interactive.lean) [mathlib tactic: `import tactic.interactive` or `import tactic.basic`]
 
-As an example, in
-```
-example (f : ℕ → Prop) (p : fin 3) (h0 : f 0) (h1 : f 1) (h2 : f 2) : f p.val :=
-begin
-  fin_cases p; simp,
-  all_goals { assumption }
-end
-```
-after `fin_cases p; simp`, there are three goals, `f 0`, `f 1`, and `f 2`.
-
-## conv
-The `conv` tactic is built-in to lean. Inside `conv` blocks mathlib currently
-additionally provides
-   * `erw`,
-   * `ring` and `ring2`,
-   * `norm_num`, and
-   * `conv` (within another `conv`).
-Using `conv` inside a `conv` block allows the user to return to the previous
-state of the outer `conv` block after it is finished. Thus you can continue
-editing an expression without having to start a new `conv` block and re-scoping
-everything. For example:
-```lean
-example (a b c d : ℕ) (h₁ : b = c) (h₂ : a + c = a + d) : a + b = a + d :=
-by conv {
-  to_lhs,
-  conv {
-    congr, skip,
-    rw h₁,
-  },
-  rw h₂,
-}
-```
-Without `conv` the above example would need to be proved using two successive
-`conv` blocks each beginning with `to_lhs`.
-
-Also, as a shorthand `conv_lhs` and `conv_rhs` are provided, so that
-```lean
-example : 0 + 0 = 0 :=
-begin
-  conv_lhs { simp }
-end
-```
-just means
-```lean
-example : 0 + 0 = 0 :=
-begin
-  conv { to_lhs, simp }
-end
-```
-and likewise for `to_rhs`.
-
-## mono
-
-- `mono` applies a monotonicity rule.
-- `mono*` applies monotonicity rules repetitively.
-- `mono with x ≤ y` or `mono with [0 ≤ x,0 ≤ y]` creates an assertion for the listed
-  propositions. Those help to select the right monotonicity rule.
-- `mono left` or `mono right` is useful when proving strict orderings:
-   for `x + y < w + z` could be broken down into either
-    - left:  `x ≤ w` and `y < z` or
-    - right: `x < w` and `y ≤ z`
-
-To use it, first import `tactic.monotonicity`.
-
-Here is an example of mono:
-
-```lean
-example (x y z k : ℤ)
-  (h : 3 ≤ (4 : ℤ))
-  (h' : z ≤ y) :
-  (k + 3 + x) - y ≤ (k + 4 + x) - z :=
-begin
-  mono, -- unfold `(-)`, apply add_le_add
-  { -- ⊢ k + 3 + x ≤ k + 4 + x
-    mono, -- apply add_le_add, refl
-    -- ⊢ k + 3 ≤ k + 4
-    mono },
-  { -- ⊢ -y ≤ -z
-    mono /- apply neg_le_neg -/ }
-end
-```
-
-More succinctly, we can prove the same goal as:
-
-```lean
-example (x y z k : ℤ)
-  (h : 3 ≤ (4 : ℤ))
-  (h' : z ≤ y) :
-  (k + 3 + x) - y ≤ (k + 4 + x) - z :=
-by mono*
-```
-
-## ac_mono
-
-`ac_mono` reduces the `f x ⊑ f y`, for some relation `⊑` and a
-monotonic function `f` to `x ≺ y`.
-
-`ac_mono*` unwraps monotonic functions until it can't.
-
-`ac_mono^k`, for some literal number `k` applies monotonicity `k`
-times.
-
-`ac_mono h`, with `h` a hypothesis, unwraps monotonic functions and
-uses `h` to solve the remaining goal. Can be combined with `*` or `^k`:
-`ac_mono* h`
-
-`ac_mono : p` asserts `p` and uses it to discharge the goal result
-unwrapping a series of monotonic functions. Can be combined with * or
-^k: `ac_mono* : p`
-
-In the case where `f` is an associative or commutative operator,
-`ac_mono` will consider any possible permutation of its arguments and
-use the one the minimizes the difference between the left-hand side
-and the right-hand side.
-
-To use it, first import `tactic.monotonicity`.
-
-`ac_mono` can be used as follows:
-
-```lean
-example (x y z k m n : ℕ)
-  (h₀ : z ≥ 0)
-  (h₁ : x ≤ y) :
-  (m + x + n) * z + k ≤ z * (y + n + m) + k :=
-begin
-  ac_mono,
-  -- ⊢ (m + x + n) * z ≤ z * (y + n + m)
-  ac_mono,
-  -- ⊢ m + x + n ≤ y + n + m
-  ac_mono,
-end
-```
-
-As with `mono*`, `ac_mono*` solves the goal in one go and so does
-`ac_mono* h₁`. The latter syntax becomes especially interesting in the
-following example:
-
-```lean
-example (x y z k m n : ℕ)
-  (h₀ : z ≥ 0)
-  (h₁ : m + x + n ≤ y + n + m) :
-  (m + x + n) * z + k ≤ z * (y + n + m) + k :=
-by ac_mono* h₁.
-```
-
-By giving `ac_mono` the assumption `h₁`, we are asking `ac_refl` to
-stop earlier than it would normally would.
-
-## use
 Similar to `existsi`. `use x` will instantiate the first term of an `∃` or `Σ` goal with `x`.
 Unlike `existsi`, `x` is elaborated with respect to the expected type.
 Equivalent to `refine ⟨x, _⟩`.
@@ -1018,7 +743,9 @@ example : ∃ p : ℤ × ℤ, p.1 = 1 :=
 by use ⟨1, 42⟩
 ```
 
-## clear_aux_decl
+### clear_aux_decl
+
+[[source]](../src/tactic/interactive.lean) [mathlib tactic: `import tactic.interactive` or `import tactic.basic`]
 
 `clear_aux_decl` clears every `aux_decl` in the local context for the current goal.
 This includes the induction hypothesis when using the equation compiler and
@@ -1042,7 +769,10 @@ begin
   finish
 end
 ```
-## set
+
+### set
+
+[[source]](../src/tactic/interactive.lean) [mathlib tactic: `import tactic.interactive` or `import tactic.basic`]
 
 `set a := t with h` is a variant of `let a := t`. It adds the hypothesis `h : a = t` to the local context and replaces `t` with `a` everywhere it can.
 
@@ -1064,52 +794,111 @@ h : y = 3
 end
 ```
 
-## omega
+### choose
 
-`omega` attempts to discharge goals in the quantifier-free fragment of linear integer and natural number arithmetic using the Omega test. In other words, the core procedure of `omega` works with goals of the form
+[[source]](../src/tactic/interactive.lean) [mathlib tactic: `import tactic.interactive` or `import tactic.basic`]
+
+`choose a b h using hyp` takes an hypothesis `hyp` of the form
+`∀ (x : X) (y : Y), ∃ (a : A) (b : B), P x y a b` for some `P : X → Y → A → B → Prop` and outputs
+into context a function `a : X → Y → A`, `b : X → Y → B` and a proposition `h` stating
+`∀ (x : X) (y : Y), P x y (a x y) (b x y)`. It presumably also works with dependent versions.
+
+Example:
+
 ```lean
-∀ x₁, ... ∀ xₖ, P
+example (h : ∀n m : ℕ, ∃i j, m = n + i ∨ m + j = n) : true :=
+begin
+  choose i j h using h,
+  guard_hyp i := ℕ → ℕ → ℕ,
+  guard_hyp j := ℕ → ℕ → ℕ,
+  guard_hyp h := ∀ (n m : ℕ), m = n + i n m ∨ m + j n m = n,
+  trivial
+end
 ```
-where `x₁, ... xₖ` are integer (resp. natural number) variables, and `P` is a quantifier-free formula of linear integer (resp. natural number) arithmetic. For instance:
+
+### convert_to
+
+[[source]](../src/tactic/interactive.lean) [mathlib tactic: `import tactic.interactive` or `import tactic.basic`]
+
+`convert_to g using n` attempts to change the current goal to `g`, but unlike `change`,
+it will generate equality proof obligations using `congr' n` to resolve discrepancies.
+`convert_to g` defaults to using `congr' 1`.
+
+`ac_change` is `convert_to` followed by `ac_refl`. It is useful for rearranging/reassociating
+e.g. sums:
+
 ```lean
-example : ∀ (x y : int), (x ≤ 5 ∧ y ≤ 3) → x + y ≤ 8 := by omega
+example (a b c d e f g N : ℕ) : (a + b) + (c + d) + (e + f) + g ≤ N :=
+begin
+  ac_change a + d + e + f + c + g + b ≤ _,
+-- ⊢ a + d + e + f + c + g + b ≤ N
+end
 ```
-By default, `omega` tries to guess the correct domain by looking at the goal and hypotheses, and then reverts all relevant hypotheses and variables (e.g., all variables of type `nat` and `Prop`s in linear natural number arithmetic, if the domain was determined to be `nat`) to universally close the goal before calling the main procedure. Therefore, `omega` will often work even if the goal is not in the above form:
+
+### assoc_rewrite
+
+[[source]](../src/tactic/rewrite.lean) [mathlib tactic: `import tactic.rewrite` or `import tactic.basic`]
+
+`assoc_rewrite [h₀, ← h₁] at ⊢ h₂` behaves like
+`rewrite [h₀, ← h₁] at ⊢ h₂` with the exception that associativity is
+used implicitly to make rewriting possible.
+
+### restate_axiom
+
+[[source]](../src/tactic/restate_axiom.lean) [mathlib tactic: `import tactic.restate_axiom` or `import tactic.basic`]
+
+`restate_axiom` makes a new copy of a structure field, first definitionally simplifying the type.
+This is useful to remove `auto_param` or `opt_param` from the statement.
+
+As an example, we have:
+
 ```lean
-example (x y : nat) (h : 2 * x + 1 = 2 * y) : false := by omega
+structure A :=
+(x : ℕ)
+(a' : x = 1 . skip)
+
+example (z : A) : z.x = 1 := by rw A.a' -- rewrite tactic failed, lemma is not an equality nor a iff
+
+restate_axiom A.a'
+example (z : A) : z.x = 1 := by rw A.a
 ```
-But this behaviour is not always optimal, since it may revert irrelevant hypotheses or incorrectly guess the domain. Use `omega manual` to disable automatic reverts, and `omega int` or `omega nat` to specify the domain.
+
+By default, `restate_axiom` names the new lemma by removing a trailing `'`, or otherwise appending
+`_lemma` if there is no trailing `'`. You can also give `restate_axiom` a second argument to
+specify the new name, as in
+
 ```lean
-example (x y z w : int) (h1 : 3 * y ≥ x) (h2 : z > 19 * w) : 3 * x ≤ 9 * y :=
-by {revert h1 x y, omega manual}
-
-example (i : int) (n : nat) (h1 : i = 0) (h2 : n < n) : false := by omega nat
-
-example (n : nat) (h1 : n < 34) (i : int) (h2 : i * 9 = -72) : i = -8 :=
-by {revert h2 i, omega manual int}
+restate_axiom A.a f
+example (z : A) : z.x = 1 := by rw A.f
 ```
-`omega` handles `nat` subtraction by repeatedly rewriting goals of the form `P[t-s]` into `P[x] ∧ (t = s + x ∨ (t ≤ s ∧ x = 0))`, where `x` is fresh. This means that each (distinct) occurrence of subtraction will cause the goal size to double during DNF transformation.
 
-`omega` implements the real shadow step of the Omega test, but not the dark and gray shadows. Therefore, it should (in principle) succeed whenever the negation of the goal has no real solution, but it may fail if a real solution exists, even if there is no integer/natural number solution.
+### push_neg
 
-## push_neg
+[[source]](../src/tactic/push_neg.lean) [mathlib tactic: `import tactic.push_neg` or `import tactic.basic`]
 
 This tactic pushes negations inside expressions. For instance, given an assumption
+
 ```lean
-h : ¬ ∀ ε > 0, ∃ δ > 0, ∀ x, |x - x₀| ≤ δ → |f x - y₀| ≤ ε)
+h : ¬ ∀ ε > 0, ∃ δ > 0, ∀ x, |x - x₀| ≤ δ → |f x - y₀| ≤ ε
 ```
+
 writing `push_neg at h` will turn `h` into
+
 ```lean
 h : ∃ ε, ε > 0 ∧ ∀ δ, δ > 0 → (∃ x, |x - x₀| ≤ δ ∧ ε < |f x - y₀|),
 ```
+
 (the pretty printer does *not* use the abreviations `∀ δ > 0` and `∃ ε > 0` but this issue
 has nothing to do with `push_neg`).
+
 Note that names are conserved by this tactic, contrary to what would happen with `simp`
 using the relevant lemmas. One can also use this tactic at the goal using `push_neg`,
 at every assumption and the goal using `push_neg at *` or at selected assumptions and the goal
 using say `push_neg at h h' ⊢` as usual.
 
-## contrapose
+### contrapose
+
+[[source]](../src/tactic/push_neg.lean) [mathlib tactic: `import tactic.push_neg` or `import tactic.basic`]
 
 Transforms the goal into its contrapositive.
 
@@ -1124,175 +913,21 @@ Transforms the goal into its contrapositive.
 
 `contrapose h with new_h` uses the name `new_h` for the introduced hypothesis
 
-## tautology
+### swap
 
-This tactic (with shorthand `tauto`) breaks down assumptions of the form `_ ∧ _`, `_ ∨ _`, `_ ↔ _` and `∃ _, _`
-and splits a goal of the form `_ ∧ _`, `_ ↔ _` or `∃ _, _` until it can be discharged
-using `reflexivity` or `solve_by_elim`. This is a finishing tactic: it
-either closes the goal of raises an error.
-
-The variants `tautology!` or `tauto!` use the law of excluded middle.
-
-For instance, one can write:
-```lean
-example (p q r : Prop) [decidable p] [decidable r] : p ∨ (q ∧ r) ↔ (p ∨ q) ∧ (r ∨ p ∨ r) := by tauto
-```
-and the decidability assumptions can be dropped if `tauto!` is used
-instead of `tauto`.
-
-## norm_cast
-
-This tactic normalizes casts inside expressions.
-It is basically a simp tactic with a specific set of lemmas to move casts
-upwards in the expression.
-Therefore it can be used more safely as a non-terminating tactic.
-It also has special handling of numerals.
-
-For instance, given an assumption
-```lean
-a b : ℤ
-h : ↑a + ↑b < (10 : ℚ)
-```
-
-writing `norm_cast at h` will turn `h` into
-```lean
-h : a + b < 10
-```
-
-You can also use `exact_mod_cast`, `apply_mod_cast`, `rw_mod_cast`
-or `assumption_mod_cast`.
-Writing `exact_mod_cast h` and `apply_mod_cast h` will normalize the goal and h before using `exact h` or `apply h`.
-Writing `assumption_mod_cast` will normalize the goal and for every
-expression `h` in the context it will try to normalize `h` and use
-`exact h`.
-`rw_mod_cast` acts like the `rw` tactic but it applies `norm_cast` between steps.
-
-These tactics work with three attributes,
-`elim_cast`, `move_cast` and `squash_cast`.
-
-`elim_cast` is for elimination lemmas of the shape
-`Π ..., P ↑a1 ... ↑an = P a1 ... an`, for instance:
-
-```lean
-int.coe_nat_inj' : ∀ {m n : ℕ}, ↑m = ↑n ↔ m = n
-
-rat.coe_int_denom : ∀ (n : ℤ), ↑n.denom = 1
-```
-
-`move_cast` is for compositional lemmas of the shape
-`Π ..., ↑(P a1 ... an) = P ↑a1 ... ↑an`, for instance:
-```lean
-int.coe_nat_add : ∀ (m n : ℕ), ↑(m + n) = ↑m + ↑n`
-
-nat.cast_sub : ∀ {α : Type*} [add_group α] [has_one α] {m n : ℕ}, m ≤ n → ↑(n - m) = ↑n - ↑m
-```
-
-`squash_cast` is for lemmas of the shape
-`Π ..., ↑↑a = ↑a`, for instance:
-```lean
-int.cast_coe_nat : ∀ (n : ℕ), ↑↑n = ↑n
-
-int.cats_id : int.cast_id : ∀ (n : ℤ), ↑n = n
-```
-
-`push_cast` rewrites the expression to move casts toward the leaf nodes.
-This uses `move_cast` lemmas in the "forward" direction.
-For example, `↑(a + b)` will be written to `↑a + ↑b`.
-It is equivalent to `simp only with push_cast`, and can also be used at hypotheses
-with `push_cast at h`.
-
-
-## convert_to
-
-`convert_to g using n` attempts to change the current goal to `g`, but unlike `change`,
-it will generate equality proof obligations using `congr' n` to resolve discrepancies.
-`convert_to g` defaults to using `congr' 1`.
-
-`ac_change` is `convert_to` followed by `ac_refl`. It is useful for rearranging/reassociating
-e.g. sums:
-```lean
-example (a b c d e f g N : ℕ) : (a + b) + (c + d) + (e + f) + g ≤ N :=
-begin
-  ac_change a + d + e + f + c + g + b ≤ _,
--- ⊢ a + d + e + f + c + g + b ≤ N
-end
-```
-
-## apply_fun
-
-Apply a function to some local assumptions which are either equalities
-or inequalities. For instance, if the context contains `h : a = b` and
-some function `f` then `apply_fun f at h` turns `h` into
-`h : f a = f b`. When the assumption is an inequality `h : a ≤ b`, a side
-goal `monotone f` is created, unless this condition is provided using
-`apply_fun f at h using P` where `P : monotone f`, or the `mono` tactic
-can prove it.
-
-Typical usage is:
-```lean
-open function
-
-example (X Y Z : Type) (f : X → Y) (g : Y → Z) (H : injective $ g ∘ f) :
-  injective f :=
-begin
-  intros x x' h,
-  apply_fun g at h,
-  exact H h
-end
-```
-
-## swap
+[[source]](../src/tactic/interactive.lean) [mathlib tactic: `import tactic.interactive` or `import tactic.basic`]
 
 `swap n` will move the `n`th goal to the front. `swap` defaults to `swap 2`, and so interchanges the first and second goals.
 
-## rotate
+### rotate
+
+[[source]](../src/tactic/interactive.lean) [mathlib tactic: `import tactic.interactive` or `import tactic.basic`]
 
 `rotate` moves the first goal to the back. `rotate n` will do this `n` times.
 
-## The `reassoc` attribute
+### lift
 
-The `reassoc` attribute can be applied to a lemma
-
-```lean
-@[reassoc]
-lemma some_lemma : foo ≫ bar = baz := ...
-```
-
-and produce
-
-```lean
-lemma some_lemma_assoc {Y : C} (f : X ⟶ Y) : foo ≫ bar ≫ f = baz ≫ f := ...
-```
-
-The name of the produced lemma can be specified with `@[reassoc other_lemma_name]`. If
-`simp` is added first, the generated lemma will also have the `simp` attribute.
-
-
-## The reassoc_of function
-
-`reassoc_of h` takes local assumption `h` and add a ` ≫ f` term on the right of both sides of the equality.
-Instead of creating a new assumption from the result, `reassoc_of h` stands for the proof of that reassociated
-statement. This prevents poluting the local context with complicated assumptions used only once or twice.
-
-In the following, assumption `h` is needed in a reassociated form. Instead of proving it as a new goal and adding it as
-an assumption, we use `reassoc_of h` as a rewrite rule which works just as well.
-
-```lean
-example (X Y Z W : C) (x : X ⟶ Y) (y : Y ⟶ Z) (z z' : Z ⟶ W) (w : X ⟶ Z)
-  (h : x ≫ y = w)
-  (h' : y ≫ z = y ≫ z') :
-  x ≫ y ≫ z = w ≫ z' :=
-begin
-  -- reassoc_of h : ∀ {X' : C} (f : W ⟶ X'), x ≫ y ≫ f = w ≫ f
-  rw [h',reassoc_of h],
-end
-```
-
-Although `reassoc_of` is not a tactic or a meta program, its type is generated
-through meta-programming to make it usable inside normal expressions.
-
-
-## lift
+[[source]](../src/tactic/lift.lean) [mathlib tactic: `import tactic.lift` or `import tactic.basic`]
 
 Lift an expression to another type.
 * Usage: `'lift' expr 'to' expr ('using' expr)? ('with' id (id id?)?)?`.
@@ -1326,23 +961,19 @@ Lift an expression to another type.
   `β : Π a : α, Type*`, `γ : Π a : α, Type*`, and `[Π a : α, can_lift (β a) (γ a)]`, it automatically
   generates an instance `can_lift (Π a, β a) (Π a, γ a)`.
 
-## import_private
+### default_dec_tac'
 
-`import_private foo from bar` finds a private declaration `foo` in the same file as `bar` and creates a
-local notation to refer to it.
-
-`import_private foo`, looks for `foo` in all (imported) files.
-
-When possible, make `foo` non-private rather than using this feature.
-
-## default_dec_tac'
+[[source]](../src/tactic/well_founded_tactics.lean) [mathlib tactic: `import tactic.well_founded_tactics` or `import tactic.basic`]
 
 `default_dec_tac'` is a replacement for the core tactic `default_dec_tac`, fixing a bug. This
-bug is often indicated by a message `nested exception message: tactic failed, there are no goals to be solved`,and solved by appending `using_well_founded wf_tacs` to the recursive definition.
+bug is often indicated by a message `nested exception message: tactic failed, there are no goals to be solved`, and solved by appending `using_well_founded wf_tacs` to the recursive definition.
+
 See also additional documentation of `using_well_founded` in
 [docs/extras/well_founded_recursion.md](extras/well_founded_recursion.md).
 
-## simps
+### simps
+
+[[source]](../src/tactic/simps.lean) [mathlib tactic: `import tactic.simps` or `import tactic.basic`]
 
 * The `@[simps]` attribute automatically derives lemmas specifying the projections of the declaration.
 * Example: (note that the forward and reverse functions are specified differently!)
@@ -1374,3 +1005,554 @@ See also additional documentation of `using_well_founded` in
 * `@[simps]` reduces let-expressions where necessary.
 * If one of the fields is a partially applied constructor, we will eta-expand it
   (this likely never happens).
+
+## other mathlib tactics
+
+You can import all of the tactics in mathlib by including the following at the top of a Lean file:
+```lean
+import tactic
+```
+
+### tfae
+
+[[source]](../src/tactic/tfae.lean) [mathlib tactic: `import tactic.tfae` or `import tactic`]
+
+The `tfae` tactic suite is a set of tactics that help with proving that certain
+propositions are equivalent.
+
+In `data/list/basic.lean` there is a section devoted to propositions of the
+form
+
+```lean
+tfae [p1, p2, ..., pn]
+```
+
+where `p1`, `p2`, through, `pn` are terms of type `Prop`.
+This proposition asserts that all the `pi` are pairwise equivalent.
+There are results that allow to extract the equivalence
+of two propositions `pi` and `pj`.
+
+To prove a goal of the form `tfae [p1, p2, ..., pn]`, there are two
+tactics.  The first tactic is `tfae_have`.  As an argument it takes an
+expression of the form `i arrow j`, where `i` and `j` are two positive
+natural numbers, and `arrow` is an arrow such as `→`, `->`, `←`, `<-`,
+`↔`, or `<->`.  The tactic `tfae_have : i arrow j` sets up a subgoal in
+which the user has to prove the equivalence (or implication) of `pi` and `pj`.
+
+The remaining tactic, `tfae_finish`, is a finishing tactic. It
+collects all implications and equivalences from the local context and
+computes their transitive closure to close the
+main goal.
+
+`tfae_have` and `tfae_finish` can be used together in a proof as
+follows:
+
+```lean
+example (a b c d : Prop) : tfae [a,b,c,d] :=
+begin
+  tfae_have : 3 → 1,
+  { /- prove c → a -/ },
+  tfae_have : 2 → 3,
+  { /- prove b → c -/ },
+  tfae_have : 2 ← 1,
+  { /- prove a → b -/ },
+  tfae_have : 4 ↔ 2,
+  { /- prove d ↔ b -/ },
+    -- a b c d : Prop,
+    -- tfae_3_to_1 : c → a,
+    -- tfae_2_to_3 : b → c,
+    -- tfae_1_to_2 : a → b,
+    -- tfae_4_iff_2 : d ↔ b
+    -- ⊢ tfae [a, b, c, d]
+  tfae_finish,
+end
+```
+
+### finish/clarify/safe
+
+[[source]](../src/tactic/finish.lean) [mathlib tactic: `import tactic.finish` or `import tactic`]
+
+These tactics do straightforward things: they call the simplifier, split conjunctive assumptions,
+eliminate existential quantifiers on the left, and look for contradictions. They rely on ematching
+and congruence closure to try to finish off a goal at the end.
+
+The procedures *do* split on disjunctions and recreate the smt state for each terminal call, so
+they are only meant to be used on small, straightforward problems.
+
+* finish:  solves the goal or fails
+* clarify: makes as much progress as possible while not leaving more than one goal
+* safe:    splits freely, finishes off whatever subgoals it can, and leaves the rest
+
+All accept an optional list of simplifier rules, typically definitions that should be expanded.
+(The equations and identities should not refer to the local context.) All also accept an optional list of `ematch` lemmas, which must be preceded by `using`.
+
+### abel
+
+[[source]](../src/tactic/abel.lean) [mathlib tactic: `import tactic.abel` or `import tactic`]
+
+Evaluate expressions in the language of *additive*, commutative monoids and groups.
+It attempts to prove the goal outright if there is no `at`
+specifier and the target is an equality, but if this
+fails, it falls back to rewriting all monoid expressions into a normal form.
+If there is an `at` specifier, it rewrites the given target into a normal form.
+
+```lean
+example {α : Type*} {a b : α} [add_comm_monoid α] : a + (b + a) = a + a + b := by abel
+example {α : Type*} {a b : α} [add_comm_group α] : (a + b) - ((b + a) + a) = -a := by abel
+example {α : Type*} {a b : α} [add_comm_group α] (hyp : a + a - a = b - b) : a = 0 :=
+by { abel at hyp, exact hyp }
+```
+
+### norm_num
+
+[[source]](../src/tactic/norm_num.lean) [mathlib tactic: `import tactic.norm_num` or `import tactic`]
+
+Normalises numerical expressions. It supports the operations `+` `-` `*` `/` `^` and `%` over numerical types such as `ℕ`, `ℤ`, `ℚ`, `ℝ`, `ℂ`, and can prove goals of the form `A = B`, `A ≠ B`, `A < B` and `A ≤ B`, where `A` and `B` are
+numerical expressions. It also has a relatively simple primality prover.
+
+```lean
+import data.real.basic
+
+example : (2 : ℝ) + 2 = 4 := by norm_num
+example : (12345.2 : ℝ) ≠ 12345.3 := by norm_num
+example : (73 : ℝ) < 789/2 := by norm_num
+example : 123456789 + 987654321 = 1111111110 := by norm_num
+example (R : Type*) [ring R] : (2 : R) + 2 = 4 := by norm_num
+example (F : Type*) [linear_ordered_field F] : (2 : F) + 2 < 5 := by norm_num
+example : nat.prime (2^13 - 1) := by norm_num
+example : ¬ nat.prime (2^11 - 1) := by norm_num
+example (x : ℝ) (h : x = 123 + 456) : x = 579 := by norm_num at h; assumption
+```
+
+### ring
+
+[[source]](../src/tactic/ring.lean) [mathlib tactic: `import tactic.ring` or `import tactic`]
+
+Evaluate expressions in the language of *commutative* (semi)rings.
+Based on [Proving Equalities in a Commutative Ring Done Right in Coq](http://www.cs.ru.nl/~freek/courses/tt-2014/read/10.1.1.61.3041.pdf) by Benjamin Grégoire and Assia Mahboubi.
+
+The variant `ring!` uses a more aggessive reducibility setting to determine equality of atoms.
+
+### ring_exp
+
+[[source]](../src/tactic/ring_exp.lean) [mathlib tactic: `import tactic.ring_exp` or `import tactic`]
+
+Evaluate expressions in *commutative* (semi)rings, allowing for variables in the exponent.
+
+This tactic extends `ring`: it should solve every goal that `ring` can solve.
+Additionally, it knows how to evaluate expressions with complicated exponents
+(where `ring` only understands constant exponents).
+The variants `ring_exp!` and `ring_exp_eq!` use a more aggessive reducibility setting to determine equality of atoms.
+
+For example:
+
+```lean
+example (n : ℕ) (m : ℤ) : 2^(n+1) * m = 2 * 2^n * m := by ring_exp
+example (a b : ℤ) (n : ℕ) : (a + b)^(n + 2) = (a^2 + b^2 + a * b + b * a) * (a + b)^n := by ring_exp
+example (x y : ℕ) : x + id y = y + id x := by ring_exp!
+```
+
+### pi_instance
+
+[[source]](../src/tactic/pi_instances.lean) [mathlib tactic: `import tactic.pi_instances` or `import tactic`]
+
+`pi_instance` constructs an instance of `my_class (Π i : I, f i)`
+where we know `Π i, my_class (f i)`. If an order relation is required,
+it defaults to `pi.partial_order`. Any field of the instance that
+`pi_instance` cannot construct is left untouched and generated as a
+new goal.
+
+### tidy
+
+[[source]](../src/tactic/tidy.lean) [mathlib tactic: `import tactic.tidy` or `import tactic`]
+
+`tidy` attempts to use a variety of conservative tactics to solve the goals.
+In particular, `tidy` uses the `chain` tactic to repeatedly apply a list of tactics to
+the goal and recursively on new goals, until no tactic makes further progress.
+
+`tidy` can report the tactic script it found using `tidy?`. As an example
+
+```lean
+example : ∀ x : unit, x = unit.star :=
+begin
+  tidy? -- Prints the trace message: "intros x, exact dec_trivial"
+end
+```
+
+The default list of tactics can be found by looking up the definition of
+[`default_tidy_tactics`](../src/tactic/tidy.lean).
+
+This list can be overriden using `tidy { tactics :=  ... }`. (The list must be a list of
+`tactic string`, so that `tidy?` can report a usable tactic script.)
+
+### linarith
+
+[[source]](../src/tactic/linarith.lean) [mathlib tactic: `import tactic.linarith` or `import tactic`]
+
+`linarith` attempts to find a contradiction between hypotheses that are linear (in)equalities.
+Equivalently, it can prove a linear inequality by assuming its negation and proving `false`.
+
+In theory, `linarith` should prove any goal that is true in the theory of linear arithmetic over the rationals. While there is some special handling for non-dense orders like `nat` and `int`, this tactic is not complete for these theories and will not prove every true goal.
+
+An example:
+
+```lean
+example (x y z : ℚ) (h1 : 2*x  < 3*y) (h2 : -4*x + 2*z < 0)
+        (h3 : 12*y - 4* z < 0)  : false :=
+by linarith
+```
+
+`linarith` will use all appropriate hypotheses and the negation of the goal, if applicable.
+
+`linarith [t1, t2, t3]` will additionally use proof terms `t1, t2, t3`.
+
+`linarith only [h1, h2, h3, t1, t2, t3]` will use only the goal (if relevant), local hypotheses
+h1, h2, h3, and proofs t1, t2, t3. It will ignore the rest of the local context.
+
+`linarith!` will use a stronger reducibility setting to try to identify atoms. For example,
+
+```lean
+example (x : ℚ) : id x ≥ x :=
+by linarith
+```
+
+will fail, because `linarith` will not identify `x` and `id x`. `linarith!` will.
+This can sometimes be expensive.
+
+`linarith {discharger := tac, restrict_type := tp, exfalso := ff}` takes a config object with three optional
+arguments.
+* `discharger` specifies a tactic to be used for reducing an algebraic equation in the
+proof stage. The default is `ring`. Other options currently include `ring SOP` or `simp` for basic
+problems.
+* `restrict_type` will only use hypotheses that are inequalities over `tp`. This is useful
+if you have e.g. both integer and rational valued inequalities in the local context, which can
+sometimes confuse the tactic.
+* If `exfalso` is false, `linarith` will fail when the goal is neither an inequality nor `false`. (True by default.)
+
+### fin_cases
+
+[[source]](../src/tactic/fin_cases.lean) [mathlib tactic: `import tactic.fin_cases` or `import tactic`]
+
+`fin_cases h` performs case analysis on a hypothesis of the form
+1) `h : A`, where `[fintype A]` is available, or
+2) `h ∈ A`, where `A : finset X`, `A : multiset X` or `A : list X`.
+
+`fin_cases *` performs case analysis on all suitable hypotheses.
+
+As an example, in
+
+```
+example (f : ℕ → Prop) (p : fin 3) (h0 : f 0) (h1 : f 1) (h2 : f 2) : f p.val :=
+begin
+  fin_cases p; simp,
+  all_goals { assumption }
+end
+```
+
+after `fin_cases p; simp`, there are three goals, `f 0`, `f 1`, and `f 2`.
+
+### mono
+
+[[source]](../src/tactic/monotonicity/interactive.lean) [mathlib tactic: `import tactic.monotonicity` or `import tactic`]
+
+- `mono` applies a monotonicity rule.
+- `mono*` applies monotonicity rules repetitively.
+- `mono with x ≤ y` or `mono with [0 ≤ x,0 ≤ y]` creates an assertion for the listed
+  propositions. Those help to select the right monotonicity rule.
+- `mono left` or `mono right` is useful when proving strict orderings:
+   for `x + y < w + z` could be broken down into either
+    - left:  `x ≤ w` and `y < z` or
+    - right: `x < w` and `y ≤ z`
+
+Here is an example of mono:
+
+```lean
+example (x y z k : ℤ)
+  (h : 3 ≤ (4 : ℤ))
+  (h' : z ≤ y) :
+  (k + 3 + x) - y ≤ (k + 4 + x) - z :=
+begin
+  mono, -- unfold `(-)`, apply add_le_add
+  { -- ⊢ k + 3 + x ≤ k + 4 + x
+    mono, -- apply add_le_add, refl
+    -- ⊢ k + 3 ≤ k + 4
+    mono },
+  { -- ⊢ -y ≤ -z
+    mono /- apply neg_le_neg -/ }
+end
+```
+
+More succinctly, we can prove the same goal as:
+
+```lean
+example (x y z k : ℤ)
+  (h : 3 ≤ (4 : ℤ))
+  (h' : z ≤ y) :
+  (k + 3 + x) - y ≤ (k + 4 + x) - z :=
+by mono*
+```
+
+### ac_mono
+
+[[source]](../src/tactic/monotonicity/interactive.lean) [mathlib tactic: `import tactic.monotonicity` or `import tactic`]
+
+`ac_mono` reduces the `f x ⊑ f y`, for some relation `⊑` and a
+monotonic function `f` to `x ≺ y`.
+
+`ac_mono*` unwraps monotonic functions until it can't.
+
+`ac_mono^k`, for some literal number `k` applies monotonicity `k`
+times.
+
+`ac_mono h`, with `h` a hypothesis, unwraps monotonic functions and
+uses `h` to solve the remaining goal. Can be combined with `*` or `^k`:
+`ac_mono* h`
+
+`ac_mono : p` asserts `p` and uses it to discharge the goal result
+unwrapping a series of monotonic functions. Can be combined with * or
+^k: `ac_mono* : p`
+
+In the case where `f` is an associative or commutative operator,
+`ac_mono` will consider any possible permutation of its arguments and
+use the one the minimizes the difference between the left-hand side
+and the right-hand side.
+
+`ac_mono` can be used as follows:
+
+```lean
+example (x y z k m n : ℕ)
+  (h₀ : z ≥ 0)
+  (h₁ : x ≤ y) :
+  (m + x + n) * z + k ≤ z * (y + n + m) + k :=
+begin
+  ac_mono,
+  -- ⊢ (m + x + n) * z ≤ z * (y + n + m)
+  ac_mono,
+  -- ⊢ m + x + n ≤ y + n + m
+  ac_mono,
+end
+```
+
+As with `mono*`, `ac_mono*` solves the goal in one go and so does
+`ac_mono* h₁`. The latter syntax becomes especially interesting in the
+following example:
+
+```lean
+example (x y z k m n : ℕ)
+  (h₀ : z ≥ 0)
+  (h₁ : m + x + n ≤ y + n + m) :
+  (m + x + n) * z + k ≤ z * (y + n + m) + k :=
+by ac_mono* h₁.
+```
+
+By giving `ac_mono` the assumption `h₁`, we are asking `ac_refl` to
+stop earlier than it would normally would.
+
+### omega
+
+[[source]](../src/tactic/omega/main.lean) [mathlib tactic: `import tactic.omega` or `import tactic`]
+
+`omega` attempts to discharge goals in the quantifier-free fragment of linear integer and natural number arithmetic using the Omega test. In other words, the core procedure of `omega` works with goals of the form
+
+```lean
+∀ x₁, ... ∀ xₖ, P
+```
+
+where `x₁, ... xₖ` are integer (resp. natural number) variables, and `P` is a quantifier-free formula of linear integer (resp. natural number) arithmetic. For instance:
+
+```lean
+example : ∀ (x y : int), (x ≤ 5 ∧ y ≤ 3) → x + y ≤ 8 := by omega
+```
+
+By default, `omega` tries to guess the correct domain by looking at the goal and hypotheses, and then reverts all relevant hypotheses and variables (e.g., all variables of type `nat` and `Prop`s in linear natural number arithmetic, if the domain was determined to be `nat`) to universally close the goal before calling the main procedure. Therefore, `omega` will often work even if the goal is not in the above form:
+
+```lean
+example (x y : nat) (h : 2 * x + 1 = 2 * y) : false := by omega
+```
+
+But this behaviour is not always optimal, since it may revert irrelevant hypotheses or incorrectly guess the domain. Use `omega manual` to disable automatic reverts, and `omega int` or `omega nat` to specify the domain.
+
+```lean
+example (x y z w : int) (h1 : 3 * y ≥ x) (h2 : z > 19 * w) : 3 * x ≤ 9 * y :=
+by {revert h1 x y, omega manual}
+
+example (i : int) (n : nat) (h1 : i = 0) (h2 : n < n) : false := by omega nat
+
+example (n : nat) (h1 : n < 34) (i : int) (h2 : i * 9 = -72) : i = -8 :=
+by {revert h2 i, omega manual int}
+```
+
+`omega` handles `nat` subtraction by repeatedly rewriting goals of the form `P[t-s]` into `P[x] ∧ (t = s + x ∨ (t ≤ s ∧ x = 0))`, where `x` is fresh. This means that each (distinct) occurrence of subtraction will cause the goal size to double during DNF transformation.
+
+`omega` implements the real shadow step of the Omega test, but not the dark and gray shadows. Therefore, it should (in principle) succeed whenever the negation of the goal has no real solution, but it may fail if a real solution exists, even if there is no integer/natural number solution.
+
+### tautology
+
+[[source]](../src/tactic/tauto.lean) [mathlib tactic: `import tactic.tauto` or `import tactic`]
+
+This tactic (with shorthand `tauto`) breaks down assumptions of the form `_ ∧ _`, `_ ∨ _`, `_ ↔ _` and `∃ _, _`
+and splits a goal of the form `_ ∧ _`, `_ ↔ _` or `∃ _, _` until it can be discharged
+using `reflexivity` or `solve_by_elim`. This is a finishing tactic: it
+either closes the goal of raises an error.
+
+The variants `tautology!` or `tauto!` use the law of excluded middle.
+
+For instance, one can write:
+
+```lean
+example (p q r : Prop) [decidable p] [decidable r] : p ∨ (q ∧ r) ↔ (p ∨ q) ∧ (r ∨ p ∨ r) := by tauto
+```
+
+and the decidability assumptions can be dropped if `tauto!` is used
+instead of `tauto`.
+
+### norm_cast
+
+[[source]](../src/tactic/norm_cast.lean) [mathlib tactic: `import tactic.norm_cast` or `import tactic`]
+
+This tactic normalizes casts inside expressions.
+It is basically a simp tactic with a specific set of lemmas to move casts
+upwards in the expression.
+Therefore it can be used more safely as a non-terminating tactic.
+It also has special handling of numerals.
+
+For instance, given an assumption
+
+```lean
+a b : ℤ
+h : ↑a + ↑b < (10 : ℚ)
+```
+
+writing `norm_cast at h` will turn `h` into
+
+```lean
+h : a + b < 10
+```
+
+You can also use `exact_mod_cast`, `apply_mod_cast`, `rw_mod_cast`
+or `assumption_mod_cast`.
+Writing `exact_mod_cast h` and `apply_mod_cast h` will normalize the goal and h before using `exact h` or `apply h`.
+Writing `assumption_mod_cast` will normalize the goal and for every
+expression `h` in the context it will try to normalize `h` and use
+`exact h`.
+`rw_mod_cast` acts like the `rw` tactic but it applies `norm_cast` between steps.
+
+These tactics work with three attributes,
+`elim_cast`, `move_cast` and `squash_cast`.
+
+`elim_cast` is for elimination lemmas of the shape
+`Π ..., P ↑a1 ... ↑an = P a1 ... an`, for instance:
+
+```lean
+int.coe_nat_inj' : ∀ {m n : ℕ}, ↑m = ↑n ↔ m = n
+
+rat.coe_int_denom : ∀ (n : ℤ), ↑n.denom = 1
+```
+
+`move_cast` is for compositional lemmas of the shape
+`Π ..., ↑(P a1 ... an) = P ↑a1 ... ↑an`, for instance:
+
+```lean
+int.coe_nat_add : ∀ (m n : ℕ), ↑(m + n) = ↑m + ↑n`
+
+nat.cast_sub : ∀ {α : Type*} [add_group α] [has_one α] {m n : ℕ}, m ≤ n → ↑(n - m) = ↑n - ↑m
+```
+
+`squash_cast` is for lemmas of the shape
+`Π ..., ↑↑a = ↑a`, for instance:
+
+```lean
+int.cast_coe_nat : ∀ (n : ℕ), ↑↑n = ↑n
+
+int.cats_id : int.cast_id : ∀ (n : ℤ), ↑n = n
+```
+
+`push_cast` rewrites the expression to move casts toward the leaf nodes.
+This uses `move_cast` lemmas in the "forward" direction.
+For example, `↑(a + b)` will be written to `↑a + ↑b`.
+It is equivalent to `simp only with push_cast`, and can also be used at hypotheses
+with `push_cast at h`.
+
+
+### apply_fun
+
+[[source]](../src/tactic/apply_fun.lean) [mathlib tactic: `import tactic.apply_fun` or `import tactic`]
+
+Apply a function to some local assumptions which are either equalities
+or inequalities. For instance, if the context contains `h : a = b` and
+some function `f` then `apply_fun f at h` turns `h` into
+`h : f a = f b`. When the assumption is an inequality `h : a ≤ b`, a side
+goal `monotone f` is created, unless this condition is provided using
+`apply_fun f at h using P` where `P : monotone f`, or the `mono` tactic
+can prove it.
+
+Typical usage is:
+
+```lean
+open function
+
+example (X Y Z : Type) (f : X → Y) (g : Y → Z) (H : injective $ g ∘ f) :
+  injective f :=
+begin
+  intros x x' h,
+  apply_fun g at h,
+  exact H h
+end
+```
+
+### The `reassoc` attribute
+
+[[source]](../src/tactic/reassoc_axiom.lean) [mathlib tactic: `import tactic.reassoc_axiom` or `import tactic`]
+
+The `reassoc` attribute can be applied to a lemma
+
+```lean
+@[reassoc]
+lemma some_lemma : foo ≫ bar = baz := ...
+```
+
+and produce
+
+```lean
+lemma some_lemma_assoc {Y : C} (f : X ⟶ Y) : foo ≫ bar ≫ f = baz ≫ f := ...
+```
+
+The name of the produced lemma can be specified with `@[reassoc other_lemma_name]`. If
+`simp` is added first, the generated lemma will also have the `simp` attribute.
+
+See also the [`reassoc_axiom` user command](commands.md#reassoc_axiom).
+
+### reassoc
+
+[[source]](../src/tactic/reassoc_axiom.lean) [mathlib tactic: `import tactic.reassoc_axiom` or `import tactic`]
+
+`reassoc h`, for assumption `h : x ≫ y = z`, creates a new assumption `h : ∀ {W} (f : Z ⟶ W), x ≫ y ≫ f = z ≫ f`.
+
+`reassoc! h`, does the same but deletes the initial `h` assumption.
+
+(You can also add the attribute `@[reassoc]` to lemmas to generate new declarations generalized in this way.)
+
+### reassoc_of
+
+[[source]](../src/tactic/reassoc_axiom.lean) [mathlib tactic: `import tactic.reassoc_axiom` or `import tactic`]
+
+`reassoc_of h` takes local assumption `h` and adds a ` ≫ f` term on the right of both sides of the equality.
+Instead of creating a new assumption from the result, `reassoc_of h` stands for the proof of that reassociated
+statement. This prevents poluting the local context with complicated assumptions used only once or twice.
+
+In the following, assumption `h` is needed in a reassociated form. Instead of proving it as a new goal and adding it as
+an assumption, we use `reassoc_of h` as a rewrite rule which works just as well.
+
+```lean
+example (X Y Z W : C) (x : X ⟶ Y) (y : Y ⟶ Z) (z z' : Z ⟶ W) (w : X ⟶ Z)
+  (h : x ≫ y = w)
+  (h' : y ≫ z = y ≫ z') :
+  x ≫ y ≫ z = w ≫ z' :=
+begin
+  -- reassoc_of h : ∀ {X' : C} (f : W ⟶ X'), x ≫ y ≫ f = w ≫ f
+  rw [h',reassoc_of h],
+end
+```
+
+Although `reassoc_of` is not a tactic or a meta program, its type is generated
+through meta-programming to make it usable inside normal expressions.

@@ -871,6 +871,15 @@ theorem eq_preimage_subtype_val_iff {p : α → Prop} {s : set (subtype p)} {t :
 ⟨assume s_eq x h, by rw [s_eq]; simp,
  assume h, ext $ assume ⟨x, hx⟩, by simp [h]⟩
 
+lemma if_preimage (p : α → Prop) [decidable_pred p] (f g : α → β) (s : set β) :
+  (λa, if p a then f a else g a)⁻¹' s = (p ∩ f ⁻¹' s) ∪ (-p ∩ g ⁻¹' s) :=
+begin
+  ext,
+  simp only [mem_inter_eq, mem_union_eq, mem_preimage],
+  split_ifs;
+  simp [mem_def, h]
+end
+
 end preimage
 
 /- function image -/

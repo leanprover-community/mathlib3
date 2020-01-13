@@ -84,16 +84,6 @@ variable {β}
 lemma indicator_indicator (s t : set α) (f : α → β) : indicator s (indicator t f) = indicator (s ∩ t) f :=
 funext $ λx, by { simp only [indicator], split_ifs, repeat {simp * at * {contextual := tt}} }
 
--- TODO : move
-lemma if_preimage (p : α → Prop) (f g : α → β) (B : set β) :
-  (λa, if p a then f a else g a)⁻¹' B = p ∩ f ⁻¹' B ∪ (-p) ∩ g ⁻¹' B :=
-begin
-  ext,
-  simp only [mem_inter_eq, mem_union_eq, mem_preimage],
-  split_ifs;
-  simp [mem_def, h]
-end
-
 lemma indicator_preimage (s : set α) (f : α → β) (B : set β) :
   (indicator s f)⁻¹' B = s ∩ f ⁻¹' B ∪ (-s) ∩ (λa:α, (0:β)) ⁻¹' B :=
 by { rw [indicator, if_preimage], refl }

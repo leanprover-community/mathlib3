@@ -10,7 +10,7 @@ import analysis.normed_space.basic
 /-!
 # Indicator function
 
-`indicator (s : set α) (f : α → β) (a : α)` is `f x` if `x ∈ s` and is `0` otherwise.
+`indicator (s : set α) (f : α → β) (a : α)` is `f a` if `a ∈ s` and is `0` otherwise.
 
 ## Implementation note
 

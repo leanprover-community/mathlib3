@@ -25,8 +25,7 @@ open topological_space
 
 Note: this is different from the `emetric_space` topology. The `emetric_space` topology has
 `is_open {⊤}`, while this topology doesn't have singleton elements. -/
-instance : topological_space ennreal :=
-topological_space.generate_from {s | ∃a, s = {b | a < b} ∨ s = {b | b < a}}
+instance : topological_space ennreal := preorder.topology ennreal
 
 instance : order_topology ennreal := ⟨rfl⟩
 
@@ -725,14 +724,19 @@ have tendsto (λp:α×α, edist p.1 p.2) (𝓝 (a, b)) (𝓝 (edist a b)),
   from continuous_iff_continuous_at.mp continuous_edist' (a, b),
 tendsto.comp (by rw [nhds_prod_eq] at this; exact this) (hf.prod_mk hg)
 
-lemma cauchy_seq_of_edist_le_of_tsum_ne_top {f : ℕ → α} (d : ℕ → ennreal)
-  (hf : ∀ n, edist (f n) (f n.succ) ≤ d n) (hd : tsum d ≠ ∞) :
+lemma cauchy_seq_of_eventually_edist_le_of_tsum_ne_top {f : ℕ → α} (d : ℕ → ennreal)
+  (hf : ∀ᶠ n in at_top, edist (f n) (f n.succ) ≤ d n) (hd : tsum d ≠ ∞) :
   cauchy_seq f :=
 begin
   lift d to (ℕ → nnreal) using (λ i, ennreal.ne_top_of_tsum_ne_top hd i),
   rw ennreal.tsum_coe_ne_top_iff_summable at hd,
-  exact cauchy_seq_of_edist_le_of_summable d hf hd
+  exact cauchy_seq_of_eventually_edist_le_of_summable d hf hd
 end
+
+lemma cauchy_seq_of_edist_le_of_tsum_ne_top {f : ℕ → α} (d : ℕ → ennreal)
+  (hf : ∀ n, edist (f n) (f n.succ) ≤ d n) (hd : tsum d ≠ ∞) :
+  cauchy_seq f :=
+cauchy_seq_of_eventually_edist_le_of_tsum_ne_top d (eventually_of_forall _ hf) hd
 
 /-- If `edist (f n) (f (n+1))` is bounded above by a function `d : ℕ → ennreal`,
 then the distance from `f n` to the limit is bounded by `∑_{k=n}^∞ d k`. -/

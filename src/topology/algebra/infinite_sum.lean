@@ -571,44 +571,66 @@ end uniform_group
 section cauchy_seq
 open finset.Ico filter
 
-/-- If the extended distance between consequent points of a sequence is estimated
+/-- If the extended distance between consequent points of a sequence is eventually bounded
 by a summable series of `nnreal`s, then the original sequence is a Cauchy sequence. -/
-lemma cauchy_seq_of_edist_le_of_summable [emetric_space α] {f : ℕ → α} (d : ℕ → nnreal)
-  (hf : ∀ n, edist (f n) (f n.succ) ≤ d n) (hd : summable d) : cauchy_seq f :=
+lemma cauchy_seq_of_eventually_edist_le_of_summable [emetric_space α] {f : ℕ → α} (d : ℕ → nnreal)
+  (hf : ∀ᶠ n in at_top, edist (f n) (f n.succ) ≤ d n) (hd : summable d) : cauchy_seq f :=
 begin
   refine emetric.cauchy_seq_iff_nnreal.2 (λ ε εpos, _),
   -- Actually we need partial sums of `d` to be a Cauchy sequence
   replace hd : cauchy_seq (λ (n : ℕ), sum (range n) d) :=
     let ⟨_, H⟩ := hd in cauchy_seq_of_tendsto_nhds _ (tendsto_sum_nat_of_has_sum H),
-  -- Now we take the same `N` as in one of the definitions of a Cauchy sequence
-  refine (metric.cauchy_seq_iff'.1 hd ε (nnreal.coe_pos.2 εpos)).imp (λ N hN n hn, _),
-  have hsum := hN n hn,
+  simp only [filter.eventually, mem_at_top_sets, set.mem_set_of_eq] at hf,
+  -- We choose `N` to the the maximum of those from `hf` and `hd`
+  rcases hf with ⟨Nf, hNf⟩,
+  rcases metric.cauchy_seq_iff.1 hd ε (nnreal.coe_pos.2 εpos) with ⟨Nd, hNd⟩,
+  set N := max Nf Nd,
+  use N,
+  assume n hn,
+  have hsum := hNd n N (le_trans (le_max_right _ _) hn) (le_max_right Nf Nd),
   -- We simplify the known inequality
   rw [dist_nndist, nnreal.nndist_eq, ← sum_range_add_sum_Ico _ hn, nnreal.add_sub_cancel'] at hsum,
   norm_cast at hsum,
   replace hsum := lt_of_le_of_lt (le_max_left _ _) hsum,
-
   -- Then use `hf` to simplify the goal to the same form
-  apply lt_of_le_of_lt (edist_le_Ico_sum_of_edist_le hn (λ k _ _, hf k)),
+  apply lt_of_le_of_lt (edist_le_Ico_sum_of_edist_le hn
+    (λ k hNk _, hNf k (le_trans (le_max_left Nf Nd) hNk))),
   assumption_mod_cast
 end
 
-/-- If the distance between consequent points of a sequence is estimated by a summable series,
-then the original sequence is a Cauchy sequence. -/
-lemma cauchy_seq_of_dist_le_of_summable [metric_space α] {f : ℕ → α} (d : ℕ → ℝ)
-  (hf : ∀ n, dist (f n) (f n.succ) ≤ d n) (hd : summable d) : cauchy_seq f :=
+/-- If the extended distance between consequent points of a sequence is bounded
+by a summable series of `nnreal`s, then the original sequence is a Cauchy sequence. -/
+lemma cauchy_seq_of_edist_le_of_summable [emetric_space α] {f : ℕ → α} (d : ℕ → nnreal)
+  (hf : ∀ n, edist (f n) (f n.succ) ≤ d n) (hd : summable d) : cauchy_seq f :=
+cauchy_seq_of_eventually_edist_le_of_summable d (eventually_of_forall _ hf) hd
+
+/-- If the distance between consequent points of a sequence is eventually bounded by a summable
+series, then the original sequence is a Cauchy sequence. -/
+lemma cauchy_seq_of_eventually_dist_le_of_summable [metric_space α] {f : ℕ → α} (d : ℕ → ℝ)
+  (hf : ∀ᶠ n in at_top, dist (f n) (f n.succ) ≤ d n) (hd : summable d) : cauchy_seq f :=
 begin
   refine metric.cauchy_seq_iff'.2 (λε εpos, _),
   replace hd : cauchy_seq (λ (n : ℕ), sum (range n) d) :=
     let ⟨_, H⟩ := hd in cauchy_seq_of_tendsto_nhds _ (tendsto_sum_nat_of_has_sum H),
-  refine (metric.cauchy_seq_iff'.1 hd ε εpos).imp (λ N hN n hn, _),
-  have hsum := hN n hn,
+  rcases metric.cauchy_seq_iff.1 hd ε εpos with ⟨Nd, hNd⟩,
+  rcases mem_at_top_sets.1 hf with ⟨Nf, hNf⟩,
+  set N := max Nf Nd,
+  use N,
+  assume n hn,
+  have hsum := hNd n N (le_trans (le_max_right _ _) hn) (le_max_right Nf Nd),
   rw [real.dist_eq, ← sum_Ico_eq_sub _ hn] at hsum,
   calc dist (f n) (f N) = dist (f N) (f n) : dist_comm _ _
-  ... ≤ (Ico N n).sum d : dist_le_Ico_sum_of_dist_le hn (λ k _ _, hf k)
+  ... ≤ (Ico N n).sum d : dist_le_Ico_sum_of_dist_le hn
+    (λ k hk _, hNf k (le_trans (le_max_left _ _) hk))
   ... ≤ abs ((Ico N n).sum d) : le_abs_self _
   ... < ε : hsum
 end
+
+/-- If the distance between consequent points of a sequence is bounded by a summable series,
+then the original sequence is a Cauchy sequence. -/
+lemma cauchy_seq_of_dist_le_of_summable [metric_space α] {f : ℕ → α} (d : ℕ → ℝ)
+  (hf : ∀ n, dist (f n) (f n.succ) ≤ d n) (hd : summable d) : cauchy_seq f :=
+cauchy_seq_of_eventually_dist_le_of_summable d (eventually_of_forall _ hf) hd
 
 lemma cauchy_seq_of_summable_dist [metric_space α] {f : ℕ → α}
   (h : summable (λn, dist (f n) (f n.succ))) : cauchy_seq f :=

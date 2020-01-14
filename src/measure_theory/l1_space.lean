@@ -115,7 +115,7 @@ end
 
 lemma integrable_of_le {f : α → β} {g : α → γ} (h : ∀a, ∥f a∥ ≤ ∥g a∥) (hg : integrable g) :
   integrable f :=
-integrable_of_le_ae (by filter_upwards [] h) hg
+integrable_of_le_ae (univ_mem_sets' h) hg
 
 lemma lintegral_nnnorm_eq_lintegral_edist (f : α → β) :
   (∫⁻ a, nnnorm (f a)) = ∫⁻ a, edist (f a) 0 :=

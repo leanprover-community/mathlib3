@@ -40,7 +40,7 @@ def measurable_on (s : set α) (f : α → β) : Prop := measurable (indicator s
 lemma measurable_on_univ (hf : measurable f) : measurable_on univ f :=
 hf.if is_measurable.univ measurable_const
 
-lemma measurable_on_of_measurable (hs : is_measurable s) (hf : measurable f) : measurable_on s f :=
+lemma measurable.measurable_on (hs : is_measurable s) (hf : measurable f) : measurable_on s f :=
 hf.if hs measurable_const
 
 lemma is_measurable.inter_preimage {B : set β}
@@ -59,7 +59,7 @@ end
 lemma measurable_on.subset {t : set α} (hs : is_measurable s) (h : s ⊆ t) (hf : measurable_on t f) :
   measurable_on s f :=
 begin
-  have : measurable_on s (indicator t f) := measurable_on_of_measurable hs hf,
+  have : measurable_on s (indicator t f) := measurable.measurable_on hs hf,
   simp only [measurable_on, indicator_indicator] at this,
   rwa [inter_eq_self_of_subset_left h] at this,
 end
@@ -85,11 +85,10 @@ variables [measure_space α] [normed_group β] {s t : set α} {f g : α → β}
 @[reducible]
 def integrable_on (s : set α) (f : α → β) : Prop := integrable (indicator s f)
 
-lemma integrable_on_congr (h : ∀x, x ∈ s → f x = g x) : integrable_on s f ↔ integrable_on s g :=
+lemma integrable_on_iff (h : ∀x, x ∈ s → f x = g x) : integrable_on s f ↔ integrable_on s g :=
 by simp only [integrable_on, indicator_congr h]
 
--- change the name of integrable_iff_of_ae_eq
-lemma integrable_on_congr_of_ae_eq (h : ∀ₘx, x ∈ s → f x = g x) :
+lemma integrable_on_iff_of_ae_eq (h : ∀ₘx, x ∈ s → f x = g x) :
   integrable_on s f ↔ integrable_on s g :=
 by { simp only [integrable_on], apply integrable_iff_of_ae_eq, exact indicator_congr_ae h }
 

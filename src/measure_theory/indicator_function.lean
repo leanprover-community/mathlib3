@@ -131,7 +131,7 @@ begin
     exact tendsto_const_nhds }
 end
 
-lemma tendsto_indicator_of_decreasing (s : ℕ → set α) (hs : ∀i j, i ≤ j → s j ⊆ s i) (f : α → β)
+lemma tendsto_indicator_of_antimono (s : ℕ → set α) (hs : ∀i j, i ≤ j → s j ⊆ s i) (f : α → β)
   (a : α) : tendsto (λi, indicator (s i) f a) at_top (nhds $ indicator (Inter s) f a) :=
 begin
   by_cases h : ∃i, a ∉ s i,

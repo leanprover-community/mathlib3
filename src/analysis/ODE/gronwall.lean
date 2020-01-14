@@ -25,7 +25,7 @@ Sec. 4.5][HubbardWest-ode], where `norm_le_gronwall_bound_of_norm_deriv_right_le
 ## TODO
 
 - Once we have FTC, prove an inequality for a function satisfying `∥f' x∥ ≤ K x * ∥f x∥ + ε`,
-  or more generally `\liminf_{y→x+0}\frac{f y - f x}{y - x} ≤ K x * f x + ε` with any sign
+  or more generally `liminf_{y→x+0} (f y - f x)/(y - x) ≤ K x * f x + ε` with any sign
   of `K x` and `f x`.
 -/
 
@@ -100,7 +100,7 @@ end
 
 /-- A Grönwall-like inequality: if `f : ℝ → ℝ` is continuous on `[a, b]` and satisfies
 the inequalities `f a ≤ δ` and
-`∀ x ∈ [a, b), \liminf_{z→x+0}\frac{f z - f x}{z - x} ≤ K * (f x) + ε`, then `f x`
+`∀ x ∈ [a, b), liminf_{z→x+0} (f z - f x)/(z - x) ≤ K * (f x) + ε`, then `f x`
 is bounded by `gronwall_bound δ K ε (x - a)` on `[a, b]`.
 
 This inequality is a generalization of a special case of the Grönwall's inequality. Namely, we
@@ -246,7 +246,7 @@ dist_le_of_trajectories_ODE_of_mem_set (λ t x y hx hy, hv t x y) hf hf' hfs
   hg hg' (λ t ht, trivial) ha
 
 /-- There exists only one solution of an ODE \(\dot x=v(t, x)\) in a set `s ⊆ ℝ × E` with
-a given initial value provided that RHS is Lipschits continuous in `x` within `s`,
+a given initial value provided that RHS is Lipschitz continuous in `x` within `s`,
 and we consider only solutions included in `s`. -/
 theorem ODE_solution_unique_of_mem_set {v : ℝ → E → E} {s : ℝ → set E}
   {K : ℝ} (hv : ∀ t, ∀ x y ∈ s t, dist (v t x) (v t y) ≤ K * dist x y)
@@ -267,7 +267,7 @@ begin
 end
 
 /-- There exists only one solution of an ODE \(\dot x=v(t, x)\) with
-a given initial value provided that RHS is Lipschits continuous in `x`. -/
+a given initial value provided that RHS is Lipschitz continuous in `x`. -/
 theorem ODE_solution_unique {v : ℝ → E → E}
   {K : nnreal} (hv : ∀ t, lipschitz_with K (v t))
   {f g : ℝ → E} {a b : ℝ}

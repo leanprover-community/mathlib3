@@ -132,7 +132,7 @@ import tactic.basic
 
 ### rcases
 
-[[source]](../src/tactic/rcases.lean) [mathlib tactic: `import tactic.rcases` or `import tactic.basic`]
+[[source]](../src/tactic/rcases.lean) [mathlib basic tactic, import with `import tactic.rcases` or `import tactic.basic`]
 
 The `rcases` tactic is the same as `cases`, but with more flexibility in the
 `with` pattern syntax to allow for recursive case splitting. The pattern syntax
@@ -167,7 +167,7 @@ but this can be modified with `rcases? e : n`.
 
 ### rintro
 
-[[source]](../src/tactic/rcases.lean) [mathlib tactic: `import tactic.rcases` or `import tactic.basic`]
+[[source]](../src/tactic/rcases.lean) [mathlib basic tactic, import with `import tactic.rcases` or `import tactic.basic`]
 
 The `rintro` tactic is a combination of the `intros` tactic with `rcases` to
 allow for destructuring patterns while introducing variables. See `rcases` for
@@ -182,7 +182,7 @@ depth of splitting; the default is 5.
 
 ### obtain
 
-[[source]](../src/tactic/rcases.lean) [mathlib tactic: `import tactic.rcases` or `import tactic.basic`]
+[[source]](../src/tactic/rcases.lean) [mathlib basic tactic, import with `import tactic.rcases` or `import tactic.basic`]
 
 The `obtain` tactic is a combination of `have` and `rcases`.
 ```lean
@@ -204,7 +204,7 @@ If `type` is omitted, `:= proof` is required.
 
 ### simpa
 
-[[source]](../src/tactic/simpa.lean) [mathlib tactic: `import tactic.simpa` or `import tactic.basic`]
+[[source]](../src/tactic/simpa.lean) [mathlib basic tactic, import with `import tactic.simpa` or `import tactic.basic`]
 
 This is a "finishing" tactic modification of `simp`. It has two forms.
 
@@ -221,7 +221,7 @@ This is a "finishing" tactic modification of `simp`. It has two forms.
 
 ### replace
 
-[[source]](../src/tactic/core.lean) [mathlib tactic: `import tactic.core` or `import tactic.basic`]
+[[source]](../src/tactic/core.lean) [mathlib basic tactic, import with `import tactic.core` or `import tactic.basic`]
 
 Acts like `have`, but removes a hypothesis with the same name as
 this one. For example if the state is `h : p ⊢ goal` and `f : p → q`,
@@ -232,7 +232,7 @@ of Coq.
 
 ### elide/unelide
 
-[[source]](../src/tactic/elide.lean) [mathlib tactic: `import tactic.elide` or `import tactic.basic`]
+[[source]](../src/tactic/elide.lean) [mathlib basic tactic, import with `import tactic.elide` or `import tactic.basic`]
 
 The `elide n (at ...)` tactic hides all subterms of the target goal or hypotheses
 beyond depth `n` by replacing them with `hidden`, which is a variant
@@ -245,7 +245,7 @@ types (usually added by `elide`).
 
 ### field_simp
 
-[[source]](../src/tactic/interactive.lean) [mathlib tactic: `import tactic.interactive` or `import tactic.basic`]
+[[source]](../src/tactic/interactive.lean) [mathlib basic tactic, import with `import tactic.interactive` or `import tactic.basic`]
 
 The goal of `field_simp` is to reduce an expression in a field to an expression of the form `n / d`
 where neither `n` nor `d` contains any division symbol, just using the simplifier (with a carefully
@@ -290,7 +290,7 @@ end
 
 ### congr'
 
-[[source]](../src/tactic/interactive.lean) [mathlib tactic: `import tactic.interactive` or `import tactic.basic`]
+[[source]](../src/tactic/interactive.lean) [mathlib basic tactic, import with `import tactic.interactive` or `import tactic.basic`]
 
 Same as the `congr` tactic, but takes an optional argument which gives
 the depth of recursive applications. This is useful when `congr`
@@ -301,7 +301,7 @@ If, at any point, a subgoal matches a hypothesis then the subgoal will be closed
 
 ### convert
 
-[[source]](../src/tactic/interactive.lean) [mathlib tactic: `import tactic.interactive` or `import tactic.basic`]
+[[source]](../src/tactic/interactive.lean) [mathlib basic tactic, import with `import tactic.interactive` or `import tactic.basic`]
 
 The `exact e` and `refine e` tactics require a term `e` whose type is
 definitionally equal to the goal. `convert e` is similar to `refine
@@ -334,13 +334,13 @@ depth of matching (like `congr' n`). In the example, `convert e using
 
 ### unfold_coes
 
-[[source]](../src/tactic/interactive.lean) [mathlib tactic: `import tactic.interactive` or `import tactic.basic`]
+[[source]](../src/tactic/interactive.lean) [mathlib basic tactic, import with `import tactic.interactive` or `import tactic.basic`]
 
 Unfold coercion-related definitions
 
 ### Instance cache tactics
 
-[[source]](../src/tactic/cache.lean) [mathlib tactic: `import tactic.cache` or `import tactic.basic`]
+[[source]](../src/tactic/cache.lean) [mathlib basic tactics, import with `import tactic.cache` or `import tactic.basic`]
 
 For performance reasons, Lean does not automatically update its database
 of class instances during a proof. The group of tactics described below
@@ -383,7 +383,7 @@ However, it will work, producing the identity function, if one replaces `have` b
 
 ### suggest
 
-[[source]](../src/tactic/suggest.lean) [mathlib tactic: `import tactic.suggest` or `import tactic.basic`]
+[[source]](../src/tactic/suggest.lean) [mathlib basic tactic, import with `import tactic.suggest` or `import tactic.basic`]
 
 `suggest` lists possible usages of the `refine` tactic and leaves the tactic state unchanged.
 It is intended as a complement of the search function in your editor, the `#find` tactic, and `library_search`.
@@ -413,7 +413,7 @@ refine lt_of_not_ge _
 
 ### library_search
 
-[[source]](../src/tactic/suggest.lean) [mathlib tactic: `import tactic.suggest` or `import tactic.basic`]
+[[source]](../src/tactic/suggest.lean) [mathlib basic tactic, import with `import tactic.suggest` or `import tactic.basic`]
 
 `library_search` is a tactic to identify existing lemmas in the library. It tries to close the
 current goal by applying a lemma from the library, then discharging any new goals using
@@ -431,7 +431,7 @@ Typically you will then copy and paste this proof, replacing the call to `librar
 
 ### solve_by_elim
 
-[[source]](../src/tactic/solve_by_elim.lean) [mathlib tactic: `import tactic.solve_by_elim` or `import tactic.basic`]
+[[source]](../src/tactic/solve_by_elim.lean) [mathlib basic tactic, import with `import tactic.solve_by_elim` or `import tactic.basic`]
 
 The tactic `solve_by_elim` repeatedly applies assumptions to the current goal, and succeeds if this eventually discharges the main goal.
 
@@ -457,7 +457,7 @@ unless they are explicitly included.
 
 ### ext1 / ext
 
-[[source]](../src/tactic/ext.lean) [mathlib tactic: `import tactic.ext` or `import tactic.basic`]
+[[source]](../src/tactic/ext.lean) [mathlib basic tactics, import with `import tactic.ext` or `import tactic.basic`]
 
 * `ext1 id` selects and apply one extensionality lemma (with
   attribute `ext`), using `id`, if provided, to name a
@@ -492,7 +492,7 @@ A maximum depth can be provided with `ext x y z : 3`.
 
 ### The `ext` attribute
 
-[[source]](../src/tactic/ext.lean) [mathlib tactic: `import tactic.ext` or `import tactic.basic`]
+[[source]](../src/tactic/ext.lean) [mathlib basic tactic, import with `import tactic.ext` or `import tactic.basic`]
 
 Tag lemmas of the form:
 
@@ -582,7 +582,7 @@ lemma foo.ext_iff : ∀ {α : Type u_1} (x y : foo α), x = y ↔ x.x = y.x ∧ 
 
 ### refine_struct
 
-[[source]](../src/tactic/interactive.lean) [mathlib tactic: `import tactic.interactive` or `import tactic.basic`]
+[[source]](../src/tactic/interactive.lean) [mathlib basic tactic, import with `import tactic.interactive` or `import tactic.basic`]
 
 `refine_struct { .. }` acts like `refine` but works only with structure instance
 literals. It creates a goal for each missing field and tags it with the name of the
@@ -622,7 +622,7 @@ refine_struct ({ .. } : semigroup α),
 
 ### apply_rules
 
-[[source]](../src/tactic/interactive.lean) [mathlib tactic: `import tactic.interactive` or `import tactic.basic`]
+[[source]](../src/tactic/interactive.lean) [mathlib basic tactic, import with `import tactic.interactive` or `import tactic.basic`]
 
 `apply_rules hs n` applies the list of lemmas `hs` and `assumption` on the
 first goal and the resulting subgoals, iteratively, at most `n` times.
@@ -651,7 +651,7 @@ by apply_rules mono_rules
 
 ### h_generalize
 
-[[source]](../src/tactic/interactive.lean) [mathlib tactic: `import tactic.interactive` or `import tactic.basic`]
+[[source]](../src/tactic/interactive.lean) [mathlib basic tactic, import with `import tactic.interactive` or `import tactic.basic`]
 
 `h_generalize Hx : e == x` matches on `cast _ e` in the goal and replaces it with
 `x`. It also adds `Hx : e == x` as an assumption. If `cast _ e` appears multiple
@@ -667,7 +667,7 @@ as casts.
 
 ### squeeze_simp / squeeze_simpa
 
-[[source]](../src/tactic/squeeze.lean) [mathlib tactic: `import tactic.squeeze` or `import tactic.basic`]
+[[source]](../src/tactic/squeeze.lean) [mathlib basic tactics, import with `import tactic.squeeze` or `import tactic.basic`]
 
 `squeeze_simp` and `squeeze_simpa` perform the same task with
 the difference that `squeeze_simp` relates to `simp` while
@@ -719,7 +719,7 @@ Known limitation(s):
 
 ### use
 
-[[source]](../src/tactic/interactive.lean) [mathlib tactic: `import tactic.interactive` or `import tactic.basic`]
+[[source]](../src/tactic/interactive.lean) [mathlib basic tactic, import with `import tactic.interactive` or `import tactic.basic`]
 
 Similar to `existsi`. `use x` will instantiate the first term of an `∃` or `Σ` goal with `x`.
 Unlike `existsi`, `x` is elaborated with respect to the expected type.
@@ -745,7 +745,7 @@ by use ⟨1, 42⟩
 
 ### clear_aux_decl
 
-[[source]](../src/tactic/interactive.lean) [mathlib tactic: `import tactic.interactive` or `import tactic.basic`]
+[[source]](../src/tactic/interactive.lean) [mathlib basic tactic, import with `import tactic.interactive` or `import tactic.basic`]
 
 `clear_aux_decl` clears every `aux_decl` in the local context for the current goal.
 This includes the induction hypothesis when using the equation compiler and
@@ -772,7 +772,7 @@ end
 
 ### set
 
-[[source]](../src/tactic/interactive.lean) [mathlib tactic: `import tactic.interactive` or `import tactic.basic`]
+[[source]](../src/tactic/interactive.lean) [mathlib basic tactic, import with `import tactic.interactive` or `import tactic.basic`]
 
 `set a := t with h` is a variant of `let a := t`. It adds the hypothesis `h : a = t` to the local context and replaces `t` with `a` everywhere it can.
 
@@ -796,7 +796,7 @@ end
 
 ### choose
 
-[[source]](../src/tactic/interactive.lean) [mathlib tactic: `import tactic.interactive` or `import tactic.basic`]
+[[source]](../src/tactic/interactive.lean) [mathlib basic tactic, import with `import tactic.interactive` or `import tactic.basic`]
 
 `choose a b h using hyp` takes an hypothesis `hyp` of the form
 `∀ (x : X) (y : Y), ∃ (a : A) (b : B), P x y a b` for some `P : X → Y → A → B → Prop` and outputs
@@ -818,7 +818,7 @@ end
 
 ### convert_to
 
-[[source]](../src/tactic/interactive.lean) [mathlib tactic: `import tactic.interactive` or `import tactic.basic`]
+[[source]](../src/tactic/interactive.lean) [mathlib basic tactic, import with `import tactic.interactive` or `import tactic.basic`]
 
 `convert_to g using n` attempts to change the current goal to `g`, but unlike `change`,
 it will generate equality proof obligations using `congr' n` to resolve discrepancies.
@@ -837,7 +837,7 @@ end
 
 ### assoc_rewrite
 
-[[source]](../src/tactic/rewrite.lean) [mathlib tactic: `import tactic.rewrite` or `import tactic.basic`]
+[[source]](../src/tactic/rewrite.lean) [mathlib basic tactic, import with `import tactic.rewrite` or `import tactic.basic`]
 
 `assoc_rewrite [h₀, ← h₁] at ⊢ h₂` behaves like
 `rewrite [h₀, ← h₁] at ⊢ h₂` with the exception that associativity is
@@ -845,7 +845,7 @@ used implicitly to make rewriting possible.
 
 ### restate_axiom
 
-[[source]](../src/tactic/restate_axiom.lean) [mathlib tactic: `import tactic.restate_axiom` or `import tactic.basic`]
+[[source]](../src/tactic/restate_axiom.lean) [mathlib basic tactic, import with `import tactic.restate_axiom` or `import tactic.basic`]
 
 `restate_axiom` makes a new copy of a structure field, first definitionally simplifying the type.
 This is useful to remove `auto_param` or `opt_param` from the statement.
@@ -874,7 +874,7 @@ example (z : A) : z.x = 1 := by rw A.f
 
 ### push_neg
 
-[[source]](../src/tactic/push_neg.lean) [mathlib tactic: `import tactic.push_neg` or `import tactic.basic`]
+[[source]](../src/tactic/push_neg.lean) [mathlib basic tactic, import with `import tactic.push_neg` or `import tactic.basic`]
 
 This tactic pushes negations inside expressions. For instance, given an assumption
 
@@ -898,7 +898,7 @@ using say `push_neg at h h' ⊢` as usual.
 
 ### contrapose
 
-[[source]](../src/tactic/push_neg.lean) [mathlib tactic: `import tactic.push_neg` or `import tactic.basic`]
+[[source]](../src/tactic/push_neg.lean) [mathlib basic tactic, import with `import tactic.push_neg` or `import tactic.basic`]
 
 Transforms the goal into its contrapositive.
 
@@ -915,19 +915,19 @@ Transforms the goal into its contrapositive.
 
 ### swap
 
-[[source]](../src/tactic/interactive.lean) [mathlib tactic: `import tactic.interactive` or `import tactic.basic`]
+[[source]](../src/tactic/interactive.lean) [mathlib basic tactic, import with `import tactic.interactive` or `import tactic.basic`]
 
 `swap n` will move the `n`th goal to the front. `swap` defaults to `swap 2`, and so interchanges the first and second goals.
 
 ### rotate
 
-[[source]](../src/tactic/interactive.lean) [mathlib tactic: `import tactic.interactive` or `import tactic.basic`]
+[[source]](../src/tactic/interactive.lean) [mathlib basic tactic, import with `import tactic.interactive` or `import tactic.basic`]
 
 `rotate` moves the first goal to the back. `rotate n` will do this `n` times.
 
 ### lift
 
-[[source]](../src/tactic/lift.lean) [mathlib tactic: `import tactic.lift` or `import tactic.basic`]
+[[source]](../src/tactic/lift.lean) [mathlib basic tactic, import with `import tactic.lift` or `import tactic.basic`]
 
 Lift an expression to another type.
 * Usage: `'lift' expr 'to' expr ('using' expr)? ('with' id (id id?)?)?`.
@@ -963,7 +963,7 @@ Lift an expression to another type.
 
 ### default_dec_tac'
 
-[[source]](../src/tactic/well_founded_tactics.lean) [mathlib tactic: `import tactic.well_founded_tactics` or `import tactic.basic`]
+[[source]](../src/tactic/well_founded_tactics.lean) [mathlib basic tactic, import with `import tactic.well_founded_tactics` or `import tactic.basic`]
 
 `default_dec_tac'` is a replacement for the core tactic `default_dec_tac`, fixing a bug. This
 bug is often indicated by a message `nested exception message: tactic failed, there are no goals to be solved`, and solved by appending `using_well_founded wf_tacs` to the recursive definition.
@@ -973,7 +973,7 @@ See also additional documentation of `using_well_founded` in
 
 ### simps
 
-[[source]](../src/tactic/simps.lean) [mathlib tactic: `import tactic.simps` or `import tactic.basic`]
+[[source]](../src/tactic/simps.lean) [mathlib basic tactic, import with `import tactic.simps` or `import tactic.basic`]
 
 * The `@[simps]` attribute automatically derives lemmas specifying the projections of the declaration.
 * Example: (note that the forward and reverse functions are specified differently!)
@@ -1015,7 +1015,7 @@ import tactic
 
 ### tfae
 
-[[source]](../src/tactic/tfae.lean) [mathlib tactic: `import tactic.tfae` or `import tactic`]
+[[source]](../src/tactic/tfae.lean) [mathlib tactic, import with `import tactic.tfae` or `import tactic`]
 
 The `tfae` tactic suite is a set of tactics that help with proving that certain
 propositions are equivalent.
@@ -1070,7 +1070,7 @@ end
 
 ### finish/clarify/safe
 
-[[source]](../src/tactic/finish.lean) [mathlib tactic: `import tactic.finish` or `import tactic`]
+[[source]](../src/tactic/finish.lean) [mathlib tactic, import with `import tactic.finish` or `import tactic`]
 
 These tactics do straightforward things: they call the simplifier, split conjunctive assumptions,
 eliminate existential quantifiers on the left, and look for contradictions. They rely on ematching
@@ -1088,7 +1088,7 @@ All accept an optional list of simplifier rules, typically definitions that shou
 
 ### abel
 
-[[source]](../src/tactic/abel.lean) [mathlib tactic: `import tactic.abel` or `import tactic`]
+[[source]](../src/tactic/abel.lean) [mathlib tactic, import with `import tactic.abel` or `import tactic`]
 
 Evaluate expressions in the language of *additive*, commutative monoids and groups.
 It attempts to prove the goal outright if there is no `at`
@@ -1105,7 +1105,7 @@ by { abel at hyp, exact hyp }
 
 ### norm_num
 
-[[source]](../src/tactic/norm_num.lean) [mathlib tactic: `import tactic.norm_num` or `import tactic`]
+[[source]](../src/tactic/norm_num.lean) [mathlib tactic, import with `import tactic.norm_num` or `import tactic`]
 
 Normalises numerical expressions. It supports the operations `+` `-` `*` `/` `^` and `%` over numerical types such as `ℕ`, `ℤ`, `ℚ`, `ℝ`, `ℂ`, and can prove goals of the form `A = B`, `A ≠ B`, `A < B` and `A ≤ B`, where `A` and `B` are
 numerical expressions. It also has a relatively simple primality prover.
@@ -1126,7 +1126,7 @@ example (x : ℝ) (h : x = 123 + 456) : x = 579 := by norm_num at h; assumption
 
 ### ring
 
-[[source]](../src/tactic/ring.lean) [mathlib tactic: `import tactic.ring` or `import tactic`]
+[[source]](../src/tactic/ring.lean) [mathlib tactic, import with `import tactic.ring` or `import tactic`]
 
 Evaluate expressions in the language of *commutative* (semi)rings.
 Based on [Proving Equalities in a Commutative Ring Done Right in Coq](http://www.cs.ru.nl/~freek/courses/tt-2014/read/10.1.1.61.3041.pdf) by Benjamin Grégoire and Assia Mahboubi.
@@ -1135,7 +1135,7 @@ The variant `ring!` uses a more aggessive reducibility setting to determine equa
 
 ### ring_exp
 
-[[source]](../src/tactic/ring_exp.lean) [mathlib tactic: `import tactic.ring_exp` or `import tactic`]
+[[source]](../src/tactic/ring_exp.lean) [mathlib tactic, import with `import tactic.ring_exp` or `import tactic`]
 
 Evaluate expressions in *commutative* (semi)rings, allowing for variables in the exponent.
 
@@ -1154,7 +1154,7 @@ example (x y : ℕ) : x + id y = y + id x := by ring_exp!
 
 ### pi_instance
 
-[[source]](../src/tactic/pi_instances.lean) [mathlib tactic: `import tactic.pi_instances` or `import tactic`]
+[[source]](../src/tactic/pi_instances.lean) [mathlib tactic, import with `import tactic.pi_instances` or `import tactic`]
 
 `pi_instance` constructs an instance of `my_class (Π i : I, f i)`
 where we know `Π i, my_class (f i)`. If an order relation is required,
@@ -1164,7 +1164,7 @@ new goal.
 
 ### tidy
 
-[[source]](../src/tactic/tidy.lean) [mathlib tactic: `import tactic.tidy` or `import tactic`]
+[[source]](../src/tactic/tidy.lean) [mathlib tactic, import with `import tactic.tidy` or `import tactic`]
 
 `tidy` attempts to use a variety of conservative tactics to solve the goals.
 In particular, `tidy` uses the `chain` tactic to repeatedly apply a list of tactics to
@@ -1187,7 +1187,7 @@ This list can be overriden using `tidy { tactics :=  ... }`. (The list must be a
 
 ### linarith
 
-[[source]](../src/tactic/linarith.lean) [mathlib tactic: `import tactic.linarith` or `import tactic`]
+[[source]](../src/tactic/linarith.lean) [mathlib tactic, import with `import tactic.linarith` or `import tactic`]
 
 `linarith` attempts to find a contradiction between hypotheses that are linear (in)equalities.
 Equivalently, it can prove a linear inequality by assuming its negation and proving `false`.
@@ -1231,7 +1231,7 @@ sometimes confuse the tactic.
 
 ### fin_cases
 
-[[source]](../src/tactic/fin_cases.lean) [mathlib tactic: `import tactic.fin_cases` or `import tactic`]
+[[source]](../src/tactic/fin_cases.lean) [mathlib tactic, import with `import tactic.fin_cases` or `import tactic`]
 
 `fin_cases h` performs case analysis on a hypothesis of the form
 1) `h : A`, where `[fintype A]` is available, or
@@ -1253,7 +1253,7 @@ after `fin_cases p; simp`, there are three goals, `f 0`, `f 1`, and `f 2`.
 
 ### mono
 
-[[source]](../src/tactic/monotonicity/interactive.lean) [mathlib tactic: `import tactic.monotonicity` or `import tactic`]
+[[source]](../src/tactic/monotonicity/interactive.lean) [mathlib tactic, import with `import tactic.monotonicity` or `import tactic`]
 
 - `mono` applies a monotonicity rule.
 - `mono*` applies monotonicity rules repetitively.
@@ -1294,7 +1294,7 @@ by mono*
 
 ### ac_mono
 
-[[source]](../src/tactic/monotonicity/interactive.lean) [mathlib tactic: `import tactic.monotonicity` or `import tactic`]
+[[source]](../src/tactic/monotonicity/interactive.lean) [mathlib tactic, import with `import tactic.monotonicity` or `import tactic`]
 
 `ac_mono` reduces the `f x ⊑ f y`, for some relation `⊑` and a
 monotonic function `f` to `x ≺ y`.
@@ -1350,7 +1350,7 @@ stop earlier than it would normally would.
 
 ### omega
 
-[[source]](../src/tactic/omega/main.lean) [mathlib tactic: `import tactic.omega` or `import tactic`]
+[[source]](../src/tactic/omega/main.lean) [mathlib tactic, import with `import tactic.omega` or `import tactic`]
 
 `omega` attempts to discharge goals in the quantifier-free fragment of linear integer and natural number arithmetic using the Omega test. In other words, the core procedure of `omega` works with goals of the form
 
@@ -1388,7 +1388,7 @@ by {revert h2 i, omega manual int}
 
 ### tautology
 
-[[source]](../src/tactic/tauto.lean) [mathlib tactic: `import tactic.tauto` or `import tactic`]
+[[source]](../src/tactic/tauto.lean) [mathlib tactic, import with `import tactic.tauto` or `import tactic`]
 
 This tactic (with shorthand `tauto`) breaks down assumptions of the form `_ ∧ _`, `_ ∨ _`, `_ ↔ _` and `∃ _, _`
 and splits a goal of the form `_ ∧ _`, `_ ↔ _` or `∃ _, _` until it can be discharged
@@ -1408,7 +1408,7 @@ instead of `tauto`.
 
 ### norm_cast
 
-[[source]](../src/tactic/norm_cast.lean) [mathlib tactic: `import tactic.norm_cast` or `import tactic`]
+[[source]](../src/tactic/norm_cast.lean) [mathlib tactic, import with `import tactic.norm_cast` or `import tactic`]
 
 This tactic normalizes casts inside expressions.
 It is basically a simp tactic with a specific set of lemmas to move casts
@@ -1476,7 +1476,7 @@ with `push_cast at h`.
 
 ### apply_fun
 
-[[source]](../src/tactic/apply_fun.lean) [mathlib tactic: `import tactic.apply_fun` or `import tactic`]
+[[source]](../src/tactic/apply_fun.lean) [mathlib tactic, import with `import tactic.apply_fun` or `import tactic`]
 
 Apply a function to some local assumptions which are either equalities
 or inequalities. For instance, if the context contains `h : a = b` and
@@ -1502,7 +1502,7 @@ end
 
 ### The `reassoc` attribute
 
-[[source]](../src/tactic/reassoc_axiom.lean) [mathlib tactic: `import tactic.reassoc_axiom` or `import tactic`]
+[[source]](../src/tactic/reassoc_axiom.lean) [mathlib tactic, import with `import tactic.reassoc_axiom` or `import tactic`]
 
 The `reassoc` attribute can be applied to a lemma
 
@@ -1524,7 +1524,7 @@ See also the [`reassoc_axiom` user command](commands.md#reassoc_axiom).
 
 ### reassoc
 
-[[source]](../src/tactic/reassoc_axiom.lean) [mathlib tactic: `import tactic.reassoc_axiom` or `import tactic`]
+[[source]](../src/tactic/reassoc_axiom.lean) [mathlib tactic, import with `import tactic.reassoc_axiom` or `import tactic`]
 
 `reassoc h`, for assumption `h : x ≫ y = z`, creates a new assumption `h : ∀ {W} (f : Z ⟶ W), x ≫ y ≫ f = z ≫ f`.
 
@@ -1534,7 +1534,7 @@ See also the [`reassoc_axiom` user command](commands.md#reassoc_axiom).
 
 ### reassoc_of
 
-[[source]](../src/tactic/reassoc_axiom.lean) [mathlib tactic: `import tactic.reassoc_axiom` or `import tactic`]
+[[source]](../src/tactic/reassoc_axiom.lean) [mathlib tactic, import with `import tactic.reassoc_axiom` or `import tactic`]
 
 `reassoc_of h` takes local assumption `h` and adds a ` ≫ f` term on the right of both sides of the equality.
 Instead of creating a new assumption from the result, `reassoc_of h` stands for the proof of that reassociated

@@ -31,7 +31,7 @@ run_cmd tactic.skip -- this serves as a "barrier" between `import` and `#find`
 
 ## find
 
-[[source]](../src/tactic/find.lean) [mathlib user command: `import tactic.find` or `import tactic.basic`]
+[[source]](../src/tactic/find.lean) [import with `import tactic.find` or `import tactic.basic`]
 
 The `find` command from `tactic.find` allows to find definitions and lemmas using
 pattern matching on the type. For instance:
@@ -50,7 +50,7 @@ The [tactic `library_search`](tactics.md#library_search) is an alternate way to 
 
 ## Localized notation
 
-[[source]](../src/tactic/localized.lean) [mathlib user command: `import tactic.localized` or `import tactic.basic`]
+[[source]](../src/tactic/localized.lean) [import with `import tactic.localized` or `import tactic.basic`]
 
 This consists of two user-commands which allow you to declare notation and commands localized to a namespace.
 
@@ -101,7 +101,7 @@ This consists of two user-commands which allow you to declare notation and comma
 
 ## reassoc_axiom
 
-[[source]](../src/tactic/reassoc_axiom.lean) [mathlib user command: `import tactic.reassoc_axiom` or `import tactic`]
+[[source]](../src/tactic/reassoc_axiom.lean) [import with `import tactic.reassoc_axiom` or `import tactic`]
 
 When declaring a class of categories, the axioms can be reformulated to be more amenable
 to manipulation in right-associated expressions:
@@ -132,7 +132,7 @@ See also [the `reassoc` tactic](tactics.md#reassoc).
 
 ## lint
 
-[[source]](../src/tactic/lint.lean) [mathlib user command: `import tactic.lint` or `import tactic.basic`]
+[[source]](../src/tactic/lint.lean) [import with `import tactic.lint` or `import tactic.basic`]
 
 User commands to spot common mistakes in the code
 
@@ -176,7 +176,7 @@ Adding the attribute `@[nolint]` to a declaration omits it from all linter check
 
 ## mk_simp_attribute
 
-[[source]](../src/tactic/core.lean) [mathlib user command: `import tactic.core` or `import tactic.basic`]
+[[source]](../src/tactic/core.lean) [import with `import tactic.core` or `import tactic.basic`]
 
 The command `mk_simp_attribute simp_name "description"` creates a simp set with name `simp_name`.
 Lemmas tagged with `@[simp_name]` will be included when `simp with simp_name` is called.
@@ -196,7 +196,7 @@ run_cmd add_doc_string `simp_attr.simp_name "Description of the simp set here"
 
 ## library_note
 
-[[source]](../src/tactic/library_note.lean) [mathlib user command: `import tactic.library_note` or `import tactic.basic`]
+[[source]](../src/tactic/library_note.lean) [import with `import tactic.library_note` or `import tactic.basic`]
 
 At various places in mathlib, we leave implementation notes that are referenced from many other
 files. To keep track of these notes, we use the command `library_note`. This makes it easy to
@@ -235,7 +235,7 @@ def f := pi_binders ...
 
 ## alias
 
-[[source]](../src/tactic/alias.lean) [mathlib user command: `import tactic.alias` or `import tactic.basic`]
+[[source]](../src/tactic/alias.lean) [import with `import tactic.alias` or `import tactic.basic`]
 
 The `alias` can be used to create copies
 of a theorem or definition with different names.
@@ -272,7 +272,7 @@ input theorem has the form `A_iff_B` or `A_iff_B_left` etc.
 
 ## setup_tactic_parser
 
-[[source]](../src/tactic/core.lean) [mathlib user command: `import tactic.core` or `import tactic.basic`]
+[[source]](../src/tactic/core.lean) [import with `import tactic.core` or `import tactic.basic`]
 
 `setup_tactic_parser_cmd` is a user command that opens the namespaces used in writing
 interactive tactics, and declares the local postfix notation `?` for `optional` and `*` for `many`.
@@ -281,7 +281,7 @@ It does *not* use the `namespace` command, so it will typically be used after
 
 ## import_private
 
-[[source]](../src/tactic/core.lean) [mathlib user command: `import tactic.core` or `import tactic.basic`]
+[[source]](../src/tactic/core.lean) [import with `import tactic.core` or `import tactic.basic`]
 
 `import_private foo from bar` finds a private declaration `foo` in the same file as `bar`
 and creates a local notation to refer to it.
@@ -292,7 +292,7 @@ When possible, make `foo` non-private rather than using this feature.
 
 ## explode
 
-[[source]](../src/tactic/explode.lean) [mathlib user command: `import tactic.explode` or `import tactic.basic`]
+[[source]](../src/tactic/explode.lean) [import with `import tactic.explode` or `import tactic.basic`]
 
 `#explode decl_name` displays a proof term in a line by line format somewhat akin to a Fitch style
 proof or the Metamath proof style.
@@ -315,7 +315,7 @@ iff_true_intro : ∀ {a : Prop}, a → (a ↔ true)
 
 ## where
 
-[[source]](../src/tactic/where.lean) [mathlib user command: `import tactic.where` or `import tactic.basic`]
+[[source]](../src/tactic/where.lean) [import with `import tactic.where` or `import tactic.basic`]
 
 When working in a Lean file with namespaces, parameters, and variables,
 it can be confusing to identify what the current "parser context" is.
@@ -328,7 +328,7 @@ While it is very useful as a quick reference, users should not assume its output
 
 ## def_replacer
 
-[[source]](../src/tactic/replacer.lean) [mathlib user command: `import tactic.replacer` or `import tactic.basic`]
+[[source]](../src/tactic/replacer.lean) [import with `import tactic.replacer` or `import tactic.basic`]
 
 `def_replacer foo` sets up a stub definition `foo : tactic unit`, which can
 effectively be defined and re-defined later, by tagging definitions with `@[foo]`.

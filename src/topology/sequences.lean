@@ -187,7 +187,7 @@ instance [topological_space α] [first_countable_topology α] : sequential_space
   have gssnhds : ∀ s ∈ 𝓝 p, ∃ i, g i ⊆ s,
   { intro s, rw gbasis, rw mem_infi,
     { simp, intros i hi, use i, assumption },
-    { apply directed_of_mono, intros, apply principal_mono.mpr, apply gmon, assumption },
+    { apply lattice.directed_of_mono, intros, apply principal_mono.mpr, apply gmon, assumption },
     { apply_instance } },
   -- For the sequence (x i) we can now show that a) it lies in M, and b) converges to p.
   ⟨λ i, (x i).val, by intro i; simp [(x i).property.right],

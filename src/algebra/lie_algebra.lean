@@ -238,9 +238,7 @@ def Ad : L →ₗ⁅R⁆ module.End R L := {
     rw endo_algebra_bracket,
     suffices : ⁅⁅x, y⁆, z⁆ = ⁅x, ⁅y, z⁆⁆ + ⁅⁅x, z⁆, y⁆, by simpa,
     rw [eq_comm, ←lie_skew ⁅x, y⁆ z, ←lie_skew ⁅x, z⁆ y, ←lie_skew x z, lie_neg, neg_neg,
-        ←sub_eq_zero_iff_eq, sub_neg_eq_add, lie_ring.jacobi],
-  }
-}
+        ←sub_eq_zero_iff_eq, sub_neg_eq_add, lie_ring.jacobi], } }
 
 end lie_algebra
 
@@ -280,8 +278,7 @@ A Lie module is a module over a commutative ring, together with a linear action 
 on this module, such that the Lie bracket acts as the commutator of endomorphisms.
 -/
 class lie_module extends linear_action R L M :=
-(lie_act : ∀ (l l' : L) (m : M), act ⁅l, l'⁆ m = act l (act l' m) -
-                                                 act l' (act l m))
+(lie_act : ∀ (l l' : L) (m : M), act ⁅l, l'⁆ m = act l (act l' m) - act l' (act l m))
 end prio
 
 @[simp] lemma lie_act [lie_module R L M]

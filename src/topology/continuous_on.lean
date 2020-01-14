@@ -176,7 +176,7 @@ lemma mem_closure_iff_nhds_within_ne_bot {s : set α} {x : α} :
 begin
   split,
   { assume hx,
-    rw ← forall_sets_neq_empty_iff_neq_bot,
+    rw ← forall_sets_ne_empty_iff_ne_bot,
     assume o ho,
     rw mem_nhds_within at ho,
     rcases ho with ⟨u, u_open, xu, hu⟩,
@@ -188,7 +188,7 @@ begin
     have : u ∩ s ∈ nhds_within x s,
     { rw mem_nhds_within,
       exact ⟨u, u_open, xu, subset.refl _⟩ },
-    exact forall_sets_neq_empty_iff_neq_bot.2 h (u ∩ s) this }
+    exact forall_sets_ne_empty_iff_ne_bot.2 h (u ∩ s) this }
 end
 
 lemma nhds_within_ne_bot_of_mem {s : set α} {x : α} (hx : x ∈ s) :

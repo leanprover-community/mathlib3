@@ -174,7 +174,7 @@ mem_at_top_sets.mpr $ exists.intro fsts $ assume bs (hbs : fsts ⊆ bs),
     from tendsto_finset_sum bs $
       assume c hc, tendsto_infi' c $ tendsto_infi' hc $ by apply tendsto.comp (hf c) tendsto_comap,
   have bs.sum g ∈ s,
-    from mem_of_closed_of_tendsto' this hsc $ forall_sets_neq_empty_iff_neq_bot.mp $
+    from mem_of_closed_of_tendsto' this hsc $ forall_sets_ne_empty_iff_ne_bot.mp $
       by simp [mem_inf_sets, exists_imp_distrib, and_imp, forall_and_distrib,
                filter.mem_infi_sets_finset, mem_comap_sets, skolem, mem_at_top_sets,
                and_comm];
@@ -183,7 +183,7 @@ mem_at_top_sets.mpr $ exists.intro fsts $ assume bs (hbs : fsts ⊆ bs),
         have (⋂b (h : b ∈ bs), (λp:(Πb, finset (γ b)), p b) ⁻¹' {cs' | cs b h ⊆ cs' }) ≤ (⨅b∈bs, p b),
           from infi_le_infi $ assume b, infi_le_infi $ assume hb,
             le_trans (set.preimage_mono $ hp' b hb) (hp b hb),
-        neq_bot_of_le_neq_bot (h _) (le_trans (set.inter_subset_inter (le_trans this hs₂) hs₃) hs₁),
+        ne_bot_of_le_ne_bot (h _) (le_trans (set.inter_subset_inter (le_trans this hs₂) hs₃) hs₁),
   hss' this
 
 lemma summable_sigma [regular_space α] {γ : β → Type*} {f : (Σb:β, γ b) → α}

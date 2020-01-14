@@ -11,9 +11,7 @@ import analysis.calculus.mean_value analysis.complex.exponential
 The main technical result of this file is the Grönwall-like inequality
 `norm_le_gronwall_bound_of_norm_deriv_right_le`. It states that if `f : ℝ → E` satisfies `∥f a∥ ≤ δ`
 and `∀ x ∈ [a, b), ∥f' x∥ ≤ K * ∥f x∥ + ε`, then for all `x ∈ [a, b]` we have `∥f x∥ ≤ δ * exp (K *
-x) + (ε / K) * (exp (K * x) - 1)`. This inequality is a generalization of a special case of
-Grönwall's inequality. Namely, we use a constant `K` instead of a time-dependent upper bound `K x`
-but we add an additive constant `ε`.
+x) + (ε / K) * (exp (K * x) - 1)`.
 
 Then we use this inequality to prove some estimates on the possible rate of growth of the distance
 between two approximate or exact solutions of an ordinary differential equation.
@@ -103,9 +101,6 @@ the inequalities `f a ≤ δ` and
 `∀ x ∈ [a, b), liminf_{z→x+0} (f z - f x)/(z - x) ≤ K * (f x) + ε`, then `f x`
 is bounded by `gronwall_bound δ K ε (x - a)` on `[a, b]`.
 
-This inequality is a generalization of a special case of the Grönwall's inequality. Namely, we
-use a constant `K` instead of a function `K x` but we add a constant `ε`.
-
 See also `norm_le_gronwall_bound_of_norm_deriv_right_le` for a version bounding `∥f x∥`,
 `f : ℝ → E`. -/
 theorem le_gronwall_bound_of_liminf_deriv_right_le {f f' : ℝ → ℝ} {δ K ε : ℝ} {a b : ℝ}
@@ -135,10 +130,7 @@ end
 /-- A Grönwall-like inequality: if `f : ℝ → E` is continuous on `[a, b]`, has right derivative
 `f' x` at every point `x ∈ [a, b)`, and satisfies the inequalities `∥f a∥ ≤ δ`,
 `∀ x ∈ [a, b), ∥f' x∥ ≤ K * ∥f x∥ + ε`, then `∥f x∥` is bounded by `gronwall_bound δ K ε (x - a)`
-on `[a, b]`.
-
-This inequality is a generalization of a special case of the Grönwall's inequality. Namely, we
-use a constant `K` instead of a function `K x` but we add a constant `ε`. -/
+on `[a, b]`. -/
 theorem norm_le_gronwall_bound_of_norm_deriv_right_le {f f' : ℝ → E} {δ K ε : ℝ} {a b : ℝ}
   (hf : continuous_on f (Icc a b)) (hf' : ∀ x ∈ Ico a b, has_deriv_within_at f (f' x) (Ioi x) x)
   (ha : ∥f a∥ ≤ δ) (bound : ∀ x ∈ Ico a b, ∥f' x∥ ≤ K * ∥f x∥ + ε) :

@@ -24,8 +24,8 @@ of the derivative. This is why their names reflect their uses, and not how they 
 
 ## Implementation details
 
-Note that this file is imported by `deriv.lean`. Hence, derivatives are not defined yet. The
-property of uniqueness of the derivative is therefore proved in `deriv.lean`, but based on the
+Note that this file is imported by `fderiv.lean`. Hence, derivatives are not defined yet. The
+property of uniqueness of the derivative is therefore proved in `fderiv.lean`, but based on the
 properties of the tangent cone we prove here.
 -/
 
@@ -45,7 +45,7 @@ def tangent_cone_at (s : set E) (x : E) : set E :=
 
 /-- A property ensuring that the tangent cone to `s` at `x` spans a dense subset of the whole space.
 The main role of this property is to ensure that the differential within `s` at `x` is unique,
-hence this name. The uniqueness it asserts is proved in `unique_diff_within_at.eq` in `deriv.lean`.
+hence this name. The uniqueness it asserts is proved in `unique_diff_within_at.eq` in `fderiv.lean`.
 To avoid pathologies in dimension 0, we also require that `x` belongs to the closure of `s` (which
 is automatic when `E` is not `0`-dimensional).
  -/
@@ -55,7 +55,7 @@ closure ((submodule.span 𝕜 (tangent_cone_at 𝕜 s x)) : set E) = univ ∧ x 
 /-- A property ensuring that the tangent cone to `s` at any of its points spans a dense subset of
 the whole space.  The main role of this property is to ensure that the differential along `s` is
 unique, hence this name. The uniqueness it asserts is proved in `unique_diff_on.eq` in
-`deriv.lean`. -/
+`fderiv.lean`. -/
 def unique_diff_on (s : set E) : Prop :=
 ∀x ∈ s, unique_diff_within_at 𝕜 s x
 

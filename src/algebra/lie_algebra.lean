@@ -225,35 +225,22 @@ of_associative_algebra (module.End R M)
 /--
 The adjoint action of a Lie algebra on itself.
 -/
-def Ad (x : L) : L →ₗ[R] L :=
-{ to_fun := has_bracket.bracket x,
-  add    := by { intros, apply lie_add },
-  smul   := by { intros, apply lie_smul } }
-
-@[simp] lemma Ad_action (x y : L) : ((Ad x) : L →ₗ[R] L) y = ⁅x, y⁆ := rfl
-
-set_option class.instance_max_depth 35
-lemma is_morphism_Ad (x y : L) : (Ad ⁅x, y⁆ : L →ₗ[R] L) = ⁅Ad x, Ad y⁆ :=
-begin
-  ext z,
-  rw endo_algebra_bracket,
-  suffices : ⁅⁅x, y⁆, z⁆ = ⁅x, ⁅y, z⁆⁆ + ⁅⁅x, z⁆, y⁆, by simpa,
-  rw [eq_comm, ←lie_skew ⁅x, y⁆ z, ←lie_skew ⁅x, z⁆ y, ←lie_skew x z, lie_neg, neg_neg,
-      ←sub_eq_zero_iff_eq, sub_neg_eq_add, lie_ring.jacobi],
-end
-
-/--
-The bracket of a Lie algebra as a bilinear map.
--/
-def bil_lie : L →ₗ[R] L →ₗ[R] L :=
-{ to_fun := Ad,
-  add    := by { intros, ext, simp, },
-  smul   := by { intros, ext, simp, } }
-
-/--
-The bracket of a Lie algebra as a morphism of Lie algebras.
--/
-def bil_lie_morphism : L →ₗ⁅R⁆ module.End R L := { bracket := is_morphism_Ad, ..bil_lie }
+def Ad : L →ₗ⁅R⁆ module.End R L := {
+  to_fun  := λ x, {
+    to_fun := has_bracket.bracket x,
+    add    := by { intros, apply lie_add, },
+    smul   := by { intros, apply lie_smul, },
+  },
+  add     := by { intros, ext, simp, },
+  smul    := by { intros, ext, simp, },
+  bracket := by {
+    intros x y, ext z,
+    rw endo_algebra_bracket,
+    suffices : ⁅⁅x, y⁆, z⁆ = ⁅x, ⁅y, z⁆⁆ + ⁅⁅x, z⁆, y⁆, by simpa,
+    rw [eq_comm, ←lie_skew ⁅x, y⁆ z, ←lie_skew ⁅x, z⁆ y, ←lie_skew x z, lie_neg, neg_neg,
+        ←sub_eq_zero_iff_eq, sub_neg_eq_add, lie_ring.jacobi],
+  }
+}
 
 end lie_algebra
 
@@ -319,7 +306,7 @@ def lie_module.of_endo_morphism (α : L →ₗ⁅R⁆ module.End R M) : lie_modu
 Every Lie algebra is a module over itself.
 -/
 instance lie_algebra_self_module : lie_module R L L :=
-  lie_module.of_endo_morphism R L L (lie_algebra.bil_lie_morphism : L →ₗ⁅R⁆ module.End R L)
+  lie_module.of_endo_morphism R L L (lie_algebra.Ad : L →ₗ⁅R⁆ module.End R L)
 
 /--
 A Lie submodule of a Lie module is a submodule that is closed under the Lie bracket.

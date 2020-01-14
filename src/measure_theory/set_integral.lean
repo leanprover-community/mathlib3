@@ -259,7 +259,7 @@ begin
   { filter_upwards [] tendsto_indicator_of_monotone _ h_mono _ }
 end
 
-lemma tendsto_integral_on_of_decreasing (s : ℕ → set α) (f : α → β) (hsm : ∀i, is_measurable (s i))
+lemma tendsto_integral_on_of_antimono (s : ℕ → set α) (f : α → β) (hsm : ∀i, is_measurable (s i))
   (h_mono : ∀i j, i ≤ j → s j ⊆ s i) (hfm : measurable_on (s 0) f) (hfi : integrable_on (s 0) f) :
   tendsto (λi, integral_on (s i) f) at_top (nhds (integral_on (Inter s) f)) :=
 let bound : α → ℝ := indicator (s 0) (λa, ∥f a∥) in
@@ -272,7 +272,7 @@ begin
     assume a,
     rw [norm_indicator_eq_indicator_norm],
     refine indicator_le_indicator_of_subset (h_mono _ _ (zero_le _)) (λa, norm_nonneg _) _ },
-  { filter_upwards [] tendsto_indicator_of_decreasing _ h_mono _ }
+  { filter_upwards [] tendsto_indicator_of_antimono _ h_mono _ }
 end
 
 -- TODO : prove the following proposition

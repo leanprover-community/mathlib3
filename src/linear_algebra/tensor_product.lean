@@ -372,6 +372,11 @@ linear_equiv.of_linear (lift (mk R N M).flip) (lift (mk R M N).flip)
   (ext $ λ m n, rfl)
   (ext $ λ m n, rfl)
 
+protected def rid : M ⊗[R] R ≃ₗ[R] M := by {
+    have h₁ : R ⊗[R] M ≃ₗ[R] M := tensor_product.lid,
+    have h₂ : M ⊗[R] R ≃ₗ[R] R ⊗ M := tensor_product.comm,
+    exact linear_equiv.trans h₂ h₁, }
+
 open linear_map
 protected def assoc : (M ⊗[R] N) ⊗[R] P ≃ₗ[R] M ⊗[R] (N ⊗[R] P) :=
 begin

@@ -303,7 +303,7 @@ def lie_module.of_endo_morphism (α : L →ₗ⁅R⁆ module.End R M) : lie_modu
 Every Lie algebra is a module over itself.
 -/
 instance lie_algebra_self_module : lie_module R L L :=
-  lie_module.of_endo_morphism R L L (lie_algebra.Ad : L →ₗ⁅R⁆ module.End R L)
+  lie_module.of_endo_morphism R L L lie_algebra.Ad
 
 /--
 A Lie submodule of a Lie module is a submodule that is closed under the Lie bracket.

@@ -1004,8 +1004,10 @@ filter.filter_product.of_seq_one
 filter.filter_product.of_seq_zero
 filter.gi_generate
 filter.hyperfilter
-filter.infi_neq_bot_iff_of_directed
-filter.infi_neq_bot_of_directed
+filter.infi_ne_bot_iff_of_directed
+filter.infi_ne_bot_of_directed
+filter.infi_ne_bot_iff_of_directed'
+filter.infi_ne_bot_of_directed'
 filter.infi_sets_eq
 filter.infi_sets_eq'
 filter.is_bounded_default

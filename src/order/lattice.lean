@@ -96,6 +96,11 @@ by finish
 theorem le_of_sup_eq (h : a ⊔ b = b) : a ≤ b :=
 by finish
 
+/-- A monotone function on a sup-semilattice is directed. -/
+lemma directed_of_mono {β} (f : α → β) {r : β → β → Prop}
+  (H : ∀ ⦃i j⦄, i ≤ j → r (f i) (f j)) : directed r f :=
+λ a b, ⟨a ⊔ b, H le_sup_left, H le_sup_right⟩
+
 @[simp] lemma sup_lt_iff [is_total α (≤)] {a b c : α} : b ⊔ c < a ↔ b < a ∧ c < a :=
 begin
   cases (is_total.total (≤) b c) with h,
@@ -198,6 +203,11 @@ by finish
 
 theorem le_of_inf_eq (h : a ⊓ b = a) : a ≤ b :=
 by finish
+
+/-- An antimonotone function on a sup-semilattice is directed. -/
+lemma directed_of_antimono {β} (f : α → β) {r : β → β → Prop}
+  (H : ∀ ⦃i j⦄, i ≤ j → r (f j) (f i)) : directed r f :=
+λ a b, ⟨a ⊓ b, H inf_le_left, H inf_le_right⟩
 
 @[simp] lemma lt_inf_iff [is_total α (≤)] {a b c : α} : a < b ⊓ c ↔ a < b ∧ a < c :=
 begin

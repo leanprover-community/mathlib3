@@ -187,6 +187,42 @@ end linear_equiv_matrix
 
 namespace matrix
 
+section trace
+
+variables {R : Type u}
+
+/--
+The diagonal of a square matrix.
+-/
+def diag (M : matrix n n R) : n → R := λ i, M i i
+
+@[simp] lemma diag_add [add_comm_monoid R] (M N : matrix n n R) :
+  diag (M + N) = diag M + diag N := by { unfold diag, ext, simp, }
+
+@[simp] lemma diag_smul [semiring R] (M : matrix n n R) (c : R) :
+  diag (c • M) = c • diag M := by { unfold diag, ext, simp, }
+
+/--
+The trace of a square matrix.
+-/
+def trace [add_comm_monoid R] : matrix n n R → R := finset.univ.sum ∘ diag
+
+@[simp] lemma trace_add [add_comm_monoid R] (M N : matrix n n R) :
+  trace (M + N) = trace M + trace N := by { unfold trace, simp [finset.sum_add_distrib], }
+
+@[simp] lemma trace_smul [semiring R] (c : R) (M : matrix n n R) :
+  trace (c • M) = c * trace M := by { unfold trace, simp [finset.mul_sum], }
+
+/--
+The trace of a square matrix, as a linear function.
+-/
+def trace_hom [ring R] : (matrix n n R) →ₗ[R] R := {
+  to_fun := trace,
+  add    := trace_add,
+  smul   := trace_smul }
+
+end trace
+
 section ring
 
 variables {R : Type v} [comm_ring R]

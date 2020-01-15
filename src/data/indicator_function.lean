@@ -26,7 +26,7 @@ indicator, characteristic
 noncomputable theory
 open_locale classical
 
-open set
+namespace set
 
 universes u v
 variables {α : Type u} {β : Type v}
@@ -148,3 +148,5 @@ begin
 end
 
 end order
+
+end set

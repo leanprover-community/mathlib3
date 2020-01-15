@@ -6,6 +6,7 @@ Authors: Zhouhang Zhou
 
 import measure_theory.bochner_integration
 import measure_theory.indicator_function
+import measure_theory.lebesgue_measure
 
 /-!
 # Set integral
@@ -156,58 +157,52 @@ section integral_on
 variables [measure_space α]
   [normed_group β] [second_countable_topology β] [normed_space ℝ β] [complete_space β]
   (s t : set α) {f g : α → β}
+  {a b : ℝ} {h : ℝ → β}
 
-/-- `integral_on s f` is the integral of `f` over the set `s`. -/
-@[reducible]
-def integral_on (f : α → β) : β := integral (indicator s f)
+notation `∫` binders ` in ` s `, ` r:(scoped f, integral (indicator s f)) := r
 
 variables (β)
-@[simp] lemma integral_on_zero (s : set α) : integral_on s (λx, (0:β)) = 0 :=
-by { rw [integral_on, indicator_zero], apply integral_zero }
+@[simp] lemma integral_on_zero (s : set α) : (∫ a in s, (0:β)) = 0 :=
+by rw [indicator_zero, integral_zero]
 variables {β}
 
-lemma integral_on_congr (h : ∀ x ∈ s, f x = g x) : integral_on s f = integral_on s g :=
-by { simp only [integral_on, indicator_congr h] }
+lemma integral_on_congr (h : ∀ x ∈ s, f x = g x) : (∫ a in s, f a) = (∫ a in s, g a) :=
+by simp only [indicator_congr h]
 
 lemma integral_on_congr_of_ae_eq (hf : measurable_on s f) (hg : measurable_on s g)
-  (h : ∀ₘ x, x ∈ s → f x = g x) : integral_on s f = integral_on s g :=
-begin
-  apply integral_congr_ae,
-  { assumption },
-  { assumption },
-  exact indicator_congr_ae h
-end
+  (h : ∀ₘ x, x ∈ s → f x = g x) : (∫ a in s, f a) = (∫ a in s, g a) :=
+integral_congr_ae hf hg (indicator_congr_ae h)
 
 lemma integral_on_congr_of_set (hsm : measurable_on s f) (htm : measurable_on t f)
-  (h : ∀ₘ x, x ∈ s ↔ x ∈ t) : integral_on s f = integral_on t f :=
+  (h : ∀ₘ x, x ∈ s ↔ x ∈ t) : (∫ a in s, f a) = (∫ a in t, f a) :=
 integral_congr_ae hsm htm $ indicator_congr_of_set h
 
-lemma integral_on_smul (r : ℝ) (f : α → β) : integral_on s (λx, r • (f x)) = r • integral_on s f :=
-by { simp only [integral_on], rw [← integral_smul, indicator_smul] }
+lemma integral_on_smul (r : ℝ) (f : α → β) : (∫ a in s, r • (f a)) = r • (∫ a in s, f a) :=
+by rw [← integral_smul, indicator_smul]
 
-lemma integral_on_mul_left (r : ℝ) (f : α → ℝ) : integral_on s (λx, r * (f x)) = r * integral_on s f :=
+lemma integral_on_mul_left (r : ℝ) (f : α → ℝ) : (∫ a in s, r * (f a)) = r * (∫ a in s, f a) :=
 integral_on_smul s r f
 
-lemma integral_on_mul_right (r : ℝ) (f : α → ℝ) : integral_on s (λx, (f x) * r) = integral_on s f * r :=
+lemma integral_on_mul_right (r : ℝ) (f : α → ℝ) : (∫ a in s, (f a) * r) = (∫ a in s, f a) * r :=
 by { simp only [mul_comm], exact integral_on_mul_left s r f }
 
-lemma integral_on_div (r : ℝ) (f : α → ℝ) : integral_on s (λx, (f x) / r) = integral_on s f / r :=
+lemma integral_on_div (r : ℝ) (f : α → ℝ) : (∫ a in s, (f a) / r) = (∫ a in s, f a) / r :=
 by { simp only [div_eq_mul_inv], apply integral_on_mul_right }
 
 lemma integral_on_add (hfm : measurable_on s f) (hfi : integrable_on s f) (hgm : measurable_on s g)
-  (hgi : integrable_on s g) : integral_on s (λa, f a + g a) = integral_on s f + integral_on s g :=
-by { simp only [integral_on, indicator_add], exact integral_add hfm hfi hgm hgi }
+  (hgi : integrable_on s g) : (∫ a in s, f a + g a) = (∫ a in s, f a) + (∫ a in s, g a) :=
+by { simp only [indicator_add], exact integral_add hfm hfi hgm hgi }
 
-lemma integral_on_neg (f : α → β) : integral_on s (λa, -f a) = - integral_on s f :=
-by { simp only [integral_on, indicator_neg], exact integral_neg _ }
+lemma integral_on_neg (f : α → β) : (∫ a in s, -f a) = - (∫ a in s, f a) :=
+by { simp only [indicator_neg], exact integral_neg _ }
 
 lemma integral_on_sub (hfm : measurable_on s f) (hfi : integrable_on s f) (hgm : measurable_on s g)
-  (hgi : integrable_on s g) : integral_on s (λa, f a - g a) = integral_on s f - integral_on s g :=
-by { simp only [integral_on, indicator_sub], exact integral_sub hfm hfi hgm hgi }
+  (hgi : integrable_on s g) : (∫ a in s, f a - g a) = (∫ a in s, f a) - (∫ a in s, g a) :=
+by { simp only [indicator_sub], exact integral_sub hfm hfi hgm hgi }
 
 lemma integral_on_le_integral_on_ae {f g : α → ℝ} (hfm : measurable_on s f) (hfi : integrable_on s f)
   (hgm : measurable_on s g) (hgi : integrable_on s g) (h : ∀ₘ a, a ∈ s → f a ≤ g a) :
-  integral_on s f ≤ integral_on s g :=
+  (∫ a in s, f a) ≤ (∫ a in s, g a) :=
 begin
   apply integral_le_integral_ae hfm hfi hgm hgi,
   apply indicator_le_indicator_ae,
@@ -216,19 +211,18 @@ end
 
 lemma integral_on_le_integral_on {f g : α → ℝ} (hfm : measurable_on s f) (hfi : integrable_on s f)
   (hgm : measurable_on s g) (hgi : integrable_on s g) (h : ∀ a, a ∈ s → f a ≤ g a) :
-  integral_on s f ≤ integral_on s g :=
+  (∫ a in s, f a) ≤ (∫ a in s, g a) :=
 integral_on_le_integral_on_ae _ hfm hfi hgm hgi $ by filter_upwards [] h
 
 lemma integral_on_union (hsm : measurable_on s f) (hsi : integrable_on s f)
   (htm : measurable_on t f) (hti : integrable_on t f) (h : disjoint s t) :
-  integral_on (s ∪ t) f = integral_on s f + integral_on t f :=
-by { simp only [integral_on], rw [indicator_union_of_disjoint h, integral_add hsm hsi htm hti] }
+  (∫ a in (s ∪ t), f a) = (∫ a in s, f a) + (∫ a in t, f a) :=
+by { rw [indicator_union_of_disjoint h, integral_add hsm hsi htm hti] }
 
 lemma integral_on_union_ae (hs : is_measurable s) (ht : is_measurable t) (hsm : measurable_on s f)
   (hsi : integrable_on s f) (htm : measurable_on t f) (hti : integrable_on t f) (h : ∀ₘ a, a ∉ s ∩ t) :
-  integral_on (s ∪ t) f = integral_on s f + integral_on t f :=
+  (∫ a in (s ∪ t), f a) = (∫ a in s, f a) + (∫ a in t, f a) :=
 begin
-  simp only [integral_on],
   have := integral_congr_ae _ _ (indicator_union_ae h f),
   rw [this, integral_add hsm hsi htm hti],
   { exact hsm.union hs ht htm },
@@ -237,7 +231,7 @@ end
 
 lemma tendsto_integral_on_of_monotone {s : ℕ → set α} {f : α → β} (hsm : ∀i, is_measurable (s i))
   (h_mono : monotone s) (hfm : measurable_on (Union s) f) (hfi : integrable_on (Union s) f) :
-  tendsto (λi, integral_on (s i) f) at_top (nhds (integral_on (Union s) f)) :=
+  tendsto (λi, ∫ a in (s i), f a) at_top (nhds (∫ a in (Union s), f a)) :=
 let bound : α → ℝ := indicator (Union s) (λa, ∥f a∥) in
 begin
   apply tendsto_integral_of_dominated_convergence,
@@ -253,7 +247,7 @@ end
 
 lemma tendsto_integral_on_of_antimono (s : ℕ → set α) (f : α → β) (hsm : ∀i, is_measurable (s i))
   (h_mono : ∀i j, i ≤ j → s j ⊆ s i) (hfm : measurable_on (s 0) f) (hfi : integrable_on (s 0) f) :
-  tendsto (λi, integral_on (s i) f) at_top (nhds (integral_on (Inter s) f)) :=
+  tendsto (λi, ∫ a in (s i), f a) at_top (nhds (∫ a in (Inter s), f a)) :=
 let bound : α → ℝ := indicator (s 0) (λa, ∥f a∥) in
 begin
   apply tendsto_integral_of_dominated_convergence,

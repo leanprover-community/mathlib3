@@ -1033,7 +1033,7 @@ if hf : measurable f ∧ integrable f
 then (l1.of_fun f hf.1 hf.2).integral
 else 0
 
-local notation `∫` binders `, ` r:(scoped f, integral f) := r
+notation `∫` binders `, ` r:(scoped f, integral f) := r
 
 section properties
 
@@ -1042,30 +1042,30 @@ open continuous_linear_map measure_theory.simple_func
 variables {f g : α → β}
 
 lemma integral_eq (f : α → β) (h₁ : measurable f) (h₂ : integrable f) :
-  integral f = (l1.of_fun f h₁ h₂).integral :=
+  (∫ a, f a) = (l1.of_fun f h₁ h₂).integral :=
 dif_pos ⟨h₁, h₂⟩
 
-lemma integral_undef (h : ¬ (measurable f ∧ integrable f)) : integral f = 0 :=
+lemma integral_undef (h : ¬ (measurable f ∧ integrable f)) : (∫ a, f a) = 0 :=
 dif_neg h
 
-lemma integral_non_integrable (h : ¬ integrable f) : integral f = 0 :=
+lemma integral_non_integrable (h : ¬ integrable f) : (∫ a, f a) = 0 :=
 integral_undef $ not_and_of_not_right _ h
 
-lemma integral_non_measurable (h : ¬ measurable f) : integral f = 0 :=
+lemma integral_non_measurable (h : ¬ measurable f) : (∫ a, f a) = 0 :=
 integral_undef $ not_and_of_not_left _ h
 
 variables (α β)
-@[simp] lemma integral_zero : integral (λ(a:α), (0:β)) = 0 :=
+@[simp] lemma integral_zero : (∫ a:α, (0:β)) = 0 :=
 by rw [integral_eq, l1.of_fun_zero, l1.integral_zero]
 
 variables {α β}
 
 lemma integral_add
   (hfm : measurable f) (hfi : integrable f) (hgm : measurable g) (hgi : integrable g) :
-  integral (λa, f a + g a) = integral f + integral g :=
+  (∫ a, f a + g a) = (∫ a, f a) + (∫ a, g a) :=
 by rw [integral_eq, integral_eq f hfm hfi, integral_eq g hgm hgi, l1.of_fun_add, l1.integral_add]
 
-lemma integral_neg (f : α → β) : integral (λa, -f a) = - integral f :=
+lemma integral_neg (f : α → β) : (∫ a, -f a) = - (∫ a, f a) :=
 begin
   by_cases hf : measurable f ∧ integrable f,
   { rw [integral_eq f hf.1 hf.2, integral_eq (λa, - f a) hf.1.neg hf.2.neg, l1.of_fun_neg,
@@ -1077,10 +1077,10 @@ end
 
 lemma integral_sub
   (hfm : measurable f) (hfi : integrable f) (hgm : measurable g) (hgi : integrable g) :
-  integral (λa, f a - g a) = integral f - integral g :=
+  (∫ a, f a - g a) = (∫ a, f a) - (∫ a, g a) :=
 by simp only [sub_eq_add_neg, integral_neg, integral_add, measurable_neg_iff, integrable_neg_iff, *]
 
-lemma integral_smul (r : ℝ) (f : α → β) : integral (λa, r • (f a)) = r • integral f :=
+lemma integral_smul (r : ℝ) (f : α → β) : (∫ a, r • (f a)) = r • (∫ a, f a) :=
 begin
   by_cases hf : measurable f ∧ integrable f,
   { rw [integral_eq f hf.1 hf.2, integral_eq (λa, r • (f a)), l1.of_fun_smul, l1.integral_smul] },
@@ -1091,17 +1091,17 @@ begin
     rw [integral_undef hf, integral_undef hf', smul_zero] }
 end
 
-lemma integral_mul_left (r : ℝ) (f : α → ℝ) : integral (λx, r * (f x)) = r * integral f :=
+lemma integral_mul_left (r : ℝ) (f : α → ℝ) : (∫ a, r * (f a)) = r * (∫ a, f a) :=
 integral_smul r f
 
-lemma integral_mul_right (r : ℝ) (f : α → ℝ) : integral (λx, (f x) * r) = integral f * r :=
+lemma integral_mul_right (r : ℝ) (f : α → ℝ) : (∫ a, (f a) * r) = (∫ a, f a) * r :=
 by { simp only [mul_comm], exact integral_mul_left r f }
 
-lemma integral_on_div (r : ℝ) (f : α → ℝ) : integral (λx, (f x) / r) = integral f / r :=
+lemma integral_on_div (r : ℝ) (f : α → ℝ) : (∫ a, (f a) / r) = (∫ a, f a) / r :=
 by { simp only [div_eq_mul_inv], apply integral_mul_right }
 
 lemma integral_congr_ae (hfm : measurable f) (hgm : measurable g) (h : ∀ₘ a, f a = g a) :
-   integral f = integral g :=
+   (∫ a, f a) = (∫ a, g a) :=
 begin
   by_cases hfi : integrable f,
   { have hgi : integrable g := integrable_of_ae_eq hfi h,
@@ -1111,7 +1111,7 @@ begin
 end
 
 lemma norm_integral_le_lintegral_norm (f : α → β) :
-  ∥integral f∥ ≤ ennreal.to_real (∫⁻ a, ennreal.of_real ∥f a∥) :=
+  ∥(∫ a, f a)∥ ≤ ennreal.to_real (∫⁻ a, ennreal.of_real ∥f a∥) :=
 begin
   by_cases hf : measurable f ∧ integrable f,
   { rw [integral_eq f hf.1 hf.2, ← l1.norm_of_fun_eq_lintegral_norm f hf.1 hf.2],
@@ -1128,7 +1128,7 @@ theorem tendsto_integral_of_dominated_convergence {F : ℕ → α → β} {f : �
   (bound_integrable : integrable bound)
   (h_bound : ∀ n, ∀ₘ a, ∥F n a∥ ≤ bound a)
   (h_lim : ∀ₘ a, tendsto (λ n, F n a) at_top (𝓝 (f a))) :
-  tendsto (λn, ∫ a, F n a) at_top (𝓝 $ integral f) :=
+  tendsto (λn, ∫ a, F n a) at_top (𝓝 $ (∫ a, f a)) :=
 begin
   /- To show `(∫ a, F n a) --> (∫ f)`, suffices to show `∥∫ a, F n a - ∫ f∥ --> 0` -/
   rw tendsto_iff_norm_tendsto_zero,
@@ -1158,7 +1158,7 @@ end
 /-- The Bochner integral of a real-valued function `f : α → ℝ` is the difference between the
   integral of the positive part of `f` and the integral of the negative part of `f`.  -/
 lemma integral_eq_lintegral_max_sub_lintegral_min {f : α → ℝ}
-  (hfm : measurable f) (hfi : integrable f) : integral f =
+  (hfm : measurable f) (hfi : integrable f) : (∫ a, f a) =
   ennreal.to_real (∫⁻ a, ennreal.of_real $ max (f a) 0) -
   ennreal.to_real (∫⁻ a, ennreal.of_real $ - min (f a) 0) :=
 let f₁ : α →₁ ℝ := l1.of_fun f hfm hfi in
@@ -1194,7 +1194,7 @@ begin
 end
 
 lemma integral_eq_lintegral_of_nonneg_ae {f : α → ℝ} (hf : ∀ₘ a, 0 ≤ f a) (hfm : measurable f) :
-  integral f = ennreal.to_real (∫⁻ a, ennreal.of_real $ f a) :=
+  (∫ a, f a) = ennreal.to_real (∫⁻ a, ennreal.of_real $ f a) :=
 begin
   by_cases hfi : integrable f,
   { rw integral_eq_lintegral_max_sub_lintegral_min hfm hfi,
@@ -1224,23 +1224,23 @@ begin
     rw [this, hfi], refl }
 end
 
-lemma integral_nonneg_of_nonneg_ae {f : α → ℝ} (hf : ∀ₘ a, 0 ≤ f a) : 0 ≤ integral f :=
+lemma integral_nonneg_of_nonneg_ae {f : α → ℝ} (hf : ∀ₘ a, 0 ≤ f a) : 0 ≤ (∫ a, f a) :=
 begin
   by_cases hfm : measurable f,
   { rw integral_eq_lintegral_of_nonneg_ae hf hfm, exact to_real_nonneg },
   { rw integral_non_measurable hfm }
 end
 
-lemma integral_nonpos_of_nonpos_ae {f : α → ℝ} (hf : ∀ₘ a, f a ≤ 0) : integral f ≤ 0 :=
+lemma integral_nonpos_of_nonpos_ae {f : α → ℝ} (hf : ∀ₘ a, f a ≤ 0) : (∫ a, f a) ≤ 0 :=
 begin
   have hf : ∀ₘ a, 0 ≤ (-f) a,
   { filter_upwards [hf], simp only [mem_set_of_eq], assume a h, rwa [pi.neg_apply, neg_nonneg] },
-  have : 0 ≤ integral (λa, -f a) := integral_nonneg_of_nonneg_ae hf,
+  have : 0 ≤ (∫ a, -f a) := integral_nonneg_of_nonneg_ae hf,
   rwa [integral_neg, neg_nonneg] at this,
 end
 
 lemma integral_le_integral_ae {f g : α → ℝ} (hfm : measurable f) (hfi : integrable f)
-  (hgm : measurable g) (hgi : integrable g) (h : ∀ₘ a, f a ≤ g a) : integral f ≤ integral g :=
+  (hgm : measurable g) (hgi : integrable g) (h : ∀ₘ a, f a ≤ g a) : (∫ a, f a) ≤ (∫ a, g a) :=
 le_of_sub_nonneg
 begin
   rw ← integral_sub hgm hgi hfm hfi,
@@ -1252,14 +1252,14 @@ begin
 end
 
 lemma integral_le_integral {f g : α → ℝ} (hfm : measurable f) (hfi : integrable f)
-  (hgm : measurable g) (hgi : integrable g) (h : ∀ a, f a ≤ g a) : integral f ≤ integral g :=
+  (hgm : measurable g) (hgi : integrable g) (h : ∀ a, f a ≤ g a) : (∫ a, f a) ≤ (∫ a, g a) :=
 integral_le_integral_ae hfm hfi hgm hgi $ by filter_upwards [] h
 
-lemma norm_integral_le_integral_norm (f : α → β) : ∥integral f∥ ≤ ∫ a, ∥f a∥ :=
+lemma norm_integral_le_integral_norm (f : α → β) : ∥(∫ a, f a)∥ ≤ ∫ a, ∥f a∥ :=
 have le_ae : ∀ₘ (a : α), 0 ≤ ∥f a∥ := by filter_upwards [] λa, norm_nonneg _,
 classical.by_cases
 ( λh : measurable f,
-  calc ∥integral f∥ ≤ ennreal.to_real (∫⁻ a, ennreal.of_real ∥f a∥) : norm_integral_le_lintegral_norm _
+  calc ∥(∫ a, f a)∥ ≤ ennreal.to_real (∫⁻ a, ennreal.of_real ∥f a∥) : norm_integral_le_lintegral_norm _
     ... = ∫ a, ∥f a∥ : (integral_eq_lintegral_of_nonneg_ae le_ae $ measurable.norm h).symm )
 ( λh : ¬measurable f,
   begin

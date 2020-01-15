@@ -47,7 +47,6 @@ lemma is_measurable.inter_preimage {B : set β}
   (hs : is_measurable s) (hB : is_measurable B) (hf : measurable_on s f):
   is_measurable (s ∩ f ⁻¹' B) :=
 begin
-  rw [measurable_on] at hf,
   replace hf : is_measurable ((indicator s f)⁻¹' B) := hf B hB,
   rw indicator_preimage at hf,
   replace hf := hf.diff _,
@@ -85,26 +84,21 @@ variables [measure_space α] [normed_group β] {s t : set α} {f g : α → β}
 @[reducible]
 def integrable_on (s : set α) (f : α → β) : Prop := integrable (indicator s f)
 
-lemma integrable_on_iff (h : ∀x, x ∈ s → f x = g x) : integrable_on s f ↔ integrable_on s g :=
+lemma integrable_on_congr (h : ∀x, x ∈ s → f x = g x) : integrable_on s f ↔ integrable_on s g :=
 by simp only [integrable_on, indicator_congr h]
 
-lemma integrable_on_iff_of_ae_eq (h : ∀ₘx, x ∈ s → f x = g x) :
+lemma integrable_on_congr_ae (h : ∀ₘx, x ∈ s → f x = g x) :
   integrable_on s f ↔ integrable_on s g :=
-by { simp only [integrable_on], apply integrable_iff_of_ae_eq, exact indicator_congr_ae h }
+by { apply integrable_congr_ae, exact indicator_congr_ae h }
 
 lemma integrable_on_empty : integrable_on ∅ f :=
 by { simp only [integrable_on, indicator_empty], exact integrable_zero }
 
 lemma integrable_on_of_integrable (s : set α) (hf : integrable f) : integrable_on s f :=
-by { simp only [integrable_on], refine integrable_of_le (λa, _) hf, apply norm_indicator_le_norm_self }
+by { refine integrable_of_le (λa, _) hf, apply norm_indicator_le_norm_self }
 
 lemma integrable_on.subset (h : s ⊆ t) : integrable_on t f → integrable_on s f :=
-begin
-  simp only [integrable_on],
-  apply integrable_of_le_ae,
-  filter_upwards [],
-  exact norm_indicator_le_of_subset h _
-end
+by { apply integrable_of_le_ae, filter_upwards [] norm_indicator_le_of_subset h _ }
 
 variables {𝕜 : Type*} [normed_field 𝕜] [normed_space 𝕜 β]
 
@@ -178,7 +172,6 @@ by { simp only [integral_on, indicator_congr h] }
 lemma integral_on_congr_of_ae_eq (hf : measurable_on s f) (hg : measurable_on s g)
   (h : ∀ₘ x, x ∈ s → f x = g x) : integral_on s f = integral_on s g :=
 begin
-  simp only [integral_on],
   apply integral_congr_ae,
   { assumption },
   { assumption },
@@ -216,7 +209,6 @@ lemma integral_on_le_integral_on_ae {f g : α → ℝ} (hfm : measurable_on s f)
   (hgm : measurable_on s g) (hgi : integrable_on s g) (h : ∀ₘ a, a ∈ s → f a ≤ g a) :
   integral_on s f ≤ integral_on s g :=
 begin
-  simp only [integral_on],
   apply integral_le_integral_ae hfm hfi hgm hgi,
   apply indicator_le_indicator_ae,
   exact h
@@ -256,7 +248,7 @@ begin
     assume a,
     rw [norm_indicator_eq_indicator_norm],
     exact indicator_le_indicator_of_subset (subset_Union _ _) (λa, norm_nonneg _) _ },
-  { filter_upwards [] tendsto_indicator_of_monotone _ h_mono _ }
+  { filter_upwards [] λa, le_trans (tendsto_indicator_of_monotone _ h_mono _ _) (pure_le_nhds _) }
 end
 
 lemma tendsto_integral_on_of_antimono (s : ℕ → set α) (f : α → β) (hsm : ∀i, is_measurable (s i))
@@ -272,7 +264,7 @@ begin
     assume a,
     rw [norm_indicator_eq_indicator_norm],
     refine indicator_le_indicator_of_subset (h_mono _ _ (zero_le _)) (λa, norm_nonneg _) _ },
-  { filter_upwards [] tendsto_indicator_of_antimono _ h_mono _ }
+  { filter_upwards [] λa, le_trans (tendsto_indicator_of_antimono _ h_mono _ _) (pure_le_nhds _) }
 end
 
 -- TODO : prove the following proposition

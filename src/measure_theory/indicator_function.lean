@@ -34,8 +34,8 @@ begin
   filter_upwards [h],
   simp only [mem_set_of_eq, indicator],
   assume a ha,
-  split_ifs,
-  { exact ha h_1 },
+  split_ifs with h₁,
+  { exact ha h₁ },
   refl
 end
 
@@ -45,10 +45,10 @@ begin
   filter_upwards [h],
   simp only [mem_set_of_eq, indicator],
   assume a ha,
-  split_ifs,
+  split_ifs with h₁ h₂ h₂,
   { refl },
-  { have := ha.1 h_1, contradiction },
-  { have := ha.2 h_2, contradiction },
+  { have := ha.1 h₁, contradiction },
+  { have := ha.2 h₂, contradiction },
   refl
 end
 
@@ -108,41 +108,33 @@ end
 end order
 
 section tendsto
-variables [has_zero β] [topological_space β]
+variables [has_zero β]
 
 lemma tendsto_indicator_of_monotone (s : ℕ → set α) (hs : monotone s) (f : α → β)
-  (a : α) : tendsto (λi, indicator (s i) f a) at_top (nhds $ indicator (Union s) f a) :=
+  (a : α) : tendsto (λi, indicator (s i) f a) at_top (pure $ indicator (Union s) f a) :=
 begin
   by_cases h : ∃i, a ∈ s i,
-  { rcases h with ⟨i, hi⟩,
-    refine tendsto_nhds.mpr (λ t ht hf, _),
-    simp only [mem_at_top_sets, mem_preimage],
+  { simp only [tendsto_principal, mem_singleton_iff, mem_at_top_sets, filter.pure_def, mem_set_of_eq],
+    rcases h with ⟨i, hi⟩,
     use i, assume n hn,
-    have : indicator (s n) f a = f a := indicator_of_mem (hs hn hi) _,
-    rw this,
-    have : indicator (Union s) f a = f a := indicator_of_mem ((subset_Union _ _) hi) _,
-    rwa this at hf },
+    rw [indicator_of_mem (hs hn hi) _, indicator_of_mem ((subset_Union _ _) hi) _] },
   { rw [not_exists] at h,
     have : (λi, indicator (s i) f a) = λi, 0 := funext (λi, indicator_of_not_mem (h i) _),
     rw this,
     have : indicator (Union s) f a = 0,
       { apply indicator_of_not_mem, simpa only [not_exists, mem_Union] },
     rw this,
-    exact tendsto_const_nhds }
+    exact tendsto_const_pure }
 end
 
 lemma tendsto_indicator_of_antimono (s : ℕ → set α) (hs : ∀i j, i ≤ j → s j ⊆ s i) (f : α → β)
-  (a : α) : tendsto (λi, indicator (s i) f a) at_top (nhds $ indicator (Inter s) f a) :=
+  (a : α) : tendsto (λi, indicator (s i) f a) at_top (pure $ indicator (Inter s) f a) :=
 begin
   by_cases h : ∃i, a ∉ s i,
-  { rcases h with ⟨i, hi⟩,
-    refine tendsto_nhds.mpr (λ t ht hf, _),
-    simp only [mem_at_top_sets, mem_preimage],
+  { simp only [tendsto_principal, mem_singleton_iff, mem_at_top_sets, filter.pure_def, mem_set_of_eq],
+    rcases h with ⟨i, hi⟩,
     use i, assume n hn,
-    have : indicator (s n) f a = 0 := indicator_of_not_mem _ _,
-    rw this,
-    have : indicator (Inter s) f a = 0 := indicator_of_not_mem _ _,
-    rwa this at hf,
+    rw [indicator_of_not_mem _ _, indicator_of_not_mem _ _],
     { simp only [mem_Inter, not_forall], exact ⟨i, hi⟩ },
     { assume h, have := hs i _ hn h, contradiction } },
   { simp only [not_exists, not_not_mem] at h,
@@ -151,7 +143,7 @@ begin
     have : indicator (Inter s) f a = f a,
       { apply indicator_of_mem, simpa only [mem_Inter] },
     rw this,
-    exact tendsto_const_nhds }
+    exact tendsto_const_pure }
 end
 
 end tendsto

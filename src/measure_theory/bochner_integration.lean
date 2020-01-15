@@ -1106,7 +1106,7 @@ begin
   by_cases hfi : integrable f,
   { have hgi : integrable g := integrable_of_ae_eq hfi h,
     rw [integral_eq f hfm hfi, integral_eq g hgm hgi, (l1.of_fun_eq_of_fun f g hfm hfi hgm hgi).2 h] },
-  { have hgi : ¬ integrable g, { rw integrable_iff_of_ae_eq h at hfi, exact hfi },
+  { have hgi : ¬ integrable g, { rw integrable_congr_ae h at hfi, exact hfi },
     rw [integral_non_integrable hfi, integral_non_integrable hgi] },
 end
 

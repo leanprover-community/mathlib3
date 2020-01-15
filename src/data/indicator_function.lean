@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Zhouhang Zhou
 -/
 
-import data.set group_theory.group_action
+import data.set group_theory.group_action algebra.pi_instances
 
 /-!
 # Indicator function
@@ -65,7 +65,7 @@ by { rw [indicator, if_preimage] }
 
 end has_zero
 
-section has_add
+section add_monoid
 variables [add_monoid β] {s t : set α} {f g : α → β} {a : α}
 
 lemma indicator_union_of_not_mem_inter (h : a ∉ s ∩ t) (f : α → β) :
@@ -82,19 +82,53 @@ lemma indicator_add (s : set α) (f g : α → β) :
   indicator s (λa, f a + g a) = λa, indicator s f a + indicator s g a :=
 by { funext, simp only [indicator], split_ifs, { refl }, rw add_zero }
 
-lemma indicator_smul {𝕜 : Type*} [monoid 𝕜] [distrib_mul_action 𝕜 β] (s : set α) (r : 𝕜) (f : α → β) :
+variables (β)
+instance is_add_monoid_hom.indicator (s : set α) : is_add_monoid_hom (λf:α → β, indicator s f) :=
+{ map_add := λ _ _, indicator_add _ _ _,
+  map_zero := indicator_zero _ _ }
+
+variables {β} {𝕜 : Type*} [monoid 𝕜] [distrib_mul_action 𝕜 β]
+
+lemma indicator_smul (s : set α) (r : 𝕜) (f : α → β) :
   indicator s (λ (x : α), r • f x) = λ (x : α), r • indicator s f x :=
 by { simp only [indicator], funext, split_ifs, refl, exact (smul_zero r).symm }
 
-lemma indicator_neg {β : Type*} [add_group β] (s : set α) (f : α → β) :
-  indicator s (λa, - f a) = λa, - indicator s f a :=
-by { funext, simp only [indicator], split_ifs, { refl }, rw neg_zero }
+end add_monoid
 
-lemma indicator_sub {β : Type*} [add_group β] (s : set α) (f g : α → β) :
+section add_group
+variables [add_group β] {s t : set α} {f g : α → β} {a : α}
+
+variables (β)
+instance is_add_group_hom.indicator (s : set α) : is_add_group_hom (λf:α → β, indicator s f) :=
+{ .. is_add_monoid_hom.indicator β s }
+variables {β}
+
+lemma indicator_neg (s : set α) (f : α → β) : indicator s (λa, - f a) = λa, - indicator s f a :=
+show indicator s (- f) = - indicator s f, from is_add_group_hom.map_neg _ _
+
+lemma indicator_sub (s : set α) (f g : α → β) :
   indicator s (λa, f a - g a) = λa, indicator s f a - indicator s g a :=
-by { funext, simp only [indicator], split_ifs, { refl }, rw sub_zero }
+show indicator s (f - g) = indicator s f - indicator s g, from is_add_group_hom.map_sub _ _ _
 
-end has_add
+lemma indicator_compl (s : set α) (f : α → β) : indicator (-s) f = λ a, f a - indicator s f a :=
+begin
+  funext,
+  simp only [indicator],
+  split_ifs with h₁ h₂,
+  { rw sub_zero },
+  { rw sub_self },
+  { rw ← mem_compl_iff at h₂, contradiction }
+end
+
+lemma indicator_sum {β} [add_comm_monoid β] {ι : Type*} (I : finset ι) (s : set α) (f : ι → α → β) :
+  indicator s (I.sum f) = I.sum (λ i, indicator s (f i)) :=
+begin
+  convert (finset.sum_hom _ _).symm,
+  split,
+  exact indicator_zero _ _
+end
+
+end add_group
 
 section order
 variables [has_zero β] [preorder β] {s t : set α} {f g : α → β} {a : α}
@@ -106,9 +140,9 @@ lemma indicator_le_indicator_of_subset (h : s ⊆ t) (hf : ∀a, 0 ≤ f a) (a :
   indicator s f a ≤ indicator t f a :=
 begin
   simp only [indicator],
-  split_ifs,
+  split_ifs with h₁,
   { refl },
-  { have := h h_1, contradiction },
+  { have := h h₁, contradiction },
   { exact hf a },
   { refl }
 end

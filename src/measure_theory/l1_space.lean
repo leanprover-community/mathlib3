@@ -101,7 +101,7 @@ begin
   rwa ← this
 end
 
-lemma integrable_iff_of_ae_eq {f g : α → β} (h : ∀ₘ a, f a = g a) : integrable f ↔ integrable g :=
+lemma integrable_congr_ae {f g : α → β} (h : ∀ₘ a, f a = g a) : integrable f ↔ integrable g :=
 iff.intro (λhf, integrable_of_ae_eq hf h) (λhg, integrable_of_ae_eq hg (all_ae_eq_symm h))
 
 lemma integrable_of_le_ae {f : α → β} {g : α → γ} (h : ∀ₘ a, ∥f a∥ ≤ ∥g a∥) (hg : integrable g) :
@@ -175,9 +175,7 @@ lemma integrable_neg_iff (f : α → β) : integrable (λa, -f a) ↔ integrable
 begin
   split,
   { assume h,
-    have := integrable.neg h,
-    simp only [_root_.neg_neg] at this,
-    assumption },
+    simpa only [_root_.neg_neg] using h.neg },
   exact integrable.neg
 end
 
@@ -372,9 +370,7 @@ lemma integrable_smul_iff {c : 𝕜} (hc : c ≠ 0) (f : α → β) : integrable
 begin
   split,
   { assume h,
-    have := integrable.smul c⁻¹ h,
-    simp only [smul_smul, inv_mul_cancel hc, one_smul] at this,
-    assumption },
+    simpa only [smul_smul, inv_mul_cancel hc, one_smul] using h.smul c⁻¹ },
   exact integrable.smul _
 end
 
@@ -625,7 +621,7 @@ section pos_part
 def pos_part (f : α →₁ ℝ) : α →₁ ℝ :=
 ⟨ ae_eq_fun.pos_part f,
   begin
-    rw [ae_eq_fun.integrable_to_fun, integrable_iff_of_ae_eq (pos_part_to_fun _)],
+    rw [ae_eq_fun.integrable_to_fun, integrable_congr_ae (pos_part_to_fun _)],
     exact integrable.max_zero f.integrable
   end ⟩
 

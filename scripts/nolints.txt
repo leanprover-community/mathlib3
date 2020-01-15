@@ -3181,12 +3181,10 @@ tactic.wlog
 tendsto_order
 tensor_product
 tensor_product.assoc
-tensor_product.comm
 tensor_product.congr
 tensor_product.curry
 tensor_product.direct_sum
 tensor_product.lcurry
-tensor_product.lid
 tensor_product.lift
 tensor_product.lift.equiv
 tensor_product.lift_aux

@@ -84,7 +84,7 @@ begin
   refine (has_countable_basis_iff_mono_seq f).trans (exists_congr $ λ x, and_congr_right _),
   intro hmono,
   have : directed (≥) (λ i, principal (x i)),
-    from directed_of_mono _ _ (λ i j hij, principal_mono.2 (hmono _ _ hij)),
+    from directed_of_mono _ (λ i j hij, principal_mono.2 (hmono _ _ hij)),
   simp only [filter.ext_iff, mem_infi this ⟨0⟩, mem_Union, mem_principal_sets]
 end
 

@@ -109,7 +109,7 @@ theorem eq_bot_iff : a = ⊥ ↔ a ≤ ⊥ :=
 @[simp] theorem not_lt_bot : ¬ a < ⊥ :=
 assume h, lt_irrefl a (lt_of_lt_of_le h bot_le)
 
-theorem neq_bot_of_le_neq_bot {a b : α} (hb : b ≠ ⊥) (hab : b ≤ a) : a ≠ ⊥ :=
+theorem ne_bot_of_le_ne_bot {a b : α} (hb : b ≠ ⊥) (hab : b ≤ a) : a ≠ ⊥ :=
 assume ha, hb $ bot_unique $ ha ▸ hab
 
 theorem eq_bot_mono (h : a ≤ b) (h₂ : b = ⊥) : a = ⊥ :=

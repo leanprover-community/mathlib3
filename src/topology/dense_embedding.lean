@@ -145,18 +145,18 @@ begin
   exact le_trans lim1 lim2,
 end
 
-protected lemma nhds_inf_neq_bot (di : dense_inducing i) {b : β} : 𝓝 b ⊓ principal (range i) ≠ ⊥ :=
+protected lemma nhds_inf_ne_bot (di : dense_inducing i) {b : β} : 𝓝 b ⊓ principal (range i) ≠ ⊥ :=
 begin
   convert di.dense b,
   simp [closure_eq_nhds]
 end
 
-lemma comap_nhds_neq_bot (di : dense_inducing i) {b : β} : comap i (𝓝 b) ≠ ⊥ :=
-forall_sets_neq_empty_iff_neq_bot.mp $
+lemma comap_nhds_ne_bot (di : dense_inducing i) {b : β} : comap i (𝓝 b) ≠ ⊥ :=
+forall_sets_ne_empty_iff_ne_bot.mp $
 assume s ⟨t, ht, (hs : i ⁻¹' t ⊆ s)⟩,
 have t ∩ range i ∈ 𝓝 b ⊓ principal (range i),
   from inter_mem_inf_sets ht (subset.refl _),
-let ⟨_, ⟨hx₁, y, rfl⟩⟩ := inhabited_of_mem_sets di.nhds_inf_neq_bot this in
+let ⟨_, ⟨hx₁, y, rfl⟩⟩ := inhabited_of_mem_sets di.nhds_inf_ne_bot this in
 subset_ne_empty hs $ ne_empty_of_mem hx₁
 
 variables [topological_space γ]
@@ -170,7 +170,7 @@ def extend (di : dense_inducing i) (f : α → γ) (b : β) : γ :=
 
 lemma extend_eq [t2_space γ] {b : β} {c : γ} {f : α → γ} (hf : map f (comap i (𝓝 b)) ≤ 𝓝 c) :
   di.extend f b = c :=
-@lim_eq _ _ (id _) _ _ _ (by simp; exact comap_nhds_neq_bot di) hf
+@lim_eq _ _ (id _) _ _ _ (by simp; exact comap_nhds_ne_bot di) hf
 
 lemma extend_e_eq [t2_space γ] {f : α → γ} (a : α) (hf : continuous_at f a) :
   di.extend f (i a) = f a :=
@@ -205,9 +205,9 @@ have h₂ : t ⊆ di.extend f ⁻¹' closure (f '' (i ⁻¹' t)), from
   show di.extend f b' ∈ closure (f '' (i ⁻¹' t)),
   begin
     rw [closure_eq_nhds],
-    apply neq_bot_of_le_neq_bot _ this,
+    apply ne_bot_of_le_ne_bot _ this,
     simp,
-    exact di.comap_nhds_neq_bot
+    exact di.comap_nhds_ne_bot
   end,
 (𝓝 b).sets_of_superset
   (show t ∈ 𝓝 b, from mem_nhds_sets ht₂ ht₃)

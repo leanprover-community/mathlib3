@@ -189,7 +189,7 @@ namespace matrix
 
 section trace
 
-variables {R : Type u}
+variables {R : Type v}
 
 /--
 The diagonal of a square matrix.

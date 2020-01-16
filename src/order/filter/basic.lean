@@ -209,7 +209,7 @@ def join (f : filter (filter α)) : filter α :=
     mem_sets_of_superset (inter_mem_sets hx hy) $ assume f ⟨h₁, h₂⟩, inter_mem_sets h₁ h₂ }
 
 @[simp] lemma mem_join_sets {s : set α} {f : filter (filter α)} :
-  s ∈ join f ↔ {t | s ∈ filter.sets t} ∈ f := iff.rfl
+  s ∈ join f ↔ {t | s ∈ t} ∈ f := iff.rfl
 
 end join
 
@@ -275,7 +275,7 @@ instance : has_inf (filter α) := ⟨λf g : filter α,
         ... ⊆ x ∩ y : inter_subset_inter hx hy⟩ }⟩
 
 @[simp] lemma mem_inf_sets {f g : filter α} {s : set α} :
-  s ∈ f ⊓ g ↔ ∃t₁∈f.sets, ∃t₂∈g.sets, t₁ ∩ t₂ ⊆ s := iff.rfl
+  s ∈ f ⊓ g ↔ ∃t₁∈f, ∃t₂∈g, t₁ ∩ t₂ ⊆ s := iff.rfl
 
 lemma mem_inf_sets_of_left {f g : filter α} {s : set α} (h : s ∈ f) : s ∈ f ⊓ g :=
 ⟨s, h, univ, univ_mem_sets, inter_subset_left _ _⟩
@@ -393,10 +393,10 @@ lemma empty_in_sets_eq_bot {f : filter α} : ∅ ∈ f ↔ f = ⊥ :=
   assume : f = ⊥, this.symm ▸ mem_bot_sets⟩
 
 lemma inhabited_of_mem_sets {f : filter α} {s : set α} (hf : f ≠ ⊥) (hs : s ∈ f) :
-  ∃x, x ∈ s :=
-have ∅ ∉ f.sets, from assume h, hf $ empty_in_sets_eq_bot.mp h,
+  s.nonempty :=
+have ∅ ∉ f, from assume h, hf $ empty_in_sets_eq_bot.mp h,
 have s ≠ ∅, from assume h, this (h ▸ hs),
-exists_mem_of_ne_empty this
+ne_empty_iff_nonempty.1 this
 
 lemma filter_eq_bot_of_not_nonempty {f : filter α} (ne : ¬ nonempty α) : f = ⊥ :=
 empty_in_sets_eq_bot.mp $ univ_mem_sets' $ assume x, false.elim (ne ⟨x⟩)
@@ -450,8 +450,8 @@ have u = infi f, from eq_infi_of_mem_sets_iff_exists_mem (λ s, by simp only [me
 congr_arg filter.sets this.symm
 
 lemma mem_infi {f : ι → filter α} (h : directed (≥) f) (ne : nonempty ι) (s) :
-  s ∈ infi f ↔ s ∈ ⋃ i, (f i).sets :=
-show  s  ∈ (infi f).sets ↔ s ∈ ⋃ i, (f i).sets, by rw infi_sets_eq h ne
+  s ∈ infi f ↔ ∃ i, s ∈ f i :=
+by simp only [infi_sets_eq h ne, mem_Union]
 
 @[nolint] -- Intentional use of `≥`
 lemma binfi_sets_eq {f : β → filter α} {s : set β}
@@ -467,8 +467,8 @@ calc (⨅ i ∈ s, f i).sets  = (⨅ t : {t // t ∈ s}, (f t.val)).sets : by rw
 @[nolint] -- Intentional use of `≥`
 lemma mem_binfi {f : β → filter α} {s : set β}
   (h : directed_on (f ⁻¹'o (≥)) s) (ne : ∃i, i ∈ s) {t : set α} :
-  t ∈ (⨅ i∈s, f i) ↔ t ∈ ⋃ i ∈ s, (f i).sets :=
-by rw [← binfi_sets_eq h ne]
+  t ∈ (⨅ i∈s, f i) ↔ ∃ i ∈ s, t ∈ f i :=
+by simp only [binfi_sets_eq h ne, mem_bUnion_iff]
 
 lemma infi_sets_eq_finite (f : ι → filter α) :
   (⨅i, f i).sets = (⋃t:finset (plift ι), (⨅i∈t, f (plift.down i)).sets) :=
@@ -1232,7 +1232,7 @@ begin
   intro h,
   have he: ∅  ∈ (infi f), from h.symm ▸ (mem_bot_sets : ∅ ∈ (⊥ : filter α)),
   obtain ⟨i, hi⟩ : ∃i, ∅ ∈ f i,
-    by rwa [mem_infi hd hn, mem_Union] at he,
+    from (mem_infi hd hn ∅).1 he,
   exact hb i (empty_in_sets_eq_bot.1 hi)
 end
 

@@ -525,6 +525,10 @@ theorem forall_or_distrib_left {q : Prop} {p : α → Prop} [decidable q] :
 ⟨λ h, if hq : q then or.inl hq else or.inr $ λ x, (h x).resolve_left hq,
   forall_or_of_or_forall⟩
 
+theorem forall_or_distrib_right {q : Prop} {p : α → Prop} [decidable q] :
+  (∀x, p x ∨ q) ↔ (∀x, p x) ∨ q :=
+by simp [or_comm, forall_or_distrib_left]
+
 /-- A predicate holds everywhere on the image of a surjective functions iff
     it holds everywhere. -/
 theorem forall_iff_forall_surj
@@ -571,6 +575,14 @@ protected theorem not_exists_not : (¬ ∃ x, ¬ p x) ↔ ∀ x, p x := not_exis
 protected theorem forall_or_distrib_left {q : Prop} {p : α → Prop} :
   (∀x, q ∨ p x) ↔ q ∨ (∀x, p x) :=
 forall_or_distrib_left
+
+protected theorem forall_or_distrib_right {q : Prop} {p : α → Prop} :
+  (∀x, p x ∨ q) ↔ (∀x, p x) ∨ q :=
+forall_or_distrib_right
+
+protected theorem forall_or_distrib {β} {p : α → Prop} {q : β → Prop} :
+  (∀x y, p x ∨ q y) ↔ (∀ x, p x) ∨ (∀ y, q y) :=
+by rw ← forall_or_distrib_right; simp [forall_or_distrib_left.symm]
 
 theorem cases {p : Prop → Prop} (h1 : p true) (h2 : p false) : ∀a, p a :=
 assume a, cases_on a h1 h2

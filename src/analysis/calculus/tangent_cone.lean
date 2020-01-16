@@ -110,20 +110,28 @@ begin
   exact D
 end
 
+lemma tangent_cone_mono_nhds (h : nhds_within x s ≤ nhds_within x t) :
+  tangent_cone_at 𝕜 s x ⊆ tangent_cone_at 𝕜 t x :=
+begin
+  rintros y ⟨c, d, ds, ctop, clim⟩,
+  refine ⟨c, d, _, ctop, clim⟩,
+  suffices : tendsto (λ n, x + d n) at_top (nhds_within x t),
+    from tendsto_principal.1 (tendsto_inf.1 this).2,
+  apply tendsto_le_right h,
+  refine tendsto_inf.2 ⟨_, tendsto_principal.2 ds⟩,
+  simpa only [add_zero] using tendsto_const_nhds.add (tangent_cone_at.lim_zero at_top ctop clim)
+end
+
+lemma tangent_cone_congr (h : nhds_within x s = nhds_within x t) :
+  tangent_cone_at 𝕜 s x = tangent_cone_at 𝕜 t x :=
+subset.antisymm
+  (tangent_cone_mono_nhds $ le_of_eq h)
+  (tangent_cone_mono_nhds $ le_of_eq h.symm)
+
 /-- Intersecting with a neighborhood of the point does not change the tangent cone. -/
 lemma tangent_cone_inter_nhds (ht : t ∈ 𝓝 x) :
   tangent_cone_at 𝕜 (s ∩ t) x = tangent_cone_at 𝕜 s x :=
-begin
-  refine subset.antisymm (tangent_cone_mono (inter_subset_left _ _)) _,
-  rintros y ⟨c, d, ds, ctop, clim⟩,
-  refine ⟨c, d, _, ctop, clim⟩,
-  have : {n : ℕ | x + d n ∈ t} ∈ at_top,
-  { have : tendsto (λn, x + d n) at_top (𝓝 (x + 0)) :=
-      tendsto_const_nhds.add (tangent_cone_at.lim_zero at_top ctop clim),
-    rw add_zero at this,
-    exact mem_map.1 (this ht) },
-  exact inter_mem_sets ds this
-end
+tangent_cone_congr (nhds_within_restrict' _ ht).symm
 
 /-- The tangent cone of a product contains the tangent cone of its left factor. -/
 lemma subset_tangent_cone_prod_left {t : set F} {y : F} (ht : y ∈ closure t) :
@@ -249,27 +257,28 @@ by { rw [unique_diff_within_at, tangent_cone_univ], simp }
 lemma unique_diff_on_univ : unique_diff_on 𝕜 (univ : set E) :=
 λx hx, unique_diff_within_at_univ
 
-lemma unique_diff_within_at.mono (h : unique_diff_within_at 𝕜 s x) (st : s ⊆ t) :
+lemma unique_diff_within_at.mono_nhds (h : unique_diff_within_at 𝕜 s x)
+  (st : nhds_within x s ≤ nhds_within x t) :
   unique_diff_within_at 𝕜 t x :=
 begin
   unfold unique_diff_within_at at *,
   rw [← univ_subset_iff, ← h.1],
-  exact ⟨closure_mono (submodule.span_mono (tangent_cone_mono st)), closure_mono st h.2⟩
+  rw [mem_closure_iff_nhds_within_ne_bot] at h ⊢,
+  exact ⟨closure_mono (submodule.span_mono (tangent_cone_mono_nhds st)),
+    lattice.ne_bot_of_le_ne_bot h.2 st⟩
 end
+
+lemma unique_diff_within_at.mono (h : unique_diff_within_at 𝕜 s x) (st : s ⊆ t) :
+  unique_diff_within_at 𝕜 t x :=
+h.mono_nhds $ nhds_within_mono _ st
+
+lemma unique_diff_within_at_congr (st : nhds_within x s = nhds_within x t) :
+  unique_diff_within_at 𝕜 s x ↔ unique_diff_within_at 𝕜 t x :=
+⟨λ h, h.mono_nhds $ le_of_eq st, λ h, h.mono_nhds $ le_of_eq st.symm⟩
 
 lemma unique_diff_within_at_inter (ht : t ∈ 𝓝 x) :
   unique_diff_within_at 𝕜 (s ∩ t) x ↔ unique_diff_within_at 𝕜 s x :=
-begin
-  have : x ∈ closure (s ∩ t) ↔ x ∈ closure s,
-  { split,
-    { assume h, exact closure_mono (inter_subset_left _ _) h },
-    { assume h,
-      rw mem_closure_iff_nhds at ⊢ h,
-      assume u hu,
-      rw [inter_comm s t, ← inter_assoc],
-      exact h _ (filter.inter_mem_sets hu ht) } },
-  rw [unique_diff_within_at, unique_diff_within_at, tangent_cone_inter_nhds ht, this]
-end
+unique_diff_within_at_congr $ (nhds_within_restrict' _ ht).symm
 
 lemma unique_diff_within_at.inter (hs : unique_diff_within_at 𝕜 s x) (ht : t ∈ 𝓝 x) :
   unique_diff_within_at 𝕜 (s ∩ t) x :=
@@ -277,17 +286,7 @@ lemma unique_diff_within_at.inter (hs : unique_diff_within_at 𝕜 s x) (ht : t 
 
 lemma unique_diff_within_at_inter' (ht : t ∈ nhds_within x s) :
   unique_diff_within_at 𝕜 (s ∩ t) x ↔ unique_diff_within_at 𝕜 s x :=
-begin
-  split,
-  { exact λH, H.mono (inter_subset_left _ _) },
-  { assume H,
-    rw mem_nhds_within at ht,
-    rcases ht with ⟨u, u_open, xu, us⟩,
-    have : u ∈ 𝓝 x := mem_nhds_sets u_open xu,
-    rw ← unique_diff_within_at_inter this at H,
-    apply H.mono,
-    exact λ p ⟨ps, pu⟩, ⟨ps, us ⟨pu, ps⟩⟩ }
-end
+unique_diff_within_at_congr $ (nhds_within_restrict'' _ ht).symm
 
 lemma unique_diff_within_at.inter' (hs : unique_diff_within_at 𝕜 s x) (ht : t ∈ nhds_within x s) :
   unique_diff_within_at 𝕜 (s ∩ t) x :=

@@ -89,9 +89,7 @@ begin
   rw ←le_principal_iff,
   refine lattice.infi_le_of_le {u | s ∈ u.val} _,
   refine lattice.infi_le_of_le ⟨hs, ⟨s, rfl⟩⟩ _,
-  rw principal_mono,
-  intros a ha,
-  exact mem_pure_iff.mp ha
+  exact principal_mono.2 (λ a, id)
 end
 
 section embedding
@@ -115,7 +113,7 @@ dense_inducing.mk' pure continuous_bot
       ultrafilter_converges_iff.mpr (bind_pure x).symm⟩)
   (assume a s as,
      ⟨{u | s ∈ u.val},
-      mem_nhds_sets (ultrafilter_is_open_basic s) (mem_pure_sets.mpr (mem_of_nhds as)),
+      mem_nhds_sets (ultrafilter_is_open_basic s) (mem_of_nhds as : a ∈ s),
       assume b hb, mem_pure_sets.mp hb⟩)
 
 -- The following refined version will never be used
@@ -172,7 +170,7 @@ lemma ultrafilter_extend_eq_iff {f : α → γ} {b : ultrafilter α} {c : γ} :
    -- the facts that ultrafilter.extend is a continuous extension of f.
    let b' : ultrafilter (ultrafilter α) := b.map pure,
    have t : b'.val ≤ 𝓝 b,
-     from ultrafilter_converges_iff.mpr (by exact (bind_pure _).symm),
+     from ultrafilter_converges_iff.mpr (by exact (_root_.bind_pure _).symm),
    rw ←h,
    have := (continuous_ultrafilter_extend f).tendsto b,
    refine le_trans _ (le_trans (map_mono t) this),

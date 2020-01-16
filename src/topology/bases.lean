@@ -100,8 +100,9 @@ begin
   ... = _ : by simp [-infi_infi_eq_right, infi_and]
 end
 
-lemma tendsto_iff_seq_tendsto (f : α → β) (k : filter α) (l : filter β) (hcb : k.has_countable_basis) :
-tendsto f k l ↔ (∀ x : ℕ → α, tendsto x at_top k → tendsto (f ∘ x) at_top l) :=
+lemma has_countable_basis.tendsto_iff_seq_tendsto {f : α → β} {k : filter α} {l : filter β}
+  (hcb : k.has_countable_basis) :
+  tendsto f k l ↔ (∀ x : ℕ → α, tendsto x at_top k → tendsto (f ∘ x) at_top l) :=
 suffices (∀ x : ℕ → α, tendsto x at_top k → tendsto (f ∘ x) at_top l) → tendsto f k l,
   from ⟨by intros; apply tendsto.comp; assumption, by assumption⟩,
 begin
@@ -130,9 +131,10 @@ begin
     apply (h i).right },
 end
 
-lemma tendsto_of_seq_tendsto (f : α → β) (k : filter α) (l : filter β) (hcb : k.has_countable_basis) :
+lemma has_countable_basis.tendsto_of_seq_tendsto {f : α → β} {k : filter α} {l : filter β}
+  (hcb : k.has_countable_basis) :
   (∀ x : ℕ → α, tendsto x at_top k → tendsto (f ∘ x) at_top l) → tendsto f k l :=
-by { refine (tendsto_iff_seq_tendsto _ _ _ _).2, assumption }
+hcb.tendsto_iff_seq_tendsto.2
 
 end filter
 

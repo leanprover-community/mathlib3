@@ -1164,50 +1164,23 @@ end
 lemma tendsto_lintegral_filter_of_dominated_convergence {ι} {l : filter ι}
   {F : ι → α → ennreal} {f : α → ennreal} (bound : α → ennreal)
   (hl_cb : l.has_countable_basis)
-  (hF_meas : ∀n, measurable (F n))
-  (h_bound : ∀n, ∀ₘ a, F n a ≤ bound a)
-  (h_fin : lintegral bound < ⊤)
-  (h_lim : ∀ₘ a, tendsto (λ n, F n a) l (nhds (f a))) :
-  tendsto (λn, lintegral (F n)) l (nhds (lintegral f)) :=
-begin
-  rw filter.tendsto_iff_seq_tendsto,
-  { intros x hxl,
-    refine tendsto_lintegral_of_dominated_convergence _ _ _ _ _,
-    { exact bound },
-    { intro, apply hF_meas },
-    { intro, apply h_bound },
-    { assumption },
-    { filter_upwards [h_lim],
-      simp only [mem_set_of_eq],
-      assume a h_lim,
-      apply @tendsto.comp _ _ _ x (λ n, F n a);
-      assumption } },
-  assumption
-end
-
-/-- Dominated convergence theorem for filters with a countable basis -/
-lemma tendsto_lintegral_filter_of_dominated_convergence' {ι} {l : filter ι}
-  {F : ι → α → ennreal} {f : α → ennreal} (bound : α → ennreal)
-  (hl_cb : l.has_countable_basis)
   (hF_meas : { n | measurable (F n) } ∈ l)
   (h_bound : { n | ∀ₘ a, F n a ≤ bound a } ∈ l)
   (h_fin : lintegral bound < ⊤)
   (h_lim : ∀ₘ a, tendsto (λ n, F n a) l (nhds (f a))) :
   tendsto (λn, lintegral (F n)) l (nhds (lintegral f)) :=
 begin
-  rw filter.tendsto_iff_seq_tendsto,
+  rw hl_cb.tendsto_iff_seq_tendsto,
   { intros x xl,
     have hxl, { rw tendsto_at_top' at xl, exact xl },
-    replace hF_meas := hxl _ hF_meas,
-    rcases hF_meas with ⟨k₁, hF_meas⟩,
-    replace h_bound := hxl _ h_bound,
-    rcases h_bound with ⟨k₂, h_bound⟩,
-    let k := max k₁ k₂,
+    have h := inter_mem_sets hF_meas h_bound,
+    replace h := hxl _ h,
+    rcases h with ⟨k, h⟩,
     rw ← tendsto_add_at_top_iff_nat k,
     refine tendsto_lintegral_of_dominated_convergence _ _ _ _ _,
     { exact bound },
-    { intro, apply hF_meas, exact le_trans (le_max_left _ _) (nat.le_add_left _ _) },
-    { intro, apply h_bound, exact le_trans (le_max_right _ _) (nat.le_add_left _ _) },
+    { intro, refine (h _ _).1, exact nat.le_add_left _ _ },
+    { intro, refine (h _ _).2, exact nat.le_add_left _ _ },
     { assumption },
     { filter_upwards [h_lim],
       simp only [mem_set_of_eq],
@@ -1216,7 +1189,6 @@ begin
       { assumption },
       rw tendsto_add_at_top_iff_nat,
       assumption } },
-  assumption
 end
 
 section

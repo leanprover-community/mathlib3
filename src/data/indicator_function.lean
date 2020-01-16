@@ -14,7 +14,7 @@ import data.set group_theory.group_action algebra.pi_instances
 ## Implementation note
 
 In mathematics, an indicator function or a characteristic function is a function used to indicate
-membership of an element in a set `s`, having the value `1` for all elements of `s` and the value  `0`
+membership of an element in a set `s`, having the value `1` for all elements of `s` and the value `0`
 otherwise. But since it is usually used to restrict a function to a certain set `s`, we let the
 indicator function take the value `f x` for some function `f`, instead of `1`. If the usual indicator
 function is needed, just set `f` to be the constant function `λx, 1`.

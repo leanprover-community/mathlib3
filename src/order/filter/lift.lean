@@ -135,22 +135,13 @@ theorem monotone_lift [preorder γ] {f : γ → filter α} {g : γ → set α �
   (hf : monotone f) (hg : monotone g) : monotone (λc, (f c).lift (g c)) :=
 assume a b h, lift_mono (hf h) (hg h)
 
-lemma lift_neq_bot_iff (hm : monotone g) : (f.lift g ≠ ⊥) ↔ (∀s∈f.sets, g s ≠ ⊥) :=
-classical.by_cases
-  (assume hn : nonempty β,
-    calc f.lift g ≠ ⊥ ↔ (⨅s : { s // s ∈ f.sets}, g s.val) ≠ ⊥ :
-      by simp only [filter.lift, infi_subtype, iff_self, ne.def]
-      ... ↔ (∀s:{ s // s ∈ f.sets}, g s.val ≠ ⊥) :
-        infi_neq_bot_iff_of_directed hn
-          (assume ⟨a, ha⟩ ⟨b, hb⟩, ⟨⟨a ∩ b, inter_mem_sets ha hb⟩,
-            hm $ inter_subset_left _ _, hm $ inter_subset_right _ _⟩)
-      ... ↔ (∀s∈f.sets, g s ≠ ⊥) : ⟨assume h s hs, h ⟨s, hs⟩, assume h ⟨s, hs⟩, h s hs⟩)
-  (assume hn : ¬ nonempty β,
-    have h₁ : f.lift g = ⊥, from filter_eq_bot_of_not_nonempty hn,
-    have h₂ : ∀s, g s = ⊥, from assume s, filter_eq_bot_of_not_nonempty hn,
-    calc (f.lift g ≠ ⊥) ↔ false : by simp only [h₁, iff_self, eq_self_iff_true, not_true, ne.def]
-      ... ↔ (∀s∈f.sets, false) : ⟨false.elim, assume h, h univ univ_mem_sets⟩
-      ... ↔ (∀s∈f.sets, g s ≠ ⊥) : by simp only [h₂, iff_self, eq_self_iff_true, not_true, ne.def])
+lemma lift_ne_bot_iff (hm : monotone g) : (f.lift g ≠ ⊥) ↔ (∀s∈f, g s ≠ ⊥) :=
+begin
+  rw [filter.lift, infi_subtype', infi_ne_bot_iff_of_directed', subtype.forall'],
+  { exact ⟨⟨univ, univ_mem_sets⟩⟩ },
+  { rintros ⟨s, hs⟩ ⟨t, ht⟩,
+    exact ⟨⟨s ∩ t, inter_mem_sets hs ht⟩, hm (inter_subset_left s t), hm (inter_subset_right s t)⟩ }
+end
 
 @[simp] lemma lift_const {f : filter α} {g : filter β} : f.lift (λx, g) = g :=
 le_antisymm (lift_le univ_mem_sets $ le_refl g) (le_lift $ assume s hs, le_refl g)
@@ -286,10 +277,10 @@ le_antisymm
     (infi_le_of_le univ $ infi_le_of_le univ_mem_sets $
     by simp only [le_principal_iff, inter_subset_right, mem_principal_sets, function.comp_app]; exact inter_subset_left _ _))
 
-lemma lift'_neq_bot_iff (hh : monotone h) : (f.lift' h ≠ ⊥) ↔ (∀s∈f.sets, h s ≠ ∅) :=
-calc (f.lift' h ≠ ⊥) ↔ (∀s∈f.sets, principal (h s) ≠ ⊥) :
-    lift_neq_bot_iff (monotone_principal.comp hh)
-  ... ↔ (∀s∈f.sets, h s ≠ ∅) : by simp only [principal_eq_bot_iff, iff_self, ne.def, principal_eq_bot_iff]
+lemma lift'_ne_bot_iff (hh : monotone h) : (f.lift' h ≠ ⊥) ↔ (∀s∈f, h s ≠ ∅) :=
+calc (f.lift' h ≠ ⊥) ↔ (∀s∈f, principal (h s) ≠ ⊥) :
+    lift_ne_bot_iff (monotone_principal.comp hh)
+  ... ↔ (∀s∈f, h s ≠ ∅) : by simp only [principal_eq_bot_iff, iff_self, ne.def, principal_eq_bot_iff]
 
 @[simp] lemma lift'_id {f : filter α} : f.lift' id = f :=
 lift_principal2

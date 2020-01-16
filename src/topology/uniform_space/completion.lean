@@ -176,7 +176,7 @@ have h_ex : ∀ s ∈ 𝓤 (Cauchy α), ∃y:α, (f, pure_cauchy y) ∈ s, from
   ⟨x, ht''₂ $ by dsimp [gen]; exact this⟩,
 begin
   simp [closure_eq_nhds, nhds_eq_uniformity, lift'_inf_principal_eq, set.inter_comm],
-  exact (lift'_neq_bot_iff $ monotone_inter monotone_const monotone_preimage).mpr
+  exact (lift'_ne_bot_iff $ monotone_inter monotone_const monotone_preimage).mpr
     (assume s hs,
       let ⟨y, hy⟩ := h_ex s hs in
       have pure_cauchy y ∈ range pure_cauchy ∩ {y : Cauchy α | (f, y) ∈ s},
@@ -280,7 +280,7 @@ begin
     have limc : ∀ (f : Cauchy α) (x ∈ f.1), lim f.1 ∈ closure x,
     { intros f x xf,
       rw closure_eq_nhds,
-      exact lattice.neq_bot_of_le_neq_bot f.2.1
+      exact lattice.ne_bot_of_le_ne_bot f.2.1
         (lattice.le_inf (le_nhds_lim_of_cauchy f.2) (le_principal_iff.2 xf)) },
     have := (closure_subset_iff_subset_of_is_closed dc).2 h,
     rw closure_prod_eq at this,
@@ -316,7 +316,7 @@ instance complete_space_separation [h : complete_space α] :
 ⟨assume f, assume hf : cauchy f,
   have cauchy (f.comap (λx, ⟦x⟧)), from
     cauchy_comap comap_quotient_le_uniformity hf $
-      comap_neq_bot_of_surj hf.left $ assume b, quotient.exists_rep _,
+      comap_ne_bot_of_surj hf.left $ assume b, quotient.exists_rep _,
   let ⟨x, (hx : f.comap (λx, ⟦x⟧) ≤ 𝓝 x)⟩ := complete_space.complete this in
   ⟨⟦x⟧, calc f = map (λx, ⟦x⟧) (f.comap (λx, ⟦x⟧)) :
       (map_comap $ univ_mem_sets' $ assume b, quotient.exists_rep _).symm

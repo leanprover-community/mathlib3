@@ -60,7 +60,7 @@ of `f` in these charts.
 
 Due to the fact that we are working in a model with corners, with an additional embedding `I` of the
 model space `H` in the model vector space `E`, the charts taking values in `E` are not the original
-charts of the manifold, but those ones composed with `I`. We call them extended charts below, and
+charts of the manifold, but those ones composed with `I`, called extended charts. We
 define `written_in_ext_chart I I' x f` for the function `f` written in the preferred extended charts.
 Then the manifold derivative of `f`, at `x`, is just the usual derivative of
 `written_in_ext_chart I I' x f`, at the point `(ext_chart_at I x).to_fun x`.
@@ -88,6 +88,10 @@ space. To get this property is a motivation for our definition of the tangent sp
 copy of the vector space, instead of more usual definitions such as the space of derivations, or
 the space of equivalence classes of smooth curves in the manifold.
 
+## Notations
+
+For the composition of local homeomorphisms and local equivs, we use respectively ` ≫ₕ` and ` ≫`.
+
 ## Tags
 Derivative, manifold
 -/
@@ -101,153 +105,6 @@ local infixr  ` ≫ₕ `:100 := local_homeomorph.trans
 local infixr  ` ≫ `:100 := local_equiv.trans
 
 universe u
-
-section extended_charts
-
-variables {𝕜 : Type*} [nondiscrete_normed_field 𝕜]
-  {E : Type*} [normed_group E] [normed_space 𝕜 E]
-  {H : Type*} [topological_space H] (I : model_with_corners 𝕜 E H)
-  {M : Type*} [topological_space M] [manifold H M]
-  (x : M) {s t : set M}
-
-/-!
-### Extended charts
-
-In a smooth manifold with corners, the model space is the space `H`. However, we will also
-need to use extended charts taking values in the model vector space `E`. These extended charts are
-not `local_homeomorph` as the target is not open in `E` in general, but we can still register them
-as `local_equiv`.
--/
-
-/-- The preferred extended chart on a manifold with corners around a point `x`, from a neighborhood
-of `x` to the model vector space. -/
-def ext_chart_at (x : M) : local_equiv M E :=
-(chart_at H x).to_local_equiv.trans I.to_local_equiv
-
-lemma ext_chart_at_source : (ext_chart_at I x).source = (chart_at H x).source :=
-by rw [ext_chart_at, local_equiv.trans_source, I.source_eq, preimage_univ, inter_univ]
-
-lemma ext_chart_at_open_source : is_open (ext_chart_at I x).source :=
-by { rw ext_chart_at_source, exact (chart_at H x).open_source }
-
-@[simp] lemma mem_ext_chart_source : x ∈ (ext_chart_at I x).source :=
-by { rw ext_chart_at_source, exact mem_chart_source _ _ }
-
-@[simp] lemma ext_chart_at_to_inv :
-  (ext_chart_at I x).inv_fun ((ext_chart_at I x).to_fun x) = x :=
-by rw (ext_chart_at I x).left_inv (mem_ext_chart_source _ _)
-
-lemma ext_chart_at_source_mem_nhds : (ext_chart_at I x).source ∈ 𝓝 x :=
-mem_nhds_sets (ext_chart_at_open_source I x) (mem_ext_chart_source I x)
-
-lemma ext_chart_at_continuous_on_to_fun :
-  continuous_on (ext_chart_at I x).to_fun (ext_chart_at I x).source :=
-begin
-  refine continuous_on.comp I.continuous_to_fun.continuous_on _ subset_preimage_univ,
-  rw ext_chart_at_source,
-  exact (chart_at H x).continuous_to_fun
-end
-
-lemma ext_chart_at_continuous_at_to_fun :
-  continuous_at (ext_chart_at I x).to_fun x :=
-(ext_chart_at_continuous_on_to_fun I x x (mem_ext_chart_source I x)).continuous_at
-  (ext_chart_at_source_mem_nhds I x)
-
-lemma ext_chart_at_continuous_on_inv_fun :
-  continuous_on (ext_chart_at I x).inv_fun (ext_chart_at I x).target :=
-begin
-  apply continuous_on.comp (chart_at H x).continuous_inv_fun I.continuous_inv_fun.continuous_on,
-  simp [ext_chart_at, local_equiv.trans_target]
-end
-
-lemma ext_chart_at_target_mem_nhds_within :
-  (ext_chart_at I x).target ∈ nhds_within ((ext_chart_at I x).to_fun x) (range I.to_fun) :=
-begin
-  rw [ext_chart_at, local_equiv.trans_target],
-  simp only [function.comp_app, local_equiv.trans_to_fun, model_with_corners_target],
-  refine inter_mem_nhds_within _
-    (mem_nhds_sets (I.continuous_inv_fun _ (chart_at H x).open_target) _),
-  simp only [model_with_corners_left_inv, mem_preimage],
-  exact (chart_at H x).map_source (mem_chart_source _ _),
-end
-
-lemma nhds_within_ext_chart_target_eq :
-  nhds_within ((ext_chart_at I x).to_fun x) (ext_chart_at I x).target =
-  nhds_within ((ext_chart_at I x).to_fun x) (range I.to_fun) :=
-begin
-  apply le_antisymm,
-  { apply nhds_within_mono,
-    simp [ext_chart_at, local_equiv.trans_target], },
-  { apply nhds_within_le_of_mem (ext_chart_at_target_mem_nhds_within _ _) }
-end
-
-lemma ext_chart_continuous_at_inv_fun' {x' : M} (h : x' ∈ (ext_chart_at I x).source) :
-  continuous_at (ext_chart_at I x).inv_fun ((ext_chart_at I x).to_fun x') :=
-begin
-  apply continuous_at.comp,
-  { simp [ext_chart_at],
-    rw ext_chart_at_source at h,
-    exact ((chart_at H x).continuous_inv_fun _
-      ((chart_at H x).map_source h)).continuous_at
-        (mem_nhds_sets (chart_at H x).open_target
-          ((chart_at H x).map_source h)) },
-  { exact I.continuous_inv_fun.continuous_at }
-end
-
-lemma ext_chart_continuous_at_inv_fun :
-  continuous_at (ext_chart_at I x).inv_fun ((ext_chart_at I x).to_fun x) :=
-ext_chart_continuous_at_inv_fun' I x (mem_ext_chart_source I x)
-
-/-- Technical lemma ensuring that the preimage under an extended chart of a neighborhood of a point
-in the source is a neighborhood of the preimage, within a set. -/
-lemma ext_chart_preimage_mem_nhds_within' {x' : M} (h : x' ∈ (ext_chart_at I x).source)
-  (ht : t ∈ nhds_within x' s) :
-  (ext_chart_at I x).inv_fun ⁻¹' t ∈ nhds_within ((ext_chart_at I x).to_fun x')
-    ((ext_chart_at I x).inv_fun ⁻¹' s ∩ range I.to_fun) :=
-begin
-  apply (ext_chart_continuous_at_inv_fun' I x h).continuous_within_at.tendsto_nhds_within_image,
-  rw (ext_chart_at I x).left_inv h,
-  apply nhds_within_mono _ _ ht,
-  have : (ext_chart_at I x).inv_fun '' ((ext_chart_at I x).inv_fun ⁻¹' s) ⊆ s :=
-    image_preimage_subset _ _,
-  exact subset.trans (image_subset _ (inter_subset_left _ _)) this
-end
-
-/-- Technical lemma ensuring that the preimage under an extended chart of a neighborhood of the
-base point is a neighborhood of the preimage, within a set. -/
-lemma ext_chart_preimage_mem_nhds_within (ht : t ∈ nhds_within x s) :
-  (ext_chart_at I x).inv_fun ⁻¹' t ∈ nhds_within ((ext_chart_at I x).to_fun x)
-    ((ext_chart_at I x).inv_fun ⁻¹' s ∩ range I.to_fun) :=
-ext_chart_preimage_mem_nhds_within' I x (mem_ext_chart_source I x) ht
-
-/-- Technical lemma ensuring that the preimage under an extended chart of a neighborhood of a point
-is a neighborhood of the preimage. -/
-lemma ext_chart_preimage_mem_nhds (ht : t ∈ 𝓝 x) :
-  (ext_chart_at I x).inv_fun ⁻¹' t ∈ 𝓝 ((ext_chart_at I x).to_fun x) :=
-begin
-  apply (ext_chart_continuous_at_inv_fun I x).preimage_mem_nhds,
-  rwa (ext_chart_at I x).left_inv (mem_ext_chart_source _ _)
-end
-
-/-- Technical lemma to rewrite suitably the preimage of an intersection under an extended chart, to
-bring it into a convenient form to apply derivative lemmas. -/
-lemma ext_chart_preimage_inter_eq : ((ext_chart_at I x).inv_fun ⁻¹' (s ∩ t) ∩ range I.to_fun)
-  = ((ext_chart_at I x).inv_fun ⁻¹' s ∩ range (I.to_fun))
-    ∩ ((ext_chart_at I x).inv_fun ⁻¹' t) :=
-begin
-  rw [preimage_inter, inter_assoc, inter_assoc],
-  congr' 1,
-  rw inter_comm
-end
-
-end extended_charts
-
-/-- In the case of the manifold structure on a vector space, the extended charts are just the
-identity.-/
-@[simp] lemma ext_chart_model_space_eq_id (𝕜 : Type*) [nondiscrete_normed_field 𝕜]
-  {E : Type*} [normed_group E] [normed_space 𝕜 E] (x : E) :
-  ext_chart_at (model_with_corners_self 𝕜 E) x = local_equiv.refl E :=
-by simp [ext_chart_at]
 
 section derivatives_definitions
 /-!
@@ -269,8 +126,6 @@ variables {𝕜 : Type*} [nondiscrete_normed_field 𝕜]
 {H' : Type*} [topological_space H'] (I' : model_with_corners 𝕜 E' H')
 {M' : Type*} [topological_space M'] [manifold H' M']
 
-include I
-
 /-- Predicate ensuring that, at a point and within a set, a function can have at most one
 derivative. This is expressed using the preferred chart at the considered point. -/
 def unique_mdiff_within_at (s : set M) (x : M) :=
@@ -280,8 +135,6 @@ unique_diff_within_at 𝕜 ((ext_chart_at I x).inv_fun ⁻¹' s ∩ range I.to_f
 /-- Predicate ensuring that, at all points of a set, a function can have at most one derivative. -/
 def unique_mdiff_on (s : set M) :=
 ∀x∈s, unique_mdiff_within_at I s x
-
-include I'
 
 /-- Conjugating a function to write it in the preferred charts around `x`. The manifold derivative
 of `f` will just be the derivative of this conjugated function. -/
@@ -419,24 +272,13 @@ begin
 end
 variable {I}
 
-lemma unique_mdiff_within_at' (s : set M) (x : M) :
+lemma unique_mdiff_within_at_iff {s : set M} {x : M} :
   unique_mdiff_within_at I s x ↔
   unique_diff_within_at 𝕜 ((ext_chart_at I x).inv_fun ⁻¹' s ∩ (ext_chart_at I x).target)
   ((ext_chart_at I x).to_fun x) :=
 begin
-  split,
-  { assume A,
-    dsimp [unique_mdiff_within_at] at A,
-    have : (ext_chart_at I x).target ∈ nhds_within ((ext_chart_at I x).to_fun x) (range I.to_fun) :=
-      ext_chart_at_target_mem_nhds_within I x,
-    have : (ext_chart_at I x).target ∈ nhds_within ((ext_chart_at I x).to_fun x)
-      ((ext_chart_at I x).inv_fun ⁻¹' s ∩ range I.to_fun) :=
-    nhds_within_mono _ (inter_subset_right _ _) this,
-    apply (A.inter' this).mono,
-    exact inter_subset_inter_left _ (inter_subset_left _ _) },
-  { assume H,
-    apply H.mono,
-    simp [inter_subset_inter_right, ext_chart_at, local_equiv.trans_target] }
+  apply unique_diff_within_at_congr,
+  rw [nhds_within_inter, nhds_within_inter, nhds_within_ext_chart_target_eq]
 end
 
 lemma unique_mdiff_within_at.mono (h : unique_mdiff_within_at I s x) (st : s ⊆ t) :
@@ -493,24 +335,15 @@ unique_mdiff_within_at.eq (U _ hx) h h₁
 We mimick the API for functions between vector spaces
 -/
 
-lemma mdifferentiable_within_at' (f : M → M') (s : set M) (x : M) :
+lemma mdifferentiable_within_at_iff {f : M → M'} {s : set M} {x : M} :
   mdifferentiable_within_at I I' f s x ↔
   continuous_within_at f s x ∧
   differentiable_within_at 𝕜 (written_in_ext_chart_at I I' x f)
     ((ext_chart_at I x).target ∩ (ext_chart_at I x).inv_fun ⁻¹' s) ((ext_chart_at I x).to_fun x) :=
 begin
-  dsimp [mdifferentiable_within_at],
-  have : (ext_chart_at I x).target ∩ (ext_chart_at I x).inv_fun ⁻¹' s
-    = ((ext_chart_at I x).inv_fun ⁻¹' s ∩ range I.to_fun) ∩ (ext_chart_at I x).target,
-  { have A : (ext_chart_at I x).target ⊆ range I.to_fun,
-      by simp [ext_chart_at, local_equiv.trans_target],
-    ext p,
-    exact ⟨λ⟨hp₁, hp₂⟩, ⟨⟨hp₂, A hp₁⟩, hp₁⟩, λ⟨⟨hp₂, _⟩, hp₁⟩, ⟨hp₁, hp₂⟩⟩ },
-  rw this,
-  have : (ext_chart_at I x).target ∈ nhds_within ((ext_chart_at I x).to_fun x)
-    ((ext_chart_at I x).inv_fun ⁻¹' s ∩ range I.to_fun) :=
-    nhds_within_mono _ (inter_subset_right _ _) (ext_chart_at_target_mem_nhds_within I x),
-  rw differentiable_within_at_inter' this,
+  refine and_congr iff.rfl (exists_congr $ λ f', _),
+  rw [inter_comm],
+  simp only [has_fderiv_within_at, nhds_within_inter, nhds_within_ext_chart_target_eq]
 end
 
 include Is I's
@@ -860,7 +693,6 @@ end
 /-! ### Composition lemmas -/
 
 omit Is I's
-include I''
 
 lemma written_in_ext_chart_comp (h : continuous_within_at f s x) :
   {y | written_in_ext_chart_at I I'' x (g ∘ f) y
@@ -1007,7 +839,7 @@ variables {𝕜 : Type*} [nondiscrete_normed_field 𝕜]
 {s : set M} {x : M}
 
 section id
-/-! Identity -/
+/-! #### Identity -/
 
 lemma has_mfderiv_at_id (x : M) :
   has_mfderiv_at I I (@_root_.id M) x
@@ -1055,7 +887,7 @@ end
 end id
 
 section const
-/-! Constants -/
+/-! #### Constants -/
 
 variables {E' : Type*} [normed_group E'] [normed_space 𝕜 E']
 {H' : Type*} [topological_space H'] (I' : model_with_corners 𝕜 E' H')
@@ -1106,7 +938,7 @@ end
 end const
 
 section model_with_corners
-/-! Model with corners -/
+/-! #### Model with corners -/
 
 lemma model_with_corners_mdifferentiable_on_to_fun :
   mdifferentiable I (model_with_corners_self 𝕜 E) I.to_fun :=
@@ -1252,7 +1084,6 @@ variables {𝕜 : Type*} [nondiscrete_normed_field 𝕜]
 {E : Type*} [normed_group E] [normed_space 𝕜 E]
 {E' : Type*} [normed_group E'] [normed_space 𝕜 E']
 {f : E → E'} {s : set E} {x : E}
-include E 𝕜
 
 lemma unique_mdiff_within_at_iff_unique_diff_within_at :
   unique_mdiff_within_at (model_with_corners_self 𝕜 E) s x ↔ unique_diff_within_at 𝕜 s x :=
@@ -1261,8 +1092,6 @@ by simp [unique_mdiff_within_at]
 lemma unique_mdiff_on_iff_unique_diff_on :
   unique_mdiff_on (model_with_corners_self 𝕜 E) s ↔ unique_diff_on 𝕜 s :=
 by simp [unique_mdiff_on, unique_diff_on, unique_mdiff_within_at_iff_unique_diff_within_at]
-
-include E'
 
 @[simp] lemma written_in_ext_chart_model_space :
   written_in_ext_chart_at (model_with_corners_self 𝕜 E) (model_with_corners_self 𝕜 E') x f = f :=
@@ -1458,7 +1287,7 @@ begin
       apply e.continuous_to_fun.preimage_open_of_open e.open_source (ext_chart_at_open_source I' x),
       simp [z_source, zx] },
     have := this.inter S,
-    rw [unique_mdiff_within_at'] at this,
+    rw [unique_mdiff_within_at_iff] at this,
     exact this },
   -- denote by `G` the change of coordinate, i.e., the composition of the two extended charts and
   -- of `e`

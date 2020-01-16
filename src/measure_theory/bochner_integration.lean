@@ -1113,7 +1113,7 @@ end
 
 /-- Lebesgue dominated convergence theorem provides sufficient conditions under which almost
   everywhere convergence of a sequence of functions implies the convergence of their integrals. -/
-theorem tendsto_integral_of_dominated_convergence {F : ℕ → α → β} {f : α → β} {bound : α → ℝ}
+theorem tendsto_integral_of_dominated_convergence {F : ℕ → α → β} {f : α → β} (bound : α → ℝ)
   (F_measurable : ∀ n, measurable (F n))
   (f_measurable : measurable f)
   (bound_integrable : integrable bound)
@@ -1144,6 +1144,69 @@ begin
     have h₂ : integrable f := integrable_of_dominated_convergence bound_integrable h_bound h_lim,
     rw ← integral_sub (F_measurable _) h₁ f_measurable h₂,
     exact norm_integral_le_lintegral_norm _ }
+end
+
+/-- Lebesgue dominated convergence theorem for filters with a countable basis -/
+lemma tendsto_integral_filter_of_dominated_convergence {ι} {l : filter ι}
+  {F : ι → α → β} {f : α → β} (bound : α → ℝ)
+  (hl_cb : l.has_countable_basis)
+  (F_measurable : ∀ n, measurable (F n))
+  (f_measurable : measurable f)
+  (h_bound : ∀ n, ∀ₘ a, ∥F n a∥ ≤ bound a)
+  (bound_integrable : integrable bound)
+  (h_lim : ∀ₘ a, tendsto (λ n, F n a) l (𝓝 (f a))) :
+  tendsto (λn, ∫ a, F n a) l (𝓝 $ (∫ a, f a)) :=
+begin
+  rw filter.tendsto_iff_seq_tendsto,
+  { intros x hxl,
+    refine tendsto_integral_of_dominated_convergence _ _ _ _ _ _,
+    { exact bound },
+    { intro, apply F_measurable },
+    { assumption },
+    { intro, apply h_bound },
+    { assumption },
+    { filter_upwards [h_lim],
+      simp only [mem_set_of_eq],
+      assume a h_lim,
+      apply @tendsto.comp _ _ _ x (λ n, F n a);
+      assumption } },
+  assumption
+end
+
+/-- Lebesgue dominated convergence theorem for filters with a countable basis -/
+lemma tendsto_integral_filter_of_dominated_convergence' {ι} {l : filter ι}
+  {F : ι → α → β} {f : α → β} (bound : α → ℝ)
+  (hl_cb : l.has_countable_basis)
+  (hF_meas : { n | measurable (F n) } ∈ l)
+  (f_measurable : measurable f)
+  (h_bound : { n | ∀ₘ a, ∥F n a∥ ≤ bound a } ∈ l)
+  (bound_integrable : integrable bound)
+  (h_lim : ∀ₘ a, tendsto (λ n, F n a) l (𝓝 (f a))) :
+  tendsto (λn, ∫ a, F n a) l (𝓝 $ (∫ a, f a)) :=
+begin
+  rw filter.tendsto_iff_seq_tendsto,
+  { intros x xl,
+    have hxl, { rw tendsto_at_top' at xl, exact xl },
+    replace hF_meas := hxl _ hF_meas,
+    rcases hF_meas with ⟨k₁, hF_meas⟩,
+    replace h_bound := hxl _ h_bound,
+    rcases h_bound with ⟨k₂, h_bound⟩,
+    let k := max k₁ k₂,
+    rw ← tendsto_add_at_top_iff_nat k,
+    refine tendsto_integral_of_dominated_convergence _ _ _ _ _ _,
+    { exact bound },
+    { intro, apply hF_meas, exact le_trans (le_max_left _ _) (nat.le_add_left _ _) },
+    { assumption },
+    { intro, apply h_bound, exact le_trans (le_max_right _ _) (nat.le_add_left _ _) },
+    { assumption },
+    { filter_upwards [h_lim],
+      simp only [mem_set_of_eq],
+      assume a h_lim,
+      apply @tendsto.comp _ _ _ (λn, x (n + k)) (λn, F n a),
+      { assumption },
+      rw tendsto_add_at_top_iff_nat,
+      assumption } },
+  assumption
 end
 
 /-- The Bochner integral of a real-valued function `f : α → ℝ` is the difference between the

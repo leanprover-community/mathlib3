@@ -122,6 +122,7 @@ begin
   simpa only [add_zero] using tendsto_const_nhds.add (tangent_cone_at.lim_zero at_top ctop clim)
 end
 
+/-- Tangent cone of `s` at `x` depends only on `nhds_within x s`. -/
 lemma tangent_cone_congr (h : nhds_within x s = nhds_within x t) :
   tangent_cone_at 𝕜 s x = tangent_cone_at 𝕜 t x :=
 subset.antisymm

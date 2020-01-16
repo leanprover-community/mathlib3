@@ -40,8 +40,8 @@ def pointwise_mul [monoid α] : has_mul (filter α) := ⟨λf g,
 { sets             := { s | ∃t₁∈f, ∃t₂∈g, t₁ * t₂  ⊆ s },
   univ_sets        :=
   begin
-    have h₁ : (∃x, x ∈ f.sets) := ⟨univ, univ_sets f⟩,
-    have h₂ : (∃x, x ∈ g.sets) := ⟨univ, univ_sets g⟩,
+    have h₁ : (∃x, x ∈ f) := ⟨univ, univ_sets f⟩,
+    have h₂ : (∃x, x ∈ g) := ⟨univ, univ_sets g⟩,
     simpa using and.intro h₁ h₂
   end,
   sets_of_superset := λx y hx hxy,

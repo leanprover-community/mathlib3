@@ -84,7 +84,7 @@ begin
   refine (has_countable_basis_iff_mono_seq f).trans (exists_congr $ λ x, and_congr_right _),
   intro hmono,
   have : directed (≥) (λ i, principal (x i)),
-    from directed_of_mono _ _ (λ i j hij, principal_mono.2 (hmono _ _ hij)),
+    from directed_of_mono _ (λ i j hij, principal_mono.2 (hmono _ _ hij)),
   simp only [filter.ext_iff, mem_infi this ⟨0⟩, mem_Union, mem_principal_sets]
 end
 
@@ -112,7 +112,7 @@ begin
     subst gbasis,
     rw mem_infi,
     { simp only [set.mem_Union, iff_self, filter.mem_principal_sets] },
-    { exact directed_of_mono _ _ (λ i j h, principal_mono.mpr $ gmon _ _ h) },
+    { exact directed_of_mono _ (λ i j h, principal_mono.mpr $ gmon _ _ h) },
     { apply_instance } },
   classical, contrapose,
   simp only [not_forall, not_imp, not_exists, subset_def, @tendsto_def _ _ f, gbasis],

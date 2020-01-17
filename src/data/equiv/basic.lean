@@ -608,7 +608,7 @@ def subtype_univ_equiv' {α : Type u} {p : α → Prop} (h : ∀ x, p x) :
   subtype p ≃ α :=
 ⟨λ x, x, λ x, ⟨x, h x⟩, λ x, subtype.eq rfl, λ x, rfl⟩
 
-/-- If a proposition holds for all elements, then the subtype is
+/-- The subtype for the universal set is
 equivalent to the original type. -/
 def subtype_univ_equiv (α : Type u) :
   @set.univ α ≃ α :=

@@ -157,10 +157,10 @@ def cramer : (n → α) →ₗ[α] (n → α) := is_linear_map.mk' (cramer_map A
 
 lemma cramer_val (i : n) : (cramer A).to_fun b i = cramer_map A b i := rfl
 
-lemma mul_cramer_map_val (c : α) (i : n) : c * cramer_map A b i = cramer_map A (c • b) i :=
+lemma mul_cramer_map_def (c : α) (i : n) : c * cramer_map A b i = cramer_map A (c • b) i :=
 by simp only [(cramer_is_linear A).2, smul_eq_mul, pi.smul_apply]
 lemma cramer_map_mul_val (c : α) (i : n) : cramer_map A b i * c = cramer_map A (c • b) i :=
-trans (mul_comm _ _) (mul_cramer_map_val _ _ _ _)
+trans (mul_comm _ _) (mul_cramer_map_def _ _ _ _)
 
 /-- Applying Cramer's rule to a column of the matrix gives a scaled basis vector. -/
 lemma cramer_column_self (i : n) :
@@ -215,7 +215,7 @@ adjugate A i j = cramer_map A (λ j, if i = j then 1 else 0) j := rfl
 lemma adjugate_transpose (A : matrix n n α) : (adjugate A)ᵀ = adjugate (Aᵀ) :=
 begin
   ext i j,
-  rw [transpose_val, adjugate_val, adjugate_val, cramer_map_val, cramer_map_val,
+  rw [transpose_val, adjugate_val, adjugate_val, cramer_map_def, cramer_map_def,
       replace_column_transpose, det_transpose, transpose_transpose, det, det],
   apply finset.sum_congr rfl,
   intros σ _,
@@ -250,7 +250,7 @@ begin
     sum univ (λ (k : n), A i k * adjugate A k j)
         = sum univ (λ (k : n), A i k * (cramer_at A j).to_fun (λ j, if k = j then 1 else 0)) : rfl
     ... = sum univ (λ (k : n), (cramer_at A j).to_fun (λ j, if k = j then A i k else 0))
-      : by {congr, ext, rw [cramer_at_val, mul_cramer_map_val], congr, ext,
+      : by {congr, ext, rw [cramer_at_val, mul_cramer_map_def], congr, ext,
             simp only [smul_val, smul_eq_mul, mul_ite, pi.smul_apply]}
     ... = (cramer_at A j).to_fun (λ j, sum univ (λ (k : n), if k = j then A i k else 0))
       : @sum_cramer_at n _ _ α _ A n univ j (λ (j k : n), if k = j then A i k else 0)

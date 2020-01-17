@@ -58,18 +58,18 @@ def replace_row (A : matrix n n α) (j : n) (b : n → α) : matrix n n α :=
 
 variables {A : matrix n n α} {i j : n} {b : n → α}
 
-lemma replace_column_self : replace_column A i b i = b := function.update_same
-lemma replace_row_self : replace_row A j b i j = b i := function.update_same
+lemma replace_column_self : replace_column A i b i = b := function.update_same i b A
+lemma replace_row_self : replace_row A j b i j = b i := function.update_same j (b i) (A i)
 
 lemma replace_column_eq {i' : n} (h : i = i') : replace_column A i b i' = b :=
 by {rw [h], apply replace_column_self}
 lemma replace_row_eq {j' : n} (h : j = j') : replace_row A j b i j' = b i :=
 by {rw [h], apply replace_row_self}
 
-lemma replace_column_ne {i' : n} : i' ≠ i → replace_column A i b i' = A i' :=
-function.update_noteq
-lemma replace_row_ne {j' : n} : j' ≠ j → replace_row A j b i j' = A i j' :=
-function.update_noteq
+lemma replace_column_ne {i' : n} (i_ne : i' ≠ i) : replace_column A i b i' = A i' :=
+function.update_noteq i_ne b A
+lemma replace_row_ne {j' : n} (j_ne : j' ≠ j) : replace_row A j b i j' = A i j' :=
+function.update_noteq j_ne (b i) (A i)
 
 lemma replace_column_val {i' : n} : replace_column A i b i' j = if i' = i then b j else A i' j :=
 begin

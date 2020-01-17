@@ -162,6 +162,7 @@ by rw [swap_mul_eq_mul_swap, inv_apply_self, inv_apply_self]
 equiv.swap_swap i j
 
 /-- A specialization of `swap_mul_self`, useful in cancelling out multiple swaps. -/
+@[simp]
 lemma swap_mul_self_mul (i j : α) (σ : perm α) : equiv.swap i j * (equiv.swap i j * σ) = σ :=
 by rw [←mul_assoc (swap i j) (swap i j) σ, equiv.perm.swap_mul_self, one_mul]
 

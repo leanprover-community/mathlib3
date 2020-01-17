@@ -100,6 +100,42 @@ begin
   ... = _ : by simp [-infi_infi_eq_right, infi_and]
 end
 
+lemma has_countable_basis.tendsto_iff_seq_tendsto {f : α → β} {k : filter α} {l : filter β}
+  (hcb : k.has_countable_basis) :
+  tendsto f k l ↔ (∀ x : ℕ → α, tendsto x at_top k → tendsto (f ∘ x) at_top l) :=
+suffices (∀ x : ℕ → α, tendsto x at_top k → tendsto (f ∘ x) at_top l) → tendsto f k l,
+  from ⟨by intros; apply tendsto.comp; assumption, by assumption⟩,
+begin
+  rw filter.has_countable_basis_iff_mono_seq at hcb,
+  rcases hcb with ⟨g, gmon, gbasis⟩,
+  have gbasis : ∀ A, A ∈ k ↔ ∃ i, g i ⊆ A,
+  { intro A,
+    subst gbasis,
+    rw mem_infi,
+    { simp only [set.mem_Union, iff_self, filter.mem_principal_sets] },
+    { exact directed_of_mono _ (λ i j h, principal_mono.mpr $ gmon _ _ h) },
+    { apply_instance } },
+  classical, contrapose,
+  simp only [not_forall, not_imp, not_exists, subset_def, @tendsto_def _ _ f, gbasis],
+  rintro ⟨B, hBl, hfBk⟩,
+  choose x h using hfBk,
+  use x, split,
+  { simp only [tendsto_at_top', gbasis],
+    rintros A ⟨i, hgiA⟩,
+    use i,
+    refine (λ j hj, hgiA $ gmon _ _ hj _),
+    simp only [h] },
+  { simp only [tendsto_at_top', (∘), not_forall, not_exists],
+    use [B, hBl],
+    intro i, use [i, (le_refl _)],
+    apply (h i).right },
+end
+
+lemma has_countable_basis.tendsto_of_seq_tendsto {f : α → β} {k : filter α} {l : filter β}
+  (hcb : k.has_countable_basis) :
+  (∀ x : ℕ → α, tendsto x at_top k → tendsto (f ∘ x) at_top l) → tendsto f k l :=
+hcb.tendsto_iff_seq_tendsto.2
+
 end filter
 
 namespace topological_space

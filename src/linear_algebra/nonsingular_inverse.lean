@@ -73,22 +73,22 @@ function.update_noteq
 
 lemma replace_column_val {i' : n} : replace_column A i b i' j = if i' = i then b j else A i' j :=
 begin
-by_cases i' = i,
-{ rw [h, replace_column_self, if_pos rfl] },
-{ rw [replace_column_ne h, if_neg h] }
+  by_cases i' = i,
+  { rw [h, replace_column_self, if_pos rfl] },
+  { rw [replace_column_ne h, if_neg h] }
 end
 lemma replace_row_val {j' : n} : replace_row A j b i j' = if j' = j then b i else A i j' :=
 begin
-by_cases j' = j,
-{ rw [h, replace_row_self, if_pos rfl] },
-{ rw [replace_row_ne h, if_neg h] }
+  by_cases j' = j,
+  { rw [h, replace_row_self, if_pos rfl] },
+  { rw [replace_row_ne h, if_neg h] }
 end
 
 lemma replace_column_transpose : replace_column Aᵀ i b = (replace_row A i b)ᵀ :=
 begin
-ext i' j,
-rw [transpose_val, replace_column_val, replace_row_val],
-refl
+  ext i' j,
+  rw [transpose_val, replace_column_val, replace_row_val],
+  refl
 end
 end replace
 
@@ -109,31 +109,31 @@ def cramer_map (i : n) : α := (A.replace_column i b)ᵀ.det
 lemma cramer_map_def (i : n) : cramer_map A b i = (A.replace_column i b)ᵀ.det := rfl
 
 lemma cramer_at_is_linear (i : n) : is_linear_map α (λ b, cramer_map A b i) := begin
-have : Π {f : n → n} {i : n} (x : n → α),
-  finset.prod univ (λ (i' : n), (replace_column A i x)ᵀ (f i') i')
-  = finset.prod univ (λ (i' : n), if i' = i then x (f i') else A i' (f i')),
-{ intros, congr, ext i', rw [transpose_val, replace_column_val] },
-split,
-{ intros x y,
-  rw [cramer_map, det, cramer_map, det, cramer_map, det, ←sum_add_distrib],
-  congr, ext σ,
-  rw [←mul_add ↑↑(sign σ)],
-  congr,
-  repeat { erw [this, finset.prod_ite _ _ (id : α → α)] },
-  erw [finset.filter_eq', if_pos (mem_univ i),
-    prod_singleton, prod_singleton, prod_singleton,
-    ←add_mul],
-  refl
-},
-{ intros c x,
-  rw [smul_eq_mul, cramer_map, cramer_map, det, det, mul_sum],
-  congr, ext σ,
-  rw [←mul_assoc, mul_comm c, mul_assoc], congr,
-  repeat { erw [this, finset.prod_ite _ _ (id : α → α)] },
-  erw [finset.filter_eq', if_pos (mem_univ i),
-    prod_singleton, prod_singleton, mul_assoc],
-  refl
-}
+  have : Π {f : n → n} {i : n} (x : n → α),
+    finset.prod univ (λ (i' : n), (replace_column A i x)ᵀ (f i') i')
+    = finset.prod univ (λ (i' : n), if i' = i then x (f i') else A i' (f i')),
+  { intros, congr, ext i', rw [transpose_val, replace_column_val] },
+  split,
+  { intros x y,
+    rw [cramer_map, det, cramer_map, det, cramer_map, det, ←sum_add_distrib],
+    congr, ext σ,
+    rw [←mul_add ↑↑(sign σ)],
+    congr,
+    repeat { erw [this, finset.prod_ite _ _ (id : α → α)] },
+    erw [finset.filter_eq', if_pos (mem_univ i),
+      prod_singleton, prod_singleton, prod_singleton,
+      ←add_mul],
+    refl
+  },
+  { intros c x,
+    rw [smul_eq_mul, cramer_map, cramer_map, det, det, mul_sum],
+    congr, ext σ,
+    rw [←mul_assoc, mul_comm c, mul_assoc], congr,
+    repeat { erw [this, finset.prod_ite _ _ (id : α → α)] },
+    erw [finset.filter_eq', if_pos (mem_univ i),
+      prod_singleton, prod_singleton, mul_assoc],
+    refl
+  }
 end
 
 /-- The coordinates of the linear map associated to Cramer's rule.
@@ -148,9 +148,9 @@ is_linear_map.mk' (λ b, cramer_map A b i) (cramer_at_is_linear A i)
 lemma cramer_at_val (i : n) : (cramer_at A i).to_fun b = cramer_map A b i := rfl
 
 lemma cramer_is_linear : is_linear_map α (cramer_map A) := begin
-split; intros; ext i,
-{ apply (cramer_at_is_linear A i).1 },
-{ apply (cramer_at_is_linear A i).2 }
+  split; intros; ext i,
+  { apply (cramer_at_is_linear A i).1 },
+  { apply (cramer_at_is_linear A i).2 }
 end
 /-- The linear map of vectors associated to Cramer's rule. -/
 def cramer : (n → α) →ₗ[α] (n → α) := is_linear_map.mk' (cramer_map A) (cramer_is_linear A)
@@ -166,25 +166,25 @@ trans (mul_comm _ _) (mul_cramer_map_val _ _ _ _)
 lemma cramer_column_self (i : n) :
 (cramer A).to_fun (A i) = (λ j, if i = j then A.det else 0) :=
 begin
-ext j,
-rw cramer_val,
-by_cases i = j,
-{ -- i = j: this entry should be `A.det`
-  rw [if_pos h, ←h, cramer_map, det_transpose],
-  congr, ext i',
-  by_cases h : i' = i, { rw [h, replace_column_self] }, { rw [replace_column_ne h]} },
-{ -- i ≠ j: this entry should be 0
-  rw [if_neg h, cramer_map, det_transpose],
-  apply det_zero_of_column_eq h,
-  rw [replace_column_self, replace_column_ne],
-  apply h }
+  ext j,
+  rw cramer_val,
+  by_cases i = j,
+  { -- i = j: this entry should be `A.det`
+    rw [if_pos h, ←h, cramer_map, det_transpose],
+    congr, ext i',
+    by_cases h : i' = i, { rw [h, replace_column_self] }, { rw [replace_column_ne h]} },
+  { -- i ≠ j: this entry should be 0
+    rw [if_neg h, cramer_map, det_transpose],
+    apply det_zero_of_column_eq h,
+    rw [replace_column_self, replace_column_ne],
+    apply h }
 end
 
 /-- Use linearity of `cramer` to switch the order of `cramer_at` and `finset.sum`. -/
 lemma sum_cramer_at {β} (s : finset β) (i : n) (f : n → β → α) :
-s.sum (λ x, (cramer_at A i).to_fun (λ j, f j x)) = (cramer_at A i).to_fun (λ j, s.sum (λ x, f j x))
+  s.sum (λ x, (cramer_at A i).to_fun (λ j, f j x)) = (cramer_at A i).to_fun (λ j, s.sum (λ x, f j x))
 := calc s.sum (λ x, (cramer_at A i).to_fun (λ j, f j x))
-  = (cramer_at A i).to_fun (sum s (λ (x : β) (j : n), f j x)) :
+    = (cramer_at A i).to_fun (sum s (λ (x : β) (j : n), f j x)) :
 by {erw [←(@linear_map.map_sum _ _ _ _ _ _ _ _ (cramer_at A i) _ _ (λ x j, f j x))], refl}
 ... = (cramer_at A i).to_fun (λ (j : n), s.sum (λ x, f j x)) :
 by {congr, ext j, apply pi.finset_sum_apply}

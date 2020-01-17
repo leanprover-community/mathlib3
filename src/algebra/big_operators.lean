@@ -464,7 +464,7 @@ end
 lemma prod_cancels_of_partition_cancels [R : setoid α] [decidable_rel R.r]
   (h : ∀ x ∈ s, (s.filter (λy, y ≈ x)).prod f = 1) : s.prod f = 1 :=
 begin
-suffices : (s.image quotient.mk).prod (λ xbar, (s.filter (λ y, ⟦y⟧ = xbar)).prod f) = s.prod f,
+  suffices : (s.image quotient.mk).prod (λ xbar, (s.filter (λ y, ⟦y⟧ = xbar)).prod f) = s.prod f,
   { rw [←this, ←finset.prod_eq_one],
     intros xbar xbar_in_s,
     rcases (mem_image).mp xbar_in_s with ⟨x, x_in_s, xbar_eq_x⟩,

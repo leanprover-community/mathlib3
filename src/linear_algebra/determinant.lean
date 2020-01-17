@@ -107,41 +107,41 @@ instance : is_monoid_hom (det : matrix n n R → R) :=
 /-- Transposing a matrix preserves the determinant. -/
 @[simp] lemma det_transpose (M : matrix n n R) : M.transpose.det = M.det :=
 begin
-apply sum_bij (λ σ _, σ⁻¹),
-{ intros σ _, apply mem_univ },
-{ intros σ _,
-  rw [sign_inv],
-  congr' 1,
-  apply prod_bij (λ i _, σ i),
-  { intros i _, apply mem_univ },
-  { intros i _, simp },
-  { intros i j _ _ h, simp at h, assumption },
-  { intros i _, use σ⁻¹ i, finish }
-},
-{ intros σ σ' _ _ h, simp at h, assumption },
-{ intros σ _, use σ⁻¹, finish }
+  apply sum_bij (λ σ _, σ⁻¹),
+  { intros σ _, apply mem_univ },
+  { intros σ _,
+    rw [sign_inv],
+    congr' 1,
+    apply prod_bij (λ i _, σ i),
+    { intros i _, apply mem_univ },
+    { intros i _, simp },
+    { intros i j _ _ h, simp at h, assumption },
+    { intros i _, use σ⁻¹ i, finish }
+  },
+  { intros σ σ' _ _ h, simp at h, assumption },
+  { intros σ _, use σ⁻¹, finish }
 end
 
 /-- Permuting the columns changes the sign of the determinant. -/
 lemma det_permute (M : matrix n n R) (σ : perm n) : matrix.det (λ i, M (σ i)) = σ.sign * M.det :=
 begin
-unfold det,
-rw mul_sum,
-apply sum_bij (λ τ _, σ * τ),
-{ intros τ _, apply mem_univ },
-{ intros τ _,
-  show
-    ↑(sign τ) * finset.prod univ (λ i, M (σ.to_fun (τ.to_fun i)) i)
-    = ↑(sign σ) * (↑(sign (σ * τ)) * finset.prod univ (λ i, M (σ.to_fun (τ.to_fun i)) i)),
-  rw ←mul_assoc,
-  congr,
-  calc ε τ
-       = ↑(sign σ * sign σ * sign τ) :
-    by {conv_lhs {rw [←one_mul (sign τ), ←int.units_pow_two (sign σ)]}, norm_num}
-  ... = ε σ * ε (σ * τ) :
-    by simp only [mul_assoc, int.cast_mul, sign_mul, coe_coe, units.coe_mul] },
-{ intros τ τ' _ _, exact (mul_left_inj σ).mp },
-{ intros τ _, use σ⁻¹ * τ, use (mem_univ _), exact (mul_inv_cancel_left _ _).symm }
+  unfold det,
+  rw mul_sum,
+  apply sum_bij (λ τ _, σ * τ),
+  { intros τ _, apply mem_univ },
+  { intros τ _,
+    show
+      ↑(sign τ) * finset.prod univ (λ i, M (σ.to_fun (τ.to_fun i)) i)
+      = ↑(sign σ) * (↑(sign (σ * τ)) * finset.prod univ (λ i, M (σ.to_fun (τ.to_fun i)) i)),
+    rw ←mul_assoc,
+    congr,
+    calc ε τ
+        = ↑(sign σ * sign σ * sign τ) :
+      by {conv_lhs {rw [←one_mul (sign τ), ←int.units_pow_two (sign σ)]}, norm_num}
+    ... = ε σ * ε (σ * τ) :
+      by simp only [mul_assoc, int.cast_mul, sign_mul, coe_coe, units.coe_mul] },
+  { intros τ τ' _ _, exact (mul_left_inj σ).mp },
+  { intros τ _, use σ⁻¹ * τ, use (mem_univ _), exact (mul_inv_cancel_left _ _).symm }
 end
 
 section det_zero
@@ -173,29 +173,29 @@ include i_ne_j hij
 /-- If a matrix has a repeated column, the determinant will be zero. -/
 theorem det_zero_of_column_eq : M.det = 0 :=
 begin
-have swap_invariant : ∀ k, M (swap i j k) = M k,
-{ intros k,
-  rw [swap_apply_def],
-  by_cases k = i, { rw [if_pos h, h, ←hij] },
-  rw [if_neg h],
-  by_cases k = j, { rw [if_pos h, h, hij] },
-  rw [if_neg h] },
+  have swap_invariant : ∀ k, M (swap i j k) = M k,
+  { intros k,
+    rw [swap_apply_def],
+    by_cases k = i, { rw [if_pos h, h, ←hij] },
+    rw [if_neg h],
+    by_cases k = j, { rw [if_pos h, h, hij] },
+    rw [if_neg h] },
 
-have : ∀ σ, _root_.disjoint (_root_.singleton σ) (_root_.singleton (swap i j * σ)),
-{ intros σ,
-  rw [finset.singleton_eq_singleton, finset.singleton_eq_singleton, disjoint_singleton],
-  apply (not_congr mem_singleton).mpr,
-  exact (not_congr (swap_mul_eq_iff σ)).mpr i_ne_j },
+  have : ∀ σ, _root_.disjoint (_root_.singleton σ) (_root_.singleton (swap i j * σ)),
+  { intros σ,
+    rw [finset.singleton_eq_singleton, finset.singleton_eq_singleton, disjoint_singleton],
+    apply (not_congr mem_singleton).mpr,
+    exact (not_congr (swap_mul_eq_iff σ)).mpr i_ne_j },
 
-apply @finset.sum_cancels_of_partition_cancels _ _ _ _ _ (mod_swap i j),
-intros σ _,
-erw [filter_or, filter_eq', filter_eq', if_pos (mem_univ σ), if_pos (mem_univ (swap i j * σ)),
-  sum_union (this σ), sum_singleton, sum_singleton],
-convert add_right_neg (↑↑(sign σ) * finset.prod univ (λ (i : n), M (σ i) i)),
-rw [neg_mul_eq_neg_mul],
-congr,
-{ rw [sign_mul, sign_swap i_ne_j], norm_num },
-ext j, rw [mul_apply, swap_invariant]
+  apply @finset.sum_cancels_of_partition_cancels _ _ _ _ _ (mod_swap i j),
+  intros σ _,
+  erw [filter_or, filter_eq', filter_eq', if_pos (mem_univ σ), if_pos (mem_univ (swap i j * σ)),
+    sum_union (this σ), sum_singleton, sum_singleton],
+  convert add_right_neg (↑↑(sign σ) * finset.prod univ (λ (i : n), M (σ i) i)),
+  rw [neg_mul_eq_neg_mul],
+  congr,
+  { rw [sign_mul, sign_swap i_ne_j], norm_num },
+  ext j, rw [mul_apply, swap_invariant]
 end
 
 end det_zero

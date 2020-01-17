@@ -185,7 +185,7 @@ begin
   { intros σ,
     rw [finset.singleton_eq_singleton, finset.singleton_eq_singleton, disjoint_singleton],
     apply (not_congr mem_singleton).mpr,
-    exact (not_congr (swap_mul_eq_iff σ)).mpr i_ne_j },
+    exact (not_congr swap_mul_eq_iff).mpr i_ne_j },
 
   apply @finset.sum_cancels_of_partition_cancels _ _ _ _ _ (mod_swap i j),
   intros σ _,

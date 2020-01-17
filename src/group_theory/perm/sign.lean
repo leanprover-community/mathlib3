@@ -166,7 +166,7 @@ equiv.swap_swap i j
 lemma swap_mul_self_mul (i j : α) (σ : perm α) : equiv.swap i j * (equiv.swap i j * σ) = σ :=
 by rw [←mul_assoc (swap i j) (swap i j) σ, equiv.perm.swap_mul_self, one_mul]
 
-lemma swap_mul_eq_iff {i j : α} (σ : perm α) : swap i j * σ = σ ↔ i = j :=
+lemma swap_mul_eq_iff {i j : α} {σ : perm α} : swap i j * σ = σ ↔ i = j :=
 ⟨(assume h, have swap_id : swap i j = 1 := mul_right_cancel (trans h (one_mul σ).symm),
   by {rw [←swap_apply_right i j, swap_id], refl}),
 (assume h, by erw [h, swap_self, one_mul])⟩

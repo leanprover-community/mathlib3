@@ -106,7 +106,7 @@ variables [comm_ring α] (A : matrix n n α) (b : n → α)
   such that `A ⬝x = b`.
 -/
 def cramer_map (i : n) : α := (A.replace_column i b)ᵀ.det
-lemma cramer_map_val (i : n) : cramer_map A b i = (A.replace_column i b)ᵀ.det := rfl
+lemma cramer_map_def (i : n) : cramer_map A b i = (A.replace_column i b)ᵀ.det := rfl
 
 lemma cramer_at_is_linear (i : n) : is_linear_map α (λ b, cramer_map A b i) := begin
 have : Π {f : n → n} {i : n} (x : n → α),

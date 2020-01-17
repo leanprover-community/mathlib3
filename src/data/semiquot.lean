@@ -27,6 +27,7 @@ variables {α : Type*} {β : Type*}
 
 instance : has_mem α (semiquot α) := ⟨λ a q, a ∈ q.s⟩
 
+/-- Construct a `semiquot α` from `h : a ∈ s` where `s : set α`. -/
 def mk {a : α} {s : set α} (h : a ∈ s) : semiquot α :=
 ⟨s, trunc.mk ⟨a, h⟩⟩
 
@@ -46,15 +47,18 @@ theorem eq_mk_of_mem {q : semiquot α} {a : α} (h : a ∈ q) :
 theorem ne_empty (q : semiquot α) : q.s ≠ ∅ :=
 let ⟨a, h⟩ := q.exists_mem in set.ne_empty_of_mem h
 
+/-- `pure a` is `a` reinterpreted as an unspecified element of `{a}`. -/
 protected def pure (a : α) : semiquot α := mk (set.mem_singleton a)
 
 @[simp] theorem mem_pure' {a b : α} : a ∈ semiquot.pure b ↔ a = b :=
 set.mem_singleton_iff
 
+/-- Replace `s` in a `semiquot` with a superset. -/
 def blur' (q : semiquot α) {s : set α} (h : q.s ⊆ s) : semiquot α :=
 ⟨s, trunc.lift (λ a : q.s, trunc.mk ⟨a.1, h a.2⟩)
   (λ _ _, trunc.eq _ _) q.2⟩
 
+/-- Replace `s` in a `q : semiquot α` with a union `s ∪ q.s` -/
 def blur (s : set α) (q : semiquot α) : semiquot α :=
 blur' q (set.subset_union_right s q.s)
 
@@ -65,12 +69,16 @@ by unfold blur; congr; exact set.union_eq_self_of_subset_right h
 @[simp] theorem mem_blur' (q : semiquot α) {s : set α} (h : q.s ⊆ s)
   {a : α} : a ∈ blur' q h ↔ a ∈ s := iff.rfl
 
+/-- Convert a `trunc α` to a `semiquot α`. -/
 def of_trunc (q : trunc α) : semiquot α :=
 ⟨set.univ, q.map (λ a, ⟨a, trivial⟩)⟩
 
+/-- Convert a `semiquot α` to a `trunc α`. -/
 def to_trunc (q : semiquot α) : trunc α :=
 q.2.map subtype.val
 
+/-- If `f` is a constant on `q.s`, then `q.lift_on f` is the value of `f`
+at any point of `q`. -/
 def lift_on (q : semiquot α) (f : α → β) (h : ∀ a b ∈ q, f a = f b) : β :=
 trunc.lift_on q.2 (λ x, f x.1) (λ x y, h _ _ x.2 y.2)
 
@@ -90,7 +98,7 @@ def bind (q : semiquot α) (f : α → semiquot β) : semiquot β :=
  q.2.bind (λ a, (f a.1).2.map (λ b, ⟨b.1, set.mem_bUnion a.2 b.2⟩))⟩
 
 @[simp] theorem mem_bind (q : semiquot α) (f : α → semiquot β) (b : β) :
-  b ∈ bind q f ↔ ∃ a, a ∈ q ∧ b ∈ f a := set.mem_bUnion_iff
+  b ∈ bind q f ↔ ∃ a ∈ q, b ∈ f a := set.mem_bUnion_iff
 
 instance : monad semiquot :=
 { pure := @semiquot.pure,
@@ -134,7 +142,7 @@ set.singleton_subset_iff
 
 def is_pure (q : semiquot α) := ∀ a b ∈ q, a = b
 
-def get (q) (h : @is_pure α q) : α := lift_on q id h
+def get (q : semiquot α) (h : q.is_pure) : α := lift_on q id h
 
 theorem get_mem {q : semiquot α} (p) : get q p ∈ q :=
 let ⟨a, h⟩ := exists_mem q in
@@ -162,6 +170,7 @@ theorem is_pure.min {s t : semiquot α} (h : is_pure t) : s ≤ t ↔ s = t :=
 theorem is_pure_of_subsingleton [subsingleton α] (q : semiquot α) : is_pure q
 | a b aq bq := subsingleton.elim _ _
 
+/-- `univ : semiquot α` represents an unspecified element of `univ : set α`. -/
 def univ [inhabited α] : semiquot α :=
 mk $ set.mem_univ (default _)
 

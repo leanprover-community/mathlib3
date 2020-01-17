@@ -4,7 +4,9 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Kenny Lau, Chris Hughes, Tim Baanen
 -/
 import data.matrix.basic
+import data.matrix.pequiv
 import group_theory.perm.sign
+import tactic.find
 
 universes u v
 open equiv equiv.perm finset function
@@ -122,24 +124,21 @@ begin
   { intros σ _, use σ⁻¹, finish }
 end
 
-/-- Permuting the columns changes the sign of the determinant. -/
-lemma det_permute (M : matrix n n R) (σ : perm n) : matrix.det (λ i, M (σ i)) = σ.sign * M.det :=
-begin
+/-- The determinant of a permutation matrix equals its sign. -/
+lemma det_permutation (σ : perm n) :
+  matrix.det (σ.to_pequiv.to_matrix : matrix n n R) = σ.sign := begin
+  suffices : matrix.det (σ.to_pequiv.to_matrix) = ↑σ.sign * det (1 : matrix n n R), { simp [this] },
   unfold det,
   rw mul_sum,
   apply sum_bij (λ τ _, σ * τ),
   { intros τ _, apply mem_univ },
   { intros τ _,
-    show
-      ↑(sign τ) * finset.prod univ (λ i, M (σ.to_fun (τ.to_fun i)) i)
-      = ↑(sign σ) * (↑(sign (σ * τ)) * finset.prod univ (λ i, M (σ.to_fun (τ.to_fun i)) i)),
-    rw ←mul_assoc,
+    conv_lhs { rw [←one_mul (sign τ), ←int.units_pow_two (sign σ)] },
+    conv_rhs { rw [←mul_assoc, coe_coe, sign_mul, units.coe_mul, int.cast_mul, ←mul_assoc] },
     congr,
-    calc ε τ
-        = ↑(sign σ * sign σ * sign τ) :
-      by {conv_lhs {rw [←one_mul (sign τ), ←int.units_pow_two (sign σ)]}, norm_num}
-    ... = ε σ * ε (σ * τ) :
-      by simp only [mul_assoc, int.cast_mul, sign_mul, coe_coe, units.coe_mul] },
+    { norm_num },
+    { ext i, apply pequiv.equiv_to_pequiv_to_matrix }
+  },
   { intros τ τ' _ _, exact (mul_left_inj σ).mp },
   { intros τ _, use σ⁻¹ * τ, use (mem_univ _), exact (mul_inv_cancel_left _ _).symm }
 end

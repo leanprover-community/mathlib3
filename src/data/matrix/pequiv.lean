@@ -128,4 +128,8 @@ by rw [← to_matrix_trans, single_trans_single_of_ne hb, to_matrix_bot]
   (single a c).to_matrix ⬝ M :=
 by rw [← matrix.mul_assoc, single_mul_single]
 
+/-- We can also define permutation matrices by permuting the rows of the identity matrix. -/
+lemma equiv_to_pequiv_to_matrix [has_one α] [has_zero α] (σ : equiv n n) (i j : n) :
+  σ.to_pequiv.to_matrix i j = (1 : matrix n n α) (σ i) j := if_congr option.some_inj rfl rfl
+
 end pequiv

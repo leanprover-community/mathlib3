@@ -103,7 +103,7 @@ variables [comm_ring α] (A : matrix n n α) (b : n → α)
 
 /--
   The `cramer_map` sends a matrix `A` and vector `b` to the vector `x`,
-  such that `A ⬝x = b`.
+  such that `A ⬝ x = b`.
 -/
 def cramer_map (i : n) : α := (A.replace_column i b)ᵀ.det
 lemma cramer_map_def (i : n) : cramer_map A b i = (A.replace_column i b)ᵀ.det := rfl

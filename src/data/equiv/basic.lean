@@ -604,9 +604,15 @@ assume x,
 
 /-- If a proposition holds for all elements, then the subtype is
 equivalent to the original type. -/
-def subtype_univ_equiv {α : Type u} {p : α → Prop} (h : ∀ x, p x) :
+def subtype_univ_equiv' {α : Type u} {p : α → Prop} (h : ∀ x, p x) :
   subtype p ≃ α :=
 ⟨λ x, x, λ x, ⟨x, h x⟩, λ x, subtype.eq rfl, λ x, rfl⟩
+
+/-- If a proposition holds for all elements, then the subtype is
+equivalent to the original type. -/
+def subtype_univ_equiv (α : Type u) :
+  @set.univ α ≃ α :=
+subtype_univ_equiv' $ λ _, trivial
 
 /-- A subtype of a sigma-type is a sigma-type over a subtype. -/
 def subtype_sigma_equiv {α : Type u} (p : α → Type v) (q : α → Prop) :
@@ -621,7 +627,7 @@ if the fiber is empty outside of the subset -/
 def sigma_subtype_equiv_of_subset {α : Type u} (p : α → Type v) (q : α → Prop)
   (h : ∀ x, p x → q x) :
   (Σ x : subtype q, p x) ≃ Σ x : α, p x :=
-(subtype_sigma_equiv p q).symm.trans $ subtype_univ_equiv $ λ x, h x.1 x.2
+(subtype_sigma_equiv p q).symm.trans $ subtype_univ_equiv' $ λ x, h x.1 x.2
 
 def sigma_subtype_preimage_equiv {α : Type u} {β : Type v} (f : α → β) (p : β → Prop)
   (h : ∀ x, p (f x)) :

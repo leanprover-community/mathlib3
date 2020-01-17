@@ -163,9 +163,16 @@ theorem finite_pure (a : α) : finite (pure a : set α) :=
 ⟨set.fintype_pure a⟩
 
 instance fintype_univ [fintype α] : fintype (@univ α) :=
-fintype.of_finset finset.univ $ λ _, iff_true_intro (finset.mem_univ _)
+fintype.of_equiv α $ (equiv.subtype_univ_equiv α).symm
 
 theorem finite_univ [fintype α] : finite (@univ α) := ⟨set.fintype_univ⟩
+
+theorem infinite_univ_iff : (@univ α).infinite ↔ _root_.infinite α :=
+⟨λ h₁, ⟨λ h₂, h₁ $ @finite_univ α h₂⟩,
+  λ ⟨h₁⟩ ⟨h₂⟩, h₁ $ @fintype.of_equiv _ _ h₂ $ equiv.subtype_univ_equiv _⟩
+
+theorem infinite_univ [h : _root_.infinite α] : infinite (@univ α) :=
+infinite_univ_iff.2 h
 
 instance fintype_union [decidable_eq α] (s t : set α) [fintype s] [fintype t] : fintype (s ∪ t : set α) :=
 fintype.of_finset (s.to_finset ∪ t.to_finset) $ by simp
@@ -374,24 +381,6 @@ by { rw range_subset_iff, assume x, simp [nat.lt_succ_iff, nat.find_greatest_le]
 lemma finite_range_find_greatest {P : α → ℕ → Prop} [∀ x, decidable_pred (P x)] {b : ℕ} :
   finite (range (λ x, nat.find_greatest (P x) b)) :=
 finite_subset (finset.finite_to_set $ finset.range (b + 1)) range_find_greatest_subset
-
-lemma infinite_univ_nat : infinite (univ : set ℕ) :=
-assume (h : finite (univ : set ℕ)),
-let ⟨n, hn⟩ := finset.exists_nat_subset_range h.to_finset in
-have n ∈ finset.range n, from finset.subset_iff.mpr hn $ by simp,
-by simp * at *
-
-lemma not_injective_nat_fintype [fintype α] {f : ℕ → α} : ¬ injective f :=
-assume (h : injective f),
-have finite (f '' univ),
-  from finite_subset (finset.finite_to_set $ fintype.elems α) (assume a h, fintype.complete a),
-have finite (univ : set ℕ), from finite_of_finite_image (set.inj_on_of_injective _ h) this,
-infinite_univ_nat this
-
-lemma not_injective_int_fintype [fintype α] {f : ℤ → α} : ¬ injective f :=
-assume hf,
-have injective (f ∘ (coe : ℕ → ℤ)), from injective_comp hf $ assume i j, int.of_nat_inj,
-not_injective_nat_fintype this
 
 lemma card_lt_card {s t : set α} [fintype s] [fintype t] (h : s ⊂ t) :
   fintype.card s < fintype.card t :=

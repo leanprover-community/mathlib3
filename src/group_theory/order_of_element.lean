@@ -67,8 +67,8 @@ fintype.card_eq_one_iff.2
   ⟨⟨(1 : α), by simp⟩, λ ⟨y, hy⟩, subtype.eq $ is_subgroup.mem_trivial.1 hy⟩
 
 lemma exists_gpow_eq_one (a : α) : ∃i≠0, a ^ (i:ℤ) = 1 :=
-have ¬ injective (λi, a ^ i),
-  from not_injective_int_fintype,
+have ¬ injective (λi:ℤ, a ^ i),
+  from not_injective_infinite_fintype _,
 let ⟨i, j, a_eq, ne⟩ := show ∃(i j : ℤ), a ^ i = a ^ j ∧ i ≠ j,
   by rw [injective] at this; simpa [classical.not_forall] in
 have a ^ (i - j) = 1,

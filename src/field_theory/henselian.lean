@@ -85,7 +85,7 @@ begin
 end
 
 /-- Shows that taking valuations and dividing by non-zero elements commutes -/
-lemma val_div (x y : α) (hy : y ≠ 0) : val x / val y = val (x / y) :=
+lemma val_div (x y : α) (hy : y ≠ 0) : val (x / y) = val x / val y :=
 by rw [div_eq_mul_inv, div_eq_mul_inv, val_mul, val_inv hy]
 
 end field
@@ -103,6 +103,7 @@ lemma nonarch : ∀ a b : α, val (a + b) ≤ max (val a) (val b) := nonarch_val
 @[simp] lemma nonarch_or : ∀ a b : α, val (a + b) ≤ val a ∨ val (a + b) ≤ val b :=
 λ a b, by rw [←le_max_iff]; exact nonarch a b
 
+--TODO: should use finset.sup (but then val should land in a lattice.semilattice_sup_bot)
 /-- The valuation of a sum is bounded by the maximum of the valuations. -/
 lemma val_sum (s : multiset α) (b : ℝ) (hb : b ≥ 0) : (∀ x ∈ s, val x ≤ b) → val (multiset.sum s) ≤ b :=
 multiset.induction_on s
@@ -198,7 +199,7 @@ begin
   have hp0 : p ≠ 0, from ne_zero_of_monic hm,
   have hx0 : x ≠ 0, from λ hx0, by rw [hx0, val_zero] at hnx; exact hnx zero_le_one,
   have hvx : 0 < val x, from val_pos (λ hn, by rw [hn, val_zero] at hnx; exact hnx zero_le_one),
-  -- We have x^n = x^n - ∑_i^n a_i * x^i where p(X) = ∑_i^n a_i * X^i
+  -- We have val x^n = val x^n - ∑_i^n a_i * x^i where p(X) = ∑_i^n a_i * X^i
   have h : val x^p.nat_degree = val ((X^p.nat_degree + -p).eval₂ subtype.val x),
     begin letI : is_ring_hom (subtype.val : valuation_ring α → α) := by apply_instance,
       rw [←val_pow, eval₂_add, eval₂_neg, hp, neg_zero, add_zero, eval₂_X_pow] end,
@@ -300,10 +301,10 @@ lemma integral_coeffs (p : polynomial α) (hp : irreducible p) (hm : monic p)
   (h0 : valued_ring.val (p.coeff 0) ≤ 1) : ∀ n, valued_ring.val (p.coeff n) ≤ 1 :=
 λ k, or.elim (le_or_gt ↑k (degree p))
 	(λ hk, begin
-		rw[degree_eq_nat_degree (ne_zero_of_irreducible hp), with_bot.coe_le_coe] at hk,
+		rw[degree_eq_nat_degree (ne_zero_of_monic hm), with_bot.coe_le_coe] at hk,
 		have h : valued_ring.val (p.coeff k) ≤
 			max (valued_ring.val (p.coeff 0)) (valued_ring.val (p.leading_coeff)),
-			from henselian_field.henselian p hp k hk,
+			  from henselian_field.henselian p hp k hk,
 		rwa [monic.def.mp hm, val_one, max_eq_right h0] at h
 	end)
 	(λ hk, by	rw [coeff_eq_zero_of_degree_lt hk, val_zero]; exact zero_le_one)
@@ -321,17 +322,6 @@ lemma rpow_zero_iff {x y : ℝ} (hx : x ≥ 0) (hy : y ≠ 0) : x ^ y = 0 ↔ x 
 
 -- TODO
 lemma findim_ne_zero : findim α β ≠ 0 := sorry
-
-/-- The weak triangle inequality follows from the strong triangle inequality -/
-lemma weak_triangle_of_nonarch {α : Type u} [discrete_field α] (f : α → ℝ) (h0 : ∀ a, f a ≥ 0)
-  (h : ∀ a b : α, f (a + b) ≤ f a ∨ f (a + b) ≤ f b) :
-  ∀ a b : α, f (a + b) ≤ f a + f b :=
-begin
-  intros a b,
-  cases h a b,
-  { transitivity (f a), assumption, exact le_add_of_nonneg_right (h0 _)},
-  { transitivity (f b), assumption, exact le_add_of_nonneg_left (h0 _)},
-end
 
 noncomputable def val_ext : β → ℝ := λ b, (valued_ring.val (field_norm α b)) ^ (1 / findim α β : ℝ)
 
@@ -364,61 +354,83 @@ lemma max_div (x y : ℝ) {z : ℝ} (hz : z > 0) : (max x y) / z = max (x / z) (
 
 lemma test1 (b : β) : val_ext α b ≤ 1 ↔ valued_ring.val (field_norm α b) ≤ 1 := sorry
 
+lemma val_ext_zero : val_ext α (0 : β) = 0 := sorry
+
+--hint
+instance : algebra (valuation_ring α) β := algebra.comap.algebra (valuation_ring α) α β
+
+--TODO: move
+/-- The integral closure of the valuation ring of `α` in `β` is equal to the preimage of the
+valuation ring of `α` under norm map. -/
+lemma integral_closure_valuation_ring (β : Type v) [discrete_field β] [field_extension α β] [finite_dimensional α β] :
+  (integral_closure (valuation_ring α) β).carrier = set.preimage (field_norm α) (valuation_ring α) :=
+begin
+  ext x,
+  rw [set.mem_preimage],
+  have hiα : is_integral α x, from is_integral_of_noetherian' (by apply_instance) x,
+  let f := minimal_polynomial hiα,
+  split,
+  { intro hx,
+    have hm : (minimal_polynomial hx).of_subring (valuation_ring α) = f,
+    { refine minimal_polynomial.unique _ _ _ _,
+      { rw [monic.def, leading_coeff, of_subring],
+        change (coeff (minimal_polynomial hx) _).val = 1,
+        sorry },
+      { sorry },
+      { sorry } },
+    have : f.coeff 0 ∈ valuation_ring α,
+    { rw [←hm, of_subring], simp only [subtype.val_prop, polynomial.coeff_mk] },
+    sorry },
+  { intro hx,
+    -- follows from henselian_field.henselian, field norms and minimal polynomials
+    have : valued_ring.val (f.coeff 0) ≤ 1, from sorry,
+    have h : ∀ n : ℕ, valued_ring.val (f.coeff n) ≤ 1,
+      { apply integral_coeffs f (minimal_polynomial.irreducible hiα) (minimal_polynomial.monic hiα),
+        exact this },
+    have hr : ↑(finsupp.frange f) ⊆ valuation_ring α, from
+      λ _ hy, let ⟨n, hn⟩ := (finsupp.mem_frange.mp hy).2 in hn ▸ h n,
+    let fo := f.to_subring (valuation_ring α) hr,
+    existsi fo,
+    split,
+    { exact (monic_to_subring _ _ _).mpr (minimal_polynomial.monic hiα) },
+    { rw [←minimal_polynomial.aeval hiα],
+      exact eq.symm (to_subring_eval₂ f (valuation_ring α) hr _ x) } }
+end
+
+lemma val_ext_nonarch (a b : β) : val_ext α (a + b) ≤ max (val_ext α a) (val_ext α b) :=
+suffices h : ∀ c : β, val_ext α c ≤ 1 → val_ext α (c + 1) ≤ 1, begin
+  by_cases hb : b = 0,
+  { rw [hb, val_ext_zero, add_zero], exact le_max_left _ _ },
+  { wlog h : val_ext α a ≤ val_ext α b using a b,
+    { have : val_ext α b ≠ 0, by rwa [ne.def, val_ext_definite α],
+      have hb0 : val_ext α b > 0, from lt_of_le_of_ne (val_ext_nonneg α _) (ne.symm this),
+      have hc : val_ext α (a / b) ≤ 1, by rwa [val_ext_div α _ hb, div_le_one_iff_le hb0],
+      rw [←div_le_div_right hb0, ←val_ext_div, max_div _ _ hb0, ←val_ext_div, ←val_ext_div],
+      rw [add_div, div_self hb, val_ext_one, max_eq_right hc],
+      exact h (a / b) hc,
+      assumption' },
+    { by_cases ha : a = 0, { rw [ha, val_ext_zero, zero_add], exact le_max_right _ _ },
+      rw [add_comm, max_comm],
+      exact this ha } }
+end,
+begin
+  intros c hc,
+  rw [test1, ←valuation.mem_def, ←set.mem_preimage, ←integral_closure_valuation_ring] at hc ⊢,
+  letI : algebra (valuation_ring α) β := algebra.comap.algebra (valuation_ring α) α β, --hint
+  exact is_add_submonoid.add_mem hc (is_submonoid.one_mem _)
+end
+
 noncomputable instance extend_valuation : nonarch_valued_ring β :=
 { val := val_ext α,
   nonneg := val_ext_nonneg α,
   definite := val_ext_definite α,
   val_mul := val_ext_mul α,
-  nonarch := λ a b,
-  suffices h : ∀ c : β, val_ext α c ≤ 1 → val_ext α (c + 1) ≤ max (val_ext α c) 1, from
-  begin
-    by_cases hb : b = 0,
-    { rw [hb, val_zero, add_zero], exact le_max_left _ _ },
-    { have : val_ext α b ≠ 0, by rwa [ne.def, val_ext_definite α],
-      have hb0 : val_ext α b > 0, from lt_of_le_of_ne (val_ext_nonneg α _) (ne.symm this),
-      rw [←div_le_div_right hb0, val_div, max_div _ _ hb0, val_div, val_div],
-      rw [add_div, div_self hb, val_one],
-      have : val_ext α a ≤ val_ext α b, from sorry, --wlog
-      have hc : val_ext α (a / b) ≤ 1, by rwa [val_ext_div α _ hb, div_le_one_iff_le hb0],
-      exact h (a / b) hc,
-      assumption' }
-  end,
-  begin
-    intros c hc,
-    rw [max_eq_right hc],
-    rw [test1, ←valuation.mem_def] at hc ⊢,
-
-    -- Construct the integral closure of valuation_ring α in β
-    letI : algebra (valuation_ring α) β := algebra.comap.algebra (valuation_ring α) α β,
-    let O := integral_closure (valuation_ring α) β,
-    -- O is the inverse image of the valuation ring of α under the norm map
-    --TODO: make this a seperate lemma
-    have hO : O.carrier = set.preimage (field_norm α) (valuation_ring α),
-    { ext x,
-      rw [set.mem_preimage],
-      split,
-      { intro hx,
-        sorry },
-      { intro hx,
-        --change is_integral (valuation_ring α) x,
-        -- Minimal polynomial of x over α
-        have hb : ∃ f : polynomial α, irreducible f ∧ (monic f ∧ aeval α β x f = 0), from sorry,
-        cases hb with f hf,
-        -- follows from henselian_field.henselian, field norms and minimal polynomials
-        have : valued_ring.val (f.coeff 0) ≤ 1, from sorry,
-        have h : ∀ n : ℕ, valued_ring.val (f.coeff n) ≤ 1, from integral_coeffs f hf.1 hf.2.1 this,
-        have hr : ↑(finsupp.frange f) ⊆ valuation_ring α, from
-          λ _ hy, let ⟨n, hn⟩ := (finsupp.mem_frange.mp hy).2 in hn ▸ h n,
-        let fo := f.to_subring (valuation_ring α) hr,
-        existsi fo,
-        split,
-        { exact (monic_to_subring _ _ _).mpr hf.2.1 },
-        { rw [←hf.2.2],
-          exact eq.symm (to_subring_eval₂ f (valuation_ring α) hr _ x) } } },
-    rw [←set.mem_preimage, ←hO] at hc ⊢,
-    exact is_add_submonoid.add_mem hc (is_submonoid.one_mem _)
-  end,
-  val_add := sorry,
+  nonarch := val_ext_nonarch α,
+  val_add := λ a b, begin
+    cases le_max_iff.mp (val_ext_nonarch α a b),
+    { transitivity (val_ext α a), assumption, exact le_add_of_nonneg_right (val_ext_nonneg α _)},
+    { transitivity (val_ext α b), assumption, exact le_add_of_nonneg_left  (val_ext_nonneg α _)},
+  end
 }
 
 

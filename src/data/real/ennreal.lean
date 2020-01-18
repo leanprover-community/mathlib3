@@ -623,7 +623,7 @@ le_antisymm
     by rintros b rfl; rwa [← coe_mul, ← coe_one, coe_le_coe, ← nnreal.inv_le hr] at hb)
   (Inf_le $ by simp; rw [← coe_mul, nnreal.mul_inv_cancel hr]; exact le_refl 1)
 
-@[norm_cast move] lemma coe_inv_two : ((2⁻¹:nnreal):ennreal) = 2⁻¹ :=
+lemma coe_inv_two : ((2⁻¹:nnreal):ennreal) = 2⁻¹ :=
 by rw [coe_inv (ne_of_gt zero_lt_two), coe_two]
 
 @[simp, norm_cast move] lemma coe_div (hr : r ≠ 0) : (↑(p / r) : ennreal) = p / r :=

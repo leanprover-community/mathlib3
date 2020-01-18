@@ -7,7 +7,6 @@ Normalizing casts inside expressions.
 -/
 
 import tactic.basic tactic.interactive tactic.converter.interactive
---import data.buffer.parser data.num.basic tactic.find
 import data.buffer.parser data.num.basic
 import init.meta.lean.parser
 
@@ -30,7 +29,6 @@ Contrary to simp, it should be safe to use as a non-terminating tactic.
 * `tactic.interactive.assumption_mod_cast`
 -/
 
-
 -- lemmas to handle the ≥, > and ≠ operators
 lemma ge_from_le {α} [has_le α] : ∀ (x y : α), x ≥ y ↔ y ≤ x := λ _ _, iff.rfl
 lemma gt_from_lt {α} [has_lt α] : ∀ (x y : α), x > y ↔ y < x := λ _ _, iff.rfl
@@ -50,12 +48,19 @@ try_for 1000 (mk_instance e)
 
 end tactic
 
--- todo: move
-
-
 namespace expr
 
 open tactic expr
+
+/-- `is_coe' e` returns `tt` if `e` is a coe function -/
+meta def is_coe' : expr → bool
+| (app (app (app (const `has_coe.coe _) _) _) _) := tt
+| (app (app (app (const `coe _) _) _) _)         := tt
+| (app (app (const `has_coe_to_fun.coe _) _) _)  := tt
+| (app (app (const `coe_fn _) _) _)              := tt
+| (app (app (const `has_coe_to_sort.coe _) _) _) := tt
+| (app (app (const `coe_sort _) _) _)            := tt
+| _ := ff
 
 /--
 `flip tp prf` assumes that `prf` has type `tp`, and `tp` has the form `Π ..., b = a` or
@@ -91,7 +96,7 @@ namespace norm_cast
 
 open tactic expr
 
-mk_simp_attribute push_cast "The `push_cast` simp attribute uses `norm_cast` lemmas
+mk_simp_attribute push_cast "The `push_cinfer_type ast` simp attribute uses `norm_cast` lemmas
 to move casts toward the leaf nodes of the expression."
 
 /-- A type used to classify `norm_cast` lemmas. -/
@@ -102,67 +107,83 @@ inductive label
 | push   : label
 | squash : label
 
-open label
+namespace label
 
-protected def label.to_string : label → string
+protected def to_string : label → string
 | elim   := "elim"
 | move   := "move"
 | push   := "push"
 | squash := "squash"
 
-def label.of_string : string -> option label
+instance has_to_string : has_to_string label := ⟨label.to_string⟩
+
+def of_string : string -> option label
 | "elim" := some elim
 | "move" := some move
 | "push" := some push
 | "squash" := some squash
 | _ := none
 
+end label
 
-instance label.has_to_string : has_to_string label := ⟨label.to_string⟩
+open label
 
-/-- `same_or_fewer_initial_casts lhs rhs` checks whether `rhs` begins with the same number of or
-fewer applications of casts than `lhs`. -/
-meta def same_or_fewer_initial_casts : expr → expr → bool | lhs rhs :=
-let lhs_head := lhs.get_app_fn, rhs_head := rhs.get_app_fn in
-match lhs_head.is_coe, rhs_head.is_coe with
-| tt, tt := same_or_fewer_initial_casts lhs.app_arg rhs.app_arg
-| ff, tt := ff
-| _, _ := tt
-end
+private meta def count_head_coes : expr → ℕ
+| (app f x) := if is_coe' f then 1 + count_head_coes x else 0
+| _ := 0
 
-private def squash_cast_fail :=
-"norm_cast lemmas starting with ↑↑ on the LHS must be squash_cast lemmas, " ++
-  "but squash_cast lemmas must remove at least one ↑."
+private meta def count_coes_aux : ℕ → expr → ℕ
+| n (app f x) := if f.is_coe' then count_coes_aux (n+1) x else count_coes_aux (count_coes_aux n f) x
+| n x := n
+
+private meta def count_coes : expr → ℕ := count_coes_aux 0
+
+private meta def count_init_coes : expr → ℕ
+| (app f x) := if f.is_coe' then count_init_coes x else count_coes f + count_coes x
+| _ := 0
+
+/-
+elim lemmas:   LHS has 0 head coes and ≥ 1 initial coe,  RHS has 0 coes
+move lemmas:   LHS has 1 head coe and 0 initial coes,    RHS has 0 head coes and ≥ 1 intenal coes
+push lemmas:   LHS has 1 head coe and 0 initial coes,    RHS has 0 coes
+suqash lemmas: LHS had ≥ 2 head coes and 0 initial coes, RHS has fewer initial coes
+-/
 
 /-- aux function for `norm_cast.classify_type` -/
 private meta def classify_type_aux (lhs rhs : expr) : tactic label :=
-let lhs_head := lhs.get_app_fn in
-if lhs_head.is_coe then
-  let lhs_body := lhs.app_arg,
-      lhs_body_head := lhs_body.get_app_fn in
-  if lhs_body_head.is_coe then
-    let rhs_head := rhs.get_app_fn in
-    if same_or_fewer_initial_casts lhs_body.app_arg rhs.app_arg then
+do
+  let lhs_head_coes := count_head_coes lhs,
+  let lhs_init_coes := count_init_coes lhs,
+  let rhs_head_coes := count_head_coes rhs,
+  let rhs_init_coes := count_init_coes rhs,
+  if lhs_head_coes = 0 ∧ lhs_init_coes ≥ 1 then
+    if rhs_head_coes = 0 ∧ rhs_init_coes = 0 then
+      return elim
+    else
+      fail "norm_cast: badly shaped elim lemma, rhs can't contain coes"
+  else if lhs_head_coes = 1 ∧ lhs_init_coes = 0 then
+    if rhs_head_coes = 0 then
+      if rhs_init_coes ≥ 1 then
+        return move
+      else
+        return push
+    else
+      fail "norm_cast: badly shaped lemma, rhs can't start with coe"
+  else if lhs_head_coes ≥ 2 ∧ lhs_init_coes = 0 then
+    if rhs_head_coes ≤ lhs_head_coes ∧ rhs_init_coes = 0 then
       return squash
-    else fail squash_cast_fail
-  else /- !lhs_body_head.is_coe -/ if rhs.contains_coe then return move
-  else return push
-else if ! lhs.contains_coe then
-  fail "norm_cast lemmas must contain ↑ on the LHS"
-else
-  let rhs_head := rhs.get_app_fn in
-  if rhs.contains_coe && ! rhs_head.is_coe  then -- !lhs_head.is_coe
-    fail $ "norm_cast lemmas starting without ↑ on the LHS must be elim_cast lemmas." ++
-                       "If an elim_cast lemma has ↑ on the RHS, it must appear in the head position."
-  else return elim
+    else
+      fail "norm_cast: badly shaped squash lemma"
+  else
+    fail "norm_cast: lhs must contain at least one coe"
 
-/-- TODO: update and describe -/
+-- TODO: update and describe -/
 meta def classify_type (ty : expr) : tactic label :=
 do (args, tp) ← mk_local_pis ty,
 match tp with
 | `(%%lhs = %%rhs) := classify_type_aux lhs rhs
 | `(%%lhs ↔ %%rhs) := classify_type_aux lhs rhs
-| _ := fail "norm_cast lemmas must be = or ↔"
+| _ := fail "norm_cast: lemma must be = or ↔"
 end
 
 /-- The cache for `norm_cast` stores three `simp_lemma` objects. -/
@@ -325,7 +346,7 @@ This is the main heuristic used alongside the elim_cast and move_cast lemmas.
 The goal is to help casts move past operators by adding intermediate casts.
 An expression of the shape: op (↑(x : α) : γ) (↑(y : β) : γ)
 is rewritten to:            op (↑(↑(x : α) : β) : γ) (↑(y : β) : γ)
-when the squash_cast lemmas can prove that (↑(x : α) : γ) = (↑(↑(x : α) : β) : γ)
+when (↑(↑(x : α) : β) : γ) = (↑(x : α) : γ) can be proven with a squash_cast lemma
 -/
 @[nolint] meta def heur (_ : unit) : expr → tactic (unit × expr × expr)
 | (app (app op x) y) :=
@@ -453,7 +474,14 @@ meta def derive (e : expr) : tactic (expr × expr) :=
 do
   cache ← norm_cast_attr.get_cache,
   e ← instantiate_mvars e,
-  let cfg : simp_config := { fail_if_unchanged := ff },
+  let cfg : simp_config := {
+    zeta := ff,
+    beta := ff,
+    eta  := ff,
+    proj := ff,
+    iota := ff,
+    iota_eqn := ff,
+    fail_if_unchanged := ff },
   let e0 := e,
 
   -- step 1: pre-processing of numerals
@@ -653,7 +681,7 @@ def get_second : test_result → option label
 | (failure _ _)    := none
 
 protected def test_result.to_string (tr : test_result) : string :=
-"#check " ++ to_string (get_decl tr)
+"#check @" ++ to_string (get_decl tr)
 ++ "\n  -- first:  " ++ to_string (get_first tr)
 ++ "\n  -- second: " ++ to_string (get_second tr)
 

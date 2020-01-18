@@ -38,6 +38,9 @@ variables [measurable_space α] [measurable_space β] [has_zero β] {s : set α}
 @[reducible]
 def measurable_on (s : set α) (f : α → β) : Prop := measurable (indicator s f)
 
+lemma measurable_on_empty : measurable_on ∅ f :=
+by { rw [measurable_on, indicator_empty], exact measurable_const }
+
 lemma measurable_on_univ (hf : measurable f) : measurable_on univ f :=
 hf.if is_measurable.univ measurable_const
 
@@ -64,7 +67,7 @@ begin
   rwa [inter_eq_self_of_subset_left h] at this,
 end
 
-lemma measurable_on.union {β} [measurable_space β] [add_monoid β] {t : set α} {f : α → β}
+lemma measurable_on.union {t : set α} {f : α → β}
   (hs : is_measurable s) (ht : is_measurable t) (hsm : measurable_on s f) (htm : measurable_on t f) :
   measurable_on (s ∪ t) f :=
 begin
@@ -74,6 +77,20 @@ begin
   refine is_measurable.union _ ((hs.union ht).compl.inter (measurable_const.preimage hB)),
   simp only [union_inter_distrib_right],
   exact (hs.inter_preimage hB hsm).union (ht.inter_preimage hB htm)
+end
+
+lemma measurable_on_singleton {α} [topological_space α] [t1_space α] {a : α} {f : α → β} :
+  measurable_on {a} f :=
+λ s hs, show is_measurable ((indicator _ _)⁻¹' s),
+begin
+  rw indicator_preimage,
+  refine is_measurable.union _ (is_measurable_singleton.compl.inter $ measurable_const.preimage hs),
+  by_cases h : a ∈ f⁻¹' s,
+  { rw inter_eq_self_of_subset_left,
+    { exact is_measurable_singleton },
+    rwa singleton_subset_iff },
+  rw [singleton_inter_eq_empty.2 h],
+  exact is_measurable.empty
 end
 
 end measurable_on
@@ -156,7 +173,7 @@ end integrable_on
 section integral_on
 variables [measure_space α]
   [normed_group β] [second_countable_topology β] [normed_space ℝ β] [complete_space β]
-  (s t : set α) {f g : α → β}
+  {s t : set α} {f g : α → β}
   {a b : ℝ} {h : ℝ → β}
 
 notation `∫` binders ` in ` s `, ` r:(scoped f, integral (indicator s f)) := r
@@ -177,6 +194,8 @@ lemma integral_on_congr_of_set (hsm : measurable_on s f) (htm : measurable_on t 
   (h : ∀ₘ x, x ∈ s ↔ x ∈ t) : (∫ a in s, f a) = (∫ a in t, f a) :=
 integral_congr_ae hsm htm $ indicator_congr_of_set h
 
+variables (s t)
+
 lemma integral_on_smul (r : ℝ) (f : α → β) : (∫ a in s, r • (f a)) = r • (∫ a in s, f a) :=
 by rw [← integral_smul, indicator_smul]
 
@@ -189,12 +208,14 @@ by { simp only [mul_comm], exact integral_on_mul_left s r f }
 lemma integral_on_div (r : ℝ) (f : α → ℝ) : (∫ a in s, (f a) / r) = (∫ a in s, f a) / r :=
 by { simp only [div_eq_mul_inv], apply integral_on_mul_right }
 
-lemma integral_on_add (hfm : measurable_on s f) (hfi : integrable_on s f) (hgm : measurable_on s g)
-  (hgi : integrable_on s g) : (∫ a in s, f a + g a) = (∫ a in s, f a) + (∫ a in s, g a) :=
-by { simp only [indicator_add], exact integral_add hfm hfi hgm hgi }
-
 lemma integral_on_neg (f : α → β) : (∫ a in s, -f a) = - (∫ a in s, f a) :=
 by { simp only [indicator_neg], exact integral_neg _ }
+
+variables {s t}
+
+lemma integral_on_add {s : set α} (hfm : measurable_on s f) (hfi : integrable_on s f) (hgm : measurable_on s g)
+  (hgi : integrable_on s g) : (∫ a in s, f a + g a) = (∫ a in s, f a) + (∫ a in s, g a) :=
+by { simp only [indicator_add], exact integral_add hfm hfi hgm hgi }
 
 lemma integral_on_sub (hfm : measurable_on s f) (hfi : integrable_on s f) (hgm : measurable_on s g)
   (hgi : integrable_on s g) : (∫ a in s, f a - g a) = (∫ a in s, f a) - (∫ a in s, g a) :=
@@ -212,7 +233,7 @@ end
 lemma integral_on_le_integral_on {f g : α → ℝ} (hfm : measurable_on s f) (hfi : integrable_on s f)
   (hgm : measurable_on s g) (hgi : integrable_on s g) (h : ∀ a, a ∈ s → f a ≤ g a) :
   (∫ a in s, f a) ≤ (∫ a in s, g a) :=
-integral_on_le_integral_on_ae _ hfm hfi hgm hgi $ by filter_upwards [] h
+integral_on_le_integral_on_ae hfm hfi hgm hgi $ by filter_upwards [] h
 
 lemma integral_on_union (hsm : measurable_on s f) (hsi : integrable_on s f)
   (htm : measurable_on t f) (hti : integrable_on t f) (h : disjoint s t) :

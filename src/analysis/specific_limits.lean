@@ -86,7 +86,7 @@ tendsto_at_top_mul_right' (inv_pos hr) hf
 
 /-- The function `x ↦ x⁻¹` tends to `+∞` on the right of `0`. -/
 lemma tendsto_inv_zero_at_top [discrete_linear_ordered_field α] [topological_space α]
-  [orderable_topology α] : tendsto (λx:α, x⁻¹) (nhds_within (0 : α) (set.Ioi 0)) at_top :=
+  [order_topology α] : tendsto (λx:α, x⁻¹) (nhds_within (0 : α) (set.Ioi 0)) at_top :=
 begin
   apply (tendsto_at_top _ _).2 (λb, _),
   refine mem_nhds_within_Ioi_iff_exists_Ioo_subset.2 ⟨(max b 1)⁻¹, by simp [zero_lt_one], λx hx, _⟩,
@@ -99,7 +99,7 @@ end
 
 /-- The function `r ↦ r⁻¹` tends to `0` on the right as `r → +∞`. -/
 lemma tendsto_inv_at_top_zero' [discrete_linear_ordered_field α] [topological_space α]
-  [orderable_topology α] : tendsto (λr:α, r⁻¹) at_top (nhds_within (0 : α) (set.Ioi 0)) :=
+  [order_topology α] : tendsto (λr:α, r⁻¹) at_top (nhds_within (0 : α) (set.Ioi 0)) :=
 begin
   assume s hs,
   rw mem_nhds_within_Ioi_iff_exists_Ioc_subset at hs,
@@ -111,7 +111,7 @@ begin
 end
 
 lemma tendsto_inv_at_top_zero [discrete_linear_ordered_field α] [topological_space α]
-  [orderable_topology α] : tendsto (λr:α, r⁻¹) at_top (𝓝 0) :=
+  [order_topology α] : tendsto (λr:α, r⁻¹) at_top (𝓝 0) :=
 tendsto_le_right inf_le_left tendsto_inv_at_top_zero'
 
 lemma summable_of_absolute_convergence_real {f : ℕ → ℝ} :

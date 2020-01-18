@@ -134,11 +134,11 @@ open asymptotics filter
 theorem is_O_id {f : E → F} (h : is_bounded_linear_map 𝕜 f) (l : filter E) :
   is_O f (λ x, x) l :=
 let ⟨M, hMp, hM⟩ := h.bound in
-⟨M, hMp, mem_sets_of_superset univ_mem_sets (λ x _, hM x)⟩
+⟨M, mem_sets_of_superset univ_mem_sets (λ x _, hM x)⟩
 
 theorem is_O_comp {E : Type*} {g : F → G} (hg : is_bounded_linear_map 𝕜 g)
   {f : E → F} (l : filter E) : is_O (λ x', g (f x')) f l :=
-((hg.is_O_id ⊤).comp _).mono (map_le_iff_le_comap.mp lattice.le_top)
+(hg.is_O_id ⊤).comp_tendsto lattice.le_top
 
 theorem is_O_sub {f : E → F} (h : is_bounded_linear_map 𝕜 f)
   (l : filter E) (x : E) : is_O (λ x', f (x' - x)) (λ x', x' - x) l :=
@@ -276,7 +276,7 @@ lemma is_bounded_bilinear_map_smul_right :
 `q ↦ f(p.1, q.2) + f(q.1, p.2)` as in the standard formula for the derivative of a product.
 We define this function here a bounded linear map from `E × F` to `G`. The fact that this
 is indeed the derivative of `f` is proved in `is_bounded_bilinear_map.has_fderiv_at` in
-`deriv.lean`-/
+`fderiv.lean`-/
 
 def is_bounded_bilinear_map.linear_deriv (h : is_bounded_bilinear_map 𝕜 f) (p : E × F) :
   (E × F) →ₗ[𝕜] G :=

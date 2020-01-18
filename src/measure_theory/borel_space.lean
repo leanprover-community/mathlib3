@@ -53,11 +53,11 @@ le_antisymm
 
 lemma borel_eq_generate_Iio (α)
   [topological_space α] [second_countable_topology α]
-  [linear_order α] [orderable_topology α] :
+  [linear_order α] [order_topology α] :
   borel α = generate_from (range Iio) :=
 begin
   refine le_antisymm _ (generate_from_le _),
-  { rw borel_eq_generate_from_of_subbasis (orderable_topology.topology_eq_generate_intervals α),
+  { rw borel_eq_generate_from_of_subbasis (order_topology.topology_eq_generate_intervals α),
     have H : ∀ a:α, is_measurable (measurable_space.generate_from (range Iio)) (Iio a) :=
       λ a, generate_measurable.basic _ ⟨_, rfl⟩,
     refine generate_from_le _, rintro _ ⟨a, rfl | rfl⟩; [skip, apply H],
@@ -86,11 +86,11 @@ end
 
 lemma borel_eq_generate_Ioi (α)
   [topological_space α] [second_countable_topology α]
-  [linear_order α] [orderable_topology α] :
+  [linear_order α] [order_topology α] :
   borel α = generate_from (range (λ a, {x | a < x})) :=
 begin
   refine le_antisymm _ (generate_from_le _),
-  { rw borel_eq_generate_from_of_subbasis (orderable_topology.topology_eq_generate_intervals α),
+  { rw borel_eq_generate_from_of_subbasis (order_topology.topology_eq_generate_intervals α),
     have H : ∀ a:α, is_measurable (measurable_space.generate_from (range (λ a, {x | a < x}))) {x | a < x} :=
       λ a, generate_measurable.basic _ ⟨_, rfl⟩,
     refine generate_from_le _, rintro _ ⟨a, rfl | rfl⟩, {apply H},
@@ -232,11 +232,11 @@ lemma measurable.mul
 measurable_of_continuous2 continuous_mul
 
 lemma is_measurable_le {α β}
-  [topological_space α] [partial_order α] [ordered_topology α] [second_countable_topology α]
+  [topological_space α] [partial_order α] [order_closed_topology α] [second_countable_topology α]
   [measurable_space β] {f : β → α} {g : β → α} (hf : measurable f) (hg : measurable g) :
   is_measurable {a | f a ≤ g a} :=
 have is_measurable {p : α × α | p.1 ≤ p.2},
-  by rw borel_prod; exact is_measurable_of_is_closed (ordered_topology.is_closed_le' _),
+  by rw borel_prod; exact is_measurable_of_is_closed (order_closed_topology.is_closed_le' _),
 show is_measurable {a | (f a, g a).1 ≤ (f a, g a).2},
 begin
   refine measurable.preimage _ this,
@@ -244,13 +244,13 @@ begin
 end
 
 lemma measurable.max {α β}
-  [topological_space α] [decidable_linear_order α] [ordered_topology α] [second_countable_topology α]
+  [topological_space α] [decidable_linear_order α] [order_closed_topology α] [second_countable_topology α]
   [measurable_space β] {f : β → α} {g : β → α} (hf : measurable f) (hg : measurable g) :
   measurable (λa, max (f a) (g a)) :=
 measurable.if (is_measurable_le hf hg) hg hf
 
 lemma measurable.min {α β}
-  [topological_space α] [decidable_linear_order α] [ordered_topology α] [second_countable_topology α]
+  [topological_space α] [decidable_linear_order α] [order_closed_topology α] [second_countable_topology α]
   [measurable_space β] {f : β → α} {g : β → α} (hf : measurable f) (hg : measurable g) :
   measurable (λa, min (f a) (g a)) :=
 measurable.if (is_measurable_le hf hg) hf hg
@@ -259,8 +259,8 @@ measurable.if (is_measurable_le hf hg) hf hg
 lemma measurable_coe_int_real : measurable (λa, a : ℤ → ℝ) :=
 assume s (hs : is_measurable s), by trivial
 
-section ordered_topology
-variables [linear_order α] [ordered_topology α] {a b c : α}
+section order_closed_topology
+variables [linear_order α] [order_closed_topology α] {a b c : α}
 
 lemma is_measurable_Ioo : is_measurable (Ioo a b) := is_measurable_of_is_open is_open_Ioo
 
@@ -270,10 +270,10 @@ lemma is_measurable_Ico : is_measurable (Ico a b) :=
 (is_measurable_of_is_closed $ is_closed_le continuous_const continuous_id).inter
   is_measurable_Iio
 
-end ordered_topology
+end order_closed_topology
 
 lemma measurable.is_lub {α} [topological_space α] [linear_order α]
-  [orderable_topology α] [second_countable_topology α]
+  [order_topology α] [second_countable_topology α]
   {β} [measurable_space β] {ι} [encodable ι]
   {f : ι → β → α} {g : β → α} (hf : ∀ i, measurable (f i))
   (hg : ∀ b, is_lub {a | ∃ i, f i b = a} (g b)) :
@@ -291,7 +291,7 @@ begin
 end
 
 lemma measurable.is_glb {α} [topological_space α] [linear_order α]
-  [orderable_topology α] [second_countable_topology α]
+  [order_topology α] [second_countable_topology α]
   {β} [measurable_space β] {ι} [encodable ι]
   {f : ι → β → α} {g : β → α} (hf : ∀ i, measurable (f i))
   (hg : ∀ b, is_glb {a | ∃ i, f i b = a} (g b)) :
@@ -309,14 +309,14 @@ begin
 end
 
 lemma measurable.supr {α} [topological_space α] [complete_linear_order α]
-  [orderable_topology α] [second_countable_topology α]
+  [order_topology α] [second_countable_topology α]
   {β} [measurable_space β] {ι} [encodable ι]
   {f : ι → β → α} (hf : ∀ i, measurable (f i)) :
   measurable (λ b, ⨆ i, f i b) :=
 measurable.is_lub hf $ λ b, is_lub_supr
 
 lemma measurable.infi {α} [topological_space α] [complete_linear_order α]
-  [orderable_topology α] [second_countable_topology α]
+  [order_topology α] [second_countable_topology α]
   {β} [measurable_space β] {ι} [encodable ι]
   {f : ι → β → α} (hf : ∀ i, measurable (f i)) :
   measurable (λ b, ⨅ i, f i b) :=
@@ -512,11 +512,9 @@ measurable_of_continuous ennreal.continuous_of_real
 
 end ennreal
 
-namespace measure_theory
-
 open topological_space
 
-lemma measurable_smul' {α : Type*} {β : Type*} {γ : Type*}
+lemma measurable.smul' {α : Type*} {β : Type*} {γ : Type*}
   [semiring α] [topological_space α] [second_countable_topology α]
   [topological_space β] [add_comm_monoid β] [second_countable_topology β]
   [semimodule α β] [topological_semimodule α β] [measurable_space γ]
@@ -524,7 +522,7 @@ lemma measurable_smul' {α : Type*} {β : Type*} {γ : Type*}
   measurable (λ c, f c • g c) :=
 measurable_of_continuous2 (continuous_fst.smul continuous_snd) hf hg
 
-lemma measurable_smul {α : Type*} {β : Type*} {γ : Type*}
+lemma measurable.smul {α : Type*} {β : Type*} {γ : Type*}
   [semiring α] [topological_space α]
   [topological_space β] [add_comm_monoid β]
   [semimodule α β] [topological_semimodule α β] [measurable_space γ]
@@ -541,12 +539,12 @@ begin
   assume h,
   have eq : (λ (x : γ), c⁻¹ • (λ (x : γ), c • f x) x) = f,
   { funext, rw [smul_smul, inv_mul_cancel hc, one_smul] },
-  have := measurable_smul c⁻¹ h,
+  have := h.smul c⁻¹,
   rwa eq at this
 end
-$ measurable_smul c
+$ measurable.smul c
 
-lemma measurable_dist' {α : Type*} [metric_space α] [second_countable_topology α] :
+lemma measurable_dist {α : Type*} [metric_space α] [second_countable_topology α] :
   measurable (λp:α×α, dist p.1 p.2) :=
 begin
   rw [borel_prod],
@@ -554,12 +552,12 @@ begin
   exact continuous_dist continuous_fst continuous_snd
 end
 
-lemma measurable_dist {α : Type*} [metric_space α] [second_countable_topology α]
+lemma measurable.dist {α : Type*} [metric_space α] [second_countable_topology α]
   [measurable_space β] {f g : β → α} (hf : measurable f) (hg : measurable g) :
 	measurable (λ b, dist (f b) (g b)) :=
-measurable.comp measurable_dist' (measurable.prod_mk hf hg)
+measurable_dist.comp (measurable.prod_mk hf hg)
 
-lemma measurable_nndist' {α : Type*} [metric_space α] [second_countable_topology α] :
+lemma measurable_nndist {α : Type*} [metric_space α] [second_countable_topology α] :
   measurable (λp:α×α, nndist p.1 p.2) :=
 begin
   rw [borel_prod],
@@ -567,12 +565,12 @@ begin
   exact continuous_nndist continuous_fst continuous_snd
 end
 
-lemma measurable_nndist {α : Type*} [metric_space α] [second_countable_topology α]
+lemma measurable.nndist {α : Type*} [metric_space α] [second_countable_topology α]
   [measurable_space β] {f g : β → α} (hf : measurable f) (hg : measurable g) :
 	measurable (λ b, nndist (f b) (g b)) :=
-measurable.comp measurable_nndist' (measurable.prod_mk hf hg)
+measurable_nndist.comp (measurable.prod_mk hf hg)
 
-lemma measurable_edist' {α : Type*} [emetric_space α] [second_countable_topology α] :
+lemma measurable_edist {α : Type*} [emetric_space α] [second_countable_topology α] :
   measurable (λp:α×α, edist p.1 p.2) :=
 begin
   rw [borel_prod],
@@ -580,27 +578,25 @@ begin
   exact continuous_edist continuous_fst continuous_snd
 end
 
-lemma measurable_edist {α : Type*} [emetric_space α] [second_countable_topology α]
+lemma measurable.edist {α : Type*} [emetric_space α] [second_countable_topology α]
   [measurable_space β] {f g : β → α} (hf : measurable f) (hg : measurable g) :
 	measurable (λ b, edist (f b) (g b)) :=
-measurable.comp measurable_edist' (measurable.prod_mk hf hg)
+measurable_edist.comp (measurable.prod_mk hf hg)
 
-lemma measurable_norm' {α : Type*} [normed_group α] : measurable (norm : α → ℝ) :=
+lemma measurable_norm {α : Type*} [normed_group α] : measurable (norm : α → ℝ) :=
 measurable_of_continuous continuous_norm
 
-lemma measurable_norm {α : Type*} [normed_group α] [measurable_space β]
+lemma measurable.norm {α : Type*} [normed_group α] [measurable_space β]
   {f : β → α} (hf : measurable f) : measurable (λa, norm (f a)) :=
-measurable.comp measurable_norm' hf
+measurable_norm.comp hf
 
-lemma measurable_nnnorm' {α : Type*} [normed_group α] : measurable (nnnorm : α → nnreal) :=
+lemma measurable_nnnorm {α : Type*} [normed_group α] : measurable (nnnorm : α → nnreal) :=
 measurable_of_continuous continuous_nnnorm
 
-lemma measurable_nnnorm {α : Type*} [normed_group α] [measurable_space β]
+lemma measurable.nnnorm {α : Type*} [normed_group α] [measurable_space β]
   {f : β → α} (hf : measurable f) : measurable (λa, nnnorm (f a)) :=
-measurable.comp measurable_nnnorm' hf
+measurable_nnnorm.comp hf
 
-lemma measurable_coe_nnnorm {α : Type*} [normed_group α] [measurable_space β]
+lemma measurable.coe_nnnorm {α : Type*} [normed_group α] [measurable_space β]
   {f : β → α} (hf : measurable f) : measurable (λa, (nnnorm (f a) : ennreal)) :=
-measurable.comp ennreal.measurable_coe $ measurable_nnnorm hf
-
-end measure_theory
+ennreal.measurable_coe.comp $ hf.nnnorm

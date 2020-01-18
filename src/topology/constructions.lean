@@ -98,11 +98,11 @@ The 𝓝 filter and the subspace topology.
 
 theorem mem_nhds_subtype (s : set α) (a : {x // x ∈ s}) (t : set {x // x ∈ s}) :
   t ∈ 𝓝 a ↔ ∃ u ∈ 𝓝 a.val, (@subtype.val α s) ⁻¹' u ⊆ t :=
-by rw mem_nhds_induced
+mem_nhds_induced subtype.val a t
 
 theorem nhds_subtype (s : set α) (a : {x // x ∈ s}) :
   𝓝 a = comap subtype.val (𝓝 a.val) :=
-by rw nhds_induced
+nhds_induced subtype.val a
 
 end topα
 
@@ -267,7 +267,7 @@ set.ext $ assume ⟨a, b⟩,
 have filter.prod (𝓝 a) (𝓝 b) ⊓ principal (set.prod s t) =
   filter.prod (𝓝 a ⊓ principal s) (𝓝 b ⊓ principal t),
   by rw [←prod_inf_prod, prod_principal_principal],
-by simp [closure_eq_nhds, nhds_prod_eq, this]; exact prod_neq_bot
+by simp [closure_eq_nhds, nhds_prod_eq, this]; exact prod_ne_bot
 
 lemma mem_closure2 {s : set α} {t : set β} {u : set γ} {f : α → β → γ} {a : α} {b : β}
   (hf : continuous (λp:α×β, f p.1 p.2)) (ha : a ∈ closure s) (hb : b ∈ closure t)
@@ -297,7 +297,7 @@ begin
   rw [is_open_map_iff_nhds_le],
   rintros ⟨a, b⟩,
   rw [nhds_prod_eq, nhds_prod_eq, ← filter.prod_map_map_eq],
-  exact filter.prod_mono ((is_open_map_iff_nhds_le f).1 hf a) ((is_open_map_iff_nhds_le g).1 hg b)
+  exact filter.prod_mono (is_open_map_iff_nhds_le.1 hf a) (is_open_map_iff_nhds_le.1 hg b)
 end
 
 protected lemma open_embedding.prod {f : α → β} {g : γ → δ}
@@ -370,13 +370,21 @@ lemma embedding_subtype_val : embedding (@subtype.val α p) :=
 lemma continuous_subtype_val : continuous (@subtype.val α p) :=
 continuous_induced_dom
 
-lemma subtype_val.open_embedding {s : set α} (hs : is_open s) :
-  open_embedding (subtype.val : {x // x ∈ s} → α) :=
+lemma is_open.open_embedding_subtype_val {s : set α} (hs : is_open s) :
+  open_embedding (subtype.val : s → α) :=
 { induced := rfl,
   inj := subtype.val_injective,
   open_range := (subtype.val_range : range subtype.val = s).symm ▸  hs }
 
-lemma subtype_val.closed_embedding {s : set α} (hs : is_closed s) :
+lemma is_open.is_open_map_subtype_val {s : set α} (hs : is_open s) :
+  is_open_map (subtype.val : s → α) :=
+hs.open_embedding_subtype_val.is_open_map
+
+lemma is_open_map.restrict {f : α → β} (hf : is_open_map f) {s : set α} (hs : is_open s) :
+  is_open_map (function.restrict f s) :=
+hf.comp hs.is_open_map_subtype_val
+
+lemma is_closed.closed_embedding_subtype_val {s : set α} (hs : is_closed s) :
   closed_embedding (subtype.val : {x // x ∈ s} → α) :=
 { induced := rfl,
   inj := subtype.val_injective,

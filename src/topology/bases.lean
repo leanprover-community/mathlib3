@@ -84,7 +84,7 @@ begin
   refine (has_countable_basis_iff_mono_seq f).trans (exists_congr $ λ x, and_congr_right _),
   intro hmono,
   have : directed (≥) (λ i, principal (x i)),
-    from directed_of_mono _ _ (λ i j hij, principal_mono.2 (hmono _ _ hij)),
+    from directed_of_mono _ (λ i j hij, principal_mono.2 (hmono _ _ hij)),
   simp only [filter.ext_iff, mem_infi this ⟨0⟩, mem_Union, mem_principal_sets]
 end
 
@@ -99,6 +99,42 @@ begin
     by { rw [infi_comm], congr' 1, ext t, rw [infi_comm] }
   ... = _ : by simp [-infi_infi_eq_right, infi_and]
 end
+
+lemma has_countable_basis.tendsto_iff_seq_tendsto {f : α → β} {k : filter α} {l : filter β}
+  (hcb : k.has_countable_basis) :
+  tendsto f k l ↔ (∀ x : ℕ → α, tendsto x at_top k → tendsto (f ∘ x) at_top l) :=
+suffices (∀ x : ℕ → α, tendsto x at_top k → tendsto (f ∘ x) at_top l) → tendsto f k l,
+  from ⟨by intros; apply tendsto.comp; assumption, by assumption⟩,
+begin
+  rw filter.has_countable_basis_iff_mono_seq at hcb,
+  rcases hcb with ⟨g, gmon, gbasis⟩,
+  have gbasis : ∀ A, A ∈ k ↔ ∃ i, g i ⊆ A,
+  { intro A,
+    subst gbasis,
+    rw mem_infi,
+    { simp only [set.mem_Union, iff_self, filter.mem_principal_sets] },
+    { exact directed_of_mono _ (λ i j h, principal_mono.mpr $ gmon _ _ h) },
+    { apply_instance } },
+  classical, contrapose,
+  simp only [not_forall, not_imp, not_exists, subset_def, @tendsto_def _ _ f, gbasis],
+  rintro ⟨B, hBl, hfBk⟩,
+  choose x h using hfBk,
+  use x, split,
+  { simp only [tendsto_at_top', gbasis],
+    rintros A ⟨i, hgiA⟩,
+    use i,
+    refine (λ j hj, hgiA $ gmon _ _ hj _),
+    simp only [h] },
+  { simp only [tendsto_at_top', (∘), not_forall, not_exists],
+    use [B, hBl],
+    intro i, use [i, (le_refl _)],
+    apply (h i).right },
+end
+
+lemma has_countable_basis.tendsto_of_seq_tendsto {f : α → β} {k : filter α} {l : filter β}
+  (hcb : k.has_countable_basis) :
+  (∀ x : ℕ → α, tendsto x at_top k → tendsto (f ∘ x) at_top l) → tendsto f k l :=
+hcb.tendsto_iff_seq_tendsto.2
 
 end filter
 
@@ -288,7 +324,7 @@ let ⟨f, hf⟩ := this in
   have w : {s : set α // a ∈ s ∧ s ∈ b}, from ⟨t, ht₂, ht₁⟩,
   suffices (⨅ (x : {s // a ∈ s ∧ s ∈ b}), principal (x.val ∩ ⋃s (h₁ h₂ : s ∈ b), {f s h₂})) ≠ ⊥,
     by simpa only [closure_eq_nhds, nhds_eq, infi_inf w, inf_principal, mem_set_of_eq, mem_univ, iff_true],
-  infi_neq_bot_of_directed ⟨a⟩
+  infi_ne_bot_of_directed ⟨a⟩
     (assume ⟨s₁, has₁, hs₁⟩ ⟨s₂, has₂, hs₂⟩,
       have a ∈ s₁ ∩ s₂, from ⟨has₁, has₂⟩,
       let ⟨s₃, hs₃, has₃, hs⟩ := hb₃ _ hs₁ _ hs₂ _ this in

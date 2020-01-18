@@ -173,7 +173,7 @@ begin
       (ennreal.tendsto_pow_at_top_nhds_0_of_lt_1 $ by simp [ennreal.one_lt_two])
       (or.inr $ by simp),
   rw mul_zero at this,
-  have Z := (tendsto_orderable.1 this).2 ε εpos,
+  have Z := (tendsto_order.1 this).2 ε εpos,
   simp only [filter.mem_at_top_sets, set.mem_set_of_eq] at Z,
   rcases Z with ⟨N, hN⟩,  --  ∀ (b : ℕ), b ≥ N → ε > 2 * B b
   exact ⟨N, λn hn, lt_of_le_of_lt (main n) (hN n hn)⟩
@@ -199,7 +199,7 @@ instance closeds.compact_space [compact_space α] : compact_space (closeds α) :
     refine Hausdorff_edist_le_of_mem_edist _ _,
     { assume x hx,
       have : x ∈ ⋃y ∈ s, ball y δ := hs (by simp),
-      rcases mem_bUnion_iff.1 this with ⟨y, ⟨ys, dy⟩⟩,
+      rcases mem_bUnion_iff.1 this with ⟨y, ys, dy⟩,
       have : edist y x < δ := by simp at dy; rwa [edist_comm] at dy,
       exact ⟨y, ⟨ys, ⟨x, hx, this⟩⟩, le_of_lt dy⟩ },
     { rintros x ⟨hx1, ⟨y, yu, hy⟩⟩,

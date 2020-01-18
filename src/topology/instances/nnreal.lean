@@ -24,7 +24,7 @@ instance : topological_semiring ℝ≥0 :=
 instance : second_countable_topology nnreal :=
 topological_space.subtype.second_countable_topology _ _
 
-instance : orderable_topology ℝ≥0 :=
+instance : order_topology ℝ≥0 :=
 ⟨ le_antisymm
     (le_generate_from $ assume s hs,
     match s, hs with
@@ -33,7 +33,7 @@ instance : orderable_topology ℝ≥0 :=
     end)
     begin
       apply coinduced_le_iff_le_induced.1,
-      rw [orderable_topology.topology_eq_generate_intervals ℝ],
+      rw [order_topology.topology_eq_generate_intervals ℝ],
       apply le_generate_from,
       assume s hs,
       rcases hs with ⟨a, rfl | rfl⟩,

@@ -2,11 +2,71 @@
 Copyright (c) 2017 Johannes Hölzl. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johannes Hölzl, Johan Commelin, Mario Carneiro
-
-Multivariate Polynomial
 -/
 import algebra.ring
 import data.finsupp data.polynomial data.equiv.algebra
+
+/-!
+# Multivariate polynomials
+
+This file defines polynomial rings over a base ring (or even semiring),
+with variables corresponding to the terms in a general type σ (which could
+be infinite). It then establishes a substantial interface for this definition.
+
+## Important definitions
+
+In the definitions below, we use the following notation:
+`σ : Type*` (indexing the variables)
+`R : Type*` `[comm_semiring R]` (the coefficients)
+`s : σ →₀ ℕ`, with corresponding monomial written X^s
+`a : R`,
+`n : σ`, with corresponding monomial X_n
+`p : mv_polynomial σ R`
+
+* `mv_polynomial σ R` : the type of polynomials with variables of type σ and coefficients
+  in the commutative semiring R
+
+* `monomial s a` is the monomial a * X^s
+
+* `C a` is the constant polynomial with value a
+
+* `X n` is the degree one monomial corresponding to n
+
+* `coeff s p` is the coefficient of s in p.
+
+ Evaluate a polynomial `p` given a valuation `g` of all the variables
+  and a ring hom `f` from the scalar ring to the target
+
+* `eval₂ p` : given a semiring homomorphism from R to another semiring S, and a map σ → S,
+  evaluates p at this data, returning a term of type D
+
+* `eval p` : given a map σ → R, evaluates p at this data, returning a term of type R
+
+* `map (f : R → S) p` : returns the multivariate polynomial obtained from p by the change of
+  coefficient semiring corresponding to f
+
+* `degrees p` : the multiset of variables representing the union of the multisets corresponding
+  to each non-zero monomial in p. For example if 7 ≠ 0 in R then
+  `degrees (x^2y + 7y^3) = {x,x,y,y,y}
+
+* `vars p` : the finset of variables occurring in p
+
+* `degree_of n p : ℕ` -- the total degree of p with respect to the variable n
+
+* `total_degree p : ℕ` -- the max size |s| of the multisets s whose monomials X^s occur in p.
+
+## Implementation notes
+
+Recall that if Y has a zero, then X →₀ Y is the type of functions from X to Y with finite
+support, i.e. such that only finitely many elements of X get sent to non-zero terms in Y.
+The definition of `mv_polynomial σ α` is `(σ →₀ ℕ) →₀ α` ; here σ →₀ ℕ denotes the space of all
+monomials in the variables, and the function to α sends a monomial to its coefficient in
+the polynomial being represented.
+
+## Tags
+
+polynomial, multivariate polynomial, multivariable polynomial
+-/
 
 noncomputable theory
 local attribute [instance, priority 100] classical.prop_decidable
@@ -26,7 +86,8 @@ variables {σ : Type*} {a a' a₁ a₂ : α} {e : ℕ} {n m : σ} {s : σ →₀
 section comm_semiring
 variables [comm_semiring α] {p q : mv_polynomial σ α}
 
-instance decidable_eq_mv_polynomial [decidable_eq σ] [decidable_eq α] : decidable_eq (mv_polynomial σ α) := finsupp.decidable_eq
+instance decidable_eq_mv_polynomial [decidable_eq σ] [decidable_eq α] :
+  decidable_eq (mv_polynomial σ α) := finsupp.decidable_eq
 instance : has_zero (mv_polynomial σ α) := finsupp.has_zero
 instance : has_one (mv_polynomial σ α) := finsupp.has_one
 instance : has_add (mv_polynomial σ α) := finsupp.has_add
@@ -39,7 +100,7 @@ def monomial (s : σ →₀ ℕ) (a : α) : mv_polynomial σ α := single s a
 /-- `C a` is the constant polynomial with value `a` -/
 def C (a : α) : mv_polynomial σ α := monomial 0 a
 
-/-- `X n` is the polynomial with value X_n -/
+/-- `X n` is the degree 1 monomial with value X_n -/
 def X (n : σ) : mv_polynomial σ α := monomial (single n 1) 1
 
 @[simp] lemma C_0 : C 0 = (0 : mv_polynomial σ α) := by simp [C, monomial]; refl

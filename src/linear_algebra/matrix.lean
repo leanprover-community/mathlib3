@@ -199,8 +199,19 @@ def diag (M : matrix n n R) : n → R := λ i, M i i
 @[simp] lemma diag_add [add_comm_monoid R] (M N : matrix n n R) :
   diag (M + N) = diag M + diag N := by { unfold diag, ext, simp, }
 
-@[simp] lemma diag_smul [semiring R] (M : matrix n n R) (c : R) :
+@[simp] lemma diag_smul [semiring R] (c : R) (M : matrix n n R) :
   diag (c • M) = c • diag M := by { unfold diag, ext, simp, }
+
+/--
+The diagonal of a square matrix, as a linear function.
+-/
+def diag_hom [ring R] : (matrix n n R) →ₗ[R] n → R := {
+  to_fun := diag,
+  add    := diag_add,
+  smul   := diag_smul }
+
+@[simp] lemma diag_one [decidable_eq n] [add_comm_monoid R] [has_one R] :
+  diag (1 : matrix n n R) = λ i, 1 := by { unfold diag, ext, apply one_val_eq, }
 
 /--
 The trace of a square matrix.
@@ -220,6 +231,10 @@ def trace_hom [ring R] : (matrix n n R) →ₗ[R] R := {
   to_fun := trace,
   add    := trace_add,
   smul   := trace_smul }
+
+@[simp] lemma trace_one [decidable_eq n] [add_comm_monoid R] [has_one R] :
+  trace (1 : matrix n n R) = fintype.card n := by {
+    unfold trace function.comp, rw [diag_one, finset.sum_const, add_monoid.smul_one], refl, }
 
 end trace
 

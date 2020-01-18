@@ -1,0 +1,69 @@
+name: continuous integration
+
+on: [push, pull_request]
+
+jobs:
+  build:
+    name: Build mathlib
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        lean_version:
+          - 3.4.2
+          - leanprover-community/lean:nightly
+      fail-fast: false
+    steps:
+      - uses: actions/checkout@v2
+
+      - name: install elan
+        run: |
+          curl https://raw.githubusercontent.com/Kha/elan/master/elan-init.sh -sSf | sh -s -- --default-toolchain none -y
+          ~/.elan/bin/elan override set ${{ matrix.lean_version }}
+          ~/.elan/bin/lean --version
+          echo "::add-path::$HOME/.elan/bin"
+      - name: install olean-rs
+        run: |
+          OLEAN_RS=https://github.com/cipher1024/olean-rs/releases
+          latest=$(curl -sSf "$OLEAN_RS/latest" | cut -d'"' -f2 | awk -F/ '{print $NF}')
+          mkdir ~/scripts
+          curl -sSfL "$OLEAN_RS/download/$latest/olean-rs-linux" -o "$HOME/scripts/olean-rs"
+          chmod +x $HOME/scripts/olean-rs
+          echo "::add-path::$HOME/scripts"
+
+      - name: leanpkg build
+        run: leanpkg build | python scripts/detect_errors.py
+
+      - name: setup precompiled zip file
+        id: setup_precompiled
+        run: |
+          git_hash="$(git log -1 --pretty=format:%h)"
+          short_lean_version="$(echo ${{ matrix.lean_version }} | sed 's/.*://')"
+          echo "::set-output name=artifact_name::precompiled-mathlib-$short_lean_version-$git_hash"
+      - name: upload precompiled mathlib zip file
+        uses: actions/upload-artifact@v1
+        with:
+          name: ${{ steps.setup_precompiled.outputs.artifact_name }}
+          path: ..
+
+      - name: push release to mathlib-nightly
+        if: github.repository == 'leanprover-community/mathlib' && github.event_name == 'push' && github.ref == 'refs/heads/master' && matrix.lean_version == '3.4.2'
+        run: ./scripts/deploy_nightly_actions.sh
+        env:
+          GITHUB_TOKEN: ${{ secrets.DEPLOY_NIGHTLY_GITHUB_TOKEN }}
+
+      - name: tests
+        run: |
+          leanpkg test | cat
+          lean --make docs archive | cat
+
+      - name: lint
+        run: |
+          ./scripts/mk_all.sh -t
+          lean src/lint_mathlib.lean
+          ./scripts/rm_all.sh
+
+      - name: leanchecker
+        run: |
+          lean --recursive --export=mathlib.txt src/
+          leanchecker mathlib.txt
+

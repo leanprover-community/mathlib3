@@ -15,45 +15,52 @@ be infinite).
 
 ## Important definitions
 
+Let `R` be a commutative ring (or a semiring) and let `σ` be an arbitrary
+type. This file creates the type `mv_polynomial σ R`, which mathematicians
+might denote $R[X_n : n\in\sigma]$. It is the type of multivariate
+(a.k.a. multivariable) polynomials, with variables
+corresponding to the terms in `σ`, and coefficients in `R`.
+
 In the definitions below, we use the following notation:
 `σ : Type*` (indexing the variables)
 `R : Type*` `[comm_semiring R]` (the coefficients)
-`s : σ →₀ ℕ`, with corresponding monomial written X^s
-`a : R`,
+`s : σ →₀ ℕ`, a function from σ to ℕ which is zero away from a finite set.
+This will give rise to a monomial in `mv_polynomial σ R`
+`a : R`
 `n : σ`, with corresponding monomial `X n`
 `p : mv_polynomial σ R`
 
 * `mv_polynomial σ R` : the type of polynomials with variables of type σ and coefficients
   in the commutative semiring R
 
-* `monomial s a` is the monomial a * X^s
+* `monomial s a` : the monomial which mathematically would be denoted $a * X^s$
 
-* `C a` is the constant polynomial with value a
+* `C a` : the constant polynomial with value a
 
-* `X n` is the degree one monomial corresponding to n
+* `X n` : the degree one monomial corresponding to n; mathematically this might be denoted $X_n$.
 
-* `coeff s p` is the coefficient of s in p.
+* `coeff s p` : the coefficient of s in p.
 
- Evaluate a polynomial `p` given a valuation `g` of all the variables
-  and a ring hom `f` from the scalar ring to the target
-
-* `eval₂ p` : given a semiring homomorphism from R to another semiring S, and a map σ → S,
+* `eval₂ (f : R → S) (g : σ → S) p` : given a semiring homomorphism from R to another semiring S, and a map σ → S,
   evaluates p at this valuation, returning a term of type `S`
 
-* `eval p` : given a map σ → R, evaluates p at this valuation, returning a term of type R
+* `eval (g : σ → R) p` : given a map σ → R, evaluates p at this valuation, returning a term of type R
 
 * `map (f : R → S) p` : returns the multivariate polynomial obtained from p by the change of
   coefficient semiring corresponding to f
 
 * `degrees p` : the multiset of variables representing the union of the multisets corresponding
-  to each non-zero monomial in p. For example if 7 ≠ 0 in R then
-  `degrees (x^2y + 7y^3) = {x,x,y,y,y}
+  to each non-zero monomial in p. For example if 7 ≠ 0 in R and $p=x^2y+7y^3$ then
+  `degrees p = {x, x, y, y, y}`
 
-* `vars p` : the finset of variables occurring in p
+* `vars p` : the finset of variables occurring in p. For example if $p=x^4y+yz$ then
+  `vars p = {x, y, z}`
 
-* `degree_of n p : ℕ` -- the total degree of p with respect to the variable n
+* `degree_of n p : ℕ` -- the total degree of p with respect to the variable n. For example if $p=x^4y+yz$
+  then `degree_of y p = 1`.
 
-* `total_degree p : ℕ` -- the max size |s| of the multisets s whose monomials X^s occur in p.
+* `total_degree p : ℕ` -- the max of the sizes of the multisets `s` whose monomials $X^s$ occur in `p`.
+  For example if $p=x^4y+yz$ then `total_degree p = 5`.
 
 ## Implementation notes
 

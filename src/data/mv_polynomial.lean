@@ -11,7 +11,7 @@ import data.finsupp data.polynomial data.equiv.algebra
 
 This file defines polynomial rings over a base ring (or even semiring),
 with variables from a general type σ (which could
-be infinite). It then establishes a substantial interface for this definition.
+be infinite).
 
 ## Important definitions
 

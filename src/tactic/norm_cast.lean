@@ -134,6 +134,9 @@ private meta def count_head_coes : expr → ℕ
 
 private meta def count_coes_aux : ℕ → expr → ℕ
 | n (app f x) := if f.is_coe' then count_coes_aux (n+1) x else count_coes_aux (count_coes_aux n f) x
+| n (lam _ _ _ e) := count_coes_aux n e
+| n (pi _ _ _ e) := count_coes_aux n e
+| n (elet _ a _ b) := count_coes_aux (count_coes_aux n a) b
 | n x := n
 
 private meta def count_coes : expr → ℕ := count_coes_aux 0

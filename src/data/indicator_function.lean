@@ -128,8 +128,6 @@ begin
   exact indicator_zero _ _
 end
 
-variables [decidable_eq α]
-
 lemma indicator_finset_bUnion {β} [add_comm_monoid β] {ι} (I : finset ι)
   (s : ι → set α) {f : α → β} : (∀ (i ∈ I) (j ∈ I), i ≠ j → s i ∩ s j = ∅) →
   indicator (⋃ i ∈ I, s i) f = λ a, I.sum (λ i, indicator (s i) f a) :=

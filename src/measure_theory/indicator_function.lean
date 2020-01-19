@@ -111,9 +111,9 @@ end
 end order
 
 section tendsto
-variables {ι : Type*} [nonempty ι] [lattice.semilattice_sup ι] [has_zero β]
+variables {ι : Type*} [lattice.semilattice_sup ι] [has_zero β]
 
-lemma tendsto_indicator_of_monotone (s : ι → set α) (hs : monotone s) (f : α → β)
+lemma tendsto_indicator_of_monotone [nonempty ι] (s : ι → set α) (hs : monotone s) (f : α → β)
   (a : α) : tendsto (λi, indicator (s i) f a) at_top (pure $ indicator (Union s) f a) :=
 begin
   by_cases h : ∃i, a ∈ s i,
@@ -130,7 +130,7 @@ begin
     exact tendsto_const_pure }
 end
 
-lemma tendsto_indicator_of_antimono (s : ι → set α) (hs : ∀i j, i ≤ j → s j ⊆ s i) (f : α → β)
+lemma tendsto_indicator_of_antimono [nonempty ι] (s : ι → set α) (hs : ∀i j, i ≤ j → s j ⊆ s i) (f : α → β)
   (a : α) : tendsto (λi, indicator (s i) f a) at_top (pure $ indicator (Inter s) f a) :=
 begin
   by_cases h : ∃i, a ∉ s i,

@@ -38,7 +38,7 @@ In the definitions below, we use the following notation:
   and a ring hom `f` from the scalar ring to the target
 
 * `eval₂ p` : given a semiring homomorphism from R to another semiring S, and a map σ → S,
-  evaluates p at this data, returning a term of type D
+  evaluates p at this valuation, returning a term of type `S`
 
 * `eval p` : given a map σ → R, evaluates p at this valuation, returning a term of type R
 

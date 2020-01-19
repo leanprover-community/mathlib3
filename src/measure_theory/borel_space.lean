@@ -270,6 +270,8 @@ lemma is_measurable_Ico : is_measurable (Ico a b) :=
 (is_measurable_of_is_closed $ is_closed_le continuous_const continuous_id).inter
   is_measurable_Iio
 
+lemma is_measurable_Icc : is_measurable (Icc a b) := is_measurable_of_is_closed $ is_closed_Icc
+
 end order_closed_topology
 
 lemma measurable.is_lub {α} [topological_space α] [linear_order α]

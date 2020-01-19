@@ -445,7 +445,7 @@ protected def metric_space : metric_space (α →₁ₛ β) := subtype.metric_sp
 
 local attribute [instance] protected lemma is_add_subgroup : is_add_subgroup
   (λf:α →₁ β, ∃ (s : α →ₛ β), integrable s ∧ ae_eq_fun.mk s s.measurable = f) :=
-{ zero_mem := by { use 0, split, { exact integrable_zero }, { refl } },
+{ zero_mem := by { use 0, split, { apply integrable_zero }, { refl } },
   add_mem :=
   begin
     rintros f g ⟨s, hsi, hs⟩ ⟨t, hti, ht⟩,
@@ -551,7 +551,7 @@ lemma of_simple_func_eq_of_fun (f : α →ₛ β) (hf : integrable f) :
 lemma of_simple_func_eq_mk (f : α →ₛ β) (hf : integrable f) :
   (of_simple_func f hf : α →ₘ β) = ae_eq_fun.mk f f.measurable := rfl
 
-lemma of_simple_func_zero : of_simple_func (0 : α →ₛ β) integrable_zero = 0 := rfl
+lemma of_simple_func_zero : of_simple_func (0 : α →ₛ β) (integrable_zero α β) = 0 := rfl
 
 lemma of_simple_func_add (f g : α →ₛ β) (hf hg) :
   of_simple_func (f + g) (integrable.add f.measurable hf g.measurable hg) = of_simple_func f hf +
@@ -1299,6 +1299,18 @@ classical.by_cases
     rw [integral_non_measurable h, _root_.norm_zero],
     exact integral_nonneg_of_nonneg_ae le_ae
   end )
+
+lemma integral_finset_sum {ι} (s : finset ι) {f : ι → α → β}
+  (hfm : ∀ i, measurable (f i)) (hfi : ∀ i, integrable (f i)) :
+  (∫ a, s.sum (λ i, f i a)) = s.sum (λ i, ∫ a, f i a) :=
+begin
+  refine finset.induction_on s _ _,
+  { simp only [integral_zero, finset.sum_empty] },
+  { assume i s his ih,
+    simp only [his, finset.sum_insert, not_false_iff],
+    rw [integral_add (hfm _) (hfi _) (measurable_finset_sum s hfm)
+        (integrable_finset_sum s hfm hfi), ih] }
+end
 
 end properties
 

@@ -146,8 +146,10 @@ lt_of_le_of_lt
 
 @[simp] lemma lintegral_nnnorm_zero : (∫⁻ a : α, nnnorm (0 : β)) = 0 := by simp
 
-lemma integrable_zero : integrable (0 : α → β) :=
+variables (α β)
+@[simp] lemma integrable_zero : integrable (λa:α, (0:β)) :=
 by { have := coe_lt_top, simpa [integrable] }
+variables {α β}
 
 lemma lintegral_nnnorm_add {f : α → β} {g : α → γ} (hf : measurable f) (hg : measurable g) :
   (∫⁻ a, nnnorm (f a) + nnnorm (g a)) = (∫⁻ a, nnnorm (f a)) + ∫⁻ a, nnnorm (g a) :=
@@ -162,6 +164,17 @@ calc
   ... = _ :
     lintegral_nnnorm_add hfm hgm
   ... < ⊤ : add_lt_top.2 ⟨hfi, hgi⟩
+
+lemma integrable_finset_sum {ι} [second_countable_topology β] (s : finset ι) {f : ι → α → β}
+  (hfm : ∀ i, measurable (f i)) (hfi : ∀ i, integrable (f i)) :
+  integrable (λ a, s.sum (λ i, f i a)) :=
+begin
+  refine finset.induction_on s _ _,
+  { simp only [finset.sum_empty, integrable_zero] },
+  { assume i s his ih,
+    simp only [his, finset.sum_insert, not_false_iff],
+    refine (hfi _).add (hfm _) (measurable_finset_sum s hfm) ih }
+end
 
 lemma lintegral_nnnorm_neg {f : α → β} :
   (∫⁻ (a : α), ↑(nnnorm ((-f) a))) = ∫⁻ (a : α), ↑(nnnorm ((f) a)) :=
@@ -521,7 +534,8 @@ lemma of_fun_eq_of_fun (f g : α → β) (hfm hfi hgm hgi) :
   of_fun f hfm hfi = of_fun g hgm hgi ↔ ∀ₘ a, f a = g a :=
 by { rw ← l1.eq_iff, simp only [of_fun_eq_mk, mk_eq_mk] }
 
-lemma of_fun_zero : of_fun (λa:α, (0:β)) (@measurable_const _ _ _ _ (0:β)) integrable_zero = 0 := rfl
+lemma of_fun_zero :
+  of_fun (λa:α, (0:β)) (@measurable_const _ _ _ _ (0:β)) (integrable_zero α β) = 0 := rfl
 
 lemma of_fun_add (f g : α → β) (hfm hfi hgm hgi) :
   of_fun (λa, f a + g a) (measurable.add hfm hgm) (integrable.add hfm hfi hgm hgi)

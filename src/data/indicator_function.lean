@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Zhouhang Zhou
 -/
 
-import data.set group_theory.group_action algebra.pi_instances
+import group_theory.group_action algebra.pi_instances data.set.disjointed
 
 /-!
 # Indicator function
@@ -120,12 +120,34 @@ begin
   { rw ← mem_compl_iff at h₂, contradiction }
 end
 
-lemma indicator_sum {β} [add_comm_monoid β] {ι : Type*} (I : finset ι) (s : set α) (f : ι → α → β) :
+lemma indicator_finset_sum {β} [add_comm_monoid β] {ι : Type*} (I : finset ι) (s : set α) (f : ι → α → β) :
   indicator s (I.sum f) = I.sum (λ i, indicator s (f i)) :=
 begin
   convert (finset.sum_hom _ _).symm,
   split,
   exact indicator_zero _ _
+end
+
+variables [decidable_eq α]
+
+lemma indicator_finset_Union {β} [add_comm_monoid β] {ι} (I : finset ι)
+  (s : ι → set α) {f : α → β} : (∀ (i ∈ I) (j ∈ I), i ≠ j → s i ∩ s j = ∅) →
+  indicator (⋃ i ∈ I, s i) f = λ a, I.sum (λ i, indicator (s i) f a) :=
+begin
+  refine finset.induction_on I _ _,
+  assume h,
+  { funext, simp },
+  assume a I haI ih hI,
+  funext,
+  simp only [haI, finset.sum_insert, not_false_iff],
+  rw [finset.bUnion_insert, indicator_union_of_not_mem_inter, ih _],
+  { assume i hi j hj hij,
+    exact hI i (finset.mem_insert_of_mem hi) j (finset.mem_insert_of_mem hj) hij },
+  simp only [not_exists, exists_prop, mem_Union, mem_inter_eq, not_and],
+  assume hx a' ha',
+  have := hI a (finset.mem_insert_self _ _) a' (finset.mem_insert_of_mem ha') _,
+  { assume h, have h := mem_inter hx h, rw this at h, exact not_mem_empty _ h },
+  { assume h, rw h at haI, contradiction }
 end
 
 end add_group

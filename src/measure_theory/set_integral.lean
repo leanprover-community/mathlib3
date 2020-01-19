@@ -110,7 +110,7 @@ lemma integrable_on_congr_ae (h : ∀ₘx, x ∈ s → f x = g x) :
 by { apply integrable_congr_ae, exact indicator_congr_ae h }
 
 lemma integrable_on_empty : integrable_on ∅ f :=
-by { simp only [integrable_on, indicator_empty], exact integrable_zero }
+by { simp only [integrable_on, indicator_empty], apply integrable_zero }
 
 lemma integrable_on_of_integrable (s : set α) (hf : integrable f) : integrable_on s f :=
 by { refine integrable_of_le (λa, _) hf, apply norm_indicator_le_norm_self }
@@ -282,10 +282,36 @@ begin
   { filter_upwards [] λa, le_trans (tendsto_indicator_of_antimono _ h_mono _ _) (pure_le_nhds _) }
 end
 
--- TODO : prove the following proposition
-
--- lemma integral_on_Union (s : ℕ → set α) (f : α → β) (hm : ∀i, is_measurable (s i))
---   (hd : pairwise (disjoint on s)) (hf : integrable_on (Union s) f) :
---   integral_on (Union s) f = ∑i, integral_on (s i) f := sorry
+-- TODO : prove this for an encodable type
+-- by proving an encodable version of `filter.has_countable_basis_at_top_finset_nat`
+lemma integral_on_Union (s : ℕ → set α) (f : α → β) (hm : ∀i, is_measurable (s i))
+  (hd : ∀ i j, i ≠ j → s i ∩ s j = ∅) (hfm : measurable_on (Union s) f) (hfi : integrable_on (Union s) f) :
+  (∫ a in (Union s), f a) = ∑i, ∫ a in s i, f a :=
+suffices h : tendsto (λn:finset ℕ, n.sum (λ i, ∫ a in s i, f a)) at_top (𝓝 $ (∫ a in (Union s), f a)),
+  by { rwa tsum_eq_has_sum },
+begin
+  have : (λn:finset ℕ, n.sum (λ i, ∫ a in s i, f a)) = λn:finset ℕ, ∫ a in (⋃i∈n, s i), f a,
+  { funext,
+    rw [← integral_finset_sum, indicator_finset_Union],
+    { assume i hi j hj hij, exact hd i j hij },
+    { assume i, refine hfm.subset (hm _) (subset_Union _ _) },
+    { assume i, refine hfi.subset (subset_Union _ _) } },
+  rw this,
+  refine tendsto_integral_filter_of_dominated_convergence _ _ _ _ _ _ _,
+  { exact indicator (Union s) (λ a, ∥f a∥) },
+  { exact has_countable_basis_at_top_finset_nat },
+  { refine univ_mem_sets' (λ n, _),
+    simp only [mem_set_of_eq],
+    refine hfm.subset (is_measurable.Union (λ i, is_measurable.Union_Prop (λh, hm _)))
+      (bUnion_subset_Union _ _), },
+  { assumption },
+  { refine univ_mem_sets' (λ n, univ_mem_sets' $ _),
+    simp only [mem_set_of_eq],
+    assume a,
+    rw ← norm_indicator_eq_indicator_norm,
+    refine norm_indicator_le_of_subset (bUnion_subset_Union _ _) _ _ },
+  { rw [← integrable_on, integrable_on_norm_iff], assumption },
+  { filter_upwards [] λa, le_trans (tendsto_indicator_bUnion_finset _ _ _) (pure_le_nhds _) }
+end
 
 end integral_on

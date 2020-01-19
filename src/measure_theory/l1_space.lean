@@ -298,7 +298,7 @@ begin
   suffices h : tendsto (λn, ∫⁻ a, ennreal.of_real ∥F n a - f a∥) at_top (𝓝 (∫⁻ (a:α), 0)),
   { rwa lintegral_zero at h },
   -- Using the dominated convergence theorem.
-  refine tendsto_lintegral_of_dominated_convergence _ hb _ _,
+  refine tendsto_lintegral_of_dominated_convergence _ _ hb _ _,
   -- Show `λa, ∥f a - F n a∥` is measurable for all `n`
   { exact λn, measurable.comp measurable_of_real (measurable.norm (measurable.sub (F_measurable n)
       f_measurable)) },

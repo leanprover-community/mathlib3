@@ -37,7 +37,7 @@ lemma cauchy_downwards {f g : filter α} (h_c : cauchy f) (hg : g ≠ ⊥) (h_le
 ⟨hg, le_trans (filter.prod_mono h_le h_le) h_c.right⟩
 
 lemma cauchy_nhds {a : α} : cauchy (𝓝 a) :=
-⟨nhds_neq_bot,
+⟨nhds_ne_bot,
   calc filter.prod (𝓝 a) (𝓝 a) =
     (𝓤 α).lift (λs:set (α×α), (𝓤 α).lift' (λt:set(α×α),
       set.prod {y : α | (y, a) ∈ s} {y : α | (a, y) ∈ t})) : nhds_nhds_eq_uniformity_uniformity_prod
@@ -82,7 +82,7 @@ begin
   -- Take `t ∈ f` such that `t × t ⊆ s`.
   rcases (cauchy_iff.1 hf).2 s hs with ⟨t, t_mem, ht⟩,
   use [t, t_mem, ht],
-  exact exists_mem_of_ne_empty (forall_sets_neq_empty_iff_neq_bot.2 adhs _
+  exact exists_mem_of_ne_empty (forall_sets_ne_empty_iff_ne_bot.2 adhs _
     (inter_mem_inf_sets t_mem (mem_nhds_left x hs)))
 end
 
@@ -151,7 +151,7 @@ end
 
 lemma cauchy_prod [uniform_space β] {f : filter α} {g : filter β} :
   cauchy f → cauchy g → cauchy (filter.prod f g)
-| ⟨f_proper, hf⟩ ⟨g_proper, hg⟩ := ⟨filter.prod_neq_bot.2 ⟨f_proper, g_proper⟩,
+| ⟨f_proper, hf⟩ ⟨g_proper, hg⟩ := ⟨filter.prod_ne_bot.2 ⟨f_proper, g_proper⟩,
   let p_α := λp:(α×β)×(α×β), (p.1.1, p.2.1), p_β := λp:(α×β)×(α×β), (p.1.2, p.2.2) in
   suffices (f.prod f).comap p_α ⊓ (g.prod g).comap p_β ≤ (𝓤 α).comap p_α ⊓ (𝓤 β).comap p_β,
     by simpa [uniformity_prod, filter.prod, filter.comap_inf, filter.comap_comap_comp, (∘),
@@ -199,7 +199,7 @@ lim_spec (complete_space.complete hf)
 lemma is_complete_of_is_closed [complete_space α] {s : set α}
   (h : is_closed s) : is_complete s :=
 λ f cf fs, let ⟨x, hx⟩ := complete_space.complete cf in
-⟨x, is_closed_iff_nhds.mp h x (neq_bot_of_le_neq_bot cf.left (le_inf hx fs)), hx⟩
+⟨x, is_closed_iff_nhds.mp h x (ne_bot_of_le_ne_bot cf.left (le_inf hx fs)), hx⟩
 
 /-- A set `s` is totally bounded if for every entourage `d` there is a finite
   set of points `t` such that every element of `s` is `d`-near to some element of `t`. -/
@@ -290,7 +290,7 @@ lemma totally_bounded_iff_filter {s : set α} :
       (assume h, hd_cover finite_empty $ h.symm ▸ empty_subset _)
   in
   have f ≠ ⊥,
-    from infi_neq_bot_of_directed ⟨a⟩
+    from infi_ne_bot_of_directed ⟨a⟩
       (assume ⟨t₁, ht₁⟩ ⟨t₂, ht₂⟩, ⟨⟨t₁ ∪ t₂, finite_union ht₁ ht₂⟩,
         principal_mono.mpr $ diff_subset_diff_right $ Union_subset_Union $
           assume t, Union_subset_Union_const or.inl,

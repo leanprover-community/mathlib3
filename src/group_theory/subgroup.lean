@@ -567,7 +567,7 @@ lemma mem_conjugates_self {a : α} : a ∈ conjugates a := is_conj_refl _
 the elements of s. -/
 def conjugates_of_set (s : set α) : set α := ⋃ a ∈ s, conjugates a
 
-lemma mem_conjugates_of_set_iff {x : α} : x ∈ conjugates_of_set s ↔ ∃ a : α, a ∈ s ∧ is_conj a x :=
+lemma mem_conjugates_of_set_iff {x : α} : x ∈ conjugates_of_set s ↔ ∃ a ∈ s, is_conj a x :=
 set.mem_bUnion_iff
 
 theorem subset_conjugates_of_set : s ⊆ conjugates_of_set s :=

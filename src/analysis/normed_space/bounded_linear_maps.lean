@@ -276,7 +276,7 @@ lemma is_bounded_bilinear_map_smul_right :
 `q ↦ f(p.1, q.2) + f(q.1, p.2)` as in the standard formula for the derivative of a product.
 We define this function here a bounded linear map from `E × F` to `G`. The fact that this
 is indeed the derivative of `f` is proved in `is_bounded_bilinear_map.has_fderiv_at` in
-`deriv.lean`-/
+`fderiv.lean`-/
 
 def is_bounded_bilinear_map.linear_deriv (h : is_bounded_bilinear_map 𝕜 f) (p : E × F) :
   (E × F) →ₗ[𝕜] G :=

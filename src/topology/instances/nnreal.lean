@@ -87,11 +87,11 @@ lemma continuous.sub [topological_space α] {f g : α → nnreal}
   (hf : continuous f) (hg : continuous g) : continuous (λ a, f a - g a) :=
 continuous_sub.comp (hf.prod_mk hg)
 
-@[norm_cast elim] lemma has_sum_coe {f : α → nnreal} {r : nnreal} :
+@[norm_cast] lemma has_sum_coe {f : α → nnreal} {r : nnreal} :
   has_sum (λa, (f a : ℝ)) (r : ℝ) ↔ has_sum f r :=
 by simp [has_sum, sum_coe.symm, tendsto_coe]
 
-@[norm_cast elim] lemma summable_coe {f : α → nnreal} : summable (λa, (f a : ℝ)) ↔ summable f :=
+@[norm_cast] lemma summable_coe {f : α → nnreal} : summable (λa, (f a : ℝ)) ↔ summable f :=
 begin
   simp [summable],
   split,
@@ -101,7 +101,7 @@ end
 
 open_locale classical
 
-@[norm_cast move] lemma coe_tsum {f : α → nnreal} : ↑(∑a, f a) = (∑a, (f a : ℝ)) :=
+@[norm_cast] lemma coe_tsum {f : α → nnreal} : ↑(∑a, f a) = (∑a, (f a : ℝ)) :=
 if hf : summable f
 then (eq.symm $ tsum_eq_has_sum $ has_sum_coe.2 $ has_sum_tsum $ hf)
 else by simp [tsum, hf, mt summable_coe.1 hf]

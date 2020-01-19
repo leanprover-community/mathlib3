@@ -456,11 +456,17 @@ instance has_coe_to_mul_equiv : has_coe (α ≃+* β) (α ≃* β) := ⟨ring_eq
 
 instance has_coe_to_add_equiv : has_coe (α ≃+* β) (α ≃+ β) := ⟨ring_equiv.to_add_equiv⟩
 
-@[norm_cast squash] lemma coe_mul_equiv (f : α ≃+* β) (a : α) :
+lemma coe_mul_equiv (f : α ≃+* β) (a : α) :
   (f : α ≃* β) a = f a := rfl
 
-@[norm_cast squash] lemma coe_add_equiv (f : α ≃+* β) (a : α) :
+lemma coe_add_equiv (f : α ≃+* β) (a : α) :
   (f : α ≃+ β) a = f a := rfl
+
+@[norm_cast] lemma coe_mul_equiv' (f : α ≃+* β) :
+  ((f : α ≃* β) : α → β) = f := rfl
+
+@[norm_cast] lemma coe_add_equiv' (f : α ≃+* β) :
+  ((f : α ≃+ β) : α → β) = f := rfl
 
 variable (α)
 

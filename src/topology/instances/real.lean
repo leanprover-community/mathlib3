@@ -37,7 +37,7 @@ metric_space.induced coe rat.cast_injective real.metric_space
 
 theorem rat.dist_eq (x y : ℚ) : dist x y = abs (x - y) := rfl
 
-@[norm_cast elim, simp] lemma rat.dist_cast (x y : ℚ) : dist (x : ℝ) y = dist x y := rfl
+@[norm_cast, simp] lemma rat.dist_cast (x y : ℚ) : dist (x : ℝ) y = dist x y := rfl
 
 section low_prio
 -- we want to ignore this instance for the next declaration
@@ -56,9 +56,9 @@ end low_prio
 
 theorem int.dist_eq (x y : ℤ) : dist x y = abs (x - y) := rfl
 
-@[norm_cast elim, simp] theorem int.dist_cast_real (x y : ℤ) : dist (x : ℝ) y = dist x y := rfl
+@[norm_cast, simp] theorem int.dist_cast_real (x y : ℤ) : dist (x : ℝ) y = dist x y := rfl
 
-@[norm_cast elim, simp] theorem int.dist_cast_rat (x y : ℤ) : dist (x : ℚ) y = dist x y :=
+@[norm_cast, simp] theorem int.dist_cast_rat (x y : ℤ) : dist (x : ℚ) y = dist x y :=
 by rw [← int.dist_cast_real, ← rat.dist_cast]; congr' 1; norm_cast
 
 theorem uniform_continuous_of_rat : uniform_continuous (coe : ℚ → ℝ) :=

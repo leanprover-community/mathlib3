@@ -333,10 +333,15 @@ instance {α : Type*} {β : Type*} {rα : semiring α} {rβ : semiring β} : has
 instance {α : Type*} {β : Type*} {rα : semiring α} {rβ : semiring β} : has_coe (α →+* β) (α →+ β) :=
 ⟨ring_hom.to_add_monoid_hom⟩
 
-@[norm_cast squash] lemma coe_monoid_hom {α : Type*} {β : Type*} {rα : semiring α} {rβ : semiring β} (f : α →+* β) (a : α) :
+lemma coe_monoid_hom {α : Type*} {β : Type*} {rα : semiring α} {rβ : semiring β} (f : α →+* β) (a : α) :
   ((f : α →* β) : α → β) a = (f : α → β) a := rfl
-@[norm_cast squash] lemma coe_add_monoid_hom {α : Type*} {β : Type*} {rα : semiring α} {rβ : semiring β} (f : α →+* β) (a : α) :
+lemma coe_add_monoid_hom {α : Type*} {β : Type*} {rα : semiring α} {rβ : semiring β} (f : α →+* β) (a : α) :
   ((f : α →+ β) : α → β) a = (f : α → β) a := rfl
+
+@[norm_cast] lemma coe_monoid_hom' {α : Type*} {β : Type*} {rα : semiring α} {rβ : semiring β} (f : α →+* β) :
+  ((f : α →* β) : α → β) = (f : α → β) := by { apply funext, intro, apply coe_monoid_hom }
+@[norm_cast] lemma coe_add_monoid_hom' {α : Type*} {β : Type*} {rα : semiring α} {rβ : semiring β} (f : α →+* β) :
+  ((f : α →+ β) : α → β) = (f : α → β) := by { apply funext, intro, apply coe_add_monoid_hom }
 
 namespace ring_hom
 

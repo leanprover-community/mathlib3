@@ -77,7 +77,7 @@ have {a : ennreal | a ≠ ⊤} = range (coe : nnreal → ennreal),
   from set.ext $ assume a, by cases a; simp [none_eq_top, some_eq_coe],
 this ▸ mem_nhds_sets is_open_ne_top coe_ne_top
 
-@[norm_cast elim] lemma tendsto_coe {f : filter α} {m : α → nnreal} {a : nnreal} :
+@[norm_cast] lemma tendsto_coe {f : filter α} {m : α → nnreal} {a : nnreal} :
   tendsto (λa, (m a : ennreal)) f (𝓝 ↑a) ↔ tendsto m f (𝓝 a) :=
 embedding_coe.tendsto_nhds_iff.symm
 
@@ -389,7 +389,7 @@ section tsum
 
 variables {f g : α → ennreal}
 
-@[norm_cast elim] protected lemma has_sum_coe {f : α → nnreal} {r : nnreal} :
+@[norm_cast] protected lemma has_sum_coe {f : α → nnreal} {r : nnreal} :
   has_sum (λa, (f a : ennreal)) ↑r ↔ has_sum f r :=
 have (λs:finset α, s.sum (coe ∘ f)) = (coe : nnreal → ennreal) ∘ (λs:finset α, s.sum f),
   from funext $ assume s, ennreal.coe_finset_sum.symm,

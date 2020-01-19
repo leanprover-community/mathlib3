@@ -51,7 +51,7 @@ lemma linear_map.continuous_of_bound (C : ℝ) (h : ∀x, ∥f x∥ ≤ C * ∥x
 def linear_map.with_bound (h : ∃C : ℝ, ∀x, ∥f x∥ ≤ C * ∥x∥) : E →L[𝕜] F :=
 ⟨f, let ⟨C, hC⟩ := h in linear_map.continuous_of_bound f C hC⟩
 
-@[simp, norm_cast elim] lemma linear_map_with_bound_coe (h : ∃C : ℝ, ∀x, ∥f x∥ ≤ C * ∥x∥) :
+@[simp, norm_cast] lemma linear_map_with_bound_coe (h : ∃C : ℝ, ∀x, ∥f x∥ ≤ C * ∥x∥) :
   ((f.with_bound h) : E →ₗ[𝕜] F) = f := rfl
 
 @[simp] lemma linear_map_with_bound_apply (h : ∃C : ℝ, ∀x, ∥f x∥ ≤ C * ∥x∥) (x : E) :
@@ -479,10 +479,10 @@ def restrict_scalars (f : E' →L[𝕜'] F') : E' →L[𝕜] F' :=
 { cont := f.cont,
   ..linear_map.restrict_scalars 𝕜 (f.to_linear_map) }
 
-@[simp, norm_cast move] lemma restrict_scalars_coe_eq_coe (f : E' →L[𝕜'] F') :
+@[simp, norm_cast] lemma restrict_scalars_coe_eq_coe (f : E' →L[𝕜'] F') :
   (f.restrict_scalars 𝕜 : E' →ₗ[𝕜] F') = (f : E' →ₗ[𝕜'] F').restrict_scalars 𝕜 := rfl
 
-@[simp, norm_cast squash] lemma restrict_scalars_coe_eq_coe' (f : E' →L[𝕜'] F') :
+@[simp, norm_cast push] lemma restrict_scalars_coe_eq_coe' (f : E' →L[𝕜'] F') :
   (f.restrict_scalars 𝕜 : E' → F') = f := rfl
 
 end restrict_scalars

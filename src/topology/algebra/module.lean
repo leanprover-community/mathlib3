@@ -174,7 +174,7 @@ variables (c : α) (f g : β →L[α] γ) (h : γ →L[α] δ) (x y z : β)
 @[simp] lemma map_smul : f (c • x) = c • f x := (to_linear_map _).map_smul _ _
 @[simp] lemma map_neg  : f (-x) = - (f x) := (to_linear_map _).map_neg _
 
-@[simp, norm_cast squash] lemma coe_coe : ((f : β →ₗ[α] γ) : (β → γ)) = (f : β → γ) := rfl
+@[simp, norm_cast] lemma coe_coe : ((f : β →ₗ[α] γ) : (β → γ)) = (f : β → γ) := rfl
 
 /-- The continuous map that is constantly zero. -/
 def zero : β →L[α] γ :=
@@ -183,11 +183,11 @@ def zero : β →L[α] γ :=
 instance: has_zero (β →L[α] γ) := ⟨zero⟩
 
 @[simp] lemma zero_apply : (0 : β →L[α] γ) x = 0 := rfl
-@[simp, norm_cast squash] lemma coe_zero : ((0 : β →L[α] γ) : β →ₗ[α] γ) = 0 := rfl
+@[simp, norm_cast] lemma coe_zero : ((0 : β →L[α] γ) : β →ₗ[α] γ) = 0 := rfl
 /- no simp attribute on the next line as simp does not always simplify 0 x to x
 when 0 is the zero function, while it does for the zero continuous linear map,
 and this is the most important property we care about. -/
-@[norm_cast squash] lemma coe_zero' : ((0 : β →L[α] γ) : β → γ) = 0 := rfl
+@[norm_cast] lemma coe_zero' : ((0 : β →L[α] γ) : β → γ) = 0 := rfl
 
 /-- the identity map as a continuous linear map. -/
 def id : β →L[α] β :=
@@ -196,8 +196,8 @@ def id : β →L[α] β :=
 instance : has_one (β →L[α] β) := ⟨id⟩
 
 @[simp] lemma id_apply : (id : β →L[α] β) x = x := rfl
-@[simp, norm_cast squash] lemma coe_id : ((id : β →L[α] β) : β →ₗ[α] β) = linear_map.id := rfl
-@[simp, norm_cast squash] lemma coe_id' : ((id : β →L[α] β) : β → β) = _root_.id := rfl
+@[simp, norm_cast] lemma coe_id : ((id : β →L[α] β) : β →ₗ[α] β) = linear_map.id := rfl
+@[simp, norm_cast] lemma coe_id' : ((id : β →L[α] β) : β → β) = _root_.id := rfl
 
 @[simp] lemma one_apply : (1 : β →L[α] β) x = x := rfl
 
@@ -208,23 +208,23 @@ instance : has_add (β →L[α] γ) :=
 ⟨λ f g, ⟨f + g, f.2.add g.2⟩⟩
 
 @[simp] lemma add_apply : (f + g) x = f x + g x := rfl
-@[simp, norm_cast move] lemma coe_add : (((f + g) : β →L[α] γ) : β →ₗ[α] γ) = (f : β →ₗ[α] γ) + g := rfl
-@[norm_cast move] lemma coe_add' : (((f + g) : β →L[α] γ) : β → γ) = (f : β → γ) + g := rfl
+@[simp, norm_cast] lemma coe_add : (((f + g) : β →L[α] γ) : β →ₗ[α] γ) = (f : β →ₗ[α] γ) + g := rfl
+@[norm_cast] lemma coe_add' : (((f + g) : β →L[α] γ) : β → γ) = (f : β → γ) + g := rfl
 
 instance : has_neg (β →L[α] γ) := ⟨λ f, ⟨-f, f.2.neg⟩⟩
 
 @[simp] lemma neg_apply : (-f) x = - (f x) := rfl
 
-@[simp, norm_cast move] lemma coe_neg : (((-f) : β →L[α] γ) : β →ₗ[α] γ) = -(f : β →ₗ[α] γ) := rfl
-@[norm_cast move] lemma coe_neg' : (((-f) : β →L[α] γ) : β → γ) = -(f : β → γ) := rfl
+@[simp, norm_cast] lemma coe_neg : (((-f) : β →L[α] γ) : β →ₗ[α] γ) = -(f : β →ₗ[α] γ) := rfl
+@[norm_cast] lemma coe_neg' : (((-f) : β →L[α] γ) : β → γ) = -(f : β → γ) := rfl
 
 instance : add_comm_group (β →L[α] γ) :=
 by refine {zero := 0, add := (+), neg := has_neg.neg, ..};
    intros; ext; simp
 
 @[simp] lemma sub_apply (x : β) : (f - g) x = f x - g x := rfl
-@[simp, norm_cast move] lemma coe_sub : (((f - g) : β →L[α] γ) : β →ₗ[α] γ) = (f : β →ₗ[α] γ) - g := rfl
-@[simp, norm_cast move] lemma coe_sub' : (((f - g) : β →L[α] γ) : β → γ) = (f : β → γ) - g := rfl
+@[simp, norm_cast] lemma coe_sub : (((f - g) : β →L[α] γ) : β →ₗ[α] γ) = (f : β →ₗ[α] γ) - g := rfl
+@[simp, norm_cast] lemma coe_sub' : (((f - g) : β →L[α] γ) : β → γ) = (f : β → γ) - g := rfl
 
 end add
 
@@ -232,8 +232,8 @@ end add
 def comp (g : γ →L[α] δ) (f : β →L[α] γ) : β →L[α] δ :=
 ⟨linear_map.comp g.to_linear_map f.to_linear_map, g.2.comp f.2⟩
 
-@[simp, norm_cast move] lemma coe_comp : ((h.comp f) : (β →ₗ[α] δ)) = (h : γ →ₗ[α] δ).comp f := rfl
-@[simp, norm_cast move] lemma coe_comp' : ((h.comp f) : (β → δ)) = (h : γ → δ) ∘ f := rfl
+@[simp, norm_cast] lemma coe_comp : ((h.comp f) : (β →ₗ[α] δ)) = (h : γ →ₗ[α] δ).comp f := rfl
+@[simp, norm_cast] lemma coe_comp' : ((h.comp f) : (β → δ)) = (h : γ → δ) ∘ f := rfl
 
 @[simp] theorem comp_id : f.comp id = f :=
 ext $ λ x, rfl
@@ -295,8 +295,8 @@ variables (c : α) (h : γ →L[α] δ) (f g : β →L[α] γ) (x y z : β)
 variable [topological_module α γ]
 
 @[simp] lemma smul_apply : (c • f) x = c • (f x) := rfl
-@[simp, norm_cast move] lemma coe_apply : (((c • f) : β →L[α] γ) : β →ₗ[α] γ) = c • (f : β →ₗ[α] γ) := rfl
-@[norm_cast move] lemma coe_apply' : (((c • f) : β →L[α] γ) : β → γ) = c • (f : β → γ) := rfl
+@[simp, norm_cast] lemma coe_apply : (((c • f) : β →L[α] γ) : β →ₗ[α] γ) = c • (f : β →ₗ[α] γ) := rfl
+@[norm_cast] lemma coe_apply' : (((c • f) : β →L[α] γ) : β → γ) = c • (f : β → γ) := rfl
 
 @[simp] lemma comp_smul : h.comp (c • f) = c • (h.comp f) := by { ext, simp }
 

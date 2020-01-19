@@ -244,7 +244,7 @@ begin
   rw [fpow_neg, one_div_eq_inv, fpow_of_nat]
 end
 
-@[simp, norm_cast move] theorem cast_fpow [char_zero K] (q : ℚ) (n : ℤ) :
+@[simp, norm_cast] theorem cast_fpow [char_zero K] (q : ℚ) (n : ℤ) :
   ((q ^ n : ℚ) : K) = q ^ n :=
 @is_ring_hom.map_fpow _ _ _ _ _ (rat.is_ring_hom_cast) q n
 

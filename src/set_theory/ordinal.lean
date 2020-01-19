@@ -2288,7 +2288,7 @@ by rw [← add_left_cancel (n*(m/n)), div_add_mod, ← nat_cast_div, ← nat_cas
  λ h, card_nat n ▸ card_le_card h⟩
 
 @[simp] theorem nat_lt_card {o} {n : ℕ} : (n : cardinal) < card o ↔ (n : ordinal) < o :=
-by rw [← succ_le, ← cardinal.succ_le, cardinal.nat_succ, nat_le_card]; refl
+by rw [← succ_le, ← cardinal.succ_le, ← cardinal.nat_succ, nat_le_card]; refl
 
 @[simp] theorem card_lt_nat {o} {n : ℕ} : card o < n ↔ o < n :=
 lt_iff_lt_of_le_iff_le nat_le_card

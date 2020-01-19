@@ -639,7 +639,7 @@ def linear_map.restrict_scalars (f : E →ₗ[S] F) : E →ₗ[R] F :=
   add := λx y, f.map_add x y,
   smul := λc x, f.map_smul (algebra_map S c) x }
 
-@[simp, norm_cast squash] lemma linear_map.coe_restrict_scalars_eq_coe (f : E →ₗ[S] F) :
+@[simp, norm_cast push] lemma linear_map.coe_restrict_scalars_eq_coe (f : E →ₗ[S] F) :
   (f.restrict_scalars R : E → F) = f := rfl
 
 /- Register as an instance (with low priority) the fact that a complex vector space is also a real

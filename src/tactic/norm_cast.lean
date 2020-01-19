@@ -138,39 +138,39 @@ private meta def count_coes_aux : ℕ → expr → ℕ
 
 private meta def count_coes : expr → ℕ := count_coes_aux 0
 
-private meta def count_init_coes : expr → ℕ
-| (app f x) := if f.is_coe' then count_init_coes x else count_coes f + count_coes x
+private meta def count_internal_coes : expr → ℕ
+| (app f x) := if f.is_coe' then count_internal_coes x else count_coes f + count_coes x
 | _ := 0
 
 /-
-elim lemmas:   LHS has 0 head coes and ≥ 1 initial coe,  RHS has 0 coes
-move lemmas:   LHS has 1 head coe and 0 initial coes,    RHS has 0 head coes and ≥ 1 intenal coes
-push lemmas:   LHS has 1 head coe and 0 initial coes,    RHS has 0 coes
-suqash lemmas: LHS had ≥ 2 head coes and 0 initial coes, RHS has fewer initial coes
+elim lemma:   LHS has 0 head coes and ≥ 1 initial coe,  RHS has 0 coes
+move lemma:   LHS has 1 head coe and 0 initial coes,    RHS has 0 head coes and ≥ 1 intenal coes
+push lemma:   LHS has 1 head coe and 0 initial coes,    RHS has 0 coes
+suqash lemma: LHS has ≥ 2 head coes and 0 initial coes, RHS has fewer initial coes
 -/
 
 /-- aux function for `norm_cast.classify_type` -/
 private meta def classify_type_aux (lhs rhs : expr) : tactic label :=
 do
   let lhs_head_coes := count_head_coes lhs,
-  let lhs_init_coes := count_init_coes lhs,
+  let lhs_internal_coes := count_internal_coes lhs,
   let rhs_head_coes := count_head_coes rhs,
-  let rhs_init_coes := count_init_coes rhs,
-  if lhs_head_coes = 0 ∧ lhs_init_coes ≥ 1 then
-    if rhs_head_coes = 0 ∧ rhs_init_coes = 0 then
+  let rhs_internal_coes := count_internal_coes rhs,
+  if lhs_head_coes = 0 ∧ lhs_internal_coes ≥ 1 then
+    if rhs_head_coes = 0 ∧ rhs_internal_coes = 0 then
       return elim
     else
       fail "norm_cast: badly shaped elim lemma, rhs can't contain coes"
-  else if lhs_head_coes = 1 ∧ lhs_init_coes = 0 then
+  else if lhs_head_coes = 1 ∧ lhs_internal_coes = 0 then
     if rhs_head_coes = 0 then
-      if rhs_init_coes ≥ 1 then
+      if rhs_internal_coes ≥ 1 then
         return move
       else
         return push
     else
       fail "norm_cast: badly shaped lemma, rhs can't start with coe"
-  else if lhs_head_coes ≥ 2 ∧ lhs_init_coes = 0 then
-    if rhs_head_coes ≤ lhs_head_coes ∧ rhs_init_coes = 0 then
+  else if lhs_head_coes ≥ 2 ∧ lhs_internal_coes = 0 then
+    if rhs_head_coes ≤ lhs_head_coes ∧ rhs_internal_coes = 0 then
       return squash
     else
       fail "norm_cast: badly shaped squash lemma"

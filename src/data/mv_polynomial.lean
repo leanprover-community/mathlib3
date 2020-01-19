@@ -17,7 +17,7 @@ be infinite).
 
 Let `R` be a commutative ring (or a semiring) and let `σ` be an arbitrary
 type. This file creates the type `mv_polynomial σ R`, which mathematicians
-might denote $R[X_n : n\in\sigma]$. It is the type of multivariate
+might denote $R[X_i : i\in\sigma]$. It is the type of multivariate
 (a.k.a. multivariable) polynomials, with variables
 corresponding to the terms in `σ`, and coefficients in `R`.
 
@@ -25,9 +25,9 @@ In the definitions below, we use the following notation:
 `σ : Type*` (indexing the variables)
 `R : Type*` `[comm_semiring R]` (the coefficients)
 `s : σ →₀ ℕ`, a function from σ to ℕ which is zero away from a finite set.
-This will give rise to a monomial in `mv_polynomial σ R`
+This will give rise to a monomial in `mv_polynomial σ R` which mathematicians might call $X^s$
 `a : R`
-`n : σ`, with corresponding monomial `X n`
+`i : σ`, with corresponding monomial `X i` or $X_i$
 `p : mv_polynomial σ R`
 
 * `mv_polynomial σ R` : the type of polynomials with variables of type σ and coefficients
@@ -37,7 +37,7 @@ This will give rise to a monomial in `mv_polynomial σ R`
 
 * `C a` : the constant polynomial with value a
 
-* `X n` : the degree one monomial corresponding to n; mathematically this might be denoted $X_n$.
+* `X i` : the degree one monomial corresponding to i; mathematically this might be denoted $X_n$.
 
 * `coeff s p` : the coefficient of s in p.
 

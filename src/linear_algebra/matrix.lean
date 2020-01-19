@@ -194,47 +194,27 @@ variables {R : Type v}
 /--
 The diagonal of a square matrix.
 -/
-def diag (M : matrix n n R) : n → R := λ i, M i i
+def diag [ring R] : (matrix n n R) →ₗ[R] n → R := {
+  to_fun := λ M i, M i i,
+  add    := by { intros, ext, refl, },
+  smul   := by { intros, ext, refl, } }
 
-@[simp] lemma diag_add [add_comm_monoid R] (M N : matrix n n R) :
-  diag (M + N) = diag M + diag N := by { unfold diag, ext, simp, }
-
-@[simp] lemma diag_smul [semiring R] (c : R) (M : matrix n n R) :
-  diag (c • M) = c • diag M := by { unfold diag, ext, simp, }
-
-/--
-The diagonal of a square matrix, as a linear function.
--/
-def diag_hom [ring R] : (matrix n n R) →ₗ[R] n → R := {
-  to_fun := diag,
-  add    := diag_add,
-  smul   := diag_smul }
-
-@[simp] lemma diag_one [decidable_eq n] [add_comm_monoid R] [has_one R] :
-  diag (1 : matrix n n R) = λ i, 1 := by { unfold diag, ext, apply one_val_eq, }
+@[simp] lemma diag_one [decidable_eq n] [ring R] :
+  (diag : (matrix n n R) →ₗ[R] n → R) 1 = λ i, 1 := by {
+    dunfold diag, ext, simp [one_val_eq], }
 
 /--
 The trace of a square matrix.
 -/
-def trace [add_comm_monoid R] : matrix n n R → R := finset.univ.sum ∘ diag
+def trace [ring R] : (matrix n n R) →ₗ[R] R := {
+  to_fun := finset.univ.sum ∘ (diag : (matrix n n R) →ₗ[R] n → R),
+  add    := by { intros, apply finset.sum_add_distrib, },
+  smul   := by { intros, simp [finset.mul_sum], } }
 
-@[simp] lemma trace_add [add_comm_monoid R] (M N : matrix n n R) :
-  trace (M + N) = trace M + trace N := by { unfold trace, simp [finset.sum_add_distrib], }
-
-@[simp] lemma trace_smul [semiring R] (c : R) (M : matrix n n R) :
-  trace (c • M) = c * trace M := by { unfold trace, simp [finset.mul_sum], }
-
-/--
-The trace of a square matrix, as a linear function.
--/
-def trace_hom [ring R] : (matrix n n R) →ₗ[R] R := {
-  to_fun := trace,
-  add    := trace_add,
-  smul   := trace_smul }
-
-@[simp] lemma trace_one [decidable_eq n] [add_comm_monoid R] [has_one R] :
-  trace (1 : matrix n n R) = fintype.card n := by {
-    unfold trace function.comp, rw [diag_one, finset.sum_const, add_monoid.smul_one], refl, }
+@[simp] lemma trace_one [decidable_eq n] [ring R] :
+  (trace : (matrix n n R) →ₗ[R] R) 1 = fintype.card n := by {
+    have h : @trace n _ R _ 1 = finset.univ.sum (@diag n _ R _ 1) := rfl,
+    rw [h, diag_one, finset.sum_const, add_monoid.smul_one], refl, }
 
 end trace
 

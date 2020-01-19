@@ -59,7 +59,7 @@ In the definitions below, we use the following notation:
 
 Recall that if `Y` has a zero, then `X →₀ Y` is the type of functions from `X` to `Y` with finite
 support, i.e. such that only finitely many elements of X get sent to non-zero terms in Y.
-The definition of `mv_polynomial σ α` is `(σ →₀ ℕ) →₀ α` ; here σ →₀ ℕ denotes the space of all
+The definition of `mv_polynomial σ α` is `(σ →₀ ℕ) →₀ α` ; here `σ →₀ ℕ` denotes the space of all
 monomials in the variables, and the function to α sends a monomial to its coefficient in
 the polynomial being represented.
 

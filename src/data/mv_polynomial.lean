@@ -40,7 +40,7 @@ In the definitions below, we use the following notation:
 * `eval₂ p` : given a semiring homomorphism from R to another semiring S, and a map σ → S,
   evaluates p at this data, returning a term of type D
 
-* `eval p` : given a map σ → R, evaluates p at this data, returning a term of type R
+* `eval p` : given a map σ → R, evaluates p at this valuation, returning a term of type R
 
 * `map (f : R → S) p` : returns the multivariate polynomial obtained from p by the change of
   coefficient semiring corresponding to f

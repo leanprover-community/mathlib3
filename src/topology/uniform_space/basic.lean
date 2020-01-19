@@ -380,7 +380,7 @@ calc (a, b) ∈ closure t ↔ (𝓝 (a, b) ⊓ principal t ≠ ⊥) : by simp [c
   end
   ... ↔ (∀s ∈ 𝓤 α, ∃x, x ∈ set.prod {y : α | (a, y) ∈ s} {x : α | (x, b) ∈ s} ∩ t) :
   begin
-    rw [lift'_inf_principal_eq, lift'_neq_bot_iff],
+    rw [lift'_inf_principal_eq, lift'_ne_bot_iff],
     apply forall_congr, intro s, rw [ne_empty_iff_exists_mem],
     exact monotone_inter (monotone_prod monotone_preimage monotone_preimage) monotone_const
   end

@@ -549,7 +549,7 @@ lemma closure_induced [t : topological_space β] {f : α → β} {a : α} {s : s
 have comap f (𝓝 (f a) ⊓ principal (f '' s)) ≠ ⊥ ↔ 𝓝 (f a) ⊓ principal (f '' s) ≠ ⊥,
   from ⟨assume h₁ h₂, h₁ $ h₂.symm ▸ comap_bot,
     assume h,
-    forall_sets_neq_empty_iff_neq_bot.mp $
+    forall_sets_ne_empty_iff_ne_bot.mp $
       assume s₁ ⟨s₂, hs₂, (hs : f ⁻¹' s₂ ⊆ s₁)⟩,
       have f '' s ∈ 𝓝 (f a) ⊓ principal (f '' s),
         from mem_inf_sets_of_right $ by simp [subset.refl],

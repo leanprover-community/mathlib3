@@ -454,7 +454,7 @@ begin
   clear hts ht₂ t₂,
   -- Now we find `l` such that `(l', ∞) ⊆ t₁`
   letI := classical.DLO α,
-  rw [mem_binfi, mem_bUnion_iff] at ht₁,
+  rw [mem_binfi] at ht₁,
   { rcases ht₁ with ⟨b, hb, hb'⟩,
     exact ⟨max b l, ⟨le_max_right _ _, max_lt hb hl⟩,
       λ x hx, hb' $ Ioi_subset_Ioi (le_max_left _ _) hx⟩ },
@@ -861,7 +861,7 @@ variables [topological_space α] [topological_space β]
 lemma nhds_principal_ne_bot_of_is_lub {a : α} {s : set α} (ha : is_lub s a) (hs : s ≠ ∅) :
   𝓝 a ⊓ principal s ≠ ⊥ :=
 let ⟨a', ha'⟩ := exists_mem_of_ne_empty hs in
-forall_sets_neq_empty_iff_neq_bot.mp $ assume t ht,
+forall_sets_ne_empty_iff_ne_bot.mp $ assume t ht,
   let ⟨t₁, ht₁, t₂, ht₂, ht⟩ := mem_inf_sets.mp ht in
   by_cases
     (assume h : a = a',
@@ -1373,7 +1373,7 @@ is_bounded_of_le h (is_bounded_le_nhds a)
 
 @[nolint] -- see Note [nolint_ge]
 lemma is_cobounded_ge_nhds (a : α) : (𝓝 a).is_cobounded (≥) :=
-is_cobounded_of_is_bounded nhds_neq_bot (is_bounded_le_nhds a)
+is_cobounded_of_is_bounded nhds_ne_bot (is_bounded_le_nhds a)
 
 @[nolint] -- see Note [nolint_ge]
 lemma is_cobounded_under_ge_of_tendsto {f : filter β} {u : β → α} {a : α}
@@ -1398,7 +1398,7 @@ lemma is_bounded_under_ge_of_tendsto {f : filter β} {u : β → α} {a : α}
 is_bounded_of_le h (is_bounded_ge_nhds a)
 
 lemma is_cobounded_le_nhds (a : α) : (𝓝 a).is_cobounded (≤) :=
-is_cobounded_of_is_bounded nhds_neq_bot (is_bounded_ge_nhds a)
+is_cobounded_of_is_bounded nhds_ne_bot (is_bounded_ge_nhds a)
 
 lemma is_cobounded_under_le_of_tendsto {f : filter β} {u : β → α} {a : α}
   (hf : f ≠ ⊥) (h : tendsto u f (𝓝 a)) : f.is_cobounded_under (≤) u :=

@@ -292,7 +292,7 @@ suffices h : tendsto (λn:finset ℕ, n.sum (λ i, ∫ a in s i, f a)) at_top (�
 begin
   have : (λn:finset ℕ, n.sum (λ i, ∫ a in s i, f a)) = λn:finset ℕ, ∫ a in (⋃i∈n, s i), f a,
   { funext,
-    rw [← integral_finset_sum, indicator_finset_Union],
+    rw [← integral_finset_sum, indicator_finset_bUnion],
     { assume i hi j hj hij, exact hd i j hij },
     { assume i, refine hfm.subset (hm _) (subset_Union _ _) },
     { assume i, refine hfi.subset (subset_Union _ _) } },

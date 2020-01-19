@@ -20,7 +20,7 @@ In the definitions below, we use the following notation:
 `R : Type*` `[comm_semiring R]` (the coefficients)
 `s : σ →₀ ℕ`, with corresponding monomial written X^s
 `a : R`,
-`n : σ`, with corresponding monomial X_n
+`n : σ`, with corresponding monomial `X n`
 `p : mv_polynomial σ R`
 
 * `mv_polynomial σ R` : the type of polynomials with variables of type σ and coefficients

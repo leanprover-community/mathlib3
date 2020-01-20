@@ -6,7 +6,7 @@ Authors: Johannes Hölzl
 Some big operators for lists and finite sets.
 -/
 import tactic.tauto data.list.basic data.finset data.nat.enat
-import algebra.group algebra.ordered_group algebra.group_power algebra.module
+import algebra.group algebra.ordered_group algebra.group_power
 
 universes u v w
 variables {α : Type u} {β : Type v} {γ : Type w}
@@ -519,7 +519,7 @@ lemma gsmul_sum [add_comm_group β] {f : α → β} {s : finset α} (z : ℤ) :
 end finset
 
 namespace finset
-variables {s s₁ s₂ : finset α} {f g : α → β} {h : α → γ} {b : β} {a : α}
+variables {s s₁ s₂ : finset α} {f g : α → β} {b : β} {a : α}
 
 @[simp] lemma sum_sub_distrib [add_comm_group β] : s.sum (λx, f x - g x) = s.sum f - s.sum g :=
 sum_add_distrib.trans $ congr_arg _ sum_neg_distrib
@@ -549,14 +549,6 @@ begin
 end
 
 end semiring
-
-section semimodule
-variables [semiring β] [add_comm_monoid γ] [semimodule β γ]
-
-lemma mul_sum' : b • s.sum h = s.sum (λx, b • h x) :=
-(s.sum_hom _).symm
-
-end semimodule
 
 section comm_semiring
 variables [decidable_eq α] [comm_semiring β]

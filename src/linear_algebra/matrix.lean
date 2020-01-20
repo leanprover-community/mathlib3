@@ -36,7 +36,7 @@ noncomputable theory
 
 open set submodule
 
-universes u v
+universes u v w
 variables {l m n : Type u} [fintype l] [fintype m] [fintype n]
 
 namespace matrix
@@ -189,31 +189,31 @@ namespace matrix
 
 section trace
 
-variables {R : Type v}
+variables {R : Type v} {M : Type w} [ring R] [add_comm_group M] [module R M]
 
 /--
 The diagonal of a square matrix.
 -/
-def diag [ring R] : (matrix n n R) →ₗ[R] n → R := {
-  to_fun := λ M i, M i i,
+def diag : (matrix n n M) →ₗ[R] n → M := {
+  to_fun := λ A i, A i i,
   add    := by { intros, ext, refl, },
   smul   := by { intros, ext, refl, } }
 
-@[simp] lemma diag_one [decidable_eq n] [ring R] :
+@[simp] lemma diag_one [decidable_eq n] :
   (diag : (matrix n n R) →ₗ[R] n → R) 1 = λ i, 1 := by {
     dunfold diag, ext, simp [one_val_eq], }
 
 /--
 The trace of a square matrix.
 -/
-def trace [ring R] : (matrix n n R) →ₗ[R] R := {
-  to_fun := finset.univ.sum ∘ (diag : (matrix n n R) →ₗ[R] n → R),
+def trace : (matrix n n M) →ₗ[R] M := {
+  to_fun := finset.univ.sum ∘ (diag : (matrix n n M) →ₗ[R] n → M),
   add    := by { intros, apply finset.sum_add_distrib, },
-  smul   := by { intros, simp [finset.mul_sum], } }
+  smul   := by { intros, simp [mul_sum'], } }
 
-@[simp] lemma trace_one [decidable_eq n] [ring R] :
+@[simp] lemma trace_one [decidable_eq n] :
   (trace : (matrix n n R) →ₗ[R] R) 1 = fintype.card n := by {
-    have h : @trace n _ R _ 1 = finset.univ.sum (@diag n _ R _ 1) := rfl,
+    have h : @trace n _ R R _ _ _ 1 = finset.univ.sum (@diag n _ R R _ _ _ 1) := rfl,
     rw [h, diag_one, finset.sum_const, add_monoid.smul_one], refl, }
 
 end trace

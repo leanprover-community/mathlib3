@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Chris Hughes, Johan Commelin
 -/
 
-import ring_theory.integral_closure
+import ring_theory.integral_closure ring_theory.localization
 
 /-!
 # Minimal polynomials
@@ -221,5 +221,147 @@ lemma coeff_zero_ne_zero (h : x ≠ 0) : coeff (minimal_polynomial hx) 0 ≠ 0 :
 by { contrapose! h, simpa using h }
 
 end field
+
+section integral_domain
+
+/-variables [integral_domain α] [discrete_field β] [algebra α β]
+variables {x : β} (hx : is_integral α x)
+
+/--A minimal polynomial is nonzero.-/
+--lemma ne_zero' : (minimal_polynomial hx) ≠ 0 :=
+--ne_zero_of_monic (monic hx)
+
+def fraction_field (α : Type*) [integral_domain α] : Type := sorry
+
+instance : discrete_field (fraction_field α) := sorry
+
+instance a1 : algebra α (fraction_field α) := sorry
+
+instance a2 : algebra (fraction_field α) β := sorry
+
+def im_fraction_field (α : Type*) [integral_domain α] : set (fraction_field α) :=
+(set.image (algebra_map _ : α → fraction_field α) set.univ)
+
+instance : is_subring (im_fraction_field α) := sorry
+
+lemma map_map (y : α) : algebra_map β (algebra_map (fraction_field α) y) = algebra_map β y := sorry
+
+lemma integral_fraction_field (hx : is_integral α x) : is_integral (fraction_field α) x := sorry
+
+lemma minimal_polynomial_fraction_field :
+  (minimal_polynomial hx).map (algebra_map _) = minimal_polynomial (integral_fraction_field hx) :=
+begin
+  --refine @unique (fraction_field α) β _ _ _ x _ _ _ _ _,
+  refine unique _ _ _ _,
+  { exact monic_map _ (monic hx) },
+  { change eval₂ (algebra_map β) x _ = 0, rw [eval₂_map], conv_lhs { congr, funext, rw map_map },
+    exact aeval hx },
+  { intros q hqm hq0,
+    rw [degree_map_eq_of_leading_coeff_ne_zero],
+    { sorry },
+    { rw [monic.def.mp (monic _), algebra.map_one], exact one_ne_zero } } --duplicate
+end
+
+lemma algebra_map_injective : injective (algebra_map _ : α → fraction_field α) := sorry
+
+/--If an element x is a root of a nonzero polynomial p,
+then the degree of p is at least the degree of the minimal polynomial of x.-/
+lemma degree_le_of_ne_zero'
+  {p : polynomial α} (pnz : p ≠ 0) (hp : polynomial.aeval α β x p = 0) :
+  degree (minimal_polynomial hx) ≤ degree p :=
+calc degree (minimal_polynomial hx)
+    = degree ((minimal_polynomial hx).map (algebra_map _ : α → fraction_field α)) :
+      eq.symm $ degree_map_eq_of_leading_coeff_ne_zero _
+        (by { rw [monic.def.mp (monic _), algebra.map_one], exact one_ne_zero })
+... = degree (minimal_polynomial $ integral_fraction_field hx) :
+  congr_arg _ (minimal_polynomial_fraction_field _)
+... ≤ degree (p.map (algebra_map _ : α → fraction_field α)) :
+  begin
+    refine degree_le_of_ne_zero _ _ _,
+    { intro hn,
+      rw [←map_zero (algebra_map _ : α → fraction_field α)] at hn,
+      rw [function.injective.eq_iff (map_injective algebra_map_injective _)] at hn,
+      contradiction,
+      apply_instance,
+      exact 0 },
+    { change (eval₂ (algebra_map β) x) _ = 0,
+      rw [eval₂_map], conv_lhs { congr, funext, rw map_map }, exact hp }
+  end
+... = degree p :
+  begin
+    refine degree_map_eq_of_leading_coeff_ne_zero _ _,
+    intro hn,
+    rw [←algebra.map_zero α (fraction_field α)] at hn,
+    rw [function.injective.eq_iff algebra_map_injective, leading_coeff_eq_zero] at hn,
+    contradiction
+  end
+-/
+
+variables [integral_domain α] [integral_domain β] [algebra α β]
+variables {x : β} (hx : is_integral α x)
+
+open localization localization.fraction_ring
+
+lemma algebra_map_injective {α β : Type*} [discrete_field α] [discrete_field β] [algebra α β] :
+  injective (algebra_map _ : α → β) := sorry
+
+--instance : algebra (fraction_ring α) (fraction_ring β) :=
+--algebra.mk (map algebra_map algebra_map_injective) _ _
+instance : algebra (fraction_ring α) (fraction_ring β) := sorry
+
+lemma algebra_map_of {y : α} :
+  (algebra_map _ : fraction_ring α → fraction_ring β) (of y) = of (algebra_map β y) := sorry
+
+#check eval₂ (algebra_map (fraction_ring β)) (of x) (map of (minimal_polynomial hx)) = 0
+#check eval₂ (algebra_map (fraction_ring β)) (of x) (map of (minimal_polynomial hx)) = 0
+
+/--A minimal polynomial is nonzero.-/
+lemma ne_zero' : (minimal_polynomial hx) ≠ 0 :=
+ne_zero_of_monic (monic hx)
+
+lemma is_integral_fraction_ring (hx : is_integral α x) :
+  is_integral (fraction_ring α) (of x : fraction_ring β) := sorry
+
+lemma test : (minimal_polynomial hx).map (of : α → fraction_ring α) =
+  minimal_polynomial (is_integral_fraction_ring hx) :=
+minimal_polynomial.unique (is_integral_fraction_ring hx) (monic_map _ (monic hx))
+(calc (eval₂ (algebra_map _) (of x)) _
+    = (eval₂ (λ y:α, (algebra_map _ : fraction_ring α → fraction_ring β)
+          ((of : α → fraction_ring α) y)) (of x)) (minimal_polynomial hx) :
+            eval₂_map (of : α → fraction_ring α) _ _
+... = of (eval₂ (algebra_map _) x (minimal_polynomial hx)) : sorry
+... = 0 : sorry)
+sorry
+
+/-(calc (eval₂ (algebra_map _) (of x)) _
+      = (eval₂ (λ y:α, (algebra_map _ : fraction_ring α → fraction_ring β)
+          ((of : α → fraction_ring α) y)) (of x)) _ :
+          @eval₂_map α (fraction_ring α) _ (minimal_polynomial hx) _ (of : α → fraction_ring α) _
+          (fraction_ring β) _ (algebra_map _) _ (of x)
+  ---... = eval₂ (λ y:α, of (algebra_map _ y)) (of x) (minimal_polynomial hx) :
+  ---  begin congr, ext, exact algebra_map_of end
+  ---... = of (eval₂ (algebra_map _) x (minimal_polynomial hx)) : begin sorry end
+  ... = 0 : sorry)-/
+
+lemma degree_map_of {p : polynomial α} :
+  degree (p.map (of : α → fraction_ring α)) = degree p :=
+classical.by_cases (λ h : p = 0, by { rw [h, map_zero], refl })
+  (λ hn, degree_map_eq_of_leading_coeff_ne_zero _
+    (λ h, absurd (leading_coeff_eq_zero.mp $ eq_zero_of _ h) hn))
+
+/--If an element x is a root of a nonzero polynomial p,
+then the degree of p is at least the degree of the minimal polynomial of x.-/
+lemma degree_le_of_ne_zero2'
+  {p : polynomial α} (pnz : p ≠ 0) (hp : polynomial.aeval α β x p = 0) :
+  degree (minimal_polynomial hx) ≤ degree p :=
+have hi : is_integral (fraction_ring α) (of x : fraction_ring β), from is_integral_fraction_ring hx,
+calc degree (minimal_polynomial hx)
+    = degree ((minimal_polynomial hx).map (of : α → fraction_ring α)) : eq.symm $ degree_map_of
+... = degree (minimal_polynomial hi) : congr_arg _ $ test hx
+... ≤ degree (p.map (of : α → fraction_ring α)) :
+  minimal_polynomial.degree_le_of_ne_zero hi sorry sorry
+... = degree p : degree_map_of
+
+end integral_domain
 
 end minimal_polynomial

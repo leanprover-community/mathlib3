@@ -133,6 +133,20 @@ def of_subring (p : polynomial T) : polynomial R :=
   ↑(p.of_subring T).frange ⊆ T :=
 λ y H, let ⟨hy, x, hx⟩ := finsupp.mem_frange.1 H in hx ▸ (p.to_fun x).2
 
+variables (p : polynomial T)
+
+@[simp] theorem coeff_of_subring {n : ℕ} : coeff (of_subring T p) n = ↑(coeff p n) := rfl
+
+@[simp] theorem degree_of_subring : (of_subring T p).degree = p.degree := rfl
+
+@[simp] theorem nat_degree_of_subring : (of_subring T p).nat_degree = p.nat_degree := rfl
+
+@[simp] theorem monic_of_subring : monic (of_subring T p) ↔ monic p :=
+⟨λ H, subtype.eq H, λ H, congr_arg subtype.val H⟩
+
+theorem of_subring_eval₂ {S : Type*} [semiring S] (f : R → S) (x : S) :
+  eval₂ f x (of_subring T p) = eval₂ (f ∘ subtype.val) x p := rfl
+
 end polynomial
 
 variables {R : Type u} [comm_ring R] [decidable_eq R]

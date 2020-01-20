@@ -4,7 +4,8 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Sander Dahmen, Casper Putz
 -/
 
-import algebra data.real.basic data.finset ring_theory.integral_closure ring_theory.polynomial
+import algebra data.real.basic data.finset
+import ring_theory.integral_closure ring_theory.polynomial ring_theory.adjoin_root
 import field_theory.field_extension
 import analysis.complex.exponential
 
@@ -71,20 +72,25 @@ begin
   { rw [pow_succ, pow_succ, val_mul, n_ih] }
 end
 
+/-- The valuation of the inverse of a unit is the inverse of its valuation. -/
+lemma val_inv_unit (u : units α) : val (u.inv : α) = (val (u : α))⁻¹ :=
+eq_of_mul_eq_mul_left (val_ne_zero $ units.ne_zero u)
+(calc val ↑u * val (u.inv) = val (↑u * u.inv)    : eq.symm $ val_mul _ _
+                       ... = val (1 : α)         : congr_arg _ u.mul_inv
+                       ... = 1                   : val_one
+                       ... = val ↑u * (val ↑u)⁻¹ : eq.symm $ mul_inv_cancel $ val_ne_zero $ units.ne_zero u)
+
 end integral_domain
 
 section field
 
 variables {α : Type u} [discrete_field α] [valued_ring α]
 
-/-- Shows that the valuation of the inverse is the inverse of the valuation. -/
+/-- The valuation of the inverse is the inverse of the valuation. -/
 lemma val_inv {x : α} (h : x ≠ 0) : valued_ring.val x⁻¹ = (valued_ring.val x)⁻¹ :=
-begin
-  apply eq_of_mul_eq_mul_right (val_ne_zero h),
-  rw [inv_mul_cancel (val_ne_zero h), ←valued_ring.val_mul, inv_mul_cancel h, val_one]
-end
+by rw [←units.mk0_val h, ←val_inv_unit]; refl
 
-/-- Shows that taking valuations and dividing by non-zero elements commutes -/
+/-- Taking valuations and dividing by non-zero elements commutes -/
 lemma val_div (x y : α) (hy : y ≠ 0) : val (x / y) = val x / val y :=
 by rw [div_eq_mul_inv, div_eq_mul_inv, val_mul, val_inv hy]
 
@@ -359,9 +365,17 @@ lemma val_ext_zero : val_ext α (0 : β) = 0 := sorry
 --hint
 instance : algebra (valuation_ring α) β := algebra.comap.algebra (valuation_ring α) α β
 
+/-noncomputable instance {x : β} (hx : is_integral α x) :
+  discrete_field (adjoin_root (minimal_polynomial hx)) :=
+{..@adjoin_root.field α _ _ (minimal_polynomial.irreducible hx) }-/
+
+--TODO: lemma is wrong, put power in there
+lemma minimal_polynomial.constant_eq {x : β} (hx : is_integral α x) :
+  (minimal_polynomial hx).coeff 0 = (field_norm α x) ^ 2 := sorry
+
 --TODO: move
 /-- The integral closure of the valuation ring of `α` in `β` is equal to the preimage of the
-valuation ring of `α` under norm map. -/
+valuation ring of `α` under norm map from `α` to `β`. -/
 lemma integral_closure_valuation_ring (β : Type v) [discrete_field β] [field_extension α β] [finite_dimensional α β] :
   (integral_closure (valuation_ring α) β).carrier = set.preimage (field_norm α) (valuation_ring α) :=
 begin
@@ -371,22 +385,30 @@ begin
   let f := minimal_polynomial hiα,
   split,
   { intro hx,
+    -- The minimal polynomial of x over α is equal to its minimal polynomial over the valuation ring of α
     have hm : (minimal_polynomial hx).of_subring (valuation_ring α) = f,
-    { refine minimal_polynomial.unique _ _ _ _,
-      { rw [monic.def, leading_coeff, of_subring],
-        change (coeff (minimal_polynomial hx) _).val = 1,
-        sorry },
-      { sorry },
-      { sorry } },
-    have : f.coeff 0 ∈ valuation_ring α,
+    { refine minimal_polynomial.unique _ _ (minimal_polynomial.aeval hx) _,
+      { rw [monic_of_subring], exact minimal_polynomial.monic hx },
+      { intros q hqm hq0, rw [degree_of_subring], rw [←degree_to_subring q (valuation_ring α)],
+        refine minimal_polynomial.min hx _ hq0, sorry, sorry } },
+    have h0 : f.coeff 0 ∈ valuation_ring α,
     { rw [←hm, of_subring], simp only [subtype.val_prop, polynomial.coeff_mk] },
-    sorry },
+    exact calc valued_ring.val (field_norm α x)
+      = ((valued_ring.val (field_norm α x))^2) ^ (1/2 : ℝ) :
+        by { rw [←real.rpow_nat_cast, ←real.rpow_mul (nonneg _)], norm_num }
+  ... = (valued_ring.val ((field_norm α x)^2)) ^ (1/2 : ℝ) : by rw [val_pow]
+  ... ≤ 1 ^ (1/2 : ℝ) : real.rpow_le_rpow (nonneg _) (minimal_polynomial.constant_eq α hiα ▸ h0) (by norm_num)
+  ... = 1             : by norm_num },
   { intro hx,
-    -- follows from henselian_field.henselian, field norms and minimal polynomials
-    have : valued_ring.val (f.coeff 0) ≤ 1, from sorry,
+    have : valued_ring.val (f.coeff 0) ≤ 1, from
+    calc valued_ring.val (f.coeff 0)
+      = valued_ring.val ((field_norm α x) ^ 2) : congr_arg _ $ minimal_polynomial.constant_eq _ _
+  ... = (valued_ring.val $ field_norm α x) ^ 2 : val_pow _ _
+  ... ≤ 1 ^ 2 : pow_le_pow_of_le_left (nonneg _) hx 2
+  ... = 1 : by norm_num,
     have h : ∀ n : ℕ, valued_ring.val (f.coeff n) ≤ 1,
-      { apply integral_coeffs f (minimal_polynomial.irreducible hiα) (minimal_polynomial.monic hiα),
-        exact this },
+    { apply integral_coeffs f (minimal_polynomial.irreducible hiα) (minimal_polynomial.monic hiα),
+      exact this },
     have hr : ↑(finsupp.frange f) ⊆ valuation_ring α, from
       λ _ hy, let ⟨n, hn⟩ := (finsupp.mem_frange.mp hy).2 in hn ▸ h n,
     let fo := f.to_subring (valuation_ring α) hr,

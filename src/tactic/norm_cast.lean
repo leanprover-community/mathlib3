@@ -431,17 +431,33 @@ when (↑(↑(x : α) : β) : γ) = (↑(x : α) : γ) can be proven with a squa
   let new_e := app (app op x) new_y,
   pr ← mk_congr_arg (app op x) eq_y,
   return ((), new_e, pr)
+) <|> ( do
+  `(@coe %%α %%β %%coe1 %%xx) ← return x,
+  `(@has_zero.zero %%β %%h1) ← return y,
+  h2 ← to_expr ``(has_zero %%α) >>= mk_instance',
+  new_y ← to_expr ``( @coe %%α %%β %%coe1 (@has_zero.zero %%α %%h2) ),
+  eq_y ← aux_down y new_y,
+  let new_e := app (app op x) new_y,
+  pr ← mk_congr_arg (app op x) eq_y,
+  return ((), new_e, pr)
+) <|> ( do
+  `(@coe %%α %%β %%coe1 %%xx) ← return x,
+  `(@has_zero.zero %%β %%h1) ← return y,
+  h2 ← to_expr ``(has_zero %%α) >>= mk_instance',
+  new_y ← to_expr ``( @coe %%α %%β %%coe1 (@has_zero.zero %%α %%h2) ),
+  eq_y ← aux_down y new_y,
+  let new_e := app (app op x) new_y,
+  pr ← mk_congr_arg (app op x) eq_y,
+  return ((), new_e, pr)
 )
 | _ := failed
 
 /--
 assumption is used to discharge proofs in step 2
+TODO: norm_cast takes a list of expressions to use as lemmas for the discharger
+TODO: a tactic to print the results the discharger fails to proove
 -/
 private meta def prove : tactic unit := assumption
-
-/-
-TODO: norm_cast takes a list of expressions to use as lemmas for the discharger
--/
 
 -- the `unit` argument is required by the `simplify` api.
 /--

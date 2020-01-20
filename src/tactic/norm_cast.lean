@@ -52,7 +52,10 @@ namespace expr
 
 open tactic expr
 
-/-- `is_coe' e` returns `tt` if `e` is a coe function -/
+/--
+`is_coe' e` returns `tt` if `e` is a coe function, including the implicit arguments
+`coe has more implicit arguments than `coe_fn and `coe_sort
+-/
 meta def is_coe' : expr → bool
 | (app (app (app (const `has_coe.coe _) _) _) _) := tt
 | (app (app (app (const `coe _) _) _) _)         := tt
@@ -128,10 +131,6 @@ end label
 
 open label
 
-private meta def count_head_coes : expr → ℕ
-| (app f x) := if is_coe' f then 1 + count_head_coes x else 0
-| _ := 0
-
 private meta def count_coes_aux : ℕ → expr → ℕ
 | n (app f x) := if f.is_coe' then count_coes_aux (n+1) x else count_coes_aux (count_coes_aux n f) x
 | n (lam _ _ _ e) := count_coes_aux n e
@@ -139,11 +138,21 @@ private meta def count_coes_aux : ℕ → expr → ℕ
 | n (elet _ a _ b) := count_coes_aux (count_coes_aux n a) b
 | n x := n
 
+/-- count how many coercions are inside the expression -/
 private meta def count_coes : expr → ℕ := count_coes_aux 0
 
-private meta def count_internal_coes : expr → ℕ
-| (app f x) := if f.is_coe' then count_internal_coes x else count_coes f + count_coes x
+/-- count how many coercions are at the top of the expression -/
+private meta def count_head_coes : expr → ℕ
+| (app f x) := if is_coe' f then 1 + count_head_coes x else 0
 | _ := 0
+
+/-- count how many coercions are inside the expression, excluding the top ones -/
+private meta def count_internal_coes (e : expr) : ℕ :=
+count_coes e - count_head_coes e
+
+--private meta def count_internal_coes : expr → ℕ
+--| (app f x) := if f.is_coe' then count_internal_coes x else count_coes f + count_coes x
+--| _ := 0
 
 /-
 elim lemma:   LHS has 0 head coes and ≥ 1 initial coe,  RHS has 0 coes
@@ -181,7 +190,7 @@ do
   else
     fail "norm_cast: lhs must contain at least one coe"
 
--- TODO: update and describe -/
+/-- TODO: update and describe -/
 meta def classify_type (ty : expr) : tactic label :=
 do (args, tp) ← mk_local_pis ty,
 match tp with
@@ -190,29 +199,28 @@ match tp with
 | _ := fail "norm_cast: lemma must be = or ↔"
 end
 
-/-- The cache for `norm_cast` stores three `simp_lemma` objects. -/
+/-- The cache for `norm_cast` attribute stores three `simp_lemma` objects. -/
 meta structure norm_cast_cache :=
 ( up : simp_lemmas )
 ( down : simp_lemmas )
 ( squash : simp_lemmas )
-meta def norm_cast_attr_ty : Type := user_attribute norm_cast_cache (option label)
 
-/-- Creates an empty `norm_cast_cache`. -/
+/-- an empty `norm_cast_cache` -/
 meta def empty_cache : norm_cast_cache :=
-{ up := simp_lemmas.mk,
-  down := simp_lemmas.mk,
-  squash := simp_lemmas.mk }
+{ up     := simp_lemmas.mk,
+  down   := simp_lemmas.mk,
+  squash := simp_lemmas.mk, }
 
-/-- `add_elim cache e` adds `e` as an `elim_cast` lemma to `cache`. -/
+/-- `add_elim cache e` adds `e` as an `elim` lemma to `cache` -/
 meta def add_elim (cache : norm_cast_cache) (e : expr) : tactic norm_cast_cache :=
 do
   new_up ← simp_lemmas.add cache.up e,
   return
   { up     := new_up,
     down   := cache.down,
-    squash := cache.squash }
+    squash := cache.squash, }
 
-/-- `add_move cache e` adds `e` as a `move_cast` lemma to `cache`. -/
+/-- `add_move cache e` adds `e` as a `move` lemma to `cache -/
 meta def add_move (cache : norm_cast_cache) (e : expr) : tactic norm_cast_cache :=
 do
   ty ← infer_type e,
@@ -222,18 +230,18 @@ do
   return {
     up     := new_up,
     down   := new_down,
-    squash := cache.squash }
+    squash := cache.squash, }
 
-/-- `add_push cache e` adds `e` as an `push_cast` lemma to `cache`. -/
+/-- `add_push cache e` adds `e` as an `push` lemma to `cache` -/
 meta def add_push (cache : norm_cast_cache) (e : expr) : tactic norm_cast_cache :=
 do
   new_down ← simp_lemmas.add cache.down e,
   return {
     up     := cache.up,
     down   := new_down,
-    squash := cache.squash }
+    squash := cache.squash, }
 
-/-- `add_squash cache e` adds `e` as an `squash_cast` lemma to `cache`. -/
+/-- `add_squash cache e` adds `e` as an `squash` lemma to `cache` -/
 meta def add_squash (cache : norm_cast_cache) (e : expr) : tactic norm_cast_cache :=
 do
   new_squash ← simp_lemmas.add cache.squash e,
@@ -241,7 +249,13 @@ do
   return {
     up     := cache.up,
     down   := new_down,
-    squash := new_squash }
+    squash := new_squash, }
+
+/--
+The type of the `norm_cast` attribute.
+The optional label it used to overwrite the classifier.
+-/
+meta def norm_cast_attr_ty : Type := user_attribute norm_cast_cache (option label)
 
 /-- `add_lemma cache decl` infers the proper `norm_cast` attribute for `decl` and adds it to `cache`. -/
 meta def add_lemma (attr : norm_cast_attr_ty) (cache : norm_cast_cache) (decl : name) : tactic norm_cast_cache :=
@@ -257,21 +271,30 @@ do
   | squash := add_squash cache e
   end
 
-/-- `mk_cache names` creates a `norm_cast_cache`. It infers the proper `norm_cast` attributes
-for names in `names`, and collects the lemmas attributed with specific `norm_cast` attributes. -/
+/--
+`mk_cache names` creates a `norm_cast_cache`. It infers the proper `norm_cast` attributes
+for names in `names`, and collects the lemmas attributed with specific `norm_cast` attributes.
+-/
 meta def mk_cache (attr : thunk norm_cast_attr_ty) (names : list name) : tactic norm_cast_cache :=
 do
   cache ← monad.foldl (add_lemma (attr ())) empty_cache names,
+
+  --some special lemmas to handle binary relations
   new_up ← simp_lemmas.add_simp cache.up ``ge_from_le,
   new_up ← simp_lemmas.add_simp new_up   ``gt_from_lt,
   new_up ← simp_lemmas.add_simp new_up   ``ne_from_not_eq,
+
   return {
     up     := new_up,
     down   := cache.down,
     squash := cache.squash, }
 
 -- the priority `n` is unused but required for the user_attribute api.
-/-- Called after the `norm_cast` attribute is applied to a declaration. -/
+/--
+Called after the `norm_cast` attribute is applied to a declaration.
+It triggers the classifier to make sure the lemma is a correct `norm_cast` lemma.
+If appropriate, it adds the `push_cast` attribute to the lemma.
+-/
 @[nolint] meta def after_set (attr : thunk norm_cast_attr_ty) (decl : name) (n : ℕ) (b : bool) : tactic unit :=
 do
   e ← mk_const decl,
@@ -280,7 +303,7 @@ do
   l ← param <|> classify_type ty,
   if l ≠ elim then simp_attr.push_cast.set decl () tt else skip
 
--- parse a label manually added to the attribute
+/-- parse the optional argument to the attribute -/
 meta def parse_label : lean.parser (option label) :=
 ( do
   n <- lean.parser.ident,
@@ -288,17 +311,19 @@ meta def parse_label : lean.parser (option label) :=
   return (some l)
 ) <|> return none
 
+/--
+The `norm_cast` attribute.
+-/
 @[user_attribute] meta def norm_cast_attr : user_attribute norm_cast_cache (option label) :=
 {
     name      := `norm_cast,
     descr     := "attribute for norm_cast",
+    parser    := parse_label,
     after_set := some $ after_set norm_cast_attr,
     before_unset := some $ λ _ _, tactic.skip,
     cache_cfg := {
         mk_cache     := mk_cache norm_cast_attr,
-        dependencies := [],
-    },
-    parser := parse_label,
+        dependencies := [], },
 }
 
 -- run the classifier on the type of a declaration
@@ -320,7 +345,8 @@ namespace tactic.interactive
 open tactic interactive tactic.interactive interactive.types expr lean.parser
 open norm_cast
 
-/-- `push_cast` rewrites the expression to move casts toward the leaf nodes.
+/--
+`push_cast` rewrites the expression to move casts toward the leaf nodes.
 For example, `↑(a + b)` will be written to `↑a + ↑b`.
 Equivalent to `simp only with push_cast`.
 Can also be used at hypotheses.
@@ -334,12 +360,23 @@ namespace norm_cast
 open tactic expr
 
 /--
-This is an auxiliary function that proves e = new_e using only squash_cast lemmas.
+This is an auxiliary function that proves e = new_e using only squash lemmas.
 -/
 meta def aux_squash (e new_e : expr) : tactic expr :=
 do
   cache ← norm_cast_attr.get_cache,
   let s := cache.squash,
+  (e', pr) ← s.rewrite new_e,
+  is_def_eq e e',
+  mk_eq_symm pr
+
+/--
+This is an auxiliary function that proves e = new_e squash and push lemmas.
+-/
+meta def aux_down (e new_e : expr) : tactic expr :=
+do
+  cache ← norm_cast_attr.get_cache,
+  let s := cache.down,
   (e', pr) ← s.rewrite new_e,
   is_def_eq e e',
   mk_eq_symm pr
@@ -364,7 +401,7 @@ when (↑(↑(x : α) : β) : γ) = (↑(x : α) : γ) can be proven with a squa
     coe3 ← mk_app `has_lift_t [α, β] >>= mk_instance',
     new_x ← to_expr ``(@coe %%β %%δ %%coe2 (@coe %%α %%β %%coe3 %%xx)),
     let new_e := app (app op new_x) y,
-    eq_x ← aux_squash x new_x,
+    eq_x ← aux_down x new_x,
     pr ← mk_congr_arg op eq_x,
     pr ← mk_congr_fun pr y,
     return ((), new_e, pr)
@@ -372,7 +409,7 @@ when (↑(↑(x : α) : β) : γ) = (↑(x : α) : γ) can be proven with a squa
     coe3 ← mk_app `has_lift_t [β, α] >>= mk_instance',
     new_y ← to_expr ``(@coe %%α %%δ %%coe1 (@coe %%β %%α %%coe3 %%yy)),
     let new_e := app (app op x) new_y,
-    eq_y ← aux_squash y new_y,
+    eq_y ← aux_down y new_y,
     pr ← mk_congr_arg (app op x) eq_y,
     return ((), new_e, pr)
   )
@@ -381,7 +418,7 @@ when (↑(↑(x : α) : β) : γ) = (↑(x : α) : γ) can be proven with a squa
   `(@has_one.one %%β %%h1) ← return y,
   h2 ← to_expr ``(has_one %%α) >>= mk_instance',
   new_y ← to_expr ``( @coe %%α %%β %%coe1 (@has_one.one %%α %%h2) ),
-  eq_y ← aux_squash y new_y,
+  eq_y ← aux_down y new_y,
   let new_e := app (app op x) new_y,
   pr ← mk_congr_arg (app op x) eq_y,
   return ((), new_e, pr)
@@ -390,7 +427,7 @@ when (↑(↑(x : α) : β) : γ) = (↑(x : α) : γ) can be proven with a squa
   `(@has_one.one %%β %%h1) ← return y,
   h2 ← to_expr ``(has_one %%α) >>= mk_instance',
   new_y ← to_expr ``( @coe %%α %%β %%coe1 (@has_one.one %%α %%h2) ),
-  eq_y ← aux_squash y new_y,
+  eq_y ← aux_down y new_y,
   let new_e := app (app op x) new_y,
   pr ← mk_congr_arg (app op x) eq_y,
   return ((), new_e, pr)
@@ -650,13 +687,15 @@ attribute [norm_cast] int.coe_nat_mul
   ↑(ite c a b) = ite c (↑a : β) (↑b : β) :=
 by by_cases h : c; simp [h]
 
-/- scripts to compare two classifiers -/
--- they are meant to be used before an update of the classifier,
--- to make sure nothing is mislabeled
-
 namespace norm_cast
 
 open tactic expr label
+
+/- scripts to compare two classifiers -/
+-- they are meant to be used before an update of the classifier,
+-- to make sure nothing is mislabeled
+-- for instance, this command compare the classifiers with and without the manual overwrite
+--run_cmd test_classifiers make_guess get_label
 
 inductive test_result : Type
 | agree     : name → label → test_result         -- classifiers make same guess
@@ -733,8 +772,5 @@ do
   trace "\n/- classifiers agree -/",
   monad.mapm (trace ∘ to_string) l1,
   skip
-
--- for instance, this command compare the classifiers with and without the manual overwrite
---run_cmd test_classifiers make_guess get_label
 
 end norm_cast

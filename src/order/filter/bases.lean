@@ -120,6 +120,7 @@ lemma has_basis.eq_infi (h : l.has_basis (λ _, true) s) :
   l = ⨅ i, principal (s i) :=
 by simpa only [infi_true] using h.eq_binfi
 
+@[nolint] -- Intentional use of `≥`
 lemma has_basis_infi_principal {s : ι → set α} (h : directed (≥) s) (ne : nonempty ι) :
   (⨅ i, principal (s i)).has_basis (λ _, true) s :=
 begin

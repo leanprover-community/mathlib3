@@ -197,7 +197,7 @@ instance (R : Type u) (L : Type v) (L' : Type v)
 
 @[simp] lemma map_lie {R : Type u} {L : Type v} {L' : Type v}
   [comm_ring R] [add_comm_group L] [lie_algebra R L] [add_comm_group L'] [lie_algebra R L']
-  (f : L →ₗ⁅R⁆ L') (x y : L) : f ⁅x, y⁆ = ⁅f x, f y⁆ := morphism.bracket f
+  (f : L →ₗ⁅R⁆ L') (x y : L) : f ⁅x, y⁆ = ⁅f x, f y⁆ := morphism.map_lie f
 
 variables {R : Type u} {L : Type v} [comm_ring R] [add_comm_group L] [lie_algebra R L]
 
@@ -232,7 +232,7 @@ def Ad : L →ₗ⁅R⁆ module.End R L := {
     smul   := by { intros, apply lie_smul, } },
   add     := by { intros, ext, simp, },
   smul    := by { intros, ext, simp, },
-  bracket := by {
+  map_lie := by {
     intros x y, ext z,
     rw endo_algebra_bracket,
     suffices : ⁅⁅x, y⁆, z⁆ = ⁅x, ⁅y, z⁆⁆ + ⁅⁅x, z⁆, y⁆, by simpa,
@@ -294,7 +294,7 @@ A Lie morphism from a Lie algebra to the endomorphism algebra of a module yields
 a Lie module structure.
 -/
 def lie_module.of_endo_morphism (α : L →ₗ⁅R⁆ module.End R M) : lie_module R L M := {
-  lie_act := by { intros x y m, rw [of_endo_map_action, lie_algebra.morphism_bracket,
+  lie_act := by { intros x y m, rw [of_endo_map_action, lie_algebra.map_lie,
                                     lie_algebra.endo_algebra_bracket], refl, },
   ..(linear_action.of_endo_map R L M α) }
 

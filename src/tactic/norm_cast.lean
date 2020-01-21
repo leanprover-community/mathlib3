@@ -29,10 +29,6 @@ Contrary to simp, it should be safe to use as a non-terminating tactic.
 * `tactic.interactive.assumption_mod_cast`
 -/
 
--- lemmas to handle the ≥, > and ≠ operators
-lemma ge_from_le {α} [has_le α] : ∀ (x y : α), x ≥ y ↔ y ≤ x := λ _ _, iff.rfl
-lemma gt_from_lt {α} [has_lt α] : ∀ (x y : α), x > y ↔ y < x := λ _ _, iff.rfl
-lemma ne_from_not_eq {α} : ∀ (x y : α), x ≠ y ↔ ¬(x = y) := λ _ _, iff.rfl
 namespace tactic
 
 /--
@@ -273,6 +269,11 @@ do
   | push   := add_push cache e
   | squash := add_squash cache e
   end
+
+-- special lemmas to handle the ≥, > and ≠ operators
+@[nolint] private lemma ge_from_le {α} [has_le α] : ∀ (x y : α), x ≥ y ↔ y ≤ x := λ _ _, iff.rfl
+@[nolint] private lemma gt_from_lt {α} [has_lt α] : ∀ (x y : α), x > y ↔ y < x := λ _ _, iff.rfl
+@[nolint] private lemma ne_from_not_eq {α} : ∀ (x y : α), x ≠ y ↔ ¬(x = y) := λ _ _, iff.rfl
 
 /--
 `mk_cache names` creates a `norm_cast_cache`. It infers the proper `norm_cast` attributes

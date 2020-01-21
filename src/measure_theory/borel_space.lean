@@ -262,15 +262,14 @@ assume s (hs : is_measurable s), by trivial
 section order_closed_topology
 variables [linear_order α] [order_closed_topology α] {a b c : α}
 
-lemma is_measurable_Ioo : is_measurable (Ioo a b) := is_measurable_of_is_open is_open_Ioo
-
 lemma is_measurable_Iio : is_measurable (Iio a) := is_measurable_of_is_open is_open_Iio
-
-lemma is_measurable_Ico : is_measurable (Ico a b) :=
-(is_measurable_of_is_closed $ is_closed_le continuous_const continuous_id).inter
-  is_measurable_Iio
-
-lemma is_measurable_Icc : is_measurable (Icc a b) := is_measurable_of_is_closed $ is_closed_Icc
+lemma is_measurable_Ioi : is_measurable (Ioi a) := is_measurable_of_is_open is_open_Ioi
+lemma is_measurable_Ici : is_measurable (Ici a) := is_measurable_of_is_closed is_closed_Ici
+lemma is_measurable_Iic : is_measurable (Iic a) := is_measurable_of_is_closed is_closed_Iic
+lemma is_measurable_Ioo : is_measurable (Ioo a b) := is_measurable_of_is_open is_open_Ioo
+lemma is_measurable_Ioc : is_measurable (Ioc a b) := is_measurable_Ioi.inter is_measurable_Iic
+lemma is_measurable_Ico : is_measurable (Ico a b) := is_measurable_Ici.inter is_measurable_Iio
+lemma is_measurable_Icc : is_measurable (Icc a b) := is_measurable_of_is_closed is_closed_Icc
 
 end order_closed_topology
 

@@ -184,7 +184,7 @@ lemma integrable.neg {f : α → β} : integrable f → integrable (λa, -f a) :
 assume hfi, calc _ = _ : lintegral_nnnorm_neg
                  ... < ⊤ : hfi
 
-lemma integrable_neg_iff (f : α → β) : integrable (λa, -f a) ↔ integrable f :=
+@[simp] lemma integrable_neg_iff (f : α → β) : integrable (λa, -f a) ↔ integrable f :=
 begin
   split,
   { assume h,

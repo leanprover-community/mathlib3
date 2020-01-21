@@ -103,26 +103,21 @@ end
 -- TODO : prove this for a encodable type
 lemma has_countable_basis_at_top_finset_nat : has_countable_basis (@at_top (finset ℕ) _) :=
 begin
-  rw has_countable_basis_iff_mono_seq',
-  use λi, {N : finset ℕ | ∃ n, i ≤ n ∧ finset.range n ⊆ N},
-  split,
-  { assume i j hij,
-    assume N, simp only [and_imp, mem_set_of_eq, exists_imp_distrib],
-    exact assume k hjk kN, ⟨k, ⟨le_trans hij hjk, kN⟩⟩ },
-  assume s, split,
-  { simp only [mem_at_top_sets, ge_iff_le, nonempty_of_inhabited, finset.le_iff_subset,
-      exists_imp_distrib],
-    assume M hM,
-    rcases finset.exists_nat_subset_range M with ⟨i, Mi⟩,
-    use i,
-    assume N, simp only [and_imp, mem_set_of_eq, exists_imp_distrib],
-    assume k hk kN,
-    refine hM _ (finset.subset.trans Mi (finset.subset.trans _ kN)),
-    rwa finset.range_subset },
-  simp only [mem_at_top_sets, ge_iff_le, nonempty_of_inhabited, finset.le_iff_subset, exists_imp_distrib],
-  refine λ i hsub, ⟨finset.range i, λN iN, hsub _⟩,
-  rw mem_set_of_eq,
-  refine ⟨i, ⟨le_refl _, iN⟩⟩
+  refine has_countable_basis_of_seq _ (λi, Ici (finset.range i)) (le_antisymm _ _),
+  { rw [at_top, le_infi_iff],
+    assume i,
+    refine infi_le_of_le (finset.range i) _,
+    simp only [mem_principal_sets, le_principal_iff, finset.le_iff_subset],
+    assume N,
+    simp only [imp_self, set.mem_Ici, set.mem_set_of_eq, finset.le_iff_subset] },
+  { rw [at_top, le_infi_iff],
+    assume N,
+    rcases finset.exists_nat_subset_range N with ⟨i, Ni⟩,
+    refine infi_le_of_le i _,
+    simp only [mem_principal_sets, le_principal_iff, finset.le_iff_subset],
+    assume M,
+    simp only [mem_set_of_eq, mem_Ici, finset.le_iff_subset],
+    refine finset.subset.trans Ni },
 end
 
 lemma has_countable_basis.tendsto_iff_seq_tendsto {f : α → β} {k : filter α} {l : filter β}

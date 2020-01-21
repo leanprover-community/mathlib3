@@ -14,6 +14,8 @@ referred to as ⊤ and ⊥. It is implemented as `with_top (with_bot ℝ)`
 
 Addition and multiplication are problematic in the presence of ±∞, but
 negation has a natural definition and satisfies the usual properties.
+An addition is derived, but `ereal` is not even a monoid (there is no identity).
+
 `ereal` is a `complete_lattice`; this is now deduced by type class inference from
 the fact that `with_top (with_bot L)` is a complete lattice if `L` is
 a conditionally complete lattice.
@@ -35,7 +37,7 @@ See https://isabelle.in.tum.de/dist/library/HOL/HOL-Library/Extended_Real.html
 
 /-- ereal : The type `[-∞, ∞]` -/
 @[derive [linear_order, lattice.order_bot, lattice.order_top,
-  lattice.has_Sup, lattice.has_Inf, lattice.complete_lattice]]
+  lattice.has_Sup, lattice.has_Inf, lattice.complete_lattice, has_add]]
 def ereal := with_top (with_bot ℝ)
 
 namespace ereal

@@ -100,6 +100,19 @@ begin
   ... = _ : by simp [-infi_infi_eq_right, infi_and]
 end
 
+-- TODO : prove this for a encodable type
+lemma has_countable_basis_at_top_finset_nat : has_countable_basis (@at_top (finset ℕ) _) :=
+begin
+  refine has_countable_basis_of_seq _ (λN, Ici (finset.range N)) (eq_infi_of_mem_sets_iff_exists_mem _),
+  assume s,
+  rw mem_at_top_sets,
+  refine ⟨_, λ ⟨N, hN⟩, ⟨finset.range N, hN⟩⟩,
+  rintros ⟨t, ht⟩,
+  rcases mem_at_top_sets.1 (tendsto_finset_range (mem_at_top t)) with ⟨N, hN⟩,
+  simp only [preimage, mem_set_of_eq] at hN,
+  exact ⟨N, mem_principal_sets.2 $ λ t' ht', ht t' $ le_trans (hN _ $ le_refl N) ht'⟩
+end
+
 lemma has_countable_basis.tendsto_iff_seq_tendsto {f : α → β} {k : filter α} {l : filter β}
   (hcb : k.has_countable_basis) :
   tendsto f k l ↔ (∀ x : ℕ → α, tendsto x at_top k → tendsto (f ∘ x) at_top l) :=

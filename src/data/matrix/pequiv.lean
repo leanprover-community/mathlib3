@@ -76,6 +76,10 @@ begin
     simp [h, eq_comm] {contextual := tt} }
 end
 
+lemma to_pequiv_mul_matrix [semiring α] (f : n ≃ n) (M : matrix n n α) :
+  (f.to_pequiv.to_matrix * M) = λ i, M (f i) :=
+  by { ext i j, rw [mul_eq_mul, mul_matrix_apply, equiv.to_pequiv_apply] }
+
 lemma to_matrix_trans [semiring α] (f : l ≃. m) (g : m ≃. n) :
   ((f.trans g).to_matrix : matrix l n α) = f.to_matrix ⬝ g.to_matrix :=
 begin

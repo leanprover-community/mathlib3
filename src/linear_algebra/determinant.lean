@@ -125,7 +125,7 @@ begin
 end
 
 /-- The determinant of a permutation matrix equals its sign. -/
-lemma det_permutation (σ : perm n) :
+@[simp] lemma det_permutation (σ : perm n) :
   matrix.det (σ.to_pequiv.to_matrix : matrix n n R) = σ.sign := begin
   suffices : matrix.det (σ.to_pequiv.to_matrix) = ↑σ.sign * det (1 : matrix n n R), { simp [this] },
   unfold det,
@@ -142,6 +142,10 @@ lemma det_permutation (σ : perm n) :
   { intros τ τ' _ _, exact (mul_left_inj σ).mp },
   { intros τ _, use σ⁻¹ * τ, use (mem_univ _), exact (mul_inv_cancel_left _ _).symm }
 end
+
+/-- Permuting the columns changes the sign of the determinant. -/
+lemma det_permute (σ : perm n) (M : matrix n n R) : matrix.det (λ i, M (σ i)) = σ.sign * M.det :=
+by rw [←det_permutation, ←det_mul, pequiv.to_pequiv_mul_matrix]
 
 section det_zero
 /-! ### `det_zero` section

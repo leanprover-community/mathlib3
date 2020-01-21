@@ -1097,8 +1097,8 @@ integral_smul r f
 lemma integral_mul_right (r : ℝ) (f : α → ℝ) : (∫ a, (f a) * r) = (∫ a, f a) * r :=
 by { simp only [mul_comm], exact integral_mul_left r f }
 
-lemma integral_on_div (r : ℝ) (f : α → ℝ) : (∫ a, (f a) / r) = (∫ a, f a) / r :=
-by { simp only [div_eq_mul_inv], apply integral_mul_right }
+lemma integral_div (r : ℝ) (f : α → ℝ) : (∫ a, (f a) / r) = (∫ a, f a) / r :=
+integral_mul_right r⁻¹ f
 
 lemma integral_congr_ae (hfm : measurable f) (hgm : measurable g) (h : ∀ₘ a, f a = g a) :
    (∫ a, f a) = (∫ a, g a) :=
@@ -1286,7 +1286,7 @@ end
 
 lemma integral_le_integral {f g : α → ℝ} (hfm : measurable f) (hfi : integrable f)
   (hgm : measurable g) (hgi : integrable g) (h : ∀ a, f a ≤ g a) : (∫ a, f a) ≤ (∫ a, g a) :=
-integral_le_integral_ae hfm hfi hgm hgi $ by filter_upwards [] h
+integral_le_integral_ae hfm hfi hgm hgi $ univ_mem_sets' h
 
 lemma norm_integral_le_integral_norm (f : α → β) : ∥(∫ a, f a)∥ ≤ ∫ a, ∥f a∥ :=
 have le_ae : ∀ₘ (a : α), 0 ≤ ∥f a∥ := by filter_upwards [] λa, norm_nonneg _,

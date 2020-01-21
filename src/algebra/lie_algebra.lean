@@ -195,7 +195,7 @@ instance (R : Type u) (L : Type v) (L' : Type v)
   [comm_ring R] [add_comm_group L] [lie_algebra R L] [add_comm_group L'] [lie_algebra R L'] :
   has_coe (L →ₗ⁅R⁆ L') (L →ₗ[R] L') := ⟨morphism.to_linear_map⟩
 
-@[simp] lemma morphism_bracket {R : Type u} {L : Type v} {L' : Type v}
+@[simp] lemma map_lie {R : Type u} {L : Type v} {L' : Type v}
   [comm_ring R] [add_comm_group L] [lie_algebra R L] [add_comm_group L'] [lie_algebra R L']
   (f : L →ₗ⁅R⁆ L') (x y : L) : f ⁅x, y⁆ = ⁅f x, f y⁆ := morphism.bracket f
 

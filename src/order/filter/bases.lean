@@ -48,7 +48,7 @@ open set lattice
 /-- We say that a filter `l` has a basis `s : ι → set α` bounded by `p : ι → Prop`,
 if `t ∈ l` if and only if `t` includes `s i` for some `i` such that `p i`. -/
 protected def has_basis (l : filter α) (p : ι → Prop) (s : ι → set α) : Prop :=
-  ∀ t : set α, t ∈ l ↔ ∃ i (hi : p i), s i ⊆ t
+∀ t : set α, t ∈ l ↔ ∃ i (hi : p i), s i ⊆ t
 
 section same_type
 

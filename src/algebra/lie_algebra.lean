@@ -218,7 +218,7 @@ instance of_endomorphism_algebra (M : Type v)
   [add_comm_group M] [module R M] : lie_algebra R (module.End R M) :=
 of_associative_algebra (module.End R M)
 
-@[simp] lemma endo_algebra_bracket (M : Type v)
+lemma endo_algebra_bracket (M : Type v)
   [add_comm_group M] [module R M] (f g : module.End R M) :
   ⁅f, g⁆ = f.comp g - g.comp f := rfl
 

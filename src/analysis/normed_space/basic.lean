@@ -273,8 +273,16 @@ begin
   exact squeeze_zero (λ t, abs_nonneg _) (λ t, abs_norm_sub_norm_le _ _) (lim_norm x)
 end
 
+lemma filter.tendsto.norm {β : Type*} {l : filter β} {f : β → α} {a : α} (h : tendsto f l (𝓝 a)) :
+  tendsto (λ x, ∥f x∥) l (𝓝 ∥a∥) :=
+tendsto.comp continuous_norm.continuous_at h
+
 lemma continuous_nnnorm : continuous (nnnorm : α → nnreal) :=
 continuous_subtype_mk _ continuous_norm
+
+lemma filter.tendsto.nnnorm {β : Type*} {l : filter β} {f : β → α} {a : α} (h : tendsto f l (𝓝 a)) :
+  tendsto (λ x, nnnorm (f x)) l (𝓝 (nnnorm a)) :=
+tendsto.comp continuous_nnnorm.continuous_at h
 
 /-- If `∥y∥→∞`, then we can assume `y≠x` for any fixed `x`. -/
 lemma ne_mem_of_tendsto_norm_at_top {l : filter γ} {f : γ → α}
@@ -421,7 +429,7 @@ is_monoid_hom.map_pow norm a
 
 @[simp] lemma norm_prod {β : Type*} [normed_field α] (s : finset β) (f : β → α) :
   ∥s.prod f∥ = s.prod (λb, ∥f b∥) :=
-eq.symm (finset.prod_hom norm)
+eq.symm (s.prod_hom norm)
 
 @[simp] lemma norm_div {α : Type*} [normed_field α] (a b : α) : ∥a/b∥ = ∥a∥/∥b∥ :=
 if hb : b = 0 then by simp [hb] else

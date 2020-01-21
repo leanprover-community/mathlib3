@@ -117,7 +117,7 @@ lemma has_sum_hom (g : α → γ) [add_comm_monoid γ] [topological_space γ]
   [is_add_monoid_hom g] (h₃ : continuous g) (hf : has_sum f a) :
   has_sum (g ∘ f) (g a) :=
 have (λs:finset β, s.sum (g ∘ f)) = g ∘ (λs:finset β, s.sum f),
-  from funext $ assume s, sum_hom g,
+  from funext $ assume s, s.sum_hom g,
 show tendsto (λs:finset β, s.sum (g ∘ f)) at_top (𝓝 (g a)),
   by rw [this]; exact tendsto.comp (continuous_iff_continuous_at.mp h₃ a) hf
 
@@ -174,7 +174,7 @@ mem_at_top_sets.mpr $ exists.intro fsts $ assume bs (hbs : fsts ⊆ bs),
     from tendsto_finset_sum bs $
       assume c hc, tendsto_infi' c $ tendsto_infi' hc $ by apply tendsto.comp (hf c) tendsto_comap,
   have bs.sum g ∈ s,
-    from mem_of_closed_of_tendsto' this hsc $ forall_sets_neq_empty_iff_neq_bot.mp $
+    from mem_of_closed_of_tendsto' this hsc $ forall_sets_ne_empty_iff_ne_bot.mp $
       by simp [mem_inf_sets, exists_imp_distrib, and_imp, forall_and_distrib,
                filter.mem_infi_sets_finset, mem_comap_sets, skolem, mem_at_top_sets,
                and_comm];
@@ -183,7 +183,7 @@ mem_at_top_sets.mpr $ exists.intro fsts $ assume bs (hbs : fsts ⊆ bs),
         have (⋂b (h : b ∈ bs), (λp:(Πb, finset (γ b)), p b) ⁻¹' {cs' | cs b h ⊆ cs' }) ≤ (⨅b∈bs, p b),
           from infi_le_infi $ assume b, infi_le_infi $ assume hb,
             le_trans (set.preimage_mono $ hp' b hb) (hp b hb),
-        neq_bot_of_le_neq_bot (h _) (le_trans (set.inter_subset_inter (le_trans this hs₂) hs₃) hs₁),
+        ne_bot_of_le_ne_bot (h _) (le_trans (set.inter_subset_inter (le_trans this hs₂) hs₃) hs₁),
   hss' this
 
 lemma summable_sigma [regular_space α] {γ : β → Type*} {f : (Σb:β, γ b) → α}
@@ -453,7 +453,7 @@ end tsum
 end topological_semiring
 
 section order_topology
-variables [ordered_comm_monoid α] [topological_space α] [ordered_topology α]
+variables [ordered_comm_monoid α] [topological_space α] [order_closed_topology α]
 variables {f g : β → α} {a a₁ a₂ : α}
 
 lemma has_sum_le (h : ∀b, f b ≤ g b) (hf : has_sum f a₁) (hg : has_sum g a₂) : a₁ ≤ a₂ :=
@@ -635,6 +635,7 @@ by simpa only [zero_add] using dist_le_tsum_of_dist_le_of_tendsto d hf hd ha 0
 lemma dist_le_tsum_dist_of_tendsto [metric_space α] {f : ℕ → α}
   (h : summable (λn, dist (f n) (f n.succ))) {a : α} (ha : tendsto f at_top (𝓝 a)) (n) :
   dist (f n) a ≤ ∑ m, dist (f (n+m)) (f (n+m).succ) :=
+show dist (f n) a ≤ ∑ m, (λx, dist (f x) (f x.succ)) (n + m), from
 dist_le_tsum_of_dist_le_of_tendsto (λ n, dist (f n) (f n.succ)) (λ _, le_refl _) h ha n
 
 lemma dist_le_tsum_dist_of_tendsto₀ [metric_space α] {f : ℕ → α}

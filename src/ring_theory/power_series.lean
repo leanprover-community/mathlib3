@@ -381,7 +381,7 @@ def map : mv_power_series σ α →+* mv_power_series σ β :=
     show f ((coeff α n) (φ + ψ)) = f ((coeff α n) φ) + f ((coeff α n) ψ), by simp,
   map_mul' := λ φ ψ, ext $ λ n, show f _ = _,
   begin
-    rw [coeff_mul, ← finset.sum_hom f, coeff_mul, finset.sum_congr rfl],
+    rw [coeff_mul, ← finset.sum_hom _ f, coeff_mul, finset.sum_congr rfl],
     rintros ⟨i,j⟩ hij, rw [f.map_mul], refl,
   end }
 

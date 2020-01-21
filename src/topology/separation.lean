@@ -149,7 +149,7 @@ instance t2_space.t1_space [t2_space α] : t1_space α :=
 let ⟨u, v, hu, hv, hyu, hxv, huv⟩ := t2_separation (mt mem_singleton_of_eq hxy) in
 ⟨u, λ z hz1 hz2, ((ext_iff _ _).1 huv x).1 ⟨mem_singleton_iff.1 hz2 ▸ hz1, hxv⟩, hu, hyu⟩⟩
 
-lemma eq_of_nhds_neq_bot [ht : t2_space α] {x y : α} (h : 𝓝 x ⊓ 𝓝 y ≠ ⊥) : x = y :=
+lemma eq_of_nhds_ne_bot [ht : t2_space α] {x y : α} (h : 𝓝 x ⊓ 𝓝 y ≠ ⊥) : x = y :=
 classical.by_contradiction $ assume : x ≠ y,
 let ⟨u, v, hu, hv, hx, hy, huv⟩ := t2_space.t2 x y this in
 have u ∩ v ∈ 𝓝 x ⊓ 𝓝 y,
@@ -157,7 +157,7 @@ have u ∩ v ∈ 𝓝 x ⊓ 𝓝 y,
 h $ empty_in_sets_eq_bot.mp $ huv ▸ this
 
 lemma t2_iff_nhds : t2_space α ↔ ∀ {x y : α}, 𝓝 x ⊓ 𝓝 y ≠ ⊥ → x = y :=
-⟨assume h, by exactI λ x y, eq_of_nhds_neq_bot,
+⟨assume h, by exactI λ x y, eq_of_nhds_ne_bot,
  assume h, ⟨assume x y xy,
    have 𝓝 x ⊓ 𝓝 y = ⊥ := classical.by_contradiction (mt h xy),
    let ⟨u', hu', v', hv', u'v'⟩ := empty_in_sets_eq_bot.mpr this,
@@ -168,29 +168,29 @@ lemma t2_iff_nhds : t2_space α ↔ ∀ {x y : α}, 𝓝 x ⊓ 𝓝 y ≠ ⊥ �
 lemma t2_iff_ultrafilter :
   t2_space α ↔ ∀ f {x y : α}, is_ultrafilter f → f ≤ 𝓝 x → f ≤ 𝓝 y → x = y :=
 t2_iff_nhds.trans
-  ⟨assume h f x y u fx fy, h $ neq_bot_of_le_neq_bot u.1 (le_inf fx fy),
+  ⟨assume h f x y u fx fy, h $ ne_bot_of_le_ne_bot u.1 (le_inf fx fy),
    assume h x y xy,
      let ⟨f, hf, uf⟩ := exists_ultrafilter xy in
      h f uf (le_trans hf lattice.inf_le_left) (le_trans hf lattice.inf_le_right)⟩
 
 @[simp] lemma nhds_eq_nhds_iff {a b : α} [t2_space α] : 𝓝 a = 𝓝 b ↔ a = b :=
-⟨assume h, eq_of_nhds_neq_bot $ by rw [h, inf_idem]; exact nhds_neq_bot, assume h, h ▸ rfl⟩
+⟨assume h, eq_of_nhds_ne_bot $ by rw [h, inf_idem]; exact nhds_ne_bot, assume h, h ▸ rfl⟩
 
 @[simp] lemma nhds_le_nhds_iff {a b : α} [t2_space α] : 𝓝 a ≤ 𝓝 b ↔ a = b :=
-⟨assume h, eq_of_nhds_neq_bot $ by rw [inf_of_le_left h]; exact nhds_neq_bot, assume h, h ▸ le_refl _⟩
+⟨assume h, eq_of_nhds_ne_bot $ by rw [inf_of_le_left h]; exact nhds_ne_bot, assume h, h ▸ le_refl _⟩
 
 lemma tendsto_nhds_unique [t2_space α] {f : β → α} {l : filter β} {a b : α}
   (hl : l ≠ ⊥) (ha : tendsto f l (𝓝 a)) (hb : tendsto f l (𝓝 b)) : a = b :=
-eq_of_nhds_neq_bot $ neq_bot_of_le_neq_bot (map_ne_bot hl) $ le_inf ha hb
+eq_of_nhds_ne_bot $ ne_bot_of_le_ne_bot (map_ne_bot hl) $ le_inf ha hb
 
 section lim
 variables [inhabited α] [t2_space α] {f : filter α}
 
 lemma lim_eq {a : α} (hf : f ≠ ⊥) (h : f ≤ 𝓝 a) : lim f = a :=
-eq_of_nhds_neq_bot $ neq_bot_of_le_neq_bot hf $ le_inf (lim_spec ⟨_, h⟩) h
+eq_of_nhds_ne_bot $ ne_bot_of_le_ne_bot hf $ le_inf (lim_spec ⟨_, h⟩) h
 
 @[simp] lemma lim_nhds_eq {a : α} : lim (𝓝 a) = a :=
-lim_eq nhds_neq_bot (le_refl _)
+lim_eq nhds_ne_bot (le_refl _)
 
 @[simp] lemma lim_nhds_eq_of_closure {a : α} {s : set α} (h : a ∈ closure s) :
   lim (𝓝 a ⊓ principal s) = a :=
@@ -229,7 +229,7 @@ instance Pi.t2_space {α : Type*} {β : α → Type v} [t₂ : Πa, topological_
   separated_by_f (λz, z i) (infi_le _ i) hi⟩
 
 lemma is_closed_diagonal [t2_space α] : is_closed {p:α×α | p.1 = p.2} :=
-is_closed_iff_nhds.mpr $ assume ⟨a₁, a₂⟩ h, eq_of_nhds_neq_bot $ assume : 𝓝 a₁ ⊓ 𝓝 a₂ = ⊥, h $
+is_closed_iff_nhds.mpr $ assume ⟨a₁, a₂⟩ h, eq_of_nhds_ne_bot $ assume : 𝓝 a₁ ⊓ 𝓝 a₂ = ⊥, h $
   let ⟨t₁, ht₁, t₂, ht₂, (h' : t₁ ∩ t₂ ⊆ ∅)⟩ :=
     by rw [←empty_in_sets_eq_bot, mem_inf_sets] at this; exact this in
   begin
@@ -317,7 +317,7 @@ have ∃t, is_open t ∧ -s' ⊆ t ∧ 𝓝 a ⊓ principal t = ⊥,
   from regular_space.regular (is_closed_compl_iff.mpr h₂) (not_not_intro h₃),
 let ⟨t, ht₁, ht₂, ht₃⟩ := this in
 ⟨-t,
-  mem_sets_of_neq_bot $ by rwa [lattice.neg_neg],
+  mem_sets_of_eq_bot $ by rwa [lattice.neg_neg],
   subset.trans (compl_subset_comm.1 ht₂) h₁,
   is_closed_compl_iff.mpr ht₁⟩
 

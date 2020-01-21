@@ -408,7 +408,7 @@ variables [normed_group β] [second_countable_topology β]
 variables (α β)
 /-- `l1.simple_func` is a subspace of L1 consisting of equivalence classes of an integrable simple
     function. -/
-def simple_func : Type* :=
+def simple_func : Type (max u v) :=
 { f : α →₁ β // ∃ (s : α →ₛ β),  integrable s ∧ ae_eq_fun.mk s s.measurable = f}
 
 variables {α β}
@@ -1033,7 +1033,7 @@ if hf : measurable f ∧ integrable f
 then (l1.of_fun f hf.1 hf.2).integral
 else 0
 
-notation `∫` binders `, ` r:(scoped f, integral f) := r
+local notation `∫` binders `, ` r:(scoped f, integral f) := r
 
 section properties
 
@@ -1041,83 +1041,54 @@ open continuous_linear_map measure_theory.simple_func
 
 variables {f g : α → β}
 
-lemma integral_eq (f : α → β) : integral f =
-  if hf : measurable f ∧ integrable f then (l1.of_fun f hf.1 hf.2).integral else 0 := rfl
+lemma integral_eq (f : α → β) (h₁ : measurable f) (h₂ : integrable f) :
+  integral f = (l1.of_fun f h₁ h₂).integral :=
+dif_pos ⟨h₁, h₂⟩
 
-lemma integral_eq_zero_of_non_measurable (h : ¬ measurable f) : integral f = 0 :=
-by { rw [integral, dif_neg], rw not_and_distrib, exact or.inl h }
+lemma integral_undef (h : ¬ (measurable f ∧ integrable f)) : integral f = 0 :=
+dif_neg h
 
-lemma integral_eq_zero_of_non_integrable (h : ¬ integrable f) : integral f = 0 :=
-by { rw [integral, dif_neg], rw not_and_distrib, exact or.inr h }
+lemma integral_non_integrable (h : ¬ integrable f) : integral f = 0 :=
+integral_undef $ not_and_of_not_right _ h
+
+lemma integral_non_measurable (h : ¬ measurable f) : integral f = 0 :=
+integral_undef $ not_and_of_not_left _ h
 
 variables (α β)
 @[simp] lemma integral_zero : integral (0 : α → β) = 0 :=
-begin
-  simp only [integral], rw dif_pos,
-  { apply l1.integral_zero },
-  { exact ⟨(measurable_const : measurable (λb:α, (0:β))), integrable_zero⟩ }
-end
+by rw [integral_eq, l1.of_fun_zero, l1.integral_zero]
+
 variables {α β}
 
-lemma integral_add (hfm : measurable f) (hfi : integrable f) (hgm : measurable g)
-  (hgi : integrable g) : integral (f + g) = integral f + integral g :=
-begin
-  simp only [integral], repeat { rw dif_pos },
-  { rw ← l1.integral_add, refl },
-  { exact ⟨hgm, hgi⟩ },
-  { exact ⟨hfm, hfi⟩ },
-  { exact ⟨measurable.add hfm hgm, integrable.add hfm hgm hfi hgi⟩ }
-end
+lemma integral_add
+  (hfm : measurable f) (hfi : integrable f) (hgm : measurable g) (hgi : integrable g) :
+  integral (f + g) = integral f + integral g :=
+by rw [integral_eq, integral_eq f hfm hfi, integral_eq g hgm hgi, l1.of_fun_add, l1.integral_add]
 
 lemma integral_neg (f : α → β) : integral (-f) = - integral f :=
 begin
-  simp only [integral],
-  by_cases hfm : measurable f, by_cases hfi : integrable f,
-  { repeat { rw dif_pos },
-    { rw ← l1.integral_neg, refl },
-    { exact ⟨hfm, hfi⟩ },
-    { exact ⟨measurable.neg hfm, integrable.neg hfi⟩ } },
-  { repeat { rw dif_neg },
-    { rw neg_zero },
-    { rw not_and_distrib, exact or.inr hfi },
-    { rw not_and_distrib, rw integrable_neg_iff, exact or.inr hfi } },
-  { repeat { rw dif_neg },
-    { rw neg_zero },
-    { rw not_and_distrib, exact or.inl hfm },
-    { rw not_and_distrib, rw measurable_neg_iff, exact or.inl hfm } }
+  by_cases hf : measurable f ∧ integrable f,
+  { rw [integral_eq f hf.1 hf.2, integral_eq (- f) hf.1.neg hf.2.neg, l1.of_fun_neg,
+    l1.integral_neg] },
+  { have hf' : ¬(measurable (-f) ∧ integrable (-f)),
+    { rwa [measurable_neg_iff, integrable_neg_iff] },
+    rw [integral_undef hf, integral_undef hf', neg_zero] }
 end
 
-lemma integral_sub (hfm : measurable f) (hfi : integrable f) (hgm : measurable g)
-  (hgi : integrable g) : integral (f - g) = integral f - integral g :=
-begin
-  simp only [integral], repeat {rw dif_pos},
-  { rw ← l1.integral_sub, refl },
-  { exact ⟨hgm, hgi⟩ },
-  { exact ⟨hfm, hfi⟩ },
-  { exact ⟨measurable.sub hfm hgm, integrable.sub hfm hgm hfi hgi⟩ }
-end
+lemma integral_sub
+  (hfm : measurable f) (hfi : integrable f) (hgm : measurable g) (hgi : integrable g) :
+  integral (f - g) = integral f - integral g :=
+by simp only [sub_eq_add_neg, integral_neg, integral_add, measurable_neg_iff, integrable_neg_iff, *]
 
-lemma integral_smul (r : ℝ) (f : α → β) : (∫ x, r • (f x)) = r • integral f :=
+lemma integral_smul (r : ℝ) (f : α → β) : integral (r • f) = r • integral f :=
 begin
-  by_cases r0 : r = 0,
-  { have : (λx, r • (f x)) = 0, { funext, rw [r0, zero_smul, pi.zero_apply] },
-    rw [this, r0, zero_smul], apply integral_zero },
-  simp only [integral],
-  by_cases hfm : measurable f, by_cases hfi : integrable f,
-  { rw dif_pos, rw dif_pos,
-    { rw ← l1.integral_smul, refl  },
-    { exact ⟨hfm, hfi⟩ },
-    { exact ⟨measurable_smul _ hfm, integrable.smul _ hfi⟩ } },
-  { repeat { rw dif_neg },
-    { rw smul_zero },
-    { rw not_and_distrib, exact or.inr hfi },
-    { rw not_and_distrib,
-      have : (λx, r • (f x)) = r • f, { funext, simp only [pi.smul_apply] },
-      rw [this, integrable.smul_iff r0], exact or.inr hfi } },
-  { repeat { rw dif_neg },
-    { rw smul_zero },
-    { rw not_and_distrib, exact or.inl hfm },
-    { rw not_and_distrib, rw [measurable_smul_iff r0], exact or.inl hfm, apply_instance } },
+  by_cases hf : measurable f ∧ integrable f,
+  { rw [integral_eq f hf.1 hf.2, integral_eq (r • f), l1.of_fun_smul, l1.integral_smul] },
+  { by_cases hr : r = 0,
+    { simp only [hr, measure_theory.integral_zero, zero_smul] },
+    have hf' : ¬(measurable (r • f) ∧ integrable (r • f)),
+    { rwa [← measurable_smul_iff hr f, ← integrable_smul_iff hr f] at hf },
+    rw [integral_undef hf, integral_undef hf', smul_zero] }
 end
 
 lemma integral_congr_ae (hfm : measurable f) (hgm : measurable g) (h : ∀ₘ a, f a = g a) :
@@ -1125,31 +1096,24 @@ lemma integral_congr_ae (hfm : measurable f) (hgm : measurable g) (h : ∀ₘ a,
 begin
   by_cases hfi : integrable f,
   { have hgi : integrable g := integrable_of_ae_eq hfi h,
-    simp only [integral],
-    repeat { rw dif_pos },
-    rotate, { exact ⟨hgm, hgi⟩ }, { exact ⟨hfm, hfi⟩ },
-    rw ← l1.of_fun_eq_of_fun f g hfm hfi hgm hgi at h,
-    rw h },
+    rw [integral_eq f hfm hfi, integral_eq g hgm hgi, (l1.of_fun_eq_of_fun f g hfm hfi hgm hgi).2 h] },
   { have hgi : ¬ integrable g, { rw integrable_iff_of_ae_eq h at hfi, exact hfi },
-    rw [integral_eq_zero_of_non_integrable hfi, integral_eq_zero_of_non_integrable hgi] },
+    rw [integral_non_integrable hfi, integral_non_integrable hgi] },
 end
 
 lemma norm_integral_le_lintegral_norm (f : α → β) :
   ∥integral f∥ ≤ ennreal.to_real (∫⁻ a, ennreal.of_real ∥f a∥) :=
 begin
-  by_cases hfm : measurable f,
-  by_cases hfi : integrable f,
-  { rw [integral, ← l1.norm_of_fun_eq_lintegral_norm f hfm hfi, dif_pos],
-    exact l1.norm_integral_le _, exact ⟨hfm, hfi⟩ },
-  { rw [integral_eq_zero_of_non_integrable hfi, _root_.norm_zero],
-    exact to_real_nonneg },
-  { rw [integral_eq_zero_of_non_measurable hfm, _root_.norm_zero],
+  by_cases hf : measurable f ∧ integrable f,
+  { rw [integral_eq f hf.1 hf.2, ← l1.norm_of_fun_eq_lintegral_norm f hf.1 hf.2],
+    exact l1.norm_integral_le _ },
+  { rw [integral_undef hf, _root_.norm_zero],
     exact to_real_nonneg }
 end
 
 /-- Lebesgue dominated convergence theorem provides sufficient conditions under which almost
   everywhere convergence of a sequence of functions implies the convergence of their integrals. -/
-theorem tendsto_integral_of_dominated_convergence {F : ℕ → α → β} {f : α → β} {bound : α → ℝ}
+theorem tendsto_integral_of_dominated_convergence {F : ℕ → α → β} {f : α → β} (bound : α → ℝ)
   (F_measurable : ∀ n, measurable (F n))
   (f_measurable : measurable f)
   (bound_integrable : integrable bound)
@@ -1180,6 +1144,39 @@ begin
     have h₂ : integrable f := integrable_of_dominated_convergence bound_integrable h_bound h_lim,
     rw ← integral_sub (F_measurable _) h₁ f_measurable h₂,
     exact norm_integral_le_lintegral_norm _ }
+end
+
+/-- Lebesgue dominated convergence theorem for filters with a countable basis -/
+lemma tendsto_integral_filter_of_dominated_convergence {ι} {l : filter ι}
+  {F : ι → α → β} {f : α → β} (bound : α → ℝ)
+  (hl_cb : l.has_countable_basis)
+  (hF_meas : { n | measurable (F n) } ∈ l)
+  (f_measurable : measurable f)
+  (h_bound : { n | ∀ₘ a, ∥F n a∥ ≤ bound a } ∈ l)
+  (bound_integrable : integrable bound)
+  (h_lim : ∀ₘ a, tendsto (λ n, F n a) l (𝓝 (f a))) :
+  tendsto (λn, ∫ a, F n a) l (𝓝 $ (∫ a, f a)) :=
+begin
+  rw hl_cb.tendsto_iff_seq_tendsto,
+  { intros x xl,
+    have hxl, { rw tendsto_at_top' at xl, exact xl },
+    have h := inter_mem_sets hF_meas h_bound,
+    replace h := hxl _ h,
+    rcases h with ⟨k, h⟩,
+    rw ← tendsto_add_at_top_iff_nat k,
+    refine tendsto_integral_of_dominated_convergence _ _ _ _ _ _,
+    { exact bound },
+    { intro, refine (h _ _).1, exact nat.le_add_left _ _ },
+    { assumption },
+    { assumption },
+    { intro, refine (h _ _).2, exact nat.le_add_left _ _ },
+    { filter_upwards [h_lim],
+      simp only [mem_set_of_eq],
+      assume a h_lim,
+      apply @tendsto.comp _ _ _ (λn, x (n + k)) (λn, F n a),
+      { assumption },
+      rw tendsto_add_at_top_iff_nat,
+      assumption } },
 end
 
 /-- The Bochner integral of a real-valued function `f : α → ℝ` is the difference between the
@@ -1240,7 +1237,7 @@ begin
       assume a h,
       rw max_eq_left h },
     rw [h_min, h_max, zero_to_real, _root_.sub_zero] },
-  { rw integral_eq_zero_of_non_integrable hfi,
+  { rw integral_non_integrable hfi,
     rw [integrable_iff_norm, lt_top_iff_ne_top, ne.def, not_not] at hfi,
     have : (∫⁻ (a : α), ennreal.of_real (f a)) = (∫⁻ a, ennreal.of_real ∥f a∥),
     { apply lintegral_congr_ae,
@@ -1255,7 +1252,7 @@ lemma integral_nonneg_of_nonneg_ae {f : α → ℝ} (hf : ∀ₘ a, 0 ≤ f a) :
 begin
   by_cases hfm : measurable f,
   { rw integral_eq_lintegral_of_nonneg_ae hf hfm, exact to_real_nonneg },
-  { rw integral_eq_zero_of_non_measurable hfm }
+  { rw integral_non_measurable hfm }
 end
 
 lemma integral_nonpos_of_nonpos_ae {f : α → ℝ} (hf : ∀ₘ a, f a ≤ 0) : integral f ≤ 0 :=
@@ -1283,10 +1280,10 @@ have le_ae : ∀ₘ (a : α), 0 ≤ ∥f a∥ := by filter_upwards [] λa, norm_
 classical.by_cases
 ( λh : measurable f,
   calc ∥integral f∥ ≤ ennreal.to_real (∫⁻ a, ennreal.of_real ∥f a∥) : norm_integral_le_lintegral_norm _
-    ... = ∫ a, ∥f a∥ : (integral_eq_lintegral_of_nonneg_ae le_ae $ measurable_norm h).symm )
+    ... = ∫ a, ∥f a∥ : (integral_eq_lintegral_of_nonneg_ae le_ae $ measurable.norm h).symm )
 ( λh : ¬measurable f,
   begin
-    rw [integral_eq_zero_of_non_measurable h, _root_.norm_zero],
+    rw [integral_non_measurable h, _root_.norm_zero],
     exact integral_nonneg_of_nonneg_ae le_ae
   end )
 

@@ -28,7 +28,7 @@ Note: this is different from the `emetric_space` topology. The `emetric_space` t
 instance : topological_space ennreal :=
 topological_space.generate_from {s | ∃a, s = {b | a < b} ∨ s = {b | b < a}}
 
-instance : orderable_topology ennreal := ⟨rfl⟩
+instance : order_topology ennreal := ⟨rfl⟩
 
 instance : t2_space ennreal := by apply_instance -- short-circuit type class inference
 
@@ -51,7 +51,7 @@ instance : second_countable_topology ennreal :=
 lemma embedding_coe : embedding (coe : nnreal → ennreal) :=
 ⟨⟨begin
   refine le_antisymm _ _,
-  { rw [orderable_topology.topology_eq_generate_intervals ennreal,
+  { rw [order_topology.topology_eq_generate_intervals ennreal,
       ← coinduced_le_iff_le_induced],
     refine le_generate_from (assume s ha, _),
     rcases ha with ⟨a, rfl | rfl⟩,
@@ -59,7 +59,7 @@ lemma embedding_coe : embedding (coe : nnreal → ennreal) :=
     { cases a; simp [none_eq_top, some_eq_coe, is_open_lt'] },
     show is_open {b : nnreal | ↑b < a},
     { cases a; simp [none_eq_top, some_eq_coe, is_open_gt', is_open_const] } },
-  { rw [orderable_topology.topology_eq_generate_intervals nnreal],
+  { rw [order_topology.topology_eq_generate_intervals nnreal],
     refine le_generate_from (assume s ha, _),
     rcases ha with ⟨a, rfl | rfl⟩,
     exact ⟨Ioi a, is_open_Ioi, by simp [Ioi]⟩,
@@ -131,10 +131,10 @@ tendsto_nhds_top $ λ n, mem_at_top_sets.2
   ⟨n+1, λ m hm, ennreal.coe_nat_lt_coe_nat.2 $ nat.lt_of_succ_le hm⟩
 
 lemma nhds_top : 𝓝 ∞ = ⨅a ≠ ∞, principal (Ioi a) :=
-nhds_top_orderable.trans $ by simp [lt_top_iff_ne_top, Ioi]
+nhds_top_order.trans $ by simp [lt_top_iff_ne_top, Ioi]
 
 lemma nhds_zero : 𝓝 (0 : ennreal) = ⨅a ≠ 0, principal (Iio a) :=
-nhds_bot_orderable.trans $ by simp [bot_lt_iff_ne_bot, Iio]
+nhds_bot_order.trans $ by simp [bot_lt_iff_ne_bot, Iio]
 
 -- using Icc because
 -- • don't have 'Ioo (x - ε) (x + ε) ∈ 𝓝 x' unless x > 0
@@ -175,7 +175,7 @@ begin
     assume y, rintros ⟨h₁, h₂⟩, rw xbx at h₂, calc y ≤ b : h₂ ... < a : ba },
 end
 
-/-- Characterization of neighborhoods for `ennreal` numbers. See also `tendsto_orderable`
+/-- Characterization of neighborhoods for `ennreal` numbers. See also `tendsto_order`
 for a version with strict inequalities. -/
 protected theorem tendsto_nhds {f : filter α} {u : α → ennreal} {a : ennreal} (ha : a ≠ ⊤) :
   tendsto u f (𝓝 a) ↔ ∀ ε > 0, {x | (u x) ∈ Icc (a - ε) (a + ε)} ∈ f :=
@@ -259,7 +259,7 @@ by_cases
   (assume ha : a ≠ 0, ennreal.tendsto.mul tendsto_const_nhds (or.inl ha) hm hb)
 
 protected lemma continuous_inv : continuous (has_inv.inv : ennreal → ennreal) :=
-continuous_iff_continuous_at.2 $ λ a, tendsto_orderable.2
+continuous_iff_continuous_at.2 $ λ a, tendsto_order.2
 ⟨begin
   assume b hb,
   simp only [@ennreal.lt_inv_iff_lt_inv b],
@@ -402,7 +402,7 @@ protected lemma coe_tsum {f : α → nnreal} : summable f → ↑(tsum f) = (∑
 | ⟨r, hr⟩ := by rw [tsum_eq_has_sum hr, ennreal.tsum_coe_eq hr]
 
 protected lemma has_sum : has_sum f (⨆s:finset α, s.sum f) :=
-tendsto_orderable.2
+tendsto_order.2
   ⟨assume a' ha',
     let ⟨s, hs⟩ := lt_supr_iff.mp ha' in
     mem_at_top_sets.mpr ⟨s, assume t ht, lt_of_lt_of_le hs $ finset.sum_le_sum_of_subset ht⟩,
@@ -564,7 +564,7 @@ lemma has_sum_iff_tendsto_nat_of_nonneg {f : ℕ → ℝ} (hf : ∀i, 0 ≤ f i)
   have r_eq : r = r' := rfl,
   begin
     rw [f_eq, r_eq, nnreal.has_sum_coe, nnreal.has_sum_iff_tendsto_nat, ← nnreal.tendsto_coe],
-    simp only [nnreal.sum_coe],
+    simp only [nnreal.coe_sum],
     exact hfr
   end⟩
 
@@ -620,7 +620,7 @@ lemma emetric.cauchy_seq_iff_le_tendsto_0 [inhabited β] [semilattice_sup β] {s
     exact ⟨hm, hn⟩ },
   --Prove that it tends to `0`, by using the Cauchy property of `s`
   have D : tendsto b at_top (𝓝 0),
-  { refine tendsto_orderable.2 ⟨λa ha, absurd ha (ennreal.not_lt_zero), λε εpos, _⟩,
+  { refine tendsto_order.2 ⟨λa ha, absurd ha (ennreal.not_lt_zero), λε εpos, _⟩,
     rcases dense εpos with ⟨δ, δpos, δlt⟩,
     rcases hs δ δpos with ⟨N, hN⟩,
     refine filter.mem_at_top_sets.2 ⟨N, λn hn, _⟩,
@@ -639,7 +639,7 @@ begin
   /-b : ℕ → ℝ, b_bound : ∀ (n m N : ℕ), N ≤ n → N ≤ m → edist (s n) (s m) ≤ b N,
     b_lim : tendsto b at_top (𝓝 0)-/
   refine emetric.cauchy_seq_iff.2 (λε εpos, _),
-  have : {n | b n < ε} ∈ at_top := (tendsto_orderable.1 b_lim ).2 _ εpos,
+  have : {n | b n < ε} ∈ at_top := (tendsto_order.1 b_lim ).2 _ εpos,
   rcases filter.mem_at_top_sets.1 this with ⟨N, hN⟩,
   exact ⟨N, λm n hm hn, calc
     edist (s n) (s m) ≤ b N : b_bound n m N hn hm
@@ -649,7 +649,7 @@ end⟩
 lemma continuous_of_le_add_edist {f : α → ennreal} (C : ennreal)
   (hC : C ≠ ⊤) (h : ∀x y, f x ≤ f y + C * edist x y) : continuous f :=
 begin
-  refine continuous_iff_continuous_at.2 (λx, tendsto_orderable.2 ⟨_, _⟩),
+  refine continuous_iff_continuous_at.2 (λx, tendsto_order.2 ⟨_, _⟩),
   show ∀e, e < f x → {y : α | e < f y} ∈ 𝓝 x,
   { assume e he,
     let ε := min (f x - e) 1,

@@ -5,7 +5,7 @@ Authors: Robert Y. Lewis
 
 -/
 
-import data.real.cau_seq_completion topology.metric_space.cau_seq_filter
+import data.real.cau_seq_completion
 import data.padics.padic_norm algebra.archimedean analysis.normed_space.basic
 import tactic.norm_cast
 

@@ -16,43 +16,13 @@ noncomputable theory
 open lattice set filter
 open_locale classical topological_space
 
-section sequence_of_directed
-variables {α : Type*} {β : Type*} [encodable α] [inhabited α]
-open encodable
-
-noncomputable def sequence_of_directed (r : β → β → Prop) (f : α → β) (hf : directed r f) : ℕ → α
-| 0       := default α
-| (n + 1) :=
-  let p := sequence_of_directed n in
-  match decode α n with
-  | none     := p
-  | (some a) := classical.some (hf p a)
-  end
-
-lemma monotone_sequence_of_directed [partial_order β] (f : α → β) (hf : directed (≤) f) :
-  monotone (f ∘ sequence_of_directed (≤) f hf) :=
-monotone_of_monotone_nat $ assume n,
-  begin
-    dsimp [sequence_of_directed],
-    generalize eq : sequence_of_directed (≤) f hf n = p,
-    cases h : decode α n with a,
-    { refl },
-    { exact (classical.some_spec (hf p a)).1 }
-  end
-
-lemma le_sequence_of_directed [partial_order β] (f : α → β) (hf : directed (≤) f) (a : α) :
-  f a ≤ f (sequence_of_directed (≤) f hf (encode a + 1)) :=
-begin
-  simp [sequence_of_directed, -add_comm, encodek],
-  exact (classical.some_spec (hf _ a)).2
-end
-
-end sequence_of_directed
-
 namespace measure_theory
 
 variables {α : Type*} {β : Type*} {γ : Type*} {δ : Type*}
 
+/-- A function `f` from a measurable space to any type is called *simple*,
+if every preimage `f ⁻¹' {x}` is measurable, and the range is finite. This structure bundles
+a function with these properties. -/
 structure {u v} simple_func (α : Type u) [measurable_space α] (β : Type v) :=
 (to_fun : α → β)
 (measurable_sn : ∀ x, is_measurable (to_fun ⁻¹' {x}))
@@ -69,7 +39,8 @@ instance has_coe_to_fun : has_coe_to_fun (α →ₛ β) := ⟨_, to_fun⟩
 @[ext] theorem ext {f g : α →ₛ β} (H : ∀ a, f a = g a) : f = g :=
 by cases f; cases g; congr; exact funext H
 
-protected def range (f : α →ₛ β) := f.finite.to_finset
+/-- Range of a simple function `α →ₛ β` as a `finset β`. -/
+protected def range (f : α →ₛ β) : finset β := f.finite.to_finset
 
 @[simp] theorem mem_range {f : α →ₛ β} {b} : b ∈ f.range ↔ ∃ a, f a = b :=
 finite.mem_to_finset
@@ -79,6 +50,7 @@ iff.intro
   (by simp [set.eq_empty_iff_forall_not_mem, mem_range])
   (by simp [set.eq_empty_iff_forall_not_mem, mem_range])
 
+/-- Constant function as a `simple_func`. -/
 def const (α) {β} [measurable_space α] (b : β) : α →ₛ β :=
 ⟨λ a, b, λ x, is_measurable.const _,
   finite_subset (set.finite_singleton b) $ by rintro _ ⟨a, rfl⟩; simp⟩
@@ -106,6 +78,7 @@ end
 theorem preimage_measurable (f : α →ₛ β) (s) : is_measurable (f ⁻¹' s) :=
 is_measurable_cut (λ _ b, b ∈ s) f (λ b, by simp [is_measurable.const])
 
+/-- A simple function is measurable -/
 theorem measurable [measurable_space β] (f : α →ₛ β) : measurable f :=
 λ s _, preimage_measurable f s
 
@@ -122,6 +95,8 @@ def ite {s : set α} (hs : is_measurable s) (f g : α →ₛ β) : α →ₛ β 
 @[simp] theorem ite_apply {s : set α} (hs : is_measurable s)
   (f g : α →ₛ β) (a) : ite hs f g a = if a ∈ s then f a else g a := rfl
 
+/-- If `f : α →ₛ β` is a simple function and `g : β → α →ₛ γ` is a family of simple functions,
+then `f.bind g` binds the first argument of `g` to `f`. In other words, `f.bind g a = g (f a) a`. -/
 def bind (f : α →ₛ β) (g : β → α →ₛ γ) : α →ₛ γ :=
 ⟨λa, g (f a) a,
  λ c, is_measurable_cut (λa b, g b a ∈ ({c} : set γ)) f (λ b, (g b).measurable_sn c),
@@ -131,6 +106,8 @@ def bind (f : α →ₛ β) (g : β → α →ₛ γ) : α →ₛ γ :=
 @[simp] theorem bind_apply (f : α →ₛ β) (g : β → α →ₛ γ) (a) :
   f.bind g a = g (f a) a := rfl
 
+/-- Restrict a simple function `f : α →ₛ β`` to a set `s`. If `s` is measurable,
+then `f.restrict s a = if a ∈ s then f a else 0`, otherwise `f.restrict s = const α 0`. -/
 def restrict [has_zero β] (f : α →ₛ β) (s : set α) : α →ₛ β :=
 if hs : is_measurable s then ite hs f (const α 0) else const α 0
 
@@ -185,8 +162,14 @@ begin
   rw this
 end
 
+/-- If `f` is a simple function taking values in `β → γ` and `g` is another simple function
+with the same domain and codomain `β`, then `f.seq g = f a (g a)`. -/
 def seq (f : α →ₛ (β → γ)) (g : α →ₛ β) : α →ₛ γ := f.bind (λf, g.map f)
 
+@[simp] lemma seq_apply (f : α →ₛ (β → γ)) (g : α →ₛ β) (a : α) : f.seq g a = f a (g a) := rfl
+
+/-- Combine two simple functions `f : α →ₛ β` and `g : α →ₛ β`
+into `λ a, (f a, g a)`. -/
 def pair (f : α →ₛ β) (g : α →ₛ γ) : α →ₛ (β × γ) := (f.map prod.mk).seq g
 
 @[simp] lemma pair_apply (f : α →ₛ β) (g : α →ₛ γ) (a) : pair f g a = (f a, g a) := rfl
@@ -314,10 +297,13 @@ section approx
 section
 variables [semilattice_sup_bot β] [has_zero β]
 
+/-- Fix a sequence `i : ℕ → β`. Given a function `α → β`, its `n`-th approximation
+by simple functions is defined so that in case `β = ennreal` it sends each `a` to the supremum
+of the set `{i k | k ≤ n ∧ i k ≤ f a}`, see `approx_apply` and `supr_approx_apply` for details. -/
 def approx (i : ℕ → β) (f : α → β) (n : ℕ) : α →ₛ β :=
 (finset.range n).sup (λk, restrict (const α (i k)) {a:α | i k ≤ f a})
 
-lemma approx_apply [topological_space β] [ordered_topology β] {i : ℕ → β} {f : α → β} {n : ℕ}
+lemma approx_apply [topological_space β] [order_closed_topology β] {i : ℕ → β} {f : α → β} {n : ℕ}
   (a : α) (hf : _root_.measurable f) :
   (approx i f n : α →ₛ β) a = (finset.range n).sup (λk, if i k ≤ f a then i k else 0) :=
 begin
@@ -333,7 +319,7 @@ end
 lemma monotone_approx (i : ℕ → β) (f : α → β) : monotone (approx i f) :=
 assume n m h, finset.sup_mono $ finset.range_subset.2 h
 
-lemma approx_comp [topological_space β] [ordered_topology β] [measurable_space γ]
+lemma approx_comp [topological_space β] [order_closed_topology β] [measurable_space γ]
   {i : ℕ → β} {f : γ → β} {g : α → γ} {n : ℕ} (a : α)
   (hf : _root_.measurable f) (hg : _root_.measurable g) :
   (approx i (f ∘ g) n : α →ₛ β) a = (approx i f n : γ →ₛ β) (g a) :=
@@ -341,7 +327,7 @@ by rw [approx_apply _ hf, approx_apply _ (hf.comp hg)]
 
 end
 
-lemma supr_approx_apply [topological_space β] [complete_lattice β] [ordered_topology β] [has_zero β]
+lemma supr_approx_apply [topological_space β] [complete_lattice β] [order_closed_topology β] [has_zero β]
   (i : ℕ → β) (f : α → β) (a : α) (hf : _root_.measurable f) (h_zero : (0 : β) = ⊥) :
   (⨆n, (approx i f n : α →ₛ β) a) = (⨆k (h : i k ≤ f a), i k) :=
 begin
@@ -362,6 +348,7 @@ end approx
 
 section eapprox
 
+/-- A sequence of `ennreal`s such that its range is the set of non-negative rational numbers. -/
 def ennreal_rat_embed (n : ℕ) : ennreal :=
 nnreal.of_real ((encodable.decode ℚ n).get_or_else (0 : ℚ))
 
@@ -1140,9 +1127,9 @@ calc
 
 /-- Dominated convergence theorem for nonnegative functions -/
 lemma tendsto_lintegral_of_dominated_convergence
-  {F : ℕ → α → ennreal} {f : α → ennreal} {g : α → ennreal}
-  (hF_meas : ∀n, measurable (F n)) (h_bound : ∀n, ∀ₘ a, F n a ≤ g a)
-  (h_fin : lintegral g < ⊤)
+  {F : ℕ → α → ennreal} {f : α → ennreal} (bound : α → ennreal)
+  (hF_meas : ∀n, measurable (F n)) (h_bound : ∀n, ∀ₘ a, F n a ≤ bound a)
+  (h_fin : lintegral bound < ⊤)
   (h_lim : ∀ₘ a, tendsto (λ n, F n a) at_top (𝓝 (f a))) :
   tendsto (λn, lintegral (F n)) at_top (𝓝 (lintegral f)) :=
 begin
@@ -1173,6 +1160,37 @@ begin
   exact tendsto_of_liminf_eq_limsup ⟨liminf_eq_lintegral, limsup_eq_lintegral⟩
 end
 
+/-- Dominated convergence theorem for filters with a countable basis -/
+lemma tendsto_lintegral_filter_of_dominated_convergence {ι} {l : filter ι}
+  {F : ι → α → ennreal} {f : α → ennreal} (bound : α → ennreal)
+  (hl_cb : l.has_countable_basis)
+  (hF_meas : { n | measurable (F n) } ∈ l)
+  (h_bound : { n | ∀ₘ a, F n a ≤ bound a } ∈ l)
+  (h_fin : lintegral bound < ⊤)
+  (h_lim : ∀ₘ a, tendsto (λ n, F n a) l (nhds (f a))) :
+  tendsto (λn, lintegral (F n)) l (nhds (lintegral f)) :=
+begin
+  rw hl_cb.tendsto_iff_seq_tendsto,
+  { intros x xl,
+    have hxl, { rw tendsto_at_top' at xl, exact xl },
+    have h := inter_mem_sets hF_meas h_bound,
+    replace h := hxl _ h,
+    rcases h with ⟨k, h⟩,
+    rw ← tendsto_add_at_top_iff_nat k,
+    refine tendsto_lintegral_of_dominated_convergence _ _ _ _ _,
+    { exact bound },
+    { intro, refine (h _ _).1, exact nat.le_add_left _ _ },
+    { intro, refine (h _ _).2, exact nat.le_add_left _ _ },
+    { assumption },
+    { filter_upwards [h_lim],
+      simp only [mem_set_of_eq],
+      assume a h_lim,
+      apply @tendsto.comp _ _ _ (λn, x (n + k)) (λn, F n a),
+      { assumption },
+      rw tendsto_add_at_top_iff_nat,
+      assumption } },
+end
+
 section
 open encodable
 
@@ -1187,20 +1205,20 @@ begin
     simp [this] },
   cases of_not_not hβ with b,
   haveI iβ : inhabited β := ⟨b⟩, clear hβ b,
-  have : ∀a, (⨆ b, f b a) = (⨆ n, f (sequence_of_directed (≤) f h_directed n) a),
+  have : ∀a, (⨆ b, f b a) = (⨆ n, f (h_directed.sequence f n) a),
   { assume a,
     refine le_antisymm (supr_le $ assume b, _) (supr_le $ assume n, le_supr (λn, f n a) _),
-    exact le_supr_of_le (encode b + 1) (le_sequence_of_directed f h_directed b a) },
-  calc (∫⁻ a, ⨆ b, f b a) = (∫⁻ a, ⨆ n, f (sequence_of_directed (≤) f h_directed n) a) :
+    exact le_supr_of_le (encode b + 1) (h_directed.le_sequence b a) },
+  calc (∫⁻ a, ⨆ b, f b a) = (∫⁻ a, ⨆ n, f (h_directed.sequence f n) a) :
       by simp only [this]
-    ... = (⨆ n, ∫⁻ a, f (sequence_of_directed (≤) f h_directed n) a) :
-      lintegral_supr (assume n, hf _) (monotone_sequence_of_directed f h_directed)
+    ... = (⨆ n, ∫⁻ a, f (h_directed.sequence f n) a) :
+      lintegral_supr (assume n, hf _) h_directed.sequence_mono
     ... = (⨆ b, ∫⁻ a, f b a) :
     begin
       refine le_antisymm (supr_le $ assume n, _) (supr_le $ assume b, _),
       { exact le_supr (λb, lintegral (f b)) _ },
       { exact le_supr_of_le (encode b + 1)
-          (lintegral_le_lintegral _ _ $ le_sequence_of_directed f h_directed b) }
+          (lintegral_le_lintegral _ _ $ h_directed.le_sequence b) }
     end
 end
 

@@ -78,13 +78,29 @@ instance : is_semiring_hom (coe : ℝ≥0 → ℝ) := by refine_struct {..}; int
 @[norm_cast] lemma coe_pow (r : ℝ≥0) (n : ℕ) : ((r^n : ℝ≥0) : ℝ) = r^n :=
 is_monoid_hom.map_pow coe r n
 
-@[norm_cast] lemma sum_coe {α} {s : finset α} {f : α → ℝ≥0} :
-  ↑(s.sum f) = s.sum (λa, (f a : ℝ)) :=
-eq.symm $ finset.sum_hom _
+@[norm_cast] lemma coe_list_sum (l : list ℝ≥0) :
+  ((l.sum : ℝ≥0) : ℝ) = (l.map coe).sum :=
+eq.symm $ l.sum_hom coe
 
-@[norm_cast] lemma prod_coe {α} {s : finset α} {f : α → ℝ≥0} :
+@[norm_cast] lemma coe_list_prod (l : list ℝ≥0) :
+  ((l.prod : ℝ≥0) : ℝ) = (l.map coe).prod :=
+eq.symm $ l.prod_hom coe
+
+@[norm_cast] lemma coe_multiset_sum (s : multiset ℝ≥0) :
+  ((s.sum : ℝ≥0) : ℝ) = (s.map coe).sum :=
+eq.symm $ s.sum_hom coe
+
+@[norm_cast] lemma coe_multiset_prod (s : multiset ℝ≥0) :
+  ((s.prod : ℝ≥0) : ℝ) = (s.map coe).prod :=
+eq.symm $ s.prod_hom coe
+
+@[norm_cast] lemma coe_sum {α} {s : finset α} {f : α → ℝ≥0} :
+  ↑(s.sum f) = s.sum (λa, (f a : ℝ)) :=
+eq.symm $ s.sum_hom coe
+
+@[norm_cast] lemma coe_prod {α} {s : finset α} {f : α → ℝ≥0} :
   ↑(s.prod f) = s.prod (λa, (f a : ℝ)) :=
-eq.symm $ finset.prod_hom _
+eq.symm $ s.prod_hom coe
 
 @[norm_cast] lemma smul_coe (r : ℝ≥0) (n : ℕ) : ↑(add_monoid.smul n r) = add_monoid.smul n (r:ℝ) :=
 is_add_monoid_hom.map_smul coe r n
@@ -278,6 +294,10 @@ lemma of_real_lt_of_real_iff {r p : ℝ} (h : 0 < p) :
   nnreal.of_real r < nnreal.of_real p ↔ r < p :=
 of_real_lt_of_real_iff'.trans (and_iff_left h)
 
+lemma of_real_lt_of_real_iff_of_nonneg {r p : ℝ} (hr : 0 ≤ r) :
+  nnreal.of_real r < nnreal.of_real p ↔ r < p :=
+of_real_lt_of_real_iff'.trans ⟨and.left, λ h, ⟨h, lt_of_le_of_lt hr h⟩⟩
+
 @[simp] lemma of_real_add {r p : ℝ} (hr : 0 ≤ r) (hp : 0 ≤ p) :
   nnreal.of_real (r + p) = nnreal.of_real r + nnreal.of_real p :=
 nnreal.eq $ by simp [nnreal.of_real, hr, hp, add_nonneg]
@@ -384,6 +404,9 @@ by rw [← nnreal.eq_iff, nnreal.coe_inv, nnreal.coe_zero, inv_eq_zero, ← nnre
 @[simp] lemma inv_pos {r : nnreal} : 0 < r⁻¹ ↔ 0 < r :=
 by simp [zero_lt_iff_ne_zero]
 
+lemma div_pos {r p : ℝ≥0}  (hr : 0 < r) (hp : 0 < p) : 0 < r / p :=
+mul_pos hr (inv_pos.2 hp)
+
 @[simp] lemma inv_one : (1:ℝ≥0)⁻¹ = 1 := nnreal.eq $ inv_one
 
 protected lemma mul_inv {r p : ℝ≥0} : (r * p)⁻¹ = p⁻¹ * r⁻¹ := nnreal.eq $ mul_inv' _ _
@@ -396,6 +419,15 @@ nnreal.eq $ inv_mul_cancel $ mt (@nnreal.eq_iff r 0).1 h
 
 @[simp] lemma mul_inv_cancel {r : ℝ≥0} (h : r ≠ 0) : r * r⁻¹ = 1 :=
 by rw [mul_comm, inv_mul_cancel h]
+
+@[simp] lemma div_mul_cancel {r p : ℝ≥0} (h : p ≠ 0) : r / p * p = r :=
+by rw [div_def, mul_assoc, inv_mul_cancel h, mul_one]
+
+@[simp] lemma mul_div_cancel {r p : ℝ≥0} (h : p ≠ 0) : r * p / p = r :=
+by rw [div_def, mul_assoc, mul_inv_cancel h, mul_one]
+
+@[simp] lemma mul_div_cancel' {r p : ℝ≥0} (h : r ≠ 0) : r * (p / r) = p :=
+by rw [mul_comm, div_mul_cancel h]
 
 @[simp] lemma inv_inv {r : ℝ≥0} : r⁻¹⁻¹ = r := nnreal.eq $ inv_inv' _
 
@@ -428,6 +460,8 @@ le_of_forall_ge_of_dense $ assume a ha,
 
 lemma div_add_div_same (a b c : ℝ≥0) : a / c + b / c = (a + b) / c :=
 eq.symm $ right_distrib a b (c⁻¹)
+
+lemma half_pos {a : ℝ≥0} (h : 0 < a) : 0 < a / 2 := div_pos h zero_lt_two
 
 lemma add_halves (a : ℝ≥0) : a / 2 + a / 2 = a := nnreal.eq (add_halves a)
 

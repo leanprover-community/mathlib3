@@ -111,24 +111,27 @@ subset.antisymm h₁ h₂
 theorem mem_of_subset_of_mem {s₁ s₂ : set α} {a : α} : s₁ ⊆ s₂ → a ∈ s₁ → a ∈ s₂ :=
 assume h₁ h₂, h₁ h₂
 
-theorem not_subset : (¬ s ⊆ t) ↔ ∃a, a ∈ s ∧ a ∉ t :=
+theorem not_subset : (¬ s ⊆ t) ↔ ∃a ∈ s, a ∉ t :=
 by simp [subset_def, classical.not_forall]
 
 /-! ### Definition of strict subsets `s ⊂ t` and basic properties. -/
 
 /-- `s ⊂ t` means that `s` is a strict subset of `t`, that is, `s ⊆ t` but `s ≠ t`. -/
-def strict_subset (s t : set α) := s ⊆ t ∧ s ≠ t
+def strict_subset (s t : set α) := s ⊆ t ∧ ¬ (t ⊆ s)
 
 instance : has_ssubset (set α) := ⟨strict_subset⟩
 
-theorem ssubset_def : (s ⊂ t) = (s ⊆ t ∧ s ≠ t) := rfl
+theorem ssubset_def : (s ⊂ t) = (s ⊆ t ∧ ¬ (t ⊆ s)) := rfl
+
+theorem eq_or_ssubset_of_subset (h : s ⊆ t) : s = t ∨ s ⊂ t :=
+classical.by_cases
+  (λ H : t ⊆ s, or.inl $ subset.antisymm h H)
+  (λ H, or.inr ⟨h, H⟩)
 
 lemma exists_of_ssubset {α : Type u} {s t : set α} (h : s ⊂ t) : (∃x∈t, x ∉ s) :=
-classical.by_contradiction $ assume hn,
-  have t ⊆ s, from assume a hat, classical.by_contradiction $ assume has, hn ⟨a, hat, has⟩,
-  h.2 $ subset.antisymm h.1 this
+not_subset.1 h.2
 
-lemma ssubset_iff_subset_not_subset {s t : set α} : s ⊂ t ↔ s ⊆ t ∧ ¬ t ⊆ s :=
+lemma ssubset_iff_subset_ne {s t : set α} : s ⊂ t ↔ s ⊆ t ∧ s ≠ t :=
 by split; simp [set.ssubset_def, ne.def, set.subset.antisymm_iff] {contextual := tt}
 
 theorem not_mem_empty (x : α) : ¬ (x ∈ (∅ : set α)) :=
@@ -484,7 +487,7 @@ theorem insert_subset_insert (h : s ⊆ t) : insert a s ⊆ insert a t :=
 assume a', or.imp_right (@h a')
 
 theorem ssubset_insert {s : set α} {a : α} (h : a ∉ s) : s ⊂ insert a s :=
-by finish [ssubset_def, ext_iff]
+by finish [ssubset_iff_subset_ne, ext_iff]
 
 theorem insert_comm (a b : α) (s : set α) : insert a (insert b s) = insert b (insert a s) :=
 ext $ by simp [or.left_comm]
@@ -698,6 +701,10 @@ h.left
 
 theorem not_mem_of_mem_diff {s t : set α} {x : α} (h : x ∈ s \ t) : x ∉ t :=
 h.right
+
+theorem nonempty_diff {s t : set α} : (s \ t).nonempty ↔ ¬ (s ⊆ t) :=
+⟨λ ⟨x, xs, xt⟩, not_subset.2 ⟨x, xs, xt⟩,
+  λ h, let ⟨x, xs, xt⟩ := not_subset.1 h in ⟨x, xs, xt⟩⟩
 
 theorem union_diff_cancel {s t : set α} (h : s ⊆ t) : s ∪ (t \ s) = t :=
 by finish [ext_iff, iff_def, subset_def]
@@ -982,6 +989,9 @@ by simp only [eq_empty_iff_forall_not_mem]; exact
 
 lemma inter_singleton_ne_empty {s : set α} {a : α} : s ∩ {a} ≠ ∅ ↔ a ∈ s :=
 by finish  [set.inter_singleton_eq_empty]
+
+lemma inter_singleton_nonempty {s : set α} {a : α} : (s ∩ {a}).nonempty ↔ a ∈ s :=
+ne_empty_iff_nonempty.symm.trans inter_singleton_ne_empty
 
 theorem fix_set_compl (t : set α) : compl t = - t := rfl
 

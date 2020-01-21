@@ -59,6 +59,17 @@ lemma filter.tendsto.inv [topological_group α] {f : β → α} {x : filter β} 
   (hf : tendsto f x (𝓝 a)) : tendsto (λx, (f x)⁻¹) x (𝓝 a⁻¹) :=
 tendsto.comp (continuous_iff_continuous_at.mp (topological_group.continuous_inv α) a) hf
 
+@[to_additive]
+lemma continuous_at.inv [topological_group α] [topological_space β] {f : β → α} {x : β}
+  (hf : continuous_at f x) : continuous_at (λx, (f x)⁻¹) x :=
+hf.inv
+
+@[to_additive]
+lemma continuous_within_at.inv [topological_group α] [topological_space β] {f : β → α}
+  {s : set β} {x : β} (hf : continuous_within_at f s x) :
+  continuous_within_at (λx, (f x)⁻¹) s x :=
+hf.inv
+
 @[to_additive topological_add_group]
 instance [topological_group α] [topological_space β] [group β] [topological_group β] :
   topological_group (α × β) :=

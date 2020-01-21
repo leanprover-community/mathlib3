@@ -229,8 +229,7 @@ def Ad : L →ₗ⁅R⁆ module.End R L := {
   to_fun  := λ x, {
     to_fun := has_bracket.bracket x,
     add    := by { intros, apply lie_add, },
-    smul   := by { intros, apply lie_smul, },
-  },
+    smul   := by { intros, apply lie_smul, } },
   add     := by { intros, ext, simp, },
   smul    := by { intros, ext, simp, },
   bracket := by {

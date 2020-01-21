@@ -246,6 +246,12 @@ return $ let illegal := [`gt, `ge] in if d.type.contains_constant (λ n, n ∈ i
   errors_found := "ILLEGAL CONSTANTS IN DECLARATIONS",
   is_fast := ff }
 
+library_note "nolint_ge" "Currently, the linter forbids the use of `>` and `≥` in definitions and
+statements, as they cause problems in rewrites. However, we still allow them in some contexts,
+for instance when expressing properties of the operator (as in `cobounded (≥)`), or in quantifiers
+such as `∀ ε > 0`. Such statements should be marked with the attribute `nolint` to avoid linter
+failures."
+
 /-- checks whether an instance that always applies has priority ≥ 1000. -/
 -- TODO: instance_priority should also be tested on automatically-generated declarations
 meta def instance_priority (d : declaration) : tactic (option string) := do

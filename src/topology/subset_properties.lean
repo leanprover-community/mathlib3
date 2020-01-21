@@ -33,7 +33,7 @@ lemma compact.inter_right {s t : set α} (hs : compact s) (ht : is_closed t) : c
 assume f hnf hstf,
 let ⟨a, hsa, (ha : f ⊓ 𝓝 a ≠ ⊥)⟩ := hs f hnf (le_trans hstf (le_principal_iff.2 (inter_subset_left _ _))) in
 have a ∈ t,
-  from ht.mem_of_nhds_within_ne_bot $ neq_bot_of_le_neq_bot (by { rw inf_comm at ha, exact ha }) $
+  from ht.mem_of_nhds_within_ne_bot $ ne_bot_of_le_ne_bot (by { rw inf_comm at ha, exact ha }) $
     inf_le_inf (le_refl _) (le_trans hstf (le_principal_iff.2 (inter_subset_right _ _))),
 ⟨a, ⟨hsa, this⟩, ha⟩
 
@@ -50,15 +50,15 @@ inter_eq_self_of_subset_right h ▸ hs.inter_right ht
 lemma compact.adherence_nhdset {s t : set α} {f : filter α}
   (hs : compact s) (hf₂ : f ≤ principal s) (ht₁ : is_open t) (ht₂ : ∀a∈s, 𝓝 a ⊓ f ≠ ⊥ → a ∈ t) :
   t ∈ f :=
-classical.by_cases mem_sets_of_neq_bot $
+classical.by_cases mem_sets_of_eq_bot $
   assume : f ⊓ principal (- t) ≠ ⊥,
   let ⟨a, ha, (hfa : f ⊓ principal (-t) ⊓ 𝓝 a ≠ ⊥)⟩ := hs _ this $ inf_le_left_of_le hf₂ in
   have a ∈ t,
-    from ht₂ a ha $ neq_bot_of_le_neq_bot hfa $ le_inf inf_le_right $ inf_le_left_of_le inf_le_left,
+    from ht₂ a ha $ ne_bot_of_le_ne_bot hfa $ le_inf inf_le_right $ inf_le_left_of_le inf_le_left,
   have nhds_within a (-t) ≠ ⊥,
-    from neq_bot_of_le_neq_bot hfa $ le_inf inf_le_right $ inf_le_left_of_le inf_le_right,
+    from ne_bot_of_le_ne_bot hfa $ le_inf inf_le_right $ inf_le_left_of_le inf_le_right,
   have ∀s∈ nhds_within a (-t), s ≠ ∅,
-    from forall_sets_neq_empty_iff_neq_bot.mpr this,
+    from forall_sets_ne_empty_iff_ne_bot.mpr this,
   have false,
     from this _ ⟨t, mem_nhds_sets ht₁ ‹a ∈ t›, -t, subset.refl _, subset.refl _⟩ (inter_compl_self _),
   by contradiction
@@ -75,7 +75,7 @@ lemma compact_iff_ultrafilter_le_nhds {s : set α} :
     hs (ultrafilter_of f) (ultrafilter_ultrafilter_of hf) (le_trans ultrafilter_of_le hfs) in
   have ultrafilter_of f ⊓ 𝓝 a ≠ ⊥,
     by simp only [inf_of_le_left, h]; exact (ultrafilter_ultrafilter_of hf).left,
-  ⟨a, ha, neq_bot_of_le_neq_bot this (inf_le_inf ultrafilter_of_le (le_refl _))⟩⟩
+  ⟨a, ha, ne_bot_of_le_ne_bot this (inf_le_inf ultrafilter_of_le (le_refl _))⟩⟩
 
 lemma compact.elim_finite_subcover {s : set α} {c : set (set α)}
   (hs : compact s) (hc₁ : ∀t∈c, is_open t) (hc₂ : s ⊆ ⋃₀ c) : ∃c'⊆c, finite c' ∧ s ⊆ ⋃₀ c' :=
@@ -87,7 +87,7 @@ classical.by_contradiction $ assume h,
     ⟨a, ha⟩ := @exists_mem_of_ne_empty α s
       (assume h', h (empty_subset _) finite_empty $ h'.symm ▸ empty_subset _)
   in
-  have f ≠ ⊥, from infi_neq_bot_of_directed ⟨a⟩
+  have f ≠ ⊥, from infi_ne_bot_of_directed ⟨a⟩
     (assume ⟨c₁, hc₁, hc'₁⟩ ⟨c₂, hc₂, hc'₂⟩, ⟨⟨c₁ ∪ c₂, union_subset hc₁ hc₂, finite_union hc'₁ hc'₂⟩,
       principal_mono.mpr $ diff_subset_diff_right $ sUnion_mono $ subset_union_left _ _,
       principal_mono.mpr $ diff_subset_diff_right $ sUnion_mono $ subset_union_right _ _⟩)
@@ -103,7 +103,7 @@ classical.by_contradiction $ assume h,
       principal_mono.mpr $
         show s - ⋃₀{t} ⊆ - t, begin rw sUnion_singleton; exact assume x ⟨_, hnt⟩, hnt end,
   have is_closed (- t), from is_open_compl_iff.mp $ by rw lattice.neg_neg; exact hc₁ t ht₁,
-  have a ∈ - t, from is_closed_iff_nhds.mp this _ $ neq_bot_of_le_neq_bot h $
+  have a ∈ - t, from is_closed_iff_nhds.mp this _ $ ne_bot_of_le_ne_bot h $
     le_inf inf_le_right (inf_le_left_of_le ‹f ≤ principal (- t)›),
   this ‹a ∈ t›
 
@@ -294,7 +294,7 @@ begin
   rcases hs (l.comap f ⊓ principal s) ne_bot inf_le_right with ⟨a, has, ha⟩,
   use [f a, mem_image_of_mem f has],
   rw [inf_assoc, @inf_comm _ _ _ (𝓝 a)] at ha,
-  exact neq_bot_of_le_neq_bot (@@map_ne_bot f ha) (tendsto_comap.inf $ hf a has)
+  exact ne_bot_of_le_ne_bot (@@map_ne_bot f ha) (tendsto_comap.inf $ hf a has)
 end
 
 lemma compact.image {s : set α} {f : α → β} (hs : compact s) (hf : continuous f) :

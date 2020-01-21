@@ -870,6 +870,10 @@ by rw [ennreal.of_real, ennreal.of_real, coe_le_coe, nnreal.of_real_le_of_real_i
 @[simp] lemma of_real_lt_of_real_iff {p q : ℝ} (h : 0 < q) : ennreal.of_real p < ennreal.of_real q ↔ p < q :=
 by rw [ennreal.of_real, ennreal.of_real, coe_lt_coe, nnreal.of_real_lt_of_real_iff h]
 
+lemma of_real_lt_of_real_iff_of_nonneg {p q : ℝ} (hp : 0 ≤ p) :
+  ennreal.of_real p < ennreal.of_real q ↔ p < q :=
+by rw [ennreal.of_real, ennreal.of_real, coe_lt_coe, nnreal.of_real_lt_of_real_iff_of_nonneg hp]
+
 @[simp] lemma of_real_pos {p : ℝ} : 0 < ennreal.of_real p ↔ 0 < p :=
 by simp [ennreal.of_real]
 

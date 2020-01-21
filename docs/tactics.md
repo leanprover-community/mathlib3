@@ -1128,9 +1128,9 @@ expression `h` in the context it will try to normalize `h` and use
 `exact h`.
 `rw_mod_cast` acts like the `rw` tactic but it applies `norm_cast` between steps.
 
-`norm_cast` also defines the `norm_cast` attribute:
-
-TODO: explain the attribute
+`norm_cast` also defines the `norm_cast` attribute.
+The attribute should be given to lemmas that describe the behaviour of a coercion in regard to an operator, a relation, or a particular function.
+It only concerns lemmas involving `↑`, `⇑` and `↥`, and not the explicit functions that define the coercions.
 
 examples:
 ```lean
@@ -1150,6 +1150,9 @@ examples:
 
 @[norm_cast] theorem cast_one : ((1 : ℚ) : α) = 1
 ```
+
+TODO: more details about the different categories of lemmas?
+TODO: bad examples?
 
 `push_cast` rewrites the expression to move casts toward the leaf nodes.
 This uses `squash_cast` and `move_cast` lemmas in the "forward" direction.

@@ -97,10 +97,10 @@ begin
   { -- If `f x < B x`, then all we need is continuity of both sides
     apply inhabited_of_mem_sets (nhds_within_Ioi_self_ne_bot x),
     refine inter_mem_sets _ (Ioc_mem_nhds_within_Ioi ⟨le_refl x, hy⟩),
-    have : {x | f x < B x} ∈ nhds_within x (Icc a b),
+    have : ∀ᶠ x in nhds_within x (Icc a b), f x < B x,
       from A x (Ico_subset_Icc_self xab)
         (mem_nhds_sets (is_open_lt continuous_fst continuous_snd) hxB),
-    have : {x | f x < B x} ∈ nhds_within x (Ioi x),
+    have : ∀ᶠ x in nhds_within x (Ioi x), f x < B x,
       from nhds_within_le_of_mem (Icc_mem_nhds_within_Ioi xab) this,
     refine mem_sets_of_superset this (set_of_subset_set_of.2 $ λ y, le_of_lt) },
   { rcases dense (bound x xab hxB) with ⟨r, hfr, hrB⟩,

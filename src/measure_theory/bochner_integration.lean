@@ -1150,9 +1150,9 @@ end
 lemma tendsto_integral_filter_of_dominated_convergence {ι} {l : filter ι}
   {F : ι → α → β} {f : α → β} (bound : α → ℝ)
   (hl_cb : l.has_countable_basis)
-  (hF_meas : { n | measurable (F n) } ∈ l)
+  (hF_meas : ∀ᶠ n in l, measurable (F n))
   (f_measurable : measurable f)
-  (h_bound : { n | ∀ₘ a, ∥F n a∥ ≤ bound a } ∈ l)
+  (h_bound : ∀ᶠ n in l, ∀ₘ a, ∥F n a∥ ≤ bound a)
   (bound_integrable : integrable bound)
   (h_lim : ∀ₘ a, tendsto (λ n, F n a) l (𝓝 (f a))) :
   tendsto (λn, ∫ a, F n a) l (𝓝 $ (∫ a, f a)) :=

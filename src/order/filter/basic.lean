@@ -567,6 +567,7 @@ protected lemma eventually.and {p q : α → Prop} {f : filter α} :
   f.eventually p → f.eventually q → ∀ᶠ x in f, p x ∧ q x :=
 inter_mem_sets
 
+@[simp]
 lemma eventually_true (f : filter α) : ∀ᶠ x in f, true := univ_mem_sets
 
 lemma eventually_of_forall {p : α → Prop} (f : filter α) (hp : ∀ x, p x) :
@@ -586,6 +587,32 @@ lemma eventually.mono {p q : α → Prop} {f : filter α} (hp : ∀ᶠ x in f, p
   (hq : ∀ x, p x → q x) :
   ∀ᶠ x in f, q x :=
 hp.mp (f.eventually_of_forall hq)
+
+@[simp]
+lemma eventually_bot {p : α → Prop} : ∀ᶠ x in ⊥, p x := ⟨⟩
+
+@[simp]
+lemma eventually_top {p : α → Prop} : (∀ᶠ x in ⊤, p x) ↔ (∀ x, p x) :=
+iff.rfl
+
+lemma eventually_sup {p : α → Prop} {f g : filter α} :
+  (∀ᶠ x in f ⊔ g, p x) ↔ (∀ᶠ x in f, p x) ∧ (∀ᶠ x in g, p x) :=
+iff.rfl
+
+@[simp]
+lemma eventually_Sup {p : α → Prop} {fs : set (filter α)} :
+  (∀ᶠ x in Sup fs, p x) ↔ (∀ f ∈ fs, ∀ᶠ x in f, p x) :=
+iff.rfl
+
+@[simp]
+lemma eventually_supr {p : α → Prop} {fs : β → filter α} :
+  (∀ᶠ x in (⨆ b, fs b), p x) ↔ (∀ b, ∀ᶠ x in fs b, p x) :=
+mem_supr_sets
+
+@[simp]
+lemma eventually_principal {a : set α} {p : α → Prop} :
+  (∀ᶠ x in principal a, p x) ↔ (∀ x ∈ a, p x) :=
+iff.rfl
 
 /-! ### Frequently -/
 
@@ -638,6 +665,44 @@ lemma frequently_iff_forall_eventually_exists_and {p : α → Prop} {f : filter 
   (∃ᶠ x in f, p x) ↔ ∀ {q : α → Prop}, (∀ᶠ x in f, q x) → ∃ x, p x ∧ q x :=
 ⟨assume hp q hq, (hp.and_eventually hq).exists,
   assume H hp, by simpa only [and_not_self, exists_false] using H hp⟩
+
+@[simp] lemma not_eventually {p : α → Prop} {f : filter α} :
+  (¬ ∀ᶠ x in f, p x) ↔ (∃ᶠ x in f, ¬ p x) :=
+by simp [filter.frequently]
+
+@[simp] lemma not_frequently {p : α → Prop} {f : filter α} :
+  (¬ ∃ᶠ x in f, p x) ↔ (∀ᶠ x in f, ¬ p x) :=
+by simp only [filter.frequently, not_not]
+
+lemma frequently_true_iff_ne_bot (f : filter α) : (∃ᶠ x in f, true) ↔ f ≠ ⊥ :=
+by simp [filter.frequently, -not_eventually, eventually_false_iff_eq_bot]
+
+lemma frequently_false (f : filter α) : ¬ ∃ᶠ x in f, false := by simp
+
+lemma frequently_bot {p : α → Prop} : ¬ ∃ᶠ x in ⊥, p x := by simp
+
+@[simp]
+lemma frequently_top {p : α → Prop} : (∃ᶠ x in ⊤, p x) ↔ (∃ x, p x) :=
+by simp [filter.frequently]
+
+@[simp]
+lemma frequently_principal {a : set α} {p : α → Prop} :
+  (∃ᶠ x in principal a, p x) ↔ (∃ x ∈ a, p x) :=
+by simp [filter.frequently, not_forall]
+
+lemma frequently_sup {p : α → Prop} {f g : filter α} :
+  (∃ᶠ x in f ⊔ g, p x) ↔ (∃ᶠ x in f, p x) ∨ (∃ᶠ x in g, p x) :=
+by simp only [filter.frequently, eventually_sup, not_and_distrib]
+
+@[simp]
+lemma frequently_Sup {p : α → Prop} {fs : set (filter α)} :
+  (∃ᶠ x in Sup fs, p x) ↔ (∃ f ∈ fs, ∃ᶠ x in f, p x) :=
+by simp [filter.frequently, -not_eventually, not_forall]
+
+@[simp]
+lemma frequently_supr {p : α → Prop} {fs : β → filter α} :
+  (∃ᶠ x in (⨆ b, fs b), p x) ↔ (∃ b, ∃ᶠ x in fs b, p x) :=
+by simp [filter.frequently, -not_eventually, not_forall]
 
 /- principal equations -/
 
@@ -1398,9 +1463,9 @@ lemma tendsto_infi' {f : α → β} {x : ι → filter α} {y : filter β} (i : 
   tendsto f (x i) y → tendsto f (⨅i, x i) y :=
 tendsto_le_left (infi_le _ _)
 
-lemma tendsto_principal {f : α → β} {a : filter α} {s : set β} :
-  tendsto f a (principal s) ↔ {a | f a ∈ s} ∈ a :=
-by simp only [tendsto, le_principal_iff, mem_map, iff_self]
+lemma tendsto_principal {f : α → β} {l : filter α} {s : set β} :
+  tendsto f l (principal s) ↔ ∀ᶠ a in l, f a ∈ s :=
+by simp only [tendsto, le_principal_iff, mem_map, iff_self, filter.eventually]
 
 lemma tendsto_principal_principal {f : α → β} {s : set α} {t : set β} :
   tendsto f (principal s) (principal t) ↔ ∀a∈s, f a ∈ t :=

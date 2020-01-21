@@ -8,9 +8,7 @@ Construction of the hyperreal numbers as an ultraproduct of real sequences.
 import data.real.basic algebra.field order.filter.filter_product analysis.specific_limits
 
 open filter filter.filter_product
-open_locale topological_space
-
-local attribute [instance] classical.prop_decidable -- TODO: use "open_locale classical"
+open_locale topological_space classical
 
 /-- Hyperreal numbers on the ultrafilter extending the cofinite filter -/
 @[reducible] def hyperreal := filter.filterprod ℝ (@hyperfilter ℕ)
@@ -37,11 +35,10 @@ lemma epsilon_eq_inv_omega : ε = ω⁻¹ := rfl
 lemma inv_epsilon_eq_omega : ε⁻¹ = ω := inv_inv' ω
 
 lemma epsilon_pos : 0 < ε :=
+suffices ∀ᶠ i in hyperfilter, (0 : ℝ) < (i : ℕ)⁻¹, by rwa lt_def U,
 have h0' : {n : ℕ | ¬ n > 0} = {0} :=
 by simp only [not_lt, (set.set_of_eq_eq_singleton).symm]; ext; exact nat.le_zero_iff,
 begin
-  rw lt_def U,
-  show {i : ℕ | (0 : ℝ) < i⁻¹} ∈ hyperfilter.sets,
   simp only [inv_pos', nat.cast_pos],
   exact mem_hyperfilter_of_finite_compl set.infinite_univ_nat
     (by convert set.finite_singleton _),
@@ -622,27 +619,14 @@ theorem infinite_iff_infinitesimal_inv {x : ℝ*} (h0 : x ≠ 0) : infinite x �
 
 lemma infinitesimal_pos_iff_infinite_pos_inv {x : ℝ*} :
   infinite_pos x⁻¹ ↔ (infinitesimal x ∧ x > 0) :=
-begin
-  convert infinite_pos_iff_infinitesimal_inv_pos,
-  all_goals { by_cases h : x = 0,
-    rw [h, inv_zero, inv_zero],
-    exact (division_ring.inv_inv h).symm }
-end
+by convert infinite_pos_iff_infinitesimal_inv_pos; simp only [inv_inv']
 
 lemma infinitesimal_neg_iff_infinite_neg_inv {x : ℝ*} :
   infinite_neg x⁻¹ ↔ (infinitesimal x ∧ x < 0) :=
-begin
-  convert infinite_neg_iff_infinitesimal_inv_neg,
-  all_goals { by_cases h : x = 0,
-    rw [h, inv_zero, inv_zero],
-    exact (division_ring.inv_inv h).symm }
-end
+by convert infinite_neg_iff_infinitesimal_inv_neg; simp only [inv_inv']
 
 theorem infinitesimal_iff_infinite_inv {x : ℝ*} (h : x ≠ 0) : infinitesimal x ↔ infinite x⁻¹ :=
-begin
-  convert (infinite_iff_infinitesimal_inv (inv_ne_zero h)).symm,
-  exact (division_ring.inv_inv h).symm
-end
+by convert (infinite_iff_infinitesimal_inv (inv_ne_zero h)).symm; simp only [inv_inv']
 
 -- ST STUFF THAT REQUIRES INFINITESIMAL MACHINERY
 

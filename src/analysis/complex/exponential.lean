@@ -1812,8 +1812,8 @@ lemma tendsto_exp_at_top : tendsto exp at_top at_top :=
 begin
   have A : tendsto (λx:ℝ, x + 1) at_top at_top :=
     tendsto_at_top_add_const_right at_top 1 tendsto_id,
-  have B : {x : ℝ | x + 1 ≤ exp x} ∈ at_top,
-  { have : {x : ℝ | 0 ≤ x} ∈ at_top := mem_at_top 0,
+  have B : ∀ᶠ x in at_top, x + 1 ≤ exp x,
+  { have : ∀ᶠ x in at_top, 0 ≤ x := mem_at_top 0,
     filter_upwards [this],
     exact λx hx, add_one_le_exp_of_nonneg hx },
   exact tendsto_at_top_mono' at_top B A
@@ -1850,7 +1850,7 @@ begin
       ... = (n+1)^n * (exp x / x^n) :
         by rw [← mul_div_assoc, div_pow _ n_ne_zero, div_div_eq_mul_div, mul_comm],
     rwa div_le_iff' (pow_pos n_pos n) },
-  have B : {x : ℝ | exp (x / (n+1)) / (n+1)^n ≤ exp x / x^n} ∈ at_top :=
+  have B : ∀ᶠ x in at_top, exp (x / (n+1)) / (n+1)^n ≤ exp x / x^n :=
     mem_at_top_sets.2 ⟨1, λx hx, A _ (lt_of_lt_of_le zero_lt_one hx)⟩,
   have C : tendsto (λx, exp (x / (n+1)) / (n+1)^n) at_top at_top :=
     tendsto_at_top_div (pow_pos n_pos n)
@@ -1875,4 +1875,3 @@ lemma has_deriv_within_at.rexp {f : ℝ → ℝ} {f' x : ℝ} {s : set ℝ}
   (hf : has_deriv_within_at f f' s x) :
   has_deriv_within_at (real.exp ∘ f) (f' * real.exp (f x)) s x :=
 (real.has_deriv_at_exp (f x)).comp_has_deriv_within_at x hf
-

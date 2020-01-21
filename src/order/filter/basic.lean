@@ -407,6 +407,10 @@ by
   simp only [(@empty_in_sets_eq_bot α f).symm, ne.def];
   exact ⟨assume h hs, h _ hs rfl, assume h s hs eq, h $ eq ▸ hs⟩
 
+lemma forall_sets_nonempty_iff_ne_bot {f : filter α} :
+  (∀ (s : set α), s ∈ f → s.nonempty) ↔ f ≠ ⊥ :=
+by simpa only [ne_empty_iff_nonempty] using forall_sets_ne_empty_iff_ne_bot
+
 lemma mem_sets_of_eq_bot {f : filter α} {s : set α} (h : f ⊓ principal (-s) = ⊥) : s ∈ f :=
 have ∅ ∈ f ⊓ principal (- s), from h.symm ▸ mem_bot_sets,
 let ⟨s₁, hs₁, s₂, (hs₂ : -s ⊆ s₂), (hs : s₁ ∩ s₂ ⊆ ∅)⟩ := this in

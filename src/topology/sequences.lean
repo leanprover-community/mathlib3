@@ -74,21 +74,8 @@ show A = sequential_closure A, from subset.antisymm
 /-- The sequential closure of a set is contained in the closure of that set.
 The converse is not true. -/
 lemma sequential_closure_subset_closure (M : set α) : sequential_closure M ⊆ closure M :=
-show ∀ p, p ∈ sequential_closure M → p ∈ closure M, from
-assume p,
-assume : ∃ x : ℕ → α, (∀ n : ℕ, ((x n) ∈ M)) ∧ (x ⟶ p),
-let ⟨x, ⟨_, _⟩⟩ := this in
-show p ∈ closure M, from
--- we have to show that p is in the closure of M
--- using mem_closure_iff, this is equivalent to proving that every open neighbourhood
--- has nonempty intersection with M, but this is witnessed by our sequence x
-suffices ∀ O, is_open O → p ∈ O → O ∩ M ≠ ∅, from mem_closure_iff.mpr this,
-have ∀ (U : set α), p ∈ U → is_open U → (∃ n0, ∀ n, n ≥ n0 → x n ∈ U), by rwa[←topological_space.seq_tendsto_iff],
-assume O is_open_O p_in_O,
-let ⟨n0, _⟩ := this O ‹p ∈ O› ‹is_open O› in
-have (x n0) ∈ O, from ‹∀ n ≥ n0, x n ∈ O› n0 (show n0 ≥ n0, from le_refl n0),
-have (x n0) ∈ O ∩ M, from ⟨this, ‹∀n, x n ∈ M› n0⟩,
-set.ne_empty_of_mem this
+assume p ⟨x, xM, xp⟩,
+mem_closure_of_tendsto at_top_ne_bot xp (univ_mem_sets' xM)
 
 /-- A set is sequentially closed if it is closed. -/
 lemma is_seq_closed_of_is_closed (M : set α) (_ : is_closed M) : is_seq_closed M :=

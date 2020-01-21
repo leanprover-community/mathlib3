@@ -109,6 +109,10 @@ set.ext $ λ x, and_comm _ _
 @[simp] lemma nonempty_Ioo [densely_ordered α] : (Ioo a b).nonempty ↔ a < b :=
 ⟨λ ⟨x, ha, hb⟩, lt_trans ha hb, dense⟩
 
+@[simp] lemma nonempty_Ioi [no_top_order α] : (Ioi a).nonempty := no_top a
+
+@[simp] lemma nonempty_Iio [no_bot_order α] : (Iio a).nonempty := no_bot a
+
 @[simp] lemma Ioo_eq_empty (h : b ≤ a) : Ioo a b = ∅ :=
 eq_empty_iff_forall_not_mem.2 $ λ x ⟨h₁, h₂⟩, not_le_of_lt (lt_trans h₁ h₂) h
 

@@ -163,13 +163,13 @@ theorem finite_pure (a : α) : finite (pure a : set α) :=
 ⟨set.fintype_pure a⟩
 
 instance fintype_univ [fintype α] : fintype (@univ α) :=
-fintype.of_equiv α $ (equiv.subtype_univ_equiv α).symm
+fintype.of_equiv α $ (equiv.set.univ α).symm
 
 theorem finite_univ [fintype α] : finite (@univ α) := ⟨set.fintype_univ⟩
 
 theorem infinite_univ_iff : (@univ α).infinite ↔ _root_.infinite α :=
 ⟨λ h₁, ⟨λ h₂, h₁ $ @finite_univ α h₂⟩,
-  λ ⟨h₁⟩ ⟨h₂⟩, h₁ $ @fintype.of_equiv _ _ h₂ $ equiv.subtype_univ_equiv _⟩
+  λ ⟨h₁⟩ ⟨h₂⟩, h₁ $ @fintype.of_equiv _ _ h₂ $ equiv.set.univ _⟩
 
 theorem infinite_univ [h : _root_.infinite α] : infinite (@univ α) :=
 infinite_univ_iff.2 h

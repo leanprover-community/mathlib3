@@ -112,6 +112,7 @@ inductive label
 
 namespace label
 
+/-- convert `label' into `string' -/
 protected def to_string : label → string
 | elim   := "elim"
 | move   := "move"
@@ -120,6 +121,7 @@ protected def to_string : label → string
 
 instance has_to_string : has_to_string label := ⟨label.to_string⟩
 
+/-- convert `string' into `label' -/
 def of_string : string -> option label
 | "elim" := some elim
 | "move" := some move
@@ -131,6 +133,7 @@ end label
 
 open label
 
+/-- auxiliary function for `count_coes' -/
 private meta def count_coes_aux : ℕ → expr → ℕ
 | n (app f x) := if f.is_coe' then count_coes_aux (n+1) x else count_coes_aux (count_coes_aux n f) x
 | n (lam _ _ _ e) := count_coes_aux n e
@@ -326,14 +329,14 @@ The `norm_cast` attribute.
         dependencies := [], },
 }
 
--- run the classifier on the type of a declaration
+/-- run the classifier on the type of a declaration -/
 meta def make_guess (decl : name) : tactic label :=
 do
   e ← mk_const decl,
   ty ← infer_type e,
   classify_type ty
 
--- overwrite the classifier when a label is already present
+/-- overwrite the classifier when a label is already present -/
 meta def get_label (decl : name) : tactic label :=
 do
   param ← norm_cast_attr.get_param decl,
@@ -684,6 +687,7 @@ namespace conv.interactive
 open conv tactic tactic.interactive interactive interactive.types
 open norm_cast (derive)
 
+/-- the converter version of `norm_cast' -/
 meta def norm_cast : conv unit := replace_lhs derive
 
 end conv.interactive
@@ -713,6 +717,7 @@ open tactic expr label
 -- for instance, this command compare the classifiers with and without the manual overwrite
 --run_cmd test_classifiers make_guess get_label
 
+/-- a type to store the test results -/
 inductive test_result : Type
 | agree     : name → label → test_result         -- classifiers make same guess
 | disagree  : name → label → label → test_result -- classifiers make different guesses
@@ -721,24 +726,28 @@ inductive test_result : Type
 
 open test_result
 
+/-- output the name of tested declaration -/
 def get_decl : test_result → name
 | (agree n _)      := n
 | (disagree n _ _) := n
 | (progress n _)   := n
 | (failure n _)    := n
 
+/-- output the label given by the first classifier -/
 def get_first : test_result → option label
 | (agree _ l)      := some l
 | (disagree _ l _) := some l
 | (progress _ _)   := none
 | (failure _ ol)   := ol
 
+/-- output the label given by the second classifier -/
 def get_second : test_result → option label
 | (agree _ l)      := some l
 | (disagree _ _ l) := some l
 | (progress _ l)   := some l
 | (failure _ _)    := none
 
+/-- convert `test_result' into `string' -/
 protected def test_result.to_string (tr : test_result) : string :=
 "#check @" ++ to_string (get_decl tr)
 ++ "\n  -- first:  " ++ to_string (get_first tr)
@@ -746,14 +755,14 @@ protected def test_result.to_string (tr : test_result) : string :=
 
 instance test_result.has_to_string : has_to_string test_result := ⟨test_result.to_string⟩
 
--- a basic structure to sort test results
+/-- a basic structure used to sort test results -/
 structure test_cache : Type :=
 ( a : list test_result ) -- agree
 ( b : list test_result ) -- disagree
 ( c : list test_result ) -- progress
 ( d : list test_result ) -- failure
 
--- sort a test result
+/-- insert a test result into the structure -/
 def aux : test_cache → test_result → test_cache
 | ⟨a, b, c, d⟩ r := match r with
 | (agree _ _)      := ⟨r::a, b, c, d⟩
@@ -762,7 +771,7 @@ def aux : test_cache → test_result → test_cache
 | (failure _ _)    := ⟨a, b, c, r::d⟩
 end
 
--- run classifiers f and g on decl and output the result
+/-- run classifiers `f' and `g' on `decl' and output the result -/
 meta def test_decl (f g : name → tactic label) (decl : name) : tactic test_result :=
 do
   first_guess ← (some <$> f decl) <|> return none,
@@ -773,7 +782,7 @@ do
   | (_, none) := failure decl first_guess
   end
 
--- run classifiers f and g on all lemmas with the norm_cast attribute and print the results
+/-- run classifiers `f' and `g' on all lemmas with the `norm_cast' attribute and print the results -/
 meta def test_classifiers (f g : name → tactic label) : tactic unit :=
 do
   decls ← attribute.get_instances `norm_cast,

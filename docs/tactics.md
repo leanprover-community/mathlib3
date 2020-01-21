@@ -1128,48 +1128,27 @@ expression `h` in the context it will try to normalize `h` and use
 `exact h`.
 `rw_mod_cast` acts like the `rw` tactic but it applies `norm_cast` between steps.
 
-`norm_cast` works with three attributes,
--`elim_cast`
--`move_cast`
--`squash_cast`
+`norm_cast` also defines the `norm_cast` attribute:
 
-`elim_cast` is for elimination lemmas of the following shapes
--`Π ..., P ↑a1 ... ↑an = P a1 ... an`
--`Π ..., P ↑a1 ... ↑an ↔ P a1 ... an`
+TODO: explain the attribute
 
 examples:
 ```lean
-@[elim_cast] theorem coe_nat_inj' {m n : ℕ} : (↑m : ℤ) = ↑n ↔ m = n
+@[norm_cast] theorem coe_nat_inj' {m n : ℕ} : (↑m : ℤ) = ↑n ↔ m = n
 
-@[elim_cast] theorem coe_int_denom (n : ℤ) : (n : ℚ).denom = 1
+@[norm_cast] theorem coe_int_denom (n : ℤ) : (n : ℚ).denom = 1
 
-@[elim_cast] theorem cast_id : ∀ n : ℚ, ↑n = n
-```
+@[norm_cast] theorem cast_id : ∀ n : ℚ, ↑n = n
 
-`move_cast` is for compositional lemmas of the following shapes
--`Π ..., ↑(P a1 ... an) = P ↑a1 ... ↑an`
--`Π ..., ↑(P a1 ... an) ↔ P ↑a1 ... ↑an`
+@[norm_cast] theorem coe_nat_add (m n : ℕ) : (↑(m + n) : ℤ) = ↑m + ↑n
 
-examples:
-```lean
-@[move_cast] theorem coe_nat_add (m n : ℕ) : (↑(m + n) : ℤ) = ↑m + ↑n
+@[norm_cast] theorem cast_sub [add_group α] [has_one α] {m n} (h : m ≤ n) : ((n - m : ℕ) : α) = n - m
 
-@[move_cast] theorem cast_sub [add_group α] [has_one α] {m n} (h : m ≤ n) : ((n - m : ℕ) : α) = n - m
+@[norm_cast] theorem coe_nat_bit0 (n : ℕ) : (↑(bit0 n) : ℤ) = bit0 ↑n
 
-@[move_cast] theorem coe_nat_bit0 (n : ℕ) : (↑(bit0 n) : ℤ) = bit0 ↑n
-```
+@[norm_cast] theorem cast_coe_nat (n : ℕ) : ((n : ℤ) : α) = n
 
-`squash_cast` is for lemmas of the following shapes:
--`Π ..., ↑↑a = ↑a`
--`Π ..., ↑a = a`
--`Π ..., ↑1 = 1`
--`Π ..., ↑0 = 0`
-
-examples:
-```lean
-@[squash_cast] theorem cast_coe_nat (n : ℕ) : ((n : ℤ) : α) = n
-
-@[squash_cast] theorem cast_one : ((1 : ℚ) : α) = 1
+@[norm_cast] theorem cast_one : ((1 : ℚ) : α) = 1
 ```
 
 `push_cast` rewrites the expression to move casts toward the leaf nodes.

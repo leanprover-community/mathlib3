@@ -424,15 +424,6 @@ when (↑(↑(x : α) : β) : γ) = (↑(x : α) : γ) can be proven with a squa
   return ((), new_e, pr)
 ) <|> ( do
   `(@coe %%α %%β %%coe1 %%xx) ← return x,
-  `(@has_one.one %%β %%h1) ← return y,
-  h2 ← to_expr ``(has_one %%α) >>= mk_instance',
-  new_y ← to_expr ``( @coe %%α %%β %%coe1 (@has_one.one %%α %%h2) ),
-  eq_y ← aux_down y new_y,
-  let new_e := app (app op x) new_y,
-  pr ← mk_congr_arg (app op x) eq_y,
-  return ((), new_e, pr)
-) <|> ( do
-  `(@coe %%α %%β %%coe1 %%xx) ← return x,
   `(@has_zero.zero %%β %%h1) ← return y,
   h2 ← to_expr ``(has_zero %%α) >>= mk_instance',
   new_y ← to_expr ``( @coe %%α %%β %%coe1 (@has_zero.zero %%α %%h2) ),
@@ -441,13 +432,22 @@ when (↑(↑(x : α) : β) : γ) = (↑(x : α) : γ) can be proven with a squa
   pr ← mk_congr_arg (app op x) eq_y,
   return ((), new_e, pr)
 ) <|> ( do
-  `(@coe %%α %%β %%coe1 %%xx) ← return x,
-  `(@has_zero.zero %%β %%h1) ← return y,
-  h2 ← to_expr ``(has_zero %%α) >>= mk_instance',
-  new_y ← to_expr ``( @coe %%α %%β %%coe1 (@has_zero.zero %%α %%h2) ),
-  eq_y ← aux_down y new_y,
-  let new_e := app (app op x) new_y,
-  pr ← mk_congr_arg (app op x) eq_y,
+  `(@has_one.one %%β %%h1) ← return x,
+  `(@coe %%α %%β %%coe1 %%xx) ← return y,
+  h1 ← to_expr ``(has_one %%α) >>= mk_instance',
+  new_x ← to_expr ``( @coe %%α %%β %%coe1 (@has_one.one %%α %%h1) ),
+  eq_x ← aux_down x new_x,
+  let new_e := app (app op new_x) y,
+  pr ← mk_congr_arg (lam `x binder_info.default β (app (app op (var 0)) y)) eq_x,
+  return ((), new_e, pr)
+) <|> ( do
+  `(@has_zero.zero %%β %%h1) ← return x,
+  `(@coe %%α %%β %%coe1 %%xx) ← return y,
+  h1 ← to_expr ``(has_zero %%α) >>= mk_instance',
+  new_x ← to_expr ``( @coe %%α %%β %%coe1 (@has_zero.zero %%α %%h1) ),
+  eq_x ← aux_down x new_x,
+  let new_e := app (app op new_x) y,
+  pr ← mk_congr_arg (lam `x binder_info.default β (app (app op (var 0)) y)) eq_x,
   return ((), new_e, pr)
 )
 | _ := failed

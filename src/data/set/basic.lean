@@ -999,6 +999,9 @@ by simp only [eq_empty_iff_forall_not_mem]; exact
 lemma inter_singleton_ne_empty {s : set α} {a : α} : s ∩ {a} ≠ ∅ ↔ a ∈ s :=
 by finish  [set.inter_singleton_eq_empty]
 
+lemma inter_singleton_nonempty {s : set α} {a : α} : (s ∩ {a}).nonempty ↔ a ∈ s :=
+ne_empty_iff_nonempty.symm.trans inter_singleton_ne_empty
+
 theorem fix_set_compl (t : set α) : compl t = - t := rfl
 
 -- TODO(Jeremy): there is an issue with - t unfolding to compl t

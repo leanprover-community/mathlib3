@@ -407,6 +407,10 @@ by
   simp only [(@empty_in_sets_eq_bot α f).symm, ne.def];
   exact ⟨assume h hs, h _ hs rfl, assume h s hs eq, h $ eq ▸ hs⟩
 
+lemma forall_sets_nonempty_iff_ne_bot {f : filter α} :
+  (∀ (s : set α), s ∈ f → s.nonempty) ↔ f ≠ ⊥ :=
+by simpa only [ne_empty_iff_nonempty] using forall_sets_ne_empty_iff_ne_bot
+
 lemma mem_sets_of_eq_bot {f : filter α} {s : set α} (h : f ⊓ principal (-s) = ⊥) : s ∈ f :=
 have ∅ ∈ f ⊓ principal (- s), from h.symm ▸ mem_bot_sets,
 let ⟨s₁, hs₁, s₂, (hs₂ : -s ⊆ s₂), (hs : s₁ ∩ s₂ ⊆ ∅)⟩ := this in
@@ -455,7 +459,7 @@ by simp only [infi_sets_eq h ne, mem_Union]
 
 @[nolint] -- Intentional use of `≥`
 lemma binfi_sets_eq {f : β → filter α} {s : set β}
-  (h : directed_on (f ⁻¹'o (≥)) s) (ne : ∃i, i ∈ s) :
+  (h : directed_on (f ⁻¹'o (≥)) s) (ne : s.nonempty) :
   (⨅ i∈s, f i).sets = (⋃ i ∈ s, (f i).sets) :=
 let ⟨i, hi⟩ := ne in
 calc (⨅ i ∈ s, f i).sets  = (⨅ t : {t // t ∈ s}, (f t.val)).sets : by rw [infi_subtype]; refl
@@ -466,7 +470,7 @@ calc (⨅ i ∈ s, f i).sets  = (⨅ t : {t // t ∈ s}, (f t.val)).sets : by rw
 
 @[nolint] -- Intentional use of `≥`
 lemma mem_binfi {f : β → filter α} {s : set β}
-  (h : directed_on (f ⁻¹'o (≥)) s) (ne : ∃i, i ∈ s) {t : set α} :
+  (h : directed_on (f ⁻¹'o (≥)) s) (ne : s.nonempty) {t : set α} :
   t ∈ (⨅ i∈s, f i) ↔ ∃ i ∈ s, t ∈ f i :=
 by simp only [binfi_sets_eq h ne, mem_bUnion_iff]
 

@@ -133,7 +133,7 @@ section
   by simp [ext]
 
   instance : char_zero ℤ√d :=
-  { cast_inj := λ m n, ⟨by simp [zsqrtd.ext], congr_arg _⟩ }
+  { cast_injective := λ m n, by simp [ext] }
 
   @[simp] theorem of_int_eq_coe (n : ℤ) : (of_int n : ℤ√d) = n :=
   by simp [ext]

@@ -280,13 +280,7 @@ by rw subset.antisymm subset_closure h; exact is_closed_closure
 closure_eq_of_is_closed is_closed_empty
 
 lemma closure_empty_iff (s : set α) : closure s = ∅ ↔ s = ∅ :=
-begin
-  split; intro h,
-  { rw set.eq_empty_iff_forall_not_mem,
-    intros x H,
-    simpa only [h] using subset_closure H },
-  { exact (eq.symm h) ▸ closure_empty },
-end
+⟨subset_eq_empty subset_closure, λ h, h.symm ▸ closure_empty⟩
 
 @[simp] lemma closure_univ : closure (univ : set α) = univ :=
 closure_eq_of_is_closed is_closed_univ

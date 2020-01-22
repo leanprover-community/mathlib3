@@ -229,12 +229,21 @@ calc s.prod (λ x, h (if p x then f x else g x))
     (prod_congr rfl (by simp {contextual := tt}))
     (prod_congr rfl (by simp {contextual := tt}))
 
-@[simp, to_additive] lemma prod_ite_eq [decidable_eq α] (s : finset α) (a : α) (b : β) :
-  s.prod (λ x, (ite (a = x) b 1)) = ite (a ∈ s) b 1 :=
+@[simp, to_additive] lemma prod_ite_eq [decidable_eq α] (s : finset α) (a : α) (b : α → β) :
+  s.prod (λ x, (ite (a = x) (b x) 1)) = ite (a ∈ s) (b a) 1 :=
 begin
   rw ←finset.prod_filter,
   split_ifs;
   simp only [filter_eq, if_true, if_false, h, prod_empty, prod_singleton, insert_empty_eq_singleton],
+end
+
+/-- Similar to `prod_ite_eq` but with arguments to `eq` swapped. -/
+@[simp, to_additive] lemma prod_ite_eq' [decidable_eq α] (s : finset α) (a : α) (b : α → β) :
+  s.prod (λ x, (ite (x = a) (b x) 1)) = ite (a ∈ s) (b a) 1 :=
+begin
+  rw ←prod_ite_eq,
+  congr, ext x,
+  by_cases x = a; finish
 end
 
 @[to_additive]
@@ -590,14 +599,14 @@ lemma mul_sum : b * s.sum f = s.sum (λx, b * f x) :=
 @[simp] lemma sum_mul_boole [decidable_eq α] (s : finset α) (f : α → β) (a : α) :
   s.sum (λ x, (f x * ite (a = x) 1 0)) = ite (a ∈ s) (f a) 0 :=
 begin
-  convert sum_ite_eq s a (f a),
+  convert sum_ite_eq s a f,
   funext,
   split_ifs with h; simp [h],
 end
 @[simp] lemma sum_boole_mul [decidable_eq α] (s : finset α) (f : α → β) (a : α) :
   s.sum (λ x, (ite (a = x) 1 0) * f x) = ite (a ∈ s) (f a) 0 :=
 begin
-  convert sum_ite_eq s a (f a),
+  convert sum_ite_eq s a f,
   funext,
   split_ifs with h; simp [h],
 end

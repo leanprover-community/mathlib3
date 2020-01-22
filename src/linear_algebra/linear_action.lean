@@ -81,7 +81,7 @@ variables [comm_ring R] [add_comm_group M] [add_comm_group N] [module R M] [modu
 A linear map to the endomorphism algebra yields a linear action.
 -/
 def of_endo_map (α : M →ₗ[R] module.End R N) : linear_action R M N :=
-  act      := λ m n, α m n,
+{ act      := λ m n, α m n,
   add_act  := by { intros, rw linear_map.map_add, simp, },
   act_add  := by { intros, simp, },
   act_smul := by { intros, rw linear_map.map_smul, simp, },

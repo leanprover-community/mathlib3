@@ -19,6 +19,8 @@ additive $ abelianization $ free_group α
 instance : add_comm_group (free_abelian_group α) :=
 @additive.add_comm_group _ $ abelianization.comm_group _
 
+instance : inhabited (free_abelian_group α) := ⟨0⟩
+
 variable {α}
 
 namespace free_abelian_group

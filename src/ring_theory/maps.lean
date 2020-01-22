@@ -172,6 +172,8 @@ protected def ring_invo.id : ring_invo R :=
   to_fun_to_fun := λ _, rfl,
   .. equiv.refl R }
 
+instance : inhabited (ring_invo R) := ⟨ring_invo.id _⟩
+
 protected def ring_anti_equiv.refl : ring_anti_equiv R R :=
 (ring_invo.id R).to_ring_anti_equiv
 

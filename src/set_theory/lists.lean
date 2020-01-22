@@ -21,6 +21,10 @@ def lists (α : Type*) := Σ b, lists' α b
 
 namespace lists'
 
+instance [inhabited α] : ∀ b, inhabited (lists' α b)
+| tt := ⟨nil⟩
+| ff := ⟨atom (default _)⟩
+
 def cons : lists α → lists' α tt → lists' α tt
 | ⟨b, a⟩ l := cons' a l
 
@@ -146,6 +150,9 @@ by simp [of_list, of']
 
 theorem of_to_list : ∀ {l : lists α}, is_list l → of_list (to_list l) = l
 | ⟨tt, l⟩ _ := by simp [of_list, of']
+
+instance : inhabited (lists α) :=
+⟨of' lists'.nil⟩
 
 instance [decidable_eq α] : decidable_eq (lists α) :=
 by unfold lists; apply_instance
@@ -327,6 +334,8 @@ def finsets (α : Type*) := quotient (@lists.setoid α)
 namespace finsets
 
 instance : has_emptyc (finsets α) := ⟨⟦lists.of' lists'.nil⟧⟩
+
+instance : inhabited (finsets α) := ⟨∅⟩
 
 instance [decidable_eq α] : decidable_eq (finsets α) :=
 by unfold finsets; apply_instance

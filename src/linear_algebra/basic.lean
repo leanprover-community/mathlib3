@@ -150,6 +150,8 @@ by dsimp [left_inverse, function.right_inverse] at h₁ h₂; exact
 /-- The constant 0 map is linear. -/
 instance : has_zero (M →ₗ[R] M₂) := ⟨⟨λ _, 0, by simp, by simp⟩⟩
 
+instance : inhabited (M →ₗ[R] M₂) := ⟨0⟩
+
 @[simp] lemma zero_apply (x : M) : (0 : M →ₗ[R] M₂) x = 0 := rfl
 
 /-- The negation of a linear map is linear. -/
@@ -366,6 +368,8 @@ by ext ⟨b, hb⟩; simp
 /-- The set `{0}` is the bottom element of the lattice of submodules. -/
 instance : has_bot (submodule R M) :=
 ⟨by split; try {exact {0}}; simp {contextual := tt}⟩
+
+instance inhabited' : inhabited (submodule R M) := ⟨⊥⟩
 
 @[simp] lemma bot_coe : ((⊥ : submodule R M) : set M) = {0} := rfl
 
@@ -813,6 +817,7 @@ def mk {p : submodule R M} : M → quotient p := quotient.mk'
 protected theorem eq {x y : M} : (mk x : quotient p) = mk y ↔ x - y ∈ p := quotient.eq'
 
 instance : has_zero (quotient p) := ⟨mk 0⟩
+instance : inhabited (quotient p) := ⟨0⟩
 
 @[simp] theorem mk_zero : mk 0 = (0 : quotient p) := rfl
 
@@ -1776,6 +1781,7 @@ namespace general_linear_group
 variables {R M}
 
 instance : group (general_linear_group R M) := by delta general_linear_group; apply_instance
+instance : inhabited (general_linear_group R M) := ⟨1⟩
 
 /-- An invertible linear map `f` determines an equivalence from `M` to itself. -/
 def to_linear_equiv (f : general_linear_group R M) : (M ≃ₗ[R] M) :=

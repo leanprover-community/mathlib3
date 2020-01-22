@@ -56,7 +56,7 @@ def normed_group.of_add_dist' [has_norm α] [add_comm_group α] [metric_space α
 
 /-- A normed group can be built from a norm that satisfies algebraic properties. This is
 formalised in this structure. -/
-structure normed_group.core (α : Type*) [add_comm_group α] [has_norm α] :=
+structure normed_group.core (α : Type*) [add_comm_group α] [has_norm α] : Prop :=
 (norm_eq_zero_iff : ∀ x : α, ∥x∥ = 0 ↔ x = 0)
 (triangle : ∀ x y : α, ∥x + y∥ ≤ ∥x∥ + ∥y∥)
 (norm_neg : ∀ x : α, ∥-x∥ = ∥x∥)

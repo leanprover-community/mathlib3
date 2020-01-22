@@ -27,6 +27,12 @@ namespace alist
 @[ext] theorem ext : ∀ {s t : alist β}, s.entries = t.entries → s = t
 | ⟨l₁, h₁⟩ ⟨l₂, h₂⟩ H := by congr'
 
+lemma ext_iff {s t : alist β} : s = t ↔ s.entries = t.entries :=
+⟨congr_arg _, ext⟩
+
+instance [decidable_eq α] [∀ a, decidable_eq (β a)] : decidable_eq (alist β) :=
+λ xs ys, by rw ext_iff; apply_instance
+
 /- keys -/
 
 /-- The list of keys of an association list. -/
@@ -48,6 +54,8 @@ mem_of_perm $ perm_map sigma.fst p
 
 /-- The empty association list. -/
 instance : has_emptyc (alist β) := ⟨⟨[], nodupkeys_nil⟩⟩
+
+instance : inhabited (alist β) := ⟨∅⟩
 
 theorem not_mem_empty (a : α) : a ∉ (∅ : alist β) :=
 not_mem_nil a

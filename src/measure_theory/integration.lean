@@ -55,6 +55,8 @@ def const (α) {β} [measurable_space α] (b : β) : α →ₛ β :=
 ⟨λ a, b, λ x, is_measurable.const _,
   finite_subset (set.finite_singleton b) $ by rintro _ ⟨a, rfl⟩; simp⟩
 
+instance [inhabited β] : inhabited (α →ₛ β) := ⟨const _ (default _)⟩
+
 @[simp] theorem const_apply (a : α) (b : β) : (const α b) a = b := rfl
 
 lemma range_const (α) [measurable_space α] [ne : nonempty α] (b : β) :

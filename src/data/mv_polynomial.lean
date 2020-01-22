@@ -32,6 +32,7 @@ instance : has_one (mv_polynomial σ α) := finsupp.has_one
 instance : has_add (mv_polynomial σ α) := finsupp.has_add
 instance : has_mul (mv_polynomial σ α) := finsupp.has_mul
 instance : comm_semiring (mv_polynomial σ α) := finsupp.comm_semiring
+instance : inhabited (mv_polynomial σ α) := ⟨0⟩
 
 /-- `monomial s a` is the monomial `a * X^s` -/
 def monomial (s : σ →₀ ℕ) (a : α) : mv_polynomial σ α := single s a

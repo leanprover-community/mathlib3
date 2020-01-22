@@ -7,6 +7,7 @@ Authors: Scott Morrison
 import category_theory.concrete_category
 import algebra.group
 import data.equiv.algebra
+import algebra.punit_instances
 
 /-!
 # Category instances for monoid, add_monoid, comm_monoid, and add_comm_monoid.
@@ -58,6 +59,12 @@ namespace Mon
 @[to_additive]
 def of (M : Type u) [monoid M] : Mon := bundled.of M
 
+@[to_additive]
+instance : inhabited Mon :=
+-- The default instance for `monoid punit` is derived via `punit.comm_ring`,
+-- which breaks to_additive.
+⟨@of punit $ @group.to_monoid _ $ @comm_group.to_group _ punit.comm_group⟩
+
 local attribute [reducible] Mon
 
 @[to_additive]
@@ -84,6 +91,12 @@ namespace CommMon
 /-- Construct a bundled CommMon from the underlying type and typeclass. -/
 @[to_additive]
 def of (M : Type u) [comm_monoid M] : CommMon := bundled.of M
+
+@[to_additive]
+instance : inhabited CommMon :=
+-- The default instance for `comm_monoid punit` is derived via `punit.comm_ring`,
+-- which breaks to_additive.
+⟨@of punit $ @comm_group.to_comm_monoid _ punit.comm_group⟩
 
 local attribute [reducible] CommMon
 

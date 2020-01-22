@@ -468,6 +468,8 @@ protected def add_comm_group : add_comm_group (α →₁ₛ β) := subtype.add_c
 local attribute [instance] simple_func.add_comm_group simple_func.metric_space
   simple_func.emetric_space
 
+instance : inhabited (α →₁ₛ β) := ⟨0⟩
+
 @[simp, elim_cast] lemma coe_zero : ((0 : α →₁ₛ β) : α →₁ β) = 0 := rfl
 @[simp, move_cast] lemma coe_add (f g : α →₁ₛ β) : ((f + g : α →₁ₛ β) : α →₁ β) = f + g := rfl
 @[simp, move_cast] lemma coe_neg (f : α →₁ₛ β) : ((-f : α →₁ₛ β) : α →₁ β) = -f := rfl

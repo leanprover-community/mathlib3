@@ -60,6 +60,8 @@ def lift_rel₂ (R : β → β → Prop) : β* → β* → Prop :=
 
 instance coe_filterprod : has_coe_t β β* := ⟨ of ⟩ -- note [use has_coe_t]
 
+instance [inhabited β] : inhabited β* := ⟨of (default _)⟩
+
 instance [has_add β] : has_add β* := { add := lift₂ has_add.add }
 
 instance [has_zero β] : has_zero β* := { zero := of 0 }

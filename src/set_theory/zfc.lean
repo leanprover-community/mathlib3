@@ -14,6 +14,17 @@ def arity (α : Type u) : nat → Type u
 | 0     := α
 | (n+1) := α → arity n
 
+namespace arity
+
+def const {α : Type u} (a : α) : ∀ n, arity α n
+| 0 := a
+| (n+1) := λ _, const n
+
+instance arity.inhabited {α n} [inhabited α] : inhabited (arity α n) :=
+⟨const (default _) _⟩
+
+end arity
+
 /-- The type of pre-sets in universe `u`. A pre-set
   is a family of pre-sets indexed by a type in `Type u`.
   The ZFC universe is defined as a quotient of this
@@ -118,6 +129,8 @@ protected def empty : pSet := ⟨ulift empty, λe, match e with end⟩
 
 instance : has_emptyc pSet := ⟨pSet.empty⟩
 
+instance : inhabited pSet := ⟨∅⟩
+
 theorem mem_empty (x : pSet.{u}) : x ∉ (∅:pSet.{u}) := λe, match e with end
 
 /-- Insert an element into a pre-set -/
@@ -187,9 +200,16 @@ def arity.equiv : Π {n}, arity pSet.{u} n → arity pSet.{u} n → Prop
 | 0     a b := equiv a b
 | (n+1) a b := ∀ x y, equiv x y → arity.equiv (a x) (b y)
 
+lemma arity.equiv_const {a : pSet.{u}} : ∀ n, arity.equiv (arity.const a n) (arity.const a n)
+| 0 := equiv.refl _
+| (n+1) := λ x y h, arity.equiv_const _
+
 /-- `resp n` is the collection of n-ary functions on `pSet` that respect
   equivalence, i.e. when the inputs are equivalent the output is as well. -/
 def resp (n) := { x : arity pSet.{u} n // arity.equiv x x }
+
+instance resp.inhabited {n} : inhabited (resp n) :=
+⟨⟨arity.const (default _) _, arity.equiv_const _⟩⟩
 
 def resp.f {n} (f : resp (n+1)) (x : pSet) : resp n :=
 ⟨f.1 x, f.2 _ _ $ equiv.refl x⟩
@@ -567,6 +587,7 @@ namespace Class
 instance : has_subset Class     := ⟨set.subset⟩
 instance : has_sep Set Class    := ⟨set.sep⟩
 instance : has_emptyc Class     := ⟨λ a, false⟩
+instance : inhabited Class      := ⟨∅⟩
 instance : has_insert Set Class := ⟨set.insert⟩
 instance : has_union Class      := ⟨set.union⟩
 instance : has_inter Class      := ⟨set.inter⟩

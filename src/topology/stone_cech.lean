@@ -212,6 +212,7 @@ def stone_cech : Type u := quotient (stone_cech_setoid α)
 
 variables {α}
 instance : topological_space (stone_cech α) := by unfold stone_cech; apply_instance
+instance [inhabited α] : inhabited (stone_cech α) := by unfold stone_cech; apply_instance
 
 /-- The natural map from α to its Stone-Čech compactification. -/
 def stone_cech_unit (x : α) : stone_cech α := ⟦pure x⟧

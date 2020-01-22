@@ -39,6 +39,7 @@ def col (w : m → α) : matrix m punit α
 def row (v : n → α) : matrix punit n α
 | x y := v y
 
+instance [inhabited α] : inhabited (matrix m n α) := pi.inhabited _
 instance [has_add α] : has_add (matrix m n α) := pi.has_add
 instance [add_semigroup α] : add_semigroup (matrix m n α) := pi.add_semigroup
 instance [add_comm_semigroup α] : add_comm_semigroup (matrix m n α) := pi.add_comm_semigroup

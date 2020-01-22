@@ -329,6 +329,9 @@ def completion := quotient (separation_setoid $ Cauchy α)
 
 namespace completion
 
+instance [inhabited α] : inhabited (completion α) :=
+by unfold completion; apply_instance
+
 @[priority 50]
 instance : uniform_space (completion α) := by dunfold completion ; apply_instance
 
@@ -377,6 +380,9 @@ def cpkg {α : Type*} [uniform_space α] : abstract_completion α :=
   separation := by apply_instance,
   uniform_inducing := completion.uniform_inducing_coe α,
   dense := completion.dense }
+
+instance abstract_completion.inhabited : inhabited (abstract_completion α) :=
+⟨cpkg⟩
 
 local attribute [instance]
 abstract_completion.uniform_struct abstract_completion.complete abstract_completion.separation

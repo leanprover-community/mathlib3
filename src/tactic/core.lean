@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Mario Carneiro, Simon Hudon, Scott Morrison, Keeley Hoek
 -/
 import data.dlist.basic category.basic meta.expr meta.rb_map data.bool tactic.library_note
+  tactic.derive_inhabited
 
 namespace expr
 open tactic

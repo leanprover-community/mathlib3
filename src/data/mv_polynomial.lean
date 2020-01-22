@@ -10,14 +10,13 @@ import data.finsupp data.polynomial data.equiv.algebra
 # Multivariate polynomials
 
 This file defines polynomial rings over a base ring (or even semiring),
-with variables from a general type σ (which could
-be infinite).
+with variables from a general type `σ` (which could be infinite).
 
 ## Important definitions
 
 Let `R` be a commutative ring (or a semiring) and let `σ` be an arbitrary
 type. This file creates the type `mv_polynomial σ R`, which mathematicians
-might denote $R[X_i : i\in\sigma]$. It is the type of multivariate
+might denote `R[X_i : i ∈ σ]`. It is the type of multivariate
 (a.k.a. multivariable) polynomials, with variables
 corresponding to the terms in `σ`, and coefficients in `R`.
 
@@ -25,42 +24,45 @@ In the definitions below, we use the following notation:
 `σ : Type*` (indexing the variables)
 `R : Type*` `[comm_semiring R]` (the coefficients)
 `s : σ →₀ ℕ`, a function from σ to ℕ which is zero away from a finite set.
-This will give rise to a monomial in `mv_polynomial σ R` which mathematicians might call $X^s$
+This will give rise to a monomial in `mv_polynomial σ R` which mathematicians might call `X^s`
 `a : R`
-`i : σ`, with corresponding monomial `X i` or $X_i$
+`i : σ`, with corresponding monomial `X i`, often denoted `X_i` by mathematicians
 `p : mv_polynomial σ R`
 
 * `mv_polynomial σ R` : the type of polynomials with variables of type σ and coefficients
   in the commutative semiring R
 
-* `monomial s a` : the monomial which mathematically would be denoted $a * X^s$
+* `monomial s a` : the monomial which mathematically would be denoted `a * X^s`
 
 * `C a` : the constant polynomial with value a
 
-* `X i` : the degree one monomial corresponding to i; mathematically this might be denoted $X_n$.
+* `X i` : the degree one monomial corresponding to i; mathematically this might be denoted `X_i`.
 
 * `coeff s p` : the coefficient of s in p.
 
-* `eval₂ (f : R → S) (g : σ → S) p` : given a semiring homomorphism from R to another semiring S, and a map σ → S,
-  evaluates p at this valuation, returning a term of type `S`
+* `eval₂ (f : R → S) (g : σ → S) p` : given a semiring homomorphism from R to another semiring S,
+  and a map σ → S, evaluates p at this valuation, returning a term of type `S`. Note that
+  `eval₂` can be made using `eval` and `map` (see below), and it has been suggested that sticking
+  to `eval` and `map` might make the code less brittle.
 
-* `eval (g : σ → R) p` : given a map σ → R, evaluates p at this valuation, returning a term of type R
+* `eval (g : σ → R) p` : given a map σ → R, evaluates p at this valuation,
+  returning a term of type R
 
 * `map (f : R → S) p` : returns the multivariate polynomial obtained from p by the change of
   coefficient semiring corresponding to f
 
 * `degrees p` : the multiset of variables representing the union of the multisets corresponding
-  to each non-zero monomial in p. For example if 7 ≠ 0 in R and $p=x^2y+7y^3$ then
+  to each non-zero monomial in `p`. For example if 7 ≠ 0 in `R` and `p = x²y+7y³` then
   `degrees p = {x, x, y, y, y}`
 
-* `vars p` : the finset of variables occurring in p. For example if $p=x^4y+yz$ then
+* `vars p` : the finset of variables occurring in p. For example if `p = x⁴y+yz` then
   `vars p = {x, y, z}`
 
-* `degree_of n p : ℕ` -- the total degree of p with respect to the variable n. For example if $p=x^4y+yz$
-  then `degree_of y p = 1`.
+* `degree_of n p : ℕ` -- the total degree of p with respect to the variable n. For example
+  if `p = x⁴y+yz` then `degree_of y p = 1`.
 
-* `total_degree p : ℕ` -- the max of the sizes of the multisets `s` whose monomials $X^s$ occur in `p`.
-  For example if $p=x^4y+yz$ then `total_degree p = 5`.
+* `total_degree p : ℕ` -- the max of the sizes of the multisets `s` whose monomials `X^s` occur
+  in `p`. For example if `p = x⁴y+yz` then `total_degree p = 5`.
 
 ## Implementation notes
 

@@ -24,12 +24,11 @@ need to define those first. The file also doesn't define a `has_inv` instance
 for `matrix` so that can be used for the pseudoinverse instead.
 
 The definition of inverse used in this file is the one given by Cramer's rule.
-The vectors returned by Cramer's rule are given by the linear map `cramer`. Each
-coordinate of the vector is also a linear function, `cramer_at`. Using Cramer's
-rule, we can compute for each matrix `A` the matrix `adjugate A`, which we then
-prove behaves like `det A • A⁻¹`. Finally, we show that dividing the adjugate by
-`det A` (if possible), giving a matrix `nonsing_inv A`, will result in a
-multiplicative inverse to `A`.
+The vectors returned by Cramer's rule are given by the linear map `cramer`.
+Using Cramer's rule, we can compute for each matrix `A` the matrix `adjugate A`,
+which we then prove behaves like `det A • A⁻¹`. Finally, we show that dividing
+the adjugate by `det A` (if possible), giving a matrix `nonsing_inv A`, will
+result in a multiplicative inverse to `A`.
 
 ## References
 
@@ -96,8 +95,7 @@ section cramer
 /--
   ### `cramer` section
 
-  Introduce the linear map `cramer` with values defined by `cramer_map`,
-  its variant `cramer_at` and some basic computation rules.
+  Introduce the linear map `cramer` with values defined by `cramer_map`.
 -/
 variables [comm_ring α] (A : matrix n n α) (b : n → α)
 
@@ -108,7 +106,7 @@ variables [comm_ring α] (A : matrix n n α) (b : n → α)
 def cramer_map (i : n) : α := (A.replace_column i b)ᵀ.det
 lemma cramer_map_def (i : n) : cramer_map A b i = (A.replace_column i b)ᵀ.det := rfl
 
-lemma cramer_at_is_linear (i : n) : is_linear_map α (λ b, cramer_map A b i) := begin
+lemma cramer_map_is_linear (i : n) : is_linear_map α (λ b, cramer_map A b i) := begin
   have : Π {f : n → n} {i : n} (x : n → α),
     finset.prod univ (λ (i' : n), (replace_column A i x)ᵀ (f i') i')
     = finset.prod univ (λ (i' : n), if i' = i then x (f i') else A i' (f i')),
@@ -136,26 +134,15 @@ lemma cramer_at_is_linear (i : n) : is_linear_map α (λ b, cramer_map A b i) :=
   }
 end
 
-/-- The coordinates of the linear map associated to Cramer's rule.
-
-  Later, we use `cramer_at` to define the map on vectors `cramer`.
-  Depending on whether working coordinatewise is useful,
-  either version of Cramer's rule could be applied.
--/
-def cramer_at (i : n) : (n → α) →ₗ[α] α :=
-is_linear_map.mk' (λ b, cramer_map A b i) (cramer_at_is_linear A i)
-
-lemma cramer_at_val (i : n) : (cramer_at A i).to_fun b = cramer_map A b i := rfl
-
 lemma cramer_is_linear : is_linear_map α (cramer_map A) := begin
   split; intros; ext i,
-  { apply (cramer_at_is_linear A i).1 },
-  { apply (cramer_at_is_linear A i).2 }
+  { apply (cramer_map_is_linear A i).1 },
+  { apply (cramer_map_is_linear A i).2 }
 end
 /-- The linear map of vectors associated to Cramer's rule. -/
 def cramer : (n → α) →ₗ[α] (n → α) := is_linear_map.mk' (cramer_map A) (cramer_is_linear A)
 
-lemma cramer_val (i : n) : (cramer A).to_fun b i = cramer_map A b i := rfl
+lemma cramer_val (i : n) : (@cramer _ _ _ α _ A) b i = cramer_map A b i := rfl
 
 lemma mul_cramer_map_def (c : α) (i : n) : c * cramer_map A b i = cramer_map A (c • b) i :=
 by simp only [(cramer_is_linear A).2, smul_eq_mul, pi.smul_apply]
@@ -164,7 +151,7 @@ trans (mul_comm _ _) (mul_cramer_map_def _ _ _ _)
 
 /-- Applying Cramer's rule to a column of the matrix gives a scaled basis vector. -/
 lemma cramer_column_self (i : n) :
-(cramer A).to_fun (A i) = (λ j, if i = j then A.det else 0) :=
+(@cramer _ _ _ α _ A) (A i) = (λ j, if i = j then A.det else 0) :=
 begin
   ext j,
   rw cramer_val,
@@ -180,14 +167,18 @@ begin
     apply h }
 end
 
-/-- Use linearity of `cramer` to switch the order of `cramer_at` and `finset.sum`. -/
-lemma sum_cramer_at {β} (s : finset β) (i : n) (f : n → β → α) :
-  s.sum (λ x, (cramer_at A i).to_fun (λ j, f j x)) = (cramer_at A i).to_fun (λ j, s.sum (λ x, f j x))
-:= calc s.sum (λ x, (cramer_at A i).to_fun (λ j, f j x))
-    = (cramer_at A i).to_fun (sum s (λ (x : β) (j : n), f j x)) :
-by {erw [←(@linear_map.map_sum _ _ _ _ _ _ _ _ (cramer_at A i) _ _ (λ x j, f j x))], refl}
-... = (cramer_at A i).to_fun (λ (j : n), s.sum (λ x, f j x)) :
-by {congr, ext j, apply pi.finset_sum_apply}
+/-- Use linearity of `cramer` to take it out of a summation. -/
+lemma sum_cramer {β} (s : finset β) (f : β → n → α) :
+  s.sum (λ x, @cramer _ _ _ α _ A (f x)) = @cramer _ _ _ α _ A (sum s f) :=
+(linear_map.map_sum (cramer A)).symm
+
+/-- Use linearity of `cramer` and vector evaluation to take `cramer_map` out of a summation. -/
+lemma sum_cramer_map {β} (s : finset β) (f : n → β → α) (i : n) :
+s.sum (λ x, cramer_map A (λ j, f j x) i) = cramer_map A (λ (j : n), s.sum (f j)) i :=
+calc s.sum (λ x, cramer_map A (λ j, f j x) i)
+    = s.sum (λ x, @cramer _ _ _ α _ A (λ j, f j x)) i : by { rw pi.finset_sum_apply, refl }
+... = cramer_map A (sum s (λ (x : β) (j : n), f j x)) i : by rw [sum_cramer, cramer_val]
+... = cramer_map A (λ (j : n), s.sum (f j)) i : by { congr, ext j, rw pi.finset_sum_apply }
 
 end cramer
 
@@ -242,31 +233,33 @@ begin
   }
 end
 
-lemma mul_adjugate (A : matrix n n α) : A ⬝adjugate A = A.det • 1 :=
-begin
+lemma mul_adjugate_val (A : matrix n n α) (i j k) :
+A i k * adjugate A k j = (cramer A).to_fun (λ j, if k = j then A i k else 0) j :=
+calc A i k * adjugate A k j
+    = cramer_map A (A i k • λ (j : n), ite (k = j) 1 0) j :
+      by rw [adjugate_val, mul_cramer_map_def]
+... = cramer_map A (λ (j : n), ite (k = j) (A i k) 0) j :
+      by { congr, ext j, rw [pi.smul_apply, smul_eq_mul, mul_ite] }
+
+lemma mul_adjugate (A : matrix n n α) : A ⬝adjugate A = A.det • 1 := begin
   ext i j,
-  rw [mul_val, smul_val],
+  rw [mul_val, smul_val, one_val, mul_ite],
   calc
     sum univ (λ (k : n), A i k * adjugate A k j)
-        = sum univ (λ (k : n), A i k * (cramer_at A j).to_fun (λ j, if k = j then 1 else 0)) : rfl
-    ... = sum univ (λ (k : n), (cramer_at A j).to_fun (λ j, if k = j then A i k else 0))
-      : by {congr, ext, rw [cramer_at_val, mul_cramer_map_def], congr, ext,
-            simp only [smul_val, smul_eq_mul, mul_ite, pi.smul_apply]}
-    ... = (cramer_at A j).to_fun (λ j, sum univ (λ (k : n), if k = j then A i k else 0))
-      : @sum_cramer_at n _ _ α _ A n univ j (λ (j k : n), if k = j then A i k else 0)
-    ... = cramer_map A (A i) j : by { rw [cramer_at_val], congr, ext,
+        = sum univ (λ (k : n), cramer_map A (λ j, if k = j then A i k else 0) j)
+      : by {congr, ext k, apply mul_adjugate_val A i j k}
+    ... = cramer_map A (λ j, sum univ (λ (k : n), if k = j then A i k else 0)) j
+      : sum_cramer_map A univ (λ (j k : n), if k = j then A i k else 0) j
+    ... = cramer_map A (A i) j : by { congr, ext,
       erw [sum_ite (A i) (λ _, 0) id, sum_const_zero, filter_eq', if_pos (mem_univ _), sum_singleton],
       apply add_zero }
     ... = if i = j then det A else 0 : by rw [←cramer_val, cramer_column_self]
-    ... = det A * (1 : matrix n n α) i j : by simp [one_val]
 end
 
 lemma adjugate_mul (A : matrix n n α) : adjugate A ⬝ A = A.det • 1 :=
 calc adjugate A ⬝ A = (Aᵀ ⬝ (adjugate Aᵀ))ᵀ :
   by rw [←adjugate_transpose, ←transpose_mul, transpose_transpose]
-... = (A.det • 1)ᵀ : by rw [mul_adjugate (Aᵀ), det_transpose]
-... = A.det • 1ᵀ : by {ext, rw [transpose_val, smul_val, smul_val, transpose_val]}
-... = A.det • 1 : by rw [transpose_one]
+... = A.det • 1 : by rw [mul_adjugate (Aᵀ), det_transpose, transpose_smul, transpose_one]
 
 end adjugate
 
@@ -294,11 +287,7 @@ by {ext, simp [transpose_val, nonsing_inv_val, det_transpose, (adjugate_transpos
 /-- The `nonsing_inv` of `A` is a right inverse. -/
 theorem mul_nonsing_inv (A : matrix n n α) (inv_mul_cancel : A.det⁻¹ * A.det = 1) :
   A ⬝ nonsing_inv A = 1 :=
-by { rw [nonsing_inv, mul_smul, mul_adjugate, smul_smul, inv_mul_cancel],
-     -- TODO: why do we need to explicitly construct this instance?
-     exact @one_smul α (matrix n n α) _ (@pi.mul_action n (λ _, n → α) α _
-       (λ _, @pi.mul_action n (λ _, α) α _
-       (λ _, distrib_mul_action.to_mul_action α α))) (1 : matrix n n α) }
+by erw [mul_smul, mul_adjugate, smul_smul, inv_mul_cancel, @one_smul _ _ _ (pi.mul_action _)]
 
 /-- The `nonsing_inv` of `A` is a left inverse. -/
 theorem nonsing_inv_mul (A : matrix n n α) (inv_mul_cancel : A.det⁻¹ * A.det = 1) :

@@ -330,6 +330,9 @@ begin
   ac_refl
 end
 
+@[simp] lemma transpose_smul [comm_ring α] (c : α)(M : matrix m n α) :
+  (c • M)ᵀ = c • Mᵀ := by { ext i j, refl }
+
 @[simp] lemma transpose_neg [comm_ring α] (M : matrix m n α) :
   (- M)ᵀ = - Mᵀ  :=
 by ext i j; refl

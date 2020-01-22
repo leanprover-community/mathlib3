@@ -64,7 +64,7 @@ linear_action.act_add R m n n'
 
 @[simp] lemma linear_action_act_smul [linear_action R M N] (r : R) (m : M) (n : N) :
   linear_action.act R (r • m) n = r • (linear_action.act R m n) :=
-  linear_action.act_smul r m n
+linear_action.act_smul r m n
 
 @[simp] lemma linear_action_smul_act [linear_action R M N] (r : R) (m : M) (n : N) :
   linear_action.act R m (r • n) = linear_action.act R (r • m) n :=

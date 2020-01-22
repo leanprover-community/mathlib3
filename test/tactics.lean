@@ -6,6 +6,7 @@ Authors: Simon Hudon, Scott Morrison
 
 import tactic.interactive tactic.finish tactic.ext tactic.lift tactic.apply
        tactic.reassoc_axiom tactic.tfae tactic.elide tactic.ring_exp
+       tactic.clear
 
 example (m n p q : nat) (h : m + n = p) : true :=
 begin
@@ -450,3 +451,14 @@ end struct_eq
 section ring_exp
   example (a b : ℤ) (n : ℕ) : (a + b)^(n + 2) = (a^2 + 2 * a * b + b^2) * (a + b)^n := by ring_exp
 end ring_exp
+
+section clear'
+
+example {α : Type} {β : α → Type} (a : α) (b : β a) : unit :=
+  begin
+    clear' a b,
+    -- clear would fail since `b` depends on `a`
+    exact ()
+  end
+
+end clear'

@@ -1374,3 +1374,23 @@ See also additional documentation of `using_well_founded` in
 * `@[simps]` reduces let-expressions where necessary.
 * If one of the fields is a partially applied constructor, we will eta-expand it
   (this likely never happens).
+
+
+## clear'
+
+An improved version of the standard `clear` tactic. `clear'` solves the
+following problem: The `clear` tactic, when called with multiple hypotheses,
+sometimes fails even though all hypotheses could be cleared. This is because
+`clear` is sensitive to the ordering of hypotheses:
+
+```
+example {α : Type} {β : α → Type} (a : α) (b : β a) : unit :=
+  begin
+    clear a b, -- fails
+    exact ()
+  end
+```
+
+When `clear` tries to clear `a`, we still have `b`, which depends on `a`, in the
+context, so the operation fails. `clear'` recognises this and clears `b` before
+`a`.

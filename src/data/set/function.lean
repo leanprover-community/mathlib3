@@ -179,6 +179,9 @@ lemma bij_on.mk {f : α → β} {a : set α} {b : set β}
       bij_on f a b :=
 ⟨h₁, h₂, h₃⟩
 
+lemma inj_on.to_bij_on {f : α → β} {a : set α} (h : inj_on f a) : bij_on f a (f '' a) :=
+bij_on.mk (maps_to_image f a) h (subset.refl _)
+
 theorem bij_on_of_eq_on {f1 f2 : α → β} {a : set α} {b : set β} (h₁ : eq_on f1 f2 a)
      (h₂ : bij_on f1 a b) : bij_on f2 a b :=
 let ⟨map, inj, surj⟩ := h₂ in

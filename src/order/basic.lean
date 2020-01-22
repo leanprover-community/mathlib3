@@ -578,10 +578,10 @@ theorem directed_mono {s : α → α → Prop} {ι} (f : ι → α)
   (H : ∀ a b, r a b → s a b) (h : directed r f) : directed s f :=
 λ a b, let ⟨c, h₁, h₂⟩ := h a b in ⟨c, H _ _ h₁, H _ _ h₂⟩
 
-/-- A monotone function on a linear order is directed. -/
-lemma directed_of_mono {ι} [decidable_linear_order ι] (f : ι → α)
-  (H : ∀ i j, i ≤ j → f i ≼ f j) : directed (≼) f :=
-λ a b, ⟨max a b, H _ _ (le_max_left _ _), H _ _ (le_max_right _ _)⟩
+theorem directed.mono_comp {ι} {rb : β → β → Prop} {g : α → β} {f : ι → α}
+  (hg : ∀ ⦃x y⦄, x ≼ y → rb (g x) (g y)) (hf : directed r f) :
+  directed rb (g ∘ f) :=
+(directed_comp rb f g).2 $ directed_mono _ _ hg hf
 
 section prio
 set_option default_priority 100 -- see Note [default priority]

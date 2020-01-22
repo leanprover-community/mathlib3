@@ -164,25 +164,22 @@ theorem has_fderiv_within_at.lim (h : has_fderiv_within_at f f' s x) {α : Type*
   (cdlim : tendsto (λ n, c n • d n) l (𝓝 v)) :
   tendsto (λn, c n • (f (x + d n) - f x)) l (𝓝 (f' v)) :=
 begin
-  have at_top_is_finer : l ≤ comap (λ n, x + d n) (nhds_within x s),
+  have tendsto_arg : tendsto (λ n, x + d n) l (nhds_within x s),
   { conv in (nhds_within x s) { rw ← add_zero x },
-    rw [← tendsto_iff_comap, nhds_within, tendsto_inf],
+    rw [nhds_within, tendsto_inf],
     split,
     { apply tendsto_const_nhds.add (tangent_cone_at.lim_zero l clim cdlim) },
     { rwa tendsto_principal } },
   have : is_o (λ y, f y - f x - f' (y - x)) (λ y, y - x) (nhds_within x s) := h,
-  have : is_o (λ n, f (x + d n) - f x - f' ((x + d n) - x)) (λ n, (x + d n)  - x)
-    ((nhds_within x s).comap (λn, x+ d n)) := is_o.comp this _,
-  have : is_o (λ n, f (x + d n) - f x - f' (d n)) d
-    ((nhds_within x s).comap (λn, x + d n)) := by simpa,
-  have : is_o (λn, f (x + d n) - f x - f' (d n)) d l :=
-    is_o.mono at_top_is_finer this,
+  have : is_o (λ n, f (x + d n) - f x - f' ((x + d n) - x)) (λ n, (x + d n)  - x) l :=
+    this.comp_tendsto tendsto_arg,
+  have : is_o (λ n, f (x + d n) - f x - f' (d n)) d l := by simpa only [add_sub_cancel'],
   have : is_o (λn, c n • (f (x + d n) - f x - f' (d n))) (λn, c n • d n) l :=
-    is_o_smul this,
+    (is_O_refl c l).smul_is_o this,
   have : is_o (λn, c n • (f (x + d n) - f x - f' (d n))) (λn, (1:ℝ)) l :=
-    this.trans_is_O (is_O_one_of_tendsto cdlim),
+    this.trans_is_O (is_O_one_of_tendsto ℝ cdlim),
   have L1 : tendsto (λn, c n • (f (x + d n) - f x - f' (d n))) l (𝓝 0) :=
-    is_o_one_iff.1 this,
+    (is_o_one_iff ℝ).1 this,
   have L2 : tendsto (λn, f' (c n • d n)) l (𝓝 (f' v)) :=
     tendsto.comp f'.cont.continuous_at cdlim,
   have L3 : tendsto (λn, (c n • (f (x + d n) - f x - f' (d n)) +  f' (c n • d n)))
@@ -254,22 +251,22 @@ theorem has_fderiv_at_iff_is_o_nhds_zero : has_fderiv_at f f' x ↔
 begin
   split,
   { assume H,
-    have : 𝓝 0 ≤ comap (λ (z : E), z + x) (𝓝 (0 + x)),
-    { refine tendsto_iff_comap.mp _,
-      exact (continuous_id.add continuous_const).tendsto _ },
-    apply is_o.mono this,
-    convert is_o.comp H (λz, z + x) ; { try {ext}, simp } },
+    have : tendsto (λ (z : E), z + x) (𝓝 0) (𝓝 (0 + x)),
+      from tendsto_id.add tendsto_const_nhds,
+    rw [zero_add] at this,
+    refine (H.comp_tendsto this).congr _ _;
+      intro z; simp only [function.comp, add_sub_cancel', add_comm z] },
   { assume H,
-    have : 𝓝 x ≤ comap (λ (z : E), z - x) (𝓝 (x - x)),
-    { refine tendsto_iff_comap.mp _,
-      exact (continuous_id.add continuous_const).tendsto _ },
-    apply is_o.mono this,
-    convert is_o.comp H (λz, z - x) ; { try {ext}, simp } }
+    have : tendsto (λ (z : E), z - x) (𝓝 x) (𝓝 (x - x)),
+      from tendsto_id.sub tendsto_const_nhds,
+    rw [sub_self] at this,
+    refine (H.comp_tendsto this).congr _ _;
+      intro z; simp only [function.comp, add_sub_cancel'_right] }
 end
 
 theorem has_fderiv_at_filter.mono (h : has_fderiv_at_filter f f' x L₂) (hst : L₁ ≤ L₂) :
   has_fderiv_at_filter f f' x L₁ :=
-is_o.mono hst h
+h.mono hst
 
 theorem has_fderiv_within_at.mono (h : has_fderiv_within_at f f' t x) (hst : s ⊆ t) :
   has_fderiv_within_at f f' s x :=
@@ -327,7 +324,7 @@ lemma has_fderiv_within_at.union (hs : has_fderiv_within_at f f' s x) (ht : has_
   has_fderiv_within_at f f' (s ∪ t) x :=
 begin
   simp only [has_fderiv_within_at, nhds_within_union],
-  exact is_o_join hs ht,
+  exact hs.join ht,
 end
 
 lemma has_fderiv_within_at.nhds_within (h : has_fderiv_within_at f f' s x)
@@ -370,7 +367,7 @@ lemma has_fderiv_within_at_of_not_mem_closure (h : x ∉ closure s) :
   has_fderiv_within_at f f' s x :=
 begin
   simp [mem_closure_iff_nhds_within_ne_bot] at h,
-  simp [has_fderiv_within_at, has_fderiv_at_filter, h, is_o]
+  simp [has_fderiv_within_at, has_fderiv_at_filter, h, is_o, is_O_with],
 end
 
 lemma differentiable_within_at.mono (h : differentiable_within_at 𝕜 f t x) (st : s ⊆ t) :
@@ -1008,7 +1005,7 @@ lemma fderiv_sub
 
 theorem has_fderiv_at_filter.is_O_sub (h : has_fderiv_at_filter f f' x L) :
 is_O (λ x', f x' - f x) (λ x', x' - x) L :=
-h.to_is_O.congr_of_sub.2 (f'.is_O_sub _ _)
+h.is_O.congr_of_sub.2 (f'.is_O_sub _ _)
 
 theorem has_fderiv_at_filter.sub_const
   (hf : has_fderiv_at_filter f f' x L) (c : F) :
@@ -1165,7 +1162,7 @@ begin
   rcases h.bound with ⟨C, Cpos, hC⟩,
   have A : asymptotics.is_O (λx : E × F, b (x.1 - p.1, x.2 - p.2))
     (λx, ∥x - p∥ * ∥x - p∥) (𝓝 p) :=
-  ⟨C, Cpos, filter.univ_mem_sets' (λx, begin
+  ⟨C, filter.univ_mem_sets' (λx, begin
     simp only [mem_set_of_eq, norm_mul, norm_norm],
     calc ∥b (x.1 - p.1, x.2 - p.2)∥ ≤ C * ∥x.1 - p.1∥ * ∥x.2 - p.2∥ : hC _ _
     ... ≤ C * ∥x-p∥ * ∥x-p∥ : by apply_rules [mul_le_mul, le_max_left, le_max_right, norm_nonneg,
@@ -1173,15 +1170,10 @@ begin
     ... = C * (∥x-p∥ * ∥x-p∥) : mul_assoc _ _ _ end)⟩,
   have B : asymptotics.is_o (λ (x : E × F), ∥x - p∥ * ∥x - p∥)
     (λx, 1 * ∥x - p∥) (𝓝 p),
-  { apply asymptotics.is_o_mul_right _ (asymptotics.is_O_refl _ _),
-    rw [asymptotics.is_o_iff_tendsto],
-    { simp only [div_one],
-      have : 0 = ∥p - p∥, by simp,
-      rw this,
-      have : continuous (λx, ∥x-p∥) :=
-        continuous_norm.comp (continuous_id.sub continuous_const),
-      exact this.tendsto p },
-    simp only [forall_prop_of_false, not_false_iff, one_ne_zero, forall_true_iff] },
+  { refine asymptotics.is_o.mul_is_O (asymptotics.is_o.norm_left _) (asymptotics.is_O_refl _ _),
+    apply (asymptotics.is_o_one_iff ℝ).2,
+    rw [← sub_self p],
+    exact tendsto_id.sub tendsto_const_nhds },
   simp only [one_mul, asymptotics.is_o_norm_right] at B,
   exact A.trans_is_o B
 end
@@ -1305,8 +1297,8 @@ theorem has_fderiv_at_filter.comp {g : F → G} {g' : F →L[𝕜] G}
   (hf : has_fderiv_at_filter f f' x L) :
   has_fderiv_at_filter (g ∘ f) (g'.comp f') x L :=
 let eq₁ := (g'.is_O_comp _ _).trans_is_o hf in
-let eq₂ := ((hg.comp f).mono le_comap_map).trans_is_O hf.is_O_sub in
-by { refine eq₂.tri (eq₁.congr_left (λ x', _)), simp }
+let eq₂ := (hg.comp_tendsto tendsto_map).trans_is_O hf.is_O_sub in
+by { refine eq₂.triangle (eq₁.congr_left (λ x', _)), simp }
 
 /- A readable version of the previous theorem,
    a general form of the chain rule. -/
@@ -1318,7 +1310,7 @@ example {g : F → G} {g' : F →L[𝕜] G}
 begin
   unfold has_fderiv_at_filter at hg,
   have : is_o (λ x', g (f x') - g (f x) - g' (f x' - f x)) (λ x', f x' - f x) L,
-    from (hg.comp f).mono le_comap_map,
+    from hg.comp_tendsto (le_refl _),
   have eq₁ : is_o (λ x', g (f x') - g (f x) - g' (f x' - f x)) (λ x', x' - x) L,
     from this.trans_is_O hf.is_O_sub,
   have eq₂ : is_o (λ x', f x' - f x - f' (x' - x)) (λ x', x' - x) L,
@@ -1330,7 +1322,7 @@ begin
     from this.trans_is_o eq₂,
   have eq₃ : is_o (λ x', g' (f x' - f x) - (g' (f' (x' - x)))) (λ x', x' - x) L,
     by { refine this.congr_left _, simp},
-  exact eq₁.tri eq₃
+  exact eq₁.triangle eq₃
 end
 
 theorem has_fderiv_within_at.comp {g : F → G} {g' : F →L[𝕜] G} {t : set F}

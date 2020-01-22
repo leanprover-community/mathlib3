@@ -92,7 +92,7 @@ A linear action yields a linear map to the endomorphism algebra.
 -/
 def to_endo_map (α : linear_action R M N) : M →ₗ[R] module.End R N := {
 { to_fun  := λ m,
-    to_fun := λ n, linear_action.act R m n,
+  { to_fun := λ n, linear_action.act R m n,
     add    := by { intros, simp, },
     smul   := by { intros, simp, }, },
   add     := by { intros, ext, simp, },

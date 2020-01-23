@@ -1,3 +1,4 @@
+#exit
 import all
 
 open norm_cast

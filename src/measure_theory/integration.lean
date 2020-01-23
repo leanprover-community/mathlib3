@@ -1164,7 +1164,7 @@ end
 lemma tendsto_lintegral_filter_of_dominated_convergence {ι} {l : filter ι}
   {F : ι → α → ennreal} {f : α → ennreal} (bound : α → ennreal)
   (hl_cb : l.has_countable_basis)
-  (hF_meas : ∀ᶠ n in l,  measurable (F n))
+  (hF_meas : ∀ᶠ n in l, measurable (F n))
   (h_bound : ∀ᶠ n in l, ∀ₘ a, F n a ≤ bound a)
   (h_fin : lintegral bound < ⊤)
   (h_lim : ∀ₘ a, tendsto (λ n, F n a) l (nhds (f a))) :

@@ -41,7 +41,7 @@ This will give rise to a monomial in `mv_polynomial σ R` which mathematicians m
 ### Definitions
 
 * `mv_polynomial σ R` : the type of polynomials with variables of type `σ` and coefficients
-  in the commutative semiring R
+  in the commutative semiring `R`
 
 * `monomial s a` : the monomial which mathematically would be denoted `a * X^s`
 

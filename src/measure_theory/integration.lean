@@ -1127,9 +1127,9 @@ calc
 
 /-- Dominated convergence theorem for nonnegative functions -/
 lemma tendsto_lintegral_of_dominated_convergence
-  {F : ℕ → α → ennreal} {f : α → ennreal} {g : α → ennreal}
-  (hF_meas : ∀n, measurable (F n)) (h_bound : ∀n, ∀ₘ a, F n a ≤ g a)
-  (h_fin : lintegral g < ⊤)
+  {F : ℕ → α → ennreal} {f : α → ennreal} (bound : α → ennreal)
+  (hF_meas : ∀n, measurable (F n)) (h_bound : ∀n, ∀ₘ a, F n a ≤ bound a)
+  (h_fin : lintegral bound < ⊤)
   (h_lim : ∀ₘ a, tendsto (λ n, F n a) at_top (𝓝 (f a))) :
   tendsto (λn, lintegral (F n)) at_top (𝓝 (lintegral f)) :=
 begin
@@ -1158,6 +1158,37 @@ begin
       limsup_le_lintegral
       begin convert lintegral_le_liminf, exact liminf_eq_limsup.symm end,
   exact tendsto_of_liminf_eq_limsup ⟨liminf_eq_lintegral, limsup_eq_lintegral⟩
+end
+
+/-- Dominated convergence theorem for filters with a countable basis -/
+lemma tendsto_lintegral_filter_of_dominated_convergence {ι} {l : filter ι}
+  {F : ι → α → ennreal} {f : α → ennreal} (bound : α → ennreal)
+  (hl_cb : l.has_countable_basis)
+  (hF_meas : { n | measurable (F n) } ∈ l)
+  (h_bound : { n | ∀ₘ a, F n a ≤ bound a } ∈ l)
+  (h_fin : lintegral bound < ⊤)
+  (h_lim : ∀ₘ a, tendsto (λ n, F n a) l (nhds (f a))) :
+  tendsto (λn, lintegral (F n)) l (nhds (lintegral f)) :=
+begin
+  rw hl_cb.tendsto_iff_seq_tendsto,
+  { intros x xl,
+    have hxl, { rw tendsto_at_top' at xl, exact xl },
+    have h := inter_mem_sets hF_meas h_bound,
+    replace h := hxl _ h,
+    rcases h with ⟨k, h⟩,
+    rw ← tendsto_add_at_top_iff_nat k,
+    refine tendsto_lintegral_of_dominated_convergence _ _ _ _ _,
+    { exact bound },
+    { intro, refine (h _ _).1, exact nat.le_add_left _ _ },
+    { intro, refine (h _ _).2, exact nat.le_add_left _ _ },
+    { assumption },
+    { filter_upwards [h_lim],
+      simp only [mem_set_of_eq],
+      assume a h_lim,
+      apply @tendsto.comp _ _ _ (λn, x (n + k)) (λn, F n a),
+      { assumption },
+      rw tendsto_add_at_top_iff_nat,
+      assumption } },
 end
 
 section

@@ -19,7 +19,7 @@ universes u v w
 
 namespace polynomial
 
-variables (R : Type u) [comm_ring R] [decidable_eq R]
+variables (R : Type u) [comm_ring R]
 
 /-- The `R`-submodule of `R[X]` consisting of polynomials of degree ≤ `n`. -/
 def degree_le (n : with_bot ℕ) : submodule R (polynomial R) :=
@@ -131,7 +131,7 @@ def of_subring (p : polynomial T) : polynomial R :=
 
 end polynomial
 
-variables {R : Type u} [comm_ring R] [decidable_eq R]
+variables {R : Type u} [comm_ring R]
 
 namespace ideal
 open polynomial
@@ -298,10 +298,10 @@ begin
       by rintro ⟨none | x⟩; [refl, exact fin.cases_succ _],
       λ x, fin.cases rfl (λ i, show (option.rec_on (fin.cases none some (fin.succ i) : option (fin n))
         0 fin.succ : fin n.succ) = _, by rw fin.cases_succ) x⟩))
-    (@@is_noetherian_ring_polynomial _ _ ih)
+    (@@is_noetherian_ring_polynomial _ ih)
 end
 
-theorem is_noetherian_ring_mv_polynomial_of_fintype {σ : Type v} [fintype σ] [decidable_eq σ]
+theorem is_noetherian_ring_mv_polynomial_of_fintype {σ : Type v} [fintype σ]
   [is_noetherian_ring R] : is_noetherian_ring (mv_polynomial σ R) :=
 trunc.induction_on (fintype.equiv_fin σ) $ λ e,
 @is_noetherian_ring_of_ring_equiv (mv_polynomial (fin (fintype.card σ)) R) _ _ _

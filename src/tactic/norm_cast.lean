@@ -95,11 +95,11 @@ namespace norm_cast
 
 open tactic expr
 
-mk_simp_attribute push_cast "The `push_cinfer_type ast` simp attribute uses `norm_cast` lemmas
+mk_simp_attribute push_cast "The `push_cast` simp attribute uses `norm_cast` lemmas
 to move casts toward the leaf nodes of the expression."
 
 /-- A type used to classify `norm_cast` lemmas. -/
-@[derive decidable_eq, derive has_reflect]
+@[derive [decidable_eq, has_reflect]]
 inductive label
 | elim   : label
 | move   : label

@@ -451,8 +451,8 @@ section ring_exp
   example (a b : ℤ) (n : ℕ) : (a + b)^(n + 2) = (a^2 + 2 * a * b + b^2) * (a + b)^n := by ring_exp
 end ring_exp
 
-section ring_exp
+section simp_rw
   example {α β : Type} {f : α → β} {t : set β} :
     (∀ s, f '' s ⊆ t) = ∀ s : set α, ∀ x ∈ s, x ∈ f ⁻¹' t :=
   by simp_rw [set.image_subset_iff, set.subset_def]
-end ring_exp
+end simp_rw

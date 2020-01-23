@@ -120,7 +120,7 @@ def monomial (s : σ →₀ ℕ) (a : α) : mv_polynomial σ α := single s a
 /-- `C a` is the constant polynomial with value `a` -/
 def C (a : α) : mv_polynomial σ α := monomial 0 a
 
-/-- `X n` is the degree 1 monomial `1*n` -/
+/-- `X n` is the degree `1` monomial `1*n` -/
 def X (n : σ) : mv_polynomial σ α := monomial (single n 1) 1
 
 @[simp] lemma C_0 : C 0 = (0 : mv_polynomial σ α) := by simp [C, monomial]; refl

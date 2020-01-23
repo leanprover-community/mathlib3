@@ -310,7 +310,7 @@ instance : has_neg p := ⟨λx, ⟨-x.1, neg_mem _ x.2⟩⟩
 instance : has_scalar α p := ⟨λ c x, ⟨c • x.1, smul_mem _ c x.2⟩⟩
 
 @[simp, norm_cast] lemma coe_add (x y : p) : (↑(x + y) : β) = ↑x + ↑y := rfl
-@[simp, elim_cast] lemma coe_zero : ((0 : p) : β) = 0 := rfl
+@[simp, norm_cast] lemma coe_zero : ((0 : p) : β) = 0 := rfl
 @[simp, norm_cast] lemma coe_neg (x : p) : ((-x : p) : β) = -x := rfl
 @[simp, norm_cast] lemma coe_smul (r : α) (x : p) : ((r • x : p) : β) = r • ↑x := rfl
 

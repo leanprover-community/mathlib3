@@ -385,7 +385,7 @@ instance : has_coe_to_fun (M ≃L[R] M₂) := ⟨_, λ f, ((f : M →L[R] M₂) 
 
 @[simp] theorem coe_apply (e : M ≃L[R] M₂) (b : M) : (e : M →L[R] M₂) b = e b := rfl
 
-@[squash_cast] lemma coe_coe (e : M ≃L[R] M₂) : ((e : M →L[R] M₂) : M → M₂) = e := rfl
+@[norm_cast] lemma coe_coe (e : M ≃L[R] M₂) : ((e : M →L[R] M₂) : M → M₂) = e := rfl
 
 @[ext] lemma ext {f g : M ≃L[R] M₂} (h : (f : M → M₂) = g) : f = g :=
 begin

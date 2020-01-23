@@ -1200,7 +1200,7 @@ TODO: more details about the different categories of lemmas?
 TODO: bad examples?
 
 `push_cast` rewrites the expression to move casts toward the leaf nodes.
-This uses `squash_cast` and `move_cast` lemmas in the "forward" direction.
+This uses `squash` and `move` lemmas in the "forward" direction.
 For example, `↑(a + b)` will be written to `↑a + ↑b`.
 It is equivalent to `simp only with push_cast`, and can also be used at hypotheses
 with `push_cast at h`.

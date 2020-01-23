@@ -387,11 +387,11 @@ do
 
 -- the unit argument is required for the `simplify` api.
 /--
-This is the main heuristic used alongside the elim_cast and move_cast lemmas.
+This is the main heuristic used alongside the elim and move lemmas.
 The goal is to help casts move past operators by adding intermediate casts.
 An expression of the shape: op (↑(x : α) : γ) (↑(y : β) : γ)
 is rewritten to:            op (↑(↑(x : α) : β) : γ) (↑(y : β) : γ)
-when (↑(↑(x : α) : β) : γ) = (↑(x : α) : γ) can be proven with a squash_cast lemma
+when (↑(↑(x : α) : β) : γ) = (↑(x : α) : γ) can be proven with a squash lemma
 -/
 @[nolint] meta def heur (_ : unit) : expr → tactic (unit × expr × expr)
 | (app (app op x) y) :=
@@ -466,7 +466,7 @@ private meta def prove : tactic unit := assumption
 -- the `unit` argument is required by the `simplify` api.
 /--
 This is an auxiliary function used in step 2.
-It tries to rewrite an expression using the elim_cast and move_cast lemmas.
+It tries to rewrite an expression using the elim and move lemmas.
 On failure, it calls the heuristic.
 -/
 @[nolint]

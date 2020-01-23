@@ -52,10 +52,10 @@ char_zero.cast_injective α
 @[simp, norm_cast] theorem cast_inj {m n : ℕ} : (m : α) = n ↔ m = n :=
 char_zero.cast_inj _
 
-@[simp, elim_cast] theorem cast_eq_zero {n : ℕ} : (n : α) = 0 ↔ n = 0 :=
+@[simp, norm_cast] theorem cast_eq_zero {n : ℕ} : (n : α) = 0 ↔ n = 0 :=
 by rw [← cast_zero, cast_inj]
 
-@[simp, elim_cast] theorem cast_ne_zero {n : ℕ} : (n : α) ≠ 0 ↔ n ≠ 0 :=
+@[simp, norm_cast] theorem cast_ne_zero {n : ℕ} : (n : α) ≠ 0 ↔ n ≠ 0 :=
 not_congr cast_eq_zero
 
 end nat

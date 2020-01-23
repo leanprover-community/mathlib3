@@ -272,9 +272,14 @@ lemma lt_iff_exists_real_btwn :
 
 lemma coe_nat_lt_coe {n : ℕ} : (n : ennreal) < r ↔ ↑n < r := ennreal.coe_nat n ▸ coe_lt_coe
 lemma coe_lt_coe_nat {n : ℕ} : (r : ennreal) < n ↔ r < n := ennreal.coe_nat n ▸ coe_lt_coe
-lemma coe_nat_lt_coe_nat {m n : ℕ} : (m : ennreal) < n ↔ m < n :=
+@[elim_cast] lemma coe_nat_lt_coe_nat {m n : ℕ} : (m : ennreal) < n ↔ m < n :=
 ennreal.coe_nat n ▸ coe_nat_lt_coe.trans nat.cast_lt
 lemma coe_nat_ne_top {n : ℕ} : (n : ennreal) ≠ ∞ := ennreal.coe_nat n ▸ coe_ne_top
+lemma coe_nat_mono : strict_mono (coe : ℕ → ennreal) := λ _ _, coe_nat_lt_coe_nat.2
+@[elim_cast] lemma coe_nat_le_coe_nat {m n : ℕ} : (m : ennreal) ≤ n ↔ m ≤ n :=
+coe_nat_mono.le_iff_le
+
+instance : char_zero ennreal := ⟨coe_nat_mono.injective⟩
 
 protected lemma exists_nat_gt {r : ennreal} (h : r ≠ ⊤) : ∃n:ℕ, r < n :=
 begin

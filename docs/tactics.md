@@ -1374,3 +1374,17 @@ See also additional documentation of `using_well_founded` in
 * `@[simps]` reduces let-expressions where necessary.
 * If one of the fields is a partially applied constructor, we will eta-expand it
   (this likely never happens).
+
+## simp_rw
+
+`simp_rw` is a version of `simp` which performs rewriting in the given order.
+Conversely, `simp_rw` is a version of `rw` that applies rewrite rules repeatedly
+and also under binders like `∀ x, ...`, `∃ x, ...` and `λ x, ...`.
+
+Usage:
+  - `simp_rw [lemma_1, ..., lemma_n]` will rewrite the goal by applying the
+    lemmas in that order.
+  - `simp_rw [lemma] at h` will rewrite hypothesis `h` using the given lemma.
+
+Lemmas passed to `simp_rw` must be expressions that are valid arguments to `simp`.
+Backwards rewriting, i.e. `simp_rw [←lemma]`, is not supported (yet).

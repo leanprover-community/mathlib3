@@ -49,6 +49,32 @@ namespace expr
 open tactic expr
 
 /--
+`flip_aux tp prf` assumes that `prf` has type `tp`, and `tp` has the form `Π ..., b = a` or
+`Π ..., b ↔ a`. It returns two `pexpr`s. The first is the Prop `Π ..., a = b` and the second
+is a proof of this prop.
+-/
+meta def flip_aux : expr → expr → option (pexpr × pexpr)
+| `(%%a = %%b) e := some (``(%%b = %%a), ``(eq.symm %%e))
+| `(%%a ↔ %%b) e := some (``(%%b ↔ %%a), ``(iff.symm %%e))
+| (pi n bi d b) e := do
+  (b', e') ← flip_aux b (expr.lift_vars e 0 1 (var 0)),
+  let d' := pexpr.of_expr d,
+  let new_ty := pi n bi d' b',
+  let new_e := lam n bi d' e',
+  some (new_ty, new_e)
+| _ _ := none
+
+/--
+TODO: describe
+ -/
+meta def flip (ty e : expr) : tactic (expr × expr) :=
+do
+  (new_ty, new_e) ← flip_aux ty e,
+  new_ty ← to_expr new_ty,
+  new_e ← to_expr new_e,
+  return (new_ty, new_e)
+
+/--
 `is_coe' e` returns `tt` if `e` is a coe function, including the implicit arguments
 `coe has more implicit arguments than `coe_fn and `coe_sort
 -/
@@ -61,33 +87,16 @@ meta def is_coe' : expr → bool
 | (app (app (const `coe_sort _) _) _)            := tt
 | _ := ff
 
-/--
-`flip tp prf` assumes that `prf` has type `tp`, and `tp` has the form `Π ..., b = a` or
-`Π ..., b ↔ a`. It returns two `pexpr`s. The first is the Prop `Π ..., a = b` and the second
-is a proof of this prop.
--/
-meta def flip : expr → expr → option (pexpr × pexpr)
-| `(%%a = %%b) e := some (``(%%b = %%a), ``(eq.symm %%e))
-| `(%%a ↔ %%b) e := some (``(%%b ↔ %%a), ``(iff.symm %%e))
-| (pi n bi d b) e := do
-  (b', e') ← flip b (expr.lift_vars e 0 1 (var 0)),
-  let d' := pexpr.of_expr d,
-  let new_ty := pi n bi d' b',
-  let new_e := lam n bi d' e',
-  some (new_ty, new_e)
-| _ _ := none
+/-- auxiliary function for `count_coes' -/
+meta def count_coes_aux : ℕ → expr → ℕ
+| n (app f x) := if f.is_coe' then count_coes_aux (n+1) x else count_coes_aux (count_coes_aux n f) x
+| n (lam _ _ _ e) := count_coes_aux n e
+| n (pi _ _ _ e) := count_coes_aux n e
+| n (elet _ a _ b) := count_coes_aux (count_coes_aux n a) b
+| n x := n
 
-/--
-`flip tp prf` assumes that `prf` has type `tp`, and `tp` has the form `Π ..., b = a` or
-`Π ..., b ↔ a`. It returns two `expr`s. The first is the Prop `Π ..., a = b` and the second
-is a proof of this prop.
- -/
-meta def reverse (ty e : expr) : tactic (expr × expr) :=
-do
-  (new_ty, new_e) ← flip ty e,
-  new_ty ← to_expr new_ty,
-  new_e ← to_expr new_e,
-  return (new_ty, new_e)
+/-- count how many coercions are inside the expression -/
+meta def count_coes : expr → ℕ := count_coes_aux 0
 
 end expr
 
@@ -98,7 +107,14 @@ open tactic expr
 mk_simp_attribute push_cast "The `push_cast` simp attribute uses `norm_cast` lemmas
 to move casts toward the leaf nodes of the expression."
 
-/-- A type used to classify `norm_cast` lemmas. -/
+/--
+`label` is a type used to classify `norm_cast` lemmas.
+elim lemma:   LHS has 0 head coes and ≥ 1 initial coe,  RHS has 0 coes
+move lemma:   LHS has 1 head coe and 0 initial coes,    RHS has 0 head coes and ≥ 1 intenal coes
+push lemma:   LHS has 1 head coe and 0 initial coes,    RHS has 0 coes
+suqash lemma: LHS has ≥ 2 head coes and 0 initial coes, RHS has fewer initial coes
+-/
+
 @[derive [decidable_eq, has_reflect]]
 inductive label
 | elim   : label
@@ -129,17 +145,6 @@ end label
 
 open label
 
-/-- auxiliary function for `count_coes' -/
-private meta def count_coes_aux : ℕ → expr → ℕ
-| n (app f x) := if f.is_coe' then count_coes_aux (n+1) x else count_coes_aux (count_coes_aux n f) x
-| n (lam _ _ _ e) := count_coes_aux n e
-| n (pi _ _ _ e) := count_coes_aux n e
-| n (elet _ a _ b) := count_coes_aux (count_coes_aux n a) b
-| n x := n
-
-/-- count how many coercions are inside the expression -/
-private meta def count_coes : expr → ℕ := count_coes_aux 0
-
 /-- count how many coercions are at the top of the expression -/
 private meta def count_head_coes : expr → ℕ
 | (app f x) := if is_coe' f then 1 + count_head_coes x else 0
@@ -148,17 +153,6 @@ private meta def count_head_coes : expr → ℕ
 /-- count how many coercions are inside the expression, excluding the top ones -/
 private meta def count_internal_coes (e : expr) : ℕ :=
 count_coes e - count_head_coes e
-
---private meta def count_internal_coes : expr → ℕ
---| (app f x) := if f.is_coe' then count_internal_coes x else count_coes f + count_coes x
---| _ := 0
-
-/-
-elim lemma:   LHS has 0 head coes and ≥ 1 initial coe,  RHS has 0 coes
-move lemma:   LHS has 1 head coe and 0 initial coes,    RHS has 0 head coes and ≥ 1 intenal coes
-push lemma:   LHS has 1 head coe and 0 initial coes,    RHS has 0 coes
-suqash lemma: LHS has ≥ 2 head coes and 0 initial coes, RHS has fewer initial coes
--/
 
 /-- aux function for `norm_cast.classify_type` -/
 private meta def classify_type_aux (lhs rhs : expr) : tactic label :=
@@ -223,7 +217,7 @@ do
 meta def add_move (cache : norm_cast_cache) (e : expr) : tactic norm_cast_cache :=
 do
   ty ← infer_type e,
-  (rev_ty, rev_e) ← reverse ty e,
+  (rev_ty, rev_e) ← expr.flip ty e,
   new_up ← simp_lemmas.add cache.up rev_e,
   new_down ← simp_lemmas.add cache.down e,
   return {
@@ -252,7 +246,7 @@ do
 
 /--
 The type of the `norm_cast` attribute.
-The optional label it used to overwrite the classifier.
+The optional label is used to overwrite the classifier.
 -/
 meta def norm_cast_attr_ty : Type := user_attribute norm_cast_cache (option label)
 

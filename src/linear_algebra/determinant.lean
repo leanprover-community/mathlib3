@@ -164,11 +164,10 @@ def mod_swap {n : Type u} [decidable_eq n] (i j : n) : setoid (perm n) :=
 
 instance (i j : n) : decidable_rel (mod_swap i j).r := λ σ τ, or.decidable
 
-variables {M : matrix n n R} {i j : n} (i_ne_j : i ≠ j) (hij : M i = M j)
+variables {M : matrix n n R} {i j : n}
 
-include i_ne_j hij
 /-- If a matrix has a repeated column, the determinant will be zero. -/
-theorem det_zero_of_column_eq : M.det = 0 :=
+theorem det_zero_of_column_eq (i_ne_j : i ≠ j) (hij : M i = M j) : M.det = 0 :=
 begin
   have swap_invariant : ∀ k, M (swap i j k) = M k,
   { intros k,

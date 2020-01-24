@@ -117,8 +117,7 @@ begin
     { intros i _, apply mem_univ },
     { intros i _, simp },
     { intros i j _ _ h, simp at h, assumption },
-    { intros i _, use σ⁻¹ i, finish }
-  },
+    { intros i _, use σ⁻¹ i, finish } },
   { intros σ σ' _ _ h, simp at h, assumption },
   { intros σ _, use σ⁻¹, finish }
 end
@@ -136,8 +135,7 @@ end
     conv_rhs { rw [←mul_assoc, coe_coe, sign_mul, units.coe_mul, int.cast_mul, ←mul_assoc] },
     congr,
     { norm_num },
-    { ext i, apply pequiv.equiv_to_pequiv_to_matrix }
-  },
+    { ext i, apply pequiv.equiv_to_pequiv_to_matrix } },
   { intros τ τ' _ _, exact (mul_left_inj σ).mp },
   { intros τ _, use σ⁻¹ * τ, use (mem_univ _), exact (mul_inv_cancel_left _ _).symm }
 end
@@ -159,13 +157,10 @@ section det_zero
   such that each partitions sums up to `0`.
 -/
 def mod_swap {n : Type u} [decidable_eq n] (i j : n) : setoid (perm n) :=
-⟨ λ σ τ, σ = τ ∨ σ = swap i j * τ
-, λ σ, or.inl (refl σ)
-, λ σ τ h, or.cases_on h
-(λ h, or.inl h.symm)
-(λ h, or.inr (by rw [h, swap_mul_self_mul]))
-, λ σ τ υ hστ hτυ, by cases hστ; cases hτυ; try {rw [hστ, hτυ, swap_mul_self_mul]}; finish
-⟩
+⟨ λ σ τ, σ = τ ∨ σ = swap i j * τ,
+  λ σ, or.inl (refl σ),
+  λ σ τ h, or.cases_on h (λ h, or.inl h.symm) (λ h, or.inr (by rw [h, swap_mul_self_mul])),
+  λ σ τ υ hστ hτυ, by cases hστ; cases hτυ; try {rw [hστ, hτυ, swap_mul_self_mul]}; finish⟩
 
 instance (i j : n) : decidable_rel (mod_swap i j).r := λ σ τ, or.decidable
 

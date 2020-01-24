@@ -53,17 +53,17 @@ def replace_row (A : matrix n n α) (j : n) (b : n → α) : matrix n n α :=
 
 variables {A : matrix n n α} {i j : n} {b : n → α}
 
-lemma replace_column_self : replace_column A i b i = b := function.update_same i b A
-lemma replace_row_self : replace_row A j b i j = b i := function.update_same j (b i) (A i)
+@[simp] lemma replace_column_self : replace_column A i b i = b := function.update_same i b A
+@[simp] lemma replace_row_self : replace_row A j b i j = b i := function.update_same j (b i) (A i)
 
-lemma replace_column_eq {i' : n} (h : i = i') : replace_column A i b i' = b :=
+@[simp] lemma replace_column_eq {i' : n} (h : i = i') : replace_column A i b i' = b :=
 by {rw [h], apply replace_column_self}
-lemma replace_row_eq {j' : n} (h : j = j') : replace_row A j b i j' = b i :=
+@[simp] lemma replace_row_eq {j' : n} (h : j = j') : replace_row A j b i j' = b i :=
 by {rw [h], apply replace_row_self}
 
-lemma replace_column_ne {i' : n} (i_ne : i' ≠ i) : replace_column A i b i' = A i' :=
+@[simp] lemma replace_column_ne {i' : n} (i_ne : i' ≠ i) : replace_column A i b i' = A i' :=
 function.update_noteq i_ne b A
-lemma replace_row_ne {j' : n} (j_ne : j' ≠ j) : replace_row A j b i j' = A i j' :=
+@[simp] lemma replace_row_ne {j' : n} (j_ne : j' ≠ j) : replace_row A j b i j' = A i j' :=
 function.update_noteq j_ne (b i) (A i)
 
 lemma replace_column_val {i' : n} : replace_column A i b i' j = if i' = i then b j else A i' j :=
@@ -119,8 +119,7 @@ begin
     repeat { erw [this, finset.prod_ite _ _ (id : α → α)] },
     erw [finset.filter_eq', if_pos (mem_univ i), prod_singleton, prod_singleton,
       prod_singleton, ←add_mul],
-    refl
-  },
+    refl },
   { intros c x,
     repeat { rw [cramer_map, ←det_transpose, det] },
     rw [smul_eq_mul, mul_sum],
@@ -129,8 +128,7 @@ begin
     repeat { erw [this, finset.prod_ite _ _ (id : α → α)] },
     erw [finset.filter_eq', if_pos (mem_univ i),
       prod_singleton, prod_singleton, mul_assoc],
-    refl
-  }
+    refl }
 end
 
 lemma cramer_is_linear : is_linear_map α (cramer_map A) := begin
@@ -138,6 +136,7 @@ lemma cramer_is_linear : is_linear_map α (cramer_map A) := begin
   { apply (cramer_map_is_linear A i).1 },
   { apply (cramer_map_is_linear A i).2 }
 end
+
 /-- The linear map of vectors associated to Cramer's rule.
 
   To help the elaborator, we need to make the type `α` an explicit argument to
@@ -224,15 +223,13 @@ begin
     have : univ.prod (λ (j' : n), replace_row A j (λ (i' : n), ite (i = i') 1 0) (σ j') j') = 0,
     { apply prod_eq_zero (mem_univ j),
       rw [replace_row_self],
-      exact if_neg h
-    },
+      exact if_neg h },
     rw this,
     apply prod_eq_zero (mem_univ (σ⁻¹ i)),
     erw [replace_column_eq (apply_symm_apply σ i).symm],
     apply if_neg,
     intro h',
-    exact h ((symm_apply_eq σ).mp h'.symm)
-  }
+    exact h ((symm_apply_eq σ).mp h'.symm) }
 end
 
 lemma mul_adjugate_val (A : matrix n n α) (i j k) :

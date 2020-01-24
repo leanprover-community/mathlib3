@@ -41,7 +41,7 @@ inverse, to which the change of coordinates should belong.
 * `atlas H M`              : when `M` is a manifold modelled on `H`, the atlas of this manifold
                              structure, i.e., the set of charts
 * `structomorph G M M'`    : the set of diffeomorphisms between the manifolds `M` and `M'` for the
-                             groupoid G. We avoid the word diffeomorphisms, keeping it for the
+                             groupoid `G`. We avoid the word diffeomorphisms, keeping it for the
                              smooth category.
 
 As a basic example, we give the instance

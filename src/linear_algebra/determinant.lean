@@ -6,7 +6,6 @@ Authors: Kenny Lau, Chris Hughes, Tim Baanen
 import data.matrix.basic
 import data.matrix.pequiv
 import group_theory.perm.sign
-import tactic.find
 
 universes u v
 open equiv equiv.perm finset function

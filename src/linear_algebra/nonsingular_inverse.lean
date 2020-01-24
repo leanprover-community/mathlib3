@@ -8,10 +8,6 @@
 import algebra.big_operators
 import data.matrix.basic
 import linear_algebra.determinant
-import tactic.fin_cases
-import tactic.linarith
-import tactic.omega
-import tactic.ring
 
 /-!
 # Nonsingular inverses

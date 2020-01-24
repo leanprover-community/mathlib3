@@ -92,7 +92,7 @@ end
 end replace
 
 section cramer
-/--
+/-!
   ### `cramer` section
 
   Introduce the linear map `cramer` with values defined by `cramer_map`.
@@ -107,7 +107,8 @@ variables [comm_ring α] (A : matrix n n α) (b : n → α)
 -/
 def cramer_map (i : n) : α := (A.replace_column i b).det
 
-lemma cramer_map_is_linear (i : n) : is_linear_map α (λ b, cramer_map A b i) := begin
+lemma cramer_map_is_linear (i : n) : is_linear_map α (λ b, cramer_map A b i) :=
+begin
   have : Π {f : n → n} {i : n} (x : n → α),
     finset.prod univ (λ (i' : n), (replace_column A i x)ᵀ (f i') i')
     = finset.prod univ (λ (i' : n), if i' = i then x (f i') else A i' (f i')),
@@ -246,7 +247,7 @@ begin
   rw [pi.smul_apply, smul_eq_mul, mul_ite]
 end
 
-lemma mul_adjugate (A : matrix n n α) : A ⬝adjugate A = A.det • 1 := begin
+lemma mul_adjugate (A : matrix n n α) : A ⬝ adjugate A = A.det • 1 := begin
   ext i j,
   rw [mul_val, smul_val, one_val, mul_ite],
   calc

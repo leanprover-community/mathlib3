@@ -47,7 +47,7 @@ jobs:
 
       - name: push release to mathlib-nightly
         if: github.repository == 'leanprover-community/mathlib' && github.event_name == 'push' && github.ref == 'refs/heads/master' && matrix.lean_version == '3.4.2'
-        run: ./scripts/deploy_nightly_actions.sh
+        run: ./scripts/deploy_nightly.sh
         env:
           GITHUB_TOKEN: ${{ secrets.DEPLOY_NIGHTLY_GITHUB_TOKEN }}
 

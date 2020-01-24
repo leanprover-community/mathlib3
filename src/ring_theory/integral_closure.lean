@@ -6,7 +6,7 @@ Authors: Kenny Lau
 Integral closure of a subring.
 -/
 
-import ring_theory.adjoin linear_algebra.finsupp
+import ring_theory.adjoin linear_algebra.finsupp ring_theory.adjoin_root
 
 universes u v
 
@@ -365,4 +365,158 @@ lemma algebra.is_integral_trans (A_int : ∀ x : A, is_integral R x)(B_int : ∀
   ∀ x:(comap R A B), is_integral R x :=
 λ x, is_integral_trans A_int x (B_int x)
 
+lemma is_integral_of_is_integral_to_comap {x : A} (h : is_integral R (to_comap R A B x)) :
+  is_integral R x :=
+begin
+  rcases h with ⟨p, hm, h0⟩,
+  existsi [p, hm],
+  change eval₂ (algebra_map (comap R A B)) (to_comap R A B x) p = 0 at h0,
+  rw [to_comap_apply] at h0,
+  change eval₂ (algebra_map (comap R A B)) _ p = 0 at h0,
+  change eval₂ (algebra_map A) x p = 0,
+  sorry
+end
+
 end algebra
+
+section
+
+/-structure splitting_ring' {R : Type u} [comm_ring R] {p : polynomial R} (hp : monic p) :=
+(A : Type*) [ring : comm_ring A] [algebra : algebra R A]
+(s : multiset A)
+(splits : p.map (algebra_map A) = (s.map (λ x, X - C x)).prod)-/
+
+structure splitting_ring' {R : Type u} [comm_ring R] (p : polynomial R) :=
+(A : Type*) [ring : comm_ring A] [algebra : algebra R A]
+(s : multiset A)
+(splits : p.map (algebra_map A) = (s.map (λ x, X - C x)).prod)
+
+variables (R : Type u) {A : Type v}
+variables [comm_ring R] [comm_ring A]
+variables [algebra R A]
+set_option class.instance_max_depth 100
+
+instance (f : polynomial R): algebra R (adjoin_root f) := sorry
+
+def splitting_ring'.exists (p : polynomial R) : splitting_ring' p :=
+well_founded.recursion polynomial.degree_lt_wf p
+  (λ x h, begin
+    let S := adjoin_root x,
+    let xS := x.map (algebra_map S),
+    have : xS.eval adjoin_root.root = 0, from sorry,
+
+   end)
+
+def splitting_ring {p : polynomial R} (hp : monic p) : Type := sorry
+
+variables {p : polynomial A} (hp : monic p)
+
+instance splitting_ring.is_comm_ring : comm_ring (splitting_ring hp) := sorry
+
+instance splitting_ring.algebra : algebra A (splitting_ring hp) := sorry
+
+def splitting_ring.splitting_set : multiset (splitting_ring hp) := sorry
+
+/-- A polynomial splits over its splitting ring. -/
+lemma splitting_ring.splits :
+ p.map (algebra_map $ splitting_ring hp) = ((splitting_ring.splitting_set hp).map (λ a, X - C a)).prod :=
+sorry
+
+
+--TODO: move
+lemma multiset.prod_zero_of_zero_mem {α : Type*} [comm_ring α] {s : multiset α} (h : (0:α) ∈ s) :
+  s.prod = 0 := sorry
+
+--TODO: move
+lemma multiset.map_prod {α β : Type*} [comm_monoid α] [comm_monoid β] (s : multiset α) (f : α → β)
+  [is_monoid_hom f] : (s.map f).prod = f s.prod := sorry
+
+lemma splitting_ring.aeval {x : splitting_ring hp} (hx : x ∈ splitting_ring.splitting_set hp) :
+  (aeval A (splitting_ring hp) x).to_fun p = 0 :=
+calc p.eval₂ (algebra_map $ splitting_ring hp) x
+    = (p.map $ algebra_map $ splitting_ring hp).eval x : eq.symm $ eval₂_map _ _ _
+... = ((splitting_ring.splitting_set hp).map (λ a, X - C a)).prod.eval x : by rw [splitting_ring.splits]
+... = ((splitting_ring.splitting_set hp).map (λ a, eval x (X - C a))).prod : sorry --eval_prod
+... = 0 : multiset.prod_zero_of_zero_mem begin rw [multiset.mem_map],
+  refine ⟨x, hx, _⟩, rw [eval_sub, eval_X, eval_C, sub_self] end
+
+lemma mem_coeff_prod_X_sub_C {s : multiset A} {M : subalgebra R A} :
+  (∀ x ∈ s, x ∈ M) → ∀ n, coeff (s.map (λ x, X - C x)).prod n ∈ M :=
+multiset.induction_on s
+  (λ _ _, by { rw [multiset.map_zero, multiset.prod_zero, coeff_one],
+    split_ifs, exact M.subring.one_mem, exact M.subring.zero_mem })
+  (λ x s hs h n, by {
+    rw [multiset.map_cons, multiset.prod_cons, coeff_mul],
+    change _ ∈ (M : submodule R A),
+    refine submodule.sum_mem _ _,
+    intros c _,
+    change _ ∈ M.carrier,
+    apply M.subring.mul_mem,
+    { rw [coeff_sub, coeff_X, coeff_C], apply is_add_subgroup.sub_mem,
+      all_goals { split_ifs }, exact M.subring.one_mem, exact M.subring.zero_mem,
+      refine h _ (multiset.mem_cons_self _ _), exact M.subring.zero_mem },
+    { exact hs (λ x hx, h _ $ multiset.mem_cons_of_mem hx) _ } })
+
+--TODO: move
+lemma mem_adjoin_of_mem {s : set A} {x : A} (h : x ∈ s) : x ∈ algebra.adjoin R s := sorry
+
+lemma is_integral_coeff_of_is_integral_coeff_mul_right {p q : polynomial A} (hp : monic p) (hq : monic q)
+  (h : ∀ n, is_integral R (coeff (p * q) n)) (n : ℕ) : is_integral R (p.coeff n) :=
+begin
+  let A' := algebra.comap R A (splitting_ring hp),
+  haveI : algebra A A' := splitting_ring.algebra hp,
+  let s := splitting_ring.splitting_set hp, -- s is the multiset of roots of p in A'
+  let R':= integral_closure R A',
+  let pqR' : polynomial R' := ((p * q).map $ algebra.to_comap R A (splitting_ring hp)).to_subring R' _,
+  have hR' : ∀ x ∈ s, is_integral R (algebra.comap.to_comap R A _ x),
+  { intros x hx,
+    have h : x ∈ integral_closure (R' : set A') A',
+    { refine ⟨pqR', _, _⟩,
+      { rw [monic_to_subring], exact monic_map _ (monic_mul hp hq) },
+      { exact calc eval₂ id x ((p * q).map (algebra_map A'))
+          = eval₂ (algebra_map A') x p * _ :
+          by { rw [map_mul (algebra_map A'), eval₂_mul, eval₂_map (algebra_map A')], refl,
+            all_goals { apply_instance } }
+      ... = (aeval A (splitting_ring hp) x).to_fun p * _ : rfl
+      ... = 0 : by rw [splitting_ring.aeval hp hx, zero_mul] } },
+    rw [integral_closure_idem] at h, sorry },
+  let M : subalgebra R A' := algebra.adjoin R s.to_finset.to_set,
+  have hM : M ≤ R', from algebra.adjoin_le (λ x hx, hR' x (multiset.mem_to_finset.mp hx)),
+  have : algebra_map (splitting_ring hp) (coeff p n) ∈ M,
+  { rw [←coeff_map (algebra_map _), splitting_ring.splits hp],
+    --rw [←subalgebra.mem_coe, show ↑M = ↑M.to_submodule, from sorry],
+    refine mem_coeff_prod_X_sub_C R (λ x hx, mem_adjoin_of_mem R _) n,
+    exact multiset.mem_to_finset.mpr hx,
+    apply_instance },
+  exact is_integral_of_is_integral_to_comap (hM this),
+  sorry
+end
+
+lemma is_integral_coeff_of_is_integral_coeff_mul_left {p q : polynomial A} (hp : monic p) (hq : monic q)
+  (h : ∀ n, is_integral R (coeff (q * p) n)) (n : ℕ) : is_integral R (p.coeff n) :=
+is_integral_coeff_of_is_integral_coeff_mul_right R hp hq (mul_comm q p ▸ h) n
+
+/-
+lemma of_is_integrally_closed (integrally_closed : integral_closure R A = ⊥) {f g : polynomial A}
+ (hf : monic f) (hg : monic g) (hr : ∀ n, coeff (f * g) n ∈ set.range (algebra_map A : R → A)) :
+ ∀ n, coeff f n ∈ set.range (algebra_map A : R → A) ∧ coeff g n ∈ set.range (algebra_map A : R → A) :=
+begin
+  intro n,
+  let hr := hr n,
+  rw [set.mem_range] at ⊢ hr, rw [set.mem_range],
+  cases hr with x hx,
+  have : ∀ n, is_integral R (coeff (f * g) n),
+  { intro n,
+    have := hr n,
+    rw [set.mem_range] at this,
+    cases this with x hx,
+    rw [←hx],
+    exact is_integral_algebra_map },
+  have h : ∀ n, is_integral R (f.coeff n) ∧ is_integral R (g.coeff n), from
+    is_integral_coeff_of_is_integral_coeff_mul R A hf hg this,
+  exact ⟨⟨h n, begin  end⟩, sorry⟩
+
+end
+-/
+
+end

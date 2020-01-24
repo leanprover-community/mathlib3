@@ -192,28 +192,34 @@ end
 
 open polynomial valued_ring
 
-/-- Shows that the valuation ring is integrally closed. -/
-lemma integrally_closed (x : α) (hi : is_integral (valuation_ring α) x) : val x ≤ 1 :=
-let ⟨p, hm, hp⟩ := hi in
+example {p : polynomial α} {a : ℕ} (h : a ∈ ((p - X ^ nat_degree p).support).val) (hp0 : p ≠ 0) (hm : monic p) :
+  a + 1 ≤ p.nat_degree := nat.succ_le_of_lt (by { rw [←with_bot.coe_lt_coe, ←degree_eq_nat_degree hp0],
+    refine lt_of_le_of_lt (_ : ↑a ≤ degree (p - X ^ nat_degree p)) _,
+    { exact le_degree_of_ne_zero (finsupp.mem_support_iff.mp $ finset.mem_def.mpr h) },
+    { refine degree_sub_lt _ hp0 _,
+      rw [degree_X_pow, degree_eq_nat_degree hp0],
+      rw [leading_coeff_X_pow], exact hm } })
+
+/-- The valuation ring is integrally closed. -/
+lemma integrally_closed {x : α} (hi : is_integral (valuation_ring α) x) : val x ≤ 1 :=
 begin
+  rcases hi with ⟨p, hm, hp⟩,
   -- We assume that val x > 1
 	by_contradiction hnx,
   -- We have p(x) = 0 where p is some polynomial with integral coefficients
   change p.eval₂ subtype.val x = 0 at hp,
-  let X : polynomial (valuation_ring α) := X,
   -- p and x are non-zero and therefore val x > 0
   have hp0 : p ≠ 0, from ne_zero_of_monic hm,
-  have hx0 : x ≠ 0, from λ hx0, by rw [hx0, val_zero] at hnx; exact hnx zero_le_one,
-  have hvx : 0 < val x, from val_pos (λ hn, by rw [hn, val_zero] at hnx; exact hnx zero_le_one),
-  -- We have val x^n = val x^n - ∑_i^n a_i * x^i where p(X) = ∑_i^n a_i * X^i
-  have h : val x^p.nat_degree = val ((X^p.nat_degree + -p).eval₂ subtype.val x),
-    begin letI : is_ring_hom (subtype.val : valuation_ring α → α) := by apply_instance,
-      rw [←val_pow, eval₂_add, eval₂_neg, hp, neg_zero, add_zero, eval₂_X_pow] end,
+  have hx0 : x ≠ 0, { intro hx0, rw [hx0, val_zero] at hnx, exact hnx zero_le_one },
+  have hvx : 0 < val x, from val_pos hx0,
+  -- We have val x^n = val (p(x) - x^n) since p(x) = 0
+  have h : val x^p.nat_degree = val ((p - X^p.nat_degree).eval₂ subtype.val x),
+  { letI : is_ring_hom (subtype.val : valuation_ring α → α) := by apply_instance,
+    rw [←val_pow, eval₂_sub, hp, zero_sub, val_neg, eval₂_X_pow] },
   -- Since p is monic we get x^n = -∑_i^{n-1} a_i * x^i. Since val a_i ≤ 1 for i = 1..n, we may
   -- conclude that val x^n ≤ val x^{n-1} using the strong triangle inequality
   have h1 : val x^p.nat_degree ≤ val x^p.nat_degree * (val x)⁻¹,
-  begin
-    conv_lhs { rw [h] },
+  { conv_lhs { rw [h] },
     apply val_sum,
     { cases nat.eq_zero_or_pos p.nat_degree with _ h1,
       swap, rw [←zero_pow h1, zero_pow h1],
@@ -221,43 +227,55 @@ begin
     { intros y hy,
       cases multiset.mem_map.mp hy with a ha,
       have hd : a + 1 ≤ p.nat_degree,
-        begin
-          rw [←finset.mem_def] at ha,
-          have ha1 : a ∈ (X ^ nat_degree p + -p).support := ha.1,
-          have hna : a ≠ p.nat_degree, from λ hna,
-            begin
-              rw [finsupp.mem_support_iff, hna] at ha1,
-              change coeff (X ^ nat_degree p + -p) (nat_degree p) ≠ 0 at ha1,
-              rw [monic.def] at hm,
-              unfold leading_coeff at hm,
-              rw [coeff_add, coeff_neg, coeff_X_pow, if_pos rfl, hm, add_neg_self] at ha1,
-              contradiction
-            end,
-          have : a ≤ p.nat_degree, from with_bot.coe_le_coe.mp
-          (calc ↑a ≤ (X^p.nat_degree - p).degree            : finset.le_sup ha1
-                ... ≤ max (X^p.nat_degree).degree (-p).degree : degree_add_le _ _
-                ... = max ↑p.nat_degree p.degree              : by rw [degree_X_pow, degree_neg]
-                ... = ↑(p.nat_degree) : by rw [←degree_eq_nat_degree hp0, degree_eq_nat_degree hp0, max_self]),
-          exact nat.succ_le_of_lt (lt_of_le_of_ne this hna)
-        end,
+      { apply nat.succ_le_of_lt,
+        rw [←with_bot.coe_lt_coe, ←degree_eq_nat_degree hp0],
+        refine lt_of_le_of_lt (_ : ↑a ≤ degree (p - X^p.nat_degree)) _,
+        { exact le_degree_of_ne_zero (finsupp.mem_support_iff.mp $ finset.mem_def.mpr ha.1) },
+        { refine degree_sub_lt _ hp0 _,
+          rw [degree_X_pow, degree_eq_nat_degree hp0],
+          rw [leading_coeff_X_pow], exact hm } },
       rw [←ha.2, val_mul, ←mul_le_mul_right hvx, mul_assoc, ←val_mul, ←pow_succ', mul_assoc,
-          inv_mul_cancel (val_ne_zero hx0), mul_one],
-      calc val (((X ^ nat_degree p - p).to_fun a).val) * val (x ^ (a + 1))
-          ≤ val (x ^ (a + 1))    : mul_le_of_le_one_left (nonneg _) (((X ^ nat_degree p - p).to_fun a).property)
-      ... ≤ val x ^ p.nat_degree : by rw [val_pow]; exact pow_le_pow (le_of_not_ge hnx) hd }
-  end,
+        inv_mul_cancel (val_ne_zero hx0), mul_one],
+      calc val (((p - X ^ nat_degree p).to_fun a).val) * val (x ^ (a + 1))
+          ≤ val (x ^ (a + 1))    : mul_le_of_le_one_left (nonneg _) (((p - X ^ nat_degree p).to_fun a).property)
+      ... ≤ val x ^ p.nat_degree : by { rw [val_pow], exact pow_le_pow (le_of_not_ge hnx) hd } } },
   rw [←mul_le_mul_right hvx, mul_assoc, inv_mul_cancel (val_ne_zero hx0), mul_one] at h1,
-  have : val x ^ nat_degree p > 0, from
-    lt_of_not_ge (λ hlt, begin
-      rw [←val_pow] at hlt,
-      have : val (x ^ nat_degree p) = 0, from le_antisymm hlt (nonneg _),
-      rw [definite] at this,
-      exact hx0 (pow_eq_zero this)
-    end),
+  have hpos : (val x) ^ p.nat_degree > 0,
+  { rw [←real.rpow_nat_cast], exact real.rpow_pos_of_pos hvx _ },
   -- We cancel (val x)^{n-1} on both sides to obtain val x ≤ 1
-  have : val x ≤ 1, from (mul_le_iff_le_one_right this).mp h1,
-  -- This contradicts the assumption that val x < 1
+  have : val x ≤ 1, from (mul_le_iff_le_one_right hpos).mp h1,
+  -- This contradicts the assumption that val x > 1
   contradiction
+end
+
+open field_extension
+--hint
+instance {β : Type*} [discrete_field β] [field_extension α β] : algebra (valuation_ring α) β :=
+algebra.comap.algebra (valuation_ring α) α β
+
+--TODO: lemma is wrong, put power in there
+lemma minimal_polynomial.constant_eq {β : Type*} [discrete_field β] [field_extension α β] [finite_dimensional α β]
+  {x : β} (hx : is_integral α x) : (minimal_polynomial hx).coeff 0 = (field_norm α x) ^ 2 := sorry
+
+/-- The valuation ring is integrally closed. -/
+lemma integrally_closed' {β : Type*} [discrete_field β] [field_extension α β] [finite_dimensional α β]
+  {x : β} (hx : is_integral (valuation_ring α) x) : val (field_norm α x) ≤ 1 :=
+begin
+  have hiα : is_integral α x, from is_integral_of_noetherian' (by apply_instance) x,
+  let f := minimal_polynomial hiα,
+  have hm : (minimal_polynomial hx).of_subring (valuation_ring α) = f,
+  { refine minimal_polynomial.unique _ _ (minimal_polynomial.aeval hx) _,
+    { rw [monic_of_subring], exact minimal_polynomial.monic hx },
+    { intros q hqm hq0, rw [degree_of_subring], rw [←degree_to_subring q (valuation_ring α)],
+      refine minimal_polynomial.min hx _ hq0, sorry, sorry } },
+  have h0 : f.coeff 0 ∈ valuation_ring α,
+  { rw [←hm, of_subring], simp only [subtype.val_prop, polynomial.coeff_mk] },
+  exact calc valued_ring.val (field_norm α x)
+    = ((valued_ring.val (field_norm α x))^2) ^ (1/2 : ℝ) :
+      by { rw [←real.rpow_nat_cast, ←real.rpow_mul (nonneg _)], norm_num }
+  ... = (valued_ring.val ((field_norm α x)^2)) ^ (1/2 : ℝ) : by rw [val_pow]
+  ... ≤ 1 ^ (1/2 : ℝ) : real.rpow_le_rpow (nonneg _) (minimal_polynomial.constant_eq hiα ▸ h0) (by norm_num)
+  ... = 1             : by norm_num
 end
 
 /-- The unique maximal ideal of the valuation ring. -/
@@ -369,10 +387,6 @@ instance : algebra (valuation_ring α) β := algebra.comap.algebra (valuation_ri
   discrete_field (adjoin_root (minimal_polynomial hx)) :=
 {..@adjoin_root.field α _ _ (minimal_polynomial.irreducible hx) }-/
 
---TODO: lemma is wrong, put power in there
-lemma minimal_polynomial.constant_eq {x : β} (hx : is_integral α x) :
-  (minimal_polynomial hx).coeff 0 = (field_norm α x) ^ 2 := sorry
-
 --TODO: move
 /-- The integral closure of the valuation ring of `α` in `β` is equal to the preimage of the
 valuation ring of `α` under norm map from `α` to `β`. -/
@@ -397,12 +411,12 @@ begin
       = ((valued_ring.val (field_norm α x))^2) ^ (1/2 : ℝ) :
         by { rw [←real.rpow_nat_cast, ←real.rpow_mul (nonneg _)], norm_num }
   ... = (valued_ring.val ((field_norm α x)^2)) ^ (1/2 : ℝ) : by rw [val_pow]
-  ... ≤ 1 ^ (1/2 : ℝ) : real.rpow_le_rpow (nonneg _) (minimal_polynomial.constant_eq α hiα ▸ h0) (by norm_num)
+  ... ≤ 1 ^ (1/2 : ℝ) : real.rpow_le_rpow (nonneg _) (minimal_polynomial.constant_eq hiα ▸ h0) (by norm_num)
   ... = 1             : by norm_num },
   { intro hx,
     have : valued_ring.val (f.coeff 0) ≤ 1, from
     calc valued_ring.val (f.coeff 0)
-      = valued_ring.val ((field_norm α x) ^ 2) : congr_arg _ $ minimal_polynomial.constant_eq _ _
+      = valued_ring.val ((field_norm α x) ^ 2) : congr_arg _ $ minimal_polynomial.constant_eq _
   ... = (valued_ring.val $ field_norm α x) ^ 2 : val_pow _ _
   ... ≤ 1 ^ 2 : pow_le_pow_of_le_left (nonneg _) hx 2
   ... = 1 : by norm_num,

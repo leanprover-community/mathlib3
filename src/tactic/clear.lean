@@ -4,111 +4,81 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Author: Jannis Limperg
 -/
 
+import tactic.core
+
 /-!
-# A better `clear` tactic
+# Better `clear` tactics
 
-We define `clear'`, an improved version of the standard `clear` tactic. It
-solves the following problem: The `clear` tactic, when called with multiple
-hypotheses, sometimes fails even though all hypotheses could be cleared. This is
-because `clear` is sensitive to the ordering of hypotheses:
+We define two variants of the standard `clear` tactic:
 
-```
-example {α : Type} {β : α → Type} (a : α) (b : β a) : unit :=
-  begin
-    clear a b, -- fails
-    exact ()
-  end
-```
+* `clear'` works like `clear` but the hypotheses that should be cleared can be
+  given in any order. In contrast, `clear` can fail if hypotheses that depend on
+  each other are given in the wrong order, even if all of them could be cleared.
 
-When `clear` tries to clear `a`, we still have `b`, which depends on `a`, in the
-context, so the operation fails. We give a tactic `clear'` which recognises this
-and clears `b` before `a`.
+* `clear_dependent` works like `clear'` but also clears any hypotheses that
+  depend on the given hypotheses.
 
 ## Implementation notes
 
-The tactic is implemented by processing the hypotheses in reverse context order:
-hypotheses occurring later in the context are cleared first. This guarantees
-that the dependency order is observed.
+The implementation (ab)uses the native `revert_lst`, which can figure out
+dependencies between hypotheses. This implementation strategy was suggested by
+Simon Hudon.
 -/
 
-open native
+open native tactic interactive lean.parser
 
-namespace native.rb_map
+/-- Clears all the hypotheses in `hyps`. The tactic fails if any of the `hyps`
+is not a local or if the target depends on any of the `hyps`.
 
-  meta def index_map_aux {α} [hlt : has_lt α] [decidable_rel hlt.lt]
-    : ℕ → rb_map α ℕ → list α → rb_map α ℕ
-  | _ m [] := m
-  | n m (x :: xs) := index_map_aux (n + 1) (m.insert x n) xs
-
-  /-- `index_map xs` is a map which associates to each element of `xs` its index
-  in `xs`. -/
-  meta def index_map {α} [hlt : has_lt α] [decidable_rel hlt.lt] (xs : list α)
-    : rb_map α ℕ :=
-  index_map_aux 0 mk_rb_map xs
-
-  /-- `compare_by_value o x y` is true iff `x` and `y` occur in `o` and the
-  associated value of `x` is less than that of `y`.
-  -/
-  meta def compare_by_value {α β} [hlt : has_lt β] [decidable_rel hlt.lt]
-    (o : rb_map α β) (x y : α)
-    : bool :=
-  let islt : option bool := do
-    x_ix ← o.find x,
-    y_ix ← o.find y,
-    pure (x_ix < y_ix)
-  in islt.get_or_else false
-
-end native.rb_map
-
-open native.rb_map
-
-
-namespace tactic
-
-  /-- `context_order ctx e₁ e₂` is true iff `e₁` appears before `e₂` in `ctx`. -/
-  meta def context_order (ctx : list expr) : expr → expr → bool :=
-  compare_by_value (index_map ctx)
-
-  /-- `context_order` applied to the local context. -/
-  meta def local_context_order : tactic (expr → expr → bool) := do
-  ctx ← local_context,
-  pure (context_order ctx)
-
-  /-- The inverse of a relation: `inverse_rel r x y` is true iff `r x y` is
-      false. -/
-  @[reducible] private def inverse_rel {α} (r : α → α → bool) (x y : α) : bool :=
-  not (r x y)
-
-  /-- Clears the hypotheses in `hyps` if possible. In contrast to `clear`, the
-      order of hypotheses does not matter. See `tactic.interactive.clear'` for
-      details.
-  -/
-  meta def clear' (hyps : list expr) : tactic unit := do
-  context_order ← inverse_rel <$> local_context_order,
-  monad.mapm' clear (hyps.qsort context_order)
-
-end tactic
+If there are local hypotheses or definitions, say `H`, which are not in `hyps`
+but depend on one of the `hyps`, what we do depends on `clear_dependent`. If it
+is true, `H` is implicitly also cleared. If it is false, `clear'` fails. -/
+meta def tactic.clear' (clear_dependent : bool) (hyps : expr_set) : tactic unit := do
+let hyps_list := hyps.to_list,
+tgt ← target,
+-- Check if the target depends on any of the hyps. Doing this (instead of
+-- letting one of the later tactics fail) lets us give a much more informative
+-- error message.
+hyps_list.mmap' (λ h, do
+  dep ← kdepends_on tgt h,
+  when dep $ fail $ format.join
+    [ "Cannot clear hypothesis "
+    , to_fmt h
+    , " since the target depends on it."
+    , format.line
+    ]),
+n ← revert_lst hyps_list,
+-- If revert_lst reverted more hypotheses than we wanted to clear, there must
+-- have been other hypotheses dependent on some of the hyps.
+when (! clear_dependent && (n ≠ hyps.size)) $ fail $ format.join
+  [ "Some of the following hypotheses cannot be cleared because other "
+  , "hypotheses depend on (some of) them:"
+  , format.line
+  , format.intercalate ", " (hyps.to_list.map to_fmt)
+  , format.line
+  ],
+v ← mk_meta_var tgt,
+intron n,
+exact v,
+gs ← get_goals,
+set_goals $ v :: gs
 
 
 namespace tactic.interactive
 
-  open tactic interactive lean.parser
+/-- Clears the given hypotheses. In contrast to `clear`, the order of hypotheses
+does not matter, even if there are dependencies between them. Fails if the
+target or any local hypotheses (other than the given ones) depend on the given
+hypotheses. -/
+meta def clear' (p : parse (many ident)) : tactic unit := do
+hyps ← p.mmap get_local,
+tactic.clear' false (rb_map.set_of_list hyps)
 
-  /-- Clears the hypotheses in `hyps` if possible. In contrast to `clear`, the
-  order of hypotheses does not matter, even if there are dependencies between
-  them.
-
-  For example, the following test would fail if we replaced `clear'` with
-  `clear` (since `b` depends on `a`):
-
-  ```
-  example {α : Type} {β : α → Type} (a : α) (b : β a) : unit :=
-    begin
-      clear' a b,
-      exact ()
-    end
-  ``` -/
-  meta def clear' (hyps : parse (many ident)) : tactic unit :=
-  monad.mapm get_local hyps >>= tactic.clear'
+/-- Clears the given hypotheses and any other hypotheses that depend on them.
+The hypotheses can be given in any order. Fails if the target depends on any of
+the given hypotheses. -/
+meta def clear_dependent (p : parse (many ident)) : tactic unit := do
+hyps ← p.mmap get_local,
+tactic.clear' true (rb_map.set_of_list hyps)
 
 end tactic.interactive

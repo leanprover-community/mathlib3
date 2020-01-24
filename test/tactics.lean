@@ -454,11 +454,35 @@ end ring_exp
 
 section clear'
 
-example {α : Type} {β : α → Type} (a : α) (b : β a) : unit :=
+example {α} {β : α → Type} (a : α) (b : β a) : unit :=
   begin
+    try { clear a b }, -- fails since `b` depends on `a`
+    try { clear' a },  -- fails since `b` depends on `a`
     clear' a b,
-    -- clear would fail since `b` depends on `a`
     exact ()
   end
 
+example {α} {β : α → Type} (a : α) : β a → unit :=
+  begin
+    try { clear' a }, -- fails since the target depends on `a`
+    exact λ _, ()
+  end
+
 end clear'
+
+section clear_dependent
+
+example {α} {β : α → Type} (a : α) (b : β a) : unit :=
+  begin
+    try { clear' a }, -- fails since `b` depends on `a`
+    clear_dependent a,
+    exact ()
+  end
+
+example {α} {β : α → Type} (a : α) : β a → unit :=
+  begin
+    try { clear_dependent a }, -- fails since the target depends on `a`
+    exact λ _, ()
+  end
+
+end clear_dependent

@@ -487,7 +487,7 @@ lemma of_rat_eq {q r : ℚ} : of_rat p q = of_rat p r ↔ q = r :=
 by simp [cast_eq_of_rat, of_rat_eq]
 
 instance : char_zero ℚ_[p] :=
-⟨λ m n, by { rw ← rat.cast_coe_nat, norm_cast }⟩
+⟨λ m n, by { rw ← rat.cast_coe_nat, norm_cast, exact id }⟩
 
 end completion
 end padic

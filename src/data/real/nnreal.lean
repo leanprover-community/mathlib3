@@ -294,6 +294,10 @@ lemma of_real_lt_of_real_iff {r p : ℝ} (h : 0 < p) :
   nnreal.of_real r < nnreal.of_real p ↔ r < p :=
 of_real_lt_of_real_iff'.trans (and_iff_left h)
 
+lemma of_real_lt_of_real_iff_of_nonneg {r p : ℝ} (hr : 0 ≤ r) :
+  nnreal.of_real r < nnreal.of_real p ↔ r < p :=
+of_real_lt_of_real_iff'.trans ⟨and.left, λ h, ⟨h, lt_of_le_of_lt hr h⟩⟩
+
 @[simp] lemma of_real_add {r p : ℝ} (hr : 0 ≤ r) (hp : 0 ≤ p) :
   nnreal.of_real (r + p) = nnreal.of_real r + nnreal.of_real p :=
 nnreal.eq $ by simp [nnreal.of_real, hr, hp, add_nonneg]

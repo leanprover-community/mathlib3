@@ -8,9 +8,7 @@ Construction of the hyperreal numbers as an ultraproduct of real sequences.
 import data.real.basic algebra.field order.filter.filter_product analysis.specific_limits
 
 open filter filter.filter_product
-open_locale topological_space
-
-local attribute [instance] classical.prop_decidable -- TODO: use "open_locale classical"
+open_locale topological_space classical
 
 /-- Hyperreal numbers on the ultrafilter extending the cofinite filter -/
 @[reducible] def hyperreal := filter.filterprod ℝ (@hyperfilter ℕ)
@@ -19,7 +17,7 @@ namespace hyperreal
 
 notation `ℝ*` := hyperreal
 
-private def U := is_ultrafilter_hyperfilter set.infinite_univ_nat
+private def U : is_ultrafilter (@hyperfilter ℕ) := is_ultrafilter_hyperfilter
 noncomputable instance : discrete_linear_ordered_field ℝ* :=
 filter_product.discrete_linear_ordered_field U
 
@@ -43,8 +41,7 @@ begin
   rw lt_def U,
   show {i : ℕ | (0 : ℝ) < i⁻¹} ∈ hyperfilter.sets,
   simp only [inv_pos', nat.cast_pos],
-  exact mem_hyperfilter_of_finite_compl set.infinite_univ_nat
-    (by convert set.finite_singleton _),
+  exact mem_hyperfilter_of_finite_compl (by convert set.finite_singleton _),
 end
 
 lemma epsilon_ne_zero : ε ≠ 0 := ne_of_gt epsilon_pos
@@ -63,7 +60,7 @@ begin
   have hs : -{i : ℕ | f i < r} ⊆ {i : ℕ | i ≤ N} :=
     λ i hi1, le_of_lt (by simp only [lt_iff_not_ge];
     exact λ hi2, hi1 (lt_of_le_of_lt (le_abs_self _) (hf' i hi2)) : i < N),
-  exact mem_hyperfilter_of_finite_compl set.infinite_univ_nat
+  exact mem_hyperfilter_of_finite_compl
     (set.finite_subset (set.finite_le_nat N) hs)
 end
 
@@ -400,7 +397,7 @@ Exists.cases_on (hf' (r + 1)) $ λ i hi,
   have hS : - {a : ℕ | r < f a} ⊆ {a : ℕ | a ≤ i} :=
     by simp only [set.compl_set_of, not_lt];
     exact λ a har, le_of_lt (hi' a (lt_of_le_of_lt har (lt_add_one _))),
-  (lt_def U).mpr $ mem_hyperfilter_of_finite_compl set.infinite_univ_nat $
+  (lt_def U).mpr $ mem_hyperfilter_of_finite_compl $
   set.finite_subset (set.finite_le_nat _) hS
 
 theorem infinite_neg_of_tendsto_bot {f : ℕ → ℝ} (hf : tendsto f at_top at_bot) :
@@ -412,7 +409,7 @@ Exists.cases_on (hf' (r - 1)) $ λ i hi,
   have hS : - {a : ℕ | f a < r} ⊆ {a : ℕ | a ≤ i} :=
     by simp only [set.compl_set_of, not_lt];
     exact λ a har, le_of_lt (hi' a (lt_of_lt_of_le (sub_one_lt _) har)),
-  (lt_def U).mpr $ mem_hyperfilter_of_finite_compl set.infinite_univ_nat $
+  (lt_def U).mpr $ mem_hyperfilter_of_finite_compl $
   set.finite_subset (set.finite_le_nat _) hS
 
 lemma not_infinite_neg {x : ℝ*} : ¬ infinite x → ¬ infinite (-x) :=
@@ -626,7 +623,7 @@ begin
   convert infinite_pos_iff_infinitesimal_inv_pos,
   all_goals { by_cases h : x = 0,
     rw [h, inv_zero, inv_zero],
-    exact (division_ring.inv_inv h).symm }
+    exact (division_ring.inv_inv $ show x ≠ 0, from h).symm }
 end
 
 lemma infinitesimal_neg_iff_infinite_neg_inv {x : ℝ*} :
@@ -635,7 +632,7 @@ begin
   convert infinite_neg_iff_infinitesimal_inv_neg,
   all_goals { by_cases h : x = 0,
     rw [h, inv_zero, inv_zero],
-    exact (division_ring.inv_inv h).symm }
+    exact (division_ring.inv_inv $ show x ≠ 0, from h).symm }
 end
 
 theorem infinitesimal_iff_infinite_inv {x : ℝ*} (h : x ≠ 0) : infinitesimal x ↔ infinite x⁻¹ :=

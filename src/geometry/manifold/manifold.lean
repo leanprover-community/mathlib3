@@ -33,7 +33,7 @@ inverse, to which the change of coordinates should belong.
                              maps)
 * `continuous_groupoid H`  : the groupoid of all local homeomorphisms of `H`
 
-* `manifold H M`           : manifold structure on M modelled on H, given by an atlas of local
+* `manifold H M`           : manifold structure on `M` modelled on `H`, given by an atlas of local
                              homeomorphisms from M to H whose sources cover M. This is a type class.
 * `has_groupoid M G`       : when `G` is a structure groupoid on `H` and `M` is a manifold modelled on
                              `H`, require that all coordinate changes belong to `G`. This is a type

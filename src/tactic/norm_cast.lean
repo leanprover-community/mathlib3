@@ -66,7 +66,7 @@ meta def flip_aux : expr → expr → option (pexpr × pexpr)
 
 /--
 TODO: describe
- -/
+-/
 meta def flip (ty e : expr) : tactic (expr × expr) :=
 do
   (new_ty, new_e) ← flip_aux ty e,
@@ -74,17 +74,18 @@ do
   new_e ← to_expr new_e,
   return (new_ty, new_e)
 
+--TODO: don't count coercions inside implicit parts of the expression?
 /--
-`is_coe' e` returns `tt` if `e` is a coe function, including the implicit arguments
-`coe has more implicit arguments than `coe_fn and `coe_sort
+`is_coe' e` returns `tt` if `e` is a coe function, including the implicit arguments.
+`coe has more implicit arguments than `coe_fn.
 -/
 meta def is_coe' : expr → bool
 | (app (app (app (const `has_coe.coe _) _) _) _) := tt
 | (app (app (app (const `coe _) _) _) _)         := tt
 | (app (app (const `has_coe_to_fun.coe _) _) _)  := tt
 | (app (app (const `coe_fn _) _) _)              := tt
-| (app (app (const `has_coe_to_sort.coe _) _) _) := tt
-| (app (app (const `coe_sort _) _) _)            := tt
+--| (app (app (const `has_coe_to_sort.coe _) _) _) := tt
+--| (app (app (const `coe_sort _) _) _)            := tt
 | _ := ff
 
 /-- auxiliary function for `count_coes' -/
@@ -155,7 +156,7 @@ private meta def count_internal_coes (e : expr) : ℕ :=
 count_coes e - count_head_coes e
 
 /-- aux function for `norm_cast.classify_type` -/
-private meta def classify_type_aux (lhs rhs : expr) : tactic label :=
+private meta def classify_type_aux_old (lhs rhs : expr) : tactic label :=
 do
   let lhs_head_coes := count_head_coes lhs,
   let lhs_internal_coes := count_internal_coes lhs,
@@ -182,6 +183,42 @@ do
       fail "norm_cast: badly shaped squash lemma"
   else
     fail "norm_cast: lhs must contain at least one coe"
+
+--old version, kept for debuging purposes
+/-- TODO: update and describe -/
+meta def classify_type_old (ty : expr) : tactic label :=
+do (args, tp) ← mk_local_pis ty,
+match tp with
+| `(%%lhs = %%rhs) := classify_type_aux_old lhs rhs
+| `(%%lhs ↔ %%rhs) := classify_type_aux_old lhs rhs
+| _ := fail "norm_cast: lemma must be = or ↔"
+end
+
+/-- aux function for `norm_cast.classify_type` -/
+private meta def classify_type_aux (lhs rhs : expr) : tactic label :=
+do
+  if count_coes lhs = 0 then
+    fail "norm_cast: lhs must contain at least one coe"
+  else skip,
+  let lhs_head_coes := count_head_coes lhs,
+  let lhs_internal_coes := count_internal_coes lhs,
+  let rhs_head_coes := count_head_coes rhs,
+  let rhs_internal_coes := count_internal_coes rhs,
+  if lhs_head_coes = 0 then
+    return elim
+  else if lhs_head_coes = 1 then
+    if rhs_head_coes = 0 then
+      if rhs_internal_coes ≥ 1 then
+        return move
+      else
+        return push
+    else
+      fail "norm_cast: badly shaped lemma, rhs can't start with coe"
+  else
+    if rhs_head_coes < lhs_head_coes then
+      return squash
+    else
+      fail "norm_cast: badly shaped squash lemma"
 
 /-- TODO: update and describe -/
 meta def classify_type (ty : expr) : tactic label :=
@@ -323,6 +360,13 @@ The `norm_cast` attribute.
         mk_cache     := mk_cache norm_cast_attr,
         dependencies := [], },
 }
+
+/-- run the old classifier on the type of a declaration -/
+meta def make_guess_old (decl : name) : tactic label :=
+do
+  e ← mk_const decl,
+  ty ← infer_type e,
+  classify_type_old ty
 
 /-- run the classifier on the type of a declaration -/
 meta def make_guess (decl : name) : tactic label :=

@@ -1384,8 +1384,9 @@ rules and also under binders like `∀ x, ...`, `∃ x, ...` and `λ x, ...`.
 Usage:
   - `simp_rw [lemma_1, ..., lemma_n]` will rewrite the goal by applying the
     lemmas in that order.
-  - `simp_rw [lemma_1, ..., lemma_n] at h` will rewrite hypothesis `h` using the
-    given lemmas.
+  - `simp_rw [lemma_1, ..., lemma_n] at h₁ ... hₙ` will rewrite the given hypotheses.
+  - `simp_rw [...] at ⊢ h₁ ... hₙ` rewrites the goal as well as the given hypotheses.
+  - `simp_rw [...] at *` rewrites in the whole context: all hypotheses and the goal.
 
 For example, neither `simp` nor `rw` can solve the following, but `simp_rw` can:
 ```lean

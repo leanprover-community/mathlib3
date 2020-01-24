@@ -22,3 +22,12 @@ example (a b c d : ℕ) : a + (b + (c + d)) = ((d + c) + b) + a := by simp_rw [a
 -- `simp_rw` can also rewrite in assumptions:
 example (p : ℕ → Prop) (a b : ℕ) (h : p (a + b)) : p (b + a) :=
 by {simp_rw [add_comm a b] at h, exact h}
+-- or explicitly rewrite at the goal:
+example (p : ℕ → Prop) (a b : ℕ) (h : p (a + b)) : p (b + a) :=
+by {simp_rw [add_comm b a] at ⊢, exact h}
+-- or at multiple assumptions:
+example (p : ℕ → Prop) (a b : ℕ) (h₁ : p (b + a) → p (a + b))  (h₂ : p (a + b)) : p (b + a) :=
+by {simp_rw [add_comm a b] at h₁ h₂, exact h₁ h₂}
+-- or everywhere:
+example (p : ℕ → Prop) (a b : ℕ) (h₁ : p (b + a) → p (a + b))  (h₂ : p (a + b)) : p (a + b) :=
+by {simp_rw [add_comm a b] at *, exact h₁ h₂}

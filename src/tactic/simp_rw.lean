@@ -30,8 +30,10 @@ open interactive interactive.types tactic
   and can also rewrite under binders like `λ x, ...`
 
   Usage:
-    - `simp_rw [lemma_1, ..., lemma_n]` will rewrite the goal by applying the lemmas in that order.
-    - `simp_rw [lemma_1, ..., lemma_n] at h` will rewrite hypothesis `h` using the given lemmas.
+    - `simp_rw [l₁, ..., lₙ]` will rewrite the goal by applying lemmas `l₁, ..., lₙ` in that order.
+    - `simp_rw [l₁, ..., lₙ] at h₁ ... hₙ` will rewrite hypotheses `h₁, ..., hₙ` in that order.
+      Include `⊢` to also rewrite the goal.
+    - `simp_rw [l₁, ..., lₙ] at *` will rewrite in the whole context.
 
   Lemmas passed to `simp_rw` must be expressions that are valid arguments to `simp`.
 -/

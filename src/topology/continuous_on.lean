@@ -65,11 +65,7 @@ lemma mem_nhds_within_of_mem_nhds {s t : set α} {a : α} (h : s ∈ 𝓝 a) :
 mem_inf_sets_of_left h
 
 theorem self_mem_nhds_within {a : α} {s : set α} : s ∈ nhds_within a s :=
-begin
-  rw [nhds_within, mem_inf_principal],
-  simp only [imp_self],
-  exact univ_mem_sets
-end
+mem_inf_sets_of_right (mem_principal_self s)
 
 theorem inter_mem_nhds_within (s : set α) {t : set α} {a : α} (h : t ∈ 𝓝 a) :
   s ∩ t ∈ nhds_within a s :=

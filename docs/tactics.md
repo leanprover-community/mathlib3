@@ -1384,11 +1384,11 @@ be cleared (if the type of `y` depends on `x`). `clear'` lifts this limitation.
 
 ```
 example {α} {β : α → Type} (a : α) (b : β a) : unit :=
-  begin
-    try { clear a b }, -- fails since `b` depends on `a`
-    clear' a b,        -- succeeds
-    exact ()
-  end
+begin
+  try { clear a b }, -- fails since `b` depends on `a`
+  clear' a b,        -- succeeds
+  exact ()
+end
 ```
 
 ## clear_dependent
@@ -1398,9 +1398,9 @@ other hypotheses depending on them.
 
 ```
 example {α} {β : α → Type} (a : α) (b : β a) : unit :=
-  begin
-    try { clear' a },  -- fails since `b` depends on `a`
-    clear_dependent a, -- succeeds, clearing `a` and `b`
-    exact ()
-  end
+begin
+  try { clear' a },  -- fails since `b` depends on `a`
+  clear_dependent a, -- succeeds, clearing `a` and `b`
+  exact ()
+end
 ```

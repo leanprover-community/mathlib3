@@ -1377,14 +1377,20 @@ See also additional documentation of `using_well_founded` in
 
 ## simp_rw
 
-`simp_rw` is a version of `simp` which performs rewriting in the given order.
-Conversely, `simp_rw` is a version of `rw` that applies rewrite rules repeatedly
-and also under binders like `∀ x, ...`, `∃ x, ...` and `λ x, ...`.
+`simp_rw` functions as a mix of `simp` and `rw`. Like `rw`, it applies each
+rewrite rule in the given order, but like `simp` it repeatedly applies these
+rules and also under binders like `∀ x, ...`, `∃ x, ...` and `λ x, ...`.
 
 Usage:
   - `simp_rw [lemma_1, ..., lemma_n]` will rewrite the goal by applying the
     lemmas in that order.
-  - `simp_rw [lemma] at h` will rewrite hypothesis `h` using the given lemma.
+  - `simp_rw [lemma_1, ..., lemma_n] at h` will rewrite hypothesis `h` using the
+    given lemmas.
+
+For example, neither `simp` nor `rw` can solve the following, but `simp_rw` can:
+```lean
+example {α β : Type} {f : α → β} {t : set β} : (∀ s, f '' s ⊆ t) = ∀ s : set α, ∀ x ∈ s, x ∈ f ⁻¹' t :=
+by simp_rw [set.image_subset_iff, set.subset_def]
+```
 
 Lemmas passed to `simp_rw` must be expressions that are valid arguments to `simp`.
-Backwards rewriting, i.e. `simp_rw [←lemma]`, is not supported (yet).

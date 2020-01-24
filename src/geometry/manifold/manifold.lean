@@ -24,25 +24,25 @@ notion of structure groupoid, i.e., a set of local homeomorphisms stable under c
 inverse, to which the change of coordinates should belong.
 
 ## Main definitions
-`structure_groupoid H`   : a subset of local homeomorphisms of `H` stable under composition, inverse
-                           and restriction (ex: local diffeos)
-`pregroupoid H`          : a subset of local homeomorphisms of `H` stable under composition and
-                           restriction, but not inverse (ex: smooth maps)
-`groupoid_of_pregroupoid`: construct a groupoid from a pregroupoid, by requiring that a map and its
-                           inverse both belong to the pregroupoid (ex: construct diffeos from smooth
-                           maps)
-`continuous_groupoid H`  : the groupoid of all local homeomorphisms of `H`
+* `structure_groupoid H`   : a subset of local homeomorphisms of `H` stable under composition, inverse
+                             and restriction (ex: local diffeos)
+* `pregroupoid H`          : a subset of local homeomorphisms of `H` stable under composition and
+                             restriction, but not inverse (ex: smooth maps)
+* `groupoid_of_pregroupoid`: construct a groupoid from a pregroupoid, by requiring that a map and its
+                             inverse both belong to the pregroupoid (ex: construct diffeos from smooth
+                             maps)
+* `continuous_groupoid H`  : the groupoid of all local homeomorphisms of `H`
 
-`manifold H M`           : manifold structure on M modelled on H, given by an atlas of local
-                           homeomorphisms from M to H whose sources cover M. This is a type class.
-`has_groupoid M G`       : when `G` is a structure groupoid on `H` and `M` is a manifold modelled on
-                           `H`, require that all coordinate changes belong to `G`. This is a type
-                           class
-`atlas H M`              : when `M` is a manifold modelled on `H`, the atlas of this manifold
-                           structure, i.e., the set of charts
-`structomorph G M M'`    : the set of diffeomorphisms between the manifolds M and M' for the
-                           groupoid G. We avoid the word diffeomorphisms, keeping it for the
-                           smooth category.
+* `manifold H M`           : manifold structure on `M` modelled on `H`, given by an atlas of local
+                             homeomorphisms from `M` to `H` whose sources cover `M`. This is a type class.
+* `has_groupoid M G`       : when `G` is a structure groupoid on `H` and `M` is a manifold modelled on
+                             `H`, require that all coordinate changes belong to `G`. This is a type
+                             class
+* `atlas H M`              : when `M` is a manifold modelled on `H`, the atlas of this manifold
+                             structure, i.e., the set of charts
+* `structomorph G M M'`    : the set of diffeomorphisms between the manifolds `M` and `M'` for the
+                             groupoid `G`. We avoid the word diffeomorphisms, keeping it for the
+                             smooth category.
 
 As a basic example, we give the instance
 `instance manifold_model_space (H : Type*) [topological_space H] : manifold H H`

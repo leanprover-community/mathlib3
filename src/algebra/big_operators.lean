@@ -177,6 +177,13 @@ have (s₂ \ s₁).prod f = (s₂ \ s₁).prod (λx, 1),
   from prod_congr rfl $ by simpa only [mem_sdiff, and_imp],
 by rw [←prod_sdiff h]; simp only [this, prod_const_one, one_mul]
 
+-- If we use `decidable_eq β` here, some rewrites fail because they find a wrong `decidable`
+-- instance first
+@[to_additive]
+lemma prod_filter_ne_one [∀ x, decidable (f x ≠ 1)] : (s.filter $ λx, f x ≠ 1).prod f = s.prod f :=
+prod_subset (filter_subset _) $ λ x,
+  by { classical, rw [not_imp_comm, mem_filter], exact and.intro }
+
 @[to_additive]
 lemma prod_filter (p : α → Prop) [decidable_pred p] (f : α → β) :
   (s.filter p).prod f = s.prod (λa, if p a then f a else 1) :=
@@ -252,9 +259,8 @@ lemma prod_bij_ne_one {s : finset α} {t : finset γ} {f : α → β} {g : γ �
   (hi₃ : ∀b∈t, g b ≠ 1 → ∃a h₁ h₂, b = i a h₁ h₂)
   (h : ∀a h₁ h₂, f a = g (i a h₁ h₂)) :
   s.prod f = t.prod g :=
-by haveI := classical.prop_decidable; exact
-calc s.prod f = (s.filter $ λx, f x ≠ 1).prod f :
-    (prod_subset (filter_subset _) $ by simp only [not_imp_comm, mem_filter]; exact λ _, and.intro).symm
+by classical; exact
+calc s.prod f = (s.filter $ λx, f x ≠ 1).prod f : prod_filter_ne_one.symm
   ... = (t.filter $ λx, g x ≠ 1).prod g :
     prod_bij (assume a ha, i a (mem_filter.mp ha).1 (mem_filter.mp ha).2)
       (assume a ha, (mem_filter.mp ha).elim $ λh₁ h₂, mem_filter.mpr
@@ -264,19 +270,20 @@ calc s.prod f = (s.filter $ λx, f x ≠ 1).prod f :
         (mem_filter.mp ha₁).elim $ λha₁₁ ha₁₂, (mem_filter.mp ha₂).elim $ λha₂₁ ha₂₂, hi₂ a₁ a₂ _ _ _ _)
       (assume b hb, (mem_filter.mp hb).elim $ λh₁ h₂,
         let ⟨a, ha₁, ha₂, eq⟩ := hi₃ b h₁ h₂ in ⟨a, mem_filter.mpr ⟨ha₁, ha₂⟩, eq⟩)
-  ... = t.prod g :
-    (prod_subset (filter_subset _) $ by simp only [not_imp_comm, mem_filter]; exact λ _, and.intro)
+  ... = t.prod g : prod_filter_ne_one
 
 @[to_additive]
-lemma exists_ne_one_of_prod_ne_one : s.prod f ≠ 1 → ∃a∈s, f a ≠ 1 :=
-by haveI := classical.dec_eq α; exact
-finset.induction_on s (λ H, (H rfl).elim) (assume a s has ih h,
-  classical.by_cases
-    (assume ha : f a = 1,
-      let ⟨a, ha, hfa⟩ := ih (by rwa [prod_insert has, ha, one_mul] at h) in
-      ⟨a, mem_insert_of_mem ha, hfa⟩)
-    (assume hna : f a ≠ 1,
-      ⟨a, mem_insert_self _ _, hna⟩))
+lemma nonempty_of_prod_ne_one : s.prod f ≠ 1 → ∃ x, x ∈ s :=
+by { refine λ h, exists_mem_of_ne_empty $ mt _ h, exact λ hs, hs.symm ▸ prod_empty }
+
+@[to_additive]
+lemma exists_ne_one_of_prod_ne_one (h : s.prod f ≠ 1) : ∃a∈s, f a ≠ 1 :=
+begin
+  classical,
+  rw ← prod_filter_ne_one at h,
+  rcases nonempty_of_prod_ne_one h with ⟨x, hx⟩,
+  exact ⟨x, (mem_filter.1 hx).1, (mem_filter.1 hx).2⟩
+end
 
 @[to_additive]
 lemma prod_range_succ (f : ℕ → β) (n : ℕ) :
@@ -736,8 +743,8 @@ calc s.card = (s.image f).sum (λ a, (s.filter (λ x, f x = a)).card) :
 
 @[simp] lemma prod_Ico_id_eq_fact : ∀ n : ℕ, (Ico 1 n.succ).prod (λ x, x) = nat.fact n
 | 0 := rfl
-| (n+1) := by rw [Ico.succ_top $ nat.succ_le_succ $ zero_le n,
-      prod_insert Ico.not_mem_top, nat.fact_succ, prod_Ico_id_eq_fact]
+| (n+1) := by rw [prod_Ico_succ_top $ nat.succ_le_succ $ zero_le n,
+  nat.fact_succ, prod_Ico_id_eq_fact n, nat.succ_eq_add_one, mul_comm]
 
 end finset
 

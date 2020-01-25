@@ -654,6 +654,36 @@ calc s₁.sum f = (s₁.filter (λx, f x = 0)).sum f + (s₁.filter (λx, f x �
 
 end canonically_ordered_monoid
 
+section ordered_cancel_comm_monoid
+
+variables [ordered_cancel_comm_monoid β]
+
+theorem sum_lt_sum (Hle : ∀ i ∈ s, f i ≤ g i) (Hlt : ∃ i ∈ s, f i < g i) :
+  s.sum f < s.sum g :=
+begin
+  classical,
+  rcases Hlt with ⟨i, hi, hlt⟩,
+  rw [← insert_erase hi, sum_insert (not_mem_erase _ _), sum_insert (not_mem_erase _ _)],
+  exact add_lt_add_of_lt_of_le hlt (sum_le_sum $ λ j hj, Hle j  $ mem_of_mem_erase hj)
+end
+
+end ordered_cancel_comm_monoid
+
+section decidable_linear_ordered_cancel_comm_monoid
+
+variables [decidable_linear_ordered_cancel_comm_monoid β]
+
+theorem exists_le_of_sum_le (hs : s ≠ ∅) (Hle : s.sum f ≤ s.sum g) :
+  ∃ i ∈ s, f i ≤ g i :=
+begin
+  classical,
+  contrapose! Hle with Hlt,
+  rcases exists_mem_of_ne_empty hs with ⟨i, hi⟩,
+  exact sum_lt_sum (λ i hi, le_of_lt (Hlt i hi)) ⟨i, hi, Hlt i hi⟩
+end
+
+end decidable_linear_ordered_cancel_comm_monoid
+
 section linear_ordered_comm_ring
 variables [decidable_eq α] [linear_ordered_comm_ring β]
 
@@ -704,16 +734,10 @@ calc s.card = (s.image f).sum (λ a, (s.filter (λ x, f x = a)).card) :
 ... ≤ (s.image f).sum (λ _, n) : sum_le_sum hn
 ... = _ : by simp [mul_comm]
 
-@[simp] lemma prod_Ico_id_eq_fact (n : ℕ) : (Ico 1 n.succ).prod (λ x, x) = nat.fact n :=
-calc (Ico 1 n.succ).prod (λ x, x) = (range n).prod nat.succ :
-eq.symm (prod_bij (λ x _, nat.succ x)
-  (λ a h₁, by simp [*, nat.lt_succ_iff, nat.succ_le_iff] at *)
-  (by simp) (λ _ _ _ _, nat.succ_inj)
-  (λ b h,
-    have b.pred.succ = b, from nat.succ_pred_eq_of_pos $
-      by simp [nat.pos_iff_ne_zero, nat.succ_le_iff] at *; tauto,
-    ⟨nat.pred b, mem_range.2 $ nat.lt_of_succ_lt_succ (by simp [*] at *), this.symm⟩))
-... = nat.fact n : by induction n; simp [*, range_succ]
+@[simp] lemma prod_Ico_id_eq_fact : ∀ n : ℕ, (Ico 1 n.succ).prod (λ x, x) = nat.fact n
+| 0 := rfl
+| (n+1) := by rw [Ico.succ_top $ nat.succ_le_succ $ zero_le n,
+      prod_insert Ico.not_mem_top, nat.fact_succ, prod_Ico_id_eq_fact]
 
 end finset
 

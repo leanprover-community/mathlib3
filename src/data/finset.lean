@@ -630,14 +630,20 @@ def piecewise {α : Type*} {δ : α → Sort*} (s : finset α) (f g : Πi, δ i)
   Πi, δ i :=
 λi, if i ∈ s then f i else g i
 
-variables {δ : α → Sort*} (s : finset α) (f g : Πi, δ i) [∀j, decidable (j ∈ s)]
+variables {δ : α → Sort*} (s : finset α) (f g : Πi, δ i)
+
+@[simp] lemma piecewise_insert_self [decidable_eq α] {j : α} [∀i, decidable (i ∈ insert j s)] :
+  (insert j s).piecewise f g j = f j :=
+by simp [piecewise]
+
+@[simp] lemma piecewise_empty [∀i : α, decidable (i ∈ (∅ : finset α))] : piecewise ∅ f g = g :=
+by { ext i, simp [piecewise] }
+
+variable [∀j, decidable (j ∈ s)]
 
 @[elim_cast] lemma piecewise_coe [∀j, decidable (j ∈ (↑s : set α))] :
   (↑s : set α).piecewise f g = s.piecewise f g :=
 by { ext, congr }
-
-@[simp] lemma piecewise_empty [∀i : α, decidable (i ∈ (∅ : finset α))] : piecewise ∅ f g = g :=
-by { ext i, simp [piecewise] }
 
 @[simp] lemma piecewise_eq_of_mem {i : α} (hi : i ∈ s) : s.piecewise f g i = f i :=
 by simp [piecewise, hi]
@@ -648,10 +654,6 @@ by simp [piecewise, hi]
 @[simp] lemma piecewise_insert_of_ne [decidable_eq α] {i j : α} [∀i, decidable (i ∈ insert j s)]
   (h : i ≠ j) : (insert j s).piecewise f g i = s.piecewise f g i :=
 by { simp [piecewise, h], congr }
-
-@[simp] lemma piecewise_insert_self [decidable_eq α] {j : α} [∀i, decidable (i ∈ insert j s)] :
-  (insert j s).piecewise f g j = f j :=
-by simp [piecewise]
 
 lemma piecewise_insert [decidable_eq α] (j : α) [∀i, decidable (i ∈ insert j s)] :
   (insert j s).piecewise f g = function.update (s.piecewise f g) j (f j) :=
@@ -2105,7 +2107,7 @@ lemma choose_property (hp : ∃! a, a ∈ l ∧ p a) : p (choose p l hp) := (cho
 
 end choose
 
-theorem lt_wf {α} [decidable_eq α] : well_founded (@has_lt.lt (finset α) _) :=
+theorem lt_wf {α} : well_founded (@has_lt.lt (finset α) _) :=
 have H : subrelation (@has_lt.lt (finset α) _)
     (inv_image (<) card),
   from λ x y hxy, card_lt_card hxy,

@@ -301,7 +301,7 @@ lemma range_restrict {α : Type*} {β : Type*} (f : α → β) (p : set α) :
 by { ext x, simp [restrict], refl }
 
 section piecewise
-variables {δ : α → Sort v} (s : set α) (f g : Πi, δ i) [∀j, decidable (j ∈ s)]
+variables {δ : α → Sort v} (s : set α) (f g : Πi, δ i)
 
 @[simp] lemma piecewise_empty [∀i : α, decidable (i ∈ (∅ : set α))] : piecewise ∅ f g = g :=
 by { ext i, simp [piecewise] }
@@ -310,19 +310,11 @@ by { ext i, simp [piecewise] }
   piecewise set.univ f g = f :=
 by { ext i, simp [piecewise] }
 
-@[simp] lemma piecewise_eq_of_mem {i : α} (hi : i ∈ s) : s.piecewise f g i = f i :=
-by simp [piecewise, hi]
-
-@[simp] lemma piecewise_eq_of_not_mem {i : α} (hi : i ∉ s) : s.piecewise f g i = g i :=
-by simp [piecewise, hi]
-
-@[simp] lemma piecewise_insert_of_ne {i j : α} (h : i ≠ j) [∀i, decidable (i ∈ insert j s)] :
-  (insert j s).piecewise f g i = s.piecewise f g i :=
-by { simp [piecewise, h], congr }
-
 @[simp] lemma piecewise_insert_self {j : α} [∀i, decidable (i ∈ insert j s)] :
   (insert j s).piecewise f g j = f j :=
 by simp [piecewise]
+
+variable [∀j, decidable (j ∈ s)]
 
 lemma piecewise_insert [decidable_eq α] (j : α) [∀i, decidable (i ∈ insert j s)] :
   (insert j s).piecewise f g = function.update (s.piecewise f g) j (f j) :=
@@ -333,6 +325,16 @@ begin
   { rw h, simp },
   { by_cases h' : i ∈ s; simp [h, h'] }
 end
+
+@[simp] lemma piecewise_eq_of_mem {i : α} (hi : i ∈ s) : s.piecewise f g i = f i :=
+by simp [piecewise, hi]
+
+@[simp] lemma piecewise_eq_of_not_mem {i : α} (hi : i ∉ s) : s.piecewise f g i = g i :=
+by simp [piecewise, hi]
+
+@[simp] lemma piecewise_insert_of_ne {i j : α} (h : i ≠ j) [∀i, decidable (i ∈ insert j s)] :
+  (insert j s).piecewise f g i = s.piecewise f g i :=
+by { simp [piecewise, h], congr }
 
 end piecewise
 

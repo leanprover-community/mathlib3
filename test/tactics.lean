@@ -456,15 +456,16 @@ section clear'
 
 example {α} {β : α → Type} (a : α) (b : β a) : unit :=
 begin
-  try { clear a b }, -- fails since `b` depends on `a`
-  try { clear' a },  -- fails since `b` depends on `a`
+  success_if_fail { clear a b }, -- fails since `b` depends on `a`
+  success_if_fail { clear' a },  -- fails since `b` depends on `a`
   clear' a b,
+  guard_hyp_nums 2,
   exact ()
 end
 
 example {α} {β : α → Type} (a : α) : β a → unit :=
 begin
-  try { clear' a }, -- fails since the target depends on `a`
+  success_if_fail { clear' a }, -- fails since the target depends on `a`
   exact λ _, ()
 end
 
@@ -474,14 +475,15 @@ section clear_dependent
 
 example {α} {β : α → Type} (a : α) (b : β a) : unit :=
 begin
-  try { clear' a }, -- fails since `b` depends on `a`
+  success_if_fail { clear' a }, -- fails since `b` depends on `a`
   clear_dependent a,
+  guard_hyp_nums 2,
   exact ()
 end
 
 example {α} {β : α → Type} (a : α) : β a → unit :=
 begin
-  try { clear_dependent a }, -- fails since the target depends on `a`
+  success_if_fail { clear_dependent a }, -- fails since the target depends on `a`
   exact λ _, ()
 end
 

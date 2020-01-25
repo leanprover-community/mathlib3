@@ -360,7 +360,7 @@ begin
         (assume x _ y _ h, canonically_ordered_semiring.mul_le_mul (le_refl _) h)
         is_lub_Sup
         s₀
-        (ennreal.tendsto.mul_right (tendsto_id' inf_le_left) (or.inl s₁))),
+        (ennreal.tendsto.const_mul (tendsto_id' inf_le_left) (or.inl s₁))),
     rw [this.symm, Sup_image] }
 end
 end priority
@@ -497,7 +497,7 @@ have sum_ne_0 : (∑i, f i) ≠ 0, from ne_of_gt $
 have tendsto (λs:finset α, s.sum ((*) a ∘ f)) at_top (𝓝 (a * (∑i, f i))),
   by rw [← show (*) a ∘ (λs:finset α, s.sum f) = λs, s.sum ((*) a ∘ f),
          from funext $ λ s, finset.mul_sum];
-  exact ennreal.tendsto.mul_right (has_sum_tsum ennreal.summable) (or.inl sum_ne_0),
+  exact ennreal.tendsto.const_mul (has_sum_tsum ennreal.summable) (or.inl sum_ne_0),
 tsum_eq_has_sum this
 
 protected lemma tsum_mul : (∑i, f i * a) = (∑i, f i) * a :=

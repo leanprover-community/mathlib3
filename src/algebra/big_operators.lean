@@ -180,7 +180,7 @@ by rw [←prod_sdiff h]; simp only [this, prod_const_one, one_mul]
 -- If we use `decidable_eq β` here, some rewrites fail because they find a wrong `decidable`
 -- instance first
 @[to_additive]
-lemma prod_filter_ne_one [∀ x, decidable (f x ≠ 1)] : (s.filter $ λx, f x ≠ 1).prod f = s.prod f :=
+lemma prod_filter_ne_one {h : ∀ x, decidable (f x ≠ 1)} : (s.filter $ λx, f x ≠ 1).prod f = s.prod f :=
 prod_subset (filter_subset _) $ λ x,
   by { classical, rw [not_imp_comm, mem_filter], exact and.intro }
 

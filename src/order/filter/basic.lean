@@ -802,7 +802,7 @@ filter.ext $ λ s, iff.rfl
 
 @[simp] lemma join_pure (f : filter α) : join (pure f) = f := filter.ext $ λ s, iff.rfl
 
-@[simp] protected lemma bind_pure (m : α → filter β) (a : α) :
+@[simp] lemma pure_bind (a : α) (m : α → filter β) :
   bind (pure a) m = m a :=
 by simp only [has_bind.bind, bind, map_pure, join_pure]
 
@@ -813,7 +813,7 @@ protected def monad : monad filter := { map := @filter.map }
 local attribute [instance] filter.monad
 protected lemma is_lawful_monad : is_lawful_monad filter :=
 { id_map     := assume α f, filter_eq rfl,
-  pure_bind  := assume α β a f, filter.bind_pure f a,
+  pure_bind  := assume α β, pure_bind,
   bind_assoc := assume α β γ f m₁ m₂, filter_eq rfl,
   bind_pure_comp_eq_map := assume α β f x, filter.ext $ λ s,
     by simp only [has_bind.bind, bind, functor.map, mem_map, mem_join_sets, mem_set_of_eq,

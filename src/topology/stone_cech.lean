@@ -2,14 +2,17 @@
 Copyright (c) 2018 Reid Barton. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Reid Barton
+-/
+
+import topology.bases topology.dense_embedding
+
+/-! # Stone-Čech compactification
 
 Construction of the Stone-Čech compactification using ultrafilters.
 
 Parts of the formalization are based on "Ultrafilters and Topology"
 by Marius Stekelenburg, particularly section 5.
 -/
-
-import topology.bases topology.dense_embedding
 
 noncomputable theory
 
@@ -170,7 +173,7 @@ lemma ultrafilter_extend_eq_iff {f : α → γ} {b : ultrafilter α} {c : γ} :
    -- the facts that ultrafilter.extend is a continuous extension of f.
    let b' : ultrafilter (ultrafilter α) := b.map pure,
    have t : b'.val ≤ 𝓝 b,
-     from ultrafilter_converges_iff.mpr (by exact (_root_.bind_pure _).symm),
+     from ultrafilter_converges_iff.mpr (bind_pure _).symm,
    rw ←h,
    have := (continuous_ultrafilter_extend f).tendsto b,
    refine le_trans _ (le_trans (map_mono t) this),

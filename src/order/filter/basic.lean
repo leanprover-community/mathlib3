@@ -778,7 +778,8 @@ def seq (f : filter (α → β)) (g : filter α) : filter β :=
 
 /-- `pure x` is the set of sets that contain `x`. It is equal to `principal {x}` but
 this definition we have `s ∈ pure a` defeq `a ∈ s`. -/
-instance : has_pure filter := ⟨λ(α : Type u) x,
+instance : has_pure filter :=
+⟨λ (α : Type u) x,
   { sets := {s | x ∈ s},
     inter_sets := λ s t, and.intro,
     sets_of_superset := λ s t hs hst, hst hs,

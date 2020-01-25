@@ -799,9 +799,20 @@ noncomputable def nat_embedding (α : Type*) [infinite α] : ℕ ↪ α :=
 
 end infinite
 
+lemma not_injective_infinite_fintype [infinite α] [fintype β] (f : α → β) :
+  ¬ injective f :=
+assume (hf : injective f),
+have H : fintype α := fintype.of_injective f hf,
+infinite.not_fintype H
+
+lemma not_surjective_fintype_infinite [fintype α] [infinite β] (f : α → β) :
+  ¬ surjective f :=
+assume (hf : surjective f),
+have H : infinite α := infinite.of_surjective f hf,
+@infinite.not_fintype _ H infer_instance
+
 instance nat.infinite : infinite ℕ :=
-⟨λ ⟨s, hs⟩, not_le_of_gt (nat.lt_succ_self (s.sum id)) $
-  @finset.single_le_sum _ _ _ id _ _ (λ _ _, nat.zero_le _) _ (hs _)⟩
+⟨λ ⟨s, hs⟩, finset.not_mem_range_self $ s.subset_range_sup_succ (hs _)⟩
 
 instance int.infinite : infinite ℤ :=
 infinite.of_injective int.of_nat (λ _ _, int.of_nat_inj)

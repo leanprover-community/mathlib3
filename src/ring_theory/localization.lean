@@ -556,7 +556,7 @@ begin
   ext b,
   rw [h.image_eq_preimage, set.preimage, set.mem_set_of_eq,
     mem_non_zero_divisors_iff_ne_zero, mem_non_zero_divisors_iff_ne_zero, ne.def],
-  exact h.to_add_equiv.symm.map_ne_zero_iff b
+  exact h.symm.map_ne_zero_iff
 end
 
 end map

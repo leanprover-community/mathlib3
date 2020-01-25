@@ -7,13 +7,14 @@ More about finite numbers.
 -/
 import data.nat.basic
 
+universe u
 open fin nat function
 
 /-- `fin 0` is empty -/
 def fin_zero_elim {C : Sort*} : fin 0 → C :=
 λ x, false.elim $ nat.not_lt_zero x.1 x.2
 
-def {u} fin_zero_elim' {α : fin 0 → Sort u} : ∀(x : fin 0), α x
+def fin_zero_elim' {α : fin 0 → Sort u} : ∀(x : fin 0), α x
 | ⟨n, hn⟩ := false.elim (nat.not_lt_zero n hn)
 
 namespace fin
@@ -70,6 +71,12 @@ by cases j; simp [fin.succ]
 protected theorem succ.inj (p : fin.succ a = fin.succ b) : a = b :=
 by cases a; cases b; exact eq_of_veq (nat.succ.inj (veq_of_eq p))
 
+@[simp] lemma succ_inj {a b : fin n} : a.succ = b.succ ↔ a = b :=
+⟨λh, succ.inj h, λh, by rw h⟩
+
+lemma injective_succ (n : ℕ) : injective (@fin.succ n) :=
+λa b, succ.inj
+
 lemma succ_ne_zero {n} : ∀ k : fin n, fin.succ k ≠ 0
 | ⟨k, hk⟩ heq := nat.succ_ne_zero k $ (fin.ext_iff _ _).1 heq
 
@@ -101,17 +108,17 @@ def cast_le (h : n ≤ m) (a : fin n) : fin m := cast_lt a (lt_of_lt_of_le a.2 h
 /-- `cast eq i` embeds `i` into a equal `fin` type. -/
 def cast (eq : n = m) : fin n → fin m := cast_le $ le_of_eq eq
 
-/-- `cast_add m i` embedds `i` in `fin (n+m)`. -/
+/-- `cast_add m i` embeds `i : fin n` in `fin (n+m)`. -/
 def cast_add (m) : fin n → fin (n + m) := cast_le $ le_add_right n m
 
-/-- `cast_succ i` embedds `i` in `fin (n+1)`. -/
+/-- `cast_succ i` embeds `i : fin n` in `fin (n+1)`. -/
 def cast_succ : fin n → fin (n + 1) := cast_add 1
 
-/-- `succ_above p i` embeds into `fin (n + 1)` with a hole around `p`. -/
+/-- `succ_above p i` embeds `fin n` into `fin (n + 1)` with a hole around `p`. -/
 def succ_above (p : fin (n+1)) (i : fin n) : fin (n+1) :=
 if i.1 < p.1 then i.cast_succ else i.succ
 
-/-- `pred_above p i h` embeds `i` into `fin n` by ignoring `p`. -/
+/-- `pred_above p i h` embeds `i : fin (n+1)` into `fin n` by ignoring `p`. -/
 def pred_above (p : fin (n+1)) (i : fin (n+1)) (hi : i ≠ p) : fin n :=
 if h : i < p
 then i.cast_lt (lt_of_lt_of_le h $ nat.le_of_lt_succ p.2)
@@ -161,6 +168,9 @@ rfl
 @[simp] lemma cast_succ_inj {a b : fin n} : a.cast_succ = b.cast_succ ↔ a = b :=
 by simp [eq_iff_veq]
 
+lemma cast_succ_ne_last (a : fin n) : cast_succ a ≠ last n :=
+by simp [eq_iff_veq, ne_of_lt a.2]
+
 def clamp (n m : ℕ) : fin (m + 1) := fin.of_nat $ min n m
 
 @[simp] lemma clamp_val (n m : ℕ) : (clamp n m).val = min n m :=
@@ -168,6 +178,9 @@ nat.mod_eq_of_lt $ nat.lt_succ_iff.mpr $ min_le_right _ _
 
 lemma injective_cast_le {n₁ n₂ : ℕ} (h : n₁ ≤ n₂) : injective (fin.cast_le h)
 | ⟨i₁, h₁⟩ ⟨i₂, h₂⟩ eq := fin.eq_of_veq $ show i₁ = i₂, from fin.veq_of_eq eq
+
+lemma injective_cast_succ (n : ℕ) : injective (@fin.cast_succ n) :=
+injective_cast_le (le_add_right n 1)
 
 theorem succ_above_ne (p : fin (n+1)) (i : fin n) : p.succ_above i ≠ p :=
 begin
@@ -253,25 +266,87 @@ lemma exists_fin_succ {P : fin (n+1) → Prop} :
 end rec
 
 section tuple
-/- We can think of the type `fin n → α` as `n`-tuples in `α`. Here are some relevant operations. -/
+/- We can think of the type `Π(i : fin n), α i` as `n`-tuples of elements of possibly varying type
+`α i`. A particular case is `fin n → α` of elements with all the same type. Here are some relevant
+operations. -/
 
-def tail {α} (p : fin (n+1) → α) : fin n → α := λ i, p i.succ
-def cons {α} (x : α) (v : fin n → α) : fin (n+1) → α :=
-λ j, fin.cases x v j
+variables {α : fin (n+1) → Type u} (x : α 0) (q : Πi, α i) (p : Π(i : fin n), α (i.succ))
+(i : fin n) (y : α i.succ) (z : α 0)
 
-@[simp] lemma tail_cons {α} (x : α) (p : fin n → α) : tail (cons x p) = p :=
+/-- The tail of an `n+1` tuple, i.e., its last `n` entries -/
+def tail (q : Πi, α i) : (Π(i : fin n), α (i.succ)) := λ i, q i.succ
+
+/-- Adding an element at the beginning of an `n`-tuple, to get an `n+1`-tuple -/
+def cons (x : α 0) (p : Π(i : fin n), α (i.succ)) : Πi, α i :=
+λ j, fin.cases x p j
+
+@[simp] lemma tail_cons : tail (cons x p) = p :=
 by simp [tail, cons]
 
-@[simp] lemma cons_succ {α} (x : α) (p : fin n → α) (i : fin n) : cons x p i.succ = p i :=
+@[simp] lemma cons_succ : cons x p i.succ = p i :=
 by simp [cons]
 
-@[simp] lemma cons_zero {α} (x : α) (p : fin n → α) : cons x p 0 = x :=
+@[simp] lemma cons_zero : cons x p 0 = x :=
 by simp [cons]
+
+/-- Updating a tuple and adding an element at the beginning commute. -/
+@[simp] lemma cons_update : cons x (update p i y) = update (cons x p) i.succ y :=
+begin
+  ext j,
+  by_cases h : j = 0,
+  { rw h, simp [ne.symm (succ_ne_zero i)] },
+  { let j' := pred j h,
+    have : j'.succ = j := succ_pred j h,
+    rw [← this, cons_succ],
+    by_cases h' : j' = i,
+    { rw h', simp },
+    { have : j'.succ ≠ i.succ, by rwa [ne.def, succ_inj],
+      rw [update_noteq h', update_noteq this, cons_succ] } }
+end
+
+/-- Adding an element at the beginning of a tuple and then updating it amounts to adding it directly. -/
+lemma update_cons_zero : update (cons x p) 0 z = cons z p :=
+begin
+  ext j,
+  by_cases h : j = 0,
+  { rw h, simp },
+  { simp only [h, update_noteq, ne.def, not_false_iff],
+    let j' := pred j h,
+    have : j'.succ = j := succ_pred j h,
+    rw [← this, cons_succ, cons_succ] }
+end
+
+/-- Concatenating the first element of a tuple with its tail gives back the original tuple -/
+@[simp] lemma cons_self_tail : cons (q 0) (tail q) = q :=
+begin
+  ext j,
+  by_cases h : j = 0,
+  { rw h, simp },
+  { let j' := pred j h,
+    have : j'.succ = j := succ_pred j h,
+    rw [← this, tail, cons_succ] }
+end
+
+/-- Updating the first element of a tuple does not change the tail. -/
+@[simp] lemma tail_update_zero : tail (update q 0 z) = tail q :=
+by { ext j, simp [tail, fin.succ_ne_zero] }
+
+/-- Updating a nonzero element and taking the tail commute. -/
+@[simp] lemma tail_update_succ :
+  tail (update q i.succ y) = update (tail q) i y :=
+begin
+  ext j,
+  by_cases h : j = i,
+  { rw h, simp [tail] },
+  { simp [tail, (fin.injective_succ n).ne h, h] }
+end
 
 end tuple
 
 section find
 
+/-- `find p` returns the first index `n` where `p n` is satisfied, and `none` if it is never
+satisfied. -/
 def find : Π {n : ℕ} (p : fin n → Prop) [decidable_pred p], option (fin n)
 | 0     p _ := none
 | (n+1) p _ := by resetI; exact option.cases_on
@@ -279,6 +354,7 @@ def find : Π {n : ℕ} (p : fin n → Prop) [decidable_pred p], option (fin n)
   (if h : p (fin.last n) then some (fin.last n) else none)
   (λ i, some (i.cast_lt (nat.lt_succ_of_lt i.2)))
 
+/-- If `find p = some i`, then `p i` holds -/
 lemma find_spec : Π {n : ℕ} (p : fin n → Prop) [decidable_pred p] {i : fin n}
   (hi : i ∈ by exactI fin.find p), p i
 | 0     p I i hi := option.no_confusion hi
@@ -296,6 +372,7 @@ lemma find_spec : Π {n : ℕ} (p : fin n → Prop) [decidable_pred p] {i : fin 
     exact find_spec _ h }
 end
 
+/-- `find p` does not return `none` if and only if `p i` holds at some index `i`. -/
 lemma is_some_find_iff : Π {n : ℕ} {p : fin n → Prop} [decidable_pred p],
   by exactI (find p).is_some ↔ ∃ i, p i
 | 0     p _ := iff_of_false (λ h, bool.no_confusion h) (λ ⟨i, _⟩, fin.elim0 i)
@@ -319,10 +396,13 @@ begin
   { simp }
 end⟩
 
+/-- `find p` returns `none` if and only if `p i` never holds. -/
 lemma find_eq_none_iff {n : ℕ} {p : fin n → Prop} [decidable_pred p] :
   find p = none ↔ ∀ i, ¬ p i :=
 by rw [← not_exists, ← is_some_find_iff]; cases (find p); simp
 
+/-- If `find p` returns `some i`, then `p j` does not hold for `j < i`, i.e., `i` is minimal among
+the indices where `p` holds. -/
 lemma find_min : Π {n : ℕ} {p : fin n → Prop} [decidable_pred p] {i : fin n}
   (hi : i ∈ by exactI fin.find p) {j : fin n} (hj : j < i), ¬ p j
 | 0     p _ i hi j hj hpj := option.no_confusion hi

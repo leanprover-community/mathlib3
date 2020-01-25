@@ -1,18 +1,8 @@
 set -e				# fail on error
 
-# Only run on builds for pushes to the master branch.
-if ! [ "$TRAVIS_EVENT_TYPE" = "push" -a "$TRAVIS_BRANCH" = "master" ]; then
-    exit 0
-fi
-
-# Make sure we have access to secure Travis environment variables.
-if ! [ "$TRAVIS_SECURE_ENV_VARS" = "true" ]; then
-    echo 'deploy_nightly.sh: Build is a push to master, but no secure env vars.' >&2
-    exit 1			# Something's wrong.
-fi
-
-git remote add mathlib "https://$GITHUB_TOKEN@github.com/leanprover-community/mathlib.git"
-git remote add nightly "https://$GITHUB_TOKEN@github.com/leanprover-community/mathlib-nightly.git"
+GITHUB_USER=leanprover-mathlib-bot
+git remote add mathlib "https://$GITHUB_USER:$GITHUB_TOKEN@github.com/leanprover-community/mathlib.git"
+git remote add nightly "https://$GITHUB_USER:$GITHUB_TOKEN@github.com/leanprover-community/mathlib-nightly.git"
 
 # After this point, we don't use any secrets in commands.
 set -x				# echo commands

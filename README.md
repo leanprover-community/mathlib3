@@ -1,6 +1,6 @@
 # Lean mathlib
 
-[![Build Status](https://travis-ci.org/leanprover-community/mathlib.svg?branch=master)](https://travis-ci.org/leanprover-community/mathlib)
+![](https://github.com/leanprover-community/mathlib/workflows/continuous%20integration/badge.svg?branch=master)
 [![Mergify Status][mergify-status]][mergify]
 
 [mergify]: https://mergify.io
@@ -53,9 +53,11 @@ welcomed.
 * Mario Carneiro (@digama0): all (lead maintainer)
 * Johan Commelin (@jcommelin): algebra
 * Floris van Doorn (@fpvandoorn): all
+* Gabriel Ebner (@gebner): all
 * Sébastien Gouëzel (@sgouezel): topology, calculus
 * Simon Hudon (@cipher1024): all
 * Chris Hughes (@ChrisHughes24): group theory, ring theory, field theory
 * Robert Y. Lewis (@robertylewis): all
 * Patrick Massot (@patrickmassot): documentation, topology
 * Scott Morrison (@semorrison): category theory
+* Yury G. Kudryashov (@urkud): analysis, topology

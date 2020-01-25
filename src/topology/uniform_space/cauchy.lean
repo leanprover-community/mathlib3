@@ -5,7 +5,7 @@ Authors: Johannes Hölzl, Mario Carneiro
 
 Theory of Cauchy filters in uniform spaces. Complete uniform spaces. Totally bounded subsets.
 -/
-import topology.uniform_space.basic data.set.intervals
+import topology.uniform_space.basic topology.bases data.set.intervals
 
 universes u v
 
@@ -37,7 +37,7 @@ lemma cauchy_downwards {f g : filter α} (h_c : cauchy f) (hg : g ≠ ⊥) (h_le
 ⟨hg, le_trans (filter.prod_mono h_le h_le) h_c.right⟩
 
 lemma cauchy_nhds {a : α} : cauchy (𝓝 a) :=
-⟨nhds_neq_bot,
+⟨nhds_ne_bot,
   calc filter.prod (𝓝 a) (𝓝 a) =
     (𝓤 α).lift (λs:set (α×α), (𝓤 α).lift' (λt:set(α×α),
       set.prod {y : α | (y, a) ∈ s} {y : α | (a, y) ∈ t})) : nhds_nhds_eq_uniformity_uniformity_prod
@@ -82,7 +82,7 @@ begin
   -- Take `t ∈ f` such that `t × t ⊆ s`.
   rcases (cauchy_iff.1 hf).2 s hs with ⟨t, t_mem, ht⟩,
   use [t, t_mem, ht],
-  exact exists_mem_of_ne_empty (forall_sets_neq_empty_iff_neq_bot.2 adhs _
+  exact exists_mem_of_ne_empty (forall_sets_ne_empty_iff_ne_bot.2 adhs _
     (inter_mem_inf_sets t_mem (mem_nhds_left x hs)))
 end
 
@@ -151,7 +151,7 @@ end
 
 lemma cauchy_prod [uniform_space β] {f : filter α} {g : filter β} :
   cauchy f → cauchy g → cauchy (filter.prod f g)
-| ⟨f_proper, hf⟩ ⟨g_proper, hg⟩ := ⟨filter.prod_neq_bot.2 ⟨f_proper, g_proper⟩,
+| ⟨f_proper, hf⟩ ⟨g_proper, hg⟩ := ⟨filter.prod_ne_bot.2 ⟨f_proper, g_proper⟩,
   let p_α := λp:(α×β)×(α×β), (p.1.1, p.2.1), p_β := λp:(α×β)×(α×β), (p.1.2, p.2.2) in
   suffices (f.prod f).comap p_α ⊓ (g.prod g).comap p_β ≤ (𝓤 α).comap p_α ⊓ (𝓤 β).comap p_β,
     by simpa [uniformity_prod, filter.prod, filter.comap_inf, filter.comap_comap_comp, (∘),
@@ -199,7 +199,7 @@ lim_spec (complete_space.complete hf)
 lemma is_complete_of_is_closed [complete_space α] {s : set α}
   (h : is_closed s) : is_complete s :=
 λ f cf fs, let ⟨x, hx⟩ := complete_space.complete cf in
-⟨x, is_closed_iff_nhds.mp h x (neq_bot_of_le_neq_bot cf.left (le_inf hx fs)), hx⟩
+⟨x, is_closed_iff_nhds.mp h x (ne_bot_of_le_ne_bot cf.left (le_inf hx fs)), hx⟩
 
 /-- A set `s` is totally bounded if for every entourage `d` there is a finite
   set of points `t` such that every element of `s` is `d`-near to some element of `t`. -/
@@ -290,7 +290,7 @@ lemma totally_bounded_iff_filter {s : set α} :
       (assume h, hd_cover finite_empty $ h.symm ▸ empty_subset _)
   in
   have f ≠ ⊥,
-    from infi_neq_bot_of_directed ⟨a⟩
+    from infi_ne_bot_of_directed ⟨a⟩
       (assume ⟨t₁, ht₁⟩ ⟨t₂, ht₂⟩, ⟨⟨t₁ ∪ t₂, finite_union ht₁ ht₂⟩,
         principal_mono.mpr $ diff_subset_diff_right $ Union_subset_Union $
           assume t, Union_subset_Union_const or.inl,
@@ -349,7 +349,8 @@ lemma compact_of_totally_bounded_is_closed [complete_space α] {s : set α}
 
 In this section we prove that a uniform space is complete provided that it is sequentially complete
 (i.e., any Cauchy sequence converges) and its uniformity filter admits a countable generating set.
-In particular, this applies to (e)metric spaces, see file `topology/metric_space/cau_seq_filter`.
+In particular, this applies to (e)metric spaces, see the files `topology/metric_space/emetric_space` and
+`topology/metric_space/basic`.
 
 More precisely, we assume that there is a sequence of entourages `U_n` such that any other
 entourage includes one of `U_n`. Then any Cauchy filter `f` generates a decreasing sequence of
@@ -430,33 +431,36 @@ namespace uniform_space
 
 open sequentially_complete
 
-variables (U : ℕ → set (α × α)) (U_mem : ∀ n, U n ∈ 𝓤 α) (U_le : ∀ s ∈ 𝓤 α, ∃ n, U n ⊆ s)
-  (U' : ℕ → set (α × α)) (U'_mem : ∀ n, U' n ∈ 𝓤 α)
+variables (H : has_countable_basis (𝓤 α))
+
+include H
 
 /-- A uniform space is complete provided that (a) its uniformity filter has a countable basis;
 (b) any sequence satisfying a "controlled" version of the Cauchy condition converges. -/
-theorem complete_of_convergent_controlled_sequences
-  (H : ∀ u : ℕ → α, (∀ N m n, N ≤ m → N ≤ n → (u m, u n) ∈ U' N) → ∃ a, tendsto u at_top (𝓝 a)) :
+theorem complete_of_convergent_controlled_sequences (U : ℕ → set (α × α)) (U_mem : ∀ n, U n ∈ 𝓤 α)
+  (HU : ∀ u : ℕ → α, (∀ N m n, N ≤ m → N ≤ n → (u m, u n) ∈ U N) → ∃ a, tendsto u at_top (𝓝 a)) :
   complete_space α :=
--- We take a sequence majorated by both `U` and `U'`
-let U'' := λ n, U n ∩ U' n in
-have U''_sub_U : ∀ n, U'' n ⊆ U n, from λ n, inter_subset_left _ _,
-have U''_sub_U' : ∀ n, U'' n ⊆ U' n, from λ n, inter_subset_right _ _,
-have U''_mem : ∀ n, U'' n ∈ 𝓤 α, from λ n, inter_mem_sets (U_mem n) (U'_mem n),
-have U''_le : ∀ s ∈ 𝓤 α, ∃ n, U'' n ⊆ s,
-  from λ s hs, (U_le s hs).imp (λ n hn x hx, hn $ U''_sub_U n hx),
 begin
-  refine ⟨λ f hf, (H (seq hf U''_mem) (λ N m n hm hn, _)).imp $
-    le_nhds_of_seq_tendsto_nhds hf U''_mem U''_le⟩,
-  exact U''_sub_U' _ (seq_pair_mem hf U''_mem hm hn),
+  rcases (𝓤 α).has_countable_basis_iff_mono_seq'.1 H with ⟨U', U'_mono, hU'⟩,
+  have Hmem : ∀ n, U n ∩ U' n ∈ 𝓤 α,
+    from λ n, inter_mem_sets (U_mem n) (hU'.2 ⟨n, subset.refl _⟩),
+  refine ⟨λ f hf, (HU (seq hf Hmem) (λ N m n hm hn, _)).imp $
+    le_nhds_of_seq_tendsto_nhds _ _ (λ s hs, _)⟩,
+  { rcases (hU'.1 hs) with ⟨N, hN⟩,
+    exact ⟨N, subset.trans (inter_subset_right _ _) hN⟩ },
+  { exact inter_subset_left _ _ (seq_pair_mem hf Hmem hm hn) }
 end
 
 /-- A sequentially complete uniform space with a countable basis of the uniformity filter is
 complete. -/
 theorem complete_of_cauchy_seq_tendsto
-  (H : ∀ u : ℕ → α, cauchy_seq u → ∃a, tendsto u at_top (𝓝 a)) :
+  (H' : ∀ u : ℕ → α, cauchy_seq u → ∃a, tendsto u at_top (𝓝 a)) :
   complete_space α :=
-complete_of_convergent_controlled_sequences U U_mem U_le U U_mem
-  (λ u hu, H u $ cauchy_seq_of_controlled U U_le hu)
+let ⟨U', U'_mono, hU'⟩ := (𝓤 α).has_countable_basis_iff_mono_seq'.1 H in
+complete_of_convergent_controlled_sequences H U' (λ n, hU'.2 ⟨n, subset.refl _⟩)
+  (λ u hu, H' u $ cauchy_seq_of_controlled U' (λ s hs, hU'.1 hs) hu)
+
+protected lemma first_countable_topology : first_countable_topology α :=
+⟨λ a, by { rw nhds_eq_comap_uniformity, exact H.comap (prod.mk a) }⟩
 
 end uniform_space

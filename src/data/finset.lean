@@ -107,7 +107,7 @@ le_antisymm_iff
 
 @[simp] lemma coe_ssubset {s₁ s₂ : finset α} : (↑s₁ : set α) ⊂ ↑s₂ ↔ s₁ ⊂ s₂ :=
 show (↑s₁ : set α) ⊂ ↑s₂ ↔ s₁ ⊆ s₂ ∧ ¬s₂ ⊆ s₁,
-  by simp only [set.ssubset_iff_subset_not_subset, finset.coe_subset]
+  by simp only [set.ssubset_def, finset.coe_subset]
 
 @[simp] theorem val_lt_iff {s₁ s₂ : finset α} : s₁.1 < s₂.1 ↔ s₁ ⊂ s₂ :=
 and_congr val_le_iff $ not_congr val_le_iff
@@ -2270,5 +2270,30 @@ by simpa using list.to_finset_card_of_nodup (list.nat.nodup_antidiagonal n)
 by { rw [antidiagonal, multiset.nat.antidiagonal_zero], refl }
 
 end nat
+
+end finset
+
+namespace finset
+
+/- bUnion -/
+
+variables [decidable_eq α]
+
+@[simp] theorem bUnion_singleton (a : α) (s : α → set β) : (⋃ x ∈ ({a} : finset α), s x) = s a :=
+supr_singleton
+
+@[simp] theorem supr_union {α} [complete_lattice α] {β} [decidable_eq β] {f : β → α} {s t : finset β} :
+  (⨆ x ∈ s ∪ t, f x) = (⨆x∈s, f x) ⊔ (⨆x∈t, f x) :=
+calc (⨆ x ∈ s ∪ t, f x) = (⨆ x, (⨆h : x∈s, f x) ⊔ (⨆h : x∈t, f x)) :
+  congr_arg _ $ funext $ λ x, by { convert supr_or, rw finset.mem_union, rw finset.mem_union, refl, refl }
+                    ... = (⨆x∈s, f x) ⊔ (⨆x∈t, f x) : supr_sup_eq
+
+lemma bUnion_union (s t : finset α) (u : α → set β) :
+  (⋃ x ∈ s ∪ t, u x) = (⋃ x ∈ s, u x) ∪ (⋃ x ∈ t, u x) :=
+supr_union
+
+@[simp] lemma bUnion_insert (a : α) (s : finset α) (t : α → set β) :
+  (⋃ x ∈ insert a s, t x) = t a ∪ (⋃ x ∈ s, t x) :=
+begin rw insert_eq, simp only [bUnion_union, finset.bUnion_singleton] end
 
 end finset

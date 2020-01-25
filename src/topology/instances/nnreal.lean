@@ -24,7 +24,7 @@ instance : topological_semiring ℝ≥0 :=
 instance : second_countable_topology nnreal :=
 topological_space.subtype.second_countable_topology _ _
 
-instance : orderable_topology ℝ≥0 :=
+instance : order_topology ℝ≥0 :=
 ⟨ le_antisymm
     (le_generate_from $ assume s hs,
     match s, hs with
@@ -33,7 +33,7 @@ instance : orderable_topology ℝ≥0 :=
     end)
     begin
       apply coinduced_le_iff_le_induced.1,
-      rw [orderable_topology.topology_eq_generate_intervals ℝ],
+      rw [order_topology.topology_eq_generate_intervals ℝ],
       apply le_generate_from,
       assume s hs,
       rcases hs with ⟨a, rfl | rfl⟩,
@@ -89,7 +89,7 @@ continuous_sub.comp (hf.prod_mk hg)
 
 @[elim_cast] lemma has_sum_coe {f : α → nnreal} {r : nnreal} :
   has_sum (λa, (f a : ℝ)) (r : ℝ) ↔ has_sum f r :=
-by simp [has_sum, sum_coe.symm, tendsto_coe]
+by simp [has_sum, coe_sum.symm, tendsto_coe]
 
 @[elim_cast] lemma summable_coe {f : α → nnreal} : summable (λa, (f a : ℝ)) ↔ summable f :=
 begin

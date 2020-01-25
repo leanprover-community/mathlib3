@@ -163,9 +163,16 @@ theorem finite_pure (a : α) : finite (pure a : set α) :=
 ⟨set.fintype_pure a⟩
 
 instance fintype_univ [fintype α] : fintype (@univ α) :=
-fintype.of_finset finset.univ $ λ _, iff_true_intro (finset.mem_univ _)
+fintype.of_equiv α $ (equiv.set.univ α).symm
 
 theorem finite_univ [fintype α] : finite (@univ α) := ⟨set.fintype_univ⟩
+
+theorem infinite_univ_iff : (@univ α).infinite ↔ _root_.infinite α :=
+⟨λ h₁, ⟨λ h₂, h₁ $ @finite_univ α h₂⟩,
+  λ ⟨h₁⟩ ⟨h₂⟩, h₁ $ @fintype.of_equiv _ _ h₂ $ equiv.set.univ _⟩
+
+theorem infinite_univ [h : _root_.infinite α] : infinite (@univ α) :=
+infinite_univ_iff.2 h
 
 instance fintype_union [decidable_eq α] (s t : set α) [fintype s] [fintype t] : fintype (s ∪ t : set α) :=
 fintype.of_finset (s.to_finset ∪ t.to_finset) $ by simp
@@ -375,24 +382,6 @@ lemma finite_range_find_greatest {P : α → ℕ → Prop} [∀ x, decidable_pre
   finite (range (λ x, nat.find_greatest (P x) b)) :=
 finite_subset (finset.finite_to_set $ finset.range (b + 1)) range_find_greatest_subset
 
-lemma infinite_univ_nat : infinite (univ : set ℕ) :=
-assume (h : finite (univ : set ℕ)),
-let ⟨n, hn⟩ := finset.exists_nat_subset_range h.to_finset in
-have n ∈ finset.range n, from finset.subset_iff.mpr hn $ by simp,
-by simp * at *
-
-lemma not_injective_nat_fintype [fintype α] {f : ℕ → α} : ¬ injective f :=
-assume (h : injective f),
-have finite (f '' univ),
-  from finite_subset (finset.finite_to_set $ fintype.elems α) (assume a h, fintype.complete a),
-have finite (univ : set ℕ), from finite_of_finite_image (set.inj_on_of_injective _ h) this,
-infinite_univ_nat this
-
-lemma not_injective_int_fintype [fintype α] {f : ℤ → α} : ¬ injective f :=
-assume hf,
-have injective (f ∘ (coe : ℕ → ℤ)), from injective_comp hf $ assume i j, int.of_nat_inj,
-not_injective_nat_fintype this
-
 lemma card_lt_card {s t : set α} [fintype s] [fintype t] (h : s ⊂ t) :
   fintype.card s < fintype.card t :=
 begin
@@ -411,9 +400,8 @@ calc fintype.card s = s.to_finset.card : fintype.card_of_finset' _ (by simp)
 
 lemma eq_of_subset_of_card_le {s t : set α} [fintype s] [fintype t]
    (hsub : s ⊆ t) (hcard : fintype.card t ≤ fintype.card s) : s = t :=
-classical.by_contradiction (λ h, lt_irrefl (fintype.card t)
-  (have fintype.card s < fintype.card t := set.card_lt_card ⟨hsub, h⟩,
-    by rwa [le_antisymm (card_le_of_subset hsub) hcard] at this))
+(eq_or_ssubset_of_subset hsub).elim id
+  (λ h, absurd hcard $ not_le_of_lt $ card_lt_card h)
 
 lemma card_range_of_injective [fintype α] {f : α → β} (hf : injective f)
   [fintype (range f)] : fintype.card (range f) = fintype.card α :=

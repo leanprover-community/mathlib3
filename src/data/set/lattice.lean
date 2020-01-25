@@ -18,7 +18,7 @@ namespace set
 
 instance lattice_set : complete_lattice (set α) :=
 { le     := (⊆),
-  lt     := λ x y, x ⊆ y ∧ ¬ y ⊆ x,
+  lt     := (⊂),
   sup    := (∪),
   inf    := (∩),
   top    := univ,
@@ -180,7 +180,7 @@ by rw [diff_eq, compl_Inter, inter_Union]; refl
 /- bounded unions and intersections -/
 
 theorem mem_bUnion_iff {s : set α} {t : α → set β} {y : β} :
-  y ∈ (⋃ x ∈ s, t x) ↔ ∃ x, x ∈ s ∧ y ∈ t x := by simp
+  y ∈ (⋃ x ∈ s, t x) ↔ ∃ x ∈ s, y ∈ t x := by simp
 
 theorem mem_bInter_iff {s : set α} {t : α → set β} {y : β} :
   y ∈ (⋂ x ∈ s, t x) ↔ ∀ x ∈ s, y ∈ t x := by simp

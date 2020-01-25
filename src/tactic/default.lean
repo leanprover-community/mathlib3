@@ -33,3 +33,4 @@ import
   tactic.apply_fun
   tactic.apply
   tactic.suggest
+  tactic.simp_rw

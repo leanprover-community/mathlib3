@@ -1,10 +1,50 @@
-# Mathlib tactics #
+# Mathlib tactics
 
-In addition to [core tactics](https://leanprover.github.io/reference/tactics.html),
-mathlib provides a number of specific interactive tactics and commands.
-Here we document the mostly commonly used ones.
+In addition to the [tactics found in the core library](https://leanprover.github.io/reference/tactics.html),
+mathlib provides a number of specific interactive tactics.
+Here we document the mostly commonly used ones, as well as some underdocumented tactics from core.
 
-### tfae
+## cc (congruence closure)
+
+The congruence closure tactic `cc` tries to solve the goal by chaining
+equalities from context and applying congruence (ie if `a = b` then `f a = f b`).
+It is a finishing tactic, ie is meant to close
+the current goal, not to make some inconclusive progress.
+A mostly trivial example would be:
+
+```lean
+example (a b c : ℕ) (f : ℕ → ℕ) (h: a = b) (h' : b = c) : f a = f c := by cc
+```
+
+As an example requiring some thinking to do by hand, consider:
+
+```lean
+example (f : ℕ → ℕ) (x : ℕ)
+  (H1 : f (f (f x)) = x) (H2 : f (f (f (f (f x)))) = x) :
+  f x = x :=
+by cc
+```
+
+The tactic works by building an equality matching graph. It's a graph where
+the vertices are terms and they are linked by edges if they are known to
+be equal. Once you've added all the equalities in your context, you take
+the transitive closure of the graph and, for each connected component
+(i.e. equivalence class) you can elect a term that will represent the
+whole class and store proofs that the other elements are equal to it.
+You then take the transitive closure of these equalities under the
+congruence lemmas.
+
+The `cc` implementation in Lean does a few more tricks: for example it
+derives `a=b` from `nat.succ a = nat.succ b`, and `nat.succ a !=
+nat.zero` for any `a`.
+
+* The starting reference point is Nelson, Oppen, [Fast decision procedures based on congruence closure](http://www.cs.colorado.edu/~bec/courses/csci5535-s09/reading/nelson-oppen-congruence.pdf), Journal of the ACM (1980)
+
+* The congruence lemmas for dependent type theory as used in Lean are described in [Congruence closure in intensional type theory](https://leanprover.github.io/papers/congr.pdf) (de Moura, Selsam IJCAR 2016).
+
+
+
+## tfae
 
 The `tfae` tactic suite is a set of tactics that help with proving that certain
 propositions are equivalent.
@@ -54,7 +94,7 @@ begin
 end
 ```
 
-### rcases
+## rcases
 
 The `rcases` tactic is the same as `cases`, but with more flexibility in the
 `with` pattern syntax to allow for recursive case splitting. The pattern syntax
@@ -87,7 +127,7 @@ but rather than accepting a pattern, it does a maximal cases and prints the
 pattern that would produce this case splitting. The default maximum depth is 5,
 but this can be modified with `rcases? e : n`.
 
-### rintro
+## rintro
 
 The `rintro` tactic is a combination of the `intros` tactic with `rcases` to
 allow for destructuring patterns while introducing variables. See `rcases` for
@@ -100,7 +140,7 @@ two subgoals, one with variables `a d e` and the other with `b c d e`.
 result. Like `rcases?`, `rintro? : n` allows for modifying the
 depth of splitting; the default is 5.
 
-### obtain
+## obtain
 
 The `obtain` tactic is a combination of `have` and `rcases`.
 ```lean
@@ -114,14 +154,14 @@ have h : type,
 rcases h with ⟨patt⟩
 ```
 
- The syntax `obtain ⟨patt⟩ : type := proof` is also supported.
+The syntax `obtain ⟨patt⟩ : type := proof` is also supported.
 
- If `⟨patt⟩` is omitted, `rcases` will try to infer the pattern.
+If `⟨patt⟩` is omitted, `rcases` will try to infer the pattern.
 
- If `type` is omitted, `:= proof` is required.
+If `type` is omitted, `:= proof` is required.
 
 
-### simpa
+## simpa
 
 This is a "finishing" tactic modification of `simp`. It has two forms.
 
@@ -136,7 +176,7 @@ This is a "finishing" tactic modification of `simp`. It has two forms.
   hypothesis `this` if present in the context, then try to close the goal using
   the `assumption` tactic.
 
-### replace
+## replace
 
 Acts like `have`, but removes a hypothesis with the same name as
 this one. For example if the state is `h : p ⊢ goal` and `f : p → q`,
@@ -145,7 +185,7 @@ where `have h := f h` would result in the state `h : p, h : q ⊢ goal`.
 This can be used to simulate the `specialize` and `apply at` tactics
 of Coq.
 
-### elide/unelide
+## elide/unelide
 
 The `elide n (at ...)` tactic hides all subterms of the target goal or hypotheses
 beyond depth `n` by replacing them with `hidden`, which is a variant
@@ -156,7 +196,7 @@ through the abbreviation, but if you want to unhide the term you can use
 The `unelide (at ...)` tactic removes all `hidden` subterms in the target
 types (usually added by `elide`).
 
-### finish/clarify/safe
+## finish/clarify/safe
 
 These tactics do straightforward things: they call the simplifier, split conjunctive assumptions,
 eliminate existential quantifiers on the left, and look for contradictions. They rely on ematching
@@ -172,7 +212,7 @@ they are only meant to be used on small, straightforward problems.
 All accept an optional list of simplifier rules, typically definitions that should be expanded.
 (The equations and identities should not refer to the local context.) All also accept an optional list of `ematch` lemmas, which must be preceded by `using`.
 
-### abel
+## abel
 
 Evaluate expressions in the language of *additive*, commutative monoids and groups.
 It attempts to prove the goal outright if there is no `at`
@@ -186,7 +226,7 @@ example {α : Type*} {a b : α} [add_comm_group α] (hyp : a + a - a = b - b) : 
 by { abel at hyp, exact hyp }
 ```
 
-### norm_num
+## norm_num
 
 Normalises numerical expressions. It supports the operations `+` `-` `*` `/` `^` and `%` over numerical types such as `ℕ`, `ℤ`, `ℚ`, `ℝ`, `ℂ`, and can prove goals of the form `A = B`, `A ≠ B`, `A < B` and `A ≤ B`, where `A` and `B` are
 numerical expressions. It also has a relatively simple primality prover.
@@ -204,14 +244,14 @@ example : ¬ nat.prime (2^11 - 1) := by norm_num
 example (x : ℝ) (h : x = 123 + 456) : x = 579 := by norm_num at h; assumption
 ```
 
-### ring
+## ring
 
 Evaluate expressions in the language of *commutative* (semi)rings.
 Based on [Proving Equalities in a Commutative Ring Done Right in Coq](http://www.cs.ru.nl/~freek/courses/tt-2014/read/10.1.1.61.3041.pdf) by Benjamin Grégoire and Assia Mahboubi.
 
 The variant `ring!` uses a more aggessive reducibility setting to determine equality of atoms.
 
-### ring_exp
+## ring_exp
 
 Evaluate expressions in *commutative* (semi)rings, allowing for variables in the exponent.
 
@@ -227,7 +267,7 @@ example (a b : ℤ) (n : ℕ) : (a + b)^(n + 2) = (a^2 + b^2 + a * b + b * a) * 
 example (x y : ℕ) : x + id y = y + id x := by ring_exp!
 ```
 
-### field_simp
+## field_simp
 
 The goal of `field_simp` is to reduce an expression in a field to an expression of the form `n / d`
 where neither `n` nor `d` contains any division symbol, just using the simplifier (with a carefully
@@ -270,7 +310,7 @@ begin
 end
 ```
 
-### congr'
+## congr'
 
 Same as the `congr` tactic, but takes an optional argument which gives
 the depth of recursive applications. This is useful when `congr`
@@ -279,7 +319,7 @@ is too aggressive in breaking down the goal. For example, given
 and `⊢ y = x`, while `congr' 2` produces the intended `⊢ x + y = y + x`.
 If, at any point, a subgoal matches a hypothesis then the subgoal will be closed.
 
-### convert
+## convert
 
 The `exact e` and `refine e` tactics require a term `e` whose type is
 definitionally equal to the goal. `convert e` is similar to `refine
@@ -310,11 +350,11 @@ the goal equals the type of `e`, then simplifying it using
 depth of matching (like `congr' n`). In the example, `convert e using
 1` would produce a new goal `⊢ n + n + 1 = 2 * n + 1`.
 
-### unfold_coes
+## unfold_coes
 
 Unfold coercion-related definitions
 
-### Instance cache tactics
+## Instance cache tactics
 
 For performance reasons, Lean does not automatically update its database
 of class instances during a proof. The group of tactics described below
@@ -353,7 +393,7 @@ However, it will work, producing the identity function, if one replaces have by 
 * `exactI`: `resetI` followed by `exact`. Like `exact`, but uses all
   variables in the context for typeclass inference.
 
-### suggest
+## suggest
 
 `suggest` lists possible usages of the `refine` tactic and leaves the tactic state unchanged.
 It is intended as a complement of the search function in your editor, the `#find` tactic, and `library_search`.
@@ -381,7 +421,7 @@ refine lt_of_not_ge _
 ...
 ```
 
-### library_search
+## library_search
 
 `library_search` is a tactic to identify existing lemmas in the library. It tries to close the
 current goal by applying a lemma from the library, then discharging any new goals using
@@ -396,19 +436,8 @@ by library_search -- exact nat.mul_sub_left_distrib n m k
 `library_search` prints a trace message showing the proof it found, shown above as a comment.
 Typically you will then copy and paste this proof, replacing the call to `library_search`.
 
-### find
 
-The `find` command from `tactic.find` allows to find lemmas using
-pattern matching. For instance:
-
-```lean
-import tactic.find
-
-#find _ + _ = _ + _
-#find (_ : ℕ) + _ = _ + _
-```
-
-### solve_by_elim
+## solve_by_elim
 
 The tactic `solve_by_elim` repeatedly applies assumptions to the current goal, and succeeds if this eventually discharges the main goal.
 ```lean
@@ -428,7 +457,7 @@ attributes).
 unless they are explicitly included.
 * `solve_by_elim [-id_1, ... -id_n]` uses the default assumptions, removing the specified ones.
 
-### ext1 / ext
+## ext1 / ext
 
  * `ext1 id` selects and apply one extensionality lemma (with
     attribute `ext`), using `id`, if provided, to name a
@@ -462,7 +491,7 @@ by applying functional extensionality and set extensionality.
 
 A maximum depth can be provided with `ext x y z : 3`.
 
-### The `ext` attribute
+## The `ext` attribute
 
  Tag lemmas of the form:
 
@@ -550,7 +579,7 @@ A maximum depth can be provided with `ext x y z : 3`.
  lemma foo.ext_iff : ∀ {α : Type u_1} (x y : foo α), x = y ↔ x.x = y.x ∧ x.y = y.y ∧ x.z == y.z ∧ x.k = y.k
  ```
 
-### refine_struct
+## refine_struct
 
 `refine_struct { .. }` acts like `refine` but works only with structure instance
 literals. It creates a goal for each missing field and tags it with the name of the
@@ -586,7 +615,7 @@ refine_struct ({ .. } : semigroup α),
 { have field := @semigroup.mul_assoc, ... },
 ```
 
-### apply_rules
+## apply_rules
 
 `apply_rules hs n` applies the list of lemmas `hs` and `assumption` on the
 first goal and the resulting subgoals, iteratively, at most `n` times.
@@ -613,7 +642,7 @@ by apply_rules [mono_rules]
 by apply_rules mono_rules
 ```
 
-### h_generalize
+## h_generalize
 
 `h_generalize Hx : e == x` matches on `cast _ e` in the goal and replaces it with
 `x`. It also adds `Hx : e == x` as an assumption. If `cast _ e` appears multiple
@@ -627,7 +656,7 @@ as casts.
   - `h_generalize! Hx : e == x` reverts `Hx`;
   - when `Hx` is omitted, assumption `Hx : e == x` is not added.
 
-### pi_instance
+## pi_instance
 
 `pi_instance` constructs an instance of `my_class (Π i : I, f i)`
 where we know `Π i, my_class (f i)`. If an order relation is required,
@@ -635,13 +664,13 @@ it defaults to `pi.partial_order`. Any field of the instance that
 `pi_instance` cannot construct is left untouched and generated as a
 new goal.
 
-### assoc_rewrite
+## assoc_rewrite
 
 `assoc_rewrite [h₀, ← h₁] at ⊢ h₂` behaves like
 `rewrite [h₀, ← h₁] at ⊢ h₂` with the exception that associativity is
 used implicitly to make rewriting possible.
 
-### restate_axiom
+## restate_axiom
 
 `restate_axiom` makes a new copy of a structure field, first definitionally simplifying the type.
 This is useful to remove `auto_param` or `opt_param` from the statement.
@@ -666,7 +695,7 @@ restate_axiom A.a f
 example (z : A) : z.x = 1 := by rw A.f
 ```
 
-### def_replacer
+## def_replacer
 
 `def_replacer foo` sets up a stub definition `foo : tactic unit`, which can
 effectively be defined and re-defined later, by tagging definitions with `@[foo]`.
@@ -682,7 +711,7 @@ custom input and output types. In this case all subsequent redefinitions must ha
 same type, or the type `α → β → tactic γ → tactic γ` or
 `α → β → option (tactic γ) → tactic γ` analogously to the previous cases.
 
-### tidy
+## tidy
 
 `tidy` attempts to use a variety of conservative tactics to solve the goals.
 In particular, `tidy` uses the `chain` tactic to repeatedly apply a list of tactics to
@@ -702,7 +731,7 @@ The default list of tactics can be found by looking up the definition of
 This list can be overriden using `tidy { tactics :=  ... }`. (The list must be a list of
 `tactic string`, so that `tidy?` can report a usable tactic script.)
 
-### linarith
+## linarith
 
 `linarith` attempts to find a contradiction between hypotheses that are linear (in)equalities.
 Equivalently, it can prove a linear inequality by assuming its negation and proving `false`.
@@ -741,7 +770,7 @@ if you have e.g. both integer and rational valued inequalities in the local cont
 sometimes confuse the tactic.
 * If `exfalso` is false, `linarith` will fail when the goal is neither an inequality nor `false`. (True by default.)
 
-### choose
+## choose
 
 `choose a b h using hyp` takes an hypothesis `hyp` of the form
 `∀ (x : X) (y : Y), ∃ (a : A) (b : B), P x y a b` for some `P : X → Y → A → B → Prop` and outputs
@@ -761,7 +790,7 @@ begin
 end
 ```
 
-### squeeze_simp / squeeze_simpa
+## squeeze_simp / squeeze_simpa
 
 `squeeze_simp` and `squeeze_simpa` perform the same task with
 the difference that `squeeze_simp` relates to `simp` while
@@ -811,7 +840,7 @@ Known limitation(s):
     It is likely that none of the suggestion is a good replacement but they can all be
     combined by concatenating their list of lemmas.
 
-### fin_cases
+## fin_cases
 `fin_cases h` performs case analysis on a hypothesis of the form
 1) `h : A`, where `[fintype A]` is available, or
 2) `h ∈ A`, where `A : finset X`, `A : multiset X` or `A : list X`.
@@ -828,7 +857,7 @@ end
 ```
 after `fin_cases p; simp`, there are three goals, `f 0`, `f 1`, and `f 2`.
 
-### conv
+## conv
 The `conv` tactic is built-in to lean. Inside `conv` blocks mathlib currently
 additionally provides
    * `erw`,
@@ -869,7 +898,7 @@ end
 ```
 and likewise for `to_rhs`.
 
-### mono
+## mono
 
 - `mono` applies a monotonicity rule.
 - `mono*` applies monotonicity rules repetitively.
@@ -910,7 +939,7 @@ example (x y z k : ℤ)
 by mono*
 ```
 
-### ac_mono
+## ac_mono
 
 `ac_mono` reduces the `f x ⊑ f y`, for some relation `⊑` and a
 monotonic function `f` to `x ≺ y`.
@@ -966,7 +995,7 @@ by ac_mono* h₁.
 By giving `ac_mono` the assumption `h₁`, we are asking `ac_refl` to
 stop earlier than it would normally would.
 
-### use
+## use
 Similar to `existsi`. `use x` will instantiate the first term of an `∃` or `Σ` goal with `x`.
 Unlike `existsi`, `x` is elaborated with respect to the expected type.
 Equivalent to `refine ⟨x, _⟩`.
@@ -989,7 +1018,7 @@ example : ∃ p : ℤ × ℤ, p.1 = 1 :=
 by use ⟨1, 42⟩
 ```
 
-### clear_aux_decl
+## clear_aux_decl
 
 `clear_aux_decl` clears every `aux_decl` in the local context for the current goal.
 This includes the induction hypothesis when using the equation compiler and
@@ -1013,7 +1042,7 @@ begin
   finish
 end
 ```
-### set
+## set
 
 `set a := t with h` is a variant of `let a := t`. It adds the hypothesis `h : a = t` to the local context and replaces `t` with `a` everywhere it can.
 
@@ -1035,7 +1064,7 @@ h : y = 3
 end
 ```
 
-### omega
+## omega
 
 `omega` attempts to discharge goals in the quantifier-free fragment of linear integer and natural number arithmetic using the Omega test. In other words, the core procedure of `omega` works with goals of the form
 ```lean
@@ -1063,7 +1092,7 @@ by {revert h2 i, omega manual int}
 
 `omega` implements the real shadow step of the Omega test, but not the dark and gray shadows. Therefore, it should (in principle) succeed whenever the negation of the goal has no real solution, but it may fail if a real solution exists, even if there is no integer/natural number solution.
 
-### push_neg
+## push_neg
 
 This tactic pushes negations inside expressions. For instance, given an assumption
 ```lean
@@ -1080,7 +1109,7 @@ using the relevant lemmas. One can also use this tactic at the goal using `push_
 at every assumption and the goal using `push_neg at *` or at selected assumptions and the goal
 using say `push_neg at h h' ⊢` as usual.
 
-### contrapose
+## contrapose
 
 Transforms the goal into its contrapositive.
 
@@ -1095,7 +1124,23 @@ Transforms the goal into its contrapositive.
 
 `contrapose h with new_h` uses the name `new_h` for the introduced hypothesis
 
-### norm_cast
+## tautology
+
+This tactic (with shorthand `tauto`) breaks down assumptions of the form `_ ∧ _`, `_ ∨ _`, `_ ↔ _` and `∃ _, _`
+and splits a goal of the form `_ ∧ _`, `_ ↔ _` or `∃ _, _` until it can be discharged
+using `reflexivity` or `solve_by_elim`. This is a finishing tactic: it
+either closes the goal of raises an error.
+
+The variants `tautology!` or `tauto!` use the law of excluded middle.
+
+For instance, one can write:
+```lean
+example (p q r : Prop) [decidable p] [decidable r] : p ∨ (q ∧ r) ↔ (p ∨ q) ∧ (r ∨ p ∨ r) := by tauto
+```
+and the decidability assumptions can be dropped if `tauto!` is used
+instead of `tauto`.
+
+## norm_cast
 
 This tactic normalizes casts inside expressions.
 It is basically a simp tactic with a specific set of lemmas to move casts
@@ -1157,7 +1202,7 @@ It is equivalent to `simp only with push_cast`, and can also be used at hypothes
 with `push_cast at h`.
 
 
-### convert_to
+## convert_to
 
 `convert_to g using n` attempts to change the current goal to `g`, but unlike `change`,
 it will generate equality proof obligations using `congr' n` to resolve discrepancies.
@@ -1173,7 +1218,7 @@ begin
 end
 ```
 
-### apply_fun
+## apply_fun
 
 Apply a function to some local assumptions which are either equalities
 or inequalities. For instance, if the context contains `h : a = b` and
@@ -1196,39 +1241,15 @@ begin
 end
 ```
 
-### Localized Notation
-
-This consists of two user-commands which allow you to declare notation and commands localized to a namespace.
-
-* Declare notation which is localized to a namespace using:
-```
-localized "infix ` ⊹ `:60 := my_add" in my.add
-```
-* After this command it will be available in the same section/namespace/file, just as if you wrote `local infix ` ⊹ `:60 := my_add`
-* You can open it in other places. The following command will declare the notation again as local notation in that section/namespace/files:
-```
-open_locale my.add
-```
-* More generally, the following will declare all localized notation in the specified namespaces.
-```
-open_locale namespace1 namespace2 ...
-```
-* You can also declare other localized commands, like local attributes
-```
-localized "attribute [simp] le_refl" in le
-```
-* Warning 1: as a limitation on user commands, you cannot put `open_locale` directly after your imports. You have to write another command first (e.g. `open`, `namespace`, `universe variables`, `noncomputable theory`, `run_cmd tactic.skip`, ...).
-* Warning 2: You have to fully specify the names used in localized notation, so that the localized notation also works when the appropriate namespaces are not opened.
-
-### swap
+## swap
 
 `swap n` will move the `n`th goal to the front. `swap` defaults to `swap 2`, and so interchanges the first and second goals.
 
-### rotate
+## rotate
 
 `rotate` moves the first goal to the back. `rotate n` will do this `n` times.
 
-### The `reassoc` attribute
+## The `reassoc` attribute
 
 The `reassoc` attribute can be applied to a lemma
 
@@ -1246,34 +1267,8 @@ lemma some_lemma_assoc {Y : C} (f : X ⟶ Y) : foo ≫ bar ≫ f = baz ≫ f := 
 The name of the produced lemma can be specified with `@[reassoc other_lemma_name]`. If
 `simp` is added first, the generated lemma will also have the `simp` attribute.
 
-### The `reassoc_axiom` command
 
-When declaring a class of categories, the axioms can be reformulated to be more amenable
-to manipulation in right associated expressions:
-
-```lean
-class some_class (C : Type) [category C] :=
-(foo : Π X : C, X ⟶ X)
-(bar : ∀ {X Y : C} (f : X ⟶ Y), foo X ≫ f = f ≫ foo Y)
-
-reassoc_axiom some_class.bar
-```
-
-The above will produce:
-
-```lean
-lemma some_class.bar_assoc {Z : C} (g : Y ⟶ Z) :
-  foo X ≫ f ≫ g = f ≫ foo Y ≫ g := ...
-```
-
-Here too, the `reassoc` attribute can be used instead. It works well when combined with
-`simp`:
-
-```lean
-attribute [simp, reassoc] some_class.bar
-```
-
-### The reassoc_of function
+## The reassoc_of function
 
 `reassoc_of h` takes local assumption `h` and add a ` ≫ f` term on the right of both sides of the equality.
 Instead of creating a new assumption from the result, `reassoc_of h` stands for the proof of that reassociated
@@ -1296,48 +1291,8 @@ end
 Although `reassoc_of` is not a tactic or a meta program, its type is generated
 through meta-programming to make it usable inside normal expressions.
 
-### lint
-User commands to spot common mistakes in the code
 
-* `#lint`: check all declarations in the current file
-* `#lint_mathlib`: check all declarations in mathlib (so excluding core or other projects,
-  and also excluding the current file)
-* `#lint_all`: check all declarations in the environment (the current file and all
-  imported files)
-
-The following linters are run by default:
-1. `unused_arguments` checks for unused arguments in declarations.
-2. `def_lemma` checks whether a declaration is incorrectly marked as a def/lemma.
-3. `dup_namespce` checks whether a namespace is duplicated in the name of a declaration.
-4. `illegal_constant` checks whether ≥/> is used in the declaration.
-5. `instance_priority` checks that instances that always apply have priority below default.
-6. `doc_blame` checks for missing doc strings on definitions and constants.
-
-Another linter, `doc_blame_thm`, checks for missing doc strings on lemmas and theorems.
-This is not run by default.
-
-The command `#list_linters` prints a list of the names of all available linters.
-
-You can append a `*` to any command (e.g. `#lint_mathlib*`) to omit the slow tests (4).
-
-You can append a `-` to any command (e.g. `#lint_mathlib-`) to run a silent lint
-that suppresses the output of passing checks.
-A silent lint will fail if any test fails.
-
-You can append a sequence of linter names to any command to run extra tests, in addition to the
-default ones. e.g. `#lint doc_blame_thm` will run all default tests and `doc_blame_thm`.
-
-You can append `only name1 name2 ...` to any command to run a subset of linters, e.g.
-`#lint only unused_arguments`
-
-You can add custom linters by defining a term of type `linter` in the `linter` namespace.
-A linter defined with the name `linter.my_new_check` can be run with `#lint my_new_check`
-or `lint only my_new_check`.
-If you add the attribute `@[linter]` to `linter.my_new_check` it will run by default.
-
-Adding the attribute `@[nolint]` to a declaration omits it from all linter checks.
-
-### lift
+## lift
 
 Lift an expression to another type.
 * Usage: `'lift' expr 'to' expr ('using' expr)? ('with' id (id id?)?)?`.
@@ -1371,7 +1326,7 @@ Lift an expression to another type.
   `β : Π a : α, Type*`, `γ : Π a : α, Type*`, and `[Π a : α, can_lift (β a) (γ a)]`, it automatically
   generates an instance `can_lift (Π a, β a) (Π a, γ a)`.
 
-### import_private
+## import_private
 
 `import_private foo from bar` finds a private declaration `foo` in the same file as `bar` and creates a
 local notation to refer to it.
@@ -1380,14 +1335,14 @@ local notation to refer to it.
 
 When possible, make `foo` non-private rather than using this feature.
 
-### default_dec_tac'
+## default_dec_tac'
 
 `default_dec_tac'` is a replacement for the core tactic `default_dec_tac`, fixing a bug. This
 bug is often indicated by a message `nested exception message: tactic failed, there are no goals to be solved`,and solved by appending `using_well_founded wf_tacs` to the recursive definition.
 See also additional documentation of `using_well_founded` in
 [docs/extras/well_founded_recursion.md](extras/well_founded_recursion.md).
 
-### simps
+## simps
 
 * The `@[simps]` attribute automatically derives lemmas specifying the projections of the declaration.
 * Example: (note that the forward and reverse functions are specified differently!)
@@ -1420,56 +1375,23 @@ See also additional documentation of `using_well_founded` in
 * If one of the fields is a partially applied constructor, we will eta-expand it
   (this likely never happens).
 
-### mk_simp_attribute
+## simp_rw
 
-The command `mk_simp_attribute simp_name "description"` creates a simp set with name `simp_name`.
-Lemmas tagged with `@[simp_name]` will be included when `simp with simp_name` is called.
-`mk_simp_attribute simp_name none` will use a default description.
+`simp_rw` functions as a mix of `simp` and `rw`. Like `rw`, it applies each
+rewrite rule in the given order, but like `simp` it repeatedly applies these
+rules and also under binders like `∀ x, ...`, `∃ x, ...` and `λ x, ...`.
 
-Appending the command with `with attr1 attr2 ...` will include all declarations tagged with
-`attr1`, `attr2`, ... in the new simp set.
+Usage:
+  - `simp_rw [lemma_1, ..., lemma_n]` will rewrite the goal by applying the
+    lemmas in that order.
+  - `simp_rw [lemma_1, ..., lemma_n] at h₁ ... hₙ` will rewrite the given hypotheses.
+  - `simp_rw [...] at ⊢ h₁ ... hₙ` rewrites the goal as well as the given hypotheses.
+  - `simp_rw [...] at *` rewrites in the whole context: all hypotheses and the goal.
 
-This command is preferred to using ``run_cmd mk_simp_attr `simp_name`` since it adds a doc string
-to the attribute that is defined. If you need to create a simp set in a file where this command is not
-available, you should use
+For example, neither `simp` nor `rw` can solve the following, but `simp_rw` can:
 ```lean
-run_cmd mk_simp_attr `simp_name
-run_cmd add_doc_string `simp_attr.simp_name "Description of the simp set here"
+example {α β : Type} {f : α → β} {t : set β} : (∀ s, f '' s ⊆ t) = ∀ s : set α, ∀ x ∈ s, x ∈ f ⁻¹' t :=
+by simp_rw [set.image_subset_iff, set.subset_def]
 ```
 
-### library_note
-
-At various places in mathlib, we leave implementation notes that are referenced from many other
-files. To keep track of these notes, we use the command `library_note`. This makes it easy to
-retrieve a list of all notes, e.g. for documentation output.
-
-These notes can be referenced in mathlib with the syntax `Note [note id]`.
-Often, these references will be made in code comments (`--`) that won't be displayed in docs.
-If such a reference is made in a doc string or module doc, it will be linked to the corresponding
-note in the doc display.
-
-Syntax:
-```
-library_note "note id" "note message"
-```
-
-An example from `meta.expr`:
-
-```
-library_note "open expressions"
-"Some declarations work with open expressions, i.e. an expr that has free variables.
-Terms will free variables are not well-typed, and one should not use them in tactics like
-`infer_type` or `unify`. You can still do syntactic analysis/manipulation on them.
-The reason for working with open types is for performance: instantiating variables requires
-iterating through the expression. In one performance test `pi_binders` was more than 6x
-quicker than `mk_local_pis` (when applied to the type of all imported declarations 100x)."
-```
-
-This note can be referenced near a usage of `pi_binders`:
-
-
-```
--- See Note [open expressions]
-/-- behavior of f -/
-def f := pi_binders ...
-```
+Lemmas passed to `simp_rw` must be expressions that are valid arguments to `simp`.

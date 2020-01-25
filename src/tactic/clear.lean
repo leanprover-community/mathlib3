@@ -41,21 +41,15 @@ tgt ← target,
 -- error message.
 hyps_list.mmap' (λ h, do
   dep ← kdepends_on tgt h,
-  when dep $ fail $ format.join
-    [ "Cannot clear hypothesis "
-    , to_fmt h
-    , " since the target depends on it."
-    , format.line
-    ]),
+  when dep $ fail $
+    format!"Cannot clear hypothesis {h} since the target depends on it."),
 n ← revert_lst hyps_list,
 -- If revert_lst reverted more hypotheses than we wanted to clear, there must
 -- have been other hypotheses dependent on some of the hyps.
 when (! clear_dependent && (n ≠ hyps.size)) $ fail $ format.join
   [ "Some of the following hypotheses cannot be cleared because other "
-  , "hypotheses depend on (some of) them:"
-  , format.line
+  , "hypotheses depend on (some of) them:\n"
   , format.intercalate ", " (hyps.to_list.map to_fmt)
-  , format.line
   ],
 v ← mk_meta_var tgt,
 intron n,

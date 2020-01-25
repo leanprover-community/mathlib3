@@ -177,8 +177,8 @@ have (s₂ \ s₁).prod f = (s₂ \ s₁).prod (λx, 1),
   from prod_congr rfl $ by simpa only [mem_sdiff, and_imp],
 by rw [←prod_sdiff h]; simp only [this, prod_const_one, one_mul]
 
--- If we use `decidable_eq β` here, some rewrites fail because they find a wrong `decidable`
--- instance first
+-- If we use `[decidable_eq β]` here, some rewrites fail because they find a wrong `decidable`
+-- instance first; `{∀x, decidable (f x ≠ 1)}` doesn't work with `rw ← prod_filter_ne_one`
 @[to_additive]
 lemma prod_filter_ne_one [∀ x, decidable (f x ≠ 1)] : (s.filter $ λx, f x ≠ 1).prod f = s.prod f :=
 prod_subset (filter_subset _) $ λ x,

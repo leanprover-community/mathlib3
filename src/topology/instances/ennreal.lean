@@ -252,11 +252,21 @@ protected lemma tendsto.mul {f : filter α} {ma : α → ennreal} {mb : α → e
 show tendsto ((λp:ennreal×ennreal, p.1 * p.2) ∘ (λa, (ma a, mb a))) f (𝓝 (a * b)), from
 tendsto.comp (ennreal.tendsto_mul ha hb) (tendsto_prod_mk_nhds hma hmb)
 
-protected lemma tendsto.mul_right {f : filter α} {m : α → ennreal} {a b : ennreal}
+protected lemma tendsto.const_mul {f : filter α} {m : α → ennreal} {a b : ennreal}
   (hm : tendsto m f (𝓝 b)) (hb : b ≠ 0 ∨ a ≠ ⊤) : tendsto (λb, a * m b) f (𝓝 (a * b)) :=
 by_cases
   (assume : a = 0, by simp [this, tendsto_const_nhds])
   (assume ha : a ≠ 0, ennreal.tendsto.mul tendsto_const_nhds (or.inl ha) hm hb)
+
+protected lemma tendsto.mul_const {f : filter α} {m : α → ennreal} {a b : ennreal}
+  (hm : tendsto m f (𝓝 a)) (ha : a ≠ 0 ∨ b ≠ ⊤) : tendsto (λx, m x * b) f (𝓝 (a * b)) :=
+by simpa only [mul_comm] using ennreal.tendsto.const_mul hm ha
+
+protected lemma continuous_const_mul {a : ennreal} (ha : a < ⊤) : continuous ((*) a) :=
+continuous_iff_continuous_at.2 $ λ x, tendsto.const_mul tendsto_id $ or.inr $ ne_of_lt ha
+
+protected lemma continuous_mul_const {a : ennreal} (ha : a < ⊤) : continuous (λ x, x * a) :=
+by simpa only [mul_comm] using ennreal.continuous_const_mul ha
 
 protected lemma continuous_inv : continuous (has_inv.inv : ennreal → ennreal) :=
 continuous_iff_continuous_at.2 $ λ a, tendsto_order.2

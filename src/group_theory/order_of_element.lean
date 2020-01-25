@@ -379,10 +379,10 @@ open_locale nat -- use φ for nat.totient
 private lemma card_order_of_eq_totient_aux₁ :
   ∀ {d : ℕ}, d ∣ fintype.card α → 0 < (univ.filter (λ a : α, order_of a = d)).card →
   (univ.filter (λ a : α, order_of a = d)).card = φ d
-| 0     := λ hd hd0, absurd hd0 (mt card_pos.1
-  (by simp [finset.ext, nat.pos_iff_ne_zero.1 (order_of_pos _)]))
+| 0     := λ hd hd0,
+let ⟨a, ha⟩ := card_pos.1 hd0 in absurd (mem_filter.1 ha).2 $ ne_of_gt $ order_of_pos a
 | (d+1) := λ hd hd0,
-let ⟨a, ha⟩ := exists_mem_of_ne_empty (card_pos.1 hd0) in
+let ⟨a, ha⟩ := card_pos.1 hd0 in
 have ha : order_of a = d.succ, from (mem_filter.1 ha).2,
 have h : ((range d.succ).filter (∣ d.succ)).sum
     (λ m, (univ.filter (λ a : α, order_of a = m)).card) =
@@ -391,10 +391,9 @@ have h : ((range d.succ).filter (∣ d.succ)).sum
     (λ m hm, have hmd : m < d.succ, from mem_range.1 (mem_filter.1 hm).1,
       have hm : m ∣ d.succ, from (mem_filter.1 hm).2,
       card_order_of_eq_totient_aux₁ (dvd.trans hm hd) (finset.card_pos.2
-        (ne_empty_of_mem (show a ^ (d.succ / m) ∈ _,
-          from mem_filter.2 ⟨mem_univ _,
+        ⟨a ^ (d.succ / m), mem_filter.2 ⟨mem_univ _,
           by rw [order_of_pow, ha, gcd_eq_right (div_dvd_of_dvd hm),
-            nat.div_div_self hm (succ_pos _)]⟩)))),
+            nat.div_div_self hm (succ_pos _)]⟩⟩)),
 have hinsert : insert d.succ ((range d.succ).filter (∣ d.succ))
     = (range d.succ.succ).filter (∣ d.succ),
   from (finset.ext.2 $ λ x, ⟨λ h, (mem_insert.1 h).elim (λ h, by simp [h, range_succ])
@@ -449,8 +448,8 @@ lt_irrefl c $
   ... = c : sum_totient _
 
 lemma is_cyclic_of_card_pow_eq_one_le : is_cyclic α :=
-have ∃ x, x ∈ univ.filter (λ a : α, order_of a = fintype.card α),
-from exists_mem_of_ne_empty (card_pos.1 $
+have (univ.filter (λ a : α, order_of a = fintype.card α)).nonempty,
+from (card_pos.1 $
   by rw [card_order_of_eq_totient_aux₂ hn (dvd_refl _)];
   exact totient_pos (fintype.card_pos_iff.2 ⟨1⟩)),
 let ⟨x, hx⟩ := this in

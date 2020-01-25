@@ -20,8 +20,7 @@ calc totient n ≤ (range n).card : card_le_of_subset (filter_subset _)
 lemma totient_pos : ∀ {n : ℕ}, 0 < n → 0 < φ n
 | 0 := dec_trivial
 | 1 := dec_trivial
-| (n+2) := λ h, card_pos.2 (mt eq_empty_iff_forall_not_mem.1
-(not_forall_of_exists_not ⟨1, not_not.2 $ mem_filter.2 ⟨mem_range.2 dec_trivial, by simp [coprime]⟩⟩))
+| (n+2) := λ h, card_pos.2 ⟨1, mem_filter.2 ⟨mem_range.2 dec_trivial, coprime_one_right _⟩⟩
 
 lemma sum_totient (n : ℕ) : ((range n.succ).filter (∣ n)).sum φ = n :=
 if hn0 : n = 0 then by rw hn0; refl

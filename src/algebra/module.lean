@@ -470,7 +470,7 @@ by rw [finset.sum_const, ← module.smul_eq_smul]; refl
 variables {M : Type*} [decidable_linear_ordered_cancel_comm_monoid M]
   {s : finset α} (f : α → M)
 
-theorem exists_card_smul_le_sum (hs : s ≠ ∅) :
+theorem exists_card_smul_le_sum (hs : s.nonempty) :
   ∃ i ∈ s, s.card • f i ≤ s.sum f :=
 begin
   apply exists_le_of_sum_le hs,
@@ -478,7 +478,7 @@ begin
   refl
 end
 
-theorem exists_card_smul_ge_sum (hs : s ≠ ∅) :
+theorem exists_card_smul_ge_sum (hs : s.nonempty) :
   ∃ i ∈ s, s.sum f ≤ s.card • f i :=
 begin
   apply exists_le_of_sum_le hs,

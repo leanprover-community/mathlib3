@@ -273,8 +273,8 @@ calc s.prod f = (s.filter $ λx, f x ≠ 1).prod f : prod_filter_ne_one.symm
   ... = t.prod g : prod_filter_ne_one
 
 @[to_additive]
-lemma nonempty_of_prod_ne_one : s.prod f ≠ 1 → ∃ x, x ∈ s :=
-by { refine λ h, exists_mem_of_ne_empty $ mt _ h, exact λ hs, hs.symm ▸ prod_empty }
+lemma nonempty_of_prod_ne_one (h : s.prod f ≠ 1) : s.nonempty :=
+s.eq_empty_or_nonempty.elim (λ H, false.elim $ h $ H.symm ▸ prod_empty) id
 
 @[to_additive]
 lemma exists_ne_one_of_prod_ne_one (h : s.prod f ≠ 1) : ∃a∈s, f a ≠ 1 :=
@@ -395,8 +395,8 @@ by haveI := classical.dec_eq α;
 haveI := classical.dec_eq β; exact
 finset.strong_induction_on s
   (λ s ih g h₁ h₂ h₃ h₄,
-    if hs : s = ∅ then hs.symm ▸ rfl
-    else let ⟨x, hx⟩ := exists_mem_of_ne_empty hs in
+    s.eq_empty_or_nonempty.elim (λ hs, hs.symm ▸ rfl)
+      (λ ⟨x, hx⟩,
       have hmem : ∀ y ∈ (s.erase x).erase (g x hx), y ∈ s,
         from λ y hy, (mem_of_mem_erase (mem_of_mem_erase hy)),
       have g_inj : ∀ {x hx y hy}, g x hx = g y hy → x = y,
@@ -421,7 +421,7 @@ finset.strong_induction_on s
             (λ h, h₁ x hx ▸ h ▸ hx1.symm ▸ (one_mul _).symm)))
       else by rw [← insert_erase hx, prod_insert (not_mem_erase _ _),
         ← insert_erase (mem_erase.2 ⟨h₂ x hx hx1, h₃ x hx⟩),
-        prod_insert (not_mem_erase _ _), ih', mul_one, h₁ x hx])
+        prod_insert (not_mem_erase _ _), ih', mul_one, h₁ x hx]))
 
 @[to_additive]
 lemma prod_eq_one {f : α → β} {s : finset α} (h : ∀x∈s, f x = 1) : s.prod f = 1 :=
@@ -680,12 +680,12 @@ section decidable_linear_ordered_cancel_comm_monoid
 
 variables [decidable_linear_ordered_cancel_comm_monoid β]
 
-theorem exists_le_of_sum_le (hs : s ≠ ∅) (Hle : s.sum f ≤ s.sum g) :
+theorem exists_le_of_sum_le (hs : s.nonempty) (Hle : s.sum f ≤ s.sum g) :
   ∃ i ∈ s, f i ≤ g i :=
 begin
   classical,
   contrapose! Hle with Hlt,
-  rcases exists_mem_of_ne_empty hs with ⟨i, hi⟩,
+  rcases hs with ⟨i, hi⟩,
   exact sum_lt_sum (λ i hi, le_of_lt (Hlt i hi)) ⟨i, hi, Hlt i hi⟩
 end
 

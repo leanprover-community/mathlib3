@@ -180,7 +180,7 @@ set_option class.instance_max_depth 100
 def op_norm := Inf { c | c ≥ 0 ∧ ∀ x, ∥f x∥ ≤ c * ∥x∥ }
 instance has_op_norm : has_norm (E →L[𝕜] F) := ⟨op_norm⟩
 
--- So that invocations of `real.Inf_le` makes sense: we show that the set of
+-- So that invocations of `real.Inf_le` make sense: we show that the set of
 -- bounds is nonempty and bounded below.
 lemma bounds_nonempty {f : E →L[𝕜] F} :
   ∃ c, c ∈ { c | 0 ≤ c ∧ ∀ x, ∥f x∥ ≤ c * ∥x∥ } :=

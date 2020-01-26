@@ -445,8 +445,8 @@ begin
   refine s.induction_on (by simp) _,
   assume x s hxs Hrec,
   by_cases h : x ∈ t,
-  { simp [hxs, h, Hrec, insert_sdiff_eq_of_mem s h, mul_assoc] },
-  { simp [hxs, h, Hrec, insert_sdiff_eq_of_not_mem s h],
+  { simp [hxs, h, Hrec, insert_sdiff_of_mem s h, mul_assoc] },
+  { simp [hxs, h, Hrec, insert_sdiff_of_not_mem s h],
     rw [mul_comm, mul_assoc],
     congr' 1,
     rw mul_comm }

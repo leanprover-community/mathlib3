@@ -582,30 +582,18 @@ by rw [subset_iff, ext]; simp
 @[simp] lemma empty_sdiff (s : finset α) : ∅ \ s = ∅ :=
 by { rw sdiff_eq_empty_iff_subset, exact empty_subset _ }
 
-lemma insert_sdiff_eq_of_not_mem (s : finset α) {t : finset α} {x : α} (h : x ∉ t) :
+lemma insert_sdiff_of_not_mem (s : finset α) {t : finset α} {x : α} (h : x ∉ t) :
   (insert x s) \ t = insert x (s \ t) :=
 begin
-  ext i,
-  by_cases h' : i ∈ t,
-  { have : i ≠ x,
-    { assume H,
-      rw H at h',
-      exact h h' },
-    simp [h, h', this] },
-  { simp [h, h'] }
+  rw [← coe_inj, coe_insert, coe_sdiff, coe_sdiff, coe_insert],
+  exact set.insert_diff_of_not_mem ↑s h
 end
 
-lemma insert_sdiff_eq_of_mem (s : finset α) {t : finset α} {x : α} (h : x ∈ t) :
+lemma insert_sdiff_of_mem (s : finset α) {t : finset α} {x : α} (h : x ∈ t) :
   (insert x s) \ t = s \ t :=
 begin
-  ext i,
-  by_cases h' : i ∈ t,
-  { simp [h, h'] },
-  { have : i ≠ x,
-    { assume H,
-      rw H at h',
-      exact h' h },
-    simp [h, h', this] }
+  rw [← coe_inj, coe_sdiff, coe_sdiff, coe_insert],
+  exact set.insert_diff_of_mem ↑s h
 end
 
 end decidable_eq
@@ -658,11 +646,9 @@ by { simp [piecewise, h], congr }
 lemma piecewise_insert [decidable_eq α] (j : α) [∀i, decidable (i ∈ insert j s)] :
   (insert j s).piecewise f g = function.update (s.piecewise f g) j (f j) :=
 begin
-  simp [piecewise],
-  ext i,
-  by_cases h : i = j,
-  { rw h, simp },
-  { by_cases h' : i ∈ s; simp [h, h'] }
+  classical,
+  rw [← piecewise_coe, ← piecewise_coe, ← set.piecewise_insert, ← coe_insert j s],
+  congr
 end
 
 end piecewise

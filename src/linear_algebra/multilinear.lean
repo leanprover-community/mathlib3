@@ -145,6 +145,10 @@ variables [comm_ring R] [∀i, add_comm_group (M₁ i)] [∀i, add_comm_group (M
 [∀i, module R (M i)] [∀i, module R (M₁ i)] [module R M₂]
 (f f' : multilinear_map R M₁ M₂)
 
+/-- If one multiplies by `c i` the coordinates in a finset `s`, then the image under a multilinear
+map is multiplied by `s.prod c`. This is mainly an auxiliary statement to prove the result when
+`s = univ`, given in `map_smul_univ`, although it can be useful in its own right as it does not
+require the index set `ι` to be finite. -/
 lemma map_piecewise_smul (c : ι → R) (m : Πi, M₁ i) (s : finset ι) :
   f (s.piecewise (λi, c i • m i) m) = s.prod c • f m :=
 begin
@@ -166,6 +170,11 @@ lemma map_smul_univ [fintype ι] (c : ι → R) (m : Πi, M₁ i) :
   f (λi, c i • m i) = finset.univ.prod c • f m :=
 by simpa using map_piecewise_smul f c m finset.univ
 
+/-- If one adds to a vector `m'` another vector `m`, but only for coordinates in a finset `t`, then
+the image under a multilinear map `f` is the sum of `f (s.piecewise m m')` along all subsets `s` of
+`t`. This is mainly an auxiliary statement to prove the result when `t = univ`, given in
+`map_add_univ`, although it can be useful in its own right as it does not require the index set `ι`
+to be finite.-/
 lemma map_piecewise_add (m m' : Πi, M₁ i) (t : finset ι) :
   f (t.piecewise (m + m') m') = t.powerset.sum (λs, f (s.piecewise m m')) :=
 begin

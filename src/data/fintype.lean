@@ -98,6 +98,15 @@ by have := and.intro univ.2 mem_univ_val;
 /-- `card α` is the number of elements in `α`, defined when `α` is a fintype. -/
 def card (α) [fintype α] : ℕ := (@univ α _).card
 
+/-- If `l` lists all the elements of `α` without duplicates, then `α ≃ fin (l.length)`. -/
+def equiv_fin_of_forall_mem_list {α} [decidable_eq α]
+  {l : list α} (h : ∀ x:α, x ∈ l) (nd : l.nodup) : α ≃ fin (l.length) :=
+⟨λ a, ⟨_, list.index_of_lt_length.2 (h a)⟩,
+ λ i, l.nth_le i.1 i.2,
+ λ a, by simp,
+ λ ⟨i, h⟩, fin.eq_of_veq $ list.nodup_iff_nth_le_inj.1 nd _ _
+   (list.index_of_lt_length.2 (list.nth_le_mem _ _ _)) h $ by simp⟩
+
 /-- There is (computably) a bijection between `α` and `fin n` where
   `n = card α`. Since it is not unique, and depends on which permutation
   of the universe list is used, the bijection is wrapped in `trunc` to
@@ -105,12 +114,7 @@ def card (α) [fintype α] : ℕ := (@univ α _).card
 def equiv_fin (α) [fintype α] [decidable_eq α] : trunc (α ≃ fin (card α)) :=
 by unfold card finset.card; exact
 quot.rec_on_subsingleton (@univ α _).1
-  (λ l (h : ∀ x:α, x ∈ l) (nd : l.nodup), trunc.mk
-   ⟨λ a, ⟨_, list.index_of_lt_length.2 (h a)⟩,
-    λ i, l.nth_le i.1 i.2,
-    λ a, by simp,
-    λ ⟨i, h⟩, fin.eq_of_veq $ list.nodup_iff_nth_le_inj.1 nd _ _
-      (list.index_of_lt_length.2 (list.nth_le_mem _ _ _)) h $ by simp⟩)
+  (λ l (h : ∀ x:α, x ∈ l) (nd : l.nodup), trunc.mk (equiv_fin_of_forall_mem_list h nd))
   mem_univ_val univ.2
 
 theorem exists_equiv_fin (α) [fintype α] : ∃ n, nonempty (α ≃ fin n) :=

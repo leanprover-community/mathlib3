@@ -1,7 +1,8 @@
 set -e				# fail on error
 
-git remote add mathlib "https://$GITHUB_TOKEN@github.com/leanprover-community/mathlib.git"
-git remote add nightly "https://$GITHUB_TOKEN@github.com/leanprover-community/mathlib-nightly.git"
+GITHUB_USER=leanprover-mathlib-bot
+git remote add mathlib "https://$GITHUB_USER:$GITHUB_TOKEN@github.com/leanprover-community/mathlib.git"
+git remote add nightly "https://$GITHUB_USER:$GITHUB_TOKEN@github.com/leanprover-community/mathlib-nightly.git"
 
 # After this point, we don't use any secrets in commands.
 set -x				# echo commands
@@ -27,11 +28,13 @@ fi
 
 # Try to update the lean-x.y.z branch on mathlib. This could fail if
 # a subsequent commit has already pushed an update.
+LEAN_VERSION="lean-3.4.2"
+
 git push mathlib HEAD:refs/heads/$LEAN_VERSION || \
     echo "mathlib rejected push to branch $LEAN_VERSION; maybe it already has a later version?" >&2
 
 # Push the commits to a branch on nightly and push a tag.
-git push nightly HEAD:"mathlib-$TRAVIS_BRANCH" || true
+git push nightly HEAD:"mathlib-master" || true
 git tag $MATHLIB_VERSION_STRING
 git push nightly tag $MATHLIB_VERSION_STRING
 

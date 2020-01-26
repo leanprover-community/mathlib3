@@ -221,6 +221,30 @@ instance (n : ℕ) : fintype (fin n) :=
 @[simp] theorem fintype.card_fin (n : ℕ) : fintype.card (fin n) = n :=
 list.length_fin_range n
 
+lemma fin.univ_succ (n : ℕ) :
+  (univ : finset (fin $ n+1)) = insert 0 (univ.image fin.succ) :=
+begin
+  ext m,
+  simp only [mem_univ, mem_insert, true_iff, mem_image, exists_prop],
+  exact fin.cases (or.inl rfl) (λ i, or.inr ⟨i, trivial, rfl⟩) m
+end
+
+theorem fin.prod_univ_succ [comm_monoid β] {n:ℕ} (f : fin n.succ → β) :
+  univ.prod f = f 0 * univ.prod (λ i:fin n, f i.succ) :=
+begin
+  rw [fin.univ_succ, prod_insert, prod_image],
+  { intros x _ y _ hxy, exact fin.succ.inj hxy },
+  { simpa using fin.succ_ne_zero }
+end
+
+@[simp, to_additive] theorem fin.prod_univ_zero [comm_monoid β] (f : fin 0 → β) : univ.prod f = 1 := rfl
+
+theorem fin.sum_univ_succ [add_comm_monoid β] {n:ℕ} (f : fin n.succ → β) :
+  univ.sum f = f 0 + univ.sum (λ i:fin n, f i.succ) :=
+by apply @fin.prod_univ_succ (multiplicative β)
+
+attribute [to_additive] fin.prod_univ_succ
+
 @[instance, priority 10] def unique.fintype {α : Type*} [unique α] : fintype α :=
 ⟨finset.singleton (default α), λ x, by rw [unique.eq_default x]; simp⟩
 

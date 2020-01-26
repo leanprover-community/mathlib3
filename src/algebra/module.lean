@@ -460,7 +460,31 @@ begin
     rw [add_smul, add_smul, one_smul, ih, one_smul] }
 end
 
-lemma finset.sum_const' {α : Type*} (R : Type*) [ring R] {β : Type*}
+namespace finset
+
+lemma sum_const' {α : Type*} (R : Type*) [ring R] {β : Type*}
   [add_comm_group β] [module R β] {s : finset α} (b : β) :
   finset.sum s (λ (a : α), b) = (finset.card s : R) • b :=
 by rw [finset.sum_const, ← module.smul_eq_smul]; refl
+
+variables {M : Type*} [decidable_linear_ordered_cancel_comm_monoid M]
+  {s : finset α} (f : α → M)
+
+theorem exists_card_smul_le_sum (hs : s.nonempty) :
+  ∃ i ∈ s, s.card • f i ≤ s.sum f :=
+begin
+  apply exists_le_of_sum_le hs,
+  simp only [sum_smul, sum_const],
+  refl
+end
+
+theorem exists_card_smul_ge_sum (hs : s.nonempty) :
+  ∃ i ∈ s, s.sum f ≤ s.card • f i :=
+begin
+  apply exists_le_of_sum_le hs,
+  simp only [sum_smul, sum_const],
+  refl
+end
+
+end finset
+

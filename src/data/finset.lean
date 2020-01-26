@@ -1485,7 +1485,7 @@ end pi
 /-! ### powerset -/
 section powerset
 
-/-- When `s` is a finset, `s.powerset` is the finset of all of subsets of `s` (seen as finsets). -/
+/-- When `s` is a finset, `s.powerset` is the finset of all subsets of `s` (seen as finsets). -/
 def powerset (s : finset α) : finset (finset α) :=
 ⟨s.1.powerset.pmap finset.mk
   (λ t h, nodup_of_le (mem_powerset.1 h) s.2),

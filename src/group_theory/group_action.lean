@@ -26,6 +26,8 @@ variables [monoid α] [mul_action α β]
 
 theorem mul_smul (a₁ a₂ : α) (b : β) : (a₁ * a₂) • b = a₁ • a₂ • b := mul_action.mul_smul _ _ _
 
+lemma smul_smul (a₁ a₂ : α) (b : β) : a₁ • a₂ • b = (a₁ * a₂) • b := (mul_smul _ _ _).symm
+
 variable (α)
 @[simp] theorem one_smul (b : β) : (1 : α) • b = b := mul_action.one_smul α _
 
@@ -188,5 +190,27 @@ distrib_mul_action.smul_add _ _ _
 
 @[simp] theorem smul_zero (a : α) : a • (0 : β) = 0 :=
 distrib_mul_action.smul_zero _
+
+instance distrib_mul_action.is_add_monoid_hom (r : α) :
+  is_add_monoid_hom ((•) r : β → β) :=
+{ map_zero := smul_zero r,
+  map_add := smul_add r }
+
+lemma list.smul_sum {r : α} {l : list β} :
+  r • l.sum = (l.map ((•) r)).sum :=
+(list.sum_hom _ _).symm
+
+end
+
+section
+variables [monoid α] [add_comm_monoid β] [distrib_mul_action α β]
+
+lemma multiset.smul_sum {r : α} {s : multiset β} :
+  r • s.sum = (s.map ((•) r)).sum :=
+(multiset.sum_hom _ _).symm
+
+lemma finset.smul_sum {r : α} {f : γ → β} {s : finset γ} :
+  r • s.sum f = s.sum (λ x, r • f x) :=
+(finset.sum_hom _ _).symm
 
 end

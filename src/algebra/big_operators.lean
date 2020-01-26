@@ -428,6 +428,37 @@ lemma prod_eq_one {f : α → β} {s : finset α} (h : ∀x∈s, f x = 1) : s.pr
 calc s.prod f = s.prod (λx, 1) : finset.prod_congr rfl h
   ... = 1 : finset.prod_const_one
 
+/-- A product over all subsets of `s ∪ {x}` is obtained by multiplying the product over all subsets
+of `s`, and over all subsets of `s` to which one adds `x`. -/
+@[to_additive]
+lemma prod_powerset_insert [decidable_eq α] {s : finset α} {x : α} (h : x ∉ s) (f : finset α → β) :
+  (insert x s).powerset.prod f = s.powerset.prod f * s.powerset.prod (λt, f (insert x t)) :=
+begin
+  rw [powerset_insert, finset.prod_union, finset.prod_image],
+  { assume t₁ h₁ t₂ h₂ heq,
+    rw [← finset.erase_insert (not_mem_of_mem_powerset_of_not_mem h₁ h),
+        ← finset.erase_insert (not_mem_of_mem_powerset_of_not_mem h₂ h), heq] },
+  { rw finset.disjoint_iff_ne,
+    assume t₁ h₁ t₂ h₂,
+    rcases finset.mem_image.1 h₂ with ⟨t₃, h₃, H₃₂⟩,
+    rw ← H₃₂,
+    exact ne_insert_of_not_mem _ _ (not_mem_of_mem_powerset_of_not_mem h₁ h) }
+end
+
+@[to_additive]
+lemma prod_piecewise [decidable_eq α] (s t : finset α) (f g : α → β) :
+  s.prod (t.piecewise f g) = (s ∩ t).prod f * (s \ t).prod g :=
+begin
+  refine s.induction_on (by simp) _,
+  assume x s hxs Hrec,
+  by_cases h : x ∈ t,
+  { simp [hxs, h, Hrec, insert_sdiff_of_mem s h, mul_assoc] },
+  { simp [hxs, h, Hrec, insert_sdiff_of_not_mem s h],
+    rw [mul_comm, mul_assoc],
+    congr' 1,
+    rw mul_comm }
+end
+
 end comm_monoid
 
 lemma sum_smul' [add_comm_monoid β] (s : finset α) (n : ℕ) (f : α → β) :

@@ -622,7 +622,7 @@ show Inf {b : ennreal | 1 ≤ 0 * b} = ∞, by simp; refl
 @[simp] lemma inv_top : (∞ : ennreal)⁻¹ = 0 :=
 bot_unique $ le_of_forall_le_of_dense $ λ a (h : a > 0), Inf_le $ by simp [*, ne_of_gt h, top_mul]
 
-@[simp] lemma coe_inv (hr : r ≠ 0) : (↑r⁻¹ : ennreal) = (↑r)⁻¹ :=
+@[simp, norm_cast] lemma coe_inv (hr : r ≠ 0) : (↑r⁻¹ : ennreal) = (↑r)⁻¹ :=
 le_antisymm
   (le_Inf $ assume b (hb : 1 ≤ ↑r * b), coe_le_iff.2 $
     by rintros b rfl; rwa [← coe_mul, ← coe_one, coe_le_coe, ← nnreal.inv_le hr] at hb)
@@ -746,7 +746,6 @@ lemma mul_inv_cancel (h0 : a ≠ 0) (ht : a ≠ ⊤) : a * a⁻¹ = 1 :=
 begin
   lift a to nnreal using ht,
   norm_cast at h0,
-  rw [← coe_inv h0],
   norm_cast,
   exact nnreal.mul_inv_cancel h0
 end
@@ -808,7 +807,8 @@ lemma half_lt_self {a : ennreal} (hz : a ≠ 0) (ht : a ≠ ⊤) : a / 2 < a :=
 begin
   lift a to nnreal using ht,
   have h : (2 : ennreal) = ((2 : nnreal) : ennreal), from rfl,
-  rw [h, ← coe_div _root_.two_ne_zero', coe_lt_coe], -- `norm_cast` fails to apply `coe_div`
+  have h' : (2 : nnreal) ≠ 0, from _root_.two_ne_zero',
+  rw [h, ← coe_div h', coe_lt_coe], -- `norm_cast` fails to apply `coe_div`
   norm_cast at hz,
   exact nnreal.half_lt_self hz
 end

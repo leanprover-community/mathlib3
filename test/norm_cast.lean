@@ -4,6 +4,7 @@ Tests for norm_cast
 
 import tactic.norm_cast
 import data.complex.basic -- ℕ, ℤ, ℚ, ℝ, ℂ
+import data.real.ennreal
 
 constants (an bn cn dn : ℕ) (az bz cz dz : ℤ) (aq bq cq dq : ℚ)
 constants (ar br cr dr : ℝ) (ac bc cc dc : ℂ)
@@ -100,3 +101,18 @@ begin
 end
 
 example {x : ℚ} : ((x + 42 : ℚ) : ℝ) = x + 42 := by push_cast
+
+namespace ennreal
+
+--TODO: debug
+lemma half_lt_self_bis {a : ennreal} (hz : a ≠ 0) (ht : a ≠ ⊤) : a / 2 < a :=
+begin
+  lift a to nnreal using ht,
+  have h : (2 : ennreal) = ((2 : nnreal) : ennreal), from rfl,
+  have h' : (2 : nnreal) ≠ 0, from _root_.two_ne_zero',
+  rw [h, ← coe_div h', coe_lt_coe], -- `norm_cast` fails to apply `coe_div`
+  norm_cast at hz,
+  exact nnreal.half_lt_self hz
+end
+
+end ennreal

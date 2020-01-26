@@ -43,7 +43,7 @@ instance : add_group (completion α) :=
     (assume a, show (a : completion α) + 0 = a, by rw_mod_cast add_zero),
   add_left_neg := assume a, completion.induction_on a
     (is_closed_eq (continuous_map₂ completion.continuous_map continuous_id) continuous_const)
-    (assume a, show - (a : completion α) + a = 0, by rw_mod_cast add_left_neg),
+    (assume a, show - (a : completion α) + a = 0, by { rw_mod_cast add_left_neg, refl }),
   add_assoc    := assume a b c, completion.induction_on₃ a b c
     (is_closed_eq
       (continuous_map₂

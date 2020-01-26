@@ -786,7 +786,7 @@ def seq (f : filter (α → β)) (g : filter α) : filter β :=
       assume x ⟨hx₀, hx₁⟩ x ⟨hy₀, hy₁⟩, ⟨ht _ hx₀ _ hy₀, hu _ hx₁ _ hy₁⟩⟩⟩
 
 /-- `pure x` is the set of sets that contain `x`. It is equal to `principal {x}` but
-this definition we have `s ∈ pure a` defeq `a ∈ s`. -/
+with this definition we have `s ∈ pure a` defeq `a ∈ s`. -/
 instance : has_pure filter :=
 ⟨λ (α : Type u) x,
   { sets := {s | x ∈ s},

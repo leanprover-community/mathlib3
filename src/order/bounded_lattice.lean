@@ -26,6 +26,8 @@ class has_bot (α : Type u) := (bot : α)
 notation `⊤` := has_top.top _
 notation `⊥` := has_bot.bot _
 
+attribute [pattern] lattice.has_bot.bot lattice.has_top.top
+
 section prio
 set_option default_priority 100 -- see Note [default priority]
 /-- An `order_top` is a partial order with a maximal element.
@@ -715,6 +717,10 @@ instance densely_ordered [partial_order α] [densely_ordered α] [no_top_order �
   | some a, some b := assume h, let ⟨a, ha₁, ha₂⟩ := dense (coe_lt_coe.1 h) in
     ⟨a, coe_lt_coe.2 ha₁, coe_lt_coe.2 ha₂⟩
   end⟩
+
+lemma dense_coe [partial_order α] [densely_ordered α] [no_top_order α] {a b : with_top α}
+  (h : a < b) : ∃ x : α, a < ↑x ∧ ↑x < b :=
+let ⟨y, hy⟩ := dense h, ⟨x, hx⟩ := (lt_iff_exists_coe _ _).1 hy.2 in ⟨x, hx.1 ▸ hy⟩
 
 end with_top
 

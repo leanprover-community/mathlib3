@@ -65,11 +65,7 @@ lemma mem_nhds_within_of_mem_nhds {s t : set α} {a : α} (h : s ∈ 𝓝 a) :
 mem_inf_sets_of_left h
 
 theorem self_mem_nhds_within {a : α} {s : set α} : s ∈ nhds_within a s :=
-begin
-  rw [nhds_within, mem_inf_principal],
-  simp only [imp_self],
-  exact univ_mem_sets
-end
+mem_inf_sets_of_right (mem_principal_self s)
 
 theorem inter_mem_nhds_within (s : set α) {t : set α} {a : α} (h : t ∈ 𝓝 a) :
   s ∩ t ∈ nhds_within a s :=
@@ -319,6 +315,11 @@ by simp [continuous_within_at, nhds_within_restrict'' s h]
 lemma continuous_within_at_inter {f : α → β} {s t : set α} {x : α} (h : t ∈ 𝓝 x) :
   continuous_within_at f (s ∩ t) x ↔ continuous_within_at f s x :=
 by simp [continuous_within_at, nhds_within_restrict' s h]
+
+lemma continuous_within_at.union {f : α → β} {s t : set α} {x : α}
+  (hs : continuous_within_at f s x) (ht : continuous_within_at f t x) :
+  continuous_within_at f (s ∪ t) x :=
+by simp only [continuous_within_at, nhds_within_union, tendsto, map_sup, lattice.sup_le_iff.2 ⟨hs, ht⟩]
 
 lemma continuous_within_at.mem_closure_image  {f : α → β} {s : set α} {x : α}
   (h : continuous_within_at f s x) (hx : x ∈ closure s) : f x ∈ closure (f '' s) :=

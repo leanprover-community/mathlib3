@@ -221,6 +221,30 @@ instance (n : ℕ) : fintype (fin n) :=
 @[simp] theorem fintype.card_fin (n : ℕ) : fintype.card (fin n) = n :=
 list.length_fin_range n
 
+lemma fin.univ_succ (n : ℕ) :
+  (univ : finset (fin $ n+1)) = insert 0 (univ.image fin.succ) :=
+begin
+  ext m,
+  simp only [mem_univ, mem_insert, true_iff, mem_image, exists_prop],
+  exact fin.cases (or.inl rfl) (λ i, or.inr ⟨i, trivial, rfl⟩) m
+end
+
+theorem fin.prod_univ_succ [comm_monoid β] {n:ℕ} (f : fin n.succ → β) :
+  univ.prod f = f 0 * univ.prod (λ i:fin n, f i.succ) :=
+begin
+  rw [fin.univ_succ, prod_insert, prod_image],
+  { intros x _ y _ hxy, exact fin.succ.inj hxy },
+  { simpa using fin.succ_ne_zero }
+end
+
+@[simp, to_additive] theorem fin.prod_univ_zero [comm_monoid β] (f : fin 0 → β) : univ.prod f = 1 := rfl
+
+theorem fin.sum_univ_succ [add_comm_monoid β] {n:ℕ} (f : fin n.succ → β) :
+  univ.sum f = f 0 + univ.sum (λ i:fin n, f i.succ) :=
+by apply @fin.prod_univ_succ (multiplicative β)
+
+attribute [to_additive] fin.prod_univ_succ
+
 @[instance, priority 10] def unique.fintype {α : Type*} [unique α] : fintype α :=
 ⟨finset.singleton (default α), λ x, by rw [unique.eq_default x]; simp⟩
 
@@ -795,9 +819,20 @@ noncomputable def nat_embedding (α : Type*) [infinite α] : ℕ ↪ α :=
 
 end infinite
 
+lemma not_injective_infinite_fintype [infinite α] [fintype β] (f : α → β) :
+  ¬ injective f :=
+assume (hf : injective f),
+have H : fintype α := fintype.of_injective f hf,
+infinite.not_fintype H
+
+lemma not_surjective_fintype_infinite [fintype α] [infinite β] (f : α → β) :
+  ¬ surjective f :=
+assume (hf : surjective f),
+have H : infinite α := infinite.of_surjective f hf,
+@infinite.not_fintype _ H infer_instance
+
 instance nat.infinite : infinite ℕ :=
-⟨λ ⟨s, hs⟩, not_le_of_gt (nat.lt_succ_self (s.sum id)) $
-  @finset.single_le_sum _ _ _ id _ _ (λ _ _, nat.zero_le _) _ (hs _)⟩
+⟨λ ⟨s, hs⟩, finset.not_mem_range_self $ s.subset_range_sup_succ (hs _)⟩
 
 instance int.infinite : infinite ℤ :=
 infinite.of_injective int.of_nat (λ _ _, int.of_nat_inj)

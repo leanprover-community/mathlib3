@@ -407,6 +407,10 @@ by
   simp only [(@empty_in_sets_eq_bot α f).symm, ne.def];
   exact ⟨assume h hs, h _ hs rfl, assume h s hs eq, h $ eq ▸ hs⟩
 
+lemma forall_sets_nonempty_iff_ne_bot {f : filter α} :
+  (∀ (s : set α), s ∈ f → s.nonempty) ↔ f ≠ ⊥ :=
+by simpa only [ne_empty_iff_nonempty] using forall_sets_ne_empty_iff_ne_bot
+
 lemma mem_sets_of_eq_bot {f : filter α} {s : set α} (h : f ⊓ principal (-s) = ⊥) : s ∈ f :=
 have ∅ ∈ f ⊓ principal (- s), from h.symm ▸ mem_bot_sets,
 let ⟨s₁, hs₁, s₂, (hs₂ : -s ⊆ s₂), (hs : s₁ ∩ s₂ ⊆ ∅)⟩ := this in
@@ -455,7 +459,7 @@ by simp only [infi_sets_eq h ne, mem_Union]
 
 @[nolint] -- Intentional use of `≥`
 lemma binfi_sets_eq {f : β → filter α} {s : set β}
-  (h : directed_on (f ⁻¹'o (≥)) s) (ne : ∃i, i ∈ s) :
+  (h : directed_on (f ⁻¹'o (≥)) s) (ne : s.nonempty) :
   (⨅ i∈s, f i).sets = (⋃ i ∈ s, (f i).sets) :=
 let ⟨i, hi⟩ := ne in
 calc (⨅ i ∈ s, f i).sets  = (⨅ t : {t // t ∈ s}, (f t.val)).sets : by rw [infi_subtype]; refl
@@ -466,7 +470,7 @@ calc (⨅ i ∈ s, f i).sets  = (⨅ t : {t // t ∈ s}, (f t.val)).sets : by rw
 
 @[nolint] -- Intentional use of `≥`
 lemma mem_binfi {f : β → filter α} {s : set β}
-  (h : directed_on (f ⁻¹'o (≥)) s) (ne : ∃i, i ∈ s) {t : set α} :
+  (h : directed_on (f ⁻¹'o (≥)) s) (ne : s.nonempty) {t : set α} :
   t ∈ (⨅ i∈s, f i) ↔ ∃ i ∈ s, t ∈ f i :=
 by simp only [binfi_sets_eq h ne, mem_bUnion_iff]
 
@@ -756,10 +760,15 @@ def cofinite : filter α :=
   inter_sets       := assume s t (hs : finite (-s)) (ht : finite (-t)),
     by simp only [compl_inter, finite_union, ht, hs, mem_set_of_eq] }
 
-lemma cofinite_ne_bot (hi : set.infinite (@set.univ α)) : @cofinite α ≠ ⊥ :=
-forall_sets_ne_empty_iff_ne_bot.mp
-  $ λ s hs hn, by change set.finite _ at hs;
-    rw [hn, set.compl_empty] at hs; exact hi hs
+@[simp] lemma mem_cofinite {s : set α} : s ∈ (@cofinite α) ↔ finite (-s) := iff.rfl
+
+lemma cofinite_ne_bot [infinite α] : @cofinite α ≠ ⊥ :=
+mt empty_in_sets_eq_bot.mpr $ by { simp only [mem_cofinite, compl_empty], exact infinite_univ }
+
+lemma frequently_cofinite_iff_infinite {p : α → Prop} :
+  (∃ᶠ x in cofinite, p x) ↔ set.infinite {x | p x} :=
+by simp only [filter.frequently, filter.eventually, mem_cofinite, compl_set_of, not_not,
+  set.infinite]
 
 /-- The monadic bind operation on filter is defined the usual way in terms of `map` and `join`.
 
@@ -1999,28 +2008,28 @@ instance ultrafilter.monad : monad ultrafilter := { map := @ultrafilter.map }
 
 noncomputable def hyperfilter : filter α := ultrafilter_of cofinite
 
-lemma hyperfilter_le_cofinite (hi : set.infinite (@set.univ α)) : @hyperfilter α ≤ cofinite :=
-(ultrafilter_of_spec (cofinite_ne_bot hi)).1
+lemma hyperfilter_le_cofinite : @hyperfilter α ≤ cofinite :=
+ultrafilter_of_le
 
-lemma is_ultrafilter_hyperfilter (hi : set.infinite (@set.univ α)) : is_ultrafilter (@hyperfilter α) :=
-(ultrafilter_of_spec (cofinite_ne_bot hi)).2
+lemma is_ultrafilter_hyperfilter [infinite α] : is_ultrafilter (@hyperfilter α) :=
+(ultrafilter_of_spec cofinite_ne_bot).2
 
-theorem nmem_hyperfilter_of_finite (hi : set.infinite (@set.univ α)) {s : set α} (hf : set.finite s) :
+theorem nmem_hyperfilter_of_finite [infinite α] {s : set α} (hf : s.finite) :
   s ∉ @hyperfilter α :=
 λ hy,
 have hx : -s ∉ hyperfilter :=
-  λ hs, (ultrafilter_iff_compl_mem_iff_not_mem.mp (is_ultrafilter_hyperfilter hi) s).mp hs hy,
+  λ hs, (ultrafilter_iff_compl_mem_iff_not_mem.mp is_ultrafilter_hyperfilter s).mp hs hy,
 have ht : -s ∈ cofinite.sets := by show -s ∈ {s | _}; rwa [set.mem_set_of_eq, lattice.neg_neg],
-hx $ hyperfilter_le_cofinite hi ht
+hx $ hyperfilter_le_cofinite ht
 
-theorem compl_mem_hyperfilter_of_finite (hi : set.infinite (@set.univ α)) {s : set α} (hf : set.finite s) :
+theorem compl_mem_hyperfilter_of_finite [infinite α] {s : set α} (hf : set.finite s) :
   -s ∈ @hyperfilter α :=
-(ultrafilter_iff_compl_mem_iff_not_mem.mp (is_ultrafilter_hyperfilter hi) s).mpr $
-nmem_hyperfilter_of_finite hi hf
+(ultrafilter_iff_compl_mem_iff_not_mem.mp is_ultrafilter_hyperfilter s).mpr $
+nmem_hyperfilter_of_finite hf
 
-theorem mem_hyperfilter_of_finite_compl (hi : set.infinite (@set.univ α)) {s : set α} (hf : set.finite (-s)) :
+theorem mem_hyperfilter_of_finite_compl [infinite α] {s : set α} (hf : set.finite (-s)) :
   s ∈ @hyperfilter α :=
-have h : _ := compl_mem_hyperfilter_of_finite hi hf,
+have h : _ := compl_mem_hyperfilter_of_finite hf,
 by rwa [lattice.neg_neg] at h
 
 section
@@ -2081,3 +2090,28 @@ lemma sequence_mono :
 | (a::as) (b::bs) (forall₂.cons h hs) := seq_mono (map_mono h) (sequence_mono as bs hs)
 
 end filter
+
+open filter
+
+lemma set.infinite_iff_frequently_cofinite {α : Type u} {s : set α} :
+  set.infinite s ↔ (∃ᶠ x in cofinite, x ∈ s) :=
+frequently_cofinite_iff_infinite.symm
+
+/-- For natural numbers the filters `cofinite` and `at_top` coincide. -/
+lemma nat.cofinite_eq_at_top : @cofinite ℕ = at_top :=
+begin
+  ext s,
+  simp only [mem_cofinite, mem_at_top_sets],
+  split,
+  { assume hs,
+    use (hs.to_finset.sup id) + 1,
+    assume b hb,
+    by_contradiction hbs,
+    have := hs.to_finset.subset_range_sup_succ (finite.mem_to_finset.2 hbs),
+    exact not_lt_of_le hb (finset.mem_range.1 this) },
+  { rintros ⟨N, hN⟩,
+    apply finite_subset (finite_lt_nat N),
+    assume n hn,
+    change n < N,
+    exact lt_of_not_ge (λ hn', hn $ hN n hn') }
+end

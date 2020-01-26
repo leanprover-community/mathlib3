@@ -46,6 +46,8 @@ theorem add_smul : (r + s) • x = r • x + s • x := semimodule.add_smul r s 
 variables (α)
 @[simp] theorem zero_smul : (0 : α) • x = 0 := semimodule.zero_smul α x
 
+variable {α}
+
 lemma semimodule.eq_zero_of_zero_eq_one (zero_eq_one : (0 : α) = 1) : x = 0 :=
 by rw [←one_smul α x, ←zero_eq_one, zero_smul]
 

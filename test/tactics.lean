@@ -6,7 +6,7 @@ Authors: Simon Hudon, Scott Morrison
 
 import tactic.interactive tactic.finish tactic.ext tactic.lift tactic.apply
        tactic.reassoc_axiom tactic.tfae tactic.elide tactic.ring_exp
-       tactic.clear
+       tactic.clear tactic.simp_rw
 
 example (m n p q : nat) (h : m + n = p) : true :=
 begin
@@ -488,3 +488,9 @@ begin
 end
 
 end clear_dependent
+
+section simp_rw
+  example {α β : Type} {f : α → β} {t : set β} :
+    (∀ s, f '' s ⊆ t) = ∀ s : set α, ∀ x ∈ s, x ∈ f ⁻¹' t :=
+  by simp_rw [set.image_subset_iff, set.subset_def]
+end simp_rw

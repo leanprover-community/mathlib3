@@ -465,7 +465,7 @@ namespace num
   theorem to_znum_inj {m n : num} : m.to_znum = n.to_znum ↔ m = n :=
   ⟨λ h, by cases m; cases n; cases h; refl, congr_arg _⟩
 
-  @[simp, norm_cast push] theorem cast_to_znum [has_zero α] [has_one α] [has_add α] [has_neg α] :
+  @[simp, norm_cast squash] theorem cast_to_znum [has_zero α] [has_one α] [has_add α] [has_neg α] :
     ∀ n : num, (n.to_znum : α) = n
   | 0           := rfl
   | (num.pos p) := rfl

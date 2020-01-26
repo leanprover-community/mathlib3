@@ -120,7 +120,6 @@ suqash lemma: LHS has ≥ 2 head coes and 0 initial coes, RHS has fewer initial 
 inductive label
 | elim   : label
 | move   : label
-| push   : label
 | squash : label
 
 namespace label
@@ -129,7 +128,6 @@ namespace label
 protected def to_string : label → string
 | elim   := "elim"
 | move   := "move"
-| push   := "push"
 | squash := "squash"
 
 instance has_to_string : has_to_string label := ⟨label.to_string⟩
@@ -138,7 +136,6 @@ instance has_to_string : has_to_string label := ⟨label.to_string⟩
 def of_string : string -> option label
 | "elim" := some elim
 | "move" := some move
-| "push" := some push
 | "squash" := some squash
 | _ := none
 
@@ -173,7 +170,7 @@ do
       if rhs_internal_coes ≥ 1 then
         return move
       else
-        return push
+        return squash
     else
       fail "norm_cast: badly shaped lemma, rhs can't start with coe"
   else if lhs_head_coes ≥ 2 ∧ lhs_internal_coes = 0 then
@@ -217,7 +214,7 @@ do
   else if lhs_head_coes = 1 then do
     guard (rhs_head_coes = 0) <|> fail "norm_cast: badly shaped lemma, rhs can't start with coe",
     if rhs_internal_coes = 0 then
-      return push
+      return squash
     else
       return move
   else do --lhs_head_coes >= 2
@@ -266,15 +263,6 @@ do
     down   := new_down,
     squash := cache.squash, }
 
-/-- `add_push cache e` adds `e` as an `push` lemma to `cache` -/
-meta def add_push (cache : norm_cast_cache) (e : expr) : tactic norm_cast_cache :=
-do
-  new_down ← simp_lemmas.add cache.down e,
-  return {
-    up     := cache.up,
-    down   := new_down,
-    squash := cache.squash, }
-
 /-- `add_squash cache e` adds `e` as an `squash` lemma to `cache` -/
 meta def add_squash (cache : norm_cast_cache) (e : expr) : tactic norm_cast_cache :=
 do
@@ -301,7 +289,6 @@ do
   match l with
   | elim   := add_elim cache e
   | move   := add_move cache e
-  | push   := add_push cache e
   | squash := add_squash cache e
   end
 
@@ -405,27 +392,17 @@ end tactic.interactive
 namespace norm_cast
 open tactic expr
 
-/--
-This is an auxiliary function that proves e = new_e using only squash lemmas.
--/
-meta def aux_squash (e new_e : expr) : tactic expr :=
+/-- prove a = b by simplifying using 'move' and 'squash' lemmas -/
+meta def aux_down (a b : expr) : tactic expr :=
 do
+  h ← to_expr ``(%%a = %%b),
   cache ← norm_cast_attr.get_cache,
-  let s := cache.squash,
-  (e', pr) ← s.rewrite new_e,
-  is_def_eq e e',
-  mk_eq_symm pr
-
-/--
-This is an auxiliary function that proves e = new_e squash and push lemmas.
--/
-meta def aux_down (e new_e : expr) : tactic expr :=
-do
-  cache ← norm_cast_attr.get_cache,
-  let s := cache.down,
-  (e', pr) ← s.rewrite new_e,
-  is_def_eq e e',
-  mk_eq_symm pr
+  s ← simp_lemmas.mk_default, --TODO: only use norm_cast lemmas.
+  let s := simp_lemmas.join s cache.down,
+  (_, pr) ← simplify s [] h,
+  some (_, tmp) ← expr.is_eq <$> infer_type pr,
+  is_def_eq tmp `(true) reducible,
+  to_expr ``(eq.mpr %%pr trivial)
 
 -- the unit argument is required for the `simplify` api.
 /--
@@ -527,18 +504,6 @@ meta def post (s : simp_lemmas) (_ : unit) (e : expr) : tactic (unit × expr × 
 The following auxiliary functions are used to handle numerals.
 -/
 
-/-- prove ↑n = n where n is a numeral -/
-meta def aux_num_prove_eq (a b : expr) : tactic expr :=
-do
-  h ← to_expr ``(%%a = %%b),
-  s1 ← simp_lemmas.mk_default,
-  cache ← norm_cast_attr.get_cache,
-  let s := simp_lemmas.join s1 cache.down,
-  (_, pr) ← simplify s [] h,
-  some (_, tmp) ← expr.is_eq <$> infer_type pr,
-  is_def_eq tmp `(true) reducible,
-  to_expr ``(eq.mpr %%pr trivial)
-
 -- the `unit` argument is required by the `simplify` api.
 /-- if possible, rewrite (n : α) to ((n : ℕ) : α) where n is a numeral and α ≠ ℕ -/
 @[nolint] meta def aux_num_1 (_ : unit) (e : expr) : tactic (unit × expr × expr) :=
@@ -549,7 +514,7 @@ do
   h1 ← mk_app `has_lift_t [`(ℕ), α] >>= mk_instance',
   new_e ← expr.of_num `(ℕ) n,
   new_e ← to_expr ``(@coe ℕ %%α %%h1 %%new_e),
-  pr ← aux_num_prove_eq e new_e,
+  pr ← aux_down e new_e,
   return ((), new_e, pr)
 
 -- the `unit` argument is required by the `simplify` api.
@@ -560,7 +525,7 @@ do
   n ← e'.to_num,
   new_e ← expr.of_num α n,
   h ← to_expr ``(%%e = %%new_e),
-  pr ← aux_num_prove_eq e new_e,
+  pr ← aux_down e new_e,
   return ((), new_e, pr)
 
 /-- A local variant on `simplify_top_down`. -/
@@ -598,10 +563,10 @@ do
   let s3 := cache.squash,
   (e3, pr3) ← simplify s3 [] e2 cfg,
 
-  --step 4: post-processing of numerals
+  -- step 4: post-processing of numerals
   ((), e4, pr4) ← simplify_top_down' () aux_num_2 e3 cfg,
 
-  let new_e := e4,
+  let new_e := e3,
   guard (¬ new_e =ₐ e),
   pr ← mk_eq_trans pr1 pr2,
   pr ← mk_eq_trans pr pr3,

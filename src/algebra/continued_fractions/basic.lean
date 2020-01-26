@@ -226,7 +226,7 @@ lemma coe_to_simple_continued_fraction {c : cf α} : (↑c : scf α) = c.val := 
 /-- Lift a cf to a scf using the inclusion map. -/
 instance has_coe_to_generalized_continued_fraction : has_coe (cf α) (gcf α) := ⟨λ c, ↑(↑c : scf α)⟩
 
-@[simp, norm_cast push]
+@[simp, norm_cast squash]
 lemma coe_to_generalized_continued_fraction {c : cf α} : (↑c : gcf α) = c.val := rfl
 
 end continued_fraction

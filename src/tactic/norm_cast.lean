@@ -203,7 +203,6 @@ TODO: see 'count_coes'
 private meta def classify_type_aux (lhs rhs : expr) : tactic label :=
 do
   when (count_coes lhs = 0) (fail "norm_cast: badly shaped lemma, lhs must contain at least one coe"),
-  else skip,
   let lhs_head_coes     := count_head_coes lhs,
   let lhs_internal_coes := count_internal_coes lhs,
   let rhs_head_coes     := count_head_coes rhs,
@@ -219,7 +218,7 @@ do
   else if (rhs_head_coes < lhs_head_coes) then do
     return squash
   else do
-    fail "norm_cast: badly shaped shaped squash lemma, rhs must have fewer head coes than lhs",
+    fail "norm_cast: badly shaped shaped squash lemma, rhs must have fewer head coes than lhs"
 
 /-- TODO: update and describe -/
 meta def classify_type (ty : expr) : tactic label :=

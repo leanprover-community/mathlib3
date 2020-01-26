@@ -6,6 +6,7 @@ Authors: Simon Hudon, Scott Morrison
 
 import tactic.interactive tactic.finish tactic.ext tactic.lift tactic.apply
        tactic.reassoc_axiom tactic.tfae tactic.elide tactic.ring_exp
+       tactic.clear tactic.simp_rw
 
 example (m n p q : nat) (h : m + n = p) : true :=
 begin
@@ -450,3 +451,46 @@ end struct_eq
 section ring_exp
   example (a b : ℤ) (n : ℕ) : (a + b)^(n + 2) = (a^2 + 2 * a * b + b^2) * (a + b)^n := by ring_exp
 end ring_exp
+
+section clear'
+
+example {α} {β : α → Type} (a : α) (b : β a) : unit :=
+begin
+  success_if_fail { clear a b }, -- fails since `b` depends on `a`
+  success_if_fail { clear' a },  -- fails since `b` depends on `a`
+  clear' a b,
+  guard_hyp_nums 2,
+  exact ()
+end
+
+example {α} {β : α → Type} (a : α) : β a → unit :=
+begin
+  success_if_fail { clear' a }, -- fails since the target depends on `a`
+  exact λ _, ()
+end
+
+end clear'
+
+section clear_dependent
+
+example {α} {β : α → Type} (a : α) (b : β a) : unit :=
+begin
+  success_if_fail { clear' a }, -- fails since `b` depends on `a`
+  clear_dependent a,
+  guard_hyp_nums 2,
+  exact ()
+end
+
+example {α} {β : α → Type} (a : α) : β a → unit :=
+begin
+  success_if_fail { clear_dependent a }, -- fails since the target depends on `a`
+  exact λ _, ()
+end
+
+end clear_dependent
+
+section simp_rw
+  example {α β : Type} {f : α → β} {t : set β} :
+    (∀ s, f '' s ⊆ t) = ∀ s : set α, ∀ x ∈ s, x ∈ f ⁻¹' t :=
+  by simp_rw [set.image_subset_iff, set.subset_def]
+end simp_rw

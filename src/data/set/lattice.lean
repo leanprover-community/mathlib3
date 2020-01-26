@@ -11,8 +11,8 @@ import tactic.finish data.sigma.basic order.galois_connection
 
 open function tactic set lattice auto
 
-universes u v w x
-variables {α : Type u} {β : Type v} {γ : Type w} {ι : Sort x}
+universes u v w x y
+variables {α : Type u} {β : Type v} {γ : Type w} {ι : Sort x} {ι' : Sort y}
 
 namespace set
 
@@ -92,19 +92,31 @@ theorem Union_subset {s : ι → set β} {t : set β} (h : ∀ i, s i ⊆ t) : (
 -- TODO: should be simpler when sets' order is based on lattices
 @supr_le (set β) _ set.lattice_set _ _ h
 
-theorem Union_subset_iff {α : Sort u} {s : α → set β} {t : set β} : (⋃ i, s i) ⊆ t ↔ (∀ i, s i ⊆ t) :=
+theorem Union_subset_iff {s : ι → set β} {t : set β} : (⋃ i, s i) ⊆ t ↔ (∀ i, s i ⊆ t) :=
 ⟨assume h i, subset.trans (le_supr s _) h, Union_subset⟩
 
-theorem mem_Inter_of_mem {α : Sort u} {x : β} {s : α → set β} : (∀ i, x ∈ s i) → (x ∈ ⋂ i, s i) :=
+theorem mem_Inter_of_mem {x : β} {s : ι → set β} : (∀ i, x ∈ s i) → (x ∈ ⋂ i, s i) :=
 mem_Inter.2
 
-theorem subset_Inter {t : set β} {s : α → set β} (h : ∀ i, t ⊆ s i) : t ⊆ ⋂ i, s i :=
+theorem subset_Inter {t : set β} {s : ι → set β} (h : ∀ i, t ⊆ s i) : t ⊆ ⋂ i, s i :=
 -- TODO: should be simpler when sets' order is based on lattices
 @le_infi (set β) _ set.lattice_set _ _ h
 
 theorem subset_Union : ∀ (s : ι → set β) (i : ι), s i ⊆ (⋃ i, s i) := le_supr
 
 theorem Inter_subset : ∀ (s : ι → set β) (i : ι), (⋂ i, s i) ⊆ s i := infi_le
+
+lemma Inter_subset_of_subset {s : ι → set α} {t : set α} (i : ι)
+  (h : s i ⊆ t) : (⋂ i, s i) ⊆ t :=
+set.subset.trans (set.Inter_subset s i) h
+
+lemma Inter_subset_Inter {s t : ι → set α} (h : ∀ i, s i ⊆ t i) :
+  (⋂ i, s i) ⊆ (⋂ i, t i) :=
+set.subset_Inter $ λ i, set.Inter_subset_of_subset i (h i)
+
+lemma Inter_subset_Inter2 {s : ι → set α} {t : ι' → set α} (h : ∀ j, ∃ i, s i ⊆ t j) :
+  (⋂ i, s i) ⊆ (⋂ j, t j) :=
+set.subset_Inter $ λ j, let ⟨i, hi⟩ := h j in Inter_subset_of_subset i hi
 
 theorem Union_const [inhabited ι] (s : set β) : (⋃ i:ι, s) = s :=
 ext $ by simp
@@ -200,8 +212,7 @@ show (⨆ x ∈ s, u x) ≤ t, -- TODO: should not be necessary when sets' order
 
 theorem subset_bInter {s : set α} {t : set β} {u : α → set β} (h : ∀ x ∈ s, t ⊆ u x) :
   t ⊆ (⋂ x ∈ s, u x) :=
-show t ≤ (⨅ x ∈ s, u x), -- TODO: should not be necessary when sets' order is based on lattices
-  from le_infi $ assume x, le_infi (h x)
+subset_Inter $ assume x, subset_Inter $ h x
 
 theorem subset_bUnion_of_mem {s : set α} {u : α → set β} {x : α} (xs : x ∈ s) :
   u x ⊆ (⋃ x ∈ s, u x) :=

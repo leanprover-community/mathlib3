@@ -84,8 +84,8 @@ meta def is_coe' : expr → bool
 | (app (app (app (const `coe _) _) _) _)         := tt
 | (app (app (const `has_coe_to_fun.coe _) _) _)  := tt
 | (app (app (const `coe_fn _) _) _)              := tt
---| (app (app (const `has_coe_to_sort.coe _) _) _) := tt
---| (app (app (const `coe_sort _) _) _)            := tt
+| (app (app (const `has_coe_to_sort.coe _) _) _) := tt
+| (app (app (const `coe_sort _) _) _)            := tt
 | _ := ff
 
 /-- auxiliary function for `count_coes' -/
@@ -194,31 +194,35 @@ match tp with
 | _ := fail "norm_cast: lemma must be = or ↔"
 end
 
-/-- aux function for `norm_cast.classify_type` -/
+/--
+aux function for `norm_cast.classify_type`
+
+remark: the classifier is a little bit less restrictive than the rules describing to the labels.
+This is a consequence of the fact that the rules apply to the explicit coercions appearing in the expression.
+'coe_to_sort' can tipically appear in type annotations that are implicit in the displayed expression, but
+will be accounted for in 'count_coes'.
+TODO: see 'count_coes'
+-/
 private meta def classify_type_aux (lhs rhs : expr) : tactic label :=
 do
   if count_coes lhs = 0 then
-    fail "norm_cast: lhs must contain at least one coe"
+    fail "norm_cast: badly shaped lemma, lhs must contain at least one coe"
   else skip,
-  let lhs_head_coes := count_head_coes lhs,
+  let lhs_head_coes     := count_head_coes lhs,
   let lhs_internal_coes := count_internal_coes lhs,
-  let rhs_head_coes := count_head_coes rhs,
+  let rhs_head_coes     := count_head_coes rhs,
   let rhs_internal_coes := count_internal_coes rhs,
-  if lhs_head_coes = 0 then
+  if lhs_head_coes = 0 then do
     return elim
-  else if lhs_head_coes = 1 then
-    if rhs_head_coes = 0 then
-      if rhs_internal_coes ≥ 1 then
-        return move
-      else
-        return push
+  else if lhs_head_coes = 1 then do
+    guard (rhs_head_coes = 0) <|> fail "norm_cast: badly shaped lemma, rhs can't start with coe",
+    if rhs_internal_coes = 0 then
+      return push
     else
-      fail "norm_cast: badly shaped lemma, rhs can't start with coe"
-  else
-    if rhs_head_coes < lhs_head_coes then
-      return squash
-    else
-      fail "norm_cast: badly shaped squash lemma"
+      return move
+  else do --lhs_head_coes >= 2
+    guard (rhs_head_coes < lhs_head_coes) <|> fail "norm_cast: badly shaped shaped squash lemma, rhs must have fewer head coes than lhs",
+    return squash
 
 /-- TODO: update and describe -/
 meta def classify_type (ty : expr) : tactic label :=

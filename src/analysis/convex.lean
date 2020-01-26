@@ -39,7 +39,7 @@ variables {α : Type*} {β : Type*} {ι : Sort _}
   [add_comm_group α] [vector_space ℝ α] [add_comm_group β] [vector_space ℝ β]
   (A : set α) (B : set α) (x : α)
 
-local attribute [instance] set.pointwise_add set.smul_set
+local attribute [instance] set.pointwise_add set.scale_set
 
 /-- Convexity of sets -/
 def convex (A : set α) :=
@@ -238,7 +238,10 @@ lemma convex.neg_preimage (hA : convex A) : convex ((λ z, -z) ⁻¹' A) :=
 hA.is_linear_preimage is_linear_map.is_linear_map_neg
 
 lemma convex.smul (c : ℝ) (hA : convex A) : convex (c • A) :=
-hA.is_linear_image (is_linear_map.is_linear_map_smul c)
+begin
+  rw scale_set_eq_image,
+  exact hA.is_linear_image (is_linear_map.is_linear_map_smul c)
+end
 
 lemma convex.smul_preimage (c : ℝ) (hA : convex A) : convex ((λ z, c • z) ⁻¹' A) :=
 hA.is_linear_preimage (is_linear_map.is_linear_map_smul c)
@@ -260,7 +263,7 @@ end
 lemma convex.affinity (hA : convex A) (z : α) (c : ℝ) : convex ((λx, z + c • x) '' A) :=
 begin
   convert (hA.smul c).translate z using 1,
-  erw [← image_comp]
+  erw [scale_set_eq_image, ←image_comp]
 end
 
 lemma convex_real_iff {A : set ℝ} :
@@ -649,23 +652,26 @@ section topological_vector_space
 variables {α : Type*} [add_comm_group α] [vector_space ℝ α]
 [topological_space α] [topological_add_group α] [topological_vector_space ℝ α]
 
-local attribute [instance] set.pointwise_add set.smul_set
+local attribute [instance] set.pointwise_add set.scale_set
 
 open set
 
 /-- In a topological vector space, the interior of a convex set is convex. -/
 lemma convex.interior {A : set α} (hA : convex A) : convex (interior A) :=
-convex_iff₂.mpr $ λ a b ha hb hab,
-  have h : is_open (a • interior A + b • interior A), from
-  or.elim (classical.em (a = 0))
-  (λ heq,
-    have hne : b ≠ 0, from by { rw [heq, zero_add] at hab, rw hab, exact one_ne_zero },
-    is_open_pointwise_add_left ((is_open_map_smul_of_ne_zero hne _) is_open_interior))
-  (λ hne,
-    is_open_pointwise_add_right ((is_open_map_smul_of_ne_zero hne _) is_open_interior)),
-  (subset_interior_iff_subset_of_open h).mpr $ subset.trans
-    (by { apply pointwise_add_subset_add; exact image_subset _ interior_subset })
-    (convex_iff₂.mp hA ha hb hab)
+begin
+  rw convex_iff₂,
+  intros a b ha hb hab,
+  have h : is_open (a • interior A + b • interior A), by_cases hn : a = 0,
+  have hbn : b ≠ 0, by { rw [hn, zero_add] at hab, rw hab, exact one_ne_zero },
+  { rw scale_set_eq_image b,
+    exact is_open_pointwise_add_left ((is_open_map_smul_of_ne_zero hbn _) is_open_interior) },
+  { rw scale_set_eq_image a,
+    exact is_open_pointwise_add_right ((is_open_map_smul_of_ne_zero hn _) is_open_interior) },
+  rw [subset_interior_iff_subset_of_open h],
+  calc _ ⊆ a • A + b • A : by apply pointwise_add_subset_add;
+                              exact (scale_set_mono _ interior_subset)
+  ...    ⊆ _ : convex_iff₂.mp hA ha hb hab
+end
 
 /-- In a topological vector space, the closure of a convex set is convex. -/
 lemma convex.closure {A : set α} (hA : convex A) : convex (closure A) :=

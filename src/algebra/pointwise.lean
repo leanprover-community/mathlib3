@@ -319,6 +319,10 @@ lemma scale_set_empty [has_scalar α β] (a : α) :
   a • (∅ : set β) = ∅ :=
 by rw [scale_set_eq_image, image_empty]
 
+lemma scale_set_mono [has_scalar α β]
+  (a : α) {s t : set β} (h : s ⊆ t) : a • s ⊆ a • t :=
+by { rw [scale_set_eq_image, scale_set_eq_image], exact image_subset _ h }
+
 /-- A multiplicative action of a monoid on a type β gives also a
  multiplicative action on the subsets of β. -/
 def scale_set_action [monoid α] [mul_action α β] :

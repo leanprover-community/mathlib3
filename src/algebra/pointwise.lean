@@ -284,42 +284,82 @@ end monoid
 def pointwise_smul [has_scalar α β] : has_scalar (set α) (set β) :=
   ⟨λ s t, { x | ∃ a ∈ s, ∃ y ∈ t, x  = a • y }⟩
 
+
 /-- Scaling a set: multiplying every element by a scalar. -/
-def smul_set [has_scalar α β] : has_scalar α (set β) :=
-  ⟨λ a s, (λ y, a • y) '' s⟩
+def scale_set [has_scalar α β] : has_scalar α (set β) :=
+  ⟨λ a s, { x | ∃ y ∈ s, x = a • y }⟩
 
-local attribute [instance] pointwise_smul smul_set
+local attribute [instance] pointwise_smul scale_set
 
-lemma smul_set_eq_pointwise_smul_singleton [has_scalar α β]
+lemma mem_scale_set [has_scalar α β] (a : α) (s : set β) (x : β) :
+  x ∈ a • s ↔ ∃ y ∈ s, x = a • y := iff.rfl
+
+lemma scale_set_eq_image [has_scalar α β] (a : α) (s : set β) :
+  a • s = (λ x, a • x) '' s :=
+set.ext $ λ x, iff.intro
+  (λ ⟨_, hy₁, hy₂⟩, ⟨_, hy₁, hy₂.symm⟩)
+  (λ ⟨_, hy₁, hy₂⟩, ⟨_, hy₁, hy₂.symm⟩)
+
+lemma scale_set_eq_pointwise_smul_singleton [has_scalar α β]
   (a : α) (s : set β) : a • s = ({a} : set α) • s :=
 set.ext $ λ x, iff.intro
-  (λ ⟨_, ht, hx⟩, ⟨a, mem_singleton _, _, ht, hx.symm⟩)
-  (λ ⟨a', ha', y, hy, hx⟩, ⟨_, hy, by {
-    rw mem_singleton_iff at ha'; rw ha' at hx; exact hx.symm }⟩)
+  (λ ⟨_, h⟩, ⟨a, mem_singleton _, _, h⟩)
+  (λ ⟨_, h, y, hy, hx⟩, ⟨_, hy, by {
+    rw mem_singleton_iff at h; rwa h at hx }⟩)
 
-/-- A set scaled by 1 is itself. -/
-lemma one_smul_set [monoid α] [mul_action α β] (s : set β) : (1 : α) • s = s :=
-set.ext $ λ x, iff.intro
-  (λ ⟨y, hy, hx⟩, by { rw ←hx, show (1 : α) • y ∈ s, by rwa one_smul })
-  (λ hx, ⟨x, hx, show (1 : α) • x = x, by rwa one_smul⟩)
+lemma smul_mem_scale_set [has_scalar α β]
+  (a : α) {s : set β} {y : β} (hy : y ∈ s) : a • y ∈ a • s :=
+by rw mem_scale_set; use [y, hy]
+
+lemma scale_set_union [has_scalar α β] (a : α) (s t : set β) :
+  a • (s ∪ t) = a • s ∪ a • t :=
+by simp only [scale_set_eq_image, image_union]
+
+lemma scale_set_empty [has_scalar α β] (a : α) :
+  a • (∅ : set β) = ∅ :=
+by rw [scale_set_eq_image, image_empty]
+
+/-- A multiplicative action of a monoid on a type β gives also a
+ multiplicative action on the subsets of β. -/
+def scale_set_action [monoid α] [mul_action α β] :
+  mul_action α (set β) :=
+{ smul     := λ a s, a • s,
+  mul_smul := λ a b s, set.ext $ λ x, iff.intro
+    (λ ⟨_, hy, _⟩, ⟨b • _, smul_mem_scale_set _ hy, by rwa ←mul_smul⟩)
+    (λ ⟨_, hy, _⟩, let ⟨_, hz, h⟩ := (mem_scale_set _ _ _).2 hy in
+      ⟨_, hz, by rwa [mul_smul, ←h]⟩),
+  one_smul := λ b, set.ext $ λ x, iff.intro
+    (λ ⟨_, _, h⟩, by { rw [one_smul] at h; rwa h })
+    (λ h, ⟨_, h, by rw one_smul⟩) }
 
 end set
 
-section
+section -- is there a reason this part isn't under a namespace ?
 
 open set
 
 variables {α : Type*} {β : Type*}
 
-local attribute [instance] set.smul_set
+local attribute [instance] set.scale_set
 
 /-- A nonempty set in a semimodule is scaled by zero to the singleton
 containing 0 in the semimodule. -/
-lemma zero_smul_set [semiring α] [add_comm_monoid β] [semimodule α β]
+lemma zero_scale_set [semiring α] [add_comm_monoid β] [semimodule α β]
   {s : set β} (h : s ≠ ∅) : (0 : α) • s = {(0 : β)} :=
 set.ext $ λ x, iff.intro
-(λ ⟨y, hy, hx⟩, mem_singleton_iff.mpr (by { rw ←hx; exact zero_smul α y}))
+(λ ⟨_, _, hx⟩, mem_singleton_iff.mpr (by { rwa [hx, zero_smul] }))
 (λ hx, let ⟨_, hs⟩ := set.ne_empty_iff_exists_mem.mp h in
-  ⟨_, hs, show (0 : α) • _ = x, by { rw mem_singleton_iff at hx; rw [hx, zero_smul] }⟩)
+  ⟨_, hs, by { rw mem_singleton_iff at hx; rw [hx, zero_smul] }⟩)
+
+lemma mem_inv_scale_set_iff [field α] [mul_action α β]
+  {a : α} (ha : a ≠ 0) (A : set β) (x : β) : x ∈ a⁻¹ • A ↔ a • x ∈ A :=
+iff.intro
+  (λ ⟨y, hy, h⟩, by rwa [h, ←mul_smul, mul_inv_cancel ha, one_smul])
+  (λ h, ⟨_, h, by rw [←mul_smul, inv_mul_cancel ha, one_smul]⟩)
+
+lemma mem_scale_set_iff_inv_smul_mem [field α] [mul_action α β]
+  {a : α} (ha : a ≠ 0) (A : set β) (x : β) : x ∈ a • A ↔ a⁻¹ • x ∈ A :=
+by conv_lhs { rw ←(division_ring.inv_inv ha) };
+   exact (mem_inv_scale_set_iff (inv_ne_zero ha) _ _)
 
 end

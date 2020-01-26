@@ -480,6 +480,10 @@ by finish [insert_def]
 @[simp] theorem insert_eq_of_mem {a : α} {s : set α} (h : a ∈ s) : insert a s = s :=
 by finish [ext_iff, iff_def]
 
+lemma ne_insert_of_not_mem {s : set α} (t : set α) {a : α} (h : a ∉ s) :
+  s ≠ insert a t :=
+by { classical, contrapose! h, simp [h] }
+
 theorem insert_subset : insert a s ⊆ t ↔ (a ∈ t ∧ s ⊆ t) :=
 by simp [subset_def, or_imp_distrib, forall_and_distrib]
 
@@ -789,8 +793,21 @@ by rw [←diff_singleton_subset_iff]
 lemma diff_subset_comm {s t u : set α} : s \ t ⊆ u ↔ s \ u ⊆ t :=
 by rw [diff_subset_iff, diff_subset_iff, union_comm]
 
-@[simp] theorem insert_diff (h : a ∈ t) : insert a s \ t = s \ t :=
+@[simp] theorem insert_diff_of_mem (s) (h : a ∈ t) : insert a s \ t = s \ t :=
 ext $ by intro; constructor; simp [or_imp_distrib, h] {contextual := tt}
+
+theorem insert_diff_of_not_mem (s) (h : a ∉ t) : insert a s \ t = insert a (s \ t) :=
+begin
+  classical,
+  ext x,
+  by_cases h' : x ∈ t,
+  { have : x ≠ a,
+    { assume H,
+      rw H at h',
+      exact h h' },
+    simp [h, h', this] },
+  { simp [h, h'] }
+end
 
 theorem union_diff_self {s t : set α} : s ∪ (t \ s) = s ∪ t :=
 by finish [ext_iff, iff_def]

@@ -19,10 +19,18 @@ pseudoinverses is typically in terms of inverses of nonsingular matrices, so we
 need to define those first. The file also doesn't define a `has_inv` instance
 for `matrix` so that can be used for the pseudoinverse instead.
 
-The definition of inverse used in this file is the one given by Cramer's rule.
-The vectors returned by Cramer's rule are given by the linear map `cramer`.
-Using Cramer's rule, we can compute for each matrix `A` the matrix `adjugate A`,
-which we then prove behaves like `det A • A⁻¹`. Finally, we show that dividing
+The definition of inverse used in this file is the adjugate divided by the determinant.
+The adjugate is calculated with Cramer's rule, which we introduce first.
+The vectors returned by Cramer's rule are given by the linear map `cramer`,
+which sends a matrix `A` and vector `b` to the vector consisting of the
+determinant of replacing the `i`th column of `A` with `b` at index `i`. Using
+Cramer's rule, we can compute for each matrix `A` the matrix `adjugate A`.
+The entries of the adjugate are the determinants of each minor of `A`.
+Instead of defining a minor to be `A` with column `i` and row `j` deleted, we
+replace the `i`th column of `A` with the `j`th basis vector; this has the same
+determinant as the minor but more importantly equals Cramer's rule applied
+to `A` and the `j`th basis vector, simplifying the subsequent proofs.
+We prove the adjugate behaves like `det A • A⁻¹`. Finally, we show that dividing
 the adjugate by `det A` (if possible), giving a matrix `nonsing_inv A`, will
 result in a multiplicative inverse to `A`.
 
@@ -98,8 +106,12 @@ section cramer
 variables [comm_ring α] (A : matrix n n α) (b : n → α)
 
 /--
-  The `cramer_map` sends a matrix `A` and vector `b` to the vector `x`,
-  such that `A ⬝ x = b`.
+  `cramer_map A b i` is the determinant of the matrix `A` with column `i` replaced with `b`,
+  and thus `cramer_map A b` is the vector output by Cramer's rule on `A` and `b`.
+
+  If `A ⬝ x = b` has a unique solution in `x`, `cramer_map` sends a square matrix `A`
+  and vector `b` to the vector `x` such that `A ⬝ x = b`.
+  Otherwise, the outcome of `cramer_map` is well-defined but not necessarily useful.
 -/
 def cramer_map (i : n) : α := (A.replace_column i b).det
 

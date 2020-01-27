@@ -237,7 +237,12 @@ begin
   simp only [filter_eq, if_true, if_false, h, prod_empty, prod_singleton, insert_empty_eq_singleton],
 end
 
-/-- Similar to `prod_ite_eq` but with arguments to `eq` swapped. -/
+/--
+  When a product is taken over a conditional whose condition is an equality test on the index
+  and whose alternative is 1, then the product's value is either the term at that index or `1`.
+
+  The difference with `prod_ite_eq` is that the arguments to `eq` are swapped.
+-/
 @[simp, to_additive] lemma prod_ite_eq' [decidable_eq α] (s : finset α) (a : α) (b : α → β) :
   s.prod (λ x, (ite (x = a) (b x) 1)) = ite (a ∈ s) (b a) 1 :=
 begin

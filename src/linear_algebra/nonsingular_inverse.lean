@@ -163,7 +163,7 @@ lemma cramer_apply (i : n) : cramer α A b i = (A.update_column i b).det := rfl
 
 /-- Applying Cramer's rule to a column of the matrix gives a scaled basis vector. -/
 lemma cramer_column_self (i : n) :
-(@cramer _ _ _ α _ A) (A i) = (λ j, if i = j then A.det else 0) :=
+cramer α A (A i) = (λ j, if i = j then A.det else 0) :=
 begin
   ext j,
   rw cramer_apply,

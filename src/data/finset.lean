@@ -807,7 +807,7 @@ end
 
 /-- A variant of `filter_eq` with the equality the other way. -/
 lemma filter_eq' [decidable_eq β] (s : finset β) (b : β) :
-  s.filter(λ a, a = b) = ite (b ∈ s) {b} ∅ :=
+  s.filter (λ a, a = b) = ite (b ∈ s) {b} ∅ :=
 trans (filter_congr (λ _ _, ⟨eq.symm, eq.symm⟩)) (filter_eq s b)
 
 end filter

@@ -222,7 +222,17 @@ instance : module R (multilinear_map R M₁ M₂) :=
 module.of_core $ by refine { smul := (•), ..};
   intros; ext; simp [smul_add, add_smul, smul_smul]
 
+end comm_ring
+
+end multilinear_map
+
+
+section isomorphisms
+open multilinear_map
+
 variables (R M M₂)
+[comm_ring R] [∀i, add_comm_group (M i)] [add_comm_group M₂]
+[∀i, module R (M i)] [module R M₂]
 
 /-- The space of multilinear maps on `Π(i : fin (n+1)), M i` is canonically isomorphic to the space
 of linear maps from `M 0` to the space of multilinear maps on `Π(i : fin n), M i.succ `, by
@@ -267,19 +277,8 @@ def linear_to_multilinear_equiv_multilinear :
       { to_fun := λm, f (cons x m),
         add    := λm i y y', by simp,
         smul   := λm i y c, by simp },
-      add := λx y, begin
-        ext m,
-        change f (cons (x + y) m) = f (cons x m) + f (cons y m),
-        have A : ∀z, update (cons x m) 0 z = cons z m := λz, update_cons_zero _ _ _,
-        rw [← A (x+y), f.map_add, A, A]
-      end,
-      smul := λc x, begin
-        ext m,
-        rw smul_apply,
-        change f (cons (c • x) m) = c • f (cons x m),
-        have A : ∀z, update (cons x m) 0 z = cons z m := λz, update_cons_zero _ _ _,
-        rw [← A (c • x), f.map_smul, A]
-      end },
+      add := λx y, by { ext m, exact cons_add f m x y },
+      smul := λc x, by { ext m, exact cons_smul f m c x } },
   left_inv := λf, begin
     ext x m,
     change f (cons x m 0) (tail (cons x m)) = f x m,
@@ -354,6 +353,4 @@ def multilinear_to_linear_equiv_multilinear :
     rw cons_self_tail
   end }
 
-end comm_ring
-
-end multilinear_map
+end isomorphisms

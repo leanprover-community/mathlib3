@@ -463,6 +463,12 @@ theorem tendsto_nhds_nhds [metric_space β] {f : α → β} {a b} :
     ∀ ε > 0, ∃ δ > 0, ∀{x:α}, dist x a < δ → dist (f x) b < ε :=
 by { rw [← nhds_within_univ, ← nhds_within_univ, tendsto_nhds_within_nhds_within], simp }
 
+@[nolint]
+theorem continuous_at_iff [metric_space β] {f : α → β} {a : α} :
+  continuous_at f a ↔
+    ∀ ε > 0, ∃ δ > 0, ∀{x:α}, dist x a < δ → dist (f x) (f a) < ε :=
+by rw [continuous_at, tendsto_nhds_nhds]
+
 theorem continuous_iff [metric_space β] {f : α → β} :
   continuous f ↔
     ∀b (ε > 0), ∃ δ > 0, ∀a, dist a b < δ → dist (f a) (f b) < ε :=

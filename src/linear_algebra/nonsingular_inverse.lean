@@ -23,8 +23,9 @@ The definition of inverse used in this file is the adjugate divided by the deter
 The adjugate is calculated with Cramer's rule, which we introduce first.
 The vectors returned by Cramer's rule are given by the linear map `cramer`,
 which sends a matrix `A` and vector `b` to the vector consisting of the
-determinant of replacing the `i`th column of `A` with `b` at index `i`. Using
-Cramer's rule, we can compute for each matrix `A` the matrix `adjugate A`.
+determinant of replacing the `i`th column of `A` with `b` at index `i`
+(written as `(A.update_column i b).det`).
+Using Cramer's rule, we can compute for each matrix `A` the matrix `adjugate A`.
 The entries of the adjugate are the determinants of each minor of `A`.
 Instead of defining a minor to be `A` with column `i` and row `j` deleted, we
 replace the `i`th column of `A` with the `j`th basis vector; this has the same
@@ -49,51 +50,51 @@ variables {n : Type u} [fintype n] [decidable_eq n] {α : Type v}
 open_locale matrix
 open equiv equiv.perm finset
 
-section replace
+section update
 
-/-- Replace the `i`th column of matrix `A` with the values in `b`. -/
-def replace_column (A : matrix n n α) (i : n) (b : n → α) : matrix n n α :=
+/-- Update, i.e. replace the `i`th column of matrix `A` with the values in `b`. -/
+def update_column (A : matrix n n α) (i : n) (b : n → α) : matrix n n α :=
 function.update A i b
 
-/-- Replace the `i`th row of matrix `A` with the values in `b`. -/
-def replace_row (A : matrix n n α) (j : n) (b : n → α) : matrix n n α :=
+/-- Update, i.e. replace the `i`th row of matrix `A` with the values in `b`. -/
+def update_row (A : matrix n n α) (j : n) (b : n → α) : matrix n n α :=
 λ i, function.update (A i) j (b i)
 
 variables {A : matrix n n α} {i j : n} {b : n → α}
 
-@[simp] lemma replace_column_self : replace_column A i b i = b := function.update_same i b A
-@[simp] lemma replace_row_self : replace_row A j b i j = b i := function.update_same j (b i) (A i)
+@[simp] lemma update_column_self : update_column A i b i = b := function.update_same i b A
+@[simp] lemma update_row_self : update_row A j b i j = b i := function.update_same j (b i) (A i)
 
-@[simp] lemma replace_column_eq {i' : n} (h : i = i') : replace_column A i b i' = b :=
-by {rw [h], apply replace_column_self}
-@[simp] lemma replace_row_eq {j' : n} (h : j = j') : replace_row A j b i j' = b i :=
-by {rw [h], apply replace_row_self}
+@[simp] lemma update_column_eq {i' : n} (h : i = i') : update_column A i b i' = b :=
+by {rw [h], apply update_column_self}
+@[simp] lemma update_row_eq {j' : n} (h : j = j') : update_row A j b i j' = b i :=
+by {rw [h], apply update_row_self}
 
-@[simp] lemma replace_column_ne {i' : n} (i_ne : i' ≠ i) : replace_column A i b i' = A i' :=
+@[simp] lemma update_column_ne {i' : n} (i_ne : i' ≠ i) : update_column A i b i' = A i' :=
 function.update_noteq i_ne b A
-@[simp] lemma replace_row_ne {j' : n} (j_ne : j' ≠ j) : replace_row A j b i j' = A i j' :=
+@[simp] lemma update_row_ne {j' : n} (j_ne : j' ≠ j) : update_row A j b i j' = A i j' :=
 function.update_noteq j_ne (b i) (A i)
 
-lemma replace_column_val {i' : n} : replace_column A i b i' j = if i' = i then b j else A i' j :=
+lemma update_column_val {i' : n} : update_column A i b i' j = if i' = i then b j else A i' j :=
 begin
   by_cases i' = i,
-  { rw [h, replace_column_self, if_pos rfl] },
-  { rw [replace_column_ne h, if_neg h] }
+  { rw [h, update_column_self, if_pos rfl] },
+  { rw [update_column_ne h, if_neg h] }
 end
-lemma replace_row_val {j' : n} : replace_row A j b i j' = if j' = j then b i else A i j' :=
+lemma update_row_val {j' : n} : update_row A j b i j' = if j' = j then b i else A i j' :=
 begin
   by_cases j' = j,
-  { rw [h, replace_row_self, if_pos rfl] },
-  { rw [replace_row_ne h, if_neg h] }
+  { rw [h, update_row_self, if_pos rfl] },
+  { rw [update_row_ne h, if_neg h] }
 end
 
-lemma replace_column_transpose : replace_column Aᵀ i b = (replace_row A i b)ᵀ :=
+lemma update_column_transpose : update_column Aᵀ i b = (update_row A i b)ᵀ :=
 begin
   ext i' j,
-  rw [transpose_val, replace_column_val, replace_row_val],
+  rw [transpose_val, update_column_val, update_row_val],
   refl
 end
-end replace
+end update
 
 section cramer
 /-!
@@ -113,14 +114,14 @@ variables [comm_ring α] (A : matrix n n α) (b : n → α)
   and vector `b` to the vector `x` such that `A ⬝ x = b`.
   Otherwise, the outcome of `cramer_map` is well-defined but not necessarily useful.
 -/
-def cramer_map (i : n) : α := (A.replace_column i b).det
+def cramer_map (i : n) : α := (A.update_column i b).det
 
 lemma cramer_map_is_linear (i : n) : is_linear_map α (λ b, cramer_map A b i) :=
 begin
   have : Π {f : n → n} {i : n} (x : n → α),
-    finset.prod univ (λ (i' : n), (replace_column A i x)ᵀ (f i') i')
+    finset.prod univ (λ (i' : n), (update_column A i x)ᵀ (f i') i')
     = finset.prod univ (λ (i' : n), if i' = i then x (f i') else A i' (f i')),
-  { intros, congr, ext i', rw [transpose_val, replace_column_val] },
+  { intros, congr, ext i', rw [transpose_val, update_column_val] },
   split,
   { intros x y,
     repeat { rw [cramer_map, ←det_transpose, det] },
@@ -159,7 +160,7 @@ end
 def cramer (α : Type v) [comm_ring α] (A : matrix n n α) : (n → α) →ₗ[α] (n → α) :=
 is_linear_map.mk' (cramer_map A) (cramer_is_linear A)
 
-lemma cramer_apply (i : n) : cramer α A b i = (A.replace_column i b).det := rfl
+lemma cramer_apply (i : n) : cramer α A b i = (A.update_column i b).det := rfl
 
 /-- Applying Cramer's rule to a column of the matrix gives a scaled basis vector. -/
 lemma cramer_column_self (i : n) :
@@ -171,11 +172,11 @@ begin
   { -- i = j: this entry should be `A.det`
     rw [if_pos h, ←h],
     congr, ext i',
-    by_cases h : i' = i, { rw [h, replace_column_self] }, { rw [replace_column_ne h]} },
+    by_cases h : i' = i, { rw [h, update_column_self] }, { rw [update_column_ne h]} },
   { -- i ≠ j: this entry should be 0
     rw [if_neg h],
     apply det_zero_of_column_eq h,
-    rw [replace_column_self, replace_column_ne],
+    rw [update_column_self, update_column_ne],
     apply h }
 end
 
@@ -206,21 +207,22 @@ variable [comm_ring α]
 /-- The adjugate matrix is the transpose of the cofactor matrix.
 
   Typically, the cofactor matrix is defined by taking the determinant of minors,
-  i.e. the matrix with a row and column removed. However, the proof of
-  `adjugate_mul` becomes a lot easier if we replace the rows with others,
-  exactly what the `cramer` map does.
+  i.e. the matrix with a row and column removed.
+  However, the proof of `mul_adjugate` becomes a lot easier if we define the
+  minor as replacing a column with a basis vector, since it allows us to use
+  facts about the `cramer` map.
 -/
 def adjugate (A : matrix n n α) : matrix n n α := λ i, cramer α A (λ j, if i = j then 1 else 0)
 
 lemma adjugate_def (A : matrix n n α) :
   adjugate A = λ i, cramer α A (λ j, if i = j then 1 else 0) := rfl
 lemma adjugate_val (A : matrix n n α) (i j : n) :
-  adjugate A i j = (A.replace_column j (λ j, if i = j then 1 else 0)).det := rfl
+  adjugate A i j = (A.update_column j (λ j, if i = j then 1 else 0)).det := rfl
 
 lemma adjugate_transpose (A : matrix n n α) : (adjugate A)ᵀ = adjugate (Aᵀ) :=
 begin
   ext i j,
-  rw [transpose_val, adjugate_val, adjugate_val, replace_column_transpose, det_transpose],
+  rw [transpose_val, adjugate_val, adjugate_val, update_column_transpose, det_transpose],
   apply finset.sum_congr rfl,
   intros σ _,
   congr' 1,
@@ -229,16 +231,16 @@ begin
   { -- Everything except `(i , j)` (= `(σ j , j)`) is given by A, and the rest is a single `1`.
     congr; ext j',
     have := (@equiv.injective _ _ σ j j' : σ j = σ j' → j = j'),
-    rw [replace_column_val, replace_row_val],
+    rw [update_column_val, update_row_val],
     finish },
   { -- Otherwise, we need to show that there is a `0` somewhere in the product.
-    have : univ.prod (λ (j' : n), replace_row A j (λ (i' : n), ite (i = i') 1 0) (σ j') j') = 0,
+    have : univ.prod (λ (j' : n), update_row A j (λ (i' : n), ite (i = i') 1 0) (σ j') j') = 0,
     { apply prod_eq_zero (mem_univ j),
-      rw [replace_row_self],
+      rw [update_row_self],
       exact if_neg h },
     rw this,
     apply prod_eq_zero (mem_univ (σ⁻¹ i)),
-    erw [replace_column_eq (apply_symm_apply σ i).symm],
+    erw [update_column_eq (apply_symm_apply σ i).symm],
     apply if_neg,
     intro h',
     exact h ((symm_apply_eq σ).mp h'.symm) }

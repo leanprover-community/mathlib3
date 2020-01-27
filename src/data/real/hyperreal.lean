@@ -17,7 +17,7 @@ namespace hyperreal
 
 notation `ℝ*` := hyperreal
 
-private def U := is_ultrafilter_hyperfilter set.infinite_univ_nat
+private def U : is_ultrafilter (@hyperfilter ℕ) := is_ultrafilter_hyperfilter
 noncomputable instance : discrete_linear_ordered_field ℝ* :=
 filter_product.discrete_linear_ordered_field U
 
@@ -40,8 +40,7 @@ have h0' : {n : ℕ | ¬ n > 0} = {0} :=
 by simp only [not_lt, (set.set_of_eq_eq_singleton).symm]; ext; exact nat.le_zero_iff,
 begin
   simp only [inv_pos', nat.cast_pos],
-  exact mem_hyperfilter_of_finite_compl set.infinite_univ_nat
-    (by convert set.finite_singleton _),
+  exact mem_hyperfilter_of_finite_compl (by convert set.finite_singleton _),
 end
 
 lemma epsilon_ne_zero : ε ≠ 0 := ne_of_gt epsilon_pos
@@ -60,7 +59,7 @@ begin
   have hs : -{i : ℕ | f i < r} ⊆ {i : ℕ | i ≤ N} :=
     λ i hi1, le_of_lt (by simp only [lt_iff_not_ge];
     exact λ hi2, hi1 (lt_of_le_of_lt (le_abs_self _) (hf' i hi2)) : i < N),
-  exact mem_hyperfilter_of_finite_compl set.infinite_univ_nat
+  exact mem_hyperfilter_of_finite_compl
     (set.finite_subset (set.finite_le_nat N) hs)
 end
 
@@ -397,7 +396,7 @@ Exists.cases_on (hf' (r + 1)) $ λ i hi,
   have hS : - {a : ℕ | r < f a} ⊆ {a : ℕ | a ≤ i} :=
     by simp only [set.compl_set_of, not_lt];
     exact λ a har, le_of_lt (hi' a (lt_of_le_of_lt har (lt_add_one _))),
-  (lt_def U).mpr $ mem_hyperfilter_of_finite_compl set.infinite_univ_nat $
+  (lt_def U).mpr $ mem_hyperfilter_of_finite_compl $
   set.finite_subset (set.finite_le_nat _) hS
 
 theorem infinite_neg_of_tendsto_bot {f : ℕ → ℝ} (hf : tendsto f at_top at_bot) :
@@ -409,7 +408,7 @@ Exists.cases_on (hf' (r - 1)) $ λ i hi,
   have hS : - {a : ℕ | f a < r} ⊆ {a : ℕ | a ≤ i} :=
     by simp only [set.compl_set_of, not_lt];
     exact λ a har, le_of_lt (hi' a (lt_of_lt_of_le (sub_one_lt _) har)),
-  (lt_def U).mpr $ mem_hyperfilter_of_finite_compl set.infinite_univ_nat $
+  (lt_def U).mpr $ mem_hyperfilter_of_finite_compl $
   set.finite_subset (set.finite_le_nat _) hS
 
 lemma not_infinite_neg {x : ℝ*} : ¬ infinite x → ¬ infinite (-x) :=

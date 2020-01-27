@@ -1367,14 +1367,14 @@ begin
  rw comap_domain_apply
 end
 
-def split_support : finset ι := finset.image (sigma.fst) l.support
+def split_support : finset ι := l.support.image sigma.fst
 
 lemma mem_split_support_iff_nonzero (i : ι) :
   i ∈ split_support l ↔ split l i ≠ 0 :=
 begin
   classical,
-  rw [split_support, mem_image, ne.def, ← support_eq_empty,
-    ← exists_mem_iff_ne_empty, split, comap_domain],
+  rw [split_support, mem_image, ne.def, ← support_eq_empty, ← ne.def,
+    ← finset.nonempty_iff_ne_empty, split, comap_domain, finset.nonempty],
   simp
 end
 

@@ -8,7 +8,7 @@ Matrices
 import algebra.module algebra.pi_instances
 import data.fintype
 
-universes u v
+universes u v w
 
 def matrix (m n : Type u) [fintype m] [fintype n] (α : Type v) : Type (max u v) :=
 m → n → α
@@ -221,7 +221,8 @@ instance [decidable_eq n] [ring α] : ring (matrix n n α) :=
 { ..matrix.add_comm_group, ..matrix.semiring }
 
 instance [semiring α] : has_scalar α (matrix m n α) := pi.has_scalar
-instance [ring α] : module α (matrix m n α) := pi.module _
+instance {β : Type w} [ring α] [add_comm_group β] [module α β] :
+  module α (matrix m n β) := pi.module _
 
 @[simp] lemma smul_val [semiring α] (a : α) (A : matrix m n α) (i : m) (j : n) : (a • A) i j = a * A i j := rfl
 

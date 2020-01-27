@@ -59,27 +59,6 @@ universes u v w x y z u' v' w' y'
 variables {R : Type u} {K : Type u'} {M : Type v} {V : Type v'} {M₂ : Type w} {V₂ : Type w'}
 variables {M₃ : Type y} {V₃ : Type y'} {M₄ : Type z} {ι : Type x}
 
-namespace finset
-
-lemma smul_sum {α : Type u} {M : Type v} {R : Type w}
-  [ring R] [add_comm_group M] [module R M]
-  {s : finset α} {a : R} {f : α → M} :
-  a • (s.sum f) = s.sum (λc, a • f c) :=
-(s.sum_hom ((•) a)).symm
-
-lemma smul_sum' {α : Type u} {M : Type v} {R : Type w}
-  [ring R] [add_comm_group M] [module R M]
-  {s : finset α} {f : α → R} {x : M} :
-  (s.sum f) • x = s.sum (λa, (f a) • x) :=
-begin
--- TODO : where should I put this instance?
-  haveI : is_add_monoid_hom (λ (r : R), r • x) :=
-    { map_add := λ a b, add_smul _ _ _, map_zero := zero_smul _ _ },
-  exact (s.sum_hom (λ (r : R), r • x)).symm
-end
-
-end finset
-
 namespace finsupp
 
 lemma smul_sum {α : Type u} {β : Type v} {R : Type w} {M : Type y}
@@ -392,7 +371,7 @@ instance : has_top (submodule R M) :=
 @[simp] lemma mem_top : x ∈ (⊤ : submodule R M) := trivial
 
 lemma eq_bot_of_zero_eq_one (zero_eq_one : (0 : R) = 1) : p = ⊥ :=
-by ext x; simp [semimodule.eq_zero_of_zero_eq_one _ x zero_eq_one]
+by ext x; simp [semimodule.eq_zero_of_zero_eq_one x zero_eq_one]
 
 instance : order_top (submodule R M) :=
 { top := ⊤,

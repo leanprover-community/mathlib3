@@ -257,5 +257,14 @@ section add_monoid
 
 end add_monoid
 
+section comm_monoid
+  variables [comm_monoid α]
+
+  @[to_additive] lemma inv_unique {x y z : α}
+    (hy : x * y = 1) (hz : x * z = 1) : y = z :=
+  by rw [←one_mul y, ←hz, mul_comm x, mul_assoc, hy, mul_one]
+
+end comm_monoid
+
 @[to_additive]
 lemma inv_involutive {α} [group α] : function.involutive (has_inv.inv : α → α) := inv_inv

@@ -240,14 +240,24 @@ lemma snd.is_monoid_hom [monoid α] [monoid β] : is_monoid_hom (prod.snd : α �
 { map_mul := λ _ _, rfl, map_one := rfl }
 
 /-- Given monoids `α, β`, the natural projection homomorphism from `α × β` to `α`. -/
-@[to_additive prod.add_monoid_hom.fst "Given add_monoids `α, β`, the natural projection homomorphism from `α × β` to `α`."]
+@[to_additive prod.add_monoid_hom.fst "Given `add_monoid`s `α, β`, the natural projection homomorphism from `α × β` to `α`."]
 def monoid_hom.fst [monoid α] [monoid β] : α × β →* α :=
 ⟨λ x, x.1, rfl, λ _ _, prod.fst_mul⟩
 
 /-- Given monoids `α, β`, the natural projection homomorphism from `α × β` to `β`.-/
-@[to_additive prod.add_monoid_hom.snd "Given add_monoids `α, β`, the natural projection homomorphism from `α × β` to `β`."]
+@[to_additive prod.add_monoid_hom.snd "Given `add_monoid`s `α, β`, the natural projection homomorphism from `α × β` to `β`."]
 def monoid_hom.snd [monoid α] [monoid β] : α × β →* β :=
 ⟨λ x, x.2, rfl, λ _ _, prod.snd_mul⟩
+
+/-- Given monoids `α, β`, the natural inclusion homomorphism from `α` to `α × β`. -/
+@[to_additive prod.add_monoid_hom.inl "Given `add_monoid`s `α, β`, the natural inclusion homomorphism from `α` to `α × β`."]
+def monoid_hom.inl [monoid α] [monoid β] : α →* α × β :=
+⟨λ x, (x, 1), rfl, λ x y, show _ = (_, _), by rw mul_one⟩
+
+/-- Given monoids `α, β`, the natural inclusion homomorphism from `β` to `α × β`. -/
+@[to_additive prod.add_monoid_hom.inr "Given `add_monoid`s `α, β`, the natural inclusion homomorphism from `β` to `α × β`."]
+def monoid_hom.inr [monoid α] [monoid β] : β →* α × β :=
+⟨λ x, (1, x), rfl, λ x y, show _ = (_, _), by rw mul_one⟩
 
 @[to_additive is_add_group_hom]
 lemma fst.is_group_hom [group α] [group β] : is_group_hom (prod.fst : α × β → α) :=

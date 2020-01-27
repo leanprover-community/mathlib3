@@ -63,11 +63,12 @@ def update_row (A : matrix n n α) (j : n) (b : n → α) : matrix n n α :=
 variables {A : matrix n n α} {i j : n} {b : n → α}
 
 @[simp] lemma update_column_self : update_column A i b i = b := function.update_same i b A
-@[simp] lemma update_row_self : update_row A j b i j = b i := function.update_same j (b i) (A i)
 
+@[simp] lemma update_row_self : update_row A j b i j = b i := function.update_same j (b i) (A i)
 
 @[simp] lemma update_column_ne {i' : n} (i_ne : i' ≠ i) : update_column A i b i' = A i' :=
 function.update_noteq i_ne b A
+
 @[simp] lemma update_row_ne {j' : n} (j_ne : j' ≠ j) : update_row A j b i j' = A i j' :=
 function.update_noteq j_ne (b i) (A i)
 
@@ -77,6 +78,7 @@ begin
   { rw [h, update_column_self, if_pos rfl] },
   { rw [update_column_ne h, if_neg h] }
 end
+
 lemma update_row_val {j' : n} : update_row A j b i j' = if j' = j then b i else A i j' :=
 begin
   by_cases j' = j,
@@ -212,6 +214,7 @@ def adjugate (A : matrix n n α) : matrix n n α := λ i, cramer α A (λ j, if 
 
 lemma adjugate_def (A : matrix n n α) :
   adjugate A = λ i, cramer α A (λ j, if i = j then 1 else 0) := rfl
+
 lemma adjugate_val (A : matrix n n α) (i j : n) :
   adjugate A i j = (A.update_column j (λ j, if i = j then 1 else 0)).det := rfl
 

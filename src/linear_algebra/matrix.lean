@@ -190,7 +190,7 @@ open_locale matrix
 
 section trace
 
-variables (n m)
+variables (m n)
 variables (R : Type v) (M : Type w) [ring R] [add_comm_group M] [module R M]
 
 /--
@@ -202,11 +202,9 @@ def diag : (matrix n n M) →ₗ[R] n → M := {
   smul   := by { intros, ext, refl, } }
 
 @[simp] lemma diag_one [decidable_eq n] :
-  (diag _ _ _ : (matrix n n R) →ₗ[R] n → R) 1 = λ i, 1 := by {
-    dunfold diag, ext, simp [one_val_eq], }
+  (diag _ _ _ : (matrix n n R) →ₗ[R] n → R) 1 = λ i, 1 := by { dunfold diag, ext, simp [one_val_eq],}
 
-@[simp] lemma diag_transpose (A : matrix n n R) :
-  diag n R R Aᵀ = diag n R R A := rfl
+@[simp] lemma diag_transpose (A : matrix n n R) : diag n R R Aᵀ = diag n R R A := rfl
 
 /--
 The trace of a square matrix.
@@ -218,11 +216,10 @@ def trace : (matrix n n M) →ₗ[R] M := {
 
 @[simp] lemma trace_one [decidable_eq n] :
   (trace _ _ _ : (matrix n n R) →ₗ[R] R) 1 = fintype.card n := by {
-    have h : trace n R R 1 = finset.univ.sum (diag n R R 1) := rfl,
-    rw [h, diag_one, finset.sum_const, add_monoid.smul_one], refl, }
+have h : trace n R R 1 = finset.univ.sum (diag n R R 1) := rfl,
+rw [h, diag_one, finset.sum_const, add_monoid.smul_one], refl, }
 
-@[simp] lemma trace_transpose (A : matrix n n R) :
-  trace n R R Aᵀ = trace n R R A := rfl
+@[simp] lemma trace_transpose (A : matrix n n R) : trace n R R Aᵀ = trace n R R A := rfl
 
 lemma trace_transpose_mul [decidable_eq n] [decidable_eq m] (A : matrix m n R) (B : matrix n m R) :
   trace m R R (A ⬝ B) = trace n R R (Aᵀ ⬝ Bᵀ) := finset.sum_comm

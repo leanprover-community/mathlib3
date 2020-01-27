@@ -190,7 +190,8 @@ open_locale matrix
 
 section trace
 
-variables {R : Type v} {M : Type w} [ring R] [add_comm_group M] [module R M]
+variables (n m)
+variables (R : Type v) (M : Type w) [ring R] [add_comm_group M] [module R M]
 
 /--
 The diagonal of a square matrix.
@@ -201,35 +202,35 @@ def diag : (matrix n n M) →ₗ[R] n → M := {
   smul   := by { intros, ext, refl, } }
 
 @[simp] lemma diag_one [decidable_eq n] :
-  (diag : (matrix n n R) →ₗ[R] n → R) 1 = λ i, 1 := by {
+  (diag _ _ _ : (matrix n n R) →ₗ[R] n → R) 1 = λ i, 1 := by {
     dunfold diag, ext, simp [one_val_eq], }
 
 @[simp] lemma diag_transpose (A : matrix n n R) :
-  @diag n _ R R _ _ _ Aᵀ = @diag n _ R R _ _ _ A := rfl
+  diag n R R Aᵀ = diag n R R A := rfl
 
 /--
 The trace of a square matrix.
 -/
 def trace : (matrix n n M) →ₗ[R] M := {
-  to_fun := finset.univ.sum ∘ (diag : (matrix n n M) →ₗ[R] n → M),
+  to_fun := finset.univ.sum ∘ (diag _ _ _ : (matrix n n M) →ₗ[R] n → M),
   add    := by { intros, apply finset.sum_add_distrib, },
   smul   := by { intros, simp [finset.smul_sum], } }
 
 @[simp] lemma trace_one [decidable_eq n] :
-  (trace : (matrix n n R) →ₗ[R] R) 1 = fintype.card n := by {
-    have h : @trace n _ R R _ _ _ 1 = finset.univ.sum (@diag n _ R R _ _ _ 1) := rfl,
+  (trace _ _ _ : (matrix n n R) →ₗ[R] R) 1 = fintype.card n := by {
+    have h : trace n R R 1 = finset.univ.sum (diag n R R 1) := rfl,
     rw [h, diag_one, finset.sum_const, add_monoid.smul_one], refl, }
 
 @[simp] lemma trace_transpose (A : matrix n n R) :
-  @trace n _ R R _ _ _ Aᵀ = @trace n _ R R _ _ _ A := rfl
+  trace n R R Aᵀ = trace n R R A := rfl
 
 lemma trace_transpose_mul [decidable_eq n] [decidable_eq m] (A : matrix m n R) (B : matrix n m R) :
-  @trace m _ R R _ _ _ (A ⬝ B) = @trace n _ R R _ _ _ (Aᵀ ⬝ Bᵀ) := finset.sum_comm
+  trace m R R (A ⬝ B) = trace n R R (Aᵀ ⬝ Bᵀ) := finset.sum_comm
 
 lemma trace_mul_comm {S : Type v} [comm_ring S] [decidable_eq n] [decidable_eq m]
   (A : matrix m n S) (B : matrix n m S) :
-  @trace m _ S S _ _ _ (A ⬝ B) = @trace n _ S S _ _ _ (B ⬝ A) :=
-  by rw [←trace_transpose, trace_transpose_mul, transpose_mul]
+  trace m S S (A ⬝ B) = trace n S S (B ⬝ A) :=
+by rw [←trace_transpose, trace_transpose_mul, transpose_mul]
 
 end trace
 

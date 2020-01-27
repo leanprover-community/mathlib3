@@ -130,6 +130,7 @@ finset.length_sort _
 theorem sorted_univ_nodup {α} [fintype α] [encodable α] : (sorted_univ α).nodup :=
 finset.sort_nodup _ _
 
+/-- An encodable `fintype` is equivalent a `fin`.-/
 def fintype_equiv_fin {α} [fintype α] [encodable α] :
   α ≃ fin (fintype.card α) :=
 begin

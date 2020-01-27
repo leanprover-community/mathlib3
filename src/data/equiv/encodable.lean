@@ -292,6 +292,7 @@ theorem skolem {α : Type*} {β : α → Type*} {P : Π x, β x → Prop}
 There is a total ordering on the elements of an encodable type, induces by the map to ℕ.
 -/
 
+/-- The `encode` function, viewed as an embedding. -/
 def encode' (α) [encodable α] : α ↪ nat :=
 ⟨encodable.encode, encodable.encode_injective⟩
 

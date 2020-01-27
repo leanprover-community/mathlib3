@@ -297,10 +297,17 @@ lemma nonsing_inv_val (A : matrix n n α) (i j : n) :
 lemma transpose_nonsing_inv (A : matrix n n α) : (A.nonsing_inv)ᵀ = (Aᵀ).nonsing_inv :=
 by {ext, simp [transpose_val, nonsing_inv_val, det_transpose, (adjugate_transpose A).symm]}
 
+section
+
+-- Increase max depth to allow inference of `mul_action α (matrix n n α)`.
+set_option class.instance_max_depth 60
+
 /-- The `nonsing_inv` of `A` is a right inverse. -/
 theorem mul_nonsing_inv (A : matrix n n α) (inv_mul_cancel : A.det⁻¹ * A.det = 1) :
   A ⬝ nonsing_inv A = 1 :=
 by erw [mul_smul, mul_adjugate, smul_smul, inv_mul_cancel, @one_smul _ _ _ (pi.mul_action _)]
+
+end
 
 /-- The `nonsing_inv` of `A` is a left inverse. -/
 theorem nonsing_inv_mul (A : matrix n n α) (inv_mul_cancel : A.det⁻¹ * A.det = 1) :

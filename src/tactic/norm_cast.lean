@@ -412,7 +412,7 @@ An expression of the shape: op (↑(x : α) : γ) (↑(y : β) : γ)
 is rewritten to:            op (↑(↑(x : α) : β) : γ) (↑(y : β) : γ)
 when (↑(↑(x : α) : β) : γ) = (↑(x : α) : γ) can be proven with a squash lemma
 -/
-@[nolint] meta def heur (_ : unit) : expr → tactic (unit × expr × expr)
+@[nolint] meta def splitting_procedure (_ : unit) : expr → tactic (unit × expr × expr)
 | (app (app op x) y) :=
 ( do
   `(@coe %%α %%δ %%coe1 %%xx) ← return x,
@@ -486,7 +486,7 @@ private meta def prove : tactic unit := assumption
 /--
 This is an auxiliary function used in step 2.
 It tries to rewrite an expression using the elim and move lemmas.
-On failure, it calls the heuristic.
+On failure, it calls the splitting procedure heuristic.
 -/
 @[nolint]
 meta def post (s : simp_lemmas) (_ : unit) (e : expr) : tactic (unit × expr × expr) :=
@@ -498,7 +498,7 @@ meta def post (s : simp_lemmas) (_ : unit) (e : expr) : tactic (unit × expr × 
   | _    := return pr
   end,
   return ((), new_e, pr)
-) <|> heur () e
+) <|> splitting_procedure () e
 
 /-!
 The following auxiliary functions are used to handle numerals.

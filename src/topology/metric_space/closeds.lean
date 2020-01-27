@@ -174,8 +174,7 @@ begin
       (or.inr $ by simp),
   rw mul_zero at this,
   have Z := (tendsto_order.1 this).2 ε εpos,
-  simp only [filter.mem_at_top_sets, set.mem_set_of_eq] at Z,
-  rcases Z with ⟨N, hN⟩,  --  ∀ (b : ℕ), b ≥ N → ε > 2 * B b
+  rcases Z.exists_forall_of_at_top with ⟨N, hN⟩,  --  ∀ (b : ℕ), b ≥ N → ε > 2 * B b
   exact ⟨N, λn hn, lt_of_le_of_lt (main n) (hN n hn)⟩
 end
 

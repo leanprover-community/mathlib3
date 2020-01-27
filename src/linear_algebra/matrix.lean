@@ -202,7 +202,7 @@ def diag : (matrix n n M) →ₗ[R] n → M := {
   smul   := by { intros, ext, refl, } }
 
 @[simp] lemma diag_one [decidable_eq n] :
-  (diag _ _ _ : (matrix n n R) →ₗ[R] n → R) 1 = λ i, 1 := by { dunfold diag, ext, simp [one_val_eq],}
+  diag n R R 1 = λ i, 1 := by { dunfold diag, ext, simp [one_val_eq],}
 
 @[simp] lemma diag_transpose (A : matrix n n R) : diag n R R Aᵀ = diag n R R A := rfl
 
@@ -210,12 +210,12 @@ def diag : (matrix n n M) →ₗ[R] n → M := {
 The trace of a square matrix.
 -/
 def trace : (matrix n n M) →ₗ[R] M := {
-  to_fun := finset.univ.sum ∘ (diag _ _ _ : (matrix n n M) →ₗ[R] n → M),
+  to_fun := finset.univ.sum ∘ (diag n R M),
   add    := by { intros, apply finset.sum_add_distrib, },
   smul   := by { intros, simp [finset.smul_sum], } }
 
 @[simp] lemma trace_one [decidable_eq n] :
-  (trace _ _ _ : (matrix n n R) →ₗ[R] R) 1 = fintype.card n := by {
+  trace n R R 1 = fintype.card n := by {
 have h : trace n R R 1 = finset.univ.sum (diag n R R 1) := rfl,
 rw [h, diag_one, finset.sum_const, add_monoid.smul_one], refl, }
 

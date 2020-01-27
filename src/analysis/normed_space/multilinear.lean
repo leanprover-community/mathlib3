@@ -20,7 +20,7 @@ Let `f` be a multilinear map.
 * `exists_bound_of_continuous` asserts that, if `f` is continuous, then there exists `C > 0`
   with `∥f m∥ ≤ C * univ.prod (λi, ∥m i∥)` for all `m`.
 * `continuous_of_bound`, conversely, asserts that this bound implies continuity.
-* `mk_continuous_of_bound` constructs the associated continuous multilinear map.
+* `mk_continuous` constructs the associated continuous multilinear map.
 
 Let `f` be a continuous multilinear map.
 * `∥f∥` is its norm, i.e., the smallest number such that `∥f m∥ ≤ ∥f∥ * univ.prod (λi, ∥m i∥)` for
@@ -236,7 +236,7 @@ end
 
 /-- Constructing a continuous multilinear map from a multilinear map satisfying a boundedness
 condition. -/
-def mk_continuous_of_bound (C : ℝ) (H : ∀ m, ∥f m∥ ≤ C * univ.prod (λi, ∥m i∥)) :
+def mk_continuous (C : ℝ) (H : ∀ m, ∥f m∥ ≤ C * univ.prod (λi, ∥m i∥)) :
   continuous_multilinear_map 𝕜 E₁ E₂ :=
 { cont := f.continuous_of_bound C H,
   ..f }
@@ -385,11 +385,21 @@ lemma norm_image_sub_le_of_bound (m₁ m₂ : Πi, E₁ i) :
   ∥f m₁ - f m₂∥ ≤ ∥f∥ * (fintype.card ι) * (max ∥m₁∥ ∥m₂∥) ^ (fintype.card ι - 1) * ∥m₁ - m₂∥ :=
 f.to_multilinear_map.norm_image_sub_le_of_bound (norm_nonneg _) f.le_op_norm _ _
 
-set_option class.instance_max_depth 100
-open fin
+end continuous_multilinear_map
 
-lemma norm_image_tail_le (f : E 0 →L[𝕜] (continuous_multilinear_map 𝕜 (λ(i : fin n), E i.succ) E₂))
-  (m : Πi, E i) : ∥f (m 0) (tail m)∥ ≤ ∥f∥ * univ.prod (λi, ∥m i∥) :=
+lemma multilinear_map.mk_continuous_norm_le (f : multilinear_map 𝕜 E₁ E₂) {C : ℝ} (hC : 0 ≤ C)
+  (H : ∀ m, ∥f m∥ ≤ C * univ.prod (λi, ∥m i∥)) :
+  ∥f.mk_continuous C H∥ ≤ C :=
+continuous_multilinear_map.op_norm_le_bound _ hC (λm, H m)
+
+section isomorphisms
+
+set_option class.instance_max_depth 200
+open fin function
+
+lemma continuous_linear_map.norm_image_tail_le
+  (f : E 0 →L[𝕜] (continuous_multilinear_map 𝕜 (λ(i : fin n), E i.succ) E₂)) (m : Πi, E i) :
+  ∥f (m 0) (tail m)∥ ≤ ∥f∥ * univ.prod (λi, ∥m i∥) :=
 calc
   ∥f (m 0) (tail m)∥ ≤ ∥f (m 0)∥ * univ.prod (λi, ∥(tail m) i∥) : (f (m 0)).le_op_norm _
   ... ≤ (∥f∥ * ∥m 0∥) * univ.prod (λi, ∥(tail m) i∥) :
@@ -397,59 +407,95 @@ calc
   ... = ∥f∥ * (∥m 0∥ * univ.prod (λi, ∥(tail m) i∥)) : by ring
   ... = ∥f∥ * univ.prod (λi, ∥m i∥) : by { rw prod_univ_succ, refl }
 
-lemma norm_image_cons_le (f : continuous_multilinear_map 𝕜 E E₂) (x : E 0)
-  (m : Π(i : fin n), E i.succ) : ∥f (cons x m)∥ ≤ ∥f∥ * ∥x∥ * univ.prod (λi, ∥m i∥) :=
+lemma continuous_multilinear_map.norm_image_cons_le
+  (f : continuous_multilinear_map 𝕜 E E₂) (x : E 0) (m : Π(i : fin n), E i.succ) :
+  ∥f (cons x m)∥ ≤ ∥f∥ * ∥x∥ * univ.prod (λi, ∥m i∥) :=
 calc
   ∥f (cons x m)∥ ≤ ∥f∥ * univ.prod (λ(i : fin n.succ), ∥cons x m i∥) : f.le_op_norm _
   ... = (∥f∥ * ∥x∥) * univ.prod (λi, ∥m i∥) :
     by { rw prod_univ_succ, simp [mul_assoc] }
 
-end continuous_multilinear_map
+/-- Given a continuous linear map `f` from `E 0` to continuous multilinear maps on `n` variables,
+construct the corresponding continuous multilinear map on `n+1` variables obtained by concatenating
+the variables, given by `f (m 0) (tail m)`-/
+def continuous_linear_map.merge_variables
+  (f : E 0 →L[𝕜] (continuous_multilinear_map 𝕜 (λ(i : fin n), E i.succ) E₂)) :
+  continuous_multilinear_map 𝕜 E E₂ :=
+(linear_to_multilinear_equiv_multilinear 𝕜 E E₂
+    (continuous_multilinear_map.to_multilinear_map_linear.comp f.to_linear_map)).mk_continuous
+      (∥f∥) (λm, continuous_linear_map.norm_image_tail_le f m)
 
-lemma multilinear_map.mk_continuous_norm_le (f : multilinear_map 𝕜 E₁ E₂) {C : ℝ} (hC : 0 ≤ C)
-  (H : ∀ m, ∥f m∥ ≤ C * univ.prod (λi, ∥m i∥)) :
-  ∥f.mk_continuous_of_bound C H∥ ≤ C :=
-continuous_multilinear_map.op_norm_le_bound _ hC (λm, H m)
+@[simp] lemma continuous_linear_map.merge_variables_apply
+  (f : E 0 →L[𝕜] (continuous_multilinear_map 𝕜 (λ(i : fin n), E i.succ) E₂))
+  (m : Πi, E i) :
+  f.merge_variables m = f (m 0) (tail m) := rfl
 
-set_option class.instance_max_depth 200
-open fin function
+/-- Given a continuous multilinear map `f` in `n+1` variables, split the first variable to obtain
+a continuous linear map into continuous multilinear maps in `n` variables, given by `f (cons x m)`.
+-/
+def continuous_multilinear_map.split_variables
+  (f : continuous_multilinear_map 𝕜 E E₂) :
+  E 0 →L[𝕜] (continuous_multilinear_map 𝕜 (λ(i : fin n), E i.succ) E₂) :=
+linear_map.mk_continuous
+{ -- define a linear map into `n` continuous multilinear maps from an `n+1` continuous multilinear map
+  to_fun := λx,
+    ((linear_to_multilinear_equiv_multilinear 𝕜 E E₂).symm
+      f.to_multilinear_map x).mk_continuous (∥f∥ * ∥x∥) (f.norm_image_cons_le x),
+  add    := λx y, by { ext m, exact f.cons_add m x y },
+  smul   := λc x, by { ext m, exact f.cons_smul m c x } }
+  -- then register its continuity thanks to its boundedness properties.
+(∥f∥) (λx, multilinear_map.mk_continuous_norm_le _ (mul_nonneg' (norm_nonneg _) (norm_nonneg _)) _)
+
+@[simp] lemma continuous_multilinear_map.split_variables_apply
+  (f : continuous_multilinear_map 𝕜 E E₂) (x : E 0) (m : Π(i : fin n), E i.succ) :
+  f.split_variables x m = f (cons x m) := rfl
+
+lemma continuous_multilinear_map.split_variables_norm_aux (f : continuous_multilinear_map 𝕜 E E₂) :
+  ∥f.split_variables∥ ≤ ∥f∥ :=
+begin
+  apply linear_map.mk_continuous_norm_le,
+end
+
+lemma continuous_linear_map.merge_variables_norm_aux
+  (f : E 0 →L[𝕜] (continuous_multilinear_map 𝕜 (λ(i : fin n), E i.succ) E₂)) :
+  ∥f.merge_variables∥ ≤ ∥f∥ :=
+multilinear_map.mk_continuous_norm_le _ (norm_nonneg _) _,
+
+#exit
+
+@[simp] lemma continuous_linear_map.split_variables_merge_variables
+  (f : E 0 →L[𝕜] (continuous_multilinear_map 𝕜 (λ(i : fin n), E i.succ) E₂)) :
+  f.merge_variables.split_variables = f :=
+begin
+  ext m x,
+  simp only [tail_cons, continuous_linear_map.merge_variables_apply, continuous_multilinear_map.split_variables_apply],
+  rw cons_zero
+end
+
+@[simp] lemma continuous_multilinear_map.merge_variables_split_variables
+  (f : continuous_multilinear_map 𝕜 E E₂) :
+  f.split_variables.merge_variables = f :=
+by { ext m, simp }
 
 variables (𝕜 E E₂)
-set_option eqn_compiler.zeta true
 
+/-- The space of continuous multilinear maps on `Π(i : fin (n+1)), E i` is canonically isomorphic to
+the space of continuous linear maps from `E 0` to the space of continuous multilinear maps on
+`Π(i : fin n), E i.succ `, by separating the first variable. We register this isomorphism as a
+linear isomorphism in `linear_to_multilinear_equiv_multilinear_cont_aux 𝕜 E E₂`.
+The algebraic version (without continuity assumption on the maps) is
+`linear_to_multilinear_equiv_multilinear 𝕜 E E₂`, and the topological isomorphism (registering
+additionally that the isomorphism is continuous) is
+`linear_to_multilinear_equiv_multilinear_cont 𝕜 E E₂`.-/
 def linear_to_multilinear_equiv_multilinear_cont_aux :
   (E 0 →L[𝕜] (continuous_multilinear_map 𝕜 (λ(i : fin n), E i.succ) E₂)) ≃ₗ[𝕜]
   (continuous_multilinear_map 𝕜 E E₂) :=
-{ to_fun  := λf, (linear_to_multilinear_equiv_multilinear 𝕜 E E₂
-    (continuous_multilinear_map.to_multilinear_map_linear.comp f.to_linear_map)).mk_continuous_of_bound
-      (∥f∥) (λm, continuous_multilinear_map.norm_image_tail_le f m),
+{ to_fun  := continuous_linear_map.merge_variables,
   add     := λf₁ f₂, by { ext m, refl },
   smul    := λc f, by { ext m, refl },
-  inv_fun := λf,
-    let finv : (E 0 →ₗ[𝕜] (continuous_multilinear_map 𝕜 (λ(i : fin n), E i.succ) E₂)) :=
-    { -- define a linear map into `n` continuous multilinear maps from an `n+1` continuous multilinear map
-      to_fun := λx,
-        ((linear_to_multilinear_equiv_multilinear 𝕜 E E₂).symm
-          f.to_multilinear_map x).mk_continuous_of_bound (∥f∥ * ∥x∥) (f.norm_image_cons_le x),
-      add    := λx y, by { ext m, exact f.cons_add m x y },
-      smul   := λc x, by { ext m, exact f.cons_smul m c x } }
-    in
-    -- the linear map `finv` is also continuous
-    { cont := begin
-        refine linear_map.continuous_of_bound _ (∥f∥) (λx, _),
-        apply multilinear_map.mk_continuous_norm_le _ (mul_nonneg' (norm_nonneg _) (norm_nonneg _)),
-      end,
-      .. finv },
-  left_inv := λf, begin
-    ext x m,
-    change f (cons x m 0) (tail (cons x m)) = f x m,
-    rw [cons_zero, tail_cons]
-  end,
-  right_inv := λf, begin
-    ext m,
-    change f (cons (m 0) (tail m)) = f m,
-    rw cons_self_tail
-  end }
+  inv_fun := continuous_multilinear_map.split_variables,
+  left_inv := continuous_linear_map.split_variables_merge_variables,
+  right_inv := continuous_multilinear_map.merge_variables_split_variables }
 
 /-- The space of continuous multilinear maps on `Π(i : fin (n+1)), E i` is canonically isomorphic to
 the space of continuous linear maps from `E 0` to the space of continuous multilinear maps on
@@ -475,13 +521,4 @@ def linear_to_multilinear_equiv_multilinear_cont :
   end,
   .. linear_to_multilinear_equiv_multilinear_cont_aux 𝕜 E E₂ }
 
-variables {𝕜 E E₂}
-.
-
-
-set_option class.instance_max_depth 352
-
-@[simp] lemma linear_to_multilinear_equiv_multilinear_cont_apply
-  (f : E 0 →L[𝕜] (continuous_multilinear_map 𝕜 (λ(i : fin n), E i.succ) E₂))
-  (m : Π(i : fin n.succ), E i) :
-  linear_to_multilinear_equiv_multilinear_cont 𝕜 E E₂ f m = f (m 0) (tail m) := rfl
+end isomorphisms

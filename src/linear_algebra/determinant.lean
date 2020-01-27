@@ -183,7 +183,7 @@ begin
     apply (not_congr mem_singleton).mpr,
     exact (not_congr swap_mul_eq_iff).mpr i_ne_j },
 
-  apply @finset.sum_cancels_of_partition_cancels _ _ _ _ _ (mod_swap i j),
+  apply finset.sum_cancels_of_partition_cancels (mod_swap i j),
   intros σ _,
   erw [filter_or, filter_eq', filter_eq', if_pos (mem_univ σ), if_pos (mem_univ (swap i j * σ)),
     sum_union (this σ), sum_singleton, sum_singleton],

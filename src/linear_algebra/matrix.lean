@@ -186,6 +186,7 @@ linear_equiv.trans (linear_equiv.arrow_congr (equiv_fun_basis hv₁) (equiv_fun_
 end linear_equiv_matrix
 
 namespace matrix
+open_locale matrix
 
 section trace
 
@@ -203,6 +204,9 @@ def diag : (matrix n n M) →ₗ[R] n → M := {
   (diag : (matrix n n R) →ₗ[R] n → R) 1 = λ i, 1 := by {
     dunfold diag, ext, simp [one_val_eq], }
 
+@[simp] lemma diag_transpose (A : matrix n n R) :
+  @diag n _ R R _ _ _ Aᵀ = @diag n _ R R _ _ _ A := rfl
+
 protected lemma smul_sum {α : Type u} {s : finset α} {f : α → M} {c : R} :
   c • s.sum f = s.sum (λx, c • f x) := (s.sum_hom _).symm
 
@@ -218,6 +222,17 @@ def trace : (matrix n n M) →ₗ[R] M := {
   (trace : (matrix n n R) →ₗ[R] R) 1 = fintype.card n := by {
     have h : @trace n _ R R _ _ _ 1 = finset.univ.sum (@diag n _ R R _ _ _ 1) := rfl,
     rw [h, diag_one, finset.sum_const, add_monoid.smul_one], refl, }
+
+@[simp] lemma trace_transpose (A : matrix n n R) :
+  @trace n _ R R _ _ _ Aᵀ = @trace n _ R R _ _ _ A := rfl
+
+lemma trace_transpose_mul [decidable_eq n] [decidable_eq m] (A : matrix m n R) (B : matrix n m R) :
+  @trace m _ R R _ _ _ (A ⬝ B) = @trace n _ R R _ _ _ (Aᵀ ⬝ Bᵀ) := finset.sum_comm
+
+lemma trace_mul_comm {S : Type v} [comm_ring S] [decidable_eq n] [decidable_eq m]
+  (A : matrix m n S) (B : matrix n m S) :
+  @trace m _ S S _ _ _ (A ⬝ B) = @trace n _ S S _ _ _ (B ⬝ A) :=
+  by rw [←trace_transpose, trace_transpose_mul, transpose_mul]
 
 end trace
 

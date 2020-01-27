@@ -63,7 +63,9 @@ attribute [derive inhabited]
   string_imp string.iterator_imp
   rbnode.color
   ordering
-  unification_constraint bin_tree pprod unification_hint
+  unification_constraint pprod unification_hint
+
+instance {α} : inhabited (bin_tree α) := ⟨bin_tree.empty⟩
 
 instance : inhabited unsigned := ⟨0⟩
 instance : inhabited string.iterator := string.iterator_imp.inhabited

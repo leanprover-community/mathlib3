@@ -16,6 +16,7 @@ def arity (α : Type u) : nat → Type u
 
 namespace arity
 
+/-- Constant `n`-ary function with value `a`. -/
 def const {α : Type u} (a : α) : ∀ n, arity α n
 | 0 := a
 | (n+1) := λ _, const n

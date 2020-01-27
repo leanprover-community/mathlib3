@@ -11,6 +11,8 @@ import category.traversable.equiv category.traversable.instances data.lazy_list
 universes u
 
 namespace thunk
+
+/-- Creates a thunk with a (non-lazy) constant value. -/
 def mk {α} (x : α) : thunk α := λ _, x
 
 instance {α : Type u} [decidable_eq α] : decidable_eq (thunk α) | a b :=

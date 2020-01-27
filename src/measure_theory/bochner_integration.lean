@@ -1143,10 +1143,9 @@ begin
   -- Use the sandwich theorem
   refine tendsto_of_tendsto_of_tendsto_of_le_of_le zero_tendsto_zero lintegral_norm_tendsto_zero _ _,
   -- Show `0 ≤ ∥∫ a, F n a - ∫ f∥` for all `n`
-  { simp only [filter.mem_at_top_sets, norm_nonneg, set.mem_set_of_eq, forall_true_iff,
-      exists_const] },
+  { simp only [filter.eventually_at_top, norm_nonneg, forall_true_iff, exists_const] },
   -- Show `∥∫ a, F n a - ∫ f∥ ≤ ∫ a, ∥F n a - f a∥` for all `n`
-  { simp only [mem_at_top_sets, mem_set_of_eq],
+  { simp only [filter.eventually_at_top],
     use 0,
     assume n hn,
     have h₁ : integrable (F n) := integrable_of_integrable_bound bound_integrable (h_bound _),

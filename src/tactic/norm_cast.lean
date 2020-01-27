@@ -160,11 +160,10 @@ do
   let rhs_head_coes := count_head_coes rhs,
   let rhs_internal_coes := count_internal_coes rhs,
   if lhs_head_coes = 0 ∧ lhs_internal_coes ≥ 1 then
-    return elim -- abs ↑n = ↑n
-    --if rhs_head_coes = 0 ∧ rhs_internal_coes = 0 then
-    --  return elim
-    --else
-    --  fail "norm_cast: badly shaped elim lemma, rhs can't contain coes"
+    if rhs_head_coes = 0 ∧ rhs_internal_coes = 0 then
+      return elim
+    else
+      fail "norm_cast: badly shaped elim lemma, rhs can't contain coes"
   else if lhs_head_coes = 1 ∧ lhs_internal_coes = 0 then
     if rhs_head_coes = 0 then
       if rhs_internal_coes ≥ 1 then
@@ -208,6 +207,8 @@ do
   let rhs_head_coes     := count_head_coes rhs,
   let rhs_internal_coes := count_internal_coes rhs,
   if lhs_head_coes = 0 then do
+    --TODO: second condition removed until 'count_coes' is updated
+    when (¬ (rhs_head_coes = 0 /-∧ rhs_internal_coes = 0-/)) (fail "norm_cast: badly shaped elim lemma, rhs can't contain coes"),
     return elim
   else if lhs_head_coes = 1 then do
     guard (rhs_head_coes = 0) <|> fail "norm_cast: badly shaped lemma, rhs can't start with coe",

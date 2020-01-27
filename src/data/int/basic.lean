@@ -49,7 +49,7 @@ lemma coe_nat_ne_zero_iff_pos {n : ℕ} : (n : ℤ) ≠ 0 ↔ 0 < n :=
 
 lemma coe_nat_succ_pos (n : ℕ) : 0 < (n.succ : ℤ) := int.coe_nat_pos.2 (succ_pos n)
 
-@[simp, norm_cast] theorem coe_nat_abs (n : ℕ) : abs (n : ℤ) = n :=
+@[simp, norm_cast elim] theorem coe_nat_abs (n : ℕ) : abs (n : ℤ) = n :=
 abs_of_nonneg (coe_nat_nonneg n)
 
 /- succ and pred -/

@@ -303,22 +303,22 @@ by apply rat.eq_cast (λ n, ((n : ℝ) : ℂ)); simp
 theorem re_eq_add_conj (z : ℂ) : (z.re : ℂ) = (z + conj z) / 2 :=
 by rw [add_conj]; simp; rw [mul_div_cancel_left (z.re:ℂ) two_ne_zero']
 
-@[simp, norm_cast] lemma nat_cast_re (n : ℕ) : (n : ℂ).re = n :=
+@[simp, norm_cast elim] lemma nat_cast_re (n : ℕ) : (n : ℂ).re = n :=
 by rw [← of_real_nat_cast, of_real_re]
 
-@[simp, norm_cast] lemma nat_cast_im (n : ℕ) : (n : ℂ).im = 0 :=
+@[simp, norm_cast elim] lemma nat_cast_im (n : ℕ) : (n : ℂ).im = 0 :=
 by rw [← of_real_nat_cast, of_real_im]
 
-@[simp, norm_cast] lemma int_cast_re (n : ℤ) : (n : ℂ).re = n :=
+@[simp, norm_cast elim] lemma int_cast_re (n : ℤ) : (n : ℂ).re = n :=
 by rw [← of_real_int_cast, of_real_re]
 
-@[simp, norm_cast] lemma int_cast_im (n : ℤ) : (n : ℂ).im = 0 :=
+@[simp, norm_cast elim] lemma int_cast_im (n : ℤ) : (n : ℂ).im = 0 :=
 by rw [← of_real_int_cast, of_real_im]
 
-@[simp, norm_cast] lemma rat_cast_re (q : ℚ) : (q : ℂ).re = q :=
+@[simp, norm_cast elim] lemma rat_cast_re (q : ℚ) : (q : ℂ).re = q :=
 by rw [← of_real_rat_cast, of_real_re]
 
-@[simp, norm_cast] lemma rat_cast_im (q : ℚ) : (q : ℂ).im = 0 :=
+@[simp, norm_cast elim] lemma rat_cast_im (q : ℚ) : (q : ℂ).im = 0 :=
 by rw [← of_real_rat_cast, of_real_im]
 
 noncomputable def abs (z : ℂ) : ℝ := (norm_sq z).sqrt
@@ -415,7 +415,7 @@ if hz : z = 0 then by simp [hz, zero_le_one]
 else by rw [_root_.abs_div, abs_abs]; exact
   div_le_of_le_mul (abs_pos.2 hz) (by rw mul_one; exact abs_im_le_abs _)
 
-@[simp, norm_cast] lemma abs_cast_nat (n : ℕ) : abs (n : ℂ) = n :=
+@[simp, norm_cast elim] lemma abs_cast_nat (n : ℕ) : abs (n : ℂ) = n :=
 by rw [← of_real_nat_cast, abs_of_nonneg (nat.cast_nonneg n)]
 
 lemma norm_sq_eq_abs (x : ℂ) : norm_sq x = abs x ^ 2 :=

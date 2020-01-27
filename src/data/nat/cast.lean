@@ -99,7 +99,7 @@ by by_cases a ≤ b; simp [h, min]
 @[simp, norm_cast] theorem cast_max [decidable_linear_ordered_semiring α] {a b : ℕ} : (↑(max a b) : α) = max a b :=
 by by_cases a ≤ b; simp [h, max]
 
-@[simp, norm_cast] theorem abs_cast [decidable_linear_ordered_comm_ring α] (a : ℕ) : abs (a : α) = a :=
+@[simp, norm_cast elim] theorem abs_cast [decidable_linear_ordered_comm_ring α] (a : ℕ) : abs (a : α) = a :=
 abs_of_nonneg (cast_nonneg a)
 
 end nat

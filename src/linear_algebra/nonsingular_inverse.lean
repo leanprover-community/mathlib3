@@ -142,7 +142,8 @@ begin
     refl }
 end
 
-lemma cramer_is_linear : is_linear_map α (cramer_map A) := begin
+lemma cramer_is_linear : is_linear_map α (cramer_map A) :=
+begin
   split; intros; ext i,
   { apply (cramer_map_is_linear A i).1 },
   { apply (cramer_map_is_linear A i).2 }
@@ -253,7 +254,8 @@ begin
   rw [pi.smul_apply, smul_eq_mul, mul_ite]
 end
 
-lemma mul_adjugate (A : matrix n n α) : A ⬝ adjugate A = A.det • 1 := begin
+lemma mul_adjugate (A : matrix n n α) : A ⬝ adjugate A = A.det • 1 :=
+begin
   ext i j,
   rw [mul_val, smul_val, one_val, mul_ite],
   calc

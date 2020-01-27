@@ -207,16 +207,13 @@ def diag : (matrix n n M) →ₗ[R] n → M := {
 @[simp] lemma diag_transpose (A : matrix n n R) :
   @diag n _ R R _ _ _ Aᵀ = @diag n _ R R _ _ _ A := rfl
 
-protected lemma smul_sum {α : Type u} {s : finset α} {f : α → M} {c : R} :
-  c • s.sum f = s.sum (λx, c • f x) := (s.sum_hom _).symm
-
 /--
 The trace of a square matrix.
 -/
 def trace : (matrix n n M) →ₗ[R] M := {
   to_fun := finset.univ.sum ∘ (diag : (matrix n n M) →ₗ[R] n → M),
   add    := by { intros, apply finset.sum_add_distrib, },
-  smul   := by { intros, simp [matrix.smul_sum], } }
+  smul   := by { intros, simp [finset.smul_sum], } }
 
 @[simp] lemma trace_one [decidable_eq n] :
   (trace : (matrix n n R) →ₗ[R] R) 1 = fintype.card n := by {

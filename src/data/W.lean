@@ -30,7 +30,7 @@ inductive W {α : Type*} (β : α → Type*)
 
 namespace W
 
-variables {α : Type*} {β : α → Type*} [Π a : α, fintype (β a)] [Π a : α, encodable (β a)]
+variables {α : Type*} {β : α → Type*} [Π a : α, fintype (β a)]
 
 /-- The depth of a finitely branching tree. -/
 def depth : W β → ℕ

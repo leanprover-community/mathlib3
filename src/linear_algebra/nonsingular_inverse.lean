@@ -65,10 +65,6 @@ variables {A : matrix n n α} {i j : n} {b : n → α}
 @[simp] lemma update_column_self : update_column A i b i = b := function.update_same i b A
 @[simp] lemma update_row_self : update_row A j b i j = b i := function.update_same j (b i) (A i)
 
-@[simp] lemma update_column_eq {i' : n} (h : i = i') : update_column A i b i' = b :=
-by {rw [h], apply update_column_self}
-@[simp] lemma update_row_eq {j' : n} (h : j = j') : update_row A j b i j' = b i :=
-by {rw [h], apply update_row_self}
 
 @[simp] lemma update_column_ne {i' : n} (i_ne : i' ≠ i) : update_column A i b i' = A i' :=
 function.update_noteq i_ne b A
@@ -240,7 +236,7 @@ begin
       exact if_neg h },
     rw this,
     apply prod_eq_zero (mem_univ (σ⁻¹ i)),
-    erw [update_column_eq (apply_symm_apply σ i).symm],
+    erw [apply_symm_apply σ i, update_column_self],
     apply if_neg,
     intro h',
     exact h ((symm_apply_eq σ).mp h'.symm) }

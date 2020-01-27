@@ -22,7 +22,7 @@ begin
     case list.nil { exact le_refl _ },
     case list.cons : a l ih {
       suffices : list.cons <$> pure a <*> pure l ≤ list.cons <$> 𝓝 a <*> traverse 𝓝 l,
-      { simpa only [-filter.pure_def] with functor_norm using this },
+      { simpa only [] with functor_norm using this },
       exact filter.seq_mono (filter.map_mono $ pure_le_nhds a) ih } },
   { assume l s hs,
     rcases (mem_traverse_sets_iff _ _).1 hs with ⟨u, hu, hus⟩, clear as hs,
@@ -101,7 +101,7 @@ lemma tendsto_insert_nth' {a : α} : ∀{n : ℕ} {l : list α},
 | 0     l  := tendsto_cons'
 | (n+1) [] :=
   suffices tendsto (λa, []) (𝓝 a) (𝓝 ([] : list α)),
-    by simpa [nhds_nil, tendsto, map_prod, -filter.pure_def, (∘), insert_nth],
+    by simpa [nhds_nil, tendsto, map_prod, (∘), insert_nth],
   tendsto_const_nhds
 | (n+1) (a'::l) :=
   have (𝓝 a).prod (𝓝 (a' :: l)) =

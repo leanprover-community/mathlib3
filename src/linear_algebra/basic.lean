@@ -59,27 +59,6 @@ universes u v w x y z u' v' w' y'
 variables {R : Type u} {K : Type u'} {M : Type v} {V : Type v'} {M₂ : Type w} {V₂ : Type w'}
 variables {M₃ : Type y} {V₃ : Type y'} {M₄ : Type z} {ι : Type x}
 
-namespace finset
-
-lemma smul_sum {α : Type u} {M : Type v} {R : Type w}
-  [ring R] [add_comm_group M] [module R M]
-  {s : finset α} {a : R} {f : α → M} :
-  a • (s.sum f) = s.sum (λc, a • f c) :=
-(s.sum_hom ((•) a)).symm
-
-lemma smul_sum' {α : Type u} {M : Type v} {R : Type w}
-  [ring R] [add_comm_group M] [module R M]
-  {s : finset α} {f : α → R} {x : M} :
-  (s.sum f) • x = s.sum (λa, (f a) • x) :=
-begin
--- TODO : where should I put this instance?
-  haveI : is_add_monoid_hom (λ (r : R), r • x) :=
-    { map_add := λ a b, add_smul _ _ _, map_zero := zero_smul _ _ },
-  exact (s.sum_hom (λ (r : R), r • x)).symm
-end
-
-end finset
-
 namespace finsupp
 
 lemma smul_sum {α : Type u} {β : Type v} {R : Type w} {M : Type y}
@@ -334,17 +313,30 @@ open set lattice
 instance : partial_order (submodule R M) :=
 partial_order.lift (coe : submodule R M → set M) (λ a b, ext') (by apply_instance)
 
-lemma le_def {p p' : submodule R M} : p ≤ p' ↔ (p : set M) ⊆ p' := iff.rfl
+variables {p p'}
 
-lemma le_def' {p p' : submodule R M} : p ≤ p' ↔ ∀ x ∈ p, x ∈ p' := iff.rfl
+lemma le_def : p ≤ p' ↔ (p : set M) ⊆ p' := iff.rfl
+
+lemma le_def' : p ≤ p' ↔ ∀ x ∈ p, x ∈ p' := iff.rfl
+
+lemma lt_def : p < p' ↔ (p : set M) ⊂ p' := iff.rfl
+
+lemma not_le_iff_exists : ¬ (p ≤ p') ↔ ∃ x ∈ p, x ∉ p' := not_subset
+
+lemma exists_of_lt {p p' : submodule R M} : p < p' → ∃ x ∈ p', x ∉ p := exists_of_ssubset
+
+lemma lt_iff_le_and_exists : p < p' ↔ p ≤ p' ∧ ∃ x ∈ p', x ∉ p :=
+by rw [lt_iff_le_not_le, not_le_iff_exists]
 
 /-- If two submodules p and p' satisfy p ⊆ p', then `of_le p p'` is the linear map version of this
 inclusion. -/
-def of_le {p p' : submodule R M} (h : p ≤ p') : p →ₗ[R] p' :=
+def of_le (h : p ≤ p') : p →ₗ[R] p' :=
 linear_map.cod_restrict _ p.subtype $ λ ⟨x, hx⟩, h hx
 
-@[simp] theorem of_le_apply {p p' : submodule R M} (h : p ≤ p')
+@[simp] theorem of_le_apply (h : p ≤ p')
   (x : p) : (of_le h x : M) = x := rfl
+
+variables (p p')
 
 lemma subtype_comp_of_le (p q : submodule R M) (h : p ≤ q) :
   (submodule.subtype q).comp (of_le h) = submodule.subtype p :=
@@ -375,7 +367,7 @@ instance : has_top (submodule R M) :=
 @[simp] lemma mem_top : x ∈ (⊤ : submodule R M) := trivial
 
 lemma eq_bot_of_zero_eq_one (zero_eq_one : (0 : R) = 1) : p = ⊥ :=
-by ext x; simp [semimodule.eq_zero_of_zero_eq_one _ x zero_eq_one]
+by ext x; simp [semimodule.eq_zero_of_zero_eq_one x zero_eq_one]
 
 instance : order_top (submodule R M) :=
 { top := ⊤,
@@ -1315,21 +1307,36 @@ section
 variable (M)
 
 /-- The identity map is a linear equivalence. -/
-def refl : M ≃ₗ[R] M := { .. linear_map.id, .. equiv.refl M }
+@[refl] def refl : M ≃ₗ[R] M := { .. linear_map.id, .. equiv.refl M }
 end
 
 /-- Linear equivalences are symmetric. -/
-def symm (e : M ≃ₗ[R] M₂) : M₂ ≃ₗ[R] M :=
+@[symm] def symm (e : M ≃ₗ[R] M₂) : M₂ ≃ₗ[R] M :=
 { .. e.to_linear_map.inverse e.inv_fun e.left_inv e.right_inv,
   .. e.to_equiv.symm }
 
 /-- Linear equivalences are transitive. -/
-def trans (e₁ : M ≃ₗ[R] M₂) (e₂ : M₂ ≃ₗ[R] M₃) : M ≃ₗ[R] M₃ :=
+@[trans] def trans (e₁ : M ≃ₗ[R] M₂) (e₂ : M₂ ≃ₗ[R] M₃) : M ≃ₗ[R] M₃ :=
 { .. e₂.to_linear_map.comp e₁.to_linear_map,
   .. e₁.to_equiv.trans e₂.to_equiv }
 
+/-- A linear equivalence is an additive equivalence. -/
+def to_add_equiv (e : M ≃ₗ[R] M₂) : M ≃+ M₂ := { map_add' := e.add, .. e }
+
 @[simp] theorem apply_symm_apply (e : M ≃ₗ[R] M₂) (c : M₂) : e (e.symm c) = c := e.6 c
 @[simp] theorem symm_apply_apply (e : M ≃ₗ[R] M₂) (b : M) : e.symm (e b) = b := e.5 b
+
+@[simp] theorem map_add (e : M ≃ₗ[R] M₂) (a b : M) : e (a + b) = e a + e b := e.add a b
+@[simp] theorem map_zero (e : M ≃ₗ[R] M₂) : e 0 = 0 := e.to_linear_map.map_zero
+@[simp] theorem map_neg (e : M ≃ₗ[R] M₂) (a : M) : e (-a) = -e a := e.to_linear_map.map_neg a
+@[simp] theorem map_sub (e : M ≃ₗ[R] M₂) (a b : M) : e (a - b) = e a - e b :=
+e.to_linear_map.map_sub a b
+@[simp] theorem map_smul (e : M ≃ₗ[R] M₂) (c : R) (x : M) : e (c • x) = c • e x := e.smul c x
+
+@[simp] theorem map_eq_zero_iff (e : M ≃ₗ[R] M₂) {x : M} : e x = 0 ↔ x = 0 :=
+e.to_add_equiv.map_eq_zero_iff
+@[simp] theorem map_ne_zero_iff (e : M ≃ₗ[R] M₂) {x : M} : e x ≠ 0 ↔ x ≠ 0 :=
+e.to_add_equiv.map_ne_zero_iff
 
 /-- A bijective linear map is a linear equivalence. Here, bijectivity is described by saying that
 the kernel of `f` is `{0}` and the range is the universal set. -/

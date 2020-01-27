@@ -84,8 +84,8 @@ universe u
 open topological_space set
 
 /-- Core structure used to create a smooth bundle above `M` (a manifold over the model with
-corner I) with fiber the normed vector space `F` over `𝕜`, which is trivial in the chart domains of
-`M`. This structure registers the changes in the fibers when one changes coordinate charts in the
+corner `I`) with fiber the normed vector space `F` over `𝕜`, which is trivial in the chart domains
+of `M`. This structure registers the changes in the fibers when one changes coordinate charts in the
 base. We do not require the change of coordinates of the fibers to be linear, only smooth.
 Therefore, the fibers of the resulting bundle will not inherit a canonical vector space structure
 in general. -/

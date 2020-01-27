@@ -400,11 +400,11 @@ begin
   rcases this with ⟨U₁, U₁_nhd, V₁, V₁_nhd, H⟩,
 
   have : ∃ x₁, x₁ ∈ U₁ := exists_mem_of_ne_empty
-    (forall_sets_neq_empty_iff_neq_bot.2 de.comap_nhds_neq_bot U₁ U₁_nhd),
+    (forall_sets_ne_empty_iff_ne_bot.2 de.comap_nhds_ne_bot U₁ U₁_nhd),
   rcases this with ⟨x₁, x₁_in⟩,
 
   have : ∃ y₁, y₁ ∈ V₁ := exists_mem_of_ne_empty
-    (forall_sets_neq_empty_iff_neq_bot.2 df.comap_nhds_neq_bot V₁ V₁_nhd),
+    (forall_sets_ne_empty_iff_ne_bot.2 df.comap_nhds_ne_bot V₁ V₁_nhd),
   rcases this with ⟨y₁, y₁_in⟩,
 
   rcases (extend_Z_bilin_aux de df hφ W_nhd x₀ y₁) with ⟨U₂, U₂_nhd, HU⟩,
@@ -441,7 +441,7 @@ begin
   rintro ⟨x₀, y₀⟩,
   split,
   { apply map_ne_bot,
-    apply comap_neq_bot,
+    apply comap_ne_bot,
 
     intros U h,
     rcases exists_mem_of_ne_empty (mem_closure_iff_nhds.1 ((de.prod df).dense (x₀, y₀)) U h)

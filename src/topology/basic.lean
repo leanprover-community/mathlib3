@@ -280,13 +280,7 @@ by rw subset.antisymm subset_closure h; exact is_closed_closure
 closure_eq_of_is_closed is_closed_empty
 
 lemma closure_empty_iff (s : set α) : closure s = ∅ ↔ s = ∅ :=
-begin
-  split; intro h,
-  { rw set.eq_empty_iff_forall_not_mem,
-    intros x H,
-    simpa only [h] using subset_closure H },
-  { exact (eq.symm h) ▸ closure_empty },
-end
+⟨subset_eq_empty subset_closure, λ h, h.symm ▸ closure_empty⟩
 
 @[simp] lemma closure_univ : closure (univ : set α) = univ :=
 closure_eq_of_is_closed is_closed_univ
@@ -475,9 +469,7 @@ lemma tendsto_const_nhds {a : α} {f : filter β} : tendsto (λb:β, a) f (𝓝 
 tendsto_nhds.mpr $ assume s hs ha, univ_mem_sets' $ assume _, ha
 
 lemma pure_le_nhds : pure ≤ (𝓝 : α → filter α) :=
-assume a, by rw nhds_def; exact le_infi
-  (assume s, le_infi $ assume ⟨h₁, _⟩, principal_mono.mpr $
-    singleton_subset_iff.2 h₁)
+assume a s hs, mem_pure_sets.2 $ mem_of_nhds hs
 
 lemma tendsto_pure_nhds {α : Type*} [topological_space β] (f : α → β) (a : α) :
   tendsto f (pure a) (𝓝 (f a)) :=
@@ -486,11 +478,8 @@ begin
   exact pure_le_nhds (f a)
 end
 
-@[simp] lemma nhds_neq_bot {a : α} : 𝓝 a ≠ ⊥ :=
-assume : 𝓝 a = ⊥,
-have pure a = (⊥ : filter α),
-  from lattice.bot_unique $ this ▸ pure_le_nhds a,
-pure_neq_bot this
+@[simp] lemma nhds_ne_bot {a : α} : 𝓝 a ≠ ⊥ :=
+ne_bot_of_le_ne_bot pure_ne_bot (pure_le_nhds a)
 
 lemma interior_eq_nhds {s : set α} : interior s = {a | 𝓝 a ≤ principal s} :=
 set.ext $ λ x, by simp only [mem_interior, le_principal_iff, mem_nhds_sets_iff]; refl
@@ -556,11 +545,11 @@ lemma mem_of_closed_of_tendsto {f : β → α} {b : filter β} {a : α} {s : set
   (hb : b ≠ ⊥) (hf : tendsto f b (𝓝 a)) (hs : is_closed s) (h : f ⁻¹' s ∈ b) : a ∈ s :=
 have b.map f ≤ 𝓝 a ⊓ principal s,
   from le_trans (le_inf (le_refl _) (le_principal_iff.mpr h)) (inf_le_inf hf (le_refl _)),
-is_closed_iff_nhds.mp hs a $ neq_bot_of_le_neq_bot (map_ne_bot hb) this
+is_closed_iff_nhds.mp hs a $ ne_bot_of_le_ne_bot (map_ne_bot hb) this
 
 lemma mem_of_closed_of_tendsto' {f : β → α} {x : filter β} {a : α} {s : set α}
   (hf : tendsto f x (𝓝 a)) (hs : is_closed s) (h : x ⊓ principal (f ⁻¹' s) ≠ ⊥) : a ∈ s :=
-is_closed_iff_nhds.mp hs _ $ neq_bot_of_le_neq_bot (@map_ne_bot _ _ _ f h) $
+is_closed_iff_nhds.mp hs _ $ ne_bot_of_le_ne_bot (@map_ne_bot _ _ _ f h) $
   le_inf (le_trans (map_mono $ inf_le_left) hf) $
     le_trans (map_mono $ inf_le_right_of_le $ by simp only [comap_principal, le_principal_iff]; exact subset.refl _) (@map_comap_le _ _ _ f)
 
@@ -613,7 +602,7 @@ lemma locally_finite_subset
 assume a,
 let ⟨t, ht₁, ht₂⟩ := hf₂ a in
 ⟨t, ht₁, finite_subset ht₂ $ assume i hi,
-  neq_bot_of_le_neq_bot hi $ inter_subset_inter (hf i) $ subset.refl _⟩
+  ne_bot_of_le_ne_bot hi $ inter_subset_inter (hf i) $ subset.refl _⟩
 
 lemma is_closed_Union_of_locally_finite {f : β → set α}
   (h₁ : locally_finite f) (h₂ : ∀i, is_closed (f i)) : is_closed (⋃i, f i) :=
@@ -694,6 +683,12 @@ lemma continuous_iff_continuous_at {f : α → β} : continuous f ↔ ∀ x, con
 
 lemma continuous_const {b : β} : continuous (λa:α, b) :=
 continuous_iff_continuous_at.mpr $ assume a, tendsto_const_nhds
+
+lemma continuous_at_const {x : α} {b : β} : continuous_at (λ a:α, b) x :=
+continuous_const.continuous_at
+
+lemma continuous_at_id {x : α} : continuous_at id x :=
+continuous_id.continuous_at
 
 lemma continuous_iff_is_closed {f : α → β} :
   continuous f ↔ (∀s, is_closed s → is_closed (f ⁻¹' s)) :=
@@ -790,7 +785,7 @@ have ∀ (a : α), 𝓝 a ⊓ principal s ≠ ⊥ → 𝓝 (f a) ⊓ principal (
     from le_inf
       (le_trans (map_mono inf_le_left) $ by rw [continuous_iff_continuous_at] at h; exact h a)
       (le_trans (map_mono inf_le_right) $ by simp; exact subset.refl _),
-  neq_bot_of_le_neq_bot h₁ h₂,
+  ne_bot_of_le_ne_bot h₁ h₂,
 by simp [image_subset_iff, closure_eq_nhds]; assumption
 
 lemma mem_closure {s : set α} {t : set β} {f : α → β} {a : α}

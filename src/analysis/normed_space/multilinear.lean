@@ -406,11 +406,11 @@ section currying
 ### Currying
 
 We associate to a continuous multilinear map in `n+1` variables (i.e., based on `fin n.succ`) two
-curried functions, named `f.uncurry_left` (which is a continuous linear map on `E 0` taking values
-in continuous multilinear maps in `n` variables) and `f.uncurry_right (wich is a continuous
+curried functions, named `f.curry_left` (which is a continuous linear map on `E 0` taking values
+in continuous multilinear maps in `n` variables) and `f.curry_right (wich is a continuous
 multilinear map in `n` variables taking values in continuous linear maps on `E 0`). In both
 constructions, the variable that is singled out is `0`, to take advantage of the operations
-`cons` and `tail` on `fin n`.
+`cons` and `tail` on `fin n`. The inverse operations are called `uncurry_left` and `uncurry_right`.
 
 We also register continuous linear equiv versions of these correspondances, in
 `continuous_multilinear_curry_left_equiv` and `continuous_multilinear_curry_right_equiv`.

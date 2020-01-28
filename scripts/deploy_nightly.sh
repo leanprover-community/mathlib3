@@ -12,6 +12,9 @@ set -x				# echo commands
 # github using a different username.
 git config --unset http.https://github.com/.extraheader
 
+# The checkout action produces a shallow repository from which we cannot push.
+git fetch --unshallow || true
+
 git fetch nightly --tags
 
 # Create a tag name based on the current date.

@@ -5,6 +5,7 @@ Authors: Sébastien Gouëzel, Yury Kudryashov
 -/
 
 import analysis.calculus.local_extr
+import analysis.convex.topology
 
 /-!
 # The mean value inequality and equalities
@@ -429,8 +430,8 @@ begin
   { assume t,
     simpa only [one_smul] using ((has_deriv_at_id t).smul_const (y - x)).const_add x },
   have segm : Icc 0 1 ⊆ g ⁻¹' s,
-  { rw [← image_subset_iff, ← segment_eq_image_Icc_zero_one],
-    apply convex_segment_iff.1 hs x y xs ys },
+  { rw [← image_subset_iff, ← segment_eq_image'],
+    apply convex_iff_segment.1 hs xs ys },
   have : f x = f (g 0), by { simp only [g], rw [zero_smul, add_zero] },
   rw this,
   have : f y = f (g 1), by { simp only [g], rw [one_smul, add_sub_cancel'_right] },

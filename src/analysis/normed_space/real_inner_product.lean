@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Zhouhang Zhou
 -/
 
-import analysis.convex algebra.quadratic_discriminant analysis.complex.exponential
+import analysis.convex.basic algebra.quadratic_discriminant analysis.complex.exponential
        analysis.specific_limits
 import tactic.monotonicity
 
@@ -357,10 +357,9 @@ begin
       ∥u - v∥^2 ≤ ∥u - (θ•w + (1-θ)•v)∥^2 :
       begin
         simp only [pow_two], apply mul_self_le_mul_self (norm_nonneg _),
-        rw eq, apply δ_le',
-        apply convex_iff.1 h hw hv,
-        repeat { exact subtype.mem _ },
-        exact ⟨le_of_lt hθ₁, hθ₂⟩,
+        rw [eq, add_comm], apply δ_le',
+        apply convex_iff_Icc.1 h hv hw,
+        exacts [le_of_lt hθ₁, hθ₂],
       end
       ... = ∥(u - v) - θ • (w - v)∥^2 :
       begin

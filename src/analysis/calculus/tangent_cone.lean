@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Sébastien Gouëzel
 -/
 
-import analysis.convex analysis.normed_space.bounded_linear_maps analysis.specific_limits
+import analysis.convex.basic analysis.normed_space.bounded_linear_maps analysis.specific_limits
 
 /-!
 # Tangent cone
@@ -227,10 +227,11 @@ begin
   let d := λn:ℕ, (c n)⁻¹ • (y-x),
   refine ⟨c, d, filter.univ_mem_sets' (λn, h _), _, _⟩,
   show x + d n ∈ segment x y,
-  { refine ⟨(c n)⁻¹, ⟨_, _⟩, _⟩,
+  { rw segment_eq_image,
+    refine ⟨(c n)⁻¹, ⟨_, _⟩, _⟩,
     { rw inv_nonneg, apply pow_nonneg, norm_num },
     { apply inv_le_one, apply one_le_pow_of_one_le, norm_num },
-    { simp only [d], abel } },
+    { simp only [d, sub_smul, smul_sub, one_smul], abel } },
   show filter.tendsto (λ (n : ℕ), ∥c n∥) filter.at_top filter.at_top,
   { have : (λ (n : ℕ), ∥c n∥) = c,
       by { ext n, exact abs_of_nonneg (pow_nonneg (by norm_num) _) },
@@ -399,8 +400,8 @@ begin
         exact ⟨δ, δpos, this⟩ } },
     rcases this with ⟨δ, δpos, hδ⟩,
     refine ⟨y-x, _, (y + δ • v) - x, _, δ, δpos, by abel⟩,
-    exact mem_tangent_cone_of_segment_subset (convex_segment_iff.1 conv x y xs ys),
-    exact mem_tangent_cone_of_segment_subset (convex_segment_iff.1 conv x _ xs hδ) },
+    exact mem_tangent_cone_of_segment_subset (convex_iff_segment.1 conv xs ys),
+    exact mem_tangent_cone_of_segment_subset (convex_iff_segment.1 conv xs hδ) },
   have B : ∀v:G, v ∈ submodule.span ℝ (tangent_cone_at ℝ s x),
   { assume v,
     rcases A v with ⟨a, ha, b, hb, δ, hδ, h⟩,

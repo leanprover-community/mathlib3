@@ -600,7 +600,7 @@ omit Is I's
 /-! ### Congruence lemmas for derivatives on manifolds -/
 
 lemma has_mfderiv_within_at.congr_of_mem_nhds_within (h : has_mfderiv_within_at I I' f s x f')
-  (h₁ : {y | f₁ y = f y} ∈ nhds_within x s) (hx : f₁ x = f x) : has_mfderiv_within_at I I' f₁ s x f' :=
+  (h₁ : ∀ᶠ y in nhds_within x s, f₁ y = f y) (hx : f₁ x = f x) : has_mfderiv_within_at I I' f₁ s x f' :=
 begin
   refine ⟨continuous_within_at.congr_of_mem_nhds_within h.1 h₁ hx, _⟩,
   apply has_fderiv_within_at.congr_of_mem_nhds_within h.2,
@@ -618,7 +618,7 @@ lemma has_mfderiv_within_at.congr_mono (h : has_mfderiv_within_at I I' f s x f')
 (h.mono h₁).congr_of_mem_nhds_within (filter.mem_inf_sets_of_right ht) hx
 
 lemma has_mfderiv_at.congr_of_mem_nhds (h : has_mfderiv_at I I' f x f')
-  (h₁ : {y | f₁ y = f y} ∈ 𝓝 x) : has_mfderiv_at I I' f₁ x f' :=
+  (h₁ : ∀ᶠ y in 𝓝 x, f₁ y = f y) : has_mfderiv_at I I' f₁ x f' :=
 begin
   erw ← has_mfderiv_within_at_univ at ⊢ h,
   apply h.congr_of_mem_nhds_within _ (mem_of_nhds h₁ : _),
@@ -628,13 +628,13 @@ end
 include Is I's
 
 lemma mdifferentiable_within_at.congr_of_mem_nhds_within
-  (h : mdifferentiable_within_at I I' f s x) (h₁ : {y | f₁ y = f y} ∈ nhds_within x s)
+  (h : mdifferentiable_within_at I I' f s x) (h₁ : ∀ᶠ y in nhds_within x s, f₁ y = f y)
   (hx : f₁ x = f x) : mdifferentiable_within_at I I' f₁ s x :=
 (h.has_mfderiv_within_at.congr_of_mem_nhds_within h₁ hx).mdifferentiable_within_at
 
 variables (I I')
 lemma mdifferentiable_within_at_congr_of_mem_nhds_within
-  (h₁ : {y | f₁ y = f y} ∈ nhds_within x s) (hx : f₁ x = f x) :
+  (h₁ : ∀ᶠ y in nhds_within x s, f₁ y = f y) (hx : f₁ x = f x) :
   mdifferentiable_within_at I I' f s x ↔ mdifferentiable_within_at I I' f₁ s x :=
 begin
   split,
@@ -642,9 +642,9 @@ begin
     apply h.congr_of_mem_nhds_within h₁ hx },
   { assume h,
     apply h.congr_of_mem_nhds_within _ hx.symm,
-    convert h₁,
-    ext y,
-    exact eq_comm }
+    apply h₁.mono,
+    intro y,
+    apply eq.symm }
 end
 variables {I I'}
 
@@ -661,7 +661,7 @@ lemma mdifferentiable_on.congr_mono (h : mdifferentiable_on I I' f s) (h' : ∀x
 λ x hx, (h x (h₁ hx)).congr_mono h' (h' x hx) h₁
 
 lemma mdifferentiable_at.congr_of_mem_nhds (h : mdifferentiable_at I I' f x)
-  (hL : {y | f₁ y = f y} ∈ 𝓝 x) : mdifferentiable_at I I' f₁ x :=
+  (hL : ∀ᶠ y in 𝓝 x, f₁ y = f y) : mdifferentiable_at I I' f₁ x :=
 ((h.has_mfderiv_at).congr_of_mem_nhds hL).mdifferentiable_at
 
 lemma mdifferentiable_within_at.mfderiv_within_congr_mono (h : mdifferentiable_within_at I I' f s x)
@@ -670,18 +670,18 @@ lemma mdifferentiable_within_at.mfderiv_within_congr_mono (h : mdifferentiable_w
 (has_mfderiv_within_at.congr_mono h.has_mfderiv_within_at hs hx h₁).mfderiv_within hxt
 
 lemma mfderiv_within_congr_of_mem_nhds_within (hs : unique_mdiff_within_at I s x)
-  (hL : {y | f₁ y = f y} ∈ nhds_within x s) (hx : f₁ x = f x) :
+  (hL : ∀ᶠ y in nhds_within x s, f₁ y = f y) (hx : f₁ x = f x) :
   mfderiv_within I I' f₁ s x = (mfderiv_within I I' f s x : _) :=
 begin
   by_cases h : mdifferentiable_within_at I I' f s x,
   { exact ((h.has_mfderiv_within_at).congr_of_mem_nhds_within hL hx).mfderiv_within hs },
   { unfold mfderiv_within,
-    simp [h],
-    rw mdifferentiable_within_at_congr_of_mem_nhds_within I I' hL hx at h,
-    simp [h] }
+    rw [dif_neg, dif_neg],
+    assumption,
+    rwa ← mdifferentiable_within_at_congr_of_mem_nhds_within I I' hL hx }
 end
 
-lemma mfderiv_congr_of_mem_nhds (hL : {y | f₁ y = f y} ∈ 𝓝 x) :
+lemma mfderiv_congr_of_mem_nhds (hL : ∀ᶠ y in 𝓝 x, f₁ y = f y) :
   mfderiv I I' f₁ x = (mfderiv I I' f x : _) :=
 begin
   have A : f₁ x = f x := (mem_of_nhds hL : _),
@@ -846,8 +846,8 @@ lemma has_mfderiv_at_id (x : M) :
   (continuous_linear_map.id : tangent_space I x →L[𝕜] tangent_space I x) :=
 begin
   refine ⟨continuous_id.continuous_at, _⟩,
-  have : {y : E | ((ext_chart_at I x).to_fun ∘ (ext_chart_at I x).inv_fun) y = id y} ∈
-    nhds_within ((ext_chart_at I x).to_fun x) (range (I.to_fun)),
+  have : ∀ᶠ y in nhds_within ((ext_chart_at I x).to_fun x) (range (I.to_fun)),
+    ((ext_chart_at I x).to_fun ∘ (ext_chart_at I x).inv_fun) y = id y,
   { apply filter.mem_sets_of_superset (ext_chart_at_target_mem_nhds_within I x),
     assume y hy,
     simp [(ext_chart_at I x).right_inv hy] },

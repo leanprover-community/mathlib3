@@ -215,19 +215,19 @@ def trace : (matrix n n M) →ₗ[R] M := {
   smul   := by { intros, simp [finset.smul_sum], } }
 
 @[simp] lemma trace_one [decidable_eq n] :
-  trace n R R 1 = fintype.card n := by {
+  trace n R R 1 = fintype.card n :=
 have h : trace n R R 1 = finset.univ.sum (diag n R R 1) := rfl,
-rw [h, diag_one, finset.sum_const, add_monoid.smul_one], refl, }
+by { rw [h, diag_one, finset.sum_const, add_monoid.smul_one], refl, }
 
 @[simp] lemma trace_transpose (A : matrix n n R) : trace n R R Aᵀ = trace n R R A := rfl
 
-lemma trace_transpose_mul [decidable_eq n] [decidable_eq m] (A : matrix m n R) (B : matrix n m R) :
-  trace m R R (A ⬝ B) = trace n R R (Aᵀ ⬝ Bᵀ) := finset.sum_comm
+@[simp] lemma trace_transpose_mul [decidable_eq n] (A : matrix m n R) (B : matrix n m R) :
+  trace n R R (Aᵀ ⬝ Bᵀ) = trace m R R (A ⬝ B) := finset.sum_comm
 
-lemma trace_mul_comm {S : Type v} [comm_ring S] [decidable_eq n] [decidable_eq m]
+lemma trace_mul_comm {S : Type v} [comm_ring S] [decidable_eq n]
   (A : matrix m n S) (B : matrix n m S) :
-  trace m S S (A ⬝ B) = trace n S S (B ⬝ A) :=
-by rw [←trace_transpose, trace_transpose_mul, transpose_mul]
+  trace n S S (B ⬝ A) = trace m S S (A ⬝ B) :=
+by rw [←trace_transpose, ←trace_transpose_mul, transpose_mul]
 
 end trace
 

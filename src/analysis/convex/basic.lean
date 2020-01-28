@@ -607,7 +607,7 @@ end
 variables {t w}
 
 lemma finset.center_mass_subset {t' : finset α} (ht : t ⊆ t')
-  (hws : t'.sum w ≠ 0) (h : ∀ i ∈ t', i ∉ t → w i = 0) :
+  (h : ∀ i ∈ t', i ∉ t → w i = 0) :
   t.center_mass w z = t'.center_mass w z :=
 begin
   rw [center_mass, sum_subset ht h, smul_sum, center_mass, smul_sum],
@@ -616,9 +616,9 @@ begin
   rw [h i hit' hit, zero_smul, smul_zero]
 end
 
-lemma finset.center_mass_filter_ne_zero (hw : t.sum w ≠ 0) :
+lemma finset.center_mass_filter_ne_zero :
   (t.filter (λ i, w i ≠ 0)).center_mass w z = t.center_mass w z :=
-finset.center_mass_subset z (filter_subset _) hw $ λ i hit hit',
+finset.center_mass_subset z (filter_subset _) $ λ i hit hit',
 by simpa only [hit, mem_filter, true_and, ne.def, not_not] using hit'
 
 variable {z}
@@ -694,7 +694,7 @@ lemma convex_on.exists_ge_of_center_mass {f : E → ℝ} (h : convex_on s f)
 begin
   set y := t.center_mass w z,
   have : f y ≤ t.center_mass w (f ∘ z) := h.map_center_mass_le hw₀ hws hz,
-  rw [← finset.center_mass_filter_ne_zero (f ∘ z) (ne_of_gt hws), center_mass, smul_eq_mul,
+  rw [← finset.center_mass_filter_ne_zero (f ∘ z), center_mass, smul_eq_mul,
     ← div_eq_inv_mul] at this,
   rw ← sum_filter_ne_zero at hws,
   -- Lean fails to resolve some typeclass defeq

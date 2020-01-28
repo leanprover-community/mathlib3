@@ -1,6 +1,6 @@
 set -e				# fail on error
 
-GITHUB_USER=leanprover-mathlib-bot
+GITHUB_USER=leanprover-community-bot
 git remote add mathlib "https://$GITHUB_USER:$GITHUB_TOKEN@github.com/leanprover-community/mathlib.git"
 git remote add nightly "https://$GITHUB_USER:$GITHUB_TOKEN@github.com/leanprover-community/mathlib-nightly.git"
 

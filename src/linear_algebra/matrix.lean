@@ -204,7 +204,7 @@ def diag : (matrix n n M) →ₗ[R] n → M := {
 @[simp] lemma diag_one [decidable_eq n] :
   diag n R R 1 = λ i, 1 := by { dunfold diag, ext, simp [one_val_eq] }
 
-@[simp] lemma diag_transpose (A : matrix n n R) : diag n R R Aᵀ = diag n R R A := rfl
+@[simp] lemma diag_transpose (A : matrix n n M) : diag n R M Aᵀ = diag n R M A := rfl
 
 /--
 The trace of a square matrix.
@@ -217,9 +217,9 @@ def trace : (matrix n n M) →ₗ[R] M := {
 @[simp] lemma trace_one [decidable_eq n] :
   trace n R R 1 = fintype.card n :=
 have h : trace n R R 1 = finset.univ.sum (diag n R R 1) := rfl,
-by { rw [h, diag_one, finset.sum_const, add_monoid.smul_one], refl, }
+by rw [h, diag_one, finset.sum_const, add_monoid.smul_one]; refl
 
-@[simp] lemma trace_transpose (A : matrix n n R) : trace n R R Aᵀ = trace n R R A := rfl
+@[simp] lemma trace_transpose (A : matrix n n M) : trace n R M Aᵀ = trace n R M A := rfl
 
 @[simp] lemma trace_transpose_mul [decidable_eq n] (A : matrix m n R) (B : matrix n m R) :
   trace n R R (Aᵀ ⬝ Bᵀ) = trace m R R (A ⬝ B) := finset.sum_comm

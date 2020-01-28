@@ -71,7 +71,7 @@ variables {E : Type u} [normed_group E] [normed_space ℝ E] {f : E → ℝ} {a 
 is that we require `c n → ∞` instead of `∥c n∥ → ∞`. One can think about `pos_tangent_cone_at`
 as `tangent_cone_at nnreal` but we have no theory of normed semifields yet. -/
 def pos_tangent_cone_at (s : set E) (x : E) : set E :=
-{y : E | ∃(c : ℕ → ℝ) (d : ℕ → E), {n:ℕ | x + d n ∈ s} ∈ (at_top : filter ℕ) ∧
+{y : E | ∃(c : ℕ → ℝ) (d : ℕ → E), (∀ᶠ n in at_top, x + d n ∈ s) ∧
   (tendsto c at_top at_top) ∧ (tendsto (λn, c n • d n) at_top (𝓝 y))}
 
 lemma pos_tangent_cone_at_mono : monotone (λ s, pos_tangent_cone_at s a) :=
@@ -126,8 +126,8 @@ begin
   from tendsto_inf.2 ⟨tendsto_const_nhds.add (tangent_cone_at.lim_zero _ hc' hcd),
     by rwa tendsto_principal⟩,
   rw [add_zero] at hd,
-  replace h : {n : ℕ | f (a + d n) ≤ f a} ∈ at_top, from mem_map.1 (hd h),
-  replace hc : {n | 0 ≤ c n} ∈ at_top, from mem_map.1 (hc (mem_at_top (0:ℝ))),
+  replace h : ∀ᶠ n in at_top, f (a + d n) ≤ f a, from mem_map.1 (hd h),
+  replace hc : ∀ᶠ n in at_top, 0 ≤ c n, from mem_map.1 (hc (mem_at_top (0:ℝ))),
   filter_upwards [h, hc],
   simp only [mem_set_of_eq, smul_eq_mul, mem_preimage, subset_def],
   assume n hnf hn,

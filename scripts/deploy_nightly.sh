@@ -62,6 +62,7 @@ tar czf $SCRIPT_ARCHIVE mathlib-scripts
 ls *.tar.gz
 
 # Create a release associated with the tag and upload the tarballs.
+export GITHUB_TOKEN=$DEPLOY_NIGHTLY_GITHUB_TOKEN
 gothub release -u leanprover-community -r mathlib-nightly -t $MATHLIB_VERSION_STRING -d "Mathlib's .olean files and scripts" --pre-release
 gothub upload -u leanprover-community -r mathlib-nightly -t $MATHLIB_VERSION_STRING -n "$(basename $OLEAN_ARCHIVE)" -f "$OLEAN_ARCHIVE"
 gothub upload -u leanprover-community -r mathlib-nightly -t $MATHLIB_VERSION_STRING -n "$(basename $SCRIPT_ARCHIVE)" -f "$SCRIPT_ARCHIVE"

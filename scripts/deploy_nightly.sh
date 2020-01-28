@@ -1,8 +1,8 @@
 set -e				# fail on error
 
-GITHUB_USER=leanprover-community-bot
-git remote add mathlib "https://$GITHUB_USER:$GITHUB_TOKEN@github.com/leanprover-community/mathlib.git"
-git remote add nightly "https://$GITHUB_USER:$GITHUB_TOKEN@github.com/leanprover-community/mathlib-nightly.git"
+DEPLOY_NIGHTLY_GITHUB_USER=leanprover-community-bot
+git remote add mathlib "https://$DEPLOY_NIGHTLY_GITHUB_USER:$DEPLOY_NIGHTLY_GITHUB_TOKEN@github.com/leanprover-community/mathlib.git"
+git remote add nightly "https://$DEPLOY_NIGHTLY_GITHUB_USER:$DEPLOY_NIGHTLY_GITHUB_TOKEN@github.com/leanprover-community/mathlib-nightly.git"
 
 # After this point, we don't use any secrets in commands.
 set -x				# echo commands

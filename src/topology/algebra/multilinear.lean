@@ -165,8 +165,8 @@ the corresponding multilinear map. -/
 def to_multilinear_map_linear [topological_add_group M₂] :
   (continuous_multilinear_map R M₁ M₂) →ₗ[R] (multilinear_map R M₁ M₂) :=
 { to_fun := λf, f.to_multilinear_map,
-  add := λf g, rfl,
-  smul := λc f, rfl }
+  add    := λf g, rfl,
+  smul   := λc f, rfl }
 
 end comm_ring
 

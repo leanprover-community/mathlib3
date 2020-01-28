@@ -30,11 +30,11 @@ Let `f` be a continuous multilinear map.
   `∥f∥` and `∥m₁ - m₂∥`.
 
 We also register isomorphisms corresponding to currying or uncurrying variables, transforming a
-continuous multilinear function `f` on `n+1` variable into a continuous linear function taking
+continuous multilinear function `f` in `n+1` variables into a continuous linear function taking
 values in continuous multilinear functions in `n` variables, and also into a continuous multilinear
 function in `n` variables taking values in continuous linear functions. These operations are called
 `f.curry_left` and `f.curry_right` respectively (with inverses `f.uncurry_left` and
-`f.uncurry_right`). These operations induce continuous linear equivalences between spaces of
+`f.uncurry_right`). They induce continuous linear equivalences between spaces of
 continuous multilinear functions in `n+1` variables and spaces of continuous linear functions into
 continuous multilinear functions in `n` variables (resp. continuous multilinear functions in `n`
 variables taking values in continuous linear functions), called respectively
@@ -55,7 +55,7 @@ set_option class.instance_max_depth 45
 
 universes u v w w₁ w₂
 variables {𝕜 : Type u} {ι : Type v} {n : ℕ}
-{E : fin n.succ → Type w } {E₁ : ι → Type w₁} {E₂ : Type w₂}
+{E : fin n.succ → Type w} {E₁ : ι → Type w₁} {E₂ : Type w₂}
 [decidable_eq ι] [fintype ι] [nondiscrete_normed_field 𝕜]
 [∀i, normed_group (E i)]  [∀i, normed_group (E₁ i)] [normed_group E₂]
 [∀i, normed_space 𝕜 (E i)] [∀i, normed_space 𝕜 (E₁ i)] [normed_space 𝕜 E₂]
@@ -63,7 +63,7 @@ variables {𝕜 : Type u} {ι : Type v} {n : ℕ}
 /-!
 ### Continuity properties of multilinear maps
 
-We relate continuity of multilinear maps to the inequality ``∥f m∥ ≤ C * univ.prod (λi, ∥m i∥)`, in
+We relate continuity of multilinear maps to the inequality `∥f m∥ ≤ C * univ.prod (λi, ∥m i∥)`, in
 both directions. Along the way, we prove useful bounds on the difference `∥f m₁ - f m₂∥`.
 -/
 namespace multilinear_map
@@ -80,7 +80,7 @@ begin
   its coordinates to bring it to a shell of fixed width around `0`, on which one knows that `f` is
   bounded, and then use the multiplicativity of `f` along each coordinate to deduce the desired
   bound.-/
-  have : continuous_at f 0 := continuous_iff_continuous_at.1 hf _,
+  have : continuous_at f 0 := hf.continuous_at,
   rcases metric.tendsto_nhds_nhds.1 this 1 zero_lt_one with ⟨ε, ε_pos, hε⟩,
   let δ := ε/2,
   have δ_pos : δ > 0 := half_pos ε_pos,
@@ -179,7 +179,7 @@ lemma norm_image_sub_le_of_bound {C : ℝ} (hC : 0 ≤ C)
   ∥f m₁ - f m₂∥ ≤ C * (fintype.card ι) * (max ∥m₁∥ ∥m₂∥) ^ (fintype.card ι - 1) * ∥m₁ - m₂∥ :=
 begin
   have A : ∀ (i : ι), univ.prod (λj, if j = i then ∥m₁ i - m₂ i∥ else max ∥m₁ j∥ ∥m₂ j∥)
-    ≤ ∥m₁ - m₂∥ * (max ∥m₁∥ ∥m₂∥)^(fintype.card ι - 1),
+    ≤ ∥m₁ - m₂∥ * (max ∥m₁∥ ∥m₂∥) ^ (fintype.card ι - 1),
   { assume i,
     calc univ.prod (λj, if j = i then ∥m₁ i - m₂ i∥ else max ∥m₁ j∥ ∥m₂ j∥)
     ≤ (univ : finset ι).prod (piecewise (finset.singleton i) (λ j, ∥m₁ - m₂∥) (λ j, max ∥m₁∥ ∥m₂∥)) :
@@ -224,11 +224,7 @@ begin
   have : ∥m'∥ ≤ 1 + ∥m∥, from calc
     ∥m'∥ = ∥(m' - m) + m∥ : by { congr' 1, abel }
     ... ≤ ∥m' - m∥ + ∥m∥ : norm_add_le _ _
-    ... ≤ 1 + ∥m∥ : begin
-      apply add_le_add_right,
-      rw ← dist_eq_norm,
-      exact le_of_lt h'
-    end,
+    ... ≤ 1 + ∥m∥ : by { apply add_le_add_right, rw ← dist_eq_norm, exact le_of_lt h' },
   have : (max ∥m'∥ ∥m∥) ≤ ∥m∥ + 1, by simp [zero_le_one, this],
   calc
     ∥f m' - f m∥
@@ -243,8 +239,7 @@ end
 condition. -/
 def mk_continuous (C : ℝ) (H : ∀ m, ∥f m∥ ≤ C * univ.prod (λi, ∥m i∥)) :
   continuous_multilinear_map 𝕜 E₁ E₂ :=
-{ cont := f.continuous_of_bound C H,
-  ..f }
+{ cont := f.continuous_of_bound C H, ..f }
 
 end multilinear_map
 
@@ -396,8 +391,7 @@ end continuous_multilinear_map
 `mk_continuous`, then its norm is bounded by the bound given to the constructor if it is
 nonnegative. -/
 lemma multilinear_map.mk_continuous_norm_le (f : multilinear_map 𝕜 E₁ E₂) {C : ℝ} (hC : 0 ≤ C)
-  (H : ∀ m, ∥f m∥ ≤ C * univ.prod (λi, ∥m i∥)) :
-  ∥f.mk_continuous C H∥ ≤ C :=
+  (H : ∀ m, ∥f m∥ ≤ C * univ.prod (λi, ∥m i∥)) : ∥f.mk_continuous C H∥ ≤ C :=
 continuous_multilinear_map.op_norm_le_bound _ hC (λm, H m)
 
 
@@ -412,7 +406,7 @@ multilinear map in `n` variables taking values in continuous linear maps on `E 0
 constructions, the variable that is singled out is `0`, to take advantage of the operations
 `cons` and `tail` on `fin n`. The inverse operations are called `uncurry_left` and `uncurry_right`.
 
-We also register continuous linear equiv versions of these correspondances, in
+We also register continuous linear equiv versions of these correspondences, in
 `continuous_multilinear_curry_left_equiv` and `continuous_multilinear_curry_right_equiv`.
 -/
 set_option class.instance_max_depth 140
@@ -443,8 +437,7 @@ lemma continuous_multilinear_map.norm_map_cons_le
   ∥f (cons x m)∥ ≤ ∥f∥ * ∥x∥ * univ.prod (λi, ∥m i∥) :=
 calc
   ∥f (cons x m)∥ ≤ ∥f∥ * univ.prod (λ(i : fin n.succ), ∥cons x m i∥) : f.le_op_norm _
-  ... = (∥f∥ * ∥x∥) * univ.prod (λi, ∥m i∥) :
-    by { rw prod_univ_succ, simp [mul_assoc] }
+  ... = (∥f∥ * ∥x∥) * univ.prod (λi, ∥m i∥) : by { rw prod_univ_succ, simp [mul_assoc] }
 
 /-- Given a continuous linear map `f` from `E 0` to continuous multilinear maps on `n` variables,
 construct the corresponding continuous multilinear map on `n+1` variables obtained by concatenating
@@ -457,8 +450,7 @@ def continuous_linear_map.uncurry_left
     (∥f∥) (λm, continuous_linear_map.norm_map_tail_right_le f m)
 
 @[simp] lemma continuous_linear_map.uncurry_left_apply
-  (f : E 0 →L[𝕜] (continuous_multilinear_map 𝕜 (λ(i : fin n), E i.succ) E₂))
-  (m : Πi, E i) :
+  (f : E 0 →L[𝕜] (continuous_multilinear_map 𝕜 (λ(i : fin n), E i.succ) E₂)) (m : Πi, E i) :
   f.uncurry_left m = f (m 0) (tail m) := rfl
 
 /-- Given a continuous multilinear map `f` in `n+1` variables, split the first variable to obtain
@@ -593,8 +585,7 @@ let f' : multilinear_map 𝕜 (λ(i : fin n), E i.succ) (E 0 →L[𝕜] E₂) :=
       exact f.norm_map_cons_le x m,
     end,
   add := λ m i x y, by { simp, refl },
-  smul := λ m i x c, by { simp, refl }
-} in
+  smul := λ m i x c, by { simp, refl } } in
 f'.mk_continuous (∥f∥) (λm, linear_map.mk_continuous_norm_le _
   (mul_nonneg' (norm_nonneg _) (prod_nonneg (λj hj, norm_nonneg _))) _)
 

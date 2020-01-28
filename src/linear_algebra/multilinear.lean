@@ -240,7 +240,7 @@ variables taking values in linear maps on `E 0`). In both constructions, the var
 singled out is `0`, to take advantage of the operations `cons` and `tail` on `fin n`.
 The inverse operations are called `uncurry_left` and `uncurry_right`.
 
-We also register linear equiv versions of these correspondances, in
+We also register linear equiv versions of these correspondences, in
 `multilinear_curry_left_equiv` and `multilinear_curry_right_equiv`.
 -/
 open multilinear_map

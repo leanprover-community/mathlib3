@@ -202,7 +202,7 @@ def diag : (matrix n n M) →ₗ[R] n → M := {
   smul   := by { intros, ext, refl, } }
 
 @[simp] lemma diag_one [decidable_eq n] :
-  diag n R R 1 = λ i, 1 := by { dunfold diag, ext, simp [one_val_eq],}
+  diag n R R 1 = λ i, 1 := by { dunfold diag, ext, simp [one_val_eq] }
 
 @[simp] lemma diag_transpose (A : matrix n n R) : diag n R R Aᵀ = diag n R R A := rfl
 

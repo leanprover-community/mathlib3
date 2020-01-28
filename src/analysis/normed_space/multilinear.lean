@@ -30,9 +30,9 @@ Let `f` be a continuous multilinear map.
   `∥f∥` and `∥m₁ - m₂∥`.
 
 We also register isomorphisms corresponding to currying or uncurrying variables, transforming a
-continuous multilinear function on `n+1` variable into a continuous linear function taking values in
-continuous multilinear functions in `n` variables, and also into a continuous multilinear function
-in `n` variables taking values in continuous linear functions. These operations are called
+continuous multilinear function `f` on `n+1` variable into a continuous linear function taking
+values in continuous multilinear functions in `n` variables, and also into a continuous multilinear
+function in `n` variables taking values in continuous linear functions. These operations are called
 `f.curry_left` and `f.curry_right` respectively (with inverses `f.uncurry_left` and
 `f.uncurry_right`). These operations induce continuous linear equivalences between spaces of
 continuous multilinear functions in `n+1` variables and spaces of continuous linear functions into
@@ -392,8 +392,9 @@ f.to_multilinear_map.norm_image_sub_le_of_bound (norm_nonneg _) f.le_op_norm _ _
 
 end continuous_multilinear_map
 
-/-- A continuous multilinear map constructed from a multilinear map via the constructor
-`mk_continuous` has norm bounded by the bound provided to this constructor. -/
+/-- If a continuous multilinear map is constructed from a multilinear map via the constructor
+`mk_continuous`, then its norm is bounded by the bound given to the constructor if it is
+nonnegative. -/
 lemma multilinear_map.mk_continuous_norm_le (f : multilinear_map 𝕜 E₁ E₂) {C : ℝ} (hC : 0 ≤ C)
   (H : ∀ m, ∥f m∥ ≤ C * univ.prod (λi, ∥m i∥)) :
   ∥f.mk_continuous C H∥ ≤ C :=

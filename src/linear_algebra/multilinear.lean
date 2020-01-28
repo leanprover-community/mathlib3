@@ -25,8 +25,8 @@ coordinate. Here, `M₁ i` and `M₂` are modules over a ring `R`, and `ι` is a
   `f (m + m')` as the sum over all subsets `s` of `ι` of `f (s.piecewise m m')`.
 
 We also register isomorphisms corresponding to currying or uncurrying variables, transforming a
-multilinear function on `n+1` variable into a linear function taking values in multilinear functions
-in `n` variables, and into a multilinear function in `n` variables taking values in linear
+multilinear function `f` on `n+1` variable into a linear function taking values in multilinear
+functions in `n` variables, and into a multilinear function in `n` variables taking values in linear
 functions. These operations are called `f.curry_left` and `f.curry_right` respectively
 (with inverses `f.uncurry_left` and `f.uncurry_right`). These operations induce linear equivalences
 between spaces of multilinear functions in `n+1` variables and spaces of linear functions into

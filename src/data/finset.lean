@@ -800,6 +800,11 @@ noncomputable instance {α : Type*} : has_sep α (finset α) := ⟨λ p x, x.fil
 
 end classical
 
+/--
+  After filtering out everything that does not equal a given value, at most that value remains.
+
+  This is equivalent to `filter_eq'` with the equality the other way.
+-/
 -- This is not a good simp lemma, as it would prevent `finset.mem_filter` from firing
 -- on, e.g. `x ∈ s.filter(eq b)`.
 lemma filter_eq [decidable_eq β] (s : finset β) (b : β) :
@@ -813,6 +818,15 @@ begin
     simp only [mem_filter, not_and, iff_false, not_mem_empty],
     rintros m ⟨e⟩, exact h m, }
 end
+
+/--
+  After filtering out everything that does not equal a given value, at most that value remains.
+
+  This is equivalent to `filter_eq` with the equality the other way.
+-/
+lemma filter_eq' [decidable_eq β] (s : finset β) (b : β) :
+  s.filter (λ a, a = b) = ite (b ∈ s) {b} ∅ :=
+trans (filter_congr (λ _ _, ⟨eq.symm, eq.symm⟩)) (filter_eq s b)
 
 end filter
 

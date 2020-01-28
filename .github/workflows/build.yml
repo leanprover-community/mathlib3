@@ -51,7 +51,7 @@ jobs:
         if: github.repository == 'leanprover-community/mathlib' && github.event_name == 'push' && github.ref == 'refs/heads/master' && matrix.lean_version == '3.4.2'
         run: ./scripts/deploy_nightly.sh
         env:
-          GITHUB_TOKEN: ${{ secrets.DEPLOY_NIGHTLY_GITHUB_TOKEN }}
+          DEPLOY_NIGHTLY_GITHUB_TOKEN: ${{ secrets.DEPLOY_NIGHTLY_GITHUB_TOKEN }}
 
       - name: tests
         run: |
@@ -68,4 +68,3 @@ jobs:
         run: |
           lean --recursive --export=mathlib.txt src/
           leanchecker mathlib.txt
-

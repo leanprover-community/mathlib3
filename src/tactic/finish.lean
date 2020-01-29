@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jeremy Avigad, Jesse Michael Han
 -/
 
-import logic.basic
+import logic.basic tactic.core
 
 /-!
 # The `finish` family of tactics
@@ -74,7 +74,7 @@ meta def add_simps : simp_lemmas → list name → tactic simp_lemmas
 /-
   Configuration information for the auto tactics.
 -/
-
+@[derive decidable_eq, derive inhabited]
 structure auto_config : Type :=
 (use_simp := tt)           -- call the simplifier
 (classical := tt)          -- use classical logic
@@ -360,7 +360,7 @@ do when_tracing `auto.done (trace "entering done" >> trace_state),
 /-
   Tactics that perform case splits.
 -/
-
+@[derive decidable_eq, derive inhabited]
 inductive case_option
 | force        -- fail unless all goals are solved
 | at_most_one  -- leave at most one goal

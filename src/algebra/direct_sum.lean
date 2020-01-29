@@ -21,6 +21,8 @@ variables {ι β}
 instance : add_comm_group (direct_sum ι β) :=
 dfinsupp.add_comm_group
 
+instance : inhabited (direct_sum ι β) := ⟨0⟩
+
 variables β
 def mk : Π s : finset ι, (Π i : (↑s : set ι), β i.1) → direct_sum ι β :=
 dfinsupp.mk

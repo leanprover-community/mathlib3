@@ -26,6 +26,8 @@ variables [comm_ring α] (f : polynomial α)
 
 instance : comm_ring (adjoin_root f) := ideal.quotient.comm_ring _
 
+instance : inhabited (adjoin_root f) := ⟨0⟩
+
 instance : decidable_eq (adjoin_root f) := classical.dec_eq _
 
 variable {f}

@@ -443,6 +443,8 @@ theorem add_neg_eq_sub {α} [add_group α] (a b : α) : a + -b = a - b := rfl
 @[derive has_reflect]
 inductive normalize_mode | raw | SOP | horner
 
+instance : inhabited normalize_mode := ⟨normalize_mode.horner⟩
+
 meta def normalize (red : transparency) (mode := normalize_mode.horner) (e : expr) : tactic (expr × expr) := do
 pow_lemma ← simp_lemmas.mk.add_simp ``pow_one,
 let lemmas := match mode with

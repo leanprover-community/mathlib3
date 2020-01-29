@@ -357,6 +357,14 @@ by letI : premetric_space (α ⊕ β) := glue_premetric hΦ hΨ; exact ⟦inl x�
 def to_glue_r (hΦ : isometry Φ) (hΨ : isometry Ψ) (y : β) : glue_space hΦ hΨ :=
 by letI : premetric_space (α ⊕ β) := glue_premetric hΦ hΨ; exact ⟦inr y⟧
 
+instance inhabited_left (hΦ : isometry Φ) (hΨ : isometry Ψ) [inhabited α] :
+  inhabited (glue_space hΦ hΨ) :=
+⟨to_glue_l _ _ (default _)⟩
+
+instance inhabited_right (hΦ : isometry Φ) (hΨ : isometry Ψ) [inhabited β] :
+  inhabited (glue_space hΦ hΨ) :=
+⟨to_glue_r _ _ (default _)⟩
+
 lemma to_glue_commute (hΦ : isometry Φ) (hΨ : isometry Ψ) :
   (to_glue_l hΦ hΨ) ∘ Φ = (to_glue_r hΦ hΨ) ∘ Ψ :=
 begin
@@ -457,6 +465,9 @@ instance metric_space_inductive_limit (I : ∀n, isometry (f n)) :
 /-- Mapping each `X n` to the inductive limit. -/
 def to_inductive_limit (I : ∀n, isometry (f n)) (n : ℕ) (x : X n) : metric.inductive_limit I :=
 by letI : premetric_space (Σn, X n) := inductive_premetric I; exact ⟦sigma.mk n x⟧
+
+instance (I : ∀ n, isometry (f n)) [inhabited (X 0)] : inhabited (inductive_limit I) :=
+⟨to_inductive_limit _ 0 (default _)⟩
 
 /-- The map `to_inductive_limit n` mapping `X n` to the inductive limit is an isometry. -/
 lemma to_inductive_limit_isometry (I : ∀n, isometry (f n)) (n : ℕ) :

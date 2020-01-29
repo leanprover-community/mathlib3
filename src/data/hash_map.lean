@@ -25,6 +25,9 @@ section
 parameters {α : Type u} {β : α → Type v} (hash_fn : α → nat)
 variables {n : ℕ+} (data : bucket_array α β n)
 
+instance : inhabited (bucket_array α β n) :=
+⟨mk_array _ []⟩
+
 /-- Read the bucket corresponding to an element -/
 def read (a : α) : list Σ a, β a :=
 let bidx := hash_map.mk_idx n (hash_fn a) in

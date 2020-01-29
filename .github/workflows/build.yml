@@ -76,8 +76,7 @@ jobs:
 
       - name: generate docs
         if: github.repository == 'leanprover-community/mathlib' && github.event_name == 'push' && github.ref == 'refs/heads/master' && matrix.lean_version == 'leanprover-community/lean:nightly'
-        run: |
-          chmod +x ./scripts/deploy_docs.sh
+        run:
           ./scripts/deploy_docs.sh
         env:
           DEPLOY_NIGHTLY_GITHUB_TOKEN: ${{ secrets.DEPLOY_NIGHTLY_GITHUB_TOKEN }}

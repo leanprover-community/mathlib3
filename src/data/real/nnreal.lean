@@ -358,8 +358,13 @@ section sub
 
 lemma sub_def {r p : ℝ≥0} : r - p = nnreal.of_real (r - p) := rfl
 
-lemma sub_eq_zero {r p : nnreal} (h : r ≤ p) : r - p = 0 :=
+lemma sub_eq_zero {r p : ℝ≥0} (h : r ≤ p) : r - p = 0 :=
 nnreal.eq $ max_eq_right $ sub_le_iff_le_add.2 $ by simpa [nnreal.coe_le] using h
+
+@[simp] lemma sub_self {r : ℝ≥0} : r - r = 0 := sub_eq_zero $ le_refl r
+
+@[simp] lemma sub_zero {r : ℝ≥0} : r - 0 = r :=
+by rw [sub_def, nnreal.coe_zero, sub_zero, nnreal.of_real_coe]
 
 lemma sub_pos {r p : ℝ≥0} : 0 < r - p ↔ p < r :=
 of_real_pos.trans $ sub_pos.trans $ nnreal.coe_lt
@@ -381,6 +386,9 @@ match le_total p r with
   by simpa [nnreal.coe_le, nnreal.coe_le, sub_eq_zero h]
 end
 
+@[simp] lemma sub_le_self {r p : ℝ≥0} : r - p ≤ r :=
+sub_le_iff_le_add.2 $ le_add_right $ le_refl r
+
 lemma add_sub_cancel {r p : nnreal} : (p + r) - r = p :=
 nnreal.eq $ by rw [nnreal.coe_sub, nnreal.coe_add, add_sub_cancel]; exact le_add_left (le_refl _)
 
@@ -389,6 +397,10 @@ by rw [add_comm, add_sub_cancel]
 
 @[simp] lemma sub_add_cancel_of_le {a b : nnreal} (h : b ≤ a) : (a - b) + b = a :=
 nnreal.eq $ by rw [nnreal.coe_add, nnreal.coe_sub h, sub_add_cancel]
+
+lemma sub_sub_cancel_of_le {r p : ℝ≥0} (h : r ≤ p) : p - (p - r) = r :=
+by rw [nnreal.sub_def, nnreal.sub_def, nnreal.coe_of_real _ $ sub_nonneg.2 h,
+  sub_sub_cancel, nnreal.of_real_coe]
 
 end sub
 

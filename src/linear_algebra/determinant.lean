@@ -1,9 +1,10 @@
 /-
 Copyright (c) 2018 Kenny Lau. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Authors: Kenny Lau, Chris Hughes
+Authors: Kenny Lau, Chris Hughes, Tim Baanen
 -/
 import data.matrix.basic
+import data.matrix.pequiv
 import group_theory.perm.sign
 
 universes u v
@@ -15,6 +16,7 @@ variables {n : Type u} [fintype n] [decidable_eq n] {R : Type v} [comm_ring R]
 
 local notation `ε` σ:max := ((sign σ : ℤ ) : R)
 
+/-- The determinant of a matrix given by the Leibniz formula. -/
 definition det (M : matrix n n R) : R :=
 univ.sum (λ (σ : perm n), ε σ * univ.prod (λ i, M (σ i) i))
 
@@ -102,5 +104,96 @@ calc det (M * N) = univ.sum (λ σ : perm n, (univ.pi (λ a, univ)).sum
 instance : is_monoid_hom (det : matrix n n R → R) :=
 { map_one := det_one,
   map_mul := det_mul }
+
+/-- Transposing a matrix preserves the determinant. -/
+@[simp] lemma det_transpose (M : matrix n n R) : M.transpose.det = M.det :=
+begin
+  apply sum_bij (λ σ _, σ⁻¹),
+  { intros σ _, apply mem_univ },
+  { intros σ _,
+    rw [sign_inv],
+    congr' 1,
+    apply prod_bij (λ i _, σ i),
+    { intros i _, apply mem_univ },
+    { intros i _, simp },
+    { intros i j _ _ h, simp at h, assumption },
+    { intros i _, use σ⁻¹ i, finish } },
+  { intros σ σ' _ _ h, simp at h, assumption },
+  { intros σ _, use σ⁻¹, finish }
+end
+
+/-- The determinant of a permutation matrix equals its sign. -/
+@[simp] lemma det_permutation (σ : perm n) :
+  matrix.det (σ.to_pequiv.to_matrix : matrix n n R) = σ.sign := begin
+  suffices : matrix.det (σ.to_pequiv.to_matrix) = ↑σ.sign * det (1 : matrix n n R), { simp [this] },
+  unfold det,
+  rw mul_sum,
+  apply sum_bij (λ τ _, σ * τ),
+  { intros τ _, apply mem_univ },
+  { intros τ _,
+    conv_lhs { rw [←one_mul (sign τ), ←int.units_pow_two (sign σ)] },
+    conv_rhs { rw [←mul_assoc, coe_coe, sign_mul, units.coe_mul, int.cast_mul, ←mul_assoc] },
+    congr,
+    { norm_num },
+    { ext i, apply pequiv.equiv_to_pequiv_to_matrix } },
+  { intros τ τ' _ _, exact (mul_left_inj σ).mp },
+  { intros τ _, use σ⁻¹ * τ, use (mem_univ _), exact (mul_inv_cancel_left _ _).symm }
+end
+
+/-- Permuting the columns changes the sign of the determinant. -/
+lemma det_permute (σ : perm n) (M : matrix n n R) : matrix.det (λ i, M (σ i)) = σ.sign * M.det :=
+by rw [←det_permutation, ←det_mul, pequiv.to_pequiv_mul_matrix]
+
+section det_zero
+/-! ### `det_zero` section
+
+  Prove that a matrix with a repeated column has determinant equal to zero.
+-/
+
+/--
+  `mod_swap i j` contains permutations up to swapping `i` and `j`.
+
+  We use this to partition permutations in the expression for the determinant,
+  such that each partitions sums up to `0`.
+-/
+def mod_swap {n : Type u} [decidable_eq n] (i j : n) : setoid (perm n) :=
+⟨ λ σ τ, σ = τ ∨ σ = swap i j * τ,
+  λ σ, or.inl (refl σ),
+  λ σ τ h, or.cases_on h (λ h, or.inl h.symm) (λ h, or.inr (by rw [h, swap_mul_self_mul])),
+  λ σ τ υ hστ hτυ, by cases hστ; cases hτυ; try {rw [hστ, hτυ, swap_mul_self_mul]}; finish⟩
+
+instance (i j : n) : decidable_rel (mod_swap i j).r := λ σ τ, or.decidable
+
+variables {M : matrix n n R} {i j : n}
+
+/-- If a matrix has a repeated column, the determinant will be zero. -/
+theorem det_zero_of_column_eq (i_ne_j : i ≠ j) (hij : M i = M j) : M.det = 0 :=
+begin
+  have swap_invariant : ∀ k, M (swap i j k) = M k,
+  { intros k,
+    rw [swap_apply_def],
+    by_cases k = i, { rw [if_pos h, h, ←hij] },
+    rw [if_neg h],
+    by_cases k = j, { rw [if_pos h, h, hij] },
+    rw [if_neg h] },
+
+  have : ∀ σ, _root_.disjoint (_root_.singleton σ) (_root_.singleton (swap i j * σ)),
+  { intros σ,
+    rw [finset.singleton_eq_singleton, finset.singleton_eq_singleton, disjoint_singleton],
+    apply (not_congr mem_singleton).mpr,
+    exact (not_congr swap_mul_eq_iff).mpr i_ne_j },
+
+  apply finset.sum_cancels_of_partition_cancels (mod_swap i j),
+  intros σ _,
+  erw [filter_or, filter_eq', filter_eq', if_pos (mem_univ σ), if_pos (mem_univ (swap i j * σ)),
+    sum_union (this σ), sum_singleton, sum_singleton],
+  convert add_right_neg (↑↑(sign σ) * finset.prod univ (λ (i : n), M (σ i) i)),
+  rw [neg_mul_eq_neg_mul],
+  congr,
+  { rw [sign_mul, sign_swap i_ne_j], norm_num },
+  ext j, rw [mul_apply, swap_invariant]
+end
+
+end det_zero
 
 end matrix

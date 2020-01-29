@@ -130,6 +130,8 @@ instance iterated_continuous_linear_map.normed_group (n : ℕ)
   normed_group (E [×n]→L[𝕜] F) :=
 iterated_continuous_linear_map.normed_group_rec 𝕜 n E F
 
+instance : inhabited (E [×n]→L[𝕜] F) := ⟨0⟩
+
 /--
 Explicit normed space structure on the space of iterated continuous linear maps.
 -/

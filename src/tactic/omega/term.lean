@@ -10,6 +10,7 @@ import tactic.omega.coeffs
 
 namespace omega
 
+@[derive inhabited]
 def term : Type := int × list int
 
 namespace term

@@ -286,7 +286,7 @@ end
 
 /- The type of equality elimination rules. -/
 
-@[derive has_reflect]
+@[derive has_reflect, derive inhabited]
 inductive ee : Type
 | drop   : ee
 | nondiv : int → ee

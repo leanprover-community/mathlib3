@@ -11,10 +11,29 @@ import topology.metric_space.premetric_space
 
 /-!
 # Seminorms and local convexity
+
+This file introduce the following notions, defined for a vector space
+over a normed field:
+
+- the subset properties of being `absorbent` and `balanced`,
+
+- a `seminorm`, a function to the reals that is positive-semidefinite,
+  absolutely homogeneous, and subadditive,
+
+We prove related properties.
+
+(TODO:) define and show equivalence of two notions of local convexity
+for a t.v.s. over ℝ or ℂ: that it has a local base of balanced convex
+absorbent sets, and that it carries the initial topology induced by a
+family of seminorms,
+
+## References
+* [H. H. Schaefer, *Topological Vector Spaces*][schaefer1966]
+
 -/
 
 local attribute [instance] set.scale_set set.scale_set_action
-open set
+open set normed_field
 
 
 -- subset properties : absorbent and balanced sets in a vector space
@@ -43,7 +62,7 @@ lemma absorbs_self_of_balanced (hA : balanced 𝕜 A) : absorbs 𝕜 A A :=
 begin
   use [1, zero_lt_one], intros a ha x hx, rw mem_scale_set_iff_inv_smul_mem, 
   show a ≠ 0, from λ h, by rw [h, norm_zero] at ha; linarith,
-  have : a⁻¹ • A ⊆ A, from hA _ (by rw normed_field.norm_inv; exact inv_le_one ha),
+  have : a⁻¹ • A ⊆ A, from hA _ (by rw norm_inv; exact inv_le_one ha),
   exact this (smul_mem_scale_set _ hx),
 end
 
@@ -63,8 +82,7 @@ begin
   use [(r/2)⁻¹, hr₃], intros a ha₁,
   have ha₂ : 0 < ∥a∥, from calc 0 < _ : hr₃ ... ≤ _ : ha₁,
   have ha₃ : a⁻¹ • x ∈ w, from hr₂ (by {
-    rw [metric.mem_ball, dist_eq_norm, sub_zero,
-        normed_field.norm_inv],
+    rw [metric.mem_ball, dist_eq_norm, sub_zero, norm_inv],
     calc _ ≤ r/2 : (inv_le (half_pos hr₁) ha₂).1 ha₁
        ... < r : half_lt_self hr₁ }),
   rw [mem_scale_set_iff_inv_smul_mem ((norm_pos_iff _).1 ha₂)],
@@ -130,7 +148,6 @@ subadditive. -/
 structure seminorm (𝕜 : Type*) (E : Type*)
   [normed_field 𝕜] [add_comm_group E] [vector_space 𝕜 E] :=
 (to_fun   : E → ℝ)
-(nonneg   : ∀ x : E, 0 ≤ to_fun x)
 (smul     : ∀ (a : 𝕜) (x : E), to_fun (a • x) = ∥a∥ * to_fun x)
 (triangle : ∀ x y : E, to_fun (x + y) ≤ to_fun x + to_fun y)
 
@@ -169,8 +186,15 @@ calc _ = p (0 • 0) : congr_arg _ (zero_smul _ _).symm
 @[simp]
 lemma seminorm_neg : p (-x) = p x :=
 calc _ = p ((-1 : 𝕜) • x) : by rw neg_one_smul
-...    = _ : by rw [seminorm_smul p (-1 : 𝕜) x, norm_neg,
-                    normed_field.norm_one, one_mul]
+...    = _ : by rw [seminorm_smul p (-1 : 𝕜) x,
+                    norm_neg, norm_one, one_mul]
+
+lemma seminorm_nonneg : 0 ≤ p x :=
+have 0 ≤ 2 * p x, from
+calc 0 = p (x + (-x)) : by rw [add_neg_self, seminorm_zero]
+...    ≤ p x + p (-x) : seminorm_triangle _ _ _
+...    = 2 * p x      : by rw [seminorm_neg, two_mul],
+nonneg_of_mul_nonneg_left this zero_lt_two
 
 @[simp]
 lemma seminorm_sub_rev : p (x - y) = p (y - x) :=
@@ -201,7 +225,7 @@ begin
   rintros a ha x ⟨y, hy, hx⟩,
   rw [mem_ball_zero] at hy,
   rw [mem_ball_zero, hx, seminorm_smul],
-  calc _ ≤ p y : mul_le_of_le_one_left (p.nonneg _) ha ... < _ : hy
+  calc _ ≤ p y : mul_le_of_le_one_left (seminorm_nonneg _ _) ha ... < _ : hy
 end
 
 variables {V : Type*} [add_comm_group V] [vector_space ℝ V]

@@ -159,7 +159,7 @@ uniqueness of the derivative. -/
 this fact, for functions having a derivative within a set. Its specific formulation is useful for
 tangent cone related discussions. -/
 theorem has_fderiv_within_at.lim (h : has_fderiv_within_at f f' s x) {α : Type*} (l : filter α)
-  {c : α → 𝕜} {d : α → E} {v : E} (dtop : {n | x + d n ∈ s} ∈ l)
+  {c : α → 𝕜} {d : α → E} {v : E} (dtop : ∀ᶠ n in l, x + d n ∈ s)
   (clim : tendsto (λ n, ∥c n∥) l at_top)
   (cdlim : tendsto (λ n, c n • d n) l (𝓝 v)) :
   tendsto (λn, c n • (f (x + d n) - f x)) l (𝓝 (f' v)) :=
@@ -462,14 +462,14 @@ section congr
 /-! ### congr properties of the derivative -/
 
 theorem has_fderiv_at_filter_congr_of_mem_sets
-  (hx : f₀ x = f₁ x) (h₀ : {x | f₀ x = f₁ x} ∈ L) (h₁ : ∀ x, f₀' x = f₁' x) :
+  (hx : f₀ x = f₁ x) (h₀ : ∀ᶠ x in L, f₀ x = f₁ x) (h₁ : ∀ x, f₀' x = f₁' x) :
   has_fderiv_at_filter f₀ f₀' x L ↔ has_fderiv_at_filter f₁ f₁' x L :=
 by { rw (ext h₁), exact is_o_congr
   (by filter_upwards [h₀] λ x (h : _ = _), by simp [h, hx])
   (univ_mem_sets' $ λ _, rfl) }
 
 lemma has_fderiv_at_filter.congr_of_mem_sets (h : has_fderiv_at_filter f f' x L)
-  (hL : {x | f₁ x = f x} ∈ L) (hx : f₁ x = f x) : has_fderiv_at_filter f₁ f' x L :=
+  (hL : ∀ᶠ x in L, f₁ x = f x) (hx : f₁ x = f x) : has_fderiv_at_filter f₁ f' x L :=
 begin
   apply (has_fderiv_at_filter_congr_of_mem_sets hx hL _).2 h,
   exact λx, rfl
@@ -484,11 +484,11 @@ lemma has_fderiv_within_at.congr (h : has_fderiv_within_at f f' s x) (hs : ∀x 
 h.congr_mono hs hx (subset.refl _)
 
 lemma has_fderiv_within_at.congr_of_mem_nhds_within (h : has_fderiv_within_at f f' s x)
-  (h₁ : {y | f₁ y = f y} ∈ nhds_within x s) (hx : f₁ x = f x) : has_fderiv_within_at f₁ f' s x :=
+  (h₁ : ∀ᶠ y in nhds_within x s, f₁ y = f y) (hx : f₁ x = f x) : has_fderiv_within_at f₁ f' s x :=
 has_fderiv_at_filter.congr_of_mem_sets h h₁ hx
 
 lemma has_fderiv_at.congr_of_mem_nhds (h : has_fderiv_at f f' x)
-  (h₁ : {y | f₁ y = f y} ∈ 𝓝 x) : has_fderiv_at f₁ f' x :=
+  (h₁ : ∀ᶠ y in 𝓝 x, f₁ y = f y) : has_fderiv_at f₁ f' x :=
 has_fderiv_at_filter.congr_of_mem_sets h h₁ (mem_of_nhds h₁ : _)
 
 lemma differentiable_within_at.congr_mono (h : differentiable_within_at 𝕜 f s x)
@@ -500,7 +500,7 @@ lemma differentiable_within_at.congr (h : differentiable_within_at 𝕜 f s x)
 differentiable_within_at.congr_mono h ht hx (subset.refl _)
 
 lemma differentiable_within_at.congr_of_mem_nhds_within
-  (h : differentiable_within_at 𝕜 f s x) (h₁ : {y | f₁ y = f y} ∈ nhds_within x s)
+  (h : differentiable_within_at 𝕜 f s x) (h₁ : ∀ᶠ y in nhds_within x s, f₁ y = f y)
   (hx : f₁ x = f x) : differentiable_within_at 𝕜 f₁ s x :=
 (h.has_fderiv_within_at.congr_of_mem_nhds_within h₁ hx).differentiable_within_at
 
@@ -513,7 +513,7 @@ lemma differentiable_on.congr (h : differentiable_on 𝕜 f s) (h' : ∀x ∈ s,
 λ x hx, (h x hx).congr h' (h' x hx)
 
 lemma differentiable_at.congr_of_mem_nhds (h : differentiable_at 𝕜 f x)
-  (hL : {y | f₁ y = f y} ∈ 𝓝 x) : differentiable_at 𝕜 f₁ x :=
+  (hL : ∀ᶠ y in 𝓝 x, f₁ y = f y) : differentiable_at 𝕜 f₁ x :=
 has_fderiv_at.differentiable_at (has_fderiv_at_filter.congr_of_mem_sets h.has_fderiv_at hL (mem_of_nhds hL : _))
 
 lemma differentiable_within_at.fderiv_within_congr_mono (h : differentiable_within_at 𝕜 f s x)
@@ -522,7 +522,7 @@ lemma differentiable_within_at.fderiv_within_congr_mono (h : differentiable_with
 (has_fderiv_within_at.congr_mono h.has_fderiv_within_at hs hx h₁).fderiv_within hxt
 
 lemma fderiv_within_congr_of_mem_nhds_within (hs : unique_diff_within_at 𝕜 s x)
-  (hL : {y | f₁ y = f y} ∈ nhds_within x s) (hx : f₁ x = f x) :
+  (hL : ∀ᶠ y in nhds_within x s, f₁ y = f y) (hx : f₁ x = f x) :
   fderiv_within 𝕜 f₁ s x = fderiv_within 𝕜 f s x :=
 begin
   by_cases h : differentiable_within_at 𝕜 f s x ∨ differentiable_within_at 𝕜 f₁ s x,
@@ -552,7 +552,7 @@ begin
   exact hL
 end
 
-lemma fderiv_congr_of_mem_nhds (hL : {y | f₁ y = f y} ∈ 𝓝 x) :
+lemma fderiv_congr_of_mem_nhds (hL : ∀ᶠ y in 𝓝 x, f₁ y = f y) :
   fderiv 𝕜 f₁ x = fderiv 𝕜 f x :=
 begin
   have A : f₁ x = f x := (mem_of_nhds hL : _),

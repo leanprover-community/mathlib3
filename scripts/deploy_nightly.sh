@@ -1,11 +1,19 @@
 set -e				# fail on error
 
-GITHUB_USER=leanprover-mathlib-bot
-git remote add mathlib "https://$GITHUB_USER:$GITHUB_TOKEN@github.com/leanprover-community/mathlib.git"
-git remote add nightly "https://$GITHUB_USER:$GITHUB_TOKEN@github.com/leanprover-community/mathlib-nightly.git"
+DEPLOY_NIGHTLY_GITHUB_USER=leanprover-community-bot
+git remote add mathlib "https://$DEPLOY_NIGHTLY_GITHUB_USER:$DEPLOY_NIGHTLY_GITHUB_TOKEN@github.com/leanprover-community/mathlib.git"
+git remote add nightly "https://$DEPLOY_NIGHTLY_GITHUB_USER:$DEPLOY_NIGHTLY_GITHUB_TOKEN@github.com/leanprover-community/mathlib-nightly.git"
 
 # After this point, we don't use any secrets in commands.
 set -x				# echo commands
+
+# By default, github actions overrides the credentials used to access any
+# github url so that it uses the github-actions[bot] user.  We want to access
+# github using a different username.
+git config --unset http.https://github.com/.extraheader
+
+# The checkout action produces a shallow repository from which we cannot push.
+git fetch --unshallow || true
 
 git fetch nightly --tags
 
@@ -54,6 +62,7 @@ tar czf $SCRIPT_ARCHIVE mathlib-scripts
 ls *.tar.gz
 
 # Create a release associated with the tag and upload the tarballs.
+export GITHUB_TOKEN=$DEPLOY_NIGHTLY_GITHUB_TOKEN
 gothub release -u leanprover-community -r mathlib-nightly -t $MATHLIB_VERSION_STRING -d "Mathlib's .olean files and scripts" --pre-release
 gothub upload -u leanprover-community -r mathlib-nightly -t $MATHLIB_VERSION_STRING -n "$(basename $OLEAN_ARCHIVE)" -f "$OLEAN_ARCHIVE"
 gothub upload -u leanprover-community -r mathlib-nightly -t $MATHLIB_VERSION_STRING -n "$(basename $SCRIPT_ARCHIVE)" -f "$SCRIPT_ARCHIVE"

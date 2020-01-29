@@ -1145,10 +1145,9 @@ begin
   -- Use the sandwich theorem
   refine tendsto_of_tendsto_of_tendsto_of_le_of_le zero_tendsto_zero lintegral_norm_tendsto_zero _ _,
   -- Show `0 ≤ ∥∫ a, F n a - ∫ f∥` for all `n`
-  { simp only [filter.mem_at_top_sets, norm_nonneg, set.mem_set_of_eq, forall_true_iff,
-      exists_const] },
+  { simp only [filter.eventually_at_top, norm_nonneg, forall_true_iff, exists_const] },
   -- Show `∥∫ a, F n a - ∫ f∥ ≤ ∫ a, ∥F n a - f a∥` for all `n`
-  { simp only [mem_at_top_sets, mem_set_of_eq],
+  { simp only [filter.eventually_at_top],
     use 0,
     assume n hn,
     have h₁ : integrable (F n) := integrable_of_integrable_bound bound_integrable (h_bound _),
@@ -1161,9 +1160,9 @@ end
 lemma tendsto_integral_filter_of_dominated_convergence {ι} {l : filter ι}
   {F : ι → α → β} {f : α → β} (bound : α → ℝ)
   (hl_cb : l.has_countable_basis)
-  (hF_meas : { n | measurable (F n) } ∈ l)
+  (hF_meas : ∀ᶠ n in l, measurable (F n))
   (f_measurable : measurable f)
-  (h_bound : { n | ∀ₘ a, ∥F n a∥ ≤ bound a } ∈ l)
+  (h_bound : ∀ᶠ n in l, ∀ₘ a, ∥F n a∥ ≤ bound a)
   (bound_integrable : integrable bound)
   (h_lim : ∀ₘ a, tendsto (λ n, F n a) l (𝓝 (f a))) :
   tendsto (λn, ∫ a, F n a) l (𝓝 $ (∫ a, f a)) :=

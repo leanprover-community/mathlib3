@@ -18,9 +18,9 @@ rm -rf mathlib_docs/docs/*
 ~/.elan/bin/elan override set leanprover-community/lean:nightly
 python3 -m pip install --upgrade pip
 pip3 install markdown2 toml
-./gen_docs -w -r "../" -t "mathlib_docs/docs/"
-cd mathlib_docs_test
-git add *
+./gen_docs -w -r "../" -t "mathlib_docs_test/docs/"
+cd mathlib_docs_test/docs
+git add -A .
 git config user.name "leanprover-community-bot"
 git config user.email "leanprover.community@gmail.com"
 git commit   -m "automatic update to $git_hash"

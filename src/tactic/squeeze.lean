@@ -21,7 +21,9 @@ meta def loc.to_string : loc → string
 namespace tactic
 namespace interactive
 
-/-- Erase names in the set which occur as a constant in the arguments. -/
+/--
+  `erase_simp_args hs s` removes from `s` each name `n` such that `const n` is an element of `hs`
+-/
 meta def erase_simp_args (hs : list simp_arg_type) (s : name_set) : tactic name_set :=
 do
   -- TODO: when Lean 3.4 support is dropped, use `decode_simp_arg_list_with_symm` on the next line:

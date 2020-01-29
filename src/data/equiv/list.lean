@@ -135,8 +135,9 @@ def fintype_equiv_fin {α} [fintype α] [encodable α] :
   α ≃ fin (fintype.card α) :=
 begin
   haveI : decidable_eq α := encodable.decidable_eq_of_encodable _,
-  rw ← @length_sorted_univ α,
-  exact fintype.equiv_fin_of_forall_mem_list mem_sorted_univ sorted_univ_nodup
+  transitivity,
+  { exact fintype.equiv_fin_of_forall_mem_list mem_sorted_univ (@sorted_univ_nodup α _ _) },
+  exact equiv.cast (congr_arg _ (@length_sorted_univ α _ _))
 end
 
 instance fintype_arrow_of_encodable {α β : Type*} [encodable α] [fintype α] [encodable β] :

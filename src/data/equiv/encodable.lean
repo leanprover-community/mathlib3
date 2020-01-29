@@ -289,7 +289,7 @@ theorem skolem {α : Type*} {β : α → Type*} {P : Π x, β x → Prop}
 ⟨axiom_of_choice, λ ⟨f, H⟩ x, ⟨_, H x⟩⟩
 
 /-
-There is a total ordering on the elements of an encodable type, induces by the map to ℕ.
+There is a total ordering on the elements of an encodable type, induced by the map to ℕ.
 -/
 
 /-- The `encode` function, viewed as an embedding. -/

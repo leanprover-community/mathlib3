@@ -2,6 +2,12 @@
 Copyright (c) 2019 Jeremy Avigad. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Author: Jeremy Avigad
+-/
+
+import data.W
+
+/-!
+# W types
 
 The file `data/W.lean` shows that if `α` is an an encodable fintype and for every `a : α`,
 `β a` is encodable, then `W β` is encodable.
@@ -17,8 +23,6 @@ corresponding `Wfin` type, and show that map has a left inverse.
 We mark the auxiliary constructions `private`, since their only purpose is to
 show encodability.
 -/
-
-import data.W
 
 /-- Propositional formulas with labels from `α`. -/
 inductive prop_form (α : Type*)

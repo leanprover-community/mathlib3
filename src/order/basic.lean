@@ -100,8 +100,9 @@ by haveI this := partial_order.ext H;
 infix ` ⁻¹'o `:80 := order.preimage
 
 /-- The preimage of a decidable order is decidable. -/
-instance order.preimage.decidable {α β} (f : α → β) (s : β → β → Prop)
-  [H : decidable_rel s] : decidable_rel (f ⁻¹'o s) := λ x y, H _ _
+instance order.preimage.decidable {α β} (f : α → β) (s : β → β → Prop) [H : decidable_rel s] :
+  decidable_rel (f ⁻¹'o s) :=
+λ x y, H _ _
 
 section monotone
 variables [preorder α] [preorder β] [preorder γ]

@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Author: Jeremy Avigad
 -/
 
-import .equiv.encodable .equiv.list .fin .finset data.fintype
+import data.equiv.encodable data.equiv.list data.fin data.finset data.fintype
 
 /-!
 # W types
@@ -15,7 +15,7 @@ labeled `a` are indexed by elements of `β a`.
 
 This file is currently a stub, awaiting a full development of the theory. Currently, the main
 result is that if `α` is an encodable fintype and `β a` is encodable for every `a : α`, then `W β`
-is encodable. This can be used to show the encodability of other inductives types, such as those
+is encodable. This can be used to show the encodability of other inductive types, such as those
 that are commonly used to formalize syntax, e.g. terms and expressions in a given language. The
 strategy is illustrated in the example found in the file `prop_encodable` in the `archive/examples`
 folder of mathlib.
@@ -23,7 +23,7 @@ folder of mathlib.
 
 /--
 Given `β : α → Type*`, `W β` is the type of finitely branching trees where nodes are labeled by
-elements of `α` and the children of a node  labeled `a` are indexed by elements of `β a`.
+elements of `α` and the children of a node labeled `a` are indexed by elements of `β a`.
 -/
 inductive W {α : Type*} (β : α → Type*)
 | mk (a : α) (f : β a → W) : W
@@ -39,16 +39,13 @@ def depth : W β → ℕ
 lemma depth_pos (t : W β) : 0 < t.depth :=
 by { cases t, apply nat.succ_pos }
 
---lemma not_depth_le_zero (t : W β) : ¬ t.depth ≤ 0 :=
---by { cases t, apply nat.not_succ_le_zero }
-
 lemma depth_lt_depth_mk (a : α) (f : β a → W β) (i : β a) :
   depth (f i) < depth ⟨a, f⟩ :=
 nat.lt_succ_of_le (finset.le_sup (finset.mem_univ i))
 
 end W
 
-/-!
+/-
 Show that W types are encodable when `α` is an encodable fintype and for every `a : α`, `β a` is
 encodable.
 

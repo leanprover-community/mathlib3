@@ -21,15 +21,16 @@ meta def loc.to_string : loc → string
 namespace tactic
 namespace interactive
 
-meta def erase_simp_arg (s : name_set) : simp_arg_type → name_set
-| (simp_arg_type.expr e) :=
-match e.get_app_fn e with
-| (expr.const n _) := s.erase n
-| _ := s
-end
-/- TODO: when Lean 3.4 support is dropped, `simp_arg_type.expr_symm` should be
-  handled like `simp_arg_type.expr` -/
-| _ := s
+/-- Erase names in the set which occur as a constant in the arguments. -/
+meta def erase_simp_args (hs : list simp_arg_type) (s : name_set) : tactic name_set :=
+do
+  -- TODO: when Lean 3.4 support is dropped, use `decode_simp_arg_list_with_symm` on the next line:
+  (hs, _, _) ← decode_simp_arg_list hs,
+  pure $ hs.foldr (λ (h : pexpr) (s : name_set),
+    match h.get_app_fn h with
+    | (expr.const n _) := s.erase n
+    | _ := s
+    end) s
 
 /-- Polyfill instance for Lean versions <3.5.0c -/
 -- TODO: when Lean 3.4 support is dropped, this instance can be removed
@@ -89,7 +90,7 @@ do g ← main_goal,
    let vs := g.list_constant,
    vs ← vs.mfilter (succeeds ∘ has_attribute `simp) >>= name_set.mmap strip_prefix,
    let vs := auto_simp_lemma.foldl name_set.erase vs,
-   let vs := hs.foldl erase_simp_arg vs,
+   vs ← erase_simp_args hs vs,
    let use_iota_eqn := if use_iota_eqn.is_some then "!" else "",
    let attrs := if attr_names.empty then "" else string.join (list.intersperse " " (" with" :: attr_names.map to_string)),
    let loc := loc.to_string locat,
@@ -109,7 +110,7 @@ do g ← main_goal,
    let vs := g.list_constant,
    vs ← vs.mfilter (succeeds ∘ has_attribute `simp) >>= name_set.mmap strip_prefix,
    let vs := auto_simp_lemma.foldl name_set.erase vs,
-   let vs := hs.foldl erase_simp_arg vs,
+   vs ← erase_simp_args hs vs,
    let use_iota_eqn := if use_iota_eqn.is_some then "!" else "",
    let attrs := if attr_names.empty then "" else string.join (list.intersperse " " (" with" :: attr_names.map to_string)),
    let tgt' := tgt'.get_or_else "",

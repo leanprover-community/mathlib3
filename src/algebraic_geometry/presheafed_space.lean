@@ -90,7 +90,7 @@ instance category_of_PresheafedSpaces : category (PresheafedSpace.{v} C) :=
   begin
     ext1, swap,
     { dsimp, simp only [id_comp] },
-    { ext1, ext1 U,
+    { ext U,
       op_induction,
       cases U,
       dsimp,
@@ -100,7 +100,7 @@ instance category_of_PresheafedSpaces : category (PresheafedSpace.{v} C) :=
   begin
     ext1, swap,
     { dsimp, simp only [comp_id] },
-    { ext1, ext1 U,
+    { ext U,
       op_induction,
       cases U,
       dsimp,
@@ -214,7 +214,7 @@ def on_presheaf {F G : C ⥤ D} (α : F ⟶ G) : G.map_presheaf ⟶ F.map_preshe
   begin
     ext1, swap,
     { refl },
-    { ext1, ext1 U,
+    { ext U,
       op_induction,
       cases U,
       dsimp,

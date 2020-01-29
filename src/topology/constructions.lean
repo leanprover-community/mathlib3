@@ -503,11 +503,9 @@ lemma continuous_update [decidable_eq ι] [∀i, topological_space (π i)] {i : 
 begin
   refine continuous_pi (λj, _),
   by_cases h : j = i,
-  { rw [h],
-    simp only [function.update_same],
-    exact continuous_id },
-  { simp only [h, function.update_noteq, ne.def, not_false_iff],
-    exact continuous_const }
+  { rw h,
+    simpa using continuous_id },
+  { simpa [h] using continuous_const }
 end
 
 lemma nhds_pi [t : ∀i, topological_space (π i)] {a : Πi, π i} :

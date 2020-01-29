@@ -33,7 +33,7 @@ variables (C D E)
   { app := λ H,
     { app := λ c, H.map (τ.app c),
       naturality' := λ X Y f, begin dsimp, rw [←H.map_comp, ←H.map_comp, ←τ.naturality] end },
-    naturality' := λ X Y f, begin ext1, dsimp, rw [f.naturality] end } }
+    naturality' := λ X Y f, begin ext, dsimp, rw [f.naturality] end } }
 
 @[simps] def whiskering_right : (D ⥤ E) ⥤ ((C ⥤ D) ⥤ (C ⥤ E)) :=
 { obj := λ H,
@@ -43,7 +43,7 @@ variables (C D E)
   { app := λ F,
     { app := λ c, τ.app (F.obj c),
       naturality' := λ X Y f, begin dsimp, rw [τ.naturality] end },
-    naturality' := λ X Y f, begin ext1, dsimp, rw [←nat_trans.naturality] end } }
+    naturality' := λ X Y f, begin ext, dsimp, rw [←nat_trans.naturality] end } }
 
 variables {C} {D} {E}
 
@@ -139,7 +139,7 @@ omit 𝒟
 lemma triangle (F : A ⥤ B) (G : B ⥤ C) :
   (associator F (𝟭 B) G).hom ≫ (whisker_left F (left_unitor G).hom) =
     (whisker_right (right_unitor F).hom G) :=
-by { ext1, dsimp, simp }
+by { ext, dsimp, simp }
 
 variables {E : Type u₅} [ℰ : category.{v₅} E]
 include 𝒟 ℰ
@@ -149,7 +149,7 @@ variables (F : A ⥤ B) (G : B ⥤ C) (H : C ⥤ D) (K : D ⥤ E)
 lemma pentagon :
   (whisker_right (associator F G H).hom K) ≫ (associator F (G ⋙ H) K).hom ≫ (whisker_left F (associator G H K).hom) =
     ((associator (F ⋙ G) H K).hom ≫ (associator F G (H ⋙ K)).hom) :=
-by { ext1, dsimp, simp }
+by { ext, dsimp, simp }
 
 end functor
 

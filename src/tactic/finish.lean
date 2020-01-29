@@ -27,16 +27,22 @@ We provide the following tactics:
 All accept an optional list of simplifier rules, typically definitions that should be expanded.
 (The equations and identities should not refer to the local context.)
 
-The variants `ifinish`, `iclarify`, and `isafe` restrict to intuitionistic logic. They do not work
-well with the current heuristic instantiation method used by `ematch`, so they should be revisited
-when the API changes.
+## Implementation notes
+
+The variants `ifinish`, `iclarify`, and `isafe` try to restrict to intuitionistic logic. But the
+`done` tactic leaks classical logic:
+
+```
+example {P : Prop} : ¬¬P → P :=
+by using_smt (do smt_tactic.intros, smt_tactic.close)
+```
+
+They also do not work well with the current heuristic instantiation method used by `ematch`.
+So they are left here mainly for reference.
 -/
 
 declare_trace auto.done
 declare_trace auto.finish
-
--- TODO(Jeremy): move these
-
 
 namespace tactic
 
@@ -145,7 +151,8 @@ do e ← whnf_reducible e,
    | `(¬ %%ne) :=
       (do ne ← whnf_reducible ne,
       match ne with
-      | `(¬ %%a)      := do pr ← mk_app ``not_not_eq [a],
+      | `(¬ %%a)      := if ¬ cfg.classical then return none
+                         else do pr ← mk_app ``not_not_eq [a],
                             return (some (a, pr))
       | `(%%a ∧ %%b)  := do pr ← mk_app ``not_and_eq [a, b],
                             return (some (`(¬ %%a ∨ ¬ %%b), pr))

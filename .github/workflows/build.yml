@@ -75,7 +75,8 @@ jobs:
           python-version: 3.8
 
       - name: generate docs
-        if: github.repository == 'leanprover-community/mathlib' && github.event_name == 'push' && github.ref == 'refs/heads/master' && matrix.lean_version == 'leanprover-community/lean:nightly'
+      # restore github.repository == 'leanprover-community/mathlib' && in if
+        if: github.event_name == 'push' && github.ref == 'refs/heads/master' && matrix.lean_version == 'leanprover-community/lean:nightly'
         run:
           ./scripts/deploy_docs.sh
         env:

@@ -303,7 +303,7 @@ of the set `{i k | k ≤ n ∧ i k ≤ f a}`, see `approx_apply` and `supr_appro
 def approx (i : ℕ → β) (f : α → β) (n : ℕ) : α →ₛ β :=
 (finset.range n).sup (λk, restrict (const α (i k)) {a:α | i k ≤ f a})
 
-lemma approx_apply [topological_space β] [ordered_topology β] {i : ℕ → β} {f : α → β} {n : ℕ}
+lemma approx_apply [topological_space β] [order_closed_topology β] {i : ℕ → β} {f : α → β} {n : ℕ}
   (a : α) (hf : _root_.measurable f) :
   (approx i f n : α →ₛ β) a = (finset.range n).sup (λk, if i k ≤ f a then i k else 0) :=
 begin
@@ -319,7 +319,7 @@ end
 lemma monotone_approx (i : ℕ → β) (f : α → β) : monotone (approx i f) :=
 assume n m h, finset.sup_mono $ finset.range_subset.2 h
 
-lemma approx_comp [topological_space β] [ordered_topology β] [measurable_space γ]
+lemma approx_comp [topological_space β] [order_closed_topology β] [measurable_space γ]
   {i : ℕ → β} {f : γ → β} {g : α → γ} {n : ℕ} (a : α)
   (hf : _root_.measurable f) (hg : _root_.measurable g) :
   (approx i (f ∘ g) n : α →ₛ β) a = (approx i f n : γ →ₛ β) (g a) :=
@@ -327,7 +327,7 @@ by rw [approx_apply _ hf, approx_apply _ (hf.comp hg)]
 
 end
 
-lemma supr_approx_apply [topological_space β] [complete_lattice β] [ordered_topology β] [has_zero β]
+lemma supr_approx_apply [topological_space β] [complete_lattice β] [order_closed_topology β] [has_zero β]
   (i : ℕ → β) (f : α → β) (a : α) (hf : _root_.measurable f) (h_zero : (0 : β) = ⊥) :
   (⨆n, (approx i f n : α →ₛ β) a) = (⨆k (h : i k ≤ f a), i k) :=
 begin
@@ -538,7 +538,7 @@ calc f.integral ≤ f.integral ⊔ g.integral : le_sup_left
   ... ≤ (f ⊔ g).integral : integral_sup_le _ _
   ... = g.integral : by rw [sup_of_le_right h]
 
-lemma integral_congr (f g : α →ₛ ennreal) (h : {a | f a = g a} ∈ (@measure_space.μ α _).a_e) :
+lemma integral_congr (f g : α →ₛ ennreal) (h : ∀ₘ a, f a = g a) :
   f.integral = g.integral :=
 show ((pair f g).map prod.fst).integral = ((pair f g).map prod.snd).integral, from
 begin
@@ -695,13 +695,13 @@ begin
   refine le_antisymm
     (supr_le $ assume s, supr_le $ assume hs, _)
     (supr_le $ assume s, supr_le $ assume hs, le_supr_of_le (s.map c) $ le_supr _ hs),
-  by_cases {a | s a ≠ ⊤} ∈ (@measure_space.μ α _).a_e,
+  by_cases ∀ₘ a, s a ≠ ⊤,
   { have : f ≥ (s.map ennreal.to_nnreal).map c :=
       le_trans (assume a, ennreal.coe_to_nnreal_le_self) hs,
     refine le_supr_of_le (s.map ennreal.to_nnreal) (le_supr_of_le this (le_of_eq $ integral_congr _ _ _)),
     exact filter.mem_sets_of_superset h (assume a ha, (ennreal.coe_to_nnreal ha).symm) },
   { have h_vol_s : volume {a : α | s a = ⊤} ≠ 0,
-    { simp [measure.a_e, set.compl_set_of] at h, assumption },
+    { simp [measure_theory.all_ae_iff, set.compl_set_of] at h, assumption },
     let n : ℕ → (α →ₛ nnreal) := λn, restrict (const α (n : nnreal)) (s ⁻¹' {⊤}),
     have n_le_s : ∀i, (n i).map c ≤ s,
     { assume i a,
@@ -1127,9 +1127,9 @@ calc
 
 /-- Dominated convergence theorem for nonnegative functions -/
 lemma tendsto_lintegral_of_dominated_convergence
-  {F : ℕ → α → ennreal} {f : α → ennreal} {g : α → ennreal}
-  (hF_meas : ∀n, measurable (F n)) (h_bound : ∀n, ∀ₘ a, F n a ≤ g a)
-  (h_fin : lintegral g < ⊤)
+  {F : ℕ → α → ennreal} {f : α → ennreal} (bound : α → ennreal)
+  (hF_meas : ∀n, measurable (F n)) (h_bound : ∀n, ∀ₘ a, F n a ≤ bound a)
+  (h_fin : lintegral bound < ⊤)
   (h_lim : ∀ₘ a, tendsto (λ n, F n a) at_top (𝓝 (f a))) :
   tendsto (λn, lintegral (F n)) at_top (𝓝 (lintegral f)) :=
 begin
@@ -1158,6 +1158,37 @@ begin
       limsup_le_lintegral
       begin convert lintegral_le_liminf, exact liminf_eq_limsup.symm end,
   exact tendsto_of_liminf_eq_limsup ⟨liminf_eq_lintegral, limsup_eq_lintegral⟩
+end
+
+/-- Dominated convergence theorem for filters with a countable basis -/
+lemma tendsto_lintegral_filter_of_dominated_convergence {ι} {l : filter ι}
+  {F : ι → α → ennreal} {f : α → ennreal} (bound : α → ennreal)
+  (hl_cb : l.has_countable_basis)
+  (hF_meas : ∀ᶠ n in l, measurable (F n))
+  (h_bound : ∀ᶠ n in l, ∀ₘ a, F n a ≤ bound a)
+  (h_fin : lintegral bound < ⊤)
+  (h_lim : ∀ₘ a, tendsto (λ n, F n a) l (nhds (f a))) :
+  tendsto (λn, lintegral (F n)) l (nhds (lintegral f)) :=
+begin
+  rw hl_cb.tendsto_iff_seq_tendsto,
+  { intros x xl,
+    have hxl, { rw tendsto_at_top' at xl, exact xl },
+    have h := inter_mem_sets hF_meas h_bound,
+    replace h := hxl _ h,
+    rcases h with ⟨k, h⟩,
+    rw ← tendsto_add_at_top_iff_nat k,
+    refine tendsto_lintegral_of_dominated_convergence _ _ _ _ _,
+    { exact bound },
+    { intro, refine (h _ _).1, exact nat.le_add_left _ _ },
+    { intro, refine (h _ _).2, exact nat.le_add_left _ _ },
+    { assumption },
+    { filter_upwards [h_lim],
+      simp only [mem_set_of_eq],
+      assume a h_lim,
+      apply @tendsto.comp _ _ _ (λn, x (n + k)) (λn, F n a),
+      { assumption },
+      rw tendsto_add_at_top_iff_nat,
+      assumption } },
 end
 
 section

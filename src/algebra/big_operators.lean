@@ -177,6 +177,13 @@ have (s₂ \ s₁).prod f = (s₂ \ s₁).prod (λx, 1),
   from prod_congr rfl $ by simpa only [mem_sdiff, and_imp],
 by rw [←prod_sdiff h]; simp only [this, prod_const_one, one_mul]
 
+-- If we use `[decidable_eq β]` here, some rewrites fail because they find a wrong `decidable`
+-- instance first; `{∀x, decidable (f x ≠ 1)}` doesn't work with `rw ← prod_filter_ne_one`
+@[to_additive]
+lemma prod_filter_ne_one [∀ x, decidable (f x ≠ 1)] : (s.filter $ λx, f x ≠ 1).prod f = s.prod f :=
+prod_subset (filter_subset _) $ λ x,
+  by { classical, rw [not_imp_comm, mem_filter], exact and.intro }
+
 @[to_additive]
 lemma prod_filter (p : α → Prop) [decidable_pred p] (f : α → β) :
   (s.filter p).prod f = s.prod (λa, if p a then f a else 1) :=
@@ -222,12 +229,26 @@ calc s.prod (λ x, h (if p x then f x else g x))
     (prod_congr rfl (by simp {contextual := tt}))
     (prod_congr rfl (by simp {contextual := tt}))
 
-@[simp, to_additive] lemma prod_ite_eq [decidable_eq α] (s : finset α) (a : α) (b : β) :
-  s.prod (λ x, (ite (a = x) b 1)) = ite (a ∈ s) b 1 :=
+@[simp, to_additive] lemma prod_ite_eq [decidable_eq α] (s : finset α) (a : α) (b : α → β) :
+  s.prod (λ x, (ite (a = x) (b x) 1)) = ite (a ∈ s) (b a) 1 :=
 begin
   rw ←finset.prod_filter,
   split_ifs;
   simp only [filter_eq, if_true, if_false, h, prod_empty, prod_singleton, insert_empty_eq_singleton],
+end
+
+/--
+  When a product is taken over a conditional whose condition is an equality test on the index
+  and whose alternative is 1, then the product's value is either the term at that index or `1`.
+
+  The difference with `prod_ite_eq` is that the arguments to `eq` are swapped.
+-/
+@[simp, to_additive] lemma prod_ite_eq' [decidable_eq α] (s : finset α) (a : α) (b : α → β) :
+  s.prod (λ x, (ite (x = a) (b x) 1)) = ite (a ∈ s) (b a) 1 :=
+begin
+  rw ←prod_ite_eq,
+  congr, ext x,
+  by_cases x = a; finish
 end
 
 @[to_additive]
@@ -252,9 +273,8 @@ lemma prod_bij_ne_one {s : finset α} {t : finset γ} {f : α → β} {g : γ �
   (hi₃ : ∀b∈t, g b ≠ 1 → ∃a h₁ h₂, b = i a h₁ h₂)
   (h : ∀a h₁ h₂, f a = g (i a h₁ h₂)) :
   s.prod f = t.prod g :=
-by haveI := classical.prop_decidable; exact
-calc s.prod f = (s.filter $ λx, f x ≠ 1).prod f :
-    (prod_subset (filter_subset _) $ by simp only [not_imp_comm, mem_filter]; exact λ _, and.intro).symm
+by classical; exact
+calc s.prod f = (s.filter $ λx, f x ≠ 1).prod f : prod_filter_ne_one.symm
   ... = (t.filter $ λx, g x ≠ 1).prod g :
     prod_bij (assume a ha, i a (mem_filter.mp ha).1 (mem_filter.mp ha).2)
       (assume a ha, (mem_filter.mp ha).elim $ λh₁ h₂, mem_filter.mpr
@@ -264,19 +284,20 @@ calc s.prod f = (s.filter $ λx, f x ≠ 1).prod f :
         (mem_filter.mp ha₁).elim $ λha₁₁ ha₁₂, (mem_filter.mp ha₂).elim $ λha₂₁ ha₂₂, hi₂ a₁ a₂ _ _ _ _)
       (assume b hb, (mem_filter.mp hb).elim $ λh₁ h₂,
         let ⟨a, ha₁, ha₂, eq⟩ := hi₃ b h₁ h₂ in ⟨a, mem_filter.mpr ⟨ha₁, ha₂⟩, eq⟩)
-  ... = t.prod g :
-    (prod_subset (filter_subset _) $ by simp only [not_imp_comm, mem_filter]; exact λ _, and.intro)
+  ... = t.prod g : prod_filter_ne_one
 
 @[to_additive]
-lemma exists_ne_one_of_prod_ne_one : s.prod f ≠ 1 → ∃a∈s, f a ≠ 1 :=
-by haveI := classical.dec_eq α; exact
-finset.induction_on s (λ H, (H rfl).elim) (assume a s has ih h,
-  classical.by_cases
-    (assume ha : f a = 1,
-      let ⟨a, ha, hfa⟩ := ih (by rwa [prod_insert has, ha, one_mul] at h) in
-      ⟨a, mem_insert_of_mem ha, hfa⟩)
-    (assume hna : f a ≠ 1,
-      ⟨a, mem_insert_self _ _, hna⟩))
+lemma nonempty_of_prod_ne_one (h : s.prod f ≠ 1) : s.nonempty :=
+s.eq_empty_or_nonempty.elim (λ H, false.elim $ h $ H.symm ▸ prod_empty) id
+
+@[to_additive]
+lemma exists_ne_one_of_prod_ne_one (h : s.prod f ≠ 1) : ∃a∈s, f a ≠ 1 :=
+begin
+  classical,
+  rw ← prod_filter_ne_one at h,
+  rcases nonempty_of_prod_ne_one h with ⟨x, hx⟩,
+  exact ⟨x, (mem_filter.1 hx).1, (mem_filter.1 hx).2⟩
+end
 
 @[to_additive]
 lemma prod_range_succ (f : ℕ → β) (n : ℕ) :
@@ -388,8 +409,8 @@ by haveI := classical.dec_eq α;
 haveI := classical.dec_eq β; exact
 finset.strong_induction_on s
   (λ s ih g h₁ h₂ h₃ h₄,
-    if hs : s = ∅ then hs.symm ▸ rfl
-    else let ⟨x, hx⟩ := exists_mem_of_ne_empty hs in
+    s.eq_empty_or_nonempty.elim (λ hs, hs.symm ▸ rfl)
+      (λ ⟨x, hx⟩,
       have hmem : ∀ y ∈ (s.erase x).erase (g x hx), y ∈ s,
         from λ y hy, (mem_of_mem_erase (mem_of_mem_erase hy)),
       have g_inj : ∀ {x hx y hy}, g x hx = g y hy → x = y,
@@ -414,12 +435,59 @@ finset.strong_induction_on s
             (λ h, h₁ x hx ▸ h ▸ hx1.symm ▸ (one_mul _).symm)))
       else by rw [← insert_erase hx, prod_insert (not_mem_erase _ _),
         ← insert_erase (mem_erase.2 ⟨h₂ x hx hx1, h₃ x hx⟩),
-        prod_insert (not_mem_erase _ _), ih', mul_one, h₁ x hx])
+        prod_insert (not_mem_erase _ _), ih', mul_one, h₁ x hx]))
 
 @[to_additive]
 lemma prod_eq_one {f : α → β} {s : finset α} (h : ∀x∈s, f x = 1) : s.prod f = 1 :=
 calc s.prod f = s.prod (λx, 1) : finset.prod_congr rfl h
   ... = 1 : finset.prod_const_one
+
+/-- A product over all subsets of `s ∪ {x}` is obtained by multiplying the product over all subsets
+of `s`, and over all subsets of `s` to which one adds `x`. -/
+@[to_additive]
+lemma prod_powerset_insert [decidable_eq α] {s : finset α} {x : α} (h : x ∉ s) (f : finset α → β) :
+  (insert x s).powerset.prod f = s.powerset.prod f * s.powerset.prod (λt, f (insert x t)) :=
+begin
+  rw [powerset_insert, finset.prod_union, finset.prod_image],
+  { assume t₁ h₁ t₂ h₂ heq,
+    rw [← finset.erase_insert (not_mem_of_mem_powerset_of_not_mem h₁ h),
+        ← finset.erase_insert (not_mem_of_mem_powerset_of_not_mem h₂ h), heq] },
+  { rw finset.disjoint_iff_ne,
+    assume t₁ h₁ t₂ h₂,
+    rcases finset.mem_image.1 h₂ with ⟨t₃, h₃, H₃₂⟩,
+    rw ← H₃₂,
+    exact ne_insert_of_not_mem _ _ (not_mem_of_mem_powerset_of_not_mem h₁ h) }
+end
+
+@[to_additive]
+lemma prod_piecewise [decidable_eq α] (s t : finset α) (f g : α → β) :
+  s.prod (t.piecewise f g) = (s ∩ t).prod f * (s \ t).prod g :=
+begin
+  refine s.induction_on (by simp) _,
+  assume x s hxs Hrec,
+  by_cases h : x ∈ t,
+  { simp [hxs, h, Hrec, insert_sdiff_of_mem s h, mul_assoc] },
+  { simp [hxs, h, Hrec, insert_sdiff_of_not_mem s h],
+    rw [mul_comm, mul_assoc],
+    congr' 1,
+    rw mul_comm }
+end
+    
+/-- If we can partition a product into subsets that cancel out, then the whole product cancels. -/
+@[to_additive]
+lemma prod_cancels_of_partition_cancels (R : setoid α) [decidable_rel R.r]
+  (h : ∀ x ∈ s, (s.filter (λy, y ≈ x)).prod f = 1) : s.prod f = 1 :=
+begin
+  suffices : (s.image quotient.mk).prod (λ xbar, (s.filter (λ y, ⟦y⟧ = xbar)).prod f) = s.prod f,
+  { rw [←this, ←finset.prod_eq_one],
+    intros xbar xbar_in_s,
+    rcases (mem_image).mp xbar_in_s with ⟨x, x_in_s, xbar_eq_x⟩,
+    rw [←xbar_eq_x, filter_congr (λ y _, @quotient.eq _ R y x)],
+    apply h x x_in_s },
+  apply finset.prod_image' f,
+  intros,
+  refl
+end
 
 end comm_monoid
 
@@ -536,14 +604,14 @@ lemma mul_sum : b * s.sum f = s.sum (λx, b * f x) :=
 @[simp] lemma sum_mul_boole [decidable_eq α] (s : finset α) (f : α → β) (a : α) :
   s.sum (λ x, (f x * ite (a = x) 1 0)) = ite (a ∈ s) (f a) 0 :=
 begin
-  convert sum_ite_eq s a (f a),
+  convert sum_ite_eq s a f,
   funext,
   split_ifs with h; simp [h],
 end
 @[simp] lemma sum_boole_mul [decidable_eq α] (s : finset α) (f : α → β) (a : α) :
   s.sum (λ x, (ite (a = x) 1 0) * f x) = ite (a ∈ s) (f a) 0 :=
 begin
-  convert sum_ite_eq s a (f a),
+  convert sum_ite_eq s a f,
   funext,
   split_ifs with h; simp [h],
 end
@@ -654,6 +722,36 @@ calc s₁.sum f = (s₁.filter (λx, f x = 0)).sum f + (s₁.filter (λx, f x �
 
 end canonically_ordered_monoid
 
+section ordered_cancel_comm_monoid
+
+variables [ordered_cancel_comm_monoid β]
+
+theorem sum_lt_sum (Hle : ∀ i ∈ s, f i ≤ g i) (Hlt : ∃ i ∈ s, f i < g i) :
+  s.sum f < s.sum g :=
+begin
+  classical,
+  rcases Hlt with ⟨i, hi, hlt⟩,
+  rw [← insert_erase hi, sum_insert (not_mem_erase _ _), sum_insert (not_mem_erase _ _)],
+  exact add_lt_add_of_lt_of_le hlt (sum_le_sum $ λ j hj, Hle j  $ mem_of_mem_erase hj)
+end
+
+end ordered_cancel_comm_monoid
+
+section decidable_linear_ordered_cancel_comm_monoid
+
+variables [decidable_linear_ordered_cancel_comm_monoid β]
+
+theorem exists_le_of_sum_le (hs : s.nonempty) (Hle : s.sum f ≤ s.sum g) :
+  ∃ i ∈ s, f i ≤ g i :=
+begin
+  classical,
+  contrapose! Hle with Hlt,
+  rcases hs with ⟨i, hi⟩,
+  exact sum_lt_sum (λ i hi, le_of_lt (Hlt i hi)) ⟨i, hi, Hlt i hi⟩
+end
+
+end decidable_linear_ordered_cancel_comm_monoid
+
 section linear_ordered_comm_ring
 variables [decidable_eq α] [linear_ordered_comm_ring β]
 
@@ -704,16 +802,10 @@ calc s.card = (s.image f).sum (λ a, (s.filter (λ x, f x = a)).card) :
 ... ≤ (s.image f).sum (λ _, n) : sum_le_sum hn
 ... = _ : by simp [mul_comm]
 
-@[simp] lemma prod_Ico_id_eq_fact (n : ℕ) : (Ico 1 n.succ).prod (λ x, x) = nat.fact n :=
-calc (Ico 1 n.succ).prod (λ x, x) = (range n).prod nat.succ :
-eq.symm (prod_bij (λ x _, nat.succ x)
-  (λ a h₁, by simp [*, nat.lt_succ_iff, nat.succ_le_iff] at *)
-  (by simp) (λ _ _ _ _, nat.succ_inj)
-  (λ b h,
-    have b.pred.succ = b, from nat.succ_pred_eq_of_pos $
-      by simp [nat.pos_iff_ne_zero, nat.succ_le_iff] at *; tauto,
-    ⟨nat.pred b, mem_range.2 $ nat.lt_of_succ_lt_succ (by simp [*] at *), this.symm⟩))
-... = nat.fact n : by induction n; simp [*, range_succ]
+@[simp] lemma prod_Ico_id_eq_fact : ∀ n : ℕ, (Ico 1 n.succ).prod (λ x, x) = nat.fact n
+| 0 := rfl
+| (n+1) := by rw [prod_Ico_succ_top $ nat.succ_le_succ $ zero_le n,
+  nat.fact_succ, prod_Ico_id_eq_fact n, nat.succ_eq_add_one, mul_comm]
 
 end finset
 

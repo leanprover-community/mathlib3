@@ -74,7 +74,7 @@ Let `f` and `B` be continuous functions on `[a, b]` such that
 * we have `f' x < B' x` whenever `f x = B x`.
 
 Then `f x ≤ B x` everywhere on `[a, b]`. -/
-lemma image_le_of_liminf_slope_right_lt_deriv_boundary {f f' : ℝ → ℝ} {a b : ℝ}
+lemma image_le_of_liminf_slope_right_lt_deriv_boundary' {f f' : ℝ → ℝ} {a b : ℝ}
   (hf : continuous_on f (Icc a b))
   -- `hf'` actually says `liminf (z - x)⁻¹ * (f z - f x) ≤ f' x`
   (hf' : ∀ x ∈ Ico a b, ∀ r, f' x < r →
@@ -89,7 +89,7 @@ begin
   have A : continuous_on (λ x, (f x, B x)) (Icc a b), from hf.prod hB,
   have : is_closed s,
   { simp only [s, inter_comm],
-    exact A.preimage_closed_of_closed is_closed_Icc (ordered_topology.is_closed_le' _) },
+    exact A.preimage_closed_of_closed is_closed_Icc (order_closed_topology.is_closed_le' _) },
   apply this.Icc_subset_of_forall_exists_gt ha,
   rintros x ⟨hxB, xab⟩ y hy,
   change f x ≤ B x at hxB,
@@ -97,10 +97,10 @@ begin
   { -- If `f x < B x`, then all we need is continuity of both sides
     apply inhabited_of_mem_sets (nhds_within_Ioi_self_ne_bot x),
     refine inter_mem_sets _ (Ioc_mem_nhds_within_Ioi ⟨le_refl x, hy⟩),
-    have : {x | f x < B x} ∈ nhds_within x (Icc a b),
+    have : ∀ᶠ x in nhds_within x (Icc a b), f x < B x,
       from A x (Ico_subset_Icc_self xab)
         (mem_nhds_sets (is_open_lt continuous_fst continuous_snd) hxB),
-    have : {x | f x < B x} ∈ nhds_within x (Ioi x),
+    have : ∀ᶠ x in nhds_within x (Ioi x), f x < B x,
       from nhds_within_le_of_mem (Icc_mem_nhds_within_Ioi xab) this,
     refine mem_sets_of_superset this (set_of_subset_set_of.2 $ λ y, le_of_lt) },
   { rcases dense (bound x xab hxB) with ⟨r, hfr, hrB⟩,
@@ -122,6 +122,28 @@ end
 Let `f` and `B` be continuous functions on `[a, b]` such that
 
 * `f a ≤ B a`;
+* `B` has derivative `B'` everywhere on `ℝ`;
+* for each `x ∈ [a, b)` the right-side limit inferior of `(f z - f x) / (z - x)`
+  is bounded above by a function `f'`;
+* we have `f' x < B' x` whenever `f x = B x`.
+
+Then `f x ≤ B x` everywhere on `[a, b]`. -/
+lemma image_le_of_liminf_slope_right_lt_deriv_boundary {f f' : ℝ → ℝ} {a b : ℝ}
+  (hf : continuous_on f (Icc a b))
+  -- `hf'` actually says `liminf (z - x)⁻¹ * (f z - f x) ≤ f' x`
+  (hf' : ∀ x ∈ Ico a b, ∀ r, f' x < r →
+    ∃ᶠ z in nhds_within x (Ioi x), (z - x)⁻¹ * (f z - f x) < r)
+  {B B' : ℝ → ℝ} (ha : f a ≤ B a) (hB : ∀ x, has_deriv_at B (B' x) x)
+  (bound : ∀ x ∈ Ico a b, f x = B x → f' x < B' x) :
+  ∀ ⦃x⦄, x ∈ Icc a b → f x ≤ B x :=
+image_le_of_liminf_slope_right_lt_deriv_boundary' hf hf' ha
+  (λ x hx, (hB x).continuous_at.continuous_within_at)
+  (λ x hx, (hB x).has_deriv_within_at) bound
+
+/-- General fencing theorem for continuous functions with an estimate on the derivative.
+Let `f` and `B` be continuous functions on `[a, b]` such that
+
+* `f a ≤ B a`;
 * `B` has right derivative `B'` at every point of `[a, b)`;
 * for each `x ∈ [a, b)` the right-side limit inferior of `(f z - f x) / (z - x)`
   is bounded above by `B'`.
@@ -138,7 +160,7 @@ lemma image_le_of_liminf_slope_right_le_deriv_boundary {f : ℝ → ℝ} {a b : 
 begin
   have Hr : ∀ x ∈ Icc a b, ∀ r ∈ Ioi (0:ℝ), f x ≤ B x + r * (x - a),
   { intros x hx r hr,
-    apply image_le_of_liminf_slope_right_lt_deriv_boundary hf bound,
+    apply image_le_of_liminf_slope_right_lt_deriv_boundary' hf bound,
     { rwa [sub_self, mul_zero, add_zero] },
     { exact hB.add (continuous_on_const.mul
         (continuous_id.continuous_on.sub continuous_on_const)) },
@@ -170,7 +192,7 @@ lemma image_le_of_deriv_right_lt_deriv_boundary' {f f' : ℝ → ℝ} {a b : ℝ
   (hB' : ∀ x ∈ Ico a b, has_deriv_within_at B (B' x) (Ioi x) x)
   (bound : ∀ x ∈ Ico a b, f x = B x → f' x < B' x) :
   ∀ ⦃x⦄, x ∈ Icc a b → f x ≤ B x :=
-image_le_of_liminf_slope_right_lt_deriv_boundary hf
+image_le_of_liminf_slope_right_lt_deriv_boundary' hf
   (λ x hx r hr, (hf' x hx).liminf_right_slope_le hr) ha hB hB' bound
 
 /-- General fencing theorem for continuous functions with an estimate on the derivative.
@@ -236,7 +258,7 @@ lemma image_norm_le_of_liminf_right_slope_norm_lt_deriv_boundary {E : Type*} [no
   (hB' : ∀ x ∈ Ico a b, has_deriv_within_at B (B' x) (Ioi x) x)
   (bound : ∀ x ∈ Ico a b, ∥f x∥ = B x → f' x < B' x) :
   ∀ ⦃x⦄, x ∈ Icc a b → ∥f x∥ ≤ B x :=
-image_le_of_liminf_slope_right_lt_deriv_boundary (continuous_norm.comp_continuous_on hf) hf'
+image_le_of_liminf_slope_right_lt_deriv_boundary' (continuous_norm.comp_continuous_on hf) hf'
     ha hB hB' bound
 
 /-- General fencing theorem for continuous functions with an estimate on the norm of the derivative.

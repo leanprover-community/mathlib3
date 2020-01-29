@@ -369,8 +369,8 @@ end
 
 -- without the next two lines, `{ exact closed_of_compact (range Φ) hΦ }` in the next
 -- proof is very slow, as the `t2_space` instance is very hard to find
-local attribute [instance, priority 10] orderable_topology.t2_space
-local attribute [instance, priority 10] ordered_topology.to_t2_space
+local attribute [instance, priority 10] order_topology.t2_space
+local attribute [instance, priority 10] order_closed_topology.to_t2_space
 
 /-- The Gromov-Hausdorff distance defines a genuine distance on the Gromov-Hausdorff space. -/
 instance GH_space_metric_space : metric_space GH_space :=
@@ -639,13 +639,13 @@ begin
     { -- by construction, `s p` is `ε`-dense
       assume x,
       have : x ∈ ⋃y∈(s p), ball y ε := (hs p).2 (mem_univ _),
-      rcases mem_bUnion_iff.1 this with ⟨y, ⟨ys, hy⟩⟩,
+      rcases mem_bUnion_iff.1 this with ⟨y, ys, hy⟩,
       exact ⟨y, ys, le_of_lt hy⟩ },
     show ∀x : q.rep, ∃ (z : s p), dist x (Φ z) ≤ ε,
     { -- by construction, `s q` is `ε`-dense, and it is the range of `Φ`
       assume x,
       have : x ∈ ⋃y∈(s q), ball y ε := (hs q).2 (mem_univ _),
-      rcases mem_bUnion_iff.1 this with ⟨y, ⟨ys, hy⟩⟩,
+      rcases mem_bUnion_iff.1 this with ⟨y, ys, hy⟩,
       let i := ((E q).to_fun ⟨y, ys⟩).1,
       let hi := ((E q).to_fun ⟨y, ys⟩).2,
       have ihi_eq : (⟨i, hi⟩ : fin (N q)) = (E q).to_fun ⟨y, ys⟩, by rw fin.ext_iff,
@@ -780,13 +780,13 @@ begin
     { -- by construction, `s p` is `ε`-dense
       assume x,
       have : x ∈ ⋃y∈(s p), ball y (u n) := (hs p pt) (mem_univ _),
-      rcases mem_bUnion_iff.1 this with ⟨y, ⟨ys, hy⟩⟩,
+      rcases mem_bUnion_iff.1 this with ⟨y, ys, hy⟩,
       exact ⟨y, ys, le_trans (le_of_lt hy) u_le_ε⟩ },
     show ∀x : q.rep, ∃ (z : s p), dist x (Φ z) ≤ ε,
     { -- by construction, `s q` is `ε`-dense, and it is the range of `Φ`
       assume x,
       have : x ∈ ⋃y∈(s q), ball y (u n) := (hs q qt) (mem_univ _),
-      rcases mem_bUnion_iff.1 this with ⟨y, ⟨ys, hy⟩⟩,
+      rcases mem_bUnion_iff.1 this with ⟨y, ys, hy⟩,
       let i := ((E q).to_fun ⟨y, ys⟩).1,
       let hi := ((E q).to_fun ⟨y, ys⟩).2,
       have ihi_eq : (⟨i, hi⟩ : fin (N q)) = (E q).to_fun ⟨y, ys⟩, by rw fin.ext_iff,

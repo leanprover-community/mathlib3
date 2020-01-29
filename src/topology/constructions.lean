@@ -504,9 +504,9 @@ begin
   refine continuous_pi (λj, _),
   by_cases h : j = i,
   { rw [h],
-    simp,
+    simp only [function.update_same],
     exact continuous_id },
-  { simp [h],
+  { simp only [h, function.update_noteq, ne.def, not_false_iff],
     exact continuous_const }
 end
 

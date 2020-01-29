@@ -68,6 +68,7 @@ jobs:
         run: |
           lean --recursive --export=mathlib.txt src/
           leanchecker mathlib.txt
+
       - name: Set up Python
         uses: actions/setup-python@v1
         with:

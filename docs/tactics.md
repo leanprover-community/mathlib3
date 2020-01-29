@@ -1375,6 +1375,35 @@ See also additional documentation of `using_well_founded` in
 * If one of the fields is a partially applied constructor, we will eta-expand it
   (this likely never happens).
 
+## clear'
+
+An improved version of the standard `clear` tactic. `clear` is sensitive to the
+order of its arguments: `clear x y` may fail even though both `x` and `y` could
+be cleared (if the type of `y` depends on `x`). `clear'` lifts this limitation.
+
+```
+example {α} {β : α → Type} (a : α) (b : β a) : unit :=
+begin
+  try { clear a b }, -- fails since `b` depends on `a`
+  clear' a b,        -- succeeds
+  exact ()
+end
+```
+
+## clear_dependent
+
+A variant of `clear'` which clears not only the given hypotheses, but also any
+other hypotheses depending on them.
+
+```
+example {α} {β : α → Type} (a : α) (b : β a) : unit :=
+begin
+  try { clear' a },  -- fails since `b` depends on `a`
+  clear_dependent a, -- succeeds, clearing `a` and `b`
+  exact ()
+end
+```
+
 ## simp_rw
 
 `simp_rw` functions as a mix of `simp` and `rw`. Like `rw`, it applies each

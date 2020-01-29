@@ -8,7 +8,7 @@ Matrices
 import algebra.module algebra.pi_instances
 import data.fintype
 
-universes u v
+universes u v w
 
 def matrix (m n : Type u) [fintype m] [fintype n] (α : Type v) : Type (max u v) :=
 m → n → α
@@ -220,7 +220,8 @@ instance [decidable_eq n] [ring α] : ring (matrix n n α) :=
 { ..matrix.add_comm_group, ..matrix.semiring }
 
 instance [semiring α] : has_scalar α (matrix m n α) := pi.has_scalar
-instance [ring α] : module α (matrix m n α) := pi.module _
+instance {β : Type w} [ring α] [add_comm_group β] [module α β] :
+  module α (matrix m n β) := pi.module _
 
 @[simp] lemma smul_val [semiring α] (a : α) (A : matrix m n α) (i : m) (j : n) : (a • A) i j = a * A i j := rfl
 
@@ -292,6 +293,13 @@ section transpose
 
 open_locale matrix
 
+/--
+  Tell `simp` what the entries are in a transposed matrix.
+
+  Compare with `mul_val`, `diagonal_val_eq`, etc.
+-/
+@[simp] lemma transpose_val (M : matrix m n α) (i j) : M.transpose j i = M i j := rfl
+
 @[simp] lemma transpose_transpose (M : matrix m n α) :
   Mᵀᵀ = M :=
 by ext; refl
@@ -299,13 +307,18 @@ by ext; refl
 @[simp] lemma transpose_zero [has_zero α] : (0 : matrix m n α)ᵀ = 0 :=
 by ext i j; refl
 
-@[simp] lemma transpose_add [has_add α] (M : matrix m n α) (N : matrix m n α) :
-  (M + N)ᵀ = Mᵀ + Nᵀ  :=
+@[simp] lemma transpose_one [decidable_eq n] [has_zero α] [has_one α] : (1 : matrix n n α)ᵀ = 1 :=
 begin
   ext i j,
-  dsimp [transpose],
-  refl
+  unfold has_one.one transpose,
+  by_cases i = j,
+  { simp only [h, diagonal_val_eq] },
+  { simp only [diagonal_val_ne h, diagonal_val_ne (λ p, h (symm p))] }
 end
+
+@[simp] lemma transpose_add [has_add α] (M : matrix m n α) (N : matrix m n α) :
+  (M + N)ᵀ = Mᵀ + Nᵀ  :=
+by { ext i j, simp }
 
 @[simp] lemma transpose_mul [comm_ring α] (M : matrix m n α) (N : matrix n l α) :
   (M ⬝ N)ᵀ = Nᵀ ⬝ Mᵀ  :=
@@ -316,6 +329,10 @@ begin
   ext,
   ac_refl
 end
+
+@[simp] lemma transpose_smul [comm_ring α] (c : α)(M : matrix m n α) :
+  (c • M)ᵀ = c • Mᵀ := 
+by { ext i j, refl }
 
 @[simp] lemma transpose_neg [comm_ring α] (M : matrix m n α) :
   (- M)ᵀ = - Mᵀ  :=

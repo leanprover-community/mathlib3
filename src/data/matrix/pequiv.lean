@@ -76,6 +76,10 @@ begin
     simp [h, eq_comm] {contextual := tt} }
 end
 
+lemma to_pequiv_mul_matrix [semiring α] (f : n ≃ n) (M : matrix n n α) :
+  (f.to_pequiv.to_matrix * M) = λ i, M (f i) :=
+by { ext i j, rw [mul_eq_mul, mul_matrix_apply, equiv.to_pequiv_apply] }
+
 lemma to_matrix_trans [semiring α] (f : l ≃. m) (g : m ≃. n) :
   ((f.trans g).to_matrix : matrix l n α) = f.to_matrix ⬝ g.to_matrix :=
 begin
@@ -127,5 +131,10 @@ by rw [← to_matrix_trans, single_trans_single_of_ne hb, to_matrix_bot]
   (M : matrix k l α) : (single a b).to_matrix ⬝ ((single b c).to_matrix ⬝ M) =
   (single a c).to_matrix ⬝ M :=
 by rw [← matrix.mul_assoc, single_mul_single]
+
+/-- We can also define permutation matrices by permuting the rows of the identity matrix. -/
+lemma equiv_to_pequiv_to_matrix [has_one α] [has_zero α] (σ : equiv n n) (i j : n) :
+  σ.to_pequiv.to_matrix i j = (1 : matrix n n α) (σ i) j :=
+if_congr option.some_inj rfl rfl
 
 end pequiv

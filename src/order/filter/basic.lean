@@ -567,6 +567,7 @@ protected lemma eventually.and {p q : α → Prop} {f : filter α} :
   f.eventually p → f.eventually q → ∀ᶠ x in f, p x ∧ q x :=
 inter_mem_sets
 
+@[simp]
 lemma eventually_true (f : filter α) : ∀ᶠ x in f, true := univ_mem_sets
 
 lemma eventually_of_forall {p : α → Prop} (f : filter α) (hp : ∀ x, p x) :
@@ -586,6 +587,32 @@ lemma eventually.mono {p q : α → Prop} {f : filter α} (hp : ∀ᶠ x in f, p
   (hq : ∀ x, p x → q x) :
   ∀ᶠ x in f, q x :=
 hp.mp (f.eventually_of_forall hq)
+
+@[simp]
+lemma eventually_bot {p : α → Prop} : ∀ᶠ x in ⊥, p x := ⟨⟩
+
+@[simp]
+lemma eventually_top {p : α → Prop} : (∀ᶠ x in ⊤, p x) ↔ (∀ x, p x) :=
+iff.rfl
+
+lemma eventually_sup {p : α → Prop} {f g : filter α} :
+  (∀ᶠ x in f ⊔ g, p x) ↔ (∀ᶠ x in f, p x) ∧ (∀ᶠ x in g, p x) :=
+iff.rfl
+
+@[simp]
+lemma eventually_Sup {p : α → Prop} {fs : set (filter α)} :
+  (∀ᶠ x in Sup fs, p x) ↔ (∀ f ∈ fs, ∀ᶠ x in f, p x) :=
+iff.rfl
+
+@[simp]
+lemma eventually_supr {p : α → Prop} {fs : β → filter α} :
+  (∀ᶠ x in (⨆ b, fs b), p x) ↔ (∀ b, ∀ᶠ x in fs b, p x) :=
+mem_supr_sets
+
+@[simp]
+lemma eventually_principal {a : set α} {p : α → Prop} :
+  (∀ᶠ x in principal a, p x) ↔ (∀ x ∈ a, p x) :=
+iff.rfl
 
 /-! ### Frequently -/
 
@@ -638,6 +665,44 @@ lemma frequently_iff_forall_eventually_exists_and {p : α → Prop} {f : filter 
   (∃ᶠ x in f, p x) ↔ ∀ {q : α → Prop}, (∀ᶠ x in f, q x) → ∃ x, p x ∧ q x :=
 ⟨assume hp q hq, (hp.and_eventually hq).exists,
   assume H hp, by simpa only [and_not_self, exists_false] using H hp⟩
+
+@[simp] lemma not_eventually {p : α → Prop} {f : filter α} :
+  (¬ ∀ᶠ x in f, p x) ↔ (∃ᶠ x in f, ¬ p x) :=
+by simp [filter.frequently]
+
+@[simp] lemma not_frequently {p : α → Prop} {f : filter α} :
+  (¬ ∃ᶠ x in f, p x) ↔ (∀ᶠ x in f, ¬ p x) :=
+by simp only [filter.frequently, not_not]
+
+lemma frequently_true_iff_ne_bot (f : filter α) : (∃ᶠ x in f, true) ↔ f ≠ ⊥ :=
+by simp [filter.frequently, -not_eventually, eventually_false_iff_eq_bot]
+
+lemma frequently_false (f : filter α) : ¬ ∃ᶠ x in f, false := by simp
+
+lemma frequently_bot {p : α → Prop} : ¬ ∃ᶠ x in ⊥, p x := by simp
+
+@[simp]
+lemma frequently_top {p : α → Prop} : (∃ᶠ x in ⊤, p x) ↔ (∃ x, p x) :=
+by simp [filter.frequently]
+
+@[simp]
+lemma frequently_principal {a : set α} {p : α → Prop} :
+  (∃ᶠ x in principal a, p x) ↔ (∃ x ∈ a, p x) :=
+by simp [filter.frequently, not_forall]
+
+lemma frequently_sup {p : α → Prop} {f g : filter α} :
+  (∃ᶠ x in f ⊔ g, p x) ↔ (∃ᶠ x in f, p x) ∨ (∃ᶠ x in g, p x) :=
+by simp only [filter.frequently, eventually_sup, not_and_distrib]
+
+@[simp]
+lemma frequently_Sup {p : α → Prop} {fs : set (filter α)} :
+  (∃ᶠ x in Sup fs, p x) ↔ (∃ f ∈ fs, ∃ᶠ x in f, p x) :=
+by simp [filter.frequently, -not_eventually, not_forall]
+
+@[simp]
+lemma frequently_supr {p : α → Prop} {fs : β → filter α} :
+  (∃ᶠ x in (⨆ b, fs b), p x) ↔ (∃ b, ∃ᶠ x in fs b, p x) :=
+by simp [filter.frequently, -not_eventually, not_forall]
 
 /- principal equations -/
 
@@ -785,13 +850,36 @@ def seq (f : filter (α → β)) (g : filter α) : filter β :=
     ⟨t₀ ∩ u₀, inter_mem_sets ht₀ hu₀, t₁ ∩ u₁, inter_mem_sets ht₁ hu₁,
       assume x ⟨hx₀, hx₁⟩ x ⟨hy₀, hy₁⟩, ⟨ht _ hx₀ _ hy₀, hu _ hx₁ _ hy₁⟩⟩⟩
 
-instance : has_pure filter := ⟨λ(α : Type u) x, principal {x}⟩
+/-- `pure x` is the set of sets that contain `x`. It is equal to `principal {x}` but
+with this definition we have `s ∈ pure a` defeq `a ∈ s`. -/
+instance : has_pure filter :=
+⟨λ (α : Type u) x,
+  { sets := {s | x ∈ s},
+    inter_sets := λ s t, and.intro,
+    sets_of_superset := λ s t hs hst, hst hs,
+    univ_sets := trivial }⟩
 
 instance : has_bind filter := ⟨@filter.bind⟩
 
 instance : has_seq filter := ⟨@filter.seq⟩
 
 instance : functor filter := { map := @filter.map }
+
+lemma pure_sets (a : α) : (pure a : filter α).sets = {s | a ∈ s} := rfl
+
+@[simp] lemma mem_pure_sets {a : α} {s : set α} : s ∈ (pure a : filter α) ↔ a ∈ s := iff.rfl
+
+lemma pure_eq_principal (a : α) : (pure a : filter α) = principal {a} :=
+filter.ext $ λ s, by simp only [mem_pure_sets, mem_principal_sets, singleton_subset_iff]
+
+@[simp] lemma map_pure (f : α → β) (a : α) : map f (pure a) = pure (f a) :=
+filter.ext $ λ s, iff.rfl
+
+@[simp] lemma join_pure (f : filter α) : join (pure f) = f := filter.ext $ λ s, iff.rfl
+
+@[simp] lemma pure_bind (a : α) (m : α → filter β) :
+  bind (pure a) m = m a :=
+by simp only [has_bind.bind, bind, map_pure, join_pure]
 
 section
 -- this section needs to be before applicative, otherwise the wrong instance will be chosen
@@ -800,12 +888,11 @@ protected def monad : monad filter := { map := @filter.map }
 local attribute [instance] filter.monad
 protected lemma is_lawful_monad : is_lawful_monad filter :=
 { id_map     := assume α f, filter_eq rfl,
-  pure_bind  := assume α β a f, by simp only [has_bind.bind, pure, bind, Sup_image, image_singleton,
-    join_principal_eq_Sup, lattice.Sup_singleton, map_principal, eq_self_iff_true],
+  pure_bind  := assume α β, pure_bind,
   bind_assoc := assume α β γ f m₁ m₂, filter_eq rfl,
-  bind_pure_comp_eq_map := assume α β f x, filter_eq $
-    by simp only [has_bind.bind, pure, functor.map, bind, join, map, preimage, principal,
-      set.subset_univ, eq_self_iff_true, function.comp_app, mem_set_of_eq, singleton_subset_iff] }
+  bind_pure_comp_eq_map := assume α β f x, filter.ext $ λ s,
+    by simp only [has_bind.bind, bind, functor.map, mem_map, mem_join_sets, mem_set_of_eq,
+      function.comp, mem_pure_sets] }
 end
 
 instance : applicative filter := { map := @filter.map, seq := @filter.seq }
@@ -813,14 +900,6 @@ instance : applicative filter := { map := @filter.map, seq := @filter.seq }
 instance : alternative filter :=
 { failure := λα, ⊥,
   orelse  := λα x y, x ⊔ y }
-
-@[simp] lemma pure_def (x : α) : pure x = principal {x} := rfl
-
-@[simp] lemma mem_pure {a : α} {s : set α} : a ∈ s → s ∈ (pure a : filter α) :=
-by simp only [imp_self, pure_def, mem_principal_sets, singleton_subset_iff]; exact id
-
-@[simp] lemma mem_pure_iff {a : α} {s : set α} : s ∈ (pure a : filter α) ↔ a ∈ s :=
-by rw [pure_def, mem_principal_sets, set.singleton_subset_iff]
 
 @[simp] lemma map_def {α β} (m : α → β) (f : filter α) : m <$> f = map m f := rfl
 
@@ -1092,15 +1171,18 @@ assume s hs, mem_sets_of_superset (h _ hs) $ image_preimage_subset _ _
 
 section applicative
 
-@[simp] lemma mem_pure_sets {a : α} {s : set α} :
-  s ∈ (pure a : filter α) ↔ a ∈ s :=
-by simp only [iff_self, pure_def, mem_principal_sets, singleton_subset_iff]
-
 lemma singleton_mem_pure_sets {a : α} : {a} ∈ (pure a : filter α) :=
-by simp only [mem_singleton, pure_def, mem_principal_sets, singleton_subset_iff]
+mem_singleton a
+
+lemma pure_inj : function.injective (pure : α → filter α) :=
+assume a b hab, (filter.ext_iff.1 hab {x | a = x}).1 rfl
 
 @[simp] lemma pure_ne_bot {α : Type u} {a : α} : pure a ≠ (⊥ : filter α) :=
-by simp only [pure, has_pure.pure, ne.def, not_false_iff, singleton_ne_empty, principal_eq_bot_iff]
+mt empty_in_sets_eq_bot.2 $ not_mem_empty a
+
+@[simp] lemma le_pure_iff {f : filter α} {a : α} : f ≤ pure a ↔ {a} ∈ f :=
+⟨λ h, h singleton_mem_pure_sets,
+  λ h s hs, mem_sets_of_superset h $ singleton_subset_iff.2 hs⟩
 
 lemma mem_seq_sets_def {f : filter (α → β)} {g : filter α} {s : set β} :
   s ∈ f.seq g ↔ (∃u ∈ f, ∃t ∈ g, ∀x∈u, ∀y∈t, (x : α → β) y ∈ s) :=
@@ -1133,28 +1215,17 @@ le_seq $ assume s hs t ht, seq_mem_seq_sets (hf hs) (hg ht)
 begin
   refine le_antisymm  (le_map $ assume s hs, _) (le_seq $ assume s hs t ht, _),
   { rw ← singleton_seq, apply seq_mem_seq_sets _ hs,
-    simp only [mem_singleton, pure_def, mem_principal_sets, singleton_subset_iff] },
-  { rw mem_pure_sets at hs,
-    refine sets_of_superset (map g f) (image_mem_map ht) _,
+    exact singleton_mem_pure_sets },
+  { refine sets_of_superset (map g f) (image_mem_map ht) _,
     rintros b ⟨a, ha, rfl⟩, exact ⟨g, hs, a, ha, rfl⟩ }
 end
-
-@[simp] lemma map_pure (f : α → β) (a : α) : map f (pure a) = pure (f a) :=
-le_antisymm
-  (le_principal_iff.2 $ sets_of_superset (map f (pure a)) (image_mem_map singleton_mem_pure_sets) $
-    by simp only [image_singleton, mem_singleton, singleton_subset_iff])
-  (le_map $ assume s, begin
-    simp only [mem_image, pure_def, mem_principal_sets, singleton_subset_iff],
-    exact assume has, ⟨a, has, rfl⟩
-  end)
 
 @[simp] lemma seq_pure (f : filter (α → β)) (a : α) : seq f (pure a) = map (λg:α → β, g a) f :=
 begin
   refine le_antisymm (le_map $ assume s hs, _) (le_seq $ assume s hs t ht, _),
-  { rw ← seq_singleton, exact seq_mem_seq_sets hs
-    (by simp only [mem_singleton, pure_def, mem_principal_sets, singleton_subset_iff]) },
-  { rw mem_pure_sets at ht,
-    refine sets_of_superset (map (λg:α→β, g a) f) (image_mem_map hs) _,
+  { rw ← seq_singleton,
+    exact seq_mem_seq_sets hs singleton_mem_pure_sets },
+  { refine sets_of_superset (map (λg:α→β, g a) f) (image_mem_map hs) _,
     rintros b ⟨g, hg, rfl⟩, exact ⟨g, hg, a, ht, rfl⟩ }
 end
 
@@ -1403,21 +1474,24 @@ lemma tendsto_infi' {f : α → β} {x : ι → filter α} {y : filter β} (i : 
   tendsto f (x i) y → tendsto f (⨅i, x i) y :=
 tendsto_le_left (infi_le _ _)
 
-lemma tendsto_principal {f : α → β} {a : filter α} {s : set β} :
-  tendsto f a (principal s) ↔ {a | f a ∈ s} ∈ a :=
-by simp only [tendsto, le_principal_iff, mem_map, iff_self]
+lemma tendsto_principal {f : α → β} {l : filter α} {s : set β} :
+  tendsto f l (principal s) ↔ ∀ᶠ a in l, f a ∈ s :=
+by simp only [tendsto, le_principal_iff, mem_map, iff_self, filter.eventually]
 
 lemma tendsto_principal_principal {f : α → β} {s : set α} {t : set β} :
   tendsto f (principal s) (principal t) ↔ ∀a∈s, f a ∈ t :=
 by simp only [tendsto, image_subset_iff, le_principal_iff, map_principal, mem_principal_sets]; refl
 
+lemma tendsto_pure {f : α → β} {a : filter α} {b : β} :
+  tendsto f a (pure b) ↔ {x | f x = b} ∈ a :=
+by simp only [tendsto, le_pure_iff, mem_map, mem_singleton_iff]
+
 lemma tendsto_pure_pure (f : α → β) (a : α) :
   tendsto f (pure a) (pure (f a)) :=
-show filter.map f (pure a) ≤ pure (f a),
-  by rw [filter.map_pure]; exact le_refl _
+tendsto_pure.2 rfl
 
-lemma tendsto_const_pure {a : filter α} {b : β} : tendsto (λa, b) a (pure b) :=
-by simp [tendsto]; exact univ_mem_sets
+lemma tendsto_const_pure {a : filter α} {b : β} : tendsto (λx, b) a (pure b) :=
+tendsto_pure.2 $ univ_mem_sets' $ λ _, rfl
 
 lemma tendsto_if {l₁ : filter α} {l₂ : filter β}
     {f g : α → β} {p : α → Prop} [decidable_pred p]
@@ -1543,7 +1617,7 @@ by simp only [filter.prod, comap_inf, inf_comm, inf_assoc, lattice.inf_left_comm
 by simp only [filter.prod, comap_principal, principal_eq_iff_eq, comap_principal, inf_principal]; refl
 
 @[simp] lemma prod_pure_pure {a : α} {b : β} : filter.prod (pure a) (pure b) = pure (a, b) :=
-by simp
+by simp [pure_eq_principal]
 
 lemma prod_eq_bot {f : filter α} {g : filter β} : filter.prod f g = ⊥ ↔ (f = ⊥ ∨ g = ⊥) :=
 begin
@@ -1601,6 +1675,26 @@ iff.intro
       assume c hc, ⟨ha $ le_trans le_sup_left hc, hb _ $ le_trans le_sup_right hc⟩⟩)
     (assume s₁ s₂ h ⟨a, ha⟩, ⟨a, assume b hb, h $ ha _ hb⟩))
   (assume ⟨a, h⟩, mem_infi_sets a $ assume x, h x)
+
+@[nolint] -- ≥
+lemma eventually_at_top {α} [semilattice_sup α] [nonempty α] {p : α → Prop} :
+  (∀ᶠ x in at_top, p x) ↔ (∃ a, ∀ b ≥ a, p b) :=
+by simp only [filter.eventually, filter.mem_at_top_sets, mem_set_of_eq]
+
+@[nolint] -- ≥
+lemma eventually.exists_forall_of_at_top {α} [semilattice_sup α] [nonempty α] {p : α → Prop}
+  (h : ∀ᶠ x in at_top, p x) : ∃ a, ∀ b ≥ a, p b :=
+eventually_at_top.mp h
+
+@[nolint] -- ≥
+lemma frequently_at_top {α} [semilattice_sup α] [nonempty α] {p : α → Prop} :
+  (∃ᶠ x in at_top, p x) ↔ (∀ a, ∃ b ≥ a, p b) :=
+by simp only [filter.frequently, eventually_at_top, not_exists, not_forall, not_not]
+
+@[nolint] -- ≥
+lemma frequently.forall_exists_of_at_top {α} [semilattice_sup α] [nonempty α] {p : α → Prop}
+  (h : ∃ᶠ x in at_top, p x) : ∀ a, ∃ b ≥ a, p b :=
+frequently_at_top.mp h
 
 lemma map_at_top_eq [nonempty α] [semilattice_sup α] {f : α → β} :
   at_top.map f = (⨅a, principal $ f '' {a' | a ≤ a'}) :=
@@ -2063,8 +2157,8 @@ lemma mem_traverse_sets_iff (fs : list β) (t : set (list α)) :
 begin
   split,
   { induction fs generalizing t,
-    case nil { simp only [sequence, pure_def, imp_self, forall₂_nil_left_iff, pure_def,
-      exists_eq_left, mem_principal_sets, set.pure_def, singleton_subset_iff, traverse_nil] },
+    case nil { simp only [sequence, mem_pure_sets, imp_self, forall₂_nil_left_iff,
+      exists_eq_left, set.pure_def, singleton_subset_iff, traverse_nil] },
     case cons : b fs ih t {
       assume ht,
       rcases mem_seq_sets_iff.1 ht with ⟨u, hu, v, hv, ht⟩,

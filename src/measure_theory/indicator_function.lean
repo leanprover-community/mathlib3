@@ -117,7 +117,7 @@ lemma tendsto_indicator_of_monotone [nonempty ι] (s : ι → set α) (hs : mono
   (a : α) : tendsto (λi, indicator (s i) f a) at_top (pure $ indicator (Union s) f a) :=
 begin
   by_cases h : ∃i, a ∈ s i,
-  { simp only [tendsto_principal, mem_singleton_iff, mem_at_top_sets, filter.pure_def, mem_set_of_eq],
+  { simp only [tendsto_pure, mem_at_top_sets, mem_set_of_eq],
     rcases h with ⟨i, hi⟩,
     use i, assume n hn,
     rw [indicator_of_mem (hs hn hi) _, indicator_of_mem ((subset_Union _ _) hi) _] },
@@ -134,7 +134,7 @@ lemma tendsto_indicator_of_antimono [nonempty ι] (s : ι → set α) (hs : ∀i
   (a : α) : tendsto (λi, indicator (s i) f a) at_top (pure $ indicator (Inter s) f a) :=
 begin
   by_cases h : ∃i, a ∉ s i,
-  { simp only [tendsto_principal, mem_singleton_iff, mem_at_top_sets, filter.pure_def, mem_set_of_eq],
+  { simp only [tendsto_pure, mem_at_top_sets, mem_set_of_eq],
     rcases h with ⟨i, hi⟩,
     use i, assume n hn,
     rw [indicator_of_not_mem _ _, indicator_of_not_mem _ _],
@@ -153,8 +153,7 @@ lemma tendsto_indicator_bUnion_finset (s : ι → set α) (f : α → β) (a : �
   tendsto (λ (n : finset ι), indicator (⋃i∈n, s i) f a) at_top (pure $ indicator (Union s) f a) :=
 begin
   by_cases h : ∃i, a ∈ s i,
-  { simp only [tendsto_principal, mem_singleton_iff, mem_at_top_sets, filter.pure_def,
-               mem_set_of_eq, ge_iff_le, finset.le_iff_subset],
+  { simp only [mem_at_top_sets, tendsto_pure, mem_set_of_eq, ge_iff_le, finset.le_iff_subset],
     rcases h with ⟨i, hi⟩,
     use {i}, assume n hn,
     replace hn : i ∈ n := hn (finset.mem_singleton_self _),

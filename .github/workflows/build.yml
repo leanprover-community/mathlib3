@@ -17,12 +17,14 @@ jobs:
 
       - name: install elan
         run: |
+          set -o pipefail
           curl https://raw.githubusercontent.com/Kha/elan/master/elan-init.sh -sSf | sh -s -- --default-toolchain none -y
           ~/.elan/bin/elan override set ${{ matrix.lean_version }}
           ~/.elan/bin/lean --version
           echo "::add-path::$HOME/.elan/bin"
       - name: install olean-rs
         run: |
+          set -o pipefail
           OLEAN_RS=https://github.com/cipher1024/olean-rs/releases
           latest=$(curl -sSf "$OLEAN_RS/latest" | cut -d'"' -f2 | awk -F/ '{print $NF}')
           mkdir ~/scripts
@@ -49,12 +51,12 @@ jobs:
         if: github.repository == 'leanprover-community/mathlib' && github.event_name == 'push' && github.ref == 'refs/heads/master' && matrix.lean_version == '3.4.2'
         run: ./scripts/deploy_nightly.sh
         env:
-          GITHUB_TOKEN: ${{ secrets.DEPLOY_NIGHTLY_GITHUB_TOKEN }}
+          DEPLOY_NIGHTLY_GITHUB_TOKEN: ${{ secrets.DEPLOY_NIGHTLY_GITHUB_TOKEN }}
 
       - name: tests
         run: |
-          leanpkg test | cat
-          lean --make docs archive | cat
+          set -o pipefail
+          lean --make docs archive test | cat
 
       - name: lint
         run: |
@@ -66,4 +68,3 @@ jobs:
         run: |
           lean --recursive --export=mathlib.txt src/
           leanchecker mathlib.txt
-

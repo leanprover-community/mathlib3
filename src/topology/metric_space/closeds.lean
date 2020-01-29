@@ -169,13 +169,12 @@ begin
   -- from this, the convergence of `s n` to `t0` follows.
   refine (tendsto_at_top _).2 (λε εpos, _),
   have : tendsto (λn, 2 * B n) at_top (𝓝 (2 * 0)),
-    from ennreal.tendsto.mul_right
+    from ennreal.tendsto.const_mul
       (ennreal.tendsto_pow_at_top_nhds_0_of_lt_1 $ by simp [ennreal.one_lt_two])
       (or.inr $ by simp),
   rw mul_zero at this,
-  have Z := (tendsto_order.1 this).2 ε εpos,
-  simp only [filter.mem_at_top_sets, set.mem_set_of_eq] at Z,
-  rcases Z with ⟨N, hN⟩,  --  ∀ (b : ℕ), b ≥ N → ε > 2 * B b
+  obtain ⟨N, hN⟩ : ∃ N, ∀ b ≥ N, ε > 2 * B b,
+    from ((tendsto_order.1 this).2 ε εpos).exists_forall_of_at_top,
   exact ⟨N, λn hn, lt_of_le_of_lt (main n) (hN n hn)⟩
 end
 

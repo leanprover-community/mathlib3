@@ -296,3 +296,8 @@ protected lemma bijective : bijective f := ⟨h.injective, h.surjective⟩
 end involutive
 
 end function
+
+/-- `s.piecewise f g` is the function equal to `f` on the set `s`, and to `g` on its complement. -/
+def set.piecewise {α : Type u} {β : α → Sort v} (s : set α) (f g : Πi, β i) [∀j, decidable (j ∈ s)] :
+  Πi, β i :=
+λi, if i ∈ s then f i else g i

@@ -13,7 +13,7 @@ git clone https://github.com/leanprover-community/doc-gen.git
 cd doc-gen
 sed -i "s/rev = \"\S*\"/rev = \"$git_hash\"/" leanpkg.toml
 echo -e "builtin_path\npath ./src\npath ../src" > leanpkg.path
-git clone "https://$DEPLOY_NIGHTLY_GITHUB_USER:$DEPLOY_NIGHTLY_GITHUB_TOKEN@github.com/leanprover-community/mathlib_docs_test.git"
+git clone "https://$DEPLOY_NIGHTLY_GITHUB_USER:$DEPLOY_NIGHTLY_GITHUB_TOKEN@github.com/leanprover-community/mathlib_docs.git"
 rm -rf mathlib_docs/docs/*
 elan override set leanprover-community/lean:nightly
 python3 -m pip install --upgrade pip

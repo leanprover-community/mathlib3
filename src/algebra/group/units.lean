@@ -74,6 +74,8 @@ by refine {mul := (*), one := 1, inv := has_inv.inv, ..};
   { intros, apply ext, simp only [coe_mul, coe_one,
       mul_assoc, one_mul, mul_one, inv_mul] }
 
+instance : inhabited (units α) := ⟨1⟩
+
 instance {α} [comm_monoid α] : comm_group (units α) :=
 { mul_comm := λ u₁ u₂, ext $ mul_comm _ _, ..units.group }
 

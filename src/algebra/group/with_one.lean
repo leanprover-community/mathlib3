@@ -22,6 +22,9 @@ instance : monad with_one := option.monad
 instance : has_one (with_one α) := ⟨none⟩
 
 @[to_additive]
+instance : inhabited (with_one α) := ⟨1⟩
+
+@[to_additive]
 instance : has_coe_t α (with_one α) := ⟨some⟩
 
 @[simp, to_additive]

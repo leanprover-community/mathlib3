@@ -21,5 +21,5 @@ pip3 install markdown2 toml
 ./gen_docs -w -r "../" -t "mathlib_docs/docs/"
 cd mathlib_docs/docs
 git add -A .
-git commit author="leanprover-community-bot <leanprover.community@gmail.com>" -m "automatic update to $git_hash"
+git commit --author="leanprover-community-bot <leanprover.community@gmail.com>" -m "automatic update to $git_hash"
 git push

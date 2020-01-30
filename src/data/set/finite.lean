@@ -22,7 +22,10 @@ def finite (s : set α) : Prop := nonempty (fintype s)
 /-- A set is infinite if it is not finite. -/
 def infinite (s : set α) : Prop := ¬ finite s
 
-noncomputable instance finite.fintype {s : set α} (h : finite s) : fintype s :=
+/-- The subtype corresponding to a finite set is a finite type. Note
+that because `finite` isn't a typeclass, this will not fire if it
+is made into an instance -/
+noncomputable def finite.fintype {s : set α} (h : finite s) : fintype s :=
 classical.choice h
 
 /-- Get a finset from a finite set -/

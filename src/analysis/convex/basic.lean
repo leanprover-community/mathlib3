@@ -120,17 +120,15 @@ def convex (s : set E) :=
 ∀ ⦃x y : E⦄, x ∈ s → y ∈ s → ∀ ⦃a b : ℝ⦄, 0 ≤ a → 0 ≤ b → a + b = 1 →
   a • x + b • y ∈ s
 
-lemma convex_iff_segment : convex s ↔ ∀ ⦃x y⦄, x ∈ s → y ∈ s → [x, y] ⊆ s :=
+lemma convex_iff_segment_subset : convex s ↔ ∀ ⦃x y⦄, x ∈ s → y ∈ s → [x, y] ⊆ s :=
 by simp only [convex, segment_eq_image₂, subset_def, ball_image_iff, prod.forall,
   mem_set_of_eq, and_imp]
 
-/-- Alternative definition of set convexity -/
-lemma convex_iff_Icc:
-  convex s ↔ ∀ {x y : E}, x ∈ s → y ∈ s → ∀ {θ : ℝ}, 0 ≤ θ → θ ≤ 1 → (1 - θ) • x + θ • y ∈ s :=
-convex_iff_segment.trans $ by simp only [segment_eq_image, subset_def, ball_image_iff, mem_Icc, and_imp]
+lemma convex.segment_subset (h : convex s) {x y:E} (hx : x ∈ s) (hy : y ∈ s) : [x, y] ⊆ s :=
+convex_iff_segment_subset.1 h hx hy
 
 /-- Alternative definition of set convexity, in terms of pointwise set operations. -/
-lemma convex_iff_set:
+lemma convex_iff_pointwise_add_subset:
   convex s ↔ ∀ ⦃a b : ℝ⦄, 0 ≤ a → 0 ≤ b → a + b = 1 → a • s + b • s ⊆ s :=
 iff.intro
   begin
@@ -139,15 +137,6 @@ iff.intro
   end
   (λ h x y hx hy a b ha hb hab,
     (h ha hb hab) (set.add_mem_pointwise_add ⟨_, hx, rfl⟩ ⟨_, hy, rfl⟩))
-
-/-- Alternative definition of set convexity, in terms of pointwise set operations. -/
-lemma convex_iff_set_Icc:
-  convex s ↔ ∀ ⦃θ : ℝ⦄, 0 ≤ θ → θ ≤ 1 → (1 - θ) • s + θ • s ⊆ s :=
-convex_iff_set.trans $ iff.intro
-  (λ h θ hθ₀ hθ₁, h (sub_nonneg.2 hθ₁) hθ₀ (sub_add_cancel _ _))
-  (λ h a b ha hb hab,
-    have hb' : b ≤ 1, from hab ▸ le_add_of_nonneg_left ha,
-    by { rw [eq_sub_of_add_eq hab], exact h hb hb' })
 
 /-- Alternative definition of set convexity, using division -/
 lemma convex_iff_div:
@@ -260,7 +249,7 @@ end
 lemma convex_real_iff {s : set ℝ} :
   convex s ↔ ∀ {x y}, x ∈ s → y ∈ s → Icc x y ⊆ s :=
 begin
-  simp only [convex_iff_segment, segment_eq_Icc'],
+  simp only [convex_iff_segment_subset, segment_eq_Icc'],
   split; intros h x y hx hy,
   { cases le_or_lt x y with hxy hxy,
     { simpa [hxy] using h hx hy },
@@ -375,20 +364,6 @@ def convex_on (s : set E) (f : E → ℝ) : Prop :=
 
 variables {t : set E} {f g : E → ℝ}
 
-lemma convex_on_iff :
-  convex_on s f ↔ convex s ∧ ∀ ⦃x y : E⦄, x ∈ s → y ∈ s →
-    ∀ ⦃θ : ℝ⦄, 0 ≤ θ → θ ≤ 1 → f ((1 - θ) • x + θ • y) ≤ (1 - θ) * f x + θ * f y :=
-and_congr iff.rfl
-⟨begin
-  intros h x y hx hy θ hθ₁ hθ₂,
-  exact h hx hy (sub_nonneg.2 hθ₂) hθ₁ (sub_add_cancel _ _)
-end,
-begin
-  intros h x y hx hy a b ha hb hab,
-  rw [eq_sub_iff_add_eq.2 hab],
-  exact h hx hy hb (hab ▸ le_add_of_nonneg_left ha)
-end⟩
-
 lemma convex_on_iff_div:
   convex_on s f ↔ convex s ∧ ∀ ⦃x y : E⦄, x ∈ s → y ∈ s → ∀  ⦃a b : ℝ⦄, 0 ≤ a → 0 ≤ b → 0 < a + b →
     f ((a/(a+b)) • x + (b/(a+b)) • y) ≤ (a/(a+b)) * f x + (b/(a+b)) * f y :=
@@ -498,13 +473,13 @@ lemma convex_on.le_on_segment (hf : convex_on s f) {x y z : E}
 let ⟨a, b, ha, hb, hab, hz⟩ := hz in hz ▸ hf.le_on_segment' hx hy ha hb hab
 
 lemma convex_on.convex_le (hf : convex_on s f) (r : ℝ) : convex {x ∈ s | f x ≤ r} :=
-convex_iff_segment.2 $ λ x y hx hy z hz,
-  ⟨convex_iff_segment.1 hf.1 hx.1 hy.1 hz,
+convex_iff_segment_subset.2 $ λ x y hx hy z hz,
+  ⟨hf.1.segment_subset hx.1 hy.1 hz,
     le_trans (hf.le_on_segment hx.1 hy.1 hz) $ max_le hx.2 hy.2⟩
 
 lemma convex_on.convex_lt (hf : convex_on s f) (r : ℝ) : convex {x ∈ s | f x < r} :=
-convex_iff_segment.2 $ λ x y hx hy z hz,
-  ⟨convex_iff_segment.1 hf.1 hx.1 hy.1 hz,
+convex_iff_segment_subset.2 $ λ x y hx hy z hz,
+  ⟨hf.1.segment_subset hx.1 hy.1 hz,
     lt_of_le_of_lt (hf.le_on_segment hx.1 hy.1 hz) $ max_lt hx.2 hy.2⟩
 
 lemma convex_on.convex_epigraph (hf : convex_on s f) :

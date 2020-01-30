@@ -357,9 +357,9 @@ begin
       ∥u - v∥^2 ≤ ∥u - (θ•w + (1-θ)•v)∥^2 :
       begin
         simp only [pow_two], apply mul_self_le_mul_self (norm_nonneg _),
-        rw [eq, add_comm], apply δ_le',
-        apply convex_iff_Icc.1 h hv hw,
-        exacts [le_of_lt hθ₁, hθ₂],
+        rw [eq], apply δ_le',
+        apply h hw hv,
+        exacts [le_of_lt hθ₁, sub_nonneg.2 hθ₂, add_sub_cancel'_right _ _],
       end
       ... = ∥(u - v) - θ • (w - v)∥^2 :
       begin

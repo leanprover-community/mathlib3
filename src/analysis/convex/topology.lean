@@ -72,7 +72,7 @@ local attribute [instance] set.pointwise_add set.smul_set
 
 /-- In a topological vector space, the interior of a convex set is convex. -/
 lemma convex.interior {s : set E} (hs : convex s) : convex (interior s) :=
-convex_iff_set.mpr $ λ a b ha hb hab,
+convex_iff_pointwise_add_subset.mpr $ λ a b ha hb hab,
   have h : is_open (a • interior s + b • interior s), from
   or.elim (classical.em (a = 0))
   (λ heq,
@@ -82,7 +82,7 @@ convex_iff_set.mpr $ λ a b ha hb hab,
     is_open_pointwise_add_right ((is_open_map_smul_of_ne_zero hne _) is_open_interior)),
   (subset_interior_iff_subset_of_open h).mpr $ subset.trans
     (by { apply pointwise_add_subset_add; exact image_subset _ interior_subset })
-    (convex_iff_set.mp hs ha hb hab)
+    (convex_iff_pointwise_add_subset.mp hs ha hb hab)
 
 /-- In a topological vector space, the closure of a convex set is convex. -/
 lemma convex.closure {s : set E} (hs : convex s) : convex (closure s) :=

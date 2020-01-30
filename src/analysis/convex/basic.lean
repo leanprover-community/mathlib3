@@ -57,7 +57,8 @@ section sets
 /-! ### Segment -/
 
 /-- Segments in a vector space -/
-def segment (x y : E) : set E := {z : E | ∃ (a b : ℝ) (ha : 0 ≤ a) (hb : 0 ≤ b) (hab : a + b = 1), a • x + b • y = z}
+def segment (x y : E) : set E :=
+{z : E | ∃ (a b : ℝ) (ha : 0 ≤ a) (hb : 0 ≤ b) (hab : a + b = 1), a • x + b • y = z}
 local notation `[`x `, ` y `]` := segment x y
 
 lemma segment_symm (x y : E) : [x, y] = [y, x] :=

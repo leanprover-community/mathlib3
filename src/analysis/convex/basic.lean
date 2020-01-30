@@ -809,7 +809,8 @@ section simplex
 
 variables (α) [fintype α] {f : α → ℝ}
 
-/-- Standard simplex in the space of functions `α → ℝ`. -/
+/-- Standard simplex in the space of functions `α → ℝ` is the set
+of vectors with non-negative coordinates with total sum `1`. -/
 def std_simplex (α : Type*) [fintype α] : set (α → ℝ) :=
 { f | (∀ x, 0 ≤ f x) ∧ finset.univ.sum f = 1 }
 
@@ -845,6 +846,12 @@ end
 
 variable {α}
 
+/-- Convex hull of a finite set is the image of the standard simplex in `s → ℝ`
+under the linear map sending each function `w` to `s.sum (λ x, w x • x)`.
+
+Since we have no sums over finite sets, we use sum over `@finset.univ _ hs.fintype`.
+The map is defined in terms of operations on `(s → ℝ) →ₗ[ℝ] ℝ` so that later we will not need
+to prove that this map is linear. -/
 lemma set.finite.convex_hull_eq_image {s : set E} (hs : finite s) :
   convex_hull s =
     (⇑((@finset.univ _ hs.fintype).sum (λ x, (linear_map.proj x : (s → ℝ) →ₗ[ℝ] ℝ).smul_right x.1))) ''
@@ -857,7 +864,7 @@ begin
   simp [linear_map.sum_apply, ite_smul, finset.sum_ite _ _ (λ x, x), finset.filter_eq]
 end
 
-
+/-- All values of a function `f ∈ std_simplex α` belong to `[0, 1]`. -/
 lemma mem_Icc_of_mem_std_simplex (hf : f ∈ std_simplex α) (x) :
   f x ∈ I :=
 ⟨hf.1 x, hf.2 ▸ finset.single_le_sum (λ y hy, hf.1 y) (finset.mem_univ x)⟩

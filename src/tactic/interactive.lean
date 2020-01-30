@@ -621,11 +621,11 @@ example : foo :=
 by use [100, tt, 4, 3]
 -/
 meta def use (l : parse pexpr_list_or_texpr) : tactic unit :=
-focus1 $ do tactic.use l,
-   try triv,
-   try (do
-           `(Exists %%p) ← target,
-           to_expr ``(exists_prop.mpr) >>= tactic.apply >> skip)
+focus1 $
+  tactic.use l;
+  try (triv <|> (do
+        `(Exists %%p) ← target,
+        to_expr ``(exists_prop.mpr) >>= tactic.apply >> skip))
 
 /--
 `clear_aux_decl` clears every `aux_decl` in the local context for the current goal.

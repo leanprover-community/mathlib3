@@ -190,13 +190,13 @@ open_locale matrix
 
 section trace
 
-variables (m n)
-variables (R : Type v) (M : Type w) [ring R] [add_comm_group M] [module R M]
+variables {R : Type v} {M : Type w} [ring R] [add_comm_group M] [module R M]
 
 /--
 The diagonal of a square matrix.
 -/
-def diag : (matrix n n M) →ₗ[R] n → M := {
+def diag (n : Type u) (R : Type v) (M : Type w)
+  [ring R] [add_comm_group M] [module R M] [fintype n] : (matrix n n M) →ₗ[R] n → M := {
   to_fun := λ A i, A i i,
   add    := by { intros, ext, refl, },
   smul   := by { intros, ext, refl, } }
@@ -209,7 +209,8 @@ def diag : (matrix n n M) →ₗ[R] n → M := {
 /--
 The trace of a square matrix.
 -/
-def trace : (matrix n n M) →ₗ[R] M := {
+def trace (n : Type u) (R : Type v) (M : Type w)
+  [ring R] [add_comm_group M] [module R M] [fintype n] : (matrix n n M) →ₗ[R] M := {
   to_fun := finset.univ.sum ∘ (diag n R M),
   add    := by { intros, apply finset.sum_add_distrib, },
   smul   := by { intros, simp [finset.smul_sum], } }

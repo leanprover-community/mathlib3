@@ -22,15 +22,6 @@ jobs:
           ~/.elan/bin/elan override set ${{ matrix.lean_version }}
           ~/.elan/bin/lean --version
           echo "::add-path::$HOME/.elan/bin"
-      - name: install olean-rs
-        run: |
-          set -o pipefail
-          OLEAN_RS=https://github.com/cipher1024/olean-rs/releases
-          latest=$(curl -sSf "$OLEAN_RS/latest" | cut -d'"' -f2 | awk -F/ '{print $NF}')
-          mkdir ~/scripts
-          curl -sSfL "$OLEAN_RS/download/$latest/olean-rs-linux" -o "$HOME/scripts/olean-rs"
-          chmod +x $HOME/scripts/olean-rs
-          echo "::add-path::$HOME/scripts"
 
       - name: leanpkg build
         run: leanpkg build | python scripts/detect_errors.py

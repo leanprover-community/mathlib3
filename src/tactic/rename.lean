@@ -22,11 +22,6 @@ open lean lean.parser interactive native
 
 namespace tactic
 
-private def drop_until_inclusive {α} [decidable_eq α] (a : α) : list α → list α
-| [] := []
-| (x :: xs) := if x = a then xs else drop_until_inclusive xs
-
-
 /-- Get the revertible part of the local context. These are the hypotheses that
 appear after the last frozen local instance in the local context. We call them
 revertible because `revert` can revert them, unlike those hypotheses which occur
@@ -38,7 +33,7 @@ meta def revertible_local_context : tactic (list expr) := do
     match frozen with
     | none := ctx
     | some [] := ctx
-    | some (h :: _) := drop_until_inclusive h ctx
+    | some (h :: _) := ctx.after (eq h)
     end
 
 /-- Rename local hypotheses according to the given `name_map`. The `name_map`

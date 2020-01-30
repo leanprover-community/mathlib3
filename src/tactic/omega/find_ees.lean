@@ -15,6 +15,7 @@ open tactic
 
 namespace omega
 
+@[derive inhabited]
 structure ee_state :=
 (eqs : list term)
 (les : list term)

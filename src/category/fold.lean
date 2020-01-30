@@ -183,8 +183,8 @@ lemma free.map_eq_map (f : α → β) (xs : list α) :
   f <$> xs = free.map f xs := rfl
 
 instance (f : α → β) : is_monoid_hom (free.map f) :=
-{ map_mul := λ x y, by simp only [free.map, list.map_append, free_add_monoid.add_def],
-  map_one := by simp only [free.map, list.map, free_add_monoid.zero_def] }
+{ map_mul := λ x y, by simp only [free.map, free_monoid.mul_def, list.map_append, free_add_monoid.add_def],
+  map_one := by simp only [free.map, free_monoid.one_def, list.map, free_add_monoid.zero_def] }
 
 instance fold_foldl (f : β → α → β) :
   is_monoid_hom (foldl.of_free_monoid f) :=

@@ -101,6 +101,8 @@ instance : add_comm_group (sesq_form R M I) :=
   add_left_neg := by {intros, ext, unfold coe_fn has_coe_to_fun.coe sesq, rw neg_add_self},
   add_comm := by {intros, ext, unfold coe_fn has_coe_to_fun.coe sesq, rw add_comm} }
 
+instance : inhabited (sesq_form R M I) := ⟨0⟩
+
 /-- The proposition that two elements of a sesquilinear form space are orthogonal -/
 def is_ortho (S : sesq_form R M I) (x y : M) : Prop :=
 S x y = 0

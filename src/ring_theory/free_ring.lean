@@ -17,6 +17,8 @@ variables (α : Type u)
 
 instance : ring (free_ring α) := free_abelian_group.ring _
 
+instance : inhabited (free_ring α) := ⟨0⟩
+
 variables {α}
 def of (x : α) : free_ring α :=
 free_abelian_group.of [x]

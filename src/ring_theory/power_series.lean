@@ -73,6 +73,7 @@ namespace mv_power_series
 open finsupp
 variables {σ : Type*} {α : Type*}
 
+instance [inhabited α]       : inhabited       (mv_power_series σ α) := ⟨λ _, default _⟩
 instance [has_zero α]        : has_zero        (mv_power_series σ α) := pi.has_zero
 instance [add_monoid α]      : add_monoid      (mv_power_series σ α) := pi.add_monoid
 instance [add_group α]       : add_group       (mv_power_series σ α) := pi.add_group
@@ -741,6 +742,7 @@ namespace power_series
 open finsupp (single)
 variable {α : Type*}
 
+instance [inhabited α]       : inhabited       (power_series α) := by delta power_series; apply_instance
 instance [add_monoid α]      : add_monoid      (power_series α) := by delta power_series; apply_instance
 instance [add_group α]       : add_group       (power_series α) := by delta power_series; apply_instance
 instance [add_comm_monoid α] : add_comm_monoid (power_series α) := by delta power_series; apply_instance

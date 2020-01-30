@@ -13,6 +13,9 @@ variables {α : Type u} {β : Type v}
 def additive (α : Type*) := α
 def multiplicative (α : Type*) := α
 
+instance [inhabited α] : inhabited (additive α) := ⟨(default _ : α)⟩
+instance [inhabited α] : inhabited (multiplicative α) := ⟨(default _ : α)⟩
+
 instance additive.has_add [has_mul α] : has_add (additive α) :=
 { add := ((*) : α → α → α) }
 

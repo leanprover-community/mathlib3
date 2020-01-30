@@ -550,7 +550,7 @@ meta def repeat_until_or_at_most : nat → tactic unit → tactic unit → tacti
 meta def repeat_until : tactic unit → tactic unit → tactic unit :=
 repeat_until_or_at_most 100000
 
-@[derive _root_.has_reflect]
+@[derive _root_.has_reflect, derive _root_.inhabited]
 inductive rep_arity : Type
 | one | exactly (n : ℕ) | many
 

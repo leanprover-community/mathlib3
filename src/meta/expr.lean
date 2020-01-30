@@ -3,7 +3,7 @@ Copyright (c) 2019 Robert Y. Lewis. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Mario Carneiro, Simon Hudon, Scott Morrison, Keeley Hoek, Robert Y. Lewis
 -/
-import data.string.defs
+import data.string.defs tactic.derive_inhabited
 /-!
 # Additional operations on expr and related types
 
@@ -151,7 +151,7 @@ end level
 /-! ### Declarations about `binder` -/
 
 /-- The type of binders containing a name, the binding info and the binding type -/
-@[derive decidable_eq]
+@[derive decidable_eq, derive inhabited]
 meta structure binder :=
   (name : name)
   (info : binder_info)
@@ -164,7 +164,6 @@ let (l, r) := b.info.brackets in
 l ++ b.name.to_string ++ " : " ++ b.type.to_string ++ r
 
 open tactic
-meta instance : inhabited binder := ⟨⟨default _, default _, default _⟩⟩
 meta instance : has_to_string binder := ⟨ binder.to_string ⟩
 meta instance : has_to_format binder := ⟨ λ b, b.to_string ⟩
 meta instance : has_to_tactic_format binder :=

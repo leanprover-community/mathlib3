@@ -28,6 +28,9 @@ variables [topological_space α] [topological_space β] [topological_space γ]
 instance : has_coe_to_fun C(α, β) :=
 ⟨λ_, α → β, λf, f.1⟩
 
+instance [inhabited β] : inhabited C(α, β) :=
+⟨⟨λ _, default _, continuous_const⟩⟩
+
 def compact_open.gen (s : set α) (u : set β) : set C(α,β) := {f | f '' s ⊆ u}
 
 -- The compact-open topology on the space of continuous maps α → β.

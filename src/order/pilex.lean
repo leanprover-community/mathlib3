@@ -17,6 +17,9 @@ def pilex (α : Type*) (β : α → Type*) : Type* := Π a, β a
 instance [has_lt ι] [∀ a, has_lt (β a)] : has_lt (pilex ι β) :=
 { lt := pi.lex (<) (λ _, (<)) }
 
+instance [∀ a, inhabited (β a)] : inhabited (pilex ι β) :=
+by unfold pilex; apply_instance
+
 set_option eqn_compiler.zeta true
 
 instance [linear_order ι] [∀ a, partial_order (β a)] : partial_order (pilex ι β) :=

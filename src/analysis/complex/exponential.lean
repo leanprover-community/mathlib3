@@ -713,6 +713,8 @@ namespace angle
 instance angle.add_comm_group : add_comm_group angle :=
 quotient_add_group.add_comm_group _
 
+instance : inhabited angle := ⟨0⟩
+
 instance angle.has_coe : has_coe ℝ angle :=
 ⟨quotient.mk'⟩
 

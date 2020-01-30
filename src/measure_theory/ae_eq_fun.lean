@@ -251,6 +251,8 @@ def const (b : β) : α →ₘ β := mk (λa:α, b) measurable_const
 lemma const_to_fun (b : β) : ∀ₘ a, (const α b).to_fun a = b := all_ae_mk_to_fun _ _
 variable {α}
 
+instance [inhabited β] : inhabited (α →ₘ β) := ⟨const _ (default _)⟩
+
 instance [has_zero β] : has_zero (α →ₘ β) := ⟨const α 0⟩
 lemma zero_def [has_zero β] : (0 : α →ₘ β) = mk (λa:α, 0) measurable_const := rfl
 lemma zero_to_fun [has_zero β] : ∀ₘ a, (0 : α →ₘ β).to_fun a = 0 := const_to_fun _ _

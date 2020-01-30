@@ -16,6 +16,9 @@ def prime_multiset := multiset nat.primes
 
 namespace prime_multiset
 
+instance : inhabited prime_multiset :=
+by unfold prime_multiset; apply_instance
+
 instance : has_repr prime_multiset :=
 by { dsimp [prime_multiset], apply_instance }
 

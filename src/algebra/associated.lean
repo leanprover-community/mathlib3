@@ -359,6 +359,8 @@ open associated
 protected def mk {α : Type*} [monoid α] (a : α) : associates α :=
 ⟦ a ⟧
 
+instance [monoid α] : inhabited (associates α) := ⟨⟦1⟧⟩
+
 theorem mk_eq_mk_iff_associated [monoid α] {a b : α} :
   associates.mk a = associates.mk b ↔ a ~ᵤ b :=
 iff.intro quotient.exact quot.sound

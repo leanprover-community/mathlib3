@@ -99,6 +99,11 @@ by haveI this := partial_order.ext H;
 
 infix ` ⁻¹'o `:80 := order.preimage
 
+/-- The preimage of a decidable order is decidable. -/
+instance order.preimage.decidable {α β} (f : α → β) (s : β → β → Prop) [H : decidable_rel s] :
+  decidable_rel (f ⁻¹'o s) :=
+λ x y, H _ _
+
 section monotone
 variables [preorder α] [preorder β] [preorder γ]
 
@@ -577,6 +582,11 @@ theorem directed_comp {ι} (f : ι → β) (g : β → α) :
 theorem directed_mono {s : α → α → Prop} {ι} (f : ι → α)
   (H : ∀ a b, r a b → s a b) (h : directed r f) : directed s f :=
 λ a b, let ⟨c, h₁, h₂⟩ := h a b in ⟨c, H _ _ h₁, H _ _ h₂⟩
+
+theorem directed.mono_comp {ι} {rb : β → β → Prop} {g : α → β} {f : ι → α}
+  (hg : ∀ ⦃x y⦄, x ≼ y → rb (g x) (g y)) (hf : directed r f) :
+  directed rb (g ∘ f) :=
+(directed_comp rb f g).2 $ directed_mono _ _ hg hf
 
 section prio
 set_option default_priority 100 -- see Note [default priority]

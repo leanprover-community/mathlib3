@@ -17,6 +17,7 @@ namespace explode
 | []       := none
 | (a :: l) := some a
 
+@[derive inhabited]
 inductive status | reg | intro | lam | sintro
 
 meta structure entry :=
@@ -31,6 +32,7 @@ meta def pad_right (l : list string) : list string :=
 let n := l.foldl (λ r (s:string), max r s.length) 0 in
 l.map $ λ s, nat.iterate (λ s, s.push ' ') (n - s.length) s
 
+@[derive inhabited]
 meta structure entries := mk' ::
 (s : expr_map entry)
 (l : list entry)
@@ -42,8 +44,6 @@ meta def entries.add : entries → entry → entries
 | es@⟨s, l⟩ e := if s.contains e.expr then es else ⟨s.insert e.expr e, e :: l⟩
 
 meta def entries.head (es : entries) : option entry := head' es.l
-
-meta instance : inhabited entries := ⟨⟨expr_map.mk _, []⟩⟩
 
 meta def format_aux : list string → list string → list string → list entry → tactic format
 | (line :: lines) (dep :: deps) (thm :: thms) (en :: es) := do

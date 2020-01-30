@@ -171,6 +171,8 @@ induction_on x $ λ y, ⟨y, rfl⟩
 @[to_additive] instance : comm_monoid (monoid_localization X Y) :=
 Y.r.comm_monoid
 
+@[to_additive] instance : inhabited (monoid_localization X Y) := ⟨1⟩
+
 @[to_additive] protected lemma eq {a₁ b₁} {a₂ b₂ : Y} :
   mk a₁ a₂ = mk b₁ b₂ ↔ ∀ c : con (X × Y), (∀ y : Y, c 1 (y, y)) → c (a₁, a₂) (b₁, b₂) :=
 Y.r.eq.trans $ iff.rfl

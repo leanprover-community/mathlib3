@@ -39,6 +39,10 @@ theorem subset_univ (s : finset α) : s ⊆ univ := λ a _, mem_univ a
 theorem eq_univ_iff_forall {s : finset α} : s = univ ↔ ∀ x, x ∈ s :=
 by simp [ext]
 
+@[simp] lemma piecewise_univ [∀i : α, decidable (i ∈ (univ : finset α))]
+  {δ : α → Sort*} (f g : Πi, δ i) : univ.piecewise f g = f :=
+by { ext i, simp [piecewise] }
+
 end finset
 
 open finset function
@@ -98,6 +102,15 @@ by have := and.intro univ.2 mem_univ_val;
 /-- `card α` is the number of elements in `α`, defined when `α` is a fintype. -/
 def card (α) [fintype α] : ℕ := (@univ α _).card
 
+/-- If `l` lists all the elements of `α` without duplicates, then `α ≃ fin (l.length)`. -/
+def equiv_fin_of_forall_mem_list {α} [decidable_eq α]
+  {l : list α} (h : ∀ x:α, x ∈ l) (nd : l.nodup) : α ≃ fin (l.length) :=
+⟨λ a, ⟨_, list.index_of_lt_length.2 (h a)⟩,
+ λ i, l.nth_le i.1 i.2,
+ λ a, by simp,
+ λ ⟨i, h⟩, fin.eq_of_veq $ list.nodup_iff_nth_le_inj.1 nd _ _
+   (list.index_of_lt_length.2 (list.nth_le_mem _ _ _)) h $ by simp⟩
+
 /-- There is (computably) a bijection between `α` and `fin n` where
   `n = card α`. Since it is not unique, and depends on which permutation
   of the universe list is used, the bijection is wrapped in `trunc` to
@@ -105,12 +118,7 @@ def card (α) [fintype α] : ℕ := (@univ α _).card
 def equiv_fin (α) [fintype α] [decidable_eq α] : trunc (α ≃ fin (card α)) :=
 by unfold card finset.card; exact
 quot.rec_on_subsingleton (@univ α _).1
-  (λ l (h : ∀ x:α, x ∈ l) (nd : l.nodup), trunc.mk
-   ⟨λ a, ⟨_, list.index_of_lt_length.2 (h a)⟩,
-    λ i, l.nth_le i.1 i.2,
-    λ a, by simp,
-    λ ⟨i, h⟩, fin.eq_of_veq $ list.nodup_iff_nth_le_inj.1 nd _ _
-      (list.index_of_lt_length.2 (list.nth_le_mem _ _ _)) h $ by simp⟩)
+  (λ l (h : ∀ x:α, x ∈ l) (nd : l.nodup), trunc.mk (equiv_fin_of_forall_mem_list h nd))
   mem_univ_val univ.2
 
 theorem exists_equiv_fin (α) [fintype α] : ∃ n, nonempty (α ≃ fin n) :=
@@ -220,6 +228,30 @@ instance (n : ℕ) : fintype (fin n) :=
 
 @[simp] theorem fintype.card_fin (n : ℕ) : fintype.card (fin n) = n :=
 list.length_fin_range n
+
+lemma fin.univ_succ (n : ℕ) :
+  (univ : finset (fin $ n+1)) = insert 0 (univ.image fin.succ) :=
+begin
+  ext m,
+  simp only [mem_univ, mem_insert, true_iff, mem_image, exists_prop],
+  exact fin.cases (or.inl rfl) (λ i, or.inr ⟨i, trivial, rfl⟩) m
+end
+
+theorem fin.prod_univ_succ [comm_monoid β] {n:ℕ} (f : fin n.succ → β) :
+  univ.prod f = f 0 * univ.prod (λ i:fin n, f i.succ) :=
+begin
+  rw [fin.univ_succ, prod_insert, prod_image],
+  { intros x _ y _ hxy, exact fin.succ.inj hxy },
+  { simpa using fin.succ_ne_zero }
+end
+
+@[simp, to_additive] theorem fin.prod_univ_zero [comm_monoid β] (f : fin 0 → β) : univ.prod f = 1 := rfl
+
+theorem fin.sum_univ_succ [add_comm_monoid β] {n:ℕ} (f : fin n.succ → β) :
+  univ.sum f = f 0 + univ.sum (λ i:fin n, f i.succ) :=
+by apply @fin.prod_univ_succ (multiplicative β)
+
+attribute [to_additive] fin.prod_univ_succ
 
 @[instance, priority 10] def unique.fintype {α : Type*} [unique α] : fintype α :=
 ⟨finset.singleton (default α), λ x, by rw [unique.eq_default x]; simp⟩
@@ -795,9 +827,20 @@ noncomputable def nat_embedding (α : Type*) [infinite α] : ℕ ↪ α :=
 
 end infinite
 
+lemma not_injective_infinite_fintype [infinite α] [fintype β] (f : α → β) :
+  ¬ injective f :=
+assume (hf : injective f),
+have H : fintype α := fintype.of_injective f hf,
+infinite.not_fintype H
+
+lemma not_surjective_fintype_infinite [fintype α] [infinite β] (f : α → β) :
+  ¬ surjective f :=
+assume (hf : surjective f),
+have H : infinite α := infinite.of_surjective f hf,
+@infinite.not_fintype _ H infer_instance
+
 instance nat.infinite : infinite ℕ :=
-⟨λ ⟨s, hs⟩, not_le_of_gt (nat.lt_succ_self (s.sum id)) $
-  @finset.single_le_sum _ _ _ id _ _ (λ _ _, nat.zero_le _) _ (hs _)⟩
+⟨λ ⟨s, hs⟩, finset.not_mem_range_self $ s.subset_range_sup_succ (hs _)⟩
 
 instance int.infinite : infinite ℤ :=
 infinite.of_injective int.of_nat (λ _ _, int.of_nat_inj)

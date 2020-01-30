@@ -48,6 +48,9 @@ instance (G : Group) : group G := G.str
 instance : has_one Group := ⟨Group.of punit⟩
 
 @[to_additive]
+instance : inhabited Group := ⟨1⟩
+
+@[to_additive]
 instance : concrete_category Group := infer_instance -- short-circuit type class inference
 
 @[to_additive has_forget_to_AddMon]
@@ -74,6 +77,8 @@ instance : has_coe_to_sort CommGroup := infer_instance -- short-circuit type cla
 instance (G : CommGroup) : comm_group G := G.str
 
 @[to_additive] instance : has_one CommGroup := ⟨CommGroup.of punit⟩
+
+@[to_additive] instance : inhabited CommGroup := ⟨1⟩
 
 @[to_additive] instance : concrete_category CommGroup := infer_instance -- short-circuit type class inference
 

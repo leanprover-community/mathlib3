@@ -71,7 +71,7 @@ by rw [equiv.symm_apply_eq]; simp [-hom_equiv_counit]
 @[simp] lemma left_triangle :
   (whisker_right adj.unit F) ≫ (whisker_left F adj.counit) = nat_trans.id _ :=
 begin
-  ext1 X, dsimp,
+  ext, dsimp,
   erw [← adj.hom_equiv_counit, equiv.symm_apply_eq, adj.hom_equiv_unit],
   simp
 end
@@ -79,7 +79,7 @@ end
 @[simp] lemma right_triangle :
   (whisker_left G adj.unit) ≫ (whisker_right adj.counit G) = nat_trans.id _ :=
 begin
-  ext1 Y, dsimp,
+  ext, dsimp,
   erw [← adj.hom_equiv_unit, ← equiv.eq_symm_apply, adj.hom_equiv_counit],
   simp
 end
@@ -288,8 +288,8 @@ namespace equivalence
 
 def to_adjunction (e : C ≌ D) : e.functor ⊣ e.inverse :=
 mk_of_unit_counit ⟨e.unit, e.counit,
-  by { ext, dsimp, simp only [id_comp], exact e.functor_unit_comp X, },
-  by { ext, dsimp, simp only [id_comp], exact e.unit_inverse_comp X, }⟩
+  by { ext, dsimp, simp only [id_comp], exact e.functor_unit_comp _, },
+  by { ext, dsimp, simp only [id_comp], exact e.unit_inverse_comp _, }⟩
 
 end equivalence
 

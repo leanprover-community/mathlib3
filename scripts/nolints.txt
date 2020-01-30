@@ -1431,7 +1431,6 @@ lattice.fixed_points.prev
 lattice.fixed_points.prev_fixed
 lattice.infi_eq_bot
 lazy_list.list_equiv_lazy_list
-lazy_list.thunk.mk
 lazy_list.traverse
 le_nhds_of_Limsup_eq_Liminf
 le_of_forall_ge_of_dense
@@ -3242,6 +3241,10 @@ trunc.map
 trunc.rec
 trunc.rec_on
 trunc.rec_on_subsingleton
+turing.TM0.stmt.inhabited
+turing.TM2.cfg.inhabited
+turing.TM1.cfg.inhabited
+turing.TM0.cfg.inhabited
 turing.TM0.cfg.map
 turing.TM0.machine
 turing.TM0.machine.map

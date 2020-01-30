@@ -49,9 +49,7 @@ lemma cauchy_nhds {a : α} : cauchy (𝓝 a) :=
     ... ≤ 𝓤 α : comp_le_uniformity⟩
 
 lemma cauchy_pure {a : α} : cauchy (pure a) :=
-cauchy_downwards cauchy_nhds
-  (show principal {a} ≠ ⊥, by simp)
-  (pure_le_nhds a)
+cauchy_downwards cauchy_nhds pure_ne_bot (pure_le_nhds a)
 
 /-- The common part of the proofs of `le_nhds_of_cauchy_adhp` and
 `sequentially_complete.le_nhds_of_seq_tendsto_nhds`: if for any entourage `s`

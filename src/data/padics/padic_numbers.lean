@@ -406,6 +406,8 @@ variables {p : ℕ} [nat.prime p]
 instance discrete_field : discrete_field (ℚ_[p]) :=
 cau_seq.completion.discrete_field
 
+instance : inhabited ℚ_[p] := ⟨0⟩
+
 -- short circuits
 
 instance : has_zero ℚ_[p] := by apply_instance
@@ -487,7 +489,7 @@ lemma of_rat_eq {q r : ℚ} : of_rat p q = of_rat p r ↔ q = r :=
 by simp [cast_eq_of_rat, of_rat_eq]
 
 instance : char_zero ℚ_[p] :=
-⟨λ m n, by { rw ← rat.cast_coe_nat, norm_cast }⟩
+⟨λ m n, by { rw ← rat.cast_coe_nat, norm_cast, exact id }⟩
 
 end completion
 end padic

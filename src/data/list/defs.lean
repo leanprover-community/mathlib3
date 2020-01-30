@@ -99,8 +99,10 @@ def take_while (p : α → Prop) [decidable_pred p] : list α → list α
 /-- `after p xs` is the suffix of `xs` after the first element that satisfies
   `p`, not including that element.
 
-     after      (eq 1)       [0, 1, 2, 3] = [2, 3]
-     drop_while (not ∘ eq 1) [0, 1, 2, 3] = [1, 2, 3]
+  ```lean
+  after      (eq 1)       [0, 1, 2, 3] = [2, 3]
+  drop_while (not ∘ eq 1) [0, 1, 2, 3] = [1, 2, 3]
+  ```
 -/
 def after (p : α → Prop) [decidable_pred p] : list α → list α
 | [] := []

@@ -175,6 +175,20 @@ abs_norm_sub_norm_le g h
 lemma ball_0_eq (ε : ℝ) : ball (0:α) ε = {x | ∥x∥ < ε} :=
 set.ext $ assume a, by simp
 
+lemma norm_le_of_mem_closed_ball {g h : α} {r : ℝ} (H : h ∈ closed_ball g r) :
+  ∥h∥ ≤ ∥g∥ + r :=
+calc
+  ∥h∥ = ∥g + (h - g)∥ : by { congr' 1, abel }
+  ... ≤ ∥g∥ + ∥h - g∥  : norm_add_le _ _
+  ... ≤ ∥g∥ + r : by { apply add_le_add_left, rw ← dist_eq_norm, exact H }
+
+lemma norm_lt_of_mem_ball {g h : α} {r : ℝ} (H : h ∈ ball g r) :
+  ∥h∥ < ∥g∥ + r :=
+calc
+  ∥h∥ = ∥g + (h - g)∥ : by { congr' 1, abel }
+  ... ≤ ∥g∥ + ∥h - g∥  : norm_add_le _ _
+  ... < ∥g∥ + r : by { apply add_lt_add_left, rw ← dist_eq_norm, exact H }
+
 theorem normed_group.tendsto_nhds_zero {f : γ → α} {l : filter γ} :
   tendsto f l (𝓝 0) ↔ ∀ ε > 0, { x | ∥ f x ∥ < ε } ∈ l :=
 metric.tendsto_nhds.trans $ forall_congr $ λ ε, forall_congr $ λ εgt0,

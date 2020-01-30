@@ -1427,18 +1427,22 @@ Lemmas passed to `simp_rw` must be expressions that are valid arguments to `simp
 
 ## rename'
 
-A variant of the standard `rename` tactic with the following improvements:
-
-- You can rename multiple hypotheses in parallel.
-- Renaming a hypothesis always preserves its location in the context.
+Renames one or more hypotheses in the context.
 
 ```lean
 example {α β} (a : α) (b : β) : unit :=
 begin
-  rename' a a',
-  rename' a' → a,
-  rename' [a a', b b'],
-  rename' [a' → a, b' → b],
+  rename' a a',              -- result: a' : α, b  : β
+  rename' a' → a,            --         a  : α, b  : β
+  rename' [a a', b b'],      --         a' : α, b' : β
+  rename' [a' → a, b' → b],  --         a  : α, b  : β
   exact ()
 end
 ```
+
+Compared to the standard `rename` tactic, this tactic makes the following
+improvements:
+
+- You can rename multiple hypotheses at once.
+- Renaming a hypothesis always preserves its location in the context (whereas
+  `rename` may reorder hypotheses).

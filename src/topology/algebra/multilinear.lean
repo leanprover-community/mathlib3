@@ -95,6 +95,8 @@ instance : add_comm_group (continuous_multilinear_map R M₁ M₂) :=
 by refine {zero := 0, add := (+), neg := has_neg.neg, ..};
    intros; ext; simp
 
+@[simp] lemma sub_apply (m : Πi, M₁ i) : (f - f') m = f m - f' m := rfl
+
 end topological_add_group
 
 /-- If `f` is a continuous multilinear map, then `f.to_continuous_linear_map m i` is the continuous

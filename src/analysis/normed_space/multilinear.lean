@@ -726,8 +726,8 @@ def continuous_multilinear_map.curry0 (x : E₂) :
   cont := continuous_const }
 
 variable {G}
-@[simp] lemma continuous_multilinear_map.curry0_apply (x : E₂) (m : Π(i : fin 0), G) :
-  (continuous_multilinear_map.curry0 𝕜 G x : (Π(i : fin 0), G) → E₂) m = x := rfl
+@[simp] lemma continuous_multilinear_map.curry0_apply (x : E₂) (m : (fin 0) → G) :
+  (continuous_multilinear_map.curry0 𝕜 G x : ((fin 0) → G) → E₂) m = x := rfl
 
 variable {𝕜}
 @[simp] lemma continuous_multilinear_map.uncurry0_curry0
@@ -771,7 +771,7 @@ def continuous_multilinear_curry_fin0_aux :
   add := λf g, rfl,
   smul := λc f, rfl,
   left_inv := continuous_multilinear_map.uncurry0_curry0,
-  right_inv := continuous_multilinear_map.curry0_uncurry0 𝕜 G}
+  right_inv := continuous_multilinear_map.curry0_uncurry0 𝕜 G }
 
 /-- The continuous linear isomorphism between elements of a normed space, and continuous multilinear
 maps in `0` variables with values in this normed space.
@@ -782,7 +782,7 @@ def continuous_multilinear_curry_fin0 :
   (continuous_multilinear_map 𝕜 (λ (i : fin 0), G) E₂) ≃L[𝕜] E₂ :=
 { continuous_to_fun := begin
     change continuous (λ (f : continuous_multilinear_map 𝕜 (λ (i : fin 0), G) E₂),
-      ((f : (Πi : fin 0, G) → E₂) 0)),
+      (f : ((fin 0) → G) → E₂) 0),
     exact continuous_multilinear_map.continuous_eval.comp (continuous_id.prod_mk continuous_const)
   end,
   continuous_inv_fun := begin

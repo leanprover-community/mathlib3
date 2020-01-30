@@ -25,6 +25,8 @@ In a real vector space, we define the following objects and properties.
   is a convex set;
 * Center mass of a finite set of points with prescribed weights.
 * Convex hull of a set `s` is the minimal convex set that includes `s`.
+* Standard simplex `std_simplex α [fintype α]` is the intersection of the positive quadrant with
+  the hyperplane `s.sum = 1` in the space `α → ℝ`.
 
 We also provide various equivalent versions of the definitions above, prove that some specific sets
 are convex, and prove Jensen's inequality.

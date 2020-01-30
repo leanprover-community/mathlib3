@@ -19,6 +19,8 @@ We prove the following facts:
   as the original set;
 * `bounded_convex_hull` : convex hull of a set is bounded if and only if the original set
   is bounded.
+* `bounded_std_simplex`, `is_closed_std_simplex`, `compact_std_simplex`: topological properties
+  of the standard simplex;
 -/
 
 variables {α : Type*} {E : Type*}

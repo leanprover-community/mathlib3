@@ -465,15 +465,24 @@ meta def safe (s : simp_lemmas × list name) (ps : list pexpr)
 meta def finish (s : simp_lemmas × list name) (ps : list pexpr)
   (cfg : auto_config := {}) : tactic unit := safe_core s ps cfg case_option.force
 
-/--  `iclarify` is like `clarify`, but only uses intuitionistic logic. -/
+/--
+  `iclarify` is like `clarify`, but in some places restricts to intuitionistic logic.
+  Classical logic still leaks, so this tactic is deprecated.
+-/
 meta def iclarify (s : simp_lemmas × list name) (ps : list pexpr)
   (cfg : auto_config := {}) : tactic unit := clarify s ps {classical := ff, ..cfg}
 
-/-- `isafe` is like `safe`, but only uses intuitionistic logic. -/
+/--
+  `isafe` is like `safe`, but in some places restricts to intuitionistic logic.
+  Classical logic still leaks, so this tactic is deprecated.
+-/
 meta def isafe (s : simp_lemmas × list name) (ps : list pexpr)
   (cfg : auto_config := {}) : tactic unit := safe s ps {classical := ff, ..cfg}
 
-/-- `ifinish` is like `finish`, but only uses intuitionistic logic. -/
+/--
+  `ifinish` is like `finish`, but in some places restricts to intuitionistic logic.
+  Classical logic still leaks, so this tactic is deprecated.
+-/
 meta def ifinish (s : simp_lemmas × list name) (ps : list pexpr) (cfg : auto_config := {}) : tactic unit :=
   finish s ps {classical := ff, ..cfg}
 

@@ -138,10 +138,14 @@ by simpa only [metric.ball, sep_univ] using (convex_on_dist a _ convex_univ).con
 lemma convex_closed_ball (a : E) (r : ℝ) : convex (metric.closed_ball a r) :=
 by simpa only [metric.closed_ball, sep_univ] using (convex_on_dist a _ convex_univ).convex_le r
 
+/-- Given a point `x` in the convex hull of `s` and a point `y`, there exists a point
+of `s` at distance at least `dist x y` from `y`. -/
 lemma convex_hull_exists_dist_ge {s : set E} {x : E} (hx : x ∈ convex_hull s) (y : E) :
   ∃ x' ∈ s, dist x y ≤ dist x' y :=
 (convex_on_dist y _ (convex_convex_hull _)).exists_ge_of_mem_convex_hull hx
 
+/-- Given a point `x` in the convex hull of `s` and a point `y` in the convex hull of `t`,
+there exist points `x' ∈ s` and `y' ∈ t` at distance at least `dist x y`. -/
 lemma convex_hull_exists_dist_ge2 {s t : set E} {x y : E}
   (hx : x ∈ convex_hull s) (hy : y ∈ convex_hull t) :
   ∃ (x' ∈ s) (y' ∈ t), dist x y ≤ dist x' y' :=

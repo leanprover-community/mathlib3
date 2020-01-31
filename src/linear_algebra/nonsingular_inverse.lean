@@ -50,6 +50,9 @@ variables {n : Type u} [fintype n] [decidable_eq n] {α : Type v}
 open_locale matrix
 open equiv equiv.perm finset
 
+-- Increase max depth to allow inference of `mul_action α (matrix n n α)`.
+set_option class.instance_max_depth 60
+
 section update
 
 /-- Update, i.e. replace the `i`th column of matrix `A` with the values in `b`. -/
@@ -274,6 +277,11 @@ calc adjugate A ⬝ A = (Aᵀ ⬝ (adjugate Aᵀ))ᵀ :
   by rw [←adjugate_transpose, ←transpose_mul, transpose_transpose]
 ... = A.det • 1 : by rw [mul_adjugate (Aᵀ), det_transpose, transpose_smul, transpose_one]
 
+set_option class.instance_max_depth 60
+lemma det_adjugate_eq_one {A : matrix n n α} (h : A.det = 1) : (adjugate A).det = 1 :=
+calc (adjugate A).det = (adjugate A ⬝ A).det : by rw [det_mul, h, mul_one]
+                  ... = 1                    : by rw [adjugate_mul, h, one_smul, det_one]
+
 end adjugate
 
 section inv
@@ -297,17 +305,10 @@ lemma nonsing_inv_val (A : matrix n n α) (i j : n) :
 lemma transpose_nonsing_inv (A : matrix n n α) : (A.nonsing_inv)ᵀ = (Aᵀ).nonsing_inv :=
 by {ext, simp [transpose_val, nonsing_inv_val, det_transpose, (adjugate_transpose A).symm]}
 
-section
-
--- Increase max depth to allow inference of `mul_action α (matrix n n α)`.
-set_option class.instance_max_depth 60
-
 /-- The `nonsing_inv` of `A` is a right inverse. -/
 theorem mul_nonsing_inv (A : matrix n n α) (inv_mul_cancel : A.det⁻¹ * A.det = 1) :
   A ⬝ nonsing_inv A = 1 :=
-by erw [mul_smul, mul_adjugate, smul_smul, inv_mul_cancel, @one_smul _ _ _ (pi.mul_action _)]
-
-end
+by erw [mul_smul, mul_adjugate, smul_smul, inv_mul_cancel, one_smul]
 
 /-- The `nonsing_inv` of `A` is a left inverse. -/
 theorem nonsing_inv_mul (A : matrix n n α) (inv_mul_cancel : A.det⁻¹ * A.det = 1) :

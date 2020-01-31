@@ -284,6 +284,9 @@ begin
   { rw [diagonal_val_eq] }
 end
 
+@[simp] lemma mul_vec_one [decidable_eq m] (v : m → α) : mul_vec 1 v = v :=
+by { ext, rw [←diagonal_one, mul_vec_diagonal, one_mul] }
+
 lemma vec_mul_vec_eq (w : m → α) (v : n → α) :
   vec_mul_vec w v = (col w) ⬝ (row v) :=
 by simp [matrix.mul]; refl

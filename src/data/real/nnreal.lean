@@ -421,6 +421,8 @@ mul_pos hr (inv_pos.2 hp)
 
 @[simp] lemma inv_one : (1:ℝ≥0)⁻¹ = 1 := nnreal.eq $ inv_one
 
+@[simp] lemma div_one {r : ℝ≥0} : r / 1 = r := by rw [div_def, inv_one, mul_one]
+
 protected lemma mul_inv {r p : ℝ≥0} : (r * p)⁻¹ = p⁻¹ * r⁻¹ := nnreal.eq $ mul_inv' _ _
 
 protected lemma inv_pow' {r : ℝ≥0} {n : ℕ} : (r^n)⁻¹ = (r⁻¹)^n :=
@@ -431,6 +433,9 @@ nnreal.eq $ inv_mul_cancel $ mt (@nnreal.eq_iff r 0).1 h
 
 @[simp] lemma mul_inv_cancel {r : ℝ≥0} (h : r ≠ 0) : r * r⁻¹ = 1 :=
 by rw [mul_comm, inv_mul_cancel h]
+
+@[simp] lemma div_self {r : ℝ≥0} (h : r ≠ 0) : r / r = 1 :=
+mul_inv_cancel h
 
 @[simp] lemma div_mul_cancel {r p : ℝ≥0} (h : p ≠ 0) : r / p * p = r :=
 by rw [div_def, mul_assoc, inv_mul_cancel h, mul_one]

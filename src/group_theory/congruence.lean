@@ -96,6 +96,10 @@ namespace con
 section
 variables [has_mul M] [has_mul N] [has_mul P] (c : con M)
 
+@[to_additive]
+instance : inhabited (con M) :=
+⟨con_gen empty_relation⟩
+
 /-- A coercion from a congruence relation to its underlying binary relation. -/
 @[to_additive "A coercion from an additive congruence relation to its underlying binary relation."]
 instance : has_coe_to_fun (con M) := ⟨_, λ c, λ x y, c.r x y⟩
@@ -569,7 +573,7 @@ lemma ker_rel (f : M →* P) {x y} : ker f x y ↔ f x = f y := iff.rfl
 
 /-- There exists an element of the quotient of a monoid by a congruence relation (namely 1). -/
 @[to_additive "There exists an element of the quotient of an `add_monoid` by a congruence relation (namely 0)."]
-instance : inhabited c.quotient := ⟨((1 : M) : c.quotient)⟩
+instance quotient.inhabited : inhabited c.quotient := ⟨((1 : M) : c.quotient)⟩
 
 variables (c)
 

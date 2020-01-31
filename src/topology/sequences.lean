@@ -42,7 +42,7 @@ iff.intro
   (assume ttol : tendsto x at_top (𝓝 limit),
     show ∀ U : set α, limit ∈ U → is_open U → ∃ n0 : ℕ, ∀ n ≥ n0, (x n) ∈ U, from
       assume U limitInU isOpenU,
-      have {n | (x n) ∈ U} ∈ at_top :=
+      have ∀ᶠ n in at_top, (x n) ∈ U :=
         mem_map.mp $ le_def.mp ttol U $ mem_nhds_sets isOpenU limitInU,
       show ∃ n0 : ℕ, ∀ n ≥ n0, (x n) ∈ U, from mem_at_top_sets.mp this)
   (assume xtol : ∀ U : set α, limit ∈ U → is_open U → ∃ n0 : ℕ, ∀ n ≥ n0, (x n) ∈ U,

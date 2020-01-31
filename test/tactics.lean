@@ -203,6 +203,12 @@ begin
   tfae_finish -- the success or failure of this tactic is nondeterministic!
 end
 
+example (p : unit → Prop) : tfae [p (), p ()] :=
+begin
+  tfae_have : 1 ↔ 2, from iff.rfl,
+  tfae_finish
+end
+
 end tfae
 
 section clear_aux_decl

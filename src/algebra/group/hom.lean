@@ -351,6 +351,9 @@ protected def one : M →* N :=
 @[to_additive]
 instance : has_one (M →* N) := ⟨monoid_hom.one⟩
 
+@[to_additive]
+instance : inhabited (M →* N) := ⟨1⟩
+
 omit mM mN
 
 /-- The product of two monoid morphisms is a monoid morphism if the target is commutative. -/

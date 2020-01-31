@@ -41,7 +41,7 @@ restate_axiom algebra.assoc'
 namespace algebra
 variables {T : C ⥤ C} [monad.{v₁} T]
 
-structure hom (A B : algebra T) :=
+@[ext] structure hom (A B : algebra T) :=
 (f : A.A ⟶ B.A)
 (h' : T.map f ≫ B.a = A.a ≫ f . obviously)
 
@@ -49,8 +49,6 @@ restate_axiom hom.h'
 attribute [simp] hom.h
 
 namespace hom
-@[ext] lemma ext {A B : algebra T} (f g : hom A B) (w : f.f = g.f) : f = g :=
-by { cases f, cases g, congr, assumption }
 
 @[simps] def id (A : algebra T) : hom A A :=
 { f := 𝟙 A.A }

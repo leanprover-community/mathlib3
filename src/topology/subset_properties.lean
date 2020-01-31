@@ -170,10 +170,12 @@ lemma compact_iff_finite_subcover {s : set α} :
   compact s ↔ (∀c, (∀t∈c, is_open t) → s ⊆ ⋃₀ c → ∃c'⊆c, finite c' ∧ s ⊆ ⋃₀ c') :=
 ⟨assume hc c, hc.elim_finite_subcover, compact_of_finite_subcover⟩
 
+@[simp]
 lemma compact_empty : compact (∅ : set α) :=
 assume f hnf hsf, not.elim hnf $
 empty_in_sets_eq_bot.1 $ le_principal_iff.1 hsf
 
+@[simp]
 lemma compact_singleton {a : α} : compact ({a} : set α) :=
 compact_of_finite_subcover $ assume c hc₁ hc₂,
   let ⟨i, hic, hai⟩ := (show ∃i ∈ c, a ∈ i, from mem_sUnion.1 $ singleton_subset_iff.1 hc₂) in

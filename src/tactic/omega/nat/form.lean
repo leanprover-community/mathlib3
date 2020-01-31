@@ -49,7 +49,8 @@ end preform
 
 namespace preform
 
-def neg_free : preform → Prop
+/-- Asserts that the given formula is negation-free -/
+def neg_free : form → Prop
 | (t =* s) := true
 | (t ≤* s) := true
 | (p ∨* q) := neg_free p ∧ neg_free q
@@ -63,7 +64,9 @@ def sub_free : preform → Prop
 | (p ∨* q) := p.sub_free ∧ q.sub_free
 | (p ∧* q) := p.sub_free ∧ q.sub_free
 
-def fresh_index : preform → nat
+/-- Return the de Brujin index of a fresh variable that does not
+    occur anywhere in a given LNA formula -/
+def fresh_index : form → nat
 | (t =* s) := max t.fresh_index s.fresh_index
 | (t ≤* s) := max t.fresh_index s.fresh_index
 | (¬* p)   := p.fresh_index
@@ -112,16 +115,22 @@ lemma holds_constant {v w : nat → nat} :
     apply le_max_left, apply le_max_right
   end
 
-def valid (p : preform) : Prop :=
+/-- An LNA formula is valid if it holds under all valuations -/
+def valid (p : form) : Prop :=
 ∀ v, holds v p
 
-def sat (p : preform) : Prop :=
+ /-- An LNA formula is satisfiable if it holds under some valuation  -/
+def sat (p : form) : Prop :=
 ∃ v, holds v p
 
-def implies (p q : preform) : Prop :=
+/-- An LNA formula p implies to another LNA formula q if,
+    under any valuation, q holds whenever p holds  -/
+def implies (p q : form) : Prop :=
 ∀ v, (holds v p → holds v q)
 
-def equiv (p q : preform) : Prop :=
+/-- An LNA formula p is equivalent to another LNA formula q if,
+    under any valuation, p holds iff and only if q holds  -/
+def equiv (p q : form) : Prop :=
 ∀ v, (holds v p ↔ holds v q)
 
 lemma sat_of_implies_of_sat {p q : preform} :
@@ -138,9 +147,11 @@ begin
     refine ⟨v,_⟩; [left,right]; assumption }
 end
 
-def unsat (p : preform) : Prop := ¬ sat p
+/-- A LNA formula is unsatisfiable if does not hold under any valuation -/
+def unsat (p : form) : Prop := ¬ sat p
 
-def repr : preform → string
+/-- repr for LNA formulas -/
+def repr : form → string
 | (t =* s) := "(" ++ t.repr ++ " = " ++ s.repr ++ ")"
 | (t ≤* s) := "(" ++ t.repr ++ " ≤ " ++ s.repr ++ ")"
 | (¬* p)   := "¬" ++ p.repr

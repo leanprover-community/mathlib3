@@ -15,12 +15,14 @@ open_locale omega.nat
 
 namespace preterm
 
+/-- If the preterm includes substitutions, return the substitution operands -/
 def sub_terms : preterm → option (preterm × preterm)
 | (& i)      := none
 | (i ** n)   := none
 | (t +* s) := t.sub_terms <|> s.sub_terms
 | (t -* s) := t.sub_terms <|> s.sub_terms <|> some (t,s)
 
+/-- Find all occurrences of (t - s) and substitute with constant k -/
 def sub_subst (t s : preterm) (k : nat) : preterm → preterm
 | t@(& m)    := t
 | t@(m ** n) := t

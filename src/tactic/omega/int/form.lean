@@ -47,23 +47,31 @@ end preform
 
 namespace preform
 
-def fresh_index : preform → nat
+/-- Return the de Brujin index of a fresh variable that does not
+    occur anywhere in a given LIA formula -/
+def fresh_index : form → nat
 | (t =* s) := max t.fresh_index s.fresh_index
 | (t ≤* s) := max t.fresh_index s.fresh_index
 | (¬* p)   := p.fresh_index
 | (p ∨* q) := max p.fresh_index q.fresh_index
 | (p ∧* q) := max p.fresh_index q.fresh_index
 
-def valid (p : preform) : Prop :=
+/-- A LIA formula is valid if it holds under all valuations -/
+def valid (p : form) : Prop :=
 ∀ v, holds v p
 
-def sat (p : preform) : Prop :=
+/-- A LIA formula is satisfiable if it holds under some valuation -/
+def sat (p : form) : Prop :=
 ∃ v, holds v p
 
-def implies (p q : preform) : Prop :=
+/-- A LIA formula p implies another LIA formula q if,
+    under any valuation, q holds whenever p holds -/
+def implies (p q : form) : Prop :=
 ∀ v, (holds v p → holds v q)
 
-def equiv (p q : preform) : Prop :=
+/-- A LIA formula p is equivalent to another LIA formula q if,
+    under any valuation, p holds iff and only if q holds -/
+def equiv (p q : form) : Prop :=
 ∀ v, (holds v p ↔ holds v q)
 
 lemma sat_of_implies_of_sat {p q : preform} :
@@ -80,9 +88,11 @@ begin
     refine ⟨v,_⟩; [left,right]; assumption }
 end
 
-def unsat (p : preform) : Prop := ¬ sat p
+/-- A LIA formula is unsatisfiable if does not hold under any valuation -/
+def unsat (p : form) : Prop := ¬ sat p
 
-def repr : preform → string
+/-- repr for LIA formulas -/
+def repr : form → string
 | (t =* s) := "(" ++ t.repr ++ " = " ++ s.repr ++ ")"
 | (t ≤* s) := "(" ++ t.repr ++ " ≤ " ++ s.repr ++ ")"
 | (¬* p)   := "¬" ++ p.repr

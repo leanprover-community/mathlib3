@@ -39,6 +39,7 @@ begin
   apply preform.sat_of_implies_of_sat implies_neg_elim h2,
 end
 
+/-- Return the expr of the proof that the given preterm is subtraction-free -/
 meta def preterm.prove_sub_free : preterm → tactic expr
 | (& m)    := return `(trivial)
 | (m ** n) := return `(trivial)
@@ -49,7 +50,8 @@ meta def preterm.prove_sub_free : preterm → tactic expr
        (preterm.sub_free %%`(s)) %%x %%y)
 | (_ -* _) := failed
 
-meta def prove_neg_free : preform → tactic expr
+/-- Return the expr of the proof that the given formula is negation-free -/
+meta def prove_neg_free : form → tactic expr
 | (t =* s) := return `(trivial)
 | (t ≤* s) := return `(trivial)
 | (p ∨* q) :=
@@ -64,7 +66,8 @@ meta def prove_neg_free : preform → tactic expr
        (preform.neg_free %%`(q)) %%x %%y)
 | _        := failed
 
-meta def prove_sub_free : preform → tactic expr
+/-- Return the expr of the proof that the given formula is subtraction-free -/
+meta def prove_sub_free : form → tactic expr
 | (t =* s) :=
   do x ← preterm.prove_sub_free t,
      y ← preterm.prove_sub_free s,
@@ -108,24 +111,27 @@ meta def prove_univ_close (m : nat) (p : preform) : tactic expr :=
 do x ← prove_unsat_neg_free (neg_elim (¬*p)),
    to_expr ``(univ_close_of_unsat_neg_elim_not %%`(m) %%`(p) %%x)
 
-meta def to_exprterm : expr → tactic exprterm
-| `(%%x * %%y) :=
-  do m ← eval_expr' nat y,
-     return (exprterm.exp m x)
+/-- Preliminary reification pass which processes operators and
+    variables, but retains everything else as exprs -/
+meta def to_preterm : expr → tactic preterm
+| (expr.var k) := return (preterm.var 1 k)
+| `(%%(expr.var k) * %%mx) :=
+  do m ← eval_expr' nat mx,
+     return (preterm.var m k)
 | `(%%t1x + %%t2x) :=
   do t1 ← to_exprterm t1x,
      t2 ← to_exprterm t2x,
      return (exprterm.add t1 t2)
 | `(%%t1x - %%t2x) :=
-  do t1 ← to_exprterm t1x,
-     t2 ← to_exprterm t2x,
-     return (exprterm.sub t1 t2)
-| x :=
-  ( do m ← eval_expr' nat x,
-       return (exprterm.cst m) ) <|>
-  ( return $ exprterm.exp 1 x )
+  do t1 ← to_preterm t1x,
+     t2 ← to_preterm t2x,
+     return (preterm.sub t1 t2)
+| mx :=
+  do m ← eval_expr' nat mx,
+     return (preterm.cst m)
 
-meta def to_exprform : expr → tactic exprform
+/-- Reification to LNA shadow syntax for quantifier-free body of input formula -/
+meta def to_form_core : expr → tactic form
 | `(%%tx1 = %%tx2) :=
   do t1 ← to_exprterm tx1,
      t2 ← to_exprterm tx2,

@@ -43,24 +43,23 @@ meta def prove_univ_close (m : nat) (p : preform) : tactic expr :=
 do x ← prove_unsats (dnf (¬*p)),
    return `(univ_close_of_unsat_clausify %%`(m) %%`(p) %%x)
 
-meta def to_exprterm : expr → tactic exprterm
-| `(- %%x) := --return (exprterm.exp (-1 : int) x)
-  ( do z ← eval_expr' int x,
-       return (exprterm.cst (-z : int)) ) <|>
-  ( return $ exprterm.exp (-1 : int) x )
-| `(%%mx * %%zx) :=
+/-- Reification to LIA terms -/
+meta def to_preterm : expr → tactic preterm
+| (expr.var k) := return (preterm.var 1 k)
+| `(-%%(expr.var k)) := return (preterm.var (-1 : int) k)
+| `(%%(expr.var k) * %%zx) :=
   do z ← eval_expr' int zx,
      return (exprterm.exp z mx)
 | `(%%t1x + %%t2x) :=
-  do t1 ← to_exprterm t1x,
-     t2 ← to_exprterm t2x,
-     return (exprterm.add t1 t2)
-| x :=
-  ( do z ← eval_expr' int x,
-       return (exprterm.cst z) ) <|>
-  ( return $ exprterm.exp 1 x )
+  do t1 ← to_preterm t1x,
+     t2 ← to_preterm t2x,
+     return (preterm.add t1 t2)
+| zx :=
+  do z ← eval_expr' int zx,
+     return (preterm.cst z)
 
-meta def to_exprform : expr → tactic exprform
+/-- Reification to LIA shadow syntax for quantifier-free body of input formula -/
+meta def to_form_core : expr → tactic form
 | `(%%tx1 = %%tx2) :=
   do t1 ← to_exprterm tx1,
      t2 ← to_exprterm tx2,

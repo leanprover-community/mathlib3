@@ -37,6 +37,7 @@ namespace preterm
 instance : has_zero preterm := ⟨cst 0⟩
 instance : inhabited preterm := ⟨0⟩
 
+/-- Evaluation of preterms -/
 @[simp] def val (v : nat → int) : preterm → int
 | (& i) := i
 | (i ** n) :=

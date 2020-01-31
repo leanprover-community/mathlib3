@@ -24,9 +24,6 @@ CommRing.colimits.desc_morphism
 CommRing.colimits.prequotient
 CommRing.colimits.relation
 CpltSepUniformSpace.to_UniformSpace
-Gromov_Hausdorff.GH_dist
-Gromov_Hausdorff.aux_gluing
-Gromov_Hausdorff.aux_gluing_struct
 Gromov_Hausdorff.candidates_b_dist
 Meas
 Module.of
@@ -608,7 +605,6 @@ complex.lim_aux
 complex.norm_sq
 complex.of_real
 complex.real_prod_equiv
-complex.real_prod_homeo
 complex.sin
 complex.sinh
 complex.tan
@@ -631,7 +627,6 @@ computation.parallel.aux2
 computation.parallel_rec
 computation.terminates_rec_on
 con.to_setoid
-connected_component
 const.bitraverse
 constr_smul
 cont
@@ -661,7 +656,6 @@ conv.replace_lhs
 conv.slice
 conv.slice_lhs
 conv.slice_rhs
-convex_on_linorder
 ctop.realizer.id
 ctop.realizer.nhds
 ctop.realizer.nhds_F
@@ -762,7 +756,6 @@ encodable.encode_sum
 encodable.equiv_range_encode
 encodable.fintype_arrow
 encodable.fintype_pi
-encodable.of_equiv
 encodable.of_inj
 encodable.of_left_injection
 encodable.of_left_inverse
@@ -1005,11 +998,10 @@ filter.filter_product.of_seq_zero
 filter.gi_generate
 filter.hyperfilter
 filter.infi_ne_bot_iff_of_directed
-filter.infi_ne_bot_of_directed
 filter.infi_ne_bot_iff_of_directed'
+filter.infi_ne_bot_of_directed
 filter.infi_ne_bot_of_directed'
 filter.infi_sets_eq
-filter.infi_sets_eq'
 filter.is_bounded_default
 filter.is_bounded_ge_of_bot
 filter.is_bounded_under
@@ -1051,18 +1043,14 @@ filter.rtendsto'
 filter.tendsto_at_top'
 filter.tendsto_at_top_at_bot
 filter.tendsto_at_top_principal
-filter.ultrafilter
 filter.ultrafilter.bind
 filter.ultrafilter.map
 filter.ultrafilter.pure
 fin.add_nat_val
 fin.cases
 fin.clamp
-fin.cons
-fin.find
 fin.succ_rec
 fin.succ_rec_on
-fin.tail
 fin2.cases'
 fin2.elim0
 fin_dim_vectorspace_equiv
@@ -1072,7 +1060,6 @@ fin_two_equiv
 fin_zero_elim'
 fin_zero_equiv
 find_cmd
-finite_cover_balls_of_compact
 finite_field.field_of_integral_domain
 finmap.all
 finmap.any
@@ -1084,7 +1071,6 @@ finset.choose
 finset.choose_x
 finset.empty
 finset.insert_none
-finset.lt_wf
 finset.map
 finset.map_embedding
 finset.max
@@ -1094,7 +1080,6 @@ finset.min'
 finset.pi
 finset.pi.cons
 finset.pi.empty
-finset.powerset
 finset.powerset_len
 finset.preimage
 finset.prod_ite
@@ -1170,7 +1155,6 @@ fp.prec
 fp.rmode
 fp.to_rat
 fp.valid_finite
-fpow
 free_abelian_group
 free_abelian_group.lift
 free_abelian_group.lift.universal
@@ -1236,7 +1220,6 @@ function.injective.decidable_eq
 function.involutive.to_equiv
 function.restrict
 function.uncurry'
-function.update
 functor.add_const
 functor.add_const.mk
 functor.add_const.run
@@ -1275,7 +1258,6 @@ gt.is_trans
 gt.is_trichotomous
 gt_from_lt
 gt_iff_lt
-gt_mem_sets_of_Liminf_gt
 gt_of_mul_lt_mul_neg_right
 has_edist
 has_inner
@@ -1323,7 +1305,6 @@ hyperreal.pos_of_infinite_pos
 id.mk
 ideal
 ideal.closure
-ideal.comap
 ideal.is_coprime
 ideal.is_maximal
 ideal.is_prime
@@ -1332,17 +1313,14 @@ ideal.is_principal.generator
 ideal.le_order_embedding_of_surjective
 ideal.lt_order_embedding_of_surjective
 ideal.map
-ideal.of_polynomial
 ideal.quotient
 ideal.quotient.lift
 ideal.quotient.map_mk
 ideal.quotient.mk
 ideal.quotient.nonzero_comm_ring
 ideal.quotient_inf_to_pi_quotient
-ideal.radical
 ideal.radical_pow
 ideal.span
-induced_order_topology'
 inducing
 infi_eq_elim
 infi_real_pos_eq_infi_nnreal_pos
@@ -1363,7 +1341,6 @@ int.shift2
 int.to_nat'
 integral_closure
 irrational
-irreducible_component
 is_absolute_value.mem_uniformity
 is_add_group_hom.ker
 is_add_group_hom.to_linear_map
@@ -1377,17 +1354,12 @@ is_add_subgroup.trivial
 is_basis.coord_fun
 is_basis.repr
 is_basis.to_dual_flip
-is_bounded_ge_nhds
-is_bounded_under_ge_of_tendsto
 is_cau_of_decreasing_bounded
 is_cau_of_mono_bounded
 is_cau_seq.cauchy₂
 is_cau_seq.cauchy₃
 is_cau_series_of_abv_le_cau
-is_clopen
 is_closed_map
-is_cobounded_ge_nhds
-is_cobounded_under_ge_of_tendsto
 is_comm_applicative
 is_conj
 is_cyclic
@@ -1406,7 +1378,6 @@ is_noetherian
 is_noetherian_iff_well_founded
 is_noetherian_ring
 is_null_measurable
-is_open_map
 is_ring_anti_hom
 is_ring_hom.ker
 is_ring_hom.to_module
@@ -1418,8 +1389,6 @@ is_subgroup.left_coset_equiv_subgroup
 is_subgroup.mem_trivial
 is_subgroup.normalizer
 is_subgroup.normalizer_is_subgroup
-is_totally_disconnected
-is_totally_separated
 lattice.Inf_eq_bot
 lattice.complete_lattice.copy
 lattice.conditionally_complete_linear_order
@@ -1432,7 +1401,6 @@ lattice.fixed_points.prev_fixed
 lattice.infi_eq_bot
 lazy_list.list_equiv_lazy_list
 lazy_list.traverse
-le_nhds_of_Limsup_eq_Liminf
 le_of_forall_ge_of_dense
 le_of_forall_le_of_dense
 lean.parser.get_includes
@@ -1545,7 +1513,6 @@ list.comp_traverse
 list.erase_dupkeys
 list.erasep
 list.extractp
-list.fin_range
 list.find_indexes_aux
 list.forall₂
 list.func.add
@@ -1647,7 +1614,6 @@ manifold_core.local_homeomorph
 manifold_core.to_manifold
 matrix
 matrix.col
-matrix.det
 matrix.diagonal
 matrix.minor
 matrix.mul
@@ -1706,20 +1672,10 @@ measure_theory.outer_measure.map
 measure_theory.outer_measure.sum
 measure_theory.outer_measure.to_measure
 measure_theory.outer_measure.trim
-measure_theory.simple_func
-measure_theory.simple_func.approx
-measure_theory.simple_func.bind
-measure_theory.simple_func.const
 measure_theory.simple_func.eapprox
-measure_theory.simple_func.ennreal_rat_embed
 measure_theory.simple_func.fin_vol_supp
 measure_theory.simple_func.ite
-measure_theory.simple_func.pair
-measure_theory.simple_func.range
-measure_theory.simple_func.restrict
-measure_theory.simple_func.seq
 measure_theory.volume
-mem_nhds_order_dest
 mem_uniformity_edist
 metric.Hausdorff_dist_le_of_inf_dist
 metric.cauchy_iff
@@ -1753,7 +1709,6 @@ metric.second_countable_of_countable_discretization
 metric.sum.dist
 metric.tendsto_at_top
 metric.tendsto_nhds
-metric.tendsto_nhds_nhds
 metric.to_glue_l
 metric.to_glue_r
 metric.totally_bounded_iff
@@ -1869,8 +1824,6 @@ nat.to_pexpr
 nat.totient
 nat.unpaired
 nat.xgcd_aux
-nhds_contain_boxes
-nhds_eq_order
 nnreal.le_of_forall_epsilon_le
 nnreal.le_of_real_iff_coe_le
 nnreal.of_real
@@ -2196,8 +2149,6 @@ option.traverse
 option_t.call_cc
 option_t.mk_label
 option_t.pass_aux
-order_dual
-order_embedding
 order_embedding.collapse_F
 order_embedding.lt_embedding_of_le_embedding
 order_embedding.nat_gt
@@ -2213,7 +2164,6 @@ order_iso.symm
 order_iso.to_order_embedding
 order_iso.trans
 order_of_pos
-order_topology_of_nhds_abs
 ordering.compares.eq_gt
 ordinal.CNF_rec
 ordinal.CNF_sorted
@@ -2406,7 +2356,6 @@ polynomial.coeff_coe_to_fun
 polynomial.comp
 polynomial.decidable_dvd_monic
 polynomial.degree_eq_iff_nat_degree_eq_of_pos
-polynomial.degree_le
 polynomial.div
 polynomial.div_mod_by_monic_aux
 polynomial.eval_sub_factor
@@ -2417,7 +2366,6 @@ polynomial.mod
 polynomial.monomial
 polynomial.nonzero_comm_ring.of_polynomial_ne
 polynomial.nonzero_comm_semiring.of_polynomial_ne
-polynomial.of_subring
 polynomial.pow_add_expansion
 polynomial.pow_sub_pow_factor
 polynomial.rec_on_horner
@@ -2489,9 +2437,7 @@ push_neg.normalize_negations
 push_neg.push_neg_at_goal
 push_neg.push_neg_at_hyp
 push_neg.whnf_reducible
-quot.encodable_quotient
 quot.hrec_on₂
-quot.rep
 quotient.choice
 quotient.fin_choice
 quotient.fin_choice_aux
@@ -2592,17 +2538,9 @@ roption.get_or_else
 roption.restrict
 saturate_fun
 semiquot.bind
-semiquot.blur
-semiquot.blur'
 semiquot.get
 semiquot.is_pure
-semiquot.lift_on
 semiquot.map
-semiquot.mk
-semiquot.of_trunc
-semiquot.pure
-semiquot.to_trunc
-semiquot.univ
 separated
 seq.bisim_o
 seq.cases_on
@@ -2610,7 +2548,6 @@ seq.corec.F
 seq.is_bisimulation
 seq.mem
 sequence
-sequence_of_directed
 set.Union_eq_sigma_of_disjoint
 set.add_comm_monoid
 set.bUnion_eq_sigma_of_disjoint
@@ -2623,7 +2560,6 @@ set.fintype_bind
 set.fintype_insert'
 set.fintype_of_fintype_image
 set.fintype_subset
-set.image_factorization
 set.kern_image
 set.pairwise_disjoint
 set.pi
@@ -2642,7 +2578,6 @@ set.pointwise_mul_semiring
 set.pointwise_neg
 set.pointwise_one
 set.pointwise_zero
-set.range_factorization
 set.seq
 set.sigma_to_Union
 set_fintype
@@ -2652,7 +2587,6 @@ side.other
 side.to_string
 simple_add_group
 simple_group
-smooth_manifold_with_corners
 snum.add
 snum.bit
 snum.bit0
@@ -2679,7 +2613,6 @@ string.ltb
 string.map_tokens
 string.over_list
 string.split_on
-string_hash
 subalgebra
 subalgebra.comap
 subalgebra.fg
@@ -2848,7 +2781,6 @@ tactic.interactive.ac_refine
 tactic.interactive.apply_iff_congr_core
 tactic.interactive.apply_normed
 tactic.interactive.apply_rel
-tactic.interactive.arg.to_tactic_format
 tactic.interactive.arity
 tactic.interactive.as_goal
 tactic.interactive.assert_or_rule
@@ -2874,7 +2806,6 @@ tactic.interactive.derive_functor
 tactic.interactive.derive_lawful_functor
 tactic.interactive.derive_lawful_traversable
 tactic.interactive.derive_traverse
-tactic.interactive.erase_simp_arg
 tactic.interactive.field
 tactic.interactive.filter_instances
 tactic.interactive.find
@@ -2968,7 +2899,6 @@ tactic.interactive.source_fields
 tactic.interactive.squeeze_simp
 tactic.interactive.squeeze_simpa
 tactic.interactive.tfae_have
-tactic.interactive.tidy
 tactic.interactive.traversable_derive_handler
 tactic.interactive.traversable_derive_handler'
 tactic.interactive.traversable_law_starter
@@ -3177,7 +3107,6 @@ tactic.unprime
 tactic.using_texpr
 tactic.valid_types
 tactic.wlog
-tendsto_order
 tensor_product
 tensor_product.assoc
 tensor_product.congr
@@ -3216,8 +3145,6 @@ topological_space.opens.map_id
 topological_space.opens.map_iso
 topological_space.opens.to_Top
 topological_space.seq_tendsto_iff
-totally_disconnected_space
-totally_separated_space
 transfer.analyse_decls
 transfer.compute_transfer
 traversable
@@ -3241,19 +3168,18 @@ trunc.map
 trunc.rec
 trunc.rec_on
 trunc.rec_on_subsingleton
-turing.TM0.stmt.inhabited
-turing.TM2.cfg.inhabited
-turing.TM1.cfg.inhabited
 turing.TM0.cfg.inhabited
 turing.TM0.cfg.map
 turing.TM0.machine
 turing.TM0.machine.map
 turing.TM0.machine.map_respects
 turing.TM0.machine.map_step
+turing.TM0.stmt.inhabited
 turing.TM0.stmt.map
 turing.TM0to1.tr
 turing.TM0to1.tr_cfg
 turing.TM0to1.Λ'
+turing.TM1.cfg.inhabited
 turing.TM1.eval
 turing.TM1.init
 turing.TM1.step
@@ -3284,6 +3210,7 @@ turing.TM1to1.write
 turing.TM1to1.writes
 turing.TM1to1.Λ'
 turing.TM2.cfg
+turing.TM2.cfg.inhabited
 turing.TM2.eval
 turing.TM2.init
 turing.TM2.reaches
@@ -3475,11 +3402,6 @@ znum.succ
 znum.transfer
 znum.transfer_rw
 znum.zneg
-zorn.chain_closure
-zorn.is_max_chain
-zorn.max_chain
-zorn.succ_chain
-zorn.super_chain
 zsqrtd.le
 zsqrtd.lt
 zsqrtd.norm

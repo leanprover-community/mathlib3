@@ -25,9 +25,12 @@ import
   tactic.tidy
   tactic.abel
   tactic.ring
+  tactic.ring_exp
   tactic.linarith
   tactic.omega
   tactic.wlog
   tactic.tfae
   tactic.apply_fun
   tactic.apply
+  tactic.suggest
+  tactic.simp_rw

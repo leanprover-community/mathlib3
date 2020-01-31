@@ -8,8 +8,9 @@ Functions over sets.
 import data.set.basic logic.function
 open function
 
-namespace set
 universes u v w x
+
+namespace set
 variables {α : Type u} {β : Type v} {γ : Type w} {ι : Sort x}
 
 /- maps to -/
@@ -179,6 +180,9 @@ lemma bij_on.mk {f : α → β} {a : set α} {b : set β}
       bij_on f a b :=
 ⟨h₁, h₂, h₃⟩
 
+lemma inj_on.to_bij_on {f : α → β} {a : set α} (h : inj_on f a) : bij_on f a (f '' a) :=
+bij_on.mk (maps_to_image f a) h (subset.refl _)
+
 theorem bij_on_of_eq_on {f1 f2 : α → β} {a : set α} {b : set β} (h₁ : eq_on f1 f2 a)
      (h₂ : bij_on f1 a b) : bij_on f2 a b :=
 let ⟨map, inj, surj⟩ := h₂ in
@@ -295,5 +299,43 @@ theorem bij_on_of_inv_on {g : β → α} {f : α → β} {a : set α} {b : set �
 lemma range_restrict {α : Type*} {β : Type*} (f : α → β) (p : set α) :
   range (restrict f p) = f '' (p : set α) :=
 by { ext x, simp [restrict], refl }
+
+section piecewise
+variables {δ : α → Sort v} (s : set α) (f g : Πi, δ i)
+
+@[simp] lemma piecewise_empty [∀i : α, decidable (i ∈ (∅ : set α))] : piecewise ∅ f g = g :=
+by { ext i, simp [piecewise] }
+
+@[simp] lemma piecewise_univ [∀i : α, decidable (i ∈ (set.univ : set α))] :
+  piecewise set.univ f g = f :=
+by { ext i, simp [piecewise] }
+
+@[simp] lemma piecewise_insert_self {j : α} [∀i, decidable (i ∈ insert j s)] :
+  (insert j s).piecewise f g j = f j :=
+by simp [piecewise]
+
+variable [∀j, decidable (j ∈ s)]
+
+lemma piecewise_insert [decidable_eq α] (j : α) [∀i, decidable (i ∈ insert j s)] :
+  (insert j s).piecewise f g = function.update (s.piecewise f g) j (f j) :=
+begin
+  simp [piecewise],
+  ext i,
+  by_cases h : i = j,
+  { rw h, simp },
+  { by_cases h' : i ∈ s; simp [h, h'] }
+end
+
+@[simp] lemma piecewise_eq_of_mem {i : α} (hi : i ∈ s) : s.piecewise f g i = f i :=
+by simp [piecewise, hi]
+
+@[simp] lemma piecewise_eq_of_not_mem {i : α} (hi : i ∉ s) : s.piecewise f g i = g i :=
+by simp [piecewise, hi]
+
+@[simp] lemma piecewise_insert_of_ne {i j : α} (h : i ≠ j) [∀i, decidable (i ∈ insert j s)] :
+  (insert j s).piecewise f g i = s.piecewise f g i :=
+by { simp [piecewise, h], congr }
+
+end piecewise
 
 end set

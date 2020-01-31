@@ -55,6 +55,7 @@ section
 local attribute [reducible] euclidean_space euclidean_half_space euclidean_quadrant
 variable {n : ℕ}
 
+ -- short-circuit type class inference
 instance : vector_space ℝ (euclidean_space n) := by apply_instance
 instance : normed_group (euclidean_space n) := by apply_instance
 instance : normed_space ℝ (euclidean_space n) := by apply_instance
@@ -128,7 +129,7 @@ def model_with_corners_euclidean_half_space (n : ℕ) [has_zero (fin n)] :
     assume i,
     by_cases h : i = 0,
     { simp only [h, dif_pos],
-      have : continuous (λx:ℝ, max x 0) := continuous_max continuous_id continuous_const,
+      have : continuous (λx:ℝ, max x 0) := continuous_id.max continuous_const,
       exact this.comp (continuous_apply 0) },
     { simp [h],
       exact continuous_apply i }
@@ -183,7 +184,7 @@ def model_with_corners_euclidean_quadrant (n : ℕ) :
     apply continuous_subtype_mk,
     apply continuous_pi,
     assume i,
-    have : continuous (λx:ℝ, max x 0) := continuous_max continuous_id continuous_const,
+    have : continuous (λx:ℝ, max x 0) := continuous.max continuous_id continuous_const,
     exact this.comp (continuous_apply i)
   end }
 
@@ -230,14 +231,14 @@ def Icc_left_chart (x y : ℝ) [h : lt_class x y] :
     apply continuous.continuous_on,
     apply continuous_subtype_mk,
     have : continuous (λ (z : ℝ) (i : fin 1), z - x) :=
-      continuous_sub (continuous_pi (λi, continuous_id)) continuous_const,
-    exact continuous.comp this continuous_subtype_val,
+      continuous.sub (continuous_pi $ λi, continuous_id) continuous_const,
+    exact this.comp continuous_subtype_val,
   end,
   continuous_inv_fun := begin
     apply continuous.continuous_on,
     apply continuous_subtype_mk,
     have A : continuous (λ z : ℝ, min (z + x) y) :=
-      continuous_min (continuous_add continuous_id continuous_const) continuous_const,
+      (continuous_id.add continuous_const).min continuous_const,
     have B : continuous (λz : fin 1 → ℝ, z 0) := continuous_apply 0,
     exact (A.comp B).comp continuous_subtype_val
   end }
@@ -278,14 +279,14 @@ def Icc_right_chart (x y : ℝ) [h : lt_class x y] :
     apply continuous.continuous_on,
     apply continuous_subtype_mk,
     have : continuous (λ (z : ℝ) (i : fin 1), y - z) :=
-      continuous_sub continuous_const (continuous_pi (λi, continuous_id)),
-    exact continuous.comp this continuous_subtype_val,
+      continuous_const.sub (continuous_pi (λi, continuous_id)),
+    exact this.comp continuous_subtype_val,
   end,
   continuous_inv_fun := begin
     apply continuous.continuous_on,
     apply continuous_subtype_mk,
     have A : continuous (λ z : ℝ, max (y - z) x) :=
-      continuous_max (continuous_sub continuous_const continuous_id) continuous_const,
+      (continuous_const.sub continuous_id).max continuous_const,
     have B : continuous (λz : fin 1 → ℝ, z 0) := continuous_apply 0,
     exact (A.comp B).comp continuous_subtype_val
   end }

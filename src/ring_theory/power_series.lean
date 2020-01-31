@@ -73,6 +73,7 @@ namespace mv_power_series
 open finsupp
 variables {σ : Type*} {α : Type*}
 
+instance [inhabited α]       : inhabited       (mv_power_series σ α) := ⟨λ _, default _⟩
 instance [has_zero α]        : has_zero        (mv_power_series σ α) := pi.has_zero
 instance [add_monoid α]      : add_monoid      (mv_power_series σ α) := pi.add_monoid
 instance [add_group α]       : add_group       (mv_power_series σ α) := pi.add_group
@@ -101,7 +102,7 @@ def coeff (n : σ →₀ ℕ) : (mv_power_series σ α) →+ α :=
 variables {α}
 
 /-- Two multivariate formal power series are equal if all their coefficients are equal.-/
-@[extensionality] lemma ext {φ ψ} (h : ∀ (n : σ →₀ ℕ), coeff α n φ = coeff α n ψ) :
+@[ext] lemma ext {φ ψ} (h : ∀ (n : σ →₀ ℕ), coeff α n φ = coeff α n ψ) :
   φ = ψ :=
 funext h
 
@@ -381,7 +382,7 @@ def map : mv_power_series σ α →+* mv_power_series σ β :=
     show f ((coeff α n) (φ + ψ)) = f ((coeff α n) φ) + f ((coeff α n) ψ), by simp,
   map_mul' := λ φ ψ, ext $ λ n, show f _ = _,
   begin
-    rw [coeff_mul, ← finset.sum_hom f, coeff_mul, finset.sum_congr rfl],
+    rw [coeff_mul, ← finset.sum_hom _ f, coeff_mul, finset.sum_congr rfl],
     rintros ⟨i,j⟩ hij, rw [f.map_mul], refl,
   end }
 
@@ -741,6 +742,7 @@ namespace power_series
 open finsupp (single)
 variable {α : Type*}
 
+instance [inhabited α]       : inhabited       (power_series α) := by delta power_series; apply_instance
 instance [add_monoid α]      : add_monoid      (power_series α) := by delta power_series; apply_instance
 instance [add_group α]       : add_group       (power_series α) := by delta power_series; apply_instance
 instance [add_comm_monoid α] : add_comm_monoid (power_series α) := by delta power_series; apply_instance
@@ -770,7 +772,7 @@ lemma coeff_def {s : unit →₀ ℕ} {n : ℕ} (h : s () = n) :
 by erw [coeff, ← h, ← finsupp.unique_single s]
 
 /-- Two formal power series are equal if all their coefficients are equal.-/
-@[extensionality] lemma ext {φ ψ : power_series α} (h : ∀ n, coeff α n φ = coeff α n ψ) :
+@[ext] lemma ext {φ ψ : power_series α} (h : ∀ n, coeff α n φ = coeff α n ψ) :
   φ = ψ :=
 mv_power_series.ext $ λ n,
 by { rw ← coeff_def, { apply h }, refl }

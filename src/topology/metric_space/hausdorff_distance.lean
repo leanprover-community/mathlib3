@@ -2,20 +2,29 @@
 Copyright (c) 2019 Sébastien Gouëzel. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Author: Sébastien Gouëzel
+-/
+
+import topology.metric_space.isometry topology.instances.ennreal
+       topology.metric_space.lipschitz
+
+/-!
+# Hausdorff distance
+
 The Hausdorff distance on subsets of a metric (or emetric) space.
+
 Given two subsets `s` and `t` of a metric space, their Hausdorff distance is the smallest `d`
 such that any point `s` is within `d` of a point in `t`, and conversely. This quantity
 is often infinite (think of `s` bounded and `t` unbounded), and therefore better
 expressed in the setting of emetric spaces.
+
+## Main definitions
+
 This files introduces:
 * `inf_edist x s`, the infimum edistance of a point `x` to a set `s` in an emetric space
 * `Hausdorff_edist s t`, the Hausdorff edistance of two sets in an emetric space
 * Versions of these notions on metric spaces, called respectively `inf_dist` and
 `Hausdorff_dist`.
 -/
-
-import topology.metric_space.isometry topology.instances.ennreal
-       topology.metric_space.lipschitz
 noncomputable theory
 open_locale classical
 universes u v w
@@ -72,7 +81,7 @@ begin
     ... = edist y z + edist x y : add_comm _ _,
   have : (λz, z + edist x y) (Inf (edist y '' s)) = Inf ((λz, z + edist x y) '' (edist y '' s)),
   { refine Inf_of_continuous _ _ (by simp),
-    { exact continuous_add continuous_id continuous_const },
+    { exact continuous_id.add continuous_const },
     { assume a b h, simp, apply add_le_add_right' h }},
   simp only [inf_edist] at this,
   rw [inf_edist, inf_edist, this, ← image_comp],
@@ -439,13 +448,22 @@ begin
     { simp [ennreal.add_eq_top, inf_edist_ne_top hs, edist_ne_top] }}
 end
 
-/-- The minimal distance to a set is uniformly continuous -/
-lemma uniform_continuous_inf_dist : uniform_continuous (λx, inf_dist x s) :=
-uniform_continuous_of_le_add 1 (by simp [inf_dist_le_inf_dist_add_dist])
+variable (s)
 
-/-- The minimal distance to a set is continuous -/
-lemma continuous_inf_dist : continuous (λx, inf_dist x s) :=
-uniform_continuous_inf_dist.continuous
+/-- The minimal distance to a set is Lipschitz in point with constant 1 -/
+lemma lipschitz_inf_dist_pt : lipschitz_with 1 (λx, inf_dist x s) :=
+lipschitz_with.one_of_le_add $ λ x y, inf_dist_le_inf_dist_add_dist
+
+/-- The minimal distance to a set is uniformly continuous in point -/
+lemma uniform_continuous_inf_dist_pt :
+  uniform_continuous (λx, inf_dist x s) :=
+(lipschitz_inf_dist_pt s).to_uniform_continuous
+
+/-- The minimal distance to a set is continuous in point -/
+lemma continuous_inf_dist_pt : continuous (λx, inf_dist x s) :=
+(uniform_continuous_inf_dist_pt s).continuous
+
+variable {s}
 
 /-- The minimal distance to a set and its closure coincide -/
 lemma inf_dist_eq_closure : inf_dist x (closure s) = inf_dist x s :=
@@ -456,7 +474,7 @@ lemma mem_closure_iff_inf_dist_zero (h : s ≠ ∅) : x ∈ closure s ↔ inf_di
 by simp [mem_closure_iff_inf_edist_zero, inf_dist, ennreal.to_real_eq_zero_iff, inf_edist_ne_top h]
 
 /-- Given a closed set `s`, a point belongs to `s` iff its infimum distance to this set vanishes -/
-lemma mem_iff_ind_dist_zero_of_closed (h : is_closed s) (hs : s ≠ ∅) :
+lemma mem_iff_inf_dist_zero_of_closed (h : is_closed s) (hs : s ≠ ∅) :
   x ∈ s ↔ inf_dist x s = 0 :=
 begin
   have := @mem_closure_iff_inf_dist_zero _ _ s x hs,

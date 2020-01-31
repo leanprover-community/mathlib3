@@ -135,7 +135,7 @@ lemma adjointify_η_ε (X : C) :
 begin
   dsimp [adjointify_η], simp,
   have := ε.hom.naturality (F.map (η.inv.app X)), dsimp at this, rw [this], clear this,
-  rw [assoc_symm _ _ (F.map _)],
+  rw [←assoc _ _ _ (F.map _)],
   have := ε.hom.naturality (ε.inv.app $ F.obj X), dsimp at this, rw [this], clear this,
   have := (ε.app $ F.obj X).hom_inv_id, dsimp at this, rw [this], clear this,
   rw [id_comp], have := (F.map_iso $ η.app X).hom_inv_id, dsimp at this, rw [this]
@@ -294,6 +294,7 @@ namespace equivalence
 def ess_surj_of_equivalence (F : C ⥤ D) [is_equivalence F] : ess_surj F :=
 ⟨ λ Y : D, F.inv.obj Y, λ Y : D, (F.inv_fun_id.app Y) ⟩
 
+@[priority 100] -- see Note [lower instance priority]
 instance faithful_of_equivalence (F : C ⥤ D) [is_equivalence F] : faithful F :=
 { injectivity' := λ X Y f g w,
   begin
@@ -301,6 +302,7 @@ instance faithful_of_equivalence (F : C ⥤ D) [is_equivalence F] : faithful F :
     simpa only [cancel_epi, cancel_mono, is_equivalence.inv_fun_map] using p
   end }.
 
+@[priority 100] -- see Note [lower instance priority]
 instance full_of_equivalence (F : C ⥤ D) [is_equivalence F] : full F :=
 { preimage := λ X Y f, (F.fun_inv_id.app X).inv ≫ (F.inv.map f) ≫ (F.fun_inv_id.app Y).hom,
   witness' := λ X Y f,

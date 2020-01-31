@@ -236,11 +236,11 @@ def dual_pair_e_ε (n : ℕ) : dual_pair (@e n) (@ε n) :=
 
 lemma dim_V : vector_space.dim ℝ (V n) = 2^n :=
 have vector_space.dim ℝ (V n) = ↑(2^n : ℕ),
-  by { rw [dim_eq_card (dual_pair_e_ε _).is_basis, Q.card]; apply_instance },
+  by { rw [dim_eq_card_basis (dual_pair_e_ε _).is_basis, Q.card]; apply_instance },
 by assumption_mod_cast
 
 instance : finite_dimensional ℝ (V n) :=
-finite_dimensional_of_finite_basis (dual_pair_e_ε _).is_basis
+finite_dimensional.of_finite_basis (dual_pair_e_ε _).is_basis
 
 lemma findim_V : findim ℝ (V n) = 2^n :=
 have _ := @dim_V n,
@@ -421,7 +421,7 @@ begin
                   { dsimp only [φ],
                     erw [(f $ m+1).map_finsupp_total, (ε q).map_finsupp_total, finsupp.total_apply] ; apply_instance }
     ... ≤ (coeffs y).support.sum (λ p,
-           |(coeffs y p) * (ε q $ φ $ e p)| ) : norm_triangle_sum _ $ λ p, coeffs y p * _
+           |(coeffs y p) * (ε q $ φ $ e p)| ) : norm_sum_le _ $ λ p, coeffs y p * _
     ... = (coeffs y).support.sum (λ p, |coeffs y p| * ite (q.adjacent p) 1 0) : by simp only [abs_mul, f_matrix]
     ... = ((coeffs y).support.filter (Q.adjacent q)).sum (λ p, |coeffs y p| ) : by simp [finset.sum_filter]
     ... ≤ ((coeffs y).support.filter (Q.adjacent q)).sum (λ p, |coeffs y q| ) : finset.sum_le_sum (λ p _, H_max p)

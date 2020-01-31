@@ -18,7 +18,8 @@ namespace nat
 
 open_locale omega.nat
 
-run_cmd mk_simp_attr `sugar_nat
+mk_simp_attribute sugar_nat none
+
 attribute [sugar_nat]
   ne not_le not_lt
   nat.lt_iff_add_one_le
@@ -115,7 +116,7 @@ do x ← prove_unsat_neg_free (neg_elim (¬*p)),
 meta def to_preterm : expr → tactic preterm
 | (expr.var k) := return (preterm.var 1 k)
 | `(%%(expr.var k) * %%mx) :=
-  do m ← eval_expr nat mx,
+  do m ← eval_expr' nat mx,
      return (preterm.var m k)
 | `(%%t1x + %%t2x) :=
   do t1 ← to_preterm t1x,
@@ -126,7 +127,7 @@ meta def to_preterm : expr → tactic preterm
      t2 ← to_preterm t2x,
      return (preterm.sub t1 t2)
 | mx :=
-  do m ← eval_expr nat mx,
+  do m ← eval_expr' nat mx,
      return (preterm.cst m)
 
 meta def to_form_core : expr → tactic form

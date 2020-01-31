@@ -2,8 +2,13 @@
 Copyright (c) 2017 Johannes Hölzl. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johannes Hölzl, Mario Carneiro
+-/
+import data.set.lattice data.set.finite
+import topology.instances.ennreal
+       measure_theory.outer_measure
 
-Measure spaces -- measures
+/-!
+# Measure spaces
 
 Measures are restricted to a measurable space (associated by the type class `measurable_space`).
 This allows us to prove equalities between measures by restricting to a generating set of the
@@ -16,14 +21,11 @@ somehow well-behaved on non-measurable sets.
 This allows us for the `lebesgue` measure space to have the `borel` measurable space, but still be
 a complete measure.
 -/
-import data.set.lattice data.set.finite
-import topology.instances.ennreal
-       measure_theory.outer_measure
 
 noncomputable theory
 
 open classical set lattice filter finset function
-open_locale classical
+open_locale classical topological_space
 
 universes u v w x
 
@@ -252,7 +254,7 @@ lemma of_measurable_apply {α} [measurable_space α]
   of_measurable m m0 @mU s = m s hs :=
 outer_measure'_eq m m0 @mU hs
 
-@[extensionality] lemma ext {α} [measurable_space α] :
+@[ext] lemma ext {α} [measurable_space α] :
   ∀ {μ₁ μ₂ : measure α}, (∀s, is_measurable s → μ₁ s = μ₂ s) → μ₁ = μ₂
 | ⟨m₁, u₁, h₁⟩ ⟨m₂, u₂, h₂⟩ h := by congr; rw [← h₁, ← h₂];
   exact outer_measure.trim_congr h
@@ -412,7 +414,7 @@ by rw [← measure_union hd (hs.inter ht) (hs.diff ht), inter_union_diff s t]
 
 lemma tendsto_measure_Union {μ : measure α} {s : ℕ → set α}
   (hs : ∀n, is_measurable (s n)) (hm : monotone s) :
-  tendsto (μ ∘ s) at_top (nhds (μ (⋃n, s n))) :=
+  tendsto (μ ∘ s) at_top (𝓝 (μ (⋃n, s n))) :=
 begin
   rw measure_Union_eq_supr_nat hs hm,
   exact tendsto_at_top_supr_nat (μ ∘ s) (assume n m hnm, measure_mono $ hm $ hnm)
@@ -420,7 +422,7 @@ end
 
 lemma tendsto_measure_Inter {μ : measure α} {s : ℕ → set α}
   (hs : ∀n, is_measurable (s n)) (hm : ∀n m, n ≤ m → s m ⊆ s n) (hf : ∃i, μ (s i) < ⊤) :
-  tendsto (μ ∘ s) at_top (nhds (μ (⋂n, s n))) :=
+  tendsto (μ ∘ s) at_top (𝓝 (μ (⋂n, s n))) :=
 begin
   rw measure_Inter_eq_infi_nat hs hm hf,
   exact tendsto_at_top_infi_nat (μ ∘ s) (assume n m hnm, measure_mono $ hm _ _ $ hnm),
@@ -491,7 +493,7 @@ instance : has_add (measure α) :=
 @[simp] theorem add_apply (μ₁ μ₂ : measure α) (s : set α) :
   (μ₁ + μ₂) s = μ₁ s + μ₂ s := rfl
 
-instance : add_comm_monoid (measure α) :=
+instance add_comm_monoid : add_comm_monoid (measure α) :=
 { zero      := 0,
   add       := (+),
   add_assoc := assume a b c, ext $ assume s hs, add_assoc _ _ _,
@@ -637,7 +639,7 @@ def a_e (μ : measure α) : filter α :=
   inter_sets := λ s t hs ht, by simp [compl_inter]; exact measure_union_null hs ht,
   sets_of_superset := λ s t hs hst, measure_mono_null (set.compl_subset_compl.2 hst) hs }
 
-lemma mem_a_e_iff (s : set α) : s ∈ μ.a_e.sets ↔ μ (- s) = 0 := iff.refl _
+lemma mem_a_e_iff (s : set α) : s ∈ μ.a_e.sets ↔ μ (- s) = 0 := iff.rfl
 
 end measure
 
@@ -791,10 +793,13 @@ end is_complete
 
 namespace measure_theory
 
+section prio
+set_option default_priority 100 -- see Note [default priority]
 /-- A measure space is a measurable space equipped with a
   measure, referred to as `volume`. -/
 class measure_space (α : Type*) extends measurable_space α :=
 (μ {} : measure α)
+end prio
 
 section measure_space
 variables {α : Type*} [measure_space α] {s₁ s₂ : set α}
@@ -862,7 +867,8 @@ associated with `α`. This means that the measure of the complementary of `p` is
 
 In a probability measure, the measure of `p` is `1`, when `p` is measurable.
 -/
-def all_ae (p : α → Prop) : Prop := { a | p a } ∈ (@measure_space.μ α _).a_e
+def all_ae (p : α → Prop) : Prop :=
+∀ᶠ a in μ.a_e, p a
 
 notation `∀ₘ` binders `, ` r:(scoped P, all_ae P) := r
 
@@ -871,10 +877,9 @@ iff.intro
   (assume h', by filter_upwards [h, h'] assume a hpq hp, hpq.1 hp)
   (assume h', by filter_upwards [h, h'] assume a hpq hq, hpq.2 hq)
 
-lemma all_ae_iff {p : α → Prop} : (∀ₘ a, p a) ↔ volume { a | ¬ p a } = 0 := iff.refl _
+lemma all_ae_iff {p : α → Prop} : (∀ₘ a, p a) ↔ volume { a | ¬ p a } = 0 := iff.rfl
 
-lemma all_ae_of_all {p : α → Prop} : (∀a, p a) → ∀ₘ a, p a := assume h,
-by {rw all_ae_iff, convert volume_empty, simp only [h, not_true], reflexivity}
+lemma all_ae_of_all {p : α → Prop} : (∀a, p a) → ∀ₘ a, p a := univ_mem_sets'
 
 lemma all_ae_all_iff {ι : Type*} [encodable ι] {p : α → ι → Prop} :
   (∀ₘ a, ∀i, p a i) ↔ (∀i, ∀ₘ a, p a i) :=
@@ -885,6 +890,18 @@ begin
     rw [← compl_Inter] at h,
     filter_upwards [h] assume a, mem_Inter.1 }
 end
+
+variables {β : Type*}
+
+lemma all_ae_eq_refl (f : α → β) : ∀ₘ a, f a = f a :=
+by { filter_upwards [], assume a, apply eq.refl }
+
+lemma all_ae_eq_symm {f g : α → β} : (∀ₘ a, f a = g a) → (∀ₘ a, g a = f a) :=
+by { assume h, filter_upwards [h], assume a, apply eq.symm }
+
+lemma all_ae_eq_trans {f g h: α → β} (h₁ : ∀ₘ a, f a = g a) (h₂ : ∀ₘ a, g a = h a) :
+  ∀ₘ a, f a = h a :=
+by { filter_upwards [h₁, h₂], intro a, exact eq.trans }
 
 end measure_space
 

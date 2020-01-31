@@ -2,10 +2,19 @@
 Copyright (c) 2014 Floris van Doorn. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Floris van Doorn, Leonardo de Moura, Jeremy Avigad, Mario Carneiro
-
-Basic operations on the natural numbers.
 -/
-import logic.basic algebra.ordered_ring data.option.basic
+import logic.basic algebra.ordered_ring data.option.basic algebra.order_functions
+
+/-!
+# Basic operations on the natural numbers
+
+This files has some basic lemmas about natural numbers, definition of the `choice` function,
+and extra recursors:
+
+* `le_rec_on`, `le_induction`: recursion and induction principles starting at non-zero numbers.
+* `decreasing_induction` : recursion gowing downwards.
+* `strong_rec'` : recursion based on strong inequalities.
+-/
 
 universes u v
 
@@ -64,6 +73,8 @@ by simp only [add_comm, nat.lt_succ_iff]
 theorem of_le_succ {n m : ℕ} (H : n ≤ m.succ) : n ≤ m ∨ n = m.succ :=
 (lt_or_eq_of_le H).imp le_of_lt_succ id
 
+/-- Recursion starting at a non-zero number: given a map `C k → C (k+1)` for each `k`,
+there is a map from `C n` to each `C m`, `n ≤ m`. -/
 @[elab_as_eliminator]
 def le_rec_on {C : ℕ → Sort u} {n : ℕ} : Π {m : ℕ}, n ≤ m → (Π {k}, C k → C (k+1)) → C n → C m
 | 0     H next x := eq.rec_on (eq_zero_of_le_zero H) x
@@ -184,6 +195,10 @@ by rw [add_comm a, nat.add_sub_assoc h, add_comm]
 
 theorem sub_min (n m : ℕ) : n - min n m = n - m :=
 nat.sub_eq_of_eq_add $ by rw [add_comm, sub_add_min]
+
+theorem sub_sub_assoc {a b c : ℕ} (h₁ : b ≤ a) (h₂ : c ≤ b) : a - (b - c) = a - b + c :=
+(nat.sub_eq_iff_eq_add (le_trans (nat.sub_le _ _) h₁)).2 $
+by rw [add_right_comm, add_assoc, nat.sub_add_cancel h₂, nat.sub_add_cancel h₁]
 
 protected theorem lt_of_sub_pos (h : 0 < n - m) : m < n :=
 lt_of_not_ge
@@ -331,6 +346,7 @@ end
 theorem two_mul_ne_two_mul_add_one {n m} : 2 * n ≠ 2 * m + 1 :=
 mt (congr_arg (%2)) (by rw [add_comm, add_mul_mod_self_left, mul_mod_right]; exact dec_trivial)
 
+/-- Recursion principle based on `<`. -/
 @[elab_as_eliminator]
 protected def strong_rec' {p : ℕ → Sort u} (H : ∀ n, (∀ m, m < n → p m) → p n) : ∀ (n : ℕ), p n
 | n := H n (λ m hm, strong_rec' m)
@@ -510,6 +526,47 @@ exists_congr $ λ d, by rw [mul_assoc, nat.mul_left_inj ha]
 
 protected theorem mul_dvd_mul_iff_right {a b c : ℕ} (hc : 0 < c) : a * c ∣ b * c ↔ a ∣ b :=
 exists_congr $ λ d, by rw [mul_right_comm, nat.mul_right_inj hc]
+
+lemma succ_div : ∀ (a b : ℕ), (a + 1) / b =
+  a / b + if b ∣ a + 1 then 1 else 0
+| a     0     := by simp
+| 0     1     := rfl
+| 0     (b+2) := have hb2 : b + 2 > 1, from dec_trivial,
+  by simp [ne_of_gt hb2, div_eq_of_lt hb2]
+| (a+1) (b+1) := begin
+  rw [nat.div_def], conv_rhs { rw nat.div_def },
+  by_cases hb_eq_a : b = a + 1,
+  { simp [hb_eq_a, le_refl] },
+  by_cases hb_le_a1 : b ≤ a + 1,
+  { have hb_le_a : b ≤ a, from le_of_lt_succ (lt_of_le_of_ne hb_le_a1 hb_eq_a),
+    have h₁ : (0 < b + 1 ∧ b + 1 ≤ a + 1 + 1),
+      from ⟨succ_pos _, (add_le_add_iff_right _).2 hb_le_a1⟩,
+    have h₂ : (0 < b + 1 ∧ b + 1 ≤ a + 1),
+      from ⟨succ_pos _, (add_le_add_iff_right _).2 hb_le_a⟩,
+    have dvd_iff : b + 1 ∣ a - b + 1 ↔  b + 1 ∣ a + 1 + 1,
+    { rw [nat.dvd_add_iff_left (dvd_refl (b + 1)),
+        ← nat.add_sub_add_right a 1 b, add_comm (_ - _), add_assoc,
+        nat.sub_add_cancel (succ_le_succ hb_le_a)],
+      simp },
+    have wf : a - b < a + 1, from lt_succ_of_le (nat.sub_le_self _ _),
+    rw [if_pos h₁, if_pos h₂, nat.add_sub_add_right, nat.sub_add_comm hb_le_a,
+      by exact have _ := wf, succ_div (a - b),
+      nat.add_sub_add_right],
+    simp [dvd_iff, succ_eq_add_one], congr },
+  { have hba : ¬ b ≤ a,
+      from not_le_of_gt (lt_trans (lt_succ_self a) (lt_of_not_ge hb_le_a1)),
+    have hb_dvd_a : ¬ b + 1 ∣ a + 2,
+      from λ h, hb_le_a1 (le_of_succ_le_succ (le_of_dvd (succ_pos _) h)),
+    simp [hba, hb_le_a1, hb_dvd_a], }
+end
+
+lemma succ_div_of_dvd {a b : ℕ} (hba : b ∣ a + 1) :
+  (a + 1) / b = a / b + 1 :=
+by rw [succ_div, if_pos hba]
+
+lemma succ_div_of_not_dvd {a b : ℕ} (hba : ¬ b ∣ a + 1) :
+  (a + 1) / b = a / b :=
+by rw [succ_div, if_neg hba, add_zero]
 
 @[simp] theorem mod_mod (a n : ℕ) : (a % n) % n = a % n :=
 (eq_zero_or_pos n).elim
@@ -745,6 +802,30 @@ lemma lt_pow_self {p : ℕ} (h : 1 < p) : ∀ n : ℕ, n < p ^ n
   n + 1 < p^n + 1 : nat.add_lt_add_right (lt_pow_self _) _
     ... ≤ p ^ (n+1) : pow_lt_pow_succ h _
 
+lemma pow_right_strict_mono {x : ℕ} (k : 2 ≤ x) : strict_mono (nat.pow x) :=
+λ _ _, pow_lt_pow_of_lt_right k
+
+lemma pow_le_iff_le_right {x m n : ℕ} (k : 2 ≤ x) : x^m ≤ x^n ↔ m ≤ n :=
+strict_mono.le_iff_le (pow_right_strict_mono k)
+
+lemma pow_lt_iff_lt_right {x m n : ℕ} (k : 2 ≤ x) : x^m < x^n ↔ m < n :=
+strict_mono.lt_iff_lt (pow_right_strict_mono k)
+
+lemma pow_right_injective {x : ℕ} (k : 2 ≤ x) : function.injective (nat.pow x) :=
+strict_mono.injective (pow_right_strict_mono k)
+
+lemma pow_left_strict_mono {m : ℕ} (k : 1 ≤ m) : strict_mono (λ (x : ℕ), x^m) :=
+λ _ _ h, pow_lt_pow_of_lt_left h k
+
+lemma pow_le_iff_le_left {m x y : ℕ} (k : 1 ≤ m) : x^m ≤ y^m ↔ x ≤ y :=
+strict_mono.le_iff_le (pow_left_strict_mono k)
+
+lemma pow_lt_iff_lt_left {m x y : ℕ} (k : 1 ≤ m) : x^m < y^m ↔ x < y :=
+strict_mono.lt_iff_lt (pow_left_strict_mono k)
+
+lemma pow_left_injective {m : ℕ} (k : 1 ≤ m) : function.injective (λ (x : ℕ), x^m) :=
+strict_mono.injective (pow_left_strict_mono k)
+
 lemma not_pos_pow_dvd : ∀ {p k : ℕ} (hp : 1 < p) (hk : 1 < k), ¬ p^k ∣ p
 | (succ p) (succ k) hp hk h :=
   have (succ p)^k * succ p ∣ 1 * succ p, by simpa,
@@ -976,6 +1057,8 @@ end
 
 /- choose -/
 
+/-- `choose n k` is the number of `k`-element subsets in an `n`-element set. Also known as binomial
+coefficients. -/
 def choose : ℕ → ℕ → ℕ
 | _             0 := 1
 | 0       (k + 1) := 0
@@ -1051,6 +1134,16 @@ end
 
 theorem fact_mul_fact_dvd_fact {n k : ℕ} (hk : k ≤ n) : fact k * fact (n - k) ∣ fact n :=
 by rw [←choose_mul_fact_mul_fact hk, mul_assoc]; exact dvd_mul_left _ _
+
+@[simp] lemma choose_symm {n k : ℕ} (hk : k ≤ n) : choose n (n-k) = choose n k :=
+by rw [choose_eq_fact_div_fact hk, choose_eq_fact_div_fact (sub_le _ _), nat.sub_sub_self hk, mul_comm]
+
+lemma choose_succ_right_eq {n k : ℕ} : choose n (k + 1) * (k + 1) = choose n k * (n - k) :=
+begin
+  have e : (n+1) * choose n k = choose n k * (k+1) + choose n (k+1) * (k+1),
+    rw [← right_distrib, ← choose_succ_succ, succ_mul_choose_eq],
+  rw [← nat.sub_eq_of_eq_add e, mul_comm, ← nat.mul_sub_left_distrib, nat.add_sub_add_right]
+end
 
 section find_greatest
 
@@ -1226,10 +1319,13 @@ lemma with_bot.add_eq_one_iff : ∀ {n m : with_bot ℕ}, n + m = 1 ↔ (n = 0 �
 
 -- induction
 
+/-- Induction principle starting at a non-zero number. For maps to a `Sort*` see `le_rec_on`. -/
 @[elab_as_eliminator] lemma le_induction {P : nat → Prop} {m} (h0 : P m) (h1 : ∀ n, m ≤ n → P n → P (n + 1)) :
   ∀ n, m ≤ n → P n :=
 by apply nat.less_than_or_equal.rec h0; exact h1
 
+/-- Decreasing induction: if `P (k+1)` implies `P k`, then `P n` implies `P m` for all `m ≤ n`.
+Also works for functions to `Sort*`. -/
 @[elab_as_eliminator]
 def decreasing_induction {P : ℕ → Sort*} (h : ∀n, P (n+1) → P n) {m n : ℕ} (mn : m ≤ n)
   (hP : P n) : P m :=

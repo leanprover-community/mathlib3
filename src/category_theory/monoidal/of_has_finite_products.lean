@@ -14,7 +14,7 @@ import category_theory.limits.types
 
 A category with a monoidal structure provided in this way is sometimes called a (co)cartesian category,
 although this is also sometimes used to mean a finitely complete category.
-(See https://ncatlab.org/nlab/show/cartesian+category.)
+(See <https://ncatlab.org/nlab/show/cartesian+category>.)
 
 As this works with either products or coproducts, we don't set up either construct as an instance.
 -/
@@ -38,7 +38,10 @@ def monoidal_of_has_finite_products [has_finite_products.{v} C] : monoidal_categ
   tensor_hom   := λ _ _ _ _ f g, limits.prod.map f g,
   associator   := prod.associator,
   left_unitor  := prod.left_unitor,
-  right_unitor := prod.right_unitor }
+  right_unitor := prod.right_unitor,
+  pentagon'    := prod.pentagon,
+  triangle'    := prod.triangle,
+  associator_naturality' := @prod.associator_naturality _ _ _, }
 
 /-- A category with finite coproducts has a natural monoidal structure. -/
 def monoidal_of_has_finite_coproducts [has_finite_coproducts.{v} C] : monoidal_category C :=
@@ -47,7 +50,10 @@ def monoidal_of_has_finite_coproducts [has_finite_coproducts.{v} C] : monoidal_c
   tensor_hom   := λ _ _ _ _ f g, limits.coprod.map f g,
   associator   := coprod.associator,
   left_unitor  := coprod.left_unitor,
-  right_unitor := coprod.right_unitor }
+  right_unitor := coprod.right_unitor,
+  pentagon'    := coprod.pentagon,
+  triangle'    := coprod.triangle,
+  associator_naturality' := @coprod.associator_naturality _ _ _, }
 
 end
 

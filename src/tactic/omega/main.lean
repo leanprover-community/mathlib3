@@ -115,9 +115,7 @@ do x ← infer_type hx,
    else clear hx >> skip
 
 meta def clear_unused_hyps : tactic unit :=
-do hs ← local_context,
-   mmap (clear_unused_hyp) hs,
-   skip
+local_context >>= mmap' clear_unused_hyp
 
 meta def preprocess (opt : list name) : tactic unit :=
 if `manual ∈ opt

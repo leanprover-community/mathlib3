@@ -49,7 +49,7 @@ instance : has_subset (opens α) :=
 instance : has_mem α (opens α) :=
 { mem := λ a U, a ∈ U.val }
 
-@[extensionality] lemma ext {U V : opens α} (h : U.val = V.val) : U = V := subtype.ext.mpr h
+@[ext] lemma ext {U V : opens α} (h : U.val = V.val) : U = V := subtype.ext.mpr h
 
 instance : partial_order (opens α) := subtype.partial_order _
 
@@ -96,6 +96,7 @@ end
 instance : has_inter (opens α) := ⟨λ U V, U ⊓ V⟩
 instance : has_union (opens α) := ⟨λ U V, U ⊔ V⟩
 instance : has_emptyc (opens α) := ⟨⊥⟩
+instance : inhabited (opens α) := ⟨∅⟩
 
 @[simp] lemma inter_eq (U V : opens α) : U ∩ V = U ⊓ V := rfl
 @[simp] lemma union_eq (U V : opens α) : U ∪ V = U ⊔ V := rfl

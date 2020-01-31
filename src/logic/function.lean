@@ -208,16 +208,34 @@ injective_of_has_left_inverse ⟨f, right_inverse_surj_inv h⟩
 end surj_inv
 
 section update
-variables {α : Sort u} {β : α → Sort v} [decidable_eq α]
+variables {α : Sort u} {β : α → Sort v} {α' : Sort w} [decidable_eq α] [decidable_eq α']
 
+/-- Replacing the value of a function at a given point by a given value. -/
 def update (f : Πa, β a) (a' : α) (v : β a') (a : α) : β a :=
 if h : a = a' then eq.rec v h.symm else f a
 
-@[simp] lemma update_same {a : α} {v : β a} {f : Πa, β a} : update f a v a = v :=
+@[simp] lemma update_same (a : α) (v : β a) (f : Πa, β a) : update f a v a = v :=
 dif_pos rfl
 
-@[simp] lemma update_noteq {a a' : α} {v : β a'} {f : Πa, β a} (h : a ≠ a') : update f a' v a = f a :=
+@[simp] lemma update_noteq {a a' : α} (h : a ≠ a') (v : β a') (f : Πa, β a) : update f a' v a = f a :=
 dif_neg h
+
+@[simp] lemma update_eq_self (a : α) (f : Πa, β a) : update f a (f a) = f :=
+begin
+  refine funext (λi, _),
+  by_cases h : i = a,
+  { rw h, simp },
+  { simp [h] }
+end
+
+lemma update_comp {β : Sort v} (f : α → β) {g : α' → α} (hg : injective g) (a : α') (v : β) :
+  (update f (g a) v) ∘ g = update (f ∘ g) a v :=
+begin
+  refine funext (λi, _),
+  by_cases h : i = a,
+  { rw h, simp },
+  { simp [h, hg.ne] }
+end
 
 end update
 
@@ -278,3 +296,8 @@ protected lemma bijective : bijective f := ⟨h.injective, h.surjective⟩
 end involutive
 
 end function
+
+/-- `s.piecewise f g` is the function equal to `f` on the set `s`, and to `g` on its complement. -/
+def set.piecewise {α : Type u} {β : α → Sort v} (s : set α) (f g : Πi, β i) [∀j, decidable (j ∈ s)] :
+  Πi, β i :=
+λi, if i ∈ s then f i else g i

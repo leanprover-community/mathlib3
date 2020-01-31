@@ -26,7 +26,7 @@ instance : has_coe_to_fun (α ≃. β) := ⟨_, to_fun⟩
 @[simp] lemma coe_mk_apply (f₁ : α → option β) (f₂ : β → option α) (h) (x : α) :
   (pequiv.mk f₁ f₂ h : α → option β) x = f₁ x := rfl
 
-@[extensionality] lemma ext : ∀ {f g : α ≃. β} (h : ∀ x, f x = g x), f = g
+@[ext] lemma ext : ∀ {f g : α ≃. β} (h : ∀ x, f x = g x), f = g
 | ⟨f₁, f₂, hf⟩ ⟨g₁, g₂, hg⟩ h :=
 have h : f₁ = g₁, from funext h,
 have ∀ b, f₂ b = g₂ b,
@@ -325,5 +325,7 @@ lemma to_pequiv_trans (f : α ≃ β) (g : β ≃ γ) : (f.trans g).to_pequiv =
   f.to_pequiv.trans g.to_pequiv := rfl
 
 lemma to_pequiv_symm (f : α ≃ β) : f.symm.to_pequiv = f.to_pequiv.symm := rfl
+
+lemma to_pequiv_apply (f : α ≃ β) (x : α) : f.to_pequiv x = some (f x) := rfl
 
 end equiv

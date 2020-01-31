@@ -15,6 +15,7 @@ def enat : Type := roption ℕ
 namespace enat
 
 instance : has_zero enat := ⟨some 0⟩
+instance : inhabited enat := ⟨0⟩
 instance : has_one enat := ⟨some 1⟩
 instance : has_add enat := ⟨λ x y, ⟨x.dom ∧ y.dom, λ h, get x h.1 + get y h.2⟩⟩
 instance : has_coe ℕ enat := ⟨some⟩
@@ -109,6 +110,9 @@ lt_of_le_of_ne le_top (λ h, absurd (congr_arg dom h) true_ne_false)
 @[simp] lemma coe_ne_top (x : ℕ) : (x : enat) ≠ ⊤ := ne_of_lt (coe_lt_top x)
 
 lemma ne_top_iff {x : enat} : x ≠ ⊤ ↔ ∃(n : ℕ), x = n := roption.ne_none_iff
+
+lemma ne_top_iff_dom {x : enat} : x ≠ ⊤ ↔ x.dom :=
+by classical; exact not_iff_comm.1 roption.eq_none_iff'.symm
 
 lemma ne_top_of_lt {x y : enat} (h : x < y) : x ≠ ⊤ :=
 ne_of_lt $ lt_of_lt_of_le h lattice.le_top
@@ -223,8 +227,24 @@ begin
   apply_mod_cast nat.lt_succ_of_le, apply_mod_cast h
 end
 
+lemma add_eq_top_iff {a b : enat} : a + b = ⊤ ↔ a = ⊤ ∨ b = ⊤ :=
+by apply enat.cases_on a; apply enat.cases_on b;
+  simp; simp only [(enat.coe_add _ _).symm, enat.coe_ne_top]; simp
+
+protected lemma add_right_cancel_iff {a b c : enat} (hc : c ≠ ⊤) : a + c = b + c ↔ a = b :=
+begin
+  rcases ne_top_iff.1 hc with ⟨c, rfl⟩,
+  apply enat.cases_on a; apply enat.cases_on b;
+  simp [add_eq_top_iff, coe_ne_top, @eq_comm _ (⊤ : enat)];
+  simp only [(enat.coe_add _ _).symm, add_left_cancel_iff, enat.coe_inj]; tauto
+end
+
+protected lemma add_left_cancel_iff {a b c : enat} (ha : a ≠ ⊤) : a + b = a + c ↔ b = c :=
+by rw [add_comm a, add_comm a, enat.add_right_cancel_iff ha]
+
 section with_top
 
+/-- Computably converts an `enat` to a `with_top ℕ`. -/
 def to_with_top (x : enat) [decidable x.dom]: with_top ℕ := x.to_option
 
 lemma to_with_top_top : to_with_top ⊤ = ⊤ := rfl
@@ -248,6 +268,50 @@ enat.cases_on y (by simp) (enat.cases_on x (by simp) (by intros; simp))
 by simp only [lt_iff_le_not_le, to_with_top_le]
 
 end with_top
+
+section with_top_equiv
+open_locale classical
+
+/-- Order isomorphism between `enat` and `with_top ℕ`. -/
+noncomputable def with_top_equiv : enat ≃ with_top ℕ :=
+{ to_fun := λ x, to_with_top x,
+  inv_fun := λ x, match x with (some n) := coe n | none := ⊤ end,
+  left_inv := λ x, by apply enat.cases_on x; intros; simp; refl,
+  right_inv := λ x, by cases x; simp [with_top_equiv._match_1]; refl }
+
+@[simp] lemma with_top_equiv_top : with_top_equiv ⊤ = ⊤ :=
+to_with_top_top'
+
+@[simp] lemma with_top_equiv_coe (n : nat) : with_top_equiv n = n :=
+to_with_top_coe' _
+
+@[simp] lemma with_top_equiv_zero : with_top_equiv 0 = 0 :=
+with_top_equiv_coe _
+
+@[simp] lemma with_top_equiv_le {x y : enat} : with_top_equiv x ≤ with_top_equiv y ↔ x ≤ y :=
+to_with_top_le
+
+@[simp] lemma with_top_equiv_lt {x y : enat} : with_top_equiv x < with_top_equiv y ↔ x < y :=
+to_with_top_lt
+
+@[simp] lemma with_top_equiv_symm_top : with_top_equiv.symm ⊤ = ⊤ :=
+rfl
+
+@[simp] lemma with_top_equiv_symm_coe (n : nat) : with_top_equiv.symm n = n :=
+rfl
+
+@[simp] lemma with_top_equiv_symm_zero : with_top_equiv.symm 0 = 0 :=
+rfl
+
+@[simp] lemma with_top_equiv_symm_le {x y : with_top ℕ} :
+  with_top_equiv.symm x ≤ with_top_equiv.symm y ↔ x ≤ y :=
+by rw ← with_top_equiv_le; simp
+
+@[simp] lemma with_top_equiv_symm_lt {x y : with_top ℕ} :
+  with_top_equiv.symm x < with_top_equiv.symm y ↔ x < y :=
+by rw ← with_top_equiv_lt; simp
+
+end with_top_equiv
 
 lemma lt_wf : well_founded ((<) : enat → enat → Prop) :=
 show well_founded (λ a b : enat, a < b),

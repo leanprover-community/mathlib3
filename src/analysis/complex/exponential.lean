@@ -3,8 +3,9 @@ Copyright (c) 2018 Chris Hughes. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Chris Hughes, Abhimanyu Pallavi Sudhir, Jean Lo, Calle Sönne
 -/
-import topology.instances.complex tactic.linarith data.complex.exponential
-      group_theory.quotient_group topology.metric_space.basic
+import tactic.linarith data.complex.exponential analysis.specific_limits
+      group_theory.quotient_group analysis.complex.basic
+
 
 /-!
 # Exponential
@@ -12,88 +13,159 @@ import topology.instances.complex tactic.linarith data.complex.exponential
 ## Main definitions
 
 This file contains the following definitions:
-• π, arcsin, arccos, arctan
-• argument of a complex number
-• logarithm on real and complex numbers
-• complex and real power function
+* π, arcsin, arccos, arctan
+* argument of a complex number
+* logarithm on real and complex numbers
+* complex and real power function
 
 ## Main statements
 
 The following functions are shown to be continuous:
-• complex and real exponential function
-• sin, cos, tan, sinh, cosh
-• logarithm on real numbers
-• real power function
-• square root function
+* complex and real exponential function
+* sin, cos, tan, sinh, cosh
+* logarithm on real numbers
+* real power function
+* square root function
+
+The following functions are shown to be differentiable, and their derivatives are computed:
+  * complex and real exponential function
+  * sin, cos, sinh, cosh
 
 ## Tags
 
 exp, log, sin, cos, tan, arcsin, arccos, arctan, angle, argument, power, square root,
 
 -/
+noncomputable theory
 
-open finset filter metric
+open finset filter metric asymptotics
+open_locale topological_space
 
 namespace complex
 
-lemma tendsto_exp_zero_one : tendsto exp (nhds 0) (nhds 1) :=
-tendsto_nhds_nhds.2 $ λ ε ε0,
-  ⟨min (ε / 2) 1, lt_min (div_pos ε0 (by norm_num)) (by norm_num),
-    λ x h, have h : abs x < min (ε / 2) 1, by simpa [dist_eq] using h,
-      calc abs (exp x - 1) ≤ 2 * abs x : abs_exp_sub_one_le
-          (le_trans (le_of_lt h) (min_le_right _ _))
-        ... = abs x + abs x : two_mul (abs x)
-        ... < ε / 2 + ε / 2 : add_lt_add
-          (lt_of_lt_of_le h (min_le_left _ _)) (lt_of_lt_of_le h (min_le_left _ _))
-        ... = ε : by rw add_halves⟩
+/-- The complex exponential is everywhere differentiable, with the derivative `exp x`. -/
+lemma has_deriv_at_exp (x : ℂ) : has_deriv_at exp (exp x) x :=
+begin
+  rw has_deriv_at_iff_is_o_nhds_zero,
+  have : (1 : ℕ) < 2 := by norm_num,
+  refine is_O.trans_is_o ⟨∥exp x∥, _⟩ (is_o_pow_id this),
+  have : metric.ball (0 : ℂ) 1 ∈ nhds (0 : ℂ) := metric.ball_mem_nhds 0 zero_lt_one,
+  apply filter.mem_sets_of_superset this (λz hz, _),
+  simp only [metric.mem_ball, dist_zero_right] at hz,
+  simp only [exp_zero, mul_one, one_mul, add_comm, normed_field.norm_pow,
+             zero_add, set.mem_set_of_eq],
+  calc ∥exp (x + z) - exp x - z * exp x∥
+    = ∥exp x * (exp z - 1 - z)∥ : by { congr, rw [exp_add], ring }
+    ... = ∥exp x∥ * ∥exp z - 1 - z∥ : normed_field.norm_mul _ _
+    ... ≤ ∥exp x∥ * ∥z∥^2 :
+      mul_le_mul_of_nonneg_left (abs_exp_sub_one_sub_id_le (le_of_lt hz)) (norm_nonneg _)
+end
+
+lemma differentiable_exp : differentiable ℂ exp :=
+λx, (has_deriv_at_exp x).differentiable_at
+
+@[simp] lemma deriv_exp : deriv exp = exp :=
+funext $ λ x, (has_deriv_at_exp x).deriv
+
+@[simp] lemma iter_deriv_exp : ∀ n : ℕ, (deriv^[n] exp) = exp
+| 0 := rfl
+| (n+1) := by rw [nat.iterate_succ, deriv_exp, iter_deriv_exp n]
 
 lemma continuous_exp : continuous exp :=
-continuous_iff_continuous_at.2 (λ x,
-  have H1 : tendsto (λ h, exp (x + h)) (nhds 0) (nhds (exp x)),
-    by simpa [exp_add] using tendsto_mul tendsto_const_nhds tendsto_exp_zero_one,
-  have H2 : tendsto (λ y, y - x) (nhds x) (nhds (x - x)) :=
-     tendsto_sub tendsto_id (@tendsto_const_nhds _ _ _ x _),
-  suffices tendsto ((λ h, exp (x + h)) ∘
-      (λ y, id y - (λ z, x) y)) (nhds x) (nhds (exp x)),
-    by simp only [function.comp, add_sub_cancel'_right, id.def] at this;
-      exact this,
-  tendsto.comp H1 (by rw [sub_self] at H2; exact H2))
+differentiable_exp.continuous
+
+end complex
+
+lemma has_deriv_at.cexp {f : ℂ → ℂ} {f' x : ℂ} (hf : has_deriv_at f f' x) :
+  has_deriv_at (complex.exp ∘ f) (f' * complex.exp (f x)) x :=
+(complex.has_deriv_at_exp (f x)).comp x hf
+
+lemma has_deriv_within_at.cexp {f : ℂ → ℂ} {f' x : ℂ} {s : set ℂ}
+  (hf : has_deriv_within_at f f' s x) :
+  has_deriv_within_at (complex.exp ∘ f) (f' * complex.exp (f x)) s x :=
+(complex.has_deriv_at_exp (f x)).comp_has_deriv_within_at x hf
+
+namespace complex
+
+/-- The complex sine function is everywhere differentiable, with the derivative `cos x`. -/
+lemma has_deriv_at_sin (x : ℂ) : has_deriv_at sin (cos x) x :=
+begin
+  simp only [cos, div_eq_mul_inv],
+  convert ((((has_deriv_at_id x).neg.mul_const I).cexp.sub
+    ((has_deriv_at_id x).mul_const I).cexp).mul_const I).mul_const (2:ℂ)⁻¹,
+  simp only [function.comp, id],
+  rw [add_comm, one_mul, mul_comm (_ - _), mul_sub, mul_left_comm, ← mul_assoc, ← mul_assoc,
+    I_mul_I, mul_assoc (-1:ℂ), I_mul_I, neg_one_mul, neg_neg, one_mul, neg_one_mul, sub_neg_eq_add]
+end
+
+lemma differentiable_sin : differentiable ℂ sin :=
+λx, (has_deriv_at_sin x).differentiable_at
+
+@[simp] lemma deriv_sin : deriv sin = cos :=
+funext $ λ x, (has_deriv_at_sin x).deriv
 
 lemma continuous_sin : continuous sin :=
-continuous_mul
-  (continuous_mul
-    (continuous_sub
-      (continuous_exp.comp (continuous_mul continuous_neg' continuous_const))
-      (continuous_exp.comp (continuous_mul continuous_id continuous_const)))
-    continuous_const)
-  continuous_const
+differentiable_sin.continuous
+
+/-- The complex cosine function is everywhere differentiable, with the derivative `-sin x`. -/
+lemma has_deriv_at_cos (x : ℂ) : has_deriv_at cos (-sin x) x :=
+begin
+  simp only [sin, div_eq_mul_inv, neg_mul_eq_neg_mul],
+  convert (((has_deriv_at_id x).mul_const I).cexp.add
+    ((has_deriv_at_id x).neg.mul_const I).cexp).mul_const (2:ℂ)⁻¹,
+  simp only [function.comp, id],
+  rw [one_mul, neg_one_mul, neg_sub, mul_comm, mul_sub, sub_eq_add_neg, neg_mul_eq_neg_mul]
+end
+
+lemma differentiable_cos : differentiable ℂ cos :=
+λx, (has_deriv_at_cos x).differentiable_at
+
+lemma deriv_cos {x : ℂ} : deriv cos x = -sin x :=
+(has_deriv_at_cos x).deriv
+
+@[simp] lemma deriv_cos' : deriv cos = (λ x, -sin x) :=
+funext $ λ x, deriv_cos
 
 lemma continuous_cos : continuous cos :=
-continuous_mul
-  (continuous_add
-    (continuous_exp.comp (continuous_mul continuous_id continuous_const))
-    (continuous_exp.comp (continuous_mul continuous_neg' continuous_const)))
-  continuous_const
+differentiable_cos.continuous
 
 lemma continuous_tan : continuous (λ x : {x // cos x ≠ 0}, tan x) :=
-continuous_mul
-  (continuous_sin.comp continuous_subtype_val)
-  (continuous_inv subtype.property
-    (continuous_cos.comp continuous_subtype_val))
+(continuous_sin.comp continuous_subtype_val).mul
+  (continuous.inv subtype.property (continuous_cos.comp continuous_subtype_val))
+
+/-- The complex hyperbolic sine function is everywhere differentiable, with the derivative `sinh x`. -/
+lemma has_deriv_at_sinh (x : ℂ) : has_deriv_at sinh (cosh x) x :=
+begin
+  simp only [cosh, div_eq_mul_inv],
+  convert ((has_deriv_at_exp x).sub (has_deriv_at_id x).neg.cexp).mul_const (2:ℂ)⁻¹,
+  rw [id, neg_one_mul, neg_neg]
+end
+
+lemma differentiable_sinh : differentiable ℂ sinh :=
+λx, (has_deriv_at_sinh x).differentiable_at
+
+@[simp] lemma deriv_sinh : deriv sinh = cosh :=
+funext $ λ x, (has_deriv_at_sinh x).deriv
 
 lemma continuous_sinh : continuous sinh :=
-continuous_mul
-  (continuous_sub
-    continuous_exp
-    (continuous_exp.comp continuous_neg'))
-  continuous_const
+differentiable_sinh.continuous
+
+/-- The complex hyperbolic cosine function is everywhere differentiable, with the derivative `cosh x`. -/
+lemma has_deriv_at_cosh (x : ℂ) : has_deriv_at cosh (sinh x) x :=
+begin
+  simp only [sinh, div_eq_mul_inv],
+  convert ((has_deriv_at_exp x).add (has_deriv_at_id x).neg.cexp).mul_const (2:ℂ)⁻¹,
+  rw [id, neg_one_mul, sub_eq_add_neg]
+end
+
+lemma differentiable_cosh : differentiable ℂ cosh :=
+λx, (has_deriv_at_cosh x).differentiable_at
+
+@[simp] lemma deriv_cosh : deriv cosh = sinh :=
+funext $ λ x, (has_deriv_at_cosh x).deriv
 
 lemma continuous_cosh : continuous cosh :=
-continuous_mul
-  (continuous_add
-    continuous_exp
-    (continuous_exp.comp continuous_neg'))
-  continuous_const
+differentiable_cosh.continuous
 
 end complex
 
@@ -101,48 +173,91 @@ namespace real
 
 variables {x y z : ℝ}
 
+lemma has_deriv_at_exp (x : ℝ) : has_deriv_at exp (exp x) x :=
+has_deriv_at_real_of_complex (complex.has_deriv_at_exp x)
+
+lemma differentiable_exp : differentiable ℝ exp :=
+λx, (has_deriv_at_exp x).differentiable_at
+
+@[simp] lemma deriv_exp : deriv exp = exp :=
+funext $ λ x, (has_deriv_at_exp x).deriv
+
+@[simp] lemma iter_deriv_exp : ∀ n : ℕ, (deriv^[n] exp) = exp
+| 0 := rfl
+| (n+1) := by rw [nat.iterate_succ, deriv_exp, iter_deriv_exp n]
+
 lemma continuous_exp : continuous exp :=
-complex.continuous_re.comp
-  (complex.continuous_exp.comp complex.continuous_of_real)
+differentiable_exp.continuous
+
+lemma has_deriv_at_sin (x : ℝ) : has_deriv_at sin (cos x) x :=
+has_deriv_at_real_of_complex (complex.has_deriv_at_sin x)
+
+lemma differentiable_sin : differentiable ℝ sin :=
+λx, (has_deriv_at_sin x).differentiable_at
+
+@[simp] lemma deriv_sin : deriv sin = cos :=
+funext $ λ x, (has_deriv_at_sin x).deriv
 
 lemma continuous_sin : continuous sin :=
-complex.continuous_re.comp
-  (complex.continuous_sin.comp complex.continuous_of_real)
+differentiable_sin.continuous
+
+lemma has_deriv_at_cos (x : ℝ) : has_deriv_at cos (-sin x) x :=
+(has_deriv_at_real_of_complex (complex.has_deriv_at_cos x) : _)
+
+lemma differentiable_cos : differentiable ℝ cos :=
+λx, (has_deriv_at_cos x).differentiable_at
+
+lemma deriv_cos : deriv cos x = - sin x :=
+(has_deriv_at_cos x).deriv
+
+@[simp] lemma deriv_cos' : deriv cos = (λ x, - sin x) :=
+funext $ λ _, deriv_cos
 
 lemma continuous_cos : continuous cos :=
-complex.continuous_re.comp
-  (complex.continuous_cos.comp complex.continuous_of_real)
+differentiable_cos.continuous
 
 lemma continuous_tan : continuous (λ x : {x // cos x ≠ 0}, tan x) :=
 by simp only [tan_eq_sin_div_cos]; exact
-continuous_mul
-  (continuous_sin.comp continuous_subtype_val)
-  (continuous_inv subtype.property
+  (continuous_sin.comp continuous_subtype_val).mul
+  (continuous.inv subtype.property
     (continuous_cos.comp continuous_subtype_val))
 
-lemma continuous_sinh : continuous sinh :=
-complex.continuous_re.comp
-  (complex.continuous_sinh.comp complex.continuous_of_real)
+lemma has_deriv_at_sinh (x : ℝ) : has_deriv_at sinh (cosh x) x :=
+has_deriv_at_real_of_complex (complex.has_deriv_at_sinh x)
 
+lemma differentiable_sinh : differentiable ℝ sinh :=
+λx, (has_deriv_at_sinh x).differentiable_at
+
+@[simp] lemma deriv_sinh : deriv sinh = cosh :=
+funext $ λ x, (has_deriv_at_sinh x).deriv
+
+lemma continuous_sinh : continuous sinh :=
+differentiable_sinh.continuous
+
+lemma has_deriv_at_cosh (x : ℝ) : has_deriv_at cosh (sinh x) x :=
+has_deriv_at_real_of_complex (complex.has_deriv_at_cosh x)
+
+lemma differentiable_cosh : differentiable ℝ cosh :=
+λx, (has_deriv_at_cosh x).differentiable_at
+
+@[simp] lemma deriv_cosh : deriv cosh = sinh :=
+funext $ λ x, (has_deriv_at_cosh x).deriv
 
 lemma continuous_cosh : continuous cosh :=
-complex.continuous_re.comp
-  (complex.continuous_cosh.comp complex.continuous_of_real)
-
-
-private lemma exists_exp_eq_of_one_le {x : ℝ} (hx : 1 ≤ x) : ∃ y, exp y = x :=
-let ⟨y, hy⟩ := @intermediate_value real.exp 0 (x - 1) x
-  (λ _ _ _, continuous_iff_continuous_at.1 continuous_exp _) (by simpa)
-  (by simpa using add_one_le_exp_of_nonneg (sub_nonneg.2 hx)) (sub_nonneg.2 hx) in
-⟨y, hy.2.2⟩
+differentiable_cosh.continuous
 
 lemma exists_exp_eq_of_pos {x : ℝ} (hx : 0 < x) : ∃ y, exp y = x :=
+have ∀ {z:ℝ}, 1 ≤ z → z ∈ set.range exp,
+  from λ z hz, intermediate_value_univ 0 (z - 1) continuous_exp
+    ⟨by simpa, by simpa using add_one_le_exp_of_nonneg (sub_nonneg.2 hz)⟩,
 match le_total x 1 with
-| (or.inl hx1) := let ⟨y, hy⟩ := exists_exp_eq_of_one_le (one_le_inv hx hx1) in
+| (or.inl hx1) := let ⟨y, hy⟩ := this (one_le_inv hx hx1) in
   ⟨-y, by rw [exp_neg, hy, inv_inv']⟩
-| (or.inr hx1) := exists_exp_eq_of_one_le hx1
+| (or.inr hx1) := this hx1
 end
 
+/-- The real logarithm function, equal to `0` for `x ≤ 0` and to the inverse of the exponential
+for `x > 0`. -/
 noncomputable def log (x : ℝ) : ℝ :=
 if hx : 0 < x then classical.some (exists_exp_eq_of_pos hx) else 0
 
@@ -197,7 +312,7 @@ end
 
 section prove_log_is_continuous
 
-lemma tendsto_log_one_zero : tendsto log (nhds 1) (nhds 0) :=
+lemma tendsto_log_one_zero : tendsto log (𝓝 1) (𝓝 0) :=
 begin
   rw tendsto_nhds_nhds, assume ε ε0,
   let δ := min (exp ε - 1) (1 - exp (-ε)),
@@ -227,14 +342,14 @@ begin
   rw continuous_at,
   let f₁ := λ h:{h:ℝ // 0 < h}, log (x.1 * h.1),
   let f₂ := λ y:{y:ℝ // 0 < y}, subtype.mk (x.1 ⁻¹ * y.1) (mul_pos (inv_pos x.2) y.2),
-  have H1 : tendsto f₁ (nhds ⟨1, zero_lt_one⟩) (nhds (log (x.1*1))),
+  have H1 : tendsto f₁ (𝓝 ⟨1, zero_lt_one⟩) (𝓝 (log (x.1*1))),
     have : f₁ = λ h:{h:ℝ // 0 < h}, log x.1 + log h.1,
       ext h, rw ← log_mul x.2 h.2,
-    simp only [this, log_mul x.2 zero_lt_one, log_one], exact
-      tendsto_add tendsto_const_nhds (tendsto.comp tendsto_log_one_zero continuous_at_subtype_val),
-  have H2 : tendsto f₂ (nhds x) (nhds ⟨x.1⁻¹ * x.1, mul_pos (inv_pos x.2) x.2⟩),
-    rw tendsto_subtype_rng, exact tendsto_mul tendsto_const_nhds continuous_at_subtype_val,
-  suffices h : tendsto (f₁ ∘ f₂) (nhds x) (nhds (log x.1)),
+    simp only [this, log_mul x.2 zero_lt_one, log_one],
+    exact tendsto_const_nhds.add (tendsto.comp tendsto_log_one_zero continuous_at_subtype_val),
+  have H2 : tendsto f₂ (𝓝 x) (𝓝 ⟨x.1⁻¹ * x.1, mul_pos (inv_pos x.2) x.2⟩),
+    rw tendsto_subtype_rng, exact tendsto_const_nhds.mul continuous_at_subtype_val,
+  suffices h : tendsto (f₁ ∘ f₂) (𝓝 x) (𝓝 (log x.1)),
   begin
     convert h, ext y,
     have : x.val * (x.val⁻¹ * y.val) = y.val,
@@ -260,27 +375,27 @@ show continuous ((log ∘ @subtype.val ℝ (λr, 0 < r)) ∘ λa, ⟨f a, h a⟩
 
 end prove_log_is_continuous
 
-lemma exists_cos_eq_zero : ∃ x, 1 ≤ x ∧ x ≤ 2 ∧ cos x = 0 :=
-real.intermediate_value'
-  (λ x _ _, continuous_iff_continuous_at.1 continuous_cos _)
-  (le_of_lt cos_one_pos)
-  (le_of_lt cos_two_neg) (by norm_num)
+lemma exists_cos_eq_zero : 0 ∈ cos '' set.Icc (1:ℝ) 2 :=
+intermediate_value_Icc' (by norm_num) continuous_cos.continuous_on
+  ⟨le_of_lt cos_two_neg, le_of_lt cos_one_pos⟩
 
+/-- The number π = 3.14159265... Defined here using choice as twice a zero of cos in [1,2], from
+which one can derive all its properties. For explicit bounds on π, see `data.real.pi`. -/
 noncomputable def pi : ℝ := 2 * classical.some exists_cos_eq_zero
 
 localized "notation `π` := real.pi" in real
 
 @[simp] lemma cos_pi_div_two : cos (π / 2) = 0 :=
 by rw [pi, mul_div_cancel_left _ (@two_ne_zero' ℝ _ _ _)];
-  exact (classical.some_spec exists_cos_eq_zero).2.2
+  exact (classical.some_spec exists_cos_eq_zero).2
 
 lemma one_le_pi_div_two : (1 : ℝ) ≤ π / 2 :=
 by rw [pi, mul_div_cancel_left _ (@two_ne_zero' ℝ _ _ _)];
-  exact (classical.some_spec exists_cos_eq_zero).1
+  exact (classical.some_spec exists_cos_eq_zero).1.1
 
 lemma pi_div_two_le_two : π / 2 ≤ 2 :=
 by rw [pi, mul_div_cancel_left _ (@two_ne_zero' ℝ _ _ _)];
-  exact (classical.some_spec exists_cos_eq_zero).2.1
+  exact (classical.some_spec exists_cos_eq_zero).1.2
 
 lemma two_le_pi : (2 : ℝ) ≤ π :=
 (div_le_div_right (show (0 : ℝ) < 2, by norm_num)).1
@@ -550,11 +665,10 @@ begin
   linarith
 end
 
-lemma exists_sin_eq {x : ℝ} (hx₁ : -1 ≤ x) (hx₂ : x ≤ 1) : ∃ y, -(π / 2) ≤ y ∧ y ≤ π / 2 ∧ sin y = x :=
-@real.intermediate_value sin (-(π / 2)) (π / 2) x
-  (λ _ _ _, continuous_iff_continuous_at.1 continuous_sin _)
-  (by rwa [sin_neg, sin_pi_div_two]) (by rwa sin_pi_div_two)
+lemma exists_sin_eq : set.Icc (-1:ℝ) 1 ⊆  sin '' set.Icc (-(π / 2)) (π / 2) :=
+by convert intermediate_value_Icc
   (le_trans (neg_nonpos.2 (le_of_lt pi_div_two_pos)) (le_of_lt pi_div_two_pos))
+  continuous_sin.continuous_on; simp only [sin_neg, sin_pi_div_two]
 
 lemma sin_lt {x : ℝ} (h : 0 < x) : sin x < x :=
 begin
@@ -573,7 +687,7 @@ end
 
 /- note 1: this inequality is not tight, the tighter inequality is sin x > x - x ^ 3 / 6.
    note 2: this is also true for x > 1, but it's nontrivial for x just above 1. -/
-lemma sin_gt_sub_cube {x : ℝ} (h : 0 < x) (h' : x ≤ 1) : sin x > x - x ^ 3 / 4 :=
+lemma sin_gt_sub_cube {x : ℝ} (h : 0 < x) (h' : x ≤ 1) : x - x ^ 3 / 4 < sin x :=
 begin
   have hx : abs x = x := abs_of_nonneg (le_of_lt h),
   have : abs x ≤ 1, rwa [hx],
@@ -598,6 +712,8 @@ namespace angle
 
 instance angle.add_comm_group : add_comm_group angle :=
 quotient_add_group.add_comm_group _
+
+instance : inhabited angle := ⟨0⟩
 
 instance angle.has_coe : has_coe ℝ angle :=
 ⟨quotient.mk'⟩
@@ -677,21 +793,21 @@ end angle
 /-- Inverse of the `sin` function, returns values in the range `-π / 2 ≤ arcsin x` and `arcsin x ≤ π / 2`.
   If the argument is not between `-1` and `1` it defaults to `0` -/
 noncomputable def arcsin (x : ℝ) : ℝ :=
-if hx : -1 ≤ x ∧ x ≤ 1 then classical.some (exists_sin_eq hx.1 hx.2) else 0
+if hx : -1 ≤ x ∧ x ≤ 1 then classical.some (exists_sin_eq hx) else 0
 
 lemma arcsin_le_pi_div_two (x : ℝ) : arcsin x ≤ π / 2 :=
 if hx : -1 ≤ x ∧ x ≤ 1
-then by rw [arcsin, dif_pos hx]; exact (classical.some_spec (exists_sin_eq hx.1 hx.2)).2.1
+then by rw [arcsin, dif_pos hx]; exact (classical.some_spec (exists_sin_eq hx)).1.2
 else by rw [arcsin, dif_neg hx]; exact le_of_lt pi_div_two_pos
 
 lemma neg_pi_div_two_le_arcsin (x : ℝ) : -(π / 2) ≤ arcsin x :=
 if hx : -1 ≤ x ∧ x ≤ 1
-then by rw [arcsin, dif_pos hx]; exact (classical.some_spec (exists_sin_eq hx.1 hx.2)).1
+then by rw [arcsin, dif_pos hx]; exact (classical.some_spec (exists_sin_eq hx)).1.1
 else by rw [arcsin, dif_neg hx]; exact neg_nonpos.2 (le_of_lt pi_div_two_pos)
 
 lemma sin_arcsin {x : ℝ} (hx₁ : -1 ≤ x) (hx₂ : x ≤ 1) : sin (arcsin x) = x :=
 by rw [arcsin, dif_pos (and.intro hx₁ hx₂)];
-  exact (classical.some_spec (exists_sin_eq hx₁ hx₂)).2.2
+  exact (classical.some_spec (exists_sin_eq ⟨hx₁, hx₂⟩)).2
 
 lemma arcsin_sin {x : ℝ} (hx₁ : -(π / 2) ≤ x) (hx₂ : x ≤ π / 2) : arcsin (sin x) = x :=
 sin_inj_of_le_of_le_pi_div_two (neg_pi_div_two_le_arcsin _) (arcsin_le_pi_div_two _) hx₁ hx₂
@@ -1274,6 +1390,9 @@ by simp [cos_add, sin_add, cos_int_mul_two_pi]
 
 section pow
 
+/-- The complex power function `x^y`, given by `x^y = exp(y log x)` (where `log` is the principal
+determination of the logarithm), unless `x = 0` where one sets `0^0 = 1` and `0^y = 0` for
+`y ≠ 0`. -/
 noncomputable def cpow (x y : ℂ) : ℂ :=
 if x = 0
   then if y = 0
@@ -1356,6 +1475,10 @@ end complex
 
 namespace real
 
+/-- The real power function `x^y`, defined as the real part of the complex power function.
+For `x > 0`, it is equal to `exp(y log x)`. For `x = 0`, one sets `0^0=1` and `0^y=0` for `y ≠ 0`.
+For `x < 0`, the definition is somewhat arbitary as it depends on the choice of a complex
+determination of the logarithm. With our conventions, it is equal to `exp (y log (-x)) cos (πy)`. -/
 noncomputable def rpow (x y : ℝ) := ((x : ℂ) ^ (y : ℂ)).re
 
 noncomputable instance : has_pow ℝ ℝ := ⟨rpow⟩
@@ -1575,23 +1698,22 @@ section prove_rpow_is_continuous
 lemma continuous_rpow_aux1 : continuous (λp : {p:ℝ×ℝ // 0 < p.1}, p.val.1 ^ p.val.2) :=
 suffices h : continuous (λ p : {p:ℝ×ℝ // 0 < p.1 }, exp (log p.val.1 * p.val.2)),
   by { convert h, ext p, rw rpow_def_of_pos p.2 },
-continuous_exp.comp $ continuous_mul
+continuous_exp.comp $
   (show continuous ((λp:{p:ℝ//0 < p}, log (p.val)) ∘ (λp:{p:ℝ×ℝ//0<p.fst}, ⟨p.val.1, p.2⟩)), from
-    continuous_log'.comp $ continuous_subtype_mk _ $ continuous_fst.comp continuous_subtype_val)
+    continuous_log'.comp $ continuous_subtype_mk _ $ continuous_fst.comp continuous_subtype_val).mul
   (continuous_snd.comp $ continuous_subtype_val.comp continuous_id)
 
 lemma continuous_rpow_aux2 : continuous (λ p : {p:ℝ×ℝ // p.1 < 0}, p.val.1 ^ p.val.2) :=
 suffices h : continuous (λp:{p:ℝ×ℝ // p.1 < 0}, exp (log (-p.val.1) * p.val.2) * cos (p.val.2 * π)),
   by { convert h, ext p, rw [rpow_def_of_neg p.2] },
-continuous_mul
-  (continuous_exp.comp $ continuous_mul
+  (continuous_exp.comp $
     (show continuous $ (λp:{p:ℝ//0<p},
             log (p.val))∘(λp:{p:ℝ×ℝ//p.1<0}, ⟨-p.val.1, neg_pos_of_neg p.2⟩),
-     from continuous_log'.comp $ continuous_subtype_mk _ $ continuous_neg'.comp $
-            continuous_fst.comp continuous_subtype_val)
-    (continuous_snd.comp $ continuous_subtype_val.comp continuous_id))
-  (continuous_cos.comp $ continuous_mul
-    (continuous_snd.comp $ continuous_subtype_val.comp continuous_id) continuous_const)
+     from continuous_log'.comp $ continuous_subtype_mk _ $ continuous_neg.comp $
+            continuous_fst.comp continuous_subtype_val).mul
+    (continuous_snd.comp $ continuous_subtype_val.comp continuous_id)).mul
+  (continuous_cos.comp $
+    (continuous_snd.comp $ continuous_subtype_val.comp continuous_id).mul continuous_const)
 
 lemma continuous_at_rpow_of_ne_zero (hx : x ≠ 0) (y : ℝ) :
   continuous_at (λp:ℝ×ℝ, p.1^p.2) (x, y) :=
@@ -1685,4 +1807,73 @@ by rw sqrt_eq_rpow; exact continuous_rpow_of_pos (λa, by norm_num) continuous_i
 
 end sqrt
 
+section exp
+
+/-- The real exponential function tends to +infinity at +infinity -/
+lemma tendsto_exp_at_top : tendsto exp at_top at_top :=
+begin
+  have A : tendsto (λx:ℝ, x + 1) at_top at_top :=
+    tendsto_at_top_add_const_right at_top 1 tendsto_id,
+  have B : ∀ᶠ x in at_top, x + 1 ≤ exp x,
+  { have : ∀ᶠ (x : ℝ) in at_top, 0 ≤ x := mem_at_top 0,
+    filter_upwards [this],
+    exact λx hx, add_one_le_exp_of_nonneg hx },
+  exact tendsto_at_top_mono' at_top B A
+end
+
+/-- The real exponential function tends to 0 at -infinity or, equivalently, `exp(-x)` tends to `0`
+at +infinity -/
+lemma tendsto_exp_neg_at_top_nhds_0 : tendsto (λx, exp (-x)) at_top (𝓝 0) :=
+(tendsto_inv_at_top_zero.comp (tendsto_exp_at_top)).congr (λx, (exp_neg x).symm)
+
+/-- The function `exp(x)/x^n` tends to +infinity at +infinity, for any natural number `n` -/
+lemma tendsto_exp_div_pow_at_top (n : ℕ) : tendsto (λx, exp x / x^n) at_top at_top :=
+begin
+  have n_pos : (0 : ℝ) < n + 1 := nat.cast_add_one_pos n,
+  have n_ne_zero : (n : ℝ) + 1 ≠ 0 := ne_of_gt n_pos,
+  have A : ∀x:ℝ, 0 < x → exp (x / (n+1)) / (n+1)^n ≤ exp x / x^n,
+  { assume x hx,
+    let y := x / (n+1),
+    have y_pos : 0 < y := div_pos hx n_pos,
+    have : exp (x / (n+1)) ≤ (n+1)^n * (exp x / x^n), from calc
+      exp y = exp y * 1 : by simp
+      ... ≤ exp y * (exp y / y)^n : begin
+          apply mul_le_mul_of_nonneg_left (one_le_pow_of_one_le _ n) (le_of_lt (exp_pos _)),
+          apply one_le_div_of_le _ y_pos,
+          apply le_trans _ (add_one_le_exp_of_nonneg (le_of_lt y_pos)),
+          exact le_add_of_le_of_nonneg (le_refl _) (zero_le_one)
+        end
+      ... = exp y * exp (n * y) / y^n :
+        by rw [div_pow _ (ne_of_gt y_pos), exp_nat_mul, mul_div_assoc]
+      ... = exp ((n + 1) * y) / y^n :
+        by rw [← exp_add, add_mul, one_mul, add_comm]
+      ... = exp x / (x / (n+1))^n :
+        by { dsimp [y], rw mul_div_cancel' _ n_ne_zero }
+      ... = (n+1)^n * (exp x / x^n) :
+        by rw [← mul_div_assoc, div_pow _ n_ne_zero, div_div_eq_mul_div, mul_comm],
+    rwa div_le_iff' (pow_pos n_pos n) },
+  have B : ∀ᶠ x in at_top, exp (x / (n+1)) / (n+1)^n ≤ exp x / x^n :=
+    mem_at_top_sets.2 ⟨1, λx hx, A _ (lt_of_lt_of_le zero_lt_one hx)⟩,
+  have C : tendsto (λx, exp (x / (n+1)) / (n+1)^n) at_top at_top :=
+    tendsto_at_top_div (pow_pos n_pos n)
+      (tendsto_exp_at_top.comp (tendsto_at_top_div (nat.cast_add_one_pos n) tendsto_id)),
+  exact tendsto_at_top_mono' at_top B C
+end
+
+/-- The function `x^n * exp(-x)` tends to `0` at +infinity, for any natural number `n`. -/
+lemma tendsto_pow_mul_exp_neg_at_top_nhds_0 (n : ℕ) : tendsto (λx, x^n * exp (-x)) at_top (𝓝 0) :=
+(tendsto_inv_at_top_zero.comp (tendsto_exp_div_pow_at_top n)).congr $ λx,
+  by rw [function.comp_app, inv_eq_one_div, div_div_eq_mul_div, one_mul, div_eq_mul_inv, exp_neg]
+
+end exp
+
 end real
+
+lemma has_deriv_at.rexp {f : ℝ → ℝ} {f' x : ℝ} (hf : has_deriv_at f f' x) :
+  has_deriv_at (real.exp ∘ f) (f' * real.exp (f x)) x :=
+(real.has_deriv_at_exp (f x)).comp x hf
+
+lemma has_deriv_within_at.rexp {f : ℝ → ℝ} {f' x : ℝ} {s : set ℝ}
+  (hf : has_deriv_within_at f f' s x) :
+  has_deriv_within_at (real.exp ∘ f) (f' * real.exp (f x)) s x :=
+(real.has_deriv_at_exp (f x)).comp_has_deriv_within_at x hf

@@ -23,7 +23,7 @@ We prove the following facts:
   of the standard simplex;
 -/
 
-variables {α : Type*} {E : Type*}
+variables {ι : Type*} {E : Type*}
 
 open set
 
@@ -31,11 +31,11 @@ open set
 
 section std_simplex
 
-variables [fintype α]
+variables [fintype ι]
 
-/-- Every vector in `std_simplex α` has `max`-norm at most `1`. -/
+/-- Every vector in `std_simplex ι` has `max`-norm at most `1`. -/
 lemma std_simplex_subset_closed_ball :
-  std_simplex α ⊆ metric.closed_ball 0 1 :=
+  std_simplex ι ⊆ metric.closed_ball 0 1 :=
 begin
   assume f hf,
   rw [metric.mem_closed_ball, dist_zero_right],
@@ -45,21 +45,21 @@ begin
   exact (mem_Icc_of_mem_std_simplex hf x).2
 end
 
-variable (α)
+variable (ι)
 
-/-- `std_simplex α` is bounded. -/
-lemma bounded_std_simplex : metric.bounded (std_simplex α) :=
+/-- `std_simplex ι` is bounded. -/
+lemma bounded_std_simplex : metric.bounded (std_simplex ι) :=
 (metric.bounded_iff_subset_ball 0).2 ⟨1, std_simplex_subset_closed_ball⟩
 
-/-- `std_simplex α` is closed. -/
-lemma is_closed_std_simplex : is_closed (std_simplex α) :=
-(std_simplex_eq_inter α).symm ▸ is_closed_inter
+/-- `std_simplex ι` is closed. -/
+lemma is_closed_std_simplex : is_closed (std_simplex ι) :=
+(std_simplex_eq_inter ι).symm ▸ is_closed_inter
   (is_closed_Inter $ λ i, is_closed_le continuous_const (continuous_apply i))
   (is_closed_eq (continuous_finset_sum _ $ λ x _, continuous_apply x) continuous_const)
 
-/-- `std_simplex α` is compact. -/
-lemma compact_std_simplex : compact (std_simplex α) :=
-metric.compact_iff_closed_bounded.2 ⟨is_closed_std_simplex α, bounded_std_simplex α⟩
+/-- `std_simplex ι` is compact. -/
+lemma compact_std_simplex : compact (std_simplex ι) :=
+metric.compact_iff_closed_bounded.2 ⟨is_closed_std_simplex ι, bounded_std_simplex ι⟩
 
 end std_simplex
 
@@ -140,14 +140,7 @@ by simpa only [metric.closed_ball, sep_univ] using (convex_on_dist a _ convex_un
 
 lemma convex_hull_exists_dist_ge {s : set E} {x : E} (hx : x ∈ convex_hull s) (y : E) :
   ∃ x' ∈ s, dist x y ≤ dist x' y :=
-begin
-  rw [convex_hull_eq'] at hx,
-  rcases hx with ⟨α, t, w, z, hw₀, hw₁, hz, rfl⟩,
-  rcases (convex_on_dist y _ (convex_convex_hull s)).exists_ge_of_center_mass
-    hw₀ (hw₁.symm ▸ zero_lt_one) (λ i hi, subset_convex_hull s (hz i hi))
-    with ⟨i, hit, Hi⟩,
-  exact ⟨z i, hz i hit, Hi⟩
-end
+(convex_on_dist y _ (convex_convex_hull _)).exists_ge_of_mem_convex_hull hx
 
 lemma convex_hull_exists_dist_ge2 {s t : set E} {x y : E}
   (hx : x ∈ convex_hull s) (hy : y ∈ convex_hull t) :

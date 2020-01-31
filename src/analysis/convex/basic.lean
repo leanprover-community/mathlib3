@@ -25,8 +25,8 @@ In a real vector space, we define the following objects and properties.
   is a convex set;
 * Center mass of a finite set of points with prescribed weights.
 * Convex hull of a set `s` is the minimal convex set that includes `s`.
-* Standard simplex `std_simplex α [fintype α]` is the intersection of the positive quadrant with
-  the hyperplane `s.sum = 1` in the space `α → ℝ`.
+* Standard simplex `std_simplex ι [fintype ι]` is the intersection of the positive quadrant with
+  the hyperplane `s.sum = 1` in the space `ι → ℝ`.
 
 We also provide various equivalent versions of the definitions above, prove that some specific sets
 are convex, and prove Jensen's inequality.
@@ -41,9 +41,9 @@ We use the following local notations:
 They are defined using `local notation`, so they are not available outside of this file.
 -/
 
-universes u' u v w x y
+universes u' u v w x
 
-variables {E : Type u} {F : Type v} {α : Type w} {β : Type x} {ι : Sort y}
+variables {E : Type u} {F : Type v} {ι : Type w} {ι' : Type x}
   [add_comm_group E] [vector_space ℝ E] [add_comm_group F] [vector_space ℝ F]
   {s : set E}
 
@@ -182,7 +182,7 @@ lemma convex_sInter {S : set (set E)} (h : ∀ s ∈ S, convex s) : convex (⋂�
 assume x y hx hy a b ha hb hab s hs,
 h s hs (hx s hs) (hy s hs) ha hb hab
 
-lemma convex_Inter {s: ι → set E} (h: ∀ i : ι, convex (s i)) : convex (⋂ i, s i) :=
+lemma convex_Inter {ι : Sort*} {s: ι → set E} (h: ∀ i : ι, convex (s i)) : convex (⋂ i, s i) :=
 (sInter_range s) ▸ convex_sInter $ forall_range_iff.2 h
 
 lemma convex.prod {s : set E} {t : set F} (hs : convex s) (ht : convex t) :
@@ -509,18 +509,18 @@ section center_mass
 
 /-- Center mass of a finite collection of points with prescribed weights.
 Note that we require neither `0 ≤ w i` nor `∑ w = 1`. -/
-noncomputable def finset.center_mass (t : finset α) (w : α → ℝ) (z : α → E) : E :=
+noncomputable def finset.center_mass (t : finset ι) (w : ι → ℝ) (z : ι → E) : E :=
 (t.sum w)⁻¹ • (t.sum (λ i, w i • z i))
 
-variables (i j : α) (c : ℝ) (t : finset α) (w : α → ℝ) (z : α → E)
+variables (i j : ι) (c : ℝ) (t : finset ι) (w : ι → ℝ) (z : ι → E)
 
 open finset (hiding singleton)
 
-lemma finset.center_mass_empty : (∅ : finset α).center_mass w z = 0 :=
+lemma finset.center_mass_empty : (∅ : finset ι).center_mass w z = 0 :=
 by simp only [center_mass, sum_empty, smul_zero]
 
 lemma finset.center_mass_pair (hne : i ≠ j) :
-  ({i, j} : finset α).center_mass w z = (w i / (w i + w j)) • z i + (w j / (w i + w j)) • z j :=
+  ({i, j} : finset ι).center_mass w z = (w i / (w i + w j)) • z i + (w j / (w i + w j)) • z j :=
 by simp only [center_mass, sum_pair hne, smul_add, (mul_smul _ _ _).symm, div_eq_inv_mul]
 
 variable {w}
@@ -548,7 +548,7 @@ by simp only [finset.center_mass, finset.smul_sum, (mul_smul _ _ _).symm, mul_co
 /-- A convex combination of two centers of mass is a center of mass as well. This version
 deals with two different index types. -/
 lemma finset.center_mass_segment'
-  (s : finset α) (t : finset β) (ws : α → ℝ) (zs : α → E) (wt : β → ℝ) (zt : β → E)
+  (s : finset ι) (t : finset ι') (ws : ι → ℝ) (zs : ι → E) (wt : ι' → ℝ) (zt : ι' → E)
   (hws : s.sum ws = 1) (hwt : t.sum wt = 1) (a b : ℝ) (hab : a + b = 1):
   a • s.center_mass ws zs + b • t.center_mass wt zt =
     (s.image sum.inl ∪ t.image sum.inr).center_mass
@@ -564,7 +564,7 @@ end
 /-- A convex combination of two centers of mass is a center of mass as well. This version
 works if two centers of mass share the set of original points. -/
 lemma finset.center_mass_segment
-  (s : finset α) (w₁ w₂ : α → ℝ) (z : α → E)
+  (s : finset ι) (w₁ w₂ : ι → ℝ) (z : ι → E)
   (hw₁ : s.sum w₁ = 1) (hw₂ : s.sum w₂ = 1) (a b : ℝ) (hab : a + b = 1):
   a • s.center_mass w₁ z + b • s.center_mass w₂ z =
     s.center_mass (λ i, a * w₁ i + b * w₂ i) z :=
@@ -584,7 +584,7 @@ end
 
 variables {t w}
 
-lemma finset.center_mass_subset {t' : finset α} (ht : t ⊆ t')
+lemma finset.center_mass_subset {t' : finset ι} (ht : t ⊆ t')
   (h : ∀ i ∈ t', i ∉ t → w i = 0) :
   t.center_mass w z = t'.center_mass w z :=
 begin
@@ -666,17 +666,17 @@ lemma convex_on.map_sum_le {f : E → ℝ} (hf : convex_on s f)
 by simpa only [center_mass, h₁, inv_one, one_smul]
   using hf.map_center_mass_le h₀ (h₁.symm ▸ zero_lt_one) hmem
 
+/-- If a function `f` is convex on `s` takes value `y` at the center mass of some points
+`z i ∈ s`, then for some `i` we have `y ≤ f (z i)`. -/
 lemma convex_on.exists_ge_of_center_mass {f : E → ℝ} (h : convex_on s f)
   (hw₀ : ∀ i ∈ t, 0 ≤ w i) (hws : 0 < t.sum w) (hz : ∀ i ∈ t, z i ∈ s) :
   ∃ i ∈ t, f (t.center_mass w z) ≤ f (z i) :=
 begin
   set y := t.center_mass w z,
   have : f y ≤ t.center_mass w (f ∘ z) := h.map_center_mass_le hw₀ hws hz,
-  rw [← finset.center_mass_filter_ne_zero (f ∘ z), center_mass, smul_eq_mul,
-    ← div_eq_inv_mul] at this,
   rw ← sum_filter_ne_zero at hws,
-  -- Lean fails to resolve some typeclass defeq
-  rw [le_div_iff hws, mul_sum] at this,
+  rw [← finset.center_mass_filter_ne_zero (f ∘ z), center_mass, smul_eq_mul,
+    ← div_eq_inv_mul, le_div_iff hws, mul_sum] at this,
   replace : ∃ i ∈ t.filter (λ i, w i ≠ 0), f y * w i ≤ w i • (f ∘ z) i :=
     exists_le_of_sum_le (nonempty_of_sum_ne_zero (ne_of_gt hws)) this,
   rcases this with ⟨i, hi, H⟩,
@@ -731,8 +731,8 @@ lemma linear_map.image_convex_hull (f : E →ₗ[ℝ] F) :
   f '' (convex_hull s) = convex_hull (f '' s) :=
 f.is_linear.image_convex_hull
 
-lemma finset.center_mass_mem_convex_hull (t : finset α) {w : α → ℝ} (hw₀ : ∀ i ∈ t, 0 ≤ w i)
-  (hws : 0 < t.sum w) {z : α → E} (hz : ∀ i ∈ t, z i ∈ s) :
+lemma finset.center_mass_mem_convex_hull (t : finset ι) {w : ι → ℝ} (hw₀ : ∀ i ∈ t, 0 ≤ w i)
+  (hws : 0 < t.sum w) {z : ι → E} (hz : ∀ i ∈ t, z i ∈ s) :
   t.center_mass w z ∈ convex_hull s :=
 (convex_convex_hull s).center_mass_mem hw₀ hws (λ i hi, subset_convex_hull s $ hz i hi) 
 
@@ -740,8 +740,8 @@ lemma finset.center_mass_mem_convex_hull (t : finset α) {w : α → ℝ} (hw₀
 
 /-- Convex hull of `s` is equal to the set of all centers of masses of `finset`s `t`, `z '' t ⊆ s`.
 This version allows finsets in any type in any universe. -/
-lemma convex_hull_eq' (s : set E) :
-  convex_hull s = {x : E | ∃ (α : Type u') (t : finset α) (w : α → ℝ) (z : α → E)
+lemma convex_hull_eq (s : set E) :
+  convex_hull s = {x : E | ∃ (ι : Type u') (t : finset ι) (w : ι → ℝ) (z : ι → E)
     (hw₀ : ∀ i ∈ t, 0 ≤ w i) (hw₁ : t.sum w = 1) (hz : ∀ i ∈ t, z i ∈ s) , t.center_mass w z = x} :=
 begin
   refine subset.antisymm (convex_hull_min _ _) _,
@@ -749,7 +749,7 @@ begin
     use [punit, finset.singleton punit.star, λ _, 1, λ _, x, λ _ _, zero_le_one,
       finset.sum_singleton, λ _ _, hx],
     simp only [finset.center_mass, finset.sum_singleton, inv_one, one_smul] },
-  { rintros x y ⟨α, sx, wx, zx, hwx₀, hwx₁, hzx, rfl⟩ ⟨β, sy, wy, zy, hwy₀, hwy₁, hzy, rfl⟩
+  { rintros x y ⟨ι, sx, wx, zx, hwx₀, hwx₁, hzx, rfl⟩ ⟨ι', sy, wy, zy, hwy₀, hwy₁, hzy, rfl⟩
       a b ha hb hab,
     rw [finset.center_mass_segment' _ _ _ _ _ _ hwx₁ hwy₁ _ _ hab],
     refine ⟨_, _, _, _, _, _, _, rfl⟩,
@@ -763,8 +763,20 @@ begin
       rw [finset.mem_union, finset.mem_image, finset.mem_image] at hi,
       rcases hi with ⟨j, hj, rfl⟩|⟨j, hj, rfl⟩;
         simp only [sum.elim_inl, sum.elim_inr]; apply_rules [hzx, hzy] } },
-  { rintros _ ⟨α, t, w, z, hw₀, hw₁, hz, rfl⟩,
+  { rintros _ ⟨ι, t, w, z, hw₀, hw₁, hz, rfl⟩,
     exact t.center_mass_mem_convex_hull hw₀ (hw₁.symm ▸ zero_lt_one) hz }
+end
+
+/-- Maximum principle for convex functions. If a function `f` is convex on the convex hull of `s`,
+then `f` can't have a maximum on `convex_hull s` outside of `s`. -/
+lemma convex_on.exists_ge_of_mem_convex_hull {f : E → ℝ} (hf : convex_on (convex_hull s) f)
+  {x} (hx : x ∈ convex_hull s) : ∃ y ∈ s, f x ≤ f y :=
+begin
+  rw convex_hull_eq at hx,
+  rcases hx with ⟨α, t, w, z, hw₀, hw₁, hz, rfl⟩,
+  rcases hf.exists_ge_of_center_mass hw₀ (hw₁.symm ▸ zero_lt_one)
+    (λ i hi, subset_convex_hull s (hz i hi)) with ⟨i, hit, Hi⟩,
+  exact ⟨z i, hz i hit, Hi⟩
 end
 
 lemma set.finite.convex_hull_eq {s : set E} (hs : finite s) :
@@ -807,18 +819,18 @@ end convex_hull
 
 section simplex
 
-variables (α) [fintype α] {f : α → ℝ}
+variables (ι) [fintype ι] {f : ι → ℝ}
 
-/-- Standard simplex in the space of functions `α → ℝ` is the set
+/-- Standard simplex in the space of functions `ι → ℝ` is the set
 of vectors with non-negative coordinates with total sum `1`. -/
-def std_simplex (α : Type*) [fintype α] : set (α → ℝ) :=
+def std_simplex (ι : Type*) [fintype ι] : set (ι → ℝ) :=
 { f | (∀ x, 0 ≤ f x) ∧ finset.univ.sum f = 1 }
 
 lemma std_simplex_eq_inter :
-  std_simplex α = (⋂ x, {f | 0 ≤ f x}) ∩ {f | finset.univ.sum f = 1} :=
+  std_simplex ι = (⋂ x, {f | 0 ≤ f x}) ∩ {f | finset.univ.sum f = 1} :=
 by { ext f, simp only [std_simplex, set.mem_inter_eq, set.mem_Inter, set.mem_set_of_eq] }
 
-lemma convex_std_simplex : convex (std_simplex α) :=
+lemma convex_std_simplex : convex (std_simplex ι) :=
 begin
   refine λ f g hf hg a b ha hb hab, ⟨λ x, _, _⟩,
   { apply_rules [add_nonneg, mul_nonneg, hf.1, hg.1] },
@@ -827,15 +839,15 @@ begin
     exact hab }
 end
 
-variable {α}
+variable {ι}
 
-lemma ite_eq_mem_std_simplex (i : α) : (λ j, ite (i = j) (1:ℝ) 0) ∈ std_simplex α :=
+lemma ite_eq_mem_std_simplex (i : ι) : (λ j, ite (i = j) (1:ℝ) 0) ∈ std_simplex ι :=
 ⟨λ j, by simp only []; split_ifs; norm_num, by rw [finset.sum_ite_eq, if_pos (finset.mem_univ _)] ⟩
 
 lemma convex_hull_std_basis_eq :
-  convex_hull ((λi j, if i = j then (1:ℝ) else 0) '' univ) = std_simplex α :=
+  convex_hull ((λi j, if i = j then (1:ℝ) else 0) '' univ) = std_simplex ι :=
 begin
-  refine subset.antisymm (convex_hull_min _ (convex_std_simplex α)) _,
+  refine subset.antisymm (convex_hull_min _ (convex_std_simplex ι)) _,
   { rintros _ ⟨i, _, rfl⟩,
     exact ite_eq_mem_std_simplex i },
   { rintros w ⟨hw₀, hw₁⟩,
@@ -844,7 +856,7 @@ begin
       (hw₁.symm ▸ zero_lt_one) (λ i hi, mem_image_of_mem _ (mem_univ i)) }
 end
 
-variable {α}
+variable {ι}
 
 /-- Convex hull of a finite set is the image of the standard simplex in `s → ℝ`
 under the linear map sending each function `w` to `s.sum (λ x, w x • x)`.
@@ -864,8 +876,8 @@ begin
   simp [linear_map.sum_apply, ite_smul, finset.sum_ite _ _ (λ x, x), finset.filter_eq]
 end
 
-/-- All values of a function `f ∈ std_simplex α` belong to `[0, 1]`. -/
-lemma mem_Icc_of_mem_std_simplex (hf : f ∈ std_simplex α) (x) :
+/-- All values of a function `f ∈ std_simplex ι` belong to `[0, 1]`. -/
+lemma mem_Icc_of_mem_std_simplex (hf : f ∈ std_simplex ι) (x) :
   f x ∈ I :=
 ⟨hf.1 x, hf.2 ▸ finset.single_le_sum (λ y hy, hf.1 y) (finset.mem_univ x)⟩
 

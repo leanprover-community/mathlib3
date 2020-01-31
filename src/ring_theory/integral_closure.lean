@@ -7,6 +7,7 @@ Integral closure of a subring.
 -/
 
 import ring_theory.adjoin linear_algebra.finsupp ring_theory.adjoin_root
+import tactic.interactive
 
 universes u v
 
@@ -379,24 +380,253 @@ end
 
 end algebra
 
-section
+
+
+/-- The `generic polynomial` over a commutative ring `R` of degree `n` is the monic polynomial
+`(X - X₁) * ... * (X - Xₙ)` where `X₁,...,Xₙ` are variables. -/
+noncomputable def generic_polynomial (R : Type u) [comm_ring R] (n : ℕ) :
+  polynomial (mv_polynomial (fin n) R) :=
+finset.univ.prod (λ i : fin n, (X : polynomial (mv_polynomial (fin n) R)) - C (mv_polynomial.X i))
+
+def symmetric_relations {R : Type u} [comm_ring R] (n : ℕ) (p : polynomial R) :
+  set (mv_polynomial (fin n) R) :=
+set.image (coeff (p.map mv_polynomial.C - generic_polynomial R n) ∘ @fin.val n) set.univ
+
+def splitting_ring {R : Type u} [comm_ring R] {p : polynomial R} (hp : monic p) : Type* :=
+ideal.quotient $ ideal.span $ symmetric_relations (nat_degree p) p
+
+variables {R : Type u} [comm_ring R]
+variables {p : polynomial R} (hp : monic p)
+
+namespace splitting_ring
+
+noncomputable instance : comm_ring (splitting_ring hp) := ideal.quotient.comm_ring _
+
+noncomputable instance : algebra R (splitting_ring hp) :=
+algebra.of_ring_hom (ideal.quotient.mk _ ∘ mv_polynomial.C) (is_ring_hom.comp _ _)
+
+lemma splits : ∃ s : finset (splitting_ring hp),
+  p.map (algebra_map $ splitting_ring hp) = s.prod (λ x, X - C x) :=
+⟨finset.univ.image $ ideal.quotient.mk _ ∘ mv_polynomial.X,
+begin
+  ext n,
+  apply eq_of_sub_eq_zero,
+  rw [finset.prod_image, ←coeff_sub],
+  conv_lhs { congr, congr, skip, congr, skip, funext,
+    rw [←map_C (ideal.quotient.mk _), ←map_X (ideal.quotient.mk _), ←map_sub], },
+  --{ intros x _ y _, sorry } --map is injective
+end⟩
+
+end splitting_ring
 
 /-structure splitting_ring' {R : Type u} [comm_ring R] {p : polynomial R} (hp : monic p) :=
 (A : Type*) [ring : comm_ring A] [algebra : algebra R A]
 (s : multiset A)
 (splits : p.map (algebra_map A) = (s.map (λ x, X - C x)).prod)-/
 
-structure splitting_ring' {R : Type u} [comm_ring R] (p : polynomial R) :=
-(A : Type*) [ring : comm_ring A] [algebra : algebra R A]
-(s : multiset A)
-(splits : p.map (algebra_map A) = (s.map (λ x, X - C x)).prod)
+/-structure splitting_ring {R : Type u} [comm_ring R] (p : polynomial R) :=
+(S : Type*) [ring : comm_ring S] [algebra : algebra R S]
+(s : finset S)
+(splits : p.map (algebra_map S) = C (algebra_map S $ p.leading_coeff) *
+  (s.prod (λ x, (X - C x) ^ root_multiplicity x (p.map $ algebra_map S))))
 
-variables (R : Type u) {A : Type v}
+variables {R : Type u} [comm_ring R] (p : polynomial R)
+
+instance splitting_ring.comm_ring (T : splitting_ring p) : comm_ring T.S := T.ring
+instance splitting_ring.algebra' (T : splitting_ring p) : algebra R T.S := T.algebra
+
+instance adjoin_root.algebra (f : polynomial R) : algebra R (adjoin_root f) := sorry
+
+noncomputable def div_by_root (x : R) : polynomial R :=
+p /ₘ (X - C x) ^ p.root_multiplicity x
+
+lemma div_by_root_mul (x : R) : (div_by_root p x) * (X - C x) ^ p.root_multiplicity x = p := sorry
+
+lemma div_by_root_map (x : R) {S : Type v} [comm_ring S] (i : R → S) :
+  div_by_root (p.map i) (i x) = (div_by_root p x).map i := sorry
+
+lemma leading_coeff_div_by_root (x : R) : leading_coeff (div_by_root p x) = leading_coeff p := sorry
+
+lemma div_by_root_root_multiplicity {x y : R} (h : x ≠ y) :
+  (div_by_root p x).root_multiplicity y = p.root_multiplicity y := sorry
+
+lemma div_by_root_root_multiplicity_map {x : R} {S : Type v} [comm_ring S] (i : R → S) {y : S} (h : i x ≠ y) :
+  ((div_by_root p x).map i).root_multiplicity y = (p.map i).root_multiplicity y := sorry
+
+lemma comm_ring.leading_coeff_map {S : Type v} [comm_ring S] (i : R → S) [is_semiring_hom i] :
+leading_coeff (p.map i) = i (leading_coeff p) := sorry
+
+lemma root_multiplicity_map (x : R) {S : Type v} [comm_ring S] (i : R → S) [is_semiring_hom i] :
+p.root_multiplicity x = (p.map i).root_multiplicity (i x) := sorry
+
+
+variables (T : splitting_ring (div_by_root (p.map (algebra_map $ adjoin_root p)) adjoin_root.root))
+
+noncomputable instance algebra_aux : algebra R T.S :=
+algebra.of_ring_hom (algebra_map _ ∘ algebra_map (adjoin_root p)) (is_ring_hom.comp _ _)
+
+--#check (algebra_map T.S : adjoin_root p → T.S)
+#check (adjoin_root.root : adjoin_root p)
+#check insert _ T.s
+
+--#check insert ((algebra_map T.S : adjoin_root p → T.S) adjoin_root.root) T.s
+
+--hint
+instance splitting_ring.algebra'2 (T : splitting_ring p) : algebra R T.S := T.algebra
+
+lemma splitting_ring.exists_aux : p.map (algebra_map T.S) = C (algebra_map T.S $ p.leading_coeff) *
+    finset.prod (insert ((algebra_map T.S : adjoin_root p → T.S) adjoin_root.root) T.s)
+      (λ (x : T.S), (X - C x) ^ root_multiplicity x (p.map $ algebra_map T.S)) :=
+begin
+  let x : adjoin_root p := adjoin_root.root,
+  have h : algebra_map (T.S) x ∉ T.s, from sorry,
+  conv_lhs { rw [←div_by_root_mul (p.map $ algebra_map T.S) (algebra_map T.S x)] },
+  rw [finset.prod_insert h, mul_comm, ←mul_assoc, mul_comm (C _), mul_assoc],
+  congr,
+  change div_by_root (map (λ (x : R), algebra_map (T.S) (algebra_map (adjoin_root p) x)) p) _ = _,
+  rw [←polynomial.map_map (algebra_map $ adjoin_root p), div_by_root_map, T.splits],
+  rw [leading_coeff_div_by_root, comm_ring.leading_coeff_map],
+  --rw [←div_by_root_map],
+  conv_lhs { congr, skip, congr, skip, funext, rw [div_by_root_root_multiplicity_map _ _ sorry] },
+  sorry,
+  apply_instance
+end
+
+def splitting_ring.exists : Π {R : Type u} [hc : comm_ring R]
+  (p : by exactI polynomial R), @splitting_ring R hc p
+| R hc p :=
+let x : by exactI adjoin_root p := by exactI adjoin_root.root in
+let T := by exactI splitting_ring.exists (div_by_root (p.map $ algebra_map _) x) in
+by exactI splitting_ring.mk T.S (insert (algebra_map T.S x) T.s) (splitting_ring.exists_aux _ _)
+using_well_founded { _ }
+--begin
+  --letI := hc,
+  --let x : adjoin_root p := adjoin_root.root,
+  --let T := splitting_ring.exists (div_by_root (p.map $ algebra_map _) x),
+  --letI : algebra R T.S := algebra.of_ring_hom (algebra_map _ ∘ algebra_map (adjoin_root p)) (is_ring_hom.comp _ _),
+  --have h : algebra_map (T.S) x ∉ T.s, from sorry,
+  --exact splitting_ring.mk T.S (insert (algebra_map T.S x) T.s) (splitting_ring.exists_aux _ _),
+  /-conv_lhs { rw [←div_by_root_mul (p.map $ algebra_map T.S) (algebra_map T.S x)] },
+  rw [finset.prod_insert h, mul_comm, ←mul_assoc, mul_comm (C _), mul_assoc],
+  congr,
+  change div_by_root (map (λ (x : R), algebra_map (T.S) (algebra_map S x)) p) _ = _,
+  rw [←polynomial.map_map (algebra_map S), div_by_root_map, T.splits],
+  rw [leading_coeff_div_by_root, comm_ring.leading_coeff_map],
+  --rw [←div_by_root_map],
+  conv_lhs { congr, skip, congr, skip, funext, rw [div_by_root_root_multiplicity_map _ _ sorry] },
+-/
+--end
+
+
+-/
+--using_well_founded {  }
+
+/-variables (R : Type u) {A : Type v}
 variables [comm_ring R] [comm_ring A]
 variables [algebra R A]
 set_option class.instance_max_depth 100
 
+lemma degree_lt_wf' : well_founded (λp q : (Σ R : (Σ α, comm_semiring α), @polynomial R.1 R.2),
+  @degree p.1.1 p.1.2 p.2 < @degree q.1.1 q.1.2 q.2) := sorry
+
 instance (f : polynomial R): algebra R (adjoin_root f) := sorry
+
+lemma monic_C_iff {a : R} : monic (C a) ↔ a = 1 := sorry
+
+structure splitting_ring_aux {R : Type u} [comm_ring R] (p : polynomial R) (n : ℕ) :=
+(S : Type*) [ring : comm_ring S] [algebra : algebra R S]
+(s : multiset S)
+(card : s.card = n)
+(dvd : (s.map (λ x, X - C x)).prod ∣ p.map (algebra_map S))
+
+#check Σ' (G : Type u) [hc : comm_ring G], polynomial G
+#check Σ (G : Type u) (hc : comm_ring G), polynomial G
+#check @nat_degree
+
+structure aux :=
+(R : Type u) [hc : comm_ring R]
+(p : polynomial R)
+(nonzero : p ≠ 0)
+
+instance test (x : aux): comm_ring x.R := x.hc
+
+lemma aux_lt_wf : well_founded (λ x y : aux, degree x.p < degree y.p) :=
+inv_image.wf (λ x, degree x.p) (with_bot.well_founded_lt nat.lt_wf)
+
+--instance aux_wf : has_well_founded aux := ⟨_, aux_lt_wf⟩
+
+def splitting_ring (a : aux) : Type* :=
+well_founded.recursion aux_lt_wf a (
+begin
+  intros x ih,
+  let S := adjoin_root (x.p),
+  let q := ((x.p).map (algebra_map S : x.R → S)) /ₘ
+    (X - C adjoin_root.root) ^ ((x.p).map (algebra_map S : x.R → S)).root_multiplicity adjoin_root.root,
+  have : q ≠ 0, from sorry,
+  refine ih ⟨S, q, this⟩ _,
+  { refine lt_of_lt_of_le (degree_div_by_monic_lt _ _ _ _) (le_of_eq _),
+    apply monic_pow, exact monic_X_sub_C _,
+    sorry,
+    sorry,
+    refine degree_map_eq_of_leading_coeff_ne_zero _ _, sorry }
+end)
+
+def splitting_ring_aux.exists_aux (R : Type*) [comm_ring R] {p : polynomial R} :
+  ∀ n : ℕ, splitting_ring_aux p n
+| 0 := sorry
+| (n+1) := by {
+  let A := splitting_ring_aux.exists_aux n;
+  let S := A.S,
+  letI := A.ring,
+  letI := A.algebra,
+  let pS := p.map (algebra_map S),
+  let q := pS /ₘ (A.s.map (λ x, X - C x)).prod,
+  let T := adjoin_root q,
+  letI : algebra R T := sorry,
+  let pT := p.map (algebra_map T),
+  let x := adjoin_root.root,
+  let s' := (multiset.repeat x $ pT.root_multiplicity x) ∪ (A.s.map (algebra_map T)),
+  refine splitting_ring_aux.mk T s' _ _,
+  /-{ rw [multiset.card_cons, multiset.card_map, A.card] },
+  { rw [multiset.map_cons, multiset.prod_cons],
+    have : p.map (algebra_map T) =
+      (X - C x) ^ pT.root_multiplicity x * (pT /ₘ (X - C x) ^ pT.root_multiplicity x),
+      sorry,
+    rw [this],
+    refine mul_dvd_mul _ _, sorry, sorry
+
+   }-/
+}
+
+
+noncomputable def splitting_ring'.exists_aux2 (R : Type*) [comm_ring R] :
+  ∀ (n : ℕ) {p : polynomial R}, monic p → p.degree = n → splitting_ring' p
+| 0 p hm h := by { rw [with_bot.coe_zero] at h,
+  have h1 : p = 1, { rw [eq_C_of_degree_eq_zero h] at ⊢ hm, rw [monic_C_iff] at hm, rw [hm, C_1] },
+  rw [h1],
+  refine splitting_ring'.mk R 0 _,
+  rw [map_one, multiset.map_zero, multiset.prod_zero] }
+| (n+1) p hm h := by {
+  let S := adjoin_root p,
+  let pS := p.map (algebra_map S),
+  have : monic pS, from monic_map _ hm,
+  have : pS.eval adjoin_root.root = 0, from sorry,
+  let q := pS /ₘ ((X - C adjoin_root.root) ^ pS.root_multiplicity adjoin_root.root),
+  have hmq : monic q, from sorry,
+  have hq : degree q = nat_degree q, from sorry,--degree_eq_nat_degree (ne_zero_of_monic hqm), --S is nonzero
+  have hl : degree q < degree p, from sorry,
+  let T := splitting_ring'.exists_aux2 (nat_degree q),
+}
+
+
+--well_founded.recursion degree_lt_wf' begin  end --(sigma.mk (sigma.mk R _) p)
+--  sorry
+  /-(λ x h, begin
+    let S := adjoin_root x,
+    let xS := x.map (algebra_map S),
+    have : xS.eval adjoin_root.root = 0, from sorry,
+
+   end)-/
 
 def splitting_ring'.exists (p : polynomial R) : splitting_ring' p :=
 well_founded.recursion polynomial.degree_lt_wf p
@@ -517,6 +747,4 @@ begin
   exact ⟨⟨h n, begin  end⟩, sorry⟩
 
 end
--/
-
-end
+-/-/

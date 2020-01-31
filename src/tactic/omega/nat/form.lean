@@ -12,6 +12,7 @@ namespace omega
 
 namespace nat
 
+/-- Linear natural number arithmetic formulas -/
 @[derive has_reflect, derive inhabited]
 inductive form
 | eq  : preterm → preterm → form
@@ -28,6 +29,7 @@ localized "notation p ` ∧* ` q := omega.nat.form.and p q" in omega.nat
 
 namespace form
 
+/-- Evaluation of LNA formulas -/
 @[simp] def holds (v : nat → nat) : form → Prop
 | (t =* s) := t.val v = s.val v
 | (t ≤* s) := t.val v ≤ s.val v
@@ -43,6 +45,7 @@ end form
 
 namespace form
 
+/-- Asserts that the given formula is negation-free -/
 def neg_free : form → Prop
 | (t =* s) := true
 | (t ≤* s) := true
@@ -50,6 +53,7 @@ def neg_free : form → Prop
 | (p ∧* q) := neg_free p ∧ neg_free q
 | _        := false
 
+/-- Asserts that the given formula is subtraction-free -/
 def sub_free : form → Prop
 | (t =* s) := t.sub_free ∧ s.sub_free
 | (t ≤* s) := t.sub_free ∧ s.sub_free
@@ -57,6 +61,8 @@ def sub_free : form → Prop
 | (p ∨* q) := p.sub_free ∧ q.sub_free
 | (p ∧* q) := p.sub_free ∧ q.sub_free
 
+/-- Return the de Brujin index of a fresh variable that does not
+    occur anywhere in a given LNA formula -/
 def fresh_index : form → nat
 | (t =* s) := max t.fresh_index s.fresh_index
 | (t ≤* s) := max t.fresh_index s.fresh_index
@@ -106,15 +112,21 @@ lemma holds_constant {v w : nat → nat} :
     apply le_max_left, apply le_max_right
   end
 
+/-- An LNA formula is valid if it holds under all valuations -/
 def valid (p : form) : Prop :=
 ∀ v, holds v p
 
+ /-- An LNA formula is satisfiable if it holds under some valuation  -/
 def sat (p : form) : Prop :=
 ∃ v, holds v p
 
+/-- An LNA formula p implies to another LNA formula q if,
+    under any valuation, q holds whenever p holds  -/
 def implies (p q : form) : Prop :=
 ∀ v, (holds v p → holds v q)
 
+/-- An LNA formula p is equivalent to another LNA formula q if,
+    under any valuation, p holds iff and only if q holds  -/
 def equiv (p q : form) : Prop :=
 ∀ v, (holds v p ↔ holds v q)
 
@@ -132,8 +144,10 @@ begin
     refine ⟨v,_⟩; [left,right]; assumption }
 end
 
+/-- A LNA formula is unsatisfiable if does not hold under any valuation -/
 def unsat (p : form) : Prop := ¬ sat p
 
+/-- repr for LNA formulas -/
 def repr : form → string
 | (t =* s) := "(" ++ t.repr ++ " = " ++ s.repr ++ ")"
 | (t ≤* s) := "(" ++ t.repr ++ " ≤ " ++ s.repr ++ ")"

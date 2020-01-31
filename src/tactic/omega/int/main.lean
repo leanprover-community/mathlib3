@@ -44,6 +44,7 @@ meta def prove_univ_close (m : nat) (p : form) : tactic expr :=
 do x ← prove_unsats (dnf (¬*p)),
    return `(univ_close_of_unsat_clausify %%`(m) %%`(p) %%x)
 
+/-- Reification to LIA terms -/
 meta def to_preterm : expr → tactic preterm
 | (expr.var k) := return (preterm.var 1 k)
 | `(-%%(expr.var k)) := return (preterm.var (-1 : int) k)
@@ -58,6 +59,7 @@ meta def to_preterm : expr → tactic preterm
   do z ← eval_expr' int zx,
      return (preterm.cst z)
 
+/-- Reification to LIA shadow syntax for quantifier-free body of input formula -/
 meta def to_form_core : expr → tactic form
 | `(%%tx1 = %%tx2) :=
   do t1 ← to_preterm tx1,
@@ -78,10 +80,14 @@ meta def to_form_core : expr → tactic form
      return (p ∧* q)
 | x := trace "Cannot reify expr : " >> trace x >> failed
 
+/-- Reification to LIA shadow syntax. The second element of
+    the pair is the number of outer universal quantifiers -/
 meta def to_form : nat → expr → tactic (form × nat)
 | m `(_ → %%px) := to_form (m+1) px
 | m x := do p ← to_form_core x, return (p,m)
 
+/-- Reify the current goal into LIA shadow syntax, solve it using
+    the omega test, and return the expr that proves the current goal -/
 meta def prove_lia : tactic expr :=
 do (p,m) ← target >>= to_form 0,
    prove_univ_close m p

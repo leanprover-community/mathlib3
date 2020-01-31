@@ -11,6 +11,7 @@ import tactic.omega.int.preterm
 namespace omega
 namespace int
 
+/-- Linear integer arithmetic formulas -/
 @[derive has_reflect, derive inhabited]
 inductive form
 | eq  : preterm → preterm → form
@@ -27,6 +28,7 @@ localized "notation p ` ∧* ` q := omega.int.form.and p q" in omega.int
 
 namespace form
 
+/-- Evaluation of LIA formulas -/
 @[simp] def holds (v : nat → int) : form → Prop
 | (t =* s) := t.val v = s.val v
 | (t ≤* s) := t.val v ≤ s.val v
@@ -42,6 +44,8 @@ end form
 
 namespace form
 
+/-- Return the de Brujin index of a fresh variable that does not
+    occur anywhere in a given LIA formula -/
 def fresh_index : form → nat
 | (t =* s) := max t.fresh_index s.fresh_index
 | (t ≤* s) := max t.fresh_index s.fresh_index
@@ -49,15 +53,21 @@ def fresh_index : form → nat
 | (p ∨* q) := max p.fresh_index q.fresh_index
 | (p ∧* q) := max p.fresh_index q.fresh_index
 
+/-- A LIA formula is valid if it holds under all valuations -/
 def valid (p : form) : Prop :=
 ∀ v, holds v p
 
+/-- A LIA formula is satisfiable if it holds under some valuation -/
 def sat (p : form) : Prop :=
 ∃ v, holds v p
 
+/-- A LIA formula p implies another LIA formula q if,
+    under any valuation, q holds whenever p holds -/
 def implies (p q : form) : Prop :=
 ∀ v, (holds v p → holds v q)
 
+/-- A LIA formula p is equivalent to another LIA formula q if,
+    under any valuation, p holds iff and only if q holds -/
 def equiv (p q : form) : Prop :=
 ∀ v, (holds v p ↔ holds v q)
 
@@ -75,8 +85,10 @@ begin
     refine ⟨v,_⟩; [left,right]; assumption }
 end
 
+/-- A LIA formula is unsatisfiable if does not hold under any valuation -/
 def unsat (p : form) : Prop := ¬ sat p
 
+/-- repr for LIA formulas -/
 def repr : form → string
 | (t =* s) := "(" ++ t.repr ++ " = " ++ s.repr ++ ")"
 | (t ≤* s) := "(" ++ t.repr ++ " ≤ " ++ s.repr ++ ")"

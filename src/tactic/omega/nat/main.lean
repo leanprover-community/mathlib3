@@ -41,6 +41,7 @@ begin
   apply form.sat_of_implies_of_sat implies_neg_elim h2,
 end
 
+/-- Return the expr of the proof that the given preterm is subtraction-free -/
 meta def preterm.prove_sub_free : preterm → tactic expr
 | (& m)    := return `(trivial)
 | (m ** n) := return `(trivial)
@@ -51,6 +52,7 @@ meta def preterm.prove_sub_free : preterm → tactic expr
        (preterm.sub_free %%`(s)) %%x %%y)
 | (_ -* _) := failed
 
+/-- Return the expr of the proof that the given formula is negation-free -/
 meta def prove_neg_free : form → tactic expr
 | (t =* s) := return `(trivial)
 | (t ≤* s) := return `(trivial)
@@ -66,6 +68,7 @@ meta def prove_neg_free : form → tactic expr
        (form.neg_free %%`(q)) %%x %%y)
 | _        := failed
 
+/-- Return the expr of the proof that the given formula is subtraction-free -/
 meta def prove_sub_free : form → tactic expr
 | (t =* s) :=
   do x ← preterm.prove_sub_free t,
@@ -113,6 +116,8 @@ meta def prove_univ_close (m : nat) (p : form) : tactic expr :=
 do x ← prove_unsat_neg_free (neg_elim (¬*p)),
    to_expr ``(univ_close_of_unsat_neg_elim_not %%`(m) %%`(p) %%x)
 
+/-- Preliminary reification pass which processes operators and
+    variables, but retains everything else as exprs -/
 meta def to_preterm : expr → tactic preterm
 | (expr.var k) := return (preterm.var 1 k)
 | `(%%(expr.var k) * %%mx) :=
@@ -130,6 +135,7 @@ meta def to_preterm : expr → tactic preterm
   do m ← eval_expr' nat mx,
      return (preterm.cst m)
 
+/-- Reification to LNA shadow syntax for quantifier-free body of input formula -/
 meta def to_form_core : expr → tactic form
 | `(%%tx1 = %%tx2) :=
   do t1 ← to_preterm tx1,
@@ -151,6 +157,8 @@ meta def to_form_core : expr → tactic form
 | `(_ → %%px) := to_form_core px
 | x := trace "Cannot reify expr : " >> trace x >> failed
 
+/-- Reification to LIA shadow syntax. The second element of
+    the pair is the number of outer universal quantifiers -/
 meta def to_form : nat → expr → tactic (form × nat)
 | m `(_ → %%px) := to_form (m+1) px
 | m x := do p ← to_form_core x, return (p,m)

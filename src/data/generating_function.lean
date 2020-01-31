@@ -5,6 +5,8 @@ Authors: Johan Commelin
 -/
 
 import ring_theory.power_series
+import data.stream.basic
+import data.nat.fib
 import tactic
 
 /-!
@@ -103,3 +105,135 @@ calc generating_function (λ n, (1 : K))
   ... = (1 - X)⁻¹                                  : by simp
 
 end
+
+namespace nat
+universe variables u
+variables {X : ℕ → Sort u} (f : Π n, (Π (m:fin n), X m) → X n)
+
+protected def strong_recursion_aux :
+  Π n m, m < n → X m
+| 0     := λ _ h, absurd h (not_lt_zero _)
+| (n+1) := λ m h,
+(lt_or_eq_of_le (le_of_lt_succ h)).by_cases
+  (strong_recursion_aux n m)
+  (λ e, f _ (λ k, strong_recursion_aux n _ $ lt_of_lt_of_le k.2 $ le_of_eq e))
+
+def strong_recursion (n : ℕ) : X n :=
+nat.strong_recursion_aux f (n+1) n $ n.lt_succ_self
+
+@[simp] lemma strong_recursion_aux_lt (m n : ℕ) (h : m < n) :
+  nat.strong_recursion_aux f n m h = strong_recursion f m :=
+begin
+  obtain ⟨k, rfl⟩ : ∃ k, n = m + 1 + k :=
+  by simpa [add_right_comm] using nat.exists_eq_add_of_lt h,
+  induction k with k ih, { refl },
+  have hm : m < m + 1 + k, by linarith,
+  rw ← ih hm,
+  exact dif_pos hm,
+end
+
+lemma strong_recursion_apply (n : ℕ) :
+  strong_recursion f n = f n (λ i, strong_recursion f i) :=
+begin
+  show nat.strong_recursion_aux f (n+1) n _ = _,
+  show dite (n < n) _ _ = _,
+  rw [dif_neg (lt_irrefl n)],
+  show dite (n = n) _ _ = _,
+  rw [dif_pos rfl],
+  refine congr_arg (f n) _,
+  funext k,
+  apply strong_recursion_aux_lt,
+end
+
+end nat
+
+section bernoulli
+
+def bernoulli : ℕ → ℚ :=
+nat.strong_recursion $ λ n bernoulli,
+1 - finset.univ.sum (λ k, (n.choose ↑k) * (bernoulli k) / (n + 1 - k))
+
+lemma bernoulli_def' (n : ℕ) :
+  bernoulli n = 1 - finset.univ.sum (λ (k : fin n), (n.choose k) * (bernoulli k) / (n + 1 - k)) :=
+nat.strong_recursion_apply _ _
+
+lemma bernoulli_def (n : ℕ) :
+  bernoulli n = 1 - (finset.range n).sum (λ k, (n.choose k) * (bernoulli k) / (n + 1 - k)) :=
+begin
+  rw bernoulli_def',
+  congr' 1,
+  refine finset.sum_bij (λ k hk, k) _ _ _ _,
+  { rintro ⟨k, hk⟩ _, simp * },
+  { rintro ⟨k, hk⟩ _, simp * },
+  { intros, rwa fin.eq_iff_veq },
+  { intros k hk, rw finset.mem_range at hk, exact ⟨⟨k, hk⟩, finset.mem_univ _, rfl⟩, }
+end
+
+@[simp] lemma bernoulli_zero  : bernoulli 0 = 1   := rfl
+@[simp] lemma bernoulli_one   : bernoulli 1 = 1/2 := rfl
+@[simp] lemma bernoulli_two   : bernoulli 2 = 1/6 := rfl
+@[simp] lemma bernoulli_three : bernoulli 3 = 0   :=
+begin
+  rw [bernoulli_def],
+  repeat { rw [finset.sum_range_succ, nat.choose_succ_succ], simp, norm_num1, },
+end
+
+@[simp] lemma bernoulli_four  : bernoulli 4 = -1/30 :=
+begin
+  rw [bernoulli_def],
+  repeat
+  { try { rw [finset.sum_range_succ] },
+    try { rw [nat.choose_succ_succ] },
+    simp, norm_num1, },
+end
+
+
+@[simp] lemma sum_bernoulli (n : ℕ) :
+  (finset.range n).sum (λ k, (n.choose k : ℚ) * bernoulli k) = n :=
+begin
+  induction n with n ih, { simp, },
+  { rw [finset.sum_range_succ'], }
+end
+
+def bernoulli_fun (n : ℕ) (l : list (ℕ × ℚ)) : ℚ :=
+1 - (list.sum $ l.map $ λ ⟨k,B⟩, (n.choose k) * B / (n + 1 - k))
+
+def bernoulli_aux : stream ((ℕ × ℚ) × list (ℕ × ℚ)) :=
+stream.iterate
+  (λ ⟨⟨n, B⟩, l⟩, ((n+1, bernoulli_fun (n+1) ((n, B) :: l)), ((n, B) :: l)))
+  ((0, 1), [])
+
+def bernoulli' (n : ℕ) : ℚ := (bernoulli_aux n).fst.snd
+
+lemma bernoulli_aux_length : ∀ (n : ℕ), (bernoulli_aux n).snd.length = n
+| 0     := rfl
+| (n+1) :=
+begin
+  -- show (stream.nth (n+1) bernoulli_aux).snd.length = n + 1,
+  change list.length (list.cons _) = n+1,
+end
+
+@[simp] lemma sum_bernoulli (n : ℕ) :
+  (finset.range n).sum (λ k, (n.choose k : ℚ) * bernoulli k) = n :=
+begin
+  induction n with n ih, { simp, },
+  {  }
+end
+
+lemma bernoulli_def (n : ℕ) :
+  bernoulli n = 1 - (finset.range n).sum (λ k, (n.choose k) * (bernoulli k) / (n + 1 - k)) :=
+begin
+  induction n with n ih, { refl },
+  rw bernoulli,
+  -- apply nat.strong_induction_on n,
+end
+
+#eval bernoulli_aux 16
+-- ((16, -3617/510), [(15, 0), (14, 7/6), (13, 0), (12, -691/2730), (11, 0), (10, 5/66), (9, 0), (8, -1/30), (7, 0), (6, 1/42), (5, 0), (4, -1/30), (3, 0), (2, 1/6), (1, 1/2), (0, 1)]) :=
+
+-- lemma bernoulli_zero  : bernoulli 0 = 1   := rfl
+-- lemma bernoulli_one   : bernoulli 1 = 1/2 := rfl
+-- lemma bernoulli_two   : bernoulli 2 = 1/6 := rfl
+-- lemma bernoulli_three : bernoulli 3 = 0   := by norm_num
+
+end bernoulli

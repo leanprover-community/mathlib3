@@ -189,6 +189,48 @@ def pointwise_add_fintype [has_add α] [decidable_eq α] (s t : set α) [hs : fi
 
 attribute [to_additive] set.pointwise_mul_fintype
 
+/-- Pointwise scalar multiplication by a set of scalars. -/
+def pointwise_smul [has_scalar α β] : has_scalar (set α) (set β) :=
+  ⟨λ s t, { x | ∃ a ∈ s, ∃ y ∈ t, x  = a • y }⟩
+
+/-- Scaling a set: multiplying every element by a scalar. -/
+def scale_set [has_scalar α β] : has_scalar α (set β) :=
+  ⟨λ a s, { x | ∃ y ∈ s, x = a • y }⟩
+
+local attribute [instance] pointwise_smul scale_set
+
+lemma mem_scale_set [has_scalar α β] (a : α) (s : set β) (x : β) :
+  x ∈ a • s ↔ ∃ y ∈ s, x = a • y := iff.rfl
+
+lemma scale_set_eq_image [has_scalar α β] (a : α) (s : set β) :
+  a • s = (λ x, a • x) '' s :=
+set.ext $ λ x, iff.intro
+  (λ ⟨_, hy₁, hy₂⟩, ⟨_, hy₁, hy₂.symm⟩)
+  (λ ⟨_, hy₁, hy₂⟩, ⟨_, hy₁, hy₂.symm⟩)
+
+lemma scale_set_eq_pointwise_smul_singleton [has_scalar α β]
+  (a : α) (s : set β) : a • s = ({a} : set α) • s :=
+set.ext $ λ x, iff.intro
+  (λ ⟨_, h⟩, ⟨a, mem_singleton _, _, h⟩)
+  (λ ⟨_, h, y, hy, hx⟩, ⟨_, hy, by {
+    rw mem_singleton_iff at h; rwa h at hx }⟩)
+
+lemma smul_mem_scale_set [has_scalar α β]
+  (a : α) {s : set β} {y : β} (hy : y ∈ s) : a • y ∈ a • s :=
+by rw mem_scale_set; use [y, hy]
+
+lemma scale_set_union [has_scalar α β] (a : α) (s t : set β) :
+  a • (s ∪ t) = a • s ∪ a • t :=
+by simp only [scale_set_eq_image, image_union]
+
+@[simp] lemma scale_set_empty [has_scalar α β] (a : α) :
+  a • (∅ : set β) = ∅ :=
+by rw [scale_set_eq_image, image_empty]
+
+lemma scale_set_mono [has_scalar α β]
+  (a : α) {s t : set β} (h : s ⊆ t) : a • s ⊆ a • t :=
+by { rw [scale_set_eq_image, scale_set_eq_image], exact image_subset _ h }
+
 section monoid
 
 def pointwise_mul_semiring [monoid α] : semiring (set α) :=
@@ -219,6 +261,19 @@ show @add_comm_monoid (additive (set (multiplicative α))),
 from @additive.add_comm_monoid _ set.comm_monoid
 
 attribute [to_additive set.add_comm_monoid] set.comm_monoid
+
+/-- A multiplicative action of a monoid on a type β gives also a
+ multiplicative action on the subsets of β. -/
+def scale_set_action [monoid α] [mul_action α β] :
+  mul_action α (set β) :=
+{ smul     := λ a s, a • s,
+  mul_smul := λ a b s, set.ext $ λ x, iff.intro
+    (λ ⟨_, hy, _⟩, ⟨b • _, smul_mem_scale_set _ hy, by rwa ←mul_smul⟩)
+    (λ ⟨_, hy, _⟩, let ⟨_, hz, h⟩ := (mem_scale_set _ _ _).2 hy in
+      ⟨_, hz, by rwa [mul_smul, ←h]⟩),
+  one_smul := λ b, set.ext $ λ x, iff.intro
+    (λ ⟨_, _, h⟩, by { rw [one_smul] at h; rwa h })
+    (λ h, ⟨_, h, by rw one_smul⟩) }
 
 section is_mul_hom
 open is_mul_hom
@@ -255,86 +310,33 @@ lemma pointwise_mul_image_is_semiring_hom : is_semiring_hom (image f) :=
 
 local attribute [instance] singleton.is_monoid_hom
 
-def pointwise_mul_action : mul_action α (set α) :=
-{ smul := λ a s, ({a} : set α) * s,
-  one_smul := one_mul,
-  mul_smul := λ _ _ _, show {_} * _ = _,
-    by { erw is_monoid_hom.map_mul (singleton : α → set α), apply mul_assoc } }
+local attribute instance : has_scalar α α := ⟨λ a x, a * x⟩
 
-local attribute [instance] pointwise_mul_action
+local attribute instance : mul_action α α := {
+  mul_smul := monoid.mul_assoc,
+  one_smul := monoid.one_mul,
+}
+
+local attribute [instance] scale_set_action
+
+def pointwise_mul_action : mul_action α (set α) :=
+  by tactic.apply_instance
+
+-- check that resolving `mul_action α (set α)` yields an action
+-- defined by the same (?) function as what used to be
+-- `pointwise_mul_action.smul`.
+example (a : α) (s : set α) : {a} * s = a • s :=
+by { rw scale_set_eq_pointwise_smul_singleton, refl }
 
 lemma mem_smul_set {a : α} {s : set α} {x : α} :
   x ∈ a • s ↔ ∃ y ∈ s, x = a * y :=
-by { erw mem_pointwise_mul, simp }
+by { rw mem_scale_set, refl }
 
 lemma smul_set_eq_image {a : α} {s : set α} :
   a • s = (λ b, a * b) '' s :=
-set.ext $ λ x,
-begin
-  simp only [mem_smul_set, exists_prop, mem_image],
-  apply exists_congr,
-  intro y,
-  apply and_congr iff.rfl,
-  split; exact eq.symm
-end
+by { rw scale_set_eq_image, refl }
 
 end monoid
-
-/-- Pointwise scalar multiplication by a set of scalars. -/
-def pointwise_smul [has_scalar α β] : has_scalar (set α) (set β) :=
-  ⟨λ s t, { x | ∃ a ∈ s, ∃ y ∈ t, x  = a • y }⟩
-
-
-/-- Scaling a set: multiplying every element by a scalar. -/
-def scale_set [has_scalar α β] : has_scalar α (set β) :=
-  ⟨λ a s, { x | ∃ y ∈ s, x = a • y }⟩
-
-local attribute [instance] pointwise_smul scale_set
-
-lemma mem_scale_set [has_scalar α β] (a : α) (s : set β) (x : β) :
-  x ∈ a • s ↔ ∃ y ∈ s, x = a • y := iff.rfl
-
-lemma scale_set_eq_image [has_scalar α β] (a : α) (s : set β) :
-  a • s = (λ x, a • x) '' s :=
-set.ext $ λ x, iff.intro
-  (λ ⟨_, hy₁, hy₂⟩, ⟨_, hy₁, hy₂.symm⟩)
-  (λ ⟨_, hy₁, hy₂⟩, ⟨_, hy₁, hy₂.symm⟩)
-
-lemma scale_set_eq_pointwise_smul_singleton [has_scalar α β]
-  (a : α) (s : set β) : a • s = ({a} : set α) • s :=
-set.ext $ λ x, iff.intro
-  (λ ⟨_, h⟩, ⟨a, mem_singleton _, _, h⟩)
-  (λ ⟨_, h, y, hy, hx⟩, ⟨_, hy, by {
-    rw mem_singleton_iff at h; rwa h at hx }⟩)
-
-lemma smul_mem_scale_set [has_scalar α β]
-  (a : α) {s : set β} {y : β} (hy : y ∈ s) : a • y ∈ a • s :=
-by rw mem_scale_set; use [y, hy]
-
-lemma scale_set_union [has_scalar α β] (a : α) (s t : set β) :
-  a • (s ∪ t) = a • s ∪ a • t :=
-by simp only [scale_set_eq_image, image_union]
-
-lemma scale_set_empty [has_scalar α β] (a : α) :
-  a • (∅ : set β) = ∅ :=
-by rw [scale_set_eq_image, image_empty]
-
-lemma scale_set_mono [has_scalar α β]
-  (a : α) {s t : set β} (h : s ⊆ t) : a • s ⊆ a • t :=
-by { rw [scale_set_eq_image, scale_set_eq_image], exact image_subset _ h }
-
-/-- A multiplicative action of a monoid on a type β gives also a
- multiplicative action on the subsets of β. -/
-def scale_set_action [monoid α] [mul_action α β] :
-  mul_action α (set β) :=
-{ smul     := λ a s, a • s,
-  mul_smul := λ a b s, set.ext $ λ x, iff.intro
-    (λ ⟨_, hy, _⟩, ⟨b • _, smul_mem_scale_set _ hy, by rwa ←mul_smul⟩)
-    (λ ⟨_, hy, _⟩, let ⟨_, hz, h⟩ := (mem_scale_set _ _ _).2 hy in
-      ⟨_, hz, by rwa [mul_smul, ←h]⟩),
-  one_smul := λ b, set.ext $ λ x, iff.intro
-    (λ ⟨_, _, h⟩, by { rw [one_smul] at h; rwa h })
-    (λ h, ⟨_, h, by rw one_smul⟩) }
 
 end set
 

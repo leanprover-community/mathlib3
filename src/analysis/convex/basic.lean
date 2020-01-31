@@ -844,16 +844,17 @@ variable {ι}
 lemma ite_eq_mem_std_simplex (i : ι) : (λ j, ite (i = j) (1:ℝ) 0) ∈ std_simplex ι :=
 ⟨λ j, by simp only []; split_ifs; norm_num, by rw [finset.sum_ite_eq, if_pos (finset.mem_univ _)] ⟩
 
-lemma convex_hull_std_basis_eq :
-  convex_hull ((λi j, if i = j then (1:ℝ) else 0) '' univ) = std_simplex ι :=
+/-- `std_simplex ι` is the convex hull of the canonical basis in `ι → ℝ`. -/
+lemma convex_hull_basis_eq_std_simplex :
+  convex_hull (range $ λ(i j:ι), if i = j then (1:ℝ) else 0) = std_simplex ι :=
 begin
   refine subset.antisymm (convex_hull_min _ (convex_std_simplex ι)) _,
-  { rintros _ ⟨i, _, rfl⟩,
+  { rintros _ ⟨i, rfl⟩,
     exact ite_eq_mem_std_simplex i },
   { rintros w ⟨hw₀, hw₁⟩,
     rw [pi_eq_sum_univ w, ← finset.univ.center_mass_eq_of_sum_1 _ hw₁],
     exact finset.univ.center_mass_mem_convex_hull (λ i hi, hw₀ i)
-      (hw₁.symm ▸ zero_lt_one) (λ i hi, mem_image_of_mem _ (mem_univ i)) }
+      (hw₁.symm ▸ zero_lt_one) (λ i hi, mem_range_self i) }
 end
 
 variable {ι}
@@ -869,7 +870,7 @@ lemma set.finite.convex_hull_eq_image {s : set E} (hs : finite s) :
     (⇑((@finset.univ _ hs.fintype).sum (λ x, (linear_map.proj x : (s → ℝ) →ₗ[ℝ] ℝ).smul_right x.1))) ''
       (@std_simplex _ hs.fintype) :=
 begin
-  rw [← convex_hull_std_basis_eq, ← linear_map.convex_hull_image, image_image, image_univ],
+  rw [← convex_hull_basis_eq_std_simplex, ← linear_map.convex_hull_image, ← range_comp, (∘)],
   apply congr_arg,
   convert (subtype.range_val s).symm,
   ext x,

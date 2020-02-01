@@ -308,34 +308,6 @@ lemma pointwise_mul_image_is_semiring_hom : is_semiring_hom (image f) :=
   map_add := image_union _,
   map_mul := image_pointwise_mul _ }
 
-local attribute [instance] singleton.is_monoid_hom
-
-local attribute instance : has_scalar α α := ⟨λ a x, a * x⟩
-
-local attribute instance : mul_action α α := {
-  mul_smul := monoid.mul_assoc,
-  one_smul := monoid.one_mul,
-}
-
-local attribute [instance] smul_set_action
-
-def pointwise_mul_action : mul_action α (set α) :=
-  by tactic.apply_instance
-
--- check that resolving `mul_action α (set α)` yields an action
--- defined by the same (?) function as what used to be
--- `pointwise_mul_action.smul`.
-example (a : α) (s : set α) : {a} * s = a • s :=
-by { rw smul_set_eq_pointwise_smul_singleton, refl }
-
-lemma mem_smul_set' {a : α} {s : set α} {x : α} :
-  x ∈ a • s ↔ ∃ y ∈ s, x = a * y :=
-by { rw mem_smul_set, refl }
-
-lemma smul_set_eq_image' {a : α} {s : set α} :
-  a • s = (λ b, a * b) '' s :=
-by { rw smul_set_eq_image, refl }
-
 end monoid
 
 end set

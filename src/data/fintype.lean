@@ -43,19 +43,6 @@ by simp [ext]
   {δ : α → Sort*} (f g : Πi, δ i) : univ.piecewise f g = f :=
 by { ext i, simp [piecewise] }
 
-@[to_additive]
-lemma range_prod_eq_univ_prod [comm_monoid β] (n : ℕ) (f : ℕ → β) :
-  (range n).prod f = univ.prod (λ (k : fin n), f k) :=
-begin
-  symmetry,
-  refine prod_bij (λ k hk, k) _ _ _ _,
-  { rintro ⟨k, hk⟩ _, simp * },
-  { rintro ⟨k, hk⟩ _, simp * },
-  { intros, rwa fin.eq_iff_veq },
-  { intros k hk, rw mem_range at hk,
-    exact ⟨⟨k, hk⟩, mem_univ _, rfl⟩ }
-end
-
 end finset
 
 open finset function
@@ -605,6 +592,19 @@ end
 lemma finset.prod_attach_univ [fintype α] [comm_monoid β] (f : {a : α // a ∈ @univ α _} → β) :
   univ.attach.prod (λ x, f x) = univ.prod (λ x, f ⟨x, (mem_univ _)⟩) :=
 prod_bij (λ x _, x.1) (λ _ _, mem_univ _) (λ _ _ , by simp) (by simp) (λ b _, ⟨⟨b, mem_univ _⟩, by simp⟩)
+
+@[to_additive]
+lemma finset.range_prod_eq_univ_prod [comm_monoid β] (n : ℕ) (f : ℕ → β) :
+  (range n).prod f = univ.prod (λ (k : fin n), f k) :=
+begin
+  symmetry,
+  refine prod_bij (λ k hk, k) _ _ _ _,
+  { rintro ⟨k, hk⟩ _, simp * },
+  { rintro ⟨k, hk⟩ _, simp * },
+  { intros, rwa fin.eq_iff_veq },
+  { intros k hk, rw mem_range at hk,
+    exact ⟨⟨k, hk⟩, mem_univ _, rfl⟩ }
+end
 
 section equiv
 

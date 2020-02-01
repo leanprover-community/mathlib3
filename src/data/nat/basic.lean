@@ -1138,7 +1138,7 @@ by rw [←choose_mul_fact_mul_fact hk, mul_assoc]; exact dvd_mul_left _ _
 @[simp] lemma choose_symm {n k : ℕ} (hk : k ≤ n) : choose n (n-k) = choose n k :=
 by rw [choose_eq_fact_div_fact hk, choose_eq_fact_div_fact (sub_le _ _), nat.sub_sub_self hk, mul_comm]
 
-lemma choose_succ_right_eq {n k : ℕ} : choose n (k + 1) * (k + 1) = choose n k * (n - k) :=
+lemma choose_succ_right_eq (n k : ℕ) : choose n (k + 1) * (k + 1) = choose n k * (n - k) :=
 begin
   have e : (n+1) * choose n k = choose n k * (k+1) + choose n (k+1) * (k+1),
     rw [← right_distrib, ← choose_succ_succ, succ_mul_choose_eq],

@@ -157,17 +157,20 @@ lemma bernoulli_def' (n : ℕ) :
   bernoulli n = 1 - finset.univ.sum (λ (k : fin n), (n.choose k) * (bernoulli k) / (n + 1 - k)) :=
 nat.strong_recursion_apply _ _
 
-lemma bernoulli_def (n : ℕ) :
-  bernoulli n = 1 - (finset.range n).sum (λ k, (n.choose k) * (bernoulli k) / (n + 1 - k)) :=
+lemma finset.range_sum_eq_univ_sum {M : Type*} [add_comm_monoid M] (n : ℕ) (f : ℕ → M) :
+  (finset.range n).sum f = finset.univ.sum (λ (k : fin n), f k) :=
 begin
-  rw bernoulli_def',
-  congr' 1,
+  symmetry,
   refine finset.sum_bij (λ k hk, k) _ _ _ _,
   { rintro ⟨k, hk⟩ _, simp * },
   { rintro ⟨k, hk⟩ _, simp * },
   { intros, rwa fin.eq_iff_veq },
   { intros k hk, rw finset.mem_range at hk, exact ⟨⟨k, hk⟩, finset.mem_univ _, rfl⟩, }
 end
+
+lemma bernoulli_def (n : ℕ) :
+  bernoulli n = 1 - (finset.range n).sum (λ k, (n.choose k) * (bernoulli k) / (n + 1 - k)) :=
+by { rw [bernoulli_def', finset.range_sum_eq_univ_sum], refl, }
 
 @[simp] lemma bernoulli_zero  : bernoulli 0 = 1   := rfl
 @[simp] lemma bernoulli_one   : bernoulli 1 = 1/2 := rfl
@@ -187,53 +190,46 @@ begin
     simp, norm_num1, },
 end
 
-
-@[simp] lemma sum_bernoulli (n : ℕ) :
-  (finset.range n).sum (λ k, (n.choose k : ℚ) * bernoulli k) = n :=
-begin
-  induction n with n ih, { simp, },
-  { rw [finset.sum_range_succ'], }
-end
-
-def bernoulli_fun (n : ℕ) (l : list (ℕ × ℚ)) : ℚ :=
-1 - (list.sum $ l.map $ λ ⟨k,B⟩, (n.choose k) * B / (n + 1 - k))
-
-def bernoulli_aux : stream ((ℕ × ℚ) × list (ℕ × ℚ)) :=
-stream.iterate
-  (λ ⟨⟨n, B⟩, l⟩, ((n+1, bernoulli_fun (n+1) ((n, B) :: l)), ((n, B) :: l)))
-  ((0, 1), [])
-
-def bernoulli' (n : ℕ) : ℚ := (bernoulli_aux n).fst.snd
-
-lemma bernoulli_aux_length : ∀ (n : ℕ), (bernoulli_aux n).snd.length = n
+@[simp] lemma nat.choose_succ_self_right : ∀ (n:ℕ), (n+1).choose n = n+1
 | 0     := rfl
-| (n+1) :=
+| (n+1) := by rw [nat.choose_succ_succ, nat.choose_succ_self_right, nat.choose_self]
+
+lemma nat.choose_mul_succ_eq : ∀ (n k : ℕ),
+  (n.choose k) * (n + 1) = ((n+1).choose k) * (n + 1 - k)
+| _ 0 := by simp
+| n (k+1) :=
 begin
-  -- show (stream.nth (n+1) bernoulli_aux).snd.length = n + 1,
-  change list.length (list.cons _) = n+1,
+  by_cases hk : n < k + 1,
+  { rw [nat.choose_eq_zero_of_lt hk, nat.sub_eq_zero_of_le hk, zero_mul, mul_zero] },
+  push_neg at hk,
+  rw nat.choose_succ_succ,
+  rw [add_mul, nat.succ_sub_succ],
+  rw ← nat.choose_succ_right_eq,
+  rw [← nat.succ_sub_succ, nat.mul_sub_left_distrib],
+  symmetry,
+  apply nat.add_sub_cancel',
+  replace hk : k + 1 ≤ n + 1 := le_add_right hk,
+  exact nat.mul_le_mul_left _ hk,
 end
 
 @[simp] lemma sum_bernoulli (n : ℕ) :
   (finset.range n).sum (λ k, (n.choose k : ℚ) * bernoulli k) = n :=
 begin
   induction n with n ih, { simp, },
-  {  }
+  rw [finset.sum_range_succ],
+  rw [nat.choose_succ_self_right],
+  rw [bernoulli_def, mul_sub, mul_one, sub_add_eq_add_sub, sub_eq_iff_eq_add],
+  rw [add_left_cancel_iff, finset.mul_sum, finset.sum_congr rfl],
+  intros k hk, rw finset.mem_range at hk,
+  rw [mul_div_right_comm, ← mul_assoc],
+  congr' 1,
+  rw [← mul_div_assoc, eq_div_iff],
+  { rw [mul_comm ((n+1 : ℕ) : ℚ)],
+    rw_mod_cast nat.choose_mul_succ_eq n k,
+    rw [int.coe_nat_mul],
+    have hk' : k ≤ n + 1, by linarith,
+    rw [int.coe_nat_sub hk', int.sub_nat_nat_eq_coe] },
+  { contrapose! hk with H, rw sub_eq_zero at H, norm_cast at H, omega }
 end
-
-lemma bernoulli_def (n : ℕ) :
-  bernoulli n = 1 - (finset.range n).sum (λ k, (n.choose k) * (bernoulli k) / (n + 1 - k)) :=
-begin
-  induction n with n ih, { refl },
-  rw bernoulli,
-  -- apply nat.strong_induction_on n,
-end
-
-#eval bernoulli_aux 16
--- ((16, -3617/510), [(15, 0), (14, 7/6), (13, 0), (12, -691/2730), (11, 0), (10, 5/66), (9, 0), (8, -1/30), (7, 0), (6, 1/42), (5, 0), (4, -1/30), (3, 0), (2, 1/6), (1, 1/2), (0, 1)]) :=
-
--- lemma bernoulli_zero  : bernoulli 0 = 1   := rfl
--- lemma bernoulli_one   : bernoulli 1 = 1/2 := rfl
--- lemma bernoulli_two   : bernoulli 2 = 1/6 := rfl
--- lemma bernoulli_three : bernoulli 3 = 0   := by norm_num
 
 end bernoulli

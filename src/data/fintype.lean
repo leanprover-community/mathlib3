@@ -43,6 +43,19 @@ by simp [ext]
   {δ : α → Sort*} (f g : Πi, δ i) : univ.piecewise f g = f :=
 by { ext i, simp [piecewise] }
 
+@[to_additive]
+lemma range_prod_eq_univ_prod (n : ℕ) (f : ℕ → β) :
+  (range n).prod f = univ.prod (λ (k : fin n), f k) :=
+begin
+  symmetry,
+  refine prod_bij (λ k hk, k) _ _ _ _,
+  { rintro ⟨k, hk⟩ _, simp * },
+  { rintro ⟨k, hk⟩ _, simp * },
+  { intros, rwa fin.eq_iff_veq },
+  { intros k hk, rw mem_range at hk,
+    exact ⟨⟨k, hk⟩, mem_univ _, rfl⟩ }
+end
+
 end finset
 
 open finset function

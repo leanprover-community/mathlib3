@@ -325,6 +325,19 @@ lemma prod_range_succ' (f : ℕ → β) :
 | (n + 1) := by rw [prod_range_succ (λ m, f (nat.succ m)), mul_assoc, ← prod_range_succ'];
                  exact prod_range_succ _ _
 
+@[to_additive]
+lemma range_prod_eq_univ_prod (n : ℕ) (f : ℕ → β) :
+  (range n).prod f = univ.prod (λ (k : fin n), f k) :=
+begin
+  symmetry,
+  refine prod_bij (λ k hk, k) _ _ _ _,
+  { rintro ⟨k, hk⟩ _, simp * },
+  { rintro ⟨k, hk⟩ _, simp * },
+  { intros, rwa fin.eq_iff_veq },
+  { intros k hk, rw mem_range at hk,
+    exact ⟨⟨k, hk⟩, mem_univ _, rfl⟩ }
+end
+
 lemma sum_Ico_add {δ : Type*} [add_comm_monoid δ] (f : ℕ → δ) (m n k : ℕ) :
   (Ico m n).sum (λ l, f (k + l)) = (Ico (m + k) (n + k)).sum f :=
 Ico.image_add m n k ▸ eq.symm $ sum_image $ λ x hx y hy h, nat.add_left_cancel h

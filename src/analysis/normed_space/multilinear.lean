@@ -132,7 +132,9 @@ end
 
 /-- If `f` satisfies a boundedness property around `0`, one can deduce a bound on `f m₁ - f m₂`
 using the multilinearity. Here, we give a precise but hard to use version. See
-`norm_image_sub_le_of_bound` for a less precise but more usable version. -/
+`norm_image_sub_le_of_bound` for a less precise but more usable version. The bound reads
+`∥f m - f m'∥ ≤ C * ∥m 1 - m' 1∥ * max ∥m 2∥ ∥m' 2∥ * max ∥m 3∥ ∥m' 3∥ * ... * max ∥m n∥ ∥m' n∥ + ...`,
+where the other terms in the sum are the same products where `1` is replaced by any `i`. -/
 lemma norm_image_sub_le_of_bound' {C : ℝ} (hC : 0 ≤ C)
   (H : ∀ m, ∥f m∥ ≤ C * univ.prod (λi, ∥m i∥)) (m₁ m₂ : Πi, E₁ i) :
   ∥f m₁ - f m₂∥ ≤
@@ -173,7 +175,8 @@ end
 
 /-- If `f` satisfies a boundedness property around `0`, one can deduce a bound on `f m₁ - f m₂`
 using the multilinearity. Here, we give a usable but not very precise version. See
-`norm_image_sub_le_of_bound'` for a more precise but less usable version. -/
+`norm_image_sub_le_of_bound'` for a more precise but less usable version. The bound is
+`∥f m - f m'∥ ≤ C * card ι * ∥m - m'∥ * (max ∥m∥ ∥m'∥) ^ (card ι - 1)`. -/
 lemma norm_image_sub_le_of_bound {C : ℝ} (hC : 0 ≤ C)
   (H : ∀ m, ∥f m∥ ≤ C * univ.prod (λi, ∥m i∥)) (m₁ m₂ : Πi, E₁ i) :
   ∥f m₁ - f m₂∥ ≤ C * (fintype.card ι) * (max ∥m₁∥ ∥m₂∥) ^ (fintype.card ι - 1) * ∥m₁ - m₂∥ :=
@@ -370,14 +373,17 @@ instance to_normed_space : normed_space 𝕜 (continuous_multilinear_map 𝕜 E�
 ⟨op_norm_smul⟩
 
 /-- The difference `f m₁ - f m₂` is controlled in terms of `∥f∥` and `∥m₁ - m₂∥`, precise version.
-For a less precise but more usable version, see `norm_image_sub_le_of_bound`. -/
+For a less precise but more usable version, see `norm_image_sub_le_of_bound`. The bound reads
+`∥f m - f m'∥ ≤ ∥f∥ * ∥m 1 - m' 1∥ * max ∥m 2∥ ∥m' 2∥ * max ∥m 3∥ ∥m' 3∥ * ... * max ∥m n∥ ∥m' n∥ + ...`,
+where the other terms in the sum are the same products where `1` is replaced by any `i`.-/
 lemma norm_image_sub_le_of_bound' (m₁ m₂ : Πi, E₁ i) :
   ∥f m₁ - f m₂∥ ≤
   ∥f∥ * univ.sum (λi, univ.prod (λj, if j = i then ∥m₁ i - m₂ i∥ else max ∥m₁ j∥ ∥m₂ j∥)) :=
 f.to_multilinear_map.norm_image_sub_le_of_bound' (norm_nonneg _) f.le_op_norm _ _
 
 /-- The difference `f m₁ - f m₂` is controlled in terms of `∥f∥` and `∥m₁ - m₂∥`, less precise
-version. For a more precise but less usable version, see `norm_image_sub_le_of_bound'`. -/
+version. For a more precise but less usable version, see `norm_image_sub_le_of_bound'`.
+The bound is `∥f m - f m'∥ ≤ ∥f∥ * card ι * ∥m - m'∥ * (max ∥m∥ ∥m'∥) ^ (card ι - 1)`.-/
 lemma norm_image_sub_le_of_bound (m₁ m₂ : Πi, E₁ i) :
   ∥f m₁ - f m₂∥ ≤ ∥f∥ * (fintype.card ι) * (max ∥m₁∥ ∥m₂∥) ^ (fintype.card ι - 1) * ∥m₁ - m₂∥ :=
 f.to_multilinear_map.norm_image_sub_le_of_bound (norm_nonneg _) f.le_op_norm _ _

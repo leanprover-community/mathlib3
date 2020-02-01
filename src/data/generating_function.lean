@@ -14,6 +14,72 @@ import tactic
 
 -/
 
+#check finset.univ
+
+namespace nat -- this has been PR'd
+@[simp] lemma choose_succ_self_right : ∀ (n:ℕ), (n+1).choose n = n+1
+| 0     := rfl
+| (n+1) := by rw [choose_succ_succ, choose_succ_self_right, choose_self]
+
+lemma choose_mul_succ_eq (n k : ℕ) :
+  (n.choose k) * (n + 1) = ((n+1).choose k) * (n + 1 - k) :=
+begin
+  induction k with k ih, { simp },
+  by_cases hk : n < k + 1,
+  { rw [choose_eq_zero_of_lt hk, sub_eq_zero_of_le hk, zero_mul, mul_zero] },
+  push_neg at hk,
+  replace hk : k + 1 ≤ n + 1 := _root_.le_add_right hk,
+  rw [choose_succ_succ],
+  rw [add_mul, succ_sub_succ],
+  rw [← choose_succ_right_eq],
+  rw [← succ_sub_succ, nat.mul_sub_left_distrib],
+  symmetry,
+  apply nat.add_sub_cancel',
+  exact mul_le_mul_left _ hk,
+end
+
+end nat
+-- this is PR'd
+@[simp] lemma units.coe_mk_of_mul_eq_one {G : Type*} [comm_monoid G] {x y : G} (h : x * y = 1) :
+  (units.mk_of_mul_eq_one x y h : G) = x := rfl
+
+namespace power_series
+variables {R : Type*} [comm_semiring R]
+@[simp] lemma power_series.coeff_mul_C (n : ℕ) (φ : power_series R) (r : R) :
+  coeff R n (φ * (C R r)) = (coeff R n φ) * r :=
+begin
+  rw [coeff_mul n φ, finset.sum_eq_single (n,0)],
+  { rw [coeff_C, if_pos rfl] },
+  { rintro ⟨i,j⟩ hij hne,
+    by_cases hj : j = 0,
+    { subst hj, simp at *, contradiction },
+    { simp [coeff_C, hj] } },
+  { intro h, exfalso, apply h, simp },
+end
+
+@[simp] lemma power_series.coeff_succ_mul_X (n : ℕ) (φ : power_series R) :
+  coeff R (n+1) (φ * X) = (coeff R n φ) :=
+begin
+  rw [coeff_mul _ φ, finset.sum_eq_single (n,1)],
+  { rw [coeff_X, if_pos rfl, mul_one] },
+  { rintro ⟨i,j⟩ hij hne,
+    by_cases hj : j = 1,
+    { subst hj, simp at *, contradiction },
+    { simp [coeff_X, hj] } },
+  { intro h, exfalso, apply h, simp },
+end
+
+@[simp] lemma power_series.coeff_zero_mul_X (φ : power_series R) :
+  coeff R 0 (φ * X) = 0 :=
+begin
+  rw [coeff_mul _ φ, finset.sum_eq_zero],
+  rintro ⟨i,j⟩ hij,
+  obtain ⟨rfl, rfl⟩ : i = 0 ∧ j = 0, { simpa using hij },
+  simp,
+end
+
+end power_series
+
 def generating_function {R : Type*} [comm_semiring R] (a : ℕ → R) :
   power_series R :=
 power_series.mk a
@@ -38,42 +104,6 @@ funext $ λ n, one_pow n
 
 section
 open power_series
-
-@[simp] lemma units.coe_mk_of_mul_eq_one {G : Type*} [comm_monoid G] {x y : G} (h : x * y = 1) :
-  (units.mk_of_mul_eq_one x y h : G) = x := rfl
-
-@[simp] lemma power_series.coeff_mul_C {R : Type*} [comm_semiring R] (n : ℕ) (φ : power_series R) (r : R) :
-  coeff R n (φ * (C R r)) = (coeff R n φ) * r :=
-begin
-  rw [coeff_mul n φ, finset.sum_eq_single (n,0)],
-  { rw [coeff_C, if_pos rfl] },
-  { rintro ⟨i,j⟩ hij hne,
-    by_cases hj : j = 0,
-    { subst hj, simp at *, contradiction },
-    { simp [coeff_C, hj] } },
-  { intro h, exfalso, apply h, simp },
-end
-
-@[simp] lemma power_series.coeff_succ_mul_X {R : Type*} [comm_semiring R] (n : ℕ) (φ : power_series R) :
-  coeff R (n+1) (φ * X) = (coeff R n φ) :=
-begin
-  rw [coeff_mul _ φ, finset.sum_eq_single (n,1)],
-  { rw [coeff_X, if_pos rfl, mul_one] },
-  { rintro ⟨i,j⟩ hij hne,
-    by_cases hj : j = 1,
-    { subst hj, simp at *, contradiction },
-    { simp [coeff_X, hj] } },
-  { intro h, exfalso, apply h, simp },
-end
-
-@[simp] lemma power_series.coeff_zero_mul_X {R : Type*} [comm_semiring R] (φ : power_series R) :
-  coeff R 0 (φ * X) = 0 :=
-begin
-  rw [coeff_mul _ φ, finset.sum_eq_zero],
-  rintro ⟨i,j⟩ hij,
-  obtain ⟨rfl, rfl⟩ : i = 0 ∧ j = 0, { simpa using hij },
-  simp,
-end
 
 lemma generating_function_geometric_sequence {K : Type*} [discrete_field K] (x : K) :
   generating_function (geometric_sequence x) = (1 - C K x * X)⁻¹ :=
@@ -147,6 +177,21 @@ end
 
 end nat
 
+namespace finset -- this has been PR'd
+variables  {β : Type*} [comm_monoid β]
+@[to_additive]
+lemma range_prod_eq_univ_prod (n : ℕ) (f : ℕ → β) :
+  (range n).prod f = univ.prod (λ (k : fin n), f k) :=
+begin
+  symmetry,
+  refine prod_bij (λ k hk, k) _ _ _ _,
+  { rintro ⟨k, hk⟩ _, simp * },
+  { rintro ⟨k, hk⟩ _, simp * },
+  { intros, rwa fin.eq_iff_veq },
+  { intros k hk, rw mem_range at hk, exact ⟨⟨k, hk⟩, mem_univ _, rfl⟩, }
+end
+end finset
+
 section bernoulli
 
 def bernoulli : ℕ → ℚ :=
@@ -156,17 +201,6 @@ nat.strong_recursion $ λ n bernoulli,
 lemma bernoulli_def' (n : ℕ) :
   bernoulli n = 1 - finset.univ.sum (λ (k : fin n), (n.choose k) * (bernoulli k) / (n + 1 - k)) :=
 nat.strong_recursion_apply _ _
-
-lemma finset.range_sum_eq_univ_sum {M : Type*} [add_comm_monoid M] (n : ℕ) (f : ℕ → M) :
-  (finset.range n).sum f = finset.univ.sum (λ (k : fin n), f k) :=
-begin
-  symmetry,
-  refine finset.sum_bij (λ k hk, k) _ _ _ _,
-  { rintro ⟨k, hk⟩ _, simp * },
-  { rintro ⟨k, hk⟩ _, simp * },
-  { intros, rwa fin.eq_iff_veq },
-  { intros k hk, rw finset.mem_range at hk, exact ⟨⟨k, hk⟩, finset.mem_univ _, rfl⟩, }
-end
 
 lemma bernoulli_def (n : ℕ) :
   bernoulli n = 1 - (finset.range n).sum (λ k, (n.choose k) * (bernoulli k) / (n + 1 - k)) :=
@@ -190,32 +224,10 @@ begin
     simp, norm_num1, },
 end
 
-@[simp] lemma nat.choose_succ_self_right : ∀ (n:ℕ), (n+1).choose n = n+1
-| 0     := rfl
-| (n+1) := by rw [nat.choose_succ_succ, nat.choose_succ_self_right, nat.choose_self]
-
-lemma nat.choose_mul_succ_eq : ∀ (n k : ℕ),
-  (n.choose k) * (n + 1) = ((n+1).choose k) * (n + 1 - k)
-| _ 0 := by simp
-| n (k+1) :=
-begin
-  by_cases hk : n < k + 1,
-  { rw [nat.choose_eq_zero_of_lt hk, nat.sub_eq_zero_of_le hk, zero_mul, mul_zero] },
-  push_neg at hk,
-  rw nat.choose_succ_succ,
-  rw [add_mul, nat.succ_sub_succ],
-  rw ← nat.choose_succ_right_eq,
-  rw [← nat.succ_sub_succ, nat.mul_sub_left_distrib],
-  symmetry,
-  apply nat.add_sub_cancel',
-  replace hk : k + 1 ≤ n + 1 := le_add_right hk,
-  exact nat.mul_le_mul_left _ hk,
-end
-
 @[simp] lemma sum_bernoulli (n : ℕ) :
   (finset.range n).sum (λ k, (n.choose k : ℚ) * bernoulli k) = n :=
 begin
-  induction n with n ih, { simp, },
+  induction n with n ih, { simp },
   rw [finset.sum_range_succ],
   rw [nat.choose_succ_self_right],
   rw [bernoulli_def, mul_sub, mul_one, sub_add_eq_add_sub, sub_eq_iff_eq_add],

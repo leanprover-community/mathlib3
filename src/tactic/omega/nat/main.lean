@@ -16,7 +16,7 @@ namespace nat
 
 open_locale omega.nat
 
-mk_simp_attribute sugar_nat none
+run_cmd mk_simp_attr `sugar_nat
 
 attribute [sugar_nat]
   ne not_le not_lt
@@ -39,7 +39,7 @@ begin
   apply preform.sat_of_implies_of_sat implies_neg_elim h2,
 end
 
-/-- Return the expr of the proof that the given preterm is subtraction-free -/
+/-- Return expr of proof that argument is free of subtractions -/
 meta def preterm.prove_sub_free : preterm → tactic expr
 | (& m)    := return `(trivial)
 | (m ** n) := return `(trivial)
@@ -50,8 +50,8 @@ meta def preterm.prove_sub_free : preterm → tactic expr
        (preterm.sub_free %%`(s)) %%x %%y)
 | (_ -* _) := failed
 
-/-- Return the expr of the proof that the given formula is negation-free -/
-meta def prove_neg_free : form → tactic expr
+/-- Return expr of proof that argument is free of negations -/
+meta def prove_neg_free : preform → tactic expr
 | (t =* s) := return `(trivial)
 | (t ≤* s) := return `(trivial)
 | (p ∨* q) :=
@@ -66,8 +66,8 @@ meta def prove_neg_free : form → tactic expr
        (preform.neg_free %%`(q)) %%x %%y)
 | _        := failed
 
-/-- Return the expr of the proof that the given formula is subtraction-free -/
-meta def prove_sub_free : form → tactic expr
+/-- Return expr of proof that argument is free of subtractions -/
+meta def prove_sub_free : preform → tactic expr
 | (t =* s) :=
   do x ← preterm.prove_sub_free t,
      y ← preterm.prove_sub_free s,
@@ -111,13 +111,11 @@ meta def prove_univ_close (m : nat) (p : preform) : tactic expr :=
 do x ← prove_unsat_neg_free (neg_elim (¬*p)),
    to_expr ``(univ_close_of_unsat_neg_elim_not %%`(m) %%`(p) %%x)
 
-/-- Preliminary reification pass which processes operators and
-    variables, but retains everything else as exprs -/
-meta def to_preterm : expr → tactic preterm
-| (expr.var k) := return (preterm.var 1 k)
-| `(%%(expr.var k) * %%mx) :=
-  do m ← eval_expr' nat mx,
-     return (preterm.var m k)
+/-- Reification to imtermediate shadow syntax that retains exprs -/
+meta def to_exprterm : expr → tactic exprterm
+| `(%%x * %%y) :=
+  do m ← eval_expr' nat y,
+     return (exprterm.exp m x)
 | `(%%t1x + %%t2x) :=
   do t1 ← to_exprterm t1x,
      t2 ← to_exprterm t2x,
@@ -130,8 +128,8 @@ meta def to_preterm : expr → tactic preterm
   do m ← eval_expr' nat mx,
      return (preterm.cst m)
 
-/-- Reification to LNA shadow syntax for quantifier-free body of input formula -/
-meta def to_form_core : expr → tactic form
+/-- Reification to imtermediate shadow syntax that retains exprs -/
+meta def to_exprform : expr → tactic exprform
 | `(%%tx1 = %%tx2) :=
   do t1 ← to_exprterm tx1,
      t2 ← to_exprterm tx2,
@@ -152,12 +150,14 @@ meta def to_form_core : expr → tactic form
 | `(_ → %%px) := to_exprform px
 | x := trace "Cannot reify expr : " >> trace x >> failed
 
+/-- List of all unreified exprs -/
 meta def exprterm.exprs : exprterm → list expr
 | (exprterm.cst _)   := []
 | (exprterm.exp _ x) := [x]
 | (exprterm.add t s) := list.union t.exprs s.exprs
 | (exprterm.sub t s) := list.union t.exprs s.exprs
 
+/-- List of all unreified exprs -/
 meta def exprform.exprs : exprform → list expr
 | (exprform.eq t s)  := list.union t.exprs s.exprs
 | (exprform.le t s)  := list.union t.exprs s.exprs
@@ -165,6 +165,8 @@ meta def exprform.exprs : exprform → list expr
 | (exprform.or p q)  := list.union p.exprs q.exprs
 | (exprform.and p q) := list.union p.exprs q.exprs
 
+/-- Reification to an intermediate shadow syntax which eliminates exprs,
+    but still includes non-canonical terms -/
 meta def exprterm.to_preterm (xs : list expr) : exprterm → tactic preterm
 | (exprterm.cst k)   := return & k
 | (exprterm.exp k x) :=
@@ -181,6 +183,8 @@ meta def exprterm.to_preterm (xs : list expr) : exprterm → tactic preterm
      b ← xb.to_preterm,
      return (a -* b)
 
+/-- Reification to an intermediate shadow syntax which eliminates exprs,
+    but still includes non-canonical terms -/
 meta def exprform.to_preform (xs : list expr) : exprform → tactic preform
 | (exprform.eq xa xb)  :=
    do a ← xa.to_preterm xs,
@@ -202,19 +206,24 @@ meta def exprform.to_preform (xs : list expr) : exprform → tactic preform
      q ← xq.to_preform,
      return (p ∧* q)
 
+/-- Reification to an intermediate shadow syntax which eliminates exprs,
+    but still includes non-canonical terms. -/
 meta def to_preform (x : expr) : tactic (preform × nat) :=
 do xf ← to_exprform x,
    let xs := xf.exprs,
    f ← xf.to_preform xs,
    return (f, xs.length)
 
+/-- Return expr of proof of current LNA goal -/
 meta def prove : tactic expr :=
 do (p,m) ← target >>= to_preform,
    prove_univ_close m p
 
+/-- Succeed iff argument is expr of ℕ -/
 meta def eq_nat (x : expr) : tactic unit :=
 if x = `(nat) then skip else failed
 
+/-- Check whether argument is expr of a well-formed formula of LNA-/
 meta def wff : expr → tactic unit
 | `(¬ %%px)      := wff px
 | `(%%px ∨ %%qx) := wff px >> wff qx
@@ -235,9 +244,11 @@ meta def wff : expr → tactic unit
 | `(false)                   := skip
 | _                          := failed
 
+/-- Succeed iff argument is expr of term whose type is wff -/
 meta def wfx (x : expr) : tactic unit :=
 infer_type x >>= wff
 
+/-- Intro all universal quantifiers over nat -/
 meta def intro_nats_core : tactic unit :=
 do x ← target,
    match x with

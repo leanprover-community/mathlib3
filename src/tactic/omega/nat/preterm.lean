@@ -39,12 +39,11 @@ localized "notation t ` -* ` s := omega.nat.preterm.sub t s" in omega.nat
 
 namespace preterm
 
-instance : has_zero preterm := ⟨cst 0⟩
-instance : inhabited preterm := ⟨0⟩
-
+/-- Helper tactic for proof by induction over preterms -/
 meta def induce (tac : tactic unit := tactic.skip) : tactic unit :=
 `[ intro t, induction t with m m n t s iht ihs t s iht ihs; tac]
 
+/-- Preterm evaluation -/
 def val (v : nat → nat) : preterm → nat
 | (& i) := i
 | (i ** n) :=
@@ -71,6 +70,7 @@ end
 @[simp] lemma val_sub {v : nat → nat} {t s : preterm} :
   (t -* s).val v = t.val v - s.val v := rfl
 
+/-- Fresh de Brujin index not used by any variable in argument -/
 def fresh_index : preterm → nat
 | (& _)      := 0
 | (i ** n)   := n + 1
@@ -116,6 +116,7 @@ def repr : preterm → string
 
 @[simp] def add_one (t : preterm) : preterm := t +* (&1)
 
+/-- Preterm is free of subtractions -/
 def sub_free : preterm → Prop
 | (& m)    := true
 | (m ** n) := true
@@ -126,6 +127,8 @@ end preterm
 
 open_locale list.func -- get notation for list.func.set
 
+/-- Return a term (which is in canonical form by definition)
+    that is equivalent to the input preterm -/
 @[simp] def canonize : preterm → term
 | (& m)    := ⟨↑m, []⟩
 | (m ** n) := ⟨0, [] {n ↦ ↑m}⟩

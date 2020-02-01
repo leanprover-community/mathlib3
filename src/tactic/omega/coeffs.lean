@@ -16,6 +16,10 @@ open list.func
 
 variable {v : nat → int}
 
+
+/-- `val_between v as l o` is the value (under valuation `v`) of the term
+    obtained taking the term represented by `(0, as)` and dropping all
+    subterms that include variables outside the range `[l,l+o)` -/
 @[simp] def val_between (v : nat → int) (as : list int) (l : nat) : nat → int
 | 0     := 0
 | (o+1) := (val_between o) + (get (l+o) as * v (l+o))
@@ -27,6 +31,7 @@ variable {v : nat → int}
   by simp only [val_between_nil m, omega.coeffs.val_between,
      get_nil, zero_add, zero_mul, int.default_eq_zero]
 
+/-- Evaluation of the nonconstant component of a normalized linear arithmetic term. -/
 def val (v : nat → int) (as : list int) : int :=
 val_between v as 0 as.length
 
@@ -163,6 +168,9 @@ begin
   apply le_max_right
 end
 
+/-- `val_except k v as` is the value (under valuation `v`) of the term
+    obtained taking the term represented by `(0, as)` and dropping the
+    subterm that includes the `k`th variable. -/
 def val_except (k : nat) (v : nat → int) (as) :=
 val_between v as 0 k + val_between v as (k+1) (as.length - (k+1))
 

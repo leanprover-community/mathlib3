@@ -12,6 +12,9 @@ namespace int
 
 open_locale omega.int
 
+/-- push_neg p returns the result of normalizing ¬ p by
+    pushing the outermost negation all the way down,
+    until it reaches either a negation or an atom -/
 @[simp] def push_neg : preform → preform
 | (p ∨* q) := (push_neg p) ∧* (push_neg q)
 | (p ∧* q) := (push_neg p) ∨* (push_neg q)
@@ -27,6 +30,7 @@ begin
   { simp only [preform.holds, push_neg, classical.not_and_distrib, ihp v, ihq v] }
 end
 
+/-- NNF transformation -/
 def nnf : preform → preform
 | (¬* p)   := push_neg (nnf p)
 | (p ∨* q) := (nnf p) ∨* (nnf q)
@@ -50,6 +54,7 @@ begin
   { cases h1, constructor; [{apply ihp}, {apply ihq}]; assumption }
 end
 
+/-- Argument is free of negations -/
 def neg_free : preform → Prop
 | (t =* s) := true
 | (t ≤* s) := true
@@ -74,6 +79,7 @@ begin
   { apply pred_mono_2' (ihp v) (ihq v) }
 end
 
+/-- Eliminate all negations from preform -/
 @[simp] def neg_elim : preform → preform
 | (¬* (t =* s)) := (t.add_one ≤* s) ∨* (s.add_one ≤* t)
 | (¬* (t ≤* s)) := s.add_one ≤* t
@@ -125,6 +131,7 @@ end
 | (t ≤* s) := [([],[term.sub (canonize s) (canonize t)])]
 | (¬* _)   := []
 
+/-- DNF transformation -/
 def dnf (p : preform) : list clause :=
 dnf_core $ neg_elim $ nnf p
 

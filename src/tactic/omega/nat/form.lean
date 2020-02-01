@@ -10,6 +10,7 @@ namespace omega
 
 namespace nat
 
+/-- Intermediate shadow syntax for LNA formulas that includes unreified exprs -/
 meta inductive exprform
 | eq  : exprterm → exprterm → exprform
 | le  : exprterm → exprterm → exprform
@@ -17,6 +18,7 @@ meta inductive exprform
 | or  : exprform → exprform → exprform
 | and : exprform → exprform → exprform
 
+/-- Intermediate shadow syntax for LNA formulas that includes non-canonical terms -/
 @[derive has_reflect]
 inductive preform
 | eq  : preterm → preterm → preform
@@ -43,20 +45,22 @@ namespace preform
 
 end preform
 
+/-- univ_close p n := p closed by prepending n universal quantifiers -/
 @[simp] def univ_close (p : preform) : (nat → nat) → nat → Prop
 | v 0     := p.holds v
 | v (k+1) := ∀ i : nat, univ_close (update_zero i v) k
 
 namespace preform
 
-/-- Asserts that the given formula is negation-free -/
-def neg_free : form → Prop
+/-- Argument is free of negations -/
+def neg_free : preform → Prop
 | (t =* s) := true
 | (t ≤* s) := true
 | (p ∨* q) := neg_free p ∧ neg_free q
 | (p ∧* q) := neg_free p ∧ neg_free q
 | _        := false
 
+/-- Return expr of proof that argument is free of subtractions -/
 def sub_free : preform → Prop
 | (t =* s) := t.sub_free ∧ s.sub_free
 | (t ≤* s) := t.sub_free ∧ s.sub_free
@@ -64,9 +68,8 @@ def sub_free : preform → Prop
 | (p ∨* q) := p.sub_free ∧ q.sub_free
 | (p ∧* q) := p.sub_free ∧ q.sub_free
 
-/-- Return the de Brujin index of a fresh variable that does not
-    occur anywhere in a given LNA formula -/
-def fresh_index : form → nat
+/-- Fresh de Brujin index not used by any variable in argument -/
+def fresh_index : preform → nat
 | (t =* s) := max t.fresh_index s.fresh_index
 | (t ≤* s) := max t.fresh_index s.fresh_index
 | (¬* p)   := p.fresh_index
@@ -115,22 +118,20 @@ lemma holds_constant {v w : nat → nat} :
     apply le_max_left, apply le_max_right
   end
 
-/-- An LNA formula is valid if it holds under all valuations -/
-def valid (p : form) : Prop :=
+/-- All valuations satisfy argument -/
+def valid (p : preform) : Prop :=
 ∀ v, holds v p
 
- /-- An LNA formula is satisfiable if it holds under some valuation  -/
-def sat (p : form) : Prop :=
+/-- There exists some valuation that satisfies argument -/
+def sat (p : preform) : Prop :=
 ∃ v, holds v p
 
-/-- An LNA formula p implies to another LNA formula q if,
-    under any valuation, q holds whenever p holds  -/
-def implies (p q : form) : Prop :=
+/-- implies p q := under any valuation, q holds if p holds -/
+def implies (p q : preform) : Prop :=
 ∀ v, (holds v p → holds v q)
 
-/-- An LNA formula p is equivalent to another LNA formula q if,
-    under any valuation, p holds iff and only if q holds  -/
-def equiv (p q : form) : Prop :=
+/-- equiv p q := under any valuation, p holds iff q holds -/
+def equiv (p q : preform) : Prop :=
 ∀ v, (holds v p ↔ holds v q)
 
 lemma sat_of_implies_of_sat {p q : preform} :
@@ -147,8 +148,8 @@ begin
     refine ⟨v,_⟩; [left,right]; assumption }
 end
 
-/-- A LNA formula is unsatisfiable if does not hold under any valuation -/
-def unsat (p : form) : Prop := ¬ sat p
+/-- There does not exist any valuation that satisfies argument -/
+def unsat (p : preform) : Prop := ¬ sat p
 
 /-- repr for LNA formulas -/
 def repr : form → string

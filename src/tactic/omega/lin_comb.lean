@@ -8,6 +8,10 @@ import tactic.omega.clause
 
 namespace omega
 
+/-- Linear combination of constraints. The second
+    argument is the list of constraints, and the first
+    argument is the list of conefficients by which the
+    constraints are multiplied -/
 @[simp] def lin_comb : list nat → list term → term
 | [] []     := ⟨0,[]⟩
 | [] (_::_) := ⟨0,[]⟩
@@ -31,6 +35,8 @@ lemma lin_comb_holds {v : nat → int} :
     simpa only [lin_comb, term.val_mul, term.val_add],
   end
 
+/-- `unsat_lin_comb ns ts` asserts that the linear combination
+    `lin_comb ns ts` is unsatisfiable  -/
 def unsat_lin_comb (ns : list nat) (ts : list term) : Prop :=
 (lin_comb ns ts).fst < 0 ∧ ∀ x ∈ (lin_comb ns ts).snd, x = (0 : int)
 

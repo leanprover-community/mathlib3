@@ -59,12 +59,14 @@ meta def form_domain : expr → tactic (option bool)
 meta def goal_domain_aux (x : expr) : tactic bool :=
 (omega.int.wff x >> return tt) <|> (omega.nat.wff x >> return ff)
 
-/-- Determine whether the domain is ℤ or ℕ from the context -/
+/-- Use the current goal to determine.
+    Return tt if the domain is ℤ, and return ff if it is ℕ -/
 meta def goal_domain : tactic bool :=
 do gx ← target,
    hxs ← local_context >>= monad.mapm infer_type,
    app_first goal_domain_aux (gx::hxs)
 
+/-- Return tt if the domain is ℤ, and return ff if it is ℕ -/
 meta def determine_domain (opt : list name) : tactic bool :=
 if `int ∈ opt
 then return tt

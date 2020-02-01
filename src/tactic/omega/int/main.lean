@@ -43,23 +43,26 @@ meta def prove_univ_close (m : nat) (p : preform) : tactic expr :=
 do x ← prove_unsats (dnf (¬*p)),
    return `(univ_close_of_unsat_clausify %%`(m) %%`(p) %%x)
 
-/-- Reification to LIA terms -/
-meta def to_preterm : expr → tactic preterm
-| (expr.var k) := return (preterm.var 1 k)
-| `(-%%(expr.var k)) := return (preterm.var (-1 : int) k)
-| `(%%(expr.var k) * %%zx) :=
+/-- Reification to imtermediate shadow syntax that retains exprs -/
+meta def to_exprterm : expr → tactic exprterm
+| `(- %%x) := --return (exprterm.exp (-1 : int) x)
+  ( do z ← eval_expr' int x,
+       return (exprterm.cst (-z : int)) ) <|>
+  ( return $ exprterm.exp (-1 : int) x )
+| `(%%mx * %%zx) :=
   do z ← eval_expr' int zx,
      return (exprterm.exp z mx)
 | `(%%t1x + %%t2x) :=
-  do t1 ← to_preterm t1x,
-     t2 ← to_preterm t2x,
-     return (preterm.add t1 t2)
-| zx :=
-  do z ← eval_expr' int zx,
-     return (preterm.cst z)
+  do t1 ← to_exprterm t1x,
+     t2 ← to_exprterm t2x,
+     return (exprterm.add t1 t2)
+| x :=
+  ( do z ← eval_expr' int x,
+       return (exprterm.cst z) ) <|>
+  ( return $ exprterm.exp 1 x )
 
-/-- Reification to LIA shadow syntax for quantifier-free body of input formula -/
-meta def to_form_core : expr → tactic form
+/-- Reification to imtermediate shadow syntax that retains exprs -/
+meta def to_exprform : expr → tactic exprform
 | `(%%tx1 = %%tx2) :=
   do t1 ← to_exprterm tx1,
      t2 ← to_exprterm tx2,
@@ -81,11 +84,13 @@ meta def to_form_core : expr → tactic form
 | `(_ → %%px) := to_exprform px
 | x := trace "Cannot reify expr : " >> trace x >> failed
 
+/-- List of all unreified exprs -/
 meta def exprterm.exprs : exprterm → list expr
 | (exprterm.cst _)   := []
 | (exprterm.exp _ x) := [x]
 | (exprterm.add t s) := list.union t.exprs s.exprs
 
+/-- List of all unreified exprs -/
 meta def exprform.exprs : exprform → list expr
 | (exprform.eq t s)  := list.union t.exprs s.exprs
 | (exprform.le t s)  := list.union t.exprs s.exprs
@@ -93,6 +98,8 @@ meta def exprform.exprs : exprform → list expr
 | (exprform.or p q)  := list.union p.exprs q.exprs
 | (exprform.and p q) := list.union p.exprs q.exprs
 
+/-- Reification to an intermediate shadow syntax which eliminates exprs,
+    but still includes non-canonical terms -/
 meta def exprterm.to_preterm (xs : list expr) : exprterm → tactic preterm
 | (exprterm.cst k)   := return & k
 | (exprterm.exp k x) :=
@@ -105,6 +112,8 @@ meta def exprterm.to_preterm (xs : list expr) : exprterm → tactic preterm
      b ← xb.to_preterm,
      return (a +* b)
 
+/-- Reification to an intermediate shadow syntax which eliminates exprs,
+    but still includes non-canonical terms -/
 meta def exprform.to_preform (xs : list expr) : exprform → tactic preform
 | (exprform.eq xa xb)  :=
    do a ← xa.to_preterm xs,
@@ -126,19 +135,24 @@ meta def exprform.to_preform (xs : list expr) : exprform → tactic preform
      q ← xq.to_preform,
      return (p ∧* q)
 
+/-- Reification to an intermediate shadow syntax which eliminates exprs,
+    but still includes non-canonical terms. -/
 meta def to_preform (x : expr) : tactic (preform × nat) :=
 do xf ← to_exprform x,
    let xs := xf.exprs,
    f ← xf.to_preform xs,
    return (f, xs.length)
 
+/-- Return expr of proof of current LIA goal -/
 meta def prove : tactic expr :=
 do (p,m) ← target >>= to_preform,
    prove_univ_close m p
 
+/-- Succeed iff argument is the expr of ℤ -/
 meta def eq_int (x : expr) : tactic unit :=
 if x = `(int) then skip else failed
 
+/-- Check whether argument is expr of a well-formed formula of LIA-/
 meta def wff : expr → tactic unit
 | `(¬ %%px)      := wff px
 | `(%%px ∨ %%qx) := wff px >> wff qx
@@ -159,9 +173,11 @@ meta def wff : expr → tactic unit
 | `(false)                   := skip
 | _                          := failed
 
+/-- Succeed iff argument is expr of term whose type is wff -/
 meta def wfx (x : expr) : tactic unit :=
 infer_type x >>= wff
 
+/-- Intro all universal quantifiers over ℤ -/
 meta def intro_ints_core : tactic unit :=
 do x ← target,
    match x with

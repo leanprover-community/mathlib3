@@ -15,14 +15,14 @@ open_locale omega.nat
 
 namespace preterm
 
-/-- If the preterm includes substitutions, return the substitution operands -/
+/-- Find subtraction inside preterm and return its operands -/
 def sub_terms : preterm → option (preterm × preterm)
 | (& i)      := none
 | (i ** n)   := none
 | (t +* s) := t.sub_terms <|> s.sub_terms
 | (t -* s) := t.sub_terms <|> s.sub_terms <|> some (t,s)
 
-/-- Find all occurrences of (t - s) and substitute with constant k -/
+/-- Find (t - s) inside a preterm and replace it with variable k -/
 def sub_subst (t s : preterm) (k : nat) : preterm → preterm
 | t@(& m)    := t
 | t@(m ** n) := t
@@ -64,6 +64,7 @@ end preterm
 
 namespace preform
 
+/-- Find subtraction inside preform and return its operands -/
 def sub_terms : preform → option (preterm × preterm)
 | (t =* s) := t.sub_terms <|> s.sub_terms
 | (t ≤* s) := t.sub_terms <|> s.sub_terms
@@ -71,6 +72,7 @@ def sub_terms : preform → option (preterm × preterm)
 | (p ∨* q) := p.sub_terms <|> q.sub_terms
 | (p ∧* q) := p.sub_terms <|> q.sub_terms
 
+/-- Find (t - s) inside a preform and replace it with variable k -/
 @[simp] def sub_subst (x y : preterm) (k : nat) : preform → preform
 | (t =* s) := preterm.sub_subst x y k t =* preterm.sub_subst x y k s
 | (t ≤* s) := preterm.sub_subst x y k t ≤* preterm.sub_subst x y k s
@@ -80,6 +82,8 @@ def sub_terms : preform → option (preterm × preterm)
 
 end preform
 
+/-- Preform which asserts that the value of variable k is
+    the truncated difference between preterms t and s -/
 def is_diff (t s : preterm) (k : nat) : preform :=
 ((t =* (s +* (1 ** k))) ∨* (t ≤* s ∧* ((1 ** k) =* &0)))
 
@@ -96,12 +100,16 @@ begin
     rw not_le at h2, apply le_of_lt h2 }
 end
 
+/-- Helper function for sub_elim -/
 def sub_elim_core (t s : preterm) (k : nat) (p : preform) : preform :=
 (preform.sub_subst t s k p) ∧* (is_diff t s k)
 
+/-- Return de Brujin index of fresh variable that does not occur
+    in any of the arguments -/
 def sub_fresh_index (t s : preterm) (p : preform) : nat :=
 max p.fresh_index (max t.fresh_index s.fresh_index)
 
+/-- Return a new preform with all subtractions eliminated -/
 def sub_elim (t s : preterm) (p : preform) : preform :=
 sub_elim_core t s (sub_fresh_index t s p) p
 

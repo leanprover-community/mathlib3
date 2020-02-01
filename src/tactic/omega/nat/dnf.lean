@@ -60,6 +60,7 @@ end
 def term.vars_core (is : list int) : list bool :=
 is.map (λ i, if i = 0 then ff else tt)
 
+/-- Return a list of bools that encodes which variables have nonzero coefficients -/
 def term.vars (t : term) : list bool :=
 term.vars_core t.snd
 
@@ -68,6 +69,7 @@ def bools.or : list bool → list bool → list bool
 | bs1       []        := bs1
 | (b1::bs1) (b2::bs2) := (b1 || b2)::(bools.or bs1 bs2)
 
+/-- Return a list of bools that encodes which variables have nonzero coefficients in any one of the input terms -/
 def terms.vars : list term → list bool
 | []      := []
 | (t::ts) := bools.or (term.vars t) (terms.vars ts)
@@ -88,6 +90,7 @@ let ys := terms.vars les in
 let bs := bools.or xs ys in
 (eqs, nonneg_consts bs ++ les)
 
+/-- DNF transformation -/
 def dnf (p : preform) : list clause :=
 (dnf_core p).map nonnegate
 

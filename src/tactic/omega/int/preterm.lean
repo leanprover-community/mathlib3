@@ -34,10 +34,7 @@ localized "notation t `+*` s := omega.int.preterm.add t s" in omega.int
 
 namespace preterm
 
-instance : has_zero preterm := ⟨cst 0⟩
-instance : inhabited preterm := ⟨0⟩
-
-/-- Evaluation of preterms -/
+/-- Preterm evaluation -/
 @[simp] def val (v : nat → int) : preterm → int
 | (& i) := i
 | (i ** n) :=
@@ -48,6 +45,7 @@ instance : inhabited preterm := ⟨0⟩
        else (v n) * i
 | (t1 +* t2) := t1.val + t2.val
 
+/-- Fresh de Brujin index not used by any variable in argument -/
 def fresh_index : preterm → nat
 | (& _) := 0
 | (i ** n) := n + 1
@@ -64,6 +62,8 @@ end preterm
 
 open_locale list.func -- get notation for list.func.set
 
+/-- Return a term (which is in canonical form by definition)
+    that is equivalent to the input preterm -/
 @[simp] def canonize : preterm → term
 | (& i)      := ⟨i, []⟩
 | (i ** n)   := ⟨0, [] {n ↦ i}⟩

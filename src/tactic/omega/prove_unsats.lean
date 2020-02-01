@@ -13,6 +13,7 @@ namespace omega
 
 open tactic
 
+/-- Return expr of proof that given int is negative -/
 meta def prove_neg : int → tactic expr
 | (int.of_nat _) := failed
 | -[1+ m] := return `(int.neg_succ_lt_zero %%`(m))
@@ -21,9 +22,12 @@ lemma forall_mem_repeat_zero_eq_zero (m : nat) :
   (∀ x ∈ (list.repeat (0 : int) m), x = (0 : int)) :=
 λ x, list.eq_of_mem_repeat
 
+/-- Return expr of proof that elements of (repeat 0 is.length) are all 0 -/
 meta def prove_forall_mem_eq_zero (is : list int) : tactic expr :=
 return `(forall_mem_repeat_zero_eq_zero is.length)
 
+/-- Return expr of proof that the combination of linear constraints
+    represented by ks and ts is unsatisfiable -/
 meta def prove_unsat_lin_comb (ks : list nat) (ts : list term) : tactic expr :=
 let ⟨b,as⟩ := lin_comb ks ts in
 do x1 ← prove_neg b,

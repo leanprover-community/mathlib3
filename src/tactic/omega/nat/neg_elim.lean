@@ -11,6 +11,9 @@ namespace nat
 
 open_locale omega.nat
 
+/-- push_neg p returns the result of normalizing ¬ p by
+    pushing the outermost negation all the way down,
+    until it reaches either a negation or an atom -/
 @[simp] def push_neg : preform → preform
 | (p ∨* q) := (push_neg p) ∧* (push_neg q)
 | (p ∧* q) := (push_neg p) ∨* (push_neg q)
@@ -26,12 +29,14 @@ begin
   { simp only [preform.holds, push_neg, classical.not_and_distrib, ihp v, ihq v] }
 end
 
+/-- NNF transformation -/
 def nnf : preform → preform
 | (¬* p)   := push_neg (nnf p)
 | (p ∨* q) := (nnf p) ∨* (nnf q)
 | (p ∧* q) := (nnf p) ∧* (nnf q)
 | a        := a
 
+/-- Asserts that the given preform is in NNF -/
 def is_nnf : preform → Prop
 | (t =* s) := true
 | (t ≤* s) := true
@@ -108,6 +113,7 @@ begin
   apply and.imp (ihp _) (ihq _) h
 end
 
+/-- Eliminate all negations in a preform -/
 def neg_elim : preform → preform := neg_elim_core ∘ nnf
 
 lemma neg_free_neg_elim {p : preform} : (neg_elim p).neg_free :=

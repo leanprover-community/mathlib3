@@ -8,7 +8,9 @@ import tactic.omega.coeffs
 
 namespace omega
 
-@[derive inhabited]
+/-- Shadow syntax of normalized terms. The first element
+    represents the constant term and the list represents
+    the coefficients. -/
 def term : Type := int × list int
 
 namespace term
@@ -72,6 +74,7 @@ begin
   rw ← coeffs.val_map_div h2
 end
 
+/-- Fresh de Brujin index not used by any variable ocurring in the term -/
 def fresh_index (t : term) : nat := t.snd.length
 
 def to_string (t : term) : string :=
@@ -82,6 +85,7 @@ instance : has_to_string term := ⟨to_string⟩
 
 end term
 
+/-- Fresh de Brujin index not used by any variable ocurring in the list of terms -/
 def terms.fresh_index : list term → nat
 | []      := 0
 | (t::ts) := max t.fresh_index (terms.fresh_index ts)

@@ -55,6 +55,8 @@ def const (α) {β} [measurable_space α] (b : β) : α →ₛ β :=
 ⟨λ a, b, λ x, is_measurable.const _,
   finite_subset (set.finite_singleton b) $ by rintro _ ⟨a, rfl⟩; simp⟩
 
+instance [inhabited β] : inhabited (α →ₛ β) := ⟨const _ (default _)⟩
+
 @[simp] theorem const_apply (a : α) (b : β) : (const α b) a = b := rfl
 
 lemma range_const (α) [measurable_space α] [ne : nonempty α] (b : β) :
@@ -538,7 +540,7 @@ calc f.integral ≤ f.integral ⊔ g.integral : le_sup_left
   ... ≤ (f ⊔ g).integral : integral_sup_le _ _
   ... = g.integral : by rw [sup_of_le_right h]
 
-lemma integral_congr (f g : α →ₛ ennreal) (h : {a | f a = g a} ∈ (@measure_space.μ α _).a_e) :
+lemma integral_congr (f g : α →ₛ ennreal) (h : ∀ₘ a, f a = g a) :
   f.integral = g.integral :=
 show ((pair f g).map prod.fst).integral = ((pair f g).map prod.snd).integral, from
 begin
@@ -695,13 +697,13 @@ begin
   refine le_antisymm
     (supr_le $ assume s, supr_le $ assume hs, _)
     (supr_le $ assume s, supr_le $ assume hs, le_supr_of_le (s.map c) $ le_supr _ hs),
-  by_cases {a | s a ≠ ⊤} ∈ (@measure_space.μ α _).a_e,
+  by_cases ∀ₘ a, s a ≠ ⊤,
   { have : f ≥ (s.map ennreal.to_nnreal).map c :=
       le_trans (assume a, ennreal.coe_to_nnreal_le_self) hs,
     refine le_supr_of_le (s.map ennreal.to_nnreal) (le_supr_of_le this (le_of_eq $ integral_congr _ _ _)),
     exact filter.mem_sets_of_superset h (assume a ha, (ennreal.coe_to_nnreal ha).symm) },
   { have h_vol_s : volume {a : α | s a = ⊤} ≠ 0,
-    { simp [measure.a_e, set.compl_set_of] at h, assumption },
+    { simp [measure_theory.all_ae_iff, set.compl_set_of] at h, assumption },
     let n : ℕ → (α →ₛ nnreal) := λn, restrict (const α (n : nnreal)) (s ⁻¹' {⊤}),
     have n_le_s : ∀i, (n i).map c ≤ s,
     { assume i a,
@@ -1164,8 +1166,8 @@ end
 lemma tendsto_lintegral_filter_of_dominated_convergence {ι} {l : filter ι}
   {F : ι → α → ennreal} {f : α → ennreal} (bound : α → ennreal)
   (hl_cb : l.has_countable_basis)
-  (hF_meas : { n | measurable (F n) } ∈ l)
-  (h_bound : { n | ∀ₘ a, F n a ≤ bound a } ∈ l)
+  (hF_meas : ∀ᶠ n in l, measurable (F n))
+  (h_bound : ∀ᶠ n in l, ∀ₘ a, F n a ≤ bound a)
   (h_fin : lintegral bound < ⊤)
   (h_lim : ∀ₘ a, tendsto (λ n, F n a) l (nhds (f a))) :
   tendsto (λn, lintegral (F n)) l (nhds (lintegral f)) :=

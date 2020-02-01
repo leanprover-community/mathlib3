@@ -51,6 +51,8 @@ Or the zero if n is 0. -/
 
 namespace csring_expr
 
+instance : inhabited csring_expr := ⟨const 0⟩
+
 /-- Evaluates a reflected `csring_expr` into an element of the
 original `comm_semiring` type `α`, retrieving opaque elements
 (atoms) from the tree `t`. -/
@@ -87,6 +89,7 @@ def is_cs : horner_expr → Prop
 
 instance : has_zero horner_expr := ⟨const 0⟩
 instance : has_one horner_expr := ⟨const 1⟩
+instance : inhabited horner_expr := ⟨0⟩
 
 /-- Represent a `csring_expr.atom` in Horner form. -/
 def atom (n : pos_num) : horner_expr := horner 1 n 1 0

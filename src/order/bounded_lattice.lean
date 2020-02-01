@@ -350,6 +350,8 @@ meta instance {α} [has_to_format α] : has_to_format (with_bot α) :=
 instance : has_coe_t α (with_bot α) := ⟨some⟩
 instance has_bot : has_bot (with_bot α) := ⟨none⟩
 
+instance : inhabited (with_bot α) := ⟨⊥⟩
+
 lemma none_eq_bot : (none : with_bot α) = (⊥ : with_bot α) := rfl
 lemma some_eq_coe (a : α) : (some a : with_bot α) = (↑a : with_bot α) := rfl
 
@@ -530,6 +532,8 @@ meta instance {α} [has_to_format α] : has_to_format (with_top α) :=
 
 instance : has_coe_t α (with_top α) := ⟨some⟩
 instance has_top : has_top (with_top α) := ⟨none⟩
+
+instance : inhabited (with_top α) := ⟨⊤⟩
 
 lemma none_eq_top : (none : with_top α) = (⊤ : with_top α) := rfl
 lemma some_eq_coe (a : α) : (some a : with_top α) = (↑a : with_top α) := rfl

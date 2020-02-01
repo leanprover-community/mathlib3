@@ -36,7 +36,7 @@ then the identities from `E` to `E'` and from `E'`to `E` are continuous thanks t
 `linear_map.continuous_of_finite_dimensional`. This gives the desired norm equivalence.
 -/
 
-universes u v w
+universes u v w x
 
 open set finite_dimensional
 open_locale classical
@@ -51,7 +51,8 @@ set_option class.instance_max_depth 100
 
 /-- A linear map on `ι → 𝕜` (where `ι` is a fintype) is continuous -/
 lemma linear_map.continuous_on_pi {ι : Type w} [fintype ι] {𝕜 : Type u} [normed_field 𝕜]
-  {E : Type v} [normed_group E] [normed_space 𝕜 E] (f : (ι → 𝕜) →ₗ[𝕜] E) : continuous f :=
+  {E : Type v}  [add_comm_group E] [vector_space 𝕜 E] [topological_space E]
+  [topological_add_group E] [topological_vector_space 𝕜 E] (f : (ι → 𝕜) →ₗ[𝕜] E) : continuous f :=
 begin
   -- for the proof, write `f` in the standard basis, and use that each coordinate is a continuous
   -- function.
@@ -68,6 +69,8 @@ section complete_field
 variables {𝕜 : Type u} [nondiscrete_normed_field 𝕜]
 {E : Type v} [normed_group E] [normed_space 𝕜 E]
 {F : Type w} [normed_group F] [normed_space 𝕜 F]
+{F' : Type x} [add_comm_group F'] [vector_space 𝕜 F'] [topological_space F']
+[topological_add_group F'] [topological_vector_space 𝕜 F']
 [complete_space 𝕜]
 
 set_option class.instance_max_depth 150
@@ -157,7 +160,7 @@ begin
 end
 
 /-- Any linear map on a finite dimensional space over a complete field is continuous. -/
-theorem linear_map.continuous_of_finite_dimensional [finite_dimensional 𝕜 E] (f : E →ₗ[𝕜] F) :
+theorem linear_map.continuous_of_finite_dimensional [finite_dimensional 𝕜 E] (f : E →ₗ[𝕜] F') :
   continuous f :=
 begin
   -- for the proof, go to a model vector space `b → 𝕜` thanks to `continuous_equiv_fun_basis`, and
@@ -177,7 +180,7 @@ begin
 end
 
 /-- The continuous linear map induced by a linear map on a finite dimensional space -/
-def linear_map.to_continuous_linear_map [finite_dimensional 𝕜 E] (f : E →ₗ[𝕜] F) : E →L[𝕜] F :=
+def linear_map.to_continuous_linear_map [finite_dimensional 𝕜 E] (f : E →ₗ[𝕜] F') : E →L[𝕜] F' :=
 { cont := f.continuous_of_finite_dimensional, ..f }
 
 /-- The continuous linear equivalence induced by a linear equivalence on a finite dimensional space. -/

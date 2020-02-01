@@ -137,10 +137,11 @@ section expression
   The modifications might be caching of the result of `expr.of_rat`,
   or using a different meta representation of numerals.
 -/
-@[derive decidable_eq]
+@[derive decidable_eq, derive inhabited]
 structure coeff : Type := (value : ℚ)
 
 /-- The values in `ex_type` are used as parameters to `ex` to control the expression's structure. -/
+@[derive decidable_eq, derive inhabited]
 inductive ex_type : Type
 | base : ex_type
 | sum : ex_type

@@ -56,7 +56,7 @@ def normed_group.of_add_dist' [has_norm α] [add_comm_group α] [metric_space α
 
 /-- A normed group can be built from a norm that satisfies algebraic properties. This is
 formalised in this structure. -/
-structure normed_group.core (α : Type*) [add_comm_group α] [has_norm α] :=
+structure normed_group.core (α : Type*) [add_comm_group α] [has_norm α] : Prop :=
 (norm_eq_zero_iff : ∀ x : α, ∥x∥ = 0 ↔ x = 0)
 (triangle : ∀ x y : α, ∥x + y∥ ≤ ∥x∥ + ∥y∥)
 (norm_neg : ∀ x : α, ∥-x∥ = ∥x∥)
@@ -190,7 +190,7 @@ calc
   ... < ∥g∥ + r : by { apply add_lt_add_left, rw ← dist_eq_norm, exact H }
 
 theorem normed_group.tendsto_nhds_zero {f : γ → α} {l : filter γ} :
-  tendsto f l (𝓝 0) ↔ ∀ ε > 0, { x | ∥ f x ∥ < ε } ∈ l :=
+  tendsto f l (𝓝 0) ↔ ∀ ε > 0, ∀ᶠ x in l, ∥ f x ∥ < ε :=
 metric.tendsto_nhds.trans $ forall_congr $ λ ε, forall_congr $ λ εgt0,
 begin
   simp only [dist_zero_right],
@@ -305,9 +305,9 @@ tendsto.comp continuous_nnnorm.continuous_at h
 /-- If `∥y∥→∞`, then we can assume `y≠x` for any fixed `x`. -/
 lemma ne_mem_of_tendsto_norm_at_top {l : filter γ} {f : γ → α}
   (h : tendsto (λ y, ∥f y∥) l at_top) (x : α) :
-  {y | f y ≠ x} ∈ l :=
+  ∀ᶠ y in l, f y ≠ x :=
 begin
-  have : {y | 1 + ∥x∥ ≤ ∥f y∥} ∈ l := h (mem_at_top (1 + ∥x∥)),
+  have : ∀ᶠ y in l, 1 + ∥x∥ ≤ ∥f y∥ := h (mem_at_top (1 + ∥x∥)),
   apply mem_sets_of_superset this,
   assume y hy hxy,
   subst x,

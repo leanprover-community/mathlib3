@@ -387,6 +387,12 @@ by simp only [subset_iff, mem_inter] {contextual:=tt}; intros; split; trivial
 
 @[simp] lemma coe_inter (s₁ s₂ : finset α) : ↑(s₁ ∩ s₂) = (↑s₁ ∩ ↑s₂ : set α) := set.ext $ λ _, mem_inter
 
+@[simp] theorem union_inter_cancel_left {s t : finset α} : (s ∪ t) ∩ s = s :=
+by rw [← coe_inj, coe_inter, coe_union, set.union_inter_cancel_left]
+
+@[simp] theorem union_inter_cancel_right {s t : finset α} : (s ∪ t) ∩ t = t :=
+by rw [← coe_inj, coe_inter, coe_union, set.union_inter_cancel_right]
+
 @[simp] theorem inter_comm (s₁ s₂ : finset α) : s₁ ∩ s₂ = s₂ ∩ s₁ :=
 ext.2 $ λ _, by simp only [mem_inter, and_comm]
 
@@ -728,8 +734,11 @@ theorem filter_union_right (p q : α → Prop) [decidable_pred p] [decidable_pre
   s.filter p ∪ s.filter q = s.filter (λx, p x ∨ q x) :=
 ext.2 $ λ x, by simp only [mem_filter, mem_union, and_or_distrib_left.symm]
 
+lemma filter_mem_eq_inter {s t : finset α} : s.filter (λ i, i ∈ t) = s ∩ t :=
+ext' $ λ i, by rw [mem_filter, mem_inter]
+
 theorem filter_inter {s t : finset α} : filter p s ∩ t = filter p (s ∩ t) :=
-by {ext, simp [and_assoc], rw [and.left_comm] }
+by { ext, simp only [mem_inter, mem_filter, and.right_comm] }
 
 theorem inter_filter {s t : finset α} : s ∩ filter p t = filter p (s ∩ t) :=
 by rw [inter_comm, filter_inter, inter_comm]
@@ -791,6 +800,11 @@ noncomputable instance {α : Type*} : has_sep α (finset α) := ⟨λ p x, x.fil
 
 end classical
 
+/--
+  After filtering out everything that does not equal a given value, at most that value remains.
+
+  This is equivalent to `filter_eq'` with the equality the other way.
+-/
 -- This is not a good simp lemma, as it would prevent `finset.mem_filter` from firing
 -- on, e.g. `x ∈ s.filter(eq b)`.
 lemma filter_eq [decidable_eq β] (s : finset β) (b : β) :
@@ -804,6 +818,15 @@ begin
     simp only [mem_filter, not_and, iff_false, not_mem_empty],
     rintros m ⟨e⟩, exact h m, }
 end
+
+/--
+  After filtering out everything that does not equal a given value, at most that value remains.
+
+  This is equivalent to `filter_eq` with the equality the other way.
+-/
+lemma filter_eq' [decidable_eq β] (s : finset β) (b : β) :
+  s.filter (λ a, a = b) = ite (b ∈ s) {b} ∅ :=
+trans (filter_congr (λ _ _, ⟨eq.symm, eq.symm⟩)) (filter_eq s b)
 
 end filter
 

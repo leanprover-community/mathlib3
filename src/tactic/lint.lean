@@ -20,6 +20,7 @@ The following linters are run by default:
 4. `illegal_constant` checks whether ≥/> is used in the declaration.
 5. `instance_priority` checks that instances that always apply have priority below default.
 6. `doc_blame` checks for missing doc strings on definitions and constants.
+7. `has_inhabited_instance` checks whether every type has an associated `inhabited` instance.
 
 Another linter, `doc_blame_thm`, checks for missing doc strings on lemmas and theorems.
 This is not run by default.
@@ -67,6 +68,7 @@ meta def nolint_attr : user_attribute :=
 
 attribute [nolint] imp_intro
   classical.dec classical.dec_pred classical.dec_rel classical.dec_eq
+  pempty -- has no inhabited instance
 
 /--
 A linting test for the `#lint` command.
@@ -330,6 +332,33 @@ meta def linter.doc_blame_thm : linter :=
 { test := doc_blame_report_thm,
   no_errors_found := "No theorems are missing documentation.",
   errors_found := "THEOREMS ARE MISSING DOCUMENTATION STRINGS",
+  is_fast := ff }
+
+/-- Reports declarations of types that do not have an associated `inhabited` instance. -/
+meta def has_inhabited_instance (d : declaration) : tactic (option string) := do
+tt ← pure d.is_trusted | pure none,
+ff ← has_attribute' `reducible d.to_name | pure none,
+ff ← has_attribute' `class d.to_name | pure none,
+(_, ty) ← mk_local_pis d.type,
+ty ← whnf ty,
+if ty = `(Prop) then pure none else do
+`(Sort _) ← whnf ty | pure none,
+insts ← attribute.get_instances `instance,
+insts_tys ← insts.mmap $ λ i, expr.pi_codomain <$> declaration.type <$> get_decl i,
+let inhabited_insts := insts_tys.filter (λ i,
+  i.app_fn.const_name = ``inhabited ∨ i.app_fn.const_name = `unique),
+let inhabited_tys := inhabited_insts.map (λ i, i.app_arg.get_app_fn.const_name),
+if d.to_name ∈ inhabited_tys then
+  pure none
+else
+  pure "inhabited instance missing"
+
+/-- A linter for missing `inhabited` instances. -/
+@[linter, priority 1440]
+meta def linter.has_inhabited_instance : linter :=
+{ test := has_inhabited_instance,
+  no_errors_found := "No types have missing inhabited instances.",
+  errors_found := "TYPES ARE MISSING INHABITED INSTANCES",
   is_fast := ff }
 
 /-- `get_checks slow extra use_only` produces a list of linters.

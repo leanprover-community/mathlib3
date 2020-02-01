@@ -224,6 +224,8 @@ instance : module R (multilinear_map R M₁ M₂) :=
 module.of_core $ by refine { smul := (•), ..};
   intros; ext; simp [smul_add, add_smul, smul_smul]
 
+instance : inhabited (multilinear_map R M₁ M₂) := ⟨0⟩
+
 end comm_ring
 
 end multilinear_map

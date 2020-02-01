@@ -44,7 +44,7 @@ by simp [ext]
 by { ext i, simp [piecewise] }
 
 @[to_additive]
-lemma range_prod_eq_univ_prod (n : ℕ) (f : ℕ → β) :
+lemma range_prod_eq_univ_prod [comm_monoid β] (n : ℕ) (f : ℕ → β) :
   (range n).prod f = univ.prod (λ (k : fin n), f k) :=
 begin
   symmetry,

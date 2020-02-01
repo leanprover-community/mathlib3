@@ -1200,6 +1200,10 @@ lemma subsingleton_empty : (∅ : set α).subsingleton := λ x y hx hy, hx.elim
 lemma subsingleton_singleton {a} : ({a} : set α).subsingleton :=
 λ x y hx hy, (eq_of_mem_singleton hx).symm ▸ (eq_of_mem_singleton hy).symm ▸ rfl
 
+lemma subsingleton.eq_empty_or_singleton (hs : s.subsingleton) :
+  s = ∅ ∨ ∃ x, s = {x} :=
+s.eq_empty_or_nonempty.elim or.inl (λ ⟨x, hx⟩, or.inr ⟨x, hs.eq_singleton_of_mem hx⟩)
+
 theorem univ_eq_true_false : univ = ({true, false} : set Prop) :=
 eq.symm $ eq_univ_of_forall $ classical.cases (by simp) (by simp)
 

@@ -421,7 +421,7 @@ is_open_iff.2 $ λ y, exists_ball_subset_ball
 theorem ball_mem_nhds (x : α) {ε : ℝ} (ε0 : 0 < ε) : ball x ε ∈ 𝓝 x :=
 mem_nhds_sets is_open_ball (mem_ball_self ε0)
 
-@[nolint]
+@[nolint] -- see Note [nolint_ge]
 theorem mem_nhds_within_iff {t : set α} : s ∈ nhds_within x t ↔ ∃ε>0, ball x ε ∩ t ⊆ s :=
 begin
   rw [mem_nhds_within_iff_exists_mem_nhds_inter],
@@ -433,7 +433,7 @@ begin
     exact ⟨ball x ε, ball_mem_nhds x ε_pos, H⟩ }
 end
 
-@[nolint]
+@[nolint] -- see Note [nolint_ge]
 theorem tendsto_nhds_within_nhds_within [metric_space β] {t : set β} {f : α → β} {a b} :
   tendsto f (nhds_within a s) (nhds_within b t) ↔
     ∀ ε > 0, ∃ δ > 0, ∀{x:α}, x ∈ s → dist x a < δ → f x ∈ t ∧ dist (f x) b < ε :=
@@ -451,19 +451,19 @@ begin
     exact ⟨δ, δ_pos, λx hx, hε ⟨(hδ hx.2 hx.1).2, (hδ hx.2 hx.1).1⟩⟩ }
 end
 
-@[nolint]
+@[nolint] -- see Note [nolint_ge]
 theorem tendsto_nhds_within_nhds [metric_space β] {f : α → β} {a b} :
   tendsto f (nhds_within a s) (𝓝 b) ↔
     ∀ ε > 0, ∃ δ > 0, ∀{x:α}, x ∈ s → dist x a < δ → dist (f x) b < ε :=
 by { rw [← nhds_within_univ, tendsto_nhds_within_nhds_within], simp }
 
-@[nolint]
+@[nolint] -- see Note [nolint_ge]
 theorem tendsto_nhds_nhds [metric_space β] {f : α → β} {a b} :
   tendsto f (𝓝 a) (𝓝 b) ↔
     ∀ ε > 0, ∃ δ > 0, ∀{x:α}, dist x a < δ → dist (f x) b < ε :=
 by { rw [← nhds_within_univ, ← nhds_within_univ, tendsto_nhds_within_nhds_within], simp }
 
-@[nolint]
+@[nolint] -- see Note [nolint_ge]
 theorem continuous_at_iff [metric_space β] {f : α → β} {a : α} :
   continuous_at f a ↔
     ∀ ε > 0, ∃ δ > 0, ∀{x:α}, dist x a < δ → dist (f x) (f a) < ε :=

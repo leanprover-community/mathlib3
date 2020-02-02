@@ -25,7 +25,7 @@ coordinate. Here, `M₁ i` and `M₂` are modules over a ring `R`, and `ι` is a
   `f (m + m')` as the sum over all subsets `s` of `ι` of `f (s.piecewise m m')`.
 
 We also register isomorphisms corresponding to currying or uncurrying variables, transforming a
-multilinear function `f` on `n+1` variable into a linear function taking values in multilinear
+multilinear function `f` on `n+1` variables into a linear function taking values in multilinear
 functions in `n` variables, and into a multilinear function in `n` variables taking values in linear
 functions. These operations are called `f.curry_left` and `f.curry_right` respectively
 (with inverses `f.uncurry_left` and `f.uncurry_right`). These operations induce linear equivalences
@@ -249,7 +249,7 @@ begin
 end
 
 variables (R n M₂)
-/-- Multilinear maps on `R^n` with values in `M₂` are in bijection in `M₂`, as such a multilinear
+/-- Multilinear maps on `R^n` with values in `M₂` are in bijection with `M₂`, as such a multilinear
 map is completely determined by its value on the constant vector made of ones. We register this
 bijection as a linear equivalence in `multilinear_map.pi_ring_equiv`. -/
 protected def pi_ring_equiv : M₂ ≃ₗ[R] (multilinear_map R (λ(i : fin n), R) M₂) :=
@@ -270,7 +270,7 @@ section currying
 
 We associate to a multilinear map in `n+1` variables (i.e., based on `fin n.succ`) two
 curried functions, named `f.curry_left` (which is a linear map on `E 0` taking values
-in multilinear maps in `n` variables) and `f.curry_right (wich is a multilinear map in `n`
+in multilinear maps in `n` variables) and `f.curry_right` (wich is a multilinear map in `n`
 variables taking values in linear maps on `E 0`). In both constructions, the variable that is
 singled out is `0`, to take advantage of the operations `cons` and `tail` on `fin n`.
 The inverse operations are called `uncurry_left` and `uncurry_right`.

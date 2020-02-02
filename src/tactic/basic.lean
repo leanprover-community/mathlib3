@@ -20,6 +20,7 @@ import
   tactic.restate_axiom
   tactic.rewrite
   tactic.lint
+  tactic.simp_rw
   tactic.simpa
   tactic.simps
   tactic.split_ifs

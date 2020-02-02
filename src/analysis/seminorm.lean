@@ -32,7 +32,7 @@ family of seminorms,
 
 -/
 
-local attribute [instance] set.scale_set set.scale_set_action
+local attribute [instance] set.smul_set set.smul_set_action
 open set normed_field
 
 
@@ -60,10 +60,10 @@ variables {𝕜} {A : set E}
 /-- a balanced set absorbs itself. -/
 lemma absorbs_self_of_balanced (hA : balanced 𝕜 A) : absorbs 𝕜 A A :=
 begin
-  use [1, zero_lt_one], intros a ha x hx, rw mem_scale_set_iff_inv_smul_mem, 
+  use [1, zero_lt_one], intros a ha x hx, rw mem_smul_set_iff_inv_smul_mem, 
   show a ≠ 0, from λ h, by rw [h, norm_zero] at ha; linarith,
   have : a⁻¹ • A ⊆ A, from hA _ (by rw norm_inv; exact inv_le_one ha),
-  exact this (smul_mem_scale_set _ hx),
+  exact this (smul_mem_smul_set _ hx),
 end
 
 -- balanced and absorbing sets in a t.v.s:
@@ -85,7 +85,7 @@ begin
     rw [metric.mem_ball, dist_eq_norm, sub_zero, norm_inv],
     calc _ ≤ r/2 : (inv_le (half_pos hr₁) ha₂).1 ha₁
        ... < r : half_lt_self hr₁ }),
-  rw [mem_scale_set_iff_inv_smul_mem ((norm_pos_iff _).1 ha₂)],
+  rw [mem_smul_set_iff_inv_smul_mem ((norm_pos_iff _).1 ha₂)],
   exact hw₁ ha₃,
 end
 
@@ -99,7 +99,7 @@ lemma balanced_zero_union_interior (hA : balanced 𝕜 A) :
   balanced 𝕜 ({(0 : E)} ∪ interior A) :=
 λ a ha, or.elim (classical.em (a = 0))
   (λ heq, begin
-    rw [heq, zero_scale_set],
+    rw [heq, zero_smul_set],
     apply subset_union_left {(0 : E)},
     exact ne_empty_of_mem (mem_union_left _ (mem_singleton _)),
   end)
@@ -108,9 +108,9 @@ lemma balanced_zero_union_interior (hA : balanced 𝕜 A) :
       (subset_interior_iff_subset_of_open
         (is_open_map_smul_of_ne_zero hne _ (is_open_interior))).2
           (image_subset _ interior_subset),
-    rw [scale_set_eq_image, image_union, image_singleton, smul_zero],
+    rw [smul_set_eq_image, image_union, image_singleton, smul_zero],
     apply union_subset_union (subset.refl _),
-    calc _ ⊆ interior (a • A) : by rwa [scale_set_eq_image]
+    calc _ ⊆ interior (a • A) : by rwa [smul_set_eq_image]
     ...    ⊆ _                : interior_mono (hA _ ha)
   end)
 
@@ -128,7 +128,7 @@ lemma balanced_closure (hA : balanced 𝕜 A) : balanced 𝕜 (closure A) :=
 begin
   intros a ha,
   have : a • (closure A) ⊆ closure (a • A),
-    by rw [scale_set_eq_image, scale_set_eq_image]; exact
+    by rw [smul_set_eq_image, smul_set_eq_image]; exact
     image_closure_subset_closure_image
       (continuous.smul continuous_const continuous_id),
   exact subset.trans this (closure_mono (hA _ ha)),

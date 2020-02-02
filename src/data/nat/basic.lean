@@ -1138,11 +1138,32 @@ by rw [←choose_mul_fact_mul_fact hk, mul_assoc]; exact dvd_mul_left _ _
 @[simp] lemma choose_symm {n k : ℕ} (hk : k ≤ n) : choose n (n-k) = choose n k :=
 by rw [choose_eq_fact_div_fact hk, choose_eq_fact_div_fact (sub_le _ _), nat.sub_sub_self hk, mul_comm]
 
-lemma choose_succ_right_eq {n k : ℕ} : choose n (k + 1) * (k + 1) = choose n k * (n - k) :=
+lemma choose_succ_right_eq (n k : ℕ) : choose n (k + 1) * (k + 1) = choose n k * (n - k) :=
 begin
   have e : (n+1) * choose n k = choose n k * (k+1) + choose n (k+1) * (k+1),
     rw [← right_distrib, ← choose_succ_succ, succ_mul_choose_eq],
   rw [← nat.sub_eq_of_eq_add e, mul_comm, ← nat.mul_sub_left_distrib, nat.add_sub_add_right]
+end
+
+@[simp] lemma choose_succ_self_right : ∀ (n:ℕ), (n+1).choose n = n+1
+| 0     := rfl
+| (n+1) := by rw [choose_succ_succ, choose_succ_self_right, choose_self]
+
+lemma choose_mul_succ_eq (n k : ℕ) :
+  (n.choose k) * (n + 1) = ((n+1).choose k) * (n + 1 - k) :=
+begin
+  induction k with k ih, { simp },
+  by_cases hk : n < k + 1,
+  { rw [choose_eq_zero_of_lt hk, sub_eq_zero_of_le hk, zero_mul, mul_zero] },
+  push_neg at hk,
+  replace hk : k + 1 ≤ n + 1 := _root_.le_add_right hk,
+  rw [choose_succ_succ],
+  rw [add_mul, succ_sub_succ],
+  rw [← choose_succ_right_eq],
+  rw [← succ_sub_succ, nat.mul_sub_left_distrib],
+  symmetry,
+  apply nat.add_sub_cancel',
+  exact mul_le_mul_left _ hk,
 end
 
 section find_greatest

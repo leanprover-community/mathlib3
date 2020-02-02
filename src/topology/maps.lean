@@ -211,6 +211,15 @@ begin
     exact h _ (filter.image_mem_map $ mem_nhds_sets hs ha) }
 end
 
+lemma is_open_map_iff_interior : is_open_map f ↔
+  ∀ (s : set α), f '' (interior s) ⊆ interior (f '' s) :=
+iff.intro
+(λ hf s, interior_maximal
+  (image_subset _ interior_subset) (hf _ is_open_interior))
+(λ hs u hu, have hs₂ : _, from hs u,
+  interior_eq_iff_open.1 $ subset.antisymm
+  interior_subset (by rwa interior_eq_of_open hu at hs₂))
+
 end is_open_map
 
 namespace is_open_map
@@ -256,6 +265,15 @@ section is_closed_map
 variables [topological_space α] [topological_space β]
 
 def is_closed_map (f : α → β) := ∀ U : set α, is_closed U → is_closed (f '' U)
+
+lemma is_closed_map_iff_closure (f : α → β) : is_closed_map f ↔
+  ∀ (s : set α), closure (f '' s) ⊆ f '' closure s :=
+iff.intro
+(λ hf s, closure_minimal
+  (image_subset _ subset_closure) (hf _ is_closed_closure))
+(λ hs c hc, have hc₂ : _, from hs c,
+  closure_eq_iff_is_closed.1 $ subset.antisymm
+  (by rwa closure_eq_of_is_closed hc at hc₂) subset_closure)
 
 end is_closed_map
 

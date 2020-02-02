@@ -226,21 +226,22 @@ instance : module R (multilinear_map R M₁ M₂) :=
 module.of_core $ by refine { smul := (•), ..};
   intros; ext; simp [smul_add, add_smul, smul_smul]
 
-variables (R n)
+variables (R ι)
 
-/-- The canonical multilinear map on `R^n`, associating to `m` the product of all the `m i`
-(multiplied by a fixed reference element `z` in the target module) -/
-protected def mk_pi_ring (z : M₂) : multilinear_map R (λ(i : fin n), R) M₂ :=
+/-- The canonical multilinear map on `R^ι` when `ι` is finite, associating to `m` the product of
+all the `m i` (multiplied by a fixed reference element `z` in the target module) -/
+protected def mk_pi_ring [fintype ι] (z : M₂) : multilinear_map R (λ(i : ι), R) M₂ :=
 { to_fun := λm, finset.univ.prod m • z,
-  add := λ m i x y, by simp [finset.prod_update_of_mem, add_mul, add_smul],
-  smul := λ m i x c, by { rw [smul_eq_mul], simp [finset.prod_update_of_mem, smul_smul, mul_assoc] } }
+  add    := λ m i x y, by simp [finset.prod_update_of_mem, add_mul, add_smul],
+  smul   := λ m i x c, by { rw [smul_eq_mul], simp [finset.prod_update_of_mem, smul_smul, mul_assoc] } }
 
-@[simp] lemma mk_pi_ring_apply (z : M₂) (m : fin n → R) :
-  (multilinear_map.mk_pi_ring R n z : (fin n → R) → M₂) m = finset.univ.prod m • z := rfl
+variables {R ι}
 
-variables {R n}
-lemma mk_pi_ring_apply_one_eq_self (f : multilinear_map R (λ(i : fin n), R) M₂) :
-  multilinear_map.mk_pi_ring R n (f (λi, 1)) = f :=
+@[simp] lemma mk_pi_ring_apply [fintype ι] (z : M₂) (m : ι → R) :
+  (multilinear_map.mk_pi_ring R ι z : (ι → R) → M₂) m = finset.univ.prod m • z := rfl
+
+lemma mk_pi_ring_apply_one_eq_self [fintype ι]  (f : multilinear_map R (λ(i : ι), R) M₂) :
+  multilinear_map.mk_pi_ring R ι (f (λi, 1)) = f :=
 begin
   ext m,
   have : m = (λi, m i • 1), by { ext j, simp },
@@ -248,12 +249,12 @@ begin
   refl
 end
 
-variables (R n M₂)
-/-- Multilinear maps on `R^n` with values in `M₂` are in bijection with `M₂`, as such a multilinear
-map is completely determined by its value on the constant vector made of ones. We register this
-bijection as a linear equivalence in `multilinear_map.pi_ring_equiv`. -/
-protected def pi_ring_equiv : M₂ ≃ₗ[R] (multilinear_map R (λ(i : fin n), R) M₂) :=
-{ to_fun    := λ z, multilinear_map.mk_pi_ring R n z,
+variables (R ι M₂)
+/-- When `ι` is finite, multilinear maps on `R^ι` with values in `M₂` are in bijection with `M₂`,
+as such a multilinear map is completely determined by its value on the constant vector made of ones.
+We register this bijection as a linear equivalence in `multilinear_map.pi_ring_equiv`. -/
+protected def pi_ring_equiv [fintype ι]  : M₂ ≃ₗ[R] (multilinear_map R (λ(i : ι), R) M₂) :=
+{ to_fun    := λ z, multilinear_map.mk_pi_ring R ι z,
   inv_fun   := λ f, f (λi, 1),
   add       := λ z z', by { ext m, simp [smul_add] },
   smul      := λ c z, by { ext m, simp [smul_smul, mul_comm] },

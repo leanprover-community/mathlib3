@@ -6,7 +6,7 @@ Author: Leonardo de Moura, Mario Carneiro
 Type class for encodable Types.
 Note that every encodable Type is countable.
 -/
-import data.equiv.nat
+import data.equiv.nat order.order_iso
 open option list nat function
 
 /-- An encodable type is a "constructively countable" type. This is where
@@ -287,6 +287,21 @@ theorem skolem {α : Type*} {β : α → Type*} {P : Π x, β x → Prop}
   [c : Π a, encodable (β a)] [d : ∀ x y, decidable (P x y)] :
   (∀x, ∃y, P x y) ↔ ∃f : Π a, β a, (∀x, P x (f x)) :=
 ⟨axiom_of_choice, λ ⟨f, H⟩ x, ⟨_, H x⟩⟩
+
+/-
+There is a total ordering on the elements of an encodable type, induced by the map to ℕ.
+-/
+
+/-- The `encode` function, viewed as an embedding. -/
+def encode' (α) [encodable α] : α ↪ nat :=
+⟨encodable.encode, encodable.encode_injective⟩
+
+instance {α} [encodable α] : is_trans _ (encode' α ⁻¹'o (≤)) :=
+(order_embedding.preimage _ _).is_trans
+instance {α} [encodable α] : is_antisymm _ (encodable.encode' α ⁻¹'o (≤)) :=
+(order_embedding.preimage _ _).is_antisymm
+instance {α} [encodable α] : is_total _ (encodable.encode' α ⁻¹'o (≤)) :=
+(order_embedding.preimage _ _).is_total
 
 end encodable
 

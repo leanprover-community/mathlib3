@@ -196,7 +196,9 @@ meta def add_edge (g : impl_graph) : expr → tactic unit | p :=
 do t ← infer_type p,
    match t with
    | `(%%v₀ → %%v₁) :=
-     do m ← read_ref g,
+     do is_prop v₀ >>= guardb,
+        is_prop v₁ >>= guardb,
+        m ← read_ref g,
         let xs := (m.find v₀).get_or_else [],
         let xs' := (m.find v₁).get_or_else [],
         modify_ref g $ λ m, (m.insert v₀ ((v₁,p) :: xs)).insert v₁ xs'

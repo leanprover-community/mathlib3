@@ -22,15 +22,6 @@ jobs:
           ~/.elan/bin/elan override set ${{ matrix.lean_version }}
           ~/.elan/bin/lean --version
           echo "::add-path::$HOME/.elan/bin"
-      - name: install olean-rs
-        run: |
-          set -o pipefail
-          OLEAN_RS=https://github.com/cipher1024/olean-rs/releases
-          latest=$(curl -sSf "$OLEAN_RS/latest" | cut -d'"' -f2 | awk -F/ '{print $NF}')
-          mkdir ~/scripts
-          curl -sSfL "$OLEAN_RS/download/$latest/olean-rs-linux" -o "$HOME/scripts/olean-rs"
-          chmod +x $HOME/scripts/olean-rs
-          echo "::add-path::$HOME/scripts"
 
       - name: leanpkg build
         run: leanpkg build | python scripts/detect_errors.py
@@ -68,3 +59,15 @@ jobs:
         run: |
           lean --recursive --export=mathlib.txt src/
           leanchecker mathlib.txt
+
+      - name: Set up Python
+        uses: actions/setup-python@v1
+        with:
+          python-version: 3.8
+
+      - name: generate docs
+        if: github.repository == 'leanprover-community/mathlib' && github.event_name == 'push' && github.ref == 'refs/heads/master' && matrix.lean_version == 'leanprover-community/lean:nightly'
+        run:
+          ./scripts/deploy_docs.sh
+        env:
+          DEPLOY_NIGHTLY_GITHUB_TOKEN: ${{ secrets.DEPLOY_NIGHTLY_GITHUB_TOKEN }}

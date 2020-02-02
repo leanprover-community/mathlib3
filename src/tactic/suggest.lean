@@ -42,6 +42,7 @@ A declaration can match the head symbol of the current goal in four possible way
 * `mpr` : the declaration returns an `iff`, and the left hand side matches the goal
 * `both`: the declaration returns an `iff`, and the both sides match the goal
 -/
+@[derive decidable_eq, derive inhabited]
 inductive head_symbol_match
 | ex | mp | mpr | both
 

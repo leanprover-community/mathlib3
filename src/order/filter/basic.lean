@@ -2091,6 +2091,8 @@ instance ultrafilter.has_bind : has_bind ultrafilter := ⟨@ultrafilter.bind⟩
 instance ultrafilter.functor : functor ultrafilter := { map := @ultrafilter.map }
 instance ultrafilter.monad : monad ultrafilter := { map := @ultrafilter.map }
 
+instance ultrafilter.inhabited [inhabited α] : inhabited (ultrafilter α) := ⟨pure (default _)⟩
+
 noncomputable def hyperfilter : filter α := ultrafilter_of cofinite
 
 lemma hyperfilter_le_cofinite : @hyperfilter α ≤ cofinite :=

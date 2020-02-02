@@ -222,6 +222,8 @@ instance : module R (multilinear_map R M₁ M₂) :=
 module.of_core $ by refine { smul := (•), ..};
   intros; ext; simp [smul_add, add_smul, smul_smul]
 
+instance : inhabited (multilinear_map R M₁ M₂) := ⟨0⟩
+
 variables (R M M₂)
 
 /-- The space of multilinear maps on `Π(i : fin (n+1)), M i` is canonically isomorphic to the space

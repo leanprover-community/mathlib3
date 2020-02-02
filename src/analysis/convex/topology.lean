@@ -79,11 +79,17 @@ convex_iff_pointwise_add_subset.mpr $ λ a b ha hb hab,
   or.elim (classical.em (a = 0))
   (λ heq,
     have hne : b ≠ 0, by { rw [heq, zero_add] at hab, rw hab, exact one_ne_zero },
-    is_open_pointwise_add_left ((is_open_map_smul_of_ne_zero hne _) is_open_interior))
+    (smul_set_eq_image b (interior s)).symm ▸
+    (is_open_pointwise_add_left ((is_open_map_smul_of_ne_zero hne _) is_open_interior)))
   (λ hne,
-    is_open_pointwise_add_right ((is_open_map_smul_of_ne_zero hne _) is_open_interior)),
+    (smul_set_eq_image a (interior s)).symm ▸
+    (is_open_pointwise_add_right ((is_open_map_smul_of_ne_zero hne _) is_open_interior))),
   (subset_interior_iff_subset_of_open h).mpr $ subset.trans
-    (by { apply pointwise_add_subset_add; exact image_subset _ interior_subset })
+    begin
+      apply pointwise_add_subset_add;
+      rw [smul_set_eq_image, smul_set_eq_image];
+      exact image_subset _ interior_subset
+    end
     (convex_iff_pointwise_add_subset.mp hs ha hb hab)
 
 /-- In a topological vector space, the closure of a convex set is convex. -/

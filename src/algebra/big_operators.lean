@@ -496,8 +496,8 @@ begin
 end
 
 @[to_additive]
-lemma prod_update_of_not_mem [decidable_eq α] {s : finset α} {i : α} (h : i ∉ s) (f : α → β) (b : β) :
-  s.prod (function.update f i b) = s.prod f :=
+lemma prod_update_of_not_mem [decidable_eq α] {s : finset α} {i : α}
+  (h : i ∉ s) (f : α → β) (b : β) : s.prod (function.update f i b) = s.prod f :=
 begin
   apply prod_congr rfl (λj hj, _),
   have : j ≠ i, by { assume eq, rw eq at hj, exact h hj },

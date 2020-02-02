@@ -127,7 +127,7 @@ protected def nonempty (s : finset α) : Prop := ∃ x:α, x ∈ s
 lemma nonempty.bex {s : finset α} (h : s.nonempty) : ∃ x:α, x ∈ s := h
 
 lemma nonempty.mono {s t : finset α} (hst : s ⊆ t) (hs : s.nonempty) : t.nonempty :=
-set.nonempty.of_subset hst hs
+set.nonempty.mono hst hs
 
 /-! ### empty -/
 protected def empty : finset α := ⟨0, nodup_zero⟩

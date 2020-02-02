@@ -112,6 +112,8 @@ instance : has_neg (multilinear_map R M₁ M₂) :=
 instance : has_zero (multilinear_map R M₁ M₂) :=
 ⟨⟨λ _, 0, λm i x y, by simp, λm i x c, by simp⟩⟩
 
+instance : inhabited (multilinear_map R M₁ M₂) := ⟨0⟩
+
 @[simp] lemma zero_apply (m : Πi, M₁ i) : (0 : multilinear_map R M₁ M₂) m = 0 := rfl
 
 instance : add_comm_group (multilinear_map R M₁ M₂) :=
@@ -224,12 +226,43 @@ instance : module R (multilinear_map R M₁ M₂) :=
 module.of_core $ by refine { smul := (•), ..};
   intros; ext; simp [smul_add, add_smul, smul_smul]
 
-instance : inhabited (multilinear_map R M₁ M₂) := ⟨0⟩
+variables (R n)
+
+/-- The canonical multilinear map on `R^n`, associating to `m` the product of all the `m i`
+(multiplied by a fixed reference element `z` in the target module) -/
+protected def mk_pi_ring (z : M₂) : multilinear_map R (λ(i : fin n), R) M₂ :=
+{ to_fun := λm, finset.univ.prod m • z,
+  add := λ m i x y, by simp [finset.prod_update_of_mem, add_mul, add_smul],
+  smul := λ m i x c, by { rw [smul_eq_mul], simp [finset.prod_update_of_mem, smul_smul, mul_assoc] } }
+
+@[simp] lemma mk_pi_ring_apply (z : M₂) (m : fin n → R) :
+  (multilinear_map.mk_pi_ring R n z : (fin n → R) → M₂) m = finset.univ.prod m • z := rfl
+
+variables {R n}
+lemma mk_pi_ring_apply_one_eq_self (f : multilinear_map R (λ(i : fin n), R) M₂) :
+  multilinear_map.mk_pi_ring R n (f (λi, 1)) = f :=
+begin
+  ext m,
+  have : m = (λi, m i • 1), by { ext j, simp },
+  conv_rhs { rw [this, f.map_smul_univ] },
+  refl
+end
+
+variables (R n M₂)
+/-- Multilinear maps on `R^n` with values in `M₂` are in bijection in `M₂`, as such a multilinear
+map is completely determined by its value on the constant vector made of ones. We register this
+bijection as a linear equivalence in `multilinear_map.pi_ring_equiv`. -/
+protected def pi_ring_equiv : M₂ ≃ₗ[R] (multilinear_map R (λ(i : fin n), R) M₂) :=
+{ to_fun    := λ z, multilinear_map.mk_pi_ring R n z,
+  inv_fun   := λ f, f (λi, 1),
+  add       := λ z z', by { ext m, simp [smul_add] },
+  smul      := λ c z, by { ext m, simp [smul_smul, mul_comm] },
+  left_inv  := λ z, by simp,
+  right_inv := λ f, f.mk_pi_ring_apply_one_eq_self }
 
 end comm_ring
 
 end multilinear_map
-
 
 section currying
 /-!

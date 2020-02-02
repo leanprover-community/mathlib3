@@ -67,12 +67,12 @@ to move casts toward the leaf nodes of the expression."
 /-- Called after the `move_cast` attribute is applied to a declaration. -/
 private meta def after_set (decl : name) (prio : ℕ) (pers : bool) : tactic unit :=
 do
-    (declaration.thm n l ty e) ← get_decl decl | failed,
+    declaration.thm n l ty _ ← get_decl decl,
     let tac := λ ty, (flip_eq ty <|> flip_iff ty),
     (ty', f) ← aux_after_set tac ty,
-    let e' := task.map f e,
+    let e' := f (expr.const n (l.map level.param)),
     let n' := new_name n,
-    add_decl (declaration.thm n' l ty' e'),
+    add_decl (declaration.thm n' l ty' (task.pure e')),
     simp_attr.push_cast.set decl () tt
 
 private meta def mk_cache : list name → tactic simp_lemmas :=

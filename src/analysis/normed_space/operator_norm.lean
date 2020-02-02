@@ -29,8 +29,8 @@ lemma exists_pos_bound_of_bound {f : E → F} (M : ℝ) (h : ∀x, ∥f x∥ ≤
 
 section normed_field
 /- Most statements in this file require the field to be non-discrete, as this is necessary
-to deduce an inequality ∥f x∥ ≤ C ∥x∥ from the continuity of f. However, the other direction always
-holds. In this section, we just assume that 𝕜 is a normed field. In the remainder of the file,
+to deduce an inequality `∥f x∥ ≤ C ∥x∥` from the continuity of f. However, the other direction always
+holds. In this section, we just assume that `𝕜` is a normed field. In the remainder of the file,
 it will be non-discrete. -/
 
 variables [normed_field 𝕜] [normed_space 𝕜 E] [normed_space 𝕜 F] (f : E →ₗ[𝕜] F)
@@ -64,14 +64,15 @@ begin
   refine ⟨λh, (continuous_iff_is_closed.1 h) {0} (t1_space.t1 0), λh, _⟩,
   -- for the other direction, we assume that the kernel is closed
   by_cases hf : ∀x, x ∈ f.ker,
-  { -- if f = 0, its continuity is obvious
+  { -- if `f = 0`, its continuity is obvious
     have : (f : E → 𝕜) = (λx, 0), by { ext x, simpa using hf x },
     rw this,
     exact continuous_const },
-  { /- if f is not zero, we use an element x₀ ∉ ker f such that ∥x₀∥ ≤ 2 ∥x₀ - y∥ for all y ∈ ker f,
-    given by Riesz's lemma, and prove that 2 ∥f x₀∥ / ∥x₀∥ gives a bound on the operator norm of f.
-    For this, start from an arbitrary x and note that y = x₀ - (f x₀ / f x) x belongs to the kernel
-    of f. Applying the above inequality to x₀ and y readily gives the conclusion. -/
+  { /- if `f` is not zero, we use an element `x₀ ∉ ker f` such that `∥x₀∥ ≤ 2 ∥x₀ - y∥` for all
+    `y ∈ ker f`, given by Riesz's lemma, and prove that `2 ∥f x₀∥ / ∥x₀∥` gives a bound on the
+    operator norm of `f`. For this, start from an arbitrary `x` and note that
+    `y = x₀ - (f x₀ / f x) x` belongs to the kernel of `f`. Applying the above inequality to `x₀`
+    and `y` readily gives the conclusion. -/
     push_neg at hf,
     let r : ℝ := (2 : ℝ)⁻¹,
     have : 0 ≤ r, by norm_num [r],
@@ -118,8 +119,8 @@ variables [nondiscrete_normed_field 𝕜] [normed_space 𝕜 E] [normed_space �
 include 𝕜
 
 /-- A continuous linear map between normed spaces is bounded when the field is nondiscrete.
-The continuity ensures boundedness on a ball of some radius δ. The nondiscreteness is then
-used to rescale any element into an element of norm in [δ/C, δ], whose image has a controlled norm.
+The continuity ensures boundedness on a ball of some radius `δ`. The nondiscreteness is then
+used to rescale any element into an element of norm in `[δ/C, δ]`, whose image has a controlled norm.
 The norm control for the original element follows by rescaling. -/
 lemma linear_map.bound_of_continuous (f : E →ₗ[𝕜] F) (hf : continuous f) :
   ∃ C, 0 < C ∧ (∀ x : E, ∥f x∥ ≤ C * ∥x∥) :=
@@ -179,7 +180,7 @@ set_option class.instance_max_depth 100
 def op_norm := Inf { c | c ≥ 0 ∧ ∀ x, ∥f x∥ ≤ c * ∥x∥ }
 instance has_op_norm : has_norm (E →L[𝕜] F) := ⟨op_norm⟩
 
--- So that invocations of real.Inf_le ma𝕜e sense: we show that the set of
+-- So that invocations of `real.Inf_le` make sense: we show that the set of
 -- bounds is nonempty and bounded below.
 lemma bounds_nonempty {f : E →L[𝕜] F} :
   ∃ c, c ∈ { c | 0 ≤ c ∧ ∀ x, ∥f x∥ ≤ c * ∥x∥ } :=
@@ -192,7 +193,7 @@ lemma bounds_bdd_below {f : E →L[𝕜] F} :
 lemma op_norm_nonneg : 0 ≤ ∥f∥ :=
 lb_le_Inf _ bounds_nonempty (λ _ ⟨hx, _⟩, hx)
 
-/-- The fundamental property of the operator norm: ∥f x∥ ≤ ∥f∥ * ∥x∥. -/
+/-- The fundamental property of the operator norm: `∥f x∥ ≤ ∥f∥ * ∥x∥`. -/
 theorem le_op_norm : ∥f x∥ ≤ ∥f∥ * ∥x∥ :=
 classical.by_cases
   (λ heq : x = 0, by { rw heq, simp })
@@ -213,7 +214,7 @@ lemma unit_le_op_norm : ∥x∥ ≤ 1 → ∥f x∥ ≤ ∥f∥ :=
   ...    ≤ _ : mul_le_mul_of_nonneg_left hx (op_norm_nonneg _)
 end
 
-/-- If one controls the norm of every A x, then one controls the norm of A. -/
+/-- If one controls the norm of every `A x`, then one controls the norm of `A`. -/
 lemma op_norm_le_bound {M : ℝ} (hMp: 0 ≤ M) (hM : ∀ x, ∥f x∥ ≤ M * ∥x∥) :
   ∥f∥ ≤ M :=
 Inf_le _ bounds_bdd_below ⟨hMp, hM⟩
@@ -237,8 +238,8 @@ iff.intro
 @[simp] lemma norm_zero : ∥(0 : E →L[𝕜] F)∥ = 0 :=
 by rw op_norm_zero_iff
 
-/-- The norm of the identity is at most 1. It is in fact 1, except when the space is trivial where
-it is 0. It means that one can not do better than an inequality in general. -/
+/-- The norm of the identity is at most `1`. It is in fact `1`, except when the space is trivial
+where it is `0`. It means that one can not do better than an inequality in general. -/
 lemma norm_id : ∥(id : E →L[𝕜] E)∥ ≤ 1 :=
 op_norm_le_bound _ zero_le_one (λx, by simp)
 

@@ -982,7 +982,7 @@ begin
   ext i,
   rw [unique.eq_default i, finsupp.zero_apply],
   by_contra hc,
-  have := smul_smul _ (l (default ι))⁻¹ (l (default ι)) (v (default ι)),
+  have := smul_smul (l (default ι))⁻¹ (l (default ι)) (v (default ι)),
   rw [finsupp.unique_single l, finsupp.total_single] at hl,
   rw [hl, inv_mul_cancel hc, smul_zero, one_smul] at this,
   exact h this.symm

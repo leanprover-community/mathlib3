@@ -329,6 +329,8 @@ quot.lift_on (mk L) f H = f L := rfl
 instance : has_one (free_group α) := ⟨mk []⟩
 lemma one_eq_mk : (1 : free_group α) = mk [] := rfl
 
+instance : inhabited (free_group α) := ⟨1⟩
+
 instance : has_mul (free_group α) :=
 ⟨λ x y, quot.lift_on x
     (λ L₁, quot.lift_on y (λ L₂, mk $ L₁ ++ L₂) (λ L₂ L₃ H, quot.sound $ red.step.append_left H))

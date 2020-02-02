@@ -71,7 +71,7 @@ variables {E : Type u} [normed_group E] [normed_space ℝ E] {f : E → ℝ} {a 
 is that we require `c n → ∞` instead of `∥c n∥ → ∞`. One can think about `pos_tangent_cone_at`
 as `tangent_cone_at nnreal` but we have no theory of normed semifields yet. -/
 def pos_tangent_cone_at (s : set E) (x : E) : set E :=
-{y : E | ∃(c : ℕ → ℝ) (d : ℕ → E), {n:ℕ | x + d n ∈ s} ∈ (at_top : filter ℕ) ∧
+{y : E | ∃(c : ℕ → ℝ) (d : ℕ → E), (∀ᶠ n in at_top, x + d n ∈ s) ∧
   (tendsto c at_top at_top) ∧ (tendsto (λn, c n • d n) at_top (𝓝 y))}
 
 lemma pos_tangent_cone_at_mono : monotone (λ s, pos_tangent_cone_at s a) :=
@@ -87,10 +87,11 @@ begin
   let d := λn:ℕ, (c n)⁻¹ • (y-x),
   refine ⟨c, d, filter.univ_mem_sets' (λn, h _), _, _⟩,
   show x + d n ∈ segment x y,
-  { refine ⟨(c n)⁻¹, ⟨_, _⟩, _⟩,
+  { rw segment_eq_image,
+    refine ⟨(c n)⁻¹, ⟨_, _⟩, _⟩,
     { rw inv_nonneg, apply pow_nonneg, norm_num },
     { apply inv_le_one, apply one_le_pow_of_one_le, norm_num },
-    { simp only [d], abel } },
+    { simp only [d, sub_smul, smul_sub, one_smul], abel } },
   show tendsto c at_top at_top,
   { exact tendsto_pow_at_top_at_top_of_gt_1 one_lt_two },
   show filter.tendsto (λ (n : ℕ), c n • d n) filter.at_top (𝓝 (y - x)),
@@ -125,8 +126,8 @@ begin
   from tendsto_inf.2 ⟨tendsto_const_nhds.add (tangent_cone_at.lim_zero _ hc' hcd),
     by rwa tendsto_principal⟩,
   rw [add_zero] at hd,
-  replace h : {n : ℕ | f (a + d n) ≤ f a} ∈ at_top, from mem_map.1 (hd h),
-  replace hc : {n | 0 ≤ c n} ∈ at_top, from mem_map.1 (hc (mem_at_top (0:ℝ))),
+  replace h : ∀ᶠ n in at_top, f (a + d n) ≤ f a, from mem_map.1 (hd h),
+  replace hc : ∀ᶠ n in at_top, 0 ≤ c n, from mem_map.1 (hc (mem_at_top (0:ℝ))),
   filter_upwards [h, hc],
   simp only [mem_set_of_eq, smul_eq_mul, mem_preimage, subset_def],
   assume n hnf hn,

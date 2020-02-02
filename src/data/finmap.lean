@@ -121,6 +121,8 @@ induction_on s $ λ s, alist.mem_keys
 /-- The empty map. -/
 instance : has_emptyc (finmap β) := ⟨⟨0, nodupkeys_nil⟩⟩
 
+instance : inhabited (finmap β) := ⟨∅⟩
+
 @[simp] theorem empty_to_finmap : (⟦∅⟧ : finmap β) = ∅ := rfl
 
 @[simp] theorem to_finmap_nil [decidable_eq α] : (list.to_finmap [] : finmap β) = ∅ := rfl

@@ -55,6 +55,8 @@ def tail (c : computation α) : computation α :=
   `think`s. -/
 def empty (α) : computation α := ⟨stream.const none, λn a', id⟩
 
+instance : inhabited (computation α) := ⟨empty _⟩
+
 /-- `run_for c n` evaluates `c` for `n` steps and returns the result, or `none`
   if it did not terminate after `n` steps. -/
 def run_for : computation α → ℕ → option α := subtype.val

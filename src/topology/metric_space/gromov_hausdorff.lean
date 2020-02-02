@@ -76,6 +76,8 @@ definition GH_space : Type := quotient (isometry_rel.setoid)
 definition to_GH_space (α : Type u) [metric_space α] [compact_space α] [nonempty α] : GH_space :=
   ⟦nonempty_compacts.Kuratowski_embedding α⟧
 
+instance : inhabited GH_space := ⟨quot.mk _ ⟨{0}, by simp⟩⟩
+
 /-- A metric space representative of any abstract point in `GH_space` -/
 definition GH_space.rep (p : GH_space) : Type := (quot.out p).val
 
@@ -639,13 +641,13 @@ begin
     { -- by construction, `s p` is `ε`-dense
       assume x,
       have : x ∈ ⋃y∈(s p), ball y ε := (hs p).2 (mem_univ _),
-      rcases mem_bUnion_iff.1 this with ⟨y, ⟨ys, hy⟩⟩,
+      rcases mem_bUnion_iff.1 this with ⟨y, ys, hy⟩,
       exact ⟨y, ys, le_of_lt hy⟩ },
     show ∀x : q.rep, ∃ (z : s p), dist x (Φ z) ≤ ε,
     { -- by construction, `s q` is `ε`-dense, and it is the range of `Φ`
       assume x,
       have : x ∈ ⋃y∈(s q), ball y ε := (hs q).2 (mem_univ _),
-      rcases mem_bUnion_iff.1 this with ⟨y, ⟨ys, hy⟩⟩,
+      rcases mem_bUnion_iff.1 this with ⟨y, ys, hy⟩,
       let i := ((E q).to_fun ⟨y, ys⟩).1,
       let hi := ((E q).to_fun ⟨y, ys⟩).2,
       have ihi_eq : (⟨i, hi⟩ : fin (N q)) = (E q).to_fun ⟨y, ys⟩, by rw fin.ext_iff,
@@ -780,13 +782,13 @@ begin
     { -- by construction, `s p` is `ε`-dense
       assume x,
       have : x ∈ ⋃y∈(s p), ball y (u n) := (hs p pt) (mem_univ _),
-      rcases mem_bUnion_iff.1 this with ⟨y, ⟨ys, hy⟩⟩,
+      rcases mem_bUnion_iff.1 this with ⟨y, ys, hy⟩,
       exact ⟨y, ys, le_trans (le_of_lt hy) u_le_ε⟩ },
     show ∀x : q.rep, ∃ (z : s p), dist x (Φ z) ≤ ε,
     { -- by construction, `s q` is `ε`-dense, and it is the range of `Φ`
       assume x,
       have : x ∈ ⋃y∈(s q), ball y (u n) := (hs q qt) (mem_univ _),
-      rcases mem_bUnion_iff.1 this with ⟨y, ⟨ys, hy⟩⟩,
+      rcases mem_bUnion_iff.1 this with ⟨y, ys, hy⟩,
       let i := ((E q).to_fun ⟨y, ys⟩).1,
       let hi := ((E q).to_fun ⟨y, ys⟩).2,
       have ihi_eq : (⟨i, hi⟩ : fin (N q)) = (E q).to_fun ⟨y, ys⟩, by rw fin.ext_iff,

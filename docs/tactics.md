@@ -25,6 +25,7 @@ All of the tactics in this section are automatically imported by Lean by default
 
 An introduction to `simp` can be found at [docs/extras/simp.md](extras/simp.md). See also the following related mathlib tactics:
 - [`simpa`](#simpa)
+- [`simp_rw`](#simp_rw)
 - [`squeeze_simp` / `squeeze_simpa`](#squeeze_simp--squeeze_simpa)
 - The [`simps`](#simps) user attribute
 - [`field_simp`](#field_simp)
@@ -201,6 +202,62 @@ The syntax `obtain ⟨patt⟩ : type := proof` is also supported.
 If `⟨patt⟩` is omitted, `rcases` will try to infer the pattern.
 
 If `type` is omitted, `:= proof` is required.
+
+### clear'
+
+[[source]](../src/tactic/clear.lean) [mathlib tactic, import with `import tactic.clear` or `import tactic.basic`]
+
+An improved version of the standard `clear` tactic. `clear` is sensitive to the
+order of its arguments: `clear x y` may fail even though both `x` and `y` could
+be cleared (if the type of `y` depends on `x`). `clear'` lifts this limitation.
+
+```
+example {α} {β : α → Type} (a : α) (b : β a) : unit :=
+begin
+  try { clear a b }, -- fails since `b` depends on `a`
+  clear' a b,        -- succeeds
+  exact ()
+end
+```
+
+### clear_dependent
+
+[[source]](../src/tactic/clear.lean) [mathlib tactic, import with `import tactic.clear` or `import tactic.basic`]
+
+A variant of `clear'` which clears not only the given hypotheses, but also any
+other hypotheses depending on them.
+
+```
+example {α} {β : α → Type} (a : α) (b : β a) : unit :=
+begin
+  try { clear' a },  -- fails since `b` depends on `a`
+  clear_dependent a, -- succeeds, clearing `a` and `b`
+  exact ()
+end
+```
+
+### simp_rw
+
+[[source]](../src/tactic/simp_rw.lean) [mathlib tactic, import with `import tactic.simp_rw` or `import tactic.basic`]
+
+`simp_rw` functions as a mix of `simp` and `rw`. Like `rw`, it applies each
+rewrite rule in the given order, but like `simp` it repeatedly applies these
+rules and also under binders like `∀ x, ...`, `∃ x, ...` and `λ x, ...`.
+
+Usage:
+  - `simp_rw [lemma_1, ..., lemma_n]` will rewrite the goal by applying the
+    lemmas in that order.
+  - `simp_rw [lemma_1, ..., lemma_n] at h₁ ... hₙ` will rewrite the given hypotheses.
+  - `simp_rw [...] at ⊢ h₁ ... hₙ` rewrites the goal as well as the given hypotheses.
+  - `simp_rw [...] at *` rewrites in the whole context: all hypotheses and the goal.
+
+For example, neither `simp` nor `rw` can solve the following, but `simp_rw` can:
+```lean
+example {α β : Type} {f : α → β} {t : set β} : (∀ s, f '' s ⊆ t) = ∀ s : set α, ∀ x ∈ s, x ∈ f ⁻¹' t :=
+by simp_rw [set.image_subset_iff, set.subset_def]
+```
+
+Lemmas passed to `simp_rw` must be expressions that are valid arguments to `simp`.
 
 ### simpa
 

@@ -1,6 +1,7 @@
 import
   tactic.alias
   tactic.cache
+  tactic.clear
   tactic.converter.interactive
   tactic.core
   tactic.ext

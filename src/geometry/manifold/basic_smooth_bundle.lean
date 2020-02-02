@@ -84,8 +84,8 @@ universe u
 open topological_space set
 
 /-- Core structure used to create a smooth bundle above `M` (a manifold over the model with
-corner I) with fiber the normed vector space `F` over `𝕜`, which is trivial in the chart domains of
-`M`. This structure registers the changes in the fibers when one changes coordinate charts in the
+corner `I`) with fiber the normed vector space `F` over `𝕜`, which is trivial in the chart domains
+of `M`. This structure registers the changes in the fibers when one changes coordinate charts in the
 base. We do not require the change of coordinates of the fibers to be linear, only smooth.
 Therefore, the fibers of the resulting bundle will not inherit a canonical vector space structure
 in general. -/
@@ -348,8 +348,8 @@ def tangent_bundle_core : basic_smooth_bundle_core I M E :=
       apply I.continuous_inv_fun.continuous_at.preimage_mem_nhds
         (mem_nhds_sets (local_homeomorph.open_source _) _),
       simp [hx, local_equiv.trans_source, i.1.map_target] },
-    have B : {y : E | (I.to_fun ∘ i.1.to_fun ∘ i.1.inv_fun ∘ I.inv_fun) y = (id : E → E) y} ∈
-      nhds_within (I.to_fun x) (range I.to_fun),
+    have B : ∀ᶠ y in nhds_within (I.to_fun x) (range I.to_fun),
+      (I.to_fun ∘ i.1.to_fun ∘ i.1.inv_fun ∘ I.inv_fun) y = (id : E → E) y,
     { apply filter.mem_sets_of_superset A,
       assume y hy,
       rw ← model_with_corners.image at hy,

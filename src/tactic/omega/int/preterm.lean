@@ -23,6 +23,9 @@ localized "notation t `+*` s := omega.int.preterm.add t s" in omega.int
 
 namespace preterm
 
+instance : has_zero preterm := ⟨cst 0⟩
+instance : inhabited preterm := ⟨0⟩
+
 @[simp] def val (v : nat → int) : preterm → int
 | (& i) := i
 | (i ** n) :=

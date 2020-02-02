@@ -240,7 +240,7 @@ end
 
 [[source]](../src/tactic/simp_rw.lean) [mathlib tactic, import with `import tactic.simp_rw` or `import tactic.basic`]
 
-`simp_rw` functions as a mix of `simp` and `rw`. Like `rw`, it applies each
+`simp_rw` functions as a mix of [`simp`](#simp) and `rw`. Like `rw`, it applies each
 rewrite rule in the given order, but like `simp` it repeatedly applies these
 rules and also under binders like `∀ x, ...`, `∃ x, ...` and `λ x, ...`.
 
@@ -263,7 +263,7 @@ Lemmas passed to `simp_rw` must be expressions that are valid arguments to `simp
 
 [[source]](../src/tactic/simpa.lean) [mathlib basic tactic, import with `import tactic.simpa` or `import tactic.basic`]
 
-This is a "finishing" tactic modification of `simp`. It has two forms.
+This is a "finishing" tactic modification of [`simp`](#simp). It has two forms.
 
 * `simpa [rules, ...] using e` will simplify the goal and the type of
   `e` using `rules`, then try to close the goal using `e`.
@@ -287,6 +287,9 @@ where `have h := f h` would result in the state `h : p, h : q ⊢ goal`.
 This can be used to simulate the `specialize` and `apply at` tactics
 of Coq.
 
+See also:
+- [`apply_fun`](#apply_fun)
+
 ### elide/unelide
 
 [[source]](../src/tactic/elide.lean) [mathlib basic tactic, import with `import tactic.elide` or `import tactic.basic`]
@@ -305,7 +308,7 @@ types (usually added by `elide`).
 [[source]](../src/tactic/interactive.lean) [mathlib basic tactic, import with `import tactic.interactive` or `import tactic.basic`]
 
 The goal of `field_simp` is to reduce an expression in a field to an expression of the form `n / d`
-where neither `n` nor `d` contains any division symbol, just using the simplifier (with a carefully
+where neither `n` nor `d` contains any division symbol, just using the [simplifier](#simp) (with a carefully
 crafted simpset named `field_simps`) to reduce the number of division symbols whenever possible by
 iterating the following steps:
 
@@ -727,8 +730,8 @@ as casts.
 [[source]](../src/tactic/squeeze.lean) [mathlib basic tactics, import with `import tactic.squeeze` or `import tactic.basic`]
 
 `squeeze_simp` and `squeeze_simpa` perform the same task with
-the difference that `squeeze_simp` relates to `simp` while
-`squeeze_simpa` relates to `simpa`. The following applies to both
+the difference that `squeeze_simp` relates to [`simp`](#simp) while
+`squeeze_simpa` relates to [`simpa`](#simpa). The following applies to both
 `squeeze_simp` and `squeeze_simpa`.
 
 `squeeze_simp` behaves like `simp` (including all its arguments)
@@ -899,35 +902,6 @@ end
 `assoc_rewrite [h₀, ← h₁] at ⊢ h₂` behaves like
 `rewrite [h₀, ← h₁] at ⊢ h₂` with the exception that associativity is
 used implicitly to make rewriting possible.
-
-### restate_axiom
-
-[[source]](../src/tactic/restate_axiom.lean) [mathlib basic tactic, import with `import tactic.restate_axiom` or `import tactic.basic`]
-
-`restate_axiom` makes a new copy of a structure field, first definitionally simplifying the type.
-This is useful to remove `auto_param` or `opt_param` from the statement.
-
-As an example, we have:
-
-```lean
-structure A :=
-(x : ℕ)
-(a' : x = 1 . skip)
-
-example (z : A) : z.x = 1 := by rw A.a' -- rewrite tactic failed, lemma is not an equality nor a iff
-
-restate_axiom A.a'
-example (z : A) : z.x = 1 := by rw A.a
-```
-
-By default, `restate_axiom` names the new lemma by removing a trailing `'`, or otherwise appending
-`_lemma` if there is no trailing `'`. You can also give `restate_axiom` a second argument to
-specify the new name, as in
-
-```lean
-restate_axiom A.a f
-example (z : A) : z.x = 1 := by rw A.f
-```
 
 ### push_neg
 

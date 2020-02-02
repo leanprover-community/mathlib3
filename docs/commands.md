@@ -343,3 +343,32 @@ effectively be defined and re-defined later, by tagging definitions with `@[foo]
 custom input and output types. In this case all subsequent redefinitions must have the
 same type, or the type `α → β → tactic γ → tactic γ` or
 `α → β → option (tactic γ) → tactic γ` analogously to the previous cases.
+
+## restate_axiom
+
+[[source]](../src/tactic/restate_axiom.lean) [import with `import tactic.restate_axiom` or `import tactic.basic`]
+
+`restate_axiom` makes a new copy of a structure field, first definitionally simplifying the type.
+This is useful to remove `auto_param` or `opt_param` from the statement.
+
+As an example, we have:
+
+```lean
+structure A :=
+(x : ℕ)
+(a' : x = 1 . skip)
+
+example (z : A) : z.x = 1 := by rw A.a' -- rewrite tactic failed, lemma is not an equality nor a iff
+
+restate_axiom A.a'
+example (z : A) : z.x = 1 := by rw A.a
+```
+
+By default, `restate_axiom` names the new lemma by removing a trailing `'`, or otherwise appending
+`_lemma` if there is no trailing `'`. You can also give `restate_axiom` a second argument to
+specify the new name, as in
+
+```lean
+restate_axiom A.a f
+example (z : A) : z.x = 1 := by rw A.f
+```

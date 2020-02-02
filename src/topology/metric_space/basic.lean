@@ -1395,45 +1395,70 @@ should be infinite, we express it in terms of the emetric.diameter -/
 def diam (s : set α) : ℝ := ennreal.to_real (emetric.diam s)
 
 /-- The diameter of a set is always nonnegative -/
-lemma diam_nonneg : 0 ≤ diam s :=
-by simp [diam]
+lemma diam_nonneg : 0 ≤ diam s := ennreal.to_real_nonneg
+
+lemma diam_subsingleton (hs : s.subsingleton) : diam s = 0 :=
+by simp only [diam, emetric.diam_subsingleton hs, ennreal.zero_to_real]
 
 /-- The empty set has zero diameter -/
 @[simp] lemma diam_empty : diam (∅ : set α) = 0 :=
-by simp [diam]
+diam_subsingleton subsingleton_empty
 
 /-- A singleton has zero diameter -/
 @[simp] lemma diam_singleton : diam ({x} : set α) = 0 :=
-by simp [diam]
+diam_subsingleton subsingleton_singleton
+
+@[simp] lemma diam_pair : diam ({x, y} : set α) = dist x y :=
+by simp only [diam, emetric.diam_pair, dist_edist]
+
+/-- If the distance between any two points in a set is bounded by some constant `C`,
+then `ennreal.of_real C`  bounds the emetric diameter of this set. -/
+lemma ediam_le_of_forall_dist_le {C : ℝ} (h : ∀ (x ∈ s) (y ∈ s), dist x y ≤ C) :
+  emetric.diam s ≤ ennreal.of_real C :=
+emetric.diam_le_of_forall_edist_le $
+λ x hx y hy, (edist_dist x y).symm ▸ ennreal.of_real_le_of_real (h x hx y hy)
+
+/-- If the distance between any two points in a set is bounded by some non-negative constant,
+this constant bounds the diameter. -/
+lemma diam_le_of_forall_dist_le {C : ℝ} (h₀ : 0 ≤ C) (h : ∀ (x ∈ s) (y ∈ s), dist x y ≤ C) :
+  diam s ≤ C :=
+ennreal.to_real_le_of_le_of_real h₀ (ediam_le_of_forall_dist_le h)
+
+/-- If the distance between any two points in a nonempty set is bounded by some constant,
+this constant bounds the diameter. -/
+lemma diam_le_of_forall_dist_le_of_nonempty (hs : s.nonempty) {C : ℝ}
+  (h : ∀ (x ∈ s) (y ∈ s), dist x y ≤ C) : diam s ≤ C :=
+have h₀ : 0 ≤ C, from let ⟨x, hx⟩ := hs in le_trans dist_nonneg (h x hx x hx),
+diam_le_of_forall_dist_le h₀ h
+
+/-- The distance between two points in a set is controlled by the diameter of the set. -/
+lemma dist_le_diam_of_mem' (h : emetric.diam s ≠ ⊤) (hx : x ∈ s) (hy : y ∈ s) :
+  dist x y ≤ diam s :=
+begin
+  rw [diam, dist_edist],
+  rw ennreal.to_real_le_to_real (edist_ne_top _ _) h,
+  exact emetric.edist_le_diam_of_mem hx hy
+end
 
 /-- Characterize the boundedness of a set in terms of the finiteness of its emetric.diameter. -/
-lemma bounded_iff_diam_ne_top : bounded s ↔ emetric.diam s ≠ ⊤ :=
-begin
-  classical, by_cases hs : s = ∅,
-  { simp [hs] },
-  { rcases ne_empty_iff_exists_mem.1 hs with ⟨x, hx⟩,
-    split,
-    { assume bs,
-      rcases (bounded_iff_subset_ball x).1 bs with ⟨r, hr⟩,
-      have r0 : 0 ≤ r := by simpa [closed_ball] using hr hx,
-      have : emetric.diam s < ⊤ := calc
-        emetric.diam s ≤ emetric.diam (emetric.closed_ball x (ennreal.of_real r)) :
-          by rw emetric_closed_ball r0; exact emetric.diam_mono hr
-        ... ≤ 2 * (ennreal.of_real r) : emetric.diam_closed_ball
-        ... < ⊤ : begin apply ennreal.lt_top_iff_ne_top.2, simp [ennreal.mul_eq_top], end,
-      exact ennreal.lt_top_iff_ne_top.1 this },
-    { assume ds,
-      have : s ⊆ closed_ball x (ennreal.to_real (emetric.diam s)),
-      { rw [← emetric_closed_ball ennreal.to_real_nonneg, ennreal.of_real_to_real ds],
-        exact λy hy, emetric.edist_le_diam_of_mem hy hx },
-      exact bounded.subset this (bounded_closed_ball) }}
-end
+lemma bounded_iff_ediam_ne_top : bounded s ↔ emetric.diam s ≠ ⊤ :=
+iff.intro
+  (λ ⟨C, hC⟩, ne_top_of_le_ne_top ennreal.of_real_ne_top
+    (ediam_le_of_forall_dist_le $ λ x hx y hy, hC x y hx hy))
+  (λ h, ⟨diam s, λ x y hx hy, dist_le_diam_of_mem' h hx hy⟩)
+
+lemma bounded.ediam_ne_top (h : bounded s) : emetric.diam s ≠ ⊤ :=
+bounded_iff_ediam_ne_top.1 h
+
+/-- The distance between two points in a set is controlled by the diameter of the set. -/
+lemma dist_le_diam_of_mem (h : bounded s) (hx : x ∈ s) (hy : y ∈ s) : dist x y ≤ diam s :=
+dist_le_diam_of_mem' h.ediam_ne_top hx hy
 
 /-- An unbounded set has zero diameter. If you would prefer to get the value ∞, use `emetric.diam`.
 This lemma makes it possible to avoid side conditions in some situations -/
 lemma diam_eq_zero_of_unbounded (h : ¬(bounded s)) : diam s = 0 :=
 begin
-  simp only [bounded_iff_diam_ne_top, not_not, ne.def] at h,
+  simp only [bounded_iff_ediam_ne_top, not_not, ne.def] at h,
   simp [diam, h]
 end
 
@@ -1441,67 +1466,27 @@ end
 lemma diam_mono {s t : set α} (h : s ⊆ t) (ht : bounded t) : diam s ≤ diam t :=
 begin
   unfold diam,
-  rw ennreal.to_real_le_to_real (bounded_iff_diam_ne_top.1 (bounded.subset h ht)) (bounded_iff_diam_ne_top.1 ht),
+  rw ennreal.to_real_le_to_real (bounded.subset h ht).ediam_ne_top ht.ediam_ne_top,
   exact emetric.diam_mono h
-end
-
-/-- The distance between two points in a set is controlled by the diameter of the set. -/
-lemma dist_le_diam_of_mem (h : bounded s) (hx : x ∈ s) (hy : y ∈ s) : dist x y ≤ diam s :=
-begin
-  rw [diam, dist_edist],
-  rw ennreal.to_real_le_to_real (edist_ne_top _ _) (bounded_iff_diam_ne_top.1 h),
-  exact emetric.edist_le_diam_of_mem hx hy
-end
-
-/-- If the distance between any two points in a set is bounded by some constant, this constant
-bounds the diameter. -/
-lemma diam_le_of_forall_dist_le {d : real} (hd : d ≥ 0) (h : ∀x y ∈ s, dist x y ≤ d) : diam s ≤ d :=
-begin
-  have I : emetric.diam s ≤ ennreal.of_real d,
-  { refine emetric.diam_le_of_forall_edist_le (λx y hx hy, _),
-    rw [edist_dist],
-    exact ennreal.of_real_le_of_real (h x y hx hy) },
-  have A : emetric.diam s ≠ ⊤ :=
-    ennreal.lt_top_iff_ne_top.1 (lt_of_le_of_lt I (ennreal.lt_top_iff_ne_top.2 (by simp))),
-  rw [← ennreal.to_real_of_real hd, diam, ennreal.to_real_le_to_real A],
-  { exact I },
-  { simp }
 end
 
 /-- The diameter of a union is controlled by the sum of the diameters, and the distance between
 any two points in each of the sets. This lemma is true without any side condition, since it is
 obviously true if `s ∪ t` is unbounded. -/
 lemma diam_union {t : set α} (xs : x ∈ s) (yt : y ∈ t) : diam (s ∪ t) ≤ diam s + dist x y + diam t :=
-have I1 : ¬(bounded (s ∪ t)) → diam (s ∪ t) ≤ diam s + dist x y + diam t := λh, calc
-  diam (s ∪ t) = 0 + 0 + 0 : by simp [diam_eq_zero_of_unbounded h]
-  ... ≤ diam s + dist x y + diam t : add_le_add (add_le_add diam_nonneg dist_nonneg) diam_nonneg,
-have I2 : (bounded (s ∪ t)) → diam (s ∪ t) ≤ diam s + dist x y + diam t := λh,
 begin
-  have : bounded s := bounded.subset (subset_union_left _ _) h,
-  have : bounded t := bounded.subset (subset_union_right _ _) h,
-  have A : ∀a ∈ s, ∀b ∈ t, dist a b ≤ diam s + dist x y + diam t := λa ha b hb, calc
-    dist a b ≤ dist a x + dist x y + dist y b : dist_triangle4 _ _ _ _
-    ... ≤ diam s + dist x y + diam t :
-      add_le_add (add_le_add (dist_le_diam_of_mem ‹bounded s› ha xs) (le_refl _)) (dist_le_diam_of_mem ‹bounded t› yt hb),
-  have B : ∀a b ∈ s ∪ t, dist a b ≤ diam s + dist x y + diam t := λa b ha hb,
-  begin
-    cases (mem_union _ _ _).1 ha with h'a h'a; cases (mem_union _ _ _).1 hb with h'b h'b,
-    { calc dist a b ≤ diam s : dist_le_diam_of_mem ‹bounded s› h'a h'b
-           ... = diam s + (0 + 0) : by simp
-           ... ≤ diam s + (dist x y + diam t) : add_le_add (le_refl _) (add_le_add dist_nonneg diam_nonneg)
-           ... = diam s + dist x y + diam t : by simp only [add_comm, eq_self_iff_true, add_left_comm] },
-    { exact A a h'a b h'b },
-    { have Z := A b h'b a h'a, rwa [dist_comm] at Z },
-    { calc dist a b ≤ diam t : dist_le_diam_of_mem ‹bounded t› h'a h'b
-           ... = (0 + 0) + diam t : by simp
-           ... ≤ (diam s + dist x y) + diam t : add_le_add (add_le_add diam_nonneg dist_nonneg) (le_refl _) }
-  end,
-  have C : 0 ≤ diam s + dist x y + diam t := calc
-    0 = 0 + 0 + 0 : by simp
-    ... ≤ diam s + dist x y + diam t : add_le_add (add_le_add diam_nonneg dist_nonneg) diam_nonneg,
-  exact diam_le_of_forall_dist_le C B
-end,
-classical.by_cases I2 I1
+  classical, by_cases H : bounded (s ∪ t),
+  { have hs : bounded s, from H.subset (subset_union_left _ _),
+    have ht : bounded t, from H.subset (subset_union_right _ _),
+    rw [bounded_iff_ediam_ne_top] at H hs ht,
+    rw [dist_edist, diam, diam, diam, ← ennreal.to_real_add, ← ennreal.to_real_add,
+      ennreal.to_real_le_to_real];
+      repeat { apply ennreal.add_ne_top.2; split }; try { assumption };
+      try { apply edist_ne_top },
+    exact emetric.diam_union xs yt },
+  { rw [diam_eq_zero_of_unbounded H],
+    apply_rules [add_nonneg, diam_nonneg, dist_nonneg] }
+end
 
 /-- If two sets intersect, the diameter of the union is bounded by the sum of the diameters. -/
 lemma diam_union' {t : set α} (h : s ∩ t ≠ ∅) : diam (s ∪ t) ≤ diam s + diam t :=
@@ -1512,7 +1497,7 @@ end
 
 /-- The diameter of a closed ball of radius `r` is at most `2 r`. -/
 lemma diam_closed_ball {r : ℝ} (h : r ≥ 0) : diam (closed_ball x r) ≤ 2 * r :=
-diam_le_of_forall_dist_le (mul_nonneg (by norm_num) h) $ λa b ha hb, calc
+diam_le_of_forall_dist_le (mul_nonneg (le_of_lt two_pos) h) $ λa ha b hb, calc
   dist a b ≤ dist a x + dist b x : dist_triangle_right _ _ _
   ... ≤ r + r : add_le_add ha hb
   ... = 2 * r : by simp [mul_two, mul_comm]

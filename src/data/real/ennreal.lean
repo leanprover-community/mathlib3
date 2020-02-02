@@ -83,6 +83,9 @@ by simp [ennreal.of_real]; refl
 @[simp] lemma of_real_one : ennreal.of_real (1 : ℝ) = (1 : ennreal) :=
 by simp [ennreal.of_real]
 
+lemma of_real_to_real_le {a : ennreal} : ennreal.of_real (a.to_real) ≤ a :=
+if ha : a = ∞ then ha.symm ▸ le_top else le_of_eq (of_real_to_real ha)
+
 lemma forall_ennreal {p : ennreal → Prop} : (∀a, p a) ↔ (∀r:nnreal, p r) ∧ p ∞ :=
 ⟨assume h, ⟨assume r, h _, h _⟩,
   assume ⟨h₁, h₂⟩ a, match a with some r := h₁ _ | none := h₂ end⟩
@@ -164,6 +167,9 @@ end
 protected lemma lt_top_iff_ne_top : a < ∞ ↔ a ≠ ∞ := lt_top_iff_ne_top
 protected lemma bot_lt_iff_ne_bot : 0 < a ↔ a ≠ 0 := bot_lt_iff_ne_bot
 
+lemma add_ne_top : a + b ≠ ∞ ↔ a ≠ ∞ ∧ b ≠ ∞ :=
+by simpa only [lt_top_iff_ne_top] using add_lt_top
+
 lemma mul_top : a * ∞ = (if a = 0 then 0 else ∞) :=
 begin split_ifs, { simp [h] }, { exact with_top.mul_top h } end
 
@@ -225,6 +231,13 @@ lemma lt_iff_exists_coe : a < b ↔ (∃p:nnreal, a = p ∧ ↑p < b) := with_to
 
 @[simp] lemma max_eq_zero_iff : max a b = 0 ↔ a = 0 ∧ b = 0 :=
 by simp only [le_zero_iff_eq.symm, max_le_iff]
+
+@[simp] lemma max_zero_left : max 0 a = a := max_eq_right (zero_le a)
+@[simp] lemma max_zero_right : max a 0 = a := max_eq_left (zero_le a)
+
+-- TODO: why this is not a `rfl`? There is some hidden diamond here.
+@[simp] lemma sup_eq_max : a ⊔ b = max a b :=
+eq_of_forall_ge_iff $ λ c, sup_le_iff.trans max_le_iff.symm
 
 protected lemma pow_pos : 0 < a → ∀ n : ℕ, 0 < a^n :=
   canonically_ordered_semiring.pow_pos
@@ -837,6 +850,11 @@ begin
   refl
 end
 
+lemma to_real_add_le : (a+b).to_real ≤ a.to_real + b.to_real :=
+if ha : a = ⊤ then by simp only [ha, top_add, top_to_real, zero_add, to_real_nonneg]
+else if hb : b = ⊤ then by simp only [hb, add_top, top_to_real, add_zero, to_real_nonneg]
+else le_of_eq (to_real_add ha hb)
+
 lemma of_real_add {p q : ℝ} (hp : 0 ≤ p) (hq : 0 ≤ q) :
   ennreal.of_real (p + q) = ennreal.of_real p + ennreal.of_real q :=
 by rw [ennreal.of_real, ennreal.of_real, ennreal.of_real, ← coe_add,
@@ -905,6 +923,11 @@ begin
   lift a to nnreal using ha,
   simpa [ennreal.of_real, ennreal.to_real] using nnreal.le_of_real_iff_coe_le hb
 end
+
+lemma to_real_le_of_le_of_real {a : ennreal} {b : ℝ} (hb : 0 ≤ b) (h : a ≤ ennreal.of_real b) :
+  ennreal.to_real a ≤ b :=
+have ha : a ≠ ⊤, from ne_top_of_le_ne_top of_real_ne_top h,
+(le_of_real_iff_to_real_le ha hb).1 h
 
 lemma lt_of_real_iff_to_real_lt {a : ennreal} {b : ℝ} (ha : a ≠ ⊤) :
   a < ennreal.of_real b ↔ ennreal.to_real a < b :=

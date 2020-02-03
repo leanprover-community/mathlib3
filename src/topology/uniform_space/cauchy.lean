@@ -302,7 +302,7 @@ lemma totally_bounded_iff_filter {s : set α} :
   in
   have c ≤ principal s, from le_trans ‹c ≤ f› this,
   have m ∩ s ∈ c.sets, from inter_mem_sets hm $ le_principal_iff.mp this,
-  let ⟨y, hym, hys⟩ := inhabited_of_mem_sets hc₂.left this in
+  let ⟨y, hym, hys⟩ := nonempty_of_mem_sets hc₂.left this in
   let ys := (⋃y'∈({y}:set α), {x | (x, y') ∈ d}) in
   have m ⊆ ys,
     from assume y' hy',
@@ -394,10 +394,10 @@ end
 /-- A sequence of points such that `seq n ∈ set_seq n`. Here `set_seq` is a monotonically
 decreasing sequence of sets `set_seq n ∈ f` with diameters controlled by a given sequence
 of entourages. -/
-def seq (n : ℕ) : α := some $ inhabited_of_mem_sets hf.1 (set_seq_mem hf U_mem n)
+def seq (n : ℕ) : α := some $ nonempty_of_mem_sets hf.1 (set_seq_mem hf U_mem n)
 
 lemma seq_mem (n : ℕ) : seq hf U_mem n ∈ set_seq hf U_mem n :=
-some_spec $ inhabited_of_mem_sets hf.1 (set_seq_mem hf U_mem n)
+some_spec $ nonempty_of_mem_sets hf.1 (set_seq_mem hf U_mem n)
 
 lemma seq_pair_mem ⦃N m n : ℕ⦄ (hm : N ≤ m) (hn : N ≤ n) :
   (seq hf U_mem m, seq hf U_mem n) ∈ U N :=

@@ -14,10 +14,30 @@ import tactic
 
 -/
 
+namespace finsupp
+variables {α : Type*}
+
+@[simp] lemma nat_add_eq_zero (f g : α →₀ ℕ) :
+  f + g = 0 ↔ f = 0 ∧ g = 0 :=
+begin
+  split,
+  { assume h,
+    split,
+    all_goals
+    { ext s,
+      suffices H : f s + g s = 0,
+      { rw add_eq_zero_iff at H, cases H, assumption },
+      show (f + g) s = 0,
+      rw h, refl } },
+  { rintro ⟨rfl, rfl⟩, simp }
+end
+
+end finsupp
+
 namespace mv_power_series
 open_locale classical
 variables {R : Type*} [comm_semiring R] {σ : Type*}
-@[simp] lemma power_series.coeff_mul_C (n : σ →₀ ℕ) (φ : mv_power_series σ R) (r : R) :
+@[simp] lemma coeff_mul_C (n : σ →₀ ℕ) (φ : mv_power_series σ R) (r : R) :
   coeff R n (φ * (C σ R r)) = (coeff R n φ) * r :=
 begin
   rw [coeff_mul n φ], rw [finset.sum_eq_single (n,(0 : σ →₀ ℕ))],
@@ -31,23 +51,27 @@ begin
     rw finsupp.mem_antidiagonal_support,
     apply add_zero }
 end
+
+@[simp] lemma coeff_zero_mul_X (φ : mv_power_series σ R) (s : σ) :
+  coeff R (0 : σ →₀ ℕ) (φ * X s) = 0 :=
+begin
+  rw [coeff_mul _ φ, finset.sum_eq_zero],
+  rintro ⟨i,j⟩ hij,
+  obtain ⟨rfl, rfl⟩ : i = 0 ∧ j = 0,
+  { rw finsupp.mem_antidiagonal_support at hij,
+    simpa using hij },
+  simp,
+end
+
 end mv_power_series
 
 namespace power_series
 variables {R : Type*} [comm_semiring R]
-@[simp] lemma power_series.coeff_mul_C (n : ℕ) (φ : power_series R) (r : R) :
+@[simp] lemma coeff_mul_C (n : ℕ) (φ : power_series R) (r : R) :
   coeff R n (φ * (C R r)) = (coeff R n φ) * r :=
-begin
-  rw [coeff_mul n φ, finset.sum_eq_single (n,0)],
-  { rw [coeff_C, if_pos rfl] },
-  { rintro ⟨i,j⟩ hij hne,
-    by_cases hj : j = 0,
-    { subst hj, simp at *, contradiction },
-    { simp [coeff_C, hj] } },
-  { intro h, exfalso, apply h, simp },
-end
+mv_power_series.coeff_mul_C _ φ r
 
-@[simp] lemma power_series.coeff_succ_mul_X (n : ℕ) (φ : power_series R) :
+@[simp] lemma coeff_succ_mul_X (n : ℕ) (φ : power_series R) :
   coeff R (n+1) (φ * X) = (coeff R n φ) :=
 begin
   rw [coeff_mul _ φ, finset.sum_eq_single (n,1)],
@@ -59,7 +83,7 @@ begin
   { intro h, exfalso, apply h, simp },
 end
 
-@[simp] lemma power_series.coeff_zero_mul_X (φ : power_series R) :
+@[simp] lemma coeff_zero_mul_X (φ : power_series R) :
   coeff R 0 (φ * X) = 0 :=
 begin
   rw [coeff_mul _ φ, finset.sum_eq_zero],

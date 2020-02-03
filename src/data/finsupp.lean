@@ -1489,7 +1489,7 @@ lemma le_iff [canonically_ordered_monoid α] (f g : σ →₀ α) :
 ⟨λ h s hs, h s,
 λ h s, if H : s ∈ f.support then h s H else (not_mem_support_iff.1 H).symm ▸ zero_le (g s)⟩
 
-@[simp] lemma nat_add_eq_zero [canonically_ordered_monoid α] (f g : σ →₀ α) :
+@[simp] lemma add_eq_zero_iff [canonically_ordered_monoid α] (f g : σ →₀ α) :
   f + g = 0 ↔ f = 0 ∧ g = 0 :=
 begin
   split,

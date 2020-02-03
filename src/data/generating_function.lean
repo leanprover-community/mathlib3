@@ -14,8 +14,6 @@ import tactic
 
 -/
 
-#check finset.univ
-
 namespace nat -- this has been PR'd
 @[simp] lemma choose_succ_self_right : ∀ (n:ℕ), (n+1).choose n = n+1
 | 0     := rfl
@@ -42,6 +40,25 @@ end nat
 -- this is PR'd
 @[simp] lemma units.coe_mk_of_mul_eq_one {G : Type*} [comm_monoid G] {x y : G} (h : x * y = 1) :
   (units.mk_of_mul_eq_one x y h : G) = x := rfl
+
+namespace mv_power_series
+open_locale classical
+variables {R : Type*} [comm_semiring R] {σ : Type*}
+@[simp] lemma power_series.coeff_mul_C (n : σ →₀ ℕ) (φ : mv_power_series σ R) (r : R) :
+  coeff R n (φ * (C σ R r)) = (coeff R n φ) * r :=
+begin
+  rw [coeff_mul n φ], rw [finset.sum_eq_single (n,(0 : σ →₀ ℕ))],
+  { rw [coeff_C, if_pos rfl] },
+  { rintro ⟨i,j⟩ hij hne,
+    rw finsupp.mem_antidiagonal_support at hij,
+    by_cases hj : j = 0,
+    { subst hj, simp at *, contradiction },
+    { rw [coeff_C, if_neg hj, mul_zero] } },
+  { intro h, exfalso, apply h,
+    rw finsupp.mem_antidiagonal_support,
+    apply add_zero }
+end
+end mv_power_series
 
 namespace power_series
 variables {R : Type*} [comm_semiring R]

@@ -65,6 +65,8 @@ have lt_not_symm : ∀ {x y : pilex ι β}, ¬ (x < y ∧ y < x),
         (λ hyx, lt_irrefl (x i) (by simpa [hyx] using hi.2))⟩, by tauto⟩,
   ..pilex.has_lt }
 
+/-- `pilex` is a linear order if the original order is well-founded.
+This cannot be an instance, since it depends on the well-foundedness of `<`. -/
 protected def pilex.linear_order [linear_order ι] (wf : well_founded ((<) : ι → ι → Prop))
   [∀ a, linear_order (β a)] : linear_order (pilex ι β) :=
 { le_total := λ x y, by classical; exact

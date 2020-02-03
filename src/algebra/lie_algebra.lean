@@ -255,6 +255,8 @@ structure lie_subalgebra extends submodule R L :=
 instance lie_subalgebra_coe_submodule : has_coe (lie_subalgebra R L) (submodule R L) :=
 ⟨lie_subalgebra.to_submodule⟩
 
+/-- A Lie subalgebra forms a new Lie algebra.
+This cannot be an instance, since being a Lie subalgebra is (currently) not a class. -/
 def lie_subalgebra_lie_algebra (L' : lie_subalgebra R L) : lie_algebra R L' := {
   bracket  := λ x y, ⟨⁅x.val, y.val⁆, L'.lie_mem x.property y.property⟩,
   lie_add  := by { intros, apply set_coe.ext, apply lie_add, },

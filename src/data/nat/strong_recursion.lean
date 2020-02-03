@@ -21,7 +21,7 @@ For example, one can use this to give a definition of the Bernoulli numbers
 that closely follows the recursive definition found at
 https://en.wikipedia.org/wiki/Bernoulli_number#Recursive_definition
 It is:
-$$ B_n = \sum_{k < n} \binom{n}{k} \frac{B_k}{n - k + 1} $$
+$$ B_n = 1 - \sum_{k < n} \binom{n}{k} \frac{B_k}{n - k + 1} $$
 
 ```lean
 example : ℕ → ℚ :=

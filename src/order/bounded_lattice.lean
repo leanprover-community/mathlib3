@@ -69,6 +69,9 @@ end
 lemma ne_top_of_lt (h : a < b) : a ≠ ⊤ :=
 lt_top_iff_ne_top.1 $ lt_of_lt_of_le h le_top
 
+theorem ne_top_of_le_ne_top {a b : α} (hb : b ≠ ⊤) (hab : a ≤ b) : a ≠ ⊤ :=
+assume ha, hb $ top_unique $ ha ▸ hab
+
 end order_top
 
 theorem order_top.ext_top {α} {A B : order_top α}

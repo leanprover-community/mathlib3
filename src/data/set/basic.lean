@@ -1186,19 +1186,23 @@ end image
 /-! ### Subsingleton -/
 
 /-- A set `s` is a `subsingleton`, if it has at most one element. -/
-protected def subsingleton (s : set α) : Prop := ∀ ⦃x y⦄, x ∈ s → y ∈ s → x = y
+protected def subsingleton (s : set α) : Prop :=
+∀ ⦃x⦄ (hx : x ∈ s) ⦃y⦄ (hy : y ∈ s), x = y
+
+lemma subsingleton.mono (ht : t.subsingleton) (hst : s ⊆ t) : s.subsingleton :=
+λ x hx y hy, ht (hst hx) (hst hy)
 
 lemma subsingleton.image (hs : s.subsingleton) (f : α → β) : (f '' s).subsingleton :=
-λ _ _ ⟨x, hx, Hx⟩ ⟨y, hy, Hy⟩, Hx ▸ Hy ▸ congr_arg f (hs hx hy)
+λ _ ⟨x, hx, Hx⟩ _ ⟨y, hy, Hy⟩, Hx ▸ Hy ▸ congr_arg f (hs hx hy)
 
 lemma subsingleton.eq_singleton_of_mem (hs : s.subsingleton) {x:α} (hx : x ∈ s) :
   s = {x} :=
 ext $ λ y, ⟨λ hy, (hs hx hy) ▸ mem_singleton _, λ hy, (eq_of_mem_singleton hy).symm ▸ hx⟩
 
-lemma subsingleton_empty : (∅ : set α).subsingleton := λ x y hx hy, hx.elim
+lemma subsingleton_empty : (∅ : set α).subsingleton := λ x, false.elim
 
 lemma subsingleton_singleton {a} : ({a} : set α).subsingleton :=
-λ x y hx hy, (eq_of_mem_singleton hx).symm ▸ (eq_of_mem_singleton hy).symm ▸ rfl
+λ x hx y hy, (eq_of_mem_singleton hx).symm ▸ (eq_of_mem_singleton hy).symm ▸ rfl
 
 lemma subsingleton.eq_empty_or_singleton (hs : s.subsingleton) :
   s = ∅ ∨ ∃ x, s = {x} :=

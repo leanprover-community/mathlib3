@@ -52,6 +52,28 @@ begin
   refl
 end
 
+lemma indicator_eq_zero_ae (h : volume s = 0) : ∀ₘ a, indicator s f a = 0 :=
+begin
+  rw [all_ae_iff],
+  have : {a : α | ¬indicator s f a = 0} ⊆ s,
+  { assume a,
+    simp only [mem_set_of_eq, indicator_apply],
+    split_ifs with h,
+    { assume h', exact h },
+    assume h, contradiction },
+  refine le_antisymm _ _,
+  { rw ← h, exact volume_mono this },
+  exact zero_le _
+end
+
+local infixr ` →ₛ `:25 := simple_func
+
+open measure_theory.simple_func
+
+lemma measure_theory.simple_func.indicator_eq_restrict {α} [measurable_space α]
+  (f : α →ₛ β) {s : set α} (hs : is_measurable s) : indicator s f = restrict f s :=
+by { funext, rw [restrict_apply _ hs] }
+
 end has_zero
 
 section has_add

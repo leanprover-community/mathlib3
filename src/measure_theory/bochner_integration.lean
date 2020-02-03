@@ -51,7 +51,7 @@ The Bochner integral is defined following these steps:
 2. Basic properties of the Bochner integral on functions of type `α → ℝ`, where `α` is a measure
   space.
 
-  * `integral_nonneg_of_nonneg_ae`  : `∀ₘ a, 0 ≤ f a → 0 ≤ ∫ f`
+  * `integral_nonneg_of_ae`  : `∀ₘ a, 0 ≤ f a → 0 ≤ ∫ f`
   * `integral_nonpos_of_nonpos_ae`  : `∀ₘ a, f a ≤ 0 → ∫ f ≤ 0`
   * `integral_le_integral_of_le_ae` : `∀ₘ a, f a ≤ g a → ∫ f ≤ ∫ g`
 
@@ -393,6 +393,61 @@ begin
       rw [norm_smul, smul_eq_mul, real.norm_eq_abs, abs_of_nonneg to_real_nonneg]
     end
 end
+
+section bintegral_const
+
+lemma restrict_bintegral (f : α →ₛ β) {s : set α} (hs : is_measurable s) :
+  (restrict f s).bintegral = f.range.sum (λr, ennreal.to_real (volume (f ⁻¹' {r} ∩ s)) • r) :=
+begin
+  refine finset.sum_bij_ne_zero (λr _ _, r) _ _ _ _,
+  { assume r hr,
+    rcases (mem_restrict_range hs).1 hr with ⟨rfl, h⟩ | ⟨a, ha, rfl⟩,
+    { simp },
+    { assume _, exact mem_range.2 ⟨a, rfl⟩ } },
+  { assume a b _ _ _ _ h, exact h },
+  { assume r hr,
+    by_cases r0 : r = 0, { simp [r0] },
+    assume h0,
+    rcases mem_range.1 hr with ⟨a, rfl⟩,
+    have : f ⁻¹' {f a} ∩ s ≠ ∅,
+    { assume h, simpa [h] using h0 },
+    rcases ne_empty_iff_exists_mem.1 this with ⟨a', eq', ha'⟩,
+    refine ⟨_, (mem_restrict_range hs).2 (or.inr ⟨a', ha', _⟩), _, rfl⟩,
+    { simpa using eq' },
+    { rwa [restrict_preimage _ hs, set.inter_comm], rwa [mem_singleton_iff, eq_comm] } },
+  { assume r hr ne,
+    by_cases r = 0, { simp [h] },
+    rw [restrict_preimage _ hs, set.inter_comm], rwa [mem_singleton_iff, eq_comm] }
+end
+
+lemma restrict_const_bintegral (b : β) {s : set α} (hs : is_measurable s) :
+  (restrict (const α b) s).bintegral = ennreal.to_real (volume s) • b :=
+have (@const α β _ b) ⁻¹' {b} = univ,
+begin
+  refine eq_univ_of_forall (assume a, _),
+  simp
+end,
+calc (restrict (const α b) s).bintegral = ennreal.to_real (volume ((const α b) ⁻¹' {b} ∩ s)) • b :
+  begin
+    rw [restrict_bintegral (const α b) hs],
+    refine finset.sum_eq_single b _ _,
+    { assume r hr, rcases mem_range.1 hr with ⟨a, rfl⟩, contradiction },
+    { by_cases nonempty α,
+      { assume ne,
+        rcases h with ⟨a⟩,
+        exfalso,
+        exact ne (mem_range.2 ⟨a, rfl⟩) },
+      { assume empty,
+        have : (@const α β _ b) ⁻¹' {b} ∩ s = ∅,
+        { ext a, exfalso, exact h ⟨a⟩ },
+        simp only [this, volume_empty, zero_to_real, zero_smul] } }
+  end
+  ... = ennreal.to_real (volume s) • b : by rw [this, univ_inter]
+
+lemma bintegral_const (b : β) : (const α b).bintegral = ennreal.to_real (volume (univ : set α)) • b :=
+by { rw [← restrict_univ (const α b), restrict_const_bintegral], exact is_measurable.univ }
+
+end bintegral_const
 
 end bintegral
 
@@ -964,7 +1019,7 @@ def integral (f : α →₁ β) : β := (integral_clm).to_fun f
 
 lemma integral_eq (f : α →₁ β) : integral f = (integral_clm).to_fun f := rfl
 
-@[elim_cast] lemma integral_coe_eq_integral (f : α →₁ₛ β) :
+@[elim_cast] lemma simple_func.integral_eq_integral (f : α →₁ₛ β) :
   integral (f : α →₁ β) = f.integral :=
 by { refine uniformly_extend_of_ind _ _ _ _, exact simple_func.integral_clm.uniform_continuous }
 
@@ -1055,10 +1110,20 @@ lemma integral_non_measurable (h : ¬ measurable f) : (∫ a, f a) = 0 :=
 integral_undef $ not_and_of_not_left _ h
 
 variables (α β)
-@[simp] lemma integral_zero : (∫ a:α, (0:β)) = 0 :=
+@[simp] lemma integral_zero : (∫ a : α, (0:β)) = 0 :=
 by rw [integral_eq, l1.of_fun_zero, l1.integral_zero]
-
 variables {α β}
+
+lemma simple_func.integral_eq_bintegral (f : α →ₛ β) (h : f.fin_vol_supp) :
+  (∫ a, f a) = f.bintegral :=
+let f' := l1.simple_func.of_simple_func f (f.integrable_iff_fin_vol_supp.2 h) in
+begin
+  have hfi := f.integrable_iff_fin_vol_supp.2 h,
+  rw [integral_eq _ f.measurable hfi, ← l1.simple_func.of_simple_func_eq_of_fun,
+    l1.simple_func.integral_eq_integral, f'.integral_eq_bintegral],
+  refine bintegral_congr _ hfi (l1.simple_func.to_simple_func_of_simple_func f hfi),
+  rwa integrable_congr_ae (l1.simple_func.to_simple_func_of_simple_func f hfi),
+end
 
 lemma integral_add
   (hfm : measurable f) (hfi : integrable f) (hgm : measurable g) (hgi : integrable g) :
@@ -1257,7 +1322,7 @@ begin
     rw [this, hfi], refl }
 end
 
-lemma integral_nonneg_of_nonneg_ae {f : α → ℝ} (hf : ∀ₘ a, 0 ≤ f a) : 0 ≤ (∫ a, f a) :=
+lemma integral_nonneg_of_ae {f : α → ℝ} (hf : ∀ₘ a, 0 ≤ f a) : 0 ≤ (∫ a, f a) :=
 begin
   by_cases hfm : measurable f,
   { rw integral_eq_lintegral_of_nonneg_ae hf hfm, exact to_real_nonneg },
@@ -1268,7 +1333,7 @@ lemma integral_nonpos_of_nonpos_ae {f : α → ℝ} (hf : ∀ₘ a, f a ≤ 0) :
 begin
   have hf : ∀ₘ a, 0 ≤ (-f) a,
   { filter_upwards [hf], simp only [mem_set_of_eq], assume a h, rwa [pi.neg_apply, neg_nonneg] },
-  have : 0 ≤ (∫ a, -f a) := integral_nonneg_of_nonneg_ae hf,
+  have : 0 ≤ (∫ a, -f a) := integral_nonneg_of_ae hf,
   rwa [integral_neg, neg_nonneg] at this,
 end
 
@@ -1277,7 +1342,7 @@ lemma integral_le_integral_ae {f g : α → ℝ} (hfm : measurable f) (hfi : int
 le_of_sub_nonneg
 begin
   rw ← integral_sub hgm hgi hfm hfi,
-  apply integral_nonneg_of_nonneg_ae,
+  apply integral_nonneg_of_ae,
   filter_upwards [h],
   simp only [mem_set_of_eq],
   assume a,
@@ -1297,7 +1362,7 @@ classical.by_cases
 ( λh : ¬measurable f,
   begin
     rw [integral_non_measurable h, _root_.norm_zero],
-    exact integral_nonneg_of_nonneg_ae le_ae
+    exact integral_nonneg_of_ae le_ae
   end )
 
 lemma integral_finset_sum {ι} (s : finset ι) {f : ι → α → β}

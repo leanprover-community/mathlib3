@@ -117,6 +117,16 @@ lemma integrable_of_le {f : α → β} {g : α → γ} (h : ∀a, ∥f a∥ ≤ 
   integrable f :=
 integrable_of_le_ae (univ_mem_sets' h) hg
 
+lemma integrable_of_le' {f g : α → ℝ} (hf : ∀ a, 0 ≤ f a) (hfg : ∀ a, f a ≤ g a) (hg : integrable g) :
+  integrable f :=
+integrable_of_le (λ a,
+begin
+  convert hfg a,
+  { rw [real.norm_eq_abs, abs_of_nonneg (hf a)] },
+  { rw [real.norm_eq_abs, abs_of_nonneg], exact le_trans (hf a) (hfg a) }
+end)
+hg
+
 lemma lintegral_nnnorm_eq_lintegral_edist (f : α → β) :
   (∫⁻ a, nnnorm (f a)) = ∫⁻ a, edist (f a) 0 :=
 by { congr, funext, rw edist_eq_coe_nnnorm }
@@ -150,6 +160,10 @@ variables (α β)
 @[simp] lemma integrable_zero : integrable (λa:α, (0:β)) :=
 by { have := coe_lt_top, simpa [integrable] }
 variables {α β}
+
+lemma integrable_const_of_volume (h : volume (univ : set α) < ⊤) (b : β) :
+  integrable (λa:α, b) :=
+by { rw [integrable_iff_norm, lintegral_const], exact mul_lt_top h coe_lt_top }
 
 lemma lintegral_nnnorm_add {f : α → β} {g : α → γ} (hf : measurable f) (hg : measurable g) :
   (∫⁻ a, nnnorm (f a) + nnnorm (g a)) = (∫⁻ a, nnnorm (f a)) + ∫⁻ a, nnnorm (g a) :=

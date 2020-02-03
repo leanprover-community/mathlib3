@@ -279,6 +279,14 @@ lemma bdd_above_of_bdd_above_of_monotone {f : α → β} (hf : monotone f) : bdd
 lemma bdd_below_of_bdd_below_of_monotone {f : α → β} (hf : monotone f) : bdd_below s → bdd_below (f '' s)
 | ⟨C, hC⟩ := ⟨f C, by rintro y ⟨x, x_bnd, rfl⟩; exact hf (hC x_bnd)⟩
 
+lemma bdd_below_iff_subset_Ici (s : set α) : bdd_below s ↔ ∃ a, s ⊆ Ici a := iff.rfl
+
+lemma bdd_above_iff_subset_Iic (s : set α) : bdd_above s ↔ ∃ a, s ⊆ Iic a := iff.rfl
+
+lemma bdd_below_bdd_above_iff_subset_Icc (s : set α) :
+  bdd_below s ∧ bdd_above s ↔ ∃ a b, s ⊆ Icc a b :=
+by simp [Ici_inter_Iic.symm, subset_inter_iff, bdd_below_iff_subset_Ici, bdd_above_iff_subset_Iic]
+
 end preorder
 
 /--When there is a global maximum, every set is bounded above.-/

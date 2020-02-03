@@ -280,7 +280,7 @@ lemma Ioi_inter_Iio : Ioi a ∩ Iio b = Ioo a b := rfl
 end intervals
 
 section partial_order
-variables {α : Type u} [partial_order α] {a b c : α}
+variables {α : Type u} [partial_order α] {a b : α}
 
 @[simp] lemma Icc_self (a : α) : Icc a a = {a} :=
 set.ext $ by simp [Icc, le_antisymm_iff, and_comm]
@@ -561,6 +561,15 @@ variables {α : Type u} [lattice α] [ht : is_total α (≤)] {a b c a₁ a₂ b
 lemma Icc_inter_Icc : Icc a₁ b₁ ∩ Icc a₂ b₂ = Icc (a₁ ⊔ a₂) (b₁ ⊓ b₂) :=
 by simp only [Ici_inter_Iic.symm, Ici_inter_Ici.symm, Iic_inter_Iic.symm]; ac_refl
 
+@[simp] lemma Icc_inter_Icc_eq_singleton (hab : a ≤ b) (hbc : b ≤ c) :
+  Icc a b ∩ Icc b c = {b} :=
+begin
+  rw [Icc_inter_Icc],
+  convert Icc_self b,
+  exact sup_of_le_right hab,
+  exact inf_of_le_left hbc
+end
+
 include ht
 
 lemma Ico_inter_Ico : Ico a₁ b₁ ∩ Ico a₂ b₂ = Ico (a₁ ⊔ a₂) (b₁ ⊓ b₂) :=
@@ -571,15 +580,6 @@ by simp only [Ioi_inter_Iic.symm, Ioi_inter_Ioi.symm, Iic_inter_Iic.symm]; ac_re
 
 lemma Ioo_inter_Ioo : Ioo a₁ b₁ ∩ Ioo a₂ b₂ = Ioo (a₁ ⊔ a₂) (b₁ ⊓ b₂) :=
 by simp only [Ioi_inter_Iio.symm, Ioi_inter_Ioi.symm, Iio_inter_Iio.symm]; ac_refl
-
-@[simp] lemma Icc_inter_Icc_eq_singleton (hab : a ≤ b) (hbc : b ≤ c) :
-  Icc a b ∩ Icc b c = {b} :=
-begin
-  rw [Icc_inter_Icc],
-  convert Icc_self b,
-  exact sup_of_le_right hab,
-  exact inf_of_le_left hbc
-end
 
 end both
 

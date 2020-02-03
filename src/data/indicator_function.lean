@@ -176,17 +176,17 @@ end mul_zero_class
 section order
 variables [has_zero β] [preorder β] {s t : set α} {f g : α → β} {a : α}
 
-lemma indicator_nonneg (h : ∀ a ∈ s, 0 ≤ f a) : ∀ a, 0 ≤ indicator s f a :=
-by { assume a, rw indicator_apply, split_ifs with as, { exact h _ as }, refl }
-
 lemma indicator_nonneg' (h : a ∈ s → 0 ≤ f a) : 0 ≤ indicator s f a :=
 by { rw indicator_apply, split_ifs with as, { exact h as }, refl }
 
-lemma indicator_nonpos (h : ∀ a ∈ s, f a ≤ 0) : ∀ a, indicator s f a ≤ 0 :=
-by { assume a, rw indicator_apply, split_ifs with as, { exact h _ as }, refl }
+lemma indicator_nonneg (h : ∀ a ∈ s, 0 ≤ f a) : ∀ a, 0 ≤ indicator s f a :=
+λ a, indicator_nonneg' (h a)
 
 lemma indicator_nonpos' (h : a ∈ s → f a ≤ 0) : indicator s f a ≤ 0 :=
 by { rw indicator_apply, split_ifs with as, { exact h as }, refl }
+
+lemma indicator_nonpos (h : ∀ a ∈ s, f a ≤ 0) : ∀ a, indicator s f a ≤ 0 :=
+λ a, indicator_nonpos' (h a)
 
 lemma indicator_le_indicator (h : f a ≤ g a) : indicator s f a ≤ indicator s g a :=
 by { simp only [indicator], split_ifs with ha, { exact h }, refl }

@@ -223,7 +223,10 @@ lemma convex.neg_preimage (hs : convex s) : convex ((λ z, -z) ⁻¹' s) :=
 hs.is_linear_preimage is_linear_map.is_linear_map_neg
 
 lemma convex.smul (c : ℝ) (hs : convex s) : convex (c • s) :=
-hs.is_linear_image (is_linear_map.is_linear_map_smul c)
+begin
+  rw smul_set_eq_image,
+  exact hs.is_linear_image (is_linear_map.is_linear_map_smul c)
+end
 
 lemma convex.smul_preimage (c : ℝ) (hs : convex s) : convex ((λ z, c • z) ⁻¹' s) :=
 hs.is_linear_preimage (is_linear_map.is_linear_map_smul c)
@@ -245,7 +248,7 @@ end
 lemma convex.affinity (hs : convex s) (z : E) (c : ℝ) : convex ((λx, z + c • x) '' s) :=
 begin
   convert (hs.smul c).translate z using 1,
-  erw [← image_comp]
+  erw [smul_set_eq_image, ←image_comp]
 end
 
 lemma convex_real_iff {s : set ℝ} :

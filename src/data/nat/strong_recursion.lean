@@ -11,7 +11,9 @@ import tactic
 # Strong recursion
 
 A strong recursion principle based on `fin`.
-
+The benefit of `(Π (m:fin n), X m)` over `Π (m:ℕ) (h:m < n), X m`
+is that with `fin` the bound on `m` is bundled,
+and this can be used in later proofs and constructions.
 -/
 
 namespace nat

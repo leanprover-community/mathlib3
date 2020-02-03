@@ -56,7 +56,7 @@ omit adj
 
 @[priority 100] -- see Note [lower instance priority]
 instance is_equivalence_preserves_colimits (E : C ⥤ D) [is_equivalence E] : preserves_colimits E :=
-adjunction.left_adjoint_preserves_colimits E.adjunction
+left_adjoint_preserves_colimits E.adjunction
 
 -- verify the preserve_colimits instance works as expected:
 example (E : C ⥤ D) [is_equivalence E]
@@ -111,7 +111,7 @@ omit adj
 
 @[priority 100] -- see Note [lower instance priority]
 instance is_equivalence_preserves_limits (E : D ⥤ C) [is_equivalence E] : preserves_limits E :=
-adjunction.right_adjoint_preserves_limits E.inv.adjunction
+right_adjoint_preserves_limits E.inv.adjunction
 
 -- verify the preserve_limits instance works as expected:
 example (E : D ⥤ C) [is_equivalence E]

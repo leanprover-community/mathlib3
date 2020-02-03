@@ -415,7 +415,7 @@ protected noncomputable def discrete_linear_ordered_field [discrete_linear_order
 { ..filter_product.linear_ordered_field U, ..filter_product.decidable_linear_ordered_comm_ring U,
   ..filter_product.discrete_field U }
 
-protected def ordered_cancel_comm_monoid [ordered_cancel_comm_monoid β] : ordered_cancel_comm_monoid β* :=
+instance ordered_cancel_comm_monoid [ordered_cancel_comm_monoid β] : ordered_cancel_comm_monoid β* :=
 { add_le_add_left := λ x y hxy z, by revert hxy; exact quotient.induction_on₃' x y z
     (λ a b c hab, by filter_upwards [hab] λ i hi, by simpa),
   le_of_add_le_add_left := λ x y z, quotient.induction_on₃' x y z $ λ x y z h,

@@ -197,7 +197,7 @@ instance [zero_ne_one_class β] (NT : φ ≠ ⊥) : zero_ne_one_class β* :=
   ..filter_product.has_zero,
   ..filter_product.has_one }
 
-instance [division_ring β] (U : is_ultrafilter φ) : division_ring β* :=
+protected def division_ring [division_ring β] (U : is_ultrafilter φ) : division_ring β* :=
 { mul_inv_cancel := λ x, quotient.induction_on' x $ λ a hx, quotient.sound' $
     have hx1 : _ := (not_imp_not.mpr quotient.eq'.mpr) hx,
     have hx2 : _ := (ultrafilter_iff_compl_mem_iff_not_mem.mp U _).mpr hx1,
@@ -214,11 +214,12 @@ instance [division_ring β] (U : is_ultrafilter φ) : division_ring β* :=
   ..filter_product.has_inv,
   ..filter_product.zero_ne_one_class U.1 }
 
-instance [field β] (U : is_ultrafilter φ) : field β* :=
+protected def field [field β] (U : is_ultrafilter φ) : field β* :=
 { ..filter_product.comm_ring,
   ..filter_product.division_ring U }
 
-noncomputable instance [discrete_field β] (U : is_ultrafilter φ) : discrete_field β* :=
+protected noncomputable def discrete_field [discrete_field β] (U : is_ultrafilter φ) :
+  discrete_field β* :=
 { inv_zero := quotient.sound' $ by show _ ∈ _;
     simp only [inv_zero, eq_self_iff_true, (set.univ_def).symm, univ_sets],
   has_decidable_eq := by apply_instance,
@@ -239,7 +240,7 @@ instance [partial_order β] : partial_order β* :=
     show _ ∈ _, by rw hI; exact inter_sets _ hab hba
   ..filter_product.preorder }
 
-instance [linear_order β] (U : is_ultrafilter φ) : linear_order β* :=
+protected def linear_order [linear_order β] (U : is_ultrafilter φ) : linear_order β* :=
 { le_total := λ x y, quotient.induction_on₂' x y $ λ a b,
     have hS : _ ⊆ {i | b i ≤ a i} := λ i, le_of_not_le,
     or.cases_on (mem_or_compl_mem_of_ultrafilter U {i | a i ≤ b i})
@@ -363,7 +364,7 @@ by rw lt_def U; exact of_rel₂ U.1
 lemma lift_id : lift id = (id : β* → β*) :=
 funext $ λ x, quotient.induction_on' x $ by apply λ a, quotient.sound (setoid.refl _)
 
-instance [ordered_comm_group β] (U : is_ultrafilter φ) : ordered_comm_group β* :=
+protected def ordered_comm_group [ordered_comm_group β] (U : is_ultrafilter φ) : ordered_comm_group β* :=
 { add_le_add_left := λ x y hxy z, by revert hxy; exact quotient.induction_on₃' x y z
     (λ a b c hab, by filter_upwards [hab] λ i hi, by simpa),
   add_lt_add_left := λ x y hxy z, by revert hxy; exact quotient.induction_on₃' x y z
@@ -371,7 +372,7 @@ instance [ordered_comm_group β] (U : is_ultrafilter φ) : ordered_comm_group β
     filter_upwards [hab] λ i hi, add_lt_add_left hi (c i)),
   ..filter_product.partial_order, ..filter_product.add_comm_group }
 
-instance [ordered_ring β] (U : is_ultrafilter φ) : ordered_ring β* :=
+protected def ordered_ring [ordered_ring β] (U : is_ultrafilter φ) : ordered_ring β* :=
 { mul_nonneg := λ x y, quotient.induction_on₂' x y $
     λ a b ha hb, by filter_upwards [ha, hb] λ i, by simp only [set.mem_set_of_eq];
     exact mul_nonneg,
@@ -380,36 +381,41 @@ instance [ordered_ring β] (U : is_ultrafilter φ) : ordered_ring β* :=
   ..filter_product.ring, ..filter_product.ordered_comm_group U,
   ..filter_product.zero_ne_one_class U.1 }
 
-instance [linear_ordered_ring β] (U : is_ultrafilter φ) : linear_ordered_ring β* :=
+protected def linear_ordered_ring [linear_ordered_ring β] (U : is_ultrafilter φ) :
+  linear_ordered_ring β* :=
 { zero_lt_one := by rw lt_def U; show (∀* i, (0 : β) < 1); simp [zero_lt_one],
   ..filter_product.ordered_ring U, ..filter_product.linear_order U }
 
-instance [linear_ordered_field β] (U : is_ultrafilter φ) : linear_ordered_field β* :=
+protected def linear_ordered_field [linear_ordered_field β] (U : is_ultrafilter φ) :
+  linear_ordered_field β* :=
 { ..filter_product.linear_ordered_ring U, ..filter_product.field U }
 
-instance [linear_ordered_comm_ring β] (U : is_ultrafilter φ) : linear_ordered_comm_ring β* :=
+protected def linear_ordered_comm_ring [linear_ordered_comm_ring β] (U : is_ultrafilter φ) :
+  linear_ordered_comm_ring β* :=
 { ..filter_product.linear_ordered_ring U, ..filter_product.comm_monoid }
 
-noncomputable instance [decidable_linear_order β] (U : is_ultrafilter φ) :
+protected noncomputable def decidable_linear_order [decidable_linear_order β] (U : is_ultrafilter φ) :
   decidable_linear_order β* :=
 { decidable_le := by apply_instance,
   ..filter_product.linear_order U }
 
-noncomputable instance [decidable_linear_ordered_comm_group β] (U : is_ultrafilter φ) :
+protected noncomputable def decidable_linear_ordered_comm_group
+  [decidable_linear_ordered_comm_group β] (U : is_ultrafilter φ) :
   decidable_linear_ordered_comm_group β* :=
 { ..filter_product.ordered_comm_group U, ..filter_product.decidable_linear_order U }
 
-noncomputable instance [decidable_linear_ordered_comm_ring β] (U : is_ultrafilter φ) :
+protected noncomputable def decidable_linear_ordered_comm_ring
+  [decidable_linear_ordered_comm_ring β] (U : is_ultrafilter φ) :
   decidable_linear_ordered_comm_ring β* :=
 { ..filter_product.linear_ordered_comm_ring U,
   ..filter_product.decidable_linear_ordered_comm_group U }
 
-noncomputable instance [discrete_linear_ordered_field β] (U : is_ultrafilter φ) :
-  discrete_linear_ordered_field β* :=
+protected noncomputable def discrete_linear_ordered_field [discrete_linear_ordered_field β]
+  (U : is_ultrafilter φ) : discrete_linear_ordered_field β* :=
 { ..filter_product.linear_ordered_field U, ..filter_product.decidable_linear_ordered_comm_ring U,
   ..filter_product.discrete_field U }
 
-instance [ordered_cancel_comm_monoid β] : ordered_cancel_comm_monoid β* :=
+protected def ordered_cancel_comm_monoid [ordered_cancel_comm_monoid β] : ordered_cancel_comm_monoid β* :=
 { add_le_add_left := λ x y hxy z, by revert hxy; exact quotient.induction_on₃' x y z
     (λ a b c hab, by filter_upwards [hab] λ i hi, by simpa),
   le_of_add_le_add_left := λ x y z, quotient.induction_on₃' x y z $ λ x y z h,

@@ -65,7 +65,7 @@ have lt_not_symm : ∀ {x y : pilex ι β}, ¬ (x < y ∧ y < x),
         (λ hyx, lt_irrefl (x i) (by simpa [hyx] using hi.2))⟩, by tauto⟩,
   ..pilex.has_lt }
 
-instance [linear_order ι] (wf : well_founded ((<) : ι → ι → Prop)) [∀ a, linear_order (β a)] :
+def [linear_order ι] (wf : well_founded ((<) : ι → ι → Prop)) [∀ a, linear_order (β a)] :
   linear_order (pilex ι β) :=
 { le_total := λ x y, by classical; exact
     or_iff_not_imp_left.2 (λ hxy, begin

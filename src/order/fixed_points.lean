@@ -170,7 +170,7 @@ Sup_le $ λ x hxA, (HA hxA) ▸ (hf $ le_Sup hxA)
 theorem f_le_Inf_of_fixed_points (A : set α) (HA : A ⊆ fixed_points f) : f (Inf A) ≤ Inf A :=
 le_Inf $ λ x hxA, (HA hxA) ▸ (hf $ Inf_le hxA)
 
-instance : complete_lattice (fixed_points f) :=
+protected def complete_lattice : complete_lattice (fixed_points f) :=
 { le           := λx y, x.1 ≤ y.1,
   le_refl      := λ x, le_refl x,
   le_trans     := λ x y z, le_trans,

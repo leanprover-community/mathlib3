@@ -148,7 +148,8 @@ export monad_writer_adapter (adapt_writer)
 section
 variables {ω ω' : Type u} {m m' : Type u → Type v}
 
-@[priority 100] -- see Note [lower instance priority]
+/- marked as nolint, because it generates metavariables during type class resolution -/
+@[priority 100, nolint] -- see Note [lower instance priority]
 instance monad_writer_adapter_trans {n n' : Type u → Type v} [monad_functor m m' n n'] [monad_writer_adapter ω ω' m m'] : monad_writer_adapter ω ω' n n' :=
 ⟨λ α f, monad_map (λ α, (adapt_writer f : m α → m' α))⟩
 

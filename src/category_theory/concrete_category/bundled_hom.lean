@@ -45,7 +45,8 @@ variable [𝒞 : bundled_hom hom]
 include 𝒞
 
 /-- Every `@bundled_hom c _` defines a category with objects in `bundled c`. -/
-protected def category : category (bundled c) :=
+-- The linter `dangerous_instance` fails, because it generates the type-class problem bundled_hom ?m
+@[nolint] instance category : category (bundled c) :=
 by refine
 { hom := λ X Y, @hom X.1 Y.1 X.str Y.str,
   id := λ X, @bundled_hom.id c hom 𝒞 X X.str,
@@ -57,7 +58,8 @@ intros; apply 𝒞.hom_ext;
   simp only [𝒞.id_to_fun, 𝒞.comp_to_fun, function.left_id, function.right_id]
 
 /-- A category given by `bundled_hom` is a concrete category. -/
-protected def concrete_category : concrete_category (bundled c) :=
+-- The linter `dangerous_instance` fails, because it generates the type-class problem bundled_hom ?m
+@[nolint] instance : concrete_category (bundled c) :=
 { forget := { obj := λ X, X,
               map := λ X Y f, 𝒞.to_fun X.str Y.str f,
               map_id' := λ X, 𝒞.id_to_fun X.str,

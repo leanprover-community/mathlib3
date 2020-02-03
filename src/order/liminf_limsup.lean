@@ -109,7 +109,7 @@ lemma is_cobounded_of_is_bounded [is_trans α r] (hf : f ≠ ⊥) :
   f.is_bounded r → f.is_cobounded (flip r)
 | ⟨a, ha⟩ := ⟨a, assume b hb,
   have ∀ᶠ x in f, r x a ∧ r b x, from ha.and hb,
-  let ⟨x, rxa, rbx⟩ := inhabited_of_mem_sets hf this in
+  let ⟨x, rxa, rbx⟩ := nonempty_of_mem_sets hf this in
   show r b a, from trans rbx rxa⟩
 
 lemma is_cobounded_bot : is_cobounded r ⊥ ↔ (∃b, ∀x, r b x) :=
@@ -190,7 +190,7 @@ theorem Liminf_le_Limsup {f : filter α}
   (hf : f ≠ ⊥) (h₁ : f.is_bounded (≤)) (h₂ : f.is_bounded (≥)) : f.Liminf ≤ f.Limsup :=
 Liminf_le_of_le h₂ $ assume a₀ ha₀, le_Limsup_of_le h₁ $ assume a₁ ha₁, show a₀ ≤ a₁, from
   have ∀ᶠ b in f, a₀ ≤ b ∧ b ≤ a₁, from ha₀.and ha₁,
-  let ⟨b, hb₀, hb₁⟩ := inhabited_of_mem_sets hf this in
+  let ⟨b, hb₀, hb₁⟩ := nonempty_of_mem_sets hf this in
   le_trans hb₀ hb₁
 
 lemma Liminf_le_Liminf {f g : filter α}

@@ -878,6 +878,13 @@ iff.intro
 
 lemma all_ae_iff {p : α → Prop} : (∀ₘ a, p a) ↔ volume { a | ¬ p a } = 0 := iff.rfl
 
+lemma all_ae_not_mem_iff (s : set α) : (∀ₘ a, a ∉ s) ↔ volume s = 0 :=
+begin
+  have : {a : α | ¬ a ∉ s} = s,
+    { ext, simp only [iff_self, set.not_not_mem, set.mem_set_of_eq] },
+  rw [all_ae_iff, this]
+end
+
 lemma all_ae_of_all {p : α → Prop} : (∀a, p a) → ∀ₘ a, p a := univ_mem_sets'
 
 lemma all_ae_all_iff {ι : Type*} [encodable ι] {p : α → ι → Prop} :

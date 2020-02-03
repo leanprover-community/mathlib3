@@ -51,7 +51,9 @@ protected def strong_recursion_aux :
   (strong_recursion_aux n m)
   (λ e, f _ (λ k, strong_recursion_aux n _ $ lt_of_lt_of_le k.2 $ le_of_eq e))
 
-/-- A strong recursion principle for the natural numbers. -/
+/-- A strong recursion principle for the natural numbers.
+It allows one to recursively define a function on ℕ
+by showing how to extend a function on `fin n := {k // k < n}` to `n`. -/
 def strong_recursion (n : ℕ) : X n :=
 nat.strong_recursion_aux f (n+1) n $ n.lt_succ_self
 

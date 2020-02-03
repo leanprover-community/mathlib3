@@ -445,7 +445,7 @@ meta def is_default_local : expr → bool
 | (expr.local_const _ _ binder_info.default _) := tt
 | _ := ff
 
-/-- Checks whether local constant `l` occurs in expression `e` -/
+/-- `has_local_constant e l` checks whether local constant `l` occurs in expression `e` -/
 meta def has_local_constant (e l : expr) : bool :=
 e.has_local_in $ mk_name_set.insert l.local_uniq_name
 

@@ -759,9 +759,9 @@ diam_subsingleton subsingleton_empty
 diam_subsingleton subsingleton_singleton
 
 lemma diam_eq_zero_iff : diam s = 0 ↔ s.subsingleton :=
-⟨λ h x y hx hy, edist_le_zero.1 $ h ▸ edist_le_diam_of_mem hx hy, diam_subsingleton⟩
+⟨λ h x hx y hy, edist_le_zero.1 $ h ▸ edist_le_diam_of_mem hx hy, diam_subsingleton⟩
 
-lemma diam_pos_iff : 0 < diam s ↔ ∃ x y ∈ s, x ≠ y :=
+lemma diam_pos_iff : 0 < diam s ↔ ∃ (x ∈ s) (y ∈ s), x ≠ y :=
 begin
   have := not_congr (@diam_eq_zero_iff _ _ s),
   dunfold set.subsingleton at this,

@@ -194,6 +194,10 @@ by { rw [edist_dist, nndist, ennreal.of_real_eq_coe_nnreal] }
 lemma edist_ne_top (x y : α) : edist x y ≠ ⊤ :=
 by rw [edist_dist x y]; apply ennreal.coe_ne_top
 
+/--In a metric space, the extended distance is always finite-/
+lemma edist_lt_top {α : Type*} [metric_space α] (x y : α) : edist x y < ⊤ :=
+ennreal.lt_top_iff_ne_top.2 (edist_ne_top x y)
+
 /--`nndist x x` vanishes-/
 @[simp] lemma nndist_self (a : α) : nndist a a = 0 := (nnreal.coe_eq_zero _).1 (dist_self a)
 
@@ -1388,7 +1392,7 @@ end
 end bounded
 
 section diam
-variables {s : set α} {x y : α}
+variables {s : set α} {x y z : α}
 
 /-- The diameter of a set in a metric space. To get controllable behavior even when the diameter
 should be infinite, we express it in terms of the emetric.diameter -/
@@ -1410,6 +1414,14 @@ diam_subsingleton subsingleton_singleton
 
 @[simp] lemma diam_pair : diam ({x, y} : set α) = dist x y :=
 by simp only [diam, emetric.diam_pair, dist_edist]
+
+@[simp] lemma diam_triple :
+  metric.diam ({x, y, z} : set α) = max (dist x y) (max (dist y z) (dist x z)) :=
+begin
+  simp only [metric.diam, emetric.diam_triple, dist_edist],
+  rw [ennreal.to_real_max, ennreal.to_real_max];
+    apply_rules [ne_of_lt, edist_lt_top, max_lt]
+end
 
 /-- If the distance between any two points in a set is bounded by some constant `C`,
 then `ennreal.of_real C`  bounds the emetric diameter of this set. -/

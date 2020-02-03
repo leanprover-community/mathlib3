@@ -874,6 +874,12 @@ begin
   norm_cast
 end
 
+lemma to_real_max (hr : a ≠ ⊤) (hp : b ≠ ⊤) :
+  ennreal.to_real (max a b) = max (ennreal.to_real a) (ennreal.to_real b) :=
+(le_total a b).elim
+  (λ h, by simp only [h, (ennreal.to_real_le_to_real hr hp).2 h, max_eq_right])
+  (λ h, by simp only [h, (ennreal.to_real_le_to_real hp hr).2 h, max_eq_left])
+
 lemma to_nnreal_pos_iff : 0 < a.to_nnreal ↔ (0 < a ∧ a ≠ ∞) :=
 begin
   cases a,

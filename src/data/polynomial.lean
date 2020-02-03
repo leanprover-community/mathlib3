@@ -2006,7 +2006,7 @@ have hq0 : q ≠ 0, from λ hp0, by simpa [hp0] using hq,
 have nat_degree (1 : polynomial α) = nat_degree (p * q),
   from congr_arg _ hq,
 by rw [nat_degree_one, nat_degree_mul_eq hp0 hq0, eq_comm,
-    add_eq_zero_iff, ← with_bot.coe_eq_coe,
+    _root_.add_eq_zero_iff, ← with_bot.coe_eq_coe,
     ← degree_eq_nat_degree hp0] at this;
   exact this.1
 

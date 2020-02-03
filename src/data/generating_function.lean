@@ -14,33 +14,6 @@ import tactic
 
 -/
 
-namespace nat -- this has been PR'd
-@[simp] lemma choose_succ_self_right : ∀ (n:ℕ), (n+1).choose n = n+1
-| 0     := rfl
-| (n+1) := by rw [choose_succ_succ, choose_succ_self_right, choose_self]
-
-lemma choose_mul_succ_eq (n k : ℕ) :
-  (n.choose k) * (n + 1) = ((n+1).choose k) * (n + 1 - k) :=
-begin
-  induction k with k ih, { simp },
-  by_cases hk : n < k + 1,
-  { rw [choose_eq_zero_of_lt hk, sub_eq_zero_of_le hk, zero_mul, mul_zero] },
-  push_neg at hk,
-  replace hk : k + 1 ≤ n + 1 := _root_.le_add_right hk,
-  rw [choose_succ_succ],
-  rw [add_mul, succ_sub_succ],
-  rw [← choose_succ_right_eq],
-  rw [← succ_sub_succ, nat.mul_sub_left_distrib],
-  symmetry,
-  apply nat.add_sub_cancel',
-  exact mul_le_mul_left _ hk,
-end
-
-end nat
--- this is PR'd
-@[simp] lemma units.coe_mk_of_mul_eq_one {G : Type*} [comm_monoid G] {x y : G} (h : x * y = 1) :
-  (units.mk_of_mul_eq_one x y h : G) = x := rfl
-
 namespace mv_power_series
 open_locale classical
 variables {R : Type*} [comm_semiring R] {σ : Type*}
@@ -193,21 +166,6 @@ begin
 end
 
 end nat
-
-namespace finset -- this has been PR'd
-variables  {β : Type*} [comm_monoid β]
-@[to_additive]
-lemma range_prod_eq_univ_prod (n : ℕ) (f : ℕ → β) :
-  (range n).prod f = univ.prod (λ (k : fin n), f k) :=
-begin
-  symmetry,
-  refine prod_bij (λ k hk, k) _ _ _ _,
-  { rintro ⟨k, hk⟩ _, simp * },
-  { rintro ⟨k, hk⟩ _, simp * },
-  { intros, rwa fin.eq_iff_veq },
-  { intros k hk, rw mem_range at hk, exact ⟨⟨k, hk⟩, mem_univ _, rfl⟩, }
-end
-end finset
 
 section bernoulli
 

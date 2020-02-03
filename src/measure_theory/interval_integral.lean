@@ -53,16 +53,16 @@ lemma measurable_on.subinterval_right (hx : x ∈ a..b) (h : measurable_on a..b 
   measurable_on x..b f :=
 h.subinterval hx right_mem_interval
 
-lemma measurable_on.Icc_of_interval :
-  measurable_on a..b f → measurable_on (Icc a b) f :=
+lemma measurable_on.Icc_of_interval {α} [topological_space α] [decidable_linear_order α]
+  {a b : α} {f : α → β} : measurable_on a..b f → measurable_on (Icc a b) f :=
 begin
   rw interval, split_ifs,
   { simp only [imp_self] },
   rw Icc_eq_empty (lt_of_not_ge h), simp only [measurable_on_empty, forall_true_iff],
 end
 
-lemma measurable_on.Icc_of_interval' :
-  measurable_on a..b f → measurable_on (Icc b a) f :=
+lemma measurable_on.Icc_of_interval' {α} [topological_space α] [decidable_linear_order α]
+  {a b : α} {f : α → β} : measurable_on a..b f → measurable_on (Icc b a) f :=
 by { rw interval_swap, exact measurable_on.Icc_of_interval }
 
 lemma measurable_on.interval_combine (hab : measurable_on a..b f) (hbc : measurable_on b..c f) :

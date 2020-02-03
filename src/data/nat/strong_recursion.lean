@@ -14,12 +14,35 @@ A strong recursion principle based on `fin`.
 The benefit of `(Π (m:fin n), X m)` over `Π (m:ℕ) (h:m < n), X m`
 is that with `fin` the bound on `m` is bundled,
 and this can be used in later proofs and constructions.
+
+## Example
+
+For example, one can use this to give a definition of the Bernoulli numbers
+that closely follows the recursive definition found at
+https://en.wikipedia.org/wiki/Bernoulli_number#Recursive_definition
+It is:
+$$ B_n = \sum_{k < n} \binom{n}{k} \frac{B_k}{n - k + 1} $$
+
+```lean
+example : ℕ → ℚ :=
+strong_recursion $ λ n bernoulli,
+1 - finset.univ.sum (λ k : fin n, (n.choose k) * bernoulli k / (n - k + 1))
+```
+
+This example shows the benefit of using `fin n` in the implementation,
+because it allows us to use `finset.univ.sum` which enables the recursive call `bernoulli k`.
+If, on the other hand, we had used `Π (m:ℕ) (h:m < n), X m` and `(finset.range n).sum`,
+then the recursive call to `bernoulli k` would get stuck,
+because it would come with a proof obligation `k < n`
+which isn't provided by `(finset.range n).sum`.
+
 -/
 
 namespace nat
 universe variable u
 variables {X : ℕ → Sort u} (f : Π n, (Π (m:fin n), X m) → X n)
 
+/-- An auxilliary definition for `nat.strong_recursion`. -/
 protected def strong_recursion_aux :
   Π n m, m < n → X m
 | 0     := λ _ h, absurd h (not_lt_zero _)
@@ -28,6 +51,7 @@ protected def strong_recursion_aux :
   (strong_recursion_aux n m)
   (λ e, f _ (λ k, strong_recursion_aux n _ $ lt_of_lt_of_le k.2 $ le_of_eq e))
 
+/-- A strong recursion principle for the natural numbers. -/
 def strong_recursion (n : ℕ) : X n :=
 nat.strong_recursion_aux f (n+1) n $ n.lt_succ_self
 
@@ -45,7 +69,6 @@ end
 lemma strong_recursion_apply (n : ℕ) :
   strong_recursion f n = f n (λ i, strong_recursion f i) :=
 begin
-  show nat.strong_recursion_aux f (n+1) n _ = _,
   show dite (n < n) _ _ = _,
   rw [dif_neg (lt_irrefl n)],
   show dite (n = n) _ _ = _,
@@ -54,5 +77,23 @@ begin
   funext k,
   apply strong_recursion_aux_lt,
 end
+
+-- Example: Fibonacci
+example : ℕ → ℚ :=
+strong_recursion $ λ n fib,
+match n, fib with
+| 0 := λ _, 0
+| 1 := λ _, 1
+| (k+2) := λ fib, fib k + fib (k+1)
+end
+
+/-
+requires `import data.fintype`
+
+-- Example: Bernoulli
+example : ℕ → ℚ :=
+strong_recursion $ λ n bernoulli,
+1 - finset.univ.sum (λ k : fin n, (n.choose k) * bernoulli k / (n - k + 1))
+-/
 
 end nat

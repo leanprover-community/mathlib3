@@ -27,6 +27,9 @@ localized "notation t ` -* ` s := omega.nat.preterm.sub t s" in omega.nat
 
 namespace preterm
 
+instance : has_zero preterm := ⟨cst 0⟩
+instance : inhabited preterm := ⟨0⟩
+
 meta def induce (tac : tactic unit := tactic.skip) : tactic unit :=
 `[ intro t, induction t with m m n t s iht ihs t s iht ihs; tac]
 

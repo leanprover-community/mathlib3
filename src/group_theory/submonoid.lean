@@ -602,6 +602,9 @@ open lattice
 @[to_additive]
 instance : has_bot (submonoid M) := ⟨submonoid.bot⟩
 
+@[to_additive]
+instance : inhabited (submonoid M) := ⟨⊥⟩
+
 @[simp, to_additive] lemma mem_bot {x : M} : x ∈ (⊥ : submonoid M) ↔ x = 1 := set.mem_singleton_iff
 
 @[to_additive]

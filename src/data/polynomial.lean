@@ -25,6 +25,7 @@ variables {α : Type u} {β : Type v} {a b : α} {m n : ℕ}
 section comm_semiring
 variables [comm_semiring α] {p q r : polynomial α}
 
+instance : inhabited (polynomial α) := finsupp.inhabited
 instance : has_zero (polynomial α) := finsupp.has_zero
 instance : has_one (polynomial α) := finsupp.has_one
 instance : has_add (polynomial α) := finsupp.has_add

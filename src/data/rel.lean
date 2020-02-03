@@ -10,7 +10,7 @@ import tactic.basic data.set.lattice order.complete_lattice logic.relator
 variables {α : Type*} {β : Type*} {γ : Type*}
 
 /-- A relation on `α` and `β`, aka a set-valued function, aka a partial multifunction --/
-@[derive lattice.complete_lattice]
+@[derive lattice.complete_lattice, derive inhabited]
 def rel (α : Type*) (β : Type*) := α → β → Prop
 
 namespace rel

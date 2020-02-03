@@ -1,6 +1,6 @@
 # Lean mathlib
 
-[![Build Status](https://travis-ci.org/leanprover-community/mathlib.svg?branch=master)](https://travis-ci.org/leanprover-community/mathlib)
+![](https://github.com/leanprover-community/mathlib/workflows/continuous%20integration/badge.svg?branch=master)
 [![Mergify Status][mergify-status]][mergify]
 
 [mergify]: https://mergify.io

@@ -92,7 +92,7 @@ lemma tendsto_list_prod {f : γ → β → α} {x : filter β} {a : γ → α} :
 | []       _ := by simp [tendsto_const_nhds]
 | (f :: l) h :=
   begin
-    simp,
+    simp only [list.map_cons, list.prod_cons],
     exact (h f (list.mem_cons_self _ _)).mul
       (tendsto_list_prod l (assume c hc, h c (list.mem_cons_of_mem _ hc)))
   end

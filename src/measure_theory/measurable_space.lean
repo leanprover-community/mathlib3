@@ -886,6 +886,8 @@ def generate (s : set (set α)) : dynkin_system α :=
   has_compl := assume a, generate_has.compl,
   has_Union_nat := assume f, generate_has.Union }
 
+instance : inhabited (dynkin_system α) := ⟨generate univ⟩
+
 def to_measurable_space (h_inter : ∀s₁ s₂, d.has s₁ → d.has s₂ → d.has (s₁ ∩ s₂)) :=
 { measurable_space .
   is_measurable := d.has,

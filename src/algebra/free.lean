@@ -22,6 +22,8 @@ namespace free_magma
 
 variables {α : Type u}
 
+instance [inhabited α] : inhabited (free_magma α) := ⟨of (default _)⟩
+
 instance : has_mul (free_magma α) := ⟨free_magma.mul⟩
 
 @[elab_as_eliminator]
@@ -155,6 +157,8 @@ variables {α : Type u} [has_mul α]
 
 def of : α → free_semigroup α := quot.mk _
 
+instance [inhabited α] : inhabited (free_semigroup α) := ⟨of (default _)⟩
+
 @[elab_as_eliminator]
 protected lemma induction_on {C : free_semigroup α → Prop} (x : free_semigroup α)
   (ih : ∀ x, C (of x)) : C x :=
@@ -227,6 +231,8 @@ instance : semigroup (free_semigroup α) :=
 
 def of (x : α) : free_semigroup α :=
 (x, [])
+
+instance [inhabited α] : inhabited (free_semigroup α) := ⟨of (default _)⟩
 
 @[elab_as_eliminator]
 protected lemma induction_on {C : free_semigroup α → Prop} (x)

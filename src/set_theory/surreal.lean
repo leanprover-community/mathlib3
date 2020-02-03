@@ -286,6 +286,8 @@ instance : has_zero surreal :=
 instance : has_one surreal :=
 { one := ⟦⟨1, numeric_one⟩⟧ }
 
+instance : inhabited surreal := ⟨0⟩
+
 /-- Lift an equivalence-respecting function on pre-games to surreals. -/
 def lift {α} (f : ∀ x, numeric x → α)
   (H : ∀ {x y} (hx : numeric x) (hy : numeric y), x.equiv y → f x hx = f y hy) : surreal → α :=

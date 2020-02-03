@@ -489,6 +489,8 @@ instance : emetric_space (α →₁ β) := subtype.emetric_space
 instance : metric_space (α →₁ β) := metric_space_emetric_ball 0 ⊤
 instance : add_comm_group (α →₁ β) := subtype.add_comm_group
 
+instance : inhabited (α →₁ β) := ⟨0⟩
+
 @[simp, elim_cast] lemma coe_zero : ((0 : α →₁ β) : α →ₘ β) = 0 := rfl
 @[simp, move_cast] lemma coe_add (f g : α →₁ β) : ((f + g : α →₁ β) : α →ₘ β) = f + g := rfl
 @[simp, move_cast] lemma coe_neg (f : α →₁ β) : ((-f : α →₁ β) : α →ₘ β) = -f := rfl

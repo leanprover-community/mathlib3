@@ -22,7 +22,10 @@ def finite (s : set α) : Prop := nonempty (fintype s)
 /-- A set is infinite if it is not finite. -/
 def infinite (s : set α) : Prop := ¬ finite s
 
-noncomputable instance finite.fintype {s : set α} (h : finite s) : fintype s :=
+/-- The subtype corresponding to a finite set is a finite type. Note
+that because `finite` isn't a typeclass, this will not fire if it
+is made into an instance -/
+noncomputable def finite.fintype {s : set α} (h : finite s) : fintype s :=
 classical.choice h
 
 /-- Get a finset from a finite set -/
@@ -163,9 +166,16 @@ theorem finite_pure (a : α) : finite (pure a : set α) :=
 ⟨set.fintype_pure a⟩
 
 instance fintype_univ [fintype α] : fintype (@univ α) :=
-fintype.of_finset finset.univ $ λ _, iff_true_intro (finset.mem_univ _)
+fintype.of_equiv α $ (equiv.set.univ α).symm
 
 theorem finite_univ [fintype α] : finite (@univ α) := ⟨set.fintype_univ⟩
+
+theorem infinite_univ_iff : (@univ α).infinite ↔ _root_.infinite α :=
+⟨λ h₁, ⟨λ h₂, h₁ $ @finite_univ α h₂⟩,
+  λ ⟨h₁⟩ ⟨h₂⟩, h₁ $ @fintype.of_equiv _ _ h₂ $ equiv.set.univ _⟩
+
+theorem infinite_univ [h : _root_.infinite α] : infinite (@univ α) :=
+infinite_univ_iff.2 h
 
 instance fintype_union [decidable_eq α] (s t : set α) [fintype s] [fintype t] : fintype (s ∪ t : set α) :=
 fintype.of_finset (s.to_finset ∪ t.to_finset) $ by simp
@@ -319,13 +329,10 @@ begin
   exact finite_subset ‹finite s› this
 end
 
-lemma exists_min [decidable_linear_order β] (s : set α) (f : α → β) (h1 : finite s)
-  (h : nonempty s) : ∃ a, a ∈ s ∧ ∀ b ∈ s, f a ≤ f b :=
-begin
-  have := (finite.to_finset h1).exists_min f,
-  simp at this ⊢, unfreezeI, rcases h with ⟨⟨x, hx⟩⟩,
-  exact this x hx
-end
+lemma exists_min [decidable_linear_order β] (s : set α) (f : α → β) (h1 : finite s) :
+  s.nonempty → ∃ a ∈ s, ∀ b ∈ s, f a ≤ f b
+| ⟨x, hx⟩ := by simpa only [exists_prop, finite.mem_to_finset]
+  using (finite.to_finset h1).exists_min f ⟨x, finite.mem_to_finset.2 hx⟩
 
 end set
 
@@ -374,24 +381,6 @@ by { rw range_subset_iff, assume x, simp [nat.lt_succ_iff, nat.find_greatest_le]
 lemma finite_range_find_greatest {P : α → ℕ → Prop} [∀ x, decidable_pred (P x)] {b : ℕ} :
   finite (range (λ x, nat.find_greatest (P x) b)) :=
 finite_subset (finset.finite_to_set $ finset.range (b + 1)) range_find_greatest_subset
-
-lemma infinite_univ_nat : infinite (univ : set ℕ) :=
-assume (h : finite (univ : set ℕ)),
-let ⟨n, hn⟩ := finset.exists_nat_subset_range h.to_finset in
-have n ∈ finset.range n, from finset.subset_iff.mpr hn $ by simp,
-by simp * at *
-
-lemma not_injective_nat_fintype [fintype α] {f : ℕ → α} : ¬ injective f :=
-assume (h : injective f),
-have finite (f '' univ),
-  from finite_subset (finset.finite_to_set $ fintype.elems α) (assume a h, fintype.complete a),
-have finite (univ : set ℕ), from finite_of_finite_image (set.inj_on_of_injective _ h) this,
-infinite_univ_nat this
-
-lemma not_injective_int_fintype [fintype α] {f : ℤ → α} : ¬ injective f :=
-assume hf,
-have injective (f ∘ (coe : ℕ → ℤ)), from injective_comp hf $ assume i j, int.of_nat_inj,
-not_injective_nat_fintype this
 
 lemma card_lt_card {s t : set α} [fintype s] [fintype t] (h : s ⊂ t) :
   fintype.card s < fintype.card t :=

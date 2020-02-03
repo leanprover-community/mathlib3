@@ -156,8 +156,8 @@ set_option class.instance_max_depth 40
 instance matrix_algebra (n : Type u) (R : Type v)
   [fintype n] [decidable_eq n] [comm_ring R] : algebra R (matrix n n R) :=
 { to_fun    := (λ r, r • 1),
-  hom       := { map_one := by simp,
-                 map_mul := by { intros, simp [mul_smul], },
+  hom       := { map_one := by { ext, simp, },
+                 map_mul := by { intros, ext, simp [mul_assoc], },
                  map_add := by { intros, simp [add_smul], } },
   commutes' := by { intros, simp },
   smul_def' := by { intros, simp } }
@@ -434,6 +434,7 @@ variables (S : subalgebra R A)
 
 instance : is_subring (S : set A) := S.subring
 instance : ring S := @@subtype.ring _ S.is_subring
+instance : inhabited S := ⟨0⟩
 instance (R : Type u) (A : Type v) {rR : comm_ring R} [comm_ring A]
   {aA : algebra R A} (S : subalgebra R A) : comm_ring S := @@subtype.comm_ring _ S.is_subring
 
@@ -542,6 +543,8 @@ protected def gi : galois_insertion (adjoin R : set A → subalgebra R A) coe :=
 
 instance : complete_lattice (subalgebra R A) :=
 galois_insertion.lift_complete_lattice algebra.gi
+
+instance : inhabited (subalgebra R A) := ⟨⊥⟩
 
 theorem mem_bot {x : A} : x ∈ (⊥ : subalgebra R A) ↔ x ∈ set.range (algebra_map A : R → A) :=
 suffices (⊥ : subalgebra R A) = (of_id R A).range, by rw this; refl,

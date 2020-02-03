@@ -150,12 +150,7 @@ lemma uniform_inducing_pure_cauchy : uniform_inducing (pure_cauchy : α → Cauc
       ... = 𝓤 α : by simp [this]⟩
 
 lemma uniform_embedding_pure_cauchy : uniform_embedding (pure_cauchy : α → Cauchy α) :=
-{ inj :=
-    assume a₁ a₂ h,
-    have (pure_cauchy a₁).val = (pure_cauchy a₂).val, from congr_arg _ h,
-    have {a₁} = ({a₂} : set α),
-      from principal_eq_iff_eq.mp this,
-    by simp at this; assumption,
+{ inj := assume a₁ a₂ h, pure_inj $ subtype.ext.1 h,
   ..uniform_inducing_pure_cauchy }
 
 lemma pure_cauchy_dense : ∀x, x ∈ closure (range pure_cauchy) :=
@@ -170,7 +165,7 @@ have h_ex : ∀ s ∈ 𝓤 (Cauchy α), ∃y:α, (f, pure_cauchy y) ∈ s, from
   let ⟨x, (hx : x ∈ t)⟩ := inhabited_of_mem_sets f.property.left ht in
   have t'' ∈ filter.prod f.val (pure x),
     from mem_prod_iff.mpr ⟨t, ht, {y:α | (x, y) ∈ t'},
-      assume y, begin simp, intro h, simp [h], exact refl_mem_uniformity ht'₁ end,
+      h $ mk_mem_prod hx hx,
       assume ⟨a, b⟩ ⟨(h₁ : a ∈ t), (h₂ : (x, b) ∈ t')⟩,
         ht'₂ $ prod_mk_mem_comp_rel (@h (a, x) ⟨h₁, hx⟩) h₂⟩,
   ⟨x, ht''₂ $ by dsimp [gen]; exact this⟩,
@@ -213,7 +208,7 @@ complete_space_extension
     let ⟨t, ht₁, (ht₂ : gen t ⊆ s)⟩ := (mem_lift'_sets monotone_gen).mp hs in
     let ⟨t', ht', (h : set.prod t' t' ⊆ t)⟩ := mem_prod_same_iff.mp (hf.right ht₁) in
     have t' ⊆ { y : α | (f', pure_cauchy y) ∈ gen t },
-      from assume x hx, (filter.prod f (pure x)).sets_of_superset (prod_mem_prod ht' $ mem_pure hx) h,
+      from assume x hx, (filter.prod f (pure x)).sets_of_superset (prod_mem_prod ht' hx) h,
     f.sets_of_superset ht' $ subset.trans this (preimage_mono ht₂),
   ⟨f', by simp [nhds_eq_uniformity]; assumption⟩
 end
@@ -329,6 +324,9 @@ def completion := quotient (separation_setoid $ Cauchy α)
 
 namespace completion
 
+instance [inhabited α] : inhabited (completion α) :=
+by unfold completion; apply_instance
+
 @[priority 50]
 instance : uniform_space (completion α) := by dunfold completion ; apply_instance
 
@@ -377,6 +375,9 @@ def cpkg {α : Type*} [uniform_space α] : abstract_completion α :=
   separation := by apply_instance,
   uniform_inducing := completion.uniform_inducing_coe α,
   dense := completion.dense }
+
+instance abstract_completion.inhabited : inhabited (abstract_completion α) :=
+⟨cpkg⟩
 
 local attribute [instance]
 abstract_completion.uniform_struct abstract_completion.complete abstract_completion.separation

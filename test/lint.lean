@@ -55,3 +55,26 @@ meta def linter.dummy_linter : linter :=
 run_cmd do
   (_, s) ← lint tt tt [`linter.dummy_linter] tt,
   guard $ "/- found something: -/\n#print foo.foo /- gotcha! -/\n\n".is_suffix_of s.to_string
+
+instance impossible_instance_test {α β : Type} [add_group α] : has_add α := infer_instance
+
+run_cmd do
+  d ← get_decl `impossible_instance_test,
+  x ← impossible_instance d,
+  guard $ x = some "Impossible to infer argument 2: {β : Type}"
+
+def incorrect_type_class_argument_test {α : Type} (x : α) [x = x] [decidable_eq α] [group α] :
+  unit := ()
+
+run_cmd do
+  d ← get_decl `incorrect_type_class_argument_test,
+  x ← incorrect_type_class_argument d,
+  guard $ x = some "These are not classes. argument 3: [_inst_1 : x = x]"
+
+instance dangerous_instance_test {α β γ : Type} [ring α] [add_comm_group β] [has_coe α β]
+  [has_inv γ] : has_add β := infer_instance
+
+run_cmd do
+  d ← get_decl `dangerous_instance_test,
+  x ← dangerous_instance d,
+  guard $ x = some "The following arguments become metavariables. argument 1: {α : Type}, argument 3: {γ : Type}"

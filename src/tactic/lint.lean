@@ -142,6 +142,16 @@ ds.foldl
   (λ f x, f ++ "\n\n" ++ to_fmt "-- " ++ to_fmt (x.1.popn n) ++ print_decls x.2)
   format.nil
 
+/-- Pretty prints a list of arguments of a declaration. Assumes `l` is a list of argument positions
+  and binders (or any other element that can be pretty printed).
+  `l` can be obtained e.g. by applying `list.indexes_values` to a list obtained by
+  `get_pi_binders`. -/
+meta def print_arguments {α} [has_to_tactic_format α] (l : list (ℕ × α)) : tactic string := do
+  fs ← l.mmap (λ ⟨n, b⟩, (λ s, to_fmt "argument " ++ to_fmt (n+1) ++ ": " ++ s) <$> pp b),
+  return $ fs.to_string_aux tt
+
+/- Implementation of the linters -/
+
 /-- Auxilliary definition for `check_unused_arguments` -/
 meta def check_unused_arguments_aux : list ℕ → ℕ → ℕ → expr → list ℕ | l n n_max e :=
 if n > n_max then l else
@@ -360,6 +370,70 @@ meta def linter.has_inhabited_instance : linter :=
   no_errors_found := "No types have missing inhabited instances.",
   errors_found := "TYPES ARE MISSING INHABITED INSTANCES",
   is_fast := ff }
+
+/-- Checks whether an instance can never be applied. -/
+meta def impossible_instance (d : declaration) : tactic (option string) := do
+  tt ← is_instance d.to_name | return none,
+  (binders, _) ← get_pi_binders_dep d.type,
+  let bad_arguments := binders.filter $ λ nb, nb.2.info ≠ binder_info.inst_implicit,
+  _ :: _ ← return bad_arguments | return none,
+  (λ s, some $ "Impossible to infer " ++ s) <$> print_arguments bad_arguments
+
+/-- A linter object for `impossible_instance`. -/
+@[linter, priority 1430] meta def linter.impossible_instance : linter :=
+{ test := impossible_instance,
+  no_errors_found := "All instances are applicable",
+  errors_found := "IMPOSSIBLE INSTANCES FOUND.\nThese instances have an argument that cannot be found during type-class resolution, and therefore can never succeed. Either mark the arguments with square brackets (if it is a class), or don't make it an instance" }
+
+/-- Checks whether the definition `nm` unfolds to a class. -/
+/- Note: Caching the result of `unfolds_to_class` by giving it an attribute (so that e.g. `vector_space` or `decidable_eq` would not be repeatedly unfold to check whether it is a class), did not speed up this tactic when executed on all of mathlib (and instead significantly slowed it down) -/
+meta def unfolds_to_class : name → tactic bool | nm :=
+if nm = `has_reflect then return tt else
+succeeds $ has_attribute `class nm <|> do
+  d ← get_decl nm,
+  tt ← unfolds_to_class d.value.lambda_body.pi_codomain.get_app_fn.const_name,
+  return 0
+
+/-- Checks whether an instance can never be applied. -/
+meta def incorrect_type_class_argument (d : declaration) : tactic (option string) := do
+  (binders, _) ← get_pi_binders d.type,
+  let instance_arguments := binders.indexes_values $
+    λ b : binder, b.info = binder_info.inst_implicit,
+  /- the head of the type should either unfold to a class, or be a local constant.
+  A local constant is allowed, because that could be a class when applied to the proper arguments. -/
+  bad_arguments ← instance_arguments.mfilter $
+    λ⟨_, b⟩, let head := b.type.erase_annotations.pi_codomain.get_app_fn in
+      if head.is_local_constant then return ff else bnot <$> unfolds_to_class head.const_name,
+  _ :: _ ← return bad_arguments | return none,
+  (λ s, some $ "These are not classes. " ++ s) <$> print_arguments bad_arguments
+
+/-- A linter object for `impossible_instance`. -/
+@[linter, priority 1420] meta def linter.incorrect_type_class_argument : linter :=
+{ test := incorrect_type_class_argument,
+  no_errors_found := "All declarations have correct type-class arguments",
+  errors_found := "INCORRECT TYPE-CLASS ARGUMENTS.\nSome declarations have non-classes between [square brackets]" }
+
+/-- Checks whether an instance is dangerous: it creates a new type-class problem with metavariable arguments. -/
+meta def dangerous_instance (d : declaration) : tactic (option string) := do
+  tt ← is_instance d.to_name | return none,
+  (local_constants, target) ← mk_local_pis d.type,
+  let instance_arguments := local_constants.indexes_values $
+    λ e : expr, e.local_binding_info = binder_info.inst_implicit,
+  let bad_arguments := local_constants.indexes_values $ λ x,
+      !target.has_local_constant x &&
+      (x.local_binding_info ≠ binder_info.inst_implicit) &&
+      instance_arguments.any (λ nb, nb.2.local_type.has_local_constant x),
+  let bad_arguments : list (ℕ × binder) := bad_arguments.map $ λ ⟨n, e⟩, ⟨n, e.to_binder⟩,
+  _ :: _ ← return bad_arguments | return none,
+  (λ s, some $ "The following arguments become metavariables. " ++ s) <$> print_arguments bad_arguments
+
+/-- A linter object for `dangerous_instance`. -/
+@[linter, priority 1410] meta def linter.dangerous_instance : linter :=
+{ test := dangerous_instance,
+  no_errors_found := "No dangerous instances",
+  errors_found := "DANGEROUS INSTANCES FOUND.\nThese instances are recursive, and create a new type-class problem which will have metavariables. Currently this linter does not check whether the metavariables only occur in arguments marked with `out_param`, in which case this linter gives a false positive." }
+
+/- Implementation of the frontend. -/
 
 /-- `get_checks slow extra use_only` produces a list of linters.
 `extras` is a list of names that should resolve to declarations with type `linter`.

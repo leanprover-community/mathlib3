@@ -382,6 +382,12 @@ meta def pi_codomain : expr → expr -- see note [open expressions]
 | (pi n bi d b) := pi_codomain b
 | e             := e
 
+/-- Get the body/value of a lambda-expression.
+  This definition doesn't instantiate bound variables, and therefore produces a term that is open. -/
+meta def lambda_body : expr → expr -- see note [open expressions]
+| (lam n bi d b) := lambda_body b
+| e             := e
+
 /-- Auxilliary defintion for `pi_binders`. -/
 -- see note [open expressions]
 meta def pi_binders_aux : list binder → expr → list binder × expr
@@ -438,6 +444,15 @@ meta def local_binding_info : expr → binder_info
 meta def is_default_local : expr → bool
 | (expr.local_const _ _ binder_info.default _) := tt
 | _ := ff
+
+/-- Checks whether local constant `l` occurs in expression `e` -/
+meta def has_local_constant (e l : expr) : bool :=
+e.has_local_in $ mk_name_set.insert l.local_uniq_name
+
+/-- Turns a local constant into a binder -/
+meta def to_binder : expr → binder
+| (local_const _ nm bi t) := ⟨nm, bi, t⟩
+| _                       := default binder
 
 end expr
 

@@ -175,6 +175,20 @@ abs_norm_sub_norm_le g h
 lemma ball_0_eq (ε : ℝ) : ball (0:α) ε = {x | ∥x∥ < ε} :=
 set.ext $ assume a, by simp
 
+lemma norm_le_of_mem_closed_ball {g h : α} {r : ℝ} (H : h ∈ closed_ball g r) :
+  ∥h∥ ≤ ∥g∥ + r :=
+calc
+  ∥h∥ = ∥g + (h - g)∥ : by { congr' 1, abel }
+  ... ≤ ∥g∥ + ∥h - g∥  : norm_add_le _ _
+  ... ≤ ∥g∥ + r : by { apply add_le_add_left, rw ← dist_eq_norm, exact H }
+
+lemma norm_lt_of_mem_ball {g h : α} {r : ℝ} (H : h ∈ ball g r) :
+  ∥h∥ < ∥g∥ + r :=
+calc
+  ∥h∥ = ∥g + (h - g)∥ : by { congr' 1, abel }
+  ... ≤ ∥g∥ + ∥h - g∥  : norm_add_le _ _
+  ... < ∥g∥ + r : by { apply add_lt_add_left, rw ← dist_eq_norm, exact H }
+
 theorem normed_group.tendsto_nhds_zero {f : γ → α} {l : filter γ} :
   tendsto f l (𝓝 0) ↔ ∀ ε > 0, ∀ᶠ x in l, ∥ f x ∥ < ε :=
 metric.tendsto_nhds.trans $ forall_congr $ λ ε, forall_congr $ λ εgt0,
@@ -237,7 +251,7 @@ by simp [norm, le_max_right]
 
 /-- normed group instance on the product of finitely many normed groups, using the sup norm. -/
 instance pi.normed_group {π : ι → Type*} [fintype ι] [∀i, normed_group (π i)] :
-  normed_group (Πb, π b) :=
+  normed_group (Πi, π i) :=
 { norm := λf, ((finset.sup finset.univ (λ b, nnnorm (f b)) : nnreal) : ℝ),
   dist_eq := assume x y,
     congr_arg (coe : nnreal → ℝ) $ congr_arg (finset.sup finset.univ) $ funext $ assume a,
@@ -246,8 +260,12 @@ instance pi.normed_group {π : ι → Type*} [fintype ι] [∀i, normed_group (�
 /-- The norm of an element in a product space is `≤ r` if and only if the norm of each
 component is. -/
 lemma pi_norm_le_iff {π : ι → Type*} [fintype ι] [∀i, normed_group (π i)] {r : ℝ} (hr : 0 ≤ r)
-  {x : Πb, π b} : ∥x∥ ≤ r ↔ ∀i, ∥x i∥ ≤ r :=
+  {x : Πi, π i} : ∥x∥ ≤ r ↔ ∀i, ∥x i∥ ≤ r :=
 by { simp only [(dist_zero_right _).symm, dist_pi_le_iff hr], refl }
+
+lemma norm_le_pi_norm {π : ι → Type*} [fintype ι] [∀i, normed_group (π i)] (x : Πi, π i) (i : ι) :
+  ∥x i∥ ≤ ∥x∥ :=
+(pi_norm_le_iff (norm_nonneg x)).1 (le_refl _) i
 
 lemma tendsto_iff_norm_tendsto_zero {f : ι → β} {a : filter ι} {b : β} :
   tendsto f a (𝓝 b) ↔ tendsto (λ e, ∥ f e - b ∥) a (𝓝 0) :=

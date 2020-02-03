@@ -92,19 +92,8 @@ lemma isometry.inv (e : α ≃ β) (h : isometry e.to_fun) : isometry e.inv_fun 
 /-- Isometries preserve the diameter -/
 lemma emetric.isometry.diam_image (hf : isometry f) {s : set α}:
   emetric.diam (f '' s) = emetric.diam s :=
-begin
-  refine le_antisymm _ _,
-  { apply lattice.Sup_le _,
-    simp only [and_imp, set.mem_image, set.mem_prod, exists_imp_distrib, prod.exists],
-    assume b x x' z zs xz z' z's x'z' hb,
-    rw [← hb, ← xz, ← x'z', hf z z'],
-    exact emetric.edist_le_diam_of_mem zs z's },
-  { apply lattice.Sup_le _,
-    simp only [and_imp, set.mem_image, set.mem_prod, exists_imp_distrib, prod.exists],
-    assume b x x' xs x's hb,
-    rw [← hb, ← hf x x'],
-    exact emetric.edist_le_diam_of_mem (mem_image_of_mem _ xs) (mem_image_of_mem _ x's) }
-end
+eq_of_forall_ge_iff $ λ d,
+by simp only [emetric.diam_le_iff_forall_edist_le, ball_image_iff, hf.edist_eq]
 
 /-- The injection from a subtype is an isometry -/
 lemma isometry_subtype_val {s : set α} : isometry (subtype.val : s → α) :=

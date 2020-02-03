@@ -127,7 +127,7 @@ protected def nonempty (s : finset α) : Prop := ∃ x:α, x ∈ s
 lemma nonempty.bex {s : finset α} (h : s.nonempty) : ∃ x:α, x ∈ s := h
 
 lemma nonempty.mono {s t : finset α} (hst : s ⊆ t) (hs : s.nonempty) : t.nonempty :=
-set.nonempty.of_subset hst hs
+set.nonempty.mono hst hs
 
 /-! ### empty -/
 protected def empty : finset α := ⟨0, nodup_zero⟩
@@ -666,6 +666,15 @@ begin
   classical,
   rw [← piecewise_coe, ← piecewise_coe, ← set.piecewise_insert, ← coe_insert j s],
   congr
+end
+
+lemma update_eq_piecewise {β : Type*} [decidable_eq α] (f : α → β) (i : α) (v : β) :
+  function.update f i v = piecewise (singleton i) (λj, v) f :=
+begin
+  ext j,
+  by_cases h : j = i,
+  { rw [h], simp },
+  { simp [h] }
 end
 
 end piecewise

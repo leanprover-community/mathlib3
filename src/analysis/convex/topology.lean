@@ -79,11 +79,17 @@ convex_iff_pointwise_add_subset.mpr $ λ a b ha hb hab,
   or.elim (classical.em (a = 0))
   (λ heq,
     have hne : b ≠ 0, by { rw [heq, zero_add] at hab, rw hab, exact one_ne_zero },
-    is_open_pointwise_add_left ((is_open_map_smul_of_ne_zero hne _) is_open_interior))
+    (smul_set_eq_image b (interior s)).symm ▸
+    (is_open_pointwise_add_left ((is_open_map_smul_of_ne_zero hne _) is_open_interior)))
   (λ hne,
-    is_open_pointwise_add_right ((is_open_map_smul_of_ne_zero hne _) is_open_interior)),
+    (smul_set_eq_image a (interior s)).symm ▸
+    (is_open_pointwise_add_right ((is_open_map_smul_of_ne_zero hne _) is_open_interior))),
   (subset_interior_iff_subset_of_open h).mpr $ subset.trans
-    (by { apply pointwise_add_subset_add; exact image_subset _ interior_subset })
+    begin
+      apply pointwise_add_subset_add;
+      rw [smul_set_eq_image, smul_set_eq_image];
+      exact image_subset _ interior_subset
+    end
     (convex_iff_pointwise_add_subset.mp hs ha hb hab)
 
 /-- In a topological vector space, the closure of a convex set is convex. -/
@@ -160,7 +166,7 @@ end
 @[simp] lemma convex_hull_ediam (s : set E) :
   emetric.diam (convex_hull s) = emetric.diam s :=
 begin
-  refine le_antisymm (emetric.diam_le_of_forall_edist_le $ λ x y hx hy, _)
+  refine le_antisymm (emetric.diam_le_of_forall_edist_le $ λ x hx y hy, _)
     (emetric.diam_mono $ subset_convex_hull s),
   rcases convex_hull_exists_dist_ge2 hx hy with ⟨x', hx', y', hy', H⟩,
   rw edist_dist,
@@ -177,6 +183,6 @@ by simp only [metric.diam, convex_hull_ediam]
 /-- Convex hull of `s` is bounded if and only if `s` is bounded. -/
 @[simp] lemma bounded_convex_hull {s : set E} :
   metric.bounded (convex_hull s) ↔ metric.bounded s :=
-by simp only [metric.bounded_iff_diam_ne_top, convex_hull_ediam]
+by simp only [metric.bounded_iff_ediam_ne_top, convex_hull_ediam]
 
 end normed_space

@@ -849,21 +849,15 @@ end
 
 /-- The Bochner integral over simple functions in l1 space as a continuous linear map. -/
 def integral_clm : (α →₁ₛ β) →L[ℝ] β :=
-linear_map.with_bound ⟨integral, integral_add, integral_smul⟩
-  ⟨1, (λf, le_trans (norm_integral_le_norm _) $ by rw one_mul)⟩
+linear_map.mk_continuous ⟨integral, integral_add, integral_smul⟩
+  1 (λf, le_trans (norm_integral_le_norm _) $ by rw one_mul)
 
 local notation `Integral` := @integral_clm α _ β _ _ _
 
 open continuous_linear_map
 
 lemma norm_Integral_le_one : ∥Integral∥ ≤ 1 :=
-begin
-  apply op_norm_le_bound,
-  { exact zero_le_one },
-  assume f,
-  rw [one_mul],
-  exact norm_integral_le_norm _
-end
+linear_map.mk_continuous_norm_le _ (zero_le_one) _
 
 section pos_part
 

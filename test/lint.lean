@@ -31,7 +31,7 @@ run_cmd do
   l3 ← fold_over_with_cond l dup_namespace,
   guard $ l3.length = 1,
   guard $ ∃(x ∈ l3), (x : declaration × _).1.to_name = `foo.foo,
-  l4 ← fold_over_with_cond l illegal_constants_in_statement,
+  l4 ← fold_over_with_cond l ge_or_gt_in_statement,
   guard $ l4.length = 1,
   guard $ ∃(x ∈ l4), (x : declaration × _).1.to_name = `foo.foo,
   -- guard $ ∃(x ∈ l4), (x : declaration × _).1.to_name = `foo4,

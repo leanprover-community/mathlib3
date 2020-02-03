@@ -17,7 +17,7 @@ The following linters are run by default:
 1. `unused_arguments` checks for unused arguments in declarations.
 2. `def_lemma` checks whether a declaration is incorrectly marked as a def/lemma.
 3. `dup_namespce` checks whether a namespace is duplicated in the name of a declaration.
-4. `illegal_constant` checks whether ≥/> is used in the declaration.
+4. `ge_or_gt` checks whether ≥/> is used in the declaration.
 5. `instance_priority` checks that instances that always apply have priority below default.
 6. `doc_blame` checks for missing doc strings on definitions and constants.
 7. `has_inhabited_instance` checks whether every type has an associated `inhabited` instance.
@@ -231,7 +231,14 @@ return $ let nm := d.to_name.components in if nm.chain' (≠) ∨ is_inst then n
   no_errors_found := "No declarations have a duplicate namespace",
   errors_found := "DUPLICATED NAMESPACES IN NAME" }
 
-/-- Checks whether a `>`/`≥` is used in the statement of `d`. -/
+/-- Checks whether a `>`/`≥` is used in the statement of `d`.
+  Currently it checks only the conclusion of the declaration, to eliminate false positive from
+  binders such as `∀ ε > 0, ...` -/
+meta def ge_or_gt_in_statement (d : declaration) : tactic (option string) :=
+return $ let illegal := [`gt, `ge] in if d.type.pi_codomain.contains_constant (λ n, n ∈ illegal)
+  then some "the type contains ≥/>. Use ≤/< instead."
+  else none
+
 -- TODO: the commented out code also checks for classicality in statements, but needs fixing
 -- TODO: this probably needs to also check whether the argument is a variable or @eq <var> _ _
 -- meta def illegal_constants_in_statement (d : declaration) : tactic (option string) :=
@@ -246,16 +253,12 @@ return $ let nm := d.to_name.components in if nm.chain' (≠) ∨ is_inst then n
 --     (if occur1 = [] then "" else " Add decidability type-class arguments instead.") ++
 --     (if occur2 = [] then "" else " Use ≤/< instead.")
 -- else none
-meta def illegal_constants_in_statement (d : declaration) : tactic (option string) :=
-return $ let illegal := [`gt, `ge] in if d.type.contains_constant (λ n, n ∈ illegal)
-  then some "the type contains ≥/>. Use ≤/< instead."
-  else none
 
 /-- A linter for checking whether illegal constants (≥, >) appear in a declaration's type. -/
-@[linter, priority 1470] meta def linter.illegal_constants : linter :=
-{ test := illegal_constants_in_statement,
-  no_errors_found := "No illegal constants in declarations",
-  errors_found := "ILLEGAL CONSTANTS IN DECLARATIONS",
+@[linter, priority 1470] meta def linter.ge_or_gt : linter :=
+{ test := ge_or_gt_in_statement,
+  no_errors_found := "Not using ≥/> in declarations",
+  errors_found := "USING ≥/> IN DECLARATIONS",
   is_fast := ff }
 
 library_note "nolint_ge" "Currently, the linter forbids the use of `>` and `≥` in definitions and

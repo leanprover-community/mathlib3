@@ -20,6 +20,24 @@ open lattice
 
 namespace set
 
+section preorder
+variables [preorder α]
+
+lemma bdd_below_iff_subset_Ici (s : set α) : bdd_below s ↔ ∃ a, s ⊆ Ici a :=
+⟨assume ⟨a, ha⟩, ⟨a, λ x hx, ha hx⟩, assume ⟨b, hb⟩, ⟨b, λ x hx, hb hx⟩⟩
+
+lemma bdd_above_iff_subset_Iic (s : set α) : bdd_above s ↔ ∃ a, s ⊆ Iic a :=
+⟨assume ⟨a, ha⟩, ⟨a, λ x hx, ha hx⟩, assume ⟨b, hb⟩, ⟨b, λ x hx, hb hx⟩⟩
+
+lemma bdd_below_bdd_above_iff_subset_Icc (s : set α) :
+  bdd_below s ∧ bdd_above s ↔ ∃ a b, s ⊆ Icc a b :=
+begin
+  simp only [Ici_inter_Iic.symm, subset_inter_iff, bdd_below_iff_subset_Ici, bdd_above_iff_subset_Iic],
+  simp
+end
+
+end preorder
+
 section decidable_linear_order
 variables [decidable_linear_order α] {a₁ a₂ b₁ b₂ : α}
 

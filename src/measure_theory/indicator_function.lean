@@ -5,7 +5,7 @@ Authors: Zhouhang Zhou
 -/
 
 import data.indicator_function
-import measure_theory.measure_space
+import measure_theory.integration
 import analysis.normed_space.basic
 
 /-!
@@ -26,9 +26,9 @@ universes u v
 variables {α : Type u} {β : Type v}
 
 section has_zero
-variables [has_zero β] {s t : set α} {f g : α → β} {a : α}
+variables [measure_space α] [has_zero β] {s t : set α} {f g : α → β} {a : α}
 
-lemma indicator_congr_ae [measure_space α] (h : ∀ₘ a, a ∈ s → f a = g a) :
+lemma indicator_congr_ae (h : ∀ₘ a, a ∈ s → f a = g a) :
   ∀ₘ a, indicator s f a = indicator s g a :=
 begin
   filter_upwards [h],
@@ -39,7 +39,7 @@ begin
   refl
 end
 
-lemma indicator_congr_of_set [measure_space α] (h : ∀ₘ a, a ∈ s ↔ a ∈ t) :
+lemma indicator_congr_of_set (h : ∀ₘ a, a ∈ s ↔ a ∈ t) :
   ∀ₘ a, indicator s f a = indicator t f a :=
 begin
   filter_upwards [h],

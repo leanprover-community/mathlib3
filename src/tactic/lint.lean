@@ -392,13 +392,16 @@ meta def impossible_instance (d : declaration) : tactic (option string) := do
   errors_found := "IMPOSSIBLE INSTANCES FOUND.\nThese instances have an argument that cannot be found during type-class resolution, and therefore can never succeed. Either mark the arguments with square brackets (if it is a class), or don't make it an instance" }
 
 /-- Checks whether the definition `nm` unfolds to a class. -/
-/- Note: Caching the result of `unfolds_to_class` by giving it an attribute (so that e.g. `vector_space` or `decidable_eq` would not be repeatedly unfold to check whether it is a class), did not speed up this tactic when executed on all of mathlib (and instead significantly slowed it down) -/
+/- Note: Caching the result of `unfolds_to_class` by giving it an attribute
+(so that e.g. `vector_space` or `decidable_eq` would not be repeatedly unfold to check whether it is
+a class), did not speed up this tactic when executed on all of mathlib (and instead significantly
+slowed it down) -/
 meta def unfolds_to_class : name → tactic bool | nm :=
 if nm = `has_reflect then return tt else
 succeeds $ has_attribute `class nm <|> do
   d ← get_decl nm,
   tt ← unfolds_to_class d.value.lambda_body.pi_codomain.get_app_fn.const_name,
-  return 0
+  return 0 -- We do anything that succeeds here. We return a `ℕ` because of `has_attribute`.
 
 /-- Checks whether an instance can never be applied. -/
 meta def incorrect_type_class_argument (d : declaration) : tactic (option string) := do

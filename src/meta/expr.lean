@@ -377,19 +377,21 @@ iterating through the expression. In one performance test `pi_binders` was more 
 quicker than `mk_local_pis` (when applied to the type of all imported declarations 100x)."
 
 /-- Get the codomain/target of a pi-type.
-  This definition doesn't instantiate bound variables, and therefore produces a term that is open.-/
-meta def pi_codomain : expr → expr -- see note [open expressions]
+  This definition doesn't instantiate bound variables, and therefore produces a term that is open.
+  See note [open expressions]. -/
+meta def pi_codomain : expr → expr
 | (pi n bi d b) := pi_codomain b
 | e             := e
 
 /-- Get the body/value of a lambda-expression.
-  This definition doesn't instantiate bound variables, and therefore produces a term that is open. -/
-meta def lambda_body : expr → expr -- see note [open expressions]
+  This definition doesn't instantiate bound variables, and therefore produces a term that is open.
+  See note [open expressions]. -/
+meta def lambda_body : expr → expr
 | (lam n bi d b) := lambda_body b
 | e             := e
 
-/-- Auxilliary defintion for `pi_binders`. -/
--- see note [open expressions]
+/-- Auxilliary defintion for `pi_binders`.
+  See note [open expressions]. -/
 meta def pi_binders_aux : list binder → expr → list binder × expr
 | es (pi n bi d b) := pi_binders_aux (⟨n, bi, d⟩::es) b
 | es e             := (es, e)
@@ -397,8 +399,9 @@ meta def pi_binders_aux : list binder → expr → list binder × expr
 /-- Get the binders and codomain of a pi-type.
   This definition doesn't instantiate bound variables, and therefore produces a term that is open.
   The.tactic `get_pi_binders` in `tactic.core` does the same, but also instantiates the
-  free variables -/
-meta def pi_binders (e : expr) : list binder × expr := -- see note [open expressions]
+  free variables.
+  See note [open expressions]. -/
+meta def pi_binders (e : expr) : list binder × expr :=
 let (es, e) := pi_binders_aux [] e in (es.reverse, e)
 
 /-- Auxilliary defintion for `get_app_fn_args`. -/

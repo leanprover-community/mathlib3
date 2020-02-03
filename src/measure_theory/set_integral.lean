@@ -93,6 +93,17 @@ begin
   have : measurable_on s (indicator t f) := measurable.measurable_on hs hf,
   simp only [measurable_on, indicator_indicator] at this,
   rwa [inter_eq_self_of_subset_left h] at this
+end
+
+lemma measurable_on.comp (hs : is_measurable s) (hf : measurable_on s f) (hgm : measurable g) :
+  measurable_on s (g ∘ f) :=
+begin
+  rw measurable_on,
+  assume t ht,
+  show is_measurable ((indicator s (g ∘ f))⁻¹' t),
+  rw [indicator_preimage, preimage_comp],
+  exact is_measurable.union (hs.inter_preimage (hgm _ ht) hf) (hs.compl.inter $ measurable_const _ ht)
+end
 
 lemma measurable_on.union {t : set α} {f : α → β}
   (hs : is_measurable s) (ht : is_measurable t) (hsm : measurable_on s f) (htm : measurable_on t f) :
@@ -107,6 +118,38 @@ begin
 end
 
 end has_zero
+
+section add
+variables [measurable_space α]
+  [topological_space β] {s : set α} {f g : α → β}
+
+lemma measurable_on.add [add_monoid β] [topological_add_monoid β] [second_countable_topology β]
+  {f g : α → β} (hf : measurable_on s f) (hg : measurable_on s g) :
+  measurable_on s (λa, f a + g a) :=
+by { rw [measurable_on, indicator_add], exact hf.add hg }
+
+lemma measurable_on.sub [add_group β] [topological_add_group β] [second_countable_topology β]
+  {f g : α → β} (hf : s.measurable_on f) (hg : s.measurable_on g) :
+  measurable_on s (λa, f a - g a) :=
+by { rw [measurable_on, indicator_sub], exact hf.sub hg }
+
+lemma measurable_on.neg [add_group β] [topological_add_group β] {f : α → β} (hf : s.measurable_on f) :
+  measurable_on s (λa, - f a) :=
+by { rw [measurable_on, indicator_neg], exact hf.neg }
+
+lemma measurable_on_neg_iff [add_group β] [topological_add_group β] (f : α → β) :
+  s.measurable_on (λa, -f a) ↔ s.measurable_on f :=
+iff.intro
+(by { assume h, convert h.neg, funext, simp })
+measurable_on.neg
+
+lemma measurable_on.mul
+  [semiring β] [topological_monoid β] [second_countable_topology β] {f g : α → β}
+  (hf : s.measurable_on f) (hg : s.measurable_on g) :
+  s.measurable_on (λa, f a * g a) :=
+by { rw [measurable_on, indicator_mul], exact hf.mul hg }
+
+end add
 
 section integrable_on
 variables [measure_space α] [normed_group β] {s t : set α} {f g : α → β}
@@ -338,6 +381,24 @@ begin
   { exact hsm.union hs ht htm },
   { exact measurable.add hsm htm }
 end
+
+lemma norm_integral_on_le (s : set α) (f : α → β) : ∥(∫ a in s, f a)∥ ≤ ∫ a in s, ∥f a∥ :=
+begin
+  refine le_trans (norm_integral_le_integral_norm _) _,
+  simp only [norm_indicator_eq_indicator_norm]
+end
+
+lemma integral_on_nonneg_of_ae {f : α → ℝ} (hf : ∀ₘ a, a ∈ s → 0 ≤ f a) : (0:ℝ) ≤ (∫ a in s, f a) :=
+integral_nonneg_of_ae $ by { filter_upwards [hf] λ a h, indicator_nonneg' h }
+
+lemma integral_on_nonneg {f : α → ℝ} (hf : ∀ a, a ∈ s → 0 ≤ f a) : (0:ℝ) ≤ (∫ a in s, f a) :=
+integral_on_nonneg_of_ae $ univ_mem_sets' hf
+
+lemma integral_on_nonpos_of_ae {f : α → ℝ} (hf : ∀ₘ a, a ∈ s → f a ≤ 0) : (∫ a in s, f a) ≤ 0 :=
+integral_nonpos_of_nonpos_ae $ by { filter_upwards [hf] λ a h, indicator_nonpos' h }
+
+lemma integral_on_nonpos {f : α → ℝ} (hf : ∀ a, a ∈ s → f a ≤ 0) : (∫ a in s, f a) ≤ 0 :=
+integral_on_nonpos_of_ae $ univ_mem_sets' hf
 
 lemma tendsto_integral_on_of_monotone {s : ℕ → set α} {f : α → β} (hsm : ∀i, is_measurable (s i))
   (h_mono : monotone s) (hfm : measurable_on (Union s) f) (hfi : integrable_on (Union s) f) :

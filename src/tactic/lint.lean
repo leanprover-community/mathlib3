@@ -14,13 +14,16 @@ This file defines the following user commands to spot common mistakes in the cod
   imported files)
 
 The following linters are run by default:
-1. `unused_arguments` checks for unused arguments in declarations.
-2. `def_lemma` checks whether a declaration is incorrectly marked as a def/lemma.
-3. `dup_namespce` checks whether a namespace is duplicated in the name of a declaration.
-4. `ge_or_gt` checks whether ≥/> is used in the declaration.
-5. `instance_priority` checks that instances that always apply have priority below default.
-6. `doc_blame` checks for missing doc strings on definitions and constants.
-7. `has_inhabited_instance` checks whether every type has an associated `inhabited` instance.
+1.  `unused_arguments` checks for unused arguments in declarations.
+2.  `def_lemma` checks whether a declaration is incorrectly marked as a def/lemma.
+3.  `dup_namespce` checks whether a namespace is duplicated in the name of a declaration.
+4.  `ge_or_gt` checks whether ≥/> is used in the declaration.
+5.  `instance_priority` checks that instances that always apply have priority below default.
+6.  `doc_blame` checks for missing doc strings on definitions and constants.
+7.  `has_inhabited_instance` checks whether every type has an associated `inhabited` instance.
+8.  `impossible_instance` checks for instances that can never fire.
+9.  `incorrect_type_class_argument` checks for arguments in [square brackets] that are not classes.
+10. `dangerous_instance` checks for instances that generate type-class problems with metavariables.
 
 Another linter, `doc_blame_thm`, checks for missing doc strings on lemmas and theorems.
 This is not run by default.

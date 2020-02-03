@@ -42,7 +42,10 @@ namespace nat
 universe variable u
 variables {X : ℕ → Sort u} (f : Π n, (Π (m:fin n), X m) → X n)
 
-/-- An auxilliary definition for `nat.strong_recursion`. -/
+/-- An auxilliary definition for `nat.strong_recursion`.
+This is a dependent type version of the following algorithm:
+Given a recipe to turn function `fin n → X` into terms of type `X`,
+return a function that takes bounded natural numbers to terms of type `X`. -/
 protected def strong_recursion_aux :
   Π n m, m < n → X m
 | 0     := λ _ h, absurd h (not_lt_zero _)
@@ -50,6 +53,8 @@ protected def strong_recursion_aux :
 (lt_or_eq_of_le (le_of_lt_succ h)).by_cases
   (strong_recursion_aux n m)
   (λ e, f _ (λ k, strong_recursion_aux n _ $ lt_of_lt_of_le k.2 $ le_of_eq e))
+
+#check nat.strong_recursion_aux
 
 /-- A strong recursion principle for the natural numbers.
 It allows one to recursively define a function on ℕ

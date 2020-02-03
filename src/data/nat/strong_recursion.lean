@@ -23,7 +23,7 @@ https://en.wikipedia.org/wiki/Bernoulli_number#Recursive_definition
 It is:
 $$ B_n = 1 - \sum_{k < n} \binom{n}{k} \frac{B_k}{n - k + 1} $$
 
-```lean
+```
 example : ℕ → ℚ :=
 strong_recursion $ λ n bernoulli,
 1 - finset.univ.sum (λ k : fin n, (n.choose k) * bernoulli k / (n - k + 1))
@@ -53,8 +53,6 @@ protected def strong_recursion_aux :
 (lt_or_eq_of_le (le_of_lt_succ h)).by_cases
   (strong_recursion_aux n m)
   (λ e, f _ (λ k, strong_recursion_aux n _ $ lt_of_lt_of_le k.2 $ le_of_eq e))
-
-#check nat.strong_recursion_aux
 
 /-- A strong recursion principle for the natural numbers.
 It allows one to recursively define a function on ℕ

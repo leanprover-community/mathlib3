@@ -927,7 +927,7 @@ end
 mv_power_series.coeff_mul_C _ φ a
 
 @[simp] lemma coeff_succ_mul_X (n : ℕ) (φ : power_series α) :
-  coeff α (n+1) (φ * X) = (coeff α n φ) :=
+  coeff α (n+1) (φ * X) = coeff α n φ :=
 begin
   rw [coeff_mul _ φ, finset.sum_eq_single (n,1)],
   { rw [coeff_X, if_pos rfl, mul_one] },

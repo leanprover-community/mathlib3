@@ -668,6 +668,15 @@ begin
   congr
 end
 
+lemma update_eq_piecewise {β : Type*} [decidable_eq α] (f : α → β) (i : α) (v : β) :
+  function.update f i v = piecewise (singleton i) (λj, v) f :=
+begin
+  ext j,
+  by_cases h : j = i,
+  { rw [h], simp },
+  { simp [h] }
+end
+
 end piecewise
 
 section decidable_pi_exists

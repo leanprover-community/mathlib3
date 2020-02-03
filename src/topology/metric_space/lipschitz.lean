@@ -222,3 +222,21 @@ protected lemma pow {f : End α} {K} (h : lipschitz_with K f) :
 | (n + 1) := h.mul (pow n)
 
 end lipschitz_with
+
+/-- If a function is locally Lipschitz around a point, then it is continuous at this point. -/
+lemma continuous_at_of_locally_lipschitz [metric_space α] [metric_space β] {f : α → β} {x : α}
+  {r : ℝ} (hr : 0 < r) (K : ℝ) (h : ∀y, dist y x < r → dist (f y) (f x) ≤ K * dist y x) :
+  continuous_at f x :=
+begin
+  refine metric.continuous_at_iff.2 (λε εpos, ⟨min r ((ε / 2) / max K 1), _, λ y hy, _⟩),
+  { simp [hr, div_pos (half_pos εpos), zero_lt_one] },
+  have A : max K 1 ≠ 0 := ne_of_gt (lt_of_lt_of_le zero_lt_one (le_max_right K 1)),
+  calc dist (f y) (f x)
+    ≤ K * dist y x : h y (lt_of_lt_of_le hy (min_le_left _ _))
+    ... ≤ max K 1 * dist y x : mul_le_mul_of_nonneg_right (le_max_left K 1) dist_nonneg
+    ... ≤ max K 1 * (ε / 2 / max K 1) :
+      mul_le_mul_of_nonneg_left (le_of_lt (lt_of_lt_of_le hy (min_le_right _ _)))
+        (le_trans zero_le_one (le_max_right K 1))
+    ... = ε / 2 : by { field_simp [A], ring }
+    ... < ε : half_lt_self εpos
+end

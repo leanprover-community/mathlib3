@@ -13,6 +13,10 @@ import tactic.apply
 
 Integrate a function over a real interval.
 
+## Main results
+
+The fundamental theorem of calculus is proved in this file.
+
 ## Notation
 
 `∫ x in a...b, f x` stands for
@@ -350,7 +354,7 @@ begin
   rw [← integral_combine hfm hfi hfm' hfi', add_sub_cancel]
 end
 
-lemma has_deriv_within_at_integral_of_continuous_within_at (hx : x₀ ∈ a..b)
+theorem has_deriv_within_at_integral_of_continuous_within_at (hx : x₀ ∈ a..b)
   (hfm : measurable_on a..b f) (hfi : integrable_on a..b f) (hfc : continuous_within_at f a..b x₀) :
   has_deriv_within_at (λu, ∫ x in a...u, f x) (f x₀) a..b x₀ :=
 begin
@@ -397,64 +401,5 @@ begin
       simpa only [ne.def, abs_eq_zero],
     end
 end
-
-end real
-
-
-
-
-#check bounded
-#check metric.compact_iff_closed_bounded
-#check metric.bounded
-
-section continuous_on
-
-lemma measurable_on_iff_measurable_restrict
-  {α} [measurable_space α] {β} [measurable_space β] [has_zero β]
-  {s : set α} {f : α → β}:
-  measurable_on s f ↔ measurable (function.restrict f s) :=
-begin
-  sorry
-end
-
-set_option pp.implicit true
-lemma continuous_on.measurable_on {α} [topological_space α] {β} [topological_space β] [has_zero β]
-  {s : set α} {f : α → β} (h : continuous_on f s) : measurable_on s f :=
-begin
-  rw continuous_on_iff_continuous_restrict at h,
-  rw measurable_on_iff_measurable_restrict,
-  convert measurable_of_continuous h,
-
-end
-
-#check continuous
-#check is_measurable_subtype_image
-#check @subtype.measurable_space
-#check @borel
-
-
-
-
-lemma has_deriv_within_at_integral_of_continuous_on (hx : x₀ ∈ a..b) (hf : continuous_on f (a..b)) :
-  has_deriv_within_at (λu, ∫ x in a...u, f x) (f x₀) (a..b) x₀ :=
-has_deriv_within_at_integral_of_continuous_within_at hx _ _ (hf _ hx)
-
-
-lemma measurable_on_of_continuous_on (hab : a ≤ b) (h : continuous_on f (Icc a b)) : measurable_on a b f := sorry
-
--- TODO : Wrong order of measurable_on and integrable_on
-lemma continuous_on.integrable_on (h : continuous_on f s) : integrable_on s f := sorry
-
-lemma integrable_on_of_continuous_on (hab : a ≤ b) (h : continuous_on f (Icc a b)) : integrable_on a b f := sorry
-
-lemma le_of_mem_Icc {x : ℝ} (hx : x ∈ Icc a b) : a ≤ b := sorry
-
-lemma deriv_within_integral_of_continuous_on (hx : x₀ ∈ Icc a b) (hfc : continuous_on f (Icc a b)) :
-  deriv_within (λu, ∫ x in a..u, f x) (Icc a b) x₀ = f x₀ := sorry
-
--- TODO : I like using `f'` instead of `fderiv_within ℝ f (Icc a b)
-lemma integral_fderiv_within {f' : ℝ →L[ℝ] β} (hab : a ≤ b)
-  (hf : ∀x ∈ Icc a b, has_fderiv_within_at f f' (Icc a b) x) (hf' : continuous_on f' (Icc a b)) :
-  (∫ x in a..b, f' x) = f b - f a := sorry
 
 end real

@@ -13,7 +13,7 @@ import measure_theory.lebesgue_measure
 
 Integrate a function over a subset of a measure space.
 
-## Main definition
+## Main definitions
 
 `measurable_on`, `integrable_on`, `integral_on`
 

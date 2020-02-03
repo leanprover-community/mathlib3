@@ -1489,6 +1489,21 @@ lemma le_iff [canonically_ordered_monoid α] (f g : σ →₀ α) :
 ⟨λ h s hs, h s,
 λ h s, if H : s ∈ f.support then h s H else (not_mem_support_iff.1 H).symm ▸ zero_le (g s)⟩
 
+@[simp] lemma nat_add_eq_zero [canonically_ordered_monoid α] (f g : σ →₀ α) :
+  f + g = 0 ↔ f = 0 ∧ g = 0 :=
+begin
+  split,
+  { assume h,
+    split,
+    all_goals
+    { ext s,
+      suffices H : f s + g s = 0,
+      { rw add_eq_zero_iff at H, cases H, assumption },
+      show (f + g) s = 0,
+      rw h, refl } },
+  { rintro ⟨rfl, rfl⟩, simp }
+end
+
 attribute [simp] to_multiset_zero to_multiset_add
 
 @[simp] lemma to_multiset_to_finsupp (f : σ →₀ ℕ) :
@@ -1517,21 +1532,6 @@ variable (σ)
 /-- The order on σ →₀ ℕ is well-founded.-/
 lemma lt_wf : well_founded (@has_lt.lt (σ →₀ ℕ) _) :=
 subrelation.wf (sum_id_lt_of_lt) $ inv_image.wf _ nat.lt_wf
-
-@[simp] lemma nat_add_eq_zero (f g : α →₀ ℕ) :
-  f + g = 0 ↔ f = 0 ∧ g = 0 :=
-begin
-  split,
-  { assume h,
-    split,
-    all_goals
-    { ext s,
-      suffices H : f s + g s = 0,
-      { rw add_eq_zero_iff at H, cases H, assumption },
-      show (f + g) s = 0,
-      rw h, refl } },
-  { rintro ⟨rfl, rfl⟩, simp }
-end
 
 instance decidable_le : decidable_rel (@has_le.le (σ →₀ ℕ) _) :=
 λ m n, by rw le_iff; apply_instance

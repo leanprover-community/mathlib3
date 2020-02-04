@@ -7,13 +7,22 @@ Authors: Zhouhang Zhou
 import data.set.intervals
 
 /-!
-# Intervals
+# Intervals without endpoints ordering
 
-`[a, b]` is the set of elements lying between `a` and `b`, with both endpoints included.
+In any decidable linear order `α`, we define the set of elements lying between two elements `a` and
+`b` as `Icc (min a b) (max a b)`.
 
-`Icc a b` requires the assumption `a ≤ b` to be meaningful, which is sometimes inconvenient. This
-version of interval is always the set of things lying between `a` and `b`, regardless of the
-relative order of `a` and `b`.
+`Icc a b` requires the assumption `a ≤ b` to be meaningful, which is sometimes inconvenient. The
+interval as defined in this file is always the set of things lying between `a` and `b`, regardless
+of the relative order of `a` and `b`.
+
+For real numbers, `Icc (min a b) (max a b)` is the same as `segment a b`.
+
+## Notation
+
+We use the localized notation `[a, b]` for `interval a b`. One can open the locale `interval` to
+make the notation available.
+
 -/
 
 universe u

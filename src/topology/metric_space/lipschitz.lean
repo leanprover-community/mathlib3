@@ -91,7 +91,7 @@ lemma ediam_image_le (s : set α) :
   emetric.diam (f '' s) ≤ K * emetric.diam s :=
 begin
   apply emetric.diam_le_of_forall_edist_le,
-  rintros _ _ ⟨x, hx, rfl⟩ ⟨y, hy, rfl⟩,
+  rintros _ ⟨x, hx, rfl⟩ _ ⟨y, hy, rfl⟩,
   calc edist (f x) (f y) ≤ ↑K * edist x y : hf.edist_map_le x y
                      ... ≤ ↑K * emetric.diam s :
     canonically_ordered_semiring.mul_le_mul (le_refl _) (emetric.edist_le_diam_of_mem hx hy)
@@ -101,7 +101,7 @@ lemma diam_image_le (s : set α) (hs : metric.bounded s) :
   metric.diam (f '' s) ≤ K * metric.diam s :=
 begin
   apply metric.diam_le_of_forall_dist_le (mul_nonneg K.2 metric.diam_nonneg),
-  rintros _ _ ⟨x, hx, rfl⟩ ⟨y, hy, rfl⟩,
+  rintros _ ⟨x, hx, rfl⟩ _ ⟨y, hy, rfl⟩,
   calc dist (f x) (f y) ≤ ↑K * dist x y      : hf x y
                     ... ≤ ↑K * metric.diam s :
     mul_le_mul_of_nonneg_left (metric.dist_le_diam_of_mem hs hx hy) K.2

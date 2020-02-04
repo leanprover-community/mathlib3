@@ -68,7 +68,7 @@ hl.mem_of_superset hi $ subset.refl _
 lemma has_basis.forall_nonempty_iff_ne_bot (hl : l.has_basis p s) :
   (∀ {i}, p i → (s i).nonempty) ↔ l ≠ ⊥ :=
 ⟨λ H, forall_sets_nonempty_iff_ne_bot.1 $
-  λ s hs, let ⟨i, hi, his⟩ := (hl s).1 hs in (H hi).of_subset his,
+  λ s hs, let ⟨i, hi, his⟩ := (hl s).1 hs in (H hi).mono his,
   λ H i hi, inhabited_of_mem_sets H (hl.mem_of_mem hi)⟩
 
 lemma basis_sets (l : filter α) : l.has_basis (λ s : set α, s ∈ l) id :=

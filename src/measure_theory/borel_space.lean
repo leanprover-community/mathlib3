@@ -276,8 +276,7 @@ open_locale interval
 lemma is_measurable_interval
   {α} [decidable_linear_order α] [topological_space α] [order_closed_topology α] {a b : α} :
   is_measurable [a, b] :=
-or.elim (le_total a b) (λ h, by { rw interval_of_le h, exact is_measurable_Icc })
-  (λ h, by { rw interval_of_ge h, exact is_measurable_Icc})
+is_measurable_Icc
 
 end order_closed_topology
 

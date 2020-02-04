@@ -15,7 +15,6 @@ We would like to have definitional equality for
 Unfortunately, this only holds if t₁ and t₂ are second-countable topologies.
 -/
 import measure_theory.measurable_space topology.instances.ennreal analysis.normed_space.basic
-import data.set.intervals.interval
 noncomputable theory
 
 open classical set lattice real

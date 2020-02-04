@@ -13,7 +13,8 @@ import data.fintype
 The Bernoulli numbers are a sequence of numbers that frequently show up in number theory.
 
 For example, they show up in the Taylor series of many trigonometric and hyperbolic functions,
-and also as (integral multiples) of special values of the Riemann zeta function.
+and also as (integral multiples of products of powers of `π` and)
+special values of the Riemann zeta function.
 (Note: these facts are not yet available in mathlib)
 
 In this file, we provide the definition,
@@ -23,7 +24,9 @@ where $B_k$ denotes the the $k$-th Bernoulli number.
 
 -/
 
-/-- The Bernoulli numbers. -/
+/-- The Bernoulli numbers:
+the $n$-th Bernoulli number $B_n$ is defined recursively via
+$$B_n = \sum_{k < n} \binom{n}{k} * \frac{B_k}{n+1-k}$$ -/
 def bernoulli : ℕ → ℚ :=
 well_founded.fix nat.lt_wf
   (λ n bernoulli, 1 - finset.univ.sum

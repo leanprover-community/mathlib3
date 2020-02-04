@@ -340,13 +340,13 @@ begin
 end
 
 /-- Characterization of minimizers in the above theorem -/
-theorem norm_eq_infi_iff_inner_le_zero {K : set α} (ne : K.nonempty) (h : convex K) {u : α} {v : α}
+theorem norm_eq_infi_iff_inner_le_zero {K : set α} (h : convex K) {u : α} {v : α}
   (hv : v ∈ K) : ∥u - v∥ = (⨅ w : K, ∥u - w∥) ↔ ∀ w ∈ K, inner (u - v) (w - v) ≤ 0 :=
 iff.intro
 begin
   assume eq w hw,
   let δ := ⨅ w : K, ∥u - w∥, let p := inner (u - v) (w - v), let q := ∥w - v∥^2,
-  letI : nonempty K := ne.to_subtype,
+  letI : nonempty K := ⟨⟨v, hv⟩⟩,
   have zero_le_δ : 0 ≤ δ,
     apply le_cinfi, intro, exact norm_nonneg _,
   have δ_le : ∀ w : K, δ ≤ ∥u - w∥,
@@ -403,7 +403,7 @@ begin
 end
 begin
   assume h,
-  letI : nonempty K := ne.to_subtype,
+  letI : nonempty K := ⟨⟨v, hv⟩⟩,
   apply le_antisymm,
   { apply le_cinfi, assume w,
     apply nonneg_le_nonneg_of_squares_le (norm_nonneg _),
@@ -441,7 +441,7 @@ iff.intro
 begin
   assume h,
   have h : ∀ w ∈ K, inner (u - v) (w - v) ≤ 0,
-  { rwa [norm_eq_infi_iff_inner_le_zero] at h, exacts [⟨0, K.zero⟩, K.convex, hv] },
+  { rwa [norm_eq_infi_iff_inner_le_zero] at h, exacts [K.convex, hv] },
   assume w hw,
   have le : inner (u - v) w ≤ 0,
     let w' := w + v,
@@ -467,7 +467,7 @@ begin
     have h₁ := h w' this,
     exact le_of_eq h₁,
   rwa norm_eq_infi_iff_inner_le_zero,
-  exacts [⟨0, K.zero⟩, submodule.convex _, hv]
+  exacts [submodule.convex _, hv]
 end
 
 end orthogonal

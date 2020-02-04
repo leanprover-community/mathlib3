@@ -17,7 +17,7 @@ import tactic
 namespace mv_power_series
 open_locale classical
 variables {R : Type*} [comm_semiring R] {σ : Type*}
-@[simp] lemma power_series.coeff_mul_C (n : σ →₀ ℕ) (φ : mv_power_series σ R) (r : R) :
+@[simp] lemma coeff_mul_C (n : σ →₀ ℕ) (φ : mv_power_series σ R) (r : R) :
   coeff R n (φ * (C σ R r)) = (coeff R n φ) * r :=
 begin
   rw [coeff_mul n φ], rw [finset.sum_eq_single (n,(0 : σ →₀ ℕ))],
@@ -35,7 +35,7 @@ end mv_power_series
 
 namespace power_series
 variables {R : Type*} [comm_semiring R]
-@[simp] lemma power_series.coeff_mul_C (n : ℕ) (φ : power_series R) (r : R) :
+@[simp] lemma coeff_mul_C (n : ℕ) (φ : power_series R) (r : R) :
   coeff R n (φ * (C R r)) = (coeff R n φ) * r :=
 begin
   rw [coeff_mul n φ, finset.sum_eq_single (n,0)],
@@ -47,7 +47,7 @@ begin
   { intro h, exfalso, apply h, simp },
 end
 
-@[simp] lemma power_series.coeff_succ_mul_X (n : ℕ) (φ : power_series R) :
+@[simp] lemma coeff_succ_mul_X (n : ℕ) (φ : power_series R) :
   coeff R (n+1) (φ * X) = (coeff R n φ) :=
 begin
   rw [coeff_mul _ φ, finset.sum_eq_single (n,1)],
@@ -59,7 +59,7 @@ begin
   { intro h, exfalso, apply h, simp },
 end
 
-@[simp] lemma power_series.coeff_zero_mul_X (φ : power_series R) :
+@[simp] lemma coeff_zero_mul_X (φ : power_series R) :
   coeff R 0 (φ * X) = 0 :=
 begin
   rw [coeff_mul _ φ, finset.sum_eq_zero],
@@ -169,34 +169,40 @@ end nat
 
 section bernoulli
 
+/-- The Bernoulli numbers. -/
 def bernoulli : ℕ → ℚ :=
-nat.strong_recursion $ λ n bernoulli,
-1 - finset.univ.sum (λ k, (n.choose ↑k) * (bernoulli k) / (n + 1 - k))
+well_founded.fix nat.lt_wf
+  (λ n bernoulli, 1 - finset.univ.sum
+    (λ k : fin n, (n.choose k) * bernoulli k k.2 / (n + 1 - k)))
 
 lemma bernoulli_def' (n : ℕ) :
   bernoulli n = 1 - finset.univ.sum (λ (k : fin n), (n.choose k) * (bernoulli k) / (n + 1 - k)) :=
-nat.strong_recursion_apply _ _
+well_founded.fix_eq _ _ _
 
 lemma bernoulli_def (n : ℕ) :
   bernoulli n = 1 - (finset.range n).sum (λ k, (n.choose k) * (bernoulli k) / (n + 1 - k)) :=
-by { rw [bernoulli_def', finset.range_sum_eq_univ_sum], refl, }
+by { rw [bernoulli_def', finset.range_sum_eq_univ_sum], refl }
 
 @[simp] lemma bernoulli_zero  : bernoulli 0 = 1   := rfl
-@[simp] lemma bernoulli_one   : bernoulli 1 = 1/2 := rfl
-@[simp] lemma bernoulli_two   : bernoulli 2 = 1/6 := rfl
+@[simp] lemma bernoulli_one   : bernoulli 1 = 1/2 :=
+begin
+  rw [bernoulli_def],
+  repeat { try { rw [finset.sum_range_succ] }, try { rw [nat.choose_succ_succ] }, simp, norm_num1 }
+end
+@[simp] lemma bernoulli_two   : bernoulli 2 = 1/6 :=
+begin
+  rw [bernoulli_def],
+  repeat { try { rw [finset.sum_range_succ] }, try { rw [nat.choose_succ_succ] }, simp, norm_num1 }
+end
 @[simp] lemma bernoulli_three : bernoulli 3 = 0   :=
 begin
   rw [bernoulli_def],
-  repeat { rw [finset.sum_range_succ, nat.choose_succ_succ], simp, norm_num1, },
+  repeat { try { rw [finset.sum_range_succ] }, try { rw [nat.choose_succ_succ] }, simp, norm_num1 }
 end
-
 @[simp] lemma bernoulli_four  : bernoulli 4 = -1/30 :=
 begin
   rw [bernoulli_def],
-  repeat
-  { try { rw [finset.sum_range_succ] },
-    try { rw [nat.choose_succ_succ] },
-    simp, norm_num1, },
+  repeat { try { rw [finset.sum_range_succ] }, try { rw [nat.choose_succ_succ] }, simp, norm_num1 }
 end
 
 @[simp] lemma sum_bernoulli (n : ℕ) :

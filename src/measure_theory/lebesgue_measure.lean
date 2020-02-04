@@ -249,13 +249,11 @@ local attribute [simp] real.volume_val
 @[simp] lemma real.volume_Ioo {a b : ℝ} : volume (Ioo a b) = of_real (b - a) := by simp
 @[simp] lemma real.volume_singleton {a : ℝ} : volume ({a} : set ℝ) = 0 := by simp
 
-@[simp] lemma real.volume_interval {a b : ℝ} : volume a..b = of_real (abs (b - a)) :=
+@[simp] lemma real.volume_interval {a b : ℝ} : volume [a, b] = of_real (abs (b - a)) :=
 begin
-  rw interval, split_ifs,
-  { rw [real.volume_val, lebesgue_outer_Icc, abs_of_nonneg], exact sub_nonneg_of_le h },
-  { rw [real.volume_val, lebesgue_outer_Icc, abs_of_nonpos, neg_sub],
-    refine sub_nonpos_of_le _,
-    linarith }
+  rw [interval, real.volume_Icc],
+  congr,
+  exact max_sub_min_eq_abs _ _
 end
 
 open metric
@@ -264,7 +262,7 @@ lemma real.volume_lt_top_of_bounded {s : set ℝ} (h : bounded s) : volume s < �
 begin
   rw [real.bounded_iff_bdd_below_bdd_above, bdd_below_bdd_above_iff_subset_interval] at h,
   rcases h with ⟨a, b, h⟩,
-  calc volume s ≤ volume a..b : volume_mono h
+  calc volume s ≤ volume [a, b] : volume_mono h
     ... < ⊤ : by { rw real.volume_interval, exact ennreal.coe_lt_top }
 end
 

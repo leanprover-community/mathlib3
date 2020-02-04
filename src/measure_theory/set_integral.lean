@@ -323,7 +323,7 @@ integral_on_volume_zero real.volume_singleton
 lemma integral_on_Icc_self (f : ℝ → β) (a : ℝ) : (∫ x in Icc a a, f x) = 0 :=
 by rw [Icc_self, integral_on_singleton]
 
-lemma integral_on_interval_self (f : ℝ → β) (a : ℝ) : (∫ x in a..a, f x) = 0 :=
+lemma integral_on_interval_self (f : ℝ → β) (a : ℝ) : (∫ x in [a, a], f x) = 0 :=
 by { rw [interval_self, integral_on_singleton] }
 
 variables (s t)

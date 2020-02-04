@@ -203,11 +203,9 @@ lemma continuous_of_discrete_topology [topological_space α] [discrete_topology 
 
 lemma nhds_bot (α : Type*) : (@nhds α ⊥) = pure :=
 begin
-  ext a s,
-  rw [mem_nhds_sets_iff, mem_pure_iff],
-  split,
-  { exact assume ⟨t, ht, _, hta⟩, ht hta },
-  { exact assume h, ⟨{a}, set.singleton_subset_iff.2 h, trivial, set.mem_singleton a⟩ }
+  refine le_antisymm _ (@pure_le_nhds α ⊥),
+  assume a s hs,
+  exact @mem_nhds_sets α ⊥ a s trivial hs
 end
 
 lemma nhds_discrete (α : Type*) [topological_space α] [discrete_topology α] : (@nhds α _) = pure :=
@@ -225,9 +223,7 @@ le_antisymm
   (le_of_nhds_le_nhds $ assume x, le_of_eq $ (h x).symm)
 
 lemma eq_bot_of_singletons_open {t : topological_space α} (h : ∀ x, t.is_open {x}) : t = ⊥ :=
-bot_unique  $ le_of_nhds_le_nhds $ assume x,
-  have 𝓝 x ≤ pure x, from nhds_le_of_le (mem_singleton _) (h x) (by simp),
-  le_trans this (@pure_le_nhds _ ⊥ x)
+bot_unique $ λ s hs, bUnion_of_singleton s ▸ is_open_bUnion (λ x _, h x)
 
 end lattice
 
@@ -555,7 +551,7 @@ have comap f (𝓝 (f a) ⊓ principal (f '' s)) ≠ ⊥ ↔ 𝓝 (f a) ⊓ prin
         from mem_inf_sets_of_right $ by simp [subset.refl],
       have s₂ ∩ f '' s ∈ 𝓝 (f a) ⊓ principal (f '' s),
         from inter_mem_sets hs₂ this,
-      let ⟨b, hb₁, ⟨a, ha, ha₂⟩⟩ := inhabited_of_mem_sets h this in
+      let ⟨b, hb₁, ⟨a, ha, ha₂⟩⟩ := nonempty_of_mem_sets h this in
       ne_empty_of_mem $ hs $ by rwa [←ha₂] at hb₁⟩,
 calc a ∈ @closure α (topological_space.induced f t) s
     ↔ (@nhds α (topological_space.induced f t) a) ⊓ principal s ≠ ⊥ : by rw [closure_eq_nhds]; refl

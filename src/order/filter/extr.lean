@@ -86,10 +86,10 @@ variables (f : α → β) (s : set α) (l : filter α) (a : α)
 /-! ### Definitions -/
 
 /-- `is_min_filter f l a` means that `f a ≤ f x` in some `l`-neighborhood of `a` -/
-def is_min_filter : Prop := {x | f a ≤ f x} ∈ l
+def is_min_filter : Prop := ∀ᶠ x in l, f a ≤ f x
 
 /-- `is_max_filter f l a` means that `f x ≤ f a` in some `l`-neighborhood of `a` -/
-def is_max_filter : Prop := {x | f x ≤ f a} ∈ l
+def is_max_filter : Prop := ∀ᶠ x in l, f x ≤ f a
 
 /-- `is_extr_filter f l a` means `is_min_filter f l a` or `is_max_filter f l a` -/
 def is_extr_filter : Prop := is_min_filter f l a ∨ is_max_filter f l a

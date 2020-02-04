@@ -389,6 +389,8 @@ by refine_struct
   inv := mul_equiv.symm };
 intros; ext; try { refl }; apply equiv.left_inv
 
+instance : inhabited (mul_aut α) := ⟨1⟩
+
 /-- Monoid hom from the group of multiplicative automorphisms to the group of permutations. -/
 def to_perm : mul_aut α →* equiv.perm α :=
 by refine_struct { to_fun := mul_equiv.to_equiv }; intros; refl
@@ -410,6 +412,8 @@ by refine_struct
   one := add_equiv.refl α,
   inv := add_equiv.symm };
 intros; ext; try { refl }; apply equiv.left_inv
+
+instance : inhabited (add_aut α) := ⟨1⟩
 
 /-- Monoid hom from the group of multiplicative automorphisms to the group of permutations. -/
 def to_perm : add_aut α →* equiv.perm α :=
@@ -631,6 +635,8 @@ by refine_struct
   one := ring_equiv.refl R,
   inv := ring_equiv.symm };
 intros; ext; try { refl }; apply equiv.left_inv
+
+instance : inhabited (ring_aut R) := ⟨1⟩
 
 /-- Monoid homomorphism from ring automorphisms to additive automorphisms. -/
 def to_add_aut : ring_aut R →* add_aut R :=

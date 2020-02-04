@@ -174,6 +174,8 @@ theorem is_pure_of_subsingleton [subsingleton α] (q : semiquot α) : is_pure q
 def univ [inhabited α] : semiquot α :=
 mk $ set.mem_univ (default _)
 
+instance [inhabited α] : inhabited (semiquot α) := ⟨univ⟩
+
 @[simp] theorem mem_univ [inhabited α] : ∀ a, a ∈ @univ α _ :=
 @set.mem_univ α
 

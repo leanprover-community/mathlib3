@@ -14,6 +14,7 @@ def int.shift2 (a b : ℕ) : ℤ → ℕ × ℕ
 
 namespace fp
 
+@[derive inhabited]
 inductive rmode
 | NE -- round to nearest even
 
@@ -63,6 +64,8 @@ by rw max_eq_right; simp⟩
 
 def float.zero (s : bool) : float :=
 float.finite s emin 0 float.zero.valid
+
+instance : inhabited float := ⟨float.zero tt⟩
 
 protected def float.sign' : float → semiquot bool
 | (float.inf s) := pure s

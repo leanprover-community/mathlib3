@@ -74,6 +74,8 @@ begin
   {repeat {rintro ⟨_, _⟩}, simp [mul_assoc, left_distrib, right_distrib, add, mul, neg]}
 end
 
+instance : inhabited ℤ_[p] := ⟨0⟩
+
 lemma zero_def : ∀ x : ℤ_[p], x = 0 ↔ x.val = 0
 | ⟨x, _⟩ := ⟨subtype.mk.inj, λ h, by simp at h; simp only [h]; refl⟩
 

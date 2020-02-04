@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Zhouhang Zhou
 -/
 
-import analysis.convex algebra.quadratic_discriminant analysis.complex.exponential
+import analysis.convex.basic algebra.quadratic_discriminant analysis.complex.exponential
        analysis.specific_limits
 import tactic.monotonicity
 
@@ -253,8 +253,8 @@ begin
     have h' : tendsto (λ n:ℕ, δ + 1 / (n + 1)) at_top (𝓝 δ),
       convert h.add tendsto_one_div_add_at_top_nhds_0_nat, simp only [add_zero],
     exact tendsto_of_tendsto_of_tendsto_of_le_of_le h h'
-      (by { rw mem_at_top_sets, use 0, assume n hn, exact δ_le _ })
-      (by { rw mem_at_top_sets, use 0, assume n hn, exact le_of_lt (hw _) }),
+      (filter.eventually_of_forall _ $ λ x, δ_le _)
+      (filter.eventually_of_forall _ $ λ x, le_of_lt (hw _)),
   -- Step 2: Prove that the sequence `w : ℕ → K` is a Cauchy sequence
   have seq_is_cauchy : cauchy_seq (λ n, ((w n):α)),
     rw cauchy_seq_iff_le_tendsto_0, -- splits into three goals
@@ -357,10 +357,9 @@ begin
       ∥u - v∥^2 ≤ ∥u - (θ•w + (1-θ)•v)∥^2 :
       begin
         simp only [pow_two], apply mul_self_le_mul_self (norm_nonneg _),
-        rw eq, apply δ_le',
-        apply convex_iff.1 h hw hv,
-        repeat { exact subtype.mem _ },
-        exact ⟨le_of_lt hθ₁, hθ₂⟩,
+        rw [eq], apply δ_le',
+        apply h hw hv,
+        exacts [le_of_lt hθ₁, sub_nonneg.2 hθ₂, add_sub_cancel'_right _ _],
       end
       ... = ∥(u - v) - θ • (w - v)∥^2 :
       begin

@@ -997,10 +997,12 @@ stop earlier than it would normally would.
 
 ## use
 Similar to `existsi`. `use x` will instantiate the first term of an `∃` or `Σ` goal with `x`.
+It will then try to close the new goal using `triv`, or try to simplify it by applying `exists_prop`.
 Unlike `existsi`, `x` is elaborated with respect to the expected type.
-Equivalent to `refine ⟨x, _⟩`.
 
 `use` will alternatively take a list of terms `[x0, ..., xn]`.
+
+`use` will work with constructors of arbitrary inductive types.
 
 Examples:
 
@@ -1010,6 +1012,13 @@ by use ∅
 
 example : ∃ x : ℤ, x = x :=
 by use 42
+
+example : ∃ n > 0, n = n :=
+begin
+  use 1,
+  -- goal is now 1 > 0 ∧ 1 = 1, whereas it would be ∃ (H : 1 > 0), 1 = 1 after existsi 1.
+  exact ⟨zero_lt_one, rfl⟩,
+end
 
 example : ∃ a b c : ℤ, a + b + c = 6 :=
 by use [1, 2, 3]
@@ -1378,3 +1387,53 @@ See also additional documentation of `using_well_founded` in
 * `@[simps]` reduces let-expressions where necessary.
 * If one of the fields is a partially applied constructor, we will eta-expand it
   (this likely never happens).
+
+## clear'
+
+An improved version of the standard `clear` tactic. `clear` is sensitive to the
+order of its arguments: `clear x y` may fail even though both `x` and `y` could
+be cleared (if the type of `y` depends on `x`). `clear'` lifts this limitation.
+
+```
+example {α} {β : α → Type} (a : α) (b : β a) : unit :=
+begin
+  try { clear a b }, -- fails since `b` depends on `a`
+  clear' a b,        -- succeeds
+  exact ()
+end
+```
+
+## clear_dependent
+
+A variant of `clear'` which clears not only the given hypotheses, but also any
+other hypotheses depending on them.
+
+```
+example {α} {β : α → Type} (a : α) (b : β a) : unit :=
+begin
+  try { clear' a },  -- fails since `b` depends on `a`
+  clear_dependent a, -- succeeds, clearing `a` and `b`
+  exact ()
+end
+```
+
+## simp_rw
+
+`simp_rw` functions as a mix of `simp` and `rw`. Like `rw`, it applies each
+rewrite rule in the given order, but like `simp` it repeatedly applies these
+rules and also under binders like `∀ x, ...`, `∃ x, ...` and `λ x, ...`.
+
+Usage:
+  - `simp_rw [lemma_1, ..., lemma_n]` will rewrite the goal by applying the
+    lemmas in that order.
+  - `simp_rw [lemma_1, ..., lemma_n] at h₁ ... hₙ` will rewrite the given hypotheses.
+  - `simp_rw [...] at ⊢ h₁ ... hₙ` rewrites the goal as well as the given hypotheses.
+  - `simp_rw [...] at *` rewrites in the whole context: all hypotheses and the goal.
+
+For example, neither `simp` nor `rw` can solve the following, but `simp_rw` can:
+```lean
+example {α β : Type} {f : α → β} {t : set β} : (∀ s, f '' s ⊆ t) = ∀ s : set α, ∀ x ∈ s, x ∈ f ⁻¹' t :=
+by simp_rw [set.image_subset_iff, set.subset_def]
+```
+
+Lemmas passed to `simp_rw` must be expressions that are valid arguments to `simp`.

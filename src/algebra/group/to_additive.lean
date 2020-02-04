@@ -109,7 +109,7 @@ do let n := src.mk_string "_to_additive",
    add_decl decl,
    aux_attr.set n tgt tt
 
-@[derive has_reflect]
+@[derive has_reflect, derive inhabited]
 structure value_type := (tgt : name) (doc : option string)
 
 meta def tokens_dict : native.rb_map string string :=

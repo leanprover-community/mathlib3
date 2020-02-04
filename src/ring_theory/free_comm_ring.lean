@@ -21,6 +21,8 @@ namespace free_comm_ring
 
 instance : comm_ring (free_comm_ring α) := free_abelian_group.comm_ring _
 
+instance : inhabited (free_comm_ring α) := ⟨0⟩
+
 variables {α}
 def of (x : α) : free_comm_ring α :=
 free_abelian_group.of ([x] : multiset α)

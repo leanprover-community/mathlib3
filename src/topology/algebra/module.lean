@@ -197,6 +197,7 @@ def zero : M →L[R] M₂ :=
 ⟨0, by exact continuous_const⟩
 
 instance: has_zero (M →L[R] M₂) := ⟨zero⟩
+instance : inhabited (M →L[R] M₂) := ⟨0⟩
 
 @[simp] lemma zero_apply : (0 : M →L[R] M₂) x = 0 := rfl
 @[simp, norm_cast] lemma coe_zero : ((0 : M →L[R] M₂) : M →ₗ[R] M₂) = 0 := rfl

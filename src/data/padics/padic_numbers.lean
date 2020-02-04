@@ -406,6 +406,8 @@ variables {p : ℕ} [nat.prime p]
 instance discrete_field : discrete_field (ℚ_[p]) :=
 cau_seq.completion.discrete_field
 
+instance : inhabited ℚ_[p] := ⟨0⟩
+
 -- short circuits
 
 instance : has_zero ℚ_[p] := by apply_instance

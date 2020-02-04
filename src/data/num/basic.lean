@@ -20,6 +20,7 @@ inductive pos_num : Type
 | bit1 : pos_num → pos_num
 | bit0 : pos_num → pos_num
 instance : has_one pos_num := ⟨pos_num.one⟩
+instance : inhabited pos_num := ⟨1⟩
 
 /-- The type of nonnegative binary numbers, using `pos_num`.
 
@@ -30,6 +31,7 @@ inductive num : Type
 | pos   : pos_num → num
 instance : has_zero num := ⟨num.zero⟩
 instance : has_one num := ⟨num.pos 1⟩
+instance : inhabited num := ⟨0⟩
 
 /-- Representation of integers using trichotomy around zero.
 
@@ -42,6 +44,37 @@ inductive znum : Type
 | neg  : pos_num → znum
 instance : has_zero znum := ⟨znum.zero⟩
 instance : has_one znum := ⟨znum.pos 1⟩
+instance : inhabited znum := ⟨0⟩
+
+/-- See `snum`. -/
+@[derive has_reflect, derive decidable_eq]
+inductive nzsnum : Type
+| msb : bool → nzsnum
+| bit : bool → nzsnum → nzsnum
+/-- Alternative representation of integers using a sign bit at the end.
+  The convention on sign here is to have the argument to `msb` denote
+  the sign of the MSB itself, with all higher bits set to the negation
+  of this sign. The result is interpreted in two's complement.
+
+     13  = ..0001101(base 2) = nz (bit1 (bit0 (bit1 (msb tt))))
+     -13 = ..1110011(base 2) = nz (bit1 (bit1 (bit0 (msb ff))))
+
+  As with `num`, a special case must be added for zero, which has no msb,
+  but by two's complement symmetry there is a second special case for -1.
+  Here the `bool` field indicates the sign of the number.
+
+     0  = ..0000000(base 2) = zero ff
+     -1 = ..1111111(base 2) = zero tt -/
+@[derive has_reflect, derive decidable_eq]
+inductive snum : Type
+| zero : bool → snum
+| nz : nzsnum → snum
+instance : has_coe nzsnum snum := ⟨snum.nz⟩
+instance : has_zero snum := ⟨snum.zero ff⟩
+instance : has_one nzsnum := ⟨nzsnum.msb tt⟩
+instance : has_one snum := ⟨snum.nz 1⟩
+instance : inhabited nzsnum := ⟨1⟩
+instance : inhabited snum := ⟨0⟩
 
 namespace pos_num
 

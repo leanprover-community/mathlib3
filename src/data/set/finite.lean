@@ -22,7 +22,10 @@ def finite (s : set α) : Prop := nonempty (fintype s)
 /-- A set is infinite if it is not finite. -/
 def infinite (s : set α) : Prop := ¬ finite s
 
-noncomputable instance finite.fintype {s : set α} (h : finite s) : fintype s :=
+/-- The subtype corresponding to a finite set is a finite type. Note
+that because `finite` isn't a typeclass, this will not fire if it
+is made into an instance -/
+noncomputable def finite.fintype {s : set α} (h : finite s) : fintype s :=
 classical.choice h
 
 /-- Get a finset from a finite set -/
@@ -326,13 +329,10 @@ begin
   exact finite_subset ‹finite s› this
 end
 
-lemma exists_min [decidable_linear_order β] (s : set α) (f : α → β) (h1 : finite s)
-  (h : nonempty s) : ∃ a, a ∈ s ∧ ∀ b ∈ s, f a ≤ f b :=
-begin
-  have := (finite.to_finset h1).exists_min f,
-  simp at this ⊢, unfreezeI, rcases h with ⟨⟨x, hx⟩⟩,
-  exact this x hx
-end
+lemma exists_min [decidable_linear_order β] (s : set α) (f : α → β) (h1 : finite s) :
+  s.nonempty → ∃ a ∈ s, ∀ b ∈ s, f a ≤ f b
+| ⟨x, hx⟩ := by simpa only [exists_prop, finite.mem_to_finset]
+  using (finite.to_finset h1).exists_min f ⟨x, finite.mem_to_finset.2 hx⟩
 
 end set
 

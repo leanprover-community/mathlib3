@@ -64,6 +64,8 @@ instance (n : ℕ+) : has_one (zmod n) := ⟨⟨(1 % n), nat.mod_lt _ n.pos⟩�
 
 instance (n : ℕ+) : has_zero (zmod n) := ⟨⟨0, n.pos⟩⟩
 
+instance (n : ℕ+) : inhabited (zmod n) := ⟨0⟩
+
 instance zmod_one.subsingleton : subsingleton (zmod 1) :=
 ⟨λ a b, fin.eq_of_veq (by rw [eq_zero_of_le_zero (le_of_lt_succ a.2),
   eq_zero_of_le_zero (le_of_lt_succ b.2)])⟩
@@ -373,6 +375,8 @@ namespace zmodp
 variables {p : ℕ} (hp : prime p)
 
 instance : comm_ring (zmodp p hp) := zmod.comm_ring ⟨p, hp.pos⟩
+
+instance : inhabited (zmodp p hp) := ⟨0⟩
 
 instance {p : ℕ} (hp : prime p) : has_inv (zmodp p hp) :=
 ⟨λ a, gcd_a a.1 p⟩

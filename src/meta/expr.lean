@@ -3,7 +3,9 @@ Copyright (c) 2019 Robert Y. Lewis. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Mario Carneiro, Simon Hudon, Scott Morrison, Keeley Hoek, Robert Y. Lewis
 -/
-import data.string.defs data.num.basic
+
+import data.string.defs data.num.basic tactic.derive_inhabited
+
 /-!
 # Additional operations on expr and related types
 
@@ -157,7 +159,7 @@ end level
 /-! ### Declarations about `binder` -/
 
 /-- The type of binders containing a name, the binding info and the binding type -/
-@[derive decidable_eq]
+@[derive decidable_eq, derive inhabited]
 meta structure binder :=
   (name : name)
   (info : binder_info)
@@ -170,7 +172,6 @@ let (l, r) := b.info.brackets in
 l ++ b.name.to_string ++ " : " ++ b.type.to_string ++ r
 
 open tactic
-meta instance : inhabited binder := ⟨⟨default _, default _, default _⟩⟩
 meta instance : has_to_string binder := ⟨ binder.to_string ⟩
 meta instance : has_to_format binder := ⟨ λ b, b.to_string ⟩
 meta instance : has_to_tactic_format binder :=
@@ -411,13 +412,21 @@ iterating through the expression. In one performance test `pi_binders` was more 
 quicker than `mk_local_pis` (when applied to the type of all imported declarations 100x)."
 
 /-- Get the codomain/target of a pi-type.
-  This definition doesn't instantiate bound variables, and therefore produces a term that is open.-/
-meta def pi_codomain : expr → expr -- see note [open expressions]
+  This definition doesn't instantiate bound variables, and therefore produces a term that is open.
+  See note [open expressions]. -/
+meta def pi_codomain : expr → expr
 | (pi n bi d b) := pi_codomain b
 | e             := e
 
-/-- Auxilliary defintion for `pi_binders`. -/
--- see note [open expressions]
+/-- Get the body/value of a lambda-expression.
+  This definition doesn't instantiate bound variables, and therefore produces a term that is open.
+  See note [open expressions]. -/
+meta def lambda_body : expr → expr
+| (lam n bi d b) := lambda_body b
+| e             := e
+
+/-- Auxilliary defintion for `pi_binders`.
+  See note [open expressions]. -/
 meta def pi_binders_aux : list binder → expr → list binder × expr
 | es (pi n bi d b) := pi_binders_aux (⟨n, bi, d⟩::es) b
 | es e             := (es, e)
@@ -425,8 +434,9 @@ meta def pi_binders_aux : list binder → expr → list binder × expr
 /-- Get the binders and codomain of a pi-type.
   This definition doesn't instantiate bound variables, and therefore produces a term that is open.
   The.tactic `get_pi_binders` in `tactic.core` does the same, but also instantiates the
-  free variables -/
-meta def pi_binders (e : expr) : list binder × expr := -- see note [open expressions]
+  free variables.
+  See note [open expressions]. -/
+meta def pi_binders (e : expr) : list binder × expr :=
 let (es, e) := pi_binders_aux [] e in (es.reverse, e)
 
 /-- Auxilliary defintion for `get_app_fn_args`. -/
@@ -481,6 +491,15 @@ e.contains_constant name.is_coe
 meta def is_coe : expr → bool
 | (expr.const n _) := n.is_coe
 | _ := ff
+
+/-- `has_local_constant e l` checks whether local constant `l` occurs in expression `e` -/
+meta def has_local_constant (e l : expr) : bool :=
+e.has_local_in $ mk_name_set.insert l.local_uniq_name
+
+/-- Turns a local constant into a binder -/
+meta def to_binder : expr → binder
+| (local_const _ nm bi t) := ⟨nm, bi, t⟩
+| _                       := default binder
 
 end expr
 

@@ -363,6 +363,12 @@ structure Well_order : Type (u+1) :=
 
 attribute [instance] Well_order.wo
 
+namespace Well_order
+
+instance : inhabited Well_order := ⟨⟨pempty, _, empty_relation.is_well_order⟩⟩
+
+end Well_order
+
 instance ordinal.is_equivalent : setoid Well_order :=
 { r     := λ ⟨α, r, wo⟩ ⟨β, s, wo'⟩, nonempty (r ≃o s),
   iseqv := ⟨λ⟨α, r, _⟩, ⟨order_iso.refl _⟩,
@@ -602,6 +608,8 @@ induction_on o₁ $ λ α r _, induction_on o₂ $ λ β s _ ⟨⟨⟨f, _⟩, _
 
 instance : has_zero ordinal :=
 ⟨⟦⟨pempty, empty_relation, by apply_instance⟩⟧⟩
+
+instance : inhabited ordinal := ⟨0⟩
 
 theorem zero_eq_type_empty : 0 = @type empty empty_relation _ :=
 quotient.sound ⟨⟨empty_equiv_pempty.symm, λ _ _, iff.rfl⟩⟩

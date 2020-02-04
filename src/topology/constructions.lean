@@ -496,6 +496,18 @@ lemma continuous_apply [∀i, topological_space (π i)] (i : ι) :
   continuous (λp:Πi, π i, p i) :=
 continuous_infi_dom continuous_induced_dom
 
+/-- Embedding a factor into a product space (by fixing arbitrarily all the other coordinates) is
+continuous. -/
+lemma continuous_update [decidable_eq ι] [∀i, topological_space (π i)] {i : ι} {f : Πi:ι, π i} :
+  continuous (λ x : π i, function.update f i x) :=
+begin
+  refine continuous_pi (λj, _),
+  by_cases h : j = i,
+  { rw h,
+    simpa using continuous_id },
+  { simpa [h] using continuous_const }
+end
+
 lemma nhds_pi [t : ∀i, topological_space (π i)] {a : Πi, π i} :
   𝓝 a = (⨅i, comap (λx, x i) (𝓝 (a i))) :=
 calc 𝓝 a = (⨅i, @nhds _ (@topological_space.induced _ _ (λx:Πi, π i, x i) (t i)) a) : nhds_infi

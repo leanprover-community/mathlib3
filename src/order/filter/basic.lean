@@ -392,7 +392,7 @@ lemma empty_in_sets_eq_bot {f : filter α} : ∅ ∈ f ↔ f = ⊥ :=
 ⟨assume h, bot_unique $ assume s _, mem_sets_of_superset h (empty_subset s),
   assume : f = ⊥, this.symm ▸ mem_bot_sets⟩
 
-lemma inhabited_of_mem_sets {f : filter α} {s : set α} (hf : f ≠ ⊥) (hs : s ∈ f) :
+lemma nonempty_of_mem_sets {f : filter α} {s : set α} (hf : f ≠ ⊥) (hs : s ∈ f) :
   s.nonempty :=
 have ∅ ∉ f, from assume h, hf $ empty_in_sets_eq_bot.mp h,
 have s ≠ ∅, from assume h, this (h ▸ hs),
@@ -1054,7 +1054,7 @@ forall_sets_ne_empty_iff_ne_bot.mp $ assume s ⟨t, ht, t_s⟩,
 lemma comap_ne_bot_of_range_mem {f : filter β} {m : α → β}
   (hf : f ≠ ⊥) (hm : range m ∈ f) : comap m f ≠ ⊥ :=
 comap_ne_bot $ assume t ht,
-  let ⟨_, ha, a, rfl⟩ := inhabited_of_mem_sets hf (inter_mem_sets ht hm)
+  let ⟨_, ha, a, rfl⟩ := nonempty_of_mem_sets hf (inter_mem_sets ht hm)
   in ⟨a, ha⟩
 
 lemma comap_inf_principal_ne_bot_of_image_mem {f : filter β} {m : α → β}
@@ -1062,7 +1062,7 @@ lemma comap_inf_principal_ne_bot_of_image_mem {f : filter β} {m : α → β}
 begin
   refine compl_compl s ▸ mt mem_sets_of_eq_bot _,
   rintros ⟨t, ht, hts⟩,
-  rcases inhabited_of_mem_sets hf (inter_mem_sets hs ht) with ⟨_, ⟨x, hxs, rfl⟩, hxt⟩,
+  rcases nonempty_of_mem_sets hf (inter_mem_sets hs ht) with ⟨_, ⟨x, hxs, rfl⟩, hxt⟩,
   exact absurd hxs (hts hxt)
 end
 
@@ -1999,7 +1999,7 @@ lemma exists_ultrafilter (h : f ≠ ⊥) : ∃u, u ≤ f ∧ is_ultrafilter u :=
 let
   τ                := {f' // f' ≠ ⊥ ∧ f' ≤ f},
   r : τ → τ → Prop := λt₁ t₂, t₂.val ≤ t₁.val,
-  ⟨a, ha⟩          := inhabited_of_mem_sets h univ_mem_sets,
+  ⟨a, ha⟩          := nonempty_of_mem_sets h univ_mem_sets,
   top : τ          := ⟨f, h, le_refl f⟩,
   sup : Π(c:set τ), chain r c → τ :=
     λc hc, ⟨⨅a:{a:τ // a ∈ insert top c}, a.val.val,

@@ -15,6 +15,7 @@ We would like to have definitional equality for
 Unfortunately, this only holds if t₁ and t₂ are second-countable topologies.
 -/
 import measure_theory.measurable_space topology.instances.ennreal analysis.normed_space.basic
+import data.set.intervals.interval
 noncomputable theory
 
 open classical set lattice real
@@ -270,6 +271,14 @@ lemma is_measurable_Ioo : is_measurable (Ioo a b) := is_measurable_of_is_open is
 lemma is_measurable_Ioc : is_measurable (Ioc a b) := is_measurable_Ioi.inter is_measurable_Iic
 lemma is_measurable_Ico : is_measurable (Ico a b) := is_measurable_Ici.inter is_measurable_Iio
 lemma is_measurable_Icc : is_measurable (Icc a b) := is_measurable_of_is_closed is_closed_Icc
+
+open_locale interval
+
+lemma is_measurable_interval
+  {α} [decidable_linear_order α] [topological_space α] [order_closed_topology α] {a b : α} :
+  is_measurable [a, b] :=
+or.elim (le_total a b) (λ h, by { rw interval_of_le h, exact is_measurable_Icc })
+  (λ h, by { rw interval_of_ge h, exact is_measurable_Icc})
 
 end order_closed_topology
 

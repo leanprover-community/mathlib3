@@ -59,7 +59,7 @@ structure multilinear_map (R : Type u) {ι : Type u'} (M₁ : ι → Type v) (M�
 (to_fun : (Πi, M₁ i) → M₂)
 (add : ∀(m : Πi, M₁ i) (i : ι) (x y : M₁ i),
   to_fun (update m i (x + y)) = to_fun (update m i x) + to_fun (update m i y))
-(smul : ∀(m : Πi, M₁ i) (i : ι) (x : M₁ i) (c : R),
+(smul : ∀(m : Πi, M₁ i) (i : ι) (c : R) (x : M₁ i),
   to_fun (update m i (c • x)) = c • to_fun (update m i x))
 
 namespace multilinear_map
@@ -79,9 +79,9 @@ by cases f; cases f'; congr'; exact funext H
   f (update m i (x + y)) = f (update m i x) + f (update m i y) :=
 f.add m i x y
 
-@[simp] lemma map_smul (m : Πi, M₁ i) (i : ι) (x : M₁ i) (c : R) :
+@[simp] lemma map_smul (m : Πi, M₁ i) (i : ι) (c : R) (x : M₁ i) :
   f (update m i (c • x)) = c • f (update m i x) :=
-f.smul m i x c
+f.smul m i c x
 
 @[simp] lemma map_sub (m : Πi, M₁ i) (i : ι) (x y : M₁ i) :
   f (update m i (x - y)) = f (update m i x) - f (update m i y) :=
@@ -100,17 +100,17 @@ begin
 end
 
 instance : has_add (multilinear_map R M₁ M₂) :=
-⟨λf f', ⟨λx, f x + f' x, λm i x y, by simp, λm i x c, by simp [smul_add]⟩⟩
+⟨λf f', ⟨λx, f x + f' x, λm i x y, by simp, λm i c x, by simp [smul_add]⟩⟩
 
 @[simp] lemma add_apply (m : Πi, M₁ i) : (f + f') m = f m + f' m := rfl
 
 instance : has_neg (multilinear_map R M₁ M₂) :=
-⟨λ f, ⟨λ m, - f m, λm i x y, by simp, λm i x c, by simp⟩⟩
+⟨λ f, ⟨λ m, - f m, λm i x y, by simp, λm i c x, by simp⟩⟩
 
 @[simp] lemma neg_apply (m : Πi, M₁ i) : (-f) m = - (f m) := rfl
 
 instance : has_zero (multilinear_map R M₁ M₂) :=
-⟨⟨λ _, 0, λm i x y, by simp, λm i x c, by simp⟩⟩
+⟨⟨λ _, 0, λm i x y, by simp, λm i c x, by simp⟩⟩
 
 instance : inhabited (multilinear_map R M₁ M₂) := ⟨0⟩
 
@@ -125,7 +125,7 @@ coordinates but `i` equal to those of `m`, and varying the `i`-th coordinate. -/
 def to_linear_map (m : Πi, M₁ i) (i : ι) : M₁ i →ₗ[R] M₂ :=
 { to_fun := λx, f (update m i x),
   add    := λx y, by simp,
-  smul   := λx c, by simp }
+  smul   := λc x, by simp }
 
 /-- In the specific case of multilinear maps on spaces indexed by `fin (n+1)`, where one can build
 an element of `Π(i : fin (n+1)), M i` using `cons`, one can express directly the additivity of a
@@ -233,7 +233,7 @@ all the `m i` (multiplied by a fixed reference element `z` in the target module)
 protected def mk_pi_ring [fintype ι] (z : M₂) : multilinear_map R (λ(i : ι), R) M₂ :=
 { to_fun := λm, finset.univ.prod m • z,
   add    := λ m i x y, by simp [finset.prod_update_of_mem, add_mul, add_smul],
-  smul   := λ m i x c, by { rw [smul_eq_mul], simp [finset.prod_update_of_mem, smul_smul, mul_assoc] } }
+  smul   := λ m i c x, by { rw [smul_eq_mul], simp [finset.prod_update_of_mem, smul_smul, mul_assoc] } }
 
 variables {R ι}
 
@@ -305,7 +305,7 @@ def linear_map.uncurry_left
       assume x y,
       rw [tail_update_succ, map_add, tail_update_succ, tail_update_succ] }
   end,
-  smul := λm i x c, begin
+  smul := λm i c x, begin
     by_cases h : i = 0,
     { revert x,
       rw h,
@@ -392,7 +392,7 @@ def multilinear_map.uncurry_right (f : (multilinear_map R (λ(i : fin n), M i.su
       assume x y,
       rw [tail_update_succ, map_add, tail_update_succ, tail_update_succ, linear_map.add_apply] }
   end,
-  smul := λm i x c, begin
+  smul := λm i c x, begin
     by_cases h : i = 0,
     { revert x,
       rw h,
@@ -423,7 +423,7 @@ def multilinear_map.curry_right (f : multilinear_map R M M₂) :
     change f (cons z (update m i (x + y))) = f (cons z (update m i x)) + f (cons z (update m i y)),
     rw [cons_update, cons_update, cons_update, f.map_add]
   end,
-  smul := λm i x c, begin
+  smul := λm i c x, begin
     ext z,
     change f (cons z (update m i (c • x))) = c • f (cons z (update m i x)),
     rw [cons_update, cons_update, f.map_smul]

@@ -393,6 +393,26 @@ However, it will work, producing the identity function, if one replaces have by 
 * `exactI`: `resetI` followed by `exact`. Like `exact`, but uses all
   variables in the context for typeclass inference.
 
+## hint
+
+`hint` lists possible tactics which will make progress (that is, not fail) against the current goal.
+
+```lean
+example {P Q : Prop} (p : P) (h : P → Q) : Q :=
+begin
+  hints,
+  /- the following tactics make progress:
+     ----
+     solve_by_elim
+     finish
+     tauto
+  -/
+  solve_by_elim,
+end
+```
+
+The list of tactics which are tried is currently hard-coded in mathlib.
+
 ## suggest
 
 `suggest` lists possible usages of the `refine` tactic and leaves the tactic state unchanged.

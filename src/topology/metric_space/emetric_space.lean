@@ -524,8 +524,8 @@ theorem mem_closure_iff' :
   x ∈ closure s ↔ ∀ε>0, ∃y ∈ s, edist x y < ε :=
 ⟨begin
   intros hx ε hε,
-  have A : ball x ε ∩ s ≠ ∅ := mem_closure_iff.1 hx _ is_open_ball (mem_ball_self hε),
-  cases ne_empty_iff_exists_mem.1 A with y hy,
+  obtain ⟨y, hy⟩ : (ball x ε ∩ s).nonempty,
+    from mem_closure_iff.1 hx _ is_open_ball (mem_ball_self hε),
   simp,
   exact ⟨y, ⟨hy.2, by have B := hy.1; simpa [mem_ball'] using B⟩⟩
 end,
@@ -536,7 +536,7 @@ begin
   rcases is_open_iff.1 ho x xo with ⟨ε, ⟨εpos, hε⟩⟩,
   rcases H ε εpos with ⟨y, ⟨ys, ydist⟩⟩,
   have B : y ∈ o ∩ s := ⟨hε (by simpa [edist_comm]), ys⟩,
-  apply ne_empty_of_mem B
+  exact ⟨y, B⟩
 end⟩
 
 theorem tendsto_nhds {f : filter β} {u : β → α} {a : α} :
@@ -806,8 +806,8 @@ begin
         ... ≤ (diam s + edist x y) + diam t : le_add_left (le_refl _) }
 end
 
-lemma diam_union' {t : set α} (h : s ∩ t ≠ ∅) : diam (s ∪ t) ≤ diam s + diam t :=
-let ⟨x, ⟨xs, xt⟩⟩ := ne_empty_iff_exists_mem.1 h in by simpa using diam_union xs xt
+lemma diam_union' {t : set α} (h : (s ∩ t).nonempty) : diam (s ∪ t) ≤ diam s + diam t :=
+let ⟨x, ⟨xs, xt⟩⟩ := h in by simpa using diam_union xs xt
 
 lemma diam_closed_ball {r : ennreal} : diam (closed_ball x r) ≤ 2 * r :=
 diam_le_of_forall_edist_le $ λa ha b hb, calc

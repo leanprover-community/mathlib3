@@ -378,10 +378,9 @@ calc (a, b) ∈ closure t ↔ (𝓝 (a, b) ⊓ principal t ≠ ⊥) : by simp [c
     simp [image_swap_eq_preimage_swap, function.comp],
     exact monotone_prod monotone_preimage monotone_preimage
   end
-  ... ↔ (∀s ∈ 𝓤 α, ∃x, x ∈ set.prod {y : α | (a, y) ∈ s} {x : α | (x, b) ∈ s} ∩ t) :
+  ... ↔ (∀s ∈ 𝓤 α, (set.prod {y : α | (a, y) ∈ s} {x : α | (x, b) ∈ s} ∩ t).nonempty) :
   begin
     rw [lift'_inf_principal_eq, lift'_ne_bot_iff],
-    apply forall_congr, intro s, rw [ne_empty_iff_exists_mem],
     exact monotone_inter (monotone_prod monotone_preimage monotone_preimage) monotone_const
   end
   ... ↔ (∀ s ∈ 𝓤 α, (a, b) ∈ comp_rel s (comp_rel t s)) :
@@ -596,10 +595,9 @@ continuous_iff_le_induced.mpr $ to_topological_space_mono $ uniform_continuous_i
 lemma to_topological_space_bot : @uniform_space.to_topological_space α ⊥ = ⊥ := rfl
 
 lemma to_topological_space_top : @uniform_space.to_topological_space α ⊤ = ⊤ :=
-top_unique $ assume s hs, classical.by_cases
+top_unique $ assume s hs, s.eq_empty_or_nonempty.elim
   (assume : s = ∅, this.symm ▸ @is_open_empty _ ⊤)
-  (assume : s ≠ ∅,
-    let ⟨x, hx⟩ := exists_mem_of_ne_empty this in
+  (assume  ⟨x, hx⟩,
     have s = univ, from top_unique $ assume y hy, hs x hx (x, y) rfl,
     this.symm ▸ @is_open_univ _ ⊤)
 

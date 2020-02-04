@@ -72,7 +72,7 @@ uniform_embedding_of_rat.dense_embedding $
 λ x, mem_closure_iff_nhds.2 $ λ t ht,
 let ⟨ε,ε0, hε⟩ := mem_nhds_iff.1 ht in
 let ⟨q, h⟩ := exists_rat_near x ε0 in
-ne_empty_iff_exists_mem.2 ⟨_, hε (mem_ball'.2 h), q, rfl⟩
+⟨_, hε (mem_ball'.2 h), q, rfl⟩
 
 theorem embedding_of_rat : embedding (coe : ℚ → ℝ) := dense_embedding_of_rat.to_embedding
 
@@ -301,7 +301,7 @@ subset.antisymm
 λ x hx, mem_closure_iff_nhds.2 $ λ t ht,
 let ⟨ε, ε0, hε⟩ := metric.mem_nhds_iff.1 ht in
 let ⟨p, h₁, h₂⟩ := exists_rat_btwn ((lt_add_iff_pos_right x).2 ε0) in
-ne_empty_iff_exists_mem.2 ⟨_, hε (show abs _ < _,
+⟨_, hε (show abs _ < _,
     by rwa [abs_of_nonneg (le_of_lt $ sub_pos.2 h₁), sub_lt_iff_lt_add']),
   p, rat.cast_lt.1 (@lt_of_le_of_lt ℝ _ _ _ _ hx h₁), rfl⟩
 

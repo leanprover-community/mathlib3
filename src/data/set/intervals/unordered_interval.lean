@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Zhouhang Zhou
 -/
 
-import data.set.intervals.disjoint
+import data.set.intervals.basic order.bounds
 
 /-!
 # Intervals without endpoints ordering
@@ -100,11 +100,8 @@ lemma bdd_below_bdd_above_iff_subset_interval (s : set α) :
 begin
   rw [bdd_below_bdd_above_iff_subset_Icc],
   split,
-  { rintros ⟨a, b, h⟩, exact ⟨a, b, λ x hx, Icc_subset_interval (h hx)⟩ },
-  { rintros ⟨a, b, h⟩,
-    cases le_total a b with ab ba,
-    { refine ⟨a, b, _⟩, rwa interval_of_le ab at h },
-    { refine ⟨b, a, _⟩, rwa interval_of_ge ba at h } }
+  { rintro ⟨a, b, h⟩, exact ⟨a, b, λ x hx, Icc_subset_interval (h hx)⟩ },
+  { rintro ⟨a, b, h⟩, exact ⟨min a b, max a b, h⟩ }
 end
 
 end decidable_linear_order

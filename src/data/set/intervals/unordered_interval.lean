@@ -86,8 +86,12 @@ Icc_subset_interval' ⟨hb, ha⟩
 lemma interval_subset_interval (h₁ : a₁ ∈ [a₂, b₂]) (h₂ : b₁ ∈ [a₂, b₂]) : [a₁, b₁] ⊆ [a₂, b₂] :=
 Icc_subset_Icc (le_min h₁.1 h₂.1) (max_le h₁.2 h₂.2)
 
-lemma interval_subset_interval_iff : [a₁, b₁] ⊆ [a₂, b₂] ↔ a₁ ∈ [a₂, b₂] ∧ b₁ ∈ [a₂, b₂] :=
+lemma interval_subset_interval_iff_mem : [a₁, b₁] ⊆ [a₂, b₂] ↔ a₁ ∈ [a₂, b₂] ∧ b₁ ∈ [a₂, b₂] :=
 iff.intro (λh, ⟨h left_mem_interval, h right_mem_interval⟩) (λ h, interval_subset_interval h.1 h.2)
+
+lemma interval_subset_interval_iff_le :
+  [a₁, b₁] ⊆ [a₂, b₂] ↔ min a₂ b₂ ≤ min a₁ b₁ ∧ max a₁ b₁ ≤ max a₂ b₂ :=
+by { rw [interval, interval, Icc_subset_Icc_iff], exact min_le_max }
 
 lemma interval_subset_interval_right (h : x ∈ [a, b]) : [x, b] ⊆ [a, b] :=
 interval_subset_interval h right_mem_interval
@@ -116,16 +120,9 @@ variables {α : Type u} [decidable_linear_ordered_comm_group α] {a b x y : α}
 is less than or equal to that of `a` and `b` -/
 lemma abs_sub_le_of_subinterval (h : [x, y] ⊆ [a, b]) : abs (y - x) ≤ abs (b - a) :=
 begin
-  rw abs_sub_le_iff,
-  cases le_total a b with ab ba,
-  { simp only [interval_of_le ab] at h,
-    rw abs_of_nonneg (sub_nonneg_of_le ab),
-    exact ⟨sub_le_sub (h right_mem_interval).2 (h left_mem_interval).1,
-           sub_le_sub (h left_mem_interval).2 (h right_mem_interval).1⟩ },
-  { simp only [interval_of_ge ba] at h,
-    rw [abs_of_nonpos (sub_nonpos_of_le ba), neg_sub],
-    exact ⟨sub_le_sub (h right_mem_interval).2 (h left_mem_interval).1,
-           sub_le_sub (h left_mem_interval).2 (h right_mem_interval).1⟩ }
+  rw [← max_sub_min_eq_abs, ← max_sub_min_eq_abs],
+  rw [interval_subset_interval_iff_le] at h,
+  exact sub_le_sub h.2 h.1,
 end
 
 /-- If `x ∈ [a, b]`, then the distance between `a` and `x` is less than or equal to

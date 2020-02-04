@@ -34,3 +34,4 @@ import
   tactic.apply
   tactic.suggest
   tactic.simp_rw
+  tactic.hint

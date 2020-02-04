@@ -122,7 +122,7 @@ in theorem assumptions instead of `∃ x, x ∈ s` or `s ≠ ∅` as it gives ac
 to the dot notation. -/
 protected def nonempty (s : finset α) : Prop := ∃ x:α, x ∈ s
 
-@[elim_cast] lemma coe_nonempty {s : finset α} : (↑s:set α).nonempty ↔ s.nonempty := iff.rfl
+@[norm_cast] lemma coe_nonempty {s : finset α} : (↑s:set α).nonempty ↔ s.nonempty := iff.rfl
 
 lemma nonempty.bex {s : finset α} (h : s.nonempty) : ∃ x:α, x ∈ s := h
 
@@ -646,7 +646,7 @@ by { ext i, simp [piecewise] }
 
 variable [∀j, decidable (j ∈ s)]
 
-@[elim_cast] lemma piecewise_coe [∀j, decidable (j ∈ (↑s : set α))] :
+@[norm_cast] lemma piecewise_coe [∀j, decidable (j ∈ (↑s : set α))] :
   (↑s : set α).piecewise f g = s.piecewise f g :=
 by { ext, congr }
 

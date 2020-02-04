@@ -143,6 +143,8 @@ instance : has_coe nzsnum snum := ⟨snum.nz⟩
 instance : has_zero snum := ⟨snum.zero ff⟩
 instance : has_one nzsnum := ⟨nzsnum.msb tt⟩
 instance : has_one snum := ⟨snum.nz 1⟩
+instance : inhabited nzsnum := ⟨1⟩
+instance : inhabited snum := ⟨0⟩
 
 /- The snum representation uses a bit string, essentially a list of 0 (ff) and 1 (tt) bits,
    and the negation of the MSB is sign-extended to all higher bits. -/

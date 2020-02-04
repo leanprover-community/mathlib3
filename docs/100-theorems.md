@@ -534,23 +534,12 @@ lemma real.intermediate_value {f : ℝ → ℝ} {a b t : ℝ}
 
 
 ## <a name="80"></a>80. The Fundamental Theorem of Arithmetic
-The integers form a unique factorization domain by the first three declarations. A unique factorization domain gives most of the fundamental theorem of arithmetic, and the uniqueness is then proven for them.
 ```lean
-instance int.euclidean_domain : euclidean_domain ℤ
-instance euclidean_domain.to_principal_ideal_domain [euclidean_domain α] : principal_ideal_domain α
-noncomputable def to_unique_factorization_domain [principal_ideal_domain α] : unique_factorization_domain α
-
-class unique_factorization_domain (α : Type*) [integral_domain α] :=
-(factors : α → multiset α)
-(factors_prod : ∀{a : α}, a ≠ 0 → (factors a).prod ~ᵤ a)
-(prime_factors : ∀{a : α}, a ≠ 0 → ∀x∈factors a, prime x)
-
-lemma unique [integral_domain α] [unique_factorization_domain α] : ∀{f g : multiset α},
-  (∀x∈f, irreducible x) → (∀x∈g, irreducible x) → f.prod ~ᵤ g.prod →
-  multiset.rel associated f g
+  lemma factors_unique {n : ℕ} {l : list ℕ} (h₁ : prod l = n) (h₂ : ∀ p ∈ l, prime p) : l ~ factors n
 ```
-* Author: mathlib
-* Link: [1](https://github.com/leanprover-community/mathlib/blob/4845b663c182704738868db5861ffb4c6056be23/src/algebra/euclidean_domain.lean#L320) [2](https://github.com/leanprover-community/mathlib/blob/4845b663c182704738868db5861ffb4c6056be23/src/ring_theory/principal_ideal_domain.lean#L71) [3](https://github.com/leanprover-community/mathlib/blob/4845b663c182704738868db5861ffb4c6056be23/src/ring_theory/principal_ideal_domain.lean#L158) [4](https://github.com/leanprover-community/mathlib/blob/4845b663c182704738868db5861ffb4c6056be23/src/ring_theory/unique_factorization_domain.lean#L29) [5](https://github.com/leanprover-community/mathlib/blob/master/src/ring_theory/unique_factorization_domain.lean#L90)
+* Author: mathlib <!-- Chris Hughes -->
+* Link: https://github.com/leanprover-community/mathlib/blob/6030ff0a9d2498b1389c7a3be9b3d938a351dac3/src/data/nat/prime.lean#L415
+* Remarks: it also has a generalized version, by showing that every Euclidean domain is a unique factorization domain, and showing that the integers form a Euclidean domain. Links: [1](https://github.com/leanprover-community/mathlib/blob/4845b663c182704738868db5861ffb4c6056be23/src/algebra/euclidean_domain.lean#L320) [2](https://github.com/leanprover-community/mathlib/blob/4845b663c182704738868db5861ffb4c6056be23/src/ring_theory/principal_ideal_domain.lean#L71) [3](https://github.com/leanprover-community/mathlib/blob/4845b663c182704738868db5861ffb4c6056be23/src/ring_theory/principal_ideal_domain.lean#L158) [4](https://github.com/leanprover-community/mathlib/blob/4845b663c182704738868db5861ffb4c6056be23/src/ring_theory/unique_factorization_domain.lean#L29) [5](https://github.com/leanprover-community/mathlib/blob/master/src/ring_theory/unique_factorization_domain.lean#L90)
 
 <!--
 ## <a name="81"></a>81. Divergence of the Prime Reciprocal Series

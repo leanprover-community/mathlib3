@@ -478,7 +478,7 @@ end
 lemma prod_piecewise [decidable_eq α] (s t : finset α) (f g : α → β) :
   s.prod (t.piecewise f g) = (s ∩ t).prod f * (s \ t).prod g :=
 by { rw [piecewise, prod_ite _ _ (λ x, x), filter_mem_eq_inter, ← sdiff_eq_filter], assumption }
-    
+
 /-- If we can partition a product into subsets that cancel out, then the whole product cancels. -/
 @[to_additive]
 lemma prod_cancels_of_partition_cancels (R : setoid α) [decidable_rel R.r]
@@ -495,7 +495,26 @@ begin
   refl
 end
 
+@[to_additive]
+lemma prod_update_of_not_mem [decidable_eq α] {s : finset α} {i : α}
+  (h : i ∉ s) (f : α → β) (b : β) : s.prod (function.update f i b) = s.prod f :=
+begin
+  apply prod_congr rfl (λj hj, _),
+  have : j ≠ i, by { assume eq, rw eq at hj, exact h hj },
+  simp [this]
+end
+
+lemma prod_update_of_mem [decidable_eq α] {s : finset α} {i : α} (h : i ∈ s) (f : α → β) (b : β) :
+  s.prod (function.update f i b) = b * (s \ (singleton i)).prod f :=
+by { rw [update_eq_piecewise, prod_piecewise], simp [h] }
+
 end comm_monoid
+
+lemma sum_update_of_mem [add_comm_monoid β] [decidable_eq α] {s : finset α} {i : α}
+  (h : i ∈ s) (f : α → β) (b : β) :
+  s.sum (function.update f i b) = b + (s \ (singleton i)).sum f :=
+by { rw [update_eq_piecewise, sum_piecewise], simp [h] }
+attribute [to_additive] prod_update_of_mem
 
 lemma sum_smul' [add_comm_monoid β] (s : finset α) (n : ℕ) (f : α → β) :
   s.sum (λ x, add_monoid.smul n (f x)) = add_monoid.smul n (s.sum f) :=

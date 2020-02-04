@@ -156,7 +156,7 @@ forall_sets_ne_empty_iff_ne_bot.mp $
 assume s ⟨t, ht, (hs : i ⁻¹' t ⊆ s)⟩,
 have t ∩ range i ∈ 𝓝 b ⊓ principal (range i),
   from inter_mem_inf_sets ht (subset.refl _),
-let ⟨_, ⟨hx₁, y, rfl⟩⟩ := inhabited_of_mem_sets di.nhds_inf_ne_bot this in
+let ⟨_, ⟨hx₁, y, rfl⟩⟩ := nonempty_of_mem_sets di.nhds_inf_ne_bot this in
 subset_ne_empty hs $ ne_empty_of_mem hx₁
 
 variables [topological_space γ]

@@ -551,7 +551,7 @@ have comap f (𝓝 (f a) ⊓ principal (f '' s)) ≠ ⊥ ↔ 𝓝 (f a) ⊓ prin
         from mem_inf_sets_of_right $ by simp [subset.refl],
       have s₂ ∩ f '' s ∈ 𝓝 (f a) ⊓ principal (f '' s),
         from inter_mem_sets hs₂ this,
-      let ⟨b, hb₁, ⟨a, ha, ha₂⟩⟩ := inhabited_of_mem_sets h this in
+      let ⟨b, hb₁, ⟨a, ha, ha₂⟩⟩ := nonempty_of_mem_sets h this in
       ne_empty_of_mem $ hs $ by rwa [←ha₂] at hb₁⟩,
 calc a ∈ @closure α (topological_space.induced f t) s
     ↔ (@nhds α (topological_space.induced f t) a) ⊓ principal s ≠ ⊥ : by rw [closure_eq_nhds]; refl

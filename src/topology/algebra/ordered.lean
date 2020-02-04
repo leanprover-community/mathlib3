@@ -890,7 +890,7 @@ lemma is_lub_of_mem_nhds {s : set α} {a : α} {f : filter α}
   not_lt.1 $ assume hba,
   have s ∩ {a | b < a} ∈ f ⊓ 𝓝 a,
     from inter_mem_inf_sets hsf (mem_nhds_sets (is_open_lt' _) hba),
-  let ⟨x, ⟨hxs, hxb⟩⟩ := inhabited_of_mem_sets hfa this in
+  let ⟨x, ⟨hxs, hxb⟩⟩ := nonempty_of_mem_sets hfa this in
   have b < b, from lt_of_lt_of_le hxb $ hb hxs,
   lt_irrefl b this⟩
 
@@ -917,7 +917,7 @@ have ∀a'∈s, ¬ b < f a',
       have {x | a' < x} ∩ t₁ ∈ 𝓝 a, from inter_mem_sets this ht₁,
       have ({x | a' < x} ∩ t₁) ∩ s ∈ 𝓝 a ⊓ principal s,
         from inter_mem_inf_sets this (subset.refl s),
-      let ⟨x, ⟨hx₁, hx₂⟩, hx₃⟩ := inhabited_of_mem_sets hnbot this in
+      let ⟨x, ⟨hx₁, hx₂⟩, hx₃⟩ := nonempty_of_mem_sets hnbot this in
       have hxa' : f x < f a', from hs ⟨hx₂, ht₂ hx₃⟩,
       have ha'x : f a' ≤ f x, from hf _ ha' _ hx₃ $ le_of_lt hx₁,
       lt_irrefl _ (lt_of_le_of_lt ha'x hxa')),
@@ -1264,7 +1264,7 @@ begin
   rintros x ⟨hxs, hxab⟩ y hyxb,
   have : s ∩ Ioc x y ∈ nhds_within x (Ioi x),
     from inter_mem_sets (hgt x ⟨hxs, hxab⟩) (Ioc_mem_nhds_within_Ioi ⟨le_refl _, hyxb⟩),
-  exact inhabited_of_mem_sets (nhds_within_Ioi_self_ne_bot' hxab.2) this
+  exact nonempty_of_mem_sets (nhds_within_Ioi_self_ne_bot' hxab.2) this
 end
 
 /-- A closed interval is connected. -/

@@ -425,7 +425,7 @@ is_open_iff.2 $ λ y, exists_ball_subset_ball
 theorem ball_mem_nhds (x : α) {ε : ℝ} (ε0 : 0 < ε) : ball x ε ∈ 𝓝 x :=
 mem_nhds_sets is_open_ball (mem_ball_self ε0)
 
-@[nolint]
+@[nolint] -- see Note [nolint_ge]
 theorem mem_nhds_within_iff {t : set α} : s ∈ nhds_within x t ↔ ∃ε>0, ball x ε ∩ t ⊆ s :=
 begin
   rw [mem_nhds_within_iff_exists_mem_nhds_inter],
@@ -437,7 +437,7 @@ begin
     exact ⟨ball x ε, ball_mem_nhds x ε_pos, H⟩ }
 end
 
-@[nolint]
+@[nolint] -- see Note [nolint_ge]
 theorem tendsto_nhds_within_nhds_within [metric_space β] {t : set β} {f : α → β} {a b} :
   tendsto f (nhds_within a s) (nhds_within b t) ↔
     ∀ ε > 0, ∃ δ > 0, ∀{x:α}, x ∈ s → dist x a < δ → f x ∈ t ∧ dist (f x) b < ε :=
@@ -455,17 +455,23 @@ begin
     exact ⟨δ, δ_pos, λx hx, hε ⟨(hδ hx.2 hx.1).2, (hδ hx.2 hx.1).1⟩⟩ }
 end
 
-@[nolint]
+@[nolint] -- see Note [nolint_ge]
 theorem tendsto_nhds_within_nhds [metric_space β] {f : α → β} {a b} :
   tendsto f (nhds_within a s) (𝓝 b) ↔
     ∀ ε > 0, ∃ δ > 0, ∀{x:α}, x ∈ s → dist x a < δ → dist (f x) b < ε :=
 by { rw [← nhds_within_univ, tendsto_nhds_within_nhds_within], simp }
 
-@[nolint]
+@[nolint] -- see Note [nolint_ge]
 theorem tendsto_nhds_nhds [metric_space β] {f : α → β} {a b} :
   tendsto f (𝓝 a) (𝓝 b) ↔
     ∀ ε > 0, ∃ δ > 0, ∀{x:α}, dist x a < δ → dist (f x) b < ε :=
 by { rw [← nhds_within_univ, ← nhds_within_univ, tendsto_nhds_within_nhds_within], simp }
+
+@[nolint] -- see Note [nolint_ge]
+theorem continuous_at_iff [metric_space β] {f : α → β} {a : α} :
+  continuous_at f a ↔
+    ∀ ε > 0, ∃ δ > 0, ∀{x:α}, dist x a < δ → dist (f x) (f a) < ε :=
+by rw [continuous_at, tendsto_nhds_nhds]
 
 theorem continuous_iff [metric_space β] {f : α → β} :
   continuous f ↔
@@ -1131,7 +1137,7 @@ instance complete_of_proper [proper_space α] : complete_space α :=
   ball (therefore compact by properness) where it is nontrivial. -/
   have A : ∃ t ∈ f, ∀ x y ∈ t, dist x y < 1 := (metric.cauchy_iff.1 hf).2 1 zero_lt_one,
   rcases A with ⟨t, ⟨t_fset, ht⟩⟩,
-  rcases inhabited_of_mem_sets hf.1 t_fset with ⟨x, xt⟩,
+  rcases nonempty_of_mem_sets hf.1 t_fset with ⟨x, xt⟩,
   have : t ⊆ closed_ball x 1 := by intros y yt; simp [dist_comm]; apply le_of_lt (ht x y xt yt),
   have : closed_ball x 1 ∈ f := f.sets_of_superset t_fset this,
   rcases (compact_iff_totally_bounded_complete.1 (proper_space.compact_ball x 1)).2 f hf (le_principal_iff.2 this)

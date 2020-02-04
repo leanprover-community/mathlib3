@@ -384,6 +384,7 @@ instance nat_sub : has_sub (α →₀ ℕ) := ⟨zip_with (λ m n, m - n) (nat.s
 
 @[simp] lemma nat_sub_apply {g₁ g₂ : α →₀ ℕ} {a : α} :
   (g₁ - g₂) a = g₁ a - g₂ a := rfl
+
 end nat_sub
 
 section add_monoid
@@ -1487,6 +1488,21 @@ lemma le_iff [canonically_ordered_monoid α] (f g : σ →₀ α) :
   f ≤ g ↔ ∀ s ∈ f.support, f s ≤ g s :=
 ⟨λ h s hs, h s,
 λ h s, if H : s ∈ f.support then h s H else (not_mem_support_iff.1 H).symm ▸ zero_le (g s)⟩
+
+@[simp] lemma add_eq_zero_iff [canonically_ordered_monoid α] (f g : σ →₀ α) :
+  f + g = 0 ↔ f = 0 ∧ g = 0 :=
+begin
+  split,
+  { assume h,
+    split,
+    all_goals
+    { ext s,
+      suffices H : f s + g s = 0,
+      { rw add_eq_zero_iff at H, cases H, assumption },
+      show (f + g) s = 0,
+      rw h, refl } },
+  { rintro ⟨rfl, rfl⟩, simp }
+end
 
 attribute [simp] to_multiset_zero to_multiset_add
 

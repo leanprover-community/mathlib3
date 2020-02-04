@@ -217,15 +217,6 @@ a meaningful expression. -/
 meta def mk_local (n : name) : expr :=
 expr.local_const n n binder_info.default (expr.const n [])
 
-/-- `local_def_value e` returns the value of the expression `e`, assuming that `e` has been defined
-locally using a `let` expression. Otherwise it fails. -/
-meta def local_def_value (e : expr) : tactic expr :=
-do (v,_) ← solve_aux `(true) (do
-         (expr.elet n t v _) ← (revert e >> target)
-           | fail format!"{e} is not a local definition",
-         return v),
-   return v
-
 /-- `pis loc_consts f` is used to create a pi expression whose body is `f`.
 `loc_consts` should be a list of local constants. The function will abstract these local
 constants from `f` and bind them with pi binders.
@@ -352,6 +343,62 @@ do to_remove ← hs.mfilter $ λ h, do {
     replace_target new_t pr },
   to_remove.mmap' (λ h, try (clear h)),
   return (¬ to_remove.empty ∨ goal_simplified)
+
+/-- `revert_after e` reverts all local constants after local constant `e`. -/
+meta def revert_after (e : expr) : tactic ℕ := do
+  l ← local_context,
+  [pos] ← return $ l.indexes_of e | pp e >>= λ s, fail format!"No such local constant {s}",
+  let l := l.drop pos.succ, -- all local hypotheses after `e`
+  revert_lst l
+
+/-- `generalize' e n` is similar as `generalize` but also succeeds when `e` does not occur in the
+  goal, in which case it just calls `assert`. It already introduces the generalized variable. -/
+meta def generalize' (e : expr) (n : name) : tactic expr :=
+(generalize e n >> intro1) <|> note n none e
+
+/- Various tactics related to local definitions (local constants of the form `x : α := t`).
+  We call `t` the body or value of `x`. -/
+
+/-- `local_def_value e` returns the value of the expression `e`, assuming that `e` has been defined
+locally using a `let` expression. Otherwise it fails. -/
+meta def local_def_value (e : expr) : tactic expr :=
+do (v,_) ← solve_aux `(true) (do
+         (expr.elet n t v _) ← (revert e >> target)
+           | fail format!"{e} is not a local definition",
+         return v),
+   return v
+
+/-- `revert_deps e` reverts all the hypotheses that depend on one of the local
+  constants `e`, including the local definitions that have `e` in their definition.
+  This fixes a bug in `revert_kdeps` that does not revert local definitions for which `e` only
+  appears in the definition. -/
+/- We cannot implement it as `revert e >> intro1`, because after that `e` would not be in the
+  local context anymore. -/
+meta def revert_deps (e : expr) : tactic ℕ := do
+  n ← revert_kdeps e,
+  l ← local_context,
+  [pos] ← return $ l.indexes_of e,
+  let l := l.drop pos.succ, -- local hypotheses after `e`
+  ls ← l.mfilter $ λ e', try_core (local_def_value e') >>= λ o, return $ o.elim ff $ λ e'',
+    e''.has_local_constant e,
+  n' ← revert_lst ls,
+  return $ n + n'
+
+/-- `is_local_def e` succeeds when `e` is a local definition (a local constant of the form
+  `e : α := t`) and otherwise fails. -/
+meta def is_local_def (e : expr) : tactic unit :=
+retrieve $ do revert e, expr.elet _ _ _ _ ← target, skip
+
+/-- `clearbody e` clears the body of the local definition `e`, changing it into a regular hypothesis.
+  A hypothesis `e : α := t` is changed to `e : α`. -/
+meta def clearbody (e : expr) : tactic unit := do
+  n ← revert_after e,
+  is_local_def e <|>
+    pp e >>= λ s, fail format!"Cannot clear the body of {s}. It is not a local definition.",
+  let nm := e.local_pp_name,
+  (generalize' e nm >> clear e) <|>
+    fail format!"Cannot clear the body of {nm}. The resulting goal is not type correct.",
+  intron n
 
 /-- A variant of `simplify_bottom_up`. Given a tactic `post` for rewriting subexpressions,
 `simp_bottom_up post e` tries to rewrite `e` starting at the leaf nodes. Returns the resulting

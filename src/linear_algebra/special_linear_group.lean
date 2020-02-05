@@ -3,7 +3,7 @@
   Released under Apache 2.0 license as described in the file LICENSE.
   Author: Anne Baanen.
 
-  The Special Linear group `special_linear_group(n, R)`.
+  The Special Linear group $$SL(n, R)$$.
 -/
 import linear_algebra.basic
 import linear_algebra.matrix
@@ -11,7 +11,7 @@ import linear_algebra.nonsingular_inverse
 import tactic.norm_cast
 
 /-!
-# The Special Linear group `special_linear_group(n, R)`
+# The Special Linear group $$SL(n, R)$$
 
 This file defines the elements of the Special Linear group `special_linear_group n R`,
 also written `special_linear_group(n, R)` or `SLₙ(R)`, consisting of all `n` by `n`
@@ -53,8 +53,7 @@ variables {n : Type u} [fintype n] [decidable_eq n] {R : Type v} [comm_ring R]
 lemma ext_iff (A B : special_linear_group n R) : A = B ↔ (∀ i j, A.1 i j = B.1 i j) :=
 iff.trans subtype.ext ⟨(λ h i j, by rw h), matrix.ext⟩
 
-@[ext]
-lemma ext (A B : special_linear_group n R) : (∀ i j, A.1 i j = B.1 i j) → A = B :=
+@[ext] lemma ext (A B : special_linear_group n R) : (∀ i j, A.1 i j = B.1 i j) → A = B :=
 (special_linear_group.ext_iff A B).mpr
 
 instance has_inv : has_inv (special_linear_group n R) := ⟨λ A, ⟨adjugate A.1, det_adjugate_eq_one A.2⟩⟩
@@ -100,7 +99,8 @@ instance coe_GL : has_coe (special_linear_group n R) (general_linear_group R (n 
 ⟨λ A, general_linear_group.of_linear_equiv (to_linear_equiv A)⟩
 
 lemma coe_coe (A : special_linear_group n R) :
-  (@coe (units _) _ _ (A : general_linear_group R (n → R))) = A.val.to_lin := rfl
+  (@coe (units _) _ _ (A : general_linear_group R (n → R))) = A.val.to_lin :=
+rfl
 
 @[simp, elim_cast]
 lemma coe_GL_one : ((1 : special_linear_group n R) : general_linear_group R (n → R)) = 1 :=

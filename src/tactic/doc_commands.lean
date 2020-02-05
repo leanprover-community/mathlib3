@@ -50,7 +50,6 @@ open tactic
 the `library_note` attribute. -/
 meta def tactic.add_library_note (note_name note : pexpr) : tactic unit :=
 do note_name ← to_expr note_name,
-   note ← to_expr note,
    let decl_name := (to_string note_name).mk_hashed_name `library_note,
    body ← to_expr ``((%%note_name, %%note) : string × string),
    add_decl $ mk_definition decl_name [] `(string × string) body,

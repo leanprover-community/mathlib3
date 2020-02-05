@@ -32,8 +32,6 @@ set_option class.instance_max_depth 50
 universes u v w
 variables {α : Type u} {β : Type v} {γ : Type w}
 
-namespace set
-
 section measurable_on
 variables [topological_space α] [decidable_linear_order α] [order_closed_topology α]
           [measurable_space β] [has_zero β] {a b c x y : α} {s : set α} {f : α → β}
@@ -141,8 +139,6 @@ lemma integrable_on.interval_split_right
 by { rw [interval_swap] at hfm' hfi', apply hfi.interval_combine hfm, assumption' }
 
 end integrable_on
-
-end set
 
 namespace real
 

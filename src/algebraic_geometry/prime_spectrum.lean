@@ -60,7 +60,7 @@ An element `f` of `R` can be thought of as a dependent function
 on the prime spectrum of `R`.
 At a point `x` (a prime ideal)
 the function (i.e., element) `f` takes values in the quotient ring `R` modulo the prime ideal `x`.
-In this manner, `zero_locus I` is exactly the subset or `prime_spectrum R`
+In this manner, `zero_locus I` is exactly the subset of `prime_spectrum R`
 where all "functions" in `I` vanish simultaneously.
 -/
 def zero_locus (I : set R) : set (prime_spectrum R) :=

@@ -3,7 +3,7 @@
   Released under Apache 2.0 license as described in the file LICENSE.
   Author: Anne Baanen.
 
-  The Special Linear group $$SL(n, R)$$.
+  The Special Linear group $SL(n, R)$
 -/
 import linear_algebra.basic
 import linear_algebra.matrix
@@ -11,11 +11,19 @@ import linear_algebra.nonsingular_inverse
 import tactic.norm_cast
 
 /-!
-# The Special Linear group $$SL(n, R)$$
+# The Special Linear group $SL(n, R)$
 
 This file defines the elements of the Special Linear group `special_linear_group n R`,
-also written `special_linear_group(n, R)` or `SLₙ(R)`, consisting of all `n` by `n`
-`R`-matrices with determinant `1`.
+also written `SL(n, R)` or `SLₙ(R)`, consisting of all `n` by `n` `R`-matrices with
+determinant `1`.  In addition, we define the group structure on `special_linear_group n R`
+and the embedding into the general linear group `general_linear_group R (n → R)`
+(i.e. `GL(n, R)` or `GLₙ(R)`).
+
+## Main definitions
+
+ * `matrix.special_linear_group` is the set of matrices with determinant 1
+ * `matrix.special_linear_group.group` gives the group structure (under multiplication)
+ * `matrix.special_linear_group.to_GL` is the embedding `SLₙ(R) → GLₙ(R)`
 
 ## Implementation notes
 The inverse operation in the `special_linear_group` is defined to be the adjugate
@@ -24,6 +32,10 @@ matrix, so that `special_linear_group n R` has a group structure for all `comm_r
 We define the elements of `special_linear_group` to be matrices, since we need to
 compute their determinant. This is in contrast with `general_linear_group R M`,
 which consists of invertible `R`-linear maps on `M`.
+
+## References
+
+ * https://en.wikipedia.org/wiki/Special_linear_group
 
 ## Tags
 

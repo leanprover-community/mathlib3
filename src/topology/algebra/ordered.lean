@@ -206,28 +206,28 @@ is_open_lt continuous_const continuous_id
 lemma is_open_Ioo {a b : α} : is_open (Ioo a b) :=
 is_open_inter is_open_Ioi is_open_Iio
 
-lemma is_connected.forall_Icc_subset {s : set α} (hs : is_connected s)
+lemma is_preconnected.forall_Icc_subset {s : set α} (hs : is_preconnected s)
   {a b : α} (ha : a ∈ s) (hb : b ∈ s) :
   Icc a b ⊆ s :=
 begin
   assume x hx,
   obtain ⟨y, hy, hy'⟩ : (s ∩ ((Iic x) ∩ (Ici x))).nonempty,
-    from is_connected_closed_iff.1 hs (Iic x) (Ici x) is_closed_Iic is_closed_Ici
+    from is_preconnected_closed_iff.1 hs (Iic x) (Ici x) is_closed_Iic is_closed_Ici
       (λ y _, le_total y x) ⟨a, ha, hx.1⟩ ⟨b, hb, hx.2⟩,
   exact le_antisymm hy'.1 hy'.2 ▸ hy
 end
 
 /-- Intermediate Value Theorem for continuous functions on connected sets. -/
-lemma is_connected.intermediate_value {γ : Type*} [topological_space γ] {s : set γ}
-  (hs : is_connected s) {a b : γ} (ha : a ∈ s) (hb : b ∈ s) {f : γ → α} (hf : continuous_on f s) :
+lemma is_preconnected.intermediate_value {γ : Type*} [topological_space γ] {s : set γ}
+  (hs : is_preconnected s) {a b : γ} (ha : a ∈ s) (hb : b ∈ s) {f : γ → α} (hf : continuous_on f s) :
   Icc (f a) (f b) ⊆ f '' s :=
 (hs.image f hf).forall_Icc_subset (mem_image_of_mem f ha) (mem_image_of_mem f hb)
 
 /-- Intermediate Value Theorem for continuous functions on connected spaces. -/
-lemma intermediate_value_univ {γ : Type*} [topological_space γ] [H : connected_space γ]
+lemma intermediate_value_univ {γ : Type*} [topological_space γ] [H : preconnected_space γ]
   (a b : γ) {f : γ → α} (hf : continuous f) :
   Icc (f a) (f b) ⊆ range f :=
-@image_univ _ _ f ▸ H.is_connected_univ.intermediate_value trivial trivial hf.continuous_on
+@image_univ _ _ f ▸ H.is_preconnected_univ.intermediate_value trivial trivial hf.continuous_on
 
 end linear_order
 
@@ -1262,9 +1262,9 @@ begin
   exact nonempty_of_mem_sets (nhds_within_Ioi_self_ne_bot' hxab.2) this
 end
 
-/-- A closed interval is connected. -/
-lemma is_connected_Icc : is_connected (Icc a b) :=
-is_connected_closed_iff.2
+/-- A closed interval is preconnected. -/
+lemma is_connected_Icc : is_preconnected (Icc a b) :=
+is_preconnected_closed_iff.2
 begin
   rintros s t hs ht hab ⟨x, hx⟩ ⟨y, hy⟩,
   wlog hxy : x ≤ y := le_total x y using [x y s t, y x t s],
@@ -1283,38 +1283,38 @@ begin
   exact λ w ⟨wt, wzy⟩, (this wzy).elim id (λ h, (wt h).elim)
 end
 
-lemma is_connected_iff_forall_Icc_subset {s : set α} :
-  is_connected s ↔ ∀ x y ∈ s, x ≤ y → Icc x y ⊆ s :=
-⟨λ h x y hx hy hxy, h.forall_Icc_subset hx hy, λ h, is_connected_of_forall_pair $ λ x y hx hy,
+lemma is_preconnected_iff_forall_Icc_subset {s : set α} :
+  is_preconnected s ↔ ∀ x y ∈ s, x ≤ y → Icc x y ⊆ s :=
+⟨λ h x y hx hy hxy, h.forall_Icc_subset hx hy, λ h, is_preconnected_of_forall_pair $ λ x y hx hy,
   ⟨Icc (min x y) (max x y), h (min x y) (max x y)
     ((min_choice x y).elim (λ h', by rwa h') (λ h', by rwa h'))
     ((max_choice x y).elim (λ h', by rwa h') (λ h', by rwa h')) min_le_max,
     ⟨min_le_left x y, le_max_left x y⟩, ⟨min_le_right x y, le_max_right x y⟩, is_connected_Icc⟩⟩
 
-lemma is_connected_Ici : is_connected (Ici a) :=
-is_connected_iff_forall_Icc_subset.2 $ λ x y hx hy hxy, (Icc_subset_Ici_iff hxy).2 hx
+lemma is_preconnected_Ici : is_preconnected (Ici a) :=
+is_preconnected_iff_forall_Icc_subset.2 $ λ x y hx hy hxy, (Icc_subset_Ici_iff hxy).2 hx
 
-lemma is_connected_Iic : is_connected (Iic a) :=
-is_connected_iff_forall_Icc_subset.2 $ λ x y hx hy hxy, (Icc_subset_Iic_iff hxy).2 hy
+lemma is_preconnected_Iic : is_preconnected (Iic a) :=
+is_preconnected_iff_forall_Icc_subset.2 $ λ x y hx hy hxy, (Icc_subset_Iic_iff hxy).2 hy
 
-lemma is_connected_Iio : is_connected (Iio a) :=
-is_connected_iff_forall_Icc_subset.2 $ λ x y hx hy hxy, (Icc_subset_Iio_iff hxy).2 hy
+lemma is_preconnected_Iio : is_preconnected (Iio a) :=
+is_preconnected_iff_forall_Icc_subset.2 $ λ x y hx hy hxy, (Icc_subset_Iio_iff hxy).2 hy
 
-lemma is_connected_Ioi : is_connected (Ioi a) :=
-is_connected_iff_forall_Icc_subset.2 $ λ x y hx hy hxy, (Icc_subset_Ioi_iff hxy).2 hx
+lemma is_preconnected_Ioi : is_preconnected (Ioi a) :=
+is_preconnected_iff_forall_Icc_subset.2 $ λ x y hx hy hxy, (Icc_subset_Ioi_iff hxy).2 hx
 
-lemma is_connected_Ioo : is_connected (Ioo a b) :=
-is_connected_iff_forall_Icc_subset.2 $ λ x y hx hy hxy, (Icc_subset_Ioo_iff hxy).2 ⟨hx.1, hy.2⟩
+lemma is_connected_Ioo : is_preconnected (Ioo a b) :=
+is_preconnected_iff_forall_Icc_subset.2 $ λ x y hx hy hxy, (Icc_subset_Ioo_iff hxy).2 ⟨hx.1, hy.2⟩
 
-lemma is_connected_Ioc : is_connected (Ioc a b) :=
-is_connected_iff_forall_Icc_subset.2 $ λ x y hx hy hxy, (Icc_subset_Ioc_iff hxy).2 ⟨hx.1, hy.2⟩
+lemma is_preconnected_Ioc : is_preconnected (Ioc a b) :=
+is_preconnected_iff_forall_Icc_subset.2 $ λ x y hx hy hxy, (Icc_subset_Ioc_iff hxy).2 ⟨hx.1, hy.2⟩
 
-lemma is_connected_Ico : is_connected (Ico a b) :=
-is_connected_iff_forall_Icc_subset.2 $ λ x y hx hy hxy, (Icc_subset_Ico_iff hxy).2 ⟨hx.1, hy.2⟩
+lemma is_preconnected_Ico : is_preconnected (Ico a b) :=
+is_preconnected_iff_forall_Icc_subset.2 $ λ x y hx hy hxy, (Icc_subset_Ico_iff hxy).2 ⟨hx.1, hy.2⟩
 
 @[priority 100]
-instance ordered_connected_space : connected_space α :=
-⟨is_connected_iff_forall_Icc_subset.2 $ λ x y hx hy hxy, subset_univ _⟩
+instance ordered_connected_space : preconnected_space α :=
+⟨is_preconnected_iff_forall_Icc_subset.2 $ λ x y hx hy hxy, subset_univ _⟩
 
 /--Intermediate Value Theorem for continuous functions on closed intervals, case `f a ≤ t ≤ f b`.-/
 lemma intermediate_value_Icc {a b : α} (hab : a ≤ b) {f : α → β} (hf : continuous_on f (Icc a b)) :

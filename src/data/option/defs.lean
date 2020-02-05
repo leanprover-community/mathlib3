@@ -10,7 +10,7 @@ namespace option
 variables {α : Type*} {β : Type*}
 
 /-- An elimination principle for `option`. It is a nondependent version of `option.rec_on`. -/
-protected def elim {α β} : option α → β → (α → β) → β
+protected def elim : option α → β → (α → β) → β
 | (some x) y f := f x
 | none     y f := y
 

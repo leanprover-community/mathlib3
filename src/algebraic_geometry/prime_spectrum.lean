@@ -56,7 +56,7 @@ subtype.ext
 /-- The zero locus of a set `I` of elements of a commutative ring `R`
 is the set of all prime ideals of the ring that contain the set `I`.
 
-An element `f` in `I` can be thought of as dependent functions
+An element `f` of `R` can be thought of as a dependent function
 on the prime spectrum of `R`.
 At a point `x` (a prime ideal)
 the function (i.e., element) `f` takes values in the quotient ring `R` modulo the prime ideal `x`.

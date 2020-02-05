@@ -163,7 +163,7 @@ add_tactic_doc
   category := cat,
   decl_names := [`dcl_1, dcl_2],
   tags := [\"tag_1\", \"tag_2\"],
-  description := Ädescribe what the command does here\"
+  description := \"describe what the command does here\"
 }
 ```
 

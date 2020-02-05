@@ -51,7 +51,7 @@ The Bochner integral is defined following these steps:
 2. Basic properties of the Bochner integral on functions of type `α → ℝ`, where `α` is a measure
   space.
 
-  * `integral_nonneg_of_ae`  : `∀ₘ a, 0 ≤ f a → 0 ≤ ∫ f`
+  * `integral_nonneg_of_ae`         : `∀ₘ a, 0 ≤ f a → 0 ≤ ∫ f`
   * `integral_nonpos_of_nonpos_ae`  : `∀ₘ a, f a ≤ 0 → ∫ f ≤ 0`
   * `integral_le_integral_of_le_ae` : `∀ₘ a, f a ≤ g a → ∫ f ≤ ∫ g`
 

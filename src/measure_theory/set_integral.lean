@@ -23,23 +23,24 @@ Integrate a function over a subset of a measure space.
 -/
 
 noncomputable theory
-open set filter topological_space measure_theory measure_theory.simple_func
+open filter topological_space measure_theory measure_theory.simple_func
 open_locale classical topological_space interval
 
 universes u v w
 variables {α : Type u} {β : Type v} {γ : Type w}
 
-namespace set
+section measurable_on
 variables [measurable_space α] [measurable_space β] [has_zero β] {s : set α} {f : α → β}
 
 /-- `measurable_on s f` means `f` is measurable over the set `s`. -/
-@[reducible]
-def measurable_on (s : set α) (f : α → β) : Prop := measurable (indicator s f)
+def set.measurable_on (s : set α) (f : α → β) : Prop := measurable (s.indicator f)
+
+open set
 
 @[simp] lemma measurable_on_empty (f : α → β) : measurable_on ∅ f :=
 by { rw [measurable_on, indicator_empty], exact measurable_const }
 
-@[simp] lemma measurable_on_univ (hf : measurable f) : measurable_on univ f :=
+@[simp] lemma measurable.measurable_on_univ (hf : measurable f) : measurable_on univ f :=
 hf.if is_measurable.univ measurable_const
 
 @[simp] lemma measurable_on_singleton {α} [topological_space α] [t1_space α] {a : α} {f : α → β} :
@@ -56,11 +57,6 @@ begin
   exact is_measurable.empty
 end
 
-end set
-
-section
-variables [measurable_space α] [measurable_space β] [has_zero β] {s : set α} {f : α → β}
-
 lemma is_measurable.inter_preimage {B : set β}
   (hs : is_measurable s) (hB : is_measurable B) (hf : s.measurable_on f):
   is_measurable (s ∩ f ⁻¹' B) :=
@@ -76,11 +72,10 @@ end
 lemma measurable.measurable_on (hs : is_measurable s) (hf : measurable f) : s.measurable_on f :=
 hf.if hs measurable_const
 
-end
+end measurable_on
 
 namespace set
 
-section has_zero
 variables [measurable_space α] [measurable_space β] [has_zero β] {s : set α} {f : α → β}
   [measurable_space γ] [has_zero γ] {g : β → γ}
 
@@ -104,58 +99,62 @@ begin
   exact (hs.inter_preimage hB hsm).union (ht.inter_preimage hB htm)
 end
 
-end has_zero
+end set
 
 section integrable_on
 variables [measure_space α] [normed_group β] {s t : set α} {f g : α → β}
 
 /-- `integrable_on s f` means `f` is integrable over the set `s`. -/
-@[reducible]
-def integrable_on (s : set α) (f : α → β) : Prop := integrable (indicator s f)
+def set.integrable_on (s : set α) (f : α → β) : Prop := integrable (s.indicator f)
+
+open set
 
 lemma integrable_on_congr (h : ∀x, x ∈ s → f x = g x) : integrable_on s f ↔ integrable_on s g :=
 by simp only [integrable_on, indicator_congr h]
 
-lemma integrable_on_congr_ae (h : ∀ₘx, x ∈ s → f x = g x) :
+lemma integrable_on_congr_ae (h : ∀ₘ x, x ∈ s → f x = g x) :
   integrable_on s f ↔ integrable_on s g :=
 by { apply integrable_congr_ae, exact indicator_congr_ae h }
 
 @[simp] lemma integrable_on_empty (f : α → β) : integrable_on ∅ f :=
 by { simp only [integrable_on, indicator_empty], apply integrable_zero }
 
-lemma integrable_on.subset (h : s ⊆ t) : integrable_on t f → integrable_on s f :=
+lemma integrable.integrable_on (s : set α) (hf : integrable f) : integrable_on s f :=
+by { refine integrable_of_le (λa, _) hf, apply norm_indicator_le_norm_self }
+
+lemma set.integrable_on.subset (h : s ⊆ t) : integrable_on t f → integrable_on s f :=
 by { apply integrable_of_le_ae, filter_upwards [] norm_indicator_le_of_subset h _ }
 
 variables {𝕜 : Type*} [normed_field 𝕜] [normed_space 𝕜 β]
 
-lemma integrable_on.smul (s : set α) (c : 𝕜) {f : α → β} :
+lemma set.integrable_on.smul (s : set α) (c : 𝕜) {f : α → β} :
   integrable_on s f → integrable_on s (λa, c • f a) :=
 by { simp only [integrable_on, indicator_smul], apply integrable.smul }
 
-lemma integrable_on.mul_left (s : set α) (r : ℝ) {f : α → ℝ} (hf : integrable_on s f) :
+lemma set.integrable_on.mul_left (s : set α) (r : ℝ) {f : α → ℝ} (hf : integrable_on s f) :
   integrable_on s (λa, r * f a) :=
 by { simp only [smul_eq_mul.symm], exact hf.smul s r }
 
-lemma integrable_on.mul_right (s : set α) (r : ℝ) {f : α → ℝ} (hf : integrable_on s f) :
+lemma set.integrable_on.mul_right (s : set α) (r : ℝ) {f : α → ℝ} (hf : integrable_on s f) :
   integrable_on s (λa, f a * r) :=
 by { simp only [mul_comm], exact hf.mul_left _ _ }
 
-lemma integrable_on.divide (s : set α) (r : ℝ) {f : α → ℝ} (hf : integrable_on s f) :
+lemma set.integrable_on.divide (s : set α) (r : ℝ) {f : α → ℝ} (hf : integrable_on s f) :
   integrable_on s (λa, f a / r) :=
 by { simp only [div_eq_mul_inv], exact hf.mul_right _ _ }
 
-lemma integrable_on.add (hfm : measurable_on s f) (hfi : integrable_on s f) (hgm : measurable_on s g)
+lemma set.integrable_on.add (hfm : measurable_on s f) (hfi : integrable_on s f) (hgm : measurable_on s g)
   (hgi : integrable_on s g) : integrable_on s (λa, f a + g a) :=
 by { rw [integrable_on, indicator_add], exact hfi.add hfm hgm hgi }
 
-lemma integrable_on.neg (hf : integrable_on s f) : integrable_on s (λa, -f a) :=
+lemma set.integrable_on.neg (hf : integrable_on s f) : integrable_on s (λa, -f a) :=
 by { rw [integrable_on, indicator_neg], exact hf.neg }
 
-lemma integrable_on.sub (hfm : measurable_on s f) (hfi : integrable_on s f) (hgm : measurable_on s g)
+lemma set.integrable_on.sub (hfm : measurable_on s f) (hfi : integrable_on s f) (hgm : measurable_on s g)
   (hgi : integrable_on s g) : integrable_on s (λa, f a - g a) :=
 by { rw [integrable_on, indicator_sub], exact hfi.sub hfm hgm hgi }
 
-lemma integrable_on.union (hs : is_measurable s) (ht : is_measurable t) (hsm : measurable_on s f)
+lemma set.integrable_on.union (hs : is_measurable s) (ht : is_measurable t) (hsm : measurable_on s f)
   (hsi : integrable_on s f) (htm : measurable_on t f) (hti : integrable_on t f) :
   integrable_on (s ∪ t) f :=
 begin
@@ -168,7 +167,7 @@ begin
   exact disjoint_diff
 end
 
-lemma integrable_on_norm_iff (s : set α) (f : α → β) :
+lemma set.integrable_on_norm_iff (s : set α) (f : α → β) :
   integrable_on s (λa, ∥f a∥) ↔ integrable_on s f :=
 begin
   simp only [integrable_on],
@@ -179,23 +178,11 @@ end
 
 end integrable_on
 
-end set
-
-section
-open set
-variables [measure_space α] [normed_group β] {s t : set α} {f g : α → β}
-
-lemma integrable.integrable_on (s : set α) (hf : integrable f) : integrable_on s f :=
-by { refine integrable_of_le (λa, _) hf, apply norm_indicator_le_norm_self }
-
-end
-
-namespace set
-
 section integral_on
 variables [measure_space α]
   [normed_group β] [second_countable_topology β] [normed_space ℝ β] [complete_space β]
   {s t : set α} {f g : α → β}
+open set
 
 notation `∫` binders ` in ` s `, ` r:(scoped f, measure_theory.integral (set.indicator s f)) := r
 
@@ -357,5 +344,3 @@ begin
 end
 
 end integral_on
-
-end set

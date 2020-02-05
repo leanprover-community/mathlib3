@@ -78,7 +78,7 @@ begin
     rw [nnreal.coe_le, ← ennreal.coe_le_coe, to_nnreal_μ, to_nnreal_μ],
     exact measure_mono (subset_univ _) },
 
-  have c_nonempty : c ≠ ∅ := ne_empty_of_mem (mem_image_of_mem _ is_measurable.empty),
+  have c_nonempty : c.nonempty := nonempty.image _ ⟨_, is_measurable.empty⟩,
 
   have d_le_γ : ∀s, is_measurable s → d s ≤ γ := assume s hs, le_cSup bdd_c ⟨s, hs, rfl⟩,
 

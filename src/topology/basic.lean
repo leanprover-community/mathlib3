@@ -321,23 +321,24 @@ by simp [closure_eq_compl_interior_compl]
 @[simp] lemma closure_compl {s : set α} : closure (- s) = - interior s :=
 by simp [closure_eq_compl_interior_compl]
 
-theorem mem_closure_iff {s : set α} {a : α} : a ∈ closure s ↔ ∀ o, is_open o → a ∈ o → o ∩ s ≠ ∅ :=
-⟨λ h o oo ao os,
-  have s ⊆ -o, from λ x xs xo, @ne_empty_of_mem α (o∩s) x ⟨xo, xs⟩ os,
+theorem mem_closure_iff {s : set α} {a : α} :
+  a ∈ closure s ↔ ∀ o, is_open o → a ∈ o → (o ∩ s).nonempty :=
+⟨λ h o oo ao, classical.by_contradiction $ λ os,
+  have s ⊆ -o, from λ x xs xo, os ⟨x, xo, xs⟩,
   closure_minimal this (is_closed_compl_iff.2 oo) h ao,
 λ H c ⟨h₁, h₂⟩, classical.by_contradiction $ λ nc,
-  let ⟨x, hc, hs⟩ := exists_mem_of_ne_empty (H _ h₁ nc) in hc (h₂ hs)⟩
+  let ⟨x, hc, hs⟩ := (H _ h₁ nc) in hc (h₂ hs)⟩
 
-lemma dense_iff_inter_open {s : set α} : closure s = univ ↔ ∀ U, is_open U → U ≠ ∅ → U ∩ s ≠ ∅ :=
+lemma dense_iff_inter_open {s : set α} :
+  closure s = univ ↔ ∀ U, is_open U → U.nonempty → (U ∩ s).nonempty :=
 begin
   split ; intro h,
-  { intros U U_op U_ne,
-    cases exists_mem_of_ne_empty U_ne with x x_in,
+  { rintros U U_op ⟨x, x_in⟩,
     exact mem_closure_iff.1 (by simp only [h]) U U_op x_in },
   { apply eq_univ_of_forall, intro x,
     rw mem_closure_iff,
     intros U U_op x_in,
-    exact h U U_op (ne_empty_of_mem x_in) },
+    exact h U U_op ⟨_, x_in⟩ },
 end
 
 lemma dense_of_subset_dense {s₁ s₂ : set α} (h : s₁ ⊆ s₂) (hd : closure s₁ = univ) :
@@ -515,9 +516,10 @@ calc closure s = - interior (- s) : closure_eq_compl_interior_compl
       (show principal s ⊔ principal (-s) = ⊤, by simp only [sup_principal, union_compl_self, principal_univ])
       (by simp only [inf_principal, inter_compl_self, principal_empty])).symm
 
-theorem mem_closure_iff_nhds {s : set α} {a : α} : a ∈ closure s ↔ ∀ t ∈ 𝓝 a, t ∩ s ≠ ∅ :=
+theorem mem_closure_iff_nhds {s : set α} {a : α} :
+  a ∈ closure s ↔ ∀ t ∈ 𝓝 a, (t ∩ s).nonempty :=
 mem_closure_iff.trans
-⟨λ H t ht, subset_ne_empty
+⟨λ H t ht, nonempty.mono
   (inter_subset_inter_left _ interior_subset)
   (H _ is_open_interior (mem_interior_iff_mem_nhds.2 ht)),
  λ H o oo ao, H _ (mem_nhds_sets oo ao)⟩
@@ -604,7 +606,7 @@ section locally_finite
 /-- A family of sets in `set α` is locally finite if at every point `x:α`,
   there is a neighborhood of `x` which meets only finitely many sets in the family -/
 def locally_finite (f : β → set α) :=
-∀x:α, ∃t ∈ 𝓝 x, finite {i | f i ∩ t ≠ ∅ }
+∀x:α, ∃t ∈ 𝓝 x, finite {i | (f i ∩ t).nonempty }
 
 lemma locally_finite_of_finite {f : β → set α} (h : finite (univ : set β)) : locally_finite f :=
 assume x, ⟨univ, univ_mem_sets, finite_subset h $ subset_univ _⟩
@@ -614,7 +616,7 @@ lemma locally_finite_subset
 assume a,
 let ⟨t, ht₁, ht₂⟩ := hf₂ a in
 ⟨t, ht₁, finite_subset ht₂ $ assume i hi,
-  ne_bot_of_le_ne_bot hi $ inter_subset_inter (hf i) $ subset.refl _⟩
+   hi.mono $ inter_subset_inter (hf i) $ subset.refl _⟩
 
 lemma is_closed_Union_of_locally_finite {f : β → set α}
   (h₁ : locally_finite f) (h₂ : ∀i, is_closed (f i)) : is_closed (⋃i, f i) :=
@@ -623,9 +625,9 @@ is_open_iff_nhds.mpr $ assume a, assume h : a ∉ (⋃i, f i),
     from assume i hi, h $ mem_Union.2 ⟨i, hi⟩,
   have ∀i, - f i ∈ (𝓝 a).sets,
     by rw [nhds_sets]; exact assume i, ⟨- f i, subset.refl _, h₂ i, this i⟩,
-  let ⟨t, h_sets, (h_fin : finite {i | f i ∩ t ≠ ∅ })⟩ := h₁ a in
+  let ⟨t, h_sets, (h_fin : finite {i | (f i ∩ t).nonempty })⟩ := h₁ a in
 
-  calc 𝓝 a ≤ principal (t ∩ (⋂ i∈{i | f i ∩ t ≠ ∅ }, - f i)) :
+  calc 𝓝 a ≤ principal (t ∩ (⋂ i∈{i | (f i ∩ t).nonempty }, - f i)) :
   begin
     rw [le_principal_iff],
     apply @filter.inter_mem_sets _ (𝓝 a) _ _ h_sets,
@@ -636,7 +638,7 @@ is_open_iff_nhds.mpr $ assume a, assume h : a ∉ (⋃i, f i),
   begin
     simp only [principal_mono, subset_def, mem_compl_eq, mem_inter_eq,
       mem_Inter, mem_set_of_eq, mem_Union, and_imp, not_exists,
-      not_eq_empty_iff_exists, exists_imp_distrib, (≠)],
+      exists_imp_distrib, ne_empty_iff_nonempty, set.nonempty],
     exact assume x xt ht i xfi, ht i x xfi xt xfi
   end
 

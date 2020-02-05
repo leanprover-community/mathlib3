@@ -176,7 +176,7 @@ begin
       let ⟨y, hy⟩ := h_ex s hs in
       have pure_cauchy y ∈ range pure_cauchy ∩ {y : Cauchy α | (f, y) ∈ s},
         from ⟨mem_range_self y, hy⟩,
-      ne_empty_of_mem this)
+      ⟨_, this⟩)
 end
 
 lemma dense_inducing_pure_cauchy : dense_inducing pure_cauchy :=
@@ -189,8 +189,7 @@ lemma nonempty_Cauchy_iff : nonempty (Cauchy α) ↔ nonempty α :=
 begin
   split ; rintro ⟨c⟩,
   { have := eq_univ_iff_forall.1 dense_embedding_pure_cauchy.to_dense_inducing.closure_range c,
-    have := mem_closure_iff.1 this _ is_open_univ trivial,
-    rcases exists_mem_of_ne_empty this with ⟨_, ⟨_, a, _⟩⟩,
+    obtain ⟨_, ⟨_, a, _⟩⟩ := mem_closure_iff.1 this _ is_open_univ trivial,
     exact ⟨a⟩ },
   { exact ⟨pure_cauchy c⟩ }
 end

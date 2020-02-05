@@ -55,13 +55,13 @@ classical.by_cases mem_sets_of_eq_bot $
   let ⟨a, ha, (hfa : f ⊓ principal (-t) ⊓ 𝓝 a ≠ ⊥)⟩ := hs _ this $ inf_le_left_of_le hf₂ in
   have a ∈ t,
     from ht₂ a ha $ ne_bot_of_le_ne_bot hfa $ le_inf inf_le_right $ inf_le_left_of_le inf_le_left,
+  have (-t) ∩ t ∈ nhds_within a (-t),
+    from inter_mem_nhds_within _ (mem_nhds_sets ht₁ this),
+  have A : nhds_within a (-t) = ⊥,
+    from empty_in_sets_eq_bot.1 $ compl_inter_self t ▸ this,
   have nhds_within a (-t) ≠ ⊥,
     from ne_bot_of_le_ne_bot hfa $ le_inf inf_le_right $ inf_le_left_of_le inf_le_right,
-  have ∀s∈ nhds_within a (-t), s ≠ ∅,
-    from forall_sets_ne_empty_iff_ne_bot.mpr this,
-  have false,
-    from this _ ⟨t, mem_nhds_sets ht₁ ‹a ∈ t›, -t, subset.refl _, subset.refl _⟩ (inter_compl_self _),
-  by contradiction
+  absurd A this
 
 lemma compact_iff_ultrafilter_le_nhds {s : set α} :
   compact s ↔ (∀f, is_ultrafilter f → f ≤ principal s → ∃a∈s, f ≤ 𝓝 a) :=
@@ -84,7 +84,7 @@ classical.by_contradiction $ assume h,
     from assume c' h₁ h₂ h₃, h ⟨c', h₁, h₂, h₃⟩,
   let
     f : filter α := (⨅c':{c' : set (set α) // c' ⊆ c ∧ finite c'}, principal (s - ⋃₀ c')),
-    ⟨a, ha⟩ := @exists_mem_of_ne_empty α s
+    ⟨a, ha⟩ := (@ne_empty_iff_nonempty α s).1
       (assume h', h (empty_subset _) finite_empty $ h'.symm ▸ empty_subset _)
   in
   have f ≠ ⊥, from infi_ne_bot_of_directed ⟨a⟩
@@ -110,8 +110,8 @@ classical.by_contradiction $ assume h,
 lemma compact.elim_finite_subcover_image {s : set α} {b : set β} {c : β → set α}
   (hs : compact s) (hc₁ : ∀i∈b, is_open (c i)) (hc₂ : s ⊆ ⋃i∈b, c i) :
   ∃b'⊆b, finite b' ∧ s ⊆ ⋃i∈b', c i :=
-if h : b = ∅ then ⟨∅, empty_subset _, finite_empty, h ▸ hc₂⟩ else
-let ⟨i, hi⟩ := exists_mem_of_ne_empty h in
+b.eq_empty_or_nonempty.elim (λ h, ⟨∅, empty_subset _, finite_empty, h ▸ hc₂⟩) $
+assume ⟨i, hi⟩,
 have hc'₁ : ∀i∈c '' b, is_open i, from assume i ⟨j, hj, h⟩, h ▸ hc₁ _ hj,
 have hc'₂ : s ⊆ ⋃₀ (c '' b), by rwa set.sUnion_image,
 let ⟨d, hd₁, hd₂, hd₃⟩ := hs.elim_finite_subcover hc'₁ hc'₂ in
@@ -454,15 +454,15 @@ substs y z; exact ⟨x, or.inl rfl, h2, h4⟩
 theorem is_irreducible_closure {s : set α} (H : is_irreducible s) :
   is_irreducible (closure s) :=
 λ u v hu hv ⟨y, hycs, hyu⟩ ⟨z, hzcs, hzv⟩,
-let ⟨p, hpu, hps⟩ := exists_mem_of_ne_empty (mem_closure_iff.1 hycs u hu hyu) in
-let ⟨q, hqv, hqs⟩ := exists_mem_of_ne_empty (mem_closure_iff.1 hzcs v hv hzv) in
+let ⟨p, hpu, hps⟩ := mem_closure_iff.1 hycs u hu hyu in
+let ⟨q, hqv, hqs⟩ := mem_closure_iff.1 hzcs v hv hzv in
 let ⟨r, hrs, hruv⟩ := H u v hu hv ⟨p, hps, hpu⟩ ⟨q, hqs, hqv⟩ in
 ⟨r, subset_closure hrs, hruv⟩
 
 theorem exists_irreducible (s : set α) (H : is_irreducible s) :
   ∃ t : set α, is_irreducible t ∧ s ⊆ t ∧ ∀ u, is_irreducible u → t ⊆ u → u = t :=
 let ⟨m, hm, hsm, hmm⟩ := zorn.zorn_subset₀ { t : set α | is_irreducible t }
-  (λ c hc hcc hcn, let ⟨t, htc⟩ := exists_mem_of_ne_empty hcn in
+  (λ c hc hcc hcn, let ⟨t, htc⟩ := hcn in
     ⟨⋃₀ c, λ u v hu hv ⟨y, hy, hyu⟩ ⟨z, hz, hzv⟩,
       let ⟨p, hpc, hyp⟩ := mem_sUnion.1 hy,
           ⟨q, hqc, hzq⟩ := mem_sUnion.1 hz in
@@ -570,8 +570,8 @@ sUnion_pair s t ▸ is_connected_sUnion x {s, t}
 theorem is_connected.closure {s : set α} (H : is_connected s) :
   is_connected (closure s) :=
 λ u v hu hv hcsuv ⟨y, hycs, hyu⟩ ⟨z, hzcs, hzv⟩,
-let ⟨p, hpu, hps⟩ := exists_mem_of_ne_empty (mem_closure_iff.1 hycs u hu hyu) in
-let ⟨q, hqv, hqs⟩ := exists_mem_of_ne_empty (mem_closure_iff.1 hzcs v hv hzv) in
+let ⟨p, hpu, hps⟩ := mem_closure_iff.1 hycs u hu hyu in
+let ⟨q, hqv, hqs⟩ := mem_closure_iff.1 hzcs v hv hzv in
 let ⟨r, hrs, hruv⟩ := H u v hu hv (subset.trans subset_closure hcsuv) ⟨p, hps, hpu⟩ ⟨q, hqs, hqv⟩ in
 ⟨r, subset_closure hrs, hruv⟩
 
@@ -606,7 +606,7 @@ theorem is_connected_closed_iff {s : set α} :
   rw [← ne_empty_iff_nonempty, ne.def, not_not, ← subset_compl_iff_disjoint, compl_inter] at h',
   have xt' : x ∉ t', from (h' xs).elim (absurd xt) id,
   have yt : y ∉ t, from (h' ys).elim id (absurd yt'),
-  have := ne_empty_iff_exists_mem.2 (h (-t) (-t') (is_open_compl_iff.2 ht)
+  have := ne_empty_iff_nonempty.2 (h (-t) (-t') (is_open_compl_iff.2 ht)
     (is_open_compl_iff.2 ht') h' ⟨y, ys, yt⟩ ⟨x, xs, xt'⟩),
   rw [ne.def, ← compl_union, ← subset_compl_iff_disjoint, compl_compl] at this,
   contradiction
@@ -614,7 +614,8 @@ end,
 begin
   rintros h u v hu hv huv ⟨x, xs, xu⟩ ⟨y, ys, yv⟩,
   by_contradiction h',
-  rw [← ne_empty_iff_exists_mem, ne.def, not_not, ← subset_compl_iff_disjoint, compl_inter] at h',
+  rw [← set.nonempty, ← ne_empty_iff_nonempty, ne.def, not_not,
+    ← subset_compl_iff_disjoint, compl_inter] at h',
   have xv : x ∉ v, from (h' xs).elim (absurd xu) id,
   have yu : y ∉ u, from (h' ys).elim id (absurd yv),
   have := ne_empty_iff_nonempty.2 (h (-u) (-v) (is_closed_compl_iff.2 hu)
@@ -672,7 +673,7 @@ theorem is_clopen_iff [connected_space α] {s : set α} : is_clopen s ↔ s = �
   have h1 : s ≠ ∅ ∧ -s ≠ ∅, from ⟨mt or.inl h,
     mt (λ h2, or.inr $ (by rw [← compl_compl s, h2, compl_empty] : s = univ)) h⟩,
   let ⟨_, h2, h3⟩ := exists_mem_inter hs.1 hs.2 (union_compl_self s)
-    (ne_empty_iff_exists_mem.1 h1.1) (ne_empty_iff_exists_mem.1 h1.2) in
+    (ne_empty_iff_nonempty.1 h1.1) (ne_empty_iff_nonempty.1 h1.2) in
   h3 h2,
 by rintro (rfl | rfl); [exact is_clopen_empty, exact is_clopen_univ]⟩
 

@@ -91,7 +91,7 @@ end
 
 /-- The pointwise distance is controlled by the distance between functions, by definition -/
 lemma dist_coe_le_dist (x : α) : dist (f x) (g x) ≤ dist f g :=
-le_cInf (ne_empty_iff_exists_mem.2 dist_set_exists) $ λb hb, hb.2 x
+le_cInf dist_set_exists $ λb hb, hb.2 x
 
 @[ext] lemma ext (H : ∀x, f x = g x) : f = g :=
 subtype.eq $ by ext; apply H
@@ -100,7 +100,7 @@ subtype.eq $ by ext; apply H
 useless afterwards as it will be superceded by the general result that the distance is nonnegative
 is metric spaces. -/
 private lemma dist_nonneg' : 0 ≤ dist f g :=
-le_cInf (ne_empty_iff_exists_mem.2 dist_set_exists) (λ C, and.left)
+le_cInf dist_set_exists (λ C, and.left)
 
 /-- The distance between two functions is controlled by the supremum of the pointwise distances -/
 lemma dist_le (C0 : (0 : ℝ) ≤ C) : dist f g ≤ C ↔ ∀x:α, dist (f x) (g x) ≤ C :=

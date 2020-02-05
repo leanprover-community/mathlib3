@@ -232,9 +232,9 @@ let ⟨m, hm⟩ := @exists_maximal_of_chains_bounded α (≤) h (assume a b c, l
 theorem zorn_partial_order₀ {α : Type u} [partial_order α] (s : set α)
   (ih : ∀ c ⊆ s, chain (≤) c → ∀ y ∈ c, ∃ ub ∈ s, ∀ z ∈ c, z ≤ ub)
   (x : α) (hxs : x ∈ s) : ∃ m ∈ s, x ≤ m ∧ ∀ z ∈ s, m ≤ z → z = m :=
-let ⟨⟨m, hms, hxm⟩, h⟩ := @zorn_partial_order {m // m ∈ s ∧ x ≤ m} _ (λ c hc, classical.by_cases
-  (assume hce : c = ∅, hce.symm ▸ ⟨⟨x, hxs, le_refl _⟩, λ _, false.elim⟩)
-  (assume hce : c ≠ ∅, let ⟨m, hmc⟩ := set.exists_mem_of_ne_empty hce in
+let ⟨⟨m, hms, hxm⟩, h⟩ := @zorn_partial_order {m // m ∈ s ∧ x ≤ m} _ (λ c hc, c.eq_empty_or_nonempty.elim
+  (assume hce, hce.symm ▸ ⟨⟨x, hxs, le_refl _⟩, λ _, false.elim⟩)
+  (assume ⟨m, hmc⟩,
     let ⟨ub, hubs, hub⟩ := ih (subtype.val '' c) (image_subset_iff.2 $ λ z hzc, z.2.1)
     (by rintro _ ⟨p, hpc, rfl⟩ _ ⟨q, hqc, rfl⟩ hpq;
       exact hc p hpc q hqc (mt (by rintro rfl; refl) hpq)) m.1 (mem_image_of_mem _ hmc) in
@@ -258,18 +258,18 @@ begin
 end
 
 theorem zorn_subset₀ {α : Type u} (S : set (set α))
-  (H : ∀c ⊆ S, chain (⊆) c → c ≠ ∅ → ∃ub ∈ S, ∀ s ∈ c, s ⊆ ub) (x) (hx : x ∈ S) :
+  (H : ∀c ⊆ S, chain (⊆) c → c.nonempty → ∃ub ∈ S, ∀ s ∈ c, s ⊆ ub) (x) (hx : x ∈ S) :
   ∃ m ∈ S, x ⊆ m ∧ ∀a ∈ S, m ⊆ a → a = m :=
 begin
   let T := {s ∈ S | x ⊆ s},
   rcases zorn_subset T _ with ⟨m, ⟨mS, mx⟩, hm⟩,
   { exact ⟨m, mS, mx, λ a ha ha', hm a ⟨ha, subset.trans mx ha'⟩ ha'⟩ },
   { intros c cT hc,
-    by_cases c0 : c = ∅,
+    cases c.eq_empty_or_nonempty with c0 c0,
     { rw c0, exact ⟨x, ⟨hx, subset.refl _⟩, λ _, false.elim⟩ },
     { rcases H _ (subset.trans cT (sep_subset _ _)) hc c0 with ⟨ub, us, h⟩,
       refine ⟨ub, ⟨us, _⟩, h⟩,
-      rcases ne_empty_iff_exists_mem.1 c0 with ⟨s, hs⟩,
+      rcases c0 with ⟨s, hs⟩,
       exact subset.trans (cT hs).2 (h _ hs) } }
 end
 

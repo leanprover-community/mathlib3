@@ -44,8 +44,7 @@ let ⟨⟨a, h⟩, h₂⟩ := q.2.exists_rep in ⟨a, h⟩
 theorem eq_mk_of_mem {q : semiquot α} {a : α} (h : a ∈ q) :
   q = @mk _ a q.1 h := ext_s.2 rfl
 
-theorem ne_empty (q : semiquot α) : q.s ≠ ∅ :=
-let ⟨a, h⟩ := q.exists_mem in set.ne_empty_of_mem h
+theorem nonempty (q : semiquot α) : q.s.nonempty := q.exists_mem
 
 /-- `pure a` is `a` reinterpreted as an unspecified element of `{a}`. -/
 protected def pure (a : α) : semiquot α := mk (set.mem_singleton a)

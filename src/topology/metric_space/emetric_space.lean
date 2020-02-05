@@ -524,8 +524,8 @@ theorem mem_closure_iff' :
   x ∈ closure s ↔ ∀ε>0, ∃y ∈ s, edist x y < ε :=
 ⟨begin
   intros hx ε hε,
-  have A : ball x ε ∩ s ≠ ∅ := mem_closure_iff.1 hx _ is_open_ball (mem_ball_self hε),
-  cases ne_empty_iff_exists_mem.1 A with y hy,
+  obtain ⟨y, hy⟩ : (ball x ε ∩ s).nonempty,
+    from mem_closure_iff.1 hx _ is_open_ball (mem_ball_self hε),
   simp,
   exact ⟨y, ⟨hy.2, by have B := hy.1; simpa [mem_ball'] using B⟩⟩
 end,
@@ -536,7 +536,7 @@ begin
   rcases is_open_iff.1 ho x xo with ⟨ε, ⟨εpos, hε⟩⟩,
   rcases H ε εpos with ⟨y, ⟨ys, ydist⟩⟩,
   have B : y ∈ o ∩ s := ⟨hε (by simpa [edist_comm]), ys⟩,
-  apply ne_empty_of_mem B
+  exact ⟨y, B⟩
 end⟩
 
 theorem tendsto_nhds {f : filter β} {u : β → α} {a : α} :
@@ -729,39 +729,63 @@ end second_countable
 section diam
 
 /-- The diameter of a set in an emetric space, named `emetric.diam` -/
-def diam (s : set α) := Sup ((λp : α × α, edist p.1 p.2) '' (set.prod s s))
+def diam (s : set α) := ⨆ (x ∈ s) (y ∈ s), edist x y
+
+lemma diam_le_iff_forall_edist_le {d : ennreal} :
+  diam s ≤ d ↔ ∀ (x ∈ s) (y ∈ s), edist x y ≤ d :=
+by simp only [diam, supr_le_iff]
 
 /-- If two points belong to some set, their edistance is bounded by the diameter of the set -/
 lemma edist_le_diam_of_mem (hx : x ∈ s) (hy : y ∈ s) : edist x y ≤ diam s :=
-le_Sup ((mem_image _ _ _).2 ⟨(⟨x, y⟩ : α × α), by simp [hx, hy]⟩)
+diam_le_iff_forall_edist_le.1 (le_refl _) x hx y hy
 
 /-- If the distance between any two points in a set is bounded by some constant, this constant
 bounds the diameter. -/
-lemma diam_le_of_forall_edist_le {d : ennreal} (h : ∀x y ∈ s, edist x y ≤ d) : diam s ≤ d :=
-begin
-  apply Sup_le _,
-  simp only [and_imp, set.mem_image, set.mem_prod, exists_imp_distrib, prod.exists],
-  assume b x y xs ys dxy,
-  rw ← dxy,
-  exact h x y xs ys
-end
+lemma diam_le_of_forall_edist_le {d : ennreal} (h : ∀ (x ∈ s) (y ∈ s), edist x y ≤ d) :
+  diam s ≤ d :=
+diam_le_iff_forall_edist_le.2 h
+
+/-- The diameter of a subsingleton vanishes. -/
+lemma diam_subsingleton (hs : s.subsingleton) : diam s = 0 :=
+le_zero_iff_eq.1 $ diam_le_of_forall_edist_le $
+λ x hx y hy, (hs hx hy).symm ▸ edist_self y ▸ le_refl _
 
 /-- The diameter of the empty set vanishes -/
 @[simp] lemma diam_empty : diam (∅ : set α) = 0 :=
-by simp [diam]
+diam_subsingleton subsingleton_empty
 
 /-- The diameter of a singleton vanishes -/
 @[simp] lemma diam_singleton : diam ({x} : set α) = 0 :=
-by simp [diam]
+diam_subsingleton subsingleton_singleton
+
+lemma diam_eq_zero_iff : diam s = 0 ↔ s.subsingleton :=
+⟨λ h x hx y hy, edist_le_zero.1 $ h ▸ edist_le_diam_of_mem hx hy, diam_subsingleton⟩
+
+lemma diam_pos_iff : 0 < diam s ↔ ∃ (x ∈ s) (y ∈ s), x ≠ y :=
+begin
+  have := not_congr (@diam_eq_zero_iff _ _ s),
+  dunfold set.subsingleton at this,
+  push_neg at this,
+  simpa only [zero_lt_iff_ne_zero, exists_prop] using this
+end
+
+lemma diam_insert : diam (insert x s) = max (diam s) (⨆ y ∈ s, edist y x) :=
+eq_of_forall_ge_iff $ λ d, by simp only [diam_le_iff_forall_edist_le, ball_insert_iff, max_le_iff,
+  edist_self, zero_le, true_and, supr_le_iff, forall_and_distrib, edist_comm x, and_self,
+  (and_assoc _ _).symm, max_comm (diam s)]
+
+lemma diam_pair : diam ({x, y} : set α) = edist x y :=
+by simp only [set.insert_of_has_insert, supr_singleton, diam_insert, diam_singleton,
+  ennreal.max_zero_left]
+
+lemma diam_triple :
+  diam ({x, y, z} : set α) = max (edist x y) (max (edist y z) (edist x z)) :=
+by simp only [set.insert_of_has_insert, diam_insert, supr_insert, supr_singleton, diam_singleton,
+  ennreal.max_zero_left, ennreal.sup_eq_max]
 
 /-- The diameter is monotonous with respect to inclusion -/
 lemma diam_mono {s t : set α} (h : s ⊆ t) : diam s ≤ diam t :=
-begin
-  refine Sup_le_Sup (λp hp, _),
-  simp only [set.mem_image, set.mem_prod, prod.exists] at hp,
-  rcases hp with ⟨x, y, ⟨⟨xs, ys⟩, dxy⟩⟩,
-  exact (mem_image _ _ _).2 ⟨⟨x, y⟩, ⟨⟨h xs, h ys⟩, dxy⟩⟩
-end
+diam_le_of_forall_edist_le $ λ x hx y hy, edist_le_diam_of_mem (h hx) (h hy)
 
 /-- The diameter of a union is controlled by the diameter of the sets, and the edistance
 between two points in the sets. -/
@@ -771,7 +795,7 @@ begin
     edist a b ≤ edist a x + edist x y + edist y b : edist_triangle4 _ _ _ _
     ... ≤ diam s + edist x y + diam t :
       add_le_add' (add_le_add' (edist_le_diam_of_mem ha xs) (le_refl _)) (edist_le_diam_of_mem yt hb),
-  refine diam_le_of_forall_edist_le (λa b ha hb, _),
+  refine diam_le_of_forall_edist_le (λa ha b hb, _),
   cases (mem_union _ _ _).1 ha with h'a h'a; cases (mem_union _ _ _).1 hb with h'b h'b,
   { calc edist a b ≤ diam s : edist_le_diam_of_mem h'a h'b
         ... ≤ diam s + (edist x y + diam t) : le_add_right (le_refl _)
@@ -782,11 +806,11 @@ begin
         ... ≤ (diam s + edist x y) + diam t : le_add_left (le_refl _) }
 end
 
-lemma diam_union' {t : set α} (h : s ∩ t ≠ ∅) : diam (s ∪ t) ≤ diam s + diam t :=
-let ⟨x, ⟨xs, xt⟩⟩ := ne_empty_iff_exists_mem.1 h in by simpa using diam_union xs xt
+lemma diam_union' {t : set α} (h : (s ∩ t).nonempty) : diam (s ∪ t) ≤ diam s + diam t :=
+let ⟨x, ⟨xs, xt⟩⟩ := h in by simpa using diam_union xs xt
 
 lemma diam_closed_ball {r : ennreal} : diam (closed_ball x r) ≤ 2 * r :=
-diam_le_of_forall_edist_le $ λa b ha hb, calc
+diam_le_of_forall_edist_le $ λa ha b hb, calc
   edist a b ≤ edist a x + edist b x : edist_triangle_right _ _ _
   ... ≤ r + r : add_le_add' ha hb
   ... = 2 * r : by simp [mul_two, mul_comm]

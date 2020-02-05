@@ -92,19 +92,8 @@ lemma isometry.inv (e : α ≃ β) (h : isometry e.to_fun) : isometry e.inv_fun 
 /-- Isometries preserve the diameter -/
 lemma emetric.isometry.diam_image (hf : isometry f) {s : set α}:
   emetric.diam (f '' s) = emetric.diam s :=
-begin
-  refine le_antisymm _ _,
-  { apply lattice.Sup_le _,
-    simp only [and_imp, set.mem_image, set.mem_prod, exists_imp_distrib, prod.exists],
-    assume b x x' z zs xz z' z's x'z' hb,
-    rw [← hb, ← xz, ← x'z', hf z z'],
-    exact emetric.edist_le_diam_of_mem zs z's },
-  { apply lattice.Sup_le _,
-    simp only [and_imp, set.mem_image, set.mem_prod, exists_imp_distrib, prod.exists],
-    assume b x x' xs x's hb,
-    rw [← hb, ← hf x x'],
-    exact emetric.edist_le_diam_of_mem (mem_image_of_mem _ xs) (mem_image_of_mem _ x's) }
-end
+eq_of_forall_ge_iff $ λ d,
+by simp only [emetric.diam_le_iff_forall_edist_le, ball_image_iff, hf.edist_eq]
 
 /-- The injection from a subtype is an isometry -/
 lemma isometry_subtype_val {s : set α} : isometry (subtype.val : s → α) :=
@@ -276,11 +265,10 @@ end
 theorem exists_isometric_embedding (α : Type u) [metric_space α] [separable_space α] :
   ∃(f : α → ℓ_infty_ℝ), isometry f :=
 begin
-  classical,
-  by_cases h : (univ : set α) = ∅,
-  { use (λ_, 0), assume x, exact (ne_empty_of_mem (mem_univ x) h).elim },
+  cases (univ : set α).eq_empty_or_nonempty with h h,
+  { use (λ_, 0), assume x, exact absurd h (nonempty.ne_empty ⟨x, mem_univ x⟩) },
   { /- We construct a map x : ℕ → α with dense image -/
-    rcases exists_mem_of_ne_empty h with basepoint,
+    rcases h with basepoint,
     haveI : inhabited α := ⟨basepoint⟩,
     have : ∃s:set α, countable s ∧ closure s = univ := separable_space.exists_countable_closure_eq_univ _,
     rcases this with ⟨S, ⟨S_countable, S_dense⟩⟩,
@@ -306,12 +294,5 @@ classical.some_spec (exists_isometric_embedding α)
 /-- Version of the Kuratowski embedding for nonempty compacts -/
 def nonempty_compacts.Kuratowski_embedding (α : Type u) [metric_space α] [compact_space α] [nonempty α] :
   nonempty_compacts ℓ_infty_ℝ :=
-⟨range (Kuratowski_embedding α),
-begin
-  split,
-  { rcases exists_mem_of_nonempty α with ⟨x, hx⟩,
-    have A : Kuratowski_embedding α x ∈ range (Kuratowski_embedding α) := ⟨x, by simp⟩,
-    apply ne_empty_of_mem A },
-  { rw ← image_univ,
-    exact compact_univ.image (Kuratowski_embedding.isometry α).continuous },
-end⟩
+⟨range (Kuratowski_embedding α), range_nonempty _,
+  compact_range (Kuratowski_embedding.isometry α).continuous⟩

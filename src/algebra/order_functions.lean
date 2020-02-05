@@ -275,6 +275,16 @@ begin
   { refl }
 end
 
+lemma max_sub_min_eq_abs' (a b : α) : max a b - min a b = abs (a - b) :=
+begin
+  cases le_total a b with ab ba,
+  { rw [max_eq_right ab, min_eq_left ab, abs_of_nonpos, neg_sub], rwa sub_nonpos },
+  { rw [max_eq_left ba, min_eq_right ba, abs_of_nonneg], exact sub_nonneg_of_le ba }
+end
+
+lemma max_sub_min_eq_abs (a b : α) : max a b - min a b = abs (b - a) :=
+by { rw [abs_sub], exact max_sub_min_eq_abs' _ _ }
+
 end decidable_linear_ordered_comm_group
 
 section decidable_linear_ordered_semiring

@@ -173,9 +173,8 @@ begin
       (ennreal.tendsto_pow_at_top_nhds_0_of_lt_1 $ by simp [ennreal.one_lt_two])
       (or.inr $ by simp),
   rw mul_zero at this,
-  have Z := (tendsto_order.1 this).2 ε εpos,
-  simp only [filter.mem_at_top_sets, set.mem_set_of_eq] at Z,
-  rcases Z with ⟨N, hN⟩,  --  ∀ (b : ℕ), b ≥ N → ε > 2 * B b
+  obtain ⟨N, hN⟩ : ∃ N, ∀ b ≥ N, ε > 2 * B b,
+    from ((tendsto_order.1 this).2 ε εpos).exists_forall_of_at_top,
   exact ⟨N, λn hn, lt_of_le_of_lt (main n) (hN n hn)⟩
 end
 
@@ -248,7 +247,7 @@ isometry.uniform_embedding $ λx y, rfl
 lemma nonempty_compacts.is_closed_in_closeds [complete_space α] :
   is_closed (nonempty_compacts.to_closeds '' (univ : set (nonempty_compacts α))) :=
 begin
-  have : nonempty_compacts.to_closeds '' univ = {s : closeds α | s.val ≠ ∅ ∧ compact s.val},
+  have : nonempty_compacts.to_closeds '' univ = {s : closeds α | s.val.nonempty ∧ compact s.val},
   { ext,
     simp only [set.image_univ, set.mem_range, ne.def, set.mem_set_of_eq],
     split,
@@ -267,12 +266,12 @@ begin
     rcases mem_closure_iff'.1 hs 1 ennreal.zero_lt_one with ⟨t, ht, Dst⟩,
     rw edist_comm at Dst,
     -- this set t contains a point x
-    rcases ne_empty_iff_exists_mem.1 ht.1 with ⟨x, hx⟩,
+    rcases ht.1 with ⟨x, hx⟩,
     -- by the Hausdorff distance control, this point x is at distance at most 1
     -- of a point y in s
     rcases exists_edist_lt_of_Hausdorff_edist_lt hx Dst with ⟨y, hy, _⟩,
     -- this shows that s is not empty
-    exact ne_empty_of_mem hy },
+    exact ⟨_, hy⟩ },
   { refine compact_iff_totally_bounded_complete.2 ⟨_, is_complete_of_is_closed s.property⟩,
     refine totally_bounded_iff.2 (λε εpos, _),
     -- we have to show that s is covered by finitely many eballs of radius ε
@@ -383,13 +382,10 @@ begin
         Hausdorff_edist_le_of_mem_edist tc ct,
       have Dtc : Hausdorff_edist t.val c < ε := lt_of_le_of_lt this δlt,
       -- the set `c` is not empty, as it is well approximated by a nonempty set
-      have : c ≠ ∅,
-      { by_contradiction h,
-        simp only [not_not, ne.def] at h,
-        rw [h, Hausdorff_edist_empty t.property.1] at Dtc,
-        exact not_top_lt Dtc },
+      have hc : c.nonempty,
+        from nonempty_of_Hausdorff_edist_ne_top t.property.1 (lattice.ne_top_of_lt Dtc),
       -- let `d` be the version of `c` in the type `nonempty_compacts α`
-      let d : nonempty_compacts α := ⟨c, ⟨‹c ≠ ∅›, ‹finite c›.compact⟩⟩,
+      let d : nonempty_compacts α := ⟨c, ⟨hc, ‹finite c›.compact⟩⟩,
       have : c ⊆ s,
       { assume x hx,
         rcases (mem_image _ _ _).1 hx.1 with ⟨y, ⟨ya, yx⟩⟩,
@@ -413,7 +409,7 @@ variables {α : Type u} [metric_space α]
 /-- `nonempty_compacts α` inherits a metric space structure, as the Hausdorff
 edistance between two such sets is finite. -/
 instance nonempty_compacts.metric_space : metric_space (nonempty_compacts α) :=
-emetric_space.to_metric_space $ λx y, Hausdorff_edist_ne_top_of_ne_empty_of_bounded x.2.1 y.2.1
+emetric_space.to_metric_space $ λx y, Hausdorff_edist_ne_top_of_nonempty_of_bounded x.2.1 y.2.1
   (bounded_of_compact x.2.2) (bounded_of_compact y.2.2)
 
 /-- The distance on `nonempty_compacts α` is the Hausdorff distance, by construction -/

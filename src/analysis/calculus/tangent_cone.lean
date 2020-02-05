@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Sébastien Gouëzel
 -/
 
-import analysis.convex analysis.normed_space.bounded_linear_maps analysis.specific_limits
+import analysis.convex.basic analysis.normed_space.bounded_linear_maps analysis.specific_limits
 
 /-!
 # Tangent cone
@@ -40,7 +40,7 @@ open_locale topological_space
 
 /-- The set of all tangent directions to the set `s` at the point `x`. -/
 def tangent_cone_at (s : set E) (x : E) : set E :=
-{y : E | ∃(c : ℕ → 𝕜) (d : ℕ → E), {n:ℕ | x + d n ∈ s} ∈ (at_top : filter ℕ) ∧
+{y : E | ∃(c : ℕ → 𝕜) (d : ℕ → E), (∀ᶠ n in at_top, x + d n ∈ s) ∧
   (tendsto (λn, ∥c n∥) at_top at_top) ∧ (tendsto (λn, c n • d n) at_top (𝓝 y))}
 
 /-- A property ensuring that the tangent cone to `s` at `x` spans a dense subset of the whole space.
@@ -100,7 +100,7 @@ begin
     (continuous_norm.tendsto _).comp hd,
   have C : tendsto (λn, ∥c n∥⁻¹ * ∥c n • d n∥) l (𝓝 (0 * ∥y∥)) := A.mul B,
   rw zero_mul at C,
-  have : {n | ∥c n∥⁻¹ * ∥c n • d n∥ = ∥d n∥} ∈ l,
+  have : ∀ᶠ n in l, ∥c n∥⁻¹ * ∥c n • d n∥ = ∥d n∥,
   { apply mem_sets_of_superset (ne_mem_of_tendsto_norm_at_top hc 0) (λn hn, _),
     rw [mem_set_of_eq, norm_smul, ← mul_assoc, inv_mul_cancel, one_mul],
     rwa [ne.def, norm_eq_zero] },
@@ -163,7 +163,7 @@ begin
       norm_num } },
   choose d' hd' using this,
   refine ⟨c, λn, (d n, d' n), _, hc, _⟩,
-  show {n : ℕ | (x, y) + (d n, d' n) ∈ set.prod s t} ∈ at_top,
+  show ∀ᶠ n in at_top, (x, y) + (d n, d' n) ∈ set.prod s t,
   { apply filter.mem_sets_of_superset hd,
     assume n hn,
     simp at hn,
@@ -205,7 +205,7 @@ begin
       norm_num } },
   choose d' hd' using this,
   refine ⟨c, λn, (d' n, d n), _, hc, _⟩,
-  show {n : ℕ | (x, y) + (d' n, d n) ∈ set.prod s t} ∈ at_top,
+  show ∀ᶠ n in at_top, (x, y) + (d' n, d n) ∈ set.prod s t,
   { apply filter.mem_sets_of_superset hd,
     assume n hn,
     simp at hn,
@@ -227,10 +227,11 @@ begin
   let d := λn:ℕ, (c n)⁻¹ • (y-x),
   refine ⟨c, d, filter.univ_mem_sets' (λn, h _), _, _⟩,
   show x + d n ∈ segment x y,
-  { refine ⟨(c n)⁻¹, ⟨_, _⟩, _⟩,
+  { rw segment_eq_image,
+    refine ⟨(c n)⁻¹, ⟨_, _⟩, _⟩,
     { rw inv_nonneg, apply pow_nonneg, norm_num },
     { apply inv_le_one, apply one_le_pow_of_one_le, norm_num },
-    { simp only [d], abel } },
+    { simp only [d, sub_smul, smul_sub, one_smul], abel } },
   show filter.tendsto (λ (n : ℕ), ∥c n∥) filter.at_top filter.at_top,
   { have : (λ (n : ℕ), ∥c n∥) = c,
       by { ext n, exact abs_of_nonneg (pow_nonneg (by norm_num) _) },
@@ -373,13 +374,13 @@ lemma unique_diff_on.prod {t : set F} (hs : unique_diff_on 𝕜 s) (ht : unique_
 
 /-- In a real vector space, a convex set with nonempty interior is a set of unique
 differentiability. -/
-theorem unique_diff_on_convex {s : set G} (conv : convex s) (hs : interior s ≠ ∅) :
+theorem unique_diff_on_convex {s : set G} (conv : convex s) (hs : (interior s).nonempty) :
   unique_diff_on ℝ s :=
 begin
   assume x xs,
   have A : ∀v, ∃a∈ tangent_cone_at ℝ s x, ∃b∈ tangent_cone_at ℝ s x, ∃δ>(0:ℝ), δ • v = b-a,
   { assume v,
-    rcases ne_empty_iff_exists_mem.1 hs with ⟨y, hy⟩,
+    rcases hs with ⟨y, hy⟩,
     have ys : y ∈ s := interior_subset hy,
     have : ∃(δ : ℝ), 0<δ ∧ y + δ • v ∈ s,
     { by_cases h : ∥v∥ = 0,
@@ -399,8 +400,8 @@ begin
         exact ⟨δ, δpos, this⟩ } },
     rcases this with ⟨δ, δpos, hδ⟩,
     refine ⟨y-x, _, (y + δ • v) - x, _, δ, δpos, by abel⟩,
-    exact mem_tangent_cone_of_segment_subset (convex_segment_iff.1 conv x y xs ys),
-    exact mem_tangent_cone_of_segment_subset (convex_segment_iff.1 conv x _ xs hδ) },
+    exact mem_tangent_cone_of_segment_subset (conv.segment_subset xs ys),
+    exact mem_tangent_cone_of_segment_subset (conv.segment_subset xs hδ) },
   have B : ∀v:G, v ∈ submodule.span ℝ (tangent_cone_at ℝ s x),
   { assume v,
     rcases A v with ⟨a, ha, b, hb, δ, hδ, h⟩,
@@ -418,7 +419,7 @@ begin
   apply unique_diff_on_convex (convex_Icc 0 1),
   have : (1/(2:ℝ)) ∈ interior (Icc (0:ℝ) 1) :=
     mem_interior.2 ⟨Ioo (0:ℝ) 1, Ioo_subset_Icc_self, is_open_Ioo, by norm_num, by norm_num⟩,
-  exact ne_empty_of_mem this,
+  exact ⟨_, this⟩
 end
 
 end unique_diff

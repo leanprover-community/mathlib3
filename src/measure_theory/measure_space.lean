@@ -527,7 +527,7 @@ lemma Inf_caratheodory (s : set α) (hs : is_measurable s) :
 begin
   rw [outer_measure.Inf_eq_of_function_Inf_gen],
   refine outer_measure.caratheodory_is_measurable (assume t, _),
-  by_cases ht : t = ∅, { simp [ht] },
+  cases t.eq_empty_or_nonempty with ht ht, by simp [ht],
   simp only [outer_measure.Inf_gen_nonempty1 _ _ ht, le_infi_iff, ball_image_iff,
     to_outer_measure_apply, measure_eq_infi t],
   assume μ hμ u htu hu,
@@ -567,7 +567,8 @@ instance : order_bot (measure α) :=
 instance : order_top (measure α) :=
 { top := (⊤ : outer_measure α).to_measure (by rw [outer_measure.top_caratheodory]; exact le_top),
   le_top := assume a s hs,
-    by by_cases s = ∅; simp [h, to_measure_apply ⊤ _ hs, outer_measure.top_apply],
+    by cases s.eq_empty_or_nonempty with h  h;
+      simp [h, to_measure_apply ⊤ _ hs, outer_measure.top_apply],
   .. measure.partial_order }
 
 instance : complete_lattice (measure α) :=
@@ -867,7 +868,8 @@ associated with `α`. This means that the measure of the complementary of `p` is
 
 In a probability measure, the measure of `p` is `1`, when `p` is measurable.
 -/
-def all_ae (p : α → Prop) : Prop := { a | p a } ∈ (@measure_space.μ α _).a_e
+def all_ae (p : α → Prop) : Prop :=
+∀ᶠ a in μ.a_e, p a
 
 notation `∀ₘ` binders `, ` r:(scoped P, all_ae P) := r
 

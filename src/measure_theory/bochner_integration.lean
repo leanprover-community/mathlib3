@@ -468,6 +468,8 @@ protected def add_comm_group : add_comm_group (α →₁ₛ β) := subtype.add_c
 local attribute [instance] simple_func.add_comm_group simple_func.metric_space
   simple_func.emetric_space
 
+instance : inhabited (α →₁ₛ β) := ⟨0⟩
+
 @[simp, elim_cast] lemma coe_zero : ((0 : α →₁ₛ β) : α →₁ β) = 0 := rfl
 @[simp, move_cast] lemma coe_add (f g : α →₁ₛ β) : ((f + g : α →₁ₛ β) : α →₁ β) = f + g := rfl
 @[simp, move_cast] lemma coe_neg (f : α →₁ₛ β) : ((-f : α →₁ₛ β) : α →₁ β) = -f := rfl
@@ -754,7 +756,7 @@ simple_func.uniform_embedding.dense_embedding $
 λ f, mem_closure_iff_nhds.2 $ λ t ht,
 let ⟨ε,ε0, hε⟩ := metric.mem_nhds_iff.1 ht in
 let ⟨s, h⟩ := exists_simple_func_near f ε0 in
-ne_empty_iff_exists_mem.2 ⟨_, hε (metric.mem_ball'.2 h), s, rfl⟩
+⟨_, hε (metric.mem_ball'.2 h), s, rfl⟩
 
 protected lemma dense_inducing : dense_inducing (coe : (α →₁ₛ β) → (α →₁ β)) :=
 simple_func.dense_embedding.to_dense_inducing
@@ -847,21 +849,15 @@ end
 
 /-- The Bochner integral over simple functions in l1 space as a continuous linear map. -/
 def integral_clm : (α →₁ₛ β) →L[ℝ] β :=
-linear_map.with_bound ⟨integral, integral_add, integral_smul⟩
-  ⟨1, (λf, le_trans (norm_integral_le_norm _) $ by rw one_mul)⟩
+linear_map.mk_continuous ⟨integral, integral_add, integral_smul⟩
+  1 (λf, le_trans (norm_integral_le_norm _) $ by rw one_mul)
 
 local notation `Integral` := @integral_clm α _ β _ _ _
 
 open continuous_linear_map
 
 lemma norm_Integral_le_one : ∥Integral∥ ≤ 1 :=
-begin
-  apply op_norm_le_bound,
-  { exact zero_le_one },
-  assume f,
-  rw [one_mul],
-  exact norm_integral_le_norm _
-end
+linear_map.mk_continuous_norm_le _ (zero_le_one) _
 
 section pos_part
 
@@ -1143,10 +1139,9 @@ begin
   -- Use the sandwich theorem
   refine tendsto_of_tendsto_of_tendsto_of_le_of_le zero_tendsto_zero lintegral_norm_tendsto_zero _ _,
   -- Show `0 ≤ ∥∫ a, F n a - ∫ f∥` for all `n`
-  { simp only [filter.mem_at_top_sets, norm_nonneg, set.mem_set_of_eq, forall_true_iff,
-      exists_const] },
+  { simp only [filter.eventually_at_top, norm_nonneg, forall_true_iff, exists_const] },
   -- Show `∥∫ a, F n a - ∫ f∥ ≤ ∫ a, ∥F n a - f a∥` for all `n`
-  { simp only [mem_at_top_sets, mem_set_of_eq],
+  { simp only [filter.eventually_at_top],
     use 0,
     assume n hn,
     have h₁ : integrable (F n) := integrable_of_integrable_bound bound_integrable (h_bound _),
@@ -1159,9 +1154,9 @@ end
 lemma tendsto_integral_filter_of_dominated_convergence {ι} {l : filter ι}
   {F : ι → α → β} {f : α → β} (bound : α → ℝ)
   (hl_cb : l.has_countable_basis)
-  (hF_meas : { n | measurable (F n) } ∈ l)
+  (hF_meas : ∀ᶠ n in l, measurable (F n))
   (f_measurable : measurable f)
-  (h_bound : { n | ∀ₘ a, ∥F n a∥ ≤ bound a } ∈ l)
+  (h_bound : ∀ᶠ n in l, ∀ₘ a, ∥F n a∥ ≤ bound a)
   (bound_integrable : integrable bound)
   (h_lim : ∀ₘ a, tendsto (λ n, F n a) l (𝓝 (f a))) :
   tendsto (λn, ∫ a, F n a) l (𝓝 $ (∫ a, f a)) :=

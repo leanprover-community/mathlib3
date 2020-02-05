@@ -14,12 +14,16 @@ This file defines the following user commands to spot common mistakes in the cod
   imported files)
 
 The following linters are run by default:
-1. `unused_arguments` checks for unused arguments in declarations.
-2. `def_lemma` checks whether a declaration is incorrectly marked as a def/lemma.
-3. `dup_namespce` checks whether a namespace is duplicated in the name of a declaration.
-4. `illegal_constant` checks whether ≥/> is used in the declaration.
-5. `instance_priority` checks that instances that always apply have priority below default.
-6. `doc_blame` checks for missing doc strings on definitions and constants.
+1.  `unused_arguments` checks for unused arguments in declarations.
+2.  `def_lemma` checks whether a declaration is incorrectly marked as a def/lemma.
+3.  `dup_namespce` checks whether a namespace is duplicated in the name of a declaration.
+4.  `ge_or_gt` checks whether ≥/> is used in the declaration.
+5.  `instance_priority` checks that instances that always apply have priority below default.
+6.  `doc_blame` checks for missing doc strings on definitions and constants.
+7.  `has_inhabited_instance` checks whether every type has an associated `inhabited` instance.
+8.  `impossible_instance` checks for instances that can never fire.
+9.  `incorrect_type_class_argument` checks for arguments in [square brackets] that are not classes.
+10. `dangerous_instance` checks for instances that generate type-class problems with metavariables.
 
 Another linter, `doc_blame_thm`, checks for missing doc strings on lemmas and theorems.
 This is not run by default.
@@ -67,6 +71,7 @@ meta def nolint_attr : user_attribute :=
 
 attribute [nolint] imp_intro
   classical.dec classical.dec_pred classical.dec_rel classical.dec_eq
+  pempty -- has no inhabited instance
 
 /--
 A linting test for the `#lint` command.
@@ -139,6 +144,16 @@ meta def print_decls_sorted_mathlib {α} [has_to_format α] (n : ℕ)
 ds.foldl
   (λ f x, f ++ "\n\n" ++ to_fmt "-- " ++ to_fmt (x.1.popn n) ++ print_decls x.2)
   format.nil
+
+/-- Pretty prints a list of arguments of a declaration. Assumes `l` is a list of argument positions
+  and binders (or any other element that can be pretty printed).
+  `l` can be obtained e.g. by applying `list.indexes_values` to a list obtained by
+  `get_pi_binders`. -/
+meta def print_arguments {α} [has_to_tactic_format α] (l : list (ℕ × α)) : tactic string := do
+  fs ← l.mmap (λ ⟨n, b⟩, (λ s, to_fmt "argument " ++ to_fmt (n+1) ++ ": " ++ s) <$> pp b),
+  return $ fs.to_string_aux tt
+
+/- Implementation of the linters -/
 
 /-- Auxilliary definition for `check_unused_arguments` -/
 meta def check_unused_arguments_aux : list ℕ → ℕ → ℕ → expr → list ℕ | l n n_max e :=
@@ -219,7 +234,14 @@ return $ let nm := d.to_name.components in if nm.chain' (≠) ∨ is_inst then n
   no_errors_found := "No declarations have a duplicate namespace",
   errors_found := "DUPLICATED NAMESPACES IN NAME" }
 
-/-- Checks whether a `>`/`≥` is used in the statement of `d`. -/
+/-- Checks whether a `>`/`≥` is used in the statement of `d`.
+  Currently it checks only the conclusion of the declaration, to eliminate false positive from
+  binders such as `∀ ε > 0, ...` -/
+meta def ge_or_gt_in_statement (d : declaration) : tactic (option string) :=
+return $ let illegal := [`gt, `ge] in if d.type.pi_codomain.contains_constant (λ n, n ∈ illegal)
+  then some "the type contains ≥/>. Use ≤/< instead."
+  else none
+
 -- TODO: the commented out code also checks for classicality in statements, but needs fixing
 -- TODO: this probably needs to also check whether the argument is a variable or @eq <var> _ _
 -- meta def illegal_constants_in_statement (d : declaration) : tactic (option string) :=
@@ -234,16 +256,12 @@ return $ let nm := d.to_name.components in if nm.chain' (≠) ∨ is_inst then n
 --     (if occur1 = [] then "" else " Add decidability type-class arguments instead.") ++
 --     (if occur2 = [] then "" else " Use ≤/< instead.")
 -- else none
-meta def illegal_constants_in_statement (d : declaration) : tactic (option string) :=
-return $ let illegal := [`gt, `ge] in if d.type.contains_constant (λ n, n ∈ illegal)
-  then some "the type contains ≥/>. Use ≤/< instead."
-  else none
 
 /-- A linter for checking whether illegal constants (≥, >) appear in a declaration's type. -/
-@[linter, priority 1470] meta def linter.illegal_constants : linter :=
-{ test := illegal_constants_in_statement,
-  no_errors_found := "No illegal constants in declarations",
-  errors_found := "ILLEGAL CONSTANTS IN DECLARATIONS",
+@[linter, priority 1470] meta def linter.ge_or_gt : linter :=
+{ test := ge_or_gt_in_statement,
+  no_errors_found := "Not using ≥/> in declarations",
+  errors_found := "USING ≥/> IN DECLARATIONS",
   is_fast := ff }
 
 library_note "nolint_ge" "Currently, the linter forbids the use of `>` and `≥` in definitions and
@@ -331,6 +349,100 @@ meta def linter.doc_blame_thm : linter :=
   no_errors_found := "No theorems are missing documentation.",
   errors_found := "THEOREMS ARE MISSING DOCUMENTATION STRINGS",
   is_fast := ff }
+
+/-- Reports declarations of types that do not have an associated `inhabited` instance. -/
+meta def has_inhabited_instance (d : declaration) : tactic (option string) := do
+tt ← pure d.is_trusted | pure none,
+ff ← has_attribute' `reducible d.to_name | pure none,
+ff ← has_attribute' `class d.to_name | pure none,
+(_, ty) ← mk_local_pis d.type,
+ty ← whnf ty,
+if ty = `(Prop) then pure none else do
+`(Sort _) ← whnf ty | pure none,
+insts ← attribute.get_instances `instance,
+insts_tys ← insts.mmap $ λ i, expr.pi_codomain <$> declaration.type <$> get_decl i,
+let inhabited_insts := insts_tys.filter (λ i,
+  i.app_fn.const_name = ``inhabited ∨ i.app_fn.const_name = `unique),
+let inhabited_tys := inhabited_insts.map (λ i, i.app_arg.get_app_fn.const_name),
+if d.to_name ∈ inhabited_tys then
+  pure none
+else
+  pure "inhabited instance missing"
+
+/-- A linter for missing `inhabited` instances. -/
+@[linter, priority 1440]
+meta def linter.has_inhabited_instance : linter :=
+{ test := has_inhabited_instance,
+  no_errors_found := "No types have missing inhabited instances.",
+  errors_found := "TYPES ARE MISSING INHABITED INSTANCES",
+  is_fast := ff }
+
+/-- Checks whether an instance can never be applied. -/
+meta def impossible_instance (d : declaration) : tactic (option string) := do
+  tt ← is_instance d.to_name | return none,
+  (binders, _) ← get_pi_binders_dep d.type,
+  let bad_arguments := binders.filter $ λ nb, nb.2.info ≠ binder_info.inst_implicit,
+  _ :: _ ← return bad_arguments | return none,
+  (λ s, some $ "Impossible to infer " ++ s) <$> print_arguments bad_arguments
+
+/-- A linter object for `impossible_instance`. -/
+@[linter, priority 1430] meta def linter.impossible_instance : linter :=
+{ test := impossible_instance,
+  no_errors_found := "All instances are applicable",
+  errors_found := "IMPOSSIBLE INSTANCES FOUND.\nThese instances have an argument that cannot be found during type-class resolution, and therefore can never succeed. Either mark the arguments with square brackets (if it is a class), or don't make it an instance" }
+
+/-- Checks whether the definition `nm` unfolds to a class. -/
+/- Note: Caching the result of `unfolds_to_class` by giving it an attribute
+(so that e.g. `vector_space` or `decidable_eq` would not be repeatedly unfold to check whether it is
+a class), did not speed up this tactic when executed on all of mathlib (and instead significantly
+slowed it down) -/
+meta def unfolds_to_class : name → tactic bool | nm :=
+if nm = `has_reflect then return tt else
+succeeds $ has_attribute `class nm <|> do
+  d ← get_decl nm,
+  tt ← unfolds_to_class d.value.lambda_body.pi_codomain.get_app_fn.const_name,
+  return 0 -- We do anything that succeeds here. We return a `ℕ` because of `has_attribute`.
+
+/-- Checks whether an instance can never be applied. -/
+meta def incorrect_type_class_argument (d : declaration) : tactic (option string) := do
+  (binders, _) ← get_pi_binders d.type,
+  let instance_arguments := binders.indexes_values $
+    λ b : binder, b.info = binder_info.inst_implicit,
+  /- the head of the type should either unfold to a class, or be a local constant.
+  A local constant is allowed, because that could be a class when applied to the proper arguments. -/
+  bad_arguments ← instance_arguments.mfilter $
+    λ⟨_, b⟩, let head := b.type.erase_annotations.pi_codomain.get_app_fn in
+      if head.is_local_constant then return ff else bnot <$> unfolds_to_class head.const_name,
+  _ :: _ ← return bad_arguments | return none,
+  (λ s, some $ "These are not classes. " ++ s) <$> print_arguments bad_arguments
+
+/-- A linter object for `impossible_instance`. -/
+@[linter, priority 1420] meta def linter.incorrect_type_class_argument : linter :=
+{ test := incorrect_type_class_argument,
+  no_errors_found := "All declarations have correct type-class arguments",
+  errors_found := "INCORRECT TYPE-CLASS ARGUMENTS.\nSome declarations have non-classes between [square brackets]" }
+
+/-- Checks whether an instance is dangerous: it creates a new type-class problem with metavariable arguments. -/
+meta def dangerous_instance (d : declaration) : tactic (option string) := do
+  tt ← is_instance d.to_name | return none,
+  (local_constants, target) ← mk_local_pis d.type,
+  let instance_arguments := local_constants.indexes_values $
+    λ e : expr, e.local_binding_info = binder_info.inst_implicit,
+  let bad_arguments := local_constants.indexes_values $ λ x,
+      !target.has_local_constant x &&
+      (x.local_binding_info ≠ binder_info.inst_implicit) &&
+      instance_arguments.any (λ nb, nb.2.local_type.has_local_constant x),
+  let bad_arguments : list (ℕ × binder) := bad_arguments.map $ λ ⟨n, e⟩, ⟨n, e.to_binder⟩,
+  _ :: _ ← return bad_arguments | return none,
+  (λ s, some $ "The following arguments become metavariables. " ++ s) <$> print_arguments bad_arguments
+
+/-- A linter object for `dangerous_instance`. -/
+@[linter, priority 1410] meta def linter.dangerous_instance : linter :=
+{ test := dangerous_instance,
+  no_errors_found := "No dangerous instances",
+  errors_found := "DANGEROUS INSTANCES FOUND.\nThese instances are recursive, and create a new type-class problem which will have metavariables. Currently this linter does not check whether the metavariables only occur in arguments marked with `out_param`, in which case this linter gives a false positive." }
+
+/- Implementation of the frontend. -/
 
 /-- `get_checks slow extra use_only` produces a list of linters.
 `extras` is a list of names that should resolve to declarations with type `linter`.

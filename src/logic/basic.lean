@@ -20,7 +20,6 @@ In the presence of automation, this whole file may be unnecessary. On the other 
 maybe it is useful for writing automation.
 -/
 
-
 section miscellany
 
 /- We add the `inline` attribute to optimize VM computation using these declarations. For example,
@@ -37,6 +36,12 @@ def empty.elim {C : Sort*} : empty → C.
 instance : subsingleton empty := ⟨λa, a.elim⟩
 
 instance : decidable_eq empty := λa, a.elim
+
+instance sort.inhabited : inhabited (Sort*) := ⟨punit⟩
+instance sort.inhabited' : inhabited (default (Sort*)) := ⟨punit.star⟩
+
+instance psum.inhabited_left {α β} [inhabited α] : inhabited (psum α β) := ⟨psum.inl (default _)⟩
+instance psum.inhabited_right {α β} [inhabited β] : inhabited (psum α β) := ⟨psum.inr (default _)⟩
 
 @[priority 10] instance decidable_eq_of_subsingleton
   {α} [subsingleton α] : decidable_eq α

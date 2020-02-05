@@ -52,6 +52,8 @@ ext' ⟨λ h, ((H _).1 ⟨h, rfl⟩).fst,
 /-- The `none` value in `roption` has a `false` domain and an empty function. -/
 def none : roption α := ⟨false, false.rec _⟩
 
+instance : inhabited (roption α) := ⟨none⟩
+
 @[simp] theorem not_mem_none (a : α) : a ∉ @none α := λ h, h.fst
 
 /-- The `some a` value in `roption` has a `true` domain and the
@@ -310,6 +312,8 @@ infixr ` →. `:25 := pfun
 
 namespace pfun
 variables {α : Type*} {β : Type*} {γ : Type*}
+
+instance : inhabited (α →. β) := ⟨λ a, roption.none⟩
 
 /-- The domain of a partial function -/
 def dom (f : α →. β) : set α := λ a, (f a).dom

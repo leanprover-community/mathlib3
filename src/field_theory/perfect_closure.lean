@@ -82,6 +82,8 @@ instance [comm_monoid α] (p : ℕ) : comm_monoid (perfect_closure α p) :=
     congr_arg (quot.mk _) $ by simp only [add_comm, mul_comm])),
   .. (infer_instance : has_mul (perfect_closure α p)) }
 
+instance [comm_monoid α] (p) : inhabited (perfect_closure α p) := ⟨1⟩
+
 private lemma add_aux_left [comm_ring α] (p : ℕ) (hp : nat.prime p) [char_p α p]
   (x1 x2 y : ℕ × α) (H : r α p x1 x2) :
   quot.mk (r α p) (x1.1 + y.1, ((frobenius α p)^[y.1] x1.2) + ((frobenius α p)^[x1.1] y.2)) =

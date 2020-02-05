@@ -233,6 +233,14 @@ instance : measure_space ℝ :=
 @[simp] theorem lebesgue_to_outer_measure :
   (measure_space.μ : measure ℝ).to_outer_measure = lebesgue_outer := rfl
 
+end measure_theory
+
+open measure_theory
+
+section volume
+
+open_locale interval
+
 theorem real.volume_val (s) : volume s = lebesgue_outer s := rfl
 local attribute [simp] real.volume_val
 
@@ -241,6 +249,27 @@ local attribute [simp] real.volume_val
 @[simp] lemma real.volume_Ioo {a b : ℝ} : volume (Ioo a b) = of_real (b - a) := by simp
 @[simp] lemma real.volume_singleton {a : ℝ} : volume ({a} : set ℝ) = 0 := by simp
 
+@[simp] lemma real.volume_interval {a b : ℝ} : volume [a, b] = of_real (abs (b - a)) :=
+begin
+  rw [interval, real.volume_Icc],
+  congr,
+  exact max_sub_min_eq_abs _ _
+end
+
+open metric
+
+lemma real.volume_lt_top_of_bounded {s : set ℝ} (h : bounded s) : volume s < ⊤ :=
+begin
+  rw [real.bounded_iff_bdd_below_bdd_above, bdd_below_bdd_above_iff_subset_interval] at h,
+  rcases h with ⟨a, b, h⟩,
+  calc volume s ≤ volume [a, b] : volume_mono h
+    ... < ⊤ : by { rw real.volume_interval, exact ennreal.coe_lt_top }
+end
+
+lemma real.volume_lt_top_of_compact {s : set ℝ} (h : compact s) : volume s < ⊤ :=
+real.volume_lt_top_of_bounded (bounded_of_compact h)
+
+end volume
 /-
 section vitali
 
@@ -265,5 +294,3 @@ sorry
 
 end vitali
 -/
-
-end measure_theory

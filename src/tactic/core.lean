@@ -498,6 +498,19 @@ meta def get_pi_binders_aux : list binder → expr → tactic (list binder × ex
 meta def get_pi_binders : expr → tactic (list binder × expr) | e :=
 do (es, e) ← get_pi_binders_aux [] e, return (es.reverse, e)
 
+/-- Auxilliary definition for `get_pi_binders_dep`. -/
+meta def get_pi_binders_dep_aux : ℕ → expr → tactic (list (ℕ × binder) × expr)
+| n (expr.pi nm bi d b) :=
+ do l ← mk_local' nm bi d,
+    (ls, r) ← get_pi_binders_dep_aux (n+1) (expr.instantiate_var b l),
+    return (if b.has_var then ls else (n, ⟨nm, bi, d⟩)::ls, r)
+| n e                  := return ([], e)
+
+/-- A variant of `get_pi_binders` that only returns the binders that do not occur in later
+  arguments or in the target. Also returns the argument position of each returned binder. -/
+meta def get_pi_binders_dep : expr → tactic (list (ℕ × binder) × expr) :=
+get_pi_binders_dep_aux 0
+
 /-- variation on `assert` where a (possibly incomplete)
     proof of the assertion is provided as a parameter.
 

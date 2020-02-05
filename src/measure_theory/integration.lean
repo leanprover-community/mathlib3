@@ -67,6 +67,10 @@ begin
   exact ⟨assume ⟨_, h⟩, h.symm, assume h, ne.elim $ λa, ⟨a, h.symm⟩⟩
 end
 
+@[simp] lemma const_preimage_self (α) [measurable_space α] (b : β) :
+  (const α b) ⁻¹' {b} = univ :=
+by { ext, simp }
+
 lemma is_measurable_cut (p : α → β → Prop) (f : α →ₛ β)
   (h : ∀b, is_measurable {a | p a b}) : is_measurable {a | p a (f a)} :=
 begin
@@ -112,6 +116,12 @@ def bind (f : α →ₛ β) (g : β → α →ₛ γ) : α →ₛ γ :=
 then `f.restrict s a = if a ∈ s then f a else 0`, otherwise `f.restrict s = const α 0`. -/
 def restrict [has_zero β] (f : α →ₛ β) (s : set α) : α →ₛ β :=
 if hs : is_measurable s then ite hs f (const α 0) else const α 0
+
+lemma restrict_univ [has_zero β] (f : α →ₛ β) : restrict f univ = f :=
+begin
+  ext a,
+  rw [restrict, dif_pos is_measurable.univ, ite_apply is_measurable.univ, if_pos (mem_univ _)]
+end
 
 @[simp] theorem restrict_apply [has_zero β]
   (f : α →ₛ β) {s : set α} (hs : is_measurable s) (a) :
@@ -522,6 +532,9 @@ calc (restrict (const α c) s).integral = c * volume ((const α c) ⁻¹' {c} �
   end
   ... = c * volume s : by rw [this, univ_inter]
 
+lemma integral_const (c : ennreal) : (const α c).integral = volume (univ : set α) * c :=
+by { rw [mul_comm, ← restrict_univ (const α c), restrict_const_integral], exact is_measurable.univ }
+
 lemma integral_sup_le (f g : α →ₛ ennreal) : f.integral ⊔ g.integral ≤ (f ⊔ g).integral :=
 calc f.integral ⊔ g.integral =
       ((pair f g).map prod.fst).integral ⊔ ((pair f g).map prod.snd).integral : rfl
@@ -583,6 +596,26 @@ variables [measure_space α] [has_zero β] [has_zero γ]
 open finset ennreal
 
 protected def fin_vol_supp (f : α →ₛ β) : Prop := ∀b ≠ 0, volume (f ⁻¹' {b}) < ⊤
+
+lemma fin_vol_supp_restrict (f : α →ₛ β) {s : set α} (hsm : is_measurable s) (hsv : volume s < ⊤) :
+  (restrict f s).fin_vol_supp :=
+begin
+  assume b b0,
+  rw restrict_preimage _ hsm,
+  { refine lt_of_le_of_lt (volume_mono $ set.inter_subset_left _ _) hsv,  },
+  rwa [mem_singleton_iff, eq_comm]
+end
+
+lemma fin_vol_supp_restrict_const {s : set α} (hs : is_measurable s) {b : β} (b0 : b ≠ 0) :
+  (restrict (const α b) s).fin_vol_supp ↔ volume s < ⊤ :=
+iff.intro
+begin
+  assume h,
+  replace h := h b b0,
+  rwa [restrict_preimage _ hs, const_preimage_self, inter_univ] at h,
+  rwa [mem_singleton_iff, eq_comm]
+end
+$ (const α b).fin_vol_supp_restrict hs
 
 lemma fin_vol_supp_map {f : α →ₛ β} {g : β → γ} (hf : f.fin_vol_supp) (hg : g 0 = 0) :
   (f.map g).fin_vol_supp :=
@@ -685,6 +718,10 @@ theorem simple_func.lintegral_eq_integral (f : α →ₛ ennreal) : (∫⁻ a, f
 le_antisymm
   (supr_le $ assume s, supr_le $ assume hs, integral_le_integral _ _ hs)
   (le_supr_of_le f $ le_supr_of_le (le_refl f) $ le_refl _)
+
+lemma lintegral_const {b : ennreal} : (∫⁻ a : α, b) = volume (univ : set α) * b :=
+show (lintegral $ simple_func.const α b) = volume (univ : set α) * b,
+by { rw [simple_func.lintegral_eq_integral, simple_func.integral_const] }
 
 lemma lintegral_le_lintegral (f g : α → ennreal) (h : f ≤ g) : (∫⁻ a, f a) ≤ (∫⁻ a, g a) :=
 supr_le_supr $ assume s, supr_le $ assume hs, le_supr_of_le (le_trans hs h) (le_refl _)

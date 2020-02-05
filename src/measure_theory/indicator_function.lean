@@ -5,7 +5,7 @@ Authors: Zhouhang Zhou
 -/
 
 import data.indicator_function
-import measure_theory.measure_space
+import measure_theory.integration
 import analysis.normed_space.basic
 
 /-!
@@ -26,9 +26,9 @@ universes u v
 variables {α : Type u} {β : Type v}
 
 section has_zero
-variables [has_zero β] {s t : set α} {f g : α → β} {a : α}
+variables [measure_space α] [has_zero β] {s t : set α} {f g : α → β} {a : α}
 
-lemma indicator_congr_ae [measure_space α] (h : ∀ₘ a, a ∈ s → f a = g a) :
+lemma indicator_congr_ae (h : ∀ₘ a, a ∈ s → f a = g a) :
   ∀ₘ a, indicator s f a = indicator s g a :=
 begin
   filter_upwards [h],
@@ -39,7 +39,7 @@ begin
   refl
 end
 
-lemma indicator_congr_of_set [measure_space α] (h : ∀ₘ a, a ∈ s ↔ a ∈ t) :
+lemma indicator_congr_of_set (h : ∀ₘ a, a ∈ s ↔ a ∈ t) :
   ∀ₘ a, indicator s f a = indicator t f a :=
 begin
   filter_upwards [h],
@@ -51,6 +51,27 @@ begin
   { have := ha.2 h₂, contradiction },
   refl
 end
+
+lemma indicator_eq_zero_ae (h : volume s = 0) : ∀ₘ a, indicator s f a = 0 :=
+begin
+  rw [all_ae_iff],
+  have : {a : α | ¬indicator s f a = 0} ⊆ s,
+  { assume a,
+    contrapose,
+    simp only [mem_set_of_eq, not_not],
+    exact λ h, indicator_of_not_mem h _ },
+  refine le_antisymm _ _,
+  { rw ← h, exact volume_mono this },
+  exact zero_le _
+end
+
+local infixr ` →ₛ `:25 := simple_func
+
+open measure_theory.simple_func
+
+lemma measure_theory.simple_func.indicator_eq_restrict {α} [measurable_space α]
+  (f : α →ₛ β) {s : set α} (hs : is_measurable s) : indicator s f = restrict f s :=
+by { funext, rw [restrict_apply _ hs] }
 
 end has_zero
 

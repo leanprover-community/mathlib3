@@ -60,7 +60,7 @@ lemma ext (A B : special_linear_group n R) : (∀ i j, A.1 i j = B.1 i j) → A 
 instance has_inv : has_inv (special_linear_group n R) := ⟨λ A, ⟨adjugate A.1, det_adjugate_eq_one A.2⟩⟩
 
 instance has_mul : has_mul (special_linear_group n R) :=
-⟨λ A B, ⟨A.1 ⬝ B.1, by rw [det_mul, A.2, B.2, one_mul]⟩⟩
+⟨λ A B, ⟨A.1 ⬝ B.1, by erw [det_mul, A.2, B.2, one_mul]⟩⟩
 
 instance has_one : has_one (special_linear_group n R) := ⟨⟨1, det_one⟩⟩
 

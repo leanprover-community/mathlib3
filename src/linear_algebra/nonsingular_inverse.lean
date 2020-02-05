@@ -277,10 +277,10 @@ calc adjugate A ⬝ A = (Aᵀ ⬝ (adjugate Aᵀ))ᵀ :
   by rw [←adjugate_transpose, ←transpose_mul, transpose_transpose]
 ... = A.det • 1 : by rw [mul_adjugate (Aᵀ), det_transpose, transpose_smul, transpose_one]
 
-set_option class.instance_max_depth 60
 lemma det_adjugate_eq_one {A : matrix n n α} (h : A.det = 1) : (adjugate A).det = 1 :=
-calc (adjugate A).det = (adjugate A ⬝ A).det : by rw [det_mul, h, mul_one]
-                  ... = 1                    : by rw [adjugate_mul, h, one_smul, det_one]
+calc (adjugate A).det = (adjugate A).det * A.det : by simp [h]
+                  ... = (adjugate A ⬝ A).det     : (det_mul _ _).symm
+                  ... = 1                        : by rw [adjugate_mul, h, one_smul, det_one]
 
 end adjugate
 

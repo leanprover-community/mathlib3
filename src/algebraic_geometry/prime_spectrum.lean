@@ -168,7 +168,7 @@ funext $ λ x, ext.mpr $ by { rw [comap_as_ideal], apply ideal.ext, intros r, si
 funext $ λ x, ext.mpr $ by { simp, refl }
 
 @[simp] lemma preimage_comap_zero_locus (I : set R) :
-  comap f ⁻¹' (zero_locus I) = zero_locus (f '' I) :=
+  (comap f) ⁻¹' (zero_locus I) = zero_locus (f '' I) :=
 begin
   ext x,
   simp only [mem_zero_locus, set.mem_preimage, comap_as_ideal, set.image_subset_iff],

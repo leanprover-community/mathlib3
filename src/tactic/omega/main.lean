@@ -29,13 +29,11 @@ else if x = `(nat)
      then return (some ff)
      else failed
 
-/--
-Detects domain of a formula from its expr.
-- Returns none, if domain can be either ℤ or ℕ
-- Returns some tt, if domain is exclusively ℤ
-- Returns some ff, if domain is exclusively ℕ
-- Fails, if domain is neither ℤ nor ℕ
--/
+/-- Detects domain of a formula from its expr.
+* Returns none, if domain can be either ℤ or ℕ
+* Returns some tt, if domain is exclusively ℤ
+* Returns some ff, if domain is exclusively ℕ
+* Fails, if domain is neither ℤ nor ℕ -/
 meta def form_domain : expr → tactic (option bool)
 | `(¬ %%px)      := form_domain px
 | `(%%px ∨ %%qx) := select_domain (form_domain px) (form_domain qx)

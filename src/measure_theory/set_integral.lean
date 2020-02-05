@@ -119,7 +119,7 @@ by { apply integrable_congr_ae, exact indicator_congr_ae h }
 @[simp] lemma integrable_on_empty (f : α → β) : integrable_on ∅ f :=
 by { simp only [integrable_on, indicator_empty], apply integrable_zero }
 
-lemma integrable.integrable_on (s : set α) (hf : integrable f) : integrable_on s f :=
+lemma measure_theory.integrable.integrable_on (s : set α) (hf : integrable f) : integrable_on s f :=
 by { refine integrable_of_le (λa, _) hf, apply norm_indicator_le_norm_self }
 
 lemma set.integrable_on.subset (h : s ⊆ t) : integrable_on t f → integrable_on s f :=

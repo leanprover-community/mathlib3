@@ -11,7 +11,7 @@ import topology.continuous_on
 
 ## Main definitions
 
-`compact`, `is_clopen`, `is_preirreducible`, `is_preconnected`, `is_totally_disconnected`, `is_totally_separated`
+`compact`, `is_clopen`, `is_irreducible`, `is_connected`, `is_totally_disconnected`, `is_totally_separated`
 
 TODO: write better docs
 -/
@@ -784,7 +784,7 @@ theorem is_totally_disconnected_singleton {x} : is_totally_disconnected ({x} : s
 λ t ht _, ⟨λ ⟨p, hp⟩ ⟨q, hq⟩, subtype.eq $ show p = q,
 from (eq_of_mem_singleton (ht hp)).symm ▸ (eq_of_mem_singleton (ht hq)).symm⟩
 
-/-- A space is totally disconnected if all of its preconnected components are singletons. -/
+/-- A space is totally disconnected if all of its connected components are singletons. -/
 class totally_disconnected_space (α : Type u) [topological_space α] : Prop :=
 (is_totally_disconnected_univ : is_totally_disconnected (univ : set α))
 

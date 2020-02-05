@@ -5,6 +5,9 @@ import
   tactic.converter.interactive
   tactic.core
   tactic.ext
+  tactic.elide
+  tactic.explode
+  tactic.find
   tactic.generalize_proofs
   tactic.interactive
   tactic.suggest
@@ -18,6 +21,7 @@ import
   tactic.restate_axiom
   tactic.rewrite
   tactic.lint
+  tactic.simp_rw
   tactic.simpa
   tactic.simps
   tactic.split_ifs

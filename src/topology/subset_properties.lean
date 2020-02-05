@@ -492,7 +492,7 @@ let ⟨m, hm, hsm, hmm⟩ := zorn.zorn_subset₀ { t : set α | is_preirreducibl
     λ x hxc, set.subset_sUnion_of_mem hxc⟩) s H in
 ⟨m, hm, hsm, λ u hu hmu, hmm _ hu hmu⟩
 
-/-- A maximal preirreducible set that contains a given point. -/
+/-- A maximal irreducible set that contains a given point. -/
 def irreducible_component (x : α) : set α :=
 classical.some (exists_preirreducible {x} is_irreducible_singleton.is_preirreducible)
 
@@ -703,7 +703,7 @@ begin
   contradiction
 end⟩
 
-/-- The connected component of a point is the maximal preconnected set
+/-- The connected component of a point is the maximal connected set
 that contains this point. -/
 def connected_component (x : α) : set α :=
 ⋃₀ { s : set α | is_preconnected s ∧ x ∈ s }

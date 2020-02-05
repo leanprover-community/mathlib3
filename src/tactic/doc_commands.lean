@@ -101,7 +101,7 @@ do tde_expr ← to_expr ``(%%tde : tactic_doc_entry),
    tactic_doc_entry_attr.set decl_name () tt none,
    when (tde.decl_names.length = 1) $ do
      let tac_name := tde.decl_names.head,
-     (doc_string decl_name >> skip) <|> add_doc_string decl_name tde.description <|> skip
+     doc_string tac_name >> skip <|> add_doc_string tac_name tde.description <|> skip
 
 @[user_command] meta def add_tactic_doc_command (_ : parse $ tk "add_tactic_doc") : parser unit :=
 parser.pexpr >>= of_tactic ∘ tactic.add_tactic_doc .

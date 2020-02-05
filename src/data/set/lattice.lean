@@ -794,7 +794,7 @@ namespace set
 protected theorem disjoint_iff {s t : set α} : disjoint s t ↔ s ∩ t ⊆ ∅ := iff.rfl
 
 lemma not_disjoint_iff {s t : set α} : ¬disjoint s t ↔ ∃x, x ∈ s ∧ x ∈ t :=
-by { rw [set.disjoint_iff, subset_empty_iff], apply ne_empty_iff_exists_mem }
+(not_congr (set.disjoint_iff.trans subset_empty_iff)).trans ne_empty_iff_nonempty
 
 lemma disjoint_left {s t : set α} : disjoint s t ↔ ∀ {a}, a ∈ s → a ∉ t :=
 show (∀ x, ¬(x ∈ s ∩ t)) ↔ _, from ⟨λ h a, not_and.1 $ h a, λ h a, not_and.2 $ h a⟩
@@ -834,11 +834,8 @@ end
 /- warning: classical -/
 lemma pairwise_disjoint_elim {s : set (set α)} (h : pairwise_disjoint s) {x y : set α}
   (hx : x ∈ s) (hy : y ∈ s) (z : α) (hzx : z ∈ x) (hzy : z ∈ y) : x = y :=
-begin
-  haveI := classical.prop_decidable, by_contra,
-  have : x ∩ y ≠ ∅, { rw [ne_empty_iff_exists_mem], exact ⟨z, ⟨hzx, hzy⟩⟩ },
-  apply this, exact disjoint_iff.mp (h x hx y hy a),
-end
+classical.not_not.1 $ λ h', h x hx y hy h' ⟨hzx, hzy⟩
+
 end set
 
 namespace set

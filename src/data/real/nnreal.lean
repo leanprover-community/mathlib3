@@ -192,9 +192,9 @@ lemma bdd_below_coe (s : set ℝ≥0) : bdd_below ((coe : nnreal → ℝ) '' s) 
 instance : has_Sup ℝ≥0 :=
 ⟨λs, ⟨Sup ((coe : nnreal → ℝ) '' s),
   begin
-    by_cases h : s = ∅,
+    cases s.eq_empty_or_nonempty with h h,
     { simp [h, set.image_empty, real.Sup_empty] },
-    rcases set.ne_empty_iff_exists_mem.1 h with ⟨⟨b, hb⟩, hbs⟩,
+    rcases h with ⟨⟨b, hb⟩, hbs⟩,
     by_cases h' : bdd_above s,
     { exact le_cSup_of_le (bdd_above_coe.2 h') (set.mem_image_of_mem _ hbs) hb },
     { rw [real.Sup_of_not_bdd_above], rwa [bdd_above_coe] }
@@ -203,9 +203,9 @@ instance : has_Sup ℝ≥0 :=
 instance : has_Inf ℝ≥0 :=
 ⟨λs, ⟨Inf ((coe : nnreal → ℝ) '' s),
   begin
-    by_cases h : s = ∅,
+    cases s.eq_empty_or_nonempty with h h,
     { simp [h, set.image_empty, real.Inf_empty] },
-    exact le_cInf (by simp [h]) (assume r ⟨q, _, eq⟩, eq ▸ q.2)
+    exact le_cInf (h.image _) (assume r ⟨q, _, eq⟩, eq ▸ q.2)
   end⟩⟩
 
 lemma coe_Sup (s : set nnreal) : (↑(Sup s) : ℝ) = Sup ((coe : nnreal → ℝ) '' s) := rfl

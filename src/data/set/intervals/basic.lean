@@ -129,18 +129,6 @@ eq_empty_iff_forall_not_mem.2 $ λ x ⟨h₁, h₂⟩, not_lt_of_le (le_trans h�
 @[simp] lemma Ico_self (a : α) : Ico a a = ∅ := Ico_eq_empty $ le_refl _
 @[simp] lemma Ioc_self (a : α) : Ioc a a = ∅ := Ioc_eq_empty $ le_refl _
 
-lemma Iio_ne_empty [no_bot_order α] (a : α) : Iio a ≠ ∅ :=
-ne_empty_iff_exists_mem.2 (no_bot a)
-
-lemma Ioi_ne_empty [no_top_order α] (a : α) : Ioi a ≠ ∅ :=
-ne_empty_iff_exists_mem.2 (no_top a)
-
-lemma Iic_ne_empty (b : α) : Iic b ≠ ∅ :=
-ne_empty_iff_exists_mem.2 ⟨b, le_refl b⟩
-
-lemma Ici_ne_empty (a : α) : Ici a ≠ ∅ :=
-ne_empty_iff_exists_mem.2 ⟨a, le_refl a⟩
-
 lemma Ici_subset_Ioi : Ici a ⊆ Ioi b ↔ b < a :=
 ⟨λ h, h left_mem_Ici, λ h x hx, lt_of_lt_of_le h hx⟩
 

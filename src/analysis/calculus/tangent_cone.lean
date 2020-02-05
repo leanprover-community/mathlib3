@@ -374,13 +374,13 @@ lemma unique_diff_on.prod {t : set F} (hs : unique_diff_on 𝕜 s) (ht : unique_
 
 /-- In a real vector space, a convex set with nonempty interior is a set of unique
 differentiability. -/
-theorem unique_diff_on_convex {s : set G} (conv : convex s) (hs : interior s ≠ ∅) :
+theorem unique_diff_on_convex {s : set G} (conv : convex s) (hs : (interior s).nonempty) :
   unique_diff_on ℝ s :=
 begin
   assume x xs,
   have A : ∀v, ∃a∈ tangent_cone_at ℝ s x, ∃b∈ tangent_cone_at ℝ s x, ∃δ>(0:ℝ), δ • v = b-a,
   { assume v,
-    rcases ne_empty_iff_exists_mem.1 hs with ⟨y, hy⟩,
+    rcases hs with ⟨y, hy⟩,
     have ys : y ∈ s := interior_subset hy,
     have : ∃(δ : ℝ), 0<δ ∧ y + δ • v ∈ s,
     { by_cases h : ∥v∥ = 0,
@@ -419,7 +419,7 @@ begin
   apply unique_diff_on_convex (convex_Icc 0 1),
   have : (1/(2:ℝ)) ∈ interior (Icc (0:ℝ) 1) :=
     mem_interior.2 ⟨Ioo (0:ℝ) 1, Ioo_subset_Icc_self, is_open_Ioo, by norm_num, by norm_num⟩,
-  exact ne_empty_of_mem this,
+  exact ⟨_, this⟩
 end
 
 end unique_diff

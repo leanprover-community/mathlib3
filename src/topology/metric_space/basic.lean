@@ -372,9 +372,9 @@ lemma totally_bounded_of_finite_discretization {α : Type u} [metric_space α] {
     ∀x y, F x = F y → dist (x:α) y < ε) :
   totally_bounded s :=
 begin
-  classical, by_cases hs : s = ∅,
+  cases s.eq_empty_or_nonempty with hs hs,
   { rw hs, exact totally_bounded_empty },
-  rcases exists_mem_of_ne_empty hs with ⟨x0, hx0⟩,
+  rcases hs with ⟨x0, hx0⟩,
   haveI : inhabited s := ⟨⟨x0, hx0⟩⟩,
   refine totally_bounded_iff.2 (λ ε ε0, _),
   rcases H ε ε0 with ⟨β, fβ, F, hF⟩,
@@ -958,8 +958,8 @@ theorem mem_closure_iff' {α : Type u} [metric_space α] {s : set α} {a : α} :
   a ∈ closure s ↔ ∀ε>0, ∃b ∈ s, dist a b < ε :=
 ⟨begin
   intros ha ε hε,
-  have A : ball a ε ∩ s ≠ ∅ := mem_closure_iff.1 ha _ is_open_ball (mem_ball_self hε),
-  cases ne_empty_iff_exists_mem.1 A with b hb,
+  obtain ⟨b, hb⟩ : (ball a ε ∩ s).nonempty,
+    from mem_closure_iff.1 ha _ is_open_ball (mem_ball_self hε),
   simp,
   exact ⟨b, ⟨hb.2, by have B := hb.1; simpa [mem_ball'] using B⟩⟩
 end,
@@ -970,7 +970,7 @@ begin
   rcases is_open_iff.1 ho a ao with ⟨ε, ⟨εpos, hε⟩⟩,
   rcases H ε εpos with ⟨b, ⟨bs, bdist⟩⟩,
   have B : b ∈ o ∩ s := ⟨hε (by simpa [dist_comm]), bs⟩,
-  apply ne_empty_of_mem B
+  exact ⟨b, B⟩
 end⟩
 
 lemma mem_closure_range_iff {α : Type u} [metric_space α] {e : β → α} {a : α} :
@@ -1157,14 +1157,13 @@ begin
   is special, and trivial. -/
   have A : (univ : set α) = ∅ → ∃(s : set α), countable s ∧ closure s = (univ : set α) :=
     assume H, ⟨∅, ⟨by simp, by simp; exact H.symm⟩⟩,
-  have B : (univ : set α) ≠ ∅ → ∃(s : set α), countable s ∧ closure s = (univ : set α) :=
+  have B : (univ : set α).nonempty → ∃(s : set α), countable s ∧ closure s = (univ : set α) :=
   begin
     /- When the space is not empty, we take a point `x` in the space, and then a countable set
     `T r` which is dense in the closed ball `closed_ball x r` for each `r`. Then the set
     `t = ⋃ T n` (where the union is over all integers `n`) is countable, as a countable union
     of countable sets, and dense in the space by construction. -/
-    assume non_empty,
-    rcases ne_empty_iff_exists_mem.1 non_empty with ⟨x, x_univ⟩,
+    rintros ⟨x, x_univ⟩,
     choose T a using show ∀ (r:ℝ), ∃ t ⊆ closed_ball x r, (countable (t : set α) ∧ closed_ball x r = closure t),
       from assume r, emetric.countable_closure_of_compact (proper_space.compact_ball _ _),
     let t := (⋃n:ℕ, T (n : ℝ)),
@@ -1181,7 +1180,7 @@ begin
     end,
     exact ⟨t, ⟨T₁, subset.antisymm T₂ T₃⟩⟩
   end,
-  haveI : separable_space α := ⟨by_cases A B⟩,
+  haveI : separable_space α := ⟨(eq_empty_or_nonempty univ).elim A B⟩,
   apply emetric.second_countable_of_separable,
 end
 
@@ -1230,9 +1229,9 @@ lemma second_countable_of_countable_discretization {α : Type u} [metric_space �
   (H : ∀ε > (0 : ℝ), ∃ (β : Type u) [encodable β] (F : α → β), ∀x y, F x = F y → dist x y ≤ ε) :
   second_countable_topology α :=
 begin
-  classical, by_cases hs : (univ : set α) = ∅,
+  cases (univ : set α).eq_empty_or_nonempty with hs hs,
   { haveI : compact_space α := ⟨by rw hs; exact compact_empty⟩, by apply_instance },
-  rcases exists_mem_of_ne_empty hs with ⟨x0, hx0⟩,
+  rcases hs with ⟨x0, hx0⟩,
   letI : inhabited α := ⟨x0⟩,
   refine second_countable_of_almost_dense_set (λε ε0, _),
   rcases H ε ε0 with ⟨β, fβ, F, hF⟩,
@@ -1276,12 +1275,10 @@ variables {x : α} {s t : set α} {r : ℝ}
 ⟨0, by simp⟩
 
 lemma bounded_iff_mem_bounded : bounded s ↔ ∀ x ∈ s, bounded s :=
-⟨λ h _ _, h, λ H, begin
-  classical, by_cases s = ∅,
-  { subst s, exact ⟨0, by simp⟩ },
-  { rcases exists_mem_of_ne_empty h with ⟨x, hx⟩,
-    exact H x hx }
-end⟩
+⟨λ h _ _, h, λ H, 
+  s.eq_empty_or_nonempty.elim
+  (λ hs, hs.symm ▸ bounded_empty)
+  (λ ⟨x, hx⟩, H x hx)⟩
 
 /-- Subsets of a bounded set are also bounded -/
 lemma bounded.subset (incl : s ⊆ t) : bounded t → bounded s :=
@@ -1303,9 +1300,9 @@ bounded_closed_ball.subset ball_subset_closed_ball
 lemma bounded_iff_subset_ball (c : α) : bounded s ↔ ∃r, s ⊆ closed_ball c r :=
 begin
   split; rintro ⟨C, hC⟩,
-  { classical, by_cases s = ∅,
+  { cases s.eq_empty_or_nonempty with h h,
     { subst s, exact ⟨0, by simp⟩ },
-    { rcases exists_mem_of_ne_empty h with ⟨x, hx⟩,
+    { rcases h with ⟨x, hx⟩,
       exact ⟨C + dist x c, λ y hy, calc
         dist y c ≤ dist y x + dist x c : dist_triangle _ _ _
             ... ≤ C + dist x c : add_le_add_right (hC y x hy hx) _⟩ } },
@@ -1364,8 +1361,8 @@ lemma compact_iff_closed_bounded [proper_space α] :
   compact s ↔ is_closed s ∧ bounded s :=
 ⟨λ h, ⟨closed_of_compact _ h, h.bounded⟩, begin
   rintro ⟨hc, hb⟩,
-  classical, by_cases s = ∅, {simp [h, compact_empty]},
-  rcases exists_mem_of_ne_empty h with ⟨x, hx⟩,
+  cases s.eq_empty_or_nonempty with h h, {simp [h, compact_empty]},
+  rcases h with ⟨x, hx⟩,
   rcases (bounded_iff_subset_ball x).1 hb with ⟨r, hr⟩,
   exact compact_of_is_closed_subset (proper_space.compact_ball x r) hc hr
 end⟩
@@ -1507,9 +1504,9 @@ begin
 end
 
 /-- If two sets intersect, the diameter of the union is bounded by the sum of the diameters. -/
-lemma diam_union' {t : set α} (h : s ∩ t ≠ ∅) : diam (s ∪ t) ≤ diam s + diam t :=
+lemma diam_union' {t : set α} (h : (s ∩ t).nonempty) : diam (s ∪ t) ≤ diam s + diam t :=
 begin
-  rcases ne_empty_iff_exists_mem.1 h with ⟨x, ⟨xs, xt⟩⟩,
+  rcases h with ⟨x, ⟨xs, xt⟩⟩,
   simpa using diam_union xs xt
 end
 

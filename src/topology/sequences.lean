@@ -167,7 +167,7 @@ instance [topological_space α] [first_countable_topology α] : sequential_space
   -- Via choice we obtain the sequence x such that (x i).val ∈ g i ∩ M:
   have x : ∀ i, g i ∩ M,
   { rw mem_closure_iff_nhds at hp,
-    intro i, apply classical.choice, rw coe_nonempty_iff_ne_empty,
+    intro i, apply classical.indefinite_description,
     apply hp, rw gbasis, rw ← le_principal_iff, apply lattice.infi_le_of_le i _, apply le_refl _ },
   -- It remains to show that x converges to p. Intuitively this is the case
   -- because x i ∈ g i, and the g i get "arbitrarily small" around p. Formally:

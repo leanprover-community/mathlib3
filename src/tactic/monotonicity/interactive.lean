@@ -405,7 +405,7 @@ open monad
 
 /-- tactic-facing function, similar to `interactive.tactic.generalize` with the
 exception that meta variables -/
-meta def generalize' (h : name) (v : expr) (x : name) : tactic (expr × expr) :=
+meta def monotonicity.generalize' (h : name) (v : expr) (x : name) : tactic (expr × expr) :=
 do tgt ← target,
    t ← infer_type v,
    tgt' ← do {
@@ -427,7 +427,7 @@ do tgt ← target >>= instantiate_mvars,
    vs' ← mmap (λ v,
              do h ← get_unused_name `h,
                 x ← get_unused_name `x,
-                prod.snd <$> generalize' h v x) vs,
+                prod.snd <$> monotonicity.generalize' h v x) vs,
      tac ctx;
      vs'.mmap' (try ∘ tactic.subst)
 

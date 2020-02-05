@@ -88,7 +88,7 @@ structure tactic_doc_entry :=
 /-- A user attribute `tactic_doc` for tagging decls of type `tactic_doc_entry` for use in doc output -/
 @[user_attribute] meta def tactic_doc_entry_attr : user_attribute :=
 { name := `tactic_doc,
-  descr := "description of a tactic" }
+  descr := "Information about a tactic to be included in documentation" }
 
 /-- `add_tactic_doc tde` assumes `tde : pexpr` represents a term of type `tactic_doc_entry`.
 It adds a declaration to the environment with `tde` as its body and tags it with the `tactic_doc` attribute.

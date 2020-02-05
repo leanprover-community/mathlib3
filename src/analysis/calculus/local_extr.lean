@@ -271,7 +271,7 @@ include hab hfc hfI
 or its minimum value at a point in the interior of the interval. -/
 lemma exists_Ioo_extr_on_Icc : ∃ c ∈ Ioo a b, is_extr_on f (Icc a b) c :=
 begin
-  have ne : Icc a b ≠ ∅, from ne_empty_of_mem (left_mem_Icc.2 (le_of_lt hab)),
+  have ne : (Icc a b).nonempty, from nonempty_Icc.2 (le_of_lt hab),
   -- Consider absolute min and max points
   obtain ⟨c, cmem, cle⟩ : ∃ c ∈ Icc a b, ∀ x ∈ Icc a b, f c ≤ f x,
     from compact_Icc.exists_forall_le ne hfc,

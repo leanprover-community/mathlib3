@@ -756,7 +756,7 @@ simple_func.uniform_embedding.dense_embedding $
 λ f, mem_closure_iff_nhds.2 $ λ t ht,
 let ⟨ε,ε0, hε⟩ := metric.mem_nhds_iff.1 ht in
 let ⟨s, h⟩ := exists_simple_func_near f ε0 in
-ne_empty_iff_exists_mem.2 ⟨_, hε (metric.mem_ball'.2 h), s, rfl⟩
+⟨_, hε (metric.mem_ball'.2 h), s, rfl⟩
 
 protected lemma dense_inducing : dense_inducing (coe : (α →₁ₛ β) → (α →₁ β)) :=
 simple_func.dense_embedding.to_dense_inducing

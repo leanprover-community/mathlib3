@@ -155,10 +155,10 @@ def id_groupoid (H : Type u) [topological_space H] : structure_groupoid H :=
   end,
   id_mem := mem_union_left _ (mem_insert _ ∅),
   locality := λe he, begin
-    by_cases h : e.source = ∅,
+    cases e.source.eq_empty_or_nonempty with h h,
     { right, exact h },
     { left,
-      rcases ne_empty_iff_exists_mem.1 h with ⟨x, hx⟩,
+      rcases h with ⟨x, hx⟩,
       rcases he x hx with ⟨s, open_s, xs, hs⟩,
       have x's : x ∈ (e.restr s).source,
       { rw [restr_source, interior_eq_of_open open_s],

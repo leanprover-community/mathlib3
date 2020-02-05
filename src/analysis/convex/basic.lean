@@ -103,6 +103,9 @@ end
 lemma segment_eq_Icc' (a b : ℝ) : [a, b] = Icc (min a b) (max a b) :=
 by cases le_total a b; [skip, rw segment_symm]; simp [segment_eq_Icc, *]
 
+lemma segment_eq_interval (a b : ℝ) : segment a b = interval a b :=
+segment_eq_Icc' _ _
+
 lemma mem_segment_translate (a : E) {x b c} : a + x ∈ [a + b, a + c] ↔ x ∈ [b, c] :=
 begin
   rw [segment_eq_image', segment_eq_image'],
@@ -737,7 +740,7 @@ f.is_linear.image_convex_hull
 lemma finset.center_mass_mem_convex_hull (t : finset ι) {w : ι → ℝ} (hw₀ : ∀ i ∈ t, 0 ≤ w i)
   (hws : 0 < t.sum w) {z : ι → E} (hz : ∀ i ∈ t, z i ∈ s) :
   t.center_mass w z ∈ convex_hull s :=
-(convex_convex_hull s).center_mass_mem hw₀ hws (λ i hi, subset_convex_hull s $ hz i hi) 
+(convex_convex_hull s).center_mass_mem hw₀ hws (λ i hi, subset_convex_hull s $ hz i hi)
 
 -- TODO : Do we need other versions of the next lemma?
 

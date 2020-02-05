@@ -187,7 +187,7 @@ end
 theorem dense_sInter_of_open {S : set (set α)} (ho : ∀s∈S, is_open s) (hS : countable S)
   (hd : ∀s∈S, closure s = univ) : closure (⋂₀S) = univ :=
 begin
-  by_cases h : S = ∅,
+  cases S.eq_empty_or_nonempty with h h,
   { simp [h] },
   { rcases exists_surjective_of_countable h hS with ⟨f, hf⟩,
     have F : ∀n, f n ∈ S := λn, by rw hf; exact mem_range_self _,
@@ -318,17 +318,17 @@ end
 
 /-- One of the most useful consequences of Baire theorem: if a countable union of closed sets
 covers the space, then one of the sets has nonempty interior. -/
-theorem nonempty_interior_of_Union_of_closed [n : nonempty α] [encodable β] {f : β → set α}
+theorem nonempty_interior_of_Union_of_closed [nonempty α] [encodable β] {f : β → set α}
   (hc : ∀s, is_closed (f s)) (hU : (⋃s, f s) = univ) : ∃s x ε, ε > 0 ∧ ball x ε ⊆ f s :=
 begin
-  have : ∃s, interior (f s) ≠ ∅,
+  have : ∃s, (interior (f s)).nonempty,
   { by_contradiction h,
-    simp only [not_exists_not, ne.def] at h,
+    simp only [not_exists, not_nonempty_iff_eq_empty] at h,
     have := calc ∅ = closure (⋃s, interior (f s)) : by simp [h]
                  ... = univ : dense_Union_interior_of_closed hc hU,
-    exact nonempty_iff_univ_ne_empty.1 n this.symm },
+    exact univ_nonempty.ne_empty this.symm },
   rcases this with ⟨s, hs⟩,
-  rcases ne_empty_iff_exists_mem.1 hs with ⟨x, hx⟩,
+  rcases hs with ⟨x, hx⟩,
   rcases mem_nhds_iff.1 (mem_interior_iff_mem_nhds.1 hx) with ⟨ε, εpos, hε⟩,
   exact ⟨s, x, ε, εpos, hε⟩,
 end

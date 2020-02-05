@@ -38,6 +38,9 @@ variables [has_zero β] {s t : set α} {f g : α → β} {a : α}
 @[reducible]
 def indicator (s : set α) (f : α → β) : α → β := λ x, if x ∈ s then f x else 0
 
+@[simp] lemma indicator_apply (s : set α) (f : α → β) (a : α) :
+  indicator s f a = if a ∈ s then f a else 0 := rfl
+
 @[simp] lemma indicator_of_mem (h : a ∈ s) (f : α → β) : indicator s f a = f a := if_pos h
 
 @[simp] lemma indicator_of_not_mem (h : a ∉ s) (f : α → β) : indicator s f a = 0 := if_neg h
@@ -58,6 +61,17 @@ variable {β}
 
 lemma indicator_indicator (s t : set α) (f : α → β) : indicator s (indicator t f) = indicator (s ∩ t) f :=
 funext $ λx, by { simp only [indicator], split_ifs, repeat {simp * at * {contextual := tt}} }
+
+lemma indicator_comp_of_zero {γ} [has_zero γ] {g : β → γ} (hg : g 0 = 0) :
+  indicator s (g ∘ f) = λ a, indicator (f '' s) g (indicator s f a) :=
+begin
+  funext, simp only [indicator],
+  split_ifs with h h',
+  { refl },
+  { have := mem_image_of_mem _ h, contradiction },
+  { rwa eq_comm },
+  refl
+end
 
 lemma indicator_preimage (s : set α) (f : α → β) (B : set β) :
   (indicator s f)⁻¹' B = s ∩ f ⁻¹' B ∪ (-s) ∩ (λa:α, (0:β)) ⁻¹' B :=
@@ -150,8 +164,29 @@ end
 
 end add_group
 
+section mul_zero_class
+variables [mul_zero_class β] {s t : set α} {f g : α → β} {a : α}
+
+lemma indicator_mul (s : set α) (f g : α → β) :
+  indicator s (λa, f a * g a) = λa, indicator s f a * indicator s g a :=
+by { funext, simp only [indicator], split_ifs, { refl }, rw mul_zero }
+
+end mul_zero_class
+
 section order
 variables [has_zero β] [preorder β] {s t : set α} {f g : α → β} {a : α}
+
+lemma indicator_nonneg' (h : a ∈ s → 0 ≤ f a) : 0 ≤ indicator s f a :=
+by { rw indicator_apply, split_ifs with as, { exact h as }, refl }
+
+lemma indicator_nonneg (h : ∀ a ∈ s, 0 ≤ f a) : ∀ a, 0 ≤ indicator s f a :=
+λ a, indicator_nonneg' (h a)
+
+lemma indicator_nonpos' (h : a ∈ s → f a ≤ 0) : indicator s f a ≤ 0 :=
+by { rw indicator_apply, split_ifs with as, { exact h as }, refl }
+
+lemma indicator_nonpos (h : ∀ a ∈ s, f a ≤ 0) : ∀ a, indicator s f a ≤ 0 :=
+λ a, indicator_nonpos' (h a)
 
 lemma indicator_le_indicator (h : f a ≤ g a) : indicator s f a ≤ indicator s g a :=
 by { simp only [indicator], split_ifs with ha, { exact h }, refl }

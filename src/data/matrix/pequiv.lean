@@ -76,7 +76,7 @@ begin
     simp [h, eq_comm] {contextual := tt} }
 end
 
-lemma to_pequiv_mul_matrix [semiring α] (f : n ≃ n) (M : matrix n n α) :
+lemma to_pequiv_mul_matrix [semiring α] (f : m ≃ m) (M : matrix m n α) :
   (f.to_pequiv.to_matrix ⬝ M) = λ i, M (f i) :=
 by { ext i j, rw [mul_matrix_apply, equiv.to_pequiv_apply] }
 

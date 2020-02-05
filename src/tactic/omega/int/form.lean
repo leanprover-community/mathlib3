@@ -1,7 +1,6 @@
 /- Copyright (c) 2019 Seul Baek. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Author: Seul Baek
-
 Linear integer arithmetic formulas in pre-normalized form. -/
 
 import tactic.omega.int.preterm
@@ -92,8 +91,7 @@ end
 /-- There does not exist any valuation that satisfies argument -/
 def unsat (p : preform) : Prop := ¬ sat p
 
-/-- repr for LIA formulas -/
-def repr : form → string
+def repr : preform → string
 | (t =* s) := "(" ++ t.repr ++ " = " ++ s.repr ++ ")"
 | (t ≤* s) := "(" ++ t.repr ++ " ≤ " ++ s.repr ++ ")"
 | (¬* p)   := "¬" ++ p.repr

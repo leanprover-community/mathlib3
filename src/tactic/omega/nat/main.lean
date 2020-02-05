@@ -1,7 +1,6 @@
 /- Copyright (c) 2019 Seul Baek. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Author: Seul Baek
-
 Main procedure for linear natural number arithmetic. -/
 
 import tactic.omega.prove_unsats
@@ -121,12 +120,13 @@ meta def to_exprterm : expr → tactic exprterm
      t2 ← to_exprterm t2x,
      return (exprterm.add t1 t2)
 | `(%%t1x - %%t2x) :=
-  do t1 ← to_preterm t1x,
-     t2 ← to_preterm t2x,
-     return (preterm.sub t1 t2)
-| mx :=
-  do m ← eval_expr' nat mx,
-     return (preterm.cst m)
+  do t1 ← to_exprterm t1x,
+     t2 ← to_exprterm t2x,
+     return (exprterm.sub t1 t2)
+| x :=
+  ( do m ← eval_expr' nat x,
+       return (exprterm.cst m) ) <|>
+  ( return $ exprterm.exp 1 x )
 
 /-- Reification to imtermediate shadow syntax that retains exprs -/
 meta def to_exprform : expr → tactic exprform

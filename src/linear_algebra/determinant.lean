@@ -63,10 +63,10 @@ begin
 end
 
 @[simp] lemma det_mul (M N : matrix n n R) : det (M ⬝ N) = det M * det N :=
-calc det (M * N) = univ.sum (λ σ : perm n, (univ.pi (λ a, univ)).sum
+calc det (M ⬝ N) = univ.sum (λ σ : perm n, (univ.pi (λ a, univ)).sum
     (λ (p : Π (a : n), a ∈ univ → n), ε σ *
     univ.attach.prod (λ i, M (σ i.1) (p i.1 (mem_univ _)) * N (p i.1 (mem_univ _)) i.1))) :
-  by simp only [det, mul_val', prod_sum, mul_sum]
+  by simp only [det, mul_val, prod_sum, mul_sum]
 ... = univ.sum (λ σ : perm n, univ.sum
     (λ p : n → n, ε σ * univ.prod (λ i, M (σ i) (p i) * N (p i) i))) :
   sum_congr rfl (λ σ _, sum_bij

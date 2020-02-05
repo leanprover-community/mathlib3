@@ -53,24 +53,24 @@ instance as_ideal.is_prime (x : prime_spectrum R) :
   x = y ↔ x.as_ideal = y.as_ideal :=
 subtype.ext
 
-/-- The zero locus of a set `I` of elements of a commutative ring `R`
-is the set of all prime ideals of the ring that contain the set `I`.
+/-- The zero locus of a set `s` of elements of a commutative ring `R`
+is the set of all prime ideals of the ring that contain the set `s`.
 
 An element `f` of `R` can be thought of as a dependent function
 on the prime spectrum of `R`.
 At a point `x` (a prime ideal)
 the function (i.e., element) `f` takes values in the quotient ring `R` modulo the prime ideal `x`.
-In this manner, `zero_locus I` is exactly the subset of `prime_spectrum R`
-where all "functions" in `I` vanish simultaneously.
+In this manner, `zero_locus s` is exactly the subset of `prime_spectrum R`
+where all "functions" in `s` vanish simultaneously.
 -/
-def zero_locus (I : set R) : set (prime_spectrum R) :=
-{x | I ⊆ x.as_ideal}
+def zero_locus (s : set R) : set (prime_spectrum R) :=
+{x | s ⊆ x.as_ideal}
 
-@[simp] lemma mem_zero_locus (x : prime_spectrum R) (I : set R) :
-  x ∈ zero_locus I ↔ I ⊆ x.as_ideal := iff.rfl
+@[simp] lemma mem_zero_locus (x : prime_spectrum R) (s : set R) :
+  x ∈ zero_locus s ↔ s ⊆ x.as_ideal := iff.rfl
 
-lemma zero_locus_empty_of_one_mem (I : set R) (h : (1:R) ∈ I) :
-  zero_locus I = ∅ :=
+lemma zero_locus_empty_of_one_mem (s : set R) (h : (1:R) ∈ s) :
+  zero_locus s = ∅ :=
 begin
   rw set.eq_empty_iff_forall_not_mem,
   intros x hx,
@@ -84,45 +84,59 @@ end
   zero_locus (set.univ : set R) = ∅ :=
 zero_locus_empty_of_one_mem _ (set.mem_univ 1)
 
-lemma union_zero_locus (I J : set R) :
-  zero_locus I ∪ zero_locus J = zero_locus ((ideal.span I) ⊓ (ideal.span J) : ideal R) :=
+@[simp] lemma zero_locus_span (s : set R) :
+  zero_locus (ideal.span s : set R) = zero_locus s :=
+begin
+  ext x,
+  simp only [mem_zero_locus],
+  split,
+  { exact set.subset.trans ideal.subset_span },
+  { intro h, rwa ← ideal.span_le at h }
+end
+
+lemma union_zero_locus_ideal (I J : ideal R) :
+  zero_locus (I : set R) ∪ zero_locus J = zero_locus (I ⊓ J : ideal R) :=
 begin
   ext x,
   split,
   { rintro (h|h),
     all_goals
     { rw mem_zero_locus at h ⊢,
-      have hx : ideal.span _ ≤ x.as_ideal := ideal.span_le.mpr h,
-      refine set.subset.trans _ hx,
+      refine set.subset.trans _ h,
       intros r hr, cases hr, assumption } },
   { rintro h,
     rw set.mem_union,
     simp only [mem_zero_locus] at h ⊢,
+    -- TODO: The rest of this proof should be factored out.
     rw classical.or_iff_not_imp_right,
-    intros hI r hr,
-    rw set.not_subset at hI,
-    rcases hI with ⟨s, hs1, hs2⟩,
+    intros hs r hr,
+    rw set.not_subset at hs,
+    rcases hs with ⟨s, hs1, hs2⟩,
     apply (ideal.is_prime.mem_or_mem (by apply_instance) _).resolve_left hs2,
     apply h,
     rw [submodule.mem_coe, submodule.mem_inf],
     split,
-    { exact ideal.mul_mem_left _ (ideal.subset_span hr) },
-    { exact ideal.mul_mem_right _ (ideal.subset_span hs1) } }
+    { exact ideal.mul_mem_left _ hr },
+    { exact ideal.mul_mem_right _ hs1 } }
 end
 
-lemma zero_locus_Union {ι : Type*} (I : ι → set R) :
-  zero_locus (⋃ i, I i) = (⋂ i, zero_locus (I i)) :=
+lemma union_zero_locus (s t : set R) :
+  zero_locus s ∪ zero_locus t = zero_locus ((ideal.span s) ⊓ (ideal.span t) : ideal R) :=
+by { rw ← union_zero_locus_ideal, simp }
+
+lemma zero_locus_Union {ι : Type*} (s : ι → set R) :
+  zero_locus (⋃ i, s i) = (⋂ i, zero_locus (s i)) :=
 by { ext x, simp only [mem_zero_locus, set.mem_Inter, set.Union_subset_iff] }
 
-lemma Inter_zero_locus {ι : Type*} (I : ι → set R) :
-  (⋂ i, zero_locus (I i)) = zero_locus (⋃ i, I i) :=
-(zero_locus_Union I).symm
+lemma snter_zero_locus {ι : Type*} (s : ι → set R) :
+  (⋂ i, zero_locus (s i)) = zero_locus (⋃ i, s i) :=
+(zero_locus_Union s).symm
 
 /-- The Zariski topology on the prime spectrum of a commutative ring
 is defined via the closed sets of the topology:
 they are exactly those sets that are the zero locus of a subset of the ring. -/
 instance Zariski_topology : topological_space (prime_spectrum R) :=
-topological_space.of_closed {Z | ∃ I, Z = prime_spectrum.zero_locus I}
+topological_space.of_closed {Z | ∃ s, Z = prime_spectrum.zero_locus s}
 (⟨set.univ, by simp⟩)
 begin
   intros Zs h,
@@ -130,21 +144,21 @@ begin
   let f : Zs → set R := λ i, classical.some (h i.2),
   have hf : ∀ i : Zs, i.1 = zero_locus (f i) := λ i, classical.some_spec (h i.2),
   simp only [hf],
-  exact ⟨_, Inter_zero_locus _⟩
+  exact ⟨_, snter_zero_locus _⟩
 end
-(by { rintro _ _ ⟨I, rfl⟩ ⟨J, rfl⟩, exact ⟨_, union_zero_locus I J⟩ })
+(by { rintro _ _ ⟨s, rfl⟩ ⟨t, rfl⟩, exact ⟨_, union_zero_locus s t⟩ })
 
 lemma is_open_iff (U : set (prime_spectrum R)) :
-  is_open U ↔ ∃ I, -U = zero_locus I :=
+  is_open U ↔ ∃ s, -U = zero_locus s :=
 iff.rfl
 
 lemma is_closed_iff_zero_locus (Z : set (prime_spectrum R)) :
-  is_closed Z ↔ ∃ I, Z = zero_locus I :=
+  is_closed Z ↔ ∃ s, Z = zero_locus s :=
 by rw [is_closed, is_open_iff, set.compl_compl]
 
-lemma zero_locus_is_closed (I : set R) :
-  is_closed (zero_locus I) :=
-by { rw [is_closed_iff_zero_locus], exact ⟨I, rfl⟩ }
+lemma zero_locus_is_closed (s : set R) :
+  is_closed (zero_locus s) :=
+by { rw [is_closed_iff_zero_locus], exact ⟨s, rfl⟩ }
 
 section comap
 variables {S : Type v} [comm_ring S] {S' : Type*} [comm_ring S']
@@ -167,8 +181,8 @@ funext $ λ x, ext.mpr $ by { rw [comap_as_ideal], apply ideal.ext, intros r, si
   comap (g.comp f) = comap f ∘ comap g :=
 funext $ λ x, ext.mpr $ by { simp, refl }
 
-@[simp] lemma preimage_comap_zero_locus (I : set R) :
-  (comap f) ⁻¹' (zero_locus I) = zero_locus (f '' I) :=
+@[simp] lemma preimage_comap_zero_locus (s : set R) :
+  (comap f) ⁻¹' (zero_locus s) = zero_locus (f '' s) :=
 begin
   ext x,
   simp only [mem_zero_locus, set.mem_preimage, comap_as_ideal, set.image_subset_iff],
@@ -179,8 +193,8 @@ lemma comap_continuous (f : R →+* S) : continuous (comap f) :=
 begin
   rw continuous_iff_is_closed,
   simp only [is_closed_iff_zero_locus],
-  rintro _ ⟨I, rfl⟩,
-  exact ⟨_, preimage_comap_zero_locus f I⟩
+  rintro _ ⟨s, rfl⟩,
+  exact ⟨_, preimage_comap_zero_locus f s⟩
 end
 
 end comap

@@ -135,7 +135,7 @@ lemma Inter_zero_locus {ι : Type*} (s : ι → set R) :
 /-- The Zariski topology on the prime spectrum of a commutative ring
 is defined via the closed sets of the topology:
 they are exactly those sets that are the zero locus of a subset of the ring. -/
-instance Zariski_topology : topological_space (prime_spectrum R) :=
+instance zariski_topology : topological_space (prime_spectrum R) :=
 topological_space.of_closed {Z | ∃ s, Z = prime_spectrum.zero_locus s}
 (⟨set.univ, by simp⟩)
 begin

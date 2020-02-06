@@ -76,6 +76,15 @@ attribute.get_instances `library_note >>= list.mmap (λ dcl, mk_const dcl >>= ev
 inductive doc_category
 | tactic | cmd | hole_cmd | attr
 
+/-- Format a `doc_category` -/
+meta def doc_category.to_string : doc_category → string
+| doc_category.tactic := "tactic"
+| doc_category.cmd := "command"
+| doc_category.hole_cmd := "hole_command"
+| doc_category.attr := "attribute"
+
+meta instance : has_to_format doc_category := ⟨↑doc_category.to_string⟩
+
 /-- The information used to generate a tactic doc entry -/
 structure tactic_doc_entry :=
 (name : string)
@@ -84,10 +93,20 @@ structure tactic_doc_entry :=
 (tags : list string := [])
 (description : string)
 
+meta def tactic_doc_entry.to_string : tactic_doc_entry → string
+| ⟨name, category, decl_names, tags, description⟩ :=
+let decl_names := decl_names.map (repr ∘ to_string),
+    tags := tags.map repr in
+"{" ++ to_string (format!"\"name\": {repr name}, \"category\": \"{category}\", \"decl_names\":{decl_names}, \"tags\": {tags}, \"description\": {repr description}") ++ "}"
+
 /-- A user attribute `tactic_doc` for tagging decls of type `tactic_doc_entry` for use in doc output -/
 @[user_attribute] meta def tactic_doc_entry_attr : user_attribute :=
 { name := `tactic_doc,
   descr := "Information about a tactic to be included in documentation" }
+
+/-- Collects everything in the environment tagged with the attribute `tactic_doc`. -/
+meta def tactic.get_tactic_doc_entries : tactic (list tactic_doc_entry) :=
+attribute.get_instances `tactic_doc >>= list.mmap (λ dcl, mk_const dcl >>= eval_expr tactic_doc_entry)
 
 /-- `add_tactic_doc tde` assumes `tde : pexpr` represents a term of type `tactic_doc_entry`.
 It adds a declaration to the environment with `tde` as its body and tags it with the `tactic_doc` attribute.

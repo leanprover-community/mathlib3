@@ -93,6 +93,7 @@ structure tactic_doc_entry :=
 (tags : list string := [])
 (description : string)
 
+/-- format a `tactic_doc_entry` -/
 meta def tactic_doc_entry.to_string : tactic_doc_entry → string
 | ⟨name, category, decl_names, tags, description⟩ :=
 let decl_names := decl_names.map (repr ∘ to_string),

@@ -191,7 +191,7 @@ calc
 
 theorem normed_group.tendsto_nhds_zero {f : γ → α} {l : filter γ} :
   tendsto f l (𝓝 0) ↔ ∀ ε > 0, ∀ᶠ x in l, ∥ f x ∥ < ε :=
-metric.tendsto_nhds.trans $ by  simp only [dist_zero_right]
+metric.tendsto_nhds.trans $ by simp only [dist_zero_right]
 
 section nnnorm
 

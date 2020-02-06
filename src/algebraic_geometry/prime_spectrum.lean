@@ -128,7 +128,7 @@ lemma zero_locus_Union {ι : Type*} (s : ι → set R) :
   zero_locus (⋃ i, s i) = (⋂ i, zero_locus (s i)) :=
 by { ext x, simp only [mem_zero_locus, set.mem_Inter, set.Union_subset_iff] }
 
-lemma snter_zero_locus {ι : Type*} (s : ι → set R) :
+lemma Inter_zero_locus {ι : Type*} (s : ι → set R) :
   (⋂ i, zero_locus (s i)) = zero_locus (⋃ i, s i) :=
 (zero_locus_Union s).symm
 

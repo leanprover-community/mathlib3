@@ -439,7 +439,7 @@ end clopen
 
 section preirreducible
 
-/-- An preirreducible set is one where there is no non-trivial pair of disjoint opens. -/
+/-- A preirreducible set is one where there is no non-trivial pair of disjoint opens. -/
 def is_preirreducible (s : set α) : Prop :=
 ∀ (u v : set α), is_open u → is_open v →
   (s ∩ u).nonempty → (s ∩ v).nonempty → (s ∩ (u ∩ v)).nonempty

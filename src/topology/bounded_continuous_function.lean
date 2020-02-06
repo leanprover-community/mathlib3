@@ -26,13 +26,13 @@ lemma continuous_of_locally_uniform_limit_of_continuous [topological_space α] [
 continuous_iff'.2 $ λ x ε ε0, begin
   rcases L x with ⟨r, rx, hr⟩,
   rcases hr (ε/2/2) (half_pos $ half_pos ε0) with ⟨n, hn⟩,
-  rcases continuous_iff'.1 (C n) x (ε/2) (half_pos ε0) with ⟨s, sx, hs⟩,
-  refine ⟨_, (𝓝 x).inter_sets rx sx, _⟩,
-  rintro y ⟨yr, ys⟩,
+  filter_upwards [rx, continuous_iff'.1 (C n) x (ε/2) (half_pos ε0)],
+  simp only [mem_set_of_eq],
+  rintro y yr ys,
   calc dist (f y) (f x)
         ≤ dist (F n y) (F n x) + (dist (F n y) (f y) + dist (F n x) (f x)) : dist_triangle4_left _ _ _ _
     ... < ε/2 + (ε/2/2 + ε/2/2) :
-      add_lt_add_of_lt_of_le (hs _ ys) (add_le_add (hn _ yr) (hn _ (mem_of_nhds rx)))
+      add_lt_add_of_lt_of_le ys (add_le_add (hn _ yr) (hn _ (mem_of_nhds rx)))
     ... = ε : by rw [add_halves, add_halves]
 end
 
@@ -130,13 +130,12 @@ instance [inhabited β] : inhabited (α →ᵇ β) := ⟨const (default β)⟩
 theorem continuous_eval : continuous (λ p : (α →ᵇ β) × α, p.1 p.2) :=
 continuous_iff'.2 $ λ ⟨f, x⟩ ε ε0,
 /- use the continuity of `f` to find a neighborhood of `x` where it varies at most by ε/2 -/
-let ⟨s, sx, Hs⟩ := continuous_iff'.1 f.2.1 x (ε/2) (half_pos ε0) in
-/- s : set α, sx : s ∈ 𝓝 x, Hs : ∀ (b : α), b ∈ s → dist (f.val b) (f.val x) < ε / 2 -/
-⟨set.prod (ball f (ε/2)) s, prod_mem_nhds_sets (ball_mem_nhds _ (half_pos ε0)) sx,
+have Hs : _ := continuous_iff'.1 f.2.1 x (ε/2) (half_pos ε0),
+mem_sets_of_superset (prod_mem_nhds_sets (ball_mem_nhds _ (half_pos ε0)) Hs) $
 λ ⟨g, y⟩ ⟨hg, hy⟩, calc dist (g y) (f x)
       ≤ dist (g y) (f y) + dist (f y) (f x) : dist_triangle _ _ _
-  ... < ε/2 + ε/2 : add_lt_add (lt_of_le_of_lt (dist_coe_le_dist _) hg) (Hs _ hy)
-  ... = ε : add_halves _⟩
+  ... < ε/2 + ε/2 : add_lt_add (lt_of_le_of_lt (dist_coe_le_dist _) hg) hy
+  ... = ε : add_halves _
 
 /-- In particular, when `x` is fixed, `f → f x` is continuous -/
 theorem continuous_evalx {x : α} : continuous (λ f : α →ᵇ β, f x) :=

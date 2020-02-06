@@ -82,7 +82,7 @@ end
 
 @[simp] lemma zero_locus_univ :
   zero_locus (set.univ : set R) = ∅ :=
-zero_locus_empty_of_one_mem _ (set.mem_univ 1)
+zero_locus_empty_of_one_mem (set.mem_univ 1)
 
 @[simp] lemma zero_locus_span (s : set R) :
   zero_locus (ideal.span s : set R) = zero_locus s :=

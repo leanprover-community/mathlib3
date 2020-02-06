@@ -69,7 +69,7 @@ def zero_locus (s : set R) : set (prime_spectrum R) :=
 @[simp] lemma mem_zero_locus (x : prime_spectrum R) (s : set R) :
   x ∈ zero_locus s ↔ s ⊆ x.as_ideal := iff.rfl
 
-lemma zero_locus_empty_of_one_mem (s : set R) (h : (1:R) ∈ s) :
+lemma zero_locus_empty_of_one_mem {s : set R} (h : (1:R) ∈ s) :
   zero_locus s = ∅ :=
 begin
   rw set.eq_empty_iff_forall_not_mem,

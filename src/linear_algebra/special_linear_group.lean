@@ -103,8 +103,7 @@ instance group : group (special_linear_group n R) :=
   mul_left_inv := λ A, by { ext, simp [adjugate_mul, A.2] },
   ..special_linear_group.has_mul,
   ..special_linear_group.has_one,
-  ..special_linear_group.has_inv,
-}
+  ..special_linear_group.has_inv }
 
 /-- `to_linear_equiv A` is matrix multiplication of vectors by `A.val`, as a linear equivalence. -/
 def to_linear_equiv (A : special_linear_group n R) : (n → R) ≃ₗ[R] (n → R) :=
@@ -117,8 +116,7 @@ def to_linear_equiv (A : special_linear_group n R) : (n → R) ≃ₗ[R] (n → 
     (A.val.to_lin.comp A⁻¹.val.to_lin) x
         = ((A * A⁻¹).val.to_lin : (n → R) → (n → R)) x : by rw [←mul_to_lin, mul_val]
     ... = x : by simp,
-  ..A.val.to_lin
-}
+  ..A.val.to_lin }
 
 /-- `to_GL` is the map from the special linear group to the general linear group -/
 def to_GL (A : special_linear_group n R) : general_linear_group R (n → R) :=

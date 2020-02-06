@@ -5,6 +5,7 @@
 
   Inverses for nonsingular square matrices.
 -/
+import algebra.associated
 import algebra.big_operators
 import data.matrix.basic
 import linear_algebra.determinant
@@ -310,10 +311,10 @@ calc (adjugate A).det
     = A.det ^ (fintype.card n - 1) : det_adjugate_of_cancel (λ b hb, by simpa [h] using hb)
 ... = 1                            : by rw [h, one_pow]
 
-lemma det_adjugate_of_invertible {A : matrix n n α} :
-  (∃ a, a * A.det = 1) → (adjugate A).det = A.det ^ (fintype.card n - 1) :=
+lemma det_adjugate_of_is_unit {A : matrix n n α} (h : is_unit A.det) :
+  (adjugate A).det = A.det ^ (fintype.card n - 1) :=
 begin
-  rintro ⟨a, ha⟩,
+  rcases is_unit_iff_exists_inv'.mp h with ⟨a, ha⟩,
   by_cases card_lt_zero : fintype.card n ≤ 0,
   { have h : fintype.card n = 0 := by linarith,
     simp [det_eq_one_of_card_eq_zero h] },

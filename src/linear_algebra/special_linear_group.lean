@@ -21,7 +21,7 @@ and the embedding into the general linear group `general_linear_group R (n → R
 
 ## Main definitions
 
- * `matrix.special_linear_group` is the set of matrices with determinant 1
+ * `matrix.special_linear_group` is the type of matrices with determinant 1
  * `matrix.special_linear_group.group` gives the group structure (under multiplication)
  * `matrix.special_linear_group.to_GL` is the embedding `SLₙ(R) → GLₙ(R)`
 

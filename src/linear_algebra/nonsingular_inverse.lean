@@ -8,6 +8,8 @@
 import algebra.big_operators
 import data.matrix.basic
 import linear_algebra.determinant
+import tactic.linarith
+import tactic.ring_exp
 
 /-!
 # Nonsingular inverses
@@ -277,10 +279,61 @@ calc adjugate A ⬝ A = (Aᵀ ⬝ (adjugate Aᵀ))ᵀ :
   by rw [←adjugate_transpose, ←transpose_mul, transpose_transpose]
 ... = A.det • 1 : by rw [mul_adjugate (Aᵀ), det_transpose, transpose_smul, transpose_one]
 
+lemma det_adjugate_of_cancel {A : matrix n n α}
+  (h : ∀ b, A.det * b = A.det ^ fintype.card n → b = A.det ^ (fintype.card n - 1)) :
+  (adjugate A).det = A.det ^ (fintype.card n - 1) :=
+h (adjugate A).det (calc A.det * (adjugate A).det = (A ⬝ adjugate A).det   : (det_mul _ _).symm
+                                              ... = A.det ^ fintype.card n : by simp [mul_adjugate])
+
+lemma adjugate_eq_one_of_card_eq_one {A : matrix n n α} (h : fintype.card n = 1) : adjugate A = 1 :=
+begin
+  ext i j,
+  have univ_eq_i := univ_eq_singleton_of_card_one i h,
+  have univ_eq_j := univ_eq_singleton_of_card_one j h,
+  have i_eq_j : i = j := singleton_inj.mp (by rw [←univ_eq_i, univ_eq_j]),
+  have perm_eq : (univ : finset (perm n)) = finset.singleton 1 :=
+    univ_eq_singleton_of_card_one (1 : perm n) (by simp [card_univ, fintype.card_perm, h]),
+  simp [adjugate_val, det, univ_eq_i, perm_eq, i_eq_j]
+end
+
+@[simp] lemma adjugate_zero (h : 1 < fintype.card n) : adjugate (0 : matrix n n α) = 0 :=
+begin
+  ext i j,
+  obtain ⟨j', hj'⟩ : ∃ j', j' ≠ j := fintype.exists_ne_of_one_lt_card h j,
+  apply det_eq_zero_of_column_eq_zero j',
+  intro j'',
+  simp [update_column_ne hj']
+end
+
 lemma det_adjugate_eq_one {A : matrix n n α} (h : A.det = 1) : (adjugate A).det = 1 :=
-calc (adjugate A).det = (adjugate A).det * A.det : by simp [h]
-                  ... = (adjugate A ⬝ A).det     : (det_mul _ _).symm
-                  ... = 1                        : by rw [adjugate_mul, h, one_smul, det_one]
+calc (adjugate A).det
+    = A.det ^ (fintype.card n - 1) : det_adjugate_of_cancel (λ b hb, by simpa [h] using hb)
+... = 1                            : by rw [h, one_pow]
+
+lemma det_adjugate_of_invertible {A : matrix n n α} :
+  (∃ a, a * A.det = 1) → (adjugate A).det = A.det ^ (fintype.card n - 1) :=
+begin
+  rintro ⟨a, ha⟩,
+  by_cases card_lt_zero : fintype.card n ≤ 0,
+  { have h : fintype.card n = 0 := by linarith,
+    simp [det_eq_one_of_card_eq_zero h] },
+  have zero_lt_card : 0 < fintype.card n := by linarith,
+  have n_nonempty : nonempty n := fintype.card_pos_iff.mp zero_lt_card,
+
+  by_cases card_lt_one : fintype.card n ≤ 1,
+  { have h : fintype.card n = 1 := by linarith,
+    simp [h, adjugate_eq_one_of_card_eq_one h] },
+  have one_lt_card : 1 < fintype.card n := by linarith,
+  have zero_lt_card_sub_one : 0 < fintype.card n - 1 :=
+    (nat.sub_lt_sub_right_iff (refl 1)).mpr one_lt_card,
+
+  apply det_adjugate_of_cancel,
+  intros b hb,
+  calc b = a * (det A ^ (fintype.card n - 1 + 1)) :
+       by rw [←one_mul b, ←ha, mul_assoc, hb, nat.sub_add_cancel zero_lt_card]
+     ... = a * det A * det A ^ (fintype.card n - 1) : by ring_exp
+     ... = det A ^ (fintype.card n - 1) : by rw [ha, one_mul]
+end
 
 end adjugate
 

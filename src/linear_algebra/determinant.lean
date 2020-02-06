@@ -144,11 +144,34 @@ end
 lemma det_permute (σ : perm n) (M : matrix n n R) : matrix.det (λ i, M (σ i)) = σ.sign * M.det :=
 by rw [←det_permutation, ←det_mul, pequiv.to_pequiv_mul_matrix]
 
+@[simp] lemma det_smul {A : matrix n n R} {c : R} : det (c • A) = c ^ fintype.card n * det A :=
+calc det (c • A) = det (matrix.mul (diagonal (λ _, c)) A) : by rw [smul_eq_diagonal_mul]
+             ... = det (diagonal (λ _, c)) * det A        : det_mul _ _
+             ... = c ^ fintype.card n * det A             : by simp [card_univ]
+
 section det_zero
 /-! ### `det_zero` section
 
   Prove that a matrix with a repeated column has determinant equal to zero.
 -/
+
+lemma det_eq_one_of_card_eq_zero {A : matrix n n R} (h : fintype.card n = 0) : det A = 1 :=
+begin
+  have perm_eq : (univ : finset (perm n)) = finset.singleton 1 :=
+    univ_eq_singleton_of_card_one (1 : perm n) (by simp [card_univ, fintype.card_perm, h]),
+  simp [det, card_eq_zero.mp h, perm_eq],
+end
+
+lemma det_eq_zero_of_column_eq_zero {A : matrix n n R} (i : n) (h : ∀ j, A i j = 0) : det A = 0 :=
+begin
+  rw [←det_transpose, det],
+  convert @sum_const_zero _ _ (univ : finset (perm n)) _,
+  ext σ,
+  convert mul_zero ↑(sign σ),
+  apply prod_eq_zero (mem_univ i),
+  rw [transpose_val],
+  apply h
+end
 
 /--
   `mod_swap i j` contains permutations up to swapping `i` and `j`.

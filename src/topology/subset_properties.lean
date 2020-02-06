@@ -517,7 +517,7 @@ closure_eq_iff_is_closed.1 $ eq_irreducible_component
   (is_irreducible_closure is_irreducible_irreducible_component).is_preirreducible
   subset_closure
 
-/-- An preirreducible space is one where there is no non-trivial pair of disjoint opens. -/
+/-- A preirreducible space is one where there is no non-trivial pair of disjoint opens. -/
 class preirreducible_space (α : Type u) [topological_space α] : Prop :=
 (is_preirreducible_univ : is_preirreducible (univ : set α))
 

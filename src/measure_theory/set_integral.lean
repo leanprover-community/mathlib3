@@ -31,6 +31,7 @@ variables {α : Type u} {β : Type v} {γ : Type w}
 
 section measurable_on
 variables [measurable_space α] [measurable_space β] [has_zero β] {s : set α} {f : α → β}
+  [measurable_space γ] [has_zero γ] {g : β → γ}
 
 /-- `measurable_on s f` means `f` is measurable over the set `s`. -/
 def measurable_on (s : set α) (f : α → β) : Prop := measurable (indicator s f)
@@ -115,24 +116,24 @@ lemma measurable_on.add [add_monoid β] [topological_add_monoid β] [second_coun
 by { rw [measurable_on, indicator_add], exact hf.add hg }
 
 lemma measurable_on.sub [add_group β] [topological_add_group β] [second_countable_topology β]
-  {f g : α → β} (hf : s.measurable_on f) (hg : s.measurable_on g) :
+  {f g : α → β} (hf : measurable_on s f) (hg : measurable_on s g) :
   measurable_on s (λa, f a - g a) :=
 by { rw [measurable_on, indicator_sub], exact hf.sub hg }
 
-lemma measurable_on.neg [add_group β] [topological_add_group β] {f : α → β} (hf : s.measurable_on f) :
+lemma measurable_on.neg [add_group β] [topological_add_group β] {f : α → β} (hf : measurable_on s f) :
   measurable_on s (λa, - f a) :=
 by { rw [measurable_on, indicator_neg], exact hf.neg }
 
 lemma measurable_on_neg_iff [add_group β] [topological_add_group β] (f : α → β) :
-  s.measurable_on (λa, -f a) ↔ s.measurable_on f :=
+  measurable_on s (λa, -f a) ↔ measurable_on s f :=
 iff.intro
 (by { assume h, convert h.neg, funext, simp })
 measurable_on.neg
 
 lemma measurable_on.mul
   [semiring β] [topological_monoid β] [second_countable_topology β] {f g : α → β}
-  (hf : s.measurable_on f) (hg : s.measurable_on g) :
-  s.measurable_on (λa, f a * g a) :=
+  (hf : measurable_on s f) (hg : measurable_on s g) :
+  measurable_on s (λa, f a * g a) :=
 by { rw [measurable_on, indicator_mul], exact hf.mul hg }
 
 end add

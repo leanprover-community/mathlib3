@@ -120,6 +120,7 @@ instance : metric_space (α →ᵇ β) :=
     (dist_le (add_nonneg dist_nonneg' dist_nonneg')).2 $ λ x,
       le_trans (dist_triangle _ _ _) (add_le_add (dist_coe_le_dist _) (dist_coe_le_dist _)) }
 
+/-- Constant as a continuous bounded function. -/
 def const (b : β) : α →ᵇ β := ⟨λx, b, continuous_const, 0, by simp [le_refl]⟩
 
 /-- If the target space is inhabited, so is the space of bounded continuous functions -/

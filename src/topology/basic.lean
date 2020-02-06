@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johannes Hölzl, Mario Carneiro, Jeremy Avigad
 -/
 
-import order.filter
+import order.filter order.filter.bases
 
 /-!
 # Basic theory of topological spaces.
@@ -387,40 +387,28 @@ localized "notation `𝓝` := nhds" in topological_space
 
 lemma nhds_def (a : α) : 𝓝 a = (⨅ s ∈ {s : set α | a ∈ s ∧ is_open s}, principal s) := rfl
 
+lemma nhds_basis_opens (a : α) : (𝓝 a).has_basis (λ s : set α, a ∈ s ∧ is_open s) id :=
+has_basis_binfi_principal
+  (λ s ⟨has, hs⟩ t ⟨hat, ht⟩, ⟨s ∩ t, ⟨⟨has, hat⟩, is_open_inter hs ht⟩,
+    ⟨inter_subset_left _ _, inter_subset_right _ _⟩⟩)
+  ⟨univ, ⟨mem_univ a, is_open_univ⟩⟩
+
 lemma le_nhds_iff {f a} : f ≤ 𝓝 a ↔ ∀ s : set α, a ∈ s → is_open s → s ∈ f :=
 by simp [nhds_def]
 
 lemma nhds_le_of_le {f a} {s : set α} (h : a ∈ s) (o : is_open s) (sf : principal s ≤ f) : 𝓝 a ≤ f :=
 by rw nhds_def; exact infi_le_of_le s (infi_le_of_le ⟨h, o⟩ sf)
 
-lemma nhds_sets {a : α} : (𝓝 a).sets = {s | ∃t⊆s, is_open t ∧ a ∈ t} :=
-calc (𝓝 a).sets = (⋃s∈{s : set α| a ∈ s ∧ is_open s}, (principal s).sets) : binfi_sets_eq
-  (assume x ⟨hx₁, hx₂⟩ y ⟨hy₁, hy₂⟩,
-    ⟨x ∩ y, ⟨⟨hx₁, hy₁⟩, is_open_inter hx₂ hy₂⟩,
-      le_principal_iff.2 (inter_subset_left _ _),
-      le_principal_iff.2 (inter_subset_right _ _)⟩)
-  ⟨univ, mem_univ _, is_open_univ⟩
-  ... = {s | ∃t⊆s, is_open t ∧ a ∈ t} :
-    le_antisymm
-      (supr_le $ assume i, supr_le $ assume ⟨hi₁, hi₂⟩ t ht, ⟨i, ht, hi₂, hi₁⟩)
-      (assume t ⟨i, hi₁, hi₂, hi₃⟩, mem_Union.2 ⟨i, mem_Union.2 ⟨⟨hi₃, hi₂⟩, hi₁⟩⟩)
+lemma mem_nhds_sets_iff {a : α} {s : set α} :
+ s ∈ 𝓝 a ↔ ∃t⊆s, is_open t ∧ a ∈ t :=
+(nhds_basis_opens a).mem_iff.trans
+  ⟨λ ⟨t, ⟨hat, ht⟩, hts⟩, ⟨t, hts, ht, hat⟩, λ ⟨t, hts, ht, hat⟩, ⟨t, ⟨hat, ht⟩, hts⟩⟩
 
 lemma map_nhds {a : α} {f : α → β} :
   map f (𝓝 a) = (⨅ s ∈ {s : set α | a ∈ s ∧ is_open s}, principal (image f s)) :=
-calc map f (𝓝 a) = (⨅ s ∈ {s : set α | a ∈ s ∧ is_open s}, map f (principal s)) :
-    map_binfi_eq
-    (assume x ⟨hx₁, hx₂⟩ y ⟨hy₁, hy₂⟩,
-      ⟨x ∩ y, ⟨⟨hx₁, hy₁⟩, is_open_inter hx₂ hy₂⟩,
-      le_principal_iff.2 (inter_subset_left _ _),
-      le_principal_iff.2 (inter_subset_right _ _)⟩)
-    ⟨univ, mem_univ _, is_open_univ⟩
-  ... = _ : by simp only [map_principal]
+((nhds_basis_opens a).map f).eq_binfi
 
 attribute [irreducible] nhds
-
-lemma mem_nhds_sets_iff {a : α} {s : set α} :
- s ∈ 𝓝 a ↔ ∃t⊆s, is_open t ∧ a ∈ t :=
-by simp only [nhds_sets, mem_set_of_eq, exists_prop]
 
 lemma mem_of_nhds {a : α} {s : set α} : s ∈ 𝓝 a → a ∈ s :=
 λ H, let ⟨t, ht, _, hs⟩ := mem_nhds_sets_iff.1 H in ht hs
@@ -435,8 +423,8 @@ iff.intro
   (λ h s os xs, h s (mem_nhds_sets os xs))
   (λ h t,
     begin
-      change t ∈ (𝓝 x).sets → P t,
-      rw nhds_sets,
+      change t ∈ 𝓝 x → P t,
+      rw mem_nhds_sets_iff,
       rintros ⟨s, hs, opens, xs⟩,
       exact hP _ _ hs (h s opens xs),
     end)
@@ -511,6 +499,14 @@ mem_closure_iff.trans
   (inter_subset_inter_left _ interior_subset)
   (H _ is_open_interior (mem_interior_iff_mem_nhds.2 ht)),
  λ H o oo ao, H _ (mem_nhds_sets oo ao)⟩
+
+theorem mem_closure_iff_nhds_basis {a : α} {p : β → Prop} {s : β → set α} (h : (𝓝 a).has_basis p s)
+  {t : set α} :
+  a ∈ closure t ↔ ∀ i, p i → ∃ y ∈ t, y ∈ s i :=
+mem_closure_iff_nhds.trans
+  ⟨λ H i hi, let ⟨x, hx⟩ := (H _ $ h.mem_of_mem hi) in ⟨x, hx.2, hx.1⟩,
+    λ H t' ht', let ⟨i, hi, hit⟩ := (h t').1 ht', ⟨x, xt, hx⟩ := H i hi in
+    ⟨x, hit hx, xt⟩⟩
 
 /-- `x` belongs to the closure of `s` if and only if some ultrafilter
   supported on `s` converges to `x`. -/
@@ -611,8 +607,8 @@ lemma is_closed_Union_of_locally_finite {f : β → set α}
 is_open_iff_nhds.mpr $ assume a, assume h : a ∉ (⋃i, f i),
   have ∀i, a ∈ -f i,
     from assume i hi, h $ mem_Union.2 ⟨i, hi⟩,
-  have ∀i, - f i ∈ (𝓝 a).sets,
-    by rw [nhds_sets]; exact assume i, ⟨- f i, subset.refl _, h₂ i, this i⟩,
+  have ∀i, - f i ∈ (𝓝 a),
+    by simp only [mem_nhds_sets_iff]; exact assume i, ⟨- f i, subset.refl _, h₂ i, this i⟩,
   let ⟨t, h_sets, (h_fin : finite {i | (f i ∩ t).nonempty })⟩ := h₁ a in
 
   calc 𝓝 a ≤ principal (t ∩ (⋂ i∈{i | (f i ∩ t).nonempty }, - f i)) :
@@ -664,11 +660,9 @@ lemma continuous_at.comp {g : β → γ} {f : α → β} {x : α}
 hg.comp hf
 
 lemma continuous.tendsto {f : α → β} (hf : continuous f) (x) :
-  tendsto f (𝓝 x) (𝓝 (f x)) | s :=
-show s ∈ 𝓝 (f x) → s ∈ map f (𝓝 x),
-by simp [nhds_sets]; exact
-assume t t_subset t_open fx_in_t,
-  ⟨f ⁻¹' t, preimage_mono t_subset, hf t t_open, fx_in_t⟩
+  tendsto f (𝓝 x) (𝓝 (f x)) :=
+((nhds_basis_opens x).tendsto_iff $ nhds_basis_opens $ f x).2 $
+  λ t ⟨hxt, ht⟩, ⟨f ⁻¹' t, ⟨hxt, hf _ ht⟩, subset.refl _⟩
 
 lemma continuous.continuous_at {f : α → β} {x : α} (h : continuous f) :
   continuous_at f x :=
@@ -679,9 +673,9 @@ lemma continuous_iff_continuous_at {f : α → β} : continuous f ↔ ∀ x, con
   assume hf : ∀x, tendsto f (𝓝 x) (𝓝 (f x)),
   assume s, assume hs : is_open s,
   have ∀a, f a ∈ s → s ∈ 𝓝 (f a),
-    by simp [nhds_sets]; exact assume a ha, ⟨s, subset.refl s, hs, ha⟩,
+    from λ a ha, mem_nhds_sets hs ha,
   show is_open (f ⁻¹' s),
-    by simp [is_open_iff_nhds]; exact assume a ha, hf a (this a ha)⟩
+    from is_open_iff_nhds.2 $ λ a ha, le_principal_iff.2 $ hf _ (this a ha)⟩
 
 lemma continuous_const {b : β} : continuous (λa:α, b) :=
 continuous_iff_continuous_at.mpr $ assume a, tendsto_const_nhds
@@ -755,9 +749,7 @@ lemma pcontinuous_iff' {f : α →. β} :
 begin
   split,
   { intros h x y h',
-    rw [ptendsto'_def],
-    change ∀ (s : set β), s ∈ (𝓝 y).sets → pfun.preimage f s ∈ (𝓝 x).sets,
-    rw [nhds_sets, nhds_sets],
+    simp only [ptendsto'_def, mem_nhds_sets_iff],
     rintros s ⟨t, tsubs, opent, yt⟩,
     exact ⟨f.preimage t, pfun.preimage_mono _ tsubs, h _ opent, ⟨y, yt, h'⟩⟩
   },

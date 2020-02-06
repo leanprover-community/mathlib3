@@ -23,7 +23,7 @@ and the embedding into the general linear group `general_linear_group R (n → R
 
  * `matrix.special_linear_group` is the type of matrices with determinant 1
  * `matrix.special_linear_group.group` gives the group structure (under multiplication)
- * `matrix.special_linear_group.to_GL` is the embedding `SLₙ(R) → GLₙ(R)`
+ * `matrix.special_linear_group.embedding_GL` is the embedding `SLₙ(R) → GLₙ(R)`
 
 ## Implementation notes
 The inverse operation in the `special_linear_group` is defined to be the adjugate
@@ -62,18 +62,31 @@ namespace special_linear_group
 
 variables {n : Type u} [fintype n] [decidable_eq n] {R : Type v} [comm_ring R]
 
-lemma ext_iff (A B : special_linear_group n R) : A = B ↔ (∀ i j, A.1 i j = B.1 i j) :=
-iff.trans subtype.ext ⟨(λ h i j, by rw h), matrix.ext⟩
+instance coe_matrix : has_coe (special_linear_group n R) (matrix n n R) :=
+⟨λ A, A.val⟩
 
-@[ext] lemma ext (A B : special_linear_group n R) : (∀ i j, A.1 i j = B.1 i j) → A = B :=
+instance coe_fun : has_coe_to_fun (special_linear_group n R) :=
+{ F   := λ _, n → n → R,
+  coe := λ A, A.val }
+
+@[simp] lemma coe_fun_eq_val (A : special_linear_group n R) :
+  (A : n → n → R) = A.val :=
+rfl
+
+lemma ext_iff (A B : special_linear_group n R) : A = B ↔ (∀ i j, A i j = B i j) :=
+iff.trans subtype.ext ⟨(λ h i j, by simp [h]), matrix.ext⟩
+
+@[ext] lemma ext (A B : special_linear_group n R) : (∀ i j, A i j = B i j) → A = B :=
 (special_linear_group.ext_iff A B).mpr
 
-instance has_inv : has_inv (special_linear_group n R) := ⟨λ A, ⟨adjugate A.1, det_adjugate_eq_one A.2⟩⟩
+instance has_inv : has_inv (special_linear_group n R) :=
+⟨λ A, ⟨adjugate A, det_adjugate_eq_one A.2⟩⟩
 
 instance has_mul : has_mul (special_linear_group n R) :=
 ⟨λ A B, ⟨A.1 ⬝ B.1, by erw [det_mul, A.2, B.2, one_mul]⟩⟩
 
-instance has_one : has_one (special_linear_group n R) := ⟨⟨1, det_one⟩⟩
+instance has_one : has_one (special_linear_group n R) :=
+⟨⟨1, det_one⟩⟩
 
 instance : inhabited (special_linear_group n R) := ⟨1⟩
 
@@ -84,7 +97,7 @@ instance : inhabited (special_linear_group n R) := ⟨1⟩
 @[simp] lemma one_val : (1 : special_linear_group n R).val = 1 := rfl
 
 instance group : group (special_linear_group n R) :=
-{ mul_assoc := λ A B C, by { ext, simp [mul_val, matrix.mul_assoc] },
+{ mul_assoc := λ A B C, by { ext, simp [matrix.mul_assoc] },
   one_mul := λ A, by { ext, simp },
   mul_one := λ A, by { ext, simp },
   mul_left_inv := λ A, by { ext, simp [adjugate_mul, A.2] },
@@ -107,26 +120,27 @@ def to_linear_equiv (A : special_linear_group n R) : (n → R) ≃ₗ[R] (n → 
   ..A.val.to_lin
 }
 
-instance coe_GL : has_coe (special_linear_group n R) (general_linear_group R (n → R)) :=
-⟨λ A, general_linear_group.of_linear_equiv (to_linear_equiv A)⟩
+/-- `to_GL` is the map from the special linear group to the general linear group -/
+def to_GL (A : special_linear_group n R) : general_linear_group R (n → R) :=
+general_linear_group.of_linear_equiv (to_linear_equiv A)
 
-lemma coe_coe (A : special_linear_group n R) :
-  (@coe (units _) _ _ (A : general_linear_group R (n → R))) = A.val.to_lin :=
+lemma coe_to_GL (A : special_linear_group n R) :
+  (@coe (units _) _ _ (to_GL A)) = A.val.to_lin :=
 rfl
 
-@[simp, elim_cast]
-lemma coe_GL_one : ((1 : special_linear_group n R) : general_linear_group R (n → R)) = 1 :=
-by { ext v i, rw [coe_coe, one_val, to_lin_one], refl }
+@[simp]
+lemma to_GL_one : to_GL (1 : special_linear_group n R) = 1 :=
+by { ext v i, rw [coe_to_GL, one_val, to_lin_one], refl }
 
-@[simp, move_cast]
-lemma coe_GL_mul (A B : special_linear_group n R) :
-  (↑(A * B) : general_linear_group R (n → R)) = ↑A * ↑B :=
-by { ext v i, rw [coe_coe, mul_val, mul_to_lin], refl }
+@[simp]
+lemma to_GL_mul (A B : special_linear_group n R) :
+  to_GL (A * B) = to_GL A * to_GL B :=
+by { ext v i, rw [coe_to_GL, mul_val, mul_to_lin], refl }
 
-/-- `special_linear_group.to_GL` is the embedding from `special_linear_group n R`
+/-- `special_linear_group.embedding_GL` is the embedding from `special_linear_group n R`
   to `general_linear_group n R`. -/
-def to_GL : (special_linear_group n R) →* (general_linear_group R (n → R)) :=
-⟨λ A, ↑A, by norm_cast, by { intros, norm_cast }⟩
+def embedding_GL : (special_linear_group n R) →* (general_linear_group R (n → R)) :=
+⟨λ A, to_GL A, by simp, by simp⟩
 
 end special_linear_group
 

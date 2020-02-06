@@ -40,6 +40,13 @@ by rw [← diagonal_zero, det_diagonal, finset.prod_const, ← fintype.card,
 @[simp] lemma det_one : det (1 : matrix n n R) = 1 :=
 by rw [← diagonal_one]; simp [-diagonal_one]
 
+lemma det_eq_one_of_card_eq_zero {A : matrix n n R} (h : fintype.card n = 0) : det A = 1 :=
+begin
+  have perm_eq : (univ : finset (perm n)) = finset.singleton 1 :=
+  univ_eq_singleton_of_card_one (1 : perm n) (by simp [card_univ, fintype.card_perm, h]),
+  simp [det, card_eq_zero.mp h, perm_eq],
+end
+
 lemma det_mul_aux {M N : matrix n n R} {p : n → n} (H : ¬bijective p) :
   univ.sum (λ σ : perm n, (ε σ) * (univ.prod (λ x, M (σ x) (p x) * N (p x) x))) = 0 :=
 begin
@@ -154,13 +161,6 @@ section det_zero
 
   Prove that a matrix with a repeated column has determinant equal to zero.
 -/
-
-lemma det_eq_one_of_card_eq_zero {A : matrix n n R} (h : fintype.card n = 0) : det A = 1 :=
-begin
-  have perm_eq : (univ : finset (perm n)) = finset.singleton 1 :=
-    univ_eq_singleton_of_card_one (1 : perm n) (by simp [card_univ, fintype.card_perm, h]),
-  simp [det, card_eq_zero.mp h, perm_eq],
-end
 
 lemma det_eq_zero_of_column_eq_zero {A : matrix n n R} (i : n) (h : ∀ j, A i j = 0) : det A = 0 :=
 begin

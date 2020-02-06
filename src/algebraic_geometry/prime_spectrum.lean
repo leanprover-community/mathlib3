@@ -137,16 +137,16 @@ is defined via the closed sets of the topology:
 they are exactly those sets that are the zero locus of a subset of the ring. -/
 instance zariski_topology : topological_space (prime_spectrum R) :=
 topological_space.of_closed (set.range prime_spectrum.zero_locus)
-(⟨set.univ, by simp⟩)
-begin
-  intros Zs h,
-  rw set.sInter_eq_Inter,
-  let f : Zs → set R := λ i, classical.some (h i.2),
-  have hf : ∀ i : Zs, i.1 = zero_locus (f i) := λ i, classical.some_spec (h i.2),
-  simp only [hf],
-  exact ⟨_, snter_zero_locus _⟩
-end
-(by { rintro _ _ ⟨s, rfl⟩ ⟨t, rfl⟩, exact ⟨_, union_zero_locus s t⟩ })
+  (⟨set.univ, by simp⟩)
+  begin
+    intros Zs h,
+    rw set.sInter_eq_Inter,
+    let f : Zs → set R := λ i, classical.some (h i.2),
+    have hf : ∀ i : Zs, i.1 = zero_locus (f i) := λ i, classical.some_spec (h i.2),
+    simp only [hf],
+    exact ⟨_, snter_zero_locus _⟩
+  end
+  (by { rintro _ _ ⟨s, rfl⟩ ⟨t, rfl⟩, exact ⟨_, union_zero_locus s t⟩ })
 
 lemma is_open_iff (U : set (prime_spectrum R)) :
   is_open U ↔ ∃ s, -U = zero_locus s :=

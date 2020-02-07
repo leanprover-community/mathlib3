@@ -525,7 +525,9 @@ class preirreducible_space (α : Type u) [topological_space α] : Prop :=
 and where there is no non-trivial pair of disjoint opens. -/
 class irreducible_space (α : Type u) [topological_space α]
 extends preirreducible_space α :=
-(nonempty_univ : set.nonempty (univ : set α))
+(to_nonempty : nonempty α)
+
+attribute [instance] irreducible_space.to_nonempty
 
 theorem nonempty_preirreducible_inter [preirreducible_space α] {s t : set α} :
   is_open s → is_open t → s.nonempty → t.nonempty → (s ∩ t).nonempty :=
@@ -738,7 +740,9 @@ class preconnected_space (α : Type u) [topological_space α] : Prop :=
 
 /-- A connected space is a nonempty one where there is no non-trivial open partition. -/
 class connected_space (α : Type u) [topological_space α] extends preconnected_space α : Prop :=
-(nonempty_univ : set.nonempty (univ : set α))
+(to_nonempty : nonempty α)
+
+attribute [instance] connected_space.to_nonempty
 
 @[priority 100] -- see Note [lower instance priority]
 instance preirreducible_space.preconnected_space (α : Type u) [topological_space α]
@@ -748,12 +752,7 @@ instance preirreducible_space.preconnected_space (α : Type u) [topological_spac
 @[priority 100] -- see Note [lower instance priority]
 instance irreducible_space.connected_space (α : Type u) [topological_space α]
   [irreducible_space α] : connected_space α :=
-{ nonempty_univ := irreducible_space.nonempty_univ α }
-
-@[priority 100] -- see Note [lower instance priority]
-instance connected_space.nonempty (α : Type u) [topological_space α] [connected_space α] :
-  nonempty α :=
-nonempty_of_exists $ connected_space.nonempty_univ α
+{ to_nonempty := irreducible_space.to_nonempty α }
 
 theorem nonempty_inter [preconnected_space α] {s t : set α} :
   is_open s → is_open t → s ∪ t = univ → s.nonempty → t.nonempty → (s ∩ t).nonempty :=

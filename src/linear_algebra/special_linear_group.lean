@@ -69,12 +69,16 @@ instance coe_fun : has_coe_to_fun (special_linear_group n R) :=
 { F   := λ _, n → n → R,
   coe := λ A, A.val }
 
-@[simp] lemma coe_fun_eq_val (A : special_linear_group n R) :
-  (A : n → n → R) = A.val :=
-rfl
+/--
+  `to_lin A` is matrix multiplication of vectors by `A`, as a linear map.
+
+  After the group structure on `special_linear_group n R` is defined,
+  we show in `to_linear_equiv` that this gives a linear equivalence.
+-/
+def to_lin (A : special_linear_group n R) := matrix.to_lin A
 
 lemma ext_iff (A B : special_linear_group n R) : A = B ↔ (∀ i j, A i j = B i j) :=
-iff.trans subtype.ext ⟨(λ h i j, by simp [h]), matrix.ext⟩
+iff.trans subtype.ext ⟨(λ h i j, congr_fun (congr_fun h i) j), matrix.ext⟩
 
 @[ext] lemma ext (A B : special_linear_group n R) : (∀ i j, A i j = B i j) → A = B :=
 (special_linear_group.ext_iff A B).mpr
@@ -90,50 +94,70 @@ instance has_one : has_one (special_linear_group n R) :=
 
 instance : inhabited (special_linear_group n R) := ⟨1⟩
 
-@[simp] lemma inv_val (A : special_linear_group n R) : A⁻¹.val = adjugate A.val := rfl
+section coe_lemmas
 
-@[simp] lemma mul_val (A B : special_linear_group n R) : (A * B).val = A.val ⬝ B.val := rfl
+variables (A B : special_linear_group n R)
 
-@[simp] lemma one_val : (1 : special_linear_group n R).val = 1 := rfl
+@[simp] lemma inv_val : ↑(A⁻¹) = adjugate A := rfl
+
+@[simp] lemma inv_apply : ⇑(A⁻¹) = adjugate A := rfl
+
+@[simp] lemma mul_val : ↑(A * B) = A ⬝ B := rfl
+
+@[simp] lemma mul_apply : ⇑(A * B) = (A ⬝ B) := rfl
+
+@[simp] lemma one_val : ↑(1 : special_linear_group n R) = (1 : matrix n n R) := rfl
+
+@[simp] lemma one_apply : ⇑(1 : special_linear_group n R) = (1 : matrix n n R) := rfl
+
+@[simp] lemma det_coe_matrix : det A = 1 := A.2
+
+@[simp] lemma det_coe_fun : det ⇑A = 1 := A.2
+
+@[simp] lemma to_lin_mul : to_lin (A * B) = (to_lin A).comp (to_lin B) := matrix.mul_to_lin A B
+
+@[simp] lemma to_lin_one : to_lin (1 : special_linear_group n R) = linear_map.id := matrix.to_lin_one
+
+end coe_lemmas
 
 instance group : group (special_linear_group n R) :=
 { mul_assoc := λ A B C, by { ext, simp [matrix.mul_assoc] },
   one_mul := λ A, by { ext, simp },
   mul_one := λ A, by { ext, simp },
-  mul_left_inv := λ A, by { ext, simp [adjugate_mul, A.2] },
+  mul_left_inv := λ A, by { ext, simp [adjugate_mul] },
   ..special_linear_group.has_mul,
   ..special_linear_group.has_one,
   ..special_linear_group.has_inv }
 
-/-- `to_linear_equiv A` is matrix multiplication of vectors by `A.val`, as a linear equivalence. -/
+/-- `to_linear_equiv A` is matrix multiplication of vectors by `A`, as a linear equivalence. -/
 def to_linear_equiv (A : special_linear_group n R) : (n → R) ≃ₗ[R] (n → R) :=
-{ inv_fun := A⁻¹.val.to_lin,
+{ inv_fun := A⁻¹.to_lin,
   left_inv := λ x, calc
-    (A⁻¹.val.to_lin.comp A.val.to_lin) x
-        = ((A⁻¹ * A).val.to_lin : (n → R) → (n → R)) x : by rw [←mul_to_lin, mul_val]
-    ... = x : by simp,
+    A⁻¹.to_lin.comp A.to_lin x
+        = (A⁻¹ * A).to_lin x : by rw [←to_lin_mul]
+    ... = x : by rw [mul_left_inv, to_lin_one, id_apply],
   right_inv := λ x, calc
-    (A.val.to_lin.comp A⁻¹.val.to_lin) x
-        = ((A * A⁻¹).val.to_lin : (n → R) → (n → R)) x : by rw [←mul_to_lin, mul_val]
-    ... = x : by simp,
-  ..A.val.to_lin }
+    A.to_lin.comp A⁻¹.to_lin x
+        = (A * A⁻¹).to_lin x : by rw [←to_lin_mul]
+    ... = x : by rw [mul_right_inv, to_lin_one, id_apply],
+  ..matrix.to_lin A }
 
 /-- `to_GL` is the map from the special linear group to the general linear group -/
 def to_GL (A : special_linear_group n R) : general_linear_group R (n → R) :=
 general_linear_group.of_linear_equiv (to_linear_equiv A)
 
 lemma coe_to_GL (A : special_linear_group n R) :
-  (@coe (units _) _ _ (to_GL A)) = A.val.to_lin :=
+  (@coe (units _) _ _ (to_GL A)) = A.to_lin :=
 rfl
 
 @[simp]
 lemma to_GL_one : to_GL (1 : special_linear_group n R) = 1 :=
-by { ext v i, rw [coe_to_GL, one_val, to_lin_one], refl }
+by { ext v i, rw [coe_to_GL, to_lin_one], refl }
 
 @[simp]
 lemma to_GL_mul (A B : special_linear_group n R) :
   to_GL (A * B) = to_GL A * to_GL B :=
-by { ext v i, rw [coe_to_GL, mul_val, mul_to_lin], refl }
+by { ext v i, rw [coe_to_GL, to_lin_mul], refl }
 
 /-- `special_linear_group.embedding_GL` is the embedding from `special_linear_group n R`
   to `general_linear_group n R`. -/

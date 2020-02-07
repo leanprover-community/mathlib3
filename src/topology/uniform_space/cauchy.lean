@@ -132,6 +132,7 @@ lemma cauchy_seq_iff_tendsto [inhabited β] [semilattice_sup β] {u : β → α}
 cauchy_map_iff.trans $ (and_iff_right at_top_ne_bot).trans $
   by simp only [prod_at_top_at_top_eq, prod.map_def]
 
+@[nolint] -- see Note [nolint_ge]
 lemma filter.has_basis.cauchy_seq_iff {γ} [inhabited β] [semilattice_sup β] {u : β → α}
   {p : γ → Prop} {s : γ → set (α × α)} (h : (𝓤 α).has_basis p s) :
   cauchy_seq u ↔ ∀ i, p i → ∃N, ∀m n≥N, (u m, u n) ∈ s i :=
@@ -142,6 +143,7 @@ begin
     mem_prod_eq, mem_set_of_eq, mem_Ici, and_imp, prod.map]
 end
 
+@[nolint] -- see Note [nolint_ge]
 lemma filter.has_basis.cauchy_seq_iff' {γ} [inhabited β] [semilattice_sup β] {u : β → α}
   {p : γ → Prop} {s : γ → set (α × α)} (H : (𝓤 α).has_basis p s) :
   cauchy_seq u ↔ ∀ i, p i → ∃N, ∀n≥N, (u n, u N) ∈ s i :=

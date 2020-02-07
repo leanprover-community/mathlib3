@@ -311,7 +311,7 @@ accumulating to zero, then `f i`-neighborhoods of the diagonal form a basis of `
 
 For specific bases see `uniformity_basis_dist`, `uniformity_basis_dist_inv_nat_succ`,
 and `uniformity_basis_dist_inv_nat_pos`. -/
-protected theorem metric.mk_uniformity_basis {β : Type*} {p : β → Prop} {f : β → ℝ}
+protected theorem mk_uniformity_basis {β : Type*} {p : β → Prop} {f : β → ℝ}
   (hf₀ : ∀ i, p i → 0 < f i) (hf : ∀ ⦃ε⦄, 0 < ε → ∃ i (hi : p i), f i ≤ ε) :
   (𝓤 α).has_basis p (λ i, {p:α×α | dist p.1 p.2 < f i}) :=
 begin
@@ -339,7 +339,7 @@ form a basis of `𝓤 α`.
 
 Currently we have only one specific basis `uniformity_basis_dist_le` based on this constructor.
 More can be easily added if needed in the future. -/
-protected theorem metric.mk_uniformity_basis_le {β : Type*} {p : β → Prop} {f : β → ℝ}
+protected theorem mk_uniformity_basis_le {β : Type*} {p : β → Prop} {f : β → ℝ}
   (hf₀ : ∀ x, p x → 0 < f x) (hf : ∀ ε, 0 < ε → ∃ x (hx : p x), f x ≤ ε) :
   (𝓤 α).has_basis p (λ x, {p:α×α | dist p.1 p.2 ≤ f x}) :=
 begin
@@ -543,6 +543,7 @@ begin
     rwa [edist_dist, ennreal.of_real_lt_of_real_iff ε0'] }
 end
 
+@[nolint] -- see Note [nolint_ge]
 theorem metric.uniformity_edist : 𝓤 α = (⨅ ε>0, principal {p:α×α | edist p.1 p.2 < ε}) :=
 metric.uniformity_basis_edist.eq_binfi
 
@@ -918,6 +919,7 @@ theorem is_closed_ball : is_closed (closed_ball x ε) :=
 is_closed_le (continuous_dist continuous_id continuous_const) continuous_const
 
 /-- ε-characterization of the closure in metric spaces-/
+@[nolint] -- see Note [nolint_ge]
 theorem mem_closure_iff {α : Type u} [metric_space α] {s : set α} {a : α} :
   a ∈ closure s ↔ ∀ε>0, ∃b ∈ s, dist a b < ε :=
 (mem_closure_iff_nhds_basis nhds_basis_ball).trans $

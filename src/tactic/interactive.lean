@@ -6,6 +6,9 @@ Authors: Mario Carneiro, Simon Hudon, Sebastien Gouezel, Scott Morrison
 -/
 import tactic.lint
 
+lemma nonempty.elim_to_inhabited {α : Sort*} [h : nonempty α] {p : Prop} : (inhabited α → p) → p :=
+λ f, h.elim $ f ∘ inhabited.mk
+
 open lean
 open lean.parser
 
@@ -811,6 +814,14 @@ do (cxt,_) ← solve_aux `(true) $
    let fmt := mk_paragraph 80 $ title :: cxt' ++ [cxt''.get_or_else ":", stmt],
    trace fmt,
    trace!"begin\n  \nend"
+
+/-- Turns a `nonempty α` instance into an `inhabited α` instance, provided the target is a prop. -/
+meta def inhabit (t : parse parser.pexpr) (inst_name : parse ident?) : tactic unit :=
+do target >>= is_prop >>= guardb <|> fail "`inhabit` only works on propositional goals",
+   ty ← i_to_expr t,
+   mk_mapp `nonempty.elim_to_inhabited [ty, none] >>= tactic.apply <|> fail "could not infer nonempty instance",
+   nm ← get_unused_name `inst,
+   introI $ inst_name.get_or_else nm
 
 end interactive
 end tactic

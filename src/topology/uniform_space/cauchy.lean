@@ -116,11 +116,11 @@ lemma cauchy_seq_of_tendsto_nhds [semilattice_sup β] [nonempty β] (f : β → 
   cauchy_seq f :=
 cauchy_downwards cauchy_nhds (map_ne_bot at_top_ne_bot) hx
 
-lemma cauchy_seq_iff_prod_map [inhabited β] [semilattice_sup β] {u : β → α} :
+lemma cauchy_seq_iff_prod_map [nonempty β] [semilattice_sup β] {u : β → α} :
   cauchy_seq u ↔ map (prod.map u u) at_top ≤ 𝓤 α :=
 iff.trans (and_iff_right (map_ne_bot at_top_ne_bot)) (prod_map_at_top_eq u u ▸ iff.rfl)
 
-lemma cauchy_seq_of_controlled [semilattice_sup β] [inhabited β]
+lemma cauchy_seq_of_controlled [semilattice_sup β] [nonempty β]
   (U : β → set (α × α)) (hU : ∀ s ∈ 𝓤 α, ∃ n, U n ⊆ s)
   {f : β → α} (hf : ∀ {N m n : β}, N ≤ m → N ≤ n → (f m, f n) ∈ U N) :
   cauchy_seq f :=

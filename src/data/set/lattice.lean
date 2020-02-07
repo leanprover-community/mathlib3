@@ -118,10 +118,10 @@ lemma Inter_subset_Inter2 {s : ι → set α} {t : ι' → set α} (h : ∀ j, �
   (⋂ i, s i) ⊆ (⋂ j, t j) :=
 set.subset_Inter $ λ j, let ⟨i, hi⟩ := h j in Inter_subset_of_subset i hi
 
-theorem Union_const [inhabited ι] (s : set β) : (⋃ i:ι, s) = s :=
+theorem Union_const [nonempty ι] (s : set β) : (⋃ i:ι, s) = s :=
 ext $ by simp
 
-theorem Inter_const [inhabited ι] (s : set β) : (⋂ i:ι, s) = s :=
+theorem Inter_const [nonempty ι] (s : set β) : (⋂ i:ι, s) = s :=
 ext $ by simp
 
 @[simp] -- complete_boolean_algebra
@@ -156,19 +156,19 @@ theorem Inter_inter_distrib (s : ι → set β) (t : ι → set β) :
   (⋂ i, s i ∩ t i) = (⋂ i, s i) ∩ (⋂ i, t i) :=
 ext $ by simp [forall_and_distrib]
 
-theorem union_Union [inhabited ι] (s : set β) (t : ι → set β) :
+theorem union_Union [nonempty ι] (s : set β) (t : ι → set β) :
   s ∪ (⋃ i, t i) = ⋃ i, s ∪ t i :=
 by rw [Union_union_distrib, Union_const]
 
-theorem Union_union [inhabited ι] (s : set β) (t : ι → set β) :
+theorem Union_union [nonempty ι] (s : set β) (t : ι → set β) :
   (⋃ i, t i) ∪ s = ⋃ i, t i ∪ s :=
 by rw [Union_union_distrib, Union_const]
 
-theorem inter_Inter [inhabited ι] (s : set β) (t : ι → set β) :
+theorem inter_Inter [nonempty ι] (s : set β) (t : ι → set β) :
   s ∩ (⋂ i, t i) = ⋂ i, s ∩ t i :=
 by rw [Inter_inter_distrib, Inter_const]
 
-theorem Inter_inter [inhabited ι] (s : set β) (t : ι → set β) :
+theorem Inter_inter [nonempty ι] (s : set β) (t : ι → set β) :
   (⋂ i, t i) ∩ s = ⋂ i, t i ∩ s :=
 by rw [Inter_inter_distrib, Inter_const]
 
@@ -181,7 +181,7 @@ theorem Union_diff (s : set β) (t : ι → set β) :
   (⋃ i, t i) \ s = ⋃ i, t i \ s :=
 Union_inter _ _
 
-theorem diff_Union [inhabited ι] (s : set β) (t : ι → set β) :
+theorem diff_Union [nonempty ι] (s : set β) (t : ι → set β) :
   s \ (⋃ i, t i) = ⋂ i, s \ t i :=
 by rw [diff_eq, compl_Union, inter_Inter]; refl
 

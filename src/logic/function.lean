@@ -169,8 +169,15 @@ surjective_of_has_right_inverse ⟨_, left_inverse_inv_fun hf⟩
 
 lemma inv_fun_comp (hf : injective f) : inv_fun f ∘ f = id := funext $ left_inverse_inv_fun hf
 
+end inv_fun
+
+section inv_fun
+variables {α : Type u} [i : nonempty α] {β : Sort v} {f : α → β}
+include i
+
 lemma injective.has_left_inverse (hf : injective f) : has_left_inverse f :=
-⟨inv_fun f, left_inverse_inv_fun hf⟩
+i.elim $ λ a, have inhabited α, from ⟨a⟩,
+by { tactic.unfreeze_local_instances, exact ⟨inv_fun f, left_inverse_inv_fun hf⟩ }
 
 lemma injective_iff_has_left_inverse : injective f ↔ has_left_inverse f :=
 ⟨injective.has_left_inverse, injective_of_has_left_inverse⟩

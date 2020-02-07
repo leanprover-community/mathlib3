@@ -479,11 +479,11 @@ forall_true_iff' $ λ _, forall_true_iff
   (∀ a (b : β a), γ a b → true) ↔ true :=
 forall_true_iff' $ λ _, forall_2_true_iff
 
-@[simp] theorem forall_const (α : Sort*) [inhabited α] : (α → b) ↔ b :=
-⟨λ h, h (arbitrary α), λ hb x, hb⟩
+@[simp] theorem forall_const (α : Sort*) [i : nonempty α] : (α → b) ↔ b :=
+⟨i.elim, λ hb x, hb⟩
 
-@[simp] theorem exists_const (α : Sort*) [inhabited α] : (∃ x : α, b) ↔ b :=
-⟨λ ⟨x, h⟩, h, λ h, ⟨arbitrary α, h⟩⟩
+@[simp] theorem exists_const (α : Sort*) [i : nonempty α] : (∃ x : α, b) ↔ b :=
+⟨λ ⟨x, h⟩, h, i.elim $ λ x h, ⟨x, h⟩⟩
 
 theorem forall_and_distrib : (∀ x, p x ∧ q x) ↔ (∀ x, p x) ∧ (∀ x, q x) :=
 ⟨λ h, ⟨λ x, (h x).left, λ x, (h x).right⟩, λ ⟨h₁, h₂⟩ x, ⟨h₁ x, h₂ x⟩⟩

@@ -483,7 +483,7 @@ forall_true_iff' $ λ _, forall_2_true_iff
 ⟨i.elim, λ hb x, hb⟩
 
 @[simp] theorem exists_const (α : Sort*) [i : nonempty α] : (∃ x : α, b) ↔ b :=
-⟨λ ⟨x, h⟩, h, i.elim $ λ x h, ⟨x, h⟩⟩
+⟨λ ⟨x, h⟩, h, i.elim exists.intro⟩
 
 theorem forall_and_distrib : (∀ x, p x ∧ q x) ↔ (∀ x, p x) ∧ (∀ x, q x) :=
 ⟨λ h, ⟨λ x, (h x).left, λ x, (h x).right⟩, λ ⟨h₁, h₂⟩ x, ⟨h₁ x, h₂ x⟩⟩

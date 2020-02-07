@@ -488,7 +488,7 @@ def nonzero_comm_semiring.of_ne [comm_semiring α] {x y : α} (h : x ≠ y) : no
   zero_ne_one := λ h01, h $ by rw [← one_mul x, ← one_mul y, ← h01, zero_mul, zero_mul],
   ..show comm_semiring α, by apply_instance }
 
-/-- this is needed for compatibility between Lean 3.4.2 and Lean 3.5.0c -/
+/-- this is needed for compatibility between Lean 3.4.2 and Lean 3.5.1c -/
 def has_div_of_division_ring [division_ring α] : has_div α := division_ring_has_div
 
 section prio

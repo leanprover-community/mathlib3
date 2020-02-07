@@ -80,7 +80,7 @@ begin
   -- Take `t ∈ f` such that `t × t ⊆ s`.
   rcases (cauchy_iff.1 hf).2 s hs with ⟨t, t_mem, ht⟩,
   use [t, t_mem, ht],
-  exact exists_mem_of_ne_empty (forall_sets_ne_empty_iff_ne_bot.2 adhs _
+  exact (forall_sets_nonempty_iff_ne_bot.2 adhs _
     (inter_mem_inf_sets t_mem (mem_nhds_left x hs)))
 end
 
@@ -284,7 +284,7 @@ lemma totally_bounded_iff_filter {s : set α} :
     by simpa using hs,
   let
     f := ⨅t:{t : set α // finite t}, principal (s \ (⋃y∈t.val, {x | (x,y) ∈ d})),
-    ⟨a, ha⟩ := @exists_mem_of_ne_empty α s
+    ⟨a, ha⟩ := (@ne_empty_iff_nonempty α s).1
       (assume h, hd_cover finite_empty $ h.symm ▸ empty_subset _)
   in
   have f ≠ ⊥,

@@ -386,30 +386,25 @@ by simp only [le_antisymm_iff, le_principal_iff, mem_principal_sets]; refl
 
 @[simp] lemma join_principal_eq_Sup {s : set (filter α)} : join (principal s) = Sup s := rfl
 
-/- lattice equations -/
+/-! ### Lattice equations -/
 
 lemma empty_in_sets_eq_bot {f : filter α} : ∅ ∈ f ↔ f = ⊥ :=
 ⟨assume h, bot_unique $ assume s _, mem_sets_of_superset h (empty_subset s),
   assume : f = ⊥, this.symm ▸ mem_bot_sets⟩
 
-lemma nonempty_of_mem_sets {f : filter α} {s : set α} (hf : f ≠ ⊥) (hs : s ∈ f) :
+lemma nonempty_of_mem_sets {f : filter α} (hf : f ≠ ⊥) {s : set α} (hs : s ∈ f) :
   s.nonempty :=
-have ∅ ∉ f, from assume h, hf $ empty_in_sets_eq_bot.mp h,
-have s ≠ ∅, from assume h, this (h ▸ hs),
-ne_empty_iff_nonempty.1 this
+s.eq_empty_or_nonempty.elim (λ h, absurd hs (h.symm ▸ mt empty_in_sets_eq_bot.mp hf)) id
+
+lemma nonempty_of_ne_bot {f : filter α} (hf : f ≠ ⊥) : nonempty α :=
+nonempty_of_exists $ nonempty_of_mem_sets hf univ_mem_sets
 
 lemma filter_eq_bot_of_not_nonempty {f : filter α} (ne : ¬ nonempty α) : f = ⊥ :=
 empty_in_sets_eq_bot.mp $ univ_mem_sets' $ assume x, false.elim (ne ⟨x⟩)
 
-lemma forall_sets_ne_empty_iff_ne_bot {f : filter α} :
-  (∀ (s : set α), s ∈ f → s ≠ ∅) ↔ f ≠ ⊥ :=
-by
-  simp only [(@empty_in_sets_eq_bot α f).symm, ne.def];
-  exact ⟨assume h hs, h _ hs rfl, assume h s hs eq, h $ eq ▸ hs⟩
-
 lemma forall_sets_nonempty_iff_ne_bot {f : filter α} :
   (∀ (s : set α), s ∈ f → s.nonempty) ↔ f ≠ ⊥ :=
-by simpa only [ne_empty_iff_nonempty] using forall_sets_ne_empty_iff_ne_bot
+⟨λ h hf, empty_not_nonempty (h ∅ $ hf.symm ▸ mem_bot_sets), nonempty_of_mem_sets⟩
 
 lemma mem_sets_of_eq_bot {f : filter α} {s : set α} (h : f ⊓ principal (-s) = ⊥) : s ∈ f :=
 have ∅ ∈ f ⊓ principal (- s), from h.symm ▸ mem_bot_sets,
@@ -726,8 +721,10 @@ lemma principal_empty : principal (∅ : set α) = ⊥ :=
 bot_unique $ assume s _, empty_subset _
 
 @[simp] lemma principal_eq_bot_iff {s : set α} : principal s = ⊥ ↔ s = ∅ :=
-⟨assume h, principal_eq_iff_eq.mp $ by simp only [principal_empty, h, eq_self_iff_true],
-  assume h, by simp only [h, principal_empty, eq_self_iff_true]⟩
+empty_in_sets_eq_bot.symm.trans $ mem_principal_sets.trans subset_empty_iff
+
+@[simp] lemma principal_ne_bot_iff {s : set α} : principal s ≠ ⊥ ↔ s.nonempty :=
+(not_congr principal_eq_bot_iff).trans ne_empty_iff_nonempty
 
 lemma inf_principal_eq_bot {f : filter α} {s : set α} (hs : -s ∈ f) : f ⊓ principal s = ⊥ :=
 empty_in_sets_eq_bot.mp ⟨_, hs, s, mem_principal_self s, assume x ⟨h₁, h₂⟩, h₁ h₂⟩
@@ -1045,11 +1042,10 @@ theorem map_comap_of_surjective {f : α → β} (hf : function.surjective f) (l 
   map f (comap f l) = l :=
 le_antisymm map_comap_le (le_map_comap_of_surjective hf l)
 
-lemma comap_ne_bot {f : filter β} {m : α → β}
-  (hm : ∀t∈ f, ∃a, m a ∈ t) : comap m f ≠ ⊥ :=
-forall_sets_ne_empty_iff_ne_bot.mp $ assume s ⟨t, ht, t_s⟩,
-  let ⟨a, (ha : a ∈ preimage m t)⟩ := hm t ht in
-  ne_bot_of_le_ne_bot (ne_empty_of_mem ha) t_s
+lemma comap_ne_bot {f : filter β} {m : α → β} (hm : ∀t∈ f, ∃a, m a ∈ t) :
+  comap m f ≠ ⊥ :=
+forall_sets_nonempty_iff_ne_bot.mp $ assume s ⟨t, ht, t_s⟩,
+  set.nonempty.mono t_s (hm t ht)
 
 lemma comap_ne_bot_of_range_mem {f : filter β} {m : α → β}
   (hf : f ≠ ⊥) (hm : range m ∈ f) : comap m f ≠ ⊥ :=
@@ -1664,7 +1660,7 @@ mem_infi_sets a $ subset.refl _
 infi_ne_bot_of_directed (by apply_instance)
   (assume a b, ⟨a ⊔ b, by simp only [ge, le_principal_iff, forall_const, set_of_subset_set_of,
     mem_principal_sets, and_self, sup_le_iff, forall_true_iff] {contextual := tt}⟩)
-  (assume a, by simp only [principal_eq_bot_iff, ne.def, principal_eq_bot_iff]; exact ne_empty_of_mem (le_refl a))
+  (assume a, principal_ne_bot_iff.2 nonempty_Ici)
 
 @[simp] lemma mem_at_top_sets [nonempty α] [semilattice_sup α] {s : set α} :
   s ∈ (at_top : filter α) ↔ ∃a:α, ∀b≥a, b ∈ s :=

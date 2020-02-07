@@ -1394,7 +1394,7 @@ An improved version of the standard `clear` tactic. `clear` is sensitive to the
 order of its arguments: `clear x y` may fail even though both `x` and `y` could
 be cleared (if the type of `y` depends on `x`). `clear'` lifts this limitation.
 
-```
+```lean
 example {α} {β : α → Type} (a : α) (b : β a) : unit :=
 begin
   try { clear a b }, -- fails since `b` depends on `a`
@@ -1408,7 +1408,7 @@ end
 A variant of `clear'` which clears not only the given hypotheses, but also any
 other hypotheses depending on them.
 
-```
+```lean
 example {α} {β : α → Type} (a : α) (b : β a) : unit :=
 begin
   try { clear' a },  -- fails since `b` depends on `a`
@@ -1437,3 +1437,25 @@ by simp_rw [set.image_subset_iff, set.subset_def]
 ```
 
 Lemmas passed to `simp_rw` must be expressions that are valid arguments to `simp`.
+
+## rename'
+
+Renames one or more hypotheses in the context.
+
+```lean
+example {α β} (a : α) (b : β) : unit :=
+begin
+  rename' a a',              -- result: a' : α, b  : β
+  rename' a' → a,            --         a  : α, b  : β
+  rename' [a a', b b'],      --         a' : α, b' : β
+  rename' [a' → a, b' → b],  --         a  : α, b  : β
+  exact ()
+end
+```
+
+Compared to the standard `rename` tactic, this tactic makes the following
+improvements:
+
+- You can rename multiple hypotheses at once.
+- Renaming a hypothesis always preserves its location in the context (whereas
+  `rename` may reorder hypotheses).

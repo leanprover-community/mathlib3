@@ -329,7 +329,7 @@ end order
 section complete_lattice
 
 lemma coe_Sup {s : set nnreal} : bdd_above s → (↑(Sup s) : ennreal) = (⨆a∈s, ↑a) := with_top.coe_Sup
-lemma coe_Inf {s : set nnreal} : s ≠ ∅ → (↑(Inf s) : ennreal) = (⨅a∈s, ↑a) := with_top.coe_Inf
+lemma coe_Inf {s : set nnreal} : s.nonempty → (↑(Inf s) : ennreal) = (⨅a∈s, ↑a) := with_top.coe_Inf
 
 @[simp] lemma top_mem_upper_bounds {s : set ennreal} : ∞ ∈ upper_bounds s :=
 assume x hx, le_top

@@ -4977,12 +4977,12 @@ lemma eq_of_equiv [inhabited α] :
 
 /- neg -/
 
-@[simp] lemma get_neg [nonempty α] [add_group α]
+@[simp] lemma get_neg [add_group α]
   {k : ℕ} {as : list α} : @get α ⟨0⟩ k (neg as) = -(@get α ⟨0⟩ k as) :=
 by {unfold neg, rw (@get_map' α α ⟨0⟩), apply neg_zero}
 
 @[simp] lemma length_neg
-  [nonempty α] [has_neg α] (as : list α) :
+  [has_neg α] (as : list α) :
   (neg as).length = as.length :=
 by simp only [neg, length_map]
 

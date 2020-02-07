@@ -149,6 +149,9 @@ protected def nonempty (s : set α) : Prop := ∃ x, x ∈ s
 
 lemma nonempty_of_mem {x} (h : x ∈ s) : s.nonempty := ⟨x, h⟩
 
+theorem nonempty.not_subset_empty : s.nonempty  → ¬(s ⊆ ∅)
+| ⟨x, hx⟩ hs := hs hx
+
 theorem nonempty.ne_empty : s.nonempty → s ≠ ∅
 | ⟨x, hx⟩ hs := by { rw hs at hx, exact hx }
 

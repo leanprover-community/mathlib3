@@ -668,6 +668,10 @@ le_antisymm
   (supr_le $ assume ⟨i, h⟩, le_supr_of_le i $ le_supr (λh:p i, f ⟨i, h⟩) _)
   (supr_le $ assume i, supr_le $ assume : p i, le_supr _ _)
 
+lemma supr_subtype' {p : ι → Prop} {f : ∀ i, p i → α} :
+  (⨆ i (h : p i), f i h) = (⨆ x : subtype p, f x.val x.property) :=
+(@supr_subtype _ _ _ p (λ x, f x.val x.property)).symm
+
 theorem infi_sigma {p : β → Type w} {f : sigma p → α} : (⨅ x, f x) = (⨅ i (h:p i), f ⟨i, h⟩) :=
 le_antisymm
   (le_infi $ assume i, le_infi $ assume : p i, infi_le _ _)

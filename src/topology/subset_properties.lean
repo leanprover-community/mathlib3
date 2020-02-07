@@ -14,6 +14,18 @@ import topology.continuous_on
 `compact`, `is_clopen`, `is_irreducible`, `is_connected`, `is_totally_disconnected`, `is_totally_separated`
 
 TODO: write better docs
+
+## On the definition of irreducible and connected sets/spaces
+
+In informal mathematics, irreducible and connected spaces are assumed to be nonempty.
+We formalise the predicate without that assumption
+as `is_preirreducible` and `is_preconnected` respectively.
+In other words, the only difference is whether the empty space
+counts as irreducible and/or connected.
+There are good reasons to consider the empty space to be “too simple to be simple”
+See also https://ncatlab.org/nlab/show/too+simple+to+be+simple,
+and in particular
+https://ncatlab.org/nlab/show/too+simple+to+be+simple#relationship_to_biased_definitions.
 -/
 
 open set filter lattice classical

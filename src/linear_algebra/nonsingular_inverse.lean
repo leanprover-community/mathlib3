@@ -280,6 +280,14 @@ calc adjugate A ⬝ A = (Aᵀ ⬝ (adjugate Aᵀ))ᵀ :
   by rw [←adjugate_transpose, ←transpose_mul, transpose_transpose]
 ... = A.det • 1 : by rw [mul_adjugate (Aᵀ), det_transpose, transpose_smul, transpose_one]
 
+/-- `det_adjugate_of_cancel` is an auxiliary lemma for computing `(adjugate A).det`,
+  used in `det_adjugate_eq_one` and `det_adjugate_of_is_unit`.
+
+  The formula for the determinant of the adjugate of an `n` by `n` matrix `A`
+  is in general `(adjugate A).det = A.det ^ (n - 1)`, but the proof differs in several cases.
+  This lemma `det_adjugate_of_cancel` covers the case that `det A` cancels
+  on the left of the equation `A.det * b = A.det ^ n`.
+-/
 lemma det_adjugate_of_cancel {A : matrix n n α}
   (h : ∀ b, A.det * b = A.det ^ fintype.card n → b = A.det ^ (fintype.card n - 1)) :
   (adjugate A).det = A.det ^ (fintype.card n - 1) :=
@@ -311,6 +319,12 @@ calc (adjugate A).det
     = A.det ^ (fintype.card n - 1) : det_adjugate_of_cancel (λ b hb, by simpa [h] using hb)
 ... = 1                            : by rw [h, one_pow]
 
+/-- `det_adjugate_of_is_unit` gives the formula for `(adjugate A).det` if `A.det` has an inverse.
+
+  The formula for the determinant of the adjugate of an `n` by `n` matrix `A`
+  is in general `(adjugate A).det = A.det ^ (n - 1)`, but the proof differs in several cases.
+  This lemma `det_adjugate_of_is_unit` covers the case that `det A` has an inverse.
+-/
 lemma det_adjugate_of_is_unit {A : matrix n n α} (h : is_unit A.det) :
   (adjugate A).det = A.det ^ (fintype.card n - 1) :=
 begin

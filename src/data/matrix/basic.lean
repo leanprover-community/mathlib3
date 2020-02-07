@@ -230,7 +230,7 @@ section comm_ring
 variables [comm_ring α]
 
 lemma smul_eq_diagonal_mul [decidable_eq m] (M : matrix m n α) (a : α) :
-a • M = diagonal (λ _, a) ⬝ M :=
+  a • M = diagonal (λ _, a) ⬝ M :=
 by { ext, simp }
 
 lemma smul_eq_mul_diagonal [decidable_eq n] (M : matrix m n α) (a : α) :

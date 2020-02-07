@@ -1587,7 +1587,7 @@ theorem cons_iff {r : α → α → Prop} [is_irrefl α r] {a l₁ l₂} :
   lex r (a :: l₁) (a :: l₂) ↔ lex r l₁ l₂ :=
 ⟨λ h, by cases h with _ _ _ _ _ h _ _ _ _ h;
   [exact h, exact (irrefl_of r a h).elim], lex.cons⟩
-  
+
 @[simp] theorem not_nil_right (r : α → α → Prop) (l : list α) : ¬ lex r l [].
 
 instance is_order_connected (r : α → α → Prop)
@@ -4977,12 +4977,12 @@ lemma eq_of_equiv [inhabited α] :
 
 /- neg -/
 
-@[simp] lemma get_neg [inhabited α] [add_group α]
+@[simp] lemma get_neg [nonempty α] [add_group α]
   {k : ℕ} {as : list α} : @get α ⟨0⟩ k (neg as) = -(@get α ⟨0⟩ k as) :=
 by {unfold neg, rw (@get_map' α α ⟨0⟩), apply neg_zero}
 
 @[simp] lemma length_neg
-  [inhabited α] [has_neg α] (as : list α) :
+  [nonempty α] [has_neg α] (as : list α) :
   (neg as).length = as.length :=
 by simp only [neg, length_map]
 

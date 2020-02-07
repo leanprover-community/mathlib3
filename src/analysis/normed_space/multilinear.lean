@@ -45,6 +45,12 @@ variables taking values in continuous linear functions), called respectively
 We mostly follow the API (and the proofs) of `operator_norm.lean`, with the additional complexity
 that we should deal with multilinear maps in several variables. The currying/uncurrying
 constructions are based on those in `multilinear.lean`.
+
+From the mathematical point of view, all the results follow from the results on operator norm in
+one variable, by applying them to one variable after the other through curryfication. However, this
+is only well defined when there is an order on the variables (for instance on `fin n`) although
+the final result is independent of the order. While everything could be done following this
+approach, it turns out that direct proofs are easier and more efficient.
 -/
 
 noncomputable theory
@@ -777,10 +783,11 @@ def continuous_multilinear_curry_right_equiv :
 /-!
 ### Currying with `0` variables
 
-The space of multilinear maps with `0` variables is trivial. Therefore, the space of continuous
-multilinear maps on `(fin 0) → G` with values in `E₂` is isomorphic (and even isometric) to `E₂`.
-As this is the zeroth step in the construction of iterated derivatives, we register this
-isomorphism. -/
+The space of multilinear maps with `0` variables is trivial: such a multilinear map is just an
+arbitrary constant (note that multilinear maps in `0` variables need not map `0` to `0`!).
+Therefore, the space of continuous multilinear maps on `(fin 0) → G` with values in `E₂` is
+isomorphic (and even isometric) to `E₂`. As this is the zeroth step in the construction of iterated
+derivatives, we register this isomorphism. -/
 
 variables {𝕜 G E₂}
 

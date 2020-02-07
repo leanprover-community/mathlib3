@@ -142,15 +142,15 @@ topological_space.of_closed (set.range prime_spectrum.zero_locus)
     intros Zs h,
     rw set.sInter_eq_Inter,
     let f : Zs → set R := λ i, classical.some (h i.2),
-    have hf : ∀ i : Zs, i.1 = zero_locus (f i) := λ i, classical.some_spec (h i.2),
+    have hf : ∀ i : Zs, i.1 = zero_locus (f i) := λ i, (classical.some_spec (h i.2)).symm,
     simp only [hf],
-    exact ⟨_, snter_zero_locus _⟩
+    exact ⟨_, (Inter_zero_locus _).symm⟩
   end
-  (by { rintro _ _ ⟨s, rfl⟩ ⟨t, rfl⟩, exact ⟨_, union_zero_locus s t⟩ })
+  (by { rintro _ _ ⟨s, rfl⟩ ⟨t, rfl⟩, exact ⟨_, (union_zero_locus s t).symm⟩ })
 
 lemma is_open_iff (U : set (prime_spectrum R)) :
   is_open U ↔ ∃ s, -U = zero_locus s :=
-iff.rfl
+by simp only [@eq_comm _ (-U)]; refl
 
 lemma is_closed_iff_zero_locus (Z : set (prime_spectrum R)) :
   is_closed Z ↔ ∃ s, Z = zero_locus s :=

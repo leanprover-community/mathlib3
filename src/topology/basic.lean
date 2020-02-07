@@ -49,6 +49,18 @@ structure topological_space (α : Type u) :=
 
 attribute [class] topological_space
 
+/-- A constructor for topologies by specifying the closed sets,
+and showing that they satisfy the appropriate conditions. -/
+def topological_space.of_closed {α : Type u} (T : set (set α))
+  (empty_mem : ∅ ∈ T) (sInter_mem : ∀ A ⊆ T, ⋂₀ A ∈ T) (union_mem : ∀ A B ∈ T, A ∪ B ∈ T) :
+  topological_space α :=
+{ is_open := λ X, -X ∈ T,
+  is_open_univ := by simp [empty_mem],
+  is_open_inter := λ s t hs ht, by simpa [set.compl_inter] using union_mem (-s) (-t) hs ht,
+  is_open_sUnion := λ s hs,
+    by rw set.compl_sUnion; exact sInter_mem (set.compl '' s)
+    (λ z ⟨y, hy, hz⟩, by simpa [hz.symm] using hs y hy) }
+
 section topological_space
 
 variables {α : Type u} {β : Type v} {ι : Sort w} {a : α} {s s₁ s₂ : set α} {p p₁ p₂ : α → Prop}

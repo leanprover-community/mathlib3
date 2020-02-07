@@ -463,7 +463,7 @@ theorem is_irreducible_singleton {x} : is_irreducible ({x} : set α) :=
  λ u v _ _ ⟨y, h1, h2⟩ ⟨z, h3, h4⟩, by rw mem_singleton_iff at h1 h3;
  substs y z; exact ⟨x, or.inl rfl, h2, h4⟩⟩
 
-theorem is_preirreducible_closure {s : set α} (H : is_preirreducible s) :
+theorem is_preirreducible.closure {s : set α} (H : is_preirreducible s) :
   is_preirreducible (closure s) :=
 λ u v hu hv ⟨y, hycs, hyu⟩ ⟨z, hzcs, hzv⟩,
 let ⟨p, hpu, hps⟩ := mem_closure_iff.1 hycs u hu hyu in
@@ -471,9 +471,9 @@ let ⟨q, hqv, hqs⟩ := mem_closure_iff.1 hzcs v hv hzv in
 let ⟨r, hrs, hruv⟩ := H u v hu hv ⟨p, hps, hpu⟩ ⟨q, hqs, hqv⟩ in
 ⟨r, subset_closure hrs, hruv⟩
 
-lemma is_irreducible_closure {s : set α} (h : is_irreducible s) :
+lemma is_irreducible.closure {s : set α} (h : is_irreducible s) :
   is_irreducible (closure s) :=
-⟨nonempty_closure h.nonempty, is_preirreducible_closure h.is_preirreducible⟩
+⟨nonempty_closure h.nonempty, h.is_preirreducible.closure⟩
 
 theorem exists_preirreducible (s : set α) (H : is_preirreducible s) :
   ∃ t : set α, is_preirreducible t ∧ s ⊆ t ∧ ∀ u, is_preirreducible u → t ⊆ u → u = t :=
@@ -514,7 +514,7 @@ theorem eq_irreducible_component {x : α} :
 theorem is_closed_irreducible_component {x : α} :
   is_closed (irreducible_component x) :=
 closure_eq_iff_is_closed.1 $ eq_irreducible_component
-  (is_irreducible_closure is_irreducible_irreducible_component).is_preirreducible
+  is_irreducible_irreducible_component.is_preirreducible.closure
   subset_closure
 
 /-- A preirreducible space is one where there is no non-trivial pair of disjoint opens. -/

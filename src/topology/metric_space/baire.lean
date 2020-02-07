@@ -100,7 +100,7 @@ begin
   { assume n x δ,
     by_cases δpos : δ > 0,
     { have : x ∈ closure (f n) := by simpa only [(hd n).symm] using mem_univ x,
-      rcases mem_closure_iff'.1 this (δ/2) (half_pos δpos) with ⟨y, ys, xy⟩,
+      rcases metric.mem_closure_iff.1 this (δ/2) (half_pos δpos) with ⟨y, ys, xy⟩,
       rw dist_comm at xy,
       rcases is_open_iff.1 (ho n) y ys with ⟨r, rpos, hr⟩,
       refine ⟨y, min (min (δ/2) (r/2)) (B (n+1)), λ_, ⟨_, _, λz hz, ⟨_, _⟩⟩⟩,
@@ -120,7 +120,7 @@ begin
   choose center radius H using this,
 
   refine subset.antisymm (subset_univ _) (λx hx, _),
-  refine metric.mem_closure_iff'.2 (λε εpos, _),
+  refine metric.mem_closure_iff.2 (λε εpos, _),
   /- ε is positive. We have to find a point in the ball of radius ε around x belonging to all `f n`.
   For this, we construct inductively a sequence `F n = (c n, r n)` such that the closed ball
   `closed_ball (c n) (r n)` is included in the previous ball and in `f n`, and such that

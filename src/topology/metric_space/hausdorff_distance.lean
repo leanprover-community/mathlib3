@@ -103,7 +103,7 @@ begin
     ennreal.lt_add_right h (ennreal.half_pos εpos'),
   rcases exists_edist_lt_of_inf_edist_lt this with ⟨y, ycs, hy⟩,
   -- y : α,  ycs : y ∈ closure s,  hy : edist x y < inf_edist x (closure s) + ↑ε / 2
-  rcases emetric.mem_closure_iff'.1 ycs (ε/2) (ennreal.half_pos εpos') with ⟨z, zs, dyz⟩,
+  rcases emetric.mem_closure_iff.1 ycs (ε/2) (ennreal.half_pos εpos') with ⟨z, zs, dyz⟩,
   -- z : α,  zs : z ∈ s,  dyz : edist y z < ↑ε / 2
   calc inf_edist x s ≤ edist x z : inf_edist_le_edist_of_mem zs
         ... ≤ edist x y + edist y z : edist_triangle _ _ _
@@ -114,7 +114,7 @@ end
 /-- A point belongs to the closure of `s` iff its infimum edistance to this set vanishes -/
 lemma mem_closure_iff_inf_edist_zero : x ∈ closure s ↔ inf_edist x s = 0 :=
 ⟨λh, by rw ← inf_edist_closure; exact inf_edist_zero_of_mem h,
-λh, emetric.mem_closure_iff'.2 $ λε εpos, exists_edist_lt_of_inf_edist_lt (by rwa h)⟩
+λh, emetric.mem_closure_iff.2 $ λε εpos, exists_edist_lt_of_inf_edist_lt (by rwa h)⟩
 
 /-- Given a closed set `s`, a point belongs to `s` iff its infimum edistance to this set vanishes -/
 lemma mem_iff_ind_edist_zero_of_closed (h : is_closed s) : x ∈ s ↔ inf_edist x s = 0 :=

@@ -188,69 +188,90 @@ theorem eq_of_forall_edist_le {x y : α} (h : ∀ε, ε > 0 → edist x y ≤ ε
 eq_of_edist_eq_zero (eq_of_le_of_forall_le_of_dense bot_le h)
 
 /-- Reformulation of the uniform structure in terms of the extended distance -/
-theorem uniformity_edist' : 𝓤 α = (⨅ ε>0, principal {p:α×α | edist p.1 p.2 < ε}) :=
-emetric_space.uniformity_edist _
+theorem uniformity_edist :
+  𝓤 α = ⨅ ε>0, principal {p:α×α | edist p.1 p.2 < ε} :=
+emetric_space.uniformity_edist α
 
-/-- Reformulation of the uniform structure in terms of the extended distance on a subtype -/
-theorem uniformity_edist'' : 𝓤 α = (⨅ε:{ε:ennreal // ε>0}, principal {p:α×α | edist p.1 p.2 < ε.val}) :=
-by { simp only [infi_subtype], exact uniformity_edist' }
+theorem uniformity_basis_edist :
+  (𝓤 α).has_basis (λ ε : ennreal, 0 < ε) (λ ε, {p:α×α | edist p.1 p.2 < ε}) :=
+(@uniformity_edist α _).symm ▸ has_basis_binfi_principal
+  (λ r hr p hp, ⟨min r p, lt_min hr hp,
+    λ x hx, lt_of_lt_of_le hx (min_le_left _ _),
+    λ x hx, lt_of_lt_of_le hx (min_le_right _ _)⟩)
+  ⟨1, ennreal.zero_lt_one⟩
 
 /-- Characterization of the elements of the uniformity in terms of the extended distance -/
 theorem mem_uniformity_edist {s : set (α×α)} :
   s ∈ 𝓤 α ↔ (∃ε>0, ∀{a b:α}, edist a b < ε → (a, b) ∈ s) :=
+uniformity_basis_edist.mem_uniformity_iff
+
+protected theorem emetric.mk_uniformity_basis {β : Type*} {p : β → Prop} {f : β → ennreal}
+  (hf₀ : ∀ x, p x → 0 < f x) (hf : ∀ ε, 0 < ε → ∃ x (hx : p x), f x ≤ ε) :
+  (𝓤 α).has_basis p (λ x, {p:α×α | edist p.1 p.2 < f x}) :=
 begin
-  rw [uniformity_edist'', mem_infi],
-  simp [subset_def],
-  exact assume ⟨r, hr⟩ ⟨p, hp⟩, ⟨⟨min r p, lt_min hr hp⟩, by simp [lt_min_iff, (≥)] {contextual := tt}⟩,
-  exact ⟨⟨1, ennreal.zero_lt_one⟩⟩
+  refine λ s, uniformity_basis_edist.mem_iff.trans _,
+  split,
+  { rintros ⟨ε, ε₀, hε⟩,
+    rcases hf ε ε₀ with ⟨i, hi, H⟩,
+    exact ⟨i, hi, λ x hx, hε $ lt_of_lt_of_le hx H⟩ },
+  { exact λ ⟨i, hi, H⟩, ⟨f i, hf₀ i hi, H⟩ }
 end
+
+protected theorem emetric.mk_uniformity_basis_le {β : Type*} {p : β → Prop} {f : β → ennreal}
+  (hf₀ : ∀ x, p x → 0 < f x) (hf : ∀ ε, 0 < ε → ∃ x (hx : p x), f x ≤ ε) :
+  (𝓤 α).has_basis p (λ x, {p:α×α | edist p.1 p.2 ≤ f x}) :=
+begin
+  refine λ s, uniformity_basis_edist.mem_iff.trans _,
+  split,
+  { rintros ⟨ε, ε₀, hε⟩,
+    rcases dense ε₀ with ⟨ε', hε'⟩,
+    rcases hf ε' hε'.1 with ⟨i, hi, H⟩,
+    exact ⟨i, hi, λ x hx, hε $ lt_of_le_of_lt (le_trans hx H) hε'.2⟩ },
+  { exact λ ⟨i, hi, H⟩, ⟨f i, hf₀ i hi, λ x hx, H (le_of_lt hx)⟩ }
+end
+
+theorem uniformity_basis_edist_le :
+  (𝓤 α).has_basis (λ ε : ennreal, 0 < ε) (λ ε, {p:α×α | edist p.1 p.2 ≤ ε}) :=
+emetric.mk_uniformity_basis_le (λ _, id) (λ ε ε₀, ⟨ε, ε₀, le_refl ε⟩)
+
+theorem uniformity_basis_edist' (ε' : ennreal) (hε' : 0 < ε') :
+  (𝓤 α).has_basis (λ ε : ennreal, ε ∈ Ioo 0 ε') (λ ε, {p:α×α | edist p.1 p.2 < ε}) :=
+emetric.mk_uniformity_basis (λ _, and.left)
+  (λ ε ε₀, let ⟨δ, hδ⟩ := dense hε' in
+    ⟨min ε δ, ⟨lt_min ε₀ hδ.1, lt_of_le_of_lt (min_le_right _ _) hδ.2⟩, min_le_left _ _⟩)
+
+theorem uniformity_basis_edist_le' (ε' : ennreal) (hε' : 0 < ε') :
+  (𝓤 α).has_basis (λ ε : ennreal, ε ∈ Ioo 0 ε') (λ ε, {p:α×α | edist p.1 p.2 ≤ ε}) :=
+emetric.mk_uniformity_basis_le (λ _, and.left)
+  (λ ε ε₀, let ⟨δ, hδ⟩ := dense hε' in
+    ⟨min ε δ, ⟨lt_min ε₀ hδ.1, lt_of_le_of_lt (min_le_right _ _) hδ.2⟩, min_le_left _ _⟩)
+
+theorem uniformity_basis_edist_nnreal :
+  (𝓤 α).has_basis (λ ε : nnreal, 0 < ε) (λ ε, {p:α×α | edist p.1 p.2 < ε}) :=
+emetric.mk_uniformity_basis (λ _, ennreal.coe_pos.2)
+  (λ ε ε₀, let ⟨δ, hδ⟩ := with_top.dense_coe ε₀ in ⟨δ, ennreal.coe_pos.1 hδ.1, le_of_lt hδ.2⟩)
+
+theorem uniformity_basis_edist_nat :
+  (𝓤 α).has_basis (λ _, true) (λ n:ℕ, {p:α×α | edist p.1 p.2 < (↑n)⁻¹}) :=
+emetric.mk_uniformity_basis
+  (λ n _, ennreal.inv_pos.2 $ ennreal.nat_ne_top n)
+  (λ ε ε₀, let ⟨n, hn⟩ := ennreal.exists_inv_nat_lt (ne_of_gt ε₀) in ⟨n, trivial, le_of_lt hn⟩)
 
 /-- Fixed size neighborhoods of the diagonal belong to the uniform structure -/
 theorem edist_mem_uniformity {ε:ennreal} (ε0 : 0 < ε) :
   {p:α×α | edist p.1 p.2 < ε} ∈ 𝓤 α :=
 mem_uniformity_edist.2 ⟨ε, ε0, λ a b, id⟩
 
-theorem uniformity_edist_nnreal :
-  𝓤 α = (⨅(ε:nnreal) (h : ε > 0), principal {p:α×α | edist p.1 p.2 < ε}) :=
-begin
-  rw [uniformity_edist', ennreal.infi_ennreal, inf_of_le_left],
-  { congr, funext ε, refine infi_congr_Prop ennreal.coe_pos _, assume h, refl },
-  refine le_infi (assume h, infi_le_of_le 1 $ infi_le_of_le ennreal.zero_lt_one $ _),
-  exact principal_mono.2 (assume p h, lt_of_lt_of_le h le_top)
-end
-
-theorem mem_uniformity_edist_inv_nat {s : set (α×α)} :
-  s ∈ 𝓤 α ↔ (∃n:ℕ, ∀ a b : α, edist a b < n⁻¹ → (a, b) ∈ s) :=
-begin
-  refine mem_uniformity_edist.trans ⟨λ hs, _, λ hs, _⟩,
-  { rcases hs with ⟨ε, ε_pos, hε⟩,
-    rcases ennreal.exists_inv_nat_lt (ne_of_gt ε_pos) with ⟨n, hn⟩,
-    exact ⟨n, λ a b hab, hε (lt_trans hab hn)⟩ },
-  { rcases hs with ⟨n, hn⟩,
-    exact ⟨n⁻¹, ennreal.inv_pos.2 ennreal.coe_nat_ne_top, hn⟩ }
-end
-
-theorem uniformity_edist_inv_nat :
-  𝓤 α = (⨅ n:ℕ, principal {p:α×α | edist p.1 p.2 < n⁻¹}) :=
-begin
-  refine eq_infi_of_mem_sets_iff_exists_mem (λ s, mem_uniformity_edist_inv_nat.trans _),
-  exact exists_congr (λn, by simp only [prod.forall, mem_principal_sets, subset_def, mem_set_of_eq])
-end
-
 namespace emetric
 
 theorem uniformity_has_countable_basis : has_countable_basis (𝓤 α) :=
-has_countable_basis_of_seq _ _ uniformity_edist_inv_nat
+has_countable_basis_of_seq _ _ uniformity_basis_edist_nat.eq_infi
 
 /-- ε-δ characterization of uniform continuity on emetric spaces -/
 theorem uniform_continuous_iff [emetric_space β] {f : α → β} :
   uniform_continuous f ↔ ∀ ε > 0, ∃ δ > 0,
     ∀{a b:α}, edist a b < δ → edist (f a) (f b) < ε :=
-uniform_continuous_def.trans
-⟨λ H ε ε0, mem_uniformity_edist.1 $ H _ $ edist_mem_uniformity ε0,
- λ H r ru,
-  let ⟨ε, ε0, hε⟩ := mem_uniformity_edist.1 ru, ⟨δ, δ0, hδ⟩ := H _ ε0 in
-  mem_uniformity_edist.2 ⟨δ, δ0, λ a b h, hε (hδ h)⟩⟩
+uniformity_basis_edist.uniform_continuous_iff uniformity_basis_edist
 
 /-- ε-δ characterization of uniform embeddings on emetric spaces -/
 theorem uniform_embedding_iff [emetric_space β] {f : α → β} :
@@ -288,12 +309,7 @@ end
 /-- ε-δ characterization of Cauchy sequences on emetric spaces -/
 protected lemma cauchy_iff {f : filter α} :
   cauchy f ↔ f ≠ ⊥ ∧ ∀ ε > 0, ∃ t ∈ f, ∀ x y ∈ t, edist x y < ε :=
-cauchy_iff.trans $ and_congr iff.rfl
-⟨λ H ε ε0, let ⟨t, tf, ts⟩ := H _ (edist_mem_uniformity ε0) in
-   ⟨t, tf, λ x y xt yt, @ts (x, y) ⟨xt, yt⟩⟩,
- λ H r ru, let ⟨ε, ε0, hε⟩ := mem_uniformity_edist.1 ru,
-               ⟨t, tf, h⟩ := H ε ε0 in
-   ⟨t, tf, λ ⟨x, y⟩ ⟨hx, hy⟩, hε (h x y hx hy)⟩⟩
+uniformity_basis_edist.cauchy_iff
 
 /-- A very useful criterion to show that a space is complete is to show that all sequences
 which satisfy a bound of the form `edist (u n) (u m) < B N` for all `n m ≥ N` are
@@ -489,26 +505,13 @@ eq_empty_iff_forall_not_mem.trans
 ⟨λh, le_bot_iff.1 (le_of_not_gt (λ ε0, h _ (mem_ball_self ε0))),
 λε0 y h, not_lt_of_le (le_of_eq ε0) (pos_of_mem_ball h)⟩
 
-theorem nhds_eq : 𝓝 x = (⨅ε:{ε:ennreal // ε>0}, principal (ball x ε.val)) :=
-begin
-  rw [nhds_eq_uniformity, uniformity_edist'', lift'_infi],
-  { apply congr_arg, funext ε,
-    rw [lift'_principal],
-    { simp [ball, edist_comm] },
-    { exact monotone_preimage } },
-  { exact ⟨⟨1, ennreal.zero_lt_one⟩⟩ },
-  { intros, refl }
-end
+theorem nhds_basis_eball : (𝓝 x).has_basis (λ ε:ennreal, 0 < ε) (ball x) :=
+nhds_basis_uniformity uniformity_basis_edist
 
-theorem mem_nhds_iff : s ∈ 𝓝 x ↔ ∃ε>0, ball x ε ⊆ s :=
-begin
-  rw [nhds_eq, mem_infi],
-  { simp },
-  { intros y z, cases y with y hy, cases z with z hz,
-    refine ⟨⟨min y z, lt_min hy hz⟩, _⟩,
-    simp [ball_subset_ball, min_le_left, min_le_right, (≥)] },
-  { exact ⟨⟨1, ennreal.zero_lt_one⟩⟩ }
-end
+theorem nhds_eq : 𝓝 x = (⨅ε>0, principal (ball x ε)) :=
+nhds_basis_eball.eq_binfi
+
+theorem mem_nhds_iff : s ∈ 𝓝 x ↔ ∃ε>0, ball x ε ⊆ s := nhds_basis_eball s
 
 theorem is_open_iff : is_open s ↔ ∀x∈s, ∃ε>0, ball x ε ⊆ s :=
 by simp [is_open_iff_nhds, mem_nhds_iff]
@@ -520,24 +523,10 @@ theorem ball_mem_nhds (x : α) {ε : ennreal} (ε0 : 0 < ε) : ball x ε ∈ �
 mem_nhds_sets is_open_ball (mem_ball_self ε0)
 
 /-- ε-characterization of the closure in emetric spaces -/
-theorem mem_closure_iff' :
+theorem mem_closure_iff :
   x ∈ closure s ↔ ∀ε>0, ∃y ∈ s, edist x y < ε :=
-⟨begin
-  intros hx ε hε,
-  obtain ⟨y, hy⟩ : (ball x ε ∩ s).nonempty,
-    from mem_closure_iff.1 hx _ is_open_ball (mem_ball_self hε),
-  simp,
-  exact ⟨y, ⟨hy.2, by have B := hy.1; simpa [mem_ball'] using B⟩⟩
-end,
-begin
-  intros H,
-  apply mem_closure_iff.2,
-  intros o ho xo,
-  rcases is_open_iff.1 ho x xo with ⟨ε, ⟨εpos, hε⟩⟩,
-  rcases H ε εpos with ⟨y, ⟨ys, ydist⟩⟩,
-  have B : y ∈ o ∩ s := ⟨hε (by simpa [edist_comm]), ys⟩,
-  exact ⟨y, B⟩
-end⟩
+(mem_closure_iff_nhds_basis nhds_basis_eball).trans $
+  by simp only [mem_ball, edist_comm x]
 
 theorem tendsto_nhds {f : filter β} {u : β → α} {a : α} :
   tendsto u f (𝓝 a) ↔ ∀ ε > 0, ∃ n ∈ f, ∀x ∈ n, edist (u x) a < ε :=
@@ -561,60 +550,19 @@ end
 /-- In an emetric space, Cauchy sequences are characterized by the fact that, eventually,
 the edistance between its elements is arbitrarily small -/
 theorem cauchy_seq_iff [inhabited β] [semilattice_sup β] {u : β → α} :
-  cauchy_seq u ↔ ∀ε>0, ∃N, ∀m n≥N, edist (u n) (u m) < ε :=
-begin
-  simp only [cauchy_seq, emetric.cauchy_iff, true_and, exists_prop, filter.mem_at_top_sets,
-    filter.at_top_ne_bot, filter.mem_map, ne.def, filter.map_eq_bot_iff, not_false_iff, set.mem_set_of_eq],
-  split,
-  { intros H ε εpos,
-    rcases H ε εpos with ⟨t, ⟨N, hN⟩, ht⟩,
-    exact ⟨N, λm n hm hn, ht _ _ (hN _ hn) (hN _ hm)⟩ },
-  { intros H ε εpos,
-    rcases H (ε/2) (ennreal.half_pos εpos) with ⟨N, hN⟩,
-    existsi ball (u N) (ε/2),
-    split,
-    { exact ⟨N, λx hx, hN _ _ (le_refl N) hx⟩ },
-    { exact λx y hx hy, calc
-        edist x y ≤ edist x (u N) + edist y (u N) : edist_triangle_right _ _ _
-        ... < ε/2 + ε/2 : ennreal.add_lt_add hx hy
-        ... = ε : ennreal.add_halves _ } }
-end
+  cauchy_seq u ↔ ∀ε>0, ∃N, ∀m n≥N, edist (u m) (u n) < ε :=
+uniformity_basis_edist.cauchy_seq_iff
 
 /-- A variation around the emetric characterization of Cauchy sequences -/
 theorem cauchy_seq_iff' [inhabited β] [semilattice_sup β] {u : β → α} :
   cauchy_seq u ↔ ∀ε>(0 : ennreal), ∃N, ∀n≥N, edist (u n) (u N) < ε :=
-begin
-  rw cauchy_seq_iff,
-  split,
-  { intros H ε εpos,
-    rcases H ε εpos with ⟨N, hN⟩,
-    exact ⟨N, λn hn, hN _ _ (le_refl N) hn⟩ },
-  { intros H ε εpos,
-    rcases H (ε/2) (ennreal.half_pos εpos) with ⟨N, hN⟩,
-    exact ⟨N, λ m n hm hn, calc
-       edist (u n) (u m) ≤ edist (u n) (u N) + edist (u m) (u N) : edist_triangle_right _ _ _
-                    ... < ε/2 + ε/2 : ennreal.add_lt_add (hN _ hn) (hN _ hm)
-                    ... = ε : ennreal.add_halves _⟩ }
-end
+uniformity_basis_edist.cauchy_seq_iff'
 
 /-- A variation of the emetric characterization of Cauchy sequences that deals with
 `nnreal` upper bounds. -/
 theorem cauchy_seq_iff_nnreal [inhabited β] [semilattice_sup β] {u : β → α} :
-  cauchy_seq u ↔ ∀ ε : nnreal, 0 < ε → ∃ N, ∀ n, N ≤ n → edist (u N) (u n) < ε :=
-begin
-  refine cauchy_seq_iff'.trans
-    ⟨λ H ε εpos, (H ε (ennreal.coe_pos.2 εpos)).imp $
-      λ N hN n hn, edist_comm (u n) (u N) ▸ hN n hn,
-      λ H ε εpos, _⟩,
-  specialize H ((min 1 ε).to_nnreal)
-    (ennreal.to_nnreal_pos_iff.2 ⟨lt_min ennreal.zero_lt_one εpos,
-      ennreal.lt_top_iff_ne_top.1 $ min_lt_iff.2 $ or.inl ennreal.coe_lt_top⟩),
-  refine H.imp (λ N hN n hn, edist_comm (u N) (u n) ▸ lt_of_lt_of_le (hN n hn) _),
-  refine ennreal.coe_le_iff.2 _,
-  rintros ε rfl,
-  rw [← ennreal.coe_one, ← ennreal.coe_min, ennreal.to_nnreal_coe],
-  apply min_le_right
-end
+  cauchy_seq u ↔ ∀ ε : nnreal, 0 < ε → ∃ N, ∀ n, N ≤ n → edist (u n) (u N) < ε :=
+uniformity_basis_edist_nnreal.cauchy_seq_iff'
 
 theorem totally_bounded_iff {s : set α} :
   totally_bounded s ↔ ∀ ε > 0, ∃t : set α, finite t ∧ s ⊆ ⋃y∈t, ball y ε :=
@@ -652,7 +600,7 @@ begin
   have T₂ : countable t := by finish [countable_Union, countable_finite],
   have T₃ : s ⊆ closure t,
   { intros x x_in_s,
-    apply mem_closure_iff'.2,
+    apply mem_closure_iff.2,
     intros ε εpos,
     rcases ennreal.exists_inv_nat_lt (bot_lt_iff_ne_bot.1 εpos) with ⟨n, hn⟩,
     have inv_n_pos : (0 : ennreal) < (n : ℕ)⁻¹ := by simp [ennreal.bot_lt_iff_ne_bot],
@@ -712,7 +660,7 @@ show uniform_space.to_topological_space α = generate_from (⋃x ∈ S, ⋃ (n :
     rcases ennreal.exists_inv_nat_lt (bot_lt_iff_ne_bot.1 (ennreal.half_pos εpos)) with ⟨n, εn⟩,
     have : (0 : ennreal) < n⁻¹ := by simp [ennreal.bot_lt_iff_ne_bot],
     have : (a : α) ∈ closure (S : set α) := by rw [S_dense]; simp,
-    rcases mem_closure_iff'.1 this _ ‹(0 : ennreal) <  n⁻¹› with ⟨x, xS, xdist⟩,
+    rcases mem_closure_iff.1 this _ ‹(0 : ennreal) <  n⁻¹› with ⟨x, xS, xdist⟩,
     existsi ball x (↑n)⁻¹,
     have I : ball x (n⁻¹) ⊆ ball a ε := λy ydist, calc
       edist y a = edist a y : edist_comm _ _

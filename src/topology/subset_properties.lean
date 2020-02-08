@@ -569,6 +569,101 @@ theorem is_irreducible.image [topological_space β] {s : set α} (H : is_irreduc
   (f : α → β) (hf : continuous_on f s) : is_irreducible (f '' s) :=
 ⟨nonempty_image_iff.mpr H.nonempty, H.is_preirreducible.image f hf⟩
 
+lemma is_irreducible_iff_sInter {s : set α} :
+  is_irreducible s ↔
+  ∀ (U : finset (set α)) (hU : ∀ u ∈ U, is_open u) (H : ∀ u ∈ U, (s ∩ u).nonempty),
+  (s ∩ ⋂₀ ↑U).nonempty :=
+begin
+  split; intro h,
+  { intro U, apply finset.induction_on U,
+    { intros, simpa using h.nonempty },
+    { intros u U hu IH hU H,
+      rw [finset.coe_insert, sInter_insert],
+      apply h.2,
+      { solve_by_elim [finset.mem_insert_self] },
+      { apply is_open_sInter (finset.finite_to_set U),
+        intros, solve_by_elim [finset.mem_insert_of_mem] },
+      { solve_by_elim [finset.mem_insert_self] },
+      { apply IH,
+        all_goals { intros, solve_by_elim [finset.mem_insert_of_mem] } } } },
+  { split,
+    { simpa using h ∅ _ _; intro u; simp },
+    intros u v hu hv hu' hv',
+    simpa only [finset.coe_insert, sInter_singleton, finset.insert_empty_eq_singleton,
+      finset.coe_singleton, finset.has_insert_eq_insert, sInter_insert]
+      using h {v,u} _ _,
+    all_goals
+    { intro t,
+      rw [finset.insert_empty_eq_singleton, finset.has_insert_eq_insert,
+          finset.mem_insert, finset.mem_singleton],
+      rintro (rfl|rfl); assumption } }
+end
+
+lemma is_preirreducible_iff_closed_union_closed {s : set α} :
+  is_preirreducible s ↔
+  ∀ (z₁ z₂ : set α), is_closed z₁ → is_closed z₂ → s ⊆ z₁ ∪ z₂ → s ⊆ z₁ ∨ s ⊆ z₂ :=
+begin
+  split,
+  all_goals
+  { intros h t₁ t₂ ht₁ ht₂,
+    specialize h (-t₁) (-t₂),
+    simp only [is_open_compl_iff, is_closed_compl_iff] at h,
+    specialize h ht₁ ht₂ },
+  { contrapose!, simp only [not_subset],
+    rintro ⟨⟨x, hx, hx'⟩, ⟨y, hy, hy'⟩⟩,
+    rcases h ⟨x, hx, hx'⟩ ⟨y, hy, hy'⟩ with ⟨z, hz, hz'⟩,
+    rw ← compl_union at hz',
+    exact ⟨z, hz, hz'⟩ },
+  { rintro ⟨x, hx, hx'⟩ ⟨y, hy, hy'⟩,
+    rw ← compl_inter at h,
+    delta set.nonempty,
+    rw imp_iff_not_or at h,
+    contrapose! h,
+    split,
+    { intros z hz hz', exact h z ⟨hz, hz'⟩ },
+    { split; intro H; refine H _ ‹_›; assumption } }
+end
+
+lemma is_irreducible_iff_sUnion_closed {s : set α} :
+  is_irreducible s ↔
+  ∀ (Z : finset (set α)) (hZ : ∀ z ∈ Z, is_closed z) (H : s ⊆ ⋃₀ ↑Z),
+  ∃ z ∈ Z, s ⊆ z :=
+begin
+  rw [is_irreducible, is_preirreducible_iff_closed_union_closed],
+  split; intro h,
+  { intro Z, apply finset.induction_on Z,
+    { intros, rw [finset.coe_empty, sUnion_empty] at H,
+      rcases h.1 with ⟨x, hx⟩,
+      exfalso, tauto },
+    { intros z Z hz IH hZ H,
+      cases h.2 z (⋃₀ ↑Z) _ _ _
+        with h' h',
+      { exact ⟨z, finset.mem_insert_self _ _, h'⟩ },
+      { rcases IH _ h' with ⟨z', hz', hsz'⟩,
+        { exact ⟨z', finset.mem_insert_of_mem hz', hsz'⟩ },
+        { intros, solve_by_elim [finset.mem_insert_of_mem] } },
+      { solve_by_elim [finset.mem_insert_self] },
+      { rw sUnion_eq_bUnion,
+        apply is_closed_bUnion (finset.finite_to_set Z),
+        { intros, solve_by_elim [finset.mem_insert_of_mem] } },
+      { simpa using H } } },
+  { split,
+    { by_contradiction hs,
+      simpa using h ∅ _ _,
+      { intro z, simp },
+      { simpa [set.nonempty] using hs } },
+    intros z₁ z₂ hz₁ hz₂ H,
+    have := h {z₂, z₁} _ _,
+    simp only [exists_prop, finset.insert_empty_eq_singleton, finset.has_insert_eq_insert,
+      finset.mem_insert, finset.mem_singleton] at this,
+    { rcases this with ⟨z, rfl|rfl, hz⟩; tauto },
+    { intro t,
+      rw [finset.insert_empty_eq_singleton, finset.has_insert_eq_insert,
+          finset.mem_insert, finset.mem_singleton],
+      rintro (rfl|rfl); assumption },
+    { simpa using H } }
+end
+
 end preirreducible
 
 section preconnected

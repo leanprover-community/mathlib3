@@ -724,6 +724,15 @@ lemma fintype.card_equiv [fintype α] [fintype β] (e : α ≃ β) :
   fintype.card (α ≃ β) = (fintype.card α).fact :=
 fintype.card_congr (equiv_congr (equiv.refl α) e) ▸ fintype.card_perm
 
+lemma univ_eq_singleton_of_card_one {α} [fintype α] (x : α) (h : fintype.card α = 1) :
+  (univ : finset α) = finset.singleton x :=
+begin
+  apply symm,
+  apply eq_of_subset_of_card_le (subset_univ (finset.singleton x)),
+  apply le_of_eq,
+  simp [h, finset.card_univ]
+end
+
 end equiv
 
 namespace fintype

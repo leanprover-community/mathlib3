@@ -485,7 +485,7 @@ let ⟨r, hrs, hruv⟩ := H u v hu hv ⟨p, hps, hpu⟩ ⟨q, hqs, hqv⟩ in
 
 lemma is_irreducible.closure {s : set α} (h : is_irreducible s) :
   is_irreducible (closure s) :=
-⟨nonempty_closure h.nonempty, h.is_preirreducible.closure⟩
+⟨h.nonempty.closure, h.is_preirreducible.closure⟩
 
 theorem exists_preirreducible (s : set α) (H : is_preirreducible s) :
   ∃ t : set α, is_preirreducible t ∧ s ⊆ t ∧ ∀ u, is_preirreducible u → t ⊆ u → u = t :=
@@ -757,7 +757,7 @@ let ⟨r, hrs, hruv⟩ := H u v hu hv (subset.trans subset_closure hcsuv) ⟨p, 
 
 theorem is_connected.closure {s : set α} (H : is_connected s) :
   is_connected (closure s) :=
-⟨nonempty_closure H.nonempty, H.is_preconnected.closure⟩
+⟨H.nonempty.closure, H.is_preconnected.closure⟩
 
 theorem is_preconnected.image [topological_space β] {s : set α} (H : is_preconnected s)
   (f : α → β) (hf : continuous_on f s) : is_preconnected (f '' s) :=

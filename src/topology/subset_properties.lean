@@ -576,7 +576,7 @@ section preconnected
 /-- A preconnected set is one where there is no non-trivial open partition. -/
 def is_preconnected (s : set α) : Prop :=
 ∀ (u v : set α), is_open u → is_open v → s ⊆ u ∪ v →
-  (∃ x, x ∈ s ∩ u) → (∃ x, x ∈ s ∩ v) → ∃ x, x ∈ s ∩ (u ∩ v)
+  (s ∩ u).nonempty → (s ∩ v).nonempty → (s ∩ (u ∩ v)).nonempty
 
 /-- A connected set is one that is nonempty and where there is no non-trivial open partition. -/
 def is_connected (s : set α) : Prop :=
@@ -609,11 +609,9 @@ begin
   rintros u v hu hv hs ⟨z, zs, zu⟩ ⟨y, ys, yv⟩,
   have xs : x ∈ s, by { rcases H y ys with ⟨t, ts, xt, yt, ht⟩, exact ts xt },
   wlog xu : x ∈ u := hs xs using [u v y z, v u z y],
-  { rcases H y ys with ⟨t, ts, xt, yt, ht⟩,
-    have := ht u v hu hv(subset.trans ts hs) ⟨x, xt, xu⟩ ⟨y, yt, yv⟩,
-    exact this.imp (λ z hz, ⟨ts hz.1, hz.2⟩) },
-  { rw [union_comm v, inter_comm v] at this,
-    apply this; assumption }
+  rcases H y ys with ⟨t, ts, xt, yt, ht⟩,
+  have := ht u v hu hv(subset.trans ts hs) ⟨x, xt, xu⟩ ⟨y, yt, yv⟩,
+  exact this.imp (λ z hz, ⟨ts hz.1, hz.2⟩)
 end
 
 /-- If any two points of a set are contained in a preconnected subset,
@@ -707,7 +705,7 @@ end,
 begin
   rintros h u v hu hv huv ⟨x, xs, xu⟩ ⟨y, ys, yv⟩,
   by_contradiction h',
-  rw [← set.nonempty, ← ne_empty_iff_nonempty, ne.def, not_not,
+  rw [← ne_empty_iff_nonempty, ne.def, not_not,
     ← subset_compl_iff_disjoint, compl_inter] at h',
   have xv : x ∉ v, from (h' xs).elim (absurd xu) id,
   have yu : y ∉ u, from (h' ys).elim id (absurd yv),

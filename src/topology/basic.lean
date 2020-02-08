@@ -282,7 +282,7 @@ closure_eq_of_is_closed is_closed_empty
 lemma closure_empty_iff (s : set α) : closure s = ∅ ↔ s = ∅ :=
 ⟨subset_eq_empty subset_closure, λ h, h.symm ▸ closure_empty⟩
 
-lemma nonempty.closure {s : set α} (h : s.nonempty) :
+lemma set.nonempty.closure {s : set α} (h : s.nonempty) :
   set.nonempty (closure s) :=
 let ⟨x, hx⟩ := h in ⟨x, subset_closure hx⟩
 

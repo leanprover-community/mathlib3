@@ -5,9 +5,12 @@
 
   Inverses for nonsingular square matrices.
 -/
+import algebra.associated
 import algebra.big_operators
 import data.matrix.basic
 import linear_algebra.determinant
+import tactic.linarith
+import tactic.ring_exp
 
 /-!
 # Nonsingular inverses
@@ -49,6 +52,9 @@ universes u v
 variables {n : Type u} [fintype n] [decidable_eq n] {α : Type v}
 open_locale matrix
 open equiv equiv.perm finset
+
+-- Increase max depth to allow inference of `mul_action α (matrix n n α)`.
+set_option class.instance_max_depth 60
 
 section update
 
@@ -274,6 +280,76 @@ calc adjugate A ⬝ A = (Aᵀ ⬝ (adjugate Aᵀ))ᵀ :
   by rw [←adjugate_transpose, ←transpose_mul, transpose_transpose]
 ... = A.det • 1 : by rw [mul_adjugate (Aᵀ), det_transpose, transpose_smul, transpose_one]
 
+/-- `det_adjugate_of_cancel` is an auxiliary lemma for computing `(adjugate A).det`,
+  used in `det_adjugate_eq_one` and `det_adjugate_of_is_unit`.
+
+  The formula for the determinant of the adjugate of an `n` by `n` matrix `A`
+  is in general `(adjugate A).det = A.det ^ (n - 1)`, but the proof differs in several cases.
+  This lemma `det_adjugate_of_cancel` covers the case that `det A` cancels
+  on the left of the equation `A.det * b = A.det ^ n`.
+-/
+lemma det_adjugate_of_cancel {A : matrix n n α}
+  (h : ∀ b, A.det * b = A.det ^ fintype.card n → b = A.det ^ (fintype.card n - 1)) :
+  (adjugate A).det = A.det ^ (fintype.card n - 1) :=
+h (adjugate A).det (calc A.det * (adjugate A).det = (A ⬝ adjugate A).det   : (det_mul _ _).symm
+                                              ... = A.det ^ fintype.card n : by simp [mul_adjugate])
+
+lemma adjugate_eq_one_of_card_eq_one {A : matrix n n α} (h : fintype.card n = 1) : adjugate A = 1 :=
+begin
+  ext i j,
+  have univ_eq_i := univ_eq_singleton_of_card_one i h,
+  have univ_eq_j := univ_eq_singleton_of_card_one j h,
+  have i_eq_j : i = j := singleton_inj.mp (by rw [←univ_eq_i, univ_eq_j]),
+  have perm_eq : (univ : finset (perm n)) = finset.singleton 1 :=
+    univ_eq_singleton_of_card_one (1 : perm n) (by simp [card_univ, fintype.card_perm, h]),
+  simp [adjugate_val, det, univ_eq_i, perm_eq, i_eq_j]
+end
+
+@[simp] lemma adjugate_zero (h : 1 < fintype.card n) : adjugate (0 : matrix n n α) = 0 :=
+begin
+  ext i j,
+  obtain ⟨j', hj'⟩ : ∃ j', j' ≠ j := fintype.exists_ne_of_one_lt_card h j,
+  apply det_eq_zero_of_column_eq_zero j',
+  intro j'',
+  simp [update_column_ne hj']
+end
+
+lemma det_adjugate_eq_one {A : matrix n n α} (h : A.det = 1) : (adjugate A).det = 1 :=
+calc (adjugate A).det
+    = A.det ^ (fintype.card n - 1) : det_adjugate_of_cancel (λ b hb, by simpa [h] using hb)
+... = 1                            : by rw [h, one_pow]
+
+/-- `det_adjugate_of_is_unit` gives the formula for `(adjugate A).det` if `A.det` has an inverse.
+
+  The formula for the determinant of the adjugate of an `n` by `n` matrix `A`
+  is in general `(adjugate A).det = A.det ^ (n - 1)`, but the proof differs in several cases.
+  This lemma `det_adjugate_of_is_unit` covers the case that `det A` has an inverse.
+-/
+lemma det_adjugate_of_is_unit {A : matrix n n α} (h : is_unit A.det) :
+  (adjugate A).det = A.det ^ (fintype.card n - 1) :=
+begin
+  rcases is_unit_iff_exists_inv'.mp h with ⟨a, ha⟩,
+  by_cases card_lt_zero : fintype.card n ≤ 0,
+  { have h : fintype.card n = 0 := by linarith,
+    simp [det_eq_one_of_card_eq_zero h] },
+  have zero_lt_card : 0 < fintype.card n := by linarith,
+  have n_nonempty : nonempty n := fintype.card_pos_iff.mp zero_lt_card,
+
+  by_cases card_lt_one : fintype.card n ≤ 1,
+  { have h : fintype.card n = 1 := by linarith,
+    simp [h, adjugate_eq_one_of_card_eq_one h] },
+  have one_lt_card : 1 < fintype.card n := by linarith,
+  have zero_lt_card_sub_one : 0 < fintype.card n - 1 :=
+    (nat.sub_lt_sub_right_iff (refl 1)).mpr one_lt_card,
+
+  apply det_adjugate_of_cancel,
+  intros b hb,
+  calc b = a * (det A ^ (fintype.card n - 1 + 1)) :
+       by rw [←one_mul b, ←ha, mul_assoc, hb, nat.sub_add_cancel zero_lt_card]
+     ... = a * det A * det A ^ (fintype.card n - 1) : by ring_exp
+     ... = det A ^ (fintype.card n - 1) : by rw [ha, one_mul]
+end
+
 end adjugate
 
 section inv
@@ -297,17 +373,10 @@ lemma nonsing_inv_val (A : matrix n n α) (i j : n) :
 lemma transpose_nonsing_inv (A : matrix n n α) : (A.nonsing_inv)ᵀ = (Aᵀ).nonsing_inv :=
 by {ext, simp [transpose_val, nonsing_inv_val, det_transpose, (adjugate_transpose A).symm]}
 
-section
-
--- Increase max depth to allow inference of `mul_action α (matrix n n α)`.
-set_option class.instance_max_depth 60
-
 /-- The `nonsing_inv` of `A` is a right inverse. -/
 theorem mul_nonsing_inv (A : matrix n n α) (inv_mul_cancel : A.det⁻¹ * A.det = 1) :
   A ⬝ nonsing_inv A = 1 :=
-by erw [mul_smul, mul_adjugate, smul_smul, inv_mul_cancel, @one_smul _ _ _ (pi.mul_action _)]
-
-end
+by erw [mul_smul, mul_adjugate, smul_smul, inv_mul_cancel, one_smul]
 
 /-- The `nonsing_inv` of `A` is a left inverse. -/
 theorem nonsing_inv_mul (A : matrix n n α) (inv_mul_cancel : A.det⁻¹ * A.det = 1) :

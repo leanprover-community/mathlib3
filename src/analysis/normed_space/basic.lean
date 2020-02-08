@@ -191,11 +191,7 @@ calc
 
 theorem normed_group.tendsto_nhds_zero {f : γ → α} {l : filter γ} :
   tendsto f l (𝓝 0) ↔ ∀ ε > 0, ∀ᶠ x in l, ∥ f x ∥ < ε :=
-metric.tendsto_nhds.trans $ forall_congr $ λ ε, forall_congr $ λ εgt0,
-begin
-  simp only [dist_zero_right],
-  exact exists_sets_subset_iff
-end
+metric.tendsto_nhds.trans $ by simp only [dist_zero_right]
 
 section nnnorm
 
@@ -495,12 +491,12 @@ by rwa norm_fpow⟩
 
 lemma tendsto_inv [normed_field α] {r : α} (r0 : r ≠ 0) : tendsto (λq, q⁻¹) (𝓝 r) (𝓝 r⁻¹) :=
 begin
-  refine metric.tendsto_nhds.2 (λε εpos, _),
+  refine metric.tendsto_nhds_nhds.2 (λε εpos, _),
   let δ := min (ε/2/2 * ∥r∥^2) (∥r∥/2),
   have norm_r_pos : 0 < ∥r∥ := (norm_pos_iff r).mpr r0,
   have A : 0 < ε / 2 / 2 * ∥r∥ ^ 2 := mul_pos' (half_pos (half_pos εpos)) (pow_pos norm_r_pos 2),
   have δpos : 0 < δ, by simp [half_pos norm_r_pos, A],
-  refine ⟨ball r δ, ball_mem_nhds r δpos, λx hx, _⟩,
+  refine ⟨δ, δpos, λ x hx, _⟩,
   have rx : ∥r∥/2 ≤ ∥x∥ := calc
     ∥r∥/2 = ∥r∥ - ∥r∥/2 : by ring
     ... ≤ ∥r∥ - ∥r - x∥ :

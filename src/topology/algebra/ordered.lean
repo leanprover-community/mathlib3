@@ -1124,9 +1124,14 @@ begin
 end
 
 /-- A continuous monotone function sends indexed supremum to indexed supremum. -/
-lemma supr_of_continuous {f : α → β} {g : γ → α}
+lemma supr_of_continuous' {ι : Sort*} [nonempty ι] {f : α → β} {g : ι → α}
   (Mf : continuous f) (Cf : monotone f) : f (supr g) = supr (f ∘ g) :=
-by { rw [supr, Sup_of_continuous' Mf Cf (range_nonempty g), ← range_comp, supr] }
+by rw [supr, Sup_of_continuous' Mf Cf (range_nonempty g), ← range_comp, supr]
+
+/-- A continuous monotone function sends indexed supremum to indexed supremum. -/
+lemma supr_of_continuous {ι : Sort*} {f : α → β} {g : ι → α}
+  (Mf : continuous f) (Cf : monotone f) (fbot : f ⊥ = ⊥) : f (supr g) = supr (f ∘ g) :=
+by rw [supr, Sup_of_continuous Mf Cf fbot, ← range_comp, supr]
 
 /-- A continuous monotone function sends infimum to infimum for nonempty sets. -/
 lemma Inf_of_continuous' {f : α → β} (Mf : continuous f) (Cf : monotone f)
@@ -1145,9 +1150,14 @@ begin
 end
 
 /-- A continuous monotone function sends indexed infimum to indexed infimum. -/
-lemma infi_of_continuous {f : α → β} {g : γ → α}
+lemma infi_of_continuous' {ι : Sort*} [nonempty ι] {f : α → β} {g : ι → α}
   (Mf : continuous f) (Cf : monotone f) : f (infi g) = infi (f ∘ g) :=
 by rw [infi, Inf_of_continuous' Mf Cf (range_nonempty g), ← range_comp, infi]
+
+/-- A continuous monotone function sends indexed infimum to indexed infimum. -/
+lemma infi_of_continuous {ι : Sort*} {f : α → β} {g : ι → α}
+  (Mf : continuous f) (Cf : monotone f) (ftop : f ⊤ = ⊤) : f (infi g) = infi (f ∘ g) :=
+by rw [infi, Inf_of_continuous Mf Cf ftop, ← range_comp, infi]
 
 end complete_linear_order
 

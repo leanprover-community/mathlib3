@@ -34,7 +34,7 @@ do
     | _ := s
     end) s
 
-/-- Polyfill instance for Lean versions <3.5.0c -/
+/-- Polyfill instance for Lean versions <3.5.1c -/
 -- TODO: when Lean 3.4 support is dropped, this instance can be removed
 @[priority 1]
 meta instance : has_to_tactic_format simp_arg_type := ⟨λ a, match a with

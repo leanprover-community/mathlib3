@@ -569,6 +569,26 @@ theorem is_irreducible.image [topological_space β] {s : set α} (H : is_irreduc
   (f : α → β) (hf : continuous_on f s) : is_irreducible (f '' s) :=
 ⟨nonempty_image_iff.mpr H.nonempty, H.is_preirreducible.image f hf⟩
 
+lemma subtype.preirreducible_space {s : set α} (h : is_preirreducible s) :
+  preirreducible_space s :=
+{ is_preirreducible_univ :=
+  begin
+    intros u v hu hv hsu hsv,
+    rw is_open_induced_iff at hu hv,
+    rcases hu with ⟨u, hu, rfl⟩,
+    rcases hv with ⟨v, hv, rfl⟩,
+    rcases hsu with ⟨⟨x, hxs⟩, hxs', hxu⟩,
+    rcases hsv with ⟨⟨y, hys⟩, hys', hyv⟩,
+    rcases h u v hu hv ⟨x, hxs, hxu⟩ ⟨y, hys, hyv⟩ with ⟨z, hzs, ⟨hzu, hzv⟩⟩,
+    exact ⟨⟨z, hzs⟩, ⟨set.mem_univ _, ⟨hzu, hzv⟩⟩⟩
+  end }
+
+lemma subtype.irreducible_space {s : set α} (h : is_irreducible s) :
+  irreducible_space s :=
+{ is_preirreducible_univ :=
+  (subtype.preirreducible_space h.is_preirreducible).is_preirreducible_univ,
+  to_nonempty := h.nonempty.to_subtype }
+
 lemma is_irreducible_iff_sInter {s : set α} :
   is_irreducible s ↔
   ∀ (U : finset (set α)) (hU : ∀ u ∈ U, is_open u) (H : ∀ u ∈ U, (s ∩ u).nonempty),
@@ -872,6 +892,109 @@ theorem is_clopen_iff [preconnected_space α] {s : set α} : is_clopen s ↔ s =
     (ne_empty_iff_nonempty.1 h1.1) (ne_empty_iff_nonempty.1 h1.2) in
   h3 h2,
 by rintro (rfl | rfl); [exact is_clopen_empty, exact is_clopen_univ]⟩
+
+lemma subtype.preconnected_space {s : set α} (h : is_preconnected s) :
+  preconnected_space s :=
+{ is_preconnected_univ :=
+  begin
+    intros u v hu hv hs hsu hsv,
+    rw is_open_induced_iff at hu hv,
+    rcases hu with ⟨u, hu, rfl⟩,
+    rcases hv with ⟨v, hv, rfl⟩,
+    rcases hsu with ⟨⟨x, hxs⟩, hxs', hxu⟩,
+    rcases hsv with ⟨⟨y, hys⟩, hys', hyv⟩,
+    rcases h u v hu hv _ ⟨x, hxs, hxu⟩ ⟨y, hys, hyv⟩ with ⟨z, hzs, ⟨hzu, hzv⟩⟩,
+    exact ⟨⟨z, hzs⟩, ⟨set.mem_univ _, ⟨hzu, hzv⟩⟩⟩,
+    intros z hz,
+    rcases hs (set.mem_univ ⟨z, hz⟩) with hzu|hzv,
+    { left, assumption },
+    { right, assumption }
+  end }
+
+lemma subtype.connected_space {s : set α} (h : is_connected s) :
+  connected_space s :=
+{ is_preconnected_univ :=
+  (subtype.preconnected_space h.is_preconnected).is_preconnected_univ,
+  to_nonempty := h.nonempty.to_subtype }
+
+lemma is_preconnected_iff_subset_of_disjoint {s : set α} :
+  is_preconnected s ↔
+  ∀ (u v : set α) (hu : is_open u) (hv : is_open v) (hs : s ⊆ u ∪ v) (huv : s ∩ (u ∩ v) = ∅),
+  s ⊆ u ∨ s ⊆ v :=
+begin
+  split; intro h,
+  { intros u v hu hv hs huv,
+    specialize h u v hu hv hs,
+    contrapose! huv,
+    rw ne_empty_iff_nonempty,
+    simp [not_subset] at huv,
+    rcases huv with ⟨⟨x, hxs, hxu⟩, ⟨y, hys, hyv⟩⟩,
+    have hxv : x ∈ v := classical.or_iff_not_imp_left.mp (hs hxs) hxu,
+    have hyu : y ∈ u := classical.or_iff_not_imp_right.mp (hs hys) hyv,
+    exact h ⟨y, hys, hyu⟩ ⟨x, hxs, hxv⟩ },
+  { intros u v hu hv hs hsu hsv,
+    rw ← ne_empty_iff_nonempty,
+    intro H,
+    specialize h u v hu hv hs H,
+    contrapose H,
+    apply ne_empty_iff_nonempty.mpr,
+    cases h,
+    { rcases hsv with ⟨x, hxs, hxv⟩, exact ⟨x, hxs, ⟨h hxs, hxv⟩⟩ },
+    { rcases hsu with ⟨x, hxs, hxu⟩, exact ⟨x, hxs, ⟨hxu, h hxs⟩⟩ } }
+end
+
+lemma is_connected_iff_sInter {s : set α} :
+  is_connected s ↔
+  ∀ (U : finset (set α)) (hU : ∀ u ∈ U, is_open u)
+    (H : ∀ (u v : set α), u ∈ U → v ∈ U → (s ∩ (u ∩ v)).nonempty → u = v) (hs : s ⊆ ⋃₀ ↑U),
+  ∃ u ∈ U, s ⊆ u :=
+begin
+  rw [is_connected, is_preconnected_iff_subset_of_disjoint],
+  split; intro h,
+  { intro U, apply finset.induction_on U,
+    { rcases h.left,
+      suffices : s ⊆ ∅ → false, { simpa },
+      intro, solve_by_elim },
+    { intros u U hu IH hU hs H,
+      rw [finset.coe_insert, sUnion_insert] at H,
+      cases h.2 u (⋃₀ ↑U) _ _ H _ with hsu hsU,
+      { exact ⟨u, finset.mem_insert_self _ _, hsu⟩ },
+      { rcases IH _ _ hsU with ⟨v, hvU, hsv⟩,
+        { exact ⟨v, finset.mem_insert_of_mem hvU, hsv⟩ },
+        { intros, solve_by_elim [finset.mem_insert_of_mem] },
+        { intros, apply hs; solve_by_elim [finset.mem_insert_of_mem] } },
+      { solve_by_elim [finset.mem_insert_self] },
+      { apply is_open_sUnion,
+        intros, solve_by_elim [finset.mem_insert_of_mem] },
+      { apply eq_empty_of_subset_empty,
+        rintro x ⟨hxs, hxu, hxU⟩,
+        rw mem_sUnion at hxU,
+        rcases hxU with ⟨v, hvU, hxv⟩,
+        rcases hs u v (finset.mem_insert_self _ _) (finset.mem_insert_of_mem hvU) _ with rfl,
+        { contradiction },
+        { exact ⟨x, hxs, hxu, hxv⟩ } } } },
+  { split,
+    { rw ← ne_empty_iff_nonempty,
+      by_contradiction hs, push_neg at hs, subst hs,
+      simpa using h ∅ _ _ _; simp },
+    intros u v hu hv hs hsuv,
+    rcases h {v, u} _ _ _ with ⟨t, ht, ht'⟩,
+    { rw [finset.insert_empty_eq_singleton, finset.has_insert_eq_insert,
+          finset.mem_insert, finset.mem_singleton] at ht,
+      rcases ht with rfl|rfl; tauto },
+    { intro t,
+      rw [finset.insert_empty_eq_singleton, finset.has_insert_eq_insert,
+          finset.mem_insert, finset.mem_singleton],
+      rintro (rfl|rfl); assumption },
+    { intros t₁ t₂ ht₁ ht₂ hst,
+      rw ← ne_empty_iff_nonempty at hst,
+      rw [finset.insert_empty_eq_singleton, finset.has_insert_eq_insert,
+          finset.mem_insert, finset.mem_singleton] at ht₁ ht₂,
+      rcases ht₁ with rfl|rfl; rcases ht₂ with rfl|rfl,
+      all_goals { refl <|> contradiction <|> skip },
+      rw inter_comm t₁ at hst, contradiction },
+    { simpa using hs } }
+end
 
 end preconnected
 

@@ -485,12 +485,11 @@ let ⟨δ, δ_pos, hδ⟩ := continuous_iff.1 hf b ε hε in
 ⟨δ / 2, half_pos δ_pos, assume a ha, hδ a $ lt_of_le_of_lt ha $ div_two_lt_of_pos δ_pos⟩
 
 theorem tendsto_nhds {f : filter β} {u : β → α} {a : α} :
-  tendsto u f (𝓝 a) ↔ ∀ ε > 0, ∃ n ∈ f, ∀x ∈ n,  dist (u x) a < ε :=
-by simp only [metric.nhds_eq, tendsto_infi, subtype.forall, tendsto_principal, mem_ball];
-  exact forall_congr (assume ε, forall_congr (assume hε, exists_sets_subset_iff.symm))
+  tendsto u f (𝓝 a) ↔ ∀ ε > 0, ∀ᶠ x in f, dist (u x) a < ε :=
+by simp only [metric.nhds_eq, tendsto_infi, subtype.forall, tendsto_principal, mem_ball]
 
 theorem continuous_iff' [topological_space β] {f : β → α} :
-  continuous f ↔ ∀a (ε > 0), ∃ n ∈ 𝓝 a, ∀b ∈ n, dist (f b) (f a) < ε :=
+  continuous f ↔ ∀a (ε > 0), ∀ᶠ x in 𝓝 a, dist (f x) (f a) < ε :=
 continuous_iff_continuous_at.trans $ forall_congr $ λ b, tendsto_nhds
 
 theorem tendsto_at_top [nonempty β] [semilattice_sup β] {u : β → α} {a : α} :

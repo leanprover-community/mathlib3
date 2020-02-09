@@ -166,6 +166,8 @@ instance : has_coe_to_fun (β →ₗ[α] γ) := ⟨_, to_fun⟩
 @[simp] lemma coe_mk (f : β → γ) (h₁ h₂) :
   ((linear_map.mk f h₁ h₂ : β →ₗ[α] γ) : β → γ) = f := rfl
 
+@[simp] lemma to_fun_eq_coe (f : β →ₗ[α] γ) : f.to_fun = ⇑f := rfl
+
 theorem is_linear : is_linear_map α f := {..f}
 
 @[ext] theorem ext {f g : β →ₗ[α] γ} (H : ∀ x, f x = g x) : f = g :=

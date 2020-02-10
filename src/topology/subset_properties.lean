@@ -590,7 +590,7 @@ lemma subtype.irreducible_space {s : set α} (h : is_irreducible s) :
 
 /-- A set `s` is irreducible if and only if
 for every finite collection of open sets all of whose members intersect `s`,
-`s` also intersects the the intersection of the entire collection
+`s` also intersects the intersection of the entire collection
 (i.e., there is an element of `s` contained in every member of the collection). -/
 lemma is_irreducible_iff_sInter {s : set α} :
   is_irreducible s ↔

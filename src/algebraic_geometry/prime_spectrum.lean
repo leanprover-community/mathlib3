@@ -6,7 +6,6 @@ Authors: Johan Commelin
 
 import topology.opens
 import ring_theory.ideal_operations
-import linear_algebra.finsupp
 
 /-!
 # Prime spectrum of a commutative ring
@@ -31,60 +30,6 @@ noncomputable theory
 open_locale classical
 
 universe variables u v
-
-namespace submodule
-variables {R : Type u} {M : Type v} [ring R] [add_comm_group M] [module R M]
-
-lemma supr_eq_span {ι : Sort*} (p : ι → submodule R M) :
-  (⨆ (i : ι), p i) = submodule.span R (⋃ (i : ι), ↑(p i)) :=
-begin
-  apply le_antisymm,
-  { apply lattice.supr_le _,
-    intro i,
-    apply set.subset.trans _ submodule.subset_span,
-    intros m hm,
-    rw set.mem_Union,
-    use [i, hm] },
-  { rw [submodule.span_le, set.Union_subset_iff],
-    intros i m hm,
-    exact submodule.mem_supr_of_mem _ i hm }
-end
-
-lemma exists_finset_of_mem_supr {ι : Type*} (p : ι → submodule R M) {m : M} (hm : m ∈ ⨆ i, p i) :
-  ∃ s : finset ι, m ∈ ⨆ i ∈ s, p i :=
-begin
-  have aux : (id : M → M) '' (⋃ (i : ι), ↑(p i)) = (⋃ (i : ι), ↑(p i)) := set.image_id _,
-  rw [supr_eq_span, ← aux, finsupp.mem_span_iff_total R] at hm,
-  rcases hm with ⟨f, hf, rfl⟩,
-  let t : finset M := f.support,
-  have ht : ∀ x : {x // x ∈ t}, ∃ i, x.1 ∈ p i,
-  { intros x,
-    rw finsupp.mem_supported at hf,
-    specialize hf x.2,
-    rwa set.mem_Union at hf },
-  let g : {x // x ∈ t} → ι := (λ x, classical.some (ht x)),
-  let s : finset ι := finset.image g finset.univ,
-  use s,
-  show _ ∈ lattice.Inf _,
-  rw lattice.Inf_eq_infi,
-  simp only [submodule.mem_infi, set.mem_set_of_eq],
-  rintro N hN,
-  rw finsupp.total_apply,
-  rw finsupp.sum,
-  rw ← submodule.mem_coe,
-  apply is_add_submonoid.finset_sum_mem,
-  intros x hx,
-  apply submodule.smul_mem,
-  show x ∈ N,
-  let i := g ⟨x, hx⟩,
-  have hi : i ∈ s,
-  { rw finset.mem_image, exact ⟨⟨x, hx⟩, finset.mem_univ _, rfl⟩ },
-  haveI : nonempty (i ∈ s) := ⟨hi⟩,
-  refine hN (p i) ⟨i, _⟩ (classical.some_spec (ht ⟨x, hx⟩)),
-  simp only [lattice.csupr_const],
-end
-
-end submodule
 
 variables (R : Type u) [comm_ring R]
 
@@ -391,55 +336,6 @@ begin
         ... ⊆ x.as_ideal        : hx },
   { rw closure_subset_iff_subset_of_is_closed (is_closed_zero_locus _),
     exact subset_zero_locus_vanishing_ideal s }
-end
-
-theorem compact_of_finite_subcover_closed {α : Type u} [topological_space α] {s : set α}
-  (h : Π {ι : Type u} (Z : ι → (set α)), (∀ i, is_closed (Z i)) →
-    s ∩ (⋂ i, Z i) = ∅ → (∃ (t : finset ι), s ∩ (⋂ i ∈ t, Z i) = ∅)) :
-  compact s :=
-begin
-  apply compact_of_finite_subcover,
-  intros U h_open h_cover,
-  have aux : (s ∩ ⋂ (u : U), -u.val) = ∅,
-  { rw [set.sUnion_eq_Union] at h_cover,
-    rw [← set.compl_Union, set.eq_empty_iff_forall_not_mem],
-    rintro x ⟨hxs, hx⟩, exact hx (h_cover hxs) },
-  rcases h (λ u:U, -u.1) (λ u, is_closed_compl_iff.mpr (h_open _ u.2)) aux with ⟨t, ht⟩,
-  refine ⟨subtype.val '' (↑t : set U), _, _, _⟩,
-  { rw set.image_subset_iff, intros u hu, exact u.2 },
-  { exact set.finite_image _ t.finite_to_set },
-  { intros x hxs,
-    rw [set.eq_empty_iff_forall_not_mem] at ht,
-    specialize ht x,
-    simpa [hxs, not_forall] using ht }
-end
-
-theorem compact_space_of_finite_subcover_closed {α : Type u} [topological_space α]
-  (h : Π {ι : Type u} (Z : ι → (set α)), (∀ i, is_closed (Z i)) →
-    (⋂ i, Z i) = ∅ → (∃ (t : finset ι), (⋂ i ∈ t, Z i) = ∅)) :
-  compact_space α :=
-{ compact_univ :=
-  begin
-    apply compact_of_finite_subcover_closed,
-    intros ι Z, specialize h Z,
-    simpa using h
-  end }
-
-instance : compact_space (prime_spectrum R) :=
-begin
-  apply compact_space_of_finite_subcover_closed,
-  intros ι Z h_closed hZ,
-  let f : ι → ideal R := λ i, vanishing_ideal (Z i),
-  have hf : ∀ i, Z i = zero_locus (f i),
-  { intro i,
-    rw [zero_locus_vanishing_ideal_eq_closure, closure_eq_of_is_closed],
-    exact h_closed i },
-  simp only [hf] at hZ,
-  rw [← zero_locus_supr, zero_locus_empty_iff_eq_top, ideal.eq_top_iff_one] at hZ,
-  rcases submodule.exists_finset_of_mem_supr _ hZ with ⟨s, hs⟩,
-  use s,
-  rw [← ideal.eq_top_iff_one, ←zero_locus_empty_iff_eq_top] at hs,
-  simpa only [zero_locus_supr, hf] using hs
 end
 
 end prime_spectrum

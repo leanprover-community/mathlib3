@@ -535,8 +535,7 @@ class preirreducible_space (α : Type u) [topological_space α] : Prop :=
 
 /-- An irreducible space is one that is nonempty
 and where there is no non-trivial pair of disjoint opens. -/
-class irreducible_space (α : Type u) [topological_space α]
-extends preirreducible_space α :=
+class irreducible_space (α : Type u) [topological_space α] extends preirreducible_space α : Prop :=
 (to_nonempty : nonempty α)
 
 attribute [instance] irreducible_space.to_nonempty
@@ -589,6 +588,10 @@ lemma subtype.irreducible_space {s : set α} (h : is_irreducible s) :
   (subtype.preirreducible_space h.is_preirreducible).is_preirreducible_univ,
   to_nonempty := h.nonempty.to_subtype }
 
+/-- A set `s` is irreducible if and only if
+for every finite collection of open sets all of whose members intersect `s`,
+`s` also intersects the the intersection of the entire collection
+(i.e., there is an element of `s` contained in every member of the collection). -/
 lemma is_irreducible_iff_sInter {s : set α} :
   is_irreducible s ↔
   ∀ (U : finset (set α)) (hU : ∀ u ∈ U, is_open u) (H : ∀ u ∈ U, (s ∩ u).nonempty),
@@ -619,6 +622,8 @@ begin
       rintro (rfl|rfl); assumption } }
 end
 
+/-- A set is preirreducible if and only if
+for every cover by two closed sets, it is contained in one of the two covering sets. -/
 lemma is_preirreducible_iff_closed_union_closed {s : set α} :
   is_preirreducible s ↔
   ∀ (z₁ z₂ : set α), is_closed z₁ → is_closed z₂ → s ⊆ z₁ ∪ z₂ → s ⊆ z₁ ∨ s ⊆ z₂ :=
@@ -644,6 +649,9 @@ begin
     { split; intro H; refine H _ ‹_›; assumption } }
 end
 
+/-- A set is irreducible if and only if
+for every cover by a finite collection of closed sets,
+it is contained in one of the members of the collection. -/
 lemma is_irreducible_iff_sUnion_closed {s : set α} :
   is_irreducible s ↔
   ∀ (Z : finset (set α)) (hZ : ∀ z ∈ Z, is_closed z) (H : s ⊆ ⋃₀ ↑Z),
@@ -917,6 +925,8 @@ lemma subtype.connected_space {s : set α} (h : is_connected s) :
   (subtype.preconnected_space h.is_preconnected).is_preconnected_univ,
   to_nonempty := h.nonempty.to_subtype }
 
+/-- A set is preconnected if and only if
+for every cover by two disjoint open sets, it is contained in one of the two covering sets. -/
 lemma is_preconnected_iff_subset_of_disjoint {s : set α} :
   is_preconnected s ↔
   ∀ (u v : set α) (hu : is_open u) (hv : is_open v) (hs : s ⊆ u ∪ v) (huv : s ∩ (u ∩ v) = ∅),
@@ -943,10 +953,13 @@ begin
     { rcases hsu with ⟨x, hxs, hxu⟩, exact ⟨x, hxs, ⟨hxu, h hxs⟩⟩ } }
 end
 
-lemma is_connected_iff_sInter {s : set α} :
+/-- A set is connected if and only if
+for every cover by a finite collection of pairwise disjoint open sets,
+it is contained in one of the members of the collection. -/
+lemma is_connected_iff_sUnion_disjoint_open {s : set α} :
   is_connected s ↔
-  ∀ (U : finset (set α)) (hU : ∀ u ∈ U, is_open u)
-    (H : ∀ (u v : set α), u ∈ U → v ∈ U → (s ∩ (u ∩ v)).nonempty → u = v) (hs : s ⊆ ⋃₀ ↑U),
+  ∀ (U : finset (set α)) (H : ∀ (u v : set α), u ∈ U → v ∈ U → (s ∩ (u ∩ v)).nonempty → u = v)
+  (hU : ∀ u ∈ U, is_open u) (hs : s ⊆ ⋃₀ ↑U),
   ∃ u ∈ U, s ⊆ u :=
 begin
   rw [is_connected, is_preconnected_iff_subset_of_disjoint],
@@ -955,14 +968,14 @@ begin
     { rcases h.left,
       suffices : s ⊆ ∅ → false, { simpa },
       intro, solve_by_elim },
-    { intros u U hu IH hU hs H,
+    { intros u U hu IH hs hU H,
       rw [finset.coe_insert, sUnion_insert] at H,
       cases h.2 u (⋃₀ ↑U) _ _ H _ with hsu hsU,
       { exact ⟨u, finset.mem_insert_self _ _, hsu⟩ },
       { rcases IH _ _ hsU with ⟨v, hvU, hsv⟩,
         { exact ⟨v, finset.mem_insert_of_mem hvU, hsv⟩ },
-        { intros, solve_by_elim [finset.mem_insert_of_mem] },
-        { intros, apply hs; solve_by_elim [finset.mem_insert_of_mem] } },
+        { intros, apply hs; solve_by_elim [finset.mem_insert_of_mem] },
+        { intros, solve_by_elim [finset.mem_insert_of_mem] } },
       { solve_by_elim [finset.mem_insert_self] },
       { apply is_open_sUnion,
         intros, solve_by_elim [finset.mem_insert_of_mem] },
@@ -982,10 +995,6 @@ begin
     { rw [finset.insert_empty_eq_singleton, finset.has_insert_eq_insert,
           finset.mem_insert, finset.mem_singleton] at ht,
       rcases ht with rfl|rfl; tauto },
-    { intro t,
-      rw [finset.insert_empty_eq_singleton, finset.has_insert_eq_insert,
-          finset.mem_insert, finset.mem_singleton],
-      rintro (rfl|rfl); assumption },
     { intros t₁ t₂ ht₁ ht₂ hst,
       rw ← ne_empty_iff_nonempty at hst,
       rw [finset.insert_empty_eq_singleton, finset.has_insert_eq_insert,
@@ -993,6 +1002,10 @@ begin
       rcases ht₁ with rfl|rfl; rcases ht₂ with rfl|rfl,
       all_goals { refl <|> contradiction <|> skip },
       rw inter_comm t₁ at hst, contradiction },
+    { intro t,
+      rw [finset.insert_empty_eq_singleton, finset.has_insert_eq_insert,
+          finset.mem_insert, finset.mem_singleton],
+      rintro (rfl|rfl); assumption },
     { simpa using hs } }
 end
 

@@ -205,6 +205,11 @@ theorem mem_uniformity_edist {s : set (α×α)} :
   s ∈ 𝓤 α ↔ (∃ε>0, ∀{a b:α}, edist a b < ε → (a, b) ∈ s) :=
 uniformity_basis_edist.mem_uniformity_iff
 
+/-- Given `f : β → ennreal`, if `f` sends `{i | p i}` to a set of positive numbers
+accumulating to zero, then `f i`-neighborhoods of the diagonal form a basis of `𝓤 α`.
+
+For specific bases see `uniformity_basis_edist`, `uniformity_basis_edist'`,
+`uniformity_basis_edist_nnreal`, and `uniformity_basis_edist_inv_nat`. -/
 protected theorem emetric.mk_uniformity_basis {β : Type*} {p : β → Prop} {f : β → ennreal}
   (hf₀ : ∀ x, p x → 0 < f x) (hf : ∀ ε, 0 < ε → ∃ x (hx : p x), f x ≤ ε) :
   (𝓤 α).has_basis p (λ x, {p:α×α | edist p.1 p.2 < f x}) :=
@@ -217,6 +222,10 @@ begin
   { exact λ ⟨i, hi, H⟩, ⟨f i, hf₀ i hi, H⟩ }
 end
 
+/-- Given `f : β → ennreal`, if `f` sends `{i | p i}` to a set of positive numbers
+accumulating to zero, then closed `f i`-neighborhoods of the diagonal form a basis of `𝓤 α`.
+
+For specific bases see `uniformity_basis_edist_le` and `uniformity_basis_edist_le'`. -/
 protected theorem emetric.mk_uniformity_basis_le {β : Type*} {p : β → Prop} {f : β → ennreal}
   (hf₀ : ∀ x, p x → 0 < f x) (hf : ∀ ε, 0 < ε → ∃ x (hx : p x), f x ≤ ε) :
   (𝓤 α).has_basis p (λ x, {p:α×α | edist p.1 p.2 ≤ f x}) :=
@@ -251,7 +260,7 @@ theorem uniformity_basis_edist_nnreal :
 emetric.mk_uniformity_basis (λ _, ennreal.coe_pos.2)
   (λ ε ε₀, let ⟨δ, hδ⟩ := with_top.dense_coe ε₀ in ⟨δ, ennreal.coe_pos.1 hδ.1, le_of_lt hδ.2⟩)
 
-theorem uniformity_basis_edist_nat :
+theorem uniformity_basis_edist_inv_nat :
   (𝓤 α).has_basis (λ _, true) (λ n:ℕ, {p:α×α | edist p.1 p.2 < (↑n)⁻¹}) :=
 emetric.mk_uniformity_basis
   (λ n _, ennreal.inv_pos.2 $ ennreal.nat_ne_top n)
@@ -265,7 +274,7 @@ mem_uniformity_edist.2 ⟨ε, ε0, λ a b, id⟩
 namespace emetric
 
 theorem uniformity_has_countable_basis : has_countable_basis (𝓤 α) :=
-has_countable_basis_of_seq _ _ uniformity_basis_edist_nat.eq_infi
+has_countable_basis_of_seq _ _ uniformity_basis_edist_inv_nat.eq_infi
 
 /-- ε-δ characterization of uniform continuity on emetric spaces -/
 theorem uniform_continuous_iff [emetric_space β] {f : α → β} :

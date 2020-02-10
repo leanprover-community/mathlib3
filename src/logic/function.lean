@@ -176,7 +176,7 @@ variables {α : Type u} [i : nonempty α] {β : Sort v} {f : α → β}
 include i
 
 lemma injective.has_left_inverse (hf : injective f) : has_left_inverse f :=
-i.elim $ λ a, have inhabited α, from ⟨a⟩,
+nonempty.elim_to_inhabited $ λ i : inhabited α,
 by { tactic.unfreeze_local_instances, exact ⟨inv_fun f, left_inverse_inv_fun hf⟩ }
 
 lemma injective_iff_has_left_inverse : injective f ↔ has_left_inverse f :=

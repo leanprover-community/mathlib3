@@ -451,13 +451,13 @@ end clopen
 
 section preirreducible
 
-/-- A preirreducible set is one where there is no non-trivial pair of disjoint opens. -/
+/-- A preirreducible set `s` is one where there is no non-trivial pair of disjoint opens on `s`. -/
 def is_preirreducible (s : set α) : Prop :=
 ∀ (u v : set α), is_open u → is_open v →
   (s ∩ u).nonempty → (s ∩ v).nonempty → (s ∩ (u ∩ v)).nonempty
 
-/-- An irreducible set is one that is nonempty and
-where there is no non-trivial pair of disjoint opens. -/
+/-- An irreducible set `s` is one that is nonempty and
+where there is no non-trivial pair of disjoint opens on `s`. -/
 def is_irreducible (s : set α) : Prop :=
 s.nonempty ∧ is_preirreducible s
 
@@ -925,8 +925,9 @@ lemma subtype.connected_space {s : set α} (h : is_connected s) :
   (subtype.preconnected_space h.is_preconnected).is_preconnected_univ,
   to_nonempty := h.nonempty.to_subtype }
 
-/-- A set is preconnected if and only if
-for every cover by two disjoint open sets, it is contained in one of the two covering sets. -/
+/-- A set `s` is preconnected if and only if
+for every cover by two open sets that are disjoint on `s`,
+it is contained in one of the two covering sets. -/
 lemma is_preconnected_iff_subset_of_disjoint {s : set α} :
   is_preconnected s ↔
   ∀ (u v : set α) (hu : is_open u) (hv : is_open v) (hs : s ⊆ u ∪ v) (huv : s ∩ (u ∩ v) = ∅),
@@ -953,8 +954,8 @@ begin
     { rcases hsu with ⟨x, hxs, hxu⟩, exact ⟨x, hxs, ⟨hxu, h hxs⟩⟩ } }
 end
 
-/-- A set is connected if and only if
-for every cover by a finite collection of pairwise disjoint open sets,
+/-- A set `s` is connected if and only if
+for every cover by a finite collection of open sets that are pairwise disjoint on `s`,
 it is contained in one of the members of the collection. -/
 lemma is_connected_iff_sUnion_disjoint_open {s : set α} :
   is_connected s ↔

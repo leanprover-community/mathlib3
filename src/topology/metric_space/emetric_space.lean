@@ -670,7 +670,7 @@ show uniform_space.to_topological_space α = generate_from (⋃x ∈ S, ⋃ (n :
     rcases ennreal.exists_inv_nat_lt (bot_lt_iff_ne_bot.1 (ennreal.half_pos εpos)) with ⟨n, εn⟩,
     have : (0 : ennreal) < n⁻¹ := by simp [ennreal.bot_lt_iff_ne_bot],
     have : (a : α) ∈ closure (S : set α) := by rw [S_dense]; simp,
-    rcases mem_closure_iff.1 this _ ‹(0 : ennreal) <  n⁻¹› with ⟨x, xS, xdist⟩,
+    rcases mem_closure_iff.1 this _ ‹(0 : ennreal) < n⁻¹› with ⟨x, xS, xdist⟩,
     existsi ball x (↑n)⁻¹,
     have I : ball x (n⁻¹) ⊆ ball a ε := λy ydist, calc
       edist y a = edist a y : edist_comm _ _

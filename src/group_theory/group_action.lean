@@ -28,7 +28,7 @@ theorem mul_smul (a₁ a₂ : α) (b : β) : (a₁ * a₂) • b = a₁ • a₂
 
 lemma smul_smul (a₁ a₂ : α) (b : β) : a₁ • a₂ • b = (a₁ * a₂) • b := (mul_smul _ _ _).symm
 
-lemma smul_comm (α : Type u) (β : Type v) [comm_monoid α] [mul_action α β] (a₁ a₂ : α) (b : β) :
+lemma smul_comm {α : Type u} {β : Type v} [comm_monoid α] [mul_action α β] (a₁ a₂ : α) (b : β) :
   a₁ • a₂ • b = a₂ • a₁ • b := by rw [←mul_smul, ←mul_smul, mul_comm]
 
 variable (α)

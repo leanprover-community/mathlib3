@@ -69,8 +69,8 @@ begin
   -- x : α,  hx : x ∈ t.val
   -- goal : x ∈ s
   have : x ∈ closure s,
-  { refine mem_closure_iff'.2 (λε εpos, _),
-    rcases mem_closure_iff'.1 ht ε εpos with ⟨u, hu, Dtu⟩,
+  { refine mem_closure_iff.2 (λε εpos, _),
+    rcases mem_closure_iff.1 ht ε εpos with ⟨u, hu, Dtu⟩,
     -- u : closeds α,  hu : u ∈ {t : closeds α | t.val ⊆ s},  hu' : edist t u < ε
     rcases exists_edist_lt_of_Hausdorff_edist_lt hx Dtu with ⟨y, hy, Dxy⟩,
     -- y : α,  hy : y ∈ u.val, Dxy : edist x y < ε
@@ -152,7 +152,7 @@ begin
         as required. -/
     assume n x xt0,
     have : x ∈ closure (⋃m≥n, (s m).val), by apply mem_Inter.1 xt0 n,
-    rcases mem_closure_iff'.1 this (B n) (B_pos n) with ⟨z, hz, Dxz⟩,
+    rcases mem_closure_iff.1 this (B n) (B_pos n) with ⟨z, hz, Dxz⟩,
     -- z : α,  Dxz : edist x z < B n,
     simp only [exists_prop, set.mem_Union] at hz,
     rcases hz with ⟨m, ⟨m_ge_n, hm⟩⟩,
@@ -263,7 +263,7 @@ begin
   refine is_closed_of_closure_subset (λs hs, _),
   split,
   { -- take a set set t which is nonempty and at distance at most 1 of s
-    rcases mem_closure_iff'.1 hs 1 ennreal.zero_lt_one with ⟨t, ht, Dst⟩,
+    rcases mem_closure_iff.1 hs 1 ennreal.zero_lt_one with ⟨t, ht, Dst⟩,
     rw edist_comm at Dst,
     -- this set t contains a point x
     rcases ht.1 with ⟨x, hx⟩,
@@ -276,7 +276,7 @@ begin
     refine totally_bounded_iff.2 (λε εpos, _),
     -- we have to show that s is covered by finitely many eballs of radius ε
     -- pick a nonempty compact set t at distance at most ε/2 of s
-    rcases mem_closure_iff'.1 hs (ε/2) (ennreal.half_pos εpos) with ⟨t, ht, Dst⟩,
+    rcases mem_closure_iff.1 hs (ε/2) (ennreal.half_pos εpos) with ⟨t, ht, Dst⟩,
     -- cover this space with finitely many balls of radius ε/2
     rcases totally_bounded_iff.1 (compact_iff_totally_bounded_complete.1 ht.2).1 (ε/2) (ennreal.half_pos εpos)
       with ⟨u, fu, ut⟩,
@@ -335,14 +335,14 @@ begin
       apply countable_of_injective_of_countable_image _ this,
       apply inj_on_of_inj_on_of_subset (injective_iff_inj_on_univ.1 subtype.val_injective)
         (subset_univ _) },
-    { refine subset.antisymm (subset_univ _) (λt ht, mem_closure_iff'.2 (λε εpos, _)),
+    { refine subset.antisymm (subset_univ _) (λt ht, mem_closure_iff.2 (λε εpos, _)),
       -- t is a compact nonempty set, that we have to approximate uniformly by a a set in `v`.
       rcases dense εpos with ⟨δ, δpos, δlt⟩,
       -- construct a map F associating to a point in α an approximating point in s, up to δ/2.
       have Exy : ∀x, ∃y, y ∈ s ∧ edist x y < δ/2,
       { assume x,
         have : x ∈ closure s := by rw s_dense; exact mem_univ _,
-        rcases mem_closure_iff'.1 this (δ/2) (ennreal.half_pos δpos) with ⟨y, ys, hy⟩,
+        rcases mem_closure_iff.1 this (δ/2) (ennreal.half_pos δpos) with ⟨y, ys, hy⟩,
         exact ⟨y, ⟨ys, hy⟩⟩ },
       let F := λx, some (Exy x),
       have Fspec : ∀x, F x ∈ s ∧ edist x (F x) < δ/2 := λx, some_spec (Exy x),

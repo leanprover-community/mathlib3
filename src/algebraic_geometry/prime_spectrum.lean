@@ -6,6 +6,7 @@ Authors: Johan Commelin
 
 import topology.opens
 import ring_theory.ideal_operations
+import linear_algebra.finsupp
 
 /-!
 # Prime spectrum of a commutative ring
@@ -30,6 +31,60 @@ noncomputable theory
 open_locale classical
 
 universe variables u v
+
+namespace submodule
+variables {R : Type u} {M : Type v} [ring R] [add_comm_group M] [module R M]
+
+lemma supr_eq_span {ι : Sort*} (p : ι → submodule R M) :
+  (⨆ (i : ι), p i) = submodule.span R (⋃ (i : ι), ↑(p i)) :=
+begin
+  apply le_antisymm,
+  { apply lattice.supr_le _,
+    intro i,
+    apply set.subset.trans _ submodule.subset_span,
+    intros m hm,
+    rw set.mem_Union,
+    use [i, hm] },
+  { rw [submodule.span_le, set.Union_subset_iff],
+    intros i m hm,
+    exact submodule.mem_supr_of_mem _ i hm }
+end
+
+lemma exists_finset_of_mem_supr {ι : Type*} (p : ι → submodule R M) {m : M} (hm : m ∈ ⨆ i, p i) :
+  ∃ s : finset ι, m ∈ ⨆ i ∈ s, p i :=
+begin
+  have aux : (id : M → M) '' (⋃ (i : ι), ↑(p i)) = (⋃ (i : ι), ↑(p i)) := set.image_id _,
+  rw [supr_eq_span, ← aux, finsupp.mem_span_iff_total R] at hm,
+  rcases hm with ⟨f, hf, rfl⟩,
+  let t : finset M := f.support,
+  have ht : ∀ x : {x // x ∈ t}, ∃ i, x.1 ∈ p i,
+  { intros x,
+    rw finsupp.mem_supported at hf,
+    specialize hf x.2,
+    rwa set.mem_Union at hf },
+  let g : {x // x ∈ t} → ι := (λ x, classical.some (ht x)),
+  let s : finset ι := finset.image g finset.univ,
+  use s,
+  show _ ∈ lattice.Inf _,
+  rw lattice.Inf_eq_infi,
+  simp only [submodule.mem_infi, set.mem_set_of_eq],
+  rintro N hN,
+  rw finsupp.total_apply,
+  rw finsupp.sum,
+  rw ← submodule.mem_coe,
+  apply is_add_submonoid.finset_sum_mem,
+  intros x hx,
+  apply submodule.smul_mem,
+  show x ∈ N,
+  let i := g ⟨x, hx⟩,
+  have hi : i ∈ s,
+  { rw finset.mem_image, exact ⟨⟨x, hx⟩, finset.mem_univ _, rfl⟩ },
+  haveI : nonempty (i ∈ s) := ⟨hi⟩,
+  refine hN (p i) ⟨i, _⟩ (classical.some_spec (ht ⟨x, hx⟩)),
+  simp only [lattice.csupr_const],
+end
+
+end submodule
 
 variables (R : Type u) [comm_ring R]
 
@@ -72,6 +127,10 @@ def zero_locus (s : set R) : set (prime_spectrum R) :=
 @[simp] lemma mem_zero_locus (x : prime_spectrum R) (s : set R) :
   x ∈ zero_locus s ↔ s ⊆ x.as_ideal := iff.rfl
 
+@[simp] lemma zero_locus_span (s : set R) :
+  zero_locus (ideal.span s : set R) = zero_locus s :=
+by { ext x, exact (submodule.gi R R).gc s x.as_ideal }
+
 /-- The vanishing ideal of a set `s` of points
 of the prime spectrum of a commutative ring `R`
 is the largest ideal of the ring that is contained in all the prime ideals in the set `s`.
@@ -99,7 +158,69 @@ lemma mem_vanishing_ideal (s : set (prime_spectrum R)) (f : R) :
   f ∈ vanishing_ideal s ↔ ∀ x : prime_spectrum R, x ∈ s → f ∈ x.as_ideal :=
 by rw [← submodule.mem_coe, coe_vanishing_ideal, set.mem_set_of_eq]
 
-def gc : galois_connection vanishing_ideal (λ I, zero_locus (I : set R))
+lemma subset_zero_locus_iff_le_vanishing_ideal (s : (set (prime_spectrum R))) (I : ideal R) :
+  s ⊆ zero_locus I ↔ I ≤ vanishing_ideal s :=
+begin
+  split; intro h,
+  { intros f hf,
+    rw [submodule.mem_coe, mem_vanishing_ideal],
+    intros x hx,
+    have hxI := h hx,
+    rw mem_zero_locus at hxI,
+    exact hxI hf },
+  { intros x hx,
+    rw mem_zero_locus,
+    refine set.subset.trans h _,
+    intros f hf,
+    rw [submodule.mem_coe, mem_vanishing_ideal] at hf,
+    exact hf x hx }
+end
+
+section gc
+variable (R)
+
+def gc : @galois_connection
+  (ideal R) (order_dual (set (prime_spectrum R))) _ _
+  (λ I, zero_locus I) (λ s, vanishing_ideal s) :=
+λ I s, subset_zero_locus_iff_le_vanishing_ideal s I
+
+def gc_set : @galois_connection
+  (set R) (order_dual (set (prime_spectrum R))) _ _
+  (λ I, zero_locus I) (λ t, vanishing_ideal t) :=
+have ideal_gc : galois_connection (ideal.span) coe := (submodule.gi R R).gc,
+by simpa [zero_locus_span, function.comp] using galois_connection.compose _ _ _ _ ideal_gc (gc R)
+
+lemma subset_zero_locus_iff_subset_vanishing_ideal (s : (set (prime_spectrum R))) (t : set R) :
+  s ⊆ zero_locus t ↔ t ⊆ vanishing_ideal s :=
+(gc_set R) t s
+
+end gc
+
+-- TODO: we actually get the radical ideal,
+-- but I think that isn't in mathlib yet.
+lemma subset_vanishing_ideal_zero_locus (s : set R) :
+  s ⊆ vanishing_ideal (zero_locus s) :=
+(gc_set R).le_u_l s
+
+lemma le_vanishing_ideal_zero_locus (I : ideal R) :
+  I ≤ vanishing_ideal (zero_locus I) :=
+(gc R).le_u_l I
+
+lemma subset_zero_locus_vanishing_ideal (s : set (prime_spectrum R)) :
+  s ⊆ zero_locus (vanishing_ideal s) :=
+(gc R).l_u_le s
+
+@[simp] lemma zero_locus_bot :
+  zero_locus ((⊥ : ideal R) : set R) = set.univ :=
+(gc R).l_bot
+
+@[simp] lemma zero_locus_empty :
+  zero_locus (∅ : set R) = set.univ :=
+(gc_set R).l_bot
+
+@[simp] lemma vanishing_ideal_univ :
+  vanishing_ideal (∅ : set (prime_spectrum R)) = ⊤ :=
+by simpa using (gc R).u_top
 
 lemma zero_locus_empty_of_one_mem {s : set R} (h : (1:R) ∈ s) :
   zero_locus s = ∅ :=
@@ -128,26 +249,35 @@ end
   zero_locus (set.univ : set R) = ∅ :=
 zero_locus_empty_of_one_mem (set.mem_univ 1)
 
-@[simp] lemma zero_locus_span (s : set R) :
-  zero_locus (ideal.span s : set R) = zero_locus s :=
-begin
-  ext x,
-  simp only [mem_zero_locus],
-  split,
-  { exact set.subset.trans ideal.subset_span },
-  { intro h, rwa ← ideal.span_le at h }
-end
+lemma zero_locus_sup (I J : ideal R) :
+  zero_locus ((I ⊔ J : ideal R) : set R) = zero_locus I ∩ zero_locus J :=
+(gc R).l_sup
 
-lemma union_zero_locus_ideal (I J : ideal R) :
-  zero_locus (I : set R) ∪ zero_locus J = zero_locus (I ⊓ J : ideal R) :=
+lemma zero_locus_union (s t : set R) :
+  zero_locus (s ∪ t) = zero_locus s ∩ zero_locus t :=
+(gc_set R).l_sup
+
+lemma vanishing_ideal_union (s t : set (prime_spectrum R)) :
+  vanishing_ideal (s ∪ t) = vanishing_ideal s ⊓ vanishing_ideal t :=
+(gc R).u_inf
+
+lemma zero_locus_supr {ι : Sort*} (I : ι → ideal R) :
+  zero_locus ((⨆ i, I i : ideal R) : set R) = (⋂ i, zero_locus (I i)) :=
+(gc R).l_supr
+
+lemma zero_locus_Union {ι : Sort*} (s : ι → set R) :
+  zero_locus (⋃ i, s i) = (⋂ i, zero_locus (s i)) :=
+(gc_set R).l_supr
+
+lemma vanishing_ideal_Union {ι : Sort*} (s : ι → set (prime_spectrum R)) :
+  vanishing_ideal (⋃ i, s i) = (⨅ i, vanishing_ideal (s i)) :=
+(gc R).u_infi
+
+lemma zero_locus_inf (I J : ideal R) :
+  zero_locus ((I ⊓ J : ideal R) : set R) = zero_locus I ∪ zero_locus J :=
 begin
   ext x,
   split,
-  { rintro (h|h),
-    all_goals
-    { rw mem_zero_locus at h ⊢,
-      refine set.subset.trans _ h,
-      intros r hr, cases hr, assumption } },
   { rintro h,
     rw set.mem_union,
     simp only [mem_zero_locus] at h ⊢,
@@ -158,62 +288,28 @@ begin
     rcases hs with ⟨s, hs1, hs2⟩,
     apply (ideal.is_prime.mem_or_mem (by apply_instance) _).resolve_left hs2,
     apply h,
-    rw [submodule.mem_coe, submodule.mem_inf],
     split,
     { exact ideal.mul_mem_left _ hr },
-    { exact ideal.mul_mem_right _ hs1 } }
+    { exact ideal.mul_mem_right _ hs1 } },
+  { rintro (h|h),
+    all_goals
+    { rw mem_zero_locus at h ⊢,
+      refine set.subset.trans _ h,
+      intros r hr, cases hr, assumption } }
 end
 
 lemma union_zero_locus (s t : set R) :
   zero_locus s ∪ zero_locus t = zero_locus ((ideal.span s) ⊓ (ideal.span t) : ideal R) :=
-by { rw ← union_zero_locus_ideal, simp }
+by { rw zero_locus_inf, simp }
 
-lemma zero_locus_Union {ι : Type*} (s : ι → set R) :
-  zero_locus (⋃ i, s i) = (⋂ i, zero_locus (s i)) :=
-by { ext x, simp only [mem_zero_locus, set.mem_Inter, set.Union_subset_iff] }
-
-lemma Inter_zero_locus {ι : Type*} (s : ι → set R) :
-  (⋂ i, zero_locus (s i)) = zero_locus (⋃ i, s i) :=
-(zero_locus_Union s).symm
-
-lemma zero_locus_union (s t : set R) :
-  zero_locus (s ∪ t) = zero_locus s ∩ zero_locus t :=
+lemma sup_vanishing_ideal_le (s t : set (prime_spectrum R)) :
+  vanishing_ideal s ⊔ vanishing_ideal t ≤ vanishing_ideal (s ∩ t) :=
 begin
-  ext x,
-  simp only [set.union_subset_iff, set.mem_inter_eq, iff_self, prime_spectrum.mem_zero_locus]
-end
-
--- TODO: we actually get the radical ideal,
--- but I think that isn't in mathlib yet.
-lemma subset_vanishing_ideal_zero_locus (s : set R) :
-  s ⊆ vanishing_ideal (zero_locus s) :=
-begin
-  intros f hf,
-  rw coe_vanishing_ideal,
-  intro x,
-  rw mem_zero_locus,
-  intro hsx,
-  exact hsx hf
-end
-
-lemma le_vanishing_ideal_zero_locus (I : ideal R) :
-  I ≤ vanishing_ideal (zero_locus I) :=
-subset_vanishing_ideal_zero_locus I
-
-lemma vanishing_ideal_union (s t : set (prime_spectrum R)) :
-  vanishing_ideal (s ∪ t) = vanishing_ideal s ⊓ vanishing_ideal t :=
-begin
-  ext f,
-  simp only [mem_vanishing_ideal, or_imp_distrib, forall_and_distrib,
-    submodule.mem_inf, iff_self, set.mem_union_eq]
-end
-
-lemma vanishing_ideal_Union {ι : Type*} (s : ι → set (prime_spectrum R)) :
-  vanishing_ideal (⋃ i, s i) = (⨅ i, vanishing_ideal (s i)) :=
-begin
-  ext f,
-  simp only [mem_vanishing_ideal, set.mem_Union, exists_imp_distrib, submodule.mem_infi],
-  rw forall_swap
+  intros r,
+  rw [submodule.mem_coe, submodule.mem_sup, submodule.mem_coe, mem_vanishing_ideal],
+  rintro ⟨f, hf, g, hg, rfl⟩ x ⟨hxs, hxt⟩,
+  rw mem_vanishing_ideal at hf hg,
+  apply submodule.add_mem; solve_by_elim
 end
 
 /-- The Zariski topology on the prime spectrum of a commutative ring
@@ -228,7 +324,7 @@ topological_space.of_closed (set.range prime_spectrum.zero_locus)
     let f : Zs → set R := λ i, classical.some (h i.2),
     have hf : ∀ i : Zs, i.1 = zero_locus (f i) := λ i, (classical.some_spec (h i.2)).symm,
     simp only [hf],
-    exact ⟨_, (Inter_zero_locus _).symm⟩
+    exact ⟨_, zero_locus_Union _⟩
   end
   (by { rintro _ _ ⟨s, rfl⟩ ⟨t, rfl⟩, exact ⟨_, (union_zero_locus s t).symm⟩ })
 
@@ -240,7 +336,7 @@ lemma is_closed_iff_zero_locus (Z : set (prime_spectrum R)) :
   is_closed Z ↔ ∃ s, Z = zero_locus s :=
 by rw [is_closed, is_open_iff, set.compl_compl]
 
-lemma zero_locus_is_closed (s : set R) :
+lemma is_closed_zero_locus (s : set R) :
   is_closed (zero_locus s) :=
 by { rw [is_closed_iff_zero_locus], exact ⟨s, rfl⟩ }
 
@@ -287,48 +383,63 @@ lemma zero_locus_vanishing_ideal_eq_closure (s : set (prime_spectrum R)) :
   zero_locus (vanishing_ideal s : set R) = closure s :=
 begin
   apply set.subset.antisymm,
-  { intros x hx,
-    rw mem_zero_locus at hx,
-    sorry },
+  { rintro x hx t ⟨ht, hs⟩,
+    obtain ⟨fs, rfl⟩ : ∃ s, t = zero_locus s,
+    by rwa [is_closed_iff_zero_locus] at ht,
+    rw [subset_zero_locus_iff_subset_vanishing_ideal] at hs,
+    calc fs ⊆ vanishing_ideal s : hs
+        ... ⊆ x.as_ideal        : hx },
+  { rw closure_subset_iff_subset_of_is_closed (is_closed_zero_locus _),
+    exact subset_zero_locus_vanishing_ideal s }
 end
 
-lemma submodule.exists_finset_of_mem_supr {R : Type u} {M : Type v}
-  [ring R] [add_comm_group M] [module R M] {ι : Sort*}
-  (p : ι → submodule R M) {m : M} (hm : m ∈ ⨆ (i : ι), p i) :
-  ∃ s : finset ι, m ∈ ⨆ i ∈ s, p i :=
+theorem compact_of_finite_subcover_closed {α : Type u} [topological_space α] {s : set α}
+  (h : Π {ι : Type u} (Z : ι → (set α)), (∀ i, is_closed (Z i)) →
+    s ∩ (⋂ i, Z i) = ∅ → (∃ (t : finset ι), s ∩ (⋂ i ∈ t, Z i) = ∅)) :
+  compact s :=
 begin
-  sorry,
+  apply compact_of_finite_subcover,
+  intros U h_open h_cover,
+  have aux : (s ∩ ⋂ (u : U), -u.val) = ∅,
+  { rw [set.sUnion_eq_Union] at h_cover,
+    rw [← set.compl_Union, set.eq_empty_iff_forall_not_mem],
+    rintro x ⟨hxs, hx⟩, exact hx (h_cover hxs) },
+  rcases h (λ u:U, -u.1) (λ u, is_closed_compl_iff.mpr (h_open _ u.2)) aux with ⟨t, ht⟩,
+  refine ⟨subtype.val '' (↑t : set U), _, _, _⟩,
+  { rw set.image_subset_iff, intros u hu, exact u.2 },
+  { exact set.finite_image _ t.finite_to_set },
+  { intros x hxs,
+    rw [set.eq_empty_iff_forall_not_mem] at ht,
+    specialize ht x,
+    simpa [hxs, not_forall] using ht }
 end
 
-instance : compact_space (prime_spectrum R) :=
+theorem compact_space_of_finite_subcover_closed {α : Type u} [topological_space α]
+  (h : Π {ι : Type u} (Z : ι → (set α)), (∀ i, is_closed (Z i)) →
+    (⋂ i, Z i) = ∅ → (∃ (t : finset ι), (⋂ i ∈ t, Z i) = ∅)) :
+  compact_space α :=
 { compact_univ :=
   begin
-    apply compact_of_finite_subcover,
-    intros U h_open h_cover,
-    rw set.univ_subset_iff at h_cover,
-    have H : -⋃₀ U = ∅, { simp [h_cover] },
-    rw [set.compl_sUnion, set.sInter_image, set.bInter_eq_Inter] at H,
-    change (⋂ (x : U), - x.val) = ∅ at H,
-    -- TODO: define vanishing_ideal and get rid of choice
-    let f : U → set R := λ i, classical.some (h_open _ i.2),
-    have hf : ∀ i : U, -i.1 = zero_locus (f i) := λ i, (classical.some_spec (h_open _ i.2)).symm,
-    simp only [hf] at H,
-    rw [Inter_zero_locus, ← zero_locus_span,
-        zero_locus_empty_iff_eq_top, ideal.eq_top_iff_one] at H,
-    have aux : ideal.span (⋃ i : U, f i) = ⨆ i : U, ideal.span (f i),
-    { exact submodule.span_Union _, },
-    rw aux at H, clear aux,
-    rcases submodule.exists_finset_of_mem_supr _ H with ⟨s, hs⟩,
-    have aux : ideal.span (⋃ (i : U) (H : i ∈ s), f i) = ⨆ (i : U) (H : i ∈ s), ideal.span (f i),
-    { sorry },
-    rw ← aux at hs, clear aux,
-    rw [←ideal.eq_top_iff_one, ←zero_locus_empty_iff_eq_top,
-        zero_locus_span, ←Inter_zero_locus] at hs,
-    refine ⟨subtype.val '' (↑s : set U), _, _, _⟩,
-    { rw set.image_subset_iff, intros u hu, exact u.2 },
-    { apply set.finite_image, exact finset.finite_to_set s },
-    rw set.univ_subset_iff,
-    rw [set.sUnion_image, set.bUnion_eq_Union],
+    apply compact_of_finite_subcover_closed,
+    intros ι Z, specialize h Z,
+    simpa using h
   end }
+
+instance : compact_space (prime_spectrum R) :=
+begin
+  apply compact_space_of_finite_subcover_closed,
+  intros ι Z h_closed hZ,
+  let f : ι → ideal R := λ i, vanishing_ideal (Z i),
+  have hf : ∀ i, Z i = zero_locus (f i),
+  { intro i,
+    rw [zero_locus_vanishing_ideal_eq_closure, closure_eq_of_is_closed],
+    exact h_closed i },
+  simp only [hf] at hZ,
+  rw [← zero_locus_supr, zero_locus_empty_iff_eq_top, ideal.eq_top_iff_one] at hZ,
+  rcases submodule.exists_finset_of_mem_supr _ hZ with ⟨s, hs⟩,
+  use s,
+  rw [← ideal.eq_top_iff_one, ←zero_locus_empty_iff_eq_top] at hs,
+  simpa only [zero_locus_supr, hf] using hs
+end
 
 end prime_spectrum

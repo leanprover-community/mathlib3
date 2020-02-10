@@ -145,7 +145,7 @@ begin
     apply h.ext,
     { intros i,
       rw [h.to_dual_eq_repr _ i, repr_total h],
-      { simpa },
+      { refl },
       { rw [finsupp.mem_supported],
         exact λ _ _, set.mem_univ _ } } },
   { intros a _,

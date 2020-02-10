@@ -825,7 +825,7 @@ lemma nonempty.elim_to_inhabited {α : Sort*} [h : nonempty α] {p : Prop}
   (f : inhabited α → p) : p :=
 h.elim $ f ∘ inhabited.mk
 
-instance {γ} [h : nonempty γ] : nonempty (γ × γ) :=
-h.elim $ λ g, ⟨⟨g, g⟩⟩
+instance {α β} [h : nonempty α] [h2 : nonempty β] : nonempty (α × β) :=
+h.elim $ λ g, h2.elim $ λ g2, ⟨⟨g, g2⟩⟩
 
 end nonempty

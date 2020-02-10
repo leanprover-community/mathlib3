@@ -11,6 +11,7 @@ universes u v
 open equiv equiv.perm finset function
 
 namespace matrix
+open_locale matrix
 
 variables {n : Type u} [fintype n] [decidable_eq n] {R : Type v} [comm_ring R]
 
@@ -68,11 +69,11 @@ begin
     (λ _ _, equiv.ext _ _ $ by simp)
 end
 
-@[simp] lemma det_mul (M N : matrix n n R) : det (M * N) = det M * det N :=
-calc det (M * N) = univ.sum (λ σ : perm n, (univ.pi (λ a, univ)).sum
+@[simp] lemma det_mul (M N : matrix n n R) : det (M ⬝ N) = det M * det N :=
+calc det (M ⬝ N) = univ.sum (λ σ : perm n, (univ.pi (λ a, univ)).sum
     (λ (p : Π (a : n), a ∈ univ → n), ε σ *
     univ.attach.prod (λ i, M (σ i.1) (p i.1 (mem_univ _)) * N (p i.1 (mem_univ _)) i.1))) :
-  by simp only [det, mul_val', prod_sum, mul_sum]
+  by simp only [det, mul_val, prod_sum, mul_sum]
 ... = univ.sum (λ σ : perm n, univ.sum
     (λ p : n → n, ε σ * univ.prod (λ i, M (σ i) (p i) * N (p i) i))) :
   sum_congr rfl (λ σ _, sum_bij
@@ -113,7 +114,7 @@ instance : is_monoid_hom (det : matrix n n R → R) :=
   map_mul := det_mul }
 
 /-- Transposing a matrix preserves the determinant. -/
-@[simp] lemma det_transpose (M : matrix n n R) : M.transpose.det = M.det :=
+@[simp] lemma det_transpose (M : matrix n n R) : Mᵀ.det = M.det :=
 begin
   apply sum_bij (λ σ _, σ⁻¹),
   { intros σ _, apply mem_univ },

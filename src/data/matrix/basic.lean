@@ -174,13 +174,13 @@ instance [decidable_eq n] : semiring (matrix n n α) :=
   ..matrix.add_comm_monoid,
   ..matrix.monoid }
 
-@[simp] theorem diagonal_mul_diagonal' [decidable_eq n] (d₁ d₂ : n → α) :
+@[simp] theorem diagonal_mul_diagonal [decidable_eq n] (d₁ d₂ : n → α) :
   (diagonal d₁) ⬝ (diagonal d₂) = diagonal (λ i, d₁ i * d₂ i) :=
 by ext i j; by_cases i = j; simp [h]
 
-theorem diagonal_mul_diagonal [decidable_eq n] (d₁ d₂ : n → α) :
+theorem diagonal_mul_diagonal' [decidable_eq n] (d₁ d₂ : n → α) :
   diagonal d₁ * diagonal d₂ = diagonal (λ i, d₁ i * d₂ i) :=
-diagonal_mul_diagonal' _ _
+diagonal_mul_diagonal _ _
 
 lemma is_add_monoid_hom_mul_left (M : matrix l m α) :
   is_add_monoid_hom (λ x : matrix m n α, M ⬝ x) :=

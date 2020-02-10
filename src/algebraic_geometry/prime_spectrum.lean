@@ -125,12 +125,14 @@ end
 section gc
 variable (R)
 
-def gc : @galois_connection
+/-- `zero_locus` and `vanishing_ideal` form a galois connection. -/
+lemma gc : @galois_connection
   (ideal R) (order_dual (set (prime_spectrum R))) _ _
   (λ I, zero_locus I) (λ s, vanishing_ideal s) :=
 λ I s, subset_zero_locus_iff_le_vanishing_ideal s I
 
-def gc_set : @galois_connection
+/-- `zero_locus` and `vanishing_ideal` form a galois connection. -/
+lemma gc_set : @galois_connection
   (set R) (order_dual (set (prime_spectrum R))) _ _
   (λ I, zero_locus I) (λ t, vanishing_ideal t) :=
 have ideal_gc : galois_connection (ideal.span) coe := (submodule.gi R R).gc,

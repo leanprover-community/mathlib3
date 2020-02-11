@@ -442,6 +442,21 @@ meta def dangerous_instance (d : declaration) : tactic (option string) := do
   no_errors_found := "No dangerous instances",
   errors_found := "DANGEROUS INSTANCES FOUND.\nThese instances are recursive, and create a new type-class problem which will have metavariables. Currently this linter does not check whether the metavariables only occur in arguments marked with `out_param`, in which case this linter gives a false positive." }
 
+/-- Checks whether a declaration is prop-valued and takes an `inhabited _` argument that is unused
+    elsewhere in the type. In this case, that argument can be replaced with `nonempty _`. -/
+meta def inhabited_nonempty (d : declaration) : tactic (option string) :=
+do tt ← is_prop d.type | return none,
+   (binders, _) ← get_pi_binders_dep d.type,
+   let inhd_binders := binders.filter $ λ pr, pr.2.type.is_app_of `inhabited,
+   if inhd_binders.length = 0 then return none
+   else (λ s, some $ "The following `inhabited` instances should be `nonempty`. " ++ s) <$> print_arguments inhd_binders
+
+/-- A linter object for `inhabited_nonempty`. -/
+@[linter, priority 1400] meta def linter.inhabited_nonempty : linter :=
+{ test := inhabited_nonempty,
+  no_errors_found := "No uses of `inhabited` arguments should be replaced with `nonempty`",
+  errors_found := "USES OF `inhabited` SHOULD BE REPLACED WITH `nonempty`." }
+
 /- Implementation of the frontend. -/
 
 /-- `get_checks slow extra use_only` produces a list of linters.

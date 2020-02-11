@@ -689,7 +689,7 @@ theorem metric.uniformity_eq_comap_nhds_zero :
 by { ext s,
   simp [mem_uniformity_dist, (nhds_basis_ball.comap _).mem_iff, subset_def, real.dist_0_eq_abs] }
 
-lemma cauchy_seq_iff_tendsto_dist_at_top_0 [inhabited β] [semilattice_sup β] {u : β → α} :
+lemma cauchy_seq_iff_tendsto_dist_at_top_0 [nonempty β] [semilattice_sup β] {u : β → α} :
   cauchy_seq u ↔ tendsto (λ (n : β × β), dist (u n.1) (u n.2)) at_top (𝓝 0) :=
 by rw [cauchy_seq_iff_tendsto, metric.uniformity_eq_comap_nhds_zero, tendsto_comap_iff,
   prod.map_def]
@@ -697,7 +697,7 @@ by rw [cauchy_seq_iff_tendsto, metric.uniformity_eq_comap_nhds_zero, tendsto_com
 end real
 
 section cauchy_seq
-variables [inhabited β] [semilattice_sup β]
+variables [nonempty β] [semilattice_sup β]
 
 /-- In a metric space, Cauchy sequences are characterized by the fact that, eventually,
 the distance between its elements is arbitrarily small -/
@@ -1217,7 +1217,7 @@ variables {x : α} {s t : set α} {r : ℝ}
 ⟨0, by simp⟩
 
 lemma bounded_iff_mem_bounded : bounded s ↔ ∀ x ∈ s, bounded s :=
-⟨λ h _ _, h, λ H, 
+⟨λ h _ _, h, λ H,
   s.eq_empty_or_nonempty.elim
   (λ hs, hs.symm ▸ bounded_empty)
   (λ ⟨x, hx⟩, H x hx)⟩

@@ -226,14 +226,13 @@ begin
   simp [Aα, Bβ]
 end
 
-local attribute [instance, priority 10] inhabited_of_nonempty'
-
 /-- The optimal coupling constructed above realizes exactly the Gromov-Hausdorff distance,
 essentially by design. -/
 lemma Hausdorff_dist_optimal {α : Type u} [metric_space α] [compact_space α] [nonempty α]
   {β : Type v} [metric_space β] [compact_space β] [nonempty β] :
   Hausdorff_dist (range (optimal_GH_injl α β)) (range (optimal_GH_injr α β)) = GH_dist α β :=
 begin
+  inhabit α, inhabit β,
   /- we only need to check the inequality `≤`, as the other one follows from the previous lemma.
      As the Gromov-Hausdorff distance is an infimum, we need to check that the Hausdorff distance
      in the optimal coupling is smaller than the Hausdorff distance of any coupling.

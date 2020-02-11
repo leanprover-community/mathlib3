@@ -22,12 +22,15 @@ structure equiv (α : Sort*) (β : Sort*) :=
 (left_inv  : left_inverse inv_fun to_fun)
 (right_inv : right_inverse inv_fun to_fun)
 
+infix ` ≃ `:25 := equiv
+
+def function.involutive.to_equiv {f : α → α} (h : involutive f) : α ≃ α :=
+⟨f, f, h.left_inverse, h.right_inverse⟩
+
 namespace equiv
 
 /-- `perm α` is the type of bijections from `α` to itself. -/
 @[reducible] def perm (α : Sort*) := equiv α α
-
-infix ` ≃ `:25 := equiv
 
 instance : has_coe_to_fun (α ≃ β) :=
 ⟨_, to_fun⟩
@@ -44,10 +47,10 @@ theorem eq_of_to_fun_eq : ∀ {e₁ e₂ : equiv α β}, (e₁ : α → β) = e�
     show g₁ x = g₂ x,           from injective_of_left_inverse l₁ this,
   by simp *
 
-@[extensionality] lemma ext (f g : equiv α β) (H : ∀ x, f x = g x) : f = g :=
+@[ext] lemma ext (f g : equiv α β) (H : ∀ x, f x = g x) : f = g :=
 eq_of_to_fun_eq (funext H)
 
-@[extensionality] lemma perm.ext (σ τ : equiv.perm α) (H : ∀ x, σ x = τ x) : σ = τ :=
+@[ext] lemma perm.ext (σ τ : equiv.perm α) (H : ∀ x, σ x = τ x) : σ = τ :=
 equiv.ext _ _ H
 
 @[refl] protected def refl (α : Sort*) : α ≃ α := ⟨id, id, λ x, rfl, λ x, rfl⟩
@@ -66,6 +69,9 @@ protected theorem surjective : ∀ f : α ≃ β, surjective f
 
 protected theorem bijective (f : α ≃ β) : bijective f :=
 ⟨f.injective, f.surjective⟩
+
+@[simp] lemma range_eq_univ {α : Type*} {β : Type*} (e : α ≃ β) : set.range e = set.univ :=
+set.eq_univ_of_forall e.surjective
 
 protected theorem subsingleton (e : α ≃ β) : ∀ [subsingleton β], subsingleton α
 | ⟨H⟩ := ⟨λ a b, e.injective (H _ _)⟩
@@ -571,7 +577,7 @@ def subtype_equiv_of_subtype' {p : α → Prop} (e : α ≃ β) :
 subtype_congr e $ by simp
 
 def subtype_congr_prop {α : Type*} {p q : α → Prop} (h : p = q) : subtype p ≃ subtype q :=
-subtype_congr (equiv.refl α) (assume a, h ▸ iff.refl _)
+subtype_congr (equiv.refl α) (assume a, h ▸ iff.rfl)
 
 def set_congr {α : Type*} {s t : set α} (h : s = t) : s ≃ t :=
 subtype_congr_prop h
@@ -651,23 +657,6 @@ def subtype_pi_equiv_pi {α : Sort u} {β : α → Sort v} {p : Πa, β a → Pr
 ⟨λf a, ⟨f.1 a, f.2 a⟩, λf, ⟨λa, (f a).1, λa, (f a).2⟩,
   by { rintro ⟨f, h⟩, refl },
   by { rintro f, funext a, exact subtype.eq' rfl }⟩
-
-end
-
-section
-
-local attribute [elab_with_expected_type] quot.lift
-
-def quot_equiv_of_quot' {r : α → α → Prop} {s : β → β → Prop} (e : α ≃ β)
-  (h : ∀ a a', r a a' ↔ s (e a) (e a')) : quot r ≃ quot s :=
-⟨quot.lift (λ a, quot.mk _ (e a)) (λ a a' H, quot.sound ((h a a').mp H)),
- quot.lift (λ b, quot.mk _ (e.symm b)) (λ b b' H, quot.sound ((h _ _).mpr (by convert H; simp))),
- quot.ind $ by simp,
- quot.ind $ by simp⟩
-
-def quot_equiv_of_quot {r : α → α → Prop} (e : α ≃ β) :
-  quot r ≃ quot (λ b b', r (e.symm b) (e.symm b')) :=
-quot_equiv_of_quot' e (by simp)
 
 end
 
@@ -822,7 +811,7 @@ noncomputable def of_bijective {α β} {f : α → β} (hf : bijective f) : α �
 
 @[simp] theorem of_bijective_to_fun {α β} {f : α → β} (hf : bijective f) : (of_bijective hf : α → β) = f := rfl
 
-lemma subtype_quotient_equiv_quotient_subtype (p₁ : α → Prop) [s₁ : setoid α]
+def subtype_quotient_equiv_quotient_subtype (p₁ : α → Prop) [s₁ : setoid α]
   [s₂ : setoid (subtype p₁)] (p₂ : quotient s₁ → Prop) (hp₂ :  ∀ a, p₁ a ↔ p₂ ⟦a⟧)
   (h : ∀ x y : subtype p₁, @setoid.r _ s₂ x y ↔ (x : α) ≈ y) :
   {x // p₂ x} ≃ quotient s₂ :=
@@ -885,7 +874,7 @@ by { cases π, refl }
 @[simp] lemma swap_inv {α : Type*} [decidable_eq α] (x y : α) :
   (swap x y)⁻¹ = swap x y := rfl
 
-@[simp] lemma symm_trans_swap_trans [decidable_eq α] [decidable_eq β] (a b : α)
+@[simp] lemma symm_trans_swap_trans [decidable_eq β] (a b : α)
   (e : α ≃ β) : (e.symm.trans (swap a b)).trans e = swap (e a) (e b) :=
 equiv.ext _ _ (λ x, begin
   have : ∀ a, e.symm x = a ↔ x = e a :=
@@ -908,6 +897,14 @@ def set_value (f : α ≃ β) (a : α) (b : β) : α ≃ β :=
 by { dsimp [set_value], simp [swap_apply_left] }
 
 end swap
+
+protected lemma forall_congr {p : α → Prop} {q : β → Prop} (f : α ≃ β)
+  (h : ∀{x}, p x ↔ q (f x)) : (∀x, p x) ↔ (∀y, q y) :=
+begin
+  split; intros h₂ x,
+  { rw [←f.right_inv x], apply h.mp, apply h₂ },
+  apply h.mpr, apply h₂
+end
 
 end equiv
 
@@ -933,7 +930,10 @@ def equiv_punit_of_unique [unique α] : α ≃ punit.{v} :=
 equiv_of_unique_of_unique
 
 namespace quot
-protected def congr {α β} {ra : α → α → Prop} {rb : β → β → Prop} (e : α ≃ β)
+
+/-- An equivalence `e : α ≃ β` generates an equivalence between quotient spaces,
+if `ra a₁ a₂ ↔ rb (e a₁) (e a₂). -/
+protected def congr {ra : α → α → Prop} {rb : β → β → Prop} (e : α ≃ β)
   (eq : ∀a₁ a₂, ra a₁ a₂ ↔ rb (e a₁) (e a₂)) :
   quot ra ≃ quot rb :=
 { to_fun := quot.map e (assume a₁ a₂, (eq a₁ a₂).1),
@@ -946,18 +946,29 @@ protected def congr {α β} {ra : α → α → Prop} {rb : β → β → Prop} 
 
 /-- Quotients are congruent on equivalences under equality of their relation.
 An alternative is just to use rewriting with `eq`, but then computational proofs get stuck. -/
-protected def congr_right {α} {r r' : α → α → Prop} (eq : ∀a₁ a₂, r a₁ a₂ ↔ r' a₁ a₂) :
+protected def congr_right {r r' : α → α → Prop} (eq : ∀a₁ a₂, r a₁ a₂ ↔ r' a₁ a₂) :
   quot r ≃ quot r' :=
 quot.congr (equiv.refl α) eq
+
+/-- An equivalence `e : α ≃ β` generates an equivalence between the quotient space of `α`
+by a relation `ra` and the quotient space of `β` by the image of this relation under `e`. -/
+protected def congr_left {r : α → α → Prop} (e : α ≃ β) :
+  quot r ≃ quot (λ b b', r (e.symm b) (e.symm b')) :=
+@quot.congr α β r (λ b b', r (e.symm b) (e.symm b')) e (λ a₁ a₂, by simp only [e.symm_apply_apply])
+
 end quot
 
 namespace quotient
-protected def congr {α β} {ra : setoid α} {rb : setoid β} (e : α ≃ β)
+/-- An equivalence `e : α ≃ β` generates an equivalence between quotient spaces,
+if `ra a₁ a₂ ↔ rb (e a₁) (e a₂). -/
+protected def congr {ra : setoid α} {rb : setoid β} (e : α ≃ β)
   (eq : ∀a₁ a₂, @setoid.r α ra a₁ a₂ ↔ @setoid.r β rb (e a₁) (e a₂)) :
   quotient ra ≃ quotient rb :=
 quot.congr e eq
 
-protected def congr_right {α} {r r' : setoid α}
+/-- Quotients are congruent on equivalences under equality of their relation.
+An alternative is just to use rewriting with `eq`, but then computational proofs get stuck. -/
+protected def congr_right {r r' : setoid α}
   (eq : ∀a₁ a₂, @setoid.r α r a₁ a₂ ↔ @setoid.r α r' a₁ a₂) : quotient r ≃ quotient r' :=
 quot.congr_right eq
 end quotient

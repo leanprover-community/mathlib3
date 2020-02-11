@@ -38,7 +38,11 @@ At a terminal, run the command
   ```bash
   curl https://raw.githubusercontent.com/leanprover-community/mathlib-tools/master/scripts/remote-install-update-mathlib.sh -sSf | bash
   ```
-(This will install tools that, amongst other things, let you download compiled binaries for mathlib.)
+If the script asks you whether you want to install `python3` and `pip3`, type `y`.
+
+This will install tools that, amongst other things, let you download compiled binaries for mathlib.
+
+Then run `source ~/.profile`, so that your environment knows about `update-mathlib`.
 
 Installing and configuring an editor
 ---
@@ -48,10 +52,10 @@ This document describes using VS Code (for emacs, look at https://github.com/lea
 
 1. Install [VS Code](https://code.visualstudio.com/).
 2. Launch VS Code.
-3. Click on the extension icon ![(image of icon)](new-extensions-icon.png) 
-   (or ![(image of icon)](extensions-icon.png) in older versions) in the side bar on the left edge of 
+3. Click on the extension icon ![(image of icon)](new-extensions-icon.png)
+   (or ![(image of icon)](extensions-icon.png) in older versions) in the side bar on the left edge of
    the screen (or press <kbd>⇧ Shift</kbd><kbd>⌘ Command</kbd><kbd>X</kbd>) and search for `leanprover`.
-4. Click "install", and then "reload" to restart VS Code.
+4. Click "install" (In old versions of VSCode, you might need to click "reload" afterwards)
 5. Verify Lean is working, for example by saving a file `test.lean` and entering `#eval 1+1`.
    A green line should appear underneath `#eval 1+1`, and hovering the mouse over it you should see `2`
    displayed.

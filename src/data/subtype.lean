@@ -13,6 +13,13 @@ variables {α : Sort*} {p : α → Prop}
   (∀ x, q x) ↔ (∀ a b, q ⟨a, b⟩) :=
 ⟨assume h a b, h ⟨a, b⟩, assume h ⟨a, b⟩, h a b⟩
 
+/-- An alternative version of `subtype.forall`. This one is useful if Lean cannot figure out `q`
+  when using `subtype.forall` from right to left. -/
+theorem subtype.forall' {q : ∀x, p x → Prop} :
+  (∀ x h, q x h) ↔ (∀ x : {a // p a}, q x.1 x.2) :=
+(@subtype.forall _ _ (λ x, q x.1 x.2)).symm
+
+
 @[simp] theorem subtype.exists {q : {a // p a} → Prop} :
   (∃ x, q x) ↔ (∃ a b, q ⟨a, b⟩) :=
 ⟨assume ⟨⟨a, b⟩, h⟩, ⟨a, b, h⟩, assume ⟨a, b, h⟩, ⟨⟨a, b⟩, h⟩⟩
@@ -35,10 +42,10 @@ theorem val_injective : injective (@val _ p) :=
 λ a b, subtype.eq'
 
 /- Restrict a (dependent) function to a subtype -/
-def restrict {α} {β : α → Type*} (f : ∀x, β x) (p : α → Prop) (x : subtype p) : β x.1 :=
+def restrict {α} {β : α → Type*} (f : Πx, β x) (p : α → Prop) (x : subtype p) : β x.1 :=
 f x.1
 
-lemma restrict_apply {α} {β : α → Type*} (f : ∀x, β x) (p : α → Prop) (x : subtype p) :
+lemma restrict_apply {α} {β : α → Type*} (f : Πx, β x) (p : α → Prop) (x : subtype p) :
   restrict f p x = f x.1 :=
 by refl
 

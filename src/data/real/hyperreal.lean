@@ -8,8 +8,7 @@ Construction of the hyperreal numbers as an ultraproduct of real sequences.
 import data.real.basic algebra.field order.filter.filter_product analysis.specific_limits
 
 open filter filter.filter_product
-
-local attribute [instance] classical.prop_decidable -- TODO: use "open_locale classical"
+open_locale topological_space classical
 
 /-- Hyperreal numbers on the ultrafilter extending the cofinite filter -/
 @[reducible] def hyperreal := filter.filterprod ℝ (@hyperfilter ℕ)
@@ -18,7 +17,7 @@ namespace hyperreal
 
 notation `ℝ*` := hyperreal
 
-private def U := is_ultrafilter_hyperfilter set.infinite_univ_nat
+private def U : is_ultrafilter (@hyperfilter ℕ) := is_ultrafilter_hyperfilter
 noncomputable instance : discrete_linear_ordered_field ℝ* :=
 filter_product.discrete_linear_ordered_field U
 
@@ -33,17 +32,15 @@ localized "notation `ω` := hyperreal.omega" in hyperreal
 
 lemma epsilon_eq_inv_omega : ε = ω⁻¹ := rfl
 
-lemma inv_epsilon_eq_omega : ε⁻¹ = ω := @inv_inv' _ _ ω
+lemma inv_epsilon_eq_omega : ε⁻¹ = ω := inv_inv' ω
 
 lemma epsilon_pos : 0 < ε :=
+suffices ∀ᶠ i in hyperfilter, (0 : ℝ) < (i : ℕ)⁻¹, by rwa lt_def U,
 have h0' : {n : ℕ | ¬ n > 0} = {0} :=
 by simp only [not_lt, (set.set_of_eq_eq_singleton).symm]; ext; exact nat.le_zero_iff,
 begin
-  rw lt_def U,
-  show {i : ℕ | (0 : ℝ) < i⁻¹} ∈ hyperfilter.sets,
   simp only [inv_pos', nat.cast_pos],
-  exact mem_hyperfilter_of_finite_compl set.infinite_univ_nat
-    (by convert set.finite_singleton _),
+  exact mem_hyperfilter_of_finite_compl (by convert set.finite_singleton _),
 end
 
 lemma epsilon_ne_zero : ε ≠ 0 := ne_of_gt epsilon_pos
@@ -54,7 +51,7 @@ lemma omega_ne_zero : ω ≠ 0 := ne_of_gt omega_pos
 
 theorem epsilon_mul_omega : ε * ω = 1 := @inv_mul_cancel _ _ ω omega_ne_zero
 
-lemma lt_of_tendsto_zero_of_pos {f : ℕ → ℝ} (hf : tendsto f at_top (nhds 0)) :
+lemma lt_of_tendsto_zero_of_pos {f : ℕ → ℝ} (hf : tendsto f at_top (𝓝 0)) :
   ∀ {r : ℝ}, r > 0 → of_seq f < (r : ℝ*) :=
 begin
   simp only [metric.tendsto_at_top, dist_zero_right, norm, lt_def U] at hf ⊢,
@@ -62,16 +59,16 @@ begin
   have hs : -{i : ℕ | f i < r} ⊆ {i : ℕ | i ≤ N} :=
     λ i hi1, le_of_lt (by simp only [lt_iff_not_ge];
     exact λ hi2, hi1 (lt_of_le_of_lt (le_abs_self _) (hf' i hi2)) : i < N),
-  exact mem_hyperfilter_of_finite_compl set.infinite_univ_nat
+  exact mem_hyperfilter_of_finite_compl
     (set.finite_subset (set.finite_le_nat N) hs)
 end
 
-lemma neg_lt_of_tendsto_zero_of_pos {f : ℕ → ℝ} (hf : tendsto f at_top (nhds 0)) :
+lemma neg_lt_of_tendsto_zero_of_pos {f : ℕ → ℝ} (hf : tendsto f at_top (𝓝 0)) :
   ∀ {r : ℝ}, r > 0 → (-r : ℝ*) < of_seq f :=
-λ r hr, have hg : _ := tendsto_neg hf,
+λ r hr, have hg : _ := hf.neg,
 neg_lt_of_neg_lt (by rw [neg_zero] at hg; exact lt_of_tendsto_zero_of_pos hg hr)
 
-lemma gt_of_tendsto_zero_of_neg {f : ℕ → ℝ} (hf : tendsto f at_top (nhds 0)) :
+lemma gt_of_tendsto_zero_of_neg {f : ℕ → ℝ} (hf : tendsto f at_top (𝓝 0)) :
   ∀ {r : ℝ}, r < 0 → (r : ℝ*) < of_seq f :=
 λ r hr, by rw [←of_eq_coe, ←neg_neg r, of_neg];
 exact neg_lt_of_tendsto_zero_of_pos hf (neg_pos.mpr hr)
@@ -399,7 +396,7 @@ Exists.cases_on (hf' (r + 1)) $ λ i hi,
   have hS : - {a : ℕ | r < f a} ⊆ {a : ℕ | a ≤ i} :=
     by simp only [set.compl_set_of, not_lt];
     exact λ a har, le_of_lt (hi' a (lt_of_le_of_lt har (lt_add_one _))),
-  (lt_def U).mpr $ mem_hyperfilter_of_finite_compl set.infinite_univ_nat $
+  (lt_def U).mpr $ mem_hyperfilter_of_finite_compl $
   set.finite_subset (set.finite_le_nat _) hS
 
 theorem infinite_neg_of_tendsto_bot {f : ℕ → ℝ} (hf : tendsto f at_top at_bot) :
@@ -411,7 +408,7 @@ Exists.cases_on (hf' (r - 1)) $ λ i hi,
   have hS : - {a : ℕ | f a < r} ⊆ {a : ℕ | a ≤ i} :=
     by simp only [set.compl_set_of, not_lt];
     exact λ a har, le_of_lt (hi' a (lt_of_lt_of_le (sub_one_lt _) har)),
-  (lt_def U).mpr $ mem_hyperfilter_of_finite_compl set.infinite_univ_nat $
+  (lt_def U).mpr $ mem_hyperfilter_of_finite_compl $
   set.finite_subset (set.finite_le_nat _) hS
 
 lemma not_infinite_neg {x : ℝ*} : ¬ infinite x → ¬ infinite (-x) :=
@@ -564,7 +561,7 @@ lemma infinitesimal_mul {x y : ℝ*} :
 zero_mul 0 ▸ is_st_mul
 
 theorem infinitesimal_of_tendsto_zero {f : ℕ → ℝ} :
-  tendsto f at_top (nhds 0) → infinitesimal (of_seq f) :=
+  tendsto f at_top (𝓝 0) → infinitesimal (of_seq f) :=
 λ hf d hd, by rw [←of_eq_coe, ←of_eq_coe, sub_eq_add_neg,
   ←of_neg, ←of_add, ←of_add, zero_add, zero_add, of_eq_coe, of_eq_coe];
 exact ⟨neg_lt_of_tendsto_zero_of_pos hf hd, lt_of_tendsto_zero_of_pos hf hd⟩
@@ -621,34 +618,21 @@ theorem infinite_iff_infinitesimal_inv {x : ℝ*} (h0 : x ≠ 0) : infinite x �
 
 lemma infinitesimal_pos_iff_infinite_pos_inv {x : ℝ*} :
   infinite_pos x⁻¹ ↔ (infinitesimal x ∧ x > 0) :=
-begin
-  convert infinite_pos_iff_infinitesimal_inv_pos,
-  all_goals { by_cases h : x = 0,
-    rw [h, inv_zero, inv_zero],
-    exact (division_ring.inv_inv h).symm }
-end
+by convert infinite_pos_iff_infinitesimal_inv_pos; simp only [inv_inv']
 
 lemma infinitesimal_neg_iff_infinite_neg_inv {x : ℝ*} :
   infinite_neg x⁻¹ ↔ (infinitesimal x ∧ x < 0) :=
-begin
-  convert infinite_neg_iff_infinitesimal_inv_neg,
-  all_goals { by_cases h : x = 0,
-    rw [h, inv_zero, inv_zero],
-    exact (division_ring.inv_inv h).symm }
-end
+by convert infinite_neg_iff_infinitesimal_inv_neg; simp only [inv_inv']
 
 theorem infinitesimal_iff_infinite_inv {x : ℝ*} (h : x ≠ 0) : infinitesimal x ↔ infinite x⁻¹ :=
-begin
-  convert (infinite_iff_infinitesimal_inv (inv_ne_zero h)).symm,
-  exact (division_ring.inv_inv h).symm
-end
+by convert (infinite_iff_infinitesimal_inv (inv_ne_zero h)).symm; simp only [inv_inv']
 
 -- ST STUFF THAT REQUIRES INFINITESIMAL MACHINERY
 
-theorem is_st_of_tendsto {f : ℕ → ℝ} {r : ℝ} (hf : tendsto f at_top (nhds r)) :
+theorem is_st_of_tendsto {f : ℕ → ℝ} {r : ℝ} (hf : tendsto f at_top (𝓝 r)) :
   is_st (of_seq f) r :=
-have hg : tendsto (λ n, f n - r) at_top (nhds 0) :=
-  (sub_self r) ▸ (tendsto_sub hf tendsto_const_nhds),
+have hg : tendsto (λ n, f n - r) at_top (𝓝 0) :=
+  (sub_self r) ▸ (hf.sub tendsto_const_nhds),
 by rw [←(zero_add r), ←(sub_add_cancel f (λ n, r))];
 exact is_st_add (infinitesimal_of_tendsto_zero hg) (is_st_refl_real r)
 

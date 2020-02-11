@@ -167,11 +167,11 @@ instance : has_well_founded pgame :=
   wf := wf_subsequent }
 
 /-- A move by Left produces a subsequent game. (For use in pgame_wf_tac.) -/
-def subsequent.left_move {xl xr} {xL : xl → pgame} {xR : xr → pgame} {i : xl} :
+lemma subsequent.left_move {xl xr} {xL : xl → pgame} {xR : xr → pgame} {i : xl} :
   subsequent (xL i) (mk xl xr xL xR) :=
 subsequent.left (mk xl xr xL xR) i
 /-- A move by Right produces a subsequent game. (For use in pgame_wf_tac.) -/
-def subsequent.right_move {xl xr} {xL : xl → pgame} {xR : xr → pgame} {j : xr} :
+lemma subsequent.right_move {xl xr} {xL : xl → pgame} {xR : xr → pgame} {j : xr} :
   subsequent (xR j) (mk xl xr xL xR) :=
 subsequent.right (mk xl xr xL xR) j
 
@@ -188,6 +188,8 @@ instance : has_zero pgame := ⟨⟨pempty, pempty, pempty.elim, pempty.elim⟩�
 
 @[simp] lemma zero_left_moves : (0 : pgame).left_moves = pempty := rfl
 @[simp] lemma zero_right_moves : (0 : pgame).right_moves = pempty := rfl
+
+instance : inhabited pgame := ⟨0⟩
 
 /-- The pre-game `one` is defined by `1 = { 0 | }`. -/
 instance : has_one pgame := ⟨⟨punit, pempty, λ _, 0, pempty.elim⟩⟩
@@ -648,7 +650,7 @@ begin
 end
 
 /-- `x + 0` is equivalent to `x`. -/
-def add_zero_equiv (x : pgame.{u}) : x + 0 ≈ x :=
+lemma add_zero_equiv (x : pgame.{u}) : x + 0 ≈ x :=
 equiv_of_relabelling (add_zero_relabelling x)
 
 /-- `0 + x` has exactly the same moves as `x`. -/
@@ -663,7 +665,7 @@ begin
 end
 
 /-- `0 + x` is equivalent to `x`. -/
-def zero_add_equiv (x : pgame.{u}) : 0 + x ≈ x :=
+lemma zero_add_equiv (x : pgame.{u}) : 0 + x ≈ x :=
 equiv_of_relabelling (zero_add_relabelling x)
 
 /-- An explicit equivalence between the moves for Left in `x + y` and the type-theory sum

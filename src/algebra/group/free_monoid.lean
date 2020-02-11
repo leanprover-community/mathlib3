@@ -5,8 +5,12 @@ Authors: Simon Hudon
 
 Free monoid over a given alphabet
 -/
+import algebra.group.to_additive
+
+@[to_additive free_add_monoid]
 def free_monoid (α) := list α
 
+@[to_additive]
 instance {α} : monoid (free_monoid α) :=
 { one := [],
   mul := λ x y, (x ++ y : list α),
@@ -14,19 +18,12 @@ instance {α} : monoid (free_monoid α) :=
   one_mul := by intros; refl,
   mul_assoc := by intros; apply list.append_assoc }
 
-@[simp] lemma free_monoid.one_def {α} : (1 : free_monoid α) = [] := rfl
+@[to_additive]
+instance {α} : inhabited (free_monoid α) := ⟨1⟩
 
-@[simp] lemma free_monoid.mul_def {α} (xs ys : list α) : (xs * ys : free_monoid α) = (xs ++ ys : list α) := rfl
+@[simp, to_additive free_add_monoid.zero_def]
+lemma free_monoid.one_def {α} : (1 : free_monoid α) = [] := rfl
 
-def free_add_monoid (α) := list α
-
-instance {α} : add_monoid (free_add_monoid α) :=
-{ zero := [],
-  add := λ x y, (x ++ y : list α),
-  add_zero := by intros; apply list.append_nil,
-  zero_add := by intros; refl,
-  add_assoc := by intros; apply list.append_assoc }
-
-@[simp] lemma free_add_monoid.zero_def {α} : (1 : free_monoid α) = [] := rfl
-
-@[simp] lemma free_add_monoid.add_def {α} (xs ys : list α) : (xs * ys : free_monoid α) = (xs ++ ys : list α) := rfl
+@[simp, to_additive free_add_monoid.add_def]
+lemma free_monoid.mul_def {α} (xs ys : list α) : (xs * ys : free_monoid α) = (xs ++ ys : list α) :=
+rfl

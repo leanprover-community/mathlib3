@@ -122,9 +122,9 @@ ext_iff.2 $ by simp
 @[simp] lemma conj_conj (z : ℂ) : conj (conj z) = z :=
 ext_iff.2 $ by simp
 
-lemma conj_bijective : function.bijective conj :=
-⟨function.injective_of_has_left_inverse ⟨conj, conj_conj⟩,
- function.surjective_of_has_right_inverse ⟨conj, conj_conj⟩⟩
+lemma conj_involutive : function.involutive conj := conj_conj
+
+lemma conj_bijective : function.bijective conj := conj_involutive.bijective
 
 lemma conj_inj {z w : ℂ} : conj z = conj w ↔ z = w :=
 conj_bijective.1.eq_iff
@@ -261,10 +261,10 @@ lemma div_im (z w : ℂ) : (z / w).im = z.im * w.re / norm_sq w - z.re * w.im / 
 by simp [div_eq_mul_inv, mul_assoc]
 
 @[simp, move_cast] lemma of_real_div (r s : ℝ) : ((r / s : ℝ) : ℂ) = r / s :=
-is_field_hom.map_div coe
+is_ring_hom.map_div coe
 
 @[simp, move_cast] lemma of_real_fpow (r : ℝ) (n : ℤ) : ((r ^ n : ℝ) : ℂ) = (r : ℂ) ^ n :=
-is_field_hom.map_fpow of_real r n
+is_ring_hom.map_fpow of_real r n
 
 @[simp, squash_cast] theorem of_real_int_cast : ∀ n : ℤ, ((n : ℝ) : ℂ) = n :=
 int.eq_cast (λ n, ((n : ℝ) : ℂ))

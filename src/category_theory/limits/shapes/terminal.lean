@@ -30,10 +30,13 @@ class has_initial :=
 
 attribute [instance] has_terminal.has_limits_of_shape has_initial.has_colimits_of_shape
 
-instance has_terminal_of_has_finite_products [has_finite_products.{v} C] : has_terminal.{v} C :=
+@[priority 100] -- see Note [lower instance priority]
+instance [has_finite_products.{v} C] : has_terminal.{v} C :=
 { has_limits_of_shape :=
-  { has_limit := λ F, has_limit_of_equivalence_comp ((functor.empty (discrete pempty)).as_equivalence.symm) } }
-instance has_initial_of_has_finite_coproducts [has_finite_coproducts.{v} C] : has_initial.{v} C :=
+  { has_limit := λ F,
+      has_limit_of_equivalence_comp ((functor.empty.{v} (discrete pempty.{v+1})).as_equivalence.symm) } }
+@[priority 100] -- see Note [lower instance priority]
+instance [has_finite_coproducts.{v} C] : has_initial.{v} C :=
 { has_colimits_of_shape :=
   { has_colimit := λ F, has_colimit_of_equivalence_comp ((functor.empty (discrete pempty)).as_equivalence.symm) } }
 

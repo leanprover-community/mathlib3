@@ -13,8 +13,11 @@ open group
 
 variables {R : Type u} [ring R]
 
+section prio
+set_option default_priority 100 -- see Note [default priority]
 /-- `S` is a subring: a set containing 1 and closed under multiplication, addition and and additive inverse. -/
 class is_subring (S : set R) extends is_add_subgroup S, is_submonoid S : Prop.
+end prio
 
 instance subset.ring {S : set R} [is_subring S] : ring S :=
 by subtype_instance
@@ -61,6 +64,14 @@ instance subtype.comm_ring {S : set cR} [is_subring S] : comm_ring (subtype S) :
 
 instance subring.domain {D : Type*} [integral_domain D] (S : set D) [is_subring S] : integral_domain S :=
 by subtype_instance
+
+instance is_subring.inter (S₁ S₂ : set R) [is_subring S₁] [is_subring S₂] :
+  is_subring (S₁ ∩ S₂) :=
+{ }
+
+instance is_subring.Inter {ι : Sort*} (S : ι → set R) [h : ∀ y : ι, is_subring (S y)] :
+  is_subring (set.Inter S) :=
+{ }
 
 lemma is_subring_Union_of_directed {ι : Type*} [hι : nonempty ι]
   (s : ι → set R) [∀ i, is_subring (s i)]

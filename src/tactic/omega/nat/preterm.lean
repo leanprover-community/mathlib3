@@ -27,6 +27,9 @@ localized "notation t ` -* ` s := omega.nat.preterm.sub t s" in omega.nat
 
 namespace preterm
 
+instance : has_zero preterm := ⟨cst 0⟩
+instance : inhabited preterm := ⟨0⟩
+
 meta def induce (tac : tactic unit := tactic.skip) : tactic unit :=
 `[ intro t, induction t with m m n t s iht ihs t s iht ihs; tac]
 
@@ -62,7 +65,7 @@ def fresh_index : preterm → nat
 | (t1 +* t2) := max t1.fresh_index t2.fresh_index
 | (t1 -* t2) := max t1.fresh_index t2.fresh_index
 
-def val_constant (v w : nat → nat) :
+lemma val_constant (v w : nat → nat) :
   ∀ t : preterm, (∀ x < t.fresh_index, v x = w x) →
   t.val v = t.val w
 | (& n)      h1 := rfl

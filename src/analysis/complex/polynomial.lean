@@ -3,7 +3,7 @@ Copyright (c) 2019 Chris Hughes All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Chris Hughes
 -/
-import data.polynomial topology.instances.polynomial analysis.complex.exponential
+import data.polynomial topology.algebra.polynomial analysis.complex.exponential
 
 open complex polynomial metric filter is_absolute_value set lattice
 
@@ -13,16 +13,15 @@ lemma exists_forall_abs_polynomial_eval_le (p : polynomial ℂ) :
   ∃ x, ∀ y, (p.eval x).abs ≤ (p.eval y).abs :=
 if hp0 : 0 < degree p
 then let ⟨r, hr0, hr⟩ := polynomial.tendsto_infinity complex.abs hp0 ((p.eval 0).abs) in
-  let ⟨x, hx₁, hx₂⟩ := exists_forall_le_of_compact_of_continuous (λ y, (p.eval y).abs)
-    (continuous_abs.comp p.continuous_eval)
-    (closed_ball 0 r) (proper_space.compact_ball _ _)
-    (set.ne_empty_iff_exists_mem.2 ⟨0, by simp [le_of_lt hr0]⟩) in
+  let ⟨x, hx₁, hx₂⟩ := (proper_space.compact_ball (0:ℂ) r).exists_forall_le
+    ⟨0, by simp [le_of_lt hr0]⟩
+    (continuous_abs.comp p.continuous_eval).continuous_on in
   ⟨x, λ y, if hy : y.abs ≤ r then hx₂ y $ by simpa [complex.dist_eq] using hy
     else le_trans (hx₂ _ (by simp [le_of_lt hr0])) (le_of_lt (hr y (lt_of_not_ge hy)))⟩
 else ⟨p.coeff 0, by rw [eq_C_of_degree_le_zero (le_of_not_gt hp0)]; simp⟩
 
 /- The following proof uses the method given at
-  https://ncatlab.org/nlab/show/fundamental+theorem+of+algebra#classical_fta_via_advanced_calculus -/
+  <https://ncatlab.org/nlab/show/fundamental+theorem+of+algebra#classical_fta_via_advanced_calculus> -/
 /-- The fundamental theorem of algebra. Every non constant complex polynomial
   has a root -/
 lemma exists_root {f : polynomial ℂ} (hf : 0 < degree f) : ∃ z : ℂ, is_root f z :=
@@ -57,7 +56,7 @@ have hF₁ : F.eval z' = f.eval z₀ - f.eval z₀ * (g.eval z₀).abs * δ ^ n 
       neg_mul_eq_neg_mul_symm, mul_one, div_eq_mul_inv];
     simp only [mul_comm, mul_left_comm, mul_assoc],
 have hδs : (g.eval z₀).abs * δ ^ n / (f.eval z₀).abs < 1,
-  by rw [div_eq_mul_inv, mul_right_comm, mul_comm, ← @inv_inv' _ _ (complex.abs _ * _), mul_inv',
+  by rw [div_eq_mul_inv, mul_right_comm, mul_comm, ← inv_inv' (complex.abs _ * _), mul_inv',
       inv_inv', ← div_eq_mul_inv, div_lt_iff hfg0, one_mul];
     calc δ ^ n ≤ δ ^ 1 : pow_le_pow_of_le_one (le_of_lt hδ0) hδ1 hn0
       ... = δ : pow_one _

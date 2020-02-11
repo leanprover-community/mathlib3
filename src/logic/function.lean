@@ -94,7 +94,7 @@ theorem right_inverse.comp {γ} {f : α → β} {g : β → α} {h : β → γ} 
   (hf : right_inverse f g) (hh : right_inverse h i) : right_inverse (h ∘ f) (g ∘ i) :=
 left_inverse.comp hh hf
 
-local attribute [instance, priority 1] classical.prop_decidable
+local attribute [instance, priority 10] classical.prop_decidable
 
 /-- We can use choice to construct explicitly a partial inverse for
   a given injective function `f`. -/
@@ -119,7 +119,7 @@ end
 section inv_fun
 variables {α : Type u} [inhabited α] {β : Sort v} {f : α → β} {s : set α} {a : α} {b : β}
 
-local attribute [instance, priority 1] classical.prop_decidable
+local attribute [instance, priority 10] classical.prop_decidable
 
 /-- Construct the inverse for a function `f` on domain `s`. -/
 noncomputable def inv_fun_on (f : α → β) (s : set α) (b : β) : α :=
@@ -208,16 +208,34 @@ injective_of_has_left_inverse ⟨f, right_inverse_surj_inv h⟩
 end surj_inv
 
 section update
-variables {α : Sort u} {β : α → Sort v} [decidable_eq α]
+variables {α : Sort u} {β : α → Sort v} {α' : Sort w} [decidable_eq α] [decidable_eq α']
 
+/-- Replacing the value of a function at a given point by a given value. -/
 def update (f : Πa, β a) (a' : α) (v : β a') (a : α) : β a :=
 if h : a = a' then eq.rec v h.symm else f a
 
-@[simp] lemma update_same {a : α} {v : β a} {f : Πa, β a} : update f a v a = v :=
+@[simp] lemma update_same (a : α) (v : β a) (f : Πa, β a) : update f a v a = v :=
 dif_pos rfl
 
-@[simp] lemma update_noteq {a a' : α} {v : β a'} {f : Πa, β a} (h : a ≠ a') : update f a' v a = f a :=
+@[simp] lemma update_noteq {a a' : α} (h : a ≠ a') (v : β a') (f : Πa, β a) : update f a' v a = f a :=
 dif_neg h
+
+@[simp] lemma update_eq_self (a : α) (f : Πa, β a) : update f a (f a) = f :=
+begin
+  refine funext (λi, _),
+  by_cases h : i = a,
+  { rw h, simp },
+  { simp [h] }
+end
+
+lemma update_comp {β : Sort v} (f : α → β) {g : α' → α} (hg : injective g) (a : α') (v : β) :
+  (update f (g a) v) ∘ g = update (f ∘ g) a v :=
+begin
+  refine funext (λi, _),
+  by_cases h : i = a,
+  { rw h, simp },
+  { simp [h, hg.ne] }
+end
 
 end update
 
@@ -259,4 +277,27 @@ lemma uncurry'_bicompr (f : α → β → γ) (g : γ → δ) :
   uncurry' (g ∘₂ f) = (g ∘ uncurry' f) := rfl
 end bicomp
 
+/-- A function is involutive, if `f ∘ f = id`. -/
+def involutive {α} (f : α → α) : Prop := ∀ x, f (f x) = x
+
+lemma involutive_iff_iter_2_eq_id {α} {f : α → α} : involutive f ↔ (f^[2] = id) :=
+funext_iff.symm
+
+namespace involutive
+variables {α : Sort u} {f : α → α} (h : involutive f)
+
+protected lemma left_inverse : left_inverse f f := h
+protected lemma right_inverse : right_inverse f f := h
+
+protected lemma injective : injective f := injective_of_left_inverse h.left_inverse
+protected lemma surjective : surjective f := λ x, ⟨f x, h x⟩
+protected lemma bijective : bijective f := ⟨h.injective, h.surjective⟩
+
+end involutive
+
 end function
+
+/-- `s.piecewise f g` is the function equal to `f` on the set `s`, and to `g` on its complement. -/
+def set.piecewise {α : Type u} {β : α → Sort v} (s : set α) (f g : Πi, β i) [∀j, decidable (j ∈ s)] :
+  Πi, β i :=
+λi, if i ∈ s then f i else g i

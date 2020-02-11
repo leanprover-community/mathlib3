@@ -15,7 +15,7 @@ under a specified condition.
 lift, tactic
 -/
 
-universe variables u v
+universe variables u v w
 
 /-- A class specifying that you can lift elements from `α` to `β` assuming `cond` is true.
   Used by the tactic `lift`. -/
@@ -40,6 +40,15 @@ meta def can_lift_attr : user_attribute (list name) :=
 instance : can_lift ℤ ℕ :=
 ⟨coe, λ n, 0 ≤ n, λ n hn, ⟨n.nat_abs, int.nat_abs_of_nonneg hn⟩⟩
 
+/-- Enable automatic handling of pi types in `can_lift`. -/
+instance pi.can_lift (ι : Type u) (α : Π i : ι, Type v) (β : Π i : ι, Type w)
+  [Π i : ι, can_lift (α i) (β i)] :
+  can_lift (Π i : ι, α i) (Π i : ι, β i) :=
+{ coe := λ f i, can_lift.coe (α i) (f i),
+  cond := λ f, ∀ i, can_lift.cond (β i) (f i),
+  prf := λ f hf, ⟨λ i, classical.some (can_lift.prf (f i) (hf i)), funext $ λ i,
+    classical.some_spec (can_lift.prf (f i) (hf i))⟩ }
+
 namespace tactic
 
 /- Construct the proof of `cond x` in the lift tactic.
@@ -57,7 +66,7 @@ if h_some : h.is_some then
   (do prf ← i_to_expr (option.get h_some), prf_ty ← infer_type prf,
   expected_prf_ty ← mk_app `can_lift.cond [old_tp, new_tp, inst, e],
   unify prf_ty expected_prf_ty <|>
-    (do expected_prf_ty2 ← expected_prf_ty.dsimp {} tt [`can_lift],
+    (do expected_prf_ty2 ← s.dsimplify to_unfold expected_prf_ty,
       pformat!"lift tactic failed. The type of\n  {prf}\nis\n  {prf_ty}\nbut it is expected to be\n  {expected_prf_ty2}" >>= fail),
   return prf)
   else (do prf_nm ← get_unused_name,
@@ -70,6 +79,8 @@ if h_some : h.is_some then
   -/
 meta def lift (p : pexpr) (t : pexpr) (h : option pexpr) (n : list name) : tactic unit :=
 do
+  propositional_goal <|>
+    fail "lift tactic failed. Tactic is only applicable when the target is a proposition.",
   e ← i_to_expr p,
   old_tp ← infer_type e,
   new_tp ← i_to_expr t,
@@ -101,7 +112,7 @@ do
   temp_e ← note temp_nm none prf_ex,
   dsimp_hyp temp_e s to_unfold {},
   /- We case on the existential. We use `rcases` because `eq_nm` could be `rfl`. -/
-  rcases (pexpr.of_expr temp_e) [[rcases_patt.one new_nm, rcases_patt.one eq_nm]],
+  rcases none (pexpr.of_expr temp_e) [[rcases_patt.one new_nm, rcases_patt.one eq_nm]],
   /- If the lifted variable is not a local constant, try to rewrite it away using the new equality-/
   when (¬ e.is_local_constant) (get_local eq_nm >>=
     λ e, interactive.rw ⟨[⟨⟨0, 0⟩, tt, (pexpr.of_expr e)⟩], none⟩ interactive.loc.wildcard),
@@ -137,6 +148,8 @@ namespace interactive
     specify it again as the third argument to `with`, like this: `lift n to ℕ using h with n rfl h`.
   * More generally, this can lift an expression from `α` to `β` assuming that there is an instance
     of `can_lift α β`. In this case the proof obligation is specified by `can_lift.cond`.
+  * Given an instance `can_lift β γ`, it can also lift `α → β` to `α → γ`, and similarly for
+    general pi types, see `pi.can_lift`.
 -/
 meta def lift (p : parse texpr) (t : parse to_texpr) (h : parse using_texpr)
   (n : parse with_ident_list) : tactic unit :=

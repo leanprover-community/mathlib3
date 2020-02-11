@@ -5,7 +5,7 @@ Authors: Johannes Hölzl
 
 Theory of complete lattices.
 -/
-import order.bounded_lattice data.set.basic tactic.pi_instances
+import order.bounded_lattice order.bounds data.set.basic tactic.pi_instances
 
 set_option old_structure_cmd true
 open set
@@ -33,6 +33,8 @@ lemma has_Sup_to_nonempty (α) [has_Sup α] : nonempty α := ⟨Sup ∅⟩
 notation `⨆` binders `, ` r:(scoped f, supr f) := r
 notation `⨅` binders `, ` r:(scoped f, infi f) := r
 
+section prio
+set_option default_priority 100 -- see Note [default priority]
 /-- A complete lattice is a bounded lattice which
   has suprema and infima for every subset. -/
 class complete_lattice (α : Type u) extends bounded_lattice α, has_Sup α, has_Inf α :=
@@ -43,6 +45,7 @@ class complete_lattice (α : Type u) extends bounded_lattice α, has_Sup α, has
 
 /-- A complete linear order is a linear order whose lattice structure is complete. -/
 class complete_linear_order (α : Type u) extends complete_lattice α, decidable_linear_order α
+end prio
 
 section
 variables [complete_lattice α] {s t : set α} {a b : α}
@@ -54,6 +57,14 @@ theorem Sup_le : (∀b∈s, b ≤ a) → Sup s ≤ a := complete_lattice.Sup_le 
 @[ematch] theorem Inf_le : a ∈ s → Inf s ≤ a := complete_lattice.Inf_le s a
 
 theorem le_Inf : (∀b∈s, a ≤ b) → a ≤ Inf s := complete_lattice.le_Inf s a
+
+lemma is_lub_Sup : is_lub s (Sup s) := ⟨assume x, le_Sup, assume x, Sup_le⟩
+
+lemma is_lub_iff_Sup_eq : is_lub s a ↔ Sup s = a := is_lub_iff_eq_of_is_lub is_lub_Sup
+
+lemma is_glb_Inf : is_glb s (Inf s) := ⟨assume a, Inf_le, assume a, le_Inf⟩
+
+lemma is_glb_iff_Inf_eq : is_glb s a ↔ Inf s = a := is_glb_iff_eq_of_is_glb is_glb_Inf
 
 theorem le_Sup_of_le (hb : b ∈ s) (h : a ≤ b) : a ≤ Sup s :=
 le_trans h (le_Sup hb)
@@ -228,6 +239,14 @@ le_Sup ⟨i, rfl⟩
 @[ematch] theorem le_supr' (s : ι → α) (i : ι) : (: s i :) ≤ (: supr s :) :=
 le_Sup ⟨i, rfl⟩
 -/
+
+lemma is_lub_supr : is_lub (range s) (⨆j, s j) := is_lub_Sup
+
+lemma is_lub_iff_supr_eq : is_lub (range s) a ↔ (⨆j, s j) = a := is_lub_iff_eq_of_is_lub is_lub_supr
+
+lemma is_glb_infi : is_glb (range s) (⨅j, s j) := is_glb_Inf
+
+lemma is_glb_iff_infi_eq : is_glb (range s) a ↔ (⨅j, s j) = a := is_glb_iff_eq_of_is_glb is_glb_infi
 
 theorem le_supr_of_le (i : ι) (h : a ≤ s i) : a ≤ supr s :=
 le_trans h (le_supr _ i)
@@ -640,10 +659,18 @@ le_antisymm
   (le_infi $ assume i, le_infi $ assume : p i, infi_le _ _)
   (le_infi $ assume ⟨i, h⟩, infi_le_of_le i $ infi_le _ _)
 
+lemma infi_subtype' {p : ι → Prop} {f : ∀ i, p i → α} :
+  (⨅ i (h : p i), f i h) = (⨅ x : subtype p, f x.val x.property) :=
+(@infi_subtype _ _ _ p (λ x, f x.val x.property)).symm
+
 theorem supr_subtype {p : ι → Prop} {f : subtype p → α} : (⨆ x, f x) = (⨆ i (h:p i), f ⟨i, h⟩) :=
 le_antisymm
   (supr_le $ assume ⟨i, h⟩, le_supr_of_le i $ le_supr (λh:p i, f ⟨i, h⟩) _)
   (supr_le $ assume i, supr_le $ assume : p i, le_supr _ _)
+
+lemma supr_subtype' {p : ι → Prop} {f : ∀ i, p i → α} :
+  (⨆ i (h : p i), f i h) = (⨆ x : subtype p, f x.val x.property) :=
+(@supr_subtype _ _ _ p (λ x, f x.val x.property)).symm
 
 theorem infi_sigma {p : β → Type w} {f : sigma p → α} : (⨅ x, f x) = (⨅ i (h:p i), f ⟨i, h⟩) :=
 le_antisymm

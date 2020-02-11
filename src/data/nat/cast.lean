@@ -19,7 +19,7 @@ protected def cast : ℕ → α
 | 0     := 0
 | (n+1) := cast n + 1
 
-@[priority 0] instance cast_coe : has_coe ℕ α := ⟨nat.cast⟩
+@[priority 10] instance cast_coe : has_coe ℕ α := ⟨nat.cast⟩
 
 @[simp, squash_cast] theorem cast_zero : ((0 : ℕ) : α) = 0 := rfl
 
@@ -103,3 +103,17 @@ by by_cases a ≤ b; simp [h, max]
 abs_of_nonneg (cast_nonneg a)
 
 end nat
+
+section semiring_hom
+variables {α : Type*} {β : Type*} [semiring α] [semiring β]
+
+lemma is_semiring_hom.map_nat_cast (f : α → β) [is_semiring_hom f] :
+  ∀ (n : ℕ), f n = n
+| 0     := by simp [is_semiring_hom.map_zero f]
+| (n+1) := by simp [is_semiring_hom.map_add f, is_semiring_hom.map_one f,
+  is_semiring_hom.map_nat_cast n]
+
+@[simp] lemma ring_hom.map_nat_cast (f : α →+* β) (n : ℕ) : f (n : α) = n :=
+is_semiring_hom.map_nat_cast _ _
+
+end semiring_hom

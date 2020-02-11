@@ -75,6 +75,8 @@ decidable_of_decidable_of_iff or.decidable exists_bool.symm
   cond (to_bool p) t e = if p then t else e :=
 by by_cases p; simp *
 
+theorem coe_bool_iff : ∀ {a b : bool}, (a ↔ b) ↔ a = b := dec_trivial
+
 theorem eq_tt_of_ne_ff : ∀ {a : bool}, a ≠ ff → a = tt := dec_trivial
 
 theorem eq_ff_of_ne_tt : ∀ {a : bool}, a ≠ tt → a = ff := dec_trivial
@@ -112,10 +114,11 @@ theorem eq_tt_of_bnot_eq_ff : ∀ {a : bool}, bnot a = ff → a = tt := dec_triv
 theorem eq_ff_of_bnot_eq_tt : ∀ {a : bool}, bnot a = tt → a = ff := dec_trivial
 
 @[simp] theorem bxor_comm : ∀ a b, bxor a b = bxor b a := dec_trivial
-
 @[simp] theorem bxor_assoc : ∀ a b c, bxor (bxor a b) c = bxor a (bxor b c) := dec_trivial
-
 @[simp] theorem bxor_left_comm : ∀ a b c, bxor a (bxor b c) = bxor b (bxor a c) := dec_trivial
+@[simp] theorem bxor_bnot_left : ∀ a, bxor (!a) a = tt := dec_trivial
+@[simp] theorem bxor_bnot_right : ∀ a, bxor a (!a) = tt := dec_trivial
+@[simp] theorem bxor_bnot_bnot : ∀ a b, bxor (!a) (!b) = bxor a b := dec_trivial
 
 lemma bxor_iff_ne : ∀ {x y : bool}, bxor x y = tt ↔ x ≠ y := dec_trivial
 

@@ -110,6 +110,8 @@ instance : comm_monoid ℕ+ :=
   mul_one   := λ a, subtype.eq (mul_one _),
   mul_comm  := λ a b, subtype.eq (mul_comm _ _) }
 
+instance : inhabited ℕ+ := ⟨1⟩
+
 @[simp] theorem one_coe : ((1 : ℕ+) : ℕ) = 1 := rfl
 @[simp] theorem mul_coe (m n : ℕ+) : ((m * n : ℕ+) : ℕ) = m * n := rfl
 instance coe_mul_hom : is_monoid_hom (coe : ℕ+ → ℕ) :=

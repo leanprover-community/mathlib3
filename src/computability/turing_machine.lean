@@ -15,10 +15,13 @@ namespace turing
 
 /-- A direction for the turing machine `move` command, either
   left or right. -/
-@[derive decidable_eq]
+@[derive decidable_eq, derive inhabited]
 inductive dir | left | right
 
 def tape (Γ) := Γ × list Γ × list Γ
+
+instance {Γ} [inhabited Γ] : inhabited (tape Γ) :=
+⟨by constructor; apply default⟩
 
 def tape.mk {Γ} [inhabited Γ] (l : list Γ) : tape Γ :=
 (l.head, [], l.tail)
@@ -329,6 +332,7 @@ parameters (Λ : Type*) [inhabited Λ] -- type of "labels" or TM states
 
 /-- A Turing machine "statement" is just a command to either move
   left or right, or write a symbol on the tape. -/
+@[derive inhabited]
 inductive stmt
 | move {} : dir → stmt
 | write {} : Γ → stmt
@@ -344,11 +348,14 @@ inductive stmt
   the initial state. -/
 def machine := Λ → Γ → option (Λ × stmt)
 
+instance machine.inhabited : inhabited machine := by unfold machine; apply_instance
+
 /-- The configuration state of a Turing machine during operation
   consists of a label (machine state), and a tape, represented in
   the form `(a, L, R)` meaning the tape looks like `L.rev ++ [a] ++ R`
   with the machine currently reading the `a`. The lists are
   automatically extended with blanks as the machine moves around. -/
+@[derive inhabited]
 structure cfg :=
 (q : Λ)
 (tape : tape Γ)
@@ -481,8 +488,11 @@ inductive stmt
 | halt {} : stmt
 open stmt
 
+instance stmt.inhabited : inhabited stmt := ⟨halt⟩
+
 /-- The configuration of a TM1 machine is given by the currently
   evaluating statement, the variable store value, and the tape. -/
+@[derive inhabited]
 structure cfg :=
 (l : option Λ)
 (var : σ)
@@ -1154,10 +1164,15 @@ inductive stmt
 | halt {} : stmt
 open stmt
 
+instance stmt.inhabited : inhabited stmt := ⟨halt⟩
+
 structure cfg :=
 (l : option Λ)
 (var : σ)
 (stk : ∀ k, list (Γ k))
+
+instance cfg.inhabited [inhabited σ] [∀ k, inhabited (Γ k)] : inhabited cfg :=
+⟨by constructor; intros; apply default⟩
 
 parameters {Γ Λ σ K}
 def step_aux : stmt → σ → (∀ k, list (Γ k)) → cfg
@@ -1345,6 +1360,9 @@ inductive st_act (k : K)
 section
 open st_act
 
+instance st_act.inhabited {k} : inhabited (st_act k) :=
+⟨pop (default _) (λ s _, s)⟩
+
 def st_run {k : K} : st_act k → stmt₂ → stmt₂
 | (push f)   := TM2.stmt.push k f
 | (pop ff f) := TM2.stmt.peek k f
@@ -1359,7 +1377,7 @@ def st_write {k : K} (v : σ) (l : list (Γ k)) : st_act k → list (Γ k)
 | (pop ff f) := l
 | (pop tt f) := l.tail
 
-@[elab_as_eliminator] theorem {l} stmt_st_rec
+@[elab_as_eliminator] def {l} stmt_st_rec
   {C : stmt₂ → Sort l}
   (H₁ : Π k (s : st_act k) q (IH : C q), C (st_run s q))
   (H₂ : Π a q (IH : C q), C (TM2.stmt.load a q))

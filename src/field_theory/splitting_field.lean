@@ -25,7 +25,7 @@ open polynomial
 
 section splits
 
-variables (i : α → β) [is_field_hom i]
+variables (i : α → β) [is_ring_hom i]
 
 /-- a polynomial `splits` iff it is zero or all of its irreducible factors have `degree` 1 -/
 def splits (f : polynomial α) : Prop :=
@@ -37,7 +37,7 @@ f = 0 ∨ ∀ {g : polynomial β}, irreducible g → g ∣ f.map i → degree g 
 if ha : a = 0 then ha.symm ▸ (@C_0 α _).symm ▸ splits_zero i
 else
 have hia : i a ≠ 0, from mt ((is_add_group_hom.injective_iff i).1
-  (is_field_hom.injective i) _) ha,
+  (is_ring_hom.injective i) _) ha,
 or.inr $ λ g hg ⟨p, hp⟩, absurd hg.1 (classical.not_not.2 (is_unit_iff_degree_eq_zero.2 $
   by have := congr_arg degree hp;
     simp [degree_C hia, @eq_comm (with_bot ℕ) 0,
@@ -75,7 +75,7 @@ lemma splits_of_splits_mul {f g : polynomial α} (hfg : f * g ≠ 0) (h : splits
 ⟨or.inr $ λ g hgi hg, or.resolve_left h hfg hgi (by rw map_mul; exact dvd.trans hg (dvd_mul_right _ _)),
  or.inr $ λ g hgi hg, or.resolve_left h hfg hgi (by rw map_mul; exact dvd.trans hg (dvd_mul_left _ _))⟩
 
-lemma splits_map_iff (j : β → γ) [is_field_hom j] {f : polynomial α} :
+lemma splits_map_iff (j : β → γ) [is_ring_hom j] {f : polynomial α} :
   splits j (f.map i) ↔ splits (λ x, j (i x)) f :=
 by simp [splits, polynomial.map_map]
 
@@ -118,7 +118,7 @@ is_noetherian_ring.irreducible_induction_on (f.map i)
 
 section UFD
 
-local attribute [instance, priority 0] principal_ideal_domain.to_unique_factorization_domain
+local attribute [instance, priority 10] principal_ideal_domain.to_unique_factorization_domain
 local infix ` ~ᵤ ` : 50 := associated
 
 open unique_factorization_domain associates
@@ -163,7 +163,7 @@ lemma splits_iff_exists_multiset {f : polynomial α} : splits i f ↔
   (s.map (λ a : β, (X : polynomial β) - C a)).prod :=
 ⟨exists_multiset_of_splits i, λ ⟨s, hs⟩, splits_of_exists_multiset i hs⟩
 
-lemma splits_comp_of_splits (j : β → γ) [is_field_hom j] {f : polynomial α}
+lemma splits_comp_of_splits (j : β → γ) [is_ring_hom j] {f : polynomial α}
   (h : splits i f) : splits (λ x, j (i x)) f :=
 begin
   change i with (λ x, id (i x)) at h,

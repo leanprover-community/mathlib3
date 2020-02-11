@@ -7,23 +7,23 @@ Authors: Andreas Swerdlow, Kenny Lau
 import data.equiv.algebra
 
 /-!
-# Ring antihomomorphisms, isomorphisms, antiisomorphisms and involutions  
+# Ring antihomomorphisms, isomorphisms, antiisomorphisms and involutions
 
-This file defines ring antihomomorphisms, antiisomorphism and involutions 
-and proves basic properties of them. 
- 
+This file defines ring antihomomorphisms, antiisomorphism and involutions
+and proves basic properties of them.
+
 ## Notations
 
-All types defined in this file are given a coercion to the underlying function. 
+All types defined in this file are given a coercion to the underlying function.
 
 ## References
 
-* https://en.wikipedia.org/wiki/Antihomomorphism
-* https://en.wikipedia.org/wiki/Involution_(mathematics)#Ring_theory
+* <https://en.wikipedia.org/wiki/Antihomomorphism>
+* <https://en.wikipedia.org/wiki/Involution_(mathematics)#Ring_theory>
 
 ## Tags
 
-Ring isomorphism, automorphism, antihomomorphism, antiisomorphism, antiautomorphism, involution  
+Ring isomorphism, automorphism, antihomomorphism, antiisomorphism, antiautomorphism, involution
 -/
 
 variables {R : Type*} {F : Type*}
@@ -38,6 +38,7 @@ namespace is_ring_anti_hom
 
 variables [ring R] [ring F] (f : R → F) [is_ring_anti_hom f]
 
+@[priority 100] -- see Note [lower instance priority]
 instance : is_add_group_hom f :=
 { to_is_add_hom := ⟨λ x y, is_ring_anti_hom.map_add f⟩ }
 
@@ -58,31 +59,7 @@ namespace ring_equiv
 
 open ring_equiv
 
-variables {R F} [ring R] [ring F] (Hs : R ≃r F) (x y : R)
-
-instance : has_coe_to_fun (R ≃r F) :=
-⟨_, λ Hs, Hs.to_fun⟩
-
-lemma map_add : Hs (x + y) = Hs x + Hs y :=
-is_ring_hom.map_add Hs
-
-lemma map_zero : Hs 0 = 0 :=
-is_ring_hom.map_zero Hs
-
-lemma map_neg : Hs (-x) = -Hs x :=
-is_ring_hom.map_neg Hs
-
-lemma map_sub : Hs (x - y) = Hs x - Hs y :=
-is_ring_hom.map_sub Hs
-
-lemma map_mul : Hs (x * y) = Hs x * Hs y :=
-is_ring_hom.map_mul Hs
-
-lemma map_one : Hs 1 = 1 :=
-is_ring_hom.map_one Hs
-
-lemma map_neg_one : Hs (-1) = -1 :=
-Hs.map_one ▸ Hs.map_neg 1
+variables {R F} [ring R] [ring F] (Hs : R ≃+* F) (x y : R)
 
 lemma bijective : function.bijective Hs :=
 Hs.to_equiv.bijective
@@ -195,6 +172,8 @@ protected def ring_invo.id : ring_invo R :=
   to_fun_to_fun := λ _, rfl,
   .. equiv.refl R }
 
+instance : inhabited (ring_invo R) := ⟨ring_invo.id _⟩
+
 protected def ring_anti_equiv.refl : ring_anti_equiv R R :=
 (ring_invo.id R).to_ring_anti_equiv
 
@@ -210,12 +189,11 @@ theorem comm_ring.anti_hom_to_hom (f : R → F) [is_ring_anti_hom f] : is_ring_h
   map_mul := λ _ _, by rw [is_ring_anti_hom.map_mul f, mul_comm],
   map_one := is_ring_anti_hom.map_one f }
 
-def comm_ring.equiv_to_anti_equiv (Hs : R ≃r F) : ring_anti_equiv R F :=
+def comm_ring.equiv_to_anti_equiv (Hs : R ≃+* F) : ring_anti_equiv R F :=
 { anti_hom := comm_ring.hom_to_anti_hom Hs,
-  .. Hs.to_equiv }
+  .. Hs }
 
-def comm_ring.anti_equiv_to_equiv (Hs : ring_anti_equiv R F) : R ≃r F :=
-{ hom := comm_ring.anti_hom_to_hom Hs,
-  .. Hs.to_equiv }
+def comm_ring.anti_equiv_to_equiv (Hs : ring_anti_equiv R F) : R ≃+* F :=
+@ring_equiv.of' _ _ _ _ Hs.to_equiv (comm_ring.anti_hom_to_hom Hs)
 
 end comm_ring

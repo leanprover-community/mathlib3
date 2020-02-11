@@ -1,4 +1,14 @@
 /-
+Copyright (c) 2019 Floris van Doorn. All rights reserved.
+Released under Apache 2.0 license as described in the file LICENSE.
+Authors: Floris van Doorn
+-/
+
+import tactic.core meta.rb_map
+
+/-!
+# Localized notation
+
 This consists of two user-commands which allow you to declare notation and commands localized to a namespace.
 
 * Declare notation which is localized to a namespace using:
@@ -20,7 +30,7 @@ localized "attribute [simp] le_refl" in le
 ```
 The code is inspired by code from Gabriel Ebner from the hott3 repository.
 -/
-import tactic.core meta.rb_map
+
 open lean lean.parser interactive tactic native
 
 reserve notation `localized`
@@ -45,9 +55,6 @@ do ns ← many ident,
    cmds ← get_localized ns,
    cmds.mmap' emit_code_here
 
-def string_hash (s : string) : ℕ :=
-s.fold 1 (λ h c, (33*h + c.val) % unsigned_sz)
-
 /-- Add a new command to a notation namespace and execute it right now.
   The new command is added as a declaration to the environment with name `_localized_decl.<number>`.
   This declaration has attribute `_localized` and as value a name-string pair. -/
@@ -60,7 +67,7 @@ do cmd ← parser.pexpr, cmd ← i_to_expr cmd, cmd ← eval_expr string cmd,
    nm ← ident,
    env ← get_env,
    let dummy_decl_name := mk_num_name `_localized_decl
-     ((string_hash (cmd ++ nm.to_string) + env.fingerprint) % unsigned_sz),
+     ((string.hash (cmd ++ nm.to_string) + env.fingerprint) % unsigned_sz),
    add_decl (declaration.defn dummy_decl_name [] `(name × string)
     (reflect (⟨nm, cmd⟩ : name × string)) (reducibility_hints.regular 1 tt) ff),
    localized_attr.set dummy_decl_name unit.star tt
@@ -70,7 +77,7 @@ meta def print_localized_commands (ns : list name) : tactic unit :=
 do cmds ← get_localized ns, cmds.mmap' trace
 
 -- you can run `open_locale classical` to get the decidability of all propositions.
-localized "attribute [instance, priority 1] classical.prop_decidable" in classical
+localized "attribute [instance, priority 9] classical.prop_decidable" in classical
 
 localized "postfix `?`:9001 := optional" in parser
 localized "postfix *:9001 := lean.parser.many" in parser

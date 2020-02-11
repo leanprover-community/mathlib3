@@ -77,7 +77,7 @@ structure local_equiv (α : Type*) (β : Type*) :=
 (left_inv   : ∀{x}, x ∈ source → inv_fun (to_fun x) = x)
 (right_inv  : ∀{x}, x ∈ target → to_fun (inv_fun x) = x)
 
-attribute [simp] local_equiv.left_inv local_equiv.right_inv
+attribute [simp] local_equiv.left_inv local_equiv.right_inv local_equiv.map_source local_equiv.map_target
 
 /-- Associating a local_equiv to an equiv-/
 def equiv.to_local_equiv (e : equiv α β) : local_equiv α β :=
@@ -168,7 +168,7 @@ lemma target_subset_preimage_source : e.target ⊆ e.inv_fun ⁻¹' e.source :=
 λx hx, e.map_target hx
 
 /-- Two local equivs that have the same source, same to_fun and same inv_fun, coincide. -/
-@[extensionality]
+@[ext]
 protected lemma ext (e' : local_equiv α β) (h : ∀x, e.to_fun x = e'.to_fun x)
   (hsymm : ∀x, e.inv_fun x = e'.inv_fun x) (hs : e.source = e'.source) : e = e' :=
 begin

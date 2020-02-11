@@ -4,15 +4,21 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jeremy Avigad, Leonardo de Moura
 -/
 
+import tactic.library_note
+
 /-!
+# Basic logic properties
+
+This file is one of the earliest imports in mathlib.
+
+## Implementation notes
+
 Theorems that require decidability hypotheses are in the namespace "decidable".
 Classical versions are in the namespace "classical".
 
-Note: in the presence of automation, this whole file may be unnecessary. On the other hand,
+In the presence of automation, this whole file may be unnecessary. On the other hand,
 maybe it is useful for writing automation.
 -/
-
-
 
 section miscellany
 
@@ -23,7 +29,7 @@ attribute [inline] and.decidable or.decidable decidable.false xor.decidable iff.
 
 variables {α : Type*} {β : Type*}
 
-@[reducible] def hidden {a : α} := a
+@[reducible] def hidden {α : Sort*} {a : α} := a
 
 def empty.elim {C : Sort*} : empty → C.
 
@@ -31,11 +37,17 @@ instance : subsingleton empty := ⟨λa, a.elim⟩
 
 instance : decidable_eq empty := λa, a.elim
 
-@[priority 0] instance decidable_eq_of_subsingleton
+instance sort.inhabited : inhabited (Sort*) := ⟨punit⟩
+instance sort.inhabited' : inhabited (default (Sort*)) := ⟨punit.star⟩
+
+instance psum.inhabited_left {α β} [inhabited α] : inhabited (psum α β) := ⟨psum.inl (default _)⟩
+instance psum.inhabited_right {α β} [inhabited β] : inhabited (psum α β) := ⟨psum.inr (default _)⟩
+
+@[priority 10] instance decidable_eq_of_subsingleton
   {α} [subsingleton α] : decidable_eq α
 | a b := is_true (subsingleton.elim a b)
 
-/- Add an instance to "undo" coercion transitivity into a chain of coercions, because
+/-- Add an instance to "undo" coercion transitivity into a chain of coercions, because
    most simp lemmas are stated with respect to simple coercions and will not match when
    part of a chain. -/
 @[simp] theorem coe_coe {α β γ} [has_coe α β] [has_coe_t β γ]
@@ -95,8 +107,8 @@ lemma ne_comm {α} {a b : α} : a ≠ b ↔ b ≠ a := ⟨ne.symm, ne.symm⟩
 
 end miscellany
 
-/-
-    propositional connectives
+/-!
+### Declarations about propositional connectives
 -/
 
 @[simp] theorem false_ne_true : false ≠ true
@@ -105,7 +117,7 @@ end miscellany
 section propositional
 variables {a b c d : Prop}
 
-/- implies -/
+/-! ### Declarations about `implies` -/
 
 theorem iff_of_eq (e : a = b) : a ↔ b := e ▸ iff.rfl
 
@@ -115,7 +127,7 @@ theorem iff_iff_eq : (a ↔ b) ↔ a = b := ⟨propext, iff_of_eq⟩
 
 @[simp] theorem imp_self : (a → a) ↔ true := iff_true_intro id
 
-theorem imp_intro {α β} (h : α) (h₂ : β) : α := h
+theorem imp_intro {α β : Prop} (h : α) : β → α := λ _, h
 
 theorem imp_false : (a → false) ↔ ¬ a := iff.rfl
 
@@ -138,16 +150,16 @@ iff_true_intro $ λ_, trivial
 @[simp] theorem imp_iff_right (ha : a) : (a → b) ↔ b :=
 ⟨λf, f ha, imp_intro⟩
 
-/- not -/
+/-! ### Declarations about `not` -/
 
-theorem not.elim {α : Sort*} (H1 : ¬a) (H2 : a) : α := absurd H2 H1
+def not.elim {α : Sort*} (H1 : ¬a) (H2 : a) : α := absurd H2 H1
 
 @[reducible] theorem not.imp {a b : Prop} (H2 : ¬b) (H1 : a → b) : ¬a := mt H1 H2
 
 theorem not_not_of_not_imp : ¬(a → b) → ¬¬a :=
 mt not.elim
 
-theorem not_of_not_imp {α} : ¬(α → b) → ¬b :=
+theorem not_of_not_imp {a : Prop} : ¬(a → b) → ¬b :=
 mt imp_intro
 
 theorem dec_em (p : Prop) [decidable p] : p ∨ ¬p := decidable.em p
@@ -176,7 +188,7 @@ theorem imp.swap : (a → b → c) ↔ (b → a → c) :=
 theorem imp_not_comm : (a → ¬b) ↔ (b → ¬a) :=
 imp.swap
 
-/- and -/
+/-! ### Declarations about `and` -/
 
 theorem not_and_of_not_left (b : Prop) : ¬a → ¬(a ∧ b) :=
 mt and.left
@@ -211,7 +223,7 @@ iff.intro and.right (λ hb, ⟨h hb, hb⟩)
 lemma and.congr_right_iff : (a ∧ b ↔ a ∧ c) ↔ (a → (b ↔ c)) :=
 ⟨λ h ha, by simp [ha] at h; exact h, and_congr_right⟩
 
-/- or -/
+/-! ### Declarations about `or` -/
 
 theorem or_of_or_of_imp_of_imp (h₁ : a ∨ b) (h₂ : a → c) (h₃ : b → d) : c ∨ d :=
 or.imp h₂ h₃ h₁
@@ -238,7 +250,7 @@ or.comm.trans or_iff_not_imp_left
 theorem not_imp_not [decidable a] : (¬ a → ¬ b) ↔ (b → a) :=
 ⟨assume h hb, by_contradiction $ assume na, h na hb, mt⟩
 
-/- distributivity -/
+/-! ### Declarations about distributivity -/
 
 theorem and_or_distrib_left : a ∧ (b ∨ c) ↔ (a ∧ b) ∨ (a ∧ c) :=
 ⟨λ ⟨ha, hbc⟩, hbc.imp (and.intro ha) (and.intro ha),
@@ -254,7 +266,7 @@ theorem or_and_distrib_left : a ∨ (b ∧ c) ↔ (a ∨ b) ∧ (a ∨ c) :=
 theorem and_or_distrib_right : (a ∧ b) ∨ c ↔ (a ∨ c) ∧ (b ∨ c) :=
 (or.comm.trans or_and_distrib_left).trans (and_congr or.comm or.comm)
 
-/- iff -/
+/-! Declarations about `iff` -/
 
 theorem iff_of_true (ha : a) (hb : b) : a ↔ b :=
 ⟨λ_, hb, λ _, ha⟩
@@ -335,7 +347,7 @@ def decidable_of_bool : ∀ (b : bool) (h : b ↔ a), decidable a
 | tt h := is_true (h.1 rfl)
 | ff h := is_false (mt h.2 bool.ff_ne_tt)
 
-/- de morgan's laws -/
+/-! ### De Morgan's laws -/
 
 theorem not_and_of_not_or_not (h : ¬ a ∨ ¬ b) : ¬ (a ∧ b)
 | ⟨ha, hb⟩ := or.elim h (absurd ha) (absurd hb)
@@ -363,7 +375,7 @@ by rw [← not_and_distrib, not_not]
 
 end propositional
 
-/- equality -/
+/-! ### Declarations about equality -/
 
 section equality
 variables {α : Sort*} {a b : α}
@@ -406,16 +418,15 @@ by { subst hx, subst hy }
 
 end equality
 
-/-
-  quantifiers
--/
+/-! ### Declarations about quantifiers -/
 
 section quantifiers
 variables {α : Sort*} {β : Sort*} {p q : α → Prop} {b : Prop}
 
-def Exists.imp := @exists_imp_exists
+lemma Exists.imp (h : ∀ a, (p a → q a)) (p : ∃ a, p a) : ∃ a, q a := exists_imp_exists h p
 
-lemma exists_imp_exists' {p : α → Prop} {q : β → Prop} (f : α → β) (hpq : ∀ a, p a → q (f a)) (hp : ∃ a, p a) : ∃ b, q b :=
+lemma exists_imp_exists' {p : α → Prop} {q : β → Prop} (f : α → β) (hpq : ∀ a, p a → q (f a))
+  (hp : ∃ a, p a) : ∃ b, q b :=
 exists.elim hp (λ a hp', ⟨_, hpq _ hp'⟩)
 
 theorem forall_swap {p : α → β → Prop} : (∀ x y, p x y) ↔ ∀ y x, p x y :=
@@ -519,6 +530,10 @@ theorem forall_or_distrib_left {q : Prop} {p : α → Prop} [decidable q] :
 ⟨λ h, if hq : q then or.inl hq else or.inr $ λ x, (h x).resolve_left hq,
   forall_or_of_or_forall⟩
 
+theorem forall_or_distrib_right {q : Prop} {p : α → Prop} [decidable q] :
+  (∀x, p x ∨ q) ↔ (∀x, p x) ∨ q :=
+by simp [or_comm, forall_or_distrib_left]
+
 /-- A predicate holds everywhere on the image of a surjective functions iff
     it holds everywhere. -/
 theorem forall_iff_forall_surj
@@ -551,7 +566,7 @@ mt Exists.fst
 
 end quantifiers
 
-/- classical versions -/
+/-! ### Classical versions of earlier lemmas -/
 
 namespace classical
 variables {α : Sort*} {p : α → Prop}
@@ -565,6 +580,14 @@ protected theorem not_exists_not : (¬ ∃ x, ¬ p x) ↔ ∀ x, p x := not_exis
 protected theorem forall_or_distrib_left {q : Prop} {p : α → Prop} :
   (∀x, q ∨ p x) ↔ q ∨ (∀x, p x) :=
 forall_or_distrib_left
+
+protected theorem forall_or_distrib_right {q : Prop} {p : α → Prop} :
+  (∀x, p x ∨ q) ↔ (∀x, p x) ∨ q :=
+forall_or_distrib_right
+
+protected theorem forall_or_distrib {β} {p : α → Prop} {q : β → Prop} :
+  (∀x y, p x ∨ q y) ↔ (∀ x, p x) ∨ (∀ y, q y) :=
+by rw ← forall_or_distrib_right; simp [forall_or_distrib_left.symm]
 
 theorem cases {p : Prop → Prop} (h1 : p true) (h2 : p false) : ∀a, p a :=
 assume a, cases_on a h1 h2
@@ -580,6 +603,8 @@ or_iff_not_imp_right
 
 protected lemma not_not {p : Prop} : ¬¬p ↔ p := not_not
 
+protected theorem not_imp_not {p q : Prop} : (¬ p → ¬ q) ↔ (q → p) := not_imp_not
+
 protected lemma not_and_distrib {p q : Prop}: ¬(p ∧ q) ↔ ¬p ∨ ¬q := not_and_distrib
 
 protected lemma imp_iff_not_or {a b : Prop} : a → b ↔ ¬a ∨ b := imp_iff_not_or
@@ -590,11 +615,24 @@ begin
   simp only [imp_iff_not_or, or.comm]
 end
 
-/- use shortened names to avoid conflict when classical namespace is open -/
-noncomputable theorem dec (p : Prop) : decidable p := by apply_instance
-noncomputable theorem dec_pred (p : α → Prop) : decidable_pred p := by apply_instance
-noncomputable theorem dec_rel (p : α → α → Prop) : decidable_rel p := by apply_instance
-noncomputable theorem dec_eq (α : Sort*) : decidable_eq α := by apply_instance
+/- use shortened names to avoid conflict when classical namespace is open. -/
+noncomputable lemma dec (p : Prop) : decidable p := -- see Note [classical lemma]
+by apply_instance
+noncomputable lemma dec_pred (p : α → Prop) : decidable_pred p := -- see Note [classical lemma]
+by apply_instance
+noncomputable lemma dec_rel (p : α → α → Prop) : decidable_rel p := -- see Note [classical lemma]
+by apply_instance
+noncomputable lemma dec_eq (α : Sort*) : decidable_eq α := -- see Note [classical lemma]
+by apply_instance
+
+library_note "classical lemma"
+"We make decidability results that depends on `classical.choice` noncomputable lemmas.
+* We have to mark them as noncomputable, because otherwise Lean will try to generate bytecode
+  for them, and fail because it depends on `classical.choice`.
+* We make them lemmas, and not definitions, because otherwise later definitions will raise
+  \"failed to generate bytecode\" errors when writing something like
+  `letI := classical.dec_eq _`.
+Cf. <https://leanprover-community.github.io/archive/113488general/08268noncomputabletheorem.html>"
 
 @[elab_as_eliminator]
 noncomputable def {u} exists_cases {C : Sort u} (H0 : C) (H : ∀ a, p a → C) : C :=
@@ -615,9 +653,7 @@ noncomputable def {u} exists.classical_rec_on
  {α} {p : α → Prop} (h : ∃ a, p a) {C : Sort u} (H : ∀ a, p a → C) : C :=
 H (classical.some h) (classical.some_spec h)
 
-/-
-   bounded quantifiers
--/
+/-! ### Declarations about bounded quantifiers -/
 
 section bounded_quantifiers
 variables {α : Sort*} {r p q : α → Prop} {P Q : ∀ x, p x → Prop} {b : Prop}

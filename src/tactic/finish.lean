@@ -2,6 +2,12 @@
 Copyright (c) 2017 Jeremy Avigad. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jeremy Avigad, Jesse Michael Han
+-/
+
+import logic.basic tactic.core
+
+/-!
+# The `finish` family of tactics
 
 These tactics do straightforward things: they call the simplifier, split conjunctive assumptions,
 eliminate existential quantifiers on the left, and look for contradictions. They rely on ematching
@@ -10,26 +16,33 @@ and congruence closure to try to finish off a goal at the end.
 The procedures *do* split on disjunctions and recreate the smt state for each terminal call, so
 they are only meant to be used on small, straightforward problems.
 
+## Main definitions
+
 We provide the following tactics:
 
-  finish  -- solves the goal or fails
-  clarify -- makes as much progress as possible while not leaving more than one goal
-  safe    -- splits freely, finishes off whatever subgoals it can, and leaves the rest
+  `finish`  -- solves the goal or fails
+  `clarify` -- makes as much progress as possible while not leaving more than one goal
+  `safe`    -- splits freely, finishes off whatever subgoals it can, and leaves the rest
 
 All accept an optional list of simplifier rules, typically definitions that should be expanded.
 (The equations and identities should not refer to the local context.)
 
-The variants ifinish, iclarify, and isafe restrict to intuitionistic logic. They do not work
-well with the current heuristic instantiation method used by ematch, so they should be revisited
-when the API changes.
+## Implementation notes
+
+The variants `ifinish`, `iclarify`, and `isafe` try to restrict to intuitionistic logic. But the
+`done` tactic leaks classical logic:
+
+```
+example {P : Prop} : ¬¬P → P :=
+by using_smt (do smt_tactic.intros, smt_tactic.close)
+```
+
+They also do not work well with the current heuristic instantiation method used by `ematch`.
+So they are left here mainly for reference.
 -/
-import logic.basic
 
 declare_trace auto.done
 declare_trace auto.finish
-
--- TODO(Jeremy): move these
-
 
 namespace tactic
 
@@ -67,7 +80,7 @@ meta def add_simps : simp_lemmas → list name → tactic simp_lemmas
 /-
   Configuration information for the auto tactics.
 -/
-
+@[derive decidable_eq, derive inhabited]
 structure auto_config : Type :=
 (use_simp := tt)           -- call the simplifier
 (classical := tt)          -- use classical logic
@@ -111,7 +124,7 @@ variable  {α : Type u}
 variables (p q : Prop)
 variable  (s : α → Prop)
 
-local attribute [instance, priority 1] classical.prop_decidable
+local attribute [instance, priority 10] classical.prop_decidable
 theorem not_not_eq : (¬ ¬ p) = p := propext not_not
 theorem not_and_eq : (¬ (p ∧ q)) = (¬ p ∨ ¬ q) := propext not_and_distrib
 theorem not_or_eq : (¬ (p ∨ q)) = (¬ p ∧ ¬ q) := propext not_or_distrib
@@ -138,7 +151,8 @@ do e ← whnf_reducible e,
    | `(¬ %%ne) :=
       (do ne ← whnf_reducible ne,
       match ne with
-      | `(¬ %%a)      := do pr ← mk_app ``not_not_eq [a],
+      | `(¬ %%a)      := if ¬ cfg.classical then return none
+                         else do pr ← mk_app ``not_not_eq [a],
                             return (some (a, pr))
       | `(%%a ∧ %%b)  := do pr ← mk_app ``not_and_eq [a, b],
                             return (some (`(¬ %%a ∨ ¬ %%b), pr))
@@ -353,7 +367,7 @@ do when_tracing `auto.done (trace "entering done" >> trace_state),
 /-
   Tactics that perform case splits.
 -/
-
+@[derive decidable_eq, derive inhabited]
 inductive case_option
 | force        -- fail unless all goals are solved
 | at_most_one  -- leave at most one goal
@@ -397,7 +411,7 @@ local_context >>= case_some_hyp_aux s cont
   `safe_core s ps cfg opt` negates the goal, normalizes hypotheses
   (by splitting conjunctions, eliminating existentials, pushing negations inwards,
   and calling `simp` with the supplied lemmas `s`), and then tries `contradiction`.
-  
+
   If this fails, it will create an SMT state and repeatedly use `ematch`
   (using `ematch` lemmas in the environment, universally quantified assumptions,
   and the supplied lemmas `ps`) and congruence closure.
@@ -432,7 +446,7 @@ do when_tracing `auto.finish (trace "entering safe_core" >> trace_state),
 
 /--
   `clarify` is `safe_core`, but with the `(opt : case_option)`
-  parameter fixed at `case_option.at_most_one`. 
+  parameter fixed at `case_option.at_most_one`.
 -/
 meta def clarify (s : simp_lemmas × list name) (ps : list pexpr)
   (cfg : auto_config := {}) : tactic unit := safe_core s ps cfg case_option.at_most_one
@@ -451,15 +465,24 @@ meta def safe (s : simp_lemmas × list name) (ps : list pexpr)
 meta def finish (s : simp_lemmas × list name) (ps : list pexpr)
   (cfg : auto_config := {}) : tactic unit := safe_core s ps cfg case_option.force
 
-/--  `iclarify` is like `clarify`, but only uses intuitionistic logic. -/
+/--
+  `iclarify` is like `clarify`, but in some places restricts to intuitionistic logic.
+  Classical logic still leaks, so this tactic is deprecated.
+-/
 meta def iclarify (s : simp_lemmas × list name) (ps : list pexpr)
   (cfg : auto_config := {}) : tactic unit := clarify s ps {classical := ff, ..cfg}
 
-/-- `isafe` is like `safe`, but only uses intuitionistic logic. -/
+/--
+  `isafe` is like `safe`, but in some places restricts to intuitionistic logic.
+  Classical logic still leaks, so this tactic is deprecated.
+-/
 meta def isafe (s : simp_lemmas × list name) (ps : list pexpr)
   (cfg : auto_config := {}) : tactic unit := safe s ps {classical := ff, ..cfg}
 
-/-- `ifinish` is like `finish`, but only uses intuitionistic logic. -/
+/--
+  `ifinish` is like `finish`, but in some places restricts to intuitionistic logic.
+  Classical logic still leaks, so this tactic is deprecated.
+-/
 meta def ifinish (s : simp_lemmas × list name) (ps : list pexpr) (cfg : auto_config := {}) : tactic unit :=
   finish s ps {classical := ff, ..cfg}
 
@@ -481,13 +504,13 @@ local postfix *:9001 := many
   `clarify [h1,...,hn] using [e1,...,en]` negates the goal, normalizes hypotheses
   (by splitting conjunctions, eliminating existentials, pushing negations inwards,
   and calling `simp` with the supplied lemmas `h1,...,hn`), and then tries `contradiction`.
-  
+
   If this fails, it will create an SMT state and repeatedly use `ematch`
   (using `ematch` lemmas in the environment, universally quantified assumptions,
   and the supplied lemmas `e1,...,en`) and congruence closure.
 
   `clarify` is complete for propositional logic.
-  
+
   Either of the supplied simp lemmas or the supplied ematch lemmas are optional.
 
   `clarify` will fail if it produces more than one goal.
@@ -501,13 +524,13 @@ do s ← mk_simp_set ff [] hs,
   `safe [h1,...,hn] using [e1,...,en]` negates the goal, normalizes hypotheses
   (by splitting conjunctions, eliminating existentials, pushing negations inwards,
   and calling `simp` with the supplied lemmas `h1,...,hn`), and then tries `contradiction`.
-  
+
   If this fails, it will create an SMT state and repeatedly use `ematch`
   (using `ematch` lemmas in the environment, universally quantified assumptions,
   and the supplied lemmas `e1,...,en`) and congruence closure.
 
   `safe` is complete for propositional logic.
-  
+
   Either of the supplied simp lemmas or the supplied ematch lemmas are optional.
 
   `safe` ignores the number of goals it produces, and should never fail.
@@ -521,13 +544,13 @@ do s ← mk_simp_set ff [] hs,
   `finish [h1,...,hn] using [e1,...,en]` negates the goal, normalizes hypotheses
   (by splitting conjunctions, eliminating existentials, pushing negations inwards,
   and calling `simp` with the supplied lemmas `h1,...,hn`), and then tries `contradiction`.
-  
+
   If this fails, it will create an SMT state and repeatedly use `ematch`
   (using `ematch` lemmas in the environment, universally quantified assumptions,
   and the supplied lemmas `e1,...,en`) and congruence closure.
 
   `finish` is complete for propositional logic.
-  
+
   Either of the supplied simp lemmas or the supplied ematch lemmas are optional.
 
   `finish` will fail if it does not close the goal.

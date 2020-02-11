@@ -20,7 +20,7 @@ def to_option (o : roption α) [decidable o.dom] : option α :=
 if h : dom o then some (o.get h) else none
 
 /-- `roption` extensionality -/
-def ext' : Π {o p : roption α}
+theorem ext' : ∀ {o p : roption α}
   (H1 : o.dom ↔ p.dom)
   (H2 : ∀h₁ h₂, o.get h₁ = p.get h₂), o = p
 | ⟨od, o⟩ ⟨pd, p⟩ H1 H2 := have t : od = pd, from propext H1,
@@ -44,13 +44,15 @@ theorem dom_iff_mem : ∀ {o : roption α}, o.dom ↔ ∃y, y ∈ o
 theorem get_mem {o : roption α} (h) : get o h ∈ o := ⟨_, rfl⟩
 
 /-- `roption` extensionality -/
-def ext {o p : roption α} (H : ∀ a, a ∈ o ↔ a ∈ p) : o = p :=
+theorem ext {o p : roption α} (H : ∀ a, a ∈ o ↔ a ∈ p) : o = p :=
 ext' ⟨λ h, ((H _).1 ⟨h, rfl⟩).fst,
      λ h, ((H _).2 ⟨h, rfl⟩).fst⟩ $
 λ a b, ((H _).2 ⟨_, rfl⟩).snd
 
 /-- The `none` value in `roption` has a `false` domain and an empty function. -/
 def none : roption α := ⟨false, false.rec _⟩
+
+instance : inhabited (roption α) := ⟨none⟩
 
 @[simp] theorem not_mem_none (a : α) : a ∉ @none α := λ h, h.fst
 
@@ -149,7 +151,7 @@ instance : has_coe (option α) (roption α) := ⟨of_option⟩
 @[simp] theorem coe_none : (@option.none α : roption α) = none := rfl
 @[simp] theorem coe_some (a : α) : (option.some a : roption α) = some a := rfl
 
-@[elab_as_eliminator] protected lemma roption.induction_on {P : roption α → Prop}
+@[elab_as_eliminator] protected lemma induction_on {P : roption α → Prop}
   (a : roption α) (hnone : P none) (hsome : ∀ a : α, P (some a)) : P a :=
 (classical.em a.dom).elim
   (λ h, roption.some_get h ▸ hsome _)
@@ -311,6 +313,8 @@ infixr ` →. `:25 := pfun
 namespace pfun
 variables {α : Type*} {β : Type*} {γ : Type*}
 
+instance : inhabited (α →. β) := ⟨λ a, roption.none⟩
+
 /-- The domain of a partial function -/
 def dom (f : α →. β) : set α := λ a, (f a).dom
 
@@ -328,12 +332,12 @@ def eval_opt (f : α →. β) [D : decidable_pred (dom f)] (x : α) : option β 
 @roption.to_option _ _ (D x)
 
 /-- Partial function extensionality -/
-def ext' {f g : α →. β}
+theorem ext' {f g : α →. β}
   (H1 : ∀ a, a ∈ dom f ↔ a ∈ dom g)
   (H2 : ∀ a p q, f.fn a p = g.fn a q) : f = g :=
 funext $ λ a, roption.ext' (H1 a) (H2 a)
 
-def ext {f g : α →. β} (H : ∀ a b, b ∈ f a ↔ b ∈ g a) : f = g :=
+theorem ext {f g : α →. β} (H : ∀ a b, b ∈ f a ↔ b ∈ g a) : f = g :=
 funext $ λ a, roption.ext (H a)
 
 /-- Turn a partial function into a function out of a subtype -/
@@ -461,7 +465,7 @@ theorem mem_fix_iff {f : α →. β ⊕ α} {a : α} {b : β} :
       rw well_founded.fix_F_eq, simp [h₁, h₂, h₄] } }
 end⟩
 
-@[elab_as_eliminator] theorem fix_induction
+@[elab_as_eliminator] def fix_induction
   {f : α →. β ⊕ α} {b : β} {C : α → Sort*} {a : α} (h : b ∈ fix f a)
   (H : ∀ a, b ∈ fix f a →
     (∀ a', b ∈ fix f a' → sum.inr a' ∈ f a → C a') → C a) : C a :=
@@ -486,7 +490,7 @@ def image (s : set α) : set β := rel.image f.graph' s
 lemma image_def (s : set α) : image f s = {y | ∃ x ∈ s, y ∈ f x} := rfl
 
 lemma mem_image (y : β) (s : set α) : y ∈ image f s ↔ ∃ x ∈ s, y ∈ f x :=
-iff.refl _
+iff.rfl
 
 lemma image_mono {s t : set α} (h : s ⊆ t) : f.image s ⊆ f.image t :=
 rel.image_mono _ h
@@ -501,8 +505,8 @@ def preimage (s : set β) : set α := rel.preimage (λ x y, y ∈ f x) s
 
 lemma preimage_def (s : set β) : preimage f s = {x | ∃ y ∈ s, y ∈ f x} := rfl
 
-def mem_preimage (s : set β) (x : α) : x ∈ preimage f s ↔ ∃ y ∈ s, y ∈ f x :=
-iff.refl _
+lemma mem_preimage (s : set β) (x : α) : x ∈ preimage f s ↔ ∃ y ∈ s, y ∈ f x :=
+iff.rfl
 
 lemma preimage_subset_dom (s : set β) : f.preimage s ⊆ f.dom :=
 assume x ⟨y, ys, fxy⟩, roption.dom_iff_mem.mpr ⟨y, fxy⟩

@@ -22,7 +22,7 @@ by rcases h with ⟨y, rfl⟩; exact is_unit_unit (units.map f y)
 
 lemma is_unit.map' [monoid α] [monoid β] (f : α → β) {x : α} (h : is_unit x) [is_monoid_hom f] :
   is_unit (f x) :=
-h.map (as_monoid_hom f)
+h.map (monoid_hom.of f)
 
 @[simp] theorem is_unit_zero_iff [semiring α] : is_unit (0 : α) ↔ (0:α) = 1 :=
 ⟨λ ⟨⟨_, a, (a0 : 0 * a = 1), _⟩, rfl⟩, by rwa zero_mul at a0,
@@ -359,6 +359,8 @@ open associated
 protected def mk {α : Type*} [monoid α] (a : α) : associates α :=
 ⟦ a ⟧
 
+instance [monoid α] : inhabited (associates α) := ⟨⟦1⟧⟩
+
 theorem mk_eq_mk_iff_associated [monoid α] {a b : α} :
   associates.mk a = associates.mk b ↔ a ~ᵤ b :=
 iff.intro quotient.exact quot.sound
@@ -407,14 +409,14 @@ instance : preorder (associates α) :=
   le_refl := assume a, ⟨1, by simp⟩,
   le_trans := assume a b c ⟨f₁, h₁⟩ ⟨f₂, h₂⟩, ⟨f₁ * f₂, h₂ ▸ h₁ ▸ (mul_assoc _ _ _).symm⟩}
 
-instance [comm_monoid α] : has_dvd (associates α) := ⟨(≤)⟩
+instance : has_dvd (associates α) := ⟨(≤)⟩
 
 @[simp] lemma mk_one : associates.mk (1 : α) = 1 := rfl
 
 lemma mk_pow (a : α) (n : ℕ) : associates.mk (a ^ n) = (associates.mk a) ^ n :=
 by induction n; simp [*, pow_succ, associates.mk_mul_mk.symm]
 
-lemma dvd_eq_le [comm_monoid α] : ((∣) : associates α → associates α → Prop) = (≤) := rfl
+lemma dvd_eq_le : ((∣) : associates α → associates α → Prop) = (≤) := rfl
 
 theorem prod_mk {p : multiset α} : (p.map associates.mk).prod = associates.mk p.prod :=
 multiset.induction_on p (by simp; refl) $ assume a s ih, by simp [ih]; refl
@@ -598,7 +600,7 @@ multiset.induction_on s (by simp; exact zero_ne_one.symm) $
 theorem irreducible_mk_iff (a : α) : irreducible (associates.mk a) ↔ irreducible a :=
 begin
   simp [irreducible, is_unit_mk],
-  apply and_congr (iff.refl _),
+  apply and_congr iff.rfl,
   split,
   { assume h x y eq,
     have : is_unit (associates.mk x) ∨ is_unit (associates.mk y),
@@ -611,7 +613,7 @@ begin
     simpa [is_unit_mk] using h _ _ this }
 end
 
-lemma eq_of_mul_eq_mul_left [integral_domain α] :
+lemma eq_of_mul_eq_mul_left :
   ∀(a b c : associates α), a ≠ 0 → a * b = a * c → b = c :=
 begin
   rintros ⟨a⟩ ⟨b⟩ ⟨c⟩ ha h,
@@ -620,11 +622,11 @@ begin
   exact quotient.sound' ⟨u, eq_of_mul_eq_mul_left (mt (mk_zero_eq a).2 ha) hu⟩
 end
 
-lemma le_of_mul_le_mul_left [integral_domain α] (a b c : associates α) (ha : a ≠ 0) :
+lemma le_of_mul_le_mul_left (a b c : associates α) (ha : a ≠ 0) :
   a * b ≤ a * c → b ≤ c
 | ⟨d, hd⟩ := ⟨d, eq_of_mul_eq_mul_left a _ _ ha $ by rwa ← mul_assoc⟩
 
-lemma one_or_eq_of_le_of_prime [integral_domain α] :
+lemma one_or_eq_of_le_of_prime :
   ∀(p m : associates α), prime p → m ≤ p → (m = 1 ∨ m = p)
 | _ m ⟨hp0, hp1, h⟩ ⟨d, rfl⟩ :=
 match h m d (le_refl _) with

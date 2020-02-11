@@ -2,37 +2,46 @@
 Copyright (c) 2017 Mario Carneiro. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Mario Carneiro
+-/
 
-This file defines an alias command, which can be used to create copies
+import data.buffer.parser meta.expr
+
+/-!
+# The `alias` command
+
+This file defines an `alias` command, which can be used to create copies
 of a theorem or definition with different names.
 
 Syntax:
 
+```
 / -- doc string - /
 alias my_theorem ← alias1 alias2 ...
+```
 
 This produces defs or theorems of the form:
 
+```
 / -- doc string - /
 @[alias] theorem alias1 : <type of my_theorem> := my_theorem
 
 / -- doc string - /
 @[alias] theorem alias2 : <type of my_theorem> := my_theorem
-
+```
 
 Iff alias syntax:
 
+```
 alias A_iff_B ↔ B_of_A A_of_B
 alias A_iff_B ↔ ..
+```
 
-This gets an existing biconditional theorem A_iff_B and produces
-the one-way implications B_of_A and A_of_B (with no change in
-implicit arguments). A blank _ can be used to avoid generating one direction.
-The .. notation attempts to generate the 'of'-names automatically when the
-input theorem has the form A_iff_B or A_iff_B_left etc.
-
+This gets an existing biconditional theorem `A_iff_B` and produces
+the one-way implications `B_of_A` and `A_of_B` (with no change in
+implicit arguments). A blank `_` can be used to avoid generating one direction.
+The `..` notation attempts to generate the 'of'-names automatically when the
+input theorem has the form `A_iff_B` or `A_iff_B_left` etc.
 -/
-import data.buffer.parser meta.coinductive_predicates
 
 open lean.parser tactic interactive parser
 

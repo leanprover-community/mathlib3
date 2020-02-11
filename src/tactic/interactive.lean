@@ -4,7 +4,7 @@ Copyright (c) 2017 Mario Carneiro. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Mario Carneiro, Simon Hudon, Sebastien Gouezel, Scott Morrison
 -/
-import tactic.core data.list.defs data.string.defs
+import tactic.lint
 
 open lean
 open lean.parser
@@ -15,6 +15,9 @@ local postfix *:9001 := many
 namespace tactic
 namespace interactive
 open interactive interactive.types expr
+
+/-- Similar to `constructor`, but does not reorder goals. -/
+meta def fconstructor : tactic unit := concat_tags tactic.fconstructor
 
 /-- `try_for n { tac }` executes `tac` for `n` ticks, otherwise uses `sorry` to close the goal.
 Never fails. Useful for debugging. -/
@@ -129,7 +132,7 @@ private meta def generalize_arg_p_aux : pexpr → parser (pexpr × name)
 private meta def generalize_arg_p : parser (pexpr × name) :=
 with_desc "expr = id" $ parser.pexpr 0 >>= generalize_arg_p_aux
 
-lemma {u} generalize_a_aux {α : Sort u}
+@[nolint] lemma {u} generalize_a_aux {α : Sort u}
   (h : ∀ x : Sort u, (α → x) → x) : α := h α id
 
 /--
@@ -515,6 +518,54 @@ tactic.choose tgt (first :: names),
 try (interactive.simp none tt [simp_arg_type.expr ``(exists_prop)] [] (loc.ns $ some <$> names)),
 try (tactic.clear tgt)
 
+/--
+The goal of `field_simp` is to reduce an expression in a field to an expression of the form `n / d`
+where neither `n` nor `d` contains any division symbol, just using the simplifier (with a carefully
+crafted simpset named `field_simps`) to reduce the number of division symbols whenever possible by
+iterating the following steps:
+
+- write an inverse as a division
+- in any product, move the division to the right
+- if there are several divisions in a product, group them together at the end and write them as a
+  single division
+- reduce a sum to a common denominator
+
+If the goal is an equality, this simpset will also clear the denominators, so that the proof
+can normally be concluded by an application of `ring` or `ring_exp`.
+
+`field_simp [hx, hy]` is a short form for `simp [-one_div_eq_inv, hx, hy] with field_simps`
+
+Note that this naive algorithm will not try to detect common factors in denominators to reduce the
+complexity of the resulting expression. Instead, it relies on the ability of `ring` to handle
+complicated expressions in the next step.
+
+As always with the simplifier, reduction steps will only be applied if the preconditions of the
+lemmas can be checked. This means that proofs that denominators are nonzero should be included. The
+fact that a product is nonzero when all factors are, and that a power of a nonzero number is
+nonzero, are included in the simpset, but more complicated assertions (especially dealing with sums)
+should be given explicitly. If your expression is not completely reduced by the simplifier
+invocation, check the denominators of the resulting expression and provide proofs that they are
+nonzero to enable further progress.
+
+The invocation of `field_simp` removes the lemma `one_div_eq_inv` (which is marked as a simp lemma
+in core) from the simpset, as this lemma works against the algorithm explained above.
+
+For example,
+```lean
+example (a b c d x y : ℂ) (hx : x ≠ 0) (hy : y ≠ 0) :
+  a + b / x + c / x^2 + d / x^3 = a + x⁻¹ * (y * b / y + (d / x + c) / x) :=
+begin
+  field_simp [hx, hy],
+  ring
+end
+```
+-/
+meta def field_simp (no_dflt : parse only_flag) (hs : parse simp_arg_list) (attr_names : parse with_ident_list)
+              (locat : parse location) (cfg : simp_config_ext := {}) : tactic unit :=
+let attr_names := `field_simps :: attr_names,
+    hs := simp_arg_type.except `one_div_eq_inv :: hs in
+propagate_tags (simp_core cfg.to_simp_config cfg.discharger no_dflt hs attr_names locat)
+
 meta def guard_expr_eq' (t : expr) (p : parse $ tk ":=" *> texpr) : tactic unit :=
 do e ← to_expr p, is_def_eq t e
 
@@ -533,6 +584,7 @@ tactic.triv' <|> tactic.reflexivity reducible <|> tactic.contradiction <|> fail 
 
 /--
 Similar to `existsi`. `use x` will instantiate the first term of an `∃` or `Σ` goal with `x`.
+It will then try to close the new goal using `triv`, or try to simplify it by applying `exists_prop`.
 Unlike `existsi`, `x` is elaborated with respect to the expected type.
 `use` will alternatively take a list of terms `[x0, ..., xn]`.
 
@@ -545,6 +597,13 @@ by use ∅
 
 example : ∃ x : ℤ, x = x :=
 by use 42
+
+example : ∃ n > 0, n = n :=
+begin
+  use 1,
+  -- goal is now 1 > 0 ∧ 1 = 1, whereas it would be ∃ (H : 1 > 0), 1 = 1 after existsi 1.
+  exact ⟨zero_lt_one, rfl⟩,
+end
 
 example : ∃ a b c : ℤ, a + b + c = 6 :=
 by use [1, 2, 3]
@@ -562,7 +621,11 @@ example : foo :=
 by use [100, tt, 4, 3]
 -/
 meta def use (l : parse pexpr_list_or_texpr) : tactic unit :=
-tactic.use l >> try triv
+focus1 $
+  tactic.use l;
+  try (triv <|> (do
+        `(Exists %%p) ← target,
+        to_expr ``(exists_prop.mpr) >>= tactic.apply >> skip))
 
 /--
 `clear_aux_decl` clears every `aux_decl` in the local context for the current goal.

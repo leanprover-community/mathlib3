@@ -18,6 +18,8 @@ assume a₁ a₂ h,
 have a⁻¹ * a * a₁ = a⁻¹ * a * a₂, by rw [mul_assoc, mul_assoc, h],
 by rwa [inv_mul_self, one_mul, one_mul] at this
 
+section prio
+set_option default_priority 100 -- see Note [default priority]
 /-- `s` is an additive subgroup: a set containing 0 and closed under addition and negation. -/
 class is_add_subgroup (s : set β) extends is_add_submonoid s : Prop :=
 (neg_mem {a} : a ∈ s → -a ∈ s)
@@ -26,6 +28,7 @@ class is_add_subgroup (s : set β) extends is_add_submonoid s : Prop :=
 @[to_additive is_add_subgroup]
 class is_subgroup (s : set α) extends is_submonoid s : Prop :=
 (inv_mem {a} : a ∈ s → a⁻¹ ∈ s)
+end prio
 
 instance additive.is_add_subgroup
   (s : set α) [is_subgroup s] : @is_add_subgroup (additive α) _ s :=
@@ -86,8 +89,12 @@ is_add_subgroup.of_add_neg s zero_mem (λ x y hx hy, sub_mem hx hy)
 @[to_additive]
 instance is_subgroup.inter (s₁ s₂ : set α) [is_subgroup s₁] [is_subgroup s₂] :
   is_subgroup (s₁ ∩ s₂) :=
-{ inv_mem := λ x hx, ⟨is_subgroup.inv_mem hx.1, is_subgroup.inv_mem hx.2⟩,
-  ..is_submonoid.inter s₁ s₂ }
+{ inv_mem := λ x hx, ⟨is_subgroup.inv_mem hx.1, is_subgroup.inv_mem hx.2⟩ }
+
+@[to_additive]
+instance is_subgroup.Inter {ι : Sort*} (s : ι → set α) [h : ∀ y : ι, is_subgroup (s y)] :
+  is_subgroup (set.Inter s) :=
+{ inv_mem := λ x h, set.mem_Inter.2 $ λ y, is_subgroup.inv_mem (set.mem_Inter.1 h y) }
 
 @[to_additive is_add_subgroup_Union_of_directed]
 lemma is_subgroup_Union_of_directed {ι : Type*} [hι : nonempty ι]
@@ -155,12 +162,15 @@ theorem is_add_subgroup.sub_mem {α} [add_group α] (s : set α) [is_add_subgrou
   (ha : a ∈ s) (hb : b ∈ s) : a - b ∈ s :=
 is_add_submonoid.add_mem ha (is_add_subgroup.neg_mem hb)
 
+section prio
+set_option default_priority 100 -- see Note [default priority]
 class normal_add_subgroup [add_group α] (s : set α) extends is_add_subgroup s : Prop :=
 (normal : ∀ n ∈ s, ∀ g : α, g + n - g ∈ s)
 
 @[to_additive normal_add_subgroup]
 class normal_subgroup [group α] (s : set α) extends is_subgroup s : Prop :=
 (normal : ∀ n ∈ s, ∀ g : α, g * n * g⁻¹ ∈ s)
+end prio
 
 @[to_additive normal_add_subgroup_of_add_comm_group]
 lemma normal_subgroup_of_comm_group [comm_group α] (s : set α) [hs : is_subgroup s] :
@@ -557,7 +567,7 @@ lemma mem_conjugates_self {a : α} : a ∈ conjugates a := is_conj_refl _
 the elements of s. -/
 def conjugates_of_set (s : set α) : set α := ⋃ a ∈ s, conjugates a
 
-lemma mem_conjugates_of_set_iff {x : α} : x ∈ conjugates_of_set s ↔ ∃ a : α, a ∈ s ∧ is_conj a x :=
+lemma mem_conjugates_of_set_iff {x : α} : x ∈ conjugates_of_set s ↔ ∃ a ∈ s, is_conj a x :=
 set.mem_bUnion_iff
 
 theorem subset_conjugates_of_set : s ⊆ conjugates_of_set s :=

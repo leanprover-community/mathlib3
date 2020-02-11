@@ -134,10 +134,10 @@ le_antisymm (smul_le.2 $ λ r hrij n hn, let ⟨ri, hri, rj, hrj, hrijr⟩ := me
 theorem smul_assoc : (I • J) • N = I • (J • N) :=
 le_antisymm (smul_le.2 $ λ rs hrsij t htn,
   smul_induction_on hrsij
-  (λ r hr s hs, (@smul_eq_mul R _ r s).symm ▸ smul_smul _ r s t ▸ smul_mem_smul hr (smul_mem_smul hs htn))
+  (λ r hr s hs, (@smul_eq_mul R _ r s).symm ▸ smul_smul r s t ▸ smul_mem_smul hr (smul_mem_smul hs htn))
   ((zero_smul R t).symm ▸ submodule.zero_mem _)
   (λ x y, (add_smul x y t).symm ▸ submodule.add_mem _)
-  (λ r s h, (@smul_eq_mul R _ r s).symm ▸ smul_smul _ r s t ▸ submodule.smul_mem _ _ h))
+  (λ r s h, (@smul_eq_mul R _ r s).symm ▸ smul_smul r s t ▸ submodule.smul_mem _ _ h))
 (smul_le.2 $ λ r hr sn hsn, suffices J • N ≤ submodule.comap (r • linear_map.id) ((I • J) • N), from this hsn,
 smul_le.2 $ λ s hs n hn, show r • (s • n) ∈ (I • J) • N, from mul_smul r s n ▸ smul_mem_smul (smul_mem_smul hr hs) hn)
 
@@ -182,9 +182,9 @@ begin
     { split_ifs with h, { apply hg1 }, rw sub_self, exact (f i).zero_mem },
     { intros hjs hji, rw dif_pos, { apply hg2 }, exact ⟨hjs, hji⟩ } },
   rcases this with ⟨g, hgi, hgj⟩, use (s.erase i).prod g, split,
-  { rw [← quotient.eq, quotient.mk_one, ← finset.prod_hom (quotient.mk (f i))],
+  { rw [← quotient.eq, quotient.mk_one, ← finset.prod_hom _ (quotient.mk (f i))],
     apply finset.prod_eq_one, intros, rw [← quotient.mk_one, quotient.eq], apply hgi },
-  intros j hjs hji, rw [← quotient.eq_zero_iff_mem, ← finset.prod_hom (quotient.mk (f j))],
+  intros j hjs hji, rw [← quotient.eq_zero_iff_mem, ← finset.prod_hom _ (quotient.mk (f j))],
   refine finset.prod_eq_zero (finset.mem_erase_of_ne_of_mem hji hjs) _,
   rw quotient.eq_zero_iff_mem, exact hgj j hjs hji
 end
@@ -195,12 +195,13 @@ theorem exists_sub_mem [fintype ι] {f : ι → ideal R}
 begin
   have : ∃ φ : ι → R, (∀ i, φ i - 1 ∈ f i) ∧ (∀ i j, i ≠ j → φ i ∈ f j),
   { have := exists_sub_one_mem_and_mem (finset.univ : finset ι) (λ i _ j _ hij, hf i j hij),
-    choose φ hφ, use λ i, φ i (finset.mem_univ i),
+    choose φ hφ,
+    existsi λ i, φ i (finset.mem_univ i),
     exact ⟨λ i, (hφ i _).1, λ i j hij, (hφ i _).2 j (finset.mem_univ j) hij.symm⟩ },
   rcases this with ⟨φ, hφ1, hφ2⟩,
   use finset.univ.sum (λ i, g i * φ i),
   intros i,
-  rw [← quotient.eq, ← finset.sum_hom (quotient.mk (f i))],
+  rw [← quotient.eq, ← finset.univ.sum_hom (quotient.mk (f i))],
   refine eq.trans (finset.sum_eq_single i _ _) _,
   { intros j _ hji, rw quotient.eq_zero_iff_mem, exact (f i).mul_mem_left (hφ2 j i hji) },
   { intros hi, exact (hi $ finset.mem_univ i).elim },
@@ -231,9 +232,10 @@ theorem bijective_quotient_inf_to_pi_quotient [fintype ι] {f : ι → ideal R}
 /-- Chinese Remainder Theorem. Eisenbud Ex.2.6. Similar to Atiyah-Macdonald 1.10 and Stacks 00DT -/
 noncomputable def quotient_inf_ring_equiv_pi_quotient [fintype ι] (f : ι → ideal R)
   (hf : ∀ i j, i ≠ j → f i ⊔ f j = ⊤) :
-  (⨅ i, f i).quotient ≃r Π i, (f i).quotient :=
-{ hom := is_ring_hom_quotient_inf_to_pi_quotient f,
-  .. equiv.of_bijective (bijective_quotient_inf_to_pi_quotient hf) }
+  (⨅ i, f i).quotient ≃+* Π i, (f i).quotient :=
+by haveI : is_ring_hom (equiv.of_bijective (bijective_quotient_inf_to_pi_quotient hf)) :=
+  is_ring_hom_quotient_inf_to_pi_quotient f;
+    exact ring_equiv.of (equiv.of_bijective (bijective_quotient_inf_to_pi_quotient hf))
 
 end chinese_remainder
 
@@ -312,6 +314,7 @@ begin
   exact le_trans (mul_le_inf) (lattice.inf_le_left)
 end
 
+/-- The radical of an ideal `I` consists of the elements `r` such that `r^n ∈ I` for some `n`. -/
 def radical (I : ideal R) : ideal R :=
 { carrier := { r | ∃ n : ℕ, r ^ n ∈ I },
   zero := ⟨1, (pow_one (0:R)).symm ▸ I.zero_mem⟩,
@@ -415,6 +418,7 @@ variables {I J : ideal R} {K L : ideal S}
 def map (I : ideal R) : ideal S :=
 span (f '' I)
 
+/-- `I.comap f` is the preimage of `I` under `f`. -/
 def comap (I : ideal S) : ideal R :=
 { carrier := f ⁻¹' I,
   zero := show f 0 ∈ I, by rw is_ring_hom.map_zero f; exact I.zero_mem,
@@ -442,7 +446,7 @@ theorem comap_ne_top (hK : K ≠ ⊤) : comap f K ≠ ⊤ :=
 (ne_top_iff_one _).2 $ by rw [mem_comap, is_ring_hom.map_one f];
   exact (ne_top_iff_one _).1 hK
 
-instance is_prime.comap {hK : K.is_prime} : (comap f K).is_prime :=
+instance is_prime.comap [hK : K.is_prime] : (comap f K).is_prime :=
 ⟨comap_ne_top _ hK.1, λ x y,
   by simp only [mem_comap, is_ring_hom.map_mul f]; apply hK.2⟩
 
@@ -554,10 +558,16 @@ end ideal
 
 namespace is_ring_hom
 
-variables {R : Type u} {S : Type v} [comm_ring R] [comm_ring S]
-variables (f : R → S) [is_ring_hom f]
+variables {R : Type u} {S : Type v} (f : R → S) [comm_ring R]
+
+section comm_ring
+variables [comm_ring S] [is_ring_hom f]
 
 def ker : ideal R := ideal.comap f ⊥
+
+/-- An element is in the kernel if and only if it maps to zero.-/
+lemma mem_ker {r} : r ∈ ker f ↔ f r = 0 :=
+by rw [ker, ideal.mem_comap, submodule.mem_bot]
 
 lemma ker_eq : ((ker f) : set R) = is_add_group_hom.ker f := rfl
 
@@ -569,6 +579,18 @@ by rw [←submodule.ext'_iff, ker_eq]; exact is_add_group_hom.trivial_ker_iff_eq
 
 lemma injective_iff : function.injective f ↔ ∀ x, f x = 0 → x = 0 :=
 is_add_group_hom.injective_iff f
+
+end comm_ring
+
+/-- If the target is not the zero ring, then one is not in the kernel.-/
+lemma not_one_mem_ker [nonzero_comm_ring S] [is_ring_hom f] : (1:R) ∉ ker f :=
+by { rw [mem_ker, is_ring_hom.map_one f], exact one_ne_zero }
+
+/-- The kernel of a homomorphism to an integral domain is a prime ideal.-/
+lemma ker_is_prime [integral_domain S] [is_ring_hom f] :
+  (ker f).is_prime :=
+⟨by { rw [ne.def, ideal.eq_top_iff_one], exact not_one_mem_ker f },
+λ x y, by simpa only [mem_ker, is_ring_hom.map_mul f] using eq_zero_or_eq_zero_of_mul_eq_zero⟩
 
 end is_ring_hom
 

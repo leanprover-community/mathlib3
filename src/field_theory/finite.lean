@@ -3,7 +3,8 @@ Copyright (c) 2018 Chris Hughes. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Chris Hughes
 -/
-import group_theory.order_of_element data.polynomial data.equiv.algebra
+import group_theory.order_of_element data.polynomial data.equiv.algebra data.zmod.basic
+import algebra.char_p
 
 universes u v
 variables {α : Type u} {β : Type v}
@@ -41,6 +42,50 @@ def field_of_integral_domain [fintype α] [decidable_eq α] [integral_domain α]
     exact fintype.right_inverse_bij_inv (show function.bijective (* a), from _) 1,
   inv_zero := dif_pos rfl,
   ..show integral_domain α, by apply_instance }
+
+section polynomial
+
+variables [fintype α] [integral_domain α]
+
+open finset polynomial
+
+/-- The cardinality of a field is at most n times the cardinality of the image of a degree n
+  polnyomial -/
+lemma card_image_polynomial_eval [decidable_eq α] {p : polynomial α} (hp : 0 < p.degree) :
+  fintype.card α ≤ nat_degree p * (univ.image (λ x, eval x p)).card :=
+finset.card_le_mul_card_image _ _
+  (λ a _, calc _ = (p - C a).roots.card : congr_arg card
+    (by simp [finset.ext, mem_roots_sub_C hp, -sub_eq_add_neg])
+    ... ≤ _ : card_roots_sub_C' hp)
+
+/-- If `f` and `g` are quadratic polynomials, then the `f.eval a + g.eval b = 0` has a solution. -/
+lemma exists_root_sum_quadratic {f g : polynomial α} (hf2 : degree f = 2)
+  (hg2 : degree g = 2) (hα : fintype.card α % 2 = 1) : ∃ a b, f.eval a + g.eval b = 0 :=
+by letI := classical.dec_eq α; exact
+suffices ¬ disjoint (univ.image (λ x : α, eval x f)) (univ.image (λ x : α, eval x (-g))),
+begin
+  simp only [disjoint_left, mem_image] at this,
+  push_neg at this,
+  rcases this with ⟨x, ⟨a, _, ha⟩, ⟨b, _, hb⟩⟩,
+  exact ⟨a, b, by rw [ha, ← hb, eval_neg, neg_add_self]⟩
+end,
+assume hd : disjoint _ _,
+lt_irrefl (2 * ((univ.image (λ x : α, eval x f)) ∪ (univ.image (λ x : α, eval x (-g)))).card) $
+calc 2 * ((univ.image (λ x : α, eval x f)) ∪ (univ.image (λ x : α, eval x (-g)))).card
+    ≤ 2 * fintype.card α : nat.mul_le_mul_left _ (finset.card_le_of_subset (subset_univ _))
+... = fintype.card α + fintype.card α : two_mul _
+... < nat_degree f * (univ.image (λ x : α, eval x f)).card +
+      nat_degree (-g) * (univ.image (λ x : α, eval x (-g))).card :
+    add_lt_add_of_lt_of_le
+      (lt_of_le_of_ne
+        (card_image_polynomial_eval (by rw hf2; exact dec_trivial))
+        (mt (congr_arg (%2)) (by simp [nat_degree_eq_of_degree_eq_some hf2, hα])))
+      (card_image_polynomial_eval (by rw [degree_neg, hg2]; exact dec_trivial))
+... = 2 * (univ.image (λ x : α, eval x f) ∪ univ.image (λ x : α, eval x (-g))).card :
+  by rw [card_disjoint_union hd]; simp [nat_degree_eq_of_degree_eq_some hf2,
+    nat_degree_eq_of_degree_eq_some hg2, bit0, mul_add]
+
+end polynomial
 
 section
 variables [field α] [fintype α]
@@ -85,3 +130,35 @@ calc a ^ (fintype.card α - 1) = (units.mk0 a ha ^ (fintype.card α - 1) : units
   ... = 1 : by rw [← card_units, pow_card_eq_one]; refl
 
 end finite_field
+
+namespace zmodp
+
+open finite_field
+
+lemma sum_two_squares {p : ℕ} (hp : p.prime) (x : zmodp p hp) :
+  ∃ a b : zmodp p hp, a^2 + b^2 = x :=
+hp.eq_two_or_odd.elim (λ hp2, by resetI; subst hp2; revert x; exact dec_trivial) $ λ hp2,
+let ⟨a, b, hab⟩ := @exists_root_sum_quadratic _ _ _
+  (X^2 : polynomial (zmodp p hp)) (X^2 - C x) (by simp)
+  (degree_X_pow_sub_C dec_trivial _) (by simp *) in
+⟨a, b, by simpa only [eval_add, eval_pow, eval_neg, eval_X, eval_sub, eval_C,
+    (add_sub_assoc _ _ _).symm, sub_eq_zero] using hab⟩
+
+end zmodp
+
+namespace char_p
+
+lemma sum_two_squares {α : Type*} [integral_domain α] {n : ℕ+} [char_p α n] (x : ℤ) :
+  ∃ a b : ℕ, (a^2 + b^2 : α) = x :=
+let ⟨a, b, hab⟩ := zmodp.sum_two_squares (show nat.prime n,
+  from (char_p.char_is_prime_or_zero α _).resolve_right (nat.pos_iff_ne_zero.1 n.2)) x in
+⟨a.val, b.val, begin
+  have := congr_arg (zmod.cast : zmod n → α) hab,
+  rw [← zmod.cast_val a, ← zmod.cast_val b] at this,
+  simpa only [is_ring_hom.map_add (zmod.cast : zmod n → α),
+    is_semiring_hom.map_pow (zmod.cast : zmod n → α),
+    is_semiring_hom.map_nat_cast (zmod.cast : zmod n → α),
+    is_ring_hom.map_int_cast (zmod.cast : zmod n → α)]
+end⟩
+
+end char_p

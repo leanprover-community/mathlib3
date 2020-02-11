@@ -41,7 +41,7 @@ restate_axiom algebra.assoc'
 namespace algebra
 variables {T : C ⥤ C} [monad.{v₁} T]
 
-structure hom (A B : algebra T) :=
+@[ext] structure hom (A B : algebra T) :=
 (f : A.A ⟶ B.A)
 (h' : T.map f ≫ B.a = A.a ≫ f . obviously)
 
@@ -49,42 +49,32 @@ restate_axiom hom.h'
 attribute [simp] hom.h
 
 namespace hom
-@[extensionality] lemma ext {A B : algebra T} (f g : hom A B) (w : f.f = g.f) : f = g :=
-by { cases f, cases g, congr, assumption }
 
-def id (A : algebra T) : hom A A :=
+@[simps] def id (A : algebra T) : hom A A :=
 { f := 𝟙 A.A }
 
-@[simp] lemma id_f (A : algebra T) : (id A).f = 𝟙 A.A := rfl
-
-def comp {P Q R : algebra T} (f : hom P Q) (g : hom Q R) : hom P R :=
+@[simps] def comp {P Q R : algebra T} (f : hom P Q) (g : hom Q R) : hom P R :=
 { f := f.f ≫ g.f,
   h' := by rw [functor.map_comp, category.assoc, g.h, ←category.assoc, f.h, category.assoc] }
 
-@[simp] lemma comp_f {P Q R : algebra T} (f : hom P Q) (g : hom Q R) : (comp f g).f = f.f ≫ g.f := rfl
 end hom
 
 /-- The category of Eilenberg-Moore algebras for a monad.
     cf Definition 5.2.4 in [Riehl][riehl2017]. -/
-instance EilenbergMoore : category (algebra T) :=
+@[simps] instance EilenbergMoore : category (algebra T) :=
 { hom := hom,
   id := hom.id,
   comp := @hom.comp _ _ _ _ }
-
-@[simp] lemma id_f (P : algebra T) : hom.f (𝟙 P) = 𝟙 P.A := rfl
-@[simp] lemma comp_f {P Q R : algebra T} (f : P ⟶ Q) (g : Q ⟶ R) : (f ≫ g).f = f.f ≫ g.f := rfl
 
 end algebra
 
 variables (T : C ⥤ C) [monad.{v₁} T]
 
-def forget : algebra T ⥤ C :=
+@[simps] def forget : algebra T ⥤ C :=
 { obj := λ A, A.A,
   map := λ A B f, f.f }
 
-@[simp] lemma forget_map {X Y : algebra T} (f : X ⟶ Y) : (forget T).map f = f.f := rfl
-
-def free : C ⥤ algebra T :=
+@[simps] def free : C ⥤ algebra T :=
 { obj := λ X,
   { A := T.obj X,
     a := (μ_ T).app X,
@@ -92,9 +82,6 @@ def free : C ⥤ algebra T :=
   map := λ X Y f,
   { f := T.map f,
     h' := by erw (μ_ T).naturality } }
-
-@[simp] lemma free_obj_a (X) : ((free T).obj X).a = (μ_ T).app X := rfl
-@[simp] lemma free_map_f {X Y : C} (f : X ⟶ Y) : ((free T).map f).f = T.map f := rfl
 
 /-- The adjunction between the free and forgetful constructions for Eilenberg-Moore algebras for a monad.
     cf Lemma 5.2.8 of [Riehl][riehl2017]. -/

@@ -17,5 +17,5 @@ git remote add origin-bot "https://$DEPLOY_NIGHTLY_GITHUB_USER:$DEPLOY_NIGHTLY_G
 git config user.email "leanprover.community@gmail.com"
 git config user.name "leanprover-community-bot"
 git add nolints.txt
-git commit -m "chore(scripts): update nolints.txt"
-git push origin-bot HEAD:master
+git commit -m "chore(scripts): update nolints.txt" || true
+git push origin-bot HEAD:master || true

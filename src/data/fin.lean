@@ -171,6 +171,13 @@ by simp [eq_iff_veq]
 lemma cast_succ_ne_last (a : fin n) : cast_succ a ≠ last n :=
 by simp [eq_iff_veq, ne_of_lt a.2]
 
+lemma eq_last_of_not_lt {i : fin (n+1)} (h : ¬ i.val < n) : i = last n :=
+le_antisymm (le_last i) (not_lt.1 h)
+
+lemma cast_succ_fin_succ (n : ℕ) (j : fin n) :
+  cast_succ (fin.succ j) = fin.succ (cast_succ j) :=
+by simp [fin.ext_iff]
+
 def clamp (n m : ℕ) : fin (m + 1) := fin.of_nat $ min n m
 
 @[simp] lemma clamp_val (n m : ℕ) : (clamp n m).val = min n m :=
@@ -342,6 +349,122 @@ begin
 end
 
 end tuple
+
+section tuple_right
+/- In the previous section, we have discussed inserting or removing elements on the left of a tuple.
+In this section, we do the same on the right. A difference is that since `fin (n+1)` is constructed
+inductively from `fin n` starting from the left, not from the right. This implies that Lean needs
+more help to realize that elements belong to the right types, i.e., we need to insert casts at
+several places. -/
+
+variables {α : fin (n+1) → Type u} (x : α (last n)) (q : Πi, α i) (p : Π(i : fin n), α i.cast_succ)
+(i : fin n) (y : α i.cast_succ) (z : α (last n))
+
+/-- The beginning of an `n+1` tuple, i.e., its first `n` entries -/
+def but_last (q : Πi, α i) (i : fin n) : α i.cast_succ :=
+q i.cast_succ
+
+/-- Adding an element at the end of an `n`-tuple, to get an `n+1`-tuple -/
+def append (p : Π(i : fin n), α i.cast_succ) (x : α (last n)) (i : fin (n+1)) : α i :=
+if h : i.val < n
+then _root_.cast (by rw fin.cast_succ_cast_lt i h) (p (cast_lt i h))
+else _root_.cast (by rw eq_last_of_not_lt h) x
+
+@[simp] lemma but_last_append : but_last (append p x) = p :=
+begin
+  ext i,
+  have h' := fin.cast_lt_cast_succ i i.is_lt,
+  simp [but_last, append, i.is_lt, h'],
+  convert cast_eq rfl (p i)
+end
+
+@[simp] lemma append_cast_succ : append p x i.cast_succ = p i :=
+begin
+  have : i.cast_succ.val < n := i.is_lt,
+  have h' := fin.cast_lt_cast_succ i i.is_lt,
+  simp [append, this, h'],
+  convert cast_eq rfl (p i)
+end
+
+@[simp] lemma append_last : append p x (last n) = x :=
+by { simp [append], refl }
+
+/-- Updating a tuple and adding an element at the end commute. -/
+@[simp] lemma append_update : append (update p i y) x = update (append p x) i.cast_succ y :=
+begin
+  ext j,
+  by_cases h : j.val < n,
+  { simp only [append, h, dif_pos],
+    by_cases h' : j = cast_succ i,
+    { have C1 : α i.cast_succ = α j, by rw h',
+      have E1 : update (append p x) i.cast_succ y j = _root_.cast C1 y,
+      { have : update (append p x) j (_root_.cast C1 y) j = _root_.cast C1 y, by simp,
+        convert this,
+        { exact h'.symm },
+        { exact heq_of_eq_mp (congr_arg α (eq.symm h')) rfl } },
+      have C2 : α i.cast_succ = α (cast_succ (cast_lt j h)),
+        by rw [cast_succ_cast_lt, h'],
+      have E2 : update p i y (cast_lt j h) = _root_.cast C2 y,
+      { have : update p (cast_lt j h) (_root_.cast C2 y) (cast_lt j h) = _root_.cast C2 y,
+          by simp,
+        convert this,
+        { simp [h, h'] },
+        { exact heq_of_eq_mp C2 rfl } },
+      rw [E1, E2],
+      exact eq_rec_compose _ _ _ },
+    { have : ¬(cast_lt j h = i),
+        by { assume E, apply h', rw [← E, cast_succ_cast_lt] },
+      simp [h', this, append, h] } },
+  { rw eq_last_of_not_lt h,
+    simp [ne.symm (cast_succ_ne_last i)] }
+end
+
+/-- Adding an element at the beginning of a tuple and then updating it amounts to adding it directly. -/
+lemma update_append_last : update (append p x) (last n) z = append p z :=
+begin
+  ext j,
+  by_cases h : j.val < n,
+  { have : j ≠ last n := ne_of_lt h,
+    simp [h, update_noteq, this, append] },
+  { rw eq_last_of_not_lt h,
+    simp }
+end
+
+/-- Concatenating the first element of a tuple with its tail gives back the original tuple -/
+@[simp] lemma append_but_last_self : append (but_last q) (q (last n)) = q :=
+begin
+  ext j,
+  by_cases h : j.val < n,
+  { have : j ≠ last n := ne_of_lt h,
+    simp [h, update_noteq, this, append, but_last, cast_succ_cast_lt],
+    have A : cast_succ (cast_lt j h) = j := cast_succ_cast_lt _ _,
+    rw ← cast_eq rfl (q j),
+    congr' 1; rw A },
+  { rw eq_last_of_not_lt h,
+    simp }
+end
+
+/-- Updating the last element of a tuple does not change the beginning. -/
+@[simp] lemma but_last_update_last : but_last (update q (last n) z) = but_last q :=
+by { ext j, simp [but_last, cast_succ_ne_last] }
+
+/-- Updating an element and taking the beginning commute. -/
+@[simp] lemma but_last_update_cast_succ :
+  but_last (update q i.cast_succ y) = update (but_last q) i y :=
+begin
+  ext j,
+  by_cases h : j = i,
+  { rw h, simp [but_last] },
+  { simp [but_last, h] }
+end
+
+/-- `tail` and `but_last` commute. We state this lemma in a non-dependent setting, as otherwise it
+would involve a cast to convince Lean that the two types are equal, making it harder to use. -/
+lemma tail_but_last_eq_but_last_tail {β : Type*} (q : fin (n+2) → β) :
+  tail (but_last q) = but_last (tail q) :=
+by { ext i, simp [tail, but_last, cast_succ_fin_succ] }
+
+end tuple_right
 
 section find
 

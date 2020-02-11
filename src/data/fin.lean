@@ -361,7 +361,7 @@ variables {α : fin (n+1) → Type u} (x : α (last n)) (q : Πi, α i) (p : Π(
 (i : fin n) (y : α i.cast_succ) (z : α (last n))
 
 /-- The beginning of an `n+1` tuple, i.e., its first `n` entries -/
-def but_last (q : Πi, α i) (i : fin n) : α i.cast_succ :=
+def init (q : Πi, α i) (i : fin n) : α i.cast_succ :=
 q i.cast_succ
 
 /-- Adding an element at the end of an `n`-tuple, to get an `n+1`-tuple -/
@@ -370,11 +370,11 @@ if h : i.val < n
 then _root_.cast (by rw fin.cast_succ_cast_lt i h) (p (cast_lt i h))
 else _root_.cast (by rw eq_last_of_not_lt h) x
 
-@[simp] lemma but_last_append : but_last (append p x) = p :=
+@[simp] lemma init_append : init (append p x) = p :=
 begin
   ext i,
   have h' := fin.cast_lt_cast_succ i i.is_lt,
-  simp [but_last, append, i.is_lt, h'],
+  simp [init, append, i.is_lt, h'],
   convert cast_eq rfl (p i)
 end
 
@@ -431,12 +431,12 @@ begin
 end
 
 /-- Concatenating the first element of a tuple with its tail gives back the original tuple -/
-@[simp] lemma append_but_last_self : append (but_last q) (q (last n)) = q :=
+@[simp] lemma append_init_self : append (init q) (q (last n)) = q :=
 begin
   ext j,
   by_cases h : j.val < n,
   { have : j ≠ last n := ne_of_lt h,
-    simp [h, update_noteq, this, append, but_last, cast_succ_cast_lt],
+    simp [h, update_noteq, this, append, init, cast_succ_cast_lt],
     have A : cast_succ (cast_lt j h) = j := cast_succ_cast_lt _ _,
     rw ← cast_eq rfl (q j),
     congr' 1; rw A },
@@ -445,24 +445,24 @@ begin
 end
 
 /-- Updating the last element of a tuple does not change the beginning. -/
-@[simp] lemma but_last_update_last : but_last (update q (last n) z) = but_last q :=
-by { ext j, simp [but_last, cast_succ_ne_last] }
+@[simp] lemma init_update_last : init (update q (last n) z) = init q :=
+by { ext j, simp [init, cast_succ_ne_last] }
 
 /-- Updating an element and taking the beginning commute. -/
-@[simp] lemma but_last_update_cast_succ :
-  but_last (update q i.cast_succ y) = update (but_last q) i y :=
+@[simp] lemma init_update_cast_succ :
+  init (update q i.cast_succ y) = update (init q) i y :=
 begin
   ext j,
   by_cases h : j = i,
-  { rw h, simp [but_last] },
-  { simp [but_last, h] }
+  { rw h, simp [init] },
+  { simp [init, h] }
 end
 
-/-- `tail` and `but_last` commute. We state this lemma in a non-dependent setting, as otherwise it
+/-- `tail` and `init` commute. We state this lemma in a non-dependent setting, as otherwise it
 would involve a cast to convince Lean that the two types are equal, making it harder to use. -/
-lemma tail_but_last_eq_but_last_tail {β : Type*} (q : fin (n+2) → β) :
-  tail (but_last q) = but_last (tail q) :=
-by { ext i, simp [tail, but_last, cast_succ_fin_succ] }
+lemma tail_init_eq_init_tail {β : Type*} (q : fin (n+2) → β) :
+  tail (init q) = init (tail q) :=
+by { ext i, simp [tail, init, cast_succ_fin_succ] }
 
 end tuple_right
 

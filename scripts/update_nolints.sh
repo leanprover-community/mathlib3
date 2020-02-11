@@ -13,7 +13,7 @@ cd scripts
 lean --run mk_nolint.lean
 ./rm_all.sh
 
-git remote add origin-bot "https://$DEPLOY_NIGHTLY_GITHUB_USER:$DEPLOY_NIGHTLY_GITHUB_TOKEN@github.com/robertylewis/mathlib.git"
+git remote add origin-bot "https://$DEPLOY_NIGHTLY_GITHUB_USER:$DEPLOY_NIGHTLY_GITHUB_TOKEN@github.com/leanprover-community/mathlib.git"
 git config user.email "leanprover.community@gmail.com"
 git config user.name "leanprover-community-bot"
 git add nolints.txt

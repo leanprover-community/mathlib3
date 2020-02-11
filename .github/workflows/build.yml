@@ -10,7 +10,6 @@ jobs:
       matrix:
         lean_version:
           - leanprover-community/lean:3.5.1
-          - leanprover-community/lean:nightly
       fail-fast: false
     steps:
       - uses: actions/checkout@v2

@@ -1,7 +1,7 @@
 /-
 Copyright (c) 2018 Scott Morrison. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Authors: Scott Morrison
+Authors: Scott Morrison, Markus Himmel
 -/
 import data.fintype
 import category_theory.limits.limits
@@ -116,7 +116,7 @@ lemma cofork.condition (t : cofork f g) : f ≫ (cofork.π t) = g ≫ (cofork.π
 begin
   erw [t.w left, ← t.w right], refl
 end
- 
+
 def cone.of_fork
   {F : walking_parallel_pair.{v} ⥤ C} (t : fork (F.map left) (F.map right)) : cone F :=
 { X := t.X,
@@ -172,6 +172,8 @@ abbreviation equalizer := limit (parallel_pair f g)
 abbreviation equalizer.ι : equalizer f g ⟶ X :=
 limit.π (parallel_pair f g) zero
 
+lemma equalizer.ι.fork : fork.ι (limits.limit.cone (parallel_pair f g)) = equalizer.ι f g := rfl
+
 @[reassoc] lemma equalizer.condition : equalizer.ι f g ≫ f = equalizer.ι f g ≫ g :=
 begin
   erw limit.w (parallel_pair f g) walking_parallel_pair_hom.left,
@@ -181,8 +183,30 @@ end
 abbreviation equalizer.lift {W : C} (k : W ⟶ X) (h : k ≫ f = k ≫ g) : W ⟶ equalizer f g :=
 limit.lift (parallel_pair f g) (fork.of_ι k h)
 
+-- TODO: Move to the right place, add variants + duals
+lemma fork_comm {P Q : C} {f g : P ⟶ Q} (s : fork f g) :
+    (fork.ι s ≫ f) = (s.π.app walking_parallel_pair.one) :=
+by convert @cone.w _ _ _ _ _ s _ _ walking_parallel_pair_hom.left
+
+lemma equalizer.lift.unique {W : C} (k : W ⟶ X) (h : k ≫ f = k ≫ g) (l : W ⟶ equalizer f g)
+  (i : l ≫ (equalizer.ι f g) = k) : l = (equalizer.lift f g k h) :=
+begin
+  refine is_limit.uniq (limit.is_limit (parallel_pair f g)) (fork.of_ι k h) l _,
+  intros j, cases j,
+  { simp only [fork.of_ι_app_zero, limit.cone_π], exact i, },
+  { rw [←fork_comm, fork.of_ι_app_one, equalizer.ι.fork, ←category.assoc, i] },
+end
+
 lemma equalizer.ι_mono : mono (equalizer.ι f g) :=
-{ right_cancellation := λ Z h k w, begin sorry end }
+{ right_cancellation := λ Z h k w, begin
+  have h₀ : (h ≫ (equalizer.ι f g)) ≫ f = (h ≫ (equalizer.ι f g)) ≫ g :=
+    by simp only [category.assoc, equalizer.condition],
+  have h₁ : h = equalizer.lift f g (h ≫ (equalizer.ι f g)) h₀ :=
+    equalizer.lift.unique _ _ _ _ _ rfl,
+  have h₂ : k = equalizer.lift f g (h ≫ (equalizer.ι f g)) h₀ :=
+    equalizer.lift.unique _ _ _ _ _ w.symm,
+  rw [h₁, h₂]
+end }
 end
 
 @[simp] lemma cone_parallel_pair_left (s : limits.cone (parallel_pair f g)) :

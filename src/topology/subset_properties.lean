@@ -120,10 +120,20 @@ classical.by_contradiction $ assume h,
     le_inf inf_le_right (inf_le_left_of_le ‹f ≤ principal (- U i)›),
   this ‹a ∈ U i›
 
+lemma compact.elim_finite_subfamily_closed {s : set α} {ι : Type u} (hs : compact s)
+  (Z : ι → set α) (hZo : ∀i, is_closed (Z i)) (hsZ : s ∩ (⋂ i, Z i) = ∅) :
+  ∃ t : finset ι, s ∩ (⋂ i ∈ t, Z i) = ∅ :=
+let ⟨t, ht⟩ := hs.elim_finite_subcover (λ i, - Z i) hZo
+  (by simpa only [subset_def, not_forall, eq_empty_iff_forall_not_mem, set.mem_Union,
+    exists_prop, set.mem_inter_eq, not_and, iff_self, set.mem_Inter, set.mem_compl_eq] using hsZ)
+    in
+⟨t, by simpa only [subset_def, not_forall, eq_empty_iff_forall_not_mem, set.mem_Union,
+    exists_prop, set.mem_inter_eq, not_and, iff_self, set.mem_Inter, set.mem_compl_eq] using ht⟩
+
 section
 -- this proof times out without this
 local attribute [instance, priority 1000] classical.prop_decidable
-theorem compact_of_finite_subcover_closed {α : Type u} [topological_space α] {s : set α}
+theorem compact_of_finite_subfamily_closed {s : set α}
   (h : Π {ι : Type u} (Z : ι → (set α)), (∀ i, is_closed (Z i)) →
     s ∩ (⋂ i, Z i) = ∅ → (∃ (t : finset ι), s ∩ (⋂ i ∈ t, Z i) = ∅)) :
   compact s :=
@@ -158,7 +168,7 @@ lemma compact_of_finite_subcover {s : set α}
   (h : Π {ι : Type u} (U : ι → (set α)), (∀ i, is_open (U i)) →
     s ⊆ (⋃ i, U i) → (∃ (t : finset ι), s ⊆ (⋃ i ∈ t, U i))) :
   compact s :=
-compact_of_finite_subcover_closed $
+compact_of_finite_subfamily_closed $
   assume ι Z hZc hsZ,
   let ⟨t, ht⟩ := h (λ i, - Z i) (assume i, is_open_compl_iff.mpr $ hZc i)
     (by simpa only [subset_def, not_forall, eq_empty_iff_forall_not_mem, set.mem_Union,
@@ -171,6 +181,11 @@ lemma compact_iff_finite_subcover {s : set α} :
   compact s ↔ (Π {ι : Type u} (U : ι → (set α)), (∀ i, is_open (U i)) →
     s ⊆ (⋃ i, U i) → (∃ (t : finset ι), s ⊆ (⋃ i ∈ t, U i))) :=
 ⟨assume hs ι, hs.elim_finite_subcover, compact_of_finite_subcover⟩
+
+theorem compact_iff_finite_subfamily_closed {s : set α} :
+  compact s ↔ (Π {ι : Type u} (Z : ι → (set α)), (∀ i, is_closed (Z i)) →
+    s ∩ (⋂ i, Z i) = ∅ → (∃ (t : finset ι), s ∩ (⋂ i ∈ t, Z i) = ∅)) :=
+⟨assume hs ι, hs.elim_finite_subfamily_closed, compact_of_finite_subfamily_closed⟩
 
 @[simp]
 lemma compact_empty : compact (∅ : set α) :=
@@ -284,13 +299,13 @@ class compact_space (α : Type*) [topological_space α] : Prop :=
 
 lemma compact_univ [h : compact_space α] : compact (univ : set α) := h.compact_univ
 
-theorem compact_space_of_finite_subcover_closed {α : Type u} [topological_space α]
+theorem compact_space_of_finite_subfamily_closed {α : Type u} [topological_space α]
   (h : Π {ι : Type u} (Z : ι → (set α)), (∀ i, is_closed (Z i)) →
     (⋂ i, Z i) = ∅ → (∃ (t : finset ι), (⋂ i ∈ t, Z i) = ∅)) :
   compact_space α :=
 { compact_univ :=
   begin
-    apply compact_of_finite_subcover_closed,
+    apply compact_of_finite_subfamily_closed,
     intros ι Z, specialize h Z,
     simpa using h
   end }

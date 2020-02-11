@@ -395,7 +395,7 @@ end
 
 instance : compact_space (prime_spectrum R) :=
 begin
-  apply compact_space_of_finite_subcover_closed,
+  apply compact_space_of_finite_subfamily_closed,
   intros ι Z h_closed hZ,
   let f : ι → ideal R := λ i, vanishing_ideal (Z i),
   have hf : ∀ i, Z i = zero_locus (f i),

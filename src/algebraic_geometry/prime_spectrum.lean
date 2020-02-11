@@ -393,38 +393,6 @@ begin
     exact subset_zero_locus_vanishing_ideal s }
 end
 
-theorem compact_of_finite_subcover_closed {α : Type u} [topological_space α] {s : set α}
-  (h : Π {ι : Type u} (Z : ι → (set α)), (∀ i, is_closed (Z i)) →
-    s ∩ (⋂ i, Z i) = ∅ → (∃ (t : finset ι), s ∩ (⋂ i ∈ t, Z i) = ∅)) :
-  compact s :=
-begin
-  apply compact_of_finite_subcover,
-  intros U h_open h_cover,
-  have aux : (s ∩ ⋂ (u : U), -u.val) = ∅,
-  { rw [set.sUnion_eq_Union] at h_cover,
-    rw [← set.compl_Union, set.eq_empty_iff_forall_not_mem],
-    rintro x ⟨hxs, hx⟩, exact hx (h_cover hxs) },
-  rcases h (λ u:U, -u.1) (λ u, is_closed_compl_iff.mpr (h_open _ u.2)) aux with ⟨t, ht⟩,
-  refine ⟨subtype.val '' (↑t : set U), _, _, _⟩,
-  { rw set.image_subset_iff, intros u hu, exact u.2 },
-  { exact set.finite_image _ t.finite_to_set },
-  { intros x hxs,
-    rw [set.eq_empty_iff_forall_not_mem] at ht,
-    specialize ht x,
-    simpa [hxs, not_forall] using ht }
-end
-
-theorem compact_space_of_finite_subcover_closed {α : Type u} [topological_space α]
-  (h : Π {ι : Type u} (Z : ι → (set α)), (∀ i, is_closed (Z i)) →
-    (⋂ i, Z i) = ∅ → (∃ (t : finset ι), (⋂ i ∈ t, Z i) = ∅)) :
-  compact_space α :=
-{ compact_univ :=
-  begin
-    apply compact_of_finite_subcover_closed,
-    intros ι Z, specialize h Z,
-    simpa using h
-  end }
-
 instance : compact_space (prime_spectrum R) :=
 begin
   apply compact_space_of_finite_subcover_closed,

@@ -267,7 +267,7 @@ begin
 end
 
 theorem fin.prod_univ_cast_succ [comm_monoid β] {n:ℕ} (f : fin n.succ → β) :
-  univ.prod f = univ.prod (λ i:fin n, f i.cast_succ) * f (fin.last n ):=
+  univ.prod f = univ.prod (λ i:fin n, f i.cast_succ) * f (fin.last n) :=
 begin
   rw [fin.univ_cast_succ, prod_insert, prod_image, mul_comm],
   { intros x _ y _ hxy, exact fin.cast_succ_inj.mp hxy },

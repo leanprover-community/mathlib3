@@ -431,12 +431,12 @@ protected lemma continuous_within_at (e : M ≃L[R] M₂) {s : set M} {x : M} :
   continuous_within_at (e : M → M₂) s x :=
 e.continuous.continuous_within_at
 
-lemma comp_continuous_on_iff_continuous_on
+lemma comp_continuous_on_iff
   {α : Type*} [topological_space α] (e : M ≃L[R] M₂) (f : α → M) (s : set α) :
   continuous_on (e ∘ f) s ↔ continuous_on f s :=
 e.to_homeomorph.comp_continuous_on_iff _ _
 
-lemma comp_continuous_iff_continuous
+lemma comp_continuous_iff
   {α : Type*} [topological_space α] (e : M ≃L[R] M₂) (f : α → M) :
   continuous (e ∘ f) ↔ continuous f :=
 e.to_homeomorph.comp_continuous_iff _

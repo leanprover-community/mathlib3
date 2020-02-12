@@ -76,17 +76,13 @@ def is_limit_cone_zero_cone [mono f] : is_limit (zero_cone f) :=
   fac' := λ s j,
   begin
     cases j,
-    begin
-      simp only [has_zero_morphisms.zero_comp],
+    { simp only [has_zero_morphisms.zero_comp],
       refine (@zero_of_comp_mono _ _ _ _ _ _ _ f _ _).symm,
       erw fork.condition,
-      convert has_zero_morphisms.comp_zero.{v} _ (s.π.app limits.walking_parallel_pair.zero) _
-    end,
-    begin
-      rw ←cone_parallel_pair_right s,
+      convert has_zero_morphisms.comp_zero.{v} _ (s.π.app limits.walking_parallel_pair.zero) _ },
+    { rw ←cone_parallel_pair_right s,
       simp only [has_zero_morphisms.zero_comp],
-      convert (has_zero_morphisms.comp_zero.{v} _ (s.π.app limits.walking_parallel_pair.zero) _).symm
-    end
+      convert (has_zero_morphisms.comp_zero.{v} _ (s.π.app limits.walking_parallel_pair.zero) _).symm },
   end,
   uniq' := λ _ m _, has_zero_object.zero_of_to_zero m }
 
@@ -109,7 +105,7 @@ abbreviation cokernel.desc {W : C} (k : Y ⟶ W) (h : f ≫ k = 0) : cokernel f 
 colimit.desc (parallel_pair f 0) (cofork.of_π k (by simpa))
 end
 
-variables (C)
+variables (C) [has_zero_morphisms.{v} C]
 
 class has_kernels :=
 (has_limit : Π {X Y : C}, has_limit (parallel_pair f 0))

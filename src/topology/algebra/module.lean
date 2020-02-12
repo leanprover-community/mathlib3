@@ -434,12 +434,12 @@ e.continuous.continuous_within_at
 lemma comp_continuous_on_iff_continuous_on
   {α : Type*} [topological_space α] (e : M ≃L[R] M₂) (f : α → M) (s : set α) :
   continuous_on (e ∘ f) s ↔ continuous_on f s :=
-e.to_homeomorph.comp_continuous_on_iff_continuous_on _ _
+e.to_homeomorph.comp_continuous_on_iff _ _
 
 lemma comp_continuous_iff_continuous
   {α : Type*} [topological_space α] (e : M ≃L[R] M₂) (f : α → M) :
   continuous (e ∘ f) ↔ continuous f :=
-e.to_homeomorph.comp_continuous_iff_continuous _
+e.to_homeomorph.comp_continuous_iff _
 
 section
 variable (M)

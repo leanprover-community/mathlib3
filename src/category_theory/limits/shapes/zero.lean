@@ -41,6 +41,17 @@ attribute [simp] has_zero_morphisms.comp_zero
 restate_axiom has_zero_morphisms.zero_comp'
 attribute [simp, reassoc] has_zero_morphisms.zero_comp
 
+section
+variables {C} [has_zero_morphisms.{v} C]
+
+lemma zero_of_comp_mono {X Y Z : C} {f : X ⟶ Y} {g : Y ⟶ Z} [mono g] (h : f ≫ g = 0) : f = 0 :=
+by { rw [←has_zero_morphisms.zero_comp.{v} C X g, cancel_mono] at h, exact h }
+
+lemma zero_of_comp_epi {X Y Z : C} {f : X ⟶ Y} {g : Y ⟶ Z} [epi f] (h : f ≫ g = 0) : g = 0 :=
+by { rw [←has_zero_morphisms.comp_zero.{v} C f Z, cancel_epi] at h, exact h }
+
+end
+
 -- FIXME define is_initial and is_terminal, and define `has_zero_object` in terms of these
 
 /-- A category "has a zero object" if it has an object which is both initial and terminal. -/
@@ -71,6 +82,20 @@ def zero_morphisms_of_zero_object : has_zero_morphisms.{v} C :=
   { zero := inhabited.default (X ⟶ 0) ≫ inhabited.default (0 ⟶ Y) },
   zero_comp' := λ X Y Z f, by { dunfold has_zero.zero, rw category.assoc, congr, },
   comp_zero' := λ X Y Z f, by { dunfold has_zero.zero, rw ←category.assoc, congr, }}
+
+local attribute [instance] zero_morphisms_of_zero_object
+
+@[simp] lemma zero_of_to_zero {X : C} (f : X ⟶ 0) : f = 0 :=
+begin
+  rw (has_zero_object.unique_from.{v} X).uniq f,
+  rw (has_zero_object.unique_from.{v} X).uniq (0 : X ⟶ 0)
+end
+
+@[simp] lemma zero_of_from_zero {X : C} (f : 0 ⟶ X) : f = 0 :=
+begin
+  rw (has_zero_object.unique_to.{v} X).uniq f,
+  rw (has_zero_object.unique_to.{v} X).uniq (0 : 0 ⟶ X)
+end
 
 /-- A zero object is in particular initial. -/
 def has_initial_of_has_zero_object : has_initial.{v} C :=

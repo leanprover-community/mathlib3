@@ -29,9 +29,8 @@ do
 @[user_command] meta def add_hint (_ : parse (tk "add_hint")) : parser unit :=
 do t ← parser.pexpr,
    n ← parser.pexpr,
-   -- gross: strip quotes off
-   let h := n.to_string.to_list.tail.reverse.tail.reverse.as_string ++ "_hint",
    of_tactic $ do
+   h ← to_expr n >>= eval_expr string, let h := h ++ "_hint",
    t ← to_expr ``(do %%t, pure %%n),
    add_tactic_hint h t.
 

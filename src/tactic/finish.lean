@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jeremy Avigad, Jesse Michael Han
 -/
 
-import logic.basic tactic.core
+import logic.basic tactic.core tactic.hint
 
 /-!
 # The `finish` family of tactics
@@ -559,6 +559,8 @@ meta def finish (hs : parse simp_arg_list) (ps : parse (tk "using" *> pexpr_list
   (cfg : auto_config := {}) : tactic unit :=
 do s ← mk_simp_set ff [] hs,
    auto.finish s (ps.get_or_else []) cfg
+
+add_hint `[finish] "finish"
 
 /--
   `iclarify` is like `clarify`, but only uses intuitionistic logic.

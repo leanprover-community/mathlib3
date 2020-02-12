@@ -145,7 +145,7 @@ begin
   { assume n,
     have c_pos : 0 < 1 + ∥c n∥ :=
       add_pos_of_pos_of_nonneg zero_lt_one (norm_nonneg _),
-    rcases metric.mem_closure_iff'.1 ht ((1 + ∥c n∥)⁻¹ * (1/2)^n) _ with ⟨z, z_pos, hz⟩,
+    rcases metric.mem_closure_iff.1 ht ((1 + ∥c n∥)⁻¹ * (1/2)^n) _ with ⟨z, z_pos, hz⟩,
     refine ⟨z - y, _, _⟩,
     { convert z_pos, abel },
     { rw [norm_smul, ← dist_eq_norm, dist_comm],
@@ -187,7 +187,7 @@ begin
   { assume n,
     have c_pos : 0 < 1 + ∥c n∥ :=
       add_pos_of_pos_of_nonneg zero_lt_one (norm_nonneg _),
-    rcases metric.mem_closure_iff'.1 hs ((1 + ∥c n∥)⁻¹ * (1/2)^n) _ with ⟨z, z_pos, hz⟩,
+    rcases metric.mem_closure_iff.1 hs ((1 + ∥c n∥)⁻¹ * (1/2)^n) _ with ⟨z, z_pos, hz⟩,
     refine ⟨z - x, _, _⟩,
     { convert z_pos, abel },
     { rw [norm_smul, ← dist_eq_norm, dist_comm],
@@ -315,11 +315,11 @@ begin
   rw [unique_diff_within_at, ← univ_subset_iff] at ⊢ hs ht,
   split,
   { assume v _,
-    rw metric.mem_closure_iff',
+    rw metric.mem_closure_iff,
     assume ε ε_pos,
     rcases v with ⟨v₁, v₂⟩,
-    rcases metric.mem_closure_iff'.1 (hs.1 (mem_univ v₁)) ε ε_pos with ⟨w₁, w₁_mem, h₁⟩,
-    rcases metric.mem_closure_iff'.1 (ht.1 (mem_univ v₂)) ε ε_pos with ⟨w₂, w₂_mem, h₂⟩,
+    rcases metric.mem_closure_iff.1 (hs.1 (mem_univ v₁)) ε ε_pos with ⟨w₁, w₁_mem, h₁⟩,
+    rcases metric.mem_closure_iff.1 (ht.1 (mem_univ v₂)) ε ε_pos with ⟨w₂, w₂_mem, h₂⟩,
     have I₁ : (w₁, (0 : F)) ∈ submodule.span 𝕜 (tangent_cone_at 𝕜 (set.prod s t) (x, y)),
     { apply submodule.span_induction w₁_mem,
       { assume w hw,
@@ -374,13 +374,13 @@ lemma unique_diff_on.prod {t : set F} (hs : unique_diff_on 𝕜 s) (ht : unique_
 
 /-- In a real vector space, a convex set with nonempty interior is a set of unique
 differentiability. -/
-theorem unique_diff_on_convex {s : set G} (conv : convex s) (hs : interior s ≠ ∅) :
+theorem unique_diff_on_convex {s : set G} (conv : convex s) (hs : (interior s).nonempty) :
   unique_diff_on ℝ s :=
 begin
   assume x xs,
   have A : ∀v, ∃a∈ tangent_cone_at ℝ s x, ∃b∈ tangent_cone_at ℝ s x, ∃δ>(0:ℝ), δ • v = b-a,
   { assume v,
-    rcases ne_empty_iff_exists_mem.1 hs with ⟨y, hy⟩,
+    rcases hs with ⟨y, hy⟩,
     have ys : y ∈ s := interior_subset hy,
     have : ∃(δ : ℝ), 0<δ ∧ y + δ • v ∈ s,
     { by_cases h : ∥v∥ = 0,
@@ -419,7 +419,7 @@ begin
   apply unique_diff_on_convex (convex_Icc 0 1),
   have : (1/(2:ℝ)) ∈ interior (Icc (0:ℝ) 1) :=
     mem_interior.2 ⟨Ioo (0:ℝ) 1, Ioo_subset_Icc_self, is_open_Ioo, by norm_num, by norm_num⟩,
-  exact ne_empty_of_mem this,
+  exact ⟨_, this⟩
 end
 
 end unique_diff

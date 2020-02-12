@@ -32,6 +32,6 @@ import
   tactic.tfae
   tactic.apply_fun
   tactic.apply
-  tactic.suggest
-  tactic.simp_rw
-  tactic.hint
+  tactic.pi_instances
+  tactic.fin_cases
+  tactic.reassoc_axiom -- most likely useful only for category_theory

@@ -111,7 +111,7 @@ have embedding (λa, a + (y - x)), from (uniform_embedding_translate (y - x)).em
 show (x, y) ∈ ⋂₀ (𝓤 α).sets ↔ x - y ∈ closure ({0} : set α),
 begin
   rw [this.closure_eq_preimage_closure_image, uniformity_eq_comap_nhds_zero α, sInter_comap_sets],
-  simp [mem_closure_iff_nhds, inter_singleton_eq_empty]
+  simp [mem_closure_iff_nhds, inter_singleton_nonempty]
 end
 
 lemma uniform_continuous_of_tendsto_zero [uniform_space β] [add_group β] [uniform_add_group β]
@@ -399,13 +399,10 @@ begin
     exact H _ _ (HU₁ (mk_mem_prod x_in x'_in)) (HV₁ (mk_mem_prod y_in y'_in)) },
   rcases this with ⟨U₁, U₁_nhd, V₁, V₁_nhd, H⟩,
 
-  have : ∃ x₁, x₁ ∈ U₁ := exists_mem_of_ne_empty
-    (forall_sets_ne_empty_iff_ne_bot.2 de.comap_nhds_ne_bot U₁ U₁_nhd),
-  rcases this with ⟨x₁, x₁_in⟩,
-
-  have : ∃ y₁, y₁ ∈ V₁ := exists_mem_of_ne_empty
-    (forall_sets_ne_empty_iff_ne_bot.2 df.comap_nhds_ne_bot V₁ V₁_nhd),
-  rcases this with ⟨y₁, y₁_in⟩,
+  obtain ⟨x₁, x₁_in⟩ : U₁.nonempty :=
+    (forall_sets_nonempty_iff_ne_bot.2 de.comap_nhds_ne_bot U₁ U₁_nhd),
+  obtain ⟨y₁, y₁_in⟩ : V₁.nonempty :=
+    (forall_sets_nonempty_iff_ne_bot.2 df.comap_nhds_ne_bot V₁ V₁_nhd),
 
   rcases (extend_Z_bilin_aux de df hφ W_nhd x₀ y₁) with ⟨U₂, U₂_nhd, HU⟩,
   rcases (extend_Z_bilin_aux df de (hφ.comp continuous_swap) W_nhd y₀ x₁) with ⟨V₂, V₂_nhd, HV⟩,
@@ -444,8 +441,7 @@ begin
     apply comap_ne_bot,
 
     intros U h,
-    rcases exists_mem_of_ne_empty (mem_closure_iff_nhds.1 ((de.prod df).dense (x₀, y₀)) U h)
-      with ⟨x, x_in, ⟨z, z_x⟩⟩,
+    rcases mem_closure_iff_nhds.1 ((de.prod df).dense (x₀, y₀)) U h with ⟨x, x_in, ⟨z, z_x⟩⟩,
     existsi z,
     cc },
   { suffices : map (λ (p : (β × δ) × (β × δ)), φ p.2 - φ p.1)

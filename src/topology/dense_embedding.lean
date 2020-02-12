@@ -58,11 +58,9 @@ end
 
 /-- If `f : α → β` has dense range and `β` contains some element, then `α` must too. -/
 def dense_range.inhabited (df : dense_range f) (b : β) : inhabited α :=
-⟨begin
-  have := exists_mem_of_ne_empty (mem_closure_iff.1 (df b) _ is_open_univ trivial),
-  simp only [mem_range, univ_inter] at this,
-  exact classical.some (classical.some_spec this),
- end⟩
+⟨classical.choice $
+  by simpa only [univ_inter, range_nonempty_iff_nonempty] using
+    mem_closure_iff.1 (df b) _ is_open_univ trivial⟩
 
 lemma dense_range.nonempty (hf : dense_range f) : nonempty α ↔ nonempty β :=
 ⟨nonempty.map f, λ ⟨b⟩, @nonempty_of_inhabited _ (hf.inhabited b)⟩
@@ -101,8 +99,7 @@ begin
   rw [image_preimage_eq_inter_range, mem_closure_iff],
   intros U U_op b_in,
   rw ←inter_assoc,
-  have ne_e : U ∩ s ≠ ∅ := ne_empty_of_mem ⟨b_in, b_in_s⟩,
-  exact (dense_iff_inter_open.1 di.closure_range) _ (is_open_inter U_op s_op) ne_e
+  exact (dense_iff_inter_open.1 di.closure_range) _ (is_open_inter U_op s_op) ⟨b, b_in, b_in_s⟩
 end
 
 lemma closure_image_nhds_of_nhds {s : set α} {a : α} (di : dense_inducing i) :
@@ -152,12 +149,8 @@ begin
 end
 
 lemma comap_nhds_ne_bot (di : dense_inducing i) {b : β} : comap i (𝓝 b) ≠ ⊥ :=
-forall_sets_ne_empty_iff_ne_bot.mp $
-assume s ⟨t, ht, (hs : i ⁻¹' t ⊆ s)⟩,
-have t ∩ range i ∈ 𝓝 b ⊓ principal (range i),
-  from inter_mem_inf_sets ht (subset.refl _),
-let ⟨_, ⟨hx₁, y, rfl⟩⟩ := nonempty_of_mem_sets di.nhds_inf_ne_bot this in
-subset_ne_empty hs $ ne_empty_of_mem hx₁
+comap_ne_bot $ λ s hs,
+let ⟨_, ⟨ha, a, rfl⟩⟩ := mem_closure_iff_nhds.1 (di.dense b) s hs in ⟨a, ha⟩
 
 variables [topological_space γ]
 

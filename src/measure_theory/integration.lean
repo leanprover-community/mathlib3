@@ -64,7 +64,7 @@ lemma range_const (α) [measurable_space α] [ne : nonempty α] (b : β) :
 begin
   ext b',
   simp [mem_range],
-  exact ⟨assume ⟨_, h⟩, h.symm, assume h, ne.elim $ λa, ⟨a, h.symm⟩⟩
+  tauto
 end
 
 lemma is_measurable_cut (p : α → β → Prop) (f : α →ₛ β)
@@ -489,7 +489,7 @@ begin
     rcases mem_range.1 hr with ⟨a, rfl⟩,
     have : f ⁻¹' {f a} ∩ s ≠ ∅,
     { assume h, simpa [h] using h0 },
-    rcases ne_empty_iff_exists_mem.1 this with ⟨a', eq', ha'⟩,
+    rcases ne_empty_iff_nonempty.1 this with ⟨a', eq', ha'⟩,
     refine ⟨_, (mem_restrict_range hs).2 (or.inr ⟨a', ha', _⟩), _, rfl⟩,
     { simpa using eq' },
     { rwa [restrict_preimage' _ hs r0] } },

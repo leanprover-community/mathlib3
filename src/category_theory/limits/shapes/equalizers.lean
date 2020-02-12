@@ -80,6 +80,19 @@ abbreviation cofork (f g : X ⟶ Y) := cocone (parallel_pair f g)
 
 variables {f g : X ⟶ Y}
 
+@[simp] lemma cone_parallel_pair_left (s : limits.cone (parallel_pair f g)) :
+  (s.π).app zero ≫ f = (s.π).app one :=
+begin
+  conv { to_lhs, congr, skip, rw ←parallel_pair_map_left f g, },
+  rw s.w,
+end
+@[simp] lemma cone_parallel_pair_right (s : limits.cone (parallel_pair f g)) :
+  (s.π).app zero ≫ g = (s.π).app one :=
+begin
+  conv { to_lhs, congr, skip, rw ←parallel_pair_map_right f g, },
+  rw s.w,
+end
+
 attribute [simp] walking_parallel_pair_hom_id
 
 def fork.of_ι {P : C} (ι : P ⟶ X) (w : ι ≫ f = ι ≫ g) : fork f g :=
@@ -125,8 +138,6 @@ def cone.of_fork
     naturality' := λ j j' g,
     begin
       cases j; cases j'; cases g; dsimp; simp,
-      erw ← t.w left, refl,
-      erw ← t.w right, refl,
     end } }.
 def cocone.of_cofork
   {F : walking_parallel_pair.{v} ⥤ C} (t : cofork (F.map left) (F.map right)) : cocone F :=
@@ -174,6 +185,8 @@ limit.π (parallel_pair f g) zero
 
 lemma equalizer.ι.fork : fork.ι (limits.limit.cone (parallel_pair f g)) = equalizer.ι f g := rfl
 
+lemma equalizer.ι.eq_app_zero : (limit.cone (parallel_pair f g)).π.app zero = equalizer.ι f g := rfl
+
 @[reassoc] lemma equalizer.condition : equalizer.ι f g ≫ f = equalizer.ι f g ≫ g :=
 begin
   erw limit.w (parallel_pair f g) walking_parallel_pair_hom.left,
@@ -183,43 +196,22 @@ end
 abbreviation equalizer.lift {W : C} (k : W ⟶ X) (h : k ≫ f = k ≫ g) : W ⟶ equalizer f g :=
 limit.lift (parallel_pair f g) (fork.of_ι k h)
 
--- TODO: Move to the right place, add variants + duals
-lemma fork_comm {P Q : C} {f g : P ⟶ Q} (s : fork f g) :
-    (fork.ι s ≫ f) = (s.π.app walking_parallel_pair.one) :=
-by convert @cone.w _ _ _ _ _ s _ _ walking_parallel_pair_hom.left
-
 lemma equalizer.lift.unique {W : C} (k : W ⟶ X) (h : k ≫ f = k ≫ g) (l : W ⟶ equalizer f g)
   (i : l ≫ (equalizer.ι f g) = k) : l = (equalizer.lift f g k h) :=
 begin
   refine is_limit.uniq (limit.is_limit (parallel_pair f g)) (fork.of_ι k h) l _,
-  intros j, cases j,
-  { simp only [fork.of_ι_app_zero, limit.cone_π], exact i, },
-  { rw [←fork_comm, fork.of_ι_app_one, equalizer.ι.fork, ←category.assoc, i] },
+  intro j, cases j,
+  { simp only [fork.of_ι_app_zero, limit.cone_π], exact i },
+  { rw [←cone_parallel_pair_left, fork.of_ι_app_one, ←category.assoc, equalizer.ι.eq_app_zero, i] }
 end
 
 lemma equalizer.ι_mono : mono (equalizer.ι f g) :=
 { right_cancellation := λ Z h k w, begin
   have h₀ : (h ≫ (equalizer.ι f g)) ≫ f = (h ≫ (equalizer.ι f g)) ≫ g :=
     by simp only [category.assoc, equalizer.condition],
-  have h₁ : h = equalizer.lift f g (h ≫ (equalizer.ι f g)) h₀ :=
-    equalizer.lift.unique _ _ _ _ _ rfl,
-  have h₂ : k = equalizer.lift f g (h ≫ (equalizer.ι f g)) h₀ :=
-    equalizer.lift.unique _ _ _ _ _ w.symm,
-  rw [h₁, h₂]
+  rw equalizer.lift.unique f g (h ≫ (equalizer.ι f g)) h₀ h rfl,
+  rw equalizer.lift.unique f g (h ≫ (equalizer.ι f g)) h₀ k w.symm
 end }
-end
-
-@[simp] lemma cone_parallel_pair_left (s : limits.cone (parallel_pair f g)) :
-  (s.π).app zero ≫ f = (s.π).app one :=
-begin
-  conv { to_lhs, congr, skip, rw ←parallel_pair_map_left f g, },
-  rw s.w,
-end
-@[simp] lemma cone_parallel_pair_right (s : limits.cone (parallel_pair f g)) :
-  (s.π).app zero ≫ g = (s.π).app one :=
-begin
-  conv { to_lhs, congr, skip, rw ←parallel_pair_map_right f g, },
-  rw s.w,
 end
 
 def cone_parallel_pair_self : cone (parallel_pair f f) :=
@@ -230,6 +222,8 @@ def cone_parallel_pair_self : cone (parallel_pair f f) :=
 @[simp] lemma cone_parallel_pair_self_π_app_zero : (cone_parallel_pair_self f).π.app zero = 𝟙 X :=
 rfl
 
+lemma cone_parallel_pair_self_X : (cone_parallel_pair_self f).X = X := rfl
+
 -- TODO squeeze_simp, and diagnose the `erw`s.
 def is_limit_cone_parallel_pair_self : is_limit (cone_parallel_pair_self f) :=
 { lift := λ s, s.π.app zero,
@@ -237,7 +231,7 @@ def is_limit_cone_parallel_pair_self : is_limit (cone_parallel_pair_self f) :=
   begin
     cases j,
     { dsimp, erw [category.comp_id], },
-    { dsimp [cone_parallel_pair_self], simp, }
+    { dsimp [cone_parallel_pair_self], rw cone_parallel_pair_left, }
   end,
   uniq' := λ s m w, begin convert w zero, dsimp, erw [category.comp_id], end }
 
@@ -245,11 +239,13 @@ def limit_cone_parallel_pair_self_is_iso (c : cone (parallel_pair f f)) (h : is_
   is_iso (c.π.app zero) :=
 begin
   let c' := cone_parallel_pair_self f,
-  have z : c ≅ c', sorry,
-  have t : c.π.app zero = z.hom.hom ≫ c'.π.app zero, sorry,
-  replace t : c.π.app zero = z.hom.hom, sorry,
-  rw t,
-  sorry
+  have z : c ≅ c' := is_limit.unique_up_to_iso h (is_limit_cone_parallel_pair_self f),
+  let v := is_iso.of_iso (functor.map_iso cones.forget z),
+  rw [functor.map_iso_hom, cones.forget_map] at v,
+  have t : z.hom.hom ≫ c'.π.app zero = c.π.app zero := cone_morphism.w z.hom walking_parallel_pair.zero,
+  erw [cone_parallel_pair_self_π_app_zero, category.comp_id] at t,
+  rw ←t,
+  exact v
 end
 
 section

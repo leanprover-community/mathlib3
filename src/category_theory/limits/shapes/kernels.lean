@@ -55,11 +55,13 @@ by simp [equalizer.condition]
 abbreviation kernel.lift {W : C} (k : W ⟶ X) (h : k ≫ f = 0) : W ⟶ kernel f :=
 limit.lift (parallel_pair f 0) (fork.of_ι k (by simpa))
 
+/-- Every kernel of the zero morphism is an isomorphism -/
 lemma kernel.ι_zero_is_iso [has_limit (parallel_pair (0 : X ⟶ Y) 0)] : is_iso (kernel.ι (0 : X ⟶ Y)) :=
 begin
   apply limit_cone_parallel_pair_self_is_iso,
   apply limit.is_limit,
 end
+
 end
 
 section

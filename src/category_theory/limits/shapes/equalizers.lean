@@ -134,7 +134,7 @@ section
 -- TODO: Is this a good idea?
 local attribute [ext] cone
 
-def fork.of_ι_mk (t : fork f g) : t = fork.of_ι (fork.ι t) (fork.condition t) :=
+def fork.eq_of_ι_ι (t : fork f g) : t = fork.of_ι (fork.ι t) (fork.condition t) :=
 begin
   have h : t.π = (fork.of_ι (fork.ι t) (fork.condition t)).π := begin
     ext j, cases j,
@@ -243,6 +243,7 @@ rfl
 lemma cone_parallel_pair_self_X : (cone_parallel_pair_self f).X = X := rfl
 
 -- TODO squeeze_simp, and diagnose the `erw`s.
+/-- The identity on X is an equalizer of (f, f) -/
 def is_limit_cone_parallel_pair_self : is_limit (cone_parallel_pair_self f) :=
 { lift := λ s, s.π.app zero,
   fac' := λ s j,
@@ -253,24 +254,25 @@ def is_limit_cone_parallel_pair_self : is_limit (cone_parallel_pair_self f) :=
   end,
   uniq' := λ s m w, begin convert w zero, dsimp, erw [category.comp_id], end }
 
+/-- Every equalizer of (f, f) is an isomorphism -/
 lemma limit_cone_parallel_pair_self_is_iso (c : cone (parallel_pair f f)) (h : is_limit c) :
   is_iso (c.π.app zero) :=
 begin
   let c' := cone_parallel_pair_self f,
   have z : c ≅ c' := is_limit.unique_up_to_iso h (is_limit_cone_parallel_pair_self f),
-  let v := is_iso.of_iso (functor.map_iso cones.forget z),
-  rw [functor.map_iso_hom, cones.forget_map] at v,
-  have t : z.hom.hom ≫ c'.π.app zero = c.π.app zero := cone_morphism.w z.hom zero,
-  erw [cone_parallel_pair_self_π_app_zero, category.comp_id] at t,
+  have t : z.hom.hom = c.π.app zero,
+  { convert cone_morphism.w z.hom zero,
+    erw [cone_parallel_pair_self_π_app_zero, category.comp_id] },
   rw ←t,
-  exact v
+  exact is_iso.of_iso (functor.map_iso cones.forget z)
 end
 
+/-- An equalizer that is an epimorphism is an isomorphism -/
 lemma epi_limit_cone_parallel_pair_is_iso (c : cone (parallel_pair f g)) (h : is_limit c) [epi (c.π.app zero)] :
   is_iso (c.π.app zero) :=
 begin
   have t : f = g, from (cancel_epi (c.π.app zero)).1 (fork.condition c),
-  have h₁ := fork.of_ι_mk c,
+  have h₁ := fork.eq_of_ι_ι c,
   rw h₁ at h,
   have h₂ : is_limit (fork.of_ι (c.π.app zero) rfl : fork f f), by convert h,
   exact limit_cone_parallel_pair_self_is_iso f (fork.of_ι (c.π.app zero) rfl) h₂

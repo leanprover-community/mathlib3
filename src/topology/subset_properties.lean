@@ -89,6 +89,7 @@ lemma compact_iff_ultrafilter_le_nhds {s : set α} :
     by simp only [inf_of_le_left, h]; exact (ultrafilter_ultrafilter_of hf).left,
   ⟨a, ha, ne_bot_of_le_ne_bot this (inf_le_inf ultrafilter_of_le (le_refl _))⟩⟩
 
+/-- For every open cover of a compact set, there exists a finite subcover. -/
 lemma compact.elim_finite_subcover {s : set α} {ι : Type u} (hs : compact s)
   (U : ι → set α) (hUo : ∀i, is_open (U i)) (hsU : s ⊆ ⋃ i, U i) :
   ∃ t : finset ι, s ⊆ ⋃ i ∈ t, U i :=
@@ -120,6 +121,8 @@ classical.by_contradiction $ assume h,
     le_inf inf_le_right (inf_le_left_of_le ‹f ≤ principal (- U i)›),
   this ‹a ∈ U i›
 
+/-- For every family of closed sets whose intersection avoids a compact set,
+there exists a finite subfamily whose intersection avoids this compact set. -/
 lemma compact.elim_finite_subfamily_closed {s : set α} {ι : Type u} (hs : compact s)
   (Z : ι → set α) (hZo : ∀i, is_closed (Z i)) (hsZ : s ∩ (⋂ i, Z i) = ∅) :
   ∃ t : finset ι, s ∩ (⋂ i ∈ t, Z i) = ∅ :=
@@ -130,6 +133,7 @@ let ⟨t, ht⟩ := hs.elim_finite_subcover (λ i, - Z i) hZo
 ⟨t, by simpa only [subset_def, not_forall, eq_empty_iff_forall_not_mem, set.mem_Union,
     exists_prop, set.mem_inter_eq, not_and, iff_self, set.mem_Inter, set.mem_compl_eq] using ht⟩
 
+/-- For every open cover of a compact set, there exists a finite subcover. -/
 lemma compact.elim_finite_subcover_image {s : set α} {b : set β} {c : β → set α}
   (hs : compact s) (hc₁ : ∀i∈b, is_open (c i)) (hc₂ : s ⊆ ⋃i∈b, c i) :
   ∃b'⊆b, finite b' ∧ s ⊆ ⋃i∈b', c i :=
@@ -160,6 +164,8 @@ end
 section
 -- this proof times out without this
 local attribute [instance, priority 1000] classical.prop_decidable
+/-- A set `s` is compact if for every family of closed sets whose intersection avoids `s`,
+there exists a finite subfamily whose intersection avoids `s`. -/
 theorem compact_of_finite_subfamily_closed {s : set α}
   (h : Π {ι : Type u} (Z : ι → (set α)), (∀ i, is_closed (Z i)) →
     s ∩ (⋂ i, Z i) = ∅ → (∃ (t : finset ι), s ∩ (⋂ i ∈ t, Z i) = ∅)) :
@@ -191,6 +197,7 @@ assume f hfn hfs, classical.by_contradiction $ assume : ¬ (∃x∈s, f ⊓ 𝓝
   hfn $ by rwa [empty_in_sets_eq_bot] at this
 end
 
+/-- A set `s` is compact if for every open cover of `s`, there exists a finite subcover. -/
 lemma compact_of_finite_subcover {s : set α}
   (h : Π {ι : Type u} (U : ι → (set α)), (∀ i, is_open (U i)) →
     s ⊆ (⋃ i, U i) → (∃ (t : finset ι), s ⊆ (⋃ i ∈ t, U i))) :
@@ -204,11 +211,16 @@ compact_of_finite_subfamily_closed $
   ⟨t, by simpa only [subset_def, not_forall, eq_empty_iff_forall_not_mem, set.mem_Union,
       exists_prop, set.mem_inter_eq, not_and, iff_self, set.mem_Inter, set.mem_compl_eq] using ht⟩
 
+/-- A set `s` is compact if and only if
+for every open cover of `s`, there exists a finite subcover. -/
 lemma compact_iff_finite_subcover {s : set α} :
   compact s ↔ (Π {ι : Type u} (U : ι → (set α)), (∀ i, is_open (U i)) →
     s ⊆ (⋃ i, U i) → (∃ (t : finset ι), s ⊆ (⋃ i ∈ t, U i))) :=
 ⟨assume hs ι, hs.elim_finite_subcover, compact_of_finite_subcover⟩
 
+/-- A set `s` is compact if and only if
+for every family of closed sets whose intersection avoids `s`,
+there exists a finite subfamily whose intersection avoids `s`. -/
 theorem compact_iff_finite_subfamily_closed {s : set α} :
   compact s ↔ (Π {ι : Type u} (Z : ι → (set α)), (∀ i, is_closed (Z i)) →
     s ∩ (⋂ i, Z i) = ∅ → (∃ (t : finset ι), s ∩ (⋂ i ∈ t, Z i) = ∅)) :=

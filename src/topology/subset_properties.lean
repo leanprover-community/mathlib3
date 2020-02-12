@@ -130,6 +130,33 @@ let ⟨t, ht⟩ := hs.elim_finite_subcover (λ i, - Z i) hZo
 ⟨t, by simpa only [subset_def, not_forall, eq_empty_iff_forall_not_mem, set.mem_Union,
     exists_prop, set.mem_inter_eq, not_and, iff_self, set.mem_Inter, set.mem_compl_eq] using ht⟩
 
+lemma compact.elim_finite_subcover_image {s : set α} {b : set β} {c : β → set α}
+  (hs : compact s) (hc₁ : ∀i∈b, is_open (c i)) (hc₂ : s ⊆ ⋃i∈b, c i) :
+  ∃b'⊆b, finite b' ∧ s ⊆ ⋃i∈b', c i :=
+begin
+  rcases hs.elim_finite_subcover (subtype.val : c '' b → set α) _ _ with ⟨d, hd⟩,
+  swap,
+  { rintro ⟨_, ⟨i, hi, rfl⟩⟩, exact hc₁ i hi },
+  swap,
+  { refine subset.trans hc₂ _,
+    rintros x ⟨_, ⟨i, rfl⟩, ⟨_, ⟨hib, rfl⟩, H⟩⟩,
+    refine ⟨_, ⟨⟨c i, ⟨i, hib, rfl⟩⟩, rfl⟩, H⟩ },
+  have : ∀ s : {s // s ∈ c '' b}, ∃ i, i ∈ b ∧ c i = s.1,
+  { rintro ⟨_, ⟨i, hib, rfl⟩⟩, exact ⟨i, hib, rfl⟩ },
+  choose f hf using this,
+  refine ⟨↑(d.image f), _, finset.finite_to_set _, _⟩,
+  { intros i hi,
+    erw finset.mem_image at hi,
+    rcases hi with ⟨s, hsd, rfl⟩,
+    exact (hf s).left },
+  { refine subset.trans hd _,
+    rintros x ⟨_, ⟨s, rfl⟩, ⟨_, ⟨hsd, rfl⟩, H⟩⟩,
+    refine ⟨s.val, ⟨f s, _⟩, H⟩,
+    have := finset.mem_image_of_mem f hsd,
+    rw ← (hf s).right,
+    simp [this] }
+end
+
 section
 -- this proof times out without this
 local attribute [instance, priority 1000] classical.prop_decidable

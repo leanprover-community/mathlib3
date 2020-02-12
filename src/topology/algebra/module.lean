@@ -165,7 +165,8 @@ variables
 {M : Type*} [topological_space M] [add_comm_group M]
 {M₂ : Type*} [topological_space M₂] [add_comm_group M₂]
 {M₃ : Type*} [topological_space M₃] [add_comm_group M₃]
-[module R M] [module R M₂] [module R M₃]
+{M₄ : Type*} [topological_space M₄] [add_comm_group M₄]
+[module R M] [module R M₂] [module R M₃] [module R M₄]
 
 /-- Coerce continuous linear maps to linear maps. -/
 instance : has_coe (M →L[R] M₂) (M →ₗ[R] M₂) := ⟨to_linear_map⟩
@@ -273,6 +274,10 @@ by { ext, simp }
   (g₁ g₂ : M₂ →L[R] M₃) (f : M →L[R] M₂) :
   (g₁ + g₂).comp f = g₁.comp f + g₂.comp f :=
 by { ext, simp }
+
+theorem comp_assoc (h : M₃ →L[R] M₄) (g : M₂ →L[R] M₃) (f : M →L[R] M₂) :
+  (h.comp g).comp f = h.comp (g.comp f) :=
+rfl
 
 instance : has_mul (M →L[R] M) := ⟨comp⟩
 
@@ -484,5 +489,11 @@ by{ ext x, exact symm_apply_apply e x }
 @[simp] lemma self_comp_symm (e : M ≃L[R] M₂) :
   (e : M → M₂) ∘ (e.symm : M₂ → M) = id :=
 by{ ext x, exact apply_symm_apply e x }
+
+@[simp] theorem symm_symm (e : M ≃L[R] M₂) : e.symm.symm = e :=
+by { ext x, refl }
+
+@[simp] theorem symm_symm_apply (e : M ≃L[R] M₂) (x : M) : e.symm.symm x = e x :=
+rfl
 
 end continuous_linear_equiv

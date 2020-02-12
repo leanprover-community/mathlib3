@@ -64,7 +64,7 @@ lemma range_const (α) [measurable_space α] [ne : nonempty α] (b : β) :
 begin
   ext b',
   simp [mem_range],
-  exact ⟨assume ⟨_, h⟩, h.symm, assume h, ne.elim $ λa, ⟨a, h.symm⟩⟩
+  tauto
 end
 
 lemma is_measurable_cut (p : α → β → Prop) (f : α →ₛ β)

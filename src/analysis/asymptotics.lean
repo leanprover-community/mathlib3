@@ -657,19 +657,8 @@ theorem is_o_const_iff {c : F'} (hc : c ≠ 0) :
 (is_o_const_iff_is_o_one ℝ hc).trans
 begin
   clear hc c,
-  simp only [is_o, is_O_with, normed_field.norm_one, mul_one, normed_group.tendsto_nhds_zero],
-  -- Now the only difference is `≤` vs `<`
-  split,
-  { intros h ε hε0,
-    apply mem_sets_of_superset (h (half_pos hε0)),
-    intros x hx,
-    simp only [mem_set_of_eq] at hx ⊢,
-    exact lt_of_le_of_lt hx (half_lt_self hε0) },
-  { intros h ε hε0,
-    apply mem_sets_of_superset (h ε hε0),
-    intros x hx,
-    simp only [mem_set_of_eq] at hx ⊢,
-    exact le_of_lt hx }
+  simp only [is_o, is_O_with, normed_field.norm_one, mul_one,
+    metric.nhds_basis_closed_ball.tendsto_right_iff, metric.mem_closed_ball, dist_zero_right]
 end
 
 theorem is_O_const_of_tendsto {y : E'} (h : tendsto f' l (𝓝 y)) {c : F'} (hc : c ≠ 0) :

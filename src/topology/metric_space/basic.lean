@@ -1014,11 +1014,7 @@ lemma finite_cover_balls_of_compact {α : Type u} [metric_space α] {s : set α}
   (hs : compact s) {e : ℝ} (he : 0 < e) :
   ∃t ⊆ s, finite t ∧ s ⊆ ⋃x∈t, ball x e :=
 begin
-  rcases hs.elim_finite_subcover (λ x : s, ball x.1 e) _ _ with ⟨t, ht⟩,
-  { refine ⟨subtype.val '' (↑t : set s), subtype.val_image_subset _ _,
-      set.finite_image _ t.finite_to_set, _⟩,
-    simpa only [subset_def, mem_image, exists_prop, mem_Union, mem_ball, set_coe.exists,
-      exists_and_distrib_right, exists_eq_right, subtype.exists, finset.mem_coe] using ht, },
+  apply hs.elim_finite_subcover_image,
   { simp [is_open_ball] },
   { intros x xs,
     simp,

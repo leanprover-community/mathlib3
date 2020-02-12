@@ -253,8 +253,9 @@ begin
   /- For all x, the set hU x is an open set containing x on which the elements of A
   fluctuate by at most ε₂.
   We extract finitely many of these sets that cover the whole space, by compactness -/
-  rcases compact_univ.elim_finite_subcover U (λx, (hU x).2.1) (λx hx, mem_Union.mpr ⟨x, (hU x).1⟩)
-    with ⟨tα, htα⟩,
+  rcases compact_univ.elim_finite_subcover_image
+    (λx _, (hU x).2.1) (λx hx, mem_bUnion (mem_univ _) (hU x).1)
+    with ⟨tα, _, ⟨_⟩, htα⟩,
   /- tα : set α, htα : univ ⊆ ⋃x ∈ tα, U x -/
   rcases @finite_cover_balls_of_compact β _ _ compact_univ _ ε₂0
     with ⟨tβ, _, ⟨_⟩, htβ⟩, resetI,
@@ -265,8 +266,7 @@ begin
 
   /- Associate to every function a discrete approximation, mapping each point in `tα`
   to a point in `tβ` close to its true image by the function. -/
-  let foo : Type (max u v) := (U '' ↑tα) → tβ,
-  refine ⟨(U '' ↑tα) → tβ, by apply_instance, λ f a, ⟨F (f a), (hF (f a)).1⟩, _⟩,
+  refine ⟨tα → tβ, by apply_instance, λ f a, ⟨F (f a), (hF (f a)).1⟩, _⟩,
   rintro ⟨f, hf⟩ ⟨g, hg⟩ f_eq_g,
   /- If two functions have the same approximation, then they are within distance ε -/
   refine lt_of_le_of_lt ((dist_le $ le_of_lt ε₁0).2 (λ x, _)) εε₁,

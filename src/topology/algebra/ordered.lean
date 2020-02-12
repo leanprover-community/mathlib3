@@ -960,13 +960,13 @@ lemma bdd_below_of_compact {α : Type u} [topological_space α] [linear_order α
 begin
   by_contra H,
   letI := classical.DLO α,
-  rcases hs.elim_finite_subcover _ (λ (x : s), @is_open_Ioi _ _ _ _ x.1) _ with ⟨t, ht⟩,
-  { let t' := finset.image subtype.val t,
-    refine H ((bdd_below_finite t'.finite_to_set).imp $ λ C hC y hy, _),
+  rcases hs.elim_finite_subcover_image (λ x (_ : x ∈ s), @is_open_Ioi _ _ _ _ x) _
+    with ⟨t, st, ft, ht⟩,
+  { refine H ((bdd_below_finite ft).imp $ λ C hC y hy, _),
     rcases mem_bUnion_iff.1 (ht hy) with ⟨x, hx, xy⟩,
-    refine le_trans (hC $ finset.mem_image_of_mem _ hx) (le_of_lt xy) },
-  { refine λ x hx, mem_Union.2 (not_imp_comm.1 _ H),
-    exact λ h, ⟨x, λ y hy, le_of_not_lt (h.imp $ λ ys, ⟨⟨y, hy⟩, ys⟩)⟩ }
+    exact le_trans (hC hx) (le_of_lt xy) },
+  { refine λ x hx, mem_bUnion_iff.2 (not_imp_comm.1 _ H),
+    exact λ h, ⟨x, λ y hy, le_of_not_lt (h.imp $ λ ys, ⟨_, hy, ys⟩)⟩ }
 end
 
 /-- A compact set is bounded above -/

@@ -343,14 +343,14 @@ theorem is_open_map.continuous_on_image_of_left_inv_on {f : α → β} {s : set 
   continuous_on finv (f '' s) :=
 begin
   rintros _ ⟨x, xs, rfl⟩ t ht,
-  rw [hleft x xs] at ht,
+  rw [hleft xs] at ht,
   replace h := h.nhds_le ⟨x, xs⟩,
   apply mem_nhds_within_of_mem_nhds,
   apply h,
   erw [map_compose.symm, function.comp, mem_map, ← nhds_within_eq_map_subtype_val],
   apply mem_sets_of_superset (inter_mem_nhds_within _ ht),
   assume y hy,
-  rw [mem_set_of_eq, mem_preimage, hleft _ hy.1],
+  rw [mem_set_of_eq, mem_preimage, hleft hy.1],
   exact hy.2
 end
 

@@ -3,11 +3,6 @@ DEPLOY_NIGHTLY_GITHUB_USER=leanprover-community-bot
 set -e
 set -x
 
-# By default, github actions overrides the credentials used to access any
-# github url so that it uses the github-actions[bot] user.  We want to access
-# github using a different username.
-git config --unset http.https://github.com/.extraheader
-
 git_hash="$(git log -1 --pretty=format:%h)"
 git clone https://github.com/leanprover-community/doc-gen.git
 cd doc-gen

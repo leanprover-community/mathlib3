@@ -29,35 +29,37 @@ do
   nolint_attr.set n () tt
 
 /--
-`add_hint t s` runs the tactic `t` whenever `hint` is invoked, printing the string `s`.
-The typical use case is ``add_hint `[foo] "foo"`` for some interactive tactic `foo`.
+`add_hint t` runs the tactic `t` whenever `hint` is invoked.
+The typical use case is `add_hint "foo"` for some interactive tactic `foo`.
 -/
 @[user_command] meta def add_hint (_ : parse (tk "add_hint")) : parser unit :=
-do t ← parser.pexpr,
-   n ← parser.pexpr,
+do n ← parser.pexpr,
+   e ← to_expr n,
+   s ← eval_expr string e,
+   let t := "`[" ++ s ++ "]",
+   (t, _) ← with_input parser.pexpr t,
    of_tactic $ do
-   h ← to_expr n >>= eval_expr string, let h := h ++ "_hint",
+   let h := s ++ "_hint",
    t ← to_expr ``(do %%t, pure %%n),
    add_tactic_hint h t.
 
--- TODO can we get away with just one argument here, since they're always "the same"? which?
-add_hint `[refl] "refl"
-add_hint `[exact dec_trivial] "exact dec_trivial"
-add_hint `[assumption] "assumption" -- since `assumption` is already a `tactic unit`, the `[ ... ] is not strictly necessary here
-add_hint `[intros] "intros" -- tidy does something better here: it suggests the actual "intros X Y f" string
+add_hint "refl"
+add_hint "exact dec_trivial"
+add_hint "assumption"
+add_hint "intros" -- tidy does something better here: it suggests the actual "intros X Y f" string; perhaps add a wrapper?
 -- Since `auto_cases` is already a "self-reporting tactic",
 -- i.e. a `tactic string` that returns a tactic script,
 -- we can just add the attribute:
 attribute [hint] auto_cases
-add_hint `[apply_auto_param]  "apply_auto_param"
-add_hint `[dsimp at *] "dsimp at *"
-add_hint `[simp at *] "simp at *" -- TODO hook up to squeeze_simp?
+add_hint "apply_auto_param"
+add_hint "dsimp at *"
+add_hint "simp at *" -- TODO hook up to squeeze_simp?
 attribute [hint] tidy.ext1_wrapper
-add_hint `[fsplit] "fsplit"
-add_hint `[injections_and_clear] "injections_and_clear"
-add_hint `[solve_by_elim] "solve_by_elim"
-add_hint `[unfold_coes] "unfold_coes"
-add_hint `[unfold_aux] "unfold_aux"
+add_hint "fsplit"
+add_hint "injections_and_clear"
+add_hint "solve_by_elim"
+add_hint "unfold_coes"
+add_hint "unfold_aux"
 
 end hint
 

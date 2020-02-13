@@ -3,7 +3,7 @@ Copyright (c) 2018 Simon Hudon. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Simon Hudon
 -/
-import logic.basic tactic.solve_by_elim
+import logic.basic tactic.solve_by_elim tactic.hint
 
 namespace tactic
 
@@ -217,7 +217,7 @@ The variant `tautology!` uses the law of excluded middle.
 -/
 meta def tautology (c : parse $ (tk "!")?) := tactic.tautology c.is_some
 
--- Now define a shorter name for the tactic `tautology`. 
+-- Now define a shorter name for the tactic `tautology`.
 
 /--
 `tauto` breaks down assumptions of the form `_ ∧ _`, `_ ∨ _`, `_ ↔ _` and `∃ _, _`
@@ -227,6 +227,8 @@ This is a finishing tactic: it either closes the goal of raises an error.
 The variant `tauto!` uses the law of excluded middle.
 -/
 meta def tauto (c : parse $ (tk "!")?) := tautology c
+
+add_hint "tauto"
 
 end interactive
 end tactic

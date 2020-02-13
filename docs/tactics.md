@@ -413,7 +413,7 @@ end
 
 You can add a tactic to the list that `hint` tries by either using
 1. `attribute [hint] my_tactic`, if `my_tactic` is already of type `tactic unit` or `tactic string`, or
-2. ``add_hint `[my_tactic] "my_tactic"``.
+2. `add_hint "my_tactic"`.
 
 ## suggest
 

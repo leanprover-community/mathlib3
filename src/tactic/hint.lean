@@ -5,9 +5,6 @@ Authors: Scott Morrison
 -/
 import tactic.tidy
 
--- TODO once the customisable hints infrastructure has settled, hook up:
--- norm_num, ring, linarith, tauto, omega
-
 namespace tactic
 
 namespace hint

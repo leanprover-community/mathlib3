@@ -157,20 +157,18 @@ end
 if the union of a decreasing sequence of nonempty closed sets `Z i` is compact,
 then the intersection of the `Z i` is nonempty. -/
 lemma compact.nonempty_Inter_of_compact_Union_of_sequence_nonempty_closed
-  (Z : ℕ → set α) (hZ : compact (⋃ i, Z i)) (hZn : ∀ i, (Z i).nonempty) (hZc : ∀ i, is_closed (Z i))
+  (Z : ℕ → set α) (hZ0 : compact (Z 0)) (hZn : ∀ i, (Z i).nonempty) (hZc : ∀ i, is_closed (Z i))
   (hZd : ∀ i, Z (i+1) ⊆ Z i) :
   (⋂ i, Z i).nonempty :=
 begin
-  apply compact.nonempty_Inter_of_compact_Union_of_directed_nonempty_closed Z hZ _ hZn hZc,
-  apply directed_of_mono,
-  intros i j hij,
-  obtain ⟨k, rfl⟩ : ∃ k, j = i + k, from nat.exists_eq_add_of_le hij,
-  clear hij,
-  induction k with k IH, { exact subset.refl _ },
-  refine subset.trans _ IH,
-  show Z (i+(k+1)) ⊆ Z (i + k),
-  rw ← add_assoc,
-  apply_assumption
+  have Zmono := @monotone_of_monotone_nat (order_dual (set α)) _ Z hZd,
+  apply compact.nonempty_Inter_of_compact_Union_of_directed_nonempty_closed Z _ _ hZn hZc,
+  { suffices : Z 0 = ⋃ i, Z i, { simpa [this] using hZ0 },
+    apply subset.antisymm (subset_Union Z 0),
+    apply Union_subset,
+    intro i,
+    exact Zmono (zero_le i) },
+  exact directed_of_mono Z Zmono
 end
 
 /-- For every open cover of a compact set, there exists a finite subcover. -/
@@ -178,27 +176,20 @@ lemma compact.elim_finite_subcover_image {s : set α} {b : set β} {c : β → s
   (hs : compact s) (hc₁ : ∀i∈b, is_open (c i)) (hc₂ : s ⊆ ⋃i∈b, c i) :
   ∃b'⊆b, finite b' ∧ s ⊆ ⋃i∈b', c i :=
 begin
-  rcases hs.elim_finite_subcover (subtype.val : c '' b → set α) _ _ with ⟨d, hd⟩,
-  swap,
-  { rintro ⟨_, ⟨i, hi, rfl⟩⟩, exact hc₁ i hi },
-  swap,
-  { refine subset.trans hc₂ _,
-    rintros x ⟨_, ⟨i, rfl⟩, ⟨_, ⟨hib, rfl⟩, H⟩⟩,
-    refine ⟨_, ⟨⟨c i, ⟨i, hib, rfl⟩⟩, rfl⟩, H⟩ },
-  have : ∀ s : {s // s ∈ c '' b}, ∃ i, i ∈ b ∧ c i = s.1,
-  { rintro ⟨_, ⟨i, hib, rfl⟩⟩, exact ⟨i, hib, rfl⟩ },
-  choose f hf using this,
-  refine ⟨↑(d.image f), _, finset.finite_to_set _, _⟩,
+  rcases hs.elim_finite_subcover (λ i, c i.1 : b → set α) _ _ with ⟨d, hd⟩,
+  refine ⟨↑(d.image subtype.val), _, finset.finite_to_set _, _⟩,
   { intros i hi,
     erw finset.mem_image at hi,
     rcases hi with ⟨s, hsd, rfl⟩,
-    exact (hf s).left },
+    exact s.property },
   { refine subset.trans hd _,
     rintros x ⟨_, ⟨s, rfl⟩, ⟨_, ⟨hsd, rfl⟩, H⟩⟩,
-    refine ⟨s.val, ⟨f s, _⟩, H⟩,
-    have := finset.mem_image_of_mem f hsd,
-    rw ← (hf s).right,
-    simp [this] }
+    refine ⟨c s.val, ⟨s.val, _⟩, H⟩,
+    simp [finset.mem_image_of_mem subtype.val hsd] },
+  { rintro ⟨i, hi⟩, exact hc₁ i hi },
+  { refine subset.trans hc₂ _,
+    rintros x ⟨_, ⟨i, rfl⟩, ⟨_, ⟨hib, rfl⟩, H⟩⟩,
+    exact ⟨_, ⟨⟨i, hib⟩, rfl⟩, H⟩ },
 end
 
 section

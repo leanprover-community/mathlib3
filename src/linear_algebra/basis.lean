@@ -804,7 +804,7 @@ lemma constr_smul {ι R M M'} [comm_ring R]
   hv.constr (λb, a • f b) = a • hv.constr f :=
 constr_eq hv $ by simp [constr_basis hv] {contextual := tt}
 
-lemma constr_range [inhabited ι] (hv : is_basis R v) {f : ι  → M'} :
+lemma constr_range [nonempty ι] (hv : is_basis R v) {f : ι  → M'} :
   (hv.constr f).range = span R (range f) :=
 by rw [is_basis.constr, linear_map.range_comp, linear_map.range_comp, is_basis.repr_range,
     finsupp.lmap_domain_supported, ←set.image_univ, ←finsupp.span_eq_map_total, image_id]

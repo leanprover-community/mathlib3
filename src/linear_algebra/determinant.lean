@@ -11,6 +11,7 @@ universes u v
 open equiv equiv.perm finset function
 
 namespace matrix
+open_locale matrix
 
 variables {n : Type u} [fintype n] [decidable_eq n] {R : Type v} [comm_ring R]
 
@@ -40,6 +41,13 @@ by rw [← diagonal_zero, det_diagonal, finset.prod_const, ← fintype.card,
 @[simp] lemma det_one : det (1 : matrix n n R) = 1 :=
 by rw [← diagonal_one]; simp [-diagonal_one]
 
+lemma det_eq_one_of_card_eq_zero {A : matrix n n R} (h : fintype.card n = 0) : det A = 1 :=
+begin
+  have perm_eq : (univ : finset (perm n)) = finset.singleton 1 :=
+  univ_eq_singleton_of_card_one (1 : perm n) (by simp [card_univ, fintype.card_perm, h]),
+  simp [det, card_eq_zero.mp h, perm_eq],
+end
+
 lemma det_mul_aux {M N : matrix n n R} {p : n → n} (H : ¬bijective p) :
   univ.sum (λ σ : perm n, (ε σ) * (univ.prod (λ x, M (σ x) (p x) * N (p x) x))) = 0 :=
 begin
@@ -61,11 +69,11 @@ begin
     (λ _ _, equiv.ext _ _ $ by simp)
 end
 
-@[simp] lemma det_mul (M N : matrix n n R) : det (M * N) = det M * det N :=
-calc det (M * N) = univ.sum (λ σ : perm n, (univ.pi (λ a, univ)).sum
+@[simp] lemma det_mul (M N : matrix n n R) : det (M ⬝ N) = det M * det N :=
+calc det (M ⬝ N) = univ.sum (λ σ : perm n, (univ.pi (λ a, univ)).sum
     (λ (p : Π (a : n), a ∈ univ → n), ε σ *
     univ.attach.prod (λ i, M (σ i.1) (p i.1 (mem_univ _)) * N (p i.1 (mem_univ _)) i.1))) :
-  by simp only [det, mul_val', prod_sum, mul_sum]
+  by simp only [det, mul_val, prod_sum, mul_sum]
 ... = univ.sum (λ σ : perm n, univ.sum
     (λ p : n → n, ε σ * univ.prod (λ i, M (σ i) (p i) * N (p i) i))) :
   sum_congr rfl (λ σ _, sum_bij
@@ -106,7 +114,7 @@ instance : is_monoid_hom (det : matrix n n R → R) :=
   map_mul := det_mul }
 
 /-- Transposing a matrix preserves the determinant. -/
-@[simp] lemma det_transpose (M : matrix n n R) : M.transpose.det = M.det :=
+@[simp] lemma det_transpose (M : matrix n n R) : Mᵀ.det = M.det :=
 begin
   apply sum_bij (λ σ _, σ⁻¹),
   { intros σ _, apply mem_univ },
@@ -144,11 +152,27 @@ end
 lemma det_permute (σ : perm n) (M : matrix n n R) : matrix.det (λ i, M (σ i)) = σ.sign * M.det :=
 by rw [←det_permutation, ←det_mul, pequiv.to_pequiv_mul_matrix]
 
+@[simp] lemma det_smul {A : matrix n n R} {c : R} : det (c • A) = c ^ fintype.card n * det A :=
+calc det (c • A) = det (matrix.mul (diagonal (λ _, c)) A) : by rw [smul_eq_diagonal_mul]
+             ... = det (diagonal (λ _, c)) * det A        : det_mul _ _
+             ... = c ^ fintype.card n * det A             : by simp [card_univ]
+
 section det_zero
 /-! ### `det_zero` section
 
   Prove that a matrix with a repeated column has determinant equal to zero.
 -/
+
+lemma det_eq_zero_of_column_eq_zero {A : matrix n n R} (i : n) (h : ∀ j, A i j = 0) : det A = 0 :=
+begin
+  rw [←det_transpose, det],
+  convert @sum_const_zero _ _ (univ : finset (perm n)) _,
+  ext σ,
+  convert mul_zero ↑(sign σ),
+  apply prod_eq_zero (mem_univ i),
+  rw [transpose_val],
+  apply h
+end
 
 /--
   `mod_swap i j` contains permutations up to swapping `i` and `j`.

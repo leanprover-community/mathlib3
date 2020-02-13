@@ -41,24 +41,22 @@ end
 theorem nhds_within_univ (a : α) : nhds_within a set.univ = 𝓝 a :=
 by rw [nhds_within, principal_univ, lattice.inf_top_eq]
 
+lemma nhds_within_has_basis {p : β → Prop} {s : β → set α} {a : α} (h : (𝓝 a).has_basis p s)
+  (t : set α) :
+  (nhds_within a t).has_basis p (λ i, s i ∩ t) :=
+h.inf_principal t
+
+lemma nhds_within_basis_open (a : α) (t : set α) :
+  (nhds_within a t).has_basis (λ u, a ∈ u ∧ is_open u) (λ u, u ∩ t) :=
+nhds_within_has_basis (nhds_basis_opens a) t
+
 theorem mem_nhds_within {t : set α} {a : α} {s : set α} :
   t ∈ nhds_within a s ↔ ∃ u, is_open u ∧ a ∈ u ∧ u ∩ s ⊆ t  :=
-begin
-  rw [nhds_within, mem_inf_principal, mem_nhds_sets_iff], split,
-  { rintros ⟨u, hu, openu, au⟩,
-    exact ⟨u, openu, au, λ x ⟨xu, xs⟩, hu xu xs⟩ },
-  rintros ⟨u, openu, au, hu⟩,
-  exact ⟨u, λ x xu xs, hu ⟨xu, xs⟩, openu, au⟩
-end
+by simpa only [exists_prop, and_assoc, and_comm] using nhds_within_basis_open a s t
 
 lemma mem_nhds_within_iff_exists_mem_nhds_inter {t : set α} {a : α} {s : set α} :
   t ∈ nhds_within a s ↔ ∃ u ∈ 𝓝 a, u ∩ s ⊆ t :=
-begin
-  rw [nhds_within, mem_inf_principal],
-  split,
-  { exact λH, ⟨_, H, λx hx, hx.1 hx.2⟩ },
-  { exact λ⟨u, Hu, h⟩, mem_sets_of_superset Hu (λx xu xs, h ⟨xu, xs⟩ ) }
-end
+nhds_within_has_basis (𝓝 a).basis_sets s t
 
 lemma mem_nhds_within_of_mem_nhds {s t : set α} {a : α} (h : s ∈ 𝓝 a) :
   s ∈ nhds_within a t :=
@@ -138,15 +136,7 @@ by apply tendsto_if; rw [←nhds_within_inter']; assumption
 lemma map_nhds_within (f : α → β) (a : α) (s : set α) :
   map f (nhds_within a s) =
     ⨅ t ∈ {t : set α | a ∈ t ∧ is_open t}, principal (set.image f (t ∩ s)) :=
-have h₀ : directed_on ((λ (i : set α), principal (i ∩ s)) ⁻¹'o ge)
-        {x : set α | x ∈ {t : set α | a ∈ t ∧ is_open t}}, from
-  assume x ⟨ax, openx⟩ y ⟨ay, openy⟩,
-  ⟨x ∩ y, ⟨⟨ax, ay⟩, is_open_inter openx openy⟩,
-    le_principal_iff.mpr (set.inter_subset_inter_left _ (set.inter_subset_left _ _)),
-    le_principal_iff.mpr (set.inter_subset_inter_left _ (set.inter_subset_right _ _))⟩,
-have h₁ : ∃ (i : set α), i ∈ {t : set α | a ∈ t ∧ is_open t},
-  from ⟨set.univ, set.mem_univ _, is_open_univ⟩,
-by { rw [nhds_within_eq, map_binfi_eq h₀ h₁], simp only [map_principal] }
+((nhds_within_basis_open a s).map f).eq_binfi
 
 theorem tendsto_nhds_within_mono_left {f : α → β} {a : α}
     {s t : set α} {l : filter β} (hst : s ⊆ t) (h : tendsto f (nhds_within a t) l) :
@@ -169,23 +159,7 @@ by rw comap_principal; rw set.preimage_image_eq; apply subtype.val_injective
 
 lemma mem_closure_iff_nhds_within_ne_bot {s : set α} {x : α} :
   x ∈ closure s ↔ nhds_within x s ≠ ⊥ :=
-begin
-  split,
-  { assume hx,
-    rw ← forall_sets_nonempty_iff_ne_bot,
-    assume o ho,
-    rw mem_nhds_within at ho,
-    rcases ho with ⟨u, u_open, xu, hu⟩,
-    rw mem_closure_iff at hx,
-    exact (hx u u_open xu).mono hu },
-  { assume h,
-    rw mem_closure_iff,
-    rintros u u_open xu,
-    have : u ∩ s ∈ nhds_within x s,
-    { rw mem_nhds_within,
-      exact ⟨u, u_open, xu, subset.refl _⟩ },
-    exact forall_sets_nonempty_iff_ne_bot.2 h (u ∩ s) this }
-end
+mem_closure_iff_nhds.trans (nhds_within_has_basis (𝓝 x).basis_sets s).forall_nonempty_iff_ne_bot
 
 lemma nhds_within_ne_bot_of_mem {s : set α} {x : α} (hx : x ∈ s) :
   nhds_within x s ≠ ⊥ :=

@@ -237,7 +237,7 @@ theorem univ_def : @univ α = {x | true} := rfl
 
 @[simp] theorem mem_univ (x : α) : x ∈ @univ α := trivial
 
-theorem empty_ne_univ [h : inhabited α] : (∅ : set α) ≠ univ :=
+theorem empty_ne_univ [h : nonempty α] : (∅ : set α) ≠ univ :=
 by simp [ext_iff]
 
 @[simp] theorem subset_univ (s : set α) : s ⊆ univ := λ x H, trivial

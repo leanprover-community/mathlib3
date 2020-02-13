@@ -49,6 +49,18 @@ structure topological_space (α : Type u) :=
 
 attribute [class] topological_space
 
+/-- A constructor for topologies by specifying the closed sets,
+and showing that they satisfy the appropriate conditions. -/
+def topological_space.of_closed {α : Type u} (T : set (set α))
+  (empty_mem : ∅ ∈ T) (sInter_mem : ∀ A ⊆ T, ⋂₀ A ∈ T) (union_mem : ∀ A B ∈ T, A ∪ B ∈ T) :
+  topological_space α :=
+{ is_open := λ X, -X ∈ T,
+  is_open_univ := by simp [empty_mem],
+  is_open_inter := λ s t hs ht, by simpa [set.compl_inter] using union_mem (-s) (-t) hs ht,
+  is_open_sUnion := λ s hs,
+    by rw set.compl_sUnion; exact sInter_mem (set.compl '' s)
+    (λ z ⟨y, hy, hz⟩, by simpa [hz.symm] using hs y hy) }
+
 section topological_space
 
 variables {α : Type u} {β : Type v} {ι : Sort w} {a : α} {s s₁ s₂ : set α} {p p₁ p₂ : α → Prop}
@@ -281,6 +293,10 @@ closure_eq_of_is_closed is_closed_empty
 
 lemma closure_empty_iff (s : set α) : closure s = ∅ ↔ s = ∅ :=
 ⟨subset_eq_empty subset_closure, λ h, h.symm ▸ closure_empty⟩
+
+lemma set.nonempty.closure {s : set α} (h : s.nonempty) :
+  set.nonempty (closure s) :=
+let ⟨x, hx⟩ := h in ⟨x, subset_closure hx⟩
 
 @[simp] lemma closure_univ : closure (univ : set α) = univ :=
 closure_eq_of_is_closed is_closed_univ
@@ -575,7 +591,7 @@ begin
 end
 
 section lim
-variables [inhabited α]
+variables [nonempty α]
 
 /-- If `f` is a filter, then `lim f` is a limit of the filter, if it exists. -/
 noncomputable def lim (f : filter α) : α := epsilon $ λa, f ≤ 𝓝 a

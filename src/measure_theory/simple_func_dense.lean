@@ -53,9 +53,9 @@ let F N x := if x ∈ ⋃ M ≤ N, ⋃ k ≤ N, A M k then e (k N x) else 0 in
 have k_unique : ∀ {M k k' x},  x ∈ A M k ∧ x ∈ A M k' → k = k' := λ M k k' x h,
 begin
   by_contradiction k_ne_k',
-  have : A M k ∩ A M k' ≠ ∅, rw ne_empty_iff_exists_mem, use x, exact h,
-  have : A M k ∩ A M k' = ∅  := disjoint_disjointed' k k' k_ne_k',
-  contradiction
+  have NE : (A M k ∩ A M k').nonempty, from ⟨x, h⟩,
+  have E : A M k ∩ A M k' = ∅  := disjoint_disjointed' k k' k_ne_k',
+  exact NE.ne_empty E,
 end,
 have x_mem_Union_k : ∀ {N x}, (x ∈ ⋃ M ≤ N, ⋃ k ≤ N, A M k) → x ∈ ⋃ k ≤ N, A (M N x) k :=
   λ N x h,

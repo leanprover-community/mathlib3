@@ -279,17 +279,16 @@ begin
 end
 
 /-- There is a cube in the valley -/
-lemma nonempty_bcubes : nonempty (bcubes cs c) :=
+lemma nonempty_bcubes : (bcubes cs c).nonempty :=
 begin
-  rw [←ne_zero_iff_nonempty], intro h', have := two_le_mk_bcubes h v, rw h' at this,
-  apply not_lt_of_le this, rw [←nat.cast_two, ←nat.cast_zero, nat_cast_lt], norm_num
+  rw [←set.ne_empty_iff_nonempty], intro h', have := two_le_mk_bcubes h v, rw h' at this,
+  apply not_lt_of_le this, rw mk_emptyc, norm_cast, norm_num
 end
 
 /-- There is a smallest cube in the valley -/
 lemma exists_mi : ∃(i : ι), i ∈ bcubes cs c ∧ ∀(i' ∈ bcubes cs c),
   (cs i).w ≤ (cs i').w :=
-(bcubes cs c).exists_min (λ i, (cs i).w) (finite.of_fintype _)
-  (nonempty_bcubes h v)
+by simpa using (bcubes cs c).exists_min (λ i, (cs i).w) (finite.of_fintype _) (nonempty_bcubes h v)
 
 /-- We let `mi` be the (index for the) smallest cube in the valley `c` -/
 def mi : ι := classical.some $ exists_mi h v
@@ -335,9 +334,9 @@ begin
     apply lt_of_lt_of_le (add_lt_add_left (mi_strict_minimal i'_i.symm hi') _),
     simp [bi.symm, b_le_b hi'] },
   let s := bcubes cs c \ { i },
-  have hs : nonempty s,
+  have hs : s.nonempty,
   { rcases (two_le_iff' (⟨i, hi⟩ : bcubes cs c)).mp (two_le_mk_bcubes h v) with ⟨⟨i', hi'⟩, h2i'⟩,
-    refine ⟨⟨i', hi', _⟩⟩, simp only [mem_singleton_iff], intro h, apply h2i', simp [h] },
+    refine ⟨i', hi', _⟩, simp only [mem_singleton_iff], intro h, apply h2i', simp [h] },
   rcases set.exists_min s (w ∘ cs) (finite.of_fintype _) hs with ⟨i', ⟨hi', h2i'⟩, h3i'⟩,
   rw [mem_singleton_iff] at h2i',
   let x := c.b j.succ + c.w - (cs i').w,

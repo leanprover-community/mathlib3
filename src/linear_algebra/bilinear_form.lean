@@ -106,6 +106,8 @@ instance : add_comm_group (bilin_form R M) :=
   add_left_neg := by {intros, ext, unfold coe_fn has_coe_to_fun.coe bilin, rw neg_add_self},
   add_comm := by {intros, ext, unfold coe_fn has_coe_to_fun.coe bilin, rw add_comm} }
 
+instance : inhabited (bilin_form R M) := ⟨0⟩
+
 section
 
 variables {R₂ : Type*} [comm_ring R₂] [module R₂ M] (F : bilin_form R₂ M) (f : M → M)

@@ -9,26 +9,18 @@ jobs:
     strategy:
       matrix:
         lean_version:
-          - 3.4.2
-          - leanprover-community/lean:nightly
+          - leanprover-community/lean:3.5.1
       fail-fast: false
     steps:
       - uses: actions/checkout@v2
 
       - name: install elan
         run: |
+          set -o pipefail
           curl https://raw.githubusercontent.com/Kha/elan/master/elan-init.sh -sSf | sh -s -- --default-toolchain none -y
           ~/.elan/bin/elan override set ${{ matrix.lean_version }}
           ~/.elan/bin/lean --version
           echo "::add-path::$HOME/.elan/bin"
-      - name: install olean-rs
-        run: |
-          OLEAN_RS=https://github.com/cipher1024/olean-rs/releases
-          latest=$(curl -sSf "$OLEAN_RS/latest" | cut -d'"' -f2 | awk -F/ '{print $NF}')
-          mkdir ~/scripts
-          curl -sSfL "$OLEAN_RS/download/$latest/olean-rs-linux" -o "$HOME/scripts/olean-rs"
-          chmod +x $HOME/scripts/olean-rs
-          echo "::add-path::$HOME/scripts"
 
       - name: leanpkg build
         run: leanpkg build | python scripts/detect_errors.py
@@ -46,15 +38,15 @@ jobs:
           path: ..
 
       - name: push release to mathlib-nightly
-        if: github.repository == 'leanprover-community/mathlib' && github.event_name == 'push' && github.ref == 'refs/heads/master' && matrix.lean_version == '3.4.2'
+        if: github.repository == 'leanprover-community/mathlib' && github.event_name == 'push' && github.ref == 'refs/heads/master' && matrix.lean_version == 'leanprover-community/lean:3.5.1'
         run: ./scripts/deploy_nightly.sh
         env:
-          GITHUB_TOKEN: ${{ secrets.DEPLOY_NIGHTLY_GITHUB_TOKEN }}
+          DEPLOY_NIGHTLY_GITHUB_TOKEN: ${{ secrets.DEPLOY_NIGHTLY_GITHUB_TOKEN }}
 
       - name: tests
         run: |
-          leanpkg test | cat
-          lean --make docs archive | cat
+          set -o pipefail
+          lean --make docs archive test | cat
 
       - name: lint
         run: |
@@ -67,3 +59,14 @@ jobs:
           lean --recursive --export=mathlib.txt src/
           leanchecker mathlib.txt
 
+      - name: Set up Python
+        uses: actions/setup-python@v1
+        with:
+          python-version: 3.8
+
+      - name: generate docs
+        if: github.repository == 'leanprover-community/mathlib' && github.event_name == 'push' && github.ref == 'refs/heads/master' && matrix.lean_version == 'leanprover-community/lean:3.5.1'
+        run:
+          ./scripts/deploy_docs.sh
+        env:
+          DEPLOY_NIGHTLY_GITHUB_TOKEN: ${{ secrets.DEPLOY_NIGHTLY_GITHUB_TOKEN }}

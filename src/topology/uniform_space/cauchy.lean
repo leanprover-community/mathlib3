@@ -25,9 +25,20 @@ def cauchy (f : filter α) := f ≠ ⊥ ∧ filter.prod f f ≤ (𝓤 α)
 has a limit in `s` (formally, it satisfies `f ≤ 𝓝 x` for some `x ∈ s`). -/
 def is_complete (s : set α) := ∀f, cauchy f → f ≤ principal s → ∃x∈s, f ≤ 𝓝 x
 
+lemma filter.has_basis.cauchy_iff {p : β → Prop} {s : β → set (α × α)} (h : (𝓤 α).has_basis p s)
+  {f : filter α} :
+  cauchy f ↔ (f ≠ ⊥ ∧ (∀ i, p i → ∃ t ∈ f, ∀ x y ∈ t, (x, y) ∈ s i)) :=
+and_congr iff.rfl $ (f.basis_sets.prod_self.le_basis_iff h).trans $
+  by simp only [subset_def, prod.forall, mem_prod_eq, and_imp, id]
+
+lemma cauchy_iff' {f : filter α} :
+  cauchy f ↔ (f ≠ ⊥ ∧ (∀ s ∈ 𝓤 α, ∃t∈f, ∀ x y ∈ t, (x, y) ∈ s)) :=
+(𝓤 α).basis_sets.cauchy_iff
+
 lemma cauchy_iff {f : filter α} :
-  cauchy f ↔ (f ≠ ⊥ ∧ (∀ s ∈ 𝓤 α, ∃t∈f.sets, set.prod t t ⊆ s)) :=
-and_congr iff.rfl $ forall_congr $ assume s, forall_congr $ assume hs, mem_prod_same_iff
+  cauchy f ↔ (f ≠ ⊥ ∧ (∀ s ∈ 𝓤 α, ∃t∈f, (set.prod t t) ⊆ s)) :=
+(𝓤 α).basis_sets.cauchy_iff.trans $
+  by simp only [subset_def, prod.forall, mem_prod_eq, and_imp, id]
 
 lemma cauchy_map_iff {l : filter β} {f : β → α} :
   cauchy (l.map f) ↔ (l ≠ ⊥ ∧ tendsto (λp:β×β, (f p.1, f p.2)) (l.prod l) (𝓤 α)) :=
@@ -80,7 +91,7 @@ begin
   -- Take `t ∈ f` such that `t × t ⊆ s`.
   rcases (cauchy_iff.1 hf).2 s hs with ⟨t, t_mem, ht⟩,
   use [t, t_mem, ht],
-  exact exists_mem_of_ne_empty (forall_sets_ne_empty_iff_ne_bot.2 adhs _
+  exact (forall_sets_nonempty_iff_ne_bot.2 adhs _
     (inter_mem_inf_sets t_mem (mem_nhds_left x hs)))
 end
 
@@ -116,15 +127,41 @@ lemma cauchy_seq_of_tendsto_nhds [semilattice_sup β] [nonempty β] (f : β → 
   cauchy_seq f :=
 cauchy_downwards cauchy_nhds (map_ne_bot at_top_ne_bot) hx
 
-lemma cauchy_seq_iff_prod_map [inhabited β] [semilattice_sup β] {u : β → α} :
-  cauchy_seq u ↔ map (prod.map u u) at_top ≤ 𝓤 α :=
-iff.trans (and_iff_right (map_ne_bot at_top_ne_bot)) (prod_map_at_top_eq u u ▸ iff.rfl)
+lemma cauchy_seq_iff_tendsto [nonempty β] [semilattice_sup β] {u : β → α} :
+  cauchy_seq u ↔ tendsto (prod.map u u) at_top (𝓤 α) :=
+cauchy_map_iff.trans $ (and_iff_right at_top_ne_bot).trans $
+  by simp only [prod_at_top_at_top_eq, prod.map_def]
 
-lemma cauchy_seq_of_controlled [semilattice_sup β] [inhabited β]
+@[nolint] -- see Note [nolint_ge]
+lemma filter.has_basis.cauchy_seq_iff {γ} [nonempty β] [semilattice_sup β] {u : β → α}
+  {p : γ → Prop} {s : γ → set (α × α)} (h : (𝓤 α).has_basis p s) :
+  cauchy_seq u ↔ ∀ i, p i → ∃N, ∀m n≥N, (u m, u n) ∈ s i :=
+begin
+  rw [cauchy_seq_iff_tendsto, ← prod_at_top_at_top_eq],
+  refine (at_top_basis.prod_self.tendsto_iff h).trans _,
+  simp only [exists_prop, true_and, maps_to, preimage, subset_def, prod.forall,
+    mem_prod_eq, mem_set_of_eq, mem_Ici, and_imp, prod.map]
+end
+
+@[nolint] -- see Note [nolint_ge]
+lemma filter.has_basis.cauchy_seq_iff' {γ} [nonempty β] [semilattice_sup β] {u : β → α}
+  {p : γ → Prop} {s : γ → set (α × α)} (H : (𝓤 α).has_basis p s) :
+  cauchy_seq u ↔ ∀ i, p i → ∃N, ∀n≥N, (u n, u N) ∈ s i :=
+begin
+  refine H.cauchy_seq_iff.trans ⟨λ h i hi, _, λ h i hi, _⟩,
+  { exact (h i hi).imp (λ N hN n hn, hN n N hn (le_refl N)) },
+  { rcases comp_symm_of_uniformity (H.mem_of_mem hi) with ⟨t, ht, ht', hts⟩,
+    rcases H.mem_iff.1 ht with ⟨j, hj, hjt⟩,
+    refine (h j hj).imp (λ N hN m n hm hn, hts ⟨u N, hjt _, ht' $ hjt _⟩),
+    { exact hN m hm },
+    { exact hN n hn } }
+end
+
+lemma cauchy_seq_of_controlled [semilattice_sup β] [nonempty β]
   (U : β → set (α × α)) (hU : ∀ s ∈ 𝓤 α, ∃ n, U n ⊆ s)
   {f : β → α} (hf : ∀ {N m n : β}, N ≤ m → N ≤ n → (f m, f n) ∈ U N) :
   cauchy_seq f :=
-cauchy_seq_iff_prod_map.2
+cauchy_seq_iff_tendsto.2
 begin
   assume s hs,
   rw [mem_map, mem_at_top_sets],
@@ -191,7 +228,7 @@ h₁ _ h₃ $ le_principal_iff.2 $ mem_map_sets_iff.2 ⟨univ, univ_mem_sets,
   by { simp only [image_univ], rintros _ ⟨n, rfl⟩, exact h₂ n }⟩
 
 theorem le_nhds_lim_of_cauchy {α} [uniform_space α] [complete_space α]
-  [inhabited α] {f : filter α} (hf : cauchy f) : f ≤ 𝓝 (lim f) :=
+  [nonempty α] {f : filter α} (hf : cauchy f) : f ≤ 𝓝 (lim f) :=
 lim_spec (complete_space.complete hf)
 
 lemma is_complete_of_is_closed [complete_space α] {s : set α}
@@ -284,7 +321,7 @@ lemma totally_bounded_iff_filter {s : set α} :
     by simpa using hs,
   let
     f := ⨅t:{t : set α // finite t}, principal (s \ (⋃y∈t.val, {x | (x,y) ∈ d})),
-    ⟨a, ha⟩ := @exists_mem_of_ne_empty α s
+    ⟨a, ha⟩ := (@ne_empty_iff_nonempty α s).1
       (assume h, hd_cover finite_empty $ h.symm ▸ empty_subset _)
   in
   have f ≠ ⊥,
@@ -302,7 +339,7 @@ lemma totally_bounded_iff_filter {s : set α} :
   in
   have c ≤ principal s, from le_trans ‹c ≤ f› this,
   have m ∩ s ∈ c.sets, from inter_mem_sets hm $ le_principal_iff.mp this,
-  let ⟨y, hym, hys⟩ := inhabited_of_mem_sets hc₂.left this in
+  let ⟨y, hym, hys⟩ := nonempty_of_mem_sets hc₂.left this in
   let ys := (⋃y'∈({y}:set α), {x | (x, y') ∈ d}) in
   have m ⊆ ys,
     from assume y' hy',
@@ -394,10 +431,10 @@ end
 /-- A sequence of points such that `seq n ∈ set_seq n`. Here `set_seq` is a monotonically
 decreasing sequence of sets `set_seq n ∈ f` with diameters controlled by a given sequence
 of entourages. -/
-def seq (n : ℕ) : α := some $ inhabited_of_mem_sets hf.1 (set_seq_mem hf U_mem n)
+def seq (n : ℕ) : α := some $ nonempty_of_mem_sets hf.1 (set_seq_mem hf U_mem n)
 
 lemma seq_mem (n : ℕ) : seq hf U_mem n ∈ set_seq hf U_mem n :=
-some_spec $ inhabited_of_mem_sets hf.1 (set_seq_mem hf U_mem n)
+some_spec $ nonempty_of_mem_sets hf.1 (set_seq_mem hf U_mem n)
 
 lemma seq_pair_mem ⦃N m n : ℕ⦄ (hm : N ≤ m) (hn : N ≤ n) :
   (seq hf U_mem m, seq hf U_mem n) ∈ U N :=

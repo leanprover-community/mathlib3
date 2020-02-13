@@ -20,7 +20,6 @@ In the presence of automation, this whole file may be unnecessary. On the other 
 maybe it is useful for writing automation.
 -/
 
-
 section miscellany
 
 /- We add the `inline` attribute to optimize VM computation using these declarations. For example,
@@ -37,6 +36,12 @@ def empty.elim {C : Sort*} : empty → C.
 instance : subsingleton empty := ⟨λa, a.elim⟩
 
 instance : decidable_eq empty := λa, a.elim
+
+instance sort.inhabited : inhabited (Sort*) := ⟨punit⟩
+instance sort.inhabited' : inhabited (default (Sort*)) := ⟨punit.star⟩
+
+instance psum.inhabited_left {α β} [inhabited α] : inhabited (psum α β) := ⟨psum.inl (default _)⟩
+instance psum.inhabited_right {α β} [inhabited β] : inhabited (psum α β) := ⟨psum.inr (default _)⟩
 
 @[priority 10] instance decidable_eq_of_subsingleton
   {α} [subsingleton α] : decidable_eq α
@@ -474,11 +479,11 @@ forall_true_iff' $ λ _, forall_true_iff
   (∀ a (b : β a), γ a b → true) ↔ true :=
 forall_true_iff' $ λ _, forall_2_true_iff
 
-@[simp] theorem forall_const (α : Sort*) [inhabited α] : (α → b) ↔ b :=
-⟨λ h, h (arbitrary α), λ hb x, hb⟩
+@[simp] theorem forall_const (α : Sort*) [i : nonempty α] : (α → b) ↔ b :=
+⟨i.elim, λ hb x, hb⟩
 
-@[simp] theorem exists_const (α : Sort*) [inhabited α] : (∃ x : α, b) ↔ b :=
-⟨λ ⟨x, h⟩, h, λ h, ⟨arbitrary α, h⟩⟩
+@[simp] theorem exists_const (α : Sort*) [i : nonempty α] : (∃ x : α, b) ↔ b :=
+⟨λ ⟨x, h⟩, h, i.elim exists.intro⟩
 
 theorem forall_and_distrib : (∀ x, p x ∧ q x) ↔ (∀ x, p x) ∧ (∀ x, q x) :=
 ⟨λ h, ⟨λ x, (h x).left, λ x, (h x).right⟩, λ ⟨h₁, h₂⟩ x, ⟨h₁ x, h₂ x⟩⟩
@@ -731,6 +736,8 @@ theorem not_ball {α : Sort*} {p : α → Prop} {P : Π (x : α), p x → Prop} 
 
 end classical
 
+/-! ### Declarations about `nonempty` -/
+
 section nonempty
 universe variables u v w
 variables {α : Type u} {β : Type v} {γ : α → Type w}
@@ -795,12 +802,15 @@ lemma classical.nonempty_pi {α : Sort u} {β : α → Sort v} :
   nonempty (Πa:α, β a) ↔ (∀a:α, nonempty (β a)) :=
 iff.intro (assume ⟨f⟩ a, ⟨f a⟩) (assume f, ⟨assume a, classical.choice $ f a⟩)
 
--- inhabited_of_nonempty already exists, in core/init/classical.lean, but the
--- assumption is not [...], which makes it unsuitable for some applications
+/-- Using `classical.choice`, lifts a (`Prop`-valued) `nonempty` instance to a (`Type`-valued)
+  `inhabited` instance. `classical.inhabited_of_nonempty` already exists, in
+  `core/init/classical.lean`, but the assumption is not a type class argument,
+  which makes it unsuitable for some applications. -/
 noncomputable def classical.inhabited_of_nonempty' {α : Sort u} [h : nonempty α] : inhabited α :=
 ⟨classical.choice h⟩
 
--- `nonempty` cannot be a `functor`, because `functor` is restricted to Types.
+/-- Given `f : α → β`, if `α` is nonempty then `β` is also nonempty.
+  `nonempty` cannot be a `functor`, because `functor` is restricted to `Type`. -/
 lemma nonempty.map {α : Sort u} {β : Sort v} (f : α → β) : nonempty α → nonempty β
 | ⟨h⟩ := ⟨f h⟩
 
@@ -810,5 +820,12 @@ protected lemma nonempty.map2 {α β γ : Sort*} (f : α → β → γ) : nonemp
 protected lemma nonempty.congr {α : Sort u} {β : Sort v} (f : α → β) (g : β → α) :
   nonempty α ↔ nonempty β :=
 ⟨nonempty.map f, nonempty.map g⟩
+
+lemma nonempty.elim_to_inhabited {α : Sort*} [h : nonempty α] {p : Prop}
+  (f : inhabited α → p) : p :=
+h.elim $ f ∘ inhabited.mk
+
+instance {α β} [h : nonempty α] [h2 : nonempty β] : nonempty (α × β) :=
+h.elim $ λ g, h2.elim $ λ g2, ⟨⟨g, g2⟩⟩
 
 end nonempty

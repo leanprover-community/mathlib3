@@ -500,7 +500,7 @@ continuous_iff_coinduced_le.2 $ le_top
 theorem mem_nhds_induced [T : topological_space α] (f : β → α) (a : β) (s : set β) :
   s ∈ @nhds β (topological_space.induced f T) a ↔ ∃ u ∈ 𝓝 (f a), f ⁻¹' u ⊆ s :=
 begin
-  simp only [nhds_sets, is_open_induced_iff, exists_prop, set.mem_set_of_eq],
+  simp only [mem_nhds_sets_iff, is_open_induced_iff, exists_prop, set.mem_set_of_eq],
   split,
   { rintros ⟨u, usub, ⟨v, openv, ueq⟩, au⟩,
     exact ⟨v, ⟨v, set.subset.refl v, openv, by rwa ←ueq at au⟩, by rw ueq; exact usub⟩ },
@@ -545,14 +545,14 @@ lemma closure_induced [t : topological_space β] {f : α → β} {a : α} {s : s
 have comap f (𝓝 (f a) ⊓ principal (f '' s)) ≠ ⊥ ↔ 𝓝 (f a) ⊓ principal (f '' s) ≠ ⊥,
   from ⟨assume h₁ h₂, h₁ $ h₂.symm ▸ comap_bot,
     assume h,
-    forall_sets_ne_empty_iff_ne_bot.mp $
+    forall_sets_nonempty_iff_ne_bot.mp $
       assume s₁ ⟨s₂, hs₂, (hs : f ⁻¹' s₂ ⊆ s₁)⟩,
       have f '' s ∈ 𝓝 (f a) ⊓ principal (f '' s),
         from mem_inf_sets_of_right $ by simp [subset.refl],
       have s₂ ∩ f '' s ∈ 𝓝 (f a) ⊓ principal (f '' s),
         from inter_mem_sets hs₂ this,
-      let ⟨b, hb₁, ⟨a, ha, ha₂⟩⟩ := inhabited_of_mem_sets h this in
-      ne_empty_of_mem $ hs $ by rwa [←ha₂] at hb₁⟩,
+      let ⟨b, hb₁, ⟨a, ha, ha₂⟩⟩ := nonempty_of_mem_sets h this in
+      ⟨_, hs $ by rwa [←ha₂] at hb₁⟩⟩,
 calc a ∈ @closure α (topological_space.induced f t) s
     ↔ (@nhds α (topological_space.induced f t) a) ⊓ principal s ≠ ⊥ : by rw [closure_eq_nhds]; refl
   ... ↔ comap f (𝓝 (f a)) ⊓ principal (f ⁻¹' (f '' s)) ≠ ⊥ : by rw [nhds_induced, preimage_image_eq _ hf]

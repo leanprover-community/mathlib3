@@ -166,6 +166,8 @@ instance : has_coe_to_fun (β →ₗ[α] γ) := ⟨_, to_fun⟩
 @[simp] lemma coe_mk (f : β → γ) (h₁ h₂) :
   ((linear_map.mk f h₁ h₂ : β →ₗ[α] γ) : β → γ) = f := rfl
 
+@[simp] lemma to_fun_eq_coe (f : β →ₗ[α] γ) : f.to_fun = ⇑f := rfl
+
 theorem is_linear : is_linear_map α f := {..f}
 
 @[ext] theorem ext {f g : β →ₗ[α] γ} (H : ∀ x, f x = g x) : f = g :=
@@ -314,6 +316,7 @@ finset.induction_on t (by simp [p.zero_mem]) (by simp [p.add_mem] {contextual :=
 
 instance : has_add p := ⟨λx y, ⟨x.1 + y.1, add_mem _ x.2 y.2⟩⟩
 instance : has_zero p := ⟨⟨0, zero_mem _⟩⟩
+instance : inhabited p := ⟨0⟩
 instance : has_neg p := ⟨λx, ⟨-x.1, neg_mem _ x.2⟩⟩
 instance : has_scalar α p := ⟨λ c x, ⟨c • x.1, smul_mem _ c x.2⟩⟩
 

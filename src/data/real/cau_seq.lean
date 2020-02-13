@@ -255,6 +255,7 @@ theorem const_inj {x y : β} : (const x : cau_seq β abv) = const y ↔ x = y :=
 
 instance : has_zero (cau_seq β abv) := ⟨const 0⟩
 instance : has_one (cau_seq β abv) := ⟨const 1⟩
+instance : inhabited (cau_seq β abv) := ⟨0⟩
 
 @[simp] theorem zero_apply (i) : (0 : cau_seq β abv) i = 0 := rfl
 @[simp] theorem one_apply (i) : (1 : cau_seq β abv) i = 1 := rfl

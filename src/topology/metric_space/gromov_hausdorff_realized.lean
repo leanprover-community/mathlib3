@@ -194,8 +194,8 @@ def candidates_b_dist (α : Type u) (β : Type v) [metric_space α] [compact_spa
 lemma candidates_b_dist_mem_candidates_b : candidates_b_dist α β ∈ candidates_b α β :=
 candidates_b_of_candidates_mem _ _
 
-private lemma candidates_b_ne_empty : candidates_b α β ≠ ∅ :=
-ne_empty_of_mem candidates_b_dist_mem_candidates_b
+private lemma candidates_b_nonempty : (candidates_b α β).nonempty :=
+⟨_,  candidates_b_dist_mem_candidates_b⟩
 
 /-- To apply Arzela-Ascoli, we need to check that the set of candidates is closed and equicontinuous.
 Equicontinuity follows from the Lipschitz control, we check closedness -/
@@ -401,7 +401,7 @@ variables (α : Type u) (β : Type v) [metric_space α] [compact_space α] [none
 we can finally select a candidate minimizing HD. This will be the candidate realizing the
 optimal coupling. -/
 private lemma exists_minimizer : ∃f ∈ candidates_b α β, ∀g ∈ candidates_b α β, HD f ≤ HD g :=
-compact_candidates_b.exists_forall_le candidates_b_ne_empty HD_continuous.continuous_on
+compact_candidates_b.exists_forall_le candidates_b_nonempty HD_continuous.continuous_on
 
 private definition optimal_GH_dist : Cb α β := classical.some (exists_minimizer α β)
 
@@ -485,7 +485,7 @@ begin
         supr (λx:α, infi (λy:β, optimal_GH_dist α β (inl x, inr y))) :=
       le_cSup (by simpa using HD_bound_aux1 _ 0) (mem_range_self _),
     have I : infi (λy:β, optimal_GH_dist α β (inl z, inr y)) < r := lt_of_le_of_lt I2 I1,
-    rcases exists_lt_of_cInf_lt (by simpa) I with ⟨r', r'range, hr'⟩,
+    rcases exists_lt_of_cInf_lt (range_nonempty _) I with ⟨r', r'range, hr'⟩,
     rcases mem_range.1 r'range with ⟨z', hz'⟩,
     existsi [optimal_GH_injr α β z', mem_range_self _],
     have : (optimal_GH_dist α β) (inl z, inr z') ≤ r := begin rw hz', exact le_of_lt hr' end,
@@ -504,7 +504,7 @@ begin
         supr (λy:β, infi (λx:α, optimal_GH_dist α β (inl x, inr y))) :=
       le_cSup (by simpa using HD_bound_aux2 _ 0) (mem_range_self _),
     have I : infi (λx:α, optimal_GH_dist α β (inl x, inr z)) < r := lt_of_le_of_lt I2 I1,
-    rcases exists_lt_of_cInf_lt (by simpa) I with ⟨r', r'range, hr'⟩,
+    rcases exists_lt_of_cInf_lt (range_nonempty _) I with ⟨r', r'range, hr'⟩,
     rcases mem_range.1 r'range with ⟨z', hz'⟩,
     existsi [optimal_GH_injl α β z', mem_range_self _],
     have : (optimal_GH_dist α β) (inl z', inr z) ≤ r := begin rw hz', exact le_of_lt hr' end,

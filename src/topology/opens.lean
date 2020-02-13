@@ -21,7 +21,7 @@ def closeds := {s : set α // is_closed s}
 /-- The type of non-empty compact subsets of a topological space. The
 non-emptiness will be useful in metric spaces, as we will be able to put
 a distance (and not merely an edistance) on this space. -/
-def nonempty_compacts := {s : set α // s ≠ ∅ ∧ compact s}
+def nonempty_compacts := {s : set α // s.nonempty ∧ compact s}
 
 section nonempty_compacts
 open topological_space set
@@ -31,7 +31,7 @@ instance nonempty_compacts.to_compact_space {p : nonempty_compacts α} : compact
 ⟨compact_iff_compact_univ.1 p.property.2⟩
 
 instance nonempty_compacts.to_nonempty {p : nonempty_compacts α} : nonempty p.val :=
-nonempty_subtype.2 $ ne_empty_iff_exists_mem.1 p.property.1
+p.property.1.to_subtype
 
 /-- Associate to a nonempty compact subset the corresponding closed subset -/
 def nonempty_compacts.to_closeds [t2_space α] (s : nonempty_compacts α) : closeds α :=
@@ -96,6 +96,7 @@ end
 instance : has_inter (opens α) := ⟨λ U V, U ⊓ V⟩
 instance : has_union (opens α) := ⟨λ U V, U ⊔ V⟩
 instance : has_emptyc (opens α) := ⟨⊥⟩
+instance : inhabited (opens α) := ⟨∅⟩
 
 @[simp] lemma inter_eq (U V : opens α) : U ∩ V = U ⊓ V := rfl
 @[simp] lemma union_eq (U V : opens α) : U ∪ V = U ⊔ V := rfl

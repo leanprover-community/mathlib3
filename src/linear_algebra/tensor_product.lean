@@ -149,6 +149,8 @@ local attribute [instance] quotient_add_group.left_rel normal_add_subgroup.to_is
 
 instance : add_comm_group (M ⊗[R] N) := quotient_add_group.add_comm_group _
 
+instance : inhabited (M ⊗[R] N) := ⟨0⟩
+
 instance quotient.mk.is_add_group_hom :
   is_add_group_hom (quotient.mk : free_abelian_group (M × N) → M ⊗ N) :=
 quotient_add_group.is_add_group_hom _

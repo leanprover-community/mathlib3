@@ -25,6 +25,8 @@ namespace onote
 instance : has_zero onote := ⟨zero⟩
 @[simp] theorem zero_def : zero = 0 := rfl
 
+instance : inhabited onote := ⟨0⟩
+
 /-- Notation for 1 -/
 instance : has_one onote := ⟨oadd 0 1 0⟩
 
@@ -810,6 +812,7 @@ instance : preorder nonote :=
   lt_iff_le_not_le := λ a b, @lt_iff_le_not_le ordinal _ _ _ }
 
 instance : has_zero nonote := ⟨⟨0, NF.zero⟩⟩
+instance : inhabited nonote := ⟨0⟩
 
 /-- Convert a natural number to an ordinal notation -/
 def of_nat (n : ℕ) : nonote := ⟨of_nat n, _, NF_below_of_nat _⟩

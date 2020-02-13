@@ -68,7 +68,7 @@ do names ← attribute.get_instances `hint,
 namespace interactive
 
 /-- report a list of tactics that can make progress against the current goal -/
-meta def hint :=
+meta def hint : tactic unit :=
 do hints ← tactic.hint,
    if hints.length = 0 then
      fail "no hints available"

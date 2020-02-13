@@ -12,6 +12,7 @@ namespace tactic
 
 namespace hint
 
+/-- An attribute marking a `tactic unit` or `tactic string` which should be used by the `hint` tactic. -/
 meta def hint_attribute : user_attribute := {
   name := `hint,
   descr := "A tactic that should be tried by `hint`."
@@ -21,11 +22,16 @@ run_cmd attribute.register ``hint_attribute
 
 open lean lean.parser interactive
 
-meta def add_tactic_hint (n : name) (t : expr) : tactic unit :=
+private meta def add_tactic_hint (n : name) (t : expr) : tactic unit :=
 do
   add_decl $ declaration.defn n [] `(tactic string) t reducibility_hints.opaque ff,
-  hint_attribute.set n () tt
+  hint_attribute.set n () tt,
+  nolint_attr.set n () tt
 
+/--
+`add_hint t s` runs the tactic `t` whenever `hint` is invoked, printing the string `s`.
+The typical use case is ``add_hint `[foo] "foo"`` for some interactive tactic `foo`.
+-/
 @[user_command] meta def add_hint (_ : parse (tk "add_hint")) : parser unit :=
 do t ← parser.pexpr,
    n ← parser.pexpr,

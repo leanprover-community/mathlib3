@@ -90,7 +90,7 @@ lemma compact_iff_ultrafilter_le_nhds {s : set α} :
   ⟨a, ha, ne_bot_of_le_ne_bot this (inf_le_inf ultrafilter_of_le (le_refl _))⟩⟩
 
 /-- For every open cover of a compact set, there exists a finite subcover. -/
-lemma compact.elim_finite_subcover {s : set α} {ι : Type u} (hs : compact s)
+lemma compact.elim_finite_subcover {s : set α} {ι : Type v} (hs : compact s)
   (U : ι → set α) (hUo : ∀i, is_open (U i)) (hsU : s ⊆ ⋃ i, U i) :
   ∃ t : finset ι, s ⊆ ⋃ i ∈ t, U i :=
 classical.by_contradiction $ assume h,
@@ -123,15 +123,55 @@ classical.by_contradiction $ assume h,
 
 /-- For every family of closed sets whose intersection avoids a compact set,
 there exists a finite subfamily whose intersection avoids this compact set. -/
-lemma compact.elim_finite_subfamily_closed {s : set α} {ι : Type u} (hs : compact s)
-  (Z : ι → set α) (hZo : ∀i, is_closed (Z i)) (hsZ : s ∩ (⋂ i, Z i) = ∅) :
+lemma compact.elim_finite_subfamily_closed {s : set α} {ι : Type v} (hs : compact s)
+  (Z : ι → set α) (hZc : ∀i, is_closed (Z i)) (hsZ : s ∩ (⋂ i, Z i) = ∅) :
   ∃ t : finset ι, s ∩ (⋂ i ∈ t, Z i) = ∅ :=
-let ⟨t, ht⟩ := hs.elim_finite_subcover (λ i, - Z i) hZo
+let ⟨t, ht⟩ := hs.elim_finite_subcover (λ i, - Z i) hZc
   (by simpa only [subset_def, not_forall, eq_empty_iff_forall_not_mem, set.mem_Union,
     exists_prop, set.mem_inter_eq, not_and, iff_self, set.mem_Inter, set.mem_compl_eq] using hsZ)
     in
 ⟨t, by simpa only [subset_def, not_forall, eq_empty_iff_forall_not_mem, set.mem_Union,
     exists_prop, set.mem_inter_eq, not_and, iff_self, set.mem_Inter, set.mem_compl_eq] using ht⟩
+
+/-- Cantor's intersection theorem:
+if the union of a directed family of nonempty closed sets `Z i` is compact,
+then the intersection of the `Z i` is nonempty. -/
+lemma compact.nonempty_Inter_of_compact_Union_of_directed_nonempty_closed
+  {ι : Type v} [hι : nonempty ι] (Z : ι → set α) (hZ : compact (⋃ i, Z i))
+  (hZd : directed (⊇) Z) (hZn : ∀ i, (Z i).nonempty) (hZc : ∀ i, is_closed (Z i)) :
+  (⋂ i, Z i).nonempty :=
+begin
+  rw ← ne_empty_iff_nonempty,
+  intro H,
+  obtain ⟨t, ht⟩ : ∃ (t : finset ι), ((⋃ i, Z i) ∩ ⋂ (i ∈ t), Z i) = ∅,
+    from hZ.elim_finite_subfamily_closed Z hZc (by rw [H, inter_empty]),
+  obtain ⟨i₀, hi₀⟩ : ∃ i₀ : ι, ∀ i ∈ t, Z i ⊇ Z i₀,
+    from directed.finset_le (by apply_instance) hZd t,
+  suffices : ((⋃ i, Z i) ∩ ⋂ (i ∈ t), Z i).nonempty,
+  { rw ← ne_empty_iff_nonempty at this, contradiction },
+  refine nonempty.mono _ (hZn i₀),
+  exact subset_inter (subset_Union Z i₀) (subset_bInter hi₀)
+end
+
+/-- Cantor's intersection theorem for sequences indexed by `ℕ`:
+if the union of a decreasing sequence of nonempty closed sets `Z i` is compact,
+then the intersection of the `Z i` is nonempty. -/
+lemma compact.nonempty_Inter_of_compact_Union_of_sequence_nonempty_closed
+  (Z : ℕ → set α) (hZ : compact (⋃ i, Z i)) (hZn : ∀ i, (Z i).nonempty) (hZc : ∀ i, is_closed (Z i))
+  (hZd : ∀ i, Z (i+1) ⊆ Z i) :
+  (⋂ i, Z i).nonempty :=
+begin
+  apply compact.nonempty_Inter_of_compact_Union_of_directed_nonempty_closed Z hZ _ hZn hZc,
+  apply directed_of_mono,
+  intros i j hij,
+  obtain ⟨k, rfl⟩ : ∃ k, j = i + k, from nat.exists_eq_add_of_le hij,
+  clear hij,
+  induction k with k IH, { exact subset.refl _ },
+  refine subset.trans _ IH,
+  show Z (i+(k+1)) ⊆ Z (i + k),
+  rw ← add_assoc,
+  apply_assumption
+end
 
 /-- For every open cover of a compact set, there exists a finite subcover. -/
 lemma compact.elim_finite_subcover_image {s : set α} {b : set β} {c : β → set α}

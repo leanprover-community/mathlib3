@@ -6,7 +6,6 @@ Authors: Johannes Hölzl, Kenny Lau, Johan Commelin, Mario Carneiro, Kevin Buzza
 
 import algebra.big_operators
 import data.finset
-import tactic.subtype_instance
 import data.equiv.algebra
 
 /-!
@@ -218,15 +217,23 @@ lemma finset_prod_mem {α β} [comm_monoid α] (s : set α) [is_submonoid s] (f 
 
 end is_submonoid
 
+-- TODO: modify `subtype_instance` to produce this definition, then use it here
+--  and for `subtype.group`
+
 /-- Submonoids are themselves monoids. -/
 @[to_additive add_monoid "An `add_submonoid` is itself an `add_monoid`."]
 instance subtype.monoid {s : set α} [is_submonoid s] : monoid s :=
-by subtype_instance
+{ one := ⟨1, is_submonoid.one_mem s⟩,
+  mul := λ x y, ⟨x * y, is_submonoid.mul_mem x.2 y.2⟩,
+  mul_one := λ x, subtype.eq $ mul_one x.1,
+  one_mul := λ x, subtype.eq $ one_mul x.1,
+  mul_assoc := λ x y z, subtype.eq $ mul_assoc x.1 y.1 z.1 }
 
 /-- Submonoids of commutative monoids are themselves commutative monoids. -/
 @[to_additive add_comm_monoid "An `add_submonoid` of a commutative `add_monoid` is itself a commutative `add_monoid`. "]
 instance subtype.comm_monoid {α} [comm_monoid α] {s : set α} [is_submonoid s] : comm_monoid s :=
-by subtype_instance
+{ mul_comm := λ x y, subtype.eq $ mul_comm x.1 y.1,
+  .. subtype.monoid }
 
 /-- Submonoids inherit the 1 of the monoid. -/
 @[simp, to_additive "An `add_submonoid` inherits the 0 of the `add_monoid`. "]

@@ -355,6 +355,10 @@ lemma continuous_on.congr {f g : α → β} {s : set α} (h : continuous_on f s)
   (h' : ∀x ∈ s, g x = f x) : continuous_on g s :=
 h.congr_mono h' (subset.refl _)
 
+lemma continuous_on_congr {f g : α → β} {s : set α} (h' : ∀x ∈ s, g x = f x) :
+  continuous_on g s ↔ continuous_on f s :=
+⟨λ h, continuous_on.congr h (λx hx, (h' x hx).symm), λ h, continuous_on.congr h h'⟩
+
 lemma continuous_at.continuous_within_at {f : α → β} {s : set α} {x : α} (h : continuous_at f x) :
   continuous_within_at f s x :=
 continuous_within_at.mono ((continuous_within_at_univ f x).2 h) (subset_univ _)

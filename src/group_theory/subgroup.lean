@@ -50,11 +50,13 @@ theorem multiplicative.is_subgroup_iff
 
 @[to_additive add_group]
 instance subtype.group {s : set α} [is_subgroup s] : group s :=
-by subtype_instance
+{ inv := λ x, ⟨(x:α)⁻¹, is_subgroup.inv_mem x.2⟩,
+  mul_left_inv := λ x, subtype.eq $ mul_left_inv x.1,
+  .. subtype.monoid }
 
 @[to_additive add_comm_group]
 instance subtype.comm_group {α : Type*} [comm_group α] {s : set α} [is_subgroup s] : comm_group s :=
-by subtype_instance
+{ .. subtype.group, .. subtype.comm_monoid }
 
 @[simp, to_additive]
 lemma is_subgroup.coe_inv {s : set α} [is_subgroup s] (a : s) : ((a⁻¹ : s) : α) = a⁻¹ := rfl

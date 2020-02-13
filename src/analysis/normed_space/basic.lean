@@ -247,7 +247,7 @@ by simp [norm, le_max_right]
 
 lemma norm_prod_le_iff {x : α × β} {r : ℝ} :
   ∥x∥ ≤ r ↔ ∥x.1∥ ≤ r ∧ ∥x.2∥ ≤ r :=
-by simp [norm]
+max_le_iff
 
 /-- normed group instance on the product of finitely many normed groups, using the sup norm. -/
 instance pi.normed_group {π : ι → Type*} [fintype ι] [∀i, normed_group (π i)] :

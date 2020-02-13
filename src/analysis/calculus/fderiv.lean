@@ -1383,8 +1383,7 @@ lemma differentiable_at.comp_differentiable_within_at {g : F → G}
 lemma fderiv_within.comp {g : F → G} {t : set F}
   (hg : differentiable_within_at 𝕜 g t (f x)) (hf : differentiable_within_at 𝕜 f s x)
   (h : s ⊆ f ⁻¹' t) (hxs : unique_diff_within_at 𝕜 s x) :
-  fderiv_within 𝕜 (g ∘ f) s x =
-    continuous_linear_map.comp (fderiv_within 𝕜 g t (f x)) (fderiv_within 𝕜 f s x) :=
+  fderiv_within 𝕜 (g ∘ f) s x = (fderiv_within 𝕜 g t (f x)).comp (fderiv_within 𝕜 f s x) :=
 begin
   apply has_fderiv_within_at.fderiv_within _ hxs,
   exact has_fderiv_within_at.comp x (hg.has_fderiv_within_at) (hf.has_fderiv_within_at) h
@@ -1392,7 +1391,7 @@ end
 
 lemma fderiv.comp {g : F → G}
   (hg : differentiable_at 𝕜 g (f x)) (hf : differentiable_at 𝕜 f x) :
-  fderiv 𝕜 (g ∘ f) x = continuous_linear_map.comp (fderiv 𝕜 g (f x)) (fderiv 𝕜 f x) :=
+  fderiv 𝕜 (g ∘ f) x = (fderiv 𝕜 g (f x)).comp (fderiv 𝕜 f x) :=
 begin
   apply has_fderiv_at.fderiv,
   exact has_fderiv_at.comp x hg.has_fderiv_at hf.has_fderiv_at
@@ -1401,8 +1400,7 @@ end
 lemma fderiv.comp_fderiv_within {g : F → G}
   (hg : differentiable_at 𝕜 g (f x)) (hf : differentiable_within_at 𝕜 f s x)
   (hxs : unique_diff_within_at 𝕜 s x) :
-  fderiv_within 𝕜 (g ∘ f) s x =
-    continuous_linear_map.comp (fderiv 𝕜 g (f x)) (fderiv_within 𝕜 f s x) :=
+  fderiv_within 𝕜 (g ∘ f) s x = (fderiv 𝕜 g (f x)).comp (fderiv_within 𝕜 f s x) :=
 begin
   apply has_fderiv_within_at.fderiv_within _ hxs,
   exact has_fderiv_at.comp_has_fderiv_within_at x (hg.has_fderiv_at) (hf.has_fderiv_within_at)

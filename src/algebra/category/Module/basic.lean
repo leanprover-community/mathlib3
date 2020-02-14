@@ -46,10 +46,10 @@ instance : inhabited (Module R) := ⟨of R punit⟩
 
 lemma of_apply (X : Type u) [add_comm_group X] [module R X] : X = (of R X) := rfl
 
-instance of_punit_subsingleton : subsingleton (of R punit) :=
+instance : subsingleton (of R punit) :=
 by { rw ←of_apply R punit, apply_instance }
 
-instance module_has_zero_object : has_zero_object.{u} (Module R) :=
+instance : has_zero_object.{u} (Module R) :=
 { zero := of R punit,
   unique_to := λ X,
   { default := (0 : punit →ₗ[R] X),
@@ -98,8 +98,7 @@ def kernel_is_limit : is_limit (kernel_cone _ _ _ f) :=
     { rw [←cone_parallel_pair_right, ←cone_parallel_pair_right], refl }
   end,
   uniq' := λ s m h, linear_map.ext $ λ x, subtype.ext.2 $
-    have h₁ : (m ≫ (kernel_cone _ _ _ f).π.app zero).to_fun =
-      (s.π.app zero).to_fun,
+    have h₁ : (m ≫ (kernel_cone _ _ _ f).π.app zero).to_fun = (s.π.app zero).to_fun,
     by { congr, exact h zero },
     by convert @congr_fun _ _ _ _ h₁ x }
 

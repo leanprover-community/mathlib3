@@ -123,6 +123,7 @@ begin
   conv { to_lhs, congr, skip, rw ←parallel_pair_map_left f g, },
   rw s.w,
 end
+
 @[simp] lemma cone_parallel_pair_right (s : limits.cone (parallel_pair f g)) :
   (s.π).app zero ≫ g = (s.π).app one :=
 begin

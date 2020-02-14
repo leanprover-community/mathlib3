@@ -595,4 +595,72 @@ def le_order_embedding :
 
 end ideals
 
+section module
+/-! ### `module` section
+
+  Localizations have a module structure induced by the embedding `of : α → localization α S`.
+-/
+
+set_option class.instance_max_depth 50
+
+instance : algebra α (localization α S) := algebra.of_ring_hom coe (is_ring_hom.of_semiring coe)
+
+lemma of_smul (c x : α) : (of (c • x) : localization α S) = c • of x :=
+by { simp, refl }
+
+lemma coe_smul (c x : α) : (coe (c • x) : localization α S) = c • coe x :=
+of_smul α c x
+
+lemma coe_mul_eq_smul (c : α) (x : localization α S) : coe c * x = c • x :=
+rfl
+
+lemma mul_coe_eq_smul (c : α) (x : localization α S) : x * coe c = c • x :=
+mul_comm x (coe c)
+
+end module
+
+section is_integer
+
+/-- `a : localization α S` is an integer if it is an element of the original ring `α` -/
+def is_integer (S : set α) [is_submonoid S] (a : localization α S) : Prop :=
+a ∈ (set.univ : set α).image (coe : α → localization α S)
+
+lemma is_integer_coe (a : α) : is_integer α S a :=
+⟨a, set.mem_univ _, rfl⟩
+
+lemma is_integer_add {a b} (ha : is_integer α S a) (hb : is_integer α S b) :
+  is_integer α S (a + b) :=
+begin
+  rcases ha with ⟨a', _, ha⟩,
+  rcases hb with ⟨b', _, hb⟩,
+  use a' + b',
+  split,
+  { apply set.mem_univ },
+  { rw [coe_add, ha, hb] }
+end
+
+lemma is_integer_mul {a b} (ha : is_integer α S a) (hb : is_integer α S b) :
+  is_integer α S (a * b) :=
+begin
+  rcases ha with ⟨a', _, ha⟩,
+  rcases hb with ⟨b', _, hb⟩,
+  use a' * b',
+  split,
+  { apply set.mem_univ },
+  { rw [coe_mul, ha, hb] }
+end
+
+set_option class.instance_max_depth 50
+lemma is_integer_smul {a : α} {b} (hb : is_integer α S b) :
+  is_integer α S (a • b) :=
+begin
+  rcases hb with ⟨b', _, hb⟩,
+  use a * b',
+  split,
+  { apply set.mem_univ },
+  { rw [←hb, ←coe_smul, smul_eq_mul] }
+end
+
+end is_integer
+
 end localization

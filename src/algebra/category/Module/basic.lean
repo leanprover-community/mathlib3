@@ -86,22 +86,17 @@ by { erw [←coe_comp, fork.condition, has_zero_morphisms.comp_zero _ (fork.ι s
 def kernel_is_limit : is_limit (kernel_cone _ _ _ f) :=
 { lift := λ s, linear_map.cod_restrict f.ker (fork.ι s) (λ c, linear_map.mem_ker.2 $
     by rw [←@function.comp_apply _ _ _ f (fork.ι s) c, comp_vanish, pi.zero_apply]),
-  fac' := λ s j, begin
-    ext,
+  fac' := λ s j, linear_map.ext $ λ x, begin
     rw [coe_comp, function.comp_app, ←linear_map.comp_apply],
     cases j,
     { erw @linear_map.subtype_comp_cod_restrict _ _ _ _ _ _ _ _ (fork.ι s) f.ker _, refl },
     { rw [←cone_parallel_pair_right, ←cone_parallel_pair_right], refl }
   end,
-  uniq' := λ s m h, begin
-    ext x,
-    apply subtype.ext.2,
-    have h₁ : (m ≫ (kernel_cone R M N f).π.app walking_parallel_pair.zero).to_fun =
-      (s.π.app walking_parallel_pair.zero).to_fun, by { congr, exact h walking_parallel_pair.zero },
-    convert @congr_fun _ _ (m ≫ (kernel_cone R M N f).π.app walking_parallel_pair.zero)
-      (s.π.app walking_parallel_pair.zero)
-      h₁ x,
-  end }
+  uniq' := λ s m h, linear_map.ext $ λ x, subtype.ext.2 $
+    have h₁ : (m ≫ (kernel_cone _ _ _ f).π.app walking_parallel_pair.zero).to_fun =
+      (s.π.app walking_parallel_pair.zero).to_fun,
+    by { congr, exact h walking_parallel_pair.zero },
+    by convert @congr_fun _ _ _ _ h₁ x }
 
 end kernel
 

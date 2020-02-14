@@ -341,6 +341,7 @@ begin
     exact subset_zero_locus_vanishing_ideal s }
 end
 
+/-- The prime spectrum of a commutative ring is a compact topological space. -/
 instance : compact_space (prime_spectrum R) :=
 begin
   apply compact_space_of_finite_subfamily_closed,

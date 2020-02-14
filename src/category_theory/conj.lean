@@ -69,7 +69,7 @@ def conj : End X ≃* End Y :=
 lemma conj_apply (f : End X) : α.conj f = α.inv ≫ f ≫ α.hom := rfl
 
 @[simp] lemma conj_comp (f g : End X) : α.conj (f ≫ g) = (α.conj f) ≫ (α.conj g) :=
-is_mul_hom.map_mul α.conj g f
+α.conj.map_mul g f
 
 @[simp] lemma conj_id : α.conj (𝟙 X) = 𝟙 Y :=
 is_monoid_hom.map_one α.conj
@@ -105,7 +105,7 @@ by cases f; cases α; ext; refl
 by simp only [conj_Aut_apply, iso.trans_symm, iso.trans_assoc]
 
 @[simp] lemma conj_Aut_mul (f g : Aut X) : α.conj_Aut (f * g) = α.conj_Aut f * α.conj_Aut g :=
-is_mul_hom.map_mul α.conj_Aut f g
+α.conj_Aut.map_mul f g
 
 @[simp] lemma conj_Aut_trans (f g : Aut X) : α.conj_Aut (f ≪≫ g) = α.conj_Aut f ≪≫ α.conj_Aut g :=
 conj_Aut_mul α g f

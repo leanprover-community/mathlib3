@@ -412,12 +412,12 @@ begin suggest, sorry end
 prints the list,
 
 ```lean
-exact nat.lt.base n
-exact nat.lt_succ_self n
-refine not_le.mp _
-refine gt_iff_lt.mp _
-refine nat.lt.step _
-refine lt_of_not_ge _
+Try this: exact nat.lt.base n
+Try this: exact nat.lt_succ_self n
+Try this: refine not_le.mp _
+Try this: refine gt_iff_lt.mp _
+Try this: refine nat.lt.step _
+Try this: refine lt_of_not_ge _
 ...
 ```
 
@@ -430,7 +430,7 @@ current goal by applying a lemma from the library, then discharging any new goal
 Typical usage is:
 ```
 example (n m k : ℕ) : n * (m - k) = n * m - n * k :=
-by library_search -- exact nat.mul_sub_left_distrib n m k
+by library_search -- Try this: exact nat.mul_sub_left_distrib n m k
 ```
 
 `library_search` prints a trace message showing the proof it found, shown above as a comment.
@@ -812,7 +812,8 @@ with `squeeze_simp`:
 
 ```lean
 example : 0 + 1 = 1 + 0 := by squeeze_simp
--- prints: simp only [add_zero, eq_self_iff_true, zero_add]
+-- prints:
+-- Try this: simp only [add_zero, eq_self_iff_true, zero_add]
 ```
 
 `squeeze_simp` suggests a replacement which we can use instead of

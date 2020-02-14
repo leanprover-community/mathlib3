@@ -153,6 +153,8 @@ le_of_lt_succ i.is_lt
 
 @[simp] lemma last_val (n : ℕ) : (last n).val = n := rfl
 
+@[simp] lemma succ_last (n : ℕ) : (last n).succ = last (n.succ) := rfl
+
 @[simp] lemma cast_succ_cast_lt (i : fin (n + 1)) (h : i.val < n) : cast_succ (cast_lt i h) = i :=
 fin.eq_of_veq rfl
 
@@ -463,6 +465,26 @@ would involve a cast to convince Lean that the two types are equal, making it ha
 lemma tail_init_eq_init_tail {β : Type*} (q : fin (n+2) → β) :
   tail (init q) = init (tail q) :=
 by { ext i, simp [tail, init, cast_succ_fin_succ] }
+
+/-- `cons` and `append` commute. We state this lemma in a non-dependent setting, as otherwise it
+would involve a cast to convince Lean that the two types are equal, making it harder to use. -/
+lemma cons_append_eq_append_cons {β : Type*} (a : β) (q : fin n → β) (b : β) :
+  @cons n.succ (λ i, β) a (append q b) = append (cons a q) b :=
+begin
+  ext i,
+  by_cases h : i = 0,
+  { rw h, refl },
+  set j := pred i h with ji,
+  have : i = j.succ, by rw [ji, succ_pred],
+  rw [this, cons_succ],
+  by_cases h' : j.val < n,
+  { set k := cast_lt j h' with jk,
+    have : j = k.cast_succ, by rw [jk, cast_succ_cast_lt],
+    rw [this, ← cast_succ_fin_succ],
+    simp },
+  rw [eq_last_of_not_lt h', succ_last],
+  simp
+end
 
 end tuple_right
 

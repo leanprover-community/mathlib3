@@ -166,10 +166,13 @@ end
 the intersection of a decreasing sequence of nonempty compact closed sets is nonempty. -/
 lemma compact.nonempty_Inter_of_sequence_nonempty_compact_closed
   (Z : ℕ → set α) (hZd : ∀ i, Z (i+1) ⊆ Z i)
-  (hZn : ∀ i, (Z i).nonempty) (hZc : ∀ i, compact (Z i)) (hZcl : ∀ i, is_closed (Z i)) :
+  (hZn : ∀ i, (Z i).nonempty) (hZ0 : compact (Z 0)) (hZcl : ∀ i, is_closed (Z i)) :
   (⋂ i, Z i).nonempty :=
-have directed (⊇) Z, from directed_of_mono Z (@monotone_of_monotone_nat (order_dual _) _ Z hZd),
-compact.nonempty_Inter_of_directed_nonempty_compact_closed Z this hZn hZc hZcl
+have Zmono : _, from @monotone_of_monotone_nat (order_dual _) _ Z hZd,
+have hZd : directed (⊇) Z, from directed_of_mono Z Zmono,
+have ∀ i, Z i ⊆ Z 0, from assume i, Zmono $ zero_le i,
+have hZc : ∀ i, compact (Z i), from assume i, compact_of_is_closed_subset hZ0 (hZcl i) (this i),
+compact.nonempty_Inter_of_directed_nonempty_compact_closed Z hZd hZn hZc hZcl
 
 /-- For every open cover of a compact set, there exists a finite subcover. -/
 lemma compact.elim_finite_subcover_image {s : set α} {b : set β} {c : β → set α}
@@ -192,9 +195,6 @@ begin
     exact ⟨_, ⟨⟨i, hib⟩, rfl⟩, H⟩ },
 end
 
-section
--- this proof times out without this
-local attribute [instance, priority 1000] classical.prop_decidable
 /-- A set `s` is compact if for every family of closed sets whose intersection avoids `s`,
 there exists a finite subfamily whose intersection avoids `s`. -/
 theorem compact_of_finite_subfamily_closed {s : set α}
@@ -226,7 +226,6 @@ assume f hfn hfs, classical.by_contradiction $ assume : ¬ (∃x∈s, f ⊓ 𝓝
     have x ∈ closure i.val, from subset_closure (mem_bInter_iff.mp hx i hit),
     show false, from hxi this,
   hfn $ by rwa [empty_in_sets_eq_bot] at this
-end
 
 /-- A set `s` is compact if for every open cover of `s`, there exists a finite subcover. -/
 lemma compact_of_finite_subcover {s : set α}

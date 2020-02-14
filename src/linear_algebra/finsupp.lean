@@ -371,9 +371,38 @@ begin
     refine sum_mem _ _, simp [this] }
 end
 
-theorem mem_span_iff_total {s : set α} {x : M}:
+theorem mem_span_iff_total {s : set α} {x : M} :
   x ∈ span R (v '' s) ↔ ∃ l ∈ supported R R s, finsupp.total α M R v l = x :=
 by rw span_eq_map_total; simp
+
+lemma exists_finset_of_mem_supr {ι : Type*} (p : ι → submodule R M) {m : M} (hm : m ∈ ⨆ i, p i) :
+  ∃ s : finset ι, m ∈ ⨆ i ∈ s, p i :=
+begin
+  obtain ⟨f, hf, rfl⟩ : ∃ f ∈ supported R R (⋃ i, ↑(p i)), finsupp.total M M R id f = m,
+  { have aux : (id : M → M) '' (⋃ (i : ι), ↑(p i)) = (⋃ (i : ι), ↑(p i)) := set.image_id _,
+    rwa [supr_eq_span, ← aux, finsupp.mem_span_iff_total R] at hm },
+  let t : finset M := f.support,
+  have ht : ∀ x : {x // x ∈ t}, ∃ i, x.1 ∈ p i,
+  { intros x,
+    rw finsupp.mem_supported at hf,
+    specialize hf x.2,
+    rwa set.mem_Union at hf },
+  rcases classical.axiom_of_choice ht with ⟨g, hg⟩,
+  let s : finset ι := finset.image g finset.univ,
+  use s,
+  show _ ∈ lattice.Inf _,
+  simp only [lattice.Inf_eq_infi, submodule.mem_infi, set.mem_set_of_eq],
+  intros N hN,
+  rw [finsupp.total_apply, finsupp.sum, ← submodule.mem_coe],
+  apply is_add_submonoid.finset_sum_mem,
+  intros x hx,
+  apply submodule.smul_mem,
+  show x ∈ N,
+  let i := g ⟨x, hx⟩,
+  have hi : i ∈ s, { rw finset.mem_image, exact ⟨⟨x, hx⟩, finset.mem_univ _, rfl⟩ },
+  haveI : nonempty (i ∈ s) := ⟨hi⟩,
+  exact hN (p i) ⟨i, lattice.supr_const⟩ (hg ⟨x, hx⟩),
+end
 
 variables (α) (M) (v)
 

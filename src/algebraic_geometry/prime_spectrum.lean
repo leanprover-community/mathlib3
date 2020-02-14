@@ -32,6 +32,8 @@ open_locale classical
 
 universe variables u v
 
+variables (R : Type u) [comm_ring R]
+
 /-- The prime spectrum of a commutative ring `R`
 is the type of all prime ideal of `R`.
 
@@ -340,15 +342,15 @@ end
 instance : compact_space (prime_spectrum R) :=
 begin
   apply compact_space_of_finite_subfamily_closed,
-  intros ι Z h_closed hZ,
+  intros ι Z hZc hZ,
   let f : ι → ideal R := λ i, vanishing_ideal (Z i),
   have hf : ∀ i, Z i = zero_locus (f i),
   { intro i,
     rw [zero_locus_vanishing_ideal_eq_closure, closure_eq_of_is_closed],
-    exact h_closed i },
+    exact hZc i },
   simp only [hf] at hZ,
   rw [← zero_locus_supr, zero_locus_empty_iff_eq_top, ideal.eq_top_iff_one] at hZ,
-  rcases submodule.exists_finset_of_mem_supr _ hZ with ⟨s, hs⟩,
+  rcases finsupp.exists_finset_of_mem_supr R _ hZ with ⟨s, hs⟩,
   use s,
   rw [← ideal.eq_top_iff_one, ←zero_locus_empty_iff_eq_top] at hs,
   simpa only [zero_locus_supr, hf] using hs

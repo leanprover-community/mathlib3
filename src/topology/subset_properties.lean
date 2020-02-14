@@ -134,42 +134,42 @@ let ⟨t, ht⟩ := hs.elim_finite_subcover (λ i, - Z i) hZc
     exists_prop, set.mem_inter_eq, not_and, iff_self, set.mem_Inter, set.mem_compl_eq] using ht⟩
 
 /-- Cantor's intersection theorem:
-if the union of a directed family of nonempty closed sets `Z i` is compact,
-then the intersection of the `Z i` is nonempty. -/
-lemma compact.nonempty_Inter_of_compact_Union_of_directed_nonempty_closed
-  {ι : Type v} [hι : nonempty ι] (Z : ι → set α) (hZ : compact (⋃ i, Z i))
-  (hZd : directed (⊇) Z) (hZn : ∀ i, (Z i).nonempty) (hZc : ∀ i, is_closed (Z i)) :
+the intersection of a directed family of nonempty compact closed sets is nonempty. -/
+lemma compact.nonempty_Inter_of_directed_nonempty_compact_closed
+  {ι : Type v} [hι : nonempty ι] (Z : ι → set α) (hZd : directed (⊇) Z)
+  (hZn : ∀ i, (Z i).nonempty) (hZc : ∀ i, compact (Z i)) (hZcl : ∀ i, is_closed (Z i)) :
   (⋂ i, Z i).nonempty :=
 begin
+  apply hι.elim,
+  intro i₀,
+  let Z' := λ i, Z i ∩ Z i₀,
+  suffices : (⋂ i, Z' i).nonempty,
+  { exact nonempty.mono (Inter_subset_Inter $ assume i, inter_subset_left (Z i) (Z i₀)) this },
   rw ← ne_empty_iff_nonempty,
   intro H,
-  obtain ⟨t, ht⟩ : ∃ (t : finset ι), ((⋃ i, Z i) ∩ ⋂ (i ∈ t), Z i) = ∅,
-    from hZ.elim_finite_subfamily_closed Z hZc (by rw [H, inter_empty]),
-  obtain ⟨i₀, hi₀⟩ : ∃ i₀ : ι, ∀ i ∈ t, Z i ⊇ Z i₀,
-    from directed.finset_le (by apply_instance) hZd t,
-  suffices : ((⋃ i, Z i) ∩ ⋂ (i ∈ t), Z i).nonempty,
+  obtain ⟨t, ht⟩ : ∃ (t : finset ι), ((Z i₀) ∩ ⋂ (i ∈ t), Z' i) = ∅,
+    from (hZc i₀).elim_finite_subfamily_closed Z'
+      (assume i, is_closed_inter (hZcl i) (hZcl i₀)) (by rw [H, inter_empty]),
+  obtain ⟨i₁, hi₁⟩ : ∃ i₁ : ι, Z i₁ ⊆ Z i₀ ∧ ∀ i ∈ t, Z i₁ ⊆ Z' i,
+  { rcases directed.finset_le hι hZd t with ⟨i, hi⟩,
+    rcases hZd i i₀ with ⟨i₁, hi₁, hi₁₀⟩,
+    use [i₁, hi₁₀],
+    intros j hj,
+    exact subset_inter (subset.trans hi₁ (hi j hj)) hi₁₀ },
+  suffices : ((Z i₀) ∩ ⋂ (i ∈ t), Z' i).nonempty,
   { rw ← ne_empty_iff_nonempty at this, contradiction },
-  refine nonempty.mono _ (hZn i₀),
-  exact subset_inter (subset_Union Z i₀) (subset_bInter hi₀)
+  refine nonempty.mono _ (hZn i₁),
+  exact subset_inter hi₁.left (subset_bInter hi₁.right)
 end
 
 /-- Cantor's intersection theorem for sequences indexed by `ℕ`:
-if the union of a decreasing sequence of nonempty closed sets `Z i` is compact,
-then the intersection of the `Z i` is nonempty. -/
-lemma compact.nonempty_Inter_of_compact_Union_of_sequence_nonempty_closed
-  (Z : ℕ → set α) (hZ0 : compact (Z 0)) (hZn : ∀ i, (Z i).nonempty) (hZc : ∀ i, is_closed (Z i))
-  (hZd : ∀ i, Z (i+1) ⊆ Z i) :
+the intersection of a decreasing sequence of nonempty compact closed sets is nonempty. -/
+lemma compact.nonempty_Inter_of_sequence_nonempty_compact_closed
+  (Z : ℕ → set α) (hZd : ∀ i, Z (i+1) ⊆ Z i)
+  (hZn : ∀ i, (Z i).nonempty) (hZc : ∀ i, compact (Z i)) (hZcl : ∀ i, is_closed (Z i)) :
   (⋂ i, Z i).nonempty :=
-begin
-  have Zmono := @monotone_of_monotone_nat (order_dual (set α)) _ Z hZd,
-  apply compact.nonempty_Inter_of_compact_Union_of_directed_nonempty_closed Z _ _ hZn hZc,
-  { suffices : Z 0 = ⋃ i, Z i, { simpa [this] using hZ0 },
-    apply subset.antisymm (subset_Union Z 0),
-    apply Union_subset,
-    intro i,
-    exact Zmono (zero_le i) },
-  exact directed_of_mono Z Zmono
-end
+have directed (⊇) Z, from directed_of_mono Z (@monotone_of_monotone_nat (order_dual _) _ Z hZd),
+compact.nonempty_Inter_of_directed_nonempty_compact_closed Z this hZn hZc hZcl
 
 /-- For every open cover of a compact set, there exists a finite subcover. -/
 lemma compact.elim_finite_subcover_image {s : set α} {b : set β} {c : β → set α}

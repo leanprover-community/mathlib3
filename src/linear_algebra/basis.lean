@@ -182,18 +182,16 @@ begin
     have h_bij : bij_on subtype.val (subtype.val ⁻¹' l.support.to_set : set s) l.support.to_set,
     { apply bij_on.mk,
       { unfold maps_to },
-      { apply set.inj_on_of_injective _ subtype.val_injective },
+      { apply subtype.val_injective.inj_on },
       intros i hi,
-      rw mem_image,
-      use subtype.mk i (((finsupp.mem_supported _ _).1 hl₁ : ↑(l.support) ⊆ s) hi),
-      rw mem_preimage,
-      exact ⟨hi, rfl⟩ },
+      rw [image_preimage_eq_inter_range, subtype.range_val],
+      exact ⟨hi, (finsupp.mem_supported _ _).1 hl₁ hi⟩ },
     show l = 0,
     { apply finsupp.eq_zero_of_comap_domain_eq_zero (subtype.val : s → ι) _ h_bij,
       apply h,
       convert hl₂,
       rw [finsupp.lmap_domain_apply, finsupp.map_domain_comap_domain],
-      apply subtype.val_injective,
+      exact subtype.val_injective,
       rw subtype.range_val,
       exact (finsupp.mem_supported _ _).1 hl₁ } },
   { intros h l hl,
@@ -242,7 +240,7 @@ begin
   have h_bij : bij_on v (v ⁻¹' finset.to_set (l.support)) (finset.to_set (l.support)),
   { apply bij_on.mk,
     { unfold maps_to },
-    { apply set.inj_on_of_injective _ (linear_independent.injective zero_eq_one hv) },
+    { apply (linear_independent.injective zero_eq_one hv).inj_on },
     intros x hx,
     rcases mem_range.1 (((finsupp.mem_supported _ _).1 hl₁ : ↑(l.support) ⊆ range v) hx) with ⟨i, hi⟩,
     rw mem_image,
@@ -399,8 +397,7 @@ begin
       refine span_mono (@supr_le_supr2 (set M) _ _ _ _ _ _),
       rintros ⟨i⟩, exact ⟨i, le_refl _⟩ },
     { change finite (plift.up ⁻¹' s.to_set),
-      exact finite_preimage (inj_on_of_injective _ (assume i j, plift.up.inj))
-        s.finite_to_set } }
+      exact finite_preimage (assume i j _ _, plift.up.inj) s.finite_to_set } }
 end
 
 lemma linear_independent_Union_finite {η : Type*} {ιs : η → Type*}

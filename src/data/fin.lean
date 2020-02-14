@@ -366,41 +366,42 @@ variables {α : fin (n+1) → Type u} (x : α (last n)) (q : Πi, α i) (p : Π(
 def init (q : Πi, α i) (i : fin n) : α i.cast_succ :=
 q i.cast_succ
 
-/-- Adding an element at the end of an `n`-tuple, to get an `n+1`-tuple -/
-def append (p : Π(i : fin n), α i.cast_succ) (x : α (last n)) (i : fin (n+1)) : α i :=
+/-- Adding an element at the end of an `n`-tuple, to get an `n+1`-tuple. The name `snoc` comes from
+`cons` (i.e., adding an element to the left of a tuple) read in reverse order. -/
+def snoc (p : Π(i : fin n), α i.cast_succ) (x : α (last n)) (i : fin (n+1)) : α i :=
 if h : i.val < n
 then _root_.cast (by rw fin.cast_succ_cast_lt i h) (p (cast_lt i h))
 else _root_.cast (by rw eq_last_of_not_lt h) x
 
-@[simp] lemma init_append : init (append p x) = p :=
+@[simp] lemma init_snoc : init (snoc p x) = p :=
 begin
   ext i,
   have h' := fin.cast_lt_cast_succ i i.is_lt,
-  simp [init, append, i.is_lt, h'],
+  simp [init, snoc, i.is_lt, h'],
   convert cast_eq rfl (p i)
 end
 
-@[simp] lemma append_cast_succ : append p x i.cast_succ = p i :=
+@[simp] lemma snoc_cast_succ : snoc p x i.cast_succ = p i :=
 begin
   have : i.cast_succ.val < n := i.is_lt,
   have h' := fin.cast_lt_cast_succ i i.is_lt,
-  simp [append, this, h'],
+  simp [snoc, this, h'],
   convert cast_eq rfl (p i)
 end
 
-@[simp] lemma append_last : append p x (last n) = x :=
-by { simp [append], refl }
+@[simp] lemma snoc_last : snoc p x (last n) = x :=
+by { simp [snoc], refl }
 
 /-- Updating a tuple and adding an element at the end commute. -/
-@[simp] lemma append_update : append (update p i y) x = update (append p x) i.cast_succ y :=
+@[simp] lemma snoc_update : snoc (update p i y) x = update (snoc p x) i.cast_succ y :=
 begin
   ext j,
   by_cases h : j.val < n,
-  { simp only [append, h, dif_pos],
+  { simp only [snoc, h, dif_pos],
     by_cases h' : j = cast_succ i,
     { have C1 : α i.cast_succ = α j, by rw h',
-      have E1 : update (append p x) i.cast_succ y j = _root_.cast C1 y,
-      { have : update (append p x) j (_root_.cast C1 y) j = _root_.cast C1 y, by simp,
+      have E1 : update (snoc p x) i.cast_succ y j = _root_.cast C1 y,
+      { have : update (snoc p x) j (_root_.cast C1 y) j = _root_.cast C1 y, by simp,
         convert this,
         { exact h'.symm },
         { exact heq_of_eq_mp (congr_arg α (eq.symm h')) rfl } },
@@ -416,29 +417,29 @@ begin
       exact eq_rec_compose _ _ _ },
     { have : ¬(cast_lt j h = i),
         by { assume E, apply h', rw [← E, cast_succ_cast_lt] },
-      simp [h', this, append, h] } },
+      simp [h', this, snoc, h] } },
   { rw eq_last_of_not_lt h,
     simp [ne.symm (cast_succ_ne_last i)] }
 end
 
 /-- Adding an element at the beginning of a tuple and then updating it amounts to adding it directly. -/
-lemma update_append_last : update (append p x) (last n) z = append p z :=
+lemma update_snoc_last : update (snoc p x) (last n) z = snoc p z :=
 begin
   ext j,
   by_cases h : j.val < n,
   { have : j ≠ last n := ne_of_lt h,
-    simp [h, update_noteq, this, append] },
+    simp [h, update_noteq, this, snoc] },
   { rw eq_last_of_not_lt h,
     simp }
 end
 
 /-- Concatenating the first element of a tuple with its tail gives back the original tuple -/
-@[simp] lemma append_init_self : append (init q) (q (last n)) = q :=
+@[simp] lemma snoc_init_self : snoc (init q) (q (last n)) = q :=
 begin
   ext j,
   by_cases h : j.val < n,
   { have : j ≠ last n := ne_of_lt h,
-    simp [h, update_noteq, this, append, init, cast_succ_cast_lt],
+    simp [h, update_noteq, this, snoc, init, cast_succ_cast_lt],
     have A : cast_succ (cast_lt j h) = j := cast_succ_cast_lt _ _,
     rw ← cast_eq rfl (q j),
     congr' 1; rw A },
@@ -466,10 +467,10 @@ lemma tail_init_eq_init_tail {β : Type*} (q : fin (n+2) → β) :
   tail (init q) = init (tail q) :=
 by { ext i, simp [tail, init, cast_succ_fin_succ] }
 
-/-- `cons` and `append` commute. We state this lemma in a non-dependent setting, as otherwise it
+/-- `cons` and `snoc` commute. We state this lemma in a non-dependent setting, as otherwise it
 would involve a cast to convince Lean that the two types are equal, making it harder to use. -/
-lemma cons_append_eq_append_cons {β : Type*} (a : β) (q : fin n → β) (b : β) :
-  @cons n.succ (λ i, β) a (append q b) = append (cons a q) b :=
+lemma cons_snoc_eq_snoc_cons {β : Type*} (a : β) (q : fin n → β) (b : β) :
+  @cons n.succ (λ i, β) a (snoc q b) = snoc (cons a q) b :=
 begin
   ext i,
   by_cases h : i = 0,

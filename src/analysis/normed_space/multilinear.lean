@@ -544,11 +544,11 @@ calc
   ∥f (cons x m)∥ ≤ ∥f∥ * univ.prod (λ(i : fin n.succ), ∥cons x m i∥) : f.le_op_norm _
   ... = (∥f∥ * ∥x∥) * univ.prod (λi, ∥m i∥) : by { rw prod_univ_succ, simp [mul_assoc] }
 
-lemma continuous_multilinear_map.norm_map_append_le
+lemma continuous_multilinear_map.norm_map_snoc_le
   (f : continuous_multilinear_map 𝕜 E E₂) (m : Π(i : fin n), E i.cast_succ) (x : E (last n)) :
-  ∥f (append m x)∥ ≤ ∥f∥ * univ.prod (λi, ∥m i∥) * ∥x∥ :=
+  ∥f (snoc m x)∥ ≤ ∥f∥ * univ.prod (λi, ∥m i∥) * ∥x∥ :=
 calc
-  ∥f (append m x)∥ ≤ ∥f∥ * univ.prod (λ(i : fin n.succ), ∥append m x i∥) : f.le_op_norm _
+  ∥f (snoc m x)∥ ≤ ∥f∥ * univ.prod (λ(i : fin n.succ), ∥snoc m x i∥) : f.le_op_norm _
   ... = ∥f∥ * univ.prod (λi, ∥m i∥) * ∥x∥ : by { rw prod_univ_cast_succ, simp [mul_assoc] }
 
 /-! #### Left curryfication -/
@@ -697,13 +697,13 @@ let f' : multilinear_map 𝕜 (λ(i : fin n), E i.cast_succ) (E (last n) →ₗ[
 
 /-- Given a continuous multilinear map `f` in `n+1` variables, split the last variable to obtain
 a continuous multilinear map in `n` variables into continuous linear maps, given by
-`m ↦ (x ↦ f (append m x))`. -/
+`m ↦ (x ↦ f (snoc m x))`. -/
 def continuous_multilinear_map.curry_right
   (f : continuous_multilinear_map 𝕜 E E₂) :
   continuous_multilinear_map 𝕜 (λ(i : fin n), E i.cast_succ) (E (last n) →L[𝕜] E₂) :=
 let f' : multilinear_map 𝕜 (λ(i : fin n), E i.cast_succ) (E (last n) →L[𝕜] E₂) :=
 { to_fun := λm, (f.to_multilinear_map.curry_right m).mk_continuous
-    (∥f∥ * univ.prod (λ(i : fin n), ∥m i∥)) $ λx, f.norm_map_append_le m x,
+    (∥f∥ * univ.prod (λ(i : fin n), ∥m i∥)) $ λx, f.norm_map_snoc_le m x,
   add  := λ m i x y, by { simp, refl },
   smul := λ m i c x, by { simp, refl } } in
 f'.mk_continuous (∥f∥) (λm, linear_map.mk_continuous_norm_le _
@@ -711,16 +711,16 @@ f'.mk_continuous (∥f∥) (λm, linear_map.mk_continuous_norm_le _
 
 @[simp] lemma continuous_multilinear_map.curry_right_apply
   (f : continuous_multilinear_map 𝕜 E E₂) (m : Π(i : fin n), E i.cast_succ) (x : E (last n)) :
-  f.curry_right m x = f (append m x) := rfl
+  f.curry_right m x = f (snoc m x) := rfl
 
 @[simp] lemma continuous_multilinear_map.curry_uncurry_right
   (f : continuous_multilinear_map 𝕜 (λ(i : fin n), E i.cast_succ) (E (last n) →L[𝕜] E₂)) :
   f.uncurry_right.curry_right = f :=
 begin
   ext m x,
-  simp only [append_last, continuous_multilinear_map.curry_right_apply,
+  simp only [snoc_last, continuous_multilinear_map.curry_right_apply,
              continuous_multilinear_map.uncurry_right_apply],
-  rw init_append
+  rw init_snoc
 end
 
 @[simp] lemma continuous_multilinear_map.uncurry_curry_right
@@ -804,7 +804,7 @@ variables {𝕜 G E E₂}
 @[simp] lemma continuous_multilinear_curry_right_equiv_symm_apply
   (f : continuous_multilinear_map 𝕜 E E₂)
   (v : Π (i : fin n), E i.cast_succ) (x : E (last n)) :
-  (continuous_multilinear_curry_right_equiv 𝕜 E E₂).symm f v x = f (append v x) := rfl
+  (continuous_multilinear_curry_right_equiv 𝕜 E E₂).symm f v x = f (snoc v x) := rfl
 
 
 /-!
@@ -929,7 +929,7 @@ variables {𝕜 G E₂}
 
 @[simp] lemma continuous_multilinear_curry_fin1_apply
   (f : (continuous_multilinear_map 𝕜 (λ (i : fin 1), G) E₂)) (x : G) :
-  continuous_multilinear_curry_fin1 𝕜 G E₂ f x = f (fin.append 0 x) := rfl
+  continuous_multilinear_curry_fin1 𝕜 G E₂ f x = f (fin.snoc 0 x) := rfl
 
 @[simp] lemma continuous_multilinear_curry_fin1_symm_apply
   (f : G →L[𝕜] E₂) (v : (fin 1) → G) :

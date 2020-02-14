@@ -152,19 +152,19 @@ lemma cons_smul (f : multilinear_map R M M₂) (m : Π(i : fin n), M i.succ) (c 
 by rw [← update_cons_zero x m (c • x), f.map_smul, update_cons_zero]
 
 /-- In the specific case of multilinear maps on spaces indexed by `fin (n+1)`, where one can build
-an element of `Π(i : fin (n+1)), M i` using `append`, one can express directly the additivity of a
+an element of `Π(i : fin (n+1)), M i` using `snoc`, one can express directly the additivity of a
 multilinear map along the first variable. -/
-lemma append_add (f : multilinear_map R M M₂) (m : Π(i : fin n), M i.cast_succ) (x y : M (last n)) :
-  f (append m (x+y)) = f (append m x) + f (append m y) :=
-by rw [← update_append_last x m (x+y), f.map_add, update_append_last, update_append_last]
+lemma snoc_add (f : multilinear_map R M M₂) (m : Π(i : fin n), M i.cast_succ) (x y : M (last n)) :
+  f (snoc m (x+y)) = f (snoc m x) + f (snoc m y) :=
+by rw [← update_snoc_last x m (x+y), f.map_add, update_snoc_last, update_snoc_last]
 
 /-- In the specific case of multilinear maps on spaces indexed by `fin (n+1)`, where one can build
 an element of `Π(i : fin (n+1)), M i` using `cons`, one can express directly the multiplicativity
 of a multilinear map along the first variable. -/
-lemma append_smul (f : multilinear_map R M M₂)
+lemma snoc_smul (f : multilinear_map R M M₂)
   (m : Π(i : fin n), M i.cast_succ) (c : R) (x : M (last n)) :
-  f (append m (c • x)) = c • f (append m x) :=
-by rw [← update_append_last x m (c • x), f.map_smul, update_append_last]
+  f (snoc m (c • x)) = c • f (snoc m x) :=
+by rw [← update_snoc_last x m (c • x), f.map_smul, update_snoc_last]
 
 /-- If `g` is multilinear and `f` is linear, then `g (f m₁, ..., f mₙ)` is again a multilinear
 function, that we call `g.comp_linear_map f`. -/
@@ -465,36 +465,36 @@ def multilinear_map.uncurry_right
 
 /-- Given a multilinear map `f` in `n+1` variables, split the last variable to obtain
 a multilinear map in `n` variables taking values in linear maps from `M (last n)` to `M₂`, given by
-`m ↦ (x ↦ f (append m x))`. -/
+`m ↦ (x ↦ f (snoc m x))`. -/
 def multilinear_map.curry_right (f : multilinear_map R M M₂) :
   multilinear_map R (λ(i : fin n), M (fin.cast_succ i)) ((M (last n)) →ₗ[R] M₂) :=
 { to_fun := λm,
-  { to_fun := λx, f (append m x),
-    add    := λx y, by rw f.append_add,
-    smul   := λc x, by rw f.append_smul },
+  { to_fun := λx, f (snoc m x),
+    add    := λx y, by rw f.snoc_add,
+    smul   := λc x, by rw f.snoc_smul },
   add := λm i x y, begin
     ext z,
-    change f (append (update m i (x + y)) z)
-      = f (append (update m i x) z) + f (append (update m i y) z),
-    rw [append_update, append_update, append_update, f.map_add]
+    change f (snoc (update m i (x + y)) z)
+      = f (snoc (update m i x) z) + f (snoc (update m i y) z),
+    rw [snoc_update, snoc_update, snoc_update, f.map_add]
   end,
   smul := λm i c x, begin
     ext z,
-    change f (append (update m i (c • x)) z) = c • f (append (update m i x) z),
-    rw [append_update, append_update, f.map_smul]
+    change f (snoc (update m i (c • x)) z) = c • f (snoc (update m i x) z),
+    rw [snoc_update, snoc_update, f.map_smul]
   end }
 
 @[simp] lemma multilinear_map.curry_right_apply
   (f : multilinear_map R M M₂) (m : Π(i : fin n), M i.cast_succ) (x : M (last n)) :
-  f.curry_right m x = f (append m x) := rfl
+  f.curry_right m x = f (snoc m x) := rfl
 
 @[simp] lemma multilinear_map.curry_uncurry_right
   (f : (multilinear_map R (λ(i : fin n), M i.cast_succ) ((M (last n)) →ₗ[R] M₂))) :
   f.uncurry_right.curry_right = f :=
 begin
   ext m x,
-  simp only [append_last, multilinear_map.curry_right_apply, multilinear_map.uncurry_right_apply],
-  rw init_append
+  simp only [snoc_last, multilinear_map.curry_right_apply, multilinear_map.uncurry_right_apply],
+  rw init_snoc
 end
 
 @[simp] lemma multilinear_map.uncurry_curry_right

@@ -228,7 +228,7 @@ The variant `tauto!` uses the law of excluded middle.
 -/
 meta def tauto (c : parse $ (tk "!")?) := tautology c
 
-add_hint "tauto"
+add_hint_tactic "tauto"
 
 end interactive
 end tactic

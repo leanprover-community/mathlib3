@@ -86,7 +86,7 @@ ite-expression.
 meta def split_ifs (at_ : parse location) (names : parse with_ident_list) : tactic unit :=
 tactic.split_ifs names at_
 
-add_hint "split_ifs"
+add_hint_tactic "split_ifs"
 
 end interactive
 

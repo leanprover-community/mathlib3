@@ -147,4 +147,4 @@ else if `nat ∈ opt
      then omega_nat
      else mcond goal_domain omega_int omega_nat
 
-add_hint "omega"
+add_hint_tactic "omega"

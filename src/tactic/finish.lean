@@ -560,7 +560,7 @@ meta def finish (hs : parse simp_arg_list) (ps : parse (tk "using" *> pexpr_list
 do s ← mk_simp_set ff [] hs,
    auto.finish s (ps.get_or_else []) cfg
 
-add_hint "finish"
+add_hint_tactic "finish"
 
 /--
   `iclarify` is like `clarify`, but only uses intuitionistic logic.

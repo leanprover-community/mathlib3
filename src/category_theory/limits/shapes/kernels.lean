@@ -1,7 +1,7 @@
 /-
 Copyright (c) 2019 Scott Morrison. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Authors: Scott Morrison
+Authors: Scott Morrison, Markus Himmel
 -/
 import category_theory.limits.shapes.zero
 import category_theory.limits.shapes.equalizers
@@ -71,6 +71,7 @@ def zero_cone : cone (parallel_pair f 0) :=
 { X := 0,
   π := { app := λ j, 0 }}
 
+/-- The map from the zero object is a kernel of a monomorphism -/
 def is_limit_cone_zero_cone [mono f] : is_limit (zero_cone f) :=
 { lift := λ s, 0,
   fac' := λ s j,

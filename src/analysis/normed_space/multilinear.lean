@@ -680,7 +680,7 @@ variables {𝕜 E E₂}
 
 /-- Given a continuous linear map `f` from continuous multilinear maps on `n` variables to
 continuous linear maps on `E 0`, construct the corresponding continuous multilinear map on `n+1`
-variables obtained by concatenating the variables, given by `m ↦ f (tail m) (m 0)`-/
+variables obtained by concatenating the variables, given by `m ↦ f (init m) (m (last n))`. -/
 def continuous_multilinear_map.uncurry_right
   (f : continuous_multilinear_map 𝕜 (λ(i : fin n), E i.cast_succ) (E (last n) →L[𝕜] E₂)) :
   continuous_multilinear_map 𝕜 E E₂ :=
@@ -695,9 +695,9 @@ let f' : multilinear_map 𝕜 (λ(i : fin n), E i.cast_succ) (E (last n) →ₗ[
   (f : continuous_multilinear_map 𝕜 (λ(i : fin n), E i.cast_succ) (E (last n) →L[𝕜] E₂)) (m : Πi, E i) :
   f.uncurry_right m = f (init m) (m (last n)) := rfl
 
-/-- Given a continuous multilinear map `f` in `n+1` variables, split the first variable to obtain
+/-- Given a continuous multilinear map `f` in `n+1` variables, split the last variable to obtain
 a continuous multilinear map in `n` variables into continuous linear maps, given by
-`m ↦ (x ↦ f (cons x m))`. -/
+`m ↦ (x ↦ f (append m x))`. -/
 def continuous_multilinear_map.curry_right
   (f : continuous_multilinear_map 𝕜 E E₂) :
   continuous_multilinear_map 𝕜 (λ(i : fin n), E i.cast_succ) (E (last n) →L[𝕜] E₂) :=
@@ -751,7 +751,7 @@ variables (𝕜 E E₂)
 /-- The space of continuous multilinear maps on `Π(i : fin (n+1)), E i` is canonically isomorphic to
 the space of continuous multilinear maps on `Π(i : fin n), E i.cast_succ` with values in the space
 of continuous linear maps on `E (last n)`, by separating the last variable. We register this
-isomorphism as a linear isomorphism in `continuous_multilinear_curry_right_equiv_aux 𝕜 E E₂`.
+isomorphism as a linear equiv in `continuous_multilinear_curry_right_equiv_aux 𝕜 E E₂`.
 The algebraic version (without continuity assumption on the maps) is
 `multilinear_curry_right_equiv 𝕜 E E₂`, and the topological isomorphism (registering
 additionally that the isomorphism is continuous) is
@@ -772,8 +772,8 @@ def continuous_multilinear_curry_right_equiv_aux :
 /-- The space of continuous multilinear maps on `Π(i : fin (n+1)), E i` is canonically isomorphic to
 the space of continuous multilinear maps on `Π(i : fin n), E i.cast_succ` with values in the space
 of continuous linear maps on `E (last n)`, by separating the last variable. We register this
-isomorphism in `continuous_multilinear_curry_right_equiv 𝕜 E E₂`. The algebraic version (without
-topology) is given in `multilinear_curry_right_equiv 𝕜 E E₂`.
+isomorphism as a continuous linear equiv in `continuous_multilinear_curry_right_equiv 𝕜 E E₂`.
+The algebraic version (without topology) is given in `multilinear_curry_right_equiv 𝕜 E E₂`.
 
 The direct and inverse maps are given by `f.uncurry_right` and `f.curry_right`. Use these
 unless you need the full framework of continuous linear equivs. -/

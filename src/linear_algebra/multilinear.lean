@@ -330,6 +330,8 @@ variables {R M M₂}
 [comm_ring R] [∀i, add_comm_group (M i)] [add_comm_group M'] [add_comm_group M₂]
 [∀i, module R (M i)] [module R M'] [module R M₂]
 
+/-! #### Left curryfication -/
+
 /-- Given a linear map `f` from `M 0` to multilinear maps on `n` variables,
 construct the corresponding multilinear map on `n+1` variables obtained by concatenating
 the variables, given by `m ↦ f (m 0) (tail m)`-/
@@ -418,6 +420,8 @@ def multilinear_curry_left_equiv :
 
 variables {R M M₂}
 
+/-! #### Right curryfication -/
+
 /-- Given a multilinear map `f` in `n` variables to the space of linear maps from `M (last n)` to
 `M₂`, construct the corresponding multilinear map on `n+1` variables obtained by concatenating
 the variables, given by `m ↦ f (init m) (m (last n))`-/
@@ -459,7 +463,7 @@ def multilinear_map.uncurry_right
   (f : (multilinear_map R (λ(i : fin n), M i.cast_succ) ((M (last n)) →ₗ[R] M₂))) (m : Πi, M i) :
   f.uncurry_right m = f (init m) (m (last n)) := rfl
 
-/-- Given a multilinear map `f` in `n+1` variables, split the first variable to obtain
+/-- Given a multilinear map `f` in `n+1` variables, split the last variable to obtain
 a multilinear map in `n` variables taking values in linear maps from `M (last n)` to `M₂`, given by
 `m ↦ (x ↦ f (append m x))`. -/
 def multilinear_map.curry_right (f : multilinear_map R M M₂) :

@@ -793,7 +793,7 @@ end
 
 lemma sum_comap_domain {α₁ α₂ β γ : Type*} [has_zero β] [add_comm_monoid γ]
   (f : α₁ → α₂) (l : α₂ →₀ β) (g : α₂ → β → γ) (hf : set.bij_on f (f ⁻¹' l.support.to_set) l.support.to_set):
-  (comap_domain f l (set.inj_on_of_bij_on hf)).sum (g ∘ f) = l.sum g :=
+  (comap_domain f l hf.inj_on).sum (g ∘ f) = l.sum g :=
 begin
   unfold sum,
   haveI := classical.dec_eq α₂,
@@ -802,7 +802,7 @@ end
 
 lemma eq_zero_of_comap_domain_eq_zero {α₁ α₂ γ : Type*} [add_comm_monoid γ]
   (f : α₁ → α₂) (l : α₂ →₀ γ) (hf : set.bij_on f (f ⁻¹' l.support.to_set) l.support.to_set) :
-   comap_domain f l (set.inj_on_of_bij_on hf) = 0 → l = 0 :=
+   comap_domain f l hf.inj_on = 0 → l = 0 :=
 begin
   rw [← support_eq_empty, ← support_eq_empty, comap_domain],
   simp only [finset.ext, finset.not_mem_empty, iff_false, mem_preimage],
@@ -814,7 +814,7 @@ end
 lemma map_domain_comap_domain {α₁ α₂ γ : Type*} [add_comm_monoid γ]
   (f : α₁ → α₂) (l : α₂ →₀ γ)
   (hf : function.injective f) (hl : ↑l.support ⊆ set.range f):
-  map_domain f (comap_domain f l (set.inj_on_of_injective _ hf)) = l :=
+  map_domain f (comap_domain f l (hf.inj_on _)) = l :=
 begin
   ext a,
   haveI := classical.dec (a ∈ set.range f),

@@ -591,7 +591,7 @@ begin
 end
 
 section lim
-variables [inhabited α]
+variables [nonempty α]
 
 /-- If `f` is a filter, then `lim f` is a limit of the filter, if it exists. -/
 noncomputable def lim (f : filter α) : α := epsilon $ λa, f ≤ 𝓝 a

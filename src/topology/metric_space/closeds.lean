@@ -209,7 +209,7 @@ instance closeds.compact_space [compact_space α] : compact_space (closeds α) :
   split,
   -- `F` is finite
   { apply @finite_of_finite_image _ _ F (λf, f.val),
-    { apply set.inj_on_of_injective, simp [subtype.val_injective] },
+    { exact subtype.val_injective.inj_on F },
     { refine finite_subset (finite_subsets_of_finite fs) (λb, _),
       simp only [and_imp, set.mem_image, set.mem_set_of_eq, exists_imp_distrib],
       assume x hx hx',
@@ -333,8 +333,7 @@ begin
         rw ← yx,
         exact hy },
       apply countable_of_injective_of_countable_image _ this,
-      apply inj_on_of_inj_on_of_subset (injective_iff_inj_on_univ.1 subtype.val_injective)
-        (subset_univ _) },
+      apply subtype.val_injective.inj_on },
     { refine subset.antisymm (subset_univ _) (λt ht, mem_closure_iff.2 (λε εpos, _)),
       -- t is a compact nonempty set, that we have to approximate uniformly by a a set in `v`.
       rcases dense εpos with ⟨δ, δpos, δlt⟩,

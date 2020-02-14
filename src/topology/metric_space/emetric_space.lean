@@ -545,7 +545,7 @@ theorem tendsto_nhds {f : filter β} {u : β → α} {a : α} :
   let ⟨ε, ε0, hε⟩ := mem_nhds_iff.1 hs, ⟨δ, δ0, hδ⟩ := H _ ε0 in
   f.sets_of_superset δ0 (λx xδ, hε (hδ x xδ))⟩
 
-theorem tendsto_at_top [inhabited β] [semilattice_sup β] (u : β → α) {a : α} :
+theorem tendsto_at_top [nonempty β] [semilattice_sup β] (u : β → α) {a : α} :
   tendsto u at_top (𝓝 a) ↔ ∀ε>0, ∃N, ∀n≥N, edist (u n) a < ε :=
 begin
   rw tendsto_nhds,
@@ -559,18 +559,18 @@ end
 
 /-- In an emetric space, Cauchy sequences are characterized by the fact that, eventually,
 the edistance between its elements is arbitrarily small -/
-theorem cauchy_seq_iff [inhabited β] [semilattice_sup β] {u : β → α} :
+theorem cauchy_seq_iff [nonempty β] [semilattice_sup β] {u : β → α} :
   cauchy_seq u ↔ ∀ε>0, ∃N, ∀m n≥N, edist (u m) (u n) < ε :=
 uniformity_basis_edist.cauchy_seq_iff
 
 /-- A variation around the emetric characterization of Cauchy sequences -/
-theorem cauchy_seq_iff' [inhabited β] [semilattice_sup β] {u : β → α} :
+theorem cauchy_seq_iff' [nonempty β] [semilattice_sup β] {u : β → α} :
   cauchy_seq u ↔ ∀ε>(0 : ennreal), ∃N, ∀n≥N, edist (u n) (u N) < ε :=
 uniformity_basis_edist.cauchy_seq_iff'
 
 /-- A variation of the emetric characterization of Cauchy sequences that deals with
 `nnreal` upper bounds. -/
-theorem cauchy_seq_iff_nnreal [inhabited β] [semilattice_sup β] {u : β → α} :
+theorem cauchy_seq_iff_nnreal [nonempty β] [semilattice_sup β] {u : β → α} :
   cauchy_seq u ↔ ∀ ε : nnreal, 0 < ε → ∃ N, ∀ n, N ≤ n → edist (u n) (u N) < ε :=
 uniformity_basis_edist_nnreal.cauchy_seq_iff'
 

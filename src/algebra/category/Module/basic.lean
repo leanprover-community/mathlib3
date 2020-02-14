@@ -95,13 +95,12 @@ def kernel_is_limit : is_limit (kernel_cone _ _ _ f) :=
   end,
   uniq' := λ s m h, begin
     ext x,
+    apply subtype.ext.2,
     have h₁ : (m ≫ (kernel_cone R M N f).π.app walking_parallel_pair.zero).to_fun =
       (s.π.app walking_parallel_pair.zero).to_fun, by { congr, exact h walking_parallel_pair.zero },
-    have h₂ := @congr_fun _ _ (m ≫ (kernel_cone R M N f).π.app walking_parallel_pair.zero)
+    convert @congr_fun _ _ (m ≫ (kernel_cone R M N f).π.app walking_parallel_pair.zero)
       (s.π.app walking_parallel_pair.zero)
       h₁ x,
-    erw [coe_comp, function.comp_app, submodule.subtype_apply] at h₂,
-    exact subtype.ext.2 h₂,
   end }
 
 end kernel

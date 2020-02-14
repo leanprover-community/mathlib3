@@ -120,7 +120,7 @@ protected def symm : local_equiv β α :=
 
 /-- A local equiv induces a bijection between its source and target -/
 lemma bij_on_source : bij_on e.to_fun e.source e.target :=
-bij_on_of_inv_on e.map_source e.map_target ⟨e.left_inv, e.right_inv⟩
+inv_on.bij_on ⟨e.left_inv, e.right_inv⟩ e.map_source e.map_target
 
 lemma image_eq_target_inter_inv_preimage {s : set α} (h : s ⊆ e.source) :
   e.to_fun '' s = e.target ∩ e.inv_fun ⁻¹' s :=
@@ -156,13 +156,13 @@ lemma target_inter_inv_preimage_preimage (s : set β) :
 e.symm.source_inter_preimage_inv_preimage _
 
 lemma image_source_eq_target : e.to_fun '' e.source = e.target :=
-image_eq_of_bij_on e.bij_on_source
+e.bij_on_source.image_eq
 
 lemma source_subset_preimage_target : e.source ⊆ e.to_fun ⁻¹' e.target :=
 λx hx, e.map_source hx
 
 lemma inv_image_target_eq_source : e.inv_fun '' e.target = e.source :=
-image_eq_of_bij_on e.symm.bij_on_source
+e.symm.bij_on_source.image_eq
 
 lemma target_subset_preimage_source : e.target ⊆ e.inv_fun ⁻¹' e.source :=
 λx hx, e.map_target hx
@@ -367,9 +367,9 @@ lemma eq_on_source_refl : e ≈ e := setoid.refl _
 lemma eq_on_source_symm {e e' : local_equiv α β} (h : e ≈ e') : e.symm ≈ e'.symm :=
 begin
   have T : e.target = e'.target,
-  { have : set.bij_on e'.to_fun e.source e.target := bij_on_of_eq_on h.2 e.bij_on_source,
-    have A : e'.to_fun '' e.source = e.target := image_eq_of_bij_on this,
-    rw [h.1, image_eq_of_bij_on e'.bij_on_source] at A,
+  { have : set.bij_on e'.to_fun e.source e.target := e.bij_on_source.congr h.2,
+    have A : e'.to_fun '' e.source = e.target := this.image_eq,
+    rw [h.1, e'.bij_on_source.image_eq] at A,
     exact A.symm },
   refine ⟨T, λx hx, _⟩,
   have xt : x ∈ e.target := hx,
@@ -378,7 +378,7 @@ begin
   have A : e.to_fun (e.inv_fun x) = x := e.right_inv hx,
   have B : e.to_fun (e'.inv_fun x) = x,
     by { rw h.2, exact e'.right_inv xt, exact e's },
-  apply inj_on_of_bij_on e.bij_on_source (e.map_target hx) e's,
+  apply e.bij_on_source.inj_on (e.map_target hx) e's,
   rw [A, B]
 end
 
@@ -407,7 +407,7 @@ begin
   split,
   { have : e.target = e'.target := (eq_on_source_symm he).1,
     rw [trans_source'', trans_source'', ← this, ← hf.1],
-    exact image_eq_image_of_eq_on (λx hx, (eq_on_source_symm he).2 x hx.1) },
+    exact eq_on.image_eq (λx hx, (eq_on_source_symm he).2 x hx.1) },
   { assume x hx,
     rw trans_source at hx,
     simp [(he.2 x hx.1).symm, hf.2 _ hx.2] }

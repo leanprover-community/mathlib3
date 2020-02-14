@@ -845,7 +845,7 @@ assume x hx, h hx
 
 @[simp] theorem preimage_univ : f ⁻¹' univ = univ := rfl
 
-@[simp] theorem subset_preimage_univ {s : set α} : s ⊆ f ⁻¹' univ := subset_univ _
+theorem subset_preimage_univ {s : set α} : s ⊆ f ⁻¹' univ := subset_univ _
 
 @[simp] theorem preimage_inter {s t : set β} : f ⁻¹' (s ∩ t) = f ⁻¹' s ∩ f ⁻¹' t := rfl
 

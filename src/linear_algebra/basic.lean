@@ -731,6 +731,55 @@ lemma linear_eq_on (s : set M) {f g : M →ₗ[R] M₂} (H : ∀x∈s, f x = g x
   f x = g x :=
 by apply span_induction h H; simp {contextual := tt}
 
+lemma supr_eq_span {ι : Sort*} (p : ι → submodule R M) :
+  (⨆ (i : ι), p i) = submodule.span R (⋃ (i : ι), ↑(p i)) :=
+begin
+  apply le_antisymm,
+  { apply lattice.supr_le _,
+    intro i,
+    apply set.subset.trans _ submodule.subset_span,
+    intros m hm,
+    rw set.mem_Union,
+    use [i, hm] },
+  { rw [submodule.span_le, set.Union_subset_iff],
+    intros i m hm,
+    exact submodule.mem_supr_of_mem _ i hm }
+end
+
+lemma exists_finset_of_mem_supr {ι : Type*} (p : ι → submodule R M) {m : M} (hm : m ∈ ⨆ i, p i) :
+  ∃ s : finset ι, m ∈ ⨆ i ∈ s, p i :=
+begin
+  have aux : (id : M → M) '' (⋃ (i : ι), ↑(p i)) = (⋃ (i : ι), ↑(p i)) := set.image_id _,
+  rw [supr_eq_span, ← aux, finsupp.mem_span_iff_total R] at hm,
+  rcases hm with ⟨f, hf, rfl⟩,
+  let t : finset M := f.support,
+  have ht : ∀ x : {x // x ∈ t}, ∃ i, x.1 ∈ p i,
+  { intros x,
+    rw finsupp.mem_supported at hf,
+    specialize hf x.2,
+    rwa set.mem_Union at hf },
+  let g : {x // x ∈ t} → ι := (λ x, classical.some (ht x)),
+  let s : finset ι := finset.image g finset.univ,
+  use s,
+  show _ ∈ lattice.Inf _,
+  rw lattice.Inf_eq_infi,
+  simp only [submodule.mem_infi, set.mem_set_of_eq],
+  rintro N hN,
+  rw finsupp.total_apply,
+  rw finsupp.sum,
+  rw ← submodule.mem_coe,
+  apply is_add_submonoid.finset_sum_mem,
+  intros x hx,
+  apply submodule.smul_mem,
+  show x ∈ N,
+  let i := g ⟨x, hx⟩,
+  have hi : i ∈ s,
+  { rw finset.mem_image, exact ⟨⟨x, hx⟩, finset.mem_univ _, rfl⟩ },
+  haveI : nonempty (i ∈ s) := ⟨hi⟩,
+  refine hN (p i) ⟨i, _⟩ (classical.some_spec (ht ⟨x, hx⟩)),
+  simp only [lattice.csupr_const],
+end
+
 /-- The product of two submodules is a submodule. -/
 def prod : submodule R (M × M₂) :=
 { carrier := set.prod p q,

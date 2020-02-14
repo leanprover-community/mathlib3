@@ -16,7 +16,9 @@ A category "has a zero object" if it has an object which is both initial and ter
 zero object provides zero morphisms, as the unique morphisms factoring through the zero object.
 
 ## References
+
 * https://en.wikipedia.org/wiki/Zero_morphism
+* [F. Borceux, *Handbook of Categorical Algebra 2*][borceux-vol2]
 -/
 
 universes v u
@@ -52,8 +54,6 @@ by { rw [←has_zero_morphisms.comp_zero.{v} C f Z, cancel_epi] at h, exact h }
 
 end
 
--- FIXME define is_initial and is_terminal, and define `has_zero_object` in terms of these
-
 /-- A category "has a zero object" if it has an object which is both initial and terminal. -/
 class has_zero_object :=
 (zero : C)
@@ -68,7 +68,7 @@ variables {C}
 Construct a `has_zero C` for a category with a zero object.
 This can not be a global instance as it will trigger for every `has_zero C` typeclass search.
 -/
-def zero_of_zero_object [has_zero_object.{v} C] : has_zero C :=
+def zero_of_zero_object : has_zero C :=
 { zero := has_zero_object.zero.{v} C }
 
 local attribute [instance] zero_of_zero_object
@@ -85,13 +85,15 @@ def zero_morphisms_of_zero_object : has_zero_morphisms.{v} C :=
 
 local attribute [instance] zero_morphisms_of_zero_object
 
-@[simp] lemma zero_of_to_zero {X : C} (f : X ⟶ 0) : f = 0 :=
+/--  An arrow ending in the zero object is zero -/
+lemma zero_of_to_zero {X : C} (f : X ⟶ 0) : f = 0 :=
 begin
   rw (has_zero_object.unique_from.{v} X).uniq f,
   rw (has_zero_object.unique_from.{v} X).uniq (0 : X ⟶ 0)
 end
 
-@[simp] lemma zero_of_from_zero {X : C} (f : 0 ⟶ X) : f = 0 :=
+/-- An arrow starting at the zero object is zero -/
+lemma zero_of_from_zero {X : C} (f : 0 ⟶ X) : f = 0 :=
 begin
   rw (has_zero_object.unique_to.{v} X).uniq f,
   rw (has_zero_object.unique_to.{v} X).uniq (0 : 0 ⟶ X)

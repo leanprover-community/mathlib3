@@ -400,7 +400,7 @@ However, it will work, producing the identity function, if one replaces have by 
 ```lean
 example {P Q : Prop} (p : P) (h : P → Q) : Q :=
 begin
-  hints,
+  hint,
   /- the following tactics make progress:
      ----
      solve_by_elim

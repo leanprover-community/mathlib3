@@ -10,9 +10,10 @@ import tactic.basic tactic.finish data.subtype logic.unique
 
 # Basic properties of sets
 
-This file provides some basic definitions related to sets and functions not present
-in the core library, as well as extra lemmas for functions in the core library
-(empty set, univ, union, intersection, insert, singleton, complement, powerset).
+A set in Lean is a subset of a type. This file provides some basic definitions related to sets
+and functions not present in the core library, as well as extra lemmas for functions in the core
+library (empty set, univ, union, intersection, insert, singleton, set-theoretic difference,
+complement, and powerset).
 
 ## Main definitions
 
@@ -23,9 +24,9 @@ in the core library, as well as extra lemmas for functions in the core library
 
 * `preimage f s` : the preimage f⁻¹(s).
 
-* `subsingleton s` : `s` has at most one element.
+* `subsingleton s` : the predicate saying that `s` has at most one element.
 
-* `range f` : the image of `univ`.
+* `range f` : the image of `univ` under `f`.
 
 * `prod s t` : the subset `s × t`.
 

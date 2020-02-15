@@ -16,26 +16,28 @@ in the core library, as well as extra lemmas for functions in the core library
 
 ## Main definitions
 
-`strict_subset s t` : `s ⊆ t` but `s ≠ t`.
+* `strict_subset s t` : the predicate `s ⊆ t` but `s ≠ t`.
 
-`nonempty s` : `s ≠ ∅`. Note that this is the canonical way to express the fact that s has
-an element. It has the advantage that the `s.nonempty` dot notation can be used.
+* `nonempty s` : the predicate `s ≠ ∅`. Note that this is the canonical way to express the fact that
+  `s` has an element. It has the advantage that the `s.nonempty` dot notation can be used.
 
-`preimage f s` : the preimage f⁻¹(s).
+* `preimage f s` : the preimage f⁻¹(s).
 
-`subsingleton s` : `s` has at most one element.
+* `subsingleton s` : `s` has at most one element.
 
-`range f` : the image of `univ`.
+* `range f` : the image of `univ`.
 
-`prod s t` : the subset `s × t`.
+* `prod s t` : the subset `s × t`.
 
-`inclusion s t` : the map `↑s → ↑t`
+* `inclusion s t` : the map `↑s → ↑t`
 
 ## Notation
 
-`s ⊂ t` for `strict_subset s t`
-`f ⁻¹' s` for `preimage f s`
-`f '' s` for `image f s`
+* `s ⊂ t` for `strict_subset s t`
+
+* `f ⁻¹' s` for `preimage f s`
+
+* `f '' s` for `image f s`
 
 ## Implementation notes
 

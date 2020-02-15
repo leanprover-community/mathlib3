@@ -190,10 +190,8 @@ def cone.of_fork
 { X := t.X,
   π :=
   { app := λ X, t.π.app X ≫ eq_to_hom (by tidy),
-    naturality' := λ j j' g,
-    begin
-      cases j; cases j'; cases g; dsimp; simp,
-    end } }.
+    naturality' := λ j j' g, by { cases j; cases j'; cases g; dsimp; simp } } }
+
 def cocone.of_cofork
   {F : walking_parallel_pair.{v} ⥤ C} (t : cofork (F.map left) (F.map right)) : cocone F :=
 { X := t.X,
@@ -202,9 +200,9 @@ def cocone.of_cofork
     naturality' := λ j j' g,
     begin
       cases j; cases j'; cases g; dsimp; simp,
-      erw ← t.w left, refl,
-      erw ← t.w right, refl,
-    end } }.
+      { erw ← t.w left, refl },
+      { erw ← t.w right, refl }
+    end } }
 
 @[simp] lemma cone.of_fork_π
   {F : walking_parallel_pair.{v} ⥤ C} (t : fork (F.map left) (F.map right)) (j) :

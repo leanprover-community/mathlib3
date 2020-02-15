@@ -128,7 +128,7 @@ include 𝒞
 
 variables [has_zero_morphisms.{v} C]
 
-/-- `has_kernels` represents a choice of kernel for kernel.is_limit_cone_zero_coneevery morphism -/
+/-- `has_kernels` represents a choice of kernel for every morphism -/
 class has_kernels :=
 (has_limit : Π {X Y : C} (f : X ⟶ Y), has_limit (parallel_pair f 0))
 

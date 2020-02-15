@@ -1,25 +1,72 @@
 /-
 Copyright (c) 2014 Jeremy Avigad. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Author: Jeremy Avigad, Leonardo de Moura
+Authors: Jeremy Avigad, Leonardo de Moura
 -/
+
 import tactic.basic tactic.finish data.subtype logic.unique
-open function
 
-/-! # Basic properties of sets
+/-!
 
-This file provides some basic definitions related to sets and functions (e.g., `preimage`)
-not present in the core library, as well as extra lemmas.
+# Basic properties of sets
+
+This file provides some basic definitions related to sets and functions not present
+in the core library, as well as extra lemmas for functions in the core library
+(empty set, univ, union, intersection, insert, singleton, complement, powerset).
+
+-- TODO is powerset defined in core??
+
+## Main definitions
+
+`strict_subset s t` : `s ⊆ t` but `s ≠ t`.
+
+`nonempty s` : `s ≠ ∅`. Note that this is the canonical way to express the fact that s has
+an element. It has the advantage that `s.nonempty` dot notation can be used.
+
+`preimage f s` : the preimage f⁻¹(s).
+
+`subsingleton s` : `s` has at most one element.
+
+`range f` : the image of `univ`.
+
+`prod s t` : the subset `s × t`.
+
+`inclusion s t` : the map ↑s → ↑t
+
+## Notation
+
+`s ⊂ t` for `strict_subset s t`
+`f ⁻¹' s` for `preimage f s`
+`f '' s` for `image f s`
+
+## Implementation notes
+
+`s.nonempty` is to be preferred to `s ≠ ∅` or `∃ x, x ∈ s`.
+
+## Tags
+
+set, sets, subset, subsets, image, preimage, pre-image, range, union, intersection, insert,
+singleton, complement, powerset
+
 -/
 
 /-! ### Set coercion to a type -/
+
+open function
+
 namespace set
+
+/-- Coercion from a set to the corresponding subtype. -/
 instance {α : Type*} : has_coe_to_sort (set α) := ⟨_, λ s, {x // x ∈ s}⟩
+
 end set
 
 section set_coe
+
 universe u
+
 variables {α : Type u}
+
 theorem set.set_coe_eq_subtype (s : set α) :
   coe_sort.{(u+1) (u+2)} s = {x // x ∈ s} := rfl
 
@@ -58,8 +105,8 @@ funext (assume x, propext (h x))
 theorem ext_iff (s t : set α) : s = t ↔ ∀ x, x ∈ s ↔ x ∈ t :=
 ⟨λ h x, by rw h, ext⟩
 
-@[trans] theorem mem_of_mem_of_subset {α : Type u} {x : α} {s t : set α} (hx : x ∈ s) (h : s ⊆ t) : x ∈ t :=
-h hx
+@[trans] theorem mem_of_mem_of_subset
+  {α : Type u} {x : α} {s t : set α} (hx : x ∈ s) (h : s ⊆ t) : x ∈ t := h hx
 
 /-! ### Lemmas about `mem` and `set_of` -/
 
@@ -77,14 +124,15 @@ instance decidable_mem (s : set α) [H : decidable_pred s] : ∀ a, decidable (a
 
 instance decidable_set_of (p : α → Prop) [H : decidable_pred p] : decidable_pred {a | p a} := H
 
-@[simp] theorem set_of_subset_set_of {p q : α → Prop} : {a | p a} ⊆ {a | q a} ↔ (∀a, p a → q a) := iff.rfl
+@[simp] theorem set_of_subset_set_of {p q : α → Prop} :
+  {a | p a} ⊆ {a | q a} ↔ (∀a, p a → q a) := iff.rfl
 
 @[simp] lemma sep_set_of {α} {p q : α → Prop} : {a ∈ {a | p a } | q a} = {a | p a ∧ q a} :=
 rfl
 
 @[simp] lemma set_of_mem {α} {s : set α} : {a | a ∈ s} = s := rfl
 
-/-! #### Lemmas about subsets -/
+/-! ### Lemmas about subsets -/
 
 -- TODO(Jeremy): write a tactic to unfold specific instances of generic notation?
 theorem subset_def {s t : set α} : (s ⊆ t) = ∀ x, x ∈ s → x ∈ t := rfl
@@ -94,7 +142,8 @@ theorem subset_def {s t : set α} : (s ⊆ t) = ∀ x, x ∈ s → x ∈ t := rf
 @[trans] theorem subset.trans {a b c : set α} (ab : a ⊆ b) (bc : b ⊆ c) : a ⊆ c :=
 assume x h, bc (ab h)
 
-@[trans] theorem mem_of_eq_of_mem {α : Type u} {x y : α} {s : set α} (hx : x = y) (h : y ∈ s) : x ∈ s :=
+@[trans] theorem mem_of_eq_of_mem
+  {α : Type u} {x y : α} {s : set α} (hx : x = y) (h : y ∈ s) : x ∈ s :=
 hx.symm ▸ h
 
 theorem subset.antisymm {a b : set α} (h₁ : a ⊆ b) (h₂ : b ⊆ a) : a = b :=
@@ -104,7 +153,7 @@ theorem subset.antisymm_iff {a b : set α} : a = b ↔ a ⊆ b ∧ b ⊆ a :=
 ⟨λ e, e ▸ ⟨subset.refl _, subset.refl _⟩,
  λ ⟨h₁, h₂⟩, subset.antisymm h₁ h₂⟩
 
--- an alterantive name
+-- an alternative name
 theorem eq_of_subset_of_subset {a b : set α} (h₁ : a ⊆ b) (h₂ : b ⊆ a) : a = b :=
 subset.antisymm h₁ h₂
 
@@ -228,10 +277,14 @@ theorem ball_empty_iff {p : α → Prop} :
   (∀ x ∈ (∅ : set α), p x) ↔ true :=
 by simp [iff_def]
 
-/-! ### Universal set.
+/-!
+
+### Universal set.
 
 In Lean `@univ α` (or `univ : set α`) is the set that contains all elements of type `α`.
-Mathematically it is the same as `α` but it has a different type. -/
+Mathematically it is the same as `α` but it has a different type.
+
+-/
 
 theorem univ_def : @univ α = {x | true} := rfl
 
@@ -892,7 +945,8 @@ theorem mem_image_iff_bex {f : α → β} {s : set α} {y : β} :
 
 theorem mem_image_eq (f : α → β) (s : set α) (y: β) : y ∈ f '' s = ∃ x, x ∈ s ∧ f x = y := rfl
 
-@[simp] theorem mem_image (f : α → β) (s : set α) (y : β) : y ∈ f '' s ↔ ∃ x, x ∈ s ∧ f x = y := iff.rfl
+@[simp] theorem mem_image (f : α → β) (s : set α) (y : β) :
+  y ∈ f '' s ↔ ∃ x, x ∈ s ∧ f x = y := iff.rfl
 
 theorem mem_image_of_mem (f : α → β) {x : α} {a : set α} (h : x ∈ a) : f x ∈ f '' a :=
 ⟨_, h, rfl⟩
@@ -947,7 +1001,6 @@ end -/
 /-- A variant of `image_comp`, useful for rewriting -/
 lemma image_image (g : β → γ) (f : α → β) (s : set α) : g '' (f '' s) = (λ x, g (f x)) '' s :=
 (image_comp g f s).symm
-
 
 theorem image_subset {a b : set α} (f : α → β) (h : a ⊆ b) : f '' a ⊆ f '' b :=
 by finish [subset_def, mem_image_eq]

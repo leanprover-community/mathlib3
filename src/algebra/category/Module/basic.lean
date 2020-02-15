@@ -44,10 +44,10 @@ def of (X : Type u) [add_comm_group X] [module R X] : Module R := ⟨R, X⟩
 
 instance : inhabited (Module R) := ⟨of R punit⟩
 
-lemma of_apply (X : Type u) [add_comm_group X] [module R X] : X = (of R X) := rfl
+lemma of_apply (X : Type u) [add_comm_group X] [module R X] : (of R X : Type u) = X := rfl
 
 instance : subsingleton (of R punit) :=
-by { rw ←of_apply R punit, apply_instance }
+by { rw of_apply R punit, apply_instance }
 
 instance : has_zero_object.{u} (Module R) :=
 { zero := of R punit,

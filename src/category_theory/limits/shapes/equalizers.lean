@@ -174,14 +174,13 @@ local attribute [ext] cone
 /-- The fork induced by the ι map of some fork t is the same as t -/
 lemma fork.eq_of_ι_ι (t : fork f g) : t = fork.of_ι (fork.ι t) (fork.condition t) :=
 begin
-  have h : t.π = (fork.of_ι (fork.ι t) (fork.condition t)).π := begin
+  have h : t.π = (fork.of_ι (fork.ι t) (fork.condition t)).π :=
+  begin
     ext j, cases j,
     { refl },
     { rw ←cone_parallel_pair_left, refl }
   end,
-  ext,
-  refl,
-  rw h
+  tidy
 end
 
 end
@@ -239,9 +238,11 @@ abbreviation equalizer := limit (parallel_pair f g)
 abbreviation equalizer.ι : equalizer f g ⟶ X :=
 limit.π (parallel_pair f g) zero
 
-lemma equalizer.ι.fork : fork.ι (limits.limit.cone (parallel_pair f g)) = equalizer.ι f g := rfl
+@[simp] lemma equalizer.ι.fork :
+  fork.ι (limits.limit.cone (parallel_pair f g)) = equalizer.ι f g := rfl
 
-lemma equalizer.ι.eq_app_zero : (limit.cone (parallel_pair f g)).π.app zero = equalizer.ι f g := rfl
+@[simp] lemma equalizer.ι.eq_app_zero :
+  (limit.cone (parallel_pair f g)).π.app zero = equalizer.ι f g := rfl
 
 @[reassoc] lemma equalizer.condition : equalizer.ι f g ≫ f = equalizer.ι f g ≫ g :=
 begin
@@ -252,9 +253,11 @@ end
 abbreviation equalizer.lift {W : C} (k : W ⟶ X) (h : k ≫ f = k ≫ g) : W ⟶ equalizer f g :=
 limit.lift (parallel_pair f g) (fork.of_ι k h)
 
-/-- A specialization of the uniqueness statement about limits to equalizers -/
+/-- If a map `h` equalizes `f` and `g`, then by the limit property, it factors uniquely through
+    the equalizer. This lemma is an equalizer-specific API to the "uniquely" part of that
+    statement. -/
 lemma equalizer.lift.uniq {W : C} (k : W ⟶ X) (h : k ≫ f = k ≫ g) (l : W ⟶ equalizer f g)
-  (i : l ≫ (equalizer.ι f g) = k) : l = (equalizer.lift f g k h) :=
+  (i : l ≫ (equalizer.ι f g) = k) : l = equalizer.lift f g k h :=
 begin
   refine is_limit.uniq (limit.is_limit (parallel_pair f g)) (fork.of_ι k h) l _,
   intro j, cases j,
@@ -264,12 +267,13 @@ end
 
 /-- An equalizer morphism is a monomorphism -/
 lemma equalizer.ι_mono : mono (equalizer.ι f g) :=
-{ right_cancellation := λ Z h k w, begin
-  have h₀ : (h ≫ (equalizer.ι f g)) ≫ f = (h ≫ (equalizer.ι f g)) ≫ g :=
-    by simp only [category.assoc, equalizer.condition],
-  rw equalizer.lift.uniq f g (h ≫ (equalizer.ι f g)) h₀ h rfl,
-  rw equalizer.lift.uniq f g (h ≫ (equalizer.ι f g)) h₀ k w.symm
-end }
+{ right_cancellation := λ Z h k w,
+  begin
+    have h₀ : (h ≫ (equalizer.ι f g)) ≫ f = (h ≫ (equalizer.ι f g)) ≫ g :=
+      by simp only [category.assoc, equalizer.condition],
+    rw equalizer.lift.uniq f g (h ≫ (equalizer.ι f g)) h₀ h rfl,
+    rw equalizer.lift.uniq f g (h ≫ (equalizer.ι f g)) h₀ k w.symm
+  end }
 end
 
 /-- The identity determines a cone on the equalizer diagram of f and f -/
@@ -281,7 +285,7 @@ def cone_parallel_pair_self : cone (parallel_pair f f) :=
 @[simp] lemma cone_parallel_pair_self_π_app_zero : (cone_parallel_pair_self f).π.app zero = 𝟙 X :=
 rfl
 
-lemma cone_parallel_pair_self_X : (cone_parallel_pair_self f).X = X := rfl
+@[simp] lemma cone_parallel_pair_self_X : (cone_parallel_pair_self f).X = X := rfl
 
 /-- The identity on X is an equalizer of (f, f) -/
 def is_limit_cone_parallel_pair_self : is_limit (cone_parallel_pair_self f) :=
@@ -296,22 +300,16 @@ def is_limit_cone_parallel_pair_self : is_limit (cone_parallel_pair_self f) :=
 /-- Every equalizer of (f, f) is an isomorphism -/
 def limit_cone_parallel_pair_self_is_iso (c : cone (parallel_pair f f)) (h : is_limit c) :
   is_iso (c.π.app zero) :=
-begin
   let c' := cone_parallel_pair_self f,
-  have z : c ≅ c' := is_limit.unique_up_to_iso h (is_limit_cone_parallel_pair_self f),
-  have t : z.hom.hom = c.π.app zero,
-  { convert cone_morphism.w z.hom zero,
-    erw [cone_parallel_pair_self_π_app_zero, category.comp_id] },
-  rw ←t,
-  exact is_iso.of_iso (functor.map_iso cones.forget z)
-end
+    z : c ≅ c' := is_limit.unique_up_to_iso h (is_limit_cone_parallel_pair_self f) in
+  is_iso.of_iso (functor.map_iso cones.forget z)
 
 /-- An equalizer that is an epimorphism is an isomorphism -/
 def epi_limit_cone_parallel_pair_is_iso (c : cone (parallel_pair f g))
   (h : is_limit c) [epi (c.π.app zero)] : is_iso (c.π.app zero) :=
 begin
   have t : f = g, from (cancel_epi (c.π.app zero)).1 (fork.condition c),
-  have h₁ := fork.eq_of_ι_ι c,
+  let h₁ := fork.eq_of_ι_ι c,
   rw h₁ at h,
   have h₂ : is_limit (fork.of_ι (c.π.app zero) rfl : fork f f), by convert h,
   exact limit_cone_parallel_pair_self_is_iso f (fork.of_ι (c.π.app zero) rfl) h₂

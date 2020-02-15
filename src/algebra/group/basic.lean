@@ -253,9 +253,9 @@ by rw [bit1, bit0_zero, zero_add]
 end add_monoid
 
 section comm_monoid
-  variables [comm_monoid α]
+  variables [comm_monoid M]
 
-  @[to_additive] lemma inv_unique {x y z : α}
+  @[to_additive] lemma inv_unique {x y z : M}
     (hy : x * y = 1) (hz : x * z = 1) : y = z :=
   by rw [←one_mul y, ←hz, mul_comm x, mul_assoc, hy, mul_one]
 

@@ -772,19 +772,19 @@ lemma finset_prod_mem {M ι} [comm_monoid M] (S : submonoid M) (f : ι → M) :
     exact hs _ hb
   end
 
-@[to_additive] lemma inv_comp_inv {α : Type*} {β : Type*} {γ : Type*} [monoid α]
-  [monoid β] [monoid γ] {S : set α}
-  {k : α →* β} (hk : ∀ s : S, ∃ b, k s * b = 1) (j : β →* γ) (s : S) :
-  ∃ x : γ, j.comp k s * x = 1 :=
+@[to_additive] lemma inv_comp_inv {M : Type*} {N : Type*} {P : Type*} [monoid M]
+  [monoid N] [monoid P] {S : set M}
+  {k : M →* N} (hk : ∀ s : S, ∃ b, k s * b = 1) (j : N →* P) (s : S) :
+  ∃ x : P, j.comp k s * x = 1 :=
 let ⟨c, hc⟩ := hk s in ⟨j c, show j _ * _ = _, by rw [←j.map_mul, hc, j.map_one]⟩
 
-@[to_additive] lemma inv_comp {α : Type*} {β : Type*} {γ : Type*} [monoid α]
-  [monoid β] [monoid γ] {S : submonoid α} {T : submonoid β} {g : α →* β}
-  (hg : ∀ y : S, g y ∈ T) {k : β →* γ} (hk : ∀ w : T, ∃ u, k w * u = 1) (y : S) :
+@[to_additive] lemma inv_comp {M : Type*} {N : Type*} {P : Type*} [monoid M]
+  [monoid N] [monoid P] {S : submonoid M} {T : submonoid N} {g : M →* N}
+  (hg : ∀ y : S, g y ∈ T) {k : N →* P} (hk : ∀ w : T, ∃ u, k w * u = 1) (y : S) :
   ∃ u, k (g y) * u = 1 := hk ⟨g y, hg y⟩
 
-@[to_additive] lemma comp_mem {α} {β} {γ} [monoid α] [monoid β] [monoid γ] {S : submonoid α}
-  {T : submonoid β} {R : submonoid γ} {f : α →* β} {g : β →* γ}
+@[to_additive] lemma comp_mem {M} {N} {P} [monoid M] [monoid N] [monoid P] {S : submonoid M}
+  {T : submonoid N} {R : submonoid P} {f : M →* N} {g : N →* P}
   (hf : ∀ x : S, f x ∈ T) (hg : ∀ x : T, g x ∈ R) (x : S) :
   g.comp f x ∈ R := hg ⟨f x, hf x⟩
 

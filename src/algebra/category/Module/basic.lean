@@ -79,11 +79,12 @@ local attribute [instance] has_zero_object.zero_morphisms_of_zero_object
 def kernel_cone : cone (parallel_pair f 0) :=
 { X := of R f.ker,
   π :=
-  { app := λ j, match j with
+  { app := λ j,
+    match j with
     | zero := f.ker.subtype
     | one := 0
-  end,
-  naturality' := λ j j' g, by { cases j; cases j'; cases g; tidy } } }
+    end,
+    naturality' := λ j j' g, by { cases j; cases j'; cases g; tidy } } }
 
 /-- The kernel of a linear map is a kernel in the categorical sense -/
 def kernel_is_limit : is_limit (kernel_cone _ _ _ f) :=

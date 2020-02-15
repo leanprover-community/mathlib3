@@ -5,8 +5,9 @@ Author: Jared Corduan.
 -/
 
 import algebra.order_functions
-import logic.basic
-import data.set.finite data.finset data.fintype
+import logic.basic logic.function
+import data.set.finite data.finset
+open fin
 
 /-!
 # The Infinite Ramsey Theorem
@@ -88,17 +89,6 @@ inductive color
 | blue : color
 
 open color
-
-/--
-The fintype instance for color.
--/
-instance color_fintype  : fintype color :=
-⟨⟨red :: blue :: 0, dec_trivial⟩,
-  begin
-    intros x, cases x,
-    { left, refl },
-    { right, left, refl }
-  end⟩
 
 /--
 An infinite set of natural numbers.
@@ -191,6 +181,54 @@ p.pt < q.pt ∧ q.pt ∈ p.s ∧ q.s ⊆ p.s ∧ homogeneous (project f q.pt) q
 instance (f : [ℕ]² → color) : has_lt (homogeneous_proj f) :=
   ⟨λp q : homogeneous_proj f, refines p q⟩
 
+structure cardinality_two (α : Type) :=
+  (s : finset α)
+  (h : s.card = 2)
+
+lemma equiv_card_2 : unordered_pairs univ ≃ cardinality_two ℕ :=
+{ to_fun := λ p, ⟨{p.val.1, p.val.2},
+    begin
+      simp,
+      have hlt : p.val.fst < p.val.snd, apply p.property.left,
+      have h : p.val.snd ∉ finset.singleton p.val.fst,
+      simp, intro hne,
+      rw hne at hlt, apply lt_irrefl (p.val.fst) hlt,
+      simp * at *,
+    end⟩,
+  inv_fun := sorry,
+  left_inv := sorry,
+  right_inv := sorry,
+}
+
+/-
+Intuitively, split_coloring reduces a (k+1)-coloring
+to a 2-coloring by coloring k "red" and everything else "blue".
+This is the key trick for the inductive argument that
+extends Ramsey's theorem for two colors to k colors.
+-/
+def split_coloring
+  {α : Type}
+  {k : ℕ}
+  (f : α → fin (succ k))
+  (p : α)
+  : color := if (f p = k) then red else blue
+
+lemma red_split {k : ℕ} {α : Type} (f : α → fin (succ k)) (p : α)
+  (h : split_coloring f p = red) : f p = k :=
+begin
+  unfold split_coloring at h,
+  sorry
+end
+
+lemma blue_split {k : ℕ} {α : Type} (f : α → fin (succ k)) (p : α)
+  (h : split_coloring f p = blue) : f p < k :=
+begin
+  unfold split_coloring at h,
+  cases f p with fp hfp,
+  sorry,
+end
+
+
 local attribute [instance] prop_decidable
 
 /-
@@ -264,7 +302,6 @@ def init (f : [ℕ]² → color) : homogeneous_proj f := ⟨f, NatInf, 0⟩
 
 /-
 Iterate the procedure of refining a homogeneous projection.
-TODO is is possible to remove this definition?
 -/
 def iterate_refinement (f : [ℕ]² → color)
     (cf : Π (x : homogeneous_proj f), (λ (x : homogeneous_proj f), homogeneous_proj f) x) :
@@ -356,8 +393,6 @@ begin
 end
 
 section increasing_functions
-
---TODO move these to algebra.order_functions with the right generalization
 
 lemma increasing_by_step (f : ℕ → ℕ) :
   (∀ n : ℕ, f n < f (n+1)) → strict_mono f :=
@@ -479,7 +514,7 @@ end
 /--
 An equivalenc of color and fin 2
 -/
-lemma color_equiv_fin2 : color ≃ fin 2 :=
+lemma e : color ≃ fin 2 :=
 { to_fun := λ c, color.rec_on c 0 1,
   inv_fun := λ n, nat.rec_on n.val red (λ _ _, blue),
   left_inv := begin intro x, cases x, refl, refl end,
@@ -503,35 +538,23 @@ theorem infinite_ramsey_pairs_two_colors' (f : [ℕ]² → fin 2) :
   (restrict f H) h = k :=
 begin
   have h : ∃ H : Inf, ∃ c : color, ∀ h : [H]²,
-    (restrict (color_equiv_fin2.inv_fun ∘ f) H) h = c,
-    exact infinite_ramsey_pairs_two_colors (color_equiv_fin2.inv_fun ∘ f),
+    (restrict (e.inv_fun ∘ f) H) h = c,
+    exact infinite_ramsey_pairs_two_colors (e.inv_fun ∘ f),
   cases h with H hH,
   cases hH with c hc,
   apply exists.intro H,
-  apply exists.intro (color_equiv_fin2.to_fun c),
+  apply exists.intro (e.to_fun c),
   intros p,
-  have hp : (restrict (color_equiv_fin2.inv_fun ∘ f) H) p = c, exact hc p,
+  have hp : (restrict (e.inv_fun ∘ f) H) p = c, exact hc p,
   unfold restrict at hp,
   have hc2 :
-    color_equiv_fin2.to_fun ((color_equiv_fin2.inv_fun ∘ f)  ⟨p.val, _⟩ ) =
-      color_equiv_fin2.to_fun (c), rw hp,
+    e.to_fun ((e.inv_fun ∘ f)  ⟨p.val, _⟩ ) =
+      e.to_fun (c), rw hp,
   simp at hc2,
-  rw color_equiv_fin2.right_inv
+  rw e.right_inv
     (f ⟨p.val, ⟨p.property.left, trivial, trivial⟩⟩) at hc2,
   exact hc2,
 end
-
-/-
-Intuitively, split_coloring reduces a (k+1)-coloring
-to a 2-coloring by coloring k "red" and everything else "blue".
-This is the key trick for the inductive argument that
-extends Ramsey's theorem for two colors to k colors.
--/
-noncomputable def split_coloring
-  (k : ℕ)
-  (f : [ℕ]² → fin (succ k))
-  (p : [ℕ]²)
-  : fin 2 := if (f p = k) then 0 else 1
 
 theorem infinite_ramsey_pairs_n_colors (k : ℕ) (f : [ℕ]² → fin (k+2)) :
   ∃ H : Inf, ∃ c : fin (k+2),
@@ -540,26 +563,42 @@ theorem infinite_ramsey_pairs_n_colors (k : ℕ) (f : [ℕ]² → fin (k+2)) :
 begin
   induction k with k IH,
   simp [infinite_ramsey_pairs_two_colors' f],
-  have rt22 : ∃ H : Inf, ∃ i : fin 2, ∀ h : [H]²,
-    (restrict (split_coloring (k+2) f) H) h = i,
-  exact infinite_ramsey_pairs_two_colors' (split_coloring (k+2) f),
+  have rt22 : ∃ H : Inf, ∃ c : color, ∀ h : [H]²,
+    (restrict (split_coloring f) H) h = c,
+  exact infinite_ramsey_pairs_two_colors (split_coloring f),
   cases rt22 with S hS,
-  cases hS with i hRT,
-  cases i with i hi,
+  cases hS with c hRT,
+  cases c,
+
   /-
   From here, the proof informally is:
-  If i = 0, then f restricted to S is always equal to k+1,
+  If c is red, then f restricted to S is always equal to k+1,
     and so S satisfies the conclusion of the theorem.
-  Otherwise, f restricted to S is contained in fin (k+2),
-    and we can _almost_ apply infinite_ramsey_pairs_two_colors'.
-    The trouble is that infinite_ramsey_pairs_two_colors' requires
-    the domain of the coloring to be [ℕ]² not unordered pairs of
-    an arbitrary infinite subset of ℕ. Therefore we need to generalize
-    the statement of infinite_ramsey_pairs_two_colors'.
+  Otherwise, if c is blue, f restricted to S is contained in fin (k+2),
+    and we can use the induction hypothesis.
   -/
+
+  -- red case
+  have hRT' : ∀ (h : [S]²), restrict f S h = ↑(succ k+1),
+    unfold restrict at hRT,
+    intros s,
+    apply red_split (restrict f S) s (hRT s),
+  apply exists.intro S,
+  have h' : k + 2 < succ k + 2, sorry,
+  apply exists.intro (fin.mk (k+2) h'),
+  intros s, simp [hRT'], rw eq_iff_veq, simp, sorry,
+
+-- blue case
+  have hRT' : ∀ (h : [S]²), restrict f S h < succ k+1,
+  unfold restrict at hRT,
+  intros s,
+  apply blue_split (restrict f S) s (hRT s),
+  apply exists.intro S,
+  -- we now need an injection g of ℕ into S,
+  -- then show that f ∘ g maps ℕ into fin (k+2) using hRT'.
+  -- apply IH to (f ∘ g) to get inf H
+  -- then g(H) is our monochrome set
   sorry,
 end
-
-#print infinite_ramsey_pairs_two_colors'
 
 end infinite_ramsey_pairs

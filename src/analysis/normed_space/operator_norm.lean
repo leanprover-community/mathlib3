@@ -47,15 +47,29 @@ lemma linear_map.continuous_of_bound (C : ℝ) (h : ∀x, ∥f x∥ ≤ C * ∥x
   continuous f :=
 (f.lipschitz_of_bound C h).to_continuous
 
-/-- Construct a continuous linear map from a linear map and a bound on this linear map. -/
-def linear_map.with_bound (h : ∃C : ℝ, ∀x, ∥f x∥ ≤ C * ∥x∥) : E →L[𝕜] F :=
+/-- Construct a continuous linear map from a linear map and a bound on this linear map.
+The fact that the norm of the continuous linear map is then controlled is given in
+`linear_map.mk_continuous_norm_le`. -/
+def linear_map.mk_continuous (C : ℝ) (h : ∀x, ∥f x∥ ≤ C * ∥x∥) : E →L[𝕜] F :=
+⟨f, linear_map.continuous_of_bound f C h⟩
+
+/-- Construct a continuous linear map from a linear map and the existence of a bound on this linear
+map. If you have an explicit bound, use `linear_map.mk_continuous` instead, as a norm estimate will
+follow automatically in `linear_map.mk_continuous_norm_le`. -/
+def linear_map.mk_continuous_of_exists_bound (h : ∃C, ∀x, ∥f x∥ ≤ C * ∥x∥) : E →L[𝕜] F :=
 ⟨f, let ⟨C, hC⟩ := h in linear_map.continuous_of_bound f C hC⟩
 
-@[simp, elim_cast] lemma linear_map_with_bound_coe (h : ∃C : ℝ, ∀x, ∥f x∥ ≤ C * ∥x∥) :
-  ((f.with_bound h) : E →ₗ[𝕜] F) = f := rfl
+@[simp, elim_cast] lemma linear_map.mk_continuous_coe (C : ℝ) (h : ∀x, ∥f x∥ ≤ C * ∥x∥) :
+  ((f.mk_continuous C h) : E →ₗ[𝕜] F) = f := rfl
 
-@[simp] lemma linear_map_with_bound_apply (h : ∃C : ℝ, ∀x, ∥f x∥ ≤ C * ∥x∥) (x : E) :
-  f.with_bound h x = f x := rfl
+@[simp] lemma linear_map.mk_continuous_apply (C : ℝ) (h : ∀x, ∥f x∥ ≤ C * ∥x∥) (x : E) :
+  f.mk_continuous C h x = f x := rfl
+
+@[simp, elim_cast] lemma linear_map.mk_continuous_of_exists_bound_coe (h : ∃C, ∀x, ∥f x∥ ≤ C * ∥x∥) :
+  ((f.mk_continuous_of_exists_bound h) : E →ₗ[𝕜] F) = f := rfl
+
+@[simp] lemma linear_map.mk_continuous_of_exists_bound_apply (h : ∃C, ∀x, ∥f x∥ ≤ C * ∥x∥) (x : E) :
+  f.mk_continuous_of_exists_bound h x = f x := rfl
 
 lemma linear_map.continuous_iff_is_closed_ker {f : E →ₗ[𝕜] 𝕜} :
   continuous f ↔ is_closed (f.ker : set E) :=
@@ -500,3 +514,9 @@ begin
   conv_lhs { rw ← this },
   exact hC _
 end
+
+/-- If a continuous linear map is constructed from a linear map via the constructor `mk_continuous`,
+then its norm is bounded by the bound given to the constructor if it is nonnegative. -/
+lemma linear_map.mk_continuous_norm_le (f : E →ₗ[𝕜] F) {C : ℝ} (hC : 0 ≤ C) (h : ∀x, ∥f x∥ ≤ C * ∥x∥) :
+  ∥f.mk_continuous C h∥ ≤ C :=
+continuous_linear_map.op_norm_le_bound _ hC h

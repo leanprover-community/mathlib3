@@ -886,6 +886,8 @@ def generate (s : set (set α)) : dynkin_system α :=
   has_compl := assume a, generate_has.compl,
   has_Union_nat := assume f, generate_has.Union }
 
+instance : inhabited (dynkin_system α) := ⟨generate univ⟩
+
 def to_measurable_space (h_inter : ∀s₁ s₂, d.has s₁ → d.has s₂ → d.has (s₁ ∩ s₂)) :=
 { measurable_space .
   is_measurable := d.has,
@@ -925,7 +927,7 @@ lemma generate_le {s : set (set α)} (h : ∀t∈s, d.has t) : generate s ≤ d 
   (assume f hd _ hf, d.has_Union hd hf)
 
 lemma generate_inter {s : set (set α)}
-  (hs : ∀t₁ t₂, t₁ ∈ s → t₂ ∈ s → t₁ ∩ t₂ ≠ ∅ → t₁ ∩ t₂ ∈ s) {t₁ t₂ : set α}
+  (hs : ∀t₁ t₂ : set α, t₁ ∈ s → t₂ ∈ s → (t₁ ∩ t₂).nonempty → t₁ ∩ t₂ ∈ s) {t₁ t₂ : set α}
   (ht₁ : (generate s).has t₁) (ht₂ : (generate s).has t₂) : (generate s).has (t₁ ∩ t₂) :=
 have generate s ≤ (generate s).restrict_on ht₂,
   from generate_le _ $ assume s₁ hs₁,
@@ -933,14 +935,15 @@ have generate s ≤ (generate s).restrict_on ht₂,
   have generate s ≤ (generate s).restrict_on this,
     from generate_le _ $ assume s₂ hs₂,
       show (generate s).has (s₂ ∩ s₁), from
-        if h : s₂ ∩ s₁ = ∅ then by rw [h]; exact generate_has.empty _
-        else generate_has.basic _ (hs _ _ hs₂ hs₁ h),
+        (s₂ ∩ s₁).eq_empty_or_nonempty.elim
+        (λ h,  h.symm ▸ generate_has.empty _)
+        (λ h, generate_has.basic _ (hs _ _ hs₂ hs₁ h)),
   have (generate s).has (t₂ ∩ s₁), from this _ ht₂,
   show (generate s).has (s₁ ∩ t₂), by rwa [inter_comm],
 this _ ht₁
 
 lemma generate_from_eq {s : set (set α)}
-  (hs : ∀t₁ t₂, t₁ ∈ s → t₂ ∈ s → t₁ ∩ t₂ ≠ ∅ → t₁ ∩ t₂ ∈ s) :
+  (hs : ∀t₁ t₂ : set α, t₁ ∈ s → t₂ ∈ s → (t₁ ∩ t₂).nonempty → t₁ ∩ t₂ ∈ s) :
 generate_from s = (generate s).to_measurable_space (assume t₁ t₂, generate_inter hs) :=
 le_antisymm
   (generate_from_le $ assume t ht, generate_has.basic t ht)
@@ -952,7 +955,7 @@ end dynkin_system
 
 lemma induction_on_inter {C : set α → Prop} {s : set (set α)} {m : measurable_space α}
   (h_eq : m = generate_from s)
-  (h_inter : ∀t₁ t₂, t₁ ∈ s → t₂ ∈ s → t₁ ∩ t₂ ≠ ∅ → t₁ ∩ t₂ ∈ s)
+  (h_inter : ∀t₁ t₂ : set α, t₁ ∈ s → t₂ ∈ s → (t₁ ∩ t₂).nonempty → t₁ ∩ t₂ ∈ s)
   (h_empty : C ∅) (h_basic : ∀t∈s, C t) (h_compl : ∀t, m.is_measurable t → C t → C (- t))
   (h_union : ∀f:ℕ → set α, (∀i j, i ≠ j → f i ∩ f j ⊆ ∅) →
     (∀i, m.is_measurable (f i)) → (∀i, C (f i)) → C (⋃i, f i)) :

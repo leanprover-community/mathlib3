@@ -269,10 +269,10 @@ le_antisymm
     (infi_le_of_le univ $ infi_le_of_le univ_mem_sets $
     by simp only [le_principal_iff, inter_subset_right, mem_principal_sets, function.comp_app]; exact inter_subset_left _ _))
 
-lemma lift'_ne_bot_iff (hh : monotone h) : (f.lift' h ≠ ⊥) ↔ (∀s∈f, h s ≠ ∅) :=
+lemma lift'_ne_bot_iff (hh : monotone h) : (f.lift' h ≠ ⊥) ↔ (∀s∈f, (h s).nonempty) :=
 calc (f.lift' h ≠ ⊥) ↔ (∀s∈f, principal (h s) ≠ ⊥) :
     lift_ne_bot_iff (monotone_principal.comp hh)
-  ... ↔ (∀s∈f, h s ≠ ∅) : by simp only [principal_eq_bot_iff, ne.def]
+  ... ↔ (∀s∈f, (h s).nonempty) : by simp only [principal_ne_bot_iff]
 
 @[simp] lemma lift'_id {f : filter α} : f.lift' id = f :=
 lift_principal2

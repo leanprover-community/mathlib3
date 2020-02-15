@@ -56,7 +56,7 @@ def normed_group.of_add_dist' [has_norm α] [add_comm_group α] [metric_space α
 
 /-- A normed group can be built from a norm that satisfies algebraic properties. This is
 formalised in this structure. -/
-structure normed_group.core (α : Type*) [add_comm_group α] [has_norm α] :=
+structure normed_group.core (α : Type*) [add_comm_group α] [has_norm α] : Prop :=
 (norm_eq_zero_iff : ∀ x : α, ∥x∥ = 0 ↔ x = 0)
 (triangle : ∀ x y : α, ∥x + y∥ ≤ ∥x∥ + ∥y∥)
 (norm_neg : ∀ x : α, ∥-x∥ = ∥x∥)
@@ -175,13 +175,23 @@ abs_norm_sub_norm_le g h
 lemma ball_0_eq (ε : ℝ) : ball (0:α) ε = {x | ∥x∥ < ε} :=
 set.ext $ assume a, by simp
 
+lemma norm_le_of_mem_closed_ball {g h : α} {r : ℝ} (H : h ∈ closed_ball g r) :
+  ∥h∥ ≤ ∥g∥ + r :=
+calc
+  ∥h∥ = ∥g + (h - g)∥ : by { congr' 1, abel }
+  ... ≤ ∥g∥ + ∥h - g∥  : norm_add_le _ _
+  ... ≤ ∥g∥ + r : by { apply add_le_add_left, rw ← dist_eq_norm, exact H }
+
+lemma norm_lt_of_mem_ball {g h : α} {r : ℝ} (H : h ∈ ball g r) :
+  ∥h∥ < ∥g∥ + r :=
+calc
+  ∥h∥ = ∥g + (h - g)∥ : by { congr' 1, abel }
+  ... ≤ ∥g∥ + ∥h - g∥  : norm_add_le _ _
+  ... < ∥g∥ + r : by { apply add_lt_add_left, rw ← dist_eq_norm, exact H }
+
 theorem normed_group.tendsto_nhds_zero {f : γ → α} {l : filter γ} :
-  tendsto f l (𝓝 0) ↔ ∀ ε > 0, { x | ∥ f x ∥ < ε } ∈ l :=
-metric.tendsto_nhds.trans $ forall_congr $ λ ε, forall_congr $ λ εgt0,
-begin
-  simp only [dist_zero_right],
-  exact exists_sets_subset_iff
-end
+  tendsto f l (𝓝 0) ↔ ∀ ε > 0, ∀ᶠ x in l, ∥ f x ∥ < ε :=
+metric.tendsto_nhds.trans $ by simp only [dist_zero_right]
 
 section nnnorm
 
@@ -237,7 +247,7 @@ by simp [norm, le_max_right]
 
 /-- normed group instance on the product of finitely many normed groups, using the sup norm. -/
 instance pi.normed_group {π : ι → Type*} [fintype ι] [∀i, normed_group (π i)] :
-  normed_group (Πb, π b) :=
+  normed_group (Πi, π i) :=
 { norm := λf, ((finset.sup finset.univ (λ b, nnnorm (f b)) : nnreal) : ℝ),
   dist_eq := assume x y,
     congr_arg (coe : nnreal → ℝ) $ congr_arg (finset.sup finset.univ) $ funext $ assume a,
@@ -246,8 +256,12 @@ instance pi.normed_group {π : ι → Type*} [fintype ι] [∀i, normed_group (�
 /-- The norm of an element in a product space is `≤ r` if and only if the norm of each
 component is. -/
 lemma pi_norm_le_iff {π : ι → Type*} [fintype ι] [∀i, normed_group (π i)] {r : ℝ} (hr : 0 ≤ r)
-  {x : Πb, π b} : ∥x∥ ≤ r ↔ ∀i, ∥x i∥ ≤ r :=
+  {x : Πi, π i} : ∥x∥ ≤ r ↔ ∀i, ∥x i∥ ≤ r :=
 by { simp only [(dist_zero_right _).symm, dist_pi_le_iff hr], refl }
+
+lemma norm_le_pi_norm {π : ι → Type*} [fintype ι] [∀i, normed_group (π i)] (x : Πi, π i) (i : ι) :
+  ∥x i∥ ≤ ∥x∥ :=
+(pi_norm_le_iff (norm_nonneg x)).1 (le_refl _) i
 
 lemma tendsto_iff_norm_tendsto_zero {f : ι → β} {a : filter ι} {b : β} :
   tendsto f a (𝓝 b) ↔ tendsto (λ e, ∥ f e - b ∥) a (𝓝 0) :=
@@ -287,9 +301,9 @@ tendsto.comp continuous_nnnorm.continuous_at h
 /-- If `∥y∥→∞`, then we can assume `y≠x` for any fixed `x`. -/
 lemma ne_mem_of_tendsto_norm_at_top {l : filter γ} {f : γ → α}
   (h : tendsto (λ y, ∥f y∥) l at_top) (x : α) :
-  {y | f y ≠ x} ∈ l :=
+  ∀ᶠ y in l, f y ≠ x :=
 begin
-  have : {y | 1 + ∥x∥ ≤ ∥f y∥} ∈ l := h (mem_at_top (1 + ∥x∥)),
+  have : ∀ᶠ y in l, 1 + ∥x∥ ≤ ∥f y∥ := h (mem_at_top (1 + ∥x∥)),
   apply mem_sets_of_superset this,
   assume y hy hxy,
   subst x,
@@ -477,19 +491,19 @@ by rwa norm_fpow⟩
 
 lemma tendsto_inv [normed_field α] {r : α} (r0 : r ≠ 0) : tendsto (λq, q⁻¹) (𝓝 r) (𝓝 r⁻¹) :=
 begin
-  refine metric.tendsto_nhds.2 (λε εpos, _),
-  let δ := min (ε/2/2 * ∥r∥^2) (∥r∥/2),
+  refine (nhds_basis_closed_ball.tendsto_iff nhds_basis_closed_ball).2 (λε εpos, _),
+  let δ := min (ε/2 * ∥r∥^2) (∥r∥/2),
   have norm_r_pos : 0 < ∥r∥ := (norm_pos_iff r).mpr r0,
-  have A : 0 < ε / 2 / 2 * ∥r∥ ^ 2 := mul_pos' (half_pos (half_pos εpos)) (pow_pos norm_r_pos 2),
+  have A : 0 < ε / 2 * ∥r∥ ^ 2 := mul_pos' (half_pos εpos) (pow_pos norm_r_pos 2),
   have δpos : 0 < δ, by simp [half_pos norm_r_pos, A],
-  refine ⟨ball r δ, ball_mem_nhds r δpos, λx hx, _⟩,
+  refine ⟨δ, δpos, λ x hx, _⟩,
   have rx : ∥r∥/2 ≤ ∥x∥ := calc
     ∥r∥/2 = ∥r∥ - ∥r∥/2 : by ring
     ... ≤ ∥r∥ - ∥r - x∥ :
     begin
       apply sub_le_sub (le_refl _),
-      rw ← dist_eq_norm,
-      exact le_trans (le_of_lt (mem_ball'.1 hx)) (min_le_right _ _)
+      rw [← dist_eq_norm, dist_comm],
+      exact le_trans hx (min_le_right _ _)
     end
     ... ≤ ∥r - (r - x)∥ : norm_sub_norm_le r (r - x)
     ... = ∥x∥ : by simp,
@@ -499,20 +513,19 @@ begin
            ← mul_assoc, inv_mul_cancel r0, one_mul],
   calc dist x⁻¹ r⁻¹ = ∥x⁻¹ - r⁻¹∥ : dist_eq_norm _ _
   ... ≤ ∥r-x∥ * ∥x∥⁻¹ * ∥r∥⁻¹ : by rw [this, norm_mul, norm_mul, norm_inv, norm_inv]
-  ... ≤ (ε/2/2 * ∥r∥^2) * (2 * ∥r∥⁻¹) * (∥r∥⁻¹) : begin
+  ... ≤ (ε/2 * ∥r∥^2) * (2 * ∥r∥⁻¹) * (∥r∥⁻¹) : begin
     apply_rules [mul_le_mul, inv_nonneg.2, le_of_lt A, norm_nonneg, inv_nonneg.2, mul_nonneg,
                  (inv_le_inv norm_x_pos norm_r_pos).2, le_refl],
-    show ∥r - x∥ ≤ ε / 2 / 2 * ∥r∥ ^ 2,
-      by { rw ← dist_eq_norm, exact le_trans (le_of_lt (mem_ball'.1 hx)) (min_le_left _ _) },
+    show ∥r - x∥ ≤ ε / 2 * ∥r∥ ^ 2,
+      by { rw [← dist_eq_norm, dist_comm], exact le_trans hx (min_le_left _ _) },
     show ∥x∥⁻¹ ≤ 2 * ∥r∥⁻¹,
     { convert (inv_le_inv norm_x_pos (half_pos norm_r_pos)).2 rx,
       rw [inv_div (ne.symm (ne_of_lt norm_r_pos)), div_eq_inv_mul, mul_comm],
       norm_num },
     show (0 : ℝ) ≤ 2, by norm_num
   end
-  ... = ε/2 * (∥r∥ * ∥r∥⁻¹)^2 : by { generalize : ∥r∥⁻¹ = u, ring }
-  ... = ε/2 : by { rw [mul_inv_cancel (ne.symm (ne_of_lt norm_r_pos))], simp }
-  ... < ε : half_lt_self εpos
+  ... = ε * (∥r∥ * ∥r∥⁻¹)^2 : by { generalize : ∥r∥⁻¹ = u, ring }
+  ... = ε : by { rw [mul_inv_cancel (ne.symm (ne_of_lt norm_r_pos))], simp }
 end
 
 lemma continuous_on_inv [normed_field α] : continuous_on (λ(x:α), x⁻¹) {x | x ≠ 0} :=

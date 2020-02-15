@@ -89,6 +89,21 @@ by rw [←prod_union_inter, (disjoint_iff_inter_eq_empty.mp h)]; exact (mul_one 
 lemma prod_sdiff [decidable_eq α] (h : s₁ ⊆ s₂) : (s₂ \ s₁).prod f * s₁.prod f = s₂.prod f :=
 by rw [←prod_union sdiff_disjoint, sdiff_union_of_subset h]
 
+@[simp, to_additive]
+lemma prod_sum_elim [decidable_eq (α ⊕ γ)]
+  (s : finset α) (t : finset γ) (f : α → β) (g : γ → β) :
+  (s.image sum.inl ∪ t.image sum.inr).prod (sum.elim f g) = s.prod f * t.prod g :=
+begin
+  rw [prod_union, prod_image, prod_image],
+  { simp only [sum.elim_inl, sum.elim_inr] },
+  { exact λ _ _ _ _, sum.inr.inj },
+  { exact λ _ _ _ _, sum.inl.inj },
+  { rintros i hi,
+    erw [finset.mem_inter, finset.mem_image, finset.mem_image] at hi,
+    rcases hi with ⟨⟨i, hi, rfl⟩, ⟨j, hj, H⟩⟩,
+    cases H }
+end
+
 @[to_additive]
 lemma prod_bind [decidable_eq α] {s : finset γ} {t : γ → finset α} :
   (∀x∈s, ∀y∈s, x ≠ y → disjoint (t x) (t y)) → (s.bind t).prod f = s.prod (λx, (t x).prod f) :=
@@ -229,12 +244,26 @@ calc s.prod (λ x, h (if p x then f x else g x))
     (prod_congr rfl (by simp {contextual := tt}))
     (prod_congr rfl (by simp {contextual := tt}))
 
-@[simp, to_additive] lemma prod_ite_eq [decidable_eq α] (s : finset α) (a : α) (b : β) :
-  s.prod (λ x, (ite (a = x) b 1)) = ite (a ∈ s) b 1 :=
+@[simp, to_additive] lemma prod_ite_eq [decidable_eq α] (s : finset α) (a : α) (b : α → β) :
+  s.prod (λ x, (ite (a = x) (b x) 1)) = ite (a ∈ s) (b a) 1 :=
 begin
   rw ←finset.prod_filter,
   split_ifs;
   simp only [filter_eq, if_true, if_false, h, prod_empty, prod_singleton, insert_empty_eq_singleton],
+end
+
+/--
+  When a product is taken over a conditional whose condition is an equality test on the index
+  and whose alternative is 1, then the product's value is either the term at that index or `1`.
+
+  The difference with `prod_ite_eq` is that the arguments to `eq` are swapped.
+-/
+@[simp, to_additive] lemma prod_ite_eq' [decidable_eq α] (s : finset α) (a : α) (b : α → β) :
+  s.prod (λ x, (ite (x = a) (b x) 1)) = ite (a ∈ s) (b a) 1 :=
+begin
+  rw ←prod_ite_eq,
+  congr, ext x,
+  by_cases x = a; finish
 end
 
 @[to_additive]
@@ -448,18 +477,44 @@ end
 @[to_additive]
 lemma prod_piecewise [decidable_eq α] (s t : finset α) (f g : α → β) :
   s.prod (t.piecewise f g) = (s ∩ t).prod f * (s \ t).prod g :=
+by { rw [piecewise, prod_ite _ _ (λ x, x), filter_mem_eq_inter, ← sdiff_eq_filter], assumption }
+
+/-- If we can partition a product into subsets that cancel out, then the whole product cancels. -/
+@[to_additive]
+lemma prod_cancels_of_partition_cancels (R : setoid α) [decidable_rel R.r]
+  (h : ∀ x ∈ s, (s.filter (λy, y ≈ x)).prod f = 1) : s.prod f = 1 :=
 begin
-  refine s.induction_on (by simp) _,
-  assume x s hxs Hrec,
-  by_cases h : x ∈ t,
-  { simp [hxs, h, Hrec, insert_sdiff_of_mem s h, mul_assoc] },
-  { simp [hxs, h, Hrec, insert_sdiff_of_not_mem s h],
-    rw [mul_comm, mul_assoc],
-    congr' 1,
-    rw mul_comm }
+  suffices : (s.image quotient.mk).prod (λ xbar, (s.filter (λ y, ⟦y⟧ = xbar)).prod f) = s.prod f,
+  { rw [←this, ←finset.prod_eq_one],
+    intros xbar xbar_in_s,
+    rcases (mem_image).mp xbar_in_s with ⟨x, x_in_s, xbar_eq_x⟩,
+    rw [←xbar_eq_x, filter_congr (λ y _, @quotient.eq _ R y x)],
+    apply h x x_in_s },
+  apply finset.prod_image' f,
+  intros,
+  refl
 end
 
+@[to_additive]
+lemma prod_update_of_not_mem [decidable_eq α] {s : finset α} {i : α}
+  (h : i ∉ s) (f : α → β) (b : β) : s.prod (function.update f i b) = s.prod f :=
+begin
+  apply prod_congr rfl (λj hj, _),
+  have : j ≠ i, by { assume eq, rw eq at hj, exact h hj },
+  simp [this]
+end
+
+lemma prod_update_of_mem [decidable_eq α] {s : finset α} {i : α} (h : i ∈ s) (f : α → β) (b : β) :
+  s.prod (function.update f i b) = b * (s \ (singleton i)).prod f :=
+by { rw [update_eq_piecewise, prod_piecewise], simp [h] }
+
 end comm_monoid
+
+lemma sum_update_of_mem [add_comm_monoid β] [decidable_eq α] {s : finset α} {i : α}
+  (h : i ∈ s) (f : α → β) (b : β) :
+  s.sum (function.update f i b) = b + (s \ (singleton i)).sum f :=
+by { rw [update_eq_piecewise, sum_piecewise], simp [h] }
+attribute [to_additive] prod_update_of_mem
 
 lemma sum_smul' [add_comm_monoid β] (s : finset α) (n : ℕ) (f : α → β) :
   s.sum (λ x, add_monoid.smul n (f x)) = add_monoid.smul n (s.sum f) :=
@@ -574,14 +629,14 @@ lemma mul_sum : b * s.sum f = s.sum (λx, b * f x) :=
 @[simp] lemma sum_mul_boole [decidable_eq α] (s : finset α) (f : α → β) (a : α) :
   s.sum (λ x, (f x * ite (a = x) 1 0)) = ite (a ∈ s) (f a) 0 :=
 begin
-  convert sum_ite_eq s a (f a),
+  convert sum_ite_eq s a f,
   funext,
   split_ifs with h; simp [h],
 end
 @[simp] lemma sum_boole_mul [decidable_eq α] (s : finset α) (f : α → β) (a : α) :
   s.sum (λ x, (ite (a = x) 1 0) * f x) = ite (a ∈ s) (f a) 0 :=
 begin
-  convert sum_ite_eq s a (f a),
+  convert sum_ite_eq s a f,
   funext,
   split_ifs with h; simp [h],
 end

@@ -45,6 +45,8 @@ namespace nat.partrec.code
 open nat (mkpair unpair)
 open nat.partrec (code)
 
+instance : inhabited code := ⟨zero⟩
+
 protected def const : ℕ → code
 | 0     := zero
 | (n+1) := comp succ (const n)

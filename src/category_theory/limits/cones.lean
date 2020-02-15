@@ -206,16 +206,12 @@ end
 
 end cocone
 
-structure cone_morphism (A B : cone F) :=
+@[ext] structure cone_morphism (A B : cone F) :=
 (hom : A.X ⟶ B.X)
 (w'  : ∀ j : J, hom ≫ B.π.app j = A.π.app j . obviously)
 
 restate_axiom cone_morphism.w'
 attribute [simp] cone_morphism.w
-
-@[ext] lemma cone_morphism.ext {A B : cone F} {f g : cone_morphism A B}
-  (w : f.hom = g.hom) : f = g :=
-by cases f; cases g; simpa using w
 
 @[simps] instance cone.category : category.{v} (cone F) :=
 { hom  := λ A B, cone_morphism A B,
@@ -270,16 +266,12 @@ include 𝒟
 end
 end cones
 
-structure cocone_morphism (A B : cocone F) :=
+@[ext] structure cocone_morphism (A B : cocone F) :=
 (hom : A.X ⟶ B.X)
 (w'  : ∀ j : J, A.ι.app j ≫ hom = B.ι.app j . obviously)
 
 restate_axiom cocone_morphism.w'
 attribute [simp] cocone_morphism.w
-
-@[ext] lemma cocone_morphism.ext
-  {A B : cocone F} {f g : cocone_morphism A B} (w : f.hom = g.hom) : f = g :=
-by cases f; cases g; simpa using w
 
 @[simps] instance cocone.category : category.{v} (cocone F) :=
 { hom  := λ A B, cocone_morphism A B,

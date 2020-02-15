@@ -113,6 +113,7 @@ instance : has_one (mv_polynomial σ α) := finsupp.has_one
 instance : has_add (mv_polynomial σ α) := finsupp.has_add
 instance : has_mul (mv_polynomial σ α) := finsupp.has_mul
 instance : comm_semiring (mv_polynomial σ α) := finsupp.comm_semiring
+instance : inhabited (mv_polynomial σ α) := ⟨0⟩
 
 /-- `monomial s a` is the monomial `a * X^s` -/
 def monomial (s : σ →₀ ℕ) (a : α) : mv_polynomial σ α := single s a
@@ -345,7 +346,7 @@ begin
     delta X monomial at hi', rw mem_support_single at hi', cases hi', subst i',
     erw finset.mem_singleton at H, subst m,
     rw [mem_support_iff, add_apply, single_apply, if_pos rfl],
-    intro H, rw [add_eq_zero_iff] at H, exact one_ne_zero H.2 }
+    intro H, rw [_root_.add_eq_zero_iff] at H, exact one_ne_zero H.2 }
 end
 
 end coeff

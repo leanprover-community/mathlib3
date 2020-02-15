@@ -12,7 +12,7 @@ namespace omega
 
 namespace nat
 
-@[derive has_reflect]
+@[derive has_reflect, derive inhabited]
 inductive form
 | eq  : preterm → preterm → form
 | le  : preterm → preterm → form

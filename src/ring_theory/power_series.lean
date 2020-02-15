@@ -73,6 +73,7 @@ namespace mv_power_series
 open finsupp
 variables {σ : Type*} {α : Type*}
 
+instance [inhabited α]       : inhabited       (mv_power_series σ α) := ⟨λ _, default _⟩
 instance [has_zero α]        : has_zero        (mv_power_series σ α) := pi.has_zero
 instance [add_monoid α]      : add_monoid      (mv_power_series σ α) := pi.add_monoid
 instance [add_group α]       : add_group       (mv_power_series σ α) := pi.add_group
@@ -314,6 +315,32 @@ end
 lemma coeff_X_pow (m : σ →₀ ℕ) (s : σ) (n : ℕ) :
   coeff α m ((X s : mv_power_series σ α)^n) = if m = single s n then 1 else 0 :=
 by rw [X_pow_eq s n, coeff_monomial]
+
+@[simp] lemma coeff_mul_C (n : σ →₀ ℕ) (φ : mv_power_series σ α) (a : α) :
+  coeff α n (φ * (C σ α a)) = (coeff α n φ) * a :=
+begin
+  rw [coeff_mul n φ], rw [finset.sum_eq_single (n,(0 : σ →₀ ℕ))],
+  { rw [coeff_C, if_pos rfl] },
+  { rintro ⟨i,j⟩ hij hne,
+    rw finsupp.mem_antidiagonal_support at hij,
+    by_cases hj : j = 0,
+    { subst hj, simp at *, contradiction },
+    { rw [coeff_C, if_neg hj, mul_zero] } },
+  { intro h, exfalso, apply h,
+    rw finsupp.mem_antidiagonal_support,
+    apply add_zero }
+end
+
+@[simp] lemma coeff_zero_mul_X (φ : mv_power_series σ α) (s : σ) :
+  coeff α (0 : σ →₀ ℕ) (φ * X s) = 0 :=
+begin
+  rw [coeff_mul _ φ, finset.sum_eq_zero],
+  rintro ⟨i,j⟩ hij,
+  obtain ⟨rfl, rfl⟩ : i = 0 ∧ j = 0,
+  { rw finsupp.mem_antidiagonal_support at hij,
+    simpa using hij },
+  simp,
+end
 
 variables (σ) (α)
 
@@ -741,6 +768,7 @@ namespace power_series
 open finsupp (single)
 variable {α : Type*}
 
+instance [inhabited α]       : inhabited       (power_series α) := by delta power_series; apply_instance
 instance [add_monoid α]      : add_monoid      (power_series α) := by delta power_series; apply_instance
 instance [add_group α]       : add_group       (power_series α) := by delta power_series; apply_instance
 instance [add_comm_monoid α] : add_comm_monoid (power_series α) := by delta power_series; apply_instance
@@ -892,6 +920,31 @@ begin
       rw [finset.nat.mem_antidiagonal, ← finsupp.add_apply, hfg, finsupp.single_eq_same] },
     { rw prod.mk.inj_iff, dsimp,
       exact ⟨finsupp.unique_single f, finsupp.unique_single g⟩ } }
+end
+
+@[simp] lemma coeff_mul_C (n : ℕ) (φ : power_series α) (a : α) :
+  coeff α n (φ * (C α a)) = (coeff α n φ) * a :=
+mv_power_series.coeff_mul_C _ φ a
+
+@[simp] lemma coeff_succ_mul_X (n : ℕ) (φ : power_series α) :
+  coeff α (n+1) (φ * X) = coeff α n φ :=
+begin
+  rw [coeff_mul _ φ, finset.sum_eq_single (n,1)],
+  { rw [coeff_X, if_pos rfl, mul_one] },
+  { rintro ⟨i,j⟩ hij hne,
+    by_cases hj : j = 1,
+    { subst hj, simp at *, contradiction },
+    { simp [coeff_X, hj] } },
+  { intro h, exfalso, apply h, simp },
+end
+
+@[simp] lemma coeff_zero_mul_X (φ : power_series α) :
+  coeff α 0 (φ * X) = 0 :=
+begin
+  rw [coeff_mul _ φ, finset.sum_eq_zero],
+  rintro ⟨i,j⟩ hij,
+  obtain ⟨rfl, rfl⟩ : i = 0 ∧ j = 0, { simpa using hij },
+  simp,
 end
 
 @[simp] lemma constant_coeff_C (a : α) : constant_coeff α (C α a) = a := rfl

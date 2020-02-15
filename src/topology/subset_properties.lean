@@ -14,6 +14,18 @@ import topology.continuous_on
 `compact`, `is_clopen`, `is_irreducible`, `is_connected`, `is_totally_disconnected`, `is_totally_separated`
 
 TODO: write better docs
+
+## On the definition of irreducible and connected sets/spaces
+
+In informal mathematics, irreducible and connected spaces are assumed to be nonempty.
+We formalise the predicate without that assumption
+as `is_preirreducible` and `is_preconnected` respectively.
+In other words, the only difference is whether the empty space
+counts as irreducible and/or connected.
+There are good reasons to consider the empty space to be “too simple to be simple”
+See also https://ncatlab.org/nlab/show/too+simple+to+be+simple,
+and in particular
+https://ncatlab.org/nlab/show/too+simple+to+be+simple#relationship_to_biased_definitions.
 -/
 
 open set filter lattice classical
@@ -55,13 +67,13 @@ classical.by_cases mem_sets_of_eq_bot $
   let ⟨a, ha, (hfa : f ⊓ principal (-t) ⊓ 𝓝 a ≠ ⊥)⟩ := hs _ this $ inf_le_left_of_le hf₂ in
   have a ∈ t,
     from ht₂ a ha $ ne_bot_of_le_ne_bot hfa $ le_inf inf_le_right $ inf_le_left_of_le inf_le_left,
+  have (-t) ∩ t ∈ nhds_within a (-t),
+    from inter_mem_nhds_within _ (mem_nhds_sets ht₁ this),
+  have A : nhds_within a (-t) = ⊥,
+    from empty_in_sets_eq_bot.1 $ compl_inter_self t ▸ this,
   have nhds_within a (-t) ≠ ⊥,
     from ne_bot_of_le_ne_bot hfa $ le_inf inf_le_right $ inf_le_left_of_le inf_le_right,
-  have ∀s∈ nhds_within a (-t), s ≠ ∅,
-    from forall_sets_ne_empty_iff_ne_bot.mpr this,
-  have false,
-    from this _ ⟨t, mem_nhds_sets ht₁ ‹a ∈ t›, -t, subset.refl _, subset.refl _⟩ (inter_compl_self _),
-  by contradiction
+  absurd A this
 
 lemma compact_iff_ultrafilter_le_nhds {s : set α} :
   compact s ↔ (∀f, is_ultrafilter f → f ≤ principal s → ∃a∈s, f ≤ 𝓝 a) :=
@@ -84,7 +96,7 @@ classical.by_contradiction $ assume h,
     from assume c' h₁ h₂ h₃, h ⟨c', h₁, h₂, h₃⟩,
   let
     f : filter α := (⨅c':{c' : set (set α) // c' ⊆ c ∧ finite c'}, principal (s - ⋃₀ c')),
-    ⟨a, ha⟩ := @exists_mem_of_ne_empty α s
+    ⟨a, ha⟩ := (@ne_empty_iff_nonempty α s).1
       (assume h', h (empty_subset _) finite_empty $ h'.symm ▸ empty_subset _)
   in
   have f ≠ ⊥, from infi_ne_bot_of_directed ⟨a⟩
@@ -110,8 +122,8 @@ classical.by_contradiction $ assume h,
 lemma compact.elim_finite_subcover_image {s : set α} {b : set β} {c : β → set α}
   (hs : compact s) (hc₁ : ∀i∈b, is_open (c i)) (hc₂ : s ⊆ ⋃i∈b, c i) :
   ∃b'⊆b, finite b' ∧ s ⊆ ⋃i∈b', c i :=
-if h : b = ∅ then ⟨∅, empty_subset _, finite_empty, h ▸ hc₂⟩ else
-let ⟨i, hi⟩ := exists_mem_of_ne_empty h in
+b.eq_empty_or_nonempty.elim (λ h, ⟨∅, empty_subset _, finite_empty, h ▸ hc₂⟩) $
+assume ⟨i, hi⟩,
 have hc'₁ : ∀i∈c '' b, is_open i, from assume i ⟨j, hj, h⟩, h ▸ hc₁ _ hj,
 have hc'₂ : s ⊆ ⋃₀ (c '' b), by rwa set.sUnion_image,
 let ⟨d, hd₁, hd₂, hd₃⟩ := hs.elim_finite_subcover hc'₁ hc'₂ in
@@ -170,10 +182,12 @@ lemma compact_iff_finite_subcover {s : set α} :
   compact s ↔ (∀c, (∀t∈c, is_open t) → s ⊆ ⋃₀ c → ∃c'⊆c, finite c' ∧ s ⊆ ⋃₀ c') :=
 ⟨assume hc c, hc.elim_finite_subcover, compact_of_finite_subcover⟩
 
+@[simp]
 lemma compact_empty : compact (∅ : set α) :=
 assume f hnf hsf, not.elim hnf $
 empty_in_sets_eq_bot.1 $ le_principal_iff.1 hsf
 
+@[simp]
 lemma compact_singleton {a : α} : compact ({a} : set α) :=
 compact_of_finite_subcover $ assume c hc₁ hc₂,
   let ⟨i, hic, hai⟩ := (show ∃i ∈ c, a ∈ i, from mem_sUnion.1 $ singleton_subset_iff.1 hc₂) in
@@ -435,32 +449,48 @@ is_clopen_inter hs (is_clopen_compl ht)
 
 end clopen
 
-section irreducible
+section preirreducible
 
-/-- An irreducible set is one where there is no non-trivial pair of disjoint opens. -/
-def is_irreducible (s : set α) : Prop :=
+/-- A preirreducible set `s` is one where there is no non-trivial pair of disjoint opens on `s`. -/
+def is_preirreducible (s : set α) : Prop :=
 ∀ (u v : set α), is_open u → is_open v →
-  (∃ x, x ∈ s ∩ u) → (∃ x, x ∈ s ∩ v) → ∃ x, x ∈ s ∩ (u ∩ v)
+  (s ∩ u).nonempty → (s ∩ v).nonempty → (s ∩ (u ∩ v)).nonempty
 
-theorem is_irreducible_empty : is_irreducible (∅ : set α) :=
+/-- An irreducible set `s` is one that is nonempty and
+where there is no non-trivial pair of disjoint opens on `s`. -/
+def is_irreducible (s : set α) : Prop :=
+s.nonempty ∧ is_preirreducible s
+
+lemma is_irreducible.nonempty {s : set α} (h : is_irreducible s) :
+  s.nonempty := h.1
+
+lemma is_irreducible.is_preirreducible {s : set α} (h : is_irreducible s) :
+  is_preirreducible s := h.2
+
+theorem is_preirreducible_empty : is_preirreducible (∅ : set α) :=
 λ _ _ _ _ _ ⟨x, h1, h2⟩, h1.elim
 
 theorem is_irreducible_singleton {x} : is_irreducible ({x} : set α) :=
-λ u v _ _ ⟨y, h1, h2⟩ ⟨z, h3, h4⟩, by rw mem_singleton_iff at h1 h3;
-substs y z; exact ⟨x, or.inl rfl, h2, h4⟩
+⟨singleton_nonempty x,
+ λ u v _ _ ⟨y, h1, h2⟩ ⟨z, h3, h4⟩, by rw mem_singleton_iff at h1 h3;
+ substs y z; exact ⟨x, or.inl rfl, h2, h4⟩⟩
 
-theorem is_irreducible_closure {s : set α} (H : is_irreducible s) :
-  is_irreducible (closure s) :=
+theorem is_preirreducible.closure {s : set α} (H : is_preirreducible s) :
+  is_preirreducible (closure s) :=
 λ u v hu hv ⟨y, hycs, hyu⟩ ⟨z, hzcs, hzv⟩,
-let ⟨p, hpu, hps⟩ := exists_mem_of_ne_empty (mem_closure_iff.1 hycs u hu hyu) in
-let ⟨q, hqv, hqs⟩ := exists_mem_of_ne_empty (mem_closure_iff.1 hzcs v hv hzv) in
+let ⟨p, hpu, hps⟩ := mem_closure_iff.1 hycs u hu hyu in
+let ⟨q, hqv, hqs⟩ := mem_closure_iff.1 hzcs v hv hzv in
 let ⟨r, hrs, hruv⟩ := H u v hu hv ⟨p, hps, hpu⟩ ⟨q, hqs, hqv⟩ in
 ⟨r, subset_closure hrs, hruv⟩
 
-theorem exists_irreducible (s : set α) (H : is_irreducible s) :
-  ∃ t : set α, is_irreducible t ∧ s ⊆ t ∧ ∀ u, is_irreducible u → t ⊆ u → u = t :=
-let ⟨m, hm, hsm, hmm⟩ := zorn.zorn_subset₀ { t : set α | is_irreducible t }
-  (λ c hc hcc hcn, let ⟨t, htc⟩ := exists_mem_of_ne_empty hcn in
+lemma is_irreducible.closure {s : set α} (h : is_irreducible s) :
+  is_irreducible (closure s) :=
+⟨h.nonempty.closure, h.is_preirreducible.closure⟩
+
+theorem exists_preirreducible (s : set α) (H : is_preirreducible s) :
+  ∃ t : set α, is_preirreducible t ∧ s ⊆ t ∧ ∀ u, is_preirreducible u → t ⊆ u → u = t :=
+let ⟨m, hm, hsm, hmm⟩ := zorn.zorn_subset₀ {t : set α | is_preirreducible t}
+  (λ c hc hcc hcn, let ⟨t, htc⟩ := hcn in
     ⟨⋃₀ c, λ u v hu hv ⟨y, hy, hyu⟩ ⟨z, hz, hzv⟩,
       let ⟨p, hpc, hyp⟩ := mem_sUnion.1 hy,
           ⟨q, hqc, hzq⟩ := mem_sUnion.1 hz in
@@ -476,73 +506,242 @@ let ⟨m, hm, hsm, hmm⟩ := zorn.zorn_subset₀ { t : set α | is_irreducible t
 
 /-- A maximal irreducible set that contains a given point. -/
 def irreducible_component (x : α) : set α :=
-classical.some (exists_irreducible {x} is_irreducible_singleton)
+classical.some (exists_preirreducible {x} is_irreducible_singleton.is_preirreducible)
 
-theorem is_irreducible_irreducible_component {x : α} : is_irreducible (irreducible_component x) :=
-(classical.some_spec (exists_irreducible {x} is_irreducible_singleton)).1
+lemma irreducible_component_property (x : α) :
+  is_preirreducible (irreducible_component x) ∧ {x} ⊆ (irreducible_component x) ∧
+  ∀ u, is_preirreducible u → (irreducible_component x) ⊆ u → u = (irreducible_component x) :=
+classical.some_spec (exists_preirreducible {x} is_irreducible_singleton.is_preirreducible)
 
 theorem mem_irreducible_component {x : α} : x ∈ irreducible_component x :=
-singleton_subset_iff.1
-  (classical.some_spec (exists_irreducible {x} is_irreducible_singleton)).2.1
+singleton_subset_iff.1 (irreducible_component_property x).2.1
+
+theorem is_irreducible_irreducible_component {x : α} : is_irreducible (irreducible_component x) :=
+⟨⟨x, mem_irreducible_component⟩, (irreducible_component_property x).1⟩
 
 theorem eq_irreducible_component {x : α} :
-  ∀ {s : set α}, is_irreducible s → irreducible_component x ⊆ s → s = irreducible_component x :=
-(classical.some_spec (exists_irreducible {x} is_irreducible_singleton)).2.2
+  ∀ {s : set α}, is_preirreducible s → irreducible_component x ⊆ s → s = irreducible_component x :=
+(irreducible_component_property x).2.2
 
 theorem is_closed_irreducible_component {x : α} :
   is_closed (irreducible_component x) :=
 closure_eq_iff_is_closed.1 $ eq_irreducible_component
-  (is_irreducible_closure is_irreducible_irreducible_component)
+  is_irreducible_irreducible_component.is_preirreducible.closure
   subset_closure
 
-/-- An irreducible space is one where there is no non-trivial pair of disjoint opens. -/
-class irreducible_space (α : Type u) [topological_space α] : Prop :=
-(is_irreducible_univ : is_irreducible (univ : set α))
+/-- A preirreducible space is one where there is no non-trivial pair of disjoint opens. -/
+class preirreducible_space (α : Type u) [topological_space α] : Prop :=
+(is_preirreducible_univ : is_preirreducible (univ : set α))
 
-theorem irreducible_exists_mem_inter [irreducible_space α] {s t : set α} :
-  is_open s → is_open t → (∃ x, x ∈ s) → (∃ x, x ∈ t) → ∃ x, x ∈ s ∩ t :=
+/-- An irreducible space is one that is nonempty
+and where there is no non-trivial pair of disjoint opens. -/
+class irreducible_space (α : Type u) [topological_space α] extends preirreducible_space α : Prop :=
+(to_nonempty : nonempty α)
+
+attribute [instance] irreducible_space.to_nonempty
+
+theorem nonempty_preirreducible_inter [preirreducible_space α] {s t : set α} :
+  is_open s → is_open t → s.nonempty → t.nonempty → (s ∩ t).nonempty :=
 by simpa only [univ_inter, univ_subset_iff] using
-  @irreducible_space.is_irreducible_univ α _ _ s t
+  @preirreducible_space.is_preirreducible_univ α _ _ s t
 
-end irreducible
+theorem is_preirreducible.image [topological_space β] {s : set α} (H : is_preirreducible s)
+  (f : α → β) (hf : continuous_on f s) : is_preirreducible (f '' s) :=
+begin
+  rintros u v hu hv ⟨_, ⟨⟨x, hx, rfl⟩, hxu⟩⟩ ⟨_, ⟨⟨y, hy, rfl⟩, hyv⟩⟩,
+  rw ← set.mem_preimage at hxu hyv,
+  rcases continuous_on_iff'.1 hf u hu with ⟨u', hu', u'_eq⟩,
+  rcases continuous_on_iff'.1 hf v hv with ⟨v', hv', v'_eq⟩,
+  have := H u' v' hu' hv',
+  rw [set.inter_comm s u', ← u'_eq] at this,
+  rw [set.inter_comm s v', ← v'_eq] at this,
+  rcases this ⟨x, hxu, hx⟩ ⟨y, hyv, hy⟩ with ⟨z, hzs, hzu', hzv'⟩,
+  refine ⟨f z, mem_image_of_mem f hzs, _, _⟩,
+  all_goals
+  { rw ← set.mem_preimage,
+    apply set.mem_of_mem_inter_left,
+    show z ∈ _ ∩ s,
+    simp [*] }
+end
 
-section connected
+theorem is_irreducible.image [topological_space β] {s : set α} (H : is_irreducible s)
+  (f : α → β) (hf : continuous_on f s) : is_irreducible (f '' s) :=
+⟨nonempty_image_iff.mpr H.nonempty, H.is_preirreducible.image f hf⟩
 
-/-- A connected set is one where there is no non-trivial open partition. -/
-def is_connected (s : set α) : Prop :=
+lemma subtype.preirreducible_space {s : set α} (h : is_preirreducible s) :
+  preirreducible_space s :=
+{ is_preirreducible_univ :=
+  begin
+    intros u v hu hv hsu hsv,
+    rw is_open_induced_iff at hu hv,
+    rcases hu with ⟨u, hu, rfl⟩,
+    rcases hv with ⟨v, hv, rfl⟩,
+    rcases hsu with ⟨⟨x, hxs⟩, hxs', hxu⟩,
+    rcases hsv with ⟨⟨y, hys⟩, hys', hyv⟩,
+    rcases h u v hu hv ⟨x, hxs, hxu⟩ ⟨y, hys, hyv⟩ with ⟨z, hzs, ⟨hzu, hzv⟩⟩,
+    exact ⟨⟨z, hzs⟩, ⟨set.mem_univ _, ⟨hzu, hzv⟩⟩⟩
+  end }
+
+lemma subtype.irreducible_space {s : set α} (h : is_irreducible s) :
+  irreducible_space s :=
+{ is_preirreducible_univ :=
+  (subtype.preirreducible_space h.is_preirreducible).is_preirreducible_univ,
+  to_nonempty := h.nonempty.to_subtype }
+
+/-- A set `s` is irreducible if and only if
+for every finite collection of open sets all of whose members intersect `s`,
+`s` also intersects the intersection of the entire collection
+(i.e., there is an element of `s` contained in every member of the collection). -/
+lemma is_irreducible_iff_sInter {s : set α} :
+  is_irreducible s ↔
+  ∀ (U : finset (set α)) (hU : ∀ u ∈ U, is_open u) (H : ∀ u ∈ U, (s ∩ u).nonempty),
+  (s ∩ ⋂₀ ↑U).nonempty :=
+begin
+  split; intro h,
+  { intro U, apply finset.induction_on U,
+    { intros, simpa using h.nonempty },
+    { intros u U hu IH hU H,
+      rw [finset.coe_insert, sInter_insert],
+      apply h.2,
+      { solve_by_elim [finset.mem_insert_self] },
+      { apply is_open_sInter (finset.finite_to_set U),
+        intros, solve_by_elim [finset.mem_insert_of_mem] },
+      { solve_by_elim [finset.mem_insert_self] },
+      { apply IH,
+        all_goals { intros, solve_by_elim [finset.mem_insert_of_mem] } } } },
+  { split,
+    { simpa using h ∅ _ _; intro u; simp },
+    intros u v hu hv hu' hv',
+    simpa only [finset.coe_insert, sInter_singleton, finset.insert_empty_eq_singleton,
+      finset.coe_singleton, finset.has_insert_eq_insert, sInter_insert]
+      using h {v,u} _ _,
+    all_goals
+    { intro t,
+      rw [finset.insert_empty_eq_singleton, finset.has_insert_eq_insert,
+          finset.mem_insert, finset.mem_singleton],
+      rintro (rfl|rfl); assumption } }
+end
+
+/-- A set is preirreducible if and only if
+for every cover by two closed sets, it is contained in one of the two covering sets. -/
+lemma is_preirreducible_iff_closed_union_closed {s : set α} :
+  is_preirreducible s ↔
+  ∀ (z₁ z₂ : set α), is_closed z₁ → is_closed z₂ → s ⊆ z₁ ∪ z₂ → s ⊆ z₁ ∨ s ⊆ z₂ :=
+begin
+  split,
+  all_goals
+  { intros h t₁ t₂ ht₁ ht₂,
+    specialize h (-t₁) (-t₂),
+    simp only [is_open_compl_iff, is_closed_compl_iff] at h,
+    specialize h ht₁ ht₂ },
+  { contrapose!, simp only [not_subset],
+    rintro ⟨⟨x, hx, hx'⟩, ⟨y, hy, hy'⟩⟩,
+    rcases h ⟨x, hx, hx'⟩ ⟨y, hy, hy'⟩ with ⟨z, hz, hz'⟩,
+    rw ← compl_union at hz',
+    exact ⟨z, hz, hz'⟩ },
+  { rintro ⟨x, hx, hx'⟩ ⟨y, hy, hy'⟩,
+    rw ← compl_inter at h,
+    delta set.nonempty,
+    rw imp_iff_not_or at h,
+    contrapose! h,
+    split,
+    { intros z hz hz', exact h z ⟨hz, hz'⟩ },
+    { split; intro H; refine H _ ‹_›; assumption } }
+end
+
+/-- A set is irreducible if and only if
+for every cover by a finite collection of closed sets,
+it is contained in one of the members of the collection. -/
+lemma is_irreducible_iff_sUnion_closed {s : set α} :
+  is_irreducible s ↔
+  ∀ (Z : finset (set α)) (hZ : ∀ z ∈ Z, is_closed z) (H : s ⊆ ⋃₀ ↑Z),
+  ∃ z ∈ Z, s ⊆ z :=
+begin
+  rw [is_irreducible, is_preirreducible_iff_closed_union_closed],
+  split; intro h,
+  { intro Z, apply finset.induction_on Z,
+    { intros, rw [finset.coe_empty, sUnion_empty] at H,
+      rcases h.1 with ⟨x, hx⟩,
+      exfalso, tauto },
+    { intros z Z hz IH hZ H,
+      cases h.2 z (⋃₀ ↑Z) _ _ _
+        with h' h',
+      { exact ⟨z, finset.mem_insert_self _ _, h'⟩ },
+      { rcases IH _ h' with ⟨z', hz', hsz'⟩,
+        { exact ⟨z', finset.mem_insert_of_mem hz', hsz'⟩ },
+        { intros, solve_by_elim [finset.mem_insert_of_mem] } },
+      { solve_by_elim [finset.mem_insert_self] },
+      { rw sUnion_eq_bUnion,
+        apply is_closed_bUnion (finset.finite_to_set Z),
+        { intros, solve_by_elim [finset.mem_insert_of_mem] } },
+      { simpa using H } } },
+  { split,
+    { by_contradiction hs,
+      simpa using h ∅ _ _,
+      { intro z, simp },
+      { simpa [set.nonempty] using hs } },
+    intros z₁ z₂ hz₁ hz₂ H,
+    have := h {z₂, z₁} _ _,
+    simp only [exists_prop, finset.insert_empty_eq_singleton, finset.has_insert_eq_insert,
+      finset.mem_insert, finset.mem_singleton] at this,
+    { rcases this with ⟨z, rfl|rfl, hz⟩; tauto },
+    { intro t,
+      rw [finset.insert_empty_eq_singleton, finset.has_insert_eq_insert,
+          finset.mem_insert, finset.mem_singleton],
+      rintro (rfl|rfl); assumption },
+    { simpa using H } }
+end
+
+end preirreducible
+
+section preconnected
+
+/-- A preconnected set is one where there is no non-trivial open partition. -/
+def is_preconnected (s : set α) : Prop :=
 ∀ (u v : set α), is_open u → is_open v → s ⊆ u ∪ v →
-  (∃ x, x ∈ s ∩ u) → (∃ x, x ∈ s ∩ v) → ∃ x, x ∈ s ∩ (u ∩ v)
+  (s ∩ u).nonempty → (s ∩ v).nonempty → (s ∩ (u ∩ v)).nonempty
 
-theorem is_connected_of_is_irreducible {s : set α} (H : is_irreducible s) : is_connected s :=
+/-- A connected set is one that is nonempty and where there is no non-trivial open partition. -/
+def is_connected (s : set α) : Prop :=
+s.nonempty ∧ is_preconnected s
+
+lemma is_connected.nonempty {s : set α} (h : is_connected s) :
+  s.nonempty := h.1
+
+lemma is_connected.is_preconnected {s : set α} (h : is_connected s) :
+  is_preconnected s := h.2
+
+theorem is_preirreducible.is_preconnected {s : set α} (H : is_preirreducible s) : is_preconnected s :=
 λ _ _ hu hv _, H _ _ hu hv
 
-theorem is_connected_empty : is_connected (∅ : set α) :=
-is_connected_of_is_irreducible is_irreducible_empty
+theorem is_irreducible.is_connected {s : set α} (H : is_irreducible s) : is_connected s :=
+⟨H.nonempty, H.is_preirreducible.is_preconnected⟩
+
+theorem is_preconnected_empty : is_preconnected (∅ : set α) :=
+is_preirreducible_empty.is_preconnected
 
 theorem is_connected_singleton {x} : is_connected ({x} : set α) :=
-is_connected_of_is_irreducible is_irreducible_singleton
+is_irreducible_singleton.is_connected
 
-/-- If any point of a set is joined to a fixed point by a connected subset,
-then the original set is connected as well. -/
-theorem is_connected_of_forall {s : set α} (x : α)
-  (H : ∀ y ∈ s, ∃ t ⊆ s, x ∈ t ∧ y ∈ t ∧ is_connected t) :
-  is_connected s :=
+/-- If any point of a set is joined to a fixed point by a preconnected subset,
+then the original set is preconnected as well. -/
+theorem is_preconnected_of_forall {s : set α} (x : α)
+  (H : ∀ y ∈ s, ∃ t ⊆ s, x ∈ t ∧ y ∈ t ∧ is_preconnected t) :
+  is_preconnected s :=
 begin
   rintros u v hu hv hs ⟨z, zs, zu⟩ ⟨y, ys, yv⟩,
   have xs : x ∈ s, by { rcases H y ys with ⟨t, ts, xt, yt, ht⟩, exact ts xt },
   wlog xu : x ∈ u := hs xs using [u v y z, v u z y],
-  { rcases H y ys with ⟨t, ts, xt, yt, ht⟩,
-    have := ht u v hu hv(subset.trans ts hs) ⟨x, xt, xu⟩ ⟨y, yt, yv⟩,
-    exact this.imp (λ z hz, ⟨ts hz.1, hz.2⟩) },
-  { rw [union_comm v, inter_comm v] at this,
-    apply this; assumption }
+  rcases H y ys with ⟨t, ts, xt, yt, ht⟩,
+  have := ht u v hu hv(subset.trans ts hs) ⟨x, xt, xu⟩ ⟨y, yt, yv⟩,
+  exact this.imp (λ z hz, ⟨ts hz.1, hz.2⟩)
 end
 
-/-- If any two points of a set are contained in a connected subset,
-then the original set is connected as well. -/
-theorem is_connected_of_forall_pair {s : set α}
-  (H : ∀ x y ∈ s, ∃ t ⊆ s, x ∈ t ∧ y ∈ t ∧ is_connected t) :
-  is_connected s :=
+/-- If any two points of a set are contained in a preconnected subset,
+then the original set is preconnected as well. -/
+theorem is_preconnected_of_forall_pair {s : set α}
+  (H : ∀ x y ∈ s, ∃ t ⊆ s, x ∈ t ∧ y ∈ t ∧ is_preconnected t) :
+  is_preconnected s :=
 begin
   rintros u v hu hv hs ⟨x, xs, xu⟩ ⟨y, ys, yv⟩,
   rcases H x y xs ys with ⟨t, ts, xt, yt, ht⟩,
@@ -550,31 +749,44 @@ begin
   exact this.imp (λ z hz, ⟨ts hz.1, hz.2⟩)
 end
 
-/-- A union of a family of connected sets with a common point is connected as well. -/
-theorem is_connected_sUnion (x : α) (c : set (set α)) (H1 : ∀ s ∈ c, x ∈ s)
-  (H2 : ∀ s ∈ c, is_connected s) : is_connected (⋃₀ c) :=
+/-- A union of a family of preconnected sets with a common point is preconnected as well. -/
+theorem is_preconnected_sUnion (x : α) (c : set (set α)) (H1 : ∀ s ∈ c, x ∈ s)
+  (H2 : ∀ s ∈ c, is_preconnected s) : is_preconnected (⋃₀ c) :=
 begin
-  apply is_connected_of_forall x,
+  apply is_preconnected_of_forall x,
   rintros y ⟨s, sc, ys⟩,
   exact ⟨s, subset_sUnion_of_mem sc, H1 s sc, ys, H2 s sc⟩
 end
 
-theorem is_connected.union (x : α) {s t : set α} (H1 : x ∈ s) (H2 : x ∈ t)
-  (H3 : is_connected s) (H4 : is_connected t) : is_connected (s ∪ t) :=
-sUnion_pair s t ▸ is_connected_sUnion x {s, t}
+theorem is_preconnected.union (x : α) {s t : set α} (H1 : x ∈ s) (H2 : x ∈ t)
+  (H3 : is_preconnected s) (H4 : is_preconnected t) : is_preconnected (s ∪ t) :=
+sUnion_pair s t ▸ is_preconnected_sUnion x {s, t}
   (by rintro r (rfl | rfl | h); [exact H2, exact H1, exact h.elim])
   (by rintro r (rfl | rfl | h); [exact H4, exact H3, exact h.elim])
 
-theorem is_connected.closure {s : set α} (H : is_connected s) :
-  is_connected (closure s) :=
+theorem is_connected.union {s t : set α} (H : (s ∩ t).nonempty)
+  (Hs : is_connected s) (Ht : is_connected t) : is_connected (s ∪ t) :=
+begin
+  rcases H with ⟨x, hx⟩,
+  refine ⟨⟨x, mem_union_left t (mem_of_mem_inter_left hx)⟩, _⟩,
+  exact is_preconnected.union x (mem_of_mem_inter_left hx) (mem_of_mem_inter_right hx)
+    Hs.is_preconnected Ht.is_preconnected
+end
+
+theorem is_preconnected.closure {s : set α} (H : is_preconnected s) :
+  is_preconnected (closure s) :=
 λ u v hu hv hcsuv ⟨y, hycs, hyu⟩ ⟨z, hzcs, hzv⟩,
-let ⟨p, hpu, hps⟩ := exists_mem_of_ne_empty (mem_closure_iff.1 hycs u hu hyu) in
-let ⟨q, hqv, hqs⟩ := exists_mem_of_ne_empty (mem_closure_iff.1 hzcs v hv hzv) in
+let ⟨p, hpu, hps⟩ := mem_closure_iff.1 hycs u hu hyu in
+let ⟨q, hqv, hqs⟩ := mem_closure_iff.1 hzcs v hv hzv in
 let ⟨r, hrs, hruv⟩ := H u v hu hv (subset.trans subset_closure hcsuv) ⟨p, hps, hpu⟩ ⟨q, hqs, hqv⟩ in
 ⟨r, subset_closure hrs, hruv⟩
 
-theorem is_connected.image [topological_space β] {s : set α} (H : is_connected s)
-  (f : α → β) (hf : continuous_on f s) : is_connected (f '' s) :=
+theorem is_connected.closure {s : set α} (H : is_connected s) :
+  is_connected (closure s) :=
+⟨H.nonempty.closure, H.is_preconnected.closure⟩
+
+theorem is_preconnected.image [topological_space β] {s : set α} (H : is_preconnected s)
+  (f : α → β) (hf : continuous_on f s) : is_preconnected (f '' s) :=
 begin
   -- Unfold/destruct definitions in hypotheses
   rintros u v hu hv huv ⟨_, ⟨x, xs, rfl⟩, xu⟩ ⟨_, ⟨y, ys, rfl⟩, yv⟩,
@@ -586,7 +798,7 @@ begin
     replace huv := subset_inter huv (subset.refl _),
     rw [inter_distrib_right, u'_eq, v'_eq, ← inter_distrib_right] at huv,
     exact (subset_inter_iff.1 huv).1 },
-  -- Now `s ⊆ u' ∪ v'`, so we can apply `‹is_connected s›`
+  -- Now `s ⊆ u' ∪ v'`, so we can apply `‹is_preconnected s›`
   obtain ⟨z, hz⟩ : (s ∩ (u' ∩ v')).nonempty,
   { refine H u' v' hu' hv' huv ⟨x, _⟩ ⟨y, _⟩; rw inter_comm,
     exacts [u'_eq ▸ ⟨xu, xs⟩, v'_eq ▸ ⟨yv, ys⟩] },
@@ -595,8 +807,12 @@ begin
   exact ⟨f z, ⟨z, hz.1.2, rfl⟩, hz.1.1, hz.2.1⟩
 end
 
-theorem is_connected_closed_iff {s : set α} :
-  is_connected s ↔ ∀ t t', is_closed t → is_closed t' → s ⊆ t ∪ t' →
+theorem is_connected.image [topological_space β] {s : set α} (H : is_connected s)
+  (f : α → β) (hf : continuous_on f s) : is_connected (f '' s) :=
+⟨nonempty_image_iff.mpr H.nonempty, H.is_preconnected.image f hf⟩
+
+theorem is_preconnected_closed_iff {s : set α} :
+  is_preconnected s ↔ ∀ t t', is_closed t → is_closed t' → s ⊆ t ∪ t' →
     (s ∩ t).nonempty → (s ∩ t').nonempty → (s ∩ (t ∩ t')).nonempty :=
 ⟨begin
   rintros h t t' ht ht' htt' ⟨x, xs, xt⟩ ⟨y, ys, yt'⟩,
@@ -604,7 +820,7 @@ theorem is_connected_closed_iff {s : set α} :
   rw [← ne_empty_iff_nonempty, ne.def, not_not, ← subset_compl_iff_disjoint, compl_inter] at h',
   have xt' : x ∉ t', from (h' xs).elim (absurd xt) id,
   have yt : y ∉ t, from (h' ys).elim id (absurd yt'),
-  have := ne_empty_iff_exists_mem.2 (h (-t) (-t') (is_open_compl_iff.2 ht)
+  have := ne_empty_iff_nonempty.2 (h (-t) (-t') (is_open_compl_iff.2 ht)
     (is_open_compl_iff.2 ht') h' ⟨y, ys, yt⟩ ⟨x, xs, xt'⟩),
   rw [ne.def, ← compl_union, ← subset_compl_iff_disjoint, compl_compl] at this,
   contradiction
@@ -612,7 +828,8 @@ end,
 begin
   rintros h u v hu hv huv ⟨x, xs, xu⟩ ⟨y, ys, yv⟩,
   by_contradiction h',
-  rw [← ne_empty_iff_exists_mem, ne.def, not_not, ← subset_compl_iff_disjoint, compl_inter] at h',
+  rw [← ne_empty_iff_nonempty, ne.def, not_not,
+    ← subset_compl_iff_disjoint, compl_inter] at h',
   have xv : x ∉ v, from (h' xs).elim (absurd xu) id,
   have yu : y ∉ u, from (h' ys).elim id (absurd yv),
   have := ne_empty_iff_nonempty.2 (h (-u) (-v) (is_closed_compl_iff.2 hu)
@@ -624,15 +841,15 @@ end⟩
 /-- The connected component of a point is the maximal connected set
 that contains this point. -/
 def connected_component (x : α) : set α :=
-⋃₀ { s : set α | is_connected s ∧ x ∈ s }
-
-theorem is_connected_connected_component {x : α} : is_connected (connected_component x) :=
-is_connected_sUnion x _ (λ _, and.right) (λ _, and.left)
+⋃₀ { s : set α | is_preconnected s ∧ x ∈ s }
 
 theorem mem_connected_component {x : α} : x ∈ connected_component x :=
-mem_sUnion_of_mem (mem_singleton x) ⟨is_connected_singleton, mem_singleton x⟩
+mem_sUnion_of_mem (mem_singleton x) ⟨is_connected_singleton.is_preconnected, mem_singleton x⟩
 
-theorem subset_connected_component {x : α} {s : set α} (H1 : is_connected s) (H2 : x ∈ s) :
+theorem is_connected_connected_component {x : α} : is_connected (connected_component x) :=
+⟨⟨x, mem_connected_component⟩, is_preconnected_sUnion x _ (λ _, and.right) (λ _, and.left)⟩
+
+theorem subset_connected_component {x : α} {s : set α} (H1 : is_preconnected s) (H2 : x ∈ s) :
   s ⊆ connected_component x :=
 λ z hz, mem_sUnion_of_mem hz ⟨H1, H2⟩
 
@@ -640,47 +857,166 @@ theorem is_closed_connected_component {x : α} :
   is_closed (connected_component x) :=
 closure_eq_iff_is_closed.1 $ subset.antisymm
   (subset_connected_component
-    is_connected_connected_component.closure
+    is_connected_connected_component.closure.is_preconnected
     (subset_closure mem_connected_component))
   subset_closure
 
 theorem irreducible_component_subset_connected_component {x : α} :
   irreducible_component x ⊆ connected_component x :=
 subset_connected_component
-  (is_connected_of_is_irreducible is_irreducible_irreducible_component)
+  is_irreducible_irreducible_component.is_connected.is_preconnected
   mem_irreducible_component
 
-/-- A connected space is one where there is no non-trivial open partition. -/
-class connected_space (α : Type u) [topological_space α] : Prop :=
-(is_connected_univ : is_connected (univ : set α))
+/-- A preconnected space is one where there is no non-trivial open partition. -/
+class preconnected_space (α : Type u) [topological_space α] : Prop :=
+(is_preconnected_univ : is_preconnected (univ : set α))
+
+/-- A connected space is a nonempty one where there is no non-trivial open partition. -/
+class connected_space (α : Type u) [topological_space α] extends preconnected_space α : Prop :=
+(to_nonempty : nonempty α)
+
+attribute [instance] connected_space.to_nonempty
+
+@[priority 100] -- see Note [lower instance priority]
+instance preirreducible_space.preconnected_space (α : Type u) [topological_space α]
+  [preirreducible_space α] : preconnected_space α :=
+⟨(preirreducible_space.is_preirreducible_univ α).is_preconnected⟩
 
 @[priority 100] -- see Note [lower instance priority]
 instance irreducible_space.connected_space (α : Type u) [topological_space α]
   [irreducible_space α] : connected_space α :=
-⟨is_connected_of_is_irreducible $ irreducible_space.is_irreducible_univ α⟩
+{ to_nonempty := irreducible_space.to_nonempty α }
 
-theorem exists_mem_inter [connected_space α] {s t : set α} :
-  is_open s → is_open t → s ∪ t = univ →
-    (∃ x, x ∈ s) → (∃ x, x ∈ t) → ∃ x, x ∈ s ∩ t :=
+theorem nonempty_inter [preconnected_space α] {s t : set α} :
+  is_open s → is_open t → s ∪ t = univ → s.nonempty → t.nonempty → (s ∩ t).nonempty :=
 by simpa only [univ_inter, univ_subset_iff] using
-  @connected_space.is_connected_univ α _ _ s t
+  @preconnected_space.is_preconnected_univ α _ _ s t
 
-theorem is_clopen_iff [connected_space α] {s : set α} : is_clopen s ↔ s = ∅ ∨ s = univ :=
+theorem is_clopen_iff [preconnected_space α] {s : set α} : is_clopen s ↔ s = ∅ ∨ s = univ :=
 ⟨λ hs, classical.by_contradiction $ λ h,
   have h1 : s ≠ ∅ ∧ -s ≠ ∅, from ⟨mt or.inl h,
     mt (λ h2, or.inr $ (by rw [← compl_compl s, h2, compl_empty] : s = univ)) h⟩,
-  let ⟨_, h2, h3⟩ := exists_mem_inter hs.1 hs.2 (union_compl_self s)
-    (ne_empty_iff_exists_mem.1 h1.1) (ne_empty_iff_exists_mem.1 h1.2) in
+  let ⟨_, h2, h3⟩ := nonempty_inter hs.1 hs.2 (union_compl_self s)
+    (ne_empty_iff_nonempty.1 h1.1) (ne_empty_iff_nonempty.1 h1.2) in
   h3 h2,
 by rintro (rfl | rfl); [exact is_clopen_empty, exact is_clopen_univ]⟩
 
-end connected
+lemma subtype.preconnected_space {s : set α} (h : is_preconnected s) :
+  preconnected_space s :=
+{ is_preconnected_univ :=
+  begin
+    intros u v hu hv hs hsu hsv,
+    rw is_open_induced_iff at hu hv,
+    rcases hu with ⟨u, hu, rfl⟩,
+    rcases hv with ⟨v, hv, rfl⟩,
+    rcases hsu with ⟨⟨x, hxs⟩, hxs', hxu⟩,
+    rcases hsv with ⟨⟨y, hys⟩, hys', hyv⟩,
+    rcases h u v hu hv _ ⟨x, hxs, hxu⟩ ⟨y, hys, hyv⟩ with ⟨z, hzs, ⟨hzu, hzv⟩⟩,
+    exact ⟨⟨z, hzs⟩, ⟨set.mem_univ _, ⟨hzu, hzv⟩⟩⟩,
+    intros z hz,
+    rcases hs (set.mem_univ ⟨z, hz⟩) with hzu|hzv,
+    { left, assumption },
+    { right, assumption }
+  end }
+
+lemma subtype.connected_space {s : set α} (h : is_connected s) :
+  connected_space s :=
+{ is_preconnected_univ :=
+  (subtype.preconnected_space h.is_preconnected).is_preconnected_univ,
+  to_nonempty := h.nonempty.to_subtype }
+
+/-- A set `s` is preconnected if and only if
+for every cover by two open sets that are disjoint on `s`,
+it is contained in one of the two covering sets. -/
+lemma is_preconnected_iff_subset_of_disjoint {s : set α} :
+  is_preconnected s ↔
+  ∀ (u v : set α) (hu : is_open u) (hv : is_open v) (hs : s ⊆ u ∪ v) (huv : s ∩ (u ∩ v) = ∅),
+  s ⊆ u ∨ s ⊆ v :=
+begin
+  split; intro h,
+  { intros u v hu hv hs huv,
+    specialize h u v hu hv hs,
+    contrapose! huv,
+    rw ne_empty_iff_nonempty,
+    simp [not_subset] at huv,
+    rcases huv with ⟨⟨x, hxs, hxu⟩, ⟨y, hys, hyv⟩⟩,
+    have hxv : x ∈ v := classical.or_iff_not_imp_left.mp (hs hxs) hxu,
+    have hyu : y ∈ u := classical.or_iff_not_imp_right.mp (hs hys) hyv,
+    exact h ⟨y, hys, hyu⟩ ⟨x, hxs, hxv⟩ },
+  { intros u v hu hv hs hsu hsv,
+    rw ← ne_empty_iff_nonempty,
+    intro H,
+    specialize h u v hu hv hs H,
+    contrapose H,
+    apply ne_empty_iff_nonempty.mpr,
+    cases h,
+    { rcases hsv with ⟨x, hxs, hxv⟩, exact ⟨x, hxs, ⟨h hxs, hxv⟩⟩ },
+    { rcases hsu with ⟨x, hxs, hxu⟩, exact ⟨x, hxs, ⟨hxu, h hxs⟩⟩ } }
+end
+
+/-- A set `s` is connected if and only if
+for every cover by a finite collection of open sets that are pairwise disjoint on `s`,
+it is contained in one of the members of the collection. -/
+lemma is_connected_iff_sUnion_disjoint_open {s : set α} :
+  is_connected s ↔
+  ∀ (U : finset (set α)) (H : ∀ (u v : set α), u ∈ U → v ∈ U → (s ∩ (u ∩ v)).nonempty → u = v)
+  (hU : ∀ u ∈ U, is_open u) (hs : s ⊆ ⋃₀ ↑U),
+  ∃ u ∈ U, s ⊆ u :=
+begin
+  rw [is_connected, is_preconnected_iff_subset_of_disjoint],
+  split; intro h,
+  { intro U, apply finset.induction_on U,
+    { rcases h.left,
+      suffices : s ⊆ ∅ → false, { simpa },
+      intro, solve_by_elim },
+    { intros u U hu IH hs hU H,
+      rw [finset.coe_insert, sUnion_insert] at H,
+      cases h.2 u (⋃₀ ↑U) _ _ H _ with hsu hsU,
+      { exact ⟨u, finset.mem_insert_self _ _, hsu⟩ },
+      { rcases IH _ _ hsU with ⟨v, hvU, hsv⟩,
+        { exact ⟨v, finset.mem_insert_of_mem hvU, hsv⟩ },
+        { intros, apply hs; solve_by_elim [finset.mem_insert_of_mem] },
+        { intros, solve_by_elim [finset.mem_insert_of_mem] } },
+      { solve_by_elim [finset.mem_insert_self] },
+      { apply is_open_sUnion,
+        intros, solve_by_elim [finset.mem_insert_of_mem] },
+      { apply eq_empty_of_subset_empty,
+        rintro x ⟨hxs, hxu, hxU⟩,
+        rw mem_sUnion at hxU,
+        rcases hxU with ⟨v, hvU, hxv⟩,
+        rcases hs u v (finset.mem_insert_self _ _) (finset.mem_insert_of_mem hvU) _ with rfl,
+        { contradiction },
+        { exact ⟨x, hxs, hxu, hxv⟩ } } } },
+  { split,
+    { rw ← ne_empty_iff_nonempty,
+      by_contradiction hs, push_neg at hs, subst hs,
+      simpa using h ∅ _ _ _; simp },
+    intros u v hu hv hs hsuv,
+    rcases h {v, u} _ _ _ with ⟨t, ht, ht'⟩,
+    { rw [finset.insert_empty_eq_singleton, finset.has_insert_eq_insert,
+          finset.mem_insert, finset.mem_singleton] at ht,
+      rcases ht with rfl|rfl; tauto },
+    { intros t₁ t₂ ht₁ ht₂ hst,
+      rw ← ne_empty_iff_nonempty at hst,
+      rw [finset.insert_empty_eq_singleton, finset.has_insert_eq_insert,
+          finset.mem_insert, finset.mem_singleton] at ht₁ ht₂,
+      rcases ht₁ with rfl|rfl; rcases ht₂ with rfl|rfl,
+      all_goals { refl <|> contradiction <|> skip },
+      rw inter_comm t₁ at hst, contradiction },
+    { intro t,
+      rw [finset.insert_empty_eq_singleton, finset.has_insert_eq_insert,
+          finset.mem_insert, finset.mem_singleton],
+      rintro (rfl|rfl); assumption },
+    { simpa using hs } }
+end
+
+end preconnected
 
 section totally_disconnected
 
 /-- A set is called totally disconnected if all of its connected components are singletons. -/
 def is_totally_disconnected (s : set α) : Prop :=
-∀ t, t ⊆ s → is_connected t → subsingleton t
+∀ t, t ⊆ s → is_preconnected t → subsingleton t
 
 theorem is_totally_disconnected_empty : is_totally_disconnected (∅ : set α) :=
 λ t ht _, ⟨λ ⟨_, h⟩, (ht h).elim⟩

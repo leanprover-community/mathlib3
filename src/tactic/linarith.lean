@@ -834,4 +834,6 @@ do t ← target,
              else fail "linarith failed: target type is not an inequality."
    end
 
+add_hint_tactic "linarith"
+
 end

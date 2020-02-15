@@ -14,14 +14,12 @@ This file provides some basic definitions related to sets and functions not pres
 in the core library, as well as extra lemmas for functions in the core library
 (empty set, univ, union, intersection, insert, singleton, complement, powerset).
 
--- TODO is powerset defined in core??
-
 ## Main definitions
 
 `strict_subset s t` : `s ⊆ t` but `s ≠ t`.
 
 `nonempty s` : `s ≠ ∅`. Note that this is the canonical way to express the fact that s has
-an element. It has the advantage that `s.nonempty` dot notation can be used.
+an element. It has the advantage that the `s.nonempty` dot notation can be used.
 
 `preimage f s` : the preimage f⁻¹(s).
 
@@ -31,7 +29,7 @@ an element. It has the advantage that `s.nonempty` dot notation can be used.
 
 `prod s t` : the subset `s × t`.
 
-`inclusion s t` : the map ↑s → ↑t
+`inclusion s t` : the map `↑s → ↑t`
 
 ## Notation
 

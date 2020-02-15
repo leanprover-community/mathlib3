@@ -63,55 +63,40 @@ namespace submonoid
 def localization.r (Y : submonoid X) : con (X × Y) :=
 lattice.Inf {c | ∀ y : Y, c 1 (y, y)}
 
-/-- An alternate form of the `monoid` localization relation, stated here for readability of the
-    next few lemmas. -/
-def localization.r'.rel (Y : submonoid X) (a b : X × Y) :=
-∃ c : Y, (c : X) * (a.1 * b.2) = c * (b.1 * a.2)
-
-variable {Y}
-
-lemma localization.r'.transitive : transitive (localization.r'.rel Y) :=
-λ a b c ⟨m, hm⟩ ⟨n, hn⟩, ⟨n * m * b.2,
-  calc
-    ↑n * ↑m * ↑b.2 * (a.1 * ↑c.2)
-      = ↑n * (↑m * (b.1 * ↑a.2)) * ↑c.2 : by { rw ←hm, ac_refl }
-  ... = ↑m * (↑n * (c.1 * ↑b.2)) * ↑a.2 : by { rw ←hn, ac_refl }
-  ... = ↑n * ↑m * ↑b.2 * (c.1 * ↑a.2) : by ac_refl ⟩
-
-lemma localization.r'.mul ⦃a b c d⦄ :
-  localization.r'.rel Y a b → localization.r'.rel Y c d → localization.r'.rel Y (a * c) (b * d) :=
-λ ⟨m, hm⟩ ⟨n, hn⟩, ⟨m * n,
-  calc
-    ↑m * ↑n * (a.1 * c.1 * (↑b.2 * ↑d.2))
-      = ↑n * c.1 * (↑m * (b.1 * ↑a.2)) * ↑d.2 : by { rw ←hm, ac_refl }
-  ... = (↑m * (b.1 * ↑a.2)) * (↑n * (d.1 * ↑c.2)) : by { rw ←hn, ac_refl }
-  ... = ↑m * ↑n * (b.1 * d.1 * (↑a.2 * ↑c.2)) : by ac_refl⟩
-
-variable (Y)
-
 /-- An alternate form of the congruence relation on `X × Y`, `X` a `comm_monoid` and `Y` a
     submonoid of `X`, whose quotient is the localization of `X` at `Y`. Its equivalence to `r` can
     be useful for proofs. -/
 @[to_additive]
 def localization.r' : con (X × Y) :=
-{ r := localization.r'.rel Y,
-  iseqv := ⟨λ _, ⟨1, rfl⟩, λ _ _ ⟨c, hc⟩, ⟨c, hc.symm⟩, localization.r'.transitive⟩,
-  mul' := localization.r'.mul }
+begin
+  refine { r := λ a b : X × Y, ∃ c : Y, a.1 * b.2 * c = b.1 * a.2 * c,
+    iseqv := ⟨λ a, ⟨1, rfl⟩, λ a b ⟨c, hc⟩, ⟨c, hc.symm⟩, _⟩,
+    .. },
+  { rintros a b c ⟨t₁, ht₁⟩ ⟨t₂, ht₂⟩,
+    use b.2 * t₁ * t₂,
+    simp only [submonoid.coe_mul],
+    calc a.1 * c.2 * (b.2 * t₁ * t₂) = a.1 * b.2 * t₁ * c.2 * t₂ : by ac_refl
+    ... = b.1 * c.2 * t₂ * a.2 * t₁ : by { rw ht₁, ac_refl }
+    ... = c.1 * a.2 * (b.2 * t₁ * t₂) : by { rw ht₂, ac_refl } },
+  { rintros a b c d ⟨t₁, ht₁⟩ ⟨t₂, ht₂⟩,
+    use t₁ * t₂,
+    calc (a.1 * c.1) * (b.2 * d.2) * (t₁ * t₂) = (a.1 * b.2 * t₁) * (c.1 * d.2 * t₂) :
+      by ac_refl
+    ... = (b.1 * d.1) * (a.2 * c.2) * (t₁ * t₂) : by { rw [ht₁, ht₂], ac_refl } }
+end
 
 /-- The congruence relation used to localize a `comm_monoid` at a submonoid can be expressed
     equivalently as an infimum (see `submonoid.r`) or explicitly (see `submonoid.r'`). -/
 @[to_additive "The additive congruence relation used to localize an `add_comm_monoid` at a submonoid can be expressed equivalently as an infimum (see `add_submonoid.r`) or explicitly (see `add_submonoid.r'`)."]
 theorem localization.r_eq_r' : localization.r Y = localization.r' Y :=
 le_antisymm (lattice.Inf_le $ λ _, ⟨1, by simp⟩) $
-  lattice.le_Inf $ λ b H x y ⟨t, ht⟩,
+  lattice.le_Inf $ λ b H ⟨p, q⟩ y ⟨t, ht⟩,
     begin
-      rw [show x = (1 * x.1, 1 * x.2), by simp, show y = (1 * y.1, 1 * y.2), by simp],
-      refine b.trans
-       (show b _ ((t : X) * y.2 * x.1, t * y.2 * x.2), from
-         b.mul (H (t * y.2)) $ b.refl (x.1, x.2)) _,
-      rw [mul_assoc, mul_comm _ x.1, ht, mul_comm y.1, mul_assoc, mul_comm y.2,
-          ←mul_assoc, ←mul_assoc],
-      exact b.mul (b.symm $ H $ t * x.2) (b.refl (y.1, y.2))
+      rw [← mul_one (p, q), ← mul_one y],
+      refine b.trans (b.mul (b.refl _) (H (y.2 * t))) _,
+      convert b.symm (b.mul (b.refl y) (H (q * t))); simp only [],
+      rw [prod.mk_mul_mk, submonoid.coe_mul, ← mul_assoc, ht, mul_left_comm, mul_assoc],
+      refl
     end
 
 /-- The localization of a `comm_monoid` at one of its submonoids. -/
@@ -140,6 +125,16 @@ by rcases x; convert H x; exact prod.mk.eta.symm
 theorem induction_on {p : Y.localization → Prop} (x)
   (H : ∀ (y : X × Y), p (mk y.1 y.2)) : p x := ind H x
 
+@[elab_as_eliminator, to_additive]
+theorem induction_on₂ {p : Y.localization → Y.localization → Prop} (x y)
+  (H : ∀ (x y : X × Y), p (mk x.1 x.2) (mk y.1 y.2)) : p x y :=
+induction_on x $ λ x, induction_on y $ H x
+
+@[elab_as_eliminator, to_additive]
+theorem induction_on₃ {p : Y.localization → Y.localization → Y.localization → Prop} (x y z)
+  (H : ∀ (x y z : X × Y), p (mk x.1 x.2) (mk y.1 y.2) (mk z.1 z.2)) : p x y z :=
+induction_on₂ x y $ λ x y, induction_on z $ H x y
+
 @[to_additive] lemma exists_rep (x) : ∃ y : X × Y, mk y.1 y.2 = x :=
 induction_on x $ λ y, ⟨y, rfl⟩
 
@@ -153,12 +148,12 @@ induction_on x $ λ y, ⟨y, rfl⟩
 (localization.r Y).eq
 
 @[to_additive] protected lemma eq' {a₁ b₁} {a₂ b₂ : Y} :
-  mk a₁ a₂ = mk b₁ b₂ ↔ ∃ c : Y, (c : X) * (a₁ * b₂) = c * (b₁ * a₂) :=
+  mk a₁ a₂ = mk b₁ b₂ ↔ ∃ c : Y, a₁ * b₂ * c = b₁ * a₂ * c :=
 quotient.eq'.trans $ by { rw [localization.r_eq_r'], refl }
 
-@[to_additive] lemma mk_eq_of_eq {a₁ b₁} {a₂ b₂ : Y} (h : (a₂ : X) * b₁ = b₂ * a₁) :
+@[to_additive] lemma mk_eq_of_eq {a₁ b₁ : X} {a₂ b₂ : Y} (h : a₁ * b₂ = b₁ * a₂) :
   mk a₁ a₂ = mk b₁ b₂ :=
-localization.eq'.2 $ ⟨1, by rw [mul_comm b₁, h, mul_comm a₁]⟩
+localization.eq'.2 $ ⟨1, by rw [← h, mul_comm a₁]⟩
 
 @[simp, to_additive] lemma mk_self' (x : Y) : mk (x : X) x = 1 :=
 localization.eq.2 $ λ c h, c.symm $ h x

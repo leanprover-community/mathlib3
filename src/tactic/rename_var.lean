@@ -12,7 +12,7 @@ import tactic.interactive
 This files defines a tactic `rename_var` whose main purpose is to teach
 renaming of bound variables.
 
-* `rename_var old new` renames variable `old` to `new` in the goal.
+* `rename_var old new` renames all bound variables named `old` to `new` in the goal.
 * `rename_var old new at h` does the same in hypothesis `h`.
 
 ```lean
@@ -55,7 +55,7 @@ namespace tactic.interactive
 open tactic
 setup_tactic_parser
 
-/-- `rename_var old new` renames variable `old` to `new` in the goal.
+/-- `rename_var old new` renames all bound variables named `old` to `new` in the goal.
     `rename_var old new at h` does the same in hypothesis `h`. -/
 meta def rename_var (old : parse ident) (new : parse ident) (l : parse location) : tactic unit :=
 l.apply (rename_var_at_hyp old new) (rename_var_at_goal old new)

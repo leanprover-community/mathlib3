@@ -187,9 +187,9 @@ of Coq.
 
 ## rename_var
 
-`rename_var old new` renames variable `old` to `new` in the goal.
+`rename_var old new` renames all bound variables named `old` to `new` in the goal.
 `rename_var old new at h` does the same in hypothesis `h`.
-This is meant for teaching bound variables only, Lean will never need such a renaming.
+This is meant for teaching bound variables only. Such a renaming should never be relevant to Lean.
 
 ```lean
 example (P : ℕ →  ℕ → Prop) (h : ∀ n, ∃ m, P n m) : ∀ l, ∃ m, P l m :=

@@ -430,6 +430,9 @@ iff.rfl
   (h : ∀ x : A, x ∈ S ↔ x ∈ T) : S = T :=
 by cases S; cases T; congr; ext x; exact h x
 
+theorem ext_iff {S T : subalgebra R A} : S = T ↔ ∀ x : A, x ∈ S ↔ x ∈ T :=
+⟨λ h x, by rw h, ext⟩ 
+
 variables (S : subalgebra R A)
 
 instance : is_subring (S : set A) := S.subring

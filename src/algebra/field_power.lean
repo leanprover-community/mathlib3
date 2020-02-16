@@ -60,21 +60,29 @@ pow_one a
 
 end field_power
 
-namespace is_ring_hom
-
-lemma map_fpow {α β : Type*} [discrete_field α] [discrete_field β] (f : α → β) [is_ring_hom f]
+lemma ring_hom.map_fpow {α β : Type*} [discrete_field α] [discrete_field β] (f : α →+* β)
   (a : α) : ∀ (n : ℤ), f (a ^ n) = f a ^ n
-| (n : ℕ) := is_semiring_hom.map_pow f a n
-| -[1+ n] := by simp [fpow_neg_succ_of_nat, is_semiring_hom.map_pow f, is_ring_hom.map_inv f]
+| (n : ℕ) := f.map_pow a n
+| -[1+n] := by simp [fpow_neg_succ_of_nat, f.map_pow, f.map_inv]
 
-lemma map_fpow' {K L : Type*} [division_ring K] [division_ring L] (f : K → L) [is_ring_hom f]
+lemma ring_hom.map_fpow' {K L : Type*} [division_ring K] [division_ring L] (f : K →+* L)
   (a : K) (ha : a ≠ 0) : ∀ (n : ℤ), f (a ^ n) = f a ^ n
-| (n : ℕ) := is_semiring_hom.map_pow f a n
+| (n : ℕ) := f.map_pow a n
 | -[1+ n] :=
 begin
   have : a^(n+1) ≠ 0 := mt pow_eq_zero ha,
-  simp [fpow_neg_succ_of_nat, is_semiring_hom.map_pow f, is_ring_hom.map_inv' f this],
+  simp [fpow_neg_succ_of_nat, f.map_pow, f.map_inv' this],
 end
+
+namespace is_ring_hom
+
+lemma map_fpow {α β : Type*} [discrete_field α] [discrete_field β] (f : α → β) [is_ring_hom f]
+  (a : α) : ∀ (n : ℤ), f (a ^ n) = f a ^ n :=
+(ring_hom.of f).map_fpow a
+
+lemma map_fpow' {K L : Type*} [division_ring K] [division_ring L] (f : K → L) [is_ring_hom f]
+  (a : K) (ha : a ≠ 0) : ∀ (n : ℤ), f (a ^ n) = f a ^ n :=
+(ring_hom.of f).map_fpow' a ha
 
 end is_ring_hom
 
@@ -246,19 +254,9 @@ end
 
 @[simp, move_cast] theorem cast_fpow [char_zero K] (q : ℚ) (n : ℤ) :
   ((q ^ n : ℚ) : K) = q ^ n :=
-@is_ring_hom.map_fpow _ _ _ _ _ (rat.is_ring_hom_cast) q n
+(ring_hom.of rat.cast).map_fpow q n
 
 lemma fpow_eq_zero {x : K} {n : ℤ} (h : x^n = 0) : x = 0 :=
-begin
-  by_cases hn : 0 ≤ n,
-  { lift n to ℕ using hn, rw fpow_of_nat at h, exact pow_eq_zero h, },
-  { by_cases hx : x = 0, { exact hx },
-    push_neg at hn, rw ← neg_pos at hn, replace hn := le_of_lt hn,
-    lift (-n) to ℕ using hn with m hm,
-    rw [← neg_neg n, fpow_neg, ← hm, fpow_of_nat] at h,
-    rw ← inv_eq_zero,
-    apply pow_eq_zero (_ : _^m = _),
-    rwa [inv_eq_one_div, one_div_pow hx], }
-end
+classical.by_contradiction $ λ hx, fpow_ne_zero_of_ne_zero hx n h
 
 end

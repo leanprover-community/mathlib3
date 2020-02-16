@@ -732,6 +732,36 @@ iterate1 intro1 >>= λ p, return (p.1 :: p.2)
 meta def successes (tactics : list (tactic α)) : tactic (list α) :=
 list.filter_map id <$> monad.sequence (tactics.map (λ t, try_core t))
 
+/--
+Try all the tactics in a list, each time starting at the original tactic_state,
+returning the list of successful results,
+and reverting to the original tactic_state.
+-/
+-- Note this is not the same as `successes`, which keeps track of the evolving tactic_state.
+meta def try_all {α : Type} (tactics : list (tactic α)) : tactic (list α) :=
+λ s, result.success
+(tactics.map $
+λ t : tactic α,
+  match t s with
+  | result.success a s' := [a]
+  | _ := []
+  end).join s
+
+/--
+Try all the tactics in a list, each time starting at the original tactic_state,
+returning the list of successful results sorted by
+the value produced by a subsequent execution of the `sort_by` tactic,
+and reverting to the original tactic_state.
+-/
+meta def try_all_sorted {α : Type} (tactics : list (tactic α)) (sort_by : tactic ℕ := num_goals) : tactic (list α) :=
+λ s, result.success
+(((tactics.map $
+λ t : tactic α,
+  match (do a ← t, n ← sort_by, return (a, n)) s with
+  | result.success a s' := [a]
+  | _ := []
+  end).join.qsort (λ p q : α × ℕ, p.2 < q.2)).map (prod.fst)) s
+
 /-- Return target after instantiating metavars and whnf -/
 private meta def target' : tactic expr :=
 target >>= instantiate_mvars >>= whnf

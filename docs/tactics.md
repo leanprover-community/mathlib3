@@ -393,6 +393,30 @@ However, it will work, producing the identity function, if one replaces have by 
 * `exactI`: `resetI` followed by `exact`. Like `exact`, but uses all
   variables in the context for typeclass inference.
 
+## hint
+
+`hint` lists possible tactics which will make progress (that is, not fail) against the current goal.
+
+```lean
+example {P Q : Prop} (p : P) (h : P → Q) : Q :=
+begin
+  hint,
+  /- the following tactics make progress:
+     ----
+     solve_by_elim
+     finish
+     tauto
+  -/
+  solve_by_elim,
+end
+```
+
+You can add a tactic to the list that `hint` tries by either using
+1. `attribute [hint_tactic] my_tactic`, if `my_tactic` is already of type `tactic string`
+(`tactic unit` is allowed too, in which case the printed string will be the name of the
+tactic), or
+2. `add_hint_tactic "my_tactic"`, specifying a string which works as an interactive tactic.
+
 ## suggest
 
 `suggest` lists possible usages of the `refine` tactic and leaves the tactic state unchanged.

@@ -24,7 +24,7 @@ do d ← get_decl n,
    e ← mk_const n,
    let t := d.type,
    if (t =ₐ `(tactic unit)) then
-     (eval_expr (tactic unit) e) >>= (λ t, t >> pure n.to_string)
+     (eval_expr (tactic unit) e) >>= (λ t, t >> (name.to_string <$> strip_prefix n))
    else if (t =ₐ `(tactic string)) then
      (eval_expr (tactic string) e) >>= (λ t, t)
    else fail "invalid type for @[tidy] tactic"

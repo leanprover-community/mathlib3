@@ -185,6 +185,21 @@ where `have h := f h` would result in the state `h : p, h : q ⊢ goal`.
 This can be used to simulate the `specialize` and `apply at` tactics
 of Coq.
 
+## rename_var
+
+`rename_var old new` renames all bound variables named `old` to `new` in the goal.
+`rename_var old new at h` does the same in hypothesis `h`.
+This is meant for teaching bound variables only. Such a renaming should never be relevant to Lean.
+
+```lean
+example (P : ℕ →  ℕ → Prop) (h : ∀ n, ∃ m, P n m) : ∀ l, ∃ m, P l m :=
+begin
+  rename_var n q at h, -- h is now ∀ (q : ℕ), ∃ (m : ℕ), P q m,
+  rename_var m n, -- goal is now ∀ (l : ℕ), ∃ (n : ℕ), P k n,
+  exact h -- Lean does not care about those bound variable names
+end
+```
+
 ## elide/unelide
 
 The `elide n (at ...)` tactic hides all subterms of the target goal or hypotheses
@@ -1324,7 +1339,6 @@ end
 
 Although `reassoc_of` is not a tactic or a meta program, its type is generated
 through meta-programming to make it usable inside normal expressions.
-
 
 ## lift
 

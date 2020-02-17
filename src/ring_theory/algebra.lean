@@ -557,7 +557,7 @@ theorem mem_top {x : A} : x ∈ (⊤ : subalgebra R A) :=
 ring.mem_closure $ or.inr trivial
 
 theorem eq_top_iff {S : subalgebra R A} :
-S = ⊤ ↔ ∀ x : A, x ∈ S :=
+  S = ⊤ ↔ ∀ x : A, x ∈ S :=
 ⟨λ h x, by rw h; exact mem_top, λ h, by ext x; exact ⟨λ _, mem_top, λ _, h x⟩⟩
 
 def to_top : A →ₐ[R] (⊤ : subalgebra R A) :=

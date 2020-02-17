@@ -60,7 +60,7 @@ meta def default_tactics : list (tactic string) :=
 
 meta structure cfg :=
 (trace_result : bool            := ff)
-(trace_result_prefix : string   := "/- `tidy` says -/ ")
+(trace_result_prefix : string   := "Try this: ")
 (tactics : list (tactic string) := default_tactics)
 
 declare_trace tidy

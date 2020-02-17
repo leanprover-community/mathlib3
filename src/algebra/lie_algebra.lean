@@ -134,11 +134,7 @@ end
 
 @[simp] lemma gsmul_lie (x y : L) (n : ℤ) :
   ⁅n • x, y⁆ = n • ⁅x, y⁆ :=
-begin
-  let Ad := λ z, ⁅z, y⁆,
-  haveI : is_add_group_hom Ad := { map_add := by simp [Ad], },
-  apply is_add_group_hom.map_gsmul Ad,
-end
+add_monoid_hom.map_gsmul ⟨λ x, ⁅x, y⁆, zero_lie y, λ _ _, add_lie _ _ _⟩ _ _
 
 @[simp] lemma lie_gsmul (x y : L) (n : ℤ) :
   ⁅x, n • y⁆ = n • ⁅x, y⁆ :=

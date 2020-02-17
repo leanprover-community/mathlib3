@@ -10,39 +10,52 @@ import tactic.basic tactic.finish data.subtype logic.unique
 
 # Basic properties of sets
 
-A set in Lean is a subset of a type. This file provides some basic definitions related to sets
-and functions not present in the core library, as well as extra lemmas for functions in the core
-library (empty set, univ, union, intersection, insert, singleton, set-theoretic difference,
-complement, and powerset).
+Sets in Lean are homogeneous; all their elements have the same type. Sets whose elements
+have type `X` are thus defined as `set X := X → Prop`. The definition is in the core library.
+
+This file provides some basic definitions related to sets and functions not present in the core
+library, as well as extra lemmas for functions in the core library (empty set, univ, union,
+intersection, insert, singleton, set-theoretic difference, complement, and powerset).
+
+Note that a set is a term, not a type. There is a coersion from `set α` to `Type*` sending
+`s` to the corresponding subtype `↑s`.
+
+See also the file `set_theory/zfc.lean`, which contains an encoding of ZFC set theory in Lean.
 
 ## Main definitions
 
-* `strict_subset s t` : the predicate `s ⊆ t` but `s ≠ t`.
+Notation used here:
 
-* `nonempty s` : the predicate `s ≠ ∅`. Note that this is the canonical way to express the fact that
-  `s` has an element. It has the advantage that the `s.nonempty` dot notation can be used.
+  `f : α → β` is a function,
+  `s : set α` and `s₁ s₂ : set α` are subsets of `α`
+  `t : set β` is a subset of `β`.
 
-* `preimage f s` : the preimage f⁻¹(s).
+* `strict_subset s₁ s₂ : Prop` : the predicate `s₁ ⊆ s₂` but `s₁ ≠ s₂`.
 
-* `subsingleton s` : the predicate saying that `s` has at most one element.
+* `nonempty s : Prop` : the predicate `s ≠ ∅`. Note that this is the preferred way to express the
+  fact that `s` has an element (see the Implementation Notes).
 
-* `range f` : the image of `univ` under `f`.
+* `preimage f t : set α` : the preimage f⁻¹(t) (written `f ⁻¹' t` in Lean) of a subset of β.
 
-* `prod s t` : the subset `s × t`.
+* `subsingleton s : Prop` : the predicate saying that `s` has at most one element.
 
-* `inclusion s t` : the map `↑s → ↑t`
+* `range f : set β` : the image of `univ` under `f`.
+  Also works for `{p : Prop} (f : p → α)` (unlike `image`)
+
+* `prod s t : set (α × β)` : the subset `s × t`.
+
+* `inclusion s₁ s₂ : ↑s₁ → ↑s₂` : the map `↑s₁ → ↑s₂` induced by an inclusion `s₁ ⊆ s₂`.
 
 ## Notation
 
-* `s ⊂ t` for `strict_subset s t`
-
-* `f ⁻¹' s` for `preimage f s`
+* `f ⁻¹' t` for `preimage f t`
 
 * `f '' s` for `image f s`
 
 ## Implementation notes
 
-`s.nonempty` is to be preferred to `s ≠ ∅` or `∃ x, x ∈ s`.
+`s.nonempty` is to be preferred to `s ≠ ∅` or `∃ x, x ∈ s`. It has the advantage that
+the `s.nonempty` dot notation can be used.
 
 ## Tags
 
@@ -1141,7 +1154,7 @@ theorem compl_image : image (@compl α) = preimage compl :=
 image_eq_preimage_of_inverse compl_compl compl_compl
 
 theorem compl_image_set_of {p : set α → Prop} :
-  compl '' {x | p x} = {x | p (- x)} :=
+  compl '' {s | p s} = {s | p (- s)} :=
 congr_fun compl_image p
 
 theorem inter_preimage_subset (s : set α) (t : set β) (f : α → β) :

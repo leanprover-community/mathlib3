@@ -160,7 +160,9 @@ meta def tactic_statement (g : expr) : tactic string :=
 do g ← instantiate_mvars g,
    g ← head_beta g,
    r ← pp (replace_mvars g),
-   if g.has_meta_var then return (sformat!"refine {r}") else return (sformat!"exact {r}")
+   if g.has_meta_var
+   then return (sformat!"Try this: refine {r}")
+   else return (sformat!"Try this: exact {r}")
 
 /--
 Assuming that a goal `g` has been (partially) solved in the tactic_state `l`,

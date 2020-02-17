@@ -25,8 +25,8 @@ begin
   { apply is_open_sUnion _,
     rintros t ⟨b, rfl, rfl⟩,
     apply wo },
-  { exact todo },
-  { exact todo },
+  { todo },
+  { todo },
   { apply sUnion_subset,
     rintros t ⟨b, rfl, rfl⟩,
     apply hf }
@@ -39,10 +39,10 @@ begin
   obtain ⟨s, _, sf, sc⟩ :=
     compact_univ.elim_finite_subcover_image (λ a _, uo a) (by rwa [univ_subset_iff, bUnion_univ]),
   refine ⟨s, λ b, u b.val, λ b, uo b.val, _, _, λ b, ⟨b.val, subset.refl _⟩⟩,
-  { exact todo },
+  { todo },
   { intro x,
     refine ⟨univ, univ_mem_sets, _⟩,
-    exact todo },
+    todo },
 end
 
 lemma normal_of_paracompact_t2 {X : Type u} [topological_space X] [t2_space X]

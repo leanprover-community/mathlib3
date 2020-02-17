@@ -1333,7 +1333,6 @@ is_null_measurable
 is_ring_anti_hom
 is_ring_hom.ker
 is_ring_hom.to_module
-is_seq_closed
 is_subfield
 is_subgroup.center
 is_subgroup.group_equiv_quotient_times_subgroup

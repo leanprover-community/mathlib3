@@ -1300,7 +1300,8 @@ exists_congr $ λ C, ⟨
 lemma bounded_of_compact_space [compact_space α] : bounded s :=
 compact_univ.bounded.subset (subset_univ _)
 
-/-- In a proper space, a set is compact if and only if it is closed and bounded -/
+/-- The Heine–Borel theorem:
+In a proper space, a set is compact if and only if it is closed and bounded -/
 lemma compact_iff_closed_bounded [proper_space α] :
   compact s ↔ is_closed s ∧ bounded s :=
 ⟨λ h, ⟨closed_of_compact _ h, h.bounded⟩, begin

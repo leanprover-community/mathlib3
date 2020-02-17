@@ -89,61 +89,118 @@ lemma compact_iff_ultrafilter_le_nhds {s : set α} :
     by simp only [inf_of_le_left, h]; exact (ultrafilter_ultrafilter_of hf).left,
   ⟨a, ha, ne_bot_of_le_ne_bot this (inf_le_inf ultrafilter_of_le (le_refl _))⟩⟩
 
-lemma compact.elim_finite_subcover {s : set α} {c : set (set α)}
-  (hs : compact s) (hc₁ : ∀t∈c, is_open t) (hc₂ : s ⊆ ⋃₀ c) : ∃c'⊆c, finite c' ∧ s ⊆ ⋃₀ c' :=
+/-- For every open cover of a compact set, there exists a finite subcover. -/
+lemma compact.elim_finite_subcover {s : set α} {ι : Type v} (hs : compact s)
+  (U : ι → set α) (hUo : ∀i, is_open (U i)) (hsU : s ⊆ ⋃ i, U i) :
+  ∃ t : finset ι, s ⊆ ⋃ i ∈ t, U i :=
 classical.by_contradiction $ assume h,
-  have h : ∀{c'}, c' ⊆ c → finite c' → ¬ s ⊆ ⋃₀ c',
-    from assume c' h₁ h₂ h₃, h ⟨c', h₁, h₂, h₃⟩,
+  have h : ∀ t : finset ι, ¬ s ⊆ ⋃ i ∈ t, U i,
+    from assume t ht, h ⟨t, ht⟩,
   let
-    f : filter α := (⨅c':{c' : set (set α) // c' ⊆ c ∧ finite c'}, principal (s - ⋃₀ c')),
-    ⟨a, ha⟩ := (@ne_empty_iff_nonempty α s).1
-      (assume h', h (empty_subset _) finite_empty $ h'.symm ▸ empty_subset _)
+    f : filter α := (⨅t:finset ι, principal (s - ⋃ i ∈ t, U i)),
+    ⟨a, ha⟩ := (@ne_empty_iff_nonempty α s).1 (assume h', h ∅ $ h'.symm ▸ empty_subset _)
   in
   have f ≠ ⊥, from infi_ne_bot_of_directed ⟨a⟩
-    (assume ⟨c₁, hc₁, hc'₁⟩ ⟨c₂, hc₂, hc'₂⟩, ⟨⟨c₁ ∪ c₂, union_subset hc₁ hc₂, finite_union hc'₁ hc'₂⟩,
-      principal_mono.mpr $ diff_subset_diff_right $ sUnion_mono $ subset_union_left _ _,
-      principal_mono.mpr $ diff_subset_diff_right $ sUnion_mono $ subset_union_right _ _⟩)
-    (assume ⟨c', hc'₁, hc'₂⟩, show principal (s \ _) ≠ ⊥, by simp only [ne.def, principal_eq_bot_iff, diff_eq_empty]; exact h hc'₁ hc'₂),
-  have f ≤ principal s, from infi_le_of_le ⟨∅, empty_subset _, finite_empty⟩ $
-    show principal (s \ ⋃₀∅) ≤ principal s, from le_principal_iff.2 (diff_subset _ _),
+  (assume t₁ t₂, ⟨t₁ ∪ t₂,
+    principal_mono.mpr $ diff_subset_diff_right $
+      bUnion_subset_bUnion_left $ finset.subset_union_left _ _,
+    principal_mono.mpr $ diff_subset_diff_right $
+      bUnion_subset_bUnion_left $ finset.subset_union_right _ _⟩)
+   (assume t, show principal (s \ _) ≠ ⊥,
+     by simp only [ne.def, principal_eq_bot_iff, diff_eq_empty]; exact h _),
+  have f ≤ principal s, from infi_le_of_le ∅ $
+    show principal (s \ _) ≤ principal s, from le_principal_iff.2 (diff_subset _ _),
   let
     ⟨a, ha, (h : f ⊓ 𝓝 a ≠ ⊥)⟩ := hs f ‹f ≠ ⊥› this,
-    ⟨t, ht₁, (ht₂ : a ∈ t)⟩ := hc₂ ha
+    ⟨_, ⟨i, rfl⟩, (ha : a ∈ U i)⟩ := hsU ha
   in
-  have f ≤ principal (-t),
-    from infi_le_of_le ⟨{t}, by rwa singleton_subset_iff, finite_insert _ finite_empty⟩ $
-      principal_mono.mpr $
-        show s - ⋃₀{t} ⊆ - t, begin rw sUnion_singleton; exact assume x ⟨_, hnt⟩, hnt end,
-  have is_closed (- t), from is_open_compl_iff.mp $ by rw lattice.neg_neg; exact hc₁ t ht₁,
-  have a ∈ - t, from is_closed_iff_nhds.mp this _ $ ne_bot_of_le_ne_bot h $
-    le_inf inf_le_right (inf_le_left_of_le ‹f ≤ principal (- t)›),
-  this ‹a ∈ t›
+  have f ≤ principal (- U i),
+    from infi_le_of_le {i} $ principal_mono.mpr $ show s - _ ⊆ - U i, by simp [diff_subset_iff],
+  have is_closed (- U i), from is_open_compl_iff.mp $ by rw lattice.neg_neg; exact hUo i,
+  have a ∈ - U i, from is_closed_iff_nhds.mp this _ $ ne_bot_of_le_ne_bot h $
+    le_inf inf_le_right (inf_le_left_of_le ‹f ≤ principal (- U i)›),
+  this ‹a ∈ U i›
 
+/-- For every family of closed sets whose intersection avoids a compact set,
+there exists a finite subfamily whose intersection avoids this compact set. -/
+lemma compact.elim_finite_subfamily_closed {s : set α} {ι : Type v} (hs : compact s)
+  (Z : ι → set α) (hZc : ∀i, is_closed (Z i)) (hsZ : s ∩ (⋂ i, Z i) = ∅) :
+  ∃ t : finset ι, s ∩ (⋂ i ∈ t, Z i) = ∅ :=
+let ⟨t, ht⟩ := hs.elim_finite_subcover (λ i, - Z i) hZc
+  (by simpa only [subset_def, not_forall, eq_empty_iff_forall_not_mem, set.mem_Union,
+    exists_prop, set.mem_inter_eq, not_and, iff_self, set.mem_Inter, set.mem_compl_eq] using hsZ)
+    in
+⟨t, by simpa only [subset_def, not_forall, eq_empty_iff_forall_not_mem, set.mem_Union,
+    exists_prop, set.mem_inter_eq, not_and, iff_self, set.mem_Inter, set.mem_compl_eq] using ht⟩
+
+/-- Cantor's intersection theorem:
+the intersection of a directed family of nonempty compact closed sets is nonempty. -/
+lemma compact.nonempty_Inter_of_directed_nonempty_compact_closed
+  {ι : Type v} [hι : nonempty ι] (Z : ι → set α) (hZd : directed (⊇) Z)
+  (hZn : ∀ i, (Z i).nonempty) (hZc : ∀ i, compact (Z i)) (hZcl : ∀ i, is_closed (Z i)) :
+  (⋂ i, Z i).nonempty :=
+begin
+  apply hι.elim,
+  intro i₀,
+  let Z' := λ i, Z i ∩ Z i₀,
+  suffices : (⋂ i, Z' i).nonempty,
+  { exact nonempty.mono (Inter_subset_Inter $ assume i, inter_subset_left (Z i) (Z i₀)) this },
+  rw ← ne_empty_iff_nonempty,
+  intro H,
+  obtain ⟨t, ht⟩ : ∃ (t : finset ι), ((Z i₀) ∩ ⋂ (i ∈ t), Z' i) = ∅,
+    from (hZc i₀).elim_finite_subfamily_closed Z'
+      (assume i, is_closed_inter (hZcl i) (hZcl i₀)) (by rw [H, inter_empty]),
+  obtain ⟨i₁, hi₁⟩ : ∃ i₁ : ι, Z i₁ ⊆ Z i₀ ∧ ∀ i ∈ t, Z i₁ ⊆ Z' i,
+  { rcases directed.finset_le hι hZd t with ⟨i, hi⟩,
+    rcases hZd i i₀ with ⟨i₁, hi₁, hi₁₀⟩,
+    use [i₁, hi₁₀],
+    intros j hj,
+    exact subset_inter (subset.trans hi₁ (hi j hj)) hi₁₀ },
+  suffices : ((Z i₀) ∩ ⋂ (i ∈ t), Z' i).nonempty,
+  { rw ← ne_empty_iff_nonempty at this, contradiction },
+  refine nonempty.mono _ (hZn i₁),
+  exact subset_inter hi₁.left (subset_bInter hi₁.right)
+end
+
+/-- Cantor's intersection theorem for sequences indexed by `ℕ`:
+the intersection of a decreasing sequence of nonempty compact closed sets is nonempty. -/
+lemma compact.nonempty_Inter_of_sequence_nonempty_compact_closed
+  (Z : ℕ → set α) (hZd : ∀ i, Z (i+1) ⊆ Z i)
+  (hZn : ∀ i, (Z i).nonempty) (hZ0 : compact (Z 0)) (hZcl : ∀ i, is_closed (Z i)) :
+  (⋂ i, Z i).nonempty :=
+have Zmono : _, from @monotone_of_monotone_nat (order_dual _) _ Z hZd,
+have hZd : directed (⊇) Z, from directed_of_mono Z Zmono,
+have ∀ i, Z i ⊆ Z 0, from assume i, Zmono $ zero_le i,
+have hZc : ∀ i, compact (Z i), from assume i, compact_of_is_closed_subset hZ0 (hZcl i) (this i),
+compact.nonempty_Inter_of_directed_nonempty_compact_closed Z hZd hZn hZc hZcl
+
+/-- For every open cover of a compact set, there exists a finite subcover. -/
 lemma compact.elim_finite_subcover_image {s : set α} {b : set β} {c : β → set α}
   (hs : compact s) (hc₁ : ∀i∈b, is_open (c i)) (hc₂ : s ⊆ ⋃i∈b, c i) :
   ∃b'⊆b, finite b' ∧ s ⊆ ⋃i∈b', c i :=
-b.eq_empty_or_nonempty.elim (λ h, ⟨∅, empty_subset _, finite_empty, h ▸ hc₂⟩) $
-assume ⟨i, hi⟩,
-have hc'₁ : ∀i∈c '' b, is_open i, from assume i ⟨j, hj, h⟩, h ▸ hc₁ _ hj,
-have hc'₂ : s ⊆ ⋃₀ (c '' b), by rwa set.sUnion_image,
-let ⟨d, hd₁, hd₂, hd₃⟩ := hs.elim_finite_subcover hc'₁ hc'₂ in
-have ∀x : d, ∃i, i ∈ b ∧ c i = x, from assume ⟨x, hx⟩, hd₁ hx,
-let ⟨f', hf⟩ := axiom_of_choice this,
-    f := λx:set α, (if h : x ∈ d then f' ⟨x, h⟩ else i : β) in
-have ∀(x : α) (i : set α), i ∈ d → x ∈ i → (∃ (i : β), i ∈ f '' d ∧ x ∈ c i),
-  from assume x i hid hxi, ⟨f i, mem_image_of_mem f hid,
-    by simpa only [f, dif_pos hid, (hf ⟨_, hid⟩).2] using hxi⟩,
-⟨f '' d,
-  assume i ⟨j, hj, h⟩,
-  h ▸ by simpa only [f, dif_pos hj] using (hf ⟨_, hj⟩).1,
-  finite_image f hd₂,
-  subset.trans hd₃ $ by simpa only [subset_def, mem_sUnion, exists_imp_distrib, mem_Union, exists_prop, and_imp]⟩
+begin
+  rcases hs.elim_finite_subcover (λ i, c i.1 : b → set α) _ _ with ⟨d, hd⟩,
+  refine ⟨↑(d.image subtype.val), _, finset.finite_to_set _, _⟩,
+  { intros i hi,
+    erw finset.mem_image at hi,
+    rcases hi with ⟨s, hsd, rfl⟩,
+    exact s.property },
+  { refine subset.trans hd _,
+    rintros x ⟨_, ⟨s, rfl⟩, ⟨_, ⟨hsd, rfl⟩, H⟩⟩,
+    refine ⟨c s.val, ⟨s.val, _⟩, H⟩,
+    simp [finset.mem_image_of_mem subtype.val hsd] },
+  { rintro ⟨i, hi⟩, exact hc₁ i hi },
+  { refine subset.trans hc₂ _,
+    rintros x ⟨_, ⟨i, rfl⟩, ⟨_, ⟨hib, rfl⟩, H⟩⟩,
+    exact ⟨_, ⟨⟨i, hib⟩, rfl⟩, H⟩ },
+end
 
-section
--- this proof times out without this
-local attribute [instance, priority 1000] classical.prop_decidable
-lemma compact_of_finite_subcover {s : set α}
-  (h : ∀c, (∀t∈c, is_open t) → s ⊆ ⋃₀ c → ∃c'⊆c, finite c' ∧ s ⊆ ⋃₀ c') : compact s :=
+/-- A set `s` is compact if for every family of closed sets whose intersection avoids `s`,
+there exists a finite subfamily whose intersection avoids `s`. -/
+theorem compact_of_finite_subfamily_closed {s : set α}
+  (h : Π {ι : Type u} (Z : ι → (set α)), (∀ i, is_closed (Z i)) →
+    s ∩ (⋂ i, Z i) = ∅ → (∃ (t : finset ι), s ∩ (⋂ i ∈ t, Z i) = ∅)) :
+  compact s :=
 assume f hfn hfs, classical.by_contradiction $ assume : ¬ (∃x∈s, f ⊓ 𝓝 x ≠ ⊥),
   have hf : ∀x∈s, 𝓝 x ⊓ f = ⊥,
     by simpa only [not_exists, not_not, inf_comm],
@@ -156,31 +213,48 @@ assume f hfn hfs, classical.by_contradiction $ assume : ¬ (∃x∈s, f ⊓ 𝓝
     have 𝓝 x ⊓ principal t₂ = ⊥,
       by rwa [empty_in_sets_eq_bot] at this,
     by simp only [closure_eq_nhds] at hx; exact hx t₂ ht₂ this,
-  have ∀x∈s, ∃t∈f.sets, x ∉ closure t, by simpa only [not_exists, not_forall],
-  let c := (λt, - closure t) '' f.sets, ⟨c', hcc', hcf, hsc'⟩ := h c
-    (assume t ⟨s, hs, h⟩, h ▸ is_closed_closure) (by simpa only [subset_def, sUnion_image, mem_Union]) in
-  let ⟨b, hb⟩ := axiom_of_choice $
-    show ∀s:c', ∃t, t ∈ f ∧ - closure t = s,
-      from assume ⟨x, hx⟩, hcc' hx in
-  have (⋂s∈c', if h : s ∈ c' then b ⟨s, h⟩ else univ) ∈ f,
-    from Inter_mem_sets hcf $ assume t ht, by rw [dif_pos ht]; exact (hb ⟨t, ht⟩).left,
-  have s ∩ (⋂s∈c', if h : s ∈ c' then b ⟨s, h⟩ else univ) ∈ f,
+  let ⟨t, ht⟩ := h (λ i : f.sets, closure i.1) (λ i, is_closed_closure)
+    (by simpa [eq_empty_iff_forall_not_mem, not_exists]) in
+  have (⋂i∈t, subtype.val i) ∈ f,
+    from Inter_mem_sets t.finite_to_set $ assume i hi, i.2,
+  have s ∩ (⋂i∈t, subtype.val i) ∈ f,
     from inter_mem_sets (le_principal_iff.1 hfs) this,
   have ∅ ∈ f,
-    from mem_sets_of_superset this $ assume x ⟨hxs, hxi⟩,
-    let ⟨t, htc', hxt⟩ := (show ∃t ∈ c', x ∈ t, from hsc' hxs) in
-    have -closure (b ⟨t, htc'⟩) = t, from (hb _).right,
-    have x ∈ - t,
-      from this ▸ (calc x ∈ b ⟨t, htc'⟩ : by rw mem_bInter_iff at hxi; have h := hxi t htc'; rwa [dif_pos htc'] at h
-        ... ⊆ closure (b ⟨t, htc'⟩) : subset_closure
-        ... ⊆ - - closure (b ⟨t, htc'⟩) : by rw lattice.neg_neg; exact subset.refl _),
-    show false, from this hxt,
+    from mem_sets_of_superset this $ assume x ⟨hxs, hx⟩,
+    let ⟨i, hit, hxi⟩ := (show ∃i ∈ t, x ∉ closure (subtype.val i),
+      by { rw [eq_empty_iff_forall_not_mem] at ht, simpa [hxs, not_forall] using ht x }) in
+    have x ∈ closure i.val, from subset_closure (mem_bInter_iff.mp hx i hit),
+    show false, from hxi this,
   hfn $ by rwa [empty_in_sets_eq_bot] at this
-end
 
+/-- A set `s` is compact if for every open cover of `s`, there exists a finite subcover. -/
+lemma compact_of_finite_subcover {s : set α}
+  (h : Π {ι : Type u} (U : ι → (set α)), (∀ i, is_open (U i)) →
+    s ⊆ (⋃ i, U i) → (∃ (t : finset ι), s ⊆ (⋃ i ∈ t, U i))) :
+  compact s :=
+compact_of_finite_subfamily_closed $
+  assume ι Z hZc hsZ,
+  let ⟨t, ht⟩ := h (λ i, - Z i) (assume i, is_open_compl_iff.mpr $ hZc i)
+    (by simpa only [subset_def, not_forall, eq_empty_iff_forall_not_mem, set.mem_Union,
+      exists_prop, set.mem_inter_eq, not_and, iff_self, set.mem_Inter, set.mem_compl_eq] using hsZ)
+      in
+  ⟨t, by simpa only [subset_def, not_forall, eq_empty_iff_forall_not_mem, set.mem_Union,
+      exists_prop, set.mem_inter_eq, not_and, iff_self, set.mem_Inter, set.mem_compl_eq] using ht⟩
+
+/-- A set `s` is compact if and only if
+for every open cover of `s`, there exists a finite subcover. -/
 lemma compact_iff_finite_subcover {s : set α} :
-  compact s ↔ (∀c, (∀t∈c, is_open t) → s ⊆ ⋃₀ c → ∃c'⊆c, finite c' ∧ s ⊆ ⋃₀ c') :=
-⟨assume hc c, hc.elim_finite_subcover, compact_of_finite_subcover⟩
+  compact s ↔ (Π {ι : Type u} (U : ι → (set α)), (∀ i, is_open (U i)) →
+    s ⊆ (⋃ i, U i) → (∃ (t : finset ι), s ⊆ (⋃ i ∈ t, U i))) :=
+⟨assume hs ι, hs.elim_finite_subcover, compact_of_finite_subcover⟩
+
+/-- A set `s` is compact if and only if
+for every family of closed sets whose intersection avoids `s`,
+there exists a finite subfamily whose intersection avoids `s`. -/
+theorem compact_iff_finite_subfamily_closed {s : set α} :
+  compact s ↔ (Π {ι : Type u} (Z : ι → (set α)), (∀ i, is_closed (Z i)) →
+    s ∩ (⋂ i, Z i) = ∅ → (∃ (t : finset ι), s ∩ (⋂ i ∈ t, Z i) = ∅)) :=
+⟨assume hs ι, hs.elim_finite_subfamily_closed, compact_of_finite_subfamily_closed⟩
 
 @[simp]
 lemma compact_empty : compact (∅ : set α) :=
@@ -189,25 +263,27 @@ empty_in_sets_eq_bot.1 $ le_principal_iff.1 hsf
 
 @[simp]
 lemma compact_singleton {a : α} : compact ({a} : set α) :=
-compact_of_finite_subcover $ assume c hc₁ hc₂,
-  let ⟨i, hic, hai⟩ := (show ∃i ∈ c, a ∈ i, from mem_sUnion.1 $ singleton_subset_iff.1 hc₂) in
-  ⟨{i}, singleton_subset_iff.2 hic, finite_singleton _, by rwa [sUnion_singleton, singleton_subset_iff]⟩
+compact_of_finite_subcover $ assume ι U hUo hsU,
+  let ⟨i, hai⟩ := (show ∃i : ι, a ∈ U i, from mem_Union.1 $ singleton_subset_iff.1 hsU) in
+  ⟨{i}, singleton_subset_iff.2 (by simpa only [finset.bUnion_singleton])⟩
 
-lemma set.finite.compact_bUnion {s : set β} {f : β → set α} (hs : finite s) :
-  (∀i ∈ s, compact (f i)) → compact (⋃i ∈ s, f i) :=
-assume hf, compact_of_finite_subcover $ assume c c_open c_cover,
-  have ∀i : subtype s, ∃c' ⊆ c, finite c' ∧ f i ⊆ ⋃₀ c', from
-    assume ⟨i, hi⟩, (hf i hi).elim_finite_subcover c_open
+lemma set.finite.compact_bUnion {s : set β} {f : β → set α} (hs : finite s)
+  (hf : ∀i ∈ s, compact (f i)) :
+  compact (⋃i ∈ s, f i) :=
+compact_of_finite_subcover $ assume ι U hUo hsU,
+  have ∀i : subtype s, ∃t : finset ι, f i ⊆ (⋃ j ∈ t, U j), from
+    assume ⟨i, hi⟩, (hf i hi).elim_finite_subcover _ hUo
       (calc f i ⊆ ⋃i ∈ s, f i : subset_bUnion_of_mem hi
-            ... ⊆ ⋃₀ c        : c_cover),
+            ... ⊆ ⋃j, U j     : hsU),
   let ⟨finite_subcovers, h⟩ := axiom_of_choice this in
-  let c' := ⋃i, finite_subcovers i in
-  have c' ⊆ c, from Union_subset (λi, (h i).fst),
-  have finite c', from @finite_Union _ _ hs.fintype _ (λi, (h i).snd.1),
-  have (⋃i ∈ s, f i) ⊆ ⋃₀ c', from bUnion_subset $ λi hi, calc
-    f i ⊆ ⋃₀ finite_subcovers ⟨i,hi⟩ : (h ⟨i,hi⟩).snd.2
-    ... ⊆ ⋃₀ c'                      : sUnion_mono (subset_Union _ _),
-  ⟨c', ‹c' ⊆ c›, ‹finite c'›, this⟩
+  by haveI : fintype (subtype s) := hs.fintype; exact
+  let t := finset.bind finset.univ finite_subcovers in
+  have (⋃i ∈ s, f i) ⊆ (⋃ i ∈ t, U i), from bUnion_subset $
+    assume i hi, calc
+    f i ⊆ (⋃ j ∈ finite_subcovers ⟨i, hi⟩, U j) : (h ⟨i, hi⟩)
+    ... ⊆ (⋃ j ∈ t, U j) : bUnion_subset_bUnion_left $
+      assume j hj, finset.mem_bind.mpr ⟨_, finset.mem_univ _, hj⟩,
+  ⟨t, this⟩
 
 lemma compact_Union {f : β → set α} [fintype β]
   (h : ∀i, compact (f i)) : compact (⋃i, f i) :=
@@ -262,13 +338,12 @@ have ∀x : subtype s, ∃uv : set α × set β,
 let ⟨uvs, h⟩ := classical.axiom_of_choice this in
 have us_cover : s ⊆ ⋃i, (uvs i).1, from
   assume x hx, set.subset_Union _ ⟨x,hx⟩ (by simpa using (h ⟨x,hx⟩).2.2.1),
-let ⟨s0, _, s0_fin, s0_cover⟩ :=
-  hs.elim_finite_subcover_image (λi _, (h i).1) $
-    by rw bUnion_univ; exact us_cover in
+let ⟨s0, s0_cover⟩ :=
+  hs.elim_finite_subcover _ (λi, (h i).1) us_cover in
 let u := ⋃(i ∈ s0), (uvs i).1 in
 let v := ⋂(i ∈ s0), (uvs i).2 in
 have is_open u, from is_open_bUnion (λi _, (h i).1),
-have is_open v, from is_open_bInter s0_fin (λi _, (h i).2.1),
+have is_open v, from is_open_bInter s0.finite_to_set (λi _, (h i).2.1),
 have t ⊆ v, from subset_bInter (λi _, (h i).2.2.2.1),
 have set.prod u v ⊆ n, from assume ⟨x',y'⟩ ⟨hx',hy'⟩,
   have ∃i ∈ s0, x' ∈ (uvs i).1, by simpa using hx',
@@ -292,6 +367,17 @@ class compact_space (α : Type*) [topological_space α] : Prop :=
 (compact_univ : compact (univ : set α))
 
 lemma compact_univ [h : compact_space α] : compact (univ : set α) := h.compact_univ
+
+theorem compact_space_of_finite_subfamily_closed {α : Type u} [topological_space α]
+  (h : Π {ι : Type u} (Z : ι → (set α)), (∀ i, is_closed (Z i)) →
+    (⋂ i, Z i) = ∅ → (∃ (t : finset ι), (⋂ i ∈ t, Z i) = ∅)) :
+  compact_space α :=
+{ compact_univ :=
+  begin
+    apply compact_of_finite_subfamily_closed,
+    intros ι Z, specialize h Z,
+    simpa using h
+  end }
 
 lemma is_closed.compact [compact_space α] {s : set α} (h : is_closed s) :
   compact s :=

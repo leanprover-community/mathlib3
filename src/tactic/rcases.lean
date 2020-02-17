@@ -220,9 +220,9 @@ with rcases.continue : listΠ (rcases_patt × expr) → tactic goals
 -- top-level `cases` tactic, so there is no more work to do for it.
 | (_ :: l) := rcases.continue l
 
-/-- `rcases h e pat` performs case distinction on `e` using `pat` to 
-name the arising new variables and assumptions. If `h` is `some` name, 
-a new assumption `h : e = pat` will relate the expression `e` with the 
+/-- `rcases h e pat` performs case distinction on `e` using `pat` to
+name the arising new variables and assumptions. If `h` is `some` name,
+a new assumption `h : e = pat` will relate the expression `e` with the
 current pattern. -/
 meta def rcases (h : option name) (p : pexpr) (ids : listΣ (listΠ rcases_patt)) : tactic unit :=
 do e ← match h with
@@ -424,7 +424,7 @@ meta def rcases : parse rcases_parse → tactic unit
 | (p, sum.inr depth) := do
   patt ← tactic.rcases_hint p depth,
   pe ← pp p,
-  trace $ ↑"snippet: rcases " ++ pe ++ " with " ++ to_fmt patt
+  trace $ ↑"Try this: rcases " ++ pe ++ " with " ++ to_fmt patt
 
 /--
 The `rintro` tactic is a combination of the `intros` tactic with `rcases` to
@@ -443,7 +443,7 @@ meta def rintro : parse rintro_parse → tactic unit
 | (sum.inl l)  := tactic.rintro l
 | (sum.inr depth) := do
   ps ← tactic.rintro_hint depth,
-  trace $ ↑"snippet: rintro" ++ format.join (ps.map $ λ p,
+  trace $ ↑"Try this: rintro" ++ format.join (ps.map $ λ p,
     format.space ++ format.group (p.format tt))
 
 /-- Alias for `rintro`. -/

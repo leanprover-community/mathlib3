@@ -60,7 +60,7 @@ pow_one a
 
 end field_power
 
-lemma ring_hom.map_fpow {α β : Type*} [discrete_field α] [discrete_field β] (f : α →+* β)
+@[simp] lemma ring_hom.map_fpow {α β : Type*} [discrete_field α] [discrete_field β] (f : α →+* β)
   (a : α) : ∀ (n : ℤ), f (a ^ n) = f a ^ n
 | (n : ℕ) := f.map_pow a n
 | -[1+n] := by simp [fpow_neg_succ_of_nat, f.map_pow, f.map_inv]

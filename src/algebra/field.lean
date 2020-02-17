@@ -262,9 +262,9 @@ section
 variables {β : Type*} [division_ring α] [division_ring β]
 variables (f : α → β) [is_ring_hom f] {x y : α}
 
-lemma map_ne_zero : f x ≠ 0 ↔ x ≠ 0 := (of f).map_ne_zero
+@[simp] lemma map_ne_zero : f x ≠ 0 ↔ x ≠ 0 := (of f).map_ne_zero
 
-lemma map_eq_zero : f x = 0 ↔ x = 0 := (of f).map_eq_zero
+@[simp] lemma map_eq_zero : f x = 0 ↔ x = 0 := (of f).map_eq_zero
 
 lemma map_inv' (h : x ≠ 0) : f x⁻¹ = (f x)⁻¹ := (of f).map_inv' h
 
@@ -278,9 +278,9 @@ section
 variables {β : Type*} [discrete_field α] [discrete_field β]
 variables (f : α → β) [is_ring_hom f] {x y : α}
 
-lemma map_inv : f x⁻¹ = (f x)⁻¹ := (of f).map_inv
+@[simp] lemma map_inv : f x⁻¹ = (f x)⁻¹ := (of f).map_inv
 
-lemma map_div : f (x / y) = f x / f y := (of f).map_div
+@[simp] lemma map_div : f (x / y) = f x / f y := (of f).map_div
 
 end
 

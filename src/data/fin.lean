@@ -350,6 +350,21 @@ begin
   { simp [tail, (fin.injective_succ n).ne h, h] }
 end
 
+lemma comp_cons {α : Type*} {β : Type*} (g : α → β) (y : α) (q : fin n → α) :
+  g ∘ (cons y q) = cons (g y) (g ∘ q) :=
+begin
+  ext j,
+  by_cases h : j = 0,
+  { rw h, refl },
+  { let j' := pred j h,
+    have : j'.succ = j := succ_pred j h,
+    rw [← this, cons_succ, comp_app, cons_succ] }
+end
+
+lemma comp_tail {α : Type*} {β : Type*} (g : α → β) (q : fin n.succ → α) :
+  g ∘ (tail q) = tail (g ∘ q) :=
+by { ext j, simp [tail] }
+
 end tuple
 
 section tuple_right
@@ -486,6 +501,23 @@ begin
   rw [eq_last_of_not_lt h', succ_last],
   simp
 end
+
+
+lemma comp_snoc {α : Type*} {β : Type*} (g : α → β) (q : fin n → α) (y : α) :
+  g ∘ (snoc q y) = snoc (g ∘ q) (g y) :=
+begin
+  ext j,
+  by_cases h : j.val < n,
+  { have : j ≠ last n := ne_of_lt h,
+    simp [h, this, snoc, cast_succ_cast_lt],
+    refl },
+  { rw eq_last_of_not_lt h,
+    simp }
+end
+
+lemma comp_init {α : Type*} {β : Type*} (g : α → β) (q : fin n.succ → α) :
+  g ∘ (init q) = init (g ∘ q) :=
+by { ext j, simp [init] }
 
 end tuple_right
 

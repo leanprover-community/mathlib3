@@ -9,8 +9,7 @@ jobs:
     strategy:
       matrix:
         lean_version:
-          - 3.4.2
-          - leanprover-community/lean:nightly
+          - leanprover-community/lean:3.5.1
       fail-fast: false
     steps:
       - uses: actions/checkout@v2
@@ -39,7 +38,7 @@ jobs:
           path: ..
 
       - name: push release to mathlib-nightly
-        if: github.repository == 'leanprover-community/mathlib' && github.event_name == 'push' && github.ref == 'refs/heads/master' && matrix.lean_version == '3.4.2'
+        if: github.repository == 'leanprover-community/mathlib' && github.event_name == 'push' && github.ref == 'refs/heads/master' && matrix.lean_version == 'leanprover-community/lean:3.5.1'
         run: ./scripts/deploy_nightly.sh
         env:
           DEPLOY_NIGHTLY_GITHUB_TOKEN: ${{ secrets.DEPLOY_NIGHTLY_GITHUB_TOKEN }}
@@ -66,8 +65,15 @@ jobs:
           python-version: 3.8
 
       - name: generate docs
-        if: github.repository == 'leanprover-community/mathlib' && github.event_name == 'push' && github.ref == 'refs/heads/master' && matrix.lean_version == 'leanprover-community/lean:nightly'
+        if: github.repository == 'leanprover-community/mathlib' && github.event_name == 'push' && github.ref == 'refs/heads/master' && matrix.lean_version == 'leanprover-community/lean:3.5.1'
         run:
           ./scripts/deploy_docs.sh
+        env:
+          DEPLOY_NIGHTLY_GITHUB_TOKEN: ${{ secrets.DEPLOY_NIGHTLY_GITHUB_TOKEN }}
+
+      - name: update nolints.txt
+        if: github.repository == 'leanprover-community/mathlib' && github.event_name == 'push' && github.ref == 'refs/heads/master' && matrix.lean_version == 'leanprover-community/lean:3.5.1'
+        run:
+          ./scripts/update_nolints.sh
         env:
           DEPLOY_NIGHTLY_GITHUB_TOKEN: ${{ secrets.DEPLOY_NIGHTLY_GITHUB_TOKEN }}

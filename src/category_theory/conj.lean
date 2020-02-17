@@ -69,7 +69,7 @@ def conj : End X ≃* End Y :=
 lemma conj_apply (f : End X) : α.conj f = α.inv ≫ f ≫ α.hom := rfl
 
 @[simp] lemma conj_comp (f g : End X) : α.conj (f ≫ g) = (α.conj f) ≫ (α.conj g) :=
-is_mul_hom.map_mul α.conj g f
+α.conj.map_mul g f
 
 @[simp] lemma conj_id : α.conj (𝟙 X) = 𝟙 Y :=
 is_monoid_hom.map_one α.conj
@@ -87,7 +87,7 @@ by rw [← trans_conj, α.self_symm_id, refl_conj]
 α.symm.symm_self_conj f
 
 @[simp] lemma conj_pow (f : End X) (n : ℕ) : α.conj (f^n) = (α.conj f)^n :=
-is_monoid_hom.map_pow α.conj f n
+α.conj.to_monoid_hom.map_pow f n
 
 /-- `conj` defines a group isomorphisms between groups of automorphisms -/
 def conj_Aut : Aut X ≃* Aut Y :=
@@ -105,16 +105,16 @@ by cases f; cases α; ext; refl
 by simp only [conj_Aut_apply, iso.trans_symm, iso.trans_assoc]
 
 @[simp] lemma conj_Aut_mul (f g : Aut X) : α.conj_Aut (f * g) = α.conj_Aut f * α.conj_Aut g :=
-is_mul_hom.map_mul α.conj_Aut f g
+α.conj_Aut.map_mul f g
 
 @[simp] lemma conj_Aut_trans (f g : Aut X) : α.conj_Aut (f ≪≫ g) = α.conj_Aut f ≪≫ α.conj_Aut g :=
 conj_Aut_mul α g f
 
 @[simp] lemma conj_Aut_pow (f : Aut X) (n : ℕ) : α.conj_Aut (f^n) = (α.conj_Aut f)^n :=
-is_monoid_hom.map_pow α.conj_Aut f n
+α.conj_Aut.to_monoid_hom.map_pow f n
 
 @[simp] lemma conj_Aut_gpow (f : Aut X) (n : ℤ) : α.conj_Aut (f^n) = (α.conj_Aut f)^n :=
-is_group_hom.map_gpow α.conj_Aut f n
+α.conj_Aut.to_monoid_hom.map_gpow f n
 
 end iso
 

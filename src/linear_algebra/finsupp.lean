@@ -252,9 +252,10 @@ show ↑(map_domain f l).support ⊆ s, begin
   exact set.subset.trans map_domain_support hl
 end
 
-theorem lmap_domain_supported [inhabited α] (f : α → α') (s : set α) :
+theorem lmap_domain_supported [nonempty α] (f : α → α') (s : set α) :
   (supported M R s).map (lmap_domain M R f) = supported M R (f '' s) :=
 begin
+  inhabit α,
   refine le_antisymm (map_le_iff_le_comap.2 $
     le_trans (supported_mono $ set.subset_preimage_image _ _)
        (supported_comap_lmap_domain _ _ _ _)) _,

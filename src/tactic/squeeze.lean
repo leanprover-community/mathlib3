@@ -34,7 +34,7 @@ do
     | _ := s
     end) s
 
-/-- Polyfill instance for Lean versions <3.5.0c -/
+/-- Polyfill instance for Lean versions <3.5.1c -/
 -- TODO: when Lean 3.4 support is dropped, this instance can be removed
 @[priority 1]
 meta instance : has_to_tactic_format simp_arg_type := ⟨λ a, match a with
@@ -97,7 +97,7 @@ do g ← main_goal,
    let attrs := if attr_names.empty then "" else string.join (list.intersperse " " (" with" :: attr_names.map to_string)),
    let loc := loc.to_string locat,
    let args := hs' ++ vs.to_list.map to_fmt,
-   trace format!"simp{use_iota_eqn} only {args}{attrs}{loc}{c}"
+   trace format!"Try this: simp{use_iota_eqn} only {args}{attrs}{loc}{c}"
 
 meta def squeeze_simpa
   (use_iota_eqn : parse (tk "!")?) (no_dflt : parse only_flag) (hs : parse simp_arg_list)
@@ -118,7 +118,7 @@ do g ← main_goal,
    let tgt' := tgt'.get_or_else "",
    hs ← hs.mmap pp,
    let args := hs ++ vs.to_list.map to_fmt,
-   trace format!"simpa{use_iota_eqn} only {args}{attrs}{tgt'}{c}"
+   trace format!"Try this: simpa{use_iota_eqn} only {args}{attrs}{tgt'}{c}"
 
 end interactive
 end tactic

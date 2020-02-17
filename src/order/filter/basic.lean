@@ -386,7 +386,7 @@ by simp only [le_antisymm_iff, le_principal_iff, mem_principal_sets]; refl
 
 @[simp] lemma join_principal_eq_Sup {s : set (filter α)} : join (principal s) = Sup s := rfl
 
-/- lattice equations -/
+/-! ### Lattice equations -/
 
 lemma empty_in_sets_eq_bot {f : filter α} : ∅ ∈ f ↔ f = ⊥ :=
 ⟨assume h, bot_unique $ assume s _, mem_sets_of_superset h (empty_subset s),
@@ -395,6 +395,9 @@ lemma empty_in_sets_eq_bot {f : filter α} : ∅ ∈ f ↔ f = ⊥ :=
 lemma nonempty_of_mem_sets {f : filter α} (hf : f ≠ ⊥) {s : set α} (hs : s ∈ f) :
   s.nonempty :=
 s.eq_empty_or_nonempty.elim (λ h, absurd hs (h.symm ▸ mt empty_in_sets_eq_bot.mp hf)) id
+
+lemma nonempty_of_ne_bot {f : filter α} (hf : f ≠ ⊥) : nonempty α :=
+nonempty_of_exists $ nonempty_of_mem_sets hf univ_mem_sets
 
 lemma filter_eq_bot_of_not_nonempty {f : filter α} (ne : ¬ nonempty α) : f = ⊥ :=
 empty_in_sets_eq_bot.mp $ univ_mem_sets' $ assume x, false.elim (ne ⟨x⟩)
@@ -1842,12 +1845,13 @@ have j ∘ i = id, from funext h,
 (finset.image_mono j).tendsto_at_top_at_top.2 $ assume s,
   ⟨s.image i, by simp only [finset.image_image, this, finset.image_id, le_refl]⟩
 
-lemma prod_at_top_at_top_eq {β₁ β₂ : Type*} [inhabited β₁] [inhabited β₂] [semilattice_sup β₁]
+lemma prod_at_top_at_top_eq {β₁ β₂ : Type*} [nonempty β₁] [nonempty β₂] [semilattice_sup β₁]
   [semilattice_sup β₂] : filter.prod (@at_top β₁ _) (@at_top β₂ _) = @at_top (β₁ × β₂) _ :=
-by simp [at_top, prod_infi_left (default β₁), prod_infi_right (default β₂), infi_prod];
+by inhabit β₁; inhabit β₂;
+  simp [at_top, prod_infi_left (default β₁), prod_infi_right (default β₂), infi_prod];
     exact infi_comm
 
-lemma prod_map_at_top_eq {α₁ α₂ β₁ β₂ : Type*} [inhabited β₁] [inhabited β₂]
+lemma prod_map_at_top_eq {α₁ α₂ β₁ β₂ : Type*} [nonempty β₁] [nonempty β₂]
   [semilattice_sup β₁] [semilattice_sup β₂] (u₁ : β₁ → α₁) (u₂ : β₂ → α₂) :
   filter.prod (map u₁ at_top) (map u₂ at_top) = map (prod.map u₁ u₂) at_top :=
 by rw [prod_map_map_eq, prod_at_top_at_top_eq, prod.map_def]

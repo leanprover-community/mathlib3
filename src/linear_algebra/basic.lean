@@ -1357,6 +1357,10 @@ e.to_add_equiv.map_eq_zero_iff
 @[simp] theorem map_ne_zero_iff (e : M ≃ₗ[R] M₂) {x : M} : e x ≠ 0 ↔ x ≠ 0 :=
 e.to_add_equiv.map_ne_zero_iff
 
+@[simp] theorem symm_symm (e : M ≃ₗ[R] M₂) : e.symm.symm = e := by { cases e, refl }
+
+@[simp] theorem symm_symm_apply (e : M ≃ₗ[R] M₂) (x : M) : e.symm.symm x = e x := by { cases e, refl }
+
 /-- A bijective linear map is a linear equivalence. Here, bijectivity is described by saying that
 the kernel of `f` is `{0}` and the range is the universal set. -/
 noncomputable def of_bijective

@@ -1,3 +1,19 @@
+/-
+Copyright (c) 2020 Reid Barton. All rights reserved.
+Released under Apache 2.0 license as described in the file LICENSE.
+Authors: Reid Barton
+-/
+
+/-!
+A formal roadmap for the shrinking lemma for local finite countable covers.
+
+It contains the statement of the lemma, and an informal sketch of the proof,
+along with references.
+
+Any contributor should feel welcome to contribute a formal proof. When this happens,
+we should also consider preserving the current file as an exemplar of a formal roadmap.
+-/
+
 import roadmap.todo
 import topology.separation
 

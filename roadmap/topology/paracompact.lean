@@ -1,7 +1,23 @@
+/-
+Copyright (c) 2020 Reid Barton. All rights reserved.
+Released under Apache 2.0 license as described in the file LICENSE.
+Authors: Reid Barton
+-/
+
 import roadmap.todo
 import topology.subset_properties
 import topology.separation
 import topology.metric_space.basic
+
+/-!
+A formal roadmap for basic properties of paracompact spaces.
+
+It contains the statements that compact spaces and metric spaces are paracompact,
+and that paracompact t2 spaces are normal, as well as partially formalised proofs.
+
+Any contributor should feel welcome to contribute complete proofs. When this happens,
+we should also consider preserving the current file as an exemplar of a formal roadmap.
+-/
 
 open set filter
 

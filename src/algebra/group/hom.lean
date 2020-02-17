@@ -339,6 +339,11 @@ def comp (hnp : N →* P) (hmn : M →* N) : M →* P :=
 @[to_additive] lemma comp_assoc {Q : Type*} [monoid Q] (f : M →* N) (g : N →* P) (h : P →* Q) :
   (h.comp g).comp f = h.comp (g.comp f) := rfl
 
+@[to_additive] lemma exists_inv_of_comp_exists_inv {S : set M} {f : M →* N}
+  (hf : ∀ s ∈ S, ∃ b, f s * b = 1) (g : N →* P) (s ∈ S) :
+  ∃ x : P, g.comp f s * x = 1 :=
+let ⟨c, hc⟩ := hf s H in ⟨g c, show g _ * _ = _, by rw [←g.map_mul, hc, g.map_one]⟩
+
 omit mP
 variables [mM] [mN]
 

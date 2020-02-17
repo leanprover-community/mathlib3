@@ -305,8 +305,8 @@ ext $ assume b, by rw [comp_apply, smul_apply, g.map_smul]; refl
 /--
 The family of linear maps `M₂ → M` parameterised by `f ∈ M₂ → R`, `x ∈ M`, is linear in `f`, `x`.
 -/
-def smul_rightₗ : (M₂ →ₗ[R] R) →ₗ[R] M →ₗ[R] M₂ →ₗ[R] M := {
-  to_fun := λ f, {
+def smul_rightₗ : (M₂ →ₗ[R] R) →ₗ[R] M →ₗ[R] M₂ →ₗ[R] M :=
+{ to_fun := λ f, {
     to_fun := linear_map.smul_right f,
     add    := λ m m', by { ext, apply smul_add, },
     smul   := λ c m, by { ext, apply smul_comm, } },

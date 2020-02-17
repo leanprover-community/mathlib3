@@ -22,26 +22,20 @@ universes u v
 
 set_option class.instance_max_depth 42
 
-namespace contraction
+section contraction
 open tensor_product
 open_locale tensor_product
 
 variables (R : Type u) (M N : Type v)
 variables [comm_ring R] [add_comm_group M] [add_comm_group N] [module R M] [module R N]
 
-/--
-The natural left-handed pairing between a module and its dual.
--/
+/-- The natural left-handed pairing between a module and its dual. -/
 def contract_left : (module.dual R M) ⊗ M →ₗ[R] R := (uncurry _ _ _ _).to_fun linear_map.id
 
-/--
-The natural right-handed pairing between a module and its dual.
--/
+/-- The natural right-handed pairing between a module and its dual. -/
 def contract_right : M ⊗ (module.dual R M) →ₗ[R] R := (uncurry _ _ _ _).to_fun linear_map.id.flip
 
-/--
-The natural map associating a linear map to the tensor product of two modules.
--/
+/-- The natural map associating a linear map to the tensor product of two modules. -/
 def dual_tensor_hom : (module.dual R M) ⊗ N →ₗ M →ₗ N :=
   let M' := module.dual R M in
   (uncurry R M' N (M →ₗ[R] N) : _ → M' ⊗ N →ₗ M →ₗ N) linear_map.smul_rightₗ
@@ -55,7 +49,7 @@ variables {R M N}
   contract_right R M (m ⊗ₜ f) = f m := by apply uncurry_apply
 
 @[simp] lemma dual_tensor_hom_apply (f : module.dual R M) (m : M) (n : N) :
-  dual_tensor_hom R M N (f ⊗ₜ n) m = (f m) • n := by {
-    dunfold dual_tensor_hom, rw uncurry_apply, refl, }
+  dual_tensor_hom R M N (f ⊗ₜ n) m = (f m) • n :=
+by { dunfold dual_tensor_hom, rw uncurry_apply, refl, }
 
 end contraction

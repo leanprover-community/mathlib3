@@ -507,7 +507,7 @@ by simp [set.ext_iff]
 
 lemma image_preimage [decidable_eq β] (f : α → β) (s : finset β)
   (hf : set.bij_on f (f ⁻¹' s.to_set) s.to_set) :
-  image f (preimage s (set.inj_on_of_bij_on hf)) = s :=
+  image f (preimage s hf.inj_on) = s :=
 finset.coe_inj.1 $
 suffices f '' (f ⁻¹' ↑s) = ↑s, by simpa,
 (set.subset.antisymm (image_preimage_subset _ _) hf.2.2)
@@ -517,33 +517,27 @@ end preimage
 @[to_additive]
 lemma prod_preimage [comm_monoid β] (f : α → γ) (s : finset γ)
   (hf : set.bij_on f (f ⁻¹' ↑s) ↑s) (g : γ → β) :
-  (preimage s (set.inj_on_of_bij_on hf)).prod (g ∘ f) = s.prod g :=
+  (preimage s hf.inj_on).prod (g ∘ f) = s.prod g :=
 by classical;
 calc
-  (preimage s (set.inj_on_of_bij_on hf)).prod (g ∘ f)
-      = (image f (preimage s (set.inj_on_of_bij_on hf))).prod g :
+  (preimage s hf.inj_on).prod (g ∘ f)
+      = (image f (preimage s hf.inj_on)).prod g :
           begin
             rw prod_image,
             intros x hx y hy hxy,
-            apply set.inj_on_of_bij_on hf,
+            apply hf.inj_on,
             repeat { try { rw mem_preimage at hx hy,
                           rw [set.mem_preimage, mem_coe] },
                     assumption },
           end
-  ... = s.prod g : by rw image_preimage
+  ... = s.prod g : by rw [image_preimage]
 
 end finset
 
 lemma fintype.exists_max [fintype α] [nonempty α]
-  {β : Type*} [decidable_linear_order β] (f : α → β) :
+  {β : Type*} [linear_order β] (f : α → β) :
   ∃ x₀ : α, ∀ x, f x ≤ f x₀ :=
 begin
-  obtain ⟨y, hy⟩ : ∃ y, y ∈ (set.range f).to_finset,
-  { haveI := classical.inhabited_of_nonempty ‹nonempty α›,
-    exact ⟨f (default α), set.mem_to_finset.mpr $ set.mem_range_self _⟩ },
-  rcases finset.max_of_mem hy with ⟨y₀, h⟩,
-  rcases set.mem_to_finset.1 (finset.mem_of_max h) with ⟨x₀, rfl⟩,
-  use x₀,
-  intro x,
-  apply finset.le_max_of_mem (set.mem_to_finset.mpr $ set.mem_range_self x) h
+  rcases set.finite_univ.exists_maximal_wrt f _ univ_nonempty with ⟨x, _, hx⟩,
+  exact ⟨x, λ y, (le_total (f x) (f y)).elim (λ h, ge_of_eq $ hx _ trivial h) id⟩
 end

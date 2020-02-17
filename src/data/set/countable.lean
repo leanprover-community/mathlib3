@@ -40,9 +40,9 @@ countable_iff_exists_injective.trans
      hf $ by simpa [as, bs] using h⟩,
  λ ⟨f, hf⟩, ⟨_, inj_on_iff_injective.1 hf⟩⟩
 
-lemma countable_iff_exists_surjective [ne : inhabited α] {s : set α} :
+lemma countable_iff_exists_surjective [ne : nonempty α] {s : set α} :
   countable s ↔ ∃f:ℕ → α, s ⊆ range f :=
-⟨λ ⟨h⟩, by exactI ⟨λ n, ((decode s n).map subtype.val).iget,
+⟨λ ⟨h⟩, by inhabit α; exactI ⟨λ n, ((decode s n).map subtype.val).iget,
   λ a as, ⟨encode (⟨a, as⟩ : s), by simp [encodek]⟩⟩,
  λ ⟨f, hf⟩, ⟨⟨
   λ x, inv_fun f x.1,
@@ -109,7 +109,7 @@ by rw ← image_univ; exact countable_image _ (countable_encodable _)
 lemma countable_of_injective_of_countable_image {s : set α} {f : α → β}
   (hf : inj_on f s) (hs : countable (f '' s)) : countable s :=
 let ⟨g, hg⟩ := countable_iff_exists_inj_on.1 hs in
-countable_iff_exists_inj_on.2 ⟨g ∘ f, inj_on_comp (maps_to_image _ _) hg hf⟩
+countable_iff_exists_inj_on.2 ⟨g ∘ f, hg.comp hf (maps_to_image _ _)⟩
 
 lemma countable_Union {t : α → set β} [encodable α] (ht : ∀a, countable (t a)) :
   countable (⋃a, t a) :=

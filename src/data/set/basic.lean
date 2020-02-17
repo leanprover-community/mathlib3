@@ -237,7 +237,7 @@ theorem univ_def : @univ α = {x | true} := rfl
 
 @[simp] theorem mem_univ (x : α) : x ∈ @univ α := trivial
 
-theorem empty_ne_univ [h : inhabited α] : (∅ : set α) ≠ univ :=
+theorem empty_ne_univ [h : nonempty α] : (∅ : set α) ≠ univ :=
 by simp [ext_iff]
 
 @[simp] theorem subset_univ (s : set α) : s ⊆ univ := λ x H, trivial
@@ -885,11 +885,6 @@ section image
 
 infix ` '' `:80 := image
 
-/-- Two functions `f₁ f₂ : α → β` are equal on `s`
-  if `f₁ x = f₂ x` for all `x ∈ a`. -/
-@[reducible] def eq_on (f1 f2 : α → β) (a : set α) : Prop :=
-∀ x ∈ a, f1 x = f2 x
-
 -- TODO(Jeremy): use bounded exists in image
 
 theorem mem_image_iff_bex {f : α → β} {s : set α} {y : β} :
@@ -936,10 +931,6 @@ by safe [ext_iff, iff_def]
 /-- A common special case of `image_congr` -/
 lemma image_congr' {f g : α → β} {s : set α} (h : ∀ (x : α), f x = g x) : f '' s = g '' s :=
 image_congr (λx _, h x)
-
-theorem image_eq_image_of_eq_on {f₁ f₂ : α → β} {s : set α} (heq : eq_on f₁ f₂ s) :
-  f₁ '' s = f₂ '' s :=
-image_congr heq
 
 theorem image_comp (f : β → γ) (g : α → β) (a : set α) : (f ∘ g) '' a = f '' (g '' a) :=
 subset.antisymm

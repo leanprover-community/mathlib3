@@ -26,7 +26,8 @@ open io io.fs
 meta def active_linters :=
 [`linter.unused_arguments, `linter.dup_namespace, `linter.doc_blame,
  `linter.ge_or_gt, `linter.def_lemma, `linter.instance_priority, --`linter.has_inhabited_instance,
- `linter.impossible_instance, `linter.incorrect_type_class_argument, `linter.dangerous_instance]
+ `linter.impossible_instance, `linter.incorrect_type_class_argument, `linter.dangerous_instance,
+ `linter.inhabited_nonempty]
 
 /-- Runs when called with `lean --run` -/
 meta def main : io unit :=

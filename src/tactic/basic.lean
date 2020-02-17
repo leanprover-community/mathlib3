@@ -29,3 +29,4 @@ import
   tactic.squeeze
   tactic.well_founded_tactics
   tactic.where
+  tactic.hint

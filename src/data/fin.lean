@@ -278,7 +278,7 @@ section tuple
 /-!
 ### Tuples
 
-/We can think of the type `Π(i : fin n), α i` as `n`-tuples of elements of possibly varying type
+We can think of the type `Π(i : fin n), α i` as `n`-tuples of elements of possibly varying type
 `α i`. A particular case is `fin n → α` of elements with all the same type. Here are some relevant
 operations, first about adding or removing elements at the beginning of a tuple.
 -/

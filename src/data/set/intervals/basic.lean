@@ -1,7 +1,7 @@
 /-
 Copyright (c) 2017 Johannes Hölzl. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Authors: Johannes Hölzl, Mario Carneiro, Patrick Massot
+Authors: Johannes Hölzl, Mario Carneiro, Patrick Massot, Yury Kudryashov
 -/
 
 import order.lattice algebra.order_functions algebra.ordered_field tactic.tauto
@@ -128,6 +128,12 @@ eq_empty_iff_forall_not_mem.2 $ λ x ⟨h₁, h₂⟩, not_lt_of_le (le_trans h�
 @[simp] lemma Ioo_self (a : α) : Ioo a a = ∅ := Ioo_eq_empty $ le_refl _
 @[simp] lemma Ico_self (a : α) : Ico a a = ∅ := Ico_eq_empty $ le_refl _
 @[simp] lemma Ioc_self (a : α) : Ioc a a = ∅ := Ioc_eq_empty $ le_refl _
+
+lemma Ici_subset_Ici : Ici a ⊆ Ici b ↔ b ≤ a :=
+⟨λ h, h $ left_mem_Ici, λ h x hx, le_trans h hx⟩
+
+lemma Iic_subset_Iic : Iic a ⊆ Iic b ↔ a ≤ b :=
+@Ici_subset_Ici (order_dual α) _ _ _
 
 lemma Ici_subset_Ioi : Ici a ⊆ Ioi b ↔ b < a :=
 ⟨λ h, h left_mem_Ici, λ h x hx, lt_of_lt_of_le h hx⟩

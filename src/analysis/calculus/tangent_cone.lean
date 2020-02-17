@@ -136,11 +136,9 @@ tangent_cone_congr (nhds_within_restrict' _ ht).symm
 
 /-- The tangent cone of a product contains the tangent cone of its left factor. -/
 lemma subset_tangent_cone_prod_left {t : set F} {y : F} (ht : y ∈ closure t) :
-  set.prod (tangent_cone_at 𝕜 s x) {(0 : F)} ⊆ tangent_cone_at 𝕜 (set.prod s t) (x, y) :=
+  prod.inl '' (tangent_cone_at 𝕜 s x) ⊆ tangent_cone_at 𝕜 (set.prod s t) (x, y) :=
 begin
-  rintros ⟨v, w⟩ ⟨⟨c, d, hd, hc, hy⟩, hw⟩,
-  have : w = 0, by simpa using hw,
-  rw this,
+  rintros _ ⟨v, ⟨c, d, hd, hc, hy⟩, rfl⟩,
   have : ∀n, ∃d', y + d' ∈ t ∧ ∥c n • d'∥ ≤ ((1:ℝ)/2)^n,
   { assume n,
     have c_pos : 0 < 1 + ∥c n∥ :=
@@ -178,11 +176,9 @@ end
 /-- The tangent cone of a product contains the tangent cone of its right factor. -/
 lemma subset_tangent_cone_prod_right {t : set F} {y : F}
   (hs : x ∈ closure s) :
-  set.prod {(0 : E)} (tangent_cone_at 𝕜 t y) ⊆ tangent_cone_at 𝕜 (set.prod s t) (x, y) :=
+  prod.inr '' (tangent_cone_at 𝕜 t y) ⊆ tangent_cone_at 𝕜 (set.prod s t) (x, y) :=
 begin
-  rintros ⟨v, w⟩ ⟨hv, ⟨c, d, hd, hc, hy⟩⟩,
-  have : v = 0, by simpa using hv,
-  rw this,
+  rintros _ ⟨w, ⟨c, d, hd, hc, hy⟩, rfl⟩,
   have : ∀n, ∃d', x + d' ∈ s ∧ ∥c n • d'∥ ≤ ((1:ℝ)/2)^n,
   { assume n,
     have c_pos : 0 < 1 + ∥c n∥ :=
@@ -312,59 +308,14 @@ lemma unique_diff_within_at.prod {t : set F} {y : F}
   (hs : unique_diff_within_at 𝕜 s x) (ht : unique_diff_within_at 𝕜 t y) :
   unique_diff_within_at 𝕜 (set.prod s t) (x, y) :=
 begin
-  rw [unique_diff_within_at, ← univ_subset_iff] at ⊢ hs ht,
-  split,
-  { assume v _,
-    rw metric.mem_closure_iff,
-    assume ε ε_pos,
-    rcases v with ⟨v₁, v₂⟩,
-    rcases metric.mem_closure_iff.1 (hs.1 (mem_univ v₁)) ε ε_pos with ⟨w₁, w₁_mem, h₁⟩,
-    rcases metric.mem_closure_iff.1 (ht.1 (mem_univ v₂)) ε ε_pos with ⟨w₂, w₂_mem, h₂⟩,
-    have I₁ : (w₁, (0 : F)) ∈ submodule.span 𝕜 (tangent_cone_at 𝕜 (set.prod s t) (x, y)),
-    { apply submodule.span_induction w₁_mem,
-      { assume w hw,
-        have : (w, (0 : F)) ∈ (set.prod (tangent_cone_at 𝕜 s x) {(0 : F)}),
-        { rw mem_prod,
-          simp [hw],
-          apply mem_insert },
-        have : (w, (0 : F)) ∈ tangent_cone_at 𝕜 (set.prod s t) (x, y) :=
-          subset_tangent_cone_prod_left ht.2 this,
-        exact submodule.subset_span this },
-      { exact submodule.zero_mem _ },
-      { assume a b ha hb,
-        have : (a, (0 : F)) + (b, (0 : F)) = (a + b, (0 : F)), by simp,
-        rw ← this,
-        exact submodule.add_mem _ ha hb },
-      { assume c a ha,
-        have : c • (0 : F) = (0 : F), by simp,
-        rw ← this,
-        exact submodule.smul_mem _ _ ha } },
-    have I₂ : ((0 : E), w₂) ∈ submodule.span 𝕜 (tangent_cone_at 𝕜 (set.prod s t) (x, y)),
-    { apply submodule.span_induction w₂_mem,
-      { assume w hw,
-        have : ((0 : E), w) ∈ (set.prod {(0 : E)} (tangent_cone_at 𝕜 t y)),
-        { rw mem_prod,
-          simp [hw],
-          apply mem_insert },
-        have : ((0 : E), w) ∈ tangent_cone_at 𝕜 (set.prod s t) (x, y) :=
-          subset_tangent_cone_prod_right hs.2 this,
-        exact submodule.subset_span this },
-      { exact submodule.zero_mem _ },
-      { assume a b ha hb,
-        have : ((0 : E), a) + ((0 : E), b) = ((0 : E), a + b), by simp,
-        rw ← this,
-        exact submodule.add_mem _ ha hb },
-      { assume c a ha,
-        have : c • (0 : E) = (0 : E), by simp,
-        rw ← this,
-        exact submodule.smul_mem _ _ ha } },
-    have I : (w₁, w₂) ∈ submodule.span 𝕜 (tangent_cone_at 𝕜 (set.prod s t) (x, y)),
-    { have : (w₁, (0 : F)) + ((0 : E), w₂) = (w₁, w₂), by simp,
-      rw ← this,
-      exact submodule.add_mem _ I₁ I₂ },
-    refine ⟨(w₁, w₂), I, _⟩,
-    simp [dist, h₁, h₂] },
-  { simp [closure_prod_eq, mem_prod_iff, hs.2, ht.2] }
+  rw [unique_diff_within_at] at ⊢ hs ht,
+  rw [← univ_subset_iff, closure_prod_eq],
+  refine ⟨_, hs.2, ht.2⟩,
+  have : _ ⊆ tangent_cone_at 𝕜 (s.prod t) (x, y) :=
+    union_subset (subset_tangent_cone_prod_left ht.2) (subset_tangent_cone_prod_right hs.2),
+  refine subset.trans _ (closure_mono $ submodule.span_mono this),
+  rw [linear_map.span_inl_union_inr, submodule.prod_coe, closure_prod_eq,
+    hs.1, ht.1, univ_prod_univ]
 end
 
 /-- The product of two sets of unique differentiability is a set of unique differentiability. -/

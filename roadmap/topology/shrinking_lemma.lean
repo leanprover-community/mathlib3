@@ -17,7 +17,7 @@ Apply Zorn's lemma to
  T = Σ (i : set α), {v : α → set X // s ⊆ Union v ∧ (∀ a, is_open (v a)) ∧
                                       (∀ a ∈ i, closure (v a) ⊆ u a) ∧ (∀ a ∉ i, v a = u a)}
 with the ordering
- ⟨i, v, _⟩ ≤ ⟨i', v', _⟩ ↔ i ⊆ i' ∧ ∀ a ∈ i, v i = v' i
+ ⟨i, v, _⟩ ≤ ⟨i', v', _⟩ ↔ i ⊆ i' ∧ ∀ a ∈ i, v a = v' a
 The hypothesis that `X` is normal implies that a maximal element must have `i = univ`.
 Point-finiteness of `u` (hypothesis `uf`) implies that
 the least upper bound of a chain in `T` again yields a covering of `s`.

@@ -29,7 +29,8 @@ A cosmetic disadvantage is that one can not extend topological vector spaces.
 The solution is to extend `topological_module` instead.
 -/
 
-open topological_space
+open filter
+open_locale topological_space
 
 universes u v w u'
 
@@ -55,9 +56,16 @@ variables {R : Type u} {M : Type v}
 lemma continuous_smul : continuous (λp:R×M, p.1 • p.2) :=
 topological_semimodule.continuous_smul R M
 
-lemma continuous.smul {M₂ : Type*} [topological_space M₂] {f : M₂ → R} {g : M₂ → M}
+lemma continuous.smul {α : Type*} [topological_space α] {f : α → R} {g : α → M}
   (hf : continuous f) (hg : continuous g) : continuous (λp, f p • g p) :=
 continuous_smul.comp (hf.prod_mk hg)
+
+lemma tendsto_smul {c : R} {x : M} : tendsto (λp:R×M, p.fst • p.snd) (𝓝 (c, x)) (𝓝 (c • x)) :=
+continuous_smul.tendsto _
+
+lemma filter.tendsto.smul {α : Type*} {l : filter α} {f : α → R} {g : α → M} {c : R} {x : M}
+  (hf : tendsto f l (𝓝 c)) (hg : tendsto g l (𝓝 x)) : tendsto (λ a, f a • g a) l (𝓝 (c • x)) :=
+tendsto_smul.comp (hf.prod_mk_nhds hg)
 
 end
 
@@ -118,7 +126,7 @@ set_option class.instance_max_depth 36
 /-- Scalar multiplication by a non-zero field element is a
 homeomorphism from a topological vector space onto itself. -/
 protected def homeomorph.smul_of_ne_zero (ha : a ≠ 0) : M ≃ₜ M :=
-{.. homeomorph.smul_of_unit ((equiv.units_equiv_ne_zero _).inv_fun ⟨_, ha⟩)}
+{.. homeomorph.smul_of_unit (units.mk0 a ha)}
 
 lemma is_open_map_smul_of_ne_zero (ha : a ≠ 0) : is_open_map (λ (x : M), a • x) :=
 (homeomorph.smul_of_ne_zero ha).is_open_map

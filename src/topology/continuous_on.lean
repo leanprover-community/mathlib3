@@ -72,6 +72,10 @@ inter_mem_sets (mem_inf_sets_of_right (mem_principal_self s)) (mem_inf_sets_of_l
 theorem nhds_within_mono (a : α) {s t : set α} (h : s ⊆ t) : nhds_within a s ≤ nhds_within a t :=
 lattice.inf_le_inf (le_refl _) (principal_mono.mpr h)
 
+lemma mem_of_mem_nhds_within {a : α} {s t : set α} (ha : a ∈ s) (ht : t ∈ nhds_within a s) :
+  a ∈ t :=
+let ⟨u, hu, H⟩ := mem_nhds_within.1 ht in H.2 ⟨H.1, ha⟩
+
 theorem nhds_within_restrict'' {a : α} (s : set α) {t : set α} (h : t ∈ nhds_within a s) :
   nhds_within a s = nhds_within a (s ∩ t) :=
 le_antisymm

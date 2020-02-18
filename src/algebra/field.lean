@@ -214,34 +214,63 @@ end
 
 end
 
+namespace ring_hom
+
+section
+
+variables {β : Type*} [division_ring α] [division_ring β] (f : α →+* β) {x y : α}
+
+lemma map_ne_zero : f x ≠ 0 ↔ x ≠ 0 :=
+⟨mt $ λ h, h.symm ▸ f.map_zero,
+ λ x0 h, one_ne_zero $ by rw [← f.map_one, ← mul_inv_cancel x0, f.map_mul, h, zero_mul]⟩
+
+lemma map_eq_zero : f x = 0 ↔ x = 0 :=
+by haveI := classical.dec; exact not_iff_not.1 f.map_ne_zero
+
+lemma map_inv' (h : x ≠ 0) : f x⁻¹ = (f x)⁻¹ :=
+(domain.mul_left_inj (f.map_ne_zero.2 h)).1 $
+by rw [mul_inv_cancel (f.map_ne_zero.2 h), ← f.map_mul, mul_inv_cancel h, f.map_one]
+
+lemma map_div' (h : y ≠ 0) : f (x / y) = f x / f y :=
+(f.map_mul _ _).trans $ congr_arg _ $ f.map_inv' h
+
+lemma injective : function.injective f :=
+f.injective_iff.2
+  (λ a ha, classical.by_contradiction $ λ ha0,
+    by simpa [ha, f.map_mul, f.map_one, zero_ne_one]
+        using congr_arg f (mul_inv_cancel ha0))
+
+end
+
+section
+
+variables {β : Type*} [discrete_field α] [discrete_field β] (f : α →+* β) {x y : α}
+
+lemma map_inv : f x⁻¹ = (f x)⁻¹ :=
+classical.by_cases (by rintro rfl; simp only [map_zero f, inv_zero]) (map_inv' f)
+
+lemma map_div : f (x / y) = f x / f y :=
+(f.map_mul _ _).trans $ congr_arg _ $ map_inv f
+
+end
+end ring_hom
+
 namespace is_ring_hom
-open is_ring_hom
+open ring_hom (of)
 
 section
 variables {β : Type*} [division_ring α] [division_ring β]
 variables (f : α → β) [is_ring_hom f] {x y : α}
 
-lemma map_ne_zero : f x ≠ 0 ↔ x ≠ 0 :=
-⟨mt $ λ h, h.symm ▸ map_zero f,
- λ x0 h, one_ne_zero $ calc
-    1 = f (x * x⁻¹) : by rw [mul_inv_cancel x0, map_one f]
-  ... = 0 : by rw [map_mul f, h, zero_mul]⟩
+@[simp] lemma map_ne_zero : f x ≠ 0 ↔ x ≠ 0 := (of f).map_ne_zero
 
-lemma map_eq_zero : f x = 0 ↔ x = 0 :=
-by haveI := classical.dec; exact not_iff_not.1 (map_ne_zero f)
+@[simp] lemma map_eq_zero : f x = 0 ↔ x = 0 := (of f).map_eq_zero
 
-lemma map_inv' (h : x ≠ 0) : f x⁻¹ = (f x)⁻¹ :=
-(domain.mul_left_inj ((map_ne_zero f).2 h)).1 $
-by rw [mul_inv_cancel ((map_ne_zero f).2 h), ← map_mul f, mul_inv_cancel h, map_one f]
+lemma map_inv' (h : x ≠ 0) : f x⁻¹ = (f x)⁻¹ := (of f).map_inv' h
 
-lemma map_div' (h : y ≠ 0) : f (x / y) = f x / f y :=
-(map_mul f).trans $ congr_arg _ $ map_inv' f h
+lemma map_div' (h : y ≠ 0) : f (x / y) = f x / f y := (of f).map_div' h
 
-lemma injective : function.injective f :=
-(is_add_group_hom.injective_iff _).2
-  (λ a ha, classical.by_contradiction $ λ ha0,
-    by simpa [ha, is_ring_hom.map_mul f, is_ring_hom.map_one f, zero_ne_one]
-        using congr_arg f (mul_inv_cancel ha0))
+lemma injective : function.injective f := (of f).injective
 
 end
 
@@ -249,11 +278,9 @@ section
 variables {β : Type*} [discrete_field α] [discrete_field β]
 variables (f : α → β) [is_ring_hom f] {x y : α}
 
-lemma map_inv : f x⁻¹ = (f x)⁻¹ :=
-classical.by_cases (by rintro rfl; simp only [map_zero f, inv_zero]) (map_inv' f)
+@[simp] lemma map_inv : f x⁻¹ = (f x)⁻¹ := (of f).map_inv
 
-lemma map_div : f (x / y) = f x / f y :=
-(map_mul f).trans $ congr_arg _ $ map_inv f
+@[simp] lemma map_div : f (x / y) = f x / f y := (of f).map_div
 
 end
 

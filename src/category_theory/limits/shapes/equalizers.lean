@@ -251,27 +251,20 @@ end
 abbreviation equalizer.lift {W : C} (k : W ⟶ X) (h : k ≫ f = k ≫ g) : W ⟶ equalizer f g :=
 limit.lift (parallel_pair f g) (fork.of_ι k h)
 
-/-- If a map `h` equalizes `f` and `g`, then by the limit property, it factors uniquely through
-    the equalizer. This lemma is an equalizer-specific API to the "uniquely" part of that
-    statement. -/
-lemma equalizer.lift.uniq {W : C} (k : W ⟶ X) (h : k ≫ f = k ≫ g) (l : W ⟶ equalizer f g)
-  (i : l ≫ (equalizer.ι f g) = k) : l = equalizer.lift f g k h :=
-begin
-  refine is_limit.uniq (limit.is_limit (parallel_pair f g)) (fork.of_ι k h) l _,
-  intro j, cases j,
-  { simp only [fork.of_ι_app_zero, limit.cone_π], exact i },
-  { rw [←cone_parallel_pair_left, fork.of_ι_app_one, ←category.assoc, equalizer.ι.eq_app_zero, i] }
-end
+/-- Two maps into an equalizer are equal if they are are equal when composed with the equalizer
+    map. -/
+@[ext] lemma equalizer.hom_ext {W : C} {k l : W ⟶ equalizer f g}
+  (h : k ≫ equalizer.ι f g = l ≫ equalizer.ι f g) : k = l :=
+limit.hom_ext $ λ j,
+  match j with
+  | zero := h
+  | one := by { rw [←limit.cone_π, ←cone_parallel_pair_left, ←category.assoc, ←category.assoc],
+      congr, exact h }
+  end
 
 /-- An equalizer morphism is a monomorphism -/
 lemma equalizer.ι_mono : mono (equalizer.ι f g) :=
-{ right_cancellation := λ Z h k w,
-  begin
-    have h₀ : (h ≫ (equalizer.ι f g)) ≫ f = (h ≫ (equalizer.ι f g)) ≫ g :=
-      by simp only [category.assoc, equalizer.condition],
-    rw equalizer.lift.uniq f g (h ≫ (equalizer.ι f g)) h₀ h rfl,
-    rw equalizer.lift.uniq f g (h ≫ (equalizer.ι f g)) h₀ k w.symm
-  end }
+{ right_cancellation := λ Z h k w, equalizer.hom_ext _ _ w }
 end
 
 /-- The identity determines a cone on the equalizer diagram of f and f -/

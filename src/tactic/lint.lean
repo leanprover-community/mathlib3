@@ -26,6 +26,7 @@ The following linters are run by default:
 10. `dangerous_instance` checks for instances that generate type-class problems with metavariables.
 11. `inhabited_nonempty` checks for `inhabited` instance arguments that should be changed to `nonempty`.
 12. `simp_nf` checks that arguments of the left-hand side of simp lemmas are in simp-normal form.
+13. `simp_var_head` checks that there are no variables as head symbol of left-hand sides of simp lemmas.
 
 Another linter, `doc_blame_thm`, checks for missing doc strings on lemmas and theorems.
 This is not run by default.
@@ -510,6 +511,27 @@ some <$> do
   no_errors_found := "All left-hand sides of simp lemmas are in simp-normal form",
   errors_found := "LEFT-HAND SIDE NOT IN SIMP-NF.\n" ++
     "Some simp lemmas have a left-hand side that is not in simp-normal form." }
+
+private meta def simp_var_head (d : declaration) : tactic (option string) := do
+tt ← is_simp_lemma d.to_name | pure none,
+-- Sometimes, a definition is tagged @[simp] to add the equational lemmas to the simp set.
+-- In this case, ignore the declaration if it is not a valid simp lemma by itself.
+tt ← is_valid_simp_lemma_cnst d.to_name | pure none,
+lhs ← simp_lhs d.type,
+head_sym@(expr.local_const _ _ _ _) ← pure lhs.get_app_fn | pure none,
+head_sym ← pp head_sym,
+pure $ format.to_string $ "Left-hand side has variable as head symbol: " ++ head_sym
+
+/--
+A linter for simp lemmas whose lhs has a variable as head symbol,
+and which hence never fire.
+-/
+@[linter, priority 1389] meta def linter.simp_var_head : linter :=
+{ test := simp_var_head,
+  no_errors_found :=
+    "No left-hand sides of a simp lemma has a variable as head symbol.",
+  errors_found := "LEFT-HAND SIDE HAS VARIABLE AS HEAD SYMBOL.\n" ++
+    "Some simp lemmas have a variable as head symbol of the left-hand side" }
 
 /- Implementation of the frontend. -/
 

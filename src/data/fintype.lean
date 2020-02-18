@@ -253,6 +253,32 @@ by apply @fin.prod_univ_succ (multiplicative β)
 
 attribute [to_additive] fin.prod_univ_succ
 
+lemma fin.univ_cast_succ (n : ℕ) :
+  (univ : finset (fin $ n+1)) = insert (fin.last n) (univ.image fin.cast_succ) :=
+begin
+  ext m,
+  simp only [mem_univ, mem_insert, true_iff, mem_image, exists_prop, true_and],
+  by_cases h : m.val < n,
+  { right,
+    use fin.cast_lt m h,
+    rw fin.cast_succ_cast_lt },
+  { left,
+    exact fin.eq_last_of_not_lt h }
+end
+
+theorem fin.prod_univ_cast_succ [comm_monoid β] {n:ℕ} (f : fin n.succ → β) :
+  univ.prod f = univ.prod (λ i:fin n, f i.cast_succ) * f (fin.last n) :=
+begin
+  rw [fin.univ_cast_succ, prod_insert, prod_image, mul_comm],
+  { intros x _ y _ hxy, exact fin.cast_succ_inj.mp hxy },
+  { simpa using fin.cast_succ_ne_last }
+end
+
+theorem fin.sum_univ_cast_succ [add_comm_monoid β] {n:ℕ} (f : fin n.succ → β) :
+  univ.sum f = univ.sum (λ i:fin n, f i.cast_succ) + f (fin.last n) :=
+by apply @fin.prod_univ_cast_succ (multiplicative β)
+attribute [to_additive] fin.prod_univ_cast_succ
+
 @[instance, priority 10] def unique.fintype {α : Type*} [unique α] : fintype α :=
 ⟨finset.singleton (default α), λ x, by rw [unique.eq_default x]; simp⟩
 

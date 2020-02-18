@@ -275,9 +275,13 @@ lemma exists_fin_succ {P : fin (n+1) → Prop} :
 end rec
 
 section tuple
-/- We can think of the type `Π(i : fin n), α i` as `n`-tuples of elements of possibly varying type
+/-!
+### Tuples
+
+We can think of the type `Π(i : fin n), α i` as `n`-tuples of elements of possibly varying type
 `α i`. A particular case is `fin n → α` of elements with all the same type. Here are some relevant
-operations. -/
+operations, first about adding or removing elements at the beginning of a tuple.
+-/
 
 variables {α : fin (n+1) → Type u} (x : α 0) (q : Πi, α i) (p : Π(i : fin n), α (i.succ))
 (i : fin n) (y : α i.succ) (z : α 0)
@@ -368,7 +372,7 @@ by { ext j, simp [tail] }
 end tuple
 
 section tuple_right
-/- In the previous section, we have discussed inserting or removing elements on the left of a tuple.
+/-! In the previous section, we have discussed inserting or removing elements on the left of a tuple.
 In this section, we do the same on the right. A difference is that `fin (n+1)` is constructed
 inductively from `fin n` starting from the left, not from the right. This implies that Lean needs
 more help to realize that elements belong to the right types, i.e., we need to insert casts at

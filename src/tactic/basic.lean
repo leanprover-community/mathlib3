@@ -18,6 +18,7 @@ import
   tactic.rcases
   tactic.rename
   tactic.replacer
+  tactic.rename_var
   tactic.restate_axiom
   tactic.rewrite
   tactic.lint
@@ -28,3 +29,4 @@ import
   tactic.squeeze
   tactic.well_founded_tactics
   tactic.where
+  tactic.hint

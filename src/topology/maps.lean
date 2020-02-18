@@ -189,29 +189,10 @@ hf.continuous_iff.mp continuous_id
 
 end quotient_map
 
-section is_open_map
-variables [topological_space α] [topological_space β]
-
 /-- A map `f : α → β` is said to be an *open map*, if the image of any open `U : set α`
 is open in `β`. -/
-def is_open_map (f : α → β) := ∀ U : set α, is_open U → is_open (f '' U)
-
-variable {f : α → β}
-
-lemma is_open_map_iff_nhds_le : is_open_map f ↔ ∀(a:α), 𝓝 (f a) ≤ (𝓝 a).map f :=
-begin
-  split,
-  { assume h a s hs,
-    rcases mem_nhds_sets_iff.1 hs with ⟨t, hts, ht, hat⟩,
-    exact filter.mem_sets_of_superset
-      (mem_nhds_sets (h t ht) (mem_image_of_mem _ hat))
-      (image_subset_iff.2 hts) },
-  { refine assume h s hs, is_open_iff_mem_nhds.2 _,
-    rintros b ⟨a, ha, rfl⟩,
-    exact h _ (filter.image_mem_map $ mem_nhds_sets hs ha) }
-end
-
-end is_open_map
+def is_open_map [topological_space α] [topological_space β] (f : α → β) :=
+∀ U : set α, is_open U → is_open (f '' U)
 
 namespace is_open_map
 variables [topological_space α] [topological_space β] [topological_space γ]
@@ -226,8 +207,13 @@ by intros s hs; rw [image_comp]; exact hg _ (hf _ hs)
 lemma is_open_range {f : α → β} (hf : is_open_map f) : is_open (range f) :=
 by { rw ← image_univ, exact hf _ is_open_univ }
 
+lemma image_mem_nhds {f : α → β} (hf : is_open_map f) {x : α} {s : set α} (hx : s ∈ 𝓝 x) :
+  f '' s ∈ 𝓝 (f x) :=
+let ⟨t, hts, ht, hxt⟩ := mem_nhds_sets_iff.1 hx in
+mem_sets_of_superset (mem_nhds_sets (hf t ht) (mem_image_of_mem _ hxt)) (image_subset _ hts)
+
 lemma nhds_le {f : α → β} (hf : is_open_map f) (a : α) : 𝓝 (f a) ≤ (𝓝 a).map f :=
-is_open_map_iff_nhds_le.1 hf a
+le_map $ λ s, hf.image_mem_nhds
 
 lemma of_inverse {f : α → β} {f' : β → α}
   (h : continuous f') (l_inv : left_inverse f f') (r_inv : right_inverse f f') :
@@ -251,6 +237,14 @@ lemma to_quotient_map {f : α → β}
   end⟩
 
 end is_open_map
+
+lemma is_open_map_iff_nhds_le [topological_space α] [topological_space β] {f : α → β} :
+  is_open_map f ↔ ∀(a:α), 𝓝 (f a) ≤ (𝓝 a).map f :=
+begin
+  refine ⟨λ hf, hf.nhds_le, λ h s hs, is_open_iff_mem_nhds.2 _⟩,
+  rintros b ⟨a, ha, rfl⟩,
+  exact h _ (filter.image_mem_map $ mem_nhds_sets hs ha)
+end
 
 section is_closed_map
 variables [topological_space α] [topological_space β]

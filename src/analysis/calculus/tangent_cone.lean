@@ -335,7 +335,7 @@ begin
     have ys : y ∈ s := interior_subset hy,
     have : ∃(δ : ℝ), 0<δ ∧ y + δ • v ∈ s,
     { by_cases h : ∥v∥ = 0,
-      { exact ⟨1, zero_lt_one, by simp [(norm_eq_zero _).1 h, ys]⟩ },
+      { exact ⟨1, zero_lt_one, by simp [norm_eq_zero.1 h, ys]⟩ },
       { rcases mem_interior.1 hy with ⟨u, us, u_open, yu⟩,
         rcases metric.is_open_iff.1 u_open y yu with ⟨ε, εpos, hε⟩,
         let δ := (ε/2) / ∥v∥,

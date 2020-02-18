@@ -117,18 +117,22 @@ abbreviation cofork (f g : X ⟶ Y) := cocone (parallel_pair f g)
 
 variables {f g : X ⟶ Y}
 
-@[simp] lemma cone_parallel_pair_left (s : limits.cone (parallel_pair f g)) :
+@[simp] lemma cone_parallel_pair_left (s : cone (parallel_pair f g)) :
   (s.π).app zero ≫ f = (s.π).app one :=
-begin
-  conv { to_lhs, congr, skip, rw ←parallel_pair_map_left f g, },
-  rw s.w,
-end
+by { conv { to_lhs, congr, skip, rw ←parallel_pair_map_left f g }, rw s.w }
 
-@[simp] lemma cone_parallel_pair_right (s : limits.cone (parallel_pair f g)) :
+@[simp] lemma cone_parallel_pair_right (s : cone (parallel_pair f g)) :
   (s.π).app zero ≫ g = (s.π).app one :=
-begin
-  conv { to_lhs, congr, skip, rw ←parallel_pair_map_right f g, },
-  rw s.w,
+by { conv { to_lhs, congr, skip, rw ←parallel_pair_map_right f g }, rw s.w }
+
+/-- To check whether two maps are equalized by both maps of a fork, it suffices to check it for the
+    first map -/
+lemma cone_parallel_pair_ext (s : cone (parallel_pair f g)) {W : C} {k l : W ⟶ s.X}
+  (h : k ≫ s.π.app zero = l ≫ s.π.app zero) (j : walking_parallel_pair) :
+  k ≫ s.π.app j = l ≫ s.π.app j :=
+match j with
+| zero := h
+| one := by { rw [←cone_parallel_pair_left, ←category.assoc, ←category.assoc], congr, exact h }
 end
 
 attribute [simp] walking_parallel_pair_hom_id
@@ -255,12 +259,7 @@ limit.lift (parallel_pair f g) (fork.of_ι k h)
     map. -/
 @[ext] lemma equalizer.hom_ext {W : C} {k l : W ⟶ equalizer f g}
   (h : k ≫ equalizer.ι f g = l ≫ equalizer.ι f g) : k = l :=
-limit.hom_ext $ λ j,
-  match j with
-  | zero := h
-  | one := by { rw [←limit.cone_π, ←cone_parallel_pair_left, ←category.assoc, ←category.assoc],
-      congr, exact h }
-  end
+limit.hom_ext $ cone_parallel_pair_ext _ h
 
 /-- An equalizer morphism is a monomorphism -/
 lemma equalizer.ι_mono : mono (equalizer.ι f g) :=

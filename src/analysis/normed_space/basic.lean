@@ -620,43 +620,21 @@ nnreal.eq $ norm_smul s x
 variables {E : Type*} {F : Type*}
 [normed_group E] [normed_space α E] [normed_group F] [normed_space α F]
 
-lemma tendsto_smul {f : γ → α} { g : γ → F} {e : filter γ} {s : α} {b : F} :
-  (tendsto f e (𝓝 s)) → (tendsto g e (𝓝 b)) → tendsto (λ x, (f x) • (g x)) e (𝓝 (s • b)) :=
-begin
-  intros limf limg,
-  rw tendsto_iff_norm_tendsto_zero,
-  have ineq := λ x : γ, calc
-      ∥f x • g x - s • b∥ = ∥(f x • g x - s • g x) + (s • g x - s • b)∥ : by simp[add_assoc]
-                      ... ≤ ∥f x • g x - s • g x∥ + ∥s • g x - s • b∥ : norm_add_le (f x • g x - s • g x) (s • g x - s • b)
-                      ... ≤ ∥f x - s∥*∥g x∥ + ∥s∥*∥g x - b∥ : by { rw [←smul_sub, ←sub_smul, norm_smul, norm_smul] },
-  apply squeeze_zero,
-  { intro t, exact norm_nonneg _ },
-  { exact ineq },
-  { clear ineq,
-
-    have limf': tendsto (λ x, ∥f x - s∥) e (𝓝 0) := tendsto_iff_norm_tendsto_zero.1 limf,
-    have limg' : tendsto (λ x, ∥g x∥) e (𝓝 ∥b∥) := filter.tendsto.comp (continuous_iff_continuous_at.1 continuous_norm _) limg,
-
-    have lim1 := limf'.mul limg',
-    simp only [zero_mul, sub_eq_add_neg] at lim1,
-
-    have limg3 := tendsto_iff_norm_tendsto_zero.1 limg,
-
-    have lim2 := (tendsto_const_nhds : tendsto _ _ (𝓝 ∥ s ∥)).mul limg3,
-    simp only [sub_eq_add_neg, mul_zero] at lim2,
-
-    rw [show (0:ℝ) = 0 + 0, by simp],
-    exact lim1.add lim2  }
-end
-
-lemma tendsto_smul_const {g : γ → F} {e : filter γ} (s : α) {b : F} :
-  (tendsto g e (𝓝 b)) → tendsto (λ x, s • (g x)) e (𝓝 (s • b)) :=
-tendsto_smul tendsto_const_nhds
-
 @[priority 100] -- see Note [lower instance priority]
 instance normed_space.topological_vector_space : topological_vector_space α E :=
-{ continuous_smul := continuous_iff_continuous_at.2 $ λp, tendsto_smul
-    (continuous_iff_continuous_at.1 continuous_fst _) (continuous_iff_continuous_at.1 continuous_snd _) }
+begin
+  refine { continuous_smul := continuous_iff_continuous_at.2 $ λ p, tendsto_iff_norm_tendsto_zero.2 _ },
+  refine squeeze_zero (λ _, norm_nonneg _) _ _,
+  { exact λ q, ∥q.1 - p.1∥ * ∥q.2∥ + ∥p.1∥ * ∥q.2 - p.2∥ },
+  { intro q,
+    rw [← sub_add_sub_cancel, ← norm_smul, ← norm_smul, smul_sub, sub_smul],
+    exact norm_add_le _ _ },
+  { conv { congr, skip, skip, congr, rw [← zero_add (0:ℝ)], congr,
+      rw [← zero_mul ∥p.2∥], skip, rw [← mul_zero ∥p.1∥] },
+    exact ((tendsto_iff_norm_tendsto_zero.1 (continuous_fst.tendsto p)).mul (continuous_snd.tendsto p).norm).add
+            (tendsto_const_nhds.mul (tendsto_iff_norm_tendsto_zero.1 (continuous_snd.tendsto p))) }
+end
+
 
 open normed_field
 

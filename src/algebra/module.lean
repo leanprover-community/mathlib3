@@ -46,19 +46,27 @@ theorem add_smul : (r + s) • x = r • x + s • x := semimodule.add_smul r s 
 variables (α)
 @[simp] theorem zero_smul : (0 : α) • x = 0 := semimodule.zero_smul α x
 
-lemma smul_smul : r • s • x = (r * s) • x := (mul_smul _ _ _).symm
-
-instance smul.is_add_monoid_hom {r : α} : is_add_monoid_hom (λ x : β, r • x) :=
-{ map_add := smul_add _, map_zero := smul_zero _ }
+variable {α}
 
 lemma semimodule.eq_zero_of_zero_eq_one (zero_eq_one : (0 : α) = 1) : x = 0 :=
 by rw [←one_smul α x, ←zero_eq_one, zero_smul]
 
-/-- R-linearity of finite sums of elements of an R-semimodule. -/
-lemma finset.sum_smul {α : Type*} {R : Type*} [semiring R] {M : Type*} [add_comm_monoid M]
-  [semimodule R M] (s : finset α) (r : R) (f : α → M) :
-    s.sum (λ (x : α), (r • (f x))) = r • (s.sum f) :=
-s.sum_hom _
+instance smul.is_add_monoid_hom (x : β) : is_add_monoid_hom (λ r:α, r • x) :=
+{ map_zero := zero_smul _ x,
+  map_add := λ r₁ r₂, add_smul r₁ r₂ x }
+
+lemma list.sum_smul {l : list α} {x : β} : l.sum • x = (l.map (λ r, r • x)).sum :=
+show (λ r, r • x) l.sum = (l.map (λ r, r • x)).sum,
+from (list.sum_hom _ _).symm
+
+lemma multiset.sum_smul {l : multiset α} {x : β} : l.sum • x = (l.map (λ r, r • x)).sum :=
+show (λ r, r • x) l.sum = (l.map (λ r, r • x)).sum,
+from (multiset.sum_hom _ _).symm
+
+lemma finset.sum_smul {f : γ → α} {s : finset γ} {x : β} :
+  s.sum f • x = s.sum (λ r, (f r) • x) :=
+show (λ r, r • x) (s.sum f) = s.sum (λ r, (f r) • x),
+from (finset.sum_hom _ _).symm
 
 end semimodule
 
@@ -157,6 +165,8 @@ instance : has_coe_to_fun (β →ₗ[α] γ) := ⟨_, to_fun⟩
 
 @[simp] lemma coe_mk (f : β → γ) (h₁ h₂) :
   ((linear_map.mk f h₁ h₂ : β →ₗ[α] γ) : β → γ) = f := rfl
+
+@[simp] lemma to_fun_eq_coe (f : β →ₗ[α] γ) : f.to_fun = ⇑f := rfl
 
 theorem is_linear : is_linear_map α f := {..f}
 
@@ -306,6 +316,7 @@ finset.induction_on t (by simp [p.zero_mem]) (by simp [p.add_mem] {contextual :=
 
 instance : has_add p := ⟨λx y, ⟨x.1 + y.1, add_mem _ x.2 y.2⟩⟩
 instance : has_zero p := ⟨⟨0, zero_mem _⟩⟩
+instance : inhabited p := ⟨0⟩
 instance : has_neg p := ⟨λx, ⟨-x.1, neg_mem _ x.2⟩⟩
 instance : has_scalar α p := ⟨λ c x, ⟨c • x.1, smul_mem _ c x.2⟩⟩
 
@@ -460,7 +471,28 @@ begin
     rw [add_smul, add_smul, one_smul, ih, one_smul] }
 end
 
-lemma finset.sum_const' {α : Type*} (R : Type*) [ring R] {β : Type*}
+lemma nat.smul_def {M : Type*} [add_comm_monoid M] (n : ℕ) (x : M) :
+  n • x = add_monoid.smul n x :=
+rfl
+
+namespace finset
+
+lemma sum_const' {α : Type*} (R : Type*) [ring R] {β : Type*}
   [add_comm_group β] [module R β] {s : finset α} (b : β) :
   finset.sum s (λ (a : α), b) = (finset.card s : R) • b :=
 by rw [finset.sum_const, ← module.smul_eq_smul]; refl
+
+variables {M : Type*} [decidable_linear_ordered_cancel_comm_monoid M]
+  {s : finset α} (f : α → M)
+
+theorem exists_card_smul_le_sum (hs : s.nonempty) :
+  ∃ i ∈ s, s.card • f i ≤ s.sum f :=
+exists_le_of_sum_le hs $ by rw [sum_const, ← nat.smul_def, smul_sum]
+
+
+theorem exists_card_smul_ge_sum (hs : s.nonempty) :
+  ∃ i ∈ s, s.sum f ≤ s.card • f i :=
+exists_le_of_sum_le hs $ by rw [sum_const, ← nat.smul_def, smul_sum]
+
+end finset
+

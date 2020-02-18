@@ -51,7 +51,7 @@ The Bochner integral is defined following these steps:
 2. Basic properties of the Bochner integral on functions of type `α → ℝ`, where `α` is a measure
   space.
 
-  * `integral_nonneg_of_nonneg_ae`  : `∀ₘ a, 0 ≤ f a → 0 ≤ ∫ f`
+  * `integral_nonneg_of_ae`         : `∀ₘ a, 0 ≤ f a → 0 ≤ ∫ f`
   * `integral_nonpos_of_nonpos_ae`  : `∀ₘ a, f a ≤ 0 → ∫ f ≤ 0`
   * `integral_le_integral_of_le_ae` : `∀ₘ a, f a ≤ g a → ∫ f ≤ ∫ g`
 
@@ -247,7 +247,7 @@ begin
       apply hf,
       assumption }
   end
-  ... = s'.sum (λb, (ennreal.to_real (volume (f ⁻¹' {b}))) • (g (f a))) : by rw [finset.smul_sum']
+  ... = s'.sum (λb, (ennreal.to_real (volume (f ⁻¹' {b}))) • (g (f a))) : finset.sum_smul
   ... = s'.sum (λb, (ennreal.to_real (volume (f ⁻¹' {b}))) • (g b)) :
     finset.sum_congr rfl $ by { assume x, simp only [mem_filter], rintro ⟨_, h⟩, rw h }
 end
@@ -467,6 +467,8 @@ protected def add_comm_group : add_comm_group (α →₁ₛ β) := subtype.add_c
 
 local attribute [instance] simple_func.add_comm_group simple_func.metric_space
   simple_func.emetric_space
+
+instance : inhabited (α →₁ₛ β) := ⟨0⟩
 
 @[simp, elim_cast] lemma coe_zero : ((0 : α →₁ₛ β) : α →₁ β) = 0 := rfl
 @[simp, move_cast] lemma coe_add (f g : α →₁ₛ β) : ((f + g : α →₁ₛ β) : α →₁ β) = f + g := rfl
@@ -754,7 +756,7 @@ simple_func.uniform_embedding.dense_embedding $
 λ f, mem_closure_iff_nhds.2 $ λ t ht,
 let ⟨ε,ε0, hε⟩ := metric.mem_nhds_iff.1 ht in
 let ⟨s, h⟩ := exists_simple_func_near f ε0 in
-ne_empty_iff_exists_mem.2 ⟨_, hε (metric.mem_ball'.2 h), s, rfl⟩
+⟨_, hε (metric.mem_ball'.2 h), s, rfl⟩
 
 protected lemma dense_inducing : dense_inducing (coe : (α →₁ₛ β) → (α →₁ β)) :=
 simple_func.dense_embedding.to_dense_inducing
@@ -847,21 +849,15 @@ end
 
 /-- The Bochner integral over simple functions in l1 space as a continuous linear map. -/
 def integral_clm : (α →₁ₛ β) →L[ℝ] β :=
-linear_map.with_bound ⟨integral, integral_add, integral_smul⟩
-  ⟨1, (λf, le_trans (norm_integral_le_norm _) $ by rw one_mul)⟩
+linear_map.mk_continuous ⟨integral, integral_add, integral_smul⟩
+  1 (λf, le_trans (norm_integral_le_norm _) $ by rw one_mul)
 
 local notation `Integral` := @integral_clm α _ β _ _ _
 
 open continuous_linear_map
 
 lemma norm_Integral_le_one : ∥Integral∥ ≤ 1 :=
-begin
-  apply op_norm_le_bound,
-  { exact zero_le_one },
-  assume f,
-  rw [one_mul],
-  exact norm_integral_le_norm _
-end
+linear_map.mk_continuous_norm_le _ (zero_le_one) _
 
 section pos_part
 
@@ -964,7 +960,7 @@ def integral (f : α →₁ β) : β := (integral_clm).to_fun f
 
 lemma integral_eq (f : α →₁ β) : integral f = (integral_clm).to_fun f := rfl
 
-@[elim_cast] lemma integral_coe_eq_integral (f : α →₁ₛ β) :
+@[elim_cast] lemma simple_func.integral_eq_integral (f : α →₁ₛ β) :
   integral (f : α →₁ β) = f.integral :=
 by { refine uniformly_extend_of_ind _ _ _ _, exact simple_func.integral_clm.uniform_continuous }
 
@@ -1055,9 +1051,8 @@ lemma integral_non_measurable (h : ¬ measurable f) : (∫ a, f a) = 0 :=
 integral_undef $ not_and_of_not_left _ h
 
 variables (α β)
-@[simp] lemma integral_zero : (∫ a:α, (0:β)) = 0 :=
+@[simp] lemma integral_zero : (∫ a : α, (0:β)) = 0 :=
 by rw [integral_eq, l1.of_fun_zero, l1.integral_zero]
-
 variables {α β}
 
 lemma integral_add
@@ -1143,10 +1138,9 @@ begin
   -- Use the sandwich theorem
   refine tendsto_of_tendsto_of_tendsto_of_le_of_le zero_tendsto_zero lintegral_norm_tendsto_zero _ _,
   -- Show `0 ≤ ∥∫ a, F n a - ∫ f∥` for all `n`
-  { simp only [filter.mem_at_top_sets, norm_nonneg, set.mem_set_of_eq, forall_true_iff,
-      exists_const] },
+  { simp only [filter.eventually_at_top, norm_nonneg, forall_true_iff, exists_const] },
   -- Show `∥∫ a, F n a - ∫ f∥ ≤ ∫ a, ∥F n a - f a∥` for all `n`
-  { simp only [mem_at_top_sets, mem_set_of_eq],
+  { simp only [filter.eventually_at_top],
     use 0,
     assume n hn,
     have h₁ : integrable (F n) := integrable_of_integrable_bound bound_integrable (h_bound _),
@@ -1159,9 +1153,9 @@ end
 lemma tendsto_integral_filter_of_dominated_convergence {ι} {l : filter ι}
   {F : ι → α → β} {f : α → β} (bound : α → ℝ)
   (hl_cb : l.has_countable_basis)
-  (hF_meas : { n | measurable (F n) } ∈ l)
+  (hF_meas : ∀ᶠ n in l, measurable (F n))
   (f_measurable : measurable f)
-  (h_bound : { n | ∀ₘ a, ∥F n a∥ ≤ bound a } ∈ l)
+  (h_bound : ∀ᶠ n in l, ∀ₘ a, ∥F n a∥ ≤ bound a)
   (bound_integrable : integrable bound)
   (h_lim : ∀ₘ a, tendsto (λ n, F n a) l (𝓝 (f a))) :
   tendsto (λn, ∫ a, F n a) l (𝓝 $ (∫ a, f a)) :=
@@ -1257,7 +1251,7 @@ begin
     rw [this, hfi], refl }
 end
 
-lemma integral_nonneg_of_nonneg_ae {f : α → ℝ} (hf : ∀ₘ a, 0 ≤ f a) : 0 ≤ (∫ a, f a) :=
+lemma integral_nonneg_of_ae {f : α → ℝ} (hf : ∀ₘ a, 0 ≤ f a) : 0 ≤ (∫ a, f a) :=
 begin
   by_cases hfm : measurable f,
   { rw integral_eq_lintegral_of_nonneg_ae hf hfm, exact to_real_nonneg },
@@ -1268,7 +1262,7 @@ lemma integral_nonpos_of_nonpos_ae {f : α → ℝ} (hf : ∀ₘ a, f a ≤ 0) :
 begin
   have hf : ∀ₘ a, 0 ≤ (-f) a,
   { filter_upwards [hf], simp only [mem_set_of_eq], assume a h, rwa [pi.neg_apply, neg_nonneg] },
-  have : 0 ≤ (∫ a, -f a) := integral_nonneg_of_nonneg_ae hf,
+  have : 0 ≤ (∫ a, -f a) := integral_nonneg_of_ae hf,
   rwa [integral_neg, neg_nonneg] at this,
 end
 
@@ -1277,7 +1271,7 @@ lemma integral_le_integral_ae {f g : α → ℝ} (hfm : measurable f) (hfi : int
 le_of_sub_nonneg
 begin
   rw ← integral_sub hgm hgi hfm hfi,
-  apply integral_nonneg_of_nonneg_ae,
+  apply integral_nonneg_of_ae,
   filter_upwards [h],
   simp only [mem_set_of_eq],
   assume a,
@@ -1297,7 +1291,7 @@ classical.by_cases
 ( λh : ¬measurable f,
   begin
     rw [integral_non_measurable h, _root_.norm_zero],
-    exact integral_nonneg_of_nonneg_ae le_ae
+    exact integral_nonneg_of_ae le_ae
   end )
 
 lemma integral_finset_sum {ι} (s : finset ι) {f : ι → α → β}

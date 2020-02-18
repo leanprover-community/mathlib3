@@ -164,7 +164,7 @@ end ctop.realizer
 
 structure locally_finite.realizer [topological_space α] (F : realizer α) (f : β → set α) :=
 (bas : ∀ a, {s // a ∈ F.F s})
-(sets : ∀ x:α, fintype {i | f i ∩ F.F (bas x) ≠ ∅})
+(sets : ∀ x:α, fintype {i | (f i ∩ F.F (bas x)).nonempty})
 
 theorem locally_finite.realizer.to_locally_finite [topological_space α]
   {F : realizer α} {f : β → set α} (R : locally_finite.realizer F f) :
@@ -179,8 +179,8 @@ theorem locally_finite_iff_exists_realizer [topological_space α]
        show ∃ (b : F.σ), x ∈ (F.F) b ∧ (F.F) b ⊆ g x, from
        let ⟨h, h'⟩ := h₁ x in F.mem_nhds.1 h) in
   ⟨⟨λ x, ⟨g₂ x, (h₂ x).1⟩, λ x, finite.fintype $
-    let ⟨h, h'⟩ := h₁ x in finite_subset h' $ λ i,
-    subset_ne_empty (inter_subset_inter_right _ (h₂ x).2)⟩⟩,
+    let ⟨h, h'⟩ := h₁ x in finite_subset h' $ λ i hi,
+    hi.mono (inter_subset_inter_right _ (h₂ x).2)⟩⟩,
  λ ⟨R⟩, R.to_locally_finite⟩
 
 def compact.realizer [topological_space α] (R : realizer α) (s : set α) :=

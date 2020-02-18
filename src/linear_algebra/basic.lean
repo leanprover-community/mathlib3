@@ -59,27 +59,6 @@ universes u v w x y z u' v' w' y'
 variables {R : Type u} {K : Type u'} {M : Type v} {V : Type v'} {M₂ : Type w} {V₂ : Type w'}
 variables {M₃ : Type y} {V₃ : Type y'} {M₄ : Type z} {ι : Type x}
 
-namespace finset
-
-lemma smul_sum {α : Type u} {M : Type v} {R : Type w}
-  [ring R] [add_comm_group M] [module R M]
-  {s : finset α} {a : R} {f : α → M} :
-  a • (s.sum f) = s.sum (λc, a • f c) :=
-(s.sum_hom ((•) a)).symm
-
-lemma smul_sum' {α : Type u} {M : Type v} {R : Type w}
-  [ring R] [add_comm_group M] [module R M]
-  {s : finset α} {f : α → R} {x : M} :
-  (s.sum f) • x = s.sum (λa, (f a) • x) :=
-begin
--- TODO : where should I put this instance?
-  haveI : is_add_monoid_hom (λ (r : R), r • x) :=
-    { map_add := λ a b, add_smul _ _ _, map_zero := zero_smul _ _ },
-  exact (s.sum_hom (λ (r : R), r • x)).symm
-end
-
-end finset
-
 namespace finsupp
 
 lemma smul_sum {α : Type u} {β : Type v} {R : Type w} {M : Type y}
@@ -149,6 +128,8 @@ by dsimp [left_inverse, function.right_inverse] at h₁ h₂; exact
 
 /-- The constant 0 map is linear. -/
 instance : has_zero (M →ₗ[R] M₂) := ⟨⟨λ _, 0, by simp, by simp⟩⟩
+
+instance : inhabited (M →ₗ[R] M₂) := ⟨0⟩
 
 @[simp] lemma zero_apply (x : M) : (0 : M →ₗ[R] M₂) x = 0 := rfl
 
@@ -321,6 +302,20 @@ rfl
 theorem comp_smul (g : M₂ →ₗ[R] M₃) (a : R) : g.comp (a • f) = a • (g.comp f) :=
 ext $ assume b, by rw [comp_apply, smul_apply, g.map_smul]; refl
 
+/--
+The family of linear maps `M₂ → M` parameterised by `f ∈ M₂ → R`, `x ∈ M`, is linear in `f`, `x`.
+-/
+def smul_rightₗ : (M₂ →ₗ[R] R) →ₗ[R] M →ₗ[R] M₂ →ₗ[R] M :=
+{ to_fun := λ f, {
+    to_fun := linear_map.smul_right f,
+    add    := λ m m', by { ext, apply smul_add, },
+    smul   := λ c m, by { ext, apply smul_comm, } },
+  add    := λ f f', by { ext, apply add_smul, },
+  smul   := λ c f, by { ext, apply mul_smul, } }
+
+@[simp] lemma smul_rightₗ_apply (f : M₂ →ₗ[R] R) (x : M) (c : M₂) :
+  (smul_rightₗ : (M₂ →ₗ R) →ₗ M →ₗ M₂ →ₗ M) f x c = (f c) • x := rfl
+
 end comm_ring
 end linear_map
 
@@ -367,6 +362,8 @@ by ext ⟨b, hb⟩; simp
 instance : has_bot (submodule R M) :=
 ⟨by split; try {exact {0}}; simp {contextual := tt}⟩
 
+instance inhabited' : inhabited (submodule R M) := ⟨⊥⟩
+
 @[simp] lemma bot_coe : ((⊥ : submodule R M) : set M) = {0} := rfl
 
 section
@@ -388,7 +385,7 @@ instance : has_top (submodule R M) :=
 @[simp] lemma mem_top : x ∈ (⊤ : submodule R M) := trivial
 
 lemma eq_bot_of_zero_eq_one (zero_eq_one : (0 : R) = 1) : p = ⊥ :=
-by ext x; simp [semimodule.eq_zero_of_zero_eq_one _ x zero_eq_one]
+by ext x; simp [semimodule.eq_zero_of_zero_eq_one x zero_eq_one]
 
 instance : order_top (submodule R M) :=
 { top := ⊤,
@@ -813,6 +810,7 @@ def mk {p : submodule R M} : M → quotient p := quotient.mk'
 protected theorem eq {x y : M} : (mk x : quotient p) = mk y ↔ x - y ∈ p := quotient.eq'
 
 instance : has_zero (quotient p) := ⟨mk 0⟩
+instance : inhabited (quotient p) := ⟨0⟩
 
 @[simp] theorem mk_zero : mk 0 = (0 : quotient p) := rfl
 
@@ -1359,6 +1357,10 @@ e.to_add_equiv.map_eq_zero_iff
 @[simp] theorem map_ne_zero_iff (e : M ≃ₗ[R] M₂) {x : M} : e x ≠ 0 ↔ x ≠ 0 :=
 e.to_add_equiv.map_ne_zero_iff
 
+@[simp] theorem symm_symm (e : M ≃ₗ[R] M₂) : e.symm.symm = e := by { cases e, refl }
+
+@[simp] theorem symm_symm_apply (e : M ≃ₗ[R] M₂) (x : M) : e.symm.symm x = e x := by { cases e, refl }
+
 /-- A bijective linear map is a linear equivalence. Here, bijectivity is described by saying that
 the kernel of `f` is `{0}` and the range is the universal set. -/
 noncomputable def of_bijective
@@ -1776,6 +1778,7 @@ namespace general_linear_group
 variables {R M}
 
 instance : group (general_linear_group R M) := by delta general_linear_group; apply_instance
+instance : inhabited (general_linear_group R M) := ⟨1⟩
 
 /-- An invertible linear map `f` determines an equivalence from `M` to itself. -/
 def to_linear_equiv (f : general_linear_group R M) : (M ≃ₗ[R] M) :=

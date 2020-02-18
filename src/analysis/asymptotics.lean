@@ -64,7 +64,7 @@ a type `α` and `l` is a filter on `α`, means that eventually for `l`, `∥f∥
 In other words, `∥f∥ / ∥g∥` is eventually bounded by `C`, modulo division by zero issues that are
 avoided by this definition. Probably you want to use `is_O` instead of this relation. -/
 def is_O_with (c : ℝ) (f : α → E) (g : α → F) (l : filter α) : Prop :=
-{ x | ∥ f x ∥ ≤ c * ∥ g x ∥ } ∈ l
+∀ᶠ x in l, ∥ f x ∥ ≤ c * ∥ g x ∥
 
 /-- The Landau notation `is_O f g l` where `f` and `g` are two functions on a type `α` and `l` is
 a filter on `α`, means that eventually for `l`, `∥f∥` is bounded by a constant multiple of `∥g∥`.
@@ -111,7 +111,7 @@ let ⟨c, hc⟩ := h in hc.exists_nonneg
 /-! ### Congruence -/
 
 theorem is_O_with_congr {c₁ c₂} {f₁ f₂ : α → E} {g₁ g₂ : α → F} {l : filter α}
-  (hc : c₁ = c₂) (hf : {x | f₁ x = f₂ x} ∈ l) (hg : {x | g₁ x = g₂ x} ∈ l) :
+  (hc : c₁ = c₂) (hf : ∀ᶠ x in l, f₁ x = f₂ x) (hg : ∀ᶠ x in l, g₁ x = g₂ x) :
   is_O_with c₁ f₁ g₁ l ↔ is_O_with c₂ f₂ g₂ l :=
 begin
   subst c₂,
@@ -123,7 +123,7 @@ begin
 end
 
 theorem is_O_with.congr' {c₁ c₂} {f₁ f₂ : α → E} {g₁ g₂ : α → F} {l : filter α}
-  (hc : c₁ = c₂) (hf : {x | f₁ x = f₂ x} ∈ l) (hg : {x | g₁ x = g₂ x} ∈ l) :
+  (hc : c₁ = c₂) (hf : ∀ᶠ x in l, f₁ x = f₂ x) (hg : ∀ᶠ x in l, g₁ x = g₂ x) :
   is_O_with c₁ f₁ g₁ l → is_O_with c₂ f₂ g₂ l :=
 (is_O_with_congr hc hf hg).mp
 
@@ -145,12 +145,12 @@ theorem is_O_with.congr_const {c₁ c₂} {l : filter α} (hc : c₁ = c₂) :
 is_O_with.congr hc (λ _, rfl) (λ _, rfl)
 
 theorem is_O_congr {f₁ f₂ : α → E} {g₁ g₂ : α → F} {l : filter α}
-    (hf : {x | f₁ x = f₂ x} ∈ l) (hg : {x | g₁ x = g₂ x} ∈ l) :
+    (hf : ∀ᶠ x in l, f₁ x = f₂ x) (hg : ∀ᶠ x in l, g₁ x = g₂ x) :
   is_O f₁ g₁ l ↔ is_O f₂ g₂ l :=
 exists_congr $ λ c, is_O_with_congr rfl hf hg
 
 theorem is_O.congr' {f₁ f₂ : α → E} {g₁ g₂ : α → F} {l : filter α}
-  (hf : {x | f₁ x = f₂ x} ∈ l) (hg : {x | g₁ x = g₂ x} ∈ l) :
+  (hf : ∀ᶠ x in l, f₁ x = f₂ x) (hg : ∀ᶠ x in l, g₁ x = g₂ x) :
   is_O f₁ g₁ l → is_O f₂ g₂ l :=
 (is_O_congr hf hg).mp
 
@@ -168,12 +168,12 @@ theorem is_O.congr_right {g₁ g₂ : α → E} {l : filter α} (hg : ∀ x, g�
 is_O.congr (λ _, rfl) hg
 
 theorem is_o_congr {f₁ f₂ : α → E} {g₁ g₂ : α → F} {l : filter α}
-    (hf : {x | f₁ x = f₂ x} ∈ l) (hg : {x | g₁ x = g₂ x} ∈ l) :
+    (hf : ∀ᶠ x in l, f₁ x = f₂ x) (hg : ∀ᶠ x in l, g₁ x = g₂ x) :
   is_o f₁ g₁ l ↔ is_o f₂ g₂ l :=
 ball_congr (λ c hc, is_O_with_congr (eq.refl c) hf hg)
 
 theorem is_o.congr' {f₁ f₂ : α → E} {g₁ g₂ : α → F} {l : filter α}
-  (hf : {x | f₁ x = f₂ x} ∈ l) (hg : {x | g₁ x = g₂ x} ∈ l) :
+  (hf : ∀ᶠ x in l, f₁ x = f₂ x) (hg : ∀ᶠ x in l, g₁ x = g₂ x) :
   is_o f₁ g₁ l → is_o f₂ g₂ l :=
 (is_o_congr hf hg).mp
 
@@ -605,15 +605,15 @@ theorem is_o_refl_left : is_o (λ x, f' x - f' x) g' l :=
 variables {g' l}
 
 theorem is_O_with_zero_right_iff :
-  is_O_with c f' (λ x, (0 : F')) l ↔ {x | f' x = 0} ∈ l :=
+  is_O_with c f' (λ x, (0 : F')) l ↔ ∀ᶠ x in l, f' x = 0 :=
 by simp only [is_O_with, exists_prop, true_and, norm_zero, mul_zero, norm_le_zero_iff]
 
-theorem is_O_zero_right_iff : is_O f' (λ x, (0 : F')) l ↔ {x | f' x = 0} ∈ l :=
+theorem is_O_zero_right_iff : is_O f' (λ x, (0 : F')) l ↔ ∀ᶠ x in l, f' x = 0 :=
 ⟨λ h, let ⟨c, hc⟩ := h in  (is_O_with_zero_right_iff).1 hc,
   λ h, (is_O_with_zero_right_iff.2 h : is_O_with 1 _ _ _).is_O⟩
 
 theorem is_o_zero_right_iff :
-  is_o f' (λ x, (0 : F')) l ↔ {x | f' x = 0} ∈ l :=
+  is_o f' (λ x, (0 : F')) l ↔ ∀ᶠ x in l, f' x = 0 :=
 ⟨λ h, is_O_zero_right_iff.1 h.is_O,
   λ h c hc, is_O_with_zero_right_iff.2 h⟩
 
@@ -657,19 +657,8 @@ theorem is_o_const_iff {c : F'} (hc : c ≠ 0) :
 (is_o_const_iff_is_o_one ℝ hc).trans
 begin
   clear hc c,
-  simp only [is_o, is_O_with, normed_field.norm_one, mul_one, normed_group.tendsto_nhds_zero],
-  -- Now the only difference is `≤` vs `<`
-  split,
-  { intros h ε hε0,
-    apply mem_sets_of_superset (h (half_pos hε0)),
-    intros x hx,
-    simp only [mem_set_of_eq] at hx ⊢,
-    exact lt_of_le_of_lt hx (half_lt_self hε0) },
-  { intros h ε hε0,
-    apply mem_sets_of_superset (h ε hε0),
-    intros x hx,
-    simp only [mem_set_of_eq] at hx ⊢,
-    exact le_of_lt hx }
+  simp only [is_o, is_O_with, normed_field.norm_one, mul_one,
+    metric.nhds_basis_closed_ball.tendsto_right_iff, metric.mem_closed_ball, dist_zero_right]
 end
 
 theorem is_O_const_of_tendsto {y : E'} (h : tendsto f' l (𝓝 y)) {c : F'} (hc : c ≠ 0) :
@@ -873,7 +862,7 @@ by refine ((h.norm_left.const_mul_left (∥c'∥)).congr _ _ (λ _, rfl)).of_nor
 theorem is_O_const_smul_left_iff {c : 𝕜} (hc : c ≠ 0) :
   is_O (λ x, c • f' x) g l ↔ is_O f' g l :=
 begin
-  have cne0 : ∥c∥ ≠ 0, from mt (norm_eq_zero _).mp hc,
+  have cne0 : ∥c∥ ≠ 0, from mt norm_eq_zero.mp hc,
   rw [←is_O_norm_left], simp only [norm_smul],
   rw [is_O_const_mul_left_iff cne0, is_O_norm_left],
 end
@@ -888,7 +877,7 @@ end
 theorem is_o_const_smul_left_iff {c : 𝕜} (hc : c ≠ 0) :
   is_o (λ x, c • f' x) g l ↔ is_o f' g l :=
 begin
-  have cne0 : ∥c∥ ≠ 0, from mt (norm_eq_zero _).mp hc,
+  have cne0 : ∥c∥ ≠ 0, from mt norm_eq_zero.mp hc,
   rw [←is_o_norm_left], simp only [norm_smul],
   rw [is_o_const_mul_left_iff cne0, is_o_norm_left]
 end
@@ -896,7 +885,7 @@ end
 theorem is_O_const_smul_right {c : 𝕜} (hc : c ≠ 0) :
   is_O f (λ x, c • f' x) l ↔ is_O f f' l :=
 begin
-  have cne0 : ∥c∥ ≠ 0, from mt (norm_eq_zero _).mp hc,
+  have cne0 : ∥c∥ ≠ 0, from mt norm_eq_zero.mp hc,
   rw [←is_O_norm_right], simp only [norm_smul],
   rw [is_O_const_mul_right_iff cne0, is_O_norm_right]
 end
@@ -904,7 +893,7 @@ end
 theorem is_o_const_smul_right {c : 𝕜} (hc : c ≠ 0) :
   is_o f (λ x, c • f' x) l ↔ is_o f f' l :=
 begin
-  have cne0 : ∥c∥ ≠ 0, from mt (norm_eq_zero _).mp hc,
+  have cne0 : ∥c∥ ≠ 0, from mt norm_eq_zero.mp hc,
   rw [←is_o_norm_right], simp only [norm_smul],
   rw [is_o_const_mul_right_iff cne0, is_o_norm_right]
 end

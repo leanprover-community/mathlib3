@@ -384,6 +384,7 @@ instance nat_sub : has_sub (α →₀ ℕ) := ⟨zip_with (λ m n, m - n) (nat.s
 
 @[simp] lemma nat_sub_apply {g₁ g₂ : α →₀ ℕ} {a : α} :
   (g₁ - g₂) a = g₁ a - g₂ a := rfl
+
 end nat_sub
 
 section add_monoid
@@ -792,7 +793,7 @@ end
 
 lemma sum_comap_domain {α₁ α₂ β γ : Type*} [has_zero β] [add_comm_monoid γ]
   (f : α₁ → α₂) (l : α₂ →₀ β) (g : α₂ → β → γ) (hf : set.bij_on f (f ⁻¹' l.support.to_set) l.support.to_set):
-  (comap_domain f l (set.inj_on_of_bij_on hf)).sum (g ∘ f) = l.sum g :=
+  (comap_domain f l hf.inj_on).sum (g ∘ f) = l.sum g :=
 begin
   unfold sum,
   haveI := classical.dec_eq α₂,
@@ -801,7 +802,7 @@ end
 
 lemma eq_zero_of_comap_domain_eq_zero {α₁ α₂ γ : Type*} [add_comm_monoid γ]
   (f : α₁ → α₂) (l : α₂ →₀ γ) (hf : set.bij_on f (f ⁻¹' l.support.to_set) l.support.to_set) :
-   comap_domain f l (set.inj_on_of_bij_on hf) = 0 → l = 0 :=
+   comap_domain f l hf.inj_on = 0 → l = 0 :=
 begin
   rw [← support_eq_empty, ← support_eq_empty, comap_domain],
   simp only [finset.ext, finset.not_mem_empty, iff_false, mem_preimage],
@@ -813,7 +814,7 @@ end
 lemma map_domain_comap_domain {α₁ α₂ γ : Type*} [add_comm_monoid γ]
   (f : α₁ → α₂) (l : α₂ →₀ γ)
   (hf : function.injective f) (hl : ↑l.support ⊆ set.range f):
-  map_domain f (comap_domain f l (set.inj_on_of_injective _ hf)) = l :=
+  map_domain f (comap_domain f l (hf.inj_on _)) = l :=
 begin
   ext a,
   haveI := classical.dec (a ∈ set.range f),
@@ -1367,14 +1368,14 @@ begin
  rw comap_domain_apply
 end
 
-def split_support : finset ι := finset.image (sigma.fst) l.support
+def split_support : finset ι := l.support.image sigma.fst
 
 lemma mem_split_support_iff_nonzero (i : ι) :
   i ∈ split_support l ↔ split l i ≠ 0 :=
 begin
   classical,
-  rw [split_support, mem_image, ne.def, ← support_eq_empty,
-    ← exists_mem_iff_ne_empty, split, comap_domain],
+  rw [split_support, mem_image, ne.def, ← support_eq_empty, ← ne.def,
+    ← finset.nonempty_iff_ne_empty, split, comap_domain, finset.nonempty],
   simp
 end
 
@@ -1487,6 +1488,21 @@ lemma le_iff [canonically_ordered_monoid α] (f g : σ →₀ α) :
   f ≤ g ↔ ∀ s ∈ f.support, f s ≤ g s :=
 ⟨λ h s hs, h s,
 λ h s, if H : s ∈ f.support then h s H else (not_mem_support_iff.1 H).symm ▸ zero_le (g s)⟩
+
+@[simp] lemma add_eq_zero_iff [canonically_ordered_monoid α] (f g : σ →₀ α) :
+  f + g = 0 ↔ f = 0 ∧ g = 0 :=
+begin
+  split,
+  { assume h,
+    split,
+    all_goals
+    { ext s,
+      suffices H : f s + g s = 0,
+      { rw add_eq_zero_iff at H, cases H, assumption },
+      show (f + g) s = 0,
+      rw h, refl } },
+  { rintro ⟨rfl, rfl⟩, simp }
+end
 
 attribute [simp] to_multiset_zero to_multiset_add
 

@@ -69,8 +69,8 @@ begin
   -- x : α,  hx : x ∈ t.val
   -- goal : x ∈ s
   have : x ∈ closure s,
-  { refine mem_closure_iff'.2 (λε εpos, _),
-    rcases mem_closure_iff'.1 ht ε εpos with ⟨u, hu, Dtu⟩,
+  { refine mem_closure_iff.2 (λε εpos, _),
+    rcases mem_closure_iff.1 ht ε εpos with ⟨u, hu, Dtu⟩,
     -- u : closeds α,  hu : u ∈ {t : closeds α | t.val ⊆ s},  hu' : edist t u < ε
     rcases exists_edist_lt_of_Hausdorff_edist_lt hx Dtu with ⟨y, hy, Dxy⟩,
     -- y : α,  hy : y ∈ u.val, Dxy : edist x y < ε
@@ -152,7 +152,7 @@ begin
         as required. -/
     assume n x xt0,
     have : x ∈ closure (⋃m≥n, (s m).val), by apply mem_Inter.1 xt0 n,
-    rcases mem_closure_iff'.1 this (B n) (B_pos n) with ⟨z, hz, Dxz⟩,
+    rcases mem_closure_iff.1 this (B n) (B_pos n) with ⟨z, hz, Dxz⟩,
     -- z : α,  Dxz : edist x z < B n,
     simp only [exists_prop, set.mem_Union] at hz,
     rcases hz with ⟨m, ⟨m_ge_n, hm⟩⟩,
@@ -169,13 +169,12 @@ begin
   -- from this, the convergence of `s n` to `t0` follows.
   refine (tendsto_at_top _).2 (λε εpos, _),
   have : tendsto (λn, 2 * B n) at_top (𝓝 (2 * 0)),
-    from ennreal.tendsto.mul_right
+    from ennreal.tendsto.const_mul
       (ennreal.tendsto_pow_at_top_nhds_0_of_lt_1 $ by simp [ennreal.one_lt_two])
       (or.inr $ by simp),
   rw mul_zero at this,
-  have Z := (tendsto_order.1 this).2 ε εpos,
-  simp only [filter.mem_at_top_sets, set.mem_set_of_eq] at Z,
-  rcases Z with ⟨N, hN⟩,  --  ∀ (b : ℕ), b ≥ N → ε > 2 * B b
+  obtain ⟨N, hN⟩ : ∃ N, ∀ b ≥ N, ε > 2 * B b,
+    from ((tendsto_order.1 this).2 ε εpos).exists_forall_of_at_top,
   exact ⟨N, λn hn, lt_of_le_of_lt (main n) (hN n hn)⟩
 end
 
@@ -210,7 +209,7 @@ instance closeds.compact_space [compact_space α] : compact_space (closeds α) :
   split,
   -- `F` is finite
   { apply @finite_of_finite_image _ _ F (λf, f.val),
-    { apply set.inj_on_of_injective, simp [subtype.val_injective] },
+    { exact subtype.val_injective.inj_on F },
     { refine finite_subset (finite_subsets_of_finite fs) (λb, _),
       simp only [and_imp, set.mem_image, set.mem_set_of_eq, exists_imp_distrib],
       assume x hx hx',
@@ -248,7 +247,7 @@ isometry.uniform_embedding $ λx y, rfl
 lemma nonempty_compacts.is_closed_in_closeds [complete_space α] :
   is_closed (nonempty_compacts.to_closeds '' (univ : set (nonempty_compacts α))) :=
 begin
-  have : nonempty_compacts.to_closeds '' univ = {s : closeds α | s.val ≠ ∅ ∧ compact s.val},
+  have : nonempty_compacts.to_closeds '' univ = {s : closeds α | s.val.nonempty ∧ compact s.val},
   { ext,
     simp only [set.image_univ, set.mem_range, ne.def, set.mem_set_of_eq],
     split,
@@ -264,20 +263,20 @@ begin
   refine is_closed_of_closure_subset (λs hs, _),
   split,
   { -- take a set set t which is nonempty and at distance at most 1 of s
-    rcases mem_closure_iff'.1 hs 1 ennreal.zero_lt_one with ⟨t, ht, Dst⟩,
+    rcases mem_closure_iff.1 hs 1 ennreal.zero_lt_one with ⟨t, ht, Dst⟩,
     rw edist_comm at Dst,
     -- this set t contains a point x
-    rcases ne_empty_iff_exists_mem.1 ht.1 with ⟨x, hx⟩,
+    rcases ht.1 with ⟨x, hx⟩,
     -- by the Hausdorff distance control, this point x is at distance at most 1
     -- of a point y in s
     rcases exists_edist_lt_of_Hausdorff_edist_lt hx Dst with ⟨y, hy, _⟩,
     -- this shows that s is not empty
-    exact ne_empty_of_mem hy },
+    exact ⟨_, hy⟩ },
   { refine compact_iff_totally_bounded_complete.2 ⟨_, is_complete_of_is_closed s.property⟩,
     refine totally_bounded_iff.2 (λε εpos, _),
     -- we have to show that s is covered by finitely many eballs of radius ε
     -- pick a nonempty compact set t at distance at most ε/2 of s
-    rcases mem_closure_iff'.1 hs (ε/2) (ennreal.half_pos εpos) with ⟨t, ht, Dst⟩,
+    rcases mem_closure_iff.1 hs (ε/2) (ennreal.half_pos εpos) with ⟨t, ht, Dst⟩,
     -- cover this space with finitely many balls of radius ε/2
     rcases totally_bounded_iff.1 (compact_iff_totally_bounded_complete.1 ht.2).1 (ε/2) (ennreal.half_pos εpos)
       with ⟨u, fu, ut⟩,
@@ -334,16 +333,15 @@ begin
         rw ← yx,
         exact hy },
       apply countable_of_injective_of_countable_image _ this,
-      apply inj_on_of_inj_on_of_subset (injective_iff_inj_on_univ.1 subtype.val_injective)
-        (subset_univ _) },
-    { refine subset.antisymm (subset_univ _) (λt ht, mem_closure_iff'.2 (λε εpos, _)),
+      apply subtype.val_injective.inj_on },
+    { refine subset.antisymm (subset_univ _) (λt ht, mem_closure_iff.2 (λε εpos, _)),
       -- t is a compact nonempty set, that we have to approximate uniformly by a a set in `v`.
       rcases dense εpos with ⟨δ, δpos, δlt⟩,
       -- construct a map F associating to a point in α an approximating point in s, up to δ/2.
       have Exy : ∀x, ∃y, y ∈ s ∧ edist x y < δ/2,
       { assume x,
         have : x ∈ closure s := by rw s_dense; exact mem_univ _,
-        rcases mem_closure_iff'.1 this (δ/2) (ennreal.half_pos δpos) with ⟨y, ys, hy⟩,
+        rcases mem_closure_iff.1 this (δ/2) (ennreal.half_pos δpos) with ⟨y, ys, hy⟩,
         exact ⟨y, ⟨ys, hy⟩⟩ },
       let F := λx, some (Exy x),
       have Fspec : ∀x, F x ∈ s ∧ edist x (F x) < δ/2 := λx, some_spec (Exy x),
@@ -383,13 +381,10 @@ begin
         Hausdorff_edist_le_of_mem_edist tc ct,
       have Dtc : Hausdorff_edist t.val c < ε := lt_of_le_of_lt this δlt,
       -- the set `c` is not empty, as it is well approximated by a nonempty set
-      have : c ≠ ∅,
-      { by_contradiction h,
-        simp only [not_not, ne.def] at h,
-        rw [h, Hausdorff_edist_empty t.property.1] at Dtc,
-        exact not_top_lt Dtc },
+      have hc : c.nonempty,
+        from nonempty_of_Hausdorff_edist_ne_top t.property.1 (lattice.ne_top_of_lt Dtc),
       -- let `d` be the version of `c` in the type `nonempty_compacts α`
-      let d : nonempty_compacts α := ⟨c, ⟨‹c ≠ ∅›, ‹finite c›.compact⟩⟩,
+      let d : nonempty_compacts α := ⟨c, ⟨hc, ‹finite c›.compact⟩⟩,
       have : c ⊆ s,
       { assume x hx,
         rcases (mem_image _ _ _).1 hx.1 with ⟨y, ⟨ya, yx⟩⟩,
@@ -413,7 +408,7 @@ variables {α : Type u} [metric_space α]
 /-- `nonempty_compacts α` inherits a metric space structure, as the Hausdorff
 edistance between two such sets is finite. -/
 instance nonempty_compacts.metric_space : metric_space (nonempty_compacts α) :=
-emetric_space.to_metric_space $ λx y, Hausdorff_edist_ne_top_of_ne_empty_of_bounded x.2.1 y.2.1
+emetric_space.to_metric_space $ λx y, Hausdorff_edist_ne_top_of_nonempty_of_bounded x.2.1 y.2.1
   (bounded_of_compact x.2.2) (bounded_of_compact y.2.2)
 
 /-- The distance on `nonempty_compacts α` is the Hausdorff distance, by construction -/

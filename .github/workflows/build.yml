@@ -1,0 +1,79 @@
+name: continuous integration
+
+on: [push, pull_request]
+
+jobs:
+  build:
+    name: Build mathlib
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        lean_version:
+          - leanprover-community/lean:3.5.1
+      fail-fast: false
+    steps:
+      - uses: actions/checkout@v2
+
+      - name: install elan
+        run: |
+          set -o pipefail
+          curl https://raw.githubusercontent.com/Kha/elan/master/elan-init.sh -sSf | sh -s -- --default-toolchain none -y
+          ~/.elan/bin/elan override set ${{ matrix.lean_version }}
+          ~/.elan/bin/lean --version
+          echo "::add-path::$HOME/.elan/bin"
+
+      - name: leanpkg build
+        run: leanpkg build | python scripts/detect_errors.py
+
+      - name: setup precompiled zip file
+        id: setup_precompiled
+        run: |
+          git_hash="$(git log -1 --pretty=format:%h)"
+          short_lean_version="$(echo ${{ matrix.lean_version }} | sed 's/.*://')"
+          echo "::set-output name=artifact_name::precompiled-mathlib-$short_lean_version-$git_hash"
+      - name: upload precompiled mathlib zip file
+        uses: actions/upload-artifact@v1
+        with:
+          name: ${{ steps.setup_precompiled.outputs.artifact_name }}
+          path: ..
+
+      - name: push release to mathlib-nightly
+        if: github.repository == 'leanprover-community/mathlib' && github.event_name == 'push' && github.ref == 'refs/heads/master' && matrix.lean_version == 'leanprover-community/lean:3.5.1'
+        run: ./scripts/deploy_nightly.sh
+        env:
+          DEPLOY_NIGHTLY_GITHUB_TOKEN: ${{ secrets.DEPLOY_NIGHTLY_GITHUB_TOKEN }}
+
+      - name: tests
+        run: |
+          set -o pipefail
+          lean --make docs archive test | cat
+
+      - name: lint
+        run: |
+          ./scripts/mk_all.sh -t
+          lean src/lint_mathlib.lean
+          ./scripts/rm_all.sh
+
+      - name: leanchecker
+        run: |
+          lean --recursive --export=mathlib.txt src/
+          leanchecker mathlib.txt
+
+      - name: Set up Python
+        uses: actions/setup-python@v1
+        with:
+          python-version: 3.8
+
+      - name: generate docs
+        if: github.repository == 'leanprover-community/mathlib' && github.event_name == 'push' && github.ref == 'refs/heads/master' && matrix.lean_version == 'leanprover-community/lean:3.5.1'
+        run:
+          ./scripts/deploy_docs.sh
+        env:
+          DEPLOY_NIGHTLY_GITHUB_TOKEN: ${{ secrets.DEPLOY_NIGHTLY_GITHUB_TOKEN }}
+
+      - name: update nolints.txt
+        if: github.repository == 'leanprover-community/mathlib' && github.event_name == 'push' && github.ref == 'refs/heads/master' && matrix.lean_version == 'leanprover-community/lean:3.5.1'
+        run:
+          ./scripts/update_nolints.sh
+        env:
+          DEPLOY_NIGHTLY_GITHUB_TOKEN: ${{ secrets.DEPLOY_NIGHTLY_GITHUB_TOKEN }}

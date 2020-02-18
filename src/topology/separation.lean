@@ -184,7 +184,7 @@ lemma tendsto_nhds_unique [t2_space α] {f : β → α} {l : filter β} {a b : �
 eq_of_nhds_ne_bot $ ne_bot_of_le_ne_bot (map_ne_bot hl) $ le_inf ha hb
 
 section lim
-variables [inhabited α] [t2_space α] {f : filter α}
+variables [nonempty α] [t2_space α] {f : filter α}
 
 lemma lim_eq {a : α} (hf : f ≠ ⊥) (h : f ≤ 𝓝 a) : lim f = a :=
 eq_of_nhds_ne_bot $ ne_bot_of_le_ne_bot hf $ le_inf (lim_spec ⟨_, h⟩) h

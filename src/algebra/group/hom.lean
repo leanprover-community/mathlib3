@@ -285,6 +285,9 @@ variables {mM mN mP}
 lemma coe_of (f : M → N) [is_monoid_hom f] : ⇑ (monoid_hom.of f) = f :=
 rfl
 
+@[simp, to_additive]
+lemma coe_mk (f : M → N) (h1 hmul) : ⇑(monoid_hom.mk f h1 hmul) = f := rfl
+
 @[to_additive]
 lemma coe_inj ⦃f g : M →* N⦄ (h : (f : M → N) = g) : f = g :=
 by cases f; cases g; cases h; refl
@@ -350,6 +353,9 @@ protected def one : M →* N :=
 
 @[to_additive]
 instance : has_one (M →* N) := ⟨monoid_hom.one⟩
+
+@[to_additive]
+instance : inhabited (M →* N) := ⟨1⟩
 
 omit mM mN
 

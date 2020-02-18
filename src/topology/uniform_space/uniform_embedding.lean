@@ -110,18 +110,18 @@ let ⟨t₂, ht₂u, ht₂s, ht₂c⟩ := comp_symm_of_uniformity ht₁u in
 let ⟨t, htu, hts, htc⟩ := comp_symm_of_uniformity ht₂u in
 have preimage e {b' | (b, b') ∈ t₂} ∈ comap e (𝓝 b),
   from preimage_mem_comap $ mem_nhds_left b ht₂u,
-let ⟨a, (ha : (b, e a) ∈ t₂)⟩ := inhabited_of_mem_sets (he₂.comap_nhds_ne_bot) this in
+let ⟨a, (ha : (b, e a) ∈ t₂)⟩ := nonempty_of_mem_sets (he₂.comap_nhds_ne_bot) this in
 have ∀b' (s' : set (β × β)), (b, b') ∈ t → s' ∈ 𝓤 β →
-  {y : β | (b', y) ∈ s'} ∩ e '' {a' : α | (a, a') ∈ s} ≠ ∅,
+  ({y : β | (b', y) ∈ s'} ∩ e '' {a' : α | (a, a') ∈ s}).nonempty,
   from assume b' s' hb' hs',
   have preimage e {b'' | (b', b'') ∈ s' ∩ t} ∈ comap e (𝓝 b'),
     from preimage_mem_comap $ mem_nhds_left b' $ inter_mem_sets hs' htu,
-  let ⟨a₂, ha₂s', ha₂t⟩ := inhabited_of_mem_sets (he₂.comap_nhds_ne_bot) this in
+  let ⟨a₂, ha₂s', ha₂t⟩ := nonempty_of_mem_sets (he₂.comap_nhds_ne_bot) this in
   have (e a, e a₂) ∈ t₁,
     from ht₂c $ prod_mk_mem_comp_rel (ht₂s ha) $ htc $ prod_mk_mem_comp_rel hb' ha₂t,
   have e a₂ ∈ {b'':β | (b', b'') ∈ s'} ∩ e '' {a' | (a, a') ∈ s},
     from ⟨ha₂s', mem_image_of_mem _ $ ht₁ (a, a₂) this⟩,
-  ne_empty_of_mem this,
+  ⟨_, this⟩,
 have ∀b', (b, b') ∈ t → 𝓝 b' ⊓ principal (e '' {a' | (a, a') ∈ s}) ≠ ⊥,
 begin
   intros b' hb',
@@ -165,13 +165,8 @@ begin
     { have : comap m f ≠ ⊥,
       { refine comap_ne_bot (λt ht, _),
         have A : t ∩ m '' s ∈ f := filter.inter_mem_sets ht fs,
-        have : t ∩ m '' s ≠ ∅,
-        { by_contradiction h,
-          simp only [not_not, ne.def] at h,
-          simpa [h, empty_in_sets_eq_bot, hf.1] using A },
-        rcases ne_empty_iff_exists_mem.1 this with ⟨x, ⟨xt, xms⟩⟩,
-        rcases mem_image_iff_bex.1 xms with ⟨y, ys, yx⟩,
-        rw ← yx at xt,
+        obtain ⟨x, ⟨xt, ⟨y, ys, rfl⟩⟩⟩ : (t ∩ m '' s).nonempty,
+          from nonempty_of_mem_sets hf.1 A,
         exact ⟨y, xt⟩ },
       apply cauchy_comap _ hf this,
       simp only [hm.comap_uniformity, le_refl] },
@@ -207,7 +202,7 @@ have g ≠ ⊥, from ne_bot_of_le_ne_bot hf.left this,
 have comap m g ≠ ⊥, from comap_ne_bot $ assume t ht,
   let ⟨t', ht', ht_mem⟩ := (mem_lift_sets $ monotone_lift' monotone_const mp₀).mp ht in
   let ⟨t'', ht'', ht'_sub⟩ := (mem_lift'_sets mp₁).mp ht_mem in
-  let ⟨x, (hx : x ∈ t'')⟩ := inhabited_of_mem_sets hf.left ht'' in
+  let ⟨x, (hx : x ∈ t'')⟩ := nonempty_of_mem_sets hf.left ht'' in
   have h₀ : 𝓝 x ⊓ principal (range m) ≠ ⊥,
     by simpa [dense_range, closure_eq_nhds] using dense x,
   have h₁ : {y | (x, y) ∈ t'} ∈ 𝓝 x ⊓ principal (range m),
@@ -216,7 +211,7 @@ have comap m g ≠ ⊥, from comap_ne_bot $ assume t ht,
     from @mem_inf_sets_of_right α (𝓝 x) (principal (range m)) _ $ subset.refl _,
   have {y | (x, y) ∈ t'} ∩ range m ∈ 𝓝 x ⊓ principal (range m),
     from @inter_mem_sets α (𝓝 x ⊓ principal (range m)) _ _ h₁ h₂,
-  let ⟨y, xyt', b, b_eq⟩ := inhabited_of_mem_sets h₀ this in
+  let ⟨y, xyt', b, b_eq⟩ := nonempty_of_mem_sets h₀ this in
   ⟨b, b_eq.symm ▸ ht'_sub ⟨x, hx, xyt'⟩⟩,
 
 have cauchy g, from
@@ -257,7 +252,7 @@ lemma totally_bounded_preimage {f : α → β} {s : set β} (hf : uniform_embedd
   rcases mem_comap_sets.2 ht with ⟨t', ht', ts⟩,
   rcases totally_bounded_iff_subset.1
     (totally_bounded_subset (image_preimage_subset f s) hs) _ ht' with ⟨c, cs, hfc, hct⟩,
-  refine ⟨f ⁻¹' c, finite_preimage (inj_on_of_injective _ hf.inj) hfc, λ x h, _⟩,
+  refine ⟨f ⁻¹' c, finite_preimage (hf.inj.inj_on _) hfc, λ x h, _⟩,
   have := hct (mem_image_of_mem f h), simp at this ⊢,
   rcases this with ⟨z, zc, zt⟩,
   rcases cs zc with ⟨y, yc, rfl⟩,
@@ -356,7 +351,7 @@ have h_pnt : ∀{a m}, m ∈ 𝓝 a → ∃c, c ∈ f '' preimage e m ∧ (c, ψ
   have (f '' preimage e m) ∩ ({c | (c, ψ a) ∈ s } ∩ {c | (ψ a, c) ∈ s }) ∈ map f (comap e (𝓝 a)),
     from inter_mem_sets (image_mem_map $ preimage_mem_comap $ hm)
       (uniformly_extend_spec h_e h_dense h_f _ (inter_mem_sets (mem_nhds_right _ hs) (mem_nhds_left _ hs))),
-  inhabited_of_mem_sets nb this,
+  nonempty_of_mem_sets nb this,
 have preimage (λp:β×β, (f p.1, f p.2)) s ∈ 𝓤 β,
   from h_f hs,
 have preimage (λp:β×β, (f p.1, f p.2)) s ∈ comap (λx:β×β, (e x.1, e x.2)) (𝓤 α),

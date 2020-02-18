@@ -438,6 +438,8 @@ theorem add_neg_eq_sub {α} [add_group α] (a b : α) : a + -b = a - b := rfl
 @[derive has_reflect]
 inductive normalize_mode | raw | SOP | horner
 
+instance : inhabited normalize_mode := ⟨normalize_mode.horner⟩
+
 meta def normalize (red : transparency) (mode := normalize_mode.horner) (e : expr) : tactic (expr × expr) := do
 pow_lemma ← simp_lemmas.mk.add_simp ``pow_one,
 let lemmas := match mode with
@@ -513,6 +515,8 @@ do ns ← loc.get_locals,
    tt ← tactic.replace_at (normalize transp SOP) ns loc.include_goal
       | fail "ring failed to simplify",
    when loc.include_goal $ try tactic.reflexivity
+
+add_hint_tactic "ring"
 
 end interactive
 end tactic

@@ -66,10 +66,10 @@ lemma coe_mul (a b : G) : ((a * b : G) : quotient N) = a * b := rfl
 lemma coe_inv (a : G) : ((a⁻¹ : G) : quotient N) = a⁻¹ := rfl
 
 @[simp] lemma coe_pow (a : G) (n : ℕ) : ((a ^ n : G) : quotient N) = a ^ n :=
-@is_group_hom.map_pow _ _ _ _ mk _ a n
+(monoid_hom.of mk).map_pow a n
 
 @[simp] lemma coe_gpow (a : G) (n : ℤ) : ((a ^ n : G) : quotient N) = a ^ n :=
-@is_group_hom.map_gpow _ _ _ _ mk _ a n
+(monoid_hom.of mk).map_gpow a n
 
 local notation ` Q ` := quotient N
 

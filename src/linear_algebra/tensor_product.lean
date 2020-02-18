@@ -102,7 +102,7 @@ linear_map.comp (llcomp R N P Q g) f
 
 variables (R M)
 def lsmul : R →ₗ M →ₗ M :=
-mk₂ R (•) add_smul (λ _ _ _, eq.symm $ smul_smul _ _ _ _) smul_add
+mk₂ R (•) add_smul (λ _ _ _, mul_smul _ _ _) smul_add
 (λ r s m, by simp only [smul_smul, smul_eq_mul, mul_comm])
 variables {R M}
 
@@ -148,6 +148,8 @@ section module
 local attribute [instance] quotient_add_group.left_rel normal_add_subgroup.to_is_add_subgroup
 
 instance : add_comm_group (M ⊗[R] N) := quotient_add_group.add_comm_group _
+
+instance : inhabited (M ⊗[R] N) := ⟨0⟩
 
 instance quotient.mk.is_add_group_hom :
   is_add_group_hom (quotient.mk : free_abelian_group (M × N) → M ⊗ N) :=

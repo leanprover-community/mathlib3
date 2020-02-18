@@ -223,7 +223,7 @@ lemma mk_le_mk [preorder β] {f g : α → β} (hf hg) : mk f hf ≤ mk g hg ↔
 iff.rfl
 
 lemma le_iff_to_fun_le [preorder β] {f g : α →ₘ β} : f ≤ g ↔ ∀ₘ a, f.to_fun a ≤ g.to_fun a :=
-by { conv_lhs { rw [self_eq_mk f, self_eq_mk g] }, rw mk_le_mk }
+lift_rel_iff_to_fun _ _ _
 
 instance [partial_order β] : partial_order (α →ₘ β) :=
 { le_antisymm :=
@@ -250,6 +250,8 @@ def const (b : β) : α →ₘ β := mk (λa:α, b) measurable_const
 
 lemma const_to_fun (b : β) : ∀ₘ a, (const α b).to_fun a = b := all_ae_mk_to_fun _ _
 variable {α}
+
+instance [inhabited β] : inhabited (α →ₘ β) := ⟨const _ (default _)⟩
 
 instance [has_zero β] : has_zero (α →ₘ β) := ⟨const α 0⟩
 lemma zero_def [has_zero β] : (0 : α →ₘ β) = mk (λa:α, 0) measurable_const := rfl

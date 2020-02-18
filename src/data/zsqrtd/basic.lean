@@ -37,6 +37,8 @@ section
   @[simp] theorem zero_re : (0 : ℤ√d).re = 0 := rfl
   @[simp] theorem zero_im : (0 : ℤ√d).im = 0 := rfl
 
+  instance : inhabited ℤ√d := ⟨0⟩
+
   /-- The one of the ring -/
   def one : ℤ√d := of_int 1
   instance : has_one ℤ√d := ⟨zsqrtd.one⟩

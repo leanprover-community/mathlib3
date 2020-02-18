@@ -322,12 +322,12 @@ section congr
 /-! ### Congruence properties of derivatives -/
 
 theorem has_deriv_at_filter_congr_of_mem_sets
-  (hx : f₀ x = f₁ x) (h₀ : {x | f₀ x = f₁ x} ∈ L) (h₁ : f₀' = f₁') :
+  (hx : f₀ x = f₁ x) (h₀ : ∀ᶠ x in L, f₀ x = f₁ x) (h₁ : f₀' = f₁') :
   has_deriv_at_filter f₀ f₀' x L ↔ has_deriv_at_filter f₁ f₁' x L :=
 has_fderiv_at_filter_congr_of_mem_sets hx h₀ (by simp [h₁])
 
 lemma has_deriv_at_filter.congr_of_mem_sets (h : has_deriv_at_filter f f' x L)
-  (hL : {x | f₁ x = f x} ∈ L) (hx : f₁ x = f x) : has_deriv_at_filter f₁ f' x L :=
+  (hL : ∀ᶠ x in L, f₁ x = f x) (hx : f₁ x = f x) : has_deriv_at_filter f₁ f' x L :=
 by rwa has_deriv_at_filter_congr_of_mem_sets hx hL rfl
 
 lemma has_deriv_within_at.congr_mono (h : has_deriv_within_at f f' s x) (ht : ∀x ∈ t, f₁ x = f x)
@@ -339,15 +339,15 @@ lemma has_deriv_within_at.congr (h : has_deriv_within_at f f' s x) (hs : ∀x �
 h.congr_mono hs hx (subset.refl _)
 
 lemma has_deriv_within_at.congr_of_mem_nhds_within (h : has_deriv_within_at f f' s x)
-  (h₁ : {y | f₁ y = f y} ∈ nhds_within x s) (hx : f₁ x = f x) : has_deriv_within_at f₁ f' s x :=
+  (h₁ : ∀ᶠ y in nhds_within x s, f₁ y = f y) (hx : f₁ x = f x) : has_deriv_within_at f₁ f' s x :=
 has_deriv_at_filter.congr_of_mem_sets h h₁ hx
 
 lemma has_deriv_at.congr_of_mem_nhds (h : has_deriv_at f f' x)
-  (h₁ : {y | f₁ y = f y} ∈ 𝓝 x) : has_deriv_at f₁ f' x :=
+  (h₁ : ∀ᶠ y in 𝓝 x, f₁ y = f y) : has_deriv_at f₁ f' x :=
 has_deriv_at_filter.congr_of_mem_sets h h₁ (mem_of_nhds h₁ : _)
 
 lemma deriv_within_congr_of_mem_nhds_within (hs : unique_diff_within_at 𝕜 s x)
-  (hL : {y | f₁ y = f y} ∈ nhds_within x s) (hx : f₁ x = f x) :
+  (hL : ∀ᶠ y in nhds_within x s, f₁ y = f y) (hx : f₁ x = f x) :
   deriv_within f₁ s x = deriv_within f s x :=
 by { unfold deriv_within, rw fderiv_within_congr_of_mem_nhds_within hs hL hx }
 
@@ -356,7 +356,7 @@ lemma deriv_within_congr (hs : unique_diff_within_at 𝕜 s x)
   deriv_within f₁ s x = deriv_within f s x :=
 by { unfold deriv_within, rw fderiv_within_congr hs hL hx }
 
-lemma deriv_congr_of_mem_nhds (hL : {y | f₁ y = f y} ∈ 𝓝 x) : deriv f₁ x = deriv f x :=
+lemma deriv_congr_of_mem_nhds (hL : ∀ᶠ y in 𝓝 x, f₁ y = f y) : deriv f₁ x = deriv f x :=
 by { unfold deriv, rwa fderiv_congr_of_mem_nhds }
 
 end congr
@@ -920,7 +920,7 @@ theorem has_deriv_at.mul_const (hc : has_deriv_at c c' x) (d : 𝕜) :
   has_deriv_at (λ y, c y * d) (c' * d) x :=
 begin
   rw [← has_deriv_within_at_univ] at *,
-  exact hc.mul_const d  
+  exact hc.mul_const d
 end
 
 lemma deriv_within_mul_const (hxs : unique_diff_within_at 𝕜 s x)
@@ -977,8 +977,8 @@ begin
       0 < ∥(1:𝕜)∥ - ∥-h∥ : by rwa [norm_neg, sub_pos, ← dist_zero_right h, normed_field.norm_one]
       ... ≤ ∥1 - -h∥ : norm_sub_norm_le _ _
       ... = ∥1 + h∥ : by simp,
-    have : 1 + h ≠ 0 := (norm_pos_iff (1 + h)).mp this,
-    simp only [mem_set_of_eq, smul_eq_mul, inv_one],
+    have : 1 + h ≠ 0 := norm_pos_iff.mp this,
+    simp only [mem_set_of_eq, smul_eq_mul],
     field_simp [this, -add_comm],
     ring },
   { exact univ_mem_sets' mul_one }

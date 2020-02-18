@@ -406,6 +406,8 @@ variables {p : ℕ} [nat.prime p]
 instance discrete_field : discrete_field (ℚ_[p]) :=
 cau_seq.completion.discrete_field
 
+instance : inhabited ℚ_[p] := ⟨0⟩
+
 -- short circuits
 
 instance : has_zero ℚ_[p] := by apply_instance
@@ -727,7 +729,7 @@ instance : normed_field ℚ_[p] :=
 
 instance : is_absolute_value (λ a : ℚ_[p], ∥a∥) :=
 { abv_nonneg := norm_nonneg,
-  abv_eq_zero := norm_eq_zero,
+  abv_eq_zero := λ _, norm_eq_zero,
   abv_add := norm_add_le,
   abv_mul := by simp [has_norm.norm, padic_norm_e.mul'] }
 

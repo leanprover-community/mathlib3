@@ -169,8 +169,15 @@ surjective_of_has_right_inverse ⟨_, left_inverse_inv_fun hf⟩
 
 lemma inv_fun_comp (hf : injective f) : inv_fun f ∘ f = id := funext $ left_inverse_inv_fun hf
 
+end inv_fun
+
+section inv_fun
+variables {α : Type u} [i : nonempty α] {β : Sort v} {f : α → β}
+include i
+
 lemma injective.has_left_inverse (hf : injective f) : has_left_inverse f :=
-⟨inv_fun f, left_inverse_inv_fun hf⟩
+nonempty.elim_to_inhabited $ λ i : inhabited α,
+by { tactic.unfreeze_local_instances, exact ⟨inv_fun f, left_inverse_inv_fun hf⟩ }
 
 lemma injective_iff_has_left_inverse : injective f ↔ has_left_inverse f :=
 ⟨injective.has_left_inverse, injective_of_has_left_inverse⟩
@@ -237,6 +244,15 @@ begin
   { simp [h, hg.ne] }
 end
 
+lemma comp_update {α' : Sort*} {β : Sort*} (f : α' → β) (g : α → α') (i : α) (v : α') :
+  f ∘ (update g i v) = update (f ∘ g) i (f v) :=
+begin
+  refine funext (λj, _),
+  by_cases h : j = i,
+  { rw h, simp },
+  { simp [h] }
+end
+
 end update
 
 lemma uncurry_def {α β γ} (f : α → β → γ) : uncurry f = (λp, f p.1 p.2) :=
@@ -296,3 +312,8 @@ protected lemma bijective : bijective f := ⟨h.injective, h.surjective⟩
 end involutive
 
 end function
+
+/-- `s.piecewise f g` is the function equal to `f` on the set `s`, and to `g` on its complement. -/
+def set.piecewise {α : Type u} {β : α → Sort v} (s : set α) (f g : Πi, β i) [∀j, decidable (j ∈ s)] :
+  Πi, β i :=
+λi, if i ∈ s then f i else g i

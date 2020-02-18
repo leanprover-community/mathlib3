@@ -74,6 +74,8 @@ by refine {mul := (*), one := 1, inv := has_inv.inv, ..};
   { intros, apply ext, simp only [coe_mul, coe_one,
       mul_assoc, one_mul, mul_one, inv_mul] }
 
+instance : inhabited (units α) := ⟨1⟩
+
 instance {α} [comm_monoid α] : comm_group (units α) :=
 { mul_comm := λ u₁ u₂, ext $ mul_comm _ _, ..units.group }
 
@@ -105,6 +107,8 @@ units.ext $ nat.eq_one_of_dvd_one ⟨u.inv, u.val_inv.symm⟩
 def units.mk_of_mul_eq_one [comm_monoid α] (a b : α) (hab : a * b = 1) : units α :=
 ⟨a, b, hab, (mul_comm b a).trans hab⟩
 
+@[simp] lemma units.coe_mk_of_mul_eq_one [comm_monoid α] {a b : α} (h : a * b = 1) :
+  (units.mk_of_mul_eq_one a b h : α) = a := rfl
 
 section monoid
   variables [monoid α] {a b c : α}

@@ -294,7 +294,7 @@ def is_bounded_bilinear_map.linear_deriv (h : is_bounded_bilinear_map 𝕜 f) (p
 /-- The derivative of a bounded bilinear map at a point `p : E × F`, as a continuous linear map
 from `E × F` to `G`. -/
 def is_bounded_bilinear_map.deriv (h : is_bounded_bilinear_map 𝕜 f) (p : E × F) : (E × F) →L[𝕜] G :=
-(h.linear_deriv p).with_bound $ begin
+(h.linear_deriv p).mk_continuous_of_exists_bound $ begin
   rcases h.bound with ⟨C, Cpos, hC⟩,
   refine ⟨C * ∥p.1∥ + C * ∥p.2∥, λq, _⟩,
   calc ∥f (p.1, q.2) + f (q.1, p.2)∥

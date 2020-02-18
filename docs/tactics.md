@@ -185,6 +185,21 @@ where `have h := f h` would result in the state `h : p, h : q ⊢ goal`.
 This can be used to simulate the `specialize` and `apply at` tactics
 of Coq.
 
+## rename_var
+
+`rename_var old new` renames all bound variables named `old` to `new` in the goal.
+`rename_var old new at h` does the same in hypothesis `h`.
+This is meant for teaching bound variables only. Such a renaming should never be relevant to Lean.
+
+```lean
+example (P : ℕ →  ℕ → Prop) (h : ∀ n, ∃ m, P n m) : ∀ l, ∃ m, P l m :=
+begin
+  rename_var n q at h, -- h is now ∀ (q : ℕ), ∃ (m : ℕ), P q m,
+  rename_var m n, -- goal is now ∀ (l : ℕ), ∃ (n : ℕ), P k n,
+  exact h -- Lean does not care about those bound variable names
+end
+```
+
 ## elide/unelide
 
 The `elide n (at ...)` tactic hides all subterms of the target goal or hypotheses
@@ -393,6 +408,30 @@ However, it will work, producing the identity function, if one replaces have by 
 * `exactI`: `resetI` followed by `exact`. Like `exact`, but uses all
   variables in the context for typeclass inference.
 
+## hint
+
+`hint` lists possible tactics which will make progress (that is, not fail) against the current goal.
+
+```lean
+example {P Q : Prop} (p : P) (h : P → Q) : Q :=
+begin
+  hint,
+  /- the following tactics make progress:
+     ----
+     solve_by_elim
+     finish
+     tauto
+  -/
+  solve_by_elim,
+end
+```
+
+You can add a tactic to the list that `hint` tries by either using
+1. `attribute [hint_tactic] my_tactic`, if `my_tactic` is already of type `tactic string`
+(`tactic unit` is allowed too, in which case the printed string will be the name of the
+tactic), or
+2. `add_hint_tactic "my_tactic"`, specifying a string which works as an interactive tactic.
+
 ## suggest
 
 `suggest` lists possible usages of the `refine` tactic and leaves the tactic state unchanged.
@@ -412,12 +451,12 @@ begin suggest, sorry end
 prints the list,
 
 ```lean
-exact nat.lt.base n
-exact nat.lt_succ_self n
-refine not_le.mp _
-refine gt_iff_lt.mp _
-refine nat.lt.step _
-refine lt_of_not_ge _
+Try this: exact nat.lt.base n
+Try this: exact nat.lt_succ_self n
+Try this: refine not_le.mp _
+Try this: refine gt_iff_lt.mp _
+Try this: refine nat.lt.step _
+Try this: refine lt_of_not_ge _
 ...
 ```
 
@@ -430,7 +469,7 @@ current goal by applying a lemma from the library, then discharging any new goal
 Typical usage is:
 ```
 example (n m k : ℕ) : n * (m - k) = n * m - n * k :=
-by library_search -- exact nat.mul_sub_left_distrib n m k
+by library_search -- Try this: exact nat.mul_sub_left_distrib n m k
 ```
 
 `library_search` prints a trace message showing the proof it found, shown above as a comment.
@@ -812,7 +851,8 @@ with `squeeze_simp`:
 
 ```lean
 example : 0 + 1 = 1 + 0 := by squeeze_simp
--- prints: simp only [add_zero, eq_self_iff_true, zero_add]
+-- prints:
+-- Try this: simp only [add_zero, eq_self_iff_true, zero_add]
 ```
 
 `squeeze_simp` suggests a replacement which we can use instead of
@@ -997,10 +1037,12 @@ stop earlier than it would normally would.
 
 ## use
 Similar to `existsi`. `use x` will instantiate the first term of an `∃` or `Σ` goal with `x`.
+It will then try to close the new goal using `triv`, or try to simplify it by applying `exists_prop`.
 Unlike `existsi`, `x` is elaborated with respect to the expected type.
-Equivalent to `refine ⟨x, _⟩`.
 
 `use` will alternatively take a list of terms `[x0, ..., xn]`.
+
+`use` will work with constructors of arbitrary inductive types.
 
 Examples:
 
@@ -1010,6 +1052,13 @@ by use ∅
 
 example : ∃ x : ℤ, x = x :=
 by use 42
+
+example : ∃ n > 0, n = n :=
+begin
+  use 1,
+  -- goal is now 1 > 0 ∧ 1 = 1, whereas it would be ∃ (H : 1 > 0), 1 = 1 after existsi 1.
+  exact ⟨zero_lt_one, rfl⟩,
+end
 
 example : ∃ a b c : ℤ, a + b + c = 6 :=
 by use [1, 2, 3]
@@ -1291,7 +1340,6 @@ end
 Although `reassoc_of` is not a tactic or a meta program, its type is generated
 through meta-programming to make it usable inside normal expressions.
 
-
 ## lift
 
 Lift an expression to another type.
@@ -1374,3 +1422,75 @@ See also additional documentation of `using_well_founded` in
 * `@[simps]` reduces let-expressions where necessary.
 * If one of the fields is a partially applied constructor, we will eta-expand it
   (this likely never happens).
+
+## clear'
+
+An improved version of the standard `clear` tactic. `clear` is sensitive to the
+order of its arguments: `clear x y` may fail even though both `x` and `y` could
+be cleared (if the type of `y` depends on `x`). `clear'` lifts this limitation.
+
+```lean
+example {α} {β : α → Type} (a : α) (b : β a) : unit :=
+begin
+  try { clear a b }, -- fails since `b` depends on `a`
+  clear' a b,        -- succeeds
+  exact ()
+end
+```
+
+## clear_dependent
+
+A variant of `clear'` which clears not only the given hypotheses, but also any
+other hypotheses depending on them.
+
+```lean
+example {α} {β : α → Type} (a : α) (b : β a) : unit :=
+begin
+  try { clear' a },  -- fails since `b` depends on `a`
+  clear_dependent a, -- succeeds, clearing `a` and `b`
+  exact ()
+end
+```
+
+## simp_rw
+
+`simp_rw` functions as a mix of `simp` and `rw`. Like `rw`, it applies each
+rewrite rule in the given order, but like `simp` it repeatedly applies these
+rules and also under binders like `∀ x, ...`, `∃ x, ...` and `λ x, ...`.
+
+Usage:
+  - `simp_rw [lemma_1, ..., lemma_n]` will rewrite the goal by applying the
+    lemmas in that order.
+  - `simp_rw [lemma_1, ..., lemma_n] at h₁ ... hₙ` will rewrite the given hypotheses.
+  - `simp_rw [...] at ⊢ h₁ ... hₙ` rewrites the goal as well as the given hypotheses.
+  - `simp_rw [...] at *` rewrites in the whole context: all hypotheses and the goal.
+
+For example, neither `simp` nor `rw` can solve the following, but `simp_rw` can:
+```lean
+example {α β : Type} {f : α → β} {t : set β} : (∀ s, f '' s ⊆ t) = ∀ s : set α, ∀ x ∈ s, x ∈ f ⁻¹' t :=
+by simp_rw [set.image_subset_iff, set.subset_def]
+```
+
+Lemmas passed to `simp_rw` must be expressions that are valid arguments to `simp`.
+
+## rename'
+
+Renames one or more hypotheses in the context.
+
+```lean
+example {α β} (a : α) (b : β) : unit :=
+begin
+  rename' a a',              -- result: a' : α, b  : β
+  rename' a' → a,            --         a  : α, b  : β
+  rename' [a a', b b'],      --         a' : α, b' : β
+  rename' [a' → a, b' → b],  --         a  : α, b  : β
+  exact ()
+end
+```
+
+Compared to the standard `rename` tactic, this tactic makes the following
+improvements:
+
+- You can rename multiple hypotheses at once.
+- Renaming a hypothesis always preserves its location in the context (whereas
+  `rename` may reorder hypotheses).

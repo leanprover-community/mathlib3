@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Mario Carneiro, Simon Hudon, Scott Morrison, Keeley Hoek
 -/
 import data.dlist.basic category.basic meta.expr meta.rb_map data.bool tactic.library_note
+  tactic.derive_inhabited
 
 namespace expr
 open tactic
@@ -436,6 +437,19 @@ meta def get_pi_binders_aux : list binder → expr → tactic (list binder × ex
 meta def get_pi_binders : expr → tactic (list binder × expr) | e :=
 do (es, e) ← get_pi_binders_aux [] e, return (es.reverse, e)
 
+/-- Auxilliary definition for `get_pi_binders_dep`. -/
+meta def get_pi_binders_dep_aux : ℕ → expr → tactic (list (ℕ × binder) × expr)
+| n (expr.pi nm bi d b) :=
+ do l ← mk_local' nm bi d,
+    (ls, r) ← get_pi_binders_dep_aux (n+1) (expr.instantiate_var b l),
+    return (if b.has_var then ls else (n, ⟨nm, bi, d⟩)::ls, r)
+| n e                  := return ([], e)
+
+/-- A variant of `get_pi_binders` that only returns the binders that do not occur in later
+  arguments or in the target. Also returns the argument position of each returned binder. -/
+meta def get_pi_binders_dep : expr → tactic (list (ℕ × binder) × expr) :=
+get_pi_binders_dep_aux 0
+
 /-- variation on `assert` where a (possibly incomplete)
     proof of the assertion is provided as a parameter.
 
@@ -717,6 +731,36 @@ iterate1 intro1 >>= λ p, return (p.1 :: p.2)
 /-- `successes` invokes each tactic in turn, returning the list of successful results. -/
 meta def successes (tactics : list (tactic α)) : tactic (list α) :=
 list.filter_map id <$> monad.sequence (tactics.map (λ t, try_core t))
+
+/--
+Try all the tactics in a list, each time starting at the original tactic_state,
+returning the list of successful results,
+and reverting to the original tactic_state.
+-/
+-- Note this is not the same as `successes`, which keeps track of the evolving tactic_state.
+meta def try_all {α : Type} (tactics : list (tactic α)) : tactic (list α) :=
+λ s, result.success
+(tactics.map $
+λ t : tactic α,
+  match t s with
+  | result.success a s' := [a]
+  | _ := []
+  end).join s
+
+/--
+Try all the tactics in a list, each time starting at the original tactic_state,
+returning the list of successful results sorted by
+the value produced by a subsequent execution of the `sort_by` tactic,
+and reverting to the original tactic_state.
+-/
+meta def try_all_sorted {α : Type} (tactics : list (tactic α)) (sort_by : tactic ℕ := num_goals) : tactic (list α) :=
+λ s, result.success
+(((tactics.map $
+λ t : tactic α,
+  match (do a ← t, n ← sort_by, return (a, n)) s with
+  | result.success a s' := [a]
+  | _ := []
+  end).join.qsort (λ p q : α × ℕ, p.2 < q.2)).map (prod.fst)) s
 
 /-- Return target after instantiating metavars and whnf -/
 private meta def target' : tactic expr :=

@@ -29,7 +29,8 @@ A cosmetic disadvantage is that one can not extend topological vector spaces.
 The solution is to extend `topological_module` instead.
 -/
 
-open topological_space
+open filter
+open_locale topological_space
 
 universes u v w u'
 
@@ -55,9 +56,16 @@ variables {R : Type u} {M : Type v}
 lemma continuous_smul : continuous (λp:R×M, p.1 • p.2) :=
 topological_semimodule.continuous_smul R M
 
-lemma continuous.smul {M₂ : Type*} [topological_space M₂] {f : M₂ → R} {g : M₂ → M}
+lemma continuous.smul {α : Type*} [topological_space α] {f : α → R} {g : α → M}
   (hf : continuous f) (hg : continuous g) : continuous (λp, f p • g p) :=
 continuous_smul.comp (hf.prod_mk hg)
+
+lemma tendsto_smul {c : R} {x : M} : tendsto (λp:R×M, p.fst • p.snd) (𝓝 (c, x)) (𝓝 (c • x)) :=
+continuous_smul.tendsto _
+
+lemma filter.tendsto.smul {α : Type*} {l : filter α} {f : α → R} {g : α → M} {c : R} {x : M}
+  (hf : tendsto f l (𝓝 c)) (hg : tendsto g l (𝓝 x)) : tendsto (λ a, f a • g a) l (𝓝 (c • x)) :=
+tendsto_smul.comp (hf.prod_mk_nhds hg)
 
 end
 
@@ -118,7 +126,7 @@ set_option class.instance_max_depth 36
 /-- Scalar multiplication by a non-zero field element is a
 homeomorphism from a topological vector space onto itself. -/
 protected def homeomorph.smul_of_ne_zero (ha : a ≠ 0) : M ≃ₜ M :=
-{.. homeomorph.smul_of_unit ((equiv.units_equiv_ne_zero _).inv_fun ⟨_, ha⟩)}
+{.. homeomorph.smul_of_unit (units.mk0 a ha)}
 
 lemma is_open_map_smul_of_ne_zero (ha : a ≠ 0) : is_open_map (λ (x : M), a • x) :=
 (homeomorph.smul_of_ne_zero ha).is_open_map
@@ -165,7 +173,8 @@ variables
 {M : Type*} [topological_space M] [add_comm_group M]
 {M₂ : Type*} [topological_space M₂] [add_comm_group M₂]
 {M₃ : Type*} [topological_space M₃] [add_comm_group M₃]
-[module R M] [module R M₂] [module R M₃]
+{M₄ : Type*} [topological_space M₄] [add_comm_group M₄]
+[module R M] [module R M₂] [module R M₃] [module R M₄]
 
 /-- Coerce continuous linear maps to linear maps. -/
 instance : has_coe (M →L[R] M₂) (M →ₗ[R] M₂) := ⟨to_linear_map⟩
@@ -197,6 +206,7 @@ def zero : M →L[R] M₂ :=
 ⟨0, by exact continuous_const⟩
 
 instance: has_zero (M →L[R] M₂) := ⟨zero⟩
+instance : inhabited (M →L[R] M₂) := ⟨0⟩
 
 @[simp] lemma zero_apply : (0 : M →L[R] M₂) x = 0 := rfl
 @[simp, elim_cast] lemma coe_zero : ((0 : M →L[R] M₂) : M →ₗ[R] M₂) = 0 := rfl
@@ -272,6 +282,10 @@ by { ext, simp }
   (g₁ g₂ : M₂ →L[R] M₃) (f : M →L[R] M₂) :
   (g₁ + g₂).comp f = g₁.comp f + g₂.comp f :=
 by { ext, simp }
+
+theorem comp_assoc (h : M₃ →L[R] M₄) (g : M₂ →L[R] M₃) (f : M →L[R] M₂) :
+  (h.comp g).comp f = h.comp (g.comp f) :=
+rfl
 
 instance : has_mul (M →L[R] M) := ⟨comp⟩
 
@@ -412,6 +426,29 @@ def to_homeomorph (e : M ≃L[R] M₂) : M ≃ₜ M₂ := { ..e }
 @[simp] lemma map_eq_zero_iff (e : M ≃L[R] M₂) {x : M} : e x = 0 ↔ x = 0 :=
 e.to_linear_equiv.map_eq_zero_iff
 
+protected lemma continuous (e : M ≃L[R] M₂) : continuous (e : M → M₂) :=
+e.continuous_to_fun
+
+protected lemma continuous_on (e : M ≃L[R] M₂) {s : set M} : continuous_on (e : M → M₂) s :=
+e.continuous.continuous_on
+
+protected lemma continuous_at (e : M ≃L[R] M₂) {x : M} : continuous_at (e : M → M₂) x :=
+e.continuous.continuous_at
+
+protected lemma continuous_within_at (e : M ≃L[R] M₂) {s : set M} {x : M} :
+  continuous_within_at (e : M → M₂) s x :=
+e.continuous.continuous_within_at
+
+lemma comp_continuous_on_iff
+  {α : Type*} [topological_space α] (e : M ≃L[R] M₂) (f : α → M) (s : set α) :
+  continuous_on (e ∘ f) s ↔ continuous_on f s :=
+e.to_homeomorph.comp_continuous_on_iff _ _
+
+lemma comp_continuous_iff
+  {α : Type*} [topological_space α] (e : M ≃L[R] M₂) (f : α → M) :
+  continuous (e ∘ f) ↔ continuous f :=
+e.to_homeomorph.comp_continuous_iff _
+
 section
 variable (M)
 
@@ -452,5 +489,19 @@ continuous_linear_map.ext e.apply_symm_apply
 @[simp] theorem coe_symm_comp_coe (e : M ≃L[R] M₂) :
   (e.symm : M₂ →L[R] M).comp (e : M →L[R] M₂) = continuous_linear_map.id :=
 continuous_linear_map.ext e.symm_apply_apply
+
+@[simp] lemma symm_comp_self (e : M ≃L[R] M₂) :
+  (e.symm : M₂ → M) ∘ (e : M → M₂) = id :=
+by{ ext x, exact symm_apply_apply e x }
+
+@[simp] lemma self_comp_symm (e : M ≃L[R] M₂) :
+  (e : M → M₂) ∘ (e.symm : M₂ → M) = id :=
+by{ ext x, exact apply_symm_apply e x }
+
+@[simp] theorem symm_symm (e : M ≃L[R] M₂) : e.symm.symm = e :=
+by { ext x, refl }
+
+@[simp] theorem symm_symm_apply (e : M ≃L[R] M₂) (x : M) : e.symm.symm x = e x :=
+rfl
 
 end continuous_linear_equiv

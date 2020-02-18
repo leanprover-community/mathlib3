@@ -584,6 +584,7 @@ tactic.triv' <|> tactic.reflexivity reducible <|> tactic.contradiction <|> fail 
 
 /--
 Similar to `existsi`. `use x` will instantiate the first term of an `∃` or `Σ` goal with `x`.
+It will then try to close the new goal using `triv`, or try to simplify it by applying `exists_prop`.
 Unlike `existsi`, `x` is elaborated with respect to the expected type.
 `use` will alternatively take a list of terms `[x0, ..., xn]`.
 
@@ -596,6 +597,13 @@ by use ∅
 
 example : ∃ x : ℤ, x = x :=
 by use 42
+
+example : ∃ n > 0, n = n :=
+begin
+  use 1,
+  -- goal is now 1 > 0 ∧ 1 = 1, whereas it would be ∃ (H : 1 > 0), 1 = 1 after existsi 1.
+  exact ⟨zero_lt_one, rfl⟩,
+end
 
 example : ∃ a b c : ℤ, a + b + c = 6 :=
 by use [1, 2, 3]
@@ -613,7 +621,11 @@ example : foo :=
 by use [100, tt, 4, 3]
 -/
 meta def use (l : parse pexpr_list_or_texpr) : tactic unit :=
-tactic.use l >> try triv
+focus1 $
+  tactic.use l;
+  try (triv <|> (do
+        `(Exists %%p) ← target,
+        to_expr ``(exists_prop.mpr) >>= tactic.apply >> skip))
 
 /--
 `clear_aux_decl` clears every `aux_decl` in the local context for the current goal.
@@ -799,6 +811,20 @@ do (cxt,_) ← solve_aux `(true) $
    let fmt := mk_paragraph 80 $ title :: cxt' ++ [cxt''.get_or_else ":", stmt],
    trace fmt,
    trace!"begin\n  \nend"
+
+/-- Turns a `nonempty α` instance into an `inhabited α` instance.
+  If the target is a prop, this is done constructively;
+  otherwise, it uses `classical.choice`. -/
+meta def inhabit (t : parse parser.pexpr) (inst_name : parse ident?) : tactic unit :=
+do ty ← i_to_expr t,
+   nm ← get_unused_name `inst,
+   mcond (target >>= is_prop)
+   (do mk_mapp `nonempty.elim_to_inhabited [ty, none] >>= tactic.apply <|>
+         fail "could not infer nonempty instance",
+       introI $ inst_name.get_or_else nm)
+   (do mk_mapp `classical.inhabited_of_nonempty' [ty, none] >>= note nm none <|>
+         fail "could not infer nonempty instance",
+       resetI)
 
 end interactive
 end tactic

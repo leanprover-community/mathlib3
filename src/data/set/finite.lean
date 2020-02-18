@@ -22,7 +22,10 @@ def finite (s : set α) : Prop := nonempty (fintype s)
 /-- A set is infinite if it is not finite. -/
 def infinite (s : set α) : Prop := ¬ finite s
 
-noncomputable instance finite.fintype {s : set α} (h : finite s) : fintype s :=
+/-- The subtype corresponding to a finite set is a finite type. Note
+that because `finite` isn't a typeclass, this will not fire if it
+is made into an instance -/
+noncomputable def finite.fintype {s : set α} (h : finite s) : fintype s :=
 classical.choice h
 
 /-- Get a finset from a finite set -/
@@ -326,13 +329,10 @@ begin
   exact finite_subset ‹finite s› this
 end
 
-lemma exists_min [decidable_linear_order β] (s : set α) (f : α → β) (h1 : finite s)
-  (h : nonempty s) : ∃ a, a ∈ s ∧ ∀ b ∈ s, f a ≤ f b :=
-begin
-  have := (finite.to_finset h1).exists_min f,
-  simp at this ⊢, unfreezeI, rcases h with ⟨⟨x, hx⟩⟩,
-  exact this x hx
-end
+lemma exists_min [decidable_linear_order β] (s : set α) (f : α → β) (h1 : finite s) :
+  s.nonempty → ∃ a ∈ s, ∀ b ∈ s, f a ≤ f b
+| ⟨x, hx⟩ := by simpa only [exists_prop, finite.mem_to_finset]
+  using (finite.to_finset h1).exists_min f ⟨x, finite.mem_to_finset.2 hx⟩
 
 end set
 
@@ -408,14 +408,14 @@ lemma card_range_of_injective [fintype α] {f : α → β} (hf : injective f)
 eq.symm $ fintype.card_congr (@equiv.of_bijective  _ _ (λ a : α, show range f, from ⟨f a, a, rfl⟩)
   ⟨λ x y h, hf $ subtype.mk.inj h, λ b, let ⟨a, ha⟩ := b.2 in ⟨a, by simp *⟩⟩)
 
-lemma finite.exists_maximal_wrt [partial_order β]
-  (f : α → β) (s : set α) (h : set.finite s) : s ≠ ∅ → ∃a∈s, ∀a'∈s, f a ≤ f a' → f a = f a' :=
+lemma finite.exists_maximal_wrt [partial_order β] (f : α → β) (s : set α) (h : set.finite s) :
+  s.nonempty → ∃a∈s, ∀a'∈s, f a ≤ f a' → f a = f a' :=
 begin
   classical,
   refine h.induction_on _ _,
-  { assume h, contradiction },
+  { assume h, exact absurd h empty_not_nonempty },
   assume a s his _ ih _,
-  by_cases s = ∅,
+  cases s.eq_empty_or_nonempty with h h,
   { use a, simp [h] },
   rcases ih h with ⟨b, hb, ih⟩,
   by_cases f b ≤ f a,
@@ -507,7 +507,7 @@ by simp [set.ext_iff]
 
 lemma image_preimage [decidable_eq β] (f : α → β) (s : finset β)
   (hf : set.bij_on f (f ⁻¹' s.to_set) s.to_set) :
-  image f (preimage s (set.inj_on_of_bij_on hf)) = s :=
+  image f (preimage s hf.inj_on) = s :=
 finset.coe_inj.1 $
 suffices f '' (f ⁻¹' ↑s) = ↑s, by simpa,
 (set.subset.antisymm (image_preimage_subset _ _) hf.2.2)
@@ -517,33 +517,27 @@ end preimage
 @[to_additive]
 lemma prod_preimage [comm_monoid β] (f : α → γ) (s : finset γ)
   (hf : set.bij_on f (f ⁻¹' ↑s) ↑s) (g : γ → β) :
-  (preimage s (set.inj_on_of_bij_on hf)).prod (g ∘ f) = s.prod g :=
+  (preimage s hf.inj_on).prod (g ∘ f) = s.prod g :=
 by classical;
 calc
-  (preimage s (set.inj_on_of_bij_on hf)).prod (g ∘ f)
-      = (image f (preimage s (set.inj_on_of_bij_on hf))).prod g :
+  (preimage s hf.inj_on).prod (g ∘ f)
+      = (image f (preimage s hf.inj_on)).prod g :
           begin
             rw prod_image,
             intros x hx y hy hxy,
-            apply set.inj_on_of_bij_on hf,
+            apply hf.inj_on,
             repeat { try { rw mem_preimage at hx hy,
                           rw [set.mem_preimage, mem_coe] },
                     assumption },
           end
-  ... = s.prod g : by rw image_preimage
+  ... = s.prod g : by rw [image_preimage]
 
 end finset
 
 lemma fintype.exists_max [fintype α] [nonempty α]
-  {β : Type*} [decidable_linear_order β] (f : α → β) :
+  {β : Type*} [linear_order β] (f : α → β) :
   ∃ x₀ : α, ∀ x, f x ≤ f x₀ :=
 begin
-  obtain ⟨y, hy⟩ : ∃ y, y ∈ (set.range f).to_finset,
-  { haveI := classical.inhabited_of_nonempty ‹nonempty α›,
-    exact ⟨f (default α), set.mem_to_finset.mpr $ set.mem_range_self _⟩ },
-  rcases finset.max_of_mem hy with ⟨y₀, h⟩,
-  rcases set.mem_to_finset.1 (finset.mem_of_max h) with ⟨x₀, rfl⟩,
-  use x₀,
-  intro x,
-  apply finset.le_max_of_mem (set.mem_to_finset.mpr $ set.mem_range_self x) h
+  rcases set.finite_univ.exists_maximal_wrt f _ univ_nonempty with ⟨x, _, hx⟩,
+  exact ⟨x, λ y, (le_total (f x) (f y)).elim (λ h, ge_of_eq $ hx _ trivial h) id⟩
 end

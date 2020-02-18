@@ -26,6 +26,8 @@ class has_bot (α : Type u) := (bot : α)
 notation `⊤` := has_top.top _
 notation `⊥` := has_bot.bot _
 
+attribute [pattern] lattice.has_bot.bot lattice.has_top.top
+
 section prio
 set_option default_priority 100 -- see Note [default priority]
 /-- An `order_top` is a partial order with a maximal element.
@@ -66,6 +68,9 @@ end
 
 lemma ne_top_of_lt (h : a < b) : a ≠ ⊤ :=
 lt_top_iff_ne_top.1 $ lt_of_lt_of_le h le_top
+
+theorem ne_top_of_le_ne_top {a b : α} (hb : b ≠ ⊤) (hab : a ≤ b) : a ≠ ⊤ :=
+assume ha, hb $ top_unique $ ha ▸ hab
 
 end order_top
 
@@ -348,6 +353,8 @@ meta instance {α} [has_to_format α] : has_to_format (with_bot α) :=
 instance : has_coe_t α (with_bot α) := ⟨some⟩
 instance has_bot : has_bot (with_bot α) := ⟨none⟩
 
+instance : inhabited (with_bot α) := ⟨⊥⟩
+
 lemma none_eq_bot : (none : with_bot α) = (⊥ : with_bot α) := rfl
 lemma some_eq_coe (a : α) : (some a : with_bot α) = (↑a : with_bot α) := rfl
 
@@ -528,6 +535,8 @@ meta instance {α} [has_to_format α] : has_to_format (with_top α) :=
 
 instance : has_coe_t α (with_top α) := ⟨some⟩
 instance has_top : has_top (with_top α) := ⟨none⟩
+
+instance : inhabited (with_top α) := ⟨⊤⟩
 
 lemma none_eq_top : (none : with_top α) = (⊤ : with_top α) := rfl
 lemma some_eq_coe (a : α) : (some a : with_top α) = (↑a : with_top α) := rfl

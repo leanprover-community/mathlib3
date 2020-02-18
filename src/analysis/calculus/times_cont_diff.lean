@@ -22,7 +22,7 @@ as well as predicates `times_cont_diff 𝕜 n f` and `times_cont_diff_on 𝕜 n 
 function is `C^n`, respectively in the whole space or on the set `s`.
 
 To avoid the issue of choice when choosing a derivative in sets where the derivative is not
-necessariy unique, `times_cont_diff_on` is not defined directly in terms of the
+necessarily unique, `times_cont_diff_on` is not defined directly in terms of the
 regularity of the specific choice `iterated_fderiv_within 𝕜 n f s` inside `s`, but in terms of the
 existence of a nice sequence of derivatives, expressed with a predicate
 `has_ftaylor_series_up_to_on`.

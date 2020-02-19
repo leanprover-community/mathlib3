@@ -14,7 +14,7 @@ arithmetic mean, geometric mean, generalized mean (natural and integer
 cases).
 
 For generalized means we only prove
-$\left(∑_jw_jz_j\right)^n≤∑_jw_jz_j^n$ because standard versions would
+$\left( ∑_j w_j z_j \right)^n ≤ ∑_j w_j z_j^n$ because standard versions would
 require $\sqrt[n]{x}$ which is not implemented in `mathlib` yet.
 
 Probably a better approach to the generalized means inequality is to

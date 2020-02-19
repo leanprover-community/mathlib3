@@ -112,7 +112,7 @@ lemma is_open_map_smul_of_unit (a : units R) : is_open_map (λ (x : M), (a : R) 
 lemma is_closed_map_smul_of_unit (a : units R) : is_closed_map (λ (x : M), (a : R) • x) :=
 (homeomorph.smul_of_unit a).is_closed_map
 
-/-- If `M` is a topological module over `R` and `0` is a limit of invertible elementw of `R`, then
+/-- If `M` is a topological module over `R` and `0` is a limit of invertible elements of `R`, then
 `⊤` is the only submodule of `M` with a nonempty interior. See also
 `submodule.eq_top_of_nonempty_interior` for a `normed_space` version. -/
 lemma submodule.eq_top_of_nonempty_interior' [topological_add_monoid M]

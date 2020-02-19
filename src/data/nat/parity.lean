@@ -15,6 +15,7 @@ by cases mod_two_eq_zero_or_one n with h h; simp [h]
 @[simp] theorem mod_two_ne_zero {n : nat} : ¬ n % 2 = 0 ↔ n % 2 = 1 :=
 by cases mod_two_eq_zero_or_one n with h h; simp [h]
 
+/-- A natural number `n` is `even` if `2 | n`. -/
 def even (n : nat) : Prop := 2 ∣ n
 
 theorem even_iff {n : nat} : even n ↔ n % 2 = 0 :=
@@ -46,6 +47,9 @@ begin
   exact @modeq.modeq_add _ _ 1 _ 1 h₁ h₂
 end
 
+theorem even.add {m n : ℕ} (hm : m.even) (hn : n.even) : (m + n).even :=
+even_add.2 $ by simp only [*]
+
 @[simp] theorem not_even_bit1 (n : nat) : ¬ even (bit1 n) :=
 by simp [bit1] with parity_simps
 
@@ -54,6 +58,11 @@ begin
   conv { to_rhs, rw [←nat.sub_add_cancel h, even_add] },
   by_cases h : even n; simp [h]
 end
+
+theorem even.sub {m n : ℕ} (hm : m.even) (hn : n.even) : (m - n).even :=
+(le_total n m).elim
+  (λ h, by simp only [even_sub h, *])
+  (λ h, by simp only [sub_eq_zero_of_le h, even_zero])
 
 @[parity_simps] theorem even_succ {n : nat} : even (succ n) ↔ ¬ even n :=
 by rw [succ_eq_add_one, even_add]; simp [not_even_one]

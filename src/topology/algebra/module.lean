@@ -112,6 +112,27 @@ lemma is_open_map_smul_of_unit (a : units R) : is_open_map (λ (x : M), (a : R) 
 lemma is_closed_map_smul_of_unit (a : units R) : is_closed_map (λ (x : M), (a : R) • x) :=
 (homeomorph.smul_of_unit a).is_closed_map
 
+/-- If `M` is a topological module over `R` and `0` is not an isolated point of `R`,
+then `⊤` is the only submodule of `M` with a nonempty interior. See also
+`submodule.eq_top_of_nonempty_interior` for a `normed_space` version. -/
+lemma submodule.eq_top_of_nonempty_interior' [topological_add_monoid M]
+  (h : nhds_within (0:R) {x | is_unit x} ≠ ⊥)
+  (s : submodule R M) (hs : (interior (s:set M)).nonempty) :
+  s = ⊤ :=
+begin
+  rcases hs with ⟨y, hy⟩,
+  refine (submodule.eq_top_iff'.2 $ λ x, _),
+  rw [mem_interior_iff_mem_nhds] at hy,
+  have : tendsto (λ c:R, y + c • x) (nhds_within 0 {x | is_unit x}) (𝓝 (y + (0:R) • x)),
+    from tendsto_const_nhds.add ((tendsto_nhds_within_of_tendsto_nhds tendsto_id).smul
+      tendsto_const_nhds),
+  rw [zero_smul, add_zero] at this,
+  rcases nonempty_of_mem_sets h (inter_mem_sets (mem_map.1 (this hy)) self_mem_nhds_within)
+    with ⟨_, hu, u, rfl⟩,
+  have hy' : y ∈ ↑s := mem_of_nhds hy,
+  exact (s.smul_mem_iff' _).1 ((s.add_mem_iff_right hy').1 hu)
+end
+
 end
 
 section

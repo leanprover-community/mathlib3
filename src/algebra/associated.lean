@@ -15,7 +15,12 @@ def is_unit [monoid α] (a : α) : Prop := ∃u:units α, a = u
 
 @[simp] lemma is_unit_unit [monoid α] (u : units α) : is_unit (u : α) := ⟨u, rfl⟩
 
-theorem is_unit.mk0 [division_ring α] (x : α) (hx : x ≠ 0) : is_unit x := is_unit_unit (units.mk0 x hx)
+theorem is_unit.mk0 [division_ring α] (x : α) (hx : x ≠ 0) : is_unit x :=
+is_unit_unit (units.mk0 x hx)
+
+theorem is_unit_iff_ne_zero [division_ring α] {x : α} :
+  is_unit x ↔ x ≠ 0 :=
+⟨λ ⟨u, hu⟩, hu.symm ▸ λ h : u.1 = 0, by simpa [h, zero_ne_one] using u.3, is_unit.mk0 x⟩
 
 lemma is_unit.map [monoid α] [monoid β] (f : α →* β) {x : α} (h : is_unit x) : is_unit (f x) :=
 by rcases h with ⟨y, rfl⟩; exact is_unit_unit (units.map f y)

@@ -103,9 +103,7 @@ begin
       by_cases x_mem : (x ∉ ⋃ (M : ℕ) (H : M ≤ N) (k : ℕ) (H : k ≤ N), A M k),
       { intro, apply find_greatest_eq_zero, assume k k_le_N hx,
         have : x ∈ ⋃ (M : ℕ) (H : M ≤ N) (k : ℕ) (H : k ≤ N), A M k,
-          { rw [mem_Union], use M N x,
-            rw mem_Union, use nat.find_greatest_le,
-            rw mem_Union, use k, rw mem_Union, use k_le_N, assumption },
+          { simp only [mem_Union], use [M N x, nat.find_greatest_le, k, k_le_N, hx] },
         contradiction },
       { rw not_not_mem at x_mem, assume h, cases h, contradiction,
         simp only [not_exists, exists_prop, mem_Union, not_and, sub_eq_diff, mem_diff] at h,
@@ -117,10 +115,9 @@ begin
         rw not_lt at m_lt_M, by_cases m_gt_M : m > M N x,
         { have := nat.find_greatest_is_greatest _ m ⟨m_gt_M, m_le_N⟩,
           { have : x ∈ ⋃ k ≤ N, A m k,
-            { rw mem_Union, use 0, rw mem_Union, use nat.zero_le N, exact hx },
+            { exact mem_bUnion (nat.zero_le N) hx },
             contradiction },
-          { use m, split, exact m_le_N, rw mem_Union, use 0, rw mem_Union,
-            use nat.zero_le _, exact hx } },
+          { exact ⟨m, m_le_N, mem_bUnion (nat.zero_le _) hx⟩ } },
         rw not_lt at m_gt_M, have M_eq_m := le_antisymm m_lt_M m_gt_M,
         rw ← k'_eq_0, exact k_unique ⟨x_mem_A x_mem, by { rw [k'_eq_0, M_eq_m], exact hx }⟩ } } },
   -- end of `have`
@@ -135,8 +132,7 @@ begin
       assume k_eq_k',
       have x_mem : x ∈ ⋃ (M : ℕ) (H : M ≤ N) (k : ℕ) (H : k ≤ N), A M k,
       { have := find_greatest_of_ne_zero k_eq_k' k'_eq_0,
-        simp only [mem_Union], use M N x, use nat.find_greatest_le, use k', use k'_le_N,
-        assumption },
+        simp only [mem_Union], use [M N x, nat.find_greatest_le, k', k'_le_N, this] },
       simp only [not_exists, exists_prop, mem_Union, not_and, sub_eq_diff, mem_diff],
       refine ⟨M N x, ⟨nat.find_greatest_le, ⟨by { rw ← k_eq_k', exact x_mem_A x_mem} , _⟩⟩⟩,
       assume m hMm hmN k k_le_N,
@@ -146,8 +142,8 @@ begin
     { simp only [mem_set_of_eq, mem_union_eq, mem_compl_eq], assume h,
       have x_mem : x ∈ ⋃ (M : ℕ) (H : M ≤ N) (k : ℕ) (H : k ≤ N), A M k,
         { simp only [not_exists, exists_prop, mem_Union, not_and, sub_eq_diff, mem_diff] at h,
-          rcases h with ⟨m, ⟨hm, ⟨hx, _⟩⟩⟩,
-          simp only [mem_Union], use m, use hm, use k', use k'_le_N, assumption },
+          rcases h with ⟨m, hm, hx, _⟩,
+          simp only [mem_Union], use [m, hm,  k', k'_le_N, hx] },
       simp only [not_exists, exists_prop, mem_Union, not_and, sub_eq_diff, mem_diff] at h,
       rcases h with ⟨m, ⟨m_le_N, ⟨hx, hm⟩⟩⟩,
       by_cases m_lt_M : m < M N x,
@@ -156,10 +152,9 @@ begin
         contradiction },
       rw not_lt at m_lt_M, by_cases m_gt_M : m > M N x,
       { have := nat.find_greatest_is_greatest _ m ⟨m_gt_M, m_le_N⟩,
-        have : x ∈ ⋃ k ≤ N, A m k :=
-          by { rw mem_Union, use k', rw mem_Union, use k'_le_N, exact hx },
+        have : x ∈ ⋃ k ≤ N, A m k := mem_bUnion k'_le_N hx,
         contradiction,
-        { use m, split, exact m_le_N, rw mem_Union, use k', rw mem_Union, use k'_le_N, exact hx }},
+        { simp only [mem_Union], use [m, m_le_N, k', k'_le_N, hx] }},
       rw not_lt at m_gt_M, have M_eq_m := le_antisymm m_lt_M m_gt_M,
       exact k_unique ⟨x_mem_A x_mem, by { rw M_eq_m, exact hx }⟩ } },
   -- end of `have`
@@ -216,8 +211,7 @@ end,
     end
     ... ≤ 1 / ((N₀ : ℝ) + 1)  :
     @one_div_le_one_div_of_le _ _  ((N₀ : ℝ) + 1) ((M N x : ℝ) + 1) (nat.cast_add_one_pos N₀)
-    (add_le_add_right (nat.cast_le.2 (nat.le_find_greatest N₀_le_N
-    begin rw mem_Union, use k₀, rw mem_Union, use k₀_le_N, exact x_mem_A end)) 1)
+    (add_le_add_right (nat.cast_le.2 (nat.le_find_greatest N₀_le_N (mem_bUnion k₀_le_N x_mem_A))) 1)
     ... < ε : ε_gt ⟩ ),
 -- second part of the theorem
 assume N, show ∥F N x∥ ≤ ∥f x∥ + ∥f x∥, from

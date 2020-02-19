@@ -22,7 +22,7 @@ prove `convex_on_rpow` in `analysis/convex/specific_functions` first,
 then apply it.
 
 It is not yet clear which versions will be useful in the future, so we
-provide a two different two forms of most inequalities : for `ℝ` and for
+provide two different forms of most inequalities : for `ℝ` and for
 `ℝ≥0`. For the AM-GM inequality we also prove special cases for `n=2`
 and `n=3`.
 -/

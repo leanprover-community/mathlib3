@@ -92,6 +92,10 @@ add_tactic_doc
   decl_names               := [`nolint_attr],
   tags                     := ["linting"] }
 
+/-- Auxiliary tactic for auto param in `linter`. -/
+meta def linter.fill_in_test : tactic unit :=
+to_expr ```(λ decl, do tac ← ‹linter›.test', tac decl) >>= exact
+
 /--
 A linting test for the `#lint` command.
 
@@ -106,7 +110,8 @@ If `is_fast` is false, this test will be omitted from `#lint-`.
 If `auto_decls` is true, this test will also be executed on automatically generated declarations.
 -/
 meta structure linter :=
-(test : declaration → tactic (option string))
+(test : declaration → tactic (option string) . linter.fill_in_test)
+(test' : tactic $ declaration → tactic (option string) := pure test)
 (no_errors_found : string)
 (errors_found : string)
 (is_fast : bool := tt)
@@ -505,21 +510,30 @@ do tt ← is_prop d.type | return none,
   no_errors_found := "No uses of `inhabited` arguments should be replaced with `nonempty`",
   errors_found := "USES OF `inhabited` SHOULD BE REPLACED WITH `nonempty`." }
 
-/-- `simp_lhs_rhs ty` returns the left-hand and right-hand side of a simp lemma with type `ty`. -/
-private meta def simp_lhs_rhs : expr → tactic (expr × expr) | ty := do
+/--
+`simp_lhs_rhs_core ty` returns the left-hand and right-hand side of a simp lemma with type `ty`.
+It also returns a name indicating whether the lemma is an iff, eq, not, or something else
+(`` `atom ``).
+-/
+private meta def simp_lhs_rhs_core : expr → tactic (expr × expr × name) | ty := do
 ty ← whnf ty transparency.reducible,
 -- We only detect a fixed set of simp relations here.
 -- This is somewhat justified since for a custom simp relation R,
 -- the simp lemma `R a b` is implicitly converted to `R a b ↔ true` as well.
 match ty with
-| `(¬ %%lhs) := pure (lhs, `(false))
-| `(%%lhs = %%rhs) := pure (lhs, rhs)
-| `(%%lhs ↔ %%rhs) := pure (lhs, rhs)
+| `(¬ %%lhs) := pure (lhs, `(false), `not)
+| `(%%lhs = %%rhs) := pure (lhs, rhs, `eq)
+| `(%%lhs ↔ %%rhs) := pure (lhs, rhs, `iff)
 | (expr.pi n bi a b) := do
   l ← mk_local' n bi a,
-  simp_lhs_rhs (b.instantiate_var l)
-| ty := pure (ty, `(true))
+  simp_lhs_rhs_core (b.instantiate_var l)
+| ty := pure (ty, `(true), `atom)
 end
+
+/-- `simp_lhs_rhs ty` returns the left-hand and right-hand side of a simp lemma with type `ty`. -/
+private meta def simp_lhs_rhs (ty : expr) : tactic (expr × expr) := do
+(lhs, rhs, _) ← simp_lhs_rhs_core ty,
+pure (lhs, rhs)
 
 /-- `simp_lhs ty` returns the left-hand side of a simp lemma with type `ty`. -/
 private meta def simp_lhs (ty : expr): tactic expr :=
@@ -666,6 +680,113 @@ pure $ "should not be marked simp"
   errors_found := "COMMUTATIVITY LEMMA IS SIMP.\n" ++
     "Some commutativity lemmas are simp lemmas" }
 
+/--
+`simp_lhs_mvar ty` returns the left-hand side of a simp lemma with type `ty`.
+Instance-implicit arguments are instantiated using local constants and added to the local context,
+other arguments are instantiated using metavariables. -/
+private meta def simp_lhs_rhs_mvar : expr → tactic (expr × expr) | ty := do
+ty ← whnf ty transparency.reducible,
+-- We only detect a fixed set of simp relations here.
+-- This is somewhat justified since for a custom simp relation R,
+-- the simp lemma `R a b` is implicitly converted to `R a b ↔ true` as well.
+match ty with
+| `(¬ %%lhs) := pure (lhs, `(false))
+| `(%%lhs = %%rhs) := pure (lhs, rhs)
+| `(%%lhs ↔ %%rhs) := pure (lhs, rhs)
+| (expr.pi n bi a b) := do
+  l ← if bi = binder_info.inst_implicit then
+        mk_local' n bi a >>= note `_inst
+      else
+        mk_meta_var a,
+  simp_lhs_rhs_mvar (b.instantiate_var l)
+| ty := pure (ty, `(true))
+end
+
+private meta def for_each_critical_pair {α} (fn : name → tactic α) (sls : rb_lmap name name) :
+  expr → tactic (list α) | e :=
+if e.is_mvar then pure [] else do
+cgr ← mk_specialized_congr_lemma_simp e,
+list.join <$> monad.sequence (e.get_app_args.map_with_index $ λ i a,
+  if cgr.arg_kinds.inth i ≠ congr_arg_kind.eq then pure [] else do
+  let go sty g := retrieve (do
+    set_goals [g],
+    (sls.find (e.get_app_fn.const_name ++ sty)).mmap $ λ sl, try_core $ do
+    applyc sl {md := transparency.reducible},
+    done,
+    fn sl),
+  ip ← is_prop e,
+  here_not ← if ip then mk_meta_var `(¬ %%e) >>= go `not else pure [],
+  here_iff ← if ip then do
+      rhs ← mk_meta_var `(Prop),
+      g ← mk_meta_var `(%%e ↔ %%rhs),
+      go `iff g
+    else
+      pure [],
+  here_eq ← (do
+    ty ← infer_type e,
+    rhs ← mk_meta_var ty,
+    eq ← mk_mapp ``eq [ty, e, rhs],
+    g ← mk_meta_var eq,
+    go `eq g),
+  here_atom ← mk_meta_var e >>= go `atom,
+  let here := (do some res ← here_not ++ here_iff ++ here_eq ++ here_atom | [], pure res),
+  res ← for_each_critical_pair a,
+  pure (here ++ res))
+
+private meta def mk_simp_set : tactic (rb_lmap name name) :=
+retrieve $ rb_lmap.of_list <$> do
+env ← get_env,
+sls ← env.get_trusted_decls.mfilter (λ d, do
+  tt ← is_simp_lemma d.to_name | pure ff,
+  tt ← is_valid_simp_lemma_cnst d.to_name | pure ff,
+  ff ← simp_is_conditional d.type | pure ff,
+  pure tt),
+sls.mmap $ λ d, do
+(lhs, _, sty) ← simp_lhs_rhs_core d.type,
+pure (lhs.get_app_fn.const_name ++ sty, d.to_name)
+
+private meta def simp_nonconfl : tactic (declaration → tactic (option string)) := do
+ss ← mk_simp_set,
+pure $ λ d, do
+tt ← is_simp_lemma d.to_name | pure none,
+-- Sometimes, a definition is tagged @[simp] to add the equational lemmas to the simp set.
+-- In this case, ignore the declaration if it is not a valid simp lemma by itself.
+tt ← is_valid_simp_lemma_cnst d.to_name | pure none,
+ff ← simp_is_conditional d.type | pure none,
+(λ tac, tactic.try_for 10000 tac <|> pure (some "timeout")) $ do -- last resort
+prf ← mk_const d.to_name,
+ty ← infer_type prf,
+(lhs, rhs) ← simp_lhs_rhs_mvar ty,
+sls' ← simp_lemmas.mk_default,
+let cb (sl : name) : tactic (option string) := try_core (do
+  lhs ← instantiate_mvars lhs,
+  rhs ← instantiate_mvars rhs,
+  (lhs', _) ← simplify sls' [] lhs {fail_if_unchanged:=ff},
+  (rhs', _) ← simplify sls' [] rhs {fail_if_unchanged:=ff},
+  fail_if_success $ is_def_eq lhs' rhs' transparency.reducible,
+  fail_if_success $ -- also fail if the lhs didn't reduce, dunno why this happens
+    is_def_eq lhs lhs' transparency.reducible,
+  lhs' ← pp lhs',
+  lhs ← pp lhs,
+  rhs' ← pp rhs',
+  pure $ format.to_string $ "unjoinable pair with " ++ to_fmt sl ++ ":" ++
+    lhs'.group.indent 0 ++
+    format.line ++ "↑" ++
+    lhs.group.indent 0 ++
+    format.line ++ "↓" ++
+    rhs'.group.indent 0 ++ format.line),
+errors ← for_each_critical_pair cb ss lhs,
+let errors := (do some error ← errors | [], pure error),
+if errors.empty then pure none else
+pure $ pure $ "\n\n".intercalate errors
+
+/-- A linter for simp lemmas whose lhs is not in simp-normal form, and which hence never fire. -/
+@[linter, priority 1387] meta def linter.simp_nonconfl : linter :=
+{ test' := simp_nonconfl,
+  no_errors_found := "Simp set is locally confluent",
+  errors_found := "SIMP SET IS NOT CONFLUENT.\n" ++
+    "Some pairs of unjoinable simp lemmas have been found." }
+
 /-! ### Implementation of the frontend -/
 
 /-- `get_checks slow extra use_only` produces a list of linters.
@@ -695,10 +816,11 @@ well as a map from declaration name to warning.
 meta def lint_core (all_decls non_auto_decls : list declaration) (checks : list (name × linter)) :
   tactic (list (name × linter × rb_map name string)) := do
 checks.mmap $ λ ⟨linter_name, linter⟩, do
+  test ← linter.test',
   let test_decls := if linter.auto_decls then all_decls else non_auto_decls,
   results ← test_decls.mfoldl (λ (results : rb_map name string) decl, do
     tt ← should_be_linted linter_name decl.to_name | pure results,
-    some linter_warning ← linter.test decl | pure results,
+    some linter_warning ← test decl | pure results,
     pure $ results.insert decl.to_name linter_warning) mk_rb_map,
   pure (linter_name, linter, results)
 

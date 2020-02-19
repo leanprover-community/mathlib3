@@ -110,7 +110,6 @@ applicative_transformation
 apply_fun_name
 archimedean
 archimedean.floor_ring
-associated
 associated.setoid
 associates
 associates.factor_set
@@ -3102,7 +3101,6 @@ unique_factorization_domain.exists_mem_factors_of_dvd
 unique_factorization_domain.of_unique_irreducible_factorization
 unique_irreducible_factorization
 unique_unique_equiv
-units
 units.inv'
 units.map
 units.map_equiv

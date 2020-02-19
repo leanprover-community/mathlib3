@@ -212,7 +212,7 @@ local postfix `?`:9001 := optional
 `tautology` breaks down assumptions of the form `_ ∧ _`, `_ ∨ _`, `_ ↔ _` and `∃ _, _`
 and splits a goal of the form `_ ∧ _`, `_ ↔ _` or `∃ _, _` until it can be discharged
 using `reflexivity` or `solve_by_elim`.
-This is a finishing tactic: it either closes the goal of raises an error.
+This is a finishing tactic: it either closes the goal or raises an error.
 The variant `tautology!` uses the law of excluded middle.
 -/
 meta def tautology (c : parse $ (tk "!")?) := tactic.tautology c.is_some
@@ -223,7 +223,7 @@ meta def tautology (c : parse $ (tk "!")?) := tactic.tautology c.is_some
 `tauto` breaks down assumptions of the form `_ ∧ _`, `_ ∨ _`, `_ ↔ _` and `∃ _, _`
 and splits a goal of the form `_ ∧ _`, `_ ↔ _` or `∃ _, _` until it can be discharged
 using `reflexivity` or `solve_by_elim`.
-This is a finishing tactic: it either closes the goal of raises an error.
+This is a finishing tactic: it either closes the goal or raises an error.
 The variant `tauto!` uses the law of excluded middle.
 -/
 meta def tauto (c : parse $ (tk "!")?) := tautology c

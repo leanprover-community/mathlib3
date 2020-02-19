@@ -22,7 +22,7 @@ prove `convex_on_rpow` in `analysis/convex/specific_functions` first,
 then apply it.
 
 It is not yet clear which versions will be useful in the future, so we
-provide a few different two forms of most inequalities : `ℝ` vs
+provide a two different two forms of most inequalities : for `ℝ` and for
 `ℝ≥0`. For the AM-GM inequality we also prove special cases for `n=2`
 and `n=3`.
 -/
@@ -51,7 +51,7 @@ begin
     have C : ∀ i ∈ s, i ∉ s' → w i * z i = 0,
       from λ i hi hi', by rw [A i hi hi', zero_mul],
     rwa [← prod_subset s.filter_subset B, ← sum_subset s.filter_subset C] },
-  replace A : ∀ i ∈ s', i ∈ s ∧ w i ≠ 0, from λ i hi, mem_filter.1 hi,
+  have A : ∀ i ∈ s', i ∈ s ∧ w i ≠ 0, from λ i hi, mem_filter.1 hi,
   replace hz : ∀ i ∈ s', 0 ≤ z i := λ i hi, hz i (A i hi).1,
   replace hw : ∀ i ∈ s', 0 ≤ w i := λ i hi, hw i (A i hi).1,
   by_cases B : ∃ i ∈ s', z i = 0,
@@ -69,7 +69,7 @@ begin
 end
 
 theorem nnreal.am_gm_weighted (w z : ι → ℝ≥0) (hw' : s.sum w = 1) :
-  s.prod (λ i, (z i:ℝ) ^ (w i : ℝ)) ≤ s.sum (λ i, w i * z i) :=
+  s.prod (λ i, (z i:ℝ) ^ (w i:ℝ)) ≤ s.sum (λ i, w i * z i) :=
 begin
   refine real.am_gm_weighted _ _ _ (λ i _, (w i).coe_nonneg) _ (λ i _, (z i).coe_nonneg),
   assumption_mod_cast

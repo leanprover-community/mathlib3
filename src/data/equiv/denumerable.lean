@@ -25,7 +25,7 @@ section
 variables {α : Type*} {β : Type*} [denumerable α] [denumerable β]
 open encodable
 
-@[simp] theorem decode_is_some (α) [denumerable α] (n : ℕ) :
+theorem decode_is_some (α) [denumerable α] (n : ℕ) :
   (decode α n).is_some :=
 option.is_some_iff_exists.2 $
 (decode_inv α n).imp $ λ a, Exists.fst

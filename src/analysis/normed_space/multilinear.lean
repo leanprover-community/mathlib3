@@ -918,7 +918,7 @@ variables {𝕜 G E₂}
 
 variables (𝕜 G E₂)
 
-/-- Continuous multilinear maps from `G^1` to `E₂` are isomorphic with continuous maps from
+/-- Continuous multilinear maps from `G^1` to `E₂` are isomorphic with continuous linear maps from
 `G` to `E₂`. -/
 def continuous_multilinear_curry_fin1 :
   (continuous_multilinear_map 𝕜 (λ (i : fin 1), G) E₂) ≃L[𝕜] (G →L[𝕜] E₂) :=

@@ -977,8 +977,8 @@ begin
       0 < ∥(1:𝕜)∥ - ∥-h∥ : by rwa [norm_neg, sub_pos, ← dist_zero_right h, normed_field.norm_one]
       ... ≤ ∥1 - -h∥ : norm_sub_norm_le _ _
       ... = ∥1 + h∥ : by simp,
-    have : 1 + h ≠ 0 := (norm_pos_iff (1 + h)).mp this,
-    simp only [mem_set_of_eq, smul_eq_mul, inv_one],
+    have : 1 + h ≠ 0 := norm_pos_iff.mp this,
+    simp only [mem_set_of_eq, smul_eq_mul],
     field_simp [this, -add_comm],
     ring },
   { exact univ_mem_sets' mul_one }

@@ -244,6 +244,15 @@ begin
   { simp [h, hg.ne] }
 end
 
+lemma comp_update {α' : Sort*} {β : Sort*} (f : α' → β) (g : α → α') (i : α) (v : α') :
+  f ∘ (update g i v) = update (f ∘ g) i (f v) :=
+begin
+  refine funext (λj, _),
+  by_cases h : j = i,
+  { rw h, simp },
+  { simp [h] }
+end
+
 end update
 
 lemma uncurry_def {α β γ} (f : α → β → γ) : uncurry f = (λp, f p.1 p.2) :=

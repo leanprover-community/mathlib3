@@ -2,15 +2,19 @@
 Copyright (c) 2017 Kenny Lau. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Kenny Lau, Mario Carneiro, Johannes, Hölzl, Chris Hughes
-
-Units (i.e., invertible elements) of a multiplicative monoid.
 -/
-
 import tactic.basic logic.function
+
+/-!
+# Units (i.e., invertible elements) of a multiplicative monoid
+-/
 
 universe u
 variable {α : Type u}
 
+/-- Units of a monoid, bundled version. An element of a `monoid` is a unit if it has a two-sided
+inverse. This version bundles the inverse element so that it can be computed. For a predicate
+see `is_unit`. -/
 structure units (α : Type u) [monoid α] :=
 (val : α)
 (inv : α)

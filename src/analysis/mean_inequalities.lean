@@ -7,7 +7,7 @@ import analysis.calculus.mean_value data.nat.parity analysis.complex.exponential
   analysis.convex.specific_functions
 
 /-!
-# Mean values inequalities
+# Mean value inequalities
 
 In this file we prove various inequalities between mean values:
 arithmetic mean, geometric mean, generalized mean (natural and integer

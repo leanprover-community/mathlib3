@@ -647,7 +647,7 @@ end
 
 /-- In a normed space over a nondiscrete normed field, only `⊤` submodule has a nonempty interior.
 See also `submodule.eq_top_of_nonempty_interior'` for a `topological_module` version.  -/
-lemma submodule.eq_top_of_nonempty_interior {α E:Type*} [nondiscrete_normed_field α] [normed_group E]
+lemma submodule.eq_top_of_nonempty_interior {α E : Type*} [nondiscrete_normed_field α] [normed_group E]
   [normed_space α E] (s : submodule α E) (hs : (interior (s:set E)).nonempty) :
   s = ⊤ :=
 begin

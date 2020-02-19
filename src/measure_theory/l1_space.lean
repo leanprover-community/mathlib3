@@ -243,11 +243,7 @@ begin
   rw ← all_ae_all_iff at F_le_bound,
   filter_upwards [all_ae_tendsto_of_real_norm h_lim, F_le_bound],
   assume a tendsto_norm F_le_bound,
-  refine le_of_tendsto at_top_ne_bot tendsto_norm _,
-  simp only [mem_at_top_sets, ge_iff_le, mem_set_of_eq, preimage_set_of_eq, nonempty_of_inhabited],
-  use 0,
-  assume n hn,
-  exact F_le_bound n
+  exact le_of_tendsto at_top_ne_bot tendsto_norm (univ_mem_sets' F_le_bound)
 end
 
 lemma integrable_of_dominated_convergence {F : ℕ → α → β} {f : α → β} {bound : α → ℝ}

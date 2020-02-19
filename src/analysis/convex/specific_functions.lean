@@ -10,7 +10,7 @@ import analysis.calculus.mean_value data.nat.parity analysis.complex.exponential
 
 In this file we prove that the following functions are convex:
 
-* `convex_on_exp` : exponent is convex on $(-∞, +∞)$;
+* `convex_on_exp` : the exponential function is convex on $(-∞, +∞)$;
 * `convex_on_pow_of_even` : given an even natural number $n$, the function $f(x)=x^n$
   is convex on $(-∞, +∞)$;
 * `convex_on_pow` : for a natural $n$, the function $f(x)=x^n$ is convex on $[0, +∞)$;

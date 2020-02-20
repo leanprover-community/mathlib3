@@ -240,6 +240,13 @@ meta def is_num_eq : expr → expr → bool
 | `(%%a/%%a') `(%%b/%%b') :=  a.is_num_eq b
 | _ _ := ff
 
+/-- Check if, after discarding arguments of pi binders, an expr is an `=` or `↔`. -/
+meta def is_eq_or_iff_after_binders : expr → bool
+| (expr.pi n bi d b) := is_eq_or_iff_after_binders b
+| `(%%a = %%b)       := tt
+| `(%%a ↔ %%b)       := tt
+| _                  := ff
+
 end expr
 
 /-! ### Declarations about `expr` -/

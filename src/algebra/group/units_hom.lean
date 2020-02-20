@@ -45,4 +45,16 @@ variable {M}
 
 instance coe_is_monoid_hom : is_monoid_hom (coe : units M → M) := (coe_hom M).is_monoid_hom
 
+/-- If a map `g : M → units N` agrees with a homomorphism `f : M →* N`, then
+this map is a monoid homomorphism too. -/
+def lift_right (f : M →* N) (g : M → units N) (h : ∀ x, ↑(g x) = f x) :
+  M →* units N :=
+{ to_fun := g,
+  map_one' := units.ext $ (h 1).symm ▸ f.map_one,
+  map_mul' := λ x y, units.ext $ by simp only [h, coe_mul, f.map_mul] }
+
+@[simp] lemma coe_lift_right {f : M →* N} {g : M → units N} (h : ∀ x, ↑(g x) = f x) (x) :
+  (lift_right f g h x : N) = f x :=
+h x
+
 end units

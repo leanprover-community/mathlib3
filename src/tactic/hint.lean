@@ -49,8 +49,7 @@ add_hint_tactic "apply_auto_param"
 add_hint_tactic "dsimp at *"
 add_hint_tactic "simp at *" -- TODO hook up to squeeze_simp?
 attribute [hint_tactic] tidy.ext1_wrapper
-add_hint_tactic "fsplit"
-add_hint_tactic "constructor"
+add_hint_tactic "fconstructor"
 add_hint_tactic "injections_and_clear"
 add_hint_tactic "solve_by_elim"
 add_hint_tactic "unfold_coes"

@@ -37,10 +37,13 @@ universe u
 
 namespace category_theory
 
+section prio
+set_option default_priority 100 -- see Note [default priority]
 /-- A concrete category is a category `C` with a fixed faithful functor `forget : C ⥤ Type`. -/
 class concrete_category (C : Type (u+1)) extends category.{u} C :=
 (forget : C ⥤ Type u)
 [forget_faithful : faithful forget]
+end prio
 
 attribute [instance] concrete_category.forget_faithful
 
@@ -83,6 +86,13 @@ congr_fun ((forget _).map_id X) x
 @[simp] lemma coe_comp {X Y Z : C} (f : X ⟶ Y) (g : Y ⟶ Z) (x : X) :
   (f ≫ g) x = g (f x) :=
 congr_fun ((forget _).map_comp _ _) x
+
+@[simp] lemma coe_hom_inv_id {X Y : C} (f : X ≅ Y) (x : X) :
+  f.inv (f.hom x) = x :=
+congr_fun ((forget C).map_iso f).hom_inv_id x
+@[simp] lemma coe_inv_hom_id {X Y : C} (f : X ≅ Y) (y : Y) :
+  f.hom (f.inv y) = y :=
+congr_fun ((forget C).map_iso f).inv_hom_id y
 
 end
 

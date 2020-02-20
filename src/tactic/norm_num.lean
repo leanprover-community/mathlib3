@@ -6,7 +6,7 @@ Authors: Simon Hudon, Mario Carneiro
 Evaluating arithmetic expressions including *, +, -, ^, ≤
 -/
 
-import algebra.group_power data.rat.order data.rat.cast data.rat.meta data.nat.prime
+import algebra.group_power data.rat.order data.rat.cast data.rat.meta_defs data.nat.prime
 import tactic.interactive tactic.converter.interactive
 
 universes u v w
@@ -464,11 +464,16 @@ do ns ← loc.get_locals,
    when (¬ ns.empty) $ try tactic.contradiction
 
 /-- Normalize numerical expressions. Supports the operations
-  `+` `-` `*` `/` `^` `<` `≤` over ordered fields (or other
-  appropriate classes), as well as `-` `/` `%` over `ℤ` and `ℕ`. -/
+  `+` `-` `*` `/` `^` and `%` over numerical types such as
+`ℕ`, `ℤ`, `ℚ`, `ℝ`, `ℂ` and some general algebraic types,
+and can prove goals of the form `A = B`, `A ≠ B`, `A < B` and `A ≤ B`,
+where `A` and `B` are numerical expressions.
+It also has a relatively simple primality prover. -/
 meta def norm_num (hs : parse simp_arg_list) (l : parse location) : tactic unit :=
 repeat1 $ orelse' (norm_num1 l) $
 simp_core {} (norm_num1 (loc.ns [none])) ff hs [] l
+
+add_hint_tactic "norm_num"
 
 meta def apply_normed (x : parse texpr) : tactic unit :=
 do x₁ ← to_expr x,

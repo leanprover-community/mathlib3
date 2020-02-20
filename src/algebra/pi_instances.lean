@@ -83,8 +83,6 @@ variables {I f}
 
 instance module         (α) {r : ring α}           [∀ i, add_comm_group $ f i]  [∀ i, module α $ f i]         : module α (Π i : I, f i)       := {..pi.semimodule I f α}
 
-instance vector_space   (α) {r : discrete_field α} [∀ i, add_comm_group $ f i]  [∀ i, vector_space α $ f i]   : vector_space α (Π i : I, f i) := {..pi.module α}
-
 instance left_cancel_semigroup [∀ i, left_cancel_semigroup $ f i] : left_cancel_semigroup (Π i : I, f i) :=
 by pi_instance
 
@@ -241,6 +239,16 @@ lemma fst.is_monoid_hom [monoid α] [monoid β] : is_monoid_hom (prod.fst : α �
 lemma snd.is_monoid_hom [monoid α] [monoid β] : is_monoid_hom (prod.snd : α × β → β) :=
 { map_mul := λ _ _, rfl, map_one := rfl }
 
+/-- Given monoids `α, β`, the natural projection homomorphism from `α × β` to `α`. -/
+@[to_additive prod.add_monoid_hom.fst "Given add_monoids `α, β`, the natural projection homomorphism from `α × β` to `α`."]
+def monoid_hom.fst [monoid α] [monoid β] : α × β →* α :=
+⟨λ x, x.1, rfl, λ _ _, prod.fst_mul⟩
+
+/-- Given monoids `α, β`, the natural projection homomorphism from `α × β` to `β`.-/
+@[to_additive prod.add_monoid_hom.snd "Given add_monoids `α, β`, the natural projection homomorphism from `α × β` to `β`."]
+def monoid_hom.snd [monoid α] [monoid β] : α × β →* β :=
+⟨λ x, x.2, rfl, λ _ _, prod.snd_mul⟩
+
 @[to_additive is_add_group_hom]
 lemma fst.is_group_hom [group α] [group β] : is_group_hom (prod.fst : α × β → α) :=
 { map_mul := λ _ _, rfl }
@@ -254,12 +262,12 @@ fst.is_group_hom fst.is_add_group_hom snd.is_group_hom snd.is_add_group_hom
 @[to_additive]
 lemma fst_prod [comm_monoid α] [comm_monoid β] {t : finset γ} {f : γ → α × β} :
   (t.prod f).1 = t.prod (λc, (f c).1) :=
-(finset.prod_hom prod.fst).symm
+(t.prod_hom prod.fst).symm
 
 @[to_additive]
 lemma snd_prod [comm_monoid α] [comm_monoid β] {t : finset γ} {f : γ → α × β} :
   (t.prod f).2 = t.prod (λc, (f c).2) :=
-(finset.prod_hom prod.snd).symm
+(t.prod_hom prod.snd).symm
 
 instance [semiring α] [semiring β] : semiring (α × β) :=
 { zero_mul := λ a, mk.inj_iff.mpr ⟨zero_mul _, zero_mul _⟩,
@@ -344,9 +352,6 @@ instance {r : semiring α} [add_comm_monoid β] [add_comm_monoid γ]
 instance {r : ring α} [add_comm_group β] [add_comm_group γ]
   [module α β] [module α γ] : module α (β × γ) := {}
 
-instance {r : discrete_field α} [add_comm_group β] [add_comm_group γ]
-  [vector_space α β] [vector_space α γ] : vector_space α (β × γ) := {}
-
 section substructures
 variables (s : set α) (t : set β)
 
@@ -369,6 +374,18 @@ instance is_subring.prod [ring α] [ring β] [is_subring s] [is_subring t] :
 end substructures
 
 end prod
+
+namespace submonoid
+
+/-- Given submonoids `s, t` of monoids `α, β` respectively, `s × t` as a submonoid of `α × β`. -/
+@[to_additive prod "Given `add_submonoids` `s, t` of `add_monoids` `α, β` respectively, `s × t` as an `add_submonoid` of `α × β`."]
+def prod {α : Type*} {β : Type*} [monoid α] [monoid β] (s : submonoid α) (t : submonoid β) :
+  submonoid (α × β) :=
+{ carrier := (s : set α).prod t,
+  one_mem' := ⟨s.one_mem, t.one_mem⟩,
+  mul_mem' := λ _ _ h1 h2, ⟨s.mul_mem h1.1 h2.1, t.mul_mem h1.2 h2.2⟩ }
+
+end submonoid
 
 namespace finset
 

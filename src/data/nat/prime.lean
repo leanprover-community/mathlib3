@@ -3,9 +3,29 @@ Copyright (c) 2015 Microsoft Corporation. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Leonardo de Moura, Jeremy Avigad, Mario Carneiro
 
-Prime numbers.
 -/
-import data.nat.sqrt data.nat.gcd data.list.basic data.list.perm tactic.wlog
+import data.nat.sqrt data.nat.gcd data.list.basic data.list.perm
+import algebra.group_power
+import tactic.wlog
+
+/-!
+# Prime numbers
+
+This file deals with prime numbers: natural numbers `p ≥ 2` whose only divisors are `p` and `1`.
+
+## Important declarations
+
+All the following declarations exist in the namespace `nat`.
+
+- `prime`: the predicate that expresses that a natural number `p` is prime
+- `primes`: the subtype of natural numbers that are prime
+- `min_fac n`: the minimal prime factor of a natural number `n ≠ 1`
+- `exists_infinite_primes`: Euclid's theorem that there exist infinitely many prime numbers
+- `factors n`: the prime factorization of `n`
+- `factors_unique`: uniqueness of the prime factorisation
+
+-/
+
 open bool subtype
 
 namespace nat
@@ -213,6 +233,23 @@ section min_fac
   (not_congr $ prime_def_min_fac.trans $ and_iff_right n2).trans $
     (lt_iff_le_and_ne.trans $ and_iff_right $ min_fac_le $ le_of_succ_le n2).symm
 
+  lemma min_fac_le_div {n : ℕ} (pos : 0 < n) (np : ¬ prime n) : min_fac n ≤ n / min_fac n :=
+  match min_fac_dvd n with
+  | ⟨0, h0⟩     := absurd pos $ by rw [h0, mul_zero]; exact dec_trivial
+  | ⟨1, h1⟩     :=
+    begin
+      rw mul_one at h1,
+      rw [prime_def_min_fac, not_and_distrib, ← h1, eq_self_iff_true, not_true, or_false, not_le] at np,
+      rw [le_antisymm (le_of_lt_succ np) (succ_le_of_lt pos), min_fac_one, nat.div_one]
+    end
+  | ⟨(x+2), hx⟩ :=
+    begin
+      conv_rhs { congr, rw hx },
+      rw [nat.mul_div_cancel_left _ (min_fac_pos _)],
+      exact min_fac_le_of_dvd dec_trivial ⟨min_fac n, by rwa mul_comm⟩
+    end
+  end
+
 end min_fac
 
 theorem exists_dvd_of_not_prime {n : ℕ} (n2 : 2 ≤ n) (np : ¬ prime n) :
@@ -228,6 +265,8 @@ theorem exists_dvd_of_not_prime2 {n : ℕ} (n2 : 2 ≤ n) (np : ¬ prime n) :
 theorem exists_prime_and_dvd {n : ℕ} (n2 : 2 ≤ n) : ∃ p, prime p ∧ p ∣ n :=
 ⟨min_fac n, min_fac_prime (ne_of_gt n2), min_fac_dvd _⟩
 
+/-- Euclid's theorem. There exist infinitely many prime numbers.
+Here given in the form: for every `n`, there exists a prime number `p ≥ n`. -/
 theorem exists_infinite_primes (n : ℕ) : ∃ p, n ≤ p ∧ prime p :=
 let p := min_fac (fact n + 1) in
 have f1 : fact n + 1 ≠ 1, from ne_of_gt $ succ_lt_succ $ fact_pos _,
@@ -427,6 +466,7 @@ def primes := {p : ℕ // p.prime}
 namespace primes
 
 instance : has_repr nat.primes := ⟨λ p, repr p.val⟩
+instance : inhabited primes := ⟨⟨2, prime_two⟩⟩
 
 instance coe_nat  : has_coe nat.primes ℕ  := ⟨subtype.val⟩
 
@@ -434,5 +474,7 @@ theorem coe_nat_inj (p q : nat.primes) : (p : ℕ) = (q : ℕ) → p = q :=
 λ h, subtype.eq h
 
 end primes
+
+instance monoid.prime_pow {α : Type*} [monoid α] : has_pow α primes := ⟨λ x p, x^p.val⟩
 
 end nat

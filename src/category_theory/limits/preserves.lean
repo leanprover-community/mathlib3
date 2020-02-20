@@ -7,21 +7,6 @@ import category_theory.limits.limits
 
 /-!
 # Preservation and reflection of (co)limits.
--/
-
-open category_theory
-
-namespace category_theory.limits
-
-universes v u₁ u₂ u₃ -- declare the `v`'s first; see `category_theory.category` for an explanation
-
-variables {C : Type u₁} [𝒞 : category.{v} C]
-variables {D : Type u₂} [𝒟 : category.{v} D]
-include 𝒞 𝒟
-
-variables {J : Type v} [small_category J] {K : J ⥤ C}
-
-/- Note on "preservation of (co)limits"
 
 There are various distinct notions of "preserving limits". The one we
 aim to capture here is: A functor F : C → D "preserves limits" if it
@@ -45,8 +30,19 @@ certain form, we say that a functor F preserves the limit of a
 diagram K if F sends every limit cone on K to a limit cone. This is
 vacuously satisfied when K does not admit a limit, which is consistent
 with the above definition of "preserves limits".
-
 -/
+
+open category_theory
+
+namespace category_theory.limits
+
+universes v u₁ u₂ u₃ -- declare the `v`'s first; see `category_theory.category` for an explanation
+
+variables {C : Type u₁} [𝒞 : category.{v} C]
+variables {D : Type u₂} [𝒟 : category.{v} D]
+include 𝒞 𝒟
+
+variables {J : Type v} [small_category J] {K : J ⥤ C}
 
 class preserves_limit (K : J ⥤ C) (F : C ⥤ D) : Type (max u₁ u₂ v) :=
 (preserves : Π {c : cone K}, is_limit c → is_limit (F.map_cone c))
@@ -63,7 +59,7 @@ class preserves_limits (F : C ⥤ D) : Type (max u₁ u₂ (v+1)) :=
 class preserves_colimits (F : C ⥤ D) : Type (max u₁ u₂ (v+1)) :=
 (preserves_colimits_of_shape : Π {J : Type v} [𝒥 : small_category J], by exactI preserves_colimits_of_shape J F)
 
-attribute [instance]
+attribute [instance, priority 100] -- see Note [lower instance priority]
   preserves_limits_of_shape.preserves_limit preserves_limits.preserves_limits_of_shape
   preserves_colimits_of_shape.preserves_colimit preserves_colimits.preserves_colimits_of_shape
 
@@ -167,16 +163,20 @@ by { split, intros, cases a, cases b, congr, funext J 𝒥, resetI, apply subsin
 instance reflects_colimits_subsingleton (F : C ⥤ D) : subsingleton (reflects_colimits F) :=
 by { split, intros, cases a, cases b, congr, funext J 𝒥, resetI, apply subsingleton.elim }
 
+@[priority 100] -- see Note [lower instance priority]
 instance reflects_limit_of_reflects_limits_of_shape (K : J ⥤ C) (F : C ⥤ D)
   [H : reflects_limits_of_shape J F] : reflects_limit K F :=
 reflects_limits_of_shape.reflects_limit J F
+@[priority 100] -- see Note [lower instance priority]
 instance reflects_colimit_of_reflects_colimits_of_shape (K : J ⥤ C) (F : C ⥤ D)
   [H : reflects_colimits_of_shape J F] : reflects_colimit K F :=
 reflects_colimits_of_shape.reflects_colimit J F
 
+@[priority 100] -- see Note [lower instance priority]
 instance reflects_limits_of_shape_of_reflects_limits (F : C ⥤ D)
   [H : reflects_limits F] : reflects_limits_of_shape J F :=
 reflects_limits.reflects_limits_of_shape F
+@[priority 100] -- see Note [lower instance priority]
 instance reflects_colimits_of_shape_of_reflects_colimits (F : C ⥤ D)
   [H : reflects_colimits F] : reflects_colimits_of_shape J F :=
 reflects_colimits.reflects_colimits_of_shape F

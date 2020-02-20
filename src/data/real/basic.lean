@@ -344,17 +344,17 @@ noncomputable instance : conditionally_complete_linear_order ℝ :=
     show a ≤ Sup s,
       from le_Sup s ‹bdd_above s› ‹a ∈ s›,
   cSup_le :=
-    assume (s : set ℝ) (a : ℝ) (_ : s ≠ ∅) (H : ∀b∈s, b ≤ a),
+    assume (s : set ℝ) (a : ℝ) (_ : s.nonempty) (H : ∀b∈s, b ≤ a),
     show Sup s ≤ a,
-      from Sup_le_ub s (set.exists_mem_of_ne_empty ‹s ≠ ∅›) H,
+      from Sup_le_ub s ‹s.nonempty› H,
   cInf_le :=
     assume (s : set ℝ) (a : ℝ) (_ : bdd_below s) (_ : a ∈ s),
     show Inf s ≤ a,
       from Inf_le s ‹bdd_below s› ‹a ∈ s›,
   le_cInf :=
-    assume (s : set ℝ) (a : ℝ) (_ : s ≠ ∅) (H : ∀b∈s, a ≤ b),
+    assume (s : set ℝ) (a : ℝ) (_ : s.nonempty) (H : ∀b∈s, a ≤ b),
     show a ≤ Inf s,
-      from lb_le_Inf s (set.exists_mem_of_ne_empty ‹s ≠ ∅›) H,
+      from lb_le_Inf s ‹s.nonempty› H,
   decidable_le := classical.dec_rel _,
  ..real.linear_order, ..real.lattice}
 
@@ -364,15 +364,14 @@ theorem Sup_of_not_bdd_above {s : set ℝ} (hs : ¬ bdd_above s) : lattice.Sup s
 dif_neg $ assume h, hs h.2
 
 theorem Sup_univ : real.Sup set.univ = 0 :=
-real.Sup_of_not_bdd_above $ λ h,
-Exists.dcases_on h $ λ x h', not_le_of_lt (lt_add_one _) $ h' (x + 1) $ set.mem_univ _
+real.Sup_of_not_bdd_above $ λ ⟨x, h⟩, not_le_of_lt (lt_add_one _) $ h (set.mem_univ _)
 
 theorem Inf_empty : lattice.Inf (∅ : set ℝ) = 0 :=
 show Inf ∅ = 0, by simp [Inf]; exact Sup_empty
 
 theorem Inf_of_not_bdd_below {s : set ℝ} (hs : ¬ bdd_below s) : lattice.Inf s = 0 :=
 have bdd_above {x | -x ∈ s} → bdd_below s, from
-  assume ⟨b, hb⟩, ⟨-b, assume x hxs, neg_le.2 $ hb _ $ by simp [hxs]⟩,
+  assume ⟨b, hb⟩, ⟨-b, assume x hxs, neg_le.2 $ hb $ by simp [hxs]⟩,
 have ¬ bdd_above {x | -x ∈ s}, from mt this hs,
 neg_eq_zero.2 $ Sup_of_not_bdd_above $ this
 

@@ -21,6 +21,7 @@ end open_add_subgroup
 
 namespace open_subgroup
 open function lattice topological_space
+open_locale topological_space
 variables {G : Type*} [group G] [topological_space G]
 variables {U V : open_subgroup G}
 
@@ -31,7 +32,7 @@ instance : has_mem G (open_subgroup G) := ⟨λ g U, g ∈ (U : set G)⟩
 lemma ext : (U = V) ↔ ((U : set G) = V) :=
 by cases U; cases V; split; intro h; try {congr}; assumption
 
-@[extensionality, to_additive]
+@[ext, to_additive]
 lemma ext' (h : (U : set G) = V) : (U = V) :=
 ext.mpr h
 
@@ -58,7 +59,7 @@ protected lemma mul_mem {g₁ g₂ : G} (h₁ : g₁ ∈ U) (h₂ : g₂ ∈ U) 
   @is_submonoid.mul_mem G _ U _ g₁ g₂ h₁ h₂
 
 @[to_additive]
-lemma mem_nhds_one : (U : set G) ∈ nhds (1 : G) :=
+lemma mem_nhds_one : (U : set G) ∈ 𝓝 (1 : G) :=
 mem_nhds_sets U.is_open U.one_mem
 variable {U}
 
@@ -84,10 +85,8 @@ begin
     { simp [*, is_subgroup.inv_mem, is_submonoid.mul_mem], },
     convert is_submonoid.mul_mem hu this, simp [mul_assoc] },
   split,
-  { apply continuous_mul continuous_id continuous_const,
-    { exact U.property },
-    { apply_instance } },
-  { erw set.mem_preimage,
+  { exact continuous_id.mul continuous_const _ U.property },
+  { change  x * (x⁻¹ * g) ∈ U,
     convert hg,
     rw [← mul_assoc, mul_right_inv, one_mul] }
 end

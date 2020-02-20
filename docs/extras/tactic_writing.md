@@ -1,4 +1,4 @@
-# Tactics writing in Lean tutorial
+# Tutorial: tactic writing in Lean
 
 ## Monadology
 

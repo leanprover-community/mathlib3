@@ -399,6 +399,15 @@ by rw lim_mul_lim;
 
 attribute [irreducible] complex.exp
 
+lemma exp_list_sum (l : list ℂ) : exp l.sum = (l.map exp).prod :=
+@monoid_hom.map_list_prod (multiplicative ℂ) ℂ _ _ ⟨exp, exp_zero, exp_add⟩ l
+
+lemma exp_multiset_sum (s : multiset ℂ) : exp s.sum = (s.map exp).prod :=
+@monoid_hom.map_multiset_prod (multiplicative ℂ) ℂ _ _ ⟨exp, exp_zero, exp_add⟩ s
+
+lemma exp_sum {α : Type*} (s : finset α) (f : α → ℂ) : exp (s.sum f) = s.prod (exp ∘ f) :=
+@monoid_hom.map_prod α (multiplicative ℂ) ℂ _ _ ⟨exp, exp_zero, exp_add⟩ f s
+
 lemma exp_nat_mul (x : ℂ) : ∀ n : ℕ, exp(n*x) = (exp x)^n
 | 0 := by rw [nat.cast_zero, zero_mul, exp_zero, pow_zero]
 | (nat.succ n) := by rw [pow_succ', nat.cast_add_one, add_mul, exp_add, ←exp_nat_mul, one_mul]
@@ -420,7 +429,7 @@ begin
   rw [← lim_conj],
   refine congr_arg lim (cau_seq.ext (λ _, _)),
   dsimp [exp', function.comp, cau_seq_conj],
-  rw ← sum_hom conj,
+  rw ← sum_hom _ conj,
   refine sum_congr rfl (λ n hn, _),
   rw [conj_div, conj_pow, ← of_real_nat_cast, conj_of_real]
 end
@@ -700,6 +709,15 @@ by simp [real.exp]
 lemma exp_add : exp (x + y) = exp x * exp y :=
 by simp [exp_add, exp]
 
+lemma exp_list_sum (l : list ℝ) : exp l.sum = (l.map exp).prod :=
+@monoid_hom.map_list_prod (multiplicative ℝ) ℝ _ _ ⟨exp, exp_zero, exp_add⟩ l
+
+lemma exp_multiset_sum (s : multiset ℝ) : exp s.sum = (s.map exp).prod :=
+@monoid_hom.map_multiset_prod (multiplicative ℝ) ℝ _ _ ⟨exp, exp_zero, exp_add⟩ s
+
+lemma exp_sum {α : Type*} (s : finset α) (f : α → ℝ) : exp (s.sum f) = s.prod (exp ∘ f) :=
+@monoid_hom.map_prod α (multiplicative ℝ) ℝ _ _ ⟨exp, exp_zero, exp_add⟩ f s
+
 lemma exp_nat_mul (x : ℝ) : ∀ n : ℕ, exp(n*x) = (exp x)^n
 | 0 := by rw [nat.cast_zero, zero_mul, exp_zero, pow_zero]
 | (nat.succ n) := by rw [pow_succ', nat.cast_add_one, add_mul, exp_add, ←exp_nat_mul, one_mul]
@@ -951,6 +969,17 @@ calc abs (exp x - 1) = abs (exp x - (range 1).sum (λ m, x ^ m / m.fact)) :
 ... ≤ abs x ^ 1 * ((nat.succ 1) * (nat.fact 1 * (1 : ℕ))⁻¹) :
   exp_bound hx dec_trivial
 ... = 2 * abs x : by simp [two_mul, mul_two, mul_add, mul_comm]
+
+lemma abs_exp_sub_one_sub_id_le {x : ℂ} (hx : abs x ≤ 1) :
+  abs (exp x - 1 - x) ≤ (abs x)^2 :=
+calc abs (exp x - 1 - x) = abs (exp x - (range 2).sum (λ m, x ^ m / m.fact)) :
+  by simp [sum_range_succ]
+... ≤ (abs x)^2 * (nat.succ 2 * (nat.fact 2 * (2 : ℕ))⁻¹) :
+  exp_bound hx dec_trivial
+... ≤ (abs x)^2 * 1 :
+  mul_le_mul_of_nonneg_left (by norm_num) (pow_two_nonneg (abs x))
+... = (abs x)^2 :
+  by rw [mul_one]
 
 end complex
 

@@ -44,7 +44,7 @@ def functoriality_is_left_adjoint :
     counit := functoriality_counit adj K } }
 
 /-- A left adjoint preserves colimits. -/
-instance left_adjoint_preserves_colimits : preserves_colimits F :=
+def left_adjoint_preserves_colimits : preserves_colimits F :=
 { preserves_colimits_of_shape := λ J 𝒥,
   { preserves_colimit := λ F,
     by exactI
@@ -54,8 +54,9 @@ instance left_adjoint_preserves_colimits : preserves_colimits F :=
 
 omit adj
 
+@[priority 100] -- see Note [lower instance priority]
 instance is_equivalence_preserves_colimits (E : C ⥤ D) [is_equivalence E] : preserves_colimits E :=
-adjunction.left_adjoint_preserves_colimits E.adjunction
+left_adjoint_preserves_colimits E.adjunction
 
 -- verify the preserve_colimits instance works as expected:
 example (E : C ⥤ D) [is_equivalence E]
@@ -98,7 +99,7 @@ def functoriality_is_right_adjoint :
     counit := functoriality_counit' adj K } }
 
 /-- A right adjoint preserves limits. -/
-instance right_adjoint_preserves_limits : preserves_limits G :=
+def right_adjoint_preserves_limits : preserves_limits G :=
 { preserves_limits_of_shape := λ J 𝒥,
   { preserves_limit := λ K,
     by exactI
@@ -108,8 +109,9 @@ instance right_adjoint_preserves_limits : preserves_limits G :=
 
 omit adj
 
+@[priority 100] -- see Note [lower instance priority]
 instance is_equivalence_preserves_limits (E : D ⥤ C) [is_equivalence E] : preserves_limits E :=
-adjunction.right_adjoint_preserves_limits E.inv.adjunction
+right_adjoint_preserves_limits E.inv.adjunction
 
 -- verify the preserve_limits instance works as expected:
 example (E : D ⥤ C) [is_equivalence E]

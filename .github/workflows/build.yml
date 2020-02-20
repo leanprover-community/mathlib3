@@ -46,7 +46,7 @@ jobs:
       - name: tests
         run: |
           set -o pipefail
-          lean --make docs archive test | cat
+          lean --make docs archive roadmap test | cat
 
       - name: lint
         run: |

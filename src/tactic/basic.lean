@@ -30,3 +30,4 @@ import
   tactic.well_founded_tactics
   tactic.where
   tactic.hint
+  tactic.rw_hint

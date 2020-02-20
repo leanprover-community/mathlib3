@@ -476,6 +476,22 @@ by library_search -- Try this: exact nat.mul_sub_left_distrib n m k
 Typically you will then copy and paste this proof, replacing the call to `library_search`.
 
 
+## rw_hint
+
+The tactic `rw_hint` will try to rewrite the goal using all available lemmas and hypotheses,
+reporting those that make progress.
+
+```
+example (P Q : Prop) (h : P ↔ Q) (p : P) : Q :=
+begin
+  rw_hint, -- Prints "Try this: rw ←h"
+  rw ←h, exact p,
+end
+```
+
+For now, it really reports everything it finds, with no filter,
+so for many goals (particularly those involving numerals) you will see a lot of spurious junk.
+
 ## solve_by_elim
 
 The tactic `solve_by_elim` repeatedly applies assumptions to the current goal, and succeeds if this eventually discharges the main goal.

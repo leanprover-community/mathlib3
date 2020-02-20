@@ -15,6 +15,15 @@ namespace tactic
 /-- Generate a list of `rw ...` strings, which represent successful rewrites of the current goal. -/
 -- TODO perhaps run `solve_by_elim` on resulting goals,
 -- and put any rewrites where this succeeds at the top of the list?
+-- TODO some suggestions will appear for any equality goal, but are stupid:
+--   Try this: rw eq_comm
+--   Try this: rw ←option.some_inj
+--   Try this: rw ←eq_comm
+--   Try this: rw ←eq_iff_eq_cancel_right
+--   Try this: rw ←eq_iff_eq_cancel_left
+--   Try this: rw ←option.some.inj_eq
+--   Try this: rw ←heq_iff_eq
+-- Is there a sensible way to discard these? Otherwise we could blacklist them?
 meta def rw_hint : tactic (list string) :=
 do
   rewrites ← find_all_rewrites,

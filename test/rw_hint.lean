@@ -252,7 +252,6 @@ Try this: rw ←ordered_semiring.add_comm
 -/
 example : 2 * (3 + 4) = 2 * 3 + 2 * 4 :=
 begin
-  rw_hint,
   (do s ← tactic.rw_hint, guard $ "rw left_distrib" ∈ s),
   rw left_distrib,
 end

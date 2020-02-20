@@ -486,8 +486,12 @@ reset_instance_cache,
 intros,
 lhs ← target >>= simp_lhs,
 sls ← simp_lemmas.mk_default,
--- remove commutativity lemmas since they may not apply to substitution instances of the lhs
-let sls := sls.erase [``add_comm, ``bool.bor_comm, ``bool.band_comm, ``bool.bxor_comm],
+let sls := sls.erase [
+  -- remove commutativity lemmas since they may not apply to substitution instances of the lhs
+  ``add_comm, ``bool.bor_comm, ``bool.band_comm, ``bool.bxor_comm,
+  -- TODO: remove once we have moved to Lean 3.6
+  ``sub_eq_add_neg
+  ],
 let as := lhs.get_app_args,
 cgr ← mk_specialized_congr_lemma_simp lhs,
 some (a', i, prf) ← tactic.first (as.map_with_index $ λ i a, do

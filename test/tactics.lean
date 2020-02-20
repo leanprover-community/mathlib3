@@ -533,12 +533,17 @@ end rename'
 
 section local_definitions
 /- Some tactics about local definitions.
-  Testing revert_deps, revert_after, generalize', clearbody. -/
+  Testing revert_deps, revert_after, generalize', clear_value. -/
 open tactic
 example {A : ℕ → Type} {n : ℕ} : let k := n + 3, l := k + n, f : A k → A k := id in
   ∀(x : A k) (y : A (n + k)) (z : A n) (h : k = n + n), unit :=
 begin
   intros, guard_target unit,
+  do { e ← get_local `k, e1 ← tactic.local_def_value e, e2 ← to_expr ```(n + 3), guard $ e1 = e2 },
+  do { e ← get_local `n, success_if_fail_with_msg (tactic.local_def_value e)
+    "Variable n is not a local definition." },
+  do { success_if_fail_with_msg (tactic.local_def_value `(1 + 2))
+    "No such hypothesis 1 + 2." },
   revert_deps k, tactic.intron 5, guard_target unit,
   revert_after n, tactic.intron 7, guard_target unit,
   do { e ← get_local `k, tactic.revert_deps e, l ← local_context, guard $ e ∈ l, intros },
@@ -561,11 +566,11 @@ example {A : ℕ → Type} {n : ℕ} : let k := n + 3, l := k + n, f : A k → A
 begin
   intros,
   tactic.to_expr ```(n + n) >>= λ e, tactic.generalize' e `xxx,
-  success_if_fail_with_msg {clearbody n}
+  success_if_fail_with_msg {clear_value n}
     "Cannot clear the body of n. It is not a local definition.",
-  success_if_fail_with_msg {clearbody k}
+  success_if_fail_with_msg {clear_value k}
     "Cannot clear the body of k. The resulting goal is not type correct.",
-  clearbody k f,
+  clear_value k f,
   exact unit.star
 end
 
@@ -573,7 +578,7 @@ example {A : ℕ → Type} {n : ℕ} : let k := n + 3, l := k + n, f : A k → A
   ∀(x : A k) (y : A (n + k)) (z : A n) (h : k = n + n), unit :=
 begin
   intros,
-  clearbody k f,
+  clear_value k f,
   exact unit.star
 end
 

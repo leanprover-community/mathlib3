@@ -351,29 +351,36 @@ meta def revert_after (e : expr) : tactic ℕ := do
   let l := l.drop pos.succ, -- all local hypotheses after `e`
   revert_lst l
 
-/-- `generalize' e n` is similar as `generalize` but also succeeds when `e` does not occur in the
-  goal, in which case it just calls `assert`. It already introduces the generalized variable. -/
+/-- `generalize' e n` generalizes the target with respect to `e`. It creates a new local constant
+  with name `n` of the same type as `e` and replaces all occurrences of `e` by `n`.
+
+  `generalize'` is similar to `generalize` but also succeeds when `e` does not occur in the
+  goal, in which case it just calls `assert`.
+  In contrast to `generalize` it already introduces the generalized variable. -/
 meta def generalize' (e : expr) (n : name) : tactic expr :=
 (generalize e n >> intro1) <|> note n none e
 
-/- Various tactics related to local definitions (local constants of the form `x : α := t`).
-  We call `t` the body or value of `x`. -/
+/-! Various tactics related to local definitions (local constants of the form `x : α := t`).
+  We call `t` the value of `x`. -/
 
 /-- `local_def_value e` returns the value of the expression `e`, assuming that `e` has been defined
-locally using a `let` expression. Otherwise it fails. -/
+  locally using a `let` expression. Otherwise it fails. -/
 meta def local_def_value (e : expr) : tactic expr :=
-do (v,_) ← solve_aux `(true) (do
-         (expr.elet n t v _) ← (revert e >> target)
-           | fail format!"{e} is not a local definition",
-         return v),
-   return v
+pp e >>= λ s, -- running `pp` here, because we cannot access it in the `type_context` monad.
+tactic.unsafe.type_context.run $ do
+  lctx <- tactic.unsafe.type_context.get_local_context,
+  some ldecl <- return $ lctx.get_local_decl e.local_uniq_name |
+    tactic.unsafe.type_context.fail format!"No such hypothesis {s}.",
+  some let_val <- return ldecl.value |
+    tactic.unsafe.type_context.fail format!"Variable {e} is not a local definition.",
+  return let_val
 
 /-- `revert_deps e` reverts all the hypotheses that depend on one of the local
   constants `e`, including the local definitions that have `e` in their definition.
   This fixes a bug in `revert_kdeps` that does not revert local definitions for which `e` only
   appears in the definition. -/
-/- We cannot implement it as `revert e >> intro1`, because after that `e` would not be in the
-  local context anymore. -/
+/- We cannot implement it as `revert e >> intro1`, because that would change the local constant in
+  the context. -/
 meta def revert_deps (e : expr) : tactic ℕ := do
   n ← revert_kdeps e,
   l ← local_context,
@@ -389,9 +396,10 @@ meta def revert_deps (e : expr) : tactic ℕ := do
 meta def is_local_def (e : expr) : tactic unit :=
 retrieve $ do revert e, expr.elet _ _ _ _ ← target, skip
 
-/-- `clearbody e` clears the body of the local definition `e`, changing it into a regular hypothesis.
-  A hypothesis `e : α := t` is changed to `e : α`. -/
-meta def clearbody (e : expr) : tactic unit := do
+/-- `clear_value e` clears the body of the local definition `e`, changing it into a regular hypothesis.
+  A hypothesis `e : α := t` is changed to `e : α`.
+  This tactic is called `clearbody` in Coq. -/
+meta def clear_value (e : expr) : tactic unit := do
   n ← revert_after e,
   is_local_def e <|>
     pp e >>= λ s, fail format!"Cannot clear the body of {s}. It is not a local definition.",

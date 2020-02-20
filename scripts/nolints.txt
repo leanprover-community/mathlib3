@@ -1719,7 +1719,6 @@ mzip_with'
 name.last_string
 nat.cases
 nat.elim
-nat.even
 nat.min_fac_aux
 nat.modeq.chinese_remainder
 nat.partrec

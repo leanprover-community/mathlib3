@@ -7,10 +7,15 @@ Equivalences between finite numbers.
 -/
 import data.fin data.equiv.basic
 
+universe variables u
+
 variables {m n : ℕ}
 
 def fin_zero_equiv : fin 0 ≃ empty :=
 ⟨fin_zero_elim, empty.elim, assume a, fin_zero_elim a, assume a, empty.elim a⟩
+
+def fin_zero_equiv' : fin 0 ≃ pempty.{u} :=
+equiv.equiv_pempty fin.elim0
 
 def fin_one_equiv : fin 1 ≃ punit :=
 ⟨λ_, (), λ_, 0, fin.cases rfl (λa, fin_zero_elim a), assume ⟨⟩, rfl⟩
@@ -24,6 +29,12 @@ def fin_two_equiv : fin 2 ≃ bool :=
     exact λi, fin_zero_elim i
   end,
   assume b, match b with tt := rfl | ff := rfl end⟩
+
+def fin_succ_equiv (n : ℕ) : fin n.succ ≃ option (fin n) :=
+⟨λ x, fin.cases none some x, λ x, option.rec_on x 0 fin.succ,
+  λ x, fin.cases rfl (λ i, show (option.rec_on (fin.cases none some (fin.succ i) : option (fin n))
+    0 fin.succ : fin n.succ) = _, by rw fin.cases_succ) x,
+  by rintro ⟨none | x⟩; [refl, exact fin.cases_succ _]⟩
 
 def sum_fin_sum_equiv : fin m ⊕ fin n ≃ fin (m + n) :=
 { to_fun := λ x, sum.rec_on x

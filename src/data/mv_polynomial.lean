@@ -1036,6 +1036,32 @@ eval₂_rename_prodmk id _ _ _
 
 end
 
+theorem exists_finset_rename (p : mv_polynomial γ α) :
+  ∃ s : finset γ, p ∈ set.range (@rename α _ _ _ (coe : {x // x ∈ s} → γ)) :=
+begin
+  apply induction_on p,
+  { intro r, exact ⟨∅, C r, by rw rename_C⟩ },
+  { rintro p q ⟨s, p, rfl⟩ ⟨t, q, rfl⟩,
+    refine ⟨s ∪ t, ⟨_, _⟩⟩,
+    { exact rename (subtype.map id (finset.subset_union_left s t)) p +
+            rename (subtype.map id (finset.subset_union_right s t)) q },
+    { rw [rename_add, rename_rename, rename_rename], refl } },
+  { rintro p n ⟨s, p, rfl⟩,
+    refine ⟨insert n s, ⟨_, _⟩⟩,
+  { exact rename (subtype.map id (finset.subset_insert n s)) p * X ⟨n, s.mem_insert_self n⟩ },
+    { rw [rename_mul, rename_X, rename_rename], refl } }
+end
+
+theorem exists_fin_rename (p : mv_polynomial γ α) :
+  ∃ (n : ℕ) (f : fin n → γ), p ∈ set.range (@rename α _ _ _ f) :=
+begin
+  obtain ⟨s, q, rfl⟩ := exists_finset_rename p,
+  obtain ⟨n, ⟨e⟩⟩ := fintype.exists_equiv_fin {x // x ∈ s},
+  refine ⟨n, coe ∘ e.symm, q.rename e, _⟩,
+  rw [← rename_rename, rename_rename e],
+  simp only [function.comp, equiv.symm_apply_apply, rename_rename]
+end
+
 end rename
 
 lemma eval₂_cast_comp {β : Type u} {γ : Type v} (f : γ → β)

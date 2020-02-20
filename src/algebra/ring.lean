@@ -623,3 +623,15 @@ variables [domain α]
 end domain
 
 end units
+
+class is_integral_domain (R : Type u) [comm_ring R] : Prop :=
+(eq_zero_or_eq_zero_of_mul_eq_zero : ∀ x y : R, x * y = 0 → x = 0 ∨ y = 0)
+(zero_ne_one : (0 : R) ≠ 1)
+
+instance integral_domain.to_is_integral_domain (R : Type u) [integral_domain R] :
+  is_integral_domain R :=
+{ .. (‹_› : integral_domain R) }
+
+def is_integral_domain.to_integral_domain (R : Type u) [comm_ring R] [is_integral_domain R] :
+  integral_domain R :=
+{ .. (‹_› : comm_ring R), .. (‹_› : is_integral_domain R) }

@@ -496,7 +496,7 @@ private lemma mul_inv_cancel_aux : ∀ a : zmodp p hp, a ≠ 0 → a * a⁻¹ = 
   simpa [nat.gcd_comm, this]
 end
 
-instance : discrete_field (zmodp p hp) :=
+instance : field (zmodp p hp) :=
 { zero_ne_one := fin.ne_of_vne $ show 0 ≠ 1 % p,
     by rw nat.mod_eq_of_lt hp.one_lt;
       exact zero_ne_one,

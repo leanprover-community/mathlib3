@@ -187,7 +187,7 @@ begin
     L1.add L2,
   have : (λn, (c n • (f (x + d n) - f x - f' (d n)) +  f' (c n • d n)))
           = (λn, c n • (f (x + d n) - f x)),
-    by { ext n, simp [smul_add] },
+    by { ext n, simp [smul_add, smul_sub] },
   rwa [this, zero_add] at L3
 end
 
@@ -748,7 +748,7 @@ section const_smul
 /-! ### Derivative of a function multiplied by a constant -/
 theorem has_fderiv_at_filter.const_smul (h : has_fderiv_at_filter f f' x L) (c : 𝕜) :
   has_fderiv_at_filter (λ x, c • f x) (c • f') x L :=
-(is_o_const_smul_left h c).congr_left $ λ x, by simp [smul_neg, smul_add]
+(is_o_const_smul_left h c).congr_left $ λ x, by simp [smul_sub]
 
 theorem has_fderiv_within_at.const_smul (h : has_fderiv_within_at f f' s x) (c : 𝕜) :
   has_fderiv_within_at (λ x, c • f x) (c • f') s x :=
@@ -791,7 +791,7 @@ section add
 theorem has_fderiv_at_filter.add
   (hf : has_fderiv_at_filter f f' x L) (hg : has_fderiv_at_filter g g' x L) :
   has_fderiv_at_filter (λ y, f y + g y) (f' + g') x L :=
-(hf.add hg).congr_left $ λ _, by simp
+(hf.add hg).congr_left $ λ _, by simp [sub_eq_add_neg]; abel
 
 theorem has_fderiv_within_at.add
   (hf : has_fderiv_within_at f f' s x) (hg : has_fderiv_within_at g g' s x) :
@@ -1792,7 +1792,7 @@ theorem has_fderiv_at_filter_real_equiv {L : filter E} :
 begin
   symmetry,
   rw [tendsto_iff_norm_tendsto_zero], refine tendsto_congr (λ x', _),
-  have : ∥x' + -x∥⁻¹ ≥ 0, from inv_nonneg.mpr (norm_nonneg _),
+  have : ∥x' - x∥⁻¹ ≥ 0, from inv_nonneg.mpr (norm_nonneg _),
   simp [norm_smul, real.norm_eq_abs, abs_of_nonneg this]
 end
 

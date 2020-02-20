@@ -211,15 +211,15 @@ variable {f : E × F → G}
 
 lemma is_bounded_bilinear_map.map_sub_left (h : is_bounded_bilinear_map 𝕜 f) {x y : E} {z : F} :
   f (x - y, z) = f (x, z) -  f(y, z) :=
-calc f (x - y, z) = f (x + (-1 : 𝕜) • y, z) : by simp
+calc f (x - y, z) = f (x + (-1 : 𝕜) • y, z) : by simp [sub_eq_add_neg]
 ... = f (x, z) + (-1 : 𝕜) • f (y, z) : by simp only [h.add_left, h.smul_left]
-... = f (x, z) - f (y, z) : by simp
+... = f (x, z) - f (y, z) : by simp [sub_eq_add_neg]
 
 lemma is_bounded_bilinear_map.map_sub_right (h : is_bounded_bilinear_map 𝕜 f) {x : E} {y z : F} :
   f (x, y - z) = f (x, y) - f (x, z) :=
-calc f (x, y - z) = f (x, y + (-1 : 𝕜) • z) : by simp
+calc f (x, y - z) = f (x, y + (-1 : 𝕜) • z) : by simp [sub_eq_add_neg]
 ... = f (x, y) + (-1 : 𝕜) • f (x, z) : by simp only [h.add_right, h.smul_right]
-... = f (x, y) - f (x, z) : by simp
+... = f (x, y) - f (x, z) : by simp [sub_eq_add_neg]
 
 lemma is_bounded_bilinear_map_smul :
   is_bounded_bilinear_map 𝕜 (λ (p : 𝕜 × E), p.1 • p.2) :=
@@ -284,7 +284,7 @@ def is_bounded_bilinear_map.linear_deriv (h : is_bounded_bilinear_map 𝕜 f) (p
   add := λq₁ q₂, begin
     change f (p.1, q₁.2 + q₂.2) + f (q₁.1 + q₂.1, p.2) =
       f (p.1, q₁.2) + f (q₁.1, p.2) + (f (p.1, q₂.2) + f (q₂.1, p.2)),
-    simp [h.add_left, h.add_right]
+    simp [h.add_left, h.add_right], abel
   end,
   smul := λc q, begin
     change f (p.1, c • q.2) + f (c • q.1, p.2) = c • (f (p.1, q.2) + f (q.1, p.2)),
@@ -321,7 +321,7 @@ begin
   rcases h.bound with ⟨C, Cpos, hC⟩,
   refine is_linear_map.with_bound ⟨λp₁ p₂, _, λc p, _⟩ (C + C) (λp, _),
   { ext q,
-    simp [h.add_left, h.add_right] },
+    simp [h.add_left, h.add_right], abel },
   { ext q,
     simp [h.smul_left, h.smul_right, smul_add] },
   { refine continuous_linear_map.op_norm_le_bound _

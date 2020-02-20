@@ -416,7 +416,7 @@ variables (s x L) [is_linear_map 𝕜 f]
 lemma is_linear_map.has_deriv_at_filter : has_deriv_at_filter f (f 1) x L :=
 (is_o_zero _ _).congr_left begin
   intro y,
-  simp [add_smul],
+  simp [sub_smul],
   rw ← is_linear_map.smul f x,
   rw ← is_linear_map.smul f y,
   simp
@@ -978,8 +978,11 @@ begin
       ... ≤ ∥1 - -h∥ : norm_sub_norm_le _ _
       ... = ∥1 + h∥ : by simp,
     have : 1 + h ≠ 0 := norm_pos_iff.mp this,
-    simp only [mem_set_of_eq, smul_eq_mul],
-    field_simp [this, -add_comm],
+    simp,
+    rw ← eq_div_iff_mul_eq _ _ (inv_ne_zero this),
+    field_simp,
+    simp [right_distrib, sub_mul,
+      (show (1 + h)⁻¹ * (1 + h) = 1, by rw mul_comm; exact field.mul_inv_cancel this)],
     ring },
   { exact univ_mem_sets' mul_one }
 end

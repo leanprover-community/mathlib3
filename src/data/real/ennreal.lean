@@ -1023,14 +1023,14 @@ lemma sub_infi : a - (⨅i, f i) = (⨆i, a - f i) :=
 begin
   refine (eq_of_forall_ge_iff $ λ c, _),
   rw [ennreal.sub_le_iff_le_add, add_comm, infi_add],
-  simp [ennreal.sub_le_iff_le_add]
+  simp [ennreal.sub_le_iff_le_add, sub_eq_add_neg, add_comm],
 end
 
 lemma Inf_add {s : set ennreal} : Inf s + a = ⨅b∈s, b + a :=
 by simp [Inf_eq_infi, infi_add]
 
 lemma add_infi {a : ennreal} : a + infi f = ⨅b, a + f b :=
-by rw [add_comm, infi_add]; simp
+by rw [add_comm, infi_add]; simp [add_comm]
 
 lemma infi_add_infi (h : ∀i j, ∃k, f k + g k ≤ f i + g j) : infi f + infi g = (⨅a, f a + g a) :=
 suffices (⨅a, f a + g a) ≤ infi f + infi g,

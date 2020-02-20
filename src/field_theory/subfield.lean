@@ -6,7 +6,7 @@ Authors: Andreas Swerdlow
 
 import ring_theory.subring
 
-variables {F : Type*} [discrete_field F] (S : set F)
+variables {F : Type*} [field F] (S : set F)
 
 section prio
 set_option default_priority 100 -- see Note [default priority]
@@ -14,7 +14,7 @@ class is_subfield extends is_subring S : Prop :=
 (inv_mem : ∀ {x : F}, x ≠ 0 → x ∈ S → x⁻¹ ∈ S)
 end prio
 
-instance is_subfield.field [is_subfield S] : discrete_field S :=
+instance is_subfield.field [is_subfield S] : field S :=
 { inv := λ x, ⟨x⁻¹, if hx0 : x = 0
     then by erw [hx0, inv_zero]; exact is_add_submonoid.zero_mem _
     else is_subfield.inv_mem (λ h, hx0 $ subtype.ext.2 h) x.2⟩,
@@ -34,14 +34,14 @@ instance univ.is_subfield : is_subfield (@set.univ F) :=
   `is_ring_hom.is_subring_preimage` then that instance only applies when particular instances of
   `is_add_subgroup _` and `is_submonoid _` are chosen (which are not the default ones).
   If we specify it explicitly, then it doesn't complain. -/
-instance preimage.is_subfield {K : Type*} [discrete_field K]
+instance preimage.is_subfield {K : Type*} [field K]
   (f : F →+* K) (s : set K) [is_subfield s] : is_subfield (f ⁻¹' s) :=
 { inv_mem := λ a ha0 (ha : f a ∈ s), show f a⁻¹ ∈ s,
     by { rw [f.map_inv' ha0],
          exact is_subfield.inv_mem (f.map_ne_zero.2 ha0) ha },
   ..is_ring_hom.is_subring_preimage f s }
 
-instance image.is_subfield {K : Type*} [discrete_field K]
+instance image.is_subfield {K : Type*} [field K]
   (f : F →+* K) (s : set F) [is_subfield s] : is_subfield (f '' s) :=
 { inv_mem := λ a ha0 ⟨x, hx⟩,
     have hx0 : x ≠ 0, from λ hx0, ha0 (hx.2 ▸ hx0.symm ▸ f.map_zero),
@@ -49,7 +49,7 @@ instance image.is_subfield {K : Type*} [discrete_field K]
     by { rw [← hx.2, f.map_inv' hx0], refl }⟩,
   ..is_ring_hom.is_subring_image f s }
 
-instance range.is_subfield {K : Type*} [discrete_field K]
+instance range.is_subfield {K : Type*} [field K]
   (f : F →+* K) : is_subfield (set.range f) :=
 by { rw ← set.image_univ, apply_instance }
 

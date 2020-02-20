@@ -259,7 +259,7 @@ end ring
 
 section vector_space
 
-variables {K : Type u} [discrete_field K] -- maybe try to relax the universe constraint
+variables {K : Type u} [field K] -- maybe try to relax the universe constraint
 
 open linear_map matrix
 

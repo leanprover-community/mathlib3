@@ -501,7 +501,7 @@ from decidable_of_iff (s₁ * r₂ - s₂ * r₁ = 0)
 λ ⟨t, ht1, ht2⟩, or.resolve_right (mul_eq_zero.1 ht2) $ λ ht,
   one_ne_zero (ht1 1 ((one_mul t).symm ▸ ht))⟩
 
-instance : discrete_field (fraction_ring β) :=
+instance : field (fraction_ring β) :=
 by refine
 { inv            := has_inv.inv,
   zero_ne_one    := λ hzo,

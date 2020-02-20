@@ -31,7 +31,7 @@ end
 namespace finite_field
 
 def field_of_integral_domain [fintype α] [decidable_eq α] [integral_domain α] :
-  discrete_field α :=
+  field α :=
 { has_decidable_eq := by apply_instance,
   inv := λ a, if h : a = 0 then 0
     else fintype.bij_inv (show function.bijective (* a),
@@ -123,7 +123,7 @@ by rw [← insert_erase (mem_univ (-1 : units α)), prod_insert (not_mem_erase _
 
 end
 
-lemma pow_card_sub_one_eq_one [discrete_field α] [fintype α] (a : α) (ha : a ≠ 0) :
+lemma pow_card_sub_one_eq_one [field α] [fintype α] (a : α) (ha : a ≠ 0) :
   a ^ (fintype.card α - 1) = 1 :=
 calc a ^ (fintype.card α - 1) = (units.mk0 a ha ^ (fintype.card α - 1) : units α) :
     by rw [units.coe_pow, units.mk0_val]

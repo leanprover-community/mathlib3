@@ -439,7 +439,7 @@ quotient.induction_on₂ s t length_append
 
 lemma card_smul (s : multiset α) (n : ℕ) :
   (n • s).card = n * s.card :=
-by induction n; simp [succ_smul, *, nat.succ_mul]
+by induction n; simp [succ_smul, *, nat.succ_mul]; cc
 
 @[simp] theorem mem_add {a : α} {s t : multiset α} : a ∈ s + t ↔ a ∈ s ∨ a ∈ t :=
 quotient.induction_on₂ s t $ λ l₁ l₂, mem_append
@@ -874,7 +874,7 @@ by simp [bind, join]
 
 @[simp] theorem bind_cons (s : multiset α) (f : α → β) (g : α → multiset β) :
   bind s (λa, f a :: g a) = map f s + bind s g :=
-multiset.induction_on s (by simp) (by simp {contextual := tt})
+multiset.induction_on s (by simp) (by simp [add_comm, add_left_comm] {contextual := tt})
 
 @[simp] theorem mem_bind {b s} {f : α → multiset β} : b ∈ bind s f ↔ ∃ a ∈ s, b ∈ f a :=
 by simp [bind]; simp [-exists_and_distrib_right, exists_and_distrib_right.symm];
@@ -941,7 +941,7 @@ by simp [product]
 @[simp] theorem product_add (s : multiset α) : ∀ t u : multiset β,
   product s (t + u) = product s t + product s u :=
 multiset.induction_on s (λ t u, rfl) $ λ a s IH t u,
-  by rw [cons_product, IH]; simp
+  by rw [cons_product, IH]; simp; cc
 
 @[simp] theorem mem_product {s t} : ∀ {p : α × β}, p ∈ @product α β s t ↔ p.1 ∈ s ∧ p.2 ∈ t
 | (a, b) := by simp [product, and.left_comm]
@@ -978,7 +978,7 @@ by simp [multiset.sigma]
 @[simp] theorem sigma_add (s : multiset α) : ∀ t u : Π a, multiset (σ a),
   s.sigma (λ a, t a + u a) = s.sigma t + s.sigma u :=
 multiset.induction_on s (λ t u, rfl) $ λ a s IH t u,
-  by rw [cons_sigma, IH]; simp
+  by rw [cons_sigma, IH]; simp; cc
 
 @[simp] theorem mem_sigma {s t} : ∀ {p : Σ a, σ a},
   p ∈ @multiset.sigma α σ s t ↔ p.1 ∈ s ∧ p.2 ∈ t p.1
@@ -1707,7 +1707,9 @@ lemma prod_map_add [comm_semiring β] {s : multiset α} {f g : α → β} :
 begin
   refine s.induction_on _ _,
   { simp },
-  { assume a s ih, simp [ih, add_mul, mul_comm, mul_left_comm, mul_assoc, sum_map_mul_left.symm] },
+  { assume a s ih,
+    simp [ih, add_mul, mul_comm, mul_left_comm, mul_assoc, sum_map_mul_left.symm],
+    cc },
 end
 
 /- powerset_len -/

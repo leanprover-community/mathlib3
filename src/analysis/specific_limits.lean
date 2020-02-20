@@ -220,7 +220,7 @@ begin
     (le_of_lt one_half_pos) one_half_lt_one),
   { funext n, simp,
     rw ← pow_inv; [refl, exact two_ne_zero] },
-  { norm_num, rw div_mul_cancel _ two_ne_zero }
+  { norm_num, rw div_mul_cancel, norm_num }
 end
 
 lemma summable_geometric_two' (a : ℝ) : summable (λ n:ℕ, (a / 2) / 2 ^ n) :=

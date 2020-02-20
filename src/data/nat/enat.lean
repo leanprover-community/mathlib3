@@ -189,7 +189,7 @@ protected lemma add_lt_add_iff_right {x y z : enat} (hz : z ≠ ⊤) : x + z < y
 ⟨lt_of_add_lt_add_right', λ h, enat.add_lt_add_right h hz⟩
 
 protected lemma add_lt_add_iff_left {x y z : enat} (hz : z ≠ ⊤) : z + x < z + y ↔ x < y :=
-by simpa using enat.add_lt_add_iff_right hz
+by rw [add_comm z, add_comm z, enat.add_lt_add_iff_right hz]
 
 protected lemma lt_add_iff_pos_right {x y : enat} (hx : x ≠ ⊤) : x < x + y ↔ 0 < y :=
 by { conv_rhs { rw [← enat.add_lt_add_iff_left hx] }, rw [add_zero] }
@@ -236,7 +236,8 @@ begin
   rcases ne_top_iff.1 hc with ⟨c, rfl⟩,
   apply enat.cases_on a; apply enat.cases_on b;
   simp [add_eq_top_iff, coe_ne_top, @eq_comm _ (⊤ : enat)];
-  simp only [(enat.coe_add _ _).symm, add_left_cancel_iff, enat.coe_inj]; tauto
+  simp only [(enat.coe_add _ _).symm, add_left_cancel_iff, enat.coe_inj, add_comm];
+  tauto
 end
 
 protected lemma add_left_cancel_iff {a b c : enat} (ha : a ≠ ⊤) : a + b = a + c ↔ b = c :=

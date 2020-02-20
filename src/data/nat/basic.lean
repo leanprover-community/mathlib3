@@ -546,13 +546,12 @@ lemma succ_div : ∀ (a b : ℕ), (a + 1) / b =
     have dvd_iff : b + 1 ∣ a - b + 1 ↔  b + 1 ∣ a + 1 + 1,
     { rw [nat.dvd_add_iff_left (dvd_refl (b + 1)),
         ← nat.add_sub_add_right a 1 b, add_comm (_ - _), add_assoc,
-        nat.sub_add_cancel (succ_le_succ hb_le_a)],
-      simp },
+        nat.sub_add_cancel (succ_le_succ hb_le_a), add_comm 1] },
     have wf : a - b < a + 1, from lt_succ_of_le (nat.sub_le_self _ _),
     rw [if_pos h₁, if_pos h₂, nat.add_sub_add_right, nat.sub_add_comm hb_le_a,
       by exact have _ := wf, succ_div (a - b),
       nat.add_sub_add_right],
-    simp [dvd_iff, succ_eq_add_one], congr },
+    simp [dvd_iff, succ_eq_add_one, add_comm 1], congr },
   { have hba : ¬ b ≤ a,
       from not_le_of_gt (lt_trans (lt_succ_self a) (lt_of_not_ge hb_le_a1)),
     have hb_dvd_a : ¬ b + 1 ∣ a + 2,
@@ -739,7 +738,12 @@ theorem sub_eq_psub (m : ℕ) : ∀ n, m - n = (psub m n).get_or_else 0
 
 theorem psub_eq_some {m : ℕ} : ∀ {n k}, psub m n = some k ↔ k + n = m
 | 0     k := by simp [eq_comm]
-| (n+1) k := by dsimp; apply option.bind_eq_some.trans; simp [psub_eq_some]
+| (n+1) k :=
+  begin
+    dsimp,
+    apply option.bind_eq_some.trans,
+    simp [psub_eq_some, add_comm, add_left_comm, nat.succ_eq_add_one]
+  end
 
 theorem psub_eq_none (m n : ℕ) : psub m n = none ↔ m < n :=
 begin
@@ -1062,7 +1066,7 @@ coefficients. -/
 def choose : ℕ → ℕ → ℕ
 | _             0 := 1
 | 0       (k + 1) := 0
-| (n + 1) (k + 1) := choose n k + choose n (succ k)
+| (n + 1) (k + 1) := choose n k + choose n (k + 1)
 
 @[simp] lemma choose_zero_right (n : ℕ) : choose n 0 = 1 := by cases n; refl
 
@@ -1085,11 +1089,15 @@ by induction n; simp [*, choose, choose_eq_zero_of_lt (lt_succ_self _)]
 choose_eq_zero_of_lt (lt_succ_self _)
 
 @[simp] lemma choose_one_right (n : ℕ) : choose n 1 = n :=
-by induction n; simp [*, choose]
+by induction n; simp [*, choose, add_comm]
 
 /-- `choose n 2` is the `n`-th triangle number. -/
 lemma choose_two_right (n : ℕ) : choose n 2 = n * (n - 1) / 2 :=
-by { induction n, simp, simpa [n_ih, choose, add_one] using (triangle_succ n_n).symm }
+begin
+  induction n with n ih,
+  simp,
+  {rw triangle_succ n, simp [choose, ih], rw add_comm},
+end
 
 lemma choose_pos : ∀ {n k}, k ≤ n → 0 < choose n k
 | 0             _ hk := by rw [eq_zero_of_le_zero hk]; exact dec_trivial
@@ -1312,7 +1320,9 @@ end div
 lemma exists_eq_add_of_le : ∀ {m n : ℕ}, m ≤ n → ∃ k : ℕ, n = m + k
 | 0 0 h := ⟨0, by simp⟩
 | 0 (n+1) h := ⟨n+1, by simp⟩
-| (m+1) (n+1) h := let ⟨k, hk⟩ := exists_eq_add_of_le (nat.le_of_succ_le_succ h) in ⟨k, by simp [hk]⟩
+| (m+1) (n+1) h :=
+  let ⟨k, hk⟩ := exists_eq_add_of_le (nat.le_of_succ_le_succ h) in
+  ⟨k, by simp [hk, add_comm, add_left_comm]⟩
 
 lemma exists_eq_add_of_lt : ∀ {m n : ℕ}, m < n → ∃ k : ℕ, n = m + k + 1
 | 0 0 h := false.elim $ lt_irrefl _ h

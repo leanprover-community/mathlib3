@@ -150,7 +150,7 @@ instance [comm_ring α] (p : ℕ) [nat.prime p] [char_p α p] : comm_ring (perfe
   .. (infer_instance : has_neg (perfect_closure α p)),
   .. (infer_instance : comm_monoid (perfect_closure α p)) }
 
-instance [discrete_field α] (p : ℕ) [nat.prime p] [char_p α p] : has_inv (perfect_closure α p) :=
+instance [field α] (p : ℕ) [nat.prime p] [char_p α p] : has_inv (perfect_closure α p) :=
 ⟨quot.lift (λ x:ℕ×α, quot.mk (r α p) (x.1, x.2⁻¹)) (λ x y (H : r α p x y), match x, y, H with
 | _, _, r.intro _ n x := quot.sound $ by simp only [frobenius]; rw ← inv_pow'; apply r.intro
 end)⟩
@@ -192,7 +192,7 @@ theorem eq_iff [integral_domain α] (p : ℕ) [nat.prime p] [char_p α p]
   by simpa only [add_comm, nat.iterate_add] using H,
 λ H, ⟨0, H⟩⟩
 
-instance [discrete_field α] (p : ℕ) [nat.prime p] [char_p α p] : discrete_field (perfect_closure α p) :=
+instance [field α] (p : ℕ) [nat.prime p] [char_p α p] : field (perfect_closure α p) :=
 { zero_ne_one := λ H, zero_ne_one ((eq_iff _ _ _ _).1 H),
   mul_inv_cancel := λ e, quot.induction_on e $ λ ⟨m, x⟩ H,
     have _ := mt (eq_iff _ _ _ _).2 H, (eq_iff _ _ _ _).2
@@ -274,7 +274,7 @@ begin
   rw [← nat.cast_zero, nat_cast_eq_iff, nat.cast_zero]
 end
 
-instance [discrete_field α] (p : ℕ) [nat.prime p] [char_p α p] : perfect_field (perfect_closure α p) p :=
+instance [field α] (p : ℕ) [nat.prime p] [char_p α p] : perfect_field (perfect_closure α p) p :=
 { pth_root := (frobenius_equiv α p).symm,
   frobenius_pth_root := (frobenius_equiv α p).apply_symm_apply }
 
@@ -286,7 +286,7 @@ instance [comm_ring α] (p : ℕ) [nat.prime p] [char_p α p] : is_ring_hom (of 
   map_mul := λ x y, rfl,
   map_add := λ x y, rfl }
 
-theorem eq_pth_root [discrete_field α] (p : ℕ) [nat.prime p] [char_p α p] (m : ℕ) (x : α) :
+theorem eq_pth_root [field α] (p : ℕ) [nat.prime p] [char_p α p] (m : ℕ) (x : α) :
   quot.mk (r α p) (m, x) = (perfect_field.pth_root p^[m] (of α p x) : perfect_closure α p) :=
 begin
   unfold of,
@@ -294,8 +294,8 @@ begin
   rw [nat.iterate_succ', ← ih]; refl
 end
 
-def UMP [discrete_field α] (p : ℕ) [nat.prime p] [char_p α p]
-  (β : Type v) [discrete_field β] [char_p β p] [perfect_field β p] :
+def UMP [field α] (p : ℕ) [nat.prime p] [char_p α p]
+  (β : Type v) [field β] [char_p β p] [perfect_field β p] :
   { f : α → β // is_ring_hom f } ≃ { f : perfect_closure α p → β // is_ring_hom f } :=
 { to_fun := λ f, ⟨λ e, quot.lift_on e (λ x, perfect_field.pth_root p^[x.1] (f.1 x.2))
       (λ x y H, match x, y, H with | _, _, r.intro _ n x := by letI := f.2;

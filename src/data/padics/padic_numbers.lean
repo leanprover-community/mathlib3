@@ -403,8 +403,8 @@ section completion
 variables {p : ℕ} [nat.prime p]
 
 /-- The discrete field structure on ℚ_p is inherited from the Cauchy completion construction. -/
-instance discrete_field : discrete_field (ℚ_[p]) :=
-cau_seq.completion.discrete_field
+instance field : field (ℚ_[p]) :=
+cau_seq.completion.field
 
 instance : inhabited ℚ_[p] := ⟨0⟩
 

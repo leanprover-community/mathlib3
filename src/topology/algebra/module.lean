@@ -82,7 +82,7 @@ class topological_module (R : Type u) (M : Type v)
 
 /-- A topological vector space is a topological module over a field. -/
 abbreviation topological_vector_space (R : Type u) (M : Type v)
-  [discrete_field R] [topological_space R]
+  [field R] [topological_space R]
   [topological_space M] [add_comm_group M] [module R M] :=
 topological_module R M
 end prio
@@ -138,7 +138,7 @@ end
 section
 
 variables {R : Type*} {M : Type*} {a : R}
-[discrete_field R] [topological_space R]
+[field R] [topological_space R]
 [topological_space M] [add_comm_group M]
 [vector_space R M] [topological_vector_space R M]
 
@@ -267,7 +267,7 @@ instance : has_neg (M →L[R] M₂) := ⟨λ f, ⟨-f, f.2.neg⟩⟩
 
 instance : add_comm_group (M →L[R] M₂) :=
 by refine {zero := 0, add := (+), neg := has_neg.neg, ..};
-   intros; ext; simp
+   intros; ext; simp; cc
 
 @[simp] lemma sub_apply (x : M) : (f - g) x = f x - g x := rfl
 @[simp, move_cast] lemma coe_sub : (((f - g) : M →L[R] M₂) : M →ₗ[R] M₂) = (f : M →ₗ[R] M₂) - g := rfl

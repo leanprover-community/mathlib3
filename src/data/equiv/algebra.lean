@@ -203,6 +203,7 @@ protected def division_ring [division_ring β] : division_ring α :=
   mul_inv_cancel := λ _,
     by simp [mul_def, inv_def, zero_def, one_def, (equiv.symm_apply_eq _).symm];
       exact mul_inv_cancel,
+  inv_zero := by simp [zero_def, inv_def],
   ..equiv.has_zero e,
   ..equiv.has_one e,
   ..equiv.domain e,
@@ -211,14 +212,6 @@ protected def division_ring [division_ring β] : division_ring α :=
 protected def field [field β] : field α :=
 { ..equiv.integral_domain e,
   ..equiv.division_ring e }
-
-protected def discrete_field [discrete_field β] : discrete_field α :=
-{ has_decidable_eq := equiv.decidable_eq e,
-  inv_zero := by simp [mul_def, inv_def, zero_def],
-  ..equiv.has_mul e,
-  ..equiv.has_inv e,
-  ..equiv.has_zero e,
-  ..equiv.field e }
 
 end instances
 end equiv

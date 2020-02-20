@@ -939,7 +939,7 @@ end module
 section vector_space
 variables
   {v : ι → V}
-  [discrete_field K] [add_comm_group V] [add_comm_group V']
+  [field K] [add_comm_group V] [add_comm_group V']
   [vector_space K V] [vector_space K V']
   {s t : set V} {x y z : V}
 include K

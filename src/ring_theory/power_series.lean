@@ -663,8 +663,8 @@ instance map.is_local_ring_hom :
 
 end local_ring
 
-section discrete_field
-variables [discrete_field α]
+section field
+variables [field α]
 
 protected def inv (φ : mv_power_series σ α) : mv_power_series σ α :=
 inv.aux (constant_coeff σ α φ)⁻¹ φ
@@ -705,7 +705,7 @@ by rw [← inv_of_unit_eq φ h, mul_inv_of_unit φ (units.mk0 _ h) rfl]
   φ⁻¹ * φ = 1 :=
 by rw [mul_comm, φ.mul_inv h]
 
-end discrete_field
+end field
 
 end mv_power_series
 
@@ -1199,8 +1199,8 @@ mv_power_series.map.is_local_ring_hom f
 
 end local_ring
 
-section discrete_field
-variables [discrete_field α]
+section field
+variables [field α]
 
 protected def inv : power_series α → power_series α :=
 mv_power_series.inv
@@ -1240,7 +1240,7 @@ mv_power_series.mul_inv φ h
   φ⁻¹ * φ = 1 :=
 mv_power_series.inv_mul φ h
 
-end discrete_field
+end field
 
 end power_series
 

@@ -227,8 +227,8 @@ protected def field [field β] (U : is_ultrafilter φ) : field β* :=
 
 /-- If `φ` is an ultrafilter then the ultraproduct is a discrete field.
 This cannot be an instance, since it depends on `φ` being an ultrafilter. -/
-protected noncomputable def discrete_field [discrete_field β] (U : is_ultrafilter φ) :
-  discrete_field β* :=
+protected noncomputable def field [field β] (U : is_ultrafilter φ) :
+  field β* :=
 { inv_zero := quotient.sound' $ by show _ ∈ _;
     simp only [inv_zero, eq_self_iff_true, (set.univ_def).symm, univ_sets],
   has_decidable_eq := by apply_instance,
@@ -442,7 +442,7 @@ This cannot be an instance, since it depends on `φ` being an ultrafilter. -/
 protected noncomputable def discrete_linear_ordered_field [discrete_linear_ordered_field β]
   (U : is_ultrafilter φ) : discrete_linear_ordered_field β* :=
 { ..filter_product.linear_ordered_field U, ..filter_product.decidable_linear_ordered_comm_ring U,
-  ..filter_product.discrete_field U }
+  ..filter_product.field U }
 
 instance ordered_cancel_comm_monoid [ordered_cancel_comm_monoid β] : ordered_cancel_comm_monoid β* :=
 { add_le_add_left := λ x y hxy z, by revert hxy; exact quotient.induction_on₃' x y z

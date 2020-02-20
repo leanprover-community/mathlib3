@@ -134,19 +134,21 @@ instance : inhabited (M →ₗ[R] M₂) := ⟨0⟩
 @[simp] lemma zero_apply (x : M) : (0 : M →ₗ[R] M₂) x = 0 := rfl
 
 /-- The negation of a linear map is linear. -/
-instance : has_neg (M →ₗ[R] M₂) := ⟨λ f, ⟨λ b, - f b, by simp, by simp⟩⟩
+instance : has_neg (M →ₗ[R] M₂) :=
+⟨λ f, ⟨λ b, - f b, by simp [add_comm], by simp⟩⟩
 
 @[simp] lemma neg_apply (x : M) : (- f) x = - f x := rfl
 
 /-- The sum of two linear maps is linear. -/
-instance : has_add (M →ₗ[R] M₂) := ⟨λ f g, ⟨λ b, f b + g b, by simp, by simp [smul_add]⟩⟩
+instance : has_add (M →ₗ[R] M₂) :=
+⟨λ f g, ⟨λ b, f b + g b, by simp [add_comm, add_left_comm], by simp [smul_add]⟩⟩
 
 @[simp] lemma add_apply (x : M) : (f + g) x = f x + g x := rfl
 
 /-- The type of linear maps is an additive group. -/
 instance : add_comm_group (M →ₗ[R] M₂) :=
 by refine {zero := 0, add := (+), neg := has_neg.neg, ..};
-   intros; ext; simp
+   intros; ext; simp [add_comm, add_left_comm]
 
 instance linear_map.is_add_group_hom : is_add_group_hom f :=
 { map_add := f.add }
@@ -250,7 +252,7 @@ end
 
 /-- The copair function `λ x : M × M₂, f x.1 + g x.2` is a linear map. -/
 def copair (f : M →ₗ[R] M₃) (g : M₂ →ₗ[R] M₃) : M × M₂ →ₗ[R] M₃ :=
-⟨λ x, f x.1 + g x.2, λ x y, by simp, λ x y, by simp [smul_add]⟩
+⟨λ x, f x.1 + g x.2, λ x y, by simp; cc, λ x y, by simp [smul_add]⟩
 
 @[simp] theorem copair_apply (f : M →ₗ[R] M₃) (g : M₂ →ₗ[R] M₃) (x : M) (y : M₂) :
   copair f g (x, y) = f x + g y := rfl
@@ -684,7 +686,7 @@ lemma mem_sup : x ∈ p ⊔ p' ↔ ∃ (y ∈ p) (z ∈ p'), y + z = x :=
     { exact ⟨0, by simp, y, h, by simp⟩ } },
   { exact ⟨0, by simp, 0, by simp⟩ },
   { rintro _ _ ⟨y₁, hy₁, z₁, hz₁, rfl⟩ ⟨y₂, hy₂, z₂, hz₂, rfl⟩,
-    exact ⟨_, add_mem _ hy₁ hy₂, _, add_mem _ hz₁ hz₂, by simp⟩ },
+    exact ⟨_, add_mem _ hy₁ hy₂, _, add_mem _ hz₁ hz₂, by simp; cc⟩ },
   { rintro a _ ⟨y, hy, z, hz, rfl⟩,
     exact ⟨_, smul_mem _ a hy, _, smul_mem _ a hz, by simp [smul_add]⟩ }
 end,
@@ -712,7 +714,7 @@ set.ext $ λ x, mem_span_singleton
 lemma mem_span_insert {y} : x ∈ span R (insert y s) ↔ ∃ (a:R) (z ∈ span R s), x = a • y + z :=
 begin
   rw [← union_singleton, span_union, mem_sup],
-  simp [mem_span_singleton], split,
+  simp [mem_span_singleton, add_comm, add_left_comm], split,
   { rintro ⟨z, hz, _, ⟨a, rfl⟩, rfl⟩, exact ⟨a, z, hz, rfl⟩ },
   { rintro ⟨a, z, hz, rfl⟩, exact ⟨z, hz, _, ⟨a, rfl⟩, rfl⟩ }
 end
@@ -721,7 +723,7 @@ lemma mem_span_insert' {y} : x ∈ span R (insert y s) ↔ ∃(a:R), x + a • y
 begin
   rw mem_span_insert, split,
   { rintro ⟨a, z, hz, rfl⟩, exact ⟨-a, by simp [hz]⟩ },
-  { rintro ⟨a, h⟩, exact ⟨-a, _, h, by simp⟩ }
+  { rintro ⟨a, h⟩, exact ⟨-a, _, h, by simp [add_comm, add_left_comm]⟩ }
 end
 
 lemma span_insert_eq_span (h : x ∈ span R s) : span R (insert x s) = span R s :=
@@ -809,7 +811,7 @@ end
 def quotient_rel : setoid M :=
 ⟨λ x y, x - y ∈ p, λ x, by simp,
  λ x y h, by simpa using neg_mem _ h,
- λ x y z h₁ h₂, by simpa using add_mem _ h₁ h₂⟩
+ λ x y z h₁ h₂, by simpa [sub_eq_add_neg, add_left_comm] using add_mem _ h₁ h₂⟩
 
 /-- The quotient of a module `M` by a submodule `p ⊆ M`. -/
 def quotient : Type* := quotient (quotient_rel p)
@@ -836,7 +838,7 @@ by simpa using (quotient.eq p : mk x = 0 ↔ _)
 
 instance : has_add (quotient p) :=
 ⟨λ a b, quotient.lift_on₂' a b (λ a b, mk (a + b)) $
- λ a₁ a₂ b₁ b₂ h₁ h₂, (quotient.eq p).2 $ by simpa using add_mem p h₁ h₂⟩
+ λ a₁ a₂ b₁ b₂ h₁ h₂, (quotient.eq p).2 $ by simpa [sub_eq_add_neg, add_left_comm, add_comm] using add_mem p h₁ h₂⟩
 
 @[simp] theorem mk_add : (mk (x + y) : quotient p) = mk x + mk y := rfl
 
@@ -849,11 +851,11 @@ instance : has_neg (quotient p) :=
 instance : add_comm_group (quotient p) :=
 by refine {zero := 0, add := (+), neg := has_neg.neg, ..};
    repeat {rintro ⟨⟩};
-   simp [-mk_zero, (mk_zero p).symm, -mk_add, (mk_add p).symm, -mk_neg, (mk_neg p).symm]
+   simp [-mk_zero, (mk_zero p).symm, -mk_add, (mk_add p).symm, -mk_neg, (mk_neg p).symm]; cc
 
 instance : has_scalar R (quotient p) :=
 ⟨λ a x, quotient.lift_on' x (λ x, mk (a • x)) $
- λ x y h, (quotient.eq p).2 $ by simpa [smul_add] using smul_mem p a h⟩
+ λ x y h, (quotient.eq p).2 $ by simpa [smul_sub] using smul_mem p a h⟩
 
 @[simp] theorem mk_smul : (mk (r • x) : quotient p) = r • mk x := rfl
 
@@ -867,7 +869,7 @@ end quotient
 end submodule
 
 namespace submodule
-variables [discrete_field K]
+variables [field K]
 variables [add_comm_group V] [vector_space K V]
 variables [add_comm_group V₂] [vector_space K V₂]
 
@@ -885,11 +887,11 @@ set_option class.instance_max_depth 40
 
 lemma comap_smul' (f : V →ₗ[K] V₂) (p : submodule K V₂) (a : K) :
   p.comap (a • f) = (⨅ h : a ≠ 0, p.comap f) :=
-by by_cases a = 0; simp [h, comap_smul]
+by classical; by_cases a = 0; simp [h, comap_smul]
 
 lemma map_smul' (f : V →ₗ[K] V₂) (p : submodule K V) (a : K) :
   p.map (a • f) = (⨆ h : a ≠ 0, p.map f) :=
-by by_cases a = 0; simp [h, map_smul]
+by classical; by_cases a = 0; simp [h, map_smul]
 
 end submodule
 
@@ -1082,7 +1084,7 @@ by rw [ker, ← prod_bot, comap_pair_prod]; refl
 end linear_map
 
 namespace linear_map
-variables [discrete_field K]
+variables [field K]
 variables [add_comm_group V] [vector_space K V]
 variables [add_comm_group V₂] [vector_space K V₂]
 
@@ -1107,7 +1109,7 @@ lemma is_linear_map_add {R M : Type*} [ring R] [add_comm_group M] [module R M]:
 begin
   apply is_linear_map.mk,
   { intros x y,
-    simp },
+    simp, cc },
   { intros x y,
     simp [smul_add] }
 end
@@ -1117,9 +1119,9 @@ lemma is_linear_map_sub {R M : Type*} [ring R] [add_comm_group M] [module R M]:
 begin
   apply is_linear_map.mk,
   { intros x y,
-    simp },
+    simp [add_comm, add_left_comm, sub_eq_add_neg] },
   { intros x y,
-    simp [smul_add] }
+    simp [smul_sub] }
 end
 
 end is_linear_map

@@ -192,7 +192,7 @@ by rw [list.to_alist,lookup,lookup_erase_dupkeys]
 by ext : 1; simp only [alist.insert_entries, list.kerase_cons_eq];
    constructor_matching* [_ ∧ _]; refl
 
-@[simp] theorem insert_insert_of_ne {a a'} {b : β a} {b' : β a'} (s : alist β) (h : a ≠ a') :
+theorem insert_insert_of_ne {a a'} {b : β a} {b' : β a'} (s : alist β) (h : a ≠ a') :
   ((s.insert a b).insert a' b').entries ~ ((s.insert a' b').insert a b).entries :=
 by simp only [insert_entries]; rw [kerase_cons_ne,kerase_cons_ne,kerase_comm];
    [apply perm.swap, exact h, exact h.symm]

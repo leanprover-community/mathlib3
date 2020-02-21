@@ -25,7 +25,7 @@ end
 -- Check that tactics are sorted by the number of goals they leave.
 example : 1 = 1 ∧ 2 = 2 :=
 begin
-  (do hints ← tactic.hint, guard $ hints.indexes_of "finish" < hints.indexes_of "fsplit"),
+  (do hints ← tactic.hint, guard $ hints.indexes_of "finish" < hints.indexes_of "fconstructor"),
   finish
 end
 

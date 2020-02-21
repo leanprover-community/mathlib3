@@ -507,18 +507,17 @@ section currying
 
 We associate to a continuous multilinear map in `n+1` variables (i.e., based on `fin n.succ`) two
 curried functions, named `f.curry_left` (which is a continuous linear map on `E 0` taking values
-in continuous multilinear maps in `n` variables) and `f.curry_right` (wich is a continuous
-multilinear map in `n` variables taking values in continuous linear maps on `E 0`). In both
-constructions, the variable that is singled out is `0`, to take advantage of the operations
-`cons` and `tail` on `fin n`. The inverse operations are called `uncurry_left` and `uncurry_right`.
+in continuous multilinear maps in `n` variables) and `f.curry_right` (which is a continuous
+multilinear map in `n` variables taking values in continuous linear maps on `E (last n)`).
+The inverse operations are called `uncurry_left` and `uncurry_right`.
 
 We also register continuous linear equiv versions of these correspondences, in
 `continuous_multilinear_curry_left_equiv` and `continuous_multilinear_curry_right_equiv`.
 -/
-set_option class.instance_max_depth 140
+set_option class.instance_max_depth 360
 open fin function
 
-lemma continuous_linear_map.norm_map_tail_right_le
+lemma continuous_linear_map.norm_map_tail_le
   (f : E 0 →L[𝕜] (continuous_multilinear_map 𝕜 (λ(i : fin n), E i.succ) E₂)) (m : Πi, E i) :
   ∥f (m 0) (tail m)∥ ≤ ∥f∥ * univ.prod (λi, ∥m i∥) :=
 calc
@@ -528,15 +527,15 @@ calc
   ... = ∥f∥ * (∥m 0∥ * univ.prod (λi, ∥(tail m) i∥)) : by ring
   ... = ∥f∥ * univ.prod (λi, ∥m i∥) : by { rw prod_univ_succ, refl }
 
-lemma continuous_multilinear_map.norm_map_tail_left_le
-  (f : continuous_multilinear_map 𝕜 (λ(i : fin n), E i.succ) (E 0 →L[𝕜] E₂)) (m : Πi, E i) :
-  ∥f (tail m) (m 0)∥ ≤ ∥f∥ * univ.prod (λi, ∥m i∥) :=
+lemma continuous_multilinear_map.norm_map_init_le
+  (f : continuous_multilinear_map 𝕜 (λ(i : fin n), E i.cast_succ) (E (last n) →L[𝕜] E₂)) (m : Πi, E i) :
+  ∥f (init m) (m (last n))∥ ≤ ∥f∥ * univ.prod (λi, ∥m i∥) :=
 calc
-  ∥f (tail m) (m 0)∥ ≤ ∥f (tail m)∥ * ∥m 0∥ : (f (tail m)).le_op_norm _
-  ... ≤ (∥f∥ * univ.prod (λi, ∥(tail m) i∥)) * ∥m 0∥ :
+  ∥f (init m) (m (last n))∥ ≤ ∥f (init m)∥ * ∥m (last n)∥ : (f (init m)).le_op_norm _
+  ... ≤ (∥f∥ * univ.prod (λi, ∥(init m) i∥)) * ∥m (last n)∥ :
     mul_le_mul_of_nonneg_right (f.le_op_norm _) (norm_nonneg _)
-  ... = ∥f∥ * (∥m 0∥ * univ.prod (λi, ∥(tail m) i∥)) : by ring
-  ... = ∥f∥ * univ.prod (λi, ∥m i∥) : by { rw prod_univ_succ, refl }
+  ... = ∥f∥ * (univ.prod (λi, ∥(init m) i∥) * ∥m (last n)∥) : mul_assoc _ _ _
+  ... = ∥f∥ * univ.prod (λi, ∥m i∥) : by { rw prod_univ_cast_succ, refl }
 
 lemma continuous_multilinear_map.norm_map_cons_le
   (f : continuous_multilinear_map 𝕜 E E₂) (x : E 0) (m : Π(i : fin n), E i.succ) :
@@ -544,6 +543,15 @@ lemma continuous_multilinear_map.norm_map_cons_le
 calc
   ∥f (cons x m)∥ ≤ ∥f∥ * univ.prod (λ(i : fin n.succ), ∥cons x m i∥) : f.le_op_norm _
   ... = (∥f∥ * ∥x∥) * univ.prod (λi, ∥m i∥) : by { rw prod_univ_succ, simp [mul_assoc] }
+
+lemma continuous_multilinear_map.norm_map_snoc_le
+  (f : continuous_multilinear_map 𝕜 E E₂) (m : Π(i : fin n), E i.cast_succ) (x : E (last n)) :
+  ∥f (snoc m x)∥ ≤ ∥f∥ * univ.prod (λi, ∥m i∥) * ∥x∥ :=
+calc
+  ∥f (snoc m x)∥ ≤ ∥f∥ * univ.prod (λ(i : fin n.succ), ∥snoc m x i∥) : f.le_op_norm _
+  ... = ∥f∥ * univ.prod (λi, ∥m i∥) * ∥x∥ : by { rw prod_univ_cast_succ, simp [mul_assoc] }
+
+/-! #### Left curryfication -/
 
 /-- Given a continuous linear map `f` from `E 0` to continuous multilinear maps on `n` variables,
 construct the corresponding continuous multilinear map on `n+1` variables obtained by concatenating
@@ -553,7 +561,7 @@ def continuous_linear_map.uncurry_left
   continuous_multilinear_map 𝕜 E E₂ :=
 (@linear_map.uncurry_left 𝕜 n E E₂ _ _ _ _ _
   (continuous_multilinear_map.to_multilinear_map_linear.comp f.to_linear_map)).mk_continuous
-    (∥f∥) (λm, continuous_linear_map.norm_map_tail_right_le f m)
+    (∥f∥) (λm, continuous_linear_map.norm_map_tail_le f m)
 
 @[simp] lemma continuous_linear_map.uncurry_left_apply
   (f : E 0 →L[𝕜] (continuous_multilinear_map 𝕜 (λ(i : fin n), E i.succ) E₂)) (m : Πi, E i) :
@@ -660,53 +668,59 @@ def continuous_multilinear_curry_left_equiv :
 
 variables {𝕜 E E₂}
 
+@[simp] lemma continuous_multilinear_curry_left_equiv_apply
+  (f : E 0 →L[𝕜] (continuous_multilinear_map 𝕜 (λ(i : fin n), E i.succ) E₂)) (v : Π i, E i) :
+  continuous_multilinear_curry_left_equiv 𝕜 E E₂ f v = f (v 0) (tail v) := rfl
+
+@[simp] lemma continuous_multilinear_curry_left_equiv_symm_apply
+  (f : continuous_multilinear_map 𝕜 E E₂) (x : E 0) (v : Π (i : fin n), E i.succ) :
+  (continuous_multilinear_curry_left_equiv 𝕜 E E₂).symm f x v = f (cons x v) := rfl
+
+/-! #### Right curryfication -/
+
 /-- Given a continuous linear map `f` from continuous multilinear maps on `n` variables to
 continuous linear maps on `E 0`, construct the corresponding continuous multilinear map on `n+1`
-variables obtained by concatenating the variables, given by `m ↦ f (tail m) (m 0)`-/
+variables obtained by concatenating the variables, given by `m ↦ f (init m) (m (last n))`. -/
 def continuous_multilinear_map.uncurry_right
-  (f : continuous_multilinear_map 𝕜 (λ(i : fin n), E i.succ) (E 0 →L[𝕜] E₂)) :
+  (f : continuous_multilinear_map 𝕜 (λ(i : fin n), E i.cast_succ) (E (last n) →L[𝕜] E₂)) :
   continuous_multilinear_map 𝕜 E E₂ :=
-let f' : multilinear_map 𝕜 (λ(i : fin n), E i.succ) (E 0 →ₗ[𝕜] E₂) :=
+let f' : multilinear_map 𝕜 (λ(i : fin n), E i.cast_succ) (E (last n) →ₗ[𝕜] E₂) :=
 { to_fun := λ m, (f m).to_linear_map,
   add    := λ m i x y, by { simp, refl },
   smul   := λ m i c x, by { simp, refl } } in
 (@multilinear_map.uncurry_right 𝕜 n E E₂ _ _ _ _ _ f').mk_continuous
-  (∥f∥) (λm, f.norm_map_tail_left_le m)
+  (∥f∥) (λm, f.norm_map_init_le m)
 
 @[simp] lemma continuous_multilinear_map.uncurry_right_apply
-  (f : continuous_multilinear_map 𝕜 (λ(i : fin n), E i.succ) (E 0 →L[𝕜] E₂)) (m : Πi, E i) :
-  f.uncurry_right m = f (tail m) (m 0) := rfl
+  (f : continuous_multilinear_map 𝕜 (λ(i : fin n), E i.cast_succ) (E (last n) →L[𝕜] E₂)) (m : Πi, E i) :
+  f.uncurry_right m = f (init m) (m (last n)) := rfl
 
-/-- Given a continuous multilinear map `f` in `n+1` variables, split the first variable to obtain
+/-- Given a continuous multilinear map `f` in `n+1` variables, split the last variable to obtain
 a continuous multilinear map in `n` variables into continuous linear maps, given by
-`m ↦ (x ↦ f (cons x m))`. -/
+`m ↦ (x ↦ f (snoc m x))`. -/
 def continuous_multilinear_map.curry_right
   (f : continuous_multilinear_map 𝕜 E E₂) :
-  continuous_multilinear_map 𝕜 (λ(i : fin n), E i.succ) (E 0 →L[𝕜] E₂) :=
-let f' : multilinear_map 𝕜 (λ(i : fin n), E i.succ) (E 0 →L[𝕜] E₂) :=
+  continuous_multilinear_map 𝕜 (λ(i : fin n), E i.cast_succ) (E (last n) →L[𝕜] E₂) :=
+let f' : multilinear_map 𝕜 (λ(i : fin n), E i.cast_succ) (E (last n) →L[𝕜] E₂) :=
 { to_fun := λm, (f.to_multilinear_map.curry_right m).mk_continuous
-    (∥f∥ * univ.prod (λ(i : fin n), ∥m i∥)) $ λx, begin
-      change ∥f (cons x m)∥ ≤ ∥f∥ * finset.prod univ (λ (i : fin n), ∥m i∥) * ∥x∥,
-      rw [mul_assoc, mul_comm _ (∥x∥), ← mul_assoc],
-      exact f.norm_map_cons_le x m,
-    end,
+    (∥f∥ * univ.prod (λ(i : fin n), ∥m i∥)) $ λx, f.norm_map_snoc_le m x,
   add  := λ m i x y, by { simp, refl },
   smul := λ m i c x, by { simp, refl } } in
 f'.mk_continuous (∥f∥) (λm, linear_map.mk_continuous_norm_le _
   (mul_nonneg' (norm_nonneg _) (prod_nonneg (λj hj, norm_nonneg _))) _)
 
 @[simp] lemma continuous_multilinear_map.curry_right_apply
-  (f : continuous_multilinear_map 𝕜 E E₂) (x : E 0) (m : Π(i : fin n), E i.succ) :
-  f.curry_right m x = f (cons x m) := rfl
+  (f : continuous_multilinear_map 𝕜 E E₂) (m : Π(i : fin n), E i.cast_succ) (x : E (last n)) :
+  f.curry_right m x = f (snoc m x) := rfl
 
 @[simp] lemma continuous_multilinear_map.curry_uncurry_right
-  (f : continuous_multilinear_map 𝕜 (λ(i : fin n), E i.succ) (E 0 →L[𝕜] E₂)) :
+  (f : continuous_multilinear_map 𝕜 (λ(i : fin n), E i.cast_succ) (E (last n) →L[𝕜] E₂)) :
   f.uncurry_right.curry_right = f :=
 begin
   ext m x,
-  simp only [cons_zero, continuous_multilinear_map.curry_right_apply,
+  simp only [snoc_last, continuous_multilinear_map.curry_right_apply,
              continuous_multilinear_map.uncurry_right_apply],
-  rw tail_cons
+  rw init_snoc
 end
 
 @[simp] lemma continuous_multilinear_map.uncurry_curry_right
@@ -723,7 +737,7 @@ begin
 end
 
 @[simp] lemma continuous_multilinear_map.uncurry_right_norm
-  (f : continuous_multilinear_map 𝕜 (λ(i : fin n), E i.succ) (E 0 →L[𝕜] E₂)) :
+  (f : continuous_multilinear_map 𝕜 (λ(i : fin n), E i.cast_succ) (E (last n) →L[𝕜] E₂)) :
   ∥f.uncurry_right∥ = ∥f∥ :=
 begin
   refine le_antisymm (multilinear_map.mk_continuous_norm_le _ (norm_nonneg _) _) _,
@@ -735,9 +749,9 @@ end
 variables (𝕜 E E₂)
 
 /-- The space of continuous multilinear maps on `Π(i : fin (n+1)), E i` is canonically isomorphic to
-the space of continuous multilinear maps on `Π(i : fin n), E i.succ` with values in the space of
-continuous linear maps on `E 0`, by separating the first variable. We register this isomorphism as a
-linear isomorphism in `continuous_multilinear_curry_right_equiv_aux 𝕜 E E₂`.
+the space of continuous multilinear maps on `Π(i : fin n), E i.cast_succ` with values in the space
+of continuous linear maps on `E (last n)`, by separating the last variable. We register this
+isomorphism as a linear equiv in `continuous_multilinear_curry_right_equiv_aux 𝕜 E E₂`.
 The algebraic version (without continuity assumption on the maps) is
 `multilinear_curry_right_equiv 𝕜 E E₂`, and the topological isomorphism (registering
 additionally that the isomorphism is continuous) is
@@ -746,7 +760,7 @@ additionally that the isomorphism is continuous) is
 The direct and inverse maps are given by `f.uncurry_right` and `f.curry_right`. Use these
 unless you need the full framework of linear equivs. -/
 def continuous_multilinear_curry_right_equiv_aux :
-  (continuous_multilinear_map 𝕜 (λ(i : fin n), E i.succ) (E 0 →L[𝕜] E₂)) ≃ₗ[𝕜]
+  (continuous_multilinear_map 𝕜 (λ(i : fin n), E i.cast_succ) (E (last n) →L[𝕜] E₂)) ≃ₗ[𝕜]
   (continuous_multilinear_map 𝕜 E E₂) :=
 { to_fun    := continuous_multilinear_map.uncurry_right,
   add       := λf₁ f₂, by { ext m, refl },
@@ -756,15 +770,15 @@ def continuous_multilinear_curry_right_equiv_aux :
   right_inv := continuous_multilinear_map.uncurry_curry_right }
 
 /-- The space of continuous multilinear maps on `Π(i : fin (n+1)), E i` is canonically isomorphic to
-the space of continuous multilinear maps on `Π(i : fin n), E i.succ` with values in the space of
-continuous linear maps on `E 0`, by separating the first variable. We register this isomorphism in
-`continuous_multilinear_curry_right_equiv 𝕜 E E₂`. The algebraic version (without topology) is given
-in `multilinear_curry_right_equiv 𝕜 E E₂`.
+the space of continuous multilinear maps on `Π(i : fin n), E i.cast_succ` with values in the space
+of continuous linear maps on `E (last n)`, by separating the last variable. We register this
+isomorphism as a continuous linear equiv in `continuous_multilinear_curry_right_equiv 𝕜 E E₂`.
+The algebraic version (without topology) is given in `multilinear_curry_right_equiv 𝕜 E E₂`.
 
 The direct and inverse maps are given by `f.uncurry_right` and `f.curry_right`. Use these
 unless you need the full framework of continuous linear equivs. -/
 def continuous_multilinear_curry_right_equiv :
-  (continuous_multilinear_map 𝕜 (λ(i : fin n), E i.succ) (E 0 →L[𝕜] E₂)) ≃L[𝕜]
+  (continuous_multilinear_map 𝕜 (λ(i : fin n), E i.cast_succ) (E (last n) →L[𝕜] E₂)) ≃L[𝕜]
   (continuous_multilinear_map 𝕜 E E₂) :=
 { continuous_to_fun := begin
     refine (continuous_multilinear_curry_right_equiv_aux 𝕜 E E₂).to_linear_map.continuous_of_bound
@@ -780,8 +794,21 @@ def continuous_multilinear_curry_right_equiv :
   end,
   .. continuous_multilinear_curry_right_equiv_aux 𝕜 E E₂ }
 
+variables {𝕜 G E E₂}
+
+@[simp] lemma continuous_multilinear_curry_right_equiv_apply
+  (f : (continuous_multilinear_map 𝕜 (λ(i : fin n), E i.cast_succ) (E (last n) →L[𝕜] E₂)))
+  (v : Π i, E i) :
+  (continuous_multilinear_curry_right_equiv 𝕜 E E₂) f v = f (init v) (v (last n)) := rfl
+
+@[simp] lemma continuous_multilinear_curry_right_equiv_symm_apply
+  (f : continuous_multilinear_map 𝕜 E E₂)
+  (v : Π (i : fin n), E i.cast_succ) (x : E (last n)) :
+  (continuous_multilinear_curry_right_equiv 𝕜 E E₂).symm f v x = f (snoc v x) := rfl
+
+
 /-!
-### Currying with `0` variables
+#### Currying with `0` variables
 
 The space of multilinear maps with `0` variables is trivial: such a multilinear map is just an
 arbitrary constant (note that multilinear maps in `0` variables need not map `0` to `0`!).
@@ -810,6 +837,10 @@ variable {G}
   (continuous_multilinear_map.curry0 𝕜 G x : ((fin 0) → G) → E₂) m = x := rfl
 
 variable {𝕜}
+@[simp] lemma continuous_multilinear_map.uncurry0_apply
+  (f : continuous_multilinear_map 𝕜 (λ (i : fin 0), G) E₂) :
+  f.uncurry0 = f 0 := rfl
+
 @[simp] lemma continuous_multilinear_map.uncurry0_curry0
   (f : continuous_multilinear_map 𝕜 (λ (i : fin 0), G) E₂) :
   continuous_multilinear_map.curry0 𝕜 G (f.uncurry0) = f :=
@@ -834,7 +865,7 @@ begin
   refine le_antisymm (by simpa using f.le_op_norm 0) _,
   have : ∥continuous_multilinear_map.curry0 𝕜 G (f.uncurry0)∥ ≤ ∥f.uncurry0∥ :=
     continuous_multilinear_map.op_norm_le_bound _ (norm_nonneg _) (λm, by simp),
-  simpa
+  simpa [-continuous_multilinear_map.uncurry0_apply]
 end
 
 variables (𝕜 G E₂)
@@ -872,5 +903,36 @@ def continuous_multilinear_curry_fin0 :
     exact continuous_multilinear_map.uncurry0_norm _ _ _
   end,
   .. continuous_multilinear_curry_fin0_aux 𝕜 G E₂ }
+
+variables {𝕜 G E₂}
+
+@[simp] lemma continuous_multilinear_curry_fin0_apply
+  (f : (continuous_multilinear_map 𝕜 (λ (i : fin 0), G) E₂)) :
+  continuous_multilinear_curry_fin0 𝕜 G E₂ f = f 0 := rfl
+
+@[simp] lemma continuous_multilinear_curry_fin0_symm_apply
+  (x : E₂) (v : (fin 0) → G) :
+  (continuous_multilinear_curry_fin0 𝕜 G E₂).symm x v = x := rfl
+
+/-! #### With 1 variable -/
+
+variables (𝕜 G E₂)
+
+/-- Continuous multilinear maps from `G^1` to `E₂` are isomorphic with continuous linear maps from
+`G` to `E₂`. -/
+def continuous_multilinear_curry_fin1 :
+  (continuous_multilinear_map 𝕜 (λ (i : fin 1), G) E₂) ≃L[𝕜] (G →L[𝕜] E₂) :=
+(continuous_multilinear_curry_right_equiv 𝕜 (λ (i : fin 1), G) E₂).symm.trans
+(continuous_multilinear_curry_fin0 𝕜 G (G →L[𝕜] E₂))
+
+variables {𝕜 G E₂}
+
+@[simp] lemma continuous_multilinear_curry_fin1_apply
+  (f : (continuous_multilinear_map 𝕜 (λ (i : fin 1), G) E₂)) (x : G) :
+  continuous_multilinear_curry_fin1 𝕜 G E₂ f x = f (fin.snoc 0 x) := rfl
+
+@[simp] lemma continuous_multilinear_curry_fin1_symm_apply
+  (f : G →L[𝕜] E₂) (v : (fin 1) → G) :
+  (continuous_multilinear_curry_fin1 𝕜 G E₂).symm f v = f (v 0) := rfl
 
 end currying

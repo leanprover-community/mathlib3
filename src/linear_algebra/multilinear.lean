@@ -47,8 +47,9 @@ advantage of avoiding subtype inclusion issues. This is the definition we use, b
 
 open function fin set
 
-universes u v v' w u'
-variables {R : Type u} {ι : Type u'} {n : ℕ} {M : fin n.succ → Type v'} {M₁ : ι → Type v} {M₂ : Type w}
+universes u v v' v₁ v₂ v₃ w u'
+variables {R : Type u} {ι : Type u'} {n : ℕ}
+{M : fin n.succ → Type v} {M₁ : ι → Type v₁} {M₂ : Type v₂} {M₃ : Type v₃} {M' : Type v'}
 [decidable_eq ι]
 
 /-- Multilinear maps over the ring `R`, from `Πi, M₁ i` to `M₂` where `M₁ i` and `M₂` are modules
@@ -66,8 +67,10 @@ namespace multilinear_map
 
 section ring
 
-variables [ring R] [∀i, add_comm_group (M i)] [∀i, add_comm_group (M₁ i)] [add_comm_group M₂]
-[∀i, module R (M i)] [∀i, module R (M₁ i)] [module R M₂]
+variables [ring R]
+[∀i, add_comm_group (M i)] [∀i, add_comm_group (M₁ i)] [add_comm_group M₂] [add_comm_group M₃]
+[add_comm_group M']
+[∀i, module R (M i)] [∀i, module R (M₁ i)] [module R M₂] [module R M₃] [module R M']
 (f f' : multilinear_map R M₁ M₂)
 
 instance : has_coe_to_fun (multilinear_map R M₁ M₂) := ⟨_, to_fun⟩
@@ -127,6 +130,13 @@ def to_linear_map (m : Πi, M₁ i) (i : ι) : M₁ i →ₗ[R] M₂ :=
   add    := λx y, by simp,
   smul   := λc x, by simp }
 
+/-- The cartesian product of two multilinear maps, as a multilinear map. -/
+def prod (f : multilinear_map R M₁ M₂) (g : multilinear_map R M₁ M₃) :
+  multilinear_map R M₁ (M₂ × M₃) :=
+{ to_fun := λ m, (f m, g m),
+  add    := λ m i x y, by simp,
+  smul   := λ m i c x, by simp }
+
 /-- In the specific case of multilinear maps on spaces indexed by `fin (n+1)`, where one can build
 an element of `Π(i : fin (n+1)), M i` using `cons`, one can express directly the additivity of a
 multilinear map along the first variable. -/
@@ -140,6 +150,29 @@ of a multilinear map along the first variable. -/
 lemma cons_smul (f : multilinear_map R M M₂) (m : Π(i : fin n), M i.succ) (c : R) (x : M 0) :
   f (cons (c • x) m) = c • f (cons x m) :=
 by rw [← update_cons_zero x m (c • x), f.map_smul, update_cons_zero]
+
+/-- In the specific case of multilinear maps on spaces indexed by `fin (n+1)`, where one can build
+an element of `Π(i : fin (n+1)), M i` using `snoc`, one can express directly the additivity of a
+multilinear map along the first variable. -/
+lemma snoc_add (f : multilinear_map R M M₂) (m : Π(i : fin n), M i.cast_succ) (x y : M (last n)) :
+  f (snoc m (x+y)) = f (snoc m x) + f (snoc m y) :=
+by rw [← update_snoc_last x m (x+y), f.map_add, update_snoc_last, update_snoc_last]
+
+/-- In the specific case of multilinear maps on spaces indexed by `fin (n+1)`, where one can build
+an element of `Π(i : fin (n+1)), M i` using `cons`, one can express directly the multiplicativity
+of a multilinear map along the first variable. -/
+lemma snoc_smul (f : multilinear_map R M M₂)
+  (m : Π(i : fin n), M i.cast_succ) (c : R) (x : M (last n)) :
+  f (snoc m (c • x)) = c • f (snoc m x) :=
+by rw [← update_snoc_last x m (c • x), f.map_smul, update_snoc_last]
+
+/-- If `g` is multilinear and `f` is linear, then `g (f m₁, ..., f mₙ)` is again a multilinear
+function, that we call `g.comp_linear_map f`. -/
+def comp_linear_map (g : multilinear_map R (λ (i : ι), M₂) M₃) (f : M' →ₗ[R] M₂) :
+  multilinear_map R (λ (i : ι), M') M₃ :=
+{ to_fun := λ m, g (f ∘ m),
+  add    := λ m i x y, by simp [comp_update],
+  smul   := λ m i c x, by simp [comp_update] }
 
 end ring
 
@@ -265,6 +298,18 @@ end comm_ring
 
 end multilinear_map
 
+namespace linear_map
+variables [ring R] [∀i, add_comm_group (M₁ i)] [add_comm_group M₂] [add_comm_group M₃]
+[∀i, module R (M₁ i)] [module R M₂] [module R M₃]
+
+/-- Composing a multilinear map with a linear map gives again a multilinear map. -/
+def comp_multilinear_map (g : M₂ →ₗ[R] M₃) (f : multilinear_map R M₁ M₂) : multilinear_map R M₁ M₃ :=
+{ to_fun := λ m, g (f m),
+  add    := λ m i x y, by simp,
+  smul   := λ m i c x, by simp }
+
+end linear_map
+
 section currying
 /-!
 ### Currying
@@ -282,8 +327,10 @@ We also register linear equiv versions of these correspondences, in
 open multilinear_map
 
 variables {R M M₂}
-[comm_ring R] [∀i, add_comm_group (M i)] [add_comm_group M₂]
-[∀i, module R (M i)] [module R M₂]
+[comm_ring R] [∀i, add_comm_group (M i)] [add_comm_group M'] [add_comm_group M₂]
+[∀i, module R (M i)] [module R M'] [module R M₂]
+
+/-! #### Left curryfication -/
 
 /-- Given a linear map `f` from `M 0` to multilinear maps on `n` variables,
 construct the corresponding multilinear map on `n+1` variables obtained by concatenating
@@ -373,91 +420,99 @@ def multilinear_curry_left_equiv :
 
 variables {R M M₂}
 
-/-- Given a multilinear map `f` in `n` variables to the space of linear maps from `M 0` to `M₂`,
-construct the corresponding multilinear map on `n+1` variables obtained by concatenating
-the variables, given by `m ↦ f (tail m) (m 0)`-/
-def multilinear_map.uncurry_right (f : (multilinear_map R (λ(i : fin n), M i.succ) ((M 0) →ₗ[R] M₂))) :
+/-! #### Right curryfication -/
+
+/-- Given a multilinear map `f` in `n` variables to the space of linear maps from `M (last n)` to
+`M₂`, construct the corresponding multilinear map on `n+1` variables obtained by concatenating
+the variables, given by `m ↦ f (init m) (m (last n))`-/
+def multilinear_map.uncurry_right
+  (f : (multilinear_map R (λ(i : fin n), M i.cast_succ) (M (last n) →ₗ[R] M₂))) :
   multilinear_map R M M₂ :=
-{ to_fun := λm, f (tail m) (m 0),
+{ to_fun := λm, f (init m) (m (last n)),
   add    := λm i x y, begin
-    by_cases h : i = 0,
-    { revert x y,
-      rw h,
-      assume x y,
-      rw [tail_update_zero, tail_update_zero, tail_update_zero, update_same,
-          update_same, update_same, linear_map.map_add] },
-    { rw [update_noteq (ne.symm h), update_noteq (ne.symm h), update_noteq (ne.symm h)],
+    by_cases h : i.val < n,
+    { have : last n ≠ i := ne.symm (ne_of_lt h),
+      rw [update_noteq this, update_noteq this, update_noteq this],
       revert x y,
-      rw  [← succ_pred i h],
+      rw  [(cast_succ_cast_lt i h).symm],
       assume x y,
-      rw [tail_update_succ, map_add, tail_update_succ, tail_update_succ, linear_map.add_apply] }
+      rw [init_update_cast_succ, map_add, init_update_cast_succ, init_update_cast_succ,
+          linear_map.add_apply] },
+    { revert x y,
+      rw eq_last_of_not_lt h,
+      assume x y,
+      rw [init_update_last, init_update_last, init_update_last,
+          update_same, update_same, update_same, linear_map.map_add] }
   end,
   smul := λm i c x, begin
-    by_cases h : i = 0,
-    { revert x,
-      rw h,
-      assume x,
-      rw [update_same, update_same, tail_update_zero, tail_update_zero, linear_map.map_smul] },
-    { rw [update_noteq (ne.symm h), update_noteq (ne.symm h)],
+    by_cases h : i.val < n,
+    { have : last n ≠ i := ne.symm (ne_of_lt h),
+      rw [update_noteq this, update_noteq this],
       revert x,
-      rw [← succ_pred i h],
+      rw  [(cast_succ_cast_lt i h).symm],
       assume x,
-      rw [tail_update_succ, tail_update_succ, map_smul, linear_map.smul_apply] }
+      rw [init_update_cast_succ, init_update_cast_succ, map_smul, linear_map.smul_apply] },
+    { revert x,
+      rw eq_last_of_not_lt h,
+      assume x,
+      rw [update_same, update_same, init_update_last, init_update_last,
+          linear_map.map_smul] }
   end }
 
 @[simp] lemma multilinear_map.uncurry_right_apply
-  (f : (multilinear_map R (λ(i : fin n), M i.succ) ((M 0) →ₗ[R] M₂))) (m : Πi, M i) :
-  f.uncurry_right m = f (tail m) (m 0) := rfl
+  (f : (multilinear_map R (λ(i : fin n), M i.cast_succ) ((M (last n)) →ₗ[R] M₂))) (m : Πi, M i) :
+  f.uncurry_right m = f (init m) (m (last n)) := rfl
 
-/-- Given a multilinear map `f` in `n+1` variables, split the first variable to obtain
-a multilinear map in `n` variables taking values in linear maps from `M 0` to `M₂`, given by
-`m ↦ (x ↦ f (cons x m))`. -/
+/-- Given a multilinear map `f` in `n+1` variables, split the last variable to obtain
+a multilinear map in `n` variables taking values in linear maps from `M (last n)` to `M₂`, given by
+`m ↦ (x ↦ f (snoc m x))`. -/
 def multilinear_map.curry_right (f : multilinear_map R M M₂) :
-  multilinear_map R (λ(i : fin n), M i.succ) ((M 0) →ₗ[R] M₂) :=
+  multilinear_map R (λ(i : fin n), M (fin.cast_succ i)) ((M (last n)) →ₗ[R] M₂) :=
 { to_fun := λm,
-  { to_fun := λx, f (cons x m),
-    add    := λx y, by rw f.cons_add,
-    smul   := λc x, by rw f.cons_smul },
+  { to_fun := λx, f (snoc m x),
+    add    := λx y, by rw f.snoc_add,
+    smul   := λc x, by rw f.snoc_smul },
   add := λm i x y, begin
     ext z,
-    change f (cons z (update m i (x + y))) = f (cons z (update m i x)) + f (cons z (update m i y)),
-    rw [cons_update, cons_update, cons_update, f.map_add]
+    change f (snoc (update m i (x + y)) z)
+      = f (snoc (update m i x) z) + f (snoc (update m i y) z),
+    rw [snoc_update, snoc_update, snoc_update, f.map_add]
   end,
   smul := λm i c x, begin
     ext z,
-    change f (cons z (update m i (c • x))) = c • f (cons z (update m i x)),
-    rw [cons_update, cons_update, f.map_smul]
+    change f (snoc (update m i (c • x)) z) = c • f (snoc (update m i x) z),
+    rw [snoc_update, snoc_update, f.map_smul]
   end }
 
 @[simp] lemma multilinear_map.curry_right_apply
-  (f : multilinear_map R M M₂) (x : M 0) (m : Π(i : fin n), M i.succ) :
-  f.curry_right m x = f (cons x m) := rfl
+  (f : multilinear_map R M M₂) (m : Π(i : fin n), M i.cast_succ) (x : M (last n)) :
+  f.curry_right m x = f (snoc m x) := rfl
 
 @[simp] lemma multilinear_map.curry_uncurry_right
-  (f : (multilinear_map R (λ(i : fin n), M i.succ) ((M 0) →ₗ[R] M₂))) :
+  (f : (multilinear_map R (λ(i : fin n), M i.cast_succ) ((M (last n)) →ₗ[R] M₂))) :
   f.uncurry_right.curry_right = f :=
 begin
   ext m x,
-  simp only [cons_zero, multilinear_map.curry_right_apply, multilinear_map.uncurry_right_apply],
-  rw tail_cons
+  simp only [snoc_last, multilinear_map.curry_right_apply, multilinear_map.uncurry_right_apply],
+  rw init_snoc
 end
 
 @[simp] lemma multilinear_map.uncurry_curry_right
-  (f : multilinear_map R M M₂) :
-  f.curry_right.uncurry_right = f :=
+  (f : multilinear_map R M M₂) : f.curry_right.uncurry_right = f :=
 by { ext m, simp }
 
 variables (R M M₂)
 
 /-- The space of multilinear maps on `Π(i : fin (n+1)), M i` is canonically isomorphic to
-the space of linear maps from the space of multilinear maps on `Π(i : fin n), M i.succ` to the space of linear
-maps on `M 0`, by separating the first variable. We register this isomorphism as a
-linear isomorphism in `multilinear_curry_right_equiv R M M₂`.
+the space of linear maps from the space of multilinear maps on `Π(i : fin n), M i.cast_succ` to the
+space of linear maps on `M (last n)`, by separating the last variable. We register this isomorphism
+as a linear isomorphism in `multilinear_curry_right_equiv R M M₂`.
 
 The direct and inverse maps are given by `f.uncurry_right` and `f.curry_right`. Use these
 unless you need the full framework of linear equivs. -/
 def multilinear_curry_right_equiv :
-  (multilinear_map R (λ(i : fin n), M i.succ) ((M 0) →ₗ[R] M₂)) ≃ₗ[R] (multilinear_map R M M₂) :=
+  (multilinear_map R (λ(i : fin n), M i.cast_succ) ((M (last n)) →ₗ[R] M₂))
+  ≃ₗ[R] (multilinear_map R M M₂) :=
 { to_fun    := multilinear_map.uncurry_right,
   add       := λf₁ f₂, by { ext m, refl },
   smul      := λc f, by { ext m, rw [smul_apply], refl },

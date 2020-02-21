@@ -126,8 +126,8 @@ continuous linear equivs.
 
 ## Notations
 
-We write `E [×n]→L[𝕜] F` for the space of continuous multilinear maps on `E^n` with values in `F`.
-This is the space in which the `n`-th derivative of a function from `E` to `F` lives.
+We use the notation `E [×n]→L[𝕜] F` for the space of continuous multilinear maps on `E^n` with
+values in `F`. This is the space in which the `n`-th derivative of a function from `E` to `F` lives.
 
 ## Tags
 
@@ -150,8 +150,6 @@ variables {𝕜 : Type*} [nondiscrete_normed_field 𝕜]
 {b : E × F → G}
 
 set_option class.instance_max_depth 370
-
-notation E `[×`:25 n `]→L[`:25 𝕜 `] ` F := continuous_multilinear_map 𝕜 (λ (i : fin n), E) F
 
 /-- A formal multilinear series over a field `𝕜`, from `E` to `F`, is given by a family of
 multilinear maps from `E^n` to `F` for all `n`. -/

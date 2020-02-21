@@ -231,7 +231,7 @@ theorem has_fderiv_at_filter_iff_tendsto :
   has_fderiv_at_filter f f' x L ↔
   tendsto (λ x', ∥x' - x∥⁻¹ * ∥f x' - f x - f' (x' - x)∥) L (𝓝 0) :=
 have h : ∀ x', ∥x' - x∥ = 0 → ∥f x' - f x - f' (x' - x)∥ = 0, from λ x' hx',
-  by { rw [sub_eq_zero.1 ((norm_eq_zero (x' - x)).1 hx')], simp },
+  by { rw [sub_eq_zero.1 (norm_eq_zero.1 hx')], simp },
 begin
   unfold has_fderiv_at_filter,
   rw [←is_o_norm_left, ←is_o_norm_right, is_o_iff_tendsto h],

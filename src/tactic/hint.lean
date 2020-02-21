@@ -71,7 +71,7 @@ do hints ← tactic.hint,
      fail "no hints available"
    else
      do trace "the following tactics make progress:\n----",
-        hints.mmap' tactic.trace
+        hints.mmap' (λ s, tactic.trace format!"Try this: {s}")
 
 end interactive
 

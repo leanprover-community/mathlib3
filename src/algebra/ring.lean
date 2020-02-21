@@ -624,13 +624,21 @@ end domain
 
 end units
 
+/-- A predicate to express that a commutative ring is an integral domain.
+
+This is mainly useful because such a predicate does not contain data,
+and can therefore be easily transported along ring isomorphisms. -/
 class is_integral_domain (R : Type u) [comm_ring R] : Prop :=
 (eq_zero_or_eq_zero_of_mul_eq_zero : ∀ x y : R, x * y = 0 → x = 0 ∨ y = 0)
 (zero_ne_one : (0 : R) ≠ 1)
 
+section prio
+set_option default_priority 100 -- see Note [default priority]
+/-- Every integral domain satisfies the predicate for integral domains. -/
 instance integral_domain.to_is_integral_domain (R : Type u) [integral_domain R] :
   is_integral_domain R :=
 { .. (‹_› : integral_domain R) }
+end prio
 
 def is_integral_domain.to_integral_domain (R : Type u) [comm_ring R] [is_integral_domain R] :
   integral_domain R :=

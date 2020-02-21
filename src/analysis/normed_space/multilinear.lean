@@ -841,10 +841,15 @@ variable {𝕜}
   (f : continuous_multilinear_map 𝕜 (λ (i : fin 0), G) E₂) :
   f.uncurry0 = f 0 := rfl
 
-@[simp] lemma continuous_multilinear_map.uncurry0_curry0
+@[simp] lemma continuous_multilinear_map.apply_zero_curry0
+  (f : continuous_multilinear_map 𝕜 (λ (i : fin 0), G) E₂) {x : fin 0 → G} :
+  continuous_multilinear_map.curry0 𝕜 G (f x) = f :=
+by { ext m, simp [(subsingleton.elim _ _ : x = m)] }
+
+lemma continuous_multilinear_map.uncurry0_curry0
   (f : continuous_multilinear_map 𝕜 (λ (i : fin 0), G) E₂) :
   continuous_multilinear_map.curry0 𝕜 G (f.uncurry0) = f :=
-by { ext m, have : m = 0 := zero_eq_dist.mp rfl, rw this, refl }
+by simp
 
 variables (𝕜 G)
 @[simp] lemma continuous_multilinear_map.curry0_uncurry0 (x : E₂) :
@@ -859,14 +864,20 @@ begin
 end
 
 variables {𝕜 G}
-@[simp] lemma continuous_multilinear_map.curry0_norm
-  (f : continuous_multilinear_map 𝕜 (λ (i : fin 0), G) E₂) : ∥f.uncurry0∥ = ∥f∥ :=
+@[simp] lemma continuous_multilinear_map.fin0_apply_norm
+  (f : continuous_multilinear_map 𝕜 (λ (i : fin 0), G) E₂) {x : fin 0 → G} :
+  ∥f x∥ = ∥f∥ :=
 begin
+  have : x = 0 := subsingleton.elim _ _, subst this,
   refine le_antisymm (by simpa using f.le_op_norm 0) _,
   have : ∥continuous_multilinear_map.curry0 𝕜 G (f.uncurry0)∥ ≤ ∥f.uncurry0∥ :=
     continuous_multilinear_map.op_norm_le_bound _ (norm_nonneg _) (λm, by simp),
-  simpa [-continuous_multilinear_map.uncurry0_apply]
+  simpa
 end
+
+lemma continuous_multilinear_map.curry0_norm
+  (f : continuous_multilinear_map 𝕜 (λ (i : fin 0), G) E₂) : ∥f.uncurry0∥ = ∥f∥ :=
+by simp
 
 variables (𝕜 G E₂)
 /-- The linear isomorphism between elements of a normed space, and continuous multilinear maps in

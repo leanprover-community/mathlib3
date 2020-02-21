@@ -58,7 +58,9 @@ def vcomp (α : nat_trans F G) (β : nat_trans G H) : nat_trans F H :=
     intros, simp, rw [←assoc, naturality, assoc, ←naturality],
   end }
 
-@[simp] lemma vcomp_app (α : nat_trans F G) (β : nat_trans G H) (X : C) :
+-- functor_category will rewrite (vcomp α β) to (α ≫ β), so this is not a
+-- suitable simp lemma.  We will declare the variant vcomp_app' there.
+lemma vcomp_app (α : nat_trans F G) (β : nat_trans G H) (X : C) :
   (vcomp α β).app X = (α.app X) ≫ (β.app X) := rfl
 
 end

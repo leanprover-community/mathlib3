@@ -10,6 +10,7 @@ namespace expr
 open tactic
 
 attribute [derive has_reflect] binder_info
+attribute [derive decidable_eq] binder_info congr_arg_kind
 
 /-- Given an expr `α` representing a type with numeral structure,
 `of_nat α n` creates the `α`-valued numeral expression corresponding to `n`. -/

@@ -17,6 +17,20 @@ It is naturally endowed with a topology: the Zariski topology.
 but that sheaf is not constructed in this file.
 It should be contributed to mathlib in future work.)
 
+## Main definitions
+
+* `prime_spectrum R`: The prime spectrum of a commutative ring `R`,
+  i.e., the set of all prime ideals of `R`.
+* `zero_locus s`: The zero locus of a subset `s` of `R`
+  is the subset of `prime_spectrum R` consisting of all prime ideals that contain `s`.
+* `vanishing_ideal t`: The vanishing ideal of a subset `t` of `prime_spectrum R`
+  is the intersection of points in `t` (viewed as prime ideals).
+
+## Conventions
+
+We denote subsets of rings with `s`, `s'`, etc...
+whereas we denote subsets of prime spectra with `t`, `t'`, etc...
+
 ## Inspiration/contributors
 
 The contents of this file draw inspiration from
@@ -76,22 +90,22 @@ def zero_locus (s : set R) : set (prime_spectrum R) :=
   zero_locus (ideal.span s : set R) = zero_locus s :=
 by { ext x, exact (submodule.gi R R).gc s x.as_ideal }
 
-/-- The vanishing ideal of a set `s` of points
+/-- The vanishing ideal of a set `t` of points
 of the prime spectrum of a commutative ring `R`
-is the largest ideal of the ring that is contained in all the prime ideals in the set `s`.
+is the intersection of all the prime ideals in the set `t`.
 
 An element `f` of `R` can be thought of as a dependent function
 on the prime spectrum of `R`.
 At a point `x` (a prime ideal)
 the function (i.e., element) `f` takes values in the quotient ring `R` modulo the prime ideal `x`.
-In this manner, `vanishing_ideal s` is exactly the ideal of `R`
-consisting of all "functions" that vanish on all of `s`.
+In this manner, `vanishing_ideal t` is exactly the ideal of `R`
+consisting of all "functions" that vanish on all of `t`.
 -/
-def vanishing_ideal (s : set (prime_spectrum R)) : ideal R :=
-⨅ (x : prime_spectrum R) (h : x ∈ s), x.as_ideal
+def vanishing_ideal (t : set (prime_spectrum R)) : ideal R :=
+⨅ (x : prime_spectrum R) (h : x ∈ t), x.as_ideal
 
-lemma coe_vanishing_ideal (s : set (prime_spectrum R)) :
-  (vanishing_ideal s : set R) = {f : R | ∀ x : prime_spectrum R, x ∈ s → f ∈ x.as_ideal} :=
+lemma coe_vanishing_ideal (t : set (prime_spectrum R)) :
+  (vanishing_ideal t : set R) = {f : R | ∀ x : prime_spectrum R, x ∈ t → f ∈ x.as_ideal} :=
 begin
   ext f,
   rw [vanishing_ideal, submodule.mem_coe, submodule.mem_infi],
@@ -99,12 +113,12 @@ begin
   rw [submodule.mem_infi],
 end
 
-lemma mem_vanishing_ideal (s : set (prime_spectrum R)) (f : R) :
-  f ∈ vanishing_ideal s ↔ ∀ x : prime_spectrum R, x ∈ s → f ∈ x.as_ideal :=
+lemma mem_vanishing_ideal (t : set (prime_spectrum R)) (f : R) :
+  f ∈ vanishing_ideal t ↔ ∀ x : prime_spectrum R, x ∈ t → f ∈ x.as_ideal :=
 by rw [← submodule.mem_coe, coe_vanishing_ideal, set.mem_set_of_eq]
 
-lemma subset_zero_locus_iff_le_vanishing_ideal (s : (set (prime_spectrum R))) (I : ideal R) :
-  s ⊆ zero_locus I ↔ I ≤ vanishing_ideal s :=
+lemma subset_zero_locus_iff_le_vanishing_ideal (t : set (prime_spectrum R)) (I : ideal R) :
+  t ⊆ zero_locus I ↔ I ≤ vanishing_ideal t :=
 begin
   split; intro h,
   { intros f hf,
@@ -127,19 +141,19 @@ variable (R)
 /-- `zero_locus` and `vanishing_ideal` form a galois connection. -/
 lemma gc : @galois_connection
   (ideal R) (order_dual (set (prime_spectrum R))) _ _
-  (λ I, zero_locus I) (λ s, vanishing_ideal s) :=
-λ I s, subset_zero_locus_iff_le_vanishing_ideal s I
+  (λ I, zero_locus I) (λ t, vanishing_ideal t) :=
+λ I t, subset_zero_locus_iff_le_vanishing_ideal t I
 
 /-- `zero_locus` and `vanishing_ideal` form a galois connection. -/
 lemma gc_set : @galois_connection
   (set R) (order_dual (set (prime_spectrum R))) _ _
-  (λ I, zero_locus I) (λ t, vanishing_ideal t) :=
+  (λ s, zero_locus s) (λ t, vanishing_ideal t) :=
 have ideal_gc : galois_connection (ideal.span) coe := (submodule.gi R R).gc,
 by simpa [zero_locus_span, function.comp] using galois_connection.compose _ _ _ _ ideal_gc (gc R)
 
-lemma subset_zero_locus_iff_subset_vanishing_ideal (s : (set (prime_spectrum R))) (t : set R) :
-  s ⊆ zero_locus t ↔ t ⊆ vanishing_ideal s :=
-(gc_set R) t s
+lemma subset_zero_locus_iff_subset_vanishing_ideal (t : set (prime_spectrum R)) (s : set R) :
+  t ⊆ zero_locus s ↔ s ⊆ vanishing_ideal t :=
+(gc_set R) s t
 
 end gc
 
@@ -153,9 +167,9 @@ lemma le_vanishing_ideal_zero_locus (I : ideal R) :
   I ≤ vanishing_ideal (zero_locus I) :=
 (gc R).le_u_l I
 
-lemma subset_zero_locus_vanishing_ideal (s : set (prime_spectrum R)) :
-  s ⊆ zero_locus (vanishing_ideal s) :=
-(gc R).l_u_le s
+lemma subset_zero_locus_vanishing_ideal (t : set (prime_spectrum R)) :
+  t ⊆ zero_locus (vanishing_ideal t) :=
+(gc R).l_u_le t
 
 @[simp] lemma zero_locus_bot :
   zero_locus ((⊥ : ideal R) : set R) = set.univ :=
@@ -200,12 +214,12 @@ lemma zero_locus_sup (I J : ideal R) :
   zero_locus ((I ⊔ J : ideal R) : set R) = zero_locus I ∩ zero_locus J :=
 (gc R).l_sup
 
-lemma zero_locus_union (s t : set R) :
-  zero_locus (s ∪ t) = zero_locus s ∩ zero_locus t :=
+lemma zero_locus_union (s s' : set R) :
+  zero_locus (s ∪ s') = zero_locus s ∩ zero_locus s' :=
 (gc_set R).l_sup
 
-lemma vanishing_ideal_union (s t : set (prime_spectrum R)) :
-  vanishing_ideal (s ∪ t) = vanishing_ideal s ⊓ vanishing_ideal t :=
+lemma vanishing_ideal_union (t t' : set (prime_spectrum R)) :
+  vanishing_ideal (t ∪ t') = vanishing_ideal t ⊓ vanishing_ideal t' :=
 (gc R).u_inf
 
 lemma zero_locus_supr {ι : Sort*} (I : ι → ideal R) :
@@ -216,8 +230,8 @@ lemma zero_locus_Union {ι : Sort*} (s : ι → set R) :
   zero_locus (⋃ i, s i) = (⋂ i, zero_locus (s i)) :=
 (gc_set R).l_supr
 
-lemma vanishing_ideal_Union {ι : Sort*} (s : ι → set (prime_spectrum R)) :
-  vanishing_ideal (⋃ i, s i) = (⨅ i, vanishing_ideal (s i)) :=
+lemma vanishing_ideal_Union {ι : Sort*} (t : ι → set (prime_spectrum R)) :
+  vanishing_ideal (⋃ i, t i) = (⨅ i, vanishing_ideal (t i)) :=
 (gc R).u_infi
 
 lemma zero_locus_inf (I J : ideal R) :
@@ -245,16 +259,16 @@ begin
       intros r hr, cases hr, assumption } }
 end
 
-lemma union_zero_locus (s t : set R) :
-  zero_locus s ∪ zero_locus t = zero_locus ((ideal.span s) ⊓ (ideal.span t) : ideal R) :=
+lemma union_zero_locus (s s' : set R) :
+  zero_locus s ∪ zero_locus s' = zero_locus ((ideal.span s) ⊓ (ideal.span s') : ideal R) :=
 by { rw zero_locus_inf, simp }
 
-lemma sup_vanishing_ideal_le (s t : set (prime_spectrum R)) :
-  vanishing_ideal s ⊔ vanishing_ideal t ≤ vanishing_ideal (s ∩ t) :=
+lemma sup_vanishing_ideal_le (t t' : set (prime_spectrum R)) :
+  vanishing_ideal t ⊔ vanishing_ideal t' ≤ vanishing_ideal (t ∩ t') :=
 begin
   intros r,
   rw [submodule.mem_coe, submodule.mem_sup, submodule.mem_coe, mem_vanishing_ideal],
-  rintro ⟨f, hf, g, hg, rfl⟩ x ⟨hxs, hxt⟩,
+  rintro ⟨f, hf, g, hg, rfl⟩ x ⟨hxt, hxt'⟩,
   rw mem_vanishing_ideal at hf hg,
   apply submodule.add_mem; solve_by_elim
 end
@@ -326,18 +340,18 @@ end
 
 end comap
 
-lemma zero_locus_vanishing_ideal_eq_closure (s : set (prime_spectrum R)) :
-  zero_locus (vanishing_ideal s : set R) = closure s :=
+lemma zero_locus_vanishing_ideal_eq_closure (t : set (prime_spectrum R)) :
+  zero_locus (vanishing_ideal t : set R) = closure t :=
 begin
   apply set.subset.antisymm,
-  { rintro x hx t ⟨ht, hs⟩,
-    obtain ⟨fs, rfl⟩ : ∃ s, t = zero_locus s,
-    by rwa [is_closed_iff_zero_locus] at ht,
-    rw [subset_zero_locus_iff_subset_vanishing_ideal] at hs,
-    calc fs ⊆ vanishing_ideal s : hs
+  { rintro x hx t' ⟨ht', ht⟩,
+    obtain ⟨fs, rfl⟩ : ∃ s, t' = zero_locus s,
+    by rwa [is_closed_iff_zero_locus] at ht',
+    rw [subset_zero_locus_iff_subset_vanishing_ideal] at ht,
+    calc fs ⊆ vanishing_ideal t : ht
         ... ⊆ x.as_ideal        : hx },
   { rw closure_subset_iff_subset_of_is_closed (is_closed_zero_locus _),
-    exact subset_zero_locus_vanishing_ideal s }
+    exact subset_zero_locus_vanishing_ideal t }
 end
 
 end prime_spectrum

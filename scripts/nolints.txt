@@ -968,10 +968,6 @@ field.direct_limit.inv
 filter
 filter.Liminf
 filter.Limsup
-filter.filter_product.abs_def
-filter.filter_product.of_seq
-filter.filter_product.of_seq_one
-filter.filter_product.of_seq_zero
 filter.gi_generate
 filter.hyperfilter
 filter.is_bounded_default

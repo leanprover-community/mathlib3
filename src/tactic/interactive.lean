@@ -826,5 +826,44 @@ do ty ← i_to_expr t,
          fail "could not infer nonempty instance",
        resetI)
 
+/-- `revert_deps n₁ n₂ ...` reverts all the hypotheses that depend on one of `n₁, n₂, ...`
+  It does not revert `n₁, n₂, ...` themselves (unless they depend on another `nᵢ`). -/
+meta def revert_deps (ns : parse ident*) : tactic unit :=
+propagate_tags $ ns.reverse.mmap' $ λ n, get_local n >>= tactic.revert_deps
+
+/-- `revert_after n` reverts all the hypotheses after `n`. -/
+meta def revert_after (n : parse ident) : tactic unit :=
+propagate_tags $ get_local n >>= tactic.revert_after >> skip
+
+/-- `clear_value n₁ n₂ ...` clears the bodies of the local definitions `n₁, n₂ ...`, changing them
+  into regular hypotheses. A hypothesis `n : α := t` is changed to `n : α`. -/
+meta def clear_value (ns : parse ident*) : tactic unit :=
+propagate_tags $ ns.reverse.mmap' $ λ n, get_local n >>= tactic.clear_value
+
+/--
+`generalize' : e = x` replaces all occurrences of `e` in the target with a new hypothesis `x` of the same type.
+
+`generalize' h : e = x` in addition registers the hypothesis `h : e = x`.
+
+`generalize'` is similar to `generalize`. The difference is that `generalize' : e = x` also succeeds when `e`
+  does not occur in the goal. It is similar to `set`, but the resulting hypothesis `x` is not a local definition.
+-/
+meta def generalize' (h : parse ident?) (_ : parse $ tk ":") (p : parse generalize_arg_p) : tactic unit :=
+propagate_tags $
+do let (p, x) := p,
+   e ← i_to_expr p,
+   some h ← pure h | tactic.generalize' e x >> skip,
+   tgt ← target,
+   -- if generalizing fails, fall back to not replacing anything
+   tgt' ← do {
+     ⟨tgt', _⟩ ← solve_aux tgt (tactic.generalize' e x >> target),
+     to_expr ``(Π x, %%e = x → %%(tgt'.binding_body.lift_vars 0 1))
+   } <|> to_expr ``(Π x, %%e = x → %%tgt),
+   t ← assert h tgt',
+   swap,
+   exact ``(%%t %%e rfl),
+   intro x,
+   intro h
+
 end interactive
 end tactic

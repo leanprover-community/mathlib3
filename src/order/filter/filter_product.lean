@@ -31,6 +31,7 @@ namespace filter_product
 
 variables {α β φ} include φ
 
+/-- Equivalence class containing the given sequence -/
 def of_seq : (α → β) → β* := @quotient.mk' (α → β) (bigly_equal β φ)
 
 /-- Equivalence class containing the constant sequence of a term in β -/
@@ -272,14 +273,14 @@ theorem of_seq_fun (f g : α → β) (h : β → β) (H : ∀* n, f n = h (g n))
 theorem of_seq_fun₂ (f g₁ g₂ : α → β) (h : β → β → β) (H : ∀* n, f n = h (g₁ n) (g₂ n)) :
   of_seq f = (lift₂ h) (@of_seq _ _ φ g₁) (@of_seq _ _ φ g₂) := quotient.sound' H
 
-@[simp] lemma of_seq_zero [has_zero β] (f : α → β) : of_seq 0 = (0 : β*) := rfl
+@[simp] lemma of_seq_zero [has_zero β] : of_seq 0 = (0 : β*) := rfl
 
 @[simp] lemma of_seq_add [has_add β] (f g : α → β) :
   of_seq (f + g) = of_seq f + (of_seq g : β*) := rfl
 
 @[simp] lemma of_seq_neg [has_neg β] (f : α → β) : of_seq (-f) = - (of_seq f : β*) := rfl
 
-@[simp] lemma of_seq_one [has_one β] (f : α → β) : of_seq 1 = (1 : β*) := rfl
+@[simp] lemma of_seq_one [has_one β] : of_seq 1 = (1 : β*) := rfl
 
 @[simp] lemma of_seq_mul [has_mul β] (f g : α → β) :
   of_seq (f * g) = of_seq f * (of_seq g : β*) := rfl
@@ -471,7 +472,7 @@ begin
     λ i hi, (min_eq_right hi).symm),
 end
 
-lemma abs_def [decidable_linear_ordered_comm_group β] (U : is_ultrafilter φ) (x y : β*) :
+lemma abs_def [decidable_linear_ordered_comm_group β] (U : is_ultrafilter φ) (x : β*) :
   @abs _ (filter_product.decidable_linear_ordered_comm_group U) x = (lift abs) x :=
 quotient.induction_on' x $ λ a, by unfold abs; rw max_def;
 exact quotient.sound' (show ∀* i, abs _ = _, by simp)

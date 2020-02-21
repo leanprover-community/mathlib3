@@ -44,7 +44,7 @@ open tactic
 
 def d : D :=
 begin
-  tidy?,
+  tidy,
   -- Try this: fsplit, work_on_goal 0 { fsplit, work_on_goal 0 { fsplit }, work_on_goal 1 { refl } }, work_on_goal 0 { fsplit, work_on_goal 0 { fsplit }, work_on_goal 1 { fsplit, work_on_goal 0 { fsplit }, work_on_goal 1 { refl } }, work_on_goal 1 { refl } }, refl
 end.
 

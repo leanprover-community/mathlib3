@@ -43,6 +43,19 @@ jobs:
         env:
           DEPLOY_NIGHTLY_GITHUB_TOKEN: ${{ secrets.DEPLOY_NIGHTLY_GITHUB_TOKEN }}
 
+      - name: install azcopy
+        run: |
+          cd /usr/local/bin
+          wget -q https://aka.ms/downloadazcopy-v10-linux -O - | sudo tar zxf - --strip-components 1 --wildcards '*/azcopy'
+          sudo chmod 755 /usr/local/bin/azcopy
+
+      - name: push release to azure
+        if: github.repository == 'leanprover-community/mathlib' && github.event_name == 'push' && matrix.lean_version == 'leanprover-community/lean:3.5.1'
+        run: |
+          archive_name="$(git rev-parse HEAD).tar.gz"
+          tar czf "$archive_name" src
+          azcopy copy "$archive_name" "${{ secrets.AZURE_SAS_TOKEN }} --block-size-mb 99"
+
       - name: tests
         run: |
           set -o pipefail

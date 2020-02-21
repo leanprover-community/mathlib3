@@ -135,15 +135,17 @@ lemma is_lub_cSup (ne : s.nonempty) (H : bdd_above s) : is_lub s (Sup s) :=
 lemma is_glb_cInf (ne : s.nonempty) (H : bdd_below s) : is_glb s (Inf s) :=
 ⟨assume x, cInf_le H, assume x, le_cInf ne⟩
 
+-- Use `private lemma` + `alias` to escape `namespace lattice` without closing it
+
 private lemma is_lub.cSup_eq (H : is_lub s a) (ne : s.nonempty) : Sup s = a :=
 (is_lub_cSup ne ⟨a, H.1⟩).unique H
 
 alias is_lub.cSup_eq ← is_lub.cSup_eq
 
-/-- A greatest element of a set is the supremum of this set. -/
 private lemma is_greatest.cSup_eq (H : is_greatest s a) : Sup s = a :=
 H.is_lub.cSup_eq H.nonempty
 
+/-- A greatest element of a set is the supremum of this set. -/
 alias is_greatest.cSup_eq ← is_greatest.cSup_eq
 
 private lemma is_glb.cInf_eq (H : is_glb s a) (ne : s.nonempty) : Inf s = a :=
@@ -151,10 +153,10 @@ private lemma is_glb.cInf_eq (H : is_glb s a) (ne : s.nonempty) : Inf s = a :=
 
 alias is_glb.cInf_eq ← is_glb.cInf_eq
 
-/-- A least element of a set is the infimum of this set. -/
 private lemma is_least.cInf_eq (H : is_least s a) : Inf s = a :=
 H.is_glb.cInf_eq H.nonempty
 
+/-- A least element of a set is the infimum of this set. -/
 alias is_least.cInf_eq ← is_least.cInf_eq
 
 theorem cSup_le_iff (hb : bdd_above s) (ne : s.nonempty) : Sup s ≤ a ↔ (∀b ∈ s, b ≤ a) :=

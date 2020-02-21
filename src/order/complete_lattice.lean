@@ -60,14 +60,18 @@ theorem le_Inf : (∀b∈s, a ≤ b) → a ≤ Inf s := complete_lattice.le_Inf 
 
 lemma is_lub_Sup (s : set α) : is_lub s (Sup s) := ⟨assume x, le_Sup, assume x, Sup_le⟩
 
+-- Use `private lemma` + `alias` to escape `namespace lattice` without closing it
+
 private lemma is_lub.Sup_eq (h : is_lub s a) : Sup s = a := (is_lub_Sup s).unique h
 
+/-- If `a` is the least upper bound of `s`, then `Sup s = a` -/
 alias is_lub.Sup_eq ← is_lub.Sup_eq
 
 lemma is_glb_Inf (s : set α) : is_glb s (Inf s) := ⟨assume a, Inf_le, assume a, le_Inf⟩
 
 private lemma is_glb.Inf_eq (h : is_glb s a) : Inf s = a := (is_glb_Inf s).unique h
 
+/-- If `a` is the greatest lower bound of `s`, then `Inf s = a` -/
 alias is_glb.Inf_eq ← is_glb.Inf_eq
 
 theorem le_Sup_of_le (hb : b ∈ s) (h : a ≤ b) : a ≤ Sup s :=

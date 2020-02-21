@@ -640,6 +640,7 @@ instance integral_domain.to_is_integral_domain (R : Type u) [integral_domain R] 
 { .. (‹_› : integral_domain R) }
 end prio
 
+/-- If a commutative ring satisfies the predicate version of integral domains, then this definition can be used to get an instance of `integral_domain` whose data is definitionally equal to that of the `comm_ring` instance. -/
 def is_integral_domain.to_integral_domain (R : Type u) [comm_ring R] [is_integral_domain R] :
   integral_domain R :=
 { .. (‹_› : comm_ring R), .. (‹_› : is_integral_domain R) }

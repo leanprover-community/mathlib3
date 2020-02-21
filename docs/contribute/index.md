@@ -48,9 +48,8 @@ for more details.
 In the `mathlib` git repository, you can run the following in a terminal:
 
 ```sh
-$ curl https://raw.githubusercontent.com/leanprover-community/mathlib-tools/master/scripts/remote-install-update-mathlib.sh -sSf | bash
-$ source ~/.profile
-$ setup-lean-git-hooks
+sudo pip3 install mathlibtools
+setup-lean-git-hooks
 ```
 
 It will install scripts including `update-mathlib` and `cache-olean`

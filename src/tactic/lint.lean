@@ -24,6 +24,7 @@ The following linters are run by default:
 8.  `impossible_instance` checks for instances that can never fire.
 9.  `incorrect_type_class_argument` checks for arguments in [square brackets] that are not classes.
 10. `dangerous_instance` checks for instances that generate type-class problems with metavariables.
+11. `inhabited_nonempty` checks for `inhabited` instance arguments that should be changed to `nonempty`.
 
 Another linter, `doc_blame_thm`, checks for missing doc strings on lemmas and theorems.
 This is not run by default.

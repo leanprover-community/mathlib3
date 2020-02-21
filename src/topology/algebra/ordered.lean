@@ -197,14 +197,25 @@ lemma is_open_lt [topological_space β] {f g : β → α} (hf : continuous f) (h
   is_open {b | f b < g b} :=
 by simp [lt_iff_not_ge, -not_le]; exact is_closed_le hg hf
 
-lemma is_open_Iio {a : α} : is_open (Iio a) :=
+variables {a b : α}
+
+lemma is_open_Iio : is_open (Iio a) :=
 is_open_lt continuous_id continuous_const
 
-lemma is_open_Ioi {a : α} : is_open (Ioi a) :=
+lemma is_open_Ioi : is_open (Ioi a) :=
 is_open_lt continuous_const continuous_id
 
-lemma is_open_Ioo {a b : α} : is_open (Ioo a b) :=
+lemma is_open_Ioo : is_open (Ioo a b) :=
 is_open_inter is_open_Ioi is_open_Iio
+
+@[simp] lemma interior_Ioi : interior (Ioi a) = Ioi a :=
+interior_eq_of_open is_open_Ioi
+
+@[simp] lemma interior_Iio : interior (Iio a) = Iio a :=
+interior_eq_of_open is_open_Iio
+
+@[simp] lemma interior_Ioo : interior (Ioo a b) = Ioo a b :=
+interior_eq_of_open is_open_Ioo
 
 lemma is_preconnected.forall_Icc_subset {s : set α} (hs : is_preconnected s)
   {a b : α} (ha : a ∈ s) (hb : b ∈ s) :
@@ -1050,6 +1061,22 @@ begin
   { apply subset.trans _ (closure_mono Ioo_subset_Ico_self),
     rw closure_Ioo hab }
 end
+
+@[simp] lemma interior_Ici [no_bot_order α] {a : α} : interior (Ici a) = Ioi a :=
+by rw [← compl_Iio, interior_compl, closure_Iio, compl_Iic]
+
+@[simp] lemma interior_Iic [no_top_order α] {a : α} : interior (Iic a) = Iio a :=
+by rw [← compl_Ioi, interior_compl, closure_Ioi, compl_Ici]
+
+@[simp] lemma interior_Icc [no_bot_order α] [no_top_order α] {a b : α}:
+  interior (Icc a b) = Ioo a b :=
+by rw [← Ici_inter_Iic, interior_inter, interior_Ici, interior_Iic, Ioi_inter_Iio]
+
+@[simp] lemma interior_Ico [no_bot_order α] {a b : α} : interior (Ico a b) = Ioo a b :=
+by rw [← Ici_inter_Iio, interior_inter, interior_Ici, interior_Iio, Ioi_inter_Iio]
+
+@[simp] lemma interior_Ioc [no_top_order α] {a b : α} : interior (Ioc a b) = Ioo a b :=
+by rw [← Ioi_inter_Iic, interior_inter, interior_Ioi, interior_Iic, Ioi_inter_Iio]
 
 lemma nhds_within_Ioi_ne_bot' {a b c : α} (H₁ : a < c) (H₂ : a ≤ b) :
   nhds_within b (Ioi a) ≠ ⊥ :=

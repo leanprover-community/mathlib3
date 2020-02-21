@@ -29,8 +29,6 @@ universes u v w x
 open filter
 open_locale topological_space nnreal
 
-section
-
 variables {α : Type u} {β : Type v} {γ : Type w} {ι : Type x}
 
 /-- A function `f` is Lipschitz continuous with constant `K ≥ 0` if for all `x, y`

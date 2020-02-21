@@ -1066,6 +1066,10 @@ lemma comap_ne_bot_of_surj {f : filter β} {m : α → β}
   (hf : f ≠ ⊥) (hm : function.surjective m) : comap m f ≠ ⊥ :=
 comap_ne_bot_of_range_mem hf $ univ_mem_sets' hm
 
+lemma comap_ne_bot_of_image_mem {f : filter β} {m : α → β} (hf : f ≠ ⊥)
+  {s : set α} (hs : m '' s ∈ f) : comap m f ≠ ⊥ :=
+ne_bot_of_le_ne_bot (comap_inf_principal_ne_bot_of_image_mem hf hs) inf_le_left
+
 @[simp] lemma map_eq_bot_iff : map m f = ⊥ ↔ f = ⊥ :=
 ⟨by rw [←empty_in_sets_eq_bot, ←empty_in_sets_eq_bot]; exact id,
   assume h, by simp only [h, eq_self_iff_true, map_bot]⟩

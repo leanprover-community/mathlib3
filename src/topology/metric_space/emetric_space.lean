@@ -415,6 +415,10 @@ instance prod.emetric_space_max [emetric_space β] : emetric_space (α × β) :=
   end,
   to_uniform_space := prod.uniform_space }
 
+lemma prod.edist_eq [emetric_space β] (x y : α × β) :
+  edist x y = max (edist x.1 y.1) (edist x.2 y.2) :=
+rfl
+
 section pi
 open finset
 variables {π : β → Type*} [fintype β]
@@ -527,6 +531,10 @@ by simp [is_open_iff_nhds, mem_nhds_iff]
 
 theorem is_open_ball : is_open (ball x ε) :=
 is_open_iff.2 $ λ y, exists_ball_subset_ball
+
+theorem is_closed_ball_top : is_closed (ball x ⊤) :=
+is_open_iff.2 $ λ y hy, ⟨⊤, ennreal.coe_lt_top, subset_compl_iff_disjoint.2 $
+  ball_disjoint $ by { rw ennreal.top_add, exact le_of_not_lt hy }⟩
 
 theorem ball_mem_nhds (x : α) {ε : ennreal} (ε0 : 0 < ε) : ball x ε ∈ 𝓝 x :=
 mem_nhds_sets is_open_ball (mem_ball_self ε0)

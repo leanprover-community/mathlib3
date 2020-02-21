@@ -4,6 +4,23 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johannes Hölzl, Yury Kudryashov
 -/
 import algebra.order_functions data.set.intervals.basic
+/-!
+
+# Upper / lower bounds
+
+In this file we define:
+
+* `upper_bounds`, `lower_bounds` : the set of upper bounds (resp., lower bounds) of a set;
+* `bdd_above s`, `bdd_below s` : the set `s` is bounded above (resp., below), i.e., the set of upper
+  (resp., lower) bounds of `s` is nonempty;
+* `is_least s a`, `is_greatest s a` : `a` is a least (resp., greatest) element of `s`;
+  for a partial order, it is unique if exists;
+* `is_lub s a`, `is_glb s a` : `a` is a least upper boundary (resp., a greatest lower boundary)
+  of `s`; for a partial order, it is unique if exists.
+
+We also prove various lemmas about monotonicity, behaviour under `∪`, `∩`, `insert`, and provide
+formulas for `∅`, `univ`, and intervals.
+-/
 open set lattice
 
 universes u v w x

@@ -360,17 +360,20 @@ instance : compact_space (prime_spectrum R) :=
 begin
   apply compact_space_of_finite_subfamily_closed,
   intros ι Z hZc hZ,
-  let f : ι → ideal R := λ i, vanishing_ideal (Z i),
-  have hf : ∀ i, Z i = zero_locus (f i),
+  let I : ι → ideal R := λ i, vanishing_ideal (Z i),
+  have hI : ∀ i, Z i = zero_locus (I i),
   { intro i,
     rw [zero_locus_vanishing_ideal_eq_closure, closure_eq_of_is_closed],
     exact hZc i },
-  simp only [hf] at hZ,
-  rw [← zero_locus_supr, zero_locus_empty_iff_eq_top, ideal.eq_top_iff_one] at hZ,
-  rcases finsupp.exists_finset_of_mem_supr R _ hZ with ⟨s, hs⟩,
+  have one_mem : (1:R) ∈ ⨆ (i : ι), I i,
+  { rw [← ideal.eq_top_iff_one, ← zero_locus_empty_iff_eq_top, zero_locus_supr],
+    simpa only [hI] using hZ },
+  obtain ⟨s, hs⟩ : ∃ s : finset ι, (1:R) ∈ ⨆ i ∈ s, I i :=
+    finsupp.exists_finset_of_mem_supr R I one_mem,
+  show ∃ t : finset ι, (⋂ i ∈ t, Z i) = ∅,
   use s,
   rw [← ideal.eq_top_iff_one, ←zero_locus_empty_iff_eq_top] at hs,
-  simpa only [zero_locus_supr, hf] using hs
+  simpa only [zero_locus_supr, hI] using hs
 end
 
 end prime_spectrum

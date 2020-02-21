@@ -211,7 +211,7 @@ lb_le_Inf _ bounds_nonempty (λ _ ⟨hx, _⟩, hx)
 theorem le_op_norm : ∥f x∥ ≤ ∥f∥ * ∥x∥ :=
 classical.by_cases
   (λ heq : x = 0, by { rw heq, simp })
-  (λ hne, have hlt : 0 < ∥x∥, from (norm_pos_iff _).2 hne,
+  (λ hne, have hlt : 0 < ∥x∥, from norm_pos_iff.2 hne,
     le_mul_of_div_le hlt ((le_Inf _ bounds_nonempty bounds_bdd_below).2
     (λ c ⟨_, hc⟩, div_le_of_le_mul hlt (by { rw mul_comm, apply hc }))))
 
@@ -242,7 +242,7 @@ Inf_le _ bounds_bdd_below
 /-- An operator is zero iff its norm vanishes. -/
 theorem op_norm_zero_iff : ∥f∥ = 0 ↔ f = 0 :=
 iff.intro
-  (λ hn, continuous_linear_map.ext (λ x, (norm_le_zero_iff _).1
+  (λ hn, continuous_linear_map.ext (λ x, norm_le_zero_iff.1
     (calc _ ≤ ∥f∥ * ∥x∥ : le_op_norm _ _
      ...     = _ : by rw [hn, zero_mul])))
   (λ hf, le_antisymm (Inf_le _ bounds_bdd_below

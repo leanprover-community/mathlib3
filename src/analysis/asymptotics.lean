@@ -862,7 +862,7 @@ by refine ((h.norm_left.const_mul_left (∥c'∥)).congr _ _ (λ _, rfl)).of_nor
 theorem is_O_const_smul_left_iff {c : 𝕜} (hc : c ≠ 0) :
   is_O (λ x, c • f' x) g l ↔ is_O f' g l :=
 begin
-  have cne0 : ∥c∥ ≠ 0, from mt (norm_eq_zero _).mp hc,
+  have cne0 : ∥c∥ ≠ 0, from mt norm_eq_zero.mp hc,
   rw [←is_O_norm_left], simp only [norm_smul],
   rw [is_O_const_mul_left_iff cne0, is_O_norm_left],
 end
@@ -877,7 +877,7 @@ end
 theorem is_o_const_smul_left_iff {c : 𝕜} (hc : c ≠ 0) :
   is_o (λ x, c • f' x) g l ↔ is_o f' g l :=
 begin
-  have cne0 : ∥c∥ ≠ 0, from mt (norm_eq_zero _).mp hc,
+  have cne0 : ∥c∥ ≠ 0, from mt norm_eq_zero.mp hc,
   rw [←is_o_norm_left], simp only [norm_smul],
   rw [is_o_const_mul_left_iff cne0, is_o_norm_left]
 end
@@ -885,7 +885,7 @@ end
 theorem is_O_const_smul_right {c : 𝕜} (hc : c ≠ 0) :
   is_O f (λ x, c • f' x) l ↔ is_O f f' l :=
 begin
-  have cne0 : ∥c∥ ≠ 0, from mt (norm_eq_zero _).mp hc,
+  have cne0 : ∥c∥ ≠ 0, from mt norm_eq_zero.mp hc,
   rw [←is_O_norm_right], simp only [norm_smul],
   rw [is_O_const_mul_right_iff cne0, is_O_norm_right]
 end
@@ -893,7 +893,7 @@ end
 theorem is_o_const_smul_right {c : 𝕜} (hc : c ≠ 0) :
   is_o f (λ x, c • f' x) l ↔ is_o f f' l :=
 begin
-  have cne0 : ∥c∥ ≠ 0, from mt (norm_eq_zero _).mp hc,
+  have cne0 : ∥c∥ ≠ 0, from mt norm_eq_zero.mp hc,
   rw [←is_o_norm_right], simp only [norm_smul],
   rw [is_o_const_mul_right_iff cne0, is_o_norm_right]
 end

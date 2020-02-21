@@ -48,7 +48,7 @@ variables [normed_field β]
 
 instance normed_field.is_absolute_value : is_absolute_value (norm : β → ℝ) :=
 { abv_nonneg := norm_nonneg,
-  abv_eq_zero := norm_eq_zero,
+  abv_eq_zero := λ _, norm_eq_zero,
   abv_add := norm_add_le,
   abv_mul := normed_field.norm_mul }
 

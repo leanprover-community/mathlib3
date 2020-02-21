@@ -110,7 +110,6 @@ applicative_transformation
 apply_fun_name
 archimedean
 archimedean.floor_ring
-associated
 associated.setoid
 associates
 associates.factor_set
@@ -1333,7 +1332,6 @@ is_null_measurable
 is_ring_anti_hom
 is_ring_hom.ker
 is_ring_hom.to_module
-is_seq_closed
 is_subfield
 is_subgroup.center
 is_subgroup.group_equiv_quotient_times_subgroup
@@ -1721,7 +1719,6 @@ mzip_with'
 name.last_string
 nat.cases
 nat.elim
-nat.even
 nat.min_fac_aux
 nat.modeq.chinese_remainder
 nat.partrec
@@ -3103,9 +3100,7 @@ unique_factorization_domain.exists_mem_factors_of_dvd
 unique_factorization_domain.of_unique_irreducible_factorization
 unique_irreducible_factorization
 unique_unique_equiv
-units
 units.inv'
-units.map
 units.map_equiv
 units.mk_of_mul_eq_one
 units.mul

@@ -55,7 +55,7 @@ begin
       { rcases rescale_to_shell hc (half_pos εpos) hy with ⟨d, hd, ydle, leyd, dinv⟩,
         let δ := ∥d∥ * ∥y∥/4,
         have δpos : 0 < δ :=
-          div_pos (mul_pos ((norm_pos_iff _).2 hd) ((norm_pos_iff _).2 hy)) (by norm_num),
+          div_pos (mul_pos (norm_pos_iff.2 hd) (norm_pos_iff.2 hy)) (by norm_num),
         have : a + d • y ∈ ball a ε,
           by simp [dist_eq_norm, lt_of_le_of_lt ydle (half_lt_self εpos)],
         rcases metric.mem_closure_iff.1 (H this) _ δpos with ⟨z₁, z₁im, h₁⟩,

@@ -4,7 +4,9 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Bhavik Mehta
 -/
 
-import category_theory.limits.shapes
+import category_theory.limits.shapes.terminal
+import category_theory.limits.shapes.pullbacks
+import category_theory.limits.shapes.binary_products
 
 universes v u
 
@@ -34,12 +36,13 @@ def has_binary_products_of_terminal_and_pullbacks
                                    ((c.π).app walking_pair.right)
                                    (subsingleton.elim _ _),
         fac' := λ s c, walking_pair.cases_on c (limit.lift_π _ _) (limit.lift_π _ _),
-        uniq' := begin
-                   intros _ _ J,
-                   have J1 := J walking_pair.left, rw ← J1,
-                   have J2 := J walking_pair.right, rw ← J2,
-                   clear J J1 J2,
-                   apply limit.hom_ext, conv in (_ = _) { rw limit.lift_π },
-                   intro j, cases j, refl, refl,
-                   dsimp [pullback_cone.mk], apply subsingleton.elim,
+        uniq' := λ s m J,
+                 begin
+                   rw [←J, ←J],
+                   ext,
+                   simp only [limit.lift_π],
+                   cases j,
+                   refl, refl,
+                   dsimp,
+                   apply subsingleton.elim,
                  end } } } }

@@ -40,7 +40,7 @@ def has_binary_products_of_terminal_and_pullbacks
                  begin
                    rw [←J, ←J],
                    ext,
-                   simp only [limit.lift_π],
+                   rw limit.lift_π,
                    cases j,
                    refl, refl,
                    dsimp,

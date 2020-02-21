@@ -110,7 +110,6 @@ applicative_transformation
 apply_fun_name
 archimedean
 archimedean.floor_ring
-associated
 associated.setoid
 associates
 associates.factor_set
@@ -1303,7 +1302,6 @@ is_add_subgroup.add_center
 is_add_subgroup.add_normalizer
 is_add_subgroup.group_equiv_quotient_times_subgroup
 is_add_subgroup.left_coset_equiv_subgroup
-is_add_subgroup.mem_trivial
 is_add_subgroup.normalizer_is_add_subgroup
 is_add_subgroup.trivial
 is_basis.coord_fun
@@ -1334,12 +1332,10 @@ is_null_measurable
 is_ring_anti_hom
 is_ring_hom.ker
 is_ring_hom.to_module
-is_seq_closed
 is_subfield
 is_subgroup.center
 is_subgroup.group_equiv_quotient_times_subgroup
 is_subgroup.left_coset_equiv_subgroup
-is_subgroup.mem_trivial
 is_subgroup.normalizer
 is_subgroup.normalizer_is_subgroup
 lattice.Inf_eq_bot
@@ -1723,7 +1719,6 @@ mzip_with'
 name.last_string
 nat.cases
 nat.elim
-nat.even
 nat.min_fac_aux
 nat.modeq.chinese_remainder
 nat.partrec
@@ -2458,7 +2453,6 @@ submodule.colon
 submodule.fg
 submodule.subtype
 subrel.order_embedding
-subtype.restrict
 succeeds
 sum.bind
 sum.bitraverse
@@ -3106,9 +3100,7 @@ unique_factorization_domain.exists_mem_factors_of_dvd
 unique_factorization_domain.of_unique_irreducible_factorization
 unique_irreducible_factorization
 unique_unique_equiv
-units
 units.inv'
-units.map
 units.map_equiv
 units.mk_of_mul_eq_one
 units.mul

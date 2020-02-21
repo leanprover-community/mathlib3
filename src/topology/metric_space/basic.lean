@@ -677,6 +677,8 @@ lemma closed_ball_Icc {x r : ℝ} : closed_ball x r = Icc (x-r) (x+r) :=
 by ext y; rw [mem_closed_ball, dist_comm, real.dist_eq,
   abs_sub_le_iff, mem_Icc, ← sub_le_iff_le_add', sub_le]
 
+/-- Special case of the sandwich theorem; see `tendsto_of_tendsto_of_tendsto_of_le_of_le`
+for the general case. -/
 lemma squeeze_zero {α} {f g : α → ℝ} {t₀ : filter α} (hf : ∀t, 0 ≤ f t) (hft : ∀t, f t ≤ g t)
   (g0 : tendsto g t₀ (𝓝 0)) : tendsto f t₀ (𝓝 0) :=
 begin

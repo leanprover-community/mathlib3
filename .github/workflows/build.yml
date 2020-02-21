@@ -46,7 +46,7 @@ jobs:
       - name: tests
         run: |
           set -o pipefail
-          lean --make docs archive test | cat
+          lean --make docs archive roadmap test | cat
 
       - name: lint
         run: |
@@ -68,5 +68,12 @@ jobs:
         if: github.repository == 'leanprover-community/mathlib' && github.event_name == 'push' && github.ref == 'refs/heads/master' && matrix.lean_version == 'leanprover-community/lean:3.5.1'
         run:
           ./scripts/deploy_docs.sh
+        env:
+          DEPLOY_NIGHTLY_GITHUB_TOKEN: ${{ secrets.DEPLOY_NIGHTLY_GITHUB_TOKEN }}
+
+      - name: update nolints.txt
+        if: github.repository == 'leanprover-community/mathlib' && github.event_name == 'push' && github.ref == 'refs/heads/master' && matrix.lean_version == 'leanprover-community/lean:3.5.1'
+        run:
+          ./scripts/update_nolints.sh
         env:
           DEPLOY_NIGHTLY_GITHUB_TOKEN: ${{ secrets.DEPLOY_NIGHTLY_GITHUB_TOKEN }}

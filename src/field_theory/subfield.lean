@@ -35,23 +35,23 @@ instance univ.is_subfield : is_subfield (@set.univ F) :=
   `is_add_subgroup _` and `is_submonoid _` are chosen (which are not the default ones).
   If we specify it explicitly, then it doesn't complain. -/
 instance preimage.is_subfield {K : Type*} [discrete_field K]
-  (f : F → K) [is_ring_hom f] (s : set K) [is_subfield s] : is_subfield (f ⁻¹' s) :=
+  (f : F →+* K) (s : set K) [is_subfield s] : is_subfield (f ⁻¹' s) :=
 { inv_mem := λ a ha0 (ha : f a ∈ s), show f a⁻¹ ∈ s,
-    by { rw [is_ring_hom.map_inv' f ha0],
-         exact is_subfield.inv_mem ((is_ring_hom.map_ne_zero f).2 ha0) ha },
+    by { rw [f.map_inv' ha0],
+         exact is_subfield.inv_mem (f.map_ne_zero.2 ha0) ha },
   ..is_ring_hom.is_subring_preimage f s }
 
 instance image.is_subfield {K : Type*} [discrete_field K]
-  (f : F → K) [is_ring_hom f] (s : set F) [is_subfield s] : is_subfield (f '' s) :=
+  (f : F →+* K) (s : set F) [is_subfield s] : is_subfield (f '' s) :=
 { inv_mem := λ a ha0 ⟨x, hx⟩,
-    have hx0 : x ≠ 0, from λ hx0, ha0 (hx.2 ▸ hx0.symm ▸ is_ring_hom.map_zero f),
+    have hx0 : x ≠ 0, from λ hx0, ha0 (hx.2 ▸ hx0.symm ▸ f.map_zero),
     ⟨x⁻¹, is_subfield.inv_mem hx0 hx.1,
-    by { rw [← hx.2, is_ring_hom.map_inv' f hx0], refl }⟩,
+    by { rw [← hx.2, f.map_inv' hx0], refl }⟩,
   ..is_ring_hom.is_subring_image f s }
 
 instance range.is_subfield {K : Type*} [discrete_field K]
-  (f : F → K) [is_ring_hom f] : is_subfield (set.range f) :=
-by rw ← set.image_univ; apply_instance
+  (f : F →+* K) : is_subfield (set.range f) :=
+by { rw ← set.image_univ, apply_instance }
 
 namespace field
 

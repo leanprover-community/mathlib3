@@ -6,6 +6,7 @@
 
 import category_theory.limits.shapes.terminal
 import category_theory.limits.shapes.pullbacks
+import category_theory.limits.shapes.binary_products
 
 universes v u
 
@@ -37,10 +38,11 @@ def has_binary_products_of_terminal_and_pullbacks
         fac' := λ s c, walking_pair.cases_on c (limit.lift_π _ _) (limit.lift_π _ _),
         uniq' := λ s m J,
                  begin
-                   rw [←(J walking_pair.left), ←(J walking_pair.right)],
-                   apply limit.hom_ext,
-                   conv in (_ = _) { rw limit.lift_π },
-                   rintro ⟨⟩, refl, refl,
+                   rw [←J, ←J],
+                   ext,
+                   simp only [limit.lift_π],
+                   cases j,
+                   refl, refl,
                    dsimp,
                    apply subsingleton.elim,
                  end } } } }

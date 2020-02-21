@@ -402,7 +402,7 @@ continuous_iff_continuous_at.mp continuous_subtype_val _
 
 lemma map_nhds_subtype_val_eq {a : α} (ha : p a) (h : {a | p a} ∈ 𝓝 a) :
   map (@subtype.val α p) (𝓝 ⟨a, ha⟩) = 𝓝 a :=
-map_nhds_induced_eq (by simp [subtype.val_image, h])
+map_nhds_induced_eq (by simpa [subtype.val_image])
 
 lemma nhds_subtype_eq_comap {a : α} {h : p a} :
   𝓝 (⟨a, h⟩ : subtype p) = comap subtype.val (𝓝 a) :=

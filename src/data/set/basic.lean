@@ -67,7 +67,8 @@ h hx
 
 theorem nmem_set_of_eq {a : α} {P : α → Prop} : a ∉ {a : α | P a} = ¬ P a := rfl
 
-@[simp] theorem set_of_mem_eq {s : set α} : {x | x ∈ s} = s := rfl
+@[simp] lemma set_of_mem {s : set α} : {a | a ∈ s} = s := rfl
+theorem set_of_mem_eq {s : set α} : {x | x ∈ s} = s := rfl
 
 lemma set_of_app_iff {p : α → Prop} {x : α} : { x | p x } x ↔ p x := iff.rfl
 
@@ -81,8 +82,6 @@ instance decidable_set_of (p : α → Prop) [H : decidable_pred p] : decidable_p
 
 @[simp] lemma sep_set_of {α} {p q : α → Prop} : {a ∈ {a | p a } | q a} = {a | p a ∧ q a} :=
 rfl
-
-@[simp] lemma set_of_mem {α} {s : set α} : {a | a ∈ s} = s := rfl
 
 /-! #### Lemmas about subsets -/
 
@@ -137,8 +136,8 @@ by split; simp [set.ssubset_def, ne.def, set.subset.antisymm_iff] {contextual :=
 theorem not_mem_empty (x : α) : ¬ (x ∈ (∅ : set α)) :=
 assume h : x ∈ ∅, h
 
-@[simp] theorem not_not_mem [decidable (a ∈ s)] : ¬ (a ∉ s) ↔ a ∈ s :=
-not_not
+theorem not_not_mem [decidable (a ∈ s)] : ¬ (a ∉ s) ↔ a ∈ s :=
+by simp
 
 /-! ### Non-empty sets -/
 
@@ -516,7 +515,7 @@ by finish [singleton_def]
 lemma set_of_eq_eq_singleton {a : α} : {n | n = a} = {a} := set.ext $ λ n, (set.mem_singleton_iff).symm
 
 -- TODO: again, annotation needed
-@[simp] theorem mem_singleton (a : α) : a ∈ ({a} : set α) := by finish
+theorem mem_singleton (a : α) : a ∈ ({a} : set α) := by simp
 
 theorem eq_of_mem_singleton {x y : α} (h : x ∈ ({y} : set α)) : x = y :=
 by finish
@@ -530,8 +529,8 @@ by finish
 theorem insert_eq (x : α) (s : set α) : insert x s = ({x} : set α) ∪ s :=
 by finish [ext_iff, or_comm]
 
-@[simp] theorem pair_eq_singleton (a : α) : ({a, a} : set α) = {a} :=
-by finish
+theorem pair_eq_singleton (a : α) : ({a, a} : set α) = {a} :=
+by simp
 
 @[simp] theorem singleton_nonempty (a : α) : ({a} : set α).nonempty := insert_nonempty _ _
 
@@ -997,7 +996,7 @@ begin
   intro x, split; { intro e, subst e, simp }
 end
 
-@[simp] theorem image_id (s : set α) : id '' s = s := ext $ by simp
+theorem image_id (s : set α) : id '' s = s := ext $ by simp
 
 /-- A variant of `image_id` -/
 @[simp] lemma image_id' (s : set α) : (λx, x) '' s = s := image_id s
@@ -1335,7 +1334,7 @@ set.ext $ assume a,
 ⟨assume ⟨⟨a', ha'⟩, in_s, h_eq⟩, h_eq ▸ ⟨ha', in_s⟩,
   assume ⟨ha, in_s⟩, ⟨⟨a, ha⟩, in_s, rfl⟩⟩
 
-@[simp] lemma val_range {p : α → Prop} :
+lemma val_range {p : α → Prop} :
   set.range (@subtype.val _ p) = {x | p x} :=
 by rw ← set.image_univ; simp [-set.image_univ, val_image]
 
@@ -1380,10 +1379,6 @@ namespace set
 section range
 
 variable {α : Type*}
-
-@[simp] lemma subtype.val_range {p : α → Prop} :
-  range (@subtype.val _ p) = {x | p x} :=
-by rw ← image_univ; simp [-image_univ, subtype.val_image]
 
 @[simp] lemma range_coe_subtype (s : set α) : range (coe : s → α) = s :=
 subtype.val_range
@@ -1487,7 +1482,7 @@ theorem prod_eq_empty_iff {s : set α} {t : set β} :
   set.prod s t = ∅ ↔ (s = ∅ ∨ t = ∅) :=
 by simp only [not_nonempty_iff_eq_empty.symm, prod_nonempty_iff, classical.not_and_distrib]
 
-@[simp] theorem prod_mk_mem_set_prod_eq {a : α} {b : β} {s : set α} {t : set β} :
+theorem prod_mk_mem_set_prod_eq {a : α} {b : β} {s : set α} {t : set β} :
   (a, b) ∈ set.prod s t = (a ∈ s ∧ b ∈ t) := rfl
 
 @[simp] theorem univ_prod_univ : set.prod (@univ α) (@univ β) = univ :=

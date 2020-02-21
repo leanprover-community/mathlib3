@@ -27,7 +27,7 @@ theorem cast_add_one (n : ℕ) : ((n + 1 : ℕ) : α) = n + 1 := rfl
 @[simp, move_cast] theorem cast_succ (n : ℕ) : ((succ n : ℕ) : α) = n + 1 := rfl
 end
 
-@[simp, squash_cast] theorem cast_one [add_monoid α] [has_one α] : ((1 : ℕ) : α) = 1 := zero_add _
+@[squash_cast] theorem cast_one [add_monoid α] [has_one α] : ((1 : ℕ) : α) = 1 := by simp
 
 @[simp, move_cast] theorem cast_add [add_monoid α] [has_one α] (m) : ∀ n, ((m + n : ℕ) : α) = m + n
 | 0     := (add_zero _).symm

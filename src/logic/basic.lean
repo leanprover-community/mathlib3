@@ -111,9 +111,6 @@ end miscellany
 ### Declarations about propositional connectives
 -/
 
-@[simp] theorem false_ne_true : false ≠ true
-| h := h.symm ▸ trivial
-
 section propositional
 variables {a b c d : Prop}
 
@@ -124,6 +121,8 @@ theorem iff_of_eq (e : a = b) : a ↔ b := e ▸ iff.rfl
 theorem iff_iff_eq : (a ↔ b) ↔ a = b := ⟨propext, iff_of_eq⟩
 
 @[simp] lemma eq_iff_iff {p q : Prop} : (p = q) ↔ (p ↔ q) := iff_iff_eq.symm
+
+theorem false_ne_true : false ≠ true := by simp
 
 @[simp] theorem imp_self : (a → a) ↔ true := iff_true_intro id
 
@@ -334,7 +333,7 @@ by { split; intro h,
      { rw h; by_cases b; [left,right]; split; assumption },
      { cases h with h h; cases h; split; intro; { contradiction <|> assumption } } }
 
-@[simp] theorem not_and_not_right [decidable b] : ¬(a ∧ ¬b) ↔ (a → b) :=
+theorem not_and_not_right [decidable b] : ¬(a ∧ ¬b) ↔ (a → b) :=
 ⟨λ h ha, h.imp_symm $ and.intro ha, λ h ⟨ha, hb⟩, hb $ h ha⟩
 
 @[inline] def decidable_of_iff (a : Prop) (h : a ↔ b) [D : decidable a] : decidable b :=
@@ -460,12 +459,11 @@ theorem not_forall {p : α → Prop}
   (¬ ∀ x, ¬ p x) ↔ ∃ x, p x :=
 (@not_iff_comm _ _ _ (decidable_of_iff (¬ ∃ x, p x) not_exists)).1 not_exists
 
-@[simp] theorem not_exists_not [∀ x, decidable (p x)] :
+theorem not_exists_not [∀ x, decidable (p x)] :
   (¬ ∃ x, ¬ p x) ↔ ∀ x, p x :=
 by simp
 
-@[simp] theorem forall_true_iff : (α → true) ↔ true :=
-iff_true_intro (λ _, trivial)
+theorem forall_true_iff : (α → true) ↔ true := by simp
 
 -- Unfortunately this causes simp to loop sometimes, so we
 -- add the 2 and 3 cases as simp lemmas instead
@@ -703,7 +701,7 @@ theorem bex_of_exists (H : ∀ x, p x) : (∃ x, q x) → ∃ x (_ : p x), q x
 theorem exists_of_bex : (∃ x (_ : p x), q x) → ∃ x, q x
 | ⟨x, _, hq⟩ := ⟨x, hq⟩
 
-@[simp] theorem bex_imp_distrib : ((∃ x h, P x h) → b) ↔ (∀ x h, P x h → b) :=
+theorem bex_imp_distrib : ((∃ x h, P x h) → b) ↔ (∀ x h, P x h → b) :=
 by simp
 
 theorem not_bex : (¬ ∃ x h, P x h) ↔ ∀ x h, ¬ P x h :=

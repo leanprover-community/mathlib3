@@ -10,13 +10,13 @@ variables {α : Type*} {β : Type*} {γ : Type*}
 
 lemma some_ne_none (x : α) : some x ≠ none := λ h, option.no_confusion h
 
-@[simp] theorem get_mem : ∀ {o : option α} (h : is_some o), option.get h ∈ o
+theorem get_mem : ∀ {o : option α} (h : is_some o), option.get h ∈ o
 | (some a) _ := rfl
 
 theorem get_of_mem {a : α} : ∀ {o : option α} (h : is_some o), a ∈ o → option.get h = a
 | _ _ rfl := rfl
 
-@[simp] lemma not_mem_none (a : α) : a ∉ (none : option α) :=
+lemma not_mem_none (a : α) : a ∉ (none : option α) :=
 λ h, option.no_confusion h
 
 @[simp] lemma some_get : ∀ {x : option α} (h : is_some x), some (option.get h) = x

@@ -26,7 +26,7 @@ instance : is_right_id (list α) has_append.append [] :=
 instance : is_associative (list α) has_append.append :=
 ⟨ append_assoc ⟩
 
-@[simp] theorem cons_ne_nil (a : α) (l : list α) : a::l ≠ [].
+theorem cons_ne_nil (a : α) (l : list α) : a::l ≠ [].
 
 theorem head_eq_of_cons_eq {h₁ h₂ : α} {t₁ t₂ : list α} :
       (h₁::t₁) = (h₂::t₂) → h₁ = h₂ :=
@@ -39,8 +39,8 @@ assume Peq, list.no_confusion Peq (assume Pheq Pteq, Pteq)
 theorem cons_inj {a : α} : injective (cons a) :=
 assume l₁ l₂, assume Pe, tail_eq_of_cons_eq Pe
 
-@[simp] theorem cons_inj' (a : α) {l l' : list α} : a::l = a::l' ↔ l = l' :=
-⟨λ e, cons_inj e, congr_arg _⟩
+theorem cons_inj' (a : α) {l l' : list α} : a::l = a::l' ↔ l = l' :=
+by simp
 
 /- mem -/
 
@@ -414,7 +414,7 @@ by { induction l, simp, simp [l_ih] }
 
 /- repeat -/
 
-@[simp] theorem repeat_succ (a : α) (n) : repeat a (n + 1) = a :: repeat a n := rfl
+theorem repeat_succ (a : α) (n) : repeat a (n + 1) = a :: repeat a n := rfl
 
 theorem eq_of_mem_repeat {a b : α} : ∀ {n}, b ∈ repeat a n → b = a
 | (n+1) h := or.elim h id $ @eq_of_mem_repeat _
@@ -457,7 +457,7 @@ by induction n; [refl, simp only [*, repeat, join, append_nil]]
 @[simp] theorem bind_eq_bind {α β} (f : α → list β) (l : list α) :
   l >>= f = l.bind f := rfl
 
-@[simp] theorem bind_append (f : α → list β) (l₁ l₂ : list α) :
+theorem bind_append (f : α → list β) (l₁ l₂ : list α) :
   (l₁ ++ l₂).bind f = l₁.bind f ++ l₂.bind f :=
 append_bind _ _ _
 
@@ -548,13 +548,20 @@ end
 
 /- last -/
 
-@[simp] theorem last_cons {a : α} {l : list α} : ∀ (h₁ : a :: l ≠ nil) (h₂ : l ≠ nil), last (a :: l) h₁ = last l h₂ :=
+@[simp] theorem last_cons {a : α} {l : list α} (h : l ≠ []) :
+  last (a :: l) (by simp) = last l h :=
 by {induction l; intros, contradiction, reflexivity}
 
-@[simp] theorem last_append {a : α} (l : list α) (h : l ++ [a] ≠ []) : last (l ++ [a]) h = a :=
-by induction l; [refl, simp only [cons_append, last_cons _ (λ H, cons_ne_nil _ _ (append_eq_nil.1 H).2), *]]
+@[simp] theorem last_append {a : α} (l : list α) :
+  last (l ++ [a]) (by simp) = a :=
+begin
+  induction l,
+  {refl},
+  {simp only [cons_append, last_cons (λ H, cons_ne_nil _ _ (append_eq_nil.1 H).2), *]}
+end
 
-theorem last_concat {a : α} (l : list α) (h : concat l a ≠ []) : last (concat l a) h = a :=
+theorem last_concat {a : α} (l : list α) :
+  last (concat l a) (by simp) = a :=
 by simp only [concat_eq_append, last_append]
 
 @[simp] theorem last_singleton (a : α) (h : [a] ≠ []) : last [a] h = a := rfl
@@ -2874,10 +2881,10 @@ end
 @[simp] theorem suffix_insert (a : α) (l : list α) : l <:+ insert a l :=
 by by_cases a ∈ l; [simp only [insert_of_mem h], simp only [insert_of_not_mem h, suffix_cons]]
 
-@[simp] theorem mem_insert_self (a : α) (l : list α) : a ∈ insert a l :=
-mem_insert_iff.2 (or.inl rfl)
+theorem mem_insert_self (a : α) (l : list α) : a ∈ insert a l :=
+by simp
 
-@[simp] theorem mem_insert_of_mem {a b : α} {l : list α} (h : a ∈ l) : a ∈ insert b l :=
+theorem mem_insert_of_mem {a b : α} {l : list α} (h : a ∈ l) : a ∈ insert b l :=
 mem_insert_iff.2 (or.inr h)
 
 theorem eq_or_mem_of_mem_insert {a b : α} {l : list α} (h : a ∈ insert b l) : a = b ∨ a ∈ l :=
@@ -3401,7 +3408,7 @@ section disjoint
 theorem disjoint.symm {l₁ l₂ : list α} (d : disjoint l₁ l₂) : disjoint l₂ l₁
 | a i₂ i₁ := d i₁ i₂
 
-@[simp] theorem disjoint_comm {l₁ l₂ : list α} : disjoint l₁ l₂ ↔ disjoint l₂ l₁ :=
+theorem disjoint_comm {l₁ l₂ : list α} : disjoint l₁ l₂ ↔ disjoint l₂ l₁ :=
 ⟨disjoint.symm, disjoint.symm⟩
 
 theorem disjoint_left {l₁ l₂ : list α} : disjoint l₁ l₂ ↔ ∀ {a}, a ∈ l₁ → a ∉ l₂ := iff.rfl
@@ -3427,10 +3434,13 @@ disjoint_of_subset_right (list.subset_cons _ _)
 @[simp] theorem disjoint_nil_left (l : list α) : disjoint [] l
 | a := (not_mem_nil a).elim
 
-@[simp] theorem singleton_disjoint {l : list α} {a : α} : disjoint [a] l ↔ a ∉ l :=
+@[simp] theorem disjoint_nil_right (l : list α) : disjoint l [] :=
+by rw disjoint_comm; exact disjoint_nil_left _
+
+theorem singleton_disjoint {l : list α} {a : α} : disjoint [a] l ↔ a ∉ l :=
 by simp only [disjoint, mem_singleton, forall_eq]; refl
 
-@[simp] theorem disjoint_singleton {l : list α} {a : α} : disjoint l [a] ↔ a ∉ l :=
+theorem disjoint_singleton {l : list α} {a : α} : disjoint l [a] ↔ a ∉ l :=
 by rw disjoint_comm; simp only [singleton_disjoint]
 
 @[simp] theorem disjoint_append_left {l₁ l₂ l : list α} :

@@ -23,8 +23,7 @@ show _ = to_bool false, by congr
 
 @[simp] theorem coe_to_bool (p : Prop) [decidable p] : to_bool p ↔ p := to_bool_iff _
 
-@[simp] lemma of_to_bool_iff {p : Prop} [decidable p] : to_bool p ↔ p :=
-⟨of_to_bool_true, _root_.to_bool_true⟩
+lemma of_to_bool_iff {p : Prop} [decidable p] : to_bool p ↔ p := coe_to_bool _
 
 @[simp] lemma tt_eq_to_bool_iff {p : Prop} [decidable p] : tt = to_bool p ↔ p :=
 eq_comm.trans of_to_bool_iff

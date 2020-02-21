@@ -91,7 +91,6 @@ def zero_locus (s : set R) : set (prime_spectrum R) :=
   zero_locus (ideal.span s : set R) = zero_locus s :=
 by { ext x, exact (submodule.gi R R).gc s x.as_ideal }
 
-
 /-- The vanishing ideal of a set `t` of points
 of the prime spectrum of a commutative ring `R`
 is the intersection of all the prime ideals in the set `t`.

@@ -107,7 +107,7 @@ end
 section
 variables [has_zero_morphisms.{v} C] [has_colimit (parallel_pair f 0)]
 
-/-- The cokernel of a morphism, expressed as the coekernel.is_limit_cone_zero_conequalizer with the 0 morphism. -/
+/-- The cokernel of a morphism, expressed as the coequalizer with the 0 morphism. -/
 abbreviation cokernel : C := coequalizer f 0
 
 /-- The map from the target of `f` to `cokernel f`. -/

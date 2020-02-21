@@ -460,6 +460,19 @@ by rw [infi, Inf_coe]; ext a; simp; exact
   x ∈ (⨅ i, p i) ↔ ∀ i, x ∈ p i :=
 by rw [← mem_coe, infi_coe, mem_Inter]; refl
 
+lemma mem_supr {ι : Sort*} (p : ι → submodule R M) {m : M} :
+  (m ∈ ⨆ i, p i) ↔ (∀ N, (∀ i, p i ≤ N) → m ∈ N) :=
+begin
+  show (m ∈ lattice.Inf _) ↔ _,
+  simp only [lattice.Inf_eq_infi, submodule.mem_infi, set.mem_set_of_eq],
+  -- TODO: factor out simp-lemma `forall_mem_range`
+  apply forall_congr, intros N,
+  apply imp_congr _ iff.rfl,
+  split,
+  { intros h i, exact h _ ⟨i, rfl⟩ },
+  { rintro h _ ⟨i, rfl⟩, exact h i }
+end
+
 theorem disjoint_def {p p' : submodule R M} :
   disjoint p p' ↔ ∀ x ∈ p, x ∈ p' → x = (0:M) :=
 show (∀ x, x ∈ p ∧ x ∈ p' → x ∈ ({0} : set M)) ↔ _, by simp

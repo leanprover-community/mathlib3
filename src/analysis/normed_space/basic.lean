@@ -617,6 +617,10 @@ by simp only [dist_eq_norm, (norm_smul _ _).symm, smul_sub]
 lemma nnnorm_smul [normed_space α β] (s : α) (x : β) : nnnorm (s • x) = nnnorm s * nnnorm x :=
 nnreal.eq $ norm_smul s x
 
+lemma nndist_smul [normed_space α β] (s : α) (x y : β) :
+  nndist (s • x) (s • y) = nnnorm s * nndist x y :=
+nnreal.eq $ dist_smul s x y
+
 variables {E : Type*} {F : Type*}
 [normed_group E] [normed_space α E] [normed_group F] [normed_space α F]
 

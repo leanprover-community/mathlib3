@@ -415,6 +415,10 @@ instance prod.emetric_space_max [emetric_space β] : emetric_space (α × β) :=
   end,
   to_uniform_space := prod.uniform_space }
 
+lemma prod.edist_eq [emetric_space β] (x y : α × β) :
+  edist x y = max (edist x.1 y.1) (edist x.2 y.2) :=
+rfl
+
 section pi
 open finset
 variables {π : β → Type*} [fintype β]

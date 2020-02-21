@@ -54,7 +54,7 @@ jobs:
         run: |
           archive_name="$(git rev-parse HEAD).tar.gz"
           tar czf "$archive_name" src
-          azcopy copy "$archive_name" "${{ secrets.AZURE_SAS_TOKEN }} --block-size-mb 99"
+          azcopy copy "$archive_name" "${{ secrets.AZURE_SAS_TOKEN }}" --block-size-mb 99
 
       - name: tests
         run: |

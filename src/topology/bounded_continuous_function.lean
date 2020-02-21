@@ -325,13 +325,13 @@ theorem arzela_ascoli
 addition to being closed, still satisfies the properties of compact range and equicontinuity -/
 arzela_ascoli₂ s hs (closure A) is_closed_closure
   (λ f x hf, (mem_of_closed' (closed_of_compact _ hs)).2 $ λ ε ε0,
-    let ⟨g, gA, dist_fg⟩ := mem_closure_iff'.1 hf ε ε0 in
+    let ⟨g, gA, dist_fg⟩ := metric.mem_closure_iff.1 hf ε ε0 in
     ⟨g x, in_s g x gA, lt_of_le_of_lt (dist_coe_le_dist _) dist_fg⟩)
   (λ x ε ε0, show ∃ U ∈ 𝓝 x,
       ∀ y z ∈ U, ∀ (f : α →ᵇ β), f ∈ closure A → dist (f y) (f z) < ε,
     begin
       refine bex.imp_right (λ U U_set hU y z hy hz f hf, _) (H x (ε/2) (half_pos ε0)),
-      rcases mem_closure_iff'.1 hf (ε/2/2) (half_pos (half_pos ε0)) with ⟨g, gA, dist_fg⟩,
+      rcases metric.mem_closure_iff.1 hf (ε/2/2) (half_pos (half_pos ε0)) with ⟨g, gA, dist_fg⟩,
       replace dist_fg := λ x, lt_of_le_of_lt (dist_coe_le_dist x) dist_fg,
       calc dist (f y) (f z) ≤ dist (f y) (g y) + dist (f z) (g z) + dist (g y) (g z) : dist_triangle4_right _ _ _ _
           ... < ε/2/2 + ε/2/2 + ε/2 :

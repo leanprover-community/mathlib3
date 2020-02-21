@@ -100,7 +100,7 @@ private lemma deriv_norm_ne_zero : ∥F.derivative.eval a∥ ≠ 0 :=
 private lemma deriv_norm_pos : 0 < ∥F.derivative.eval a∥ :=
 lt_of_le_of_ne (norm_nonneg _) (ne.symm deriv_norm_ne_zero)
 
-private lemma deriv_ne_zero : F.derivative.eval a ≠ 0 := mt (norm_eq_zero _).2 deriv_norm_ne_zero
+private lemma deriv_ne_zero : F.derivative.eval a ≠ 0 := mt norm_eq_zero.2 deriv_norm_ne_zero
 
 private lemma T_def : T = ∥F.eval a∥ / ∥F.derivative.eval a∥^2 :=
 calc T = ∥(F.eval a).val∥ / ∥((F.derivative.eval a).val)^2∥ : normed_field.norm_div _ _
@@ -153,7 +153,7 @@ private def calc_eval_z'  {z z' z1 : ℤ_[p]} (hz' : z' = z - z1) {n} (hz : ih n
   {q : ℤ_[p] // F.eval z' = q * z1^2} :=
 have hdzne' : (↑(F.derivative.eval z) : ℚ_[p]) ≠ 0, from
   have hdzne : F.derivative.eval z ≠ 0,
-    from mt (norm_eq_zero _).2 (by rw hz.1; apply deriv_norm_ne_zero; assumption),
+    from mt norm_eq_zero.2 (by rw hz.1; apply deriv_norm_ne_zero; assumption),
   λ h, hdzne $ subtype.ext.2 h,
 let ⟨q, hq⟩ := F.binom_expansion z (-z1) in
 have ∥(↑(F.derivative.eval z) * (↑(F.eval z) / ↑(F.derivative.eval z)) : ℚ_[p])∥ ≤ 1,
@@ -237,10 +237,7 @@ include hnsol
 private lemma T_pos : T > 0 :=
 begin
   rw T_def,
-  apply div_pos_of_pos_of_pos,
-  { apply (norm_pos_iff _).2,
-    apply hnsol },
-  { exact deriv_sq_norm_pos hnorm }
+  exact div_pos_of_pos_of_pos (norm_pos_iff.2 hnsol) (deriv_sq_norm_pos hnorm)
 end
 
 private lemma newton_seq_succ_dist_weak (n : ℕ) :

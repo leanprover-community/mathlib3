@@ -302,6 +302,20 @@ rfl
 theorem comp_smul (g : M₂ →ₗ[R] M₃) (a : R) : g.comp (a • f) = a • (g.comp f) :=
 ext $ assume b, by rw [comp_apply, smul_apply, g.map_smul]; refl
 
+/--
+The family of linear maps `M₂ → M` parameterised by `f ∈ M₂ → R`, `x ∈ M`, is linear in `f`, `x`.
+-/
+def smul_rightₗ : (M₂ →ₗ[R] R) →ₗ[R] M →ₗ[R] M₂ →ₗ[R] M :=
+{ to_fun := λ f, {
+    to_fun := linear_map.smul_right f,
+    add    := λ m m', by { ext, apply smul_add, },
+    smul   := λ c m, by { ext, apply smul_comm, } },
+  add    := λ f f', by { ext, apply add_smul, },
+  smul   := λ c f, by { ext, apply mul_smul, } }
+
+@[simp] lemma smul_rightₗ_apply (f : M₂ →ₗ[R] R) (x : M) (c : M₂) :
+  (smul_rightₗ : (M₂ →ₗ R) →ₗ M →ₗ M₂ →ₗ M) f x c = (f c) • x := rfl
+
 end comm_ring
 end linear_map
 
@@ -1342,6 +1356,10 @@ e.to_linear_map.map_sub a b
 e.to_add_equiv.map_eq_zero_iff
 @[simp] theorem map_ne_zero_iff (e : M ≃ₗ[R] M₂) {x : M} : e x ≠ 0 ↔ x ≠ 0 :=
 e.to_add_equiv.map_ne_zero_iff
+
+@[simp] theorem symm_symm (e : M ≃ₗ[R] M₂) : e.symm.symm = e := by { cases e, refl }
+
+@[simp] theorem symm_symm_apply (e : M ≃ₗ[R] M₂) (x : M) : e.symm.symm x = e x := by { cases e, refl }
 
 /-- A bijective linear map is a linear equivalence. Here, bijectivity is described by saying that
 the kernel of `f` is `{0}` and the range is the universal set. -/

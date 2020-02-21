@@ -75,6 +75,8 @@ structure uniform_space.core (α : Type u) :=
 (symm       : tendsto prod.swap uniformity uniformity)
 (comp       : uniformity.lift' (λs, comp_rel s s) ≤ uniformity)
 
+/-- An alternative constructor for `uniform_space.core`. This version unfolds various
+`filter`-related definitions. -/
 def uniform_space.core.mk' {α : Type u} (U : filter (α × α))
   (refl : ∀ (r ∈ U) x, (x, x) ∈ r)
   (symm : ∀ r ∈ U, {p | prod.swap p ∈ r} ∈ U)
@@ -119,11 +121,14 @@ end prio
     (∀x∈s, { p : α × α | p.1 = x → p.2 ∈ s } ∈ c.uniformity)) :
   uniform_space α := ⟨c, is_open_uniformity⟩
 
+/-- Construct a `uniform_space` from a `uniform_space.core`. -/
 def uniform_space.of_core {α : Type u} (u : uniform_space.core α) : uniform_space α :=
 { to_core := u,
   to_topological_space := u.to_topological_space,
   is_open_uniformity := assume a, iff.rfl }
 
+/-- Construct a `uniform_space` from a `u : uniform_space.core` and a `topological_space` structure
+that is equal to `u.to_topological_space`. -/
 def uniform_space.of_core_eq {α : Type u} (u : uniform_space.core α) (t : topological_space α)
   (h : t = u.to_topological_space) : uniform_space α :=
 { to_core := u,
@@ -242,6 +247,11 @@ calc (𝓤 α).lift' (λd, comp_rel d (comp_rel d d)) =
       (assume s, monotone_comp_rel monotone_id monotone_const)
   ... ≤ (𝓤 α) : comp_le_uniformity
 
+lemma filter.has_basis.mem_uniformity_iff {p : β → Prop} {s : β → set (α×α)}
+  (h : (𝓤 α).has_basis p s) {t : set (α × α)} :
+  t ∈ 𝓤 α ↔ ∃ i (hi : p i), ∀ a b, (a, b) ∈ s i → (a, b) ∈ t :=
+h.mem_iff.trans $ by simp only [prod.forall, subset_def]
+
 lemma mem_nhds_uniformity_iff {x : α} {s : set α} :
   s ∈ 𝓝 x ↔ {p : α × α | p.1 = x → p.2 ∈ s} ∈ 𝓤 α :=
 ⟨ begin
@@ -269,23 +279,24 @@ by ext s; rw [mem_nhds_uniformity_iff, mem_comap_sets]; from iff.intro
   (assume ⟨t, h, ht⟩, (𝓤 α).sets_of_superset h $
     assume ⟨p₁, p₂⟩ hp (h : p₁ = x), ht $ by simp [h.symm, hp])
 
-lemma nhds_eq_uniformity {x : α} : 𝓝 x = (𝓤 α).lift' (λs:set (α×α), {y | (x, y) ∈ s}) :=
+lemma nhds_basis_uniformity' {p : β → Prop} {s : β → set (α × α)} (h : (𝓤 α).has_basis p s) {x : α} :
+  (𝓝 x).has_basis p (λ i, {y | (x, y) ∈ s i}) :=
+by { rw [nhds_eq_comap_uniformity], exact h.comap (prod.mk x) }
+
+lemma nhds_basis_uniformity {p : β → Prop} {s : β → set (α × α)} (h : (𝓤 α).has_basis p s) {x : α} :
+  (𝓝 x).has_basis p (λ i, {y | (y, x) ∈ s i}) :=
 begin
-  ext s,
-  rw [mem_lift'_sets], tactic.swap, apply monotone_preimage,
-  simp [mem_nhds_uniformity_iff],
-  exact ⟨assume h, ⟨_, h, assume y h, h rfl⟩,
-    assume ⟨t, h₁, h₂⟩,
-    (𝓤 α).sets_of_superset h₁ $
-    assume ⟨x', y⟩ hp (eq : x' = x), h₂ $
-    show (x, y) ∈ t, from eq ▸ hp⟩
+  replace h := h.comap prod.swap,
+  rw [← map_swap_eq_comap_swap, ← uniformity_eq_symm] at h,
+  exact nhds_basis_uniformity' h
 end
+
+lemma nhds_eq_uniformity {x : α} : 𝓝 x = (𝓤 α).lift' (λs:set (α×α), {y | (x, y) ∈ s}) :=
+(nhds_basis_uniformity' (𝓤 α).basis_sets).eq_binfi
 
 lemma mem_nhds_left (x : α) {s : set (α×α)} (h : s ∈ 𝓤 α) :
   {y : α | (x, y) ∈ s} ∈ 𝓝 x :=
-have 𝓝 x ≤ principal {y : α | (x, y) ∈ s},
-  by rw [nhds_eq_uniformity]; exact infi_le_of_le s (infi_le _ h),
-by simp at this; assumption
+(nhds_basis_uniformity' (𝓤 α).basis_sets).mem_of_mem h
 
 lemma mem_nhds_right (y : α) {s : set (α×α)} (h : s ∈ 𝓤 α) :
   {x : α | (x, y) ∈ s} ∈ 𝓝 y :=
@@ -422,8 +433,11 @@ have ∃ t ∈ 𝓤 α, closure t ⊆ s,
 let ⟨t, ht, hst⟩ := this in
 ⟨closure t, (𝓤 α).sets_of_superset ht subset_closure, is_closed_closure, hst⟩
 
-/- uniform continuity -/
+/-! ### Uniform continuity -/
 
+/-- A function `f : α → β` is *uniformly continuous* if `(f x, f y)` tends to the diagonal
+as `(x, y)` tends to the diagonal. In other words, if `x` is sufficiently close to `y`, then
+`f x` is close to `f y` no matter where `x` and `y` are located in `α`. -/
 def uniform_continuous [uniform_space β] (f : α → β) :=
 tendsto (λx:α×α, (f x.1, f x.2)) (𝓤 α) (𝓤 β)
 
@@ -442,11 +456,18 @@ lemma uniform_continuous_id : uniform_continuous (@id α) :=
 by simp [uniform_continuous]; exact tendsto_id
 
 lemma uniform_continuous_const [uniform_space β] {b : β} : uniform_continuous (λa:α, b) :=
-@tendsto_const_uniformity _ _ _ b (𝓤 α)
+uniform_continuous_of_const $ λ _ _, rfl
 
 lemma uniform_continuous.comp [uniform_space β] [uniform_space γ] {g : β → γ} {f : α → β}
   (hg : uniform_continuous g) (hf : uniform_continuous f) : uniform_continuous (g ∘ f) :=
 hg.comp hf
+
+lemma filter.has_basis.uniform_continuous_iff [uniform_space β] {p : γ → Prop} {s : γ → set (α×α)}
+  (ha : (𝓤 α).has_basis p s) {q : δ → Prop} {t : δ → set (β×β)} (hb : (𝓤 β).has_basis q t)
+  {f : α → β} :
+  uniform_continuous f ↔ ∀ i (hi : q i), ∃ j (hj : p j), ∀ x y, (x, y) ∈ s j → (f x, f y) ∈ t i :=
+(ha.tendsto_iff hb).trans $ by simp only [prod.forall]
+
 end uniform_space
 end
 

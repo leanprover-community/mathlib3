@@ -657,19 +657,8 @@ theorem is_o_const_iff {c : F'} (hc : c ≠ 0) :
 (is_o_const_iff_is_o_one ℝ hc).trans
 begin
   clear hc c,
-  simp only [is_o, is_O_with, normed_field.norm_one, mul_one, normed_group.tendsto_nhds_zero],
-  -- Now the only difference is `≤` vs `<`
-  split,
-  { intros h ε hε0,
-    apply mem_sets_of_superset (h (half_pos hε0)),
-    intros x hx,
-    simp only [mem_set_of_eq] at hx ⊢,
-    exact lt_of_le_of_lt hx (half_lt_self hε0) },
-  { intros h ε hε0,
-    apply mem_sets_of_superset (h ε hε0),
-    intros x hx,
-    simp only [mem_set_of_eq] at hx ⊢,
-    exact le_of_lt hx }
+  simp only [is_o, is_O_with, normed_field.norm_one, mul_one,
+    metric.nhds_basis_closed_ball.tendsto_right_iff, metric.mem_closed_ball, dist_zero_right]
 end
 
 theorem is_O_const_of_tendsto {y : E'} (h : tendsto f' l (𝓝 y)) {c : F'} (hc : c ≠ 0) :
@@ -873,7 +862,7 @@ by refine ((h.norm_left.const_mul_left (∥c'∥)).congr _ _ (λ _, rfl)).of_nor
 theorem is_O_const_smul_left_iff {c : 𝕜} (hc : c ≠ 0) :
   is_O (λ x, c • f' x) g l ↔ is_O f' g l :=
 begin
-  have cne0 : ∥c∥ ≠ 0, from mt (norm_eq_zero _).mp hc,
+  have cne0 : ∥c∥ ≠ 0, from mt norm_eq_zero.mp hc,
   rw [←is_O_norm_left], simp only [norm_smul],
   rw [is_O_const_mul_left_iff cne0, is_O_norm_left],
 end
@@ -888,7 +877,7 @@ end
 theorem is_o_const_smul_left_iff {c : 𝕜} (hc : c ≠ 0) :
   is_o (λ x, c • f' x) g l ↔ is_o f' g l :=
 begin
-  have cne0 : ∥c∥ ≠ 0, from mt (norm_eq_zero _).mp hc,
+  have cne0 : ∥c∥ ≠ 0, from mt norm_eq_zero.mp hc,
   rw [←is_o_norm_left], simp only [norm_smul],
   rw [is_o_const_mul_left_iff cne0, is_o_norm_left]
 end
@@ -896,7 +885,7 @@ end
 theorem is_O_const_smul_right {c : 𝕜} (hc : c ≠ 0) :
   is_O f (λ x, c • f' x) l ↔ is_O f f' l :=
 begin
-  have cne0 : ∥c∥ ≠ 0, from mt (norm_eq_zero _).mp hc,
+  have cne0 : ∥c∥ ≠ 0, from mt norm_eq_zero.mp hc,
   rw [←is_O_norm_right], simp only [norm_smul],
   rw [is_O_const_mul_right_iff cne0, is_O_norm_right]
 end
@@ -904,7 +893,7 @@ end
 theorem is_o_const_smul_right {c : 𝕜} (hc : c ≠ 0) :
   is_o f (λ x, c • f' x) l ↔ is_o f f' l :=
 begin
-  have cne0 : ∥c∥ ≠ 0, from mt (norm_eq_zero _).mp hc,
+  have cne0 : ∥c∥ ≠ 0, from mt norm_eq_zero.mp hc,
   rw [←is_o_norm_right], simp only [norm_smul],
   rw [is_o_const_mul_right_iff cne0, is_o_norm_right]
 end

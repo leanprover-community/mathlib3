@@ -330,7 +330,7 @@ begin
   split,
   { assume h,
     ext m,
-    simpa [h, (norm_le_zero_iff _).symm] using f.le_op_norm m },
+    simpa [h, norm_le_zero_iff.symm] using f.le_op_norm m },
   { assume h,
     apply le_antisymm (op_norm_le_bound f (le_refl _) (λm, _)) (op_norm_nonneg _),
     rw h,
@@ -507,7 +507,7 @@ section currying
 
 We associate to a continuous multilinear map in `n+1` variables (i.e., based on `fin n.succ`) two
 curried functions, named `f.curry_left` (which is a continuous linear map on `E 0` taking values
-in continuous multilinear maps in `n` variables) and `f.curry_right` (wich is a continuous
+in continuous multilinear maps in `n` variables) and `f.curry_right` (which is a continuous
 multilinear map in `n` variables taking values in continuous linear maps on `E (last n)`).
 The inverse operations are called `uncurry_left` and `uncurry_right`.
 
@@ -918,7 +918,7 @@ variables {𝕜 G E₂}
 
 variables (𝕜 G E₂)
 
-/-- Continuous multilinear maps from `G^1` to `E₂` are isomorphic with continuous maps from
+/-- Continuous multilinear maps from `G^1` to `E₂` are isomorphic with continuous linear maps from
 `G` to `E₂`. -/
 def continuous_multilinear_curry_fin1 :
   (continuous_multilinear_map 𝕜 (λ (i : fin 1), G) E₂) ≃L[𝕜] (G →L[𝕜] E₂) :=

@@ -65,9 +65,8 @@ In order to use mathlib supporting tools, you need to [get python](https://www.p
 
 Then, at a terminal, run the command
   ```bash
-  curl https://raw.githubusercontent.com/leanprover-community/mathlib-tools/master/scripts/remote-install-update-mathlib.sh -sSf | bash
+  pip3 install mathlibtools
   ```
-Run `source ~/.profile` or close and reopen Git Bash.
 
 Installing and configuring an editor
 ---

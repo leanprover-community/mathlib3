@@ -977,8 +977,8 @@ begin
       0 < ∥(1:𝕜)∥ - ∥-h∥ : by rwa [norm_neg, sub_pos, ← dist_zero_right h, normed_field.norm_one]
       ... ≤ ∥1 - -h∥ : norm_sub_norm_le _ _
       ... = ∥1 + h∥ : by simp,
-    have : 1 + h ≠ 0 := (norm_pos_iff (1 + h)).mp this,
-    simp only [mem_set_of_eq, smul_eq_mul, inv_one],
+    have : 1 + h ≠ 0 := norm_pos_iff.mp this,
+    simp only [mem_set_of_eq, smul_eq_mul],
     field_simp [this, -add_comm],
     ring },
   { exact univ_mem_sets' mul_one }
@@ -1217,9 +1217,88 @@ funext $ λ x, deriv_pow
 
 lemma deriv_within_pow (hxs : unique_diff_within_at 𝕜 s x) :
   deriv_within (λx, x^n) s x = (n : 𝕜) * x^(n-1) :=
-by rw [differentiable_at_pow.deriv_within hxs, deriv_pow]
+(has_deriv_within_at_pow n x s).deriv_within hxs
+
+lemma iter_deriv_pow' {k : ℕ} :
+  deriv^[k] (λx:𝕜, x^n) = λ x, ((finset.range k).prod (λ i, n - i):ℕ) * x^(n-k) :=
+begin
+  induction k with k ihk,
+  { simp only [one_mul, finset.prod_range_zero, nat.iterate_zero, nat.sub_zero, nat.cast_one] },
+  { simp only [nat.iterate_succ', ihk, finset.prod_range_succ],
+    ext x,
+    rw [((has_deriv_at_pow (n - k) x).const_mul _).deriv, nat.cast_mul, mul_left_comm, mul_assoc,
+      nat.succ_eq_add_one, nat.sub_sub] }
+end
+
+lemma iter_deriv_pow {k : ℕ} :
+  deriv^[k] (λx:𝕜, x^n) x = ((finset.range k).prod (λ i, n - i):ℕ) * x^(n-k) :=
+congr_fun iter_deriv_pow' x
 
 end pow
+
+section fpow
+/-! ### Derivative of `x ↦ x^m` for `m : ℤ` -/
+variables {x : 𝕜} {s : set 𝕜}
+variable {m : ℤ}
+
+lemma has_deriv_at_fpow (m : ℤ) (hx : x ≠ 0) :
+  has_deriv_at (λx, x^m) ((m : 𝕜) * x^(m-1)) x :=
+begin
+  have : ∀ m : ℤ, 0 < m → has_deriv_at (λx, x^m) ((m:𝕜) * x^(m-1)) x,
+  { assume m hm,
+    lift m to ℕ using (le_of_lt hm),
+    simp only [fpow_of_nat, int.cast_coe_nat],
+    convert has_deriv_at_pow _ _ using 2,
+    rw [← int.coe_nat_one, ← int.coe_nat_sub, fpow_of_nat],
+    norm_cast at hm,
+    exact nat.succ_le_of_lt hm },
+  rcases lt_trichotomy m 0 with hm|hm|hm,
+  { have := (has_deriv_at_inv _).comp _ (this (-m) (neg_pos.2 hm));
+      [skip, exact fpow_ne_zero_of_ne_zero hx _],
+    simp only [(∘), fpow_neg, one_div_eq_inv, inv_inv', smul_eq_mul] at this,
+    convert this using 1,
+    rw [pow_two, mul_inv', inv_inv', int.cast_neg, ← neg_mul_eq_neg_mul, neg_mul_neg,
+      ← fpow_add hx, mul_assoc, ← fpow_add hx], congr, abel },
+  { simp only [hm, fpow_zero, int.cast_zero, zero_mul, has_deriv_at_const] },
+  { exact this m hm }
+end
+
+theorem has_deriv_within_at_fpow (m : ℤ) (hx : x ≠ 0) (s : set 𝕜) :
+  has_deriv_within_at (λx, x^m) ((m : 𝕜) * x^(m-1)) s x :=
+(has_deriv_at_fpow m hx).has_deriv_within_at
+
+lemma differentiable_at_fpow (hx : x ≠ 0)  : differentiable_at 𝕜 (λx, x^m) x :=
+(has_deriv_at_fpow m hx).differentiable_at
+
+lemma differentiable_within_at_fpow (hx : x ≠ 0) :
+  differentiable_within_at 𝕜 (λx, x^m) s x :=
+(differentiable_at_fpow hx).differentiable_within_at
+
+lemma differentiable_on_fpow (hs : (0:𝕜) ∉ s) : differentiable_on 𝕜 (λx, x^m) s :=
+λ x hxs, differentiable_within_at_fpow (λ hx, hs $ hx ▸ hxs)
+
+-- TODO : this is true at `x=0` as well
+lemma deriv_fpow (hx : x ≠ 0) : deriv (λx, x^m) x = (m : 𝕜) * x^(m-1) :=
+(has_deriv_at_fpow m hx).deriv
+
+lemma deriv_within_fpow (hxs : unique_diff_within_at 𝕜 s x) (hx : x ≠ 0) :
+  deriv_within (λx, x^m) s x = (m : 𝕜) * x^(m-1) :=
+(has_deriv_within_at_fpow m hx s).deriv_within hxs
+
+lemma iter_deriv_fpow {k : ℕ} (hx : x ≠ 0) :
+  deriv^[k] (λx:𝕜, x^m) x = ((finset.range k).prod (λ i, m - i):ℤ) * x^(m-k) :=
+begin
+  induction k with k ihk generalizing x hx,
+  { simp only [one_mul, finset.prod_range_zero, nat.iterate_zero, int.coe_nat_zero, sub_zero,
+      int.cast_one] },
+  { rw [nat.iterate_succ', finset.prod_range_succ, int.cast_mul, mul_assoc, mul_left_comm, int.coe_nat_succ,
+      ← sub_sub, ← ((has_deriv_at_fpow _ hx).const_mul _).deriv],
+    apply deriv_congr_of_mem_nhds,
+    apply eventually.mono _ @ihk,
+    exact mem_nhds_sets (is_open_neg $ is_closed_eq continuous_id continuous_const) hx }
+end
+
+end fpow
 
 /-! ### Upper estimates on liminf and limsup -/
 

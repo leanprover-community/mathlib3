@@ -200,8 +200,12 @@ end
 
 lemma complete_space_iff_is_complete_range {f : α → β} (hf : uniform_embedding f) :
   complete_space α ↔ is_complete (range f) :=
-(iff.intro (@complete_univ α _) complete_space_of_is_complete_univ).trans $
-  (is_complete_image_iff hf).symm.trans $ by rw [image_univ]
+by rw [complete_space_iff_is_complete_univ, ← is_complete_image_iff hf, image_univ]
+
+lemma complete_space_congr {e : α ≃ β} (he : uniform_embedding e) :
+  complete_space α ↔ complete_space β :=
+by rw [complete_space_iff_is_complete_range he, e.range_eq_univ,
+  complete_space_iff_is_complete_univ]
 
 lemma complete_space_coe_iff_is_complete {s : set α} :
   complete_space s ↔ is_complete s :=

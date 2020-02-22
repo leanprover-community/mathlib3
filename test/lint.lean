@@ -13,6 +13,10 @@ lemma foo.bar (ε > 0) : ε = ε := rfl -- >/≥ is allowed in binders (and in f
 
 open tactic
 
+meta def fold_over_with_cond {α} (l : list declaration) (tac : declaration → tactic (option α)) :
+  tactic (list (declaration × α)) :=
+l.mmap_filter $ λ d, option.map (λ x, (d, x)) <$> tac d
+
 run_cmd do
   let t := name × list ℕ,
   e ← get_env,
@@ -44,7 +48,6 @@ run_cmd do
   skip
 
 /- check customizability and nolint -/
-@[nolint] def bar.foo : (if 3 = 3 then 1 else 2) = 1 := if_pos (by refl)
 
 meta def dummy_check (d : declaration) : tactic (option string) :=
 return $ if d.to_name.last = "foo" then some "gotcha!" else none
@@ -54,9 +57,12 @@ meta def linter.dummy_linter : linter :=
   no_errors_found := "found nothing",
   errors_found := "found something" }
 
+@[nolint dummy_linter]
+def bar.foo : (if 3 = 3 then 1 else 2) = 1 := if_pos (by refl)
+
 run_cmd do
   (_, s) ← lint tt tt [`linter.dummy_linter] tt,
-  guard $ "/- found something: -/\n#print foo.foo /- gotcha! -/\n\n".is_suffix_of s.to_string
+  guard $ "/- found something: -/\n#print foo.foo /- gotcha! -/".is_suffix_of s.to_string
 
 instance impossible_instance_test {α β : Type} [add_group α] : has_add α := infer_instance
 

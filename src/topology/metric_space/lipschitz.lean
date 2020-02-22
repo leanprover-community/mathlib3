@@ -182,7 +182,7 @@ of_dist_le $ by simpa only [nnreal.coe_one, one_mul] using h
 
 /-- For functions to `ℝ`, it suffices to prove `f x ≤ f y + K * dist x y`; this version
 doesn't assume `0≤K`. -/
-protected lemma of_le_mul_add' {f : α → ℝ} (K : ℝ≥0) (h : ∀x y, f x ≤ f y + K * dist x y) :
+protected lemma of_le_add_mul' {f : α → ℝ} (K : ℝ) (h : ∀x y, f x ≤ f y + K * dist x y) :
   lipschitz_with (nnreal.of_real K) f :=
 have I : ∀ x y, f x - f y ≤ K * dist x y,
   from assume x y, sub_le_iff_le_add'.2 (h x y),
@@ -192,21 +192,21 @@ abs_sub_le_iff.2 ⟨I x y, dist_comm y x ▸ I y x⟩
 
 /-- For functions to `ℝ`, it suffices to prove `f x ≤ f y + K * dist x y`; this version
 assumes `0≤K`. -/
-protected lemma of_le_mul_add {f : α → ℝ} (K : ℝ≥0) (h : ∀x y, f x ≤ f y + K * dist x y) :
+protected lemma of_le_add_mul {f : α → ℝ} (K : ℝ≥0) (h : ∀x y, f x ≤ f y + K * dist x y) :
   lipschitz_with K f :=
-by simpa only [nnreal.of_real_coe] using lipschitz_with.of_le_mul_add' K h
+by simpa only [nnreal.of_real_coe] using lipschitz_with.of_le_add_mul' K h
 
 protected lemma of_le_add {f : α → ℝ} (h : ∀ x y, f x ≤ f y + dist x y) :
   lipschitz_with 1 f :=
-lipschitz_with.of_le_mul_add 1 $ by simpa only [nnreal.coe_one, one_mul]
+lipschitz_with.of_le_add_mul 1 $ by simpa only [nnreal.coe_one, one_mul]
 
-protected lemma le_mul_add {f : α → ℝ} {K : ℝ≥0} (h : lipschitz_with K f) (x y) :
+protected lemma le_add_mul {f : α → ℝ} {K : ℝ≥0} (h : lipschitz_with K f) (x y) :
   f x ≤ f y + K * dist x y :=
 sub_le_iff_le_add'.1 $ le_trans (le_abs_self _) $ h.dist_le x y
 
-protected lemma iff_le_mul_add {f : α → ℝ} {K : ℝ≥0} :
+protected lemma iff_le_add_mul {f : α → ℝ} {K : ℝ≥0} :
   lipschitz_with K f ↔ ∀ x y, f x ≤ f y + K * dist x y :=
-⟨lipschitz_with.le_mul_add, lipschitz_with.of_le_mul_add K⟩
+⟨lipschitz_with.le_add_mul, lipschitz_with.of_le_add_mul K⟩
 
 lemma nndist_le {f : α → β} (hf : lipschitz_with K f) (x y : α) :
   nndist (f x) (f y) ≤ K * nndist x y :=

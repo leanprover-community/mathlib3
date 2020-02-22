@@ -5,6 +5,7 @@ Authors: Sébastien Gouëzel
 -/
 
 import analysis.normed_space.operator_norm topology.algebra.multilinear
+import data.fintype.card
 
 /-!
 # Operator norm on the space of continuous multilinear maps

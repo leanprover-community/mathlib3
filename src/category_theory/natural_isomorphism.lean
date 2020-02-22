@@ -63,10 +63,10 @@ begin
 end
 
 variables {X Y : C}
-@[simp] lemma naturality_1 (α : F ≅ G) (f : X ⟶ Y) :
+lemma naturality_1 (α : F ≅ G) (f : X ⟶ Y) :
   (α.inv.app X) ≫ (F.map f) ≫ (α.hom.app Y) = G.map f :=
 begin erw [naturality, ←category.assoc, is_iso.hom_inv_id, category.id_comp] end
-@[simp] lemma naturality_2 (α : F ≅ G) (f : X ⟶ Y) :
+lemma naturality_2 (α : F ≅ G) (f : X ⟶ Y) :
   (α.hom.app X) ≫ (G.map f) ≫ (α.inv.app Y) = F.map f :=
 begin erw [naturality, ←category.assoc, is_iso.hom_inv_id, category.id_comp] end
 

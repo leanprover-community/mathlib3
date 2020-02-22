@@ -172,9 +172,13 @@ lemma subset_zero_locus_vanishing_ideal (t : set (prime_spectrum R)) :
   t ⊆ zero_locus (vanishing_ideal t) :=
 (gc R).l_u_le t
 
-@[simp] lemma zero_locus_bot :
+lemma zero_locus_bot :
   zero_locus ((⊥ : ideal R) : set R) = set.univ :=
 (gc R).l_bot
+
+@[simp] lemma zero_locus_singleton_zero :
+  zero_locus ({0} : set R) = set.univ :=
+zero_locus_bot
 
 @[simp] lemma zero_locus_empty :
   zero_locus (∅ : set R) = set.univ :=

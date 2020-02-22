@@ -547,23 +547,13 @@ theorem mem_closure_iff :
   by simp only [mem_ball, edist_comm x]
 
 theorem tendsto_nhds {f : filter β} {u : β → α} {a : α} :
-  tendsto u f (𝓝 a) ↔ ∀ ε > 0, ∃ n ∈ f, ∀x ∈ n, edist (u x) a < ε :=
-⟨λ H ε ε0, ⟨u⁻¹' (ball a ε), H (ball_mem_nhds _ ε0), by simp⟩,
- λ H s hs,
-  let ⟨ε, ε0, hε⟩ := mem_nhds_iff.1 hs, ⟨δ, δ0, hδ⟩ := H _ ε0 in
-  f.sets_of_superset δ0 (λx xδ, hε (hδ x xδ))⟩
+  tendsto u f (𝓝 a) ↔ ∀ ε > 0, ∀ᶠ x in f, edist (u x) a < ε :=
+nhds_basis_eball.tendsto_right_iff
 
 theorem tendsto_at_top [nonempty β] [semilattice_sup β] (u : β → α) {a : α} :
   tendsto u at_top (𝓝 a) ↔ ∀ε>0, ∃N, ∀n≥N, edist (u n) a < ε :=
-begin
-  rw tendsto_nhds,
-  apply forall_congr,
-  intro ε,
-  apply forall_congr,
-  intro hε,
-  simp,
-  exact ⟨λ ⟨s, ⟨N, hN⟩, hs⟩, ⟨N, λn hn, hs _ (hN _ hn)⟩, λ ⟨N, hN⟩, ⟨{n | n ≥ N}, ⟨⟨N, by simp⟩, hN⟩⟩⟩,
-end
+(at_top_basis.tendsto_iff nhds_basis_eball).trans $
+  by simp only [exists_prop, true_and, mem_Ici, mem_ball]
 
 /-- In an emetric space, Cauchy sequences are characterized by the fact that, eventually,
 the edistance between its elements is arbitrarily small -/

@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Reid Barton
 -/
 
-import roadmap.todo
+import ..todo
 import topology.subset_properties
 import topology.separation
 import topology.metric_space.basic

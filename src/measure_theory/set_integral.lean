@@ -185,8 +185,8 @@ lemma integral_on_non_integrable (h : ¬ integrable_on s f) : (∫ a in s, f a) 
 integral_non_integrable h
 
 variables (β)
-@[simp] lemma integral_on_zero (s : set α) : (∫ a in s, (0:β)) = 0 :=
-by rw [indicator_zero, integral_zero]
+lemma integral_on_zero (s : set α) : (∫ a in s, (0:β)) = 0 :=
+by simp
 variables {β}
 
 lemma integral_on_congr (h : ∀ a ∈ s, f a = g a) : (∫ a in s, f a) = (∫ a in s, g a) :=

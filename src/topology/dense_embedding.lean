@@ -10,9 +10,9 @@ import topology.separation
 
 This file defines three properties of functions:
 
-`dense_range f`      means `f` has dense image;
-`dense_inducing i`   means `i` is also `inducing`;
-`dense_embedding e`  means `e` is also an `embedding`.
+* `dense_range f`      means `f` has dense image;
+* `dense_inducing i`   means `i` is also `inducing`;
+* `dense_embedding e`  means `e` is also an `embedding`.
 
 The main theorem `continuous_extend` gives a criterion for a function
 `f : X → Z` to a regular (T₃) space Z to extend along a dense embedding

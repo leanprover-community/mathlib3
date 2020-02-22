@@ -329,39 +329,15 @@ theorem unique_diff_on_convex {s : set G} (conv : convex s) (hs : (interior s).n
   unique_diff_on ℝ s :=
 begin
   assume x xs,
-  have A : ∀v, ∃a∈ tangent_cone_at ℝ s x, ∃b∈ tangent_cone_at ℝ s x, ∃δ>(0:ℝ), δ • v = b-a,
-  { assume v,
-    rcases hs with ⟨y, hy⟩,
-    have ys : y ∈ s := interior_subset hy,
-    have : ∃(δ : ℝ), 0<δ ∧ y + δ • v ∈ s,
-    { by_cases h : ∥v∥ = 0,
-      { exact ⟨1, zero_lt_one, by simp [norm_eq_zero.1 h, ys]⟩ },
-      { rcases mem_interior.1 hy with ⟨u, us, u_open, yu⟩,
-        rcases metric.is_open_iff.1 u_open y yu with ⟨ε, εpos, hε⟩,
-        let δ := (ε/2) / ∥v∥,
-        have δpos : 0 < δ := div_pos (half_pos εpos) (lt_of_le_of_ne (norm_nonneg _) (ne.symm h)),
-        have : y + δ • v ∈ s,
-        { apply us (hε _),
-          rw [metric.mem_ball, dist_eq_norm],
-          calc ∥(y + δ • v) - y ∥ = ∥δ • v∥ : by {congr' 1, abel }
-          ... = ∥δ∥ * ∥v∥ : norm_smul _ _
-          ... = δ * ∥v∥ : by simp only [norm, abs_of_nonneg (le_of_lt δpos)]
-          ... = ε /2 : div_mul_cancel _ h
-          ... < ε : half_lt_self εpos },
-        exact ⟨δ, δpos, this⟩ } },
-    rcases this with ⟨δ, δpos, hδ⟩,
-    refine ⟨y-x, _, (y + δ • v) - x, _, δ, δpos, by abel⟩,
-    exact mem_tangent_cone_of_segment_subset (conv.segment_subset xs ys),
-    exact mem_tangent_cone_of_segment_subset (conv.segment_subset xs hδ) },
-  have B : ∀v:G, v ∈ submodule.span ℝ (tangent_cone_at ℝ s x),
-  { assume v,
-    rcases A v with ⟨a, ha, b, hb, δ, hδ, h⟩,
-    have : v = δ⁻¹ • (b - a),
-      by { rw [← h, smul_smul, inv_mul_cancel, one_smul], exact (ne_of_gt hδ) },
-    rw this,
-    exact submodule.smul_mem _ _
-      (submodule.sub_mem _ (submodule.subset_span hb) (submodule.subset_span ha)) },
-  refine ⟨univ_subset_iff.1 (λv hv, subset_closure (B v)), subset_closure xs⟩
+  rcases hs with ⟨y, hy⟩,
+  suffices : y - x ∈ interior (tangent_cone_at ℝ s x),
+  { refine ⟨_, subset_closure xs⟩,
+    rw [submodule.eq_top_of_nonempty_interior _ ⟨y - x, interior_mono submodule.subset_span this⟩,
+      submodule.top_coe, closure_univ] },
+  rw [mem_interior_iff_mem_nhds] at hy ⊢,
+  apply mem_sets_of_superset ((is_open_map_add_right (-x)).image_mem_nhds hy),
+  rintros _ ⟨z, zs, rfl⟩,
+  exact mem_tangent_cone_of_segment_subset (conv.segment_subset xs zs)
 end
 
 /-- The real interval `[0, 1]` is a set of unique differentiability. -/

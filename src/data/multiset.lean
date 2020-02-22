@@ -607,7 +607,7 @@ quot.lift_on s (λ l : list α, (l.map f : multiset β))
 @[simp] theorem map_cons (f : α → β) (a s) : map f (a::s) = f a :: map f s :=
 quot.induction_on s $ λ l, rfl
 
-@[simp] lemma map_singleton (f : α → β) (a : α) : ({a} : multiset α).map f = {f a} := rfl
+lemma map_singleton (f : α → β) (a : α) : ({a} : multiset α).map f = {f a} := rfl
 
 @[simp] theorem map_add (f : α → β) (s t) : map f (s + t) = map f s + map f t :=
 quotient.induction_on₂ s t $ λ l₁ l₂, congr_arg coe $ map_append _ _ _
@@ -757,12 +757,12 @@ by simp [repeat, list.prod_repeat]
 @prod_repeat (multiplicative α) _
 attribute [to_additive] prod_repeat
 
-@[simp] lemma prod_map_one [comm_monoid γ] {m : multiset α} :
+lemma prod_map_one [comm_monoid γ] {m : multiset α} :
   prod (m.map (λa, (1 : γ))) = (1 : γ) :=
-multiset.induction_on m (by simp) (by simp)
-@[simp] lemma sum_map_zero [add_comm_monoid γ] {m : multiset α} :
+by simp
+lemma sum_map_zero [add_comm_monoid γ] {m : multiset α} :
   sum (m.map (λa, (0 : γ))) = (0 : γ) :=
-multiset.induction_on m (by simp) (by simp)
+by simp
 attribute [to_additive] prod_map_one
 
 @[simp, to_additive]
@@ -866,7 +866,7 @@ by simp [bind]
 by simp [bind]
 
 @[simp] theorem bind_zero (s : multiset α) : bind s (λa, 0 : α → multiset β) = 0 :=
-by simp [bind, -map_const, join]
+by simp [bind, join]
 
 @[simp] theorem bind_add (s : multiset α) (f g : α → multiset β) :
   bind s (λa, f a + g a) = bind s f + bind s g :=

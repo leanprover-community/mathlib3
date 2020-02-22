@@ -26,9 +26,9 @@ We mostly follow the API of multilinear maps.
 
 open function fin set
 
-universes u v w w₁ w₂
+universes u v w w₁ w₂ w₃ w₄
 variables {R : Type u} {ι : Type v} {n : ℕ}
-{M : fin n.succ → Type w} {M₁ : ι → Type w₁} {M₂ : Type w₂}
+{M : fin n.succ → Type w} {M₁ : ι → Type w₁} {M₂ : Type w₂} {M₃ : Type w₃} {M₄ : Type w₄}
 [decidable_eq ι]
 
 /-- Continuous multilinear maps over the ring `R`, from `Πi, M₁ i` to `M₂` where `M₁ i` and `M₂`
@@ -45,9 +45,12 @@ namespace continuous_multilinear_map
 
 section ring
 
-variables [ring R] [∀i, add_comm_group (M i)] [∀i, add_comm_group (M₁ i)] [add_comm_group M₂]
-[∀i, module R (M i)] [∀i, module R (M₁ i)] [module R M₂]
+variables [ring R]
+[∀i, add_comm_group (M i)] [∀i, add_comm_group (M₁ i)] [add_comm_group M₂]
+[add_comm_group M₃] [add_comm_group M₄]
+[∀i, module R (M i)] [∀i, module R (M₁ i)] [module R M₂] [module R M₃] [module R M₄]
 [∀i, topological_space (M i)] [∀i, topological_space (M₁ i)] [topological_space M₂]
+[topological_space M₃] [topological_space M₄]
 (f f' : continuous_multilinear_map R M₁ M₂)
 
 instance : has_coe_to_fun (continuous_multilinear_map R M₁ M₂) :=
@@ -107,6 +110,29 @@ linear map obtained by fixing all coordinates but `i` equal to those of `m`, and
 `i`-th coordinate. -/
 def to_continuous_linear_map (m : Πi, M₁ i) (i : ι) : M₁ i →L[R] M₂ :=
 { cont := f.cont.comp continuous_update, ..(f.to_multilinear_map.to_linear_map m i) }
+
+/-- The cartesian product of two continuous multilinear maps, as a continuous multilinear map. -/
+def prod (f : continuous_multilinear_map R M₁ M₂) (g : continuous_multilinear_map R M₁ M₃) :
+  continuous_multilinear_map R M₁ (M₂ × M₃) :=
+{ cont := f.cont.prod_mk g.cont,
+  .. f.to_multilinear_map.prod g.to_multilinear_map }
+
+@[simp] lemma prod_apply
+  (f : continuous_multilinear_map R M₁ M₂) (g : continuous_multilinear_map R M₁ M₃) (m : Πi, M₁ i) :
+  (f.prod g) m = (f m, g m) := rfl
+
+/- If `R` and `M₃` are implicit in the next definition, Lean is never able to inder them, even
+given `g` and `f`. Therefore, we make them explicit. -/
+variables (R M₃)
+
+/-- If `g` is continuous multilinear and `f` is continuous linear, then `g (f m₁, ..., f mₙ)` is
+again a continuous multilinear map, that we call `g.comp_continuous_linear_map f`. -/
+def comp_continuous_linear_map
+  (g : continuous_multilinear_map R (λ (i : ι), M₃) M₄) (f : M₂ →L[R] M₃) :
+  continuous_multilinear_map R (λ (i : ι), M₂) M₄ :=
+{ cont := g.cont.comp $ continuous_pi $ λj, f.cont.comp $ continuous_apply _,
+  .. g.to_multilinear_map.comp_linear_map f.to_linear_map }
+variables {R M₃}
 
 /-- In the specific case of continuous multilinear maps on spaces indexed by `fin (n+1)`, where one
 can build an element of `Π(i : fin (n+1)), M i` using `cons`, one can express directly the
@@ -177,3 +203,22 @@ def to_multilinear_map_linear [topological_add_group M₂] :
 end comm_ring
 
 end continuous_multilinear_map
+
+namespace continuous_linear_map
+variables [ring R] [∀i, add_comm_group (M₁ i)] [add_comm_group M₂] [add_comm_group M₃]
+[∀i, module R (M₁ i)] [module R M₂] [module R M₃]
+[∀i, topological_space (M₁ i)] [topological_space M₂] [topological_space M₃]
+
+/-- Composing a continuous multilinear map with a continuous linear map gives again a
+continuous multilinear map. -/
+def comp_continuous_multilinear_map (g : M₂ →L[R] M₃) (f : continuous_multilinear_map R M₁ M₂) :
+  continuous_multilinear_map R M₁ M₃ :=
+{ cont := g.cont.comp f.cont,
+  .. g.to_linear_map.comp_multilinear_map f.to_multilinear_map }
+
+@[simp] lemma comp_continuous_multilinear_map_coe (g : M₂ →L[R] M₃) (f : continuous_multilinear_map R M₁ M₂) :
+  ((g.comp_continuous_multilinear_map f) : (Πi, M₁ i) → M₃) =
+  (g : M₂ → M₃) ∘ (f : (Πi, M₁ i) → M₂) :=
+by { ext m, refl }
+
+end continuous_linear_map

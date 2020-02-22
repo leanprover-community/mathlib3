@@ -60,6 +60,10 @@ theorem bit0_eq_two_mul (n : α) : bit0 n = 2 * n :=
   a * (if P then 1 else 0) = if P then a else 0 :=
 by split_ifs; simp
 
+@[simp] lemma ite_mul {α} [semiring α] (P : Prop) [decidable P] (a : α) :
+  (if P then 1 else 0) * a = if P then a else 0 :=
+by split_ifs; simp
+
 variable (α)
 
 /-- Either zero and one are nonequal in a semiring, or the semiring is the zero ring. -/

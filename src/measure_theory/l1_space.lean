@@ -144,7 +144,7 @@ lt_of_le_of_lt
   (lintegral_edist_triangle hfm hgm (measurable_const : measurable (λa, (0 : β))))
   (ennreal.add_lt_top.2 $ by { split; rw ← integrable_iff_edist; assumption })
 
-@[simp] lemma lintegral_nnnorm_zero : (∫⁻ a : α, nnnorm (0 : β)) = 0 := by simp
+lemma lintegral_nnnorm_zero : (∫⁻ a : α, nnnorm (0 : β)) = 0 := by simp
 
 variables (α β)
 @[simp] lemma integrable_zero : integrable (λa:α, (0:β)) :=

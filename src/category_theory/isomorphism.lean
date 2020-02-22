@@ -265,13 +265,13 @@ is_iso.of_iso $ F.map_iso (as_iso f)
   F.map (inv f) = inv (F.map f) :=
 rfl
 
-@[simp] lemma map_hom_inv (F : C ⥤ D) {X Y : C} (f : X ⟶ Y) [is_iso f] :
+lemma map_hom_inv (F : C ⥤ D) {X Y : C} (f : X ⟶ Y) [is_iso f] :
   F.map f ≫ F.map (inv f) = 𝟙 (F.obj X) :=
-by rw [map_inv, is_iso.hom_inv_id]
+by simp
 
-@[simp] lemma map_inv_hom (F : C ⥤ D) {X Y : C} (f : X ⟶ Y) [is_iso f] :
+lemma map_inv_hom (F : C ⥤ D) {X Y : C} (f : X ⟶ Y) [is_iso f] :
   F.map (inv f) ≫ F.map f = 𝟙 (F.obj Y) :=
-by rw [map_inv, is_iso.inv_hom_id]
+by simp
 
 end functor
 

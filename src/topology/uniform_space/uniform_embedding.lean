@@ -33,6 +33,21 @@ lemma uniform_inducing.comp {g : β → γ} (hg : uniform_inducing g)
 structure uniform_embedding (f : α → β) extends uniform_inducing f : Prop :=
 (inj : function.injective f)
 
+lemma uniform_embedding_subtype_val {p : α → Prop} :
+  uniform_embedding (subtype.val : subtype p → α) :=
+{ comap_uniformity := rfl,
+  inj := subtype.val_injective }
+
+lemma uniform_embedding_subtype_coe {p : α → Prop} :
+  uniform_embedding (coe : subtype p → α) :=
+uniform_embedding_subtype_val
+
+lemma uniform_embedding_set_inclusion {s t : set α} (hst : s ⊆ t) :
+  uniform_embedding (inclusion hst) :=
+{ comap_uniformity :=
+    by { erw [uniformity_subtype, uniformity_subtype, comap_comap_comp], congr },
+  inj := inclusion_injective hst }
+
 lemma uniform_embedding.comp {g : β → γ} (hg : uniform_embedding g)
   {f : α → β} (hf : uniform_embedding f) : uniform_embedding (g ∘ f) :=
 { inj := function.injective_comp hg.inj hf.inj,
@@ -145,40 +160,61 @@ lemma uniform_embedding.prod {α' : Type*} {β' : Type*} [uniform_space α'] [un
 { inj := function.injective_prod h₁.inj h₂.inj,
   ..h₁.to_uniform_inducing.prod h₂.to_uniform_inducing }
 
+lemma is_complete_of_complete_image {m : α → β} {s : set α} (hm : uniform_inducing m)
+  (hs : is_complete (m '' s)) : is_complete s :=
+begin
+  intros f hf hfs,
+  rw le_principal_iff at hfs,
+  obtain ⟨_, ⟨x, hx, rfl⟩, hyf⟩ : ∃ y ∈ m '' s, map m f ≤ 𝓝 y,
+    from hs (f.map m) (cauchy_map hm.uniform_continuous hf)
+      (le_principal_iff.2 (image_mem_map hfs)),
+  rw [map_le_iff_le_comap, ← nhds_induced, ← hm.inducing.induced] at hyf,
+  exact ⟨x, hx, hyf⟩
+end
+
 /-- A set is complete iff its image under a uniform embedding is complete. -/
 lemma is_complete_image_iff {m : α → β} {s : set α} (hm : uniform_embedding m) :
   is_complete (m '' s) ↔ is_complete s :=
 begin
-  refine ⟨λ c f hf fs, _, λ c f hf fs, _⟩,
-  { let f' := map m f,
-    have cf' : cauchy f' := cauchy_map hm.to_uniform_inducing.uniform_continuous hf,
-    have f's : f' ≤ principal (m '' s),
-    { simp only [filter.le_principal_iff, set.mem_image, filter.mem_map],
-      exact mem_sets_of_superset (filter.le_principal_iff.1 fs) (λx hx, ⟨x, hx, rfl⟩) },
-    rcases c f' cf' f's with ⟨y, yms, hy⟩,
-    rcases mem_image_iff_bex.1 yms with ⟨x, xs, rfl⟩,
-    rw [map_le_iff_le_comap, ← nhds_induced, ← (uniform_embedding.embedding hm).induced] at hy,
-    exact ⟨x, xs, hy⟩ },
-  { rw filter.le_principal_iff at fs,
-    let f' := comap m f,
-    have cf' : cauchy f',
-    { have : comap m f ≠ ⊥,
-      { refine comap_ne_bot (λt ht, _),
-        have A : t ∩ m '' s ∈ f := filter.inter_mem_sets ht fs,
-        obtain ⟨x, ⟨xt, ⟨y, ys, rfl⟩⟩⟩ : (t ∩ m '' s).nonempty,
-          from nonempty_of_mem_sets hf.1 A,
-        exact ⟨y, xt⟩ },
-      apply cauchy_comap _ hf this,
-      simp only [hm.comap_uniformity, le_refl] },
-    have : f' ≤ principal s := by simp [f']; exact
-      ⟨m '' s, by simpa using fs, by simp [preimage_image_eq s hm.inj]⟩,
-    rcases c f' cf' this with ⟨x, xs, hx⟩,
-    existsi [m x, mem_image_of_mem m xs],
-    rw [(uniform_embedding.embedding hm).induced, nhds_induced] at hx,
-    calc f = map m f' : (map_comap $ filter.mem_sets_of_superset fs $ image_subset_range _ _).symm
-      ... ≤ map m (comap m (𝓝 (m x))) : map_mono hx
-      ... ≤ 𝓝 (m x) : map_comap_le }
+  refine ⟨is_complete_of_complete_image hm.to_uniform_inducing, λ c f hf fs, _⟩,
+  rw filter.le_principal_iff at fs,
+  let f' := comap m f,
+  have cf' : cauchy f',
+  { have : comap m f ≠ ⊥,
+    { refine comap_ne_bot (λt ht, _),
+      have A : t ∩ m '' s ∈ f := filter.inter_mem_sets ht fs,
+      obtain ⟨x, ⟨xt, ⟨y, ys, rfl⟩⟩⟩ : (t ∩ m '' s).nonempty,
+        from nonempty_of_mem_sets hf.1 A,
+      exact ⟨y, xt⟩ },
+    apply cauchy_comap _ hf this,
+    simp only [hm.comap_uniformity, le_refl] },
+  have : f' ≤ principal s := by simp [f']; exact
+    ⟨m '' s, by simpa using fs, by simp [preimage_image_eq s hm.inj]⟩,
+  rcases c f' cf' this with ⟨x, xs, hx⟩,
+  existsi [m x, mem_image_of_mem m xs],
+  rw [(uniform_embedding.embedding hm).induced, nhds_induced] at hx,
+  calc f = map m f' : (map_comap $ filter.mem_sets_of_superset fs $ image_subset_range _ _).symm
+    ... ≤ map m (comap m (𝓝 (m x))) : map_mono hx
+    ... ≤ 𝓝 (m x) : map_comap_le
 end
+
+lemma complete_space_iff_is_complete_range {f : α → β} (hf : uniform_embedding f) :
+  complete_space α ↔ is_complete (range f) :=
+(iff.intro (@complete_univ α _) complete_space_of_is_complete_univ).trans $
+  (is_complete_image_iff hf).symm.trans $ by rw [image_univ]
+
+lemma complete_space_coe_iff_is_complete {s : set α} :
+  complete_space s ↔ is_complete s :=
+(complete_space_iff_is_complete_range uniform_embedding_subtype_coe).trans $
+  by rw [range_coe_subtype]
+
+lemma is_complete.complete_space_coe {s : set α} (hs : is_complete s) :
+  complete_space s :=
+complete_space_coe_iff_is_complete.2 hs
+
+lemma is_closed.complete_space_coe [complete_space α] {s : set α} (hs : is_closed s) :
+  complete_space s :=
+(is_complete_of_is_closed hs).complete_space_coe
 
 lemma complete_space_extension {m : β → α} (hm : uniform_inducing m) (dense : dense_range m)
   (h : ∀f:filter β, cauchy f → ∃x:α, map m f ≤ 𝓝 x) : complete_space α :=

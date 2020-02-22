@@ -181,7 +181,7 @@ lemma complete_univ {α : Type u} [uniform_space α] [complete_space α] :
 begin
   assume f hf _,
   rcases complete_space.complete hf with ⟨x, hx⟩,
-  exact ⟨x, by simp, hx⟩
+  exact ⟨x, mem_univ x, hx⟩
 end
 
 lemma cauchy_prod [uniform_space β] {f : filter α} {g : filter β} :

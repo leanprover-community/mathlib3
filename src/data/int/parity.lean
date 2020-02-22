@@ -12,7 +12,8 @@ namespace int
 @[simp] theorem mod_two_ne_one {n : int} : ¬ n % 2 = 1 ↔ n % 2 = 0 :=
 by cases mod_two_eq_zero_or_one n with h h; simp [h]
 
-@[simp] theorem mod_two_ne_zero {n : int} : ¬ n % 2 = 0 ↔ n % 2 = 1 :=
+local attribute [simp] -- euclidean_domain.mod_eq_zero uses (2 ∣ n) as normal form
+theorem mod_two_ne_zero {n : int} : ¬ n % 2 = 0 ↔ n % 2 = 1 :=
 by cases mod_two_eq_zero_or_one n with h h; simp [h]
 
 def even (n : int) : Prop := 2 ∣ n
@@ -28,6 +29,9 @@ theorem even_iff {n : int} : even n ↔ n % 2 = 0 :=
 
 lemma not_even_iff {n : ℤ} : ¬ even n ↔ n % 2 = 1 :=
 by rw [even_iff, mod_two_ne_zero]
+
+@[simp] theorem two_dvd_ne_zero {n : int} : ¬ 2 ∣ n ↔ n % 2 = 1 :=
+not_even_iff
 
 instance : decidable_pred even :=
 λ n, decidable_of_decidable_of_iff (by apply_instance) even_iff.symm

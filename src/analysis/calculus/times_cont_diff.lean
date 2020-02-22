@@ -1588,7 +1588,7 @@ begin
 end
 
 /-- The bundled derivative of a `C^{n+1}` function is `C^n`. -/
-lemma times_cont_diff.times_cont_diff_fderiv_apply {n m : with_top ℕ} {s : set E} {f : E → F}
+lemma times_cont_diff.times_cont_diff_fderiv_apply {n m : with_top ℕ} {f : E → F}
   (hf : times_cont_diff 𝕜 n f) (hmn : m + 1 ≤ n) :
   times_cont_diff 𝕜 m (λp : E × E, (fderiv 𝕜 f p.1 : E →L[𝕜] F) p.2) :=
 begin
@@ -1649,3 +1649,5 @@ lemma times_cont_diff.sub {n : with_top ℕ} {f g : E → F}
   (hf : times_cont_diff 𝕜 n f) (hg : times_cont_diff 𝕜 n g) :
   times_cont_diff 𝕜 n (λx, f x - g x) :=
 hf.add hg.neg
+
+#lint

@@ -314,6 +314,9 @@ lemma sum_mem {ι : Type w} [decidable_eq ι] {t : finset ι} {f : ι → β} :
   (∀c∈t, f c ∈ p) → t.sum f ∈ p :=
 finset.induction_on t (by simp [p.zero_mem]) (by simp [p.add_mem] {contextual := tt})
 
+lemma smul_mem_iff' (u : units α) : (u:α) • x ∈ p ↔ x ∈ p :=
+⟨λ h, by simpa only [smul_smul, u.inv_mul, one_smul] using p.smul_mem ↑u⁻¹ h, p.smul_mem u⟩
+
 instance : has_add p := ⟨λx y, ⟨x.1 + y.1, add_mem _ x.2 y.2⟩⟩
 instance : has_zero p := ⟨⟨0, zero_mem _⟩⟩
 instance : inhabited p := ⟨0⟩
@@ -416,8 +419,7 @@ include R
 set_option class.instance_max_depth 36
 
 theorem smul_mem_iff (r0 : r ≠ 0) : r • x ∈ p ↔ x ∈ p :=
-⟨λ h, by simpa [smul_smul, inv_mul_cancel r0] using p.smul_mem (r⁻¹) h,
- p.smul_mem r⟩
+p.smul_mem_iff' (units.mk0 r r0)
 
 end submodule
 

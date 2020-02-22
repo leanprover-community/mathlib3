@@ -254,23 +254,13 @@ if h : surjective f then sum.inr (order_iso.of_surjective f h) else
 have h' : _, from (initial_seg.eq_or_principal f).resolve_left h,
 sum.inl ⟨f, classical.some h', classical.some_spec h'⟩
 
-@[simp] theorem initial_seg.lt_or_eq_apply_left [is_well_order β s]
-  (f : r ≼i s) {g} (h : f.lt_or_eq = sum.inl g) (a : α) : g a = f a :=
-begin
-  unfold initial_seg.lt_or_eq at h,
-  by_cases sj : surjective f,
-  { rw dif_pos sj at h, cases h },
-  { rw dif_neg sj at h, cases h, refl }
-end
+theorem initial_seg.lt_or_eq_apply_left [is_well_order β s]
+  (f : r ≼i s) (g : r ≺i s) (a : α) : g a = f a :=
+initial_seg.eq g f a
 
-@[simp] theorem initial_seg.lt_or_eq_apply_right [is_well_order β s]
-  (f : r ≼i s) {g} (h : f.lt_or_eq = sum.inr g) (a : α) : g a = f a :=
-begin
-  unfold initial_seg.lt_or_eq at h,
-  by_cases sj : surjective f,
-  {rw dif_pos sj at h, cases h, refl},
-  {rw dif_neg sj at h, cases h}
-end
+theorem initial_seg.lt_or_eq_apply_right [is_well_order β s]
+  (f : r ≼i s) (g : r ≃o s) (a : α) : g a = f a :=
+initial_seg.eq (initial_seg.of_iso g) f a
 
 def initial_seg.le_lt [is_well_order β s] [is_trans γ t] (f : r ≼i s) (g : s ≺i t) : r ≺i t :=
 match f.lt_or_eq with
@@ -282,8 +272,8 @@ end
   (f : r ≼i s) (g : s ≺i t) (a : α) : (f.le_lt g) a = g (f a) :=
 begin
   delta initial_seg.le_lt, cases h : f.lt_or_eq with f' f',
-  { simp only [principal_seg.trans_apply, f.lt_or_eq_apply_left h] },
-  { simp only [principal_seg.equiv_lt_apply, f.lt_or_eq_apply_right h] }
+  { simp only [principal_seg.trans_apply, f.lt_or_eq_apply_left] },
+  { simp only [principal_seg.equiv_lt_apply, f.lt_or_eq_apply_right] }
 end
 
 namespace order_embedding
@@ -492,7 +482,7 @@ eq.symm $ quot.sound ⟨order_iso.of_surjective
 
 @[simp] theorem typein_apply {α β} {r : α → α → Prop} {s : β → β → Prop}
   [is_well_order α r] [is_well_order β s] (f : r ≼i s) (a : α) :
-  ordinal.typein s (f a) = ordinal.typein r a :=
+  ordinal.typein s ((f : r ≼o s) a) = ordinal.typein r a :=
 eq.symm $ quotient.sound ⟨order_iso.of_surjective
   (order_embedding.cod_restrict _
     ((subrel.order_embedding _ _).trans f)

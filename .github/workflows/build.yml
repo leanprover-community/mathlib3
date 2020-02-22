@@ -53,7 +53,6 @@ jobs:
         if: always() && github.repository == 'leanprover-community/mathlib' && github.event_name == 'push' && matrix.lean_version == 'leanprover-community/lean:3.5.1'
         run: |
           archive_name="$(git rev-parse HEAD).tar.gz"
-          archive_url="https://oleanstorage.blob.core.windows.net/mathlib/$archive_name"
           azcopy copy "$archive_name" "${{ secrets.AZURE_SAS_TOKEN }}" --block-size-mb 99 --overwrite false
 
       - name: tests

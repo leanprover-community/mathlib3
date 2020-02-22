@@ -1085,7 +1085,7 @@ assume t, finset.induction_on t
           by rw [span_insert_eq_span hb₁] at hb₃; simpa using hb₃,
         let ⟨u, hust, hsu, eq⟩ := ih _ (by simp [insert_subset, hb₂s, hs']) hst this in
         ⟨u, subset.trans hust $ union_subset_union (subset.refl _) (by simp [subset_insert]),
-          hsu, by rw [finset.union_comm] at hb₂t'; simp [eq, hb₂t', hb₁t, hb₁s']⟩)),
+          hsu, by simp [eq, hb₂t', hb₁t, hb₁s']⟩)),
 begin
   letI := classical.dec_pred (λx, x ∈ s),
   have eq : t.filter (λx, x ∈ s) ∪ t.filter (λx, x ∉ s) = t,

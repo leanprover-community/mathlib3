@@ -1649,5 +1649,3 @@ lemma times_cont_diff.sub {n : with_top ℕ} {f g : E → F}
   (hf : times_cont_diff 𝕜 n f) (hg : times_cont_diff 𝕜 n g) :
   times_cont_diff 𝕜 n (λx, f x - g x) :=
 hf.add hg.neg
-
-#lint

@@ -369,7 +369,7 @@ begin
   { rw [← ideal.eq_top_iff_one, ← zero_locus_empty_iff_eq_top, zero_locus_supr],
     simpa only [hI] using hZ },
   obtain ⟨s, hs⟩ : ∃ s : finset ι, (1:R) ∈ ⨆ i ∈ s, I i :=
-    finsupp.exists_finset_of_mem_supr R I one_mem,
+    submodule.exists_finset_of_mem_supr I one_mem,
   show ∃ t : finset ι, (⋂ i ∈ t, Z i) = ∅,
   use s,
   rw [← ideal.eq_top_iff_one, ←zero_locus_empty_iff_eq_top] at hs,

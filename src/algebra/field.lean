@@ -46,8 +46,6 @@ def mk0 (a : α) (ha : a ≠ 0) : units α :=
 
 @[simp] theorem mk0_val (ha : a ≠ 0) : (mk0 a ha : α) = a := rfl
 
-@[simp] theorem mk0_inv (ha : a ≠ 0) : ((mk0 a ha)⁻¹ : α) = a⁻¹ := rfl
-
 @[simp] lemma mk0_coe (u : units α) (h : (u : α) ≠ 0) : mk0 (u : α) h = u :=
 units.ext rfl
 

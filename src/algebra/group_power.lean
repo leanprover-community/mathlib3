@@ -198,8 +198,8 @@ localized "infix ` •ℤ `:70 := gsmul" in smul
 @[simp] theorem gpow_coe_nat (a : G) (n : ℕ) : a ^ (n:ℤ) = a ^ n := rfl
 @[simp] theorem gsmul_coe_nat (a : A) (n : ℕ) : (n:ℤ) • a = n •ℕ a := rfl
 
-@[simp] theorem gpow_of_nat (a : G) (n : ℕ) : a ^ of_nat n = a ^ n := rfl
-@[simp] theorem gsmul_of_nat (a : A) (n : ℕ) : of_nat n • a = n •ℕ a := rfl
+theorem gpow_of_nat (a : G) (n : ℕ) : a ^ of_nat n = a ^ n := rfl
+theorem gsmul_of_nat (a : A) (n : ℕ) : of_nat n • a = n •ℕ a := rfl
 
 @[simp] theorem gpow_neg_succ (a : G) (n : ℕ) : a ^ -[1+n] = (a ^ n.succ)⁻¹ := rfl
 @[simp] theorem gsmul_neg_succ (a : A) (n : ℕ) : -[1+n] • a = - (n.succ •ℕ a) := rfl
@@ -231,11 +231,7 @@ theorem gpow_neg_one (x : G) : x ^ (-1:ℤ) = x⁻¹ := congr_arg has_inv.inv $ 
 theorem neg_one_gsmul (x : A) : (-1:ℤ) • x = -x := congr_arg has_neg.neg $ add_monoid.one_smul x
 
 theorem gsmul_one [has_one A] (n : ℤ) : n • (1 : A) = n :=
-begin
-cases n,
-  { rw [gsmul_of_nat, add_monoid.smul_one, int.cast_of_nat] },
-  { rw [gsmul_neg_succ, add_monoid.smul_one, int.cast_neg_succ_of_nat, nat.cast_succ] }
-end
+by cases n; simp
 
 theorem inv_gpow (a : G) : ∀n:ℤ, a⁻¹ ^ n = (a ^ n)⁻¹
 | (n : ℕ) := inv_pow a n
@@ -419,7 +415,7 @@ end
 @[field_simps] theorem pow_ne_zero [domain R] {a : R} (n : ℕ) (h : a ≠ 0) : a ^ n ≠ 0 :=
 mt pow_eq_zero h
 
-@[simp] theorem one_div_pow [division_ring R] {a : R} (ha : a ≠ 0) (n : ℕ) : (1 / a) ^ n = 1 / a ^ n :=
+theorem one_div_pow [division_ring R] {a : R} (ha : a ≠ 0) (n : ℕ) : (1 / a) ^ n = 1 / a ^ n :=
 by induction n with n ih; [exact (div_one _).symm,
   rw [pow_succ', ih, division_ring.one_div_mul_one_div (pow_ne_zero _ ha) ha]]; refl
 

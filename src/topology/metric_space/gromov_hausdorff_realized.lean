@@ -161,6 +161,7 @@ calc
 private lemma candidates_lipschitz (fA : f ∈ candidates α β) :
   lipschitz_with (2 * max_var α β) f :=
 begin
+  apply lipschitz_with.of_dist_le,
   rintros ⟨x, y⟩ ⟨z, t⟩,
   rw real.dist_eq,
   apply abs_le_of_le_of_neg_le,
@@ -172,7 +173,7 @@ end
 
 /-- candidates give rise to elements of bounded_continuous_functions -/
 def candidates_b_of_candidates (f : prod_space_fun α β) (fA : f ∈ candidates α β) : Cb α β :=
-bounded_continuous_function.mk_of_compact f (candidates_lipschitz fA).to_continuous
+bounded_continuous_function.mk_of_compact f (candidates_lipschitz fA).continuous
 
 lemma candidates_b_of_candidates_mem (f : prod_space_fun α β) (fA : f ∈ candidates α β) :
   candidates_b_of_candidates f fA ∈ candidates_b α β := fA
@@ -244,7 +245,7 @@ begin
         tendsto_const_nhds.mul tendsto_id,
       simpa using this },
     { assume x y f hf,
-      exact candidates_lipschitz hf _ _ } }
+      exact (candidates_lipschitz hf).dist_le _ _ } }
 end
 
 /-- We will then choose the candidate minimizing the Hausdorff distance. Except that we are not
@@ -390,7 +391,7 @@ max_le (le_trans (HD_lipschitz_aux1 f g) (add_le_add_right (le_max_left _ _) _))
 
 /-- Conclude that HD, being Lipschitz, is continuous -/
 private lemma HD_continuous : continuous (HD : Cb α β → ℝ) :=
-lipschitz_with.to_continuous (lipschitz_with.one_of_le_add HD_lipschitz_aux3)
+lipschitz_with.continuous (lipschitz_with.of_le_add HD_lipschitz_aux3)
 
 end constructions --section
 

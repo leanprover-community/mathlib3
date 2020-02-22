@@ -615,18 +615,20 @@ meta def lint (slow : bool := tt) (verbose : bool := tt) (extra : list name := [
     e.in_current_file' d.to_name ∧ ¬ d.to_name.is_internal ∧ ¬ d.is_auto_generated e),
   lint_aux l none "in the current file" slow verbose checks
 
+/-- Returns the declarations considered by the mathlib linter. -/
+meta def lint_mathlib_decls : tactic (list declaration) := do
+e ← get_env,
+ml ← get_mathlib_dir,
+pure $ e.filter $ λ d,
+  e.is_prefix_of_file ml d.to_name ∧ ¬ d.to_name.is_internal ∧ ¬ d.is_auto_generated e
+
 /-- Return the message printed by `#lint_mathlib` and a `name_set` containing all declarations that fail. -/
 meta def lint_mathlib (slow : bool := tt) (verbose : bool := tt) (extra : list name := [])
   (use_only : bool := ff) : tactic (name_set × format) := do
-  checks ← get_checks slow extra use_only,
-  e ← get_env,
-  ml ← get_mathlib_dir,
-  /- note: we don't separate out some of these tests in `lint_aux` because that causes a
-    performance hit. That is also the reason for the current formulation using if then else. -/
-  let l := e.filter (λ d,
-    e.is_prefix_of_file ml d.to_name ∧ ¬ d.to_name.is_internal ∧ ¬ d.is_auto_generated e),
-  let ml' := ml.length,
-  lint_aux l ml' "in mathlib (only in imported files)" slow verbose checks
+checks ← get_checks slow extra use_only,
+decls ← lint_mathlib_decls,
+mathlib_path_len ← string.length <$> get_mathlib_dir,
+lint_aux decls mathlib_path_len "in mathlib (only in imported files)" slow verbose checks
 
 /-- Return the message printed by `#lint_all` and a `name_set` containing all declarations that fail. -/
 meta def lint_all (slow : bool := tt) (verbose : bool := tt) (extra : list name := [])
@@ -667,6 +669,18 @@ Use the command `#list_linters` to see all available linters. -/
 @[user_command] meta def lint_mathlib_cmd (_ : parse $ tk "#lint_mathlib") : parser unit :=
 lint_cmd_aux @lint_mathlib
 
+/-- The default linters used in mathlib CI. -/
+meta def mathlib_linters : list name := by do
+ls ← get_checks tt [] ff,
+let ls := ls.map (λ ⟨n, _⟩, `linter ++ n),
+exact (reflect ls)
+
+/-- `lint_mathlib_ci` runs the linters for the CI. -/
+meta def lint_mathlib_ci : tactic unit := do
+(failed, s) ← lint_mathlib tt tt mathlib_linters tt,
+trace s,
+when (¬ failed.empty) $ fail "Linting did not succeed"
+
 /-- The command `#lint_all` checks all imported files for certain mistakes.
 Usage: `#lint_all`, `#lint_all linter_1 linter_2`, `#lint_all only linter_1 linter_2`.
 `#lint_all-` will suppress the output of passing checks.
@@ -693,13 +707,16 @@ let ns := env.decl_filter_map $ λ dcl,
 
 /-- Tries to apply the `nolint` attribute to a list of declarations. Always succeeds, even if some
 of the declarations don't exist. -/
-meta def apply_nolint_tac (decls : list name) : tactic unit :=
-decls.mmap' (λ d, try (nolint_attr.set d [] tt))
+meta def apply_nolint_tac (decl : name) (linters : list name) : tactic unit :=
+try $ nolint_attr.set decl linters tt
 
-/-- `apply_nolint id1 id2 ...` tries to apply the `nolint` attribute to `id1`, `id2`, ...
+/-- `apply_nolint decl linter1 linter2 ...` tries to apply
+the `nolint linter1 linter2 ...` attribute to `id`, ...
 It will always succeed, even if some of the declarations do not exist. -/
-@[user_command] meta def apply_nolint_cmd (_ : parse $ tk "apply_nolint") : parser unit :=
-ident_* >>= ↑apply_nolint_tac
+@[user_command] meta def apply_nolint_cmd (_ : parse $ tk "apply_nolint") : parser unit := do
+decl_name ← ident,
+linter_names ← ident*,
+apply_nolint_tac decl_name linter_names
 
 attribute [nolint unused_arguments] imp_intro
 attribute [nolint def_lemma] classical.dec classical.dec_pred classical.dec_rel classical.dec_eq

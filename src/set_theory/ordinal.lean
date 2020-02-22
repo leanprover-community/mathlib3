@@ -482,7 +482,7 @@ eq.symm $ quot.sound ⟨order_iso.of_surjective
 
 @[simp] theorem typein_apply {α β} {r : α → α → Prop} {s : β → β → Prop}
   [is_well_order α r] [is_well_order β s] (f : r ≼i s) (a : α) :
-  ordinal.typein s (f a) = ordinal.typein r a :=
+  ordinal.typein s ((f : r ≼o s) a) = ordinal.typein r a :=
 eq.symm $ quotient.sound ⟨order_iso.of_surjective
   (order_embedding.cod_restrict _
     ((subrel.order_embedding _ _).trans f)

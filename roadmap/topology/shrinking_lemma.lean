@@ -4,6 +4,9 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Reid Barton
 -/
 
+import ..todo
+import topology.separation
+
 /-!
 A formal roadmap for the shrinking lemma for local finite countable covers.
 
@@ -13,9 +16,6 @@ along with references.
 Any contributor should feel welcome to contribute a formal proof. When this happens,
 we should also consider preserving the current file as an exemplar of a formal roadmap.
 -/
-
-import roadmap.todo
-import topology.separation
 
 open set
 

@@ -40,7 +40,7 @@ do n ← parser.pexpr,
 add_hint_tactic "refl"
 add_hint_tactic "exact dec_trivial"
 add_hint_tactic "assumption"
-add_hint_tactic "intros1" -- tidy does something better here: it suggests the actual "intros X Y f" string; perhaps add a wrapper?
+add_hint_tactic "intro" -- tidy does something better here: it suggests the actual "intros X Y f" string; perhaps add a wrapper?
 -- Since `auto_cases` is already a "self-reporting tactic",
 -- i.e. a `tactic string` that returns a tactic script,
 -- we can just add the attribute:
@@ -49,7 +49,7 @@ add_hint_tactic "apply_auto_param"
 add_hint_tactic "dsimp at *"
 add_hint_tactic "simp at *" -- TODO hook up to squeeze_simp?
 attribute [hint_tactic] tidy.ext1_wrapper
-add_hint_tactic "fsplit"
+add_hint_tactic "fconstructor"
 add_hint_tactic "injections_and_clear"
 add_hint_tactic "solve_by_elim"
 add_hint_tactic "unfold_coes"

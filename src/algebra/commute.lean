@@ -106,9 +106,9 @@ variables {a b : M} (hab : commute a b) (m n : ℕ)
 
 variable (a)
 
-@[simp] theorem self_pow : commute a (a ^ n) := (commute.refl a).pow_right n
-@[simp] theorem pow_self : commute (a ^ n) a := (commute.refl a).pow_left n
-@[simp] theorem pow_pow_self : commute (a ^ n) (a ^ m) := (commute.refl a).pow_pow n m
+theorem self_pow : commute a (a ^ n) := by simp
+theorem pow_self : commute (a ^ n) a := by simp
+theorem pow_pow_self : commute (a ^ n) (a ^ m) := by simp
 
 variables {u₁ u₂ : units M}
 
@@ -122,14 +122,14 @@ section group
 
 variables {G : Type*} [group G] {a b : G}
 
-@[simp] theorem inv_right : commute a b → commute a b⁻¹ := semiconj_by.inv_right
+theorem inv_right : commute a b → commute a b⁻¹ := semiconj_by.inv_right
 @[simp] theorem inv_right_iff : commute a b⁻¹ ↔ commute a b := semiconj_by.inv_right_iff
 
-@[simp] theorem inv_left :  commute a b → commute a⁻¹ b := semiconj_by.inv_symm_left
+theorem inv_left :  commute a b → commute a⁻¹ b := semiconj_by.inv_symm_left
 @[simp] theorem inv_left_iff : commute a⁻¹ b ↔ commute a b := semiconj_by.inv_symm_left_iff
 
 theorem inv_inv : commute a b → commute a⁻¹ b⁻¹ := semiconj_by.inv_inv_symm
-@[simp] theorem inv_inv_iff : commute a⁻¹ b⁻¹ ↔ commute a b := semiconj_by.inv_inv_symm_iff
+theorem inv_inv_iff : commute a⁻¹ b⁻¹ ↔ commute a b := by simp
 
 section
 
@@ -144,9 +144,9 @@ end
 
 variables (a) (m n : ℤ)
 
-@[simp] theorem self_gpow : commute a (a ^ n) := (commute.refl a).gpow_right n
-@[simp] theorem gpow_self : commute (a ^ n) a := (commute.refl a).gpow_left n
-@[simp] theorem gpow_gpow_self : commute (a ^ m) (a ^ n) := (commute.refl a).gpow_gpow m n
+theorem self_gpow : commute a (a ^ n) := by simp
+theorem gpow_self : commute (a ^ n) a := by simp
+theorem gpow_gpow_self : commute (a ^ m) (a ^ n) := by simp
 
 end group
 
@@ -173,9 +173,9 @@ variables [semiring A] {a b : A} (hab : commute a b) (m n : ℕ)
 
 variable (a)
 
-@[simp] theorem self_smul : commute a (n •ℕ a) := (commute.refl a).smul_right n
-@[simp] theorem smul_self : commute (n •ℕ a) a := (commute.refl a).smul_left n
-@[simp] theorem self_smul_smul : commute (m •ℕ a) (n •ℕ a) := (commute.refl a).smul_smul m n
+theorem self_smul : commute a (n •ℕ a) := by simp
+theorem smul_self : commute (n •ℕ a) a := by simp
+theorem self_smul_smul : commute (m •ℕ a) (n •ℕ a) := by simp
 
 @[simp] theorem cast_nat_right : commute a (n : A) := semiconj_by.cast_nat_right a n
 @[simp] theorem cast_nat_left : commute (n : A) a := semiconj_by.cast_nat_left n a
@@ -186,14 +186,14 @@ section ring
 
 variables {R : Type*} [ring R] {a b c : R}
 
-@[simp] theorem neg_right : commute a b → commute a (- b) := semiconj_by.neg_right
+theorem neg_right : commute a b → commute a (- b) := semiconj_by.neg_right
 @[simp] theorem neg_right_iff : commute a (-b) ↔ commute a b := semiconj_by.neg_right_iff
 
-@[simp] theorem neg_left : commute a b → commute (- a) b := semiconj_by.neg_left
+theorem neg_left : commute a b → commute (- a) b := semiconj_by.neg_left
 @[simp] theorem neg_left_iff : commute (-a) b ↔ commute a b := semiconj_by.neg_left_iff
 
-@[simp] theorem neg_one_right (a : R) : commute a (-1) := semiconj_by.neg_one_right a
-@[simp] theorem neg_one_left (a : R): commute (-1) a := semiconj_by.neg_one_left a
+theorem neg_one_right (a : R) : commute a (-1) := by simp
+theorem neg_one_left (a : R): commute (-1) a := by simp
 
 @[simp] theorem sub_right : commute a b → commute a c → commute a (b - c) := semiconj_by.sub_right
 @[simp] theorem sub_left : commute a c → commute b c → commute (a - b) c := semiconj_by.sub_left
@@ -204,9 +204,9 @@ variables (hab : commute a b) (m n : ℤ)
 @[simp] theorem gsmul_left : commute (m •ℤ a) b := hab.gsmul_left m
 @[simp] theorem gsmul_gsmul : commute (m •ℤ a) (n •ℤ b) := hab.gsmul_gsmul m n
 
-@[simp] theorem self_gsmul : commute a (n •ℤ a) := (commute.refl a).gsmul_right n
-@[simp] theorem gsmul_self : commute (n •ℤ a) a := (commute.refl a).gsmul_left n
-@[simp] theorem self_gsmul_gsmul : commute (m •ℤ a) (n •ℤ a) := (commute.refl a).gsmul_gsmul m n
+theorem self_gsmul : commute a (n •ℤ a) := by simp
+theorem gsmul_self : commute (n •ℤ a) a := by simp
+theorem self_gsmul_gsmul : commute (m •ℤ a) (n •ℤ a) := by simp
 
 variable (a)
 

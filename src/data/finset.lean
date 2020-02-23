@@ -237,8 +237,8 @@ eq_of_veq $ ndinsert_of_mem h
 theorem insert.comm (a b : α) (s : finset α) : insert a (insert b s) = insert b (insert a s) :=
 ext.2 $ λ x, by simp only [finset.mem_insert, or.left_comm]
 
-@[simp] theorem insert_idem (a : α) (s : finset α) : insert a (insert a s) = insert a s :=
-ext.2 $ λ x, by simp only [finset.mem_insert, or.assoc.symm, or_self]
+theorem insert_idem (a : α) (s : finset α) : insert a (insert a s) = insert a s :=
+by simp
 
 @[simp] theorem insert_ne_empty (a : α) (s : finset α) : insert a s ≠ ∅ :=
 ne_empty_of_mem (mem_insert_self a s)
@@ -287,14 +287,14 @@ then it holds for the `finset` obtained by inserting a new element.
   (s : finset α) (h₁ : p ∅) (h₂ : ∀ ⦃a : α⦄ {s : finset α}, a ∉ s → p s → p (insert a s)) : p s :=
 finset.induction h₁ h₂ s
 
-@[simp] theorem singleton_eq_singleton (a : α) : _root_.singleton a = ι a := rfl
+theorem singleton_eq_singleton (a : α) : _root_.singleton a = ι a := rfl
 
 @[simp] theorem insert_empty_eq_singleton (a : α) : {a} = ι a := rfl
 
 theorem insert_singleton_self_eq (a : α) : ({a, a} : finset α) = ι a :=
 insert_eq_of_mem $ mem_singleton_self _
 
-@[simp] theorem insert_singleton_self_eq' {a : α} : insert a (ι a) = ι a :=
+theorem insert_singleton_self_eq' {a : α} : insert a (ι a) = ι a :=
 insert_singleton_self_eq _
 
 /-! ### union -/
@@ -346,7 +346,7 @@ ext.2 $ λ _, by simp only [mem_union, or.left_comm]
 theorem union_right_comm (s₁ s₂ s₃ : finset α) : (s₁ ∪ s₂) ∪ s₃ = (s₁ ∪ s₃) ∪ s₂ :=
 ext.2 $ λ x, by simp only [mem_union, or_assoc, or_comm (x ∈ s₂)]
 
-@[simp] theorem union_self (s : finset α) : s ∪ s = s := union_idempotent s
+theorem union_self (s : finset α) : s ∪ s = s := union_idempotent s
 
 @[simp] theorem union_empty (s : finset α) : s ∪ ∅ = s :=
 ext.2 $ λ x, mem_union.trans $ or_false _
@@ -595,7 +595,7 @@ ext.2 $ λ a, by simp only [mem_union, mem_sdiff, or_iff_not_imp_left,
   imp_and_distrib, and_iff_left id]
 
 @[simp] theorem sdiff_union_self_eq_union {s t : finset α} : (s \ t) ∪ t = s ∪ t :=
-by rw [union_comm, union_sdiff_self_eq_union, union_comm]
+by simp
 
 lemma union_sdiff_symm {s t : finset α} : s ∪ (t \ s) = t ∪ (s \ t) :=
 by rw [union_sdiff_self_eq_union, union_sdiff_self_eq_union, union_comm]
@@ -644,10 +644,6 @@ def piecewise {α : Type*} {δ : α → Sort*} (s : finset α) (f g : Πi, δ i)
 
 variables {δ : α → Sort*} (s : finset α) (f g : Πi, δ i)
 
-@[simp] lemma piecewise_insert_self [decidable_eq α] {j : α} [∀i, decidable (i ∈ insert j s)] :
-  (insert j s).piecewise f g j = f j :=
-by simp [piecewise]
-
 @[simp] lemma piecewise_empty [∀i : α, decidable (i ∈ (∅ : finset α))] : piecewise ∅ f g = g :=
 by { ext i, simp [piecewise] }
 
@@ -659,6 +655,10 @@ by { ext, congr }
 
 @[simp] lemma piecewise_eq_of_mem {i : α} (hi : i ∈ s) : s.piecewise f g i = f i :=
 by simp [piecewise, hi]
+
+lemma piecewise_insert_self [decidable_eq α] {j : α} [∀i, decidable (i ∈ insert j s)] :
+  (insert j s).piecewise f g j = f j :=
+by simp
 
 @[simp] lemma piecewise_eq_of_not_mem {i : α} (hi : i ∉ s) : s.piecewise f g i = g i :=
 by simp [piecewise, hi]
@@ -1534,11 +1534,11 @@ def powerset (s : finset α) : finset (finset α) :=
 @[simp] theorem mem_powerset {s t : finset α} : s ∈ powerset t ↔ s ⊆ t :=
 by cases s; simp only [powerset, mem_mk, mem_pmap, mem_powerset, exists_prop, exists_eq_right]; rw ← val_le_iff
 
-@[simp] theorem empty_mem_powerset (s : finset α) : ∅ ∈ powerset s :=
-mem_powerset.2 (empty_subset _)
+theorem empty_mem_powerset (s : finset α) : ∅ ∈ powerset s :=
+by simp
 
-@[simp] theorem mem_powerset_self (s : finset α) : s ∈ powerset s :=
-mem_powerset.2 (subset.refl _)
+theorem mem_powerset_self (s : finset α) : s ∈ powerset s :=
+by simp
 
 @[simp] lemma powerset_empty [decidable_eq α] : finset.powerset (∅ : finset α) = {∅} := rfl
 

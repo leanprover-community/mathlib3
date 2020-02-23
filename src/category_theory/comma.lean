@@ -195,7 +195,7 @@ by tidy
 @[simp] lemma over_morphism_right {U V : over X} (f : U ⟶ V) : f.right = 𝟙 punit.star := by tidy
 
 @[simp] lemma id_left (U : over X) : comma_morphism.left (𝟙 U) = 𝟙 U.left := rfl
-@[simp] lemma comp_left (a b c : over X) (f : a ⟶ b) (g : b ⟶ c) :
+lemma comp_left (a b c : over X) (f : a ⟶ b) (g : b ⟶ c) :
   (f ≫ g).left = f.left ≫ g.left := rfl
 
 @[simp, reassoc] lemma w {A B : over X} (f : A ⟶ B) : f.left ≫ B.hom = A.hom :=
@@ -258,7 +258,7 @@ by tidy
 @[simp] lemma under_morphism_left {U V : under X} (f : U ⟶ V) : f.left = 𝟙 punit.star := by tidy
 
 @[simp] lemma id_right (U : under X) : comma_morphism.right (𝟙 U) = 𝟙 U.right := rfl
-@[simp] lemma comp_right (a b c : under X) (f : a ⟶ b) (g : b ⟶ c) :
+lemma comp_right (a b c : under X) (f : a ⟶ b) (g : b ⟶ c) :
   (f ≫ g).right = f.right ≫ g.right := rfl
 
 @[simp] lemma w {A B : under X} (f : A ⟶ B) : A.hom ≫ f.right = B.hom :=

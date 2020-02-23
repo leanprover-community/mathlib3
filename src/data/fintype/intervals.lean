@@ -19,7 +19,7 @@ namespace pnat
 /-- `Ico_ℕ+ l u` is the set of positive natural numbers `l ≤ k < u`. -/
 def Ico (l u : ℕ+) : finset ℕ+ :=
 (finset.Ico l u).attach.map
-  { to_fun := λ n, ⟨n.1, lt_of_lt_of_le l.2 (finset.Ico.mem.1 n.2).1⟩,
+  { to_fun := λ n, ⟨(n : ℕ), lt_of_lt_of_le l.2 (finset.Ico.mem.1 n.2).1⟩,
     inj := λ n m h, subtype.ext.2 (by { replace h := congr_arg subtype.val h, exact h }) } -- why can't we do this directly?
 
 @[simp] lemma Ico.mem {n m l : ℕ+} : l ∈ Ico n m ↔ n ≤ l ∧ l < m :=

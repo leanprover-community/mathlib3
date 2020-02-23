@@ -30,6 +30,7 @@ meta def expr_list_to_list_expr : Π (e : expr), tactic (list expr)
 | `([]) := return []
 | _ := failed
 
+-- TODO ditch the ty_numeric argument, and just always run norm_num
 meta def fin_cases_at_aux : Π (with_list : list expr) (e : expr) (ty_numeric : bool), tactic unit
 | with_list e ty_numeric :=
 (do
@@ -44,7 +45,7 @@ meta def fin_cases_at_aux : Π (with_list : list expr) (e : expr) (ty_numeric : 
         tactic.interactive.conv (some sn) none
           (to_rhs >> match with_list.nth 0 with
           | (some h) := conv.interactive.change (to_pexpr h)
-          | _ := `[try { conv.interactive.simp ff [] [] }] >> when ty_numeric `[try { conv.interactive.norm_num [] }]
+          | _ := `[try { conv.interactive.simp ff [] [] }] >> /-when ty_numeric-/ `[try { conv.interactive.norm_num [simp_arg_type.expr ``(max)] }]
           end),
         s ← get_local sn,
         infer_type s >>= trace,

@@ -49,8 +49,22 @@ by { interval_cases n }
 example (n : ℕ+) (w₂ : n < 2) : n = 1 :=
 by { interval_cases n, refl, }
 
+@[simp] lemma pnat.one {h} : (⟨1, h⟩ : ℕ+) = (1 : ℕ+) := rfl
+
+lemma nat.pos_of_bit0_pos {n : ℕ} (h : 0 < bit0 n) : 0 < n :=
+by { cases n, cases h, apply nat.succ_pos, }
+@[simp] lemma pnat.bit0 (n) {h} : (⟨bit0 n, h⟩ : ℕ+) = (bit0 ⟨n, nat.pos_of_bit0_pos h⟩ : ℕ+) := rfl
+@[simp] lemma pnat.bit1 (n) {h} {k} : (⟨bit1 n, h⟩ : ℕ+) = (bit1 ⟨n, k⟩ : ℕ+) := rfl
+
 example (n : ℕ+) (w₂ : n < 3) : n = 1 ∨ n = 2 :=
-by { interval_cases n, { left, refl }, { right, refl }, }
+by { interval_cases n, simp, simp, }
+
+example (n : ℕ+) (w₂ : n < 4) : n = 1 ∨ n = 2 ∨ n = 3 :=
+by { interval_cases n, simp, simp, simp, }
+
+example (n : ℕ+) (w₁ : 1 < n) (w₂ : n < 4) : n = 2 ∨ n = 3 :=
+by { interval_cases n, simp, simp, simp, }
+
 
 example (n : ℕ) (w₁ : n ≥ 3) (w₂ : n < 5) : n = 3 ∨ n = 4 :=
 by { interval_cases n, simp, simp, }

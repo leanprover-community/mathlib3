@@ -518,6 +518,13 @@ eq_empty_iff_forall_not_mem.trans
 ⟨λh, le_bot_iff.1 (le_of_not_gt (λ ε0, h _ (mem_ball_self ε0))),
 λε0 y h, not_lt_of_le (le_of_eq ε0) (pos_of_mem_ball h)⟩
 
+/-- Relation “two points are at a finite edistance” is an equivalence relation. -/
+def edist_lt_top_setoid : setoid α :=
+{ r := λ x y, edist x y < ⊤,
+  iseqv := ⟨λ x, by { rw edist_self, exact ennreal.coe_lt_top },
+    λ x y h, by rwa edist_comm,
+    λ x y z hxy hyz, lt_of_le_of_lt (edist_triangle x y z) (ennreal.add_lt_top.2 ⟨hxy, hyz⟩)⟩ }
+
 theorem nhds_basis_eball : (𝓝 x).has_basis (λ ε:ennreal, 0 < ε) (ball x) :=
 nhds_basis_uniformity uniformity_basis_edist
 

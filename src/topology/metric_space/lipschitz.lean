@@ -50,6 +50,10 @@ variables [emetric_space α] [emetric_space β] [emetric_space γ] {K : ℝ≥0}
 
 lemma edist_le (h : lipschitz_with K f) (x y : α) : edist (f x) (f y) ≤ K * edist x y := h x y
 
+lemma edist_lt_top (hf : lipschitz_with K f) {x y : α} (h : edist x y < ⊤) :
+  edist (f x) (f y) < ⊤ :=
+lt_of_le_of_lt (hf x y) $ ennreal.mul_lt_top ennreal.coe_lt_top h
+
 protected lemma edist_mk_one (h : ∀ x y, edist (f x) (f y) ≤ edist x y) :
   lipschitz_with 1 f :=
 λ x y, by simp only [ennreal.coe_one, one_mul, h]

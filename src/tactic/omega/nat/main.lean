@@ -18,9 +18,10 @@ namespace nat
 
 open_locale omega.nat
 
-run_cmd mk_simp_attr `sugar_nat
+mk_simp_attribute sugar_nat none
+
 attribute [sugar_nat]
-  not_le not_lt
+  ne not_le not_lt
   nat.lt_iff_add_one_le
   nat.succ_eq_add_one
   or_false false_or
@@ -115,7 +116,7 @@ do x ← prove_unsat_neg_free (neg_elim (¬*p)),
 meta def to_preterm : expr → tactic preterm
 | (expr.var k) := return (preterm.var 1 k)
 | `(%%(expr.var k) * %%mx) :=
-  do m ← eval_expr nat mx,
+  do m ← eval_expr' nat mx,
      return (preterm.var m k)
 | `(%%t1x + %%t2x) :=
   do t1 ← to_preterm t1x,
@@ -126,7 +127,7 @@ meta def to_preterm : expr → tactic preterm
      t2 ← to_preterm t2x,
      return (preterm.sub t1 t2)
 | mx :=
-  do m ← eval_expr nat mx,
+  do m ← eval_expr' nat mx,
      return (preterm.cst m)
 
 meta def to_form_core : expr → tactic form
@@ -148,7 +149,7 @@ meta def to_form_core : expr → tactic form
      q ← to_form_core qx,
      return (p ∧* q)
 | `(_ → %%px) := to_form_core px
-| _ := failed
+| x := trace "Cannot reify expr : " >> trace x >> failed
 
 meta def to_form : nat → expr → tactic (form × nat)
 | m `(_ → %%px) := to_form (m+1) px
@@ -164,4 +165,4 @@ end omega
 open omega.nat
 
 meta def omega_nat : tactic unit :=
-desugar >> prove_lna >>= apply >> skip
+desugar >> (done <|> (prove_lna >>= apply >> skip))

@@ -60,10 +60,18 @@ end functor
 section
 variables (J C)
 
+/--
+Functorially associated to each functor `J ⥤ C`, we have the `C`-presheaf consisting of
+cones with a given cone point.
+-/
 @[simps] def cones : (J ⥤ C) ⥤ (Cᵒᵖ ⥤ Type v) :=
 { obj := functor.cones,
   map := λ F G f, whisker_left (const J).op (yoneda.map f) }
 
+/--
+Contravariantly associated to each functor `J ⥤ C`, we have the `C`-copresheaf consisting of
+cocones with a given cocone point.
+-/
 @[simps] def cocones : (J ⥤ C)ᵒᵖ ⥤ (C ⥤ Type v) :=
 { obj := λ F, functor.cocones (unop F),
   map := λ F G f, whisker_left (const J) (coyoneda.map f) }
@@ -131,13 +139,17 @@ rfl
 
 -- We now prove a lemma about naturality of cones over functors into bundled categories.
 section
+
 omit 𝒞
-variables {m : Type v → Type v} (hom : Π ⦃α β⦄ (Iα : m α) (Iβ : m β), Type v) [S : bundled_hom hom]
-include S
+variables {J' : Type u} [small_category J']
+variables {C' : Type (u+1)} [𝒞' : concrete_category C']
+include 𝒞'
 
-local attribute [instance] bundled_hom.has_coe_to_fun
+local attribute [instance] concrete_category.has_coe_to_sort
+local attribute [instance] concrete_category.has_coe_to_fun
 
-@[simp] lemma naturality_bundled {G : J ⥤ bundled m} (s : cone G) {j j' : J} (f : j ⟶ j') (x : s.X) :
+/-- Naturality of a cone over functors to a concrete category. -/
+@[simp] lemma naturality_concrete {G : J' ⥤ C'} (s : cone G) {j j' : J'} (f : j ⟶ j') (x : s.X) :
    (G.map f) ((s.π.app j) x) = (s.π.app j') x :=
 begin
   convert congr_fun (congr_arg (λ k : s.X ⟶ G.obj j', (k : s.X → G.obj j')) (s.π.naturality f).symm) x;
@@ -175,12 +187,15 @@ rfl
 -- We now prove a lemma about naturality of cocones over functors into bundled categories.
 section
 omit 𝒞
-variables {m : Type v → Type v} (hom : Π ⦃α β⦄ (Iα : m α) (Iβ : m β), Type v) [S : bundled_hom hom]
-include S
+variables {J' : Type u} [small_category J']
+variables {C' : Type (u+1)} [𝒞' : concrete_category C']
+include 𝒞'
 
-local attribute [instance] bundled_hom.has_coe_to_fun
+local attribute [instance] concrete_category.has_coe_to_sort
+local attribute [instance] concrete_category.has_coe_to_fun
 
-@[simp] lemma naturality_bundled {G : J ⥤ bundled m} (s : cocone G) {j j' : J} (f : j ⟶ j') (x : G.obj j) :
+/-- Naturality of a cocone over functors into a concrete category. -/
+@[simp] lemma naturality_concrete {G : J' ⥤ C'} (s : cocone G) {j j' : J'} (f : j ⟶ j') (x : G.obj j) :
   (s.ι.app j') ((G.map f) x) = (s.ι.app j) x :=
 begin
   convert congr_fun (congr_arg (λ k : G.obj j ⟶ s.X, (k : G.obj j → s.X)) (s.ι.naturality f)) x;
@@ -191,16 +206,12 @@ end
 
 end cocone
 
-structure cone_morphism (A B : cone F) :=
+@[ext] structure cone_morphism (A B : cone F) :=
 (hom : A.X ⟶ B.X)
 (w'  : ∀ j : J, hom ≫ B.π.app j = A.π.app j . obviously)
 
 restate_axiom cone_morphism.w'
 attribute [simp] cone_morphism.w
-
-@[extensionality] lemma cone_morphism.ext {A B : cone F} {f g : cone_morphism A B}
-  (w : f.hom = g.hom) : f = g :=
-by cases f; cases g; simpa using w
 
 @[simps] instance cone.category : category.{v} (cone F) :=
 { hom  := λ A B, cone_morphism A B,
@@ -213,7 +224,7 @@ namespace cones
 /-- To give an isomorphism between cones, it suffices to give an
   isomorphism between their vertices which commutes with the cone
   maps. -/
-@[extensionality, simps] def ext {c c' : cone F}
+@[ext, simps] def ext {c c' : cone F}
   (φ : c.X ≅ c'.X) (w : ∀ j, c.π.app j = φ.hom ≫ c'.π.app j) : c ≅ c' :=
 { hom := { hom := φ.hom },
   inv := { hom := φ.inv, w' := λ j, φ.inv_comp_eq.mpr (w j) } }
@@ -255,16 +266,12 @@ include 𝒟
 end
 end cones
 
-structure cocone_morphism (A B : cocone F) :=
+@[ext] structure cocone_morphism (A B : cocone F) :=
 (hom : A.X ⟶ B.X)
 (w'  : ∀ j : J, A.ι.app j ≫ hom = B.ι.app j . obviously)
 
 restate_axiom cocone_morphism.w'
 attribute [simp] cocone_morphism.w
-
-@[extensionality] lemma cocone_morphism.ext
-  {A B : cocone F} {f g : cocone_morphism A B} (w : f.hom = g.hom) : f = g :=
-by cases f; cases g; simpa using w
 
 @[simps] instance cocone.category : category.{v} (cocone F) :=
 { hom  := λ A B, cocone_morphism A B,
@@ -277,7 +284,7 @@ namespace cocones
 /-- To give an isomorphism between cocones, it suffices to give an
   isomorphism between their vertices which commutes with the cocone
   maps. -/
-@[extensionality, simps] def ext {c c' : cocone F}
+@[ext, simps] def ext {c c' : cocone F}
   (φ : c.X ≅ c'.X) (w : ∀ j, c.ι.app j ≫ φ.hom = c'.ι.app j) : c ≅ c' :=
 { hom := { hom := φ.hom },
   inv := { hom := φ.inv, w' := λ j, φ.comp_inv_eq.mpr (w j).symm } }
@@ -362,46 +369,36 @@ namespace category_theory.limits
 
 variables {F : J ⥤ Cᵒᵖ}
 
-def cone_of_cocone_left_op (c : cocone F.left_op) : cone F :=
+-- Here and below we only automatically generate the `@[simp]` lemma for the `X` field,
+-- as we can be a simpler `rfl` lemma for the components of the natural transformation by hand.
+@[simps X] def cone_of_cocone_left_op (c : cocone F.left_op) : cone F :=
 { X := op c.X,
   π := nat_trans.right_op (c.ι ≫ (const.op_obj_unop (op c.X)).hom) }
 
-@[simp] lemma cone_of_cocone_left_op_X (c : cocone F.left_op) :
-  (cone_of_cocone_left_op c).X = op c.X :=
-rfl
 @[simp] lemma cone_of_cocone_left_op_π_app (c : cocone F.left_op) (j) :
   (cone_of_cocone_left_op c).π.app j = (c.ι.app (op j)).op :=
 by { dsimp [cone_of_cocone_left_op], simp }
 
-def cocone_left_op_of_cone (c : cone F) : cocone (F.left_op) :=
+@[simps X] def cocone_left_op_of_cone (c : cone F) : cocone (F.left_op) :=
 { X := unop c.X,
   ι := nat_trans.left_op c.π }
 
-@[simp] lemma cocone_left_op_of_cone_X (c : cone F) :
-  (cocone_left_op_of_cone c).X = unop c.X :=
-rfl
 @[simp] lemma cocone_left_op_of_cone_ι_app (c : cone F) (j) :
   (cocone_left_op_of_cone c).ι.app j = (c.π.app (unop j)).unop :=
 by { dsimp [cocone_left_op_of_cone], simp }
 
-def cocone_of_cone_left_op (c : cone F.left_op) : cocone F :=
+@[simps X] def cocone_of_cone_left_op (c : cone F.left_op) : cocone F :=
 { X := op c.X,
   ι := nat_trans.right_op ((const.op_obj_unop (op c.X)).hom ≫ c.π) }
 
-@[simp] lemma cocone_of_cone_left_op_X (c : cone F.left_op) :
-  (cocone_of_cone_left_op c).X = op c.X :=
-rfl
 @[simp] lemma cocone_of_cone_left_op_ι_app (c : cone F.left_op) (j) :
   (cocone_of_cone_left_op c).ι.app j = (c.π.app (op j)).op :=
 by { dsimp [cocone_of_cone_left_op], simp }
 
-def cone_left_op_of_cocone (c : cocone F) : cone (F.left_op) :=
+@[simps X] def cone_left_op_of_cocone (c : cocone F) : cone (F.left_op) :=
 { X := unop c.X,
   π := nat_trans.left_op c.ι }
 
-@[simp] lemma cone_left_op_of_cocone_X (c : cocone F) :
-  (cone_left_op_of_cocone c).X = unop c.X :=
-rfl
 @[simp] lemma cone_left_op_of_cocone_π_app (c : cocone F) (j) :
   (cone_left_op_of_cocone c).π.app j = (c.ι.app (unop j)).unop :=
 by { dsimp [cone_left_op_of_cocone], simp }

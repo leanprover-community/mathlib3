@@ -46,7 +46,7 @@ lemma quotient.eq_rel {r : setoid α} {x y} : ⟦x⟧ = ⟦y⟧ ↔ r.rel x y :=
 
 namespace setoid
 
-@[extensionality] lemma ext' {r s : setoid α} (H : ∀ a b, r.rel a b ↔ s.rel a b) :
+@[ext] lemma ext' {r s : setoid α} (H : ∀ a b, r.rel a b ↔ s.rel a b) :
   r = s := ext H
 
 lemma ext_iff {r s : setoid α} : r = s ↔ ∀ a b, r.rel a b ↔ s.rel a b :=
@@ -73,6 +73,14 @@ def ker (f : α → β) : setoid α :=
 /-- The kernel of the quotient map induced by an equivalence relation r equals r. -/
 @[simp] lemma ker_mk_eq (r : setoid α) : ker (@quotient.mk _ r) = r :=
 ext' $ λ x y, quotient.eq
+
+/-- Given types `α, β`, the product of two equivalence relations `r` on `α` and `s` on `β`:
+    `(x₁, x₂), (y₁, y₂) ∈ α × β` are related by `r.prod s` iff `x₁` is related to `y₁`
+    by `r` and `x₂` is related to `y₂` by `s`. -/
+protected def prod (r : setoid α) (s : setoid β) : setoid (α × β) :=
+{ r := λ x y, r.rel x.1 y.1 ∧ s.rel x.2 y.2,
+  iseqv := ⟨λ x, ⟨r.refl' x.1, s.refl' x.2⟩, λ _ _ h, ⟨r.symm' h.1, s.symm' h.2⟩,
+            λ _ _ _ h1 h2, ⟨r.trans' h1.1 h2.1, s.trans' h1.2 h2.2⟩⟩ }
 
 /-- The infimum of two equivalence relations. -/
 instance : has_inf (setoid α) :=
@@ -271,17 +279,12 @@ noncomputable def quotient_ker_equiv_of_surjective (hf : surjective f) :
 @equiv.of_bijective _ _ (@quotient.lift _ _ (ker f) f (λ _ _, id))
   ⟨injective_ker_lift f, λ y, exists.elim (hf y) $ λ w hw, ⟨quotient.mk' w, hw⟩⟩
 
-/-- The third isomorphism theorem for sets. -/
-noncomputable def quotient_quotient_equiv_quotient (s : setoid α) (h : r ≤ s) :
-  quotient (ker (quot.map_right h)) ≃ quotient s :=
-quotient_ker_equiv_of_surjective _ $ λ x, by rcases x; exact ⟨quotient.mk' x, rfl⟩
-
 variables {r f}
 
-/-- Given a function f whose kernel is contained in an equivalence relation r, the equivalence
-    closure of the relation on f's image defined by x ≈ y ↔ the elements of f⁻¹(x) are related
-    to the elements of f⁻¹(y) by r. -/
-def map (r) (f : α → β) (h : ker f ≤ r) : setoid β :=
+/-- Given a function `f : α → β` and equivalence relation `r` on `α`, the equivalence
+    closure of the relation on `f`'s image defined by '`x ≈ y` iff the elements of `f⁻¹(x)` are
+    related to the elements of `f⁻¹(y)` by `r`.' -/
+def map (r : setoid α) (f : α → β) : setoid β :=
 eqv_gen.setoid $ λ x y, ∃ a b, f a = x ∧ f b = y ∧ r.rel a b
 
 /-- Given a surjective function f whose kernel is contained in an equivalence relation r, the
@@ -297,14 +300,40 @@ def map_of_surjective (r) (f : α → β) (h : ker f ≤ r) (hf : surjective f) 
 
 /-- A special case of the equivalence closure of an equivalence relation r equalling r. -/
 lemma map_of_surjective_eq_map (h : ker f ≤ r) (hf : surjective f) :
-  map r f h = map_of_surjective r f h hf :=
+  map r f = map_of_surjective r f h hf :=
 by rw ←eqv_gen_of_setoid (map_of_surjective r f h hf); refl
 
-/-- Given an equivalence relation r on α and a map f to the quotient of α by r, an
-    equivalence relation s on the quotient induces an equivalence relation on f's domain defined
-    by x ≈ y ↔ f(x) is related to f(y) by s. -/
-def comap (f : β → quotient r) (s : setoid (quotient r)) : setoid β :=
-⟨λ x y, s.rel (f x) (f y), ⟨λ _, s.refl' _, λ _ _ h, s.symm' h, λ _ _ _ h1, s.trans' h1⟩⟩
+/-- Given a function `f : α → β`, an equivalence relation `r` on `β` induces an equivalence
+    relation on `α` defined by '`x ≈ y` iff `f(x)` is related to `f(y)` by `r`'. -/
+def comap (f : α → β) (r : setoid β) : setoid α :=
+⟨λ x y, r.rel (f x) (f y), ⟨λ _, r.refl' _, λ _ _ h, r.symm' h, λ _ _ _ h1, r.trans' h1⟩⟩
+
+/-- Given a map `f : N → M` and an equivalence relation `r` on `β`, the equivalence relation
+    induced on `α` by `f` equals the kernel of `r`'s quotient map composed with `f`. -/
+lemma comap_eq {f : α → β} {r : setoid β} : comap f r = ker (@quotient.mk _ r ∘ f) :=
+ext $ λ x y, show _ ↔ ⟦_⟧ = ⟦_⟧, by rw quotient.eq; refl
+
+/-- The second isomorphism theorem for sets. -/
+noncomputable def comap_quotient_equiv (f : α → β) (r : setoid β) :
+  quotient (comap f r) ≃ set.range (@quotient.mk _ r ∘ f) :=
+(quotient.congr_right $ ext_iff.1 comap_eq).trans $ quotient_ker_equiv_range $ quotient.mk ∘ f
+
+variables (r f)
+
+/-- The third isomorphism theorem for sets. -/
+def quotient_quotient_equiv_quotient (s : setoid α) (h : r ≤ s) :
+  quotient (ker (quot.map_right h)) ≃ quotient s :=
+{ to_fun := λ x, quotient.lift_on' x (λ w, quotient.lift_on' w (@quotient.mk _ s) $
+    λ x y H, quotient.sound $ h x y H) $ λ x y, quotient.induction_on₂' x y $ λ w z H,
+      show @quot.mk _ _ _ = @quot.mk _ _ _, from H,
+  inv_fun := λ x, quotient.lift_on' x
+    (λ w, @quotient.mk _ (ker $ quot.map_right h) $ @quotient.mk _ r w) $
+      λ x y H, quotient.sound' $ show @quot.mk _ _ _ = @quot.mk _ _ _, from quotient.sound H,
+  left_inv := λ x, quotient.induction_on' x $ λ y, quotient.induction_on' y $
+    λ w, by show ⟦_⟧ = _; refl,
+  right_inv := λ x, quotient.induction_on' x $ λ y, by show ⟦_⟧ = _; refl }
+
+variables {r f}
 
 section
 open quotient
@@ -435,15 +464,15 @@ section partition
 def is_partition (c : set (set α)) :=
 ∅ ∉ c ∧ ∀ a, ∃ b ∈ c, a ∈ b ∧ ∀ b' ∈ c, a ∈ b' → b = b'
 
-/-- A partition of α does not contain the empty set. -/
-lemma ne_empty_of_mem_partition {c : set (set α)} (hc : is_partition c) {s} (h : s ∈ c) :
-  s ≠ ∅ :=
-λ hs0, hc.1 $ hs0 ▸ h
+/-- A partition of `α` does not contain the empty set. -/
+lemma nonempty_of_mem_partition {c : set (set α)} (hc : is_partition c) {s} (h : s ∈ c) :
+  s.nonempty :=
+set.ne_empty_iff_nonempty.1 $ λ hs0, hc.1 $ hs0 ▸ h
 
 /-- All elements of a partition of α are the equivalence class of some y ∈ α. -/
 lemma exists_of_mem_partition {c : set (set α)} (hc : is_partition c) {s} (hs : s ∈ c) :
   ∃ y, s = {x | (mk_classes c hc.2).rel x y} :=
-let ⟨y, hy⟩ := set.exists_mem_of_ne_empty $ ne_empty_of_mem_partition hc hs in
+let ⟨y, hy⟩ := nonempty_of_mem_partition hc hs in
   ⟨y, eq_eqv_class_of_mem hc.2 hs hy⟩
 
 /-- The equivalence classes of the equivalence relation defined by a partition of α equal
@@ -455,8 +484,7 @@ set.ext $ λ s,
     rwa (show s = b, from hs.symm ▸ set.ext
       (λ x, ⟨λ hx, symm' (mk_classes c hc.2) hx b hm hb,
              λ hx b' hc' hx', eq_of_mem_eqv_class hc.2 hm hx hc' hx' ▸ hb⟩)),
-   λ h, let ⟨y, hy⟩ := set.exists_mem_of_ne_empty $ ne_empty_of_mem_partition hc h in
-     ⟨y, eq_eqv_class_of_mem hc.2 h hy⟩⟩
+   exists_of_mem_partition hc⟩
 
 /-- Defining `≤` on partitions as the `≤` defined on their induced equivalence relations. -/
 instance partition.le : has_le (subtype (@is_partition α)) :=

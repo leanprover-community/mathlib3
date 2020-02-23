@@ -5,7 +5,7 @@ Authors: Johannes Hölzl
 
 Theory of complete lattices.
 -/
-import order.bounded_lattice data.set.basic tactic.pi_instances
+import order.bounded_lattice order.bounds data.set.basic tactic.pi_instances
 
 set_option old_structure_cmd true
 open set
@@ -33,6 +33,8 @@ lemma has_Sup_to_nonempty (α) [has_Sup α] : nonempty α := ⟨Sup ∅⟩
 notation `⨆` binders `, ` r:(scoped f, supr f) := r
 notation `⨅` binders `, ` r:(scoped f, infi f) := r
 
+section prio
+set_option default_priority 100 -- see Note [default priority]
 /-- A complete lattice is a bounded lattice which
   has suprema and infima for every subset. -/
 class complete_lattice (α : Type u) extends bounded_lattice α, has_Sup α, has_Inf α :=
@@ -43,6 +45,7 @@ class complete_lattice (α : Type u) extends bounded_lattice α, has_Sup α, has
 
 /-- A complete linear order is a linear order whose lattice structure is complete. -/
 class complete_linear_order (α : Type u) extends complete_lattice α, decidable_linear_order α
+end prio
 
 section
 variables [complete_lattice α] {s t : set α} {a b : α}
@@ -54,6 +57,14 @@ theorem Sup_le : (∀b∈s, b ≤ a) → Sup s ≤ a := complete_lattice.Sup_le 
 @[ematch] theorem Inf_le : a ∈ s → Inf s ≤ a := complete_lattice.Inf_le s a
 
 theorem le_Inf : (∀b∈s, a ≤ b) → a ≤ Inf s := complete_lattice.le_Inf s a
+
+lemma is_lub_Sup : is_lub s (Sup s) := ⟨assume x, le_Sup, assume x, Sup_le⟩
+
+lemma is_lub_iff_Sup_eq : is_lub s a ↔ Sup s = a := is_lub_iff_eq_of_is_lub is_lub_Sup
+
+lemma is_glb_Inf : is_glb s (Inf s) := ⟨assume a, Inf_le, assume a, le_Inf⟩
+
+lemma is_glb_iff_Inf_eq : is_glb s a ↔ Inf s = a := is_glb_iff_eq_of_is_glb is_glb_Inf
 
 theorem le_Sup_of_le (hb : b ∈ s) (h : a ≤ b) : a ≤ Sup s :=
 le_trans h (le_Sup hb)
@@ -229,6 +240,14 @@ le_Sup ⟨i, rfl⟩
 le_Sup ⟨i, rfl⟩
 -/
 
+lemma is_lub_supr : is_lub (range s) (⨆j, s j) := is_lub_Sup
+
+lemma is_lub_iff_supr_eq : is_lub (range s) a ↔ (⨆j, s j) = a := is_lub_iff_eq_of_is_lub is_lub_supr
+
+lemma is_glb_infi : is_glb (range s) (⨅j, s j) := is_glb_Inf
+
+lemma is_glb_iff_infi_eq : is_glb (range s) a ↔ (⨅j, s j) = a := is_glb_iff_eq_of_is_glb is_glb_infi
+
 theorem le_supr_of_le (i : ι) (h : a ≤ s i) : a ≤ supr s :=
 le_trans h (le_supr _ i)
 
@@ -246,6 +265,9 @@ supr_le $ le_supr _ ∘ h
 
 @[simp] theorem supr_le_iff : supr s ≤ a ↔ (∀i, s i ≤ a) :=
 ⟨assume : supr s ≤ a, assume i, le_trans (le_supr _ _) this, supr_le⟩
+
+lemma le_supr_iff : (a ≤ supr s) ↔ (∀ b, (∀ i, s i ≤ b) → a ≤ b) :=
+⟨λ h b hb, le_trans h (supr_le hb), λ h, h _ $ λ i, le_supr s i⟩
 
 -- TODO: finish doesn't do well here.
 @[congr] theorem supr_congr_Prop {α : Type u} [has_Sup α] {p q : Prop} {f₁ : p → α} {f₂ : q → α}
@@ -541,22 +563,19 @@ calc Sup (set.image f s) = (⨆a, ⨆h : ∃b, b ∈ s ∧ f b = a, a) : Sup_eq_
 
 /- supr and infi under set constructions -/
 
-/- should work using the simplifier! -/
-@[simp] theorem infi_emptyset {f : β → α} : (⨅ x ∈ (∅ : set β), f x) = ⊤ :=
-le_antisymm le_top (le_infi $ assume x, le_infi false.elim)
+theorem infi_emptyset {f : β → α} : (⨅ x ∈ (∅ : set β), f x) = ⊤ :=
+by simp
 
-@[simp] theorem supr_emptyset {f : β → α} : (⨆ x ∈ (∅ : set β), f x) = ⊥ :=
-le_antisymm (supr_le $ assume x, supr_le false.elim) bot_le
+theorem supr_emptyset {f : β → α} : (⨆ x ∈ (∅ : set β), f x) = ⊥ :=
+by simp
 
-@[simp] theorem infi_univ {f : β → α} : (⨅ x ∈ (univ : set β), f x) = (⨅ x, f x) :=
-show (⨅ (x : β) (H : true), f x) = ⨅ (x : β), f x,
-  from congr_arg infi $ funext $ assume x, infi_const
+theorem infi_univ {f : β → α} : (⨅ x ∈ (univ : set β), f x) = (⨅ x, f x) :=
+by simp
 
-@[simp] theorem supr_univ {f : β → α} : (⨆ x ∈ (univ : set β), f x) = (⨆ x, f x) :=
-show (⨆ (x : β) (H : true), f x) = ⨆ (x : β), f x,
-  from congr_arg supr $ funext $ assume x, supr_const
+theorem supr_univ {f : β → α} : (⨆ x ∈ (univ : set β), f x) = (⨆ x, f x) :=
+by simp
 
-@[simp] theorem infi_union {f : β → α} {s t : set β} : (⨅ x ∈ s ∪ t, f x) = (⨅x∈s, f x) ⊓ (⨅x∈t, f x) :=
+theorem infi_union {f : β → α} {s t : set β} : (⨅ x ∈ s ∪ t, f x) = (⨅x∈s, f x) ⊓ (⨅x∈t, f x) :=
 calc (⨅ x ∈ s ∪ t, f x) = (⨅ x, (⨅h : x∈s, f x) ⊓ (⨅h : x∈t, f x)) : congr_arg infi $ funext $ assume x, infi_or
                     ... = (⨅x∈s, f x) ⊓ (⨅x∈t, f x) : infi_inf_eq
 
@@ -564,7 +583,7 @@ theorem infi_le_infi_of_subset {f : β → α} {s t : set β} (h : s ⊆ t) :
   (⨅ x ∈ t, f x) ≤ (⨅ x ∈ s, f x) :=
 by rw [(union_eq_self_of_subset_left h).symm, infi_union]; exact inf_le_left
 
-@[simp] theorem supr_union {f : β → α} {s t : set β} : (⨆ x ∈ s ∪ t, f x) = (⨆x∈s, f x) ⊔ (⨆x∈t, f x) :=
+theorem supr_union {f : β → α} {s t : set β} : (⨆ x ∈ s ∪ t, f x) = (⨆x∈s, f x) ⊔ (⨆x∈t, f x) :=
 calc (⨆ x ∈ s ∪ t, f x) = (⨆ x, (⨆h : x∈s, f x) ⊔ (⨆h : x∈t, f x)) : congr_arg supr $ funext $ assume x, supr_or
                     ... = (⨆x∈s, f x) ⊔ (⨆x∈t, f x) : supr_sup_eq
 
@@ -575,24 +594,22 @@ by rw [(union_eq_self_of_subset_left h).symm, supr_union]; exact le_sup_left
 @[simp] theorem insert_of_has_insert {α : Type*} (x : α) (a : set α) :
   has_insert.insert x a = insert x a := rfl
 
-@[simp] theorem infi_insert {f : β → α} {s : set β} {b : β} : (⨅ x ∈ insert b s, f x) = f b ⊓ (⨅x∈s, f x) :=
+theorem infi_insert {f : β → α} {s : set β} {b : β} : (⨅ x ∈ insert b s, f x) = f b ⊓ (⨅x∈s, f x) :=
 eq.trans infi_union $ congr_arg (λx:α, x ⊓ (⨅x∈s, f x)) infi_infi_eq_left
 
-@[simp] theorem supr_insert {f : β → α} {s : set β} {b : β} : (⨆ x ∈ insert b s, f x) = f b ⊔ (⨆x∈s, f x) :=
+theorem supr_insert {f : β → α} {s : set β} {b : β} : (⨆ x ∈ insert b s, f x) = f b ⊔ (⨆x∈s, f x) :=
 eq.trans supr_union $ congr_arg (λx:α, x ⊔ (⨆x∈s, f x)) supr_supr_eq_left
 
-@[simp] theorem infi_singleton {f : β → α} {b : β} : (⨅ x ∈ (singleton b : set β), f x) = f b :=
-show (⨅ x ∈ insert b (∅ : set β), f x) = f b,
-  by simp
+theorem infi_singleton {f : β → α} {b : β} : (⨅ x ∈ (singleton b : set β), f x) = f b :=
+by simp
 
-@[simp] theorem infi_pair {f : β → α} {a b : β} : (⨅ x ∈ ({a, b} : set β), f x) = f a ⊓ f b :=
+theorem infi_pair {f : β → α} {a b : β} : (⨅ x ∈ ({a, b} : set β), f x) = f a ⊓ f b :=
 by { rw [show {a, b} = (insert b {a} : set β), from rfl, infi_insert, inf_comm], simp }
 
-@[simp] theorem supr_singleton {f : β → α} {b : β} : (⨆ x ∈ (singleton b : set β), f x) = f b :=
-show (⨆ x ∈ insert b (∅ : set β), f x) = f b,
-  by simp
+theorem supr_singleton {f : β → α} {b : β} : (⨆ x ∈ (singleton b : set β), f x) = f b :=
+by simp
 
-@[simp] theorem supr_pair {f : β → α} {a b : β} : (⨆ x ∈ ({a, b} : set β), f x) = f a ⊔ f b :=
+theorem supr_pair {f : β → α} {a b : β} : (⨆ x ∈ ({a, b} : set β), f x) = f a ⊔ f b :=
 by { rw [show {a, b} = (insert b {a} : set β), from rfl, supr_insert, sup_comm], simp }
 
 lemma infi_image {γ} {f : β → γ} {g : γ → α} {t : set β} :
@@ -648,6 +665,10 @@ theorem supr_subtype {p : ι → Prop} {f : subtype p → α} : (⨆ x, f x) = (
 le_antisymm
   (supr_le $ assume ⟨i, h⟩, le_supr_of_le i $ le_supr (λh:p i, f ⟨i, h⟩) _)
   (supr_le $ assume i, supr_le $ assume : p i, le_supr _ _)
+
+lemma supr_subtype' {p : ι → Prop} {f : ∀ i, p i → α} :
+  (⨆ i (h : p i), f i h) = (⨆ x : subtype p, f x.val x.property) :=
+(@supr_subtype _ _ _ p (λ x, f x.val x.property)).symm
 
 theorem infi_sigma {p : β → Type w} {f : sigma p → α} : (⨅ x, f x) = (⨅ i (h:p i), f ⟨i, h⟩) :=
 le_antisymm

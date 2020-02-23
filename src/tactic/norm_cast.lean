@@ -11,7 +11,7 @@ import data.buffer.parser
 
 namespace tactic
 
-/-
+/--
 This is a work around to the fact that in some cases
 mk_instance times out instead of failing
 example: has_lift_t ℤ ℕ
@@ -61,6 +61,10 @@ private meta def aux_after_set (tac : expr → tactic (expr × (expr → expr)))
     )
 | ty := tac ty
 
+mk_simp_attribute push_cast "The `push_cast` simp attribute uses `move_cast` lemmas in the \"forward\" direction,
+to move casts toward the leaf nodes of the expression."
+
+/-- Called after the `move_cast` attribute is applied to a declaration. -/
 private meta def after_set (decl : name) (prio : ℕ) (pers : bool) : tactic unit :=
 do
     (declaration.thm n l ty e) ← get_decl decl | failed,
@@ -68,7 +72,8 @@ do
     (ty', f) ← aux_after_set tac ty,
     let e' := task.map f e,
     let n' := new_name n,
-    add_decl (declaration.thm n' l ty' e')
+    add_decl (declaration.thm n' l ty' e'),
+    simp_attr.push_cast.set decl () tt
 
 private meta def mk_cache : list name → tactic simp_lemmas :=
 monad.foldl simp_lemmas.add_simp simp_lemmas.mk
@@ -355,6 +360,14 @@ then close the goal with assumption.
 meta def assumption_mod_cast : tactic unit :=
 tactic.assumption_mod_cast
 
+/-- `push_cast` rewrites the expression to move casts toward the leaf nodes.
+For example, `↑(a + b)` will be written to `↑a + ↑b`.
+Equivalent to `simp only with push_cast`.
+Can also be used at hypotheses.
+-/
+meta def push_cast (l : parse location): tactic unit :=
+tactic.interactive.simp none tt [] [`push_cast] l
+
 end tactic.interactive
 
 namespace conv.interactive
@@ -383,3 +396,5 @@ attribute [move_cast] int.coe_nat_mul
     {c : Prop} [decidable c] {a b : α} :
     ↑(ite c a b) = ite c (↑a : β) (↑b : β) :=
 by by_cases h : c; simp [h]
+
+add_hint_tactic "norm_cast at *"

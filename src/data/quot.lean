@@ -23,6 +23,8 @@ namespace quot
 variables {ra : α → α → Prop} {rb : β → β → Prop} {φ : quot ra → quot rb → Sort*}
 local notation `⟦`:max a `⟧` := quot.mk _ a
 
+instance [inhabited α] : inhabited (quot ra) := ⟨⟦default _⟧⟩
+
 protected def hrec_on₂ (qa : quot ra) (qb : quot rb) (f : ∀ a b, φ ⟦a⟧ ⟦b⟧)
   (ca : ∀ {b a₁ a₂}, ra a₁ a₂ → f a₁ b == f a₂ b)
   (cb : ∀ {a b₁ b₂}, rb b₁ b₂ → f a b₁ == f a b₂) : φ qa qb :=
@@ -48,6 +50,8 @@ end quot
 namespace quotient
 variables [sa : setoid α] [sb : setoid β]
 variables {φ : quotient sa → quotient sb → Sort*}
+
+instance [inhabited α] : inhabited (quotient sa) := ⟨⟦default _⟧⟩
 
 protected def hrec_on₂ (qa : quotient sa) (qb : quotient sb) (f : ∀ a b, φ ⟦a⟧ ⟦b⟧)
   (c : ∀ a₁ b₁ a₂ b₂, a₁ ≈ a₂ → b₁ ≈ b₂ → f a₁ b₁ == f a₂ b₂) : φ qa qb :=
@@ -144,6 +148,8 @@ namespace trunc
 
 /-- Constructor for `trunc α` -/
 def mk (a : α) : trunc α := quot.mk _ a
+
+instance [inhabited α] : inhabited (trunc α) := ⟨mk (default _)⟩
 
 /-- Any constant function lifts to a function out of the truncation -/
 def lift (f : α → β) (c : ∀ a b : α, f a = f b) : trunc α → β :=

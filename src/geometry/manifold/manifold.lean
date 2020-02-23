@@ -24,25 +24,25 @@ notion of structure groupoid, i.e., a set of local homeomorphisms stable under c
 inverse, to which the change of coordinates should belong.
 
 ## Main definitions
-`structure_groupoid H`   : a subset of local homeomorphisms of `H` stable under composition, inverse
-                           and restriction (ex: local diffeos)
-`pregroupoid H`          : a subset of local homeomorphisms of `H` stable under composition and
-                           restriction, but not inverse (ex: smooth maps)
-`groupoid_of_pregroupoid`: construct a groupoid from a pregroupoid, by requiring that a map and its
-                           inverse both belong to the pregroupoid (ex: construct diffeos from smooth
-                           maps)
-`continuous_groupoid H`  : the groupoid of all local homeomorphisms of `H`
+* `structure_groupoid H`   : a subset of local homeomorphisms of `H` stable under composition, inverse
+                             and restriction (ex: local diffeos)
+* `pregroupoid H`          : a subset of local homeomorphisms of `H` stable under composition and
+                             restriction, but not inverse (ex: smooth maps)
+* `groupoid_of_pregroupoid`: construct a groupoid from a pregroupoid, by requiring that a map and its
+                             inverse both belong to the pregroupoid (ex: construct diffeos from smooth
+                             maps)
+* `continuous_groupoid H`  : the groupoid of all local homeomorphisms of `H`
 
-`manifold H M`           : manifold structure on M modelled on H, given by an atlas of local
-                           homeomorphisms from M to H whose sources cover M. This is a type class.
-`has_groupoid M G`       : when `G` is a structure groupoid on `H` and `M` is a manifold modelled on
-                           `H`, require that all coordinate changes belong to `G`. This is a type
-                           class
-`atlas H M`              : when `M` is a manifold modelled on `H`, the atlas of this manifold
-                           structure, i.e., the set of charts
-`structomorph G M M'`    : the set of diffeomorphisms between the manifolds M and M' for the
-                           groupoid G. We avoid the word diffeomorphisms, keeping it for the
-                           smooth category.
+* `manifold H M`           : manifold structure on `M` modelled on `H`, given by an atlas of local
+                             homeomorphisms from `M` to `H` whose sources cover `M`. This is a type class.
+* `has_groupoid M G`       : when `G` is a structure groupoid on `H` and `M` is a manifold modelled on
+                             `H`, require that all coordinate changes belong to `G`. This is a type
+                             class
+* `atlas H M`              : when `M` is a manifold modelled on `H`, the atlas of this manifold
+                             structure, i.e., the set of charts
+* `structomorph G M M'`    : the set of diffeomorphisms between the manifolds `M` and `M'` for the
+                             groupoid `G`. We avoid the word diffeomorphisms, keeping it for the
+                             smooth category.
 
 As a basic example, we give the instance
 `instance manifold_model_space (H : Type*) [topological_space H] : manifold H H`
@@ -155,10 +155,10 @@ def id_groupoid (H : Type u) [topological_space H] : structure_groupoid H :=
   end,
   id_mem := mem_union_left _ (mem_insert _ ∅),
   locality := λe he, begin
-    by_cases h : e.source = ∅,
+    cases e.source.eq_empty_or_nonempty with h h,
     { right, exact h },
     { left,
-      rcases ne_empty_iff_exists_mem.1 h with ⟨x, hx⟩,
+      rcases h with ⟨x, hx⟩,
       rcases he x hx with ⟨s, open_s, xs, hs⟩,
       have x's : x ∈ (e.restr s).source,
       { rw [restr_source, interior_eq_of_open open_s],
@@ -218,7 +218,7 @@ structure pregroupoid (H : Type*) [topological_space H] :=
 
 /-- Construct a groupoid of local homeos for which the map and its inverse have some property,
 from a pregroupoid asserting that this property is stable under composition. -/
-def groupoid_of_pregroupoid (PG : pregroupoid H) : structure_groupoid H :=
+def pregroupoid.groupoid (PG : pregroupoid H) : structure_groupoid H :=
 { members  := {e : local_homeomorph H H | PG.property e.to_fun e.source ∧ PG.property e.inv_fun e.target},
   comp     := λe e' he he', begin
     split,
@@ -256,21 +256,29 @@ def groupoid_of_pregroupoid (PG : pregroupoid H) : structure_groupoid H :=
   end }
 
 lemma mem_groupoid_of_pregroupoid (PG : pregroupoid H) (e : local_homeomorph H H) :
-  e ∈ groupoid_of_pregroupoid PG ↔ PG.property e.to_fun e.source ∧ PG.property e.inv_fun e.target :=
+  e ∈ PG.groupoid ↔ PG.property e.to_fun e.source ∧ PG.property e.inv_fun e.target :=
 iff.rfl
 
 lemma groupoid_of_pregroupoid_le (PG₁ PG₂ : pregroupoid H)
   (h : ∀f s, PG₁.property f s → PG₂.property f s) :
-  groupoid_of_pregroupoid PG₁ ≤ groupoid_of_pregroupoid PG₂ :=
+  PG₁.groupoid ≤ PG₂.groupoid :=
 begin
   assume e he,
   rw mem_groupoid_of_pregroupoid at he ⊢,
   exact ⟨h _ _ he.1, h _ _ he.2⟩
 end
 
+lemma mem_pregroupoid_of_eq_on_source (PG : pregroupoid H) {e e' : local_homeomorph H H}
+  (he' : e ≈ e') (he : PG.property e.to_fun e.source) :
+  PG.property e'.to_fun e'.source :=
+begin
+  rw ← he'.1,
+  exact PG.congr e.open_source (λx hx, (he'.2 x hx).symm) he,
+end
+
 /-- The groupoid of all local homeomorphisms on a topological space H -/
 def continuous_groupoid (H : Type*) [topological_space H] : structure_groupoid H :=
-groupoid_of_pregroupoid
+pregroupoid.groupoid
 { property := λf s, true,
   comp     := λf g u v hf hg huv, trivial,
   id_mem   := trivial,
@@ -416,6 +424,12 @@ class has_groupoid {H : Type*} [topological_space H] (M : Type*) [topological_sp
 lemma has_groupoid_of_le {G₁ G₂ : structure_groupoid H} (h : has_groupoid M G₁) (hle : G₁ ≤ G₂) :
   has_groupoid M G₂ :=
 ⟨ λ e e' he he', hle ((h.compatible : _) he he') ⟩
+
+lemma has_groupoid_of_pregroupoid (PG : pregroupoid H)
+  (h : ∀{e e' : local_homeomorph M H}, e ∈ atlas H M → e' ∈ atlas H M
+    → PG.property (e.symm ≫ₕ e').to_fun (e.symm ≫ₕ e').source) :
+  has_groupoid M (PG.groupoid) :=
+⟨assume e e' he he', (mem_groupoid_of_pregroupoid PG _).mpr ⟨h he he', h he' he⟩⟩
 
 /-- The trivial manifold structure on the model space is compatible with any groupoid -/
 instance has_groupoid_model_space (H : Type*) [topological_space H] (G : structure_groupoid H) :

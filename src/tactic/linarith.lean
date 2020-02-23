@@ -98,7 +98,7 @@ end lemmas
 
 section datatypes
 
-@[derive decidable_eq]
+@[derive decidable_eq, derive inhabited]
 inductive ineq
 | eq | le | lt
 
@@ -129,11 +129,10 @@ instance : has_to_string ineq := ⟨ineq.to_string⟩
   The represented term is coeffs.keys.sum (λ i, coeffs.find i * Var[i]).
   str determines the direction of the comparison -- is it < 0, ≤ 0, or = 0?
 -/
+@[derive _root_.inhabited]
 meta structure comp :=
 (str : ineq)
 (coeffs : rb_map ℕ int)
-
-meta instance : inhabited comp := ⟨⟨ineq.eq, mk_rb_map⟩⟩
 
 meta inductive comp_source
 | assump : ℕ → comp_source
@@ -166,6 +165,7 @@ meta def comp.lt (c1 c2 : comp) : bool :=
 
 meta instance comp.has_lt : has_lt comp := ⟨λ a b, comp.lt a b⟩
 meta instance pcomp.has_lt : has_lt pcomp := ⟨λ p1 p2, p1.c < p2.c⟩
+ -- short-circuit type class inference
 meta instance pcomp.has_lt_dec : decidable_rel ((<) : pcomp → pcomp → Prop) := by apply_instance
 
 meta def comp.coeff_of (c : comp) (a : ℕ) : ℤ :=
@@ -833,5 +833,7 @@ do t ← target,
    | none := if cfg.exfalso then exfalso >> linarith.interactive_aux cfg none restr.is_some hyps
              else fail "linarith failed: target type is not an inequality."
    end
+
+add_hint_tactic "linarith"
 
 end

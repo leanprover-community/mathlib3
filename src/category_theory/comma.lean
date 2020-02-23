@@ -21,23 +21,13 @@ structure comma (L : A ⥤ T) (R : B ⥤ T) : Type (max u₁ u₂ v₃) :=
 
 variables {L : A ⥤ T} {R : B ⥤ T}
 
-structure comma_morphism (X Y : comma L R) :=
+@[ext] structure comma_morphism (X Y : comma L R) :=
 (left : X.left ⟶ Y.left . obviously)
 (right : X.right ⟶ Y.right . obviously)
 (w' : L.map left ≫ Y.hom = X.hom ≫ R.map right . obviously)
 
 restate_axiom comma_morphism.w'
 attribute [simp] comma_morphism.w
-
-namespace comma_morphism
-@[extensionality] lemma ext
-  {X Y : comma L R} {f g : comma_morphism X Y}
-  (l : f.left = g.left) (r : f.right = g.right) : f = g :=
-begin
-  cases f, cases g,
-  congr; assumption
-end
-end comma_morphism
 
 instance comma_category : category (comma L R) :=
 { hom := comma_morphism,
@@ -197,7 +187,7 @@ namespace over
 
 variables {X : T}
 
-@[extensionality] lemma over_morphism.ext {X : T} {U V : over X} {f g : U ⟶ V}
+@[ext] lemma over_morphism.ext {X : T} {U V : over X} {f g : U ⟶ V}
   (h : f.left = g.left) : f = g :=
 by tidy
 
@@ -208,7 +198,7 @@ by tidy
 @[simp] lemma comp_left (a b c : over X) (f : a ⟶ b) (g : b ⟶ c) :
   (f ≫ g).left = f.left ≫ g.left := rfl
 
-@[simp] lemma w {A B : over X} (f : A ⟶ B) : f.left ≫ B.hom = A.hom :=
+@[simp, reassoc] lemma w {A B : over X} (f : A ⟶ B) : f.left ≫ B.hom = A.hom :=
 by have := f.w; tidy
 
 def mk {X Y : T} (f : Y ⟶ X) : over X :=
@@ -260,7 +250,7 @@ namespace under
 
 variables {X : T}
 
-@[extensionality] lemma under_morphism.ext {X : T} {U V : under X} {f g : U ⟶ V}
+@[ext] lemma under_morphism.ext {X : T} {U V : under X} {f g : U ⟶ V}
   (h : f.right = g.right) : f = g :=
 by tidy
 

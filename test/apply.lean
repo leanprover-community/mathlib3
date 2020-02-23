@@ -33,7 +33,7 @@ begin
 end
 example : continuous (λ (x : ℝ), x + x) :=
 begin
-  apply' continuous_add,
+  apply' continuous.add,
   guard_target' continuous (λ (x : ℝ), x), admit,
   guard_target' continuous (λ (x : ℝ), x), admit,
   -- guard_target' topological_add_monoid ℝ, admit,

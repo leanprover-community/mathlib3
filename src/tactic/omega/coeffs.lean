@@ -7,7 +7,7 @@ Non-constant terms of linear constraints are represented
 by storing their coefficients in integer lists.
 -/
 
-import data.list.basic
+import data.list.defs
 import tactic.ring
 import tactic.omega.misc
 

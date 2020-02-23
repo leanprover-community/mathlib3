@@ -12,7 +12,7 @@ a^n is used for the first, but users can locally redefine it to gpow when needed
 Note: power adopts the convention that 0^0=1.
 -/
 import algebra.group
-import data.int.basic data.list.basic
+import data.int.basic
 
 variables {M : Type*} {N : Type*} {G : Type*} {H : Type*} {A : Type*} {B : Type*}
   {R : Type*} {S : Type*}

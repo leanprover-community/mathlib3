@@ -245,33 +245,17 @@ isometry.uniform_embedding $ λx y, rfl
 
 /-- The range of `nonempty_compacts.to_closeds` is closed in a complete space -/
 lemma nonempty_compacts.is_closed_in_closeds [complete_space α] :
-  is_closed (nonempty_compacts.to_closeds '' (univ : set (nonempty_compacts α))) :=
+  is_closed (range $ @nonempty_compacts.to_closeds α _ _) :=
 begin
-  have : nonempty_compacts.to_closeds '' univ = {s : closeds α | s.val.nonempty ∧ compact s.val},
-  { ext,
-    simp only [set.image_univ, set.mem_range, ne.def, set.mem_set_of_eq],
-    split,
-    { rintros ⟨y, hy⟩,
-      have : x.val = y.val := by rcases hy; simp,
-      rw this,
-      exact y.property },
-    { rintros ⟨hx1, hx2⟩,
-      existsi (⟨x.val, ⟨hx1, hx2⟩⟩ : nonempty_compacts α),
-      apply subtype.eq,
-      refl }},
+  have : range nonempty_compacts.to_closeds = {s : closeds α | s.val.nonempty ∧ compact s.val},
+    from range_inclusion _,
   rw this,
-  refine is_closed_of_closure_subset (λs hs, _),
-  split,
-  { -- take a set set t which is nonempty and at distance at most 1 of s
-    rcases mem_closure_iff.1 hs 1 ennreal.zero_lt_one with ⟨t, ht, Dst⟩,
+  refine is_closed_of_closure_subset (λs hs, ⟨_, _⟩),
+  { -- take a set set t which is nonempty and at a finite distance of s
+    rcases mem_closure_iff.1 hs ⊤ ennreal.coe_lt_top with ⟨t, ht, Dst⟩,
     rw edist_comm at Dst,
-    -- this set t contains a point x
-    rcases ht.1 with ⟨x, hx⟩,
-    -- by the Hausdorff distance control, this point x is at distance at most 1
-    -- of a point y in s
-    rcases exists_edist_lt_of_Hausdorff_edist_lt hx Dst with ⟨y, hy, _⟩,
-    -- this shows that s is not empty
-    exact ⟨_, hy⟩ },
+    -- since `t` is nonempty, so is `s`
+    exact nonempty_of_Hausdorff_edist_ne_top ht.1 (ne_of_lt Dst) },
   { refine compact_iff_totally_bounded_complete.2 ⟨_, is_complete_of_is_closed s.property⟩,
     refine totally_bounded_iff.2 (λε εpos, _),
     -- we have to show that s is covered by finitely many eballs of radius ε
@@ -294,19 +278,17 @@ end
 
 /-- In a complete space, the type of nonempty compact subsets is complete. This follows
 from the same statement for closed subsets -/
-instance nonempty_compacts.complete_space [complete_space α] : complete_space (nonempty_compacts α) :=
-begin
-  apply complete_space_of_is_complete_univ,
-  apply (is_complete_image_iff nonempty_compacts.to_closeds.uniform_embedding).1,
-  apply is_complete_of_is_closed,
-  exact nonempty_compacts.is_closed_in_closeds
-end
+instance nonempty_compacts.complete_space [complete_space α] :
+  complete_space (nonempty_compacts α) :=
+(complete_space_iff_is_complete_range nonempty_compacts.to_closeds.uniform_embedding).2 $
+  is_complete_of_is_closed nonempty_compacts.is_closed_in_closeds
 
 /-- In a compact space, the type of nonempty compact subsets is compact. This follows from
 the same statement for closed subsets -/
 instance nonempty_compacts.compact_space [compact_space α] : compact_space (nonempty_compacts α) :=
 ⟨begin
   rw embedding.compact_iff_compact_image nonempty_compacts.to_closeds.uniform_embedding.embedding,
+  rw [image_univ],
   exact nonempty_compacts.is_closed_in_closeds.compact
 end⟩
 

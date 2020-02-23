@@ -39,6 +39,7 @@ meta def fin_cases_at_aux : Π (with_list : list expr) (e : expr) (ty_numeric : 
   | [(_, [s], _), (_, [e], _)] :=
     do let sn := local_pp_name s,
         ng ← num_goals,
+        infer_type s >>= trace,
         -- tidy up the new value
         tactic.interactive.conv (some sn) none
           (to_rhs >> match with_list.nth 0 with
@@ -46,6 +47,7 @@ meta def fin_cases_at_aux : Π (with_list : list expr) (e : expr) (ty_numeric : 
           | _ := `[try { conv.interactive.simp ff [] [] }] >> when ty_numeric `[try { conv.interactive.norm_num [] }]
           end),
         s ← get_local sn,
+        infer_type s >>= trace,
         try `[subst %%s],
         ng' ← num_goals,
         when (ng = ng') (rotate_left 1),

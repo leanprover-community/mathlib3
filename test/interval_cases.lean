@@ -22,25 +22,56 @@ example (n : ℕ) (w₂ : n < 0) : false :=
 by interval_cases n
 
 example (n : ℕ) (w₂ : n < 1) : n = 0 :=
-by interval_cases n; simp
+by { interval_cases n, refl }
+
+-- @[simp] lemma nat.bot_eq_zero : (⊥ : ℕ) = 0 := rfl
+attribute [simp] bot_eq_zero
+
+example (n : ℕ) (w₂ : n < 2) : n = 0 ∨ n = 1 :=
+by { interval_cases n, simp, simp, }
+
+example (n : ℕ) (w₁ : 1 ≤ n) (w₂ : n < 3) : n = 1 ∨ n = 2 :=
+by { interval_cases n, simp, simp, }
+
+def foo : lattice.order_bot ℕ := by apply_instance
+instance : lattice.has_bot ℕ+ :=
+{ bot := 1 }
+instance : lattice.order_bot ℕ+ :=
+{ bot_le := λ a, a.property,
+  ..(by apply_instance : lattice.has_bot ℕ+),
+  ..(by apply_instance : partial_order ℕ+) }
 
 example (n : ℕ+) (w₂ : n < 1) : false :=
-by interval_cases n; simp
+by { interval_cases n }
+
+@[simp] lemma pnat.bot_eq_zero : (⊥ : ℕ+) = 1 := rfl
 
 example (n : ℕ+) (w₂ : n < 2) : n = 1 :=
-by interval_cases n; simp
+by { interval_cases n, refl, }
+
+example (n : ℕ+) (w₂ : n < 3) : n = 1 ∨ n = 2 :=
+by { interval_cases n, { left, refl }, { right, refl }, }
 
 example (n : ℕ) (w₁ : n ≥ 3) (w₂ : n < 5) : n = 3 ∨ n = 4 :=
-by interval_cases n; simp
+by { interval_cases n, simp, simp, }
+
+example (n : ℕ) (h : n = max (max ⊥ 2) 3 + 1) : true :=
+begin
+ conv at h { norm_num, },
+ trivial,
+end
+
+example (n : ℕ) (w₀ : n ≥ 2) (w₁ : n ≥ 3) (w₂ : n < 5) : n = 3 ∨ n = 4 :=
+by { interval_cases n, norm_num, norm_num, }
 
 example (n : ℕ) (w₁ : n > 2) (w₂ : n < 5) : n = 3 ∨ n = 4 :=
-by interval_cases n; simp
+by { interval_cases n, simp, simp, }
 
 example (n : ℕ) (w₁ : n > 2) (w₂ : n ≤ 4) : n = 3 ∨ n = 4 :=
-by interval_cases n; simp
+by { interval_cases n, simp, simp, }
 
 example (n : ℕ) (w₁ : 2 < n) (w₂ : 4 ≥ n) : n = 3 ∨ n = 4 :=
-by interval_cases n; simp
+by { interval_cases n, simp, simp, }
 
 example (n : ℕ) (w₁ : n % 3 < 1) : n % 3 = 0 :=
 by { interval_cases n % 3, assumption }

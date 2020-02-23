@@ -92,34 +92,37 @@ do t ← infer_type e,
    end
 
 /-- Combine two upper bounds. -/
-meta def combine_upper_bounds : option (ℚ × expr) → option (ℚ × expr) → option (ℚ × expr)
-| none none := none
-| (some (b, prf)) none := some (b, prf)
-| none (some (b, prf)) := some (b, prf)
+meta def combine_upper_bounds : option (ℚ × expr) → option (ℚ × expr) → tactic (option (ℚ × expr))
+| none none := return none
+| (some (b, prf)) none := return $ some (b, prf)
+| none (some (b, prf)) := return $ some (b, prf)
 | (some (b₁, prf₁)) (some (b₂, prf₂)) :=
-  if b₁ ≤ b₂ then some (b₁, prf₁) else some (b₂, prf₂)
+  return $ if b₁ ≤ b₂ then some (b₁, prf₁) else some (b₂, prf₂)
 
 /-- Combine two lower bounds. -/
-meta def combine_lower_bounds : option (ℚ × expr) → option (ℚ × expr) → option (ℚ × expr)
-| none none := none
-| (some (b, prf)) none := some (b, prf)
-| none (some (b, prf)) := some (b, prf)
-| (some (b₁, prf₁)) (some (b₂, prf₂)) :=
-  if b₁ ≥ b₂ then some (b₁, prf₁) else some (b₂, prf₂)
+meta def combine_lower_bounds : option expr → option expr → tactic (option expr)
+| none none := return $ none
+| (some prf) none := return $ some prf
+| none (some prf) := return $ some prf
+| (some prf₁) (some prf₂) :=
+  do prf ← to_expr ``(max_le %%prf₁ %%prf₂),
+  return $ some prf
 
 /-- Inspect a given expression, using it to update a set of upper and lower bounds on `n`. -/
-meta def update_bounds (n : expr) (bounds : option (ℚ × expr) × option (ℚ × expr)) (e : expr) :
-  tactic (option (ℚ × expr) × option (ℚ × expr)) :=
+meta def update_bounds (n : expr) (bounds : option expr × option (ℚ × expr)) (e : expr) :
+  tactic (option expr × option (ℚ × expr)) :=
 do nlb ← try_core $ gives_lower_bound n e,
    nub ← try_core $ gives_upper_bound n e,
-   return (combine_lower_bounds bounds.1 nlb, combine_upper_bounds bounds.2 nub)
+   clb ← combine_lower_bounds bounds.1 (nlb.map prod.snd),
+   cub ← combine_upper_bounds bounds.2 nub,
+   return (clb, cub)
 
-meta def initial_lower_bound (n : expr) : tactic (ℚ × expr) :=
+meta def initial_lower_bound (n : expr) : tactic expr :=
 do e ← to_expr ``(@lattice.bot_le _ _ %%n),
    t ← infer_type e,
    match t with
    -- This time we use `eval_expr`, because `to_rat` is going to choke on `⊥`.
-   | `(%%b ≤ %%n) := do b ← eval_expr ℕ b, return (b, e)
+   | `(%%b ≤ %%n) := do return e
    | _ := failed
    end
 
@@ -139,7 +142,7 @@ do e ← to_expr ``(@lattice.le_top _ _ %%n),
    end
 
 /-- Inspect the local hypotheses for upper and lower bounds on a variable `n`. -/
-meta def get_bounds (n : expr) : tactic (ℚ × expr × ℚ × expr) :=
+meta def get_bounds (n : expr) : tactic (expr × ℚ × expr) :=
 do
   hl ← try_core (initial_lower_bound n),
   hu ← try_core (initial_upper_bound n),
@@ -148,7 +151,7 @@ do
   match r with
   | (_, none) := fail "No upper bound located."
   | (none, _) := fail "No lower bound located."
-  | (some (lb, lb_prf), some (ub, ub_prf)) := return (lb, lb_prf, ub, ub_prf)
+  | (some lb_prf, some (ub, ub_prf)) := return (lb_prf, ub, ub_prf)
   end
 
 def set_elems {α} [decidable_eq α] (s : set α) [fintype s] : finset α :=
@@ -175,7 +178,7 @@ do [hl, hu] ← [hl, hu].mmap get_local,
 
 meta def interval_cases (n : parse texpr) : tactic unit :=
 do n ← to_expr n,
-   (_, hl, _, hu) ← get_bounds n,
+   (hl, _, hu) ← get_bounds n,
    tactic.interval_cases_using hl hu
 
 end interactive

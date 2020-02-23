@@ -45,7 +45,7 @@ fintype.of_finset (finset.Ico l u) $
   (λ n, by { simp only [mem_Ico, finset.Ico.mem], })
 
 instance Ico_pnat_fintype (l u : ℕ+) : fintype (Ico l u) :=
-fintype_of_finset (pnat.Ico l u) $
+fintype.of_finset (pnat.Ico l u) $
   (λ n, by { simp only [mem_Ico, pnat.Ico.mem], })
 
 instance Ico_ℤ_fintype (l u : ℤ) : fintype (Ico l u) :=

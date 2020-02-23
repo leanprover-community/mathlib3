@@ -79,7 +79,7 @@ lemma union_null (m : outer_measure α) {s₁ s₂ : set α}
   (h₁ : m s₁ = 0) (h₂ : m s₂ = 0) : m (s₁ ∪ s₂) = 0 :=
 by simpa [h₁, h₂] using m.union s₁ s₂
 
-@[extensionality] lemma ext : ∀{μ₁ μ₂ : outer_measure α},
+@[ext] lemma ext : ∀{μ₁ μ₂ : outer_measure α},
   (∀s, μ₁ s = μ₂ s) → μ₁ = μ₂
 | ⟨m₁, e₁, _, u₁⟩ ⟨m₂, e₂, _, u₂⟩ h := by congr; exact funext h
 
@@ -107,7 +107,7 @@ instance : has_add (outer_measure α) :=
 @[simp] theorem add_apply (m₁ m₂ : outer_measure α) (s : set α) :
   (m₁ + m₂) s = m₁ s + m₂ s := rfl
 
-instance : add_comm_monoid (outer_measure α) :=
+instance add_comm_monoid : add_comm_monoid (outer_measure α) :=
 { zero      := 0,
   add       := (+),
   add_comm  := assume a b, ext $ assume s, add_comm _ _,
@@ -253,8 +253,8 @@ theorem smul_dirac_apply (a : ennreal) (b : α) (s : set α) :
   (a • dirac b) s = ⨆ h : b ∈ s, a :=
 by by_cases b ∈ s; simp [h]
 
-theorem top_apply {s : set α} (h : s ≠ ∅) : (⊤ : outer_measure α) s = ⊤ :=
-let ⟨a, as⟩ := set.exists_mem_of_ne_empty h in
+theorem top_apply {s : set α} (h : s.nonempty) : (⊤ : outer_measure α) s = ⊤ :=
+let ⟨a, as⟩ := h in
 top_unique $ le_supr_of_le ⟨(⊤ : ennreal) • dirac a, trivial⟩ $
 by simp [smul_dirac_apply, as]
 
@@ -346,7 +346,7 @@ end
 
 private lemma measure_inter_union (h : s₁ ∩ s₂ ⊆ ∅) (h₁ : C s₁) {t : set α} :
   m (t ∩ (s₁ ∪ s₂)) = m (t ∩ s₁) + m (t ∩ s₂) :=
-by rw [h₁, set.inter_assoc, union_inter_cancel_left,
+by rw [h₁, set.inter_assoc, set.union_inter_cancel_left,
   inter_diff_assoc, union_diff_cancel_left h]
 
 private lemma C_Union_lt {s : ℕ → set α} : ∀{n:ℕ}, (∀i<n, C (s i)) → C (⋃i<n, s i)
@@ -443,7 +443,8 @@ top_unique $ λ s _ t, (add_zero _).symm
 
 theorem top_caratheodory : (⊤ : outer_measure α).caratheodory = ⊤ :=
 top_unique $ assume s hs, (is_caratheodory_le _).2 $ assume t,
-  by by_cases ht : t = ∅; simp [ht, top_apply]
+  t.eq_empty_or_nonempty.elim (λ ht, by simp [ht])
+    (λ ht, by simp only [ht, top_apply, le_top])
 
 theorem le_add_caratheodory (m₁ m₂ : outer_measure α) :
   m₁.caratheodory ⊓ m₂.caratheodory ≤ (m₁ + m₂ : outer_measure α).caratheodory :=
@@ -467,19 +468,19 @@ end
 section Inf_gen
 
 def Inf_gen (m : set (outer_measure α)) (s : set α) : ennreal :=
-⨆(h : s ≠ ∅), ⨅ (μ : outer_measure α) (h : μ ∈ m), μ s
+⨆(h : s.nonempty), ⨅ (μ : outer_measure α) (h : μ ∈ m), μ s
 
 @[simp] lemma Inf_gen_empty (m : set (outer_measure α)) : Inf_gen m ∅ = 0 :=
-by simp [Inf_gen]
+by simp [Inf_gen, empty_not_nonempty]
 
-lemma Inf_gen_nonempty1 (m : set (outer_measure α)) (t : set α) (h : t ≠ ∅) :
+lemma Inf_gen_nonempty1 (m : set (outer_measure α)) (t : set α) (h : t.nonempty) :
   Inf_gen m t = (⨅ (μ : outer_measure α) (h : μ ∈ m), μ t) :=
 by rw [Inf_gen, supr_pos h]
 
 lemma Inf_gen_nonempty2 (m : set (outer_measure α)) (μ) (h : μ ∈ m) (t) :
   Inf_gen m t = (⨅ (μ : outer_measure α) (h : μ ∈ m), μ t) :=
 begin
-  by_cases ht : t = ∅,
+  cases t.eq_empty_or_nonempty with ht ht,
   { simp [ht],
     refine (bot_unique $ infi_le_of_le μ $ _).symm,
     refine infi_le_of_le h (le_refl ⊥) },
@@ -492,7 +493,7 @@ begin
   refine le_antisymm
     (assume t', le_of_function.2 (assume t, _) _)
     (lattice.le_Inf $ assume μ hμ t, le_trans (outer_measure.of_function_le _ _ _) _);
-    by_cases ht : t = ∅; simp [ht, Inf_gen_nonempty1],
+    cases t.eq_empty_or_nonempty with ht ht; simp [ht, Inf_gen_nonempty1],
   { assume μ hμ, exact (show Inf m ≤ μ, from lattice.Inf_le hμ) t },
   { exact infi_le_of_le μ (infi_le _ hμ) }
 end

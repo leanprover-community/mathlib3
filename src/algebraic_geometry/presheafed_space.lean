@@ -55,7 +55,7 @@ structure hom (X Y : PresheafedSpace.{v} C) :=
 (f : (X : Top.{v}) ⟶ (Y : Top.{v}))
 (c : Y.𝒪 ⟶ f _* X.𝒪)
 
-@[extensionality] lemma ext {X Y : PresheafedSpace.{v} C} (α β : hom X Y)
+@[ext] lemma ext {X Y : PresheafedSpace.{v} C} (α β : hom X Y)
   (w : α.f = β.f) (h : α.c ≫ (whisker_right (nat_trans.op (opens.map_iso _ _ w).inv) X.𝒪) = β.c) :
   α = β :=
 begin
@@ -90,7 +90,7 @@ instance category_of_PresheafedSpaces : category (PresheafedSpace.{v} C) :=
   begin
     ext1, swap,
     { dsimp, simp only [id_comp] },
-    { ext1 U,
+    { ext U,
       op_induction,
       cases U,
       dsimp,
@@ -100,7 +100,7 @@ instance category_of_PresheafedSpaces : category (PresheafedSpace.{v} C) :=
   begin
     ext1, swap,
     { dsimp, simp only [comp_id] },
-    { ext1 U,
+    { ext U,
       op_induction,
       cases U,
       dsimp,
@@ -178,7 +178,7 @@ def map_presheaf (F : C ⥤ D) : PresheafedSpace.{v} C ⥤ PresheafedSpace.{v} D
   begin
     ext1, swap,
     { refl },
-    { ext1,
+    { ext,
       dsimp,
       simp only [presheaf.pushforward, eq_to_hom_map, map_id, comp_id, id_c_app],
       refl }
@@ -214,7 +214,7 @@ def on_presheaf {F G : C ⥤ D} (α : F ⟶ G) : G.map_presheaf ⟶ F.map_preshe
   begin
     ext1, swap,
     { refl },
-    { ext1 U,
+    { ext U,
       op_induction,
       cases U,
       dsimp,

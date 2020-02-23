@@ -4,7 +4,9 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Simon Hudon, Scott Morrison
 -/
 
-import tactic.interactive tactic.finish tactic.ext tactic.lift tactic.apply tactic.reassoc_axiom
+import tactic.interactive tactic.finish tactic.ext tactic.lift tactic.apply
+       tactic.reassoc_axiom tactic.tfae tactic.elide tactic.ring_exp
+       tactic.clear tactic.simp_rw
 
 example (m n p q : nat) (h : m + n = p) : true :=
 begin
@@ -129,57 +131,85 @@ end
 
 end h_generalize
 
--- section tfae
+section tfae
 
--- example (p q r s : Prop)
---   (h₀ : p ↔ q)
---   (h₁ : q ↔ r)
---   (h₂ : r ↔ s) :
---   p ↔ s :=
--- begin
---   scc,
--- end
+example (p q r s : Prop)
+  (h₀ : p ↔ q)
+  (h₁ : q ↔ r)
+  (h₂ : r ↔ s) :
+  p ↔ s :=
+begin
+  scc,
+end
 
--- example (p' p q r r' s s' : Prop)
---   (h₀ : p' → p)
---   (h₀ : p → q)
---   (h₁ : q → r)
---   (h₁ : r' → r)
---   (h₂ : r ↔ s)
---   (h₂ : s → p)
---   (h₂ : s → s') :
---   p ↔ s :=
--- begin
---   scc,
--- end
+example (p' p q r r' s s' : Prop)
+  (h₀ : p' → p)
+  (h₀ : p → q)
+  (h₁ : q → r)
+  (h₁ : r' → r)
+  (h₂ : r ↔ s)
+  (h₂ : s → p)
+  (h₂ : s → s') :
+  p ↔ s :=
+begin
+  scc,
+end
 
--- example (p' p q r r' s s' : Prop)
---   (h₀ : p' → p)
---   (h₀ : p → q)
---   (h₁ : q → r)
---   (h₁ : r' → r)
---   (h₂ : r ↔ s)
---   (h₂ : s → p)
---   (h₂ : s → s') :
---   p ↔ s :=
--- begin
---   scc',
---   assumption
--- end
+example (p' p q r r' s s' : Prop)
+  (h₀ : p' → p)
+  (h₀ : p → q)
+  (h₁ : q → r)
+  (h₁ : r' → r)
+  (h₂ : r ↔ s)
+  (h₂ : s → p)
+  (h₂ : s → s') :
+  p ↔ s :=
+begin
+  scc',
+  assumption
+end
 
--- example : tfae [true, ∀ n : ℕ, 0 ≤ n * n, true, true] := begin
---   tfae_have : 3 → 1, { intro h, constructor },
---   tfae_have : 2 → 3, { intro h, constructor },
---   tfae_have : 2 ← 1, { intros h n, apply nat.zero_le },
---   tfae_have : 4 ↔ 2, { tauto },
---   tfae_finish,
--- end
+example : tfae [true, ∀ n : ℕ, 0 ≤ n * n, true, true] := begin
+  tfae_have : 3 → 1, { intro h, constructor },
+  tfae_have : 2 → 3, { intro h, constructor },
+  tfae_have : 2 ← 1, { intros h n, apply nat.zero_le },
+  tfae_have : 4 ↔ 2, { tauto },
+  tfae_finish,
+end
 
--- example : tfae [] := begin
---   tfae_finish,
--- end
+example : tfae [] := begin
+  tfae_finish,
+end
 
--- end tfae
+variables P Q R : Prop
+
+example : tfae [P, Q, R] :=
+begin
+  have : P → Q := sorry, have : Q → R := sorry, have : R → P := sorry,
+  --have : R → Q := sorry, -- uncommenting this makes the proof fail
+  tfae_finish
+end
+
+example : tfae [P, Q, R] :=
+begin
+  have : P → Q := sorry, have : Q → R := sorry, have : R → P := sorry,
+  have : R → Q := sorry, -- uncommenting this makes the proof fail
+  tfae_finish
+end
+
+example : tfae [P, Q, R] :=
+begin
+  have : P ↔ Q := sorry, have : Q ↔ R := sorry,
+  tfae_finish -- the success or failure of this tactic is nondeterministic!
+end
+
+example (p : unit → Prop) : tfae [p (), p ()] :=
+begin
+  tfae_have : 1 ↔ 2, from iff.rfl,
+  tfae_finish
+end
+
+end tfae
 
 section clear_aux_decl
 
@@ -256,6 +286,15 @@ begin
   all_goals { admit }
 end
 
+-- test lift of functions
+example (α : Type*) (f : α → ℤ) (hf : ∀ a, 0 ≤ f a) (hf' : ∀ a, f a < 1) (a : α) : 0 ≤ 2 * f a :=
+begin
+  lift f to α → ℕ using hf,
+    guard_target ((0:ℤ) ≤ 2 * (λ i : α, (f i : ℤ)) a),
+    guard_hyp hf' := ∀ a, ((λ i : α, (f i:ℤ)) a) < 1,
+  trivial
+end
+
 instance can_lift_unit : can_lift unit unit :=
 ⟨id, λ x, true, λ x _, ⟨x, rfl⟩⟩
 
@@ -270,6 +309,13 @@ begin
   success_if_fail_with_msg {lift (n : option ℤ) to ℕ}
     "Failed to find a lift from option ℤ to ℕ. Provide an instance of\n  can_lift (option ℤ) ℕ",
   trivial
+end
+
+example (n : ℤ) : ℕ :=
+begin
+  success_if_fail_with_msg {lift n to ℕ}
+    "lift tactic failed. Tactic is only applicable when the target is a proposition.",
+  exact 0
 end
 
 end lift
@@ -313,15 +359,15 @@ end category_theory
 section is_eta_expansion
 /- test the is_eta_expansion tactic -/
 open function tactic
-structure equiv (α : Sort*) (β : Sort*) :=
+structure my_equiv (α : Sort*) (β : Sort*) :=
 (to_fun    : α → β)
 (inv_fun   : β → α)
 (left_inv  : left_inverse inv_fun to_fun)
 (right_inv : right_inverse inv_fun to_fun)
 
-infix ` ≃ `:25 := equiv
+infix ` my≃ `:25 := my_equiv
 
-protected def my_rfl {α} : α ≃ α :=
+protected def my_rfl {α} : α my≃ α :=
 ⟨id, λ x, x, λ x, rfl, λ x, rfl⟩
 
 def eta_expansion_test : ℕ × ℕ := ((1,0).1,(1,0).2)
@@ -330,12 +376,12 @@ run_cmd do e ← get_env, x ← e.get `eta_expansion_test,
   let nms := [`prod.fst, `prod.snd],
   guard $ expr.is_eta_expansion_test (nms.zip v) = some `((1, 0))
 
-def eta_expansion_test2 : ℕ ≃ ℕ :=
+def eta_expansion_test2 : ℕ my≃ ℕ :=
 ⟨my_rfl.to_fun, my_rfl.inv_fun, λ x, rfl, λ x, rfl⟩
 
 run_cmd do e ← get_env, x ← e.get `eta_expansion_test2,
   let v := (x.value.get_app_args).drop 2,
-  projs ← e.get_projections `equiv,
+  projs ← e.structure_fields_full `my_equiv,
   b ← expr.is_eta_expansion_aux x.value (projs.zip v),
   guard $ b = some `(@my_rfl ℕ)
 
@@ -358,3 +404,129 @@ run_cmd do e ← get_env,
 
 
 end is_eta_expansion
+
+section elide
+
+variables {x y z w : ℕ}
+variables (h  : x + y + z ≤ w)
+          (h' : x ≤ y + z + w)
+include h h'
+
+example : x + y + z ≤ w :=
+begin
+  elide 0 at h,
+  elide 2 at h',
+  guard_hyp h := @hidden _ (x + y + z ≤ w),
+  guard_hyp h' := x ≤ @has_add.add (@hidden Type nat) (@hidden (has_add nat) nat.has_add)
+                                   (@hidden ℕ (y + z)) (@hidden ℕ w),
+  unelide at h,
+  unelide at h',
+  guard_hyp h' := x ≤ y + z + w,
+  exact h, -- there was a universe problem in `elide`. `exact h` lets the kernel check
+           -- the consistency of the universes
+end
+
+end elide
+
+section struct_eq
+
+@[ext]
+structure foo (α : Type*) :=
+(x y : ℕ)
+(z : {z // z < x})
+(k : α)
+(h : x < y)
+
+example {α : Type*} : Π (x y : foo α), x.x = y.x → x.y = y.y → x.z == y.z → x.k = y.k → x = y :=
+foo.ext
+
+example {α : Type*} : Π (x y : foo α), x = y ↔ x.x = y.x ∧ x.y = y.y ∧ x.z == y.z ∧ x.k = y.k :=
+foo.ext_iff
+
+example {α} (x y : foo α) (h : x = y) : y = x :=
+begin
+  ext,
+  { guard_target' y.x = x.x, rw h },
+  { guard_target' y.y = x.y, rw h },
+  { guard_target' y.z == x.z, rw h },
+  { guard_target' y.k = x.k, rw h },
+end
+
+end struct_eq
+
+section ring_exp
+  example (a b : ℤ) (n : ℕ) : (a + b)^(n + 2) = (a^2 + 2 * a * b + b^2) * (a + b)^n := by ring_exp
+end ring_exp
+
+section clear'
+
+example {α} {β : α → Type} (a : α) (b : β a) : unit :=
+begin
+  success_if_fail { clear a b }, -- fails since `b` depends on `a`
+  success_if_fail { clear' a },  -- fails since `b` depends on `a`
+  clear' a b,
+  guard_hyp_nums 2,
+  exact ()
+end
+
+example {α} {β : α → Type} (a : α) : β a → unit :=
+begin
+  success_if_fail { clear' a }, -- fails since the target depends on `a`
+  exact λ _, ()
+end
+
+end clear'
+
+section clear_dependent
+
+example {α} {β : α → Type} (a : α) (b : β a) : unit :=
+begin
+  success_if_fail { clear' a }, -- fails since `b` depends on `a`
+  clear_dependent a,
+  guard_hyp_nums 2,
+  exact ()
+end
+
+example {α} {β : α → Type} (a : α) : β a → unit :=
+begin
+  success_if_fail { clear_dependent a }, -- fails since the target depends on `a`
+  exact λ _, ()
+end
+
+end clear_dependent
+
+section simp_rw
+  example {α β : Type} {f : α → β} {t : set β} :
+    (∀ s, f '' s ⊆ t) = ∀ s : set α, ∀ x ∈ s, x ∈ f ⁻¹' t :=
+  by simp_rw [set.image_subset_iff, set.subset_def]
+end simp_rw
+
+section rename'
+
+example {α β} (a : α) (b : β) : unit :=
+begin
+  rename' a a',              -- rename-compatible syntax
+  guard_hyp a' := α,
+
+  rename' a' → a,            -- more suggestive syntax
+  guard_hyp a := α,
+
+  rename' [a a', b b'],      -- parallel renaming
+  guard_hyp a' := α,
+  guard_hyp b' := β,
+
+  rename' [a' → a, b' → b],  -- ditto with alternative syntax
+  guard_hyp a := α,
+  guard_hyp b := β,
+
+  rename' [a → b, b → a],    -- renaming really is parallel
+  guard_hyp a := β,
+  guard_hyp b := α,
+
+  rename' b a,               -- shadowing is allowed (but guard_hyp doesn't like it)
+
+  success_if_fail { rename' d e }, -- cannot rename nonexistent hypothesis
+  exact ()
+end
+
+end rename'

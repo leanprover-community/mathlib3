@@ -359,6 +359,8 @@ open associated
 protected def mk {α : Type*} [monoid α] (a : α) : associates α :=
 ⟦ a ⟧
 
+instance [monoid α] : inhabited (associates α) := ⟨⟦1⟧⟩
+
 theorem mk_eq_mk_iff_associated [monoid α] {a b : α} :
   associates.mk a = associates.mk b ↔ a ~ᵤ b :=
 iff.intro quotient.exact quot.sound
@@ -598,7 +600,7 @@ multiset.induction_on s (by simp; exact zero_ne_one.symm) $
 theorem irreducible_mk_iff (a : α) : irreducible (associates.mk a) ↔ irreducible a :=
 begin
   simp [irreducible, is_unit_mk],
-  apply and_congr (iff.refl _),
+  apply and_congr iff.rfl,
   split,
   { assume h x y eq,
     have : is_unit (associates.mk x) ∨ is_unit (associates.mk y),

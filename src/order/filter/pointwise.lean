@@ -5,7 +5,7 @@ Authors: Zhouhang Zhou
 
 The pointwise operations on filters have nice properties, such as
   • map m (f₁ * f₂) = map m f₁ * map m f₂
-  • nhds x * nhds y = nhds (x * y)
+  • 𝓝 x * 𝓝 y = 𝓝 (x * y)
 
 -/
 
@@ -40,8 +40,8 @@ def pointwise_mul [monoid α] : has_mul (filter α) := ⟨λf g,
 { sets             := { s | ∃t₁∈f, ∃t₂∈g, t₁ * t₂  ⊆ s },
   univ_sets        :=
   begin
-    have h₁ : (∃x, x ∈ f.sets) := ⟨univ, univ_sets f⟩,
-    have h₂ : (∃x, x ∈ g.sets) := ⟨univ, univ_sets g⟩,
+    have h₁ : (∃x, x ∈ f) := ⟨univ, univ_sets f⟩,
+    have h₂ : (∃x, x ∈ g) := ⟨univ, univ_sets g⟩,
     simpa using and.intro h₁ h₂
   end,
   sets_of_superset := λx y hx hxy,
@@ -75,10 +75,9 @@ lemma pointwise_mul_le_mul [monoid α] {f₁ f₂ g₁ g₂ : filter α} (hf : f
 @[to_additive]
 lemma pointwise_mul_ne_bot [monoid α] {f g : filter α} : f ≠ ⊥ → g ≠ ⊥ → f * g ≠ ⊥ :=
 begin
-  simp only [forall_sets_neq_empty_iff_neq_bot.symm],
+  simp only [forall_sets_nonempty_iff_ne_bot.symm],
   rintros hf hg s ⟨a, ha, b, hb, ab⟩,
-  rcases ne_empty_iff_exists_mem.1 (pointwise_mul_ne_empty (hf a ha) (hg b hb)) with ⟨x, hx⟩,
-  exact ne_empty_iff_exists_mem.2 ⟨x, ab hx⟩
+  exact ((hf a ha).pointwise_mul (hg b hb)).mono ab
 end
 
 @[to_additive]
@@ -193,7 +192,7 @@ end
 variables {m}
 
 @[to_additive]
-lemma tendsto_mul_mul [is_mul_hom m] {f₁ g₁ : filter α} {f₂ g₂ : filter β} :
+lemma tendsto.mul_mul [is_mul_hom m] {f₁ g₁ : filter α} {f₂ g₂ : filter β} :
   tendsto m f₁ f₂ → tendsto m g₁ g₂ → tendsto m (f₁ * g₁) (f₂ * g₂) :=
 assume hf hg, by { rw [tendsto, map_pointwise_mul m], exact pointwise_mul_le_mul hf hg }
 

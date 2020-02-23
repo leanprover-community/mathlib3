@@ -163,17 +163,17 @@ include 𝒟
 section
 variables {F G : C ⥤ D}
 
-protected definition op (α : F ⟶ G) : G.op ⟶ F.op :=
+@[simps] protected definition op (α : F ⟶ G) : G.op ⟶ F.op :=
 { app         := λ X, (α.app (unop X)).op,
   naturality' := begin tidy, erw α.naturality, refl, end }
 
-@[simp] lemma op_app (α : F ⟶ G) (X) : (nat_trans.op α).app X = (α.app (unop X)).op := rfl
+@[simp] lemma op_id (F : C ⥤ D) : nat_trans.op (𝟙 F) = 𝟙 (F.op) := rfl
 
-protected definition unop (α : F.op ⟶ G.op) : G ⟶ F :=
+@[simps] protected definition unop (α : F.op ⟶ G.op) : G ⟶ F :=
 { app         := λ X, (α.app (op X)).unop,
   naturality' := begin tidy, erw α.naturality, refl, end }
 
-@[simp] lemma unop_app (α : F.op ⟶ G.op) (X) : (nat_trans.unop α).app X = (α.app (op X)).unop := rfl
+@[simp] lemma unop_id (F : C ⥤ D) : nat_trans.unop (𝟙 F.op) = 𝟙 F := rfl
 
 end
 

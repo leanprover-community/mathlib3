@@ -26,6 +26,9 @@ have ∀ m, 2 * to_nat m = to_nat (2 * m),
 theorem even_iff {n : int} : even n ↔ n % 2 = 0 :=
 ⟨λ ⟨m, hm⟩, by simp [hm], λ h, ⟨n / 2, (mod_add_div n 2).symm.trans (by simp [h])⟩⟩
 
+lemma not_even_iff {n : ℤ} : ¬ even n ↔ n % 2 = 1 :=
+by rw [even_iff, mod_two_ne_zero]
+
 instance : decidable_pred even :=
 λ n, decidable_of_decidable_of_iff (by apply_instance) even_iff.symm
 
@@ -47,14 +50,13 @@ begin
   exact @modeq.modeq_add _ _ 1 _ 1 h₁ h₂
 end
 
+@[parity_simps] theorem even_neg {n : ℤ} : even (-n) ↔ even n := by simp [even]
+
 @[simp] theorem not_even_bit1 (n : int) : ¬ even (bit1 n) :=
 by simp [bit1] with parity_simps
 
 @[parity_simps] theorem even_sub {m n : int} : even (m - n) ↔ (even m ↔ even n) :=
-begin
-  conv { to_rhs, rw [←sub_add_cancel m n, even_add] },
-  by_cases h : even n; simp [h]
-end
+by simp with parity_simps
 
 @[parity_simps] theorem even_mul {m n : int} : even (m * n) ↔ even m ∨ even n :=
 begin

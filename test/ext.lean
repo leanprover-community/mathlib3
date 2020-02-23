@@ -9,7 +9,7 @@ import tactic.ext
 import tactic.solve_by_elim
 import data.set.basic data.stream.basic
 
-@[extensionality] lemma unit.ext (x y : unit) : x = y :=
+@[ext] lemma unit.ext (x y : unit) : x = y :=
 begin
   cases x, cases y, refl
 end
@@ -151,7 +151,7 @@ structure dependent_fields :=
 (a : bool)
 (v : if a then ℕ else ℤ)
 
-@[extensionality] lemma df.ext (s t : dependent_fields) (h : s.a = t.a)
+@[ext] lemma df.ext (s t : dependent_fields) (h : s.a = t.a)
  (w : (@eq.rec _ s.a (λ b, if b then ℕ else ℤ) s.v t.a h) = t.v) : s = t :=
 begin
   cases s, cases t,
@@ -171,3 +171,5 @@ begin
   refl,
   refl,
 end
+
+@[ext] structure dumb (V : Type) := (val : V)

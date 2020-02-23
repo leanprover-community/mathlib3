@@ -88,10 +88,9 @@ begin
   -- The strategy is to show that the exceptional locus in nonempty
   -- by running a descent argument that starts with the given point p = (x,y).
   -- Our assumptions ensure that we can then prove the claim.
-  suffices exc : exceptional ≠ ∅,
+  suffices exc : exceptional.nonempty,
   { -- Suppose that there exists an element in the exceptional locus.
-    rw set.ne_empty_iff_exists_mem at exc,
-    simp [exceptional, -add_comm] at exc,
+    simp [exceptional, -add_comm, set.nonempty] at exc,
     -- Let (a,b) be such an element, and consider all the possible cases.
     rcases exc with ⟨a, b, hH, hb⟩, rcases hb with _|rfl|rfl|hB|hB,
     -- The first three cases are rather easy to solve.
@@ -112,20 +111,20 @@ begin
       solve_by_elim } },
   -- To finish the main proof, we need to show that the exceptional locus is nonempty.
   -- So we assume that the exceptional locus is empty, and work towards dering a contradiction.
+  rw ← set.ne_empty_iff_nonempty,
   assume exceptional_empty,
   -- Observe that S is nonempty.
-  have S_ne_empty : S ≠ ∅,
-  { rw set.ne_empty_iff_exists_mem,
-    -- It contains the image of p.
+  have S_nonempty : S.nonempty,
+  { -- It contains the image of p.
     use p.2,
     apply set.mem_image_of_mem,
     -- After all, we assumed that the exceptional locus is empty.
     rwa [exceptional_empty, set.diff_empty], },
   -- We are now set for an infinite descent argument.
   -- Let m be the smallest element of the nonempty set S.
-  let  m     : ℕ                := well_founded.min     nat.lt_wf S S_ne_empty,
-  have m_mem : m ∈ S            := well_founded.min_mem nat.lt_wf S S_ne_empty,
-  have m_min : ∀ k ∈ S, ¬ k < m := λ k hk, well_founded.not_lt_min nat.lt_wf S S_ne_empty hk,
+  let  m     : ℕ                := well_founded.min     nat.lt_wf S S_nonempty,
+  have m_mem : m ∈ S            := well_founded.min_mem nat.lt_wf S S_nonempty,
+  have m_min : ∀ k ∈ S, ¬ k < m := λ k hk, well_founded.not_lt_min nat.lt_wf S S_nonempty hk,
   -- It suffices to show that there is point (a,b) with b ∈ S and b < m.
   suffices hp' : ∃ p' : ℕ × ℕ, p'.2 ∈ S ∧ p'.2 < m,
   { rcases hp' with ⟨p', p'_mem, p'_small⟩, solve_by_elim },

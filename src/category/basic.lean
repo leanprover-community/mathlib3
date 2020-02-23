@@ -15,6 +15,7 @@ section functor
 variables {f : Type u → Type v} [functor f] [is_lawful_functor f]
 
 run_cmd mk_simp_attr `functor_norm
+run_cmd tactic.add_doc_string `simp_attr.functor_norm "Simp set for functor_norm"
 
 @[functor_norm] protected theorem map_map (m : α → β) (g : β → γ) (x : f α) :
   g <$> (m <$> x) = (g ∘ m) <$> x :=
@@ -189,8 +190,11 @@ instance : is_lawful_monad (sum.{v u} e) :=
 
 end sum
 
+section prio
+set_option default_priority 100 -- see Note [default priority]
 class is_comm_applicative (m : Type* → Type*) [applicative m] extends is_lawful_applicative m : Prop :=
 (commutative_prod : ∀{α β} (a : m α) (b : m β), prod.mk <$> a <*> b = (λb a, (a, b)) <$> b <*> a)
+end prio
 
 lemma is_comm_applicative.commutative_map
   {m : Type* → Type*} [applicative m] [is_comm_applicative m]

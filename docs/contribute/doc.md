@@ -12,7 +12,8 @@ Each mathlib file should start with:
 
 (See the example below.)
 
-Headers use atx-style headers (with hash signs, no underlying dash).
+Headers use atx-style headers (with hash signs, no underlying dash). 
+The open and close delimiters `/-!` and `-/` should appear on their own lines.
 
 The mandatory title of the file is a first level header. It is followed by a summary of the content
 of the file.
@@ -115,6 +116,57 @@ else 0
 
 The `#doc_blame` command can be run at the bottom of a file to list all definitions that do not have
 doc strings. `#doc_blame!` will also list theorems and lemmas.
+
+## Sectioning comments
+
+It is common to structure a file in sections, where each section contains related declarations.
+By describing the sections with module documentation `/-! ... -/` at the beginning,
+these sections can be seen in the documentation.
+
+While these sectioning comments will often correspond to `section` or `namespace` commands,
+this is not required. You can use sectioning comments inside of a section or namespace, and you can
+have multiple sections or namespaces following one sectioning comment.
+
+Sectioning comments are for display and readability only. They have no semantic meaning.
+
+Third-level headers `###` should be used for titles inside sectioning comments.
+
+If the comment is more than one line long, the delimiters `/-!` and `-/` should appear on their own lines.
+
+See [meta/expr.lean](../../src/meta/expr.lean) for an example in practice.
+
+```lean
+namespace binder_info
+
+/-!
+### Declarations about `binder_info`
+
+This section develops an extended API for the type `binder_info`.
+-/
+
+instance : inhabited binder_info := ⟨ binder_info.default ⟩
+
+/-- The brackets corresponding to a given binder_info. -/
+def brackets : binder_info → string × string
+| binder_info.implicit        := ("{", "}")
+| binder_info.strict_implicit := ("{{", "}}")
+| binder_info.inst_implicit   := ("[", "]")
+| _                           := ("(", ")")
+
+end binder_info
+
+namespace name
+
+/-! ### Declarations about `name` -/
+
+/-- Find the largest prefix `n` of a `name` such that `f n ≠ none`, then replace this prefix
+with the value of `f n`. -/
+def map_prefix (f : name → option name) : name → name
+| anonymous := anonymous
+| (mk_string s n') := (f (mk_string s n')).get_or_else (mk_string s $ map_prefix n')
+| (mk_numeral d n') := (f (mk_numeral d n')).get_or_else (mk_numeral d $ map_prefix n')
+
+```
 
 ## Theories documentation
 

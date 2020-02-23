@@ -294,7 +294,7 @@ def collapse_F [is_well_order β s] (f : r ≼o s) : Π a, {b // ¬ s (f a) b} :
   have : f a ∈ S, from λ a' h, ((trichotomous _ _)
     .resolve_left $ λ h', (IH a' h).2 $ trans (f.ord'.1 h) h')
     .resolve_left $ λ h', (IH a' h).2 $ h' ▸ f.ord'.1 h,
-  exact ⟨(is_well_order.wf s).min S (set.ne_empty_of_mem this),
+  exact ⟨(is_well_order.wf s).min S ⟨_, this⟩,
    (is_well_order.wf s).not_lt_min _ _ this⟩
 end
 
@@ -320,7 +320,7 @@ by haveI := order_embedding.is_well_order f; exact
   (λ a, (collapse_F f a).1) (λ a b, collapse_F.lt f),
 λ a b, acc.rec_on ((is_well_order.wf s).apply b) (λ b H IH a h, begin
   let S := {a | ¬ s (collapse_F f a).1 b},
-  have : S ≠ ∅ := set.ne_empty_of_mem (asymm h),
+  have : S.nonempty := ⟨_, asymm h⟩,
   existsi (is_well_order.wf r).min S this,
   refine ((@trichotomous _ s _ _ _).resolve_left _).resolve_right _,
   { exact (is_well_order.wf r).min_mem S this },
@@ -362,6 +362,12 @@ structure Well_order : Type (u+1) :=
 (wo : is_well_order α r)
 
 attribute [instance] Well_order.wo
+
+namespace Well_order
+
+instance : inhabited Well_order := ⟨⟨pempty, _, empty_relation.is_well_order⟩⟩
+
+end Well_order
 
 instance ordinal.is_equivalent : setoid Well_order :=
 { r     := λ ⟨α, r, wo⟩ ⟨β, s, wo'⟩, nonempty (r ≃o s),
@@ -602,6 +608,8 @@ induction_on o₁ $ λ α r _, induction_on o₂ $ λ β s _ ⟨⟨⟨f, _⟩, _
 
 instance : has_zero ordinal :=
 ⟨⟦⟨pempty, empty_relation, by apply_instance⟩⟧⟩
+
+instance : inhabited ordinal := ⟨0⟩
 
 theorem zero_eq_type_empty : 0 = @type empty empty_relation _ :=
 quotient.sound ⟨⟨empty_equiv_pempty.symm, λ _ _, iff.rfl⟩⟩
@@ -1244,7 +1252,7 @@ def typein.principal_seg {α : Type u} (r : α → α → Prop) [is_well_order �
 
 /-- The minimal element of a nonempty family of ordinals -/
 def min {ι} (I : nonempty ι) (f : ι → ordinal) : ordinal :=
-wf.min (set.range f) (let ⟨i⟩ := I in set.ne_empty_of_mem (set.mem_range_self i))
+wf.min (set.range f) (let ⟨i⟩ := I in ⟨_, set.mem_range_self i⟩)
 
 theorem min_eq {ι} (I) (f : ι → ordinal) : ∃ i, min I f = f i :=
 let ⟨i, e⟩ := wf.min_mem (set.range f) _ in ⟨i, e.symm⟩

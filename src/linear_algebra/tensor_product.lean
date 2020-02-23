@@ -102,7 +102,7 @@ linear_map.comp (llcomp R N P Q g) f
 
 variables (R M)
 def lsmul : R →ₗ M →ₗ M :=
-mk₂ R (•) add_smul (λ _ _ _, eq.symm $ smul_smul _ _ _ _) smul_add
+mk₂ R (•) add_smul (λ _ _ _, mul_smul _ _ _) smul_add
 (λ r s m, by simp only [smul_smul, smul_eq_mul, mul_comm])
 variables {R M}
 
@@ -148,6 +148,8 @@ section module
 local attribute [instance] quotient_add_group.left_rel normal_add_subgroup.to_is_add_subgroup
 
 instance : add_comm_group (M ⊗[R] N) := quotient_add_group.add_comm_group _
+
+instance : inhabited (M ⊗[R] N) := ⟨0⟩
 
 instance quotient.mk.is_add_group_hom :
   is_add_group_hom (quotient.mk : free_abelian_group (M × N) → M ⊗ N) :=
@@ -362,15 +364,26 @@ def curry (f : M ⊗ N →ₗ P) : M →ₗ N →ₗ P := lcurry R M N P f
 end UMP
 
 variables {M N}
+/--
+The base ring is a left identity for the tensor product of modules, up to linear equivalence.
+-/
 protected def lid : R ⊗ M ≃ₗ M :=
 linear_equiv.of_linear (lift $ linear_map.lsmul R M) (mk R R M 1)
   (linear_map.ext $ λ _, by simp)
   (ext $ λ r m, by simp; rw [← tmul_smul, ← smul_tmul, smul_eq_mul, mul_one])
 
+/--
+The tensor product of modules is commutative, up to linear equivalence.
+-/
 protected def comm : M ⊗ N ≃ₗ N ⊗ M :=
 linear_equiv.of_linear (lift (mk R N M).flip) (lift (mk R M N).flip)
   (ext $ λ m n, rfl)
   (ext $ λ m n, rfl)
+
+/--
+The base ring is a right identity for the tensor product of modules, up to linear equivalence.
+-/
+protected def rid : M ⊗ R ≃ₗ M := linear_equiv.trans tensor_product.comm tensor_product.lid
 
 open linear_map
 protected def assoc : (M ⊗[R] N) ⊗[R] P ≃ₗ[R] M ⊗[R] (N ⊗[R] P) :=

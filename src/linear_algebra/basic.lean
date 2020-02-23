@@ -24,8 +24,8 @@ Many of the relevant definitions, including `module`, `submodule`, and `linear_m
   that is, elements of `M` are identified if their difference is in `p`. This is itself a module.
 * The kernel `ker` and range `range` of a linear map are submodules of the domain and codomain
   respectively.
-* `lin_equiv M M₂`, the type of linear equivalences between `M` and `M₂`, is a structure that extends
-  `linear_map` and `equiv`.
+* `linear_equiv M M₂`, the type of linear equivalences between `M` and `M₂`, is a structure that
+  extends `linear_map` and `equiv`.
 * The general linear group is defined to be the group of invertible linear maps from `M` to itself.
 
 ## Main statements
@@ -37,8 +37,8 @@ Many of the relevant definitions, including `module`, `submodule`, and `linear_m
 
 * We continue to use the notation `M →ₗ[R] M₂` for the type of linear maps from `M` to `M₂` over the
   ring `R`.
-* We introduce the notations `M ≃ₗ M₂` and `M ≃ₗ[R] M₂` for `lin_equiv M M₂`. In the first, the ring
-  `R` is implicit.
+* We introduce the notations `M ≃ₗ M₂` and `M ≃ₗ[R] M₂` for `linear_equiv M M₂`. In the first, the
+  ring `R` is implicit.
 
 ## Implementation notes
 
@@ -59,16 +59,6 @@ universes u v w x y z u' v' w' y'
 variables {R : Type u} {K : Type u'} {M : Type v} {V : Type v'} {M₂ : Type w} {V₂ : Type w'}
 variables {M₃ : Type y} {V₃ : Type y'} {M₄ : Type z} {ι : Type x}
 
-namespace finset
-
-lemma smul_sum {α : Type u} {M : Type v} {R : Type w}
-  [ring R] [add_comm_group M] [module R M]
-  {s : finset α} {a : R} {f : α → M} :
-  a • (s.sum f) = s.sum (λc, a • f c) :=
-(finset.sum_hom ((•) a)).symm
-
-end finset
-
 namespace finsupp
 
 lemma smul_sum {α : Type u} {β : Type v} {R : Type w} {M : Type y}
@@ -78,6 +68,25 @@ lemma smul_sum {α : Type u} {β : Type v} {R : Type w} {M : Type y}
 finset.smul_sum
 
 end finsupp
+
+section
+open_locale classical
+
+/-- decomposing `x : ι → R` as a sum along the canonical basis -/
+lemma pi_eq_sum_univ {ι : Type u} [fintype ι] {R : Type v} [semiring R] (x : ι → R) :
+  x = finset.sum finset.univ (λi:ι, x i • (λj, if i = j then 1 else 0)) :=
+begin
+  ext k,
+  rw pi.finset_sum_apply,
+  have : finset.sum finset.univ (λ (x_1 : ι), x x_1 * ite (k = x_1) 1 0) = x k,
+    by { have := finset.sum_mul_boole finset.univ x k, rwa if_pos (finset.mem_univ _) at this },
+  rw ← this,
+  apply finset.sum_congr rfl (λl hl, _),
+  simp only [smul_eq_mul, mul_ite, pi.smul_apply],
+  conv_lhs { rw eq_comm }
+end
+
+end
 
 namespace linear_map
 section
@@ -120,6 +129,8 @@ by dsimp [left_inverse, function.right_inverse] at h₁ h₂; exact
 /-- The constant 0 map is linear. -/
 instance : has_zero (M →ₗ[R] M₂) := ⟨⟨λ _, 0, by simp, by simp⟩⟩
 
+instance : inhabited (M →ₗ[R] M₂) := ⟨0⟩
+
 @[simp] lemma zero_apply (x : M) : (0 : M →ₗ[R] M₂) x = 0 := rfl
 
 /-- The negation of a linear map is linear. -/
@@ -144,9 +155,9 @@ instance linear_map_apply_is_add_group_hom (a : M) :
   is_add_group_hom (λ f : M →ₗ[R] M₂, f a) :=
 { map_add := λ f g, linear_map.add_apply f g a }
 
-lemma sum_apply [decidable_eq M₃] (t : finset M₃) (f : M₃ → M →ₗ[R] M₂) (b : M) :
+lemma sum_apply (t : finset ι) (f : ι → M →ₗ[R] M₂) (b : M) :
   t.sum f b = t.sum (λd, f d b) :=
-(@finset.sum_hom _ _ _ t f _ _ (λ g : M →ₗ[R] M₂, g b) _).symm
+(t.sum_hom (λ g : M →ₗ[R] M₂, g b)).symm
 
 @[simp] lemma sub_apply (x : M) : (f - g) x = f x - g x := rfl
 
@@ -176,6 +187,21 @@ include M
 instance endomorphism_ring : ring (M →ₗ[R] M) :=
 by refine {mul := (*), one := 1, ..linear_map.add_comm_group, ..};
   { intros, apply linear_map.ext, simp }
+
+end
+
+section
+open_locale classical
+
+/-- A linear map `f` applied to `x : ι → R` can be computed using the image under `f` of elements
+of the canonical basis. -/
+lemma pi_apply_eq_sum_univ [fintype ι] (f : (ι → R) →ₗ[R] M) (x : ι → R) :
+  f x = finset.sum finset.univ (λi:ι, x i • (f (λj, if i = j then 1 else 0))) :=
+begin
+  conv_lhs { rw [pi_eq_sum_univ x, f.map_sum] },
+  apply finset.sum_congr rfl (λl hl, _),
+  rw f.map_smul
+end
 
 end
 
@@ -289,15 +315,30 @@ open set lattice
 instance : partial_order (submodule R M) :=
 partial_order.lift (coe : submodule R M → set M) (λ a b, ext') (by apply_instance)
 
-lemma le_def {p p' : submodule R M} : p ≤ p' ↔ (p : set M) ⊆ p' := iff.rfl
+variables {p p'}
 
-lemma le_def' {p p' : submodule R M} : p ≤ p' ↔ ∀ x ∈ p, x ∈ p' := iff.rfl
+lemma le_def : p ≤ p' ↔ (p : set M) ⊆ p' := iff.rfl
 
-def of_le {p p' : submodule R M} (h : p ≤ p') : p →ₗ[R] p' :=
+lemma le_def' : p ≤ p' ↔ ∀ x ∈ p, x ∈ p' := iff.rfl
+
+lemma lt_def : p < p' ↔ (p : set M) ⊂ p' := iff.rfl
+
+lemma not_le_iff_exists : ¬ (p ≤ p') ↔ ∃ x ∈ p, x ∉ p' := not_subset
+
+lemma exists_of_lt {p p' : submodule R M} : p < p' → ∃ x ∈ p', x ∉ p := exists_of_ssubset
+
+lemma lt_iff_le_and_exists : p < p' ↔ p ≤ p' ∧ ∃ x ∈ p', x ∉ p :=
+by rw [lt_iff_le_not_le, not_le_iff_exists]
+
+/-- If two submodules p and p' satisfy p ⊆ p', then `of_le p p'` is the linear map version of this
+inclusion. -/
+def of_le (h : p ≤ p') : p →ₗ[R] p' :=
 linear_map.cod_restrict _ p.subtype $ λ ⟨x, hx⟩, h hx
 
-@[simp] theorem of_le_apply {p p' : submodule R M} (h : p ≤ p')
+@[simp] theorem of_le_apply (h : p ≤ p')
   (x : p) : (of_le h x : M) = x := rfl
+
+variables (p p')
 
 lemma subtype_comp_of_le (p q : submodule R M) (h : p ≤ q) :
   (submodule.subtype q).comp (of_le h) = submodule.subtype p :=
@@ -306,6 +347,8 @@ by ext ⟨b, hb⟩; simp
 /-- The set `{0}` is the bottom element of the lattice of submodules. -/
 instance : has_bot (submodule R M) :=
 ⟨by split; try {exact {0}}; simp {contextual := tt}⟩
+
+instance inhabited' : inhabited (submodule R M) := ⟨⊥⟩
 
 @[simp] lemma bot_coe : ((⊥ : submodule R M) : set M) = {0} := rfl
 
@@ -328,7 +371,7 @@ instance : has_top (submodule R M) :=
 @[simp] lemma mem_top : x ∈ (⊤ : submodule R M) := trivial
 
 lemma eq_bot_of_zero_eq_one (zero_eq_one : (0 : R) = 1) : p = ⊥ :=
-by ext x; simp [semimodule.eq_zero_of_zero_eq_one _ x zero_eq_one]
+by ext x; simp [semimodule.eq_zero_of_zero_eq_one x zero_eq_one]
 
 instance : order_top (submodule R M) :=
 { top := ⊤,
@@ -731,6 +774,7 @@ begin
 end
 
 -- TODO(Mario): Factor through add_subgroup
+/-- The equivalence relation associated to a submodule `p`, defined by `x ≈ y` iff `y - x ∈ p`. -/
 def quotient_rel : setoid M :=
 ⟨λ x y, x - y ∈ p, λ x, by simp,
  λ x y h, by simpa using neg_mem _ h,
@@ -741,6 +785,8 @@ def quotient : Type* := quotient (quotient_rel p)
 
 namespace quotient
 
+/-- Map associating to an element of `M` the corresponding element of `M/p`,
+when `p` is a submodule of `M`. -/
 def mk {p : submodule R M} : M → quotient p := quotient.mk'
 
 @[simp] theorem mk_eq_mk {p : submodule R M} (x : M) : (quotient.mk x : quotient p) = mk x := rfl
@@ -750,6 +796,7 @@ def mk {p : submodule R M} : M → quotient p := quotient.mk'
 protected theorem eq {x y : M} : (mk x : quotient p) = mk y ↔ x - y ∈ p := quotient.eq'
 
 instance : has_zero (quotient p) := ⟨mk 0⟩
+instance : inhabited (quotient p) := ⟨0⟩
 
 @[simp] theorem mk_zero : mk 0 = (0 : quotient p) := rfl
 
@@ -783,9 +830,6 @@ instance : module R (quotient p) :=
 module.of_core $ by refine {smul := (•), ..};
   repeat {rintro ⟨⟩ <|> intro}; simp [smul_add, add_smul, smul_smul,
     -mk_add, (mk_add p).symm, -mk_smul, (mk_smul p).symm]
-
-instance {K M} {R:discrete_field K} [add_comm_group M] [vector_space K M]
-  (p : submodule K M) : vector_space K (quotient p) := {}
 
 end quotient
 
@@ -1068,6 +1112,11 @@ by simpa using map_comap_subtype p ⊤
 lemma map_subtype_le (p' : submodule R p) : map p.subtype p' ≤ p :=
 by simpa using (map_mono le_top : map p.subtype p' ≤ p.subtype.range)
 
+/-- Under the canonical linear map from a submodule `p` to the ambient space `M`, the image of the
+maximal submodule of `p` is just `p `. -/
+@[simp] lemma map_subtype_top : map p.subtype (⊤ : submodule R p) = p :=
+by simp
+
 @[simp] theorem ker_of_le (p p' : submodule R M) (h : p ≤ p') : (of_le h).ker = ⊥ :=
 by rw [of_le, ker_cod_restrict, ker_subtype]
 
@@ -1137,12 +1186,13 @@ by rw [range, ← prod_top, prod_map_fst]
 @[simp] theorem range_snd : (snd R M M₂).range = ⊤ :=
 by rw [range, ← prod_top, prod_map_snd]
 
-/-- The map from a module `M` to the quotient of `M` by a submodule `p` is a linear map. -/
+/-- The map from a module `M` to the quotient of `M` by a submodule `p` as a linear map. -/
 def mkq : M →ₗ[R] p.quotient := ⟨quotient.mk, by simp, by simp⟩
 
 @[simp] theorem mkq_apply (x : M) : p.mkq x = quotient.mk x := rfl
 
-/-- The map from the quotient of `M` by a submodule `p` to `M₂` along `f : M → M₂` is linear. -/
+/-- The map from the quotient of `M` by a submodule `p` to `M₂` induced by a linear map `f : M → M₂`
+vanishing on `p`, as a linear map. -/
 def liftq (f : M →ₗ[R] M₂) (h : p ≤ f.ker) : p.quotient →ₗ[R] M₂ :=
 ⟨λ x, _root_.quotient.lift_on' x f $
    λ a b (ab : a - b ∈ p), eq_of_sub_eq_zero $ by simpa using h ab,
@@ -1255,28 +1305,47 @@ instance : has_coe (M ≃ₗ[R] M₂) (M →ₗ[R] M₂) := ⟨to_linear_map⟩
 lemma to_equiv_injective : function.injective (to_equiv : (M ≃ₗ[R] M₂) → M ≃ M₂) :=
 λ ⟨_, _, _, _, _, _⟩ ⟨_, _, _, _, _, _⟩ h, linear_equiv.mk.inj_eq.mpr (equiv.mk.inj h)
 
-@[extensionality] lemma ext {f g : M ≃ₗ[R] M₂} (h : (f : M → M₂) = g) : f = g :=
+@[ext] lemma ext {f g : M ≃ₗ[R] M₂} (h : (f : M → M₂) = g) : f = g :=
 to_equiv_injective (equiv.eq_of_to_fun_eq h)
 
 section
 variable (M)
 
 /-- The identity map is a linear equivalence. -/
-def refl : M ≃ₗ[R] M := { .. linear_map.id, .. equiv.refl M }
+@[refl] def refl : M ≃ₗ[R] M := { .. linear_map.id, .. equiv.refl M }
 end
 
 /-- Linear equivalences are symmetric. -/
-def symm (e : M ≃ₗ[R] M₂) : M₂ ≃ₗ[R] M :=
+@[symm] def symm (e : M ≃ₗ[R] M₂) : M₂ ≃ₗ[R] M :=
 { .. e.to_linear_map.inverse e.inv_fun e.left_inv e.right_inv,
   .. e.to_equiv.symm }
 
 /-- Linear equivalences are transitive. -/
-def trans (e₁ : M ≃ₗ[R] M₂) (e₂ : M₂ ≃ₗ[R] M₃) : M ≃ₗ[R] M₃ :=
+@[trans] def trans (e₁ : M ≃ₗ[R] M₂) (e₂ : M₂ ≃ₗ[R] M₃) : M ≃ₗ[R] M₃ :=
 { .. e₂.to_linear_map.comp e₁.to_linear_map,
   .. e₁.to_equiv.trans e₂.to_equiv }
 
+/-- A linear equivalence is an additive equivalence. -/
+def to_add_equiv (e : M ≃ₗ[R] M₂) : M ≃+ M₂ := { map_add' := e.add, .. e }
+
 @[simp] theorem apply_symm_apply (e : M ≃ₗ[R] M₂) (c : M₂) : e (e.symm c) = c := e.6 c
 @[simp] theorem symm_apply_apply (e : M ≃ₗ[R] M₂) (b : M) : e.symm (e b) = b := e.5 b
+
+@[simp] theorem map_add (e : M ≃ₗ[R] M₂) (a b : M) : e (a + b) = e a + e b := e.add a b
+@[simp] theorem map_zero (e : M ≃ₗ[R] M₂) : e 0 = 0 := e.to_linear_map.map_zero
+@[simp] theorem map_neg (e : M ≃ₗ[R] M₂) (a : M) : e (-a) = -e a := e.to_linear_map.map_neg a
+@[simp] theorem map_sub (e : M ≃ₗ[R] M₂) (a b : M) : e (a - b) = e a - e b :=
+e.to_linear_map.map_sub a b
+@[simp] theorem map_smul (e : M ≃ₗ[R] M₂) (c : R) (x : M) : e (c • x) = c • e x := e.smul c x
+
+@[simp] theorem map_eq_zero_iff (e : M ≃ₗ[R] M₂) {x : M} : e x = 0 ↔ x = 0 :=
+e.to_add_equiv.map_eq_zero_iff
+@[simp] theorem map_ne_zero_iff (e : M ≃ₗ[R] M₂) {x : M} : e x ≠ 0 ↔ x ≠ 0 :=
+e.to_add_equiv.map_ne_zero_iff
+
+@[simp] theorem symm_symm (e : M ≃ₗ[R] M₂) : e.symm.symm = e := by { cases e, refl }
+
+@[simp] theorem symm_symm_apply (e : M ≃ₗ[R] M₂) (x : M) : e.symm.symm x = e x := by { cases e, refl }
 
 /-- A bijective linear map is a linear equivalence. Here, bijectivity is described by saying that
 the kernel of `f` is `{0}` and the range is the universal set. -/
@@ -1421,6 +1490,10 @@ let F : f.ker.quotient →ₗ[R] f.range :=
 
 open submodule
 
+/--
+Canonical linear map from the quotient p/(p ∩ p') to (p+p')/p', mapping x + (p ∩ p') to x + p',
+where p and p' are submodules of an ambient module.
+-/
 def sup_quotient_to_quotient_inf (p p' : submodule R M) :
   (comap p.subtype (p ⊓ p')).quotient →ₗ[R] (comap (p ⊔ p').subtype p').quotient :=
 (comap p.subtype (p ⊓ p')).liftq
@@ -1430,7 +1503,9 @@ exact comap_mono (inf_le_inf le_sup_left (le_refl _)) end
 
 set_option class.instance_max_depth 41
 
-/-- Second Isomorphism Law -/
+/--
+Second Isomorphism Law : the canonical map from p/(p ∩ p') to (p+p')/p' as a linear isomorphism.
+-/
 noncomputable def sup_quotient_equiv_quotient_inf (p p' : submodule R M) :
   (comap p.subtype (p ⊓ p')).quotient ≃ₗ[R] (comap (p ⊔ p').subtype p').quotient :=
 { .. sup_quotient_to_quotient_inf p p',
@@ -1448,7 +1523,7 @@ noncomputable def sup_quotient_equiv_quotient_inf (p p' : submodule R M) :
 
 section prod
 
-/-- The product of two linear maps is a linear map. -/
+/-- The cartesian product of two linear maps as a linear map. -/
 def prod {R M M₂ M₃ : Type*} [ring R] [add_comm_group M] [add_comm_group M₂] [add_comm_group M₃]
   [module R M] [module R M₂] [module R M₃]
   (f₁ : M →ₗ[R] M₂) (f₂ : M →ₗ[R] M₃) : M →ₗ[R] (M₂ × M₃) :=
@@ -1464,16 +1539,6 @@ lemma is_linear_map_prod_iso {R M M₂ M₃ : Type*} [comm_ring R] [add_comm_gro
   [add_comm_group M₃] [module R M] [module R M₂] [module R M₃] :
   is_linear_map R (λ(p : (M →ₗ[R] M₂) × (M →ₗ[R] M₃)), (linear_map.prod p.1 p.2 : (M →ₗ[R] (M₂ × M₃)))) :=
 ⟨λu v, rfl, λc u, rfl⟩
-
-/-- The product by a linear map into the scalar ring is a linear map. -/
-def scalar_prod_space_iso {R M M₂ : Type*} [comm_ring R] [add_comm_group M] [add_comm_group M₂]
-  [module R M] [module R M₂] (c : M →ₗ[R] R) (f : M₂) : M →ₗ[R] M₂ :=
-{ to_fun := λx, (c x) • f,
-  add := λx y, begin
-    change c (x + y) • f = (c x) • f + (c y) • f,
-    simp [add_smul],
-  end,
-  smul := λa x, by simp [smul_smul] }
 
 end prod
 
@@ -1699,6 +1764,7 @@ namespace general_linear_group
 variables {R M}
 
 instance : group (general_linear_group R M) := by delta general_linear_group; apply_instance
+instance : inhabited (general_linear_group R M) := ⟨1⟩
 
 /-- An invertible linear map `f` determines an equivalence from `M` to itself. -/
 def to_linear_equiv (f : general_linear_group R M) : (M ≃ₗ[R] M) :=

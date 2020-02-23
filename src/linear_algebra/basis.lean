@@ -182,18 +182,16 @@ begin
     have h_bij : bij_on subtype.val (subtype.val ⁻¹' l.support.to_set : set s) l.support.to_set,
     { apply bij_on.mk,
       { unfold maps_to },
-      { apply set.inj_on_of_injective _ subtype.val_injective },
+      { apply subtype.val_injective.inj_on },
       intros i hi,
-      rw mem_image,
-      use subtype.mk i (((finsupp.mem_supported _ _).1 hl₁ : ↑(l.support) ⊆ s) hi),
-      rw mem_preimage,
-      exact ⟨hi, rfl⟩ },
+      rw [image_preimage_eq_inter_range, subtype.range_val],
+      exact ⟨hi, (finsupp.mem_supported _ _).1 hl₁ hi⟩ },
     show l = 0,
     { apply finsupp.eq_zero_of_comap_domain_eq_zero (subtype.val : s → ι) _ h_bij,
       apply h,
       convert hl₂,
       rw [finsupp.lmap_domain_apply, finsupp.map_domain_comap_domain],
-      apply subtype.val_injective,
+      exact subtype.val_injective,
       rw subtype.range_val,
       exact (finsupp.mem_supported _ _).1 hl₁ } },
   { intros h l hl,
@@ -242,7 +240,7 @@ begin
   have h_bij : bij_on v (v ⁻¹' finset.to_set (l.support)) (finset.to_set (l.support)),
   { apply bij_on.mk,
     { unfold maps_to },
-    { apply set.inj_on_of_injective _ (linear_independent.injective zero_eq_one hv) },
+    { apply (linear_independent.injective zero_eq_one hv).inj_on },
     intros x hx,
     rcases mem_range.1 (((finsupp.mem_supported _ _).1 hl₁ : ↑(l.support) ⊆ range v) hx) with ⟨i, hi⟩,
     rw mem_image,
@@ -399,8 +397,7 @@ begin
       refine span_mono (@supr_le_supr2 (set M) _ _ _ _ _ _),
       rintros ⟨i⟩, exact ⟨i, le_refl _⟩ },
     { change finite (plift.up ⁻¹' s.to_set),
-      exact finite_preimage (inj_on_of_injective _ (assume i j, plift.up.inj))
-        s.finite_to_set } }
+      exact finite_preimage (assume i j _ _, plift.up.inj) s.finite_to_set } }
 end
 
 lemma linear_independent_Union_finite {η : Type*} {ιs : η → Type*}
@@ -627,7 +624,7 @@ begin
 end
 
 /-- Dedekind's linear independence of characters -/
--- See, for example, Keith Conrad's note https://kconrad.math.uconn.edu/blurbs/galoistheory/linearchar.pdf
+-- See, for example, Keith Conrad's note <https://kconrad.math.uconn.edu/blurbs/galoistheory/linearchar.pdf>
 theorem linear_independent_monoid_hom (G : Type*) [monoid G] (L : Type*) [integral_domain L] :
   @linear_independent _ L (G → L) (λ f, f : (G →* L) → (G → L)) _ _ _ :=
 by letI := classical.dec_eq (G →* L);
@@ -807,7 +804,7 @@ lemma constr_smul {ι R M M'} [comm_ring R]
   hv.constr (λb, a • f b) = a • hv.constr f :=
 constr_eq hv $ by simp [constr_basis hv] {contextual := tt}
 
-lemma constr_range [inhabited ι] (hv : is_basis R v) {f : ι  → M'} :
+lemma constr_range [nonempty ι] (hv : is_basis R v) {f : ι  → M'} :
   (hv.constr f).range = span R (range f) :=
 by rw [is_basis.constr, linear_map.range_comp, linear_map.range_comp, is_basis.repr_range,
     finsupp.lmap_domain_supported, ←set.image_univ, ←finsupp.span_eq_map_total, image_id]
@@ -858,7 +855,7 @@ begin
     simp [submodule.mem_span_singleton] }
 end
 
-lemma linear_equiv.is_basis (hs : is_basis R v)
+protected lemma linear_equiv.is_basis (hs : is_basis R v)
   (f : M ≃ₗ[R] M') : is_basis R (f ∘ v) :=
 begin
   split,
@@ -920,6 +917,22 @@ theorem module.card_fintype [fintype R] [fintype M] :
 calc card M = card (ι → R)    : card_congr (equiv_fun_basis h).to_equiv
         ... = card R ^ card ι : card_fun
 
+/-- Given a basis `v` indexed by `ι`, the canonical linear equivalence between `ι → R` and `M` maps
+a function `x : ι → R` to the linear combination `∑_i x i • v i`. -/
+@[simp] lemma equiv_fun_basis_symm_apply (x : ι → R) :
+  (equiv_fun_basis h).symm x = finset.sum finset.univ (λi, x i • v i) :=
+begin
+  change finsupp.sum
+      ((finsupp.equiv_fun_on_fintype.symm : (ι → R) ≃ (ι →₀ R)) x) (λ (i : ι) (a : R), a • v i)
+    = finset.sum finset.univ (λi, x i • v i),
+  dsimp [finsupp.equiv_fun_on_fintype, finsupp.sum],
+  rw finset.sum_filter,
+  refine finset.sum_congr rfl (λi hi, _),
+  by_cases H : x i = 0,
+  { simp [H] },
+  { simp [H], refl }
+end
+
 end module
 
 section vector_space
@@ -966,7 +979,7 @@ begin
   ext i,
   rw [unique.eq_default i, finsupp.zero_apply],
   by_contra hc,
-  have := smul_smul _ (l (default ι))⁻¹ (l (default ι)) (v (default ι)),
+  have := smul_smul (l (default ι))⁻¹ (l (default ι)) (v (default ι)),
   rw [finsupp.unique_single l, finsupp.total_single] at hl,
   rw [hl, inv_mul_cancel hc, smul_zero, one_smul] at this,
   exact h this.symm
@@ -1223,7 +1236,7 @@ begin
 end
 
 section
-variables (R ι)
+variables (R η)
 
 lemma is_basis_fun₀ : is_basis R
     (λ (ji : Σ (j : η), (λ _, unit) j),
@@ -1236,13 +1249,12 @@ end
 
 lemma is_basis_fun : is_basis R (λ i, std_basis R (λi:η, R) i 1) :=
 begin
-  apply is_basis.comp (is_basis_fun₀ R) (λ i, ⟨i, punit.star⟩) ,
-  { apply bijective_iff_has_inverse.2,
-    use (λ x, x.1),
-    simp [function.left_inverse, function.right_inverse],
-    intros _ b,
-    rw [unique.eq_default b, unique.eq_default punit.star] },
-  apply_instance
+  apply is_basis.comp (is_basis_fun₀ R η) (λ i, ⟨i, punit.star⟩),
+  apply bijective_iff_has_inverse.2,
+  use (λ x, x.1),
+  simp [function.left_inverse, function.right_inverse],
+  intros _ b,
+  rw [unique.eq_default b, unique.eq_default punit.star]
 end
 
 end

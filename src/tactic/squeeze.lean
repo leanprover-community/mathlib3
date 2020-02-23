@@ -21,19 +21,27 @@ meta def loc.to_string : loc → string
 namespace tactic
 namespace interactive
 
-meta def erase_simp_arg (s : name_set) : simp_arg_type → name_set
-| simp_arg_type.all_hyps := s
-| (simp_arg_type.except a) := s
-| (simp_arg_type.expr e) :=
-match e.get_app_fn e with
-| (expr.const n _) := s.erase n
-| _ := s
-end
+/--
+  `erase_simp_args hs s` removes from `s` each name `n` such that `const n` is an element of `hs`
+-/
+meta def erase_simp_args (hs : list simp_arg_type) (s : name_set) : tactic name_set :=
+do
+  -- TODO: when Lean 3.4 support is dropped, use `decode_simp_arg_list_with_symm` on the next line:
+  (hs, _, _) ← decode_simp_arg_list hs,
+  pure $ hs.foldr (λ (h : pexpr) (s : name_set),
+    match h.get_app_fn h with
+    | (expr.const n _) := s.erase n
+    | _ := s
+    end) s
 
-meta def arg.to_tactic_format : simp_arg_type → tactic format
+/-- Polyfill instance for Lean versions <3.5.1c -/
+-- TODO: when Lean 3.4 support is dropped, this instance can be removed
+@[priority 1]
+meta instance : has_to_tactic_format simp_arg_type := ⟨λ a, match a with
 | (simp_arg_type.expr e) := i_to_expr_no_subgoals e >>= pp
-| simp_arg_type.all_hyps := pure "*"
 | (simp_arg_type.except n) := pure format!"-{n}"
+| _ := pure "*" -- should only be called on `simp_arg_type.all_hyps`
+end⟩
 
 open list
 
@@ -78,13 +86,13 @@ meta def squeeze_simp
   (cfg : parse record_lit?) : tactic unit :=
 do g ← main_goal,
    (cfg',c) ← parse_config cfg,
-   hs' ← hs.mmap arg.to_tactic_format,
+   hs' ← hs.mmap pp,
    simp use_iota_eqn no_dflt hs attr_names locat cfg',
    g ← instantiate_mvars g,
    let vs := g.list_constant,
    vs ← vs.mfilter (succeeds ∘ has_attribute `simp) >>= name_set.mmap strip_prefix,
    let vs := auto_simp_lemma.foldl name_set.erase vs,
-   let vs := hs.foldl erase_simp_arg vs,
+   vs ← erase_simp_args hs vs,
    let use_iota_eqn := if use_iota_eqn.is_some then "!" else "",
    let attrs := if attr_names.empty then "" else string.join (list.intersperse " " (" with" :: attr_names.map to_string)),
    let loc := loc.to_string locat,
@@ -104,11 +112,11 @@ do g ← main_goal,
    let vs := g.list_constant,
    vs ← vs.mfilter (succeeds ∘ has_attribute `simp) >>= name_set.mmap strip_prefix,
    let vs := auto_simp_lemma.foldl name_set.erase vs,
-   let vs := hs.foldl erase_simp_arg vs,
+   vs ← erase_simp_args hs vs,
    let use_iota_eqn := if use_iota_eqn.is_some then "!" else "",
    let attrs := if attr_names.empty then "" else string.join (list.intersperse " " (" with" :: attr_names.map to_string)),
    let tgt' := tgt'.get_or_else "",
-   hs ← hs.mmap arg.to_tactic_format,
+   hs ← hs.mmap pp,
    let args := hs ++ vs.to_list.map to_fmt,
    trace format!"simpa{use_iota_eqn} only {args}{attrs}{tgt'}{c}"
 

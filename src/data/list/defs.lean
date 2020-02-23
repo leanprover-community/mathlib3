@@ -13,6 +13,11 @@ open function nat
 universes u v w x
 variables {α : Type u} {β : Type v} {γ : Type w} {δ : Type x}
 
+/-- Returns whether a list is []. Returns a boolean even if `l = []` is not decidable. -/
+def is_nil {α} : list α → bool
+| [] := tt
+| _  := ff
+
 instance [decidable_eq α] : has_sdiff (list α) :=
 ⟨ list.diff ⟩
 
@@ -96,6 +101,18 @@ def take_while (p : α → Prop) [decidable_pred p] : list α → list α
 | []     := []
 | (a::l) := if p a then a :: take_while l else []
 
+/-- `after p xs` is the suffix of `xs` after the first element that satisfies
+  `p`, not including that element.
+
+  ```lean
+  after      (eq 1)       [0, 1, 2, 3] = [2, 3]
+  drop_while (not ∘ eq 1) [0, 1, 2, 3] = [1, 2, 3]
+  ```
+-/
+def after (p : α → Prop) [decidable_pred p] : list α → list α
+| [] := []
+| (x :: xs) := if p x then xs else after xs
+
 /-- Fold a function `f` over the list from the left, returning the list
   of partial results.
 
@@ -171,6 +188,16 @@ map_with_index_core f 0 as
 
      indexes_of a [a, b, a, a] = [0, 2, 3] -/
 def indexes_of [decidable_eq α] (a : α) : list α → list nat := find_indexes (eq a)
+
+/-- Auxilliary definition for `indexes_values`. -/
+def indexes_values_aux {α} (f : α → bool) : list α → ℕ → list (ℕ × α)
+| []      n := []
+| (x::xs) n := let ns := indexes_values_aux xs (n+1) in if f x then (n, x)::ns else ns
+
+/-- Returns `(l.find_indexes f).zip l`, i.e. pairs of `(n, x)` such that `f x = tt` and
+  `l.nth = some x`, in increasing order of first arguments. -/
+def indexes_values {α} (l : list α) (f : α → bool) : list (ℕ × α) :=
+indexes_values_aux f l 0
 
 /-- `countp p l` is the number of elements of `l` that satisfy `p`. -/
 def countp (p : α → Prop) [decidable_pred p] : list α → nat
@@ -530,5 +557,12 @@ protected def traverse {F : Type u → Type v} [applicative F] {α β : Type*} (
   list α → F (list β)
 | [] := pure []
 | (x :: xs) := list.cons <$> f x <*> traverse xs
+
+/-- `get_rest l l₁` returns `some l₂` if `l = l₁ ++ l₂`.
+  If `l₁` is not a prefix of `l`, returns `none` -/
+def get_rest [decidable_eq α] : list α → list α → option (list α)
+| l      []      := some l
+| []     _       := none
+| (x::l) (y::l₁) := if x = y then get_rest l l₁ else none
 
 end list

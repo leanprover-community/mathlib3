@@ -399,7 +399,7 @@ lemma nonempty_compacts.dist_eq {x y : nonempty_compacts α} :
 
 lemma lipschitz_inf_dist_set (x : α) :
   lipschitz_with 1 (λ s : nonempty_compacts α, inf_dist x s.val) :=
-lipschitz_with.one_of_le_add $ assume s t,
+lipschitz_with.of_le_add $ assume s t,
 by { rw dist_comm,
   exact inf_dist_le_inf_dist_add_Hausdorff_dist (edist_ne_top t s) }
 
@@ -410,7 +410,7 @@ lemma lipschitz_inf_dist :
 
 lemma uniform_continuous_inf_dist_Hausdorff_dist :
   uniform_continuous (λp : α × (nonempty_compacts α), inf_dist p.1 (p.2).val) :=
-lipschitz_inf_dist.to_uniform_continuous
+lipschitz_inf_dist.uniform_continuous
 
 end --section
 end metric --namespace

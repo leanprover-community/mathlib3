@@ -155,9 +155,9 @@ begin
   rw [coeff_mul, finset.sum_eq_single ((0 : σ →₀ ℕ), n)];
   simp [mem_antidiagonal_support, coeff_one],
   show ∀ (i j : σ →₀ ℕ), i + j = n → (i = 0 → j ≠ n) →
-    (if (i = 0) then 1 else 0) * (coeff α j) φ = 0,
+    (if i = 0 then coeff α j φ else 0) = 0,
   intros i j hij h,
-  rw [if_neg, zero_mul],
+  rw [if_neg],
   contrapose! h,
   simpa [h] using hij,
 end

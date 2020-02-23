@@ -24,6 +24,8 @@ The following linters are run by default:
 8.  `impossible_instance` checks for instances that can never fire.
 9.  `incorrect_type_class_argument` checks for arguments in [square brackets] that are not classes.
 10. `dangerous_instance` checks for instances that generate type-class problems with metavariables.
+11. `inhabited_nonempty` checks for `inhabited` instance arguments that should be changed to `nonempty`.
+12. `simp_nf` checks that arguments of the left-hand side of simp lemmas are in simp-normal form.
 
 Another linter, `doc_blame_thm`, checks for missing doc strings on lemmas and theorems.
 This is not run by default.
@@ -456,6 +458,71 @@ do tt ← is_prop d.type | return none,
 { test := inhabited_nonempty,
   no_errors_found := "No uses of `inhabited` arguments should be replaced with `nonempty`",
   errors_found := "USES OF `inhabited` SHOULD BE REPLACED WITH `nonempty`." }
+
+/-- `simp_lhs ty` returns the left-hand side of a simp lemma with type `ty`. -/
+private meta def simp_lhs : expr → tactic expr | ty := do
+ty ← whnf ty transparency.reducible,
+-- We only detect a fixed set of simp relations here.
+-- This is somewhat justified since for a custom simp relation R,
+-- the simp lemma `R a b` is implicitly converted to `R a b ↔ true` as well.
+match ty with
+| `(¬ %%lhs) := pure lhs
+| `(%%lhs = _) := pure lhs
+| `(%%lhs ↔ _) := pure lhs
+| (expr.pi n bi a b) := do
+  l ← mk_local' n bi a,
+  simp_lhs (b.instantiate_var l)
+| ty := pure ty
+end
+
+private meta def heuristic_simp_lemma_extraction (prf : expr) : tactic (list name) :=
+prf.list_constant.to_list.mfilter is_simp_lemma
+
+private meta def simp_nf (d : declaration) : tactic (option string) := retrieve $ do
+tt ← is_simp_lemma d.to_name | pure none,
+-- Sometimes, a definition is tagged @[simp] to add the equational lemmas to the simp set.
+-- In this case, ignore the declaration if it is not a valid simp lemma by itself.
+tt ← is_valid_simp_lemma_cnst d.to_name | pure none,
+mk_meta_var d.type >>= set_goals ∘ pure,
+reset_instance_cache,
+intros,
+lhs ← target >>= simp_lhs,
+sls ← simp_lemmas.mk_default,
+let sls := sls.erase [
+  -- remove commutativity lemmas since they may not apply to substitution instances of the lhs
+  ``add_comm, ``bool.bor_comm, ``bool.band_comm, ``bool.bxor_comm,
+  -- TODO: remove once we have moved to Lean 3.6
+  ``sub_eq_add_neg
+  ],
+let as := lhs.get_app_args,
+cgr ← mk_specialized_congr_lemma_simp lhs,
+some (a', i, prf) ← tactic.first (as.map_with_index $ λ i a, do
+  if cgr.arg_kinds.nth i ≠ congr_arg_kind.eq then
+    failure -- ignore arguments that are ignored by congr-lemma
+  else do
+    (a', prf) ← simplify sls [] a { single_pass := tt },
+    fail_if_success $ is_def_eq a a' transparency.reducible,
+    pure $ some (a', i, prf))
+  <|> pure none | pure none,
+let a := as.inth i,
+let lhs' := lhs.get_app_fn.mk_app (list.func.set a' as i),
+some <$> do
+  lhs ← pp lhs,
+  a ← pp a,
+  a' ← pp a',
+  prf ← heuristic_simp_lemma_extraction prf >>= pp,
+  pure $ format.to_string $
+    to_fmt "Argument #" ++ i ++ " of left-hand side (" ++ lhs ++ ") reduces from"
+      ++ a.group.indent 2 ++ format.line
+      ++ "to" ++ a'.group.indent 2 ++ format.line
+      ++ "using " ++ prf.indent 2
+
+/-- A linter for simp lemmas whose lhs is not in simp-normal form, and which hence never fire. -/
+@[linter, priority 1390] meta def linter.simp_nf : linter :=
+{ test := simp_nf,
+  no_errors_found := "All left-hand sides of simp lemmas are in simp-normal form",
+  errors_found := "LEFT-HAND SIDE NOT IN SIMP-NF.\n" ++
+    "Some simp lemmas have a left-hand side that is not in simp-normal form." }
 
 /- Implementation of the frontend. -/
 

@@ -493,6 +493,16 @@ let ⟨n, hle, hlt⟩ := exists_int_pow_near' hr hw in
 ⟨w^n, by { rw norm_fpow; exact fpow_pos_of_pos (lt_trans zero_lt_one hw) _},
 by rwa norm_fpow⟩
 
+lemma punctured_nhds_ne_bot {α : Type*} [nondiscrete_normed_field α] (x : α) :
+  nhds_within x (-{x}) ≠ ⊥ :=
+begin
+  rw [← mem_closure_iff_nhds_within_ne_bot, metric.mem_closure_iff],
+  rintros ε ε0,
+  rcases normed_field.exists_norm_lt α ε0 with ⟨b, hb0, hbε⟩,
+  refine ⟨x + b, mt (set.mem_singleton_iff.trans add_right_eq_self).1 $ norm_pos_iff.1 hb0, _⟩,
+  rwa [dist_comm, dist_eq_norm, add_sub_cancel'],
+end
+
 lemma tendsto_inv [normed_field α] {r : α} (r0 : r ≠ 0) : tendsto (λq, q⁻¹) (𝓝 r) (𝓝 r⁻¹) :=
 begin
   refine (nhds_basis_closed_ball.tendsto_iff nhds_basis_closed_ball).2 (λε εpos, _),
@@ -639,6 +649,16 @@ begin
             (tendsto_const_nhds.mul (tendsto_iff_norm_tendsto_zero.1 (continuous_snd.tendsto p))) }
 end
 
+/-- In a normed space over a nondiscrete normed field, only `⊤` submodule has a nonempty interior.
+See also `submodule.eq_top_of_nonempty_interior'` for a `topological_module` version.  -/
+lemma submodule.eq_top_of_nonempty_interior {α E : Type*} [nondiscrete_normed_field α] [normed_group E]
+  [normed_space α E] (s : submodule α E) (hs : (interior (s:set E)).nonempty) :
+  s = ⊤ :=
+begin
+  refine s.eq_top_of_nonempty_interior' _ hs,
+  simp only [is_unit_iff_ne_zero, @ne.def α, set.mem_singleton_iff.symm],
+  exact normed_field.punctured_nhds_ne_bot _
+end
 
 open normed_field
 

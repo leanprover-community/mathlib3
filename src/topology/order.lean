@@ -203,11 +203,9 @@ lemma continuous_of_discrete_topology [topological_space α] [discrete_topology 
 
 lemma nhds_bot (α : Type*) : (@nhds α ⊥) = pure :=
 begin
-  ext a s,
-  rw [mem_nhds_sets_iff, mem_pure_iff],
-  split,
-  { exact assume ⟨t, ht, _, hta⟩, ht hta },
-  { exact assume h, ⟨{a}, set.singleton_subset_iff.2 h, trivial, set.mem_singleton a⟩ }
+  refine le_antisymm _ (@pure_le_nhds α ⊥),
+  assume a s hs,
+  exact @mem_nhds_sets α ⊥ a s trivial hs
 end
 
 lemma nhds_discrete (α : Type*) [topological_space α] [discrete_topology α] : (@nhds α _) = pure :=
@@ -225,9 +223,7 @@ le_antisymm
   (le_of_nhds_le_nhds $ assume x, le_of_eq $ (h x).symm)
 
 lemma eq_bot_of_singletons_open {t : topological_space α} (h : ∀ x, t.is_open {x}) : t = ⊥ :=
-bot_unique  $ le_of_nhds_le_nhds $ assume x,
-  have 𝓝 x ≤ pure x, from nhds_le_of_le (mem_singleton _) (h x) (by simp),
-  le_trans this (@pure_le_nhds _ ⊥ x)
+bot_unique $ λ s hs, bUnion_of_singleton s ▸ is_open_bUnion (λ x _, h x)
 
 end lattice
 
@@ -504,7 +500,7 @@ continuous_iff_coinduced_le.2 $ le_top
 theorem mem_nhds_induced [T : topological_space α] (f : β → α) (a : β) (s : set β) :
   s ∈ @nhds β (topological_space.induced f T) a ↔ ∃ u ∈ 𝓝 (f a), f ⁻¹' u ⊆ s :=
 begin
-  simp only [nhds_sets, is_open_induced_iff, exists_prop, set.mem_set_of_eq],
+  simp only [mem_nhds_sets_iff, is_open_induced_iff, exists_prop, set.mem_set_of_eq],
   split,
   { rintros ⟨u, usub, ⟨v, openv, ueq⟩, au⟩,
     exact ⟨v, ⟨v, set.subset.refl v, openv, by rwa ←ueq at au⟩, by rw ueq; exact usub⟩ },
@@ -549,14 +545,14 @@ lemma closure_induced [t : topological_space β] {f : α → β} {a : α} {s : s
 have comap f (𝓝 (f a) ⊓ principal (f '' s)) ≠ ⊥ ↔ 𝓝 (f a) ⊓ principal (f '' s) ≠ ⊥,
   from ⟨assume h₁ h₂, h₁ $ h₂.symm ▸ comap_bot,
     assume h,
-    forall_sets_neq_empty_iff_neq_bot.mp $
+    forall_sets_nonempty_iff_ne_bot.mp $
       assume s₁ ⟨s₂, hs₂, (hs : f ⁻¹' s₂ ⊆ s₁)⟩,
       have f '' s ∈ 𝓝 (f a) ⊓ principal (f '' s),
         from mem_inf_sets_of_right $ by simp [subset.refl],
       have s₂ ∩ f '' s ∈ 𝓝 (f a) ⊓ principal (f '' s),
         from inter_mem_sets hs₂ this,
-      let ⟨b, hb₁, ⟨a, ha, ha₂⟩⟩ := inhabited_of_mem_sets h this in
-      ne_empty_of_mem $ hs $ by rwa [←ha₂] at hb₁⟩,
+      let ⟨b, hb₁, ⟨a, ha, ha₂⟩⟩ := nonempty_of_mem_sets h this in
+      ⟨_, hs $ by rwa [←ha₂] at hb₁⟩⟩,
 calc a ∈ @closure α (topological_space.induced f t) s
     ↔ (@nhds α (topological_space.induced f t) a) ⊓ principal s ≠ ⊥ : by rw [closure_eq_nhds]; refl
   ... ↔ comap f (𝓝 (f a)) ⊓ principal (f ⁻¹' (f '' s)) ≠ ⊥ : by rw [nhds_induced, preimage_image_eq _ hf]

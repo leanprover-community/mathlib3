@@ -22,6 +22,8 @@ begin
   have := hf h, rw hxy at this, exfalso, exact irrefl_of s (f y) this
 end
 
+/-- An order embedding with respect to a given pair of orders `r` and `s`
+is an embedding `f : α ↪ β` such that `r a b ↔ s (f a) (f b)`. -/
 structure order_embedding {α β : Type*} (r : α → α → Prop) (s : β → β → Prop) extends α ↪ β :=
 (ord : ∀ {a b}, r a b ↔ s (to_embedding a) (to_embedding b))
 

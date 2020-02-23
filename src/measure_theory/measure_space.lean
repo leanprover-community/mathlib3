@@ -2,8 +2,13 @@
 Copyright (c) 2017 Johannes Hölzl. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johannes Hölzl, Mario Carneiro
+-/
+import data.set.lattice data.set.finite
+import topology.instances.ennreal
+       measure_theory.outer_measure
 
-Measure spaces -- measures
+/-!
+# Measure spaces
 
 Measures are restricted to a measurable space (associated by the type class `measurable_space`).
 This allows us to prove equalities between measures by restricting to a generating set of the
@@ -16,9 +21,6 @@ somehow well-behaved on non-measurable sets.
 This allows us for the `lebesgue` measure space to have the `borel` measurable space, but still be
 a complete measure.
 -/
-import data.set.lattice data.set.finite
-import topology.instances.ennreal
-       measure_theory.outer_measure
 
 noncomputable theory
 
@@ -491,7 +493,7 @@ instance : has_add (measure α) :=
 @[simp] theorem add_apply (μ₁ μ₂ : measure α) (s : set α) :
   (μ₁ + μ₂) s = μ₁ s + μ₂ s := rfl
 
-instance : add_comm_monoid (measure α) :=
+instance add_comm_monoid : add_comm_monoid (measure α) :=
 { zero      := 0,
   add       := (+),
   add_assoc := assume a b c, ext $ assume s hs, add_assoc _ _ _,
@@ -525,7 +527,7 @@ lemma Inf_caratheodory (s : set α) (hs : is_measurable s) :
 begin
   rw [outer_measure.Inf_eq_of_function_Inf_gen],
   refine outer_measure.caratheodory_is_measurable (assume t, _),
-  by_cases ht : t = ∅, { simp [ht] },
+  cases t.eq_empty_or_nonempty with ht ht, by simp [ht],
   simp only [outer_measure.Inf_gen_nonempty1 _ _ ht, le_infi_iff, ball_image_iff,
     to_outer_measure_apply, measure_eq_infi t],
   assume μ hμ u htu hu,
@@ -565,7 +567,8 @@ instance : order_bot (measure α) :=
 instance : order_top (measure α) :=
 { top := (⊤ : outer_measure α).to_measure (by rw [outer_measure.top_caratheodory]; exact le_top),
   le_top := assume a s hs,
-    by by_cases s = ∅; simp [h, to_measure_apply ⊤ _ hs, outer_measure.top_apply],
+    by cases s.eq_empty_or_nonempty with h  h;
+      simp [h, to_measure_apply ⊤ _ hs, outer_measure.top_apply],
   .. measure.partial_order }
 
 instance : complete_lattice (measure α) :=
@@ -791,10 +794,13 @@ end is_complete
 
 namespace measure_theory
 
+section prio
+set_option default_priority 100 -- see Note [default priority]
 /-- A measure space is a measurable space equipped with a
   measure, referred to as `volume`. -/
 class measure_space (α : Type*) extends measurable_space α :=
 (μ {} : measure α)
+end prio
 
 section measure_space
 variables {α : Type*} [measure_space α] {s₁ s₂ : set α}
@@ -862,7 +868,8 @@ associated with `α`. This means that the measure of the complementary of `p` is
 
 In a probability measure, the measure of `p` is `1`, when `p` is measurable.
 -/
-def all_ae (p : α → Prop) : Prop := { a | p a } ∈ (@measure_space.μ α _).a_e
+def all_ae (p : α → Prop) : Prop :=
+∀ᶠ a in μ.a_e, p a
 
 notation `∀ₘ` binders `, ` r:(scoped P, all_ae P) := r
 
@@ -873,8 +880,7 @@ iff.intro
 
 lemma all_ae_iff {p : α → Prop} : (∀ₘ a, p a) ↔ volume { a | ¬ p a } = 0 := iff.rfl
 
-lemma all_ae_of_all {p : α → Prop} : (∀a, p a) → ∀ₘ a, p a := assume h,
-by {rw all_ae_iff, convert volume_empty, simp only [h, not_true], reflexivity}
+lemma all_ae_of_all {p : α → Prop} : (∀a, p a) → ∀ₘ a, p a := univ_mem_sets'
 
 lemma all_ae_all_iff {ι : Type*} [encodable ι] {p : α → ι → Prop} :
   (∀ₘ a, ∀i, p a i) ↔ (∀i, ∀ₘ a, p a i) :=

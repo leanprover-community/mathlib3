@@ -3,8 +3,10 @@ Copyright (c) 2018 Chris Hughes. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Chris Hughes
 -/
+
 import field_theory.finite data.zmod.basic data.nat.parity
-/-
+
+/-!
 # Quadratic reciprocity.
 
 This file contains results about quadratic residues modulo a prime number.
@@ -94,8 +96,8 @@ hp.eq_two_or_odd.elim
 begin
   rw [← finset.prod_Ico_id_eq_fact, ← @units.coe_one (zmodp p hp), ← units.coe_neg,
     ← @prod_univ_units_id_eq_neg_one (zmodp p hp),
-    ← prod_hom (coe : units (zmodp p hp) → zmodp p hp),
-    ← prod_hom (coe : ℕ → zmodp p hp)],
+    ← prod_hom _ (coe : units (zmodp p hp) → zmodp p hp),
+    ← prod_hom _ (coe : ℕ → zmodp p hp)],
   exact eq.symm (prod_bij
     (λ a _, (a : zmodp p hp).1)
     (λ a ha, Ico.mem.2 ⟨nat.pos_of_ne_zero
@@ -114,7 +116,7 @@ end
 @[simp] lemma prod_Ico_one_prime {p : ℕ} (hp : nat.prime p) :
   (Ico 1 p).prod (λ x, (x : zmodp p hp)) = -1 :=
 by conv in (Ico 1 p) { rw [← succ_sub_one p, succ_sub hp.pos] };
-  rw [prod_hom (coe : ℕ → zmodp p hp),
+  rw [prod_hom _ (coe : ℕ → zmodp p hp),
     finset.prod_Ico_id_eq_fact, wilsons_lemma]
 
 end zmodp

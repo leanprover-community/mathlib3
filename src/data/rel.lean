@@ -9,27 +9,32 @@ import tactic.basic data.set.lattice order.complete_lattice logic.relator
 
 variables {α : Type*} {β : Type*} {γ : Type*}
 
-@[derive lattice.complete_lattice]
+/-- A relation on `α` and `β`, aka a set-valued function, aka a partial multifunction --/
+@[derive lattice.complete_lattice, derive inhabited]
 def rel (α : Type*) (β : Type*) := α → β → Prop
 
 namespace rel
 
 variables {δ : Type*} (r : rel α β)
 
+/-- The inverse relation : `r.inv x y ↔ r y x`. Note that this is *not* a groupoid inverse. -/
 def inv : rel β α := flip r
 
 lemma inv_def (x : α) (y : β) : r.inv y x ↔ r x y := iff.rfl
 
 lemma inv_inv : inv (inv r) = r := by { ext x y, reflexivity }
 
+/-- Domain of a relation -/
 def dom := {x | ∃ y, r x y}
 
+/-- Codomain aka range of a relation-/
 def codom := {y | ∃ x, r x y}
 
 lemma codom_inv : r.inv.codom = r.dom := by { ext x y, reflexivity }
 
 lemma dom_inv : r.inv.dom = r.codom := by { ext x y, reflexivity}
 
+/-- Composition of relation; note that it follows the `category_theory/` order of arguments. -/
 def comp (r : rel α β) (s : rel β γ) : rel α γ :=
 λ x z, ∃ y, r x y ∧ s y z
 
@@ -57,6 +62,7 @@ by { ext x y, split; apply eq.symm }
 lemma inv_comp (r : rel α β) (s : rel β γ) : inv (r ∘ s) = inv s ∘ inv r :=
 by { ext x z, simp [comp, inv, flip, and.comm] }
 
+/-- Image of a set under a relation -/
 def image (s : set α) : set β := {y | ∃ x ∈ s, r x y}
 
 lemma mem_image (y : β) (s : set α) : y ∈ image r s ↔ ∃ x ∈ s, r x y :=
@@ -88,6 +94,7 @@ end
 
 lemma image_univ : r.image set.univ = r.codom := by { ext y, simp [mem_image, codom] }
 
+/-- Preimage of a set under a relation `r`. Same as the image of `s` under `r.inv` -/
 def preimage (s : set β) : set α := image (inv r) s
 
 lemma mem_preimage (x : α) (s : set β) : x ∈ preimage r s ↔ ∃ y ∈ s, r x y :=
@@ -115,6 +122,8 @@ by simp only [preimage, inv_comp, image_comp]
 lemma preimage_univ : r.preimage set.univ = r.dom :=
 by { rw [preimage, image_univ, codom_inv] }
 
+/-- Core of a set `s : set β` w.r.t `r : rel α β` is the set of `x : α` that are related *only*
+to elements of `s`. -/
 def core (s : set β) := {x | ∀ y, r x y → y ∈ s}
 
 lemma mem_core (x : α) (s : set β) : x ∈ core r s ↔ ∀ y, r x y → y ∈ s :=
@@ -144,6 +153,7 @@ begin
   intros h z y rzy syz, exact h y rzy z syz
 end
 
+/-- Restrict the domain of a relation to a subtype. -/
 def restrict_domain (s : set α) : rel {x // x ∈ s} β :=
 λ x y, r x.val y
 
@@ -159,6 +169,7 @@ end rel
 
 namespace function
 
+/-- The graph of a function as a relation. -/
 def graph (f : α → β) : rel α β := λ x y, f x = y
 
 end function

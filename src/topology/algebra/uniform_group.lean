@@ -36,53 +36,49 @@ theorem uniform_add_group.mk' {α} [uniform_space α] [add_group α]
 
 variables [uniform_space α] [add_group α] [uniform_add_group α]
 
-lemma uniform_continuous_sub' : uniform_continuous (λp:α×α, p.1 - p.2) :=
+lemma uniform_continuous_sub : uniform_continuous (λp:α×α, p.1 - p.2) :=
 uniform_add_group.uniform_continuous_sub α
 
-lemma uniform_continuous_sub [uniform_space β] {f : β → α} {g : β → α}
+lemma uniform_continuous.sub [uniform_space β] {f : β → α} {g : β → α}
   (hf : uniform_continuous f) (hg : uniform_continuous g) : uniform_continuous (λx, f x - g x) :=
-uniform_continuous_sub'.comp (hf.prod_mk hg)
+uniform_continuous_sub.comp (hf.prod_mk hg)
 
-lemma uniform_continuous_neg [uniform_space β] {f : β → α}
+lemma uniform_continuous.neg [uniform_space β] {f : β → α}
   (hf : uniform_continuous f) : uniform_continuous (λx, - f x) :=
 have uniform_continuous (λx, 0 - f x),
-  from uniform_continuous_sub uniform_continuous_const hf,
+  from uniform_continuous_const.sub hf,
 by simp * at *
 
-lemma uniform_continuous_neg' : uniform_continuous (λx:α, - x) :=
-uniform_continuous_neg uniform_continuous_id
+lemma uniform_continuous_neg : uniform_continuous (λx:α, - x) :=
+uniform_continuous_id.neg
 
-lemma uniform_continuous_add [uniform_space β] {f : β → α} {g : β → α}
+lemma uniform_continuous.add [uniform_space β] {f : β → α} {g : β → α}
   (hf : uniform_continuous f) (hg : uniform_continuous g) : uniform_continuous (λx, f x + g x) :=
-have uniform_continuous (λx, f x - - g x),
-  from uniform_continuous_sub hf $ uniform_continuous_neg hg,
+have uniform_continuous (λx, f x - - g x), from hf.sub hg.neg,
 by simp * at *
 
-lemma uniform_continuous_add' : uniform_continuous (λp:α×α, p.1 + p.2) :=
-uniform_continuous_add uniform_continuous_fst uniform_continuous_snd
+lemma uniform_continuous_add : uniform_continuous (λp:α×α, p.1 + p.2) :=
+uniform_continuous_fst.add uniform_continuous_snd
 
 @[priority 10]
 instance uniform_add_group.to_topological_add_group : topological_add_group α :=
-{ continuous_add := uniform_continuous_add'.continuous,
-  continuous_neg := uniform_continuous_neg'.continuous }
+{ continuous_add := uniform_continuous_add.continuous,
+  continuous_neg := uniform_continuous_neg.continuous }
 
 instance [uniform_space β] [add_group β] [uniform_add_group β] : uniform_add_group (α × β) :=
-⟨uniform_continuous.prod_mk
-  (uniform_continuous_sub
-    (uniform_continuous_fst.comp uniform_continuous_fst)
-    (uniform_continuous_fst.comp uniform_continuous_snd))
-  (uniform_continuous_sub
-    (uniform_continuous_snd.comp uniform_continuous_fst)
-    (uniform_continuous_snd.comp uniform_continuous_snd)) ⟩
+⟨((uniform_continuous_fst.comp uniform_continuous_fst).sub
+  (uniform_continuous_fst.comp uniform_continuous_snd)).prod_mk
+ ((uniform_continuous_snd.comp uniform_continuous_fst).sub
+  (uniform_continuous_snd.comp uniform_continuous_snd))⟩
 
 lemma uniformity_translate (a : α) : (𝓤 α).map (λx:α×α, (x.1 + a, x.2 + a)) = 𝓤 α :=
 le_antisymm
-  (uniform_continuous_add uniform_continuous_id uniform_continuous_const)
+  (uniform_continuous_id.add uniform_continuous_const)
   (calc 𝓤 α =
     ((𝓤 α).map (λx:α×α, (x.1 + -a, x.2 + -a))).map (λx:α×α, (x.1 + a, x.2 + a)) :
       by simp [filter.map_map, (∘)]; exact filter.map_id.symm
     ... ≤ (𝓤 α).map (λx:α×α, (x.1 + a, x.2 + a)) :
-      filter.map_mono (uniform_continuous_add uniform_continuous_id uniform_continuous_const))
+      filter.map_mono (uniform_continuous_id.add uniform_continuous_const))
 
 lemma uniform_embedding_translate (a : α) : uniform_embedding (λx:α, x + a) :=
 { comap_uniformity := begin
@@ -99,12 +95,12 @@ begin
   rw [nhds_eq_comap_uniformity, filter.comap_comap_comp],
   refine le_antisymm (filter.map_le_iff_le_comap.1 _) _,
   { assume s hs,
-    rcases mem_uniformity_of_uniform_continuous_invarant uniform_continuous_sub' hs with ⟨t, ht, hts⟩,
+    rcases mem_uniformity_of_uniform_continuous_invariant uniform_continuous_sub hs with ⟨t, ht, hts⟩,
     refine mem_map.2 (mem_sets_of_superset ht _),
     rintros ⟨a, b⟩,
     simpa [subset_def] using hts a b a },
   { assume s hs,
-    rcases mem_uniformity_of_uniform_continuous_invarant uniform_continuous_add' hs with ⟨t, ht, hts⟩,
+    rcases mem_uniformity_of_uniform_continuous_invariant uniform_continuous_add hs with ⟨t, ht, hts⟩,
     refine ⟨_, ht, _⟩,
     rintros ⟨a, b⟩, simpa [subset_def] using hts 0 (b - a) a }
 end
@@ -115,7 +111,7 @@ have embedding (λa, a + (y - x)), from (uniform_embedding_translate (y - x)).em
 show (x, y) ∈ ⋂₀ (𝓤 α).sets ↔ x - y ∈ closure ({0} : set α),
 begin
   rw [this.closure_eq_preimage_closure_image, uniformity_eq_comap_nhds_zero α, sInter_comap_sets],
-  simp [mem_closure_iff_nhds, inter_singleton_eq_empty]
+  simp [mem_closure_iff_nhds, inter_singleton_nonempty]
 end
 
 lemma uniform_continuous_of_tendsto_zero [uniform_space β] [add_group β] [uniform_add_group β]
@@ -154,7 +150,7 @@ def topological_add_group.to_uniform_space : uniform_space G :=
   begin
     suffices : tendsto ((λp, -p) ∘ (λp:G×G, p.2 - p.1)) (comap (λp:G×G, p.2 - p.1) (𝓝 0)) (𝓝 (-0)),
     { simpa [(∘), tendsto_comap_iff] },
-    exact tendsto.comp (tendsto_neg tendsto_id) tendsto_comap
+    exact tendsto.comp (tendsto.neg tendsto_id) tendsto_comap
   end,
   comp                :=
   begin
@@ -201,7 +197,7 @@ have tendsto
     ((λp:(G×G), p.1 - p.2) ∘ (λp:(G×G)×(G×G), (p.1.2 - p.1.1, p.2.2 - p.2.1)))
     (comap (λp:(G×G)×(G×G), (p.1.2 - p.1.1, p.2.2 - p.2.1)) ((𝓝 0).prod (𝓝 0)))
     (𝓝 (0 - 0)) :=
-  (tendsto_sub tendsto_fst tendsto_snd).comp tendsto_comap,
+  (tendsto_fst.sub tendsto_snd).comp tendsto_comap,
 begin
   constructor,
   rw [uniform_continuous, uniformity_prod_eq_prod, tendsto_map'_iff,
@@ -294,13 +290,13 @@ include hψ ψbilin
 
 lemma is_Z_bilin.tendsto_zero_left (x₁ : α) : tendsto ψ (𝓝 (x₁, 0)) (𝓝 0) :=
 begin
-  have := continuous.tendsto hψ (x₁, 0),
+  have := hψ.tendsto (x₁, 0),
   rwa [is_Z_bilin.zero_right ψ] at this
 end
 
 lemma is_Z_bilin.tendsto_zero_right (y₁ : β) : tendsto ψ (𝓝 (0, y₁)) (𝓝 0) :=
 begin
-  have := continuous.tendsto hψ (0, y₁),
+  have := hψ.tendsto (0, y₁),
   rwa [is_Z_bilin.zero_left ψ] at this
 end
 end
@@ -322,7 +318,7 @@ begin
     change e t.2 - e t.1 = e (t.2 - t.1),
     rwa ← is_add_group_hom.map_sub e t.2 t.1 },
   have lim : tendsto (λ x : α × α, x.2-x.1) (𝓝 (x₀, x₀)) (𝓝 (e 0)),
-    { have := continuous.tendsto (continuous_sub'.comp continuous_swap) (x₀, x₀),
+    { have := (continuous_sub.comp continuous_swap).tendsto (x₀, x₀),
       simpa [-sub_eq_add_neg, sub_self, eq.symm (is_add_group_hom.map_zero e)] using this },
   have := de.tendsto_comap_nhds_nhds lim comm,
   simp [-sub_eq_add_neg, this]
@@ -376,7 +372,7 @@ begin
   let ff := λ u : δ × δ, (f u.1, f u.2),
 
   have lim_φ : filter.tendsto φ (𝓝 (0, 0)) (𝓝 0),
-  { have := continuous.tendsto hφ (0, 0),
+  { have := hφ.tendsto (0, 0),
     rwa [is_Z_bilin.zero φ] at this },
 
   have lim_φ_sub_sub : tendsto (λ (p : (β × β) × (δ × δ)), φ (p.1.2 - p.1.1, p.2.2 - p.2.1))
@@ -403,13 +399,10 @@ begin
     exact H _ _ (HU₁ (mk_mem_prod x_in x'_in)) (HV₁ (mk_mem_prod y_in y'_in)) },
   rcases this with ⟨U₁, U₁_nhd, V₁, V₁_nhd, H⟩,
 
-  have : ∃ x₁, x₁ ∈ U₁ := exists_mem_of_ne_empty
-    (forall_sets_neq_empty_iff_neq_bot.2 de.comap_nhds_neq_bot U₁ U₁_nhd),
-  rcases this with ⟨x₁, x₁_in⟩,
-
-  have : ∃ y₁, y₁ ∈ V₁ := exists_mem_of_ne_empty
-    (forall_sets_neq_empty_iff_neq_bot.2 df.comap_nhds_neq_bot V₁ V₁_nhd),
-  rcases this with ⟨y₁, y₁_in⟩,
+  obtain ⟨x₁, x₁_in⟩ : U₁.nonempty :=
+    (forall_sets_nonempty_iff_ne_bot.2 de.comap_nhds_ne_bot U₁ U₁_nhd),
+  obtain ⟨y₁, y₁_in⟩ : V₁.nonempty :=
+    (forall_sets_nonempty_iff_ne_bot.2 df.comap_nhds_ne_bot V₁ V₁_nhd),
 
   rcases (extend_Z_bilin_aux de df hφ W_nhd x₀ y₁) with ⟨U₂, U₂_nhd, HU⟩,
   rcases (extend_Z_bilin_aux df de (hφ.comp continuous_swap) W_nhd y₀ x₁) with ⟨V₂, V₂_nhd, HV⟩,
@@ -445,11 +438,10 @@ begin
   rintro ⟨x₀, y₀⟩,
   split,
   { apply map_ne_bot,
-    apply comap_neq_bot,
+    apply comap_ne_bot,
 
     intros U h,
-    rcases exists_mem_of_ne_empty (mem_closure_iff_nhds.1 ((de.prod df).dense (x₀, y₀)) U h)
-      with ⟨x, x_in, ⟨z, z_x⟩⟩,
+    rcases mem_closure_iff_nhds.1 ((de.prod df).dense (x₀, y₀)) U h with ⟨x, x_in, ⟨z, z_x⟩⟩,
     existsi z,
     cc },
   { suffices : map (λ (p : (β × δ) × (β × δ)), φ p.2 - φ p.1)

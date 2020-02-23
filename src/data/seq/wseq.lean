@@ -45,6 +45,8 @@ instance coe_stream : has_coe (stream α) (wseq α) := ⟨of_stream⟩
 /-- The empty weak sequence -/
 def nil : wseq α := seq.nil
 
+instance : inhabited (wseq α) := ⟨nil⟩
+
 /-- Prepend an element to a weak sequence -/
 def cons (a : α) : wseq α → wseq α := seq.cons (some a)
 

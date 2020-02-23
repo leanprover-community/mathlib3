@@ -9,10 +9,12 @@ open set
 universe u
 variables {α : Type u}
 
--- Default priority sufficient as core version has custom-set lower priority (100)
 /-- Core version `division_ring_has_div` erratically requires two instances of `division_ring` -/
+-- priority 900 sufficient as core version has custom-set lower priority (100)
+@[priority 900] -- see Note [lower instance priority]
 instance division_ring_has_div' [division_ring α] : has_div α := ⟨algebra.div⟩
 
+@[priority 100] -- see Note [lower instance priority]
 instance division_ring.to_domain [s : division_ring α] : domain α :=
 { eq_zero_or_eq_zero_of_mul_eq_zero := λ a b h,
     classical.by_contradiction $ λ hn,
@@ -43,8 +45,6 @@ def mk0 (a : α) (ha : a ≠ 0) : units α :=
 (mul_left_inj u).1 $ by rw [units.mul_inv, mul_inv_cancel]; apply units.ne_zero
 
 @[simp] theorem mk0_val (ha : a ≠ 0) : (mk0 a ha : α) = a := rfl
-
-@[simp] theorem mk0_inv (ha : a ≠ 0) : ((mk0 a ha)⁻¹ : α) = a⁻¹ := rfl
 
 @[simp] lemma mk0_coe (u : units α) (h : (u : α) ≠ 0) : mk0 (u : α) h = u :=
 units.ext rfl
@@ -122,6 +122,7 @@ lemma div_eq_iff_mul_eq (hb : b ≠ 0) : a / b = c ↔ c * b = a :=
 
 end division_ring
 
+@[priority 100] -- see Note [lower instance priority]
 instance field.to_integral_domain [F : field α] : integral_domain α :=
 { ..F, ..division_ring.to_domain }
 
@@ -162,8 +163,22 @@ lemma div_eq_div_iff (hb : b ≠ 0) (hd : d ≠ 0) : a / b = c / d ↔ a * d = c
 by rw [← mul_assoc, div_mul_cancel _ hb,
        ← mul_assoc, mul_right_comm, div_mul_cancel _ hd]
 
+lemma div_eq_iff (hb : b ≠ 0) : a / b = c ↔ a = c * b :=
+by simpa using @div_eq_div_iff _ _ a b c 1 hb one_ne_zero
+
+lemma eq_div_iff (hb : b ≠ 0) : c = a / b ↔ c * b = a :=
+by simpa using @div_eq_div_iff _ _ c 1 a b one_ne_zero hb
+
 lemma field.div_div_cancel (ha : a ≠ 0) (hb : b ≠ 0) : a / (a / b) = b :=
 by rw [div_eq_mul_inv, inv_div ha hb, mul_div_cancel' _ ha]
+
+lemma add_div' (a b c : α) (hc : c ≠ 0) :
+  b + a / c = (b * c + a) / c :=
+by simpa using div_add_div b a one_ne_zero hc
+
+lemma div_add' (a b c : α) (hc : c ≠ 0) :
+  a / c + b = (a + b * c) / c :=
+by simpa using div_add_div b a one_ne_zero hc
 
 end
 
@@ -197,49 +212,92 @@ end
 
 end
 
-@[reducible] def is_field_hom {α β} [division_ring α] [division_ring β] (f : α → β) := is_ring_hom f
-
-namespace is_field_hom
-open is_ring_hom
+namespace ring_hom
 
 section
-variables {β : Type*} [division_ring α] [division_ring β]
-variables (f : α → β) [is_field_hom f] {x y : α}
+
+variables {β : Type*} [division_ring α] [division_ring β] (f : α →+* β) {x y : α}
 
 lemma map_ne_zero : f x ≠ 0 ↔ x ≠ 0 :=
-⟨mt $ λ h, h.symm ▸ map_zero f,
- λ x0 h, one_ne_zero $ calc
-    1 = f (x * x⁻¹) : by rw [mul_inv_cancel x0, map_one f]
-  ... = 0 : by rw [map_mul f, h, zero_mul]⟩
+⟨mt $ λ h, h.symm ▸ f.map_zero,
+ λ x0 h, one_ne_zero $ by rw [← f.map_one, ← mul_inv_cancel x0, f.map_mul, h, zero_mul]⟩
 
 lemma map_eq_zero : f x = 0 ↔ x = 0 :=
-by haveI := classical.dec; exact not_iff_not.1 (map_ne_zero f)
+by haveI := classical.dec; exact not_iff_not.1 f.map_ne_zero
 
 lemma map_inv' (h : x ≠ 0) : f x⁻¹ = (f x)⁻¹ :=
-(domain.mul_left_inj ((map_ne_zero f).2 h)).1 $
-by rw [mul_inv_cancel ((map_ne_zero f).2 h), ← map_mul f, mul_inv_cancel h, map_one f]
+(domain.mul_left_inj (f.map_ne_zero.2 h)).1 $
+by rw [mul_inv_cancel (f.map_ne_zero.2 h), ← f.map_mul, mul_inv_cancel h, f.map_one]
 
 lemma map_div' (h : y ≠ 0) : f (x / y) = f x / f y :=
-(map_mul f).trans $ congr_arg _ $ map_inv' f h
+(f.map_mul _ _).trans $ congr_arg _ $ f.map_inv' h
 
 lemma injective : function.injective f :=
-(is_add_group_hom.injective_iff _).2
+f.injective_iff.2
   (λ a ha, classical.by_contradiction $ λ ha0,
-    by simpa [ha, is_ring_hom.map_mul f, is_ring_hom.map_one f, zero_ne_one]
+    by simpa [ha, f.map_mul, f.map_one, zero_ne_one]
         using congr_arg f (mul_inv_cancel ha0))
 
 end
 
 section
-variables {β : Type*} [discrete_field α] [discrete_field β]
-variables (f : α → β) [is_field_hom f] {x y : α}
+
+variables {β : Type*} [discrete_field α] [discrete_field β] (f : α →+* β) {x y : α}
 
 lemma map_inv : f x⁻¹ = (f x)⁻¹ :=
 classical.by_cases (by rintro rfl; simp only [map_zero f, inv_zero]) (map_inv' f)
 
 lemma map_div : f (x / y) = f x / f y :=
-(map_mul f).trans $ congr_arg _ $ map_inv f
+(f.map_mul _ _).trans $ congr_arg _ $ map_inv f
+
+end
+end ring_hom
+
+namespace is_ring_hom
+open ring_hom (of)
+
+section
+variables {β : Type*} [division_ring α] [division_ring β]
+variables (f : α → β) [is_ring_hom f] {x y : α}
+
+@[simp] lemma map_ne_zero : f x ≠ 0 ↔ x ≠ 0 := (of f).map_ne_zero
+
+@[simp] lemma map_eq_zero : f x = 0 ↔ x = 0 := (of f).map_eq_zero
+
+lemma map_inv' (h : x ≠ 0) : f x⁻¹ = (f x)⁻¹ := (of f).map_inv' h
+
+lemma map_div' (h : y ≠ 0) : f (x / y) = f x / f y := (of f).map_div' h
+
+lemma injective : function.injective f := (of f).injective
 
 end
 
-end is_field_hom
+section
+variables {β : Type*} [discrete_field α] [discrete_field β]
+variables (f : α → β) [is_ring_hom f] {x y : α}
+
+@[simp] lemma map_inv : f x⁻¹ = (f x)⁻¹ := (of f).map_inv
+
+@[simp] lemma map_div : f (x / y) = f x / f y := (of f).map_div
+
+end
+
+end is_ring_hom
+
+section field_simp
+
+mk_simp_attribute field_simps "The simpset `field_simps` is used by the tactic `field_simp` to
+reduce an expression in a field to an expression of the form `n / d` where `n` and `d` are
+division-free."
+
+lemma mul_div_assoc' {α : Type*} [division_ring α] (a b c : α) : a * (b / c) = (a * b) / c :=
+by simp [mul_div_assoc]
+
+lemma neg_div' {α : Type*} [division_ring α] (a b : α) : - (b / a) = (-b) / a :=
+by simp [neg_div]
+
+attribute [field_simps] div_add_div_same inv_eq_one_div div_mul_eq_mul_div div_add' add_div'
+div_div_eq_div_mul mul_div_assoc' div_eq_div_iff div_eq_iff eq_div_iff mul_ne_zero'
+div_div_eq_mul_div neg_div' two_ne_zero
+
+end field_simp

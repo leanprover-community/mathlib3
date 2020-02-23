@@ -23,7 +23,7 @@ the notation B x y to refer to the function field, ie. B x y = B.bilin x y.
 
 ## References
 
-* https://en.wikipedia.org/wiki/Bilinear_form
+* <https://en.wikipedia.org/wiki/Bilinear_form>
 
 ## Tags
 
@@ -105,6 +105,8 @@ instance : add_comm_group (bilin_form R M) :=
                 bilin_smul_right := λ a x y, by rw [bilin_smul_right, mul_neg_eq_neg_mul_symm] },
   add_left_neg := by {intros, ext, unfold coe_fn has_coe_to_fun.coe bilin, rw neg_add_self},
   add_comm := by {intros, ext, unfold coe_fn has_coe_to_fun.coe bilin, rw add_comm} }
+
+instance : inhabited (bilin_form R M) := ⟨0⟩
 
 section
 

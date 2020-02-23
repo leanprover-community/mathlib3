@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Robert Y. Lewis, Mario Carneiro
 -/
 
-import data.padics.padic_numbers ring_theory.ideals data.int.modeq
+import data.int.modeq data.padics.padic_numbers ring_theory.ideals ring_theory.algebra
 
 /-!
 # p-adic integers
@@ -31,7 +31,7 @@ Coercions into ℤ_p are set up to work with the `norm_cast` tactic.
 
 * [F. Q. Gouêva, *p-adic numbers*][gouvea1997]
 * [R. Y. Lewis, *A formal proof of Hensel's lemma over the p-adic integers*][lewis2019]
-* https://en.wikipedia.org/wiki/P-adic_number
+* <https://en.wikipedia.org/wiki/P-adic_number>
 
 ## Tags
 
@@ -73,6 +73,8 @@ begin
            .. };
   {repeat {rintro ⟨_, _⟩}, simp [mul_assoc, left_distrib, right_distrib, add, mul, neg]}
 end
+
+instance : inhabited ℤ_[p] := ⟨0⟩
 
 lemma zero_def : ∀ x : ℤ_[p], x = 0 ↔ x.val = 0
 | ⟨x, _⟩ := ⟨subtype.mk.inj, λ h, by simp at h; simp only [h]; refl⟩
@@ -139,7 +141,7 @@ instance : normed_ring ℤ_[p] :=
 instance padic_norm_z.is_absolute_value : is_absolute_value (λ z : ℤ_[p], ∥z∥) :=
 { abv_nonneg := norm_nonneg,
   abv_eq_zero := λ ⟨_, _⟩, by simp [norm_eq_zero, padic_int.zero_def],
-  abv_add := λ ⟨_,_⟩ ⟨_, _⟩, norm_triangle _ _,
+  abv_add := λ ⟨_,_⟩ ⟨_, _⟩, norm_add_le _ _,
   abv_mul := λ _ _, by unfold norm; simp [padic_norm_z] }
 
 protected lemma padic_int.pmul_comm : ∀ z1 z2 : ℤ_[p], z1*z2 = z2*z1
@@ -271,6 +273,14 @@ instance complete : cau_seq.is_complete ℤ_[p] norm :=
     from padic_norm_e_lim_le zero_lt_one (λ _, padic_norm_z.le_one _),
   ⟨ ⟨_, hqn⟩,
     λ ε, by simpa [norm, padic_norm_z] using cau_seq.equiv_lim (cau_seq_to_rat_cau_seq f) ε⟩⟩
+
+instance is_ring_hom_coe : is_ring_hom (coe : ℤ_[p] → ℚ_[p]) :=
+{ map_one := rfl,
+  map_mul := coe_mul,
+  map_add := coe_add }
+
+instance : algebra ℤ_[p] ℚ_[p] :=
+@algebra.of_ring_hom ℤ_[p] _ _ _ (coe) padic_int.is_ring_hom_coe
 
 end padic_int
 

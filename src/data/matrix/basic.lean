@@ -8,7 +8,7 @@ Matrices
 import algebra.module algebra.pi_instances
 import data.fintype
 
-universes u v
+universes u v w
 
 def matrix (m n : Type u) [fintype m] [fintype n] (α : Type v) : Type (max u v) :=
 m → n → α
@@ -39,6 +39,7 @@ def col (w : m → α) : matrix m punit α
 def row (v : n → α) : matrix punit n α
 | x y := v y
 
+instance [inhabited α] : inhabited (matrix m n α) := pi.inhabited _
 instance [has_add α] : has_add (matrix m n α) := pi.has_add
 instance [add_semigroup α] : add_semigroup (matrix m n α) := pi.add_semigroup
 instance [add_comm_semigroup α] : add_comm_semigroup (matrix m n α) := pi.add_comm_semigroup
@@ -173,13 +174,13 @@ instance [decidable_eq n] : semiring (matrix n n α) :=
   ..matrix.add_comm_monoid,
   ..matrix.monoid }
 
-@[simp] theorem diagonal_mul_diagonal' [decidable_eq n] (d₁ d₂ : n → α) :
+@[simp] theorem diagonal_mul_diagonal [decidable_eq n] (d₁ d₂ : n → α) :
   (diagonal d₁) ⬝ (diagonal d₂) = diagonal (λ i, d₁ i * d₂ i) :=
 by ext i j; by_cases i = j; simp [h]
 
-theorem diagonal_mul_diagonal [decidable_eq n] (d₁ d₂ : n → α) :
+theorem diagonal_mul_diagonal' [decidable_eq n] (d₁ d₂ : n → α) :
   diagonal d₁ * diagonal d₂ = diagonal (λ i, d₁ i * d₂ i) :=
-diagonal_mul_diagonal' _ _
+diagonal_mul_diagonal _ _
 
 lemma is_add_monoid_hom_mul_left (M : matrix l m α) :
   is_add_monoid_hom (λ x : matrix m n α, M ⬝ x) :=
@@ -191,14 +192,14 @@ lemma is_add_monoid_hom_mul_right (M : matrix m n α) :
 
 protected lemma sum_mul {β : Type*} (s : finset β) (f : β → matrix l m α)
   (M : matrix m n α) : s.sum f ⬝ M = s.sum (λ a, f a ⬝ M) :=
-(@finset.sum_hom _ _ _ s f _ _ (λ x, x ⬝ M)
+(@finset.sum_hom _ _ _ _ _ s f (λ x, x ⬝ M)
 /- This line does not type-check without `id` and `: _`. Lean did not recognize that two different
   `add_monoid` instances were def-eq -/
   (id (@is_add_monoid_hom_mul_right l _ _ _ _ _ _ _ M) : _)).symm
 
 protected lemma mul_sum {β : Type*} (s : finset β) (f : β → matrix m n α)
   (M : matrix l m α) :  M ⬝ s.sum f = s.sum (λ a, M ⬝ f a) :=
-(@finset.sum_hom _ _ _ s f _ _ (λ x, M ⬝ x)
+(@finset.sum_hom _ _ _ _ _ s f (λ x, M ⬝ x)
 /- This line does not type-check without `id` and `: _`. Lean did not recognize that two different
   `add_monoid` instances were def-eq -/
   (id (@is_add_monoid_hom_mul_left _ _ n _ _ _ _ _ M) : _)).symm
@@ -220,12 +221,21 @@ instance [decidable_eq n] [ring α] : ring (matrix n n α) :=
 { ..matrix.add_comm_group, ..matrix.semiring }
 
 instance [semiring α] : has_scalar α (matrix m n α) := pi.has_scalar
-instance [ring α] : module α (matrix m n α) := pi.module _
+instance {β : Type w} [ring α] [add_comm_group β] [module α β] :
+  module α (matrix m n β) := pi.module _
 
 @[simp] lemma smul_val [semiring α] (a : α) (A : matrix m n α) (i : m) (j : n) : (a • A) i j = a * A i j := rfl
 
 section comm_ring
 variables [comm_ring α]
+
+lemma smul_eq_diagonal_mul [decidable_eq m] (M : matrix m n α) (a : α) :
+  a • M = diagonal (λ _, a) ⬝ M :=
+by { ext, simp }
+
+lemma smul_eq_mul_diagonal [decidable_eq n] (M : matrix m n α) (a : α) :
+  a • M = M ⬝ diagonal (λ _, a) :=
+by { ext, simp [mul_comm] }
 
 @[simp] lemma mul_smul (M : matrix m n α) (a : α) (N : matrix n l α) : M ⬝ (a • N) = a • M ⬝ N :=
 begin
@@ -282,6 +292,9 @@ begin
   { rw [diagonal_val_eq] }
 end
 
+@[simp] lemma mul_vec_one [decidable_eq m] (v : m → α) : mul_vec 1 v = v :=
+by { ext, rw [←diagonal_one, mul_vec_diagonal, one_mul] }
+
 lemma vec_mul_vec_eq (w : m → α) (v : n → α) :
   vec_mul_vec w v = (col w) ⬝ (row v) :=
 by simp [matrix.mul]; refl
@@ -292,6 +305,13 @@ section transpose
 
 open_locale matrix
 
+/--
+  Tell `simp` what the entries are in a transposed matrix.
+
+  Compare with `mul_val`, `diagonal_val_eq`, etc.
+-/
+@[simp] lemma transpose_val (M : matrix m n α) (i j) : M.transpose j i = M i j := rfl
+
 @[simp] lemma transpose_transpose (M : matrix m n α) :
   Mᵀᵀ = M :=
 by ext; refl
@@ -299,13 +319,18 @@ by ext; refl
 @[simp] lemma transpose_zero [has_zero α] : (0 : matrix m n α)ᵀ = 0 :=
 by ext i j; refl
 
-@[simp] lemma transpose_add [has_add α] (M : matrix m n α) (N : matrix m n α) :
-  (M + N)ᵀ = Mᵀ + Nᵀ  :=
+@[simp] lemma transpose_one [decidable_eq n] [has_zero α] [has_one α] : (1 : matrix n n α)ᵀ = 1 :=
 begin
   ext i j,
-  dsimp [transpose],
-  refl
+  unfold has_one.one transpose,
+  by_cases i = j,
+  { simp only [h, diagonal_val_eq] },
+  { simp only [diagonal_val_ne h, diagonal_val_ne (λ p, h (symm p))] }
 end
+
+@[simp] lemma transpose_add [has_add α] (M : matrix m n α) (N : matrix m n α) :
+  (M + N)ᵀ = Mᵀ + Nᵀ  :=
+by { ext i j, simp }
 
 @[simp] lemma transpose_mul [comm_ring α] (M : matrix m n α) (N : matrix n l α) :
   (M ⬝ N)ᵀ = Nᵀ ⬝ Mᵀ  :=
@@ -316,6 +341,10 @@ begin
   ext,
   ac_refl
 end
+
+@[simp] lemma transpose_smul [comm_ring α] (c : α)(M : matrix m n α) :
+  (c • M)ᵀ = c • Mᵀ := 
+by { ext i j, refl }
 
 @[simp] lemma transpose_neg [comm_ring α] (M : matrix m n α) :
   (- M)ᵀ = - Mᵀ  :=

@@ -25,14 +25,17 @@ open io io.fs
 /-- Defines the list of linters that will be considered. -/
 meta def active_linters :=
 [`linter.unused_arguments, `linter.dup_namespace, `linter.doc_blame,
- `linter.illegal_constants, `linter.def_lemma, `linter.instance_priority]
+ `linter.ge_or_gt, `linter.def_lemma, `linter.instance_priority, --`linter.has_inhabited_instance,
+ `linter.impossible_instance, `linter.incorrect_type_class_argument, `linter.dangerous_instance,
+ `linter.inhabited_nonempty]
 
 /-- Runs when called with `lean --run` -/
 meta def main : io unit :=
 do (ns, _) ← run_tactic $ lint_mathlib tt tt active_linters tt,
    handle ← mk_file_handle "nolints.txt" mode.write,
    put_str_ln handle "import .all",
-   put_str_ln handle "attribute [nolint]",
+   put_str_ln handle "run_cmd tactic.skip",
+   put_str_ln handle "apply_nolint",
    (ns.to_list.merge_sort (λ a b, name.lex_cmp a b = ordering.lt)).mmap $
      λ n, put_str_ln handle (to_string n) >> return n,
    close handle

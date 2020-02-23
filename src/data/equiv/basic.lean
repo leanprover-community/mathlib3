@@ -70,6 +70,9 @@ protected theorem surjective : ∀ f : α ≃ β, surjective f
 protected theorem bijective (f : α ≃ β) : bijective f :=
 ⟨f.injective, f.surjective⟩
 
+@[simp] lemma range_eq_univ {α : Type*} {β : Type*} (e : α ≃ β) : set.range e = set.univ :=
+set.eq_univ_of_forall e.surjective
+
 protected theorem subsingleton (e : α ≃ β) : ∀ [subsingleton β], subsingleton α
 | ⟨H⟩ := ⟨λ a b, e.injective (H _ _)⟩
 
@@ -260,7 +263,10 @@ rfl
   (e₁.trans e₂).conj = e₁.conj.trans e₂.conj :=
 rfl
 
-@[simp] lemma conj_comp (e : α ≃ β) (f₁ f₂ : α → α) :
+-- This should not be a simp lemma as long as `(∘)` is reducible:
+-- when `(∘)` is reducible, Lean can unify `f₁ ∘ f₂` with any `g` using
+-- `f₁ := g` and `f₂ := λ x, x`.  This causes nontermination.
+lemma conj_comp (e : α ≃ β) (f₁ f₂ : α → α) :
   e.conj (f₁ ∘ f₂) = (e.conj f₁) ∘ (e.conj f₂) :=
 by apply arrow_congr_comp
 

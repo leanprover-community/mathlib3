@@ -17,6 +17,8 @@ universe u
     morphisms are binary relations. -/
 def Rel := Type u
 
+instance Rel.inhabited : inhabited Rel := by unfold Rel; apply_instance
+
 /-- The category of types with binary relations as morphisms. -/
 -- We must work in `Type u` rather than `Sort u`, because
 -- `X → Y → Prop` is in `Sort (max u 1)`.

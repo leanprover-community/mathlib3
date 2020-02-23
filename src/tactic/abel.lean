@@ -259,6 +259,8 @@ do (e', p) ← eval c e, return (e', p)
 @[derive has_reflect]
 inductive normalize_mode | raw | term
 
+instance : inhabited normalize_mode := ⟨normalize_mode.term⟩
+
 meta def normalize (mode := normalize_mode.term) (e : expr) : tactic (expr × expr) := do
 pow_lemma ← simp_lemmas.mk.add_simp ``pow_one,
 let lemmas := match mode with

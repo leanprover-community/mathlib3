@@ -82,6 +82,8 @@ instance [comm_monoid α] (p : ℕ) : comm_monoid (perfect_closure α p) :=
     congr_arg (quot.mk _) $ by simp only [add_comm, mul_comm])),
   .. (infer_instance : has_mul (perfect_closure α p)) }
 
+instance [comm_monoid α] (p) : inhabited (perfect_closure α p) := ⟨1⟩
+
 private lemma add_aux_left [comm_ring α] (p : ℕ) (hp : nat.prime p) [char_p α p]
   (x1 x2 y : ℕ × α) (H : r α p x1 x2) :
   quot.mk (r α p) (x1.1 + y.1, ((frobenius α p)^[y.1] x1.2) + ((frobenius α p)^[x1.1] y.2)) =
@@ -150,7 +152,7 @@ instance [comm_ring α] (p : ℕ) [nat.prime p] [char_p α p] : comm_ring (perfe
 
 instance [discrete_field α] (p : ℕ) [nat.prime p] [char_p α p] : has_inv (perfect_closure α p) :=
 ⟨quot.lift (λ x:ℕ×α, quot.mk (r α p) (x.1, x.2⁻¹)) (λ x y (H : r α p x y), match x, y, H with
-| _, _, r.intro _ n x := quot.sound $ by simp only [frobenius]; rw inv_pow'; apply r.intro
+| _, _, r.intro _ n x := quot.sound $ by simp only [frobenius]; rw ← inv_pow'; apply r.intro
 end)⟩
 
 theorem eq_iff' [comm_ring α] (p : ℕ) [nat.prime p] [char_p α p]

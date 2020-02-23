@@ -180,7 +180,7 @@ begin
   have : i ≠ i', { rintro rfl, apply not_le_of_lt (hi' 0).2, rw [hp0], refl },
   have := h.1 i i' this, rw [on_fun, to_set_disjoint, exists_fin_succ] at this,
   rcases this with h0|⟨j, hj⟩,
-  rw [hp0], symmetry, apply eq_of_Ico_disjoint h0 (by simp [hw]) (by simp [hw]) _,
+  rw [hp0], symmetry, apply eq_of_Ico_disjoint h0 (by simp [hw]) _,
   convert hi' 0, rw [hp0], refl,
   exfalso, apply not_disjoint_iff.mpr ⟨tail p j, hps j, hi' j.succ⟩ hj
 end
@@ -279,17 +279,16 @@ begin
 end
 
 /-- There is a cube in the valley -/
-lemma nonempty_bcubes : nonempty (bcubes cs c) :=
+lemma nonempty_bcubes : (bcubes cs c).nonempty :=
 begin
-  rw [←ne_zero_iff_nonempty], intro h', have := two_le_mk_bcubes h v, rw h' at this,
-  apply not_lt_of_le this, rw [←nat.cast_two, ←nat.cast_zero, nat_cast_lt], norm_num
+  rw [←set.ne_empty_iff_nonempty], intro h', have := two_le_mk_bcubes h v, rw h' at this,
+  apply not_lt_of_le this, rw mk_emptyc, norm_cast, norm_num
 end
 
 /-- There is a smallest cube in the valley -/
 lemma exists_mi : ∃(i : ι), i ∈ bcubes cs c ∧ ∀(i' ∈ bcubes cs c),
   (cs i).w ≤ (cs i').w :=
-(bcubes cs c).exists_min (λ i, (cs i).w) (finite.of_fintype _)
-  (nonempty_bcubes h v)
+by simpa using (bcubes cs c).exists_min (λ i, (cs i).w) (finite.of_fintype _) (nonempty_bcubes h v)
 
 /-- We let `mi` be the (index for the) smallest cube in the valley `c` -/
 def mi : ι := classical.some $ exists_mi h v
@@ -335,9 +334,9 @@ begin
     apply lt_of_lt_of_le (add_lt_add_left (mi_strict_minimal i'_i.symm hi') _),
     simp [bi.symm, b_le_b hi'] },
   let s := bcubes cs c \ { i },
-  have hs : nonempty s,
+  have hs : s.nonempty,
   { rcases (two_le_iff' (⟨i, hi⟩ : bcubes cs c)).mp (two_le_mk_bcubes h v) with ⟨⟨i', hi'⟩, h2i'⟩,
-    refine ⟨⟨i', hi', _⟩⟩, simp only [mem_singleton_iff], intro h, apply h2i', simp [h] },
+    refine ⟨i', hi', _⟩, simp only [mem_singleton_iff], intro h, apply h2i', simp [h] },
   rcases set.exists_min s (w ∘ cs) (finite.of_fintype _) hs with ⟨i', ⟨hi', h2i'⟩, h3i'⟩,
   rw [mem_singleton_iff] at h2i',
   let x := c.b j.succ + c.w - (cs i').w,
@@ -443,7 +442,7 @@ begin
       { intro j', by_cases h : j' = j, simp [if_pos h, side_tail], convert hw,
         simp [if_neg h], apply hi.2, apply h2p2 }},
     rcases this with ⟨p3, h1p3, h2p3, h3p3⟩,
-    let p := cons (c.b 0) p3,
+    let p := @cons n (λ_, ℝ) (c.b 0) p3,
     have hp : p ∈ c.bottom, { refine ⟨rfl, _⟩, rwa [tail_cons] },
     rcases v.1 hp with ⟨_, ⟨i'', rfl⟩, hi''⟩,
     have h2i'' : i'' ∈ bcubes cs c,
@@ -451,7 +450,7 @@ begin
       use tail p, split, exact hi''.2, rw [tail_cons], exact h3p3 },
     have h3i'' : (cs i).w < (cs i'').w,
     { apply mi_strict_minimal _ h2i'', rintro rfl, apply h2p3, convert hi''.2, rw [tail_cons] },
-    let p' := cons (cs i).xm p3,
+    let p' := @cons n (λ_, ℝ) (cs i).xm p3,
     have hp' : p' ∈ (cs i').to_set,
     { simpa [to_set, forall_fin_succ, p', hi'.symm] using h1p3 },
     have h2p' : p' ∈ (cs i'').to_set,

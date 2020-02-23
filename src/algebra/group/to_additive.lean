@@ -109,7 +109,7 @@ do let n := src.mk_string "_to_additive",
    add_decl decl,
    aux_attr.set n tgt tt
 
-@[derive has_reflect]
+@[derive has_reflect, derive inhabited]
 structure value_type := (tgt : name) (doc : option string)
 
 meta def tokens_dict : native.rb_map string string :=
@@ -162,7 +162,7 @@ do
 
 meta def proceed_fields (env : environment) (src tgt : name) (prio : ℕ) : command :=
 let aux := proceed_fields_aux src tgt prio in
-do 
+do
 aux (λ n, pure $ list.map name.to_string $ (env.structure_fields n).get_or_else []) >>
 aux (λ n, (list.map (λ (x : name), "to_" ++ x.to_string) <$>
                             (ancestor_attr.get_param n <|> pure []))) >>

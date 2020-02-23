@@ -50,6 +50,8 @@ variables [comm_ring R] [add_comm_group M] [module R M]
 
 namespace dual
 
+instance : inhabited (dual R M) := by unfold dual; apply_instance
+
 instance : has_coe_to_fun (dual R M) := ⟨_, linear_map.to_fun⟩
 
 /-- Maps a module M to the dual of the dual of M. See `vector_space.eval_range` and
@@ -143,7 +145,7 @@ begin
     apply h.ext,
     { intros i,
       rw [h.to_dual_eq_repr _ i, repr_total h],
-      { simpa },
+      { refl },
       { rw [finsupp.mem_supported],
         exact λ _ _, set.mem_univ _ } } },
   { intros a _,

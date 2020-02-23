@@ -201,10 +201,12 @@ is_iso.of_iso $ (as_iso f) ≪≫ (as_iso h)
 @[simp] lemma iso.inv_inv (f : X ≅ Y) : inv (f.inv) = f.hom := rfl
 @[simp] lemma iso.inv_hom (f : X ≅ Y) : inv (f.hom) = f.inv := rfl
 
+@[priority 100] -- see Note [lower instance priority]
 instance epi_of_iso (f : X ⟶ Y) [is_iso f] : epi f  :=
 { left_cancellation := λ Z g h w,
   -- This is an interesting test case for better rewrite automation.
   by rw [← is_iso.inv_hom_id_assoc f g, w, is_iso.inv_hom_id_assoc f h] }
+@[priority 100] -- see Note [lower instance priority]
 instance mono_of_iso (f : X ⟶ Y) [is_iso f] : mono f :=
 { right_cancellation := λ Z g h w,
   by rw [←category.comp_id C g, ←category.comp_id C h, ←is_iso.hom_inv_id f, ←category.assoc, w, ←category.assoc] }
@@ -263,13 +265,13 @@ is_iso.of_iso $ F.map_iso (as_iso f)
   F.map (inv f) = inv (F.map f) :=
 rfl
 
-@[simp] lemma map_hom_inv (F : C ⥤ D) {X Y : C} (f : X ⟶ Y) [is_iso f] :
+lemma map_hom_inv (F : C ⥤ D) {X Y : C} (f : X ⟶ Y) [is_iso f] :
   F.map f ≫ F.map (inv f) = 𝟙 (F.obj X) :=
-by rw [map_inv, is_iso.hom_inv_id]
+by simp
 
-@[simp] lemma map_inv_hom (F : C ⥤ D) {X Y : C} (f : X ⟶ Y) [is_iso f] :
+lemma map_inv_hom (F : C ⥤ D) {X Y : C} (f : X ⟶ Y) [is_iso f] :
   F.map (inv f) ≫ F.map f = 𝟙 (F.obj Y) :=
-by rw [map_inv, is_iso.inv_hom_id]
+by simp
 
 end functor
 

@@ -20,7 +20,8 @@ export list (tfae)
 
 namespace tfae
 
-@[derive has_reflect] inductive arrow : Type
+@[derive has_reflect, derive inhabited]
+inductive arrow : Type
 | right      : arrow
 | left_right : arrow
 | left       : arrow

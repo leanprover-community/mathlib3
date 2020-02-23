@@ -8,6 +8,8 @@ import logic.basic data.bool data.option.defs tactic.basic
 namespace option
 variables {α : Type*} {β : Type*} {γ : Type*}
 
+lemma some_ne_none (x : α) : some x ≠ none := λ h, option.no_confusion h
+
 @[simp] theorem get_mem : ∀ {o : option α} (h : is_some o), option.get h ∈ o
 | (some a) _ := rfl
 
@@ -130,6 +132,16 @@ by cases o; simp
 lemma ne_none_iff_is_some {o : option α} : o ≠ none ↔ o.is_some :=
 by cases o; simp
 
+lemma bex_ne_none {p : option α → Prop} :
+  (∃ x ≠ none, p x) ↔ ∃ x, p (some x) :=
+⟨λ ⟨x, hx, hp⟩, ⟨get $ ne_none_iff_is_some.1 hx, by rwa [some_get]⟩,
+  λ ⟨x, hx⟩, ⟨some x, some_ne_none x, hx⟩⟩
+
+lemma ball_ne_none {p : option α → Prop} :
+  (∀ x ≠ none, p x) ↔ ∀ x, p (some x) :=
+⟨λ h x, h (some x) (some_ne_none x),
+  λ h x hx, by simpa only [some_get] using h (get $ ne_none_iff_is_some.1 hx)⟩
+
 theorem iget_mem [inhabited α] : ∀ {o : option α}, is_some o → o.iget ∈ o
 | (some a) _ := rfl
 
@@ -150,5 +162,14 @@ theorem lift_or_get_choice {f : α → α → α} (h : ∀ a b, f a b = a ∨ f 
 | (some a) none     := or.inl rfl
 | none     (some b) := or.inr rfl
 | (some a) (some b) := by simpa [lift_or_get] using h a b
+
+@[simp] lemma lift_or_get_none_left {f} {b : option α} : lift_or_get f none b = b :=
+by cases b; refl
+
+@[simp] lemma lift_or_get_none_right {f} {a : option α} : lift_or_get f a none = a :=
+by cases a; refl
+
+@[simp] lemma lift_or_get_some_some {f} {a b : α} :
+  lift_or_get f (some a) (some b) = f a b := rfl
 
 end option

@@ -131,6 +131,7 @@ theorem is_maximal.is_prime {I : ideal α} (H : I.is_maximal) : I.is_prime :=
   exact I.neg_mem_iff.1 ((I.add_mem_iff_right $ I.mul_mem_left hxy).1 this)
 end⟩
 
+@[priority 100] -- see Note [lower instance priority]
 instance is_maximal.is_prime' (I : ideal α) : ∀ [H : I.is_maximal], I.is_prime := is_maximal.is_prime
 
 theorem exists_le_maximal (I : ideal α) (hI : I ≠ ⊤) :
@@ -351,13 +352,14 @@ begin
   use [I, Imax], apply H, apply ideal.subset_span, exact set.mem_singleton a
 end
 
+section prio
+set_option default_priority 100 -- see Note [default priority]
 class local_ring (α : Type u) extends nonzero_comm_ring α :=
 (is_local : ∀ (a : α), (is_unit a) ∨ (is_unit (1 - a)))
+end prio
 
 namespace local_ring
 variable [local_ring α]
-
-instance : comm_ring α := by apply_instance
 
 lemma is_unit_or_is_unit_one_sub_self (a : α) :
   (is_unit a) ∨ (is_unit (1 - a)) :=
@@ -455,8 +457,11 @@ have xmemI : x ∈ I, from ((Iuniq Ix Ixmax) ▸ Hx),
 have ymemI : y ∈ I, from ((Iuniq Iy Iymax) ▸ Hy),
 Imax.1 $ I.eq_top_of_is_unit_mem (I.add_mem xmemI ymemI) H
 
+section prio
+set_option default_priority 100 -- see Note [default priority]
 class is_local_ring_hom [comm_ring α] [comm_ring β] (f : α → β) extends is_ring_hom f : Prop :=
 (map_nonunit : ∀ a, is_unit (f a) → is_unit a)
+end prio
 
 @[simp] lemma is_unit_of_map_unit [comm_ring α] [comm_ring β] (f : α → β) [is_local_ring_hom f]
   (a) (h : is_unit (f a)) : is_unit a :=
@@ -493,8 +498,8 @@ begin
   exact map_nonunit f a ha
 end
 
-instance map.is_field_hom (f : α → β) [is_local_ring_hom f] :
-  is_field_hom (map f) :=
+instance map.is_ring_hom (f : α → β) [is_local_ring_hom f] :
+  is_ring_hom (map f) :=
 ideal.quotient.is_ring_hom
 
 end residue_field
@@ -504,6 +509,7 @@ end local_ring
 namespace discrete_field
 variables [discrete_field α]
 
+@[priority 100] -- see Note [lower instance priority]
 instance : local_ring α :=
 { is_local := λ a,
   if h : a = 0

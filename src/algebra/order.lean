@@ -96,9 +96,17 @@ lemma le_of_forall_lt [linear_order α] {a b : α}
   (H : ∀ c, c < a → c < b) : a ≤ b :=
 le_of_not_lt $ λ h, lt_irrefl _ (H _ h)
 
+lemma forall_lt_iff_le [linear_order α] {a b : α} :
+  (∀ ⦃c⦄, c < a → c < b) ↔ a ≤ b :=
+⟨le_of_forall_lt, λ h c hca, lt_of_lt_of_le hca h⟩
+
 lemma le_of_forall_lt' [linear_order α] {a b : α}
   (H : ∀ c, a < c → b < c) : b ≤ a :=
 le_of_not_lt $ λ h, lt_irrefl _ (H _ h)
+
+lemma forall_lt_iff_le' [linear_order α] {a b : α} :
+  (∀ ⦃c⦄, a < c → b < c) ↔ b ≤ a :=
+⟨le_of_forall_lt', λ h c hac, lt_of_le_of_lt h hac⟩
 
 lemma eq_of_forall_ge_iff [partial_order α] {a b : α}
   (H : ∀ c, a ≤ c ↔ b ≤ c) : a = b :=
@@ -166,9 +174,6 @@ lemma le_imp_le_iff_lt_imp_lt {β} [linear_order α] [decidable_linear_order β]
 lemma le_iff_le_iff_lt_iff_lt {β} [decidable_linear_order α] [decidable_linear_order β]
   {a b : α} {c d : β} : (a ≤ b ↔ c ≤ d) ↔ (b < a ↔ d < c) :=
 ⟨lt_iff_lt_of_le_iff_le, λ H, not_lt.symm.trans $ iff.trans (not_congr H) $ not_lt⟩
-
-lemma min_le_max [decidable_linear_order α] (a b : α) : min a b ≤ max a b :=
-le_trans (min_le_left a b) (le_max_left a b)
 
 end decidable
 

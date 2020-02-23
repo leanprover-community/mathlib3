@@ -95,7 +95,7 @@ def model_with_corners_euclidean_half_space (n : ℕ) [has_zero (fin n)] :
     simp [hi, xprop]
   end,
   right_inv := λx hx, begin
-    simp [range_half_space] at hx,
+    simp at hx,
     ext1 i,
     by_cases hi : i = 0;
     simp [hi, hx]

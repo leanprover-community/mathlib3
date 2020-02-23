@@ -1334,11 +1334,11 @@ set.ext $ assume a,
 ⟨assume ⟨⟨a', ha'⟩, in_s, h_eq⟩, h_eq ▸ ⟨ha', in_s⟩,
   assume ⟨ha, in_s⟩, ⟨⟨a, ha⟩, in_s, rfl⟩⟩
 
-lemma val_range {p : α → Prop} :
+@[simp] lemma val_range {p : α → Prop} :
   set.range (@subtype.val _ p) = {x | p x} :=
 by rw ← set.image_univ; simp [-set.image_univ, val_image]
 
-@[simp] lemma range_val (s : set α) : range (subtype.val : s → α) = s :=
+lemma range_val (s : set α) : range (subtype.val : s → α) = s :=
 val_range
 
 theorem val_image_subset (s : set α) (t : set (subtype s)) : t.image val ⊆ s :=

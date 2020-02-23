@@ -11,7 +11,8 @@ import tactic.basic tactic.finish data.subtype logic.unique
 # Basic properties of sets
 
 Sets in Lean are homogeneous; all their elements have the same type. Sets whose elements
-have type `X` are thus defined as `set X := X → Prop`. The definition is in the core library.
+have type `X` are thus defined as `set X := X → Prop`. Note that this function need not
+be decidable. The definition is in the core library.
 
 This file provides some basic definitions related to sets and functions not present in the core
 library, as well as extra lemmas for functions in the core library (empty set, univ, union,
@@ -26,9 +27,13 @@ See also the file `set_theory/zfc.lean`, which contains an encoding of ZFC set t
 
 Notation used here:
 
-  `f : α → β` is a function,
-  `s : set α` and `s₁ s₂ : set α` are subsets of `α`
-  `t : set β` is a subset of `β`.
+-  `f : α → β` is a function,
+
+-  `s : set α` and `s₁ s₂ : set α` are subsets of `α`
+
+-  `t : set β` is a subset of `β`.
+
+Definitions in the file:
 
 * `strict_subset s₁ s₂ : Prop` : the predicate `s₁ ⊆ s₂` but `s₁ ≠ s₂`.
 

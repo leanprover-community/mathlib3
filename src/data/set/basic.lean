@@ -1599,6 +1599,9 @@ lemma inclusion_injective {s t : set α} (h : s ⊆ t) :
   function.injective (inclusion h)
 | ⟨_, _⟩ ⟨_, _⟩ := subtype.ext.2 ∘ subtype.ext.1
 
+lemma range_inclusion {s t : set α} (h : s ⊆ t) : range (inclusion h) = {x : t | (x:α) ∈ s} :=
+ext $ λ ⟨x, hx⟩ , by simp [inclusion]
+
 end inclusion
 
 end set

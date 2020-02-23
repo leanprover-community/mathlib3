@@ -57,6 +57,9 @@ def of_homs {I : Type u₁} {F G : discrete I ⥤ C}
   (f : Π i : discrete I, F.obj i ⟶ G.obj i) : F ⟶ G :=
 { app := f }
 
+@[simp] lemma of_homs_app  {I : Type u₁} {F G : discrete I ⥤ C} (f : Π i : discrete I, F.obj i ⟶ G.obj i) (i) :
+  (of_homs f).app i = f i := rfl
+
 def of_function {I : Type u₁} {F G : I → C} (f : Π i : I, F i ⟶ G i) :
   (functor.of_function F) ⟶ (functor.of_function G) :=
 of_homs f

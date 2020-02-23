@@ -39,7 +39,7 @@ theorem succ_le_succ_iff {m n : ℕ} : succ m ≤ succ n ↔ m ≤ n :=
 ⟨le_of_succ_le_succ, succ_le_succ⟩
 
 lemma zero_max {m : nat} : max 0 m = m :=
-max_eq_right (zero_le _)
+rfl
 
 theorem max_succ_succ {m n : ℕ} :
   max (succ m) (succ n) = succ (max m n) :=

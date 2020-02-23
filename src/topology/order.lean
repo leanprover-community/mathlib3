@@ -304,10 +304,10 @@ lemma coinduced_mono (h : t₁ ≤ t₂) : t₁.coinduced f ≤ t₂.coinduced f
 (gc_coinduced_induced g).u_infi
 
 @[simp] lemma coinduced_bot : (⊥ : topological_space α).coinduced f = ⊥ :=
-(gc_coinduced_induced f).l_bot
+rfl
 
 @[simp] lemma coinduced_sup : (t₁ ⊔ t₂).coinduced f = t₁.coinduced f ⊔ t₂.coinduced f :=
-(gc_coinduced_induced f).l_sup
+rfl
 
 @[simp] lemma coinduced_supr {ι : Sort w} {t : ι → topological_space α} :
   (⨆i, t i).coinduced f = (⨆i, (t i).coinduced f) :=
@@ -328,7 +328,7 @@ topological_space_eq rfl
 
 lemma coinduced_compose [tα : topological_space α]
   {f : α → β} {g : β → γ} : (tα.coinduced f).coinduced g = tα.coinduced (g ∘ f) :=
-topological_space_eq rfl
+rfl
 
 end galois_connection
 

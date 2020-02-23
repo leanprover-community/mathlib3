@@ -325,7 +325,7 @@ funext $ λ x, ext.mpr $ by { rw [comap_as_ideal], apply ideal.ext, intros r, si
 
 @[simp] lemma comap_comp (f : R →+* S) (g : S →+* S') :
   comap (g.comp f) = comap f ∘ comap g :=
-funext $ λ x, ext.mpr $ by { simp, refl }
+rfl
 
 @[simp] lemma preimage_comap_zero_locus (s : set R) :
   (comap f) ⁻¹' (zero_locus s) = zero_locus (f '' s) :=

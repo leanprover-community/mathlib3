@@ -114,7 +114,7 @@ by refine {to_fun := λc, ⟨f c, h c⟩, ..}; intros; apply set_coe.ext; simp
 
 @[simp] lemma comp_cod_restrict (p : submodule R M₂) (h : ∀b, f b ∈ p) (g : M₃ →ₗ[R] M) :
   (cod_restrict p f h).comp g = cod_restrict p (f.comp g) (assume b, h _) :=
-ext $ assume b, rfl
+rfl
 
 @[simp] lemma subtype_comp_cod_restrict (p : submodule R M₂) (h : ∀b, f b ∈ p) :
   p.subtype.comp (cod_restrict p f h) = f :=
@@ -356,7 +356,7 @@ variables (p p')
 
 lemma subtype_comp_of_le (p q : submodule R M) (h : p ≤ q) :
   (submodule.subtype q).comp (of_le h) = submodule.subtype p :=
-by ext ⟨b, hb⟩; simp
+rfl
 
 /-- The set `{0}` is the bottom element of the lattice of submodules. -/
 instance : has_bot (submodule R M) :=
@@ -1061,11 +1061,11 @@ end
 
 theorem comap_pair_prod (f : M →ₗ[R] M₂) (g : M →ₗ[R] M₃) (p : submodule R M₂) (q : submodule R M₃) :
   comap (pair f g) (p.prod q) = comap f p ⊓ comap g q :=
-submodule.ext $ λ x, iff.rfl
+rfl
 
 theorem prod_eq_inf_comap (p : submodule R M) (q : submodule R M₂) :
   p.prod q = p.comap (linear_map.fst R M M₂) ⊓ q.comap (linear_map.snd R M M₂) :=
-submodule.ext $ λ x, iff.rfl
+rfl
 
 theorem prod_eq_sup_map (p : submodule R M) (q : submodule R M₂) :
   p.prod q = p.map (linear_map.inl R M M₂) ⊔ q.map (linear_map.inr R M M₂) :=
@@ -1260,7 +1260,7 @@ p.liftq (q.mkq.comp f) $ by simpa [ker_comp] using h
   mapq p q f h (quotient.mk x) = quotient.mk (f x) := rfl
 
 theorem mapq_mkq (f : M →ₗ[R] M₂) {h} : (mapq p q f h).comp p.mkq = q.mkq.comp f :=
-by ext x; refl
+rfl
 
 theorem comap_liftq (f : M →ₗ[R] M₂) (h) :
   q.comap (p.liftq f h) = (q.comap f).map (mkq p) :=
@@ -1376,7 +1376,7 @@ e.to_add_equiv.map_ne_zero_iff
 
 @[simp] theorem symm_symm (e : M ≃ₗ[R] M₂) : e.symm.symm = e := by { cases e, refl }
 
-@[simp] theorem symm_symm_apply (e : M ≃ₗ[R] M₂) (x : M) : e.symm.symm x = e x := by { cases e, refl }
+@[simp] theorem symm_symm_apply (e : M ≃ₗ[R] M₂) (x : M) : e.symm.symm x = e x := rfl
 
 /-- A bijective linear map is a linear equivalence. Here, bijectivity is described by saying that
 the kernel of `f` is `{0}` and the range is the universal set. -/
@@ -1594,7 +1594,7 @@ lemma pi_eq_zero (f : Πi, M₂ →ₗ[R] φ i) : pi f = 0 ↔ (∀i, f i = 0) :
 by simp only [linear_map.ext_iff, pi_apply, funext_iff]; exact ⟨λh a b, h b a, λh a b, h b a⟩
 
 lemma pi_zero : pi (λi, 0 : Πi, M₂ →ₗ[R] φ i) = 0 :=
-by ext; refl
+rfl
 
 lemma pi_comp (f : Πi, M₂ →ₗ[R] φ i) (g : M₃ →ₗ[R] M₂) : (pi f).comp g = pi (λi, (f i).comp g) :=
 rfl

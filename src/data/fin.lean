@@ -164,7 +164,7 @@ by cases a; refl
 @[simp] lemma sub_nat_val (i : fin (n + m)) (h : m ≤ i.val) : (i.sub_nat m h).val = i.val - m :=
 rfl
 
-@[simp] lemma add_nat_val (i : fin (n + m)) (h : m ≤ i.val) : (i.add_nat m).val = i.val + m :=
+@[simp] lemma add_nat_val (i : fin (n + m)) : (i.add_nat m).val = i.val + m :=
 rfl
 
 @[simp] lemma cast_succ_inj {a b : fin n} : a.cast_succ = b.cast_succ ↔ a = b :=
@@ -304,7 +304,7 @@ by simp [tail, cons]
 by simp [cons]
 
 @[simp] lemma cons_zero : cons x p 0 = x :=
-by simp [cons]
+rfl
 
 /-- Updating a tuple and adding an element at the beginning commute. -/
 @[simp] lemma cons_update : cons x (update p i y) = update (cons x p) i.succ y :=
@@ -371,7 +371,7 @@ end
 
 lemma comp_tail {α : Type*} {β : Type*} (g : α → β) (q : fin n.succ → α) :
   g ∘ (tail q) = tail (g ∘ q) :=
-by { ext j, simp [tail] }
+rfl
 
 end tuple
 
@@ -525,7 +525,7 @@ end
 
 lemma comp_init {α : Type*} {β : Type*} (g : α → β) (q : fin n.succ → α) :
   g ∘ (init q) = init (g ∘ q) :=
-by { ext j, simp [init] }
+rfl
 
 end tuple_right
 

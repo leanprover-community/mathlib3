@@ -180,7 +180,7 @@ lift_on s (λ t, ⟦replace a b t⟧) $
 λ s₁ s₂ p, to_finmap_eq.2 $ perm_replace p
 
 @[simp] theorem replace_to_finmap (a : α) (b : β a) (s : alist β) :
-  replace a b ⟦s⟧ = ⟦s.replace a b⟧ := by simp [replace]
+  replace a b ⟦s⟧ = ⟦s.replace a b⟧ := rfl
 
 @[simp] theorem keys_replace (a : α) (b : β a) (s : finmap β) :
   (replace a b s).keys = s.keys :=
@@ -208,7 +208,7 @@ lift_on s (λ t, ⟦erase a t⟧) $
 λ s₁ s₂ p, to_finmap_eq.2 $ perm_erase p
 
 @[simp] theorem erase_to_finmap (a : α) (s : alist β) :
-  erase a ⟦s⟧ = ⟦s.erase a⟧ := by simp [erase]
+  erase a ⟦s⟧ = ⟦s.erase a⟧ := rfl
 
 @[simp] theorem keys_erase_to_finset (a : α) (s : alist β) :
   keys ⟦s.erase a⟧ = (keys ⟦s⟧).erase a :=
@@ -259,7 +259,7 @@ lift_on s (λ t, ⟦insert a b t⟧) $
 λ s₁ s₂ p, to_finmap_eq.2 $ perm_insert p
 
 @[simp] theorem insert_to_finmap (a : α) (b : β a) (s : alist β) :
-  insert a b ⟦s⟧ = ⟦s.insert a b⟧ := by simp [insert]
+  insert a b ⟦s⟧ = ⟦s.insert a b⟧ := rfl
 
 theorem insert_entries_of_neg {a : α} {b : β a} {s : finmap β} : a ∉ s →
   (insert a b s).entries = ⟨a, b⟩ :: s.entries :=
@@ -328,7 +328,7 @@ instance : has_union (finmap β) := ⟨union⟩
 induction_on₂ s₁ s₂ $ λ _ _, mem_union
 
 @[simp] theorem union_to_finmap (s₁ s₂ : alist β) : ⟦s₁⟧ ∪ ⟦s₂⟧ = ⟦s₁ ∪ s₂⟧ :=
-by simp [(∪), union]
+rfl
 
 theorem keys_union {s₁ s₂ : finmap β} : (s₁ ∪ s₂).keys = s₁.keys ∪ s₂.keys :=
 induction_on₂ s₁ s₂ $ λ s₁ s₂, finset.ext' $ by simp [keys]

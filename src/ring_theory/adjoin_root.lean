@@ -76,7 +76,7 @@ end
 variables {i : α → β} [is_ring_hom i] {a : β} {h : f.eval₂ i a = 0}
 
 @[simp] lemma lift_mk {g : polynomial α} : lift i a h (mk g) = g.eval₂ i a :=
-ideal.quotient.lift_mk
+rfl
 
 @[simp] lemma lift_root : lift i a h root = a := by simp [root, h]
 

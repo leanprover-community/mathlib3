@@ -239,8 +239,8 @@ rfl
 
 @[simp] theorem refl_apply (x : α) : order_iso.refl r x = x := rfl
 
-@[simp] theorem trans_apply : ∀ (f : r ≃o s) (g : s ≃o t) (a : α), (f.trans g) a = g (f a)
-| ⟨f₁, o₁⟩ ⟨f₂, o₂⟩ a := equiv.trans_apply _ _ _
+@[simp] theorem trans_apply (f : r ≃o s) (g : s ≃o t) (a : α) : (f.trans g) a = g (f a) :=
+rfl
 
 @[simp] theorem apply_symm_apply : ∀ (e : r ≃o s) (x : β), e (e.symm x) = x
 | ⟨f₁, o₁⟩ x := by simp
@@ -255,7 +255,7 @@ noncomputable def of_surjective (f : r ≼o s) (H : surjective f) : r ≃o s :=
 ⟨equiv.of_bijective ⟨f.inj, H⟩, by simp [f.ord']⟩
 
 @[simp] theorem of_surjective_coe (f : r ≼o s) (H) : (of_surjective f H : α → β) = f :=
-by delta of_surjective; simp
+rfl
 
 def sum_lex_congr {α₁ α₂ β₁ β₂ r₁ r₂ s₁ s₂}
   (e₁ : @order_iso α₁ α₂ r₁ r₂) (e₂ : @order_iso β₁ β₂ s₁ s₂) :

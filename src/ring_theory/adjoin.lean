@@ -33,7 +33,7 @@ closure_subset (set.subset.trans (set.union_subset_union_right _ H) subset_closu
 
 variables (R A)
 @[simp] theorem adjoin_empty : adjoin R (∅ : set A) = ⊥ :=
-eq_bot_iff.2 $ adjoin_le $ set.empty_subset _
+rfl
 variables {A}
 
 variables (s t)

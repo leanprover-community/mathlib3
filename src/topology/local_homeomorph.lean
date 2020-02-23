@@ -274,12 +274,12 @@ lemma trans_to_fun : (e.trans e').to_fun = e'.to_fun ∘ e.to_fun := rfl
 lemma trans_inv_fun : (e.trans e').inv_fun = e.inv_fun ∘ e'.inv_fun := rfl
 
 lemma trans_symm_eq_symm_trans_symm : (e.trans e').symm = e'.symm.trans e.symm :=
-by cases e; cases e'; refl
+rfl
 
 /- This could be considered as a simp lemma, but there are many situations where it makes something
 simple into something more complicated. -/
 lemma trans_source : (e.trans e').source = e.source ∩ e.to_fun ⁻¹' e'.source :=
-local_equiv.trans_source e.to_local_equiv e'.to_local_equiv
+rfl
 
 lemma trans_source' : (e.trans e').source = e.source ∩ e.to_fun ⁻¹' (e.target ∩ e'.source) :=
 local_equiv.trans_source' e.to_local_equiv e'.to_local_equiv

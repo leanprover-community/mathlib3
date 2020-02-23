@@ -73,9 +73,8 @@ instance : has_pure (comp F G) :=
 instance : has_seq (comp F G) :=
 ⟨λ _ _ f x, comp.seq f x⟩
 
-@[simp] protected lemma run_pure {α : Type v} :
-  ∀ x : α, (pure x : comp F G α).run = pure (pure x)
-| _ := rfl
+@[simp] protected lemma run_pure {α : Type v} (x : α) :
+  (pure x : comp F G α).run = pure (pure x) := rfl
 
 @[simp] protected lemma run_seq {α β : Type v} (f : comp F G (α → β)) (x : comp F G α) :
   (f <*> x).run = (<*>) <$> f.run <*> x.run := rfl

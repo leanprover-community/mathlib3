@@ -204,7 +204,7 @@ by_contradiction $ λ hne,
   not_lt_of_ge (by rw padic_norm_z.add_eq_max_of_ne hne; apply le_max_left) h
 
 @[simp] lemma padic_norm_e_of_padic_int (z : ℤ_[p]) : ∥(↑z : ℚ_[p])∥ = ∥z∥ :=
-by simp [norm, padic_norm_z]
+rfl
 
 @[simp] lemma padic_norm_z_eq_padic_norm_e {q : ℚ_[p]} (hq : ∥q∥ ≤ 1) :
   @norm ℤ_[p] _ ⟨q, hq⟩ = ∥q∥ := rfl

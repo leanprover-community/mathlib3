@@ -192,8 +192,8 @@ injective_length_iff.mpr $ by apply_instance
 
 /- set-theoretic notation of lists -/
 
-lemma empty_eq : (∅ : list α) = [] := by refl
-lemma singleton_eq [decidable_eq α] (x : α) : ({x} : list α) = [x] := by refl
+@[simp] lemma empty_eq : (∅ : list α) = [] := rfl
+@[simp] lemma singleton_eq [decidable_eq α] (x : α) : ({x} : list α) = [x] := rfl
 lemma insert_neg [decidable_eq α] {x : α} {l : list α} (h : x ∉ l) :
   has_insert.insert x l = x :: l :=
 if_neg h
@@ -2540,10 +2540,12 @@ lemma sublists_len_aux_eq {α β : Type*} (l : list α) (n) (f : list α → β)
   sublists_len_aux n l f r = (sublists_len n l).map f ++ r :=
 by rw [sublists_len, ← sublists_len_aux_append]; refl
 
+@[nolint rfl_lemma] -- kernel doesn't buy the rfl proof
 lemma sublists_len_aux_zero {α : Type*} (l : list α) (f : list α → β) (r) :
   sublists_len_aux 0 l f r = f [] :: r := by cases l; refl
 
-@[simp] lemma sublists_len_zero {α : Type*} (l : list α) :
+@[simp, nolint rfl_lemma] -- kernel doesn't think this is rfl either
+lemma sublists_len_zero {α : Type*} (l : list α) :
   sublists_len 0 l = [[]] := sublists_len_aux_zero _ _ _
 
 @[simp] lemma sublists_len_succ_nil {α : Type*} (n) :
@@ -4724,12 +4726,13 @@ by simp [rotate]
 
 @[simp] lemma rotate_zero (l : list α) : l.rotate 0 = l := by simp [rotate]
 
-@[simp] lemma rotate'_nil (n : ℕ) : ([] : list α).rotate' n = [] := by cases n; refl
+@[simp, nolint rfl_lemma] -- kernel doesn't think this is rfl
+lemma rotate'_nil (n : ℕ) : ([] : list α).rotate' n = [] := by cases n; refl
 
 @[simp] lemma rotate'_zero (l : list α) : l.rotate' 0 = l := by cases l; refl
 
 lemma rotate'_cons_succ (l : list α) (a : α) (n : ℕ) :
-  (a :: l : list α).rotate' n.succ = (l ++ [a]).rotate' n := by simp [rotate']
+  (a :: l : list α).rotate' n.succ = (l ++ [a]).rotate' n := rfl
 
 @[simp] lemma length_rotate' : ∀ (l : list α) (n : ℕ), (l.rotate' n).length = l.length
 | []     n     := rfl
@@ -5143,11 +5146,7 @@ by rw [antidiagonal, length_map, length_range]
 
 /-- The antidiagonal of `0` is the list `[(0,0)]` -/
 @[simp] lemma antidiagonal_zero : antidiagonal 0 = [(0, 0)] :=
-ext_le (length_antidiagonal 0) $ λ n h₁ h₂,
-begin
-  rw [length_antidiagonal, lt_succ_iff, le_zero_iff] at h₁,
-  subst n, simp [antidiagonal]
-end
+rfl
 
 /-- The antidiagonal of `n` does not contain duplicate entries. -/
 lemma nodup_antidiagonal (n : ℕ) : nodup (antidiagonal n) :=

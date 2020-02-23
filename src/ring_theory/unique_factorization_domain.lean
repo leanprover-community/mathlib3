@@ -250,7 +250,7 @@ iff.intro
 
 @[simp] theorem factor_set.coe_add {a b : multiset { a : associates α // irreducible a }} :
   (↑a + ↑b : factor_set α) = ↑(a + b) :=
-with_top.coe_add
+rfl
 
 lemma factor_set.sup_add_inf_eq_add : ∀(a b : factor_set α), a ⊔ b + a ⊓ b = a + b
 | none     b        := show ⊤ ⊔ b + ⊤ ⊓ b = ⊤ + b, by simp

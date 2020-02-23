@@ -198,10 +198,13 @@ funext $ λ t : holor_index ds, if h : i = j
   else by simp [slice, mul, holor_index.take, unit_vec, holor_index.drop, h]; refl
 
 lemma slice_add [has_add α] (i : ℕ) (hid : i < d)  (x : holor α (d :: ds)) (y : holor α (d :: ds)) :
-  slice x i hid + slice y i hid = slice (x + y) i hid := funext (λ t, by simp [slice,(+)])
+  slice x i hid + slice y i hid = slice (x + y) i hid :=
+rfl
 
+@[simp]
 lemma slice_zero [has_zero α] (i : ℕ) (hid : i < d)  :
-  slice (0 : holor α (d :: ds)) i hid = 0 := funext (λ t, by simp [slice]; refl)
+  slice (0 : holor α (d :: ds)) i hid = 0 :=
+rfl
 
 lemma slice_sum [add_comm_monoid α] {β : Type}
   (i : ℕ) (hid : i < d) (s : finset β) (f : β → holor α (d :: ds)) :

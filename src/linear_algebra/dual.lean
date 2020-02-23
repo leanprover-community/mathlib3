@@ -59,10 +59,7 @@ instance : has_coe_to_fun (dual R M) := ⟨_, linear_map.to_fun⟩
 def eval : M →ₗ[R] (dual R (dual R M)) := linear_map.id.flip
 
 lemma eval_apply (v : M) (a : dual R M) : (eval R M v) a = a v :=
-begin
-  dunfold eval,
-  rw [linear_map.flip_apply, linear_map.id_apply]
-end
+rfl
 
 end dual
 end module

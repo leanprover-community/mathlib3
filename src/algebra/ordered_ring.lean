@@ -429,7 +429,7 @@ by cases a; simp [mul_def, h]; refl
 by cases a; simp [mul_def, h]; refl
 
 @[simp] lemma top_mul_top : (⊤ * ⊤ : with_top α) = ⊤ :=
-top_mul top_ne_zero
+rfl
 
 lemma coe_mul {a b : α} : (↑(a * b) : with_top α) = a * b :=
 decidable.by_cases (assume : a = 0, by simp [this]) $ assume ha,

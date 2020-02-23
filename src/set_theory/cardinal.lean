@@ -803,16 +803,16 @@ end
 fintype_card empty
 
 @[simp] theorem mk_pempty : mk pempty = 0 :=
-fintype_card pempty
+rfl
 
 @[simp] theorem mk_plift_of_false {p : Prop} (h : ¬ p) : mk (plift p) = 0 :=
 quotient.sound ⟨equiv.plift.trans $ equiv.equiv_pempty h⟩
 
 @[simp] theorem mk_unit : mk unit = 1 :=
-(fintype_card unit).trans nat.cast_one
+rfl
 
 @[simp] theorem mk_punit : mk punit = 1 :=
-(fintype_card punit).trans nat.cast_one
+rfl
 
 @[simp] theorem mk_singleton {α : Type u} (x : α) : mk ({x} : set α) = 1 :=
 quotient.sound ⟨equiv.set.singleton x⟩

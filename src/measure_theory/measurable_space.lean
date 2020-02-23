@@ -289,7 +289,7 @@ protected def map (f : α → β) (m : measurable_space α) : measurable_space �
 measurable_space.ext $ assume s, iff.rfl
 
 @[simp] lemma map_comp {f : α → β} {g : β → γ} : (m.map f).map g = m.map (g ∘ f) :=
-measurable_space.ext $ assume s, iff.rfl
+rfl
 
 /-- The reverse image of a measure space under a function. `comap f m` contains the sets `s : set α`
   such that `s` is the `f`-preimage of a measurable set in `β`. -/
@@ -325,8 +325,8 @@ lemma monotone_comap : monotone (measurable_space.comap g) := assume a b h, coma
 @[simp] lemma comap_supr {m : ι → measurable_space α} :(⨆i, m i).comap g = (⨆i, (m i).comap g) :=
 (gc_comap_map g).l_supr
 
-@[simp] lemma map_top : (⊤:measurable_space α).map f = ⊤ := (gc_comap_map f).u_top
-@[simp] lemma map_inf : (m₁ ⊓ m₂).map f = m₁.map f ⊓ m₂.map f := (gc_comap_map f).u_inf
+@[simp] lemma map_top : (⊤:measurable_space α).map f = ⊤ := rfl
+@[simp] lemma map_inf : (m₁ ⊓ m₂).map f = m₁.map f ⊓ m₂.map f := rfl
 @[simp] lemma map_infi {m : ι → measurable_space α} : (⨅i, m i).map f = (⨅i, (m i).map f) :=
 (gc_comap_map f).u_infi
 

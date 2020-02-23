@@ -193,7 +193,7 @@ by refine { zero := 0, add := (+), neg := has_neg.neg, one := 1, mul := (*), ..}
 
 @[simp] lemma bit0_re (z : ℂ) : (bit0 z).re = bit0 z.re := rfl
 @[simp] lemma bit1_re (z : ℂ) : (bit1 z).re = bit1 z.re := rfl
-@[simp] lemma bit0_im (z : ℂ) : (bit0 z).im = bit0 z.im := eq.refl _
+@[simp] lemma bit0_im (z : ℂ) : (bit0 z).im = bit0 z.im := rfl
 @[simp] lemma bit1_im (z : ℂ) : (bit1 z).im = bit0 z.im := add_zero _
 
 @[simp] lemma sub_re (z w : ℂ) : (z - w).re = z.re - w.re := rfl

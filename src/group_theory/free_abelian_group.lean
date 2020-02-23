@@ -50,7 +50,7 @@ is_add_group_hom.map_neg _ _
 by simp
 
 @[simp] protected lemma zero : lift f 0 = 0 :=
-is_add_group_hom.map_zero _
+rfl
 
 @[simp] protected lemma of (x : α) : lift f (of x) = f x :=
 by unfold of; unfold lift; simp
@@ -138,10 +138,10 @@ protected theorem induction_on'
 free_abelian_group.induction_on z C0 C1 Cn Cp
 
 @[simp] lemma map_pure (f : α → β) (x : α) : f <$> (pure x : free_abelian_group α) = pure (f x) :=
-lift.of _ _
+rfl
 
 @[simp] lemma map_zero (f : α → β) : f <$> (0 : free_abelian_group α) = 0 :=
-lift.zero (of ∘ f)
+rfl
 
 @[simp] lemma map_add (f : α → β) (x y : free_abelian_group α) : f <$> (x + y) = f <$> x + f <$> y :=
 lift.add _ _ _
@@ -156,7 +156,7 @@ lift.sub _ _ _
 lift.of _ _
 
 @[simp] lemma zero_bind (f : α → free_abelian_group β) : 0 >>= f = 0 :=
-lift.zero f
+rfl
 
 @[simp] lemma add_bind (f : α → free_abelian_group β) (x y : free_abelian_group α) : x + y >>= f = (x >>= f) + (y >>= f) :=
 lift.add _ _ _
@@ -171,7 +171,7 @@ lift.sub _ _ _
 pure_bind _ _
 
 @[simp] lemma zero_seq (x : free_abelian_group α) : (0 : free_abelian_group (α → β)) <*> x = 0 :=
-zero_bind _
+rfl
 
 @[simp] lemma add_seq (f g : free_abelian_group (α → β)) (x : free_abelian_group α) : f + g <*> x = (f <*> x) + (g <*> x) :=
 add_bind _ _ _

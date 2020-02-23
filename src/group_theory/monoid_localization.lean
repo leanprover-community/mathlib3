@@ -251,7 +251,7 @@ is_unit_unit $ to_units Y ⟨x, hx⟩
 
 lemma to_units_map_inv (g : monoid_localization X Y →* Z) (y) :
   g ↑(to_units Y y)⁻¹ = ↑(units.map g (to_units Y y))⁻¹ :=
-by rw [←units.coe_map, (units.map g).map_inv]
+rfl
 
 lemma mk_eq (x y) : mk x y = of Y x * ↑(to_units Y y)⁻¹ :=
 by rw ←to_units_inv; simp only [of_eq_mk, mk_mul_mk, mul_one, one_mul]

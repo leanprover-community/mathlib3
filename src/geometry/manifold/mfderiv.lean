@@ -1095,7 +1095,7 @@ by simp [unique_mdiff_on, unique_diff_on, unique_mdiff_within_at_iff_unique_diff
 
 @[simp] lemma written_in_ext_chart_model_space :
   written_in_ext_chart_at (model_with_corners_self 𝕜 E) (model_with_corners_self 𝕜 E') x f = f :=
-by { ext y, simp [written_in_ext_chart_at] }
+rfl
 
 /-- For maps between vector spaces, mdifferentiable_within_at and fdifferentiable_within_at coincide -/
 theorem mdifferentiable_within_at_iff_differentiable_within_at :

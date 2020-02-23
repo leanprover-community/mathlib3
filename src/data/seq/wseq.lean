@@ -460,7 +460,7 @@ computation.destruct_eq_ret $ by simp [destruct, cons, computation.rmap]
 computation.destruct_eq_think $ by simp [destruct, think, computation.rmap]
 
 @[simp] theorem seq_destruct_nil : seq.destruct (nil : wseq α) = none :=
-seq.destruct_nil
+rfl
 
 @[simp] theorem seq_destruct_cons (a : α) (s) : seq.destruct (cons a s) = some (some a, s) :=
 seq.destruct_cons _ _

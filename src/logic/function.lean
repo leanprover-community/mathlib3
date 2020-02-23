@@ -263,7 +263,7 @@ def uncurry' {α β γ} (f : α → β → γ) := λ p : α × β, f p.1 p.2
 
 @[simp]
 lemma curry_uncurry' {α : Type*} {β : Type*} {γ : Type*} (f : α → β → γ) : curry (uncurry' f) = f :=
-by funext ; refl
+rfl
 
 @[simp]
 lemma uncurry'_curry {α : Type*} {β : Type*} {γ : Type*} (f : α × β → γ) : uncurry' (curry f) = f :=

@@ -1207,7 +1207,7 @@ def image_factorization (f : α → β) (s : set α) : s → f '' s :=
 
 lemma image_factorization_eq {f : α → β} {s : set α} :
   subtype.val ∘ image_factorization f s = f ∘ subtype.val :=
-funext $ λ p, rfl
+rfl
 
 lemma surjective_onto_image {f : α → β} {s : set α} :
   surjective (image_factorization f s) :=
@@ -1351,7 +1351,7 @@ def range_factorization (f : ι → β) : ι → range f :=
 
 lemma range_factorization_eq {f : ι → β} :
   subtype.val ∘ range_factorization f = f :=
-funext $ λ i, rfl
+rfl
 
 lemma surjective_onto_range : surjective (range_factorization f) :=
 λ ⟨_, ⟨i, rfl⟩⟩, ⟨i, rfl⟩
@@ -1664,7 +1664,7 @@ def inclusion {s t : set α} (h : s ⊆ t) : s → t :=
 
 @[simp] lemma inclusion_inclusion {s t u : set α} (hst : s ⊆ t) (htu : t ⊆ u)
   (x : s) : inclusion htu (inclusion hst x) = inclusion (set.subset.trans hst htu) x :=
-by cases x; refl
+rfl
 
 lemma inclusion_injective {s t : set α} (h : s ⊆ t) :
   function.injective (inclusion h)

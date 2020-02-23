@@ -192,11 +192,7 @@ def isometry.isometric_on_range [emetric_space α] [emetric_space β] {f : α �
 
 lemma isometry.isometric_on_range_apply [emetric_space α] [emetric_space β]
   {f : α → β} (h : isometry f) (x : α) : h.isometric_on_range x = ⟨f x, mem_range_self _⟩ :=
-begin
-  dunfold isometry.isometric_on_range,
-  rw ← equiv.set.range_apply f h.injective x,
-  refl
-end
+rfl
 
 /-- In a normed algebra, the inclusion of the base field in the extended field is an isometry. -/
 lemma algebra_map_isometry (𝕜 : Type*) (𝕜' : Type*) [normed_field 𝕜] [normed_ring 𝕜']

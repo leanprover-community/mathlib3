@@ -105,10 +105,7 @@ instance : inhabited (opens α) := ⟨∅⟩
 @[simp] lemma empty_eq : (∅ : opens α) = ⊥ := rfl
 
 @[simp] lemma Sup_s {Us : set (opens α)} : (Sup Us).val = ⋃₀ (subtype.val '' Us) :=
-begin
-  rw [@galois_connection.l_Sup (opens α) (set α) _ _ (subtype.val : opens α → set α) interior gc Us, set.sUnion_image],
-  congr
-end
+rfl
 
 def is_basis (B : set (opens α)) : Prop := is_topological_basis (subtype.val '' B)
 

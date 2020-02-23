@@ -22,7 +22,7 @@ def inv : rel β α := flip r
 
 lemma inv_def (x : α) (y : β) : r.inv y x ↔ r x y := iff.rfl
 
-lemma inv_inv : inv (inv r) = r := by { ext x y, reflexivity }
+lemma inv_inv : inv (inv r) = r := rfl
 
 /-- Domain of a relation -/
 def dom := {x | ∃ y, r x y}
@@ -30,9 +30,9 @@ def dom := {x | ∃ y, r x y}
 /-- Codomain aka range of a relation-/
 def codom := {y | ∃ x, r x y}
 
-lemma codom_inv : r.inv.codom = r.dom := by { ext x y, reflexivity }
+lemma codom_inv : r.inv.codom = r.dom := rfl
 
-lemma dom_inv : r.inv.dom = r.codom := by { ext x y, reflexivity}
+lemma dom_inv : r.inv.dom = r.codom := rfl
 
 /-- Composition of relation; note that it follows the `category_theory/` order of arguments. -/
 def comp (r : rel α β) (s : rel β γ) : rel α γ :=
@@ -101,7 +101,7 @@ lemma mem_preimage (x : α) (s : set β) : x ∈ preimage r s ↔ ∃ y ∈ s, r
 iff.rfl
 
 lemma preimage_def (s : set β) : preimage r s = {x | ∃ y ∈ s, r x y} :=
-set.ext $ λ x, mem_preimage _ _ _
+rfl
 
 lemma preimage_mono {s t : set β} (h : s ⊆ t) : r.preimage s ⊆ r.preimage t :=
 image_mono _ h

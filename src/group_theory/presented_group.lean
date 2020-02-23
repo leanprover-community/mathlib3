@@ -59,7 +59,7 @@ quotient_group.is_group_hom_quotient_lift _ _ _
 is_mul_hom.map_mul _ _ _
 
 @[simp] lemma to_group.one : to_group h 1 = 1 :=
-is_group_hom.map_one _
+rfl
 
 @[simp] lemma to_group.inv {x}: to_group h x⁻¹ = (to_group h x)⁻¹ :=
 is_group_hom.map_inv _ _

@@ -219,6 +219,6 @@ def comp_continuous_multilinear_map (g : M₂ →L[R] M₃) (f : continuous_mult
 @[simp] lemma comp_continuous_multilinear_map_coe (g : M₂ →L[R] M₃) (f : continuous_multilinear_map R M₁ M₂) :
   ((g.comp_continuous_multilinear_map f) : (Πi, M₁ i) → M₃) =
   (g : M₂ → M₃) ∘ (f : (Πi, M₁ i) → M₂) :=
-by { ext m, refl }
+rfl
 
 end continuous_linear_map

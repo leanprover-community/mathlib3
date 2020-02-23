@@ -119,7 +119,7 @@ end }
 
 variables (φ)
 @[simp] lemma to_group_zero : to_group φ 0 = 0 :=
-is_add_group_hom.map_zero _
+rfl
 
 @[simp] lemma to_group_add (x y) : to_group φ (x + y) = to_group φ x + to_group φ y :=
 is_add_hom.map_add _ x y

@@ -46,7 +46,7 @@ lemma fpow_ne_zero_of_ne_zero {a : K} (ha : a ≠ 0) : ∀ (z : ℤ), a ^ z ≠ 
 | -[1+n] := one_div_ne_zero $ pow_ne_zero _ ha
 
 @[simp] lemma fpow_zero {a : K} : a ^ (0 : ℤ) = 1 :=
-pow_zero a
+rfl
 
 lemma fpow_add {a : K} (ha : a ≠ 0) (z1 z2 : ℤ) : a ^ (z1 + z2) = a ^ z1 * a ^ z2 :=
 begin simp only [fpow_eq_gpow ha], rw ← units.coe_mul, congr, apply gpow_add end

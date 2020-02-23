@@ -300,7 +300,7 @@ end complete_lattice
 lemma bot_sets_eq : (⊥ : filter α).sets = univ := rfl
 
 lemma sup_sets_eq {f g : filter α} : (f ⊔ g).sets = f.sets ∩ g.sets :=
-(gi_generate α).gc.u_inf
+rfl
 
 lemma Sup_sets_eq {s : set (filter α)} : (Sup s).sets = (⋂f∈s, (f:filter α).sets) :=
 (gi_generate α).gc.u_Inf
@@ -449,8 +449,7 @@ show  s ∈ (infi f).sets ↔ s ∈ ⋃t:finset (plift ι), (⨅i∈t, f (plift.
 by rw infi_sets_eq_finite
 
 @[simp] lemma sup_join {f₁ f₂ : filter (filter α)} : (join f₁ ⊔ join f₂) = join (f₁ ⊔ f₂) :=
-filter_eq $ set.ext $ assume x,
-  by simp only [supr_sets_eq, join, mem_sup_sets, iff_self, mem_set_of_eq]
+rfl
 
 @[simp] lemma supr_join {ι : Sort w} {f : ι → filter (filter α)} :
   (⨆x, join (f x)) = join (⨆x, f x) :=
@@ -759,10 +758,10 @@ iff.intro
 filter_eq $ rfl
 
 @[simp] lemma map_compose : filter.map m' ∘ filter.map m = filter.map (m' ∘ m) :=
-funext $ assume _, filter_eq $ rfl
+rfl
 
 @[simp] lemma map_map : filter.map m' (filter.map m f) = filter.map (m' ∘ m) f :=
-congr_fun (@@filter.map_compose m m') f
+rfl
 
 end map
 
@@ -836,7 +835,7 @@ lemma pure_eq_principal (a : α) : (pure a : filter α) = principal {a} :=
 filter.ext $ λ s, by simp only [mem_pure_sets, mem_principal_sets, singleton_subset_iff]
 
 @[simp] lemma map_pure (f : α → β) (a : α) : map f (pure a) = pure (f a) :=
-filter.ext $ λ s, iff.rfl
+rfl
 
 @[simp] lemma join_pure (f : filter α) : join (pure f) = f := filter.ext $ λ s, iff.rfl
 
@@ -900,8 +899,8 @@ assume f g, map_le_iff_le_comap
 lemma map_mono : monotone (map m) := (gc_map_comap m).monotone_l
 lemma comap_mono : monotone (comap m) := (gc_map_comap m).monotone_u
 
-@[simp] lemma map_bot : map m ⊥ = ⊥ := (gc_map_comap m).l_bot
-@[simp] lemma map_sup : map m (f₁ ⊔ f₂) = map m f₁ ⊔ map m f₂ := (gc_map_comap m).l_sup
+@[simp] lemma map_bot : map m ⊥ = ⊥ := rfl
+@[simp] lemma map_sup : map m (f₁ ⊔ f₂) = map m f₁ ⊔ map m f₂ := rfl
 @[simp] lemma map_supr {f : ι → filter α} : map m (⨆i, f i) = (⨆i, map m (f i)) :=
 (gc_map_comap m).l_supr
 
@@ -1257,7 +1256,7 @@ assume x h₂, show (_ ∈ f), by filter_upwards [h₁, h₂] assume s gh' h', g
 
 lemma bind_sup {f g : filter α} {h : α → filter β} :
   bind (f ⊔ g) h = bind f h ⊔ bind g h :=
-by simp only [bind, sup_join, map_sup, eq_self_iff_true]
+rfl
 
 lemma bind_mono2 {f g : filter α} {h : α → filter β} (h₁ : f ≤ g) :
   bind f h ≤ bind g h :=

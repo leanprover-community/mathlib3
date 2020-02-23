@@ -125,12 +125,12 @@ lemma coe_mono : monotone (coe : nnreal → ennreal) := λ _ _, coe_le_coe.2
 @[simp, elim_cast] lemma coe_nonneg : 0 ≤ (↑r : ennreal) ↔ 0 ≤ r := coe_le_coe
 @[simp, elim_cast] lemma coe_pos : 0 < (↑r : ennreal) ↔ 0 < r := coe_lt_coe
 
-@[simp, move_cast] lemma coe_add : ↑(r + p) = (r + p : ennreal) := with_top.coe_add
+@[simp, move_cast] lemma coe_add : ↑(r + p) = (r + p : ennreal) := rfl
 @[simp, move_cast] lemma coe_mul : ↑(r * p) = (r * p : ennreal) := with_top.coe_mul
 
-@[simp, move_cast] lemma coe_bit0 : (↑(bit0 r) : ennreal) = bit0 r := coe_add
-@[simp, move_cast] lemma coe_bit1 : (↑(bit1 r) : ennreal) = bit1 r := by simp [bit1]
-lemma coe_two : ((2:nnreal) : ennreal) = 2 := by norm_cast
+@[simp, move_cast] lemma coe_bit0 : (↑(bit0 r) : ennreal) = bit0 r := rfl
+@[simp, move_cast] lemma coe_bit1 : (↑(bit1 r) : ennreal) = bit1 r := rfl
+lemma coe_two : ((2:nnreal) : ennreal) = 2 := rfl
 
 protected lemma zero_lt_one : 0 < (1 : ennreal) :=
   canonically_ordered_semiring.zero_lt_one
@@ -141,7 +141,7 @@ protected lemma zero_lt_one : 0 < (1 : ennreal) :=
 @[simp] lemma two_ne_top : (2:ennreal) ≠ ∞ := coe_two ▸ coe_ne_top
 
 @[simp] lemma add_top : a + ∞ = ∞ := with_top.add_top
-@[simp] lemma top_add : ∞ + a = ∞ := with_top.top_add
+@[simp] lemma top_add : ∞ + a = ∞ := rfl
 
 instance : is_semiring_hom (coe : nnreal → ennreal) :=
 by refine_struct {..}; simp
@@ -176,7 +176,7 @@ begin split_ifs, { simp [h] }, { exact with_top.mul_top h } end
 lemma top_mul : ∞ * a = (if a = 0 then 0 else ∞) :=
 begin split_ifs, { simp [h] }, { exact with_top.top_mul h } end
 
-@[simp] lemma top_mul_top : ∞ * ∞ = ∞ := with_top.top_mul_top
+@[simp] lemma top_mul_top : ∞ * ∞ = ∞ := rfl
 
 lemma top_pow {n:ℕ} (h : 0 < n) : ∞^n = ∞ :=
 nat.le_induction (pow_one _) (λ m hm hm', by rw [pow_succ, hm', top_mul_top])

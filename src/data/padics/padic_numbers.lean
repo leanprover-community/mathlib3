@@ -432,17 +432,17 @@ lemma mk_eq {f g : padic_seq p} : mk f = mk g ↔ f ≈ g := quotient.eq
 /-- Embeds the rational numbers in the p-adic numbers. -/
 def of_rat : ℚ → ℚ_[p] := cau_seq.completion.of_rat
 
-@[simp] lemma of_rat_add : ∀ (x y : ℚ), of_rat p (x + y) = of_rat p x + of_rat p y :=
-cau_seq.completion.of_rat_add
+@[simp] lemma of_rat_add (x y : ℚ) : of_rat p (x + y) = of_rat p x + of_rat p y :=
+rfl
 
-@[simp] lemma of_rat_neg : ∀ (x : ℚ), of_rat p (-x) = -of_rat p x :=
-cau_seq.completion.of_rat_neg
+@[simp] lemma of_rat_neg (x : ℚ) : of_rat p (-x) = -of_rat p x :=
+rfl
 
-@[simp] lemma of_rat_mul : ∀ (x y : ℚ), of_rat p (x * y) = of_rat p x * of_rat p y :=
-cau_seq.completion.of_rat_mul
+@[simp] lemma of_rat_mul (x y : ℚ) : of_rat p (x * y) = of_rat p x * of_rat p y :=
+rfl
 
-@[simp] lemma of_rat_sub : ∀ (x y : ℚ), of_rat p (x - y) = of_rat p x - of_rat p y :=
-cau_seq.completion.of_rat_sub
+@[simp] lemma of_rat_sub (x y : ℚ) : of_rat p (x - y) = of_rat p x - of_rat p y :=
+rfl
 
 @[simp] lemma of_rat_div : ∀ (x y : ℚ), of_rat p (x / y) = of_rat p x / of_rat p y :=
 cau_seq.completion.of_rat_div

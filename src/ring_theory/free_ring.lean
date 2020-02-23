@@ -98,7 +98,7 @@ lift $ of ∘ f
 
 @[simp] lemma map_zero : map f 0 = 0 := rfl
 @[simp] lemma map_one : map f 1 = 1 := rfl
-@[simp] lemma map_of (x : α) : map f (of x) = of (f x) := lift_of _ _
+@[simp] lemma map_of (x : α) : map f (of x) = of (f x) := rfl
 @[simp] lemma map_add (x y) : map f (x + y) = map f x + map f y := lift_add _ _ _
 @[simp] lemma map_neg (x) : map f (-x) = -map f x := lift_neg _ _
 @[simp] lemma map_sub (x y) : map f (x - y) = map f x - map f y := lift_sub _ _ _

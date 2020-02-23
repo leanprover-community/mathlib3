@@ -112,10 +112,10 @@ def get_or_else (a : roption α) [decidable a.dom] (d : α) :=
 if ha : a.dom then a.get ha else d
 
 @[simp] lemma get_or_else_none (d : α) : get_or_else none d = d :=
-dif_neg id
+rfl
 
 @[simp] lemma get_or_else_some (a : α) (d : α) : get_or_else (some a) d = a :=
-dif_pos trivial
+rfl
 
 @[simp] theorem mem_to_option {o : roption α} [decidable o.dom] {a : α} :
   a ∈ to_option o ↔ a ∈ o :=
@@ -199,7 +199,7 @@ theorem mem_map (f : α → β) {o : roption α} :
   map f none = none := eq_none_iff.2 $ λ a, by simp
 
 @[simp] theorem map_some (f : α → β) (a : α) : map f (some a) = some (f a) :=
-eq_some_iff.2 $ mem_map f $ mem_some _
+rfl
 
 theorem mem_assert {p : Prop} {f : p → roption α}
   : ∀ {a} (h : p), a ∈ f h → a ∈ assert p f
@@ -237,15 +237,15 @@ ext $ λ a, by simp; exact
 
 @[simp] theorem bind_map {γ} (f : α → β) (x) (g : β → roption γ) :
   (map f x).bind g = x.bind (λ y, g (f y)) :=
-by rw [← bind_some_eq_map, bind_assoc]; simp
+rfl
 
 @[simp] theorem map_bind {γ} (f : α → roption β) (x : roption α) (g : β → γ) :
   map g (x.bind f) = x.bind (λ y, map g (f y)) :=
-by rw [← bind_some_eq_map, bind_assoc]; simp [bind_some_eq_map]
+rfl
 
 theorem map_map (g : β → γ) (f : α → β) (o : roption α) :
   map g (map f o) = map (g ∘ f) o :=
-by rw [← bind_some_eq_map, bind_map, bind_some_eq_map]
+rfl
 
 instance : monad roption :=
 { pure := @some,

@@ -384,7 +384,7 @@ end
 @[to_additive]
 lemma prod_range_zero (f : ℕ → β) :
  (range 0).prod f = 1 :=
-by rw [range_zero, prod_empty]
+rfl
 
 lemma prod_range_one (f : ℕ → β) :
   (range 1).prod f = f 0 :=

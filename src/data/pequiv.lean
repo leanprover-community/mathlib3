@@ -74,7 +74,7 @@ lemma eq_some_iff (f : α ≃. β) : ∀ {a : α} {b : β}, f.symm b = some a �
 @[simp] lemma symm_symm (f : α ≃. β) : f.symm.symm = f := by cases f; refl
 
 @[simp] lemma symm_symm_apply (f : α ≃. β) (a : α) : f.symm.symm a = f a :=
-by rw symm_symm
+rfl
 
 lemma symm_injective : function.injective (@pequiv.symm α β) :=
 injective_of_has_left_inverse ⟨_, symm_symm⟩
@@ -100,7 +100,7 @@ by ext; dsimp [pequiv.trans]; refl
 by ext; dsimp [pequiv.trans]; simp
 
 @[simp] lemma refl_trans_apply (f : α ≃. β) (a : α) : (pequiv.refl α).trans f a = f a :=
-by rw refl_trans
+rfl
 
 @[simp] lemma trans_refl_apply (f : α ≃. β) (a : α) : f.trans (pequiv.refl β) a = f a :=
 by rw trans_refl
@@ -149,7 +149,7 @@ by dsimp [of_set]; split_ifs; split; finish
 @[simp] lemma of_set_symm : (of_set s).symm = of_set s := rfl
 
 @[simp] lemma of_set_univ : of_set set.univ = pequiv.refl α :=
-by ext; dsimp [of_set]; simp [eq_comm]
+rfl
 
 @[simp] lemma of_set_eq_refl {s : set α} [decidable_pred s] :
   of_set s = pequiv.refl α ↔ s = set.univ :=

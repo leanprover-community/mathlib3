@@ -292,7 +292,7 @@ ext $ λ x, rfl
 by { ext, simp }
 
 @[simp] theorem zero_comp : (0 : M₂ →L[R] M₃).comp f = 0 :=
-by { ext, simp }
+rfl
 
 @[simp] lemma comp_add [topological_add_group M₂] [topological_add_group M₃]
   (g : M₂ →L[R] M₃) (f₁ f₂ : M →L[R] M₂) :
@@ -302,7 +302,7 @@ by { ext, simp }
 @[simp] lemma add_comp [topological_add_group M₃]
   (g₁ g₂ : M₂ →L[R] M₃) (f : M →L[R] M₂) :
   (g₁ + g₂).comp f = g₁.comp f + g₂.comp f :=
-by { ext, simp }
+rfl
 
 theorem comp_assoc (h : M₃ →L[R] M₄) (g : M₂ →L[R] M₃) (f : M →L[R] M₂) :
   (h.comp g).comp f = h.comp (g.comp f) :=
@@ -488,7 +488,7 @@ end
 
 @[simp] lemma symm_to_linear_equiv (e : M ≃L[R] M₂) :
   e.symm.to_linear_equiv = e.to_linear_equiv.symm :=
-by { ext, refl }
+rfl
 
 /-- The composition of two continuous linear equivalences as a continuous linear equivalence. -/
 @[trans] protected def trans (e₁ : M ≃L[R] M₂) (e₂ : M₂ ≃L[R] M₃) : M ≃L[R] M₃ :=
@@ -498,7 +498,7 @@ by { ext, refl }
 
 @[simp] lemma trans_to_linear_equiv (e₁ : M ≃L[R] M₂) (e₂ : M₂ ≃L[R] M₃) :
   (e₁.trans e₂).to_linear_equiv = e₁.to_linear_equiv.trans e₂.to_linear_equiv :=
-by { ext, refl }
+rfl
 
 @[simp] theorem apply_symm_apply (e : M ≃L[R] M₂) (c : M₂) : e (e.symm c) = c := e.1.6 c
 @[simp] theorem symm_apply_apply (e : M ≃L[R] M₂) (b : M) : e.symm (e b) = b := e.1.5 b

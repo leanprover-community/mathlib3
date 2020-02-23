@@ -170,7 +170,7 @@ by { have := prod_of_pnat_multiset (l : multiset ℕ+) h,
 -/
 
 theorem prod_zero : (0 : prime_multiset).prod = 1 :=
-by { dsimp [prod], exact multiset.prod_zero }
+rfl
 
 theorem prod_add (u v : prime_multiset) : (u + v).prod = u.prod * v.prod :=
 by { dsimp [prod],

@@ -143,7 +143,7 @@ by apply is_ring_hom.map_sub
 by apply is_ring_hom.map_mul
 
 @[simp] lemma of_neg : (of (-x) : localization α S) = -of x :=
-by apply is_ring_hom.map_neg
+rfl
 
 @[simp] lemma of_pow : (of (x ^ n) : localization α S) = (of x) ^ n :=
 by apply is_semiring_hom.map_pow
@@ -159,7 +159,7 @@ is_unit_unit $ to_units ⟨s, ‹s ∈ S›⟩
 @[simp] lemma coe_add : (↑(x + y) : localization α S) = x + y := of_add _ _ _ _
 @[simp] lemma coe_sub : (↑(x - y) : localization α S) = x - y := of_sub _ _ _ _
 @[simp] lemma coe_mul : (↑(x * y) : localization α S) = x * y := of_mul _ _ _ _
-@[simp] lemma coe_neg : (↑(-x) : localization α S) = -x := of_neg _ _ _
+@[simp] lemma coe_neg : (↑(-x) : localization α S) = -x := rfl
 @[simp] lemma coe_pow : (↑(x ^ n) : localization α S) = x ^ n := of_pow _ _ _ _
 @[simp] lemma coe_is_unit (s : S) : is_unit ((s : α) : localization α S) := of_is_unit _ _ _
 @[simp] lemma coe_is_unit' (s ∈ S) : is_unit ((s : α) : localization α S) := of_is_unit' _ _ _ ‹s ∈ S›
@@ -488,10 +488,9 @@ lemma mk_inv {r s} :
   (mk r s : fraction_ring β)⁻¹ =
   if h : r = 0 then 0 else ⟦⟨s, r, mem_non_zero_divisors_iff_ne_zero.mpr h⟩⟧ := rfl
 
-lemma mk_inv' :
-  ∀ (x : β × (non_zero_divisors β)), (⟦x⟧⁻¹ : fraction_ring β) =
-  if h : x.1 = 0 then 0 else ⟦⟨x.2.val, x.1, mem_non_zero_divisors_iff_ne_zero.mpr h⟩⟧
-| ⟨r,s,hs⟩ := rfl
+lemma mk_inv' (x : β × (non_zero_divisors β)) : (⟦x⟧⁻¹ : fraction_ring β) =
+  if h : x.1 = 0 then 0 else ⟦⟨x.2.val, x.1, mem_non_zero_divisors_iff_ne_zero.mpr h⟩⟧ :=
+rfl
 
 instance : decidable_eq (fraction_ring β) :=
 @quotient.decidable_eq (β × non_zero_divisors β) (localization.setoid β (non_zero_divisors β)) $

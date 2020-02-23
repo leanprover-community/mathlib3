@@ -199,7 +199,7 @@ ext $ λ s, rfl
 
 @[simp] theorem map_map {β γ} (f : α → β) (g : β → γ)
   (m : outer_measure α) : map g (map f m) = map (g ∘ f) m :=
-ext $ λ s, rfl
+rfl
 
 instance : functor outer_measure := {map := λ α β, map}
 

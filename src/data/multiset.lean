@@ -315,7 +315,7 @@ quot.lift_on s length $ λ l₁ l₂, perm_length
 @[simp] theorem card_cons (a : α) (s : multiset α) : card (a :: s) = card s + 1 :=
 quot.induction_on s $ λ l, rfl
 
-@[simp] theorem card_singleton (a : α) : card (a::0) = 1 := by simp
+@[simp] theorem card_singleton (a : α) : card (a::0) = 1 := rfl
 
 theorem card_le_of_le {s t : multiset α} (h : s ≤ t) : card s ≤ card t :=
 le_induction_on h $ λ l₁ l₂, length_le_of_sublist
@@ -463,9 +463,9 @@ def repeat (a : α) (n : ℕ) : multiset α := repeat a n
 
 @[simp] lemma repeat_zero (a : α) : repeat a 0 = 0 := rfl
 
-@[simp] lemma repeat_succ (a : α) (n) : repeat a (n+1) = a :: repeat a n := by simp [repeat]
+@[simp] lemma repeat_succ (a : α) (n) : repeat a (n+1) = a :: repeat a n := rfl
 
-@[simp] lemma repeat_one (a : α) : repeat a 1 = a :: 0 := by simp
+@[simp] lemma repeat_one (a : α) : repeat a 1 = a :: 0 := rfl
 
 @[simp] lemma card_repeat : ∀ (a : α) n, card (repeat a n) = n := length_repeat
 
@@ -1726,7 +1726,8 @@ by simp [powerset_len_aux_eq_map_coe, subperm]; exact
   λ l₁, ⟨λ ⟨l₂, ⟨s, e⟩, p⟩, ⟨⟨_, p, s⟩, (perm_length p.symm).trans e⟩,
     λ ⟨⟨l₂, p, s⟩, e⟩, ⟨_, ⟨s, (perm_length p).trans e⟩, p⟩⟩
 
-@[simp] theorem powerset_len_aux_zero (l : list α) :
+@[simp, nolint rfl_lemma] -- not rfl according to kernel
+theorem powerset_len_aux_zero (l : list α) :
   powerset_len_aux 0 l = [0] :=
 by simp [powerset_len_aux_eq_map_coe]
 
@@ -1848,7 +1849,7 @@ variable [decidable_eq α]
 /-- `count a s` is the multiplicity of `a` in `s`. -/
 def count (a : α) : multiset α → ℕ := countp (eq a)
 
-@[simp] theorem coe_count (a : α) (l : list α) : count a (↑l) = l.count a := coe_countp _
+@[simp] theorem coe_count (a : α) (l : list α) : count a (↑l) = l.count a := rfl
 
 @[simp] theorem count_zero (a : α) : count a 0 = 0 := rfl
 
@@ -1940,7 +1941,7 @@ theorem ext' {s t : multiset α} : (∀ a, count a s = count a t) → s = t :=
 ext.2
 
 @[simp] theorem coe_inter (s t : list α) : (s ∩ t : multiset α) = (s.bag_inter t : list α) :=
-by ext; simp
+rfl
 
 theorem le_iff_count {s t : multiset α} : s ≤ t ↔ ∀ a, count a s ≤ count a t :=
 ⟨λ h a, count_le_of_le a h, λ al,
@@ -2453,7 +2454,7 @@ theorem erase_dup_eq_zero {s : multiset α} : erase_dup s = 0 ↔ s = 0 :=
  λ h, h.symm ▸ erase_dup_zero⟩
 
 @[simp] theorem erase_dup_singleton {a : α} : erase_dup (a :: 0) = a :: 0 :=
-erase_dup_eq_self.2 $ nodup_singleton _
+rfl
 
 theorem le_erase_dup {s t : multiset α} : s ≤ erase_dup t ↔ s ≤ t ∧ nodup s :=
 ⟨λ h, ⟨le_trans h (erase_dup_le _), nodup_of_le h (nodup_erase_dup _)⟩,
@@ -2680,7 +2681,7 @@ multiset.induction_on s₂
   (by rw [add_zero, fold_zero, ← fold_cons'_right, ← fold_cons_right op])
   (by simp {contextual := tt}; cc)
 
-theorem fold_singleton (b a : α) : (a::0 : multiset α).fold op b = a * b := by simp
+theorem fold_singleton (b a : α) : (a::0 : multiset α).fold op b = a * b := rfl
 
 theorem fold_distrib {f g : β → α} (u₁ u₂ : α) (s : multiset β) :
   (s.map (λx, f x * g x)).fold op (u₁ * u₂) = (s.map f).fold op u₁ * (s.map g).fold op u₂ :=
@@ -2722,7 +2723,7 @@ variables [semilattice_sup_bot α]
 def sup (s : multiset α) : α := s.fold (⊔) ⊥
 
 @[simp] lemma sup_zero : (0 : multiset α).sup = ⊥ :=
-fold_zero _ _
+rfl
 
 @[simp] lemma sup_cons (a : α) (s : multiset α) :
   (a :: s).sup = a ⊔ s.sup :=
@@ -2769,7 +2770,7 @@ variables [semilattice_inf_top α]
 def inf (s : multiset α) : α := s.fold (⊓) ⊤
 
 @[simp] lemma inf_zero : (0 : multiset α).inf = ⊤ :=
-fold_zero _ _
+rfl
 
 @[simp] lemma inf_cons (a : α) (s : multiset α) :
   (a :: s).inf = a ⊓ s.inf :=
@@ -3042,12 +3043,12 @@ open traversable is_lawful_traversable
 lemma lift_beta {α β : Type*} (x : list α) (f : list α → β)
   (h : ∀ a b : list α, a ≈ b → f a = f b) :
   quotient.lift f h (x : multiset α) = f x :=
-quotient.lift_beta _ _ _
+rfl
 
 @[simp]
 lemma map_comp_coe {α β} (h : α → β) :
   functor.map h ∘ coe = (coe ∘ functor.map h : list α → multiset β) :=
-by funext; simp [functor.map]
+rfl
 
 lemma id_traverse {α : Type*} (x : multiset α) :
   traverse id.mk x = x :=
@@ -3234,7 +3235,7 @@ by rw [antidiagonal, coe_card, list.nat.length_antidiagonal]
 
 /-- The antidiagonal of `0` is the list `[(0,0)]` -/
 @[simp] lemma antidiagonal_zero : antidiagonal 0 = {(0, 0)} :=
-by { rw [antidiagonal, list.nat.antidiagonal_zero], refl }
+rfl
 
 /-- The antidiagonal of `n` does not contain duplicate entries. -/
 lemma nodup_antidiagonal (n : ℕ) : nodup (antidiagonal n) :=

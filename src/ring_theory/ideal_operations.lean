@@ -458,7 +458,7 @@ theorem map_top : map f ⊤ = ⊤ :=
 (eq_top_iff_one _).2 $ subset_span ⟨1, trivial, is_ring_hom.map_one f⟩
 
 theorem comap_top : comap f ⊤ = ⊤ :=
-(eq_top_iff_one _).2 trivial
+rfl
 
 theorem map_sup : map f (I ⊔ J) = map f I ⊔ map f J :=
 le_antisymm (map_le_iff_le_comap.2 $ sup_le

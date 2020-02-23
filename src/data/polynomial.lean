@@ -241,7 +241,7 @@ variables [is_semiring_hom f]
 (sum_single_index $ by rw [map_zero f, zero_mul]).trans $ by rw [map_one f, one_mul, pow_one]
 
 @[simp] lemma eval₂_zero : (0 : polynomial α).eval₂ f x = 0 :=
-finsupp.sum_zero_index
+rfl
 
 @[simp] lemma eval₂_add : (p + q).eval₂ f x = p.eval₂ f x + q.eval₂ f x :=
 finsupp.sum_add_index
@@ -298,7 +298,7 @@ def eval : α → polynomial α → α := eval₂ id
 
 @[simp] lemma eval_X : X.eval x = x := eval₂_X _ _
 
-@[simp] lemma eval_zero : (0 : polynomial α).eval x = 0 :=  eval₂_zero _ _
+@[simp] lemma eval_zero : (0 : polynomial α).eval x = 0 := rfl
 
 @[simp] lemma eval_add : (p + q).eval x = p.eval x + q.eval x := eval₂_add _ _
 
@@ -383,7 +383,7 @@ end
 by rw [← C_0, comp_C]
 
 @[simp] lemma zero_comp : comp (0 : polynomial α) p = 0 :=
-by rw [← C_0, C_comp]
+rfl
 
 @[simp] lemma comp_one : p.comp 1 = C (p.eval 1) :=
 by rw [← C_1, comp_C]
@@ -556,13 +556,13 @@ variables (f : α → β)
 /-- `map f p` maps a polynomial `p` across a ring hom `f` -/
 def map : polynomial α → polynomial β := eval₂ (C ∘ f) X
 
+@[simp] lemma map_zero : (0 : polynomial α).map f = 0 := rfl
+
 variables [is_semiring_hom f]
 
 @[simp] lemma map_C : (C a).map f = C (f a) := eval₂_C _ _
 
 @[simp] lemma map_X : X.map f = X := eval₂_X _ _
-
-@[simp] lemma map_zero : (0 : polynomial α).map f = 0 :=  eval₂_zero _ _
 
 @[simp] lemma map_add : (p + q).map f = p.map f + q.map f := eval₂_add _ _
 
@@ -1273,7 +1273,7 @@ instance : module α (polynomial α) := finsupp.module ℕ α
 
 -- TODO -- this is OK for semimodules
 @[simp] lemma coeff_smul (p : polynomial α) (r : α) (n : ℕ) :
-coeff (r • p) n = r * coeff p n := finsupp.smul_apply
+coeff (r • p) n = r * coeff p n := rfl
 
 -- TODO -- this is OK for semimodules
 lemma C_mul' (a : α) (f : polynomial α) : C a * f = a • f :=
@@ -2279,7 +2279,7 @@ begin
 end
 
 @[simp] lemma derivative_zero : derivative (0 : polynomial α) = 0 :=
-finsupp.sum_zero_index
+rfl
 
 lemma derivative_monomial (a : α) (n : ℕ) : derivative (C a * X ^ n) = C (a * n) * X^(n - 1) :=
 by rw [← single_eq_C_mul_X, ← single_eq_C_mul_X, derivative, sum_single_index, single_eq_C_mul_X];

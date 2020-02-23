@@ -337,7 +337,7 @@ instance submodule_is_add_subgroup : is_add_subgroup (p : set β) :=
   add_mem  := p.add,
   neg_mem  := λ _, p.neg_mem }
 
-@[move_cast] lemma coe_sub (x y : p) : (↑(x - y) : β) = ↑x - ↑y := by simp
+@[move_cast] lemma coe_sub (x y : p) : (↑(x - y) : β) = ↑x - ↑y := rfl
 
 instance : module α p :=
 by refine {smul := (•), ..};

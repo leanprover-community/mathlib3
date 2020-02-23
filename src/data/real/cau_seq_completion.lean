@@ -60,13 +60,13 @@ instance : has_mul Cauchy :=
 @[simp] theorem mk_mul (f g : cau_seq β abv) : mk f * mk g = mk (f * g) := rfl
 
 theorem of_rat_add (x y : β) : of_rat (x + y) = of_rat x + of_rat y :=
-congr_arg mk (const_add _ _)
+rfl
 
 theorem of_rat_neg (x : β) : of_rat (-x) = -of_rat x :=
-congr_arg mk (const_neg _)
+rfl
 
 theorem of_rat_mul (x y : β) : of_rat (x * y) = of_rat x * of_rat y :=
-congr_arg mk (const_mul _ _)
+rfl
 
 private lemma zero_def : 0 = mk 0 := rfl
 
@@ -79,7 +79,7 @@ by refine { neg := has_neg.neg,
     simp [zero_def, one_def, mul_left_comm, mul_comm, mul_add] }
 
 theorem of_rat_sub (x y : β) : of_rat (x - y) = of_rat x - of_rat y :=
-congr_arg mk (const_sub _ _)
+rfl
 
 end
 

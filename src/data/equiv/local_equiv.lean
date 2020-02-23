@@ -290,7 +290,7 @@ protected def trans : local_equiv α γ :=
 @[simp] lemma trans_inv_apply (x : γ) : (e.trans e').inv_fun x = e.inv_fun (e'.inv_fun x) := rfl
 
 lemma trans_symm_eq_symm_trans_symm : (e.trans e').symm = e'.symm.trans e.symm :=
-by cases e; cases e'; refl
+rfl
 
 /- This could be considered as a simp lemma, but there are many situations where it makes something
 simple into something more complicated. -/

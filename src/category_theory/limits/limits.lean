@@ -475,7 +475,7 @@ def limit.hom_iso (F : J ⥤ C) [has_limit F] (W : C) : (W ⟶ limit F) ≅ (F.c
 
 @[simp] lemma limit.hom_iso_hom (F : J ⥤ C) [has_limit F] {W : C} (f : W ⟶ limit F) :
   (limit.hom_iso F W).hom f = (const J).map f ≫ (limit.cone F).π :=
-(limit.is_limit F).hom_iso_hom f
+rfl
 
 def limit.hom_iso' (F : J ⥤ C) [has_limit F] (W : C) :
   ((W ⟶ limit F) : Type v) ≅ { p : Π j, W ⟶ F.obj j // ∀ {j j' : J} (f : j ⟶ j'), p j ≫ F.map f = p j' } :=
@@ -746,7 +746,7 @@ def colimit.hom_iso (F : J ⥤ C) [has_colimit F] (W : C) : (colimit F ⟶ W) �
 
 @[simp] lemma colimit.hom_iso_hom (F : J ⥤ C) [has_colimit F] {W : C} (f : colimit F ⟶ W) :
   (colimit.hom_iso F W).hom f = (colimit.cocone F).ι ≫ (const J).map f :=
-(colimit.is_colimit F).hom_iso_hom f
+rfl
 
 def colimit.hom_iso' (F : J ⥤ C) [has_colimit F] (W : C) :
   ((colimit F ⟶ W) : Type v) ≅ { p : Π j, F.obj j ⟶ W // ∀ {j j'} (f : j ⟶ j'), F.map f ≫ p j' = p j } :=

@@ -296,7 +296,7 @@ begin
 end
 
 @[simp] lemma val_min_abs_zero {n : ℕ+} : (0 : zmod n).val_min_abs = 0 :=
-by simp [zmod.val_min_abs]
+rfl
 
 @[simp] lemma val_min_abs_eq_zero {n : ℕ+} (x : zmod n) :
   x.val_min_abs = 0 ↔ x = 0 :=
@@ -461,7 +461,7 @@ lemma nat_abs_val_min_abs_le (x : zmodp p hp) : x.val_min_abs.nat_abs ≤ p / 2 
 zmod.nat_abs_val_min_abs_le x
 
 @[simp] lemma val_min_abs_zero : (0 : zmodp p hp).val_min_abs = 0 :=
-zmod.val_min_abs_zero
+rfl
 
 @[simp] lemma val_min_abs_eq_zero (x : zmodp p hp) : x.val_min_abs = 0 ↔ x = 0 :=
 zmod.val_min_abs_eq_zero x

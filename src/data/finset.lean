@@ -419,7 +419,7 @@ ext.2 $ λ _, mem_inter.trans $ and_self _
 ext.2 $ λ _, mem_inter.trans $ and_false _
 
 @[simp] theorem empty_inter (s : finset α) : ∅ ∩ s = ∅ :=
-ext.2 $ λ _, mem_inter.trans $ false_and _
+rfl
 
 @[simp] theorem insert_inter_of_mem {s₁ s₂ : finset α} {a : α} (h : a ∈ s₂) :
   insert a s₁ ∩ s₂ = insert a (s₁ ∩ s₂) :=
@@ -733,7 +733,7 @@ lemma filter_congr {s : finset α} (H : ∀ x ∈ s, p x ↔ q x) : filter p s =
 eq_of_veq $ filter_congr H
 
 lemma filter_empty : filter p ∅ = ∅ :=
-subset_empty.1 $ filter_subset _
+rfl
 
 lemma filter_subset_filter {s t : finset α} (h : s ⊆ t) : s.filter p ⊆ t.filter p :=
 assume a ha, mem_filter.2 ⟨h (mem_filter.1 ha).1, (mem_filter.1 ha).2⟩
@@ -751,7 +751,7 @@ theorem filter_union_right (p q : α → Prop) [decidable_pred p] [decidable_pre
 ext.2 $ λ x, by simp only [mem_filter, mem_union, and_or_distrib_left.symm]
 
 lemma filter_mem_eq_inter {s t : finset α} : s.filter (λ i, i ∈ t) = s ∩ t :=
-ext' $ λ i, by rw [mem_filter, mem_inter]
+rfl
 
 theorem filter_inter {s t : finset α} : filter p s ∩ t = filter p (s ∩ t) :=
 by { ext, simp only [mem_inter, mem_filter, and.right_comm] }
@@ -1044,7 +1044,7 @@ ext.2 $ λ b, by simp only [mem_map, mem_inter, exists_prop]; exact
 by rintro ⟨⟨a, m₁, e⟩, ⟨a', m₂, rfl⟩⟩; cases f.2 e; exact ⟨_, ⟨m₁, m₂⟩, rfl⟩⟩
 
 @[simp] theorem map_singleton (f : α ↪ β) (a : α) : (singleton a).map f = singleton (f a) :=
-ext.2 $ λ _, by simp only [mem_map, mem_singleton, exists_prop, exists_eq_left]; exact eq_comm
+rfl
 
 @[simp] theorem map_insert [decidable_eq α] [decidable_eq β]
   (f : α ↪ β) (a : α) (s : finset α) :
@@ -1121,7 +1121,7 @@ ext.2 $ by simp only [mem_image, exists_prop, mem_inter]; exact λ b,
  λ ⟨⟨a, m₁, e₁⟩, ⟨a', m₂, e₂⟩⟩, ⟨a, ⟨m₁, hf _ _ (e₂.trans e₁.symm) ▸ m₂⟩, e₁⟩⟩.
 
 @[simp] theorem image_singleton (f : α → β) (a : α) : (singleton a).image f = singleton (f a) :=
-ext.2 $ λ x, by simpa only [mem_image, exists_prop, mem_singleton, exists_eq_left] using eq_comm
+rfl
 
 @[simp] theorem image_insert [decidable_eq α] (f : α → β) (a : α) (s : finset α) :
   (insert a s).image f = insert (f a) (s.image f) :=
@@ -1205,7 +1205,7 @@ theorem card_insert_le [decidable_eq α] (a : α) (s : finset α) : card (insert
 by by_cases a ∈ s; [{rw [insert_eq_of_mem h], apply nat.le_add_right},
 rw [card_insert_of_not_mem h]]
 
-@[simp] theorem card_singleton (a : α) : card (singleton a) = 1 := card_singleton _
+@[simp] theorem card_singleton (a : α) : card (singleton a) = 1 := rfl
 
 theorem card_erase_of_mem [decidable_eq α] {a : α} {s : finset α} : a ∈ s → card (erase s a) = pred (card s) := card_erase_of_mem
 
@@ -1751,7 +1751,7 @@ variables {s s₁ s₂ : finset β} {f : β → α}
 lemma sup_val : s.sup f = (s.1.map f).sup := rfl
 
 @[simp] lemma sup_empty : (∅ : finset β).sup f = ⊥ :=
-fold_empty
+rfl
 
 @[simp] lemma sup_insert [decidable_eq β] {b : β} : (insert b s : finset β).sup f = f b ⊔ s.sup f :=
 fold_insert_idem
@@ -1836,7 +1836,7 @@ variables {s s₁ s₂ : finset β} {f : β → α}
 lemma inf_val : s.inf f = (s.1.map f).inf := rfl
 
 @[simp] lemma inf_empty : (∅ : finset β).inf f = ⊤ :=
-fold_empty
+rfl
 
 @[simp] lemma inf_insert [decidable_eq β] {b : β} : (insert b s : finset β).inf f = f b ⊓ s.inf f :=
 fold_insert_idem
@@ -1916,9 +1916,9 @@ theorem max_eq_sup_with_bot (s : finset α) :
 @[simp] theorem max_insert {a : α} {s : finset α} :
   (insert a s).max = option.lift_or_get max (some a) s.max := fold_insert_idem
 
-theorem max_singleton {a : α} : finset.max {a} = some a := max_insert
+theorem max_singleton {a : α} : finset.max {a} = some a := rfl
 
-@[simp] theorem max_singleton' {a : α} : finset.max (singleton a) = some a := max_singleton
+@[simp] theorem max_singleton' {a : α} : finset.max (singleton a) = some a := rfl
 
 theorem max_of_mem {s : finset α} {a : α} (h : a ∈ s) : ∃ b, b ∈ s.max :=
 (@le_sup (with_bot α) _ _ _ _ _ h _ rfl).imp $ λ b, Exists.fst
@@ -1959,9 +1959,9 @@ theorem min_eq_inf_with_top (s : finset α) :
   (insert a s).min = option.lift_or_get min (some a) s.min :=
 fold_insert_idem
 
-theorem min_singleton {a : α} : finset.min {a} = some a := min_insert
+theorem min_singleton {a : α} : finset.min {a} = some a := rfl
 
-@[simp] theorem min_singleton' {a : α} : finset.min (singleton a) = some a := min_singleton
+@[simp] theorem min_singleton' {a : α} : finset.min (singleton a) = some a := rfl
 
 theorem min_of_mem {s : finset α} {a : α} (h : a ∈ s) : ∃ b, b ∈ s.min :=
 (@inf_le (with_top α) _ _ _ _ _ h _ rfl).imp $ λ b, Exists.fst
@@ -2431,7 +2431,7 @@ by simpa using list.to_finset_card_of_nodup (list.nat.nodup_antidiagonal n)
 
 /-- The antidiagonal of `0` is the list `[(0,0)]` -/
 @[simp] lemma antidiagonal_zero : antidiagonal 0 = {(0, 0)} :=
-by { rw [antidiagonal, multiset.nat.antidiagonal_zero], refl }
+rfl
 
 end nat
 

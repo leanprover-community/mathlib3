@@ -385,7 +385,7 @@ by { dsimp [cone_of_cocone_left_op], simp }
 
 @[simp] lemma cocone_left_op_of_cone_ι_app (c : cone F) (j) :
   (cocone_left_op_of_cone c).ι.app j = (c.π.app (unop j)).unop :=
-by { dsimp [cocone_left_op_of_cone], simp }
+rfl
 
 @[simps X] def cocone_of_cone_left_op (c : cone F.left_op) : cocone F :=
 { X := op c.X,
@@ -401,5 +401,5 @@ by { dsimp [cocone_of_cone_left_op], simp }
 
 @[simp] lemma cone_left_op_of_cocone_π_app (c : cocone F) (j) :
   (cone_left_op_of_cocone c).π.app j = (c.ι.app (unop j)).unop :=
-by { dsimp [cone_left_op_of_cocone], simp }
+rfl
 end category_theory.limits

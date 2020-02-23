@@ -96,7 +96,7 @@ by haveI := f.to_order_embedding.is_well_order; exact
 
 @[simp] theorem antisymm_symm [is_well_order α r] [is_well_order β s]
   (f : r ≼i s) (g : s ≼i r) : (antisymm f g).symm = antisymm g f :=
-order_iso.eq_of_to_fun_eq rfl
+rfl
 
 theorem eq_or_principal [is_well_order β s] (f : r ≼i s) : surjective f ∨ ∃ b, ∀ x, s x b ↔ ∃ y, f y = x :=
 or_iff_not_imp_right.2 $ λ h b,
@@ -170,7 +170,7 @@ def lt_le (f : r ≺i s) (g : s ≼i t) : r ≺i t :=
    exists_swap, order_embedding.trans_apply, exists_eq_right']; refl⟩
 
 @[simp] theorem lt_le_apply [is_trans β s] [is_trans γ t] (f : r ≺i s) (g : s ≼i t) (a : α) : (f.lt_le g) a = g (f a) :=
-order_embedding.trans_apply _ _ _
+rfl
 
 @[simp] theorem lt_le_top (f : r ≺i s) (g : s ≼i t) : (f.lt_le g).top = g f.top := rfl
 
@@ -178,7 +178,7 @@ order_embedding.trans_apply _ _ _
 lt_le f g
 
 @[simp] theorem trans_apply [is_trans β s] [is_trans γ t] (f : r ≺i s) (g : s ≺i t) (a : α) : (f.trans g) a = g (f a) :=
-lt_le_apply _ _ _
+rfl
 
 @[simp] theorem trans_top [is_trans β s] [is_trans γ t] (f : r ≺i s) (g : s ≺i t) : (f.trans g).top = g f.top := rfl
 
@@ -199,7 +199,7 @@ def lt_equiv {r : α → α → Prop} {s : β → β → Prop} {t : γ → γ �
   end⟩
 
 @[simp] theorem equiv_lt_apply [is_trans γ t] (f : r ≃o s) (g : s ≺i t) (a : α) : (equiv_lt f g) a = g (f a) :=
-order_embedding.trans_apply _ _ _
+rfl
 
 @[simp] theorem equiv_lt_top (f : r ≃o s) (g : s ≺i t) : (equiv_lt f g).top = g.top := rfl
 
@@ -621,7 +621,7 @@ instance : has_one ordinal :=
 ⟨⟦⟨punit, empty_relation, by apply_instance⟩⟧⟩
 
 theorem one_eq_type_unit : 1 = @type unit empty_relation _ :=
-quotient.sound ⟨⟨punit_equiv_punit, λ _ _, iff.rfl⟩⟩
+rfl
 
 @[simp] theorem card_one : card 1 = 1 := rfl
 
@@ -1746,7 +1746,7 @@ begin
   exact ordinal.min_le (λ i:ι α, ⟦⟨α, i.1, i.2⟩⟧) ⟨_, _⟩
 end
 
-@[nolint def_lemma doc_blame] -- TODO: This should be a theorem but Lean fails to synthesize the placeholder
+@[_refl_lemma, nolint def_lemma doc_blame] -- TODO: This should be a theorem but Lean fails to synthesize the placeholder
 def ord_eq_min (α : Type u) : ord (mk α) =
   @ordinal.min _ _ (λ i:{r // is_well_order α r}, ⟦⟨α, i.1, i.2⟩⟧) := rfl
 

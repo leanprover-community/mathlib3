@@ -63,12 +63,12 @@ end
 rfl
 
 @[simp] lemma map_comp_obj (f : X ⟶ Y) (g : Y ⟶ Z) (U) : (map (f ≫ g)).obj U = (map f).obj ((map g).obj U) :=
-by { ext, refl } -- not quite `rfl`, since we don't have eta for records
+rfl
 
 @[simp] lemma map_comp_obj_unop (f : X ⟶ Y) (g : Y ⟶ Z) (U) : (map (f ≫ g)).obj (unop U) = (map f).obj ((map g).obj (unop U)) :=
-by simp
+rfl
 @[simp] lemma op_map_comp_obj (f : X ⟶ Y) (g : Y ⟶ Z) (U) : (map (f ≫ g)).op.obj U = (map f).op.obj ((map g).op.obj U) :=
-by simp
+rfl
 
 def map_comp (f : X ⟶ Y) (g : Y ⟶ Z) : map (f ≫ g) ≅ map g ⋙ map f :=
 { hom := { app := λ U, eq_to_hom (map_comp_obj f g U) },

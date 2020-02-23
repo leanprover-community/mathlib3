@@ -47,10 +47,10 @@ f x.1
 
 lemma restrict_apply {α} {β : α → Type*} (f : Πx, β x) (p : α → Prop) (x : subtype p) :
   restrict f p x = f x.1 :=
-by refl
+rfl
 
 lemma restrict_def {α β} (f : α → β) (p : α → Prop) : restrict f p = f ∘ subtype.val :=
-by refl
+rfl
 
 lemma restrict_injective {α β} {f : α → β} (p : α → Prop) (h : injective f) :
   injective (restrict f p) :=

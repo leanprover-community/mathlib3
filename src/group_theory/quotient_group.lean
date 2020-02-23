@@ -122,11 +122,11 @@ lift _ φ $ λ g, (mem_ker φ).mp
 
 @[simp, to_additive quotient_add_group.ker_lift_mk]
 lemma ker_lift_mk (g : G) : (ker_lift φ) g = φ g :=
-lift_mk _ _ _
+rfl
 
 @[simp, to_additive quotient_add_group.ker_lift_mk']
 lemma ker_lift_mk' (g : G) : (ker_lift φ) (mk g) = φ g :=
-lift_mk' _ _ _
+rfl
 
 @[to_additive quotient_add_group.ker_lift_is_add_group_hom]
 instance ker_lift_is_group_hom : is_group_hom (ker_lift φ) :=

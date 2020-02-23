@@ -250,7 +250,7 @@ linear_map.is_add_group_hom _
 @[simp] lemma lift_of (i x) : lift G f P g Hg (of G f i x) = g i x :=
 module.direct_limit.lift_of _ _ _
 
-@[simp] lemma lift_zero : lift G f P g Hg 0 = 0 := is_add_group_hom.map_zero _
+@[simp] lemma lift_zero : lift G f P g Hg 0 = 0 := rfl
 @[simp] lemma lift_add (x y) : lift G f P g Hg (x + y) = lift G f P g Hg x + lift G f P g Hg y := is_add_hom.map_add _ _ _
 @[simp] lemma lift_neg (x) : lift G f P g Hg (-x) = -lift G f P g Hg x := is_add_group_hom.map_neg _ _
 @[simp] lemma lift_sub (x y) : lift G f P g Hg (x - y) = lift G f P g Hg x - lift G f P g Hg y := is_add_group_hom.map_sub _ _ _
@@ -460,7 +460,7 @@ instance lift.is_ring_hom : is_ring_hom (lift G f P g Hg) :=
 λ x y, quotient.induction_on₂' x y $ λ p q, free_comm_ring.lift_add _ _ _⟩
 
 @[simp] lemma lift_of (i x) : lift G f P g Hg (of G f i x) = g i x := free_comm_ring.lift_of _ _
-@[simp] lemma lift_zero : lift G f P g Hg 0 = 0 := is_ring_hom.map_zero _
+@[simp] lemma lift_zero : lift G f P g Hg 0 = 0 := rfl
 @[simp] lemma lift_one : lift G f P g Hg 1 = 1 := is_ring_hom.map_one _
 @[simp] lemma lift_add (x y) : lift G f P g Hg (x + y) = lift G f P g Hg x + lift G f P g Hg y := is_ring_hom.map_add _
 @[simp] lemma lift_neg (x) : lift G f P g Hg (-x) = -lift G f P g Hg x := is_ring_hom.map_neg _

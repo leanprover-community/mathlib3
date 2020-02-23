@@ -960,7 +960,7 @@ end
 
 lemma simple_func.lintegral_map (f : α →ₛ β) (g : β → ennreal) :
   (∫⁻ a, (f.map g) a) = ∫⁻ a, g (f a) :=
-by { apply lintegral_congr_ae, filter_upwards [], assume a, exact map_apply _ _ _ }
+rfl
 
 lemma lintegral_eq_zero_iff {f : α → ennreal} (hf : measurable f) :
   lintegral f = 0 ↔ (∀ₘ a, f a = 0) :=

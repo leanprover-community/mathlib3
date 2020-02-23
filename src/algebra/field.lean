@@ -68,7 +68,7 @@ congr_arg _ $ units.inv_eq_inv _
 
 @[simp] theorem divp_mk0 (a : α) {b : α} (hb : b ≠ 0) :
   a /ₚ units.mk0 b hb = a / b :=
-divp_eq_div _ _
+rfl
 
 lemma inv_div (ha : a ≠ 0) (hb : b ≠ 0) : (a / b)⁻¹ = b / a :=
 (mul_inv_eq (inv_ne_zero hb) ha).trans $ by rw division_ring.inv_inv hb; refl

@@ -258,7 +258,7 @@ include rC aC rD aD
 
 theorem comp_assoc (φ₁ : C →ₐ[R] D) (φ₂ : B →ₐ[R] C) (φ₃ : A →ₐ[R] B) :
   (φ₁.comp φ₂).comp φ₃ = φ₁.comp (φ₂.comp φ₃) :=
-ext $ λ x, rfl
+rfl
 
 end alg_hom
 

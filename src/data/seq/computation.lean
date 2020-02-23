@@ -377,11 +377,10 @@ theorem exists_results_of_mem {s : computation α} {a} (h : a ∈ s) : ∃ n, re
 by haveI := terminates_of_mem h; exact ⟨_, results_of_terminates' s h⟩
 
 @[simp] theorem get_ret (a : α) : get (return a) = a :=
-get_eq_of_mem _ ⟨0, rfl⟩
+rfl
 
 @[simp] theorem length_ret (a : α) : length (return a) = 0 :=
-let h := computation.ret_terminates a in
-nat.eq_zero_of_le_zero $ nat.find_min' ((terminates_def (return a)).1 h) rfl
+rfl
 
 theorem results_ret (a : α) : results (return a) a 0 :=
 ⟨_, length_ret _⟩
@@ -644,7 +643,7 @@ theorem has_map_eq_map {β} (f : α → β) (c : computation α) : f <$> c = map
 
 @[simp] theorem return_def (a) : (_root_.return a : computation α) = return a := rfl
 
-@[simp] theorem map_ret' {α β} : ∀ (f : α → β) (a), f <$> return a = return (f a) := map_ret
+@[simp] theorem map_ret' {α β} (f : α → β) (a) : f <$> return a = return (f a) := rfl
 @[simp] theorem map_think' {α β} : ∀ (f : α → β) s, f <$> think s = think (f <$> s) := map_think
 
 theorem mem_map (f : α → β) {a} {s : computation α} (m : a ∈ s) : f a ∈ map f s :=

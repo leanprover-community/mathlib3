@@ -154,8 +154,7 @@ fintype_insert' _ (not_mem_empty _)
 
 @[simp] theorem card_singleton (a : α) :
   fintype.card ({a} : set α) = 1 :=
-by rw [show fintype.card ({a} : set α) = _, from
-    card_fintype_insert' ∅ (not_mem_empty a)]; refl
+rfl
 
 @[simp] theorem finite_singleton (a : α) : finite ({a} : set α) :=
 ⟨set.fintype_singleton _⟩

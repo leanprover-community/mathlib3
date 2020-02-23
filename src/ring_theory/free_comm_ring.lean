@@ -103,7 +103,7 @@ lift $ of ∘ f
 
 @[simp] lemma map_zero : map f 0 = 0 := rfl
 @[simp] lemma map_one : map f 1 = 1 := rfl
-@[simp] lemma map_of (x : α) : map f (of x) = of (f x) := lift_of _ _
+@[simp] lemma map_of (x : α) : map f (of x) = of (f x) := rfl
 @[simp] lemma map_add (x y) : map f (x + y) = map f x + map f y := lift_add _ _ _
 @[simp] lemma map_neg (x) : map f (-x) = -map f x := lift_neg _ _
 @[simp] lemma map_sub (x y) : map f (x - y) = map f x - map f y := lift_sub _ _ _
@@ -155,8 +155,8 @@ lift (λ p, if H : p ∈ s then of ⟨p, H⟩ else 0) x
 section restriction
 variables (s : set α) [decidable_pred s] (x y : free_comm_ring α)
 @[simp] lemma restriction_of (p) : restriction s (of p) = if H : p ∈ s then of ⟨p, H⟩ else 0 := lift_of _ _
-@[simp] lemma restriction_zero : restriction s 0 = 0 := lift_zero _
-@[simp] lemma restriction_one : restriction s 1 = 1 := lift_one _
+@[simp] lemma restriction_zero : restriction s 0 = 0 := rfl
+@[simp] lemma restriction_one : restriction s 1 = 1 := rfl
 @[simp] lemma restriction_add : restriction s (x + y) = restriction s x + restriction s y := lift_add _ _ _
 @[simp] lemma restriction_neg : restriction s (-x) = -restriction s x := lift_neg _ _
 @[simp] lemma restriction_sub : restriction s (x - y) = restriction s x - restriction s y := lift_sub _ _ _
@@ -230,7 +230,7 @@ free_ring.to_free_comm_ring.is_ring_hom _
 variable {α}
 
 @[simp] protected lemma coe_of (a : α) : ↑(free_ring.of a) = free_comm_ring.of a :=
-free_ring.lift_of _ _
+rfl
 @[simp] protected lemma coe_neg (x : free_ring α) : ↑(-x) = -(x : free_comm_ring α) :=
 free_ring.lift_neg _ _
 @[simp] protected lemma coe_add (x y : free_ring α) : ↑(x + y) = (x : free_comm_ring α) + y :=

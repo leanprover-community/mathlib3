@@ -222,7 +222,7 @@ lemma ext_iff (p q : mv_polynomial σ α) :
 ⟨ext p q, λ h m, by rw h⟩
 
 @[simp] lemma coeff_add (m : σ →₀ ℕ) (p q : mv_polynomial σ α) :
-  coeff m (p + q) = coeff m p + coeff m q := add_apply
+  coeff m (p + q) = coeff m p + coeff m q := rfl
 
 @[simp] lemma coeff_zero (m : σ →₀ ℕ) :
   coeff m (0 : mv_polynomial σ α) = 0 := rfl
@@ -361,7 +361,7 @@ def eval₂ (p : mv_polynomial σ α) : β :=
 p.sum (λs a, f a * s.prod (λn e, g n ^ e))
 
 @[simp] lemma eval₂_zero : (0 : mv_polynomial σ α).eval₂ f g = 0 :=
-finsupp.sum_zero_index
+rfl
 
 section
 variables [is_semiring_hom f]
@@ -466,7 +466,7 @@ variables {f : σ → α}
 /-- Evaluate a polynomial `p` given a valuation `f` of all the variables -/
 def eval (f : σ → α) : mv_polynomial σ α → α := eval₂ id f
 
-@[simp] lemma eval_zero : (0 : mv_polynomial σ α).eval f = 0 := eval₂_zero _ _
+@[simp] lemma eval_zero : (0 : mv_polynomial σ α).eval f = 0 := rfl
 
 @[simp] lemma eval_add : (p + q).eval f = p.eval f + q.eval f := eval₂_add _ _
 
@@ -619,7 +619,7 @@ lemma degrees_X (n : σ) : degrees (X n : mv_polynomial σ α) ≤ {n} :=
 le_trans (degrees_monomial _ _) $ le_of_eq $ to_multiset_single _ _
 
 lemma degrees_zero : degrees (0 : mv_polynomial σ α) = 0 :=
-by { rw ← C_0, exact degrees_C 0 }
+rfl
 
 lemma degrees_one : degrees (1 : mv_polynomial σ α) = 0 := degrees_C 1
 
@@ -677,7 +677,7 @@ section vars
 def vars (p : mv_polynomial σ α) : finset σ := p.degrees.to_finset
 
 @[simp] lemma vars_0 : (0 : mv_polynomial σ α).vars = ∅ :=
-by rw [vars, degrees_zero, multiset.to_finset_zero]
+rfl
 
 @[simp] lemma vars_monomial (h : a ≠ 0) : (monomial s a).vars = s.support :=
 by rw [vars, degrees_monomial_eq _ _ h, finsupp.to_finset_to_multiset]
@@ -726,7 +726,7 @@ nat.eq_zero_of_le_zero $ finset.sup_le $ assume n hn,
   end
 
 lemma total_degree_zero : (0 : mv_polynomial σ α).total_degree = 0 :=
-by rw [← C_0]; exact total_degree_C (0 : α)
+rfl
 
 lemma total_degree_one : (1 : mv_polynomial σ α).total_degree = 0 :=
 total_degree_C (1 : α)
@@ -803,10 +803,10 @@ lemma C_sub : (C (a - a') : mv_polynomial σ α) = C a - C a' := is_ring_hom.map
 @[simp] lemma C_neg : (C (-a) : mv_polynomial σ α) = -C a := is_ring_hom.map_neg _
 
 @[simp] lemma coeff_neg (m : σ →₀ ℕ) (p : mv_polynomial σ α) :
-  coeff m (-p) = -coeff m p := finsupp.neg_apply
+  coeff m (-p) = -coeff m p := rfl
 
 @[simp] lemma coeff_sub (m : σ →₀ ℕ) (p q : mv_polynomial σ α) :
-  coeff m (p - q) = coeff m p - coeff m q := finsupp.sub_apply
+  coeff m (p - q) = coeff m p - coeff m q := rfl
 
 instance coeff.is_add_group_hom (m : σ →₀ ℕ) :
   is_add_group_hom (coeff m : mv_polynomial σ α → α) :=
@@ -930,7 +930,7 @@ eval₂_X _ _ _
 
 @[simp] lemma rename_zero (f : β → γ) :
   rename f (0 : mv_polynomial β α) = 0 :=
-eval₂_zero _ _
+rfl
 
 @[simp] lemma rename_one (f : β → γ) :
   rename f (1 : mv_polynomial β α) = 1 :=

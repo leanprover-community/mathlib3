@@ -16,7 +16,7 @@ variable (x : ℝ)
 | 0     := x
 | (n+1) := sqrt (2 + sqrt_two_add_series n)
 
-lemma sqrt_two_add_series_zero : sqrt_two_add_series x 0 = x := by simp
+lemma sqrt_two_add_series_zero : sqrt_two_add_series x 0 = x := rfl
 lemma sqrt_two_add_series_one : sqrt_two_add_series 0 1 = sqrt 2 := by simp
 lemma sqrt_two_add_series_two : sqrt_two_add_series 0 2 = sqrt (2 + sqrt 2) := by simp
 

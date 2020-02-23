@@ -399,7 +399,7 @@ instance to_group.is_group_hom : is_group_hom (to_group f) :=
 is_mul_hom.map_mul _ _ _
 
 @[simp] lemma to_group.one : to_group f 1 = 1 :=
-is_group_hom.map_one _
+rfl
 
 @[simp] lemma to_group.inv : to_group f x⁻¹ = (to_group f x)⁻¹ :=
 is_group_hom.map_inv _ _
@@ -471,7 +471,7 @@ by rcases x with ⟨L⟩; simp
 is_mul_hom.map_mul _ x y
 
 @[simp] lemma map.one : map f 1 = 1 :=
-is_group_hom.map_one _
+rfl
 
 @[simp] lemma map.inv : map f x⁻¹ = (map f x)⁻¹ :=
 is_group_hom.map_inv _ x
@@ -523,7 +523,7 @@ to_group.is_group_hom
 to_group.mul
 
 @[simp] lemma prod.one : prod (1:free_group α) = 1 :=
-to_group.one
+rfl
 
 @[simp] lemma prod.inv : prod x⁻¹ = (prod x)⁻¹ :=
 to_group.inv
@@ -566,7 +566,7 @@ prod.is_group_hom
 prod.mul
 
 @[simp] lemma sum.one : sum (1:free_group α) = 0 :=
-prod.one
+rfl
 
 @[simp] lemma sum.inv : sum x⁻¹ = -sum x :=
 prod.inv
@@ -609,10 +609,10 @@ quot.induction_on z $ λ L, list.rec_on L C1 $ λ ⟨x, b⟩ tl ih,
 bool.rec_on b (Cm _ _ (Ci _ $ Cp x) ih) (Cm _ _ (Cp x) ih)
 
 @[simp] lemma map_pure (f : α → β) (x : α) : f <$> (pure x : free_group α) = pure (f x) :=
-map.of
+rfl
 
 @[simp] lemma map_one (f : α → β) : f <$> (1 : free_group α) = 1 :=
-map.one
+rfl
 
 @[simp] lemma map_mul (f : α → β) (x y : free_group α) : f <$> (x * y) = f <$> x * f <$> y :=
 map.mul
@@ -624,7 +624,7 @@ map.inv
 to_group.of
 
 @[simp] lemma one_bind (f : α → free_group β) : 1 >>= f = 1 :=
-@@to_group.one _ f
+rfl
 
 @[simp] lemma mul_bind (f : α → free_group β) (x y : free_group α) : x * y >>= f = (x >>= f) * (y >>= f) :=
 to_group.mul

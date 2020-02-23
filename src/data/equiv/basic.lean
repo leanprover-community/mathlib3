@@ -114,7 +114,7 @@ lemma eq_symm_apply {α β} (e : α ≃ β) {x y} : y = e.symm x ↔ e y = x :=
 
 @[simp] theorem symm_symm (e : α ≃ β) : e.symm.symm = e := by { cases e, refl }
 
-@[simp] theorem symm_symm_apply (e : α ≃ β) (a : α) : e.symm.symm a = e a := by { cases e, refl }
+@[simp] theorem symm_symm_apply (e : α ≃ β) (a : α) : e.symm.symm a = e a := rfl
 
 @[simp] theorem trans_refl (e : α ≃ β) : e.trans (equiv.refl β) = e := by { cases e, refl }
 
@@ -128,7 +128,7 @@ lemma eq_symm_apply {α β} (e : α ≃ β) {x y} : y = e.symm x ↔ e y = x :=
 
 lemma trans_assoc {δ} (ab : α ≃ β) (bc : β ≃ γ) (cd : γ ≃ δ) :
   (ab.trans bc).trans cd = ab.trans (bc.trans cd) :=
-equiv.ext _ _ $ assume a, rfl
+rfl
 
 theorem left_inverse_symm (f : equiv α β) : left_inverse f.symm f := f.left_inv
 
@@ -167,7 +167,7 @@ begin
 end
 
 @[simp] theorem mul_apply {α : Type u} (f g : perm α) (x) : (f * g) x = f (g x) :=
-equiv.trans_apply _ _ _
+rfl
 
 @[simp] theorem one_apply {α : Type u} (x) : (1 : perm α) x = x := rfl
 
@@ -872,7 +872,7 @@ eq_of_to_fun_eq $ funext $ λ x, swap_core_swap_core _ _ _
 
 theorem swap_comp_apply {a b x : α} (π : perm α) :
   π.trans (swap a b) x = if π x = a then b else if π x = b then a else π x :=
-by { cases π, refl }
+rfl
 
 @[simp] lemma swap_inv {α : Type*} [decidable_eq α] (x y : α) :
   (swap x y)⁻¹ = swap x y := rfl

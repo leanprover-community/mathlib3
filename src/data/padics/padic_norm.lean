@@ -289,7 +289,7 @@ else
 /--
 The p-adic norm of 0 is 0.
 -/
-@[simp] protected lemma zero : padic_norm p 0 = 0 := by simp [padic_norm]
+@[simp] protected lemma zero : padic_norm p 0 = 0 := rfl
 
 /--
 The p-adic norm of 1 is 1.

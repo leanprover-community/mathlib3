@@ -135,7 +135,7 @@ lemma coeff_one :
   coeff α n (1 : mv_power_series σ α) = if n = 0 then 1 else 0 := rfl
 
 @[simp] lemma coeff_zero_one : coeff α (0 : σ →₀ ℕ) 1 = 1 :=
-coeff_monomial' 0 1
+rfl
 
 instance : has_mul (mv_power_series σ α) :=
 ⟨λ φ ψ n, (finsupp.antidiagonal n).support.sum (λ p, φ p.1 * ψ p.2)⟩
@@ -283,7 +283,7 @@ lemma coeff_C (n : σ →₀ ℕ) (a : α) :
   coeff α n (C σ α a) = if n = 0 then a else 0 := rfl
 
 @[simp] lemma coeff_zero_C (a : α) : coeff α (0 : σ →₀ℕ) (C σ α a) = a :=
-coeff_monomial' 0 a
+rfl
 
 /-- The variables of the multivariate formal power series ring.-/
 def X (s : σ) : mv_power_series σ α := monomial α (single s 1) 1
@@ -573,7 +573,7 @@ coeff_inv_aux n (↑u⁻¹) φ
 
 @[simp] lemma constant_coeff_inv_of_unit (φ : mv_power_series σ α) (u : units α) :
   constant_coeff σ α (inv_of_unit φ u) = ↑u⁻¹ :=
-by rw [← coeff_zero_eq_constant_coeff_apply, coeff_inv_of_unit, if_pos rfl]
+rfl
 
 lemma mul_inv_of_unit (φ : mv_power_series σ α) (u : units α) (h : constant_coeff σ α φ = u) :
   φ * inv_of_unit φ u = 1 :=
@@ -679,7 +679,7 @@ coeff_inv_aux n _ φ
 
 @[simp] lemma constant_coeff_inv (φ : mv_power_series σ α) :
   constant_coeff σ α (φ⁻¹) = (constant_coeff σ α φ)⁻¹ :=
-by rw [← coeff_zero_eq_constant_coeff_apply, coeff_inv, if_pos rfl]
+rfl
 
 lemma inv_eq_zero {φ : mv_power_series σ α} :
   φ⁻¹ = 0 ↔ constant_coeff σ α φ = 0 :=
@@ -1114,7 +1114,7 @@ coeff_inv_aux n ↑u⁻¹ φ
 
 @[simp] lemma constant_coeff_inv_of_unit (φ : power_series α) (u : units α) :
   constant_coeff α (inv_of_unit φ u) = ↑u⁻¹ :=
-by rw [← coeff_zero_eq_constant_coeff_apply, coeff_inv_of_unit, if_pos rfl]
+rfl
 
 lemma mul_inv_of_unit (φ : power_series α) (u : units α) (h : constant_coeff α φ = u) :
   φ * inv_of_unit φ u = 1 :=
@@ -1218,7 +1218,7 @@ by rw [inv_eq_inv_aux, coeff_inv_aux n (constant_coeff α φ)⁻¹ φ]
 
 @[simp] lemma constant_coeff_inv (φ : power_series α) :
   constant_coeff α (φ⁻¹) = (constant_coeff α φ)⁻¹ :=
-mv_power_series.constant_coeff_inv φ
+rfl
 
 lemma inv_eq_zero {φ : power_series α} :
   φ⁻¹ = 0 ↔ constant_coeff α φ = 0 :=
@@ -1226,7 +1226,7 @@ mv_power_series.inv_eq_zero
 
 @[simp] lemma inv_of_unit_eq (φ : power_series α) (h : constant_coeff α φ ≠ 0) :
   inv_of_unit φ (units.mk0 _ h) = φ⁻¹ :=
-mv_power_series.inv_of_unit_eq _ _
+rfl
 
 @[simp] lemma inv_of_unit_eq' (φ : power_series α) (u : units α) (h : constant_coeff α φ = u) :
   inv_of_unit φ u = φ⁻¹ :=

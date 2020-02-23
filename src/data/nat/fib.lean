@@ -55,15 +55,7 @@ end
 
 /-- Shows that `fib` indeed satisfies the Fibonacci recurrence `Fₙ₊₂ = Fₙ + Fₙ₊₁.` -/
 lemma fib_succ_succ {n : ℕ} : fib (n + 2) = fib n + fib (n + 1) :=
-begin
-  rw [fib, fib_recurrence_aux],
-  change (stream.nth (n + 1) $ stream.iterate (λ p, _) (0, 1)).snd = _,
-  rw [stream.nth_succ_iterate, stream.map_iterate, stream.nth_map],
-  suffices : (fib_aux_stream n).snd = (stream.iterate (λ p, _) (0, 1) (n + 1)).fst, by
-    simpa only [fib, fib.aux_stream],
-  rw ←fib_recurrence_aux,
-  refl
-end
+rfl
 
 lemma fib_pos {n : ℕ} (n_pos : 0 < n) : 0 < fib n :=
 begin

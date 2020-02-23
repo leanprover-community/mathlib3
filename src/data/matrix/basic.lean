@@ -317,7 +317,7 @@ open_locale matrix
 by ext; refl
 
 @[simp] lemma transpose_zero [has_zero α] : (0 : matrix m n α)ᵀ = 0 :=
-by ext i j; refl
+rfl
 
 @[simp] lemma transpose_one [decidable_eq n] [has_zero α] [has_one α] : (1 : matrix n n α)ᵀ = 1 :=
 begin
@@ -330,7 +330,7 @@ end
 
 @[simp] lemma transpose_add [has_add α] (M : matrix m n α) (N : matrix m n α) :
   (M + N)ᵀ = Mᵀ + Nᵀ  :=
-by { ext i j, simp }
+rfl
 
 @[simp] lemma transpose_mul [comm_ring α] (M : matrix m n α) (N : matrix n l α) :
   (M ⬝ N)ᵀ = Nᵀ ⬝ Mᵀ  :=
@@ -343,12 +343,12 @@ begin
 end
 
 @[simp] lemma transpose_smul [comm_ring α] (c : α)(M : matrix m n α) :
-  (c • M)ᵀ = c • Mᵀ := 
-by { ext i j, refl }
+  (c • M)ᵀ = c • Mᵀ :=
+rfl
 
 @[simp] lemma transpose_neg [comm_ring α] (M : matrix m n α) :
   (- M)ᵀ = - Mᵀ  :=
-by ext i j; refl
+rfl
 
 end transpose
 

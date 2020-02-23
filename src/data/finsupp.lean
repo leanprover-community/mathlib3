@@ -719,7 +719,7 @@ lemma map_domain_single {f : α → α₁} {a : α} {b : β} : map_domain f (sin
 sum_single_index single_zero
 
 @[simp] lemma map_domain_zero {f : α → α₂} : map_domain f 0 = (0 : α₂ →₀ β) :=
-sum_zero_index
+rfl
 
 lemma map_domain_congr {f g : α → α₂} (h : ∀x∈v.support, f x = g x) :
   v.map_domain f = v.map_domain g :=
@@ -784,12 +784,7 @@ noncomputable def comap_domain {α₁ α₂ γ : Type*} [has_zero γ]
 lemma comap_domain_apply {α₁ α₂ γ : Type*} [has_zero γ]
   (f : α₁ → α₂) (l : α₂ →₀ γ) (hf : set.inj_on f (f ⁻¹' l.support.to_set)) (a : α₁) :
   comap_domain f l hf a = l (f a) :=
-begin
-  unfold_coes,
-  unfold comap_domain,
-  simp,
-  refl
-end
+rfl
 
 lemma sum_comap_domain {α₁ α₂ β γ : Type*} [has_zero β] [add_comm_monoid γ]
   (f : α₁ → α₂) (l : α₂ →₀ β) (g : α₂ → β → γ) (hf : set.bij_on f (f ⁻¹' l.support.to_set) l.support.to_set):
@@ -1363,10 +1358,7 @@ noncomputable def split (i : ι) : αs i →₀ β :=
 l.comap_domain (sigma.mk i) (λ x1 x2 _ _ hx, heq_iff_eq.1 (sigma.mk.inj hx).2)
 
 lemma split_apply (i : ι) (x : αs i) : split l i x = l ⟨i, x⟩ :=
-begin
- dunfold split,
- rw comap_domain_apply
-end
+rfl
 
 def split_support : finset ι := l.support.image sigma.fst
 
@@ -1423,7 +1415,7 @@ def to_finsupp (s : multiset α) : α →₀ ℕ :=
 
 @[simp] lemma to_finsupp_zero :
   to_finsupp (0 : multiset α) = 0 :=
-finsupp.ext $ λ a, count_zero a
+rfl
 
 @[simp] lemma to_finsupp_add (s t : multiset α) :
   to_finsupp (s + t) = to_finsupp s + to_finsupp t :=

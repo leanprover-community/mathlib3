@@ -261,7 +261,7 @@ instance : inhabited (cau_seq β abv) := ⟨0⟩
 @[simp] theorem one_apply (i) : (1 : cau_seq β abv) i = 1 := rfl
 
 theorem const_add (x y : β) : const (x + y) = const x + const y :=
-ext $ λ i, rfl
+rfl
 
 instance : has_mul (cau_seq β abv) :=
 ⟨λ f g, ⟨λ i, (f i * g i : β), λ ε ε0,
@@ -274,7 +274,7 @@ instance : has_mul (cau_seq β abv) :=
 @[simp] theorem mul_apply (f g : cau_seq β abv) (i : ℕ) : (f * g) i = f i * g i := rfl
 
 theorem const_mul (x y : β) : const (x * y) = const x * const y :=
-ext $ λ i, rfl
+rfl
 
 instance : has_neg (cau_seq β abv) :=
 ⟨λ f, of_eq (const (-1) * f) (λ x, -f x) (λ i, by simp)⟩
@@ -282,7 +282,7 @@ instance : has_neg (cau_seq β abv) :=
 @[simp] theorem neg_apply (f : cau_seq β abv) (i) : (-f) i = -f i := rfl
 
 theorem const_neg (x : β) : const (-x) = -const x :=
-ext $ λ i, rfl
+rfl
 
 instance : ring (cau_seq β abv) :=
 by refine {neg := has_neg.neg, add := (+), zero := 0, mul := (*), one := 1, ..};
@@ -293,7 +293,7 @@ instance {β : Type*} [comm_ring β] {abv : β → α} [is_absolute_value abv] :
   ..cau_seq.ring }
 
 theorem const_sub (x y : β) : const (x - y) = const x - const y :=
-by rw [sub_eq_add_neg, const_add, const_neg, sub_eq_add_neg]
+rfl
 
 @[simp] theorem sub_apply (f g : cau_seq β abv) (i : ℕ) : (f - g) i = f i - g i := rfl
 
@@ -467,7 +467,7 @@ theorem inv_mul_cancel {f : cau_seq β abv} (hf) : inv f hf * f ≈ 1 :=
     abv_zero abv] using ε0⟩
 
 theorem const_inv {x : β} (hx : x ≠ 0) : const abv (x⁻¹) = inv (const abv x) (by rwa const_lim_zero) :=
-ext (assume n, by simp[inv_apply, const_apply])
+rfl
 
 end discrete_field
 

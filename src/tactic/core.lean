@@ -112,10 +112,15 @@ end lean.parser
 
 namespace format
 
+/-- `join' [a,b,c]` produces the format object `abc`.
+It differs from `format.join` by using `format.nil` instead of `""` for the empty list. -/
+meta def join' (xs : list format) : format :=
+xs.foldl compose nil
+
 /-- `intercalate x [a, b, c]` produces the format object `a.x.b.x.c`,
 where `.` represents `format.join`. -/
 meta def intercalate (x : format) : list format → format :=
-format.join ∘ list.intersperse x
+join' ∘ list.intersperse x
 
 end format
 

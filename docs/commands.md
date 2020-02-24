@@ -140,7 +140,8 @@ A linter defined with the name `linter.my_new_check` can be run with `#lint my_n
 or `lint only my_new_check`.
 If you add the attribute `@[linter]` to `linter.my_new_check` it will run by default.
 
-Adding the attribute `@[nolint]` to a declaration omits it from all linter checks.
+Adding the attribute `@[nolint doc_blame unused_arguments]` to a declaration
+omits it from only the specified linter checks.
 
 ## mk_simp_attribute
 

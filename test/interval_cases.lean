@@ -36,6 +36,10 @@ by { interval_cases n, { left, refl }, { right, refl }, }
 example (n : ℕ) (w₁ : 1 ≤ n) (w₂ : n < 3) : n = 1 ∨ n = 2 :=
 by { interval_cases n, { left, refl }, { right, refl }, }
 
+-- make sure we only pick up bounds on the specified variable:
+example (n m : ℕ) (w₁ : 1 ≤ n) (w₂ : n < 3) (w₃ : m < 2) : n = 1 ∨ n = 2 :=
+by { interval_cases n, { left, refl }, { right, refl }, }
+
 example (n : ℕ) (w₁ : 1 < n) (w₂ : n < 4) : n = 2 ∨ n = 3 :=
 by { interval_cases n, { left, refl }, { right, refl }, }
 

@@ -35,9 +35,10 @@ return that proof.
 meta def gives_upper_bound (n e : expr) : tactic expr :=
 do t ← infer_type e,
    match t with
-   | `(%%n < %%b) := do b ← b.to_rat, return e
-   | `(%%b > %%n) := do b ← b.to_rat, return e
-   | `(%%n ≤ %%b) := do
+   | `(%%n' < %%b) := do guard (n = n'), b ← b.to_rat, return e
+   | `(%%b > %%n') := do guard (n = n'), b ← b.to_rat, return e
+   | `(%%n' ≤ %%b) := do
+      guard (n = n'),
       b ← b.to_rat,
       tn ← infer_type n,
       match tn with
@@ -46,7 +47,8 @@ do t ← infer_type e,
       | `(ℤ) := to_expr ``(int.lt_add_one_iff.mpr %%e)
       | _ := failed
       end
-   | `(%%b ≥ %%n) := do
+   | `(%%b ≥ %%n') := do
+      guard (n = n'),
       b ← b.to_rat,
       tn ← infer_type n,
       match tn with
@@ -66,9 +68,10 @@ return that proof.
 meta def gives_lower_bound (n e : expr) : tactic expr :=
 do t ← infer_type e,
    match t with
-   | `(%%n ≥ %%b) := do b ← b.to_rat, return e
-   | `(%%b ≤ %%n) := do b ← b.to_rat, return e
-   | `(%%n > %%b) := do
+   | `(%%n' ≥ %%b) := do guard (n = n'), b ← b.to_rat, return e
+   | `(%%b ≤ %%n') := do guard (n = n'), b ← b.to_rat, return e
+   | `(%%n' > %%b) := do
+      guard (n = n'),
       b ← b.to_rat,
       tn ← infer_type n,
       match tn with
@@ -77,7 +80,8 @@ do t ← infer_type e,
       | `(ℤ) := to_expr ``(int.add_one_le_iff.mpr %%e)
       | _ := failed
       end
-   | `(%%b < %%n) := do
+   | `(%%b < %%n') := do
+      guard (n = n'),
       b ← b.to_rat,
       tn ← infer_type n,
       match tn with
@@ -114,6 +118,9 @@ do nlb ← try_core $ gives_lower_bound n e,
    cub ← combine_upper_bounds bounds.2 nub,
    return (clb, cub)
 
+/--
+Attempt to find a lower bound for the variable `n`, by evaluating `lattice.bot_le n`.
+-/
 meta def initial_lower_bound (n : expr) : tactic expr :=
 do e ← to_expr ``(@lattice.bot_le _ _ %%n),
    t ← infer_type e,
@@ -122,6 +129,9 @@ do e ← to_expr ``(@lattice.bot_le _ _ %%n),
    | _ := failed
    end
 
+/--
+Attempt to find an upper bound for the variable `n`, by evaluating `lattice.le_top n`.
+-/
 meta def initial_upper_bound (n : expr) : tactic expr :=
 do e ← to_expr ``(@lattice.le_top _ _ %%n),
    match e with
@@ -150,9 +160,11 @@ do
   | (some lb_prf, some ub_prf) := return (lb_prf, ub_prf)
   end
 
+/-- The finset of elements of a set `s` for which we have `fintype s`. -/
 def set_elems {α} [decidable_eq α] (s : set α) [fintype s] : finset α :=
 (fintype.elems s).image subtype.val
 
+/-- Each element of `s` is a member of `set_elems s`. -/
 lemma mem_set_elems {α} [decidable_eq α] (s : set α) [fintype s] {a : α} (h : a ∈ s) :
   a ∈ set_elems s :=
 finset.mem_image.2 ⟨⟨a, h⟩, fintype.complete _, rfl⟩
@@ -161,6 +173,12 @@ end interval_cases
 
 open interval_cases
 
+/-- Call `fin_cases` on membership of the finset built from
+an `Ico` interval corresponding to a lower and an upper bound.
+
+Here `hl` should be an expression of the form `a ≤ n`, for some explicit `a`, and
+`hu` should be of the form `n < b`, for some explicit `b`.
+-/
 meta def interval_cases_using (hl hu : expr) : tactic unit :=
 to_expr ``(mem_set_elems (Ico _ _) ⟨%%hl, %%hu⟩) >>= note_anon >>= fin_cases_at none
 
@@ -168,10 +186,30 @@ setup_tactic_parser
 
 namespace interactive
 
+/--
+`interval_cases hl hu` takes two hypotheses,
+which should be of the form `hl : a ≤ n` and `hu : n < b`, and
+calls `fin_cases` on the resulting fact `n ∈ set.Ico a b`.
+-/
 meta def interval_cases_using (hl hu : parse ident) : tactic unit :=
 do [hl, hu] ← [hl, hu].mmap get_local,
    tactic.interval_cases_using hl hu
 
+/--
+`interval_cases n` searches for upper and lower bounds on a variable `n`,
+and if bounds are found,
+splits into separate cases for each possible value of `n`.
+
+As an example, in
+```
+example (n : ℕ) (w₁ : n ≥ 3) (w₂ : n < 5) : n = 3 ∨ n = 4 :=
+begin
+  interval_cases n,
+  all_goals {simp}
+end
+```
+after `interval_cases n`, the goals are `3 = 3 ∨ 3 = 4` and `4 = 3 ∨ 4 = 4`.
+-/
 meta def interval_cases (n : parse texpr) : tactic unit :=
 do n ← to_expr n,
    (hl, hu) ← get_bounds n,

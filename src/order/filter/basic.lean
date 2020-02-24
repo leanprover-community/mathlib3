@@ -3,7 +3,7 @@ Copyright (c) 2017 Johannes Hölzl. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johannes Hölzl, Jeremy Avigad
 -/
-import order.galois_connection order.zorn
+import order.galois_connection order.zorn order.copy
 import data.set.finite
 
 /-! # Theory of filters on sets
@@ -28,40 +28,6 @@ open lattice set
 universes u v w x y
 
 open_locale classical
-
-namespace lattice
-variables {α : Type u} {ι : Sort v}
-
-def complete_lattice.copy (c : complete_lattice α)
-  (le : α → α → Prop) (eq_le : le = @complete_lattice.le α c)
-  (top : α) (eq_top : top = @complete_lattice.top α c)
-  (bot : α) (eq_bot : bot = @complete_lattice.bot α c)
-  (sup : α → α → α) (eq_sup : sup = @complete_lattice.sup α c)
-  (inf : α → α → α) (eq_inf : inf = @complete_lattice.inf α c)
-  (Sup : set α → α) (eq_Sup : Sup = @complete_lattice.Sup α c)
-  (Inf : set α → α) (eq_Inf : Inf = @complete_lattice.Inf α c) :
-  complete_lattice α :=
-begin
-  refine { le := le, top := top, bot := bot, sup := sup, inf := inf, Sup := Sup, Inf := Inf, ..};
-    subst_vars,
-  exact @complete_lattice.le_refl α c,
-  exact @complete_lattice.le_trans α c,
-  exact @complete_lattice.le_antisymm α c,
-  exact @complete_lattice.le_sup_left α c,
-  exact @complete_lattice.le_sup_right α c,
-  exact @complete_lattice.sup_le α c,
-  exact @complete_lattice.inf_le_left α c,
-  exact @complete_lattice.inf_le_right α c,
-  exact @complete_lattice.le_inf α c,
-  exact @complete_lattice.le_top α c,
-  exact @complete_lattice.bot_le α c,
-  exact @complete_lattice.le_Sup α c,
-  exact @complete_lattice.Sup_le α c,
-  exact @complete_lattice.Inf_le α c,
-  exact @complete_lattice.le_Inf α c
-end
-
-end lattice
 
 open set lattice
 

@@ -1818,7 +1818,7 @@ begin
   { rwa [find_cons_of_neg _ h, iff_true_intro h, true_and] }
 end
 
-@[simp] theorem find_some (H : find p l = some a) : p a :=
+theorem find_some (H : find p l = some a) : p a :=
 begin
   induction l with b l IH, {contradiction},
   by_cases h : p b,

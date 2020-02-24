@@ -35,7 +35,7 @@ Let `f : E → F` be a map between normed vector spaces over a nondiscrete norme
 * `formal_multilinear_series 𝕜 E F`: a family of `n`-multilinear maps for all `n`, designed to
   model the sequence of derivatives of a function.
 * `has_ftaylor_series_up_to n f p`: expresses that the formal multilinear series `p` is a sequence
-  of iterated derivatives of `f`, up to the `n`-th term (where `n` is a natural number of `∞`).
+  of iterated derivatives of `f`, up to the `n`-th term (where `n` is a natural number or `∞`).
 * `has_ftaylor_series_up_to_on n f p s`: same thing, but inside a set `s`. The notion of derivative
   is now taken inside `s`. In particular, derivatives don't have to be unique.
 * `times_cont_diff 𝕜 n f`: expresses that `f` is `C^n`, i.e., it admits a Taylor series up to

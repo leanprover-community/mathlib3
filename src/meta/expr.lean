@@ -241,6 +241,9 @@ meta def is_num_eq : expr → expr → bool
 | _ _ := ff
 
 /-- Check if, after discarding arguments of pi binders, an expr is an `=` or `↔`. -/
+-- This could be implemented as
+-- ``λ e, e.pi_codomain.get_app_fn.const_name ∈ [`eq, `iff]``
+-- but the recursive version is slightly faster, and used time-critically in `rw_hint`.
 meta def is_eq_or_iff_after_binders : expr → bool
 | (expr.pi n bi d b) := is_eq_or_iff_after_binders b
 | `(%%a = %%b)       := tt

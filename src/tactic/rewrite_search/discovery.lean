@@ -50,7 +50,7 @@ do
 /-- Test if a declaration can be used as a rewrite rule. -/
 -- We signal success using `option` so this can be passed to `env.decl_filter_map`.
 meta def is_rewrite_lemma (d : declaration) : option declaration :=
-let t := d.type in if is_acceptable_rewrite t then some d else none
+if ¬d.to_name.is_internal ∧ is_acceptable_rewrite d.type then some d else none
 
 /--
 Obtain a list of all rewrite rules available in the current environment

@@ -84,7 +84,7 @@ meta def app_map {α} (F : expr_lens → expr → tactic (list α)) : expr → t
 meta def rewrite_without_new_mvars (r : expr) (e : expr) (cfg : rewrite_all.cfg := {}) : tactic (expr × expr) :=
 lock_tactic_state $ -- This makes sure that we forget everything in between rewrites;
                     -- otherwise we don't correctly find everything!
-do (new_t, prf, metas) ← rewrite_core r e { cfg.to_rewrite_cfg with md := semireducible },
+do (new_t, prf, metas) ← rewrite_core r e cfg.to_rewrite_cfg,
    try_apply_opt_auto_param cfg.to_apply_cfg metas,
    set_goals metas,
    all_goals (try cfg.discharger),

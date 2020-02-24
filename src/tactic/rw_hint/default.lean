@@ -15,6 +15,7 @@ namespace tactic
 /-- Generate a list of `rw ...` strings, which represent successful rewrites of the current goal. -/
 -- TODO perhaps run `solve_by_elim` on resulting goals,
 -- and put any rewrites where this succeeds at the top of the list?
+-- This is probably far too slow, but perhaps worth investigating.
 -- TODO some suggestions will appear for any equality goal, but are stupid:
 --   Try this: rw eq_comm
 --   Try this: rw ←option.some_inj
@@ -37,9 +38,7 @@ namespace interactive
 
 /-- Suggest possible rewrites of the current goal. -/
 meta def rw_hint : tactic unit :=
-do hints ← tactic.rw_hint,
-   hints.mmap (λ h, trace $ "Try this: " ++ h),
-   skip
+tactic.rw_hint >>= list.mmap' (λ h, trace $ "Try this: " ++ h)
 
 end interactive
 

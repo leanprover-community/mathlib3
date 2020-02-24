@@ -26,37 +26,39 @@ t.is_eq_or_iff_after_binders
 
 /-- Check if a hypothesis can be used for rewriting. -/
 meta def is_acceptable_hyp (r : expr) : tactic bool :=
-  do t ← infer_type r >>= whnf, return $ is_acceptable_rewrite t ∧ ¬t.has_meta_var
+do t ← infer_type r >>= whnf, return $ is_acceptable_rewrite t ∧ ¬t.has_meta_var
 
 /-- Convert a list of `rw_rule`s into a list of pairs `expr × bool`,
 representing the underlying rule, and
 whether it should be used to rewrite in the reverse direction. -/
 meta def rewrite_list_from_rw_rules (rws : list rw_rule) : tactic (list (expr × bool)) :=
-  rws.mmap (λ r, do e ← to_expr' r.rule, pure (e, r.symm))
+rws.mmap (λ r, do e ← to_expr' r.rule, pure (e, r.symm))
 
 /-- For each lemma `expr`, we try using it in both directions as a rewrite rule. -/
 meta def rewrite_list_from_lemmas (l : list expr) : list (expr × bool) :=
-  l.map (λ e, (e, ff)) ++ l.map (λ e, (e, tt))
+l.map (λ e, (e, ff)) ++ l.map (λ e, (e, tt))
 
 /--
 Collect the local hypotheses which are usable as rewrite rules,
 for each one recording that it can be used in both directions.
 -/
-meta def rewrite_list_from_hyps : tactic (list (expr × bool)) := do
+meta def rewrite_list_from_hyps : tactic (list (expr × bool)) :=
+do
   hyps ← local_context,
   rewrite_list_from_lemmas <$> hyps.mfilter is_acceptable_hyp
 
 /-- Test if a declaration can be used as a rewrite rule. -/
 -- We signal success using `option` so this can be passed to `env.decl_filter_map`.
 meta def is_rewrite_lemma (d : declaration) : option declaration :=
-  let t := d.type in if is_acceptable_rewrite t then some d else none
+let t := d.type in if is_acceptable_rewrite t then some d else none
 
 /--
 Obtain a list of all rewrite rules available in the current environment
 (declarations and local hypothesis). Each element is a `expr` which can be
 used to rewrite, along with a `bool` indicating whether it should be used in reverse.
 -/
-meta def find_all_rewrites : tactic (list (expr × bool)) := do
+meta def find_all_rewrites : tactic (list (expr × bool)) :=
+do
   e ← get_env,
   hyps ← rewrite_list_from_hyps,
   lemmas ← rewrite_list_from_lemmas <$>

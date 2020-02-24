@@ -52,9 +52,15 @@ jobs:
       - name: push release to azure
         if: always() && github.repository == 'leanprover-community/mathlib' && github.event_name == 'push' && matrix.lean_version == 'leanprover-community/lean:3.5.1'
         run: |
-          archive_name="$(git rev-parse HEAD).tar.gz"
-          tar czf "$archive_name" src
-          azcopy copy "$archive_name" "${{ secrets.AZURE_SAS_TOKEN }}" --block-size-mb 99 --overwrite false
+          git fetch --depth=1 origin master
+          remote_sha="$(git rev-parse origin/master)"
+          if [ "${{ github.sha }}" == "$remote_sha" -o "${{ github.ref }}" == "refs/head/master" ]; then
+            archive_name="$(git rev-parse HEAD).tar.gz"
+            tar czf "$archive_name" src
+            azcopy copy "$archive_name" "${{ secrets.AZURE_SAS_TOKEN }}" --block-size-mb 99 --overwrite false
+          else
+            echo "archive is obsolete: branch has been updated"
+          fi
 
       - name: tests
         run: |

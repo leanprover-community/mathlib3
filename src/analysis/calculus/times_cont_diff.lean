@@ -100,7 +100,7 @@ work if `F` and `E →L[𝕜] F` are in the same universe.
 This issue does not appear with the definition from the left, where one does not need to generalize
 over all spaces. Therefore, we use the definition from the left. This means some proofs later on
 become a little bit more complicated: to prove that a function is `C^n`, the most efficient approach
-is to exhibit a formula for its `n`-th derivative and proving it is continuous (contrary to the
+is to exhibit a formula for its `n`-th derivative and prove it is continuous (contrary to the
 inductive approach where one would prove smoothness statements without giving a formula for the
 derivative). In the end, this approach is still satisfactory as it is good to have formulas for the
 iterated derivatives in various constructions.

@@ -123,6 +123,15 @@ lemma coe_eq_to_equiv (h : α ≃ᵢ β) (a : α) : h a = h.to_equiv a := rfl
 lemma isometry_inv_fun (h : α ≃ᵢ β) : isometry h.to_equiv.symm :=
 h.isometry_to_fun.inv h.to_equiv
 
+/-- Alternative constructor for isometric bijections,
+taking as input an isometry, and a right inverse. -/
+def mk' (f : α → β) (g : β → α) (hfg : ∀ x, f (g x) = x) (hf : isometry f) : α ≃ᵢ β :=
+{ to_fun := f,
+  inv_fun := g,
+  left_inv := λ x, hf.injective $ hfg _,
+  right_inv := hfg,
+  isometry_to_fun := hf }
+
 /-- The (bundled) homeomorphism associated to an isometric isomorphism. -/
 protected def to_homeomorph (h : α ≃ᵢ β) : α ≃ₜ β :=
 { continuous_to_fun  := (isometry_to_fun h).continuous,

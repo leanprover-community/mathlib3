@@ -3,30 +3,23 @@ Copyright (c) 2019 Scott Morrison. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Author: Scott Morrison
 
-Case bashing on natural numbers.
+Case bashing on variables in finite intervals.
 
-`nat_cases n`
-1) inspects hypotheses looking for "easy" upper and lower bounds on `n`,
-2) calls `nat_cases a ≤ n < b` with appropriate values of `a` and `b`,
-3) discharges the `n < a` and `n ≥ b` cases using the previously found bounds.
+`interval_cases n`
+1) inspects hypotheses looking for lower and upper bounds of the form `a ≤ n` and `n < b`
+   (although in `ℕ`, `ℤ`, and `ℕ+` bounds of the form `a < n` and `n ≤ b` are also allowed)
+2) calls `fin_cases` on the synthesised hypothesis `n ∈ set.Ico a b`,
+   assuming an appropriate `fintype` instance can be found for the type of `n`.
 
-`nat_cases a ≤ n < b` breaks into the following cases:
-`n < a`, one case `n = k` for each `a ≤ k < b`, and `n ≥ b`,
-and then attempts to use `linarith` to discharge the inequalities.
-
+`interval_cases n using hl hu` does not search the local context for relevant
+hypotheses, but rather uses only the specified pair of hypotheses for a lower and upper bound.
 -/
 import tactic.fin_cases
--- import tactic.linarith
 import data.nat.basic
 import data.fintype.intervals
 import order.bounded_lattice
 
 open set
-
-theorem pnat.lt_add_one_iff : ∀ {a b : ℕ+}, a < b + 1 ↔ a ≤ b :=
-λ {a b : ℕ+}, nat.lt_add_one_iff
-theorem pnat.add_one_le_iff : ∀ {a b : ℕ+}, a + 1 ≤ b ↔ a < b :=
-λ {a b : ℕ+}, iff.refl (a + 1 ≤ b)
 
 namespace tactic
 

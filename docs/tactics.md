@@ -882,8 +882,7 @@ end
 after `fin_cases p; simp`, there are three goals, `f 0`, `f 1`, and `f 2`.
 
 ## interval_cases
-`interval_cases n` searches for upper and lower bounds on a variable `n`, and if an
-upper bound is found, splits into separate cases for each possible value of `n`.
+`interval_cases n` searches for upper and lower bounds on a variable `n`, and if bounds are found, splits into separate cases for each possible value of `n`.
 
 As an example, in
 ```
@@ -894,6 +893,12 @@ begin
 end
 ```
 after `interval_cases n`, the goals are `3 = 3 ∨ 3 = 4` and `4 = 3 ∨ 4 = 4`.
+
+In particular, `interval_cases n`
+1) inspects hypotheses looking for lower and upper bounds of the form `a ≤ n` and `n < b`
+   (although in `ℕ`, `ℤ`, and `ℕ+` bounds of the form `a < n` and `n ≤ b` are also allowed)
+2) calls `fin_cases` on the synthesised hypothesis `n ∈ set.Ico a b`,
+   assuming an appropriate `fintype` instance can be found for the type of `n`.
 
 ## conv
 The `conv` tactic is built-in to lean. Inside `conv` blocks mathlib currently

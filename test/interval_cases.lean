@@ -28,41 +28,13 @@ example (n : ℕ) (w₂ : n < 0) : false :=
 by interval_cases n
 
 example (n : ℕ) (w₂ : n < 1) : n = 0 :=
-by { interval_cases n, refl }
-
-attribute [simp] bot_eq_zero
+by { interval_cases n, }
 
 example (n : ℕ) (w₂ : n < 2) : n = 0 ∨ n = 1 :=
-by { interval_cases n, simp, simp, }
+by { interval_cases n, { left, refl }, { right, refl }, }
 
 example (n : ℕ) (w₁ : 1 ≤ n) (w₂ : n < 3) : n = 1 ∨ n = 2 :=
-by { interval_cases n, simp, simp, }
-
-instance : lattice.has_bot ℕ+ :=
-{ bot := 1 }
-instance : lattice.order_bot ℕ+ :=
-{ bot_le := λ a, a.property,
-  ..(by apply_instance : lattice.has_bot ℕ+),
-  ..(by apply_instance : partial_order ℕ+) }
-
-@[simp] lemma pnat.bot_eq_zero : (⊥ : ℕ+) = 1 := rfl
-
-lemma nat.pos_of_bit0_pos {n : ℕ} (h : 0 < bit0 n) : 0 < n :=
-by { cases n, cases h, apply nat.succ_pos, }
-
--- Some lemmas that rewrite `pnat.mk n h`, for `n` an explicit numeral, into explicit numerals.
-@[simp] lemma pnat.one {h} : (⟨1, h⟩ : ℕ+) = (1 : ℕ+) := rfl
-@[simp] lemma pnat.bit0 (n) {h} : (⟨bit0 n, h⟩ : ℕ+) = (bit0 ⟨n, nat.pos_of_bit0_pos h⟩ : ℕ+) := rfl
-@[simp] lemma pnat.bit1 (n) {h} {k} : (⟨bit1 n, h⟩ : ℕ+) = (bit1 ⟨n, k⟩ : ℕ+) := rfl
-
--- Some lemmas that rewrite inequalities between explicit numerals in `pnat`
--- into the corresponding inequalities in `nat`.
-@[simp] lemma pnat.one_le_bit0 (m : ℕ+) : (1 : ℕ+) ≤ (bit0 m) ↔ (1 : ℕ) ≤ (bit0 (m : ℕ)) := iff.refl _
-@[simp] lemma pnat.one_le_bit1 (m : ℕ+) : (1 : ℕ+) ≤ (bit1 m) ↔ (1 : ℕ) ≤ (bit1 (m : ℕ)) := iff.refl _
-@[simp] lemma pnat.bit0_le_bit0 (n m : ℕ+) : (bit0 n) ≤ (bit0 m) ↔ (bit0 (n : ℕ)) ≤ (bit0 (m : ℕ)) := iff.refl _
-@[simp] lemma pnat.bit0_le_bit1 (n m : ℕ+) : (bit0 n) ≤ (bit1 m) ↔ (bit0 (n : ℕ)) ≤ (bit1 (m : ℕ)) := iff.refl _
-@[simp] lemma pnat.bit1_le_bit0 (n m : ℕ+) : (bit1 n) ≤ (bit0 m) ↔ (bit1 (n : ℕ)) ≤ (bit0 (m : ℕ)) := iff.refl _
-@[simp] lemma pnat.bit1_le_bit1 (n m : ℕ+) : (bit1 n) ≤ (bit1 m) ↔ (bit1 (n : ℕ)) ≤ (bit1 (m : ℕ)) := iff.refl _
+by { interval_cases n, { left, refl }, { right, refl }, }
 
 example (n : ℕ) (w₁ : 1 < n) (w₂ : n < 4) : n = 2 ∨ n = 3 :=
 by { interval_cases n, { left, refl }, { right, refl }, }

@@ -70,10 +70,8 @@ lt_succ_iff
 lemma lt_one_add_iff {a b : ℕ} : a < 1 + b ↔ a ≤ b :=
 by simp only [add_comm, lt_succ_iff]
 
-/--
-This is true reflexively, by the definition of `≤` on ℕ, but it's still useful to have,
-to convince Lean to change the syntactic type.
--/
+-- This is true reflexively, by the definition of `≤` on ℕ,
+-- but it's still useful to have, to convince Lean to change the syntactic type.
 lemma add_one_le_iff {a b : ℕ} : a + 1 ≤ b ↔ a < b :=
 iff.refl _
 

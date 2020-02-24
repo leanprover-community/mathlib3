@@ -79,7 +79,7 @@ not so much), but it gives rise to completely satisfactory theorems.
 
 With a naïve direct definition, the `n`-th derivative of a function belongs to the space
 `E →L[𝕜] (E →L[𝕜] (E ... F)...)))` where there are n iterations of `E →L[𝕜]`. This space
-call also be seen as the space of continuous multilinear functions on `n` copies of `E` with
+may also be seen as the space of continuous multilinear functions on `n` copies of `E` with
 values in `F`, by uncurryfication. This is the point of view that is usually adopted in textbooks,
 and that we also use. This means that the definition and the first proofs are slightly involved,
 as one has to keep track of the uncurryfication operation. The uncurryfication can be done from the

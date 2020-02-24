@@ -93,10 +93,11 @@ begin
   exact (submodule.mem_bot R).mpr h
 end
 
-section
-open_locale classical -- for deciding J = 0
+section quotient
+open_locale classical
 
-noncomputable instance fractional_ideal_has_div : has_div (fractional_ideal R S) :=
+noncomputable instance fractional_ideal_has_div :
+  has_div (fractional_ideal R (non_zero_divisors R)) :=
 ⟨ λ ⟨I, aI, haI, hI⟩ ⟨J, aJ, haJ, hJ⟩, if h : J = 0 then 0 else begin
     obtain ⟨y, mem_J, nonzero⟩ := classical.indefinite_description _ (exists_nonzero_of_ne_bot _ h),
     obtain ⟨y', _, hy'⟩ := classical.indefinite_description _ (hJ y mem_J),
@@ -104,12 +105,15 @@ noncomputable instance fractional_ideal_has_div : has_div (fractional_ideal R S)
     { apply mul_ne_zero haI,
       intro y'_eq_zero,
       have : ↑aJ * y = 0 := by rw [coe_mul_eq_smul, ←hy', y'_eq_zero, coe_zero],
-      sorry },
+      obtain aJ_zero | y_zero := mul_eq_zero.mp this,
+      { have : aJ = 0 := fraction_ring.of.injective (trans aJ_zero (of_zero _ _).symm),
+        contradiction },
+      { contradiction } },
     intros b hb,
     rw [mul_smul],
     convert hI _ (hb _ (submodule.smul_mem _ aJ mem_J)),
     rw [←hy', mul_coe_eq_smul]
   end ⟩
-end
+end quotient
 
 end ring

@@ -110,7 +110,6 @@ by rw [metric.diam, metric.diam, emetric.isometry.diam_image hf]
 structure isometric (α : Type*) (β : Type*) [emetric_space α] [emetric_space β]
   extends α ≃ β :=
 (isometry_to_fun  : isometry to_fun)
-(isometry_inv_fun : isometry inv_fun)
 
 infix ` ≃ᵢ `:25 := isometric
 
@@ -120,6 +119,9 @@ variables [emetric_space α] [emetric_space β] [emetric_space γ]
 instance : has_coe_to_fun (α ≃ᵢ β) := ⟨λ_, α → β, λe, e.to_equiv⟩
 
 lemma coe_eq_to_equiv (h : α ≃ᵢ β) (a : α) : h a = h.to_equiv a := rfl
+
+lemma isometry_inv_fun (h : α ≃ᵢ β) : isometry h.to_equiv.symm :=
+h.isometry_to_fun.inv h.to_equiv
 
 /-- The (bundled) homeomorphism associated to an isometric isomorphism. -/
 protected def to_homeomorph (h : α ≃ᵢ β) : α ≃ₜ β :=
@@ -136,18 +138,16 @@ by ext; refl
 
 /-- The identity isometry of a space. -/
 protected def refl (α : Type*) [emetric_space α] : α ≃ᵢ α :=
-{ isometry_to_fun := isometry_id, isometry_inv_fun := isometry_id, .. equiv.refl α }
+{ isometry_to_fun := isometry_id, .. equiv.refl α }
 
 /-- The composition of two isometric isomorphisms, as an isometric isomorphism. -/
 protected def trans (h₁ : α ≃ᵢ β) (h₂ : β ≃ᵢ γ) : α ≃ᵢ γ :=
 { isometry_to_fun  := h₂.isometry_to_fun.comp h₁.isometry_to_fun,
-  isometry_inv_fun := h₁.isometry_inv_fun.comp h₂.isometry_inv_fun,
   .. equiv.trans h₁.to_equiv h₂.to_equiv }
 
 /-- The inverse of an isometric isomorphism, as an isometric isomorphism. -/
 protected def symm (h : α ≃ᵢ β) : β ≃ᵢ α :=
 { isometry_to_fun  := h.isometry_inv_fun,
-  isometry_inv_fun := h.isometry_to_fun,
   .. h.to_equiv.symm }
 
 protected lemma isometry (h : α ≃ᵢ β) : isometry h := h.isometry_to_fun
@@ -175,14 +175,6 @@ def isometry.isometric_on_range [emetric_space α] [emetric_space β] {f : α �
   α ≃ᵢ range f :=
 { isometry_to_fun := λx y,
   begin
-    change edist ((equiv.set.range f _) x) ((equiv.set.range f _) y) = edist x y,
-    rw [equiv.set.range_apply f h.injective, equiv.set.range_apply f h.injective],
-    exact h x y
-  end,
-  isometry_inv_fun :=
-  begin
-    apply isometry.inv,
-    assume x y,
     change edist ((equiv.set.range f _) x) ((equiv.set.range f _) y) = edist x y,
     rw [equiv.set.range_apply f h.injective, equiv.set.range_apply f h.injective],
     exact h x y

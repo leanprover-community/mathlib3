@@ -35,11 +35,11 @@ universes v u -- declare the `v`'s first; see `category_theory.category` for an 
 namespace category_theory
 open category
 
-/-- An isomorphism (a.k.a. an invertible homomorphism) between two objects of a category.
-The inverse homomorphism is bundled.
+/-- An isomorphism (a.k.a. an invertible morphism) between two objects of a category.
+The inverse morphism is bundled.
 
 See also `category_theory.core` for the category with the same objects and isomorphisms playing
-the role of homomorphisms. -/
+the role of morphisms. -/
 structure iso {C : Type u} [category.{v} C] (X Y : C) :=
 (hom : X ⟶ Y)
 (inv : Y ⟶ X)
@@ -166,7 +166,7 @@ class is_iso (f : X ⟶ Y) :=
 
 export is_iso (inv)
 
-/-- Reinterpret a homomorphism `f` with an `is_iso f` instance as an `iso`. -/
+/-- Reinterpret a morphism `f` with an `is_iso f` instance as an `iso`. -/
 def as_iso (f : X ⟶ Y) [h : is_iso f] : X ≅ Y := { hom := f, ..h }
 
 @[simp] lemma as_iso_hom (f : X ⟶ Y) [is_iso f] : (as_iso f).hom = f := rfl

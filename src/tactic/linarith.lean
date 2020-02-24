@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Author: Robert Y. Lewis
 -/
 
-import tactic.ring data.nat.gcd data.list.basic meta.rb_map data.tree
+import tactic.ring data.nat.gcd data.list.defs meta.rb_map data.tree
 
 /-!
 

@@ -181,7 +181,7 @@ lemma complete_univ {α : Type u} [uniform_space α] [complete_space α] :
 begin
   assume f hf _,
   rcases complete_space.complete hf with ⟨x, hx⟩,
-  exact ⟨x, by simp, hx⟩
+  exact ⟨x, mem_univ x, hx⟩
 end
 
 lemma cauchy_prod [uniform_space β] {f : filter α} {g : filter β} :
@@ -207,6 +207,10 @@ instance complete_space.prod [uniform_space β] [complete_space α] [complete_sp
 /--If `univ` is complete, the space is a complete space -/
 lemma complete_space_of_is_complete_univ (h : is_complete (univ : set α)) : complete_space α :=
 ⟨λ f hf, let ⟨x, _, hx⟩ := h f hf ((@principal_univ α).symm ▸ le_top) in ⟨x, hx⟩⟩
+
+lemma complete_space_iff_is_complete_univ :
+  complete_space α ↔ is_complete (univ : set α) :=
+⟨@complete_univ α _, complete_space_of_is_complete_univ⟩
 
 lemma cauchy_iff_exists_le_nhds [complete_space α] {l : filter α} (hl : l ≠ ⊥) :
   cauchy l ↔ (∃x, l ≤ 𝓝 x) :=

@@ -114,7 +114,7 @@ things to a common universe using a trick.
 
 ### Variables management
 
-The mathbook definitions and proofs use various identifications and abuse of notations, for instance
+The textbook definitions and proofs use various identifications and abuse of notations, for instance
 when saying that the natural space in which the derivative lives, i.e.,
 `E →L[𝕜] (E →L[𝕜] ( ... →L[𝕜] F))`, is the same as a space of multilinear maps. When doing things
 formally, we need to provide explicit maps for these identifications, and chase some diagrams to see

@@ -21,6 +21,8 @@ universe variable u
 namespace lattice
 variables {α : Type u}
 
+/-- A function to create a provable equal copy of a bounded lattice
+with possibly different definitional equalities. -/
 def bounded_lattice.copy (c : bounded_lattice α)
   (le : α → α → Prop) (eq_le : le = @bounded_lattice.le α c)
   (top : α) (eq_top : top = @bounded_lattice.top α c)
@@ -33,6 +35,8 @@ begin
   all_goals { subst_vars, unfreezeI, cases c, assumption }
 end
 
+/-- A function to create a provable equal copy of a distributive lattice
+with possibly different definitional equalities. -/
 def distrib_lattice.copy (c : distrib_lattice α)
   (le : α → α → Prop) (eq_le : le = @distrib_lattice.le α c)
   (sup : α → α → α) (eq_sup : sup = @distrib_lattice.sup α c)
@@ -43,6 +47,8 @@ begin
   all_goals { subst_vars, unfreezeI, cases c, assumption }
 end
 
+/-- A function to create a provable equal copy of a complete lattice
+with possibly different definitional equalities. -/
 def complete_lattice.copy (c : complete_lattice α)
   (le : α → α → Prop) (eq_le : le = @complete_lattice.le α c)
   (top : α) (eq_top : top = @complete_lattice.top α c)
@@ -60,6 +66,8 @@ begin
   all_goals { subst_vars, unfreezeI, cases c, assumption }
 end
 
+/-- A function to create a provable equal copy of a complete distributive lattice
+with possibly different definitional equalities. -/
 def complete_distrib_lattice.copy (c : complete_distrib_lattice α)
   (le : α → α → Prop) (eq_le : le = @complete_distrib_lattice.le α c)
   (top : α) (eq_top : top = @complete_distrib_lattice.top α c)
@@ -77,6 +85,8 @@ begin
   all_goals { subst_vars, unfreezeI, cases c, assumption }
 end
 
+/-- A function to create a provable equal copy of a conditionally complete lattice
+with possibly different definitional equalities. -/
 def conditionally_complete_lattice.copy (c : conditionally_complete_lattice α)
   (le : α → α → Prop) (eq_le : le = @conditionally_complete_lattice.le α c)
   (sup : α → α → α) (eq_sup : sup = @conditionally_complete_lattice.sup α c)

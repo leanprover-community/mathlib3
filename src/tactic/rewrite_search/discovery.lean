@@ -26,13 +26,13 @@ t.is_eq_or_iff_after_binders
 
 /-- Check if a hypothesis can be used for rewriting. -/
 meta def is_acceptable_hyp (r : expr) : tactic bool :=
-  do t ← infer_type r >>= whnf, return $ is_acceptable_rewrite t ∧ ¬t.has_meta_var
+do t ← infer_type r >>= whnf, return $ is_acceptable_rewrite t ∧ ¬t.has_meta_var
 
 /-- Convert a list of `rw_rule`s into a list of pairs `expr × bool`,
 representing the underlying rule, and
 whether it should be used to rewrite in the reverse direction. -/
 meta def rewrite_list_from_rw_rules (rws : list rw_rule) : tactic (list (expr × bool)) :=
-  rws.mmap (λ r, do e ← to_expr' r.rule, pure (e, r.symm))
+rws.mmap (λ r, do e ← to_expr' r.rule, pure (e, r.symm))
 
 /-- For each lemma `expr`, we try using it in both directions as a rewrite rule. -/
 meta def rewrite_list_from_lemmas (l : list expr) : list (expr × bool) :=

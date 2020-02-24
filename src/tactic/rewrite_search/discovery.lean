@@ -20,13 +20,21 @@ namespace tactic.rewrite_search.discovery
 
 open tactic tactic.interactive
 
-/-- Decide if a type represents a usable rewrite rule. -/
-meta def is_acceptable_rewrite (t : expr) : bool :=
-t.is_eq_or_iff_after_binders
+/--
+Decide if a type represents a usable rewrite rule, in the forward and backward directions.
+
+First, this checks that after binders the type is an `=` or an `↔`.
+Second, we don't rewrite numerals.
+-/
+meta def is_acceptable_rewrite : expr → bool × bool
+| (expr.pi n bi d b) := is_acceptable_rewrite b
+| `(%%a = %%b)       := (a.to_nat.is_none, b.to_nat.is_none)
+| `(%%a ↔ %%b)       := (a.to_nat.is_none, b.to_nat.is_none)
+| _                  := (ff, ff)
 
 /-- Check if a hypothesis can be used for rewriting. -/
-meta def is_acceptable_hyp (r : expr) : tactic bool :=
-do t ← infer_type r >>= whnf, return $ is_acceptable_rewrite t ∧ ¬t.has_meta_var
+meta def is_acceptable_hyp (r : expr) : tactic (bool × bool) :=
+do t ← infer_type r >>= whnf, return $ if t.has_meta_var then (ff, ff) else is_acceptable_rewrite t
 
 /-- Convert a list of `rw_rule`s into a list of pairs `expr × bool`,
 representing the underlying rule, and
@@ -35,8 +43,13 @@ meta def rewrite_list_from_rw_rules (rws : list rw_rule) : tactic (list (expr ×
 rws.mmap (λ r, do e ← to_expr' r.rule, pure (e, r.symm))
 
 /-- For each lemma `expr`, we try using it in both directions as a rewrite rule. -/
-meta def rewrite_list_from_lemmas (l : list expr) : list (expr × bool) :=
-l.map (λ e, (e, ff)) ++ l.map (λ e, (e, tt))
+meta def rewrite_list_from_lemmas (l : list (expr × bool × bool)) : list (expr × bool) :=
+(l.map (λ p : expr × bool × bool, match (p.2.1, p.2.2) with
+  | (ff, ff) := []
+  | (tt, ff) := [(p.1, ff)]
+  | (ff, tt) := [(p.1, tt)]
+  | (tt, tt) := [(p.1, ff), (p.1, tt)]
+  end)).join
 
 /--
 Collect the local hypotheses which are usable as rewrite rules,
@@ -45,12 +58,13 @@ for each one recording that it can be used in both directions.
 meta def rewrite_list_from_hyps : tactic (list (expr × bool)) :=
 do
   hyps ← local_context,
-  rewrite_list_from_lemmas <$> hyps.mfilter is_acceptable_hyp
+  acceptable_hyps ← hyps.mmap (λ h, do a ← is_acceptable_hyp h, return (h, a)),
+  return $ rewrite_list_from_lemmas acceptable_hyps
 
 /-- Test if a declaration can be used as a rewrite rule. -/
 -- We signal success using `option` so this can be passed to `env.decl_filter_map`.
-meta def is_rewrite_lemma (d : declaration) : option declaration :=
-if ¬d.to_name.is_internal ∧ is_acceptable_rewrite d.type then some d else none
+meta def is_rewrite_lemma (d : declaration) : option (declaration × bool × bool) :=
+let a := is_acceptable_rewrite d.type in if ¬d.to_name.is_internal ∧ (a.1 ∨ a.2) then some (d, a) else none
 
 /--
 Obtain a list of all rewrite rules available in the current environment
@@ -62,7 +76,7 @@ do
   e ← get_env,
   hyps ← rewrite_list_from_hyps,
   lemmas ← rewrite_list_from_lemmas <$>
-    (e.decl_filter_map is_rewrite_lemma).mmap (λ d, mk_const d.to_name),
+    ((e.decl_filter_map is_rewrite_lemma).mmap (λ d, do n ← mk_const d.1.to_name, return (n, d.2))),
   return $ hyps ++ lemmas
 
 end tactic.rewrite_search.discovery

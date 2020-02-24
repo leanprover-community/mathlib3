@@ -1,7 +1,7 @@
 /-
 Copyright (c) 2017 Johannes Hölzl. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Authors: Johannes Hölzl, Mario Carneiro, Patrick Massot
+Authors: Johannes Hölzl, Mario Carneiro, Patrick Massot, Yury Kudryashov
 -/
 
 import order.lattice algebra.order_functions algebra.ordered_field tactic.tauto
@@ -128,6 +128,12 @@ eq_empty_iff_forall_not_mem.2 $ λ x ⟨h₁, h₂⟩, not_lt_of_le (le_trans h�
 @[simp] lemma Ioo_self (a : α) : Ioo a a = ∅ := Ioo_eq_empty $ le_refl _
 @[simp] lemma Ico_self (a : α) : Ico a a = ∅ := Ico_eq_empty $ le_refl _
 @[simp] lemma Ioc_self (a : α) : Ioc a a = ∅ := Ioc_eq_empty $ le_refl _
+
+lemma Ici_subset_Ici : Ici a ⊆ Ici b ↔ b ≤ a :=
+⟨λ h, h $ left_mem_Ici, λ h x hx, le_trans h hx⟩
+
+lemma Iic_subset_Iic : Iic a ⊆ Iic b ↔ a ≤ b :=
+@Ici_subset_Ici (order_dual α) _ _ _
 
 lemma Ici_subset_Ioi : Ici a ⊆ Ioi b ↔ b < a :=
 ⟨λ h, h left_mem_Ici, λ h x hx, lt_of_lt_of_le h hx⟩
@@ -311,6 +317,11 @@ end partial_order
 
 section linear_order
 variables {α : Type u} [linear_order α] {a a₁ a₂ b b₁ b₂ : α}
+
+lemma compl_Iic : -(Iic a) = Ioi a := ext $ λ _, not_le
+lemma compl_Ici : -(Ici a) = Iio a := ext $ λ _, not_le
+lemma compl_Iio : -(Iio a) = Ici a := ext $ λ _, not_lt
+lemma compl_Ioi : -(Ioi a) = Iic a := ext $ λ _, not_lt
 
 lemma Ioo_eq_empty_iff [densely_ordered α] : Ioo a b = ∅ ↔ b ≤ a :=
 ⟨λ eq, le_of_not_lt $ λ h,

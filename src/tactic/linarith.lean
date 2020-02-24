@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Author: Robert Y. Lewis
 -/
 
-import tactic.ring data.nat.gcd data.list.basic meta.rb_map data.tree
+import tactic.ring data.nat.gcd data.list.defs meta.rb_map data.tree
 
 /-!
 
@@ -833,5 +833,7 @@ do t ← target,
    | none := if cfg.exfalso then exfalso >> linarith.interactive_aux cfg none restr.is_some hyps
              else fail "linarith failed: target type is not an inequality."
    end
+
+add_hint_tactic "linarith"
 
 end

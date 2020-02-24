@@ -1552,7 +1552,7 @@ begin
   rwa [this, isoE.times_cont_diff_on_comp_iff, isoG.symm.comp_times_cont_diff_on_iff] at main
 end
 
-/-- The composition of a `C^n` function on a domain with a `C^n`function is `C^n`. -/
+/-- The composition of a `C^n` function on a domain with a `C^n` function is `C^n`. -/
 lemma times_cont_diff.comp_times_cont_diff_on {n : with_top ℕ} {s : set E} {g : F → G} {f : E → F}
   (hg : times_cont_diff 𝕜 n g) (hf : times_cont_diff_on 𝕜 n f s) :
   times_cont_diff_on 𝕜 n (g ∘ f) s :=

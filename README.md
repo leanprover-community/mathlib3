@@ -17,7 +17,7 @@ You can find detailed instructions to install Lean, mathlib, and supporting tool
 * On [MacOS](docs/install/macos.md)
 * On [Windows](docs/install/windows.md)
 
-## Experimentingfdafda
+## Experimenting
 
 Got everything installed? Why not start with the [tutorial project](https://github.com/leanprover-community/mathlib/blob/master/docs/install/project.md#working-on-an-existing-package)?
 

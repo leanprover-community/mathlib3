@@ -6,7 +6,6 @@ Authors: Scott Morrison
 import tactic.fin_cases
 import data.nat.prime
 import group_theory.perm.sign
-import tactic.norm_num
 
 example (f : ℕ → Prop) (p : fin 3) (h0 : f 0) (h1 : f 1) (h2 : f 2) : f p.val :=
 begin

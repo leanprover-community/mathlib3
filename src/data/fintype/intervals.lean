@@ -16,7 +16,7 @@ We provide `fintype` instances for `Ico l u`, for `l u : ℕ`, and for `l u : �
 
 namespace pnat
 
-/-- `Ico_ℕ+ l u` is the set of positive natural numbers `l ≤ k < u`. -/
+/-- `Ico l u` is the set of positive natural numbers `l ≤ k < u`. -/
 def Ico (l u : ℕ+) : finset ℕ+ :=
 (finset.Ico l u).attach.map
   { to_fun := λ n, ⟨(n : ℕ), lt_of_lt_of_le l.2 (finset.Ico.mem.1 n.2).1⟩,

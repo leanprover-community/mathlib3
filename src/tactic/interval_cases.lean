@@ -23,6 +23,11 @@ import order.bounded_lattice
 
 open set
 
+theorem pnat.lt_add_one_iff : ∀ {a b : ℕ+}, a < b + 1 ↔ a ≤ b :=
+λ {a b : ℕ+}, nat.lt_add_one_iff
+theorem pnat.add_one_le_iff : ∀ {a b : ℕ+}, a + 1 ≤ b ↔ a < b :=
+λ {a b : ℕ+}, iff.refl (a + 1 ≤ b)
+
 namespace tactic
 
 namespace interval_cases
@@ -30,74 +35,74 @@ namespace interval_cases
 /--
 If `e` easily implies `(%%n < %%b)`
 for some explicit `b`,
-return that `b`, as a rational number, along with the proof.
+return that proof.
 -/
 -- We use `expr.to_rat` merely to decide if an `expr` is an explicit number.
 -- It would be more natural to use `expr.to_int`, but that hasn't been implemented.
-meta def gives_upper_bound (n e : expr) : tactic (ℚ × expr) :=
+meta def gives_upper_bound (n e : expr) : tactic expr :=
 do t ← infer_type e,
    match t with
-   | `(%%n < %%b) := do b ← b.to_rat, return (b, e)
-   | `(%%b > %%n) := do b ← b.to_rat, return (b, e)
+   | `(%%n < %%b) := do b ← b.to_rat, return e
+   | `(%%b > %%n) := do b ← b.to_rat, return e
    | `(%%n ≤ %%b) := do
       b ← b.to_rat,
       tn ← infer_type n,
-      e ← match tn with
+      match tn with
       | `(ℕ) := to_expr ``(nat.lt_add_one_iff.mpr %%e)
+      | `(ℕ+) := to_expr ``(pnat.lt_add_one_iff.mpr %%e)
       | `(ℤ) := to_expr ``(int.lt_add_one_iff.mpr %%e)
       | _ := failed
-      end,
-      return (b + 1, e)
+      end
    | `(%%b ≥ %%n) := do
       b ← b.to_rat,
       tn ← infer_type n,
-      e ← match tn with
+      match tn with
       | `(ℕ) := to_expr ``(nat.lt_add_one_iff.mpr %%e)
+      | `(ℕ+) := to_expr ``(pnat.lt_add_one_iff.mpr %%e)
       | `(ℤ) := to_expr ``(int.lt_add_one_iff.mpr %%e)
       | _ := failed
-      end,
-      return (b + 1, e)
+      end
    | _ := failed
    end
 
 /--
 If `e` easily implies `(%%n ≥ %%b)`
 for some explicit `b`,
-return that `b`, as a rational number, and the proof.
+return that proof.
 -/
-meta def gives_lower_bound (n e : expr) : tactic (ℚ × expr) :=
+meta def gives_lower_bound (n e : expr) : tactic expr :=
 do t ← infer_type e,
    match t with
-   | `(%%n ≥ %%b) := do b ← b.to_rat, return (b, e)
-   | `(%%b ≤ %%n) := do b ← b.to_rat, return (b, e)
+   | `(%%n ≥ %%b) := do b ← b.to_rat, return e
+   | `(%%b ≤ %%n) := do b ← b.to_rat, return e
    | `(%%n > %%b) := do
       b ← b.to_rat,
       tn ← infer_type n,
-      e ← match tn with
+      match tn with
       | `(ℕ) := to_expr ``(nat.add_one_le_iff.mpr %%e)
+      | `(ℕ+) := to_expr ``(pnat.add_one_le_iff.mpr %%e)
       | `(ℤ) := to_expr ``(int.add_one_le_iff.mpr %%e)
       | _ := failed
-      end,
-      return (b + 1, e)
+      end
    | `(%%b < %%n) := do
       b ← b.to_rat,
       tn ← infer_type n,
-      e ← match tn with
+      match tn with
       | `(ℕ) := to_expr ``(nat.add_one_le_iff.mpr %%e)
+      | `(ℕ+) := to_expr ``(pnat.add_one_le_iff.mpr %%e)
       | `(ℤ) := to_expr ``(int.add_one_le_iff.mpr %%e)
       | _ := failed
-      end,
-      return (b + 1, e)
+      end
    | _ := failed
    end
 
 /-- Combine two upper bounds. -/
-meta def combine_upper_bounds : option (ℚ × expr) → option (ℚ × expr) → tactic (option (ℚ × expr))
+meta def combine_upper_bounds : option expr → option expr → tactic (option expr)
 | none none := return none
-| (some (b, prf)) none := return $ some (b, prf)
-| none (some (b, prf)) := return $ some (b, prf)
-| (some (b₁, prf₁)) (some (b₂, prf₂)) :=
-  return $ if b₁ ≤ b₂ then some (b₁, prf₁) else some (b₂, prf₂)
+| (some prf) none := return $ some prf
+| none (some prf) := return $ some prf
+| (some prf₁) (some prf₂) :=
+  do option.some <$> to_expr ``(lt_min %%prf₁ %%prf₂)
 
 /-- Combine two lower bounds. -/
 meta def combine_lower_bounds : option expr → option expr → tactic (option expr)
@@ -105,15 +110,14 @@ meta def combine_lower_bounds : option expr → option expr → tactic (option e
 | (some prf) none := return $ some prf
 | none (some prf) := return $ some prf
 | (some prf₁) (some prf₂) :=
-  do prf ← to_expr ``(max_le %%prf₁ %%prf₂),
-  return $ some prf
+  do option.some <$> to_expr ``(max_le %%prf₁ %%prf₂)
 
 /-- Inspect a given expression, using it to update a set of upper and lower bounds on `n`. -/
-meta def update_bounds (n : expr) (bounds : option expr × option (ℚ × expr)) (e : expr) :
-  tactic (option expr × option (ℚ × expr)) :=
+meta def update_bounds (n : expr) (bounds : option expr × option expr) (e : expr) :
+  tactic (option expr × option expr) :=
 do nlb ← try_core $ gives_lower_bound n e,
    nub ← try_core $ gives_upper_bound n e,
-   clb ← combine_lower_bounds bounds.1 (nlb.map prod.snd),
+   clb ← combine_lower_bounds bounds.1 nlb,
    cub ← combine_upper_bounds bounds.2 nub,
    return (clb, cub)
 
@@ -121,28 +125,27 @@ meta def initial_lower_bound (n : expr) : tactic expr :=
 do e ← to_expr ``(@lattice.bot_le _ _ %%n),
    t ← infer_type e,
    match t with
-   -- This time we use `eval_expr`, because `to_rat` is going to choke on `⊥`.
    | `(%%b ≤ %%n) := do return e
    | _ := failed
    end
 
-meta def initial_upper_bound (n : expr) : tactic (ℚ × expr) :=
+meta def initial_upper_bound (n : expr) : tactic expr :=
 do e ← to_expr ``(@lattice.le_top _ _ %%n),
    match e with
    | `(%%n ≤ %%b) := do
-     b ← eval_expr ℕ b,
      tn ← infer_type n,
      e ← match tn with
      | `(ℕ) := to_expr ``(nat.add_one_le_iff.mpr %%e)
+     | `(ℕ+) := to_expr ``(pnat.add_one_le_iff.mpr %%e)
      | `(ℤ) := to_expr ``(int.add_one_le_iff.mpr %%e)
      | _ := failed
      end,
-     return (b + 1, e)
+     return e
    | _ := failed
    end
 
 /-- Inspect the local hypotheses for upper and lower bounds on a variable `n`. -/
-meta def get_bounds (n : expr) : tactic (expr × ℚ × expr) :=
+meta def get_bounds (n : expr) : tactic (expr × expr) :=
 do
   hl ← try_core (initial_lower_bound n),
   hu ← try_core (initial_upper_bound n),
@@ -151,7 +154,7 @@ do
   match r with
   | (_, none) := fail "No upper bound located."
   | (none, _) := fail "No lower bound located."
-  | (some lb_prf, some (ub, ub_prf)) := return (lb_prf, ub, ub_prf)
+  | (some lb_prf, some ub_prf) := return (lb_prf, ub_prf)
   end
 
 def set_elems {α} [decidable_eq α] (s : set α) [fintype s] : finset α :=
@@ -178,7 +181,7 @@ do [hl, hu] ← [hl, hu].mmap get_local,
 
 meta def interval_cases (n : parse texpr) : tactic unit :=
 do n ← to_expr n,
-   (hl, _, hu) ← get_bounds n,
+   (hl, hu) ← get_bounds n,
    tactic.interval_cases_using hl hu
 
 end interactive

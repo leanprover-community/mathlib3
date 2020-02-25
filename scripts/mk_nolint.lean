@@ -4,14 +4,14 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Author: Robert Y. Lewis
 -/
 
-import tactic.lint system.io data.list.sort   -- these are required
+import tactic.lint system.io  -- these are required
 import all   -- then import everything, to parse the library for failing linters
 
 /-!
 # mk_nolint
 
 Defines a function that writes a file containing the names of all declarations
-that fail the linting tests in `active_linters`.
+that fail the linting tests in `mathlib_linters`.
 
 This is mainly used in the Travis check for mathlib.
 
@@ -22,20 +22,25 @@ Usage: `lean --run mk_nolint.lean` writes a file `nolints.txt` in the current di
 
 open io io.fs
 
-/-- Defines the list of linters that will be considered. -/
-meta def active_linters :=
-[`linter.unused_arguments, `linter.dup_namespace, `linter.doc_blame,
- `linter.ge_or_gt, `linter.def_lemma, `linter.instance_priority, --`linter.has_inhabited_instance,
- `linter.impossible_instance, `linter.incorrect_type_class_argument, `linter.dangerous_instance,
- `linter.inhabited_nonempty]
+open native
 
 /-- Runs when called with `lean --run` -/
-meta def main : io unit :=
-do (ns, _) ← run_tactic $ lint_mathlib tt tt active_linters tt,
-   handle ← mk_file_handle "nolints.txt" mode.write,
-   put_str_ln handle "import .all",
-   put_str_ln handle "run_cmd tactic.skip",
-   put_str_ln handle "apply_nolint",
-   (ns.to_list.merge_sort (λ a b, name.lex_cmp a b = ordering.lt)).mmap $
-     λ n, put_str_ln handle (to_string n) >> return n,
-   close handle
+meta def main : io unit := do
+decls ← run_tactic lint_mathlib_decls,
+linters ← run_tactic $ get_linters mathlib_linters,
+results ← run_tactic $ lint_core decls linters,
+env ← run_tactic tactic.get_env,
+mathlib_path_len ← string.length <$> run_tactic tactic.get_mathlib_dir,
+let failed_decls_by_file := rb_lmap.of_list (do
+  (linter_name, _, decls) ← results,
+  (decl_name, _) ← decls.to_list,
+  let file_name := (env.decl_olean decl_name).get_or_else "",
+  pure (file_name.popn mathlib_path_len, decl_name.to_string, linter_name.last)),
+handle ← mk_file_handle "nolints.txt" mode.write,
+put_str_ln handle "import .all",
+put_str_ln handle "run_cmd tactic.skip",
+failed_decls_by_file.to_list.reverse.mmap' (λ ⟨file_name, decls⟩, do
+  put_str_ln handle $ "\n-- " ++ file_name,
+  (rb_lmap.of_list decls).to_list.reverse.mmap $ λ ⟨decl, linters⟩,
+    put_str_ln handle $ "apply_nolint " ++ decl ++ " " ++ " ".intercalate linters),
+close handle

@@ -132,10 +132,14 @@ local attribute [tidy] tactic.case_bash
 { hom := prod.lift prod.snd prod.fst,
   inv := prod.lift prod.snd prod.fst }
 
-/-- The braiding isomorphism is symmetric. -/
-@[simp] lemma prod.symmetry (P Q : C) :
-  (prod.braiding P Q).hom ≫ (prod.braiding Q P).hom = 𝟙 _ :=
+@[simp] lemma prod.symmetry' (P Q : C) :
+  prod.lift prod.snd prod.fst ≫ prod.lift prod.snd prod.fst = 𝟙 (P ⨯ Q) :=
 by tidy
+
+/-- The braiding isomorphism is symmetric. -/
+lemma prod.symmetry (P Q : C) :
+  (prod.braiding P Q).hom ≫ (prod.braiding Q P).hom = 𝟙 _ :=
+by simp
 
 /-- The associator isomorphism for binary products. -/
 @[simps] def prod.associator
@@ -191,10 +195,14 @@ local attribute [tidy] tactic.case_bash
 { hom := coprod.desc coprod.inr coprod.inl,
   inv := coprod.desc coprod.inr coprod.inl }
 
-/-- The braiding isomorphism is symmetric. -/
-@[simp] lemma coprod.symmetry (P Q : C) :
-  (coprod.braiding P Q).hom ≫ (coprod.braiding Q P).hom = 𝟙 _ :=
+@[simp] lemma coprod.symmetry' (P Q : C) :
+  coprod.desc coprod.inr coprod.inl ≫ coprod.desc coprod.inr coprod.inl = 𝟙 (P ⨿ Q) :=
 by tidy
+
+/-- The braiding isomorphism is symmetric. -/
+lemma coprod.symmetry (P Q : C) :
+  (coprod.braiding P Q).hom ≫ (coprod.braiding Q P).hom = 𝟙 _ :=
+by simp
 
 /-- The associator isomorphism for binary coproducts. -/
 @[simps] def coprod.associator

@@ -523,6 +523,10 @@ meta def mfold {α : Type} {m : Type → Type} [monad m] (e : environment) (x : 
 e.fold (return x) (λ d t, t >>= fn d)
 
 /-- Filters all declarations in the environment. -/
+meta def filter (e : environment) (test : declaration → bool) : list declaration :=
+e.fold [] $ λ d ds, if test d then d::ds else ds
+
+/-- Filters all declarations in the environment. -/
 meta def mfilter (e : environment) (test : declaration → tactic bool) : tactic (list declaration) :=
 e.mfold [] $ λ d ds, do b ← test d, return $ if b then d::ds else ds
 

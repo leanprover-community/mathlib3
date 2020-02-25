@@ -482,7 +482,7 @@ eq.symm $ quot.sound ⟨order_iso.of_surjective
 
 @[simp] theorem typein_apply {α β} {r : α → α → Prop} {s : β → β → Prop}
   [is_well_order α r] [is_well_order β s] (f : r ≼i s) (a : α) :
-  ordinal.typein s (f a) = ordinal.typein r a :=
+  ordinal.typein s ((f : r ≼o s) a) = ordinal.typein r a :=
 eq.symm $ quotient.sound ⟨order_iso.of_surjective
   (order_embedding.cod_restrict _
     ((subrel.order_embedding _ _).trans f)
@@ -1570,8 +1570,8 @@ instance : has_div ordinal := ⟨ordinal.div⟩
 
 @[simp] theorem div_zero (a : ordinal) : a / 0 = 0 := dif_pos rfl
 
--- TODO(lint): This should be a theorem but Lean fails to synthesize the placeholder
-@[nolint] def div_def (a) {b : ordinal} (h : b ≠ 0) :
+@[nolint def_lemma doc_blame] -- TODO: This should be a theorem but Lean fails to synthesize the placeholder
+def div_def (a) {b : ordinal} (h : b ≠ 0) :
   a / b = omin {o | a < b * succ o} _ := dif_neg h
 
 theorem lt_mul_succ_div (a) {b : ordinal} (h : b ≠ 0) : a < b * succ (a / b) :=
@@ -1746,8 +1746,8 @@ begin
   exact ordinal.min_le (λ i:ι α, ⟦⟨α, i.1, i.2⟩⟧) ⟨_, _⟩
 end
 
--- TODO(lint): This should be a theorem but Lean fails to synthesize the placeholders
-@[nolint] def ord_eq_min (α : Type u) : ord (mk α) =
+@[nolint def_lemma doc_blame] -- TODO: This should be a theorem but Lean fails to synthesize the placeholder
+def ord_eq_min (α : Type u) : ord (mk α) =
   @ordinal.min _ _ (λ i:{r // is_well_order α r}, ⟦⟨α, i.1, i.2⟩⟧) := rfl
 
 theorem ord_eq (α) : ∃ (r : α → α → Prop) [wo : is_well_order α r],

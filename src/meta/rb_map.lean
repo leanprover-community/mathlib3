@@ -112,6 +112,10 @@ protected meta def of_list {key : Type} {data : Type} [has_lt key]
 | []           := rb_lmap.mk key data
 | ((k, v)::ls) := (of_list ls).insert k v
 
+/-- Returns the list of values of an `rb_lmap`. -/
+protected meta def values {key data} (m : rb_lmap key data) : list data :=
+m.fold [] (λ _, (++))
+
 end rb_lmap
 end native
 

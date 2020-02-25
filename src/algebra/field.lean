@@ -46,8 +46,6 @@ def mk0 (a : α) (ha : a ≠ 0) : units α :=
 
 @[simp] theorem mk0_val (ha : a ≠ 0) : (mk0 a ha : α) = a := rfl
 
-@[simp] theorem mk0_inv (ha : a ≠ 0) : ((mk0 a ha)⁻¹ : α) = a⁻¹ := rfl
-
 @[simp] lemma mk0_coe (u : units α) (h : (u : α) ≠ 0) : mk0 (u : α) h = u :=
 units.ext rfl
 
@@ -278,9 +276,9 @@ section
 variables {β : Type*} [discrete_field α] [discrete_field β]
 variables (f : α → β) [is_ring_hom f] {x y : α}
 
-@[simp] lemma map_inv : f x⁻¹ = (f x)⁻¹ := (of f).map_inv
+lemma map_inv : f x⁻¹ = (f x)⁻¹ := (of f).map_inv
 
-@[simp] lemma map_div : f (x / y) = f x / f y := (of f).map_div
+lemma map_div : f (x / y) = f x / f y := (of f).map_div
 
 end
 

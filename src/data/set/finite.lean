@@ -7,6 +7,7 @@ Finite sets.
 -/
 import logic.function
 import data.nat.basic data.fintype data.set.lattice data.set.function
+import algebra.big_operators
 
 open set lattice function
 

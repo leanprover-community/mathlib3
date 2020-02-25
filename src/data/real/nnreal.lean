@@ -38,6 +38,7 @@ lemma le_coe_of_real (r : ℝ) : r ≤ nnreal.of_real r :=
 le_max_left r 0
 
 lemma coe_nonneg (r : nnreal) : (0 : ℝ) ≤ r := r.2
+@[elim_cast, simp] theorem coe_mk (a : ℝ) (ha) : ((⟨a, ha⟩ : ℝ≥0) : ℝ) = a := rfl
 
 instance : has_zero ℝ≥0  := ⟨⟨0, le_refl 0⟩⟩
 instance : has_one ℝ≥0   := ⟨⟨1, zero_le_one⟩⟩

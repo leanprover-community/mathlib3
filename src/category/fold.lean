@@ -43,7 +43,7 @@ but the author cannot think of instances of `foldable` that are not also
 -/
 import tactic.squeeze
 import algebra.group algebra.opposites
-import data.list.basic
+import data.list.defs
 import category.traversable.instances category.traversable.lemmas
 import category_theory.category
 import category_theory.endomorphism

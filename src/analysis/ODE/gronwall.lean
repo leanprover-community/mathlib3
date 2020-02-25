@@ -188,7 +188,7 @@ theorem dist_le_of_approx_trajectories_ODE {v : ℝ → E → E}
   (ha : dist (f a) (g a) ≤ δ) :
   ∀ t ∈ Icc a b, dist (f t) (g t) ≤ gronwall_bound δ K (εf + εg) (t - a) :=
 have hfs : ∀ t ∈ Ico a b, f t ∈ (@univ E), from λ t ht, trivial,
-dist_le_of_approx_trajectories_ODE_of_mem_set (λ t x y hx hy, hv t x y) hf hf' f_bound hfs
+dist_le_of_approx_trajectories_ODE_of_mem_set (λ t x y hx hy, (hv t).dist_le x y) hf hf' f_bound hfs
   hg hg' g_bound (λ t ht, trivial) ha
 
 /-- If `f` and `g` are two exact solutions of the same ODE, then the distance between them
@@ -234,7 +234,7 @@ theorem dist_le_of_trajectories_ODE {v : ℝ → E → E}
   (ha : dist (f a) (g a) ≤ δ) :
   ∀ t ∈ Icc a b, dist (f t) (g t) ≤ δ * exp (K * (t - a)) :=
 have hfs : ∀ t ∈ Ico a b, f t ∈ (@univ E), from λ t ht, trivial,
-dist_le_of_trajectories_ODE_of_mem_set (λ t x y hx hy, hv t x y) hf hf' hfs
+dist_le_of_trajectories_ODE_of_mem_set (λ t x y hx hy, (hv t).dist_le x y) hf hf' hfs
   hg hg' (λ t ht, trivial) ha
 
 /-- There exists only one solution of an ODE \(\dot x=v(t, x)\) in a set `s ⊆ ℝ × E` with
@@ -270,5 +270,5 @@ theorem ODE_solution_unique {v : ℝ → E → E}
   (ha : f a = g a) :
   ∀ t ∈ Icc a b, f t = g t :=
 have hfs : ∀ t ∈ Ico a b, f t ∈ (@univ E), from λ t ht, trivial,
-ODE_solution_unique_of_mem_set (λ t x y hx hy, hv t x y)
+ODE_solution_unique_of_mem_set (λ t x y hx hy, (hv t).dist_le x y)
   hf hf' hfs hg hg' (λ t ht, trivial) ha

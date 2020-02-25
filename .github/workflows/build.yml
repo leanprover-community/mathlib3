@@ -28,20 +28,8 @@ jobs:
           wget -q https://aka.ms/downloadazcopy-v10-linux -O - | sudo tar zxf - --strip-components 1 --wildcards '*/azcopy'
           sudo chmod 755 /usr/local/bin/azcopy
 
-      # - name: leanpkg build
-      #   run: leanpkg build | python scripts/detect_errors.py
-
-      # - name: setup precompiled zip file
-      #   id: setup_precompiled
-      #   run: |
-      #     git_hash="$(git log -1 --pretty=format:%h)"
-      #     short_lean_version="$(echo ${{ matrix.lean_version }} | sed 's/.*://')"
-      #     echo "::set-output name=artifact_name::precompiled-mathlib-$short_lean_version-$git_hash"
-      # - name: upload precompiled mathlib zip file
-      #   uses: actions/upload-artifact@v1
-      #   with:
-      #     name: ${{ steps.setup_precompiled.outputs.artifact_name }}
-      #     path: ..
+      - name: leanpkg build
+        run: leanpkg build | python scripts/detect_errors.py
 
       - name: push release to azure
         if: always() && github.repository == 'leanprover-community/mathlib' && github.event_name == 'push' && matrix.lean_version == 'leanprover-community/lean:3.5.1'
@@ -56,43 +44,55 @@ jobs:
             echo "archive is obsolete: branch has been updated"
           fi
 
-      # - name: push release to mathlib-nightly
-      #   if: github.repository == 'leanprover-community/mathlib' && github.event_name == 'push' && github.ref == 'refs/heads/master' && matrix.lean_version == 'leanprover-community/lean:3.5.1'
-      #   run: ./scripts/deploy_nightly.sh
-      #   env:
-      #     DEPLOY_NIGHTLY_GITHUB_TOKEN: ${{ secrets.DEPLOY_NIGHTLY_GITHUB_TOKEN }}
+      - name: push release to mathlib-nightly
+        if: github.repository == 'leanprover-community/mathlib' && github.event_name == 'push' && github.ref == 'refs/heads/master' && matrix.lean_version == 'leanprover-community/lean:3.5.1'
+        run: ./scripts/deploy_nightly.sh
+        env:
+          DEPLOY_NIGHTLY_GITHUB_TOKEN: ${{ secrets.DEPLOY_NIGHTLY_GITHUB_TOKEN }}
 
-      # - name: tests
-      #   run: |
-      #     set -o pipefail
-      #     lean --make docs archive roadmap test | cat
+      - name: setup precompiled zip file
+        id: setup_precompiled
+        run: |
+          git_hash="$(git log -1 --pretty=format:%h)"
+          short_lean_version="$(echo ${{ matrix.lean_version }} | sed 's/.*://')"
+          echo "::set-output name=artifact_name::precompiled-mathlib-$short_lean_version-$git_hash"
+      - name: upload precompiled mathlib zip file
+        uses: actions/upload-artifact@v1
+        with:
+          name: ${{ steps.setup_precompiled.outputs.artifact_name }}
+          path: ..
 
-      # - name: lint
-      #   run: |
-      #     ./scripts/mk_all.sh -t
-      #     lean src/lint_mathlib.lean
-      #     ./scripts/rm_all.sh
+      - name: tests
+        run: |
+          set -o pipefail
+          lean --make docs archive roadmap test | cat
 
-      # - name: leanchecker
-      #   run: |
-      #     lean --recursive --export=mathlib.txt src/
-      #     leanchecker mathlib.txt
+      - name: lint
+        run: |
+          ./scripts/mk_all.sh -t
+          lean src/lint_mathlib.lean
+          ./scripts/rm_all.sh
 
-      # - name: Set up Python
-      #   uses: actions/setup-python@v1
-      #   with:
-      #     python-version: 3.8
+      - name: leanchecker
+        run: |
+          lean --recursive --export=mathlib.txt src/
+          leanchecker mathlib.txt
 
-      # - name: generate docs
-      #   if: github.repository == 'leanprover-community/mathlib' && github.event_name == 'push' && github.ref == 'refs/heads/master' && matrix.lean_version == 'leanprover-community/lean:3.5.1'
-      #   run:
-      #     ./scripts/deploy_docs.sh
-      #   env:
-      #     DEPLOY_NIGHTLY_GITHUB_TOKEN: ${{ secrets.DEPLOY_NIGHTLY_GITHUB_TOKEN }}
+      - name: Set up Python
+        uses: actions/setup-python@v1
+        with:
+          python-version: 3.8
 
-      # - name: update nolints.txt
-      #   if: github.repository == 'leanprover-community/mathlib' && github.event_name == 'push' && github.ref == 'refs/heads/master' && matrix.lean_version == 'leanprover-community/lean:3.5.1'
-      #   run:
-      #     ./scripts/update_nolints.sh
-      #   env:
-      #     DEPLOY_NIGHTLY_GITHUB_TOKEN: ${{ secrets.DEPLOY_NIGHTLY_GITHUB_TOKEN }}
+      - name: generate docs
+        if: github.repository == 'leanprover-community/mathlib' && github.event_name == 'push' && github.ref == 'refs/heads/master' && matrix.lean_version == 'leanprover-community/lean:3.5.1'
+        run:
+          ./scripts/deploy_docs.sh
+        env:
+          DEPLOY_NIGHTLY_GITHUB_TOKEN: ${{ secrets.DEPLOY_NIGHTLY_GITHUB_TOKEN }}
+
+      - name: update nolints.txt
+        if: github.repository == 'leanprover-community/mathlib' && github.event_name == 'push' && github.ref == 'refs/heads/master' && matrix.lean_version == 'leanprover-community/lean:3.5.1'
+        run:
+          ./scripts/update_nolints.sh
+        env:
+          DEPLOY_NIGHTLY_GITHUB_TOKEN: ${{ secrets.DEPLOY_NIGHTLY_GITHUB_TOKEN }}

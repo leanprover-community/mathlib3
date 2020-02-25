@@ -136,16 +136,14 @@ tangent_cone_congr (nhds_within_restrict' _ ht).symm
 
 /-- The tangent cone of a product contains the tangent cone of its left factor. -/
 lemma subset_tangent_cone_prod_left {t : set F} {y : F} (ht : y ∈ closure t) :
-  set.prod (tangent_cone_at 𝕜 s x) {(0 : F)} ⊆ tangent_cone_at 𝕜 (set.prod s t) (x, y) :=
+  prod.inl '' (tangent_cone_at 𝕜 s x) ⊆ tangent_cone_at 𝕜 (set.prod s t) (x, y) :=
 begin
-  rintros ⟨v, w⟩ ⟨⟨c, d, hd, hc, hy⟩, hw⟩,
-  have : w = 0, by simpa using hw,
-  rw this,
+  rintros _ ⟨v, ⟨c, d, hd, hc, hy⟩, rfl⟩,
   have : ∀n, ∃d', y + d' ∈ t ∧ ∥c n • d'∥ ≤ ((1:ℝ)/2)^n,
   { assume n,
     have c_pos : 0 < 1 + ∥c n∥ :=
       add_pos_of_pos_of_nonneg zero_lt_one (norm_nonneg _),
-    rcases metric.mem_closure_iff'.1 ht ((1 + ∥c n∥)⁻¹ * (1/2)^n) _ with ⟨z, z_pos, hz⟩,
+    rcases metric.mem_closure_iff.1 ht ((1 + ∥c n∥)⁻¹ * (1/2)^n) _ with ⟨z, z_pos, hz⟩,
     refine ⟨z - y, _, _⟩,
     { convert z_pos, abel },
     { rw [norm_smul, ← dist_eq_norm, dist_comm],
@@ -168,7 +166,7 @@ begin
     assume n hn,
     simp at hn,
     simp [hn, (hd' n).1] },
-  { apply tendsto_prod_mk_nhds hy,
+  { apply hy.prod_mk_nhds,
     change tendsto (λ (n : ℕ), c n • d' n) at_top (𝓝 0),
     rw tendsto_zero_iff_norm_tendsto_zero,
     refine squeeze_zero (λn, norm_nonneg _) (λn, (hd' n).2) _,
@@ -178,16 +176,14 @@ end
 /-- The tangent cone of a product contains the tangent cone of its right factor. -/
 lemma subset_tangent_cone_prod_right {t : set F} {y : F}
   (hs : x ∈ closure s) :
-  set.prod {(0 : E)} (tangent_cone_at 𝕜 t y) ⊆ tangent_cone_at 𝕜 (set.prod s t) (x, y) :=
+  prod.inr '' (tangent_cone_at 𝕜 t y) ⊆ tangent_cone_at 𝕜 (set.prod s t) (x, y) :=
 begin
-  rintros ⟨v, w⟩ ⟨hv, ⟨c, d, hd, hc, hy⟩⟩,
-  have : v = 0, by simpa using hv,
-  rw this,
+  rintros _ ⟨w, ⟨c, d, hd, hc, hy⟩, rfl⟩,
   have : ∀n, ∃d', x + d' ∈ s ∧ ∥c n • d'∥ ≤ ((1:ℝ)/2)^n,
   { assume n,
     have c_pos : 0 < 1 + ∥c n∥ :=
       add_pos_of_pos_of_nonneg zero_lt_one (norm_nonneg _),
-    rcases metric.mem_closure_iff'.1 hs ((1 + ∥c n∥)⁻¹ * (1/2)^n) _ with ⟨z, z_pos, hz⟩,
+    rcases metric.mem_closure_iff.1 hs ((1 + ∥c n∥)⁻¹ * (1/2)^n) _ with ⟨z, z_pos, hz⟩,
     refine ⟨z - x, _, _⟩,
     { convert z_pos, abel },
     { rw [norm_smul, ← dist_eq_norm, dist_comm],
@@ -210,7 +206,7 @@ begin
     assume n hn,
     simp at hn,
     simp [hn, (hd' n).1] },
-  { apply tendsto_prod_mk_nhds _ hy,
+  { apply tendsto.prod_mk_nhds _ hy,
     change tendsto (λ (n : ℕ), c n • d' n) at_top (𝓝 0),
     rw tendsto_zero_iff_norm_tendsto_zero,
     refine squeeze_zero (λn, norm_nonneg _) (λn, (hd' n).2) _,
@@ -312,59 +308,14 @@ lemma unique_diff_within_at.prod {t : set F} {y : F}
   (hs : unique_diff_within_at 𝕜 s x) (ht : unique_diff_within_at 𝕜 t y) :
   unique_diff_within_at 𝕜 (set.prod s t) (x, y) :=
 begin
-  rw [unique_diff_within_at, ← univ_subset_iff] at ⊢ hs ht,
-  split,
-  { assume v _,
-    rw metric.mem_closure_iff',
-    assume ε ε_pos,
-    rcases v with ⟨v₁, v₂⟩,
-    rcases metric.mem_closure_iff'.1 (hs.1 (mem_univ v₁)) ε ε_pos with ⟨w₁, w₁_mem, h₁⟩,
-    rcases metric.mem_closure_iff'.1 (ht.1 (mem_univ v₂)) ε ε_pos with ⟨w₂, w₂_mem, h₂⟩,
-    have I₁ : (w₁, (0 : F)) ∈ submodule.span 𝕜 (tangent_cone_at 𝕜 (set.prod s t) (x, y)),
-    { apply submodule.span_induction w₁_mem,
-      { assume w hw,
-        have : (w, (0 : F)) ∈ (set.prod (tangent_cone_at 𝕜 s x) {(0 : F)}),
-        { rw mem_prod,
-          simp [hw],
-          apply mem_insert },
-        have : (w, (0 : F)) ∈ tangent_cone_at 𝕜 (set.prod s t) (x, y) :=
-          subset_tangent_cone_prod_left ht.2 this,
-        exact submodule.subset_span this },
-      { exact submodule.zero_mem _ },
-      { assume a b ha hb,
-        have : (a, (0 : F)) + (b, (0 : F)) = (a + b, (0 : F)), by simp,
-        rw ← this,
-        exact submodule.add_mem _ ha hb },
-      { assume c a ha,
-        have : c • (0 : F) = (0 : F), by simp,
-        rw ← this,
-        exact submodule.smul_mem _ _ ha } },
-    have I₂ : ((0 : E), w₂) ∈ submodule.span 𝕜 (tangent_cone_at 𝕜 (set.prod s t) (x, y)),
-    { apply submodule.span_induction w₂_mem,
-      { assume w hw,
-        have : ((0 : E), w) ∈ (set.prod {(0 : E)} (tangent_cone_at 𝕜 t y)),
-        { rw mem_prod,
-          simp [hw],
-          apply mem_insert },
-        have : ((0 : E), w) ∈ tangent_cone_at 𝕜 (set.prod s t) (x, y) :=
-          subset_tangent_cone_prod_right hs.2 this,
-        exact submodule.subset_span this },
-      { exact submodule.zero_mem _ },
-      { assume a b ha hb,
-        have : ((0 : E), a) + ((0 : E), b) = ((0 : E), a + b), by simp,
-        rw ← this,
-        exact submodule.add_mem _ ha hb },
-      { assume c a ha,
-        have : c • (0 : E) = (0 : E), by simp,
-        rw ← this,
-        exact submodule.smul_mem _ _ ha } },
-    have I : (w₁, w₂) ∈ submodule.span 𝕜 (tangent_cone_at 𝕜 (set.prod s t) (x, y)),
-    { have : (w₁, (0 : F)) + ((0 : E), w₂) = (w₁, w₂), by simp,
-      rw ← this,
-      exact submodule.add_mem _ I₁ I₂ },
-    refine ⟨(w₁, w₂), I, _⟩,
-    simp [dist, h₁, h₂] },
-  { simp [closure_prod_eq, mem_prod_iff, hs.2, ht.2] }
+  rw [unique_diff_within_at] at ⊢ hs ht,
+  rw [← univ_subset_iff, closure_prod_eq],
+  refine ⟨_, hs.2, ht.2⟩,
+  have : _ ⊆ tangent_cone_at 𝕜 (s.prod t) (x, y) :=
+    union_subset (subset_tangent_cone_prod_left ht.2) (subset_tangent_cone_prod_right hs.2),
+  refine subset.trans _ (closure_mono $ submodule.span_mono this),
+  rw [linear_map.span_inl_union_inr, submodule.prod_coe, closure_prod_eq,
+    hs.1, ht.1, univ_prod_univ]
 end
 
 /-- The product of two sets of unique differentiability is a set of unique differentiability. -/
@@ -378,39 +329,15 @@ theorem unique_diff_on_convex {s : set G} (conv : convex s) (hs : (interior s).n
   unique_diff_on ℝ s :=
 begin
   assume x xs,
-  have A : ∀v, ∃a∈ tangent_cone_at ℝ s x, ∃b∈ tangent_cone_at ℝ s x, ∃δ>(0:ℝ), δ • v = b-a,
-  { assume v,
-    rcases hs with ⟨y, hy⟩,
-    have ys : y ∈ s := interior_subset hy,
-    have : ∃(δ : ℝ), 0<δ ∧ y + δ • v ∈ s,
-    { by_cases h : ∥v∥ = 0,
-      { exact ⟨1, zero_lt_one, by simp [(norm_eq_zero _).1 h, ys]⟩ },
-      { rcases mem_interior.1 hy with ⟨u, us, u_open, yu⟩,
-        rcases metric.is_open_iff.1 u_open y yu with ⟨ε, εpos, hε⟩,
-        let δ := (ε/2) / ∥v∥,
-        have δpos : 0 < δ := div_pos (half_pos εpos) (lt_of_le_of_ne (norm_nonneg _) (ne.symm h)),
-        have : y + δ • v ∈ s,
-        { apply us (hε _),
-          rw [metric.mem_ball, dist_eq_norm],
-          calc ∥(y + δ • v) - y ∥ = ∥δ • v∥ : by {congr' 1, abel }
-          ... = ∥δ∥ * ∥v∥ : norm_smul _ _
-          ... = δ * ∥v∥ : by simp only [norm, abs_of_nonneg (le_of_lt δpos)]
-          ... = ε /2 : div_mul_cancel _ h
-          ... < ε : half_lt_self εpos },
-        exact ⟨δ, δpos, this⟩ } },
-    rcases this with ⟨δ, δpos, hδ⟩,
-    refine ⟨y-x, _, (y + δ • v) - x, _, δ, δpos, by abel⟩,
-    exact mem_tangent_cone_of_segment_subset (conv.segment_subset xs ys),
-    exact mem_tangent_cone_of_segment_subset (conv.segment_subset xs hδ) },
-  have B : ∀v:G, v ∈ submodule.span ℝ (tangent_cone_at ℝ s x),
-  { assume v,
-    rcases A v with ⟨a, ha, b, hb, δ, hδ, h⟩,
-    have : v = δ⁻¹ • (b - a),
-      by { rw [← h, smul_smul, inv_mul_cancel, one_smul], exact (ne_of_gt hδ) },
-    rw this,
-    exact submodule.smul_mem _ _
-      (submodule.sub_mem _ (submodule.subset_span hb) (submodule.subset_span ha)) },
-  refine ⟨univ_subset_iff.1 (λv hv, subset_closure (B v)), subset_closure xs⟩
+  rcases hs with ⟨y, hy⟩,
+  suffices : y - x ∈ interior (tangent_cone_at ℝ s x),
+  { refine ⟨_, subset_closure xs⟩,
+    rw [submodule.eq_top_of_nonempty_interior _ ⟨y - x, interior_mono submodule.subset_span this⟩,
+      submodule.top_coe, closure_univ] },
+  rw [mem_interior_iff_mem_nhds] at hy ⊢,
+  apply mem_sets_of_superset ((is_open_map_add_right (-x)).image_mem_nhds hy),
+  rintros _ ⟨z, zs, rfl⟩,
+  exact mem_tangent_cone_of_segment_subset (conv.segment_subset xs zs)
 end
 
 /-- The real interval `[0, 1]` is a set of unique differentiability. -/

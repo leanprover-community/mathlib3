@@ -500,7 +500,7 @@ continuous_iff_coinduced_le.2 $ le_top
 theorem mem_nhds_induced [T : topological_space α] (f : β → α) (a : β) (s : set β) :
   s ∈ @nhds β (topological_space.induced f T) a ↔ ∃ u ∈ 𝓝 (f a), f ⁻¹' u ⊆ s :=
 begin
-  simp only [nhds_sets, is_open_induced_iff, exists_prop, set.mem_set_of_eq],
+  simp only [mem_nhds_sets_iff, is_open_induced_iff, exists_prop, set.mem_set_of_eq],
   split,
   { rintros ⟨u, usub, ⟨v, openv, ueq⟩, au⟩,
     exact ⟨v, ⟨v, set.subset.refl v, openv, by rwa ←ueq at au⟩, by rw ueq; exact usub⟩ },

@@ -100,6 +100,9 @@ begin
   rw [mul_assoc]
 end
 
+@[simp] lemma to_lin_one [decidable_eq n] : (1 : matrix n n R).to_lin = linear_map.id :=
+by { ext, simp }
+
 end matrix
 
 namespace linear_map

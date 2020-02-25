@@ -59,6 +59,10 @@ variables {l l' : filter α} {p : ι → Prop} {s : ι → set α} {t : set α} 
 lemma has_basis.mem_iff (hl : l.has_basis p s) : t ∈ l ↔ ∃ i (hi : p i), s i ⊆ t :=
 hl t
 
+lemma has_basis.eventually_iff (hl : l.has_basis p s) {q : α → Prop} :
+  (∀ᶠ x in l, q x) ↔ ∃ i (hi : p i), ∀ ⦃x⦄, x ∈ s i → q x :=
+hl _
+
 lemma has_basis.mem_of_superset (hl : l.has_basis p s) (hi : p i) (ht : s i ⊆ t) : t ∈ l :=
 (hl t).2 ⟨i, hi, ht⟩
 
@@ -120,7 +124,7 @@ lemma has_basis.eq_infi (h : l.has_basis (λ _, true) s) :
   l = ⨅ i, principal (s i) :=
 by simpa only [infi_true] using h.eq_binfi
 
-@[nolint] -- see Note [nolint_ge]
+@[nolint ge_or_gt] -- see Note [nolint_ge]
 lemma has_basis_infi_principal {s : ι → set α} (h : directed (≥) s) (ne : nonempty ι) :
   (⨅ i, principal (s i)).has_basis (λ _, true) s :=
 begin
@@ -129,7 +133,7 @@ begin
   exact λ _ _, principal_mono.2
 end
 
-@[nolint] -- see Note [nolint_ge]
+@[nolint ge_or_gt] -- see Note [nolint_ge]
 lemma has_basis_binfi_principal {s : β → set α} {S : set β} (h : directed_on (s ⁻¹'o (≥)) S)
   (ne : S.nonempty) :
   (⨅ i ∈ S, principal (s i)).has_basis (λ i, i ∈ S) s :=
@@ -181,19 +185,19 @@ lemma has_basis.tendsto_left_iff (hla : la.has_basis pa sa) :
 by { simp only [tendsto, (hla.map f).le_iff, image_subset_iff], refl }
 
 lemma has_basis.tendsto_right_iff (hlb : lb.has_basis pb sb) :
-  tendsto f la lb ↔ ∀ i (hi : pb i), {x | f x ∈ sb i} ∈ la :=
-by simp only [tendsto, hlb.ge_iff, mem_map, preimage]
+  tendsto f la lb ↔ ∀ i (hi : pb i), ∀ᶠ x in la, f x ∈ sb i :=
+by simp only [tendsto, hlb.ge_iff, mem_map, filter.eventually]
 
 lemma has_basis.tendsto_iff (hla : la.has_basis pa sa) (hlb : lb.has_basis pb sb) :
   tendsto f la lb ↔ ∀ ib (hib : pb ib), ∃ ia (hia : pa ia), ∀ x ∈ sa ia, f x ∈ sb ib :=
-by simp only [hlb.tendsto_right_iff, hla.mem_iff, subset_def, mem_set_of_eq]
+by simp only [hlb.tendsto_right_iff, hla.eventually_iff, subset_def, mem_set_of_eq]
 
 lemma tendsto.basis_left (H : tendsto f la lb) (hla : la.has_basis pa sa) :
   ∀ t ∈ lb, ∃ i (hi : pa i), ∀ x ∈ sa i, f x ∈ t :=
 hla.tendsto_left_iff.1 H
 
 lemma tendsto.basis_right (H : tendsto f la lb) (hlb : lb.has_basis pb sb) :
-  ∀ i (hi : pb i), {x | f x ∈ sb i} ∈ la :=
+  ∀ i (hi : pb i), ∀ᶠ x in la, f x ∈ sb i :=
 hlb.tendsto_right_iff.1 H
 
 lemma tendsto.basis_both (H : tendsto f la lb) (hla : la.has_basis pa sa)

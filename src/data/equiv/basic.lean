@@ -263,7 +263,10 @@ rfl
   (e₁.trans e₂).conj = e₁.conj.trans e₂.conj :=
 rfl
 
-@[simp] lemma conj_comp (e : α ≃ β) (f₁ f₂ : α → α) :
+-- This should not be a simp lemma as long as `(∘)` is reducible:
+-- when `(∘)` is reducible, Lean can unify `f₁ ∘ f₂` with any `g` using
+-- `f₁ := g` and `f₂ := λ x, x`.  This causes nontermination.
+lemma conj_comp (e : α ≃ β) (f₁ f₂ : α → α) :
   e.conj (f₁ ∘ f₂) = (e.conj f₁) ∘ (e.conj f₂) :=
 by apply arrow_congr_comp
 

@@ -250,7 +250,7 @@ protected lemma tendsto.mul {f : filter α} {ma : α → ennreal} {mb : α → e
   (hma : tendsto ma f (𝓝 a)) (ha : a ≠ 0 ∨ b ≠ ⊤) (hmb : tendsto mb f (𝓝 b)) (hb : b ≠ 0 ∨ a ≠ ⊤) :
   tendsto (λa, ma a * mb a) f (𝓝 (a * b)) :=
 show tendsto ((λp:ennreal×ennreal, p.1 * p.2) ∘ (λa, (ma a, mb a))) f (𝓝 (a * b)), from
-tendsto.comp (ennreal.tendsto_mul ha hb) (tendsto_prod_mk_nhds hma hmb)
+tendsto.comp (ennreal.tendsto_mul ha hb) (hma.prod_mk_nhds hmb)
 
 protected lemma tendsto.const_mul {f : filter α} {m : α → ennreal} {a b : ennreal}
   (hm : tendsto m f (𝓝 b)) (hb : b ≠ 0 ∨ a ≠ ⊤) : tendsto (λb, a * m b) f (𝓝 (a * b)) :=
@@ -612,7 +612,7 @@ open emetric
 
 /-- Yet another metric characterization of Cauchy sequences on integers. This one is often the
 most efficient. -/
-lemma emetric.cauchy_seq_iff_le_tendsto_0 [inhabited β] [semilattice_sup β] {s : β → α} :
+lemma emetric.cauchy_seq_iff_le_tendsto_0 [nonempty β] [semilattice_sup β] {s : β → α} :
   cauchy_seq s ↔ (∃ (b: β → ennreal), (∀ n m N : β, N ≤ n → N ≤ m → edist (s n) (s m) ≤ b N)
                     ∧ (tendsto b at_top (𝓝 0))) :=
 ⟨begin
@@ -637,7 +637,7 @@ lemma emetric.cauchy_seq_iff_le_tendsto_0 [inhabited β] [semilattice_sup β] {s
       simp only [and_imp, set.mem_image, set.mem_set_of_eq, exists_imp_distrib, prod.exists],
       intros d p q hp hq hd,
       rw ← hd,
-      exact le_of_lt (hN q p (le_trans hn hq) (le_trans hn hp))
+      exact le_of_lt (hN p q (le_trans hn hp) (le_trans hn hq))
     end,
     simpa using lt_of_le_of_lt this δlt },
   -- Conclude
@@ -651,7 +651,7 @@ begin
   have : ∀ᶠ n in at_top, b n < ε := (tendsto_order.1 b_lim ).2 _ εpos,
   rcases filter.mem_at_top_sets.1 this with ⟨N, hN⟩,
   exact ⟨N, λm n hm hn, calc
-    edist (s n) (s m) ≤ b N : b_bound n m N hn hm
+    edist (s m) (s n) ≤ b N : b_bound m n N hm hn
     ... < ε : (hN _ (le_refl N)) ⟩
 end⟩
 

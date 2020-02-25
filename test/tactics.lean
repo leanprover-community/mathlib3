@@ -183,23 +183,13 @@ end
 
 variables P Q R : Prop
 
-example : tfae [P, Q, R] :=
+example (pq : P → Q) (qr : Q → R) (rp : R → P) : tfae [P, Q, R] :=
 begin
-  have : P → Q := sorry, have : Q → R := sorry, have : R → P := sorry,
-  --have : R → Q := sorry, -- uncommenting this makes the proof fail
   tfae_finish
 end
 
-example : tfae [P, Q, R] :=
+example (pq : P ↔ Q) (qr : Q ↔ R) : tfae [P, Q, R] :=
 begin
-  have : P → Q := sorry, have : Q → R := sorry, have : R → P := sorry,
-  have : R → Q := sorry, -- uncommenting this makes the proof fail
-  tfae_finish
-end
-
-example : tfae [P, Q, R] :=
-begin
-  have : P ↔ Q := sorry, have : Q ↔ R := sorry,
   tfae_finish -- the success or failure of this tactic is nondeterministic!
 end
 
@@ -266,7 +256,8 @@ end swap
 
 section lift
 
-example (n m k x z u : ℤ) (hn : 0 < n) (hk : 0 ≤ k + n) (hu : 0 ≤ u) (h : k + n = 2 + x) :
+example (n m k x z u : ℤ) (hn : 0 < n) (hk : 0 ≤ k + n) (hu : 0 ≤ u)
+  (h : k + n = 2 + x) (f : false) :
   k + n = m + x :=
 begin
   lift n to ℕ using le_of_lt hn,
@@ -283,7 +274,8 @@ begin
     guard_hyp w := ℕ, tactic.success_if_fail (tactic.get_local `z),
   lift u to ℕ using hu with u rfl hu,
     guard_hyp hu := (0 : ℤ) ≤ ↑u,
-  all_goals { admit }
+
+  all_goals { exfalso, assumption },
 end
 
 -- test lift of functions
@@ -530,3 +522,56 @@ begin
 end
 
 end rename'
+
+section local_definitions
+/- Some tactics about local definitions.
+  Testing revert_deps, revert_after, generalize', clear_value. -/
+open tactic
+example {A : ℕ → Type} {n : ℕ} : let k := n + 3, l := k + n, f : A k → A k := id in
+  ∀(x : A k) (y : A (n + k)) (z : A n) (h : k = n + n), unit :=
+begin
+  intros, guard_target unit,
+  do { e ← get_local `k, e1 ← tactic.local_def_value e, e2 ← to_expr ```(n + 3), guard $ e1 = e2 },
+  do { e ← get_local `n, success_if_fail_with_msg (tactic.local_def_value e)
+    "Variable n is not a local definition." },
+  do { success_if_fail_with_msg (tactic.local_def_value `(1 + 2))
+    "No such hypothesis 1 + 2." },
+  revert_deps k, tactic.intron 5, guard_target unit,
+  revert_after n, tactic.intron 7, guard_target unit,
+  do { e ← get_local `k, tactic.revert_deps e, l ← local_context, guard $ e ∈ l, intros },
+  exact unit.star
+end
+
+example {A : ℕ → Type} {n : ℕ} : let k := n + 3, l := k + n, f : A k → A (n+3) := id in
+  ∀(x : A k) (y : A (n + k)) (z : A n) (h : k = n + n), unit :=
+begin
+  intros,
+  success_if_fail_with_msg {generalize : n + k = x}
+    "generalize tactic failed, failed to find expression in the target",
+  generalize' : n + k = x,
+  generalize' h : n + k = y,
+  exact unit.star
+end
+
+example {A : ℕ → Type} {n : ℕ} : let k := n + 3, l := k + n, f : A k → A (n+3) := id in
+  ∀(x : A k) (y : A (n + k)) (z : A n) (h : k = n + n), unit :=
+begin
+  intros,
+  tactic.to_expr ```(n + n) >>= λ e, tactic.generalize' e `xxx,
+  success_if_fail_with_msg {clear_value n}
+    "Cannot clear the body of n. It is not a local definition.",
+  success_if_fail_with_msg {clear_value k}
+    "Cannot clear the body of k. The resulting goal is not type correct.",
+  clear_value k f,
+  exact unit.star
+end
+
+example {A : ℕ → Type} {n : ℕ} : let k := n + 3, l := k + n, f : A k → A k := id in
+  ∀(x : A k) (y : A (n + k)) (z : A n) (h : k = n + n), unit :=
+begin
+  intros,
+  clear_value k f,
+  exact unit.star
+end
+
+end local_definitions

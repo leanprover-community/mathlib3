@@ -110,7 +110,6 @@ by rw [metric.diam, metric.diam, emetric.isometry.diam_image hf]
 structure isometric (α : Type*) (β : Type*) [emetric_space α] [emetric_space β]
   extends α ≃ β :=
 (isometry_to_fun  : isometry to_fun)
-(isometry_inv_fun : isometry inv_fun)
 
 infix ` ≃ᵢ `:25 := isometric
 
@@ -120,6 +119,18 @@ variables [emetric_space α] [emetric_space β] [emetric_space γ]
 instance : has_coe_to_fun (α ≃ᵢ β) := ⟨λ_, α → β, λe, e.to_equiv⟩
 
 lemma coe_eq_to_equiv (h : α ≃ᵢ β) (a : α) : h a = h.to_equiv a := rfl
+
+lemma isometry_inv_fun (h : α ≃ᵢ β) : isometry h.to_equiv.symm :=
+h.isometry_to_fun.inv h.to_equiv
+
+/-- Alternative constructor for isometric bijections,
+taking as input an isometry, and a right inverse. -/
+def mk' (f : α → β) (g : β → α) (hfg : ∀ x, f (g x) = x) (hf : isometry f) : α ≃ᵢ β :=
+{ to_fun := f,
+  inv_fun := g,
+  left_inv := λ x, hf.injective $ hfg _,
+  right_inv := hfg,
+  isometry_to_fun := hf }
 
 /-- The (bundled) homeomorphism associated to an isometric isomorphism. -/
 protected def to_homeomorph (h : α ≃ᵢ β) : α ≃ₜ β :=
@@ -136,18 +147,16 @@ by ext; refl
 
 /-- The identity isometry of a space. -/
 protected def refl (α : Type*) [emetric_space α] : α ≃ᵢ α :=
-{ isometry_to_fun := isometry_id, isometry_inv_fun := isometry_id, .. equiv.refl α }
+{ isometry_to_fun := isometry_id, .. equiv.refl α }
 
 /-- The composition of two isometric isomorphisms, as an isometric isomorphism. -/
 protected def trans (h₁ : α ≃ᵢ β) (h₂ : β ≃ᵢ γ) : α ≃ᵢ γ :=
 { isometry_to_fun  := h₂.isometry_to_fun.comp h₁.isometry_to_fun,
-  isometry_inv_fun := h₁.isometry_inv_fun.comp h₂.isometry_inv_fun,
   .. equiv.trans h₁.to_equiv h₂.to_equiv }
 
 /-- The inverse of an isometric isomorphism, as an isometric isomorphism. -/
 protected def symm (h : α ≃ᵢ β) : β ≃ᵢ α :=
 { isometry_to_fun  := h.isometry_inv_fun,
-  isometry_inv_fun := h.isometry_to_fun,
   .. h.to_equiv.symm }
 
 protected lemma isometry (h : α ≃ᵢ β) : isometry h := h.isometry_to_fun
@@ -175,14 +184,6 @@ def isometry.isometric_on_range [emetric_space α] [emetric_space β] {f : α �
   α ≃ᵢ range f :=
 { isometry_to_fun := λx y,
   begin
-    change edist ((equiv.set.range f _) x) ((equiv.set.range f _) y) = edist x y,
-    rw [equiv.set.range_apply f h.injective, equiv.set.range_apply f h.injective],
-    exact h x y
-  end,
-  isometry_inv_fun :=
-  begin
-    apply isometry.inv,
-    assume x y,
     change edist ((equiv.set.range f _) x) ((equiv.set.range f _) y) = edist x y,
     rw [equiv.set.range_apply f h.injective, equiv.set.range_apply f h.injective],
     exact h x y
@@ -242,9 +243,7 @@ begin
   refine le_antisymm (embedding_of_subset_dist_le x a b) (real.le_of_forall_epsilon_le (λe epos, _)),
   /- First step: find n with dist a (x n) < e -/
   have A : a ∈ closure (range x), by { have B := mem_univ a, rwa [← H] at B },
-  rcases mem_closure_iff'.1 A (e/2) (half_pos epos) with ⟨d, ⟨drange, hd⟩⟩,
-  cases drange with n dn,
-  rw [← dn] at hd,
+  rcases metric.mem_closure_range_iff.1 A (e/2) (half_pos epos) with ⟨n, hn⟩,
   /- Second step: use the norm control at index n to conclude -/
   have C : dist b (x n) - dist a (x n) = embedding_of_subset x b n - embedding_of_subset x a n :=
     by { simp [embedding_of_subset_coe] },
@@ -254,7 +253,7 @@ begin
     ...    ≤ 2 * dist a (x n) + abs (dist b (x n) - dist a (x n)) :
       by apply_rules [add_le_add_left, le_abs_self]
     ...    ≤ 2 * (e/2) + abs (embedding_of_subset x b n - embedding_of_subset x a n) :
-      begin rw [C], apply_rules [add_le_add, mul_le_mul_of_nonneg_left, le_of_lt hd, le_refl], norm_num end
+      begin rw [C], apply_rules [add_le_add, mul_le_mul_of_nonneg_left, le_of_lt hn, le_refl], norm_num end
     ...    ≤ 2 * (e/2) + dist (embedding_of_subset x b) (embedding_of_subset x a) :
       begin rw [← coe_diff], apply add_le_add_left, rw [coe_diff, ←real.dist_eq], apply dist_coe_le_dist end
     ...    = dist (embedding_of_subset x b) (embedding_of_subset x a) + e : by ring,

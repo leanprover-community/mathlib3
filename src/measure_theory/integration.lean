@@ -64,7 +64,7 @@ lemma range_const (α) [measurable_space α] [ne : nonempty α] (b : β) :
 begin
   ext b',
   simp [mem_range],
-  exact ⟨assume ⟨_, h⟩, h.symm, assume h, ne.elim $ λa, ⟨a, h.symm⟩⟩
+  tauto
 end
 
 @[simp] lemma const_preimage_self (α) [measurable_space α] (b : β) :

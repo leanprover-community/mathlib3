@@ -5,7 +5,9 @@ Authors: Johannes Hölzl, Mario Carneiro
 
 Subtype of open subsets in a topological space.
 -/
+
 import topology.bases topology.separation
+import order.copy
 
 open filter lattice
 variables {α : Type*} {β : Type*} [topological_space α] [topological_space β]

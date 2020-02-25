@@ -245,16 +245,16 @@ end
 variables {f : β → γ} (lin : is_linear_map α f)
 include β γ lin
 
-@[simp] lemma map_zero : f (0 : β) = (0 : γ) :=
+lemma map_zero : f (0 : β) = (0 : γ) :=
 by rw [← zero_smul α (0 : β), lin.smul, zero_smul]
 
-@[simp] lemma map_add (x y : β) : f (x + y) = f x + f y :=
+lemma map_add (x y : β) : f (x + y) = f x + f y :=
 by rw [lin.add]
 
-@[simp] lemma map_neg (x : β) : f (- x) = - f x :=
+lemma map_neg (x : β) : f (- x) = - f x :=
 by rw [← neg_one_smul α, lin.smul, neg_one_smul]
 
-@[simp] lemma map_sub (x y : β) : f (x - y) = f x - f y :=
+lemma map_sub (x y : β) : f (x - y) = f x - f y :=
 by simp [lin.map_neg, lin.map_add]
 
 end is_linear_map
@@ -497,4 +497,3 @@ theorem exists_card_smul_ge_sum (hs : s.nonempty) :
 exists_le_of_sum_le hs $ by rw [sum_const, ← nat.smul_def, smul_sum]
 
 end finset
-

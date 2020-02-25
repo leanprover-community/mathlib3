@@ -267,7 +267,7 @@ section prio
 set_option default_priority 100 -- see Note [default priority]
 /-- A lattice is a join-semilattice which is also a meet-semilattice. -/
 -- TODO(lint): Fix double namespace issue
-@[nolint] class lattice (α : Type u) extends semilattice_sup α, semilattice_inf α
+@[nolint dup_namespace] class lattice (α : Type u) extends semilattice_sup α, semilattice_inf α
 end prio
 
 section lattice

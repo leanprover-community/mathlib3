@@ -273,7 +273,7 @@ include R S A
     `algebra ?m_1 A -/
 /- The `nolint` attribute is added because it has unused arguments `R` and `S`, but these are necessary for synthesizing the
      appropriate type classes -/
-@[nolint] def comap : Type w := A
+@[nolint unused_arguments] def comap : Type w := A
 def comap.to_comap : A → comap R S A := id
 def comap.of_comap : comap R S A → A := id
 
@@ -431,7 +431,7 @@ iff.rfl
 by cases S; cases T; congr; ext x; exact h x
 
 theorem ext_iff {S T : subalgebra R A} : S = T ↔ ∀ x : A, x ∈ S ↔ x ∈ T :=
-⟨λ h x, by rw h, ext⟩ 
+⟨λ h x, by rw h, ext⟩
 
 variables (S : subalgebra R A)
 

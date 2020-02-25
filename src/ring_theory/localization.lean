@@ -126,7 +126,8 @@ def to_units (s : S) : units (localization α S) :=
   val_inv := quotient.sound $ r_of_eq $ mul_assoc _ _ _,
   inv_val := quotient.sound $ r_of_eq $ show s.val * 1 * 1 = 1 * (1 * s.val), by simp }
 
-@[simp] lemma to_units_coe (s : S) : ((to_units s) : localization α S) = s := rfl
+@[simp] lemma to_units_coe (s : S) :
+  ((to_units s) : localization α S) = ((s : α) : localization α S) := rfl
 
 section
 variables (α S) (x y : α) (n : ℕ)
@@ -160,8 +161,8 @@ is_unit_unit $ to_units ⟨s, ‹s ∈ S›⟩
 @[simp] lemma coe_mul : (↑(x * y) : localization α S) = x * y := of_mul _ _ _ _
 @[simp] lemma coe_neg : (↑(-x) : localization α S) = -x := of_neg _ _ _
 @[simp] lemma coe_pow : (↑(x ^ n) : localization α S) = x ^ n := of_pow _ _ _ _
-@[simp] lemma coe_is_unit (s : S) : is_unit (s : localization α S) := of_is_unit _ _ _
-@[simp] lemma coe_is_unit' (s ∈ S) : is_unit (s : localization α S) := of_is_unit' _ _ _ ‹s ∈ S›
+@[simp] lemma coe_is_unit (s : S) : is_unit ((s : α) : localization α S) := of_is_unit _ _ _
+@[simp] lemma coe_is_unit' (s ∈ S) : is_unit ((s : α) : localization α S) := of_is_unit' _ _ _ ‹s ∈ S›
 end
 
 @[simp] lemma mk_self {x : α} {hx : x ∈ S} :
@@ -177,7 +178,10 @@ by cases s; exact mk_self
   (mk s.1 s : localization α S) = 1 :=
 mk_self'
 
-@[simp] lemma coe_mul_mk (x y : α) (s : S) :
+-- This lemma does not apply with simp, since (mk r s) simplifies to (r * s⁻¹).
+-- However, it could apply with dsimp.
+@[simp, nolint simp_nf]
+lemma coe_mul_mk (x y : α) (s : S) :
   ↑x * mk y s = mk (x * y) s :=
 quotient.sound $ r_of_eq $ by rw one_mul
 
@@ -185,7 +189,10 @@ lemma mk_eq_mul_mk_one (r : α) (s : S) :
   mk r s = r * mk 1 s :=
 by rw [coe_mul_mk, mul_one]
 
-@[simp] lemma mk_mul_mk (x y : α) (s t : S) :
+-- This lemma does not apply with simp, since (mk r s) simplifies to (r * s⁻¹).
+-- However, it could apply with dsimp.
+@[simp, nolint simp_nf]
+lemma mk_mul_mk (x y : α) (s t : S) :
   mk x s * mk y t = mk (x * y) (s * t) := rfl
 
 @[simp] lemma mk_mul_cancel_left (r : α) (s : S) :
@@ -258,7 +265,10 @@ instance lift.is_ring_hom (h : ∀ s ∈ S, is_unit (f s)) :
   is_ring_hom (lift f h) :=
 lift'.is_ring_hom _ _ _
 
-@[simp] lemma lift'_mk (g : S → units β) (hg : ∀ s, (g s : β) = f s) (r : α) (s : S) :
+-- This lemma does not apply with simp, since (mk r s) simplifies to (r * s⁻¹).
+-- However, it could apply with dsimp.
+@[simp, nolint simp_nf]
+lemma lift'_mk (g : S → units β) (hg : ∀ s, (g s : β) = f s) (r : α) (s : S) :
   lift' f g hg (mk r s) = f r * ↑(g s)⁻¹ := rfl
 
 @[simp] lemma lift'_of (g : S → units β) (hg : ∀ s, (g s : β) = f s) (a : α) :

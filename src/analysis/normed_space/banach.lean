@@ -26,11 +26,11 @@ variable [complete_space F]
 
 /--
 First step of the proof of the Banach open mapping theorem (using completeness of `F`):
-by Baire's theorem, there exists a ball in E whose image closure has nonempty interior.
+by Baire's theorem, there exists a ball in `E` whose image closure has nonempty interior.
 Rescaling everything, it follows that any `y ∈ F` is arbitrarily well approached by
 images of elements of norm at most `C * ∥y∥`.
 For further use, we will only need such an element whose image
-is within distance ∥y∥/2 of y, to apply an iterative process. -/
+is within distance `∥y∥/2` of `y`, to apply an iterative process. -/
 lemma exists_approx_preimage_norm_le (hf : is_bounded_linear_map 𝕜 f) (surj : surjective f) :
   ∃C, 0 ≤ C ∧ ∀y, ∃x, dist (f x) y ≤ 1/2 * ∥y∥ ∧ ∥x∥ ≤ C * ∥y∥ :=
 begin

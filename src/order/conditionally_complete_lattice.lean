@@ -534,7 +534,7 @@ let ⟨x, hx⟩ := hs in
 have (⨅a∈s, ↑a : with_top α) ≤ x, from infi_le_of_le x $ infi_le_of_le hx $ _root_.le_refl _,
 let ⟨r, r_eq, hr⟩ := (le_coe_iff _ _).1 this in
 le_antisymm
-  (le_infi $ assume a, le_infi $ assume ha, coe_le_coe.2 $ cInf_le (bdd_below_bot s) ha)
+  (le_infi $ assume a, le_infi $ assume ha, coe_le_coe.2 $ cInf_le (orter_bot.bdd_below s) ha)
   begin
     refine (r_eq.symm ▸ coe_le_coe.2 $ le_cInf hs $ assume a has, coe_le_coe.1 $ _),
     refine (r_eq ▸ infi_le_of_le a _),

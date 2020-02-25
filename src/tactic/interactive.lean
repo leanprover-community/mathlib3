@@ -132,7 +132,8 @@ private meta def generalize_arg_p_aux : pexpr → parser (pexpr × name)
 private meta def generalize_arg_p : parser (pexpr × name) :=
 with_desc "expr = id" $ parser.pexpr 0 >>= generalize_arg_p_aux
 
-@[nolint] lemma {u} generalize_a_aux {α : Sort u}
+@[nolint def_lemma]
+lemma {u} generalize_a_aux {α : Sort u}
   (h : ∀ x : Sort u, (α → x) → x) : α := h α id
 
 /--
@@ -584,6 +585,7 @@ tactic.triv' <|> tactic.reflexivity reducible <|> tactic.contradiction <|> fail 
 
 /--
 Similar to `existsi`. `use x` will instantiate the first term of an `∃` or `Σ` goal with `x`.
+It will then try to close the new goal using `triv`, or try to simplify it by applying `exists_prop`.
 Unlike `existsi`, `x` is elaborated with respect to the expected type.
 `use` will alternatively take a list of terms `[x0, ..., xn]`.
 
@@ -596,6 +598,13 @@ by use ∅
 
 example : ∃ x : ℤ, x = x :=
 by use 42
+
+example : ∃ n > 0, n = n :=
+begin
+  use 1,
+  -- goal is now 1 > 0 ∧ 1 = 1, whereas it would be ∃ (H : 1 > 0), 1 = 1 after existsi 1.
+  exact ⟨zero_lt_one, rfl⟩,
+end
 
 example : ∃ a b c : ℤ, a + b + c = 6 :=
 by use [1, 2, 3]
@@ -613,7 +622,11 @@ example : foo :=
 by use [100, tt, 4, 3]
 -/
 meta def use (l : parse pexpr_list_or_texpr) : tactic unit :=
-tactic.use l >> try triv
+focus1 $
+  tactic.use l;
+  try (triv <|> (do
+        `(Exists %%p) ← target,
+        to_expr ``(exists_prop.mpr) >>= tactic.apply >> skip))
 
 /--
 `clear_aux_decl` clears every `aux_decl` in the local context for the current goal.
@@ -799,6 +812,59 @@ do (cxt,_) ← solve_aux `(true) $
    let fmt := mk_paragraph 80 $ title :: cxt' ++ [cxt''.get_or_else ":", stmt],
    trace fmt,
    trace!"begin\n  \nend"
+
+/-- Turns a `nonempty α` instance into an `inhabited α` instance.
+  If the target is a prop, this is done constructively;
+  otherwise, it uses `classical.choice`. -/
+meta def inhabit (t : parse parser.pexpr) (inst_name : parse ident?) : tactic unit :=
+do ty ← i_to_expr t,
+   nm ← get_unused_name `inst,
+   mcond (target >>= is_prop)
+   (do mk_mapp `nonempty.elim_to_inhabited [ty, none] >>= tactic.apply <|>
+         fail "could not infer nonempty instance",
+       introI $ inst_name.get_or_else nm)
+   (do mk_mapp `classical.inhabited_of_nonempty' [ty, none] >>= note nm none <|>
+         fail "could not infer nonempty instance",
+       resetI)
+
+/-- `revert_deps n₁ n₂ ...` reverts all the hypotheses that depend on one of `n₁, n₂, ...`
+  It does not revert `n₁, n₂, ...` themselves (unless they depend on another `nᵢ`). -/
+meta def revert_deps (ns : parse ident*) : tactic unit :=
+propagate_tags $ ns.reverse.mmap' $ λ n, get_local n >>= tactic.revert_deps
+
+/-- `revert_after n` reverts all the hypotheses after `n`. -/
+meta def revert_after (n : parse ident) : tactic unit :=
+propagate_tags $ get_local n >>= tactic.revert_after >> skip
+
+/-- `clear_value n₁ n₂ ...` clears the bodies of the local definitions `n₁, n₂ ...`, changing them
+  into regular hypotheses. A hypothesis `n : α := t` is changed to `n : α`. -/
+meta def clear_value (ns : parse ident*) : tactic unit :=
+propagate_tags $ ns.reverse.mmap' $ λ n, get_local n >>= tactic.clear_value
+
+/--
+`generalize' : e = x` replaces all occurrences of `e` in the target with a new hypothesis `x` of the same type.
+
+`generalize' h : e = x` in addition registers the hypothesis `h : e = x`.
+
+`generalize'` is similar to `generalize`. The difference is that `generalize' : e = x` also succeeds when `e`
+  does not occur in the goal. It is similar to `set`, but the resulting hypothesis `x` is not a local definition.
+-/
+meta def generalize' (h : parse ident?) (_ : parse $ tk ":") (p : parse generalize_arg_p) : tactic unit :=
+propagate_tags $
+do let (p, x) := p,
+   e ← i_to_expr p,
+   some h ← pure h | tactic.generalize' e x >> skip,
+   tgt ← target,
+   -- if generalizing fails, fall back to not replacing anything
+   tgt' ← do {
+     ⟨tgt', _⟩ ← solve_aux tgt (tactic.generalize' e x >> target),
+     to_expr ``(Π x, %%e = x → %%(tgt'.binding_body.lift_vars 0 1))
+   } <|> to_expr ``(Π x, %%e = x → %%tgt),
+   t ← assert h tgt',
+   swap,
+   exact ``(%%t %%e rfl),
+   intro x,
+   intro h
 
 end interactive
 end tactic

@@ -70,9 +70,8 @@ eq_univ_of_forall $ λ x, begin
   cases quotient.exists_rep x with y y_x,
   have y_in_V : y ∈ V, by simp only [mem_preimage, y_x, x_in_U],
   have V_op : is_open V := U_op,
-  have : V ∩ s ≠ ∅ := mem_closure_iff.1 (H y) V V_op y_in_V,
-  rcases exists_mem_of_ne_empty this with ⟨w, w_in_V, w_in_range⟩,
-  exact ne_empty_of_mem ⟨w_in_V, mem_image_of_mem quotient.mk w_in_range⟩
+  obtain ⟨w, w_in_V, w_in_range⟩ : (V ∩ s).nonempty := mem_closure_iff.1 (H y) V V_op y_in_V,
+  exact ⟨_, w_in_V, mem_image_of_mem quotient.mk w_in_range⟩
 end
 
 instance {p : α → Prop} [topological_space α] [discrete_topology α] :
@@ -144,14 +143,14 @@ by rw [nhds_prod_eq]; exact prod_mem_prod ha hb
 lemma nhds_swap (a : α) (b : β) : 𝓝 (a, b) = (𝓝 (b, a)).map prod.swap :=
 by rw [nhds_prod_eq, filter.prod_comm, nhds_prod_eq]; refl
 
-lemma tendsto_prod_mk_nhds {γ} {a : α} {b : β} {f : filter γ} {ma : γ → α} {mb : γ → β}
+lemma filter.tendsto.prod_mk_nhds {γ} {a : α} {b : β} {f : filter γ} {ma : γ → α} {mb : γ → β}
   (ha : tendsto ma f (𝓝 a)) (hb : tendsto mb f (𝓝 b)) :
   tendsto (λc, (ma c, mb c)) f (𝓝 (a, b)) :=
 by rw [nhds_prod_eq]; exact filter.tendsto.prod_mk ha hb
 
 lemma continuous_at.prod {f : α → β} {g : α → γ} {x : α}
   (hf : continuous_at f x) (hg : continuous_at g x) : continuous_at (λx, (f x, g x)) x :=
-tendsto_prod_mk_nhds hf hg
+hf.prod_mk_nhds hg
 
 lemma prod_generate_from_generate_from_eq {α : Type*} {β : Type*} {s : set (set α)} {t : set (set β)}
   (hs : ⋃₀ s = univ) (ht : ⋃₀ t = univ) :
@@ -244,9 +243,9 @@ empty -/
 lemma is_open_prod_iff' {s : set α} {t : set β} :
   is_open (set.prod s t) ↔ (is_open s ∧ is_open t) ∨ (s = ∅) ∨ (t = ∅) :=
 begin
-  by_cases h : set.prod s t = ∅,
+  cases (set.prod s t).eq_empty_or_nonempty with h h,
   { simp [h, prod_eq_empty_iff.1 h] },
-  { have st : s ≠ ∅ ∧ t ≠ ∅, by rwa [← ne.def, prod_ne_empty_iff] at h,
+  { have st : s.nonempty ∧ t.nonempty, from prod_nonempty_iff.1 h,
     split,
     { assume H : is_open (set.prod s t),
       refine or.inl ⟨_, _⟩,
@@ -257,7 +256,7 @@ begin
       { rw ← snd_image_prod st.1 t,
         exact is_open_map_snd _ H } },
     { assume H,
-      simp [st] at H,
+      simp [st.1.ne_empty, st.2.ne_empty] at H,
       exact is_open_prod H.1 H.2 } }
 end
 
@@ -495,6 +494,18 @@ continuous_infi_rng $ assume i, continuous_induced_rng $ h i
 lemma continuous_apply [∀i, topological_space (π i)] (i : ι) :
   continuous (λp:Πi, π i, p i) :=
 continuous_infi_dom continuous_induced_dom
+
+/-- Embedding a factor into a product space (by fixing arbitrarily all the other coordinates) is
+continuous. -/
+lemma continuous_update [decidable_eq ι] [∀i, topological_space (π i)] {i : ι} {f : Πi:ι, π i} :
+  continuous (λ x : π i, function.update f i x) :=
+begin
+  refine continuous_pi (λj, _),
+  by_cases h : j = i,
+  { rw h,
+    simpa using continuous_id },
+  { simpa [h] using continuous_const }
+end
 
 lemma nhds_pi [t : ∀i, topological_space (π i)] {a : Πi, π i} :
   𝓝 a = (⨅i, comap (λx, x i) (𝓝 (a i))) :=

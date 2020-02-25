@@ -89,6 +89,21 @@ by rw [←prod_union_inter, (disjoint_iff_inter_eq_empty.mp h)]; exact (mul_one 
 lemma prod_sdiff [decidable_eq α] (h : s₁ ⊆ s₂) : (s₂ \ s₁).prod f * s₁.prod f = s₂.prod f :=
 by rw [←prod_union sdiff_disjoint, sdiff_union_of_subset h]
 
+@[simp, to_additive]
+lemma prod_sum_elim [decidable_eq (α ⊕ γ)]
+  (s : finset α) (t : finset γ) (f : α → β) (g : γ → β) :
+  (s.image sum.inl ∪ t.image sum.inr).prod (sum.elim f g) = s.prod f * t.prod g :=
+begin
+  rw [prod_union, prod_image, prod_image],
+  { simp only [sum.elim_inl, sum.elim_inr] },
+  { exact λ _ _ _ _, sum.inr.inj },
+  { exact λ _ _ _ _, sum.inl.inj },
+  { rintros i hi,
+    erw [finset.mem_inter, finset.mem_image, finset.mem_image] at hi,
+    rcases hi with ⟨⟨i, hi, rfl⟩, ⟨j, hj, H⟩⟩,
+    cases H }
+end
+
 @[to_additive]
 lemma prod_bind [decidable_eq α] {s : finset γ} {t : γ → finset α} :
   (∀x∈s, ∀y∈s, x ≠ y → disjoint (t x) (t y)) → (s.bind t).prod f = s.prod (λx, (t x).prod f) :=
@@ -462,17 +477,8 @@ end
 @[to_additive]
 lemma prod_piecewise [decidable_eq α] (s t : finset α) (f g : α → β) :
   s.prod (t.piecewise f g) = (s ∩ t).prod f * (s \ t).prod g :=
-begin
-  refine s.induction_on (by simp) _,
-  assume x s hxs Hrec,
-  by_cases h : x ∈ t,
-  { simp [hxs, h, Hrec, insert_sdiff_of_mem s h, mul_assoc] },
-  { simp [hxs, h, Hrec, insert_sdiff_of_not_mem s h],
-    rw [mul_comm, mul_assoc],
-    congr' 1,
-    rw mul_comm }
-end
-    
+by { rw [piecewise, prod_ite _ _ (λ x, x), filter_mem_eq_inter, ← sdiff_eq_filter], assumption }
+
 /-- If we can partition a product into subsets that cancel out, then the whole product cancels. -/
 @[to_additive]
 lemma prod_cancels_of_partition_cancels (R : setoid α) [decidable_rel R.r]
@@ -489,7 +495,26 @@ begin
   refl
 end
 
+@[to_additive]
+lemma prod_update_of_not_mem [decidable_eq α] {s : finset α} {i : α}
+  (h : i ∉ s) (f : α → β) (b : β) : s.prod (function.update f i b) = s.prod f :=
+begin
+  apply prod_congr rfl (λj hj, _),
+  have : j ≠ i, by { assume eq, rw eq at hj, exact h hj },
+  simp [this]
+end
+
+lemma prod_update_of_mem [decidable_eq α] {s : finset α} {i : α} (h : i ∈ s) (f : α → β) (b : β) :
+  s.prod (function.update f i b) = b * (s \ (singleton i)).prod f :=
+by { rw [update_eq_piecewise, prod_piecewise], simp [h] }
+
 end comm_monoid
+
+lemma sum_update_of_mem [add_comm_monoid β] [decidable_eq α] {s : finset α} {i : α}
+  (h : i ∈ s) (f : α → β) (b : β) :
+  s.sum (function.update f i b) = b + (s \ (singleton i)).sum f :=
+by { rw [update_eq_piecewise, sum_piecewise], simp [h] }
+attribute [to_additive] prod_update_of_mem
 
 lemma sum_smul' [add_comm_monoid β] (s : finset α) (n : ℕ) (f : α → β) :
   s.sum (λ x, add_monoid.smul n (f x)) = add_monoid.smul n (s.sum f) :=
@@ -601,20 +626,13 @@ lemma sum_mul : s.sum f * b = s.sum (λx, f x * b) :=
 lemma mul_sum : b * s.sum f = s.sum (λx, b * f x) :=
 (s.sum_hom _).symm
 
-@[simp] lemma sum_mul_boole [decidable_eq α] (s : finset α) (f : α → β) (a : α) :
+lemma sum_mul_boole [decidable_eq α] (s : finset α) (f : α → β) (a : α) :
   s.sum (λ x, (f x * ite (a = x) 1 0)) = ite (a ∈ s) (f a) 0 :=
-begin
-  convert sum_ite_eq s a f,
-  funext,
-  split_ifs with h; simp [h],
-end
-@[simp] lemma sum_boole_mul [decidable_eq α] (s : finset α) (f : α → β) (a : α) :
+by simp
+
+lemma sum_boole_mul [decidable_eq α] (s : finset α) (f : α → β) (a : α) :
   s.sum (λ x, (ite (a = x) 1 0) * f x) = ite (a ∈ s) (f a) 0 :=
-begin
-  convert sum_ite_eq s a f,
-  funext,
-  split_ifs with h; simp [h],
-end
+by simp
 
 end semiring
 
@@ -895,7 +913,7 @@ namespace with_top
 open finset
 variables [decidable_eq α]
 
-/-- sum of finte numbers is still finite -/
+/-- sum of finite numbers is still finite -/
 lemma sum_lt_top [ordered_comm_monoid β] {s : finset α} {f : α → with_top β} :
   (∀a∈s, f a < ⊤) → s.sum f < ⊤ :=
 finset.induction_on s (by { intro h, rw sum_empty, exact coe_lt_top _ })
@@ -906,7 +924,7 @@ finset.induction_on s (by { intro h, rw sum_empty, exact coe_lt_top _ })
     { apply ih, intros a ha, apply h, apply mem_insert_of_mem ha }
   end)
 
-/-- sum of finte numbers is still finite -/
+/-- sum of finite numbers is still finite -/
 lemma sum_lt_top_iff [canonically_ordered_monoid β] {s : finset α} {f : α → with_top β} :
   s.sum f < ⊤ ↔ (∀a∈s, f a < ⊤) :=
 iff.intro (λh a ha, lt_of_le_of_lt (single_le_sum (λa ha, zero_le _) ha) h) sum_lt_top

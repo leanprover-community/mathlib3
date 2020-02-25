@@ -36,8 +36,5 @@ EOT
 fi
 
 cat <<EOT >> lint_mathlib.lean
-
-open nat -- need to do something before running a command
-
-#lint_mathlib- only unused_arguments dup_namespace doc_blame illegal_constants def_lemma instance_priority
+#eval lint_mathlib_ci
 EOT

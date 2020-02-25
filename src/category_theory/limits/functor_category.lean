@@ -61,7 +61,7 @@ def functor_category_is_limit_cone [has_limits_of_shape J C] (F : J ⥤ K ⥤ C)
   { app := λ k, limit.lift (F.flip.obj k) (((evaluation K C).obj k).map_cone s) },
   uniq' := λ s m w,
   begin
-    ext1 k,
+    ext1, ext1 k,
     exact is_limit.uniq _
       (((evaluation K C).obj k).map_cone s) (m.app k) (λ j, nat_trans.congr_app (w j) k)
   end }
@@ -72,7 +72,7 @@ def functor_category_is_colimit_cocone [has_colimits_of_shape.{v} J C] (F : J �
   { app := λ k, colimit.desc (F.flip.obj k) (((evaluation K C).obj k).map_cocone s) },
   uniq' := λ s m w,
   begin
-    ext1 k,
+    ext1, ext1 k,
     exact is_colimit.uniq _
       (((evaluation K C).obj k).map_cocone s) (m.app k) (λ j, nat_trans.congr_app (w j) k)
   end }

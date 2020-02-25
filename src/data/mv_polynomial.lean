@@ -346,7 +346,7 @@ begin
     delta X monomial at hi', rw mem_support_single at hi', cases hi', subst i',
     erw finset.mem_singleton at H, subst m,
     rw [mem_support_iff, add_apply, single_apply, if_pos rfl],
-    intro H, rw [add_eq_zero_iff] at H, exact one_ne_zero H.2 }
+    intro H, rw [_root_.add_eq_zero_iff] at H, exact one_ne_zero H.2 }
 end
 
 end coeff
@@ -802,6 +802,9 @@ lemma C_sub : (C (a - a') : mv_polynomial σ α) = C a - C a' := is_ring_hom.map
 
 @[simp] lemma C_neg : (C (-a) : mv_polynomial σ α) = -C a := is_ring_hom.map_neg _
 
+@[simp] lemma coeff_neg (m : σ →₀ ℕ) (p : mv_polynomial σ α) :
+  coeff m (-p) = -coeff m p := finsupp.neg_apply
+
 @[simp] lemma coeff_sub (m : σ →₀ ℕ) (p q : mv_polynomial σ α) :
   coeff m (p - q) = coeff m p - coeff m q := finsupp.sub_apply
 
@@ -936,6 +939,11 @@ eval₂_one _ _
 @[simp] lemma rename_add (f : β → γ) (p q : mv_polynomial β α) :
   rename f (p + q) = rename f p + rename f q :=
 eval₂_add _ _
+
+@[simp] lemma rename_neg {α} [comm_ring α]
+  (f : β → γ) (p : mv_polynomial β α) :
+  rename f (-p) = -rename f p :=
+eval₂_neg _ _ _
 
 @[simp] lemma rename_sub {α} [comm_ring α]
   (f : β → γ) (p q : mv_polynomial β α) :

@@ -36,7 +36,7 @@ fi
 
 # Try to update the lean-x.y.z branch on mathlib. This could fail if
 # a subsequent commit has already pushed an update.
-LEAN_VERSION="lean-3.4.2"
+LEAN_VERSION="lean-3.5.1"
 
 git push mathlib HEAD:refs/heads/$LEAN_VERSION || \
     echo "mathlib rejected push to branch $LEAN_VERSION; maybe it already has a later version?" >&2
@@ -63,6 +63,6 @@ ls *.tar.gz
 
 # Create a release associated with the tag and upload the tarballs.
 export GITHUB_TOKEN=$DEPLOY_NIGHTLY_GITHUB_TOKEN
-gothub release -u leanprover-community -r mathlib-nightly -t $MATHLIB_VERSION_STRING -d "Mathlib's .olean files and scripts" --pre-release
+gothub release -u leanprover-community -r mathlib-nightly -t $MATHLIB_VERSION_STRING -d "Mathlib's .olean files and scripts"
 gothub upload -u leanprover-community -r mathlib-nightly -t $MATHLIB_VERSION_STRING -n "$(basename $OLEAN_ARCHIVE)" -f "$OLEAN_ARCHIVE"
 gothub upload -u leanprover-community -r mathlib-nightly -t $MATHLIB_VERSION_STRING -n "$(basename $SCRIPT_ARCHIVE)" -f "$SCRIPT_ARCHIVE"

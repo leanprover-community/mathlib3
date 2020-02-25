@@ -250,7 +250,7 @@ protected lemma tendsto.mul {f : filter α} {ma : α → ennreal} {mb : α → e
   (hma : tendsto ma f (𝓝 a)) (ha : a ≠ 0 ∨ b ≠ ⊤) (hmb : tendsto mb f (𝓝 b)) (hb : b ≠ 0 ∨ a ≠ ⊤) :
   tendsto (λa, ma a * mb a) f (𝓝 (a * b)) :=
 show tendsto ((λp:ennreal×ennreal, p.1 * p.2) ∘ (λa, (ma a, mb a))) f (𝓝 (a * b)), from
-tendsto.comp (ennreal.tendsto_mul ha hb) (tendsto_prod_mk_nhds hma hmb)
+tendsto.comp (ennreal.tendsto_mul ha hb) (hma.prod_mk_nhds hmb)
 
 protected lemma tendsto.const_mul {f : filter α} {m : α → ennreal} {a b : ennreal}
   (hm : tendsto m f (𝓝 b)) (hb : b ≠ 0 ∨ a ≠ ⊤) : tendsto (λb, a * m b) f (𝓝 (a * b)) :=
@@ -290,7 +290,7 @@ end⟩
 protected lemma tendsto_inv_nat_nhds_zero : tendsto (λ n : ℕ, (n : ennreal)⁻¹) at_top (𝓝 0) :=
 ennreal.inv_top ▸ ennreal.tendsto_inv_iff.2 tendsto_nat_nhds_top
 
-lemma Sup_add {s : set ennreal} (hs : s ≠ ∅) : Sup s + a = ⨆b∈s, b + a :=
+lemma Sup_add {s : set ennreal} (hs : s.nonempty) : Sup s + a = ⨆b∈s, b + a :=
 have Sup ((λb, b + a) '' s) = Sup s + a,
   from is_lub_iff_Sup_eq.mp $ is_lub_of_is_lub_of_tendsto
     (assume x _ y _ h, add_le_add' h (le_refl _))
@@ -302,8 +302,8 @@ by simp [Sup_image, -add_comm] at this; exact this.symm
 lemma supr_add {ι : Sort*} {s : ι → ennreal} [h : nonempty ι] : supr s + a = ⨆b, s b + a :=
 let ⟨x⟩ := h in
 calc supr s + a = Sup (range s) + a : by simp [Sup_range]
-  ... = (⨆b∈range s, b + a) : Sup_add $ ne_empty_iff_exists_mem.mpr ⟨s x, x, rfl⟩
-  ... = _ : by simp [supr_range, -mem_range]
+  ... = (⨆b∈range s, b + a) : Sup_add ⟨s x, x, rfl⟩
+  ... = _ : supr_range
 
 lemma add_supr {ι : Sort*} {s : ι → ennreal} [h : nonempty ι] : a + supr s = ⨆b, a + s b :=
 by rw [add_comm, supr_add]; simp
@@ -352,14 +352,13 @@ begin
     rw [h₁, h₂, mul_zero] },
   { simp only [not_forall] at hs,
     rcases hs with ⟨x, hx, hx0⟩,
-    have s₀ : s ≠ ∅ := not_eq_empty_iff_exists.2 ⟨x, hx⟩,
     have s₁ : Sup s ≠ 0 :=
       zero_lt_iff_ne_zero.1 (lt_of_lt_of_le (zero_lt_iff_ne_zero.2 hx0) (le_Sup hx)),
     have : Sup ((λb, a * b) '' s) = a * Sup s :=
       is_lub_iff_Sup_eq.mp (is_lub_of_is_lub_of_tendsto
         (assume x _ y _ h, canonically_ordered_semiring.mul_le_mul (le_refl _) h)
         is_lub_Sup
-        s₀
+        ⟨x, hx⟩
         (ennreal.tendsto.const_mul (tendsto_id' inf_le_left) (or.inl s₁))),
     rw [this.symm, Sup_image] }
 end
@@ -389,7 +388,7 @@ have Inf ((λb, ↑r - b) '' range b) = ↑r - (⨆i, b i),
   from is_glb_iff_Inf_eq.mp $ is_glb_of_is_lub_of_tendsto
     (assume x _ y _, sub_le_sub (le_refl _))
     is_lub_supr
-    (ne_empty_of_mem ⟨i, rfl⟩)
+    ⟨_, i, rfl⟩
     (tendsto.comp ennreal.tendsto_coe_sub (tendsto_id' inf_le_left)),
 by rw [eq, ←this]; simp [Inf_image, infi_range, -mem_range]; exact le_refl _
 
@@ -613,7 +612,7 @@ open emetric
 
 /-- Yet another metric characterization of Cauchy sequences on integers. This one is often the
 most efficient. -/
-lemma emetric.cauchy_seq_iff_le_tendsto_0 [inhabited β] [semilattice_sup β] {s : β → α} :
+lemma emetric.cauchy_seq_iff_le_tendsto_0 [nonempty β] [semilattice_sup β] {s : β → α} :
   cauchy_seq s ↔ (∃ (b: β → ennreal), (∀ n m N : β, N ≤ n → N ≤ m → edist (s n) (s m) ≤ b N)
                     ∧ (tendsto b at_top (𝓝 0))) :=
 ⟨begin
@@ -638,7 +637,7 @@ lemma emetric.cauchy_seq_iff_le_tendsto_0 [inhabited β] [semilattice_sup β] {s
       simp only [and_imp, set.mem_image, set.mem_set_of_eq, exists_imp_distrib, prod.exists],
       intros d p q hp hq hd,
       rw ← hd,
-      exact le_of_lt (hN q p (le_trans hn hq) (le_trans hn hp))
+      exact le_of_lt (hN p q (le_trans hn hp) (le_trans hn hq))
     end,
     simpa using lt_of_le_of_lt this δlt },
   -- Conclude
@@ -652,7 +651,7 @@ begin
   have : ∀ᶠ n in at_top, b n < ε := (tendsto_order.1 b_lim ).2 _ εpos,
   rcases filter.mem_at_top_sets.1 this with ⟨N, hN⟩,
   exact ⟨N, λm n hm hn, calc
-    edist (s n) (s m) ≤ b N : b_bound n m N hn hm
+    edist (s m) (s n) ≤ b N : b_bound m n N hm hn
     ... < ε : (hN _ (le_refl N)) ⟩
 end⟩
 

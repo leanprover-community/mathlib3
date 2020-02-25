@@ -92,7 +92,7 @@ let ⟨t₃, (ht₃ : t₃ ∈ h.val), t₄, (ht₄ : t₄ ∈ g.val), (h₂ : s
 have t₂ ∩ t₃ ∈ h.val,
   from inter_mem_sets ht₂ ht₃,
 let ⟨x, xt₂, xt₃⟩ :=
-  inhabited_of_mem_sets (h.property.left) this in
+  nonempty_of_mem_sets (h.property.left) this in
 (filter.prod f.val g.val).sets_of_superset
   (prod_mem_prod ht₁ ht₄)
   (assume ⟨a, b⟩ ⟨(ha : a ∈ t₁), (hb : b ∈ t₄)⟩,
@@ -162,7 +162,7 @@ have h_ex : ∀ s ∈ 𝓤 (Cauchy α), ∃y:α, (f, pure_cauchy y) ∈ s, from
   have t' ∈ filter.prod (f.val) (f.val),
     from f.property.right ht'₁,
   let ⟨t, ht, (h : set.prod t t ⊆ t')⟩ := mem_prod_same_iff.mp this in
-  let ⟨x, (hx : x ∈ t)⟩ := inhabited_of_mem_sets f.property.left ht in
+  let ⟨x, (hx : x ∈ t)⟩ := nonempty_of_mem_sets f.property.left ht in
   have t'' ∈ filter.prod f.val (pure x),
     from mem_prod_iff.mpr ⟨t, ht, {y:α | (x, y) ∈ t'},
       h $ mk_mem_prod hx hx,
@@ -176,7 +176,7 @@ begin
       let ⟨y, hy⟩ := h_ex s hs in
       have pure_cauchy y ∈ range pure_cauchy ∩ {y : Cauchy α | (f, y) ∈ s},
         from ⟨mem_range_self y, hy⟩,
-      ne_empty_of_mem this)
+      ⟨_, this⟩)
 end
 
 lemma dense_inducing_pure_cauchy : dense_inducing pure_cauchy :=
@@ -189,8 +189,7 @@ lemma nonempty_Cauchy_iff : nonempty (Cauchy α) ↔ nonempty α :=
 begin
   split ; rintro ⟨c⟩,
   { have := eq_univ_iff_forall.1 dense_embedding_pure_cauchy.to_dense_inducing.closure_range c,
-    have := mem_closure_iff.1 this _ is_open_univ trivial,
-    rcases exists_mem_of_ne_empty this with ⟨_, ⟨_, a, _⟩⟩,
+    obtain ⟨_, ⟨_, a, _⟩⟩ := mem_closure_iff.1 this _ is_open_univ trivial,
     exact ⟨a⟩ },
   { exact ⟨pure_cauchy c⟩ }
 end

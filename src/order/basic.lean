@@ -99,6 +99,11 @@ by haveI this := partial_order.ext H;
 
 infix ` ⁻¹'o `:80 := order.preimage
 
+/-- The preimage of a decidable order is decidable. -/
+instance order.preimage.decidable {α β} (f : α → β) (s : β → β → Prop) [H : decidable_rel s] :
+  decidable_rel (f ⁻¹'o s) :=
+λ x y, H _ _
+
 section monotone
 variables [preorder α] [preorder β] [preorder γ]
 
@@ -135,10 +140,13 @@ namespace order_dual
 instance (α : Type*) [has_le α] : has_le (order_dual α) := ⟨λx y:α, y ≤ x⟩
 instance (α : Type*) [has_lt α] : has_lt (order_dual α) := ⟨λx y:α, y < x⟩
 
-@[simp] lemma dual_le [has_le α] {a b : α} :
+-- `dual_le` and `dual_lt` should not be simp lemmas:
+-- they cause a loop since `α` and `order_dual α` are definitionally equal
+
+lemma dual_le [has_le α] {a b : α} :
   @has_le.le (order_dual α) _ a b ↔ @has_le.le α _ b a := iff.rfl
 
-@[simp] lemma dual_lt [has_lt α] {a b : α} :
+lemma dual_lt [has_lt α] {a b : α} :
   @has_lt.lt (order_dual α) _ a b ↔ @has_lt.lt α _ b a := iff.rfl
 
 instance (α : Type*) [preorder α] : preorder (order_dual α) :=

@@ -271,6 +271,13 @@ lemma is_measurable_Ioc : is_measurable (Ioc a b) := is_measurable_Ioi.inter is_
 lemma is_measurable_Ico : is_measurable (Ico a b) := is_measurable_Ici.inter is_measurable_Iio
 lemma is_measurable_Icc : is_measurable (Icc a b) := is_measurable_of_is_closed is_closed_Icc
 
+open_locale interval
+
+lemma is_measurable_interval
+  {α} [decidable_linear_order α] [topological_space α] [order_closed_topology α] {a b : α} :
+  is_measurable [a, b] :=
+is_measurable_Icc
+
 end order_closed_topology
 
 lemma measurable.is_lub {α} [topological_space α] [linear_order α]

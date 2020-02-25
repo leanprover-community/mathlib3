@@ -166,6 +166,8 @@ instance : has_coe_to_fun (β →ₗ[α] γ) := ⟨_, to_fun⟩
 @[simp] lemma coe_mk (f : β → γ) (h₁ h₂) :
   ((linear_map.mk f h₁ h₂ : β →ₗ[α] γ) : β → γ) = f := rfl
 
+@[simp] lemma to_fun_eq_coe (f : β →ₗ[α] γ) : f.to_fun = ⇑f := rfl
+
 theorem is_linear : is_linear_map α f := {..f}
 
 @[ext] theorem ext {f g : β →ₗ[α] γ} (H : ∀ x, f x = g x) : f = g :=
@@ -243,16 +245,16 @@ end
 variables {f : β → γ} (lin : is_linear_map α f)
 include β γ lin
 
-@[simp] lemma map_zero : f (0 : β) = (0 : γ) :=
+lemma map_zero : f (0 : β) = (0 : γ) :=
 by rw [← zero_smul α (0 : β), lin.smul, zero_smul]
 
-@[simp] lemma map_add (x y : β) : f (x + y) = f x + f y :=
+lemma map_add (x y : β) : f (x + y) = f x + f y :=
 by rw [lin.add]
 
-@[simp] lemma map_neg (x : β) : f (- x) = - f x :=
+lemma map_neg (x : β) : f (- x) = - f x :=
 by rw [← neg_one_smul α, lin.smul, neg_one_smul]
 
-@[simp] lemma map_sub (x y : β) : f (x - y) = f x - f y :=
+lemma map_sub (x y : β) : f (x - y) = f x - f y :=
 by simp [lin.map_neg, lin.map_add]
 
 end is_linear_map
@@ -311,6 +313,9 @@ lemma add_mem_iff_right (h₁ : x ∈ p) : x + y ∈ p ↔ y ∈ p :=
 lemma sum_mem {ι : Type w} [decidable_eq ι] {t : finset ι} {f : ι → β} :
   (∀c∈t, f c ∈ p) → t.sum f ∈ p :=
 finset.induction_on t (by simp [p.zero_mem]) (by simp [p.add_mem] {contextual := tt})
+
+lemma smul_mem_iff' (u : units α) : (u:α) • x ∈ p ↔ x ∈ p :=
+⟨λ h, by simpa only [smul_smul, u.inv_mul, one_smul] using p.smul_mem ↑u⁻¹ h, p.smul_mem u⟩
 
 instance : has_add p := ⟨λx y, ⟨x.1 + y.1, add_mem _ x.2 y.2⟩⟩
 instance : has_zero p := ⟨⟨0, zero_mem _⟩⟩
@@ -414,8 +419,7 @@ include R
 set_option class.instance_max_depth 36
 
 theorem smul_mem_iff (r0 : r ≠ 0) : r • x ∈ p ↔ x ∈ p :=
-⟨λ h, by simpa [smul_smul, inv_mul_cancel r0] using p.smul_mem (r⁻¹) h,
- p.smul_mem r⟩
+p.smul_mem_iff' (units.mk0 r r0)
 
 end submodule
 
@@ -493,4 +497,3 @@ theorem exists_card_smul_ge_sum (hs : s.nonempty) :
 exists_le_of_sum_le hs $ by rw [sum_const, ← nat.smul_def, smul_sum]
 
 end finset
-

@@ -10,6 +10,7 @@ namespace expr
 open tactic
 
 attribute [derive has_reflect] binder_info
+attribute [derive decidable_eq] binder_info congr_arg_kind
 
 /-- Given an expr `α` representing a type with numeral structure,
 `of_nat α n` creates the `α`-valued numeral expression corresponding to `n`. -/
@@ -111,10 +112,15 @@ end lean.parser
 
 namespace format
 
+/-- `join' [a,b,c]` produces the format object `abc`.
+It differs from `format.join` by using `format.nil` instead of `""` for the empty list. -/
+meta def join' (xs : list format) : format :=
+xs.foldl compose nil
+
 /-- `intercalate x [a, b, c]` produces the format object `a.x.b.x.c`,
 where `.` represents `format.join`. -/
 meta def intercalate (x : format) : list format → format :=
-format.join ∘ list.intersperse x
+join' ∘ list.intersperse x
 
 end format
 
@@ -216,15 +222,6 @@ The type of this local constant is a constant with name `n`, so it is very unlik
 a meaningful expression. -/
 meta def mk_local (n : name) : expr :=
 expr.local_const n n binder_info.default (expr.const n [])
-
-/-- `local_def_value e` returns the value of the expression `e`, assuming that `e` has been defined
-locally using a `let` expression. Otherwise it fails. -/
-meta def local_def_value (e : expr) : tactic expr :=
-do (v,_) ← solve_aux `(true) (do
-         (expr.elet n t v _) ← (revert e >> target)
-           | fail format!"{e} is not a local definition",
-         return v),
-   return v
 
 /-- `pis loc_consts f` is used to create a pi expression whose body is `f`.
 `loc_consts` should be a list of local constants. The function will abstract these local
@@ -353,6 +350,70 @@ do to_remove ← hs.mfilter $ λ h, do {
   to_remove.mmap' (λ h, try (clear h)),
   return (¬ to_remove.empty ∨ goal_simplified)
 
+/-- `revert_after e` reverts all local constants after local constant `e`. -/
+meta def revert_after (e : expr) : tactic ℕ := do
+  l ← local_context,
+  [pos] ← return $ l.indexes_of e | pp e >>= λ s, fail format!"No such local constant {s}",
+  let l := l.drop pos.succ, -- all local hypotheses after `e`
+  revert_lst l
+
+/-- `generalize' e n` generalizes the target with respect to `e`. It creates a new local constant
+  with name `n` of the same type as `e` and replaces all occurrences of `e` by `n`.
+
+  `generalize'` is similar to `generalize` but also succeeds when `e` does not occur in the
+  goal, in which case it just calls `assert`.
+  In contrast to `generalize` it already introduces the generalized variable. -/
+meta def generalize' (e : expr) (n : name) : tactic expr :=
+(generalize e n >> intro1) <|> note n none e
+
+/-! Various tactics related to local definitions (local constants of the form `x : α := t`).
+  We call `t` the value of `x`. -/
+
+/-- `local_def_value e` returns the value of the expression `e`, assuming that `e` has been defined
+  locally using a `let` expression. Otherwise it fails. -/
+meta def local_def_value (e : expr) : tactic expr :=
+pp e >>= λ s, -- running `pp` here, because we cannot access it in the `type_context` monad.
+tactic.unsafe.type_context.run $ do
+  lctx <- tactic.unsafe.type_context.get_local_context,
+  some ldecl <- return $ lctx.get_local_decl e.local_uniq_name |
+    tactic.unsafe.type_context.fail format!"No such hypothesis {s}.",
+  some let_val <- return ldecl.value |
+    tactic.unsafe.type_context.fail format!"Variable {e} is not a local definition.",
+  return let_val
+
+/-- `revert_deps e` reverts all the hypotheses that depend on one of the local
+  constants `e`, including the local definitions that have `e` in their definition.
+  This fixes a bug in `revert_kdeps` that does not revert local definitions for which `e` only
+  appears in the definition. -/
+/- We cannot implement it as `revert e >> intro1`, because that would change the local constant in
+  the context. -/
+meta def revert_deps (e : expr) : tactic ℕ := do
+  n ← revert_kdeps e,
+  l ← local_context,
+  [pos] ← return $ l.indexes_of e,
+  let l := l.drop pos.succ, -- local hypotheses after `e`
+  ls ← l.mfilter $ λ e', try_core (local_def_value e') >>= λ o, return $ o.elim ff $ λ e'',
+    e''.has_local_constant e,
+  n' ← revert_lst ls,
+  return $ n + n'
+
+/-- `is_local_def e` succeeds when `e` is a local definition (a local constant of the form
+  `e : α := t`) and otherwise fails. -/
+meta def is_local_def (e : expr) : tactic unit :=
+retrieve $ do revert e, expr.elet _ _ _ _ ← target, skip
+
+/-- `clear_value e` clears the body of the local definition `e`, changing it into a regular hypothesis.
+  A hypothesis `e : α := t` is changed to `e : α`.
+  This tactic is called `clearbody` in Coq. -/
+meta def clear_value (e : expr) : tactic unit := do
+  n ← revert_after e,
+  is_local_def e <|>
+    pp e >>= λ s, fail format!"Cannot clear the body of {s}. It is not a local definition.",
+  let nm := e.local_pp_name,
+  (generalize' e nm >> clear e) <|>
+    fail format!"Cannot clear the body of {nm}. The resulting goal is not type correct.",
+  intron n
+
 /-- A variant of `simplify_bottom_up`. Given a tactic `post` for rewriting subexpressions,
 `simp_bottom_up post e` tries to rewrite `e` starting at the leaf nodes. Returns the resulting
 expression and a proof of equality. -/
@@ -436,6 +497,19 @@ meta def get_pi_binders_aux : list binder → expr → tactic (list binder × ex
   See also `mk_local_pis` in `init.core.tactic` which does almost the same. -/
 meta def get_pi_binders : expr → tactic (list binder × expr) | e :=
 do (es, e) ← get_pi_binders_aux [] e, return (es.reverse, e)
+
+/-- Auxilliary definition for `get_pi_binders_dep`. -/
+meta def get_pi_binders_dep_aux : ℕ → expr → tactic (list (ℕ × binder) × expr)
+| n (expr.pi nm bi d b) :=
+ do l ← mk_local' nm bi d,
+    (ls, r) ← get_pi_binders_dep_aux (n+1) (expr.instantiate_var b l),
+    return (if b.has_var then ls else (n, ⟨nm, bi, d⟩)::ls, r)
+| n e                  := return ([], e)
+
+/-- A variant of `get_pi_binders` that only returns the binders that do not occur in later
+  arguments or in the target. Also returns the argument position of each returned binder. -/
+meta def get_pi_binders_dep : expr → tactic (list (ℕ × binder) × expr) :=
+get_pi_binders_dep_aux 0
 
 /-- variation on `assert` where a (possibly incomplete)
     proof of the assertion is provided as a parameter.
@@ -718,6 +792,36 @@ iterate1 intro1 >>= λ p, return (p.1 :: p.2)
 /-- `successes` invokes each tactic in turn, returning the list of successful results. -/
 meta def successes (tactics : list (tactic α)) : tactic (list α) :=
 list.filter_map id <$> monad.sequence (tactics.map (λ t, try_core t))
+
+/--
+Try all the tactics in a list, each time starting at the original tactic_state,
+returning the list of successful results,
+and reverting to the original tactic_state.
+-/
+-- Note this is not the same as `successes`, which keeps track of the evolving tactic_state.
+meta def try_all {α : Type} (tactics : list (tactic α)) : tactic (list α) :=
+λ s, result.success
+(tactics.map $
+λ t : tactic α,
+  match t s with
+  | result.success a s' := [a]
+  | _ := []
+  end).join s
+
+/--
+Try all the tactics in a list, each time starting at the original tactic_state,
+returning the list of successful results sorted by
+the value produced by a subsequent execution of the `sort_by` tactic,
+and reverting to the original tactic_state.
+-/
+meta def try_all_sorted {α : Type} (tactics : list (tactic α)) (sort_by : tactic ℕ := num_goals) : tactic (list α) :=
+λ s, result.success
+(((tactics.map $
+λ t : tactic α,
+  match (do a ← t, n ← sort_by, return (a, n)) s with
+  | result.success a s' := [a]
+  | _ := []
+  end).join.qsort (λ p q : α × ℕ, p.2 < q.2)).map (prod.fst)) s
 
 /-- Return target after instantiating metavars and whnf -/
 private meta def target' : tactic expr :=

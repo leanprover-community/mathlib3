@@ -33,7 +33,7 @@ lemma seq_of_has_countable_basis (f : filter α) (cblb : f.has_countable_basis) 
     ∃ x : ℕ → set α, f = ⨅ i, principal (x i) :=
 begin
   rcases cblb with ⟨B, Bcbl, gen⟩, subst gen,
-  classical, by_cases Bnonempty : B = ∅, { use λ n, set.univ, simp [principal_univ, *] },
+  cases B.eq_empty_or_nonempty with hB Bnonempty, { use λ n, set.univ, simp [principal_univ, *] },
   rw countable_iff_exists_surjective_to_subtype Bnonempty at Bcbl,
   rcases Bcbl with ⟨g, gsurj⟩,
   rw lattice.infi_subtype',
@@ -170,24 +170,24 @@ def is_topological_basis (s : set (set α)) : Prop :=
 t = generate_from s
 
 lemma is_topological_basis_of_subbasis {s : set (set α)} (hs : t = generate_from s) :
-  is_topological_basis ((λf, ⋂₀ f) '' {f:set (set α) | finite f ∧ f ⊆ s ∧ ⋂₀ f ≠ ∅}) :=
-let b' := (λf, ⋂₀ f) '' {f:set (set α) | finite f ∧ f ⊆ s ∧ ⋂₀ f ≠ ∅} in
+  is_topological_basis ((λf, ⋂₀ f) '' {f:set (set α) | finite f ∧ f ⊆ s ∧ (⋂₀ f).nonempty}) :=
+let b' := (λf, ⋂₀ f) '' {f:set (set α) | finite f ∧ f ⊆ s ∧ (⋂₀ f).nonempty} in
 ⟨assume s₁ ⟨t₁, ⟨hft₁, ht₁b, ht₁⟩, eq₁⟩ s₂ ⟨t₂, ⟨hft₂, ht₂b, ht₂⟩, eq₂⟩,
     have ie : ⋂₀(t₁ ∪ t₂) = ⋂₀ t₁ ∩ ⋂₀ t₂, from Inf_union,
     eq₁ ▸ eq₂ ▸ assume x h,
       ⟨_, ⟨t₁ ∪ t₂, ⟨finite_union hft₁ hft₂, union_subset ht₁b ht₂b,
-        by simpa only [ie] using ne_empty_of_mem h⟩, ie⟩, h, subset.refl _⟩,
+        ie.symm ▸ ⟨_, h⟩⟩, ie⟩, h, subset.refl _⟩,
   eq_univ_iff_forall.2 $ assume a, ⟨univ, ⟨∅, ⟨finite_empty, empty_subset _,
-    by rw sInter_empty; exact nonempty_iff_univ_ne_empty.1 ⟨a⟩⟩, sInter_empty⟩, mem_univ _⟩,
+    by rw sInter_empty; exact ⟨a, mem_univ a⟩⟩, sInter_empty⟩, mem_univ _⟩,
  have generate_from s = generate_from b',
     from le_antisymm
       (le_generate_from $ assume u ⟨t, ⟨hft, htb, ne⟩, eq⟩,
         eq ▸ @is_open_sInter _ (generate_from s) _ hft (assume s hs, generate_open.basic _ $ htb hs))
       (le_generate_from $ assume s hs,
-        by_cases
+        s.eq_empty_or_nonempty.elim
           (assume : s = ∅, by rw [this]; apply @is_open_empty _ _)
-          (assume : s ≠ ∅, generate_open.basic _ ⟨{s}, ⟨finite_singleton s, singleton_subset_iff.2 hs,
-            by rwa [sInter_singleton]⟩, sInter_singleton s⟩)),
+          (assume : s.nonempty, generate_open.basic _ ⟨{s}, ⟨finite_singleton s, singleton_subset_iff.2 hs,
+            by rwa sInter_singleton⟩, sInter_singleton s⟩)),
   this ▸ hs⟩
 
 lemma is_topological_basis_of_open_of_nhds {s : set (set α)}
@@ -284,12 +284,12 @@ second_countable_topology_induced s α coe
 lemma is_open_generated_countable_inter [second_countable_topology α] :
   ∃b:set (set α), countable b ∧ ∅ ∉ b ∧ is_topological_basis b :=
 let ⟨b, hb₁, hb₂⟩ := second_countable_topology.is_open_generated_countable α in
-let b' := (λs, ⋂₀ s) '' {s:set (set α) | finite s ∧ s ⊆ b ∧ ⋂₀ s ≠ ∅} in
+let b' := (λs, ⋂₀ s) '' {s:set (set α) | finite s ∧ s ⊆ b ∧ (⋂₀ s).nonempty} in
 ⟨b',
   countable_image _ $ countable_subset
     (by simp only [(and_assoc _ _).symm]; exact inter_subset_left _ _)
     (countable_set_of_finite_subset hb₁),
-  assume ⟨s, ⟨_, _, hn⟩, hp⟩, hn hp,
+  assume ⟨s, ⟨_, _, hn⟩, hp⟩, absurd hn (not_nonempty_iff_eq_empty.2 hp),
   is_topological_basis_of_subbasis hb₂⟩
 
 /- TODO: more fine grained instances for first_countable_topology, separable_space, t2_space, ... -/
@@ -326,8 +326,9 @@ instance second_countable_topology.to_separable_space
 let ⟨b, hb₁, hb₂, hb₃, hb₄, eq⟩ := is_open_generated_countable_inter α in
 have nhds_eq : ∀a, 𝓝 a = (⨅ s : {s : set α // a ∈ s ∧ s ∈ b}, principal s.val),
   by intro a; rw [eq, nhds_generate_from, infi_subtype]; refl,
-have ∀s∈b, ∃a, a ∈ s, from assume s hs, exists_mem_of_ne_empty $ assume eq, hb₂ $ eq ▸ hs,
-have ∃f:∀s∈b, α, ∀s h, f s h ∈ s, by simp only [skolem] at this; exact this,
+have ∀s∈b, set.nonempty s,
+  from assume s hs, ne_empty_iff_nonempty.1 $ λ eq, absurd hs (eq.symm ▸ hb₂),
+have ∃f:∀s∈b, α, ∀s h, f s h ∈ s, by simpa only [skolem, set.nonempty] using this,
 let ⟨f, hf⟩ := this in
 ⟨⟨(⋃s∈b, ⋃h:s∈b, {f s h}),
   countable_bUnion hb₁ (λ _ _, countable_Union_Prop $ λ _, countable_singleton _),
@@ -347,9 +348,9 @@ let ⟨f, hf⟩ := this in
           apply inter_subset_inter_left; simp only [hs]
       end⟩)
     (assume ⟨s, has, hs⟩,
-      have s ∩ (⋃ (s : set α) (H h : s ∈ b), {f s h}) ≠ ∅,
-        from ne_empty_of_mem ⟨hf _ hs, mem_bUnion hs $ mem_Union.mpr ⟨hs, mem_singleton _⟩⟩,
-      mt principal_eq_bot_iff.1 this) ⟩⟩
+      have (s ∩ (⋃ (s : set α) (H h : s ∈ b), {f s h})).nonempty,
+        from ⟨_, hf _ hs, mem_bUnion hs $ mem_Union.mpr ⟨hs, mem_singleton _⟩⟩,
+      principal_ne_bot_iff.2 this) ⟩⟩
 
 variables {α}
 

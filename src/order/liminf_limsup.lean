@@ -109,7 +109,7 @@ lemma is_cobounded_of_is_bounded [is_trans α r] (hf : f ≠ ⊥) :
   f.is_bounded r → f.is_cobounded (flip r)
 | ⟨a, ha⟩ := ⟨a, assume b hb,
   have ∀ᶠ x in f, r x a ∧ r b x, from ha.and hb,
-  let ⟨x, rxa, rbx⟩ := inhabited_of_mem_sets hf this in
+  let ⟨x, rxa, rbx⟩ := nonempty_of_mem_sets hf this in
   show r b a, from trans rbx rxa⟩
 
 lemma is_cobounded_bot : is_cobounded r ⊥ ↔ (∃b, ∀x, r b x) :=
@@ -180,28 +180,28 @@ theorem le_Liminf_of_le {f : filter α} {a} :
 
 theorem le_Limsup_of_le {f : filter α} {a}
   (hf : f.is_bounded (≤)) (h : ∀ b, (∀ᶠ n in f, n ≤ b) → a ≤ b) : a ≤ f.Limsup :=
-le_cInf (ne_empty_iff_exists_mem.2 hf) h
+le_cInf hf h
 
 theorem Liminf_le_of_le {f : filter α} {a}
   (hf : f.is_bounded (≥)) (h : ∀ b, (∀ᶠ n in f, b ≤ n) → b ≤ a) : f.Liminf ≤ a :=
-cSup_le (ne_empty_iff_exists_mem.2 hf) h
+cSup_le hf h
 
 theorem Liminf_le_Limsup {f : filter α}
   (hf : f ≠ ⊥) (h₁ : f.is_bounded (≤)) (h₂ : f.is_bounded (≥)) : f.Liminf ≤ f.Limsup :=
 Liminf_le_of_le h₂ $ assume a₀ ha₀, le_Limsup_of_le h₁ $ assume a₁ ha₁, show a₀ ≤ a₁, from
   have ∀ᶠ b in f, a₀ ≤ b ∧ b ≤ a₁, from ha₀.and ha₁,
-  let ⟨b, hb₀, hb₁⟩ := inhabited_of_mem_sets hf this in
+  let ⟨b, hb₀, hb₁⟩ := nonempty_of_mem_sets hf this in
   le_trans hb₀ hb₁
 
 lemma Liminf_le_Liminf {f g : filter α}
   (hf : f.is_bounded (≥) . is_bounded_default) (hg : g.is_cobounded (≥) . is_bounded_default)
   (h : ∀ a, (∀ᶠ n in f, a ≤ n) → ∀ᶠ n in g, a ≤ n) : f.Liminf ≤ g.Liminf :=
-let ⟨a, ha⟩ := hf in cSup_le_cSup hg (ne_empty_of_mem ha) h
+cSup_le_cSup hg hf h
 
 lemma Limsup_le_Limsup {f g : filter α}
   (hf : f.is_cobounded (≤) . is_bounded_default) (hg : g.is_bounded (≤) . is_bounded_default)
   (h : ∀ a, (∀ᶠ n in g, n ≤ a) → ∀ᶠ n in f, n ≤ a) : f.Limsup ≤ g.Limsup :=
-let ⟨a, ha⟩ := hg in cInf_le_cInf hf (ne_empty_of_mem ha) h
+cInf_le_cInf hf hg h
 
 lemma Limsup_le_Limsup_of_le {f g : filter α} (h : f ≤ g)
   (hf : f.is_cobounded (≤) . is_bounded_default) (hg : g.is_bounded (≤) . is_bounded_default) :
@@ -229,11 +229,11 @@ lemma liminf_le_liminf {α : Type*} [conditionally_complete_lattice β] {f : fil
 Liminf_le_Liminf hu hv $ assume b (hb : ∀ᶠ a in f, b ≤ u a), show ∀ᶠ a in f, b ≤ v a,
   by filter_upwards [hb, h] assume a, le_trans
 
-theorem Limsup_principal {s : set α} (h : bdd_above s) (hs : s ≠ ∅) :
+theorem Limsup_principal {s : set α} (h : bdd_above s) (hs : s.nonempty) :
   (principal s).Limsup = Sup s :=
 by simp [Limsup]; exact cInf_upper_bounds_eq_cSup h hs
 
-theorem Liminf_principal {s : set α} (h : bdd_below s) (hs : s ≠ ∅) :
+theorem Liminf_principal {s : set α} (h : bdd_below s) (hs : s.nonempty) :
   (principal s).Liminf = Inf s :=
 by simp [Liminf]; exact cSup_lower_bounds_eq_cInf h hs
 

@@ -1,7 +1,7 @@
 /-
 Copyright (c) 2017 Johannes Hölzl. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Authors: Johannes Hölzl, Mario Carneiro, Patrick Massot
+Authors: Johannes Hölzl, Mario Carneiro, Patrick Massot, Yury Kudryashov
 -/
 
 import order.lattice algebra.order_functions algebra.ordered_field tactic.tauto
@@ -129,17 +129,11 @@ eq_empty_iff_forall_not_mem.2 $ λ x ⟨h₁, h₂⟩, not_lt_of_le (le_trans h�
 @[simp] lemma Ico_self (a : α) : Ico a a = ∅ := Ico_eq_empty $ le_refl _
 @[simp] lemma Ioc_self (a : α) : Ioc a a = ∅ := Ioc_eq_empty $ le_refl _
 
-lemma Iio_ne_empty [no_bot_order α] (a : α) : Iio a ≠ ∅ :=
-ne_empty_iff_exists_mem.2 (no_bot a)
+lemma Ici_subset_Ici : Ici a ⊆ Ici b ↔ b ≤ a :=
+⟨λ h, h $ left_mem_Ici, λ h x hx, le_trans h hx⟩
 
-lemma Ioi_ne_empty [no_top_order α] (a : α) : Ioi a ≠ ∅ :=
-ne_empty_iff_exists_mem.2 (no_top a)
-
-lemma Iic_ne_empty (b : α) : Iic b ≠ ∅ :=
-ne_empty_iff_exists_mem.2 ⟨b, le_refl b⟩
-
-lemma Ici_ne_empty (a : α) : Ici a ≠ ∅ :=
-ne_empty_iff_exists_mem.2 ⟨a, le_refl a⟩
+lemma Iic_subset_Iic : Iic a ⊆ Iic b ↔ a ≤ b :=
+@Ici_subset_Ici (order_dual α) _ _ _
 
 lemma Ici_subset_Ioi : Ici a ⊆ Ioi b ↔ b < a :=
 ⟨λ h, h left_mem_Ici, λ h x hx, lt_of_lt_of_le h hx⟩
@@ -323,6 +317,11 @@ end partial_order
 
 section linear_order
 variables {α : Type u} [linear_order α] {a a₁ a₂ b b₁ b₂ : α}
+
+lemma compl_Iic : -(Iic a) = Ioi a := ext $ λ _, not_le
+lemma compl_Ici : -(Ici a) = Iio a := ext $ λ _, not_le
+lemma compl_Iio : -(Iio a) = Ici a := ext $ λ _, not_lt
+lemma compl_Ioi : -(Ioi a) = Iic a := ext $ λ _, not_lt
 
 lemma Ioo_eq_empty_iff [densely_ordered α] : Ioo a b = ∅ ↔ b ≤ a :=
 ⟨λ eq, le_of_not_lt $ λ h,
@@ -556,10 +555,19 @@ end sup
 
 section both
 
-variables {α : Type u} [lattice α] [ht : is_total α (≤)] {a₁ a₂ b₁ b₂ : α}
+variables {α : Type u} [lattice α] [ht : is_total α (≤)] {a b c a₁ a₂ b₁ b₂ : α}
 
 lemma Icc_inter_Icc : Icc a₁ b₁ ∩ Icc a₂ b₂ = Icc (a₁ ⊔ a₂) (b₁ ⊓ b₂) :=
 by simp only [Ici_inter_Iic.symm, Ici_inter_Ici.symm, Iic_inter_Iic.symm]; ac_refl
+
+@[simp] lemma Icc_inter_Icc_eq_singleton (hab : a ≤ b) (hbc : b ≤ c) :
+  Icc a b ∩ Icc b c = {b} :=
+begin
+  rw [Icc_inter_Icc],
+  convert Icc_self b,
+  exact sup_of_le_right hab,
+  exact inf_of_le_left hbc
+end
 
 include ht
 

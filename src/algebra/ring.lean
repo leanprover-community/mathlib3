@@ -60,6 +60,10 @@ theorem bit0_eq_two_mul (n : α) : bit0 n = 2 * n :=
   a * (if P then 1 else 0) = if P then a else 0 :=
 by split_ifs; simp
 
+@[simp] lemma ite_mul {α} [semiring α] (P : Prop) [decidable P] (a : α) :
+  (if P then 1 else 0) * a = if P then a else 0 :=
+by split_ifs; simp
+
 variable (α)
 
 /-- Either zero and one are nonequal in a semiring, or the semiring is the zero ring. -/
@@ -483,7 +487,7 @@ def nonzero_comm_semiring.of_ne [comm_semiring α] {x y : α} (h : x ≠ y) : no
   zero_ne_one := λ h01, h $ by rw [← one_mul x, ← one_mul y, ← h01, zero_mul, zero_mul],
   ..show comm_semiring α, by apply_instance }
 
-/-- this is needed for compatibility between Lean 3.4.2 and Lean 3.5.0c -/
+/-- this is needed for compatibility between Lean 3.4.2 and Lean 3.5.1c -/
 def has_div_of_division_ring [division_ring α] : has_div α := division_ring_has_div
 
 section prio

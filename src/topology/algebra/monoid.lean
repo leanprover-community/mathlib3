@@ -71,7 +71,7 @@ continuous_iff_continuous_at.mp (topological_monoid.continuous_mul α) (a, b)
 lemma filter.tendsto.mul {f : β → α} {g : β → α} {x : filter β} {a b : α}
   (hf : tendsto f x (𝓝 a)) (hg : tendsto g x (𝓝 b)) :
   tendsto (λx, f x * g x) x (𝓝 (a * b)) :=
-tendsto.comp (by rw [←nhds_prod_eq]; exact tendsto_mul) (hf.prod_mk hg)
+tendsto_mul.comp (hf.prod_mk_nhds hg)
 
 @[to_additive]
 lemma continuous_at.mul [topological_space β] {f : β → α} {g : β → α} {x : β}
@@ -92,7 +92,7 @@ lemma tendsto_list_prod {f : γ → β → α} {x : filter β} {a : γ → α} :
 | []       _ := by simp [tendsto_const_nhds]
 | (f :: l) h :=
   begin
-    simp,
+    simp only [list.map_cons, list.prod_cons],
     exact (h f (list.mem_cons_self _ _)).mul
       (tendsto_list_prod l (assume c hc, h c (list.mem_cons_of_mem _ hc)))
   end

@@ -5,7 +5,9 @@ Authors: Johannes Hölzl, Mario Carneiro
 
 Subtype of open subsets in a topological space.
 -/
+
 import topology.bases topology.separation
+import order.copy
 
 open filter lattice
 variables {α : Type*} {β : Type*} [topological_space α] [topological_space β]
@@ -21,7 +23,7 @@ def closeds := {s : set α // is_closed s}
 /-- The type of non-empty compact subsets of a topological space. The
 non-emptiness will be useful in metric spaces, as we will be able to put
 a distance (and not merely an edistance) on this space. -/
-def nonempty_compacts := {s : set α // s ≠ ∅ ∧ compact s}
+def nonempty_compacts := {s : set α // s.nonempty ∧ compact s}
 
 section nonempty_compacts
 open topological_space set
@@ -31,11 +33,11 @@ instance nonempty_compacts.to_compact_space {p : nonempty_compacts α} : compact
 ⟨compact_iff_compact_univ.1 p.property.2⟩
 
 instance nonempty_compacts.to_nonempty {p : nonempty_compacts α} : nonempty p.val :=
-nonempty_subtype.2 $ ne_empty_iff_exists_mem.1 p.property.1
+p.property.1.to_subtype
 
 /-- Associate to a nonempty compact subset the corresponding closed subset -/
-def nonempty_compacts.to_closeds [t2_space α] (s : nonempty_compacts α) : closeds α :=
-⟨s.val, closed_of_compact _ s.property.2⟩
+def nonempty_compacts.to_closeds [t2_space α] : nonempty_compacts α → closeds α :=
+set.inclusion $ λ s hs, closed_of_compact _ hs.2
 
 end nonempty_compacts
 

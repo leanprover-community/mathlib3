@@ -147,7 +147,7 @@ lemma has_sum_sigma [regular_space α] {γ : β → Type*} {f : (Σ b:β, γ b) 
 assume s' hs',
 let
   ⟨s, hs, hss', hsc⟩ := nhds_is_closed hs',
-  ⟨u, hu⟩ := mem_at_top_sets.mp $ ha $ hs,
+  ⟨u, hu⟩ := mem_at_top_sets.mp $ ha hs,
   fsts := u.image sigma.fst,
   snds := λb, u.bind (λp, (if h : p.1 = b then {cast (congr_arg γ h) p.2} else ∅ : finset (γ b)))
 in
@@ -158,8 +158,8 @@ have u_subset : u ⊆ fsts.sigma snds,
   by simp [mem_sigma, hb, hc] ,
 mem_at_top_sets.mpr $ exists.intro fsts $ assume bs (hbs : fsts ⊆ bs),
   have h : ∀cs : Π b ∈ bs, finset (γ b),
-      (⋂b (hb : b ∈ bs), (λp:Πb, finset (γ b), p b) ⁻¹' {cs' | cs b hb ⊆ cs' }) ∩
-      (λp, bs.sum (λb, (p b).sum (λc, f ⟨b, c⟩))) ⁻¹' s ≠ ∅,
+      ((⋂b (hb : b ∈ bs), (λp:Πb, finset (γ b), p b) ⁻¹' {cs' | cs b hb ⊆ cs' }) ∩
+      (λp, bs.sum (λb, (p b).sum (λc, f ⟨b, c⟩))) ⁻¹' s).nonempty,
     from assume cs,
     let cs' := λb, (if h : b ∈ bs then cs b h else ∅) ∪ snds b in
     have sum_eq : bs.sum (λb, (cs' b).sum (λc, f ⟨b, c⟩)) = (bs.sigma cs').sum f,
@@ -167,14 +167,14 @@ mem_at_top_sets.mpr $ exists.intro fsts $ assume bs (hbs : fsts ⊆ bs),
     have (bs.sigma cs').sum f ∈ s,
       from hu _ $ finset.subset.trans u_subset $ sigma_mono hbs $
         assume b, @finset.subset_union_right (γ b) _ _ _,
-    set.ne_empty_iff_exists_mem.mpr $ exists.intro cs' $
+    exists.intro cs' $
     by simp [sum_eq, this]; { intros b hb, simp [cs', hb, finset.subset_union_right] },
   have tendsto (λp:(Πb:β, finset (γ b)), bs.sum (λb, (p b).sum (λc, f ⟨b, c⟩)))
       (⨅b (h : b ∈ bs), at_top.comap (λp, p b)) (𝓝 (bs.sum g)),
     from tendsto_finset_sum bs $
       assume c hc, tendsto_infi' c $ tendsto_infi' hc $ by apply tendsto.comp (hf c) tendsto_comap,
   have bs.sum g ∈ s,
-    from mem_of_closed_of_tendsto' this hsc $ forall_sets_ne_empty_iff_ne_bot.mp $
+    from mem_of_closed_of_tendsto' this hsc $ forall_sets_nonempty_iff_ne_bot.mp $
       by simp [mem_inf_sets, exists_imp_distrib, and_imp, forall_and_distrib,
                filter.mem_infi_sets_finset, mem_comap_sets, skolem, mem_at_top_sets,
                and_comm];
@@ -183,7 +183,7 @@ mem_at_top_sets.mpr $ exists.intro fsts $ assume bs (hbs : fsts ⊆ bs),
         have (⋂b (h : b ∈ bs), (λp:(Πb, finset (γ b)), p b) ⁻¹' {cs' | cs b h ⊆ cs' }) ≤ (⨅b∈bs, p b),
           from infi_le_infi $ assume b, infi_le_infi $ assume hb,
             le_trans (set.preimage_mono $ hp' b hb) (hp b hb),
-        ne_bot_of_le_ne_bot (h _) (le_trans (set.inter_subset_inter (le_trans this hs₂) hs₃) hs₁),
+        (h _).mono (set.subset.trans (set.inter_subset_inter (le_trans this hs₂) hs₃) hs₁),
   hss' this
 
 lemma summable_sigma [regular_space α] {γ : β → Type*} {f : (Σb:β, γ b) → α}
@@ -587,6 +587,7 @@ begin
   rw [dist_nndist, nnreal.nndist_eq, ← sum_range_add_sum_Ico _ hn, nnreal.add_sub_cancel'] at hsum,
   norm_cast at hsum,
   replace hsum := lt_of_le_of_lt (le_max_left _ _) hsum,
+  rw edist_comm,
 
   -- Then use `hf` to simplify the goal to the same form
   apply lt_of_le_of_lt (edist_le_Ico_sum_of_edist_le hn (λ k _ _, hf k)),

@@ -34,7 +34,7 @@ begin
 end
 
 /-- A map is said to be `contracting_with K`, if `K < 1` and `f` is `lipschitz_with K`. -/
-def contracting_with [metric_space α] (K : ℝ≥0) (f : α → α) :=
+def contracting_with [emetric_space α] (K : ℝ≥0) (f : α → α) :=
 (K < 1) ∧ lipschitz_with K f
 
 namespace contracting_with
@@ -45,6 +45,9 @@ include hf
 
 lemma to_lipschitz_with : lipschitz_with K f := hf.2
 
+lemma dist_le (x y : α) : dist (f x) (f y) ≤ K * dist x y :=
+hf.to_lipschitz_with.dist_le x y
+
 lemma one_sub_K_pos : (0:ℝ) < 1 - K := sub_pos_of_lt hf.1
 
 lemma dist_inequality (x y) : dist x y ≤ (dist x (f x) + dist y (f y)) / (1 - K) :=
@@ -52,7 +55,7 @@ suffices dist x y ≤ dist x (f x) + dist y (f y) + K * dist x y,
   by rwa [le_div_iff hf.one_sub_K_pos, mul_comm, sub_mul, one_mul, sub_le_iff_le_add],
 calc dist x y ≤ dist x (f x) + dist y (f y) + dist (f x) (f y) : dist_triangle4_right _ _ _ _
           ... ≤ dist x (f x) + dist y (f y) + K * dist x y :
-  add_le_add_left (hf.to_lipschitz_with _ _) _
+  add_le_add_left (hf.dist_le _ _) _
 
 lemma dist_le_of_fixed_point (x) {y} (hy : f y = y) :
   dist x y ≤ (dist x (f x)) / (1 - K) :=
@@ -69,7 +72,7 @@ have cauchy_seq (λ n, f^[n] x₀),
 from cauchy_seq_of_le_geometric K (dist x₀ (f x₀)) hf.1 $
   hf.to_lipschitz_with.dist_iterate_succ_le_geometric x₀,
 let ⟨x, hx⟩ := cauchy_seq_tendsto_of_complete this in
-⟨x, fixed_point_of_tendsto_iterate (hf.to_lipschitz_with.to_continuous.tendsto x) ⟨x₀, hx⟩⟩
+⟨x, fixed_point_of_tendsto_iterate (hf.to_lipschitz_with.continuous.tendsto x) ⟨x₀, hx⟩⟩
 
 /-- Let `f` be a contracting map with constant `K`; let `g` be another map uniformly
 `C`-close to `f`. If `x` and `y` are their fixed points, then `dist x y ≤ C / (1 - K)`. -/

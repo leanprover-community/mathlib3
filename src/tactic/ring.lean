@@ -521,6 +521,8 @@ do ns ← loc.get_locals,
       | fail "ring failed to simplify",
    when loc.include_goal $ try tactic.reflexivity
 
+add_hint_tactic "ring"
+
 end interactive
 end tactic
 

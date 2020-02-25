@@ -244,7 +244,7 @@ bex.elim h (λ x xal px,
     (assume : x = a, begin rw ←this, left, exact px end)
     (assume : x ∈ l, or.inr (bex.intro x this px)))
 
-@[simp] theorem exists_mem_cons_iff (p : α → Prop) (a : α) (l : list α) :
+theorem exists_mem_cons_iff (p : α → Prop) (a : α) (l : list α) :
   (∃ x ∈ a :: l, p x) ↔ p a ∨ ∃ x ∈ l, p x :=
 iff.intro or_exists_of_exists_mem_cons
   (assume h, or.elim h (exists_mem_cons_of l) exists_mem_cons_of_exists)
@@ -463,24 +463,24 @@ append_bind _ _ _
 
 /- concat -/
 
-@[simp] theorem concat_nil (a : α) : concat [] a = [a] := rfl
+theorem concat_nil (a : α) : concat [] a = [a] := rfl
 
-@[simp] theorem concat_cons (a b : α) (l : list α) : concat (a :: l) b = a :: concat l b := rfl
-
-@[simp] theorem concat_ne_nil (a : α) (l : list α) : concat l a ≠ [] :=
-by induction l; intro h; contradiction
-
-@[simp] theorem concat_append (a : α) (l₁ l₂ : list α) : concat l₁ a ++ l₂ = l₁ ++ a :: l₂ :=
-by induction l₁; simp only [*, cons_append, concat]; split; refl
+theorem concat_cons (a b : α) (l : list α) : concat (a :: l) b = a :: concat l b := rfl
 
 @[simp] theorem concat_eq_append (a : α) (l : list α) : concat l a = l ++ [a] :=
 by induction l; simp only [*, concat]; split; refl
 
-@[simp] theorem length_concat (a : α) (l : list α) : length (concat l a) = succ (length l) :=
+theorem concat_ne_nil (a : α) (l : list α) : concat l a ≠ [] :=
+by simp
+
+theorem concat_append (a : α) (l₁ l₂ : list α) : concat l₁ a ++ l₂ = l₁ ++ a :: l₂ :=
+by simp
+
+theorem length_concat (a : α) (l : list α) : length (concat l a) = succ (length l) :=
 by simp only [concat_eq_append, length_append, length]
 
 theorem append_concat (a : α) (l₁ l₂ : list α) : l₁ ++ concat l₂ a = concat (l₁ ++ l₂) a :=
-by induction l₂ with b l₂ ih; simp only [concat_eq_append, nil_append, cons_append, append_assoc]
+by simp
 
 /- reverse -/
 
@@ -1587,7 +1587,7 @@ theorem cons_iff {r : α → α → Prop} [is_irrefl α r] {a l₁ l₂} :
   lex r (a :: l₁) (a :: l₂) ↔ lex r l₁ l₂ :=
 ⟨λ h, by cases h with _ _ _ _ _ h _ _ _ _ h;
   [exact h, exact (irrefl_of r a h).elim], lex.cons⟩
-  
+
 @[simp] theorem not_nil_right (r : α → α → Prop) (l : list α) : ¬ lex r l [].
 
 instance is_order_connected (r : α → α → Prop)
@@ -1818,7 +1818,7 @@ begin
   { rwa [find_cons_of_neg _ h, iff_true_intro h, true_and] }
 end
 
-@[simp] theorem find_some (H : find p l = some a) : p a :=
+theorem find_some (H : find p l = some a) : p a :=
 begin
   induction l with b l IH, {contradiction},
   by_cases h : p b,
@@ -2131,8 +2131,8 @@ theorem count_singleton (a : α) : count a [a] = 1 := if_pos rfl
 @[simp] theorem count_append (a : α) : ∀ l₁ l₂, count a (l₁ ++ l₂) = count a l₁ + count a l₂ :=
 countp_append
 
-@[simp] theorem count_concat (a : α) (l : list α) : count a (concat l a) = succ (count a l) :=
-by rw [concat_eq_append, count_append, count_singleton]
+theorem count_concat (a : α) (l : list α) : count a (concat l a) = succ (count a l) :=
+by simp [-add_comm]
 
 theorem count_pos {a : α} {l : list α} : 0 < count a l ↔ a ∈ l :=
 by simp only [count, countp_pos, exists_prop, exists_eq_right']
@@ -2167,7 +2167,10 @@ end count
 
 @[simp] theorem suffix_append (l₁ l₂ : list α) : l₂ <:+ l₁ ++ l₂ := ⟨l₁, rfl⟩
 
-@[simp] theorem infix_append (l₁ l₂ l₃ : list α) : l₂ <:+: l₁ ++ l₂ ++ l₃ := ⟨l₁, l₃, rfl⟩
+theorem infix_append (l₁ l₂ l₃ : list α) : l₂ <:+: l₁ ++ l₂ ++ l₃ := ⟨l₁, l₃, rfl⟩
+
+@[simp] theorem infix_append' (l₁ l₂ l₃ : list α) : l₂ <:+: l₁ ++ (l₂ ++ l₃) :=
+by rw ← list.append_assoc; apply infix_append
 
 theorem nil_prefix (l : list α) : [] <+: l := ⟨l, rfl⟩
 
@@ -2179,8 +2182,7 @@ theorem nil_suffix (l : list α) : [] <:+ l := ⟨l, append_nil _⟩
 
 @[simp] theorem suffix_cons (a : α) : ∀ l, l <:+ a :: l := suffix_append [a]
 
-@[simp] theorem prefix_concat (a : α) (l) : l <+: concat l a :=
-by simp only [concat_eq_append, prefix_append]
+theorem prefix_concat (a : α) (l) : l <+: concat l a := by simp
 
 theorem infix_of_prefix {l₁ l₂ : list α} : l₁ <+: l₂ → l₁ <:+: l₂ :=
 λ⟨t, h⟩, ⟨[], t, h⟩
@@ -4977,12 +4979,12 @@ lemma eq_of_equiv [inhabited α] :
 
 /- neg -/
 
-@[simp] lemma get_neg [inhabited α] [add_group α]
+@[simp] lemma get_neg [add_group α]
   {k : ℕ} {as : list α} : @get α ⟨0⟩ k (neg as) = -(@get α ⟨0⟩ k as) :=
 by {unfold neg, rw (@get_map' α α ⟨0⟩), apply neg_zero}
 
 @[simp] lemma length_neg
-  [inhabited α] [has_neg α] (as : list α) :
+  [has_neg α] (as : list α) :
   (neg as).length = as.length :=
 by simp only [neg, length_map]
 

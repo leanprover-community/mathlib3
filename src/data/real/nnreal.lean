@@ -38,6 +38,7 @@ lemma le_coe_of_real (r : ℝ) : r ≤ nnreal.of_real r :=
 le_max_left r 0
 
 lemma coe_nonneg (r : nnreal) : (0 : ℝ) ≤ r := r.2
+@[elim_cast, simp] theorem coe_mk (a : ℝ) (ha) : ((⟨a, ha⟩ : ℝ≥0) : ℝ) = a := rfl
 
 instance : has_zero ℝ≥0  := ⟨⟨0, le_refl 0⟩⟩
 instance : has_one ℝ≥0   := ⟨⟨1, zero_le_one⟩⟩
@@ -192,9 +193,9 @@ lemma bdd_below_coe (s : set ℝ≥0) : bdd_below ((coe : nnreal → ℝ) '' s) 
 instance : has_Sup ℝ≥0 :=
 ⟨λs, ⟨Sup ((coe : nnreal → ℝ) '' s),
   begin
-    by_cases h : s = ∅,
+    cases s.eq_empty_or_nonempty with h h,
     { simp [h, set.image_empty, real.Sup_empty] },
-    rcases set.ne_empty_iff_exists_mem.1 h with ⟨⟨b, hb⟩, hbs⟩,
+    rcases h with ⟨⟨b, hb⟩, hbs⟩,
     by_cases h' : bdd_above s,
     { exact le_cSup_of_le (bdd_above_coe.2 h') (set.mem_image_of_mem _ hbs) hb },
     { rw [real.Sup_of_not_bdd_above], rwa [bdd_above_coe] }
@@ -203,9 +204,9 @@ instance : has_Sup ℝ≥0 :=
 instance : has_Inf ℝ≥0 :=
 ⟨λs, ⟨Inf ((coe : nnreal → ℝ) '' s),
   begin
-    by_cases h : s = ∅,
+    cases s.eq_empty_or_nonempty with h h,
     { simp [h, set.image_empty, real.Inf_empty] },
-    exact le_cInf (by simp [h]) (assume r ⟨q, _, eq⟩, eq ▸ q.2)
+    exact le_cInf (h.image _) (assume r ⟨q, _, eq⟩, eq ▸ q.2)
   end⟩⟩
 
 lemma coe_Sup (s : set nnreal) : (↑(Sup s) : ℝ) = Sup ((coe : nnreal → ℝ) '' s) := rfl
@@ -421,6 +422,8 @@ mul_pos hr (inv_pos.2 hp)
 
 @[simp] lemma inv_one : (1:ℝ≥0)⁻¹ = 1 := nnreal.eq $ inv_one
 
+@[simp] lemma div_one {r : ℝ≥0} : r / 1 = r := by rw [div_def, inv_one, mul_one]
+
 protected lemma mul_inv {r p : ℝ≥0} : (r * p)⁻¹ = p⁻¹ * r⁻¹ := nnreal.eq $ mul_inv' _ _
 
 protected lemma inv_pow' {r : ℝ≥0} {n : ℕ} : (r^n)⁻¹ = (r⁻¹)^n :=
@@ -431,6 +434,9 @@ nnreal.eq $ inv_mul_cancel $ mt (@nnreal.eq_iff r 0).1 h
 
 @[simp] lemma mul_inv_cancel {r : ℝ≥0} (h : r ≠ 0) : r * r⁻¹ = 1 :=
 by rw [mul_comm, inv_mul_cancel h]
+
+@[simp] lemma div_self {r : ℝ≥0} (h : r ≠ 0) : r / r = 1 :=
+mul_inv_cancel h
 
 @[simp] lemma div_mul_cancel {r p : ℝ≥0} (h : p ≠ 0) : r / p * p = r :=
 by rw [div_def, mul_assoc, inv_mul_cancel h, mul_one]

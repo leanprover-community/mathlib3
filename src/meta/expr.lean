@@ -377,13 +377,21 @@ iterating through the expression. In one performance test `pi_binders` was more 
 quicker than `mk_local_pis` (when applied to the type of all imported declarations 100x)."
 
 /-- Get the codomain/target of a pi-type.
-  This definition doesn't instantiate bound variables, and therefore produces a term that is open.-/
-meta def pi_codomain : expr → expr -- see note [open expressions]
+  This definition doesn't instantiate bound variables, and therefore produces a term that is open.
+  See note [open expressions]. -/
+meta def pi_codomain : expr → expr
 | (pi n bi d b) := pi_codomain b
 | e             := e
 
-/-- Auxilliary defintion for `pi_binders`. -/
--- see note [open expressions]
+/-- Get the body/value of a lambda-expression.
+  This definition doesn't instantiate bound variables, and therefore produces a term that is open.
+  See note [open expressions]. -/
+meta def lambda_body : expr → expr
+| (lam n bi d b) := lambda_body b
+| e             := e
+
+/-- Auxilliary defintion for `pi_binders`.
+  See note [open expressions]. -/
 meta def pi_binders_aux : list binder → expr → list binder × expr
 | es (pi n bi d b) := pi_binders_aux (⟨n, bi, d⟩::es) b
 | es e             := (es, e)
@@ -391,8 +399,9 @@ meta def pi_binders_aux : list binder → expr → list binder × expr
 /-- Get the binders and codomain of a pi-type.
   This definition doesn't instantiate bound variables, and therefore produces a term that is open.
   The.tactic `get_pi_binders` in `tactic.core` does the same, but also instantiates the
-  free variables -/
-meta def pi_binders (e : expr) : list binder × expr := -- see note [open expressions]
+  free variables.
+  See note [open expressions]. -/
+meta def pi_binders (e : expr) : list binder × expr :=
 let (es, e) := pi_binders_aux [] e in (es.reverse, e)
 
 /-- Auxilliary defintion for `get_app_fn_args`. -/
@@ -438,6 +447,15 @@ meta def local_binding_info : expr → binder_info
 meta def is_default_local : expr → bool
 | (expr.local_const _ _ binder_info.default _) := tt
 | _ := ff
+
+/-- `has_local_constant e l` checks whether local constant `l` occurs in expression `e` -/
+meta def has_local_constant (e l : expr) : bool :=
+e.has_local_in $ mk_name_set.insert l.local_uniq_name
+
+/-- Turns a local constant into a binder -/
+meta def to_binder : expr → binder
+| (local_const _ nm bi t) := ⟨nm, bi, t⟩
+| _                       := default binder
 
 end expr
 
@@ -493,6 +511,10 @@ meta def get_decl_names (e : environment) : list name :=
 meta def mfold {α : Type} {m : Type → Type} [monad m] (e : environment) (x : α)
   (fn : declaration → α → m α) : m α :=
 e.fold (return x) (λ d t, t >>= fn d)
+
+/-- Filters all declarations in the environment. -/
+meta def filter (e : environment) (test : declaration → bool) : list declaration :=
+e.fold [] $ λ d ds, if test d then d::ds else ds
 
 /-- Filters all declarations in the environment. -/
 meta def mfilter (e : environment) (test : declaration → tactic bool) : tactic (list declaration) :=

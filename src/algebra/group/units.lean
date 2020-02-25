@@ -2,15 +2,19 @@
 Copyright (c) 2017 Kenny Lau. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Kenny Lau, Mario Carneiro, Johannes, Hölzl, Chris Hughes
-
-Units (i.e., invertible elements) of a multiplicative monoid.
 -/
-
 import tactic.basic logic.function
+
+/-!
+# Units (i.e., invertible elements) of a multiplicative monoid
+-/
 
 universe u
 variable {α : Type u}
 
+/-- Units of a monoid, bundled version. An element of a `monoid` is a unit if it has a two-sided
+inverse. This version bundles the inverse element so that it can be computed. For a predicate
+see `is_unit`. -/
 structure units (α : Type u) [monoid α] :=
 (val : α)
 (inv : α)
@@ -107,6 +111,8 @@ units.ext $ nat.eq_one_of_dvd_one ⟨u.inv, u.val_inv.symm⟩
 def units.mk_of_mul_eq_one [comm_monoid α] (a b : α) (hab : a * b = 1) : units α :=
 ⟨a, b, hab, (mul_comm b a).trans hab⟩
 
+@[simp] lemma units.coe_mk_of_mul_eq_one [comm_monoid α] {a b : α} (h : a * b = 1) :
+  (units.mk_of_mul_eq_one a b h : α) = a := rfl
 
 section monoid
   variables [monoid α] {a b c : α}

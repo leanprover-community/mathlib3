@@ -87,10 +87,11 @@ begin
   let d := λn:ℕ, (c n)⁻¹ • (y-x),
   refine ⟨c, d, filter.univ_mem_sets' (λn, h _), _, _⟩,
   show x + d n ∈ segment x y,
-  { refine ⟨(c n)⁻¹, ⟨_, _⟩, _⟩,
+  { rw segment_eq_image,
+    refine ⟨(c n)⁻¹, ⟨_, _⟩, _⟩,
     { rw inv_nonneg, apply pow_nonneg, norm_num },
     { apply inv_le_one, apply one_le_pow_of_one_le, norm_num },
-    { simp only [d], abel } },
+    { simp only [d, sub_smul, smul_sub, one_smul], abel } },
   show tendsto c at_top at_top,
   { exact tendsto_pow_at_top_at_top_of_gt_1 one_lt_two },
   show filter.tendsto (λ (n : ℕ), c n • d n) filter.at_top (𝓝 (y - x)),
@@ -270,7 +271,7 @@ include hab hfc hfI
 or its minimum value at a point in the interior of the interval. -/
 lemma exists_Ioo_extr_on_Icc : ∃ c ∈ Ioo a b, is_extr_on f (Icc a b) c :=
 begin
-  have ne : Icc a b ≠ ∅, from ne_empty_of_mem (left_mem_Icc.2 (le_of_lt hab)),
+  have ne : (Icc a b).nonempty, from nonempty_Icc.2 (le_of_lt hab),
   -- Consider absolute min and max points
   obtain ⟨c, cmem, cle⟩ : ∃ c ∈ Icc a b, ∀ x ∈ Icc a b, f c ≤ f x,
     from compact_Icc.exists_forall_le ne hfc,

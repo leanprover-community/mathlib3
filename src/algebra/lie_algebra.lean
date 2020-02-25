@@ -134,11 +134,7 @@ end
 
 @[simp] lemma gsmul_lie (x y : L) (n : ℤ) :
   ⁅n • x, y⁆ = n • ⁅x, y⁆ :=
-begin
-  let Ad := λ z, ⁅z, y⁆,
-  haveI : is_add_group_hom Ad := { map_add := by simp [Ad], },
-  apply is_add_group_hom.map_gsmul Ad,
-end
+add_monoid_hom.map_gsmul ⟨λ x, ⁅x, y⁆, zero_lie y, λ _ _, add_lie _ _ _⟩ _ _
 
 @[simp] lemma lie_gsmul (x y : L) (n : ℤ) :
   ⁅x, n • y⁆ = n • ⁅x, y⁆ :=
@@ -255,7 +251,9 @@ structure lie_subalgebra extends submodule R L :=
 instance lie_subalgebra_coe_submodule : has_coe (lie_subalgebra R L) (submodule R L) :=
 ⟨lie_subalgebra.to_submodule⟩
 
-instance lie_subalgebra_lie_algebra [L' : lie_subalgebra R L] : lie_algebra R L' := {
+/-- A Lie subalgebra forms a new Lie algebra.
+This cannot be an instance, since being a Lie subalgebra is (currently) not a class. -/
+def lie_subalgebra_lie_algebra (L' : lie_subalgebra R L) : lie_algebra R L' := {
   bracket  := λ x y, ⟨⁅x.val, y.val⁆, L'.lie_mem x.property y.property⟩,
   lie_add  := by { intros, apply set_coe.ext, apply lie_add, },
   add_lie  := by { intros, apply set_coe.ext, apply add_lie, },

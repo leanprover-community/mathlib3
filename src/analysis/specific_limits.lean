@@ -132,7 +132,7 @@ lemma tendsto_pow_at_top_at_top_of_gt_1 {r : ℝ} (h : 1 < r) :
 
 lemma lim_norm_zero' {𝕜 : Type*} [normed_group 𝕜] :
   tendsto (norm : 𝕜 → ℝ) (nhds_within 0 {x | x ≠ 0}) (nhds_within 0 (set.Ioi 0)) :=
-lim_norm_zero.inf $ tendsto_principal_principal.2 $ λ x hx, (norm_pos_iff _).2 hx
+lim_norm_zero.inf $ tendsto_principal_principal.2 $ λ x hx, norm_pos_iff.2 hx
 
 lemma normed_field.tendsto_norm_inverse_nhds_within_0_at_top {𝕜 : Type*} [normed_field 𝕜] :
   tendsto (λ x:𝕜, ∥x⁻¹∥) (nhds_within 0 {x | x ≠ 0}) at_top :=

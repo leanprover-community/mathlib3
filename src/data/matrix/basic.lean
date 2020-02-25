@@ -174,13 +174,13 @@ instance [decidable_eq n] : semiring (matrix n n α) :=
   ..matrix.add_comm_monoid,
   ..matrix.monoid }
 
-@[simp] theorem diagonal_mul_diagonal' [decidable_eq n] (d₁ d₂ : n → α) :
+@[simp] theorem diagonal_mul_diagonal [decidable_eq n] (d₁ d₂ : n → α) :
   (diagonal d₁) ⬝ (diagonal d₂) = diagonal (λ i, d₁ i * d₂ i) :=
 by ext i j; by_cases i = j; simp [h]
 
-theorem diagonal_mul_diagonal [decidable_eq n] (d₁ d₂ : n → α) :
+theorem diagonal_mul_diagonal' [decidable_eq n] (d₁ d₂ : n → α) :
   diagonal d₁ * diagonal d₂ = diagonal (λ i, d₁ i * d₂ i) :=
-diagonal_mul_diagonal' _ _
+diagonal_mul_diagonal _ _
 
 lemma is_add_monoid_hom_mul_left (M : matrix l m α) :
   is_add_monoid_hom (λ x : matrix m n α, M ⬝ x) :=
@@ -228,6 +228,14 @@ instance {β : Type w} [ring α] [add_comm_group β] [module α β] :
 
 section comm_ring
 variables [comm_ring α]
+
+lemma smul_eq_diagonal_mul [decidable_eq m] (M : matrix m n α) (a : α) :
+  a • M = diagonal (λ _, a) ⬝ M :=
+by { ext, simp }
+
+lemma smul_eq_mul_diagonal [decidable_eq n] (M : matrix m n α) (a : α) :
+  a • M = M ⬝ diagonal (λ _, a) :=
+by { ext, simp [mul_comm] }
 
 @[simp] lemma mul_smul (M : matrix m n α) (a : α) (N : matrix n l α) : M ⬝ (a • N) = a • M ⬝ N :=
 begin
@@ -283,6 +291,9 @@ begin
   { simp },
   { rw [diagonal_val_eq] }
 end
+
+@[simp] lemma mul_vec_one [decidable_eq m] (v : m → α) : mul_vec 1 v = v :=
+by { ext, rw [←diagonal_one, mul_vec_diagonal, one_mul] }
 
 lemma vec_mul_vec_eq (w : m → α) (v : n → α) :
   vec_mul_vec w v = (col w) ⬝ (row v) :=

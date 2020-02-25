@@ -13,20 +13,18 @@ import measure_theory.lebesgue_measure
 
 Integrate a function over a subset of a measure space.
 
-## Main definition
+## Main definitions
 
 `measurable_on`, `integrable_on`, `integral_on`
 
-## Tags
+## Notation
 
-indicator, characteristic
+`∫ a in s, f a` is `measure_theory.integral (s.indicator f)`
 -/
 
 noncomputable theory
-open_locale classical topological_space
-open set lattice filter topological_space ennreal emetric measure_theory
-
-set_option class.instance_max_depth 50
+open set filter topological_space measure_theory measure_theory.simple_func
+open_locale classical topological_space interval
 
 universes u v w
 variables {α : Type u} {β : Type v} {γ : Type w}
@@ -35,17 +33,27 @@ section measurable_on
 variables [measurable_space α] [measurable_space β] [has_zero β] {s : set α} {f : α → β}
 
 /-- `measurable_on s f` means `f` is measurable over the set `s`. -/
-@[reducible]
-def measurable_on (s : set α) (f : α → β) : Prop := measurable (indicator s f)
+def measurable_on (s : set α) (f : α → β) : Prop := measurable (s.indicator f)
 
-lemma measurable_on_empty : measurable_on ∅ f :=
+@[simp] lemma measurable_on_empty (f : α → β) : measurable_on ∅ f :=
 by { rw [measurable_on, indicator_empty], exact measurable_const }
 
-lemma measurable_on_univ (hf : measurable f) : measurable_on univ f :=
+@[simp] lemma measurable.measurable_on_univ (hf : measurable f) : measurable_on univ f :=
 hf.if is_measurable.univ measurable_const
 
-lemma measurable.measurable_on (hs : is_measurable s) (hf : measurable f) : measurable_on s f :=
-hf.if hs measurable_const
+@[simp] lemma measurable_on_singleton {α} [topological_space α] [t1_space α] {a : α} {f : α → β} :
+  measurable_on {a} f :=
+λ s hs, show is_measurable ((indicator {a} f)⁻¹' s),
+begin
+  rw indicator_preimage,
+  refine is_measurable.union _ (is_measurable_singleton.compl.inter $ measurable_const.preimage hs),
+  by_cases h : a ∈ f⁻¹' s,
+  { rw inter_eq_self_of_subset_left,
+    { exact is_measurable_singleton },
+    rwa singleton_subset_iff },
+  rw [singleton_inter_eq_empty.2 h],
+  exact is_measurable.empty
+end
 
 lemma is_measurable.inter_preimage {B : set β}
   (hs : is_measurable s) (hB : is_measurable B) (hf : measurable_on s f):
@@ -59,12 +67,15 @@ begin
   exact hs.compl.inter (measurable_const.preimage hB)
 end
 
+lemma measurable.measurable_on (hs : is_measurable s) (hf : measurable f) : measurable_on s f :=
+hf.if hs measurable_const
+
 lemma measurable_on.subset {t : set α} (hs : is_measurable s) (h : s ⊆ t) (hf : measurable_on t f) :
   measurable_on s f :=
 begin
   have : measurable_on s (indicator t f) := measurable.measurable_on hs hf,
   simp only [measurable_on, indicator_indicator] at this,
-  rwa [inter_eq_self_of_subset_left h] at this,
+  rwa [inter_eq_self_of_subset_left h] at this
 end
 
 lemma measurable_on.union {t : set α} {f : α → β}
@@ -79,40 +90,25 @@ begin
   exact (hs.inter_preimage hB hsm).union (ht.inter_preimage hB htm)
 end
 
-lemma measurable_on_singleton {α} [topological_space α] [t1_space α] {a : α} {f : α → β} :
-  measurable_on {a} f :=
-λ s hs, show is_measurable ((indicator _ _)⁻¹' s),
-begin
-  rw indicator_preimage,
-  refine is_measurable.union _ (is_measurable_singleton.compl.inter $ measurable_const.preimage hs),
-  by_cases h : a ∈ f⁻¹' s,
-  { rw inter_eq_self_of_subset_left,
-    { exact is_measurable_singleton },
-    rwa singleton_subset_iff },
-  rw [singleton_inter_eq_empty.2 h],
-  exact is_measurable.empty
-end
-
 end measurable_on
 
 section integrable_on
 variables [measure_space α] [normed_group β] {s t : set α} {f g : α → β}
 
 /-- `integrable_on s f` means `f` is integrable over the set `s`. -/
-@[reducible]
-def integrable_on (s : set α) (f : α → β) : Prop := integrable (indicator s f)
+def integrable_on (s : set α) (f : α → β) : Prop := integrable (s.indicator f)
 
 lemma integrable_on_congr (h : ∀x, x ∈ s → f x = g x) : integrable_on s f ↔ integrable_on s g :=
 by simp only [integrable_on, indicator_congr h]
 
-lemma integrable_on_congr_ae (h : ∀ₘx, x ∈ s → f x = g x) :
+lemma integrable_on_congr_ae (h : ∀ₘ x, x ∈ s → f x = g x) :
   integrable_on s f ↔ integrable_on s g :=
 by { apply integrable_congr_ae, exact indicator_congr_ae h }
 
-lemma integrable_on_empty : integrable_on ∅ f :=
+@[simp] lemma integrable_on_empty (f : α → β) : integrable_on ∅ f :=
 by { simp only [integrable_on, indicator_empty], apply integrable_zero }
 
-lemma integrable_on_of_integrable (s : set α) (hf : integrable f) : integrable_on s f :=
+lemma measure_theory.integrable.integrable_on (s : set α) (hf : integrable f) : integrable_on s f :=
 by { refine integrable_of_le (λa, _) hf, apply norm_indicator_le_norm_self }
 
 lemma integrable_on.subset (h : s ⊆ t) : integrable_on t f → integrable_on s f :=
@@ -120,7 +116,8 @@ by { apply integrable_of_le_ae, filter_upwards [] norm_indicator_le_of_subset h 
 
 variables {𝕜 : Type*} [normed_field 𝕜] [normed_space 𝕜 β]
 
-lemma integrable_on.smul (s : set α) (c : 𝕜) {f : α → β} : integrable_on s f → integrable_on s (λa, c • f a) :=
+lemma integrable_on.smul (s : set α) (c : 𝕜) {f : α → β} :
+  integrable_on s f → integrable_on s (λa, c • f a) :=
 by { simp only [integrable_on, indicator_smul], apply integrable.smul }
 
 lemma integrable_on.mul_left (s : set α) (r : ℝ) {f : α → ℝ} (hf : integrable_on s f) :
@@ -174,24 +171,33 @@ section integral_on
 variables [measure_space α]
   [normed_group β] [second_countable_topology β] [normed_space ℝ β] [complete_space β]
   {s t : set α} {f g : α → β}
-  {a b : ℝ} {h : ℝ → β}
+open set
 
-notation `∫` binders ` in ` s `, ` r:(scoped f, integral (indicator s f)) := r
+notation `∫` binders ` in ` s `, ` r:(scoped f, measure_theory.integral (set.indicator s f)) := r
+
+lemma integral_on_undef (h : ¬ (measurable_on s f ∧ integrable_on s f)) : (∫ a in s, f a) = 0 :=
+integral_undef h
+
+lemma integral_on_non_measurable (h : ¬ measurable_on s f) : (∫ a in s, f a) = 0 :=
+integral_non_measurable h
+
+lemma integral_on_non_integrable (h : ¬ integrable_on s f) : (∫ a in s, f a) = 0 :=
+integral_non_integrable h
 
 variables (β)
-@[simp] lemma integral_on_zero (s : set α) : (∫ a in s, (0:β)) = 0 :=
-by rw [indicator_zero, integral_zero]
+lemma integral_on_zero (s : set α) : (∫ a in s, (0:β)) = 0 :=
+by simp
 variables {β}
 
-lemma integral_on_congr (h : ∀ x ∈ s, f x = g x) : (∫ a in s, f a) = (∫ a in s, g a) :=
+lemma integral_on_congr (h : ∀ a ∈ s, f a = g a) : (∫ a in s, f a) = (∫ a in s, g a) :=
 by simp only [indicator_congr h]
 
 lemma integral_on_congr_of_ae_eq (hf : measurable_on s f) (hg : measurable_on s g)
-  (h : ∀ₘ x, x ∈ s → f x = g x) : (∫ a in s, f a) = (∫ a in s, g a) :=
+  (h : ∀ₘ a, a ∈ s → f a = g a) : (∫ a in s, f a) = (∫ a in s, g a) :=
 integral_congr_ae hf hg (indicator_congr_ae h)
 
 lemma integral_on_congr_of_set (hsm : measurable_on s f) (htm : measurable_on t f)
-  (h : ∀ₘ x, x ∈ s ↔ x ∈ t) : (∫ a in s, f a) = (∫ a in t, f a) :=
+  (h : ∀ₘ a, a ∈ s ↔ a ∈ t) : (∫ a in s, f a) = (∫ a in t, f a) :=
 integral_congr_ae hsm htm $ indicator_congr_of_set h
 
 variables (s t)
@@ -247,8 +253,20 @@ begin
   have := integral_congr_ae _ _ (indicator_union_ae h f),
   rw [this, integral_add hsm hsi htm hti],
   { exact hsm.union hs ht htm },
-  { exact hsm.add htm }
+  { exact measurable.add hsm htm }
 end
+
+lemma integral_on_nonneg_of_ae {f : α → ℝ} (hf : ∀ₘ a, a ∈ s → 0 ≤ f a) : (0:ℝ) ≤ (∫ a in s, f a) :=
+integral_nonneg_of_ae $ by { filter_upwards [hf] λ a h, indicator_nonneg' h }
+
+lemma integral_on_nonneg {f : α → ℝ} (hf : ∀ a, a ∈ s → 0 ≤ f a) : (0:ℝ) ≤ (∫ a in s, f a) :=
+integral_on_nonneg_of_ae $ univ_mem_sets' hf
+
+lemma integral_on_nonpos_of_ae {f : α → ℝ} (hf : ∀ₘ a, a ∈ s → f a ≤ 0) : (∫ a in s, f a) ≤ 0 :=
+integral_nonpos_of_nonpos_ae $ by { filter_upwards [hf] λ a h, indicator_nonpos' h }
+
+lemma integral_on_nonpos {f : α → ℝ} (hf : ∀ a, a ∈ s → f a ≤ 0) : (∫ a in s, f a) ≤ 0 :=
+integral_on_nonpos_of_ae $ univ_mem_sets' hf
 
 lemma tendsto_integral_on_of_monotone {s : ℕ → set α} {f : α → β} (hsm : ∀i, is_measurable (s i))
   (h_mono : monotone s) (hfm : measurable_on (Union s) f) (hfi : integrable_on (Union s) f) :

@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Author: Robert Y. Lewis
 -/
 
-import tactic.ring data.nat.gcd data.list.basic meta.rb_map data.tree
+import tactic.ring data.nat.gcd data.list.defs meta.rb_map data.tree
 
 /-!
 
@@ -755,13 +755,14 @@ do l' ← replace_nat_pfs l,
    ls ← list.reduce_option <$> l''.mmap (λ h, (do s ← norm_hyp h, return (some s)) <|> return none)
           >>= partition_by_type,
    pref_type ← (unify pref_type.iget `(ℕ) >> return (some `(ℤ) : option expr)) <|> return pref_type,
-   match cfg.restrict_type, ls.values, pref_type with
+   match cfg.restrict_type, rb_map.values ls, pref_type with
    | some rtp, _, _ :=
       do m ← mk_mvar, unify `(some %%m : option Type) cfg.restrict_type_reflect, m ← instantiate_mvars m,
          prove_false_by_linarith1 cfg (ls.ifind m)
    | none, [ls'], _ := prove_false_by_linarith1 cfg ls'
    | none, ls', none := try_linarith_on_lists cfg ls'
-   | none, _, (some t) := prove_false_by_linarith1 cfg (ls.ifind t) <|> try_linarith_on_lists cfg (ls.erase t).values
+   | none, _, (some t) := prove_false_by_linarith1 cfg (ls.ifind t) <|>
+      try_linarith_on_lists cfg (rb_map.values (ls.erase t))
    end
 
 end normalize
@@ -833,5 +834,7 @@ do t ← target,
    | none := if cfg.exfalso then exfalso >> linarith.interactive_aux cfg none restr.is_some hyps
              else fail "linarith failed: target type is not an inequality."
    end
+
+add_hint_tactic "linarith"
 
 end

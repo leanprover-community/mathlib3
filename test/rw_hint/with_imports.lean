@@ -10,6 +10,6 @@ open tactic
 example : 2 * (3 + 4) = 2 * 3 + 2 * 4 :=
 begin
   -- rw_hint,
-  try_for 5500 (do s ← tactic.rw_hint, guard $ "rw left_distrib" ∈ s),
+  tactic.try_for 50000 (do s ← tactic.rw_hint, guard $ "rw left_distrib" ∈ s),
   rw left_distrib,
 end

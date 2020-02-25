@@ -108,7 +108,7 @@ by simp [shift_up, cube.tail]
 def unit_cube : cube n :=
 ⟨λ _, 0, 1, by norm_num⟩
 
-@[simp] lemma side_unit_cube {j : fin n} : unit_cube.side j = Ico 0 1 :=
+@[simp] lemma side_unit_cube {j : fin n} : unit_side j = Ico 0 1 :=
 by norm_num [unit_cube, side]
 
 end cube
@@ -144,7 +144,7 @@ lemma zero_le_b {i j} : 0 ≤ (cs i).b j :=
 zero_le_of_mem h (cs i).b_mem_to_set j
 
 lemma b_add_w_le_one {j} : (cs i).b j + (cs i).w ≤ 1 :=
-by { have := side_subset h, rw [cube.side, Ico_subset_Ico_iff] at this, convert this.2, simp [hw] }
+by { have := side_subset h, rw [side, Ico_subset_Ico_iff] at this, convert this.2, simp [hw] }
 
 /-- The width of any cube in the partition cannot be 1. -/
 lemma w_ne_one (i : ι) : (cs i).w ≠ 1 :=
@@ -210,7 +210,7 @@ begin
   { intro v, simp [bottom],
     intros h0 hv,
     have : v ∈ (unit_cube : cube (n+1)).to_set,
-    { dsimp [to_set], rw [forall_fin_succ, h0], split, norm_num [cube.side, unit_cube], exact hv },
+    { dsimp [to_set], rw [forall_fin_succ, h0], split, norm_num [side, unit_cube], exact hv },
     rw [←h.2.1] at this, rcases this with ⟨_, ⟨i, rfl⟩, hi⟩,
     use i,
     split, { apply le_antisymm, rw h0, exact zero_le_b h, exact (hi 0).1 },
@@ -239,7 +239,7 @@ lemma b_le_b (hi : i ∈ bcubes cs c) (j : fin n) : c.b j.succ ≤ (cs i).b j.su
 lemma t_le_t (hi : i ∈ bcubes cs c) (j : fin n) :
   (cs i).b j.succ + (cs i).w ≤ c.b j.succ + c.w  :=
 begin
-  have h' := tail_sub hi j, dsimp only [cube.side] at h', rw [Ico_subset_Ico_iff] at h',
+  have h' := tail_sub hi j, dsimp only [side] at h', rw [Ico_subset_Ico_iff] at h',
   exact h'.2, simp [hw]
 end
 
@@ -267,7 +267,7 @@ begin
   { split, { simp only [bottom, p, if_neg hj] },
     intro j', simp [tail, side_tail],
     by_cases hj' : j'.succ = j,
-    { simp [p, -add_comm, if_pos, cube.side, hj', hw', w_lt_w h v h2i] },
+    { simp [p, -add_comm, if_pos, side, hj', hw', w_lt_w h v h2i] },
     { simp [p, -add_comm, if_neg hj'] }},
   rcases v.1 hp with ⟨_, ⟨i', rfl⟩, hi'⟩,
   have h2i' : i' ∈ bcubes cs c := ⟨hi'.1.symm, v.2.1 i' hi'.1.symm ⟨tail p, hi'.2, hp.2⟩⟩,
@@ -327,7 +327,7 @@ begin
   let i := mi h v, have hi : i ∈ bcubes cs c := mi_mem_bcubes,
   cases bi,
   { refine ⟨(cs i).b j.succ + (cs i).w, ⟨_, _⟩, _⟩,
-    { simp [cube.side, bi, hw', w_lt_w h v hi] },
+    { simp [side, bi, hw', w_lt_w h v hi] },
     { intro h', simpa [i, lt_irrefl] using h'.2 },
     intros i' hi' i'_i h2i', split,
     apply le_trans h2i'.1, { simp [hw'] },
@@ -344,11 +344,11 @@ begin
   { dsimp only [x], rw [←bi, add_sub_assoc, add_lt_iff_neg_left, sub_lt_zero],
     apply mi_strict_minimal (ne.symm h2i') hi' },
   refine ⟨x, ⟨_, _⟩, _⟩,
-  { simp only [cube.side, x, -add_comm, -add_assoc, neg_lt_zero, hw, add_lt_iff_neg_left, and_true,
+  { simp only [side, x, -add_comm, -add_assoc, neg_lt_zero, hw, add_lt_iff_neg_left, and_true,
       mem_Ico, sub_eq_add_neg],
     rw [add_assoc, le_add_iff_nonneg_right, ←sub_eq_add_neg, sub_nonneg],
     apply le_of_lt (w_lt_w h v hi') },
-  { simp only [cube.side, not_and_distrib, not_lt, add_comm, not_le, mem_Ico], left, exact hx },
+  { simp only [side, not_and_distrib, not_lt, add_comm, not_le, mem_Ico], left, exact hx },
   intros i'' hi'' h2i'' h3i'', split, swap, apply lt_trans hx h3i''.2,
   simp only [x], rw [le_sub_iff_add_le],
   refine le_trans _ (t_le_t hi'' j), rw [add_le_add_iff_left], apply h3i' i'' ⟨hi'', _⟩,
@@ -457,7 +457,7 @@ begin
     { simp [to_set, forall_fin_succ, p'],
       refine ⟨_, by simpa [to_set, p] using hi''.2⟩,
       have : (cs i).b 0 = (cs i'').b 0, { by rw [hi.1, h2i''.1] },
-      simp [cube.side, hw', xm, this, h3i''] },
+      simp [side, hw', xm, this, h3i''] },
     apply not_disjoint_iff.mpr ⟨p', hp', h2p'⟩,
     apply h.1, rintro rfl, apply (cs i).b_ne_xm, rw [←hi', ←hi''.1, hi.1], refl },
   { intros i' hi' h2i', dsimp [shift_up] at h2i', replace h2i' := h.2.2.1 h2i'.symm, induction h2i',

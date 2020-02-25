@@ -6,6 +6,7 @@ Authors: Scott Morrison
 
 import tactic.rewrite_search.discovery
 import tactic.rewrite_all
+import data.mllist
 
 open tactic.rewrite_all.congr
 open tactic.rewrite_search.discovery
@@ -25,13 +26,12 @@ namespace tactic
 --   Try this: rw ←option.some.inj_eq
 --   Try this: rw ←heq_iff_eq
 -- Is there a sensible way to discard these? Otherwise we could blacklist them?
-meta def rw_hint : tactic (list string) :=
+meta def rw_hint (bound : ℕ := 50) : tactic (list string) :=
 do
-  rewrites ← find_all_rewrites,
+  rewrites ← mllist.of_list <$> find_all_rewrites,
   e ← target,
-  successes ← rewrites.mfilter (λ rw, do
-    res ← try_core $ rewrite_without_new_mvars rw.1 e {symm := rw.2},
-    return res.is_some),
+  successes ← (rewrites.mfilter (λ rw : expr × bool, do
+    rewrite_without_new_mvars rw.1 e {symm := rw.2})).take bound,
   successes.mmap (λ p, do pp ← pp p.1, return ("rw " ++ (if p.2 then "←" else "") ++ pp.to_string))
 
 namespace interactive
@@ -41,5 +41,8 @@ meta def rw_hint : tactic unit :=
 tactic.rw_hint >>= list.mmap' (λ h, trace $ "Try this: " ++ h)
 
 end interactive
+
+-- PROJECT it would be good to have a `conv` version,
+-- perhaps that only reports rewrites which transform the entire focus.
 
 end tactic

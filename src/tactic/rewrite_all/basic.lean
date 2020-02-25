@@ -7,6 +7,8 @@ import data.option.defs data.mllist tactic.core
 
 open tactic
 
+namespace tactic.rewrite_all
+
 @[derive decidable_eq, derive inhabited]
 inductive side
 | L
@@ -21,8 +23,6 @@ def side.to_string : side → string
 | side.R := "R"
 
 instance : has_to_string side := ⟨side.to_string⟩
-
-namespace tactic.rewrite_all
 
 meta structure cfg extends rewrite_cfg :=
 (try_simp   : bool := ff)

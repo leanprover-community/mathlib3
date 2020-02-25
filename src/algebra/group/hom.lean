@@ -10,19 +10,17 @@ import algebra.group.to_additive algebra.group.basic
 /-!
 # monoid and group homomorphisms
 
-This file defines the basic structures for monoid and group
-homomorphisms, both unbundled (e.g. `is_monoid_hom f`) and bundled
-(e.g. `monoid_hom M N`, a.k.a. `M →* N`). The unbundled ones are deprecated
-and the plan is to slowly remove them from mathlib.
+This file defines the bundled structures for monoid and group homomorphisms. Namely, we define
+`monoid_hom` (resp., `add_monoid_hom`) to be bundled homomorphisms between multiplicative (resp.,
+additive) monoids or groups.
 
-## main definitions
-
-monoid_hom, is_monoid_hom (deprecated), is_group_hom (deprecated)
+We also define coercion to a function, and  usual operations: composition, identity homomorphism,
+pointwise multiplication and pointwise inversion.
 
 ## Notations
 
-→* for bundled monoid homs (also use for group homs)
-→+ for bundled add_monoid homs (also use for add_group homs)
+* `→*` for bundled monoid homs (also use for group homs)
+* `→+` for bundled add_monoid homs (also use for add_group homs)
 
 ## implementation notes
 
@@ -35,13 +33,16 @@ as `map_mul`; a separate constructor `monoid_hom.mk'` will construct
 group homs (i.e. monoid homs between groups) given only a proof
 that multiplication is preserved,
 
-Throughout the `monoid_hom` section implicit `{}` brackets are often used instead of type class `[]` brackets.
-This is done when the instances can be inferred because they are implicit arguments to the type `monoid_hom`.
-When they can be inferred from the type it is faster to use this method than to use type class inference.
+Implicit `{}` brackets are often used instead of type class `[]` brackets.  This is done when the
+instances can be inferred because they are implicit arguments to the type `monoid_hom`.  When they
+can be inferred from the type it is faster to use this method than to use type class inference.
+
+Historically this file also included definitions of unbundled homomorphism classes; they were
+deprecated and moved to `deprecated/group`.
 
 ## Tags
 
-is_group_hom, is_monoid_hom, monoid_hom
+monoid_hom, add_monoid_hom
 
 -/
 

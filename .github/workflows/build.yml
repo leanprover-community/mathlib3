@@ -33,17 +33,22 @@ jobs:
 
       - name: configure git setup
         run: |
-          git remote add origin-bot "https://$DEPLOY_NIGHTLY_GITHUB_USER:${{ secrets.DEPLOY_NIGHTLY_GITHUB_TOKEN }}@github.com/leanprover-community/mathlib.git"
+          git remote add origin-bot "https://leanprover-community-bot:${{ secrets.DEPLOY_NIGHTLY_GITHUB_TOKEN }}@github.com/leanprover-community/mathlib.git"
           git config user.email "leanprover.community@gmail.com"
           git config user.name "leanprover-community-bot"
+
+          # By default, github actions overrides the credentials used to access any
+          # github url so that it uses the github-actions[bot] user.  We want to access
+          # github using a different username.
           git config --unset http.https://github.com/.extraheader
 
       - name: push release to azure
-        if: always() && github.repository == 'leanprover-community/mathlib' && github.event_name == 'push' && matrix.lean_version == 'leanprover-community/lean:3.5.1'
+        if: always() && github.event_name == 'push' && matrix.lean_version == 'leanprover-community/lean:3.5.1'
         run: |
-          git fetch --depth=1 origin-bot master
-          remote_sha="$(git rev-parse origin-bot/master)"
-          if [ "${{ github.sha }}" == "$remote_sha" -o "${{ github.ref }}" == "refs/head/master" ]; then
+          branch=${GITHUB_REF#refs/heads/}
+          git fetch --depth=1 origin-bot $branch
+          remote_sha="$(git rev-parse origin-bot/$branch)"
+          if [ "${{ github.sha }}" == "$remote_sha" -o "${{ github.ref }}" == "refs/heads/master" ]; then
             archive_name="$(git rev-parse HEAD).tar.gz"
             tar czf "$archive_name" src
             azcopy copy "$archive_name" "${{ secrets.AZURE_SAS_TOKEN }}" --block-size-mb 99 --overwrite false

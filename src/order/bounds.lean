@@ -87,7 +87,7 @@ nonempty.mono $ upper_bounds_mono_set h
 lemma bdd_below.mono ⦃s t : set α⦄ (h : s ⊆ t) : bdd_below t → bdd_below s :=
 nonempty.mono $ lower_bounds_mono_set h
 
-/-- If `a` is a least upper bound for sets `s` and `p`, the it is a least upper bound for any
+/-- If `a` is a least upper bound for sets `s` and `p`, then it is a least upper bound for any
 set `t`, `s ⊆ t ⊆ p`. -/
 lemma is_lub.of_subset_of_superset {s t p : set α} (hs : is_lub s a) (hp : is_lub p a)
   (hst : s ⊆ t) (htp : t ⊆ p) : is_lub t a :=

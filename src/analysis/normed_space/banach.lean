@@ -22,18 +22,18 @@ include 𝕜
 
 set_option class.instance_max_depth 70
 
-/-- The Banach open mapping theorem: if a bounded linear map between Banach spaces is onto, then
-any point has a preimage with controlled norm. -/
-theorem exists_preimage_norm_le (hf : is_bounded_linear_map 𝕜 f) (surj : surjective f) :
-  ∃C, 0 < C ∧ ∀y, ∃x, f x = y ∧ ∥x∥ ≤ C * ∥y∥ :=
+/--
+First step of the proof of the Banach open mapping theorem (using completeness of `F`):
+by Baire's theorem, there exists a ball in E whose image closure has nonempty interior.
+Rescaling everything, it follows that any `y ∈ F` is arbitrarily well approached by
+images of elements of norm at most `C * ∥y∥`.
+For further use, we will only need such an element whose image
+is within distance ∥y∥/2 of y, to apply an iterative process. -/
+lemma exists_approx_preimage_norm_le (hf : is_bounded_linear_map 𝕜 f) (surj : surjective f) :
+  ∃C, 0 ≤ C ∧ ∀y, ∃x, dist (f x) y ≤ 1/2 * ∥y∥ ∧ ∥x∥ ≤ C * ∥y∥ :=
 begin
   have lin := hf.to_is_linear_map,
   haveI : nonempty F := ⟨0⟩,
-  /- First step of the proof (using completeness of `F`): by Baire's theorem, there exists a
-  ball in E whose image closure has nonempty interior. Rescaling everything, it follows that
-  any `y ∈ F` is arbitrarily well approached by images of elements of norm at
-  most `C * ∥y∥`. For further use, we will only need such an element whose image
-  is within distance ∥y∥/2 of y, to apply an iterative process. -/
   have A : (⋃n:ℕ, closure (f '' (ball 0 n))) = univ,
   { refine subset.antisymm (subset_univ _) (λy hy, _),
     rcases surj y with ⟨x, hx⟩,
@@ -43,7 +43,6 @@ begin
     rwa [mem_ball, dist_eq_norm, sub_zero] },
   have : ∃(n:ℕ) y ε, 0 < ε ∧ ball y ε ⊆ closure (f '' (ball 0 n)) :=
     nonempty_interior_of_Union_of_closed (λn, is_closed_closure) A,
-  have : ∃C, 0 ≤ C ∧ ∀y, ∃x, dist (f x) y ≤ (1/2) * ∥y∥ ∧ ∥x∥ ≤ C * ∥y∥,
   { rcases this with ⟨n, a, ε, ⟨εpos, H⟩⟩,
     rcases normed_field.exists_one_lt_norm 𝕜 with ⟨c, hc⟩,
     refine ⟨(ε/2)⁻¹ * ∥c∥ * 2 * n, _, λy, _⟩,
@@ -103,7 +102,15 @@ begin
             end
           ... = (ε / 2)⁻¹ * ∥c∥ * 2 * ↑n * ∥y∥ : by ring,
         exact ⟨d⁻¹ • x, J, 𝕜⟩ } } },
-  rcases this with ⟨C, C0, hC⟩,
+end
+
+/-- The Banach open mapping theorem: if a bounded linear map between Banach spaces is onto, then
+any point has a preimage with controlled norm. -/
+theorem exists_preimage_norm_le (hf : is_bounded_linear_map 𝕜 f) (surj : surjective f) :
+  ∃C, 0 < C ∧ ∀y, ∃x, f x = y ∧ ∥x∥ ≤ C * ∥y∥ :=
+begin
+  have lin := hf.to_is_linear_map,
+  obtain ⟨C, C0, hC⟩ := exists_approx_preimage_norm_le hf surj,
   /- Second step of the proof: starting from `y`, we want an exact preimage of `y`. Let `g y` be
   the approximate preimage of `y` given by the first step, and `h y = y - f(g y)` the part that
   has no preimage yet. We will iterate this process, taking the approximate preimage of `h y`,

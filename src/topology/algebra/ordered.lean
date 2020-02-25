@@ -357,7 +357,7 @@ from le_antisymm
     | _, h, (or.inr rfl) := inf_le_right_of_le $ infi_le_of_le b $ infi_le _ h
     end)
 
-@[nolint] -- see Note [nolint_ge]
+@[nolint ge_or_gt] -- see Note [nolint_ge]
 lemma tendsto_order {f : β → α} {a : α} {x : filter β} :
   tendsto f x (𝓝 a) ↔ (∀ a' < a, ∀ᶠ b in x, a' < f b) ∧ (∀ a' > a, ∀ᶠ b in x, f b < a') :=
 by simp [nhds_eq_order a, tendsto_inf, tendsto_infi, tendsto_principal]
@@ -399,7 +399,7 @@ from (tendsto_infi.2 $ assume l, tendsto_infi.2 $ assume hl,
 
 end partial_order
 
-@[nolint] -- see Note [nolint_ge]
+@[nolint ge_or_gt] -- see Note [nolint_ge]
 theorem induced_order_topology' {α : Type u} {β : Type v}
   [partial_order α] [ta : topological_space β] [partial_order β] [order_topology β]
   (f : α → β) (hf : ∀ {x y}, f x < f y ↔ x < y)
@@ -1119,27 +1119,26 @@ variables [complete_linear_order α] [topological_space α] [order_topology α]
 
 lemma Sup_mem_closure {α : Type u} [topological_space α] [complete_linear_order α] [order_topology α]
   {s : set α} (hs : s.nonempty) : Sup s ∈ closure s :=
-mem_closure_of_is_lub is_lub_Sup hs
+mem_closure_of_is_lub (is_lub_Sup _) hs
 
 lemma Inf_mem_closure {α : Type u} [topological_space α] [complete_linear_order α] [order_topology α]
   {s : set α} (hs : s.nonempty) : Inf s ∈ closure s :=
-mem_closure_of_is_glb is_glb_Inf hs
+mem_closure_of_is_glb (is_glb_Inf _) hs
 
 lemma Sup_mem_of_is_closed {α : Type u} [topological_space α] [complete_linear_order α] [order_topology α]
   {s : set α} (hs : s.nonempty) (hc : is_closed s) : Sup s ∈ s :=
-mem_of_is_lub_of_is_closed  is_lub_Sup hs hc
+mem_of_is_lub_of_is_closed (is_lub_Sup _) hs hc
 
 lemma Inf_mem_of_is_closed {α : Type u} [topological_space α] [complete_linear_order α] [order_topology α]
   {s : set α} (hs : s.nonempty) (hc : is_closed s) : Inf s ∈ s :=
-mem_of_is_glb_of_is_closed  is_glb_Inf hs hc
+mem_of_is_glb_of_is_closed (is_glb_Inf _) hs hc
 
 /-- A continuous monotone function sends supremum to supremum for nonempty sets. -/
 lemma Sup_of_continuous' {f : α → β} (Mf : continuous f) (Cf : monotone f)
   {s : set α} (hs : s.nonempty) : f (Sup s) = Sup (f '' s) :=
 --This is a particular case of the more general is_lub_of_is_lub_of_tendsto
-(is_lub_iff_Sup_eq.1
-  (is_lub_of_is_lub_of_tendsto (λ x hx y hy xy, Cf xy) is_lub_Sup hs $
-    tendsto_le_left inf_le_left (Mf.tendsto _))).symm
+(is_lub_of_is_lub_of_tendsto (λ x hx y hy xy, Cf xy) (is_lub_Sup _) hs $
+  tendsto_le_left inf_le_left (Mf.tendsto _)).Sup_eq.symm
 
 /-- A continuous monotone function sending bot to bot sends supremum to supremum. -/
 lemma Sup_of_continuous {f : α → β} (Mf : continuous f) (Cf : monotone f)
@@ -1163,9 +1162,8 @@ by rw [supr, Sup_of_continuous Mf Cf fbot, ← range_comp, supr]
 /-- A continuous monotone function sends infimum to infimum for nonempty sets. -/
 lemma Inf_of_continuous' {f : α → β} (Mf : continuous f) (Cf : monotone f)
   {s : set α} (hs : s.nonempty) : f (Inf s) = Inf (f '' s) :=
-(is_glb_iff_Inf_eq.1
-  (is_glb_of_is_glb_of_tendsto (λ x hx y hy xy, Cf xy) is_glb_Inf hs $
-    tendsto_le_left inf_le_left (Mf.tendsto _))).symm
+(is_glb_of_is_glb_of_tendsto (λ x hx y hy xy, Cf xy) (is_glb_Inf _) hs $
+  tendsto_le_left inf_le_left (Mf.tendsto _)).Inf_eq.symm
 
 /-- A continuous monotone function sending top to top sends infimum to infimum. -/
 lemma Inf_of_continuous {f : α → β} (Mf : continuous f) (Cf : monotone f)
@@ -1215,8 +1213,7 @@ lattices, under a boundedness assumption. -/
 lemma cSup_of_cSup_of_monotone_of_continuous {f : α → β} (Mf : continuous f) (Cf : monotone f)
   {s : set α} (ne : s.nonempty) (H : bdd_above s) : f (Sup s) = Sup (f '' s) :=
 begin
-  refine (is_lub_iff_eq_of_is_lub _).1
-    (is_lub_cSup (ne.image f) (bdd_above_of_bdd_above_of_monotone Cf H)),
+  refine ((is_lub_cSup (ne.image f) (Cf.map_bdd_above H)).unique _).symm,
   refine is_lub_of_is_lub_of_tendsto (λx hx y hy xy, Cf xy) (is_lub_cSup ne H) ne _,
   exact tendsto_le_left inf_le_left (Mf.tendsto _)
 end
@@ -1232,8 +1229,7 @@ lattices, under a boundedness assumption. -/
 lemma cInf_of_cInf_of_monotone_of_continuous {f : α → β} (Mf : continuous f) (Cf : monotone f)
   {s : set α} (ne : s.nonempty) (H : bdd_below s) : f (Inf s) = Inf (f '' s) :=
 begin
-  refine (is_glb_iff_eq_of_is_glb _).1
-    (is_glb_cInf (ne.image _) (bdd_below_of_bdd_below_of_monotone Cf H)),
+  refine ((is_glb_cInf (ne.image _) (Cf.map_bdd_below H)).unique _).symm,
   refine is_glb_of_is_glb_of_tendsto (λx hx y hy xy, Cf xy) (is_glb_cInf ne H) ne _,
   exact tendsto_le_left inf_le_left (Mf.tendsto _)
 end
@@ -1403,11 +1399,11 @@ lemma is_bounded_under_le_of_tendsto {f : filter β} {u : β → α} {a : α}
   (h : tendsto u f (𝓝 a)) : f.is_bounded_under (≤) u :=
 is_bounded_of_le h (is_bounded_le_nhds a)
 
-@[nolint] -- see Note [nolint_ge]
+@[nolint ge_or_gt] -- see Note [nolint_ge]
 lemma is_cobounded_ge_nhds (a : α) : (𝓝 a).is_cobounded (≥) :=
 is_cobounded_of_is_bounded nhds_ne_bot (is_bounded_le_nhds a)
 
-@[nolint] -- see Note [nolint_ge]
+@[nolint ge_or_gt] -- see Note [nolint_ge]
 lemma is_cobounded_under_ge_of_tendsto {f : filter β} {u : β → α} {a : α}
   (hf : f ≠ ⊥) (h : tendsto u f (𝓝 a)) : f.is_cobounded_under (≥) u :=
 is_cobounded_of_is_bounded (map_ne_bot hf) (is_bounded_under_le_of_tendsto h)
@@ -1417,14 +1413,14 @@ end order_closed_topology
 section order_closed_topology
 variables [semilattice_inf α] [topological_space α] [order_topology α]
 
-@[nolint] -- see Note [nolint_ge]
+@[nolint ge_or_gt] -- see Note [nolint_ge]
 lemma is_bounded_ge_nhds (a : α) : (𝓝 a).is_bounded (≥) :=
 match forall_le_or_exists_lt_inf a with
 | or.inl h := ⟨a, eventually_of_forall _ h⟩
 | or.inr ⟨b, hb⟩ := ⟨b, le_mem_nhds hb⟩
 end
 
-@[nolint] -- see Note [nolint_ge]
+@[nolint ge_or_gt] -- see Note [nolint_ge]
 lemma is_bounded_under_ge_of_tendsto {f : filter β} {u : β → α} {a : α}
   (h : tendsto u f (𝓝 a)) : f.is_bounded_under (≥) u :=
 is_bounded_of_le h (is_bounded_ge_nhds a)
@@ -1446,7 +1442,7 @@ theorem lt_mem_sets_of_Limsup_lt {f : filter α} {b} (h : f.is_bounded (≤)) (l
 let ⟨c, (h : ∀ᶠ a in f, a ≤ c), hcb⟩ := exists_lt_of_cInf_lt h l in
 mem_sets_of_superset h $ assume a hac, lt_of_le_of_lt hac hcb
 
-@[nolint] -- see Note [nolint_ge]
+@[nolint ge_or_gt] -- see Note [nolint_ge]
 theorem gt_mem_sets_of_Liminf_gt : ∀ {f : filter α} {b}, f.is_bounded (≥) → f.Liminf > b →
   ∀ᶠ a in f, a > b :=
 @lt_mem_sets_of_Limsup_lt (order_dual α) _
@@ -1455,7 +1451,7 @@ variables [topological_space α] [order_topology α]
 
 /-- If the liminf and the limsup of a filter coincide, then this filter converges to
 their common value, at least if the filter is eventually bounded above and below. -/
-@[nolint] -- see Note [nolint_ge]
+@[nolint ge_or_gt] -- see Note [nolint_ge]
 theorem le_nhds_of_Limsup_eq_Liminf {f : filter α} {a : α}
   (hl : f.is_bounded (≤)) (hg : f.is_bounded (≥)) (hs : f.Limsup = a) (hi : f.Liminf = a) :
   f ≤ 𝓝 a :=
@@ -1520,7 +1516,7 @@ end liminf_limsup
 
 end order_topology
 
-@[nolint] -- see Note [nolint_ge]
+@[nolint ge_or_gt] -- see Note [nolint_ge]
 lemma order_topology_of_nhds_abs
   {α : Type*} [decidable_linear_ordered_comm_group α] [topological_space α]
   (h_nhds : ∀a:α, 𝓝 a = (⨅r>0, principal {b | abs (a - b) < r})) : order_topology α :=
@@ -1577,7 +1573,7 @@ tendsto_at_top_mono _ (λ n, le_abs_self _) tendsto_id
 
 local notation `|` x `|` := abs x
 
-@[nolint] -- see Note [nolint_ge]
+@[nolint ge_or_gt] -- see Note [nolint_ge]
 lemma decidable_linear_ordered_comm_group.tendsto_nhds
   [decidable_linear_ordered_comm_group α] [topological_space α] [order_topology α] {β : Type*}
   (f : β → α) (x : filter β) (a : α) :

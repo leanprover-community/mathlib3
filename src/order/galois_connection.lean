@@ -57,11 +57,11 @@ lemma lower_bounds_u_image_subset {s : set β} : lower_bounds (u '' s) ⊆ l ⁻
 assume a ha c, assume : c ∈ s, gc.l_le (ha (mem_image_of_mem _ ‹c ∈ s›))
 
 lemma is_lub_l_image {s : set α} {a : α} (h : is_lub s a) : is_lub (l '' s) (l a) :=
-⟨mem_upper_bounds_image gc.monotone_l $ and.elim_left ‹is_lub s a›,
+⟨gc.monotone_l.mem_upper_bounds_image $ and.elim_left ‹is_lub s a›,
   assume b hb, gc.l_le $ and.elim_right ‹is_lub s a› $ gc.upper_bounds_l_image_subset hb⟩
 
 lemma is_glb_u_image {s : set β} {b : β} (h : is_glb s b) : is_glb (u '' s) (u b) :=
-⟨mem_lower_bounds_image gc.monotone_u $ and.elim_left ‹is_glb s b›,
+⟨gc.monotone_u.mem_lower_bounds_image $ and.elim_left ‹is_glb s b›,
   assume a ha, gc.le_u $ and.elim_right ‹is_glb s b› $ gc.lower_bounds_u_image_subset ha⟩
 
 lemma is_glb_l {a : α} : is_glb { b | a ≤ u b } (l a) :=
@@ -89,7 +89,7 @@ variables [order_top α] [order_top β] {l : α → β} {u : β → α} (gc : ga
 include gc
 
 lemma u_top : u ⊤ = ⊤ :=
-eq_of_is_glb_of_is_glb (gc.is_glb_u_image is_glb_empty) $ by simp [is_glb_empty, image_empty]
+(gc.is_glb_u_image is_glb_empty).unique $ by simp only [is_glb_empty, image_empty]
 
 end order_top
 
@@ -98,7 +98,7 @@ variables [order_bot α] [order_bot β] {l : α → β} {u : β → α} (gc : ga
 include gc
 
 lemma l_bot : l ⊥ = ⊥ :=
-eq_of_is_lub_of_is_lub (gc.is_lub_l_image is_lub_empty) $ by simp [is_lub_empty, image_empty]
+(gc.is_lub_l_image is_lub_empty).unique $ by simp only [is_lub_empty, image_empty]
 
 end order_bot
 
@@ -107,9 +107,7 @@ variables [semilattice_sup α] [semilattice_sup β] {l : α → β} {u : β → 
 include gc
 
 lemma l_sup : l (a₁ ⊔ a₂) = l a₁ ⊔ l a₂ :=
-have {l a₂, l a₁} = l '' {a₂, a₁}, by simp [image_insert_eq, image_singleton],
-eq.symm $ is_lub_iff_sup_eq.mp $
-  by rw [this]; exact gc.is_lub_l_image (is_lub_insert_sup is_lub_singleton)
+(gc.is_lub_l_image is_lub_pair).unique $ by simp only [image_pair, is_lub_pair]
 
 end semilattice_sup
 
@@ -118,9 +116,7 @@ variables [semilattice_inf α] [semilattice_inf β] {l : α → β} {u : β → 
 include gc
 
 lemma u_inf : u (b₁ ⊓ b₂) = u b₁ ⊓ u b₂ :=
-have {u b₂, u b₁} = u '' {b₂, b₁}, by simp [image_insert_eq, image_singleton],
-eq.symm $ is_glb_iff_inf_eq.mp $
-  by rw [this]; exact gc.is_glb_u_image (is_glb_insert_inf is_glb_singleton)
+(gc.is_glb_u_image is_glb_pair).unique $ by simp only [image_pair, is_glb_pair]
 
 end semilattice_inf
 
@@ -129,12 +125,12 @@ variables [complete_lattice α] [complete_lattice β] {l : α → β} {u : β �
 include gc
 
 lemma l_supr {f : ι → α} : l (supr f) = (⨆i, l (f i)) :=
-eq.symm $ is_lub_iff_supr_eq.mp $ show is_lub (range (l ∘ f)) (l (supr f)),
-  by rw [range_comp, ← Sup_range]; exact gc.is_lub_l_image is_lub_Sup
+eq.symm $ is_lub.supr_eq $ show is_lub (range (l ∘ f)) (l (supr f)),
+  by rw [range_comp, ← Sup_range]; exact gc.is_lub_l_image (is_lub_Sup _)
 
 lemma u_infi {f : ι → β} : u (infi f) = (⨅i, u (f i)) :=
-eq.symm $ is_glb_iff_infi_eq.mp $ show is_glb (range (u ∘ f)) (u (infi f)),
-  by rw [range_comp, ← Inf_range]; exact gc.is_glb_u_image is_glb_Inf
+eq.symm $ is_glb.infi_eq $ show is_glb (range (u ∘ f)) (u (infi f)),
+  by rw [range_comp, ← Inf_range]; exact gc.is_glb_u_image (is_glb_Inf _)
 
 end complete_lattice
 

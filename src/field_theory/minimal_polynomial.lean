@@ -190,7 +190,7 @@ lemma root {x : β} (hx : is_integral α x) {y : α}
 begin
   have ndeg_one : nat_degree (minimal_polynomial hx) = 1,
   { rw ← polynomial.degree_eq_iff_nat_degree_eq_of_pos (nat.zero_lt_one),
-     exact degree_eq_one_of_irreducible_of_root (irreducible hx) h },
+    exact degree_eq_one_of_irreducible_of_root (irreducible hx) h },
   have coeff_one : (minimal_polynomial hx).coeff 1 = 1,
   { simpa only [ndeg_one, leading_coeff] using (monic hx).leading_coeff },
   have hy : y = - coeff (minimal_polynomial hx) 0,

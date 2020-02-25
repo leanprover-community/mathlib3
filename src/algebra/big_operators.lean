@@ -5,8 +5,7 @@ Authors: Johannes Hölzl
 
 Some big operators for lists and finite sets.
 -/
-import tactic.tauto data.list.basic data.finset data.nat.enat
-import algebra.group algebra.ordered_group algebra.group_power
+import tactic.tauto data.list.defs data.finset data.nat.enat
 
 universes u v w
 variables {α : Type u} {β : Type v} {γ : Type w}

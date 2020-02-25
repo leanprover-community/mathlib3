@@ -5,6 +5,7 @@ Authors: Johannes Hölzl, Mario Carneiro, Alexander Bentkamp
 -/
 
 import linear_algebra.basic linear_algebra.finsupp order.zorn
+import data.fintype.card
 
 /-!
 

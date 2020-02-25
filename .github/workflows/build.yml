@@ -43,7 +43,7 @@ jobs:
           git config --unset http.https://github.com/.extraheader
 
       - name: push release to azure
-        if: always() && github.event_name == 'push' && matrix.lean_version == 'leanprover-community/lean:3.5.1'
+        if: always() && github.repository == 'leanprover-community/mathlib' && github.event_name == 'push' && matrix.lean_version == 'leanprover-community/lean:3.5.1'
         run: |
           branch=${GITHUB_REF#refs/heads/}
           git fetch --depth=1 origin-bot $branch

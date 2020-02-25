@@ -15,12 +15,14 @@ open function metric set filter finset
 open_locale classical topological_space
 
 variables {𝕜 : Type*} [nondiscrete_normed_field 𝕜]
-{E : Type*} [normed_group E] [complete_space E] [normed_space 𝕜 E]
-{F : Type*} [normed_group F] [complete_space F] [normed_space 𝕜 F]
+{E : Type*} [normed_group E] [normed_space 𝕜 E]
+{F : Type*} [normed_group F] [normed_space 𝕜 F]
 {f : E → F}
 include 𝕜
 
 set_option class.instance_max_depth 70
+
+variable [complete_space F]
 
 /--
 First step of the proof of the Banach open mapping theorem (using completeness of `F`):
@@ -103,6 +105,8 @@ begin
           ... = (ε / 2)⁻¹ * ∥c∥ * 2 * ↑n * ∥y∥ : by ring,
         exact ⟨d⁻¹ • x, J, 𝕜⟩ } } },
 end
+
+variable [complete_space E]
 
 /-- The Banach open mapping theorem: if a bounded linear map between Banach spaces is onto, then
 any point has a preimage with controlled norm. -/

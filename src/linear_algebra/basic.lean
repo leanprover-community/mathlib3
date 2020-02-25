@@ -745,6 +745,23 @@ lemma linear_eq_on (s : set M) {f g : M →ₗ[R] M₂} (H : ∀x∈s, f x = g x
   f x = g x :=
 by apply span_induction h H; simp {contextual := tt}
 
+lemma supr_eq_span {ι : Sort w} (p : ι → submodule R M) :
+  (⨆ (i : ι), p i) = submodule.span R (⋃ (i : ι), ↑(p i)) :=
+le_antisymm
+  (lattice.supr_le $ assume i, subset.trans (assume m hm, set.mem_Union.mpr ⟨i, hm⟩) subset_span)
+  (span_le.mpr $ Union_subset_iff.mpr $ assume i m hm, mem_supr_of_mem _ i hm)
+
+lemma span_singleton_le_iff_mem (m : M) (p : submodule R M) :
+  span R {m} ≤ p ↔ m ∈ p :=
+by rw [span_le, singleton_subset_iff, mem_coe]
+
+lemma mem_supr {ι : Sort w} (p : ι → submodule R M) {m : M} :
+  (m ∈ ⨆ i, p i) ↔ (∀ N, (∀ i, p i ≤ N) → m ∈ N) :=
+begin
+  rw [← span_singleton_le_iff_mem, le_supr_iff],
+  simp only [span_singleton_le_iff_mem],
+end
+
 /-- The product of two submodules is a submodule. -/
 def prod : submodule R (M × M₂) :=
 { carrier := set.prod p q,

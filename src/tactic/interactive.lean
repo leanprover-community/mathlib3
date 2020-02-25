@@ -132,7 +132,8 @@ private meta def generalize_arg_p_aux : pexpr → parser (pexpr × name)
 private meta def generalize_arg_p : parser (pexpr × name) :=
 with_desc "expr = id" $ parser.pexpr 0 >>= generalize_arg_p_aux
 
-@[nolint] lemma {u} generalize_a_aux {α : Sort u}
+@[nolint def_lemma]
+lemma {u} generalize_a_aux {α : Sort u}
   (h : ∀ x : Sort u, (α → x) → x) : α := h α id
 
 /--

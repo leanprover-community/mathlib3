@@ -7,7 +7,6 @@ import category_theory.fully_faithful
 import category_theory.whiskering
 import category_theory.natural_isomorphism
 import tactic.slice
-import tactic.converter.interactive
 
 namespace category_theory
 open category_theory.functor nat_iso category

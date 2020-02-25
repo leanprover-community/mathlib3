@@ -45,6 +45,7 @@ begin
   tidy,
 end
 
+-- TODO understand why this proof is still gross (i.e. requires using `erw`)
 @[simp] lemma comp {X Y Z : PresheafedSpace.{v} C} (α : X ⟶ Y) (β : Y ⟶ Z) (x : X) :
   stalk_map (α ≫ β) x =
     (stalk_map β (α x) : Z.stalk (β (α x)) ⟶ Y.stalk (α x)) ≫
@@ -58,11 +59,11 @@ begin
     whisker_left_app, whisker_right_app,
     assoc, id_comp, map_id, map_comp],
   dsimp,
-  simp only [map_id, assoc],
+  simp only [map_id, assoc, pushforward.comp_inv_app],
   -- FIXME Why doesn't simp do this:
   erw [category_theory.functor.map_id],
   erw [category_theory.functor.map_id],
-  erw [id_comp, id_comp],
+  erw [id_comp, id_comp, id_comp],
 end
 end stalk_map
 

@@ -4,10 +4,8 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Author: Simon Hudon
 -/
 import tactic.monotonicity tactic.norm_num
-
 import algebra.ordered_ring
-
-import data.list.basic
+import data.list.defs
 
 open list tactic tactic.interactive
 

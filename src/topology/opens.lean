@@ -5,7 +5,9 @@ Authors: Johannes Hölzl, Mario Carneiro
 
 Subtype of open subsets in a topological space.
 -/
+
 import topology.bases topology.separation
+import order.copy
 
 open filter lattice
 variables {α : Type*} {β : Type*} [topological_space α] [topological_space β]
@@ -34,8 +36,8 @@ instance nonempty_compacts.to_nonempty {p : nonempty_compacts α} : nonempty p.v
 p.property.1.to_subtype
 
 /-- Associate to a nonempty compact subset the corresponding closed subset -/
-def nonempty_compacts.to_closeds [t2_space α] (s : nonempty_compacts α) : closeds α :=
-⟨s.val, closed_of_compact _ s.property.2⟩
+def nonempty_compacts.to_closeds [t2_space α] : nonempty_compacts α → closeds α :=
+set.inclusion $ λ s hs, closed_of_compact _ hs.2
 
 end nonempty_compacts
 

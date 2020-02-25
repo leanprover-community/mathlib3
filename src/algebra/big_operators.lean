@@ -625,20 +625,13 @@ lemma sum_mul : s.sum f * b = s.sum (λx, f x * b) :=
 lemma mul_sum : b * s.sum f = s.sum (λx, b * f x) :=
 (s.sum_hom _).symm
 
-@[simp] lemma sum_mul_boole [decidable_eq α] (s : finset α) (f : α → β) (a : α) :
+lemma sum_mul_boole [decidable_eq α] (s : finset α) (f : α → β) (a : α) :
   s.sum (λ x, (f x * ite (a = x) 1 0)) = ite (a ∈ s) (f a) 0 :=
-begin
-  convert sum_ite_eq s a f,
-  funext,
-  split_ifs with h; simp [h],
-end
-@[simp] lemma sum_boole_mul [decidable_eq α] (s : finset α) (f : α → β) (a : α) :
+by simp
+
+lemma sum_boole_mul [decidable_eq α] (s : finset α) (f : α → β) (a : α) :
   s.sum (λ x, (ite (a = x) 1 0) * f x) = ite (a ∈ s) (f a) 0 :=
-begin
-  convert sum_ite_eq s a f,
-  funext,
-  split_ifs with h; simp [h],
-end
+by simp
 
 end semiring
 
@@ -919,7 +912,7 @@ namespace with_top
 open finset
 variables [decidable_eq α]
 
-/-- sum of finte numbers is still finite -/
+/-- sum of finite numbers is still finite -/
 lemma sum_lt_top [ordered_comm_monoid β] {s : finset α} {f : α → with_top β} :
   (∀a∈s, f a < ⊤) → s.sum f < ⊤ :=
 finset.induction_on s (by { intro h, rw sum_empty, exact coe_lt_top _ })
@@ -930,7 +923,7 @@ finset.induction_on s (by { intro h, rw sum_empty, exact coe_lt_top _ })
     { apply ih, intros a ha, apply h, apply mem_insert_of_mem ha }
   end)
 
-/-- sum of finte numbers is still finite -/
+/-- sum of finite numbers is still finite -/
 lemma sum_lt_top_iff [canonically_ordered_monoid β] {s : finset α} {f : α → with_top β} :
   s.sum f < ⊤ ↔ (∀a∈s, f a < ⊤) :=
 iff.intro (λh a ha, lt_of_le_of_lt (single_le_sum (λa ha, zero_le _) ha) h) sum_lt_top

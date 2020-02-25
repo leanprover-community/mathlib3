@@ -5,7 +5,7 @@ Authors: Jeremy Avigad
 
 The integers, with addition, multiplication, and subtraction.
 -/
-import data.nat.basic data.list.basic algebra.char_zero algebra.order_functions
+import data.nat.basic algebra.char_zero algebra.order_functions
 open nat
 
 
@@ -1050,6 +1050,10 @@ let ⟨lb, Plb, al⟩ := exists_least_of_bdd Hbdd' Hinh' in
 
 /- cast (injection into groups with one) -/
 
+-- We use the int.has_coe instance for the simp-normal form.
+-- Increase the priority so that it is used preferentially.
+attribute [priority 1001] int.has_coe
+
 @[simp] theorem nat_cast_eq_coe_nat : ∀ n,
   @coe ℕ ℤ (@coe_to_lift _ _ (@coe_base _ _ nat.cast_coe)) n =
   @coe ℕ ℤ (@coe_to_lift _ _ (@coe_base _ _ int.has_coe)) n
@@ -1071,9 +1075,9 @@ protected def cast : ℤ → α
 
 @[simp, squash_cast] theorem cast_zero : ((0 : ℤ) : α) = 0 := rfl
 
-@[simp] theorem cast_of_nat (n : ℕ) : (of_nat n : α) = n := rfl
+theorem cast_of_nat (n : ℕ) : (of_nat n : α) = n := rfl
 @[simp, squash_cast] theorem cast_coe_nat (n : ℕ) : ((n : ℤ) : α) = n := rfl
-@[simp] theorem cast_coe_nat' (n : ℕ) :
+theorem cast_coe_nat' (n : ℕ) :
   (@coe ℕ ℤ (@coe_to_lift _ _ (@coe_base _ _ nat.cast_coe)) n : α) = n :=
 by simp
 

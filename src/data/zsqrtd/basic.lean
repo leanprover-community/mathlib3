@@ -28,8 +28,8 @@ section
 
   /-- Convert an integer to a `ℤ√d` -/
   def of_int (n : ℤ) : ℤ√d := ⟨n, 0⟩
-  @[simp] theorem of_int_re (n : ℤ) : (of_int n).re = n := rfl
-  @[simp] theorem of_int_im (n : ℤ) : (of_int n).im = 0 := rfl
+  theorem of_int_re (n : ℤ) : (of_int n).re = n := rfl
+  theorem of_int_im (n : ℤ) : (of_int n).im = 0 := rfl
 
   /-- The zero of the ring -/
   def zero : ℤ√d := of_int 0
@@ -138,7 +138,7 @@ section
   { cast_injective := λ m n, by simp [ext] }
 
   @[simp] theorem of_int_eq_coe (n : ℤ) : (of_int n : ℤ√d) = n :=
-  by simp [ext]
+  by simp [ext, of_int_re, of_int_im]
 
   @[simp] theorem smul_val (n x y : ℤ) : (n : ℤ√d) * ⟨x, y⟩ = ⟨n * x, n * y⟩ :=
   by simp [ext]

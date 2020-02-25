@@ -10,7 +10,7 @@ import order.conditionally_complete_lattice
 # Tooling to make copies of lattice structures
 
 Sometimes it is useful to make a copy of a lattice structure
-where one replaces that data parts with provably equal definitions
+where one replaces the data parts with provably equal definitions
 that have better definitional properties.
 -/
 

@@ -2,20 +2,58 @@
 Copyright (c) 2017 Robert Y. Lewis. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Robert Y. Lewis, Keeley Hoek
-
-More about finite numbers.
 -/
 import data.nat.basic
+/-!
+# More about finite numbers
+
+## Main definitions
+
+### Induction principles
+
+* `fin_zero.elim` : elimination principle for the empty set `fin 0`, generalizes `fin.elim0`;
+* `fin.last n` : the greatest value of `fin (n+1)`;
+* `fin.succ_rec` : define `C n i` by induction on  `i : fin n` interpreted
+  as `(0 : fin (n - i)).succ.succ…`, i.e., `C n i = Hs $ … Hs H0)`;
+* `fin.succ_rec_on` : same as `fin.succ_rec` but `i : fin n` is the first argument;
+
+
+### Casts
+
+* `cast_lt i h` : embed `i` into a `fin` where `h` proves it belongs into;
+* `cast_le h` : embed `fin n` into `fin m`, `h : n ≤ m`;
+* `cast eq` : embed `fin n` into `fin m`, `eq : n = m`;
+* `cast_add m` : embed `fin n` into `fin (n+m)`;
+* `cast_succ` : embed `fin n` into `fin (n+1)`;
+* `succ_above p` : embed `fin n` into `fin (n + 1)` with a hole around `p`;
+* `pred_above p i h` : embed `i : fin (n+1)` into `fin n` by ignoring `p`;
+* `sub_nat i h` : subtract `m` from `i ≥ m`, generalizes `fin.pred`;
+* `add_nat i h` : add `m` on `i` on the right, generalizes `fin.succ`;
+* `nat_add i h` adds `n` on `i` on the left;
+* `clamp n m` : `min n m` as an element of `fin (m + 1)`;
+
+### Operation on tuples
+
+We interpret maps `Π i : fin n, α i` as tuples `(α 0, …, α (n-1))`.
+If `α i` is a constant map, then tuples are isomorphic (but not definitionally equal)
+to `vector`s.
+
+We define the following operations:
+
+* `tail` : the tail of an `n+1` tuple, i.e., its last `n` entries;
+* `cons` : adding an element at the beginning of an `n`-tuple, to get an `n+1`-tuple;
+* `init` : the beginning of an `n+1` tuple, i.e., its first `n` entries;
+* `snoc` : adding an element at the end of an `n`-tuple, to get an `n+1`-tuple. The name `snoc` comes
+  from `cons` (i.e., adding an element to the left of a tuple) read in reverse order.
+* `find p` : returns the first index `n` where `p n` is satisfied, and `none` if it is never
+  satisfied.
+-/
 
 universe u
 open fin nat function
 
-/-- `fin 0` is empty -/
-def fin_zero_elim {C : Sort*} : fin 0 → C :=
-λ x, false.elim $ nat.not_lt_zero x.1 x.2
-
-def fin_zero_elim' {α : fin 0 → Sort u} : ∀(x : fin 0), α x
-| ⟨n, hn⟩ := false.elim (nat.not_lt_zero n hn)
+/-- Elimination principle for the empty set `fin 0`, dependent version. -/
+def fin_zero_elim {α : fin 0 → Sort u} (x : fin 0) : α x := x.elim0
 
 namespace fin
 variables {n m : ℕ} {a b : fin n}
@@ -180,6 +218,7 @@ lemma cast_succ_fin_succ (n : ℕ) (j : fin n) :
   cast_succ (fin.succ j) = fin.succ (cast_succ j) :=
 by simp [fin.ext_iff]
 
+/-- `min n m` as an element of `fin (m + 1)` -/
 def clamp (n m : ℕ) : fin (m + 1) := fin.of_nat $ min n m
 
 @[simp] lemma clamp_val (n m : ℕ) : (clamp n m).val = min n m :=
@@ -228,14 +267,18 @@ end
 
 section rec
 
+/-- Define `C n i` by induction on  `i : fin n` interpreted as `(0 : fin (n - i)).succ.succ…`,
+i.e., `C n i = Hs $ … Hs H0)` -/
 @[elab_as_eliminator] def succ_rec
   {C : ∀ n, fin n → Sort*}
   (H0 : ∀ n, C (succ n) 0)
-  (Hs : ∀ n i, C n i → C (succ n) i.succ) : ∀ {n : ℕ} (i : fin n), C n i
+  (Hs : ∀ n i, C n i → C (succ n) i.succ) : Π {n : ℕ} (i : fin n), C n i
 | 0        i           := i.elim0
 | (succ n) ⟨0, _⟩      := H0 _
 | (succ n) ⟨succ i, h⟩ := Hs _ _ (succ_rec ⟨i, lt_of_succ_lt_succ h⟩)
 
+/-- Define `C n i` by induction on  `i : fin n` interpreted as `(0 : fin (n - i)).succ.succ…`,
+i.e., `C n i = Hs $ … Hs H0)` -/
 @[elab_as_eliminator] def succ_rec_on {n : ℕ} (i : fin n)
   {C : ∀ n, fin n → Sort*}
   (H0 : ∀ n, C (succ n) 0)
@@ -250,9 +293,11 @@ rfl
   @fin.succ_rec_on (succ n) i.succ C H0 Hs = Hs n i (fin.succ_rec_on i H0 Hs) :=
 by cases i; refl
 
+/-- Define `f : Π i : fin n.succ, C i` by separately handling the cases `i = 0` and
+`i = j.succ`, `j : fin n`. -/
 @[elab_as_eliminator] def cases
-  {C : fin (succ n) → Sort*} (H0 : C 0) (Hs : ∀ i : fin n, C (i.succ)) :
-  ∀ (i : fin (succ n)), C i
+  {C : fin (succ n) → Sort*} (H0 : C 0) (Hs : Π i : fin n, C (i.succ)) :
+  Π (i : fin (succ n)), C i
 | ⟨0, h⟩ := H0
 | ⟨succ i, h⟩ := Hs ⟨i, lt_of_succ_lt_succ h⟩
 
@@ -285,7 +330,7 @@ operations, first about adding or removing elements at the beginning of a tuple.
 
 /-- There is exactly one tuple of size zero. -/
 instance tuple0_unique (α : fin 0 → Type u) : unique (Π i : fin 0, α i) :=
-{ default := fin_zero_elim', uniq := λ x, funext fin_zero_elim' }
+{ default := fin_zero_elim, uniq := λ x, funext fin_zero_elim }
 
 variables {α : fin (n+1) → Type u} (x : α 0) (q : Πi, α i) (p : Π(i : fin n), α (i.succ))
 (i : fin n) (y : α i.succ) (z : α 0)

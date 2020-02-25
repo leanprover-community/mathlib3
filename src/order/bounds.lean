@@ -93,7 +93,7 @@ lemma is_lub.of_subset_of_superset {s t p : set α} (hs : is_lub s a) (hp : is_l
   (hst : s ⊆ t) (htp : t ⊆ p) : is_lub t a :=
 ⟨upper_bounds_mono_set htp hp.1, lower_bounds_mono_set (upper_bounds_mono_set hst) hs.2⟩
 
-/-- If `a` is a greatest lower bound for sets `s` and `p`, the it is a greater lower bound for any
+/-- If `a` is a greatest lower bound for sets `s` and `p`, then it is a greater lower bound for any
 set `t`, `s ⊆ t ⊆ p`. -/
 lemma is_glb.of_subset_of_superset {s t p : set α} (hs : is_glb s a) (hp : is_glb p a)
   (hst : s ⊆ t) (htp : t ⊆ p) : is_glb t a :=

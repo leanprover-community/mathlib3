@@ -292,11 +292,11 @@ ennreal.inv_top ▸ ennreal.tendsto_inv_iff.2 tendsto_nat_nhds_top
 
 lemma Sup_add {s : set ennreal} (hs : s.nonempty) : Sup s + a = ⨆b∈s, b + a :=
 have Sup ((λb, b + a) '' s) = Sup s + a,
-  from is_lub_iff_Sup_eq.mp $ is_lub_of_is_lub_of_tendsto
+  from is_lub.Sup_eq (is_lub_of_is_lub_of_tendsto
     (assume x _ y _ h, add_le_add' h (le_refl _))
-    is_lub_Sup
+    (is_lub_Sup s)
     hs
-    (tendsto.add (tendsto_id' inf_le_left) tendsto_const_nhds),
+    (tendsto.add (tendsto_id' inf_le_left) tendsto_const_nhds)),
 by simp [Sup_image, -add_comm] at this; exact this.symm
 
 lemma supr_add {ι : Sort*} {s : ι → ennreal} [h : nonempty ι] : supr s + a = ⨆b, s b + a :=
@@ -355,9 +355,9 @@ begin
     have s₁ : Sup s ≠ 0 :=
       zero_lt_iff_ne_zero.1 (lt_of_lt_of_le (zero_lt_iff_ne_zero.2 hx0) (le_Sup hx)),
     have : Sup ((λb, a * b) '' s) = a * Sup s :=
-      is_lub_iff_Sup_eq.mp (is_lub_of_is_lub_of_tendsto
+      is_lub.Sup_eq (is_lub_of_is_lub_of_tendsto
         (assume x _ y _ h, canonically_ordered_semiring.mul_le_mul (le_refl _) h)
-        is_lub_Sup
+        (is_lub_Sup _)
         ⟨x, hx⟩
         (ennreal.tendsto.const_mul (tendsto_id' inf_le_left) (or.inl s₁))),
     rw [this.symm, Sup_image] }
@@ -385,7 +385,7 @@ lemma sub_supr {ι : Sort*} [hι : nonempty ι] {b : ι → ennreal} (hr : a < �
 let ⟨i⟩ := hι in
 let ⟨r, eq, _⟩ := lt_iff_exists_coe.mp hr in
 have Inf ((λb, ↑r - b) '' range b) = ↑r - (⨆i, b i),
-  from is_glb_iff_Inf_eq.mp $ is_glb_of_is_lub_of_tendsto
+  from is_glb.Inf_eq $ is_glb_of_is_lub_of_tendsto
     (assume x _ y _, sub_le_sub (le_refl _))
     is_lub_supr
     ⟨_, i, rfl⟩

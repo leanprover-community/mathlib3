@@ -10,7 +10,6 @@ set -x				# echo commands
 # By default, github actions overrides the credentials used to access any
 # github url so that it uses the github-actions[bot] user.  We want to access
 # github using a different username.
-git config --unset http.https://github.com/.extraheader
 
 # The checkout action produces a shallow repository from which we cannot push.
 git fetch --unshallow || true

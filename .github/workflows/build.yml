@@ -31,11 +31,18 @@ jobs:
       - name: leanpkg build
         run: leanpkg build | python scripts/detect_errors.py
 
+      - name: configure git setup
+        run: |
+          git remote add origin-bot "https://$DEPLOY_NIGHTLY_GITHUB_USER:$DEPLOY_NIGHTLY_GITHUB_TOKEN@github.com/leanprover-community/mathlib.git"
+          git config user.email "leanprover.community@gmail.com"
+          git config user.name "leanprover-community-bot"
+          git config --unset http.https://github.com/.extraheader
+
       - name: push release to azure
         if: always() && github.repository == 'leanprover-community/mathlib' && github.event_name == 'push' && matrix.lean_version == 'leanprover-community/lean:3.5.1'
         run: |
-          git fetch --depth=1 origin master
-          remote_sha="$(git rev-parse origin/master)"
+          git fetch --depth=1 origin-bot master
+          remote_sha="$(git rev-parse origin-bot/master)"
           if [ "${{ github.sha }}" == "$remote_sha" -o "${{ github.ref }}" == "refs/head/master" ]; then
             archive_name="$(git rev-parse HEAD).tar.gz"
             tar czf "$archive_name" src

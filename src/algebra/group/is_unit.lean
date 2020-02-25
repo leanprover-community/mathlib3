@@ -67,3 +67,14 @@ theorem is_unit_of_mul_is_unit_right [comm_monoid M] {x y : M}
 iff.intro
   (assume ⟨u, hu⟩, match n, u, hu, nat.units_eq_one u with _, _, rfl, rfl := rfl end)
   (assume h, h.symm ▸ ⟨1, rfl⟩)
+
+/-- If a homomorphism `f : M →* N` sends each element to an `is_unit`, then it can be lifted
+to `f : M →* units N`. See also `units.lift_right` for a computable version. -/
+noncomputable def is_unit.lift_right [monoid M] [monoid N] (f : M →* N)
+  (hf : ∀ x, is_unit (f x)) : M →* units N :=
+units.lift_right f (λ x, classical.some (hf x)) (λ x, (classical.some_spec (hf x)).symm)
+
+@[simp] lemma is_unit.coe_lift_right [monoid M] [monoid N] (f : M →* N)
+  (hf : ∀ x, is_unit (f x)) (x) :
+  (is_unit.lift_right f hf x : N) = f x :=
+units.coe_lift_right _ x

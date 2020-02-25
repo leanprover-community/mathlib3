@@ -396,3 +396,5 @@ attribute [move_cast] int.coe_nat_mul
     {c : Prop} [decidable c] {a b : α} :
     ↑(ite c a b) = ite c (↑a : β) (↑b : β) :=
 by by_cases h : c; simp [h]
+
+add_hint_tactic "norm_cast at *"

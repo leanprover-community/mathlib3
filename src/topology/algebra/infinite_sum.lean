@@ -168,7 +168,7 @@ mem_at_top_sets.mpr $ exists.intro fsts $ assume bs (hbs : fsts ⊆ bs),
       from hu _ $ finset.subset.trans u_subset $ sigma_mono hbs $
         assume b, @finset.subset_union_right (γ b) _ _ _,
     exists.intro cs' $
-    by simp [sum_eq, this]; { intros b hb, simp [cs', hb, finset.subset_union_right] },
+    by simp [sum_eq, this]; { intros b hb, simp [cs', hb, finset.subset_union_left] },
   have tendsto (λp:(Πb:β, finset (γ b)), bs.sum (λb, (p b).sum (λc, f ⟨b, c⟩)))
       (⨅b (h : b ∈ bs), at_top.comap (λp, p b)) (𝓝 (bs.sum g)),
     from tendsto_finset_sum bs $

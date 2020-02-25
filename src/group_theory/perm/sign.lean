@@ -401,7 +401,7 @@ lemma sign_aux_swap : ∀ {n : ℕ} {x y : fin n} (hxy : x ≠ y),
 | (n+2) := λ x y hxy,
 have h2n : 2 ≤ n + 2 := dec_trivial,
 by rw [← is_conj_iff_eq, ← sign_aux_swap_zero_one h2n];
-  exact is_group_hom.is_conj _ (is_conj_swap hxy dec_trivial)
+  exact (monoid_hom.of sign_aux).map_is_conj (is_conj_swap hxy dec_trivial)
 
 def sign_aux2 : list α → perm α → units ℤ
 | []     f := 1
@@ -529,7 +529,7 @@ have ∀ {f}, is_swap f → s f = -1 :=
   λ f ⟨x, y, hxy, hxy'⟩, hxy'.symm ▸ by_contradiction (λ h,
     have ∀ f, is_swap f → s f = 1 := λ f ⟨a, b, hab, hab'⟩,
       by rw [← is_conj_iff_eq, ← or.resolve_right (int.units_eq_one_or _) h, hab'];
-        exact is_group_hom.is_conj _ (is_conj_swap hab hxy),
+        exact (monoid_hom.of s).map_is_conj (is_conj_swap hab hxy),
   let ⟨g, hg⟩ := hs (-1) in
   let ⟨l, hl⟩ := trunc.out (trunc_swap_factors g) in
   have ∀ a ∈ l.map s, a = (1 : units ℤ) := λ a ha,

@@ -1,4 +1,4 @@
-import algebra.group.hom
+import algebra.group.type_tags algebra.group.is_unit
 
 /-!
 # Unbundled monoid and group homomorphisms (deprecated)
@@ -259,4 +259,54 @@ lemma is_add_group_hom.sub {α β} [add_group α] [add_comm_group β]
   (f g : α → β) [is_add_group_hom f] [is_add_group_hom g] :
   is_add_group_hom (λa, f a - g a) :=
 is_add_group_hom.add f (λa, - g a)
+
+namespace units
+
+variables {M : Type*} {N : Type*} [monoid M] [monoid N]
+
+/-- The group homomorphism on units induced by a multiplicative morphism. -/
+@[reducible] def map' (f : M → N) [is_monoid_hom f] : units M →* units N :=
+  map (monoid_hom.of f)
+
+@[simp] lemma coe_map' (f : M → N) [is_monoid_hom f] (x : units M) :
+  ↑((map' f : units M → units N) x) = f x :=
+rfl
+
+instance coe_is_monoid_hom : is_monoid_hom (coe : units M → M) := (coe_hom M).is_monoid_hom
+
+end units
+
+namespace is_unit
+
+variables {M : Type*} {N : Type*} [monoid M] [monoid N] {x : M}
+
+lemma map' (f : M → N) {x : M} (h : is_unit x) [is_monoid_hom f] :
+  is_unit (f x) :=
+h.map (monoid_hom.of f)
+
+end is_unit
+
+instance additive.is_add_hom [has_mul α] [has_mul β] (f : α → β) [is_mul_hom f] :
+  @is_add_hom (additive α) (additive β) _ _ f :=
+{ map_add := @is_mul_hom.map_mul α β _ _ f _ }
+
+instance multiplicative.is_mul_hom [has_add α] [has_add β] (f : α → β) [is_add_hom f] :
+  @is_mul_hom (multiplicative α) (multiplicative β) _ _ f :=
+{ map_mul := @is_add_hom.map_add α β _ _ f _ }
+
+instance additive.is_add_monoid_hom [monoid α] [monoid β] (f : α → β) [is_monoid_hom f] :
+  @is_add_monoid_hom (additive α) (additive β) _ _ f :=
+{ map_zero := @is_monoid_hom.map_one α β _ _ f _ }
+
+instance multiplicative.is_monoid_hom [add_monoid α] [add_monoid β] (f : α → β) [is_add_monoid_hom f] :
+  @is_monoid_hom (multiplicative α) (multiplicative β) _ _ f :=
+{ map_one := @is_add_monoid_hom.map_zero α β _ _ f _ }
+
+instance additive.is_add_group_hom [group α] [group β] (f : α → β) [is_group_hom f] :
+  @is_add_group_hom (additive α) (additive β) _ _ f :=
+{ map_add := @is_mul_hom.map_mul α β _ _ f _ }
+
+instance multiplicative.is_group_hom [add_group α] [add_group β] (f : α → β) [is_add_group_hom f] :
+  @is_group_hom (multiplicative α) (multiplicative β) _ _ f :=
+{ map_mul := @is_add_hom.map_add α β _ _ f _ }
 

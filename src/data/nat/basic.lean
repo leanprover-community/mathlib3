@@ -568,16 +568,16 @@ lemma succ_div_of_not_dvd {a b : ℕ} (hba : ¬ b ∣ a + 1) :
   (a + 1) / b = a / b :=
 by rw [succ_div, if_neg hba, add_zero]
 
-@[simp] theorem mod_mod (a n : ℕ) : (a % n) % n = a % n :=
-(eq_zero_or_pos n).elim
-  (λ n0, by simp [n0])
-  (λ npos, mod_eq_of_lt (mod_lt _ npos))
-
 @[simp] theorem mod_mod_of_dvd (n : nat) {m k : nat} (h : m ∣ k) : n % k % m = n % m :=
 begin
   conv { to_rhs, rw ←mod_add_div n k },
   rcases h with ⟨t, rfl⟩, rw [mul_assoc, add_mul_mod_self_left]
 end
+
+@[simp] theorem mod_mod (a n : ℕ) : (a % n) % n = a % n :=
+(eq_zero_or_pos n).elim
+  (λ n0, by simp [n0])
+  (λ npos, mod_eq_of_lt (mod_lt _ npos))
 
 theorem add_pos_left {m : ℕ} (h : 0 < m) (n : ℕ) : 0 < m + n :=
 calc
@@ -987,9 +987,9 @@ size_le.2 $ lt_of_le_of_lt h (lt_size_self _)
 
 @[simp] theorem fact_zero : fact 0 = 1 := rfl
 
-@[simp] theorem fact_one : fact 1 = 1 := rfl
-
 @[simp] theorem fact_succ (n) : fact (succ n) = succ n * fact n := rfl
+
+@[simp] theorem fact_one : fact 1 = 1 := rfl
 
 theorem fact_pos : ∀ n, 0 < fact n
 | 0        := zero_lt_one

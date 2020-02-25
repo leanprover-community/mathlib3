@@ -689,7 +689,7 @@ bot_unique $ assume s _, empty_subset _
 @[simp] lemma principal_eq_bot_iff {s : set α} : principal s = ⊥ ↔ s = ∅ :=
 empty_in_sets_eq_bot.symm.trans $ mem_principal_sets.trans subset_empty_iff
 
-@[simp] lemma principal_ne_bot_iff {s : set α} : principal s ≠ ⊥ ↔ s.nonempty :=
+lemma principal_ne_bot_iff {s : set α} : principal s ≠ ⊥ ↔ s.nonempty :=
 (not_congr principal_eq_bot_iff).trans ne_empty_iff_nonempty
 
 lemma inf_principal_eq_bot {f : filter α} {s : set α} (hs : -s ∈ f) : f ⊓ principal s = ⊥ :=

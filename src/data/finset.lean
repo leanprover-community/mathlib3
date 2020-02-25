@@ -287,9 +287,9 @@ then it holds for the `finset` obtained by inserting a new element.
   (s : finset α) (h₁ : p ∅) (h₂ : ∀ ⦃a : α⦄ {s : finset α}, a ∉ s → p s → p (insert a s)) : p s :=
 finset.induction h₁ h₂ s
 
-@[simp] theorem singleton_eq_singleton (a : α) : _root_.singleton a = ι a := rfl
+@[simp] theorem singleton_eq_singleton (a : α) : {a} = ι a := rfl
 
-@[simp] theorem insert_empty_eq_singleton (a : α) : {a} = ι a := rfl
+theorem insert_empty_eq_singleton (a : α) : {a} = ι a := rfl
 
 theorem insert_singleton_self_eq (a : α) : ({a, a} : finset α) = ι a :=
 insert_eq_of_mem $ mem_singleton_self _
@@ -346,7 +346,7 @@ ext.2 $ λ _, by simp only [mem_union, or.left_comm]
 theorem union_right_comm (s₁ s₂ s₃ : finset α) : (s₁ ∪ s₂) ∪ s₃ = (s₁ ∪ s₃) ∪ s₂ :=
 ext.2 $ λ x, by simp only [mem_union, or_assoc, or_comm (x ∈ s₂)]
 
-@[simp] theorem union_self (s : finset α) : s ∪ s = s := union_idempotent s
+theorem union_self (s : finset α) : s ∪ s = s := union_idempotent s
 
 @[simp] theorem union_empty (s : finset α) : s ∪ ∅ = s :=
 ext.2 $ λ x, mem_union.trans $ or_false _
@@ -564,11 +564,11 @@ instance : has_sdiff (finset α) := ⟨λs₁ s₂, ⟨s₁.1 - s₂.1, nodup_of
 @[simp] theorem mem_sdiff {a : α} {s₁ s₂ : finset α} :
   a ∈ s₁ \ s₂ ↔ a ∈ s₁ ∧ a ∉ s₂ := mem_sub_of_nodup s₁.2
 
-@[simp] theorem sdiff_union_of_subset {s₁ s₂ : finset α} (h : s₁ ⊆ s₂) : (s₂ \ s₁) ∪ s₁ = s₂ :=
+theorem sdiff_union_of_subset {s₁ s₂ : finset α} (h : s₁ ⊆ s₂) : (s₂ \ s₁) ∪ s₁ = s₂ :=
 ext.2 $ λ a, by simpa only [mem_sdiff, mem_union, or_comm,
   or_and_distrib_left, dec_em, and_true] using or_iff_right_of_imp (@h a)
 
-@[simp] theorem union_sdiff_of_subset {s₁ s₂ : finset α} (h : s₁ ⊆ s₂) : s₁ ∪ (s₂ \ s₁) = s₂ :=
+theorem union_sdiff_of_subset {s₁ s₂ : finset α} (h : s₁ ⊆ s₂) : s₁ ∪ (s₂ \ s₁) = s₂ :=
 (union_comm _ _).trans (sdiff_union_of_subset h)
 
 theorem inter_sdiff (s t u : finset α) : s ∩ (t \ u) = s ∩ t \ u :=
@@ -657,13 +657,16 @@ variable [∀j, decidable (j ∈ s)]
   (↑s : set α).piecewise f g = s.piecewise f g :=
 by { ext, congr }
 
-@[simp] lemma piecewise_eq_of_mem {i : α} (hi : i ∈ s) : s.piecewise f g i = f i :=
+@[simp, priority 980]
+lemma piecewise_eq_of_mem {i : α} (hi : i ∈ s) : s.piecewise f g i = f i :=
 by simp [piecewise, hi]
 
-@[simp] lemma piecewise_eq_of_not_mem {i : α} (hi : i ∉ s) : s.piecewise f g i = g i :=
+@[simp, priority 980]
+lemma piecewise_eq_of_not_mem {i : α} (hi : i ∉ s) : s.piecewise f g i = g i :=
 by simp [piecewise, hi]
 
-@[simp] lemma piecewise_insert_of_ne [decidable_eq α] {i j : α} [∀i, decidable (i ∈ insert j s)]
+@[simp, priority 990]
+lemma piecewise_insert_of_ne [decidable_eq α] {i j : α} [∀i, decidable (i ∈ insert j s)]
   (h : i ≠ j) : (insert j s).piecewise f g i = s.piecewise f g i :=
 by { simp [piecewise, h], congr }
 
@@ -1003,7 +1006,7 @@ mem_map.trans $ by simp only [exists_prop]; refl
 theorem mem_map' (f : α ↪ β) {a} {s : finset α} : f a ∈ s.map f ↔ a ∈ s :=
 mem_map_of_inj f.2
 
-@[simp] theorem mem_map_of_mem (f : α ↪ β) {a} {s : finset α} : a ∈ s → f a ∈ s.map f :=
+theorem mem_map_of_mem (f : α ↪ β) {a} {s : finset α} : a ∈ s → f a ∈ s.map f :=
 (mem_map' _).2
 
 theorem map_to_finset [decidable_eq α] [decidable_eq β] {s : multiset α} :
@@ -1080,7 +1083,7 @@ variables {f : α → β} {s : finset α}
 @[simp] theorem mem_image {b : β} : b ∈ s.image f ↔ ∃ a ∈ s, f a = b :=
 by simp only [mem_def, image_val, mem_erase_dup, multiset.mem_map, exists_prop]
 
-@[simp] theorem mem_image_of_mem (f : α → β) {a} {s : finset α} (h : a ∈ s) : f a ∈ s.image f :=
+theorem mem_image_of_mem (f : α → β) {a} {s : finset α} (h : a ∈ s) : f a ∈ s.image f :=
 mem_image.2 ⟨_, h, rfl⟩
 
 @[simp] lemma coe_image {f : α → β} : ↑(s.image f) = f '' ↑s :=
@@ -1092,7 +1095,7 @@ let ⟨a, ha⟩ := h in ⟨f a, mem_image_of_mem f ha⟩
 theorem image_to_finset [decidable_eq α] {s : multiset α} : s.to_finset.image f = (s.map f).to_finset :=
 ext.2 $ λ _, by simp only [mem_image, multiset.mem_to_finset, exists_prop, multiset.mem_map]
 
-@[simp] theorem image_val_of_inj_on (H : ∀x∈s, ∀y∈s, f x = f y → x = y) : (image f s).1 = s.1.map f :=
+theorem image_val_of_inj_on (H : ∀x∈s, ∀y∈s, f x = f y → x = y) : (image f s).1 = s.1.map f :=
 multiset.erase_dup_eq_self.2 (nodup_map_on H s.2)
 
 theorem image_id [decidable_eq α] : s.image id = s :=

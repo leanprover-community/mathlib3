@@ -98,9 +98,11 @@ by rw [←pow_add, ←pow_add, add_comm]
 theorem smul_add_comm : ∀ (a : A) (m n : ℕ), m•a + n•a = n•a + m•a :=
 @pow_mul_comm (multiplicative A) _
 
-@[simp] theorem list.prod_repeat (a : M) (n : ℕ) : (list.repeat a n).prod = a ^ n :=
+@[simp, priority 500]
+theorem list.prod_repeat (a : M) (n : ℕ) : (list.repeat a n).prod = a ^ n :=
 by induction n with n ih; [refl, rw [list.repeat_succ, list.prod_cons, ih]]; refl
-@[simp] theorem list.sum_repeat : ∀ (a : A) (n : ℕ), (list.repeat a n).sum = n • a :=
+@[simp, priority 500]
+theorem list.sum_repeat : ∀ (a : A) (n : ℕ), (list.repeat a n).sum = n • a :=
 @list.prod_repeat (multiplicative A) _
 
 theorem monoid_hom.map_pow (f : M →* N) (a : M) : ∀(n : ℕ), f (a ^ n) = (f a) ^ n

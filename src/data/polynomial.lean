@@ -154,7 +154,7 @@ by simp [coeff, eq_comm, C, single]; congr
 
 lemma coeff_X : coeff (X : polynomial α) n = if 1 = n then 1 else 0 := coeff_single
 
-@[simp] lemma coeff_C_mul_X (x : α) (k n : ℕ) :
+lemma coeff_C_mul_X (x : α) (k n : ℕ) :
   coeff (C x * X^k : polynomial α) n = if n = k then x else 0 :=
 by rw [← single_eq_C_mul_X]; simp [single, eq_comm, coeff]; congr
 
@@ -171,7 +171,8 @@ begin
   simp
 end
 
-@[simp] lemma coeff_one (n : ℕ) : coeff (1 : polynomial α) n = if 0 = n then 1 else 0 :=
+@[simp, priority 990]
+lemma coeff_one (n : ℕ) : coeff (1 : polynomial α) n = if 0 = n then 1 else 0 :=
 coeff_single
 
 @[simp] lemma coeff_X_pow (k n : ℕ) :

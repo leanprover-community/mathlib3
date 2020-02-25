@@ -43,12 +43,6 @@ jobs:
           name: ${{ steps.setup_precompiled.outputs.artifact_name }}
           path: ..
 
-      - name: push release to mathlib-nightly
-        if: github.repository == 'leanprover-community/mathlib' && github.event_name == 'push' && github.ref == 'refs/heads/master' && matrix.lean_version == 'leanprover-community/lean:3.5.1'
-        run: ./scripts/deploy_nightly.sh
-        env:
-          DEPLOY_NIGHTLY_GITHUB_TOKEN: ${{ secrets.DEPLOY_NIGHTLY_GITHUB_TOKEN }}
-
       - name: push release to azure
         if: always() && github.repository == 'leanprover-community/mathlib' && github.event_name == 'push' && matrix.lean_version == 'leanprover-community/lean:3.5.1'
         run: |
@@ -61,6 +55,12 @@ jobs:
           else
             echo "archive is obsolete: branch has been updated"
           fi
+
+      - name: push release to mathlib-nightly
+        if: github.repository == 'leanprover-community/mathlib' && github.event_name == 'push' && github.ref == 'refs/heads/master' && matrix.lean_version == 'leanprover-community/lean:3.5.1'
+        run: ./scripts/deploy_nightly.sh
+        env:
+          DEPLOY_NIGHTLY_GITHUB_TOKEN: ${{ secrets.DEPLOY_NIGHTLY_GITHUB_TOKEN }}
 
       - name: tests
         run: |

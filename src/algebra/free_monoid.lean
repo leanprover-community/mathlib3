@@ -8,7 +8,14 @@ import algebra.group.hom data.equiv.algebra data.list.basic
 /-!
 # Free monoid over a given alphabet
 
-We define `free_monoid α` as a synonym for `list α` with multiplication given by `(++)`.
+## Main definitions
+
+* `free_monoid α`: free monoid over alphabet `α`; defined as a synonym for `list α`
+  with multiplication given by `(++)`.
+* `free_monoid.of`: embedding `α → free_monoid α` sending each element `x` to `[x]`;
+* `free_monoid.lift α M`: natural equivalence between `α → M` and `free_monoid α →* M`;
+  for technical reasons `α` and `M` are explicit arguments;
+* `free_monoid.map`: embedding of `α → β` into `free_monoid α →* free_monoid β` given by `list.map`.
 -/
 
 variables {α : Type*} {β : Type*} {γ : Type*} {M : Type*} [monoid M]
@@ -30,10 +37,10 @@ instance {α} : monoid (free_monoid α) :=
 @[to_additive]
 instance {α} : inhabited (free_monoid α) := ⟨1⟩
 
-@[to_additive free_add_monoid.zero_def]
+@[to_additive]
 lemma one_def {α} : (1 : free_monoid α) = [] := rfl
 
-@[to_additive free_add_monoid.add_def]
+@[to_additive]
 lemma mul_def {α} (xs ys : list α) : (xs * ys : free_monoid α) = (xs ++ ys : list α) :=
 rfl
 

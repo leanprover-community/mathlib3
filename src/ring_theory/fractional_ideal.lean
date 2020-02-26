@@ -265,26 +265,6 @@ instance comm_semiring : comm_semiring (fractional_ideal R S) :=
   ..fractional_ideal.comm_monoid }
 end semiring
 
-section
-variables {M : Type v} [ring M] [algebra R M]
-
-/-- The elements of `I / J` are the `x` such that `x J ⊆ I`.
-
-  This is the general form of the ideal quotient, traditionally written $I : J$.
--/
-instance : has_div (submodule R M) :=
-⟨ λ I J, {
-  carrier := { x | ∀ y ∈ J, x * y ∈ I },
-  zero := λ y hy, by { rw zero_mul, apply submodule.zero },
-  add := λ a b ha hb y hy, by { rw add_mul, exact submodule.add _ (ha _ hy) (hb _ hy) },
-  smul := λ r x hx y hy, by { rw algebra.smul_mul_assoc, exact submodule.smul _ _ (hx _ hy) } } ⟩
-
-lemma mem_div_iff {x : M} {I J : submodule R M} : x ∈ I / J ↔ ∀ y ∈ J, x * y ∈ I := iff.refl _
-
-lemma le_div_iff {I J K : submodule R M} : I ≤ J / K ↔ ∀ (x ∈ I) (z ∈ K), x * z ∈ J := iff.refl _
-
-end
-
 section quotient
 open_locale classical
 
@@ -322,12 +302,11 @@ noncomputable instance fractional_ideal_has_div :
   has_div (fractional_ideal R (non_zero_divisors R)) :=
 ⟨ λ I J, if h : J = 0 then 0 else ⟨I.1 / J.1, fractional_div_of_nonzero h⟩ ⟩
 
-@[simp]
 lemma div_nonzero {I J : fractional_ideal R (non_zero_divisors R)} (h : J ≠ 0) :
   (I / J) = ⟨I.1 / J.1, fractional_div_of_nonzero h⟩ :=
 dif_neg h
 
-lemma div_one {I : fractional_ideal R (non_zero_divisors R)} : I / 1 = I :=
+@[simp] lemma div_one {I : fractional_ideal R (non_zero_divisors R)} : I / 1 = I :=
 begin
   rw [div_nonzero (@one_ne_zero (fractional_ideal R _) _)],
   ext,
@@ -345,6 +324,7 @@ lemma unique_right_inverse {α} [comm_monoid α] {i j j' : α} :
 λ h h', congr_arg units.inv $
   @units.ext _ _ (units.mk_of_mul_eq_one _ _ h) (units.mk_of_mul_eq_one _ _ h') rfl
 
+/-- `1 / I` is the inverse of `I` if `I` has an inverse. -/
 theorem right_inverse_eq (I J : fractional_ideal R (non_zero_divisors R)) (h : I * J = 1) :
   J = (1 / I) :=
 begin
@@ -362,7 +342,7 @@ begin
     exact mem_div_iff.mpr hy x hx },
   rw [←h],
   apply mul_left_mono I,
-  apply le_div_iff.mpr _,
+  apply submodule.le_div_iff.mpr _,
   intros y hy x hx,
   rw [mul_comm],
   exact submodule.mul_mem_mul hx hy
@@ -373,5 +353,3 @@ end quotient
 end fractional_ideal
 
 end ring
-
-#lint

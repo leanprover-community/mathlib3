@@ -226,7 +226,7 @@ is_noetherian_submodule_left.1 (is_noetherian_of_fg_of_noetherian _
 end ideal
 
 /-- Hilbert basis theorem: a polynomial ring over a noetherian ring is a noetherian ring. -/
-theorem polynomial.is_noetherian_ring [is_noetherian_ring R] : is_noetherian_ring (polynomial R) :=
+protected theorem polynomial.is_noetherian_ring [is_noetherian_ring R] : is_noetherian_ring (polynomial R) :=
 ⟨assume I : ideal (polynomial R),
 let L := I.leading_coeff in
 let M := well_founded.min (is_noetherian_iff_well_founded.1 (by apply_instance))

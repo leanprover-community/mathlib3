@@ -5,7 +5,10 @@ Authors: Robert Y. Lewis, Keeley Hoek
 -/
 import data.nat.basic
 /-!
-# More about finite numbers
+# The finite type with `n` elements
+
+`fin n` is the type whose elements are natural numbers smaller than `n`.
+This file expands on the development in the core library.
 
 ## Main definitions
 

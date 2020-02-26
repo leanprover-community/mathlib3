@@ -2,8 +2,6 @@
 Copyright (c) 2014 Parikshit Khanna. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Parikshit Khanna, Jeremy Avigad, Leonardo de Moura, Floris van Doorn, Mario Carneiro
-
-Basic properties of lists.
 -/
 import
   tactic.interactive tactic.mk_iff_of_inductive_prop
@@ -11,6 +9,11 @@ import
   algebra.group order.basic
   data.list.defs data.nat.basic data.option.basic
   data.bool data.prod data.fin
+
+/-!
+# Basic properties of lists
+-/
+
 open function nat
 
 namespace list
@@ -305,12 +308,6 @@ by induction s; intros; contradiction
 
 theorem append_ne_nil_of_ne_nil_right (s t : list α) : t ≠ [] → s ++ t ≠ [] :=
 by induction s; intros; contradiction
-
-theorem append_foldl (f : α → β → α) (a : α) (s t : list β) : foldl f a (s ++ t) = foldl f (foldl f a s) t :=
-by {induction s with b s H generalizing a, refl, simp only [foldl, cons_append], rw H _}
-
-theorem append_foldr (f : α → β → β) (a : β) (s t : list α) : foldr f a (s ++ t) = foldr f (foldr f a t) s :=
-by {induction s with b s H generalizing a, refl, simp only [foldr, cons_append], rw H _}
 
 @[simp] lemma append_eq_nil {p q : list α} : (p ++ q) = [] ↔ p = [] ∧ q = [] :=
 by cases p; simp only [nil_append, cons_append, eq_self_iff_true, true_and, false_and]
@@ -1086,6 +1083,8 @@ end insert_nth
 
 /- map -/
 
+@[simp] lemma map_nil (f : α → β) : map f [] = [] := rfl
+
 lemma map_congr {f g : α → β} : ∀ {l : list α}, (∀ x ∈ l, f x = g x) → map f l = map g l
 | []     _ := rfl
 | (a::l) h := let ⟨h₁, h₂⟩ := forall_mem_cons.1 h in
@@ -1494,6 +1493,9 @@ variables [monoid α] {l l₁ l₂ : list α} {a : α}
 
 @[simp, to_additive]
 theorem prod_nil : ([] : list α).prod = 1 := rfl
+
+@[to_additive]
+theorem prod_singleton : [a].prod = a := one_mul a
 
 @[simp, to_additive]
 theorem prod_cons : (a::l).prod = a * l.prod :=
@@ -3401,7 +3403,7 @@ section disjoint
 theorem disjoint.symm {l₁ l₂ : list α} (d : disjoint l₁ l₂) : disjoint l₂ l₁
 | a i₂ i₁ := d i₁ i₂
 
-@[simp] theorem disjoint_comm {l₁ l₂ : list α} : disjoint l₁ l₂ ↔ disjoint l₂ l₁ :=
+theorem disjoint_comm {l₁ l₂ : list α} : disjoint l₁ l₂ ↔ disjoint l₂ l₁ :=
 ⟨disjoint.symm, disjoint.symm⟩
 
 theorem disjoint_left {l₁ l₂ : list α} : disjoint l₁ l₂ ↔ ∀ {a}, a ∈ l₁ → a ∉ l₂ := iff.rfl
@@ -3426,6 +3428,9 @@ disjoint_of_subset_right (list.subset_cons _ _)
 
 @[simp] theorem disjoint_nil_left (l : list α) : disjoint [] l
 | a := (not_mem_nil a).elim
+
+@[simp] theorem disjoint_nil_right (l : list α) : disjoint l [] :=
+by rw disjoint_comm; exact disjoint_nil_left _
 
 @[simp] theorem singleton_disjoint {l : list α} {a : α} : disjoint [a] l ↔ a ∉ l :=
 by simp only [disjoint, mem_singleton, forall_eq]; refl

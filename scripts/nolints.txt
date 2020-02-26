@@ -2576,7 +2576,6 @@ apply_nolint filter.monad doc_blame
 apply_nolint filter.ultrafilter.bind doc_blame
 apply_nolint filter.ultrafilter.map doc_blame
 apply_nolint filter.ultrafilter.pure doc_blame
-apply_nolint lattice.complete_lattice.copy doc_blame
 
 -- order/filter/partial.lean
 apply_nolint filter.pcomap' doc_blame

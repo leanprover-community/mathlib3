@@ -598,10 +598,12 @@ end ideals
 section module
 /-! ### `module` section
 
-  Localizations have a module structure induced by the embedding `of : α → localization α S`.
+  Localizations form an algebra over `α` induced by the embedding `coe : α → localization α S`.
 -/
 
 set_option class.instance_max_depth 50
+
+variables (α S)
 
 instance : algebra α (localization α S) := algebra.of_ring_hom coe (is_ring_hom.of_semiring coe)
 
@@ -609,13 +611,24 @@ lemma of_smul (c x : α) : (of (c • x) : localization α S) = c • of x :=
 by { simp, refl }
 
 lemma coe_smul (c x : α) : (coe (c • x) : localization α S) = c • coe x :=
-of_smul α c x
+of_smul α S c x
 
 lemma coe_mul_eq_smul (c : α) (x : localization α S) : coe c * x = c • x :=
 rfl
 
 lemma mul_coe_eq_smul (c : α) (x : localization α S) : x * coe c = c • x :=
 mul_comm x (coe c)
+
+/-- The embedding `coe : α → localization α S` induces a linear map. -/
+def lin_coe : α →ₗ[α] localization α S := ⟨coe, coe_add α S, coe_smul α S⟩
+
+@[simp] lemma lin_coe_apply (a : α) : lin_coe α S a = coe a := rfl
+
+instance coe_submodules : has_coe (ideal α) (submodule α (localization α S)) :=
+⟨submodule.map (lin_coe _ _)⟩
+
+@[simp] lemma of_id (a : α) : (algebra.of_id α (localization α S) : α → localization α S) a = ↑a :=
+rfl
 
 end module
 

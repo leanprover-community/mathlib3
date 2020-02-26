@@ -5,6 +5,7 @@ Authors: Kenny Lau, Chris Hughes, Tim Baanen
 -/
 import data.matrix.basic
 import data.matrix.pequiv
+import data.fintype.card
 import group_theory.perm.sign
 
 universes u v
@@ -84,7 +85,7 @@ calc det (M ⬝ N) = univ.sum (λ σ : perm n, (univ.pi (λ a, univ)).sum
   finset.sum_comm
 ... = ((@univ (n → n) _).filter bijective).sum (λ p : n → n, univ.sum
     (λ σ : perm n, ε σ * univ.prod (λ i, M (σ i) (p i) * N (p i) i))) :
-  eq.symm $ sum_subset (filter_subset _) 
+  eq.symm $ sum_subset (filter_subset _)
     (λ f _ hbij, det_mul_aux $ by simpa using hbij)
 ... = (@univ (perm n) _).sum (λ τ, univ.sum
     (λ σ : perm n, ε σ * univ.prod (λ i, M (σ i) (τ i) * N (τ i) i))) :

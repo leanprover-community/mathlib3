@@ -132,7 +132,7 @@ lemma cauchy_seq_iff_tendsto [nonempty β] [semilattice_sup β] {u : β → α} 
 cauchy_map_iff.trans $ (and_iff_right at_top_ne_bot).trans $
   by simp only [prod_at_top_at_top_eq, prod.map_def]
 
-@[nolint] -- see Note [nolint_ge]
+@[nolint ge_or_gt] -- see Note [nolint_ge]
 lemma filter.has_basis.cauchy_seq_iff {γ} [nonempty β] [semilattice_sup β] {u : β → α}
   {p : γ → Prop} {s : γ → set (α × α)} (h : (𝓤 α).has_basis p s) :
   cauchy_seq u ↔ ∀ i, p i → ∃N, ∀m n≥N, (u m, u n) ∈ s i :=
@@ -143,7 +143,7 @@ begin
     mem_prod_eq, mem_set_of_eq, mem_Ici, and_imp, prod.map]
 end
 
-@[nolint] -- see Note [nolint_ge]
+@[nolint ge_or_gt] -- see Note [nolint_ge]
 lemma filter.has_basis.cauchy_seq_iff' {γ} [nonempty β] [semilattice_sup β] {u : β → α}
   {p : γ → Prop} {s : γ → set (α × α)} (H : (𝓤 α).has_basis p s) :
   cauchy_seq u ↔ ∀ i, p i → ∃N, ∀n≥N, (u n, u N) ∈ s i :=
@@ -181,7 +181,7 @@ lemma complete_univ {α : Type u} [uniform_space α] [complete_space α] :
 begin
   assume f hf _,
   rcases complete_space.complete hf with ⟨x, hx⟩,
-  exact ⟨x, by simp, hx⟩
+  exact ⟨x, mem_univ x, hx⟩
 end
 
 lemma cauchy_prod [uniform_space β] {f : filter α} {g : filter β} :
@@ -207,6 +207,10 @@ instance complete_space.prod [uniform_space β] [complete_space α] [complete_sp
 /--If `univ` is complete, the space is a complete space -/
 lemma complete_space_of_is_complete_univ (h : is_complete (univ : set α)) : complete_space α :=
 ⟨λ f hf, let ⟨x, _, hx⟩ := h f hf ((@principal_univ α).symm ▸ le_top) in ⟨x, hx⟩⟩
+
+lemma complete_space_iff_is_complete_univ :
+  complete_space α ↔ is_complete (univ : set α) :=
+⟨@complete_univ α _, complete_space_of_is_complete_univ⟩
 
 lemma cauchy_iff_exists_le_nhds [complete_space α] {l : filter α} (hl : l ≠ ⊥) :
   cauchy l ↔ (∃x, l ≤ 𝓝 x) :=

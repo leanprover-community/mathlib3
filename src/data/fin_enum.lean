@@ -99,18 +99,19 @@ begin
   { split, rintro ⟨a,h,h'⟩ x hx,
     cases h',
     { right, apply h, subst a, exact hx, },
-    { simp [h'] at hx ⊢, cases hx,
-      { exact or.inr (h _ hx) },
-      exact or.inl hx  },
+    { simp only [h', mem_union, mem_singleton] at hx ⊢, cases hx,
+      { exact or.inl hx },
+      { exact or.inr (h _ hx) }  },
     intro h, existsi s \ ({xs_hd} : finset α),
-    simp, simp [or_iff_not_imp_left] at h,
+    simp only [and_imp, union_comm, mem_sdiff, insert_empty_eq_singleton, mem_singleton],
+    simp only [or_iff_not_imp_left] at h,
     existsi h,
     by_cases xs_hd ∈ s,
-    { have : finset.singleton xs_hd ⊆ s, simp [(⊆),*],
-      simp [union_sdiff_of_subset this], },
-    { left, symmetry, simp [sdiff_eq_self],
-      intro a, simp, intros h₀ h₁, subst a,
-      apply h h₀, } }
+    { have : finset.singleton xs_hd ⊆ s, simp only [has_subset.subset, *, forall_eq, mem_singleton],
+      simp only [union_sdiff_of_subset this, or_true, finset.union_sdiff_of_subset, eq_self_iff_true], },
+    { left, symmetry, simp only [sdiff_eq_self],
+      intro a, simp only [and_imp, mem_inter, mem_singleton, not_mem_empty],
+      intros h₀ h₁, subst a, apply h h₀, } }
 end
 
 instance finset.fin_enum [fin_enum α] : fin_enum (finset α) :=

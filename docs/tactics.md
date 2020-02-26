@@ -492,6 +492,16 @@ end
 For now, it really reports everything it finds, with no filter,
 so for many goals (particularly those involving numerals) you will see a lot of spurious junk.
 
+Users should be careful that this is a blunt tool:
+* with many imports open it can be very slow,
+* with 'generic' goals (in particular anything involving numerals) you will get many
+  spurious suggestions.
+
+The main use case is for users with some familiarity with the mathlib naming conventions,
+who may be able to scan through a list of suggestions and quickly recognise from the
+names which are the actually relevant suggestions. Beginngers unfamiliar with these
+conventions may find `rw_hint` unhelpful.
+
 ## solve_by_elim
 
 The tactic `solve_by_elim` repeatedly applies assumptions to the current goal, and succeeds if this eventually discharges the main goal.

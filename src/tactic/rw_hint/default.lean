@@ -36,7 +36,19 @@ do
 
 namespace interactive
 
-/-- Suggest possible rewrites of the current goal. -/
+/--
+Suggest possible rewrites of the current goal, using all lemmas in the environment.
+
+Users should be careful that this is a blunt tool:
+* with many imports open it can be very slow,
+* with 'generic' goals (in particular anything involving numerals) you will get many
+  spurious suggestions.
+
+The main use case is for users with some familiarity with the mathlib naming conventions,
+who may be able to scan through a list of suggestions and quickly recognise from the
+names which are the actually relevant suggestions. Beginngers unfamiliar with these
+conventions may find `rw_hint` unhelpful.
+-/
 meta def rw_hint : tactic unit :=
 tactic.rw_hint >>= list.mmap' (λ h, trace $ "Try this: " ++ h)
 

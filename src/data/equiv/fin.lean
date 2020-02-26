@@ -44,7 +44,7 @@ def fin_succ_equiv (n : ℕ) : fin n.succ ≃ option (fin n) :=
     0 fin.succ : fin n.succ) = _, by rw fin.cases_succ) x,
   by rintro ⟨none | x⟩; [refl, exact fin.cases_succ _]⟩
 
-/-- Equivalence betweein `fin m ⊕ fin n` and `fin (m + n)` -/
+/-- Equivalence between `fin m ⊕ fin n` and `fin (m + n)` -/
 def sum_fin_sum_equiv : fin m ⊕ fin n ≃ fin (m + n) :=
 { to_fun := λ x, sum.rec_on x
     (λ y, ⟨y.1, nat.lt_of_lt_of_le y.2 $ nat.le_add_right m n⟩)

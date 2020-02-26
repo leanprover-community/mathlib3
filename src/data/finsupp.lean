@@ -8,10 +8,10 @@ import data.finset data.set.finite algebra.big_operators algebra.module
 
 /-!
 
-# Type of functions with finite support.
+# Type of functions with finite support
 
-For any type `α` and a type `β` with zero, we define the type `finsupp α β` of finitely-supported
-functions from `α` to `β`; i.e. the functions which are zero everywhere on `α` except on a finite
+For any type `α` and a type `β` with zero, we define the type `finsupp α β` of finitely supported
+functions from `α` to `β`, i.e. the functions which are zero everywhere on `α` except on a finite
 set. We write this in infix notation as `α →₀ β`.
 
 Functions with finite support provide the basis for the following concrete instances:
@@ -116,7 +116,7 @@ by simp only [set.subset_def, mem_coe, mem_support_iff];
    exact forall_congr (assume a, @not_imp_comm _ _ (classical.dec _) (classical.dec _))
 
 /-- Given `fintype α`, `equiv_fun_on_fintype` is the `equiv` between `α →₀ β` and `α → β`.
-  (All functions on a finite type are finitely-supported.) -/
+  (All functions on a finite type are finitely supported.) -/
 def equiv_fun_on_fintype [fintype α] : (α →₀ β) ≃ (α → β) :=
 ⟨λf a, f a, λf, mk (finset.univ.filter $ λa, f a ≠ 0) f (by simp only [true_and, finset.mem_univ,
   iff_self, finset.mem_filter, finset.filter_congr_decidable, forall_true_iff]),
@@ -130,7 +130,7 @@ end basic
 section single
 variables [has_zero β] {a a' : α} {b : β}
 
-/-- `single a b` is the finitely-supported function which has
+/-- `single a b` is the finitely supported function which has
   value `b` at `a` and zero otherwise. -/
 def single (a : α) (b : β) : α →₀ β :=
 ⟨if b = 0 then ∅ else finset.singleton a, λ a', if a = a' then b else 0, λ a', begin
@@ -274,7 +274,7 @@ section emb_domain
 variables [has_zero β]
 
 /-- Given `f : α₁ ↪ α₂` and `v : α₁ →₀ β`, `emb_domain f v : α₂ →₀ β`
-is the finitely-supported function whose value at `f a : α₂` is `v a`.
+is the finitely supported function whose value at `f a : α₂` is `v a`.
 For a `b : α₂` outside the range of `f`, it is zero. -/
 def emb_domain (f : α₁ ↪ α₂) (v : α₁ →₀ β) : α₂ →₀ β :=
 begin
@@ -361,7 +361,7 @@ end emb_domain
 section zip_with
 variables [has_zero β] [has_zero β₁] [has_zero β₂]
 
-/-- `zip_with f hf g₁ g₂` is the finitely-supported function satisfying
+/-- `zip_with f hf g₁ g₂` is the finitely supported function satisfying
   `zip_with f hf g₁ g₂ a = f (g₁ a) (g₂ a)`, and it is well-defined when `f 0 0 = 0`. -/
 def zip_with (f : β₁ → β₂ → β) (hf : f 0 0 = 0) (g₁ : α →₀ β₁) (g₂ : α →₀ β₂) : (α →₀ β) :=
 on_finset (g₁.support ∪ g₂.support) (λa, f (g₁ a) (g₂ a)) $ λ a H,
@@ -384,7 +384,7 @@ end zip_with
 /-! ### Declarations about `erase` -/
 
 section erase
-/-- `erase a f` is the finitely-supported function equal to `f` except at `a` where it is equal to
+/-- `erase a f` is the finitely supported function equal to `f` except at `a` where it is equal to
   `0`. -/
 def erase [has_zero β] (a : α) (f : α →₀ β) : α →₀ β :=
 ⟨f.support.erase a, (λa', if a' = a then 0 else f a'),
@@ -739,7 +739,7 @@ section map_domain
 variables [add_comm_monoid β] {v v₁ v₂ : α →₀ β}
 
 /-- Given `f : α₁ → α₂` and `v : α₁ →₀ β`, `map_domain f v : α₂ →₀ β`
-  is the finitely-supported function whose value at `a : α₂` is the sum
+  is the finitely supported function whose value at `a : α₂` is the sum
   of `v x` over all `x` such that `f x = a`. -/
 def map_domain (f : α₁ → α₂) (v : α₁ →₀ β) : α₂ →₀ β :=
 v.sum $ λa, single (f a)
@@ -834,7 +834,7 @@ end map_domain
 section comap_domain
 
 /-- Given `f : α₁ → α₂`, `l : α₂ →₀ γ` and a proof `hf` that `f` is injective on
-the preimage of `l.support`, `comap_domain f l hf` is the finitely-supported function
+the preimage of `l.support`, `comap_domain f l hf` is the finitely supported function
 from `α₁` to `γ` given by composing `l` with `f`. -/
 def comap_domain {α₁ α₂ γ : Type*} [has_zero γ]
   (f : α₁ → α₂) (l : α₂ →₀ γ) (hf : set.inj_on f (f ⁻¹' l.support.to_set)) : α₁ →₀ γ :=
@@ -890,7 +890,7 @@ end comap_domain
 
 /-! ### Declarations about the product of `finsupp`s -/
 
-/-- The product of `f g : α →₀ β` is the finitely-supported function
+/-- The product of `f g : α →₀ β` is the finitely supported function
   whose value at `a` is the sum of `f x * g y` over all pairs `x, y`
   such that `x + y = a`. (Think of the product of multivariate
   polynomials where `α` is the monoid of monomial exponents.) -/
@@ -999,7 +999,7 @@ variables {α' : Type*} [has_zero δ] {p : α → Prop}
 section zero
 variables [has_zero β] {v v' : α' →₀ β}
 
-/-- `subtype_domain p f` is the restriction of the finitely-supported function
+/-- `subtype_domain p f` is the restriction of the finitely supported function
   `f` to the subtype `p`. -/
 def subtype_domain (p : α → Prop) (f : α →₀ β) : (subtype p →₀ β) :=
 ⟨f.support.subtype p, f ∘ subtype.val, λ a, by simp only [mem_subtype, mem_support_iff]⟩
@@ -1166,7 +1166,7 @@ calc f.to_multiset.count a = f.sum (λx n, (add_monoid.smul n {x} : multiset α)
     (λ H, by simp only [not_mem_support_iff.1 H, zero_mul])
   ... = f a : by simp only [multiset.count_singleton, mul_one]
 
-/-- Given `m : multiset α`, `of_multiset m` is the finitely-supported function from `α` to `ℕ`
+/-- Given `m : multiset α`, `of_multiset m` is the finitely supported function from `α` to `ℕ`
 given by the multiplicities of the elements of `α` in `m`. -/
 def of_multiset (m : multiset α) : α →₀ ℕ :=
 on_finset m.to_finset (λa, m.count a) $ λ a H, multiset.mem_to_finset.2 $
@@ -1176,7 +1176,7 @@ by_contradiction (mt multiset.count_eq_zero.2 H)
   of_multiset m a = m.count a :=
 rfl
 
-/-- `equiv_multiset` defines an `equiv` between finitely-supported functions
+/-- `equiv_multiset` defines an `equiv` between finitely supported functions
 from `α` to `ℕ` and multisets on `α`. -/
 def equiv_multiset : (α →₀ ℕ) ≃ (multiset α) :=
 ⟨ to_multiset, of_multiset,
@@ -1216,9 +1216,9 @@ end multiset
 
 section curry_uncurry
 
-/-- Given a finitely-supported function `f` from a product type `α × β` to `γ`,
-`curry f` is the "curried" finitely-supported function from `α` to the type of
-finitely-supported functions from `β` to `γ`. -/
+/-- Given a finitely supported function `f` from a product type `α × β` to `γ`,
+`curry f` is the "curried" finitely supported function from `α` to the type of
+finitely supported functions from `β` to `γ`. -/
 protected def curry [add_comm_monoid γ]
   (f : (α × β) →₀ γ) : α →₀ (β →₀ γ) :=
 f.sum $ λp c, single p.1 (single p.2 c)
@@ -1239,9 +1239,9 @@ begin
   exact sum_single_index (hg₀ _ _)
 end
 
-/-- Given a finitely-supported function `f` from `α` to the type of
-finitely-supported functions from `β` to `γ`,
-`uncurry f` is the "uncurried" finitely-supported function from `α × β` to `γ`. -/
+/-- Given a finitely supported function `f` from `α` to the type of
+finitely supported functions from `β` to `γ`,
+`uncurry f` is the "uncurried" finitely supported function from `α × β` to `γ`. -/
 protected def uncurry [add_comm_monoid γ] (f : α →₀ (β →₀ γ)) : (α × β) →₀ γ :=
 f.sum $ λa g, g.sum $ λb c, single (a, b) c
 
@@ -1437,8 +1437,8 @@ by ext i; simp only [eq_zero_of_zero_eq_one β zero_eq_one (l i), finsupp.zero_a
 end
 
 /-- Given an `add_comm_monoid β` and `s : set α`, `restrict_support_equiv` is the `equiv`
-between the subtype of finitely-supported functions with support contained in `s` and
-the type of finitely-supported functions from `s`. -/
+between the subtype of finitely supported functions with support contained in `s` and
+the type of finitely supported functions from `s`. -/
 def restrict_support_equiv [add_comm_monoid β] (s : set α) :
   {f : α →₀ β // ↑f.support ⊆ s } ≃ (s →₀ β):=
 begin
@@ -1484,9 +1484,9 @@ section sigma
 
 variables {αs : ι → Type*} [has_zero β] (l : (Σ i, αs i) →₀ β)
 
-/-- Given `l`, a finitely-supported function from the sigma type `Σ (i : ι), αs i` to `β` and
+/-- Given `l`, a finitely supported function from the sigma type `Σ (i : ι), αs i` to `β` and
 an index element `i : ι`, `split l i` is the `i`th component of `l`,
-a finitely-supported function from `as i` to `β`. -/
+a finitely supported function from `as i` to `β`. -/
 def split (i : ι) : αs i →₀ β :=
 l.comap_domain (sigma.mk i) (λ x1 x2 _ _ hx, heq_iff_eq.1 (sigma.mk.inj hx).2)
 
@@ -1496,7 +1496,7 @@ begin
   rw comap_domain_apply
 end
 
-/-- Given `l`, a finitely-supported function from the sigma type `Σ (i : ι), αs i` to `β`,
+/-- Given `l`, a finitely supported function from the sigma type `Σ (i : ι), αs i` to `β`,
 `split_support l` is the finset of indices in `ι` that appear in the support of `l`. -/
 def split_support : finset ι := l.support.image sigma.fst
 
@@ -1509,9 +1509,9 @@ begin
     mem_support_iff, sigma.exists, ne.def]
 end
 
-/-- Given `l`, a finitely-supported function from the sigma type `Σ i, αs i` to `β` and
+/-- Given `l`, a finitely supported function from the sigma type `Σ i, αs i` to `β` and
 an `ι`-indexed family `g` of functions from `(αs i →₀ β)` to `γ`, `split_comp` defines a
-finitely-supported function from the index type `ι` to `γ` given by composing `g i` with
+finitely supported function from the index type `ι` to `γ` given by composing `g i` with
 `split l i`. -/
 def split_comp [has_zero γ] (g : Π i, (αs i →₀ β) → γ)
   (hg : ∀ i x, x = 0 ↔ g i x = 0) : ι →₀ γ :=
@@ -1539,7 +1539,7 @@ end finsupp
 
 namespace multiset
 
-/-- Given a multiset `s`, `s.to_finsupp` returns the finitely-supported function on `ℕ` given by
+/-- Given a multiset `s`, `s.to_finsupp` returns the finitely supported function on `ℕ` given by
 the multiplicities of the elements of `s`. -/
 def to_finsupp (s : multiset α) : α →₀ ℕ :=
 { support := s.to_finset,
@@ -1682,7 +1682,7 @@ variable {σ}
 
 /-- The `finsupp` counterpart of `multiset.antidiagonal`: the antidiagonal of
 `s : σ →₀ ℕ` consists of all pairs `(t₁, t₂) : (σ →₀ ℕ) × (σ →₀ ℕ)` such that `t₁ + t₂ = s`.
-The finitely-supported function `antidiagonal s` is equal to the multiplicities of these pairs. -/
+The finitely supported function `antidiagonal s` is equal to the multiplicities of these pairs. -/
 def antidiagonal (f : σ →₀ ℕ) : ((σ →₀ ℕ) × (σ →₀ ℕ)) →₀ ℕ :=
 (f.to_multiset.antidiagonal.map (prod.map multiset.to_finsupp multiset.to_finsupp)).to_finsupp
 

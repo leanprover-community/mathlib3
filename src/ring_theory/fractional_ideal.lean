@@ -1,5 +1,55 @@
+/-
+Copyright (c) 2020 Anne Baanen. All rights reserved.
+Released under Apache 2.0 license as described in the file LICENSE.
+Authors: Anne Baanen
+
+Fractional ideals of an integral domain.
+-/
 import ring_theory.algebra_operations
 import ring_theory.localization
+
+/-!
+# Fractional ideals
+
+This file defines fractional ideals of an integral domain and proves basic facts about them.
+
+## Main definitions
+
+ * `is_fractional` defines which `R`-submodules of `localization R S` are fractional ideals
+ * `fractional_ideal R S` is the type of fractional ideals in `localization R S`
+ * `has_coe (ideal R) (fractional_ideal R S)` instance
+ * `comm_semiring (fractional_ideal R S)` instance:
+   the typical ideal operations generalized to fractional ideals
+ * `lattice (fractional_ideal R S)` instance
+ * `has_div (fractional_ideal R (non_zero_divisors R))` instance:
+   the ideal quotient `I / J` (typically written $I : J$, but a `:` operator cannot be defined)
+
+## Main statements
+
+  * `mul_left_mono` and `mul_right_mono` state that ideal multiplication is monotone
+  * `right_inverse_eq` states that `1 / I` is the inverse of `I` if one exists
+
+## Implementation notes
+
+Fractional ideals are considered equal when they contain the same elements,
+independent of the denominator `a : R` such that `a I ⊆ R`.
+Thus, we define `fractional_ideal` to be the subtype of the predicate `is_fractional`,
+instead of having `fractional_ideal` be a structure of which `a` is a field.
+
+Most definitions in this file specialize operations from submodules to fractional ideals,
+proving that the result of this operation is fractional if the input is fractional.
+Exceptions to this rule are defining `(+) := (⊔)` and `⊥ := 0`,
+in order to re-use their respective proof terms.
+We can still use `simp` to show `I.1 + J.1 = (I + J).1` and `⊥.1 = 0.1`.
+
+## References
+
+  * https://en.wikipedia.org/wiki/Fractional_ideal
+
+## Tags
+
+fractional ideal, fractional ideals, invertible ideal
+-/
 
 open localization
 
@@ -23,7 +73,7 @@ def is_fractional (I : submodule R (localization R S)) :=
   then a fractional ideal `I ⊆ R'` is an `R`-submodule of `R'`,
   such that there is a nonzero `a : R` with `a I ⊆ R`.
 -/
-def fractional_ideal := { I : submodule R (localization R S) // is_fractional R S I }
+def fractional_ideal := {I : submodule R (localization R S) // is_fractional R S I}
 
 end defs
 
@@ -96,7 +146,7 @@ section lattice
 /-! ### `lattice` section
 
   Defines the order on fractional ideals as inclusion of their underlying sets,
-  and the lattice structure.
+  and ports the lattice structure on submodules to fractional ideals.
 -/
 
 open lattice
@@ -180,30 +230,30 @@ lemma sup_eq_add (I J : fractional_ideal R S) : I ⊔ J = I + J := rfl
 @[simp]
 lemma val_add (I J : fractional_ideal R S) : (I + J).1 = I.1 + J.1 := rfl
 
-instance : has_mul (fractional_ideal R S) :=
-⟨ λ I J, ⟨
-  I.1 * J.1,
-  begin
-    rcases I with ⟨I, aI, haI, hI⟩,
-    rcases J with ⟨I, aJ, haJ, hJ⟩,
-    use aI * aJ,
-    use mul_ne_zero haI haJ,
-    intros b hb,
-    apply submodule.mul_induction_on hb,
-    { intros m hm n hn,
-      obtain ⟨n', hn', n'_eq⟩ := hJ n hn,
-      rw [mul_smul, ←algebra.mul_smul_comm, ←n'_eq, mul_comm],
-      apply hI,
-      exact submodule.smul _ _ hm },
-    { rw [smul_zero],
-      apply is_integer_coe },
-    { intros x y hx hy,
-      rw [smul_add],
-      apply is_integer_add _ hx hy },
-    { intros r x hx,
-      rw [←mul_smul, mul_comm, mul_smul],
-      apply is_integer_smul _ hx },
-  end ⟩ ⟩
+lemma fractional_mul (I J : fractional_ideal R S) : is_fractional R S (I.1 * J.1) :=
+begin
+  rcases I with ⟨I, aI, haI, hI⟩,
+  rcases J with ⟨I, aJ, haJ, hJ⟩,
+  use aI * aJ,
+  use mul_ne_zero haI haJ,
+  intros b hb,
+  apply submodule.mul_induction_on hb,
+  { intros m hm n hn,
+    obtain ⟨n', hn', n'_eq⟩ := hJ n hn,
+    rw [mul_smul, ←algebra.mul_smul_comm, ←n'_eq, mul_comm],
+    apply hI,
+    exact submodule.smul _ _ hm },
+  { rw [smul_zero],
+    apply is_integer_coe },
+  { intros x y hx hy,
+    rw [smul_add],
+    apply is_integer_add _ hx hy },
+  { intros r x hx,
+    rw [←mul_smul, mul_comm, mul_smul],
+    apply is_integer_smul _ hx },
+end
+
+instance : has_mul (fractional_ideal R S) := ⟨λ I J, ⟨I.1 * J.1, fractional_mul I J⟩⟩
 
 @[simp]
 lemma val_mul (I J : fractional_ideal R S) : (I * J).1 = I.1 * J.1 := rfl
@@ -319,11 +369,6 @@ begin
     simp [y_eq_y'.symm] }
 end
 
-lemma unique_right_inverse {α} [comm_monoid α] {i j j' : α} :
-  i * j = 1 → i * j' = 1 → j = j' :=
-λ h h', congr_arg units.inv $
-  @units.ext _ _ (units.mk_of_mul_eq_one _ _ h) (units.mk_of_mul_eq_one _ _ h') rfl
-
 /-- `1 / I` is the inverse of `I` if `I` has an inverse. -/
 theorem right_inverse_eq (I J : fractional_ideal R (non_zero_divisors R)) (h : I * J = 1) :
   J = (1 / I) :=
@@ -333,7 +378,9 @@ begin
     apply @zero_ne_one (fractional_ideal R (non_zero_divisors R)),
     convert h,
     simp [hI] },
-  apply unique_right_inverse h,
+  suffices h' : I * (1 / I) = 1,
+  { exact (congr_arg units.inv $
+      @units.ext _ _ (units.mk_of_mul_eq_one _ _ h) (units.mk_of_mul_eq_one _ _ h') rfl) },
   rw [div_nonzero hI],
   apply le_antisymm,
   { apply submodule.mul_le.mpr _,

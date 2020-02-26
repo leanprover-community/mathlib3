@@ -37,7 +37,7 @@ def fin_two_equiv : fin 2 ≃ bool :=
   end,
   assume b, match b with tt := rfl | ff := rfl end⟩
 
-/-- Equivalence betweein `fin n.succ` and `option (fin n)` -/
+/-- Equivalence between `fin n.succ` and `option (fin n)` -/
 def fin_succ_equiv (n : ℕ) : fin n.succ ≃ option (fin n) :=
 ⟨λ x, fin.cases none some x, λ x, option.rec_on x 0 fin.succ,
   λ x, fin.cases rfl (λ i, show (option.rec_on (fin.cases none some (fin.succ i) : option (fin n))

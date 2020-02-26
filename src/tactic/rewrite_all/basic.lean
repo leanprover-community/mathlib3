@@ -9,15 +9,18 @@ open tactic
 
 namespace tactic.rewrite_all
 
+/-- An inductive type representing either the Left or Right side of an equation. -/
 @[derive decidable_eq, derive inhabited]
 inductive side
 | L
 | R
 
+/-- Exchanges L and R. -/
 def side.other : side → side
 | side.L := side.R
 | side.R := side.L
 
+/-- Prints as "L" and "R". -/
 def side.to_string : side → string
 | side.L := "L"
 | side.R := "R"

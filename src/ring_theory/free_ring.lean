@@ -41,7 +41,7 @@ section lift
 variables {β : Type v} [ring β] (f : α → β)
 
 def lift : free_ring α → β :=
-free_abelian_group.lift $ λ L, (L.map f).prod
+free_abelian_group.lift $ λ L, (list.map f L).prod
 
 @[simp] lemma lift_zero : lift f 0 = 0 := rfl
 

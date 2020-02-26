@@ -896,9 +896,15 @@ after `interval_cases n`, the goals are `3 = 3 ∨ 3 = 4` and `4 = 3 ∨ 4 = 4`.
 
 In particular, `interval_cases n`
 1) inspects hypotheses looking for lower and upper bounds of the form `a ≤ n` and `n < b`
-   (although in `ℕ`, `ℤ`, and `ℕ+` bounds of the form `a < n` and `n ≤ b` are also allowed)
+   (although in `ℕ`, `ℤ`, and `ℕ+` bounds of the form `a < n` and `n ≤ b` are also allowed),
+   and also makes use of lower and upper bounds found via `lattice.le_top` and `lattice.bot_le`, then
 2) calls `fin_cases` on the synthesised hypothesis `n ∈ set.Ico a b`,
    assuming an appropriate `fintype` instance can be found for the type of `n`.
+
+You can also explicitly specify a lower and upper bound to use,
+as `interval_cases using hl hu`.
+The hypotheses should be in the form `hl : a ≤ n` and `hu : n < b`,
+in which case `interval_cases` calls `fin_cases` on the resulting fact `n ∈ set.Ico a b`.
 
 ## conv
 The `conv` tactic is built-in to lean. Inside `conv` blocks mathlib currently

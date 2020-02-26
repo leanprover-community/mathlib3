@@ -36,6 +36,9 @@ by { interval_cases n, { left, refl }, { right, refl }, }
 example (n : ℕ) (w₁ : 1 ≤ n) (w₂ : n < 3) : n = 1 ∨ n = 2 :=
 by { interval_cases n, { left, refl }, { right, refl }, }
 
+example (n : ℕ) (w₁ : 1 ≤ n) (w₂ : n < 3) : n = 1 ∨ n = 2 :=
+by { interval_cases using w₁ w₂, { left, refl }, { right, refl }, }
+
 -- make sure we only pick up bounds on the specified variable:
 example (n m : ℕ) (w₁ : 1 ≤ n) (w₂ : n < 3) (w₃ : m < 2) : n = 1 ∨ n = 2 :=
 by { interval_cases n, { left, refl }, { right, refl }, }
@@ -70,7 +73,7 @@ by { interval_cases n % 3, assumption }
 
 example (n : ℕ) (h1 : 4 ≤ n) (h2 : n < 10) : n < 20 :=
 begin
-  interval_cases_using h1 h2,
+  interval_cases using h1 h2,
   all_goals {norm_num}
 end
 
@@ -101,7 +104,7 @@ by { interval_cases n, { left, refl }, { right, left, refl }, { right, right, re
 
 example (z : ℤ) (h1 : z ≥ -3) (h2 : z < 2) : z < 20 :=
 begin
-  interval_cases_using h1 h2,
+  interval_cases using h1 h2,
   all_goals {norm_num}
 end
 

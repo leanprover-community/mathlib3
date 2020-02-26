@@ -186,14 +186,7 @@ setup_tactic_parser
 
 namespace interactive
 
-/--
-`interval_cases hl hu` takes two hypotheses,
-which should be of the form `hl : a ≤ n` and `hu : n < b`, and
-calls `fin_cases` on the resulting fact `n ∈ set.Ico a b`.
--/
-meta def interval_cases_using (hl hu : parse ident) : tactic unit :=
-do [hl, hu] ← [hl, hu].mmap get_local,
-   tactic.interval_cases_using hl hu
+local postfix `?`:9001 := optional
 
 /--
 `interval_cases n` searches for upper and lower bounds on a variable `n`,
@@ -209,11 +202,24 @@ begin
 end
 ```
 after `interval_cases n`, the goals are `3 = 3 ∨ 3 = 4` and `4 = 3 ∨ 4 = 4`.
+
+You can also explicitly specify a lower and upper bound to use,
+as `interval_cases using hl hu`.
+The hypotheses should be in the form `hl : a ≤ n` and `hu : n < b`,
+in which case `interval_cases` calls `fin_cases` on the resulting fact `n ∈ set.Ico a b`.
 -/
-meta def interval_cases (n : parse texpr) : tactic unit :=
-do n ← to_expr n,
-   (hl, hu) ← get_bounds n,
-   tactic.interval_cases_using hl hu
+meta def interval_cases (n : parse texpr?) (bounds : parse (tk "using" *> (prod.mk <$> ident <*> ident))?) : tactic unit :=
+do
+  if h : n.is_some then (do
+    guard bounds.is_none <|> fail "Do not use the `using` keyword if specifying the variable explicitly.",
+    n ← to_expr (option.get h),
+    (hl, hu) ← get_bounds n,
+    tactic.interval_cases_using hl hu)
+  else if h' : bounds.is_some then (do
+    [hl, hu] ← [(option.get h').1, (option.get h').2].mmap get_local,
+    tactic.interval_cases_using hl hu)
+  else
+    fail "Call `interval_cases n` (specifying a variable), or `interval_cases lb ub` (specifying a lower bound and upper bound on the same variable)."
 
 end interactive
 

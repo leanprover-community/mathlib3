@@ -42,6 +42,10 @@ Exceptions to this rule are defining `(+) := (⊔)` and `⊥ := 0`,
 in order to re-use their respective proof terms.
 We can still use `simp` to show `I.1 + J.1 = (I + J).1` and `⊥.1 = 0.1`.
 
+We don't assume that `localization R S` is a field until we need it to define ideal quotients.
+When this assumption is needed, we replace `S` with `non_zero_divisors R`,
+making `localization R (non_zero_divisors R) = fraction_ring R` into a field since `R` is a domain.
+
 ## References
 
   * https://en.wikipedia.org/wiki/Fractional_ideal
@@ -316,6 +320,17 @@ instance comm_semiring : comm_semiring (fractional_ideal R S) :=
 end semiring
 
 section quotient
+
+/-! ### `quotient` section
+
+This section defines the ideal quotient of fractional ideals.
+
+In this section we need that each non-zero `y : R` has an inverse in
+`localization R S`, i.e. that `localization R S` is a field. We satisfy this
+assumption by taking `S = non_zero_divisors R`, so that `localization R
+(non_zero_divisors R) = fraction_ring R`, which is a field because `R` is a domain.
+-/
+
 open_locale classical
 
 instance : zero_ne_one_class (fractional_ideal R (non_zero_divisors R)) :=

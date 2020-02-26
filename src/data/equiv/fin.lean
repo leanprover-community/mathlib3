@@ -66,7 +66,7 @@ def sum_fin_sum_equiv : fin m ⊕ fin n ≃ fin (m + n) :=
     { dsimp, rw [dif_neg H], simp [fin.ext_iff, nat.add_sub_of_le (le_of_not_gt H)] }
   end }
 
-/-- Equivalence betweein `fin m × fin n` and `fin (m * n)` -/
+/-- Equivalence between `fin m × fin n` and `fin (m * n)` -/
 def fin_prod_fin_equiv : fin m × fin n ≃ fin (m * n) :=
 { to_fun := λ x, ⟨x.2.1 + n * x.1.1,
     calc x.2.1 + n * x.1.1 + 1

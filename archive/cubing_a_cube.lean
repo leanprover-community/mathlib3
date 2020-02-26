@@ -108,7 +108,7 @@ by simp [shift_up, cube.tail]
 def unit_cube : cube n :=
 ⟨λ _, 0, 1, by norm_num⟩
 
-@[simp] lemma side_unit_cube {j : fin n} : unit_side j = Ico 0 1 :=
+@[simp] lemma side_unit_cube {j : fin n} : unit_cube.side j = Ico 0 1 :=
 by norm_num [unit_cube, side]
 
 end cube

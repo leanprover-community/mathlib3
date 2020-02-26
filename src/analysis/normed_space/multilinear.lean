@@ -47,7 +47,7 @@ that we should deal with multilinear maps in several variables. The currying/unc
 constructions are based on those in `multilinear.lean`.
 
 From the mathematical point of view, all the results follow from the results on operator norm in
-one variable, by applying them to one variable after the other through curryfication. However, this
+one variable, by applying them to one variable after the other through currying. However, this
 is only well defined when there is an order on the variables (for instance on `fin n`) although
 the final result is independent of the order. While everything could be done following this
 approach, it turns out that direct proofs are easier and more efficient.
@@ -551,7 +551,7 @@ calc
   ∥f (snoc m x)∥ ≤ ∥f∥ * univ.prod (λ(i : fin n.succ), ∥snoc m x i∥) : f.le_op_norm _
   ... = ∥f∥ * univ.prod (λi, ∥m i∥) * ∥x∥ : by { rw prod_univ_cast_succ, simp [mul_assoc] }
 
-/-! #### Left curryfication -/
+/-! #### Left currying -/
 
 /-- Given a continuous linear map `f` from `E 0` to continuous multilinear maps on `n` variables,
 construct the corresponding continuous multilinear map on `n+1` variables obtained by concatenating
@@ -676,7 +676,7 @@ variables {𝕜 E E₂}
   (f : continuous_multilinear_map 𝕜 E E₂) (x : E 0) (v : Π (i : fin n), E i.succ) :
   (continuous_multilinear_curry_left_equiv 𝕜 E E₂).symm f x v = f (cons x v) := rfl
 
-/-! #### Right curryfication -/
+/-! #### Right currying -/
 
 /-- Given a continuous linear map `f` from continuous multilinear maps on `n` variables to
 continuous linear maps on `E 0`, construct the corresponding continuous multilinear map on `n+1`

@@ -80,9 +80,9 @@ not so much), but it gives rise to completely satisfactory theorems.
 With a naïve direct definition, the `n`-th derivative of a function belongs to the space
 `E →L[𝕜] (E →L[𝕜] (E ... F)...)))` where there are n iterations of `E →L[𝕜]`. This space
 may also be seen as the space of continuous multilinear functions on `n` copies of `E` with
-values in `F`, by uncurryfication. This is the point of view that is usually adopted in textbooks,
+values in `F`, by uncurrying. This is the point of view that is usually adopted in textbooks,
 and that we also use. This means that the definition and the first proofs are slightly involved,
-as one has to keep track of the uncurryfication operation. The uncurryfication can be done from the
+as one has to keep track of the uncurrying operation. The uncurrying can be done from the
 left or from the right, amounting to defining the `n+1`-th derivative either as the derivative of
 the `n`-th derivative, or as the `n`-th derivative of the derivative.
 For proofs, it would be more convenient to use the latter approach (from the right),
@@ -559,7 +559,7 @@ variable (𝕜)
 /--
 The `n`-th derivative of a function along a set, defined inductively by saying that the `n+1`-th
 derivative of `f` is the derivative of the `n`-th derivative of `f` along this set, together with
-an uncurryfication step to see it as a multilinear map in `n+1` variables..
+an uncurrying step to see it as a multilinear map in `n+1` variables..
 -/
 noncomputable def iterated_fderiv_within (n : ℕ) (f : E → F) (s : set E) :
   E → (E [×n]→L[𝕜] F) :=
@@ -583,7 +583,7 @@ lemma iterated_fderiv_within_succ_apply_left {n : ℕ} (m : fin (n+1) → E):
   (iterated_fderiv_within 𝕜 (n+1) f s x : (fin (n+1) → E) → F) m
   = (fderiv_within 𝕜 (iterated_fderiv_within 𝕜 n f s) s x : E → (E [×n]→L[𝕜] F)) (m 0) (tail m) := rfl
 
-/-- Writing explicitly the `n+1`-th derivative as the composition of a curryfication linear equiv,
+/-- Writing explicitly the `n+1`-th derivative as the composition of a currying linear equiv,
 and the derivative of the `n`-th derivative. -/
 lemma iterated_fderiv_within_succ_eq_comp_left {n : ℕ} :
   iterated_fderiv_within 𝕜 (n+1) f s =
@@ -621,7 +621,7 @@ begin
       by { rw [iterated_fderiv_within_succ_apply_left, tail_init_eq_init_tail], refl } }
 end
 
-/-- Writing explicitly the `n+1`-th derivative as the composition of a curryfication linear equiv,
+/-- Writing explicitly the `n+1`-th derivative as the composition of a currying linear equiv,
 and the `n`-th derivative of the derivative. -/
 lemma iterated_fderiv_within_succ_eq_comp_right {n : ℕ} (hs : unique_diff_on 𝕜 s) (hx : x ∈ s) :
   iterated_fderiv_within 𝕜 (n+1) f s x =
@@ -1066,7 +1066,7 @@ lemma iterated_fderiv_succ_apply_left {n : ℕ} (m : fin (n+1) → E):
   (iterated_fderiv 𝕜 (n+1) f x : (fin (n+1) → E) → F) m
   = (fderiv 𝕜 (iterated_fderiv 𝕜 n f) x : E → (E [×n]→L[𝕜] F)) (m 0) (tail m) := rfl
 
-/-- Writing explicitly the `n+1`-th derivative as the composition of a curryfication linear equiv,
+/-- Writing explicitly the `n+1`-th derivative as the composition of a currying linear equiv,
 and the derivative of the `n`-th derivative. -/
 lemma iterated_fderiv_succ_eq_comp_left {n : ℕ} :
   iterated_fderiv 𝕜 (n+1) f =
@@ -1099,7 +1099,7 @@ begin
   exact iterated_fderiv_within_succ_apply_right unique_diff_on_univ (mem_univ _) _
 end
 
-/-- Writing explicitly the `n+1`-th derivative as the composition of a curryfication linear equiv,
+/-- Writing explicitly the `n+1`-th derivative as the composition of a currying linear equiv,
 and the `n`-th derivative of the derivative. -/
 lemma iterated_fderiv_succ_eq_comp_right {n : ℕ} :
   iterated_fderiv 𝕜 (n+1) f x =

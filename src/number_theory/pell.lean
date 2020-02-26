@@ -18,7 +18,7 @@ section
 
   /-- The Pell sequences, defined together in mutual recursion. -/
   -- TODO(lint): Fix double namespace issue
-  @[nolint] def pell : ℕ → ℕ × ℕ :=
+  @[nolint dup_namespace] def pell : ℕ → ℕ × ℕ :=
   λn, nat.rec_on n (1, 0) (λn xy, (xy.1*a + d*xy.2, xy.1 + xy.2*a))
 
   /-- The Pell `x` sequence. -/

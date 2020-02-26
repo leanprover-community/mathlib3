@@ -185,6 +185,21 @@ where `have h := f h` would result in the state `h : p, h : q ⊢ goal`.
 This can be used to simulate the `specialize` and `apply at` tactics
 of Coq.
 
+## rename_var
+
+`rename_var old new` renames all bound variables named `old` to `new` in the goal.
+`rename_var old new at h` does the same in hypothesis `h`.
+This is meant for teaching bound variables only. Such a renaming should never be relevant to Lean.
+
+```lean
+example (P : ℕ →  ℕ → Prop) (h : ∀ n, ∃ m, P n m) : ∀ l, ∃ m, P l m :=
+begin
+  rename_var n q at h, -- h is now ∀ (q : ℕ), ∃ (m : ℕ), P q m,
+  rename_var m n, -- goal is now ∀ (l : ℕ), ∃ (n : ℕ), P k n,
+  exact h -- Lean does not care about those bound variable names
+end
+```
+
 ## elide/unelide
 
 The `elide n (at ...)` tactic hides all subterms of the target goal or hypotheses
@@ -436,12 +451,12 @@ begin suggest, sorry end
 prints the list,
 
 ```lean
-exact nat.lt.base n
-exact nat.lt_succ_self n
-refine not_le.mp _
-refine gt_iff_lt.mp _
-refine nat.lt.step _
-refine lt_of_not_ge _
+Try this: exact nat.lt.base n
+Try this: exact nat.lt_succ_self n
+Try this: refine not_le.mp _
+Try this: refine gt_iff_lt.mp _
+Try this: refine nat.lt.step _
+Try this: refine lt_of_not_ge _
 ...
 ```
 
@@ -454,7 +469,7 @@ current goal by applying a lemma from the library, then discharging any new goal
 Typical usage is:
 ```
 example (n m k : ℕ) : n * (m - k) = n * m - n * k :=
-by library_search -- exact nat.mul_sub_left_distrib n m k
+by library_search -- Try this: exact nat.mul_sub_left_distrib n m k
 ```
 
 `library_search` prints a trace message showing the proof it found, shown above as a comment.
@@ -836,7 +851,8 @@ with `squeeze_simp`:
 
 ```lean
 example : 0 + 1 = 1 + 0 := by squeeze_simp
--- prints: simp only [add_zero, eq_self_iff_true, zero_add]
+-- prints:
+-- Try this: simp only [add_zero, eq_self_iff_true, zero_add]
 ```
 
 `squeeze_simp` suggests a replacement which we can use instead of
@@ -1187,7 +1203,7 @@ Transforms the goal into its contrapositive.
 This tactic (with shorthand `tauto`) breaks down assumptions of the form `_ ∧ _`, `_ ∨ _`, `_ ↔ _` and `∃ _, _`
 and splits a goal of the form `_ ∧ _`, `_ ↔ _` or `∃ _, _` until it can be discharged
 using `reflexivity` or `solve_by_elim`. This is a finishing tactic: it
-either closes the goal of raises an error.
+either closes the goal or raises an error.
 
 The variants `tautology!` or `tauto!` use the law of excluded middle.
 
@@ -1348,7 +1364,6 @@ end
 
 Although `reassoc_of` is not a tactic or a meta program, its type is generated
 through meta-programming to make it usable inside normal expressions.
-
 
 ## lift
 

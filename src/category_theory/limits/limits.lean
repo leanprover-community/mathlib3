@@ -403,7 +403,7 @@ section limit
 /-- `has_limit F` represents a particular chosen limit of the diagram `F`. -/
 class has_limit (F : J ⥤ C) :=
 (cone : cone F)
-(is_limit : is_limit cone . tactic.apply_instance)
+(is_limit : is_limit cone)
 
 variables (J C)
 
@@ -462,9 +462,9 @@ def limit.cone_morphism {F : J ⥤ C} [has_limit F] (c : cone F) :
 
 @[simp] lemma limit.cone_morphism_hom {F : J ⥤ C} [has_limit F] (c : cone F) :
   (limit.cone_morphism c).hom = limit.lift F c := rfl
-@[simp] lemma limit.cone_morphism_π {F : J ⥤ C} [has_limit F] (c : cone F) (j : J) :
+lemma limit.cone_morphism_π {F : J ⥤ C} [has_limit F] (c : cone F) (j : J) :
   (limit.cone_morphism c).hom ≫ limit.π F j = c.π.app j :=
-by erw is_limit.fac
+by simp
 
 @[ext] lemma limit.hom_ext {F : J ⥤ C} [has_limit F] {X : C} {f f' : X ⟶ limit F}
   (w : ∀ j, f ≫ limit.π F j = f' ≫ limit.π F j) : f = f' :=
@@ -616,16 +616,16 @@ def lim : (J ⥤ C) ⥤ C :=
 
 variables {F} {G : J ⥤ C} (α : F ⟶ G)
 
-@[simp, reassoc] lemma lim.map_π (j : J) : lim.map α ≫ limit.π G j = limit.π F j ≫ α.app j :=
+@[simp, reassoc] lemma limit.map_π (j : J) : lim.map α ≫ limit.π G j = limit.π F j ≫ α.app j :=
 by apply is_limit.fac
 
 @[simp] lemma limit.lift_map (c : cone F) :
   limit.lift F c ≫ lim.map α = limit.lift G ((cones.postcompose α).obj c) :=
-by ext; rw [assoc, lim.map_π, ←assoc, limit.lift_π, limit.lift_π]; refl
+by ext; rw [assoc, limit.map_π, ←assoc, limit.lift_π, limit.lift_π]; refl
 
 lemma limit.map_pre [has_limits_of_shape K C] (E : K ⥤ J) :
   lim.map α ≫ limit.pre G E = limit.pre F E ≫ lim.map (whisker_left E α) :=
-by ext; rw [assoc, limit.pre_π, lim.map_π, assoc, lim.map_π, ←assoc, limit.pre_π]; refl
+by ext; rw [assoc, limit.pre_π, limit.map_π, assoc, limit.map_π, ←assoc, limit.pre_π]; refl
 
 lemma limit.map_pre' [has_limits_of_shape.{v} K C]
   (F : J ⥤ C) {E₁ E₂ : K ⥤ J} (α : E₁ ⟶ E₂) :
@@ -641,8 +641,8 @@ lemma limit.map_post {D : Type u'} [category.{v} D] [has_limits_of_shape J D] (H
   H.map (lim.map α) ≫ limit.post G H = limit.post F H ≫ lim.map (whisker_right α H) :=
 begin
   ext,
-  rw [assoc, limit.post_π, ←H.map_comp, lim.map_π, H.map_comp],
-  rw [assoc, lim.map_π, ←assoc, limit.post_π],
+  rw [assoc, limit.post_π, ←H.map_comp, limit.map_π, H.map_comp],
+  rw [assoc, limit.map_π, ←assoc, limit.post_π],
   refl
 end
 
@@ -664,7 +664,7 @@ section colimit
 /-- `has_colimit F` represents a particular chosen colimit of the diagram `F`. -/
 class has_colimit (F : J ⥤ C) :=
 (cocone : cocone F)
-(is_colimit : is_colimit cocone . tactic.apply_instance)
+(is_colimit : is_colimit cocone)
 
 variables (J C)
 
@@ -733,9 +733,9 @@ def colimit.cocone_morphism {F : J ⥤ C} [has_colimit F] (c : cocone F) :
 
 @[simp] lemma colimit.cocone_morphism_hom {F : J ⥤ C} [has_colimit F] (c : cocone F) :
   (colimit.cocone_morphism c).hom = colimit.desc F c := rfl
-@[simp] lemma colimit.ι_cocone_morphism {F : J ⥤ C} [has_colimit F] (c : cocone F) (j : J) :
+lemma colimit.ι_cocone_morphism {F : J ⥤ C} [has_colimit F] (c : cocone F) (j : J) :
   colimit.ι F j ≫ (colimit.cocone_morphism c).hom = c.ι.app j :=
-by erw is_colimit.fac
+by simp
 
 @[ext] lemma colimit.hom_ext {F : J ⥤ C} [has_colimit F] {X : C} {f f' : colimit F ⟶ X}
   (w : ∀ j, colimit.ι F j ≫ f = colimit.ι F j ≫ f') : f = f' :=
@@ -898,16 +898,16 @@ def colim : (J ⥤ C) ⥤ C :=
 
 variables {F} {G : J ⥤ C} (α : F ⟶ G)
 
-@[simp, reassoc] lemma colim.ι_map (j : J) : colimit.ι F j ≫ colim.map α = α.app j ≫ colimit.ι G j :=
+@[simp, reassoc] lemma colimit.ι_map (j : J) : colimit.ι F j ≫ colim.map α = α.app j ≫ colimit.ι G j :=
 by apply is_colimit.fac
 
 @[simp] lemma colimit.map_desc (c : cocone G) :
   colim.map α ≫ colimit.desc G c = colimit.desc F ((cocones.precompose α).obj c) :=
-by ext; rw [←assoc, colim.ι_map, assoc, colimit.ι_desc, colimit.ι_desc]; refl
+by ext; rw [←assoc, colimit.ι_map, assoc, colimit.ι_desc, colimit.ι_desc]; refl
 
 lemma colimit.pre_map [has_colimits_of_shape K C] (E : K ⥤ J) :
   colimit.pre F E ≫ colim.map α = colim.map (whisker_left E α) ≫ colimit.pre G E :=
-by ext; rw [←assoc, colimit.ι_pre, colim.ι_map, ←assoc, colim.ι_map, assoc, colimit.ι_pre]; refl
+by ext; rw [←assoc, colimit.ι_pre, colimit.ι_map, ←assoc, colimit.ι_map, assoc, colimit.ι_pre]; refl
 
 lemma colimit.pre_map' [has_colimits_of_shape.{v} K C]
   (F : J ⥤ C) {E₁ E₂ : K ⥤ J} (α : E₁ ⟶ E₂) :
@@ -923,8 +923,8 @@ lemma colimit.map_post {D : Type u'} [category.{v} D] [has_colimits_of_shape J D
   colimit.post F H ≫ H.map (colim.map α) = colim.map (whisker_right α H) ≫ colimit.post G H:=
 begin
   ext,
-  rw [←assoc, colimit.ι_post, ←H.map_comp, colim.ι_map, H.map_comp],
-  rw [←assoc, colim.ι_map, assoc, colimit.ι_post],
+  rw [←assoc, colimit.ι_post, ←H.map_comp, colimit.ι_map, H.map_comp],
+  rw [←assoc, colimit.ι_map, assoc, colimit.ι_post],
   refl
 end
 

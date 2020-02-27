@@ -110,6 +110,21 @@ def homeomorph_of_continuous_open (e : α ≃ β) (h₁ : continuous e) (h₂ : 
   end,
   .. e }
 
+lemma comp_continuous_on_iff (h : α ≃ₜ β) (f : γ → α) (s : set γ) :
+  continuous_on (h ∘ f) s ↔ continuous_on f s :=
+begin
+  split,
+  { assume H,
+    have : continuous_on (h.symm ∘ (h ∘ f)) s :=
+      h.symm.continuous.comp_continuous_on H,
+    rwa [← function.comp.assoc h.symm h f, symm_comp_self h] at this },
+  { exact λ H, h.continuous.comp_continuous_on H }
+end
+
+lemma comp_continuous_iff (h : α ≃ₜ β) (f : γ → α) :
+  continuous (h ∘ f) ↔ continuous f :=
+by simp [continuous_iff_continuous_on_univ, comp_continuous_on_iff]
+
 protected lemma quotient_map (h : α ≃ₜ β) : quotient_map h :=
 ⟨h.to_equiv.surjective, h.coinduced_eq.symm⟩
 

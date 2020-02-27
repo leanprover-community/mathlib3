@@ -7,11 +7,6 @@ git remote add nightly "https://$DEPLOY_NIGHTLY_GITHUB_USER:$DEPLOY_NIGHTLY_GITH
 # After this point, we don't use any secrets in commands.
 set -x				# echo commands
 
-# By default, github actions overrides the credentials used to access any
-# github url so that it uses the github-actions[bot] user.  We want to access
-# github using a different username.
-git config --unset http.https://github.com/.extraheader
-
 # The checkout action produces a shallow repository from which we cannot push.
 git fetch --unshallow || true
 
@@ -63,6 +58,6 @@ ls *.tar.gz
 
 # Create a release associated with the tag and upload the tarballs.
 export GITHUB_TOKEN=$DEPLOY_NIGHTLY_GITHUB_TOKEN
-gothub release -u leanprover-community -r mathlib-nightly -t $MATHLIB_VERSION_STRING -d "Mathlib's .olean files and scripts" --pre-release
+gothub release -u leanprover-community -r mathlib-nightly -t $MATHLIB_VERSION_STRING -d "Mathlib's .olean files and scripts"
 gothub upload -u leanprover-community -r mathlib-nightly -t $MATHLIB_VERSION_STRING -n "$(basename $OLEAN_ARCHIVE)" -f "$OLEAN_ARCHIVE"
 gothub upload -u leanprover-community -r mathlib-nightly -t $MATHLIB_VERSION_STRING -n "$(basename $SCRIPT_ARCHIVE)" -f "$SCRIPT_ARCHIVE"

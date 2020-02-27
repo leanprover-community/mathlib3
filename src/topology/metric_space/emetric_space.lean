@@ -415,6 +415,10 @@ instance prod.emetric_space_max [emetric_space β] : emetric_space (α × β) :=
   end,
   to_uniform_space := prod.uniform_space }
 
+lemma prod.edist_eq [emetric_space β] (x y : α × β) :
+  edist x y = max (edist x.1 y.1) (edist x.2 y.2) :=
+rfl
+
 section pi
 open finset
 variables {π : β → Type*} [fintype β]
@@ -528,49 +532,43 @@ by simp [is_open_iff_nhds, mem_nhds_iff]
 theorem is_open_ball : is_open (ball x ε) :=
 is_open_iff.2 $ λ y, exists_ball_subset_ball
 
+theorem is_closed_ball_top : is_closed (ball x ⊤) :=
+is_open_iff.2 $ λ y hy, ⟨⊤, ennreal.coe_lt_top, subset_compl_iff_disjoint.2 $
+  ball_disjoint $ by { rw ennreal.top_add, exact le_of_not_lt hy }⟩
+
 theorem ball_mem_nhds (x : α) {ε : ennreal} (ε0 : 0 < ε) : ball x ε ∈ 𝓝 x :=
 mem_nhds_sets is_open_ball (mem_ball_self ε0)
 
 /-- ε-characterization of the closure in emetric spaces -/
-@[nolint] -- see Note [nolint_ge]
+@[nolint ge_or_gt] -- see Note [nolint_ge]
 theorem mem_closure_iff :
   x ∈ closure s ↔ ∀ε>0, ∃y ∈ s, edist x y < ε :=
 (mem_closure_iff_nhds_basis nhds_basis_eball).trans $
   by simp only [mem_ball, edist_comm x]
 
 theorem tendsto_nhds {f : filter β} {u : β → α} {a : α} :
-  tendsto u f (𝓝 a) ↔ ∀ ε > 0, ∃ n ∈ f, ∀x ∈ n, edist (u x) a < ε :=
-⟨λ H ε ε0, ⟨u⁻¹' (ball a ε), H (ball_mem_nhds _ ε0), by simp⟩,
- λ H s hs,
-  let ⟨ε, ε0, hε⟩ := mem_nhds_iff.1 hs, ⟨δ, δ0, hδ⟩ := H _ ε0 in
-  f.sets_of_superset δ0 (λx xδ, hε (hδ x xδ))⟩
+  tendsto u f (𝓝 a) ↔ ∀ ε > 0, ∀ᶠ x in f, edist (u x) a < ε :=
+nhds_basis_eball.tendsto_right_iff
 
-theorem tendsto_at_top [inhabited β] [semilattice_sup β] (u : β → α) {a : α} :
+theorem tendsto_at_top [nonempty β] [semilattice_sup β] (u : β → α) {a : α} :
   tendsto u at_top (𝓝 a) ↔ ∀ε>0, ∃N, ∀n≥N, edist (u n) a < ε :=
-begin
-  rw tendsto_nhds,
-  apply forall_congr,
-  intro ε,
-  apply forall_congr,
-  intro hε,
-  simp,
-  exact ⟨λ ⟨s, ⟨N, hN⟩, hs⟩, ⟨N, λn hn, hs _ (hN _ hn)⟩, λ ⟨N, hN⟩, ⟨{n | n ≥ N}, ⟨⟨N, by simp⟩, hN⟩⟩⟩,
-end
+(at_top_basis.tendsto_iff nhds_basis_eball).trans $
+  by simp only [exists_prop, true_and, mem_Ici, mem_ball]
 
 /-- In an emetric space, Cauchy sequences are characterized by the fact that, eventually,
 the edistance between its elements is arbitrarily small -/
-theorem cauchy_seq_iff [inhabited β] [semilattice_sup β] {u : β → α} :
+theorem cauchy_seq_iff [nonempty β] [semilattice_sup β] {u : β → α} :
   cauchy_seq u ↔ ∀ε>0, ∃N, ∀m n≥N, edist (u m) (u n) < ε :=
 uniformity_basis_edist.cauchy_seq_iff
 
 /-- A variation around the emetric characterization of Cauchy sequences -/
-theorem cauchy_seq_iff' [inhabited β] [semilattice_sup β] {u : β → α} :
+theorem cauchy_seq_iff' [nonempty β] [semilattice_sup β] {u : β → α} :
   cauchy_seq u ↔ ∀ε>(0 : ennreal), ∃N, ∀n≥N, edist (u n) (u N) < ε :=
 uniformity_basis_edist.cauchy_seq_iff'
 
 /-- A variation of the emetric characterization of Cauchy sequences that deals with
 `nnreal` upper bounds. -/
-theorem cauchy_seq_iff_nnreal [inhabited β] [semilattice_sup β] {u : β → α} :
+theorem cauchy_seq_iff_nnreal [nonempty β] [semilattice_sup β] {u : β → α} :
   cauchy_seq u ↔ ∀ ε : nnreal, 0 < ε → ∃ N, ∀ n, N ≤ n → edist (u n) (u N) < ε :=
 uniformity_basis_edist_nnreal.cauchy_seq_iff'
 

@@ -5,6 +5,7 @@ Author: Johannes Hölzl, Mario Carneiro
 -/
 
 import data.set.countable data.quot logic.function set_theory.schroeder_bernstein
+import data.fintype.card
 
 /-!
 # Cardinal Numbers

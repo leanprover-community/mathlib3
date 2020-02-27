@@ -247,7 +247,7 @@ def eval_aux : Π {n}, { f : resp n → arity Set.{u} n // ∀ (a b : resp n), r
 /-- An equivalence-respecting function yields an n-ary Set function. -/
 def eval (n) : resp n → arity Set.{u} n := eval_aux.1
 
-@[simp] theorem eval_val {n f x} : (@eval (n+1) f : Set → arity Set n) ⟦x⟧ = eval n (resp.f f x) := rfl
+theorem eval_val {n f x} : (@eval (n+1) f : Set → arity Set n) ⟦x⟧ = eval n (resp.f f x) := rfl
 
 end resp
 
@@ -283,7 +283,7 @@ noncomputable def all_definable : Π {n} (F : arity Set.{u} n), definable n F
       rw @quotient.sound pSet _ _ _ h,
       exact (definable.resp (F ⟦y⟧)).2 },
     exact funext (λq, quotient.induction_on q $ λx,
-      by simp [resp.f]; exact @definable.eq _ (F ⟦x⟧) (I ⟦x⟧))
+      by simp [resp.eval_val, resp.f]; exact @definable.eq _ (F ⟦x⟧) (I ⟦x⟧))
   end
 
 end classical
@@ -294,6 +294,10 @@ open pSet
 def mk : pSet → Set := quotient.mk
 
 @[simp] theorem mk_eq (x : pSet) : @eq Set ⟦x⟧ (mk x) := rfl
+
+@[simp] lemma eval_mk {n f x} :
+  (@resp.eval (n+1) f : Set → arity Set n) (mk x) = resp.eval n (resp.f f x) :=
+rfl
 
 def mem : Set → Set → Prop :=
 quotient.lift₂ pSet.mem

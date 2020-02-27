@@ -209,7 +209,7 @@ instance closeds.compact_space [compact_space α] : compact_space (closeds α) :
   split,
   -- `F` is finite
   { apply @finite_of_finite_image _ _ F (λf, f.val),
-    { apply set.inj_on_of_injective, simp [subtype.val_injective] },
+    { exact subtype.val_injective.inj_on F },
     { refine finite_subset (finite_subsets_of_finite fs) (λb, _),
       simp only [and_imp, set.mem_image, set.mem_set_of_eq, exists_imp_distrib],
       assume x hx hx',
@@ -245,33 +245,17 @@ isometry.uniform_embedding $ λx y, rfl
 
 /-- The range of `nonempty_compacts.to_closeds` is closed in a complete space -/
 lemma nonempty_compacts.is_closed_in_closeds [complete_space α] :
-  is_closed (nonempty_compacts.to_closeds '' (univ : set (nonempty_compacts α))) :=
+  is_closed (range $ @nonempty_compacts.to_closeds α _ _) :=
 begin
-  have : nonempty_compacts.to_closeds '' univ = {s : closeds α | s.val.nonempty ∧ compact s.val},
-  { ext,
-    simp only [set.image_univ, set.mem_range, ne.def, set.mem_set_of_eq],
-    split,
-    { rintros ⟨y, hy⟩,
-      have : x.val = y.val := by rcases hy; simp,
-      rw this,
-      exact y.property },
-    { rintros ⟨hx1, hx2⟩,
-      existsi (⟨x.val, ⟨hx1, hx2⟩⟩ : nonempty_compacts α),
-      apply subtype.eq,
-      refl }},
+  have : range nonempty_compacts.to_closeds = {s : closeds α | s.val.nonempty ∧ compact s.val},
+    from range_inclusion _,
   rw this,
-  refine is_closed_of_closure_subset (λs hs, _),
-  split,
-  { -- take a set set t which is nonempty and at distance at most 1 of s
-    rcases mem_closure_iff.1 hs 1 ennreal.zero_lt_one with ⟨t, ht, Dst⟩,
+  refine is_closed_of_closure_subset (λs hs, ⟨_, _⟩),
+  { -- take a set set t which is nonempty and at a finite distance of s
+    rcases mem_closure_iff.1 hs ⊤ ennreal.coe_lt_top with ⟨t, ht, Dst⟩,
     rw edist_comm at Dst,
-    -- this set t contains a point x
-    rcases ht.1 with ⟨x, hx⟩,
-    -- by the Hausdorff distance control, this point x is at distance at most 1
-    -- of a point y in s
-    rcases exists_edist_lt_of_Hausdorff_edist_lt hx Dst with ⟨y, hy, _⟩,
-    -- this shows that s is not empty
-    exact ⟨_, hy⟩ },
+    -- since `t` is nonempty, so is `s`
+    exact nonempty_of_Hausdorff_edist_ne_top ht.1 (ne_of_lt Dst) },
   { refine compact_iff_totally_bounded_complete.2 ⟨_, is_complete_of_is_closed s.property⟩,
     refine totally_bounded_iff.2 (λε εpos, _),
     -- we have to show that s is covered by finitely many eballs of radius ε
@@ -294,19 +278,17 @@ end
 
 /-- In a complete space, the type of nonempty compact subsets is complete. This follows
 from the same statement for closed subsets -/
-instance nonempty_compacts.complete_space [complete_space α] : complete_space (nonempty_compacts α) :=
-begin
-  apply complete_space_of_is_complete_univ,
-  apply (is_complete_image_iff nonempty_compacts.to_closeds.uniform_embedding).1,
-  apply is_complete_of_is_closed,
-  exact nonempty_compacts.is_closed_in_closeds
-end
+instance nonempty_compacts.complete_space [complete_space α] :
+  complete_space (nonempty_compacts α) :=
+(complete_space_iff_is_complete_range nonempty_compacts.to_closeds.uniform_embedding).2 $
+  is_complete_of_is_closed nonempty_compacts.is_closed_in_closeds
 
 /-- In a compact space, the type of nonempty compact subsets is compact. This follows from
 the same statement for closed subsets -/
 instance nonempty_compacts.compact_space [compact_space α] : compact_space (nonempty_compacts α) :=
 ⟨begin
   rw embedding.compact_iff_compact_image nonempty_compacts.to_closeds.uniform_embedding.embedding,
+  rw [image_univ],
   exact nonempty_compacts.is_closed_in_closeds.compact
 end⟩
 
@@ -333,8 +315,7 @@ begin
         rw ← yx,
         exact hy },
       apply countable_of_injective_of_countable_image _ this,
-      apply inj_on_of_inj_on_of_subset (injective_iff_inj_on_univ.1 subtype.val_injective)
-        (subset_univ _) },
+      apply subtype.val_injective.inj_on },
     { refine subset.antisymm (subset_univ _) (λt ht, mem_closure_iff.2 (λε εpos, _)),
       -- t is a compact nonempty set, that we have to approximate uniformly by a a set in `v`.
       rcases dense εpos with ⟨δ, δpos, δlt⟩,
@@ -418,7 +399,7 @@ lemma nonempty_compacts.dist_eq {x y : nonempty_compacts α} :
 
 lemma lipschitz_inf_dist_set (x : α) :
   lipschitz_with 1 (λ s : nonempty_compacts α, inf_dist x s.val) :=
-lipschitz_with.one_of_le_add $ assume s t,
+lipschitz_with.of_le_add $ assume s t,
 by { rw dist_comm,
   exact inf_dist_le_inf_dist_add_Hausdorff_dist (edist_ne_top t s) }
 
@@ -429,7 +410,7 @@ lemma lipschitz_inf_dist :
 
 lemma uniform_continuous_inf_dist_Hausdorff_dist :
   uniform_continuous (λp : α × (nonempty_compacts α), inf_dist p.1 (p.2).val) :=
-lipschitz_inf_dist.to_uniform_continuous
+lipschitz_inf_dist.uniform_continuous
 
 end --section
 end metric --namespace

@@ -458,12 +458,12 @@ variable (s)
 
 /-- The minimal distance to a set is Lipschitz in point with constant 1 -/
 lemma lipschitz_inf_dist_pt : lipschitz_with 1 (λx, inf_dist x s) :=
-lipschitz_with.one_of_le_add $ λ x y, inf_dist_le_inf_dist_add_dist
+lipschitz_with.of_le_add $ λ x y, inf_dist_le_inf_dist_add_dist
 
 /-- The minimal distance to a set is uniformly continuous in point -/
 lemma uniform_continuous_inf_dist_pt :
   uniform_continuous (λx, inf_dist x s) :=
-(lipschitz_inf_dist_pt s).to_uniform_continuous
+(lipschitz_inf_dist_pt s).uniform_continuous
 
 /-- The minimal distance to a set is continuous in point -/
 lemma continuous_inf_dist_pt : continuous (λx, inf_dist x s) :=

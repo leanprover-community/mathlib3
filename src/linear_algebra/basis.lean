@@ -5,6 +5,7 @@ Authors: Johannes Hölzl, Mario Carneiro, Alexander Bentkamp
 -/
 
 import linear_algebra.basic linear_algebra.finsupp order.zorn
+import data.fintype.card
 
 /-!
 
@@ -182,18 +183,16 @@ begin
     have h_bij : bij_on subtype.val (subtype.val ⁻¹' l.support.to_set : set s) l.support.to_set,
     { apply bij_on.mk,
       { unfold maps_to },
-      { apply set.inj_on_of_injective _ subtype.val_injective },
+      { apply subtype.val_injective.inj_on },
       intros i hi,
-      rw mem_image,
-      use subtype.mk i (((finsupp.mem_supported _ _).1 hl₁ : ↑(l.support) ⊆ s) hi),
-      rw mem_preimage,
-      exact ⟨hi, rfl⟩ },
+      rw [image_preimage_eq_inter_range, subtype.range_val],
+      exact ⟨hi, (finsupp.mem_supported _ _).1 hl₁ hi⟩ },
     show l = 0,
     { apply finsupp.eq_zero_of_comap_domain_eq_zero (subtype.val : s → ι) _ h_bij,
       apply h,
       convert hl₂,
       rw [finsupp.lmap_domain_apply, finsupp.map_domain_comap_domain],
-      apply subtype.val_injective,
+      exact subtype.val_injective,
       rw subtype.range_val,
       exact (finsupp.mem_supported _ _).1 hl₁ } },
   { intros h l hl,
@@ -242,7 +241,7 @@ begin
   have h_bij : bij_on v (v ⁻¹' finset.to_set (l.support)) (finset.to_set (l.support)),
   { apply bij_on.mk,
     { unfold maps_to },
-    { apply set.inj_on_of_injective _ (linear_independent.injective zero_eq_one hv) },
+    { apply (linear_independent.injective zero_eq_one hv).inj_on },
     intros x hx,
     rcases mem_range.1 (((finsupp.mem_supported _ _).1 hl₁ : ↑(l.support) ⊆ range v) hx) with ⟨i, hi⟩,
     rw mem_image,
@@ -399,8 +398,7 @@ begin
       refine span_mono (@supr_le_supr2 (set M) _ _ _ _ _ _),
       rintros ⟨i⟩, exact ⟨i, le_refl _⟩ },
     { change finite (plift.up ⁻¹' s.to_set),
-      exact finite_preimage (inj_on_of_injective _ (assume i j, plift.up.inj))
-        s.finite_to_set } }
+      exact finite_preimage (assume i j _ _, plift.up.inj) s.finite_to_set } }
 end
 
 lemma linear_independent_Union_finite {η : Type*} {ιs : η → Type*}
@@ -807,7 +805,7 @@ lemma constr_smul {ι R M M'} [comm_ring R]
   hv.constr (λb, a • f b) = a • hv.constr f :=
 constr_eq hv $ by simp [constr_basis hv] {contextual := tt}
 
-lemma constr_range [inhabited ι] (hv : is_basis R v) {f : ι  → M'} :
+lemma constr_range [nonempty ι] (hv : is_basis R v) {f : ι  → M'} :
   (hv.constr f).range = span R (range f) :=
 by rw [is_basis.constr, linear_map.range_comp, linear_map.range_comp, is_basis.repr_range,
     finsupp.lmap_domain_supported, ←set.image_univ, ←finsupp.span_eq_map_total, image_id]
@@ -1087,7 +1085,7 @@ assume t, finset.induction_on t
           by rw [span_insert_eq_span hb₁] at hb₃; simpa using hb₃,
         let ⟨u, hust, hsu, eq⟩ := ih _ (by simp [insert_subset, hb₂s, hs']) hst this in
         ⟨u, subset.trans hust $ union_subset_union (subset.refl _) (by simp [subset_insert]),
-          hsu, by rw [finset.union_comm] at hb₂t'; simp [eq, hb₂t', hb₁t, hb₁s']⟩)),
+          hsu, by simp [eq, hb₂t', hb₁t, hb₁s']⟩)),
 begin
   letI := classical.dec_pred (λx, x ∈ s),
   have eq : t.filter (λx, x ∈ s) ∪ t.filter (λx, x ∉ s) = t,

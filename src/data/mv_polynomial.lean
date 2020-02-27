@@ -802,6 +802,9 @@ lemma C_sub : (C (a - a') : mv_polynomial σ α) = C a - C a' := is_ring_hom.map
 
 @[simp] lemma C_neg : (C (-a) : mv_polynomial σ α) = -C a := is_ring_hom.map_neg _
 
+@[simp] lemma coeff_neg (m : σ →₀ ℕ) (p : mv_polynomial σ α) :
+  coeff m (-p) = -coeff m p := finsupp.neg_apply
+
 @[simp] lemma coeff_sub (m : σ →₀ ℕ) (p q : mv_polynomial σ α) :
   coeff m (p - q) = coeff m p - coeff m q := finsupp.sub_apply
 
@@ -937,6 +940,11 @@ eval₂_one _ _
   rename f (p + q) = rename f p + rename f q :=
 eval₂_add _ _
 
+@[simp] lemma rename_neg {α} [comm_ring α]
+  (f : β → γ) (p : mv_polynomial β α) :
+  rename f (-p) = -rename f p :=
+eval₂_neg _ _ _
+
 @[simp] lemma rename_sub {α} [comm_ring α]
   (f : β → γ) (p q : mv_polynomial β α) :
   rename f (p - q) = rename f p - rename f q :=
@@ -1034,6 +1042,34 @@ lemma eval_rename_prodmk (g : δ × γ → α) (d : δ) :
   (rename (prod.mk d) p).eval g = eval (λ i, g (d, i)) p :=
 eval₂_rename_prodmk id _ _ _
 
+end
+
+/-- Every polynomial is a polynomial in finitely many variables. -/
+theorem exists_finset_rename (p : mv_polynomial γ α) :
+  ∃ (s : finset γ) (q : mv_polynomial {x // x ∈ s} α), p = q.rename coe :=
+begin
+  apply induction_on p,
+  { intro r, exact ⟨∅, C r, by rw rename_C⟩ },
+  { rintro p q ⟨s, p, rfl⟩ ⟨t, q, rfl⟩,
+    refine ⟨s ∪ t, ⟨_, _⟩⟩,
+    { exact rename (subtype.map id (finset.subset_union_left s t)) p +
+            rename (subtype.map id (finset.subset_union_right s t)) q },
+    { rw [rename_add, rename_rename, rename_rename], refl } },
+  { rintro p n ⟨s, p, rfl⟩,
+    refine ⟨insert n s, ⟨_, _⟩⟩,
+  { exact rename (subtype.map id (finset.subset_insert n s)) p * X ⟨n, s.mem_insert_self n⟩ },
+    { rw [rename_mul, rename_X, rename_rename], refl } }
+end
+
+/-- Every polynomial is a polynomial in finitely many variables. -/
+theorem exists_fin_rename (p : mv_polynomial γ α) :
+  ∃ (n : ℕ) (f : fin n → γ) (hf : injective f) (q : mv_polynomial (fin n) α), p = q.rename f :=
+begin
+  obtain ⟨s, q, rfl⟩ := exists_finset_rename p,
+  obtain ⟨n, ⟨e⟩⟩ := fintype.exists_equiv_fin {x // x ∈ s},
+  refine ⟨n, coe ∘ e.symm, injective_comp subtype.val_injective e.symm.injective, q.rename e, _⟩,
+  rw [← rename_rename, rename_rename e],
+  simp only [function.comp, equiv.symm_apply_apply, rename_rename]
 end
 
 end rename

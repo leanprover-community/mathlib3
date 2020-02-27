@@ -7,6 +7,7 @@ Finite sets.
 -/
 import logic.function
 import data.nat.basic data.fintype data.set.lattice data.set.function
+import algebra.big_operators
 
 open set lattice function
 
@@ -449,19 +450,14 @@ variables [semilattice_sup α] [nonempty α] {s : set α}
 
 /--A finite set is bounded above.-/
 lemma bdd_above_finite (hs : finite s) : bdd_above s :=
-finite.induction_on hs bdd_above_empty $ λ a s _ _, bdd_above_insert.2
+finite.induction_on hs bdd_above_empty $ λ a s _ _ h, h.insert a
 
 /--A finite union of sets which are all bounded above is still bounded above.-/
 lemma bdd_above_finite_union {I : set β} {S : β → set α} (H : finite I) :
-(bdd_above (⋃i∈I, S i)) ↔ (∀i ∈ I, bdd_above (S i)) :=
-⟨λ (bdd : bdd_above (⋃i∈I, S i)) i (hi : i ∈ I),
-  bdd_above_subset (subset_bUnion_of_mem hi) bdd,
-show (∀i ∈ I, bdd_above (S i)) → (bdd_above (⋃i∈I, S i)), from
+  (bdd_above (⋃i∈I, S i)) ↔ (∀i ∈ I, bdd_above (S i)) :=
 finite.induction_on H
-  (λ _, by rw bUnion_empty; exact bdd_above_empty)
-  (λ x s hn hf IH h, by simp only [
-      set.mem_insert_iff, or_imp_distrib, forall_and_distrib, forall_eq] at h;
-    rw [set.bUnion_insert, bdd_above_union]; exact ⟨h.1, IH h.2⟩)⟩
+  (by simp only [bUnion_empty, bdd_above_empty, ball_empty_iff])
+  (λ a s ha _ hs, by simp only [bUnion_insert, ball_insert_iff, bdd_above_union, hs])
 
 end
 
@@ -471,19 +467,12 @@ variables [semilattice_inf α] [nonempty α] {s : set α}
 
 /--A finite set is bounded below.-/
 lemma bdd_below_finite (hs : finite s) : bdd_below s :=
-finite.induction_on hs bdd_below_empty $ λ a s _ _, bdd_below_insert.2
+finite.induction_on hs bdd_below_empty $ λ a s _ _ h, h.insert a
 
 /--A finite union of sets which are all bounded below is still bounded below.-/
 lemma bdd_below_finite_union {I : set β} {S : β → set α} (H : finite I) :
-(bdd_below (⋃i∈I, S i)) ↔ (∀i ∈ I, bdd_below (S i)) :=
-⟨λ (bdd : bdd_below (⋃i∈I, S i)) i (hi : i ∈ I),
-  bdd_below_subset (subset_bUnion_of_mem hi) bdd,
-show (∀i ∈ I, bdd_below (S i)) → (bdd_below (⋃i∈I, S i)), from
-finite.induction_on H
-  (λ _, by rw bUnion_empty; exact bdd_below_empty)
-  (λ x s hn hf IH h, by simp only [
-      set.mem_insert_iff, or_imp_distrib, forall_and_distrib, forall_eq] at h;
-    rw [set.bUnion_insert, bdd_below_union]; exact ⟨h.1, IH h.2⟩)⟩
+  (bdd_below (⋃i∈I, S i)) ↔ (∀i ∈ I, bdd_below (S i)) :=
+@bdd_above_finite_union (order_dual α) _ _ _ _ _ H
 
 end
 
@@ -507,7 +496,7 @@ by simp [set.ext_iff]
 
 lemma image_preimage [decidable_eq β] (f : α → β) (s : finset β)
   (hf : set.bij_on f (f ⁻¹' s.to_set) s.to_set) :
-  image f (preimage s (set.inj_on_of_bij_on hf)) = s :=
+  image f (preimage s hf.inj_on) = s :=
 finset.coe_inj.1 $
 suffices f '' (f ⁻¹' ↑s) = ↑s, by simpa,
 (set.subset.antisymm (image_preimage_subset _ _) hf.2.2)
@@ -517,33 +506,27 @@ end preimage
 @[to_additive]
 lemma prod_preimage [comm_monoid β] (f : α → γ) (s : finset γ)
   (hf : set.bij_on f (f ⁻¹' ↑s) ↑s) (g : γ → β) :
-  (preimage s (set.inj_on_of_bij_on hf)).prod (g ∘ f) = s.prod g :=
+  (preimage s hf.inj_on).prod (g ∘ f) = s.prod g :=
 by classical;
 calc
-  (preimage s (set.inj_on_of_bij_on hf)).prod (g ∘ f)
-      = (image f (preimage s (set.inj_on_of_bij_on hf))).prod g :
+  (preimage s hf.inj_on).prod (g ∘ f)
+      = (image f (preimage s hf.inj_on)).prod g :
           begin
             rw prod_image,
             intros x hx y hy hxy,
-            apply set.inj_on_of_bij_on hf,
+            apply hf.inj_on,
             repeat { try { rw mem_preimage at hx hy,
                           rw [set.mem_preimage, mem_coe] },
                     assumption },
           end
-  ... = s.prod g : by rw image_preimage
+  ... = s.prod g : by rw [image_preimage]
 
 end finset
 
 lemma fintype.exists_max [fintype α] [nonempty α]
-  {β : Type*} [decidable_linear_order β] (f : α → β) :
+  {β : Type*} [linear_order β] (f : α → β) :
   ∃ x₀ : α, ∀ x, f x ≤ f x₀ :=
 begin
-  obtain ⟨y, hy⟩ : ∃ y, y ∈ (set.range f).to_finset,
-  { haveI := classical.inhabited_of_nonempty ‹nonempty α›,
-    exact ⟨f (default α), set.mem_to_finset.mpr $ set.mem_range_self _⟩ },
-  rcases finset.max_of_mem hy with ⟨y₀, h⟩,
-  rcases set.mem_to_finset.1 (finset.mem_of_max h) with ⟨x₀, rfl⟩,
-  use x₀,
-  intro x,
-  apply finset.le_max_of_mem (set.mem_to_finset.mpr $ set.mem_range_self x) h
+  rcases set.finite_univ.exists_maximal_wrt f _ univ_nonempty with ⟨x, _, hx⟩,
+  exact ⟨x, λ y, (le_total (f x) (f y)).elim (λ h, ge_of_eq $ hx _ trivial h) id⟩
 end

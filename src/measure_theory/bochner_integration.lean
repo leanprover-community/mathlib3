@@ -445,7 +445,7 @@ protected def metric_space : metric_space (α →₁ₛ β) := subtype.metric_sp
 
 local attribute [instance] protected lemma is_add_subgroup : is_add_subgroup
   (λf:α →₁ β, ∃ (s : α →ₛ β), integrable s ∧ ae_eq_fun.mk s s.measurable = f) :=
-{ zero_mem := by { use 0, split, { apply integrable_zero }, { refl } },
+{ zero_mem := ⟨0, integrable_zero _ _, rfl⟩,
   add_mem :=
   begin
     rintros f g ⟨s, hsi, hs⟩ ⟨t, hti, ht⟩,
@@ -1130,20 +1130,15 @@ begin
   rw tendsto_iff_norm_tendsto_zero,
   /- But `0 ≤ ∥∫ a, F n a - ∫ f∥ = ∥∫ a, (F n a - f a) ∥ ≤ ∫ a, ∥F n a - f a∥, and thus we apply the
     sandwich theorem and prove that `∫ a, ∥F n a - f a∥ --> 0` -/
-  have zero_tendsto_zero : tendsto (λn:ℕ, (0 : ℝ)) at_top (𝓝 0) := tendsto_const_nhds,
   have lintegral_norm_tendsto_zero :
     tendsto (λn, ennreal.to_real $ ∫⁻ a, ennreal.of_real ∥F n a - f a∥) at_top (𝓝 0) :=
-  tendsto.comp (tendsto_to_real (zero_ne_top))
+  (tendsto_to_real (zero_ne_top)).comp
     (tendsto_lintegral_norm_of_dominated_convergence
       F_measurable f_measurable bound_integrable h_bound h_lim),
   -- Use the sandwich theorem
-  refine tendsto_of_tendsto_of_tendsto_of_le_of_le zero_tendsto_zero lintegral_norm_tendsto_zero _ _,
-  -- Show `0 ≤ ∥∫ a, F n a - ∫ f∥` for all `n`
-  { simp only [filter.eventually_at_top, norm_nonneg, forall_true_iff, exists_const] },
+  refine squeeze_zero (λ n, norm_nonneg _) _ lintegral_norm_tendsto_zero,
   -- Show `∥∫ a, F n a - ∫ f∥ ≤ ∫ a, ∥F n a - f a∥` for all `n`
-  { simp only [filter.eventually_at_top],
-    use 0,
-    assume n hn,
+  { assume n,
     have h₁ : integrable (F n) := integrable_of_integrable_bound bound_integrable (h_bound _),
     have h₂ : integrable f := integrable_of_dominated_convergence bound_integrable h_bound h_lim,
     rw ← integral_sub (F_measurable _) h₁ f_measurable h₂,

@@ -466,31 +466,31 @@ theorem nhds_within_basis_ball {s : set α} :
   (nhds_within x s).has_basis (λ ε:ℝ, 0 < ε) (λ ε, ball x ε ∩ s) :=
 nhds_within_has_basis nhds_basis_ball s
 
-@[nolint] -- see Note [nolint_ge]
+@[nolint ge_or_gt] -- see Note [nolint_ge]
 theorem mem_nhds_within_iff {t : set α} : s ∈ nhds_within x t ↔ ∃ε>0, ball x ε ∩ t ⊆ s :=
 nhds_within_basis_ball.mem_iff
 
-@[nolint] -- see Note [nolint_ge]
+@[nolint ge_or_gt] -- see Note [nolint_ge]
 theorem tendsto_nhds_within_nhds_within [metric_space β] {t : set β} {f : α → β} {a b} :
   tendsto f (nhds_within a s) (nhds_within b t) ↔
     ∀ ε > 0, ∃ δ > 0, ∀{x:α}, x ∈ s → dist x a < δ → f x ∈ t ∧ dist (f x) b < ε :=
 (nhds_within_basis_ball.tendsto_iff nhds_within_basis_ball).trans $
   by simp only [inter_comm, mem_inter_iff, and_imp, mem_ball]
 
-@[nolint] -- see Note [nolint_ge]
+@[nolint ge_or_gt] -- see Note [nolint_ge]
 theorem tendsto_nhds_within_nhds [metric_space β] {f : α → β} {a b} :
   tendsto f (nhds_within a s) (𝓝 b) ↔
     ∀ ε > 0, ∃ δ > 0, ∀{x:α}, x ∈ s → dist x a < δ → dist (f x) b < ε :=
 by { rw [← nhds_within_univ, tendsto_nhds_within_nhds_within],
   simp only [mem_univ, true_and] }
 
-@[nolint] -- see Note [nolint_ge]
+@[nolint ge_or_gt] -- see Note [nolint_ge]
 theorem tendsto_nhds_nhds [metric_space β] {f : α → β} {a b} :
   tendsto f (𝓝 a) (𝓝 b) ↔
     ∀ ε > 0, ∃ δ > 0, ∀{x:α}, dist x a < δ → dist (f x) b < ε :=
 nhds_basis_ball.tendsto_iff nhds_basis_ball
 
-@[nolint] -- see Note [nolint_ge]
+@[nolint ge_or_gt] -- see Note [nolint_ge]
 theorem continuous_at_iff [metric_space β] {f : α → β} {a : α} :
   continuous_at f a ↔
     ∀ ε > 0, ∃ δ > 0, ∀{x:α}, dist x a < δ → dist (f x) (f a) < ε :=
@@ -543,7 +543,7 @@ begin
     rwa [edist_dist, ennreal.of_real_lt_of_real_iff ε0'] }
 end
 
-@[nolint] -- see Note [nolint_ge]
+@[nolint ge_or_gt] -- see Note [nolint_ge]
 theorem metric.uniformity_edist : 𝓤 α = (⨅ ε>0, principal {p:α×α | edist p.1 p.2 < ε}) :=
 metric.uniformity_basis_edist.eq_binfi
 
@@ -677,6 +677,8 @@ lemma closed_ball_Icc {x r : ℝ} : closed_ball x r = Icc (x-r) (x+r) :=
 by ext y; rw [mem_closed_ball, dist_comm, real.dist_eq,
   abs_sub_le_iff, mem_Icc, ← sub_le_iff_le_add', sub_le]
 
+/-- Special case of the sandwich theorem; see `tendsto_of_tendsto_of_tendsto_of_le_of_le`
+for the general case. -/
 lemma squeeze_zero {α} {f g : α → ℝ} {t₀ : filter α} (hf : ∀t, 0 ≤ f t) (hft : ∀t, f t ≤ g t)
   (g0 : tendsto g t₀ (𝓝 0)) : tendsto f t₀ (𝓝 0) :=
 begin
@@ -689,7 +691,7 @@ theorem metric.uniformity_eq_comap_nhds_zero :
 by { ext s,
   simp [mem_uniformity_dist, (nhds_basis_ball.comap _).mem_iff, subset_def, real.dist_0_eq_abs] }
 
-lemma cauchy_seq_iff_tendsto_dist_at_top_0 [inhabited β] [semilattice_sup β] {u : β → α} :
+lemma cauchy_seq_iff_tendsto_dist_at_top_0 [nonempty β] [semilattice_sup β] {u : β → α} :
   cauchy_seq u ↔ tendsto (λ (n : β × β), dist (u n.1) (u n.2)) at_top (𝓝 0) :=
 by rw [cauchy_seq_iff_tendsto, metric.uniformity_eq_comap_nhds_zero, tendsto_comap_iff,
   prod.map_def]
@@ -697,7 +699,7 @@ by rw [cauchy_seq_iff_tendsto, metric.uniformity_eq_comap_nhds_zero, tendsto_com
 end real
 
 section cauchy_seq
-variables [inhabited β] [semilattice_sup β]
+variables [nonempty β] [semilattice_sup β]
 
 /-- In a metric space, Cauchy sequences are characterized by the fact that, eventually,
 the distance between its elements is arbitrarily small -/
@@ -919,7 +921,7 @@ theorem is_closed_ball : is_closed (closed_ball x ε) :=
 is_closed_le (continuous_dist continuous_id continuous_const) continuous_const
 
 /-- ε-characterization of the closure in metric spaces-/
-@[nolint] -- see Note [nolint_ge]
+@[nolint ge_or_gt] -- see Note [nolint_ge]
 theorem mem_closure_iff {α : Type u} [metric_space α] {s : set α} {a : α} :
   a ∈ closure s ↔ ∀ε>0, ∃b ∈ s, dist a b < ε :=
 (mem_closure_iff_nhds_basis nhds_basis_ball).trans $
@@ -1217,7 +1219,7 @@ variables {x : α} {s t : set α} {r : ℝ}
 ⟨0, by simp⟩
 
 lemma bounded_iff_mem_bounded : bounded s ↔ ∀ x ∈ s, bounded s :=
-⟨λ h _ _, h, λ H, 
+⟨λ h _ _, h, λ H,
   s.eq_empty_or_nonempty.elim
   (λ hs, hs.symm ▸ bounded_empty)
   (λ ⟨x, hx⟩, H x hx)⟩
@@ -1298,7 +1300,8 @@ exists_congr $ λ C, ⟨
 lemma bounded_of_compact_space [compact_space α] : bounded s :=
 compact_univ.bounded.subset (subset_univ _)
 
-/-- In a proper space, a set is compact if and only if it is closed and bounded -/
+/-- The Heine–Borel theorem:
+In a proper space, a set is compact if and only if it is closed and bounded -/
 lemma compact_iff_closed_bounded [proper_space α] :
   compact s ↔ is_closed s ∧ bounded s :=
 ⟨λ h, ⟨closed_of_compact _ h, h.bounded⟩, begin
@@ -1357,10 +1360,12 @@ diam_subsingleton subsingleton_empty
 @[simp] lemma diam_singleton : diam ({x} : set α) = 0 :=
 diam_subsingleton subsingleton_singleton
 
-@[simp] lemma diam_pair : diam ({x, y} : set α) = dist x y :=
+-- Does not work as a simp-lemma, since {x, y} reduces to (insert y {x})
+lemma diam_pair : diam ({x, y} : set α) = dist x y :=
 by simp only [diam, emetric.diam_pair, dist_edist]
 
-@[simp] lemma diam_triple :
+-- Does not work as a simp-lemma, since {x, y} reduces to (insert z (insert y {x}))
+lemma diam_triple :
   metric.diam ({x, y, z} : set α) = max (dist x y) (max (dist y z) (dist x z)) :=
 begin
   simp only [metric.diam, emetric.diam_triple, dist_edist],

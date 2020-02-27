@@ -118,10 +118,10 @@ lemma Inter_subset_Inter2 {s : ι → set α} {t : ι' → set α} (h : ∀ j, �
   (⋂ i, s i) ⊆ (⋂ j, t j) :=
 set.subset_Inter $ λ j, let ⟨i, hi⟩ := h j in Inter_subset_of_subset i hi
 
-theorem Union_const [inhabited ι] (s : set β) : (⋃ i:ι, s) = s :=
+theorem Union_const [nonempty ι] (s : set β) : (⋃ i:ι, s) = s :=
 ext $ by simp
 
-theorem Inter_const [inhabited ι] (s : set β) : (⋂ i:ι, s) = s :=
+theorem Inter_const [nonempty ι] (s : set β) : (⋂ i:ι, s) = s :=
 ext $ by simp
 
 @[simp] -- complete_boolean_algebra
@@ -156,19 +156,19 @@ theorem Inter_inter_distrib (s : ι → set β) (t : ι → set β) :
   (⋂ i, s i ∩ t i) = (⋂ i, s i) ∩ (⋂ i, t i) :=
 ext $ by simp [forall_and_distrib]
 
-theorem union_Union [inhabited ι] (s : set β) (t : ι → set β) :
+theorem union_Union [nonempty ι] (s : set β) (t : ι → set β) :
   s ∪ (⋃ i, t i) = ⋃ i, s ∪ t i :=
 by rw [Union_union_distrib, Union_const]
 
-theorem Union_union [inhabited ι] (s : set β) (t : ι → set β) :
+theorem Union_union [nonempty ι] (s : set β) (t : ι → set β) :
   (⋃ i, t i) ∪ s = ⋃ i, t i ∪ s :=
 by rw [Union_union_distrib, Union_const]
 
-theorem inter_Inter [inhabited ι] (s : set β) (t : ι → set β) :
+theorem inter_Inter [nonempty ι] (s : set β) (t : ι → set β) :
   s ∩ (⋂ i, t i) = ⋂ i, s ∩ t i :=
 by rw [Inter_inter_distrib, Inter_const]
 
-theorem Inter_inter [inhabited ι] (s : set β) (t : ι → set β) :
+theorem Inter_inter [nonempty ι] (s : set β) (t : ι → set β) :
   (⋂ i, t i) ∩ s = ⋂ i, t i ∩ s :=
 by rw [Inter_inter_distrib, Inter_const]
 
@@ -181,7 +181,7 @@ theorem Union_diff (s : set β) (t : ι → set β) :
   (⋃ i, t i) \ s = ⋃ i, t i \ s :=
 Union_inter _ _
 
-theorem diff_Union [inhabited ι] (s : set β) (t : ι → set β) :
+theorem diff_Union [nonempty ι] (s : set β) (t : ι → set β) :
   s \ (⋃ i, t i) = ⋂ i, s \ t i :=
 by rw [diff_eq, compl_Union, inter_Inter]; refl
 
@@ -246,13 +246,12 @@ set.ext $ by simp
 theorem bInter_eq_Inter (s : set α) (t : α → set β) : (⋂ x ∈ s, t x) = (⋂ x : s, t x.1) :=
 set.ext $ by simp
 
-@[simp] theorem bInter_empty (u : α → set β) : (⋂ x ∈ (∅ : set α), u x) = univ :=
+theorem bInter_empty (u : α → set β) : (⋂ x ∈ (∅ : set α), u x) = univ :=
 show (⨅x ∈ (∅ : set α), u x) = ⊤, -- simplifier should be able to rewrite x ∈ ∅ to false.
   from infi_emptyset
 
-@[simp] theorem bInter_univ (u : α → set β) : (⋂ x ∈ @univ α, u x) = ⋂ x, u x :=
+theorem bInter_univ (u : α → set β) : (⋂ x ∈ @univ α, u x) = ⋂ x, u x :=
 infi_univ
-
 
 -- TODO(Jeremy): here is an artifact of the the encoding of bounded intersection:
 -- without dsimp, the next theorem fails to type check, because there is a lambda
@@ -277,10 +276,10 @@ theorem bInter_pair (a b : α) (s : α → set β) :
   (⋂ x ∈ ({a, b} : set α), s x) = s a ∩ s b :=
 by rw insert_of_has_insert; simp [inter_comm]
 
-@[simp] theorem bUnion_empty (s : α → set β) : (⋃ x ∈ (∅ : set α), s x) = ∅ :=
+theorem bUnion_empty (s : α → set β) : (⋃ x ∈ (∅ : set α), s x) = ∅ :=
 supr_emptyset
 
-@[simp] theorem bUnion_univ (s : α → set β) : (⋃ x ∈ @univ α, s x) = ⋃ x, s x :=
+theorem bUnion_univ (s : α → set β) : (⋃ x ∈ @univ α, s x) = ⋃ x, s x :=
 supr_univ
 
 @[simp] theorem bUnion_singleton (a : α) (s : α → set β) : (⋃ x ∈ ({a} : set α), s x) = s a :=
@@ -383,10 +382,10 @@ theorem sInter_union (S T : set (set α)) : ⋂₀ (S ∪ T) = ⋂₀ S ∩ ⋂�
 @[simp] theorem sInter_insert (s : set α) (T : set (set α)) : ⋂₀ (insert s T) = s ∩ ⋂₀ T := Inf_insert
 
 theorem sUnion_pair (s t : set α) : ⋃₀ {s, t} = s ∪ t :=
-(sUnion_insert _ _).trans $ by rw [union_comm, sUnion_singleton]
+Sup_pair
 
 theorem sInter_pair (s t : set α) : ⋂₀ {s, t} = s ∩ t :=
-(sInter_insert _ _).trans $ by rw [inter_comm, sInter_singleton]
+Inf_pair
 
 @[simp] theorem sUnion_image (f : α → set β) (s : set α) : ⋃₀ (f '' s) = ⋃ x ∈ s, f x := Sup_image
 

@@ -293,9 +293,9 @@ do
   end
 
 -- special lemmas to handle the ≥, > and ≠ operators
-@[nolint] private lemma ge_from_le {α} [has_le α] : ∀ (x y : α), x ≥ y ↔ y ≤ x := λ _ _, iff.rfl
-@[nolint] private lemma gt_from_lt {α} [has_lt α] : ∀ (x y : α), x > y ↔ y < x := λ _ _, iff.rfl
-@[nolint] private lemma ne_from_not_eq {α} : ∀ (x y : α), x ≠ y ↔ ¬(x = y) := λ _ _, iff.rfl
+/-@[nolint]-/ private lemma ge_from_le {α} [has_le α] : ∀ (x y : α), x ≥ y ↔ y ≤ x := λ _ _, iff.rfl
+/-@[nolint]-/ private lemma gt_from_lt {α} [has_lt α] : ∀ (x y : α), x > y ↔ y < x := λ _ _, iff.rfl
+/-@[nolint]-/ private lemma ne_from_not_eq {α} : ∀ (x y : α), x ≠ y ↔ ¬(x = y) := λ _ _, iff.rfl
 
 /--
 `mk_cache names` creates a `norm_cast_cache`. It infers the proper `norm_cast` attributes
@@ -321,7 +321,7 @@ Called after the `norm_cast` attribute is applied to a declaration.
 It triggers the classifier to make sure the lemma is a correct `norm_cast` lemma.
 If appropriate, it adds the `push_cast` attribute to the lemma.
 -/
-@[nolint] meta def after_set (attr : thunk norm_cast_attr_ty) (decl : name) (n : ℕ) (b : bool) : tactic unit :=
+/-@[nolint]-/ meta def after_set (attr : thunk norm_cast_attr_ty) (decl : name) (n : ℕ) (b : bool) : tactic unit :=
 do
   e ← mk_const decl,
   ty ← infer_type e,
@@ -412,7 +412,7 @@ An expression of the shape: op (↑(x : α) : γ) (↑(y : β) : γ)
 is rewritten to:            op (↑(↑(x : α) : β) : γ) (↑(y : β) : γ)
 when (↑(↑(x : α) : β) : γ) = (↑(x : α) : γ) can be proven with a squash lemma
 -/
-@[nolint] meta def splitting_procedure (_ : unit) : expr → tactic (unit × expr × expr)
+/-@[nolint]-/ meta def splitting_procedure (_ : unit) : expr → tactic (unit × expr × expr)
 | (app (app op x) y) :=
 ( do
   `(@coe %%α %%δ %%coe1 %%xx) ← return x,
@@ -488,7 +488,7 @@ This is an auxiliary function used in step 2.
 It tries to rewrite an expression using the elim and move lemmas.
 On failure, it calls the splitting procedure heuristic.
 -/
-@[nolint]
+/-@[nolint]-/
 meta def post (s : simp_lemmas) (_ : unit) (e : expr) : tactic (unit × expr × expr) :=
 ( do
   r ← mcond (is_prop e) (return `iff) (return `eq),
@@ -506,7 +506,7 @@ The following auxiliary functions are used to handle numerals.
 
 -- the `unit` argument is required by the `simplify` api.
 /-- if possible, rewrite (n : α) to ((n : ℕ) : α) where n is a numeral and α ≠ ℕ -/
-@[nolint] meta def aux_num_1 (_ : unit) (e : expr) : tactic (unit × expr × expr) :=
+/-@[nolint]-/ meta def aux_num_1 (_ : unit) (e : expr) : tactic (unit × expr × expr) :=
 do
   α ← infer_type e,
   success_if_fail $ is_def_eq α `(ℕ),
@@ -519,7 +519,7 @@ do
 
 -- the `unit` argument is required by the `simplify` api.
 /-- if possible, rewrite (↑n : α) to (n : α) where n is a numeral -/
-@[nolint] meta def aux_num_2 (_ : unit) (e : expr) : tactic (unit × expr × expr) :=
+/-@[nolint]-/ meta def aux_num_2 (_ : unit) (e : expr) : tactic (unit × expr × expr) :=
 do
   `(@coe ℕ %%α %%h1 %%e') ← return e,
   n ← e'.to_num,
@@ -807,3 +807,5 @@ do
   skip
 
 end norm_cast
+
+add_hint_tactic "norm_cast at *"

@@ -143,14 +143,14 @@ by rw [nhds_prod_eq]; exact prod_mem_prod ha hb
 lemma nhds_swap (a : α) (b : β) : 𝓝 (a, b) = (𝓝 (b, a)).map prod.swap :=
 by rw [nhds_prod_eq, filter.prod_comm, nhds_prod_eq]; refl
 
-lemma tendsto_prod_mk_nhds {γ} {a : α} {b : β} {f : filter γ} {ma : γ → α} {mb : γ → β}
+lemma filter.tendsto.prod_mk_nhds {γ} {a : α} {b : β} {f : filter γ} {ma : γ → α} {mb : γ → β}
   (ha : tendsto ma f (𝓝 a)) (hb : tendsto mb f (𝓝 b)) :
   tendsto (λc, (ma c, mb c)) f (𝓝 (a, b)) :=
 by rw [nhds_prod_eq]; exact filter.tendsto.prod_mk ha hb
 
 lemma continuous_at.prod {f : α → β} {g : α → γ} {x : α}
   (hf : continuous_at f x) (hg : continuous_at g x) : continuous_at (λx, (f x, g x)) x :=
-tendsto_prod_mk_nhds hf hg
+hf.prod_mk_nhds hg
 
 lemma prod_generate_from_generate_from_eq {α : Type*} {β : Type*} {s : set (set α)} {t : set (set β)}
   (hs : ⋃₀ s = univ) (ht : ⋃₀ t = univ) :

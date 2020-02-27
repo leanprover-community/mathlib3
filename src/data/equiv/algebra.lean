@@ -615,6 +615,21 @@ begin
   { exact congr_arg equiv.inv_fun h₁ }
 end
 
+/-- If two rings are isomorphic, and the second is an integral domain, then so is the first. -/
+protected lemma is_integral_domain {A : Type u} (B : Type v) [ring A] [ring B]
+  (hB : is_integral_domain B) (e : A ≃+* B) : is_integral_domain A :=
+{ mul_comm := λ x y, have e.symm (e x * e y) = e.symm (e y * e x), by rw hB.mul_comm, by simpa,
+  eq_zero_or_eq_zero_of_mul_eq_zero := λ x y hxy,
+    have e x * e y = 0, by rw [← e.map_mul, hxy, e.map_zero],
+    (hB.eq_zero_or_eq_zero_of_mul_eq_zero _ _ this).imp (λ hx, by simpa using congr_arg e.symm hx)
+      (λ hy, by simpa using congr_arg e.symm hy),
+  zero_ne_one := λ H, hB.zero_ne_one $ by rw [← e.map_zero, ← e.map_one, H] }
+
+/-- If two rings are isomorphic, and the second is an integral domain, then so is the first. -/
+protected def integral_domain {A : Type u} (B : Type v) [ring A] [integral_domain B]
+  (e : A ≃+* B) : integral_domain A :=
+{ .. (‹_› : ring A), .. e.is_integral_domain B (integral_domain.to_is_integral_domain B) }
+
 end ring_equiv
 
 /-- The group of ring automorphisms. -/

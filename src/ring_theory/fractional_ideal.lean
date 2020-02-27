@@ -367,9 +367,15 @@ noncomputable instance fractional_ideal_has_div :
   has_div (fractional_ideal R (non_zero_divisors R)) :=
 ⟨ λ I J, if h : J = 0 then 0 else ⟨I.1 / J.1, fractional_div_of_nonzero h⟩ ⟩
 
+noncomputable instance : has_inv (fractional_ideal R (non_zero_divisors R)) := ⟨λ I, 1 / I⟩
+
 lemma div_nonzero {I J : fractional_ideal R (non_zero_divisors R)} (h : J ≠ 0) :
   (I / J) = ⟨I.1 / J.1, fractional_div_of_nonzero h⟩ :=
 dif_neg h
+
+lemma inv_nonzero {I J : fractional_ideal R (non_zero_divisors R)} (h : I ≠ 0) :
+  I⁻¹ = ⟨(1 : fractional_ideal R _).val / I.1, fractional_div_of_nonzero h⟩ :=
+div_nonzero h
 
 @[simp] lemma div_one {I : fractional_ideal R (non_zero_divisors R)} : I / 1 = I :=
 begin
@@ -384,9 +390,9 @@ begin
     simp [y_eq_y'.symm] }
 end
 
-/-- `1 / I` is the inverse of `I` if `I` has an inverse. -/
+/-- `I⁻¹` is the inverse of `I` if `I` has an inverse. -/
 theorem right_inverse_eq (I J : fractional_ideal R (non_zero_divisors R)) (h : I * J = 1) :
-  J = (1 / I) :=
+  J = I⁻¹ :=
 begin
   have hI : I ≠ 0,
   { intro hI,

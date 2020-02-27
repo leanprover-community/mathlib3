@@ -237,3 +237,100 @@ add_tactic_doc
   decl_names               := [`add_tactic_doc_command, `tactic.add_tactic_doc],
   tags                     := ["documentation"],
   inherit_description_from := `add_tactic_doc_command }
+
+-- add docs to core tactics
+
+add_tactic_doc
+{ name := "cc (congruence closure)",
+  category := doc_category.tactic,
+  decl_names := [`tactic.interactive.cc],
+  description :=
+"The congruence closure tactic `cc` tries to solve the goal by chaining
+equalities from context and applying congruence (ie if `a = b` then `f a = f b`).
+It is a finishing tactic, ie is meant to close
+the current goal, not to make some inconclusive progress.
+A mostly trivial example would be:
+
+```lean
+example (a b c : ℕ) (f : ℕ → ℕ) (h: a = b) (h' : b = c) : f a = f c := by cc
+```
+
+As an example requiring some thinking to do by hand, consider:
+
+```lean
+example (f : ℕ → ℕ) (x : ℕ)
+  (H1 : f (f (f x)) = x) (H2 : f (f (f (f (f x)))) = x) :
+  f x = x :=
+by cc
+```
+
+The tactic works by building an equality matching graph. It's a graph where
+the vertices are terms and they are linked by edges if they are known to
+be equal. Once you've added all the equalities in your context, you take
+the transitive closure of the graph and, for each connected component
+(i.e. equivalence class) you can elect a term that will represent the
+whole class and store proofs that the other elements are equal to it.
+You then take the transitive closure of these equalities under the
+congruence lemmas.
+
+The `cc` implementation in Lean does a few more tricks: for example it
+derives `a=b` from `nat.succ a = nat.succ b`, and `nat.succ a !=
+nat.zero` for any `a`.
+
+* The starting reference point is Nelson, Oppen, [Fast decision procedures based on congruence closure](http://www.cs.colorado.edu/~bec/courses/csci5535-s09/reading/nelson-oppen-congruence.pdf), Journal of the ACM (1980)
+
+* The congruence lemmas for dependent type theory as used in Lean are described in [Congruence closure in intensional type theory](https://leanprover.github.io/papers/congr.pdf) (de Moura, Selsam IJCAR 2016).
+" }
+
+add_tactic_doc
+{ name := "conv",
+  category := doc_category.tactic,
+  decl_names := [`tactic.interactive.conv],
+  description :=
+"`conv {...}` allows the user to perform targeted rewriting on a goal or hypothesis,
+by focusing on particular subexpressions.
+
+See <https://leanprover-community.github.io/mathlib_docs/conv.html> for more details.
+
+Inside `conv` blocks mathlib currently
+additionally provides
+* `erw`,
+* `ring` and `ring2`,
+* `norm_num`,
+* `norm_cast`, and
+* `conv` (within another `conv`).
+
+Using `conv` inside a `conv` block allows the user to return to the previous
+state of the outer `conv` block after it is finished. Thus you can continue
+editing an expression without having to start a new `conv` block and re-scoping
+everything. For example:
+```lean
+example (a b c d : ℕ) (h₁ : b = c) (h₂ : a + c = a + d) : a + b = a + d :=
+by conv {
+  to_lhs,
+  conv {
+    congr, skip,
+    rw h₁,
+  },
+  rw h₂,
+}
+```
+Without `conv` the above example would need to be proved using two successive
+`conv` blocks each beginning with `to_lhs`.
+
+Also, as a shorthand `conv_lhs` and `conv_rhs` are provided, so that
+```lean
+example : 0 + 0 = 0 :=
+begin
+  conv_lhs { simp }
+end
+```
+just means
+```lean
+example : 0 + 0 = 0 :=
+begin
+  conv { to_lhs, simp }
+end
+```
+and likewise for `to_rhs`.
+" }

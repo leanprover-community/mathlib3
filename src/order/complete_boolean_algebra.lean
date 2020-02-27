@@ -92,11 +92,7 @@ end complete_distrib_lattice
 
 @[priority 100] -- see Note [lower instance priority]
 instance [d : complete_distrib_lattice α] : bounded_distrib_lattice α :=
-{ le_sup_inf := assume x y z,
-    calc (x ⊔ y) ⊓ (x ⊔ z) ≤ (⨅ b ∈ ({z, y} : set α), x ⊔ b) :
-        by simp [or_imp_distrib] {contextual := tt}
-      ... = x ⊔ Inf {z, y} : sup_Inf_eq.symm
-      ... = x ⊔ y ⊓ z : by rw insert_of_has_insert; simp,
+{ le_sup_inf := λ x y z, by rw [← Inf_pair, ← Inf_pair, sup_Inf_eq, ← Inf_image, set.image_pair],
   ..d }
 
 section prio

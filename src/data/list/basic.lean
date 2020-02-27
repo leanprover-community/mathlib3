@@ -2,8 +2,6 @@
 Copyright (c) 2014 Parikshit Khanna. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Parikshit Khanna, Jeremy Avigad, Leonardo de Moura, Floris van Doorn, Mario Carneiro
-
-Basic properties of lists.
 -/
 import
   tactic.interactive tactic.mk_iff_of_inductive_prop
@@ -11,6 +9,11 @@ import
   algebra.group order.basic
   data.list.defs data.nat.basic data.option.basic
   data.bool data.prod data.fin
+
+/-!
+# Basic properties of lists
+-/
+
 open function nat
 
 namespace list
@@ -244,7 +247,7 @@ bex.elim h (λ x xal px,
     (assume : x = a, begin rw ←this, left, exact px end)
     (assume : x ∈ l, or.inr (bex.intro x this px)))
 
-@[simp] theorem exists_mem_cons_iff (p : α → Prop) (a : α) (l : list α) :
+theorem exists_mem_cons_iff (p : α → Prop) (a : α) (l : list α) :
   (∃ x ∈ a :: l, p x) ↔ p a ∨ ∃ x ∈ l, p x :=
 iff.intro or_exists_of_exists_mem_cons
   (assume h, or.elim h (exists_mem_cons_of l) exists_mem_cons_of_exists)
@@ -305,12 +308,6 @@ by induction s; intros; contradiction
 
 theorem append_ne_nil_of_ne_nil_right (s t : list α) : t ≠ [] → s ++ t ≠ [] :=
 by induction s; intros; contradiction
-
-theorem append_foldl (f : α → β → α) (a : α) (s t : list β) : foldl f a (s ++ t) = foldl f (foldl f a s) t :=
-by {induction s with b s H generalizing a, refl, simp only [foldl, cons_append], rw H _}
-
-theorem append_foldr (f : α → β → β) (a : β) (s t : list α) : foldr f a (s ++ t) = foldr f (foldr f a t) s :=
-by {induction s with b s H generalizing a, refl, simp only [foldr, cons_append], rw H _}
 
 @[simp] lemma append_eq_nil {p q : list α} : (p ++ q) = [] ↔ p = [] ∧ q = [] :=
 by cases p; simp only [nil_append, cons_append, eq_self_iff_true, true_and, false_and]
@@ -463,24 +460,24 @@ append_bind _ _ _
 
 /- concat -/
 
-@[simp] theorem concat_nil (a : α) : concat [] a = [a] := rfl
+theorem concat_nil (a : α) : concat [] a = [a] := rfl
 
-@[simp] theorem concat_cons (a b : α) (l : list α) : concat (a :: l) b = a :: concat l b := rfl
-
-@[simp] theorem concat_ne_nil (a : α) (l : list α) : concat l a ≠ [] :=
-by induction l; intro h; contradiction
-
-@[simp] theorem concat_append (a : α) (l₁ l₂ : list α) : concat l₁ a ++ l₂ = l₁ ++ a :: l₂ :=
-by induction l₁; simp only [*, cons_append, concat]; split; refl
+theorem concat_cons (a b : α) (l : list α) : concat (a :: l) b = a :: concat l b := rfl
 
 @[simp] theorem concat_eq_append (a : α) (l : list α) : concat l a = l ++ [a] :=
 by induction l; simp only [*, concat]; split; refl
 
-@[simp] theorem length_concat (a : α) (l : list α) : length (concat l a) = succ (length l) :=
+theorem concat_ne_nil (a : α) (l : list α) : concat l a ≠ [] :=
+by simp
+
+theorem concat_append (a : α) (l₁ l₂ : list α) : concat l₁ a ++ l₂ = l₁ ++ a :: l₂ :=
+by simp
+
+theorem length_concat (a : α) (l : list α) : length (concat l a) = succ (length l) :=
 by simp only [concat_eq_append, length_append, length]
 
 theorem append_concat (a : α) (l₁ l₂ : list α) : l₁ ++ concat l₂ a = concat (l₁ ++ l₂) a :=
-by induction l₂ with b l₂ ih; simp only [concat_eq_append, nil_append, cons_append, append_assoc]
+by simp
 
 /- reverse -/
 
@@ -1086,6 +1083,8 @@ end insert_nth
 
 /- map -/
 
+@[simp] lemma map_nil (f : α → β) : map f [] = [] := rfl
+
 lemma map_congr {f g : α → β} : ∀ {l : list α}, (∀ x ∈ l, f x = g x) → map f l = map g l
 | []     _ := rfl
 | (a::l) h := let ⟨h₁, h₂⟩ := forall_mem_cons.1 h in
@@ -1495,6 +1494,9 @@ variables [monoid α] {l l₁ l₂ : list α} {a : α}
 @[simp, to_additive]
 theorem prod_nil : ([] : list α).prod = 1 := rfl
 
+@[to_additive]
+theorem prod_singleton : [a].prod = a := one_mul a
+
 @[simp, to_additive]
 theorem prod_cons : (a::l).prod = a * l.prod :=
 calc (a::l).prod = foldl (*) (a * 1) l : by simp only [list.prod, foldl_cons, one_mul, mul_one]
@@ -1818,7 +1820,7 @@ begin
   { rwa [find_cons_of_neg _ h, iff_true_intro h, true_and] }
 end
 
-@[simp] theorem find_some (H : find p l = some a) : p a :=
+theorem find_some (H : find p l = some a) : p a :=
 begin
   induction l with b l IH, {contradiction},
   by_cases h : p b,
@@ -2131,8 +2133,8 @@ theorem count_singleton (a : α) : count a [a] = 1 := if_pos rfl
 @[simp] theorem count_append (a : α) : ∀ l₁ l₂, count a (l₁ ++ l₂) = count a l₁ + count a l₂ :=
 countp_append
 
-@[simp] theorem count_concat (a : α) (l : list α) : count a (concat l a) = succ (count a l) :=
-by rw [concat_eq_append, count_append, count_singleton]
+theorem count_concat (a : α) (l : list α) : count a (concat l a) = succ (count a l) :=
+by simp [-add_comm]
 
 theorem count_pos {a : α} {l : list α} : 0 < count a l ↔ a ∈ l :=
 by simp only [count, countp_pos, exists_prop, exists_eq_right']
@@ -2167,7 +2169,10 @@ end count
 
 @[simp] theorem suffix_append (l₁ l₂ : list α) : l₂ <:+ l₁ ++ l₂ := ⟨l₁, rfl⟩
 
-@[simp] theorem infix_append (l₁ l₂ l₃ : list α) : l₂ <:+: l₁ ++ l₂ ++ l₃ := ⟨l₁, l₃, rfl⟩
+theorem infix_append (l₁ l₂ l₃ : list α) : l₂ <:+: l₁ ++ l₂ ++ l₃ := ⟨l₁, l₃, rfl⟩
+
+@[simp] theorem infix_append' (l₁ l₂ l₃ : list α) : l₂ <:+: l₁ ++ (l₂ ++ l₃) :=
+by rw ← list.append_assoc; apply infix_append
 
 theorem nil_prefix (l : list α) : [] <+: l := ⟨l, rfl⟩
 
@@ -2179,8 +2184,7 @@ theorem nil_suffix (l : list α) : [] <:+ l := ⟨l, append_nil _⟩
 
 @[simp] theorem suffix_cons (a : α) : ∀ l, l <:+ a :: l := suffix_append [a]
 
-@[simp] theorem prefix_concat (a : α) (l) : l <+: concat l a :=
-by simp only [concat_eq_append, prefix_append]
+theorem prefix_concat (a : α) (l) : l <+: concat l a := by simp
 
 theorem infix_of_prefix {l₁ l₂ : list α} : l₁ <+: l₂ → l₁ <:+: l₂ :=
 λ⟨t, h⟩, ⟨[], t, h⟩
@@ -3399,7 +3403,7 @@ section disjoint
 theorem disjoint.symm {l₁ l₂ : list α} (d : disjoint l₁ l₂) : disjoint l₂ l₁
 | a i₂ i₁ := d i₁ i₂
 
-@[simp] theorem disjoint_comm {l₁ l₂ : list α} : disjoint l₁ l₂ ↔ disjoint l₂ l₁ :=
+theorem disjoint_comm {l₁ l₂ : list α} : disjoint l₁ l₂ ↔ disjoint l₂ l₁ :=
 ⟨disjoint.symm, disjoint.symm⟩
 
 theorem disjoint_left {l₁ l₂ : list α} : disjoint l₁ l₂ ↔ ∀ {a}, a ∈ l₁ → a ∉ l₂ := iff.rfl
@@ -3424,6 +3428,9 @@ disjoint_of_subset_right (list.subset_cons _ _)
 
 @[simp] theorem disjoint_nil_left (l : list α) : disjoint [] l
 | a := (not_mem_nil a).elim
+
+@[simp] theorem disjoint_nil_right (l : list α) : disjoint l [] :=
+by rw disjoint_comm; exact disjoint_nil_left _
 
 @[simp] theorem singleton_disjoint {l : list α} {a : α} : disjoint [a] l ↔ a ∉ l :=
 by simp only [disjoint, mem_singleton, forall_eq]; refl

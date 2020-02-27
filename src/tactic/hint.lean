@@ -3,7 +3,8 @@ Copyright (c) 2020 Scott Morrison. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Scott Morrison
 -/
-import tactic.tidy
+import tactic.solve_by_elim
+import tactic.interactive
 
 namespace tactic
 
@@ -40,16 +41,11 @@ do n ← parser.pexpr,
 add_hint_tactic "refl"
 add_hint_tactic "exact dec_trivial"
 add_hint_tactic "assumption"
-add_hint_tactic "intros1" -- tidy does something better here: it suggests the actual "intros X Y f" string; perhaps add a wrapper?
--- Since `auto_cases` is already a "self-reporting tactic",
--- i.e. a `tactic string` that returns a tactic script,
--- we can just add the attribute:
-attribute [hint_tactic] auto_cases
+add_hint_tactic "intro" -- tidy does something better here: it suggests the actual "intros X Y f" string; perhaps add a wrapper?
 add_hint_tactic "apply_auto_param"
 add_hint_tactic "dsimp at *"
 add_hint_tactic "simp at *" -- TODO hook up to squeeze_simp?
-attribute [hint_tactic] tidy.ext1_wrapper
-add_hint_tactic "fsplit"
+add_hint_tactic "fconstructor"
 add_hint_tactic "injections_and_clear"
 add_hint_tactic "solve_by_elim"
 add_hint_tactic "unfold_coes"
@@ -60,7 +56,7 @@ end hint
 /-- report a list of tactics that can make progress against the current goal -/
 meta def hint : tactic (list string) :=
 do names ← attribute.get_instances `hint_tactic,
-   try_all_sorted (names.reverse.map tidy.name_to_tactic)
+   try_all_sorted (names.reverse.map name_to_tactic)
 
 namespace interactive
 

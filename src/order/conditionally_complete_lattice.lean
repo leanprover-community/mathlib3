@@ -3,8 +3,13 @@ Copyright (c) 2018 Sébastien Gouëzel. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Sébastien Gouëzel
 Adapted from the corresponding theory for complete lattices.
+-/
 
-Theory of conditionally complete lattices.
+import
+  order.lattice order.complete_lattice order.bounds
+  tactic.finish data.set.finite
+/-!
+# Theory of conditionally complete lattices.
 
 A conditionally complete lattice is a lattice in which every non-empty bounded subset s
 has a least upper bound and a greatest lower bound, denoted below by Sup s and Inf s.
@@ -22,9 +27,6 @@ Inf_le is a statement in complete lattices ensuring Inf s ≤ x, while cInf_le i
 statement in conditionally complete lattices with an additional assumption that s is
 bounded below.
 -/
-import
-  order.lattice order.complete_lattice order.bounds
-  tactic.finish data.set.finite
 
 set_option old_structure_cmd true
 
@@ -127,27 +129,49 @@ cSup_le ‹_› (assume (a) (ha : a ∈ s), le_cSup ‹bdd_above t› (h ha))
 theorem cInf_le_cInf (_ : bdd_below t) (_ : s.nonempty) (h : s ⊆ t) : Inf t ≤ Inf s :=
 le_cInf ‹_› (assume (a) (ha : a ∈ s), cInf_le ‹bdd_below t› (h ha))
 
-theorem cSup_le_iff (_ : bdd_above s) (_ : s.nonempty) : Sup s ≤ a ↔ (∀b ∈ s, b ≤ a) :=
-⟨assume (_ : Sup s ≤ a) (b) (_ : b ∈ s),
-  le_trans (le_cSup ‹bdd_above s› ‹b ∈ s›) ‹Sup s ≤ a›,
-  cSup_le ‹_›⟩
+lemma is_lub_cSup (ne : s.nonempty) (H : bdd_above s) : is_lub s (Sup s) :=
+⟨assume x, le_cSup H, assume x, cSup_le ne⟩
 
-theorem le_cInf_iff (_ : bdd_below s) (_ : s.nonempty) : a ≤ Inf s ↔ (∀b ∈ s, a ≤ b) :=
-⟨assume (_ : a ≤ Inf s) (b) (_ : b ∈ s),
-  le_trans ‹a ≤ Inf s› (cInf_le ‹bdd_below s› ‹b ∈ s›),
-  le_cInf ‹_›⟩
+lemma is_glb_cInf (ne : s.nonempty) (H : bdd_below s) : is_glb s (Inf s) :=
+⟨assume x, cInf_le H, assume x, le_cInf ne⟩
+
+-- Use `private lemma` + `alias` to escape `namespace lattice` without closing it
+
+private lemma is_lub.cSup_eq (H : is_lub s a) (ne : s.nonempty) : Sup s = a :=
+(is_lub_cSup ne ⟨a, H.1⟩).unique H
+
+alias is_lub.cSup_eq ← is_lub.cSup_eq
+
+private lemma is_greatest.cSup_eq (H : is_greatest s a) : Sup s = a :=
+H.is_lub.cSup_eq H.nonempty
+
+/-- A greatest element of a set is the supremum of this set. -/
+alias is_greatest.cSup_eq ← is_greatest.cSup_eq
+
+private lemma is_glb.cInf_eq (H : is_glb s a) (ne : s.nonempty) : Inf s = a :=
+(is_glb_cInf ne ⟨a, H.1⟩).unique H
+
+alias is_glb.cInf_eq ← is_glb.cInf_eq
+
+private lemma is_least.cInf_eq (H : is_least s a) : Inf s = a :=
+H.is_glb.cInf_eq H.nonempty
+
+/-- A least element of a set is the infimum of this set. -/
+alias is_least.cInf_eq ← is_least.cInf_eq
+
+theorem cSup_le_iff (hb : bdd_above s) (ne : s.nonempty) : Sup s ≤ a ↔ (∀b ∈ s, b ≤ a) :=
+is_lub_le_iff (is_lub_cSup ne hb)
+
+theorem le_cInf_iff (hb : bdd_below s) (ne : s.nonempty) : a ≤ Inf s ↔ (∀b ∈ s, a ≤ b) :=
+le_is_glb_iff (is_glb_cInf ne hb)
 
 lemma cSup_lower_bounds_eq_cInf {s : set α} (h : bdd_below s) (hs : s.nonempty) :
   Sup (lower_bounds s) = Inf s :=
-le_antisymm
-  (cSup_le h $ assume a ha, le_cInf hs ha)
-  (le_cSup (hs.mono $ λ a ha y hy, hy ha) $ assume x hx, cInf_le h hx)
+(is_lub_cSup h $ hs.mono $ λ x hx y hy, hy hx).unique (is_glb_cInf hs h).is_lub
 
 lemma cInf_upper_bounds_eq_cSup {s : set α} (h : bdd_above s) (hs : s.nonempty) :
   Inf (upper_bounds s) = Sup s :=
-le_antisymm
-  (cInf_le (hs.mono $ assume a ha y hy, hy ha) $ assume x hx, le_cSup h hx)
-  (le_cInf h $ assume a ha, cSup_le hs ha)
+(is_glb_cInf h $ hs.mono $ λ x hx y hy, hy hx).unique (is_lub_cSup hs h).is_glb
 
 /--Introduction rule to prove that b is the supremum of s: it suffices to check that b
 is larger than all elements of s, and that this is not the case of any w<b.-/
@@ -173,20 +197,6 @@ have ¬(b < Inf s) :=
   show false, by finish [lt_irrefl (Inf s)],
 show Inf s = b, by finish
 
-/--When an element a of a set s is larger than all other elements of the set, it is Sup s-/
-theorem cSup_of_mem_of_le (_ : a ∈ s) (_ : ∀w∈s, w ≤ a) : Sup s = a :=
-have bdd_above s := ⟨a, by assumption⟩,
-have A : a ≤ Sup s := le_cSup ‹bdd_above s› ‹a ∈ s›,
-have B : Sup s ≤ a := cSup_le ⟨a, ‹_›⟩ ‹∀w∈s, w ≤ a›,
-le_antisymm B A
-
-/--When an element a of a set s is smaller than all other elements of the set, it is Inf s-/
-theorem cInf_of_mem_of_le (_ : a ∈ s) (_ : ∀w∈s, a ≤ w) : Inf s = a :=
-have bdd_below s := ⟨a, by assumption⟩,
-have A : Inf s ≤ a := cInf_le ‹bdd_below s› ‹a ∈ s›,
-have B : a ≤ Inf s := le_cInf ⟨a, ‹_›⟩ ‹∀w∈s, a ≤ w›,
-le_antisymm A B
-
 /--b < Sup s when there is an element a in s with b < a, when s is bounded above.
 This is essentially an iff, except that the assumptions for the two implications are
 slightly different (one needs boundedness above for one direction, nonemptiness and linear
@@ -200,76 +210,38 @@ This is essentially an iff, except that the assumptions for the two implications
 slightly different (one needs boundedness below for one direction, nonemptiness and linear
 order for the other one), so we formulate separately the two implications, contrary to
 the complete_lattice case.-/
-
 lemma cInf_lt_of_lt (_ : bdd_below s) (_ : a ∈ s) (_ : a < b) : Inf s < b :=
 lt_of_le_of_lt (cInf_le ‹bdd_below s› ‹a ∈ s›) ‹a < b›
 
 /--The supremum of a singleton is the element of the singleton-/
 @[simp] theorem cSup_singleton (a : α) : Sup {a} = a :=
-cSup_of_mem_of_le (mem_singleton a)
-  (λ b hb, set.eq_of_mem_singleton hb ▸ le_refl b)
+is_greatest_singleton.cSup_eq
 
 /--The infimum of a singleton is the element of the singleton-/
 @[simp] theorem cInf_singleton (a : α) : Inf {a} = a :=
-cInf_of_mem_of_le (mem_singleton a)
-  (λ b hb, set.eq_of_mem_singleton hb ▸ le_refl b)
+is_least_singleton.cInf_eq
 
 /--If a set is bounded below and above, and nonempty, its infimum is less than or equal to
 its supremum.-/
-theorem cInf_le_cSup (_ : bdd_below s) (_ : bdd_above s) (_ : s.nonempty) : Inf s ≤ Sup s :=
-let ⟨w, hw⟩ := ‹s.nonempty› in   /-hw : w ∈ s-/
-have Inf s ≤ w := cInf_le ‹bdd_below s› ‹w ∈ s›,
-have w ≤ Sup s := le_cSup ‹bdd_above s› ‹w ∈ s›,
-le_trans ‹Inf s ≤ w› ‹w ≤ Sup s›
+theorem cInf_le_cSup (hb : bdd_below s) (ha : bdd_above s) (ne : s.nonempty) : Inf s ≤ Sup s :=
+is_glb_le_is_lub (is_glb_cInf ne hb) (is_lub_cSup ne ha) ne
 
 /--The sup of a union of two sets is the max of the suprema of each subset, under the assumptions
 that all sets are bounded above and nonempty.-/
-theorem cSup_union (_ : bdd_above s) (sne : s.nonempty) (_ : bdd_above t) (tne : t.nonempty) :
-Sup (s ∪ t) = Sup s ⊔ Sup t :=
-have A : Sup (s ∪ t) ≤ Sup s ⊔ Sup t :=
-  have (s ∪ t).nonempty := sne.inl,
-  have F : ∀b∈ s∪t, b ≤ Sup s ⊔ Sup t :=
-    begin
-      intros,
-      cases H,
-      apply le_trans (le_cSup ‹bdd_above s› ‹b ∈ s›) _, simp only [lattice.le_sup_left],
-      apply le_trans (le_cSup ‹bdd_above t› ‹b ∈ t›) _, simp only [lattice.le_sup_right]
-    end,
-  cSup_le this F,
-have B : Sup s ⊔ Sup t ≤ Sup (s ∪ t) :=
-  have Sup s ≤ Sup (s ∪ t),
-    from cSup_le_cSup (bdd_above_union.2 ⟨‹_›, ‹_›⟩) sne (set.subset_union_left _ _),
-  have Sup t ≤ Sup (s ∪ t),
-    from cSup_le_cSup (bdd_above_union.2 ⟨‹_›, ‹_›⟩) tne (set.subset_union_right _ _),
-  by simp only [lattice.sup_le_iff]; split; assumption,
-le_antisymm A B
+theorem cSup_union (hs : bdd_above s) (sne : s.nonempty) (ht : bdd_above t) (tne : t.nonempty) :
+  Sup (s ∪ t) = Sup s ⊔ Sup t :=
+((is_lub_cSup sne hs).union (is_lub_cSup tne ht)).cSup_eq sne.inl
 
 /--The inf of a union of two sets is the min of the infima of each subset, under the assumptions
 that all sets are bounded below and nonempty.-/
-theorem cInf_union (_ : bdd_below s) (sne : s.nonempty) (_ : bdd_below t) (tne : t.nonempty) :
-Inf (s ∪ t) = Inf s ⊓ Inf t :=
-have A : Inf s ⊓ Inf t ≤ Inf (s ∪ t) :=
-  have (s ∪ t).nonempty, from sne.inl,
-  have F : ∀b∈ s∪t, Inf s ⊓ Inf t ≤ b :=
-    begin
-      intros,
-      cases H,
-      apply le_trans _ (cInf_le ‹bdd_below s› ‹b ∈ s›), simp only [lattice.inf_le_left],
-      apply le_trans _ (cInf_le ‹bdd_below t› ‹b ∈ t›), simp only [lattice.inf_le_right]
-    end,
-  le_cInf this F,
-have B : Inf (s ∪ t) ≤ Inf s ⊓ Inf t  :=
-  have Inf (s ∪ t) ≤ Inf s,
-    from cInf_le_cInf (bdd_below_union.2 ⟨‹_›, ‹_›⟩) sne (set.subset_union_left _ _),
-  have Inf (s ∪ t) ≤ Inf t,
-    from cInf_le_cInf (bdd_below_union.2 ⟨‹_›, ‹_›⟩) tne (set.subset_union_right _ _),
-  by simp only [lattice.le_inf_iff]; split; assumption; assumption,
-le_antisymm B A
+theorem cInf_union (hs : bdd_below s) (sne : s.nonempty) (ht : bdd_below t) (tne : t.nonempty) :
+  Inf (s ∪ t) = Inf s ⊓ Inf t :=
+((is_glb_cInf sne hs).union (is_glb_cInf tne ht)).cInf_eq sne.inl
 
 /--The supremum of an intersection of two sets is bounded by the minimum of the suprema of each
 set, if all sets are bounded above and nonempty.-/
 theorem cSup_inter_le (_ : bdd_above s) (_ : bdd_above t) (hst : (s ∩ t).nonempty) :
-Sup (s ∩ t) ≤ Sup s ⊓ Sup t :=
+  Sup (s ∩ t) ≤ Sup s ⊓ Sup t :=
 begin
   apply cSup_le hst, simp only [lattice.le_inf_iff, and_imp, set.mem_inter_eq], intros b _ _, split,
   apply le_cSup ‹bdd_above s› ‹b ∈ s›,
@@ -288,25 +260,17 @@ end
 
 /-- The supremum of insert a s is the maximum of a and the supremum of s, if s is
 nonempty and bounded above.-/
-theorem cSup_insert (_ : bdd_above s) (sne : s.nonempty) : Sup (insert a s) = a ⊔ Sup s :=
-calc Sup (insert a s)
-        = Sup ({a} ∪ s)   : by rw [insert_eq]
-    ... = Sup {a} ⊔ Sup s : by apply cSup_union _ _ ‹bdd_above s› sne; simp only [ne.def, not_false_iff, set.singleton_nonempty, bdd_above_singleton]
-    ... = a ⊔ Sup s       : by simp only [eq_self_iff_true, lattice.cSup_singleton]
+theorem cSup_insert (hs : bdd_above s) (sne : s.nonempty) : Sup (insert a s) = a ⊔ Sup s :=
+((is_lub_cSup sne hs).insert a).cSup_eq (insert_nonempty a s)
 
 /-- The infimum of insert a s is the minimum of a and the infimum of s, if s is
 nonempty and bounded below.-/
-theorem cInf_insert (_ : bdd_below s) (sne : s.nonempty) : Inf (insert a s) = a ⊓ Inf s :=
-calc Inf (insert a s)
-        = Inf ({a} ∪ s)   : by rw [insert_eq]
-    ... = Inf {a} ⊓ Inf s : by apply cInf_union _ _ ‹bdd_below s› sne; simp only [ne.def, not_false_iff, set.singleton_nonempty, bdd_below_singleton]
-    ... = a ⊓ Inf s       : by simp only [eq_self_iff_true, lattice.cInf_singleton]
+theorem cInf_insert (hs : bdd_below s) (sne : s.nonempty) : Inf (insert a s) = a ⊓ Inf s :=
+((is_glb_cInf sne hs).insert a).cInf_eq (insert_nonempty a s)
 
-@[simp] lemma cInf_interval : Inf {b | a ≤ b} = a :=
-cInf_of_mem_of_le (by simp only [set.mem_set_of_eq]) (λw Hw, by simp only [set.mem_set_of_eq] at Hw; apply Hw)
+@[simp] lemma cInf_Ici : Inf (Ici a) = a := is_least_Ici.cInf_eq
 
-@[simp] lemma cSup_interval : Sup {b | b ≤ a} = a :=
-cSup_of_mem_of_le (by simp only [set.mem_set_of_eq]) (λw Hw, by simp only [set.mem_set_of_eq] at Hw; apply Hw)
+@[simp] lemma cSup_Iic : Sup (Iic a) = a := is_greatest_Iic.cSup_eq
 
 /--The indexed supremum of two functions are comparable if the functions are pointwise comparable-/
 lemma csupr_le_csupr {f g : ι → α} (B : bdd_above (range g)) (H : ∀x, f x ≤ g x) :
@@ -354,27 +318,11 @@ le_cInf (range_nonempty f) (by rwa forall_range_iff)
 lemma cinfi_le {f : ι → α} (H : bdd_below (range f)) {c : ι} : infi f ≤ f c :=
 cInf_le H (mem_range_self _)
 
-lemma is_lub_cSup {s : set α} (ne : s.nonempty) (H : bdd_above s) : is_lub s (Sup s) :=
-⟨assume x, le_cSup H, assume x, cSup_le ne⟩
-
-lemma is_glb_cInf {s : set α} (ne : s.nonempty) (H : bdd_below s) : is_glb s (Inf s) :=
-⟨assume x, cInf_le H, assume x, le_cInf ne⟩
-
 @[simp] theorem cinfi_const [hι : nonempty ι] {a : α} : (⨅ b:ι, a) = a :=
-begin
-  refine hι.elim (λ x, _),
-  refine le_antisymm (@cinfi_le _ _ _ _ _ x) (le_cinfi (λi, _root_.le_refl _)),
-  rw range_const,
-  exact bdd_below_singleton
-end
+by rw [infi, range_const, cInf_singleton]
 
 @[simp] theorem csupr_const [hι : nonempty ι] {a : α} : (⨆ b:ι, a) = a :=
-begin
-  refine hι.elim (λ x, _),
-  refine le_antisymm (csupr_le (λi, _root_.le_refl _)) (@le_csupr _ _ _ (λ b:ι, a) _ x),
-  rw range_const,
-  exact bdd_above_singleton
-end
+by rw [supr, range_const, cSup_singleton]
 
 end conditionally_complete_lattice
 
@@ -586,7 +534,7 @@ let ⟨x, hx⟩ := hs in
 have (⨅a∈s, ↑a : with_top α) ≤ x, from infi_le_of_le x $ infi_le_of_le hx $ _root_.le_refl _,
 let ⟨r, r_eq, hr⟩ := (le_coe_iff _ _).1 this in
 le_antisymm
-  (le_infi $ assume a, le_infi $ assume ha, coe_le_coe.2 $ cInf_le (bdd_below_bot s) ha)
+  (le_infi $ assume a, le_infi $ assume ha, coe_le_coe.2 $ cInf_le (order_bot.bdd_below s) ha)
   begin
     refine (r_eq.symm ▸ coe_le_coe.2 $ le_cInf hs $ assume a has, coe_le_coe.1 $ _),
     refine (r_eq ▸ infi_le_of_le a _),

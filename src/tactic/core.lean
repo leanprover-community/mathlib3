@@ -10,6 +10,7 @@ namespace expr
 open tactic
 
 attribute [derive has_reflect] binder_info
+attribute [derive decidable_eq] binder_info congr_arg_kind
 
 /-- Given an expr `α` representing a type with numeral structure,
 `of_nat α n` creates the `α`-valued numeral expression corresponding to `n`. -/
@@ -111,10 +112,15 @@ end lean.parser
 
 namespace format
 
+/-- `join' [a,b,c]` produces the format object `abc`.
+It differs from `format.join` by using `format.nil` instead of `""` for the empty list. -/
+meta def join' (xs : list format) : format :=
+xs.foldl compose nil
+
 /-- `intercalate x [a, b, c]` produces the format object `a.x.b.x.c`,
 where `.` represents `format.join`. -/
 meta def intercalate (x : format) : list format → format :=
-format.join ∘ list.intersperse x
+join' ∘ list.intersperse x
 
 end format
 
@@ -216,15 +222,6 @@ The type of this local constant is a constant with name `n`, so it is very unlik
 a meaningful expression. -/
 meta def mk_local (n : name) : expr :=
 expr.local_const n n binder_info.default (expr.const n [])
-
-/-- `local_def_value e` returns the value of the expression `e`, assuming that `e` has been defined
-locally using a `let` expression. Otherwise it fails. -/
-meta def local_def_value (e : expr) : tactic expr :=
-do (v,_) ← solve_aux `(true) (do
-         (expr.elet n t v _) ← (revert e >> target)
-           | fail format!"{e} is not a local definition",
-         return v),
-   return v
 
 /-- `pis loc_consts f` is used to create a pi expression whose body is `f`.
 `loc_consts` should be a list of local constants. The function will abstract these local
@@ -352,6 +349,70 @@ do to_remove ← hs.mfilter $ λ h, do {
     replace_target new_t pr },
   to_remove.mmap' (λ h, try (clear h)),
   return (¬ to_remove.empty ∨ goal_simplified)
+
+/-- `revert_after e` reverts all local constants after local constant `e`. -/
+meta def revert_after (e : expr) : tactic ℕ := do
+  l ← local_context,
+  [pos] ← return $ l.indexes_of e | pp e >>= λ s, fail format!"No such local constant {s}",
+  let l := l.drop pos.succ, -- all local hypotheses after `e`
+  revert_lst l
+
+/-- `generalize' e n` generalizes the target with respect to `e`. It creates a new local constant
+  with name `n` of the same type as `e` and replaces all occurrences of `e` by `n`.
+
+  `generalize'` is similar to `generalize` but also succeeds when `e` does not occur in the
+  goal, in which case it just calls `assert`.
+  In contrast to `generalize` it already introduces the generalized variable. -/
+meta def generalize' (e : expr) (n : name) : tactic expr :=
+(generalize e n >> intro1) <|> note n none e
+
+/-! Various tactics related to local definitions (local constants of the form `x : α := t`).
+  We call `t` the value of `x`. -/
+
+/-- `local_def_value e` returns the value of the expression `e`, assuming that `e` has been defined
+  locally using a `let` expression. Otherwise it fails. -/
+meta def local_def_value (e : expr) : tactic expr :=
+pp e >>= λ s, -- running `pp` here, because we cannot access it in the `type_context` monad.
+tactic.unsafe.type_context.run $ do
+  lctx <- tactic.unsafe.type_context.get_local_context,
+  some ldecl <- return $ lctx.get_local_decl e.local_uniq_name |
+    tactic.unsafe.type_context.fail format!"No such hypothesis {s}.",
+  some let_val <- return ldecl.value |
+    tactic.unsafe.type_context.fail format!"Variable {e} is not a local definition.",
+  return let_val
+
+/-- `revert_deps e` reverts all the hypotheses that depend on one of the local
+  constants `e`, including the local definitions that have `e` in their definition.
+  This fixes a bug in `revert_kdeps` that does not revert local definitions for which `e` only
+  appears in the definition. -/
+/- We cannot implement it as `revert e >> intro1`, because that would change the local constant in
+  the context. -/
+meta def revert_deps (e : expr) : tactic ℕ := do
+  n ← revert_kdeps e,
+  l ← local_context,
+  [pos] ← return $ l.indexes_of e,
+  let l := l.drop pos.succ, -- local hypotheses after `e`
+  ls ← l.mfilter $ λ e', try_core (local_def_value e') >>= λ o, return $ o.elim ff $ λ e'',
+    e''.has_local_constant e,
+  n' ← revert_lst ls,
+  return $ n + n'
+
+/-- `is_local_def e` succeeds when `e` is a local definition (a local constant of the form
+  `e : α := t`) and otherwise fails. -/
+meta def is_local_def (e : expr) : tactic unit :=
+retrieve $ do revert e, expr.elet _ _ _ _ ← target, skip
+
+/-- `clear_value e` clears the body of the local definition `e`, changing it into a regular hypothesis.
+  A hypothesis `e : α := t` is changed to `e : α`.
+  This tactic is called `clearbody` in Coq. -/
+meta def clear_value (e : expr) : tactic unit := do
+  n ← revert_after e,
+  is_local_def e <|>
+    pp e >>= λ s, fail format!"Cannot clear the body of {s}. It is not a local definition.",
+  let nm := e.local_pp_name,
+  (generalize' e nm >> clear e) <|>
+    fail format!"Cannot clear the body of {nm}. The resulting goal is not type correct.",
+  intron n
 
 /-- A variant of `simplify_bottom_up`. Given a tactic `post` for rewriting subexpressions,
 `simp_bottom_up post e` tries to rewrite `e` starting at the leaf nodes. Returns the resulting
@@ -1387,6 +1448,22 @@ do e ← get_env,
   since it is expensive to execute `get_mathlib_dir` many times. -/
 meta def is_in_mathlib (n : name) : tactic bool :=
 do ml ← get_mathlib_dir, e ← get_env, return $ e.is_prefix_of_file ml n
+
+/--
+Runs a tactic by name.
+If it is a `tactic string`, return whatever string it returns.
+If it is a `tactic unit`, return the name.
+(This is mostly used in invoking "self-reporting tactics", e.g. by `tidy` and `hint`.)
+-/
+meta def name_to_tactic (n : name) : tactic string :=
+do d ← get_decl n,
+   e ← mk_const n,
+   let t := d.type,
+   if (t =ₐ `(tactic unit)) then
+     (eval_expr (tactic unit) e) >>= (λ t, t >> (name.to_string <$> strip_prefix n))
+   else if (t =ₐ `(tactic string)) then
+     (eval_expr (tactic string) e) >>= (λ t, t)
+   else fail!"name_to_tactic cannot take `{n} as input: its type must be `tactic string` or `tactic unit`"
 
 /-- auxiliary function for apply_under_pis -/
 private meta def apply_under_pis_aux (func arg : pexpr) : ℕ → expr → pexpr

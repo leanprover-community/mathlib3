@@ -407,7 +407,7 @@ begin
   { apply submodule.mul_le.mpr _,
     intros x hx y hy,
     rw [mul_comm],
-    exact mem_div_iff.mpr hy x hx },
+    exact mem_div_iff.mp hy x hx },
   rw [←h],
   apply mul_left_mono I,
   apply submodule.le_div_iff.mpr _,

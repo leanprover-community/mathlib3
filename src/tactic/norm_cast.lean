@@ -6,7 +6,7 @@ Authors: Paul-Nicolas Madelaine
 Normalizing casts inside expressions.
 -/
 
-import tactic.hint tactic.simpa tactic.interactive tactic.converter.interactive
+import tactic.basic tactic.interactive tactic.converter.interactive
 import data.buffer.parser
 
 namespace tactic

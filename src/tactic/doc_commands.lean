@@ -56,10 +56,50 @@ do note_name ← to_expr note_name,
    library_note_attr.set decl_name () tt none
 
 open lean lean.parser interactive
-/-- A command to add library notes. Syntax:
+/--
+A command to add library notes. Syntax:
 ```
 library_note "note id" "note content"
-``` -/
+```
+
+---
+
+At various places in mathlib, we leave implementation notes that are referenced from many other
+files. To keep track of these notes, we use the command `library_note`. This makes it easy to
+retrieve a list of all notes, e.g. for documentation output.
+
+These notes can be referenced in mathlib with the syntax `Note [note id]`.
+Often, these references will be made in code comments (`--`) that won't be displayed in docs.
+If such a reference is made in a doc string or module doc, it will be linked to the corresponding
+note in the doc display.
+
+Syntax:
+```
+library_note "note id" "note message"
+```
+
+An example from `meta.expr`:
+
+```
+library_note "open expressions"
+"Some declarations work with open expressions, i.e. an expr that has free variables.
+Terms will free variables are not well-typed, and one should not use them in tactics like
+`infer_type` or `unify`. You can still do syntactic analysis/manipulation on them.
+The reason for working with open types is for performance: instantiating variables requires
+iterating through the expression. In one performance test `pi_binders` was more than 6x
+quicker than `mk_local_pis` (when applied to the type of all imported declarations 100x)."
+```
+
+This note can be referenced near a usage of `pi_binders`:
+
+
+```
+-- See Note [open expressions]
+/-- behavior of f -/
+def f := pi_binders ...
+```
+
+-/
 @[user_command] meta def library_note (_ : parse (tk "library_note")) : parser unit :=
 do name ← parser.pexpr,
    note ← parser.pexpr,
@@ -86,19 +126,45 @@ meta def doc_category.to_string : doc_category → string
 meta instance : has_to_format doc_category := ⟨↑doc_category.to_string⟩
 
 /-- The information used to generate a tactic doc entry -/
+@[derive has_reflect]
 structure tactic_doc_entry :=
 (name : string)
 (category : doc_category)
 (decl_names : list _root_.name)
 (tags : list string := [])
-(description : string)
+(description : string := "")
+(inherit_description_from : option _root_.name := none)
 
 /-- format a `tactic_doc_entry` -/
 meta def tactic_doc_entry.to_string : tactic_doc_entry → string
-| ⟨name, category, decl_names, tags, description⟩ :=
+| ⟨name, category, decl_names, tags, description, _⟩ :=
 let decl_names := decl_names.map (repr ∘ to_string),
     tags := tags.map repr in
 "{" ++ to_string (format!"\"name\": {repr name}, \"category\": \"{category}\", \"decl_names\":{decl_names}, \"tags\": {tags}, \"description\": {repr description}") ++ "}"
+
+meta instance : has_to_string tactic_doc_entry :=
+⟨tactic_doc_entry.to_string⟩
+
+/-- `update_description_from tde inh_id` replaces the `description` field of `tde` with the
+    doc string of the declaration named `inh_id`. -/
+meta def tactic_doc_entry.update_description_from (tde : tactic_doc_entry) (inh_id : name) :
+  tactic tactic_doc_entry :=
+do ds ← doc_string inh_id <|> fail (to_string inh_id ++ " has no doc string"),
+   return { description := ds .. tde }
+
+/--
+`update_description tde` replaces the `description` field of `tde` with:
+
+* the doc string of `tde.inherit_description_from`, if this field has a value
+* the doc string of the entry in `tde.decl_names`, if this field has length 1
+
+If neither of these conditions are met, it returns `tde`. -/
+meta def tactic_doc_entry.update_description (tde : tactic_doc_entry) : tactic tactic_doc_entry :=
+match tde.inherit_description_from, tde.decl_names with
+| some inh_id, _ := tde.update_description_from inh_id
+| none, [inh_id] := tde.update_description_from inh_id
+| none, _ := return tde
+end
 
 /-- A user attribute `tactic_doc` for tagging decls of type `tactic_doc_entry` for use in doc output -/
 @[user_attribute] meta def tactic_doc_entry_attr : user_attribute :=
@@ -114,76 +180,26 @@ It adds a declaration to the environment with `tde` as its body and tags it with
 If `tde.decl_names` has exactly one entry, and the referenced declaration is missing a doc string,
 it adds `tde.description` as the doc string. -/
 meta def tactic.add_tactic_doc (tde : pexpr) : tactic unit :=
-do tde_expr ← to_expr ``(%%tde : tactic_doc_entry),
-   tde ← eval_expr tactic_doc_entry tde_expr,
+do tde ← to_expr ``(%%tde : tactic_doc_entry) >>= eval_expr tactic_doc_entry,
+   when (tde.description = "" ∧ tde.inherit_description_from.is_none ∧ tde.decl_names.length ≠ 1) $
+     fail "A tactic doc entry must contain either a description or a declaration to inherit a description from",
+   tde ← if tde.description = "" then tde.update_description else return tde,
    let decl_name := tde.name.mk_hashed_name `tactic_doc,
-   add_decl $ mk_definition decl_name [] `(tactic_doc_entry) tde_expr,
-   tactic_doc_entry_attr.set decl_name () tt none,
-   when (tde.decl_names.length = 1) $ do
-     let tac_name := tde.decl_names.head,
-     doc_string tac_name >> skip <|> add_doc_string tac_name tde.description <|> skip
-
-@[user_command] meta def add_tactic_doc_command (_ : parse $ tk "add_tactic_doc") : parser unit :=
-parser.pexpr >>= of_tactic ∘ tactic.add_tactic_doc .
-
-add_tactic_doc
-{ name := "library_note",
-  category := doc_category.cmd,
-  decl_names := [`library_note],
-  tags := ["documentation"],
-  description :=
-"At various places in mathlib, we leave implementation notes that are referenced from many other
-files. To keep track of these notes, we use the command `library_note`. This makes it easy to
-retrieve a list of all notes, e.g. for documentation output.
-
-These notes can be referenced in mathlib with the syntax `Note [note id]`.
-Often, these references will be made in code comments (`--`) that won't be displayed in docs.
-If such a reference is made in a doc string or module doc, it will be linked to the corresponding
-note in the doc display.
-
-Syntax:
-```
-library_note \"note id\" \"note message\"
-```
-
-An example from `meta.expr`:
-
-```
-library_note \"open expressions\"
-\"Some declarations work with open expressions, i.e. an expr that has free variables.
-Terms will free variables are not well-typed, and one should not use them in tactics like
-`infer_type` or `unify`. You can still do syntactic analysis/manipulation on them.
-The reason for working with open types is for performance: instantiating variables requires
-iterating through the expression. In one performance test `pi_binders` was more than 6x
-quicker than `mk_local_pis` (when applied to the type of all imported declarations 100x).\"
-```
-
-This note can be referenced near a usage of `pi_binders`:
+   add_decl $ mk_definition decl_name [] `(tactic_doc_entry) (reflect tde),
+   tactic_doc_entry_attr.set decl_name () tt none
 
 
-```
--- See Note [open expressions]
-/-- behavior of f -/
-def f := pi_binders ...
-```
-" }
-
-add_tactic_doc
-{ name := "add_tactic_doc",
-  category := doc_category.cmd,
-  decl_names := [`add_tactic_doc_command],
-  tags := ["documentation"],
-  description :=
-"A command used to add documentation for a tactic, command, hole command, or attribute.
+/--
+A command used to add documentation for a tactic, command, hole command, or attribute.
 
 Usage: after defining an interactive tactic, command, or attribute, add its documentation as follows.
 ```
 add_tactic_doc
-{ name := \"display name of the tactic\",
+{ name := "display name of the tactic",
   category := cat,
   decl_names := [`dcl_1, dcl_2],
-  tags := [\"tag_1\", \"tag_2\"],
-  description := \"describe what the command does here\"
+  tags := ["tag_1", "tag_2"],
+  description := "describe what the command does here"
 }
 ```
 
@@ -203,4 +219,21 @@ If only one related declaration is listed in `decl_names` and it does not have a
 `description` will be automatically added as its doc string.
 
 Note that providing a badly formed `tactic_doc_entry` to the command can result in strange error messages.
-"  }
+
+-/
+@[user_command] meta def add_tactic_doc_command (_ : parse $ tk "add_tactic_doc") : parser unit :=
+parser.pexpr >>= of_tactic ∘ tactic.add_tactic_doc .
+
+add_tactic_doc
+{ name                     := "library_note",
+  category                 := doc_category.cmd,
+  decl_names               := [`library_note, `tactic.add_library_note],
+  tags                     := ["documentation"],
+  inherit_description_from := `library_note }
+
+add_tactic_doc
+{ name := "add_tactic_doc",
+  category                 := doc_category.cmd,
+  decl_names               := [`add_tactic_doc_command, `tactic.add_tactic_doc],
+  tags                     := ["documentation"],
+  inherit_description_from := `add_tactic_doc_command }

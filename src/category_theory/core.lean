@@ -23,7 +23,7 @@ variables {C : Type u₁} [𝒞 : category.{v₁} C]
 include 𝒞
 
 instance core_category : groupoid.{v₁} (core C) :=
-{ hom  := λ X Y : C, X ≅ Y,
+{ hom  := λ X Y, (of_core X) ≅ (of_core Y),
   inv  := λ X Y f, iso.symm f,
   id   := λ X, iso.refl (of_core X),
   comp := λ X Y Z f g, iso.trans f g }

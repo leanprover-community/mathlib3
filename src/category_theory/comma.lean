@@ -181,7 +181,7 @@ end comma
 omit 𝒜 ℬ
 
 @[derive category]
-def over (X : T) := comma.{v₃ 0 v₃} (𝟭 T) (functor.of.obj X)
+def over (X : T) := comma.{v₃ 0 v₃} (𝟭 T) ((functor.const punit).obj X)
 
 namespace over
 
@@ -244,7 +244,7 @@ end
 end over
 
 @[derive category]
-def under (X : T) := comma.{0 v₃ v₃} (functor.of.obj X) (𝟭 T)
+def under (X : T) := comma.{0 v₃ v₃} ((functor.const punit).obj X) (𝟭 T)
 
 namespace under
 

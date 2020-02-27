@@ -1367,25 +1367,6 @@ apply_nolint finset.powerset_len doc_blame
 apply_nolint finset.strong_induction_on doc_blame
 apply_nolint finset.subtype doc_blame
 
--- data/finsupp.lean
-apply_nolint finsupp.antidiagonal doc_blame
-apply_nolint finsupp.comap_domain doc_blame
-apply_nolint finsupp.curry doc_blame
-apply_nolint finsupp.dom_congr doc_blame
-apply_nolint finsupp.equiv_fun_on_fintype doc_blame
-apply_nolint finsupp.equiv_multiset doc_blame
-apply_nolint finsupp.erase doc_blame
-apply_nolint finsupp.finsupp_prod_equiv doc_blame
-apply_nolint finsupp.frange doc_blame
-apply_nolint finsupp.of_multiset doc_blame
-apply_nolint finsupp.restrict_support_equiv doc_blame
-apply_nolint finsupp.split doc_blame
-apply_nolint finsupp.split_comp doc_blame
-apply_nolint finsupp.split_support doc_blame
-apply_nolint finsupp.to_multiset doc_blame
-apply_nolint finsupp.uncurry doc_blame
-apply_nolint multiset.to_finsupp doc_blame
-
 -- data/fintype.lean
 apply_nolint finset.insert_none doc_blame
 apply_nolint fintype.bij_inv unused_arguments

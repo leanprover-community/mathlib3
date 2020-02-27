@@ -4,7 +4,7 @@ import topology.opens topology.algebra.ring
 
 section
 open topological_space
-variables (G : Type*) [group G] [topological_space G] [topological_group G]
+variables (G : Type*) [group G] [topological_space G]
 
 /-- The type of open subgroups of a topological group. -/
 @[to_additive open_add_subgroup]
@@ -21,7 +21,8 @@ end open_add_subgroup
 
 namespace open_subgroup
 open function lattice topological_space
-variables {G : Type*} [group G] [topological_space G] [topological_group G]
+open_locale topological_space
+variables {G : Type*} [group G] [topological_space G]
 variables {U V : open_subgroup G}
 
 @[to_additive]
@@ -31,7 +32,7 @@ instance : has_mem G (open_subgroup G) := ⟨λ g U, g ∈ (U : set G)⟩
 lemma ext : (U = V) ↔ ((U : set G) = V) :=
 by cases U; cases V; split; intro h; try {congr}; assumption
 
-@[extensionality, to_additive]
+@[ext, to_additive]
 lemma ext' (h : (U : set G) = V) : (U = V) :=
 ext.mpr h
 
@@ -58,7 +59,7 @@ protected lemma mul_mem {g₁ g₂ : G} (h₁ : g₁ ∈ U) (h₂ : g₂ ∈ U) 
   @is_submonoid.mul_mem G _ U _ g₁ g₂ h₁ h₂
 
 @[to_additive]
-lemma mem_nhds_one : (U : set G) ∈ nhds (1 : G) :=
+lemma mem_nhds_one : (U : set G) ∈ 𝓝 (1 : G) :=
 mem_nhds_sets U.is_open U.one_mem
 variable {U}
 
@@ -67,7 +68,7 @@ instance : inhabited (open_subgroup G) :=
 { default := ⟨set.univ, ⟨is_open_univ, by apply_instance⟩⟩ }
 
 @[to_additive]
-lemma is_open_of_nonempty_open_subset {s : set G} [is_subgroup s]
+lemma is_open_of_nonempty_open_subset [topological_monoid G] {s : set G} [is_subgroup s]
   (h : ∃ U : opens G, nonempty U ∧ (U : set G) ⊆ s) :
   is_open s :=
 begin
@@ -84,21 +85,19 @@ begin
     { simp [*, is_subgroup.inv_mem, is_submonoid.mul_mem], },
     convert is_submonoid.mul_mem hu this, simp [mul_assoc] },
   split,
-  { apply continuous_mul continuous_id continuous_const,
-    { exact U.property },
-    { apply_instance } },
-  { erw set.mem_preimage,
+  { exact continuous_id.mul continuous_const _ U.property },
+  { change  x * (x⁻¹ * g) ∈ U,
     convert hg,
     rw [← mul_assoc, mul_right_inv, one_mul] }
 end
 
 @[to_additive is_open_of_open_add_subgroup]
-lemma is_open_of_open_subgroup {s : set G} [is_subgroup s]
+lemma is_open_of_open_subgroup [topological_monoid G] {s : set G} [is_subgroup s]
   (h : ∃ U : open_subgroup G, (U : set G) ⊆ s) : is_open s :=
 is_open_of_nonempty_open_subset $ let ⟨U, hU⟩ := h in ⟨U, ⟨⟨1, U.one_mem⟩⟩, hU⟩
 
 @[to_additive]
-lemma is_closed (U : open_subgroup G) : is_closed (U : set G) :=
+lemma is_closed [topological_monoid G] (U : open_subgroup G) : is_closed (U : set G) :=
 begin
   show is_open (-(U : set G)),
   rw is_open_iff_forall_mem_open,
@@ -117,7 +116,7 @@ begin
 end
 
 section
-variables {H : Type*} [group H] [topological_space H] [topological_group H]
+variables {H : Type*} [group H] [topological_space H]
 
 @[to_additive]
 def prod (U : open_subgroup G) (V : open_subgroup H) : open_subgroup (G × H) :=
@@ -139,7 +138,7 @@ instance : semilattice_inf_top (open_subgroup G) :=
   ..open_subgroup.partial_order }
 
 @[to_additive]
-instance : semilattice_sup_top (open_subgroup G) :=
+instance [topological_monoid G] : semilattice_sup_top (open_subgroup G) :=
 { sup := λ U V,
   { val := group.closure ((U : set G) ∪ V),
     property :=

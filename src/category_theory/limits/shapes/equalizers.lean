@@ -1,10 +1,47 @@
 /-
 Copyright (c) 2018 Scott Morrison. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Authors: Scott Morrison
+Authors: Scott Morrison, Markus Himmel
 -/
 import data.fintype
 import category_theory.limits.limits
+
+/-!
+# Equalizers and coequalizers
+
+This file defines (co)equalizers as special cases of (co)limits.
+
+An equalizer is the categorical generalization of the subobject {a ∈ A | f(a) = g(a)} known
+from abelian groups or modules. It is a limit cone over the diagram formed by `f` and `g`.
+
+A coequalizer is the dual concept.
+
+## Main definitions
+
+* `walking_parallel_pair` is the indexing category used for (co)equalizer_diagrams
+* `parallel_pair` is a functor from `walking_parallel_pair` to our category `C`.
+* a `fork` is a cone over a parallel pair.
+  * there is really only one interesting morphism in a fork: the arrow from the vertex of the fork
+    to the domain of f and g. It is called `fork.ι`.
+* an `equalizer` is now just a `limit (parallel_pair f g)`
+
+Each of these has a dual.
+
+## Main statements
+
+* `equalizer.ι_mono` states that every equalizer map is a monomorphism
+* `is_limit_cone_parallel_pair_self` states that the identity on the domain of `f` is an equalizer
+  of `f` and `f`.
+
+## Implementation notes
+As with the other special shapes in the limits library, all the definitions here are given as
+`abbreviation`s of the general statements for limits, so all the `simp` lemmas and theorems about
+general limits can be used.
+
+## References
+
+* [F. Borceux, *Handbook of Categorical Algebra 1*][borceux-vol1]
+-/
 
 open category_theory
 
@@ -80,6 +117,24 @@ abbreviation cofork (f g : X ⟶ Y) := cocone (parallel_pair f g)
 
 variables {f g : X ⟶ Y}
 
+@[simp] lemma cone_parallel_pair_left (s : cone (parallel_pair f g)) :
+  (s.π).app zero ≫ f = (s.π).app one :=
+by { conv { to_lhs, congr, skip, rw ←parallel_pair_map_left f g }, rw s.w }
+
+@[simp] lemma cone_parallel_pair_right (s : cone (parallel_pair f g)) :
+  (s.π).app zero ≫ g = (s.π).app one :=
+by { conv { to_lhs, congr, skip, rw ←parallel_pair_map_right f g }, rw s.w }
+
+/-- To check whether two maps are equalized by both maps of a fork, it suffices to check it for the
+    first map -/
+lemma cone_parallel_pair_ext (s : cone (parallel_pair f g)) {W : C} {k l : W ⟶ s.X}
+  (h : k ≫ s.π.app zero = l ≫ s.π.app zero) (j : walking_parallel_pair) :
+  k ≫ s.π.app j = l ≫ s.π.app j :=
+match j with
+| zero := h
+| one := by { rw [←cone_parallel_pair_left, ←category.assoc, ←category.assoc], congr, exact h }
+end
+
 attribute [simp] walking_parallel_pair_hom_id
 
 def fork.of_ι {P : C} (ι : P ⟶ X) (w : ι ≫ f = ι ≫ g) : fork f g :=
@@ -108,13 +163,30 @@ def cofork.of_π {P : C} (π : Y ⟶ P) (w : f ≫ π = g ≫ π) : cofork f g :
 
 def fork.ι (t : fork f g) := t.π.app zero
 def cofork.π (t : cofork f g) := t.ι.app one
-def fork.condition (t : fork f g) : (fork.ι t) ≫ f = (fork.ι t) ≫ g :=
+lemma fork.condition (t : fork f g) : (fork.ι t) ≫ f = (fork.ι t) ≫ g :=
 begin
   erw [t.w left, ← t.w right], refl
 end
-def cofork.condition (t : cofork f g) : f ≫ (cofork.π t) = g ≫ (cofork.π t) :=
+lemma cofork.condition (t : cofork f g) : f ≫ (cofork.π t) = g ≫ (cofork.π t) :=
 begin
   erw [t.w left, ← t.w right], refl
+end
+
+section
+local attribute [ext] cone
+
+/-- The fork induced by the ι map of some fork t is the same as t -/
+lemma fork.eq_of_ι_ι (t : fork f g) : t = fork.of_ι (fork.ι t) (fork.condition t) :=
+begin
+  have h : t.π = (fork.of_ι (fork.ι t) (fork.condition t)).π :=
+  begin
+    ext j, cases j,
+    { refl },
+    { rw ←cone_parallel_pair_left, refl }
+  end,
+  tidy
+end
+
 end
 
 def cone.of_fork
@@ -122,12 +194,8 @@ def cone.of_fork
 { X := t.X,
   π :=
   { app := λ X, t.π.app X ≫ eq_to_hom (by tidy),
-    naturality' := λ j j' g,
-    begin
-      cases j; cases j'; cases g; dsimp; simp,
-      erw ← t.w left, refl,
-      erw ← t.w right, refl,
-    end } }.
+    naturality' := λ j j' g, by { cases j; cases j'; cases g; dsimp; simp } } }
+
 def cocone.of_cofork
   {F : walking_parallel_pair.{v} ⥤ C} (t : cofork (F.map left) (F.map right)) : cocone F :=
 { X := t.X,
@@ -136,9 +204,9 @@ def cocone.of_cofork
     naturality' := λ j j' g,
     begin
       cases j; cases j'; cases g; dsimp; simp,
-      erw ← t.w left, refl,
-      erw ← t.w right, refl,
-    end } }.
+      { erw ← t.w left, refl },
+      { erw ← t.w right, refl }
+    end } }
 
 @[simp] lemma cone.of_fork_π
   {F : walking_parallel_pair.{v} ⥤ C} (t : fork (F.map left) (F.map right)) (j) :
@@ -172,7 +240,13 @@ abbreviation equalizer := limit (parallel_pair f g)
 abbreviation equalizer.ι : equalizer f g ⟶ X :=
 limit.π (parallel_pair f g) zero
 
-@[simp, reassoc] lemma equalizer.condition : equalizer.ι f g ≫ f = equalizer.ι f g ≫ g :=
+@[simp] lemma equalizer.ι.fork :
+  fork.ι (limits.limit.cone (parallel_pair f g)) = equalizer.ι f g := rfl
+
+@[simp] lemma equalizer.ι.eq_app_zero :
+  (limit.cone (parallel_pair f g)).π.app zero = equalizer.ι f g := rfl
+
+@[reassoc] lemma equalizer.condition : equalizer.ι f g ≫ f = equalizer.ι f g ≫ g :=
 begin
   erw limit.w (parallel_pair f g) walking_parallel_pair_hom.left,
   erw limit.w (parallel_pair f g) walking_parallel_pair_hom.right
@@ -180,6 +254,55 @@ end
 
 abbreviation equalizer.lift {W : C} (k : W ⟶ X) (h : k ≫ f = k ≫ g) : W ⟶ equalizer f g :=
 limit.lift (parallel_pair f g) (fork.of_ι k h)
+
+/-- Two maps into an equalizer are equal if they are are equal when composed with the equalizer
+    map. -/
+@[ext] lemma equalizer.hom_ext {W : C} {k l : W ⟶ equalizer f g}
+  (h : k ≫ equalizer.ι f g = l ≫ equalizer.ι f g) : k = l :=
+limit.hom_ext $ cone_parallel_pair_ext _ h
+
+/-- An equalizer morphism is a monomorphism -/
+lemma equalizer.ι_mono : mono (equalizer.ι f g) :=
+{ right_cancellation := λ Z h k w, equalizer.hom_ext _ _ w }
+end
+
+/-- The identity determines a cone on the equalizer diagram of f and f -/
+def cone_parallel_pair_self : cone (parallel_pair f f) :=
+{ X := X,
+  π :=
+  { app := λ j, match j with | zero := 𝟙 X | one := f end }}
+
+@[simp] lemma cone_parallel_pair_self_π_app_zero : (cone_parallel_pair_self f).π.app zero = 𝟙 X :=
+rfl
+
+@[simp] lemma cone_parallel_pair_self_X : (cone_parallel_pair_self f).X = X := rfl
+
+/-- The identity on X is an equalizer of (f, f) -/
+def is_limit_cone_parallel_pair_self : is_limit (cone_parallel_pair_self f) :=
+{ lift := λ s, s.π.app zero,
+  fac' := λ s j,
+  match j with
+  | zero := by erw category.comp_id
+  | one := by erw cone_parallel_pair_left
+  end,
+  uniq' := λ s m w, by { convert w zero, erw category.comp_id } }
+
+/-- Every equalizer of (f, f) is an isomorphism -/
+def limit_cone_parallel_pair_self_is_iso (c : cone (parallel_pair f f)) (h : is_limit c) :
+  is_iso (c.π.app zero) :=
+  let c' := cone_parallel_pair_self f,
+    z : c ≅ c' := is_limit.unique_up_to_iso h (is_limit_cone_parallel_pair_self f) in
+  is_iso.of_iso (functor.map_iso cones.forget z)
+
+/-- An equalizer that is an epimorphism is an isomorphism -/
+def epi_limit_cone_parallel_pair_is_iso (c : cone (parallel_pair f g))
+  (h : is_limit c) [epi (c.π.app zero)] : is_iso (c.π.app zero) :=
+begin
+  have t : f = g, from (cancel_epi (c.π.app zero)).1 (fork.condition c),
+  let h₁ := fork.eq_of_ι_ι c,
+  rw h₁ at h,
+  have h₂ : is_limit (fork.of_ι (c.π.app zero) rfl : fork f f), by convert h,
+  exact limit_cone_parallel_pair_self_is_iso f (fork.of_ι (c.π.app zero) rfl) h₂
 end
 
 section
@@ -190,7 +313,7 @@ abbreviation coequalizer := colimit (parallel_pair f g)
 abbreviation coequalizer.π : Y ⟶ coequalizer f g :=
 colimit.ι (parallel_pair f g) one
 
-@[simp, reassoc] lemma coequalizer.condition : f ≫ coequalizer.π f g = g ≫ coequalizer.π f g :=
+@[reassoc] lemma coequalizer.condition : f ≫ coequalizer.π f g = g ≫ coequalizer.π f g :=
 begin
   erw colimit.w (parallel_pair f g) walking_parallel_pair_hom.left,
   erw colimit.w (parallel_pair f g) walking_parallel_pair_hom.right
@@ -202,8 +325,11 @@ end
 
 variables (C)
 
+/-- `has_equalizers` represents a choice of equalizer for every pair of morphisms -/
 class has_equalizers :=
 (has_limits_of_shape : has_limits_of_shape.{v} walking_parallel_pair C)
+
+/-- `has_coequalizers` represents a choice of coequalizer for every pair of morphisms -/
 class has_coequalizers :=
 (has_colimits_of_shape : has_colimits_of_shape.{v} walking_parallel_pair C)
 

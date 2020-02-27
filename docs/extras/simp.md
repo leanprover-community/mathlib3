@@ -1,4 +1,4 @@
-# Simp #
+# Simp
 
 The `simp` tactic works by applying a conditional term rewriting system to try and prove, or at least simplify, your goal. What this basically means is that `simp` is equipped with a list of lemmas (those tagged with the `simp` attribute), many of which are of the form `X = Y` or `X iff Y`, and attempts to match subterms of the goal with the left hand side of a rule, and then replaces the subterm with the right hand side. The system is conditional in the sense that lemmas are allowed to have preconditions (`P -> (X = Y)`) and in these cases it will try and prove the precondition using its simp lemmas before applying `X = Y`.
 
@@ -9,7 +9,7 @@ namespace hidden
 
 definition cong (a b m : ℤ) : Prop := ∃ n : ℤ, b - a = m * n
 
-notation a ` ≡ ` b ` mod ` m  := cong a b m 
+notation a ` ≡ ` b ` mod ` m  := cong a b m
 set_option trace.simplify true
 theorem cong_refl (m : ℤ) : ∀ a : ℤ, a ≡ a mod m :=
 begin
@@ -26,7 +26,7 @@ If you do this exercise you will discover firstly that simp spends a lot of its 
 
 If you only want to see what worked rather than all the things that didn't, you could try `set_option trace.simplify.rewrite true`.
 
-### Simp lemmas
+## Simp lemmas
 
 In case you want to train simp to use certain extra lemmas (for example because they're coming up again and again in your work) you can add new lemmas for yourself. For example in mathlib in `algebra/field.lean` we find the line
 
@@ -47,21 +47,21 @@ This lemma is then added to `simp`'s armoury. Note several things however.
 2) If you are not careful you can add a bad simp lemma of the form `foo x y = [something mentioning foo]` and then `simp` will attempt to rewrite `foo` and then end up with another one, and attempt to rewrite that, and so on. This can be fixed by using `rw` instead of `simp`, or using the config option `{single_pass := tt}`.
 
 
-### When it is unadvisable to use simp
+## When it is unadvisable to use simp
 
 Using `simp` in the middle of proofs is a `simp` anti-pattern, which will produce brittle code. In other words, don't use `simp` in the middle of proofs. Use it to finish proofs. If you really need to simplify a goal in the middle of a proof, then use `simp`, but afterwards cut and paste the goal into your code and write `suffices : (simplified thing), by simpa using this`. This is really important because the behaviour of `simp` changes sometimes, and if you put `simp` in the middle of proofs then your code might randomly stop compiling and it will be hard to figure out why if you didn't write down the exact thing which `simp` used to be reducing your goal to.
 
-### How to use simp better.
+## How to use simp better
 
 Conversely, if you ever manage to close a goal with `simp`, then take a look at the line before you ran `simp`. Could you have run simp one line earlier? How far back did simp start working? Even for goals where you didn't use simp at all -- could you have used `simp` for your last line? What about the last-but one? And so on.
 
 Recall that `simp` lemmas are almost all of the form `X = Y` or `X ↔ Y`. Hence `simp` might work well for such goals. However what about goals of the form `X → Y`? You could try assuming `h : X` and then running either `simpa using h` or `simp {contextual := tt}` to see if Lean can deduce `Y`.
 
-### Simp options.
+## Simp options
 
 The behaviour of `simp` can be tweaked by simp variants and also by passing options to the algorithm. A good place to start is to look at the docstring for simp (write simp in VS Code and hover your mouse over it to see the docstring). Here are some examples, some of which are covered by the docstring and some of whichare not.
 
-1) `simp only [H1, H2, H3]` uses only lemmas `H1`, `H2`, and `H3` rather than `simp`s full collection of lemmas. Whyever might one want to do this in practice? Because sometimes simp simplifies things too much -- it might unfold things that you wanted to keep folded, for example. 
+1) `simp only [H1, H2, H3]` uses only lemmas `H1`, `H2`, and `H3` rather than `simp`s full collection of lemmas. Whyever might one want to do this in practice? Because sometimes simp simplifies things too much -- it might unfold things that you wanted to keep folded, for example.
 
 2) `simp [-X]` stops `simp` from using lemma `X`. One could imagine using this as another solution when one finds `simp` doing more than you would like. Recall from above that `set_option trace.simplify.rewrite true` shows you exactly which lemmas `simp` is using.
 
@@ -89,12 +89,12 @@ The behaviour of `simp` can be tweaked by simp variants and also by passing opti
 (memoize                   := tt)
 ```
 
-We see from the changelog that setting `constructor_eq` to true will reduce equations of the form `X a1 a2... = Y b1 b2...` to false if `X` and `Y` are distinct constructors for the same type, and to `a1 = b1 and a2 = b2 and...` if `X = Y` are the same constructor. Another interesting example is `iota_eqn` : `simp!` is shorthand for `simp {iota_eqn := tt}`. This adds non-trivial equation lemmas generated by the equation/pattern-matching compiler to simp's weaponry. See the changelog for more details. 
+We see from the changelog that setting `constructor_eq` to true will reduce equations of the form `X a1 a2... = Y b1 b2...` to false if `X` and `Y` are distinct constructors for the same type, and to `a1 = b1 and a2 = b2 and...` if `X = Y` are the same constructor. Another interesting example is `iota_eqn` : `simp!` is shorthand for `simp {iota_eqn := tt}`. This adds non-trivial equation lemmas generated by the equation/pattern-matching compiler to simp's weaponry. See the changelog for more details.
 
-### Cutting edge simp facts
+## Cutting edge simp facts
 
 If you want to find out the most recent tweaks to simp, a very good place to look is [the changelog](https://github.com/leanprover/lean/blob/master/doc/changes.md).
 
-### Something that could be added later on:
+## Something that could be added later on
 
 "Re: documentation. If you mention congruence, you could show off simp's support for congruence relations. If you show reflexivity and transitivity for cong, and have congruence lemmas for +, etc., then you can rewrite with congruences as if they were equations."

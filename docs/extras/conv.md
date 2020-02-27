@@ -7,7 +7,7 @@ inside `λ` binders in them, to apply rewriting or simplifying steps.
 This is similar to the conversion tacticals (tactic combinators) found in
 other theorem provers like HOL4, HOL Light or Isabelle.
 
-### Basic navigation and rewriting
+## Basic navigation and rewriting
 
 As a first example, let us prove
 `example (a b c : ℕ) : a * (b * c) = a * (c * b)` (examples in this file
@@ -80,7 +80,7 @@ by funext ; rw zero_add
 All this is also available to rewrite an hypothesis `H` from the local context
 using `conv at H`.
 
-### Pattern matching
+## Pattern matching
 
 Navigation using the above commands can be tedious. One can shortcut it
 using pattern matching as follows:
@@ -125,7 +125,7 @@ example (a b c : ℕ) : (b * c) * (b * c) * (b * c) = (b * c) * (c * b)  * (c * 
 by conv { for (b * c) [2, 3] { rw mul_comm } }
 ```
 
-### Other tactics inside conversion mode
+## Other tactics inside conversion mode
 
 Besides rewriting using `rw`, one can use `simp`, `dsimp`, `change` and `whnf`.
 `change` is a useful tool -- it allows changing a term to something

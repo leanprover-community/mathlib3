@@ -5,6 +5,7 @@ Authors: Yury Kudryashov
 -/
 import category_theory.groupoid
 import category_theory.category.Cat
+import category_theory.single_obj
 
 /-!
 # Category of groupoids
@@ -31,8 +32,11 @@ def Groupoid := bundled groupoid.{v u}
 
 namespace Groupoid
 
+instance : inhabited Groupoid := ⟨bundled.of (single_obj punit)⟩
+
 instance str (C : Groupoid.{v u}) : groupoid.{v u} C.α := C.str
 
+/-- Construct a bundled `Groupoid` from the underlying type and the typeclass. -/
 def of (C : Type u) [groupoid.{v} C] : Groupoid.{v u} := bundled.of C
 
 /-- Category structure on `Groupoid` -/

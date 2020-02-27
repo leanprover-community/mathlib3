@@ -67,8 +67,8 @@ fintype.card_eq_one_iff.2
   ⟨⟨(1 : α), by simp⟩, λ ⟨y, hy⟩, subtype.eq $ is_subgroup.mem_trivial.1 hy⟩
 
 lemma exists_gpow_eq_one (a : α) : ∃i≠0, a ^ (i:ℤ) = 1 :=
-have ¬ injective (λi, a ^ i),
-  from not_injective_int_fintype,
+have ¬ injective (λi:ℤ, a ^ i),
+  from not_injective_infinite_fintype _,
 let ⟨i, j, a_eq, ne⟩ := show ∃(i j : ℤ), a ^ i = a ^ j ∧ i ≠ j,
   by rw [injective] at this; simpa [classical.not_forall] in
 have a ^ (i - j) = 1,
@@ -149,7 +149,7 @@ lemma sum_card_order_of_eq_card_pow_eq_one {n : ℕ} (hn : 0 < n) :
   ((finset.range n.succ).filter (∣ n)).sum (λ m, (finset.univ.filter (λ a : α, order_of a = m)).card)
   = (finset.univ.filter (λ a : α, a ^ n = 1)).card :=
 calc ((finset.range n.succ).filter (∣ n)).sum (λ m, (finset.univ.filter (λ a : α, order_of a = m)).card)
-    = _ : (finset.card_bind (by simp [finset.ext]; cc)).symm
+    = _ : (finset.card_bind (by { intros, apply finset.disjoint_filter.2, cc })).symm
 ... = _ : congr_arg finset.card (finset.ext.2 (begin
   assume a,
   suffices : order_of a ≤ n ∧ order_of a ∣ n ↔ a ^ n = 1,
@@ -347,7 +347,7 @@ calc (univ.filter (λ a : α, a ^ n = 1)).card ≤ (gpowers (g ^ (fintype.card �
   have hm0 : 0 < m, from nat.pos_of_ne_zero
     (λ hm0, (by rw [hm0, mul_zero, fintype.card_eq_zero_iff] at hm; exact hm 1)),
   begin
-    rw [← set.card_fintype_of_finset' _ (λ _, set.mem_to_finset), ← order_eq_card_gpowers,
+    rw [← fintype.card_of_finset' _ (λ _, set.mem_to_finset), ← order_eq_card_gpowers,
       order_of_pow, order_of_eq_card_of_forall_mem_gpowers hg],
     rw [hm] {occs := occurrences.pos [2,3]},
     rw [nat.mul_div_cancel_left _  (gcd_pos_of_pos_left _ hn0), gcd_mul_left_left,
@@ -366,23 +366,23 @@ le_antisymm
   (hn _ (order_of_pos _))
   (calc order_of a = @fintype.card (gpowers a) (id _) : order_eq_card_gpowers
     ... ≤ @fintype.card (↑(univ.filter (λ b : α, b ^ order_of a = 1)) : set α)
-    (set.fintype_of_finset _ (λ _, iff.rfl)) :
+    (fintype.of_finset _ (λ _, iff.rfl)) :
       @fintype.card_le_of_injective (gpowers a) (↑(univ.filter (λ b : α, b ^ order_of a = 1)) : set α)
         (id _) (id _) (λ b, ⟨b.1, mem_filter.2 ⟨mem_univ _,
           let ⟨i, hi⟩ := b.2 in
           by rw [← hi, ← gpow_coe_nat, ← gpow_mul, mul_comm, gpow_mul, gpow_coe_nat,
             pow_order_of_eq_one, one_gpow]⟩⟩) (λ _ _ h, subtype.eq (subtype.mk.inj h))
-    ... = (univ.filter (λ b : α, b ^ order_of a = 1)).card : set.card_fintype_of_finset _ _)
+    ... = (univ.filter (λ b : α, b ^ order_of a = 1)).card : fintype.card_of_finset _ _)
 
 open_locale nat -- use φ for nat.totient
 
 private lemma card_order_of_eq_totient_aux₁ :
   ∀ {d : ℕ}, d ∣ fintype.card α → 0 < (univ.filter (λ a : α, order_of a = d)).card →
   (univ.filter (λ a : α, order_of a = d)).card = φ d
-| 0     := λ hd hd0, absurd hd0 (mt card_pos.1
-  (by simp [finset.ext, nat.pos_iff_ne_zero.1 (order_of_pos _)]))
+| 0     := λ hd hd0,
+let ⟨a, ha⟩ := card_pos.1 hd0 in absurd (mem_filter.1 ha).2 $ ne_of_gt $ order_of_pos a
 | (d+1) := λ hd hd0,
-let ⟨a, ha⟩ := exists_mem_of_ne_empty (card_pos.1 hd0) in
+let ⟨a, ha⟩ := card_pos.1 hd0 in
 have ha : order_of a = d.succ, from (mem_filter.1 ha).2,
 have h : ((range d.succ).filter (∣ d.succ)).sum
     (λ m, (univ.filter (λ a : α, order_of a = m)).card) =
@@ -391,10 +391,9 @@ have h : ((range d.succ).filter (∣ d.succ)).sum
     (λ m hm, have hmd : m < d.succ, from mem_range.1 (mem_filter.1 hm).1,
       have hm : m ∣ d.succ, from (mem_filter.1 hm).2,
       card_order_of_eq_totient_aux₁ (dvd.trans hm hd) (finset.card_pos.2
-        (ne_empty_of_mem (show a ^ (d.succ / m) ∈ _,
-          from mem_filter.2 ⟨mem_univ _,
+        ⟨a ^ (d.succ / m), mem_filter.2 ⟨mem_univ _,
           by rw [order_of_pow, ha, gcd_eq_right (div_dvd_of_dvd hm),
-            nat.div_div_self hm (succ_pos _)]⟩)))),
+            nat.div_div_self hm (succ_pos _)]⟩⟩)),
 have hinsert : insert d.succ ((range d.succ).filter (∣ d.succ))
     = (range d.succ.succ).filter (∣ d.succ),
   from (finset.ext.2 $ λ x, ⟨λ h, (mem_insert.1 h).elim (λ h, by simp [h, range_succ])
@@ -449,8 +448,8 @@ lt_irrefl c $
   ... = c : sum_totient _
 
 lemma is_cyclic_of_card_pow_eq_one_le : is_cyclic α :=
-have ∃ x, x ∈ univ.filter (λ a : α, order_of a = fintype.card α),
-from exists_mem_of_ne_empty (card_pos.1 $
+have (univ.filter (λ a : α, order_of a = fintype.card α)).nonempty,
+from (card_pos.1 $
   by rw [card_order_of_eq_totient_aux₂ hn (dvd_refl _)];
   exact totient_pos (fintype.card_pos_iff.2 ⟨1⟩)),
 let ⟨x, hx⟩ := this in

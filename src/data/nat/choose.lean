@@ -5,7 +5,7 @@ Authors: Chris Hughes
 Mostly based on Jeremy Avigad's choose file in lean 2
 -/
 import data.nat.basic data.nat.prime
-import algebra.big_operators
+import algebra.big_operators algebra.commute
 
 open nat
 
@@ -19,29 +19,47 @@ by rw [← choose_mul_fact_mul_fact (le_of_lt hkp), mul_assoc, hp.dvd_mul, hp.dv
 section binomial
 open finset
 
-variables {α : Type*} [comm_semiring α] (x y : α)
+variables {α : Type*}
 
-/-- The binomial theorem -/
-theorem add_pow :
-  ∀ n : ℕ, (x + y) ^ n = (range (succ n)).sum (λ m, x ^ m * y ^ (n - m) * choose n m)
-| 0        := by simp [range_succ]
-| (succ n) :=
-have h₁ : x * (x ^ n * y ^ (n - n) * choose n n) =
-    x ^ succ n * y ^ (succ n - succ n) * choose (succ n) (succ n),
-  by simp [_root_.pow_succ, mul_assoc, mul_comm, mul_left_comm],
-have  h₂ : y * (x^0 * y^(n - 0) * choose n 0) = x^0 * y^(succ n - 0) * choose (succ n) 0,
-  by simp [_root_.pow_succ, mul_assoc, mul_comm, mul_left_comm],
-have h₃ : (range n).sum (λ m, x * (x ^ m * y ^ (n - m) * choose n m) + y *
-    (x ^ succ m * y ^ (n - succ m) * choose n (succ m))) =
-    (range n).sum (λ m, x ^ succ m * y ^ (succ n - succ m) * ↑(choose (succ n) (succ m))),
-  from finset.sum_congr rfl $ λ m hm,
-    begin
-      simp only [mul_assoc, mul_left_comm y, mul_left_comm (y ^ (n - succ m)), mul_comm y],
-      rw [← _root_.pow_succ', add_one, ← succ_sub (mem_range.1 hm)],
-      simp [choose_succ_succ, mul_comm, mul_assoc, mul_left_comm, add_mul, mul_add, _root_.pow_succ]
-    end,
-by rw [_root_.pow_succ, add_pow, add_mul, finset.mul_sum, finset.mul_sum, sum_range_succ, sum_range_succ',
-    sum_range_succ, sum_range_succ', add_assoc, ← add_assoc ((range n).sum _),
-    ← finset.sum_add_distrib, h₁, h₂, h₃]
+/-- A version of the binomial theorem for noncommutative semirings. -/
+theorem commute.add_pow [semiring α] {x y : α} (h : commute x y) (n : ℕ) :
+  (x + y) ^ n = (range (succ n)).sum (λ m, x ^ m * y ^ (n - m) * choose n m) :=
+begin
+  let t : ℕ → ℕ → α := λ n i, x ^ i * (y ^ (n - i)) * (choose n i),
+  change (x + y) ^ n = (range n.succ).sum (t n),
+  have h_first : ∀ n, t n 0 = y ^ n :=
+    λ n, by { dsimp [t], rw[choose_zero_right, nat.cast_one, mul_one, one_mul] },
+  have h_last : ∀ n, t n n.succ = 0 :=
+    λ n, by { dsimp [t], rw [choose_succ_self, nat.cast_zero, mul_zero] },
+  have h_middle : ∀ (n i : ℕ), (i ∈ finset.range n.succ) →
+   ((t n.succ) ∘ nat.succ) i = x * (t n i) + y * (t n i.succ) :=
+  begin
+    intros n i h_mem,
+    have h_le : i ≤ n := nat.le_of_lt_succ (finset.mem_range.mp h_mem),
+    dsimp [t],
+    rw [choose_succ_succ, nat.cast_add, mul_add],
+    congr' 1,
+    { rw[pow_succ x, succ_sub_succ, mul_assoc, mul_assoc, mul_assoc] },
+    { rw[← mul_assoc y, ← mul_assoc y, (h.symm.pow_right i.succ).eq],
+      by_cases h_eq : i = n,
+      { rw [h_eq, choose_succ_self, nat.cast_zero, mul_zero, mul_zero] },
+      { rw[succ_sub (lt_of_le_of_ne h_le h_eq)],
+        rw[pow_succ y, mul_assoc, mul_assoc, mul_assoc, mul_assoc] } }
+  end,
+  induction n with n ih,
+  { rw [_root_.pow_zero, sum_range_succ, range_zero, sum_empty, add_zero],
+    dsimp [t], rw [choose_self, nat.cast_one, mul_one, mul_one] },
+  { rw[sum_range_succ', h_first],
+    rw[finset.sum_congr rfl (h_middle n), finset.sum_add_distrib, add_assoc],
+    rw[pow_succ (x + y), ih, add_mul, finset.mul_sum, finset.mul_sum],
+    congr' 1,
+    rw[finset.sum_range_succ', finset.sum_range_succ, h_first, h_last,
+       mul_zero, zero_add, _root_.pow_succ] }
+end
+
+/-- The binomial theorem-/
+theorem add_pow [comm_semiring α] (x y : α) (n : ℕ) :
+  (x + y) ^ n = (range (succ n)).sum (λ m, x ^ m * y ^ (n - m) * choose n m) :=
+(commute.all x y).add_pow n
 
 end binomial

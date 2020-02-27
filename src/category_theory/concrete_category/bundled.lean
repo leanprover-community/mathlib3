@@ -27,13 +27,24 @@ structure bundled (c : Type u → Type v) : Type (max (u+1) v) :=
 
 namespace bundled
 
+/-- A generic function for lifting a type equipped with an instance to a bundled object. -/
+-- Usually explicit instances will provide their own version of this, e.g. `Mon.of` and `Top.of`.
 def of {c : Type u → Type v} (α : Type u) [str : c α] : bundled c := ⟨α, str⟩
 
 instance : has_coe_to_sort (bundled c) :=
 { S := Type u, coe := bundled.α }
 
+/-
+`bundled.map` is reducible so that, if we define a category
+
+  def Ring : Type (u+1) := induced_category SemiRing (bundled.map @ring.to_semiring)
+
+instance search is able to "see" that a morphism R ⟶ S in Ring is really
+a (semi)ring homomorphism from R.α to S.α, and not merely from
+`(bundled.map @ring.to_semiring R).α` to `(bundled.map @ring.to_semiring S).α`.
+-/
 /-- Map over the bundled structure -/
-def map (f : ∀ {α}, c α → d α) (b : bundled c) : bundled d :=
+@[reducible] def map (f : Π {α}, c α → d α) (b : bundled c) : bundled d :=
 ⟨b.α, f b.str⟩
 
 end bundled

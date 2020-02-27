@@ -13,11 +13,16 @@ open group
 
 variables {R : Type u} [ring R]
 
+section prio
+set_option default_priority 100 -- see Note [default priority]
 /-- `S` is a subring: a set containing 1 and closed under multiplication, addition and and additive inverse. -/
 class is_subring (S : set R) extends is_add_subgroup S, is_submonoid S : Prop.
+end prio
 
 instance subset.ring {S : set R} [is_subring S] : ring S :=
-by subtype_instance
+{ left_distrib := λ x y z, subtype.eq $ left_distrib x.1 y.1 z.1,
+  right_distrib := λ x y z, subtype.eq $ right_distrib x.1 y.1 z.1,
+  .. subtype.add_comm_group, .. subtype.monoid }
 
 instance subtype.ring {S : set R} [is_subring S] : ring (subtype S) := subset.ring
 
@@ -55,12 +60,25 @@ subtype_mk.is_ring_hom _ _
 variables {cR : Type u} [comm_ring cR]
 
 instance subset.comm_ring {S : set cR} [is_subring S] : comm_ring S :=
-by subtype_instance
+{ mul_comm := λ x y, subtype.eq $ mul_comm x.1 y.1,
+  .. subset.ring }
 
 instance subtype.comm_ring {S : set cR} [is_subring S] : comm_ring (subtype S) := subset.comm_ring
 
-instance subring.domain {D : Type*} [integral_domain D] (S : set D) [is_subring S] : integral_domain S :=
-by subtype_instance
+instance subring.domain {D : Type*} [integral_domain D] (S : set D) [is_subring S] :
+  integral_domain S :=
+{ zero_ne_one := mt subtype.ext.1 zero_ne_one,
+  eq_zero_or_eq_zero_of_mul_eq_zero := λ ⟨x, hx⟩ ⟨y, hy⟩,
+    by { simp only [subtype.ext, subtype.coe_mk], exact eq_zero_or_eq_zero_of_mul_eq_zero },
+  .. subset.comm_ring }
+
+instance is_subring.inter (S₁ S₂ : set R) [is_subring S₁] [is_subring S₂] :
+  is_subring (S₁ ∩ S₂) :=
+{ }
+
+instance is_subring.Inter {ι : Sort*} (S : ι → set R) [h : ∀ y : ι, is_subring (S y)] :
+  is_subring (set.Inter S) :=
+{ }
 
 lemma is_subring_Union_of_directed {ι : Type*} [hι : nonempty ι]
   (s : ι → set R) [∀ i, is_subring (s i)]

@@ -5,7 +5,7 @@ Authors: Chris Hughes, Johannes Hölzl, Jens Wagemaker
 
 Theory of univariate polynomials, represented as `ℕ →₀ α`, where α is a commutative semiring.
 -/
-import data.finsupp algebra.gcd_domain ring_theory.euclidean_domain tactic.ring ring_theory.multiplicity
+import data.finsupp algebra.gcd_domain ring_theory.euclidean_domain tactic.ring_exp ring_theory.multiplicity
 
 noncomputable theory
 local attribute [instance, priority 100] classical.prop_decidable
@@ -25,16 +25,17 @@ variables {α : Type u} {β : Type v} {a b : α} {m n : ℕ}
 section comm_semiring
 variables [comm_semiring α] {p q r : polynomial α}
 
+instance : inhabited (polynomial α) := finsupp.inhabited
 instance : has_zero (polynomial α) := finsupp.has_zero
 instance : has_one (polynomial α) := finsupp.has_one
 instance : has_add (polynomial α) := finsupp.has_add
 instance : has_mul (polynomial α) := finsupp.has_mul
 instance : comm_semiring (polynomial α) := finsupp.comm_semiring
 
-def polynomial.has_coe_to_fun : has_coe_to_fun (polynomial α) :=
+def coeff_coe_to_fun : has_coe_to_fun (polynomial α) :=
 finsupp.has_coe_to_fun
 
-local attribute [instance] finsupp.comm_semiring polynomial.has_coe_to_fun
+local attribute [instance] finsupp.comm_semiring coeff_coe_to_fun
 
 @[simp] lemma support_zero : (0 : polynomial α).support = ∅ := rfl
 
@@ -60,15 +61,18 @@ instance [has_repr α] : has_repr (polynomial α) :=
           else if (coeff p n) = 1 then "X ^ " ++ repr n
             else "C (" ++ repr (coeff p n) ++ ") * X ^ " ++ repr n) ""⟩
 
-theorem ext {p q : polynomial α} : p = q ↔ ∀ n, coeff p n = coeff q n :=
+theorem ext_iff {p q : polynomial α} : p = q ↔ ∀ n, coeff p n = coeff q n :=
 ⟨λ h n, h ▸ rfl, finsupp.ext⟩
+
+@[ext] lemma ext {p q : polynomial α} : (∀ n, coeff p n = coeff q n) → p = q :=
+(@ext_iff _ _ p q).2
 
 /-- `degree p` is the degree of the polynomial `p`, i.e. the largest `X`-exponent in `p`.
 `degree p = some n` when `p ≠ 0` and `n` is the highest power of `X` that appears in `p`, otherwise
 `degree 0 = ⊥`. -/
 def degree (p : polynomial α) : with_bot ℕ := p.support.sup some
 
-def degree_lt_wf : well_founded (λp q : polynomial α, degree p < degree q) :=
+lemma degree_lt_wf : well_founded (λp q : polynomial α, degree p < degree q) :=
 inv_image.wf degree (with_bot.well_founded_lt nat.lt_wf)
 
 instance : has_well_founded (polynomial α) := ⟨_, degree_lt_wf⟩
@@ -134,6 +138,10 @@ by { dsimp [single], congr }
 coeff_single
 
 @[simp] lemma coeff_add (p q : polynomial α) (n : ℕ) : coeff (p + q) n = coeff p n + coeff q n := rfl
+
+instance coeff.is_add_monoid_hom {n : ℕ} : is_add_monoid_hom (λ p : polynomial α, p.coeff n) :=
+{ map_add  := λ p q, coeff_add p q n,
+  map_zero := coeff_zero _ }
 
 lemma coeff_C : coeff (C a) n = ite (n = 0) a 0 :=
 by simp [coeff, eq_comm, C, single]; congr
@@ -207,7 +215,7 @@ by simpa only [pow_one] using coeff_mul_X_pow p 1 n
 
 theorem mul_X_pow_eq_zero {p : polynomial α} {n : ℕ}
   (H : p * X ^ n = 0) : p = 0 :=
-ext.2 $ λ k, (coeff_mul_X_pow p n k).symm.trans $ ext.1 H (k+n)
+ext $ λ k, (coeff_mul_X_pow p n k).symm.trans $ ext_iff.1 H (k+n)
 
 end coeff
 
@@ -335,6 +343,10 @@ calc coeff p 0 = coeff p 0 * 0 ^ 0 : by simp
 ... = p.eval 0 : eq.symm $
   finset.sum_eq_single _ (λ b _ hb, by simp [zero_pow (nat.pos_of_ne_zero hb)]) (by simp)
 
+lemma zero_is_root_of_coeff_zero_eq_zero {p : polynomial α} (hp : p.coeff 0 = 0) :
+  is_root p 0 :=
+by rwa coeff_zero_eq_eval_zero at hp
+
 end eval
 
 section comp
@@ -350,7 +362,7 @@ lemma eval_comp : (p.comp q).eval a = p.eval (q.eval a) := eval₂_comp _
 
 @[simp] lemma comp_X : p.comp X = p :=
 begin
-  refine polynomial.ext.2 (λ n, _),
+  refine ext (λ n, _),
   rw [comp, eval₂],
   conv in (C _ * _) { rw ← single_eq_C_mul_X },
   rw finsupp.sum_single
@@ -361,7 +373,7 @@ end
 @[simp] lemma comp_C : p.comp (C a) = C (p.eval a) :=
 begin
   dsimp [comp, eval₂, eval, finsupp.sum],
-  rw [← sum_hom (@C α _)],
+  rw [← p.support.sum_hom (@C α _)],
   apply finset.sum_congr rfl; simp
 end
 
@@ -387,59 +399,6 @@ by unfold comp; apply_instance
 
 end comp
 
-section map
-variables [comm_semiring β]
-variables (f : α → β)
-
-/-- `map f p` maps a polynomial `p` across a ring hom `f` -/
-def map : polynomial α → polynomial β := eval₂ (C ∘ f) X
-
-variables [is_semiring_hom f]
-
-@[simp] lemma map_C : (C a).map f = C (f a) := eval₂_C _ _
-
-@[simp] lemma map_X : X.map f = X := eval₂_X _ _
-
-@[simp] lemma map_zero : (0 : polynomial α).map f = 0 :=  eval₂_zero _ _
-
-@[simp] lemma map_add : (p + q).map f = p.map f + q.map f := eval₂_add _ _
-
-@[simp] lemma map_one : (1 : polynomial α).map f = 1 := eval₂_one _ _
-
-@[simp] lemma map_mul : (p * q).map f = p.map f * q.map f := eval₂_mul _ _
-
-instance map.is_semiring_hom : is_semiring_hom (map f) := eval₂.is_semiring_hom _ _
-
-lemma map_pow (n : ℕ) : (p ^ n).map f = p.map f ^ n := eval₂_pow _ _ _
-
-lemma coeff_map (n : ℕ) : coeff (p.map f) n = f (coeff p n) :=
-begin
-  rw [map, eval₂, coeff_sum],
-  conv_rhs { rw [← sum_C_mul_X_eq p, coeff_sum, finsupp.sum,
-    ← finset.sum_hom f], },
-  refine finset.sum_congr rfl (λ x hx, _),
-  simp [function.comp, coeff_C_mul_X, is_semiring_hom.map_mul f],
-  split_ifs; simp [is_semiring_hom.map_zero f],
-end
-
-lemma map_map {γ : Type*} [comm_semiring γ] (g : β → γ) [is_semiring_hom g]
-  (p : polynomial α) : (p.map f).map g = p.map (λ x, g (f x)) :=
-polynomial.ext.2 (by simp [coeff_map])
-
-lemma eval₂_map {γ : Type*} [comm_semiring γ] (g : β → γ) [is_semiring_hom g] (x : γ) :
-  (p.map f).eval₂ g x = p.eval₂ (λ y, g (f y)) x :=
-polynomial.induction_on p
-  (by simp)
-  (by simp [is_semiring_hom.map_add f] {contextual := tt})
-  (by simp [is_semiring_hom.map_mul f,
-    is_semiring_hom.map_pow f, pow_succ', (mul_assoc _ _ _).symm] {contextual := tt})
-
-lemma eval_map (x : β) : (p.map f).eval x = p.eval₂ f x := eval₂_map _ _ _
-
-@[simp] lemma map_id : p.map id = p := by simp [id, polynomial.ext, coeff_map]
-
-end map
-
 /-- `leading_coeff p` gives the coefficient of the highest power of `X` in `p`-/
 def leading_coeff (p : polynomial α) : α := coeff p (nat_degree p)
 
@@ -450,6 +409,9 @@ lemma monic.def : monic p ↔ leading_coeff p = 1 := iff.rfl
 
 instance monic.decidable [decidable_eq α] : decidable (monic p) :=
 by unfold monic; apply_instance
+
+@[simp] lemma monic.leading_coeff {p : polynomial α} (hp : p.monic) :
+  leading_coeff p = 1 := hp
 
 @[simp] lemma degree_zero : degree (0 : polynomial α) = ⊥ := rfl
 
@@ -474,6 +436,20 @@ let ⟨n, hn⟩ :=
   classical.not_forall.1 (mt option.eq_none_iff_forall_not_mem.2 (mt degree_eq_bot.1 hp)) in
 have hn : degree p = some n := not_not.1 hn,
 by rw [nat_degree, hn]; refl
+
+lemma degree_eq_iff_nat_degree_eq {p : polynomial α} {n : ℕ} (hp : p ≠ 0) :
+  p.degree = n ↔ p.nat_degree = n :=
+by rw [degree_eq_nat_degree hp, with_bot.coe_eq_coe]
+
+lemma degree_eq_iff_nat_degree_eq_of_pos {p : polynomial α} {n : ℕ} (hn : n > 0) :
+  p.degree = n ↔ p.nat_degree = n :=
+begin
+  split,
+  { intro H, rwa ← degree_eq_iff_nat_degree_eq, rintro rfl,
+    rw degree_zero at H, exact option.no_confusion H },
+  { intro H, rwa degree_eq_iff_nat_degree_eq, rintro rfl,
+    rw nat_degree_zero at H, rw H at hn, exact lt_irrefl _ hn }
+end
 
 lemma nat_degree_eq_of_degree_eq_some {p : polynomial α} {n : ℕ}
   (h : degree p = n) : nat_degree p = n :=
@@ -533,6 +509,129 @@ if h : a = 0 then by rw [h, C_0, zero_mul]; exact bot_le else le_of_eq (degree_m
 lemma coeff_eq_zero_of_degree_lt (h : degree p < n) : coeff p n = 0 :=
 not_not.1 (mt le_degree_of_ne_zero (not_le_of_gt h))
 
+lemma coeff_eq_zero_of_nat_degree_lt {p : polynomial α} {n : ℕ} (h : p.nat_degree < n) :
+  p.coeff n = 0 :=
+begin
+  apply coeff_eq_zero_of_degree_lt,
+  by_cases hp : p = 0,
+  { subst hp, exact with_bot.bot_lt_coe n },
+  { rwa [degree_eq_nat_degree hp, with_bot.coe_lt_coe] }
+end
+
+-- TODO find a home (this file)
+@[simp] lemma finset_sum_coeff (s : finset β) (f : β → polynomial α) (n : ℕ) :
+  coeff (s.sum f) n = s.sum (λ b, coeff (f b) n) :=
+(s.sum_hom (λ q : polynomial α, q.coeff n)).symm
+
+-- We need the explicit `decidable` argument here because an exotic one shows up in a moment!
+lemma ite_le_nat_degree_coeff (p : polynomial α) (n : ℕ) (I : decidable (n < 1 + nat_degree p)) :
+  @ite (n < 1 + nat_degree p) I _ (coeff p n) 0 = coeff p n :=
+begin
+  split_ifs,
+  { refl },
+  { exact (coeff_eq_zero_of_nat_degree_lt (not_le.1 (λ w, h (nat.lt_one_add_iff.2 w)))).symm, }
+end
+
+lemma as_sum (p : polynomial α) :
+  p = (range (p.nat_degree + 1)).sum (λ i, C (p.coeff i) * X^i) :=
+begin
+  ext n,
+  simp only [add_comm, coeff_X_pow, coeff_C_mul, finset.mem_range,
+    finset.sum_mul_boole, finset_sum_coeff, ite_le_nat_degree_coeff],
+end
+
+lemma monic.as_sum {p : polynomial α} (hp : p.monic) :
+  p = X^(p.nat_degree) + ((finset.range p.nat_degree).sum $ λ i, C (p.coeff i) * X^i) :=
+begin
+  conv_lhs { rw [p.as_sum, finset.sum_range_succ] },
+  suffices : C (p.coeff p.nat_degree) = 1,
+  { rw [this, one_mul] },
+  exact congr_arg C hp
+end
+
+section map
+variables [comm_semiring β]
+variables (f : α → β)
+
+/-- `map f p` maps a polynomial `p` across a ring hom `f` -/
+def map : polynomial α → polynomial β := eval₂ (C ∘ f) X
+
+variables [is_semiring_hom f]
+
+@[simp] lemma map_C : (C a).map f = C (f a) := eval₂_C _ _
+
+@[simp] lemma map_X : X.map f = X := eval₂_X _ _
+
+@[simp] lemma map_zero : (0 : polynomial α).map f = 0 :=  eval₂_zero _ _
+
+@[simp] lemma map_add : (p + q).map f = p.map f + q.map f := eval₂_add _ _
+
+@[simp] lemma map_one : (1 : polynomial α).map f = 1 := eval₂_one _ _
+
+@[simp] lemma map_mul : (p * q).map f = p.map f * q.map f := eval₂_mul _ _
+
+instance map.is_semiring_hom : is_semiring_hom (map f) := eval₂.is_semiring_hom _ _
+
+@[simp] lemma map_pow (n : ℕ) : (p ^ n).map f = p.map f ^ n := eval₂_pow _ _ _
+
+lemma coeff_map (n : ℕ) : coeff (p.map f) n = f (coeff p n) :=
+begin
+  rw [map, eval₂, coeff_sum],
+  conv_rhs { rw [← sum_C_mul_X_eq p, coeff_sum, finsupp.sum,
+    ← p.support.sum_hom f], },
+  refine finset.sum_congr rfl (λ x hx, _),
+  simp [function.comp, coeff_C_mul_X, is_semiring_hom.map_mul f],
+  split_ifs; simp [is_semiring_hom.map_zero f],
+end
+
+lemma map_map {γ : Type*} [comm_semiring γ] (g : β → γ) [is_semiring_hom g]
+  (p : polynomial α) : (p.map f).map g = p.map (λ x, g (f x)) :=
+ext (by simp [coeff_map])
+
+lemma eval₂_map {γ : Type*} [comm_semiring γ] (g : β → γ) [is_semiring_hom g] (x : γ) :
+  (p.map f).eval₂ g x = p.eval₂ (λ y, g (f y)) x :=
+polynomial.induction_on p
+  (by simp)
+  (by simp [is_semiring_hom.map_add f] {contextual := tt})
+  (by simp [is_semiring_hom.map_mul f,
+    is_semiring_hom.map_pow f, pow_succ', (mul_assoc _ _ _).symm] {contextual := tt})
+
+lemma eval_map (x : β) : (p.map f).eval x = p.eval₂ f x := eval₂_map _ _ _
+
+@[simp] lemma map_id : p.map id = p := by simp [id, polynomial.ext_iff, coeff_map]
+
+lemma mem_map_range {p : polynomial β} :
+  p ∈ set.range (map f) ↔ ∀ n, p.coeff n ∈ (set.range f) :=
+begin
+  split,
+  { rintro ⟨p, rfl⟩ n, rw coeff_map, exact set.mem_range_self _ },
+  { intro h, rw p.as_sum,
+    apply is_add_submonoid.finset_sum_mem,
+    intros i hi,
+    rcases h i with ⟨c, hc⟩,
+    use [C c * X^i],
+    rw [map_mul, map_C, hc, map_pow, map_X] }
+end
+
+end map
+
+section
+variables {γ : Type*} [comm_semiring β] [comm_semiring γ]
+variables (f : α → β) (g : β → γ) [is_semiring_hom f] [is_semiring_hom g] (p)
+
+lemma hom_eval₂ (x : β) : g (p.eval₂ f x) = p.eval₂ (g ∘ f) (g x) :=
+begin
+  apply polynomial.induction_on p; clear p,
+  { intros a, rw [eval₂_C, eval₂_C] },
+  { intros p q hp hq, simp only [hp, hq, eval₂_add, is_semiring_hom.map_add g] },
+  { intros n a ih,
+    replace ih := congr_arg (λ y, y * g x) ih,
+    simpa [pow_succ', is_semiring_hom.map_mul g, (mul_assoc _ _ _).symm,
+      eval₂_C, eval₂_mul, eval₂_X] using ih }
+end
+
+end
+
 lemma coeff_nat_degree_eq_zero_of_degree_lt (h : degree p < degree q) : coeff p (nat_degree q) = 0 :=
 coeff_eq_zero_of_degree_lt (lt_of_lt_of_le h degree_le_nat_degree)
 
@@ -541,7 +640,7 @@ mt degree_eq_bot.2 (ne.symm (ne_of_lt (lt_of_le_of_lt bot_le h)))
 
 lemma eq_C_of_degree_le_zero (h : degree p ≤ 0) : p = C (coeff p 0) :=
 begin
-  refine polynomial.ext.2 (λ n, _),
+  refine ext (λ n, _),
   cases n,
   { simp },
   { have : degree p < ↑(nat.succ n) := lt_of_le_of_lt h (with_bot.some_lt_some.2 (nat.succ_pos _)),
@@ -576,6 +675,9 @@ le_antisymm (max_eq_right_of_lt h ▸ degree_add_le _ _) $ degree_le_degree $
     rw [coeff_add, coeff_nat_degree_eq_zero_of_degree_lt h, zero_add],
     exact mt leading_coeff_eq_zero.1 (ne_zero_of_degree_gt h)
   end
+
+lemma degree_add_C (hp : 0 < degree p) : degree (p + C a) = degree p :=
+add_comm (C a) p ▸ degree_add_eq_of_degree_lt $ lt_of_le_of_lt degree_C_le hp
 
 lemma degree_add_eq_of_leading_coeff_add_ne_zero (h : leading_coeff p + leading_coeff q ≠ 0) :
   degree (p + q) = max p.degree q.degree :=
@@ -653,6 +755,14 @@ suffices leading_coeff (C (1:α) * X^0) = 1, by rwa [C_1, pow_zero, mul_one] at 
 leading_coeff_monomial 1 0
 
 @[simp] lemma monic_one : monic (1 : polynomial α) := leading_coeff_C _
+
+lemma monic.ne_zero_of_zero_ne_one (h : (0:α) ≠ 1) {p : polynomial α} (hp : p.monic) :
+  p ≠ 0 :=
+by { contrapose! h, rwa [h] at hp }
+
+lemma monic.ne_zero {α : Type*} [nonzero_comm_ring α] {p : polynomial α} (hp : p.monic) :
+  p ≠ 0 :=
+hp.ne_zero_of_zero_ne_one $ zero_ne_one
 
 lemma leading_coeff_add_of_degree_lt (h : degree p < degree q) :
   leading_coeff (p + q) = leading_coeff q :=
@@ -810,13 +920,6 @@ le_antisymm (degree_map_le f) $
     rw [coeff_map], exact hf
   end
 
-lemma degree_map_eq_of_injective [comm_semiring β] (f : α → β) [is_semiring_hom f]
-  (hf : function.injective f) : degree (p.map f) = degree p :=
-if h : p = 0 then by simp [h]
-else degree_map_eq_of_leading_coeff_ne_zero _
-  (by rw [← is_semiring_hom.map_zero f]; exact mt hf.eq_iff.1
-    (mt leading_coeff_eq_zero.1 h))
-
 lemma monic_map [comm_semiring β] (f : α → β)
   [is_semiring_hom f] (hp : monic p) : monic (p.map f) :=
 if h : (0 : β) = 1 then
@@ -840,7 +943,7 @@ simp only [polynomial.coeff_X_zero, finset.insert_empty_eq_singleton, finset.sum
 end comm_semiring
 
 instance subsingleton [subsingleton α] [comm_semiring α] : subsingleton (polynomial α) :=
-⟨λ _ _, polynomial.ext.2 (λ _, subsingleton.elim _ _)⟩
+⟨λ _ _, ext (λ _, subsingleton.elim _ _)⟩
 
 section comm_semiring
 
@@ -851,7 +954,7 @@ lemma ne_zero_of_monic_of_zero_ne_one (hp : monic p) (h : (0 : α) ≠ 1) :
 
 lemma eq_X_add_C_of_degree_le_one (h : degree p ≤ 1) :
   p = C (p.coeff 1) * X + C (p.coeff 0) :=
-polynomial.ext.2 (λ n, nat.cases_on n (by simp)
+ext (λ n, nat.cases_on n (by simp)
   (λ n, nat.cases_on n (by simp [coeff_C])
     (λ m, have degree p < m.succ.succ, from lt_of_le_of_lt h dec_trivial,
       by simp [coeff_eq_zero_of_degree_lt this, coeff_C, nat.succ_ne_zero, coeff_X,
@@ -876,15 +979,49 @@ by simpa only [C_1, one_mul] using degree_C_mul_X_pow_le (1:α) n
 theorem degree_X_le : degree (X : polynomial α) ≤ 1 :=
 by simpa only [C_1, one_mul, pow_one] using degree_C_mul_X_pow_le (1:α) 1
 
-lemma degree_map' [comm_semiring β] (p : polynomial α)
-  {f : α → β} [is_semiring_hom f] (hf : function.injective f) :
-  degree (p.map f) = degree p :=
-degree_map_eq_of_injective _ hf
+section injective
+open function
+variables [comm_semiring β] {f : α → β} [is_semiring_hom f] (hf : function.injective f)
+include hf
 
-lemma nat_degree_map' [comm_semiring β] (p : polynomial α)
-  {f : α → β} [is_semiring_hom f] (hf : function.injective f) :
+lemma degree_map_eq_of_injective (p : polynomial α) : degree (p.map f) = degree p :=
+if h : p = 0 then by simp [h]
+else degree_map_eq_of_leading_coeff_ne_zero _
+  (by rw [← is_semiring_hom.map_zero f]; exact mt hf.eq_iff.1
+    (mt leading_coeff_eq_zero.1 h))
+
+lemma degree_map' (p : polynomial α) :
+  degree (p.map f) = degree p :=
+p.degree_map_eq_of_injective hf
+
+lemma nat_degree_map' (p : polynomial α) :
   nat_degree (p.map f) = nat_degree p :=
-nat_degree_eq_of_degree_eq (degree_map' _ hf)
+nat_degree_eq_of_degree_eq (degree_map' hf p)
+
+lemma map_injective (p : polynomial α) :
+  injective (map f : polynomial α → polynomial β) :=
+λ p q h, ext $ λ m, hf $
+begin
+  rw ext_iff at h,
+  specialize h m,
+  rw [coeff_map f, coeff_map f] at h,
+  exact h
+end
+
+lemma leading_coeff_of_injective (p : polynomial α) :
+  leading_coeff (p.map f) = f (leading_coeff p) :=
+begin
+  delta leading_coeff,
+  rw [coeff_map f, nat_degree_map' hf p]
+end
+
+lemma monic_of_injective {p : polynomial α} (hp : (p.map f).monic) : p.monic :=
+begin
+  apply hf,
+  rw [← leading_coeff_of_injective hf, hp.leading_coeff, is_semiring_hom.map_one f]
+end
+
+end injective
 
 theorem monic_of_degree_le (n : ℕ) (H1 : degree p ≤ n) (H2 : coeff p n = 1) : monic p :=
 decidable.by_cases
@@ -959,7 +1096,7 @@ have zn0 : (0 : α) ≠ 1, from λ h, by haveI := subsingleton_of_zero_eq_one _ 
   begin
     have := congr_arg nat_degree hr,
     rw [nat_degree_mul_eq' hpnr0,  nat_degree_pow_eq' hpn0', add_mul, add_assoc] at this,
-    exact ne_of_lt (lt_add_of_le_of_pos (le_mul_of_ge_one_right' (nat.zero_le _) hnp)
+    exact ne_of_lt (lt_add_of_le_of_pos (le_mul_of_one_le_right' (nat.zero_le _) hnp)
       (add_pos_of_pos_of_nonneg (by rwa one_mul) (nat.zero_le _))) this
   end⟩
 
@@ -1028,20 +1165,20 @@ def div_X (p : polynomial α) : polynomial α :=
       λ h, ⟨n + 1, ⟨h, nat.succ_pos _⟩, nat.succ_sub_one _⟩⟩ }
 
 lemma div_X_mul_X_add (p : polynomial α) : div_X p * X + C (p.coeff 0) = p :=
-polynomial.ext.2 $ λ n,
+ext $ λ n,
   nat.cases_on n
    (by simp)
    (by simp [coeff_C, nat.succ_ne_zero, coeff_mul_X, div_X])
 
 @[simp] lemma div_X_C (a : α) : div_X (C a) = 0 :=
-polynomial.ext.2 $ λ n, by cases n; simp [div_X, coeff_C]; simp [coeff]
+ext $ λ n, by cases n; simp [div_X, coeff_C]; simp [coeff]
 
 lemma div_X_eq_zero_iff : div_X p = 0 ↔ p = C (p.coeff 0) :=
 ⟨λ h, by simpa [eq_comm, h] using div_X_mul_X_add p,
   λ h, by rw [h, div_X_C]⟩
 
 lemma div_X_add : div_X (p + q) = div_X p + div_X q :=
-polynomial.ext.2 $ by simp [div_X]
+ext $ by simp [div_X]
 
 def nonzero_comm_semiring.of_polynomial_ne (h : p ≠ q) : nonzero_comm_semiring α :=
 { zero_ne_one := λ h01 : 0 = 1, h $
@@ -1140,7 +1277,7 @@ coeff (r • p) n = r * coeff p n := finsupp.smul_apply
 
 -- TODO -- this is OK for semimodules
 lemma C_mul' (a : α) (f : polynomial α) : C a * f = a • f :=
-ext.2 $ λ n, coeff_C_mul f
+ext $ λ n, coeff_C_mul f
 
 variable (α)
 def lcoeff (n : ℕ) : polynomial α →ₗ α :=
@@ -1178,6 +1315,9 @@ eval₂.is_ring_hom (C ∘ f)
 
 @[simp] lemma degree_neg (p : polynomial α) : degree (-p) = degree p :=
 by unfold degree; rw support_neg
+
+@[simp] lemma nat_degree_neg (p : polynomial α) : nat_degree (-p) = nat_degree p :=
+by simp [nat_degree]
 
 @[simp] lemma nat_degree_int_cast (n : ℤ) : nat_degree (n : polynomial α) = 0 :=
 by simp [int_cast_eq_C]
@@ -1764,8 +1904,28 @@ begin
   exact (classical.some_spec (exists_finset_roots hp0)).1
 end
 
+lemma card_roots' {p : polynomial α} (hp0 : p ≠ 0) : p.roots.card ≤ nat_degree p :=
+with_bot.coe_le_coe.1 (le_trans (card_roots hp0) (le_of_eq $ degree_eq_nat_degree hp0))
+
+lemma card_roots_sub_C {p : polynomial α} {a : α} (hp0 : 0 < degree p) :
+  ((p - C a).roots.card : with_bot ℕ) ≤ degree p :=
+calc ((p - C a).roots.card : with_bot ℕ) ≤ degree (p - C a) :
+  card_roots $ mt sub_eq_zero.1 $ λ h, not_le_of_gt hp0 $ h.symm ▸ degree_C_le
+... = degree p : by rw [sub_eq_add_neg, ← C_neg]; exact degree_add_C hp0
+
+lemma card_roots_sub_C' {p : polynomial α} {a : α} (hp0 : 0 < degree p) :
+  (p - C a).roots.card ≤ nat_degree p :=
+with_bot.coe_le_coe.1 (le_trans (card_roots_sub_C hp0) (le_of_eq $ degree_eq_nat_degree
+  (λ h, by simp [*, lt_irrefl] at *)))
+
 @[simp] lemma mem_roots (hp : p ≠ 0) : a ∈ p.roots ↔ is_root p a :=
 by unfold roots; rw dif_neg hp; exact (classical.some_spec (exists_finset_roots hp)).2 _
+
+@[simp] lemma mem_roots_sub_C {p : polynomial α} {a x : α} (hp0 : 0 < degree p) :
+  x ∈ (p - C a).roots ↔ p.eval x = a :=
+(mem_roots (show p - C a ≠ 0, from mt sub_eq_zero.1 $ λ h,
+    not_le_of_gt hp0 $ h.symm ▸ degree_C_le)).trans
+  (by rw [is_root.def, eval_sub, eval_C, sub_eq_zero])
 
 lemma card_roots_X_pow_sub_C {n : ℕ} (hn : 0 < n) (a : α) :
   (roots ((X : polynomial α) ^ n - C a)).card ≤ n :=
@@ -1846,7 +2006,7 @@ have hq0 : q ≠ 0, from λ hp0, by simpa [hp0] using hq,
 have nat_degree (1 : polynomial α) = nat_degree (p * q),
   from congr_arg _ hq,
 by rw [nat_degree_one, nat_degree_mul_eq hp0 hq0, eq_comm,
-    add_eq_zero_iff, ← with_bot.coe_eq_coe,
+    _root_.add_eq_zero_iff, ← with_bot.coe_eq_coe,
     ← degree_eq_nat_degree hp0] at this;
   exact this.1
 
@@ -2015,34 +2175,34 @@ by rw [div_def, mul_comm, degree_mul_leading_coeff_inv _ hq0];
   exact degree_div_by_monic_lt _ (monic_mul_leading_coeff_inv hq0) hp
     (by rw degree_mul_leading_coeff_inv _ hq0; exact hq)
 
-@[simp] lemma degree_map [discrete_field β] (p : polynomial α) (f : α → β) [is_field_hom f] :
+@[simp] lemma degree_map [discrete_field β] (p : polynomial α) (f : α → β) [is_ring_hom f] :
   degree (p.map f) = degree p :=
-degree_map_eq_of_injective _ (is_field_hom.injective f)
+p.degree_map_eq_of_injective (is_ring_hom.injective f)
 
-@[simp] lemma nat_degree_map [discrete_field β] (f : α → β) [is_field_hom f] :
+@[simp] lemma nat_degree_map [discrete_field β] (f : α → β) [is_ring_hom f] :
   nat_degree (p.map f) = nat_degree p :=
 nat_degree_eq_of_degree_eq (degree_map _ f)
 
-@[simp] lemma leading_coeff_map [discrete_field β] (f : α → β) [is_field_hom f] :
+@[simp] lemma leading_coeff_map [discrete_field β] (f : α → β) [is_ring_hom f] :
   leading_coeff (p.map f) = f (leading_coeff p) :=
 by simp [leading_coeff, coeff_map f]
 
-lemma map_div [discrete_field β] (f : α → β) [is_field_hom f] :
+lemma map_div [discrete_field β] (f : α → β) [is_ring_hom f] :
   (p / q).map f = p.map f / q.map f :=
 if hq0 : q = 0 then by simp [hq0]
 else
 by rw [div_def, div_def, map_mul, map_div_by_monic f (monic_mul_leading_coeff_inv hq0)];
-  simp [is_field_hom.map_inv f, leading_coeff, coeff_map f]
+  simp [is_ring_hom.map_inv f, leading_coeff, coeff_map f]
 
-lemma map_mod [discrete_field β] (f : α → β) [is_field_hom f] :
+lemma map_mod [discrete_field β] (f : α → β) [is_ring_hom f] :
   (p % q).map f = p.map f % q.map f :=
 if hq0 : q = 0 then by simp [hq0]
-else by rw [mod_def, mod_def, leading_coeff_map f, ← is_field_hom.map_inv f, ← map_C f,
+else by rw [mod_def, mod_def, leading_coeff_map f, ← is_ring_hom.map_inv f, ← map_C f,
   ← map_mul f, map_mod_by_monic f (monic_mul_leading_coeff_inv hq0)]
 
-@[simp] lemma map_eq_zero [discrete_field β] (f : α → β) [is_field_hom f] :
+@[simp] lemma map_eq_zero [discrete_field β] (f : α → β) [is_ring_hom f] :
   p.map f = 0 ↔ p = 0 :=
-by simp [polynomial.ext, is_field_hom.map_eq_zero f, coeff_map]
+by simp [polynomial.ext_iff, is_ring_hom.map_eq_zero f, coeff_map]
 
 lemma exists_root_of_degree_eq_one (h : degree p = 1) : ∃ x, is_root p x :=
 ⟨-(p.coeff 0 / p.coeff 1),
@@ -2148,7 +2308,7 @@ instance : is_add_monoid_hom (derivative : polynomial α → polynomial α) :=
 
 @[simp] lemma derivative_sum {s : finset β} {f : β → polynomial α} :
   derivative (s.sum f) = s.sum (λb, derivative (f b)) :=
-(finset.sum_hom derivative).symm
+(s.sum_hom derivative).symm
 
 @[simp] lemma derivative_mul {f g : polynomial α} :
   derivative (f * g) = derivative f * g + f * derivative g :=
@@ -2228,10 +2388,11 @@ def pow_add_expansion {α : Type*} [comm_semiring α] (x y : α) : ∀ (n : ℕ)
 | (n+2) :=
   begin
     cases pow_add_expansion (n+1) with z hz,
-    rw [_root_.pow_succ, hz],
-    existsi (x*z + (n+1)*x^n+z*y),
-    simp [_root_.pow_succ],
-    ring
+    existsi x*z + (n+1)*x^n+z*y,
+    calc (x + y) ^ (n + 2) = (x + y) * (x + y) ^ (n + 1) : by ring_exp
+    ... = (x + y) * (x ^ (n + 1) + ↑(n + 1) * x ^ (n + 1 - 1) * y + z * y ^ 2) : by rw hz
+    ... = x ^ (n + 2) + ↑(n + 2) * x ^ (n + 1) * y + (x*z + (n+1)*x^n+z*y) * y ^ 2 :
+      by { push_cast, ring_exp! }
   end
 
 variables [comm_ring α]
@@ -2273,12 +2434,12 @@ def pow_sub_pow_factor (x y : α) : Π {i : ℕ},{z : α // x^i - y^i = z*(x - y
 | 1 := ⟨1, by simp⟩
 | (k+2) :=
   begin
-    cases pow_sub_pow_factor with z hz,
+    cases @pow_sub_pow_factor (k+1) with z hz,
     existsi z*x + y^(k+1),
-    rw [_root_.pow_succ x, _root_.pow_succ y, ←sub_add_sub_cancel (x*x^(k+1)) (x*y^(k+1)),
-        ←mul_sub x, hz],
-    simp only [_root_.pow_succ],
-    ring
+    calc x ^ (k + 2) - y ^ (k + 2)
+        = x * (x ^ (k + 1) - y ^ (k + 1)) + (x * y ^ (k + 1) - y ^ (k + 2)) : by ring_exp
+    ... = x * (z * (x - y)) + (x * y ^ (k + 1) - y ^ (k + 2)) : by rw hz
+    ... = (z * x + y ^ (k + 1)) * (x - y) : by ring_exp
   end
 
 def eval_sub_factor (f : polynomial α) (x y : α) :

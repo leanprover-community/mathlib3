@@ -43,7 +43,7 @@ but the author cannot think of instances of `foldable` that are not also
 -/
 import tactic.squeeze
 import algebra.group algebra.opposites
-import data.list.basic
+import data.list.defs
 import category.traversable.instances category.traversable.lemmas
 import category_theory.category
 import category_theory.endomorphism
@@ -183,8 +183,8 @@ lemma free.map_eq_map (f : α → β) (xs : list α) :
   f <$> xs = free.map f xs := rfl
 
 instance (f : α → β) : is_monoid_hom (free.map f) :=
-{ map_mul := λ x y, by simp only [free.map, list.map_append, free_add_monoid.add_def],
-  map_one := by simp only [free.map, list.map, free_add_monoid.zero_def] }
+{ map_mul := λ x y, by simp only [free.map, free_monoid.mul_def, list.map_append, free_add_monoid.add_def],
+  map_one := by simp only [free.map, free_monoid.one_def, list.map, free_add_monoid.zero_def] }
 
 instance fold_foldl (f : β → α → β) :
   is_monoid_hom (foldl.of_free_monoid f) :=
@@ -327,9 +327,8 @@ begin
   { induction ys with _ tl ih,
     { simp only [list.length, list.foldl_nil] },
     { simp only [list.foldl, list.length],
-      transitivity list.foldl f 0 tl + 1,
-      { exact eq.symm (list.foldl_hom (+1) f f 0 (λ _ _, rfl) _) },
-      { rw ih } } }
+      rw [← ih],
+      exact tl.foldl_hom (λx, x+1) f f 0 (λ n x, rfl) } }
 end
 
 variables {m : Type u → Type u} [monad m] [is_lawful_monad m]

@@ -20,8 +20,7 @@ calc totient n ≤ (range n).card : card_le_of_subset (filter_subset _)
 lemma totient_pos : ∀ {n : ℕ}, 0 < n → 0 < φ n
 | 0 := dec_trivial
 | 1 := dec_trivial
-| (n+2) := λ h, card_pos.2 (mt eq_empty_iff_forall_not_mem.1
-(not_forall_of_exists_not ⟨1, not_not.2 $ mem_filter.2 ⟨mem_range.2 dec_trivial, by simp [coprime]⟩⟩))
+| (n+2) := λ h, card_pos.2 ⟨1, mem_filter.2 ⟨mem_range.2 dec_trivial, coprime_one_right _⟩⟩
 
 lemma sum_totient (n : ℕ) : ((range n.succ).filter (∣ n)).sum φ = n :=
 if hn0 : n = 0 then by rw hn0; refl
@@ -34,7 +33,7 @@ calc ((range n.succ).filter (∣ n)).sum φ
     (λ _ _, rfl)
     (λ a b ha hb h,
       have ha : a * (n / a) = n, from nat.mul_div_cancel' (mem_filter.1 ha).2,
-      have (n / a) > 0, from nat.pos_of_ne_zero (λ h, by simp [*, lt_irrefl] at *),
+      have 0 < (n / a), from nat.pos_of_ne_zero (λ h, by simp [*, lt_irrefl] at *),
       by rw [← nat.mul_right_inj this, ha, h, nat.mul_div_cancel' (mem_filter.1 hb).2])
     (λ b hb,
       have hb : b < n.succ ∧ b ∣ n, by simpa [-range_succ] using hb,
@@ -60,7 +59,7 @@ calc ((range n.succ).filter (∣ n)).sum φ
                 hb.2 ▸ coprime_div_gcd_div_gcd (hb.2.symm ▸ hd0)⟩,
           hb.2 ▸ nat.mul_div_cancel' (gcd_dvd_right _ _)⟩))
 ... = ((filter (∣ n) (range n.succ)).bind (λ d, (range n).filter (λ m, gcd n m = d))).card :
-  (card_bind (by simp [finset.ext]; cc)).symm
+  (card_bind (by intros; apply disjoint_filter.2; cc)).symm
 ... = (range n).card :
   congr_arg card (finset.ext.2 (λ m, ⟨by finish,
     λ hm, have h : m < n, from mem_range.1 hm,

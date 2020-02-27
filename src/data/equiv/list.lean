@@ -3,7 +3,7 @@ Copyright (c) 2018 Mario Carneiro. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Author: Mario Carneiro
 
-Additional equiv and encodable instances for lists and finsets.
+Additional equiv and encodable instances for lists, finsets, and fintypes.
 -/
 import data.equiv.denumerable data.nat.pairing order.order_iso
   data.array.lemmas data.fintype
@@ -116,6 +116,33 @@ def fintype_pi (α : Type*) (π : α → Type*) [fintype α] [decidable_eq α] [
 (encodable.trunc_encodable_of_fintype α).bind $ λa,
   (@fintype_arrow α (Σa, π a) _ _ (@encodable.sigma _ _ a _)).bind $ λf,
   trunc.mk $ @encodable.of_equiv _ _ (@encodable.subtype _ _ f _) (equiv.pi_equiv_subtype_sigma α π)
+
+/-- The elements of a `fintype` as a sorted list. -/
+def sorted_univ (α) [fintype α] [encodable α] : list α :=
+finset.univ.sort (encodable.encode' α ⁻¹'o (≤))
+
+theorem mem_sorted_univ {α} [fintype α] [encodable α] (x : α) : x ∈ sorted_univ α :=
+(finset.mem_sort _).2 (finset.mem_univ _)
+
+theorem length_sorted_univ {α} [fintype α] [encodable α] : (sorted_univ α).length = fintype.card α :=
+finset.length_sort _
+
+theorem sorted_univ_nodup {α} [fintype α] [encodable α] : (sorted_univ α).nodup :=
+finset.sort_nodup _ _
+
+/-- An encodable `fintype` is equivalent a `fin`.-/
+def fintype_equiv_fin {α} [fintype α] [encodable α] :
+  α ≃ fin (fintype.card α) :=
+begin
+  haveI : decidable_eq α := encodable.decidable_eq_of_encodable _,
+  transitivity,
+  { exact fintype.equiv_fin_of_forall_mem_list mem_sorted_univ (@sorted_univ_nodup α _ _) },
+  exact equiv.cast (congr_arg _ (@length_sorted_univ α _ _))
+end
+
+instance fintype_arrow_of_encodable {α β : Type*} [encodable α] [fintype α] [encodable β] :
+  encodable (α → β) :=
+of_equiv (fin (fintype.card α) → β) $ equiv.arrow_congr fintype_equiv_fin (equiv.refl _)
 
 end encodable
 
@@ -244,6 +271,13 @@ end finset
 end denumerable
 
 namespace equiv
+
+/-- The type lists on unit is canonically equivalent to the natural numbers. -/
+def list_unit_equiv : list unit ≃ ℕ :=
+{ to_fun := list.length,
+  inv_fun := list.repeat (),
+  left_inv := λ u, list.injective_length (by simp),
+  right_inv := λ n, list.length_repeat () n }
 
 def list_nat_equiv_nat : list ℕ ≃ ℕ := denumerable.eqv _
 

@@ -19,7 +19,7 @@ universes u v w
 
 namespace polynomial
 
-variables (R : Type u) [comm_ring R] [decidable_eq R]
+variables (R : Type u) [comm_ring R]
 
 /-- The `R`-submodule of `R[X]` consisting of polynomials of degree ≤ `n`. -/
 def degree_le (n : with_bot ℕ) : submodule R (polynomial R) :=
@@ -73,7 +73,7 @@ def restriction (p : polynomial R) : polynomial (ring.closure (↑p.frange : set
 @[simp] theorem restriction_zero : restriction (0 : polynomial R) = 0 := rfl
 
 @[simp] theorem restriction_one : restriction (1 : polynomial R) = 1 :=
-ext.2 $ λ i, subtype.eq $ by rw [coeff_restriction', coeff_one, coeff_one]; split_ifs; refl
+ext $ λ i, subtype.eq $ by rw [coeff_restriction', coeff_one, coeff_one]; split_ifs; refl
 
 variables {S : Type v} [comm_ring S] {f : R → S} {x : S}
 
@@ -113,7 +113,7 @@ omit hp
 @[simp] theorem to_subring_one : to_subring (1 : polynomial R) T
   (set.subset.trans (finset.coe_subset.2 finsupp.frange_single)
     (set.singleton_subset_iff.2 (is_submonoid.one_mem _))) = 1 :=
-ext.2 $ λ i, subtype.eq $ by rw [coeff_to_subring', coeff_one, coeff_one]; split_ifs; refl
+ext $ λ i, subtype.eq $ by rw [coeff_to_subring', coeff_one, coeff_one]; split_ifs; refl
 end to_subring
 
 variables (T : set R) [is_subring T]
@@ -131,7 +131,7 @@ def of_subring (p : polynomial T) : polynomial R :=
 
 end polynomial
 
-variables {R : Type u} [comm_ring R] [decidable_eq R]
+variables {R : Type u} [comm_ring R]
 
 namespace ideal
 open polynomial
@@ -230,7 +230,7 @@ theorem is_noetherian_ring_polynomial [is_noetherian_ring R] : is_noetherian_rin
 ⟨assume I : ideal (polynomial R),
 let L := I.leading_coeff in
 let M := well_founded.min (is_noetherian_iff_well_founded.1 (by apply_instance))
-  (set.range I.leading_coeff_nth) (set.ne_empty_of_mem ⟨0, rfl⟩) in
+  (set.range I.leading_coeff_nth) ⟨_, ⟨0, rfl⟩⟩ in
 have hm : M ∈ set.range I.leading_coeff_nth := well_founded.min_mem _ _ _,
 let ⟨N, HN⟩ := hm, ⟨s, hs⟩ := I.is_fg_degree_le N in
 have hm2 : ∀ k, I.leading_coeff_nth k ≤ M := λ k, or.cases_on (le_or_lt k N)
@@ -298,10 +298,10 @@ begin
       by rintro ⟨none | x⟩; [refl, exact fin.cases_succ _],
       λ x, fin.cases rfl (λ i, show (option.rec_on (fin.cases none some (fin.succ i) : option (fin n))
         0 fin.succ : fin n.succ) = _, by rw fin.cases_succ) x⟩))
-    (@@is_noetherian_ring_polynomial _ _ ih)
+    (@@is_noetherian_ring_polynomial _ ih)
 end
 
-theorem is_noetherian_ring_mv_polynomial_of_fintype {σ : Type v} [fintype σ] [decidable_eq σ]
+theorem is_noetherian_ring_mv_polynomial_of_fintype {σ : Type v} [fintype σ]
   [is_noetherian_ring R] : is_noetherian_ring (mv_polynomial σ R) :=
 trunc.induction_on (fintype.equiv_fin σ) $ λ e,
 @is_noetherian_ring_of_ring_equiv (mv_polynomial (fin (fintype.card σ)) R) _ _ _

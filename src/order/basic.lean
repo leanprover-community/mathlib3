@@ -11,10 +11,6 @@ open function
 universes u v w
 variables {α : Type u} {β : Type v} {γ : Type w} {r : α → α → Prop}
 
-protected noncomputable def classical.decidable_linear_order [I : linear_order α] :
-  decidable_linear_order α :=
-{ decidable_le := classical.dec_rel _, ..I }
-
 theorem ge_of_eq [preorder α] {a b : α} : a = b → a ≥ b :=
 λ h, h ▸ le_refl a
 
@@ -103,6 +99,11 @@ by haveI this := partial_order.ext H;
 
 infix ` ⁻¹'o `:80 := order.preimage
 
+/-- The preimage of a decidable order is decidable. -/
+instance order.preimage.decidable {α β} (f : α → β) (s : β → β → Prop) [H : decidable_rel s] :
+  decidable_rel (f ⁻¹'o s) :=
+λ x y, H _ _
+
 section monotone
 variables [preorder α] [preorder β] [preorder γ]
 
@@ -114,7 +115,7 @@ theorem monotone_id : @monotone α α _ _ id := assume x y h, h
 
 theorem monotone_const {b : β} : monotone (λ(a:α), b) := assume x y h, le_refl b
 
-theorem monotone_comp {f : α → β} {g : β → γ} (m_f : monotone f) (m_g : monotone g) :
+protected theorem monotone.comp {g : β → γ} {f : α → β} (m_g : monotone g) (m_f : monotone f) :
   monotone (g ∘ f) :=
 assume a b h, m_g (m_f h)
 
@@ -132,11 +133,21 @@ by { rw [← not_le], intro h', apply not_le_of_lt h, exact hf h' }
 
 end monotone
 
+/-- Type tag for a set with dual order: `≤` means `≥` and `<` means `>`. -/
 def order_dual (α : Type*) := α
 
 namespace order_dual
 instance (α : Type*) [has_le α] : has_le (order_dual α) := ⟨λx y:α, y ≤ x⟩
 instance (α : Type*) [has_lt α] : has_lt (order_dual α) := ⟨λx y:α, y < x⟩
+
+-- `dual_le` and `dual_lt` should not be simp lemmas:
+-- they cause a loop since `α` and `order_dual α` are definitionally equal
+
+lemma dual_le [has_le α] {a b : α} :
+  @has_le.le (order_dual α) _ a b ↔ @has_le.le α _ b a := iff.rfl
+
+lemma dual_lt [has_lt α] {a b : α} :
+  @has_lt.lt (order_dual α) _ a b ↔ @has_lt.lt α _ b a := iff.rfl
 
 instance (α : Type*) [preorder α] : preorder (order_dual α) :=
 { le_refl  := le_refl,
@@ -259,12 +270,24 @@ class no_bot_order (α : Type u) [preorder α] : Prop :=
 lemma no_bot [preorder α] [no_bot_order α] : ∀a:α, ∃a', a' < a :=
 no_bot_order.no_bot
 
+instance order_dual.no_top_order (α : Type u) [preorder α] [no_bot_order α] :
+  no_top_order (order_dual α) :=
+⟨λ a, @no_bot α _ _ a⟩
+
+instance order_dual.no_bot_order (α : Type u) [preorder α] [no_top_order α] :
+  no_bot_order (order_dual α) :=
+⟨λ a, @no_top α _ _ a⟩
+
 /-- An order is dense if there is an element between any pair of distinct elements. -/
 class densely_ordered (α : Type u) [preorder α] : Prop :=
 (dense : ∀a₁ a₂:α, a₁ < a₂ → ∃a, a₁ < a ∧ a < a₂)
 
 lemma dense [preorder α] [densely_ordered α] : ∀{a₁ a₂:α}, a₁ < a₂ → ∃a, a₁ < a ∧ a < a₂ :=
 densely_ordered.dense
+
+instance order_dual.densely_ordered (α : Type u) [preorder α] [densely_ordered α] :
+  densely_ordered (order_dual α) :=
+⟨λ a₁ a₂ ha, (@dense α _ _ _ _ ha).imp $ λ a, and.symm⟩
 
 lemma le_of_forall_le_of_dense [linear_order α] [densely_ordered α] {a₁ a₂ : α} (h : ∀a₃>a₂, a₁ ≤ a₃) :
   a₁ ≤ a₂ :=
@@ -334,9 +357,12 @@ def partial_order_of_SO (r) [is_strict_order α r] : partial_order α :=
       (asymm h)⟩,
     λ ⟨h₁, h₂⟩, h₁.resolve_left (λ e, h₂ $ e ▸ or.inl rfl)⟩ }
 
+section prio
+set_option default_priority 100 -- see Note [default priority]
 /-- This is basically the same as `is_strict_total_order`, but that definition is
   in Type (probably by mistake) and also has redundant assumptions. -/
 @[algebra] class is_strict_total_order' (α : Type u) (lt : α → α → Prop) extends is_trichotomous α lt, is_strict_order α lt : Prop.
+end prio
 
 /-- Construct a linear order from a `is_strict_total_order'` relation -/
 def linear_order_of_STO' (r) [is_strict_total_order' α r] : linear_order α :=
@@ -380,11 +406,13 @@ theorem is_strict_weak_order_of_is_order_connected [is_asymm α r]
     ⟨is_order_connected.neg_trans h₁ h₃, is_order_connected.neg_trans h₄ h₂⟩,
   ..@is_irrefl_of_is_asymm α r _ }
 
+@[priority 100] -- see Note [lower instance priority]
 instance is_order_connected_of_is_strict_total_order'
   [is_strict_total_order' α r] : is_order_connected α r :=
 ⟨λ a b c h, (trichotomous _ _).imp_right (λ o,
   o.elim (λ e, e ▸ h) (λ h', trans h' h))⟩
 
+@[priority 100] -- see Note [lower instance priority]
 instance is_strict_total_order_of_is_strict_total_order'
   [is_strict_total_order' α r] : is_strict_total_order α r :=
 {..is_strict_weak_order_of_is_order_connected}
@@ -400,21 +428,31 @@ instance [linear_order α] : is_strict_weak_order α (<) := by apply_instance
 @[algebra] class is_extensional (α : Type u) (r : α → α → Prop) : Prop :=
 (ext : ∀ a b, (∀ x, r x a ↔ r x b) → a = b)
 
+@[priority 100] -- see Note [lower instance priority]
 instance is_extensional_of_is_strict_total_order'
   [is_strict_total_order' α r] : is_extensional α r :=
 ⟨λ a b H, ((@trichotomous _ r _ a b)
   .resolve_left $ mt (H _).2 (irrefl a))
   .resolve_right $ mt (H _).1 (irrefl b)⟩
 
+section prio
+set_option default_priority 100 -- see Note [default priority]
 /-- A well order is a well-founded linear order. -/
 @[algebra] class is_well_order (α : Type u) (r : α → α → Prop) extends is_strict_total_order' α r : Prop :=
 (wf : well_founded r)
+end prio
 
+@[priority 100] -- see Note [lower instance priority]
 instance is_well_order.is_strict_total_order {α} (r : α → α → Prop) [is_well_order α r] : is_strict_total_order α r := by apply_instance
+@[priority 100] -- see Note [lower instance priority]
 instance is_well_order.is_extensional {α} (r : α → α → Prop) [is_well_order α r] : is_extensional α r := by apply_instance
+@[priority 100] -- see Note [lower instance priority]
 instance is_well_order.is_trichotomous {α} (r : α → α → Prop) [is_well_order α r] : is_trichotomous α r := by apply_instance
+@[priority 100] -- see Note [lower instance priority]
 instance is_well_order.is_trans {α} (r : α → α → Prop) [is_well_order α r] : is_trans α r := by apply_instance
+@[priority 100] -- see Note [lower instance priority]
 instance is_well_order.is_irrefl {α} (r : α → α → Prop) [is_well_order α r] : is_irrefl α r := by apply_instance
+@[priority 100] -- see Note [lower instance priority]
 instance is_well_order.is_asymm {α} (r : α → α → Prop) [is_well_order α r] : is_asymm α r := by apply_instance
 
 noncomputable def decidable_linear_order_of_is_well_order (r : α → α → Prop) [is_well_order α r] :
@@ -473,39 +511,39 @@ end
 by { classical, rw [not_iff_comm, not_bounded_iff] }
 
 namespace well_founded
+/-- If `r` is a well founded relation, then any nonempty set has a minimum element
+with respect to `r`. -/
 theorem has_min {α} {r : α → α → Prop} (H : well_founded r)
-  (p : set α) : p ≠ ∅ → ∃ a ∈ p, ∀ x ∈ p, ¬ r x a :=
-by classical; exact
-not_imp_comm.1 (λ he, set.eq_empty_iff_forall_not_mem.2 $ λ a,
-acc.rec_on (H.apply a) $ λ a H IH h,
-he ⟨_, h, λ y, imp_not_comm.1 (IH y)⟩)
+  (s : set α) : s.nonempty → ∃ a ∈ s, ∀ x ∈ s, ¬ r x a
+| ⟨a, ha⟩ := (acc.rec_on (H.apply a) $ λ x _ IH, classical.not_imp_not.1 $ λ hne hx, hne $
+  ⟨x, hx, λ y hy hyx, hne $ IH y hyx hy⟩) ha
 
 /-- The minimum element of a nonempty set in a well-founded order -/
 noncomputable def min {α} {r : α → α → Prop} (H : well_founded r)
-  (p : set α) (h : p ≠ ∅) : α :=
+  (p : set α) (h : p.nonempty) : α :=
 classical.some (H.has_min p h)
 
 theorem min_mem {α} {r : α → α → Prop} (H : well_founded r)
-  (p : set α) (h : p ≠ ∅) : H.min p h ∈ p :=
+  (p : set α) (h : p.nonempty) : H.min p h ∈ p :=
 let ⟨h, _⟩ := classical.some_spec (H.has_min p h) in h
 
 theorem not_lt_min {α} {r : α → α → Prop} (H : well_founded r)
-  (p : set α) (h : p ≠ ∅) {x} (xp : x ∈ p) : ¬ r x (H.min p h) :=
+  (p : set α) (h : p.nonempty) {x} (xp : x ∈ p) : ¬ r x (H.min p h) :=
 let ⟨_, h'⟩ := classical.some_spec (H.has_min p h) in h' _ xp
 
 open set
 protected noncomputable def sup {α} {r : α → α → Prop} (wf : well_founded r) (s : set α)
   (h : bounded r s) : α :=
-wf.min { x | ∀a ∈ s, r a x } (ne_empty_iff_exists_mem.mpr h)
+wf.min { x | ∀a ∈ s, r a x } h
 
 protected lemma lt_sup {α} {r : α → α → Prop} (wf : well_founded r) {s : set α} (h : bounded r s)
   {x} (hx : x ∈ s) : r x (wf.sup s h) :=
-min_mem wf { x | ∀a ∈ s, r a x } (ne_empty_iff_exists_mem.mpr h) x hx
+min_mem wf { x | ∀a ∈ s, r a x } h x hx
 
 section
 open_locale classical
 protected noncomputable def succ {α} {r : α → α → Prop} (wf : well_founded r) (x : α) : α :=
-if h : ∃y, r x y then wf.min { y | r x y } (ne_empty_iff_exists_mem.mpr h) else x
+if h : ∃y, r x y then wf.min { y | r x y } h else x
 
 protected lemma lt_succ {α} {r : α → α → Prop} (wf : well_founded r) {x : α} (h : ∃y, r x y) :
   r x (wf.succ x) :=
@@ -518,7 +556,7 @@ begin
   split,
   { intro h', have : ¬r x y,
     { intro hy, rw [well_founded.succ, dif_pos] at h',
-      exact wo.wf.not_lt_min _ (ne_empty_iff_exists_mem.mpr h) hy h' },
+      exact wo.wf.not_lt_min _ h hy h' },
     rcases trichotomous_of r x y with hy | hy | hy,
     exfalso, exact this hy,
     right, exact hy.symm,
@@ -548,5 +586,13 @@ theorem directed_mono {s : α → α → Prop} {ι} (f : ι → α)
   (H : ∀ a b, r a b → s a b) (h : directed r f) : directed s f :=
 λ a b, let ⟨c, h₁, h₂⟩ := h a b in ⟨c, H _ _ h₁, H _ _ h₂⟩
 
+theorem directed.mono_comp {ι} {rb : β → β → Prop} {g : α → β} {f : ι → α}
+  (hg : ∀ ⦃x y⦄, x ≼ y → rb (g x) (g y)) (hf : directed r f) :
+  directed rb (g ∘ f) :=
+(directed_comp rb f g).2 $ directed_mono _ _ hg hf
+
+section prio
+set_option default_priority 100 -- see Note [default priority]
 class directed_order (α : Type u) extends preorder α :=
 (directed : ∀ i j : α, ∃ k, i ≤ k ∧ j ≤ k)
+end prio

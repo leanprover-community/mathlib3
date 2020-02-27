@@ -13,7 +13,7 @@ variable {α : Type u}
 section old_structure_cmd
 
 set_option old_structure_cmd true
-
+set_option default_priority 100 -- see Note [default priority]
 /-- An ordered (additive) commutative monoid is a commutative monoid
   with a partial order such that addition is an order embedding, i.e.
   `a + b ≤ a + c ↔ b ≤ c`. These monoids are automatically cancellative. -/
@@ -46,11 +46,11 @@ ordered_comm_monoid.lt_of_add_lt_add_left a b c
 lemma add_le_add' (h₁ : a ≤ b) (h₂ : c ≤ d) : a + c ≤ b + d :=
 le_trans (add_le_add_right' h₁) (add_le_add_left' h₂)
 
-lemma le_add_of_nonneg_right' (h : b ≥ 0) : a ≤ a + b :=
+lemma le_add_of_nonneg_right' (h : 0 ≤ b) : a ≤ a + b :=
 have a + b ≥ a + 0, from add_le_add_left' h,
 by rwa add_zero at this
 
-lemma le_add_of_nonneg_left' (h : b ≥ 0) : a ≤ b + a :=
+lemma le_add_of_nonneg_left' (h : 0 ≤ b) : a ≤ b + a :=
 have 0 + a ≤ b + a, from add_le_add_right' h,
 by rwa zero_add at this
 
@@ -398,6 +398,7 @@ instance with_zero.canonically_ordered_monoid :
 
 end canonically_ordered_monoid
 
+@[priority 100] -- see Note [lower instance priority]
 instance ordered_cancel_comm_monoid.to_ordered_comm_monoid
   [H : ordered_cancel_comm_monoid α] : ordered_comm_monoid α :=
 { lt_of_add_lt_add_left := @lt_of_add_lt_add_left _ _, ..H }
@@ -470,6 +471,29 @@ by simpa [add_comm] using @with_top.add_lt_add_iff_left _ _ a b c
 end ordered_cancel_comm_monoid
 
 section ordered_comm_group
+
+/--
+The `add_lt_add_left` field of `ordered_comm_group` is redundant, but it is in core so
+we can't remove it for now. This alternative constructor is the best we can do.
+-/
+def ordered_comm_group.mk' {α : Type u} [add_comm_group α] [partial_order α]
+  (add_le_add_left : ∀ a b : α, a ≤ b → ∀ c : α, c + a ≤ c + b) :
+  ordered_comm_group α :=
+{ add_le_add_left := add_le_add_left,
+  add_lt_add_left := λ a b h c,
+  begin
+    rw lt_iff_le_not_le at h,
+    rw lt_iff_le_not_le,
+    split,
+    { apply add_le_add_left _ _ h.1 },
+    { intro w,
+      replace w : -c + (c + b) ≤ -c + (c + a) := add_le_add_left _ _ w _,
+      simp only [add_zero, add_comm, add_left_neg, add_left_comm] at w,
+      exact h.2 w },
+  end,
+  ..(by apply_instance : add_comm_group α),
+  ..(by apply_instance : partial_order α)  }
+
 variables [ordered_comm_group α] {a b c : α}
 
 lemma neg_neg_iff_pos {α : Type} [_inst_1 : ordered_comm_group α] {a : α} : -a < 0 ↔ 0 < a :=
@@ -487,6 +511,12 @@ lemma le_neg : a ≤ -b ↔ b ≤ -a :=
 have -(-a) ≤ -b ↔ b ≤ -a, from neg_le_neg_iff,
 by rwa neg_neg at this
 
+lemma neg_le_iff_add_nonneg : -a ≤ b ↔ 0 ≤ a + b :=
+(add_le_add_iff_left a).symm.trans $ by rw add_neg_self
+
+lemma le_neg_iff_add_nonpos : a ≤ -b ↔ a + b ≤ 0 :=
+(add_le_add_iff_right b).symm.trans $ by rw neg_add_self
+
 @[simp] lemma neg_nonpos : -a ≤ 0 ↔ 0 ≤ a :=
 have -a ≤ -0 ↔ 0 ≤ a, from neg_le_neg_iff,
 by rwa neg_zero at this
@@ -494,6 +524,12 @@ by rwa neg_zero at this
 @[simp] lemma neg_nonneg : 0 ≤ -a ↔ a ≤ 0 :=
 have -0 ≤ -a ↔ a ≤ 0, from neg_le_neg_iff,
 by rwa neg_zero at this
+
+lemma neg_le_self (h : 0 ≤ a) : -a ≤ a :=
+le_trans (neg_nonpos.2 h) h
+
+lemma self_le_neg (h : a ≤ 0) : a ≤ -a :=
+le_trans h (neg_nonneg.2 h)
 
 @[simp] lemma neg_lt_neg_iff : -a < -b ↔ b < a :=
 have a + b + -a < a + b + -b ↔ -a < -b, from add_lt_add_iff_left _,
@@ -631,6 +667,7 @@ namespace decidable_linear_ordered_comm_group
 variables [s : decidable_linear_ordered_comm_group α]
 include s
 
+@[priority 100] -- see Note [lower instance priority]
 instance : decidable_linear_ordered_cancel_comm_monoid α :=
 { le_of_add_le_add_left := λ x y z, le_of_add_le_add_left,
   add_left_cancel := λ x y z, add_left_cancel,
@@ -643,6 +680,8 @@ eq_of_abs_sub_eq_zero (le_antisymm _ _ h (abs_nonneg (a - b)))
 end decidable_linear_ordered_comm_group
 
 set_option old_structure_cmd true
+section prio
+set_option default_priority 100 -- see Note [default priority]
 /-- This is not so much a new structure as a construction mechanism
   for ordered groups, by specifying only the "positive cone" of the group. -/
 class nonneg_comm_group (α : Type*) extends add_comm_group α :=
@@ -652,12 +691,14 @@ class nonneg_comm_group (α : Type*) extends add_comm_group α :=
 (zero_nonneg : nonneg 0)
 (add_nonneg : ∀ {a b}, nonneg a → nonneg b → nonneg (a + b))
 (nonneg_antisymm : ∀ {a}, nonneg a → nonneg (-a) → a = 0)
+end prio
 
 namespace nonneg_comm_group
 variable [s : nonneg_comm_group α]
 include s
 
-@[reducible] instance to_ordered_comm_group : ordered_comm_group α :=
+@[reducible, priority 100] -- see Note [lower instance priority]
+instance to_ordered_comm_group : ordered_comm_group α :=
 { le := λ a b, nonneg (b - a),
   lt := λ a b, pos (b - a),
   lt_iff_le_not_le := λ a b, by simp; rw [pos_iff]; simp,

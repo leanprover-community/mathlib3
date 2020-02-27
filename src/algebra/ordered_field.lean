@@ -8,7 +8,7 @@ import algebra.ordered_ring algebra.field
 section linear_ordered_field
 variables {α : Type*} [linear_ordered_field α] {a b c d : α}
 
-def div_pos := @div_pos_of_pos_of_pos
+lemma div_pos : 0 < a → 0 < b → 0 < a / b := div_pos_of_pos_of_pos
 
 lemma inv_pos {a : α} : 0 < a → 0 < a⁻¹ :=
 by rw [inv_eq_one_div]; exact div_pos zero_lt_one
@@ -50,7 +50,7 @@ lemma div_le_iff_of_neg (hc : c < 0) : b / c ≤ a ↔ a * c ≤ b :=
 ⟨mul_le_of_div_le_of_neg hc, div_le_of_mul_le_of_neg hc⟩
 
 lemma le_div_iff_of_neg (hc : c < 0) : a ≤ b / c ↔ b ≤ a * c :=
-by rw [← neg_neg c, mul_neg_eq_neg_mul_symm, div_neg _ (ne_of_gt (neg_pos.2 hc)), le_neg, 
+by rw [← neg_neg c, mul_neg_eq_neg_mul_symm, div_neg _ (ne_of_gt (neg_pos.2 hc)), le_neg,
     div_le_iff (neg_pos.2 hc), neg_mul_eq_neg_mul_symm]
 
 lemma div_lt_iff (hc : 0 < c) : b / c < a ↔ b < a * c :=
@@ -81,13 +81,16 @@ lt_iff_lt_of_le_iff_le (inv_le_inv hb ha)
 lemma inv_lt (ha : 0 < a) (hb : 0 < b) : a⁻¹ < b ↔ b⁻¹ < a :=
 lt_iff_lt_of_le_iff_le (le_inv hb ha)
 
+lemma one_div_lt (ha : 0 < a) (hb : 0 < b) : 1 / a < b ↔ 1 / b < a :=
+(one_div_eq_inv a).symm ▸ (one_div_eq_inv b).symm ▸ inv_lt ha hb
+
 lemma lt_inv (ha : 0 < a) (hb : 0 < b) : a < b⁻¹ ↔ b < a⁻¹ :=
 lt_iff_lt_of_le_iff_le (inv_le hb ha)
 
 lemma one_div_lt_one_div (ha : 0 < a) (hb : 0 < b) : 1 / a < 1 / b ↔ b < a :=
 lt_iff_lt_of_le_iff_le (one_div_le_one_div hb ha)
 
-def div_nonneg := @div_nonneg_of_nonneg_of_pos
+lemma div_nonneg : 0 ≤ a → 0 < b → 0 ≤ a / b := div_nonneg_of_nonneg_of_pos
 
 lemma div_lt_div_right (hc : 0 < c) : a / c < b / c ↔ a < b :=
 ⟨lt_imp_lt_of_le_imp_le (λ h, div_le_div_of_le_of_pos h hc),
@@ -113,6 +116,9 @@ lemma div_lt_div_iff (b0 : 0 < b) (d0 : 0 < d) :
   a / b < c / d ↔ a * d < c * b :=
 by rw [lt_div_iff d0, div_mul_eq_mul_div, div_lt_iff b0]
 
+lemma div_le_div_iff (b0 : 0 < b) (d0 : 0 < d) : a / b ≤ c / d ↔ a * d ≤ c * b :=
+by rw [le_div_iff d0, div_mul_eq_mul_div, div_le_iff b0]
+
 lemma div_lt_div (hac : a < c) (hbd : d ≤ b) (c0 : 0 ≤ c) (d0 : 0 < d) :
   a / b < c / d :=
 (div_lt_div_iff (lt_of_lt_of_le d0 hbd) d0).2 (mul_lt_mul hac hbd d0 c0)
@@ -125,24 +131,11 @@ lemma half_pos {a : α} (h : 0 < a) : 0 < a / 2 := div_pos h two_pos
 
 lemma one_half_pos : (0:α) < 1 / 2 := half_pos zero_lt_one
 
-def half_lt_self := @div_two_lt_of_pos
+lemma half_lt_self : 0 < a → a / 2 < a := div_two_lt_of_pos
 
 lemma one_half_lt_one : (1 / 2 : α) < 1 := half_lt_self zero_lt_one
 
-lemma ivl_translate : (λx, x + c) '' {r:α | a ≤ r ∧ r ≤ b } = {r:α | a + c ≤ r ∧ r ≤ b + c} :=
-calc (λx, x + c) '' {r | a ≤ r ∧ r ≤ b } = (λx, x - c) ⁻¹' {r | a ≤ r ∧ r ≤ b } :
-    congr_fun (set.image_eq_preimage_of_inverse
-      (assume a, add_sub_cancel a c) (assume b, sub_add_cancel b c)) _
-  ... = {r | a + c ≤ r ∧ r ≤ b + c} :
-    set.ext $ by simp [-sub_eq_add_neg, le_sub_iff_add_le, sub_le_iff_le_add]
-
-lemma ivl_stretch (hc : 0 < c) : (λx, x * c) '' {r | a ≤ r ∧ r ≤ b } = {r | a * c ≤ r ∧ r ≤ b * c} :=
-calc (λx, x * c) '' {r | a ≤ r ∧ r ≤ b } = (λx, x / c) ⁻¹' {r | a ≤ r ∧ r ≤ b } :
-    congr_fun (set.image_eq_preimage_of_inverse
-      (assume a, mul_div_cancel _ $ ne_of_gt hc) (assume b, div_mul_cancel _ $ ne_of_gt hc)) _
-  ... = {r | a * c ≤ r ∧ r ≤ b * c} :
-    set.ext $ by simp [le_div_iff, div_le_iff, hc]
-
+@[priority 100] -- see Note [lower instance priority]
 instance linear_ordered_field.to_densely_ordered : densely_ordered α :=
 { dense := assume a₁ a₂ h, ⟨(a₁ + a₂) / 2,
   calc a₁ = (a₁ + a₁) / 2 : (add_self_div_two a₁).symm
@@ -150,9 +143,11 @@ instance linear_ordered_field.to_densely_ordered : densely_ordered α :=
   calc (a₁ + a₂) / 2 < (a₂ + a₂) / 2 : div_lt_div_of_lt_of_pos (add_lt_add_right h _) two_pos
     ... = a₂ : add_self_div_two a₂⟩ }
 
+@[priority 100] -- see Note [lower instance priority]
 instance linear_ordered_field.to_no_top_order : no_top_order α :=
 { no_top := assume a, ⟨a + 1, lt_add_of_le_of_pos (le_refl a) zero_lt_one ⟩ }
 
+@[priority 100] -- see Note [lower instance priority]
 instance linear_ordered_field.to_no_bot_order : no_bot_order α :=
 { no_bot := assume a, ⟨a + -1,
     add_lt_of_le_of_neg (le_refl _) (neg_lt_of_neg_lt $ by simp [zero_lt_one]) ⟩ }
@@ -232,5 +227,9 @@ end
 
 lemma div_nonneg' {a b : α} (ha : 0 ≤ a) (hb : 0 ≤ b) : 0 ≤ a / b :=
 (lt_or_eq_of_le hb).elim (div_nonneg ha) (λ h, by simp [h.symm])
+
+lemma div_le_div_of_le_of_nonneg {a b c : α} (hab : a ≤ b) (hc : 0 ≤ c) :
+  a / c ≤ b / c :=
+mul_le_mul_of_nonneg_right hab (inv_nonneg.2 hc)
 
 end

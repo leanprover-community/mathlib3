@@ -105,6 +105,8 @@ by refine
   refine (quotient.sound $ r_of_eq _),
   simp [mul_left_comm, mul_add, mul_comm] }
 
+instance : inhabited (localization α S) := ⟨0⟩
+
 instance of.is_ring_hom : is_ring_hom (of : α → localization α S) :=
 { map_add := λ x y, quotient.sound $ by simp,
   map_mul := λ x y, quotient.sound $ by simp,
@@ -112,7 +114,7 @@ instance of.is_ring_hom : is_ring_hom (of : α → localization α S) :=
 
 variables {S}
 
-instance : has_coe α (localization α S) := ⟨of⟩
+instance : has_coe_t α (localization α S) := ⟨of⟩ -- note [use has_coe_t]
 
 instance coe.is_ring_hom : is_ring_hom (coe : α → localization α S) :=
 localization.of.is_ring_hom
@@ -124,7 +126,8 @@ def to_units (s : S) : units (localization α S) :=
   val_inv := quotient.sound $ r_of_eq $ mul_assoc _ _ _,
   inv_val := quotient.sound $ r_of_eq $ show s.val * 1 * 1 = 1 * (1 * s.val), by simp }
 
-@[simp] lemma to_units_coe (s : S) : ((to_units s) : localization α S) = s := rfl
+@[simp] lemma to_units_coe (s : S) :
+  ((to_units s) : localization α S) = ((s : α) : localization α S) := rfl
 
 section
 variables (α S) (x y : α) (n : ℕ)
@@ -158,8 +161,8 @@ is_unit_unit $ to_units ⟨s, ‹s ∈ S›⟩
 @[simp] lemma coe_mul : (↑(x * y) : localization α S) = x * y := of_mul _ _ _ _
 @[simp] lemma coe_neg : (↑(-x) : localization α S) = -x := of_neg _ _ _
 @[simp] lemma coe_pow : (↑(x ^ n) : localization α S) = x ^ n := of_pow _ _ _ _
-@[simp] lemma coe_is_unit (s : S) : is_unit (s : localization α S) := of_is_unit _ _ _
-@[simp] lemma coe_is_unit' (s ∈ S) : is_unit (s : localization α S) := of_is_unit' _ _ _ ‹s ∈ S›
+@[simp] lemma coe_is_unit (s : S) : is_unit ((s : α) : localization α S) := of_is_unit _ _ _
+@[simp] lemma coe_is_unit' (s ∈ S) : is_unit ((s : α) : localization α S) := of_is_unit' _ _ _ ‹s ∈ S›
 end
 
 @[simp] lemma mk_self {x : α} {hx : x ∈ S} :
@@ -175,7 +178,10 @@ by cases s; exact mk_self
   (mk s.1 s : localization α S) = 1 :=
 mk_self'
 
-@[simp] lemma coe_mul_mk (x y : α) (s : S) :
+-- This lemma does not apply with simp, since (mk r s) simplifies to (r * s⁻¹).
+-- However, it could apply with dsimp.
+@[simp, nolint /- simp_nf -/]
+lemma coe_mul_mk (x y : α) (s : S) :
   ↑x * mk y s = mk (x * y) s :=
 quotient.sound $ r_of_eq $ by rw one_mul
 
@@ -183,7 +189,10 @@ lemma mk_eq_mul_mk_one (r : α) (s : S) :
   mk r s = r * mk 1 s :=
 by rw [coe_mul_mk, mul_one]
 
-@[simp] lemma mk_mul_mk (x y : α) (s t : S) :
+-- This lemma does not apply with simp, since (mk r s) simplifies to (r * s⁻¹).
+-- However, it could apply with dsimp.
+@[simp, nolint /- simp_nf -/]
+lemma mk_mul_mk (x y : α) (s t : S) :
   mk x s * mk y t = mk (x * y) (s * t) := rfl
 
 @[simp] lemma mk_mul_cancel_left (r : α) (s : S) :
@@ -256,7 +265,10 @@ instance lift.is_ring_hom (h : ∀ s ∈ S, is_unit (f s)) :
   is_ring_hom (lift f h) :=
 lift'.is_ring_hom _ _ _
 
-@[simp] lemma lift'_mk (g : S → units β) (hg : ∀ s, (g s : β) = f s) (r : α) (s : S) :
+-- This lemma does not apply with simp, since (mk r s) simplifies to (r * s⁻¹).
+-- However, it could apply with dsimp.
+@[simp, nolint /- simp_nf -/]
+lemma lift'_mk (g : S → units β) (hg : ∀ s, (g s : β) = f s) (r : α) (s : S) :
   lift' f g hg (mk r s) = f r * ↑(g s)⁻¹ := rfl
 
 @[simp] lemma lift'_of (g : S → units β) (hg : ∀ s, (g s : β) = f s) (a : α) :
@@ -333,16 +345,15 @@ lemma map_map {γ : Type*} [comm_ring γ]  (hf : ∀ s ∈ S, f s ∈ T) (U : se
   map g hg (map f hf x) = map (λ x, g (f x)) (λ s hs, hg _ (hf _ hs)) x :=
 congr_fun (map_comp_map _ _ _ _ _) x
 
-def equiv_of_equiv (h₁ : α ≃r β) (h₂ : h₁.to_equiv '' S = T) :
-  localization α S ≃r localization β T :=
-{ to_fun := map h₁.to_equiv $ λ s hs, by {rw ← h₂, simp [hs]},
-  inv_fun := map h₁.symm.to_equiv $ λ t ht,
-    by simp [equiv.image_eq_preimage, set.preimage, set.ext_iff, *] at *,
-  left_inv := λ _, by simp only [map_map, ring_equiv.to_equiv_symm_apply,
-    equiv.symm_apply_apply]; erw map_id; refl,
-  right_inv := λ _, by simp only [map_map, ring_equiv.to_equiv_symm_apply,
-    equiv.apply_symm_apply]; erw map_id; refl,
-  hom := map.is_ring_hom _ _ }
+def equiv_of_equiv (h₁ : α ≃+* β) (h₂ : h₁ '' S = T) :
+  localization α S ≃+* localization β T :=
+{ to_fun := map h₁ $ λ s hs, h₂ ▸ set.mem_image_of_mem _ hs,
+  inv_fun := map h₁.symm $ λ t ht,
+    by simp [h₁.image_eq_preimage, set.preimage, set.ext_iff, *] at *,
+  left_inv := λ _, by simp only [map_map, h₁.symm_apply_apply]; erw map_id; refl,
+  right_inv := λ _, by simp only [map_map, h₁.apply_symm_apply]; erw map_id; refl,
+  map_mul' := λ _ _, is_ring_hom.map_mul _,
+  map_add' := λ _ _, is_ring_hom.map_add _ }
 
 end
 
@@ -548,17 +559,16 @@ localization.map_coe _ _ _
   map f hf ∘ (of : A → fraction_ring A) = (of : B → fraction_ring B) ∘ f :=
 localization.map_comp_of _ _
 
-instance map.is_field_hom (hf : injective f) : is_field_hom (map f hf) :=
+instance map.is_ring_hom (hf : injective f) : is_ring_hom (map f hf) :=
 localization.map.is_ring_hom _ _
 
-def equiv_of_equiv (h : A ≃r B) : fraction_ring A ≃r fraction_ring B :=
+def equiv_of_equiv (h : A ≃+* B) : fraction_ring A ≃+* fraction_ring B :=
 localization.equiv_of_equiv h
 begin
   ext b,
-  rw [equiv.image_eq_preimage, set.preimage, set.mem_set_of_eq,
+  rw [h.image_eq_preimage, set.preimage, set.mem_set_of_eq,
     mem_non_zero_divisors_iff_ne_zero, mem_non_zero_divisors_iff_ne_zero, ne.def],
-  exact ⟨mt (λ h, h.symm ▸ is_ring_hom.map_zero _),
-    mt ((is_add_group_hom.injective_iff _).1 h.to_equiv.symm.injective _)⟩
+  exact h.symm.map_ne_zero_iff
 end
 
 end map

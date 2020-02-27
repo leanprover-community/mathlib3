@@ -11,6 +11,12 @@ begin
   apply_assumption,
 end
 
+example {X : Type} (x : X) : x = x :=
+by solve_by_elim
+
+example : true :=
+by solve_by_elim
+
 example {a b : Prop} (h₀ : a → b) (h₁ : a) : b :=
 by solve_by_elim
 
@@ -95,4 +101,10 @@ example (n m : ℕ) (f : ℕ → ℕ → Prop) (h : f n m) : ∃ p : ℕ × ℕ,
 begin
   repeat { split },
   solve_by_elim*,
+end
+
+example {a b c : ℕ} (h₁ : a ≤ b) (h₂ : b ≤ c) : a ≤ c :=
+begin
+  apply le_trans,
+  solve_by_elim { backtrack_all_goals := true },
 end

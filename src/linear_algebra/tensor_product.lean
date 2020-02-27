@@ -102,7 +102,7 @@ linear_map.comp (llcomp R N P Q g) f
 
 variables (R M)
 def lsmul : R →ₗ M →ₗ M :=
-mk₂ R (•) add_smul (λ _ _ _, eq.symm $ smul_smul _ _ _ _) smul_add
+mk₂ R (•) add_smul (λ _ _ _, mul_smul _ _ _) smul_add
 (λ r s m, by simp only [smul_smul, smul_eq_mul, mul_comm])
 variables {R M}
 
@@ -148,6 +148,8 @@ section module
 local attribute [instance] quotient_add_group.left_rel normal_add_subgroup.to_is_add_subgroup
 
 instance : add_comm_group (M ⊗[R] N) := quotient_add_group.add_comm_group _
+
+instance : inhabited (M ⊗[R] N) := ⟨0⟩
 
 instance quotient.mk.is_add_group_hom :
   is_add_group_hom (quotient.mk : free_abelian_group (M × N) → M ⊗ N) :=
@@ -362,15 +364,26 @@ def curry (f : M ⊗ N →ₗ P) : M →ₗ N →ₗ P := lcurry R M N P f
 end UMP
 
 variables {M N}
+/--
+The base ring is a left identity for the tensor product of modules, up to linear equivalence.
+-/
 protected def lid : R ⊗ M ≃ₗ M :=
 linear_equiv.of_linear (lift $ linear_map.lsmul R M) (mk R R M 1)
   (linear_map.ext $ λ _, by simp)
   (ext $ λ r m, by simp; rw [← tmul_smul, ← smul_tmul, smul_eq_mul, mul_one])
 
+/--
+The tensor product of modules is commutative, up to linear equivalence.
+-/
 protected def comm : M ⊗ N ≃ₗ N ⊗ M :=
 linear_equiv.of_linear (lift (mk R N M).flip) (lift (mk R M N).flip)
   (ext $ λ m n, rfl)
   (ext $ λ m n, rfl)
+
+/--
+The base ring is a right identity for the tensor product of modules, up to linear equivalence.
+-/
+protected def rid : M ⊗ R ≃ₗ M := linear_equiv.trans tensor_product.comm tensor_product.lid
 
 open linear_map
 protected def assoc : (M ⊗[R] N) ⊗[R] P ≃ₗ[R] M ⊗[R] (N ⊗[R] P) :=
@@ -399,16 +412,16 @@ linear_equiv.of_linear (map f g) (map f.symm g.symm)
 
 variables (ι₁ : Type*) (ι₂ : Type*)
 variables [decidable_eq ι₁] [decidable_eq ι₂]
-variables (β₁ : ι₁ → Type*) (β₂ : ι₂ → Type*)
-variables [Π i₁, add_comm_group (β₁ i₁)] [Π i₂, add_comm_group (β₂ i₂)]
-variables [Π i₁, module R (β₁ i₁)] [Π i₂, module R (β₂ i₂)]
+variables (M₁ : ι₁ → Type*) (M₂ : ι₂ → Type*)
+variables [Π i₁, add_comm_group (M₁ i₁)] [Π i₂, add_comm_group (M₂ i₂)]
+variables [Π i₁, module R (M₁ i₁)] [Π i₂, module R (M₂ i₂)]
 
-def direct_sum : direct_sum ι₁ β₁ ⊗[R] direct_sum ι₂ β₂
-  ≃ₗ[R] direct_sum (ι₁ × ι₂) (λ i, β₁ i.1 ⊗[R] β₂ i.2) :=
+def direct_sum : direct_sum ι₁ M₁ ⊗[R] direct_sum ι₂ M₂
+  ≃ₗ[R] direct_sum (ι₁ × ι₂) (λ i, M₁ i.1 ⊗[R] M₂ i.2) :=
 begin
   refine linear_equiv.of_linear
     (lift $ direct_sum.to_module R _ _ $ λ i₁, flip $ direct_sum.to_module R _ _ $ λ i₂,
-      flip $ curry $ direct_sum.lof R (ι₁ × ι₂) (λ i, β₁ i.1 ⊗[R] β₂ i.2) (i₁, i₂))
+      flip $ curry $ direct_sum.lof R (ι₁ × ι₂) (λ i, M₁ i.1 ⊗[R] M₂ i.2) (i₁, i₂))
     (direct_sum.to_module R _ _ $ λ i, map (direct_sum.lof R _ _ _) (direct_sum.lof R _ _ _))
     (linear_map.ext $ direct_sum.to_module.ext _ $ λ i, mk_compr₂_inj $
       linear_map.ext $ λ x₁, linear_map.ext $ λ x₂, _)

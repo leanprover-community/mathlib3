@@ -30,7 +30,7 @@ protected def equiv.to_embedding {α : Sort u} {β : Sort v} (f : α ≃ β) : �
 namespace function
 namespace embedding
 
-@[extensionality] lemma ext {α β} {f g : embedding α β} (h : ∀ x, f x = g x) : f = g :=
+@[ext] lemma ext {α β} {f g : embedding α β} (h : ∀ x, f x = g x) : f = g :=
 by cases f; cases g; simpa using funext h
 
 lemma ext_iff {α β} {f g : embedding α β} : (∀ x, f x = g x) ↔ f = g :=

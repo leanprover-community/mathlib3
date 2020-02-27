@@ -54,16 +54,20 @@ include 𝒞
 
 def Aut (X : C) := X ≅ X
 
-attribute [extensionality Aut] iso.ext
+attribute [ext Aut] iso.ext
 
 namespace Aut
 
-instance: group (Aut X) :=
+instance : group (Aut X) :=
 by refine { one := iso.refl X,
             inv := iso.symm,
             mul := flip iso.trans, .. } ; dunfold flip; obviously
 
-def units_End_eqv_Aut : units (End X) ≃* Aut X :=
+/--
+Units in the monoid of endomorphisms of an object
+are (multiplicatively) equivalent to automorphisms of that object.
+-/
+def units_End_equiv_Aut : units (End X) ≃* Aut X :=
 { to_fun := λ f, ⟨f.1, f.2, f.4, f.3⟩,
   inv_fun := λ f, ⟨f.1, f.2, f.4, f.3⟩,
   left_inv := λ ⟨f₁, f₂, f₃, f₄⟩, rfl,
@@ -74,25 +78,21 @@ end Aut
 
 namespace functor
 
-variables {D : Type u'} [𝒟 : category.{v'} D] (f : C ⥤ D) {X}
+variables {D : Type u'} [𝒟 : category.{v'} D] (f : C ⥤ D) (X)
 include 𝒟
 
-def map_End : End X → End (f.obj X) := functor.map f
+/-- `f.map` as a monoid hom between endomorphism monoids. -/
+def map_End : End X →* End (f.obj X) :=
+{ to_fun := functor.map f,
+  map_mul' := λ x y, f.map_comp y x,
+  map_one' := f.map_id X }
 
-instance map_End.is_monoid_hom : is_monoid_hom (f.map_End : End X → End (f.obj X)) :=
-{ map_mul := λ x y, f.map_comp y x,
-  map_one := f.map_id X }
-
-def map_Aut : Aut X → Aut (f.obj X) := functor.map_iso f
-
-instance map_Aut.is_group_hom : is_group_hom (f.map_Aut : Aut X → Aut (f.obj X)) :=
-{ map_mul := λ x y, f.map_iso_trans y x }
+/-- `f.map_iso` as a group hom between automorphism groups. -/
+def map_Aut : Aut X →* Aut (f.obj X) :=
+{ to_fun := f.map_iso,
+  map_mul' := λ x y, f.map_iso_trans y x,
+  map_one' := f.map_iso_refl X }
 
 end functor
-
-instance functor.map_End_is_group_hom {C : Type u} [𝒞 : groupoid.{v} C]
-                                      {D : Type u'} [𝒟 : groupoid.{v'} D] (f : C ⥤ D) {X : C} :
-  is_group_hom (f.map_End : End X → End (f.obj X)) :=
-{ ..functor.map_End.is_monoid_hom f }
 
 end category_theory

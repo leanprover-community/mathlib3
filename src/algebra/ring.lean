@@ -34,6 +34,11 @@ The constructor for a `ring_hom` between semirings needs a proof of `map_zero`, 
 `map_add` as well as `map_mul`; a separate constructor `ring_hom.mk'` will construct ring homs
 between rings from monoid homs given only a proof that addition is preserved.
 
+
+Throughout the section on `ring_hom` implicit `{}` brackets are often used instead of type class `[]` brackets.
+This is done when the instances can be inferred because they are implicit arguments to the type `ring_hom`.
+When they can be inferred from the type it is faster to use this method than to use type class inference.
+
 ## Tags
 
 is_ring_hom, is_semiring_hom, ring_hom, semiring_hom, semiring, comm_semiring, ring, comm_ring,
@@ -50,6 +55,14 @@ theorem mul_two (n : α) : n * 2 = n + n :=
 
 theorem bit0_eq_two_mul (n : α) : bit0 n = 2 * n :=
 (two_mul _).symm
+
+@[simp] lemma mul_ite {α} [semiring α] (P : Prop) [decidable P] (a : α) :
+  a * (if P then 1 else 0) = if P then a else 0 :=
+by split_ifs; simp
+
+@[simp] lemma ite_mul {α} [semiring α] (P : Prop) [decidable P] (a : α) :
+  (if P then 1 else 0) * a = if P then a else 0 :=
+by split_ifs; simp
 
 variable (α)
 
@@ -141,6 +154,7 @@ variables (f : α → β) [is_semiring_hom f] {x y : α}
 instance id : is_semiring_hom (@id α) := by refine {..}; intros; refl
 
 /-- The composition of two semiring homomorphisms is a semiring homomorphism. -/
+@[priority 10] -- see Note [low priority instance on morphisms]
 instance comp {γ} [semiring γ] (g : β → γ) [is_semiring_hom g] :
   is_semiring_hom (g ∘ f) :=
 { map_zero := by simp [map_zero f]; exact map_zero g,
@@ -149,10 +163,12 @@ instance comp {γ} [semiring γ] (g : β → γ) [is_semiring_hom g] :
   map_mul := λ x y, by simp [map_mul f]; rw map_mul g; refl }
 
 /-- A semiring homomorphism is an additive monoid homomorphism. -/
+@[priority 100] -- see Note [lower instance priority]
 instance : is_add_monoid_hom f :=
 { ..‹is_semiring_hom f› }
 
 /-- A semiring homomorphism is a monoid homomorphism. -/
+@[priority 100] -- see Note [lower instance priority]
 instance : is_monoid_hom f :=
 { ..‹is_semiring_hom f› }
 
@@ -228,6 +244,16 @@ section comm_ring
   theorem dvd_add_right {a b c : α} (h : a ∣ b) : a ∣ b + c ↔ a ∣ c :=
   (dvd_add_iff_right h).symm
 
+/-- An element a divides the sum a + b if and only if a divides b.-/
+@[simp] lemma dvd_add_self_left {a b : α} :
+  a ∣ a + b ↔ a ∣ b :=
+dvd_add_right (dvd_refl a)
+
+/-- An element a divides the sum b + a if and only if a divides b.-/
+@[simp] lemma dvd_add_self_right {a b : α} :
+  a ∣ b + a ↔ a ∣ b :=
+dvd_add_left (dvd_refl a)
+
 /-- Vieta's formula for a quadratic equation, relating the coefficients of the polynomial with
   its roots. This particular version states that if we have a root `x` of a monic quadratic
   polynomial, then there is another root `y` such that `x + y` is negative the `a_1` coefficient
@@ -252,7 +278,7 @@ namespace is_ring_hom
 variables {β : Type v} [ring α] [ring β]
 
 /-- A map of rings that is a semiring homomorphism is also a ring homomorphism. -/
-def of_semiring (f : α → β) [H : is_semiring_hom f] : is_ring_hom f := {..H}
+lemma of_semiring (f : α → β) [H : is_semiring_hom f] : is_ring_hom f := {..H}
 
 variables (f : α → β) [is_ring_hom f] {x y : α}
 
@@ -274,6 +300,7 @@ by simp [map_add f, map_neg f]
 instance id : is_ring_hom (@id α) := by refine {..}; intros; refl
 
 /-- The composition of two ring homomorphisms is a ring homomorphism. -/
+@[priority 10] -- see Note [low priority instance on morphisms]
 instance comp {γ} [ring γ] (g : β → γ) [is_ring_hom g] :
   is_ring_hom (g ∘ f) :=
 { map_add := λ x y, by simp [map_add f]; rw map_add g; refl,
@@ -281,51 +308,64 @@ instance comp {γ} [ring γ] (g : β → γ) [is_ring_hom g] :
   map_one := by simp [map_one f]; exact map_one g }
 
 /-- A ring homomorphism is also a semiring homomorphism. -/
+@[priority 100] -- see Note [lower instance priority]
 instance : is_semiring_hom f :=
 { map_zero := map_zero f, ..‹is_ring_hom f› }
 
+@[priority 100] -- see Note [lower instance priority]
 instance : is_add_group_hom f := { }
 
 end is_ring_hom
 
 set_option old_structure_cmd true
 
+section prio
+set_option default_priority 100 -- see Note [default priority]
 /-- Bundled semiring homomorphisms; use this for bundled ring homomorphisms too. -/
 structure ring_hom (α : Type*) (β : Type*) [semiring α] [semiring β]
   extends monoid_hom α β, add_monoid_hom α β
+end prio
 
 infixr ` →+* `:25 := ring_hom
 
-instance {α : Type*} {β : Type*} [semiring α] [semiring β] : has_coe_to_fun (α →+* β) :=
+instance {α : Type*} {β : Type*} {rα : semiring α} {rβ : semiring β} : has_coe_to_fun (α →+* β) :=
 ⟨_, ring_hom.to_fun⟩
 
-instance {α : Type*} {β : Type*} [semiring α] [semiring β] : has_coe (α →+* β) (α →* β) :=
+instance {α : Type*} {β : Type*} {rα : semiring α} {rβ : semiring β} : has_coe (α →+* β) (α →* β) :=
 ⟨ring_hom.to_monoid_hom⟩
 
-instance {α : Type*} {β : Type*} [semiring α] [semiring β] : has_coe (α →+* β) (α →+ β) :=
+instance {α : Type*} {β : Type*} {rα : semiring α} {rβ : semiring β} : has_coe (α →+* β) (α →+ β) :=
 ⟨ring_hom.to_add_monoid_hom⟩
 
-@[squash_cast] lemma coe_monoid_hom {α : Type*} {β : Type*} [semiring α] [semiring β] (f : α →+* β) (a : α) :
+@[squash_cast] lemma coe_monoid_hom {α : Type*} {β : Type*} {rα : semiring α} {rβ : semiring β} (f : α →+* β) (a : α) :
   ((f : α →* β) : α → β) a = (f : α → β) a := rfl
-@[squash_cast] lemma coe_add_monoid_hom {α : Type*} {β : Type*} [semiring α] [semiring β] (f : α →+* β) (a : α) :
+@[squash_cast] lemma coe_add_monoid_hom {α : Type*} {β : Type*} {rα : semiring α} {rβ : semiring β} (f : α →+* β) (a : α) :
   ((f : α →+ β) : α → β) a = (f : α → β) a := rfl
 
 namespace ring_hom
 
-def of {α : Type u} {β : Type v} [semiring α] [semiring β]
-  (f : α → β) [is_semiring_hom f] : α →+* β :=
+variables {β : Type v} {γ : Type w} [rα : semiring α] [rβ : semiring β]
+
+include rα rβ
+
+/-- Interpret `f : α → β` with `is_semiring_hom f` as a ring homomorphism. -/
+def of (f : α → β) [is_semiring_hom f] : α →+* β :=
 { to_fun := f,
-  .. as_monoid_hom f,
-  .. as_add_monoid_hom f }
+  .. monoid_hom.of f,
+  .. add_monoid_hom.of f }
 
-@[simp] lemma coe_of {α : Type u} {β : Type v} [semiring α] [semiring β]
-  (f : α → β) [is_semiring_hom f] : ⇑(of f) = f := rfl
+@[simp] lemma coe_of (f : α → β) [is_semiring_hom f] : ⇑(of f) = f := rfl
 
-variables {β : Type v} {γ : Type w} [semiring α] [semiring β] [semiring γ]
-variables (f : α →+* β) {x y : α}
+variables (f : α →+* β) {x y : α} {rα rβ}
 
-@[extensionality] theorem ext (f g : α →+* β) (h : (f : α → β) = g) : f = g :=
+theorem coe_inj ⦃f g : α →+* β⦄ (h : (f : α → β) = g) : f = g :=
 by cases f; cases g; cases h; refl
+
+@[ext] theorem ext ⦃f g : α →+* β⦄ (h : ∀ x, f x = g x) : f = g :=
+coe_inj (funext h)
+
+theorem ext_iff {f g : α →+* β} : f = g ↔ ∀ x, f x = g x :=
+⟨λ h x, h ▸ rfl, λ h, ext h⟩
 
 /-- Ring homomorphisms map zero to zero. -/
 @[simp] lemma map_zero (f : α →+* β) : f 0 = 0 := f.map_zero'
@@ -339,19 +379,27 @@ by cases f; cases g; cases h; refl
 /-- Ring homomorphisms preserve multiplication. -/
 @[simp] lemma map_mul (f : α →+* β) (a b : α) : f (a * b) = f a * f b := f.map_mul' a b
 
-instance {α : Type*} {β : Type*} [semiring α] [semiring β] (f : α →+* β) :
-  is_semiring_hom f :=
+instance (f : α →+* β) : is_semiring_hom f :=
 { map_zero := f.map_zero,
   map_one := f.map_one,
   map_add := f.map_add,
   map_mul := f.map_mul }
 
-instance {α γ} [ring α] [ring γ] {g : α →+* γ} : is_ring_hom g :=
+omit rα rβ
+
+instance {α γ} [ring α] [ring γ] (g : α →+* γ) : is_ring_hom g :=
 is_ring_hom.of_semiring g
 
 /-- The identity ring homomorphism from a semiring to itself. -/
 def id (α : Type*) [semiring α] : α →+* α :=
 by refine {to_fun := id, ..}; intros; refl
+
+include rα
+
+@[simp] lemma id_apply : ring_hom.id α x = x := rfl
+
+variable {rγ : semiring γ}
+include rβ rγ
 
 /-- Composition of ring homomorphisms is a ring homomorphism. -/
 def comp (hnp : β →+* γ) (hmn : α →+* β) : α →+* γ :=
@@ -361,7 +409,16 @@ def comp (hnp : β →+* γ) (hmn : α →+* β) : α →+* γ :=
   map_add' := λ x y, by simp,
   map_mul' := λ x y, by simp}
 
+/-- Composition of semiring homomorphisms is associative. -/
+lemma comp_assoc {δ} {rδ: semiring δ} (f : α →+* β) (g : β →+* γ) (h : γ →+* δ) :
+  (h.comp g).comp f = h.comp (g.comp f) := rfl
+
 @[simp] lemma coe_comp (hnp : β →+* γ) (hmn : α →+* β) : (hnp.comp hmn : α → γ) = hnp ∘ hmn := rfl
+
+@[simp] lemma comp_apply (hnp : β →+* γ) (hmn : α →+* β) (x : α) : (hnp.comp hmn : α → γ) x =
+  (hnp (hmn x)) := rfl
+
+omit rα rβ rγ
 
 /-- Ring homomorphisms preserve additive inverse. -/
 @[simp] theorem map_neg {α β} [ring α] [ring β] (f : α →+* β) (x : α) : f (-x) = -(f x) :=
@@ -370,6 +427,12 @@ eq_neg_of_add_eq_zero $ by rw [←f.map_add, neg_add_self, f.map_zero]
 /-- Ring homomorphisms preserve subtraction. -/
 @[simp] theorem map_sub {α β} [ring α] [ring β] (f : α →+* β) (x y : α) :
   f (x - y) = (f x) - (f y) := by simp
+
+/-- A ring homomorphism is injective iff its kernel is trivial. -/
+theorem injective_iff {α β} [ring α] [ring β] (f : α →+* β) :
+  function.injective f ↔ (∀ a, f a = 0 → a = 0) :=
+add_monoid_hom.injective_iff f.to_add_monoid_hom
+include rα
 
 /-- Makes a ring homomorphism from a monoid homomorphism of rings which preserves addition. -/
 def mk' {γ} [ring γ] (f : α →* γ) (map_add : ∀ a b : α, f (a + b) = f a + f b) : α →+* γ :=
@@ -381,19 +444,24 @@ def mk' {γ} [ring γ] (f : α →* γ) (map_add : ∀ a b : α, f (a + b) = f a
 
 end ring_hom
 
+section prio
+set_option default_priority 100 -- see Note [default priority]
 /-- Predicate for commutative semirings in which zero does not equal one. -/
 class nonzero_comm_semiring (α : Type*) extends comm_semiring α, zero_ne_one_class α
 
 /-- Predicate for commutative rings in which zero does not equal one. -/
 class nonzero_comm_ring (α : Type*) extends comm_ring α, zero_ne_one_class α
+end prio
 
 /-- A nonzero commutative ring is a nonzero commutative semiring. -/
+@[priority 100] -- see Note [lower instance priority]
 instance nonzero_comm_ring.to_nonzero_comm_semiring {α : Type*} [I : nonzero_comm_ring α] :
   nonzero_comm_semiring α :=
 { zero_ne_one := by convert zero_ne_one,
   ..show comm_semiring α, by apply_instance }
 
 /-- An integral domain is a nonzero commutative ring. -/
+@[priority 100] -- see Note [lower instance priority]
 instance integral_domain.to_nonzero_comm_ring (α : Type*) [id : integral_domain α] :
   nonzero_comm_ring α :=
 { ..id }
@@ -419,13 +487,16 @@ def nonzero_comm_semiring.of_ne [comm_semiring α] {x y : α} (h : x ≠ y) : no
   zero_ne_one := λ h01, h $ by rw [← one_mul x, ← one_mul y, ← h01, zero_mul, zero_mul],
   ..show comm_semiring α, by apply_instance }
 
-/-- this is needed for compatibility between Lean 3.4.2 and Lean 3.5.0c -/
+/-- this is needed for compatibility between Lean 3.4.2 and Lean 3.5.1c -/
 def has_div_of_division_ring [division_ring α] : has_div α := division_ring_has_div
 
+section prio
+set_option default_priority 100 -- see Note [default priority]
 /-- A domain is a ring with no zero divisors, i.e. satisfying
   the condition `a * b = 0 ↔ a = 0 ∨ b = 0`. Alternatively, a domain
   is an integral domain without assuming commutativity of multiplication. -/
 class domain (α : Type u) extends ring α, no_zero_divisors α, zero_ne_one_class α
+end prio
 
 section domain
   variable [domain α]
@@ -480,6 +551,7 @@ section
   include s
 
 /-- An integral domain is a domain. -/
+  @[priority 100] -- see Note [lower instance priority]
   instance integral_domain.to_domain : domain α := {..s}
 
 /-- Right multiplcation by a nonzero element of an integral domain is injective. -/

@@ -16,10 +16,8 @@ variables {G : Type u} [group G] (N : set G) [normal_subgroup N] {H : Type v} [g
 @[to_additive quotient_add_group.add_group]
 instance : group (quotient N) :=
 { one := (1 : G),
-  mul := λ a b, quotient.lift_on₂' a b
-    (λ a b, ((a * b : G) : quotient N))
-  (λ a₁ a₂ b₁ b₂ hab₁ hab₂,
-      quot.sound
+  mul := quotient.map₂' (*)
+  (λ a₁ b₁ hab₁ a₂ b₂ hab₂,
     ((is_subgroup.mul_mem_cancel_left N (is_subgroup.inv_mem hab₂)).1
         (by rw [mul_inv_rev, mul_inv_rev, ← mul_assoc (a₂⁻¹ * a₁⁻¹),
           mul_assoc _ b₂, ← mul_assoc b₂, mul_inv_self, one_mul, mul_assoc (a₂⁻¹)];
@@ -68,10 +66,10 @@ lemma coe_mul (a b : G) : ((a * b : G) : quotient N) = a * b := rfl
 lemma coe_inv (a : G) : ((a⁻¹ : G) : quotient N) = a⁻¹ := rfl
 
 @[simp] lemma coe_pow (a : G) (n : ℕ) : ((a ^ n : G) : quotient N) = a ^ n :=
-@is_group_hom.map_pow _ _ _ _ mk _ a n
+(monoid_hom.of mk).map_pow a n
 
 @[simp] lemma coe_gpow (a : G) (n : ℤ) : ((a ^ n : G) : quotient N) = a ^ n :=
-@is_group_hom.map_gpow _ _ _ _ mk _ a n
+(monoid_hom.of mk).map_gpow a n
 
 local notation ` Q ` := quotient N
 

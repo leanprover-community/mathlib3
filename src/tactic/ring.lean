@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Mario Carneiro
 
 Evaluate expressions in the language of commutative (semi)rings.
-Based on http://www.cs.ru.nl/~freek/courses/tt-2014/read/10.1.1.61.3041.pdf .
+Based on <http://www.cs.ru.nl/~freek/courses/tt-2014/read/10.1.1.61.3041.pdf> .
 -/
 import algebra.group_power tactic.norm_num
 import tactic.converter.interactive
@@ -133,6 +133,8 @@ theorem horner_add_horner_gt {α} [comm_semiring α] (a₁ x n₁ b₁ a₂ n₂
   @horner α _ a₁ x n₁ b₁ + horner a₂ x n₂ b₂ = horner a' x n₂ b' :=
 by simp [h₂.symm, h₃.symm, h₁.symm, horner, pow_add, mul_add, mul_comm, mul_left_comm]
 
+-- set_option trace.class_instances true
+-- set_option class.instance_max_depth 128
 theorem horner_add_horner_eq {α} [comm_semiring α] (a₁ x n b₁ a₂ b₂ a' b' t)
   (h₁ : a₁ + a₂ = a') (h₂ : b₁ + b₂ = b') (h₃ : horner a' x n b' = t) :
   @horner α _ a₁ x n b₁ + horner a₂ x n b₂ = t :=
@@ -364,13 +366,15 @@ meta def eval : expr → ring_m (horner_expr × expr)
   (e', p') ← eval_add e₁' e₂',
   p ← ring_m.mk_app ``norm_num.subst_into_sum ``has_add [e₁, e₂, e₁', e₂', e', p₁, p₂, p'],
   return (e', p)
-| `(%%e₁ - %%e₂) := do
-  c ← get_cache,
-  e₂' ← lift $ mk_app ``has_neg.neg [e₂],
-  e ← lift $ mk_app ``has_add.add [e₁, e₂'],
-  (e', p) ← eval e,
-  p' ← ring_m.mk_app ``unfold_sub ``add_group [e₁, e₂, e', p],
-  return (e', p')
+| e@`(@has_sub.sub %%α %%P %%e₁ %%e₂) :=
+  mcond (succeeds (lift $ mk_app ``comm_ring [α] >>= mk_instance))
+    (do
+      e₂' ← lift $ mk_app ``has_neg.neg [e₂],
+      e ← lift $ mk_app ``has_add.add [e₁, e₂'],
+      (e', p) ← eval e,
+      p' ← ring_m.mk_app ``unfold_sub ``add_group [e₁, e₂, e', p],
+      return (e', p'))
+    (eval_atom e)
 | `(- %%e) := do
   (e₁, p₁) ← eval e,
   (e₂, p₂) ← eval_neg e₁,
@@ -423,7 +427,7 @@ by simp [horner, mul_comm]
 theorem mul_assoc_rev {α} [semigroup α] (a b c : α) : a * (b * c) = a * b * c :=
 by simp [mul_assoc]
 
-theorem pow_add_rev {α} [monoid α] (a b : α) (m n : ℕ) : a ^ m * a ^ n = a ^ (m + n) :=
+theorem pow_add_rev {α} [monoid α] (a : α) (m n : ℕ) : a ^ m * a ^ n = a ^ (m + n) :=
 by simp [pow_add]
 
 theorem pow_add_rev_right {α} [monoid α] (a b : α) (m n : ℕ) : b * a ^ m * a ^ n = b * a ^ (m + n) :=
@@ -433,6 +437,8 @@ theorem add_neg_eq_sub {α} [add_group α] (a b : α) : a + -b = a - b := rfl
 
 @[derive has_reflect]
 inductive normalize_mode | raw | SOP | horner
+
+instance : inhabited normalize_mode := ⟨normalize_mode.horner⟩
 
 meta def normalize (red : transparency) (mode := normalize_mode.horner) (e : expr) : tactic (expr × expr) := do
 pow_lemma ← simp_lemmas.mk.add_simp ``pow_one,
@@ -501,7 +507,7 @@ end
   `ring!` will use a more aggressive reducibility setting to identify atoms. -/
 meta def ring (red : parse (tk "!")?) (SOP : parse ring.mode) (loc : parse location) : tactic unit :=
 match loc with
-| interactive.loc.ns [none] := ring1 red
+| interactive.loc.ns [none] := instantiate_mvars_in_target >> ring1 red
 | _ := failed
 end <|>
 do ns ← loc.get_locals,
@@ -509,6 +515,8 @@ do ns ← loc.get_locals,
    tt ← tactic.replace_at (normalize transp SOP) ns loc.include_goal
       | fail "ring failed to simplify",
    when loc.include_goal $ try tactic.reflexivity
+
+add_hint_tactic "ring"
 
 end interactive
 end tactic

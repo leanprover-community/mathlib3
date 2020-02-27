@@ -61,7 +61,7 @@ lemma map_range_eq_map {β : Type*}
   finsupp.map_range f (is_semiring_hom.map_zero f) p = p.map f :=
 begin
   rw [← finsupp.sum_single p, finsupp.sum, finsupp.map_range_finset_sum,
-    ← finset.sum_hom (map f)],
+    ← p.support.sum_hom (map f)],
   { refine finset.sum_congr rfl (assume n _, _),
     rw [finsupp.map_range_single, ← monomial, ← monomial, map_monomial] },
   apply_instance
@@ -117,7 +117,7 @@ begin
   rw [← finite_field.card_units, fintype.card_pos_iff],
   exact ⟨1⟩
 end,
-by simp only [indicator, (finset.prod_hom (eval a)).symm, eval_sub,
+by simp only [indicator, (finset.univ.prod_hom (eval a)).symm, eval_sub,
     is_ring_hom.map_one (eval a), is_semiring_hom.map_pow (eval a), eval_X, eval_C,
     sub_self, zero_pow this, sub_zero, finset.prod_const_one]
 
@@ -126,7 +126,7 @@ lemma eval_indicator_apply_eq_zero (a b : σ → α) (h : a ≠ b) :
 have ∃i, a i ≠ b i, by rwa [(≠), function.funext_iff, not_forall] at h,
 begin
   rcases this with ⟨i, hi⟩,
-  simp only [indicator, (finset.prod_hom (eval a)).symm, eval_sub,
+  simp only [indicator, (finset.univ.prod_hom (eval a)).symm, eval_sub,
     is_ring_hom.map_one (eval a), is_semiring_hom.map_pow (eval a), eval_X, eval_C,
     sub_self, finset.prod_eq_zero_iff],
   refine ⟨i, finset.mem_univ _, _⟩,
@@ -154,7 +154,7 @@ begin
   rw [mem_restrict_degree_iff_sup, indicator],
   assume n,
   refine le_trans (multiset.count_le_of_le _ $ degrees_indicator _) (le_of_eq _),
-  rw [← finset.sum_hom (multiset.count n)],
+  rw [← finset.univ.sum_hom (multiset.count n)],
   simp only [is_add_monoid_hom.map_smul (multiset.count n), multiset.singleton_eq_singleton,
     add_monoid.smul_eq_mul, nat.cast_id],
   transitivity,
@@ -173,7 +173,7 @@ def evalₗ : mv_polynomial σ α →ₗ[α] (σ → α) → α :=
 end
 
 section
-set_option class.instance_max_depth 50
+
 lemma evalₗ_apply (p : mv_polynomial σ α) (e : σ → α) : evalₗ α σ p e = p.eval e :=
 rfl
 end
@@ -200,10 +200,8 @@ namespace mv_polynomial
 universe u
 variables (σ : Type u) (α : Type u) [fintype σ] [discrete_field α] [fintype α]
 
+@[derive [add_comm_group, vector_space α, inhabited]]
 def R : Type u := restrict_degree σ α (fintype.card α - 1)
-
-instance R.add_comm_group : add_comm_group (R σ α) := by dunfold R; apply_instance
-instance R.vector_space : vector_space α (R σ α) := by dunfold R; apply_instance
 
 noncomputable instance decidable_restrict_degree (m : ℕ) :
   decidable_pred (λn, n ∈ {n : σ →₀ ℕ | ∀i, n i ≤ m }) :=

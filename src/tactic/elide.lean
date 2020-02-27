@@ -1,3 +1,9 @@
+/-
+Copyright (c) 2018 Mario Carneiro. All rights reserved.
+Released under Apache 2.0 license as described in the file LICENSE.
+Authors: Mario Carneiro, Simon Hudon
+-/
+
 import logic.basic tactic.core
 
 namespace tactic
@@ -25,8 +31,8 @@ meta def replace : ℕ → expr → tactic expr
 | (i+1) el@(expr.elet n t d e) := do
   t' ← replace i t,
   d' ← replace i d,
-  var ← mk_local_def n d,
-  e' ← replace i (expr.instantiate_var e var) | replace el 0,
+  var ← mk_local_def n t,
+  e' ← replace i (expr.instantiate_var e var),
   return (expr.elet n t' d' (expr.abstract_local e' var.local_uniq_name))
 | (i+1) e := return e
 
@@ -42,23 +48,25 @@ end
 end elide
 
 namespace interactive
-open interactive.types interactive
+open interactive.types interactive lean.parser
 
 /-- The `elide n (at ...)` tactic hides all subterms of the target goal or hypotheses
   beyond depth `n` by replacing them with `hidden`, which is a variant
   on the identity function. (Tactics should still mostly be able to see
   through the abbreviation, but if you want to unhide the term you can use
   `unelide`.) -/
-meta def elide (n : ℕ) (loc : parse location) : tactic unit :=
+meta def elide (n : parse small_nat) (loc : parse location) : tactic unit :=
 loc.apply
-  (λ h, infer_type h >>= tactic.elide.replace n >>= tactic.change_core h ∘ some)
+  (λ h, do t ← infer_type h >>= tactic.elide.replace n,
+           tactic.change_core t (some h))
   (target >>= tactic.elide.replace n >>= tactic.change)
 
 /-- The `unelide (at ...)` tactic removes all `hidden` subterms in the target
   types (usually added by `elide`). -/
 meta def unelide (loc : parse location) : tactic unit :=
 loc.apply
-  (λ h, infer_type h >>= tactic.change_core h ∘ some ∘ elide.unelide)
+  (λ h,  do t ← infer_type h,
+            tactic.change_core (elide.unelide t) (some h))
   (target >>= tactic.change ∘ elide.unelide)
 
 end interactive

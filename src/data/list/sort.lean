@@ -25,6 +25,10 @@ def sorted := @pairwise
 theorem sorted_of_sorted_cons {a : α} {l : list α} : sorted r (a :: l) → sorted r l :=
 pairwise_of_pairwise_cons
 
+theorem sorted.tail {r : α → α → Prop} : Π {l : list α}, sorted r l → sorted r l.tail
+| [] h := h
+| (hd :: tl) h := sorted_of_sorted_cons h
+
 theorem rel_of_sorted_cons {a : α} {l : list α} : sorted r (a :: l) →
   ∀ b ∈ l, r a b :=
 rel_of_pairwise_cons
@@ -77,6 +81,12 @@ section insertion_sort
 | []       := []
 | (b :: l) := ordered_insert b (insertion_sort l)
 
+@[simp] lemma ordered_insert_nil (a : α) : [].ordered_insert r a = [a] := rfl
+
+theorem ordered_insert_length : Π (L : list α) (a : α), (L.ordered_insert r a).length = L.length + 1
+| [] a := rfl
+| (hd :: tl) a := by { dsimp [ordered_insert], split_ifs; simp [ordered_insert_length], }
+
 section correctness
 open perm
 
@@ -85,6 +95,13 @@ theorem perm_ordered_insert (a) : ∀ l : list α, ordered_insert a l ~ a :: l
 | (b :: l) := by by_cases a ≼ b; [simp [ordered_insert, h],
   simpa [ordered_insert, h] using
     (perm.skip _ (perm_ordered_insert l)).trans (perm.swap _ _ _)]
+
+theorem ordered_insert_count [decidable_eq α] (L : list α) (a b : α) :
+  count a (L.ordered_insert r b) = count a L + if (a = b) then 1 else 0 :=
+begin
+  rw [perm_count (L.perm_ordered_insert r b), count_cons],
+  split_ifs; simp only [nat.succ_eq_add_one, add_zero],
+end
 
 theorem perm_insertion_sort : ∀ l : list α, insertion_sort l ~ l
 | []       := perm.nil

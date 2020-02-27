@@ -2,15 +2,19 @@
 Copyright (c) 2017 Kenny Lau. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Kenny Lau, Mario Carneiro, Johannes, Hölzl, Chris Hughes
-
-Units (i.e., invertible elements) of a multiplicative monoid.
 -/
+import tactic.basic logic.function
 
-import tactic.basic
+/-!
+# Units (i.e., invertible elements) of a multiplicative monoid
+-/
 
 universe u
 variable {α : Type u}
 
+/-- Units of a monoid, bundled version. An element of a `monoid` is a unit if it has a two-sided
+inverse. This version bundles the inverse element so that it can be computed. For a predicate
+see `is_unit`. -/
 structure units (α : Type u) [monoid α] :=
 (val : α)
 (inv : α)
@@ -22,13 +26,13 @@ variables [monoid α] {a b c : units α}
 
 instance : has_coe (units α) α := ⟨val⟩
 
-@[extensionality] theorem ext : ∀ {a b : units α}, (a : α) = b → a = b
+@[ext] theorem ext : function.injective (coe : units α → α)
 | ⟨v, i₁, vi₁, iv₁⟩ ⟨v', i₂, vi₂, iv₂⟩ e :=
   by change v = v' at e; subst v'; congr;
       simpa only [iv₂, vi₁, one_mul, mul_one] using mul_assoc i₂ v i₁
 
 theorem ext_iff {a b : units α} : a = b ↔ (a : α) = b :=
-⟨congr_arg _, ext⟩
+ext.eq_iff.symm
 
 instance [decidable_eq α] : decidable_eq (units α)
 | a b := decidable_of_iff' _ ext_iff
@@ -74,6 +78,8 @@ by refine {mul := (*), one := 1, inv := has_inv.inv, ..};
   { intros, apply ext, simp only [coe_mul, coe_one,
       mul_assoc, one_mul, mul_one, inv_mul] }
 
+instance : inhabited (units α) := ⟨1⟩
+
 instance {α} [comm_monoid α] : comm_group (units α) :=
 { mul_comm := λ u₁ u₂, ext $ mul_comm _ _, ..units.group }
 
@@ -85,6 +91,18 @@ instance [has_repr α] : has_repr (units α) := ⟨repr ∘ val⟩
 @[simp] theorem mul_right_inj (a : units α) {b c : α} : b * a = c * a ↔ b = c :=
 ⟨λ h, by simpa only [mul_inv_cancel_right] using congr_arg (* ↑(a⁻¹ : units α)) h, congr_arg _⟩
 
+theorem eq_mul_inv_iff_mul_eq {a b : α} : a = b * ↑c⁻¹ ↔ a * c = b :=
+⟨λ h, by rw [h, inv_mul_cancel_right], λ h, by rw [← h, mul_inv_cancel_right]⟩
+
+theorem eq_inv_mul_iff_mul_eq {a c : α} : a = ↑b⁻¹ * c ↔ ↑b * a = c :=
+⟨λ h, by rw [h, mul_inv_cancel_left], λ h, by rw [← h, inv_mul_cancel_left]⟩
+
+theorem inv_mul_eq_iff_eq_mul {b c : α} : ↑a⁻¹ * b = c ↔ b = a * c :=
+⟨λ h, by rw [← h, mul_inv_cancel_left], λ h, by rw [h, inv_mul_cancel_left]⟩
+
+theorem mul_inv_eq_iff_eq_mul {a c : α} : a * ↑b⁻¹ = c ↔ a = c * b :=
+⟨λ h, by rw [← h, inv_mul_cancel_right], λ h, by rw [h, mul_inv_cancel_right]⟩
+
 end units
 
 theorem nat.units_eq_one (u : units ℕ) : u = 1 :=
@@ -93,6 +111,8 @@ units.ext $ nat.eq_one_of_dvd_one ⟨u.inv, u.val_inv.symm⟩
 def units.mk_of_mul_eq_one [comm_monoid α] (a b : α) (hab : a * b = 1) : units α :=
 ⟨a, b, hab, (mul_comm b a).trans hab⟩
 
+@[simp] lemma units.coe_mk_of_mul_eq_one [comm_monoid α] {a b : α} (h : a * b = 1) :
+  (units.mk_of_mul_eq_one a b h : α) = a := rfl
 
 section monoid
   variables [monoid α] {a b c : α}
@@ -111,7 +131,7 @@ section monoid
   theorem divp_assoc (a b : α) (u : units α) : a * b /ₚ u = a * (b /ₚ u) :=
   mul_assoc _ _ _
 
-  @[simp] theorem divp_inv (x : α) (u : units α) : a /ₚ u⁻¹ = a * u := rfl
+  @[simp] theorem divp_inv (u : units α) : a /ₚ u⁻¹ = a * u := rfl
 
   @[simp] theorem divp_mul_cancel (a : α) (u : units α) : a /ₚ u * u = a :=
   (mul_assoc _ _ _).trans $ by rw [units.inv_mul, mul_one]
@@ -125,10 +145,10 @@ section monoid
   theorem divp_divp_eq_divp_mul (x : α) (u₁ u₂ : units α) : (x /ₚ u₁) /ₚ u₂ = x /ₚ (u₂ * u₁) :=
   by simp only [divp, mul_inv_rev, units.coe_mul, mul_assoc]
 
-  theorem divp_eq_iff_mul_eq (x : α) (u : units α) (y : α) : x /ₚ u = y ↔ y * u = x :=
+  theorem divp_eq_iff_mul_eq {x : α} {u : units α} {y : α} : x /ₚ u = y ↔ y * u = x :=
   u.mul_right_inj.symm.trans $ by rw [divp_mul_cancel]; exact ⟨eq.symm, eq.symm⟩
 
-  theorem divp_eq_one_iff_eq (a : α) (u : units α) : a /ₚ u = 1 ↔ a = u :=
+  theorem divp_eq_one_iff_eq {a : α} {u : units α} : a /ₚ u = 1 ↔ a = u :=
   (units.mul_right_inj u).symm.trans $ by rw [divp_mul_cancel, one_mul]
 
   @[simp] theorem one_divp (u : units α) : 1 /ₚ u = ↑u⁻¹ :=
@@ -149,10 +169,3 @@ theorem divp_mul_divp (x y : α) (ux uy : units α) :
 by rw [← divp_divp_eq_divp_mul, divp_assoc, mul_comm x, divp_assoc, mul_comm]
 
 end comm_monoid
-
-section group
-  variables [group α]
-
-  instance : has_lift α (units α) :=
-  ⟨λ a, ⟨a, a⁻¹, mul_inv_self _, inv_mul_self _⟩⟩
-end group

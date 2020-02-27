@@ -13,7 +13,7 @@ Introduces notations
     (I would like a better arrow here, unfortunately ⇒ (`\functor`) is taken by core.)
 -/
 
-import category_theory.category
+import category_theory.category tactic.reassoc_axiom
 
 namespace category_theory
 
@@ -41,7 +41,7 @@ infixr ` ⥤ `:26 := functor       -- type as \func --
 restate_axiom functor.map_id'
 attribute [simp] functor.map_id
 restate_axiom functor.map_comp'
-attribute [simp] functor.map_comp
+attribute [reassoc, simp] functor.map_comp
 
 namespace functor
 
@@ -83,8 +83,11 @@ infixr ` ⋙ `:80 := comp
 
 omit ℰ
 
-@[simp] protected lemma comp_id (F : C ⥤ D) : F ⋙ (𝟭 D) = F := by cases F; refl
-@[simp] protected lemma id_comp (F : C ⥤ D) : (𝟭 C) ⋙ F = F := by cases F; refl
+-- These are not simp lemmas because rewriting along equalities between functors
+-- is not necessarily a good idea.
+-- Natural isomorphisms are also provided in `whiskering.lean`.
+protected lemma comp_id (F : C ⥤ D) : F ⋙ (𝟭 D) = F := by cases F; refl
+protected lemma id_comp (F : C ⥤ D) : (𝟭 C) ⋙ F = F := by cases F; refl
 
 end
 

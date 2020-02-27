@@ -653,46 +653,6 @@ Transforms the goal into its contrapositive.
 
 `contrapose h with new_h` uses the name `new_h` for the introduced hypothesis
 
-## tautology
-
-This tactic (with shorthand `tauto`) breaks down assumptions of the form `_ ∧ _`, `_ ∨ _`, `_ ↔ _` and `∃ _, _`
-and splits a goal of the form `_ ∧ _`, `_ ↔ _` or `∃ _, _` until it can be discharged
-using `reflexivity` or `solve_by_elim`. This is a finishing tactic: it
-either closes the goal or raises an error.
-
-The variants `tautology!` or `tauto!` use the law of excluded middle.
-
-For instance, one can write:
-```lean
-example (p q r : Prop) [decidable p] [decidable r] : p ∨ (q ∧ r) ↔ (p ∨ q) ∧ (r ∨ p ∨ r) := by tauto
-```
-and the decidability assumptions can be dropped if `tauto!` is used
-instead of `tauto`.
-
-
-## apply_fun
-
-Apply a function to some local assumptions which are either equalities
-or inequalities. For instance, if the context contains `h : a = b` and
-some function `f` then `apply_fun f at h` turns `h` into
-`h : f a = f b`. When the assumption is an inequality `h : a ≤ b`, a side
-goal `monotone f` is created, unless this condition is provided using
-`apply_fun f at h using P` where `P : monotone f`, or the `mono` tactic
-can prove it.
-
-Typical usage is:
-```lean
-open function
-
-example (X Y Z : Type) (f : X → Y) (g : Y → Z) (H : injective $ g ∘ f) :
-  injective f :=
-begin
-  intros x x' h,
-  apply_fun g at h,
-  exact H h
-end
-```
-
 
 ## The `reassoc` attribute
 

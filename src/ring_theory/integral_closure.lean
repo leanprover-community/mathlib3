@@ -203,7 +203,7 @@ theorem is_integral_of_mem_closure {x y z : A}
   is_integral R z :=
 begin
   have := fg_mul _ _ (fg_adjoin_singleton_of_integral x hx) (fg_adjoin_singleton_of_integral y hy),
-  rw [← algebra.adjoin_union_coe_submodule, set.union_singleton, insert] at this,
+  rw [← algebra.adjoin_union_coe_submodule, set.union_singleton] at this,
   exact is_integral_of_mem_of_fg (algebra.adjoin R {x, y}) this z
     (ring.closure_mono (set.subset_union_right _ _) hz)
 end

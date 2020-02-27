@@ -8,7 +8,6 @@ import tactic.auto_cases
 import tactic.chain
 import tactic.solve_by_elim
 import tactic.norm_cast
-import tactic.interactive
 
 namespace tactic
 

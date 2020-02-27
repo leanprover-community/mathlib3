@@ -5,22 +5,6 @@ mathlib provides a number of specific interactive tactics.
 Here we document the mostly commonly used ones, as well as some underdocumented tactics from core.
 
 
-
-## rename_var
-
-`rename_var old new` renames all bound variables named `old` to `new` in the goal.
-`rename_var old new at h` does the same in hypothesis `h`.
-This is meant for teaching bound variables only. Such a renaming should never be relevant to Lean.
-
-```lean
-example (P : ℕ →  ℕ → Prop) (h : ∀ n, ∃ m, P n m) : ∀ l, ∃ m, P l m :=
-begin
-  rename_var n q at h, -- h is now ∀ (q : ℕ), ∃ (m : ℕ), P q m,
-  rename_var m n, -- goal is now ∀ (l : ℕ), ∃ (n : ℕ), P k n,
-  exact h -- Lean does not care about those bound variable names
-end
-```
-
 ## elide/unelide
 
 The `elide n (at ...)` tactic hides all subterms of the target goal or hypotheses
@@ -949,25 +933,3 @@ by simp_rw [set.image_subset_iff, set.subset_def]
 ```
 
 Lemmas passed to `simp_rw` must be expressions that are valid arguments to `simp`.
-
-## rename'
-
-Renames one or more hypotheses in the context.
-
-```lean
-example {α β} (a : α) (b : β) : unit :=
-begin
-  rename' a a',              -- result: a' : α, b  : β
-  rename' a' → a,            --         a  : α, b  : β
-  rename' [a a', b b'],      --         a' : α, b' : β
-  rename' [a' → a, b' → b],  --         a  : α, b  : β
-  exact ()
-end
-```
-
-Compared to the standard `rename` tactic, this tactic makes the following
-improvements:
-
-- You can rename multiple hypotheses at once.
-- Renaming a hypothesis always preserves its location in the context (whereas
-  `rename` may reorder hypotheses).

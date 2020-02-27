@@ -39,6 +39,12 @@ unfold [
   ``lift, ``has_lift.lift, ``lift_t, ``has_lift_t.lift,
   ``coe_fn, ``has_coe_to_fun.coe, ``coe_sort, ``has_coe_to_sort.coe] loc
 
+add_tactic_doc
+{ name       := "unfold_coes",
+  category   := doc_category.tactic,
+  decl_names := [`tactic.interactive.unfold_coes],
+  tags       := ["simplification"] }
+
 /-- Unfold auxiliary definitions associated with the current declaration. -/
 meta def unfold_aux : tactic unit :=
 do tgt ← target,
@@ -61,7 +67,10 @@ meta def continue (tac : itactic) : tactic unit :=
  (λ a, result.success ())
  (λ e ref, result.success ())
 
-/-- Move goal `n` to the front. -/
+/--
+`swap n` will move the `n`th goal to the front.
+`swap` defaults to `swap 2`, and so interchanges the first and second goals.
+ -/
 meta def swap (n := 2) : tactic unit :=
 do gs ← get_goals,
    match gs.nth (n-1) with
@@ -69,9 +78,20 @@ do gs ← get_goals,
    | _        := skip
    end
 
-/-- `rotate n` cyclically shifts the goals `n` times.
- `rotate` defaults to `rotate 1`. -/
+add_tactic_doc
+{ name       := "swap",
+  category   := doc_category.tactic,
+  decl_names := [`tactic.interactive.swap],
+  tags       := ["goal management"] }
+
+/-- `rotate` moves the first goal to the back. `rotate n` will do this `n` times. -/
 meta def rotate (n := 1) : tactic unit := tactic.rotate n
+
+add_tactic_doc
+{ name       := "rotate",
+  category   := doc_category.tactic,
+  decl_names := [`tactic.interactive.rotate],
+  tags       := ["goal management"] }
 
 /-- Clear all hypotheses starting with `_`, like `_match` and `_let_match`. -/
 meta def clear_ : tactic unit := tactic.repeat $ do
@@ -97,12 +117,20 @@ Same as the `congr` tactic, but takes an optional argument which gives
 the depth of recursive applications. This is useful when `congr`
 is too aggressive in breaking down the goal. For example, given
 `⊢ f (g (x + y)) = f (g (y + x))`, `congr'` produces the goals `⊢ x = y`
-and `⊢ y = x`, while `congr' 2` produces the intended `⊢ x + y = y + x`. -/
+and `⊢ y = x`, while `congr' 2` produces the intended `⊢ x + y = y + x`.
+If, at any point, a subgoal matches a hypothesis then the subgoal will be closed. -/
 meta def congr' : parse (with_desc "n" small_nat)? → tactic unit
 | (some 0) := failed
 | o        := focus1 (assumption <|> (congr_core' >>
   all_goals (reflexivity <|> `[apply proof_irrel_heq] <|>
              `[apply proof_irrel] <|> try (congr' (nat.pred <$> o)))))
+
+add_tactic_doc
+{ name       := "congr'",
+  category   := doc_category.tactic,
+  decl_names := [`tactic.interactive.congr', `tactic.interactive.congr],
+  tags       := ["congruence"],
+  inherit_description_from := `tactic.interactive.congr' }
 
 /--
 Acts like `have`, but removes a hypothesis with the same name as
@@ -121,8 +149,20 @@ do let h := h.get_or_else `this,
   | some o, none   := swap >> tactic.clear o >> swap
   end
 
-/-- Make every propositions in the context decidable -/
+add_tactic_doc
+{ name       := "replace",
+  category   := doc_category.tactic,
+  decl_names := [`tactic.interactive.replace],
+  tags       := ["hypothesis management"] }
+
+/-- Make every proposition in the context decidable. -/
 meta def classical := tactic.classical
+
+add_tactic_doc
+{ name       := "classical",
+  category   := doc_category.tactic,
+  decl_names := [`tactic.interactive.classical],
+  tags       := ["classical reasoning", "type class"] }
 
 private meta def generalize_arg_p_aux : pexpr → parser (pexpr × name)
 | (app (app (macro _ [const `eq _ ]) h) (local_const x _ _ _)) := pure (h, x)
@@ -163,10 +203,34 @@ do h' ← get_unused_name `h,
    end
 
 /--
-Similar to `refine` but generates equality proof obligations
-for every discrepancy between the goal and the type of the rule.
-`convert e using n` (with `n : ℕ`) bounds the depth of the search
-for discrepancies, analogous to `congr' n`.
+The `exact e` and `refine e` tactics require a term `e` whose type is
+definitionally equal to the goal. `convert e` is similar to `refine
+e`, but the type of `e` is not required to exactly match the
+goal. Instead, new goals are created for differences between the type
+of `e` and the goal. For example, in the proof state
+
+```lean
+n : ℕ,
+e : prime (2 * n + 1)
+⊢ prime (n + n + 1)
+```
+
+the tactic `convert e` will change the goal to
+
+```lean
+⊢ n + n = 2 * n
+```
+
+In this example, the new goal can be solved using `ring`.
+
+The syntax `convert ← e` will reverse the direction of the new goals
+(producing `⊢ 2 * n = n + n` in this example).
+
+Internally, `convert e` works by creating a new goal asserting that
+the goal equals the type of `e`, then simplifying it using
+`congr'`. The syntax `convert e using n` can be used to control the
+depth of matching (like `congr' n`). In the example, `convert e using
+1` would produce a new goal `⊢ n + n + 1 = 2 * n + 1`.
 -/
 meta def convert (sym : parse (with_desc "←" (tk "<-")?)) (r : parse texpr) (n : parse (tk "using" *> small_nat)?) : tactic unit :=
 do v ← mk_mvar,
@@ -178,6 +242,12 @@ do v ← mk_mvar,
    try (congr' n),
    gs' ← get_goals,
    set_goals $ gs' ++ gs
+
+add_tactic_doc
+{ name       := "convert",
+  category   := doc_category.tactic,
+  decl_names := [`tactic.interactive.convert],
+  tags       := ["congruence"] }
 
 meta def compact_decl_aux : list name → binder_info → expr → list expr → tactic (list (list name × binder_info × expr))
 | ns bi t [] := pure [(ns.reverse, bi, t)]
@@ -278,7 +348,8 @@ being refined.
 
 As an example, we can use `refine_struct` to automate the construction semigroup
 instances:
-```
+
+```lean
 refine_struct ( { .. } : semigroup α ),
 -- case semigroup, mul
 -- α : Type u,
@@ -288,6 +359,21 @@ refine_struct ( { .. } : semigroup α ),
 -- α : Type u,
 -- ⊢ ∀ (a b c : α), a * b * c = a * (b * c)
 ```
+
+`have_field`, used after `refine_struct _`, poses `field` as a local constant
+with the type of the field of the current goal:
+
+```lean
+refine_struct ({ .. } : semigroup α),
+{ have_field, ... },
+{ have_field, ... },
+```
+behaves like
+```lean
+refine_struct ({ .. } : semigroup α),
+{ have field := @semigroup.mul, ... },
+{ have field := @semigroup.mul_assoc, ... },
+```
 -/
 meta def refine_struct : parse texpr → tactic unit | e :=
 do (x,xs) ← collect_struct e,
@@ -295,6 +381,12 @@ do (x,xs) ← collect_struct e,
    gs ← get_goals,
    xs' ← xs.mmap refine_recursively,
    set_goals (xs'.join ++ gs)
+
+add_tactic_doc
+{ name       := "refine_struct",
+  category   := doc_category.tactic,
+  decl_names := [`tactic.interactive.refine_struct],
+  tags       := ["structures"] }
 
 /--
 `guard_hyp h := t` fails if the hypothesis `h` does not have type `t`.

@@ -6,31 +6,6 @@ Here we document the mostly commonly used ones, as well as some underdocumented 
 
 
 
-
-## simpa
-
-This is a "finishing" tactic modification of `simp`. It has two forms.
-
-* `simpa [rules, ...] using e` will simplify the goal and the type of
-  `e` using `rules`, then try to close the goal using `e`.
-
-  Simplifying the type of `e` makes it more likely to match the goal
-  (which has also been simplified). This construction also tends to be
-  more robust under changes to the simp lemma set.
-
-* `simpa [rules, ...]` will simplify the goal and the type of a
-  hypothesis `this` if present in the context, then try to close the goal using
-  the `assumption` tactic.
-
-## replace
-
-Acts like `have`, but removes a hypothesis with the same name as
-this one. For example if the state is `h : p ⊢ goal` and `f : p → q`,
-then after `replace h := f h` the goal will be `h : q ⊢ goal`,
-where `have h := f h` would result in the state `h : p, h : q ⊢ goal`.
-This can be used to simulate the `specialize` and `apply at` tactics
-of Coq.
-
 ## rename_var
 
 `rename_var old new` renames all bound variables named `old` to `new` in the goal.
@@ -171,49 +146,8 @@ begin
 end
 ```
 
-## congr'
 
-Same as the `congr` tactic, but takes an optional argument which gives
-the depth of recursive applications. This is useful when `congr`
-is too aggressive in breaking down the goal. For example, given
-`⊢ f (g (x + y)) = f (g (y + x))`, `congr'` produces the goals `⊢ x = y`
-and `⊢ y = x`, while `congr' 2` produces the intended `⊢ x + y = y + x`.
-If, at any point, a subgoal matches a hypothesis then the subgoal will be closed.
 
-## convert
-
-The `exact e` and `refine e` tactics require a term `e` whose type is
-definitionally equal to the goal. `convert e` is similar to `refine
-e`, but the type of `e` is not required to exactly match the
-goal. Instead, new goals are created for differences between the type
-of `e` and the goal. For example, in the proof state
-
-```lean
-n : ℕ,
-e : prime (2 * n + 1)
-⊢ prime (n + n + 1)
-```
-
-the tactic `convert e` will change the goal to
-
-```lean
-⊢ n + n = 2 * n
-```
-
-In this example, the new goal can be solved using `ring`.
-
-The syntax `convert ← e` will reverse the direction of the new goals
-(producing `⊢ 2 * n = n + n` in this example).
-
-Internally, `convert e` works by creating a new goal asserting that
-the goal equals the type of `e`, then simplifying it using
-`congr'`. The syntax `convert e using n` can be used to control the
-depth of matching (like `congr' n`). In the example, `convert e using
-1` would produce a new goal `⊢ n + n + 1 = 2 * n + 1`.
-
-## unfold_coes
-
-Unfold coercion-related definitions
 
 ## Instance cache tactics
 
@@ -463,42 +397,6 @@ A maximum depth can be provided with `ext x y z : 3`.
  @[ext] lemma foo.ext : ∀ {α : Type u_1} (x y : foo α), x.x = y.x → x.y = y.y → x.z == y.z → x.k = y.k → x = y
  lemma foo.ext_iff : ∀ {α : Type u_1} (x y : foo α), x = y ↔ x.x = y.x ∧ x.y = y.y ∧ x.z == y.z ∧ x.k = y.k
  ```
-
-## refine_struct
-
-`refine_struct { .. }` acts like `refine` but works only with structure instance
-literals. It creates a goal for each missing field and tags it with the name of the
-field so that `have_field` can be used to generically refer to the field currently
-being refined.
-
-As an example, we can use `refine_struct` to automate the construction semigroup
-instances:
-
-```lean
-refine_struct ( { .. } : semigroup α ),
--- case semigroup, mul
--- α : Type u,
--- ⊢ α → α → α
-
--- case semigroup, mul_assoc
--- α : Type u,
--- ⊢ ∀ (a b c : α), a * b * c = a * (b * c)
-```
-
-`have_field`, used after `refine_struct _` poses `field` as a local constant
-with the type of the field of the current goal:
-
-```lean
-refine_struct ({ .. } : semigroup α),
-{ have_field, ... },
-{ have_field, ... },
-```
-behaves like
-```lean
-refine_struct ({ .. } : semigroup α),
-{ have field := @semigroup.mul, ... },
-{ have field := @semigroup.mul_assoc, ... },
-```
 
 ## apply_rules
 
@@ -1095,13 +993,9 @@ begin
 end
 ```
 
-## swap
-
-`swap n` will move the `n`th goal to the front. `swap` defaults to `swap 2`, and so interchanges the first and second goals.
-
 ## rotate
 
-`rotate` moves the first goal to the back. `rotate n` will do this `n` times.
+
 
 ## The `reassoc` attribute
 

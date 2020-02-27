@@ -17,6 +17,8 @@ enumeration.
 
 open finset (hiding singleton)
 
+/-- `fintype α` means that `α` is finite and can be enumerate in some order,
+  i.e. `α` can be mapped onto a finite interval of `ℕ`. -/
 class fin_enum (α : Sort*) :=
 (card : ℕ)
 (equiv : α ≃ fin card)
@@ -145,6 +147,7 @@ if h : ∃ a, β a
   then of_list [⟨h.fst,h.snd⟩] (by rintro ⟨⟩; simp)
   else of_list [] (λ a, (h ⟨a.fst,a.snd⟩).elim)
 
+@[priority 100]
 instance [fin_enum α] : fintype α :=
 { elems := univ.map (equiv α).symm.to_embedding,
   complete := by intros; simp; existsi (equiv α x); simp }
@@ -160,7 +163,7 @@ def pi.cons {β : α → Type*} [decidable_eq α] (x : α) (xs : list α) (b : �
 
 /-- Given `f` a function whose domain is `x :: xs`, produce a function whose domain
 is restricted to `xs`.  -/
-def pi.tail {α : Type*} {β : α → Type*} [decidable_eq α] {x : α} {xs : list α}
+def pi.tail {α : Type*} {β : α → Type*} {x : α} {xs : list α}
   (f : Π a, a ∈ (x :: xs : list α) → β a) :
   Π a, a ∈ xs → β a
 | a h := f a (list.mem_cons_of_mem _ h)

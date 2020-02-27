@@ -1293,13 +1293,6 @@ apply_nolint encodable.of_inj doc_blame
 apply_nolint encodable.of_left_injection doc_blame
 apply_nolint encodable.of_left_inverse doc_blame
 
--- data/equiv/fin.lean
-apply_nolint fin_one_equiv doc_blame
-apply_nolint fin_prod_fin_equiv doc_blame
-apply_nolint fin_two_equiv doc_blame
-apply_nolint fin_zero_equiv doc_blame
-apply_nolint sum_fin_sum_equiv doc_blame
-
 -- data/equiv/functor.lean
 apply_nolint functor.map_equiv doc_blame
 

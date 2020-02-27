@@ -741,6 +741,17 @@ lemma div_le_iff_le_mul (hb0 : b ≠ 0) (hbt : b ≠ ⊤) : a / b ≤ c ↔ a �
 suffices a * b⁻¹ ≤ c ↔ a ≤ c / b⁻¹, by simpa [div_def],
 (le_div_iff_mul_le (inv_ne_zero.2 hbt) (inv_ne_top.2 hb0)).symm
 
+lemma div_le_of_le_mul (h : a ≤ b * c) : a / c ≤ b :=
+begin
+  by_cases h0 : c = 0,
+  { have : a = 0, by simpa [h0] using h, simp [*] },
+  by_cases hinf : c = ⊤, by simp [hinf],
+  exact (div_le_iff_le_mul h0 hinf).2 h
+end
+
+lemma mul_lt_of_lt_div (h : a < b / c) : a * c < b :=
+by { contrapose! h, exact ennreal.div_le_of_le_mul h }
+
 lemma inv_le_iff_le_mul : (b = ⊤ → a ≠ 0) → (a = ⊤ → b ≠ 0) → (a⁻¹ ≤ b ↔ 1 ≤ a * b) :=
 begin
   cases a; cases b; simp [none_eq_top, some_eq_coe, mul_top, top_mul] {contextual := tt},

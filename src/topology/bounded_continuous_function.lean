@@ -184,30 +184,30 @@ end
 gives a bounded continuous function -/
 def comp (G : β → γ) {C : nnreal} (H : lipschitz_with C G)
   (f : α →ᵇ β) : α →ᵇ γ :=
-⟨λx, G (f x), H.to_continuous.comp f.2.1,
+⟨λx, G (f x), H.continuous.comp f.2.1,
   let ⟨D, hD⟩ := f.2.2 in
   ⟨max C 0 * D, λ x y, calc
-    dist (G (f x)) (G (f y)) ≤ C * dist (f x) (f y) : H _ _
+    dist (G (f x)) (G (f y)) ≤ C * dist (f x) (f y) : H.dist_le _ _
     ... ≤ max C 0 * dist (f x) (f y) : mul_le_mul_of_nonneg_right (le_max_left C 0) dist_nonneg
     ... ≤ max C 0 * D : mul_le_mul_of_nonneg_left (hD _ _) (le_max_right C 0)⟩⟩
 
 /-- The composition operator (in the target) with a Lipschitz map is Lipschitz -/
 lemma lipschitz_comp {G : β → γ} {C : nnreal} (H : lipschitz_with C G) :
   lipschitz_with C (comp G H : (α →ᵇ β) → α →ᵇ γ) :=
-λ f g,
+lipschitz_with.of_dist_le $ λ f g,
 (dist_le (mul_nonneg C.2 dist_nonneg)).2 $ λ x,
-calc dist (G (f x)) (G (g x)) ≤ C * dist (f x) (g x) : H _ _
+calc dist (G (f x)) (G (g x)) ≤ C * dist (f x) (g x) : H.dist_le _ _
   ... ≤ C * dist f g : mul_le_mul_of_nonneg_left (dist_coe_le_dist _) C.2
 
 /-- The composition operator (in the target) with a Lipschitz map is uniformly continuous -/
 lemma uniform_continuous_comp {G : β → γ} {C : nnreal} (H : lipschitz_with C G) :
   uniform_continuous (comp G H : (α →ᵇ β) → α →ᵇ γ) :=
-(lipschitz_comp H).to_uniform_continuous
+(lipschitz_comp H).uniform_continuous
 
 /-- The composition operator (in the target) with a Lipschitz map is continuous -/
 lemma continuous_comp {G : β → γ} {C : nnreal} (H : lipschitz_with C G) :
   continuous (comp G H : (α →ᵇ β) → α →ᵇ γ) :=
-(lipschitz_comp H).to_continuous
+(lipschitz_comp H).continuous
 
 /-- Restriction (in the target) of a bounded continuous function taking values in a subset -/
 def cod_restrict (s : set β) (f : α →ᵇ β) (H : ∀x, f x ∈ s) : α →ᵇ s :=

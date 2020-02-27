@@ -153,6 +153,8 @@ le_of_lt_succ i.is_lt
 
 @[simp] lemma last_val (n : ℕ) : (last n).val = n := rfl
 
+@[simp] lemma succ_last (n : ℕ) : (last n).succ = last (n.succ) := rfl
+
 @[simp] lemma cast_succ_cast_lt (i : fin (n + 1)) (h : i.val < n) : cast_succ (cast_lt i h) = i :=
 fin.eq_of_veq rfl
 
@@ -170,6 +172,13 @@ by simp [eq_iff_veq]
 
 lemma cast_succ_ne_last (a : fin n) : cast_succ a ≠ last n :=
 by simp [eq_iff_veq, ne_of_lt a.2]
+
+lemma eq_last_of_not_lt {i : fin (n+1)} (h : ¬ i.val < n) : i = last n :=
+le_antisymm (le_last i) (not_lt.1 h)
+
+lemma cast_succ_fin_succ (n : ℕ) (j : fin n) :
+  cast_succ (fin.succ j) = fin.succ (cast_succ j) :=
+by simp [fin.ext_iff]
 
 def clamp (n m : ℕ) : fin (m + 1) := fin.of_nat $ min n m
 
@@ -266,9 +275,17 @@ lemma exists_fin_succ {P : fin (n+1) → Prop} :
 end rec
 
 section tuple
-/- We can think of the type `Π(i : fin n), α i` as `n`-tuples of elements of possibly varying type
+/-!
+### Tuples
+
+We can think of the type `Π(i : fin n), α i` as `n`-tuples of elements of possibly varying type
 `α i`. A particular case is `fin n → α` of elements with all the same type. Here are some relevant
-operations. -/
+operations, first about adding or removing elements at the beginning of a tuple.
+-/
+
+/-- There is exactly one tuple of size zero. -/
+instance tuple0_unique (α : fin 0 → Type u) : unique (Π i : fin 0, α i) :=
+{ default := fin_zero_elim', uniq := λ x, funext fin_zero_elim' }
 
 variables {α : fin (n+1) → Type u} (x : α 0) (q : Πi, α i) (p : Π(i : fin n), α (i.succ))
 (i : fin n) (y : α i.succ) (z : α 0)
@@ -341,7 +358,176 @@ begin
   { simp [tail, (fin.injective_succ n).ne h, h] }
 end
 
+lemma comp_cons {α : Type*} {β : Type*} (g : α → β) (y : α) (q : fin n → α) :
+  g ∘ (cons y q) = cons (g y) (g ∘ q) :=
+begin
+  ext j,
+  by_cases h : j = 0,
+  { rw h, refl },
+  { let j' := pred j h,
+    have : j'.succ = j := succ_pred j h,
+    rw [← this, cons_succ, comp_app, cons_succ] }
+end
+
+lemma comp_tail {α : Type*} {β : Type*} (g : α → β) (q : fin n.succ → α) :
+  g ∘ (tail q) = tail (g ∘ q) :=
+by { ext j, simp [tail] }
+
 end tuple
+
+section tuple_right
+/-! In the previous section, we have discussed inserting or removing elements on the left of a tuple.
+In this section, we do the same on the right. A difference is that `fin (n+1)` is constructed
+inductively from `fin n` starting from the left, not from the right. This implies that Lean needs
+more help to realize that elements belong to the right types, i.e., we need to insert casts at
+several places. -/
+
+variables {α : fin (n+1) → Type u} (x : α (last n)) (q : Πi, α i) (p : Π(i : fin n), α i.cast_succ)
+(i : fin n) (y : α i.cast_succ) (z : α (last n))
+
+/-- The beginning of an `n+1` tuple, i.e., its first `n` entries -/
+def init (q : Πi, α i) (i : fin n) : α i.cast_succ :=
+q i.cast_succ
+
+/-- Adding an element at the end of an `n`-tuple, to get an `n+1`-tuple. The name `snoc` comes from
+`cons` (i.e., adding an element to the left of a tuple) read in reverse order. -/
+def snoc (p : Π(i : fin n), α i.cast_succ) (x : α (last n)) (i : fin (n+1)) : α i :=
+if h : i.val < n
+then _root_.cast (by rw fin.cast_succ_cast_lt i h) (p (cast_lt i h))
+else _root_.cast (by rw eq_last_of_not_lt h) x
+
+@[simp] lemma init_snoc : init (snoc p x) = p :=
+begin
+  ext i,
+  have h' := fin.cast_lt_cast_succ i i.is_lt,
+  simp [init, snoc, i.is_lt, h'],
+  convert cast_eq rfl (p i)
+end
+
+@[simp] lemma snoc_cast_succ : snoc p x i.cast_succ = p i :=
+begin
+  have : i.cast_succ.val < n := i.is_lt,
+  have h' := fin.cast_lt_cast_succ i i.is_lt,
+  simp [snoc, this, h'],
+  convert cast_eq rfl (p i)
+end
+
+@[simp] lemma snoc_last : snoc p x (last n) = x :=
+by { simp [snoc], refl }
+
+/-- Updating a tuple and adding an element at the end commute. -/
+@[simp] lemma snoc_update : snoc (update p i y) x = update (snoc p x) i.cast_succ y :=
+begin
+  ext j,
+  by_cases h : j.val < n,
+  { simp only [snoc, h, dif_pos],
+    by_cases h' : j = cast_succ i,
+    { have C1 : α i.cast_succ = α j, by rw h',
+      have E1 : update (snoc p x) i.cast_succ y j = _root_.cast C1 y,
+      { have : update (snoc p x) j (_root_.cast C1 y) j = _root_.cast C1 y, by simp,
+        convert this,
+        { exact h'.symm },
+        { exact heq_of_eq_mp (congr_arg α (eq.symm h')) rfl } },
+      have C2 : α i.cast_succ = α (cast_succ (cast_lt j h)),
+        by rw [cast_succ_cast_lt, h'],
+      have E2 : update p i y (cast_lt j h) = _root_.cast C2 y,
+      { have : update p (cast_lt j h) (_root_.cast C2 y) (cast_lt j h) = _root_.cast C2 y,
+          by simp,
+        convert this,
+        { simp [h, h'] },
+        { exact heq_of_eq_mp C2 rfl } },
+      rw [E1, E2],
+      exact eq_rec_compose _ _ _ },
+    { have : ¬(cast_lt j h = i),
+        by { assume E, apply h', rw [← E, cast_succ_cast_lt] },
+      simp [h', this, snoc, h] } },
+  { rw eq_last_of_not_lt h,
+    simp [ne.symm (cast_succ_ne_last i)] }
+end
+
+/-- Adding an element at the beginning of a tuple and then updating it amounts to adding it directly. -/
+lemma update_snoc_last : update (snoc p x) (last n) z = snoc p z :=
+begin
+  ext j,
+  by_cases h : j.val < n,
+  { have : j ≠ last n := ne_of_lt h,
+    simp [h, update_noteq, this, snoc] },
+  { rw eq_last_of_not_lt h,
+    simp }
+end
+
+/-- Concatenating the first element of a tuple with its tail gives back the original tuple -/
+@[simp] lemma snoc_init_self : snoc (init q) (q (last n)) = q :=
+begin
+  ext j,
+  by_cases h : j.val < n,
+  { have : j ≠ last n := ne_of_lt h,
+    simp [h, update_noteq, this, snoc, init, cast_succ_cast_lt],
+    have A : cast_succ (cast_lt j h) = j := cast_succ_cast_lt _ _,
+    rw ← cast_eq rfl (q j),
+    congr' 1; rw A },
+  { rw eq_last_of_not_lt h,
+    simp }
+end
+
+/-- Updating the last element of a tuple does not change the beginning. -/
+@[simp] lemma init_update_last : init (update q (last n) z) = init q :=
+by { ext j, simp [init, cast_succ_ne_last] }
+
+/-- Updating an element and taking the beginning commute. -/
+@[simp] lemma init_update_cast_succ :
+  init (update q i.cast_succ y) = update (init q) i y :=
+begin
+  ext j,
+  by_cases h : j = i,
+  { rw h, simp [init] },
+  { simp [init, h] }
+end
+
+/-- `tail` and `init` commute. We state this lemma in a non-dependent setting, as otherwise it
+would involve a cast to convince Lean that the two types are equal, making it harder to use. -/
+lemma tail_init_eq_init_tail {β : Type*} (q : fin (n+2) → β) :
+  tail (init q) = init (tail q) :=
+by { ext i, simp [tail, init, cast_succ_fin_succ] }
+
+/-- `cons` and `snoc` commute. We state this lemma in a non-dependent setting, as otherwise it
+would involve a cast to convince Lean that the two types are equal, making it harder to use. -/
+lemma cons_snoc_eq_snoc_cons {β : Type*} (a : β) (q : fin n → β) (b : β) :
+  @cons n.succ (λ i, β) a (snoc q b) = snoc (cons a q) b :=
+begin
+  ext i,
+  by_cases h : i = 0,
+  { rw h, refl },
+  set j := pred i h with ji,
+  have : i = j.succ, by rw [ji, succ_pred],
+  rw [this, cons_succ],
+  by_cases h' : j.val < n,
+  { set k := cast_lt j h' with jk,
+    have : j = k.cast_succ, by rw [jk, cast_succ_cast_lt],
+    rw [this, ← cast_succ_fin_succ],
+    simp },
+  rw [eq_last_of_not_lt h', succ_last],
+  simp
+end
+
+
+lemma comp_snoc {α : Type*} {β : Type*} (g : α → β) (q : fin n → α) (y : α) :
+  g ∘ (snoc q y) = snoc (g ∘ q) (g y) :=
+begin
+  ext j,
+  by_cases h : j.val < n,
+  { have : j ≠ last n := ne_of_lt h,
+    simp [h, this, snoc, cast_succ_cast_lt],
+    refl },
+  { rw eq_last_of_not_lt h,
+    simp }
+end
+
+lemma comp_init {α : Type*} {β : Type*} (g : α → β) (q : fin n.succ → α) :
+  g ∘ (init q) = init (g ∘ q) :=
+by { ext j, simp [init] }
+
+end tuple_right
 
 section find
 

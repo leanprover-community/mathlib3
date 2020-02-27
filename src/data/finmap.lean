@@ -231,8 +231,8 @@ induction_on s $ lookup_erase a
   lookup a (erase a' s) = lookup a s :=
 induction_on s $ λ s, lookup_erase_ne h
 
-@[simp] theorem erase_erase {a a' : α} {s : finmap β} : erase a (erase a' s) = erase a' (erase a s) :=
-induction_on s $ λ s, ext (by simp)
+theorem erase_erase {a a' : α} {s : finmap β} : erase a (erase a' s) = erase a' (erase a s) :=
+induction_on s $ λ s, ext (by simp [alist.erase_erase])
 
 lemma mem_iff {a : α} {s : finmap β} : a ∈ s ↔ ∃ b, s.lookup a = some b :=
 induction_on s $ λ s,

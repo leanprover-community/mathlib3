@@ -342,7 +342,11 @@ def comp (hnp : N →* P) (hmn : M →* N) : M →* P :=
 @[to_additive] lemma comp_assoc {Q : Type*} [monoid Q] (f : M →* N) (g : N →* P) (h : P →* Q) :
   (h.comp g).comp f = h.comp (g.comp f) := rfl
 
-@[to_additive] lemma exists_inv_of_comp_exists_inv {S : set M} {f : M →* N}
+/-- Given a monoid homomorphism `f : M →* N` and a set `S ⊆ M` such that `f` maps elements of
+    `S` to invertible elements of `N`, any monoid homomorphism `g : N →* P` maps elements of
+    `f(S)` to invertible elements of `P`. -/
+@[to_additive "Given an add_monoid homomorphism `f : M →+ N` and a set `S ⊆ M` such that `f` maps elements of `S` to invertible elements of `N`, any add_monoid homomorphism `g : N →+ P` maps elements of `f(S)` to invertible elements of `P`."]
+lemma exists_inv_of_comp_exists_inv {S : set M} {f : M →* N}
   (hf : ∀ s ∈ S, ∃ b, f s * b = 1) (g : N →* P) (s ∈ S) :
   ∃ x : P, g.comp f s * x = 1 :=
 let ⟨c, hc⟩ := hf s H in ⟨g c, show g _ * _ = _, by rw [←g.map_mul, hc, g.map_one]⟩

@@ -92,7 +92,7 @@ begin
   induction k with k' hi,
   { simp [abv_zero abv] },
   { dsimp at *,
-    rw [nat.succ_add, sum_range_succ, sum_range_succ, add_assoc, add_assoc],
+    simp only [nat.succ_add, sum_range_succ, sub_eq_add_neg, add_assoc],
     refine le_trans (abv_add _ _ _) _,
     exact add_le_add (hm _ (le_add_of_nonneg_of_le (nat.zero_le _) (le_max_left _ _))) hi },
 end
@@ -421,7 +421,7 @@ by rw [← domain.mul_left_inj (exp_ne_zero x), ← exp_add];
   simp [mul_inv_cancel (exp_ne_zero x)]
 
 lemma exp_sub : exp (x - y) = exp x / exp y :=
-by simp [exp_add, exp_neg, div_eq_mul_inv]
+by simp [sub_eq_add_neg, exp_add, exp_neg, div_eq_mul_inv]
 
 @[simp] lemma exp_conj : exp (conj x) = conj (exp x) :=
 begin
@@ -472,7 +472,7 @@ end
 @[simp] lemma cosh_zero : cosh 0 = 1 := by simp [cosh]
 
 @[simp] lemma cosh_neg : cosh (-x) = cosh x :=
-by simp [cosh, exp_neg]
+by simp [add_comm, cosh, exp_neg]
 
 private lemma cosh_add_aux {a b c d : ℂ} :
   (a + b) * (c + d) + (a - b) * (c - d) = 2 * (a * c + b * d) := by ring
@@ -488,10 +488,10 @@ begin
 end
 
 lemma sinh_sub : sinh (x - y) = sinh x * cosh y - cosh x * sinh y :=
-by simp [sinh_add, sinh_neg, cosh_neg]
+by simp [sub_eq_add_neg, sinh_add, sinh_neg, cosh_neg]
 
 lemma cosh_sub : cosh (x - y) = cosh x * cosh y - sinh x * sinh y :=
-by simp [cosh_add, sinh_neg, cosh_neg]
+by simp [sub_eq_add_neg, cosh_add, sinh_neg, cosh_neg]
 
 lemma sinh_conj : sinh (conj x) = conj (sinh x) :=
 by rw [sinh, ← conj_neg, exp_conj, exp_conj, ← conj_sub, sinh, conj_div, conj_two]
@@ -558,7 +558,7 @@ by rw [sq_sub_sq, cosh_add_sinh, cosh_sub_sinh, ← exp_add, add_neg_self, exp_z
 @[simp] lemma sin_zero : sin 0 = 0 := by simp [sin]
 
 @[simp] lemma sin_neg : sin (-x) = -sin x :=
-by simp [sin, exp_neg, (neg_div _ _).symm, add_mul]
+by simp [sin, sub_eq_add_neg, exp_neg, (neg_div _ _).symm, add_mul]
 
 lemma two_sin : 2 * sin x = (exp (-x * I) - exp (x * I)) * I :=
 mul_div_cancel' _ two_ne_zero'
@@ -583,7 +583,7 @@ by rw [← domain.mul_right_inj I_ne_zero, ← sinh_mul_I,
 @[simp] lemma cos_zero : cos 0 = 1 := by simp [cos]
 
 @[simp] lemma cos_neg : cos (-x) = cos x :=
-by simp [cos, exp_neg]
+by simp [cos, sub_eq_add_neg, exp_neg, add_comm]
 
 private lemma cos_add_aux {a b c d : ℂ} :
   (a + b) * (c + d) - (b - a) * (d - c) * (-1) =
@@ -595,10 +595,10 @@ by rw [← cosh_mul_I, add_mul, cosh_add, cosh_mul_I, cosh_mul_I,
        mul_neg_one, sub_eq_add_neg]
 
 lemma sin_sub : sin (x - y) = sin x * cos y - cos x * sin y :=
-by simp [sin_add, sin_neg, cos_neg]
+by simp [sub_eq_add_neg, sin_add, sin_neg, cos_neg]
 
 lemma cos_sub : cos (x - y) = cos x * cos y + sin x * sin y :=
-by simp [cos_add, sin_neg, cos_neg]
+by simp [sub_eq_add_neg, cos_add, sin_neg, cos_neg]
 
 lemma sin_conj : sin (conj x) = conj (sin x) :=
 by rw [← domain.mul_right_inj I_ne_zero, ← sinh_mul_I,
@@ -730,7 +730,7 @@ by rw [← of_real_inj, exp, of_real_exp_of_real_re, of_real_neg, exp_neg,
   of_real_inv, of_real_exp]
 
 lemma exp_sub : exp (x - y) = exp x / exp y :=
-by simp [exp_add, exp_neg, div_eq_mul_inv]
+by simp [sub_eq_add_neg, exp_add, exp_neg, div_eq_mul_inv]
 
 @[simp] lemma sin_zero : sin 0 = 0 := by simp [sin]
 
@@ -749,10 +749,10 @@ lemma cos_add : cos (x + y) = cos x * cos y - sin x * sin y :=
 by rw ← of_real_inj; simp [cos, cos_add]
 
 lemma sin_sub : sin (x - y) = sin x * cos y - cos x * sin y :=
-by simp [sin_add, sin_neg, cos_neg]
+by simp [sub_eq_add_neg, sin_add, sin_neg, cos_neg]
 
 lemma cos_sub : cos (x - y) = cos x * cos y + sin x * sin y :=
-by simp [cos_add, sin_neg, cos_neg]
+by simp [sub_eq_add_neg, cos_add, sin_neg, cos_neg]
 
 lemma tan_eq_sin_div_cos : tan x = sin x / cos x :=
 if h : complex.cos x = 0 then by simp [sin, cos, tan, *, complex.tan, div_eq_mul_inv] at *
@@ -824,10 +824,10 @@ lemma cosh_add : cosh (x + y) = cosh x * cosh y + sinh x * sinh y :=
 by rw ← of_real_inj; simp [cosh, cosh_add]
 
 lemma sinh_sub : sinh (x - y) = sinh x * cosh y - cosh x * sinh y :=
-by simp [sinh_add, sinh_neg, cosh_neg]
+by simp [sub_eq_add_neg, sinh_add, sinh_neg, cosh_neg]
 
 lemma cosh_sub : cosh (x - y) = cosh x * cosh y - sinh x * sinh y :=
-by simp [cosh_add, sinh_neg, cosh_neg]
+by simp [sub_eq_add_neg, cosh_add, sinh_neg, cosh_neg]
 
 lemma tanh_eq_sinh_div_cosh : tanh x = sinh x / cosh x :=
 of_real_inj.1 $ by simp [tanh_eq_sinh_div_cosh]
@@ -973,7 +973,7 @@ calc abs (exp x - 1) = abs (exp x - (range 1).sum (λ m, x ^ m / m.fact)) :
 lemma abs_exp_sub_one_sub_id_le {x : ℂ} (hx : abs x ≤ 1) :
   abs (exp x - 1 - x) ≤ (abs x)^2 :=
 calc abs (exp x - 1 - x) = abs (exp x - (range 2).sum (λ m, x ^ m / m.fact)) :
-  by simp [sum_range_succ]
+  by simp [sub_eq_add_neg, sum_range_succ]
 ... ≤ (abs x)^2 * (nat.succ 2 * (nat.fact 2 * (2 : ℕ))⁻¹) :
   exp_bound hx dec_trivial
 ... ≤ (abs x)^2 * 1 :
@@ -1029,7 +1029,7 @@ calc abs' (sin x - (x - x ^ 3 / 6)) = abs (complex.sin x - (x - x ^ 3 / 6)) :
   by rw [sub_mul, sub_eq_add_neg, add_div]; exact abs_add _ _
 ... = (abs ((complex.exp (x * I) - (range 4).sum (λ m, (x * I) ^ m / m.fact))) / 2 +
     abs ((complex.exp (-x * I) - (range 4).sum (λ m, (-x * I) ^ m / m.fact))) / 2) :
-  by simp [complex.abs_div, complex.abs_mul]
+  by simp [add_comm, complex.abs_div, complex.abs_mul]
 ... ≤ ((complex.abs (x * I) ^ 4 * (nat.succ 4 * (nat.fact 4 * (4 : ℕ))⁻¹)) / 2 +
     (complex.abs (-x * I) ^ 4 * (nat.succ 4 * (nat.fact 4 * (4 : ℕ))⁻¹)) / 2) :
   add_le_add ((div_le_div_right (by norm_num)).2 (exp_bound (by simpa) dec_trivial))
@@ -1097,7 +1097,7 @@ namespace complex
 
 lemma abs_cos_add_sin_mul_I (x : ℝ) : abs (cos x + sin x * I) = 1 :=
 have _ := real.sin_sq_add_cos_sq x,
-by simp [abs, norm_sq, pow_two, *, sin_of_real_re, cos_of_real_re, mul_re] at *
+by simp [add_comm, abs, norm_sq, pow_two, *, sin_of_real_re, cos_of_real_re, mul_re] at *
 
 lemma abs_exp_eq_iff_re_eq {x y : ℂ} : abs (exp x) = abs (exp y) ↔ x.re = y.re :=
 by rw [exp_eq_exp_re_mul_sin_add_cos, exp_eq_exp_re_mul_sin_add_cos y,

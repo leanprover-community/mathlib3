@@ -426,6 +426,12 @@ meta def rcases : parse rcases_parse → tactic unit
   pe ← pp p,
   trace $ ↑"Try this: rcases " ++ pe ++ " with " ++ to_fmt patt
 
+add_tactic_doc
+{ name       := "rcases",
+  category   := doc_category.tactic,
+  decl_names := [`tactic.interactive.rcases],
+  tags       := ["induction"] }
+
 /--
 The `rintro` tactic is a combination of the `intros` tactic with `rcases` to
 allow for destructuring patterns while introducing variables. See `rcases` for

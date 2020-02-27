@@ -382,12 +382,6 @@ do (x,xs) ← collect_struct e,
    xs' ← xs.mmap refine_recursively,
    set_goals (xs'.join ++ gs)
 
-add_tactic_doc
-{ name       := "refine_struct",
-  category   := doc_category.tactic,
-  decl_names := [`tactic.interactive.refine_struct],
-  tags       := ["structures"] }
-
 /--
 `guard_hyp h := t` fails if the hypothesis `h` does not have type `t`.
 We use this tactic for writing tests.
@@ -473,13 +467,23 @@ meta def apply_field : tactic unit :=
 propagate_tags $
 get_current_field >>= applyc
 
-/--`apply_rules hs n`: apply the list of rules `hs` (given as pexpr) and `assumption` on the
+add_tactic_doc
+{ name       := "refine_struct",
+  category   := doc_category.tactic,
+  decl_names := [`tactic.interactive.refine_struct, `tactic.interactive.apply_field, `tactic.interactive.have_field],
+  tags       := ["structures"],
+  inherit_description_from := `tactic.interactive.refine_struct }
+
+/--
+`apply_rules hs n` applies the list of lemmas `hs` and `assumption` on the
 first goal and the resulting subgoals, iteratively, at most `n` times.
-`n` is 50 by default. `hs` can contain user attributes: in this case all theorems with this
+`n` is optional, equal to 50 by default.
+`hs` can contain user attributes: in this case all theorems with this
 attribute are added to the list of rules.
 
-example, with or without user attribute:
-```
+For instance:
+
+```lean
 @[user_attribute]
 meta def mono_rules : user_attribute :=
 { name := `mono_rules,
@@ -489,15 +493,21 @@ attribute [mono_rules] add_le_add mul_le_mul_of_nonneg_right
 
 lemma my_test {a b c d e : real} (h1 : a ≤ b) (h2 : c ≤ d) (h3 : 0 ≤ e) :
 a + c * e + a + c + 0 ≤ b + d * e + b + d + e :=
+-- any of the following lines solve the goal:
+add_le_add (add_le_add (add_le_add (add_le_add h1 (mul_le_mul_of_nonneg_right h2 h3)) h1 ) h2) h3
+by apply_rules [add_le_add, mul_le_mul_of_nonneg_right]
+by apply_rules [mono_rules]
 by apply_rules mono_rules
--- any of the following lines would also work:
--- add_le_add (add_le_add (add_le_add (add_le_add h1 (mul_le_mul_of_nonneg_right h2 h3)) h1 ) h2) h3
--- by apply_rules [add_le_add, mul_le_mul_of_nonneg_right]
--- by apply_rules [mono_rules]
 ```
 -/
 meta def apply_rules (hs : parse pexpr_list_or_texpr) (n : nat := 50) : tactic unit :=
 tactic.apply_rules hs n
+
+add_tactic_doc
+{ name       := "apply_rules",
+  category   := doc_category.tactic,
+  decl_names := [`tactic.interactive.apply_rules],
+  tags       := ["lemma application"] }
 
 meta def return_cast (f : option expr) (t : option (expr × expr))
   (es : list (expr × expr × expr))
@@ -543,14 +553,11 @@ times (not necessarily with the same proof), they are all replaced by `x`. `cast
 `eq.mp`, `eq.mpr`, `eq.subst`, `eq.substr`, `eq.rec` and `eq.rec_on` are all treated
 as casts.
 
-`h_generalize Hx : e == x with h` adds hypothesis `α = β` with `e : α, x : β`.
-
-`h_generalize Hx : e == x with _` chooses automatically chooses the name of
-assumption `α = β`.
-
-`h_generalize! Hx : e == x` reverts `Hx`.
-
-when `Hx` is omitted, assumption `Hx : e == x` is not added.
+ - `h_generalize Hx : e == x with h` adds hypothesis `α = β` with `e : α, x : β`;
+ - `h_generalize Hx : e == x with _` chooses automatically chooses the name of
+    assumption `α = β`;
+  - `h_generalize! Hx : e == x` reverts `Hx`;
+  - when `Hx` is omitted, assumption `Hx : e == x` is not added.
 -/
 meta def h_generalize (rev : parse (tk "!")?)
      (h : parse ident_?)
@@ -583,6 +590,12 @@ do let (e,n) := arg,
    tactic.clear asm,
    when rev.is_some (interactive.revert [n])
 
+add_tactic_doc
+{ name       := "h_generalize",
+  category   := doc_category.tactic,
+  decl_names := [`tactic.interactive.h_generalize],
+  tags       := ["hypothesis management"] }
+
 /-- `choose a b h using hyp` takes an hypothesis `hyp` of the form
 `∀ (x : X) (y : Y), ∃ (a : A) (b : B), P x y a b` for some `P : X → Y → A → B → Prop` and outputs
 into context a function `a : X → Y → A`, `b : X → Y → B` and a proposition `h` stating
@@ -610,6 +623,12 @@ tgt ← match tgt with
 tactic.choose tgt (first :: names),
 try (interactive.simp none tt [simp_arg_type.expr ``(exists_prop)] [] (loc.ns $ some <$> names)),
 try (tactic.clear tgt)
+
+add_tactic_doc
+{ name       := "choose",
+  category   := doc_category.tactic,
+  decl_names := [`tactic.interactive.choose],
+  tags       := ["classical logic"] }
 
 /--
 The goal of `field_simp` is to reduce an expression in a field to an expression of the form `n / d`
@@ -658,6 +677,12 @@ meta def field_simp (no_dflt : parse only_flag) (hs : parse simp_arg_list) (attr
 let attr_names := `field_simps :: attr_names,
     hs := simp_arg_type.except `one_div_eq_inv :: hs in
 propagate_tags (simp_core cfg.to_simp_config cfg.discharger no_dflt hs attr_names locat)
+
+add_tactic_doc
+{ name       := "field_simp",
+  category   := doc_category.tactic,
+  decl_names := [`tactic.interactive.field_simp],
+  tags       := ["simplification", "normalization", "algebra"] }
 
 meta def guard_expr_eq' (t : expr) (p : parse $ tk ":=" *> texpr) : tactic unit :=
 do e ← to_expr p, is_def_eq t e
@@ -719,6 +744,13 @@ focus1 $
   try (triv <|> (do
         `(Exists %%p) ← target,
         to_expr ``(exists_prop.mpr) >>= tactic.apply >> skip))
+
+add_tactic_doc
+{ name       := "use",
+  category   := doc_category.tactic,
+  decl_names := [`tactic.interactive.use, `tactic.interactive.existsi],
+  tags       := ["logical manipulation"],
+  inherit_description_from := `tactic.interactive.use }
 
 /--
 `clear_aux_decl` clears every `aux_decl` in the local context for the current goal.

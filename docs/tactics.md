@@ -103,50 +103,6 @@ example (a b : ℤ) (n : ℕ) : (a + b)^(n + 2) = (a^2 + b^2 + a * b + b * a) * 
 example (x y : ℕ) : x + id y = y + id x := by ring_exp!
 ```
 
-## field_simp
-
-The goal of `field_simp` is to reduce an expression in a field to an expression of the form `n / d`
-where neither `n` nor `d` contains any division symbol, just using the simplifier (with a carefully
-crafted simpset named `field_simps`) to reduce the number of division symbols whenever possible by
-iterating the following steps:
-
-- write an inverse as a division
-- in any product, move the division to the right
-- if there are several divisions in a product, group them together at the end and write them as a
-  single division
-- reduce a sum to a common denominator
-
-If the goal is an equality, this simpset will also clear the denominators, so that the proof
-can normally be concluded by an application of `ring` or `ring_exp`.
-
-`field_simp [hx, hy]` is a short form for `simp [-one_div_eq_inv, hx, hy] with field_simps`
-
-Note that this naive algorithm will not try to detect common factors in denominators to reduce the
-complexity of the resulting expression. Instead, it relies on the ability of `ring` to handle
-complicated expressions in the next step.
-
-As always with the simplifier, reduction steps will only be applied if the preconditions of the
-lemmas can be checked. This means that proofs that denominators are nonzero should be included. The
-fact that a product is nonzero when all factors are, and that a power of a nonzero number is
-nonzero, are included in the simpset, but more complicated assertions (especially dealing with sums)
-should be given explicitly. If your expression is not completely reduced by the simplifier
-invocation, check the denominators of the resulting expression and provide proofs that they are
-nonzero to enable further progress.
-
-The invocation of `field_simp` removes the lemma `one_div_eq_inv` (which is marked as a simp lemma
-in core) from the simpset, as this lemma works against the algorithm explained above.
-
-For example,
-```lean
-example (a b c d x y : ℂ) (hx : x ≠ 0) (hy : y ≠ 0) :
-  a + b / x + c / x^2 + d / x^3 = a + x⁻¹ * (y * b / y + (d / x + c) / x) :=
-begin
-  field_simp [hx, hy],
-  ring
-end
-```
-
-
 
 
 ## Instance cache tactics
@@ -398,46 +354,6 @@ A maximum depth can be provided with `ext x y z : 3`.
  lemma foo.ext_iff : ∀ {α : Type u_1} (x y : foo α), x = y ↔ x.x = y.x ∧ x.y = y.y ∧ x.z == y.z ∧ x.k = y.k
  ```
 
-## apply_rules
-
-`apply_rules hs n` applies the list of lemmas `hs` and `assumption` on the
-first goal and the resulting subgoals, iteratively, at most `n` times.
-`n` is optional, equal to 50 by default.
-`hs` can contain user attributes: in this case all theorems with this
-attribute are added to the list of rules.
-
-For instance:
-
-```lean
-@[user_attribute]
-meta def mono_rules : user_attribute :=
-{ name := `mono_rules,
-  descr := "lemmas usable to prove monotonicity" }
-
-attribute [mono_rules] add_le_add mul_le_mul_of_nonneg_right
-
-lemma my_test {a b c d e : real} (h1 : a ≤ b) (h2 : c ≤ d) (h3 : 0 ≤ e) :
-a + c * e + a + c + 0 ≤ b + d * e + b + d + e :=
--- any of the following lines solve the goal:
-add_le_add (add_le_add (add_le_add (add_le_add h1 (mul_le_mul_of_nonneg_right h2 h3)) h1 ) h2) h3
-by apply_rules [add_le_add, mul_le_mul_of_nonneg_right]
-by apply_rules [mono_rules]
-by apply_rules mono_rules
-```
-
-## h_generalize
-
-`h_generalize Hx : e == x` matches on `cast _ e` in the goal and replaces it with
-`x`. It also adds `Hx : e == x` as an assumption. If `cast _ e` appears multiple
-times (not necessarily with the same proof), they are all replaced by `x`. `cast`
-`eq.mp`, `eq.mpr`, `eq.subst`, `eq.substr`, `eq.rec` and `eq.rec_on` are all treated
-as casts.
-
- - `h_generalize Hx : e == x with h` adds hypothesis `α = β` with `e : α, x : β`;
- - `h_generalize Hx : e == x with _` chooses automatically chooses the name of
-    assumption `α = β`;
-  - `h_generalize! Hx : e == x` reverts `Hx`;
-  - when `Hx` is omitted, assumption `Hx : e == x` is not added.
 
 ## pi_instance
 
@@ -553,25 +469,7 @@ if you have e.g. both integer and rational valued inequalities in the local cont
 sometimes confuse the tactic.
 * If `exfalso` is false, `linarith` will fail when the goal is neither an inequality nor `false`. (True by default.)
 
-## choose
 
-`choose a b h using hyp` takes an hypothesis `hyp` of the form
-`∀ (x : X) (y : Y), ∃ (a : A) (b : B), P x y a b` for some `P : X → Y → A → B → Prop` and outputs
-into context a function `a : X → Y → A`, `b : X → Y → B` and a proposition `h` stating
-`∀ (x : X) (y : Y), P x y (a x y) (b x y)`. It presumably also works with dependent versions.
-
-Example:
-
-```lean
-example (h : ∀n m : ℕ, ∃i j, m = n + i ∨ m + j = n) : true :=
-begin
-  choose i j h using h,
-  guard_hyp i := ℕ → ℕ → ℕ,
-  guard_hyp j := ℕ → ℕ → ℕ,
-  guard_hyp h := ∀ (n m : ℕ), m = n + i n m ∨ m + j n m = n,
-  trivial
-end
-```
 
 ## squeeze_simp / squeeze_simpa
 
@@ -738,37 +636,7 @@ by ac_mono* h₁.
 By giving `ac_mono` the assumption `h₁`, we are asking `ac_refl` to
 stop earlier than it would normally would.
 
-## use
-Similar to `existsi`. `use x` will instantiate the first term of an `∃` or `Σ` goal with `x`.
-It will then try to close the new goal using `triv`, or try to simplify it by applying `exists_prop`.
-Unlike `existsi`, `x` is elaborated with respect to the expected type.
 
-`use` will alternatively take a list of terms `[x0, ..., xn]`.
-
-`use` will work with constructors of arbitrary inductive types.
-
-Examples:
-
-```lean
-example (α : Type) : ∃ S : set α, S = S :=
-by use ∅
-
-example : ∃ x : ℤ, x = x :=
-by use 42
-
-example : ∃ n > 0, n = n :=
-begin
-  use 1,
-  -- goal is now 1 > 0 ∧ 1 = 1, whereas it would be ∃ (H : 1 > 0), 1 = 1 after existsi 1.
-  exact ⟨zero_lt_one, rfl⟩,
-end
-
-example : ∃ a b c : ℤ, a + b + c = 6 :=
-by use [1, 2, 3]
-
-example : ∃ p : ℤ × ℤ, p.1 = 1 :=
-by use ⟨1, 42⟩
-```
 
 ## clear_aux_decl
 

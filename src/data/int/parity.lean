@@ -60,7 +60,7 @@ end
 by simp [bit1] with parity_simps
 
 @[parity_simps] theorem even_sub {m n : int} : even (m - n) ↔ (even m ↔ even n) :=
-by simp with parity_simps
+by simp [sub_eq_add_neg] with parity_simps
 
 @[parity_simps] theorem even_mul {m n : int} : even (m * n) ↔ even m ∨ even n :=
 begin

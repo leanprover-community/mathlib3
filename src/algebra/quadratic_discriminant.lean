@@ -86,7 +86,9 @@ begin
   have h₁ : 2 * a * ((-b + s) / (2 * a)) = -b + s := mul_div_cancel' _ ne,
   have h₂ : 2 * a * ((-b - s) / (2 * a)) = -b - s := mul_div_cancel' _ ne,
   split,
-  { intro h', rcases h', { left, rw h', simpa }, { right, rw h', simpa } },
+  { intro h', rcases h',
+    { left, rw h', simpa [add_comm] },
+    { right, rw h', simpa [add_comm, sub_eq_add_neg] } },
   { intro h', rcases h', { left, rw [h', h₁], ring }, { right, rw [h', h₂], ring } }
 end
 

@@ -5,6 +5,7 @@ Authors: Chris Hughes
 -/
 
 import data.int.basic data.nat.modeq
+import tactic
 
 namespace int
 
@@ -46,12 +47,11 @@ theorem modeq_mul_right' (hc : 0 ≤ c) (h : a ≡ b [ZMOD n]) : a * c ≡ b * c
 by rw [mul_comm a, mul_comm b, mul_comm n]; exact modeq_mul_left' hc h
 
 theorem modeq_add (h₁ : a ≡ b [ZMOD n]) (h₂ : c ≡ d [ZMOD n]) : a + c ≡ b + d [ZMOD n] :=
-modeq_iff_dvd.2 $ by simpa using dvd_add (modeq_iff_dvd.1 h₁) (modeq_iff_dvd.1 h₂)
+modeq_iff_dvd.2 $ by {convert dvd_add (modeq_iff_dvd.1 h₁) (modeq_iff_dvd.1 h₂), ring}
 
 theorem modeq_add_cancel_left (h₁ : a ≡ b [ZMOD n]) (h₂ : a + c ≡ b + d [ZMOD n]) : c ≡ d [ZMOD n] :=
-have (n:ℤ) ∣ a + (-a + (d + -c)),
-by simpa using dvd_sub (modeq_iff_dvd.1 h₂) (modeq_iff_dvd.1 h₁),
-modeq_iff_dvd.2 $ by rwa add_neg_cancel_left at this
+have d - c = b + d - (a + c) - (b - a) := by ring,
+modeq_iff_dvd.2 $ by { rw [this], exact dvd_sub (modeq_iff_dvd.1 h₂) (modeq_iff_dvd.1 h₁) }
 
 theorem modeq_add_cancel_right (h₁ : c ≡ d [ZMOD n]) (h₂ : a + c ≡ b + d [ZMOD n]) : a ≡ b [ZMOD n] :=
 by rw [add_comm a, add_comm b] at h₂; exact modeq_add_cancel_left h₁ h₂

@@ -59,11 +59,11 @@ local notation `⁅`x`,` y`⁆` := commutator x y
 
 @[simp] lemma add_left (x y z : A) :
   ⁅x + y, z⁆ = ⁅x, z⁆ + ⁅y, z⁆ :=
-by simp [commutator, right_distrib, left_distrib]
+by simp [commutator, right_distrib, left_distrib, sub_eq_add_neg, add_comm, add_left_comm]
 
 @[simp] lemma add_right (x y z : A) :
   ⁅z, x + y⁆ = ⁅z, x⁆ + ⁅z, y⁆ :=
-by simp [commutator, right_distrib, left_distrib]
+by simp [commutator, right_distrib, left_distrib, sub_eq_add_neg, add_comm, add_left_comm]
 
 @[simp] lemma alternate (x : A) :
   ⁅x, x⁆ = 0 :=
@@ -78,9 +78,9 @@ begin
   repeat { rw add_sub },
   repeat { rw ←sub_add },
   repeat { rw ←mul_assoc },
-  have h : ∀ (x y z : A), x - y + z + y = x+z := by simp,
+  have h : ∀ (x y z : A), x - y + z + y = x+z := by simp [sub_eq_add_neg, add_left_comm],
   repeat { rw h },
-  simp,
+  simp [sub_eq_add_neg, add_left_comm],
 end
 
 end ring_commutator
@@ -231,7 +231,7 @@ def Ad : L →ₗ⁅R⁆ module.End R L := {
   map_lie := by {
     intros x y, ext z,
     rw endo_algebra_bracket,
-    suffices : ⁅⁅x, y⁆, z⁆ = ⁅x, ⁅y, z⁆⁆ + ⁅⁅x, z⁆, y⁆, by simpa,
+    suffices : ⁅⁅x, y⁆, z⁆ = ⁅x, ⁅y, z⁆⁆ + ⁅⁅x, z⁆, y⁆, by simpa [sub_eq_add_neg],
     rw [eq_comm, ←lie_skew ⁅x, y⁆ z, ←lie_skew ⁅x, z⁆ y, ←lie_skew x z, lie_neg, neg_neg,
         ←sub_eq_zero_iff_eq, sub_neg_eq_add, lie_ring.jacobi], } }
 
@@ -372,7 +372,7 @@ instance lie_quotient_has_bracket : has_bracket (quotient I) := ⟨by {
   apply quotient.lift_on₂' x y (λ x' y', mk ⁅x', y'⁆),
   intros x₁ x₂ y₁ y₂ h₁ h₂,
   apply (submodule.quotient.eq I.to_submodule).2,
-  have h : ⁅x₁, x₂⁆ - ⁅y₁, y₂⁆ = ⁅x₁, x₂ - y₂⁆ + ⁅x₁ - y₁, y₂⁆ := by { simp [-lie_skew], },
+  have h : ⁅x₁, x₂⁆ - ⁅y₁, y₂⁆ = ⁅x₁, x₂ - y₂⁆ + ⁅x₁ - y₁, y₂⁆ := by simp [-lie_skew, sub_eq_add_neg],
   rw h,
   apply submodule.add_mem,
   { apply lie_mem_right R L I x₁ (x₂ - y₂) h₂, },

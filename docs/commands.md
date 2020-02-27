@@ -117,6 +117,8 @@ The following linters are run by default:
 10. `dangerous_instance` checks for instances that generate type-class problems with metavariables.
 11. `inhabited_nonempty` checks for `inhabited` instance arguments that should be changed to `nonempty`.
 12. `simp_nf` checks that arguments of the left-hand side of simp lemmas are in simp-normal form.
+13. `simp_var_head` checks that there are no variables as head symbol of left-hand sides of simp lemmas.
+14. `simp_comm` checks that no commutativity lemmas (such as `add_comm`) are marked simp.
 
 Another linter, `doc_blame_thm`, checks for missing doc strings on lemmas and theorems.
 This is not run by default.

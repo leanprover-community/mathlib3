@@ -493,9 +493,8 @@ apply_nolint category_theory.functor.const.op_obj_op doc_blame
 apply_nolint category_theory.functor.const.op_obj_unop doc_blame
 
 -- category_theory/core.lean
-apply_nolint category_theory.core doc_blame has_inhabited_instance
+apply_nolint category_theory.core has_inhabited_instance
 apply_nolint category_theory.core.forget_functor_to_core doc_blame
-apply_nolint category_theory.core.inclusion doc_blame
 
 -- category_theory/currying.lean
 apply_nolint category_theory.curry doc_blame
@@ -569,12 +568,7 @@ apply_nolint category_theory.large_groupoid doc_blame
 apply_nolint category_theory.small_groupoid doc_blame
 
 -- category_theory/isomorphism.lean
-apply_nolint category_theory.as_iso doc_blame
-apply_nolint category_theory.functor.map_iso doc_blame
-apply_nolint category_theory.iso doc_blame has_inhabited_instance
-apply_nolint category_theory.iso.refl doc_blame
-apply_nolint category_theory.iso.symm doc_blame
-apply_nolint category_theory.iso.trans doc_blame
+apply_nolint category_theory.iso has_inhabited_instance
 
 -- category_theory/limits/cones.lean
 apply_nolint category_theory.functor.map_cocone_morphism doc_blame
@@ -1299,13 +1293,6 @@ apply_nolint encodable.of_inj doc_blame
 apply_nolint encodable.of_left_injection doc_blame
 apply_nolint encodable.of_left_inverse doc_blame
 
--- data/equiv/fin.lean
-apply_nolint fin_one_equiv doc_blame
-apply_nolint fin_prod_fin_equiv doc_blame
-apply_nolint fin_two_equiv doc_blame
-apply_nolint fin_zero_equiv doc_blame
-apply_nolint sum_fin_sum_equiv doc_blame
-
 -- data/equiv/functor.lean
 apply_nolint functor.map_equiv doc_blame
 
@@ -1379,25 +1366,6 @@ apply_nolint finset.pi.empty doc_blame
 apply_nolint finset.powerset_len doc_blame
 apply_nolint finset.strong_induction_on doc_blame
 apply_nolint finset.subtype doc_blame
-
--- data/finsupp.lean
-apply_nolint finsupp.antidiagonal doc_blame
-apply_nolint finsupp.comap_domain doc_blame
-apply_nolint finsupp.curry doc_blame
-apply_nolint finsupp.dom_congr doc_blame
-apply_nolint finsupp.equiv_fun_on_fintype doc_blame
-apply_nolint finsupp.equiv_multiset doc_blame
-apply_nolint finsupp.erase doc_blame
-apply_nolint finsupp.finsupp_prod_equiv doc_blame
-apply_nolint finsupp.frange doc_blame
-apply_nolint finsupp.of_multiset doc_blame
-apply_nolint finsupp.restrict_support_equiv doc_blame
-apply_nolint finsupp.split doc_blame
-apply_nolint finsupp.split_comp doc_blame
-apply_nolint finsupp.split_support doc_blame
-apply_nolint finsupp.to_multiset doc_blame
-apply_nolint finsupp.uncurry doc_blame
-apply_nolint multiset.to_finsupp doc_blame
 
 -- data/fintype.lean
 apply_nolint finset.insert_none doc_blame
@@ -2582,7 +2550,6 @@ apply_nolint filter.monad doc_blame
 apply_nolint filter.ultrafilter.bind doc_blame
 apply_nolint filter.ultrafilter.map doc_blame
 apply_nolint filter.ultrafilter.pure doc_blame
-apply_nolint lattice.complete_lattice.copy doc_blame
 
 -- order/filter/partial.lean
 apply_nolint filter.pcomap' doc_blame
@@ -3807,7 +3774,6 @@ apply_nolint tactic.tidy.cfg doc_blame
 apply_nolint tactic.tidy.core doc_blame
 apply_nolint tactic.tidy.default_tactics doc_blame
 apply_nolint tactic.tidy.ext1_wrapper doc_blame
-apply_nolint tactic.tidy.name_to_tactic doc_blame
 apply_nolint tactic.tidy.run_tactics doc_blame
 apply_nolint tactic.tidy.tidy_attribute doc_blame
 apply_nolint tactic.tidy_hole_cmd doc_blame

@@ -1119,27 +1119,26 @@ variables [complete_linear_order α] [topological_space α] [order_topology α]
 
 lemma Sup_mem_closure {α : Type u} [topological_space α] [complete_linear_order α] [order_topology α]
   {s : set α} (hs : s.nonempty) : Sup s ∈ closure s :=
-mem_closure_of_is_lub is_lub_Sup hs
+mem_closure_of_is_lub (is_lub_Sup _) hs
 
 lemma Inf_mem_closure {α : Type u} [topological_space α] [complete_linear_order α] [order_topology α]
   {s : set α} (hs : s.nonempty) : Inf s ∈ closure s :=
-mem_closure_of_is_glb is_glb_Inf hs
+mem_closure_of_is_glb (is_glb_Inf _) hs
 
 lemma Sup_mem_of_is_closed {α : Type u} [topological_space α] [complete_linear_order α] [order_topology α]
   {s : set α} (hs : s.nonempty) (hc : is_closed s) : Sup s ∈ s :=
-mem_of_is_lub_of_is_closed  is_lub_Sup hs hc
+mem_of_is_lub_of_is_closed (is_lub_Sup _) hs hc
 
 lemma Inf_mem_of_is_closed {α : Type u} [topological_space α] [complete_linear_order α] [order_topology α]
   {s : set α} (hs : s.nonempty) (hc : is_closed s) : Inf s ∈ s :=
-mem_of_is_glb_of_is_closed  is_glb_Inf hs hc
+mem_of_is_glb_of_is_closed (is_glb_Inf _) hs hc
 
 /-- A continuous monotone function sends supremum to supremum for nonempty sets. -/
 lemma Sup_of_continuous' {f : α → β} (Mf : continuous f) (Cf : monotone f)
   {s : set α} (hs : s.nonempty) : f (Sup s) = Sup (f '' s) :=
 --This is a particular case of the more general is_lub_of_is_lub_of_tendsto
-(is_lub_iff_Sup_eq.1
-  (is_lub_of_is_lub_of_tendsto (λ x hx y hy xy, Cf xy) is_lub_Sup hs $
-    tendsto_le_left inf_le_left (Mf.tendsto _))).symm
+(is_lub_of_is_lub_of_tendsto (λ x hx y hy xy, Cf xy) (is_lub_Sup _) hs $
+  tendsto_le_left inf_le_left (Mf.tendsto _)).Sup_eq.symm
 
 /-- A continuous monotone function sending bot to bot sends supremum to supremum. -/
 lemma Sup_of_continuous {f : α → β} (Mf : continuous f) (Cf : monotone f)
@@ -1163,9 +1162,8 @@ by rw [supr, Sup_of_continuous Mf Cf fbot, ← range_comp, supr]
 /-- A continuous monotone function sends infimum to infimum for nonempty sets. -/
 lemma Inf_of_continuous' {f : α → β} (Mf : continuous f) (Cf : monotone f)
   {s : set α} (hs : s.nonempty) : f (Inf s) = Inf (f '' s) :=
-(is_glb_iff_Inf_eq.1
-  (is_glb_of_is_glb_of_tendsto (λ x hx y hy xy, Cf xy) is_glb_Inf hs $
-    tendsto_le_left inf_le_left (Mf.tendsto _))).symm
+(is_glb_of_is_glb_of_tendsto (λ x hx y hy xy, Cf xy) (is_glb_Inf _) hs $
+  tendsto_le_left inf_le_left (Mf.tendsto _)).Inf_eq.symm
 
 /-- A continuous monotone function sending top to top sends infimum to infimum. -/
 lemma Inf_of_continuous {f : α → β} (Mf : continuous f) (Cf : monotone f)
@@ -1215,8 +1213,7 @@ lattices, under a boundedness assumption. -/
 lemma cSup_of_cSup_of_monotone_of_continuous {f : α → β} (Mf : continuous f) (Cf : monotone f)
   {s : set α} (ne : s.nonempty) (H : bdd_above s) : f (Sup s) = Sup (f '' s) :=
 begin
-  refine (is_lub_iff_eq_of_is_lub _).1
-    (is_lub_cSup (ne.image f) (bdd_above_of_bdd_above_of_monotone Cf H)),
+  refine ((is_lub_cSup (ne.image f) (Cf.map_bdd_above H)).unique _).symm,
   refine is_lub_of_is_lub_of_tendsto (λx hx y hy xy, Cf xy) (is_lub_cSup ne H) ne _,
   exact tendsto_le_left inf_le_left (Mf.tendsto _)
 end
@@ -1232,8 +1229,7 @@ lattices, under a boundedness assumption. -/
 lemma cInf_of_cInf_of_monotone_of_continuous {f : α → β} (Mf : continuous f) (Cf : monotone f)
   {s : set α} (ne : s.nonempty) (H : bdd_below s) : f (Inf s) = Inf (f '' s) :=
 begin
-  refine (is_glb_iff_eq_of_is_glb _).1
-    (is_glb_cInf (ne.image _) (bdd_below_of_bdd_below_of_monotone Cf H)),
+  refine ((is_glb_cInf (ne.image _) (Cf.map_bdd_below H)).unique _).symm,
   refine is_glb_of_is_glb_of_tendsto (λx hx y hy xy, Cf xy) (is_glb_cInf ne H) ne _,
   exact tendsto_le_left inf_le_left (Mf.tendsto _)
 end

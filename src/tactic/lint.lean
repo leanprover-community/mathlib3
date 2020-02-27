@@ -26,6 +26,8 @@ The following linters are run by default:
 10. `dangerous_instance` checks for instances that generate type-class problems with metavariables.
 11. `inhabited_nonempty` checks for `inhabited` instance arguments that should be changed to `nonempty`.
 12. `simp_nf` checks that arguments of the left-hand side of simp lemmas are in simp-normal form.
+13. `simp_var_head` checks that there are no variables as head symbol of left-hand sides of simp lemmas.
+14. `simp_comm` checks that no commutativity lemmas (such as `add_comm`) are marked simp.
 
 Another linter, `doc_blame_thm`, checks for missing doc strings on lemmas and theorems.
 This is not run by default.
@@ -446,21 +448,25 @@ do tt ← is_prop d.type | return none,
   no_errors_found := "No uses of `inhabited` arguments should be replaced with `nonempty`",
   errors_found := "USES OF `inhabited` SHOULD BE REPLACED WITH `nonempty`." }
 
-/-- `simp_lhs ty` returns the left-hand side of a simp lemma with type `ty`. -/
-private meta def simp_lhs : expr → tactic expr | ty := do
+/-- `simp_lhs_rhs ty` returns the left-hand and right-hand sides of a simp lemma with type `ty`. -/
+private meta def simp_lhs_rhs : expr → tactic (expr × expr) | ty := do
 ty ← whnf ty transparency.reducible,
 -- We only detect a fixed set of simp relations here.
 -- This is somewhat justified since for a custom simp relation R,
 -- the simp lemma `R a b` is implicitly converted to `R a b ↔ true` as well.
 match ty with
-| `(¬ %%lhs) := pure lhs
-| `(%%lhs = _) := pure lhs
-| `(%%lhs ↔ _) := pure lhs
+| `(¬ %%lhs) := pure (lhs, `(false))
+| `(%%lhs = %%rhs) := pure (lhs, rhs)
+| `(%%lhs ↔ %%rhs) := pure (lhs, rhs)
 | (expr.pi n bi a b) := do
   l ← mk_local' n bi a,
-  simp_lhs (b.instantiate_var l)
-| ty := pure ty
+  simp_lhs_rhs (b.instantiate_var l)
+| ty := pure (ty, `(true))
 end
+
+/-- `simp_lhs ty` returns the left-hand side of a simp lemma with type `ty`. -/
+private meta def simp_lhs (ty : expr) : tactic expr :=
+prod.fst <$> simp_lhs_rhs ty
 
 private meta def heuristic_simp_lemma_extraction (prf : expr) : tactic (list name) :=
 prf.list_constant.to_list.mfilter is_simp_lemma
@@ -510,6 +516,48 @@ some <$> do
   no_errors_found := "All left-hand sides of simp lemmas are in simp-normal form",
   errors_found := "LEFT-HAND SIDE NOT IN SIMP-NF.\n" ++
     "Some simp lemmas have a left-hand side that is not in simp-normal form." }
+
+private meta def simp_var_head (d : declaration) : tactic (option string) := do
+tt ← is_simp_lemma d.to_name | pure none,
+-- Sometimes, a definition is tagged @[simp] to add the equational lemmas to the simp set.
+-- In this case, ignore the declaration if it is not a valid simp lemma by itself.
+tt ← is_valid_simp_lemma_cnst d.to_name | pure none,
+lhs ← simp_lhs d.type,
+head_sym@(expr.local_const _ _ _ _) ← pure lhs.get_app_fn | pure none,
+head_sym ← pp head_sym,
+pure $ format.to_string $ "Left-hand side has variable as head symbol: " ++ head_sym
+
+/--
+A linter for simp lemmas whose lhs has a variable as head symbol,
+and which hence never fire.
+-/
+@[linter, priority 1389] meta def linter.simp_var_head : linter :=
+{ test := simp_var_head,
+  no_errors_found :=
+    "No left-hand sides of a simp lemma has a variable as head symbol.",
+  errors_found := "LEFT-HAND SIDE HAS VARIABLE AS HEAD SYMBOL.\n" ++
+    "Some simp lemmas have a variable as head symbol of the left-hand side" }
+
+private meta def simp_comm (d : declaration) : tactic (option string) := do
+tt ← is_simp_lemma d.to_name | pure none,
+-- Sometimes, a definition is tagged @[simp] to add the equational lemmas to the simp set.
+-- In this case, ignore the declaration if it is not a valid simp lemma by itself.
+tt ← is_valid_simp_lemma_cnst d.to_name | pure none,
+(lhs, rhs) ← simp_lhs_rhs d.type,
+if lhs.get_app_fn.const_name ≠ rhs.get_app_fn.const_name then pure none else do
+(lhs', rhs') ← (prod.snd <$> mk_meta_pis d.type) >>= simp_lhs_rhs,
+tt ← succeeds $ unify rhs' lhs transparency.reducible | pure none,
+tt ← succeeds $ is_def_eq rhs lhs' transparency.reducible | pure none,
+-- ensure that the second application makes progress:
+ff ← succeeds $ is_def_eq lhs' rhs' transparency.reducible | pure none,
+pure $ "should not be marked simp"
+
+/-- A linter for commutativity lemmas that are marked simp. -/
+@[linter, priority 1385] meta def linter.simp_comm : linter :=
+{ test := simp_comm,
+  no_errors_found := "No commutativity lemma is marked simp.",
+  errors_found := "COMMUTATIVITY LEMMA IS SIMP.\n" ++
+    "Some commutativity lemmas are simp lemmas" }
 
 /- Implementation of the frontend. -/
 

@@ -276,9 +276,9 @@ section
 variables {β : Type*} [discrete_field α] [discrete_field β]
 variables (f : α → β) [is_ring_hom f] {x y : α}
 
-@[simp] lemma map_inv : f x⁻¹ = (f x)⁻¹ := (of f).map_inv
+lemma map_inv : f x⁻¹ = (f x)⁻¹ := (of f).map_inv
 
-@[simp] lemma map_div : f (x / y) = f x / f y := (of f).map_div
+lemma map_div : f (x / y) = f x / f y := (of f).map_div
 
 end
 

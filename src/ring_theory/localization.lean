@@ -636,42 +636,36 @@ section is_integer
 
 /-- `a : localization α S` is an integer if it is an element of the original ring `α` -/
 def is_integer (S : set α) [is_submonoid S] (a : localization α S) : Prop :=
-a ∈ (set.univ : set α).image (coe : α → localization α S)
+a ∈ set.range (coe : α → localization α S)
 
 lemma is_integer_coe (a : α) : is_integer α S a :=
-⟨a, set.mem_univ _, rfl⟩
+⟨a, rfl⟩
 
 lemma is_integer_add {a b} (ha : is_integer α S a) (hb : is_integer α S b) :
   is_integer α S (a + b) :=
 begin
-  rcases ha with ⟨a', _, ha⟩,
-  rcases hb with ⟨b', _, hb⟩,
+  rcases ha with ⟨a', ha⟩,
+  rcases hb with ⟨b', hb⟩,
   use a' + b',
-  split,
-  { apply set.mem_univ },
-  { rw [coe_add, ha, hb] }
+  rw [coe_add, ha, hb]
 end
 
 lemma is_integer_mul {a b} (ha : is_integer α S a) (hb : is_integer α S b) :
   is_integer α S (a * b) :=
 begin
-  rcases ha with ⟨a', _, ha⟩,
-  rcases hb with ⟨b', _, hb⟩,
+  rcases ha with ⟨a', ha⟩,
+  rcases hb with ⟨b', hb⟩,
   use a' * b',
-  split,
-  { apply set.mem_univ },
-  { rw [coe_mul, ha, hb] }
+  rw [coe_mul, ha, hb]
 end
 
 set_option class.instance_max_depth 50
 lemma is_integer_smul {a : α} {b} (hb : is_integer α S b) :
   is_integer α S (a • b) :=
 begin
-  rcases hb with ⟨b', _, hb⟩,
+  rcases hb with ⟨b', hb⟩,
   use a * b',
-  split,
-  { apply set.mem_univ },
-  { rw [←hb, ←coe_smul, smul_eq_mul] }
+  rw [←hb, ←coe_smul, smul_eq_mul]
 end
 
 end is_integer

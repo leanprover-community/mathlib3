@@ -1463,7 +1463,7 @@ do d ← get_decl n,
      (eval_expr (tactic unit) e) >>= (λ t, t >> (name.to_string <$> strip_prefix n))
    else if (t =ₐ `(tactic string)) then
      (eval_expr (tactic string) e) >>= (λ t, t)
-   else fail "invalid type for name_to_tactic"
+   else fail!"name_to_tactic cannot take `{n} as input: its type must be `tactic string` or `tactic unit`"
 
 /-- auxiliary function for apply_under_pis -/
 private meta def apply_under_pis_aux (func arg : pexpr) : ℕ → expr → pexpr

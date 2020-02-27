@@ -759,8 +759,31 @@ This includes the induction hypothesis when using the equation compiler and
 
 It is useful when using a tactic such as `finish`, `simp *` or `subst` that may use these
 auxiliary declarations, and produce an error saying the recursion is not well founded.
+
+```lean
+example (n m : ℕ) (h₁ : n = m) (h₂ : ∃ a : ℕ, a = n ∧ a = m) : 2 * m = 2 * n :=
+let ⟨a, ha⟩ := h₂ in
+begin
+  clear_aux_decl, -- subst will fail without this line
+  subst h₁
+end
+
+example (x y : ℕ) (h₁ : ∃ n : ℕ, n * 1 = 2) (h₂ : 1 + 1 = 2 → x * 1 = y) : x = y :=
+let ⟨n, hn⟩ := h₁ in
+begin
+  clear_aux_decl, -- finish produces an error without this line
+  finish
+end
+```
 -/
 meta def clear_aux_decl : tactic unit := tactic.clear_aux_decl
+
+add_tactic_doc
+{ name       := "clear_aux_decl",
+  category   := doc_category.tactic,
+  decl_names := [`tactic.interactive.clear_aux_decl, `tactic.clear_aux_decl],
+  tags       := ["context management"],
+  inherit_description_from := `tactic.interactive.clear_aux_decl }
 
 meta def loc.get_local_pp_names : loc → tactic (list name)
 | loc.wildcard := list.map expr.local_pp_name <$> local_context
@@ -784,6 +807,13 @@ meta def change' (q : parse texpr) : parse (tk "with" *> texpr)? → parse locat
      l'.mmap' (λ e, try (change_with_at q w e)),
      when l.include_goal $ change q w (loc.ns [none])
 
+add_tactic_doc
+{ name       := "change'",
+  category   := doc_category.tactic,
+  decl_names := [`tactic.interactive.change', `tactic.interactive.change],
+  tags       := ["simplification", "renaming"],
+  inherit_description_from := `tactic.interactive.change' }
+
 meta def convert_to_core (r : pexpr) : tactic unit :=
 do tgt ← target,
    h   ← to_expr ``(_ : %%tgt = %%r),
@@ -791,10 +821,19 @@ do tgt ← target,
    swap
 
 /--
-`convert_to g using n` attempts to change the current goal to `g`,
-using `congr' n` to resolve discrepancies.
-
+`convert_to g using n` attempts to change the current goal to `g`, but unlike `change`,
+it will generate equality proof obligations using `congr' n` to resolve discrepancies.
 `convert_to g` defaults to using `congr' 1`.
+
+`ac_change` is `convert_to` followed by `ac_refl`. It is useful for rearranging/reassociating
+e.g. sums:
+```lean
+example (a b c d e f g N : ℕ) : (a + b) + (c + d) + (e + f) + g ≤ N :=
+begin
+  ac_change a + d + e + f + c + g + b ≤ _,
+-- ⊢ a + d + e + f + c + g + b ≤ N
+end
+```
 -/
 meta def convert_to (r : parse texpr) (n : parse (tk "using" *> small_nat)?) : tactic unit :=
 match n with
@@ -807,6 +846,13 @@ end
 meta def ac_change (r : parse texpr) (n : parse (tk "using" *> small_nat)?) : tactic unit :=
 convert_to r n; try ac_refl
 
+add_tactic_doc
+{ name       := "convert_to",
+  category   := doc_category.tactic,
+  decl_names := [`tactic.interactive.convert_to, `tactic.interactive.ac_change],
+  tags       := ["congruence"],
+  inherit_description_from := `tactic.interactive.convert_to }
+
 private meta def opt_dir_with : parser (option (bool × name)) :=
 (do tk "with",
    arrow ← (tk "<-")?,
@@ -814,10 +860,25 @@ private meta def opt_dir_with : parser (option (bool × name)) :=
    return (arrow.is_some, h)) <|> return none
 
 /--
-`set a := t with h` is a variant of `let a := t`.
-It adds the hypothesis `h : a = t` to the local context and replaces `t` with `a` everywhere it can.
+`set a := t with h` is a variant of `let a := t`. It adds the hypothesis `h : a = t` to the local context and replaces `t` with `a` everywhere it can.
+
 `set a := t with ←h` will add `h : t = a` instead.
+
 `set! a := t with h` does not do any replacing.
+
+```lean
+example (x : ℕ) (h : x = 3)  : x + x + x = 9 :=
+begin
+  set y := x with ←h_xy,
+/-
+x : ℕ,
+y : ℕ := x,
+h_xy : x = y,
+h : y = 3
+⊢ y + y + y = 9
+-/
+end
+```
 -/
 meta def set (h_simp : parse (tk "!")?) (a : parse ident) (tp : parse ((tk ":") >> texpr)?) (_ : parse (tk ":=")) (pv : parse texpr)
   (rev_name : parse opt_dir_with) :=
@@ -835,6 +896,12 @@ do let vt := match tp with | some t := t | none := pexpr.mk_placeholder end,
    | none := skip
    end
 
+add_tactic_doc
+{ name       := "set",
+  category   := doc_category.tactic,
+  decl_names := [`tactic.interactive.set],
+  tags       := ["context management"] }
+
 /--
 `clear_except h₀ h₁` deletes all the assumptions it can except for `h₀` and `h₁`.
 -/
@@ -843,6 +910,13 @@ do let ns := name_set.of_list xs,
    local_context >>= mmap' (λ h : expr,
      when (¬ ns.contains h.local_pp_name) $
        try $ tactic.clear h) ∘ list.reverse
+
+add_tactic_doc
+{ name       := "clear_except",
+  category   := doc_category.tactic,
+  decl_names := [`tactic.interactive.clear_except],
+  tags       := ["context management"] }
+
 
 meta def format_names (ns : list name) : format :=
 format.join $ list.intersperse " " (ns.map to_fmt)
@@ -937,7 +1011,14 @@ do (cxt,_) ← solve_aux `(true) $
    trace fmt,
    trace!"begin\n  \nend"
 
-/-- Turns a `nonempty α` instance into an `inhabited α` instance.
+add_tactic_doc
+{ name       := "extract_goal",
+  category   := doc_category.tactic,
+  decl_names := [`tactic.interactive.extract_goal],
+  tags       := ["goal management"] }
+
+
+/-- `inhabit α` turns a `nonempty α` instance into an `inhabited α` instance.
   If the target is a prop, this is done constructively;
   otherwise, it uses `classical.choice`. -/
 meta def inhabit (t : parse parser.pexpr) (inst_name : parse ident?) : tactic unit :=
@@ -950,6 +1031,12 @@ do ty ← i_to_expr t,
    (do mk_mapp `classical.inhabited_of_nonempty' [ty, none] >>= note nm none <|>
          fail "could not infer nonempty instance",
        resetI)
+
+add_tactic_doc
+{ name       := "inhabit",
+  category   := doc_category.tactic,
+  decl_names := [`tactic.interactive.inhabit],
+  tags       := ["context management", "type classes"] }
 
 /-- `revert_deps n₁ n₂ ...` reverts all the hypotheses that depend on one of `n₁, n₂, ...`
   It does not revert `n₁, n₂, ...` themselves (unless they depend on another `nᵢ`). -/
@@ -989,6 +1076,12 @@ do let (p, x) := p,
    exact ``(%%t %%e rfl),
    intro x,
    intro h
+
+add_tactic_doc
+{ name       := "generalize'",
+  category   := doc_category.tactic,
+  decl_names := [`tactic.interactive.generalize'],
+  tags       := ["context management"] }
 
 end interactive
 end tactic

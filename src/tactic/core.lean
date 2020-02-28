@@ -112,10 +112,15 @@ end lean.parser
 
 namespace format
 
+/-- `join' [a,b,c]` produces the format object `abc`.
+It differs from `format.join` by using `format.nil` instead of `""` for the empty list. -/
+meta def join' (xs : list format) : format :=
+xs.foldl compose nil
+
 /-- `intercalate x [a, b, c]` produces the format object `a.x.b.x.c`,
 where `.` represents `format.join`. -/
 meta def intercalate (x : format) : list format → format :=
-format.join ∘ list.intersperse x
+join' ∘ list.intersperse x
 
 end format
 
@@ -1443,6 +1448,22 @@ do e ← get_env,
   since it is expensive to execute `get_mathlib_dir` many times. -/
 meta def is_in_mathlib (n : name) : tactic bool :=
 do ml ← get_mathlib_dir, e ← get_env, return $ e.is_prefix_of_file ml n
+
+/--
+Runs a tactic by name.
+If it is a `tactic string`, return whatever string it returns.
+If it is a `tactic unit`, return the name.
+(This is mostly used in invoking "self-reporting tactics", e.g. by `tidy` and `hint`.)
+-/
+meta def name_to_tactic (n : name) : tactic string :=
+do d ← get_decl n,
+   e ← mk_const n,
+   let t := d.type,
+   if (t =ₐ `(tactic unit)) then
+     (eval_expr (tactic unit) e) >>= (λ t, t >> (name.to_string <$> strip_prefix n))
+   else if (t =ₐ `(tactic string)) then
+     (eval_expr (tactic string) e) >>= (λ t, t)
+   else fail!"name_to_tactic cannot take `{n} as input: its type must be `tactic string` or `tactic unit`"
 
 /-- auxiliary function for apply_under_pis -/
 private meta def apply_under_pis_aux (func arg : pexpr) : ℕ → expr → pexpr

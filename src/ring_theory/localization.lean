@@ -180,7 +180,7 @@ mk_self'
 
 -- This lemma does not apply with simp, since (mk r s) simplifies to (r * s⁻¹).
 -- However, it could apply with dsimp.
-@[simp, nolint /- simp_nf -/]
+@[simp, nolint simp_nf]
 lemma coe_mul_mk (x y : α) (s : S) :
   ↑x * mk y s = mk (x * y) s :=
 quotient.sound $ r_of_eq $ by rw one_mul
@@ -191,7 +191,7 @@ by rw [coe_mul_mk, mul_one]
 
 -- This lemma does not apply with simp, since (mk r s) simplifies to (r * s⁻¹).
 -- However, it could apply with dsimp.
-@[simp, nolint /- simp_nf -/]
+@[simp, nolint simp_nf]
 lemma mk_mul_mk (x y : α) (s t : S) :
   mk x s * mk y t = mk (x * y) (s * t) := rfl
 
@@ -267,7 +267,7 @@ lift'.is_ring_hom _ _ _
 
 -- This lemma does not apply with simp, since (mk r s) simplifies to (r * s⁻¹).
 -- However, it could apply with dsimp.
-@[simp, nolint /- simp_nf -/]
+@[simp, nolint simp_nf]
 lemma lift'_mk (g : S → units β) (hg : ∀ s, (g s : β) = f s) (r : α) (s : S) :
   lift' f g hg (mk r s) = f r * ↑(g s)⁻¹ := rfl
 
@@ -594,5 +594,80 @@ def le_order_embedding :
     map_comap α J₁ ▸ map_comap α J₂ ▸ ideal.map_mono hJ⟩ }
 
 end ideals
+
+section module
+/-! ### `module` section
+
+  Localizations form an algebra over `α` induced by the embedding `coe : α → localization α S`.
+-/
+
+set_option class.instance_max_depth 50
+
+variables (α S)
+
+instance : algebra α (localization α S) := algebra.of_ring_hom coe (is_ring_hom.of_semiring coe)
+
+lemma of_smul (c x : α) : (of (c • x) : localization α S) = c • of x :=
+by { simp, refl }
+
+lemma coe_smul (c x : α) : (coe (c • x) : localization α S) = c • coe x :=
+of_smul α S c x
+
+lemma coe_mul_eq_smul (c : α) (x : localization α S) : coe c * x = c • x :=
+rfl
+
+lemma mul_coe_eq_smul (c : α) (x : localization α S) : x * coe c = c • x :=
+mul_comm x (coe c)
+
+/-- The embedding `coe : α → localization α S` induces a linear map. -/
+def lin_coe : α →ₗ[α] localization α S := ⟨coe, coe_add α S, coe_smul α S⟩
+
+@[simp] lemma lin_coe_apply (a : α) : lin_coe α S a = coe a := rfl
+
+instance coe_submodules : has_coe (ideal α) (submodule α (localization α S)) :=
+⟨submodule.map (lin_coe _ _)⟩
+
+@[simp] lemma of_id (a : α) : (algebra.of_id α (localization α S) : α → localization α S) a = ↑a :=
+rfl
+
+end module
+
+section is_integer
+
+/-- `a : localization α S` is an integer if it is an element of the original ring `α` -/
+def is_integer (S : set α) [is_submonoid S] (a : localization α S) : Prop :=
+a ∈ set.range (coe : α → localization α S)
+
+lemma is_integer_coe (a : α) : is_integer α S a :=
+⟨a, rfl⟩
+
+lemma is_integer_add {a b} (ha : is_integer α S a) (hb : is_integer α S b) :
+  is_integer α S (a + b) :=
+begin
+  rcases ha with ⟨a', ha⟩,
+  rcases hb with ⟨b', hb⟩,
+  use a' + b',
+  rw [coe_add, ha, hb]
+end
+
+lemma is_integer_mul {a b} (ha : is_integer α S a) (hb : is_integer α S b) :
+  is_integer α S (a * b) :=
+begin
+  rcases ha with ⟨a', ha⟩,
+  rcases hb with ⟨b', hb⟩,
+  use a' * b',
+  rw [coe_mul, ha, hb]
+end
+
+set_option class.instance_max_depth 50
+lemma is_integer_smul {a : α} {b} (hb : is_integer α S b) :
+  is_integer α S (a • b) :=
+begin
+  rcases hb with ⟨b', hb⟩,
+  use a * b',
+  rw [←hb, ←coe_smul, smul_eq_mul]
+end
+
+end is_integer
 
 end localization

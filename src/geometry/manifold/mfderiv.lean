@@ -996,8 +996,8 @@ begin
     (I.to_fun ∘ ((chart_at H x).symm.trans e).to_fun ∘ I.inv_fun)
     (I.inv_fun ⁻¹' ((chart_at H x).symm.trans e).source ∩ range I.to_fun) :=
     this.1,
-  have B := A.2 _ zero_one (I.to_fun ((chart_at H x).to_fun x)) mem,
-  simp only [local_homeomorph.trans_to_fun, iterated_fderiv_within_zero, local_homeomorph.symm_to_fun] at B,
+  have B := A.differentiable_on (by simp) (I.to_fun ((chart_at H x).to_fun x)) mem,
+  simp only [local_homeomorph.trans_to_fun, local_homeomorph.symm_to_fun] at B,
   rw [inter_comm, differentiable_within_at_inter
     (mem_nhds_sets (I.continuous_inv_fun _ (local_homeomorph.open_source _)) mem.1)] at B,
   simpa [written_in_ext_chart_at, ext_chart_at]
@@ -1022,11 +1022,11 @@ begin
     (I.to_fun ∘ (e.symm.trans (chart_at H (e.inv_fun x))).to_fun ∘ I.inv_fun)
     (I.inv_fun ⁻¹' (e.symm.trans (chart_at H (e.inv_fun x))).source ∩ range I.to_fun) :=
     this.1,
-  have B := A.2 _ zero_one (I.to_fun x) mem,
-  simp only [local_homeomorph.trans_to_fun, iterated_fderiv_within_zero, local_homeomorph.symm_to_fun] at B,
+  have B := A.differentiable_on (by simp) (I.to_fun x) mem,
+  simp only [local_homeomorph.trans_to_fun, local_homeomorph.symm_to_fun] at B,
   rw [inter_comm, differentiable_within_at_inter
     (mem_nhds_sets (I.continuous_inv_fun _ (local_homeomorph.open_source _)) mem.1)] at B,
-  simpa [written_in_ext_chart_at, ext_chart_at],
+  simpa [written_in_ext_chart_at, ext_chart_at]
 end
 
 lemma mdifferentiable_on_atlas_inv_fun (h : e ∈ atlas H M) :
@@ -1252,10 +1252,10 @@ end local_homeomorph.mdifferentiable
 section unique_mdiff
 
 variables {𝕜 : Type*} [nondiscrete_normed_field 𝕜]
-{E : Type u} [normed_group E] [normed_space 𝕜 E]
+{E : Type*} [normed_group E] [normed_space 𝕜 E]
 {H : Type*} [topological_space H] {I : model_with_corners 𝕜 E H}
 {M : Type*} [topological_space M] [manifold H M] [smooth_manifold_with_corners I M]
-{E' : Type u} [normed_group E'] [normed_space 𝕜 E']
+{E' : Type*} [normed_group E'] [normed_space 𝕜 E']
 {H' : Type*} [topological_space H'] {I' : model_with_corners 𝕜 E' H'}
 {M' : Type*} [topological_space M'] [manifold H' M']
 {s : set M}
@@ -1375,7 +1375,7 @@ begin
   exact this.unique_diff_on _
 end
 
-variables {F : Type u} [normed_group F] [normed_space 𝕜 F]
+variables {F : Type*} [normed_group F] [normed_space 𝕜 F]
 (Z : basic_smooth_bundle_core I M F)
 
 /-- In a smooth fiber bundle constructed from core, the preimage under the projection of a set with

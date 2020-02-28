@@ -1115,15 +1115,11 @@ end
 
 ## omega
 
-`omega` attempts to discharge goals in the quantifier-free fragment of linear integer and natural number arithmetic using the Omega test. In other words, the core procedure of `omega` works with goals of the form
+`omega` attempts to discharge goals in the quantifier-free fragment of linear integer and natural number arithmetic using the Omega test. For instance:
 ```lean
-∀ x₁, ... ∀ xₖ, P
+example (x y : int) : (x ≤ 5 ∧ y ≤ 3) → x + y ≤ 8 := by omega
 ```
-where `x₁, ... xₖ` are integer (resp. natural number) variables, and `P` is a quantifier-free formula of linear integer (resp. natural number) arithmetic. For instance:
-```lean
-example : ∀ (x y : int), (x ≤ 5 ∧ y ≤ 3) → x + y ≤ 8 := by omega
-```
-By default, `omega` tries to guess the correct domain by looking at the goal and hypotheses, and then reverts all relevant hypotheses and variables (e.g., all variables of type `nat` and `Prop`s in linear natural number arithmetic, if the domain was determined to be `nat`) to universally close the goal before calling the main procedure. Therefore, `omega` will often work even if the goal is not in the above form:
+By default, `omega` tries to guess the correct domain by looking at the goal and hypotheses, and then reverts all relevant hypotheses (i.e., all `Prop`s in linear natural number arithmetic, if the domain was determined to be `nat`) before calling the main procedure (if an hypothesis is not reverted and included in the goal, it will not be available to `omega`). Therefore, `omega` will still work with:
 ```lean
 example (x y : nat) (h : 2 * x + 1 = 2 * y) : false := by omega
 ```

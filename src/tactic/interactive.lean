@@ -19,6 +19,12 @@ open interactive interactive.types expr
 /-- Similar to `constructor`, but does not reorder goals. -/
 meta def fconstructor : tactic unit := concat_tags tactic.fconstructor
 
+add_tactic_doc
+{ name       := "fconstructor",
+  category   := doc_category.tactic,
+  decl_names := [`tactic.interactive.fconstructor],
+  tags       := [] }
+
 /-- `try_for n { tac }` executes `tac` for `n` ticks, otherwise uses `sorry` to close the goal.
 Never fails. Useful for debugging. -/
 meta def try_for (max : parse parser.pexpr) (tac : itactic) : tactic unit :=
@@ -28,9 +34,15 @@ do max ← i_to_expr_strict max >>= tactic.eval_expr nat,
   | none   := (tactic.trace "try_for timeout, using sorry" >> admit) s
   end
 
-/-- Multiple subst. `substs x y z` is the same as `subst x, subst y, subst z`. -/
+/-- Multiple `subst`. `substs x y z` is the same as `subst x, subst y, subst z`. -/
 meta def substs (l : parse ident*) : tactic unit :=
 l.mmap' (λ h, get_local h >>= tactic.subst) >> try (tactic.reflexivity reducible)
+
+add_tactic_doc
+{ name       := "substs",
+  category   := doc_category.tactic,
+  decl_names := [`tactic.interactive.substs],
+  tags       := ["substitution"] }
 
 /-- Unfold coercion-related definitions -/
 meta def unfold_coes (loc : parse location) : tactic unit :=
@@ -70,7 +82,7 @@ meta def continue (tac : itactic) : tactic unit :=
 /--
 `swap n` will move the `n`th goal to the front.
 `swap` defaults to `swap 2`, and so interchanges the first and second goals.
- -/
+-/
 meta def swap (n := 2) : tactic unit :=
 do gs ← get_goals,
    match gs.nth (n-1) with
@@ -101,6 +113,12 @@ meta def clear_ : tactic unit := tactic.repeat $ do
     guard (s.front = '_'),
     cl ← infer_type h >>= is_class, guard (¬ cl),
     tactic.clear h
+
+add_tactic_doc
+{ name       := "clear_",
+  category   := doc_category.tactic,
+  decl_names := [`tactic.interactive.clear_],
+  tags       := ["hypothesis management"] }
 
 meta def apply_iff_congr_core : tactic unit :=
 applyc ``iff_of_eq
@@ -139,7 +157,8 @@ then after `replace h := f h` the goal will be `h : q ⊢ goal`,
 where `have h := f h` would result in the state `h : p, h : q ⊢ goal`.
 This can be used to simulate the `specialize` and `apply at` tactics
 of Coq. -/
-meta def replace (h : parse ident?) (q₁ : parse (tk ":" *> texpr)?) (q₂ : parse $ (tk ":=" *> texpr)?) : tactic unit :=
+meta def replace (h : parse ident?) (q₁ : parse (tk ":" *> texpr)?)
+  (q₂ : parse $ (tk ":=" *> texpr)?) : tactic unit :=
 do let h := h.get_or_else `this,
   old ← try_core (get_local h),
   «have» h q₁ q₂,
@@ -202,6 +221,12 @@ do h' ← get_unused_name `h,
      | none := return ()
    end
 
+add_tactic_doc
+{ name       := "generalize_hyp",
+  category   := doc_category.tactic,
+  decl_names := [`tactic.interactive.generalize_hyp],
+  tags       := ["hypothesis management"] }
+
 /--
 The `exact e` and `refine e` tactics require a term `e` whose type is
 definitionally equal to the goal. `convert e` is similar to `refine
@@ -232,7 +257,8 @@ the goal equals the type of `e`, then simplifying it using
 depth of matching (like `congr' n`). In the example, `convert e using
 1` would produce a new goal `⊢ n + n + 1 = 2 * n + 1`.
 -/
-meta def convert (sym : parse (with_desc "←" (tk "<-")?)) (r : parse texpr) (n : parse (tk "using" *> small_nat)?) : tactic unit :=
+meta def convert (sym : parse (with_desc "←" (tk "<-")?)) (r : parse texpr)
+  (n : parse (tk "using" *> small_nat)?) : tactic unit :=
 do v ← mk_mvar,
    if sym.is_some
      then refine ``(eq.mp %%v %%r)
@@ -249,7 +275,8 @@ add_tactic_doc
   decl_names := [`tactic.interactive.convert],
   tags       := ["congruence"] }
 
-meta def compact_decl_aux : list name → binder_info → expr → list expr → tactic (list (list name × binder_info × expr))
+meta def compact_decl_aux : list name → binder_info → expr → list expr →
+  tactic (list (list name × binder_info × expr))
 | ns bi t [] := pure [(ns.reverse, bi, t)]
 | ns bi t (v'@(local_const n pp bi' t') :: xs) :=
   do t' ← infer_type v',
@@ -310,7 +337,8 @@ do    tgt ← target,
       let struct_n : name := tgt.get_app_fn.const_name,
       exp_fields ← expanded_field_list struct_n,
       let missing_f := exp_fields.filter (λ f, (f.2 : name) ∉ str.field_names),
-      (src_field_names,src_field_vals) ← (@list.unzip name _ ∘ list.join) <$> str.sources.mmap (source_fields $ missing_f.map prod.snd),
+      (src_field_names,src_field_vals) ← (@list.unzip name _ ∘ list.join) <$>
+        str.sources.mmap (source_fields $ missing_f.map prod.snd),
       let provided  := exp_fields.filter (λ f, (f.2 : name) ∈ str.field_names),
       let missing_f' := missing_f.filter (λ x, x.2 ∉ src_field_names),
       vs ← mk_mvar_list missing_f'.length,
@@ -423,7 +451,7 @@ do (t : list name) ← get_main_tag,
    guard (t = tags)
 
 /-- `success_if_fail_with_msg { tac } msg` succeeds if the interactive tactic `tac` fails with
-    error message `msg` (for test writing purposes). -/
+error message `msg` (for test writing purposes). -/
 meta def success_if_fail_with_msg (tac : tactic.interactive.itactic) :=
 tactic.success_if_fail_with_msg tac
 
@@ -443,13 +471,13 @@ do gs ← get_goals,
 `have_field`, used after `refine_struct _` poses `field` as a local constant
 with the type of the field of the current goal:
 
-```
+```lean
 refine_struct ({ .. } : semigroup α),
 { have_field, ... },
 { have_field, ... },
 ```
 behaves like
-```
+```lean
 refine_struct ({ .. } : semigroup α),
 { have field := @semigroup.mul, ... },
 { have field := @semigroup.mul_assoc, ... },
@@ -470,7 +498,8 @@ get_current_field >>= applyc
 add_tactic_doc
 { name       := "refine_struct",
   category   := doc_category.tactic,
-  decl_names := [`tactic.interactive.refine_struct, `tactic.interactive.apply_field, `tactic.interactive.have_field],
+  decl_names := [`tactic.interactive.refine_struct, `tactic.interactive.apply_field,
+                 `tactic.interactive.have_field],
   tags       := ["structures"],
   inherit_description_from := `tactic.interactive.refine_struct }
 
@@ -553,11 +582,11 @@ times (not necessarily with the same proof), they are all replaced by `x`. `cast
 `eq.mp`, `eq.mpr`, `eq.subst`, `eq.substr`, `eq.rec` and `eq.rec_on` are all treated
 as casts.
 
- - `h_generalize Hx : e == x with h` adds hypothesis `α = β` with `e : α, x : β`;
- - `h_generalize Hx : e == x with _` chooses automatically chooses the name of
-    assumption `α = β`;
-  - `h_generalize! Hx : e == x` reverts `Hx`;
-  - when `Hx` is omitted, assumption `Hx : e == x` is not added.
+- `h_generalize Hx : e == x with h` adds hypothesis `α = β` with `e : α, x : β`;
+- `h_generalize Hx : e == x with _` chooses automatically chooses the name of
+  assumption `α = β`;
+- `h_generalize! Hx : e == x` reverts `Hx`;
+- when `Hx` is omitted, assumption `Hx : e == x` is not added.
 -/
 meta def h_generalize (rev : parse (tk "!")?)
      (h : parse ident_?)
@@ -672,8 +701,9 @@ begin
 end
 ```
 -/
-meta def field_simp (no_dflt : parse only_flag) (hs : parse simp_arg_list) (attr_names : parse with_ident_list)
-              (locat : parse location) (cfg : simp_config_ext := {}) : tactic unit :=
+meta def field_simp (no_dflt : parse only_flag) (hs : parse simp_arg_list)
+  (attr_names : parse with_ident_list)
+  (locat : parse location) (cfg : simp_config_ext := {}) : tactic unit :=
 let attr_names := `field_simps :: attr_names,
     hs := simp_arg_type.except `one_div_eq_inv :: hs in
 propagate_tags (simp_core cfg.to_simp_config cfg.discharger no_dflt hs attr_names locat)
@@ -694,11 +724,23 @@ We use this tactic for writing tests.
 meta def guard_target' (p : parse texpr) : tactic unit :=
 do t ← target, guard_expr_eq' t p
 
+add_tactic_doc
+{ name       := "guard_target'",
+  category   := doc_category.tactic,
+  decl_names := [`tactic.interactive.guard_target'],
+  tags       := ["testing"] }
+
 /--
 a weaker version of `trivial` that tries to solve the goal by reflexivity or by reducing it to true,
 unfolding only `reducible` constants. -/
 meta def triv : tactic unit :=
 tactic.triv' <|> tactic.reflexivity reducible <|> tactic.contradiction <|> fail "triv tactic failed"
+
+add_tactic_doc
+{ name       := "triv",
+  category   := doc_category.tactic,
+  decl_names := [`tactic.interactive.triv],
+  tags       := ["finishing"] }
 
 /--
 Similar to `existsi`. `use x` will instantiate the first term of an `∃` or `Σ` goal with `x`.
@@ -709,7 +751,7 @@ Unlike `existsi`, `x` is elaborated with respect to the expected type.
 `use` will work with constructors of arbitrary inductive types.
 
 Examples:
-
+```lean
 example (α : Type) : ∃ S : set α, S = S :=
 by use ∅
 
@@ -737,6 +779,7 @@ inductive foo
 
 example : foo :=
 by use [100, tt, 4, 3]
+```
 -/
 meta def use (l : parse pexpr_list_or_texpr) : tactic unit :=
 focus1 $
@@ -795,8 +838,8 @@ list.map expr.local_uniq_name <$> l.get_locals
 /--
 The logic of `change x with y at l` fails when there are dependencies.
 `change'` mimics the behavior of `change`, except in the case of `change x with y at l`.
-In this case, it will correctly replace occurences of `x` with `y` at all possible hypotheses in `l`.
-As long as `x` and `y` are defeq, it should never fail.
+In this case, it will correctly replace occurences of `x` with `y` at all possible hypotheses
+in `l`. As long as `x` and `y` are defeq, it should never fail.
 -/
 meta def change' (q : parse texpr) : parse (tk "with" *> texpr)? → parse location → tactic unit
 | none (loc.ns [none]) := do e ← i_to_expr q, change_core e none
@@ -842,7 +885,7 @@ match n with
   | (some o) := convert_to_core r >> congr' o
 end
 
-/-- `ac_change g using n` is `convert_to g using n; try {ac_refl}` -/
+/-- `ac_change g using n` is `convert_to g using n; try {ac_refl}`. -/
 meta def ac_change (r : parse texpr) (n : parse (tk "using" *> small_nat)?) : tactic unit :=
 convert_to r n; try ac_refl
 
@@ -860,7 +903,8 @@ private meta def opt_dir_with : parser (option (bool × name)) :=
    return (arrow.is_some, h)) <|> return none
 
 /--
-`set a := t with h` is a variant of `let a := t`. It adds the hypothesis `h : a = t` to the local context and replaces `t` with `a` everywhere it can.
+`set a := t with h` is a variant of `let a := t`. It adds the hypothesis `h : a = t` to
+the local context and replaces `t` with `a` everywhere it can.
 
 `set a := t with ←h` will add `h : t = a` instead.
 
@@ -880,7 +924,8 @@ h : y = 3
 end
 ```
 -/
-meta def set (h_simp : parse (tk "!")?) (a : parse ident) (tp : parse ((tk ":") >> texpr)?) (_ : parse (tk ":=")) (pv : parse texpr)
+meta def set (h_simp : parse (tk "!")?) (a : parse ident) (tp : parse ((tk ":") >> texpr)?)
+  (_ : parse (tk ":=")) (pv : parse texpr)
   (rev_name : parse opt_dir_with) :=
 do let vt := match tp with | some t := t | none := pexpr.mk_placeholder end,
    let pv := ``(%%pv : %%vt),
@@ -949,10 +994,10 @@ mk_paragraph_aux right_margin "" "" 0
 /--
 Format the current goal as a stand-alone example. Useful for testing tactic.
 
-  * `extract_goal`: formats the statement as an `example` declaration
-  * `extract_goal my_decl`: formats the statement as a `lemma` or `def` declaration
-    called `my_decl`
-  * `extract_goal with i j k:` only use local constants `i`, `j`, `k` in the declaration
+* `extract_goal`: formats the statement as an `example` declaration
+* `extract_goal my_decl`: formats the statement as a `lemma` or `def` declaration
+  called `my_decl`
+* `extract_goal with i j k:` only use local constants `i`, `j`, `k` in the declaration
 
 Examples:
 
@@ -1019,8 +1064,8 @@ add_tactic_doc
 
 
 /-- `inhabit α` turns a `nonempty α` instance into an `inhabited α` instance.
-  If the target is a prop, this is done constructively;
-  otherwise, it uses `classical.choice`. -/
+If the target is a prop, this is done constructively;
+otherwise, it uses `classical.choice`. -/
 meta def inhabit (t : parse parser.pexpr) (inst_name : parse ident?) : tactic unit :=
 do ty ← i_to_expr t,
    nm ← get_unused_name `inst,
@@ -1039,26 +1084,46 @@ add_tactic_doc
   tags       := ["context management", "type classes"] }
 
 /-- `revert_deps n₁ n₂ ...` reverts all the hypotheses that depend on one of `n₁, n₂, ...`
-  It does not revert `n₁, n₂, ...` themselves (unless they depend on another `nᵢ`). -/
+It does not revert `n₁, n₂, ...` themselves (unless they depend on another `nᵢ`). -/
 meta def revert_deps (ns : parse ident*) : tactic unit :=
 propagate_tags $ ns.reverse.mmap' $ λ n, get_local n >>= tactic.revert_deps
+
+add_tactic_doc
+{ name       := "revert_deps",
+  category   := doc_category.tactic,
+  decl_names := [`tactic.interactive.revert_deps],
+  tags       := ["hypothesis management", "goal management"] }
 
 /-- `revert_after n` reverts all the hypotheses after `n`. -/
 meta def revert_after (n : parse ident) : tactic unit :=
 propagate_tags $ get_local n >>= tactic.revert_after >> skip
 
+add_tactic_doc
+{ name       := "revert_after",
+  category   := doc_category.tactic,
+  decl_names := [`tactic.interactive.revert_after],
+  tags       := ["hypothesis management", "goal management"] }
+
 /-- `clear_value n₁ n₂ ...` clears the bodies of the local definitions `n₁, n₂ ...`, changing them
-  into regular hypotheses. A hypothesis `n : α := t` is changed to `n : α`. -/
+into regular hypotheses. A hypothesis `n : α := t` is changed to `n : α`. -/
 meta def clear_value (ns : parse ident*) : tactic unit :=
 propagate_tags $ ns.reverse.mmap' $ λ n, get_local n >>= tactic.clear_value
 
+add_tactic_doc
+{ name       := "clear_value",
+  category   := doc_category.tactic,
+  decl_names := [`tactic.interactive.clear_value],
+  tags       := ["context management"] }
+
 /--
-`generalize' : e = x` replaces all occurrences of `e` in the target with a new hypothesis `x` of the same type.
+`generalize' : e = x` replaces all occurrences of `e` in the target with a new hypothesis `x` of
+the same type.
 
 `generalize' h : e = x` in addition registers the hypothesis `h : e = x`.
 
-`generalize'` is similar to `generalize`. The difference is that `generalize' : e = x` also succeeds when `e`
-  does not occur in the goal. It is similar to `set`, but the resulting hypothesis `x` is not a local definition.
+`generalize'` is similar to `generalize`. The difference is that `generalize' : e = x` also
+succeeds when `e` does not occur in the goal. It is similar to `set`, but the resulting hypothesis
+`x` is not a local definition.
 -/
 meta def generalize' (h : parse ident?) (_ : parse $ tk ":") (p : parse generalize_arg_p) : tactic unit :=
 propagate_tags $

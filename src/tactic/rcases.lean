@@ -393,7 +393,7 @@ The `rcases` tactic is the same as `cases`, but with more flexibility in the
 `with` pattern syntax to allow for recursive case splitting. The pattern syntax
 uses the following recursive grammar:
 
-```
+```lean
 patt ::= (patt_list "|")* patt_list
 patt_list ::= id | "_" | "⟨" (patt ",")* patt "⟩"
 ```
@@ -477,12 +477,12 @@ with_desc "patt_list? (: expr)? (:= expr)?" $
 /--
 The `obtain` tactic is a combination of `have` and `rcases`.
 
-```
+```lean
 obtain ⟨patt⟩ : type,
 { ... }
 ```
 is equivalent to
-```
+```lean
 have h : type,
 { ... },
 rcases h with ⟨patt⟩

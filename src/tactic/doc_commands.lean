@@ -11,8 +11,8 @@ We generate html documentation from mathlib. It is convenient to collect lists o
 notes, etc. To facilitate this, we declare these documentation entries in the library
 using special commands.
 
-* `library_note` adds a note describing a certain feature or design decision. These can be referenced
-  in doc strings with the text `note [name of note]`.
+* `library_note` adds a note describing a certain feature or design decision. These can be
+  referenced in doc strings with the text `note [name of note]`.
 * `add_tactic_doc` adds an entry documenting an interactive tactic, command, hole command, or
   attribute.
 
@@ -32,13 +32,15 @@ information.
 def string.hash (s : string) : ℕ :=
 s.fold 1 (λ h c, (33*h + c.val) % unsigned_sz)
 
-/-- `mk_hashed_name nspace id` hashes the string `id` to a value `i` and returns the name `nspace._i` -/
+/-- `mk_hashed_name nspace id` hashes the string `id` to a value `i` and returns the name
+`nspace._i` -/
 meta def string.mk_hashed_name (nspace : name) (id : string) : name :=
 nspace <.> ("_" ++ to_string id.hash)
 
 /-! ### The `library_note` command -/
 
-/-- A user attribute `library_note` for tagging decls of type `string × string` for use in note output. -/
+/-- A user attribute `library_note` for tagging decls of type `string × string` for use in note
+output. -/
 @[user_attribute] meta def library_note_attr : user_attribute :=
 { name := `library_note,
   descr := "Notes about library features to be included in documentation" }
@@ -105,9 +107,11 @@ do name ← parser.pexpr,
    note ← parser.pexpr,
    of_tactic $ tactic.add_library_note name note
 
-/-- Collects all notes in the current environment. Returns a list of pairs `(note_id, note_content)` -/
+/-- Collects all notes in the current environment.
+Returns a list of pairs `(note_id, note_content)` -/
 meta def tactic.get_library_notes : tactic (list (string × string)) :=
-attribute.get_instances `library_note >>= list.mmap (λ dcl, mk_const dcl >>= eval_expr (string × string))
+attribute.get_instances `library_note >>=
+  list.mmap (λ dcl, mk_const dcl >>= eval_expr (string × string))
 
 /-! ### The `add_tactic_doc_entry` command -/
 
@@ -166,19 +170,21 @@ match tde.inherit_description_from, tde.decl_names with
 | none, _ := return tde
 end
 
-/-- A user attribute `tactic_doc` for tagging decls of type `tactic_doc_entry` for use in doc output -/
+/-- A user attribute `tactic_doc` for tagging decls of type `tactic_doc_entry`
+for use in doc output -/
 @[user_attribute] meta def tactic_doc_entry_attr : user_attribute :=
 { name := `tactic_doc,
   descr := "Information about a tactic to be included in documentation" }
 
 /-- Collects everything in the environment tagged with the attribute `tactic_doc`. -/
 meta def tactic.get_tactic_doc_entries : tactic (list tactic_doc_entry) :=
-attribute.get_instances `tactic_doc >>= list.mmap (λ dcl, mk_const dcl >>= eval_expr tactic_doc_entry)
+attribute.get_instances `tactic_doc >>=
+  list.mmap (λ dcl, mk_const dcl >>= eval_expr tactic_doc_entry)
 
 /-- `add_tactic_doc tde` assumes `tde : pexpr` represents a term of type `tactic_doc_entry`.
-It adds a declaration to the environment with `tde` as its body and tags it with the `tactic_doc` attribute.
-If `tde.decl_names` has exactly one entry, and the referenced declaration is missing a doc string,
-it adds `tde.description` as the doc string. -/
+It adds a declaration to the environment with `tde` as its body and tags it with the `tactic_doc`
+attribute. If `tde.decl_names` has exactly one entry, and the referenced declaration is missing a
+doc string, it adds `tde.description` as the doc string. -/
 meta def tactic.add_tactic_doc (tde : pexpr) : tactic unit :=
 do tde ← to_expr ``(%%tde : tactic_doc_entry) >>= eval_expr tactic_doc_entry,
    when (tde.description = "" ∧ tde.inherit_description_from.is_none ∧ tde.decl_names.length ≠ 1) $
@@ -192,8 +198,9 @@ do tde ← to_expr ``(%%tde : tactic_doc_entry) >>= eval_expr tactic_doc_entry,
 /--
 A command used to add documentation for a tactic, command, hole command, or attribute.
 
-Usage: after defining an interactive tactic, command, or attribute, add its documentation as follows.
-```
+Usage: after defining an interactive tactic, command, or attribute,
+add its documentation as follows.
+```lean
 add_tactic_doc
 { name := "display name of the tactic",
   category := cat,
@@ -218,7 +225,8 @@ The argument to `add_tactic_doc` is a structure of type `tactic_doc_entry`.
 If only one related declaration is listed in `decl_names` and it does not have a doc string,
 `description` will be automatically added as its doc string.
 
-Note that providing a badly formed `tactic_doc_entry` to the command can result in strange error messages.
+Note that providing a badly formed `tactic_doc_entry` to the command can result in strange error
+messages.
 
 -/
 @[user_command] meta def add_tactic_doc_command (_ : parse $ tk "add_tactic_doc") : parser unit :=
@@ -232,7 +240,7 @@ add_tactic_doc
   inherit_description_from := `library_note }
 
 add_tactic_doc
-{ name := "add_tactic_doc",
+{ name                     := "add_tactic_doc",
   category                 := doc_category.cmd,
   decl_names               := [`add_tactic_doc_command, `tactic.add_tactic_doc],
   tags                     := ["documentation"],
@@ -246,8 +254,8 @@ add_tactic_doc
   decl_names := [`tactic.interactive.cc],
   description :=
 "The congruence closure tactic `cc` tries to solve the goal by chaining
-equalities from context and applying congruence (ie if `a = b` then `f a = f b`).
-It is a finishing tactic, ie is meant to close
+equalities from context and applying congruence (i.e. if `a = b`, then `f a = f b`).
+It is a finishing tactic, i.e. it is meant to close
 the current goal, not to make some inconclusive progress.
 A mostly trivial example would be:
 
@@ -277,9 +285,13 @@ The `cc` implementation in Lean does a few more tricks: for example it
 derives `a=b` from `nat.succ a = nat.succ b`, and `nat.succ a !=
 nat.zero` for any `a`.
 
-* The starting reference point is Nelson, Oppen, [Fast decision procedures based on congruence closure](http://www.cs.colorado.edu/~bec/courses/csci5535-s09/reading/nelson-oppen-congruence.pdf), Journal of the ACM (1980)
+* The starting reference point is Nelson, Oppen, [Fast decision procedures based on congruence
+closure](http://www.cs.colorado.edu/~bec/courses/csci5535-s09/reading/nelson-oppen-congruence.pdf),
+Journal of the ACM (1980)
 
-* The congruence lemmas for dependent type theory as used in Lean are described in [Congruence closure in intensional type theory](https://leanprover.github.io/papers/congr.pdf) (de Moura, Selsam IJCAR 2016).
+* The congruence lemmas for dependent type theory as used in Lean are described in
+[Congruence closure in intensional type theory](https://leanprover.github.io/papers/congr.pdf)
+(de Moura, Selsam IJCAR 2016).
 " }
 
 add_tactic_doc
@@ -292,8 +304,7 @@ by focusing on particular subexpressions.
 
 See <https://leanprover-community.github.io/mathlib_docs/conv.html> for more details.
 
-Inside `conv` blocks mathlib currently
-additionally provides
+Inside `conv` blocks, mathlib currently additionally provides
 * `erw`,
 * `ring` and `ring2`,
 * `norm_num`,
@@ -315,10 +326,10 @@ by conv {
   rw h₂,
 }
 ```
-Without `conv` the above example would need to be proved using two successive
-`conv` blocks each beginning with `to_lhs`.
+Without `conv`, the above example would need to be proved using two successive
+`conv` blocks, each beginning with `to_lhs`.
 
-Also, as a shorthand `conv_lhs` and `conv_rhs` are provided, so that
+Also, as a shorthand, `conv_lhs` and `conv_rhs` are provided, so that
 ```lean
 example : 0 + 0 = 0 :=
 begin

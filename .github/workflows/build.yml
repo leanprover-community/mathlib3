@@ -15,6 +15,7 @@ jobs:
           curl https://raw.githubusercontent.com/Kha/elan/master/elan-init.sh -sSf | sh -s -- --default-toolchain none -y
           ~/.elan/bin/lean --version
           echo "::add-path::$HOME/.elan/bin"
+          short_lean_version="$(lean --run scripts/lean_version.lean)"
 
       - name: install azcopy
         run: |
@@ -60,7 +61,6 @@ jobs:
         id: setup_precompiled
         run: |
           git_hash="$(git log -1 --pretty=format:%h)"
-          short_lean_version="$(lean --run scripts/lean_version.lean)"
           echo "::set-output name=artifact_name::precompiled-mathlib-$short_lean_version-$git_hash"
       - name: upload precompiled mathlib zip file
         uses: actions/upload-artifact@v1

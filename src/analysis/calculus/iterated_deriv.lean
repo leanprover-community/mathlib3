@@ -34,7 +34,7 @@ Fréchet derivative. For this, we write `iterated_deriv n f` as the composition 
 `iterated_fderiv 𝕜 n f` and a continuous linear equiv. As continuous linear equivs respect
 differentiability and commute with differentiation, this makes it possible to prove readily that
 the derivative of the `n`-th derivative is the `n+1`-th derivative in `iterated_deriv_within_succ`,
-by translating the corresponding result `iterated_fderiv_within_succ_eq_fderiv_within` for the
+by translating the corresponding result `iterated_fderiv_within_succ_apply_left` for the
 iterated Fréchet derivative.
 -/
 
@@ -45,13 +45,16 @@ open filter asymptotics set
 
 set_option class.instance_max_depth 110
 
-variables {𝕜 : Type u} [nondiscrete_normed_field 𝕜]
-variables {F : Type u} [normed_group F] [normed_space 𝕜 F]
-variables {E : Type w} [normed_group E] [normed_space 𝕜 E]
+variables {𝕜 : Type*} [nondiscrete_normed_field 𝕜]
+variables {F : Type*} [normed_group F] [normed_space 𝕜 F]
+variables {E : Type*} [normed_group E] [normed_space 𝕜 E]
 
+/-- The `n`-th iterated derivative of a function from `𝕜` to `F`, as a function from `𝕜` to `F`. -/
 def iterated_deriv (n : ℕ) (f : 𝕜 → F) (x : 𝕜) : F :=
 (iterated_fderiv 𝕜 n f x : ((fin n) → 𝕜) → F) (λ(i : fin n), 1)
 
+/-- The `n`-th iterated derivative of a function from `𝕜` to `F` within a set `s`, as a function
+from `𝕜` to `F`. -/
 def iterated_deriv_within (n : ℕ) (f : 𝕜 → F) (s : set 𝕜) (x : 𝕜) : F :=
 (iterated_fderiv_within 𝕜 n f s x : ((fin n) → 𝕜) → F) (λ(i : fin n), 1)
 
@@ -61,7 +64,9 @@ lemma iterated_deriv_within_univ :
   iterated_deriv_within n f univ = iterated_deriv n f :=
 by { ext x, rw [iterated_deriv_within, iterated_deriv, iterated_fderiv_within_univ] }
 
-lemma iterated_deriv_within_eq :
+/-! ### Properties of the iterated derivative within a set -/
+
+lemma iterated_deriv_within_eq_iterated_fderiv_within :
   iterated_deriv_within n f s x
   = (iterated_fderiv_within 𝕜 n f s x : ((fin n) → 𝕜) → F) (λ(i : fin n), 1) := rfl
 
@@ -88,7 +93,10 @@ multiplied by the product of the `m i`s. -/
 lemma iterated_fderiv_within_apply_eq_iterated_deriv_within_mul_prod {m : (fin n) → 𝕜} :
   (iterated_fderiv_within 𝕜 n f s x : ((fin n) → 𝕜) → F) m
   = finset.univ.prod m • iterated_deriv_within n f s x :=
-by { rw [iterated_deriv_within_eq, ← continuous_multilinear_map.map_smul_univ], simp }
+begin
+  rw [iterated_deriv_within_eq_iterated_fderiv_within, ← continuous_multilinear_map.map_smul_univ],
+  simp
+end
 
 @[simp] lemma iterated_deriv_within_zero :
   iterated_deriv_within 0 f s = f :=
@@ -98,6 +106,10 @@ by { ext x, simp [iterated_deriv_within] }
   iterated_deriv_within 1 f s x = deriv_within f s x :=
 by { simp [iterated_deriv_within, iterated_fderiv_within_one_apply hs hx], refl }
 
+/-- If the first `n` derivatives within a set of a function are continuous, and its first `n-1`
+derivatives are differentiable, then the function is `C^n`. This is not an equivalence in general,
+but this is an equivalence when the set has unique derivatives, see
+`times_cont_diff_on_iff_continuous_on_differentiable_on_deriv`. -/
 lemma times_cont_diff_on_of_continuous_on_differentiable_on_deriv {n : with_top ℕ}
   (Hcont : ∀ (m : ℕ), (m : with_top ℕ) ≤ n →
     continuous_on (λ x, iterated_deriv_within m f s x) s)
@@ -124,6 +136,8 @@ begin
     continuous_linear_equiv.comp_differentiable_on_iff, -coe_fn_coe_base],
 end
 
+/-- On a set with unique derivatives, a `C^n` function has derivatives up to `n` which are
+continuous. -/
 lemma times_cont_diff_on.continuous_on_iterated_deriv_within {n : with_top ℕ} {m : ℕ}
   (h : times_cont_diff_on 𝕜 n f s) (hmn : (m : with_top ℕ) ≤ n) (hs : unique_diff_on 𝕜 s) :
   continuous_on (iterated_deriv_within m f s) s :=
@@ -133,6 +147,8 @@ begin
   exact h.continuous_on_iterated_fderiv_within hmn hs
 end
 
+/-- On a set with unique derivatives, a `C^n` function has derivatives less than `n` which are
+differentiable. -/
 lemma times_cont_diff_on.differentiable_on_iterated_deriv_within {n : with_top ℕ} {m : ℕ}
   (h : times_cont_diff_on 𝕜 n f s) (hmn : (m : with_top ℕ) < n) (hs : unique_diff_on 𝕜 s) :
   differentiable_on 𝕜 (iterated_deriv_within m f s) s :=
@@ -143,7 +159,7 @@ begin
 end
 
 /-- The property of being `C^n`, initially defined in terms of the Fréchet derivative, can be
-reformulated in terms of the one-dimensional derivative. -/
+reformulated in terms of the one-dimensional derivative on sets with unique derivatives. -/
 lemma times_cont_diff_on_iff_continuous_on_differentiable_on_deriv {n : with_top ℕ}
   (hs : unique_diff_on 𝕜 s) :
   times_cont_diff_on 𝕜 n f s ↔
@@ -153,13 +169,13 @@ by simp only [times_cont_diff_on_iff_continuous_on_differentiable_on hs,
   iterated_fderiv_within_eq_equiv_comp, continuous_linear_equiv.comp_continuous_on_iff,
   continuous_linear_equiv.comp_differentiable_on_iff]
 
-/-- The `n+1`-th iterated derivative within a set can be obtained by differentiating the `n`-th
-iterated derivative. -/
+/-- The `n+1`-th iterated derivative within a set with unique derivatives can be obtained by
+differentiating the `n`-th iterated derivative. -/
 lemma iterated_deriv_within_succ {x : 𝕜} (hxs : unique_diff_within_at 𝕜 s x) :
   iterated_deriv_within n.succ f s x =
   deriv_within (iterated_deriv_within n f s) s x :=
 begin
-  rw [iterated_deriv_within_eq, iterated_fderiv_within_succ_apply_left,
+  rw [iterated_deriv_within_eq_iterated_fderiv_within, iterated_fderiv_within_succ_apply_left,
       iterated_fderiv_within_eq_equiv_comp, continuous_linear_equiv.comp_fderiv_within _ hxs,
       deriv_within],
   change ((continuous_multilinear_map.mk_pi_field 𝕜 (fin n)
@@ -169,8 +185,8 @@ begin
   simp
 end
 
-/-- The `n`-th iterated derivative within a set can be obtained by iterating `n` times the
-differentiation operation. -/
+/-- The `n`-th iterated derivative within a set with unique derivatives can be obtained by
+iterating `n` times the differentiation operation. -/
 lemma iterated_deriv_within_eq_iterate {x : 𝕜} (hs : unique_diff_on 𝕜 s) (hx : x ∈ s) :
   iterated_deriv_within n f s x = nat.iterate (λ (g : 𝕜 → F), deriv_within g s) n f x :=
 begin
@@ -180,7 +196,9 @@ begin
     exact deriv_within_congr (hs x hx) (λ y hy, IH hy) (IH hx) }
 end
 
-lemma iterated_deriv_eq :
+/-! ### Properties of the iterated derivative on the whole space -/
+
+lemma iterated_deriv_eq_iterated_fderiv :
   iterated_deriv n f x
   = (iterated_fderiv 𝕜 n f x : ((fin n) → 𝕜) → F) (λ(i : fin n), 1) := rfl
 
@@ -206,7 +224,7 @@ end
 multiplied by the product of the `m i`s. -/
 lemma iterated_fderiv_apply_eq_iterated_deriv_mul_prod {m : (fin n) → 𝕜} :
   (iterated_fderiv 𝕜 n f x : ((fin n) → 𝕜) → F) m = finset.univ.prod m • iterated_deriv n f x :=
-by { rw [iterated_deriv_eq, ← continuous_multilinear_map.map_smul_univ], simp }
+by { rw [iterated_deriv_eq_iterated_fderiv, ← continuous_multilinear_map.map_smul_univ], simp }
 
 @[simp] lemma iterated_deriv_zero :
   iterated_deriv 0 f = f :=
@@ -249,9 +267,7 @@ lemma times_cont_diff.differentiable_iterated_deriv {n : with_top ℕ} (m : ℕ)
 
 /-- The `n+1`-th iterated derivative can be obtained by differentiating the `n`-th
 iterated derivative. -/
-lemma iterated_deriv_succ  :
-  iterated_deriv n.succ f =
-  deriv (iterated_deriv n f) :=
+lemma iterated_deriv_succ : iterated_deriv n.succ f = deriv (iterated_deriv n f) :=
 begin
   ext x,
   rw [← iterated_deriv_within_univ, ← iterated_deriv_within_univ, ← deriv_within_univ],
@@ -260,8 +276,7 @@ end
 
 /-- The `n`-th iterated derivative can be obtained by iterating `n` times the
 differentiation operation. -/
-lemma iterated_deriv_eq_iterate :
-  iterated_deriv n f = nat.iterate deriv n f :=
+lemma iterated_deriv_eq_iterate : iterated_deriv n f = nat.iterate deriv n f :=
 begin
   ext x,
   rw [← iterated_deriv_within_univ],

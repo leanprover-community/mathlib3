@@ -22,6 +22,7 @@ inductive pos_num : Type
 | bit1 : pos_num → pos_num
 | bit0 : pos_num → pos_num
 instance : has_one pos_num := ⟨pos_num.one⟩
+instance : inhabited pos_num := ⟨1⟩
 
 /-- The type of nonnegative binary numbers, using `pos_num`.
 
@@ -32,6 +33,7 @@ inductive num : Type
 | pos   : pos_num → num
 instance : has_zero num := ⟨num.zero⟩
 instance : has_one num := ⟨num.pos 1⟩
+instance : inhabited num := ⟨0⟩
 
 /-- Representation of integers using trichotomy around zero.
 
@@ -44,6 +46,7 @@ inductive znum : Type
 | neg  : pos_num → znum
 instance : has_zero znum := ⟨znum.zero⟩
 instance : has_one znum := ⟨znum.pos 1⟩
+instance : inhabited znum := ⟨0⟩
 
 /-- See `snum`. -/
 @[derive has_reflect, derive decidable_eq]
@@ -72,6 +75,8 @@ instance : has_coe nzsnum snum := ⟨snum.nz⟩
 instance : has_zero snum := ⟨snum.zero ff⟩
 instance : has_one nzsnum := ⟨nzsnum.msb tt⟩
 instance : has_one snum := ⟨snum.nz 1⟩
+instance : inhabited nzsnum := ⟨1⟩
+instance : inhabited snum := ⟨0⟩
 
 namespace pos_num
 

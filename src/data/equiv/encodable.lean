@@ -6,7 +6,7 @@ Author: Leonardo de Moura, Mario Carneiro
 Type class for encodable Types.
 Note that every encodable Type is countable.
 -/
-import data.equiv.nat
+import data.equiv.nat order.order_iso
 open option list nat function
 
 /-- An encodable type is a "constructively countable" type. This is where
@@ -39,6 +39,7 @@ def of_left_inverse [encodable α]
   (f : β → α) (finv : α → β) (linv : ∀ b, finv (f b) = b) : encodable β :=
 of_left_injection f (some ∘ finv) (λ b, congr_arg some (linv b))
 
+/-- If `α` is encodable and `β ≃ α`, then so is `β` -/
 def of_equiv (α) [encodable α] (e : β ≃ α) : encodable β :=
 of_left_inverse e e.symm e.left_inv
 
@@ -287,22 +288,84 @@ theorem skolem {α : Type*} {β : α → Type*} {P : Π x, β x → Prop}
   (∀x, ∃y, P x y) ↔ ∃f : Π a, β a, (∀x, P x (f x)) :=
 ⟨axiom_of_choice, λ ⟨f, H⟩ x, ⟨_, H x⟩⟩
 
+/-
+There is a total ordering on the elements of an encodable type, induced by the map to ℕ.
+-/
+
+/-- The `encode` function, viewed as an embedding. -/
+def encode' (α) [encodable α] : α ↪ nat :=
+⟨encodable.encode, encodable.encode_injective⟩
+
+instance {α} [encodable α] : is_trans _ (encode' α ⁻¹'o (≤)) :=
+(order_embedding.preimage _ _).is_trans
+instance {α} [encodable α] : is_antisymm _ (encodable.encode' α ⁻¹'o (≤)) :=
+(order_embedding.preimage _ _).is_antisymm
+instance {α} [encodable α] : is_total _ (encodable.encode' α ⁻¹'o (≤)) :=
+(order_embedding.preimage _ _).is_total
+
 end encodable
 
-namespace quot
+namespace directed
+
 open encodable
+
+variables {α : Type*} {β : Type*} [encodable α] [inhabited α]
+
+/-- Given a `directed r` function `f : α → β` defined on an encodable inhabited type,
+construct a noncomputable sequence such that `r (f (x n)) (f (x (n + 1)))`
+and `r (f a) (f (x (encode a + 1))`. -/
+protected noncomputable def sequence {r : β → β → Prop} (f : α → β) (hf : directed r f) : ℕ → α
+| 0       := default α
+| (n + 1) :=
+  let p := sequence n in
+  match decode α n with
+  | none     := classical.some (hf p p)
+  | (some a) := classical.some (hf p a)
+  end
+
+lemma sequence_mono_nat {r : β → β → Prop} {f : α → β} (hf : directed r f) (n : ℕ) :
+  r (f (hf.sequence f n)) (f (hf.sequence f (n+1))) :=
+begin
+  dsimp [directed.sequence],
+  generalize eq : hf.sequence f n = p,
+  cases h : decode α n with a,
+  { exact (classical.some_spec (hf p p)).1 },
+  { exact (classical.some_spec (hf p a)).1 }
+end
+
+lemma rel_sequence {r : β → β → Prop} {f : α → β} (hf : directed r f) (a : α) :
+  r (f a) (f (hf.sequence f (encode a + 1))) :=
+begin
+  simp only [directed.sequence, encodek],
+  exact (classical.some_spec (hf _ a)).2
+end
+
+variables [preorder β] {f : α → β} (hf : directed (≤) f)
+
+lemma sequence_mono : monotone (f ∘ (hf.sequence f)) :=
+monotone_of_monotone_nat $ hf.sequence_mono_nat
+
+lemma le_sequence (a : α) : f a ≤ f (hf.sequence f (encode a + 1)) :=
+hf.rel_sequence a
+
+end directed
+
+section quotient
+open encodable quotient
 variables {α : Type*} {s : setoid α} [@decidable_rel α (≈)] [encodable α]
 
--- Choose equivalence class representative
-def rep (q : quotient s) : α :=
+/-- Representative of an equivalence class. This is a computable version of `quot.out` for a setoid
+on an encodable type. -/
+def quotient.rep (q : quotient s) : α :=
 choose (exists_rep q)
 
-theorem rep_spec (q : quotient s) : ⟦rep q⟧ = q :=
+theorem quotient.rep_spec (q : quotient s) : ⟦q.rep⟧ = q :=
 choose_spec (exists_rep q)
 
+/-- The quotient of an encodable space by a decidable equivalence relation is encodable. -/
 def encodable_quotient : encodable (quotient s) :=
-⟨λ q, encode (rep q),
+⟨λ q, encode q.rep,
  λ n, quotient.mk <$> decode α n,
- by rintros ⟨l⟩; rw encodek; exact congr_arg some (rep_spec _)⟩
+ by rintros ⟨l⟩; rw encodek; exact congr_arg some ⟦l⟧.rep_spec⟩
 
-end quot
+end quotient

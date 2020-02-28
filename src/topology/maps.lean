@@ -2,12 +2,47 @@
 Copyright (c) 2017 Johannes Hölzl. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johannes Hölzl, Mario Carneiro, Patrick Massot
-
-Specific classes of maps between topological spaces: embeddings, open maps, quotient maps.
 -/
 import topology.order
 
+/-!
+# Specific classes of maps between topological spaces
+
+This file introduces the following properties of a map `f : X → Y` between topological spaces:
+
+* `is_open_map f` means the image of an open set under `f` is open.
+* `is_closed_map f` means the image of a closed set under `f` is closed.
+
+(Open and closed maps need not be continuous.)
+
+* `inducing f` means the topology on `X` is the one induced via `f` from the topology on `Y`.
+  These behave like embeddings except they need not be injective. Instead, points of `X` which
+  are identified by `f` are also indistinguishable in the topology on `X`.
+* `embedding f` means `f` is inducing and also injective. Equivalently, `f` identifies `X` with
+  a subspace of `Y`.
+* `open_embedding f` means `f` is an embedding with open image, so it identifies `X` with an
+  open subspace of `Y`. Equivalently, `f` is an embedding and an open map.
+* `closed_embedding f` similarly means `f` is an embedding with closed image, so it identifies
+  `X` with a closed subspace of `Y`. Equivalently, `f` is an embedding and a closed map.
+
+* `quotient_map f` is the dual condition to `embedding f`: `f` is surjective and the topology
+  on `Y` is the one coinduced via `f` from the topology on `X`. Equivalently, `f` identifies
+  `Y` with a quotient of `X`. Quotient maps are also sometimes known as identification maps.
+
+## References
+
+* <https://en.wikipedia.org/wiki/Open_and_closed_maps>
+* <https://en.wikipedia.org/wiki/Embedding#General_topology>
+* <https://en.wikipedia.org/wiki/Quotient_space_(topology)#Quotient_map>
+
+## Tags
+
+open map, closed map, embedding, quotient map, identification map
+
+-/
+
 open set filter lattice
+open_locale topological_space
 
 variables {α : Type*} {β : Type*} {γ : Type*} {δ : Type*}
 
@@ -20,14 +55,9 @@ variables [topological_space α] [topological_space β] [topological_space γ] [
 lemma inducing_id : inducing (@id α) :=
 ⟨induced_id.symm⟩
 
-lemma inducing.comp {f : α → β} {g : β → γ} (hg : inducing g) (hf : inducing f) :
+protected lemma inducing.comp {g : β → γ} {f : α → β} (hg : inducing g) (hf : inducing f) :
   inducing (g ∘ f) :=
 ⟨by rw [hf.induced, hg.induced, induced_compose]⟩
-
-lemma inducing.prod_mk {f : α → β} {g : γ → δ} (hf : inducing f) (hg : inducing g) :
-  inducing (λx:α×γ, (f x.1, g x.2)) :=
-⟨by rw [prod.topological_space, prod.topological_space, hf.induced, hg.induced,
-         induced_compose, induced_compose, induced_inf, induced_compose, induced_compose]⟩
 
 lemma inducing_of_inducing_compose {f : α → β} {g : β → γ} (hf : continuous f) (hg : continuous g)
   (hgf : inducing (g ∘ f)) : inducing f :=
@@ -48,16 +78,16 @@ have is_closed (t ∩ range f), from is_closed_inter ht h,
 h_eq.symm ▸ by rwa [image_preimage_eq_inter_range]
 
 lemma inducing.nhds_eq_comap {f : α → β} (hf : inducing f) :
-  ∀ (a : α), nhds a = comap f (nhds $ f a) :=
+  ∀ (a : α), 𝓝 a = comap f (𝓝 $ f a) :=
 (induced_iff_nhds_eq f).1 hf.induced
 
-lemma inducing.map_nhds_eq {f : α → β} (hf : inducing f) (a : α) (h : range f ∈ nhds (f a)) :
-  (nhds a).map f = nhds (f a) :=
+lemma inducing.map_nhds_eq {f : α → β} (hf : inducing f) (a : α) (h : range f ∈ 𝓝 (f a)) :
+  (𝓝 a).map f = 𝓝 (f a) :=
 hf.induced.symm ▸ map_nhds_induced_eq h
 
 lemma inducing.tendsto_nhds_iff {ι : Type*}
   {f : ι → β} {g : β → γ} {a : filter ι} {b : β} (hg : inducing g) :
-  tendsto f a (nhds b) ↔ tendsto (g ∘ f) a (nhds (g b)) :=
+  tendsto f a (𝓝 b) ↔ tendsto (g ∘ f) a (𝓝 (g b)) :=
 by rw [tendsto, tendsto, hg.induced, nhds_induced, ← map_le_iff_le_comap, filter.map_map]
 
 lemma inducing.continuous_iff {f : α → β} {g : β → γ} (hg : inducing g) :
@@ -75,25 +105,19 @@ structure embedding [tα : topological_space α] [tβ : topological_space β] (f
   extends inducing f : Prop :=
 (inj : function.injective f)
 
-variables [topological_space α] [topological_space β] [topological_space γ] [topological_space δ]
+variables [topological_space α] [topological_space β] [topological_space γ]
 
 lemma embedding.mk' (f : α → β) (inj : function.injective f)
-  (induced : ∀a, comap f (nhds (f a)) = nhds a) : embedding f :=
+  (induced : ∀a, comap f (𝓝 (f a)) = 𝓝 a) : embedding f :=
 ⟨⟨(induced_iff_nhds_eq f).2 (λ a, (induced a).symm)⟩, inj⟩
 
 lemma embedding_id : embedding (@id α) :=
 ⟨inducing_id, assume a₁ a₂ h, h⟩
 
-lemma embedding.comp {f : α → β} {g : β → γ} (hg : embedding g) (hf : embedding f) :
+lemma embedding.comp {g : β → γ} {f : α → β} (hg : embedding g) (hf : embedding f) :
   embedding (g ∘ f) :=
 { inj:= assume a₁ a₂ h, hf.inj $ hg.inj h,
   ..hg.to_inducing.comp hf.to_inducing }
-
-lemma embedding.prod_mk {f : α → β} {g : γ → δ} (hf : embedding f) (hg : embedding g) :
-  embedding (λx:α×γ, (f x.1, g x.2)) :=
-{ inj := assume ⟨x₁, x₂⟩ ⟨y₁, y₂⟩, by simp; exact assume h₁ h₂, ⟨hf.inj h₁, hg.inj h₂⟩,
-  ..hf.to_inducing.prod_mk hg.to_inducing }
-
 
 lemma embedding_of_embedding_compose {f : α → β} {g : β → γ} (hf : continuous f) (hg : continuous g)
   (hgf : embedding (g ∘ f)) : embedding f :=
@@ -109,12 +133,12 @@ lemma embedding_is_closed {f : α → β} {s : set α}
 inducing_is_closed hf.1 h hs
 
 lemma embedding.map_nhds_eq {f : α → β}
-  (hf : embedding f) (a : α) (h : range f ∈ nhds (f a)) : (nhds a).map f = nhds (f a) :=
+  (hf : embedding f) (a : α) (h : range f ∈ 𝓝 (f a)) : (𝓝 a).map f = 𝓝 (f a) :=
 inducing.map_nhds_eq hf.1 a h
 
 lemma embedding.tendsto_nhds_iff {ι : Type*}
   {f : ι → β} {g : β → γ} {a : filter ι} {b : β} (hg : embedding g) :
-  tendsto f a (nhds b) ↔ tendsto (g ∘ f) a (nhds (g b)) :=
+  tendsto f a (𝓝 b) ↔ tendsto (g ∘ f) a (𝓝 (g b)) :=
 by rw [tendsto, tendsto, hg.induced, nhds_induced, ← map_le_iff_le_comap, filter.map_map]
 
 lemma embedding.continuous_iff {f : α → β} {g : β → γ} (hg : embedding g) :
@@ -133,7 +157,8 @@ end embedding
 
 /-- A function between topological spaces is a quotient map if it is surjective,
   and for all `s : set β`, `s` is open iff its preimage is an open set. -/
-def quotient_map {α : Type*} {β : Type*} [tα : topological_space α] [tβ : topological_space β] (f : α → β) : Prop :=
+def quotient_map {α : Type*} {β : Type*} [tα : topological_space α] [tβ : topological_space β]
+  (f : α → β) : Prop :=
 function.surjective f ∧ tβ = tα.coinduced f
 
 namespace quotient_map
@@ -142,7 +167,7 @@ variables [topological_space α] [topological_space β] [topological_space γ] [
 protected lemma id : quotient_map (@id α) :=
 ⟨assume a, ⟨a, rfl⟩, coinduced_id.symm⟩
 
-protected lemma comp {f : α → β} {g : β → γ} (hf : quotient_map f) (hg : quotient_map g) :
+protected lemma comp {g : β → γ} {f : α → β} (hg : quotient_map g) (hf : quotient_map f) :
   quotient_map (g ∘ f) :=
 ⟨function.surjective_comp hg.left hf.left, by rw [hg.right, hf.right, coinduced_compose]⟩
 
@@ -164,25 +189,10 @@ hf.continuous_iff.mp continuous_id
 
 end quotient_map
 
-section is_open_map
-variables [topological_space α] [topological_space β]
-
-def is_open_map (f : α → β) := ∀ U : set α, is_open U → is_open (f '' U)
-
-lemma is_open_map_iff_nhds_le (f : α → β) : is_open_map f ↔ ∀(a:α), nhds (f a) ≤ (nhds a).map f :=
-begin
-  split,
-  { assume h a s hs,
-    rcases mem_nhds_sets_iff.1 hs with ⟨t, hts, ht, hat⟩,
-    exact filter.mem_sets_of_superset
-      (mem_nhds_sets (h t ht) (mem_image_of_mem _ hat))
-      (image_subset_iff.2 hts) },
-  { refine assume h s hs, is_open_iff_mem_nhds.2 _,
-    rintros b ⟨a, ha, rfl⟩,
-    exact h _ (filter.image_mem_map $ mem_nhds_sets hs ha) }
-end
-
-end is_open_map
+/-- A map `f : α → β` is said to be an *open map*, if the image of any open `U : set α`
+is open in `β`. -/
+def is_open_map [topological_space α] [topological_space β] (f : α → β) :=
+∀ U : set α, is_open U → is_open (f '' U)
 
 namespace is_open_map
 variables [topological_space α] [topological_space β] [topological_space γ]
@@ -191,8 +201,19 @@ open function
 protected lemma id : is_open_map (@id α) := assume s hs, by rwa [image_id]
 
 protected lemma comp
-  {f : α → β} {g : β → γ} (hf : is_open_map f) (hg : is_open_map g) : is_open_map (g ∘ f) :=
+  {g : β → γ} {f : α → β} (hg : is_open_map g) (hf : is_open_map f) : is_open_map (g ∘ f) :=
 by intros s hs; rw [image_comp]; exact hg _ (hf _ hs)
+
+lemma is_open_range {f : α → β} (hf : is_open_map f) : is_open (range f) :=
+by { rw ← image_univ, exact hf _ is_open_univ }
+
+lemma image_mem_nhds {f : α → β} (hf : is_open_map f) {x : α} {s : set α} (hx : s ∈ 𝓝 x) :
+  f '' s ∈ 𝓝 (f x) :=
+let ⟨t, hts, ht, hxt⟩ := mem_nhds_sets_iff.1 hx in
+mem_sets_of_superset (mem_nhds_sets (hf t ht) (mem_image_of_mem _ hxt)) (image_subset _ hts)
+
+lemma nhds_le {f : α → β} (hf : is_open_map f) (a : α) : 𝓝 (f a) ≤ (𝓝 a).map f :=
+le_map $ λ s, hf.image_mem_nhds
 
 lemma of_inverse {f : α → β} {f' : β → α}
   (h : continuous f') (l_inv : left_inverse f f') (r_inv : right_inverse f f') :
@@ -217,6 +238,14 @@ lemma to_quotient_map {f : α → β}
 
 end is_open_map
 
+lemma is_open_map_iff_nhds_le [topological_space α] [topological_space β] {f : α → β} :
+  is_open_map f ↔ ∀(a:α), 𝓝 (f a) ≤ (𝓝 a).map f :=
+begin
+  refine ⟨λ hf, hf.nhds_le, λ h s hs, is_open_iff_mem_nhds.2 _⟩,
+  rintros b ⟨a, ha, rfl⟩,
+  exact h _ (filter.image_mem_map $ mem_nhds_sets hs ha)
+end
+
 section is_closed_map
 variables [topological_space α] [topological_space β]
 
@@ -231,7 +260,7 @@ open function
 
 protected lemma id : is_closed_map (@id α) := assume s hs, by rwa image_id
 
-protected lemma comp {f : α → β} {g : β → γ} (hf : is_closed_map f) (hg : is_closed_map g) :
+protected lemma comp {g : β → γ} {f : α → β} (hg : is_closed_map g) (hf : is_closed_map f) :
   is_closed_map (g ∘ f) :=
 by { intros s hs, rw image_comp, exact hg _ (hf _ hs) }
 
@@ -291,16 +320,10 @@ end
 lemma open_embedding_id : open_embedding (@id α) :=
 ⟨embedding_id, by convert is_open_univ; apply range_id⟩
 
-lemma open_embedding.comp {f : α → β} {g : β → γ}
+lemma open_embedding.comp {g : β → γ} {f : α → β}
   (hg : open_embedding g) (hf : open_embedding f) : open_embedding (g ∘ f) :=
 ⟨hg.1.comp hf.1, show is_open (range (g ∘ f)),
  by rw [range_comp, ←hg.open_iff_image_open]; exact hf.2⟩
-
-lemma subtype_val.open_embedding {s : set α} (hs : is_open s) :
-  open_embedding (subtype.val : {x // x ∈ s} → α) :=
-{ induced := rfl,
-  inj := subtype.val_injective,
-  open_range := (subtype.val_range : range subtype.val = s).symm ▸  hs }
 
 end open_embedding
 
@@ -355,15 +378,9 @@ end
 lemma closed_embedding_id : closed_embedding (@id α) :=
 ⟨embedding_id, by convert is_closed_univ; apply range_id⟩
 
-lemma closed_embedding.comp {f : α → β} {g : β → γ}
+lemma closed_embedding.comp {g : β → γ} {f : α → β}
   (hg : closed_embedding g) (hf : closed_embedding f) : closed_embedding (g ∘ f) :=
 ⟨hg.to_embedding.comp hf.to_embedding, show is_closed (range (g ∘ f)),
  by rw [range_comp, ←hg.closed_iff_image_closed]; exact hf.closed_range⟩
-
-lemma subtype_val.closed_embedding {s : set α} (hs : is_closed s) :
-  closed_embedding (subtype.val : {x // x ∈ s} → α) :=
-{ induced := rfl,
-  inj := subtype.val_injective,
-  closed_range := (subtype.val_range : range subtype.val = s).symm ▸ hs }
 
 end closed_embedding

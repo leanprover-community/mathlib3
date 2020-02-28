@@ -114,30 +114,35 @@ class has_binary_coproducts :=
 
 attribute [instance] has_binary_products.has_limits_of_shape has_binary_coproducts.has_colimits_of_shape
 
+@[priority 100] -- see Note [lower instance priority]
 instance [has_finite_products.{v} C] : has_binary_products.{v} C :=
 { has_limits_of_shape := by apply_instance }
+@[priority 100] -- see Note [lower instance priority]
 instance [has_finite_coproducts.{v} C] : has_binary_coproducts.{v} C :=
 { has_colimits_of_shape := by apply_instance }
 
 section
--- TODO The `@[simp] def`s below should probably instead have appropriate simp lemmas written.
 
 variables {C} [has_binary_products.{v} C]
 
 local attribute [tidy] tactic.case_bash
 
 /-- The braiding isomorphism which swaps a binary product. -/
-@[simp] def prod.braiding (P Q : C) : P ⨯ Q ≅ Q ⨯ P :=
+@[simps] def prod.braiding (P Q : C) : P ⨯ Q ≅ Q ⨯ P :=
 { hom := prod.lift prod.snd prod.fst,
   inv := prod.lift prod.snd prod.fst }
 
-/-- The braiding isomorphism is symmetric. -/
-@[simp] lemma prod.symmetry (P Q : C) :
-  (prod.braiding P Q).hom ≫ (prod.braiding Q P).hom = 𝟙 _ :=
+@[simp] lemma prod.symmetry' (P Q : C) :
+  prod.lift prod.snd prod.fst ≫ prod.lift prod.snd prod.fst = 𝟙 (P ⨯ Q) :=
 by tidy
 
+/-- The braiding isomorphism is symmetric. -/
+lemma prod.symmetry (P Q : C) :
+  (prod.braiding P Q).hom ≫ (prod.braiding Q P).hom = 𝟙 _ :=
+by simp
+
 /-- The associator isomorphism for binary products. -/
-@[simp] def prod.associator
+@[simps] def prod.associator
   (P Q R : C) : (P ⨯ Q) ⨯ R ≅ P ⨯ (Q ⨯ R) :=
 { hom :=
   prod.lift
@@ -148,19 +153,36 @@ by tidy
     (prod.lift prod.fst (prod.snd ≫ prod.fst))
     (prod.snd ≫ prod.snd) }
 
+lemma prod.pentagon (W X Y Z : C) :
+  prod.map ((prod.associator W X Y).hom) (𝟙 Z) ≫
+      (prod.associator W (X ⨯ Y) Z).hom ≫ prod.map (𝟙 W) ((prod.associator X Y Z).hom) =
+    (prod.associator (W ⨯ X) Y Z).hom ≫ (prod.associator W X (Y⨯Z)).hom :=
+by tidy
+
+lemma prod.associator_naturality {X₁ X₂ X₃ Y₁ Y₂ Y₃ : C} (f₁ : X₁ ⟶ Y₁) (f₂ : X₂ ⟶ Y₂) (f₃ : X₃ ⟶ Y₃) :
+  prod.map (prod.map f₁ f₂) f₃ ≫ (prod.associator Y₁ Y₂ Y₃).hom =
+    (prod.associator X₁ X₂ X₃).hom ≫ prod.map f₁ (prod.map f₂ f₃) :=
+by tidy
+
 variables [has_terminal.{v} C]
 
 /-- The left unitor isomorphism for binary products with the terminal object. -/
-@[simp] def prod.left_unitor
+@[simps] def prod.left_unitor
   (P : C) : ⊤_ C ⨯ P ≅ P :=
 { hom := prod.snd,
   inv := prod.lift (terminal.from P) (𝟙 _) }
 
 /-- The right unitor isomorphism for binary products with the terminal object. -/
-@[simp] def prod.right_unitor
+@[simps] def prod.right_unitor
   (P : C) : P ⨯ ⊤_ C ≅ P :=
 { hom := prod.fst,
   inv := prod.lift (𝟙 _) (terminal.from P) }
+
+lemma prod.triangle (X Y : C) :
+  (prod.associator X (⊤_ C) Y).hom ≫ prod.map (𝟙 X) ((prod.left_unitor Y).hom) =
+    prod.map ((prod.right_unitor X).hom) (𝟙 Y) :=
+by tidy
+
 end
 
 section
@@ -169,17 +191,21 @@ variables {C} [has_binary_coproducts.{v} C]
 local attribute [tidy] tactic.case_bash
 
 /-- The braiding isomorphism which swaps a binary coproduct. -/
-@[simp] def coprod.braiding (P Q : C) : P ⨿ Q ≅ Q ⨿ P :=
+@[simps] def coprod.braiding (P Q : C) : P ⨿ Q ≅ Q ⨿ P :=
 { hom := coprod.desc coprod.inr coprod.inl,
   inv := coprod.desc coprod.inr coprod.inl }
 
-/-- The braiding isomorphism is symmetric. -/
-@[simp] lemma coprod.symmetry (P Q : C) :
-  (coprod.braiding P Q).hom ≫ (coprod.braiding Q P).hom = 𝟙 _ :=
+@[simp] lemma coprod.symmetry' (P Q : C) :
+  coprod.desc coprod.inr coprod.inl ≫ coprod.desc coprod.inr coprod.inl = 𝟙 (P ⨿ Q) :=
 by tidy
 
+/-- The braiding isomorphism is symmetric. -/
+lemma coprod.symmetry (P Q : C) :
+  (coprod.braiding P Q).hom ≫ (coprod.braiding Q P).hom = 𝟙 _ :=
+by simp
+
 /-- The associator isomorphism for binary coproducts. -/
-@[simp] def coprod.associator
+@[simps] def coprod.associator
   (P Q R : C) : (P ⨿ Q) ⨿ R ≅ P ⨿ (Q ⨿ R) :=
 { hom :=
   coprod.desc
@@ -190,19 +216,36 @@ by tidy
     (coprod.inl ≫ coprod.inl)
     (coprod.desc (coprod.inr ≫ coprod.inl) coprod.inr) }
 
+lemma coprod.pentagon (W X Y Z : C) :
+  coprod.map ((coprod.associator W X Y).hom) (𝟙 Z) ≫
+      (coprod.associator W (X⨿Y) Z).hom ≫ coprod.map (𝟙 W) ((coprod.associator X Y Z).hom) =
+    (coprod.associator (W⨿X) Y Z).hom ≫ (coprod.associator W X (Y⨿Z)).hom :=
+by tidy
+
+lemma coprod.associator_naturality {X₁ X₂ X₃ Y₁ Y₂ Y₃ : C} (f₁ : X₁ ⟶ Y₁) (f₂ : X₂ ⟶ Y₂) (f₃ : X₃ ⟶ Y₃) :
+  coprod.map (coprod.map f₁ f₂) f₃ ≫ (coprod.associator Y₁ Y₂ Y₃).hom =
+    (coprod.associator X₁ X₂ X₃).hom ≫ coprod.map f₁ (coprod.map f₂ f₃) :=
+by tidy
+
 variables [has_initial.{v} C]
 
 /-- The left unitor isomorphism for binary coproducts with the initial object. -/
-@[simp] def coprod.left_unitor
+@[simps] def coprod.left_unitor
   (P : C) : ⊥_ C ⨿ P ≅ P :=
 { hom := coprod.desc (initial.to P) (𝟙 _),
   inv := coprod.inr }
 
 /-- The right unitor isomorphism for binary coproducts with the initial object. -/
-@[simp] def coprod.right_unitor
+@[simps] def coprod.right_unitor
   (P : C) : P ⨿ ⊥_ C ≅ P :=
 { hom := coprod.desc (𝟙 _) (initial.to P),
   inv := coprod.inl }
+
+lemma coprod.triangle (X Y : C) :
+  (coprod.associator X (⊥_ C) Y).hom ≫ coprod.map (𝟙 X) ((coprod.left_unitor Y).hom) =
+    coprod.map ((coprod.right_unitor X).hom) (𝟙 Y) :=
+by tidy
+
 end
 
 end category_theory.limits

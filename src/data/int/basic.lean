@@ -5,7 +5,7 @@ Authors: Jeremy Avigad
 
 The integers, with addition, multiplication, and subtraction.
 -/
-import data.nat.basic data.list.basic algebra.char_zero algebra.order_functions
+import data.nat.basic algebra.char_zero algebra.order_functions
 open nat
 
 
@@ -15,11 +15,11 @@ instance : inhabited ℤ := ⟨int.zero⟩
 
 @[simp] lemma default_eq_zero : default ℤ = 0 := rfl
 
-meta instance : has_to_format ℤ := ⟨λ z, int.rec_on z (λ k, ↑k) (λ k, "-("++↑k++"+1)")⟩
+meta instance : has_to_format ℤ := ⟨λ z, to_string z⟩
 meta instance : has_reflect ℤ := by tactic.mk_has_reflect_instance
 
 attribute [simp] int.coe_nat_add int.coe_nat_mul int.coe_nat_zero int.coe_nat_one int.coe_nat_succ
-attribute [simp] int.of_nat_eq_coe
+attribute [simp] int.of_nat_eq_coe int.bodd
 
 @[simp] theorem add_def {a b : ℤ} : int.add a b = a + b := rfl
 @[simp] theorem mul_def {a b : ℤ} : int.mul a b = a * b := rfl
@@ -163,6 +163,9 @@ by simp [neg_succ_of_nat_eq]
 
 lemma nat_abs_ne_zero_of_ne_zero {z : ℤ} (hz : z ≠ 0) : z.nat_abs ≠ 0 :=
 λ h, hz $ int.eq_zero_of_nat_abs_eq_zero h
+
+@[simp] lemma nat_abs_eq_zero {a : ℤ} : a.nat_abs = 0 ↔ a = 0 :=
+⟨int.eq_zero_of_nat_abs_eq_zero, λ h, h.symm ▸ rfl⟩
 
 /- /  -/
 
@@ -755,6 +758,9 @@ theorem to_nat_eq_max : ∀ (a : ℤ), (to_nat a : ℤ) = max a 0
 @[simp] theorem to_nat_of_nonneg {a : ℤ} (h : 0 ≤ a) : (to_nat a : ℤ) = a :=
 by rw [to_nat_eq_max, max_eq_left h]
 
+@[simp] lemma to_nat_sub_of_le (a b : ℤ) (h : b ≤ a) : (to_nat (a + -b) : ℤ) = a + - b :=
+int.to_nat_of_nonneg (sub_nonneg_of_le h)
+
 @[simp] theorem to_nat_coe_nat (n : ℕ) : to_nat ↑n = n := rfl
 
 theorem le_to_nat (a : ℤ) : a ≤ to_nat a :=
@@ -804,9 +810,11 @@ lemma units_inv_eq_self (u : units ℤ) : u⁻¹ = u :=
 @[simp] lemma bodd_one : bodd 1 = tt := rfl
 @[simp] lemma bodd_two : bodd 2 = ff := rfl
 
+@[simp, elim_cast] lemma bodd_coe (n : ℕ) : int.bodd n = nat.bodd n := rfl
+
 @[simp] lemma bodd_sub_nat_nat (m n : ℕ) : bodd (sub_nat_nat m n) = bxor m.bodd n.bodd :=
 by apply sub_nat_nat_elim m n (λ m n i, bodd i = bxor m.bodd n.bodd); intros;
-  simp [bodd, -of_nat_eq_coe]
+  simp; cases i.bodd; simp
 
 @[simp] lemma bodd_neg_of_nat (n : ℕ) : bodd (neg_of_nat n) = n.bodd :=
 by cases n; simp; refl
@@ -815,10 +823,12 @@ by cases n; simp; refl
 by cases n; simp [has_neg.neg, int.coe_nat_eq, int.neg, bodd, -of_nat_eq_coe]
 
 @[simp] lemma bodd_add (m n : ℤ) : bodd (m + n) = bxor (bodd m) (bodd n) :=
-by cases m with m m; cases n with n n; unfold has_add.add; simp [int.add, bodd, -of_nat_eq_coe]
+by cases m with m m; cases n with n n; unfold has_add.add;
+  simp [int.add, -of_nat_eq_coe, bool.bxor_comm]
 
 @[simp] lemma bodd_mul (m n : ℤ) : bodd (m * n) = bodd m && bodd n :=
-by cases m with m m; cases n with n n; unfold has_mul.mul; simp [int.mul, bodd, -of_nat_eq_coe]
+by cases m with m m; cases n with n n; unfold has_mul.mul;
+  simp [int.mul, -of_nat_eq_coe, bool.bxor_comm]
 
 theorem bodd_add_div2 : ∀ n, cond (bodd n) 1 0 + 2 * div2 n = n
 | (n : ℕ) :=
@@ -1040,6 +1050,10 @@ let ⟨lb, Plb, al⟩ := exists_least_of_bdd Hbdd' Hinh' in
 
 /- cast (injection into groups with one) -/
 
+-- We use the int.has_coe instance for the simp-normal form.
+-- Increase the priority so that it is used preferentially.
+attribute [priority 1001] int.has_coe
+
 @[simp] theorem nat_cast_eq_coe_nat : ∀ n,
   @coe ℕ ℤ (@coe_to_lift _ _ (@coe_base _ _ nat.cast_coe)) n =
   @coe ℕ ℤ (@coe_to_lift _ _ (@coe_base _ _ int.has_coe)) n
@@ -1061,9 +1075,9 @@ protected def cast : ℤ → α
 
 @[simp, squash_cast] theorem cast_zero : ((0 : ℤ) : α) = 0 := rfl
 
-@[simp] theorem cast_of_nat (n : ℕ) : (of_nat n : α) = n := rfl
+theorem cast_of_nat (n : ℕ) : (of_nat n : α) = n := rfl
 @[simp, squash_cast] theorem cast_coe_nat (n : ℕ) : ((n : ℤ) : α) = n := rfl
-@[simp] theorem cast_coe_nat' (n : ℕ) :
+theorem cast_coe_nat' (n : ℕ) :
   (@coe ℕ ℤ (@coe_to_lift _ _ (@coe_base _ _ nat.cast_coe)) n : α) = n :=
 by simp
 
@@ -1188,13 +1202,16 @@ funext $ int.eq_cast f (is_ring_hom.map_one f) (λ _ _, is_ring_hom.map_add f)
 @[simp, squash_cast] theorem cast_id (n : ℤ) : ↑n = n :=
 (eq_cast id rfl (λ _ _, rfl) n).symm
 
-@[simp, move_cast] theorem cast_min [decidable_linear_ordered_comm_ring α] {a b : ℤ} : (↑(min a b) : α) = min a b :=
+@[simp, move_cast] theorem cast_min [decidable_linear_ordered_comm_ring α] {a b : ℤ} :
+  (↑(min a b) : α) = min a b :=
 by by_cases a ≤ b; simp [h, min]
 
-@[simp, move_cast] theorem cast_max [decidable_linear_ordered_comm_ring α] {a b : ℤ} : (↑(max a b) : α) = max a b :=
+@[simp, move_cast] theorem cast_max [decidable_linear_ordered_comm_ring α] {a b : ℤ} :
+  (↑(max a b) : α) = max a b :=
 by by_cases a ≤ b; simp [h, max]
 
-@[simp, move_cast] theorem cast_abs [decidable_linear_ordered_comm_ring α] {q : ℤ} : ((abs q : ℤ) : α) = abs q :=
+@[simp, move_cast] theorem cast_abs [decidable_linear_ordered_comm_ring α] {q : ℤ} :
+  ((abs q : ℤ) : α) = abs q :=
 by simp [abs]
 
 end cast
@@ -1231,3 +1248,16 @@ int.decidable_le_le P _ _
 end decidable
 
 end int
+
+section ring_hom
+
+variables {α : Type*} {β : Type*} [ring α] [ring β]
+
+lemma is_ring_hom.map_int_cast (f : α → β) [is_ring_hom f] (n : ℤ) : f n = n :=
+int.eq_cast (λ n : ℤ, f n) (by simp [is_ring_hom.map_one f])
+  (by simp [is_ring_hom.map_add f]) _
+
+lemma ring_hom.map_int_cast (f : α →+* β) (n : ℤ) : f n = n :=
+is_ring_hom.map_int_cast _ _
+
+end ring_hom

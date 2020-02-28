@@ -31,7 +31,7 @@ variables [comm_ring α] [comm_ring β] [algebra α β]
 /-- Let B be an A-algebra, and x an element of B that is integral over A.
 The minimal polynomial of x is a monic polynomial of smallest degree that has x as its root. -/
 noncomputable def minimal_polynomial {x : β} (hx : is_integral α x) : polynomial α :=
-well_founded.min polynomial.degree_lt_wf _ (ne_empty_iff_exists_mem.mpr hx)
+well_founded.min polynomial.degree_lt_wf _ hx
 
 end min_poly_def
 
@@ -43,17 +43,17 @@ variables {x : β} (hx : is_integral α x)
 
 /--A minimal polynomial is monic.-/
 lemma monic : monic (minimal_polynomial hx) :=
-(well_founded.min_mem degree_lt_wf _ (ne_empty_iff_exists_mem.mpr hx)).1
+(well_founded.min_mem degree_lt_wf _ hx).1
 
 /--An element is a root of its minimal polynomial.-/
 @[simp] lemma aeval : aeval α β x (minimal_polynomial hx) = 0 :=
-(well_founded.min_mem degree_lt_wf _ (ne_empty_iff_exists_mem.mpr hx)).2
+(well_founded.min_mem degree_lt_wf _ hx).2
 
 /--The defining property of the minimal polynomial of an element x:
 it is the monic polynomial with smallest degree that has x as its root.-/
 lemma min {p : polynomial α} (pmonic : p.monic) (hp : polynomial.aeval α β x p = 0) :
   degree (minimal_polynomial hx) ≤ degree p :=
-le_of_not_lt $ well_founded.not_lt_min degree_lt_wf _ (ne_empty_iff_exists_mem.mpr hx) ⟨pmonic, hp⟩
+le_of_not_lt $ well_founded.not_lt_min degree_lt_wf _ hx ⟨pmonic, hp⟩
 
 end ring
 
@@ -155,7 +155,7 @@ begin
     rwa [← with_bot.coe_one, with_bot.coe_le_coe], },
   apply degree_pos_of_root (ne_zero_of_monic hq),
   show is_root q a,
-  apply is_field_hom.injective (algebra_map β : α → β),
+  apply is_ring_hom.injective (algebra_map β : α → β),
   rw [is_ring_hom.map_zero (algebra_map β : α → β), ← H],
   convert polynomial.hom_eval₂ _ _ _ _,
   { exact is_semiring_hom.id },
@@ -166,7 +166,7 @@ variable (β)
 /--If L/K is a field extension, and x is an element of L in the image of K,
 then the minimal polynomial of x is X - C x.-/
 lemma algebra_map' (a : α) :
-  minimal_polynomial (@is_integral_algebra_map α β _ _ _ _ _ a) =
+  minimal_polynomial (@is_integral_algebra_map α β _ _ _ a) =
   X - C a :=
 minimal_polynomial.algebra_map _ _
 variable {β}
@@ -192,16 +192,19 @@ begin
   { rw ← polynomial.degree_eq_iff_nat_degree_eq_of_pos (nat.zero_lt_one),
     exact degree_eq_one_of_irreducible_of_root (irreducible hx) h },
   have coeff_one : (minimal_polynomial hx).coeff 1 = 1,
-  { simpa [ndeg_one, leading_coeff] using (monic hx).leading_coeff },
+  { simpa only [ndeg_one, leading_coeff] using (monic hx).leading_coeff },
   have hy : y = - coeff (minimal_polynomial hx) 0,
   { rw (minimal_polynomial hx).as_sum at h,
     apply eq_neg_of_add_eq_zero,
-    simpa [ndeg_one, finset.sum_range_succ, coeff_one] using h },
+    simpa only [ndeg_one, coeff_one, C_1, eval_C, eval_X, eval_add, mul_one, one_mul, pow_zero, pow_one,
+      is_root.def, finset.sum_range_succ, finset.insert_empty_eq_singleton, finset.sum_singleton, finset.range_one] using h, },
   subst y,
   rw [algebra.map_neg, neg_eq_iff_add_eq_zero],
   have H := aeval hx,
   rw (minimal_polynomial hx).as_sum at H,
-  simpa [ndeg_one, finset.sum_range_succ, coeff_one, aeval_def] using H
+  simpa only [ndeg_one, coeff_one, aeval_def, C_1, eval₂_add, eval₂_C, eval₂_X,
+    mul_one, one_mul, pow_one, pow_zero, add_comm,
+    finset.sum_range_succ, finset.insert_empty_eq_singleton, finset.sum_singleton, finset.range_one] using H,
 end
 
 /--The constant coefficient of the minimal polynomial of x is 0

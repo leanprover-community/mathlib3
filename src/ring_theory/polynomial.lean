@@ -8,7 +8,7 @@ Ring-theoretic supplement of data.polynomial.
 Main result: Hilbert basis theorem, that if a ring is noetherian then so is its polynomial ring.
 -/
 
-import data.polynomial data.mv_polynomial
+import data.equiv.fin data.polynomial data.mv_polynomial
 import ring_theory.subring
 import ring_theory.ideals ring_theory.noetherian
 
@@ -19,7 +19,7 @@ universes u v w
 
 namespace polynomial
 
-variables (R : Type u) [comm_ring R] [decidable_eq R]
+variables (R : Type u) [comm_ring R]
 
 /-- The `R`-submodule of `R[X]` consisting of polynomials of degree ≤ `n`. -/
 def degree_le (n : with_bot ℕ) : submodule R (polynomial R) :=
@@ -131,7 +131,7 @@ def of_subring (p : polynomial T) : polynomial R :=
 
 end polynomial
 
-variables {R : Type u} [comm_ring R] [decidable_eq R]
+variables {R : Type u} {σ : Type v} [comm_ring R]
 
 namespace ideal
 open polynomial
@@ -225,12 +225,12 @@ is_noetherian_submodule_left.1 (is_noetherian_of_fg_of_noetherian _
 
 end ideal
 
-/-- Hilbert basis theorem. -/
-theorem is_noetherian_ring_polynomial [is_noetherian_ring R] : is_noetherian_ring (polynomial R) :=
+/-- Hilbert basis theorem: a polynomial ring over a noetherian ring is a noetherian ring. -/
+protected theorem polynomial.is_noetherian_ring [is_noetherian_ring R] : is_noetherian_ring (polynomial R) :=
 ⟨assume I : ideal (polynomial R),
 let L := I.leading_coeff in
 let M := well_founded.min (is_noetherian_iff_well_founded.1 (by apply_instance))
-  (set.range I.leading_coeff_nth) (set.ne_empty_of_mem ⟨0, rfl⟩) in
+  (set.range I.leading_coeff_nth) ⟨_, ⟨0, rfl⟩⟩ in
 have hm : M ∈ set.range I.leading_coeff_nth := well_founded.min_mem _ _ _,
 let ⟨N, HN⟩ := hm, ⟨s, hs⟩ := I.is_fg_degree_le N in
 have hm2 : ∀ k, I.leading_coeff_nth k ≤ M := λ k, or.cases_on (le_or_lt k N)
@@ -284,13 +284,19 @@ from hs ▸ λ x hx, submodule.span_induction hx (λ _ hx, ideal.subset_span hx)
     exact hs2 ⟨polynomial.mem_degree_le.2 hdq, hq⟩ }
 end⟩⟩
 
-theorem is_noetherian_ring_mv_polynomial_fin {n : ℕ} [is_noetherian_ring R] :
+attribute [instance] polynomial.is_noetherian_ring
+
+namespace mv_polynomial
+
+theorem is_noetherian_ring_fin {n : ℕ} [is_noetherian_ring R] :
   is_noetherian_ring (mv_polynomial (fin n) R) :=
 begin
   induction n with n ih,
-  { exact is_noetherian_ring_of_ring_equiv R
-      ((mv_polynomial.pempty_ring_equiv R).symm.trans $ mv_polynomial.ring_equiv_of_equiv _
-        ⟨pempty.elim, fin.elim0, λ x, pempty.elim x, λ x, fin.elim0 x⟩) },
+  { apply is_noetherian_ring_of_ring_equiv R,
+    refine (mv_polynomial.pempty_ring_equiv R).symm.trans _,
+    refine mv_polynomial.ring_equiv_of_equiv _ _,
+    exact ⟨pempty.elim, fin.elim0, λ x, pempty.elim x, λ x, fin.elim0 x⟩ },
+  resetI,
   exact @is_noetherian_ring_of_ring_equiv (polynomial (mv_polynomial (fin n) R)) _
     (mv_polynomial (fin (n+1)) R) _
     ((mv_polynomial.option_equiv_left _ _).symm.trans (mv_polynomial.ring_equiv_of_equiv _
@@ -298,11 +304,81 @@ begin
       by rintro ⟨none | x⟩; [refl, exact fin.cases_succ _],
       λ x, fin.cases rfl (λ i, show (option.rec_on (fin.cases none some (fin.succ i) : option (fin n))
         0 fin.succ : fin n.succ) = _, by rw fin.cases_succ) x⟩))
-    (@@is_noetherian_ring_polynomial _ _ ih)
+    (by apply_instance)
 end
 
-theorem is_noetherian_ring_mv_polynomial_of_fintype {σ : Type v} [fintype σ] [decidable_eq σ]
-  [is_noetherian_ring R] : is_noetherian_ring (mv_polynomial σ R) :=
+/-- The multivariate polynomial ring in finitely many variables over a noetherian ring
+is itself a noetherian ring. -/
+instance is_noetherian_ring [fintype σ] [is_noetherian_ring R] :
+  is_noetherian_ring (mv_polynomial σ R) :=
 trunc.induction_on (fintype.equiv_fin σ) $ λ e,
 @is_noetherian_ring_of_ring_equiv (mv_polynomial (fin (fintype.card σ)) R) _ _ _
-  (mv_polynomial.ring_equiv_of_equiv _ e.symm) is_noetherian_ring_mv_polynomial_fin
+  (mv_polynomial.ring_equiv_of_equiv _ e.symm) is_noetherian_ring_fin
+
+/-- Auxilliary lemma:
+Multivariate polynomials over an integral domain
+with variables indexed by `fin n` form an integral domain.
+This fact is proven inductively,
+and then used to prove the general case without any finiteness hypotheses.
+See `mv_polynomial.integral_domain` for the general case. -/
+lemma is_integral_domain_fin (R : Type u) [comm_ring R] (hR : is_integral_domain R) (n : ℕ) :
+  is_integral_domain (mv_polynomial (fin n) R) :=
+begin
+  induction n with n ih,
+  { let e : mv_polynomial (fin 0) R ≃+* R :=
+      (ring_equiv_of_equiv R fin_zero_equiv').trans (mv_polynomial.pempty_ring_equiv R),
+    exact ring_equiv.is_integral_domain R hR e },
+  let e : mv_polynomial (fin (n.succ)) R ≃+* polynomial (mv_polynomial (fin n) R) :=
+    (ring_equiv_of_equiv R $ fin_succ_equiv n).trans (option_equiv_left R (fin n)),
+  refine ring_equiv.is_integral_domain (polynomial (mv_polynomial (fin n) R)) _ e,
+  letI _ih := @is_integral_domain.to_integral_domain (mv_polynomial (fin n) R) _ ih,
+  letI _id := @polynomial.integral_domain _ _ih,
+  exact @integral_domain.to_is_integral_domain _ _id,
+end
+
+lemma is_integral_domain_fintype (R : Type u) (σ : Type v) [comm_ring R] [fintype σ]
+  (hR : is_integral_domain R) : is_integral_domain (mv_polynomial σ R) :=
+trunc.induction_on (fintype.equiv_fin σ) $ λ e,
+@ring_equiv.is_integral_domain _ (mv_polynomial (fin $ fintype.card σ) R) _ _
+  (mv_polynomial.is_integral_domain_fin _ hR _)
+  (ring_equiv_of_equiv R e)
+
+/-- Auxilliary definition:
+Multivariate polynomials in finitely many variables over an integral domain form an integral domain.
+This fact is proven by transport of structure from the `mv_polynomial.integral_domain_fin`,
+and then used to prove the general case without finiteness hypotheses.
+See `mv_polynomial.integral_domain` for the general case. -/
+def integral_domain_fintype (R : Type u) (σ : Type v) [integral_domain R] [fintype σ] :
+  integral_domain (mv_polynomial σ R) :=
+@is_integral_domain.to_integral_domain _ _ $ mv_polynomial.is_integral_domain_fintype R σ $
+integral_domain.to_is_integral_domain R
+
+protected theorem eq_zero_or_eq_zero_of_mul_eq_zero {R : Type u} [integral_domain R] {σ : Type v}
+  (p q : mv_polynomial σ R) (h : p * q = 0) : p = 0 ∨ q = 0 :=
+begin
+  obtain ⟨s, p, rfl⟩ := exists_finset_rename p,
+  obtain ⟨t, q, rfl⟩ := exists_finset_rename q,
+  have : p.rename (subtype.map id (finset.subset_union_left s t) : {x // x ∈ s} → {x // x ∈ s ∪ t}) *
+    q.rename (subtype.map id (finset.subset_union_right s t)) = 0,
+  { apply injective_rename _ subtype.val_injective, simpa using h },
+  letI := mv_polynomial.integral_domain_fintype R {x // x ∈ (s ∪ t)},
+  rw mul_eq_zero at this,
+  cases this; [left, right],
+  all_goals { simpa using congr_arg (rename subtype.val) this }
+end
+
+/-- The multivariate polynomial ring over an integral domain is an integral domain. -/
+instance {R : Type u} {σ : Type v} [integral_domain R] :
+  integral_domain (mv_polynomial σ R) :=
+{ eq_zero_or_eq_zero_of_mul_eq_zero := mv_polynomial.eq_zero_or_eq_zero_of_mul_eq_zero,
+  zero_ne_one :=
+  begin
+    intro H,
+    have : eval₂ id (λ s, (0:R)) (0 : mv_polynomial σ R) =
+      eval₂ id (λ s, (0:R)) (1 : mv_polynomial σ R),
+    { congr, exact H },
+    simpa,
+  end,
+  .. (by apply_instance : comm_ring (mv_polynomial σ R)) }
+
+end mv_polynomial

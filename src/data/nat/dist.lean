@@ -16,7 +16,7 @@ def dist (n m : ℕ) := (n - m) + (m - n)
 
 theorem dist.def (n m : ℕ) : dist n m = (n - m) + (m - n) := rfl
 
-@[simp] theorem dist_comm (n m : ℕ) : dist n m = dist m n :=
+theorem dist_comm (n m : ℕ) : dist n m = dist m n :=
 by simp [dist.def]
 
 @[simp] theorem dist_self (n : ℕ) : dist n n = 0 :=

@@ -47,13 +47,15 @@ def unop : αᵒᵖ → α := id
 lemma op_inj : function.injective (op : α → αᵒᵖ) := λ _ _, id
 lemma unop_inj : function.injective (unop : αᵒᵖ → α) := λ _ _, id
 
-@[simp] lemma op_inj_iff (x y : α) : op x = op y ↔ x = y := iff.refl _
-@[simp] lemma unop_inj_iff (x y : αᵒᵖ) : unop x = unop y ↔ x = y := iff.refl _
+@[simp] lemma op_inj_iff (x y : α) : op x = op y ↔ x = y := iff.rfl
+@[simp] lemma unop_inj_iff (x y : αᵒᵖ) : unop x = unop y ↔ x = y := iff.rfl
 
 @[simp] lemma op_unop (x : αᵒᵖ) : op (unop x) = x := rfl
 @[simp] lemma unop_op (x : α) : unop (op x) = x := rfl
 
 attribute [irreducible] opposite
+
+instance [inhabited α] : inhabited αᵒᵖ := ⟨op (default _)⟩
 
 def op_induction {F : Π (X : αᵒᵖ), Sort v} (h : Π X, F (op X)) : Π X, F X :=
 λ X, h (unop X)

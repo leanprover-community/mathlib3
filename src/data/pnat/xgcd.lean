@@ -32,7 +32,7 @@ open nat pnat
  [[w, x], [y, z]] = [[wp + 1, x], [y, zp + 1]]
  together with the vector [a, b] = [ap + 1, bp + 1].
 -/
-
+@[derive inhabited]
 structure xgcd_type :=
 (wp x y zp ap bp : ℕ)
 

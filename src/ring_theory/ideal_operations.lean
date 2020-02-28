@@ -134,10 +134,10 @@ le_antisymm (smul_le.2 $ λ r hrij n hn, let ⟨ri, hri, rj, hrj, hrijr⟩ := me
 theorem smul_assoc : (I • J) • N = I • (J • N) :=
 le_antisymm (smul_le.2 $ λ rs hrsij t htn,
   smul_induction_on hrsij
-  (λ r hr s hs, (@smul_eq_mul R _ r s).symm ▸ smul_smul _ r s t ▸ smul_mem_smul hr (smul_mem_smul hs htn))
+  (λ r hr s hs, (@smul_eq_mul R _ r s).symm ▸ smul_smul r s t ▸ smul_mem_smul hr (smul_mem_smul hs htn))
   ((zero_smul R t).symm ▸ submodule.zero_mem _)
   (λ x y, (add_smul x y t).symm ▸ submodule.add_mem _)
-  (λ r s h, (@smul_eq_mul R _ r s).symm ▸ smul_smul _ r s t ▸ submodule.smul_mem _ _ h))
+  (λ r s h, (@smul_eq_mul R _ r s).symm ▸ smul_smul r s t ▸ submodule.smul_mem _ _ h))
 (smul_le.2 $ λ r hr sn hsn, suffices J • N ≤ submodule.comap (r • linear_map.id) ((I • J) • N), from this hsn,
 smul_le.2 $ λ s hs n hn, show r • (s • n) ∈ (I • J) • N, from mul_smul r s n ▸ smul_mem_smul (smul_mem_smul hr hs) hn)
 
@@ -182,9 +182,9 @@ begin
     { split_ifs with h, { apply hg1 }, rw sub_self, exact (f i).zero_mem },
     { intros hjs hji, rw dif_pos, { apply hg2 }, exact ⟨hjs, hji⟩ } },
   rcases this with ⟨g, hgi, hgj⟩, use (s.erase i).prod g, split,
-  { rw [← quotient.eq, quotient.mk_one, ← finset.prod_hom (quotient.mk (f i))],
+  { rw [← quotient.eq, quotient.mk_one, ← finset.prod_hom _ (quotient.mk (f i))],
     apply finset.prod_eq_one, intros, rw [← quotient.mk_one, quotient.eq], apply hgi },
-  intros j hjs hji, rw [← quotient.eq_zero_iff_mem, ← finset.prod_hom (quotient.mk (f j))],
+  intros j hjs hji, rw [← quotient.eq_zero_iff_mem, ← finset.prod_hom _ (quotient.mk (f j))],
   refine finset.prod_eq_zero (finset.mem_erase_of_ne_of_mem hji hjs) _,
   rw quotient.eq_zero_iff_mem, exact hgj j hjs hji
 end
@@ -201,7 +201,7 @@ begin
   rcases this with ⟨φ, hφ1, hφ2⟩,
   use finset.univ.sum (λ i, g i * φ i),
   intros i,
-  rw [← quotient.eq, ← finset.sum_hom (quotient.mk (f i))],
+  rw [← quotient.eq, ← finset.univ.sum_hom (quotient.mk (f i))],
   refine eq.trans (finset.sum_eq_single i _ _) _,
   { intros j _ hji, rw quotient.eq_zero_iff_mem, exact (f i).mul_mem_left (hφ2 j i hji) },
   { intros hi, exact (hi $ finset.mem_univ i).elim },
@@ -314,6 +314,7 @@ begin
   exact le_trans (mul_le_inf) (lattice.inf_le_left)
 end
 
+/-- The radical of an ideal `I` consists of the elements `r` such that `r^n ∈ I` for some `n`. -/
 def radical (I : ideal R) : ideal R :=
 { carrier := { r | ∃ n : ℕ, r ^ n ∈ I },
   zero := ⟨1, (pow_one (0:R)).symm ▸ I.zero_mem⟩,
@@ -417,6 +418,7 @@ variables {I J : ideal R} {K L : ideal S}
 def map (I : ideal R) : ideal S :=
 span (f '' I)
 
+/-- `I.comap f` is the preimage of `I` under `f`. -/
 def comap (I : ideal S) : ideal R :=
 { carrier := f ⁻¹' I,
   zero := show f 0 ∈ I, by rw is_ring_hom.map_zero f; exact I.zero_mem,
@@ -444,7 +446,7 @@ theorem comap_ne_top (hK : K ≠ ⊤) : comap f K ≠ ⊤ :=
 (ne_top_iff_one _).2 $ by rw [mem_comap, is_ring_hom.map_one f];
   exact (ne_top_iff_one _).1 hK
 
-instance is_prime.comap {hK : K.is_prime} : (comap f K).is_prime :=
+instance is_prime.comap [hK : K.is_prime] : (comap f K).is_prime :=
 ⟨comap_ne_top _ hK.1, λ x y,
   by simp only [mem_comap, is_ring_hom.map_mul f]; apply hK.2⟩
 

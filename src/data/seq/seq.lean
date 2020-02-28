@@ -34,6 +34,8 @@ variables {α : Type u} {β : Type v} {γ : Type w}
 /-- The empty sequence -/
 def nil : seq α := ⟨stream.const none, λn h, rfl⟩
 
+instance : inhabited (seq α) := ⟨nil⟩
+
 /-- Prepend an element to a sequence -/
 def cons (a : α) : seq α → seq α
 | ⟨f, al⟩ := ⟨some a :: f, λn h, by {cases n with n, contradiction, exact al h}⟩
@@ -626,7 +628,7 @@ by rw add_comm; symmetry; apply dropn_add
 theorem nth_tail : ∀ (s : seq α) n, nth (tail s) n = nth s (n + 1)
 | ⟨f, al⟩ n := rfl
 
-@[extensionality]
+@[ext]
 protected lemma ext (s s': seq α) (hyp : ∀ (n : ℕ), s.nth n = s'.nth n) : s = s' :=
 begin
   let ext := (λ (s s' : seq α), ∀ n, s.nth n = s'.nth n),
@@ -711,6 +713,8 @@ by dsimp [join]; rw [destruct_cons]; refl
 /-- The `return` operator for the `seq1` monad,
   which produces a singleton sequence. -/
 def ret (a : α) : seq1 α := (a, nil)
+
+instance [inhabited α] : inhabited (seq1 α) := ⟨ret (default _)⟩
 
 /-- The `bind` operator for the `seq1` monad,
   which maps `f` on each element of `s` and appends the results together.

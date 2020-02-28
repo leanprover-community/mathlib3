@@ -36,13 +36,11 @@ Installing mathlib supporting tools
 
 At a terminal, run the command
   ```bash
-  curl https://raw.githubusercontent.com/leanprover-community/mathlib-tools/master/scripts/remote-install-update-mathlib.sh -sSf | bash
+  brew install python3
+  sudo pip3 install mathlibtools
   ```
-If the script asks you whether you want to install `python3` and `pip3`, type `y`.
 
 This will install tools that, amongst other things, let you download compiled binaries for mathlib.
-
-Then run `source ~/.profile`, so that your environment knows about `update-mathlib`.
 
 Installing and configuring an editor
 ---

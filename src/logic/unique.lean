@@ -19,7 +19,7 @@ instance punit.unique : unique punit.{u} :=
 
 instance fin.unique : unique (fin 1) :=
 { default := 0,
-  uniq := λ ⟨n, hn⟩, fin.eq_of_veq 
+  uniq := λ ⟨n, hn⟩, fin.eq_of_veq
     (nat.eq_zero_of_le_zero (nat.le_of_lt_succ hn)) }
 
 namespace unique
@@ -29,12 +29,14 @@ section
 
 variables [unique α]
 
+@[priority 100] -- see Note [lower instance priority]
 instance : inhabited α := to_inhabited ‹unique α›
 
 lemma eq_default (a : α) : a = default α := uniq _ a
 
 lemma default_eq (a : α) : default α = a := (uniq _ a).symm
 
+@[priority 100] -- see Note [lower instance priority]
 instance : subsingleton α := ⟨λ a b, by rw [eq_default a, eq_default b]⟩
 
 lemma forall_iff {p : α → Prop} : (∀ a, p a) ↔ p (default α) :=

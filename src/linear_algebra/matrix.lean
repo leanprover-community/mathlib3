@@ -24,7 +24,7 @@ diagonal matrix (range, ker and rank).
 
 ## Main definitions
 
-to_lin, to_matrix, lin_equiv_matrix
+to_lin, to_matrix, linear_equiv_matrix
 
 ## Tags
 
@@ -36,7 +36,7 @@ noncomputable theory
 
 open set submodule
 
-universes u v
+universes u v w
 variables {l m n : Type u} [fintype l] [fintype m] [fintype n]
 
 namespace matrix
@@ -100,6 +100,9 @@ begin
   rw [mul_assoc]
 end
 
+@[simp] lemma to_lin_one [decidable_eq n] : (1 : matrix n n R).to_lin = linear_map.id :=
+by { ext, simp }
+
 end matrix
 
 namespace linear_map
@@ -119,7 +122,7 @@ def to_matrix [decidable_eq n] : ((n → R) →ₗ[R] (m → R)) → matrix m n 
 
 end linear_map
 
-section lin_equiv_matrix
+section linear_equiv_matrix
 
 variables {R : Type v} [comm_ring R] [decidable_eq n]
 
@@ -165,7 +168,7 @@ begin
 end
 
 /-- Linear maps (n → R) →ₗ[R] (m → R) are linearly equivalent to matrix  m n R. -/
-def lin_equiv_matrix' : ((n → R) →ₗ[R] (m → R)) ≃ₗ[R] matrix m n R :=
+def linear_equiv_matrix' : ((n → R) →ₗ[R] (m → R)) ≃ₗ[R] matrix m n R :=
 { to_fun := to_matrix,
   inv_fun := to_lin,
   right_inv := λ _, to_lin_to_matrix,
@@ -175,17 +178,62 @@ def lin_equiv_matrix' : ((n → R) →ₗ[R] (m → R)) ≃ₗ[R] matrix m n R :
 
 /-- Given a basis of two modules M₁ and M₂ over a commutative ring R, we get a linear equivalence
 between linear maps M₁ →ₗ M₂ and matrices over R indexed by the bases. -/
-def lin_equiv_matrix {ι κ M₁ M₂ : Type*}
+def linear_equiv_matrix {ι κ M₁ M₂ : Type*}
   [add_comm_group M₁] [module R M₁]
   [add_comm_group M₂] [module R M₂]
   [fintype ι] [decidable_eq ι] [fintype κ] [decidable_eq κ]
   {v₁ : ι → M₁} {v₂ : κ → M₂} (hv₁ : is_basis R v₁) (hv₂ : is_basis R v₂) :
   (M₁ →ₗ[R] M₂) ≃ₗ[R] matrix κ ι R :=
-linear_equiv.trans (linear_equiv.arrow_congr (equiv_fun_basis hv₁) (equiv_fun_basis hv₂)) lin_equiv_matrix'
+linear_equiv.trans (linear_equiv.arrow_congr (equiv_fun_basis hv₁) (equiv_fun_basis hv₂)) linear_equiv_matrix'
 
-end lin_equiv_matrix
+end linear_equiv_matrix
 
 namespace matrix
+open_locale matrix
+
+section trace
+
+variables {R : Type v} {M : Type w} [ring R] [add_comm_group M] [module R M]
+
+/--
+The diagonal of a square matrix.
+-/
+def diag (n : Type u) (R : Type v) (M : Type w)
+  [ring R] [add_comm_group M] [module R M] [fintype n] : (matrix n n M) →ₗ[R] n → M := {
+  to_fun := λ A i, A i i,
+  add    := by { intros, ext, refl, },
+  smul   := by { intros, ext, refl, } }
+
+@[simp] lemma diag_one [decidable_eq n] :
+  diag n R R 1 = λ i, 1 := by { dunfold diag, ext, simp [one_val_eq] }
+
+@[simp] lemma diag_transpose (A : matrix n n M) : diag n R M Aᵀ = diag n R M A := rfl
+
+/--
+The trace of a square matrix.
+-/
+def trace (n : Type u) (R : Type v) (M : Type w)
+  [ring R] [add_comm_group M] [module R M] [fintype n] : (matrix n n M) →ₗ[R] M := {
+  to_fun := finset.univ.sum ∘ (diag n R M),
+  add    := by { intros, apply finset.sum_add_distrib, },
+  smul   := by { intros, simp [finset.smul_sum], } }
+
+@[simp] lemma trace_one [decidable_eq n] :
+  trace n R R 1 = fintype.card n :=
+have h : trace n R R 1 = finset.univ.sum (diag n R R 1) := rfl,
+by rw [h, diag_one, finset.sum_const, add_monoid.smul_one]; refl
+
+@[simp] lemma trace_transpose (A : matrix n n M) : trace n R M Aᵀ = trace n R M A := rfl
+
+@[simp] lemma trace_transpose_mul [decidable_eq n] (A : matrix m n R) (B : matrix n m R) :
+  trace n R R (Aᵀ ⬝ Bᵀ) = trace m R R (A ⬝ B) := finset.sum_comm
+
+lemma trace_mul_comm {S : Type v} [comm_ring S] [decidable_eq n]
+  (A : matrix m n S) (B : matrix n m S) :
+  trace n S S (B ⬝ A) = trace m S S (A ⬝ B) :=
+by rw [←trace_transpose, ←trace_transpose_mul, transpose_mul]
+
+end trace
 
 section ring
 

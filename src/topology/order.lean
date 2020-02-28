@@ -24,9 +24,7 @@ related as follows:
     iff coinduced f t ≤ u             (`continuous_iff_coinduced_le`).
 
 Topologies on α form a complete lattice, with ⊥ the discrete topology
-and ⊤ the indiscrete topology. We use this complete lattice to equip
-subtypes, quotients, sums and products of topological spaces with their
-usual topologies.
+and ⊤ the indiscrete topology.
 
 For a function f : α → β, (coinduced f, induced f) is a Galois connection
 between topologies on α and topologies on β.
@@ -38,12 +36,13 @@ and all collections of sets in α. The complete lattice structure on topologies
 on α is defined as the reverse of the one obtained via this Galois insertion.
 
 ## Tags
-finer, coarser
+
+finer, coarser, induced topology, coinduced topology
 
 -/
 
 open set filter lattice classical
-open_locale classical
+open_locale classical topological_space
 
 universes u v w
 
@@ -103,7 +102,7 @@ begin
   letI := topological_space.mk_of_nhds n,
   refine le_antisymm (assume s hs, _) (assume s hs, _),
   { have h₀ : {b | s ∈ n b} ⊆ s := assume b hb, mem_pure_sets.1 $ h₀ b hb,
-    have h₁ : {b | s ∈ n b} ∈ nhds a,
+    have h₁ : {b | s ∈ n b} ∈ 𝓝 a,
     { refine mem_nhds_sets (assume b (hb : s ∈ n b), _) hs,
       rcases h₁ hb with ⟨t, ht, hts, h⟩,
       exact mem_sets_of_superset ht h },
@@ -204,11 +203,9 @@ lemma continuous_of_discrete_topology [topological_space α] [discrete_topology 
 
 lemma nhds_bot (α : Type*) : (@nhds α ⊥) = pure :=
 begin
-  ext a s,
-  rw [mem_nhds_sets_iff, mem_pure_iff],
-  split,
-  { exact assume ⟨t, ht, _, hta⟩, ht hta },
-  { exact assume h, ⟨{a}, set.singleton_subset_iff.2 h, trivial, set.mem_singleton a⟩ }
+  refine le_antisymm _ (@pure_le_nhds α ⊥),
+  assume a s hs,
+  exact @mem_nhds_sets α ⊥ a s trivial hs
 end
 
 lemma nhds_discrete (α : Type*) [topological_space α] [discrete_topology α] : (@nhds α _) = pure :=
@@ -226,9 +223,7 @@ le_antisymm
   (le_of_nhds_le_nhds $ assume x, le_of_eq $ (h x).symm)
 
 lemma eq_bot_of_singletons_open {t : topological_space α} (h : ∀ x, t.is_open {x}) : t = ⊥ :=
-bot_unique  $ le_of_nhds_le_nhds $ assume x,
-  have nhds x ≤ pure x, from nhds_le_of_le (mem_singleton _) (h x) (by simp),
-  le_trans this (@pure_le_nhds _ ⊥ x)
+bot_unique $ λ s hs, bUnion_of_singleton s ▸ is_open_bUnion (λ x _, h x)
 
 end lattice
 
@@ -256,7 +251,7 @@ def topological_space.induced {α : Type u} {β : Type v} (f : α → β) (t : t
 
 lemma is_open_induced_iff [t : topological_space β] {s : set α} {f : α → β} :
   @is_open α (t.induced f) s ↔ (∃t, is_open t ∧ f ⁻¹' t = s) :=
-iff.refl _
+iff.rfl
 
 lemma is_closed_induced_iff [t : topological_space β] {s : set α} {f : α → β} :
   @is_closed α (t.induced f) s ↔ (∃t, is_closed t ∧ s = f ⁻¹' t) :=
@@ -278,7 +273,7 @@ def topological_space.coinduced {α : Type u} {β : Type v} (f : α → β) (t :
 
 lemma is_open_coinduced {t : topological_space α} {s : set β} {f : α → β} :
   @is_open β (topological_space.coinduced f t) s ↔ is_open (f ⁻¹' s) :=
-iff.refl _
+iff.rfl
 
 variables {t t₁ t₂ : topological_space α} {t' : topological_space β} {f : α → β} {g : β → α}
 
@@ -360,42 +355,6 @@ instance : discrete_topology ℤ := ⟨rfl⟩
 instance sierpinski_space : topological_space Prop :=
 generate_from {{true}}
 
-instance {p : α → Prop} [t : topological_space α] : topological_space (subtype p) :=
-induced subtype.val t
-
-instance {r : α → α → Prop} [t : topological_space α] : topological_space (quot r) :=
-coinduced (quot.mk r) t
-
-instance {s : setoid α} [t : topological_space α] : topological_space (quotient s) :=
-coinduced quotient.mk t
-
-instance [t₁ : topological_space α] [t₂ : topological_space β] : topological_space (α × β) :=
-induced prod.fst t₁ ⊓ induced prod.snd t₂
-
-instance [t₁ : topological_space α] [t₂ : topological_space β] : topological_space (α ⊕ β) :=
-coinduced sum.inl t₁ ⊔ coinduced sum.inr t₂
-
-instance {β : α → Type v} [t₂ : Πa, topological_space (β a)] : topological_space (sigma β) :=
-⨆a, coinduced (sigma.mk a) (t₂ a)
-
-instance Pi.topological_space {β : α → Type v} [t₂ : Πa, topological_space (β a)] :
-  topological_space (Πa, β a) :=
-⨅a, induced (λf, f a) (t₂ a)
-
-lemma quotient_dense_of_dense [setoid α] [topological_space α] {s : set α} (H : ∀ x, x ∈ closure s) :
-  closure (quotient.mk '' s) = univ :=
-eq_univ_of_forall $ λ x, begin
-  rw mem_closure_iff,
-  intros U U_op x_in_U,
-  let V := quotient.mk ⁻¹' U,
-  cases quotient.exists_rep x with y y_x,
-  have y_in_V : y ∈ V, by simp only [mem_preimage, y_x, x_in_U],
-  have V_op : is_open V := U_op,
-  have : V ∩ s ≠ ∅ := mem_closure_iff.1 (H y) V V_op y_in_V,
-  rcases exists_mem_of_ne_empty this with ⟨w, w_in_V, w_in_range⟩,
-  exact ne_empty_of_mem ⟨w_in_V, mem_image_of_mem quotient.mk w_in_range⟩
-end
-
 lemma le_generate_from {t : topological_space α} { g : set (set α) } (h : ∀s∈g, is_open s) :
   t ≤ generate_from g :=
 le_generate_from_iff_subset_is_open.2 h
@@ -432,19 +391,6 @@ lemma nhds_inf {t₁ t₂ : topological_space α} {a : α} :
   @nhds α (t₁ ⊓ t₂) a = @nhds α t₁ a ⊓ @nhds α t₂ a := (gc_nhds a).u_inf
 
 lemma nhds_top {a : α} : @nhds α ⊤ a = ⊤ := (gc_nhds a).u_top
-
-instance {p : α → Prop} [topological_space α] [discrete_topology α] :
-  discrete_topology (subtype p) :=
-⟨bot_unique $ assume s hs,
-  ⟨subtype.val '' s, is_open_discrete _, (set.preimage_image_eq _ subtype.val_injective)⟩⟩
-
-instance sum.discrete_topology [topological_space α] [topological_space β]
-  [hα : discrete_topology α] [hβ : discrete_topology β] : discrete_topology (α ⊕ β) :=
-⟨by unfold sum.topological_space; simp [hα.eq_bot, hβ.eq_bot]⟩
-
-instance sigma.discrete_topology {β : α → Type v} [Πa, topological_space (β a)]
-  [h : Πa, discrete_topology (β a)] : discrete_topology (sigma β) :=
-⟨by { unfold sigma.topological_space, simp [λ a, (h a).eq_bot] }⟩
 
 local notation `cont` := @continuous _ _
 local notation `tspace` := topological_space
@@ -549,12 +495,12 @@ continuous_iff_le_induced.2 $ bot_le
 lemma continuous_top {t : tspace α} : cont t ⊤ f :=
 continuous_iff_coinduced_le.2 $ le_top
 
-/- nhds in the induced topology -/
+/- 𝓝 in the induced topology -/
 
 theorem mem_nhds_induced [T : topological_space α] (f : β → α) (a : β) (s : set β) :
-  s ∈ @nhds β (topological_space.induced f T) a ↔ ∃ u ∈ nhds (f a), f ⁻¹' u ⊆ s :=
+  s ∈ @nhds β (topological_space.induced f T) a ↔ ∃ u ∈ 𝓝 (f a), f ⁻¹' u ⊆ s :=
 begin
-  simp only [nhds_sets, is_open_induced_iff, exists_prop, set.mem_set_of_eq],
+  simp only [mem_nhds_sets_iff, is_open_induced_iff, exists_prop, set.mem_set_of_eq],
   split,
   { rintros ⟨u, usub, ⟨v, openv, ueq⟩, au⟩,
     exact ⟨v, ⟨v, set.subset.refl v, openv, by rwa ←ueq at au⟩, by rw ueq; exact usub⟩ },
@@ -563,35 +509,17 @@ begin
 end
 
 theorem nhds_induced [T : topological_space α] (f : β → α) (a : β) :
-  @nhds β (topological_space.induced f T) a = comap f (nhds (f a)) :=
+  @nhds β (topological_space.induced f T) a = comap f (𝓝 (f a)) :=
 filter_eq $ by ext s; rw mem_nhds_induced; rw mem_comap_sets
 
 lemma induced_iff_nhds_eq [tα : topological_space α] [tβ : topological_space β] (f : β → α) :
-tβ = tα.induced f ↔ ∀ b, nhds b = comap f (nhds $ f b) :=
+tβ = tα.induced f ↔ ∀ b, 𝓝 b = comap f (𝓝 $ f b) :=
 ⟨λ h a, h.symm ▸ nhds_induced f a, λ h, eq_of_nhds_eq_nhds $ λ x, by rw [h, nhds_induced]⟩
 
 theorem map_nhds_induced_of_surjective [T : topological_space α]
     {f : β → α} (hf : function.surjective f) (a : β) :
-  map f (@nhds β (topological_space.induced f T) a) = nhds (f a) :=
+  map f (@nhds β (topological_space.induced f T) a) = 𝓝 (f a) :=
 by rw [nhds_induced, map_comap_of_surjective hf]
-
-section topα
-
-variable [topological_space α]
-
-/-
-The nhds filter and the subspace topology.
--/
-
-theorem mem_nhds_subtype (s : set α) (a : {x // x ∈ s}) (t : set {x // x ∈ s}) :
-  t ∈ nhds a ↔ ∃ u ∈ nhds a.val, (@subtype.val α s) ⁻¹' u ⊆ t :=
-by rw mem_nhds_induced
-
-theorem nhds_subtype (s : set α) (a : {x // x ∈ s}) :
-  nhds a = comap subtype.val (nhds a.val) :=
-by rw nhds_induced
-
-end topα
 
 end constructions
 
@@ -602,33 +530,33 @@ variables [t : topological_space β] {f : α → β}
 
 theorem is_open_induced_eq {s : set α} :
   @_root_.is_open _ (induced f t) s ↔ s ∈ preimage f '' {s | is_open s} :=
-iff.refl _
+iff.rfl
 
 theorem is_open_induced {s : set β} (h : is_open s) : (induced f t).is_open (f ⁻¹' s) :=
 ⟨s, h, rfl⟩
 
-lemma map_nhds_induced_eq {a : α} (h : range f ∈ nhds (f a)) :
-  map f (@nhds α (induced f t) a) = nhds (f a) :=
+lemma map_nhds_induced_eq {a : α} (h : range f ∈ 𝓝 (f a)) :
+  map f (@nhds α (induced f t) a) = 𝓝 (f a) :=
 by rw [nhds_induced, filter.map_comap h]
 
 lemma closure_induced [t : topological_space β] {f : α → β} {a : α} {s : set α}
   (hf : ∀x y, f x = f y → x = y) :
   a ∈ @closure α (topological_space.induced f t) s ↔ f a ∈ closure (f '' s) :=
-have comap f (nhds (f a) ⊓ principal (f '' s)) ≠ ⊥ ↔ nhds (f a) ⊓ principal (f '' s) ≠ ⊥,
+have comap f (𝓝 (f a) ⊓ principal (f '' s)) ≠ ⊥ ↔ 𝓝 (f a) ⊓ principal (f '' s) ≠ ⊥,
   from ⟨assume h₁ h₂, h₁ $ h₂.symm ▸ comap_bot,
     assume h,
-    forall_sets_neq_empty_iff_neq_bot.mp $
+    forall_sets_nonempty_iff_ne_bot.mp $
       assume s₁ ⟨s₂, hs₂, (hs : f ⁻¹' s₂ ⊆ s₁)⟩,
-      have f '' s ∈ nhds (f a) ⊓ principal (f '' s),
+      have f '' s ∈ 𝓝 (f a) ⊓ principal (f '' s),
         from mem_inf_sets_of_right $ by simp [subset.refl],
-      have s₂ ∩ f '' s ∈ nhds (f a) ⊓ principal (f '' s),
+      have s₂ ∩ f '' s ∈ 𝓝 (f a) ⊓ principal (f '' s),
         from inter_mem_sets hs₂ this,
-      let ⟨b, hb₁, ⟨a, ha, ha₂⟩⟩ := inhabited_of_mem_sets h this in
-      ne_empty_of_mem $ hs $ by rwa [←ha₂] at hb₁⟩,
+      let ⟨b, hb₁, ⟨a, ha, ha₂⟩⟩ := nonempty_of_mem_sets h this in
+      ⟨_, hs $ by rwa [←ha₂] at hb₁⟩⟩,
 calc a ∈ @closure α (topological_space.induced f t) s
     ↔ (@nhds α (topological_space.induced f t) a) ⊓ principal s ≠ ⊥ : by rw [closure_eq_nhds]; refl
-  ... ↔ comap f (nhds (f a)) ⊓ principal (f ⁻¹' (f '' s)) ≠ ⊥ : by rw [nhds_induced, preimage_image_eq _ hf]
-  ... ↔ comap f (nhds (f a) ⊓ principal (f '' s)) ≠ ⊥ : by rw [comap_inf, ←comap_principal]
+  ... ↔ comap f (𝓝 (f a)) ⊓ principal (f ⁻¹' (f '' s)) ≠ ⊥ : by rw [nhds_induced, preimage_image_eq _ hf]
+  ... ↔ comap f (𝓝 (f a) ⊓ principal (f '' s)) ≠ ⊥ : by rw [comap_inf, ←comap_principal]
   ... ↔ _ : by rwa [closure_eq_nhds]
 
 end induced

@@ -2,11 +2,37 @@
 Copyright (c) 2019 Johan Commelin. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johan Commelin
-
-Pointwise addition and multiplication of sets
 -/
 
-import data.set.finite data.set.lattice group_theory.group_action
+import data.set.finite data.set.lattice group_theory.group_action algebra.module
+
+/-!
+
+# Pointwise addition, multiplication, and scalar multiplication of sets.
+
+This file defines `pointwise_mul`: for a type `α` with multiplication,
+multiplication is defined on `set α` by taking `s * t` to be the set
+of all `x * y` where `x ∈ s` and `y ∈ t`.
+
+Pointwise multiplication on `set α` where `α` is a semigroup makes
+`set α` into a semigroup. If `α` is additionally a (commutative)
+monoid, `set α` becomes a (commutative) semiring with union as
+addition. These are given by `pointwise_mul_semigroup` and
+`pointwise_mul_semiring`.
+
+Definitions and results are also transported to the additive theory
+via `to_additive`.
+
+For a type `β` with scalar multiplication by another type `α`, this
+file defines `pointwise_smul`. Separately it defines `smul_set`, for
+scalar multiplication of `set β` by a single term of type `α`.
+
+## Implementation notes
+
+Elsewhere, one should register local instances to use the definitions
+in this file.
+
+-/
 
 namespace set
 open function
@@ -140,12 +166,8 @@ lemma pointwise_mul_eq_Union_mul_right [has_mul α] {s t : set α} : s * t = ⋃
 by { ext y; split; simp only [mem_Union]; rintros ⟨a, ha, x, hx, ax⟩; exact ⟨x, hx, a, ha, ax.symm⟩ }
 
 @[to_additive]
-lemma pointwise_mul_ne_empty [has_mul α] {s t : set α} : s ≠ ∅ → t ≠ ∅ → s * t ≠ ∅ :=
-begin
-  simp only [ne_empty_iff_exists_mem],
-  rintros ⟨x, hx⟩ ⟨y, hy⟩,
-  exact ⟨x * y, mul_mem_pointwise_mul hx hy⟩
-end
+lemma nonempty.pointwise_mul [has_mul α] {s t : set α} : s.nonempty → t.nonempty → (s * t).nonempty
+| ⟨x, hx⟩ ⟨y, hy⟩ := ⟨x * y, ⟨x, hx, y, hy, rfl⟩⟩
 
 @[simp, to_additive]
 lemma univ_pointwise_mul_univ [monoid α] : (univ : set α) * univ = univ :=
@@ -162,6 +184,48 @@ def pointwise_add_fintype [has_add α] [decidable_eq α] (s t : set α) [hs : fi
   fintype (s + t : set α) := by { rw pointwise_add_eq_image, apply set.fintype_image }
 
 attribute [to_additive] set.pointwise_mul_fintype
+
+/-- Pointwise scalar multiplication by a set of scalars. -/
+def pointwise_smul [has_scalar α β] : has_scalar (set α) (set β) :=
+  ⟨λ s t, { x | ∃ a ∈ s, ∃ y ∈ t, x  = a • y }⟩
+
+/-- Scaling a set: multiplying every element by a scalar. -/
+def smul_set [has_scalar α β] : has_scalar α (set β) :=
+  ⟨λ a s, { x | ∃ y ∈ s, x = a • y }⟩
+
+local attribute [instance] pointwise_smul smul_set
+
+lemma mem_smul_set [has_scalar α β] (a : α) (s : set β) (x : β) :
+  x ∈ a • s ↔ ∃ y ∈ s, x = a • y := iff.rfl
+
+lemma smul_set_eq_image [has_scalar α β] (a : α) (s : set β) :
+  a • s = (λ x, a • x) '' s :=
+set.ext $ λ x, iff.intro
+  (λ ⟨_, hy₁, hy₂⟩, ⟨_, hy₁, hy₂.symm⟩)
+  (λ ⟨_, hy₁, hy₂⟩, ⟨_, hy₁, hy₂.symm⟩)
+
+lemma smul_set_eq_pointwise_smul_singleton [has_scalar α β]
+  (a : α) (s : set β) : a • s = ({a} : set α) • s :=
+set.ext $ λ x, iff.intro
+  (λ ⟨_, h⟩, ⟨a, mem_singleton _, _, h⟩)
+  (λ ⟨_, h, y, hy, hx⟩, ⟨_, hy, by {
+    rw mem_singleton_iff at h; rwa h at hx }⟩)
+
+lemma smul_mem_smul_set [has_scalar α β]
+  (a : α) {s : set β} {y : β} (hy : y ∈ s) : a • y ∈ a • s :=
+by rw mem_smul_set; use [y, hy]
+
+lemma smul_set_union [has_scalar α β] (a : α) (s t : set β) :
+  a • (s ∪ t) = a • s ∪ a • t :=
+by simp only [smul_set_eq_image, image_union]
+
+@[simp] lemma smul_set_empty [has_scalar α β] (a : α) :
+  a • (∅ : set β) = ∅ :=
+by rw [smul_set_eq_image, image_empty]
+
+lemma smul_set_mono [has_scalar α β]
+  (a : α) {s t : set β} (h : s ⊆ t) : a • s ⊆ a • t :=
+by { rw [smul_set_eq_image, smul_set_eq_image], exact image_subset _ h }
 
 section monoid
 
@@ -184,6 +248,28 @@ def pointwise_mul_comm_semiring [comm_monoid α] : comm_semiring (set α) :=
   ..pointwise_mul_semiring }
 
 local attribute [instance] pointwise_mul_semiring
+
+def comm_monoid [comm_monoid α] : comm_monoid (set α) :=
+@comm_semiring.to_comm_monoid (set α) pointwise_mul_comm_semiring
+
+def add_comm_monoid [add_comm_monoid α] : add_comm_monoid (set α) :=
+show @add_comm_monoid (additive (set (multiplicative α))),
+from @additive.add_comm_monoid _ set.comm_monoid
+
+attribute [to_additive set.add_comm_monoid] set.comm_monoid
+
+/-- A multiplicative action of a monoid on a type β gives also a
+ multiplicative action on the subsets of β. -/
+def smul_set_action [monoid α] [mul_action α β] :
+  mul_action α (set β) :=
+{ smul     := λ a s, a • s,
+  mul_smul := λ a b s, set.ext $ λ x, iff.intro
+    (λ ⟨_, hy, _⟩, ⟨b • _, smul_mem_smul_set _ hy, by rwa ←mul_smul⟩)
+    (λ ⟨_, hy, _⟩, let ⟨_, hz, h⟩ := (mem_smul_set _ _ _).2 hy in
+      ⟨_, hz, by rwa [mul_smul, ←h]⟩),
+  one_smul := λ b, set.ext $ λ x, iff.intro
+    (λ ⟨_, _, h⟩, by { rw [one_smul] at h; rwa h })
+    (λ h, ⟨_, h, by rw one_smul⟩) }
 
 section is_mul_hom
 open is_mul_hom
@@ -218,31 +304,36 @@ lemma pointwise_mul_image_is_semiring_hom : is_semiring_hom (image f) :=
   map_add := image_union _,
   map_mul := image_pointwise_mul _ }
 
-local attribute [instance] singleton.is_monoid_hom
-
-def pointwise_mul_action : mul_action α (set α) :=
-{ smul := λ a s, ({a} : set α) * s,
-  one_smul := one_mul,
-  mul_smul := λ _ _ _, show {_} * _ = _,
-    by { erw is_monoid_hom.map_mul (singleton : α → set α), apply mul_assoc } }
-
-local attribute [instance] pointwise_mul_action
-
-lemma mem_smul_set {a : α} {s : set α} {x : α} :
-  x ∈ a • s ↔ ∃ y ∈ s, x = a * y :=
-by { erw mem_pointwise_mul, simp }
-
-lemma smul_set_eq_image {a : α} {s : set α} :
-  a • s = (λ b, a * b) '' s :=
-set.ext $ λ x,
-begin
-  simp only [mem_smul_set, exists_prop, mem_image],
-  apply exists_congr,
-  intro y,
-  apply and_congr iff.rfl,
-  split; exact eq.symm
-end
-
 end monoid
 
 end set
+
+section
+
+open set
+
+variables {α : Type*} {β : Type*}
+
+local attribute [instance] set.smul_set
+
+/-- A nonempty set in a semimodule is scaled by zero to the singleton
+containing 0 in the semimodule. -/
+lemma zero_smul_set [semiring α] [add_comm_monoid β] [semimodule α β]
+  {s : set β} (h : s.nonempty) : (0 : α) • s = {(0 : β)} :=
+set.ext $ λ x, iff.intro
+(λ ⟨_, _, hx⟩, mem_singleton_iff.mpr (by { rwa [hx, zero_smul] }))
+(λ hx, let ⟨_, hs⟩ := h in
+  ⟨_, hs, by { rw mem_singleton_iff at hx; rw [hx, zero_smul] }⟩)
+
+lemma mem_inv_smul_set_iff [field α] [mul_action α β]
+  {a : α} (ha : a ≠ 0) (A : set β) (x : β) : x ∈ a⁻¹ • A ↔ a • x ∈ A :=
+iff.intro
+  (λ ⟨y, hy, h⟩, by rwa [h, ←mul_smul, mul_inv_cancel ha, one_smul])
+  (λ h, ⟨_, h, by rw [←mul_smul, inv_mul_cancel ha, one_smul]⟩)
+
+lemma mem_smul_set_iff_inv_smul_mem [field α] [mul_action α β]
+  {a : α} (ha : a ≠ 0) (A : set β) (x : β) : x ∈ a • A ↔ a⁻¹ • x ∈ A :=
+by conv_lhs { rw ←(division_ring.inv_inv ha) };
+   exact (mem_inv_smul_set_iff (inv_ne_zero ha) _ _)
+
+end

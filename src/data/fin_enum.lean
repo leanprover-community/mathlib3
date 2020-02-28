@@ -18,7 +18,7 @@ enumeration.
 open finset (hiding singleton)
 
 /-- `fin_enum α` means that `α` is finite and can be enumerated in some order,
-  i.e. `α` can be mapped onto a finite interval of `ℕ`. -/
+  i.e. `α` has an explicit bijection with `fin n` for some n. -/
 class fin_enum (α : Sort*) :=
 (card : ℕ)
 (equiv : α ≃ fin card)

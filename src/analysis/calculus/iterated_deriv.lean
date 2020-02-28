@@ -39,7 +39,6 @@ by translating the corresponding result `iterated_fderiv_within_succ_apply_left`
 iterated Fréchet derivative.
 -/
 
-universes u v w
 noncomputable theory
 open_locale classical topological_space
 open filter asymptotics set
@@ -173,8 +172,7 @@ by simp only [times_cont_diff_on_iff_continuous_on_differentiable_on hs,
 /-- The `n+1`-th iterated derivative within a set with unique derivatives can be obtained by
 differentiating the `n`-th iterated derivative. -/
 lemma iterated_deriv_within_succ {x : 𝕜} (hxs : unique_diff_within_at 𝕜 s x) :
-  iterated_deriv_within n.succ f s x =
-  deriv_within (iterated_deriv_within n f s) s x :=
+  iterated_deriv_within n.succ f s x = deriv_within (iterated_deriv_within n f s) s x :=
 begin
   rw [iterated_deriv_within_eq_iterated_fderiv_within, iterated_fderiv_within_succ_apply_left,
       iterated_fderiv_within_eq_equiv_comp, continuous_linear_equiv.comp_fderiv_within _ hxs,
@@ -196,6 +194,13 @@ begin
   { rw [iterated_deriv_within_succ (hs x hx), nat.iterate_succ'],
     exact deriv_within_congr (hs x hx) (λ y hy, IH hy) (IH hx) }
 end
+
+/-- The `n+1`-th iterated derivative within a set with unique derivatives can be obtained by
+taking the `n`-th derivative of the derivative. -/
+lemma iterated_deriv_within_succ' {x : 𝕜} (hxs : unique_diff_on 𝕜 s) (hx : x ∈ s) :
+  iterated_deriv_within n.succ f s x = (iterated_deriv_within n (deriv_within f s) s) x :=
+by { rw [iterated_deriv_within_eq_iterate hxs hx, iterated_deriv_within_eq_iterate hxs hx], refl }
+
 
 /-! ### Properties of the iterated derivative on the whole space -/
 
@@ -284,3 +289,8 @@ begin
   convert iterated_deriv_within_eq_iterate unique_diff_on_univ (mem_univ x),
   simp [deriv_within_univ]
 end
+
+/-- The `n+1`-th iterated derivative can be obtained by taking the `n`-th derivative of the
+derivative. -/
+lemma iterated_deriv_succ' : iterated_deriv n.succ f = iterated_deriv n (deriv f) :=
+by { rw [iterated_deriv_eq_iterate, iterated_deriv_eq_iterate], refl }

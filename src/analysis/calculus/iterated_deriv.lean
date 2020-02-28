@@ -8,8 +8,9 @@ import analysis.calculus.deriv analysis.calculus.times_cont_diff
 /-!
 # One-dimensional iterated derivatives
 
-We define the `n`-th derivative of a function `f : 𝕜 → F` as a function `iterated_deriv n f`, as
-well as a version on domains `itrated_deriv_within n f s`, and prove their basic properties.
+We define the `n`-th derivative of a function `f : 𝕜 → F` as a function
+`iterated_deriv n f : 𝕜 → F`, as well as a version on domains `iterated_deriv_within n f s : 𝕜 → F`,
+and prove their basic properties.
 
 ## Main definitions and results
 

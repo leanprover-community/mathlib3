@@ -213,7 +213,7 @@ def Icc_left_chart (x y : ℝ) [h : lt_class x y] :
     simp at hz h'z,
     have A : x + z 0 ≤ y, by linarith,
     rw subsingleton.elim i 0,
-    simp [A],
+    simp [A, add_comm],
   end,
   open_source := begin
     have : is_open {z : ℝ | z < y} := is_open_Iio,
@@ -240,7 +240,7 @@ def Icc_left_chart (x y : ℝ) [h : lt_class x y] :
     have B : continuous (λz : fin 1 → ℝ, z 0) := continuous_apply 0,
     exact (A.comp B).comp continuous_subtype_val
   end }
-
+#print euclidean_half_space
 /--
 The right chart for the topological space [x, y], defined on (x,y] and sending y to 0 in
 `euclidean_half_space 1`.
@@ -250,10 +250,10 @@ def Icc_right_chart (x y : ℝ) [h : lt_class x y] :
 { source := {z : Icc x y | x < z.val},
   target := {z : euclidean_half_space 1 | z.val 0 < y - x},
   to_fun := λ(z : Icc x y), ⟨λi, y - z.val, sub_nonneg.mpr z.property.2⟩,
-  inv_fun := λz, ⟨max (y - z.val 0) x, by simp [le_refl, z.property, le_of_lt h]⟩,
+  inv_fun := λz, ⟨max (y - z.val 0) x, by simp [le_refl, z.property, le_of_lt h, sub_eq_add_neg]⟩,
   map_source := by simp,
   map_target := by { simp, assume z hz, left, linarith },
-  left_inv := by { rintros ⟨z, hz⟩ h'z, simp at hz h'z, simp [hz, h'z] },
+  left_inv := by { rintros ⟨z, hz⟩ h'z, simp at hz h'z, simp [hz, h'z, sub_eq_add_neg] },
   right_inv := begin
     rintros ⟨z, hz⟩ h'z,
     rw subtype.mk_eq_mk,
@@ -261,7 +261,7 @@ def Icc_right_chart (x y : ℝ) [h : lt_class x y] :
     simp at hz h'z,
     have A : x ≤ y + -z 0, by linarith,
     rw subsingleton.elim i 0,
-    simp [A],
+    simp [A, sub_eq_add_neg],
   end,
   open_source := begin
     have : is_open {z : ℝ | x < z} := is_open_Ioi,
@@ -341,7 +341,9 @@ begin
           by { change y + (-x - z 0) = (y - x) - z 0, ring },
         ext i,
         rw subsingleton.elim i 0,
-        simpa [model_with_corners_euclidean_half_space, Icc_left_chart, Icc_right_chart, A, B] } },
+        convert C,
+        simp [model_with_corners_euclidean_half_space, Icc_left_chart, Icc_right_chart, A, B, sub_eq_add_neg],
+        ring } },
     { -- e = left chart, e' = right chart
       apply M.congr_mono _ _ (subset_univ _),
       { rw inter_comm,
@@ -356,7 +358,8 @@ begin
           by { change y + (-x - z 0) = (y - x) - z 0, ring },
         ext i,
         rw subsingleton.elim i 0,
-        simpa [model_with_corners_euclidean_half_space, Icc_left_chart, Icc_right_chart, A, B] } },
+        convert C,
+        simp [model_with_corners_euclidean_half_space, Icc_left_chart, Icc_right_chart, A, B, add_comm, sub_eq_add_neg] } },
     { -- e = left chart, e' = left chart
       refine ((mem_groupoid_of_pregroupoid _ _).mpr _).1,
       exact symm_trans_mem_times_cont_diff_groupoid _ _ _ }

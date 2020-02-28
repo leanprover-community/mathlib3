@@ -233,9 +233,6 @@ apply_nolint prime_spectrum has_inhabited_instance
 apply_nolint algebraic_geometry.PresheafedSpace.stalk doc_blame
 apply_nolint algebraic_geometry.PresheafedSpace.stalk_map doc_blame
 
--- analysis/calculus/times_cont_diff.lean
-apply_nolint times_cont_diff.times_cont_diff_fderiv_apply unused_arguments
-
 -- analysis/normed_space/basic.lean
 apply_nolint normed_group.tendsto_nhds_zero ge_or_gt
 apply_nolint summable_iff_vanishing_norm ge_or_gt
@@ -1293,13 +1290,6 @@ apply_nolint encodable.of_inj doc_blame
 apply_nolint encodable.of_left_injection doc_blame
 apply_nolint encodable.of_left_inverse doc_blame
 
--- data/equiv/fin.lean
-apply_nolint fin_one_equiv doc_blame
-apply_nolint fin_prod_fin_equiv doc_blame
-apply_nolint fin_two_equiv doc_blame
-apply_nolint fin_zero_equiv doc_blame
-apply_nolint sum_fin_sum_equiv doc_blame
-
 -- data/equiv/functor.lean
 apply_nolint functor.map_equiv doc_blame
 
@@ -1373,25 +1363,6 @@ apply_nolint finset.pi.empty doc_blame
 apply_nolint finset.powerset_len doc_blame
 apply_nolint finset.strong_induction_on doc_blame
 apply_nolint finset.subtype doc_blame
-
--- data/finsupp.lean
-apply_nolint finsupp.antidiagonal doc_blame
-apply_nolint finsupp.comap_domain doc_blame
-apply_nolint finsupp.curry doc_blame
-apply_nolint finsupp.dom_congr doc_blame
-apply_nolint finsupp.equiv_fun_on_fintype doc_blame
-apply_nolint finsupp.equiv_multiset doc_blame
-apply_nolint finsupp.erase doc_blame
-apply_nolint finsupp.finsupp_prod_equiv doc_blame
-apply_nolint finsupp.frange doc_blame
-apply_nolint finsupp.of_multiset doc_blame
-apply_nolint finsupp.restrict_support_equiv doc_blame
-apply_nolint finsupp.split doc_blame
-apply_nolint finsupp.split_comp doc_blame
-apply_nolint finsupp.split_support doc_blame
-apply_nolint finsupp.to_multiset doc_blame
-apply_nolint finsupp.uncurry doc_blame
-apply_nolint multiset.to_finsupp doc_blame
 
 -- data/fintype.lean
 apply_nolint finset.insert_none doc_blame
@@ -3800,7 +3771,6 @@ apply_nolint tactic.tidy.cfg doc_blame
 apply_nolint tactic.tidy.core doc_blame
 apply_nolint tactic.tidy.default_tactics doc_blame
 apply_nolint tactic.tidy.ext1_wrapper doc_blame
-apply_nolint tactic.tidy.name_to_tactic doc_blame
 apply_nolint tactic.tidy.run_tactics doc_blame
 apply_nolint tactic.tidy.tidy_attribute doc_blame
 apply_nolint tactic.tidy_hole_cmd doc_blame

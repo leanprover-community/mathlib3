@@ -514,6 +514,13 @@ by rw [←coe_nat n]; apply coe_ne_top
 @[simp] lemma top_ne_nat (n : nat) : (⊤ : with_top α) ≠ n :=
 by rw [←coe_nat n]; apply top_ne_coe
 
+lemma add_one_le_of_lt {i n : with_top ℕ} (h : i < n) : i + 1 ≤ n :=
+begin
+  cases n, { exact lattice.le_top },
+  cases i, { exact (not_le_of_lt h lattice.le_top).elim },
+  exact with_top.coe_le_coe.2 (with_top.coe_lt_coe.1 h)
+end
+
 @[elab_as_eliminator]
 lemma nat_induction {P : with_top ℕ → Prop} (a : with_top ℕ)
   (h0 : P 0) (hsuc : ∀n:ℕ, P n → P n.succ) (htop : (∀n : ℕ, P n) → P ⊤) : P a :=

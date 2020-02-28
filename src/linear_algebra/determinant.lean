@@ -5,6 +5,7 @@ Authors: Kenny Lau, Chris Hughes, Tim Baanen
 -/
 import data.matrix.basic
 import data.matrix.pequiv
+import data.fintype.card
 import group_theory.perm.sign
 import tactic.ring
 

@@ -1449,6 +1449,22 @@ do e ← get_env,
 meta def is_in_mathlib (n : name) : tactic bool :=
 do ml ← get_mathlib_dir, e ← get_env, return $ e.is_prefix_of_file ml n
 
+/--
+Runs a tactic by name.
+If it is a `tactic string`, return whatever string it returns.
+If it is a `tactic unit`, return the name.
+(This is mostly used in invoking "self-reporting tactics", e.g. by `tidy` and `hint`.)
+-/
+meta def name_to_tactic (n : name) : tactic string :=
+do d ← get_decl n,
+   e ← mk_const n,
+   let t := d.type,
+   if (t =ₐ `(tactic unit)) then
+     (eval_expr (tactic unit) e) >>= (λ t, t >> (name.to_string <$> strip_prefix n))
+   else if (t =ₐ `(tactic string)) then
+     (eval_expr (tactic string) e) >>= (λ t, t)
+   else fail!"name_to_tactic cannot take `{n} as input: its type must be `tactic string` or `tactic unit`"
+
 /-- auxiliary function for apply_under_pis -/
 private meta def apply_under_pis_aux (func arg : pexpr) : ℕ → expr → pexpr
 | n (expr.pi nm bi tp bd) := expr.pi nm bi (pexpr.of_expr tp) (apply_under_pis_aux (n+1) bd)

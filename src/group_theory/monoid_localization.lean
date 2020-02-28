@@ -152,7 +152,7 @@ noncomputable def inv (f : M →* N) :=
 
 variables {S}
 
-@[simp, to_additive] lemma inv_mul {f : M →* N} (inv : S → N) (h : ∀ y : S, f y * inv y = 1)
+@[to_additive] lemma inv_mul {f : M →* N} (inv : S → N) (h : ∀ y : S, f y * inv y = 1)
   (x y : S) : inv (x * y) = inv x * inv y :=
 begin
   rw [←one_mul (inv _), ←h, ←mul_one (f x), ←h, ←mul_assoc, ←f.map_mul,

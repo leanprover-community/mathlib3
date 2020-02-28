@@ -88,7 +88,6 @@ instance list_short_nth_le : Π (L : list pgame.{u}) [list_short L] (i : fin (li
 instance short_of_lists : Π (L R : list pgame) [list_short L] [list_short R], short (pgame.of_lists L R)
 | L R _ _ := by { resetI, apply short.mk; { intros, apply_instance } }
 
--- TODO maybe make `short x` an instance argument?
 def short_of_relabelling : Π {x y : pgame.{u}} (R : relabelling x y) (S : short x), short y
 | x y ⟨L, R, rL, rR⟩ S :=
 begin

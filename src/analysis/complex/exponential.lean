@@ -39,6 +39,7 @@ exp, log, sin, cos, tan, arcsin, arccos, arctan, angle, argument, power, square 
 noncomputable theory
 
 open finset filter metric asymptotics
+open_locale classical
 open_locale topological_space
 
 namespace complex
@@ -440,13 +441,13 @@ lemma cos_add_two_pi (x : ℝ) : cos (x + 2 * π) = cos x :=
 by simp [cos_add, cos_two_pi, sin_two_pi]
 
 lemma sin_pi_sub (x : ℝ) : sin (π - x) = sin x :=
-by simp [sin_add]
+by simp [sub_eq_add_neg, sin_add]
 
 lemma cos_add_pi (x : ℝ) : cos (x + π) = -cos x :=
 by simp [cos_add]
 
 lemma cos_pi_sub (x : ℝ) : cos (π - x) = -cos x :=
-by simp [cos_add]
+by simp [sub_eq_add_neg, cos_add]
 
 lemma sin_pos_of_pos_of_lt_pi {x : ℝ} (h0x : 0 < x) (hxp : x < π) : 0 < sin x :=
 if hx2 : x ≤ 2 then sin_pos_of_pos_of_le_two h0x hx2
@@ -481,16 +482,16 @@ lemma sin_add_pi_div_two (x : ℝ) : sin (x + π / 2) = cos x :=
 by simp [sin_add]
 
 lemma sin_sub_pi_div_two (x : ℝ) : sin (x - π / 2) = -cos x :=
-by simp [sin_add]
+by simp [sub_eq_add_neg, sin_add]
 
 lemma sin_pi_div_two_sub (x : ℝ) : sin (π / 2 - x) = cos x :=
-by simp [sin_add]
+by simp [sub_eq_add_neg, sin_add]
 
 lemma cos_add_pi_div_two (x : ℝ) : cos (x + π / 2) = -sin x :=
 by simp [cos_add]
 
 lemma cos_sub_pi_div_two (x : ℝ) : cos (x - π / 2) = sin x :=
-by simp [cos_add]
+by simp [sub_eq_add_neg, cos_add]
 
 lemma cos_pi_div_two_sub (x : ℝ) : cos (π / 2 - x) = sin x :=
 by rw [← cos_neg, neg_sub, cos_sub_pi_div_two]
@@ -546,7 +547,7 @@ lemma sin_eq_zero_iff_of_lt_of_lt {x : ℝ} (hx₁ : -π < x) (hx₂ : x < π) :
 lemma sin_eq_zero_iff {x : ℝ} : sin x = 0 ↔ ∃ n : ℤ, (n : ℝ) * π = x :=
 ⟨λ h, ⟨⌊x / π⌋, le_antisymm (sub_nonneg.1 (sub_floor_div_mul_nonneg _ pi_pos))
   (sub_nonpos.1 $ le_of_not_gt $ λ h₃, ne_of_lt (sin_pos_of_pos_of_lt_pi h₃ (sub_floor_div_mul_lt _ pi_pos))
-    (by simp [sin_add, h, sin_int_mul_pi]))⟩,
+    (by simp [sub_eq_add_neg, sin_add, h, sin_int_mul_pi]))⟩,
   λ ⟨n, hn⟩, hn ▸ sin_int_mul_pi _⟩
 
 lemma sin_eq_zero_iff_cos_eq {x : ℝ} : sin x = 0 ↔ cos x = 1 ∨ cos x = -1 :=
@@ -718,7 +719,7 @@ instance : inhabited angle := ⟨0⟩
 instance angle.has_coe : has_coe ℝ angle :=
 ⟨quotient.mk'⟩
 
-instance angle.is_add_group_hom : is_add_group_hom (coe : ℝ → angle) :=
+instance angle.is_add_group_hom : @is_add_group_hom ℝ angle _ _ (coe : ℝ → angle) :=
 @quotient_add_group.is_add_group_hom _ _ _ (normal_add_subgroup_of_add_comm_group _)
 
 @[simp] lemma coe_zero : ↑(0 : ℝ) = (0 : angle) := rfl
@@ -745,11 +746,11 @@ begin
         false_or, sin_eq_zero_iff, sin_eq_zero_iff] at Hcos,
     rcases Hcos with ⟨n, hn⟩ | ⟨n, hn⟩,
     { right,
-      rw [eq_div_iff_mul_eq _ _ two_ne_zero, ← sub_eq_iff_eq_add] at hn,
+      rw [eq_div_iff_mul_eq _ _ (@two_ne_zero ℝ _), ← sub_eq_iff_eq_add] at hn,
       rw [← hn, coe_sub, eq_neg_iff_add_eq_zero, sub_add_cancel, mul_assoc,
           ← gsmul_eq_mul, coe_gsmul, mul_comm, coe_two_pi, gsmul_zero] },
     { left,
-      rw [eq_div_iff_mul_eq _ _ two_ne_zero, eq_sub_iff_add_eq] at hn,
+      rw [eq_div_iff_mul_eq _ _ (@two_ne_zero ℝ _), eq_sub_iff_add_eq] at hn,
       rw [← hn, coe_add, mul_assoc,
           ← gsmul_eq_mul, coe_gsmul, mul_comm, coe_two_pi, gsmul_zero, zero_add] } },
   { rw [angle_eq_iff_two_pi_dvd_sub, ← coe_neg, angle_eq_iff_two_pi_dvd_sub],
@@ -882,7 +883,8 @@ noncomputable def arccos (x : ℝ) : ℝ :=
 
 lemma arccos_eq_pi_div_two_sub_arcsin (x : ℝ) : arccos x = π / 2 - arcsin x := rfl
 
-lemma arcsin_eq_pi_div_two_sub_arccos (x : ℝ) : arcsin x = π / 2 - arccos x := by simp [arccos]
+lemma arcsin_eq_pi_div_two_sub_arccos (x : ℝ) : arcsin x = π / 2 - arccos x :=
+by simp [sub_eq_add_neg, arccos]
 
 lemma arccos_le_pi (x : ℝ) : arccos x ≤ π :=
 by unfold arccos; linarith [neg_pi_div_two_le_arcsin x]
@@ -894,7 +896,7 @@ lemma cos_arccos {x : ℝ} (hx₁ : -1 ≤ x) (hx₂ : x ≤ 1) : cos (arccos x)
 by rw [arccos, cos_pi_div_two_sub, sin_arcsin hx₁ hx₂]
 
 lemma arccos_cos {x : ℝ} (hx₁ : 0 ≤ x) (hx₂ : x ≤ π) : arccos (cos x) = x :=
-by rw [arccos, ← sin_pi_div_two_sub, arcsin_sin]; simp; linarith
+by rw [arccos, ← sin_pi_div_two_sub, arcsin_sin]; simp [sub_eq_add_neg]; linarith
 
 lemma arccos_inj {x y : ℝ} (hx₁ : -1 ≤ x) (hx₂ : x ≤ 1) (hy₁ : -1 ≤ y) (hy₂ : y ≤ 1)
   (hxy : arccos x = arccos y) : x = y :=
@@ -1115,7 +1117,7 @@ by simp [arg, le_refl]
 
 lemma sin_arg (x : ℂ) : real.sin (arg x) = x.im / x.abs :=
 by unfold arg; split_ifs;
-  simp [arg, real.sin_arcsin (abs_le.1 (abs_im_div_abs_le_one x)).1
+  simp [sub_eq_add_neg, arg, real.sin_arcsin (abs_le.1 (abs_im_div_abs_le_one x)).1
     (abs_le.1 (abs_im_div_abs_le_one x)).2, real.sin_add, neg_div, real.arcsin_neg,
     real.sin_neg]
 
@@ -1139,12 +1141,12 @@ else
         cos_arg_of_re_nonneg (neg_ne_zero.2 hx) this];
       simp [neg_div]
   else by rw [arg_eq_arg_neg_sub_pi_of_im_neg_of_re_neg (not_le.1 hxr) (not_le.1 hxi)];
-    simp [real.cos_add, neg_div, cos_arg_of_re_nonneg (neg_ne_zero.2 hx) this]
+    simp [sub_eq_add_neg, real.cos_add, neg_div, cos_arg_of_re_nonneg (neg_ne_zero.2 hx) this]
 
 lemma tan_arg {x : ℂ} : real.tan (arg x) = x.im / x.re :=
 if hx : x = 0 then by simp [hx]
 else by rw [real.tan_eq_sin_div_cos, sin_arg, cos_arg hx,
-    div_div_div_cancel_right _ _ (mt abs_eq_zero.1 hx)]
+    field.div_div_div_cancel_right _ (mt abs_eq_zero.1 hx)]
 
 lemma arg_cos_add_sin_mul_I {x : ℝ} (hx₁ : -π < x) (hx₂ : x ≤ π) :
   arg (cos x + sin x * I) = x :=
@@ -1165,8 +1167,8 @@ then
     by apply real.sin_neg_of_neg_of_neg_pi_lt; linarith,
   suffices -π + -real.arcsin (real.sin x) = x,
     by rw [arg, if_neg hx₅, if_neg hx₆];
-    simpa [abs_cos_add_sin_mul_I, sin_of_real_re],
-  by rw [← real.arcsin_neg, ← real.sin_add_pi, real.arcsin_sin]; simp; linarith
+    simpa [sub_eq_add_neg, add_comm, abs_cos_add_sin_mul_I, sin_of_real_re],
+  by rw [← real.arcsin_neg, ← real.sin_add_pi, real.arcsin_sin]; try {simp [add_left_comm]}; linarith
 else
   have hx₅ : π / 2 < x, by cases not_and_distrib.1 hx₃; linarith,
   have hx₆ : ¬0 ≤ (cos x + sin x * I).re :=
@@ -1177,8 +1179,8 @@ else
     by apply real.sin_nonneg_of_nonneg_of_le_pi; linarith,
   suffices π - real.arcsin (real.sin x) = x,
     by rw [arg, if_neg hx₆, if_pos hx₇];
-      simpa [abs_cos_add_sin_mul_I, sin_of_real_re],
-  by rw [← real.sin_pi_sub, real.arcsin_sin]; simp; linarith
+      simpa [sub_eq_add_neg, add_comm, abs_cos_add_sin_mul_I, sin_of_real_re],
+  by rw [← real.sin_pi_sub, real.arcsin_sin]; simp [sub_eq_add_neg]; linarith
 
 lemma arg_eq_arg_iff {x y : ℂ} (hx : x ≠ 0) (hy : y ≠ 0) :
   arg x = arg y ↔ (abs y / abs x : ℂ) * x = y :=
@@ -1350,28 +1352,28 @@ lemma cos_add_two_pi (x : ℝ) : cos (x + 2 * π) = cos x :=
 by simp [cos_add, cos_two_pi, sin_two_pi]
 
 lemma sin_pi_sub (x : ℝ) : sin (π - x) = sin x :=
-by simp [sin_add]
+by simp [sub_eq_add_neg, sin_add]
 
 lemma cos_add_pi (x : ℝ) : cos (x + π) = -cos x :=
 by simp [cos_add]
 
 lemma cos_pi_sub (x : ℝ) : cos (π - x) = -cos x :=
-by simp [cos_add]
+by simp [sub_eq_add_neg, cos_add]
 
 lemma sin_add_pi_div_two (x : ℝ) : sin (x + π / 2) = cos x :=
 by simp [sin_add]
 
 lemma sin_sub_pi_div_two (x : ℝ) : sin (x - π / 2) = -cos x :=
-by simp [sin_add]
+by simp [sub_eq_add_neg, sin_add]
 
 lemma sin_pi_div_two_sub (x : ℝ) : sin (π / 2 - x) = cos x :=
-by simp [sin_add]
+by simp [sub_eq_add_neg, sin_add]
 
 lemma cos_add_pi_div_two (x : ℝ) : cos (x + π / 2) = -sin x :=
 by simp [cos_add]
 
 lemma cos_sub_pi_div_two (x : ℝ) : cos (x - π / 2) = sin x :=
-by simp [cos_add]
+by simp [sub_eq_add_neg, cos_add]
 
 lemma cos_pi_div_two_sub (x : ℝ) : cos (π / 2 - x) = sin x :=
 by rw [← cos_neg, neg_sub, cos_sub_pi_div_two]
@@ -1444,7 +1446,8 @@ by simp [cpow_def]; split_ifs; simp [exp_neg]
 | 0       := by simp
 | (n + 1) := if hx : x = 0 then by simp only [hx, pow_succ,
     complex.zero_cpow (nat.cast_ne_zero.2 (nat.succ_ne_zero _)), zero_mul]
-  else by simp [cpow_def, hx, mul_add, exp_add, pow_succ, (cpow_nat_cast n).symm, exp_log hx]
+  else by simp [cpow_def, hx, mul_comm, mul_add, exp_add, pow_succ, (cpow_nat_cast n).symm,
+    exp_log hx]
 
 @[simp] lemma cpow_int_cast (x : ℂ) : ∀ (n : ℤ), x ^ (n : ℂ) = x ^ n
 | (n : ℕ) := by simp; refl

@@ -229,7 +229,7 @@ calc (((Ico 1 (p / 2).succ).sum (λ x, a * x) : ℕ) : zmod 2)
   ... = ((Ico 1 (p / 2).succ).filter
         (λ x : ℕ, p / 2 < (a * x : zmodp p hp).val)).card +
       (((Ico 1 (p / 2).succ).sum (λ x, (a * x : zmodp p hp).val_min_abs.nat_abs)) : ℕ) :
-    by simp [sum_add_distrib, finset.sum_ite, hp2, sum_nat_cast]
+    by simp [add_comm, sum_add_distrib, finset.sum_ite, hp2, sum_nat_cast]
   ... = _ : by rw [finset.sum_eq_multiset_sum,
       Ico_map_val_min_abs_nat_abs_eq_Ico_map_id hp _ hap,
       ← finset.sum_eq_multiset_sum];
@@ -242,8 +242,9 @@ private lemma eisenstein_lemma_aux₂ {p : ℕ} (hp : p.prime) (hp2 : p % 2 = 1)
   ≡ (Ico 1 (p / 2).succ).sum (λ x, (x * a) / p) [MOD 2] :=
 have ha2 : (a : zmod 2) = (1 : ℕ), from zmod.eq_iff_modeq_nat.2 ha2,
 (@zmod.eq_iff_modeq_nat 2 _ _).1 $ sub_eq_zero.1 $
-  by simpa [finset.mul_sum.symm, mul_comm, ha2, sum_nat_cast, add_neg_eq_iff_eq_add.symm,
-    zmod.neg_eq_self_mod_two] using eq.symm (eisenstein_lemma_aux₁ hp hp2 hap)
+  by simpa [add_left_comm, sub_eq_add_neg, finset.mul_sum.symm, mul_comm, ha2, sum_nat_cast,
+            add_neg_eq_iff_eq_add.symm, zmod.neg_eq_self_mod_two]
+    using eq.symm (eisenstein_lemma_aux₁ hp hp2 hap)
 
 lemma div_eq_filter_card {a b c : ℕ} (hb0 : 0 < b) (hc : a / b ≤ c) : a / b =
   ((Ico 1 c.succ).filter (λ x, x * b ≤ a)).card :=

@@ -88,8 +88,8 @@ let ⟨ε, hε, N1, hN1⟩ := this,
     rw ←padic_norm.neg p (f m) at hne,
     have hnam := add_eq_max_of_ne p hne,
     rw [padic_norm.neg, max_comm] at hnam,
-    rw ←hnam at this,
-    apply _root_.lt_irrefl _ (by simp at this; exact this)
+    rw [←hnam, sub_eq_add_neg, add_comm] at this,
+    apply _root_.lt_irrefl _ this
   end ⟩
 
 /-- For all n ≥ stationary_point f hf, the p-adic norm of f n is the same. -/
@@ -659,7 +659,7 @@ begin
       rw this,
       apply add_lt_add,
       { suffices : padic_norm_e ((↑(lim_seq f j) - f j) + (f j - f (max N N2))) < ε / 3 + ε / 3,
-          by simpa,
+          by simpa [sub_eq_add_neg],
         apply lt_of_le_of_lt,
         { apply padic_norm_e.add },
         { apply add_lt_add,

@@ -32,7 +32,7 @@ localized "notation `ω` := hyperreal.omega" in hyperreal
 
 lemma epsilon_eq_inv_omega : ε = ω⁻¹ := rfl
 
-lemma inv_epsilon_eq_omega : ε⁻¹ = ω := inv_inv' ω
+lemma inv_epsilon_eq_omega : ε⁻¹ = ω := @inv_inv' _ _ ω
 
 lemma epsilon_pos : 0 < ε :=
 suffices ∀ᶠ i in hyperfilter, (0 : ℝ) < (i : ℕ)⁻¹, by rwa lt_def U,
@@ -594,10 +594,9 @@ lemma infinite_neg_iff_infinitesimal_inv_neg {x : ℝ*} :
   infinite_neg x ↔ (infinitesimal x⁻¹ ∧ x⁻¹ < 0) :=
 ⟨ λ hin, have hin' : _ := infinite_pos_iff_infinitesimal_inv_pos.mp
   (infinite_pos_neg_of_infinite_neg hin),
-  by rwa [infinitesimal_neg_iff, ←neg_pos,
-    neg_inv (λ h0, lt_irrefl x (by convert hin 0) : x ≠ 0)],
+  by rwa [infinitesimal_neg_iff, ←neg_pos, neg_inv],
   λ hin, have h0 : x ≠ 0 := λ h0, (lt_irrefl (0 : ℝ*) (by convert hin.2; rw [h0, inv_zero])),
-  by rwa [←neg_pos, infinitesimal_neg_iff, neg_inv h0,
+  by rwa [←neg_pos, infinitesimal_neg_iff, neg_inv,
     ←infinite_pos_iff_infinitesimal_inv_pos, ←infinite_neg_iff_infinite_pos_neg] at hin ⟩
 
 theorem infinitesimal_inv_of_infinite {x : ℝ*} : infinite x → infinitesimal x⁻¹ :=

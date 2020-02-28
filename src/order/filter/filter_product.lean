@@ -215,6 +215,8 @@ protected def division_ring [division_ring β] (U : is_ultrafilter φ) : divisio
     have h : {n : α | ¬a n = 0} ⊆ {n : α | (a n)⁻¹ * a n = 1} :=
       by rw [set.set_of_subset_set_of]; exact λ n, division_ring.inv_mul_cancel,
     mem_sets_of_superset hx2 h,
+  inv_zero := quotient.sound' $ by show _ ∈ _;
+    simp only [inv_zero, eq_self_iff_true, (set.univ_def).symm, univ_sets],
   ..filter_product.ring,
   ..filter_product.has_inv,
   ..filter_product.zero_ne_one_class U.1 }
@@ -224,15 +226,6 @@ This cannot be an instance, since it depends on `φ` being an ultrafilter. -/
 protected def field [field β] (U : is_ultrafilter φ) : field β* :=
 { ..filter_product.comm_ring,
   ..filter_product.division_ring U }
-
-/-- If `φ` is an ultrafilter then the ultraproduct is a discrete field.
-This cannot be an instance, since it depends on `φ` being an ultrafilter. -/
-protected noncomputable def field [field β] (U : is_ultrafilter φ) :
-  field β* :=
-{ inv_zero := quotient.sound' $ by show _ ∈ _;
-    simp only [inv_zero, eq_self_iff_true, (set.univ_def).symm, univ_sets],
-  has_decidable_eq := by apply_instance,
-  ..filter_product.field U }
 
 instance [has_le β] : has_le β* := { le := lift_rel₂ has_le.le }
 

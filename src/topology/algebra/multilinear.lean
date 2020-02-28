@@ -99,7 +99,7 @@ instance : has_neg (continuous_multilinear_map R M₁ M₂) :=
 
 instance : add_comm_group (continuous_multilinear_map R M₁ M₂) :=
 by refine {zero := 0, add := (+), neg := has_neg.neg, ..};
-   intros; ext; simp
+   intros; ext; simp [add_comm, add_left_comm]
 
 @[simp] lemma sub_apply (m : Πi, M₁ i) : (f - f') m = f m - f' m := rfl
 

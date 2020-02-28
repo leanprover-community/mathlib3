@@ -178,7 +178,7 @@ theorem is_noetherian_ring_of_fg {S : subalgebra R A} (HS : S.fg)
   [is_noetherian_ring R] : is_noetherian_ring S :=
 let ⟨t, ht⟩ := HS in ht ▸ (algebra.adjoin_eq_range R (↑t : set A)).symm ▸
 by haveI : is_noetherian_ring (mv_polynomial (↑t : set A) R) :=
-is_noetherian_ring_mv_polynomial_of_fintype;
+mv_polynomial.is_noetherian_ring;
 convert alg_hom.is_noetherian_ring_range _; apply_instance
 
 theorem is_noetherian_ring_closure (s : set R) (hs : s.finite) :

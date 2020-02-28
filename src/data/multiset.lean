@@ -2142,7 +2142,7 @@ def disjoint (s t : multiset α) : Prop := ∀ ⦃a⦄, a ∈ s → a ∈ t → 
 theorem disjoint.symm {s t : multiset α} (d : disjoint s t) : disjoint t s
 | a i₂ i₁ := d i₁ i₂
 
-@[simp] theorem disjoint_comm {s t : multiset α} : disjoint s t ↔ disjoint t s :=
+theorem disjoint_comm {s t : multiset α} : disjoint s t ↔ disjoint t s :=
 ⟨disjoint.symm, disjoint.symm⟩
 
 theorem disjoint_left {s t : multiset α} : disjoint s t ↔ ∀ {a}, a ∈ s → a ∉ t := iff.rfl
@@ -2180,7 +2180,7 @@ by simp [disjoint, or_imp_distrib, forall_and_distrib]
 
 @[simp] theorem disjoint_add_right {s t u : multiset α} :
   disjoint s (t + u) ↔ disjoint s t ∧ disjoint s u :=
-disjoint_comm.trans $ by simp [disjoint_append_left]
+by rw [disjoint_comm, disjoint_add_left]; tauto
 
 @[simp] theorem disjoint_cons_left {a : α} {s t : multiset α} :
   disjoint (a::s) t ↔ a ∉ t ∧ disjoint s t :=
@@ -2188,7 +2188,7 @@ disjoint_comm.trans $ by simp [disjoint_append_left]
 
 @[simp] theorem disjoint_cons_right {a : α} {s t : multiset α} :
   disjoint s (a::t) ↔ a ∉ s ∧ disjoint s t :=
-disjoint_comm.trans $ by simp [disjoint_cons_left]
+by rw [disjoint_comm, disjoint_cons_left]; tauto
 
 theorem inter_eq_zero_iff_disjoint [decidable_eq α] {s t : multiset α} : s ∩ t = 0 ↔ disjoint s t :=
 by rw ← subset_zero; simp [subset_iff, disjoint]
@@ -2543,7 +2543,7 @@ iff.trans (by simp [disjoint]) disjoint_cons_left
 
 @[simp] theorem disjoint_ndinsert_right {a : α} {s t : multiset α} :
   disjoint s (ndinsert a t) ↔ a ∉ s ∧ disjoint s t :=
-disjoint_comm.trans $ by simp
+by rw [disjoint_comm, disjoint_ndinsert_left]; tauto
 
 /- finset union -/
 

@@ -2,9 +2,6 @@
 Copyright (c) 2019 Scott Morrison All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Scott Morrison
-
-The core of a category C is the groupoid whose morphisms are all the
-isomorphisms of C.
 -/
 
 import category_theory.groupoid
@@ -14,6 +11,8 @@ namespace category_theory
 
 universes v₁ v₂ u₁ u₂ -- declare the `v`'s first; see `category_theory.category` for an explanation
 
+/-- The core of a category C is the groupoid whose morphisms are all the
+isomorphisms of C. -/
 def core (C : Type u₁) := C
 
 variables {C : Type u₁} [𝒞 : category.{v₁} C]
@@ -30,6 +29,7 @@ namespace core
 @[simp] lemma comp_hom {X Y Z : core C} (f : X ⟶ Y) (g : Y ⟶ Z) : (f ≫ g).hom = f.hom ≫ g.hom :=
 rfl
 
+/-- The core of a category is naturally included in the category. -/
 def inclusion : core C ⥤ C :=
 { obj := id,
   map := λ X Y f, f.hom }

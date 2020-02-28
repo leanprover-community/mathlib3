@@ -373,7 +373,7 @@ lemma div_nonzero {I J : fractional_ideal R (non_zero_divisors R)} (h : J ≠ 0)
   (I / J) = ⟨I.1 / J.1, fractional_div_of_nonzero h⟩ :=
 dif_neg h
 
-lemma inv_nonzero {I J : fractional_ideal R (non_zero_divisors R)} (h : I ≠ 0) :
+lemma inv_nonzero {I : fractional_ideal R (non_zero_divisors R)} (h : I ≠ 0) :
   I⁻¹ = ⟨(1 : fractional_ideal R _).val / I.1, fractional_div_of_nonzero h⟩ :=
 div_nonzero h
 

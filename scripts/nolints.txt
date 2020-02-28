@@ -233,9 +233,6 @@ apply_nolint prime_spectrum has_inhabited_instance
 apply_nolint algebraic_geometry.PresheafedSpace.stalk doc_blame
 apply_nolint algebraic_geometry.PresheafedSpace.stalk_map doc_blame
 
--- analysis/calculus/times_cont_diff.lean
-apply_nolint times_cont_diff.times_cont_diff_fderiv_apply unused_arguments
-
 -- analysis/normed_space/basic.lean
 apply_nolint normed_group.tendsto_nhds_zero ge_or_gt
 apply_nolint summable_iff_vanishing_norm ge_or_gt

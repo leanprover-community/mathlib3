@@ -199,14 +199,6 @@ instance [field α] (p : ℕ) [nat.prime p] [char_p α p] : field (perfect_closu
       (by simp only [nat.iterate₀ (frobenius_one _ _), nat.iterate₀ (frobenius_zero α p),
         nat.iterate_zero, (nat.iterate₂ (frobenius_mul α p)).symm] at this ⊢;
         rw [mul_inv_cancel this, nat.iterate₀ (frobenius_one _ _)]),
-  inv_mul_cancel := λ e, quot.induction_on e $ λ ⟨m, x⟩ H,
-    have _ := mt (eq_iff _ _ _ _).2 H, (eq_iff _ _ _ _).2
-      (by simp only [nat.iterate₀ (frobenius_one _ _), nat.iterate₀ (frobenius_zero α p),
-        nat.iterate_zero, (nat.iterate₂ (frobenius_mul α p)).symm] at this ⊢;
-        rw [inv_mul_cancel this, nat.iterate₀ (frobenius_one _ _)]),
-  has_decidable_eq := λ e f, quot.rec_on_subsingleton e $ λ ⟨m, x⟩,
-    quot.rec_on_subsingleton f $ λ ⟨n, y⟩,
-    decidable_of_iff' _ (eq_iff α p _ _),
   inv_zero := congr_arg (quot.mk (r α p)) (by rw [inv_zero]),
   .. (infer_instance : has_inv (perfect_closure α p)),
   .. (infer_instance : comm_ring (perfect_closure α p)) }

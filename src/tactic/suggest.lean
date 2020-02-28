@@ -8,6 +8,8 @@ import data.mllist
 import tactic.solve_by_elim
 
 /-!
+# `suggest` and `library_search`
+
 `suggest` and `library_search` are a pair of tactics for applying lemmas from the library to the
 current goal.
 
@@ -58,7 +60,8 @@ def head_symbol_match.to_string : head_symbol_match → string
 /--
 When we are determining if a given declaration is potentially relevant for the current goal,
 we compute `unfold_head_symbol` on the head symbol of the declaration, producing a list of names.
-We consider the declaration potentially relevant if the head symbol of the goal appears in this list.
+We consider the declaration potentially relevant if the head symbol of the goal appears in this
+list.
 -/
 -- This is a hack.
 meta def unfold_head_symbol : name → list name
@@ -105,11 +108,13 @@ do env ← get_env,
    return $ env.decl_filter_map (process_declaration hs)
 
 /--
-Apply the lemma `e`, then attempt to close all goals using `solve_by_elim { discharger := discharger }`,
-failing if `close_goals = tt` and there are any goals remaining.
+Apply the lemma `e`, then attempt to close all goals using
+`solve_by_elim { discharger := discharger }`, failing if `close_goals = tt`
+and there are any goals remaining.
 -/
 -- Implementation note: as this is used by both `library_search` and `suggest`,
--- we first run `solve_by_elim` separately on a subset of the goals, whether or not `close_goals` is set,
+-- we first run `solve_by_elim` separately on a subset of the goals,
+-- whether or not `close_goals` is set,
 -- and then if `close_goals = tt`, require that `solve_by_elim { all_goals := tt }` succeeds
 -- on the remaining goals.
 meta def apply_and_solve (close_goals : bool) (discharger : tactic unit) (e : expr) : tactic unit :=
@@ -124,7 +129,8 @@ try (any_goals (independent_goal >> solve_by_elim { discharger := discharger }))
 (done <|>
   -- If there were any goals that we did not attempt solving in the first phase
   -- (because they weren't propositional, or contained a metavariable)
-  -- as a second phase we attempt to solve all remaining goals at once (with backtracking across goals).
+  -- as a second phase we attempt to solve all remaining goals at once
+  -- (with backtracking across goals).
   any_goals (success_if_fail independent_goal) >>
   solve_by_elim { backtrack_all_goals := tt, discharger := discharger } <|>
   -- and fail unless `close_goals = ff`
@@ -134,7 +140,8 @@ try (any_goals (independent_goal >> solve_by_elim { discharger := discharger }))
 Apply the declaration `d` (or the forward and backward implications separately, if it is an `iff`),
 and then attempt to solve the goal using `apply_and_solve`.
 -/
-meta def apply_declaration (close_goals : bool) (discharger : tactic unit) (d : decl_data) : tactic unit :=
+meta def apply_declaration (close_goals : bool) (discharger : tactic unit) (d : decl_data) :
+  tactic unit :=
 let tac := apply_and_solve close_goals discharger in
 do (e, t) ← decl_mk_const d.d,
    match d.m with
@@ -241,9 +248,11 @@ It attempts to apply a declaration from the library,
 then solve new goals using `solve_by_elim`.
 
 It returns a list of `application`s consisting of fields:
-* `state`, a tactic state resulting from the successful application of a declaration from the library,
+* `state`, a tactic state resulting from the successful application of a declaration from
+  the library,
 * `script`, a string of the form `refine ...` or `exact ...` which will reproduce that tactic state,
-* `decl`, an `option declaration` indicating the declaration that was applied (or none, if `solve_by_elim` succeeded),
+* `decl`, an `option declaration` indicating the declaration that was applied
+  (or none, if `solve_by_elim` succeeded),
 * `num_goals`, the number of remaining goals, and
 * `hyps_used`, the number of local hypotheses used in the solution.
 -/
@@ -256,18 +265,21 @@ See `suggest_core`.
 Returns a list of at most `limit` `application`s,
 sorted by number of goals, and then (reverse) number of hypotheses used.
 -/
-meta def suggest (limit : option ℕ := none) (discharger : tactic unit := done) : tactic (list application) :=
+meta def suggest (limit : option ℕ := none) (discharger : tactic unit := done) :
+  tactic (list application) :=
 do let results := suggest_core discharger,
    -- Get the first n elements of the successful lemmas
    L ← if h : limit.is_some then results.take (option.get h) else results.force,
    -- Sort by number of remaining goals, then by number of hypotheses used.
-   return $ L.qsort(λ d₁ d₂, d₁.num_goals < d₂.num_goals ∨ (d₁.num_goals = d₂.num_goals ∧ d₁.hyps_used ≥ d₂.hyps_used))
+   return $ L.qsort (λ d₁ d₂, d₁.num_goals < d₂.num_goals ∨
+    (d₁.num_goals = d₂.num_goals ∧ d₁.hyps_used ≥ d₂.hyps_used))
 
 /--
 Returns a list of at most `limit` strings, of the form `exact ...` or `refine ...`, which make
 progress on the current goal using a declaration from the library.
 -/
-meta def suggest_scripts (limit : option ℕ := none) (discharger : tactic unit := done) : tactic (list string) :=
+meta def suggest_scripts (limit : option ℕ := none) (discharger : tactic unit := done) :
+  tactic (list string) :=
 do L ← suggest limit discharger,
    return $ L.map application.script
 
@@ -297,6 +309,37 @@ The default for `num` is `50`.
 For performance reasons `suggest` uses monadic lazy lists (`mllist`). This means that
 `suggest` might miss some results if `num` is not large enough. However, because
 `suggest` uses monadic lazy lists, smaller values of `num` run faster than larger values.
+---
+`suggest` lists possible usages of the `refine` tactic and leaves the tactic state unchanged.
+It is intended as a complement of the search function in your editor, the `#find` tactic, and
+`library_search`.
+
+`suggest` takes an optional natural number `num` as input and returns the first `num` (or less, if
+all possibilities are exhausted) possibilities ordered by length of lemma names.
+The default for `num` is `50`.
+
+For performance reasons `suggest` uses monadic lazy lists (`mllist`). This means that `suggest`
+might miss some results if `num` is not large enough. However, because `suggest` uses monadic
+lazy lists, smaller values of `num` run faster than larger values.
+
+An example of `suggest` in action,
+
+```lean
+example (n : nat) : n < n + 1 :=
+begin suggest, sorry end
+```
+
+prints the list,
+
+```lean
+Try this: exact nat.lt.base n
+Try this: exact nat.lt_succ_self n
+Try this: refine not_le.mp _
+Try this: refine gt_iff_lt.mp _
+Try this: refine nat.lt.step _
+Try this: refine lt_of_not_ge _
+...
+```
 -/
 meta def suggest (n : parse (with_desc "n" small_nat)?) : tactic unit :=
 do L ← tactic.suggest_scripts (n.get_or_else 50),
@@ -308,6 +351,12 @@ do L ← tactic.suggest_scripts (n.get_or_else 50),
     else
       L.mmap trace >> skip
 
+add_tactic_doc
+{ name        := "suggest",
+  category    := doc_category.tactic,
+  decl_names  := [`tactic.interactive.suggest],
+  tags        := ["search", "Try this"] }
+
 declare_trace silence_library_search -- Turn off `exact ...` trace message for `library_search
 
 /--
@@ -316,6 +365,19 @@ matches the goal, and then discharge any new goals using `solve_by_elim`.
 
 If it succeeds, it prints a trace message `exact ...` which can replace the invocation
 of `library_search`.
+---
+`library_search` is a tactic to identify existing lemmas in the library. It tries to close the
+current goal by applying a lemma from the library, then discharging any new goals using
+`solve_by_elim`.
+
+Typical usage is:
+```lean
+example (n m k : ℕ) : n * (m - k) = n * m - n * k :=
+by library_search -- Try this: exact nat.mul_sub_left_distrib n m k
+```
+
+`library_search` prints a trace message showing the proof it found, shown above as a comment.
+Typically you will then copy and paste this proof, replacing the call to `library_search`.
 -/
 meta def library_search : tactic unit :=
 tactic.library_search tactic.done >>=
@@ -324,8 +386,31 @@ if is_trace_enabled_for `silence_library_search then
 else
   trace
 
+add_tactic_doc
+{ name        := "library_search",
+  category    := doc_category.tactic,
+  decl_names  := [`tactic.interactive.library_search],
+  tags        := ["search", "Try this"] }
+
 end interactive
 
+/-- Invoking the hole command `library_search` ("Use `library_search` to complete the goal") calls
+the tactic `library_search` to produce a proof term with the type of the hole.
+
+Running it on
+
+```lean
+example : 0 < 1 :=
+{!!}
+```
+
+produces
+
+```lean
+example : 0 < 1 :=
+nat.one_pos
+```
+-/
 @[hole_command] meta def library_search_hole_cmd : hole_command :=
 { name := "library_search",
   descr := "Use `library_search` to complete the goal.",
@@ -333,5 +418,11 @@ end interactive
     script ← library_search,
     -- Is there a better API for dropping the 'exact ' prefix on this string?
     return [((script.mk_iterator.remove 6).to_string, "by library_search")] }
+
+add_tactic_doc
+{ name        := "library_search hole command", -- TODO name conflict
+  category    := doc_category.hole_cmd,
+  decl_names  := [`tactic.library_search_hole_cmd],
+  tags        := ["search", "Try this"] }
 
 end tactic

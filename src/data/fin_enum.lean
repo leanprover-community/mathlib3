@@ -62,8 +62,14 @@ def of_surjective {β} (f : β → α) [decidable_eq α] [fin_enum β] (h : surj
 of_list ((to_list β).map f) (by intro; simp; exact h _)
 
 /-- create a `fin_enum` instance using an injection -/
-noncomputable def of_injective {α β} (f : α → β) [inhabited α] [decidable_eq α] [fin_enum β] (h : injective f) : fin_enum α :=
-of_surjective (inv_fun f) (inv_fun_surjective h)
+noncomputable def of_injective {α β} (f : α → β) [decidable_eq α] [fin_enum β] (h : injective f) : fin_enum α :=
+of_list ((to_list β).filter_map (partial_inv f))
+begin
+  intro x,
+  simp only [mem_to_list, true_and, list.mem_filter_map],
+  use f x,
+  simp only [h, function.partial_inv_left],
+end
 
 instance pempty : fin_enum pempty :=
 of_list [] (λ x, pempty.elim x)
@@ -154,12 +160,12 @@ instance [fin_enum α] : fintype α :=
 
 /-- For `pi.cons x xs y f` create a function where every `i ∈ xs` is mapped to `f i` and
 `x` is mapped to `y`  -/
-def pi.cons {β : α → Type*} [decidable_eq α] (x : α) (xs : list α) (b : β x)
+def pi.cons {β : α → Type*} [decidable_eq α] (x : α) (xs : list α) (y : β x)
   (f : Π a, a ∈ xs → β a) :
   Π a, a ∈ (x :: xs : list α) → β a
-| y h :=
-  if h' : y = x then cast (by rw h') b
-    else f y (list.mem_of_ne_of_mem h' h)
+| b h :=
+  if h' : b = x then cast (by rw h') y
+    else f b (list.mem_of_ne_of_mem h' h)
 
 /-- Given `f` a function whose domain is `x :: xs`, produce a function whose domain
 is restricted to `xs`.  -/

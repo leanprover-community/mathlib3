@@ -62,6 +62,16 @@ variables {f : α → β}
 protected lemma image_preimage : galois_connection (image f) (preimage f) :=
 assume a b, image_subset_iff
 
+protected lemma push_pull {α : Type*} {β : Type*} (f : α → β) (s : set α) (t : set β) :
+f '' (s ∩ f ⁻¹' t) = f '' s ∩ t :=
+begin
+  apply subset.antisymm,
+  { calc f '' (s ∩ f ⁻¹' t) ⊆ f '' s ∩ (f '' (f⁻¹' t)) : image_inter_subset _ _ _
+  ... ⊆ f '' s ∩ t : inter_subset_inter_right _ (image_preimage_subset f t) },
+  { rintros _ ⟨⟨x, h', rfl⟩, h⟩,
+    exact ⟨x, ⟨h', h⟩, rfl⟩ }
+end
+
 def kern_image (f : α → β) (s : set α) : set β := {y | ∀x, f x = y → x ∈ s}
 
 protected lemma preimage_kern_image : galois_connection (preimage f) (kern_image f) :=

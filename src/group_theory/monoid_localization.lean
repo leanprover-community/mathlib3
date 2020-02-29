@@ -6,6 +6,7 @@ Authors: Amelia Livingston
 
 import group_theory.congruence
 import algebra.associated
+import algebra.punit_instances
 
 /-!
 # Localizations of commutative monoids
@@ -74,6 +75,14 @@ structure localization_map :=
 
 attribute [to_additive add_submonoid.localization_map] submonoid.localization_map
 
+@[to_additive] instance localization_map.inhabited :
+  inhabited (@localization_map punit (comm_group.to_comm_monoid punit) ⊥
+    punit (comm_group.to_comm_monoid punit)) :=
+⟨{ to_fun := 1,
+   inv := λ y, ⟨(comm_group.to_comm_monoid punit).one, rfl⟩,
+   surj := λ z, ⟨⟨(comm_group.to_comm_monoid punit).one, ⟨1, set.mem_singleton_iff.2 rfl⟩⟩, rfl⟩,
+   eq_iff_exists := λ x y, ⟨λ h, ⟨⟨1, set.mem_singleton_iff.2 rfl⟩, rfl⟩, λ h, rfl⟩ }⟩
+
 namespace monoid_localization
 
 /-- The congruence relation on `M × S`, `M` a `comm_monoid` and `S` a submonoid of `M`, whose
@@ -125,7 +134,7 @@ le_antisymm (lattice.Inf_le $ λ _, ⟨1, by simp⟩) $
 end monoid_localization
 
 /-- The localization of a `comm_monoid` at one of its submonoids (as a quotient type). -/
-@[to_additive "The localization of an `add_comm_monoid` at one of its submonoids (as a quotient type)."]
+@[derive inhabited, to_additive "The localization of an `add_comm_monoid` at one of its submonoids (as a quotient type)."]
 def monoid_localization := (monoid_localization.r S).quotient
 
 namespace monoid_localization
@@ -310,3 +319,5 @@ by rw [mul_comm, mk_mul_cancel_right]
 
 end monoid_localization
 end submonoid
+
+#lint

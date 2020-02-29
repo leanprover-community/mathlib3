@@ -319,5 +319,3 @@ by rw [mul_comm, mk_mul_cancel_right]
 
 end monoid_localization
 end submonoid
-
-#lint

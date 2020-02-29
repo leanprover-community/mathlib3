@@ -382,7 +382,7 @@ begin
     exact subset.antisymm (union_subset (subset.refl _) h) (subset_union_left _ _) }
 end
 
-@[simp] lemma union_eq_left_iff_subset' {s t : finset α} :
+@[simp] lemma left_eq_union_iff_subset {s t : finset α} :
   s = s ∪ t ↔ t ⊆ s :=
 by rw [← union_eq_left_iff_subset, eq_comm]
 
@@ -397,7 +397,7 @@ begin
     exact subset.antisymm (union_subset h (subset.refl _)) (subset_union_right _ _) }
 end
 
-@[simp] lemma union_eq_right_iff_subset' {s t : finset α} :
+@[simp] lemma right_eq_union_iff_subset {s t : finset α} :
   s = t ∪ s ↔ t ⊆ s :=
 by rw [← union_eq_right_iff_subset, eq_comm]
 
@@ -1972,7 +1972,7 @@ section max_min
 variables [decidable_linear_order α]
 
 /-- Let `s` be a finset in a linear order. Then `s.max` is the maximum of `s` if `s` is not empty,
-and `none` otherwise. It belongs to `option α `. If you want to get an element of `α`, see
+and `none` otherwise. It belongs to `option α`. If you want to get an element of `α`, see
 `s.max'`. -/
 protected def max : finset α → option α :=
 fold (option.lift_or_get max) none some
@@ -2017,7 +2017,7 @@ by rcases @le_sup (with_bot α) _ _ _ _ _ h₁ _ rfl with ⟨b', hb, ab⟩;
    cases h₂.symm.trans hb; assumption
 
 /-- Let `s` be a finset in a linear order. Then `s.min` is the minimum of `s` if `s` is not empty,
-and `none` otherwise. It belongs to `option α `. If you want to get an element of `α`, see
+and `none` otherwise. It belongs to `option α`. If you want to get an element of `α`, see
 `s.min'`. -/
 protected def min : finset α → option α :=
 fold (option.lift_or_get min) none some

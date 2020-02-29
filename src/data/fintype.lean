@@ -468,7 +468,7 @@ fintype.subtype (univ.filter (∈ s)) (by simp)
 
 /-! ### pi -/
 
-/-- The dependent product of fintypes, indexed by a fintype, is a fintype. -/
+/-- A dependent product of fintypes, indexed by a fintype, is a fintype. -/
 instance pi.fintype {α : Type*} {β : α → Type*}
   [fintype α] [decidable_eq α] [∀a, fintype (β a)] : fintype (Πa, β a) :=
 @fintype.of_equiv _ _

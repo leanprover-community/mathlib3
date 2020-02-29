@@ -39,6 +39,11 @@ instance : distrib_lattice (set α) :=
 lemma monotone_image {f : α → β} : monotone (image f) :=
 assume s t, assume h : s ⊆ t, image_subset _ h
 
+lemma image_inter_subset (f : α → β) (s t : set α) :
+  f '' (s ∩ t) ⊆ f '' s ∩ f '' t :=
+show f '' (s ⊓ t) ≤ f '' s ⊓ f '' t,
+from monotone.map_inf_le monotone_image _ _
+
 theorem monotone_inter [preorder β] {f g : β → set α}
   (hf : monotone f) (hg : monotone g) : monotone (λx, f x ∩ g x) :=
 assume b₁ b₂ h, inter_subset_inter (hf h) (hg h)

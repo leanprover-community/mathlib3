@@ -388,14 +388,7 @@ by rw [← union_eq_left_iff_subset, eq_comm]
 
 @[simp] lemma union_eq_right_iff_subset {s t : finset α} :
   t ∪ s = s ↔ t ⊆ s :=
-begin
-  split,
-  { assume h,
-    have : t ⊆ t ∪ s := subset_union_left _ _,
-    rwa h at this },
-  { assume h,
-    exact subset.antisymm (union_subset h (subset.refl _)) (subset_union_right _ _) }
-end
+by rw [union_comm, union_eq_left_iff_subset]
 
 @[simp] lemma right_eq_union_iff_subset {s t : finset α} :
   s = t ∪ s ↔ t ⊆ s :=

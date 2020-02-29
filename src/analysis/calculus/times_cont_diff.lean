@@ -91,7 +91,7 @@ derivative in `E →L[𝕜] F` (contrary to the approach from the left, where on
 enough on the `n`-th derivative to deduce things on the `n+1`-th derivative).
 
 However, the definition from the right leads to a universe polymorphism problem: if we define
-`iterated_fderiv 𝕜 n.succ f x = iterated_fderiv 𝕜 n (fderiv 𝕜 f) x` by induction, we need to
+`iterated_fderiv 𝕜 (n + 1) f x = iterated_fderiv 𝕜 n (fderiv 𝕜 f) x` by induction, we need to
 generalize over all spaces (as `f` and `fderiv 𝕜 f` don't take values in the same space). It is
 only possible to generalize over all spaces in some fixed universe in an inductive definition.
 For `f : E → F`, then `fderiv 𝕜 f` is a map `E → (E →L[𝕜] F)`. Therefore, the definition will only
@@ -192,7 +192,7 @@ series for the function itself. -/
 def unshift (q : formal_multilinear_series 𝕜 E (E →L[𝕜] F)) (z : F) :
   formal_multilinear_series 𝕜 E F
 | 0     := (continuous_multilinear_curry_fin0 𝕜 E F).symm z
-| (n+1) := (continuous_multilinear_curry_right_equiv 𝕜 (λ (i : fin n.succ), E) F) (q n)
+| (n+1) := (continuous_multilinear_curry_right_equiv 𝕜 (λ (i : fin (n + 1)), E) F) (q n)
 
 end formal_multilinear_series
 
@@ -307,16 +307,16 @@ lemma has_ftaylor_series_up_to_on.differentiable_on {n : with_top ℕ}
 /-- `p` is a Taylor series of `f` up to `n+1` if and only if `p` is a Taylor series up to `n`, and
 `p (n+1)` is a derivative of `p n`. -/
 theorem has_ftaylor_series_up_to_on_succ_iff_left {n : ℕ} :
-  has_ftaylor_series_up_to_on n.succ f p s ↔
+  has_ftaylor_series_up_to_on (n + 1) f p s ↔
   has_ftaylor_series_up_to_on n f p s
   ∧ (∀ x ∈ s, has_fderiv_within_at (λ y, p y n) (p x n.succ).curry_left s x)
-  ∧ continuous_on (λ x, p x n.succ) s :=
+  ∧ continuous_on (λ x, p x (n+1)) s :=
 begin
   split,
   { assume h,
     exact ⟨h.of_le (with_top.coe_le_coe.2 (nat.le_succ n)),
            h.fderiv_within _ (with_top.coe_lt_coe.2 (lt_add_one n)),
-           h.cont n.succ (le_refl _)⟩ },
+           h.cont (n + 1) (le_refl _)⟩ },
   { assume h,
     split,
     { exact h.1.zero_eq },
@@ -329,7 +329,7 @@ begin
     { assume m hm,
       by_cases h' : m ≤ n,
       { apply h.1.cont m (with_top.coe_le_coe.2 h') },
-      { have : m = n.succ := le_antisymm (with_top.coe_le_coe.1 hm) (not_le.1 h'),
+      { have : m = (n + 1) := le_antisymm (with_top.coe_le_coe.1 hm) (not_le.1 h'),
         rw this,
         exact h.2.2 } } }
 end
@@ -337,7 +337,7 @@ end
 /-- `p` is a Taylor series of `f` up to `n+1` if and only if `p.shift` is a Taylor series up to `n`
 for `p 1`, which is a derivative of `f`. -/
 theorem has_ftaylor_series_up_to_on_succ_iff_right {n : ℕ} :
-  has_ftaylor_series_up_to_on n.succ f p s ↔
+  has_ftaylor_series_up_to_on ((n + 1) : ℕ) f p s ↔
   (∀ x ∈ s, (p x 0).uncurry0 = f x)
   ∧ (∀ x ∈ s, has_fderiv_within_at (λ y, p y 0) (p x 1).curry_left s x)
   ∧ has_ftaylor_series_up_to_on n
@@ -510,7 +510,7 @@ end
 
 /-- A function is `C^(n+1)` on a domain iff locally, it has a derivative which is `C^n`. -/
 theorem times_cont_diff_on_succ_iff_has_fderiv_within_at {n : ℕ} :
-  times_cont_diff_on 𝕜 n.succ f s
+  times_cont_diff_on 𝕜 ((n + 1) : ℕ) f s
   ↔ ∀ x ∈ s, ∃ u ∈ nhds_within x s, ∃ f' : E → (E →L[𝕜] F),
     (∀ x ∈ u, has_fderiv_within_at f (f' x) u x)
     ∧ (times_cont_diff_on 𝕜 n f' u) :=
@@ -587,12 +587,12 @@ lemma iterated_fderiv_within_succ_apply_left {n : ℕ} (m : fin (n+1) → E):
 and the derivative of the `n`-th derivative. -/
 lemma iterated_fderiv_within_succ_eq_comp_left {n : ℕ} :
   iterated_fderiv_within 𝕜 (n+1) f s =
-  (continuous_multilinear_curry_left_equiv 𝕜 (λ(i : fin n.succ), E) F)
+  (continuous_multilinear_curry_left_equiv 𝕜 (λ(i : fin (n + 1)), E) F)
     ∘ (fderiv_within 𝕜 (iterated_fderiv_within 𝕜 n f s) s) := rfl
 
 theorem iterated_fderiv_within_succ_apply_right {n : ℕ}
   (hs : unique_diff_on 𝕜 s) (hx : x ∈ s) (m : fin (n+1) → E) :
-  (iterated_fderiv_within 𝕜 n.succ f s x : (fin (n+1) → E) → F) m
+  (iterated_fderiv_within 𝕜 (n + 1) f s x : (fin (n+1) → E) → F) m
     = iterated_fderiv_within 𝕜 n (λy, fderiv_within 𝕜 f s y) s x (init m) (m (last n)) :=
 begin
   induction n with n IH generalizing x,
@@ -625,7 +625,7 @@ end
 and the `n`-th derivative of the derivative. -/
 lemma iterated_fderiv_within_succ_eq_comp_right {n : ℕ} (hs : unique_diff_on 𝕜 s) (hx : x ∈ s) :
   iterated_fderiv_within 𝕜 (n+1) f s x =
-  ((continuous_multilinear_curry_right_equiv 𝕜 (λ(i : fin n.succ), E) F)
+  ((continuous_multilinear_curry_right_equiv 𝕜 (λ(i : fin (n + 1)), E) F)
     ∘ (iterated_fderiv_within 𝕜 n (λy, fderiv_within 𝕜 f s y) s)) x :=
 by { ext m, rw iterated_fderiv_within_succ_apply_right hs hx, refl }
 
@@ -828,7 +828,7 @@ end
 /-- A function is `C^(n+1)` on a domain with unique derivatives if and only if it is differentiable
 there, and its derivative is `C^n`. -/
 theorem times_cont_diff_on_succ_iff_fderiv_within {n : ℕ} (hs : unique_diff_on 𝕜 s) :
-  times_cont_diff_on 𝕜 n.succ f s ↔
+  times_cont_diff_on 𝕜 ((n + 1) : ℕ) f s ↔
   differentiable_on 𝕜 f s ∧ times_cont_diff_on 𝕜 n (λ y, fderiv_within 𝕜 f s y) s :=
 begin
   split,
@@ -979,12 +979,13 @@ lemma has_ftaylor_series_up_to.differentiable {n : with_top ℕ}
 /-- `p` is a Taylor series of `f` up to `n+1` if and only if `p.shift` is a Taylor series up to `n`
 for `p 1`, which is a derivative of `f`. -/
 theorem has_ftaylor_series_up_to_succ_iff_right {n : ℕ} :
-  has_ftaylor_series_up_to n.succ f p ↔
+  has_ftaylor_series_up_to ((n + 1) : ℕ) f p ↔
   (∀ x, (p x 0).uncurry0 = f x)
   ∧ (∀ x, has_fderiv_at (λ y, p y 0) (p x 1).curry_left x)
   ∧ has_ftaylor_series_up_to n
     (λ x, continuous_multilinear_curry_fin1 𝕜 E F (p x 1)) (λ x, (p x).shift) :=
-by simp [has_ftaylor_series_up_to_on_succ_iff_right, has_ftaylor_series_up_to_on_univ_iff.symm]
+by simp [has_ftaylor_series_up_to_on_succ_iff_right, has_ftaylor_series_up_to_on_univ_iff.symm,
+         -add_comm, -with_bot.coe_add]
 
 variable (𝕜)
 
@@ -1070,7 +1071,7 @@ lemma iterated_fderiv_succ_apply_left {n : ℕ} (m : fin (n+1) → E):
 and the derivative of the `n`-th derivative. -/
 lemma iterated_fderiv_succ_eq_comp_left {n : ℕ} :
   iterated_fderiv 𝕜 (n+1) f =
-  (continuous_multilinear_curry_left_equiv 𝕜 (λ(i : fin n.succ), E) F)
+  (continuous_multilinear_curry_left_equiv 𝕜 (λ(i : fin (n + 1)), E) F)
     ∘ (fderiv 𝕜 (iterated_fderiv 𝕜 n f)) := rfl
 
 lemma iterated_fderiv_within_univ {n : ℕ} :
@@ -1092,7 +1093,7 @@ begin
 end
 
 theorem iterated_fderiv_succ_apply_right {n : ℕ} (m : fin (n+1) → E) :
-  (iterated_fderiv 𝕜 n.succ f x : (fin (n+1) → E) → F) m
+  (iterated_fderiv 𝕜 (n + 1) f x : (fin (n+1) → E) → F) m
     = iterated_fderiv 𝕜 n (λy, fderiv 𝕜 f y) x (init m) (m (last n)) :=
 begin
   rw [← iterated_fderiv_within_univ, ← iterated_fderiv_within_univ, ← fderiv_within_univ],
@@ -1103,7 +1104,7 @@ end
 and the `n`-th derivative of the derivative. -/
 lemma iterated_fderiv_succ_eq_comp_right {n : ℕ} :
   iterated_fderiv 𝕜 (n+1) f x =
-  ((continuous_multilinear_curry_right_equiv 𝕜 (λ(i : fin n.succ), E) F)
+  ((continuous_multilinear_curry_right_equiv 𝕜 (λ(i : fin (n + 1)), E) F)
     ∘ (iterated_fderiv 𝕜 n (λy, fderiv 𝕜 f y))) x :=
 by { ext m, rw iterated_fderiv_succ_apply_right, refl }
 
@@ -1141,10 +1142,11 @@ times_cont_diff_iff_continuous_differentiable.2
 /-- A function is `C^(n+1)` on a domain with unique derivatives if and only if it is differentiable
 there, and its derivative is `C^n`. -/
 theorem times_cont_diff_succ_iff_fderiv {n : ℕ} :
-  times_cont_diff 𝕜 n.succ f ↔
+  times_cont_diff 𝕜 ((n + 1) : ℕ) f ↔
   differentiable 𝕜 f ∧ times_cont_diff 𝕜 n (λ y, fderiv 𝕜 f y) :=
 by simp [times_cont_diff_on_univ.symm, differentiable_on_univ.symm, fderiv_within_univ.symm,
-         - fderiv_within_univ, times_cont_diff_on_succ_iff_fderiv_within unique_diff_on_univ]
+         - fderiv_within_univ, times_cont_diff_on_succ_iff_fderiv_within unique_diff_on_univ,
+         -with_bot.coe_add, -add_comm]
 
 /-- A function is `C^∞` on a domain with unique derivatives if and only if it is differentiable
 there, and its derivative is `C^∞`. -/

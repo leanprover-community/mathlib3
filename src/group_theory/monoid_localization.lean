@@ -134,8 +134,12 @@ le_antisymm (lattice.Inf_le $ λ _, ⟨1, by simp⟩) $
 end monoid_localization
 
 /-- The localization of a `comm_monoid` at one of its submonoids (as a quotient type). -/
-@[derive inhabited, to_additive "The localization of an `add_comm_monoid` at one of its submonoids (as a quotient type)."]
+@[to_additive "The localization of an `add_comm_monoid` at one of its submonoids (as a quotient type)."]
 def monoid_localization := (monoid_localization.r S).quotient
+
+@[to_additive] instance monoid_localization.inhabited :
+  inhabited (monoid_localization S) :=
+con.quotient.inhabited
 
 namespace monoid_localization
 

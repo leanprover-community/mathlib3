@@ -72,6 +72,10 @@ begin
     exact ⟨x, ⟨h', h⟩, rfl⟩ }
 end
 
+protected lemma push_pull' {α : Type*} {β : Type*} (f : α → β) (s : set α) (t : set β) :
+f '' (f ⁻¹' t ∩ s) = t ∩ f '' s :=
+by simp only [inter_comm, set.push_pull]
+
 def kern_image (f : α → β) (s : set α) : set β := {y | ∀x, f x = y → x ∈ s}
 
 protected lemma preimage_kern_image : galois_connection (preimage f) (kern_image f) :=

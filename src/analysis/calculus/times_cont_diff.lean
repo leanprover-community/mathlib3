@@ -191,8 +191,8 @@ corresponds to starting from a Taylor series for the derivative of a function, a
 series for the function itself. -/
 def unshift (q : formal_multilinear_series 𝕜 E (E →L[𝕜] F)) (z : F) :
   formal_multilinear_series 𝕜 E F
-| 0     := (continuous_multilinear_curry_fin0 𝕜 E F).symm z
-| (n+1) := (continuous_multilinear_curry_right_equiv 𝕜 (λ (i : fin (n + 1)), E) F) (q n)
+| 0       := (continuous_multilinear_curry_fin0 𝕜 E F).symm z
+| (n + 1) := (continuous_multilinear_curry_right_equiv 𝕜 (λ (i : fin (n + 1)), E) F) (q n)
 
 end formal_multilinear_series
 
@@ -305,12 +305,12 @@ lemma has_ftaylor_series_up_to_on.differentiable_on {n : with_top ℕ}
 λ x hx, (h.has_fderiv_within_at hn hx).differentiable_within_at
 
 /-- `p` is a Taylor series of `f` up to `n+1` if and only if `p` is a Taylor series up to `n`, and
-`p (n+1)` is a derivative of `p n`. -/
+`p (n + 1)` is a derivative of `p n`. -/
 theorem has_ftaylor_series_up_to_on_succ_iff_left {n : ℕ} :
   has_ftaylor_series_up_to_on (n + 1) f p s ↔
   has_ftaylor_series_up_to_on n f p s
   ∧ (∀ x ∈ s, has_fderiv_within_at (λ y, p y n) (p x n.succ).curry_left s x)
-  ∧ continuous_on (λ x, p x (n+1)) s :=
+  ∧ continuous_on (λ x, p x (n + 1)) s :=
 begin
   split,
   { assume h,
@@ -508,7 +508,7 @@ begin
   exact ⟨v, hv, p, H⟩,
 end
 
-/-- A function is `C^(n+1)` on a domain iff locally, it has a derivative which is `C^n`. -/
+/-- A function is `C^(n + 1)` on a domain iff locally, it has a derivative which is `C^n`. -/
 theorem times_cont_diff_on_succ_iff_has_fderiv_within_at {n : ℕ} :
   times_cont_diff_on 𝕜 ((n + 1) : ℕ) f s
   ↔ ∀ x ∈ s, ∃ u ∈ nhds_within x s, ∃ f' : E → (E →L[𝕜] F),
@@ -579,20 +579,20 @@ variable {𝕜}
 lemma iterated_fderiv_within_zero_eq_comp :
   iterated_fderiv_within 𝕜 0 f s = (continuous_multilinear_curry_fin0 𝕜 E F).symm ∘ f := rfl
 
-lemma iterated_fderiv_within_succ_apply_left {n : ℕ} (m : fin (n+1) → E):
-  (iterated_fderiv_within 𝕜 (n+1) f s x : (fin (n+1) → E) → F) m
+lemma iterated_fderiv_within_succ_apply_left {n : ℕ} (m : fin (n + 1) → E):
+  (iterated_fderiv_within 𝕜 (n + 1) f s x : (fin (n + 1) → E) → F) m
   = (fderiv_within 𝕜 (iterated_fderiv_within 𝕜 n f s) s x : E → (E [×n]→L[𝕜] F)) (m 0) (tail m) := rfl
 
 /-- Writing explicitly the `n+1`-th derivative as the composition of a currying linear equiv,
 and the derivative of the `n`-th derivative. -/
 lemma iterated_fderiv_within_succ_eq_comp_left {n : ℕ} :
-  iterated_fderiv_within 𝕜 (n+1) f s =
+  iterated_fderiv_within 𝕜 (n + 1) f s =
   (continuous_multilinear_curry_left_equiv 𝕜 (λ(i : fin (n + 1)), E) F)
     ∘ (fderiv_within 𝕜 (iterated_fderiv_within 𝕜 n f s) s) := rfl
 
 theorem iterated_fderiv_within_succ_apply_right {n : ℕ}
-  (hs : unique_diff_on 𝕜 s) (hx : x ∈ s) (m : fin (n+1) → E) :
-  (iterated_fderiv_within 𝕜 (n + 1) f s x : (fin (n+1) → E) → F) m
+  (hs : unique_diff_on 𝕜 s) (hx : x ∈ s) (m : fin (n + 1) → E) :
+  (iterated_fderiv_within 𝕜 (n + 1) f s x : (fin (n + 1) → E) → F) m
     = iterated_fderiv_within 𝕜 n (λy, fderiv_within 𝕜 f s y) s x (init m) (m (last n)) :=
 begin
   induction n with n IH generalizing x,
@@ -600,31 +600,31 @@ begin
         iterated_fderiv_within_zero_apply,
         function.comp_apply, continuous_linear_equiv.comp_fderiv_within _ (hs x hx)],
     refl },
-  { let I := (continuous_multilinear_curry_right_equiv 𝕜 (λ (i : fin (n+1)), E) F),
+  { let I := (continuous_multilinear_curry_right_equiv 𝕜 (λ (i : fin (n + 1)), E) F),
     have A : ∀ y ∈ s, iterated_fderiv_within 𝕜 n.succ f s y
         = (I ∘ (iterated_fderiv_within 𝕜 n (λy, fderiv_within 𝕜 f s y) s)) y,
       by { assume y hy, ext m, rw @IH m y hy, refl },
     calc
     (iterated_fderiv_within 𝕜 (n+2) f s x : (fin (n+2) → E) → F) m =
     (fderiv_within 𝕜 (iterated_fderiv_within 𝕜 n.succ f s) s x
-              : E → (E [×(n+1)]→L[𝕜] F)) (m 0) (tail m) : rfl
+              : E → (E [×(n + 1)]→L[𝕜] F)) (m 0) (tail m) : rfl
     ... = (fderiv_within 𝕜 (I ∘ (iterated_fderiv_within 𝕜 n (fderiv_within 𝕜 f s) s)) s x
-              : E → (E [×(n+1)]→L[𝕜] F)) (m 0) (tail m) :
+              : E → (E [×(n + 1)]→L[𝕜] F)) (m 0) (tail m) :
       by rw fderiv_within_congr (hs x hx) A (A x hx)
     ... = (I ∘ fderiv_within 𝕜 ((iterated_fderiv_within 𝕜 n (fderiv_within 𝕜 f s) s)) s x
-              : E → (E [×(n+1)]→L[𝕜] F)) (m 0) (tail m) :
+              : E → (E [×(n + 1)]→L[𝕜] F)) (m 0) (tail m) :
       by { rw continuous_linear_equiv.comp_fderiv_within _ (hs x hx), refl }
     ... = (fderiv_within 𝕜 ((iterated_fderiv_within 𝕜 n (λ y, fderiv_within 𝕜 f s y) s)) s x
               : E → (E [×n]→L[𝕜] (E →L[𝕜] F))) (m 0) (init (tail m)) ((tail m) (last n)) : rfl
     ... = iterated_fderiv_within 𝕜 (nat.succ n) (λ y, fderiv_within 𝕜 f s y) s x
-              (init m) (m (last (n+1))) :
+              (init m) (m (last (n + 1))) :
       by { rw [iterated_fderiv_within_succ_apply_left, tail_init_eq_init_tail], refl } }
 end
 
 /-- Writing explicitly the `n+1`-th derivative as the composition of a currying linear equiv,
 and the `n`-th derivative of the derivative. -/
 lemma iterated_fderiv_within_succ_eq_comp_right {n : ℕ} (hs : unique_diff_on 𝕜 s) (hx : x ∈ s) :
-  iterated_fderiv_within 𝕜 (n+1) f s x =
+  iterated_fderiv_within 𝕜 (n + 1) f s x =
   ((continuous_multilinear_curry_right_equiv 𝕜 (λ(i : fin (n + 1)), E) F)
     ∘ (iterated_fderiv_within 𝕜 n (λy, fderiv_within 𝕜 f s y) s)) x :=
 by { ext m, rw iterated_fderiv_within_succ_apply_right hs hx, refl }
@@ -825,7 +825,7 @@ begin
     exact times_cont_diff_on_of_continuous_on_differentiable_on h.1 h.2 }
 end
 
-/-- A function is `C^(n+1)` on a domain with unique derivatives if and only if it is differentiable
+/-- A function is `C^(n + 1)` on a domain with unique derivatives if and only if it is differentiable
 there, and its derivative is `C^n`. -/
 theorem times_cont_diff_on_succ_iff_fderiv_within {n : ℕ} (hs : unique_diff_on 𝕜 s) :
   times_cont_diff_on 𝕜 ((n + 1) : ℕ) f s ↔
@@ -1063,14 +1063,14 @@ variable {𝕜}
 lemma iterated_fderiv_zero_eq_comp :
   iterated_fderiv 𝕜 0 f = (continuous_multilinear_curry_fin0 𝕜 E F).symm ∘ f := rfl
 
-lemma iterated_fderiv_succ_apply_left {n : ℕ} (m : fin (n+1) → E):
-  (iterated_fderiv 𝕜 (n+1) f x : (fin (n+1) → E) → F) m
+lemma iterated_fderiv_succ_apply_left {n : ℕ} (m : fin (n + 1) → E):
+  (iterated_fderiv 𝕜 (n + 1) f x : (fin (n + 1) → E) → F) m
   = (fderiv 𝕜 (iterated_fderiv 𝕜 n f) x : E → (E [×n]→L[𝕜] F)) (m 0) (tail m) := rfl
 
 /-- Writing explicitly the `n+1`-th derivative as the composition of a currying linear equiv,
 and the derivative of the `n`-th derivative. -/
 lemma iterated_fderiv_succ_eq_comp_left {n : ℕ} :
-  iterated_fderiv 𝕜 (n+1) f =
+  iterated_fderiv 𝕜 (n + 1) f =
   (continuous_multilinear_curry_left_equiv 𝕜 (λ(i : fin (n + 1)), E) F)
     ∘ (fderiv 𝕜 (iterated_fderiv 𝕜 n f)) := rfl
 
@@ -1092,8 +1092,8 @@ begin
   rw iterated_fderiv_within_univ
 end
 
-theorem iterated_fderiv_succ_apply_right {n : ℕ} (m : fin (n+1) → E) :
-  (iterated_fderiv 𝕜 (n + 1) f x : (fin (n+1) → E) → F) m
+theorem iterated_fderiv_succ_apply_right {n : ℕ} (m : fin (n + 1) → E) :
+  (iterated_fderiv 𝕜 (n + 1) f x : (fin (n + 1) → E) → F) m
     = iterated_fderiv 𝕜 n (λy, fderiv 𝕜 f y) x (init m) (m (last n)) :=
 begin
   rw [← iterated_fderiv_within_univ, ← iterated_fderiv_within_univ, ← fderiv_within_univ],
@@ -1103,7 +1103,7 @@ end
 /-- Writing explicitly the `n+1`-th derivative as the composition of a currying linear equiv,
 and the `n`-th derivative of the derivative. -/
 lemma iterated_fderiv_succ_eq_comp_right {n : ℕ} :
-  iterated_fderiv 𝕜 (n+1) f x =
+  iterated_fderiv 𝕜 (n + 1) f x =
   ((continuous_multilinear_curry_right_equiv 𝕜 (λ(i : fin (n + 1)), E) F)
     ∘ (iterated_fderiv 𝕜 n (λy, fderiv 𝕜 f y))) x :=
 by { ext m, rw iterated_fderiv_succ_apply_right, refl }
@@ -1139,7 +1139,7 @@ lemma times_cont_diff_of_differentiable_iterated_fderiv {n : with_top ℕ}
 times_cont_diff_iff_continuous_differentiable.2
 ⟨λ m hm, (h m hm).continuous, λ m hm, (h m (le_of_lt hm))⟩
 
-/-- A function is `C^(n+1)` on a domain with unique derivatives if and only if it is differentiable
+/-- A function is `C^(n + 1)` on a domain with unique derivatives if and only if it is differentiable
 there, and its derivative is `C^n`. -/
 theorem times_cont_diff_succ_iff_fderiv {n : ℕ} :
   times_cont_diff 𝕜 ((n + 1) : ℕ) f ↔

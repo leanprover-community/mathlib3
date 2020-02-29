@@ -172,7 +172,7 @@ by simp only [times_cont_diff_on_iff_continuous_on_differentiable_on hs,
 /-- The `n+1`-th iterated derivative within a set with unique derivatives can be obtained by
 differentiating the `n`-th iterated derivative. -/
 lemma iterated_deriv_within_succ {x : 𝕜} (hxs : unique_diff_within_at 𝕜 s x) :
-  iterated_deriv_within (n+1) f s x = deriv_within (iterated_deriv_within n f s) s x :=
+  iterated_deriv_within (n + 1) f s x = deriv_within (iterated_deriv_within n f s) s x :=
 begin
   rw [iterated_deriv_within_eq_iterated_fderiv_within, iterated_fderiv_within_succ_apply_left,
       iterated_fderiv_within_eq_equiv_comp, continuous_linear_equiv.comp_fderiv_within _ hxs,

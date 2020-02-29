@@ -22,6 +22,7 @@ import data.set.finite
 
 * `∀ᶠ x in f, p x` : `f.eventually p`;
 * `∃ᶠ x in f, p x` : `f.frequently p`.
+* `f ×ᶠ g` : `filter.prod f g`, localized in `filter`.
 -/
 open lattice set
 

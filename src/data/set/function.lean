@@ -86,7 +86,7 @@ theorem maps_to.comp (h₁ : maps_to g t p) (h₂ : maps_to f s t) : maps_to (g 
 theorem maps_to.iterate {f : α → α} {s : set α} (h : set.maps_to f s s) :
   ∀ n, set.maps_to (f^[n]) s s
 | 0 := λ _, id
-| (n+1) := (set.maps_to.iterate n).comp h
+| (n+1) := (maps_to.iterate n).comp h
 
 theorem maps_to.mono (hs : s₂ ⊆ s₁) (ht : t₁ ⊆ t₂) (hf : maps_to f s₁ t₁) :
   maps_to f s₂ t₂ :=

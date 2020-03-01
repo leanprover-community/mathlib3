@@ -56,6 +56,8 @@ assume ⟨a, ha⟩ ⟨b, hb⟩, classical.by_cases
     (λ h : r (f a) (f b), ⟨⟨b, hb⟩, h, refl _⟩)
     (λ h : r (f b) (f a), ⟨⟨a, ha⟩, refl _, h⟩))
 
+/-- A filter `F` on a type `α` is a collection of sets of `α` which contains the whole `α`,
+is upwards-closed, and is stable under intersection, -/
 structure filter (α : Type*) :=
 (sets                   : set (set α))
 (univ_sets              : set.univ ∈ sets)
@@ -211,6 +213,8 @@ iff.intro
     (assume x y _ hxy hx, mem_sets_of_superset hx hxy)
     (assume x y _ _ hx hy, inter_mem_sets hx hy))
 
+/-- `mk_of_closure s hs` constructs a filter on `α` whose elements set is exactly
+`s : set (set α)`, provided one gives the assumption `hs : (generate s).sets = s`. -/
 protected def mk_of_closure (s : set (set α)) (hs : (generate s).sets = s) : filter α :=
 { sets             := s,
   univ_sets        := hs ▸ (univ_mem_sets : univ ∈ generate s),
@@ -222,7 +226,7 @@ lemma mk_of_closure_sets {s : set (set α)} {hs : (generate s).sets = s} :
 filter.ext $ assume u,
 show u ∈ (filter.mk_of_closure s hs).sets ↔ u ∈ (generate s).sets, from hs.symm ▸ iff.rfl
 
-/- Galois insertion from sets of sets into a filters. -/
+/-- Galois insertion from sets of sets into a filters. -/
 def gi_generate (α : Type*) :
   @galois_insertion (set (set α)) (order_dual (filter α)) _ _ filter.generate filter.sets :=
 { gc        := assume s f, sets_iff_generate,
@@ -847,6 +851,7 @@ by simp only [has_bind.bind, bind, map_pure, join_pure]
 
 section
 -- this section needs to be before applicative, otherwise the wrong instance will be chosen
+/-- The monad structure on filters. -/
 protected def monad : monad filter := { map := @filter.map }
 
 local attribute [instance] filter.monad
@@ -1154,7 +1159,7 @@ begin
     rwa set.push_pull at this }
 end
 
-lemma filter.push_pull' {α : Type*} {β : Type*} (f : α → β) (F : filter α) (G : filter β) :
+protected lemma push_pull' {α : Type*} {β : Type*} (f : α → β) (F : filter α) (G : filter β) :
 map f (comap f G ⊓ F) = G ⊓ map f F :=
 by simp only [filter.push_pull, inf_comm]
 
@@ -2076,11 +2081,15 @@ lemma tendsto_iff_ultrafilter (f : α → β) (l₁ : filter α) (l₂ : filter 
   restriction of the one on filters. -/
 def ultrafilter (α : Type u) : Type u := {f : filter α // is_ultrafilter f}
 
+/-- Push-forward for ultra-filters. -/
 def ultrafilter.map (m : α → β) (u : ultrafilter α) : ultrafilter β :=
 ⟨u.val.map m, ultrafilter_map u.property⟩
 
+/-- The principal ultra-filter associated to a point `x`. -/
 def ultrafilter.pure (x : α) : ultrafilter α := ⟨pure x, ultrafilter_pure⟩
 
+/-- Monadic bind for ultra-filters, coming from the one on filters
+defined in terms of map and join.-/
 def ultrafilter.bind (u : ultrafilter α) (m : α → ultrafilter β) : ultrafilter β :=
 ⟨u.val.bind (λ a, (m a).val), ultrafilter_bind u.property (λ a, (m a).property)⟩
 
@@ -2091,6 +2100,7 @@ instance ultrafilter.monad : monad ultrafilter := { map := @ultrafilter.map }
 
 instance ultrafilter.inhabited [inhabited α] : inhabited (ultrafilter α) := ⟨pure (default _)⟩
 
+/-- The ultra-filter extending the cofinite filter. -/
 noncomputable def hyperfilter : filter α := ultrafilter_of cofinite
 
 lemma hyperfilter_le_cofinite : @hyperfilter α ≤ cofinite :=

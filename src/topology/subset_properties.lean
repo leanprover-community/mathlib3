@@ -368,7 +368,7 @@ class compact_space (α : Type*) [topological_space α] : Prop :=
 
 lemma compact_univ [h : compact_space α] : compact (univ : set α) := h.compact_univ
 
-lemma cluster_point_of_compact [topological_space α] [compact_space α]
+lemma cluster_point_of_compact [compact_space α]
   {f : filter α} (h : f ≠ ⊥) : ∃ x, f ⊓ 𝓝 x ≠ ⊥ :=
 by simpa using compact_univ f h (by simpa using f.univ_sets)
 

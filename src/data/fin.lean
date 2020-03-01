@@ -11,12 +11,12 @@ import data.nat.basic
 
 ### Induction principles
 
-* `fin_zero.elim` : elimination principle for the empty set `fin 0`, generalizes `fin.elim0`;
-* `fin.last n` : the greatest value of `fin (n+1)`;
-* `fin.succ_rec` : define `C n i` by induction on  `i : fin n` interpreted
-  as `(0 : fin (n - i)).succ.succ…`, i.e., `C n i = Hs $ … Hs H0)`;
+* `fin_zero.elim` : Elimination principle for the empty set `fin 0`, generalizes `fin.elim0`.
+* `fin.succ_rec` : Define `C n i` by induction on  `i : fin n` interpreted
+  as `(0 : fin (n - i)).succ.succ…`. This function has two arguments: `H0 n` defines
+  `0`-th element `C (n+1) 0` of an `(n+1)`-tuple, and `Hs n i` defines `(i+1)`-st element
+  of `(n+1)`-tuple based on `n`, `i`, and `i`-th element of `n`-tuple.
 * `fin.succ_rec_on` : same as `fin.succ_rec` but `i : fin n` is the first argument;
-
 
 ### Casts
 
@@ -47,6 +47,11 @@ We define the following operations:
   from `cons` (i.e., adding an element to the left of a tuple) read in reverse order.
 * `find p` : returns the first index `n` where `p n` is satisfied, and `none` if it is never
   satisfied.
+
+### Misc definitions
+
+* `fin.last n` : The greatest value of `fin (n+1)`.
+
 -/
 
 universe u
@@ -267,22 +272,28 @@ end
 
 section rec
 
-/-- Define `C n i` by induction on  `i : fin n` interpreted as `(0 : fin (n - i)).succ.succ…`,
-i.e., `C n i = Hs $ … Hs H0)` -/
+/-- Define `C n i` by induction on  `i : fin n` interpreted as `(0 : fin (n - i)).succ.succ…`.
+This function has two arguments: `H0 n` defines `0`-th element `C (n+1) 0` of an `(n+1)`-tuple,
+and `Hs n i` defines `(i+1)`-st element of `(n+1)`-tuple based on `n`, `i`, and `i`-th element
+of `n`-tuple. -/
 @[elab_as_eliminator] def succ_rec
-  {C : ∀ n, fin n → Sort*}
-  (H0 : ∀ n, C (succ n) 0)
-  (Hs : ∀ n i, C n i → C (succ n) i.succ) : Π {n : ℕ} (i : fin n), C n i
+  {C : Π n, fin n → Sort*}
+  (H0 : Π n, C (succ n) 0)
+  (Hs : Π n i, C n i → C (succ n) i.succ) : Π {n : ℕ} (i : fin n), C n i
 | 0        i           := i.elim0
 | (succ n) ⟨0, _⟩      := H0 _
 | (succ n) ⟨succ i, h⟩ := Hs _ _ (succ_rec ⟨i, lt_of_succ_lt_succ h⟩)
 
-/-- Define `C n i` by induction on  `i : fin n` interpreted as `(0 : fin (n - i)).succ.succ…`,
-i.e., `C n i = Hs $ … Hs H0)` -/
+/-- Define `C n i` by induction on  `i : fin n` interpreted as `(0 : fin (n - i)).succ.succ…`.
+This function has two arguments: `H0 n` defines `0`-th element `C (n+1) 0` of an `(n+1)`-tuple,
+and `Hs n i` defines `(i+1)`-st element of `(n+1)`-tuple based on `n`, `i`, and `i`-th element
+of `n`-tuple.
+
+A version of `fin.succ_rec` taking `i : fin n` as the first argument. -/
 @[elab_as_eliminator] def succ_rec_on {n : ℕ} (i : fin n)
-  {C : ∀ n, fin n → Sort*}
-  (H0 : ∀ n, C (succ n) 0)
-  (Hs : ∀ n i, C n i → C (succ n) i.succ) : C n i :=
+  {C : Π n, fin n → Sort*}
+  (H0 : Π n, C (succ n) 0)
+  (Hs : Π n i, C n i → C (succ n) i.succ) : C n i :=
 i.succ_rec H0 Hs
 
 @[simp] theorem succ_rec_on_zero {C : ∀ n, fin n → Sort*} {H0 Hs} (n) :

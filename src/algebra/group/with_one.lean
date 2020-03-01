@@ -71,6 +71,9 @@ section lift
 
 variables [semigroup α] {β : Type v} [monoid β]
 
+/-- Lift a semigroup homomorphism `f` to a bundled monoid homorphism.
+We have no bundled semigroup homomorphisms, so this function
+takes `∀ x y, f (x * y) = f x * f y` as an explicit argument. -/
 @[to_additive]
 def lift (f : α → β) (hf : ∀ x y, f (x * y) = f x * f y) :
   (with_one α) →* β :=

@@ -2238,7 +2238,7 @@ section decidable_linear_order
 
 variables {α} [decidable_linear_order α]
 
-/-- Given a nonempty fintype `s` in a linear order `α `, then `s.min' h` is its minimum, as an
+/-- Given a nonempty finset `s` in a linear order `α `, then `s.min' h` is its minimum, as an
 element of `α`, where `h` is a proof of nonemptiness. Without this assumption, use instead `s.min`,
 taking values in `option α`. -/
 def min' (s : finset α) (H : s.nonempty) : α :=

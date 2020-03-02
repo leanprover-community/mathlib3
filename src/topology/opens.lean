@@ -72,7 +72,7 @@ instance : complete_lattice (opens α) :=
 complete_lattice.copy
 (@order_dual.lattice.complete_lattice _
   (@galois_insertion.lift_complete_lattice
-    (order_dual (set α)) (order_dual (opens α)) _ interior (subtype.val : opens α → set α) _ gi))
+    (order_dual (set α)) (order_dual (opens α)) interior (subtype.val : opens α → set α) _ _ gi))
 /- le  -/ (λ U V, U.1 ⊆ V.1) rfl
 /- top -/ ⟨set.univ, _root_.is_open_univ⟩ (subtype.ext.mpr interior_univ.symm)
 /- bot -/ ⟨∅, is_open_empty⟩ rfl

@@ -325,7 +325,7 @@ theorem subset_union_left (s₁ s₂ : finset α) : s₁ ⊆ s₁ ∪ s₂ := λ
 
 theorem subset_union_right (s₁ s₂ : finset α) : s₂ ⊆ s₁ ∪ s₂ := λ x, mem_union_right _
 
-@[simp] theorem union_comm (s₁ s₂ : finset α) : s₁ ∪ s₂ = s₂ ∪ s₁ :=
+theorem union_comm (s₁ s₂ : finset α) : s₁ ∪ s₂ = s₂ ∪ s₁ :=
 ext.2 $ λ x, by simp only [mem_union, or_comm]
 
 instance : is_commutative (finset α) (∪) := ⟨union_comm⟩
@@ -400,16 +400,16 @@ by rw [← coe_inj, coe_inter, coe_union, set.union_inter_cancel_left]
 @[simp] theorem union_inter_cancel_right {s t : finset α} : (s ∪ t) ∩ t = t :=
 by rw [← coe_inj, coe_inter, coe_union, set.union_inter_cancel_right]
 
-@[simp] theorem inter_comm (s₁ s₂ : finset α) : s₁ ∩ s₂ = s₂ ∩ s₁ :=
+theorem inter_comm (s₁ s₂ : finset α) : s₁ ∩ s₂ = s₂ ∩ s₁ :=
 ext.2 $ λ _, by simp only [mem_inter, and_comm]
 
 @[simp] theorem inter_assoc (s₁ s₂ s₃ : finset α) : (s₁ ∩ s₂) ∩ s₃ = s₁ ∩ (s₂ ∩ s₃) :=
 ext.2 $ λ _, by simp only [mem_inter, and_assoc]
 
-@[simp] theorem inter_left_comm (s₁ s₂ s₃ : finset α) : s₁ ∩ (s₂ ∩ s₃) = s₂ ∩ (s₁ ∩ s₃) :=
+theorem inter_left_comm (s₁ s₂ s₃ : finset α) : s₁ ∩ (s₂ ∩ s₃) = s₂ ∩ (s₁ ∩ s₃) :=
 ext.2 $ λ _, by simp only [mem_inter, and.left_comm]
 
-@[simp] theorem inter_right_comm (s₁ s₂ s₃ : finset α) : (s₁ ∩ s₂) ∩ s₃ = (s₁ ∩ s₃) ∩ s₂ :=
+theorem inter_right_comm (s₁ s₂ s₃ : finset α) : (s₁ ∩ s₂) ∩ s₃ = (s₁ ∩ s₃) ∩ s₂ :=
 ext.2 $ λ _, by simp only [mem_inter, and.right_comm]
 
 @[simp] theorem inter_self (s : finset α) : s ∩ s = s :=
@@ -1379,11 +1379,15 @@ show (insert a ∅ : finset α).bind t = t a, from bind_insert.trans $ union_emp
 
 theorem bind_inter (s : finset α) (f : α → finset β) (t : finset β) :
   s.bind f ∩ t = s.bind (λ x, f x ∩ t) :=
-by { ext x, simp, exact ⟨λ ⟨xt, y, ys, xf⟩, ⟨y, ys, xt, xf⟩, λ ⟨y, ys, xt, xf⟩, ⟨xt, y, ys, xf⟩⟩ }
+begin
+  ext x,
+  simp only [mem_bind, mem_inter],
+  tauto
+end
 
 theorem inter_bind (t : finset β) (s : finset α) (f : α → finset β) :
   t ∩ s.bind f = s.bind (λ x, t ∩ f x) :=
-by rw [inter_comm, bind_inter]; simp
+by rw [inter_comm, bind_inter]; simp [inter_comm]
 
 theorem image_bind [decidable_eq γ] {f : α → β} {s : finset α} {t : β → finset γ} :
   (s.image f).bind t = s.bind (λa, t (f a)) :=

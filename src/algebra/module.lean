@@ -5,7 +5,7 @@ Authors: Nathaniel Thomas, Jeremy Avigad, Johannes Hölzl, Mario Carneiro
 
 Modules over a ring.
 
-## Implemetation notes
+## Implementation notes
 
 
 Throughout the `linear_map` section implicit `{}` brackets are often used instead of type class `[]` brackets.
@@ -25,6 +25,8 @@ variables {α : Type u} {β : Type v} {γ : Type w} {δ : Type x}
 
 -- infixr ` • `:73 := has_scalar.smul
 
+section prio
+set_option default_priority 100 -- see Note [default priority]
 /-- A semimodule is a generalization of vector spaces to a scalar semiring.
   It consists of a scalar semiring `α` and an additive monoid of "vectors" `β`,
   connected by a "scalar multiplication" operation `r • x : β`
@@ -34,6 +36,7 @@ class semimodule (α : Type u) (β : Type v) [semiring α]
   [add_comm_monoid β] extends distrib_mul_action α β :=
 (add_smul : ∀(r s : α) (x : β), (r + s) • x = r • x + s • x)
 (zero_smul : ∀x : β, (0 : α) • x = 0)
+end prio
 
 section semimodule
 variables [R:semiring α] [add_comm_monoid β] [semimodule α β] (r s : α) (x y : β)
@@ -43,22 +46,39 @@ theorem add_smul : (r + s) • x = r • x + s • x := semimodule.add_smul r s 
 variables (α)
 @[simp] theorem zero_smul : (0 : α) • x = 0 := semimodule.zero_smul α x
 
-lemma smul_smul : r • s • x = (r * s) • x := (mul_smul _ _ _).symm
-
-instance smul.is_add_monoid_hom {r : α} : is_add_monoid_hom (λ x : β, r • x) :=
-{ map_add := smul_add _, map_zero := smul_zero _ }
+variable {α}
 
 lemma semimodule.eq_zero_of_zero_eq_one (zero_eq_one : (0 : α) = 1) : x = 0 :=
 by rw [←one_smul α x, ←zero_eq_one, zero_smul]
 
+instance smul.is_add_monoid_hom (x : β) : is_add_monoid_hom (λ r:α, r • x) :=
+{ map_zero := zero_smul _ x,
+  map_add := λ r₁ r₂, add_smul r₁ r₂ x }
+
+lemma list.sum_smul {l : list α} {x : β} : l.sum • x = (l.map (λ r, r • x)).sum :=
+show (λ r, r • x) l.sum = (l.map (λ r, r • x)).sum,
+from (list.sum_hom _ _).symm
+
+lemma multiset.sum_smul {l : multiset α} {x : β} : l.sum • x = (l.map (λ r, r • x)).sum :=
+show (λ r, r • x) l.sum = (l.map (λ r, r • x)).sum,
+from (multiset.sum_hom _ _).symm
+
+lemma finset.sum_smul {f : γ → α} {s : finset γ} {x : β} :
+  s.sum f • x = s.sum (λ r, (f r) • x) :=
+show (λ r, r • x) (s.sum f) = s.sum (λ r, (f r) • x),
+from (finset.sum_hom _ _).symm
+
 end semimodule
 
+section prio
+set_option default_priority 100 -- see Note [default priority]
 /-- A module is a generalization of vector spaces to a scalar ring.
   It consists of a scalar ring `α` and an additive group of "vectors" `β`,
   connected by a "scalar multiplication" operation `r • x : β`
   (where `r : α` and `x : β`) with some natural associativity and
   distributivity axioms similar to those on a ring. -/
 class module (α : Type u) (β : Type v) [ring α] [add_comm_group β] extends semimodule α β
+end prio
 
 structure module.core (α β) [ring α] [add_comm_group β] extends has_scalar α β :=
 (smul_add : ∀(r : α) (x y : β), r • (x + y) = r • x + r • y)
@@ -146,9 +166,11 @@ instance : has_coe_to_fun (β →ₗ[α] γ) := ⟨_, to_fun⟩
 @[simp] lemma coe_mk (f : β → γ) (h₁ h₂) :
   ((linear_map.mk f h₁ h₂ : β →ₗ[α] γ) : β → γ) = f := rfl
 
+@[simp] lemma to_fun_eq_coe (f : β →ₗ[α] γ) : f.to_fun = ⇑f := rfl
+
 theorem is_linear : is_linear_map α f := {..f}
 
-@[extensionality] theorem ext {f g : β →ₗ[α] γ} (H : ∀ x, f x = g x) : f = g :=
+@[ext] theorem ext {f g : β →ₗ[α] γ} (H : ∀ x, f x = g x) : f = g :=
 by cases f; cases g; congr'; exact funext H
 
 theorem ext_iff {f g : β →ₗ[α] γ} : f = g ↔ ∀ x, f x = g x :=
@@ -171,7 +193,7 @@ by simp [map_neg, map_add]
 
 @[simp] lemma map_sum {ι} {t : finset ι} {g : ι → β} :
   f (t.sum g) = t.sum (λi, f (g i)) :=
-(finset.sum_hom f).symm
+(t.sum_hom f).symm
 
 include mδ
 
@@ -212,7 +234,7 @@ begin
 end
 
 --TODO: move
-lemma is_linear_map_smul' {α R : Type*} [add_comm_group α] [comm_ring R] [module R α] (a : α) :
+lemma is_linear_map_smul' {α R : Type*} [add_comm_group α] [ring R] [module R α] (a : α) :
   is_linear_map R (λ (c : R), c • a) :=
 begin
   refine is_linear_map.mk (λ x y, add_smul x y a) _,
@@ -223,19 +245,22 @@ end
 variables {f : β → γ} (lin : is_linear_map α f)
 include β γ lin
 
-@[simp] lemma map_zero : f (0 : β) = (0 : γ) :=
+lemma map_zero : f (0 : β) = (0 : γ) :=
 by rw [← zero_smul α (0 : β), lin.smul, zero_smul]
 
-@[simp] lemma map_add (x y : β) : f (x + y) = f x + f y :=
+lemma map_add (x y : β) : f (x + y) = f x + f y :=
 by rw [lin.add]
 
-@[simp] lemma map_neg (x : β) : f (- x) = - f x :=
+lemma map_neg (x : β) : f (- x) = - f x :=
 by rw [← neg_one_smul α, lin.smul, neg_one_smul]
 
-@[simp] lemma map_sub (x y : β) : f (x - y) = f x - f y :=
+lemma map_sub (x y : β) : f (x - y) = f x - f y :=
 by simp [lin.map_neg, lin.map_add]
 
 end is_linear_map
+
+abbreviation module.End (R : Type u) (M : Type v)
+  [comm_ring R] [add_comm_group M] [module R M] := M →ₗ[R] M
 
 /-- A submodule of a module is one which is closed under vector operations.
   This is a sufficient condition for the subset of vectors in the submodule
@@ -263,7 +288,7 @@ by cases s; cases t; congr'
 protected theorem ext'_iff {s t : submodule α β}  : (s : set β) = t ↔ s = t :=
 ⟨ext', λ h, h ▸ rfl⟩
 
-@[extensionality] theorem ext {s t : submodule α β}
+@[ext] theorem ext {s t : submodule α β}
   (h : ∀ x, x ∈ s ↔ x ∈ t) : s = t := ext' $ set.ext h
 
 @[simp] lemma zero_mem : (0 : β) ∈ p := p.zero
@@ -289,15 +314,19 @@ lemma sum_mem {ι : Type w} [decidable_eq ι] {t : finset ι} {f : ι → β} :
   (∀c∈t, f c ∈ p) → t.sum f ∈ p :=
 finset.induction_on t (by simp [p.zero_mem]) (by simp [p.add_mem] {contextual := tt})
 
+lemma smul_mem_iff' (u : units α) : (u:α) • x ∈ p ↔ x ∈ p :=
+⟨λ h, by simpa only [smul_smul, u.inv_mul, one_smul] using p.smul_mem ↑u⁻¹ h, p.smul_mem u⟩
+
 instance : has_add p := ⟨λx y, ⟨x.1 + y.1, add_mem _ x.2 y.2⟩⟩
 instance : has_zero p := ⟨⟨0, zero_mem _⟩⟩
+instance : inhabited p := ⟨0⟩
 instance : has_neg p := ⟨λx, ⟨-x.1, neg_mem _ x.2⟩⟩
 instance : has_scalar α p := ⟨λ c x, ⟨c • x.1, smul_mem _ c x.2⟩⟩
 
-@[simp] lemma coe_add (x y : p) : (↑(x + y) : β) = ↑x + ↑y := rfl
-@[simp] lemma coe_zero : ((0 : p) : β) = 0 := rfl
-@[simp] lemma coe_neg (x : p) : ((-x : p) : β) = -x := rfl
-@[simp] lemma coe_smul (r : α) (x : p) : ((r • x : p) : β) = r • ↑x := rfl
+@[simp, move_cast] lemma coe_add (x y : p) : (↑(x + y) : β) = ↑x + ↑y := rfl
+@[simp, elim_cast] lemma coe_zero : ((0 : p) : β) = 0 := rfl
+@[simp, move_cast] lemma coe_neg (x : p) : ((-x : p) : β) = -x := rfl
+@[simp, move_cast] lemma coe_smul (r : α) (x : p) : ((r • x : p) : β) = r • ↑x := rfl
 
 instance : add_comm_group p :=
 by refine {add := (+), zero := 0, neg := has_neg.neg, ..};
@@ -308,7 +337,7 @@ instance submodule_is_add_subgroup : is_add_subgroup (p : set β) :=
   add_mem  := p.add,
   neg_mem  := λ _, p.neg_mem }
 
-lemma coe_sub (x y : p) : (↑(x - y) : β) = ↑x - ↑y := by simp
+@[move_cast] lemma coe_sub (x y : p) : (↑(x - y) : β) = ↑x - ↑y := by simp
 
 instance : module α p :=
 by refine {smul := (•), ..};
@@ -347,12 +376,25 @@ lemma mul_mem_right (h : a ∈ I) : a * b ∈ I := mul_comm b a ▸ I.mul_mem_le
 
 end ideal
 
+library_note "vector space definition"
+"Vector spaces are defined as an `abbreviation` for modules,
+if the base ring is a field.
+(A previous definition made `vector_space` a structure
+defined to be `module`.)
+This has as advantage that vector spaces are completely transparant
+for type class inference, which means that all instances for modules
+are immediately picked up for vector spaces as well.
+A cosmetic disadvantage is that one can not extend vector spaces an sich,
+in definitions such as `normed_space`.
+The solution is to extend `module` instead."
+
 /-- A vector space is the same as a module, except the scalar ring is actually
   a field. (This adds commutativity of the multiplication and existence of inverses.)
   This is the traditional generalization of spaces like `ℝ^n`, which have a natural
   addition operation and a way to multiply them by real numbers, but no multiplication
   operation between vectors. -/
-class vector_space (α : Type u) (β : Type v) [discrete_field α] [add_comm_group β] extends module α β
+abbreviation vector_space (α : Type u) (β : Type v) [discrete_field α] [add_comm_group β] :=
+module α β
 
 instance discrete_field.to_vector_space {α : Type*} [discrete_field α] : vector_space α α :=
 { .. ring.to_module }
@@ -377,8 +419,7 @@ include R
 set_option class.instance_max_depth 36
 
 theorem smul_mem_iff (r0 : r ≠ 0) : r • x ∈ p ↔ x ∈ p :=
-⟨λ h, by simpa [smul_smul, inv_mul_cancel r0] using p.smul_mem (r⁻¹) h,
- p.smul_mem r⟩
+p.smul_mem_iff' (units.mk0 r r0)
 
 end submodule
 
@@ -413,6 +454,8 @@ instance : module ℤ M :=
 
 end add_comm_group
 
+lemma gsmul_eq_smul {M : Type*} [add_comm_group M] (n : ℤ) (x : M) : gsmul n x = n • x := rfl
+
 def is_add_group_hom.to_linear_map [add_comm_group α] [add_comm_group β]
   (f : α → β) [is_add_group_hom f] : α →ₗ[ℤ] β :=
 { to_fun := f,
@@ -430,7 +473,27 @@ begin
     rw [add_smul, add_smul, one_smul, ih, one_smul] }
 end
 
-lemma finset.sum_const' {α : Type*} (R : Type*) [ring R] {β : Type*}
+lemma nat.smul_def {M : Type*} [add_comm_monoid M] (n : ℕ) (x : M) :
+  n • x = add_monoid.smul n x :=
+rfl
+
+namespace finset
+
+lemma sum_const' {α : Type*} (R : Type*) [ring R] {β : Type*}
   [add_comm_group β] [module R β] {s : finset α} (b : β) :
   finset.sum s (λ (a : α), b) = (finset.card s : R) • b :=
 by rw [finset.sum_const, ← module.smul_eq_smul]; refl
+
+variables {M : Type*} [decidable_linear_ordered_cancel_comm_monoid M]
+  {s : finset α} (f : α → M)
+
+theorem exists_card_smul_le_sum (hs : s.nonempty) :
+  ∃ i ∈ s, s.card • f i ≤ s.sum f :=
+exists_le_of_sum_le hs $ by rw [sum_const, ← nat.smul_def, smul_sum]
+
+
+theorem exists_card_smul_ge_sum (hs : s.nonempty) :
+  ∃ i ∈ s, s.sum f ≤ s.card • f i :=
+exists_le_of_sum_le hs $ by rw [sum_const, ← nat.smul_def, smul_sum]
+
+end finset

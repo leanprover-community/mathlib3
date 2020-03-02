@@ -72,16 +72,14 @@ le_antisymm
     rwa [coinduced_compose, self_comp_symm, coinduced_id] at this,
   end
 
+protected lemma embedding (h : α ≃ₜ β) : embedding h :=
+⟨⟨h.induced_eq.symm⟩, h.to_equiv.injective⟩
+
 lemma compact_image {s : set α} (h : α ≃ₜ β) : compact (h '' s) ↔ compact s :=
-⟨λ hs, by have := compact_image hs h.symm.continuous;
-  rwa [← image_comp, symm_comp_self, image_id] at this,
-λ hs, compact_image hs h.continuous⟩
+h.embedding.compact_iff_compact_image.symm
 
 lemma compact_preimage {s : set β} (h : α ≃ₜ β) : compact (h ⁻¹' s) ↔ compact s :=
 by rw ← image_symm; exact h.symm.compact_image
-
-protected lemma embedding (h : α ≃ₜ β) : embedding h :=
-⟨⟨h.induced_eq.symm⟩, h.to_equiv.injective⟩
 
 protected lemma dense_embedding (h : α ≃ₜ β) : dense_embedding h :=
 { dense   := assume a, by rw [h.range_coe, closure_univ]; trivial,
@@ -111,6 +109,21 @@ def homeomorph_of_continuous_open (e : α ≃ β) (h₁ : continuous e) (h₂ : 
     apply e.image_eq_preimage
   end,
   .. e }
+
+lemma comp_continuous_on_iff (h : α ≃ₜ β) (f : γ → α) (s : set γ) :
+  continuous_on (h ∘ f) s ↔ continuous_on f s :=
+begin
+  split,
+  { assume H,
+    have : continuous_on (h.symm ∘ (h ∘ f)) s :=
+      h.symm.continuous.comp_continuous_on H,
+    rwa [← function.comp.assoc h.symm h f, symm_comp_self h] at this },
+  { exact λ H, h.continuous.comp_continuous_on H }
+end
+
+lemma comp_continuous_iff (h : α ≃ₜ β) (f : γ → α) :
+  continuous (h ∘ f) ↔ continuous f :=
+by simp [continuous_iff_continuous_on_univ, comp_continuous_on_iff]
 
 protected lemma quotient_map (h : α ≃ₜ β) : quotient_map h :=
 ⟨h.to_equiv.surjective, h.coinduced_eq.symm⟩

@@ -11,8 +11,7 @@ import measure_theory.l1_space
 
 noncomputable theory
 open lattice set filter topological_space
-open_locale classical
-
+open_locale classical topological_space
 
 universes u v
 variables {α : Type u} {β : Type v} {ι : Type*}
@@ -24,7 +23,7 @@ variables [measure_space α] [normed_group β] [second_countable_topology β]
 
 local infixr ` →ₛ `:25 := simple_func
 lemma simple_func_sequence_tendsto {f : α → β} (hf : measurable f) :
-  ∃ (F : ℕ → (α →ₛ β)), ∀ x : α, tendsto (λ n, F n x) at_top (nhds (f x)) ∧
+  ∃ (F : ℕ → (α →ₛ β)), ∀ x : α, tendsto (λ n, F n x) at_top (𝓝 (f x)) ∧
   ∀ n, ∥F n x∥ ≤ ∥f x∥ + ∥f x∥ :=
 -- enumerate a countable dense subset {e k} of β
 let ⟨D, ⟨D_countable, D_dense⟩⟩ := separable_space.exists_countable_closure_eq_univ β in
@@ -54,9 +53,9 @@ let F N x := if x ∈ ⋃ M ≤ N, ⋃ k ≤ N, A M k then e (k N x) else 0 in
 have k_unique : ∀ {M k k' x},  x ∈ A M k ∧ x ∈ A M k' → k = k' := λ M k k' x h,
 begin
   by_contradiction k_ne_k',
-  have : A M k ∩ A M k' ≠ ∅, rw ne_empty_iff_exists_mem, use x, exact h,
-  have : A M k ∩ A M k' = ∅  := disjoint_disjointed' k k' k_ne_k',
-  contradiction
+  have NE : (A M k ∩ A M k').nonempty, from ⟨x, h⟩,
+  have E : A M k ∩ A M k' = ∅  := disjoint_disjointed' k k' k_ne_k',
+  exact NE.ne_empty E,
 end,
 have x_mem_Union_k : ∀ {N x}, (x ∈ ⋃ M ≤ N, ⋃ k ≤ N, A M k) → x ∈ ⋃ k ≤ N, A (M N x) k :=
   λ N x h,
@@ -104,9 +103,7 @@ begin
       by_cases x_mem : (x ∉ ⋃ (M : ℕ) (H : M ≤ N) (k : ℕ) (H : k ≤ N), A M k),
       { intro, apply find_greatest_eq_zero, assume k k_le_N hx,
         have : x ∈ ⋃ (M : ℕ) (H : M ≤ N) (k : ℕ) (H : k ≤ N), A M k,
-          { rw [mem_Union], use M N x,
-            rw mem_Union, use nat.find_greatest_le,
-            rw mem_Union, use k, rw mem_Union, use k_le_N, assumption },
+          { simp only [mem_Union], use [M N x, nat.find_greatest_le, k, k_le_N, hx] },
         contradiction },
       { rw not_not_mem at x_mem, assume h, cases h, contradiction,
         simp only [not_exists, exists_prop, mem_Union, not_and, sub_eq_diff, mem_diff] at h,
@@ -118,10 +115,9 @@ begin
         rw not_lt at m_lt_M, by_cases m_gt_M : m > M N x,
         { have := nat.find_greatest_is_greatest _ m ⟨m_gt_M, m_le_N⟩,
           { have : x ∈ ⋃ k ≤ N, A m k,
-            { rw mem_Union, use 0, rw mem_Union, use nat.zero_le N, exact hx },
+            { exact mem_bUnion (nat.zero_le N) hx },
             contradiction },
-          { use m, split, exact m_le_N, rw mem_Union, use 0, rw mem_Union,
-            use nat.zero_le _, exact hx } },
+          { exact ⟨m, m_le_N, mem_bUnion (nat.zero_le _) hx⟩ } },
         rw not_lt at m_gt_M, have M_eq_m := le_antisymm m_lt_M m_gt_M,
         rw ← k'_eq_0, exact k_unique ⟨x_mem_A x_mem, by { rw [k'_eq_0, M_eq_m], exact hx }⟩ } } },
   -- end of `have`
@@ -136,8 +132,7 @@ begin
       assume k_eq_k',
       have x_mem : x ∈ ⋃ (M : ℕ) (H : M ≤ N) (k : ℕ) (H : k ≤ N), A M k,
       { have := find_greatest_of_ne_zero k_eq_k' k'_eq_0,
-        simp only [mem_Union], use M N x, use nat.find_greatest_le, use k', use k'_le_N,
-        assumption },
+        simp only [mem_Union], use [M N x, nat.find_greatest_le, k', k'_le_N, this] },
       simp only [not_exists, exists_prop, mem_Union, not_and, sub_eq_diff, mem_diff],
       refine ⟨M N x, ⟨nat.find_greatest_le, ⟨by { rw ← k_eq_k', exact x_mem_A x_mem} , _⟩⟩⟩,
       assume m hMm hmN k k_le_N,
@@ -147,8 +142,8 @@ begin
     { simp only [mem_set_of_eq, mem_union_eq, mem_compl_eq], assume h,
       have x_mem : x ∈ ⋃ (M : ℕ) (H : M ≤ N) (k : ℕ) (H : k ≤ N), A M k,
         { simp only [not_exists, exists_prop, mem_Union, not_and, sub_eq_diff, mem_diff] at h,
-          rcases h with ⟨m, ⟨hm, ⟨hx, _⟩⟩⟩,
-          simp only [mem_Union], use m, use hm, use k', use k'_le_N, assumption },
+          rcases h with ⟨m, hm, hx, _⟩,
+          simp only [mem_Union], use [m, hm,  k', k'_le_N, hx] },
       simp only [not_exists, exists_prop, mem_Union, not_and, sub_eq_diff, mem_diff] at h,
       rcases h with ⟨m, ⟨m_le_N, ⟨hx, hm⟩⟩⟩,
       by_cases m_lt_M : m < M N x,
@@ -157,10 +152,9 @@ begin
         contradiction },
       rw not_lt at m_lt_M, by_cases m_gt_M : m > M N x,
       { have := nat.find_greatest_is_greatest _ m ⟨m_gt_M, m_le_N⟩,
-        have : x ∈ ⋃ k ≤ N, A m k :=
-          by { rw mem_Union, use k', rw mem_Union, use k'_le_N, exact hx },
+        have : x ∈ ⋃ k ≤ N, A m k := mem_bUnion k'_le_N hx,
         contradiction,
-        { use m, split, exact m_le_N, rw mem_Union, use k', rw mem_Union, use k'_le_N, exact hx }},
+        { simp only [mem_Union], use [m, m_le_N, k', k'_le_N, hx] }},
       rw not_lt at m_gt_M, have M_eq_m := le_antisymm m_lt_M m_gt_M,
       exact k_unique ⟨x_mem_A x_mem, by { rw M_eq_m, exact hx }⟩ } },
   -- end of `have`
@@ -185,7 +179,7 @@ end,
   ⟨0, λ n hn, show dist (F n x) (f x) < ε, by {rw [fx_eq_0, F_eq_0, dist_self], exact hε}⟩ )
 --second case : f x ≠ 0
 ( assume fx_ne_0 : f x ≠ 0,
-  let ⟨N₀, hN⟩ := exists_nat_one_div_lt (lt_min ((norm_pos_iff _).2 fx_ne_0) hε) in
+  let ⟨N₀, hN⟩ := exists_nat_one_div_lt (lt_min (norm_pos_iff.2 fx_ne_0) hε) in
   have norm_fx_gt : _ := (lt_min_iff.1 hN).1,
   have ε_gt : _ := (lt_min_iff.1 hN).2,
   have x_mem_Union_k_N₀ : x ∈ ⋃ k, A N₀ k :=
@@ -217,8 +211,7 @@ end,
     end
     ... ≤ 1 / ((N₀ : ℝ) + 1)  :
     @one_div_le_one_div_of_le _ _  ((N₀ : ℝ) + 1) ((M N x : ℝ) + 1) (nat.cast_add_one_pos N₀)
-    (add_le_add_right (nat.cast_le.2 (nat.le_find_greatest N₀_le_N
-    begin rw mem_Union, use k₀, rw mem_Union, use k₀_le_N, exact x_mem_A end)) 1)
+    (add_le_add_right (nat.cast_le.2 (nat.le_find_greatest N₀_le_N (mem_bUnion k₀_le_N x_mem_A))) 1)
     ... < ε : ε_gt ⟩ ),
 -- second part of the theorem
 assume N, show ∥F N x∥ ≤ ∥f x∥ + ∥f x∥, from
@@ -238,26 +231,26 @@ classical.by_cases
 
 lemma simple_func_sequence_tendsto' {f : α → β} (hfm : measurable f)
   (hfi : integrable f) : ∃ (F : ℕ → (α →ₛ β)), (∀n, integrable (F n)) ∧
-   tendsto (λ n, ∫⁻ x,  nndist (F n x) (f x)) at_top  (nhds 0) :=
+   tendsto (λ n, ∫⁻ x,  nndist (F n x) (f x)) at_top  (𝓝 0) :=
 let ⟨F, hF⟩ := simple_func_sequence_tendsto hfm in
 let G : ℕ → α → ennreal := λn x, nndist (F n x) (f x) in
 let g : α → ennreal := λx, nnnorm (f x) + nnnorm (f x) + nnnorm (f x) in
 have hF_meas : ∀ n, measurable (G n) := λ n, measurable.comp measurable_coe $
-  measurable_nndist (F n).measurable hfm,
-have hg_meas : measurable g := measurable.comp measurable_coe $ measurable_add
-  (measurable_add (measurable_nnnorm hfm) (measurable_nnnorm hfm)) (measurable_nnnorm hfm),
+  (F n).measurable.nndist hfm,
+have hg_meas : measurable g := measurable.comp measurable_coe $ measurable.add
+  (measurable.add hfm.nnnorm hfm.nnnorm) hfm.nnnorm,
 have h_bound : ∀ n, ∀ₘ x, G n x ≤ g x := λ n, all_ae_of_all $ λ x, coe_le_coe.2 $
   calc
     nndist (F n x) (f x) ≤ nndist (F n x) 0 + nndist 0 (f x) : nndist_triangle _ _ _
     ... = nnnorm (F n x) + nnnorm (f x) : by simp [nndist_eq_nnnorm]
-    ... ≤ nnnorm (f x) + nnnorm (f x) + nnnorm (f x) : by { simp [nnreal.coe_le, (hF x).2] },
+    ... ≤ nnnorm (f x) + nnnorm (f x) + nnnorm (f x) : by { simp [nnreal.coe_le.symm, (hF x).2] },
 have h_finite : lintegral g < ⊤ :=
   calc
     (∫⁻ x, nnnorm (f x) + nnnorm (f x) + nnnorm (f x)) =
       (∫⁻ x, nnnorm (f x)) + (∫⁻ x, nnnorm (f x)) + (∫⁻ x, nnnorm (f x)) :
-    by rw [lintegral_add, lintegral_add]; simp only [measurable_coe_nnnorm hfm, measurable_add]
+    by rw [lintegral_add, lintegral_add]; simp only [measurable.coe_nnnorm hfm, measurable.add]
     ... < ⊤ : by { simp only [and_self, add_lt_top], exact hfi},
-have h_lim : ∀ₘ x, tendsto (λ n, G n x) at_top (nhds 0) := all_ae_of_all $ λ x,
+have h_lim : ∀ₘ x, tendsto (λ n, G n x) at_top (𝓝 0) := all_ae_of_all $ λ x,
   begin
     apply (@tendsto_coe ℕ at_top (λ n, nndist (F n x) (f x)) 0).2,
     apply (@nnreal.tendsto_coe ℕ at_top (λ n, nndist (F n x) (f x)) 0).1,
@@ -271,10 +264,10 @@ begin
         lintegral_le_lintegral _ _
           (by { assume a, simp only [coe_add.symm, coe_le_coe], exact (hF a).2 n })
        ... = (∫⁻ a, nnnorm (f a)) + (∫⁻ a, nnnorm (f a)) :
-         lintegral_add (measurable_coe_nnnorm hfm) (measurable_coe_nnnorm hfm)
+         lintegral_add (measurable.coe_nnnorm hfm) (measurable.coe_nnnorm hfm)
        ... < ⊤ : by simp only [add_lt_top, and_self]; exact hfi },
-  convert @dominated_convergence_nn _ _ G (λ a, 0) g
-              hF_meas measurable_const hg_meas h_bound h_finite h_lim,
+  convert @tendsto_lintegral_of_dominated_convergence _ _ G (λ a, 0) g
+              hF_meas h_bound h_finite h_lim,
   simp only [lintegral_zero]
 end
 

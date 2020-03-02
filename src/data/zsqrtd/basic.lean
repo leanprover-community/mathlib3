@@ -28,14 +28,16 @@ section
 
   /-- Convert an integer to a `ℤ√d` -/
   def of_int (n : ℤ) : ℤ√d := ⟨n, 0⟩
-  @[simp] theorem of_int_re (n : ℤ) : (of_int n).re = n := rfl
-  @[simp] theorem of_int_im (n : ℤ) : (of_int n).im = 0 := rfl
+  theorem of_int_re (n : ℤ) : (of_int n).re = n := rfl
+  theorem of_int_im (n : ℤ) : (of_int n).im = 0 := rfl
 
   /-- The zero of the ring -/
   def zero : ℤ√d := of_int 0
   instance : has_zero ℤ√d := ⟨zsqrtd.zero⟩
   @[simp] theorem zero_re : (0 : ℤ√d).re = 0 := rfl
   @[simp] theorem zero_im : (0 : ℤ√d).im = 0 := rfl
+
+  instance : inhabited ℤ√d := ⟨0⟩
 
   /-- The one of the ring -/
   def one : ℤ√d := of_int 1
@@ -133,10 +135,10 @@ section
   by simp [ext]
 
   instance : char_zero ℤ√d :=
-  { cast_inj := λ m n, ⟨by simp [zsqrtd.ext], congr_arg _⟩ }
+  { cast_injective := λ m n, by simp [ext] }
 
   @[simp] theorem of_int_eq_coe (n : ℤ) : (of_int n : ℤ√d) = n :=
-  by simp [ext]
+  by simp [ext, of_int_re, of_int_im]
 
   @[simp] theorem smul_val (n x y : ℤ) : (n : ℤ√d) * ⟨x, y⟩ = ⟨n * x, n * y⟩ :=
   by simp [ext]

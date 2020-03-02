@@ -15,7 +15,7 @@ Then we introduce `free_group α` as a quotient over `free_group.red.step`.
 -/
 import logic.relation
 import algebra.group algebra.group_power
-import data.fintype data.list.basic
+import data.fintype
 import group_theory.subgroup
 open relation
 
@@ -159,7 +159,7 @@ iff.intro
   cons_cons
 
 lemma append_append_left_iff : ∀L, red (L ++ L₁) (L ++ L₂) ↔ red L₁ L₂
-| []       := iff.refl _
+| []       := iff.rfl
 | (p :: L) := by simp [append_append_left_iff L, cons_cons_iff]
 
 lemma append_append (h₁ : red L₁ L₃) (h₂ : red L₂ L₄) : red (L₁ ++ L₂) (L₃ ++ L₄) :=
@@ -328,6 +328,8 @@ quot.lift_on (mk L) f H = f L := rfl
 
 instance : has_one (free_group α) := ⟨mk []⟩
 lemma one_eq_mk : (1 : free_group α) = mk [] := rfl
+
+instance : inhabited (free_group α) := ⟨1⟩
 
 instance : has_mul (free_group α) :=
 ⟨λ x y, quot.lift_on x

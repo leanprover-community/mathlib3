@@ -20,7 +20,7 @@ monad to an honest monad of the functor `Measure : Meas ⥤ Meas`.
 
 ## References
 
-* https://ncatlab.org/nlab/show/Giry+monad
+* <https://ncatlab.org/nlab/show/Giry+monad>
 
 ## Tags
 
@@ -82,7 +82,7 @@ measurable.supr $ assume n,
     dunfold simple_func.integral,
     refine measurable_finset_sum (simple_func.eapprox f n).range _,
     assume i,
-    refine ennreal.measurable_mul measurable_const _,
+    refine ennreal.measurable.mul measurable_const _,
     exact measurable_coe ((simple_func.eapprox f n).preimage_measurable _)
   end
 
@@ -133,12 +133,12 @@ begin
     transitivity,
     apply lintegral_supr,
     { exact assume n,
-        measurable_finset_sum _ (assume r, ennreal.measurable_mul measurable_const (hf _ _)) },
+        measurable_finset_sum _ (assume r, ennreal.measurable.mul measurable_const (hf _ _)) },
     { exact hm },
     congr, funext n,
     transitivity,
     apply lintegral_finset_sum,
-    { exact assume r, ennreal.measurable_mul measurable_const (hf _ _) },
+    { exact assume r, ennreal.measurable.mul measurable_const (hf _ _) },
     congr, funext r,
     apply lintegral_const_mul,
     exact hf _ _ },

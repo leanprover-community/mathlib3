@@ -25,6 +25,9 @@ section
 parameters {α : Type u} {β : α → Type v} (hash_fn : α → nat)
 variables {n : ℕ+} (data : bucket_array α β n)
 
+instance : inhabited (bucket_array α β n) :=
+⟨mk_array _ []⟩
+
 /-- Read the bucket corresponding to an element -/
 def read (a : α) : list Σ a, β a :=
 let bidx := hash_map.mk_idx n (hash_fn a) in
@@ -305,7 +308,7 @@ begin
   rcases hash_map.valid.erase_aux a (array.read bkts (mk_idx n (hash_fn a)))
     ((contains_aux_iff nd).1 Hc) with ⟨u, w, b, hl, hfl⟩,
   refine (v.modify hash_fn u [⟨a, b⟩] [] w hl hfl list.nodup_nil _ _ _).2;
-  { intros, simp at *; contradiction }
+  simp
 end
 
 end

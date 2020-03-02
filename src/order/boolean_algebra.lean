@@ -12,6 +12,8 @@ namespace lattice
 universes u
 variables {α : Type u} {w x y z : α}
 
+section prio
+set_option default_priority 100 -- see Note [default priority]
 /-- A boolean algebra is a bounded distributive lattice with a
   complementation operation `-` such that `x ⊓ - x = ⊥` and `x ⊔ - x = ⊤`.
   This is a generalization of (classical) logic of propositions, or
@@ -20,6 +22,7 @@ class boolean_algebra α extends bounded_distrib_lattice α, has_neg α, has_sub
 (inf_neg_eq_bot : ∀x:α, x ⊓ - x = ⊥)
 (sup_neg_eq_top : ∀x:α, x ⊔ - x = ⊤)
 (sub_eq : ∀x y:α, x - y = x ⊓ - y)
+end prio
 
 section boolean_algebra
 variables [boolean_algebra α]

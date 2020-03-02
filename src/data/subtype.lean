@@ -41,11 +41,11 @@ ext
 theorem val_injective : injective (@val _ p) :=
 λ a b, subtype.eq'
 
-/- Restrict a (dependent) function to a subtype -/
-def restrict {α} {β : α → Type*} (f : ∀x, β x) (p : α → Prop) (x : subtype p) : β x.1 :=
+/-- Restrict a (dependent) function to a subtype -/
+def restrict {α} {β : α → Type*} (f : Πx, β x) (p : α → Prop) (x : subtype p) : β x.1 :=
 f x.1
 
-lemma restrict_apply {α} {β : α → Type*} (f : ∀x, β x) (p : α → Prop) (x : subtype p) :
+lemma restrict_apply {α} {β : α → Type*} (f : Πx, β x) (p : α → Prop) (x : subtype p) :
   restrict f p x = f x.1 :=
 by refl
 

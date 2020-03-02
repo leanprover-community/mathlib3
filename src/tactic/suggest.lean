@@ -42,6 +42,7 @@ A declaration can match the head symbol of the current goal in four possible way
 * `mpr` : the declaration returns an `iff`, and the left hand side matches the goal
 * `both`: the declaration returns an `iff`, and the both sides match the goal
 -/
+@[derive decidable_eq, derive inhabited]
 inductive head_symbol_match
 | ex | mp | mpr | both
 
@@ -159,7 +160,9 @@ meta def tactic_statement (g : expr) : tactic string :=
 do g ← instantiate_mvars g,
    g ← head_beta g,
    r ← pp (replace_mvars g),
-   if g.has_meta_var then return (sformat!"refine {r}") else return (sformat!"exact {r}")
+   if g.has_meta_var
+   then return (sformat!"Try this: refine {r}")
+   else return (sformat!"Try this: exact {r}")
 
 /--
 Assuming that a goal `g` has been (partially) solved in the tactic_state `l`,

@@ -15,16 +15,24 @@ variables {α : Type*} {β : Type*} {γ : Type*} {ι : Type*}
 
 noncomputable theory
 open filter metric
+open_locale topological_space
 localized "notation f `→_{`:50 a `}`:0 b := filter.tendsto f (_root_.nhds a) (_root_.nhds b)" in filter
 
+/-- Auxiliary class, endowing a type `α` with a function `norm : α → ℝ`. This class is designed to
+be extended in more interesting classes specifying the properties of the norm. -/
 class has_norm (α : Type*) := (norm : α → ℝ)
 
 export has_norm (norm)
 
 notation `∥`:1024 e:1 `∥`:1 := norm e
 
+section prio
+set_option default_priority 100 -- see Note [default priority]
+/-- A normed group is an additive group endowed with a norm for which `dist x y = ∥x - y∥` defines
+a metric space structure. -/
 class normed_group (α : Type*) extends has_norm α, add_comm_group α, metric_space α :=
 (dist_eq : ∀ x y, dist x y = norm (x - y))
+end prio
 
 /-- Construct a normed group from a translation invariant distance -/
 def normed_group.of_add_dist [has_norm α] [add_comm_group α] [metric_space α]
@@ -48,11 +56,13 @@ def normed_group.of_add_dist' [has_norm α] [add_comm_group α] [metric_space α
 
 /-- A normed group can be built from a norm that satisfies algebraic properties. This is
 formalised in this structure. -/
-structure normed_group.core (α : Type*) [add_comm_group α] [has_norm α] :=
+structure normed_group.core (α : Type*) [add_comm_group α] [has_norm α] : Prop :=
 (norm_eq_zero_iff : ∀ x : α, ∥x∥ = 0 ↔ x = 0)
 (triangle : ∀ x y : α, ∥x + y∥ ≤ ∥x∥ + ∥y∥)
 (norm_neg : ∀ x : α, ∥-x∥ = ∥x∥)
 
+/-- Constructing a normed group from core properties of a norm, i.e., registering the distance and
+the metric space structure from the norm properties. -/
 noncomputable def normed_group.of_core (α : Type*) [add_comm_group α] [has_norm α]
   (C : normed_group.core α) : normed_group α :=
 { dist := λ x y, ∥x - y∥,
@@ -73,102 +83,133 @@ lemma dist_eq_norm (g h : α) : dist g h = ∥g - h∥ :=
 normed_group.dist_eq _ _
 
 @[simp] lemma dist_zero_right (g : α) : dist g 0 = ∥g∥ :=
-by { rw[dist_eq_norm], simp }
+by rw [dist_eq_norm, sub_zero]
 
-lemma norm_triangle (g h : α) : ∥g + h∥ ≤ ∥g∥ + ∥h∥ :=
-calc ∥g + h∥ = ∥g - (-h)∥             : by simp
-         ... = dist g (-h)            : by simp[dist_eq_norm]
-         ... ≤ dist g 0 + dist 0 (-h) : by apply dist_triangle
-         ... = ∥g∥ + ∥h∥               : by simp[dist_eq_norm]
+lemma norm_sub_rev (g h : α) : ∥g - h∥ = ∥h - g∥ :=
+by simpa only [dist_eq_norm] using dist_comm g h
+
+@[simp] lemma norm_neg (g : α) : ∥-g∥ = ∥g∥ :=
+by simpa using norm_sub_rev 0 g
+
+@[simp] lemma dist_add_left (g h₁ h₂ : α) : dist (g + h₁) (g + h₂) = dist h₁ h₂ :=
+by simp [dist_eq_norm]
+
+@[simp] lemma dist_add_right (g₁ g₂ h : α) : dist (g₁ + h) (g₂ + h) = dist g₁ g₂ :=
+by simp [dist_eq_norm]
+
+@[simp] lemma dist_neg_neg (g h : α) : dist (-g) (-h) = dist g h :=
+by simp only [dist_eq_norm, neg_sub_neg, norm_sub_rev]
+
+@[simp] lemma dist_sub_left (g h₁ h₂ : α) : dist (g - h₁) (g - h₂) = dist h₁ h₂ :=
+by simp only [sub_eq_add_neg, dist_add_left, dist_neg_neg]
+
+@[simp] lemma dist_sub_right (g₁ g₂ h : α) : dist (g₁ - h) (g₂ - h) = dist g₁ g₂ :=
+dist_add_right _ _ _
+
+/-- Triangle inequality for the norm. -/
+lemma norm_add_le (g h : α) : ∥g + h∥ ≤ ∥g∥ + ∥h∥ :=
+by simpa [dist_eq_norm] using dist_triangle g 0 (-h)
+
+lemma norm_add_le_of_le {g₁ g₂ : α} {n₁ n₂ : ℝ} (H₁ : ∥g₁∥ ≤ n₁) (H₂ : ∥g₂∥ ≤ n₂) :
+  ∥g₁ + g₂∥ ≤ n₁ + n₂ :=
+le_trans (norm_add_le g₁ g₂) (add_le_add H₁ H₂)
+
+lemma dist_add_add_le (g₁ g₂ h₁ h₂ : α) :
+  dist (g₁ + g₂) (h₁ + h₂) ≤ dist g₁ h₁ + dist g₂ h₂ :=
+by simpa only [dist_add_left, dist_add_right] using dist_triangle (g₁ + g₂) (h₁ + g₂) (h₁ + h₂)
+
+lemma dist_add_add_le_of_le {g₁ g₂ h₁ h₂ : α} {d₁ d₂ : ℝ}
+  (H₁ : dist g₁ h₁ ≤ d₁) (H₂ : dist g₂ h₂ ≤ d₂) :
+  dist (g₁ + g₂) (h₁ + h₂) ≤ d₁ + d₂ :=
+le_trans (dist_add_add_le g₁ g₂ h₁ h₂) (add_le_add H₁ H₂)
+
+lemma dist_sub_sub_le (g₁ g₂ h₁ h₂ : α) :
+  dist (g₁ - g₂) (h₁ - h₂) ≤ dist g₁ h₁ + dist g₂ h₂ :=
+dist_neg_neg g₂ h₂ ▸ dist_add_add_le _ _ _ _
+
+lemma dist_sub_sub_le_of_le {g₁ g₂ h₁ h₂ : α} {d₁ d₂ : ℝ}
+  (H₁ : dist g₁ h₁ ≤ d₁) (H₂ : dist g₂ h₂ ≤ d₂) :
+  dist (g₁ - g₂) (h₁ - h₂) ≤ d₁ + d₂ :=
+le_trans (dist_sub_sub_le g₁ g₂ h₁ h₂) (add_le_add H₁ H₂)
 
 @[simp] lemma norm_nonneg (g : α) : 0 ≤ ∥g∥ :=
 by { rw[←dist_zero_right], exact dist_nonneg }
 
-lemma norm_eq_zero (g : α) : ∥g∥ = 0 ↔ g = 0 :=
-by { rw[←dist_zero_right], exact dist_eq_zero }
+lemma norm_eq_zero {g : α} : ∥g∥ = 0 ↔ g = 0 :=
+dist_zero_right g ▸ dist_eq_zero
 
-@[simp] lemma norm_zero : ∥(0:α)∥ = 0 := (norm_eq_zero _).2 (by simp)
+@[simp] lemma norm_zero : ∥(0:α)∥ = 0 := norm_eq_zero.2 rfl
 
-lemma norm_triangle_sum {β} : ∀(s : finset β) (f : β → α), ∥s.sum f∥ ≤ s.sum (λa, ∥ f a ∥) :=
-finset.le_sum_of_subadditive norm norm_zero norm_triangle
+lemma norm_sum_le {β} : ∀(s : finset β) (f : β → α), ∥s.sum f∥ ≤ s.sum (λa, ∥ f a ∥) :=
+finset.le_sum_of_subadditive norm norm_zero norm_add_le
 
-lemma norm_pos_iff (g : α) : 0 < ∥ g ∥ ↔ g ≠ 0 :=
-begin
-  split ; intro h ; rw[←dist_zero_right] at *,
-  { exact dist_pos.1 h },
-  { exact dist_pos.2 h }
-end
+lemma norm_sum_le_of_le {β} (s : finset β) {f : β → α} {n : β → ℝ} (h : ∀ b ∈ s, ∥f b∥ ≤ n b) :
+  ∥s.sum f∥ ≤ s.sum n :=
+by { haveI := classical.dec_eq β, exact le_trans (norm_sum_le s f) (finset.sum_le_sum h) }
 
-lemma norm_le_zero_iff (g : α) : ∥g∥ ≤ 0 ↔ g = 0 :=
+lemma norm_pos_iff {g : α} : 0 < ∥ g ∥ ↔ g ≠ 0 :=
+dist_zero_right g ▸ dist_pos
+
+lemma norm_le_zero_iff {g : α} : ∥g∥ ≤ 0 ↔ g = 0 :=
 by { rw[←dist_zero_right], exact dist_le_zero }
 
-@[simp] lemma norm_neg (g : α) : ∥-g∥ = ∥g∥ :=
-calc ∥-g∥ = ∥0 - g∥ : by simp
-      ... = dist 0 g : (dist_eq_norm 0 g).symm
-      ... = dist g 0 : dist_comm _ _
-      ... = ∥g - 0∥ : (dist_eq_norm g 0)
-      ... = ∥g∥ : by simp
+lemma norm_sub_le (g h : α) : ∥g - h∥ ≤ ∥g∥ + ∥h∥ :=
+by simpa [dist_eq_norm] using dist_triangle g 0 h
 
-lemma norm_reverse_triangle' (a b : α) : ∥a∥ - ∥b∥ ≤ ∥a - b∥ :=
-by simpa using add_le_add (norm_triangle (a - b) (b)) (le_refl (-∥b∥))
+lemma norm_sub_le_of_le {g₁ g₂ : α} {n₁ n₂ : ℝ} (H₁ : ∥g₁∥ ≤ n₁) (H₂ : ∥g₂∥ ≤ n₂) :
+  ∥g₁ - g₂∥ ≤ n₁ + n₂ :=
+le_trans (norm_sub_le g₁ g₂) (add_le_add H₁ H₂)
 
-lemma norm_reverse_triangle (a b : α) : abs(∥a∥ - ∥b∥) ≤ ∥a - b∥ :=
-suffices -(∥a∥ - ∥b∥) ≤ ∥a - b∥, from abs_le_of_le_of_neg_le (norm_reverse_triangle' a b) this,
-calc -(∥a∥ - ∥b∥) = ∥b∥ - ∥a∥ : by abel
-             ... ≤ ∥b - a∥ : norm_reverse_triangle' b a
-             ... = ∥a - b∥ : by rw ← norm_neg (a - b); simp
-
-lemma norm_triangle_sub {a b : α} : ∥a - b∥ ≤ ∥a∥ + ∥b∥ :=
-by simpa only [sub_eq_add_neg, norm_neg] using norm_triangle a (-b)
+lemma dist_le_norm_add_norm (g h : α) : dist g h ≤ ∥g∥ + ∥h∥ :=
+by { rw dist_eq_norm, apply norm_sub_le }
 
 lemma abs_norm_sub_norm_le (g h : α) : abs(∥g∥ - ∥h∥) ≤ ∥g - h∥ :=
-abs_le.2 $ and.intro
-  (suffices -∥g - h∥ ≤ -(∥h∥ - ∥g∥), by simpa,
-    neg_le_neg $ sub_right_le_of_le_add $
-    calc ∥h∥ = ∥h - g + g∥ : by simp
-      ... ≤ ∥h - g∥ + ∥g∥ : norm_triangle _ _
-      ... = ∥-(g - h)∥ + ∥g∥ : by simp
-      ... = ∥g - h∥ + ∥g∥ : by { rw [norm_neg (g-h)] })
-  (sub_right_le_of_le_add $ calc ∥g∥ = ∥g - h + h∥ : by simp ... ≤ ∥g-h∥ + ∥h∥ : norm_triangle _ _)
+by simpa [dist_eq_norm] using abs_dist_sub_le g h 0
+
+lemma norm_sub_norm_le (g h : α) : ∥g∥ - ∥h∥ ≤ ∥g - h∥ :=
+le_trans (le_abs_self _) (abs_norm_sub_norm_le g h)
 
 lemma dist_norm_norm_le (g h : α) : dist ∥g∥ ∥h∥ ≤ ∥g - h∥ :=
 abs_norm_sub_norm_le g h
 
-lemma norm_sub_rev (g h : α) : ∥g - h∥ = ∥h - g∥ :=
-by rw ←norm_neg; simp
-
 lemma ball_0_eq (ε : ℝ) : ball (0:α) ε = {x | ∥x∥ < ε} :=
 set.ext $ assume a, by simp
 
-theorem normed_group.tendsto_nhds_zero {f : γ → α} {l : filter γ} :
-  tendsto f l (nhds 0) ↔ ∀ ε > 0, { x | ∥ f x ∥ < ε } ∈ l :=
-begin
-  rw [metric.tendsto_nhds], simp only [normed_group.dist_eq, sub_zero],
-  split,
-  { intros h ε εgt0,
-    rcases h ε εgt0 with ⟨s, ssets, hs⟩,
-    exact mem_sets_of_superset ssets hs },
-  intros h ε εgt0,
-  exact ⟨_, h ε εgt0, set.subset.refl _⟩
-end
+lemma norm_le_of_mem_closed_ball {g h : α} {r : ℝ} (H : h ∈ closed_ball g r) :
+  ∥h∥ ≤ ∥g∥ + r :=
+calc
+  ∥h∥ = ∥g + (h - g)∥ : by { congr' 1, abel }
+  ... ≤ ∥g∥ + ∥h - g∥  : norm_add_le _ _
+  ... ≤ ∥g∥ + r : by { apply add_le_add_left, rw ← dist_eq_norm, exact H }
 
+lemma norm_lt_of_mem_ball {g h : α} {r : ℝ} (H : h ∈ ball g r) :
+  ∥h∥ < ∥g∥ + r :=
+calc
+  ∥h∥ = ∥g + (h - g)∥ : by { congr' 1, abel }
+  ... ≤ ∥g∥ + ∥h - g∥  : norm_add_le _ _
+  ... < ∥g∥ + r : by { apply add_lt_add_left, rw ← dist_eq_norm, exact H }
+
+theorem normed_group.tendsto_nhds_zero {f : γ → α} {l : filter γ} :
+  tendsto f l (𝓝 0) ↔ ∀ ε > 0, ∀ᶠ x in l, ∥ f x ∥ < ε :=
+metric.tendsto_nhds.trans $ by simp only [dist_zero_right]
 
 section nnnorm
 
+/-- Version of the norm taking values in nonnegative reals. -/
 def nnnorm (a : α) : nnreal := ⟨norm a, norm_nonneg a⟩
 
 @[simp] lemma coe_nnnorm (a : α) : (nnnorm a : ℝ) = norm a := rfl
 
 lemma nndist_eq_nnnorm (a b : α) : nndist a b = nnnorm (a - b) := nnreal.eq $ dist_eq_norm _ _
 
-lemma nnnorm_eq_zero (a : α) : nnnorm a = 0 ↔ a = 0 :=
+lemma nnnorm_eq_zero {a : α} : nnnorm a = 0 ↔ a = 0 :=
 by simp only [nnreal.eq_iff.symm, nnreal.coe_zero, coe_nnnorm, norm_eq_zero]
 
 @[simp] lemma nnnorm_zero : nnnorm (0 : α) = 0 :=
 nnreal.eq norm_zero
 
-lemma nnnorm_triangle (g h : α) : nnnorm (g + h) ≤ nnnorm g + nnnorm h :=
-by simpa [nnreal.coe_le] using norm_triangle g h
+lemma nnnorm_add_le (g h : α) : nnnorm (g + h) ≤ nnnorm g + nnnorm h :=
+nnreal.coe_le.2 $ norm_add_le g h
 
 @[simp] lemma nnnorm_neg (g : α) : nnnorm (-g) = nnnorm g :=
 nnreal.eq $ norm_neg g
@@ -176,33 +217,63 @@ nnreal.eq $ norm_neg g
 lemma nndist_nnnorm_nnnorm_le (g h : α) : nndist (nnnorm g) (nnnorm h) ≤ nnnorm (g - h) :=
 nnreal.coe_le.2 $ dist_norm_norm_le g h
 
+lemma of_real_norm_eq_coe_nnnorm (x : β) : ennreal.of_real ∥x∥ = (nnnorm x : ennreal) :=
+ennreal.of_real_eq_coe_nnreal _
+
+lemma edist_eq_coe_nnnorm (x : β) : edist x 0 = (nnnorm x : ennreal) :=
+by { rw [edist_dist, dist_eq_norm, _root_.sub_zero, of_real_norm_eq_coe_nnnorm] }
+
 end nnnorm
 
+/-- A submodule of a normed group is also a normed group, with the restriction of the norm.
+As all instances can be inferred from the submodule `s`, they are put as implicit instead of
+typeclasses. -/
+instance submodule.normed_group {𝕜 : Type*} {_ : ring 𝕜}
+  {E : Type*} [normed_group E] {_ : module 𝕜 E} (s : submodule 𝕜 E) : normed_group s :=
+{ norm := λx, norm (x : E),
+  dist_eq := λx y, dist_eq_norm (x : E) (y : E) }
+
+/-- normed group instance on the product of two normed groups, using the sup norm. -/
 instance prod.normed_group : normed_group (α × β) :=
 { norm := λx, max ∥x.1∥ ∥x.2∥,
   dist_eq := assume (x y : α × β),
     show max (dist x.1 y.1) (dist x.2 y.2) = (max ∥(x - y).1∥ ∥(x - y).2∥), by simp [dist_eq_norm] }
 
 lemma norm_fst_le (x : α × β) : ∥x.1∥ ≤ ∥x∥ :=
-begin have : ∥x∥ = max (∥x.fst∥) (∥x.snd∥) := rfl, rw this, simp[le_max_left] end
+by simp [norm, le_max_left]
 
 lemma norm_snd_le (x : α × β) : ∥x.2∥ ≤ ∥x∥ :=
-begin have : ∥x∥ = max (∥x.fst∥) (∥x.snd∥) := rfl, rw this, simp[le_max_right] end
+by simp [norm, le_max_right]
 
-instance fintype.normed_group {π : ι → Type*} [fintype ι] [∀i, normed_group (π i)] :
-  normed_group (Πb, π b) :=
+lemma norm_prod_le_iff {x : α × β} {r : ℝ} :
+  ∥x∥ ≤ r ↔ ∥x.1∥ ≤ r ∧ ∥x.2∥ ≤ r :=
+max_le_iff
+
+/-- normed group instance on the product of finitely many normed groups, using the sup norm. -/
+instance pi.normed_group {π : ι → Type*} [fintype ι] [∀i, normed_group (π i)] :
+  normed_group (Πi, π i) :=
 { norm := λf, ((finset.sup finset.univ (λ b, nnnorm (f b)) : nnreal) : ℝ),
   dist_eq := assume x y,
     congr_arg (coe : nnreal → ℝ) $ congr_arg (finset.sup finset.univ) $ funext $ assume a,
     show nndist (x a) (y a) = nnnorm (x a - y a), from nndist_eq_nnnorm _ _ }
 
+/-- The norm of an element in a product space is `≤ r` if and only if the norm of each
+component is. -/
+lemma pi_norm_le_iff {π : ι → Type*} [fintype ι] [∀i, normed_group (π i)] {r : ℝ} (hr : 0 ≤ r)
+  {x : Πi, π i} : ∥x∥ ≤ r ↔ ∀i, ∥x i∥ ≤ r :=
+by { simp only [(dist_zero_right _).symm, dist_pi_le_iff hr], refl }
+
+lemma norm_le_pi_norm {π : ι → Type*} [fintype ι] [∀i, normed_group (π i)] (x : Πi, π i) (i : ι) :
+  ∥x i∥ ≤ ∥x∥ :=
+(pi_norm_le_iff (norm_nonneg x)).1 (le_refl _) i
+
 lemma tendsto_iff_norm_tendsto_zero {f : ι → β} {a : filter ι} {b : β} :
-  tendsto f a (nhds b) ↔ tendsto (λ e, ∥ f e - b ∥) a (nhds 0) :=
+  tendsto f a (𝓝 b) ↔ tendsto (λ e, ∥ f e - b ∥) a (𝓝 0) :=
 by rw tendsto_iff_dist_tendsto_zero ; simp only [(dist_eq_norm _ _).symm]
 
 lemma tendsto_zero_iff_norm_tendsto_zero {f : γ → β} {a : filter γ} :
-  tendsto f a (nhds 0) ↔ tendsto (λ e, ∥ f e ∥) a (nhds 0) :=
-have tendsto f a (nhds 0) ↔ tendsto (λ e, ∥ f e - 0 ∥) a (nhds 0) :=
+  tendsto f a (𝓝 0) ↔ tendsto (λ e, ∥ f e ∥) a (𝓝 0) :=
+have tendsto f a (𝓝 0) ↔ tendsto (λ e, ∥ f e - 0 ∥) a (𝓝 0) :=
   tendsto_iff_norm_tendsto_zero,
 by simpa
 
@@ -220,30 +291,61 @@ begin
   exact squeeze_zero (λ t, abs_nonneg _) (λ t, abs_norm_sub_norm_le _ _) (lim_norm x)
 end
 
+lemma filter.tendsto.norm {β : Type*} {l : filter β} {f : β → α} {a : α} (h : tendsto f l (𝓝 a)) :
+  tendsto (λ x, ∥f x∥) l (𝓝 ∥a∥) :=
+tendsto.comp continuous_norm.continuous_at h
+
 lemma continuous_nnnorm : continuous (nnnorm : α → nnreal) :=
 continuous_subtype_mk _ continuous_norm
 
+lemma filter.tendsto.nnnorm {β : Type*} {l : filter β} {f : β → α} {a : α} (h : tendsto f l (𝓝 a)) :
+  tendsto (λ x, nnnorm (f x)) l (𝓝 (nnnorm a)) :=
+tendsto.comp continuous_nnnorm.continuous_at h
+
+/-- If `∥y∥→∞`, then we can assume `y≠x` for any fixed `x`. -/
+lemma ne_mem_of_tendsto_norm_at_top {l : filter γ} {f : γ → α}
+  (h : tendsto (λ y, ∥f y∥) l at_top) (x : α) :
+  ∀ᶠ y in l, f y ≠ x :=
+begin
+  have : ∀ᶠ y in l, 1 + ∥x∥ ≤ ∥f y∥ := h (mem_at_top (1 + ∥x∥)),
+  apply mem_sets_of_superset this,
+  assume y hy hxy,
+  subst x,
+  simp at hy,
+  exact not_le_of_lt zero_lt_one hy
+end
+
+/-- A normed group is a uniform additive group, i.e., addition and subtraction are uniformly
+continuous. -/
+@[priority 100] -- see Note [lower instance priority]
 instance normed_uniform_group : uniform_add_group α :=
 begin
   refine ⟨metric.uniform_continuous_iff.2 $ assume ε hε, ⟨ε / 2, half_pos hε, assume a b h, _⟩⟩,
   rw [prod.dist_eq, max_lt_iff, dist_eq_norm, dist_eq_norm] at h,
   calc dist (a.1 - a.2) (b.1 - b.2) = ∥(a.1 - b.1) - (a.2 - b.2)∥  : by simp [dist_eq_norm]
-    ... ≤ ∥a.1 - b.1∥ + ∥a.2 - b.2∥ : norm_triangle_sub
+    ... ≤ ∥a.1 - b.1∥ + ∥a.2 - b.2∥ : norm_sub_le _ _
     ... < ε / 2 + ε / 2 : add_lt_add h.1 h.2
     ... = ε : add_halves _
 end
 
-instance normed_top_monoid : topological_add_monoid α := by apply_instance
-instance normed_top_group : topological_add_group α := by apply_instance
+@[priority 100] -- see Note [lower instance priority]
+instance normed_top_monoid : topological_add_monoid α := by apply_instance -- short-circuit type class inference
+@[priority 100] -- see Note [lower instance priority]
+instance normed_top_group : topological_add_group α := by apply_instance -- short-circuit type class inference
 
 end normed_group
 
 section normed_ring
 
+section prio
+set_option default_priority 100 -- see Note [default priority]
+/-- A normed ring is a ring endowed with a norm which satisfies the inequality `∥x y∥ ≤ ∥x∥ ∥y∥`. -/
 class normed_ring (α : Type*) extends has_norm α, ring α, metric_space α :=
 (dist_eq : ∀ x y, dist x y = norm (x - y))
 (norm_mul : ∀ a b, norm (a * b) ≤ norm a * norm b)
+end prio
 
+@[priority 100] -- see Note [lower instance priority]
 instance normed_ring.to_normed_group [β : normed_ring α] : normed_group α := { ..β }
 
 lemma norm_mul_le {α : Type*} [normed_ring α] (a b : α) : (∥a*b∥) ≤ (∥a∥) * (∥b∥) :=
@@ -256,6 +358,7 @@ lemma norm_pow_le {α : Type*} [normed_ring α] (a : α) : ∀ {n : ℕ}, 0 < n 
            (mul_le_mul (le_refl _)
                        (norm_pow_le (nat.succ_pos _)) (norm_nonneg _) (norm_nonneg _))
 
+/-- Normed ring structure on the product of two normed rings, using the sup norm. -/
 instance prod.normed_ring [normed_ring α] [normed_ring β] : normed_ring (α × β) :=
 { norm_mul := assume x y,
   calc
@@ -270,6 +373,7 @@ instance prod.normed_ring [normed_ring α] [normed_ring β] : normed_ring (α ×
   ..prod.normed_group }
 end normed_ring
 
+@[priority 100] -- see Note [lower instance priority]
 instance normed_ring_top_monoid [normed_ring α] : topological_monoid α :=
 ⟨ continuous_iff_continuous_at.2 $ λ x, tendsto_iff_norm_tendsto_zero.2 $
     have ∀ e : α × α, e.fst * e.snd - x.fst * x.snd =
@@ -277,13 +381,13 @@ instance normed_ring_top_monoid [normed_ring α] : topological_monoid α :=
     begin
       apply squeeze_zero,
       { intro, apply norm_nonneg },
-      { simp only [this], intro, apply norm_triangle },
-      { rw ←zero_add (0 : ℝ), apply tendsto_add,
+      { simp only [this], intro, apply norm_add_le },
+      { rw ←zero_add (0 : ℝ), apply tendsto.add,
         { apply squeeze_zero,
           { intro, apply norm_nonneg },
           { intro t, show ∥t.fst * t.snd - t.fst * x.snd∥ ≤ ∥t.fst∥ * ∥t.snd - x.snd∥,
             rw ←mul_sub, apply norm_mul_le },
-          { rw ←mul_zero (∥x.fst∥), apply tendsto_mul,
+          { rw ←mul_zero (∥x.fst∥), apply tendsto.mul,
             { apply continuous_iff_continuous_at.1,
               apply continuous_norm.comp continuous_fst },
             { apply tendsto_iff_norm_tendsto_zero.1,
@@ -293,26 +397,35 @@ instance normed_ring_top_monoid [normed_ring α] : topological_monoid α :=
           { intro, apply norm_nonneg },
           { intro t, show ∥t.fst * x.snd - x.fst * x.snd∥ ≤ ∥t.fst - x.fst∥ * ∥x.snd∥,
             rw ←sub_mul, apply norm_mul_le },
-          { rw ←zero_mul (∥x.snd∥), apply tendsto_mul,
+          { rw ←zero_mul (∥x.snd∥), apply tendsto.mul,
             { apply tendsto_iff_norm_tendsto_zero.1,
               apply continuous_iff_continuous_at.1,
               apply continuous_fst },
             { apply tendsto_const_nhds }}}}
     end ⟩
 
+/-- A normed ring is a topological ring. -/
+@[priority 100] -- see Note [lower instance priority]
 instance normed_top_ring [normed_ring α] : topological_ring α :=
 ⟨ continuous_iff_continuous_at.2 $ λ x, tendsto_iff_norm_tendsto_zero.2 $
     have ∀ e : α, -e - -x = -(e - x), by intro; simp,
     by simp only [this, norm_neg]; apply lim_norm ⟩
 
-
+section prio
+set_option default_priority 100 -- see Note [default priority]
+/-- A normed field is a field with a norm satisfying ∥x y∥ = ∥x∥ ∥y∥. -/
 class normed_field (α : Type*) extends has_norm α, discrete_field α, metric_space α :=
 (dist_eq : ∀ x y, dist x y = norm (x - y))
 (norm_mul' : ∀ a b, norm (a * b) = norm a * norm b)
 
+/-- A nondiscrete normed field is a normed field in which there is an element of norm different from
+`0` and `1`. This makes it possible to bring any element arbitrarily close to `0` by multiplication
+by the powers of any element, and thus to relate algebra and topology. -/
 class nondiscrete_normed_field (α : Type*) extends normed_field α :=
 (non_trivial : ∃x:α, 1<∥x∥)
+end prio
 
+@[priority 100] -- see Note [lower instance priority]
 instance normed_field.to_normed_ring [i : normed_field α] : normed_ring α :=
 { norm_mul := by finish [i.norm_mul'], ..i }
 
@@ -321,7 +434,7 @@ namespace normed_field
 have  ∥(1 : α)∥ * ∥(1 : α)∥ = ∥(1 : α)∥ * 1, by calc
  ∥(1 : α)∥ * ∥(1 : α)∥ = ∥(1 : α) * (1 : α)∥ : by rw normed_field.norm_mul'
                   ... = ∥(1 : α)∥ * 1 : by simp,
-eq_of_mul_eq_mul_left (ne_of_gt ((norm_pos_iff _).2 (by simp))) this
+eq_of_mul_eq_mul_left (ne_of_gt (norm_pos_iff.2 (by simp))) this
 
 @[simp] lemma norm_mul [normed_field α] (a b : α) : ∥a * b∥ = ∥a∥ * ∥b∥ :=
 normed_field.norm_mul' a b
@@ -334,13 +447,13 @@ is_monoid_hom.map_pow norm a
 
 @[simp] lemma norm_prod {β : Type*} [normed_field α] (s : finset β) (f : β → α) :
   ∥s.prod f∥ = s.prod (λb, ∥f b∥) :=
-eq.symm (finset.prod_hom norm)
+eq.symm (s.prod_hom norm)
 
 @[simp] lemma norm_div {α : Type*} [normed_field α] (a b : α) : ∥a/b∥ = ∥a∥/∥b∥ :=
 if hb : b = 0 then by simp [hb] else
 begin
   apply eq_div_of_mul_eq,
-  { apply ne_of_gt, apply (norm_pos_iff _).mpr hb },
+  { apply ne_of_gt, apply norm_pos_iff.mpr hb },
   { rw [←normed_field.norm_mul, div_mul_cancel _ hb] }
 end
 
@@ -367,6 +480,75 @@ begin
   { simp [inv_lt_one hy] }
 end
 
+lemma exists_lt_norm (α : Type*) [nondiscrete_normed_field α]
+  (r : ℝ) : ∃ x : α, r < ∥x∥ :=
+let ⟨w, hw⟩ := exists_one_lt_norm α in
+let ⟨n, hn⟩ := pow_unbounded_of_one_lt r hw in
+⟨w^n, by rwa norm_pow⟩
+
+lemma exists_norm_lt (α : Type*) [nondiscrete_normed_field α]
+  {r : ℝ} (hr : 0 < r) : ∃ x : α, 0 < ∥x∥ ∧ ∥x∥ < r :=
+let ⟨w, hw⟩ := exists_one_lt_norm α in
+let ⟨n, hle, hlt⟩ := exists_int_pow_near' hr hw in
+⟨w^n, by { rw norm_fpow; exact fpow_pos_of_pos (lt_trans zero_lt_one hw) _},
+by rwa norm_fpow⟩
+
+lemma punctured_nhds_ne_bot {α : Type*} [nondiscrete_normed_field α] (x : α) :
+  nhds_within x (-{x}) ≠ ⊥ :=
+begin
+  rw [← mem_closure_iff_nhds_within_ne_bot, metric.mem_closure_iff],
+  rintros ε ε0,
+  rcases normed_field.exists_norm_lt α ε0 with ⟨b, hb0, hbε⟩,
+  refine ⟨x + b, mt (set.mem_singleton_iff.trans add_right_eq_self).1 $ norm_pos_iff.1 hb0, _⟩,
+  rwa [dist_comm, dist_eq_norm, add_sub_cancel'],
+end
+
+lemma tendsto_inv [normed_field α] {r : α} (r0 : r ≠ 0) : tendsto (λq, q⁻¹) (𝓝 r) (𝓝 r⁻¹) :=
+begin
+  refine (nhds_basis_closed_ball.tendsto_iff nhds_basis_closed_ball).2 (λε εpos, _),
+  let δ := min (ε/2 * ∥r∥^2) (∥r∥/2),
+  have norm_r_pos : 0 < ∥r∥ := norm_pos_iff.mpr r0,
+  have A : 0 < ε / 2 * ∥r∥ ^ 2 := mul_pos' (half_pos εpos) (pow_pos norm_r_pos 2),
+  have δpos : 0 < δ, by simp [half_pos norm_r_pos, A],
+  refine ⟨δ, δpos, λ x hx, _⟩,
+  have rx : ∥r∥/2 ≤ ∥x∥ := calc
+    ∥r∥/2 = ∥r∥ - ∥r∥/2 : by ring
+    ... ≤ ∥r∥ - ∥r - x∥ :
+    begin
+      apply sub_le_sub (le_refl _),
+      rw [← dist_eq_norm, dist_comm],
+      exact le_trans hx (min_le_right _ _)
+    end
+    ... ≤ ∥r - (r - x)∥ : norm_sub_norm_le r (r - x)
+    ... = ∥x∥ : by simp,
+  have norm_x_pos : 0 < ∥x∥ := lt_of_lt_of_le (half_pos norm_r_pos) rx,
+  have : x⁻¹ - r⁻¹ = (r - x) * x⁻¹ * r⁻¹,
+    by rw [sub_mul, sub_mul, mul_inv_cancel (norm_pos_iff.mp norm_x_pos), one_mul, mul_comm,
+           ← mul_assoc, inv_mul_cancel r0, one_mul],
+  calc dist x⁻¹ r⁻¹ = ∥x⁻¹ - r⁻¹∥ : dist_eq_norm _ _
+  ... ≤ ∥r-x∥ * ∥x∥⁻¹ * ∥r∥⁻¹ : by rw [this, norm_mul, norm_mul, norm_inv, norm_inv]
+  ... ≤ (ε/2 * ∥r∥^2) * (2 * ∥r∥⁻¹) * (∥r∥⁻¹) : begin
+    apply_rules [mul_le_mul, inv_nonneg.2, le_of_lt A, norm_nonneg, inv_nonneg.2, mul_nonneg,
+                 (inv_le_inv norm_x_pos norm_r_pos).2, le_refl],
+    show ∥r - x∥ ≤ ε / 2 * ∥r∥ ^ 2,
+      by { rw [← dist_eq_norm, dist_comm], exact le_trans hx (min_le_left _ _) },
+    show ∥x∥⁻¹ ≤ 2 * ∥r∥⁻¹,
+    { convert (inv_le_inv norm_x_pos (half_pos norm_r_pos)).2 rx,
+      rw [inv_div (ne.symm (ne_of_lt norm_r_pos)), div_eq_inv_mul, mul_comm],
+      norm_num },
+    show (0 : ℝ) ≤ 2, by norm_num
+  end
+  ... = ε * (∥r∥ * ∥r∥⁻¹)^2 : by { generalize : ∥r∥⁻¹ = u, ring }
+  ... = ε : by { rw [mul_inv_cancel (ne.symm (ne_of_lt norm_r_pos))], simp }
+end
+
+lemma continuous_on_inv [normed_field α] : continuous_on (λ(x:α), x⁻¹) {x | x ≠ 0} :=
+begin
+  assume x hx,
+  apply continuous_at.continuous_within_at,
+  exact (tendsto_inv hx)
+end
+
 instance : normed_field ℝ :=
 { norm := λ x, abs x,
   dist_eq := assume x y, rfl,
@@ -376,10 +558,26 @@ instance : nondiscrete_normed_field ℝ :=
 { non_trivial := ⟨2, by { unfold norm, rw abs_of_nonneg; norm_num }⟩ }
 end normed_field
 
+/-- If a function converges to a nonzero value, its inverse converges to the inverse of this value.
+We use the name `tendsto.inv'` as `tendsto.inv` is already used in multiplicative topological
+groups. -/
+lemma filter.tendsto.inv' [normed_field α] {l : filter β} {f : β → α} {y : α}
+  (hy : y ≠ 0) (h : tendsto f l (𝓝 y)) :
+  tendsto (λx, (f x)⁻¹) l (𝓝 y⁻¹) :=
+(normed_field.tendsto_inv hy).comp h
+
+lemma filter.tendsto.div [normed_field α] {l : filter β} {f g : β → α} {x y : α}
+  (hf : tendsto f l (𝓝 x)) (hg : tendsto g l (𝓝 y)) (hy : y ≠ 0) :
+  tendsto (λa, f a / g a) l (𝓝 (x / y)) :=
+hf.mul (hg.inv' hy)
+
 lemma real.norm_eq_abs (r : ℝ) : norm r = abs r := rfl
 
 @[simp] lemma norm_norm [normed_group α] (x : α) : ∥∥x∥∥ = ∥x∥ :=
 by rw [real.norm_eq_abs, abs_of_nonneg (norm_nonneg _)]
+
+@[simp] lemma nnnorm_norm [normed_group α] (a : α) : nnnorm ∥a∥ = nnnorm a :=
+by simp only [nnnorm, norm_norm]
 
 instance : normed_ring ℤ :=
 { norm := λ n, ∥(n : ℝ)∥,
@@ -403,9 +601,15 @@ by rw [← rat.norm_cast_real, ← int.norm_cast_real]; congr' 1; norm_cast
 
 section normed_space
 
+section prio
+set_option default_priority 100 -- see Note [default priority]
+-- see Note[vector space definition] for why we extend `module`.
+/-- A normed space over a normed field is a vector space endowed with a norm which satisfies the
+equality `∥c • x∥ = ∥c∥ ∥x∥`. -/
 class normed_space (α : Type*) (β : Type*) [normed_field α] [normed_group β]
-  extends vector_space α β :=
+  extends module α β :=
 (norm_smul : ∀ (a:α) (b:β), norm (a • b) = has_norm.norm a * norm b)
+end prio
 
 variables [normed_field α] [normed_group β]
 
@@ -417,48 +621,44 @@ set_option class.instance_max_depth 43
 lemma norm_smul [normed_space α β] (s : α) (x : β) : ∥s • x∥ = ∥s∥ * ∥x∥ :=
 normed_space.norm_smul s x
 
+lemma dist_smul [normed_space α β] (s : α) (x y : β) : dist (s • x) (s • y) = ∥s∥ * dist x y :=
+by simp only [dist_eq_norm, (norm_smul _ _).symm, smul_sub]
+
 lemma nnnorm_smul [normed_space α β] (s : α) (x : β) : nnnorm (s • x) = nnnorm s * nnnorm x :=
 nnreal.eq $ norm_smul s x
+
+lemma nndist_smul [normed_space α β] (s : α) (x y : β) :
+  nndist (s • x) (s • y) = nnnorm s * nndist x y :=
+nnreal.eq $ dist_smul s x y
 
 variables {E : Type*} {F : Type*}
 [normed_group E] [normed_space α E] [normed_group F] [normed_space α F]
 
-lemma tendsto_smul {f : γ → α} { g : γ → F} {e : filter γ} {s : α} {b : F} :
-  (tendsto f e (nhds s)) → (tendsto g e (nhds b)) → tendsto (λ x, (f x) • (g x)) e (nhds (s • b)) :=
+@[priority 100] -- see Note [lower instance priority]
+instance normed_space.topological_vector_space : topological_vector_space α E :=
 begin
-  intros limf limg,
-  rw tendsto_iff_norm_tendsto_zero,
-  have ineq := λ x : γ, calc
-      ∥f x • g x - s • b∥ = ∥(f x • g x - s • g x) + (s • g x - s • b)∥ : by simp[add_assoc]
-                      ... ≤ ∥f x • g x - s • g x∥ + ∥s • g x - s • b∥ : norm_triangle (f x • g x - s • g x) (s • g x - s • b)
-                      ... ≤ ∥f x - s∥*∥g x∥ + ∥s∥*∥g x - b∥ : by { rw [←smul_sub, ←sub_smul, norm_smul, norm_smul] },
-  apply squeeze_zero,
-  { intro t, exact norm_nonneg _ },
-  { exact ineq },
-  { clear ineq,
-
-    have limf': tendsto (λ x, ∥f x - s∥) e (nhds 0) := tendsto_iff_norm_tendsto_zero.1 limf,
-    have limg' : tendsto (λ x, ∥g x∥) e (nhds ∥b∥) := filter.tendsto.comp (continuous_iff_continuous_at.1 continuous_norm _) limg,
-
-    have lim1 := tendsto_mul limf' limg',
-    simp only [zero_mul, sub_eq_add_neg] at lim1,
-
-    have limg3 := tendsto_iff_norm_tendsto_zero.1 limg,
-
-    have lim2 := tendsto_mul (tendsto_const_nhds : tendsto _ _ (nhds ∥ s ∥)) limg3,
-    simp only [sub_eq_add_neg, mul_zero] at lim2,
-
-    rw [show (0:ℝ) = 0 + 0, by simp],
-    exact tendsto_add lim1 lim2  }
+  refine { continuous_smul := continuous_iff_continuous_at.2 $ λ p, tendsto_iff_norm_tendsto_zero.2 _ },
+  refine squeeze_zero (λ _, norm_nonneg _) _ _,
+  { exact λ q, ∥q.1 - p.1∥ * ∥q.2∥ + ∥p.1∥ * ∥q.2 - p.2∥ },
+  { intro q,
+    rw [← sub_add_sub_cancel, ← norm_smul, ← norm_smul, smul_sub, sub_smul],
+    exact norm_add_le _ _ },
+  { conv { congr, skip, skip, congr, rw [← zero_add (0:ℝ)], congr,
+      rw [← zero_mul ∥p.2∥], skip, rw [← mul_zero ∥p.1∥] },
+    exact ((tendsto_iff_norm_tendsto_zero.1 (continuous_fst.tendsto p)).mul (continuous_snd.tendsto p).norm).add
+            (tendsto_const_nhds.mul (tendsto_iff_norm_tendsto_zero.1 (continuous_snd.tendsto p))) }
 end
 
-lemma tendsto_smul_const {g : γ → F} {e : filter γ} (s : α) {b : F} :
-  (tendsto g e (nhds b)) → tendsto (λ x, s • (g x)) e (nhds (s • b)) :=
-tendsto_smul tendsto_const_nhds
-
-instance normed_space.topological_vector_space : topological_vector_space α E :=
-{ continuous_smul := continuous_iff_continuous_at.2 $ λp, tendsto_smul
-    (continuous_iff_continuous_at.1 continuous_fst _) (continuous_iff_continuous_at.1 continuous_snd _) }
+/-- In a normed space over a nondiscrete normed field, only `⊤` submodule has a nonempty interior.
+See also `submodule.eq_top_of_nonempty_interior'` for a `topological_module` version.  -/
+lemma submodule.eq_top_of_nonempty_interior {α E : Type*} [nondiscrete_normed_field α] [normed_group E]
+  [normed_space α E] (s : submodule α E) (hs : (interior (s:set E)).nonempty) :
+  s = ⊤ :=
+begin
+  refine s.eq_top_of_nonempty_interior' _ hs,
+  simp only [is_unit_iff_ne_zero, @ne.def α, set.mem_singleton_iff.symm],
+  exact normed_field.punctured_nhds_ne_bot _
+end
 
 open normed_field
 
@@ -468,7 +668,7 @@ up in applications. -/
 lemma rescale_to_shell {c : α} (hc : 1 < ∥c∥) {ε : ℝ} (εpos : 0 < ε) {x : E} (hx : x ≠ 0) :
   ∃d:α, d ≠ 0 ∧ ∥d • x∥ ≤ ε ∧ (ε/∥c∥ ≤ ∥d • x∥) ∧ (∥d∥⁻¹ ≤ ε⁻¹ * ∥c∥ * ∥x∥) :=
 begin
-  have xεpos : 0 < ∥x∥/ε := div_pos_of_pos_of_pos ((norm_pos_iff _).2 hx) εpos,
+  have xεpos : 0 < ∥x∥/ε := div_pos_of_pos_of_pos (norm_pos_iff.2 hx) εpos,
   rcases exists_int_pow_near xεpos hc with ⟨n, hn⟩,
   have cpos : 0 < ∥c∥ := lt_trans (zero_lt_one : (0 :ℝ) < 1) hc,
   have cnpos : 0 < ∥c^(n+1)∥ := by { rw norm_fpow, exact lt_trans xεpos hn.2 },
@@ -489,6 +689,7 @@ begin
     exact mul_le_mul_of_nonneg_right hn.1 (norm_nonneg _) }
 end
 
+/-- The product of two normed spaces is a normed space, with the sup norm. -/
 instance : normed_space α (E × F) :=
 { norm_smul :=
   begin
@@ -501,16 +702,53 @@ instance : normed_space α (E × F) :=
   add_smul := λ r x y, prod.ext (add_smul _ _ _) (add_smul _ _ _),
   smul_add := λ r x y, prod.ext (smul_add _ _ _) (smul_add _ _ _),
   ..prod.normed_group,
-  ..prod.vector_space }
+  ..prod.module }
 
-instance fintype.normed_space {E : ι → Type*} [fintype ι] [∀i, normed_group (E i)]
+/-- The product of finitely many normed spaces is a normed space, with the sup norm. -/
+instance pi.normed_space {E : ι → Type*} [fintype ι] [∀i, normed_group (E i)]
   [∀i, normed_space α (E i)] : normed_space α (Πi, E i) :=
 { norm_smul := λ a f,
     show (↑(finset.sup finset.univ (λ (b : ι), nnnorm (a • f b))) : ℝ) =
       nnnorm a * ↑(finset.sup finset.univ (λ (b : ι), nnnorm (f b))),
     by simp only [(nnreal.coe_mul _ _).symm, nnreal.mul_finset_sup, nnnorm_smul] }
 
+/-- A subspace of a normed space is also a normed space, with the restriction of the norm. -/
+instance submodule.normed_space {𝕜 : Type*} [normed_field 𝕜]
+  {E : Type*} [normed_group E] [normed_space 𝕜 E] (s : submodule 𝕜 E) : normed_space 𝕜 s :=
+{ norm_smul := λc x, norm_smul c (x : E) }
+
 end normed_space
+
+section normed_algebra
+
+/-- A normed algebra `𝕜'` over `𝕜` is an algebra endowed with a norm for which the embedding of
+`𝕜` in `𝕜'` is an isometry. -/
+class normed_algebra (𝕜 : Type*) (𝕜' : Type*) [normed_field 𝕜] [normed_ring 𝕜']
+  extends algebra 𝕜 𝕜' :=
+(norm_algebra_map_eq : ∀x:𝕜, ∥algebra_map 𝕜' x∥ = ∥x∥)
+
+@[simp] lemma norm_algebra_map_eq {𝕜 : Type*} (𝕜' : Type*) [normed_field 𝕜] [normed_ring 𝕜']
+  [h : normed_algebra 𝕜 𝕜'] (x : 𝕜) : ∥algebra_map 𝕜' x∥ = ∥x∥ :=
+normed_algebra.norm_algebra_map_eq _ _
+
+end normed_algebra
+
+section restrict_scalars
+set_option class.instance_max_depth 40
+
+variables (𝕜 : Type*) (𝕜' : Type*) [normed_field 𝕜] [normed_field 𝕜'] [normed_algebra 𝕜 𝕜']
+{E : Type*} [normed_group E] [normed_space 𝕜' E]
+
+/-- `𝕜`-normed space structure induced by a `𝕜'`-normed space structure when `𝕜'` is a
+normed algebra over `𝕜`. Not registered as an instance as `𝕜'` can not be inferred. -/
+def normed_space.restrict_scalars : normed_space 𝕜 E :=
+{ norm_smul := λc x, begin
+    change ∥(algebra_map 𝕜' c) • x∥ = ∥c∥ * ∥x∥,
+    simp [norm_smul]
+  end,
+  ..module.restrict_scalars 𝕜 𝕜' E }
+
+end restrict_scalars
 
 section summable
 open_locale classical
@@ -518,7 +756,7 @@ open finset filter
 variables [normed_group α] [complete_space α]
 
 lemma summable_iff_vanishing_norm {f : ι → α} :
-  summable f ↔ ∀ε>0, (∃s:finset ι, ∀t, disjoint t s → ∥ t.sum f ∥ < ε) :=
+  summable f ↔ ∀ε > 0, ∃s:finset ι, ∀t, disjoint t s → ∥ t.sum f ∥ < ε :=
 begin
   simp only [summable_iff_vanishing, metric.mem_nhds_iff, exists_imp_distrib],
   split,
@@ -537,45 +775,17 @@ summable_iff_vanishing_norm.2 $ assume ε hε,
   ⟨s, assume t ht,
     have ∥t.sum g∥ < ε := hs t ht,
     have nn : 0 ≤ t.sum g := finset.sum_nonneg (assume a _, le_trans (norm_nonneg _) (h a)),
-    lt_of_le_of_lt (norm_triangle_sum t f) $ lt_of_le_of_lt (finset.sum_le_sum $ assume i _, h i) $
+    lt_of_le_of_lt (norm_sum_le_of_le t (λ i _, h i)) $
       by rwa [real.norm_eq_abs, abs_of_nonneg nn] at this⟩
 
 lemma summable_of_summable_norm {f : ι → α} (hf : summable (λa, ∥f a∥)) : summable f :=
 summable_of_norm_bounded _ hf (assume i, le_refl _)
 
 lemma norm_tsum_le_tsum_norm {f : ι → α} (hf : summable (λi, ∥f i∥)) : ∥(∑i, f i)∥ ≤ (∑ i, ∥f i∥) :=
-have h₁ : tendsto (λs:finset ι, ∥s.sum f∥) at_top (nhds ∥(∑ i, f i)∥) :=
+have h₁ : tendsto (λs:finset ι, ∥s.sum f∥) at_top (𝓝 ∥(∑ i, f i)∥) :=
   (continuous_norm.tendsto _).comp (has_sum_tsum $ summable_of_summable_norm hf),
-have h₂ : tendsto (λs:finset ι, s.sum (λi, ∥f i∥)) at_top (nhds (∑ i, ∥f i∥)) :=
+have h₂ : tendsto (λs:finset ι, s.sum (λi, ∥f i∥)) at_top (𝓝 (∑ i, ∥f i∥)) :=
   has_sum_tsum hf,
-le_of_tendsto_of_tendsto at_top_ne_bot h₁ h₂ $ univ_mem_sets' $ assume s, norm_triangle_sum _ _
+le_of_tendsto_of_tendsto at_top_ne_bot h₁ h₂ $ univ_mem_sets' $ assume s, norm_sum_le _ _
 
 end summable
-
-namespace complex
-
-instance : normed_field ℂ :=
-{ norm := complex.abs,
-  dist_eq := λ _ _, rfl,
-  norm_mul' := complex.abs_mul,
-  .. complex.discrete_field }
-
-instance : nondiscrete_normed_field ℂ :=
-{ non_trivial := ⟨2, by simp [norm]; norm_num⟩ }
-
-@[simp] lemma norm_real (r : ℝ) : ∥(r : ℂ)∥ = ∥r∥ := complex.abs_of_real _
-
-@[simp] lemma norm_rat (r : ℚ) : ∥(r : ℂ)∥ = _root_.abs (r : ℝ) :=
-suffices ∥((r : ℝ) : ℂ)∥ = _root_.abs r, by simpa,
-by rw [norm_real, real.norm_eq_abs]
-
-@[simp] lemma norm_nat (n : ℕ) : ∥(n : ℂ)∥ = n := complex.abs_of_nat _
-
-@[simp] lemma norm_int {n : ℤ} : ∥(n : ℂ)∥ = _root_.abs n :=
-suffices ∥((n : ℝ) : ℂ)∥ = _root_.abs n, by simpa,
-by rw [norm_real, real.norm_eq_abs]
-
-lemma norm_int_of_nonneg {n : ℤ} (hn : 0 ≤ n) : ∥(n : ℂ)∥ = n :=
-by rw [norm_int, _root_.abs_of_nonneg]; exact int.cast_nonneg.2 hn
-
-end complex

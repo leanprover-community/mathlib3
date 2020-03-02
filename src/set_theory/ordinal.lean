@@ -254,23 +254,13 @@ if h : surjective f then sum.inr (order_iso.of_surjective f h) else
 have h' : _, from (initial_seg.eq_or_principal f).resolve_left h,
 sum.inl ⟨f, classical.some h', classical.some_spec h'⟩
 
-@[simp] theorem initial_seg.lt_or_eq_apply_left [is_well_order β s]
-  (f : r ≼i s) {g} (h : f.lt_or_eq = sum.inl g) (a : α) : g a = f a :=
-begin
-  unfold initial_seg.lt_or_eq at h,
-  by_cases sj : surjective f,
-  { rw dif_pos sj at h, cases h },
-  { rw dif_neg sj at h, cases h, refl }
-end
+theorem initial_seg.lt_or_eq_apply_left [is_well_order β s]
+  (f : r ≼i s) (g : r ≺i s) (a : α) : g a = f a :=
+initial_seg.eq g f a
 
-@[simp] theorem initial_seg.lt_or_eq_apply_right [is_well_order β s]
-  (f : r ≼i s) {g} (h : f.lt_or_eq = sum.inr g) (a : α) : g a = f a :=
-begin
-  unfold initial_seg.lt_or_eq at h,
-  by_cases sj : surjective f,
-  {rw dif_pos sj at h, cases h, refl},
-  {rw dif_neg sj at h, cases h}
-end
+theorem initial_seg.lt_or_eq_apply_right [is_well_order β s]
+  (f : r ≼i s) (g : r ≃o s) (a : α) : g a = f a :=
+initial_seg.eq (initial_seg.of_iso g) f a
 
 def initial_seg.le_lt [is_well_order β s] [is_trans γ t] (f : r ≼i s) (g : s ≺i t) : r ≺i t :=
 match f.lt_or_eq with
@@ -282,8 +272,8 @@ end
   (f : r ≼i s) (g : s ≺i t) (a : α) : (f.le_lt g) a = g (f a) :=
 begin
   delta initial_seg.le_lt, cases h : f.lt_or_eq with f' f',
-  { simp only [principal_seg.trans_apply, f.lt_or_eq_apply_left h] },
-  { simp only [principal_seg.equiv_lt_apply, f.lt_or_eq_apply_right h] }
+  { simp only [principal_seg.trans_apply, f.lt_or_eq_apply_left] },
+  { simp only [principal_seg.equiv_lt_apply, f.lt_or_eq_apply_right] }
 end
 
 namespace order_embedding
@@ -294,7 +284,7 @@ def collapse_F [is_well_order β s] (f : r ≼o s) : Π a, {b // ¬ s (f a) b} :
   have : f a ∈ S, from λ a' h, ((trichotomous _ _)
     .resolve_left $ λ h', (IH a' h).2 $ trans (f.ord'.1 h) h')
     .resolve_left $ λ h', (IH a' h).2 $ h' ▸ f.ord'.1 h,
-  exact ⟨(is_well_order.wf s).min S (set.ne_empty_of_mem this),
+  exact ⟨(is_well_order.wf s).min S ⟨_, this⟩,
    (is_well_order.wf s).not_lt_min _ _ this⟩
 end
 
@@ -320,7 +310,7 @@ by haveI := order_embedding.is_well_order f; exact
   (λ a, (collapse_F f a).1) (λ a b, collapse_F.lt f),
 λ a b, acc.rec_on ((is_well_order.wf s).apply b) (λ b H IH a h, begin
   let S := {a | ¬ s (collapse_F f a).1 b},
-  have : S ≠ ∅ := set.ne_empty_of_mem (asymm h),
+  have : S.nonempty := ⟨_, asymm h⟩,
   existsi (is_well_order.wf r).min S this,
   refine ((@trichotomous _ s _ _ _).resolve_left _).resolve_right _,
   { exact (is_well_order.wf r).min_mem S this },
@@ -362,6 +352,12 @@ structure Well_order : Type (u+1) :=
 (wo : is_well_order α r)
 
 attribute [instance] Well_order.wo
+
+namespace Well_order
+
+instance : inhabited Well_order := ⟨⟨pempty, _, empty_relation.is_well_order⟩⟩
+
+end Well_order
 
 instance ordinal.is_equivalent : setoid Well_order :=
 { r     := λ ⟨α, r, wo⟩ ⟨β, s, wo'⟩, nonempty (r ≃o s),
@@ -486,7 +482,7 @@ eq.symm $ quot.sound ⟨order_iso.of_surjective
 
 @[simp] theorem typein_apply {α β} {r : α → α → Prop} {s : β → β → Prop}
   [is_well_order α r] [is_well_order β s] (f : r ≼i s) (a : α) :
-  ordinal.typein s (f a) = ordinal.typein r a :=
+  ordinal.typein s ((f : r ≼o s) a) = ordinal.typein r a :=
 eq.symm $ quotient.sound ⟨order_iso.of_surjective
   (order_embedding.cod_restrict _
     ((subrel.order_embedding _ _).trans f)
@@ -602,6 +598,8 @@ induction_on o₁ $ λ α r _, induction_on o₂ $ λ β s _ ⟨⟨⟨f, _⟩, _
 
 instance : has_zero ordinal :=
 ⟨⟦⟨pempty, empty_relation, by apply_instance⟩⟧⟩
+
+instance : inhabited ordinal := ⟨0⟩
 
 theorem zero_eq_type_empty : 0 = @type empty empty_relation _ :=
 quotient.sound ⟨⟨empty_equiv_pempty.symm, λ _ _, iff.rfl⟩⟩
@@ -1244,7 +1242,7 @@ def typein.principal_seg {α : Type u} (r : α → α → Prop) [is_well_order �
 
 /-- The minimal element of a nonempty family of ordinals -/
 def min {ι} (I : nonempty ι) (f : ι → ordinal) : ordinal :=
-wf.min (set.range f) (let ⟨i⟩ := I in set.ne_empty_of_mem (set.mem_range_self i))
+wf.min (set.range f) (let ⟨i⟩ := I in ⟨_, set.mem_range_self i⟩)
 
 theorem min_eq {ι} (I) (f : ι → ordinal) : ∃ i, min I f = f i :=
 let ⟨i, e⟩ := wf.min_mem (set.range f) _ in ⟨i, e.symm⟩
@@ -1572,8 +1570,8 @@ instance : has_div ordinal := ⟨ordinal.div⟩
 
 @[simp] theorem div_zero (a : ordinal) : a / 0 = 0 := dif_pos rfl
 
--- TODO(lint): This should be a theorem but Lean fails to synthesize the placeholder
-@[nolint] def div_def (a) {b : ordinal} (h : b ≠ 0) :
+@[nolint def_lemma doc_blame] -- TODO: This should be a theorem but Lean fails to synthesize the placeholder
+def div_def (a) {b : ordinal} (h : b ≠ 0) :
   a / b = omin {o | a < b * succ o} _ := dif_neg h
 
 theorem lt_mul_succ_div (a) {b : ordinal} (h : b ≠ 0) : a < b * succ (a / b) :=
@@ -1748,8 +1746,8 @@ begin
   exact ordinal.min_le (λ i:ι α, ⟦⟨α, i.1, i.2⟩⟧) ⟨_, _⟩
 end
 
--- TODO(lint): This should be a theorem but Lean fails to synthesize the placeholders
-@[nolint] def ord_eq_min (α : Type u) : ord (mk α) =
+@[nolint def_lemma doc_blame] -- TODO: This should be a theorem but Lean fails to synthesize the placeholder
+def ord_eq_min (α : Type u) : ord (mk α) =
   @ordinal.min _ _ (λ i:{r // is_well_order α r}, ⟦⟨α, i.1, i.2⟩⟧) := rfl
 
 theorem ord_eq (α) : ∃ (r : α → α → Prop) [wo : is_well_order α r],

@@ -7,6 +7,8 @@ import tactic.ext
 import tactic.auto_cases
 import tactic.chain
 import tactic.solve_by_elim
+import tactic.norm_cast
+import tactic.hint
 import tactic.interactive
 
 namespace tactic
@@ -19,20 +21,11 @@ meta def tidy_attribute : user_attribute := {
 
 run_cmd attribute.register ``tidy_attribute
 
-meta def name_to_tactic (n : name) : tactic string :=
-do d ← get_decl n,
-   e ← mk_const n,
-   let t := d.type,
-   if (t =ₐ `(tactic unit)) then
-     (eval_expr (tactic unit) e) >>= (λ t, t >> pure n.to_string)
-   else if (t =ₐ `(tactic string)) then
-     (eval_expr (tactic string) e) >>= (λ t, t)
-   else fail "invalid type for @[tidy] tactic"
-
 meta def run_tactics : tactic string :=
 do names ← attribute.get_instances `tidy,
    first (names.map name_to_tactic) <|> fail "no @[tidy] tactics succeeded"
 
+@[hint_tactic]
 meta def ext1_wrapper : tactic string :=
 do ng ← num_goals,
    ext1 [] {apply_cfg . new_goals := new_goals.all},
@@ -54,13 +47,14 @@ meta def default_tactics : list (tactic string) :=
   fsplit                                      >> pure "fsplit",
   injections_and_clear                        >> pure "injections_and_clear",
   propositional_goal >> (`[solve_by_elim])    >> pure "solve_by_elim",
+  `[norm_cast]                                >> pure "norm_cast",
   `[unfold_coes]                              >> pure "unfold_coes",
   `[unfold_aux]                               >> pure "unfold_aux",
   tidy.run_tactics ]
 
 meta structure cfg :=
 (trace_result : bool            := ff)
-(trace_result_prefix : string   := "/- `tidy` says -/ ")
+(trace_result_prefix : string   := "Try this: ")
 (tactics : list (tactic string) := default_tactics)
 
 declare_trace tidy
@@ -79,6 +73,15 @@ meta def tidy (cfg : tidy.cfg := {}) := tactic.tidy.core cfg >> skip
 namespace interactive
 open lean.parser interactive
 
+/-- Use a variety of conservative tactics to solve goals.
+`tidy?` reports back the tactic script it found.
+The default list of tactics is stored in `tactic.tidy.default_tidy_tactics`.
+This list can be overridden using `tidy { tactics := ... }`.
+(The list must be a `list` of `tactic string`, so that `tidy?`
+can report a usable tactic script.)
+
+Tactics can also be added to the list by tagging them (locally) with the
+`[tidy]` attribute. -/
 meta def tidy (trace : parse $ optional (tk "?")) (cfg : tidy.cfg := {}) :=
 tactic.tidy { trace_result := trace.is_some, ..cfg }
 end interactive

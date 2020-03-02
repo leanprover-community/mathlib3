@@ -627,3 +627,24 @@ variables [domain α]
 end domain
 
 end units
+
+/-- A predicate to express that a ring is an integral domain.
+
+This is mainly useful because such a predicate does not contain data,
+and can therefore be easily transported along ring isomorphisms. -/
+structure is_integral_domain (R : Type u) [ring R] : Prop :=
+(mul_comm : ∀ (x y : R), x * y = y * x)
+(eq_zero_or_eq_zero_of_mul_eq_zero : ∀ x y : R, x * y = 0 → x = 0 ∨ y = 0)
+(zero_ne_one : (0 : R) ≠ 1)
+
+/-- Every integral domain satisfies the predicate for integral domains. -/
+lemma integral_domain.to_is_integral_domain (R : Type u) [integral_domain R] :
+  is_integral_domain R :=
+{ .. (‹_› : integral_domain R) }
+
+/-- If a ring satisfies the predicate for integral domains,
+then it can be endowed with an `integral_domain` instance
+whose data is definitionally equal to the existing data. -/
+def is_integral_domain.to_integral_domain (R : Type u) [ring R] (h : is_integral_domain R) :
+  integral_domain R :=
+{ .. (‹_› : ring R), .. (‹_› : is_integral_domain R) }

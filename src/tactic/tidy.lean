@@ -7,6 +7,8 @@ import tactic.ext
 import tactic.auto_cases
 import tactic.chain
 import tactic.solve_by_elim
+import tactic.norm_cast
+import tactic.hint
 import tactic.interactive
 
 namespace tactic
@@ -19,20 +21,11 @@ meta def tidy_attribute : user_attribute := {
 
 run_cmd attribute.register ``tidy_attribute
 
-meta def name_to_tactic (n : name) : tactic string :=
-do d ← get_decl n,
-   e ← mk_const n,
-   let t := d.type,
-   if (t =ₐ `(tactic unit)) then
-     (eval_expr (tactic unit) e) >>= (λ t, t >> (name.to_string <$> strip_prefix n))
-   else if (t =ₐ `(tactic string)) then
-     (eval_expr (tactic string) e) >>= (λ t, t)
-   else fail "invalid type for @[tidy] tactic"
-
 meta def run_tactics : tactic string :=
 do names ← attribute.get_instances `tidy,
    first (names.map name_to_tactic) <|> fail "no @[tidy] tactics succeeded"
 
+@[hint_tactic]
 meta def ext1_wrapper : tactic string :=
 do ng ← num_goals,
    ext1 [] {apply_cfg . new_goals := new_goals.all},
@@ -54,6 +47,7 @@ meta def default_tactics : list (tactic string) :=
   fsplit                                      >> pure "fsplit",
   injections_and_clear                        >> pure "injections_and_clear",
   propositional_goal >> (`[solve_by_elim])    >> pure "solve_by_elim",
+  `[norm_cast]                                >> pure "norm_cast",
   `[unfold_coes]                              >> pure "unfold_coes",
   `[unfold_aux]                               >> pure "unfold_aux",
   tidy.run_tactics ]

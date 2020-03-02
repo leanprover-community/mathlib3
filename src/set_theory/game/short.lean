@@ -39,6 +39,7 @@ instance subsingleton_short : Π (x : pgame), subsingleton (short x)
 end⟩
 using_well_founded { dec_tac := pgame_wf_tac }
 
+/-- A synonym for `short.mk` that specifies the pgame in an implicit argument. -/
 def short.mk' {x : pgame} [fintype x.left_moves] [fintype x.right_moves]
   (sL : ∀ i : x.left_moves, short (x.move_left i)) (sR : ∀ j : x.right_moves, short (x.move_right j)) :
   short x :=
@@ -46,23 +47,45 @@ by { resetI, cases x, dsimp at *, exact short.mk sL sR }
 
 attribute [class] short
 
-instance fintype_left {α β : Type u} {L : α → pgame.{u}} {R : β → pgame.{u}} [S : short ⟨α, β, L, R⟩] : fintype α :=
+/--
+Extracting the `fintype` instance for the indexing type for Left's moves in a short game.
+This is an unindexed typeclass, so it can't be made a global instance.
+-/
+def fintype_left {α β : Type u} {L : α → pgame.{u}} {R : β → pgame.{u}} [S : short ⟨α, β, L, R⟩] : fintype α :=
 by { resetI, cases S with _ _ _ _ _ _ F _, exact F }
+local attribute [instance] fintype_left
 instance fintype_left_moves (x : pgame) [S : short x] : fintype (x.left_moves) :=
 by { resetI, cases x, dsimp, apply_instance, }
-instance fintype_right {α β : Type u} {L : α → pgame.{u}} {R : β → pgame.{u}} [S : short ⟨α, β, L, R⟩] : fintype β :=
+/--
+Extracting the `fintype` instance for the indexing type for Right's moves in a short game.
+This is an unindexed typeclass, so it can't be made a global instance.
+-/
+def fintype_right {α β : Type u} {L : α → pgame.{u}} {R : β → pgame.{u}} [S : short ⟨α, β, L, R⟩] : fintype β :=
 by { resetI, cases S with _ _ _ _ _ _ _ F, exact F }
+local attribute [instance] fintype_right
 instance fintype_right_moves (x : pgame) [S : short x] : fintype (x.right_moves) :=
-by { tactic.unfreeze_local_instances, cases x, dsimp, apply_instance, }
+by { resetI, cases x, dsimp, apply_instance, }
 
 instance move_left_short (x : pgame) [S : short x] (i : x.left_moves) : short (x.move_left i) :=
 by { resetI, cases S with _ _ _ _ L _ _ _, apply L }
-instance move_left_short' {xl xr xL xR} [S : short (mk xl xr xL xR)] (i : xl) : short (xL i) :=
+/--
+Extracting the `short` instance for a move by Left.
+This would be a dangerous instance potentially introducing new metavariables
+in typeclass search, so we only make it an instance locally.
+-/
+def move_left_short' {xl xr} (xL xR) [S : short (mk xl xr xL xR)] (i : xl) : short (xL i) :=
 by { resetI, cases S with _ _ _ _ L _ _ _, apply L }
+local attribute [instance] move_left_short'
 instance move_right_short (x : pgame) [S : short x] (j : x.right_moves) : short (x.move_right j) :=
 by { resetI, cases S with _ _ _ _ _ R _ _, apply R }
-instance move_right_short' {xl xr xL xR} [S : short (mk xl xr xL xR)] (j : xr) : short (xR j) :=
+/--
+Extracting the `short` instance for a move by Right.
+This would be a dangerous instance potentially introducing new metavariables
+in typeclass search, so we only make it an instance locally.
+-/
+def move_right_short' {xl xr} (xL xR) [S : short (mk xl xr xL xR)] (j : xr) : short (xR j) :=
 by { resetI, cases S with _ _ _ _ _ R _ _, apply R }
+local attribute [instance] move_right_short'
 
 instance short.of_pempty {xL} {xR} : short (mk pempty pempty xL xR) :=
 short.mk (λ i, pempty.elim i) (λ j, pempty.elim j)
@@ -73,6 +96,7 @@ short.mk (λ i, by cases i) (λ j, by cases j)
 instance short_1 : short 1 :=
 short.mk (λ i, begin cases i, apply_instance, end) (λ j, by cases j)
 
+/-- Evidence that every `pgame` in a list is `short`. -/
 inductive list_short : list pgame.{u} → Type (u+1)
 | nil : list_short []
 | cons : Π (hd : pgame.{u}) [short hd] (tl : list pgame.{u}) [list_short tl], list_short (hd :: tl)
@@ -88,6 +112,7 @@ instance list_short_nth_le : Π (L : list pgame.{u}) [list_short L] (i : fin (li
 instance short_of_lists : Π (L R : list pgame) [list_short L] [list_short R], short (pgame.of_lists L R)
 | L R _ _ := by { resetI, apply short.mk; { intros, apply_instance } }
 
+/-- If `x` is a short game, and `y` is a relabelling of `x`, then `y` is also short. -/
 def short_of_relabelling : Π {x y : pgame.{u}} (R : relabelling x y) (S : short x), short y
 | x y ⟨L, R, rL, rR⟩ S :=
 begin
@@ -99,6 +124,7 @@ begin
     (λ j, short_of_relabelling (rR j) infer_instance)
 end
 
+/-- If `x` has no left move or right moves, it is (very!) short. -/
 def short_of_equiv_empty {x : pgame.{u}} (el : x.left_moves ≃ pempty) (er : x.right_moves ≃ pempty) : short x :=
 @short_of_relabelling _ _ (relabel_relabelling el er).symm short.of_pempty
 
@@ -139,6 +165,11 @@ by { dsimp [bit0], apply_instance }
 instance short_bit1 (x : pgame.{u}) [short x] : short (bit1 x) :=
 by { dsimp [bit1], apply_instance }
 
+/--
+Auxiliary construction of decidability instances.
+We build `decidable (x ≤ y)` and `decidable (x < y)` in a simultaneous induction.
+Instances for the two projections separately are provided below.
+-/
 def le_lt_decidable : Π (x y : pgame.{u}) [short x] [short y], decidable (x ≤ y) × decidable (x < y)
 | (mk xl xr xL xR) (mk yl yr yL yR) shortx shorty :=
 begin

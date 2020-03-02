@@ -34,6 +34,7 @@ def shift_right : ℤ × ℤ ↪ ℤ × ℤ :=
  this.prod injective_id⟩
 
 /-- A Domineering board is an arbitrary finite subset of `ℤ × ℤ`. -/
+@[derive inhabited]
 def board := finset (ℤ × ℤ)
 local attribute [reducible] board
 

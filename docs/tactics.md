@@ -499,7 +499,7 @@ Users should be careful that this is a blunt tool:
 
 The main use case is for users with some familiarity with the mathlib naming conventions,
 who may be able to scan through a list of suggestions and quickly recognise from the
-names which are the actually relevant suggestions. Beginngers unfamiliar with these
+names which are the actually relevant suggestions. Beginners unfamiliar with these
 conventions may find `rw_hint` unhelpful.
 
 ## solve_by_elim

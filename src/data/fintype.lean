@@ -448,11 +448,7 @@ begin
   classical,
   rw ← not_iff_not,
   push_neg,
-  rw finset.card_le_one_iff,
-  split,
-  { tauto },
-  { assume H x y hx hy,
-    simpa [hx, hy] using H x y }
+  simpa [classical.or_iff_not_imp_left] using finset.card_le_one_iff
 end
 
 instance plift.fintype (p : Prop) [decidable p] : fintype (plift p) :=

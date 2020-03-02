@@ -51,7 +51,6 @@ by obviously
   {Z Z' : C} (f : Z ⟶ Z') (h : Z' ⟶ X) : f ≫ α.app (op Z') h = α.app (op Z) (f ≫ h) :=
 begin erw [functor_to_types.naturality], refl end
 
--- TODO name?
 lemma naturality_id {X Y : C} {F} (f : Y ⟶ X) (α : yoneda.obj X ⟶ F) :
   α.app (op Y) f = F.map f.op (α.app (op X) (𝟙 X)) :=
 begin
@@ -94,7 +93,6 @@ namespace coyoneda
   {Z Z' : C} (f : Z' ⟶ Z) (h : unop X ⟶ Z') : (α.app Z' h) ≫ f = α.app Z (h ≫ f) :=
 begin erw [functor_to_types.naturality], refl end
 
--- TODO name?
 lemma naturality_id {X Y : Cᵒᵖ} {F} (f : unop X ⟶ unop Y) (α : coyoneda.obj X ⟶ F) :
   α.app (unop Y) f = F.map f (α.app (unop X) (𝟙 (unop X))) :=
 begin

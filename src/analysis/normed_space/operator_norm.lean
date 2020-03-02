@@ -215,6 +215,11 @@ classical.by_cases
     le_mul_of_div_le hlt ((le_Inf _ bounds_nonempty bounds_bdd_below).2
     (λ c ⟨_, hc⟩, div_le_of_le_mul hlt (by { rw mul_comm, apply hc }))))
 
+/-- continuous linear maps are Lipschitz continuous. -/
+theorem lipschitz : lipschitz_with ⟨∥f∥, op_norm_nonneg f⟩ f :=
+lipschitz_with.of_dist_le $ λ x y,
+  by { rw [dist_eq_norm, dist_eq_norm, ←map_sub], apply le_op_norm }
+
 lemma ratio_le_op_norm : ∥f x∥ / ∥x∥ ≤ ∥f∥ :=
 (or.elim (lt_or_eq_of_le (norm_nonneg _))
   (λ hlt, div_le_of_le_mul hlt (by { rw mul_comm, apply le_op_norm }))
@@ -233,11 +238,14 @@ lemma op_norm_le_bound {M : ℝ} (hMp: 0 ≤ M) (hM : ∀ x, ∥f x∥ ≤ M * �
   ∥f∥ ≤ M :=
 Inf_le _ bounds_bdd_below ⟨hMp, hM⟩
 
+theorem op_norm_le_of_lipschitz {f : E →L[𝕜] F} {K : nnreal} (hf : lipschitz_with K f) :
+  ∥f∥ ≤ K :=
+f.op_norm_le_bound K.2 $ λ x, by simpa only [dist_zero_right, f.map_zero] using hf.dist_le x 0
+
 /-- The operator norm satisfies the triangle inequality. -/
 theorem op_norm_add_le : ∥f + g∥ ≤ ∥f∥ + ∥g∥ :=
-Inf_le _ bounds_bdd_below
-  ⟨add_nonneg (op_norm_nonneg _) (op_norm_nonneg _), λ x, by { rw add_mul,
-    exact norm_add_le_of_le (le_op_norm _ _) (le_op_norm _ _) }⟩
+show ∥f + g∥ ≤ (coe : nnreal → ℝ) (⟨_, f.op_norm_nonneg⟩ + ⟨_, g.op_norm_nonneg⟩),
+from op_norm_le_of_lipschitz (f.lipschitz.add g.lipschitz)
 
 /-- An operator is zero iff its norm vanishes. -/
 theorem op_norm_zero_iff : ∥f∥ = 0 ↔ f = 0 :=
@@ -301,11 +309,6 @@ lemma op_norm_comp_le : ∥comp h f∥ ≤ ∥h∥ * ∥f∥ :=
     ... ≤ _ : mul_le_mul_of_nonneg_left
               (le_op_norm _ _) (op_norm_nonneg _)
   end⟩)
-
-/-- continuous linear maps are Lipschitz continuous. -/
-theorem lipschitz : lipschitz_with ⟨∥f∥, op_norm_nonneg f⟩ f :=
-lipschitz_with.of_dist_le $ λ x y,
-  by { rw [dist_eq_norm, dist_eq_norm, ←map_sub], apply le_op_norm }
 
 /-- A continuous linear map is automatically uniformly continuous. -/
 protected theorem uniform_continuous : uniform_continuous f :=
@@ -504,17 +507,22 @@ end restrict_scalars
 
 end continuous_linear_map
 
-/-- If both directions in a linear equiv `e` are continuous, then `e` is a uniform embedding. -/
-lemma linear_equiv.uniform_embedding (e : E ≃ₗ[𝕜] F) (h₁ : continuous e) (h₂ : continuous e.symm) :
+/-- A continuous linear equiv is a uniform embedding. -/
+lemma continuous_linear_equiv.uniform_embedding (e : E ≃L[𝕜] F) :
   uniform_embedding e :=
 begin
-  rcases linear_map.bound_of_continuous e.symm.to_linear_map h₂ with ⟨C, Cpos, hC⟩,
-  let f : E →L[𝕜] F := { cont := h₁, ..e },
-  apply f.uniform_embedding_of_bound C (λx, _),
-  have : e.symm (e x) = x := linear_equiv.symm_apply_apply _ _,
-  conv_lhs { rw ← this },
-  exact hC _
+  refine (e : E →L[𝕜] F).uniform_embedding_of_bound (∥(e.symm : F →L[𝕜] E)∥) (λ x, _),
+  conv_lhs { rw [← e.symm_apply_apply x] },
+  exact (e.symm : F →L[𝕜] E).le_op_norm (e x)
 end
+
+lemma continuous_linear_equiv.lipschitz (e : E ≃L[𝕜] F) :
+  lipschitz_with (nnnorm (e : E →L[𝕜] F)) e :=
+(e : E →L[𝕜] F).lipschitz
+
+lemma continuous_linear_equiv.antilipschitz (e : E ≃L[𝕜] F) :
+  antilipschitz_with (nnnorm (e.symm : F →L[𝕜] E))⁻¹ e :=
+e.symm.lipschitz.to_inverse e.left_inv
 
 /-- If a continuous linear map is constructed from a linear map via the constructor `mk_continuous`,
 then its norm is bounded by the bound given to the constructor if it is nonnegative. -/

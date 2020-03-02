@@ -49,11 +49,14 @@ section emetric_isometry
 variables [emetric_space α] [emetric_space β] [emetric_space γ]
 variables {f : α → β} {x y z : α}  {s : set α}
 
+lemma isometry.lipschitz (h : isometry f) : lipschitz_with 1 f :=
+lipschitz_with.edist_mk_one $ λ x y, le_of_eq (h x y)
+
+lemma isometry.antilipschitz (h : isometry f) : antilipschitz_with 1 f :=
+λ x y, by simp only [h x y, ennreal.coe_one, one_mul, le_refl]
+
 /-- An isometry is injective -/
-lemma isometry.injective (h : isometry f) : injective f :=
-λx y hxy, edist_eq_zero.1 $
-calc edist x y = edist (f x) (f y) : (h x y).symm
-         ...   = 0 : by rw [hxy]; simp
+lemma isometry.injective (h : isometry f) : injective f := h.antilipschitz.injective zero_lt_one
 
 /-- Any map on a subsingleton is an isometry -/
 theorem isometry_subsingleton [subsingleton α] : isometry f :=
@@ -71,19 +74,11 @@ assume x y, calc
 
 /-- An isometry is an embedding -/
 theorem isometry.uniform_embedding (hf : isometry f) : uniform_embedding f :=
-begin
-  refine emetric.uniform_embedding_iff'.2 ⟨_, _⟩,
-  { assume ε εpos,
-    existsi [ε, εpos],
-    simp [hf.edist_eq] },
-  { assume δ δpos,
-    existsi [δ, δpos],
-    simp [hf.edist_eq] }
-end
+hf.antilipschitz.uniform_embedding zero_lt_one hf.lipschitz.uniform_continuous
 
 /-- An isometry is continuous. -/
 lemma isometry.continuous (hf : isometry f) : continuous f :=
-hf.uniform_embedding.embedding.continuous
+hf.lipschitz.continuous
 
 /-- The inverse of an isometry is an isometry. -/
 lemma isometry.inv (e : α ≃ β) (h : isometry e.to_fun) : isometry e.inv_fun :=

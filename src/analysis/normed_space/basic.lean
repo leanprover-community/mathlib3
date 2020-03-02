@@ -1,8 +1,6 @@
 /-
 Copyright (c) 2018 Patrick Massot. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Normed spaces.
-
 Authors: Patrick Massot, Johannes Hölzl
 -/
 
@@ -10,6 +8,12 @@ import algebra.pi_instances
 import linear_algebra.basic
 import topology.instances.nnreal topology.instances.complex
 import topology.algebra.module
+import topology.metric_space.lipschitz
+import topology.metric_space.antilipschitz
+
+/-!
+# Normed spaces
+-/
 
 variables {α : Type*} {β : Type*} {γ : Type*} {ι : Type*}
 
@@ -132,6 +136,11 @@ lemma dist_sub_sub_le_of_le {g₁ g₂ h₁ h₂ : α} {d₁ d₂ : ℝ}
   dist (g₁ - g₂) (h₁ - h₂) ≤ d₁ + d₂ :=
 le_trans (dist_sub_sub_le g₁ g₂ h₁ h₂) (add_le_add H₁ H₂)
 
+lemma dist_add_add_ge (g₁ g₂ h₁ h₂ : α) :
+  abs (dist g₁ h₁ - dist g₂ h₂) ≤ dist (g₁ + g₂) (h₁ + h₂) :=
+by simpa only [dist_add_left, dist_add_right, dist_comm h₂]
+  using abs_dist_sub_le (g₁ + g₂) (h₁ + h₂) (h₁ + g₂)
+
 @[simp] lemma norm_nonneg (g : α) : 0 ≤ ∥g∥ :=
 by { rw[←dist_zero_right], exact dist_nonneg }
 
@@ -178,14 +187,14 @@ set.ext $ assume a, by simp
 lemma norm_le_of_mem_closed_ball {g h : α} {r : ℝ} (H : h ∈ closed_ball g r) :
   ∥h∥ ≤ ∥g∥ + r :=
 calc
-  ∥h∥ = ∥g + (h - g)∥ : by { congr' 1, abel }
+  ∥h∥ = ∥g + (h - g)∥ : by rw [add_sub_cancel'_right]
   ... ≤ ∥g∥ + ∥h - g∥  : norm_add_le _ _
   ... ≤ ∥g∥ + r : by { apply add_le_add_left, rw ← dist_eq_norm, exact H }
 
 lemma norm_lt_of_mem_ball {g h : α} {r : ℝ} (H : h ∈ ball g r) :
   ∥h∥ < ∥g∥ + r :=
 calc
-  ∥h∥ = ∥g + (h - g)∥ : by { congr' 1, abel }
+  ∥h∥ = ∥g + (h - g)∥ : by rw [add_sub_cancel'_right]
   ... ≤ ∥g∥ + ∥h - g∥  : norm_add_le _ _
   ... < ∥g∥ + r : by { apply add_lt_add_left, rw ← dist_eq_norm, exact H }
 
@@ -223,7 +232,48 @@ ennreal.of_real_eq_coe_nnreal _
 lemma edist_eq_coe_nnnorm (x : β) : edist x 0 = (nnnorm x : ennreal) :=
 by { rw [edist_dist, dist_eq_norm, _root_.sub_zero, of_real_norm_eq_coe_nnnorm] }
 
+lemma nndist_add_add_le (g₁ g₂ h₁ h₂ : α) :
+  nndist (g₁ + g₂) (h₁ + h₂) ≤ nndist g₁ h₁ + nndist g₂ h₂ :=
+nnreal.coe_le.2 $ dist_add_add_le g₁ g₂ h₁ h₂
+
+lemma edist_add_add_le (g₁ g₂ h₁ h₂ : α) :
+  edist (g₁ + g₂) (h₁ + h₂) ≤ edist g₁ h₁ + edist g₂ h₂ :=
+by { simp only [edist_nndist], norm_cast, apply nndist_add_add_le }
+
 end nnnorm
+
+lemma lipschitz_with.neg {α : Type*} [emetric_space α] {K : nnreal} {f : α → β}
+  (hf : lipschitz_with K f) : lipschitz_with K (λ x, -f x) :=
+λ x y, by simpa only [edist_dist, dist_neg_neg] using hf x y
+
+lemma lipschitz_with.add {α : Type*} [emetric_space α] {Kf : nnreal} {f : α → β}
+  (hf : lipschitz_with Kf f) {Kg : nnreal} {g : α → β} (hg : lipschitz_with Kg g) :
+  lipschitz_with (Kf + Kg) (λ x, f x + g x) :=
+λ x y,
+calc edist (f x + g x) (f y + g y) ≤ edist (f x) (f y) + edist (g x) (g y) :
+  edist_add_add_le _ _ _ _
+... ≤ Kf * edist x y + Kg * edist x y :
+  add_le_add' (hf x y) (hg x y)
+... = (Kf + Kg) * edist x y :
+  (add_mul _ _ _).symm
+
+lemma lipschitz_with.sub {α : Type*} [emetric_space α] {Kf : nnreal} {f : α → β}
+  (hf : lipschitz_with Kf f) {Kg : nnreal} {g : α → β} (hg : lipschitz_with Kg g) :
+  lipschitz_with (Kf + Kg) (λ x, f x - g x) :=
+hf.add hg.neg
+
+lemma antilipschitz_with.add_lipschitz_with {α : Type*} [metric_space α] {Kf : nnreal} {f : α → β}
+  (hf : antilipschitz_with Kf f) {Kg : nnreal} {g : α → β} (hg : lipschitz_with Kg g) :
+  antilipschitz_with (Kf - Kg) (λ x, f x + g x) :=
+begin
+  cases le_total Kf Kg with hKfg hKfg,
+    by simp only[nnreal.sub_eq_zero hKfg, antilipschitz_with.zero],
+  refine antilipschitz_with.of_mul_dist_le (λ x y, _),
+  rw [nnreal.coe_sub hKfg, sub_mul],
+  calc ↑Kf * dist x y - Kg * dist x y ≤ dist (f x) (f y) - dist (g x) (g y) :
+    sub_le_sub (hf.mul_dist_le x y) (hg.dist_le x y)
+  ... ≤ _ : le_trans (le_abs_self _) (dist_add_add_ge _ _ _ _)
+end
 
 /-- A submodule of a normed group is also a normed group, with the restriction of the norm.
 As all instances can be inferred from the submodule `s`, they are put as implicit instead of

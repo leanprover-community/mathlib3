@@ -1,7 +1,7 @@
 pull_request_rules:
   - name: automatic merge on CI success and review - pr
     conditions:
-      - status-success=Build mathlib (leanprover-community/lean:3.5.1)
+      - status-success=Build mathlib
       - "#changes-requested-reviews-by=0"
       - base=master
       - label=ready-to-merge
@@ -17,7 +17,7 @@ pull_request_rules:
  # the "push" build to complete before a merge
   - name: automatic merge on CI success and review - push
     conditions:
-      - status-success=Build mathlib (leanprover-community/lean:3.5.1)
+      - status-success=Build mathlib
       - "#changes-requested-reviews-by=0"
       - base=master
       - label=ready-to-merge

@@ -124,7 +124,7 @@ lemma has_basis.eq_infi (h : l.has_basis (λ _, true) s) :
   l = ⨅ i, principal (s i) :=
 by simpa only [infi_true] using h.eq_binfi
 
-@[nolint] -- see Note [nolint_ge]
+@[nolint ge_or_gt] -- see Note [nolint_ge]
 lemma has_basis_infi_principal {s : ι → set α} (h : directed (≥) s) (ne : nonempty ι) :
   (⨅ i, principal (s i)).has_basis (λ _, true) s :=
 begin
@@ -133,7 +133,7 @@ begin
   exact λ _ _, principal_mono.2
 end
 
-@[nolint] -- see Note [nolint_ge]
+@[nolint ge_or_gt] -- see Note [nolint_ge]
 lemma has_basis_binfi_principal {s : β → set α} {S : set β} (h : directed_on (s ⁻¹'o (≥)) S)
   (ne : S.nonempty) :
   (⨅ i ∈ S, principal (s i)).has_basis (λ i, i ∈ S) s :=

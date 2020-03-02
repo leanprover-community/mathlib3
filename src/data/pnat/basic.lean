@@ -111,9 +111,10 @@ instance : comm_monoid ℕ+ :=
   mul_comm  := λ a b, subtype.eq (mul_comm _ _) }
 
 theorem lt_add_one_iff : ∀ {a b : ℕ+}, a < b + 1 ↔ a ≤ b :=
-λ {a b : ℕ+}, nat.lt_add_one_iff
+λ a b, nat.lt_add_one_iff
+
 theorem add_one_le_iff : ∀ {a b : ℕ+}, a + 1 ≤ b ↔ a < b :=
-λ {a b : ℕ+}, nat.add_one_le_iff
+λ a b, nat.add_one_le_iff
 
 @[simp] lemma one_le (n : ℕ+) : (1 : ℕ+) ≤ n := n.2
 

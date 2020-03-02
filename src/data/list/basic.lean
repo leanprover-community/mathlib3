@@ -4657,7 +4657,7 @@ begin
   { left, exact h₁ },
   { right,
     by_cases h₂ : n ∈ Ico a b,
-    { right, simp only [Ico.mem] at *, cases h₂, split; assumption },
+    { right, exact h₂ },
     { left,  simp only [Ico.mem, not_and, not_lt] at *, exact h₂ h₁ }}
 end
 

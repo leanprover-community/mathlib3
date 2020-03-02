@@ -40,7 +40,7 @@ instance subsingleton {t : cone F} : subsingleton (is_limit t) :=
 
 /- Repackaging the definition in terms of cone morphisms. -/
 
-def lift_cone_morphism {t : cone F} (h : is_limit t) (s : cone F) : s ⟶ t :=
+@[simps] def lift_cone_morphism {t : cone F} (h : is_limit t) (s : cone F) : s ⟶ t :=
 { hom := h.lift s }
 
 lemma uniq_cone_morphism {s t : cone F} (h : is_limit t) {f f' : s ⟶ t} :
@@ -57,7 +57,7 @@ def mk_cone_morphism {t : cone F}
     congr_arg cone_morphism.hom this }
 
 /-- Limit cones on `F` are unique up to isomorphism. -/
-def unique_up_to_iso {s t : cone F} (P : is_limit s) (Q : is_limit t) : s ≅ t :=
+@[simps] def unique_up_to_iso {s t : cone F} (P : is_limit s) (Q : is_limit t) : s ≅ t :=
 { hom := Q.lift_cone_morphism s,
   inv := P.lift_cone_morphism t,
   hom_inv_id' := P.uniq_cone_morphism,
@@ -82,13 +82,10 @@ by rw [h.hom_lift f, h.hom_lift f']; congr; exact funext w
 
 /-- The universal property of a limit cone: a map `W ⟶ X` is the same as
   a cone on `F` with vertex `W`. -/
-def hom_iso (h : is_limit t) (W : C) : (W ⟶ t.X) ≅ ((const J).obj W ⟶ F) :=
+@[simps] def hom_iso (h : is_limit t) (W : C) : (W ⟶ t.X) ≅ ((const J).obj W ⟶ F) :=
 { hom := λ f, (t.extend f).π,
   inv := λ π, h.lift { X := W, π := π },
   hom_inv_id' := by ext f; apply h.hom_ext; intro j; simp; dsimp; refl }
-
-@[simp] lemma hom_iso_hom (h : is_limit t) {W : C} (f : W ⟶ t.X) :
-  (is_limit.hom_iso h W).hom f = (t.extend f).π := rfl
 
 /-- The limit of `F` represents the functor taking `W` to
   the set of cones on `F` with vertex `W`. -/
@@ -228,7 +225,7 @@ instance subsingleton {t : cocone F} : subsingleton (is_colimit t) :=
 
 /- Repackaging the definition in terms of cone morphisms. -/
 
-def desc_cocone_morphism {t : cocone F} (h : is_colimit t) (s : cocone F) : t ⟶ s :=
+@[simps] def desc_cocone_morphism {t : cocone F} (h : is_colimit t) (s : cocone F) : t ⟶ s :=
 { hom := h.desc s }
 
 lemma uniq_cocone_morphism {s t : cocone F} (h : is_colimit t) {f f' : t ⟶ s} :
@@ -245,7 +242,7 @@ def mk_cocone_morphism {t : cocone F}
     congr_arg cocone_morphism.hom this }
 
 /-- Limit cones on `F` are unique up to isomorphism. -/
-def unique_up_to_iso {s t : cocone F} (P : is_colimit s) (Q : is_colimit t) : s ≅ t :=
+@[simps] def unique_up_to_iso {s t : cocone F} (P : is_colimit s) (Q : is_colimit t) : s ≅ t :=
 { hom := P.desc_cocone_morphism t,
   inv := Q.desc_cocone_morphism s,
   hom_inv_id' := P.uniq_cocone_morphism,
@@ -271,13 +268,10 @@ by rw [h.hom_desc f, h.hom_desc f']; congr; exact funext w
 
 /-- The universal property of a colimit cocone: a map `X ⟶ W` is the same as
   a cocone on `F` with vertex `W`. -/
-def hom_iso (h : is_colimit t) (W : C) : (t.X ⟶ W) ≅ (F ⟶ (const J).obj W) :=
+@[simps] def hom_iso (h : is_colimit t) (W : C) : (t.X ⟶ W) ≅ (F ⟶ (const J).obj W) :=
 { hom := λ f, (t.extend f).ι,
   inv := λ ι, h.desc { X := W, ι := ι },
   hom_inv_id' := by ext f; apply h.hom_ext; intro j; simp; dsimp; refl }
-
-@[simp] lemma hom_iso_hom (h : is_colimit t) {W : C} (f : t.X ⟶ W) :
-  (is_colimit.hom_iso h W).hom f = (t.extend f).ι := rfl
 
 /-- The colimit of `F` represents the functor taking `W` to
   the set of cocones on `F` with vertex `W`. -/

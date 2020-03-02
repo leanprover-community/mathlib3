@@ -2425,9 +2425,7 @@ def Ico_ℤ (l u : ℤ) : finset ℤ :=
   { to_fun := λ n, n + l,
     inj := λ n m h, by simpa using h }
 
-namespace Ico_ℤ
-
-@[simp] lemma mem {n m l : ℤ} : l ∈ Ico_ℤ n m ↔ n ≤ l ∧ l < m :=
+@[simp] lemma Ico_ℤ.mem {n m l : ℤ} : l ∈ Ico_ℤ n m ↔ n ≤ l ∧ l < m :=
 begin
   dsimp [Ico_ℤ],
   simp only [int.lt_to_nat, exists_prop, mem_range, add_comm, function.embedding.coe_fn_mk, mem_map],
@@ -2438,8 +2436,6 @@ begin
     use (l - n).to_nat,
     split; simp [h₁, h₂], }
 end
-
-end Ico_ℤ
 
 end finset
 

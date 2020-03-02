@@ -330,7 +330,7 @@ variables {R M M₂}
 [comm_ring R] [∀i, add_comm_group (M i)] [add_comm_group M'] [add_comm_group M₂]
 [∀i, module R (M i)] [module R M'] [module R M₂]
 
-/-! #### Left curryfication -/
+/-! #### Left currying -/
 
 /-- Given a linear map `f` from `M 0` to multilinear maps on `n` variables,
 construct the corresponding multilinear map on `n+1` variables obtained by concatenating
@@ -420,7 +420,7 @@ def multilinear_curry_left_equiv :
 
 variables {R M M₂}
 
-/-! #### Right curryfication -/
+/-! #### Right currying -/
 
 /-- Given a multilinear map `f` in `n` variables to the space of linear maps from `M (last n)` to
 `M₂`, construct the corresponding multilinear map on `n+1` variables obtained by concatenating

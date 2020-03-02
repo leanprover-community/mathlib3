@@ -22,6 +22,13 @@ spaces are also topological spaces.
 ## Implementation notes
 
 We mostly follow the API of multilinear maps.
+
+## Notation
+
+We introduce the notation `M [×n]→L[R] M'` for the space of continuous `n`-multilinear maps from
+`M^n` to `M'`. This is a particular case of the general notion (where we allow varying dependent
+types as the arguments of our continuous multilinear maps), but arguably the most important one,
+especially when defining iterated derivatives.
 -/
 
 open function fin set
@@ -40,6 +47,8 @@ structure continuous_multilinear_map (R : Type u) {ι : Type v} (M₁ : ι → T
   [module R M₂] [∀i, topological_space (M₁ i)] [topological_space M₂]
   extends multilinear_map R M₁ M₂ :=
 (cont : continuous to_fun)
+
+notation M `[×`:25 n `]→L[`:25 R `] ` M' := continuous_multilinear_map R (λ (i : fin n), M) M'
 
 namespace continuous_multilinear_map
 

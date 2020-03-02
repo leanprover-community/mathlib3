@@ -6,11 +6,6 @@ jobs:
   build:
     name: Build mathlib
     runs-on: ubuntu-latest
-    strategy:
-      matrix:
-        lean_version:
-          - leanprover-community/lean:3.6.0
-      fail-fast: false
     steps:
       - uses: actions/checkout@v2
 
@@ -18,9 +13,9 @@ jobs:
         run: |
           set -o pipefail
           curl https://raw.githubusercontent.com/Kha/elan/master/elan-init.sh -sSf | sh -s -- --default-toolchain none -y
-          ~/.elan/bin/elan override set ${{ matrix.lean_version }}
           ~/.elan/bin/lean --version
           echo "::add-path::$HOME/.elan/bin"
+          echo "::set-env name=short_lean_version::$(~/.elan/bin/lean --run scripts/lean_version.lean)"
 
       - name: install azcopy
         run: |
@@ -31,30 +26,47 @@ jobs:
       - name: leanpkg build
         run: leanpkg build | python scripts/detect_errors.py
 
+      - name: configure git setup
+        run: |
+          git remote add origin-bot "https://leanprover-community-bot:${{ secrets.DEPLOY_NIGHTLY_GITHUB_TOKEN }}@github.com/leanprover-community/mathlib.git"
+          git config user.email "leanprover.community@gmail.com"
+          git config user.name "leanprover-community-bot"
+
+          # By default, github actions overrides the credentials used to access any
+          # github url so that it uses the github-actions[bot] user.  We want to access
+          # github using a different username.
+          git config --unset http.https://github.com/.extraheader
+
+      - name: push release to azure
+        if: always() && github.repository == 'leanprover-community/mathlib' && github.event_name == 'push'
+        run: |
+          branch=${GITHUB_REF#refs/heads/}
+          git fetch --depth=1 origin-bot $branch
+          remote_sha="$(git rev-parse origin-bot/$branch)"
+          if [ "${{ github.sha }}" == "$remote_sha" -o "${{ github.ref }}" == "refs/heads/master" ]; then
+            archive_name="$(git rev-parse HEAD).tar.gz"
+            tar czf "$archive_name" src
+            azcopy copy "$archive_name" "${{ secrets.AZURE_SAS_TOKEN }}" --block-size-mb 99 --overwrite false
+          else
+            echo "archive is obsolete: branch has been updated"
+          fi
+
+      - name: push release to mathlib-nightly
+        if: github.repository == 'leanprover-community/mathlib' && github.event_name == 'push' && github.ref == 'refs/heads/master'
+        run: ./scripts/deploy_nightly.sh
+        env:
+          DEPLOY_NIGHTLY_GITHUB_TOKEN: ${{ secrets.DEPLOY_NIGHTLY_GITHUB_TOKEN }}
+
       - name: setup precompiled zip file
         id: setup_precompiled
         run: |
           git_hash="$(git log -1 --pretty=format:%h)"
-          short_lean_version="$(echo ${{ matrix.lean_version }} | sed 's/.*://')"
           echo "::set-output name=artifact_name::precompiled-mathlib-$short_lean_version-$git_hash"
       - name: upload precompiled mathlib zip file
         uses: actions/upload-artifact@v1
         with:
           name: ${{ steps.setup_precompiled.outputs.artifact_name }}
           path: ..
-
-      - name: push release to mathlib-nightly
-        if: github.repository == 'leanprover-community/mathlib' && github.event_name == 'push' && github.ref == 'refs/heads/master' && matrix.lean_version == 'leanprover-community/lean:3.5.1'
-        run: ./scripts/deploy_nightly.sh
-        env:
-          DEPLOY_NIGHTLY_GITHUB_TOKEN: ${{ secrets.DEPLOY_NIGHTLY_GITHUB_TOKEN }}
-
-      - name: push release to azure
-        if: always() && github.repository == 'leanprover-community/mathlib' && github.event_name == 'push' && matrix.lean_version == 'leanprover-community/lean:3.5.1'
-        run: |
-          archive_name="$(git rev-parse HEAD).tar.gz"
-          tar czf "$archive_name" src
-          azcopy copy "$archive_name" "${{ secrets.AZURE_SAS_TOKEN }}" --block-size-mb 99 --overwrite false
 
       - name: tests
         run: |
@@ -78,14 +90,14 @@ jobs:
           python-version: 3.8
 
       - name: generate docs
-        if: github.repository == 'leanprover-community/mathlib' && github.event_name == 'push' && github.ref == 'refs/heads/master' && matrix.lean_version == 'leanprover-community/lean:3.5.1'
+        if: github.repository == 'leanprover-community/mathlib' && github.event_name == 'push' && github.ref == 'refs/heads/master'
         run:
           ./scripts/deploy_docs.sh
         env:
           DEPLOY_NIGHTLY_GITHUB_TOKEN: ${{ secrets.DEPLOY_NIGHTLY_GITHUB_TOKEN }}
 
       - name: update nolints.txt
-        if: github.repository == 'leanprover-community/mathlib' && github.event_name == 'push' && github.ref == 'refs/heads/master' && matrix.lean_version == 'leanprover-community/lean:3.5.1'
+        if: github.repository == 'leanprover-community/mathlib' && github.event_name == 'push' && github.ref == 'refs/heads/master'
         run:
           ./scripts/update_nolints.sh
         env:

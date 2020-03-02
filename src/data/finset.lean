@@ -2246,7 +2246,7 @@ def min' (s : finset α) (H : s.nonempty) : α :=
   let ⟨k, hk⟩ := H in
   let ⟨b, hb⟩ := min_of_mem hk in by simp at hb; simp [hb]
 
-/-- Given a nonempty fintype `s` in a linear order `α `, then `s.max' h` is its maximum, as an
+/-- Given a nonempty finset `s` in a linear order `α `, then `s.max' h` is its maximum, as an
 element of `α`, where `h` is a proof of nonemptiness. Without this assumption, use instead `s.max`,
 taking values in `option α`. -/
 def max' (s : finset α) (H : s.nonempty) : α :=

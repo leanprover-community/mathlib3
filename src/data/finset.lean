@@ -1315,7 +1315,7 @@ calc n = card (range n) : (card_range n).symm
     (by simpa only [mem_range])
     (by simp only [mem_range]; exact assume a₁ h₁ a₂ h₂, f_inj a₁ a₂ h₁ h₂)
 
-/-- Suppose that, given objects defined on all strict subsets of any finset `s `, one knows how to
+/-- Suppose that, given objects defined on all strict subsets of any finset `s`, one knows how to
 define an object on `s`. Then one can inductively define an object on all finsets, starting from
 the empty set and iterating. This can be used either to define data, or to prove properties. -/
 @[elab_as_eliminator] def strong_induction_on {p : finset α → Sort*} :

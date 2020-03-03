@@ -29,8 +29,8 @@ theorem modeq_zero_iff : a ≡ 0 [MOD n] ↔ n ∣ a :=
 by rw [modeq, zero_mod, dvd_iff_mod_eq_zero]
 
 theorem modeq_iff_dvd : a ≡ b [MOD n] ↔ (n:ℤ) ∣ b - a :=
-by rw [modeq, eq_comm, ← int.coe_nat_inj'];
-   simp [int.mod_eq_mod_iff_mod_sub_eq_zero, int.dvd_iff_mod_eq_zero]
+by rw [modeq, eq_comm, ← int.coe_nat_inj', int.coe_nat_mod, int.coe_nat_mod,
+   int.mod_eq_mod_iff_mod_sub_eq_zero, int.dvd_iff_mod_eq_zero]
 
 theorem modeq_of_dvd : (n:ℤ) ∣ b - a → a ≡ b [MOD n] := modeq_iff_dvd.2
 theorem dvd_of_modeq : a ≡ b [MOD n] → (n:ℤ) ∣ b - a := modeq_iff_dvd.1

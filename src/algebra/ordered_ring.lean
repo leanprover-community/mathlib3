@@ -340,7 +340,7 @@ instance to_linear_ordered_ring : linear_ordered_ring α :=
   end, ..s }
 
 @[priority 80] -- see Note [lower instance priority]
-instance to_decidable_linear_ordered_comm_ring
+def to_decidable_linear_ordered_comm_ring
   [decidable_pred (@nonneg α _)]
   [comm : @is_commutative α (*)]
   : decidable_linear_ordered_comm_ring α :=

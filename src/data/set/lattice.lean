@@ -331,7 +331,7 @@ theorem mem_sUnion_of_mem {x : α} {t : set α} {S : set (set α)} (hx : x ∈ t
   x ∈ ⋃₀ S :=
 ⟨t, ⟨ht, hx⟩⟩
 
-@[simp] theorem mem_sUnion {x : α} {S : set (set α)} : x ∈ ⋃₀ S ↔ ∃t ∈ S, x ∈ t := iff.rfl
+theorem mem_sUnion {x : α} {S : set (set α)} : x ∈ ⋃₀ S ↔ ∃t ∈ S, x ∈ t := iff.rfl
 
 -- is this theorem really necessary?
 theorem not_mem_of_not_mem_sUnion {x : α} {t : set α} {S : set (set α)}

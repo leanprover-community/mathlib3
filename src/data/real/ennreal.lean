@@ -137,8 +137,8 @@ protected lemma zero_lt_one : 0 < (1 : ennreal) :=
 
 @[simp] lemma one_lt_two : (1:ennreal) < 2 := coe_one ▸ coe_two ▸ by exact_mod_cast one_lt_two
 @[simp] lemma two_pos : (0:ennreal) < 2 := lt_trans ennreal.zero_lt_one one_lt_two
-@[simp] lemma two_ne_zero : (2:ennreal) ≠ 0 := ne_of_gt two_pos
-@[simp] lemma two_ne_top : (2:ennreal) ≠ ∞ := coe_two ▸ coe_ne_top
+lemma two_ne_zero : (2:ennreal) ≠ 0 := ne_of_gt two_pos
+lemma two_ne_top : (2:ennreal) ≠ ∞ := coe_two ▸ coe_ne_top
 
 @[simp] lemma add_top : a + ∞ = ∞ := with_top.add_top
 @[simp] lemma top_add : ∞ + a = ∞ := with_top.top_add
@@ -215,7 +215,7 @@ section order
 
 @[simp] lemma coe_lt_top : coe r < ∞ := with_top.coe_lt_top r
 @[simp] lemma not_top_le_coe : ¬ (⊤:ennreal) ≤ ↑r := with_top.not_top_le_coe r
-@[simp, elim_cast] lemma zero_lt_coe_iff : 0 < (↑p : ennreal) ↔ 0 < p := coe_lt_coe
+lemma zero_lt_coe_iff : 0 < (↑p : ennreal) ↔ 0 < p := coe_lt_coe
 @[simp, elim_cast] lemma one_le_coe_iff : (1:ennreal) ≤ ↑r ↔ 1 ≤ r := coe_le_coe
 @[simp, elim_cast] lemma coe_le_one_iff : ↑r ≤ (1:ennreal) ↔ r ≤ 1 := coe_le_coe
 @[simp, elim_cast] lemma coe_lt_one_iff : (↑p : ennreal) < 1 ↔ p < 1 := coe_lt_coe
@@ -727,7 +727,8 @@ by simpa only [inv_inv] using @inv_lt_inv a b⁻¹
 lemma lt_inv_iff_lt_inv : a < b⁻¹ ↔ b < a⁻¹ :=
 by simpa only [inv_inv] using @inv_lt_inv a⁻¹ b
 
-@[simp] lemma inv_le_inv : a⁻¹ ≤ b⁻¹ ↔ b ≤ a :=
+@[simp, priority 1100] -- higher than le_inv_iff_mul_le
+lemma inv_le_inv : a⁻¹ ≤ b⁻¹ ↔ b ≤ a :=
 by simp only [le_iff_lt_or_eq, inv_lt_inv, inv_eq_inv, eq_comm]
 
 lemma inv_le_iff_inv_le : a⁻¹ ≤ b ↔ b⁻¹ ≤ a :=

@@ -158,7 +158,7 @@ theorem cast_injective [char_zero α] : function.injective (coe : ℚ → α)
 @[simp] theorem cast_eq_zero [char_zero α] {n : ℚ} : (n : α) = 0 ↔ n = 0 :=
 by rw [← cast_zero, cast_inj]
 
-@[simp] theorem cast_ne_zero [char_zero α] {n : ℚ} : (n : α) ≠ 0 ↔ n ≠ 0 :=
+theorem cast_ne_zero [char_zero α] {n : ℚ} : (n : α) ≠ 0 ↔ n ≠ 0 :=
 not_congr cast_eq_zero
 
 theorem eq_cast_of_ne_zero (f : ℚ → α) (H1 : f 1 = 1)

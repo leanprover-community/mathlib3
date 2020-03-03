@@ -110,10 +110,6 @@ apply_nolint normalize doc_blame
 -- algebra/group/conj.lean
 apply_nolint is_conj doc_blame
 
--- algebra/group/free_monoid.lean
-apply_nolint free_add_monoid doc_blame
-apply_nolint free_monoid doc_blame
-
 -- algebra/group/hom.lean
 apply_nolint add_monoid_hom.add doc_blame
 apply_nolint add_monoid_hom.comp doc_blame
@@ -145,7 +141,6 @@ apply_nolint units.mul doc_blame
 
 -- algebra/group/with_one.lean
 apply_nolint with_one doc_blame
-apply_nolint with_one.lift doc_blame
 apply_nolint with_one.map doc_blame
 apply_nolint with_zero doc_blame
 apply_nolint with_zero.div doc_blame
@@ -1332,11 +1327,6 @@ apply_nolint erased.out_type doc_blame
 
 -- data/fin.lean
 apply_nolint fin.add_nat_val unused_arguments
-apply_nolint fin.cases doc_blame
-apply_nolint fin.clamp doc_blame
-apply_nolint fin.succ_rec doc_blame
-apply_nolint fin.succ_rec_on doc_blame
-apply_nolint fin_zero_elim' doc_blame
 
 -- data/finmap.lean
 apply_nolint finmap.all doc_blame
@@ -1345,24 +1335,6 @@ apply_nolint finmap.disjoint unused_arguments doc_blame
 apply_nolint finmap.foldl unused_arguments
 apply_nolint finmap.sdiff doc_blame
 apply_nolint list.to_finmap doc_blame
-
--- data/finset.lean
-apply_nolint finset.attach_fin doc_blame
-apply_nolint finset.choose doc_blame
-apply_nolint finset.choose_x doc_blame
-apply_nolint finset.empty doc_blame
-apply_nolint finset.map doc_blame
-apply_nolint finset.map_embedding doc_blame
-apply_nolint finset.max doc_blame
-apply_nolint finset.max' doc_blame
-apply_nolint finset.min doc_blame
-apply_nolint finset.min' doc_blame
-apply_nolint finset.pi doc_blame
-apply_nolint finset.pi.cons doc_blame
-apply_nolint finset.pi.empty doc_blame
-apply_nolint finset.powerset_len doc_blame
-apply_nolint finset.strong_induction_on doc_blame
-apply_nolint finset.subtype doc_blame
 
 -- data/fintype.lean
 apply_nolint finset.insert_none doc_blame

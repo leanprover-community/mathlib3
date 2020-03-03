@@ -60,7 +60,15 @@ namespace interactive
 /--
 Suggest possible rewrites of the current goal, using all lemmas in the environment.
 
-Users should be careful that this is a blunt tool:
+The optional syntax `rw_hint with p` only reports rewrites that transform the goal
+to something containing the pattern `p`.
+(So for example one could write `rw_hint with _ ∧ _` to find rewrites producing a
+goal containing a conjunction.)
+
+See also the related `conv` mode tactic, which requires that the rewrite (and optional guard pattern)
+exactly matches the current focus, rather than some subexpression.
+
+Users should be careful that `rw_hint` is a blunt tool:
 * with many imports open it can be very slow,
 * with 'generic' goals (in particular anything involving numerals) you will get many
   spurious suggestions.
@@ -90,6 +98,10 @@ namespace interactive
 Suggest possible rewrites of the current focus, using all lemmas in the environment.
 Only rewrites that transform the entire focus (rather than subexpressions) are
 reported while in `conv` mode.
+
+The optional syntax `rw_hint with p` only reports rewrites that transform the focus
+to something matching the pattern `p`.
+(So for example one could write `rw_hint with _ ∧ _` to find rewrites producing a conjunction.)
 
 See also the interactive tactic `rw_hint`.
 -/

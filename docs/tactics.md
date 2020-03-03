@@ -489,8 +489,10 @@ begin
 end
 ```
 
-For now, it really reports everything it finds, with no filter,
-so for many goals (particularly those involving numerals) you will see a lot of spurious junk.
+The optional syntax `rw_hint with p` only reports rewrites that transform the goal
+to something containing the pattern `p`.
+(So for example one could write `rw_hint with _ ∧ _` to find rewrites producing a
+goal containing a conjunction.)
 
 Users should be careful that this is a blunt tool:
 * with many imports open it can be very slow,
@@ -500,8 +502,9 @@ Users should be careful that this is a blunt tool:
 There is also a `conv` mode, which may be more useful: it only reports rewrites that transform the
 entire current focus, so if you expect to be able to rewrite some particular subexpression using a
 lemma, you can use `congr` and `skip` inside `conv` to focus on that subexpression, and then call
-`rw_hint`, which hopefully will then return fewer false positives that `rw_hint` on the entire
-original goal.
+`rw_hint`, which hopefully will then return fewer false positives than `rw_hint` on the entire
+original goal. Inside `conv`, calling `rw_hint with p` will require that the rewritten
+focus matches the pattern `p`, rather than merely the pattern `p` appearing as a subexpression.
 
 The main use case for `rw_hint` is for users with some familiarity with the mathlib naming
 conventions, who may be able to scan through a list of suggestions and quickly recognise from the

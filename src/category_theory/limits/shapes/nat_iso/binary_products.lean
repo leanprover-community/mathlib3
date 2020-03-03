@@ -88,6 +88,40 @@ def of_is_limit {X Y : C} {c : limits.cone (pair X Y)} (h : limits.is_limit c) :
   is_binary_product.{v} X Y c.X :=
 of_nat_iso X Y c.X (is_limit.nat_iso h)
 
+def iso_ext {X Y : C} {P Q : C}
+  (IP : is_binary_product.{v} X Y P)
+  (IQ : is_binary_product.{v} X Y Q) : P ≅ Q :=
+cones.forget.map_iso (is_limit.unique_up_to_iso (is_limit IP) (is_limit IQ))
+
+-- The next two definitions assert that `is_binary_product.{v} X Y` is not just path connected,
+-- but also simply connected.
+-- (TODO perhaps there should be a generic structure for this situation.)
+
+local attribute [simp] iso_ext cone is_limit.of_nat_iso.limit_cone is_limit.of_nat_iso.cone_of_hom
+
+@[simp] def iso_ext_id {X Y : C} {P : C}
+  (IP : is_binary_product.{v} X Y P) : iso_ext IP IP = iso.refl P :=
+begin
+  tidy?,
+  convert (is_limit.uniq (is_limit _) _ _ _).symm,
+  refl,
+  intro j,
+  simp only [category.id_comp],
+end
+
+@[simp] def iso_ext_comp {X Y : C} {P Q R : C}
+  (IP : is_binary_product.{v} X Y P)
+  (IQ : is_binary_product.{v} X Y Q)
+  (IR : is_binary_product.{v} X Y R) : iso_ext IP IQ ≪≫ iso_ext IQ IR = iso_ext IP IR :=
+begin
+  tidy?,
+  convert is_limit.uniq (is_limit _) _ _ _,
+  refl,
+  refl,
+  intro j,
+  sorry
+end
+
 end is_binary_product
 
 namespace has_binary_products
@@ -126,5 +160,6 @@ def prod_is_binary_product [has_binary_products.{v} C] (X Y : C) : is_binary_pro
 end has_binary_products
 
 -- TODO give alternative proofs about the braiding, to see how usable this is?
+
 
 end category_theory.limits

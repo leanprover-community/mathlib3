@@ -47,7 +47,7 @@ by rw even_iff; apply one_ne_zero
 @[parity_simps] theorem even_add {m n : int} : even (m + n) ↔ (even m ↔ even n) :=
 begin
   cases mod_two_eq_zero_or_one m with h₁ h₁; cases mod_two_eq_zero_or_one n with h₂ h₂;
-    simp [even_iff, h₁, h₂],
+    simp [even_iff, h₁, h₂, -euclidean_domain.mod_eq_zero],
   { exact @modeq.modeq_add _ _ 0 _ 0 h₁ h₂ },
   { exact @modeq.modeq_add _ _ 0 _ 1 h₁ h₂ },
   { exact @modeq.modeq_add _ _ 1 _ 0 h₁ h₂ },
@@ -65,7 +65,7 @@ by simp [sub_eq_add_neg] with parity_simps
 @[parity_simps] theorem even_mul {m n : int} : even (m * n) ↔ even m ∨ even n :=
 begin
   cases mod_two_eq_zero_or_one m with h₁ h₁; cases mod_two_eq_zero_or_one n with h₂ h₂;
-    simp [even_iff, h₁, h₂],
+    simp [even_iff, h₁, h₂, -euclidean_domain.mod_eq_zero],
   { exact @modeq.modeq_mul _ _ 0 _ 0 h₁ h₂ },
   { exact @modeq.modeq_mul _ _ 0 _ 1 h₁ h₂ },
   { exact @modeq.modeq_mul _ _ 1 _ 0 h₁ h₂ },

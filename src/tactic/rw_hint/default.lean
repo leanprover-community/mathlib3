@@ -49,6 +49,7 @@ do
     ng_pp ← pp p.2,
     return ("rw " ++ (if p.1.2 then "←" else "") ++ rw_pp.to_string, ng_pp.to_string))
 
+/-- Runs `rw_hint` on the current goal. -/
 meta def rw_hint_target (for : option pexpr := none) :=
 target >>= (λ e, rw_hint e ff for)
 

@@ -608,7 +608,7 @@ begin
     have : f ⁻¹' {b} ⊆ (f.map g) ⁻¹' {g b},
       rw [coe_map, @preimage_comp _ _ _ f g, preimage_subset_preimage_iff],
       { simp only [set.mem_preimage, set.mem_singleton, set.singleton_subset_iff] },
-      { rw singleton_subset_iff, rw mem_range at b_mem, exact b_mem },
+      { rw set.singleton_subset_iff, rw mem_range at b_mem, exact b_mem },
     exact lt_of_le_of_lt (volume_mono this) (h (g b) gb0) },
   { rw ← preimage_eq_empty_iff at b_mem,
     rw [b_mem, volume_empty],

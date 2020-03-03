@@ -4673,6 +4673,22 @@ begin
   { rw [max_eq_left hln, filter_le_of_le_bot hln] }
 end
 
+/--
+For any natural numbers n, a, and b, one of the following holds:
+1. n < a
+2. n ≥ b
+3. n ∈ Ico a b
+-/
+lemma trichotomy (n a b : ℕ) : n < a ∨ b ≤ n ∨ n ∈ Ico a b :=
+begin
+  by_cases h₁ : n < a,
+  { left, exact h₁ },
+  { right,
+    by_cases h₂ : n ∈ Ico a b,
+    { right, exact h₂ },
+    { left,  simp only [Ico.mem, not_and, not_lt] at *, exact h₂ h₁ }}
+end
+
 end Ico
 
 @[simp] theorem enum_from_map_fst : ∀ n (l : list α),

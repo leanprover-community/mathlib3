@@ -70,8 +70,7 @@ namespace int
 theorem nat_abs_div (a b : ℤ) (H : b ∣ a) : nat_abs (a / b) = (nat_abs a) / (nat_abs b) :=
 begin
   cases (nat.eq_zero_or_pos (nat_abs b)),
-  rw eq_zero_of_nat_abs_eq_zero h,
-  simp,
+  {rw eq_zero_of_nat_abs_eq_zero h, simp [int.div_zero]},
   calc
   nat_abs (a / b) = nat_abs (a / b) * 1 : by rw mul_one
     ... = nat_abs (a / b) * (nat_abs b / nat_abs b) : by rw nat.div_self h

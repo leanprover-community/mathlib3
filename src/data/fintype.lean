@@ -267,9 +267,9 @@ instance : fintype pempty := ⟨∅, pempty.rec _⟩
 
 instance : fintype unit := fintype.of_subsingleton ()
 
-@[simp] theorem fintype.univ_unit : @univ unit _ = {()} := rfl
+theorem fintype.univ_unit : @univ unit _ = {()} := rfl
 
-@[simp] theorem fintype.card_unit : fintype.card unit = 1 := rfl
+theorem fintype.card_unit : fintype.card unit = 1 := rfl
 
 instance : fintype punit := fintype.of_subsingleton punit.star
 
@@ -638,7 +638,7 @@ def perms_of_list : list α → list (perm α)
 lemma length_perms_of_list : ∀ l : list α, length (perms_of_list l) = l.length.fact
 | []       := rfl
 | (a :: l) := by rw [length_cons, nat.fact_succ];
-  simp [perms_of_list, length_bind, length_perms_of_list, function.comp, nat.succ_mul]
+  simp [perms_of_list, length_bind, length_perms_of_list, function.comp, nat.succ_mul]; cc
 
 lemma mem_perms_of_list_of_mem : ∀ {l : list α} {f : perm α} (h : ∀ x, f x ≠ x → x ∈ l), f ∈ perms_of_list l
 | []     f h := list.mem_singleton.2 $ equiv.ext _ _$ λ x, by simp [imp_false, *] at *

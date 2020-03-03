@@ -55,9 +55,10 @@ lemma prod_pair [decidable_eq α] {a b : α} (h : a ≠ b) :
   ({a, b} : finset α).prod f = f a * f b :=
 by simp [prod_insert (not_mem_singleton.2 h.symm), mul_comm]
 
-@[simp] lemma prod_const_one : s.prod (λx, (1 : β)) = 1 :=
+@[simp, priority 1100] lemma prod_const_one : s.prod (λx, (1 : β)) = 1 :=
 by simp only [finset.prod, multiset.map_const, multiset.prod_repeat, one_pow]
-@[simp] lemma sum_const_zero {β} {s : finset α} [add_comm_monoid β] : s.sum (λx, (0 : β)) = 0 :=
+@[simp, priority 1100] lemma sum_const_zero {β} {s : finset α} [add_comm_monoid β] :
+  s.sum (λx, (0 : β)) = 0 :=
 @prod_const_one _ (multiplicative β) _ _
 attribute [to_additive] prod_const_one
 

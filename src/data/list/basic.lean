@@ -29,7 +29,7 @@ instance : is_right_id (list α) has_append.append [] :=
 instance : is_associative (list α) has_append.append :=
 ⟨ append_assoc ⟩
 
-@[simp] theorem cons_ne_nil (a : α) (l : list α) : a::l ≠ [].
+theorem cons_ne_nil (a : α) (l : list α) : a::l ≠ [].
 
 theorem head_eq_of_cons_eq {h₁ h₂ : α} {t₁ t₂ : list α} :
       (h₁::t₁) = (h₂::t₂) → h₁ = h₂ :=
@@ -42,7 +42,7 @@ assume Peq, list.no_confusion Peq (assume Pheq Pteq, Pteq)
 theorem cons_inj {a : α} : injective (cons a) :=
 assume l₁ l₂, assume Pe, tail_eq_of_cons_eq Pe
 
-@[simp] theorem cons_inj' (a : α) {l l' : list α} : a::l = a::l' ↔ l = l' :=
+theorem cons_inj' (a : α) {l l' : list α} : a::l = a::l' ↔ l = l' :=
 ⟨λ e, cons_inj e, congr_arg _⟩
 
 /- mem -/
@@ -116,7 +116,7 @@ end
 @[simp] theorem mem_map {f : α → β} {b : β} {l : list α} : b ∈ map f l ↔ ∃ a, a ∈ l ∧ f a = b :=
 ⟨exists_of_mem_map, λ ⟨a, la, h⟩, by rw [← h]; exact mem_map_of_mem f la⟩
 
-@[simp] theorem mem_map_of_inj {f : α → β} (H : injective f) {a : α} {l : list α} :
+theorem mem_map_of_inj {f : α → β} (H : injective f) {a : α} {l : list α} :
   f a ∈ map f l ↔ a ∈ l :=
 ⟨λ m, let ⟨a', m', e⟩ := exists_of_mem_map m in H e ▸ m', mem_map_of_mem _⟩
 
@@ -734,7 +734,8 @@ assume e, if_pos e
 @[simp] theorem index_of_cons_self (a : α) (l : list α) : index_of a (a::l) = 0 :=
 index_of_cons_eq _ rfl
 
-@[simp] theorem index_of_cons_ne {a b : α} (l : list α) : a ≠ b → index_of a (b::l) = succ (index_of a l) :=
+@[simp, priority 990]
+theorem index_of_cons_ne {a b : α} (l : list α) : a ≠ b → index_of a (b::l) = succ (index_of a l) :=
 assume n, if_neg n
 
 theorem index_of_eq_length {a : α} {l : list α} : index_of a l = length l ↔ a ∉ l :=
@@ -746,7 +747,8 @@ begin
   { simp only [h, false_or], rw ← ih, exact succ_inj' }
 end
 
-@[simp] theorem index_of_of_not_mem {l : list α} {a : α} : a ∉ l → index_of a l = length l :=
+@[simp, priority 980]
+theorem index_of_of_not_mem {l : list α} {a : α} : a ∉ l → index_of a l = length l :=
 index_of_eq_length.2
 
 theorem index_of_le_length {a : α} {l : list α} : index_of a l ≤ length l :=
@@ -2115,7 +2117,8 @@ begin rw count_cons, split_ifs; refl end
 @[simp] theorem count_cons_self (a : α) (l : list α) : count a (a::l) = succ (count a l) :=
 if_pos rfl
 
-@[simp] theorem count_cons_of_ne {a b : α} (h : a ≠ b) (l : list α) : count a (b::l) = count a l :=
+@[simp, priority 990]
+theorem count_cons_of_ne {a b : α} (h : a ≠ b) (l : list α) : count a (b::l) = count a l :=
 if_neg h
 
 theorem count_tail : Π (l : list α) (a : α) (h : 0 < l.length),
@@ -2139,7 +2142,8 @@ by simp [-add_comm]
 theorem count_pos {a : α} {l : list α} : 0 < count a l ↔ a ∈ l :=
 by simp only [count, countp_pos, exists_prop, exists_eq_right']
 
-@[simp] theorem count_eq_zero_of_not_mem {a : α} {l : list α} (h : a ∉ l) : count a l = 0 :=
+@[simp, priority 980]
+theorem count_eq_zero_of_not_mem {a : α} {l : list α} (h : a ∉ l) : count a l = 0 :=
 by_contradiction $ λ h', h $ count_pos.1 (nat.pos_of_ne_zero h')
 
 theorem not_mem_of_count_eq_zero {a : α} {l : list α} (h : count a l = 0) : a ∉ l :=
@@ -2364,7 +2368,7 @@ instance decidable_infix [decidable_eq α] : ∀ (l₁ l₂ : list α), decidabl
 
 @[simp] theorem sublists'_nil : sublists' (@nil α) = [[]] := rfl
 
-@[simp] theorem sublists'_singleton (a : α) : sublists' [a] = [[], [a]] := rfl
+@[simp, priority 1100] theorem sublists'_singleton (a : α) : sublists' [a] = [[], [a]] := rfl
 
 theorem map_sublists'_aux (g : list β → list γ) (l : list α) (f r) :
   map g (sublists'_aux l f r) = sublists'_aux l (g ∘ f) (map g r) :=
@@ -2858,10 +2862,12 @@ variable [decidable_eq α]
 
 theorem insert.def (a : α) (l : list α) : insert a l = if a ∈ l then l else a :: l := rfl
 
-@[simp] theorem insert_of_mem {a : α} {l : list α} (h : a ∈ l) : insert a l = l :=
+@[simp, priority 980]
+theorem insert_of_mem {a : α} {l : list α} (h : a ∈ l) : insert a l = l :=
 by simp only [insert.def, if_pos h]
 
-@[simp] theorem insert_of_not_mem {a : α} {l : list α} (h : a ∉ l) : insert a l = a :: l :=
+@[simp, priority 970]
+theorem insert_of_not_mem {a : α} {l : list α} (h : a ∉ l) : insert a l = a :: l :=
 by simp only [insert.def, if_neg h]; split; refl
 
 @[simp] theorem mem_insert_iff {a b : α} {l : list α} : a ∈ insert b l ↔ a = b ∨ a ∈ l :=
@@ -2879,7 +2885,7 @@ by by_cases a ∈ l; [simp only [insert_of_mem h], simp only [insert_of_not_mem 
 @[simp] theorem mem_insert_self (a : α) (l : list α) : a ∈ insert a l :=
 mem_insert_iff.2 (or.inl rfl)
 
-@[simp] theorem mem_insert_of_mem {a b : α} {l : list α} (h : a ∈ l) : a ∈ insert b l :=
+theorem mem_insert_of_mem {a b : α} {l : list α} (h : a ∈ l) : a ∈ insert b l :=
 mem_insert_iff.2 (or.inr h)
 
 theorem eq_or_mem_of_mem_insert {a b : α} {l : list α} (h : a ∈ insert b l) : a = b ∨ a ∈ l :=
@@ -3014,7 +3020,8 @@ theorem erase_eq_erasep (a : α) (l : list α) : l.erase a = l.erasep (eq a) :=
 by { induction l with b l, {refl},
   by_cases a = b; [simp [h], simp [h, ne.symm h, *]] }
 
-@[simp] theorem erase_of_not_mem {a : α} {l : list α} (h : a ∉ l) : l.erase a = l :=
+@[simp, priority 980]
+theorem erase_of_not_mem {a : α} {l : list α} (h : a ∉ l) : l.erase a = l :=
 by rw [erase_eq_erasep, erasep_of_forall_not]; rintro b h' rfl; exact h h'
 
 theorem exists_erase_eq {a : α} {l : list α} (h : a ∈ l) :
@@ -3432,10 +3439,10 @@ disjoint_of_subset_right (list.subset_cons _ _)
 @[simp] theorem disjoint_nil_right (l : list α) : disjoint l [] :=
 by rw disjoint_comm; exact disjoint_nil_left _
 
-@[simp] theorem singleton_disjoint {l : list α} {a : α} : disjoint [a] l ↔ a ∉ l :=
+@[simp, priority 1100] theorem singleton_disjoint {l : list α} {a : α} : disjoint [a] l ↔ a ∉ l :=
 by simp only [disjoint, mem_singleton, forall_eq]; refl
 
-@[simp] theorem disjoint_singleton {l : list α} {a : α} : disjoint l [a] ↔ a ∉ l :=
+@[simp, priority 1100] theorem disjoint_singleton {l : list α} {a : α} : disjoint l [a] ↔ a ∉ l :=
 by rw disjoint_comm; simp only [singleton_disjoint]
 
 @[simp] theorem disjoint_append_left {l₁ l₂ l : list α} :

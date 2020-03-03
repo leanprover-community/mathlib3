@@ -808,7 +808,7 @@ fintype_card pempty
 @[simp] theorem mk_plift_of_false {p : Prop} (h : ¬ p) : mk (plift p) = 0 :=
 quotient.sound ⟨equiv.plift.trans $ equiv.equiv_pempty h⟩
 
-@[simp] theorem mk_unit : mk unit = 1 :=
+theorem mk_unit : mk unit = 1 :=
 (fintype_card unit).trans nat.cast_one
 
 @[simp] theorem mk_punit : mk punit = 1 :=

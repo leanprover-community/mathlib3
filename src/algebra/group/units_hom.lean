@@ -2,10 +2,11 @@
 Copyright (c) 2018 Johan Commelin All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johan Commelin, Chris Hughes, Kevin Buzzard
-
-Lift monoid homomorphisms to group homomorphisms of their units subgroups.
 -/
 import algebra.group.units algebra.group.hom
+/-!
+# Lift monoid homomorphisms to group homomorphisms of their units subgroups.
+-/
 
 universes u v w
 
@@ -20,15 +21,7 @@ monoid_hom.mk'
                   by rw [← f.map_mul, u.inv_val, f.map_one]⟩)
   (λ x y, ext (f.map_mul x y))
 
-/-- The group homomorphism on units induced by a multiplicative morphism. -/
-@[reducible] def map' (f : M → N) [is_monoid_hom f] : units M →* units N :=
-  map (monoid_hom.of f)
-
 @[simp] lemma coe_map (f : M →* N) (x : units M) : ↑(map f x) = f x := rfl
-
-@[simp] lemma coe_map' (f : M → N) [is_monoid_hom f] (x : units M) :
-  ↑((map' f : units M → units N) x) = f x :=
-rfl
 
 @[simp] lemma map_comp (f : M →* N) (g : N →* P) : map (g.comp f) = (map g).comp (map f) := rfl
 
@@ -42,8 +35,6 @@ def coe_hom : units M →* M := ⟨coe, coe_one, coe_mul⟩
 variable {M}
 
 @[simp] lemma coe_hom_apply (x : units M) : coe_hom M x = ↑x := rfl
-
-instance coe_is_monoid_hom : is_monoid_hom (coe : units M → M) := (coe_hom M).is_monoid_hom
 
 /-- If a map `g : M → units N` agrees with a homomorphism `f : M →* N`, then
 this map is a monoid homomorphism too. -/

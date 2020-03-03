@@ -156,7 +156,8 @@ by rw [val_cast_nat, nat.mod_eq_of_lt h]
 @[simp] lemma cast_mod_nat (n : ℕ+) (a : ℕ) : ((a % n : ℕ) : zmod n) = a :=
 by conv {to_rhs, rw ← nat.mod_add_div a n}; simp
 
-@[simp] lemma cast_mod_nat' {n : ℕ} (hn : 0 < n) (a : ℕ) : ((a % n : ℕ) : zmod ⟨n, hn⟩) = a :=
+@[simp, priority 980]
+lemma cast_mod_nat' {n : ℕ} (hn : 0 < n) (a : ℕ) : ((a % n : ℕ) : zmod ⟨n, hn⟩) = a :=
 cast_mod_nat _ _
 
 @[simp] lemma cast_val {n : ℕ+} (a : zmod n) : (a.val : zmod n) = a :=
@@ -165,7 +166,8 @@ by cases a; simp [mk_eq_cast]
 @[simp] lemma cast_mod_int (n : ℕ+) (a : ℤ) : ((a % (n : ℕ) : ℤ) : zmod n) = a :=
 by conv {to_rhs, rw ← int.mod_add_div a n}; simp
 
-@[simp] lemma cast_mod_int' {n : ℕ} (hn : 0 < n) (a : ℤ) :
+@[simp, priority 980]
+lemma cast_mod_int' {n : ℕ} (hn : 0 < n) (a : ℤ) :
   ((a % (n : ℕ) : ℤ) : zmod ⟨n, hn⟩) = a := cast_mod_int _ _
 
 lemma val_cast_int {n : ℕ+} (a : ℤ) : (a : zmod n).val = (a % (n : ℕ)).nat_abs :=

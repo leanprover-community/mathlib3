@@ -897,6 +897,39 @@ end
 ```
 after `fin_cases p; simp`, there are three goals, `f 0`, `f 1`, and `f 2`.
 
+## interval_cases
+`interval_cases n` searches for upper and lower bounds on a variable `n`, and if bounds are found, splits into separate cases for each possible value of `n`.
+
+As an example, in
+```
+example (n : ℕ) (w₁ : n ≥ 3) (w₂ : n < 5) : n = 3 ∨ n = 4 :=
+begin
+  interval_cases n,
+  all_goals {simp}
+end
+```
+after `interval_cases n`, the goals are `3 = 3 ∨ 3 = 4` and `4 = 3 ∨ 4 = 4`.
+
+In particular, `interval_cases n`
+1) inspects hypotheses looking for lower and upper bounds of the form `a ≤ n` and `n < b`
+   (although in `ℕ`, `ℤ`, and `ℕ+` bounds of the form `a < n` and `n ≤ b` are also allowed),
+   and also makes use of lower and upper bounds found via `lattice.le_top` and `lattice.bot_le`
+   (so for example if `n : ℕ`, then the bound `0 ≤ n` is found automatically), then
+2) calls `fin_cases` on the synthesised hypothesis `n ∈ set.Ico a b`,
+   assuming an appropriate `fintype` instance can be found for the type of `n`.
+
+The variable `n` can belong to any type `α`, with the following restrictions:
+* only bounds on which `expr.to_rat` succeeds will be considered "explicit" (TODO: generalise this?)
+* an instance of `decidable_eq α` is available,
+* an explicit lower bound can be found amongst the hypotheses, or from `lattice.bot_le n`,
+* an explicit upper bound can be found amongst the hypotheses, or from `lattice.le_top n`,
+* if multiple bounds are located, an instance of `decidable_linear_order α` is available, and
+* an instance of `fintype set.Ico l u` is available for the relevant bounds.
+
+You can also explicitly specify a lower and upper bound to use, as `interval_cases using hl hu`.
+The hypotheses should be in the form `hl : a ≤ n` and `hu : n < b`,
+in which case `interval_cases` calls `fin_cases` on the resulting fact `n ∈ set.Ico a b`.
+
 ## conv
 The `conv` tactic is built-in to lean. Inside `conv` blocks mathlib currently
 additionally provides
@@ -1115,15 +1148,11 @@ end
 
 ## omega
 
-`omega` attempts to discharge goals in the quantifier-free fragment of linear integer and natural number arithmetic using the Omega test. In other words, the core procedure of `omega` works with goals of the form
+`omega` attempts to discharge goals in the quantifier-free fragment of linear integer and natural number arithmetic using the Omega test. For instance:
 ```lean
-∀ x₁, ... ∀ xₖ, P
+example (x y : int) : (x ≤ 5 ∧ y ≤ 3) → x + y ≤ 8 := by omega
 ```
-where `x₁, ... xₖ` are integer (resp. natural number) variables, and `P` is a quantifier-free formula of linear integer (resp. natural number) arithmetic. For instance:
-```lean
-example : ∀ (x y : int), (x ≤ 5 ∧ y ≤ 3) → x + y ≤ 8 := by omega
-```
-By default, `omega` tries to guess the correct domain by looking at the goal and hypotheses, and then reverts all relevant hypotheses and variables (e.g., all variables of type `nat` and `Prop`s in linear natural number arithmetic, if the domain was determined to be `nat`) to universally close the goal before calling the main procedure. Therefore, `omega` will often work even if the goal is not in the above form:
+By default, `omega` tries to guess the correct domain by looking at the goal and hypotheses, and then reverts all relevant hypotheses (i.e., all `Prop`s in linear natural number arithmetic, if the domain was determined to be `nat`) before calling the main procedure (if an hypothesis is not reverted and included in the goal, it will not be available to `omega`). Therefore, `omega` will still work with:
 ```lean
 example (x y : nat) (h : 2 * x + 1 = 2 * y) : false := by omega
 ```

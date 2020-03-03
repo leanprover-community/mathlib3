@@ -92,30 +92,6 @@ instance [add_comm_group α] : comm_group (multiplicative α) :=
 { mul_comm := @add_comm α _,
   ..multiplicative.group }
 
-instance additive.is_add_hom [has_mul α] [has_mul β] (f : α → β) [is_mul_hom f] :
-  @is_add_hom (additive α) (additive β) _ _ f :=
-{ map_add := @is_mul_hom.map_mul α β _ _ f _ }
-
-instance multiplicative.is_mul_hom [has_add α] [has_add β] (f : α → β) [is_add_hom f] :
-  @is_mul_hom (multiplicative α) (multiplicative β) _ _ f :=
-{ map_mul := @is_add_hom.map_add α β _ _ f _ }
-
-instance additive.is_add_monoid_hom [monoid α] [monoid β] (f : α → β) [is_monoid_hom f] :
-  @is_add_monoid_hom (additive α) (additive β) _ _ f :=
-{ map_zero := @is_monoid_hom.map_one α β _ _ f _ }
-
-instance multiplicative.is_monoid_hom [add_monoid α] [add_monoid β] (f : α → β) [is_add_monoid_hom f] :
-  @is_monoid_hom (multiplicative α) (multiplicative β) _ _ f :=
-{ map_one := @is_add_monoid_hom.map_zero α β _ _ f _ }
-
-instance additive.is_add_group_hom [group α] [group β] (f : α → β) [is_group_hom f] :
-  @is_add_group_hom (additive α) (additive β) _ _ f :=
-{ map_add := @is_mul_hom.map_mul α β _ _ f _ }
-
-instance multiplicative.is_group_hom [add_group α] [add_group β] (f : α → β) [is_add_group_hom f] :
-  @is_group_hom (multiplicative α) (multiplicative β) _ _ f :=
-{ map_mul := @is_add_hom.map_add α β _ _ f _ }
-
 /-- Reinterpret `f : α →+ β` as `multiplicative α →* multiplicative β`. -/
 def add_monoid_hom.to_multiplicative [add_monoid α] [add_monoid β] (f : α →+ β) :
   multiplicative α →* multiplicative β :=

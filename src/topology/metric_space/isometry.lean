@@ -49,11 +49,14 @@ section emetric_isometry
 variables [emetric_space α] [emetric_space β] [emetric_space γ]
 variables {f : α → β} {x y z : α}  {s : set α}
 
+lemma isometry.lipschitz (h : isometry f) : lipschitz_with 1 f :=
+lipschitz_with.of_edist_le $ λ x y, le_of_eq (h x y)
+
+lemma isometry.antilipschitz (h : isometry f) : antilipschitz_with 1 f :=
+λ x y, by simp only [h x y, ennreal.coe_one, one_mul, le_refl]
+
 /-- An isometry is injective -/
-lemma isometry.injective (h : isometry f) : injective f :=
-λx y hxy, edist_eq_zero.1 $
-calc edist x y = edist (f x) (f y) : (h x y).symm
-         ...   = 0 : by rw [hxy]; simp
+lemma isometry.injective (h : isometry f) : injective f := h.antilipschitz.injective
 
 /-- Any map on a subsingleton is an isometry -/
 theorem isometry_subsingleton [subsingleton α] : isometry f :=
@@ -71,29 +74,25 @@ assume x y, calc
 
 /-- An isometry is an embedding -/
 theorem isometry.uniform_embedding (hf : isometry f) : uniform_embedding f :=
-begin
-  refine emetric.uniform_embedding_iff'.2 ⟨_, _⟩,
-  { assume ε εpos,
-    existsi [ε, εpos],
-    simp [hf.edist_eq] },
-  { assume δ δpos,
-    existsi [δ, δpos],
-    simp [hf.edist_eq] }
-end
+hf.antilipschitz.uniform_embedding hf.lipschitz.uniform_continuous
 
 /-- An isometry is continuous. -/
 lemma isometry.continuous (hf : isometry f) : continuous f :=
-hf.uniform_embedding.embedding.continuous
+hf.lipschitz.continuous
 
 /-- The inverse of an isometry is an isometry. -/
 lemma isometry.inv (e : α ≃ β) (h : isometry e.to_fun) : isometry e.inv_fun :=
 λx y, by rw [← h, e.right_inv _, e.right_inv _]
 
-/-- Isometries preserve the diameter -/
-lemma emetric.isometry.diam_image (hf : isometry f) {s : set α}:
+/-- Isometries preserve the diameter in emetric spaces. -/
+lemma isometry.ediam_image (hf : isometry f) (s : set α) :
   emetric.diam (f '' s) = emetric.diam s :=
 eq_of_forall_ge_iff $ λ d,
 by simp only [emetric.diam_le_iff_forall_edist_le, ball_image_iff, hf.edist_eq]
+
+lemma isometry.ediam_range (hf : isometry f) :
+  emetric.diam (range f) = emetric.diam (univ : set α) :=
+by { rw ← image_univ, exact hf.ediam_image univ }
 
 /-- The injection from a subtype is an isometry -/
 lemma isometry_subtype_val {s : set α} : isometry (subtype.val : s → α) :=
@@ -101,12 +100,16 @@ lemma isometry_subtype_val {s : set α} : isometry (subtype.val : s → α) :=
 
 end emetric_isometry --section
 
-/-- An isometry preserves the diameter in metric spaces -/
-lemma metric.isometry.diam_image [metric_space α] [metric_space β]
-  {f : α → β} {s : set α} (hf : isometry f) : metric.diam (f '' s) = metric.diam s :=
-by rw [metric.diam, metric.diam, emetric.isometry.diam_image hf]
+/-- An isometry preserves the diameter in metric spaces. -/
+lemma isometry.diam_image [metric_space α] [metric_space β]
+  {f : α → β} (hf : isometry f) (s : set α) : metric.diam (f '' s) = metric.diam s :=
+by rw [metric.diam, metric.diam, hf.ediam_image]
 
-/-- α and β are isometric if there is an isometric bijection between them. -/
+lemma isometry.diam_range [metric_space α] [metric_space β] {f : α → β} (hf : isometry f) :
+  metric.diam (range f) = metric.diam (univ : set α) :=
+by { rw ← image_univ, exact hf.diam_image univ }
+
+/-- `α` and `β` are isometric if there is an isometric bijection between them. -/
 structure isometric (α : Type*) (β : Type*) [emetric_space α] [emetric_space β]
   extends α ≃ β :=
 (isometry_to_fun  : isometry to_fun)

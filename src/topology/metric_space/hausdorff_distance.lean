@@ -291,7 +291,8 @@ begin
 end
 
 /-- The Hausdorff edistance between a set and its closure vanishes -/
-@[simp] lemma Hausdorff_edist_self_closure : Hausdorff_edist s (closure s) = 0 :=
+@[simp, priority 1100]
+lemma Hausdorff_edist_self_closure : Hausdorff_edist s (closure s) = 0 :=
 begin
   erw ← le_bot_iff,
   simp only [Hausdorff_edist, inf_edist_closure, -le_zero_iff_eq, and_imp,
@@ -679,7 +680,8 @@ begin
 end
 
 /-- The Hausdorff distance between a set and its closure vanish -/
-@[simp] lemma Hausdorff_dist_self_closure : Hausdorff_dist s (closure s) = 0 :=
+@[simp, priority 1100]
+lemma Hausdorff_dist_self_closure : Hausdorff_dist s (closure s) = 0 :=
 by simp [Hausdorff_dist]
 
 /-- Replacing a set by its closure does not change the Hausdorff distance. -/

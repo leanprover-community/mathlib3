@@ -78,7 +78,7 @@ private lemma max_var_bound : dist x y ≤ max_var α β := calc
   ... ≤ diam (inl '' (univ : set α)) + dist (inl (default α)) (inr (default β)) + diam (inr '' (univ : set β)) :
     diam_union (mem_image_of_mem _ (mem_univ _)) (mem_image_of_mem _ (mem_univ _))
   ... = diam (univ : set α) + (dist (default α) (default α) + 1 + dist (default β) (default β)) + diam (univ : set β) :
-    by { rw [isometry.diam_image isometry_on_inl, isometry.diam_image isometry_on_inr], refl }
+    by { rw [isometry_on_inl.diam_image, isometry_on_inr.diam_image], refl }
   ... = 1 * diam (univ : set α) + 1 + 1 * diam (univ : set β) : by simp
   ... ≤ 2 * diam (univ : set α) + 1 + 2 * diam (univ : set β) :
   begin
@@ -161,7 +161,7 @@ calc
 private lemma candidates_lipschitz (fA : f ∈ candidates α β) :
   lipschitz_with (2 * max_var α β) f :=
 begin
-  apply lipschitz_with.of_dist_le,
+  apply lipschitz_with.of_dist_le_mul,
   rintros ⟨x, y⟩ ⟨z, t⟩,
   rw real.dist_eq,
   apply abs_le_of_le_of_neg_le,
@@ -245,7 +245,7 @@ begin
         tendsto_const_nhds.mul tendsto_id,
       simpa using this },
     { assume x y f hf,
-      exact (candidates_lipschitz hf).dist_le _ _ } }
+      exact (candidates_lipschitz hf).dist_le_mul _ _ } }
 end
 
 /-- We will then choose the candidate minimizing the Hausdorff distance. Except that we are not

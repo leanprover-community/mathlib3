@@ -136,7 +136,7 @@ lemma dist_sub_sub_le_of_le {g₁ g₂ h₁ h₂ : α} {d₁ d₂ : ℝ}
   dist (g₁ - g₂) (h₁ - h₂) ≤ d₁ + d₂ :=
 le_trans (dist_sub_sub_le g₁ g₂ h₁ h₂) (add_le_add H₁ H₂)
 
-lemma dist_add_add_ge (g₁ g₂ h₁ h₂ : α) :
+lemma abs_dist_sub_le_dist_add_add (g₁ g₂ h₁ h₂ : α) :
   abs (dist g₁ h₁ - dist g₂ h₂) ≤ dist (g₁ + g₂) (h₁ + h₂) :=
 by simpa only [dist_add_left, dist_add_right, dist_comm h₂]
   using abs_dist_sub_le (g₁ + g₂) (h₁ + h₂) (h₁ + g₂)
@@ -263,16 +263,17 @@ lemma lipschitz_with.sub {α : Type*} [emetric_space α] {Kf : nnreal} {f : α �
 hf.add hg.neg
 
 lemma antilipschitz_with.add_lipschitz_with {α : Type*} [metric_space α] {Kf : nnreal} {f : α → β}
-  (hf : antilipschitz_with Kf f) {Kg : nnreal} {g : α → β} (hg : lipschitz_with Kg g) :
-  antilipschitz_with (Kf - Kg) (λ x, f x + g x) :=
+  (hf : antilipschitz_with Kf f) {Kg : nnreal} {g : α → β} (hg : lipschitz_with Kg g) 
+  (hK : Kg < Kf⁻¹) :
+  antilipschitz_with (Kf⁻¹ - Kg)⁻¹ (λ x, f x + g x) :=
 begin
-  cases le_total Kf Kg with hKfg hKfg,
-    by simp only[nnreal.sub_eq_zero hKfg, antilipschitz_with.zero],
-  refine antilipschitz_with.of_mul_dist_le (λ x y, _),
-  rw [nnreal.coe_sub hKfg, sub_mul],
-  calc ↑Kf * dist x y - Kg * dist x y ≤ dist (f x) (f y) - dist (g x) (g y) :
-    sub_le_sub (hf.mul_dist_le x y) (hg.dist_le x y)
-  ... ≤ _ : le_trans (le_abs_self _) (dist_add_add_ge _ _ _ _)
+  refine antilipschitz_with.of_le_mul_dist (λ x y, _),
+  rw [nnreal.coe_inv, ← div_eq_inv_mul],
+  apply le_div_of_mul_le (nnreal.coe_pos.2 $ nnreal.sub_pos.2 hK),
+  rw [mul_comm, nnreal.coe_sub (le_of_lt hK), sub_mul],
+  calc ↑Kf⁻¹ * dist x y - Kg * dist x y ≤ dist (f x) (f y) - dist (g x) (g y) :
+    sub_le_sub (hf.mul_le_dist x y) (hg.dist_le_mul x y)
+  ... ≤ _ : le_trans (le_abs_self _) (abs_dist_sub_le_dist_add_add _ _ _ _)
 end
 
 /-- A submodule of a normed group is also a normed group, with the restriction of the norm.

@@ -36,11 +36,11 @@ we have `dist (f x) (f y) ≤ K * dist x y` -/
 def lipschitz_with [emetric_space α] [emetric_space β] (K : ℝ≥0) (f : α → β) :=
 ∀x y, edist (f x) (f y) ≤ K * edist x y
 
-lemma lipschitz_with_iff_dist_le [metric_space α] [metric_space β] {K : ℝ≥0} {f : α → β} :
+lemma lipschitz_with_iff_dist_le_mul [metric_space α] [metric_space β] {K : ℝ≥0} {f : α → β} :
   lipschitz_with K f ↔ ∀ x y, dist (f x) (f y) ≤ K * dist x y :=
 by { simp only [lipschitz_with, edist_nndist, dist_nndist], norm_cast }
 
-alias lipschitz_with_iff_dist_le ↔ lipschitz_with.dist_le lipschitz_with.of_dist_le
+alias lipschitz_with_iff_dist_le_mul ↔ lipschitz_with.dist_le_mul lipschitz_with.of_dist_le_mul
 
 namespace lipschitz_with
 
@@ -48,9 +48,9 @@ section emetric
 
 variables [emetric_space α] [emetric_space β] [emetric_space γ] {K : ℝ≥0} {f : α → β}
 
-lemma edist_le (h : lipschitz_with K f) (x y : α) : edist (f x) (f y) ≤ K * edist x y := h x y
+lemma edist_le_mul (h : lipschitz_with K f) (x y : α) : edist (f x) (f y) ≤ K * edist x y := h x y
 
-lemma edist_ge (h : lipschitz_with K f) (x y : α) :
+lemma mul_edist_le (h : lipschitz_with K f) (x y : α) :
   (K⁻¹ : ennreal) * edist (f x) (f y) ≤ edist x y :=
 begin
   have := h x y,
@@ -59,7 +59,7 @@ begin
   rwa [ennreal.div_def, mul_comm] at this
 end
 
-protected lemma edist_mk_one (h : ∀ x y, edist (f x) (f y) ≤ edist x y) :
+protected lemma of_edist_le (h : ∀ x y, edist (f x) (f y) ≤ edist x y) :
   lipschitz_with 1 f :=
 λ x y, by simp only [ennreal.coe_one, one_mul, h]
 
@@ -72,7 +72,7 @@ lemma ediam_image_le (hf : lipschitz_with K f) (s : set α) :
 begin
   apply emetric.diam_le_of_forall_edist_le,
   rintros _ ⟨x, hx, rfl⟩ _ ⟨y, hy, rfl⟩,
-  calc edist (f x) (f y) ≤ ↑K * edist x y : hf.edist_le x y
+  calc edist (f x) (f y) ≤ ↑K * edist x y : hf.edist_le_mul x y
                      ... ≤ ↑K * emetric.diam s :
     ennreal.mul_left_mono (emetric.edist_le_diam_of_mem hx hy)
 end
@@ -84,7 +84,7 @@ begin
   refine emetric.uniform_continuous_iff.2 (λε εpos, _),
   use [ε/K, canonically_ordered_semiring.mul_pos.2 ⟨εpos, ennreal.inv_pos.2 $ ennreal.coe_ne_top⟩],
   assume x y Dxy,
-  apply lt_of_le_of_lt (hf.edist_le x y),
+  apply lt_of_le_of_lt (hf.edist_le_mul x y),
   rw [mul_comm],
   exact ennreal.mul_lt_of_lt_div Dxy
 end
@@ -98,10 +98,10 @@ protected lemma const (b : β) : lipschitz_with 0 (λa:α, b) :=
 assume x y, by simp only [edist_self, zero_le]
 
 protected lemma id : lipschitz_with 1 (@id α) :=
-lipschitz_with.edist_mk_one $ assume x y, le_refl _
+lipschitz_with.of_edist_le $ assume x y, le_refl _
 
 protected lemma subtype_val (s : set α) : lipschitz_with 1 (subtype.val : s → α) :=
-lipschitz_with.edist_mk_one $ assume x y, le_refl _
+lipschitz_with.of_edist_le $ assume x y, le_refl _
 
 protected lemma subtype_coe (s : set α) : lipschitz_with 1 (coe : s → α) :=
 lipschitz_with.subtype_val s
@@ -114,10 +114,10 @@ calc edist (f (g x)) (f (g y)) ≤ Kf * edist (g x) (g y) : hf _ _
 ... = (Kf * Kg : ℝ≥0) * edist x y : by rw [← mul_assoc, ennreal.coe_mul]
 
 protected lemma prod_fst : lipschitz_with 1 (@prod.fst α β) :=
-lipschitz_with.edist_mk_one $ assume x y, le_max_left _ _
+lipschitz_with.of_edist_le $ assume x y, le_max_left _ _
 
 protected lemma prod_snd : lipschitz_with 1 (@prod.snd α β) :=
-lipschitz_with.edist_mk_one $ assume x y, le_max_right _ _
+lipschitz_with.of_edist_le $ assume x y, le_max_right _ _
 
 protected lemma prod {f : α → β} {Kf : ℝ≥0} (hf : lipschitz_with Kf f)
   {g : α → γ} {Kg : ℝ≥0} (hg : lipschitz_with Kg g) :
@@ -182,12 +182,12 @@ variables [metric_space α] [metric_space β] [metric_space γ] {K : ℝ≥0}
 
 protected lemma of_dist_le' {f : α → β} {K : ℝ} (h : ∀ x y, dist (f x) (f y) ≤ K * dist x y) :
   lipschitz_with (nnreal.of_real K) f :=
-of_dist_le $ λ x y, le_trans (h x y) $
+of_dist_le_mul $ λ x y, le_trans (h x y) $
   mul_le_mul_of_nonneg_right (nnreal.le_coe_of_real K) dist_nonneg
 
 protected lemma mk_one {f : α → β} (h : ∀ x y, dist (f x) (f y) ≤ dist x y) :
   lipschitz_with 1 f :=
-of_dist_le $ by simpa only [nnreal.coe_one, one_mul] using h
+of_dist_le_mul $ by simpa only [nnreal.coe_one, one_mul] using h
 
 /-- For functions to `ℝ`, it suffices to prove `f x ≤ f y + K * dist x y`; this version
 doesn't assume `0≤K`. -/
@@ -211,7 +211,7 @@ lipschitz_with.of_le_add_mul 1 $ by simpa only [nnreal.coe_one, one_mul]
 
 protected lemma le_add_mul {f : α → ℝ} {K : ℝ≥0} (h : lipschitz_with K f) (x y) :
   f x ≤ f y + K * dist x y :=
-sub_le_iff_le_add'.1 $ le_trans (le_abs_self _) $ h.dist_le x y
+sub_le_iff_le_add'.1 $ le_trans (le_abs_self _) $ h.dist_le_mul x y
 
 protected lemma iff_le_add_mul {f : α → ℝ} {K : ℝ≥0} :
   lipschitz_with K f ↔ ∀ x y, f x ≤ f y + K * dist x y :=
@@ -219,14 +219,14 @@ protected lemma iff_le_add_mul {f : α → ℝ} {K : ℝ≥0} :
 
 lemma nndist_le {f : α → β} (hf : lipschitz_with K f) (x y : α) :
   nndist (f x) (f y) ≤ K * nndist x y :=
-hf.dist_le x y
+hf.dist_le_mul x y
 
 lemma diam_image_le {f : α → β} (hf : lipschitz_with K f) (s : set α) (hs : metric.bounded s) :
   metric.diam (f '' s) ≤ K * metric.diam s :=
 begin
   apply metric.diam_le_of_forall_dist_le (mul_nonneg K.coe_nonneg metric.diam_nonneg),
   rintros _ ⟨x, hx, rfl⟩ _ ⟨y, hy, rfl⟩,
-  calc dist (f x) (f y) ≤ ↑K * dist x y      : hf.dist_le x y
+  calc dist (f x) (f y) ≤ ↑K * dist x y      : hf.dist_le_mul x y
                     ... ≤ ↑K * metric.diam s :
     mul_le_mul_of_nonneg_left (metric.dist_le_diam_of_mem hs hx hy) K.2
 end
@@ -244,7 +244,7 @@ lemma dist_iterate_succ_le_geometric {f : α → α} (hf : lipschitz_with K f) (
   dist (f^[n] x) (f^[n + 1] x) ≤ dist x (f x) * K ^ n :=
 begin
   rw [nat.iterate_succ, mul_comm],
-  simpa only [nnreal.coe_pow] using (hf.iterate n).dist_le x (f x)
+  simpa only [nnreal.coe_pow] using (hf.iterate n).dist_le_mul x (f x)
 end
 
 end metric

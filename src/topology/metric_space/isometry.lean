@@ -50,13 +50,13 @@ variables [emetric_space α] [emetric_space β] [emetric_space γ]
 variables {f : α → β} {x y z : α}  {s : set α}
 
 lemma isometry.lipschitz (h : isometry f) : lipschitz_with 1 f :=
-lipschitz_with.edist_mk_one $ λ x y, le_of_eq (h x y)
+lipschitz_with.of_edist_le $ λ x y, le_of_eq (h x y)
 
 lemma isometry.antilipschitz (h : isometry f) : antilipschitz_with 1 f :=
 λ x y, by simp only [h x y, ennreal.coe_one, one_mul, le_refl]
 
 /-- An isometry is injective -/
-lemma isometry.injective (h : isometry f) : injective f := h.antilipschitz.injective zero_lt_one
+lemma isometry.injective (h : isometry f) : injective f := h.antilipschitz.injective
 
 /-- Any map on a subsingleton is an isometry -/
 theorem isometry_subsingleton [subsingleton α] : isometry f :=
@@ -74,7 +74,7 @@ assume x y, calc
 
 /-- An isometry is an embedding -/
 theorem isometry.uniform_embedding (hf : isometry f) : uniform_embedding f :=
-hf.antilipschitz.uniform_embedding zero_lt_one hf.lipschitz.uniform_continuous
+hf.antilipschitz.uniform_embedding hf.lipschitz.uniform_continuous
 
 /-- An isometry is continuous. -/
 lemma isometry.continuous (hf : isometry f) : continuous f :=

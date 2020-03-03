@@ -45,8 +45,8 @@ include hf
 
 lemma to_lipschitz_with : lipschitz_with K f := hf.2
 
-lemma dist_le (x y : α) : dist (f x) (f y) ≤ K * dist x y :=
-hf.to_lipschitz_with.dist_le x y
+lemma dist_le_mul (x y : α) : dist (f x) (f y) ≤ K * dist x y :=
+hf.to_lipschitz_with.dist_le_mul x y
 
 lemma one_sub_K_pos : (0:ℝ) < 1 - K := sub_pos_of_lt hf.1
 
@@ -55,7 +55,7 @@ suffices dist x y ≤ dist x (f x) + dist y (f y) + K * dist x y,
   by rwa [le_div_iff hf.one_sub_K_pos, mul_comm, sub_mul, one_mul, sub_le_iff_le_add],
 calc dist x y ≤ dist x (f x) + dist y (f y) + dist (f x) (f y) : dist_triangle4_right _ _ _ _
           ... ≤ dist x (f x) + dist y (f y) + K * dist x y :
-  add_le_add_left (hf.dist_le _ _) _
+  add_le_add_left (hf.dist_le_mul _ _) _
 
 lemma dist_le_of_fixed_point (x) {y} (hy : f y = y) :
   dist x y ≤ (dist x (f x)) / (1 - K) :=

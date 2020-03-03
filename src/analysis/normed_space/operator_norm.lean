@@ -37,7 +37,12 @@ variables [normed_field 𝕜] [normed_space 𝕜 E] [normed_space 𝕜 F] (f : E
 
 lemma linear_map.lipschitz_of_bound (C : ℝ) (h : ∀x, ∥f x∥ ≤ C * ∥x∥) :
   lipschitz_with (nnreal.of_real C) f :=
-lipschitz_with.of_dist_le' $ λ x y, by simpa [dist_eq_norm] using h (x - y)
+lipschitz_with.of_dist_le' $ λ x y, by simpa only [dist_eq_norm, f.map_sub] using h (x - y)
+
+theorem linear_map.antilipschitz_of_bound {K : nnreal} (h : ∀ x, ∥x∥ ≤ K * ∥f x∥) :
+  antilipschitz_with K f :=
+antilipschitz_with.of_le_mul_dist $
+λ x y, by simpa only [dist_eq_norm, f.map_sub] using h (x - y)
 
 lemma linear_map.uniform_continuous_of_bound (C : ℝ) (h : ∀x, ∥f x∥ ≤ C * ∥x∥) :
   uniform_continuous f :=
@@ -217,7 +222,7 @@ classical.by_cases
 
 /-- continuous linear maps are Lipschitz continuous. -/
 theorem lipschitz : lipschitz_with ⟨∥f∥, op_norm_nonneg f⟩ f :=
-lipschitz_with.of_dist_le $ λ x y,
+lipschitz_with.of_dist_le_mul $ λ x y,
   by { rw [dist_eq_norm, dist_eq_norm, ←map_sub], apply le_op_norm }
 
 lemma ratio_le_op_norm : ∥f x∥ / ∥x∥ ≤ ∥f∥ :=
@@ -240,7 +245,7 @@ Inf_le _ bounds_bdd_below ⟨hMp, hM⟩
 
 theorem op_norm_le_of_lipschitz {f : E →L[𝕜] F} {K : nnreal} (hf : lipschitz_with K f) :
   ∥f∥ ≤ K :=
-f.op_norm_le_bound K.2 $ λ x, by simpa only [dist_zero_right, f.map_zero] using hf.dist_le x 0
+f.op_norm_le_bound K.2 $ λ x, by simpa only [dist_zero_right, f.map_zero] using hf.dist_le_mul x 0
 
 /-- The operator norm satisfies the triangle inequality. -/
 theorem op_norm_add_le : ∥f + g∥ ≤ ∥f∥ + ∥g∥ :=
@@ -329,26 +334,15 @@ begin
 end
 
 variable (f)
-/-- A continuous linear map is a uniform embedding if it expands the norm by a constant factor. -/
-theorem uniform_embedding_of_bound (C : ℝ) (hC : ∀x, ∥x∥ ≤ C * ∥f x∥) :
-  uniform_embedding f :=
-begin
-  have Cpos : 0 < max C 1 := lt_of_lt_of_le zero_lt_one (le_max_right _ _),
-  refine uniform_embedding_iff'.2 ⟨metric.uniform_continuous_iff.1 f.uniform_continuous,
-                                    λδ δpos, ⟨δ / (max C 1), div_pos δpos Cpos, λx y hxy, _⟩⟩,
-  calc dist x y = ∥x - y∥ : by rw dist_eq_norm
-  ... ≤ C * ∥f (x - y)∥ : hC _
-  ... = C * dist (f x) (f y) : by rw [f.map_sub, dist_eq_norm]
-  ... ≤ max C 1 * dist (f x) (f y) :
-    mul_le_mul_of_nonneg_right (le_max_left _ _) dist_nonneg
-  ... < max C 1 * (δ / max C 1) : mul_lt_mul_of_pos_left hxy Cpos
-  ... = δ : by { rw mul_comm, exact div_mul_cancel _ (ne_of_lt Cpos).symm }
-end
 
-/-- If a continuous linear map is a uniform embedding, then it expands the norm by a positive
-factor.-/
-theorem bound_of_uniform_embedding (hf : uniform_embedding f) :
-  ∃ C : ℝ, 0 < C ∧ ∀x, ∥x∥ ≤ C * ∥f x∥ :=
+theorem uniform_embedding_of_bound {K : nnreal} (hf : ∀ x, ∥x∥ ≤ K * ∥f x∥) :
+  uniform_embedding f :=
+(f.to_linear_map.antilipschitz_of_bound hf).uniform_embedding f.uniform_continuous
+
+/-- If a continuous linear map is a uniform embedding, then it is expands the distances
+by a positive factor.-/
+theorem antilipschitz_of_uniform_embedding (hf : uniform_embedding f) :
+  ∃ K, antilipschitz_with K f :=
 begin
   obtain ⟨ε, εpos, hε⟩ : ∃ (ε : ℝ) (H : ε > 0), ∀ {x y : E}, dist (f x) (f y) < ε → dist x y < 1, from
     (uniform_embedding_iff.1 hf).2.2 1 zero_lt_one,
@@ -361,9 +355,10 @@ begin
       apply hε,
       simp [dist_eq_norm],
       exact lt_of_le_of_lt hx (half_lt_self εpos) },
-  simpa using this },
+    simpa using this },
   rcases normed_field.exists_one_lt_norm 𝕜 with ⟨c, hc⟩,
-  refine ⟨δ⁻¹ * ∥c∥, (mul_pos (inv_pos δ_pos) ((lt_trans zero_lt_one hc))), (λx, _)⟩,
+  refine ⟨⟨δ⁻¹, _⟩ * nnnorm c, f.to_linear_map.antilipschitz_of_bound $ λx, _⟩,
+  exact inv_nonneg.2 (le_of_lt δ_pos),
   by_cases hx : f x = 0,
   { have : f x = f 0, by { simp [hx] },
     have : x = 0 := (uniform_embedding_iff.1 hf).1 this,
@@ -423,15 +418,15 @@ end
 end
 
 section
-variables {N : ℝ} (h_e : ∀x, ∥x∥ ≤ N * ∥e x∥)
+variables {N : nnreal} (h_e : ∀x, ∥x∥ ≤ N * ∥e x∥)
 
-local notation `ψ` := f.extend e h_dense (uniform_embedding_of_bound _ _ h_e).to_uniform_inducing
+local notation `ψ` := f.extend e h_dense (uniform_embedding_of_bound _ h_e).to_uniform_inducing
 
 /-- If a dense embedding `e : E →L[𝕜] G` expands the norm by a constant factor `N⁻¹`, then the norm
     of the extension of `f` along `e` is bounded by `N * ∥f∥`. -/
 lemma op_norm_extend_le : ∥ψ∥ ≤ N * ∥f∥ :=
 begin
-  have uni : uniform_inducing e := (uniform_embedding_of_bound _ _ h_e).to_uniform_inducing,
+  have uni : uniform_inducing e := (uniform_embedding_of_bound _ h_e).to_uniform_inducing,
   have eq : ∀x, ψ (e x) = f x := uniformly_extend_of_ind uni h_dense f.uniform_continuous,
   by_cases N0 : 0 ≤ N,
   { refine op_norm_le_bound ψ _ (is_closed_property h_dense (is_closed_le _ _) _),
@@ -442,7 +437,7 @@ begin
       rw eq,
       calc ∥f x∥ ≤ ∥f∥ * ∥x∥ : le_op_norm _ _
         ... ≤ ∥f∥ * (N * ∥e x∥) : mul_le_mul_of_nonneg_left (h_e x) (norm_nonneg _)
-        ... ≤ N * ∥f∥ * ∥e x∥ : by rw [mul_comm N ∥f∥, mul_assoc] } },
+        ... ≤ N * ∥f∥ * ∥e x∥ : by rw [mul_comm ↑N ∥f∥, mul_assoc] } },
   { have he : ∀ x : E, x = 0,
     { assume x,
       have N0 : N ≤ 0 := le_of_lt (lt_of_not_ge N0),
@@ -507,22 +502,25 @@ end restrict_scalars
 
 end continuous_linear_map
 
-/-- A continuous linear equiv is a uniform embedding. -/
-lemma continuous_linear_equiv.uniform_embedding (e : E ≃L[𝕜] F) :
-  uniform_embedding e :=
-begin
-  refine (e : E →L[𝕜] F).uniform_embedding_of_bound (∥(e.symm : F →L[𝕜] E)∥) (λ x, _),
-  conv_lhs { rw [← e.symm_apply_apply x] },
-  exact (e.symm : F →L[𝕜] E).le_op_norm (e x)
-end
-
 lemma continuous_linear_equiv.lipschitz (e : E ≃L[𝕜] F) :
   lipschitz_with (nnnorm (e : E →L[𝕜] F)) e :=
 (e : E →L[𝕜] F).lipschitz
 
 lemma continuous_linear_equiv.antilipschitz (e : E ≃L[𝕜] F) :
-  antilipschitz_with (nnnorm (e.symm : F →L[𝕜] E))⁻¹ e :=
+  antilipschitz_with (nnnorm (e.symm : F →L[𝕜] E)) e :=
 e.symm.lipschitz.to_inverse e.left_inv
+
+/-- A continuous linear equiv is a uniform embedding. -/
+lemma continuous_linear_equiv.uniform_embedding (e : E ≃L[𝕜] F) :
+  uniform_embedding e :=
+e.antilipschitz.uniform_embedding e.lipschitz.uniform_continuous
+
+lemma linear_equiv.uniform_embedding (e : E ≃ₗ[𝕜] F) (h₁ : continuous e) (h₂ : continuous e.symm) :
+  uniform_embedding e :=
+continuous_linear_equiv.uniform_embedding
+{ continuous_to_fun := h₁,
+  continuous_inv_fun := h₂,
+  .. e }
 
 /-- If a continuous linear map is constructed from a linear map via the constructor `mk_continuous`,
 then its norm is bounded by the bound given to the constructor if it is nonnegative. -/

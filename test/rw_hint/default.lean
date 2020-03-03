@@ -13,13 +13,17 @@ open tactic
 
 example (C : cat) (W X Y Z : C.O) (f : C.H X Y) (g : C.H W X) (h k : C.H Y Z) : C.c (C.c g f) h = C.c g (C.c f h) :=
 begin
-  (do s ← tactic.rw_hint, guard $ "rw cat.a" ∈ s, guard $ "rw cat.ri" ∉ s),
+  -- rw_hint,
+  (do s ← tactic.rw_hint_target,
+      guard $ ("rw cat.a", "C.c g (C.c f h) = C.c g (C.c f h)") ∈ s,
+      guard $ "rw cat.ri" ∉ (s.map prod.fst)),
   rw cat.a,
 end
 
 example (C : cat) (X Y : C.O) (f : C.H X Y) : C.c f (C.i Y) = f :=
 begin
-  (do s ← tactic.rw_hint, guard $ "rw cat.ri" ∈ s),
+  (do s ← tactic.rw_hint_target,
+      guard $ ("rw cat.ri", "f = f") ∈ s),
   rw cat.ri,
 end
 
@@ -126,12 +130,51 @@ Try this: rw ←ordered_semiring.add_comm
 -/
 example : 2 * (3 + 4) = 2 * 3 + 2 * 4 :=
 begin
-  try_for 5500 (do s ← tactic.rw_hint 1000, guard $ "rw left_distrib" ∈ s),
+  -- rw_hint,
+  try_for 5500 (do
+    t ← target,
+    s ← tactic.rw_hint t ff none 1000,
+    guard $ ("rw left_distrib", "2 * 3 + 2 * 4 = 2 * 3 + 2 * 4") ∈ s),
   rw left_distrib,
 end
 
 example (P Q : Prop) (h : P ↔ Q) (p : P) : Q :=
 begin
-  (do s ← tactic.rw_hint, guard $ "rw ←h" ∈ s),
+  (do s ← tactic.rw_hint_target, guard $ ("rw ←h", "P") ∈ s),
   rw ←h, exact p,
+end
+
+-- Verify that the `with` keyword behaves as expected.
+example (P Q : Prop) (h : P ↔ Q) (p : P) : Q ∨ Q :=
+begin
+  -- rw_hint with P,
+  (do s ← tactic.rw_hint_target (some ```(P)),
+      guard $ s.length = 1,
+      guard $ ("rw ←h", "P ∨ P") ∈ s),
+  -- rw_hint with ¬Q → Q,
+  (do s ← tactic.rw_hint_target (some ```(¬Q → Q)),
+      guard $ s.length = 2,
+      guard $ ("rw classical.or_iff_not_imp_left", "¬Q → Q") ∈ s),
+  -- rw_hint with _ ∨ _,
+  (do s ← tactic.rw_hint_target (some ```(_ ∨ _)),
+      guard $ ("rw ←h", "P ∨ P") ∈ s,
+      guard $ ("rw or.comm", "Q ∨ Q") ∈ s),
+
+  rw ←h, exact or.inl p,
+
+end
+
+-- Verify that in `conv` mode only rewrites that transform the entire focus are reported.
+example (P Q : Prop) (h : P ↔ Q) (p : P) : Q ∨ Q :=
+begin
+  conv {
+    (do s ← conv.lhs >>= (λ e, tactic.rw_hint e tt),
+        guard $ "rw ←h" ∉ (s.map prod.fst)),
+    (do s ← conv.lhs >>= (λ e, tactic.rw_hint e tt),
+        guard $ ("rw classical.or_iff_not_imp_left", "¬Q → Q") ∈ s),
+    congr,
+    (do s ← conv.lhs >>= (λ e, tactic.rw_hint e tt),
+        guard $ ("rw ←h", "P") ∈ s),
+  },
+  rw ←h, exact or.inl p,
 end

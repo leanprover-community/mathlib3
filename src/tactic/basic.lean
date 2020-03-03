@@ -30,4 +30,5 @@ import
   tactic.well_founded_tactics
   tactic.where
   tactic.hint
-  tactic.rw_hint
+  -- FIXME uncomment this when review is complete
+  -- tactic.rw_hint

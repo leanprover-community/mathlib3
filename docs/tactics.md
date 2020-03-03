@@ -497,10 +497,16 @@ Users should be careful that this is a blunt tool:
 * with 'generic' goals (in particular anything involving numerals) you will get many
   spurious suggestions.
 
-The main use case is for users with some familiarity with the mathlib naming conventions,
-who may be able to scan through a list of suggestions and quickly recognise from the
-names which are the actually relevant suggestions. Beginners unfamiliar with these
-conventions may find `rw_hint` unhelpful.
+There is also a `conv` mode, which may be more useful: it only reports rewrites that transform the
+entire current focus, so if you expect to be able to rewrite some particular subexpression using a
+lemma, you can use `congr` and `skip` inside `conv` to focus on that subexpression, and then call
+`rw_hint`, which hopefully will then return fewer false positives that `rw_hint` on the entire
+original goal.
+
+The main use case for `rw_hint` is for users with some familiarity with the mathlib naming
+conventions, who may be able to scan through a list of suggestions and quickly recognise from the
+names which are the actually relevant suggestions. Beginners unfamiliar with these conventions may
+find `rw_hint` unhelpful.
 
 ## solve_by_elim
 

@@ -133,10 +133,12 @@ is_glb_univ.Inf_eq
 @[simp] theorem Inf_insert {a : α} {s : set α} : Inf (insert a s) = a ⊓ Inf s :=
 ((is_glb_Inf s).insert a).Inf_eq
 
-@[simp] theorem Sup_singleton {a : α} : Sup {a} = a :=
+-- We will generalize this to conditionally complete lattices in `cSup_singleton`.
+theorem Sup_singleton {a : α} : Sup {a} = a :=
 is_lub_singleton.Sup_eq
 
-@[simp] theorem Inf_singleton {a : α} : Inf {a} = a :=
+-- We will generalize this to conditionally complete lattices in `cInf_singleton`.
+theorem Inf_singleton {a : α} : Inf {a} = a :=
 is_glb_singleton.Inf_eq
 
 theorem Sup_pair {a b : α} : Sup {a, b} = a ⊔ b :=
@@ -298,10 +300,12 @@ begin
   exact λ⟨h, W⟩, ⟨pq.2 h, eq.trans (f h) W⟩
 end
 
-@[simp] theorem infi_const [nonempty ι] {a : α} : (⨅ b:ι, a) = a :=
+-- We will generalize this to conditionally complete lattices in `cinfi_const`.
+theorem infi_const [nonempty ι] {a : α} : (⨅ b:ι, a) = a :=
 by rw [infi, range_const, Inf_singleton]
 
-@[simp] theorem supr_const [nonempty ι] {a : α} : (⨆ b:ι, a) = a :=
+-- We will generalize this to conditionally complete lattices in `csupr_const`.
+theorem supr_const [nonempty ι] {a : α} : (⨆ b:ι, a) = a :=
 by rw [supr, range_const, Sup_singleton]
 
 @[simp] lemma infi_top : (⨅i:ι, ⊤ : α) = ⊤ :=
@@ -561,9 +565,6 @@ calc (⨆ x ∈ s ∪ t, f x) = (⨆ x, (⨆h : x∈s, f x) ⊔ (⨆h : x∈t, f
 theorem supr_le_supr_of_subset {f : β → α} {s t : set β} (h : s ⊆ t) :
   (⨆ x ∈ s, f x) ≤ (⨆ x ∈ t, f x) :=
 by rw [(union_eq_self_of_subset_left h).symm, supr_union]; exact le_sup_left
-
-@[simp] theorem insert_of_has_insert {α : Type*} (x : α) (a : set α) :
-  has_insert.insert x a = insert x a := rfl
 
 theorem infi_insert {f : β → α} {s : set β} {b : β} : (⨅ x ∈ insert b s, f x) = f b ⊓ (⨅x∈s, f x) :=
 eq.trans infi_union $ congr_arg (λx:α, x ⊓ (⨅x∈s, f x)) infi_infi_eq_left

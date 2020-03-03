@@ -80,10 +80,10 @@ instance : inhabited ℤ_[p] := ⟨0⟩
 lemma zero_def : ∀ x : ℤ_[p], x = 0 ↔ x.val = 0
 | ⟨x, _⟩ := ⟨subtype.mk.inj, λ h, by simp at h; simp only [h]; refl⟩
 
-@[simp] lemma add_def : ∀ (x y : ℤ_[p]), (x+y).val = x.val + y.val
+lemma add_def : ∀ (x y : ℤ_[p]), (x+y).val = x.val + y.val
 | ⟨x, hx⟩ ⟨y, hy⟩ := rfl
 
-@[simp] lemma mul_def : ∀ (x y : ℤ_[p]), (x*y).val = x.val * y.val
+lemma mul_def : ∀ (x y : ℤ_[p]), (x*y).val = x.val * y.val
 | ⟨x, hx⟩ ⟨y, hy⟩ := rfl
 
 @[simp] lemma mk_zero {h} : (⟨0, h⟩ : ℤ_[p]) = (0 : ℤ_[p]) := rfl
@@ -192,7 +192,7 @@ theorem nonarchimedean : ∀ (q r : ℤ_[p]), ∥q + r∥ ≤ max (∥q∥) (∥
 theorem add_eq_max_of_ne : ∀ {q r : ℤ_[p]}, ∥q∥ ≠ ∥r∥ → ∥q+r∥ = max (∥q∥) (∥r∥)
 | ⟨_, _⟩ ⟨_, _⟩ := padic_norm_e.add_eq_max_of_ne
 
-@[simp] lemma norm_one : ∥(1 : ℤ_[p])∥ = 1 := normed_field.norm_one
+lemma norm_one : ∥(1 : ℤ_[p])∥ = 1 := normed_field.norm_one
 
 lemma eq_of_norm_add_lt_right {z1 z2 : ℤ_[p]}
   (h : ∥z1 + z2∥ < ∥z2∥) : ∥z1∥ = ∥z2∥ :=

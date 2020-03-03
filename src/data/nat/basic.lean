@@ -64,11 +64,19 @@ by rw succ_le_iff
 
 -- Just a restatement of `nat.lt_succ_iff` using `+1`.
 lemma lt_add_one_iff {a b : ℕ} : a < b + 1 ↔ a ≤ b :=
-nat.lt_succ_iff
+lt_succ_iff
 
 -- A flipped version of `lt_add_one_iff`.
 lemma lt_one_add_iff {a b : ℕ} : a < 1 + b ↔ a ≤ b :=
-by simp only [add_comm, nat.lt_succ_iff]
+by simp only [add_comm, lt_succ_iff]
+
+-- This is true reflexively, by the definition of `≤` on ℕ,
+-- but it's still useful to have, to convince Lean to change the syntactic type.
+lemma add_one_le_iff {a b : ℕ} : a + 1 ≤ b ↔ a < b :=
+iff.refl _
+
+lemma one_add_le_iff {a b : ℕ} : 1 + a ≤ b ↔ a < b :=
+by simp only [add_comm, add_one_le_iff]
 
 theorem of_le_succ {n m : ℕ} (H : n ≤ m.succ) : n ≤ m ∨ n = m.succ :=
 (lt_or_eq_of_le H).imp le_of_lt_succ id
@@ -567,16 +575,16 @@ lemma succ_div_of_not_dvd {a b : ℕ} (hba : ¬ b ∣ a + 1) :
   (a + 1) / b = a / b :=
 by rw [succ_div, if_neg hba, add_zero]
 
-@[simp] theorem mod_mod (a n : ℕ) : (a % n) % n = a % n :=
-(eq_zero_or_pos n).elim
-  (λ n0, by simp [n0])
-  (λ npos, mod_eq_of_lt (mod_lt _ npos))
-
 @[simp] theorem mod_mod_of_dvd (n : nat) {m k : nat} (h : m ∣ k) : n % k % m = n % m :=
 begin
   conv { to_rhs, rw ←mod_add_div n k },
   rcases h with ⟨t, rfl⟩, rw [mul_assoc, add_mul_mod_self_left]
 end
+
+@[simp] theorem mod_mod (a n : ℕ) : (a % n) % n = a % n :=
+(eq_zero_or_pos n).elim
+  (λ n0, by simp [n0])
+  (λ npos, mod_eq_of_lt (mod_lt _ npos))
 
 theorem add_pos_left {m : ℕ} (h : 0 < m) (n : ℕ) : 0 < m + n :=
 calc
@@ -705,6 +713,9 @@ theorem bit_lt_bit0 : ∀ (b) {n m : ℕ}, n < m → bit b n < bit0 m
 
 theorem bit_lt_bit (a b) {n m : ℕ} (h : n < m) : bit a n < bit b m :=
 lt_of_lt_of_le (bit_lt_bit0 _ h) (bit0_le_bit _ (le_refl _))
+
+lemma pos_of_bit0_pos {n : ℕ} (h : 0 < bit0 n) : 0 < n :=
+by { cases n, cases h, apply succ_pos, }
 
 /- partial subtraction -/
 
@@ -991,9 +1002,9 @@ size_le.2 $ lt_of_le_of_lt h (lt_size_self _)
 
 @[simp] theorem fact_zero : fact 0 = 1 := rfl
 
-@[simp] theorem fact_one : fact 1 = 1 := rfl
-
 @[simp] theorem fact_succ (n) : fact (succ n) = succ n * fact n := rfl
+
+@[simp] theorem fact_one : fact 1 = 1 := rfl
 
 theorem fact_pos : ∀ n, 0 < fact n
 | 0        := zero_lt_one

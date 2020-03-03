@@ -242,7 +242,7 @@ def id : M →L[R] M :=
 
 instance : has_one (M →L[R] M) := ⟨id⟩
 
-@[simp] lemma id_apply : (id : M →L[R] M) x = x := rfl
+lemma id_apply : (id : M →L[R] M) x = x := rfl
 @[simp, elim_cast] lemma coe_id : ((id : M →L[R] M) : M →ₗ[R] M) = linear_map.id := rfl
 @[simp, elim_cast] lemma coe_id' : ((id : M →L[R] M) : M → M) = _root_.id := rfl
 
@@ -269,11 +269,13 @@ instance : add_comm_group (M →L[R] M₂) :=
 by refine {zero := 0, add := (+), neg := has_neg.neg, ..};
    intros; ext; simp; cc
 
-@[simp] lemma sub_apply (x : M) : (f - g) x = f x - g x := rfl
+lemma sub_apply (x : M) : (f - g) x = f x - g x := rfl
 @[simp, move_cast] lemma coe_sub : (((f - g) : M →L[R] M₂) : M →ₗ[R] M₂) = (f : M →ₗ[R] M₂) - g := rfl
 @[simp, move_cast] lemma coe_sub' : (((f - g) : M →L[R] M₂) : M → M₂) = (f : M → M₂) - g := rfl
 
 end add
+
+@[simp] lemma sub_apply' (x : M) : ((f : M →ₗ[R] M₂) - g) x = f x - g x := rfl
 
 /-- Composition of bounded linear maps. -/
 def comp (g : M₂ →L[R] M₃) (f : M →L[R] M₂) : M →L[R] M₃ :=

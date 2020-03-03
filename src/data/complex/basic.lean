@@ -43,7 +43,7 @@ instance : inhabited ℂ := ⟨0⟩
 @[simp, squash_cast] lemma of_real_zero : ((0 : ℝ) : ℂ) = 0 := rfl
 
 @[simp] theorem of_real_eq_zero {z : ℝ} : (z : ℂ) = 0 ↔ z = 0 := of_real_inj
-@[simp] theorem of_real_ne_zero {z : ℝ} : (z : ℂ) ≠ 0 ↔ z ≠ 0 := not_congr of_real_eq_zero
+theorem of_real_ne_zero {z : ℝ} : (z : ℂ) ≠ 0 ↔ z ≠ 0 := not_congr of_real_eq_zero
 
 instance : has_one ℂ := ⟨(1 : ℝ)⟩
 
@@ -110,12 +110,13 @@ def conj (z : ℂ) : ℂ := ⟨z.re, -z.im⟩
 @[simp] lemma conj_zero : conj 0 = 0 := ext_iff.2 $ by simp [conj]
 @[simp] lemma conj_one : conj 1 = 1 := ext_iff.2 $ by simp
 @[simp] lemma conj_I : conj I = -I := ext_iff.2 $ by simp
-@[simp] lemma conj_neg_I : conj (-I) = I := ext_iff.2 $ by simp
 
 @[simp] lemma conj_add (z w : ℂ) : conj (z + w) = conj z + conj w :=
 ext_iff.2 $ by simp [add_comm]
 
 @[simp] lemma conj_neg (z : ℂ) : conj (-z) = -conj z := rfl
+
+@[simp] lemma conj_neg_I : conj (-I) = I := ext_iff.2 $ by simp
 
 @[simp] lemma conj_mul (z w : ℂ) : conj (z * w) = conj z * conj w :=
 ext_iff.2 $ by simp [add_comm]
@@ -329,7 +330,7 @@ by simp [abs, norm_sq_of_real, real.sqrt_mul_self_eq_abs]
 lemma abs_of_nonneg {r : ℝ} (h : 0 ≤ r) : abs r = r :=
 (abs_of_real _).trans (abs_of_nonneg h)
 
-@[simp] lemma abs_of_nat (n : ℕ) : complex.abs n = n :=
+lemma abs_of_nat (n : ℕ) : complex.abs n = n :=
 calc complex.abs n = complex.abs (n:ℝ) : by rw [of_real_nat_cast]
   ... = _ : abs_of_nonneg (nat.cast_nonneg n)
 

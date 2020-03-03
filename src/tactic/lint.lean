@@ -25,7 +25,7 @@ The following linters are run by default:
 9.  `incorrect_type_class_argument` checks for arguments in [square brackets] that are not classes.
 10. `dangerous_instance` checks for instances that generate type-class problems with metavariables.
 11. `inhabited_nonempty` checks for `inhabited` instance arguments that should be changed to `nonempty`.
-12. `simp_nf` checks that arguments of the left-hand side of simp lemmas are in simp-normal form.
+12. `simp_nf` checks that the left-hand side of simp lemmas is in simp-normal form.
 13. `simp_var_head` checks that there are no variables as head symbol of left-hand sides of simp lemmas.
 14. `simp_comm` checks that no commutativity lemmas (such as `add_comm`) are marked simp.
 
@@ -448,7 +448,7 @@ do tt ← is_prop d.type | return none,
   no_errors_found := "No uses of `inhabited` arguments should be replaced with `nonempty`",
   errors_found := "USES OF `inhabited` SHOULD BE REPLACED WITH `nonempty`." }
 
-/-- `simp_lhs_rhs ty` returns the left-hand and right-hand sides of a simp lemma with type `ty`. -/
+/-- `simp_lhs_rhs ty` returns the left-hand and right-hand side of a simp lemma with type `ty`. -/
 private meta def simp_lhs_rhs : expr → tactic (expr × expr) | ty := do
 ty ← whnf ty transparency.reducible,
 -- We only detect a fixed set of simp relations here.
@@ -465,21 +465,42 @@ match ty with
 end
 
 /-- `simp_lhs ty` returns the left-hand side of a simp lemma with type `ty`. -/
-private meta def simp_lhs (ty : expr) : tactic expr :=
+private meta def simp_lhs (ty : expr): tactic expr :=
 prod.fst <$> simp_lhs_rhs ty
+
+/-- `simp_is_conditional ty` returns true iff the simp lemma with type `ty` is conditional. -/
+private meta def simp_is_conditional : expr → tactic bool | ty := do
+ty ← whnf ty transparency.semireducible,
+match ty with
+| `(¬ %%lhs) := pure ff
+| `(%%lhs = _) := pure ff
+| `(%%lhs ↔ _) := pure ff
+| (expr.pi n bi a b) :=
+  if bi ≠ binder_info.inst_implicit ∧ ¬ b.has_var then
+    pure tt
+  else do
+    l ← mk_local' n bi a,
+    simp_is_conditional (b.instantiate_var l)
+| ty := pure ff
+end
 
 private meta def heuristic_simp_lemma_extraction (prf : expr) : tactic (list name) :=
 prf.list_constant.to_list.mfilter is_simp_lemma
 
-private meta def simp_nf (d : declaration) : tactic (option string) := retrieve $ do
+/-- Reports declarations that are simp lemmas whose left-hand side is not in simp-normal form. -/
+meta def simp_nf_linter (timeout := 200000) (d : declaration) : tactic (option string) := do
 tt ← is_simp_lemma d.to_name | pure none,
 -- Sometimes, a definition is tagged @[simp] to add the equational lemmas to the simp set.
 -- In this case, ignore the declaration if it is not a valid simp lemma by itself.
 tt ← is_valid_simp_lemma_cnst d.to_name | pure none,
-mk_meta_var d.type >>= set_goals ∘ pure,
+(λ tac, tactic.try_for timeout tac <|> pure (some "timeout")) $ -- last resort
+(λ tac : tactic _, tac <|> pure none) $ -- tc resolution depth
+retrieve $ do
 reset_instance_cache,
+g ← mk_meta_var d.type,
+set_goals [g],
 intros,
-lhs ← target >>= simp_lhs,
+(lhs, rhs) ← target >>= simp_lhs_rhs,
 sls ← simp_lemmas.mk_default,
 let sls := sls.erase [
   -- remove commutativity lemmas since they may not apply to substitution instances of the lhs
@@ -487,35 +508,70 @@ let sls := sls.erase [
   -- TODO: remove once we have moved to Lean 3.6
   ``sub_eq_add_neg
   ],
-let as := lhs.get_app_args,
-cgr ← mk_specialized_congr_lemma_simp lhs,
-some (a', i, prf) ← tactic.first (as.map_with_index $ λ i a, do
-  if cgr.arg_kinds.nth i ≠ congr_arg_kind.eq then
-    failure -- ignore arguments that are ignored by congr-lemma
-  else do
-    (a', prf) ← simplify sls [] a { single_pass := tt },
-    fail_if_success $ is_def_eq a a' transparency.reducible,
-    pure $ some (a', i, prf))
-  <|> pure none | pure none,
-let a := as.inth i,
-let lhs' := lhs.get_app_fn.mk_app (list.func.set a' as i),
-some <$> do
+let sls' := sls.erase [d.to_name],
+-- TODO: should we do something special about rfl-lemmas?
+(lhs', prf1) ← simplify sls [] lhs {fail_if_unchanged := ff},
+prf1_lems ← heuristic_simp_lemma_extraction prf1,
+if d.to_name ∈ prf1_lems then pure none else do
+(rhs', prf2) ← simplify sls [] rhs {fail_if_unchanged := ff},
+lhs'_eq_rhs' ← succeeds (is_def_eq lhs' rhs' transparency.reducible),
+lhs_in_nf ← succeeds (is_def_eq lhs' lhs transparency.reducible),
+if lhs'_eq_rhs' ∧ lhs'.get_app_fn.const_name = rhs'.get_app_fn.const_name then do
+  used_lemmas ← heuristic_simp_lemma_extraction (prf1 prf2),
+  pure $ pure $ "simp can prove this:\n"
+    ++ "  by simp only " ++ to_string used_lemmas ++ "\n"
+    ++ "One of the lemmas above could be a duplicate.\n"
+    ++ "If that's not the case try reordering lemmas or adding @[priority].\n"
+else if ¬ lhs_in_nf then do
   lhs ← pp lhs,
-  a ← pp a,
-  a' ← pp a',
-  prf ← heuristic_simp_lemma_extraction prf >>= pp,
+  lhs' ← pp lhs',
   pure $ format.to_string $
-    to_fmt "Argument #" ++ i ++ " of left-hand side (" ++ lhs ++ ") reduces from"
-      ++ a.group.indent 2 ++ format.line
-      ++ "to" ++ a'.group.indent 2 ++ format.line
-      ++ "using " ++ prf.indent 2
+    to_fmt "Left-hand side simplifies from"
+      ++ lhs.group.indent 2 ++ format.line
+      ++ "to" ++ lhs'.group.indent 2 ++ format.line
+      ++ "using " ++ (to_fmt prf1_lems).group.indent 2 ++ format.line
+      ++ "Try to change the left-hand side to the simplified term!\n"
+else
+  pure none
 
 /-- A linter for simp lemmas whose lhs is not in simp-normal form, and which hence never fire. -/
 @[linter, priority 1390] meta def linter.simp_nf : linter :=
-{ test := simp_nf,
+{ test := simp_nf_linter,
   no_errors_found := "All left-hand sides of simp lemmas are in simp-normal form",
-  errors_found := "LEFT-HAND SIDE NOT IN SIMP-NF.\n" ++
-    "Some simp lemmas have a left-hand side that is not in simp-normal form." }
+  errors_found := "SOME SIMP LEMMAS ARE REDUNDANT.
+That is, their left-hand side is not in simp-normal form.
+These lemmas are hence never used by the simplifier.
+
+This linter gives you a list of other simp lemmas, look at them!
+
+Here are some guidelines to get you started:
+
+  1. 'the left-hand side reduces to XYZ':
+     you should probably use XYZ as the left-hand side.
+
+  2. 'simp can prove this':
+     This typically means that lemma is a duplicate, or is shadowed by another lemma:
+
+     2a. Always put more general lemmas after specific ones:
+
+      @[simp] lemma zero_add_zero : 0 + 0 = 0 := rfl
+      @[simp] lemma add_zero : x + 0 = x := rfl
+
+      And not the other way around!  The simplifier always picks the last matching lemma.
+
+     2b. You can also use @[priority] instead of moving simp-lemmas around in the file.
+
+      Tip: the default priority is 1000.
+      Use `@[priority 1100]` instead of moving a lemma down,
+      and `@[priority 900]` instead of moving a lemma up.
+
+     2c. Conditional simp lemmas are tried last, if they are shadowed
+         just remove the simp attribute.
+
+     2d. If two lemmas are duplicates, the linter will complain about the first one.
+         Try to fix the second one instead!
+         (You can find it among the other simp lemmas the linter prints out!)
+" }
 
 private meta def simp_var_head (d : declaration) : tactic (option string) := do
 tt ← is_simp_lemma d.to_name | pure none,

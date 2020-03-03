@@ -62,7 +62,7 @@ theorem mul_right_surjective (a : G) : function.surjective (λ x, x * a) :=
 theorem eq_of_inv_eq_inv : a⁻¹ = b⁻¹ → a = b :=
 inv_inj'.1
 
-@[simp, to_additive]
+@[to_additive]
 theorem mul_self_iff_eq_one : a * a = a ↔ a = 1 :=
 by have := @mul_left_inj _ _ a a 1; rwa mul_one at this
 
@@ -70,7 +70,7 @@ by have := @mul_left_inj _ _ a a 1; rwa mul_one at this
 theorem inv_eq_one : a⁻¹ = 1 ↔ a = 1 :=
 by rw [← @inv_inj' _ _ a 1, one_inv]
 
-@[simp, to_additive]
+@[to_additive]
 theorem inv_ne_one : a⁻¹ ≠ 1 ↔ a ≠ 1 :=
 not_congr inv_eq_one
 

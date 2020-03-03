@@ -36,7 +36,7 @@ namespace pos_num
   theorem one_add (n : pos_num) : 1 + n = succ n := by cases n; refl
   theorem add_one (n : pos_num) : n + 1 = succ n := by cases n; refl
 
-  @[simp] theorem add_to_nat : ∀ m n, ((m + n : pos_num) : ℕ) = m + n
+  theorem add_to_nat : ∀ m n, ((m + n : pos_num) : ℕ) = m + n
   | 1        b        := by rw [one_add b, succ_to_nat, add_comm]; refl
   | a        1        := by rw [add_one a, succ_to_nat]; refl
   | (bit0 a) (bit0 b) := (congr_arg _root_.bit0 (add_to_nat a b)).trans $
@@ -66,7 +66,7 @@ namespace pos_num
   theorem bit1_of_bit1 (n : pos_num) : _root_.bit1 n = bit1 n :=
   show _root_.bit0 n + 1 = bit1 n, by rw [add_one, bit0_of_bit0]; refl
 
-  @[simp] theorem mul_to_nat (m) : ∀ n, ((m * n : pos_num) : ℕ) = m * n
+  theorem mul_to_nat (m) : ∀ n, ((m * n : pos_num) : ℕ) = m * n
   | 1        := (mul_one _).symm
   | (bit0 p) := show (↑(m * p) + ↑(m * p) : ℕ) = ↑m * (p + p), by rw [mul_to_nat, left_distrib]
   | (bit1 p) := (add_to_nat (bit0 (m * p)) m).trans $
@@ -116,7 +116,7 @@ namespace pos_num
       { exact nat.succ_lt_succ (add_lt_add this this) }
     end
 
-  @[simp] theorem lt_to_nat {m n : pos_num} : (m:ℕ) < n ↔ m < n :=
+  theorem lt_to_nat {m n : pos_num} : (m:ℕ) < n ↔ m < n :=
   show (m:ℕ) < n ↔ cmp m n = ordering.lt, from
   match cmp m n, cmp_to_nat m n with
   | ordering.lt, h := by simp at h; simp [h]
@@ -124,7 +124,7 @@ namespace pos_num
   | ordering.gt, h := by simp [not_lt_of_gt h]; exact dec_trivial
   end
 
-  @[simp] theorem le_to_nat {m n : pos_num} : (m:ℕ) ≤ n ↔ m ≤ n :=
+  theorem le_to_nat {m n : pos_num} : (m:ℕ) ≤ n ↔ m ≤ n :=
   by rw ← not_lt; exact not_congr lt_to_nat
 
 end pos_num
@@ -187,23 +187,24 @@ namespace num
   @[simp] theorem cast_to_int [add_group α] [has_one α] (n : num) : ((n : ℤ) : α) = n :=
   by rw [← to_nat_to_int, int.cast_coe_nat, cast_to_nat]
 
-  @[simp] theorem to_of_nat : Π (n : ℕ), ((n : num) : ℕ) = n
+  theorem to_of_nat : Π (n : ℕ), ((n : num) : ℕ) = n
   | 0     := rfl
   | (n+1) := by rw [nat.cast_add_one, add_one, succ_to_nat, to_of_nat]
 
-  @[simp] theorem of_nat_cast [add_monoid α] [has_one α] (n : ℕ) : ((n : num) : α) = n :=
+  @[simp, move_cast]
+  theorem of_nat_cast [add_monoid α] [has_one α] (n : ℕ) : ((n : num) : α) = n :=
   by rw [← cast_to_nat, to_of_nat]
 
   theorem of_nat_inj {m n : ℕ} : (m : num) = n ↔ m = n :=
   ⟨λ h, function.injective_of_left_inverse to_of_nat h, congr_arg _⟩
 
-  @[simp] theorem add_to_nat : ∀ m n, ((m + n : num) : ℕ) = m + n
+  theorem add_to_nat : ∀ m n, ((m + n : num) : ℕ) = m + n
   | 0       0       := rfl
   | 0       (pos q) := (_root_.zero_add _).symm
   | (pos p) 0       := rfl
   | (pos p) (pos q) := pos_num.add_to_nat _ _
 
-  @[simp] theorem mul_to_nat : ∀ m n, ((m * n : num) : ℕ) = m * n
+  theorem mul_to_nat : ∀ m n, ((m * n : num) : ℕ) = m * n
   | 0       0       := rfl
   | 0       (pos q) := (zero_mul _).symm
   | (pos p) 0       := rfl
@@ -217,7 +218,7 @@ namespace num
     by { have := pos_num.cmp_to_nat a b; revert this; dsimp [cmp];
          cases pos_num.cmp a b, exacts [id, congr_arg pos, id] }
 
-  @[simp] theorem lt_to_nat {m n : num} : (m:ℕ) < n ↔ m < n :=
+  theorem lt_to_nat {m n : num} : (m:ℕ) < n ↔ m < n :=
   show (m:ℕ) < n ↔ cmp m n = ordering.lt, from
   match cmp m n, cmp_to_nat m n with
   | ordering.lt, h := by simp at h; simp [h]
@@ -225,7 +226,7 @@ namespace num
   | ordering.gt, h := by simp [not_lt_of_gt h]; exact dec_trivial
   end
 
-  @[simp] theorem le_to_nat {m n : num} : (m:ℕ) ≤ n ↔ m ≤ n :=
+  theorem le_to_nat {m n : num} : (m:ℕ) ≤ n ↔ m ≤ n :=
   by rw ← not_lt; exact not_congr lt_to_nat
 
 end num
@@ -292,9 +293,9 @@ namespace num
     decidable_eq               := num.decidable_eq,
     ..num.comm_semiring, ..num.ordered_cancel_comm_monoid }
 
-  @[simp] theorem dvd_to_nat (m n : num) : (m : ℕ) ∣ n ↔ m ∣ n :=
+  theorem dvd_to_nat (m n : num) : (m : ℕ) ∣ n ↔ m ∣ n :=
   ⟨λ ⟨k, e⟩, ⟨k, by rw [← of_to_nat n, e]; simp⟩,
-   λ ⟨k, e⟩, ⟨k, by simp [e]⟩⟩
+   λ ⟨k, e⟩, ⟨k, by simp [e, mul_to_nat]⟩⟩
 
 end num
 
@@ -377,27 +378,35 @@ namespace pos_num
   @[simp] theorem cast_to_num (n : pos_num) : ↑n = num.pos n :=
   by rw [← cast_to_nat, ← of_to_nat n]
 
+  @[simp, elim_cast]
   theorem bit_to_nat (b n) : (bit b n : ℕ) = nat.bit b n :=
   by cases b; refl
 
-  @[simp] theorem cast_add [add_monoid α] [has_one α] (m n) : ((m + n : pos_num) : α) = m + n :=
+  @[simp, move_cast]
+  theorem cast_add [add_monoid α] [has_one α] (m n) : ((m + n : pos_num) : α) = m + n :=
   by rw [← cast_to_nat, add_to_nat, nat.cast_add, cast_to_nat, cast_to_nat]
 
-  @[simp] theorem cast_succ [add_monoid α] [has_one α] (n : pos_num) : (succ n : α) = n + 1 :=
+  @[simp, move_cast]
+  theorem cast_succ [add_monoid α] [has_one α] (n : pos_num) : (succ n : α) = n + 1 :=
   by rw [← add_one, cast_add, cast_one]
 
-  @[simp] theorem cast_inj [add_monoid α] [has_one α] [char_zero α] {m n : pos_num} : (m:α) = n ↔ m = n :=
+  @[simp, elim_cast]
+  theorem cast_inj [add_monoid α] [has_one α] [char_zero α] {m n : pos_num} : (m:α) = n ↔ m = n :=
   by rw [← cast_to_nat m, ← cast_to_nat n, nat.cast_inj, to_nat_inj]
 
+  @[simp]
   theorem one_le_cast [linear_ordered_semiring α] (n : pos_num) : (1 : α) ≤ n :=
   by rw [← cast_to_nat, ← nat.cast_one, nat.cast_le]; apply to_nat_pos
 
+  @[simp]
   theorem cast_pos [linear_ordered_semiring α] (n : pos_num) : 0 < (n : α) :=
   lt_of_lt_of_le zero_lt_one (one_le_cast n)
 
-  @[simp] theorem cast_mul [semiring α] (m n) : ((m * n : pos_num) : α) = m * n :=
+  @[simp, move_cast]
+  theorem cast_mul [semiring α] (m n) : ((m * n : pos_num) : α) = m * n :=
   by rw [← cast_to_nat, mul_to_nat, nat.cast_mul, cast_to_nat, cast_to_nat]
 
+  @[simp]
   theorem cmp_eq (m n) : cmp m n = ordering.eq ↔ m = n :=
   begin
     have := cmp_to_nat m n,
@@ -405,10 +414,12 @@ namespace pos_num
     { simp [show m ≠ n, from λ e, by rw e at this; exact lt_irrefl _ this] }
   end
 
-  @[simp] theorem cast_lt [linear_ordered_semiring α] {m n : pos_num} : (m:α) < n ↔ m < n :=
+  @[simp, elim_cast]
+  theorem cast_lt [linear_ordered_semiring α] {m n : pos_num} : (m:α) < n ↔ m < n :=
   by rw [← cast_to_nat m, ← cast_to_nat n, nat.cast_lt, lt_to_nat]
 
-  @[simp] theorem cast_le [linear_ordered_semiring α] {m n : pos_num} : (m:α) ≤ n ↔ m ≤ n :=
+  @[simp, elim_cast]
+  theorem cast_le [linear_ordered_semiring α] {m n : pos_num} : (m:α) ≤ n ↔ m ≤ n :=
   by rw ← not_lt; exact not_congr cast_lt
 
 end pos_num
@@ -532,13 +543,16 @@ namespace num
     { simp [show m ≠ n, from λ e, by rw e at this; exact lt_irrefl _ this] }
   end
 
-  @[simp] theorem cast_lt [linear_ordered_semiring α] {m n : num} : (m:α) < n ↔ m < n :=
+  @[simp, elim_cast]
+  theorem cast_lt [linear_ordered_semiring α] {m n : num} : (m:α) < n ↔ m < n :=
   by rw [← cast_to_nat m, ← cast_to_nat n, nat.cast_lt, lt_to_nat]
 
-  @[simp] theorem cast_le [linear_ordered_semiring α] {m n : num} : (m:α) ≤ n ↔ m ≤ n :=
+  @[simp, elim_cast]
+  theorem cast_le [linear_ordered_semiring α] {m n : num} : (m:α) ≤ n ↔ m ≤ n :=
   by rw ← not_lt; exact not_congr cast_lt
 
-  @[simp] theorem cast_inj [linear_ordered_semiring α] {m n : num} : (m:α) = n ↔ m = n :=
+  @[simp, elim_cast]
+  theorem cast_inj [linear_ordered_semiring α] {m n : num} : (m:α) = n ↔ m = n :=
   by rw [← cast_to_nat m, ← cast_to_nat n, nat.cast_inj, to_nat_inj]
 
   theorem lt_iff_cmp {m n} : m < n ↔ cmp m n = ordering.lt := iff.rfl
@@ -594,23 +608,23 @@ namespace num
         rw [← bit_to_nat, pbb] } }
   end
 
-  @[simp] theorem lor_to_nat   : ∀ m n, (lor    m n : ℕ) = nat.lor    m n :=
+  @[simp, move_cast] theorem lor_to_nat   : ∀ m n, (lor    m n : ℕ) = nat.lor    m n :=
   by apply bitwise_to_nat (λx y, pos (pos_num.lor x y)); intros; try {cases a}; try {cases b}; refl
-  @[simp] theorem land_to_nat  : ∀ m n, (land   m n : ℕ) = nat.land   m n :=
+  @[simp, move_cast] theorem land_to_nat  : ∀ m n, (land   m n : ℕ) = nat.land   m n :=
   by apply bitwise_to_nat pos_num.land; intros; try {cases a}; try {cases b}; refl
-  @[simp] theorem ldiff_to_nat : ∀ m n, (ldiff  m n : ℕ) = nat.ldiff  m n :=
+  @[simp, move_cast] theorem ldiff_to_nat : ∀ m n, (ldiff  m n : ℕ) = nat.ldiff  m n :=
   by apply bitwise_to_nat pos_num.ldiff; intros; try {cases a}; try {cases b}; refl
-  @[simp] theorem lxor_to_nat  : ∀ m n, (lxor   m n : ℕ) = nat.lxor   m n :=
+  @[simp, move_cast] theorem lxor_to_nat  : ∀ m n, (lxor   m n : ℕ) = nat.lxor   m n :=
   by apply bitwise_to_nat pos_num.lxor; intros; try {cases a}; try {cases b}; refl
 
-  @[simp] theorem shiftl_to_nat (m n) : (shiftl m n : ℕ) = nat.shiftl m n :=
+  @[simp, move_cast] theorem shiftl_to_nat (m n) : (shiftl m n : ℕ) = nat.shiftl m n :=
   begin
     cases m; dunfold shiftl, {symmetry, apply nat.zero_shiftl},
     simp, induction n with n IH, {refl},
     simp [pos_num.shiftl, nat.shiftl_succ], rw ←IH
   end
 
-  @[simp] theorem shiftr_to_nat (m n) : (shiftr m n : ℕ) = nat.shiftr m n :=
+  @[simp, move_cast] theorem shiftr_to_nat (m n) : (shiftr m n : ℕ) = nat.shiftr m n :=
   begin
     cases m with m; dunfold shiftr, {symmetry, apply nat.zero_shiftr},
     induction n with n IH generalizing m, {cases m; refl},
@@ -890,7 +904,7 @@ namespace znum
   | (neg a) := by rw [cast_neg, neg_of_int, ← pos_num.cast_to_nat,
     int.cast_coe_nat', ← num.of_nat_to_znum_neg, pos_num.of_to_nat]; refl
 
-  @[simp] theorem to_of_int : Π (n : ℤ), ((n : znum) : ℤ) = n
+  theorem to_of_int : Π (n : ℤ), ((n : znum) : ℤ) = n
   | (n : ℕ) := by rw [int.cast_coe_nat,
     ← num.of_nat_to_znum, num.cast_to_znum, ← num.cast_to_nat,
     int.nat_cast_eq_coe_nat, num.to_of_nat]
@@ -931,7 +945,7 @@ namespace znum
   | (neg a) (pos b) := lt_trans (neg_lt_zero.2 $ pos_num.cast_pos _) (pos_num.cast_pos _)
   | 0       (pos b) := pos_num.cast_pos _
 
-  @[simp] theorem lt_to_int {m n : znum} : (m:ℤ) < n ↔ m < n :=
+  theorem lt_to_int {m n : znum} : (m:ℤ) < n ↔ m < n :=
   show (m:ℤ) < n ↔ cmp m n = ordering.lt, from
   match cmp m n, cmp_to_int m n with
   | ordering.lt, h := by simp at h; simp [h]
@@ -939,16 +953,19 @@ namespace znum
   | ordering.gt, h := by simp [not_lt_of_gt h]; exact dec_trivial
   end
 
-  @[simp] theorem le_to_int {m n : znum} : (m:ℤ) ≤ n ↔ m ≤ n :=
+  theorem le_to_int {m n : znum} : (m:ℤ) ≤ n ↔ m ≤ n :=
   by rw ← not_lt; exact not_congr lt_to_int
 
-  @[simp] theorem cast_lt [linear_ordered_ring α] {m n : znum} : (m:α) < n ↔ m < n :=
+  @[simp, elim_cast]
+  theorem cast_lt [linear_ordered_ring α] {m n : znum} : (m:α) < n ↔ m < n :=
   by rw [← cast_to_int m, ← cast_to_int n, int.cast_lt, lt_to_int]
 
-  @[simp] theorem cast_le [linear_ordered_ring α] {m n : znum} : (m:α) ≤ n ↔ m ≤ n :=
+  @[simp, elim_cast]
+  theorem cast_le [linear_ordered_ring α] {m n : znum} : (m:α) ≤ n ↔ m ≤ n :=
   by rw ← not_lt; exact not_congr cast_lt
 
-  @[simp] theorem cast_inj [linear_ordered_ring α] {m n : znum} : (m:α) = n ↔ m = n :=
+  @[simp, elim_cast]
+  theorem cast_inj [linear_ordered_ring α] {m n : znum} : (m:α) = n ↔ m = n :=
   by rw [← cast_to_int m, ← cast_to_int n, int.cast_inj, to_int_inj]
 
   meta def transfer_rw : tactic unit :=

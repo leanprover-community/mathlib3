@@ -79,7 +79,8 @@ def units_equiv_ne_zero : units α ≃ {a : α | a ≠ 0} :=
 
 variable {α}
 
-@[simp] lemma coe_units_equiv_ne_zero (a : units α) :
+@[simp, nolint simp_nf] -- takes a crazy amount of time to simplify lhs
+lemma coe_units_equiv_ne_zero (a : units α) :
   ((units_equiv_ne_zero α a) : α) = a := rfl
 
 end field

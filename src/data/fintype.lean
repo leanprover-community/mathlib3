@@ -267,9 +267,9 @@ instance : fintype pempty := ⟨∅, pempty.rec _⟩
 
 instance : fintype unit := fintype.of_subsingleton ()
 
-@[simp] theorem fintype.univ_unit : @univ unit _ = {()} := rfl
+theorem fintype.univ_unit : @univ unit _ = {()} := rfl
 
-@[simp] theorem fintype.card_unit : fintype.card unit = 1 := rfl
+theorem fintype.card_unit : fintype.card unit = 1 := rfl
 
 instance : fintype punit := fintype.of_subsingleton punit.star
 
@@ -428,6 +428,29 @@ finset.subtype.fintype s
 @[simp] lemma fintype.card_coe (s : finset α) :
   fintype.card (↑s : set α) = s.card := card_attach
 
+lemma finset.card_le_one_iff {s : finset α} :
+  s.card ≤ 1 ↔ ∀ {x y}, x ∈ s → y ∈ s → x = y :=
+begin
+  let t : set α := ↑s,
+  letI : fintype t := finset_coe.fintype s,
+  have : fintype.card t = s.card := fintype.card_coe s,
+  rw [← this, fintype.card_le_one_iff],
+  split,
+  { assume H x y hx hy,
+    exact subtype.mk.inj (H ⟨x, hx⟩ ⟨y, hy⟩) },
+  { assume H x y,
+    exact subtype.eq (H x.2 y.2) }
+end
+
+lemma finset.one_lt_card_iff {s : finset α} :
+  1 < s.card ↔ ∃ x y, (x ∈ s) ∧ (y ∈ s) ∧ x ≠ y :=
+begin
+  classical,
+  rw ← not_iff_not,
+  push_neg,
+  simpa [classical.or_iff_not_imp_left] using finset.card_le_one_iff
+end
+
 instance plift.fintype (p : Prop) [decidable p] : fintype (plift p) :=
 ⟨if h : p then finset.singleton ⟨h⟩ else ∅, λ ⟨h⟩, by simp [h]⟩
 
@@ -438,12 +461,57 @@ instance Prop.fintype : fintype Prop :=
 def set_fintype {α} [fintype α] (s : set α) [decidable_pred s] : fintype s :=
 fintype.subtype (univ.filter (∈ s)) (by simp)
 
+
+/-! ### pi -/
+
+/-- A dependent product of fintypes, indexed by a fintype, is a fintype. -/
 instance pi.fintype {α : Type*} {β : α → Type*}
   [fintype α] [decidable_eq α] [∀a, fintype (β a)] : fintype (Πa, β a) :=
 @fintype.of_equiv _ _
   ⟨univ.pi $ λa:α, @univ (β a) _,
     λ f, finset.mem_pi.2 $ λ a ha, mem_univ _⟩
   ⟨λ f a, f a (mem_univ _), λ f a _, f a, λ f, rfl, λ f, rfl⟩
+
+namespace fintype
+
+variables [fintype α] [decidable_eq α] {δ : α → Type*} [decidable_eq (Π a, δ a)]
+
+/-- Given for all `a : α` a finset `t a` of `δ a`, then one can define the
+finset `fintype.pi_finset t` of all functions taking values in `t a` for all `a`. This is the
+analogue of `finset.pi` where the base finset is `univ` (but formally they are not the same, as
+there is an additional condition `i ∈ finset.univ` in the `finset.pi` definition). -/
+def pi_finset (t : Πa, finset (δ a)) : finset (Πa, δ a) :=
+(finset.univ.pi t).image (λ f a, f a (mem_univ a))
+
+@[simp] lemma mem_pi_finset {t : Πa, finset (δ a)} {f : Πa, δ a} :
+  f ∈ pi_finset t ↔ (∀a, f a ∈ t a) :=
+begin
+  split,
+  { simp only [pi_finset, mem_image, and_imp, forall_prop_of_true, exists_prop, mem_univ,
+               exists_imp_distrib, mem_pi],
+    assume g hg hgf a,
+    rw ← hgf,
+    exact hg a },
+  { simp only [pi_finset, mem_image, forall_prop_of_true, exists_prop, mem_univ, mem_pi],
+    assume hf,
+    exact ⟨λ a ha, f a, hf, rfl⟩ }
+end
+
+lemma pi_finset_subset (t₁ t₂ : Πa, finset (δ a)) (h : ∀ a, t₁ a ⊆ t₂ a) :
+  pi_finset t₁ ⊆ pi_finset t₂ :=
+λ g hg, mem_pi_finset.2 $ λ a, h a $ mem_pi_finset.1 hg a
+
+lemma pi_finset_disjoint_of_disjoint [∀ a, decidable_eq (δ a)]
+  (t₁ t₂ : Πa, finset (δ a)) {a : α} (h : disjoint (t₁ a) (t₂ a)) :
+  disjoint (pi_finset t₁) (pi_finset t₂) :=
+disjoint_iff_ne.2 $ λ f₁ hf₁ f₂ hf₂ eq₁₂,
+disjoint_iff_ne.1 h (f₁ a) (mem_pi_finset.1 hf₁ a) (f₂ a) (mem_pi_finset.1 hf₂ a) (congr_fun eq₁₂ a)
+
+@[simp] lemma pi_finset_univ [∀ a, fintype (δ a)]:
+  pi_finset (λ a : α, (finset.univ : finset (δ a))) = (finset.univ : finset (Π a, δ a)) :=
+by { ext f, simp }
+
+end fintype
 
 instance d_array.fintype {n : ℕ} {α : fin n → Type*}
   [∀n, fintype (α n)] : fintype (d_array n α) :=
@@ -569,11 +637,8 @@ def perms_of_list : list α → list (perm α)
 
 lemma length_perms_of_list : ∀ l : list α, length (perms_of_list l) = l.length.fact
 | []       := rfl
-| (a :: l) := begin
-  rw [length_cons, nat.fact_succ],
-  simp [perms_of_list, length_bind, length_perms_of_list, function.comp, nat.succ_mul],
-  cc
-end
+| (a :: l) := by rw [length_cons, nat.fact_succ];
+  simp [perms_of_list, length_bind, length_perms_of_list, function.comp, nat.succ_mul]; cc
 
 lemma mem_perms_of_list_of_mem : ∀ {l : list α} {f : perm α} (h : ∀ x, f x ≠ x → x ∈ l), f ∈ perms_of_list l
 | []     f h := list.mem_singleton.2 $ equiv.ext _ _$ λ x, by simp [imp_false, *] at *

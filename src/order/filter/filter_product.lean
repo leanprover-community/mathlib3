@@ -282,34 +282,42 @@ theorem of_seq_fun₂ (f g₁ g₂ : α → β) (h : β → β → β) (H : ∀*
 
 @[simp] lemma of_eq_coe (x : β) : of x = (x : β*) := rfl
 
+@[simp] lemma coe_injective (x y : β) (NT : φ ≠ ⊥) : (x : β*) = y ↔ x = y :=
+⟨λ h, of_inj NT h, λ h, by rw h⟩
+
 lemma of_eq (x y : β) (NT : φ ≠ ⊥) : x = y ↔ of x = (of y : β*) :=
-⟨ λ h, by rw h, by apply of_inj NT ⟩
+by simp [NT]
 
 lemma of_ne (x y : β) (NT : φ ≠ ⊥) : x ≠ y ↔ of x ≠ (of y : β*) :=
 by show ¬ x = y ↔ of x ≠ of y; rwa [of_eq]
 
-lemma of_eq_zero [has_zero β] (NT : φ ≠ ⊥) (x : β) : x = 0 ↔ of x = (0 : β*) := of_eq _ _ NT
+lemma of_eq_zero [has_zero β] (NT : φ ≠ ⊥) (x : β) : x = 0 ↔ (x : β*) = (0 : β*) := of_eq _ _ NT
 
-lemma of_ne_zero [has_zero β] (NT : φ ≠ ⊥) (x : β) : x ≠ 0 ↔ of x ≠ (0 : β*) := of_ne _ _ NT
+lemma of_ne_zero [has_zero β] (NT : φ ≠ ⊥) (x : β) : x ≠ 0 ↔ (x : β*) ≠ (0 : β*) := of_ne _ _ NT
 
-@[simp] lemma of_zero [has_zero β] : of 0 = (0 : β*) := rfl
+@[simp, move_cast] lemma of_zero [has_zero β] : ((0 : β) : β*) = 0 := rfl
 
-@[simp] lemma of_add [has_add β] (x y : β) : of (x + y) = of x + (of y : β*) := rfl
+@[simp, move_cast] lemma of_add [has_add β] (x y : β) : ((x + y : β) : β*) = x + y := rfl
 
-@[simp] lemma of_neg [has_neg β] (x : β) : of (- x) = - (of x : β*) := rfl
+@[simp, move_cast] lemma of_bit0 [has_add β] (x : β) : ((bit0 x : β) : β*) = bit0 x := rfl
 
-@[simp] lemma of_sub [add_group β] (x y : β) : of (x - y) = of x - (of y : β*) := rfl
+@[simp, move_cast] lemma of_bit1 [has_add β] [has_one β] (x : β) :
+  ((bit1 x : β) : β*) = bit1 x := rfl
 
-@[simp] lemma of_one [has_one β] : of 1 = (1 : β*) := rfl
+@[simp, move_cast] lemma of_neg [has_neg β] (x : β) : ((- x : β) : β*) = - x := rfl
 
-@[simp] lemma of_mul [has_mul β] (x y : β) : of (x * y) = of x * (of y : β*) := rfl
+@[simp, move_cast] lemma of_sub [add_group β] (x y : β) : ((x - y : β) : β*) = x - y := rfl
 
-@[simp] lemma of_inv [has_inv β] (x : β) : of (x⁻¹) = (of x : β*)⁻¹ := rfl
+@[simp, move_cast] lemma of_one [has_one β] : ((1 : β) : β*) = 1 := rfl
 
-@[simp] lemma of_div [division_ring β] (U : is_ultrafilter φ) (x y : β) :
-  of (x / y) = @has_div.div _
+@[simp, move_cast] lemma of_mul [has_mul β] (x y : β) : ((x * y : β) : β*) = x * y := rfl
+
+@[simp, move_cast] lemma of_inv [has_inv β] (x : β) : ((x⁻¹ : β) : β*) = x⁻¹ := rfl
+
+@[simp, move_cast] lemma of_div [division_ring β] (U : is_ultrafilter φ) (x y : β) :
+  ((x / y : β) : β*) = @has_div.div _
   (@has_div_of_division_ring _ (filter_product.division_ring U))
-  (of x) (of y) :=
+  (x : β*) (y : β*) :=
 rfl
 
 lemma of_rel_of_rel {R : β → Prop} {x : β} :
@@ -471,7 +479,7 @@ quotient.induction_on' x $ λ a, by unfold abs; rw max_def;
 exact quotient.sound' (show ∀* i, abs _ = _, by simp)
 
 @[simp] lemma of_max [decidable_linear_order β] (U : is_ultrafilter φ) (x y : β) :
-  (of (max x y) : β*) = @max _ (filter_product.decidable_linear_order U) (of x) (of y) :=
+  ((max x y : β) : β*) = @max _ (filter_product.decidable_linear_order U) (x : β*) y :=
 begin
 unfold max, split_ifs,
 { refl },
@@ -481,7 +489,7 @@ unfold max, split_ifs,
 end
 
 @[simp] lemma of_min [decidable_linear_order β] (U : is_ultrafilter φ) (x y : β) :
-  (of (min x y) : β*) = @min _ (filter_product.decidable_linear_order U) (of x) (of y) :=
+  ((min x y : β) : β*) = @min _ (filter_product.decidable_linear_order U) (x : β*) y :=
 begin
 unfold min, split_ifs,
 { refl },
@@ -491,7 +499,7 @@ unfold min, split_ifs,
 end
 
 @[simp] lemma of_abs [decidable_linear_ordered_comm_group β] (U : is_ultrafilter φ) (x : β) :
-  (of (abs x) : β*) = @abs _ (filter_product.decidable_linear_ordered_comm_group U) (of x) :=
+  ((abs x : β) : β*) = @abs _ (filter_product.decidable_linear_ordered_comm_group U) (x : β*) :=
 of_max U x (-x)
 
 end filter_product

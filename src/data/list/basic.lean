@@ -3956,10 +3956,15 @@ theorem chain_of_chain_cons {a b : α} {l : list α}
   (p : chain R a (b::l)) : chain R b l :=
 (chain_cons.1 p).2
 
+theorem chain.imp' {S : α → α → Prop}
+  (HRS : ∀ ⦃a b⦄, R a b → S a b) {a b : α} (Hab : ∀ ⦃c⦄, R a c → S b c)
+  {l : list α} (p : chain R a l) : chain S b l :=
+by induction p with _ a c l r p IH generalizing b; constructor;
+   [exact Hab r, exact IH (@HRS _)]
+
 theorem chain.imp {S : α → α → Prop}
   (H : ∀ a b, R a b → S a b) {a : α} {l : list α} (p : chain R a l) : chain S a l :=
-by induction p with _ a b l r p IH; constructor;
-   [exact H _ _ r, exact IH]
+p.imp' H (H a)
 
 theorem chain.iff {S : α → α → Prop}
   (H : ∀ a b, R a b ↔ S a b) {a : α} {l : list α} : chain R a l ↔ chain S a l :=
@@ -4025,7 +4030,9 @@ theorem chain'.iff_mem : ∀ {l : list α}, chain' R l ↔ chain' (λ x y, x ∈
   ⟨λ h, (chain.iff_mem.1 h).imp $ λ a b ⟨h₁, h₂, h₃⟩, ⟨h₁, or.inr h₂, h₃⟩,
    chain'.imp $ λ a b h, h.2.2⟩
 
-theorem chain'_singleton (a : α) : chain' R [a] := chain.nil
+@[simp] theorem chain'_nil : chain' R [] := trivial
+
+@[simp] theorem chain'_singleton (a : α) : chain' R [a] := chain.nil
 
 theorem chain'_split {a : α} : ∀ {l₁ l₂ : list α}, chain' R (l₁++a::l₂) ↔
   chain' R (l₁++[a]) ∧ chain' R (a::l₂)
@@ -4046,7 +4053,7 @@ theorem chain'_map_of_chain' {S : β → β → Prop} (f : α → β)
   (p : chain' R l) : chain' S (map f l) :=
 (chain'_map f).2 $ p.imp H
 
-theorem chain'_of_pairwise : ∀ {l : list α}, pairwise R l → chain' R l
+theorem pairwise.chain' : ∀ {l : list α}, pairwise R l → chain' R l
 | [] _ := trivial
 | (a::l) h := chain_of_pairwise h
 
@@ -4054,6 +4061,27 @@ theorem chain'_iff_pairwise (tr : transitive R) : ∀ {l : list α},
   chain' R l ↔ pairwise R l
 | [] := (iff_true_intro pairwise.nil).symm
 | (a::l) := chain_iff_pairwise tr
+
+@[simp] theorem chain'_cons {x y l} : chain' R (x :: y :: l) ↔ R x y ∧ chain' R (y :: l) :=
+chain_cons
+
+theorem chain'.cons {x y l} (h₁ : R x y) (h₂ : chain' R (y :: l)) :
+  chain' R (x :: y :: l) :=
+chain'_cons.2 ⟨h₁, h₂⟩
+
+theorem chain'.tail : ∀ {l} (h : chain' R l), chain' R l.tail
+| []            _ := trivial
+| [x]           _ := trivial
+| (x :: y :: l) h := (chain'_cons.mp h).right
+
+theorem chain'_pair {x y} : chain' R [x, y] ↔ R x y :=
+by simp only [chain'_singleton, chain'_cons, and_true]
+
+theorem chain'_reverse : ∀ {l}, chain' R (reverse l) ↔ chain' (flip R) l
+| [] := iff.rfl
+| [a] := by simp only [chain'_singleton, reverse_singleton]
+| (a :: b :: l) := by rw [chain'_cons, reverse_cons, reverse_cons, append_assoc, cons_append,
+    nil_append, chain'_split, ← reverse_cons, @chain'_reverse (b :: l), and_comm, chain'_pair, flip]
 
 end chain
 
@@ -4650,6 +4678,22 @@ begin
   cases le_total n l with hnl hln,
   { rw [max_eq_right hnl, filter_le_of_le hnl] },
   { rw [max_eq_left hln, filter_le_of_le_bot hln] }
+end
+
+/--
+For any natural numbers n, a, and b, one of the following holds:
+1. n < a
+2. n ≥ b
+3. n ∈ Ico a b
+-/
+lemma trichotomy (n a b : ℕ) : n < a ∨ b ≤ n ∨ n ∈ Ico a b :=
+begin
+  by_cases h₁ : n < a,
+  { left, exact h₁ },
+  { right,
+    by_cases h₂ : n ∈ Ico a b,
+    { right, exact h₂ },
+    { left,  simp only [Ico.mem, not_and, not_lt] at *, exact h₂ h₁ }}
 end
 
 end Ico

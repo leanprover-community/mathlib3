@@ -251,16 +251,14 @@ begin
     { rcases exists_mem_of_nonempty α with ⟨xα, _⟩,
       have : ∃y ∈ range Ψ, dist (Φ xα) y < diam (univ : set α) + 1 + diam (univ : set β),
       { rw Ψrange,
-        have : Φ xα ∈ p.val := begin rw ← Φrange, exact mem_range_self _ end,
+        have : Φ xα ∈ p.val := Φrange ▸ mem_range_self _,
         exact exists_dist_lt_of_Hausdorff_dist_lt this bound
           (Hausdorff_edist_ne_top_of_nonempty_of_bounded p.2.1 q.2.1 p.2.2.bounded q.2.2.bounded) },
       rcases this with ⟨y, hy, dy⟩,
       rcases mem_range.1 hy with ⟨z, hzy⟩,
       rw ← hzy at dy,
-      have DΦ : diam (range Φ) = diam (univ : set α) :=
-        begin rw [← image_univ], apply metric.isometry.diam_image Φisom end,
-      have DΨ : diam (range Ψ) = diam (univ : set β) :=
-        begin rw [← image_univ], apply metric.isometry.diam_image Ψisom end,
+      have DΦ : diam (range Φ) = diam (univ : set α) := Φisom.diam_range,
+      have DΨ : diam (range Ψ) = diam (univ : set β) := Ψisom.diam_range,
       calc
         diam (range Φ ∪ range Ψ) ≤ diam (range Φ) + dist (Φ xα) (Ψ z) + diam (range Ψ) :
           diam_union (mem_range_self _) (mem_range_self _)

@@ -45,10 +45,10 @@ begin
   assume a, rcases (exists_le_mul_self a) with ⟨x, hx⟩,
   cases le_total 0 x with hx' hx',
   { use (x + 1),
-    have : (x+1)*(x+1) = x*x + 2*x + 1, ring,
+    have : (x+1)*(x+1) = x*x + 2*x + 1, {ring},
     exact lt_of_le_of_lt hx (by rw this; linarith) },
   { use (x - 1),
-    have : (x-1)*(x-1) = x*x - 2*x + 1, ring,
+    have : (x-1)*(x-1) = x*x - 2*x + 1, {ring},
     exact lt_of_le_of_lt hx (by rw this; linarith) }
 end
 
@@ -134,13 +134,13 @@ begin
     have h₂ := h x, linarith },
   { cases classical.em (c = 0) with hc' hc',
     { rw hc' at *,
-      have : -(a*-b*-b + b*-b + 0) = (1-a)*(b*b), ring,
+      have : -(a*-b*-b + b*-b + 0) = (1-a)*(b*b), {ring},
       have h := h (-b), rw [← neg_nonpos, this] at h,
-      have : b * b ≤ 0, from nonpos_of_mul_nonpos_left h (by linarith),
+      have : b * b ≤ 0 := nonpos_of_mul_nonpos_left h (by linarith),
       linarith },
     { have h := h (-c/b),
       have : a*(-c/b)*(-c/b) + b*(-c/b) + c = a*((c/b)*(c/b)),
-        rw mul_div_cancel' _ hb, ring,
+      { rw mul_div_cancel' _ hb, ring },
       rw this at h,
       have : 0 ≤ a := nonneg_of_mul_nonneg_right h (mul_self_pos $ div_ne_zero hc' hb),
       linarith [ha] } },
@@ -154,7 +154,7 @@ begin
     4*a* (a*(-(b/a)*(1/2))*(-(b/a)*(1/2)) + b*(-(b/a)*(1/2)) + c)
       = (a*(b/a)) * (a*(b/a)) - 2*(a*(b/a))*b + 4*a*c : by ring
     ... = -(b*b - 4*a*c) : by { simp only [mul_div_cancel' b (ne_of_gt ha)], ring },
-  have ha' : 0 ≤ 4*a, linarith,
+  have ha' : 0 ≤ 4*a, {linarith},
   have h := (mul_nonneg ha' (h (-(b/a) * (1/2)))),
   rw this at h, rwa ← neg_nonneg
 end
@@ -166,11 +166,11 @@ at least when the coefficient of the quadratic term is nonzero.
 lemma discriminant_lt_zero {a b c : α} (ha : a ≠ 0) (h : ∀ x : α,  0 < a*x*x + b*x + c) :
   discrim a b c < 0 :=
 begin
-  have : ∀ x : α,  0 ≤ a*x*x + b*x + c := assume x, le_of_lt (h x),
+  have : ∀ x : α, 0 ≤ a*x*x + b*x + c := assume x, le_of_lt (h x),
   refine lt_of_le_of_ne (discriminant_le_zero this) _,
   assume h',
   have := h (-b / (2 * a)),
   have : a * (-b / (2 * a)) * (-b / (2 * a)) + b * (-b / (2 * a)) + c = 0,
-    rw [quadratic_eq_zero_iff_of_discrim_eq_zero ha h' (-b / (2 * a))],
+  { rw [quadratic_eq_zero_iff_of_discrim_eq_zero ha h' (-b / (2 * a))] },
   linarith
 end

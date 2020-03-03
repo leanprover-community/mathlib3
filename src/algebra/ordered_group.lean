@@ -354,7 +354,7 @@ canonically_ordered_monoid.le_iff_exists_add a b
 
 @[simp] lemma zero_le (a : α) : 0 ≤ a := le_iff_exists_add.mpr ⟨a, by simp⟩
 
-lemma bot_eq_zero : (⊥ : α) = 0 :=
+@[simp] lemma bot_eq_zero : (⊥ : α) = 0 :=
 le_antisymm lattice.bot_le (zero_le ⊥)
 
 @[simp] lemma add_eq_zero_iff : a + b = 0 ↔ a = 0 ∧ b = 0 :=

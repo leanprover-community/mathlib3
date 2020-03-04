@@ -417,15 +417,15 @@ end
 @[field_simps] theorem pow_ne_zero [domain R] {a : R} (n : ℕ) (h : a ≠ 0) : a ^ n ≠ 0 :=
 mt pow_eq_zero h
 
-theorem one_div_pow [division_ring R] {a : R} (ha : a ≠ 0) (n : ℕ) : (1 / a) ^ n = 1 / a ^ n :=
+theorem one_div_pow [division_ring R] {a : R} (n : ℕ) : (1 / a) ^ n = 1 / a ^ n :=
 by induction n with n ih; [exact (div_one _).symm,
   rw [pow_succ', ih, division_ring.one_div_mul_one_div]]; refl
 
-@[simp] theorem division_ring.inv_pow [division_ring R] {a : R} (ha : a ≠ 0) (n : ℕ) : a⁻¹ ^ n = (a ^ n)⁻¹ :=
-by simpa only [inv_eq_one_div] using one_div_pow ha n
+@[simp] theorem division_ring.inv_pow [division_ring R] {a : R} (n : ℕ) : a⁻¹ ^ n = (a ^ n)⁻¹ :=
+by simpa only [inv_eq_one_div] using one_div_pow n
 
-@[simp] theorem div_pow [field R] (a : R) {b : R} (hb : b ≠ 0) (n : ℕ) : (a / b) ^ n = a ^ n / b ^ n :=
-by rw [div_eq_mul_one_div, mul_pow, one_div_pow hb, ← div_eq_mul_one_div]
+@[simp] theorem div_pow [field R] (a : R) {b : R} (n : ℕ) : (a / b) ^ n = a ^ n / b ^ n :=
+by rw [div_eq_mul_one_div, mul_pow, one_div_pow, ← div_eq_mul_one_div]
 
 theorem add_monoid.smul_nonneg [ordered_comm_monoid R] {a : R} (H : 0 ≤ a) : ∀ n : ℕ, 0 ≤ n • a
 | 0     := le_refl _

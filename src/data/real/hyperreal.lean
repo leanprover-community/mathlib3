@@ -465,7 +465,7 @@ theorem not_infinite_iff_exist_lt_gt {x : ℝ*} : ¬ infinite x ↔ ∃ r s : �
 Exists.dcases_on (not_forall.mp (not_or_distrib.mp hni).1) $
 Exists.dcases_on (not_forall.mp (not_or_distrib.mp hni).2) $ λ r hr s hs,
 by rw [not_lt] at hr hs; exact ⟨r - 1, s + 1,
-  ⟨ lt_of_lt_of_le (by norm_num) hr,
+  ⟨ lt_of_lt_of_le (by rw sub_eq_add_neg; norm_num) hr,
     lt_of_le_of_lt hs (by norm_num)⟩ ⟩,
 λ hrs, Exists.dcases_on hrs $ λ r hr, Exists.dcases_on hr $ λ s hs,
   not_or_distrib.mpr ⟨not_forall.mpr ⟨s, lt_asymm (hs.2)⟩, not_forall.mpr ⟨r, lt_asymm (hs.1) ⟩⟩⟩

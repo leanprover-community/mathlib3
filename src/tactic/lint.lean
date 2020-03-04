@@ -532,21 +532,32 @@ end
 private meta def simp_lhs (ty : expr): tactic expr :=
 prod.fst <$> simp_lhs_rhs ty
 
-/-- `simp_is_conditional ty` returns true iff the simp lemma with type `ty` is conditional. -/
-private meta def simp_is_conditional : expr → tactic bool | ty := do
+/--
+`simp_is_conditional_core ty` returns `none` if `ty` is a conditional simp
+lemma, and `some lhs` otherwise.
+-/
+private meta def simp_is_conditional_core : expr → tactic (option expr) | ty := do
 ty ← whnf ty transparency.semireducible,
 match ty with
-| `(¬ %%lhs) := pure ff
-| `(%%lhs = _) := pure ff
-| `(%%lhs ↔ _) := pure ff
-| (expr.pi n bi a b) :=
-  if bi ≠ binder_info.inst_implicit ∧ ¬ b.has_var then
-    pure tt
-  else do
-    l ← mk_local' n bi a,
-    simp_is_conditional (b.instantiate_var l)
-| ty := pure ff
+| `(¬ %%lhs) := pure lhs
+| `(%%lhs = _) := pure lhs
+| `(%%lhs ↔ _) := pure lhs
+| (expr.pi n bi a b) := do
+  l ← mk_local' n bi a,
+  some lhs ← simp_is_conditional_core (b.instantiate_var l) | pure none,
+  if bi ≠ binder_info.inst_implicit ∧
+      ¬ (lhs.abstract_local l.local_uniq_name).has_var then
+    pure none
+  else
+    pure lhs
+| ty := pure ty
 end
+
+/--
+`simp_is_conditional ty` returns true iff the simp lemma with type `ty` is conditional.
+-/
+private meta def simp_is_conditional (ty : expr) : tactic bool :=
+option.is_none <$> simp_is_conditional_core ty
 
 private meta def heuristic_simp_lemma_extraction (prf : expr) : tactic (list name) :=
 prf.list_constant.to_list.mfilter is_simp_lemma
@@ -558,7 +569,6 @@ tt ← is_simp_lemma d.to_name | pure none,
 -- In this case, ignore the declaration if it is not a valid simp lemma by itself.
 tt ← is_valid_simp_lemma_cnst d.to_name | pure none,
 (λ tac, tactic.try_for timeout tac <|> pure (some "timeout")) $ -- last resort
-(λ tac : tactic _, tac <|> pure none) $ -- tc resolution depth
 retrieve $ do
 reset_instance_cache,
 g ← mk_meta_var d.type,
@@ -568,10 +578,13 @@ intros,
 sls ← simp_lemmas.mk_default,
 let sls' := sls.erase [d.to_name],
 -- TODO: should we do something special about rfl-lemmas?
-(lhs', prf1) ← simplify sls [] lhs {fail_if_unchanged := ff},
+some (lhs', prf1) ← try_core $ simplify sls [] lhs {fail_if_unchanged := ff}
+  | pure "simplify fails on left-hand side. PLEASE REPORT TO ZULIP",
 prf1_lems ← heuristic_simp_lemma_extraction prf1,
 if d.to_name ∈ prf1_lems then pure none else do
-(rhs', prf2) ← simplify sls [] rhs {fail_if_unchanged := ff},
+is_cond ← simp_is_conditional d.type,
+some (rhs', prf2) ← try_core $ simplify sls [] rhs {fail_if_unchanged := ff}
+  | pure "simplify fails on right-hand side. PLEASE REPORT TO ZULIP",
 lhs'_eq_rhs' ← succeeds (is_def_eq lhs' rhs' transparency.reducible),
 lhs_in_nf ← succeeds (is_def_eq lhs' lhs transparency.reducible),
 if lhs'_eq_rhs' ∧ lhs'.get_app_fn.const_name = rhs'.get_app_fn.const_name then do
@@ -589,6 +602,8 @@ else if ¬ lhs_in_nf then do
       ++ "to" ++ lhs'.group.indent 2 ++ format.line
       ++ "using " ++ (to_fmt prf1_lems).group.indent 2 ++ format.line
       ++ "Try to change the left-hand side to the simplified term!\n"
+else if ¬ is_cond ∧ lhs = lhs' then do
+  pure "Left-hand side does not simplify. PLEASE REPORT TO ZULIP"
 else
   pure none
 

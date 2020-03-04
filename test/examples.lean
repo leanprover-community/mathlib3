@@ -223,6 +223,9 @@ node
     [3,2])
   [1]
 
+/-- demonstrate the nested use of `traverse`. It traverses each node of the tree and
+in each node, traverses each list. For each `ℕ` visited, apply an action `ℕ -> state (list ℕ) unit`
+which adds its argument to the state. -/
 def ex : state (list ℕ) (my_tree $ list unit) :=
 do xs ← traverse (traverse $ λ a, modify $ list.cons a) x,
    pure xs

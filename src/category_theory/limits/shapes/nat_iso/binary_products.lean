@@ -102,9 +102,8 @@ cones.forget.map_iso (is_limit.unique_up_to_iso (is_limit IP) (is_limit IQ))
 
 -- The next two definitions assert that `is_binary_product.{v} X Y` is not just path connected,
 -- but also simply connected.
--- (TODO perhaps there should be a generic structure for this situation.)
 
--- local attribute [simp] iso_ext cone is_limit.of_nat_iso.limit_cone is_limit.of_nat_iso.cone_of_hom
+-- Deduce these all in one step?
 
 @[simp] def iso_ext_refl {X Y : C} {P : C}
   (IP : is_binary_product.{v} X Y P) : iso_ext IP IP = iso.refl P :=

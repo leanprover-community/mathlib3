@@ -1255,5 +1255,23 @@ add_tactic_doc
   decl_names := [`tactic.interactive.generalize'],
   tags       := ["context management"] }
 
+meta def unfold_locals (ns : parse ident*) : tactic unit := do
+ns.for_each $ λ n, do
+  e ← resolve_name n >>= to_expr,
+  g ← target,
+  t ← infer_type e,
+  v ← mk_meta_var t,
+  h ← to_expr ``(%%e = (%%v : %%t)) >>= assert `h,
+  solve1 (do
+    tactic.revert e,
+    g ← target,
+    match g with
+     | (expr.elet n _ e b) := tactic.change (expr.instantiate_local n e b)
+     | _ := fail $ to_string n ++ " is not a local definition"
+    end,
+    tactic.intros, reflexivity ),
+  rewrite_target h,
+  tactic.clear h
+
 end interactive
 end tactic

@@ -32,7 +32,7 @@ by rw [modeq, zero_mod, dvd_iff_mod_eq_zero]
 
 theorem modeq_iff_dvd : a ≡ b [ZMOD n] ↔ (n:ℤ) ∣ b - a :=
 by rw [modeq, eq_comm];
-   simp [int.mod_eq_mod_iff_mod_sub_eq_zero, int.dvd_iff_mod_eq_zero]
+   simp [int.mod_eq_mod_iff_mod_sub_eq_zero, int.dvd_iff_mod_eq_zero, -euclidean_domain.mod_eq_zero]
 
 theorem modeq_of_dvd_of_modeq (d : m ∣ n) (h : a ≡ b [ZMOD n]) : a ≡ b [ZMOD m] :=
 modeq_iff_dvd.2 $ dvd_trans d (modeq_iff_dvd.1 h)

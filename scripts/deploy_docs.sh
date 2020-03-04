@@ -23,9 +23,12 @@ elan override set "leanprover-community/lean:$short_lean_version"
 python3 -m pip install --upgrade pip
 pip3 install markdown2 toml
 ./gen_docs -w -r "../" -t "mathlib_docs/docs/"
-cd mathlib_docs/docs
-git config user.email "leanprover.community@gmail.com"
-git config user.name "leanprover-community-bot"
-git add -A .
-git commit -m "automatic update to $git_hash"
-git push
+
+if [ "$github_repo" = "leanprover-community/mathlib" -a "$github_event" = "push" -a "$github_ref" = "refs/heads/master" ]; then
+  cd mathlib_docs/docs
+  git config user.email "leanprover.community@gmail.com"
+  git config user.name "leanprover-community-bot"
+  git add -A .
+  git commit -m "automatic update to $git_hash"
+  git push
+fi

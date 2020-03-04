@@ -339,7 +339,8 @@ instance to_linear_ordered_ring : linear_ordered_ring α :=
     exact zero_ne_one _ (nonneg_antisymm this h).symm
   end, ..s }
 
-@[priority 80] -- see Note [lower instance priority]
+/-- Convert a `linear_nonneg_ring` with a commutative multiplication and
+decidable non-negativity into a `decidable_linear_ordered_comm_ring` -/
 def to_decidable_linear_ordered_comm_ring
   [decidable_pred (@nonneg α _)]
   [comm : @is_commutative α (*)]

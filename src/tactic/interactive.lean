@@ -721,7 +721,7 @@ do n ← xs.mmap (try_core ∘ get_local) >>= revert_lst ∘ list.filter_map id,
    ls.reverse.mmap' $ try ∘ tactic.clear,
    intron n
 
-private meta def format_names (ns : list name) : format :=
+meta def format_names (ns : list name) : format :=
 format.join $ list.intersperse " " (ns.map to_fmt)
 
 private meta def indent_bindents (l r : string) : option (list name) → expr → tactic format

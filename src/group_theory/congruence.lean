@@ -188,7 +188,7 @@ protected def quotient := quotient $ c.to_setoid
 
 /-- Coercion from a type with a multiplication to its quotient by a congruence relation.
 
-See note [use has_coe_t]. -/
+See Note [use has_coe_t]. -/
 @[to_additive "Coercion from a type with an addition to its quotient by an additive congruence relation", priority 0]
 instance : has_coe_t M c.quotient := ⟨@quotient.mk _ c.to_setoid⟩
 

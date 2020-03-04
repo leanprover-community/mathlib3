@@ -91,7 +91,7 @@ set_option default_priority 100 -- see Note [default priority]
 A Lie ring is an additive group with compatible product, known as the bracket, satisfying the
 Jacobi identity. The bracket is not associative unless it is identically zero.
 -/
-class lie_ring (L : Type v) [add_comm_group L] extends has_bracket L :=
+class lie_ring (L : Type v) extends add_comm_group L, has_bracket L :=
 (add_lie : ∀ (x y z : L), ⁅x + y, z⁆ = ⁅x, z⁆ + ⁅y, z⁆)
 (lie_add : ∀ (x y z : L), ⁅z, x + y⁆ = ⁅z, x⁆ + ⁅z, y⁆)
 (lie_self : ∀ (x : L), ⁅x, x⁆ = 0)
@@ -100,7 +100,7 @@ end prio
 
 section lie_ring
 
-variables {L : Type v} [add_comm_group L] [lie_ring L]
+variables {L : Type v} [lie_ring L]
 
 @[simp] lemma add_lie (x y z : L) : ⁅x + y, z⁆ = ⁅x, z⁆ + ⁅y, z⁆ := lie_ring.add_lie x y z
 @[simp] lemma lie_add (x y z : L) : ⁅z, x + y⁆ = ⁅z, x⁆ + ⁅z, y⁆ := lie_ring.lie_add x y z
@@ -161,16 +161,15 @@ set_option default_priority 100 -- see Note [default priority]
 A Lie algebra is a module with compatible product, known as the bracket, satisfying the Jacobi
 identity. Forgetting the scalar multiplication, every Lie algebra is a Lie ring.
 -/
-class lie_algebra (R : Type u) (L : Type v)
-  [comm_ring R] [add_comm_group L] extends module R L, lie_ring L :=
+class lie_algebra (R : Type u) (L : Type v) [comm_ring R] [lie_ring L] extends module R L :=
 (lie_smul : ∀ (t : R) (x y : L), ⁅x, t • y⁆ = t • ⁅x, y⁆)
 end prio
 
-@[simp] lemma lie_smul  (R : Type u) (L : Type v) [comm_ring R] [add_comm_group L] [lie_algebra R L]
+@[simp] lemma lie_smul  (R : Type u) (L : Type v) [comm_ring R] [lie_ring L] [lie_algebra R L]
   (t : R) (x y : L) : ⁅x, t • y⁆ = t • ⁅x, y⁆ :=
   lie_algebra.lie_smul t x y
 
-@[simp] lemma smul_lie (R : Type u) (L : Type v) [comm_ring R] [add_comm_group L] [lie_algebra R L]
+@[simp] lemma smul_lie (R : Type u) (L : Type v) [comm_ring R] [lie_ring L] [lie_algebra R L]
   (t : R) (x y : L) : ⁅t • x, y⁆ = t • ⁅x, y⁆ :=
   by { rw [←lie_skew, ←lie_skew x y], simp [-lie_skew], }
 
@@ -180,7 +179,7 @@ namespace lie_algebra
 A morphism of Lie algebras is a linear map respecting the bracket operations.
 -/
 structure morphism (R : Type u) (L : Type v) (L' : Type v)
-  [comm_ring R] [add_comm_group L] [lie_algebra R L] [add_comm_group L'] [lie_algebra R L']
+  [comm_ring R] [lie_ring L] [lie_algebra R L] [lie_ring L'] [lie_algebra R L']
   extends linear_map R L L' :=
 (map_lie : ∀ {x y : L}, to_fun ⁅x, y⁆ = ⁅to_fun x, to_fun y⁆)
 
@@ -188,38 +187,43 @@ infixr ` →ₗ⁅⁆ `:25 := morphism _
 notation L ` →ₗ⁅`:25 R:25 `⁆ `:0 L':0 := morphism R L L'
 
 instance (R : Type u) (L : Type v) (L' : Type v)
-  [comm_ring R] [add_comm_group L] [lie_algebra R L] [add_comm_group L'] [lie_algebra R L'] :
+    [comm_ring R] [lie_ring L] [lie_algebra R L] [lie_ring L'] [lie_algebra R L'] :
   has_coe (L →ₗ⁅R⁆ L') (L →ₗ[R] L') := ⟨morphism.to_linear_map⟩
 
 lemma map_lie {R : Type u} {L : Type v} {L' : Type v}
-  [comm_ring R] [add_comm_group L] [lie_algebra R L] [add_comm_group L'] [lie_algebra R L']
+    [comm_ring R] [lie_ring L] [lie_algebra R L] [lie_ring L'] [lie_algebra R L']
   (f : L →ₗ⁅R⁆ L') (x y : L) : f ⁅x, y⁆ = ⁅f x, f y⁆ := morphism.map_lie f
 
 @[simp] lemma map_lie' {R : Type u} {L : Type v} {L' : Type v}
-  [comm_ring R] [add_comm_group L] [lie_algebra R L] [add_comm_group L'] [lie_algebra R L']
+    [comm_ring R] [lie_ring L] [lie_algebra R L] [lie_ring L'] [lie_algebra R L']
   (f : L →ₗ⁅R⁆ L') (x y : L) : (f : L →ₗ[R] L') ⁅x, y⁆ = ⁅f x, f y⁆ := morphism.map_lie f
 
-variables {R : Type u} {L : Type v} [comm_ring R] [add_comm_group L] [lie_algebra R L]
+variables {R : Type u} {L : Type v} [comm_ring R] [lie_ring L] [lie_algebra R L]
 
 /--
 An associative algebra gives rise to a Lie algebra by taking the bracket to be the ring commutator.
 -/
-def of_associative_algebra (A : Type v) [ring A] [algebra R A] : lie_algebra R A :=
-{ bracket  := ring_commutator.commutator,
-  lie_smul := by { intros, unfold has_bracket.bracket, unfold ring_commutator.commutator,
-                   rw [algebra.mul_smul_comm, algebra.smul_mul_assoc, smul_sub], },
-  ..lie_ring.of_associative_ring A }
+def of_associative_algebra (A : Type v) [ring A] [algebra R A] :
+  @lie_algebra R A _ (lie_ring.of_associative_ring _) :=
+{ lie_smul :=
+    begin
+      intros,
+      show _ - _ = _ • (_ - _),
+      rw [algebra.mul_smul_comm, algebra.smul_mul_assoc, smul_sub],
+    end }
+
+instance (M : Type v) [add_comm_group M] [module R M] : lie_ring (module.End R M) :=
+lie_ring.of_associative_ring _
 
 /--
 An important class of Lie algebras are those arising from the associative algebra structure on
 module endomorphisms.
 -/
-instance of_endomorphism_algebra (M : Type v)
-  [add_comm_group M] [module R M] : lie_algebra R (module.End R M) :=
+instance of_endomorphism_algebra (M : Type v) [add_comm_group M] [module R M] :
+  lie_algebra R (module.End R M) :=
 of_associative_algebra (module.End R M)
 
-lemma endo_algebra_bracket (M : Type v)
-  [add_comm_group M] [module R M] (f g : module.End R M) :
+lemma endo_algebra_bracket (M : Type v) [add_comm_group M] [module R M] (f g : module.End R M) :
   ⁅f, g⁆ = f.comp g - g.comp f := rfl
 
 /--
@@ -243,7 +247,7 @@ end lie_algebra
 
 section lie_subalgebra
 
-variables (R : Type u) (L : Type v) [comm_ring R] [add_comm_group L] [lie_algebra R L]
+variables (R : Type u) (L : Type v) [comm_ring R] [lie_ring L] [lie_algebra R L]
 
 /--
 A Lie subalgebra of a Lie algebra is submodule that is closed under the Lie bracket.
@@ -255,21 +259,26 @@ structure lie_subalgebra extends submodule R L :=
 instance lie_subalgebra_coe_submodule : has_coe (lie_subalgebra R L) (submodule R L) :=
 ⟨lie_subalgebra.to_submodule⟩
 
-/-- A Lie subalgebra forms a new Lie algebra.
+/-- A Lie subalgebra forms a new Lie ring.
 This cannot be an instance, since being a Lie subalgebra is (currently) not a class. -/
-def lie_subalgebra_lie_algebra (L' : lie_subalgebra R L) : lie_algebra R L' := {
+def lie_subalgebra_lie_ring (L' : lie_subalgebra R L) : lie_ring L' := {
   bracket  := λ x y, ⟨⁅x.val, y.val⁆, L'.lie_mem x.property y.property⟩,
   lie_add  := by { intros, apply set_coe.ext, apply lie_add, },
   add_lie  := by { intros, apply set_coe.ext, apply add_lie, },
   lie_self := by { intros, apply set_coe.ext, apply lie_self, },
-  jacobi   := by { intros, apply set_coe.ext, apply lie_ring.jacobi, },
-  lie_smul := by { intros, apply set_coe.ext, apply lie_smul, } }
+  jacobi   := by { intros, apply set_coe.ext, apply lie_ring.jacobi, } }
+
+/-- A Lie subalgebra forms a new Lie algebra.
+This cannot be an instance, since being a Lie subalgebra is (currently) not a class. -/
+def lie_subalgebra_lie_algebra (L' : lie_subalgebra R L) :
+    @lie_algebra R L' _ (lie_subalgebra_lie_ring _ _ _) :=
+{ lie_smul := by { intros, apply set_coe.ext, apply lie_smul } }
 
 end lie_subalgebra
 
 section lie_module
 
-variables (R : Type u) (L : Type v) [comm_ring R] [add_comm_group L] [lie_algebra R L]
+variables (R : Type u) (L : Type v) [comm_ring R] [lie_ring L] [lie_algebra R L]
 variables (M  : Type v) [add_comm_group M] [module R M]
 
 section prio
@@ -349,7 +358,7 @@ end lie_module
 
 namespace lie_submodule
 
-variables {R : Type u} {L : Type v} [comm_ring R] [add_comm_group L] [lie_algebra R L]
+variables {R : Type u} {L : Type v} [comm_ring R] [lie_ring L] [lie_algebra R L]
 variables {M : Type v} [add_comm_group M] [module R M] [lie_module R L M]
 variables (N : lie_submodule R L M) (I : lie_ideal R L)
 
@@ -385,7 +394,7 @@ instance lie_quotient_has_bracket : has_bracket (quotient I) := ⟨by {
 @[simp] lemma mk_bracket (x y : L) :
   (mk ⁅x, y⁆ : quotient I) = ⁅mk x, mk y⁆ := rfl
 
-instance lie_quotient_lie_algebra : lie_algebra R (quotient I) := {
+instance lie_quotient_lie_ring : lie_ring (quotient I) := {
   add_lie  := by { intros x' y' z', apply quotient.induction_on₃' x' y' z', intros x y z,
                    repeat { rw is_quotient_mk <|>
                             rw ←mk_bracket <|>
@@ -403,7 +412,9 @@ instance lie_quotient_lie_algebra : lie_algebra R (quotient I) := {
                    repeat { rw is_quotient_mk <|>
                             rw ←mk_bracket <|>
                             rw ←submodule.quotient.mk_add, },
-                   apply congr_arg, apply lie_ring.jacobi, },
+                   apply congr_arg, apply lie_ring.jacobi, } }
+
+instance lie_quotient_lie_algebra : lie_algebra R (quotient I) := {
   lie_smul := by { intros t x' y', apply quotient.induction_on₂' x' y', intros x y,
                    repeat { rw is_quotient_mk <|>
                             rw ←mk_bracket <|>
@@ -415,9 +426,17 @@ end quotient
 end lie_submodule
 
 /--
+An important class of Lie rings are those arising from the associative algebra structure on
+square matrices over a commutative ring.
+-/
+def matrix.lie_ring (n : Type u) (R : Type v)
+  [fintype n] [decidable_eq n] [comm_ring R] : lie_ring (matrix n n R) :=
+lie_ring.of_associative_ring (matrix n n R)
+
+/--
 An important class of Lie algebras are those arising from the associative algebra structure on
 square matrices over a commutative ring.
 -/
 def matrix.lie_algebra (n : Type u) (R : Type v)
-  [fintype n] [decidable_eq n] [comm_ring R] : lie_algebra R (matrix n n R) :=
+  [fintype n] [decidable_eq n] [comm_ring R] : @lie_algebra R (matrix n n R) _ (matrix.lie_ring _ _) :=
 lie_algebra.of_associative_algebra (matrix n n R)

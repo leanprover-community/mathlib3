@@ -354,16 +354,14 @@ lemma filter.tendsto.nnnorm {β : Type*} {l : filter β} {f : β → α} {a : α
 tendsto.comp continuous_nnnorm.continuous_at h
 
 /-- If `∥y∥→∞`, then we can assume `y≠x` for any fixed `x`. -/
-lemma ne_mem_of_tendsto_norm_at_top {l : filter γ} {f : γ → α}
+lemma eventually_ne_of_tendsto_norm_at_top {l : filter γ} {f : γ → α}
   (h : tendsto (λ y, ∥f y∥) l at_top) (x : α) :
   ∀ᶠ y in l, f y ≠ x :=
 begin
   have : ∀ᶠ y in l, 1 + ∥x∥ ≤ ∥f y∥ := h (mem_at_top (1 + ∥x∥)),
-  apply mem_sets_of_superset this,
-  assume y hy hxy,
+  refine this.mono (λ y hy hxy, _),
   subst x,
-  simp at hy,
-  exact not_le_of_lt zero_lt_one hy
+  exact not_le_of_lt zero_lt_one (add_le_iff_nonpos_left.1 hy)
 end
 
 /-- A normed group is a uniform additive group, i.e., addition and subtraction are uniformly

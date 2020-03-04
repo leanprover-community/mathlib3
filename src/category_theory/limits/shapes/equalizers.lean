@@ -5,6 +5,7 @@ Authors: Scott Morrison, Markus Himmel
 -/
 import data.fintype
 import category_theory.limits.limits
+import category_theory.limits.shapes.finite_limits
 
 /-!
 # Equalizers and coequalizers
@@ -62,12 +63,20 @@ instance fintype_walking_parallel_pair : fintype walking_parallel_pair :=
 open walking_parallel_pair
 
 /-- The type family of morphisms for the diagram indexing a (co)equalizer. -/
-inductive walking_parallel_pair_hom : walking_parallel_pair → walking_parallel_pair → Type v
+@[derive _root_.decidable_eq] inductive walking_parallel_pair_hom :
+  walking_parallel_pair → walking_parallel_pair → Type v
 | left : walking_parallel_pair_hom zero one
 | right : walking_parallel_pair_hom zero one
 | id : Π X : walking_parallel_pair.{v}, walking_parallel_pair_hom X X
 
 open walking_parallel_pair_hom
+
+instance (j j' : walking_parallel_pair) : fintype (walking_parallel_pair_hom j j') :=
+{ elems := walking_parallel_pair.rec_on j
+    (walking_parallel_pair.rec_on j' [walking_parallel_pair_hom.id zero].to_finset
+      [left, right].to_finset)
+    (walking_parallel_pair.rec_on j' ∅ [walking_parallel_pair_hom.id one].to_finset),
+  complete := by tidy }
 
 def walking_parallel_pair_hom.comp :
   Π (X Y Z : walking_parallel_pair)
@@ -82,6 +91,8 @@ instance walking_parallel_pair_hom_category : small_category.{v} walking_paralle
 { hom  := walking_parallel_pair_hom,
   id   := walking_parallel_pair_hom.id,
   comp := walking_parallel_pair_hom.comp }
+
+instance : fin_category.{v} walking_parallel_pair.{v} := { }
 
 lemma walking_parallel_pair_hom_id (X : walking_parallel_pair.{v}) :
   walking_parallel_pair_hom.id X = 𝟙 X :=

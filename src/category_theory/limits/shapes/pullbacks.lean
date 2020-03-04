@@ -5,6 +5,7 @@ Authors: Scott Morrison
 -/
 import data.fintype
 import category_theory.limits.limits
+import category_theory.limits.shapes.finite_limits
 import category_theory.sparse
 
 /-!
@@ -46,12 +47,19 @@ instance fintype_walking_span : fintype walking_span :=
 namespace walking_cospan
 
 /-- The arrows in a pullback diagram. -/
-inductive hom : walking_cospan → walking_cospan → Type v
+@[derive _root_.decidable_eq] inductive hom : walking_cospan → walking_cospan → Type v
 | inl : hom left one
 | inr : hom right one
 | id : Π X : walking_cospan.{v}, hom X X
 
 open hom
+
+instance fintype_walking_cospan_hom (j j' : walking_cospan) : fintype (hom j j') :=
+{ elems := walking_cospan.rec_on j
+    (walking_cospan.rec_on j' [hom.id left].to_finset ∅ [inl].to_finset)
+    (walking_cospan.rec_on j' ∅ [hom.id right].to_finset [inr].to_finset)
+    (walking_cospan.rec_on j' ∅ ∅ [hom.id one].to_finset),
+  complete := by tidy }
 
 def hom.comp : Π (X Y Z : walking_cospan) (f : hom X Y) (g : hom Y Z), hom X Z
 | _ _ _ (id _) h := h
@@ -73,17 +81,27 @@ lemma hom_id (X : walking_cospan.{v}) : hom.id X = 𝟙 X := rfl
 /-- The walking_cospan is the index diagram for a pullback. -/
 instance : small_category.{v} walking_cospan.{v} := sparse_category
 
+instance : fin_category.{v} walking_cospan.{v} :=
+{ fintype_hom := walking_cospan.fintype_walking_cospan_hom }
+
 end walking_cospan
 
 namespace walking_span
 
 /-- The arrows in a pushout diagram. -/
-inductive hom : walking_span → walking_span → Type v
+@[derive _root_.decidable_eq] inductive hom : walking_span → walking_span → Type v
 | fst : hom zero left
 | snd : hom zero right
 | id : Π X : walking_span.{v}, hom X X
 
 open hom
+
+instance fintype_walking_span_hom (j j' : walking_span) : fintype (hom j j') :=
+{ elems := walking_span.rec_on j
+    (walking_span.rec_on j' [hom.id zero].to_finset [fst].to_finset [snd].to_finset)
+    (walking_span.rec_on j' ∅ [hom.id left].to_finset ∅)
+    (walking_span.rec_on j' ∅ ∅ [hom.id right].to_finset),
+  complete := by tidy }
 
 def hom.comp : Π (X Y Z : walking_span) (f : hom X Y) (g : hom Y Z), hom X Z
   | _ _ _ (id _) h := h
@@ -104,6 +122,9 @@ lemma hom_id (X : walking_span.{v}) : hom.id X = 𝟙 X := rfl
 
 /-- The walking_span is the index diagram for a pushout. -/
 instance : small_category.{v} walking_span.{v} := sparse_category
+
+instance : fin_category.{v} walking_span.{v} :=
+{ fintype_hom := walking_span.fintype_walking_span_hom }
 
 end walking_span
 

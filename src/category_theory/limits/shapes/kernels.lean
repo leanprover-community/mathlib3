@@ -136,4 +136,6 @@ class has_kernels :=
 class has_cokernels :=
 (has_colimit : Π {X Y : C} (f : X ⟶ Y), has_colimit (parallel_pair f 0))
 
+attribute [instance] has_kernels.has_limit has_cokernels.has_colimit
+
 end category_theory.limits

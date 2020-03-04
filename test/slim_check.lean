@@ -4,10 +4,10 @@ import testing.slim_check.tactics
 namespace slim_check.examples
 
 example : ∀ n : ℕ, n > n+1 :=
-by expect_failure { slim_check }
+by success_if_fail { slim_check }; admit
 
 example : ∀ n : ℕ, n < 20 :=
-by expect_failure { slim_check }
+by success_if_fail { slim_check }; admit
 
 open slim_check
 
@@ -37,10 +37,10 @@ variables [has_add α] [has_one α] [decidable_eq α]
 -- by slim_check
 
 example : (∀ (xs : list α), xs ≠ [] → ∃ (x ∈ xs), x = (10 : α)) :=
-by expect_failure { slim_check, }
+by success_if_fail { slim_check, }; admit
 
 example : (∀ (xs : list α), ∃ (x ∈ xs), ∃ y ∈ xs, x ≠ y) :=
-by expect_failure { slim_check } -- remaining meta variables
+by success_if_fail { slim_check }; admit -- remaining meta variables
 
 end
 
@@ -49,25 +49,25 @@ by slim_check -- no error message or warning:
               -- slim_check actually proves the statement
 
 example : (∃ (x ∈ [1,2,3,9]), x = 10) :=
-by expect_failure { slim_check }
+by success_if_fail { slim_check }; admit
 
 example : (∀ (α : Type) (xs : list α), xs.length < 10) :=
-by expect_failure { slim_check }
+by success_if_fail { slim_check }; admit
 
 example : (∀ n m : ℕ, 2*m + n < 100) :=
-by expect_failure { slim_check }
+by success_if_fail { slim_check }; admit
 
 -- example : (∀ n m : ℕ, 2*m + n < 10000000000) :=
--- by expect_failure { slim_check }
+-- by success_if_fail { slim_check }; admit
 
 example : (∀ n m : ℕ, 2*m + n < 1000000000000) :=
 by { slim_check }
 
 example : (∀ (n : ℤ) (xs : list ℤ) x, x ∈ xs → x ≤ n) :=
-by expect_failure { slim_check }
+by success_if_fail { slim_check }; admit
 
 example : (∀ (xs : list ℤ), ∃ x ∈ xs, ∀ y ∈ xs, x ≤ y) :=
-by expect_failure { slim_check }
+by success_if_fail { slim_check }; admit
 
 example : (∀ (xs : list ℤ), xs = [] ∨ ∃ x ∈ xs, ∀ y ∈ xs, x ≤ y) :=
 by slim_check
@@ -81,7 +81,7 @@ by slim_check
 variables n m : ℕ
 
 example : (false → even m → ¬ even n → even (m+n)) :=
-by expect_failure { slim_check }
+by success_if_fail { slim_check }; admit
 
 example (xs : list ℕ) (n ∈ xs) : 5*(n+1) ≥ list.length xs :=
 by slim_check

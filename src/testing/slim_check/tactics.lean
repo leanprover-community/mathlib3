@@ -1,60 +1,11 @@
 
 import testing.slim_check.testable
 
-namespace tactic.interactive
-open tactic slim_check
+namespace tactic
+open slim_check
 
-meta def expect_failure (cmd : itactic) : tactic unit :=
-λ s, match cmd s with
-| (interaction_monad.result.exception msg _ s') :=
-  match msg with
-   | (some msg') := (trace (msg' ()) >> admit) s'
-   | none := admit s'
-  end
-| (interaction_monad.result.success a s) :=
-   mk_exception "success_if_fail combinator failed, given tactic succeeded" none s
-end
-
-
-meta def trace_error (cmd : itactic) : tactic unit :=
-λ s,
-let r := cmd s in
-match r with
-| (interaction_monad.result.exception a b s') :=
-(trace "\nBEGIN error" >> trace s' >> trace "END error"
-  >> interaction_monad.result.exception a b) s'
-| (interaction_monad.result.success a s) := r
-end
-
-meta def applye (e : pexpr) : tactic unit := do
+private meta def applye (e : pexpr) : tactic unit := do
 () <$ (to_expr e >>= tactic.apply)
-
-meta def synth_def_name : tactic unit :=
-do n ← decl_name,
-   tactic.exact `(n)
-
-meta def on_error {α} (tac : tactic α)
-  (hdlr : option (unit → format) → option pos → tactic unit) : tactic α
-| s := match tac s with
-       | x@(result.success _ _) := x
-       | (result.exception msg pos s') := (hdlr msg pos >> result.exception msg pos) s'
-       end
-
-meta def trace_scope' (tag : pformat) {α} (tac : tactic α) (n : name . synth_def_name) : tactic α :=
-do tag ← tag,
-   let tag := if ¬ tag.is_nil then format!"{n} ({tag})" else to_fmt n,
-   trace!"begin {tag}",
-   on_error tac (λ msg pos,
-     let msg := msg.get_or_else (λ _, to_fmt "⟨empty⟩") (),
-         pos := match pos with
-                | none := to_fmt ""
-                | (some val) := to_fmt val
-                end in
-     trace!"failed {tag} {pos}\n  {msg}" >> trace_state) <*
-   trace!"end {tag}"
-
-meta def trace_scope {α} (tac : tactic α) (n : name . synth_def_name) : tactic α :=
-trace_scope' (pure $ to_fmt "") tac n
 
 /-- build an instance of testable for the given proposition
   -/
@@ -99,12 +50,17 @@ match e with
        (  (applye ``(slim_check.test_forall_in_list _ _ %%var)  ; apply_instance)
          <|>
           (applye ``(slim_check.var_testable _ _ (some %%var)) ; apply_instance))
- | _ := trace_error $ tactic.applyc ``slim_check.de_testable
+ | _ := trace_error "is_testable" $ tactic.applyc ``slim_check.de_testable
 end)
-<|> trace_error (tactic.applyc ``slim_check.de_testable)
+<|> trace_error "is_testable" (tactic.applyc ``slim_check.de_testable)
 
 open slim_check.test_result nat
 
+namespace interactive
+
+/-- in a goal of the shape `⊢ p` where `p` is testable, try to find
+counter-examples to falsify `p`. If one is found, an assignment to the
+local variables is printed. Otherwise, the goal is `admit`-ed.  -/
 meta def slim_check (bound : ℕ := 100) : tactic unit :=
 do unfreeze_local_instances,
    n ← revert_all,
@@ -136,4 +92,5 @@ do unfreeze_local_instances,
       else trace ("Gave up " ++ repr n ++ " time(s)") >> admit
    end
 
-end tactic.interactive
+end interactive
+end tactic

@@ -4,21 +4,27 @@ import tactic
 
 universes u₀ u₁ v₀ v₁ v₂ w w₀ w₁
 
+/-- Given a universe polymorphic functor `M.{u}`, this class helps move from
+`M.{u}` to `M.{v}` and back -/
 class liftable (f : Type u₀ → Type u₁) (g : Type v₀ → Type v₁) :=
-  (up {}   : Π {α β}, α ≃ β → f α → g β)
-  (down {} : Π {α β}, α ≃ β → g β → f α)
-  (up_down : ∀ {α β} (F : α ≃ β) (x : g β), up F (down F x) = x)
-  (down_up : ∀ {α β} (F : α ≃ β) (x : f α), down F (up F x) = x)
+(up {}   : Π {α β}, α ≃ β → f α → g β)
+(down {} : Π {α β}, α ≃ β → g β → f α)
+(up_down : ∀ {α β} (F : α ≃ β) (x : g β), up F (down F x) = x)
+(down_up : ∀ {α β} (F : α ≃ β) (x : f α), down F (up F x) = x)
 
 attribute [simp] liftable.up_down liftable.down_up
 
 namespace liftable
 
+/-- The most common practical use, this function takes `x : M.{u} α` and lift it
+to M.{max u v} (ulift.{v} α) -/
 @[reducible]
 def up' {f : Type u₀ → Type u₁} {g : Type (max u₀ v₀) → Type v₁} [liftable f g]
   {α} : f α → g (ulift α) :=
 liftable.up equiv.ulift.symm
 
+/-- The most common practical use, this function takes `x : M.{max u v} (ulift.{v} α)`
+and lowers it to `M.{u} α` -/
 @[reducible]
 def down' {f : Type u₀ → Type u₁} {g : Type (max u₀ v₀) → Type v₁} [liftable f g]
   {α} : g (ulift α) → f α :=
@@ -45,7 +51,8 @@ instance : liftable id id :=
 , up_down := by intros; simp
 , down_up := by intros; simp }
 
-def state_t.liftable' {s s' m m'} [functor m'] [functor m] [is_lawful_functor m'] [is_lawful_functor m]
+/-- for specific state types, this function helps to create a liftable instance -/
+def state_t.liftable' {s s' m m'}
   [liftable m m']
   (F : s ≃ s') :
   liftable (state_t s m) (state_t s' m') :=
@@ -54,11 +61,12 @@ def state_t.liftable' {s s' m m'} [functor m'] [functor m] [is_lawful_functor m'
 , up_down := by { rintros α β G ⟨ f ⟩, simp! }
 , down_up := by { rintros α β G ⟨ g ⟩, simp! [map_map,function.comp] } }
 
-instance {s m m'} [functor m'] [functor m] [is_lawful_functor m'] [is_lawful_functor m]
+instance {s m m'}
   [liftable m m'] :
   liftable (state_t s m) (state_t (ulift s) m') :=
 state_t.liftable' equiv.ulift.symm
 
+/-- for specific reader monads, this function helps to create a liftable instance -/
 def reader_t.liftable' {s s' m m'}
   [liftable m m']
   (F : s ≃ s') :
@@ -70,45 +78,3 @@ def reader_t.liftable' {s s' m m'}
 
 instance {s m m'} [liftable m m'] : liftable (reader_t s m) (reader_t (ulift s) m') :=
 reader_t.liftable' equiv.ulift.symm
-
--- namespace liftable
-
--- variables {f : Type (max u₀ w) → Type u₁} {g : Type (max (max u₀ w) v₀) → Type v₁}
--- variables [liftable f g] [functor g]
--- variable {α : Type w}
--- open functor
-
--- def up' (x : f (ulift.{u₀} α)) : g (ulift.{max u₀ v₀} α) :=
--- map (ulift.up ∘ ulift.down ∘ ulift.down) $ up x
-
--- def down' (x : g (ulift.{max u₀ v₀} α)) : f (ulift.{u₀} α) :=
--- down $ map (ulift.up ∘ ulift.up ∘ ulift.down) x
-
--- variables [is_lawful_functor g]
-
--- lemma up_down' : ∀ (x : g (ulift.{max u₀ v₀} α)), up' (down' x : f (ulift.{u₀} α)) = x :=
--- by intros; simp [up',down',map_map,function.comp,ulift.up_down]
-
--- lemma down_up' : ∀ (x : f (ulift.{u₀} α)), down' (up' x : g (ulift.{max u₀ v₀} α)) = x :=
--- by intros; simp [up',down',map_map,function.comp,ulift.up_down]
-
--- end liftable
-
-section trans
-open liftable
-
--- def liftable.trans
---     {f : Type u₀ → Type u₁}
---     {g : Type v₀ → Type v₁}
---     {h : Type w₀ → Type w₁}
---     [functor h] [is_lawful_functor h]
---     (_ : liftable f g)
---     (_ : liftable g h) :
---   liftable f h :=
--- by refine
---      { up := λ α β G, (up' : g (ulift α) → h (ulift.{max v₀ w} α)) ∘ (up : f α → g (ulift α)),
---        down := λ α β G, (down : g (ulift α) → f α) ∘ (down' : h (ulift.{max v₀ w} α) → g (ulift α)) ,
---        .. };
---      intros; simp [function.comp,up_down',down_up']
-
-end trans

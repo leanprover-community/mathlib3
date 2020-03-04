@@ -798,12 +798,8 @@ mem_find_iff.2 ⟨hi, λ j hj, le_of_eq $ h i j hi hj⟩
 
 end find
 
-lemma val_of_nat_eq_mod (m n : ℕ) :
+@[simp] lemma val_of_nat_eq_mod (m n : ℕ) :
   (@fin.of_nat m n).val = n % succ m :=
 by refl
-
-lemma val_of_nat {m n : ℕ} (h : n < nat.succ m) :
-  (@fin.of_nat m n).val = n :=
-by rw [fin.val_of_nat_eq_mod,mod_eq_of_lt h]
 
 end fin

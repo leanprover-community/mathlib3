@@ -76,4 +76,37 @@ begin
     simp! with functor_norm, refl },
 end
 
+/-- `init xs`, if `xs` non-empty, drops the last element of the list.
+Otherwise, return the empty list -/
+def init {α} : lazy_list α → lazy_list α
+| lazy_list.nil := lazy_list.nil
+| (lazy_list.cons x xs) :=
+  let xs' := xs () in
+  match xs' with
+  | lazy_list.nil := lazy_list.nil
+  | (lazy_list.cons _ _) := lazy_list.cons x (init xs')
+  end
+
+/-- `interleave xs ys`, creates a list where elements of `xs` and `ys` alternate -/
+def interleave {α} : lazy_list α → lazy_list α → lazy_list α
+| lazy_list.nil xs := xs
+| a@(lazy_list.cons x xs) lazy_list.nil := a
+| (lazy_list.cons x xs) (lazy_list.cons y ys) :=
+  lazy_list.cons x (lazy_list.cons y (interleave (xs ()) (ys ())))
+
+/-- `interleave_all (xs::ys::zs::xss)`, creates an empty list where elements of `xs`, `ys`
+and `zs` and the rest alternate. Every other element of the resulting list is taken from
+`xs`, every fourth is taken from `ys`, every eighth is taken from `zs` and so on   -/
+def interleave_all {α} : list (lazy_list α) → lazy_list α
+| [] := lazy_list.nil
+| (x :: xs) := interleave x (interleave_all xs)
+
+/-- apply `f` to combine every element of the first list with every element
+of the second list and interleave the resulting lists -/
+def lseq {α β γ} (f : α → β → γ) : lazy_list α → lazy_list β → lazy_list γ
+| lazy_list.nil xs := lazy_list.nil
+| a@(lazy_list.cons x xs) lazy_list.nil := lazy_list.nil
+| (lazy_list.cons x xs) ys := interleave (ys.map $ f x) (lseq (xs ()) ys)
+
+
 end lazy_list

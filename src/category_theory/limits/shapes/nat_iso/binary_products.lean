@@ -76,6 +76,13 @@ variables {X Y P : C} (I : is_binary_product.{v} X Y P)
 def cone : cone (pair X Y) :=
 is_limit.of_nat_iso.limit_cone (nat_iso I)
 
+@[simp] lemma nat_iso_hom_app :
+  ((@nat_iso _ _ _ (pair X Y) I).hom.app (op P) (𝟙 P)) = (cone I).π :=
+begin
+  dsimp [nat_iso], ext j,
+  cases j; { simp, refl, },
+end
+
 /-- The witness that the `cone` associated to a binary product is a limit cone. -/
 def is_limit : is_limit (cone I) :=
 is_limit.of_nat_iso (nat_iso I)
@@ -97,29 +104,20 @@ cones.forget.map_iso (is_limit.unique_up_to_iso (is_limit IP) (is_limit IQ))
 -- but also simply connected.
 -- (TODO perhaps there should be a generic structure for this situation.)
 
-local attribute [simp] iso_ext cone is_limit.of_nat_iso.limit_cone is_limit.of_nat_iso.cone_of_hom
+-- local attribute [simp] iso_ext cone is_limit.of_nat_iso.limit_cone is_limit.of_nat_iso.cone_of_hom
 
-@[simp] def iso_ext_id {X Y : C} {P : C}
+@[simp] def iso_ext_refl {X Y : C} {P : C}
   (IP : is_binary_product.{v} X Y P) : iso_ext IP IP = iso.refl P :=
 begin
-  tidy?,
-  convert (is_limit.uniq (is_limit _) _ _ _).symm,
-  refl,
-  intro j,
-  simp only [category.id_comp],
+  rw [iso_ext, is_limit.unique_up_to_iso_refl, functor.map_iso_refl], refl,
 end
 
-@[simp] def iso_ext_comp {X Y : C} {P Q R : C}
+@[simp] def iso_ext_trans {X Y : C} {P Q R : C}
   (IP : is_binary_product.{v} X Y P)
   (IQ : is_binary_product.{v} X Y Q)
   (IR : is_binary_product.{v} X Y R) : iso_ext IP IQ ≪≫ iso_ext IQ IR = iso_ext IP IR :=
 begin
-  tidy?,
-  convert is_limit.uniq (is_limit _) _ _ _,
-  refl,
-  refl,
-  intro j,
-  sorry
+  rw [iso_ext, iso_ext, ←functor.map_iso_trans, is_limit.unique_up_to_iso_trans], refl,
 end
 
 end is_binary_product

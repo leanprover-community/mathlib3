@@ -38,6 +38,9 @@ namespace is_limit
 instance subsingleton {t : cone F} : subsingleton (is_limit t) :=
 ⟨by intros P Q; cases P; cases Q; congr; ext; solve_by_elim⟩
 
+@[simp] lemma lift_self {t : cone F} (h : is_limit t) : h.lift t = 𝟙 t.X :=
+(h.uniq t (𝟙 t.X) (λ j, by simp)).symm
+
 /- Repackaging the definition in terms of cone morphisms. -/
 
 @[simps] def lift_cone_morphism {t : cone F} (h : is_limit t) (s : cone F) : s ⟶ t :=
@@ -56,12 +59,20 @@ def mk_cone_morphism {t : cone F}
     have cone_morphism.mk m w = lift s, by apply uniq',
     congr_arg cone_morphism.hom this }
 
+-- TODO make a predicate combining the next three statements? `contractible`?
 /-- Limit cones on `F` are unique up to isomorphism. -/
 @[simps] def unique_up_to_iso {s t : cone F} (P : is_limit s) (Q : is_limit t) : s ≅ t :=
 { hom := Q.lift_cone_morphism s,
   inv := P.lift_cone_morphism t,
   hom_inv_id' := P.uniq_cone_morphism,
   inv_hom_id' := Q.uniq_cone_morphism }
+
+@[simp] lemma unique_up_to_iso_refl {s : cone F} (P : is_limit s) : unique_up_to_iso P P = iso.refl s :=
+by { ext, simp, }
+
+@[simp] lemma unique_up_to_iso_trans {s t r : cone F} (P : is_limit s) (Q : is_limit t) (R : is_limit r) :
+  unique_up_to_iso P Q ≪≫ unique_up_to_iso Q R = unique_up_to_iso P R :=
+by { ext, simp, apply R.uniq, intro j, simp, }
 
 def of_iso_limit {r t : cone F} (P : is_limit r) (i : r ≅ t) : is_limit t :=
 is_limit.mk_cone_morphism
@@ -492,7 +503,7 @@ def limit.hom_iso (F : J ⥤ C) [has_limit F] (W : C) : (W ⟶ limit F) ≅ (F.c
 
 @[simp] lemma limit.hom_iso_hom (F : J ⥤ C) [has_limit F] {W : C} (f : W ⟶ limit F) :
   (limit.hom_iso F W).hom f = (const J).map f ≫ (limit.cone F).π :=
-(limit.is_limit F).hom_iso_hom f
+(limit.is_limit F).hom_iso_hom _ f
 
 def limit.hom_iso' (F : J ⥤ C) [has_limit F] (W : C) :
   ((W ⟶ limit F) : Type v) ≅ { p : Π j, W ⟶ F.obj j // ∀ {j j' : J} (f : j ⟶ j'), p j ≫ F.map f = p j' } :=
@@ -786,7 +797,7 @@ def colimit.hom_iso (F : J ⥤ C) [has_colimit F] (W : C) : (colimit F ⟶ W) �
 
 @[simp] lemma colimit.hom_iso_hom (F : J ⥤ C) [has_colimit F] {W : C} (f : colimit F ⟶ W) :
   (colimit.hom_iso F W).hom f = (colimit.cocone F).ι ≫ (const J).map f :=
-(colimit.is_colimit F).hom_iso_hom f
+(colimit.is_colimit F).hom_iso_hom _ f
 
 def colimit.hom_iso' (F : J ⥤ C) [has_colimit F] (W : C) :
   ((colimit F ⟶ W) : Type v) ≅ { p : Π j, F.obj j ⟶ W // ∀ {j j'} (f : j ⟶ j'), F.map f ≫ p j' = p j } :=

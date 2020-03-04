@@ -186,9 +186,11 @@ variables (c)
 @[to_additive "Defining the quotient by an additive congruence relation of a type with an addition."]
 protected def quotient := quotient $ c.to_setoid
 
-/-- Coercion from a type with a multiplication to its quotient by a congruence relation. -/
+/-- Coercion from a type with a multiplication to its quotient by a congruence relation.
+
+See note [use has_coe_t]. -/
 @[to_additive "Coercion from a type with an addition to its quotient by an additive congruence relation", priority 0]
-instance : has_coe M c.quotient := ⟨@quotient.mk _ c.to_setoid⟩
+instance : has_coe_t M c.quotient := ⟨@quotient.mk _ c.to_setoid⟩
 
 /-- The quotient of a type with decidable equality by a congruence relation also has
     decidable equality. -/

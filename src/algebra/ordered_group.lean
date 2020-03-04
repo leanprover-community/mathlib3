@@ -599,7 +599,7 @@ by rw [sub_eq_add_neg, add_comm, neg_add_le_iff_le_add]
 lemma sub_le_iff_le_add : a - c ≤ b ↔ a ≤ b + c :=
 by rw [sub_le_iff_le_add', add_comm]
 
-@[simp] lemma add_neg_le_iff_le_add : a + -c ≤ b ↔ a ≤ b + c :=
+lemma add_neg_le_iff_le_add : a + -c ≤ b ↔ a ≤ b + c :=
 sub_le_iff_le_add
 
 @[simp] lemma add_neg_le_iff_le_add' : a + -b ≤ c ↔ a ≤ b + c :=

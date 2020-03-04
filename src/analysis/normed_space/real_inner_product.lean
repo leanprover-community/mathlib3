@@ -58,6 +58,8 @@ export has_inner (inner)
 
 section prio
 
+/-- A local instance providing a `has_sizeof (module α β)` instance, without
+initiating any typeclass search. -/
 -- HACK: work around automatically generated module.has_sizeof instance
 -- with [ring α] and [add_comm_group β] arguments
 local attribute [instance]

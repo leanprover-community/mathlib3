@@ -1249,6 +1249,26 @@ do let (p, x) := p,
    intro x,
    intro h
 
+/-- `unfold_locals x y z`, with `x`, `y`, `z` being local definitions,
+unfolds them in the goal. -/
+meta def unfold_locals (ns : parse ident*) : tactic unit := do
+ns.for_each $ λ n, do
+  d ← get_local n,
+  v ← local_def_value d,
+  tgt ← target,
+  tgt' ← kabstract tgt d,
+  tactic.change $ tgt'.instantiate_var v
+
+/-- `fold_locals x y z`, with `x`, `y`, `z` being local definitions,
+unfolds them in the goal. -/
+meta def fold_locals (ns : parse ident*) : tactic unit := do
+ns.for_each $ λ n, do
+  d ← get_local n,
+  v ← local_def_value d,
+  tgt ← target,
+  tgt' ← kabstract tgt v,                -- <- those two lines are different from
+  tactic.change $ tgt'.instantiate_var d -- <- unfold_locals: v and d are swapped
+
 add_tactic_doc
 { name       := "generalize'",
   category   := doc_category.tactic,

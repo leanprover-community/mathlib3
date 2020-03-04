@@ -32,6 +32,15 @@ random testing
 
 universes u
 
+def lazy_list.init {α} : lazy_list α → lazy_list α
+| lazy_list.nil := lazy_list.nil
+| (lazy_list.cons x xs) :=
+  let xs' := xs () in
+  match xs' with
+  | lazy_list.nil := lazy_list.nil
+  | (lazy_list.cons _ _) := lazy_list.cons x (lazy_list.init xs')
+  end
+
 namespace slim_check
 
 variables (α : Type u)
@@ -89,7 +98,23 @@ instance arbitrary_int : arbitrary ℤ :=
 
 variables {α}
 
-open lazy_list
+def interleave {α} : lazy_list α → lazy_list α → lazy_list α
+| lazy_list.nil xs := xs
+| a@(lazy_list.cons x xs) lazy_list.nil := a
+| (lazy_list.cons x xs) (lazy_list.cons y ys) :=
+  lazy_list.cons x (lazy_list.cons y (interleave (xs ()) (ys ())))
+
+def interleave_all {α} : list (lazy_list α) → lazy_list α
+| [] := lazy_list.nil
+| (x :: xs) := interleave x (interleave_all xs)
+
+def interleave_all' {α} : list (lazy_list α) → lazy_list α :=
+lazy_list.init ∘ interleave_all
+
+def lseq {α β γ} (f : α → β → γ) : lazy_list α → lazy_list β → lazy_list γ
+| lazy_list.nil xs := lazy_list.nil
+| a@(lazy_list.cons x xs) lazy_list.nil := lazy_list.nil
+| (lazy_list.cons x xs) ys := interleave (ys.map $ f x) (lseq (xs ()) ys)
 
 /-- implementation of `arbitrary (list α)` -/
 def list.shrink' (shrink_a : α → lazy_list α) : list α → lazy_list (list α)

@@ -110,6 +110,32 @@ def split : rand_g g g := ⟨ prod.map id up ∘ random_gen.split ∘ down ⟩
 
 /-- generate an infinite series of random values of type `α` -/
 def random_series : rand_g g (stream α) :=
+do gen ← liftable.up split,
+   pure $ corec_state (random α g) gen
+
+variables {α}
+
+/-- generate an infinite series of random values of type `α` between `x` and `y` -/
+def random_series_r (x y : α) (h : x ≤ y) : rand_g g (stream (x .. y)) :=
+do gen ← liftable.up split,
+   pure $ corec_state (random_r g x y h) gen
+
+end random
+
+namespace tactic.interactive
+
+variables (α : Type u) [_root_.random α]
+variables {g : Type} [random_gen g]
+
+/-- Use a state monad to generate a stream through corecursion -/
+def corec_state {σ α} (cmd : state σ α) (s : σ) : stream α :=
+stream.corec prod.fst (cmd.run ∘ prod.snd) (cmd.run s)
+
+/-- create a new random number generator distinct from the one stored in the state -/
+def split : rand_g g g := ⟨ prod.map id up ∘ random_gen.split ∘ down ⟩
+
+/-- generate an infinite series of random values of type `α` -/
+def random_series : rand_g g (stream α) :=
 do gen ← uliftable.up split,
    pure $ corec_state (random α g) gen
 

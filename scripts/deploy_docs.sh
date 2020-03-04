@@ -24,7 +24,7 @@ python3 -m pip install --upgrade pip
 pip3 install markdown2 toml
 ./gen_docs -w -r "../" -t "mathlib_docs/docs/"
 
-if ["$github_repo" == "leanprover-community/mathlib" -a "$github_event" == "push" -a "$github_ref" == "refs/heads/master"]; then
+if [ "$github_repo" = "leanprover-community/mathlib" -a "$github_event" = "push" -a "$github_ref" = "refs/heads/master" ]; then
   cd mathlib_docs/docs
   git config user.email "leanprover.community@gmail.com"
   git config user.name "leanprover-community-bot"

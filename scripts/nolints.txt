@@ -3058,7 +3058,6 @@ apply_nolint tactic.interactive.apply_iff_congr_core doc_blame
 apply_nolint tactic.interactive.clean_ids doc_blame
 apply_nolint tactic.interactive.collect_struct doc_blame
 apply_nolint tactic.interactive.collect_struct' doc_blame
-apply_nolint tactic.interactive.compact_decl doc_blame
 apply_nolint tactic.interactive.compact_decl_aux doc_blame
 apply_nolint tactic.interactive.congr_core' doc_blame
 apply_nolint tactic.interactive.convert_to_core doc_blame
@@ -3072,7 +3071,6 @@ apply_nolint tactic.interactive.list_cast_of doc_blame
 apply_nolint tactic.interactive.list_cast_of_aux doc_blame
 apply_nolint tactic.interactive.loc.get_local_pp_names doc_blame
 apply_nolint tactic.interactive.loc.get_local_uniq_names doc_blame
-apply_nolint tactic.interactive.mk_paragraph_aux doc_blame
 apply_nolint tactic.interactive.refine_one doc_blame
 apply_nolint tactic.interactive.refine_recursively doc_blame
 apply_nolint tactic.interactive.return_cast doc_blame

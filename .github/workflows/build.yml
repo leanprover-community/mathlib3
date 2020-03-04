@@ -27,6 +27,7 @@ jobs:
         run: leanpkg build | python scripts/detect_errors.py
 
       - name: configure git setup
+        if: always()
         run: |
           git remote add origin-bot "https://leanprover-community-bot:${{ secrets.DEPLOY_NIGHTLY_GITHUB_TOKEN }}@github.com/leanprover-community/mathlib.git"
           git config user.email "leanprover.community@gmail.com"

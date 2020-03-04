@@ -298,10 +298,9 @@ lemma has_fderiv_at.lim (hf : has_fderiv_at f f' x) (v : E) {α : Type*} {c : α
 begin
   refine (has_fderiv_within_at_univ.2 hf).lim _ (univ_mem_sets' (λ _, trivial)) hc _,
   assume U hU,
-  apply mem_sets_of_superset (ne_mem_of_tendsto_norm_at_top hc (0:𝕜)) _,
-  assume y hy,
-  rw [mem_preimage],
+  refine (eventually_ne_of_tendsto_norm_at_top hc (0:𝕜)).mono (λ y hy, _),
   convert mem_of_nhds hU,
+  dsimp only [],
   rw [← mul_smul, mul_inv_cancel hy, one_smul]
 end
 
@@ -359,7 +358,7 @@ by { ext, rw has_fderiv_at_unique h h.differentiable_at.has_fderiv_at }
 lemma has_fderiv_within_at.fderiv_within
   (h : has_fderiv_within_at f f' s x) (hxs : unique_diff_within_at 𝕜 s x) :
   fderiv_within 𝕜 f s x = f' :=
-by { ext, rw hxs.eq h h.differentiable_within_at.has_fderiv_within_at }
+(hxs.eq h h.differentiable_within_at.has_fderiv_within_at).symm
 
 /-- If `x` is not in the closure of `s`, then `f` has any derivative at `x` within `s`,
 as this statement is empty. -/

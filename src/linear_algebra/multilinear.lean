@@ -103,12 +103,12 @@ begin
 end
 
 instance : has_add (multilinear_map R M₁ M₂) :=
-⟨λf f', ⟨λx, f x + f' x, λm i x y, by simp, λm i c x, by simp [smul_add]⟩⟩
+⟨λf f', ⟨λx, f x + f' x, λm i x y, by simp [add_left_comm], λm i c x, by simp [smul_add]⟩⟩
 
 @[simp] lemma add_apply (m : Πi, M₁ i) : (f + f') m = f m + f' m := rfl
 
 instance : has_neg (multilinear_map R M₁ M₂) :=
-⟨λ f, ⟨λ m, - f m, λm i x y, by simp, λm i c x, by simp⟩⟩
+⟨λ f, ⟨λ m, - f m, λm i x y, by simp [add_comm], λm i c x, by simp⟩⟩
 
 @[simp] lemma neg_apply (m : Πi, M₁ i) : (-f) m = - (f m) := rfl
 
@@ -121,7 +121,7 @@ instance : inhabited (multilinear_map R M₁ M₂) := ⟨0⟩
 
 instance : add_comm_group (multilinear_map R M₁ M₂) :=
 by refine {zero := 0, add := (+), neg := has_neg.neg, ..};
-   intros; ext; simp
+   intros; ext; simp [add_comm, add_left_comm]
 
 /-- If `f` is a multilinear map, then `f.to_linear_map m i` is the linear map obtained by fixing all
 coordinates but `i` equal to those of `m`, and varying the `i`-th coordinate. -/

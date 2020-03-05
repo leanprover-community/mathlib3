@@ -47,7 +47,7 @@ is_add_group_hom.map_neg _ _
 
 @[simp] protected lemma sub (x y : free_abelian_group α) :
   lift f (x - y) = lift f x - lift f y :=
-by simp
+by simp [sub_eq_add_neg]
 
 @[simp] protected lemma zero : lift f 0 = 0 :=
 is_add_group_hom.map_zero _

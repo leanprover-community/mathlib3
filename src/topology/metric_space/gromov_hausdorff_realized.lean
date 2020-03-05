@@ -144,7 +144,7 @@ calc
   f (x, y) - f(z, t) ≤ f (x, t) + f (t, y) - f (z, t) : add_le_add_right (candidates_triangle fA) _
   ... ≤ (f (x, z) + f (z, t) + f(t, y)) - f (z, t) :
     add_le_add_right (add_le_add_right (candidates_triangle fA) _ ) _
-  ... = f (x, z) + f (t, y) : by simp
+  ... = f (x, z) + f (t, y) : by simp [sub_eq_add_neg]
   ... ≤ max_var α β * dist x z + max_var α β * dist t y :
     add_le_add (candidates_dist_bound fA) (candidates_dist_bound fA)
   ... ≤ max_var α β * max (dist x z) (dist t y) + max_var α β * max (dist x z) (dist t y) :
@@ -347,7 +347,6 @@ begin
     { assume x y hx, simpa },
     { by simpa using HD_bound_aux1 _ 0 } },
   -- deduce the result from the above two steps
-  simp only [add_comm] at Z,
   simpa [E2, E1, function.comp]
 end
 
@@ -381,7 +380,6 @@ begin
     { assume x y hx, simpa },
     { by simpa using HD_bound_aux2 _ 0 } },
   -- deduce the result from the above two steps
-  simp only [add_comm] at Z,
   simpa [E2, E1, function.comp]
 end
 

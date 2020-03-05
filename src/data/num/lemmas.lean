@@ -31,7 +31,7 @@ namespace pos_num
   | 1        := rfl
   | (bit0 p) := rfl
   | (bit1 p) := (congr_arg _root_.bit0 (succ_to_nat p)).trans $
-    show ↑p + 1 + ↑p + 1 = ↑p + ↑p + 1 + 1, by simp
+    show ↑p + 1 + ↑p + 1 = ↑p + ↑p + 1 + 1, by simp [add_left_comm]
 
   theorem one_add (n : pos_num) : 1 + n = succ n := by cases n; refl
   theorem add_one (n : pos_num) : n + 1 = succ n := by cases n; refl
@@ -40,14 +40,14 @@ namespace pos_num
   | 1        b        := by rw [one_add b, succ_to_nat, add_comm]; refl
   | a        1        := by rw [add_one a, succ_to_nat]; refl
   | (bit0 a) (bit0 b) := (congr_arg _root_.bit0 (add_to_nat a b)).trans $
-    show ((a + b) + (a + b) : ℕ) = (a + a) + (b + b), by simp
+    show ((a + b) + (a + b) : ℕ) = (a + a) + (b + b), by simp [add_left_comm]
   | (bit0 a) (bit1 b) := (congr_arg _root_.bit1 (add_to_nat a b)).trans $
-    show ((a + b) + (a + b) + 1 : ℕ) = (a + a) + (b + b + 1), by simp
+    show ((a + b) + (a + b) + 1 : ℕ) = (a + a) + (b + b + 1), by simp [add_left_comm]
   | (bit1 a) (bit0 b) := (congr_arg _root_.bit1 (add_to_nat a b)).trans $
-    show ((a + b) + (a + b) + 1 : ℕ) = (a + a + 1) + (b + b), by simp
+    show ((a + b) + (a + b) + 1 : ℕ) = (a + a + 1) + (b + b), by simp [add_comm, add_left_comm]
   | (bit1 a) (bit1 b) :=
     show (succ (a + b) + succ (a + b) : ℕ) = (a + a + 1) + (b + b + 1),
-    by rw [succ_to_nat, add_to_nat]; simp
+    by rw [succ_to_nat, add_to_nat]; simp [add_left_comm]
 
   theorem add_succ : ∀ (m n : pos_num), m + succ n = succ (m + n)
   | 1        b        := by simp [one_add]
@@ -266,7 +266,7 @@ namespace num
     zero_add := zero_add,
     add_zero := add_zero,
     mul      := (*),
-    one      := 1, .. }; try {transfer}; simp [mul_add, mul_left_comm, mul_comm]
+    one      := 1, .. }; try {transfer}; simp [mul_add, mul_left_comm, mul_comm, add_comm]
 
   instance : ordered_cancel_comm_monoid num :=
   { add_left_cancel            := by {intros a b c, transfer_rw, apply add_left_cancel},
@@ -350,7 +350,8 @@ namespace pos_num
   `[repeat {rw ← to_nat_inj <|> rw ← lt_to_nat <|> rw ← le_to_nat},
     repeat {rw add_to_nat <|> rw mul_to_nat <|> rw cast_one <|> rw cast_zero}]
 
-  meta def transfer : tactic unit := `[intros, transfer_rw, try {simp [mul_comm, mul_left_comm]}]
+  meta def transfer : tactic unit :=
+  `[intros, transfer_rw, try {simp [add_comm, add_left_comm, mul_comm, mul_left_comm]}]
 
   instance : add_comm_semigroup pos_num :=
   by refine {add := (+), ..}; transfer
@@ -752,7 +753,7 @@ namespace znum
       { change p=1 at this, subst p,
         simp [_root_.bit1, _root_.bit0] },
       { rw [num.succ'] at this, subst p,
-        have : (↑(-↑a:ℤ) : α) = -1 + ↑(-↑a + 1 : ℤ), {simp},
+        have : (↑(-↑a:ℤ) : α) = -1 + ↑(-↑a + 1 : ℤ), {simp [add_comm]},
         simpa [_root_.bit1, _root_.bit0, -add_comm] },
     end
 
@@ -761,8 +762,8 @@ namespace znum
   begin
     conv { to_lhs, rw ← zneg_zneg n },
     rw [← zneg_bit1, cast_zneg, cast_bit1],
-    have : ((-1 + n + n : ℤ) : α) = (n + n + -1 : ℤ), {simp},
-    simpa [_root_.bit1, _root_.bit0, -add_comm]
+    have : ((-1 + n + n : ℤ) : α) = (n + n + -1 : ℤ), {simp [add_comm, add_left_comm]},
+    simpa [_root_.bit1, _root_.bit0, sub_eq_add_neg]
   end
 
   theorem add_zero (n : znum) : n + 0 = n := by cases n; refl
@@ -792,23 +793,25 @@ namespace pos_num
                             simp [pos_num.cast_pos]
   | (bit0 a) (bit0 b) := begin
       rw [sub', znum.cast_bit0, cast_sub'],
-      have : ((a + -b + (a + -b) : ℤ) : α) = a + a + (-b + -b), {simp},
-      simpa [_root_.bit0, -add_left_comm]
+      have : ((a + -b + (a + -b) : ℤ) : α) = a + a + (-b + -b), {simp [add_left_comm]},
+      simpa [_root_.bit0, sub_eq_add_neg]
     end
   | (bit0 a) (bit1 b) := begin
       rw [sub', znum.cast_bitm1, cast_sub'],
-      have : ((-b + (a + (-b + -1)) : ℤ) : α) = (a + -1 + (-b + -b):ℤ), {simp},
-      simpa [_root_.bit1, _root_.bit0, -add_left_comm, -add_comm]
+      have : ((-b + (a + (-b + -1)) : ℤ) : α) = (a + -1 + (-b + -b):ℤ),
+      { simp [add_comm, add_left_comm] },
+      simpa [_root_.bit1, _root_.bit0, sub_eq_add_neg]
     end
   | (bit1 a) (bit0 b) := begin
       rw [sub', znum.cast_bit1, cast_sub'],
-      have : ((-b + (a + (-b + 1)) : ℤ) : α) = (a + 1 + (-b + -b):ℤ), {simp},
-      simpa [_root_.bit1, _root_.bit0, -add_left_comm, -add_comm]
+      have : ((-b + (a + (-b + 1)) : ℤ) : α) = (a + 1 + (-b + -b):ℤ),
+      { simp [add_comm, add_left_comm] },
+      simpa [_root_.bit1, _root_.bit0, sub_eq_add_neg]
     end
   | (bit1 a) (bit1 b) := begin
       rw [sub', znum.cast_bit0, cast_sub'],
-      have : ((-b + (a + -b) : ℤ) : α) = a + (-b + -b), {simp},
-      simpa [_root_.bit1, _root_.bit0, -add_left_comm, add_neg_cancel_left]
+      have : ((-b + (a + -b) : ℤ) : α) = a + (-b + -b), {simp [add_left_comm]},
+      simpa [_root_.bit1, _root_.bit0, sub_eq_add_neg]
     end
 
   theorem to_nat_eq_succ_pred (n : pos_num) : (n:ℕ) = n.pred' + 1 :=
@@ -875,10 +878,10 @@ namespace znum
   | (pos a) (neg b) := pos_num.cast_sub' _ _
   | (neg a) (pos b) := (pos_num.cast_sub' _ _).trans $
     show ↑b + -↑a = -↑a + ↑b, by rw [← pos_num.cast_to_int a, ← pos_num.cast_to_int b,
-      ← int.cast_neg, ← int.cast_add (-a)]; simp
+      ← int.cast_neg, ← int.cast_add (-a)]; simp [add_comm]
   | (neg a) (neg b) := show -(↑(a + b) : α) = -a + -b, by rw [
     pos_num.cast_add, neg_eq_iff_neg_eq, neg_add_rev, neg_neg, neg_neg,
-    ← pos_num.cast_to_int a, ← pos_num.cast_to_int b, ← int.cast_add]; simp
+    ← pos_num.cast_to_int a, ← pos_num.cast_to_int b, ← int.cast_add]; simp [add_comm]
 
   @[simp] theorem cast_succ [add_group α] [has_one α] (n) : ((succ n : znum) : α) = n + 1 :=
   by rw [← add_one, cast_add, cast_one]
@@ -969,7 +972,8 @@ namespace znum
   `[repeat {rw ← to_int_inj <|> rw ← lt_to_int <|> rw ← le_to_int},
     repeat {rw cast_add <|> rw mul_to_int <|> rw cast_one <|> rw cast_zero}]
 
-  meta def transfer : tactic unit := `[intros, transfer_rw, try {simp [mul_comm, mul_left_comm]}]
+  meta def transfer : tactic unit :=
+  `[intros, transfer_rw, try {simp [add_comm, add_left_comm, mul_comm, mul_left_comm]}]
 
   instance : decidable_linear_order znum :=
   { lt               := (<),

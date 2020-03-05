@@ -117,7 +117,7 @@ meta def eval_horner : horner_expr → expr × ℕ → expr × ℕ → horner_ex
 
 theorem const_add_horner {α} [comm_semiring α] (k a x n b b') (h : k + b = b') :
   k + @horner α _ a x n b = horner a x n b' :=
-by simp [h.symm, horner]
+by simp [h.symm, horner]; cc
 
 theorem horner_add_const {α} [comm_semiring α] (a x n b k b') (h : b + k = b') :
   @horner α _ a x n b + k = horner a x n b' :=
@@ -126,19 +126,19 @@ by simp [h.symm, horner]
 theorem horner_add_horner_lt {α} [comm_semiring α] (a₁ x n₁ b₁ a₂ n₂ b₂ k a' b')
   (h₁ : n₁ + k = n₂) (h₂ : (a₁ + horner a₂ x k 0 : α) = a') (h₃ : b₁ + b₂ = b') :
   @horner α _ a₁ x n₁ b₁ + horner a₂ x n₂ b₂ = horner a' x n₁ b' :=
-by simp [h₂.symm, h₃.symm, h₁.symm, horner, pow_add, mul_add, mul_comm, mul_left_comm]
+by simp [h₂.symm, h₃.symm, h₁.symm, horner, pow_add, mul_add, mul_comm, mul_left_comm]; cc
 
 theorem horner_add_horner_gt {α} [comm_semiring α] (a₁ x n₁ b₁ a₂ n₂ b₂ k a' b')
   (h₁ : n₂ + k = n₁) (h₂ : (horner a₁ x k 0 + a₂ : α) = a') (h₃ : b₁ + b₂ = b') :
   @horner α _ a₁ x n₁ b₁ + horner a₂ x n₂ b₂ = horner a' x n₂ b' :=
-by simp [h₂.symm, h₃.symm, h₁.symm, horner, pow_add, mul_add, mul_comm, mul_left_comm]
+by simp [h₂.symm, h₃.symm, h₁.symm, horner, pow_add, mul_add, mul_comm, mul_left_comm]; cc
 
 -- set_option trace.class_instances true
 -- set_option class.instance_max_depth 128
 theorem horner_add_horner_eq {α} [comm_semiring α] (a₁ x n b₁ a₂ b₂ a' b' t)
   (h₁ : a₁ + a₂ = a') (h₂ : b₁ + b₂ = b') (h₃ : horner a' x n b' = t) :
   @horner α _ a₁ x n b₁ + horner a₂ x n b₂ = t :=
-by simp [h₃.symm, h₂.symm, h₁.symm, horner, add_mul, mul_comm]
+by simp [h₃.symm, h₂.symm, h₁.symm, horner, add_mul, mul_comm]; cc
 
 meta def eval_add : horner_expr → horner_expr → ring_m (horner_expr × expr)
 | (const e₁) (const e₂) := do
@@ -200,7 +200,7 @@ meta def eval_add : horner_expr → horner_expr → ring_m (horner_expr × expr)
 theorem horner_neg {α} [comm_ring α] (a x n b a' b')
   (h₁ : -a = a') (h₂ : -b = b') :
   -@horner α _ a x n b = horner a' x n b' :=
-by simp [h₂.symm, h₁.symm, horner]
+by simp [h₂.symm, h₁.symm, horner]; cc
 
 meta def eval_neg : horner_expr → ring_m (horner_expr × expr)
 | (const e) := do

@@ -586,7 +586,7 @@ def free_group_unit_equiv_int : free_group unit ≃ int :=
     (λ ⟨⟨⟩, b⟩ tl ih, by cases b; simp [gpow_add] at ih ⊢; rw ih; refl),
   right_inv := λ x, int.induction_on x (by simp)
     (λ i ih, by simp at ih; simp [gpow_add, ih])
-    (λ i ih, by simp at ih; simp [gpow_add, ih]) }
+    (λ i ih, by simp at ih; simp [gpow_add, ih, sub_eq_add_neg]) }
 
 section category
 

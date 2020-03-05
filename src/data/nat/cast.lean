@@ -67,7 +67,7 @@ by induction n; simp [left_distrib, right_distrib, *]
 @[simp, elim_cast] theorem cast_le [linear_ordered_semiring α] : ∀ {m n : ℕ}, (m : α) ≤ n ↔ m ≤ n
 | 0     n     := by simp [zero_le]
 | (m+1) 0     := by simpa [not_succ_le_zero] using
-  lt_add_of_lt_of_nonneg zero_lt_one (@cast_nonneg α _ m)
+  lt_add_of_nonneg_of_lt (@cast_nonneg α _ m) zero_lt_one
 | (m+1) (n+1) := (add_le_add_iff_right 1).trans $
   (@cast_le m n).trans $ (add_le_add_iff_right 1).symm
 

@@ -162,7 +162,7 @@ begin
     induction n with n IH,
     { simp [lin.map_zero] },
     { rw [sum_range_succ, lin.add, IH, nat.iterate_succ'],
-      simp [u, h] } },
+      simp [u, h, sub_eq_add_neg, add_comm, add_left_comm] } },
   have : tendsto (λn, (range n).sum u) at_top (𝓝 x) :=
     tendsto_sum_nat_of_has_sum (has_sum_tsum su),
   have L₁ : tendsto (λn, f((range n).sum u)) at_top (𝓝 (f x)) :=

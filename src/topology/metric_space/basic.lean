@@ -652,7 +652,7 @@ section real
 instance real.metric_space : metric_space ℝ :=
 { dist               := λx y, abs (x - y),
   dist_self          := by simp [abs_zero],
-  eq_of_dist_eq_zero := by simp [add_neg_eq_zero],
+  eq_of_dist_eq_zero := by simp [sub_eq_zero],
   dist_comm          := assume x y, abs_sub _ _,
   dist_triangle      := assume x y z, abs_sub_le _ _ _ }
 

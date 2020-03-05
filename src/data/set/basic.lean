@@ -512,10 +512,6 @@ ext (assume x, and_or_distrib_right)
 
 theorem insert_def (x : α) (s : set α) : insert x s = { y | y = x ∨ y ∈ s } := rfl
 
--- TODO: remove in Lean 3.6
-@[simp]
-theorem insert_of_has_insert (x : α) (s : set α) : has_insert.insert x s = insert x s := rfl
-
 @[simp] theorem subset_insert (x : α) (s : set α) : s ⊆ insert x s :=
 assume y ys, or.inr ys
 
@@ -1083,7 +1079,7 @@ theorem image_insert_eq {f : α → β} {a : α} {s : set α} :
 ext $ by simp [and_or_distrib_left, exists_or_distrib, eq_comm, or_comm, and_comm]
 
 theorem image_pair (f : α → β) (a b : α) : f '' {a, b} = {f a, f b} :=
-by simp only [insert_of_has_insert, image_insert_eq, image_singleton]
+by simp only [image_insert_eq, image_singleton]
 
 theorem image_subset_preimage_of_inverse {f : α → β} {g : β → α}
   (I : left_inverse g f) (s : set α) : f '' s ⊆ g ⁻¹' s :=

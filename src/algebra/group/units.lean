@@ -51,6 +51,7 @@ ext.eq_iff.symm
 instance [decidable_eq α] : decidable_eq (units α)
 | a b := decidable_of_iff' _ ext_iff
 
+/-- The unit group inherits the multiplication of the monoid. -/
 protected def mul (u₁ u₂ : units α) : units α :=
 ⟨u₁.val * u₂.val, u₂.inv * u₁.inv,
   have u₁.val * (u₂.val * u₂.inv) * u₁.inv = 1,
@@ -60,6 +61,7 @@ protected def mul (u₁ u₂ : units α) : units α :=
     by rw [u₁.inv_val]; rw [mul_one, u₂.inv_val],
   by simpa only [mul_assoc]⟩
 
+/-- The inverse of a unit. -/
 protected def inv' (u : units α) : units α :=
 ⟨u.inv, u.val, u.inv_val, u.val_inv⟩
 
@@ -73,6 +75,7 @@ instance [decidable_eq α] : decidable_eq (add_units α)
 
 attribute [to_additive add_units.decidable_eq] units.decidable_eq
 
+/-- The add_unit group inherits the addition of the add_monoid. -/
 protected def add (u₁ u₂ : add_units α) : add_units α :=
 ⟨u₁.val + u₂.val, u₂.neg + u₁.neg,
   have u₁.val + (u₂.val + u₂.neg) + u₁.neg = 0,
@@ -84,6 +87,7 @@ protected def add (u₁ u₂ : add_units α) : add_units α :=
 
 attribute [to_additive add_units.add] units.mul
 
+/-- The additive inverse of an add_unit. -/
 protected def neg' (u : add_units α) : add_units α :=
 ⟨u.neg, u.val, u.neg_val, u.val_neg⟩
 
@@ -156,7 +160,9 @@ units.ext $ nat.eq_one_of_dvd_one ⟨u.inv, u.val_inv.symm⟩
 theorem nat.add_units_eq_one (u : add_units ℕ) : u = 0 :=
 add_units.ext $ (nat.eq_zero_of_add_eq_zero u.val_neg).1
 
-@[to_additive] def units.mk_of_mul_eq_one [comm_monoid α] (a b : α) (hab : a * b = 1) :
+/-- For `a, b` in a `comm_monoid` such that `a * b = 1`, makes a unit out of `a`. -/
+@[to_additive "For `a, b` in an `add_comm_monoid` such that `a + b = 0`, makes an add_unit out of `a`."]
+def units.mk_of_mul_eq_one [comm_monoid α] (a b : α) (hab : a * b = 1) :
   units α :=
 ⟨a, b, hab, (mul_comm b a).trans hab⟩
 

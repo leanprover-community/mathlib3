@@ -642,16 +642,16 @@ e ← get_env,
 pure $ ¬ e.contains (mk_nolint_decl_name decl linter)
 
 /--
-`lint_core decls checks` applies the linters `checks` to the list of declarations `decls`.
-If `auto_decls` is false for a linter (which is the case for most linters), then the linter
-is only applied to the non-automatically generated declarations in `decls`.
+`lint_core all_decls non_auto_decls checks` applies the linters `checks` to the list of declarations.
+If `auto_decls` is false for a linter (default) the linter is applied to `non_auto_decls`.
+If `auto_decls` is true, then it is applied to `all_decls`.
 The resulting list has one element for each linter, containing the linter as
 well as a map from declaration name to warning.
 -/
-meta def lint_core (decls non_auto_decls : list declaration) (checks : list (name × linter)) :
+meta def lint_core (all_decls non_auto_decls : list declaration) (checks : list (name × linter)) :
   tactic (list (name × linter × rb_map name string)) := do
 checks.mmap $ λ ⟨linter_name, linter⟩, do
-  let test_decls := if linter.auto_decls then decls else non_auto_decls,
+  let test_decls := if linter.auto_decls then all_decls else non_auto_decls,
   results ← test_decls.mfoldl (λ (results : rb_map name string) decl, do
     tt ← should_be_linted linter_name decl.to_name | pure results,
     some linter_warning ← linter.test decl | pure results,

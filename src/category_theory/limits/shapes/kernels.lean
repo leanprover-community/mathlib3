@@ -195,8 +195,6 @@ variables [has_zero_object.{v} C]
 local attribute [instance] zero_of_zero_object
 local attribute [instance] has_zero_object.zero_morphisms_of_zero_object
 
-set_option trace.check true
-
 /-- The kernel of the cokernel of an epimorphism is an isomorphism -/
 def kernel.of_cokernel_of_epi [has_colimit (parallel_pair f 0)]
   [has_limit (parallel_pair (cokernel.π f) 0)] [epi f] : is_iso (kernel.ι (cokernel.π f)) :=

@@ -62,10 +62,11 @@ section prio
 initiating any typeclass search. -/
 -- HACK: work around automatically generated module.has_sizeof instance
 -- with [ring α] and [add_comm_group β] arguments
-local attribute [instance]
 protected def module.has_sizeof' {α β} {r : ring α} {g : add_comm_group β} :
   has_sizeof (module α β) :=
 ⟨λ _, 0⟩
+
+local attribute [instance] module.has_sizeof'
 
 set_option default_priority 100 -- see Note [default priority]
 -- see Note[vector space definition] for why we extend `module`.

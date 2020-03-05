@@ -63,7 +63,6 @@ begin
       ←nat.cast_mul, ←nat.cast_add, ←nat.cast_mul, nat.cast_le, mul_comm b],
   apply pow_pos, iterate 2 {apply nat.cast_pos.2, apply nat.pos_of_ne_zero, assumption},
   exact nat.cast_ne_zero.2 hb,
-  exact nat.cast_ne_zero.2 hd,
   exact div_nonneg (nat.cast_nonneg _) (nat.cast_pos.2 $ nat.pos_of_ne_zero hd)
 end
 
@@ -78,7 +77,6 @@ begin
       ←nat.cast_mul, ←nat.cast_add, ←nat.cast_mul, nat.cast_le, mul_comm (b ^ 2)],
   swap, apply pow_pos, iterate 2 {apply nat.cast_pos.2, apply nat.pos_of_ne_zero, assumption},
   exact nat.cast_ne_zero.2 hd,
-  exact nat.cast_ne_zero.2 hb
 end
 
 @[simp] lemma cos_pi_over_two_pow : ∀(n : ℕ), cos (pi / 2 ^ (n+1)) = sqrt_two_add_series 0 n / 2
@@ -110,7 +108,6 @@ lemma sin_square_pi_over_two_pow_succ (n : ℕ) :
 begin
   rw [sin_square_pi_over_two_pow, sqrt_two_add_series, div_pow, sqr_sqrt, add_div, ←sub_sub],
   congr, norm_num, norm_num, apply add_nonneg, norm_num, apply sqrt_two_add_series_zero_nonneg,
-  norm_num
 end
 
 @[simp] lemma sin_pi_over_two_pow_succ (n : ℕ) :

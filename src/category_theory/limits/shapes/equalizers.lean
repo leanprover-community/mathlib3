@@ -284,6 +284,9 @@ limit.hom_ext $ cone_parallel_pair_ext _ h
 lemma equalizer.ι_mono : mono (equalizer.ι f g) :=
 { right_cancellation := λ Z h k w, equalizer.hom_ext _ _ w }
 
+end
+
+section
 /-- The identity determines a cone on the equalizer diagram of f and f -/
 def cone_parallel_pair_self : cone (parallel_pair f f) :=
 { X := X,
@@ -326,7 +329,7 @@ begin
 end
 
 /-- The coequalizer of (f, g), where f = g, is an isomorphism -/
-def equalizer.ι_of_self' (h : f = g) : is_iso (equalizer.ι f g) :=
+def equalizer.ι_of_self' [has_limit (parallel_pair f g)] (h : f = g) : is_iso (equalizer.ι f g) :=
 limit_cone_parallel_pair_self_is_iso' _ _ _ (limit.is_limit _) h
 
 /-- An equalizer that is an epimorphism is an isomorphism -/
@@ -366,6 +369,10 @@ colimit.hom_ext $ cocone_parallel_pair_ext _ h
 /-- A coequalizer morphism is an epimorphism -/
 lemma coequalizer.π_epi : epi (coequalizer.π f g) :=
 { left_cancellation := λ Z h k w, coequalizer.hom_ext _ _ w }
+
+end
+
+section
 
 /-- The identity determines a cocone on the coequalizer diagram of f and f -/
 def cocone_parallel_pair_self : cocone (parallel_pair f f) :=
@@ -416,7 +423,8 @@ begin
 end
 
 /-- The coequalizer of (f, g), where f = g, is an isomorphism -/
-def coequalizer.π_of_self' (h : f = g) : is_iso (coequalizer.π f g) :=
+def coequalizer.π_of_self' [has_colimit (parallel_pair f g)] (h : f = g) :
+  is_iso (coequalizer.π f g) :=
 colimit_cocone_parallel_pair_self_is_iso' _ _ _ (colimit.is_colimit _) h
 
 /-- A coequalizer that is a monomorphism is an isomorphism -/

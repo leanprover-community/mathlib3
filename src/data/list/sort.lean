@@ -20,8 +20,6 @@ def sorted := @pairwise
 
 @[simp] theorem sorted_nil : sorted r [] := pairwise.nil
 
-@[simp] theorem sorted_singleton (a : α) : sorted r [a] := pairwise_singleton _ _
-
 theorem sorted_of_sorted_cons {a : α} {l : list α} : sorted r (a :: l) → sorted r l :=
 pairwise_of_pairwise_cons
 
@@ -54,6 +52,8 @@ begin
         (@eq_repeat _ a (length u₂ + 1) (u₂++[a])).2];
     split; simp [iff_true_intro this, or_comm] }
 end
+
+@[simp] theorem sorted_singleton (a : α) : sorted r [a] := pairwise_singleton _ _
 
 end sorted
 

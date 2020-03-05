@@ -187,16 +187,16 @@ def comp (G : β → γ) {C : nnreal} (H : lipschitz_with C G)
 ⟨λx, G (f x), H.continuous.comp f.2.1,
   let ⟨D, hD⟩ := f.2.2 in
   ⟨max C 0 * D, λ x y, calc
-    dist (G (f x)) (G (f y)) ≤ C * dist (f x) (f y) : H.dist_le _ _
+    dist (G (f x)) (G (f y)) ≤ C * dist (f x) (f y) : H.dist_le_mul _ _
     ... ≤ max C 0 * dist (f x) (f y) : mul_le_mul_of_nonneg_right (le_max_left C 0) dist_nonneg
     ... ≤ max C 0 * D : mul_le_mul_of_nonneg_left (hD _ _) (le_max_right C 0)⟩⟩
 
 /-- The composition operator (in the target) with a Lipschitz map is Lipschitz -/
 lemma lipschitz_comp {G : β → γ} {C : nnreal} (H : lipschitz_with C G) :
   lipschitz_with C (comp G H : (α →ᵇ β) → α →ᵇ γ) :=
-lipschitz_with.of_dist_le $ λ f g,
+lipschitz_with.of_dist_le_mul $ λ f g,
 (dist_le (mul_nonneg C.2 dist_nonneg)).2 $ λ x,
-calc dist (G (f x)) (G (g x)) ≤ C * dist (f x) (g x) : H.dist_le _ _
+calc dist (G (f x)) (G (g x)) ≤ C * dist (f x) (g x) : H.dist_le_mul _ _
   ... ≤ C * dist f g : mul_le_mul_of_nonneg_left (dist_coe_le_dist _) C.2
 
 /-- The composition operator (in the target) with a Lipschitz map is uniformly continuous -/
@@ -415,7 +415,7 @@ instance : add_comm_group (α →ᵇ β) :=
   zero_add     := assume f, by ext; simp,
   add_zero     := assume f, by ext; simp,
   add_left_neg := assume f, by ext; simp,
-  add_comm     := assume f g, by ext; simp,
+  add_comm     := assume f g, by ext; simp [add_comm],
   ..bounded_continuous_function.has_add,
   ..bounded_continuous_function.has_neg,
   ..bounded_continuous_function.has_zero }

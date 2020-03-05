@@ -114,6 +114,8 @@ attribute [to_additive add_comm_group]             pi.comm_group
 attribute [to_additive add_left_cancel_semigroup]  pi.left_cancel_semigroup
 attribute [to_additive add_right_cancel_semigroup] pi.right_cancel_semigroup
 
+@[simp] lemma sub_apply [∀ i, add_group $ f i] : (x - y) i = x i - y i := rfl
+
 @[to_additive]
 lemma list_prod_apply {α : Type*} {β : α → Type*} [∀a, monoid (β a)] (a : α) :
   ∀ (l : list (Πa, β a)), l.prod a = (l.map (λf:Πa, β a, f a)).prod
@@ -238,6 +240,9 @@ lemma fst.is_monoid_hom [monoid α] [monoid β] : is_monoid_hom (prod.fst : α �
 @[to_additive is_add_monoid_hom]
 lemma snd.is_monoid_hom [monoid α] [monoid β] : is_monoid_hom (prod.snd : α × β → β) :=
 { map_mul := λ _ _, rfl, map_one := rfl }
+
+@[simp] lemma fst_sub [add_group α] [add_group β] : (p - q).1 = p.1 - q.1 := rfl
+@[simp] lemma snd_sub [add_group α] [add_group β] : (p - q).2 = p.2 - q.2 := rfl
 
 /-- Given monoids `α, β`, the natural projection homomorphism from `α × β` to `α`. -/
 @[to_additive prod.add_monoid_hom.fst "Given add_monoids `α, β`, the natural projection homomorphism from `α × β` to `α`."]

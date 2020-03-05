@@ -72,7 +72,7 @@ have ¬ injective (λi:ℤ, a ^ i),
 let ⟨i, j, a_eq, ne⟩ := show ∃(i j : ℤ), a ^ i = a ^ j ∧ i ≠ j,
   by rw [injective] at this; simpa [classical.not_forall] in
 have a ^ (i - j) = 1,
-  by simp [gpow_add, gpow_neg, a_eq],
+  by simp [sub_eq_add_neg, gpow_add, gpow_neg, a_eq],
 ⟨i - j, sub_ne_zero.mpr ne, this⟩
 
 lemma exists_pow_eq_one (a : α) : ∃i > 0, a ^ i = 1 :=

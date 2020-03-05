@@ -30,10 +30,6 @@ def is_unit [monoid M] (a : M) : Prop := ∃ u : units M, a = u
 @[to_additive] lemma is_unit.map [monoid M] [monoid N] (f : M →* N) {x : M} (h : is_unit x) : is_unit (f x) :=
 by rcases h with ⟨y, rfl⟩; exact is_unit_unit (units.map f y)
 
-@[to_additive] lemma is_unit.map' [monoid M] [monoid N] (f : M → N) {x : M} (h : is_unit x) [is_monoid_hom f] :
-  is_unit (f x) :=
-h.map (monoid_hom.of f)
-
 @[simp, to_additive is_add_unit_zero]
 theorem is_unit_one [monoid M] : is_unit (1:M) := ⟨1, rfl⟩
 

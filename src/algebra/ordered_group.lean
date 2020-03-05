@@ -354,7 +354,7 @@ canonically_ordered_monoid.le_iff_exists_add a b
 
 @[simp] lemma zero_le (a : α) : 0 ≤ a := le_iff_exists_add.mpr ⟨a, by simp⟩
 
-lemma bot_eq_zero : (⊥ : α) = 0 :=
+@[simp] lemma bot_eq_zero : (⊥ : α) = 0 :=
 le_antisymm lattice.bot_le (zero_le ⊥)
 
 @[simp] lemma add_eq_zero_iff : a + b = 0 ↔ a = 0 ∧ b = 0 :=
@@ -551,15 +551,19 @@ lemma lt_neg : a < -b ↔ b < -a :=
 have -(-a) < -b ↔ b < -a, from neg_lt_neg_iff,
 by rwa neg_neg at this
 
+@[simp]
 lemma sub_le_sub_iff_left (a : α) {b c : α} : a - b ≤ a - c ↔ c ≤ b :=
 (add_le_add_iff_left _).trans neg_le_neg_iff
 
+@[simp]
 lemma sub_le_sub_iff_right (c : α) : a - c ≤ b - c ↔ a ≤ b :=
 add_le_add_iff_right _
 
+@[simp]
 lemma sub_lt_sub_iff_left (a : α) {b c : α} : a - b < a - c ↔ c < b :=
 (add_lt_add_iff_left _).trans neg_lt_neg_iff
 
+@[simp]
 lemma sub_lt_sub_iff_right (c : α) : a - c < b - c ↔ a < b :=
 add_lt_add_iff_right _
 
@@ -599,7 +603,7 @@ by rw [sub_eq_add_neg, add_comm, neg_add_le_iff_le_add]
 lemma sub_le_iff_le_add : a - c ≤ b ↔ a ≤ b + c :=
 by rw [sub_le_iff_le_add', add_comm]
 
-@[simp] lemma add_neg_le_iff_le_add : a + -c ≤ b ↔ a ≤ b + c :=
+lemma add_neg_le_iff_le_add : a + -c ≤ b ↔ a ≤ b + c :=
 sub_le_iff_le_add
 
 @[simp] lemma add_neg_le_iff_le_add' : a + -b ≤ c ↔ a ≤ b + c :=

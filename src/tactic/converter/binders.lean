@@ -193,8 +193,6 @@ meta def infi_eq_elim : binder_eq_elim :=
 universes u v w w₂
 variables {α : Type u} {β : Type v} {ι : Sort w} {ι₂ : Sort w₂} {s t : set α} {a : α}
 
-@[simp] theorem mem_image {f : α → β} {b : β} : b ∈ set.image f s = ∃a, a ∈ s ∧ f a = b := rfl
-
 section
 open lattice
 variables [complete_lattice α]

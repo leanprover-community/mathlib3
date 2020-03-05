@@ -152,7 +152,7 @@ begin
   induction e,
   { simp [X], refl },
   { simp [pow_succ, e_ih],
-    simp [X, monomial, single_mul_single, nat.succ_eq_add_one] }
+    simp [X, monomial, single_mul_single, nat.succ_eq_add_one, add_comm] }
 end
 
 lemma monomial_add_single : monomial (s + single n e) a = (monomial s a * X n ^ e) :=
@@ -166,8 +166,8 @@ begin
   apply @finsupp.induction σ ℕ _ _ s,
   { simp [C, prod_zero_index]; exact (mul_one _).symm },
   { assume n e s hns he ih,
-    simp [prod_add_index, prod_single_index, pow_zero, pow_add, (mul_assoc _ _ _).symm, ih.symm,
-      monomial_add_single] }
+    simp [prod_add_index, prod_single_index, pow_zero, pow_add, (mul_assoc _ _ _).symm, ih,
+      monomial_single_add, mul_comm, mul_left_comm]  }
 end
 
 @[recursor 5]
@@ -185,7 +185,7 @@ begin
       induction e,
       { simp [ih] },
       { simp [ih, pow_succ', (mul_assoc _ _ _).symm, h_X, e_ih] } },
-    simp [monomial_add_single, this] }
+    simp [add_comm, monomial_add_single, this] }
 end,
 finsupp.induction p
   (by have : M (C 0) := h_C 0; rwa [C_0] at this)

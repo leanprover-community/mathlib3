@@ -241,7 +241,7 @@ instance [semiring K] [add_comm_monoid β] [semimodule K β] : semimodule K (α 
 instance [ring K] [add_comm_group β] [module K β] : module K (α →ₛ β) :=
 { .. simple_func.semimodule }
 
-instance [discrete_field K] [add_comm_group β] [module K β] : vector_space K (α →ₛ β) :=
+instance [field K] [add_comm_group β] [module K β] : vector_space K (α →ₛ β) :=
 { .. simple_func.module }
 
 lemma smul_apply [has_scalar K β] (k : K) (f : α →ₛ β) (a : α) : (k • f) a = k • f a := rfl
@@ -608,7 +608,7 @@ begin
     have : f ⁻¹' {b} ⊆ (f.map g) ⁻¹' {g b},
       rw [coe_map, @preimage_comp _ _ _ f g, preimage_subset_preimage_iff],
       { simp only [set.mem_preimage, set.mem_singleton, set.singleton_subset_iff] },
-      { rw singleton_subset_iff, rw mem_range at b_mem, exact b_mem },
+      { rw set.singleton_subset_iff, rw mem_range at b_mem, exact b_mem },
     exact lt_of_le_of_lt (volume_mono this) (h (g b) gb0) },
   { rw ← preimage_eq_empty_iff at b_mem,
     rw [b_mem, volume_empty],

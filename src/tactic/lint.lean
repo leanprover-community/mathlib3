@@ -331,7 +331,7 @@ meta def doc_blame_report_thm : declaration → tactic (option string)
 /-- A linter for checking definition doc strings -/
 @[linter, priority 1450] meta def linter.doc_blame : linter :=
 { test := λ d, mcond (bnot <$> has_attribute' `instance d.to_name) (doc_blame_report_defn d) (return none),
-  no_errors_found := "No definitions are missing documentation.",
+  no_errors_found := "No definitions are missing documentation",
   errors_found := "DEFINITIONS ARE MISSING DOCUMENTATION STRINGS" }
 
 /-- A linter for checking theorem doc strings. This is not in the default linter set. -/
@@ -364,7 +364,7 @@ else
 @[linter, priority 1440]
 meta def linter.has_inhabited_instance : linter :=
 { test := has_inhabited_instance,
-  no_errors_found := "No types have missing inhabited instances.",
+  no_errors_found := "No types have missing inhabited instances",
   errors_found := "TYPES ARE MISSING INHABITED INSTANCES",
   is_fast := ff }
 
@@ -590,7 +590,7 @@ and which hence never fire.
 @[linter, priority 1389] meta def linter.simp_var_head : linter :=
 { test := simp_var_head,
   no_errors_found :=
-    "No left-hand sides of a simp lemma has a variable as head symbol.",
+    "No left-hand sides of a simp lemma has a variable as head symbol",
   errors_found := "LEFT-HAND SIDE HAS VARIABLE AS HEAD SYMBOL.\n" ++
     "Some simp lemmas have a variable as head symbol of the left-hand side" }
 
@@ -611,7 +611,7 @@ pure $ "should not be marked simp"
 /-- A linter for commutativity lemmas that are marked simp. -/
 @[linter, priority 1385] meta def linter.simp_comm : linter :=
 { test := simp_comm,
-  no_errors_found := "No commutativity lemma is marked simp.",
+  no_errors_found := "No commutativity lemma is marked simp",
   errors_found := "COMMUTATIVITY LEMMA IS SIMP.\n" ++
     "Some commutativity lemmas are simp lemmas" }
 
@@ -677,9 +677,10 @@ let results := results.fold (rb_map.mk string (rb_map name string)) $
     let fn := (e.decl_olean decl_name).get_or_else "" in
     results.insert fn (((results.find fn).get_or_else mk_rb_map).insert
       decl_name linter_warning),
-format.intercalate "\n\n" <$> results.to_list.reverse.mmap (λ ⟨fn, results⟩, do
+l ← results.to_list.reverse.mmap (λ ⟨fn, results⟩, do
   formatted ← formatter results,
-  pure $ "-- " ++ fn.popn drop_fn_chars ++ "\n" ++ formatted)
+  pure ("-- " ++ fn.popn drop_fn_chars ++ "\n" ++ formatted : format)),
+return $ format.intercalate "\n\n" l ++ "\n"
 
 /-- The common denominator of `#lint[|mathlib|all]`.
   The different commands have different configurations for `l`,
@@ -700,10 +701,10 @@ formatted_results ← results.mmap $ λ ⟨linter_name, linter, results⟩,
       | none := print_warnings results
       | some dropped := grouped_by_filename results dropped print_warnings
       end,
-    pure $ to_fmt "/- " ++ linter.errors_found ++ ": -/\n" ++ warnings
+    pure $ to_fmt "/- " ++ linter.errors_found ++ ": -/\n" ++ warnings ++ "\n"
   else
     pure $ if verbose then "/- OK: " ++ linter.no_errors_found ++ ". -/" else format.nil,
-let s := format.intercalate "\n\n" (formatted_results.filter (λ f, ¬ f.is_nil)),
+let s := format.intercalate "\n" (formatted_results.filter (λ f, ¬ f.is_nil)),
 let s := if ¬ verbose then s else
   "/- Checking " ++ l.length ++ " declarations " ++ where_desc ++ " -/\n\n" ++ s,
 let s := if slow then s else s ++ "/- (slow tests skipped) -/\n",

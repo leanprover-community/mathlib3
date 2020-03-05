@@ -61,7 +61,6 @@ apply_nolint set.centralizer.add_submonoid doc_blame
 -- algebra/direct_limit.lean
 apply_nolint add_comm_group.direct_limit has_inhabited_instance
 apply_nolint field.direct_limit.field doc_blame
-apply_nolint field.direct_limit.field doc_blame
 apply_nolint field.direct_limit.inv doc_blame
 apply_nolint module.direct_limit unused_arguments has_inhabited_instance
 apply_nolint module.direct_limit.totalize unused_arguments doc_blame
@@ -1116,7 +1115,6 @@ apply_nolint equiv.comm_monoid doc_blame
 apply_nolint equiv.comm_ring doc_blame
 apply_nolint equiv.comm_semigroup doc_blame
 apply_nolint equiv.comm_semiring doc_blame
-apply_nolint equiv.field doc_blame
 apply_nolint equiv.division_ring doc_blame
 apply_nolint equiv.domain doc_blame
 apply_nolint equiv.field doc_blame

@@ -481,8 +481,7 @@ meta def has_coe_variable (d : declaration) : tactic (option string) := do
 { test := has_coe_variable,
   no_errors_found := "No invalid `has_coe` instances",
   errors_found := "INVALID `has_coe` INSTANCES.
-Make the following declarations instances of the class `has_coe_t` instead of `has_coe`.",
-  is_fast := ff }
+Make the following declarations instances of the class `has_coe_t` instead of `has_coe`." }
 
 /-- Checks whether a declaration is prop-valued and takes an `inhabited _` argument that is unused
     elsewhere in the type. In this case, that argument can be replaced with `nonempty _`. -/

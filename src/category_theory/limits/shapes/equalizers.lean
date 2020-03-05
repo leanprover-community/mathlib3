@@ -328,7 +328,7 @@ begin
   exact limit_cone_parallel_pair_self_is_iso f (fork.of_ι (c.π.app zero) rfl) h₂
 end
 
-/-- The coequalizer of (f, g), where f = g, is an isomorphism -/
+/-- The equalizer of (f, g), where f = g, is an isomorphism -/
 def equalizer.ι_of_self' [has_limit (parallel_pair f g)] (h : f = g) : is_iso (equalizer.ι f g) :=
 limit_cone_parallel_pair_self_is_iso' _ _ _ (limit.is_limit _) h
 

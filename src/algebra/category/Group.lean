@@ -103,7 +103,7 @@ def mul_equiv.to_Group_iso [group X] [group Y] (e : X ≃* Y) : Group.of X ≅ G
 attribute [simps] mul_equiv.to_Group_iso add_equiv.to_AddGroup_iso
 
 /-- Build an isomorphism in the category `CommGroup` from a `mul_equiv` between `comm_group`s. -/
-@[simps, to_additive add_equiv.to_AddCommGroup_iso "Build an isomorphism in the category `AddCommGroup` from a `add_equiv` between `add_comm_group`s."]
+@[to_additive add_equiv.to_AddCommGroup_iso "Build an isomorphism in the category `AddCommGroup` from a `add_equiv` between `add_comm_group`s."]
 def mul_equiv.to_CommGroup_iso [comm_group X] [comm_group Y] (e : X ≃* Y) : CommGroup.of X ≅ CommGroup.of Y :=
 { hom := e.to_monoid_hom,
   inv := e.symm.to_monoid_hom }

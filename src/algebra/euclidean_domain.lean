@@ -11,7 +11,9 @@ import data.int.basic
 universe u
 
 section prio
-set_option default_priority 100 -- see Note [default priority]
+-- Extra low priority since this instance could accidentally pull in an
+-- unwanted classical decidability assumption.
+set_option default_priority 70 -- see Note [default priority]
 class euclidean_domain (α : Type u) extends nonzero_comm_ring α :=
 (quotient : α → α → α)
 (quotient_zero : ∀ a, quotient a 0 = 0)
@@ -38,10 +40,10 @@ variables [euclidean_domain α]
 
 local infix ` ≺ `:50 := euclidean_domain.r
 
-@[priority 100] -- see Note [lower instance priority]
+@[priority 70] -- see Note [lower instance priority]
 instance : has_div α := ⟨quotient⟩
 
-@[priority 100] -- see Note [lower instance priority]
+@[priority 70] -- see Note [lower instance priority]
 instance : has_mod α := ⟨remainder⟩
 
 theorem div_add_mod (a b : α) : b * (a / b) + a % b = a :=
@@ -240,7 +242,7 @@ by have := @xgcd_aux_P _ _ _ a b a b 1 0 0 1
   (by rw [P, mul_one, mul_zero, add_zero]) (by rw [P, mul_one, mul_zero, zero_add]);
 rwa [xgcd_aux_val, xgcd_val] at this
 
-@[priority 100] -- see Note [lower instance priority]
+@[priority 70] -- see Note [lower instance priority]
 instance (α : Type*) [e : euclidean_domain α] : integral_domain α :=
 by haveI := classical.dec_eq α; exact
 { eq_zero_or_eq_zero_of_mul_eq_zero :=
@@ -338,7 +340,7 @@ instance int.euclidean_domain : euclidean_domain ℤ :=
     exact mul_le_mul_of_nonneg_left (int.nat_abs_pos_of_ne_zero b0) (nat.zero_le _) }
 
 @[priority 100] -- see Note [lower instance priority]
-instance discrete_field.to_euclidean_domain {K : Type u} [discrete_field K] : euclidean_domain K :=
+instance field.to_euclidean_domain {K : Type u} [field K] [decidable_eq K] : euclidean_domain K :=
 { quotient := (/),
   remainder := λ a b, if b = 0 then a else 0,
   quotient_zero := div_zero,

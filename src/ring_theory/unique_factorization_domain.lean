@@ -248,7 +248,8 @@ iff.intro
   end
   prod_le_prod
 
-@[simp] theorem factor_set.coe_add {a b : multiset { a : associates α // irreducible a }} :
+@[simp, nolint simp_nf] -- takes a crazy amount of time to simplify lhs
+theorem factor_set.coe_add {a b : multiset { a : associates α // irreducible a }} :
   (↑a + ↑b : factor_set α) = ↑(a + b) :=
 with_top.coe_add
 

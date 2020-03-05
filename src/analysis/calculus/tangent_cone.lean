@@ -101,8 +101,8 @@ begin
   have C : tendsto (λn, ∥c n∥⁻¹ * ∥c n • d n∥) l (𝓝 (0 * ∥y∥)) := A.mul B,
   rw zero_mul at C,
   have : ∀ᶠ n in l, ∥c n∥⁻¹ * ∥c n • d n∥ = ∥d n∥,
-  { apply mem_sets_of_superset (ne_mem_of_tendsto_norm_at_top hc 0) (λn hn, _),
-    rw [mem_set_of_eq, norm_smul, ← mul_assoc, inv_mul_cancel, one_mul],
+  { apply (eventually_ne_of_tendsto_norm_at_top hc 0).mono (λn hn, _),
+    rw [norm_smul, ← mul_assoc, inv_mul_cancel, one_mul],
     rwa [ne.def, norm_eq_zero] },
   have D : tendsto (λ n, ∥d n∥) l (𝓝 0) :=
     tendsto.congr' this C,

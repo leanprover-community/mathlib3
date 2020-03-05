@@ -282,7 +282,7 @@ lemma f_squared : ∀ v : V n, (f n) (f n v) = (n : ℝ) • v :=
 begin
   induction n with n IH; intro,
   { simpa only [nat.cast_zero, zero_smul] },
-  { cases v, simp [f_succ_apply, IH, add_smul] }
+  { cases v, simp [f_succ_apply, IH, add_smul], abel }
 end
 
 -- We now compute the matrix of f in the e basis (p is the line index,
@@ -332,7 +332,8 @@ begin
   rcases hv with ⟨v, rfl⟩,
   have : √(m+1) * √(m+1) = m+1 :=
     real.mul_self_sqrt (by exact_mod_cast zero_le _),
-  simp [-add_comm, this, f_succ_apply, g_apply, f_squared, smul_add, add_smul, smul_smul],
+  simp [this, f_succ_apply, g_apply, f_squared, smul_add, add_smul, smul_smul],
+  abel
 end
 
 /- -------------------------------------------------------------------------\

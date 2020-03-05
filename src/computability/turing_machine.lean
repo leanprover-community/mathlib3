@@ -1704,7 +1704,7 @@ theorem tr_supports {S} (ss : TM2.supports M S) :
   { -- stack op
     rw TM2to1.supports_run at ss',
     simp only [TM2to1.tr_stmts₁_run, finset.mem_union,
-      finset.has_insert_eq_insert, finset.insert_empty_eq_singleton,
+      finset.insert_empty_eq_singleton,
       finset.mem_insert, finset.mem_singleton] at sub,
     have hgo := sub _ (or.inl $ or.inr rfl),
     have hret := sub _ (or.inl $ or.inl rfl),
@@ -1712,7 +1712,7 @@ theorem tr_supports {S} (ss : TM2.supports M S) :
     refine ⟨by simp only [tr_normal_run, TM1.supports_stmt]; intros; exact hgo, λ l h, _⟩,
     rw [tr_stmts₁_run] at h,
     simp only [TM2to1.tr_stmts₁_run, finset.mem_union,
-      finset.has_insert_eq_insert, finset.insert_empty_eq_singleton,
+      finset.insert_empty_eq_singleton,
       finset.mem_insert, finset.mem_singleton] at h,
     rcases h with ⟨rfl | rfl⟩ | h,
     { unfold TM1.supports_stmt TM2to1.tr,

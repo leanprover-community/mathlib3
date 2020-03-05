@@ -330,7 +330,7 @@ by convert m.union _ _; rw inter_union_diff t s
 
 @[simp] private lemma C_empty : C ∅ := by simp [C, m.empty, diff_empty]
 
-private lemma C_compl : C s₁ → C (- s₁) := by simp [C, diff_eq]
+private lemma C_compl : C s₁ → C (- s₁) := by simp [C, diff_eq, add_comm]
 
 @[simp] private lemma C_compl_iff : C (- s) ↔ C s :=
 ⟨λ h, by simpa using C_compl m h, C_compl⟩
@@ -448,7 +448,7 @@ top_unique $ assume s hs, (is_caratheodory_le _).2 $ assume t,
 
 theorem le_add_caratheodory (m₁ m₂ : outer_measure α) :
   m₁.caratheodory ⊓ m₂.caratheodory ≤ (m₁ + m₂ : outer_measure α).caratheodory :=
-λ s ⟨hs₁, hs₂⟩ t, by simp [hs₁ t, hs₂ t]
+λ s ⟨hs₁, hs₂⟩ t, by simp [hs₁ t, hs₂ t, add_left_comm]
 
 theorem le_sum_caratheodory {ι} (m : ι → outer_measure α) :
   (⨅ i, (m i).caratheodory) ≤ (sum m).caratheodory :=

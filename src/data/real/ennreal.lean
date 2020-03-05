@@ -137,8 +137,8 @@ protected lemma zero_lt_one : 0 < (1 : ennreal) :=
 
 @[simp] lemma one_lt_two : (1:ennreal) < 2 := coe_one ▸ coe_two ▸ by exact_mod_cast one_lt_two
 @[simp] lemma two_pos : (0:ennreal) < 2 := lt_trans ennreal.zero_lt_one one_lt_two
-@[simp] lemma two_ne_zero : (2:ennreal) ≠ 0 := ne_of_gt two_pos
-@[simp] lemma two_ne_top : (2:ennreal) ≠ ∞ := coe_two ▸ coe_ne_top
+lemma two_ne_zero : (2:ennreal) ≠ 0 := ne_of_gt two_pos
+lemma two_ne_top : (2:ennreal) ≠ ∞ := coe_two ▸ coe_ne_top
 
 @[simp] lemma add_top : a + ∞ = ∞ := with_top.add_top
 @[simp] lemma top_add : ∞ + a = ∞ := with_top.top_add
@@ -215,7 +215,7 @@ section order
 
 @[simp] lemma coe_lt_top : coe r < ∞ := with_top.coe_lt_top r
 @[simp] lemma not_top_le_coe : ¬ (⊤:ennreal) ≤ ↑r := with_top.not_top_le_coe r
-@[simp, elim_cast] lemma zero_lt_coe_iff : 0 < (↑p : ennreal) ↔ 0 < p := coe_lt_coe
+lemma zero_lt_coe_iff : 0 < (↑p : ennreal) ↔ 0 < p := coe_lt_coe
 @[simp, elim_cast] lemma one_le_coe_iff : (1:ennreal) ≤ ↑r ↔ 1 ≤ r := coe_le_coe
 @[simp, elim_cast] lemma coe_le_one_iff : ↑r ≤ (1:ennreal) ↔ r ≤ 1 := coe_le_coe
 @[simp, elim_cast] lemma coe_lt_one_iff : (↑p : ennreal) < 1 ↔ p < 1 := coe_lt_coe
@@ -520,18 +520,34 @@ iff.intro
   end
   (λ h, by rw h)
 
-lemma sub_mul (hc : c ≠ ∞) : (a - b) * c = a * c - b * c :=
+lemma sub_mul (h : 0 < b → b < a → c ≠ ∞) : (a - b) * c = a * c - b * c :=
 begin
   cases le_or_lt a b with hab hab,
   { simp [hab, mul_right_mono hab] },
   symmetry,
+  cases eq_or_lt_of_le (zero_le b) with hb hb,
+  { subst b, simp },
   apply sub_eq_of_add_eq,
-  { exact mul_ne_top (ne_top_of_lt hab) hc },
+  { exact mul_ne_top (ne_top_of_lt hab) (h hb hab) },
   rw [← add_mul, sub_add_cancel_of_le (le_of_lt hab)]
 end
 
-lemma mul_sub (ha : a ≠ ∞) : a * (b - c) = a * b - a * c :=
-by { simp only [mul_comm a], exact sub_mul ha }
+lemma mul_sub (h : 0 < c → c < b → a ≠ ∞) :
+  a * (b - c) = a * b - a * c :=
+by { simp only [mul_comm a], exact sub_mul h }
+
+lemma sub_mul_ge : a * c - b * c ≤ (a - b) * c :=
+begin
+  -- with `0 < b → b < a → c ≠ ∞` Lean names the first variable `a`
+  by_cases h : ∀ (hb : 0 < b), b < a → c ≠ ∞,
+  { rw [sub_mul h],
+    exact le_refl _ },
+  { push_neg at h,
+    rcases h with ⟨hb, hba, hc⟩,
+    subst c,
+    simp only [mul_top, if_neg (ne_of_gt hb), if_neg (ne_of_gt $ lt_trans hb hba), sub_self,
+      zero_le] }
+end
 
 end sub
 
@@ -641,6 +657,10 @@ le_antisymm
     by rintros b rfl; rwa [← coe_mul, ← coe_one, coe_le_coe, ← nnreal.inv_le hr] at hb)
   (Inf_le $ by simp; rw [← coe_mul, nnreal.mul_inv_cancel hr]; exact le_refl 1)
 
+lemma coe_inv_le :  (↑r⁻¹ : ennreal) ≤ (↑r)⁻¹ :=
+if hr : r = 0 then by simp only [hr, nnreal.inv_zero, inv_zero, coe_zero, zero_le]
+else by simp only [coe_inv hr, le_refl]
+
 @[elim_cast] lemma coe_inv_two : ((2⁻¹:nnreal):ennreal) = 2⁻¹ :=
 by rw [coe_inv (ne_of_gt zero_lt_two), coe_two]
 
@@ -707,7 +727,8 @@ by simpa only [inv_inv] using @inv_lt_inv a b⁻¹
 lemma lt_inv_iff_lt_inv : a < b⁻¹ ↔ b < a⁻¹ :=
 by simpa only [inv_inv] using @inv_lt_inv a⁻¹ b
 
-@[simp] lemma inv_le_inv : a⁻¹ ≤ b⁻¹ ↔ b ≤ a :=
+@[simp, priority 1100] -- higher than le_inv_iff_mul_le
+lemma inv_le_inv : a⁻¹ ≤ b⁻¹ ↔ b ≤ a :=
 by simp only [le_iff_lt_or_eq, inv_lt_inv, inv_eq_inv, eq_comm]
 
 lemma inv_le_iff_inv_le : a⁻¹ ≤ b ↔ b⁻¹ ≤ a :=
@@ -1023,14 +1044,14 @@ lemma sub_infi : a - (⨅i, f i) = (⨆i, a - f i) :=
 begin
   refine (eq_of_forall_ge_iff $ λ c, _),
   rw [ennreal.sub_le_iff_le_add, add_comm, infi_add],
-  simp [ennreal.sub_le_iff_le_add]
+  simp [ennreal.sub_le_iff_le_add, sub_eq_add_neg, add_comm],
 end
 
 lemma Inf_add {s : set ennreal} : Inf s + a = ⨅b∈s, b + a :=
 by simp [Inf_eq_infi, infi_add]
 
 lemma add_infi {a : ennreal} : a + infi f = ⨅b, a + f b :=
-by rw [add_comm, infi_add]; simp
+by rw [add_comm, infi_add]; simp [add_comm]
 
 lemma infi_add_infi (h : ∀i j, ∃k, f k + g k ≤ f i + g j) : infi f + infi g = (⨅a, f a + g a) :=
 suffices (⨅a, f a + g a) ≤ infi f + infi g,

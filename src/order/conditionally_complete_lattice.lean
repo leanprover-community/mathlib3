@@ -174,7 +174,7 @@ lemma cInf_upper_bounds_eq_cSup {s : set α} (h : bdd_above s) (hs : s.nonempty)
 (is_glb_cInf h $ hs.mono $ λ x hx y hy, hy hx).unique (is_lub_cSup hs h).is_glb
 
 /--Introduction rule to prove that b is the supremum of s: it suffices to check that b
-is larger than all elements of s, and that this is not the case of any w<b.-/
+is larger than all elements of s, and that this is not the case of any `w<b`.-/
 theorem cSup_intro (_ : s.nonempty) (_ : ∀a∈s, a ≤ b) (H : ∀w, w < b → (∃a∈s, w < a)) : Sup s = b :=
 have bdd_above s := ⟨b, by assumption⟩,
 have (Sup s < b) ∨ (Sup s = b) := lt_or_eq_of_le (cSup_le ‹_› ‹∀a∈s, a ≤ b›),
@@ -186,7 +186,7 @@ have ¬(Sup s < b) :=
 show Sup s = b, by finish
 
 /--Introduction rule to prove that b is the infimum of s: it suffices to check that b
-is smaller than all elements of s, and that this is not the case of any w>b.-/
+is smaller than all elements of s, and that this is not the case of any `w>b`.-/
 theorem cInf_intro (_ : s.nonempty) (_ : ∀a∈s, b ≤ a) (H : ∀w, b < w → (∃a∈s, a < w)) : Inf s = b :=
 have bdd_below s := ⟨b, by assumption⟩,
 have (b < Inf s) ∨ (b = Inf s) := lt_or_eq_of_le (le_cInf ‹_› ‹∀a∈s, b ≤ a›),

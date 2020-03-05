@@ -516,13 +516,8 @@ by rw [_root_.mul_comm, direct_limit.mul_inv_cancel G f hp]
 protected noncomputable def field : field (ring.direct_limit G f) :=
 { inv := inv G f,
   mul_inv_cancel := λ p, direct_limit.mul_inv_cancel G f,
-  inv_mul_cancel := λ p, direct_limit.inv_mul_cancel G f,
-  .. direct_limit.nonzero_comm_ring G f }
-
-protected noncomputable def discrete_field : discrete_field (ring.direct_limit G f) :=
-{ has_decidable_eq := classical.dec_eq _,
   inv_zero := dif_pos rfl,
-  ..direct_limit.field G f }
+  .. direct_limit.nonzero_comm_ring G f }
 
 end
 

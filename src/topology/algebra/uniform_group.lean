@@ -14,7 +14,7 @@ Uniform structure on topological groups:
   around zero. Then with `topological_add_group.to_uniform_space` one can derive a `uniform_space`.
 -/
 import topology.uniform_space.uniform_embedding topology.uniform_space.complete_separated
-import topology.algebra.group
+import topology.algebra.group tactic.abel
 
 noncomputable theory
 open_locale classical uniformity topological_space
@@ -55,7 +55,7 @@ uniform_continuous_id.neg
 lemma uniform_continuous.add [uniform_space β] {f : β → α} {g : β → α}
   (hf : uniform_continuous f) (hg : uniform_continuous g) : uniform_continuous (λx, f x + g x) :=
 have uniform_continuous (λx, f x - - g x), from hf.sub hg.neg,
-by simp * at *
+by simp [*, sub_eq_add_neg] at *
 
 lemma uniform_continuous_add : uniform_continuous (λp:α×α, p.1 + p.2) :=
 uniform_continuous_fst.add uniform_continuous_snd
@@ -111,7 +111,7 @@ have embedding (λa, a + (y - x)), from (uniform_embedding_translate (y - x)).em
 show (x, y) ∈ ⋂₀ (𝓤 α).sets ↔ x - y ∈ closure ({0} : set α),
 begin
   rw [this.closure_eq_preimage_closure_image, uniformity_eq_comap_nhds_zero α, sInter_comap_sets],
-  simp [mem_closure_iff_nhds, inter_singleton_nonempty]
+  simp [mem_closure_iff_nhds, inter_singleton_nonempty, sub_eq_add_neg]
 end
 
 lemma uniform_continuous_of_tendsto_zero [uniform_space β] [add_group β] [uniform_add_group β]
@@ -166,7 +166,7 @@ def topological_add_group.to_uniform_space : uniform_space G :=
       begin
         intros p p_comp_rel,
         rcases p_comp_rel with ⟨z, ⟨Hz1, Hz2⟩⟩,
-        simpa using V_sum _ _ Hz1 Hz2
+        simpa [sub_eq_add_neg, add_comm, add_left_comm] using V_sum _ _ Hz1 Hz2
       end,
       exact set.subset.trans comp_rel_sub U_sub },
     { exact monotone_comp_rel monotone_id monotone_id }
@@ -202,7 +202,7 @@ begin
   constructor,
   rw [uniform_continuous, uniformity_prod_eq_prod, tendsto_map'_iff,
     uniformity_eq_comap_nhds_zero' G, tendsto_comap_iff, prod_comap_comap_eq],
-  simpa [(∘)]
+  simpa [(∘), sub_eq_add_neg, add_comm, add_left_comm] using this
 end
 end
 
@@ -265,7 +265,7 @@ assume a b, is_Z_bilin.neg_left (f ∘ prod.swap) b a
 lemma is_Z_bilin.sub_left : ∀ a a' b, f (a - a', b) = f (a, b) - f (a', b) :=
 begin
   intros,
-  dsimp [algebra.sub],
+  simp [sub_eq_add_neg],
   rw [is_Z_bilin.add_left f, is_Z_bilin.neg_left f]
 end
 
@@ -415,7 +415,7 @@ begin
   { repeat { rw is_Z_bilin.sub_left φ },
     repeat { rw is_Z_bilin.sub_right φ },
     apply eq_of_sub_eq_zero,
-    simp },
+    simp [sub_eq_add_neg], abel },
   rw key_formula,
   have h₁ := HU x x' xU₂ x'U₂,
   have h₂ := H x x' xU₁ x'U₁ y₁ y' y₁_in y'V₁,

@@ -208,7 +208,7 @@ instance : topological_add_monoid ennreal :=
     rintro ⟨a₁, a₂⟩,
     cases a₁, { simp [continuous_at, none_eq_top, hl a₂], },
     cases a₂, { simp [continuous_at, none_eq_top, some_eq_coe, nhds_swap (a₁ : ennreal) ⊤,
-                      tendsto_map'_iff, (∘), hl ↑a₁] },
+                      tendsto_map'_iff, (∘)], convert hl a₁, simp [add_comm] },
     simp [continuous_at, some_eq_coe, nhds_coe_coe, tendsto_map'_iff, (∘)],
     simp only [coe_add.symm, tendsto_coe, tendsto_add]
   end ⟩
@@ -306,7 +306,7 @@ calc supr s + a = Sup (range s) + a : by simp [Sup_range]
   ... = _ : supr_range
 
 lemma add_supr {ι : Sort*} {s : ι → ennreal} [h : nonempty ι] : a + supr s = ⨆b, a + s b :=
-by rw [add_comm, supr_add]; simp
+by rw [add_comm, supr_add]; simp [add_comm]
 
 lemma supr_add_supr {ι : Sort*} {f g : ι → ennreal} (h : ∀i j, ∃k, f i + g j ≤ f k + g k) :
   supr f + supr g = (⨆ a, f a + g a) :=
@@ -717,7 +717,7 @@ begin
   apply continuous_of_le_add_edist 2 (by simp),
   rintros ⟨x, y⟩ ⟨x', y'⟩,
   calc edist x y ≤ edist x x' + edist x' y' + edist y' y : edist_triangle4 _ _ _ _
-    ... = edist x' y' + (edist x x' + edist y y') : by simp [add_comm, edist_comm]
+    ... = edist x' y' + (edist x x' + edist y y') : by simp [edist_comm]; cc
     ... ≤ edist x' y' + (edist (x, y) (x', y') + edist (x, y) (x', y')) :
       add_le_add_left' (add_le_add' (by simp [edist, le_refl]) (by simp [edist, le_refl]))
     ... = edist x' y' + 2 * edist (x, y) (x', y') : by rw [← mul_two, mul_comm]

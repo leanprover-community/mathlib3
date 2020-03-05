@@ -5,6 +5,7 @@ Authors: Jeremy Avigad, Leonardo de Moura, Floris van Doorn, Amelia Livingston
 -/
 
 import algebra.group
+import deprecated.group
 import tactic.norm_cast
 
 /-!
@@ -189,17 +190,17 @@ section
     of subtraction. -/
   theorem mul_add_eq_mul_add_iff_sub_mul_add_eq : a * e + c = b * e + d ↔ (a - b) * e + c = d :=
   calc
-    a * e + c = b * e + d ↔ a * e + c = d + b * e : by simp
-      ... ↔ a * e + c - b * e = d : iff.intro (λ h, begin simp [h] end) (λ h,
-                                                    begin simp [h.symm] end)
-      ... ↔ (a - b) * e + c = d   : begin simp [@sub_eq_add_neg α, @right_distrib α] end
+    a * e + c = b * e + d ↔ a * e + c = d + b * e : by simp [add_comm]
+      ... ↔ a * e + c - b * e = d : iff.intro (λ h, begin rw h, simp end) (λ h,
+                                                    begin rw ← h, simp end)
+      ... ↔ (a - b) * e + c = d   : begin simp [sub_mul, sub_add_eq_add_sub] end
 
 /-- A simplification of one side of an equation exploiting right distributivity in rings
     and the definition of subtraction. -/
   theorem sub_mul_add_eq_of_mul_add_eq_mul_add : a * e + c = b * e + d → (a - b) * e + c = d :=
   assume h,
   calc
-    (a - b) * e + c = (a * e + c) - b * e : begin simp [@sub_eq_add_neg α, @right_distrib α] end
+    (a - b) * e + c = (a * e + c) - b * e : begin simp [sub_mul, sub_add_eq_add_sub] end
                 ... = d                   : begin rw h, simp [@add_sub_cancel α] end
 
 /-- If the product of two elements of a ring is nonzero, both elements are nonzero. -/
@@ -261,8 +262,10 @@ dvd_add_left (dvd_refl a)
 lemma Vieta_formula_quadratic {b c x : α} (h : x * x - b * x + c = 0) :
   ∃ y : α, y * y - b * y + c = 0 ∧ x + y = b ∧ x * y = c :=
 begin
-  have : c = b * x - x * x, { apply eq_of_sub_eq_zero, simpa using h },
-  use b - x, simp [left_distrib, mul_comm, this],
+  have : c = -(x * x - b * x) := (neg_eq_of_add_eq_zero h).symm,
+  have : c = x * (b - x), by subst this; simp [mul_sub, mul_comm],
+  refine ⟨b - x, _, by simp, by rw this⟩,
+  rw [this, sub_add, ← sub_mul, sub_self]
 end
 
 end comm_ring
@@ -294,7 +297,7 @@ calc f (-x) = f (-x + x) - f x : by rw [map_add f]; simp
 
 /-- Ring homomorphisms preserve subtraction. -/
 lemma map_sub : f (x - y) = f x - f y :=
-by simp [map_add f, map_neg f]
+by simp [sub_eq_add_neg, map_add f, map_neg f]
 
 /-- The identity map is a ring homomorphism. -/
 instance id : is_ring_hom (@id α) := by refine {..}; intros; refl
@@ -415,7 +418,7 @@ lemma comp_assoc {δ} {rδ: semiring δ} (f : α →+* β) (g : β →+* γ) (h 
 
 @[simp] lemma coe_comp (hnp : β →+* γ) (hmn : α →+* β) : (hnp.comp hmn : α → γ) = hnp ∘ hmn := rfl
 
-@[simp] lemma comp_apply (hnp : β →+* γ) (hmn : α →+* β) (x : α) : (hnp.comp hmn : α → γ) x =
+lemma comp_apply (hnp : β →+* γ) (hmn : α →+* β) (x : α) : (hnp.comp hmn : α → γ) x =
   (hnp (hmn x)) := rfl
 
 omit rα rβ rγ
@@ -426,7 +429,7 @@ eq_neg_of_add_eq_zero $ by rw [←f.map_add, neg_add_self, f.map_zero]
 
 /-- Ring homomorphisms preserve subtraction. -/
 @[simp] theorem map_sub {α β} [ring α] [ring β] (f : α →+* β) (x y : α) :
-  f (x - y) = (f x) - (f y) := by simp
+  f (x - y) = (f x) - (f y) := by simp [sub_eq_add_neg]
 
 /-- A ring homomorphism is injective iff its kernel is trivial. -/
 theorem injective_iff {α β} [ring α] [ring β] (f : α →+* β) :

@@ -637,8 +637,12 @@ def perms_of_list : list α → list (perm α)
 
 lemma length_perms_of_list : ∀ l : list α, length (perms_of_list l) = l.length.fact
 | []       := rfl
-| (a :: l) := by rw [length_cons, nat.fact_succ];
-  simp [perms_of_list, length_bind, length_perms_of_list, function.comp, nat.succ_mul]; cc
+| (a :: l) :=
+begin
+  rw [length_cons, nat.fact_succ],
+  simp [perms_of_list, length_bind, length_perms_of_list, function.comp, nat.succ_mul],
+  cc
+end
 
 lemma mem_perms_of_list_of_mem : ∀ {l : list α} {f : perm α} (h : ∀ x, f x ≠ x → x ∈ l), f ∈ perms_of_list l
 | []     f h := list.mem_singleton.2 $ equiv.ext _ _$ λ x, by simp [imp_false, *] at *

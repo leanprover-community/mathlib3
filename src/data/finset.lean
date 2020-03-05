@@ -215,8 +215,6 @@ variables [decidable_eq α]
 /-- `insert a s` is the set `{a} ∪ s` containing `a` and the elements of `s`. -/
 instance : has_insert α (finset α) := ⟨λ a s, ⟨_, nodup_ndinsert a s.2⟩⟩
 
-@[simp] theorem has_insert_eq_insert (a : α) (s : finset α) : has_insert.insert a s = insert a s := rfl
-
 theorem insert_def (a : α) (s : finset α) : insert a s = ⟨_, nodup_ndinsert a s.2⟩ := rfl
 
 @[simp] theorem insert_val (a : α) (s : finset α) : (insert a s).1 = ndinsert a s.1 := rfl
@@ -1345,7 +1343,7 @@ calc s.card = s.attach.card : card_attach.symm
 
 lemma card_union_add_card_inter [decidable_eq α] (s t : finset α) :
   (s ∪ t).card + (s ∩ t).card = s.card + t.card :=
-finset.induction_on t (by simp) (λ a, by by_cases a ∈ s; simp * {contextual := tt})
+finset.induction_on t (by simp) $ λ a r har, by by_cases a ∈ s; simp *; cc
 
 lemma card_union_le [decidable_eq α] (s t : finset α) :
   (s ∪ t).card ≤ s.card + t.card :=

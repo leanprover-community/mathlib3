@@ -218,9 +218,8 @@ lemma has_sum_geometric_two' (a : ℝ) : has_sum (λn:ℕ, (a / 2) / 2 ^ n) a :=
 begin
   convert has_sum_mul_left (a / 2) (has_sum_geometric
     (le_of_lt one_half_pos) one_half_lt_one),
-  { funext n, simp,
-    rw ← pow_inv; [refl, exact two_ne_zero] },
-  { norm_num, rw div_mul_cancel _ two_ne_zero }
+  { funext n, simp, refl, },
+  { norm_num, rw div_mul_cancel, norm_num }
 end
 
 lemma summable_geometric_two' (a : ℝ) : summable (λ n:ℕ, (a / 2) / 2 ^ n) :=

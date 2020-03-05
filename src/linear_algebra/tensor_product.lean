@@ -209,7 +209,7 @@ instance : module R (M ⊗ N) := module.of_core
       intro z,
       symmetry,
       refine @free_abelian_group.lift.unique _ _ _ _ _ (is_add_group_hom.mk' $ λ p q, _) _ z,
-      { simp [tensor_product.smul_add] },
+      { simp [tensor_product.smul_add, add_comm, add_left_comm] },
       rintro ⟨m, n⟩,
       change (r • m) ⊗ₜ n + (s • m) ⊗ₜ n = ((r + s) • m) ⊗ₜ n,
       rw [add_smul, add_tmul]

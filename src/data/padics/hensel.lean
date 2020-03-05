@@ -174,7 +174,7 @@ calc ∥F.eval z'∥
     = ∥q∥ * ∥z1∥^2 : by simp [heq]
 ... ≤ 1 * ∥z1∥^2 : mul_le_mul_of_nonneg_right (padic_norm_z.le_one _) (pow_nonneg (norm_nonneg _) _)
 ... = ∥F.eval z∥^2 / ∥F.derivative.eval a∥^2 :
-  by simp [hzeq, hz.1, div_pow _ (deriv_norm_ne_zero hnorm)]
+  by simp [hzeq, hz.1, div_pow]
 ... ≤ (∥F.derivative.eval a∥^2 * T^(2^n))^2 / ∥F.derivative.eval a∥^2 :
   (div_le_div_right deriv_sq_norm_pos).2 (pow_le_pow_of_le_left (norm_nonneg _) hz.2 _)
 ... = (∥F.derivative.eval a∥^2)^2 * (T^(2^n))^2 / ∥F.derivative.eval a∥^2 : by simp only [_root_.mul_pow]

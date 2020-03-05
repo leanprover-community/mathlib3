@@ -1009,7 +1009,7 @@ have h₂ : (x / sqrt (1 + x ^ 2)) ^ 2 < 1,
       (abs_div_sqrt_one_add_lt _) (le_of_lt (abs_div_sqrt_one_add_lt _)),
 by rw [arctan, cos_arcsin (le_of_lt (neg_one_lt_div_sqrt_one_add _)) (le_of_lt (div_sqrt_one_add_lt_one _)),
     one_div_eq_inv, ← sqrt_inv, sqrt_inj (sub_nonneg.2 (le_of_lt h₂)) (inv_nonneg.2 (le_of_lt h₁)),
-    div_pow _ (mt sqrt_eq_zero'.1 (not_le.2 h₁)), pow_two (sqrt _), mul_self_sqrt (le_of_lt h₁),
+    div_pow, pow_two (sqrt _), mul_self_sqrt (le_of_lt h₁),
     ← domain.mul_left_inj (ne.symm (ne_of_lt h₁)), mul_sub,
     mul_div_cancel' _ (ne.symm (ne_of_lt h₁)), mul_inv_cancel (ne.symm (ne_of_lt h₁))];
   simp
@@ -1128,7 +1128,7 @@ have 0 ≤ 1 - (x.im / abs x) ^ 2,
 by rw [eq_div_iff_mul_eq _ _ (mt abs_eq_zero.1 hx), ← real.mul_self_sqrt (abs_nonneg x),
     arg, if_pos hxr, real.cos_arcsin (abs_le.1 (abs_im_div_abs_le_one x)).1
     (abs_le.1 (abs_im_div_abs_le_one x)).2, ← real.sqrt_mul (abs_nonneg _), ← real.sqrt_mul this,
-    sub_mul, div_pow _ (mt abs_eq_zero.1 hx), ← pow_two, div_mul_cancel _ (pow_ne_zero 2 (mt abs_eq_zero.1 hx)),
+    sub_mul, div_pow, ← pow_two, div_mul_cancel _ (pow_ne_zero 2 (mt abs_eq_zero.1 hx)),
     one_mul, pow_two, mul_self_abs, norm_sq, pow_two, add_sub_cancel, real.sqrt_mul_self hxr]
 
 lemma cos_arg {x : ℂ} (hx : x ≠ 0) : real.cos (arg x) = x.re / x.abs :=
@@ -1852,13 +1852,13 @@ begin
           exact le_add_of_le_of_nonneg (le_refl _) (zero_le_one)
         end
       ... = exp y * exp (n * y) / y^n :
-        by rw [div_pow _ (ne_of_gt y_pos), exp_nat_mul, mul_div_assoc]
+        by rw [div_pow, exp_nat_mul, mul_div_assoc]
       ... = exp ((n + 1) * y) / y^n :
         by rw [← exp_add, add_mul, one_mul, add_comm]
       ... = exp x / (x / (n+1))^n :
         by { dsimp [y], rw mul_div_cancel' _ n_ne_zero }
       ... = (n+1)^n * (exp x / x^n) :
-        by rw [← mul_div_assoc, div_pow _ n_ne_zero, div_div_eq_mul_div, mul_comm],
+        by rw [← mul_div_assoc, div_pow, div_div_eq_mul_div, mul_comm],
     rwa div_le_iff' (pow_pos n_pos n) },
   have B : ∀ᶠ x in at_top, exp (x / (n+1)) / (n+1)^n ≤ exp x / x^n :=
     mem_at_top_sets.2 ⟨1, λx hx, A _ (lt_of_lt_of_le zero_lt_one hx)⟩,

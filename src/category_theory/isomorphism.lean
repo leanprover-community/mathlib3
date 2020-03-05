@@ -265,6 +265,10 @@ rfl
   F.map_iso (i ≪≫ j) = (F.map_iso i) ≪≫ (F.map_iso j) :=
 by ext; apply functor.map_comp
 
+lemma map_iso_trans_assoc (F : C ⥤ D) {X Y Z : C} {W : D} (i : X ≅ Y) (j : Y ≅ Z) (k : F.obj Z ≅ W) :
+  F.map_iso (i ≪≫ j) ≪≫ k = (F.map_iso i) ≪≫ (F.map_iso j) ≪≫ k :=
+by simp
+
 @[simp] lemma map_iso_refl (F : C ⥤ D) (X : C) : F.map_iso (iso.refl X) = iso.refl (F.obj X) :=
 iso.ext $ F.map_id X
 

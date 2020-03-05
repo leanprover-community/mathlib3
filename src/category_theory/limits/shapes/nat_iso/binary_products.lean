@@ -62,7 +62,7 @@ begin
 end.
 
 /--
-If `P` represents `(pair X Y).cones, then `P` is a binary product of `X` and `Y`.
+If `P` represents `(pair X Y).cones`, then `P` is a binary product of `X` and `Y`.
 -/
 def of_nat_iso (X Y P : C) (i : yoneda.obj P ≅ (pair X Y).cones) : is_binary_product.{v} X Y P :=
 { hom_iso := λ Q, i.app (op Q) ≪≫ (walking_pair_cones_equiv (pair X Y)),
@@ -84,7 +84,7 @@ begin
 end
 
 /-- The witness that the `cone` associated to a binary product is a limit cone. -/
-def is_limit : is_limit (cone I) :=
+def to_is_limit : is_limit (cone I) :=
 is_limit.of_nat_iso (nat_iso I)
 end
 
@@ -95,29 +95,10 @@ def of_is_limit {X Y : C} {c : limits.cone (pair X Y)} (h : limits.is_limit c) :
   is_binary_product.{v} X Y c.X :=
 of_nat_iso X Y c.X (is_limit.nat_iso h)
 
-def iso_ext {X Y : C} {P Q : C}
-  (IP : is_binary_product.{v} X Y P)
-  (IQ : is_binary_product.{v} X Y Q) : P ≅ Q :=
-cones.forget.map_iso (is_limit.unique_up_to_iso (is_limit IP) (is_limit IQ))
-
--- The next two definitions assert that `is_binary_product.{v} X Y` is not just path connected,
--- but also simply connected.
-
--- Deduce these all in one step?
-
-@[simp] def iso_ext_refl {X Y : C} {P : C}
-  (IP : is_binary_product.{v} X Y P) : iso_ext IP IP = iso.refl P :=
-begin
-  rw [iso_ext, is_limit.unique_up_to_iso_refl, functor.map_iso_refl], refl,
-end
-
-@[simp] def iso_ext_trans {X Y : C} {P Q R : C}
-  (IP : is_binary_product.{v} X Y P)
-  (IQ : is_binary_product.{v} X Y Q)
-  (IR : is_binary_product.{v} X Y R) : iso_ext IP IQ ≪≫ iso_ext IQ IR = iso_ext IP IR :=
-begin
-  rw [iso_ext, iso_ext, ←functor.map_iso_trans, is_limit.unique_up_to_iso_trans], refl,
-end
+/-- A binary product is unique up to canonical isomorphism. -/
+def unique {X Y : C} : unique_up_to_canonical_iso.{v} (λ P, is_binary_product.{v} X Y P) :=
+(is_limit.uniqueness (pair X Y)).transport
+  cones.forget (λ P e, e.cone) (λ P e, e.to_is_limit) (λ P e, rfl)
 
 end is_binary_product
 

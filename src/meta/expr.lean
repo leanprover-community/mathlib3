@@ -146,6 +146,14 @@ meta def nonzero : level → bool
 | (imax _ l₂) := l₂.nonzero
 | _ := ff
 
+/-- Enforces that a level is a successor, by applying `succ` to it if it isn't already a successor. -/
+meta def enforce_succ : level → level
+| zero         := zero
+| (succ l)     := succ l
+| (max l1 l2)  := max (enforce_succ l1) (enforce_succ l2)
+| (imax l1 l2) := imax (enforce_succ l1) (enforce_succ l2)
+| e            := succ e
+
 end level
 
 /-! ### Declarations about `binder` -/
@@ -239,6 +247,11 @@ meta def is_num_eq : expr → expr → bool
 | `(-%%a) `(-%%b) := a.is_num_eq b
 | `(%%a/%%a') `(%%b/%%b') :=  a.is_num_eq b
 | _ _ := ff
+
+/-- Replaces `Sort u` by `Type u`, and is the identity on all other expressions. -/
+meta def eliminate_sort : expr → expr
+| (sort l) := sort l.enforce_succ
+| e        := e
 
 end expr
 

@@ -468,7 +468,8 @@ meta def fails_quickly (max_steps : ℕ) (d : declaration) : tactic (option stri
 For the following classes, there is an instance that causes a loop, or an excessively long search.",
   is_fast := ff }
 
-/-- Tests whether there is no instance of type `has_coe α t` where `α` is a variable -/
+/-- Tests whether there is no instance of type `has_coe α t` where `α` is a variable.
+See note [use has_coe_t]. -/
 meta def has_coe_variable (d : declaration) : tactic (option string) := do
   tt ← is_instance d.to_name | return none,
   let (fn, args) := d.type.pi_codomain.get_app_fn_args,

@@ -346,4 +346,13 @@ class has_coequalizers :=
 
 attribute [instance] has_equalizers.has_limits_of_shape has_coequalizers.has_colimits_of_shape
 
+/-- Equalizers are finite limits, so if `C` has all finite limits, it also has all equalizers -/
+def has_equalizers_of_has_finite_limits [has_finite_limits.{v} C] : has_equalizers.{v} C :=
+{ has_limits_of_shape := infer_instance }
+
+/-- Coequalizers are finite colimits, of if `C` has all finite colimits, it also has all
+    coequalizers -/
+def has_coequalizers_of_has_finite_colimits [has_finite_colimits.{v} C] : has_coequalizers.{v} C :=
+{ has_colimits_of_shape := infer_instance }
+
 end category_theory.limits

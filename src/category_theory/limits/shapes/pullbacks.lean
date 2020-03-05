@@ -320,11 +320,22 @@ lemma pushout.condition {X Y Z : C} {f : X ⟶ Y} {g : X ⟶ Z} [has_colimit (sp
 
 variables (C)
 
+/-- `has_pullbacks` represents a choice of pullback for every pair of morphisms -/
 class has_pullbacks :=
 (has_limits_of_shape : has_limits_of_shape.{v} walking_cospan C)
+
+/-- `has_pushouts` represents a choice of pushout for every pair of morphisms -/
 class has_pushouts :=
 (has_colimits_of_shape : has_colimits_of_shape.{v} walking_span C)
 
 attribute [instance] has_pullbacks.has_limits_of_shape has_pushouts.has_colimits_of_shape
+
+/-- Pullbacks are finite limits, so if `C` has all finite limits, it also has all pullbacks -/
+def has_pullbacks_of_has_finite_limits [has_finite_limits.{v} C] : has_pullbacks.{v} C :=
+{ has_limits_of_shape := infer_instance }
+
+/-- Pushouts are finite colimits, so if `C` has all finite colimits, it also has all pushouts -/
+def has_pushouts_of_has_finite_colimits [has_finite_colimits.{v} C] : has_pushouts.{v} C :=
+{ has_colimits_of_shape := infer_instance }
 
 end category_theory.limits

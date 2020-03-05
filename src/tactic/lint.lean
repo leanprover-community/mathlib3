@@ -478,7 +478,7 @@ meta def has_coe_variable (d : declaration) : tactic (option string) := do
   return $ some $ "illegal instance"
 
 /-- A linter object for `has_coe_variable`. -/
-@[linter, priority 1400] meta def linter.has_coe_variable : linter :=
+@[linter, priority 1405] meta def linter.has_coe_variable : linter :=
 { test := has_coe_variable,
   no_errors_found := "No invalid `has_coe` instances",
   errors_found := "INVALID `has_coe` INSTANCES.

@@ -29,7 +29,20 @@ apply_nolint CommRing.colimits.desc_morphism doc_blame
 apply_nolint CommRing.colimits.prequotient doc_blame has_inhabited_instance
 apply_nolint CommRing.colimits.relation doc_blame
 
--- algebra/category/Group.lean
+-- algebra/category/Group/colimits.lean
+apply_nolint AddCommGroup.colimits.cocone_fun doc_blame
+apply_nolint AddCommGroup.colimits.cocone_morphism doc_blame
+apply_nolint AddCommGroup.colimits.colimit doc_blame
+apply_nolint AddCommGroup.colimits.colimit_cocone doc_blame
+apply_nolint AddCommGroup.colimits.colimit_is_colimit doc_blame
+apply_nolint AddCommGroup.colimits.colimit_type doc_blame has_inhabited_instance
+apply_nolint AddCommGroup.colimits.desc_fun doc_blame
+apply_nolint AddCommGroup.colimits.desc_fun_lift doc_blame
+apply_nolint AddCommGroup.colimits.desc_morphism doc_blame
+apply_nolint AddCommGroup.colimits.prequotient doc_blame has_inhabited_instance
+apply_nolint AddCommGroup.colimits.relation doc_blame
+
+-- algebra/category/Group/basic.lean
 apply_nolint AddCommGroup doc_blame
 apply_nolint AddCommGroup.of doc_blame
 apply_nolint AddGroup doc_blame

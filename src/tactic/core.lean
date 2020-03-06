@@ -885,15 +885,6 @@ p ← mk_local' n bi d,
 (ps, r) ← mk_local_pis (expr.instantiate_var b p),
 return ((p :: ps), r)
 
-/-- Introduces the binders of a pi-type into the local context, like `mk_local_pis`, but
-  all local constants with type `Sort u` have type `Type u` instead. -/
-meta def mk_local_pis_elim_sort : expr → tactic (list expr × expr)
-| (expr.pi n bi t b) := do
-  p ← mk_local' n bi t.eliminate_sort,
-  (ps, r) ← mk_local_pis (expr.instantiate_var b p),
-  return ((p :: ps), r)
-| e := return ([], e)
-
 /-- Changes `(h : ∀xs, ∃a:α, p a) ⊢ g` to `(d : ∀xs, a) (s : ∀xs, p (d xs) ⊢ g` -/
 meta def choose1 (h : expr) (data : name) (spec : name) : tactic expr := do
   t ← infer_type h,
@@ -1354,11 +1345,12 @@ end
 
 /-- This tactic succeeds if `t` succeeds or fails with message `msg` such that `p msg` is `tt`.
 -/
-meta def succeeds_or_fails_with_msg {α : Type} (t : tactic α) (p : string → bool) : tactic unit := do
-  x ← retrieve_or_report_error t,
-  match x with
-  | (sum.inl _) := skip
-  | (sum.inr msg) := if p msg then skip else fail msg
+meta def succeeds_or_fails_with_msg {α : Type} (t : tactic α) (p : string → bool) : tactic unit :=
+do x ← retrieve_or_report_error t,
+match x with
+| (sum.inl _) := skip
+| (sum.inr msg) := if p msg then skip else fail msg
+end
 
 /-- `trace_error msg t` executes the tactic `t`. If `t` fails, traces `msg` and the failure message
 of `t`. -/

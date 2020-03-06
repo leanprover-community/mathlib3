@@ -438,9 +438,14 @@ meta def dangerous_instance (d : declaration) : tactic (option string) := do
 /-- Applies expression `e` to local constants, but lifts all the arguments that are `Sort`-valued to
   `Type`-valued sorts. -/
 meta def apply_to_fresh_variables (e : expr) : tactic expr := do
-  t ← infer_type e,
-  (l, _) ← mk_local_pis_elim_sort t,
-  return $ e.app_of_list l
+t ← infer_type e,
+(xs, b) ← mk_local_pis t,
+xs.mmap' $ λ x, try $ do {
+  u ← mk_meta_univ,
+  tx ← infer_type x,
+  ttx ← infer_type tx,
+  unify ttx (expr.sort u.succ) },
+return $ e.app_of_list xs
 
 /-- Tests whether type-class inference search for a class will end quickly when applied to
   variables. This tactic succeeds if `mk_instance` succeeds quickly or fails quickly with the error
@@ -472,9 +477,8 @@ For the following classes, there is an instance that causes a loop, or an excess
 See note [use has_coe_t]. -/
 meta def has_coe_variable (d : declaration) : tactic (option string) := do
   tt ← is_instance d.to_name | return none,
-  let (fn, args) := d.type.pi_codomain.get_app_fn_args,
-  `has_coe ← return fn.const_name | return none,
-  tt ← return args.head.is_var | return none,
+  `(has_coe %%a _) ← return d.type.pi_codomain | return none,
+  tt ← return a.is_var | return none,
   return $ some $ "illegal instance"
 
 /-- A linter object for `has_coe_variable`. -/

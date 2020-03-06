@@ -104,7 +104,7 @@ run_cmd do
 end
 
 section
-def foo_instance {α} (R : setoid α) : has_coe α (quotient R) := ⟨quot.mk⟩
+def foo_instance {α} (R : setoid α) : has_coe α (quotient R) := ⟨quotient.mk⟩
 local attribute [instance, priority 1] foo_instance
 run_cmd do
   d ← get_decl `foo_instance,
@@ -113,3 +113,12 @@ run_cmd do
   some s ← fails_quickly 3000 d,
   guard $ "maximum class-instance resolution depth has been reached".is_prefix_of s
 end
+
+/- test of `apply_to_fresh_variables` -/
+run_cmd do
+  e ← mk_const `id,
+  e2 ← apply_to_fresh_variables e,
+  type_check e2,
+  `(@id %%α %%a) ← instantiate_mvars e2,
+  expr.sort (level.succ $ level.mvar u) ← infer_type α,
+  skip

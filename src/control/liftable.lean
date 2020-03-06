@@ -16,7 +16,7 @@ attribute [simp] liftable.up_down liftable.down_up
 
 namespace liftable
 
-/-- The most common practical use, this function takes `x : M.{u} α` and lift it
+/-- The most common practical use, this function takes `x : M.{u} α` and lifts it
 to M.{max u v} (ulift.{v} α) -/
 @[reducible]
 def up' {f : Type u₀ → Type u₁} {g : Type (max u₀ v₀) → Type v₁} [liftable f g]

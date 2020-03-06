@@ -9,8 +9,8 @@ namespace slim_check
 
 variables (α : Type u)
 
-/-- `arbitrary α` provides ways of creating examples of type
-`α`, given such an example `x : α`, gives us a way to shrink it
+/-- `arbitrary α` provides ways of creating examples of type `α`, 
+and given such an example `x : α`, gives us a way to shrink it
 and find simpler examples.  -/
 class arbitrary :=
 (arby : gen α)

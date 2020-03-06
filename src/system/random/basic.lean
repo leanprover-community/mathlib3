@@ -48,9 +48,9 @@ class random (α : Type u) extends has_le α :=
 (random_r : Π g [random_gen g] (x y : α),
               x ≤ y →
               rand_g g (x .. y))
-(random_series : Π (gen : Type) [random_gen gen], gen → stream α :=
+(random_series : Π (g : Type) [random_gen g], g → stream α :=
 by { intros, resetI,
-     exact corec prod.fst ((random gen).run ∘ prod.snd) ( (random gen).run ⟨ a ⟩ ) } )
+     exact corec prod.fst ((random g).run ∘ prod.snd) ( (random g).run ⟨ a ⟩ ) } )
 (random_series_r : Π (g : Type) [random_gen g] (x y : α)
                         (h : x ≤ y),
                         g →
@@ -87,7 +87,7 @@ return $ mk_std_gen seed
 
 variables {α : Type}
 
-/-- run `cmd` using the a randomly seeded random number generator -/
+/-- run `cmd` using a randomly seeded random number generator -/
 def run_rand (cmd : _root_.rand α) : io α :=
 do g ← io.mk_generator,
    return $ (cmd.run ⟨g⟩).1
@@ -177,16 +177,16 @@ protected def get_random : rand_g gen bool :=
 /-- generator for a series of bits -/
 @[derive inhabited]
 structure bool_generator (g : Type) :=
-  (next : bool)
-  (queue : ℕ × ℕ)
-  (gen : g)
+(next : bool)
+(queue : ℕ × ℕ)
+(gen : g)
 
 /-- create a `bool_generator` from `g` -/
 protected def first (g : gen) : bool_generator gen  :=
 let (r,g') := random_gen.next g in
-{ next := r % 2 = 1
-, queue := (r / 2,30)
-, gen := g' }
+{ next := r % 2 = 1,
+  queue := (r / 2,30),
+  gen := g' }
 
 /-- get the next bit from a `bool_generator` -/
 protected def next : bool_generator gen → bool_generator gen

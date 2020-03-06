@@ -83,7 +83,7 @@ do ⟨ n ⟩ ← liftable.up' $ choose_nat 0 sz,
 
 open ulift
 
-/-- given a list of example generator, choose one to create an example -/
+/-- given a list of example generators, choose one to create an example -/
 def one_of (xs : list (gen α)) (pos : 0 < xs.length) : gen α :=
 have _inst : random _ := random_fin_of_pos _ pos, do
 n ← liftable.up' $ @choose_any (fin xs.length) _inst,

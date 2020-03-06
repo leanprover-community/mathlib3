@@ -49,7 +49,7 @@ variables {M : Type*} [add_comm_monoid M] (S : add_submonoid M) (N : Type*) [add
 
 /-- The type of add_monoid homomorphisms satisfying the characteristic predicate: if `f : M →+ N`
     satisfies this predicate, then `N` is isomorphic to the localization of `M` at `S`. -/
-structure localization_map :=
+@[nolint has_inhabited_instance] structure localization_map :=
 (to_fun : M →+ N)
 (map_add_units : ∀ y : S, is_add_unit (to_fun y))
 (surj : ∀ z : N, ∃ x : M × S, z + to_fun x.2 = to_fun x.1)
@@ -64,21 +64,13 @@ namespace submonoid
 
 /-- The type of monoid homomorphisms satisfying the characteristic predicate: if `f : M →* N`
     satisfies this predicate, then `N` is isomorphic to the localization of `M` at `S`. -/
-structure localization_map :=
+@[nolint has_inhabited_instance] structure localization_map :=
 (to_fun : M →* N)
 (map_units : ∀ y : S, is_unit (to_fun y))
 (surj : ∀ z : N, ∃ x : M × S, z * to_fun x.2 = to_fun x.1)
 (eq_iff_exists : ∀ x y, to_fun x = to_fun y ↔ ∃ c : S, x * c = y * c)
 
 attribute [to_additive add_submonoid.localization_map] submonoid.localization_map
-
-@[to_additive] instance localization_map.inhabited :
-  inhabited (localization_map (⊥ : submonoid M) M) :=
-⟨{ to_fun := monoid_hom.id M,
-   map_units := λ y, ⟨1, set.mem_singleton_iff.1 y.2⟩,
-   surj := λ z, ⟨⟨z, 1⟩, mul_one z⟩,
-   eq_iff_exists := λ x y, ⟨λ h, ⟨1, by convert h; erw mul_one; refl⟩,
-     λ ⟨c, (hc : x * c.1 = y * c.1)⟩, by erw set.mem_singleton_iff.1 c.2 at hc; simpa using hc⟩ }⟩
 
 namespace localization
 

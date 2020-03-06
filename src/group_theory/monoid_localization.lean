@@ -81,7 +81,7 @@ attribute [to_additive add_submonoid.localization_map] submonoid.localization_ma
    surj := λ z, ⟨⟨punit.star, ⟨punit.star, trivial⟩⟩, rfl⟩,
    eq_iff_exists := λ x y, ⟨λ h, ⟨⟨punit.star, trivial⟩, rfl⟩, λ h, rfl⟩ }⟩
 
-namespace monoid_localization
+namespace localization
 
 /-- The congruence relation on `M × S`, `M` a `comm_monoid` and `S` a submonoid of `M`, whose
     quotient is the localization of `M` at `S`, defined as the unique congruence relation on
@@ -115,8 +115,8 @@ begin
 end
 
 /-- The congruence relation used to localize a `comm_monoid` at a submonoid can be expressed
-    equivalently as an infimum (see `monoid_localization.r`) or explicitly
-    (see `monoid_localization.r'`). -/
+    equivalently as an infimum (see `localization.r`) or explicitly
+    (see `localization.r'`). -/
 @[to_additive "The additive congruence relation used to localize an `add_comm_monoid` at a submonoid can be expressed equivalently as an infimum (see `monoid_localization.r`) or explicitly (see `monoid_localization.r'`)."]
 theorem r_eq_r' : r S = r' S :=
 le_antisymm (lattice.Inf_le $ λ _, ⟨1, by simp⟩) $
@@ -135,14 +135,14 @@ variables {S}
 lemma r_iff_exists {x y : M × S} : r S x y ↔ ∃ c : S, x.1 * y.2 * c = y.1 * x.2 * c :=
 by rw r_eq_r' S; refl
 
-end monoid_localization
+end localization
 
 /-- The localization of a `comm_monoid` at one of its submonoids (as a quotient type). -/
 @[to_additive "The localization of an `add_comm_monoid` at one of its submonoids (as a quotient type)."]
-def monoid_localization := (monoid_localization.r S).quotient
+def localization := (localization.r S).quotient
 
-@[to_additive] instance monoid_localization.inhabited :
-  inhabited (monoid_localization S) :=
+@[to_additive] instance localization.inhabited :
+  inhabited (localization S) :=
 con.quotient.inhabited
 
 namespace localization_map
@@ -244,8 +244,8 @@ by rw [eq_comm, eq_mk'_iff_mul_eq, eq_comm]
 f.mk'_eq_iff_eq.trans $ f.4 _ _
 
 @[to_additive] protected lemma eq' {a₁ b₁} {a₂ b₂ : S} :
-  f.mk' a₁ a₂ = f.mk' b₁ b₂ ↔ monoid_localization.r S (a₁, a₂) (b₁, b₂) :=
-by rw [f.eq, monoid_localization.r_iff_exists]
+  f.mk' a₁ a₂ = f.mk' b₁ b₂ ↔ localization.r S (a₁, a₂) (b₁, b₂) :=
+by rw [f.eq, localization.r_iff_exists]
 
 @[to_additive] lemma eq_iff_eq (g : localization_map S P) {x y} :
   f.1 x = f.1 y ↔ g.1 x = g.1 y :=

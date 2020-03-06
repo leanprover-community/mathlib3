@@ -129,6 +129,8 @@ le_antisymm (lattice.Inf_le $ λ _, ⟨1, by simp⟩) $
       refl
     end
 
+variables {S}
+
 @[to_additive]
 lemma r_iff_exists {x y : M × S} : r S x y ↔ ∃ c : S, x.1 * y.2 * c = y.1 * x.2 * c :=
 by rw r_eq_r' S; refl
@@ -155,16 +157,16 @@ noncomputable def sec (f : M →* N) :=
 
 variables {S}
 
-@[simp, to_additive] lemma sec_spec (f : M →* N)
+@[simp, to_additive] lemma sec_spec {f : M →* N}
   (h : ∀ z : N, ∃ x : M × S, z * f x.2 = f x.1) (z : N) :
   z * f (sec S f z).2 = f (sec S f z).1 :=
 @classical.epsilon_spec (N → M × S) (λ g, ∀ z, z * f (g z).2 = f (g z).1)
   ⟨λ y, classical.some $ h y, λ y, classical.some_spec $ h y⟩ z
 
-@[simp, to_additive] lemma sec_spec' (f : M →* N)
+@[simp, to_additive] lemma sec_spec' {f : M →* N}
   (h : ∀ z : N, ∃ x : M × S, z * f x.2 = f x.1) (z : N) :
   f (sec S f z).1 = f (sec S f z).2 * z :=
-by rw [mul_comm, sec_spec f h]
+by rw [mul_comm, sec_spec h]
 
 @[simp, to_additive] lemma mul_inv_left {f : M →* N} (h : ∀ y : S, is_unit (f y))
   (y : S) (w z) : w * ↑(is_unit.lift_right (f.restrict S) h y)⁻¹ = z ↔ w = f y * z :=
@@ -209,16 +211,16 @@ f.1 x * ↑(is_unit.lift_right (f.1.restrict S) f.2 y)⁻¹
 by rw [mk', monoid_hom.map_one]; simp
 
 @[simp, to_additive] lemma mk'_sec (z : N) : f.mk' (sec S f.1 z).1 (sec S f.1 z).2 = z :=
-show _ * _ = _, by erw [←sec_spec f.1 f.3, mul_inv_left, mul_comm]
+show _ * _ = _, by erw [←sec_spec f.3, mul_inv_left, mul_comm]
 
 @[to_additive] lemma mk'_surjective (z : N) : ∃ x (y : S), f.mk' x y = z :=
 ⟨(sec S f.1 z).1, (sec S f.1 z).2, f.mk'_sec z⟩
 
-@[simp, to_additive] lemma mk'_spec (x) (y : S) :
+@[to_additive] lemma mk'_spec (x) (y : S) :
   f.mk' x y * f.1 y = f.1 x :=
 show _ * _ * _ = _, by rw [mul_assoc, mul_comm _ (f.1 y), ←mul_assoc, mul_inv_left, mul_comm]
 
-@[simp, to_additive] lemma mk'_spec' (x) (y : S) :
+@[to_additive] lemma mk'_spec' (x) (y : S) :
   f.1 y * f.mk' x y = f.1 x :=
 by rw [mul_comm, mk'_spec]
 
@@ -259,7 +261,7 @@ f.eq'.trans g.eq'.symm
 
 @[to_additive] lemma exists_of_sec (x) :
   ∃ c : S, x * (sec S f.1 $ f.1 x).2 * c = (sec S f.1 $ f.1 x).1 * c :=
-(f.4 _ _).1 $ by rw f.1.map_mul; exact sec_spec f.1 f.3 _
+(f.4 _ _).1 $ by rw f.1.map_mul; exact sec_spec f.3 _
 
 @[to_additive] lemma mk'_eq_of_eq {a₁ b₁ : M} {a₂ b₂ : S} (H : b₁ * a₂ = a₁ * b₂) :
   f.mk' a₁ a₂ = f.mk' b₁ b₂ :=

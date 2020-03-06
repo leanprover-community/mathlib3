@@ -117,7 +117,7 @@ end
 /-- The congruence relation used to localize a `comm_monoid` at a submonoid can be expressed
     equivalently as an infimum (see `localization.r`) or explicitly
     (see `localization.r'`). -/
-@[to_additive "The additive congruence relation used to localize an `add_comm_monoid` at a submonoid can be expressed equivalently as an infimum (see `monoid_localization.r`) or explicitly (see `monoid_localization.r'`)."]
+@[to_additive "The additive congruence relation used to localize an `add_comm_monoid` at a submonoid can be expressed equivalently as an infimum (see `localization.r`) or explicitly (see `localization.r'`)."]
 theorem r_eq_r' : r S = r' S :=
 le_antisymm (lattice.Inf_le $ λ _, ⟨1, by simp⟩) $
   lattice.le_Inf $ λ b H ⟨p, q⟩ y ⟨t, ht⟩,

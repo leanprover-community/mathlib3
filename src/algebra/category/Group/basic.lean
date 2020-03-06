@@ -73,8 +73,8 @@ local attribute [reducible] CommGroup
 @[to_additive]
 instance : has_coe_to_sort CommGroup := infer_instance -- short-circuit type class inference
 
-@[to_additive add_comm_group]
-instance (G : CommGroup) : comm_group G := G.str
+@[to_additive add_comm_group_instance]
+instance comm_group_instance (G : CommGroup) : comm_group G := G.str
 
 @[to_additive] instance : has_one CommGroup := ⟨CommGroup.of punit⟩
 

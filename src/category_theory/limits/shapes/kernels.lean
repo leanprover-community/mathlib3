@@ -222,4 +222,14 @@ class has_kernels :=
 class has_cokernels :=
 (has_colimit : Π {X Y : C} (f : X ⟶ Y), has_colimit (parallel_pair f 0))
 
+attribute [instance] has_kernels.has_limit has_cokernels.has_colimit
+
+/-- Kernels are finite limits, so if `C` has all finite limits, it also has all kernels -/
+def has_kernels_of_has_finite_limits [has_finite_limits.{v} C] : has_kernels.{v} C :=
+{ has_limit := infer_instance }
+
+/-- Cokernels are finite limits, so if `C` has all finite colimits, it also has all cokernels -/
+def has_cokernels_of_has_finite_colimits [has_finite_colimits.{v} C] : has_cokernels.{v} C :=
+{ has_colimit := infer_instance }
+
 end category_theory.limits

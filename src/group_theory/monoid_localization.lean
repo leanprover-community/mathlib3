@@ -73,13 +73,12 @@ structure localization_map :=
 attribute [to_additive add_submonoid.localization_map] submonoid.localization_map
 
 @[to_additive] instance localization_map.inhabited :
-  inhabited (@localization_map punit (comm_group.to_comm_monoid punit) ⊤
-    punit (comm_group.to_comm_monoid punit)) :=
-⟨{ to_fun := 1,
-   map_units := λ y, @is_unit_of_mul_one punit
-     (comm_group.to_comm_monoid punit) _ punit.star rfl,
-   surj := λ z, ⟨⟨punit.star, ⟨punit.star, trivial⟩⟩, rfl⟩,
-   eq_iff_exists := λ x y, ⟨λ h, ⟨⟨punit.star, trivial⟩, rfl⟩, λ h, rfl⟩ }⟩
+  inhabited (localization_map (⊥ : submonoid M) M) :=
+⟨{ to_fun := monoid_hom.id M,
+   map_units := λ y, ⟨1, set.mem_singleton_iff.1 y.2⟩,
+   surj := λ z, ⟨⟨z, 1⟩, mul_one z⟩,
+   eq_iff_exists := λ x y, ⟨λ h, ⟨1, by convert h; erw mul_one; refl⟩,
+     λ ⟨c, (hc : x * c.1 = y * c.1)⟩, by erw set.mem_singleton_iff.1 c.2 at hc; simpa using hc⟩ }⟩
 
 namespace localization
 
@@ -211,7 +210,7 @@ f.1 x * ↑(is_unit.lift_right (f.1.restrict S) f.2 y)⁻¹
 by rw [mk', monoid_hom.map_one]; simp
 
 @[simp, to_additive] lemma mk'_sec (z : N) : f.mk' (sec S f.1 z).1 (sec S f.1 z).2 = z :=
-show _ * _ = _, by erw [←sec_spec f.3, mul_inv_left, mul_comm]
+show _ * _ = _, by rw [←sec_spec f.3, mul_inv_left, mul_comm]
 
 @[to_additive] lemma mk'_surjective (z : N) : ∃ x (y : S), f.mk' x y = z :=
 ⟨(sec S f.1 z).1, (sec S f.1 z).2, f.mk'_sec z⟩

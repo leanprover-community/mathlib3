@@ -11,10 +11,10 @@ terminal.
 * Then go to a folder where you want to create a project in a subfolder
   `my_project`, and type:
 	```bash
-	leanpkg new my_project
+	leanpkg +leanprover-community/lean:3.6.1 new my_project
 	cd my_project
 	leanpkg add leanprover-community/mathlib
-	update-mathlib
+	leanproject up
 	```
 
 * launch VScode, either through your application menu or by typing
@@ -59,7 +59,7 @@ As example, we will take [the tutorial project](https://github.com/leanprover-co
 
 * Type `leanpkg configure` to get `leanpkg` ready for use in this project.
 
-* Type `update-mathlib` to get mathlib ready for use in this project.
+* Type `leanproject up` to get mathlib ready for use in this project.
 
 * Type `leanpkg build` to compile everything, this should only take a few seconds.
 

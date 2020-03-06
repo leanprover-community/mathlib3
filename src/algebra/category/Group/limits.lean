@@ -103,7 +103,7 @@ end
 end AddCommGroup_has_limits
 open AddCommGroup_has_limits
 
-/-- The category of commutative rings has all limits. -/
+/-- The category of additive commutative groups has all limits. -/
 instance AddCommGroup_has_limits : has_limits.{u} AddCommGroup.{u} :=
 { has_limits_of_shape := λ J 𝒥,
   { has_limit := λ F, by exactI
@@ -111,7 +111,7 @@ instance AddCommGroup_has_limits : has_limits.{u} AddCommGroup.{u} :=
       is_limit := limit_is_limit F } } }
 
 /--
-The forgetful functor from commutative rings to types preserves all limits. (That is, the underlying
+The forgetful functor from additive commutative groups to types preserves all limits. (That is, the underlying
 types could have been computed instead as limits in the category of types.)
 -/
 instance forget_preserves_limits : preserves_limits (forget AddCommGroup.{u}) :=

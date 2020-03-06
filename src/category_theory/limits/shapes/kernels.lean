@@ -196,12 +196,12 @@ local attribute [instance] zero_of_zero_object
 local attribute [instance] has_zero_object.zero_morphisms_of_zero_object
 
 /-- The kernel of the cokernel of an epimorphism is an isomorphism -/
-def kernel.of_cokernel_of_epi [has_colimit (parallel_pair f 0)]
+instance kernel.of_cokernel_of_epi [has_colimit (parallel_pair f 0)]
   [has_limit (parallel_pair (cokernel.π f) 0)] [epi f] : is_iso (kernel.ι (cokernel.π f)) :=
 equalizer.ι_of_self' _ _ $ cokernel.π_of_epi f
 
 /-- The cokernel of the kernel of a monomorphism is an isomorphism -/
-def cokernel.of_kernel_of_mono [has_limit (parallel_pair f 0)]
+instance cokernel.of_kernel_of_mono [has_limit (parallel_pair f 0)]
   [has_colimit (parallel_pair (kernel.ι f) 0)] [mono f] : is_iso (cokernel.π (kernel.ι f)) :=
 coequalizer.π_of_self' _ _ $ kernel.ι_of_mono f
 

@@ -62,7 +62,7 @@ def bar.foo : (if 3 = 3 then 1 else 2) = 1 := if_pos (by refl)
 
 run_cmd do
   (_, s) ← lint tt tt [`linter.dummy_linter] tt,
-  guard $ "/- found something: -/\n#print foo.foo /- gotcha! -/".is_suffix_of s.to_string
+  guard $ "/- found something: -/\n#print foo.foo /- gotcha! -/\n".is_suffix_of s.to_string
 
 instance impossible_instance_test {α β : Type} [add_group α] : has_add α := infer_instance
 

@@ -10,12 +10,10 @@ terminal.
 
 * Then go to a folder where you want to create a project in a subfolder
   `my_project`, and type:
-	```bash
-	leanpkg +leanprover-community/lean:3.6.1 new my_project
-	cd my_project
-	leanpkg add leanprover-community/mathlib
-	leanproject up
-	```
+        ```bash
+        leanproject new my_project
+        cd my_project
+        ```
 
 * launch VScode, either through your application menu or by typing
   `code`
@@ -52,16 +50,7 @@ As example, we will take [the tutorial project](https://github.com/leanprover-co
 
 * Go the the directory where you would like this package to live.
 
-* Run `git clone https://github.com/leanprover-community/tutorials.git`.
-
-* This creates a directory named `tutorials`. Enter it
-  with `cd tutorials`.
-
-* Type `leanpkg configure` to get `leanpkg` ready for use in this project.
-
-* Type `leanproject up` to get mathlib ready for use in this project.
-
-* Type `leanpkg build` to compile everything, this should only take a few seconds.
+* Run `leanproject get tutorials`
 
 * launch VScode, either through your application menu or by typing
   `code`

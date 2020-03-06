@@ -58,6 +58,11 @@ by { intros, resetI,
 by { introsI,
      exact corec prod.fst ((random_r g x y h).run ∘ prod.snd) ((random_r g x y h).run ⟨ a ⟩) } )
 
+/-- is 2^31; multiplying by it shifts a number left by 31 bits,
+dividing by it shifts it right by 31 bits -/
+def shift_31l : ℕ :=
+by apply_normed 2^31
+
 namespace tactic.interactive
 
 /-- Some functions require a non-empty range as a parameter. This
@@ -72,23 +77,13 @@ export tactic.interactive (check_range)
 
 namespace io
 
-/-- on a platform with a `/dev/random` file to get random bytes from,
-get `n` bytes from it -/
-def read_dev_random (n : ℕ) : io (array n char) := do
-fh ← mk_file_handle "/dev/random" mode.read tt,
-buf ← fs.read fh n,
-fs.close fh,
-if h : buf.size = n
-then return (cast (by rw h) buf.to_array)
-else io.fail "wrong number of bytes read from /dev/random"
-
 private def accum_char (w : ℕ) (c : char) : ℕ :=
 c.to_nat + 256 * w
 
 /-- create and a seed a random number generator -/
 def mk_generator : io std_gen := do
-x ← io.read_dev_random 8,
-return $ mk_std_gen (foldl accum_char 0 $ x.to_list : ℕ)
+seed ← io.rand 0 shift_31l,
+return $ mk_std_gen seed
 
 variables {α : Type}
 
@@ -392,11 +387,6 @@ end
 namespace fin
 section fin
 parameter {n : ℕ}
-
-/-- is 2^31; multiplying by it shifts a number left by 31 bits,
-dividing by it shifts it right by 31 bits -/
-def shift_31l : ℕ :=
-by apply_normed 2^31
 
 /-- `random_aux m k` `m` words worth of random numbers and combine them
 with `k` -/

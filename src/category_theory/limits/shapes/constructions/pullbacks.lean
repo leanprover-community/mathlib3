@@ -1,1 +1,0 @@
--- TODO construct pullbacks from binary products and equalizers

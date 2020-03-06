@@ -1,10 +1,12 @@
 set -e
 set -x
 
-if leanproject get-cache; then
-  sleep 0
+archive_url="https://oleanstorage.azureedge.net/mathlib/"
+
+if [[ `wget -S --spider $archive_url$git_sha.tar.gz  2>&1 | grep 'HTTP/1.1 200 OK'` ]]; then
+  curl "$archive_url$git_sha.tar.gz" | tar --wildcards *.olean xf
 else
-  new_olean_hash=$(python scripts/look_up_olean_hash.py $lean_file_hash) || exit 0
+  new_git_sha=$(python scripts/look_up_olean_hash.py $lean_file_hash) || exit 0
   echo "new hash $new_olean_hash"
-  leanproject -u "https://oleanstorage.blob.core.windows.net/mathlib/$new_olean_hash.tar.gz" get-cache || true
+  curl "$archive_url$new_git_sha.tar.gz" | tar --wildcards *.olean xf
 fi

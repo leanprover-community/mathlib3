@@ -108,7 +108,7 @@ def bind (f : α →ₛ β) (g : β → α →ₛ γ) : α →ₛ γ :=
 @[simp] theorem bind_apply (f : α →ₛ β) (g : β → α →ₛ γ) (a) :
   f.bind g a = g (f a) a := rfl
 
-/-- Restrict a simple function `f : α →ₛ β`` to a set `s`. If `s` is measurable,
+/-- Restrict a simple function `f : α →ₛ β` to a set `s`. If `s` is measurable,
 then `f.restrict s a = if a ∈ s then f a else 0`, otherwise `f.restrict s = const α 0`. -/
 def restrict [has_zero β] (f : α →ₛ β) (s : set α) : α →ₛ β :=
 if hs : is_measurable s then ite hs f (const α 0) else const α 0

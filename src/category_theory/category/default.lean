@@ -114,6 +114,26 @@ class mono (f : X ⟶ Y) : Prop :=
 ⟨ λ p, epi.left_cancellation g h p, begin intro a, subst a end ⟩
 @[simp] lemma cancel_mono (f : X ⟶ Y) [mono f] {g h : Z ⟶ X} : (g ≫ f = h ≫ f) ↔ g = h :=
 ⟨ λ p, mono.right_cancellation g h p, begin intro a, subst a end ⟩
+
+@[simp] lemma cancel_epi_id (f : X ⟶ Y) [epi f]  {h : Y ⟶ Y} : (f ≫ h = f) ↔ h = 𝟙 Y :=
+by { convert cancel_epi f, simp, }
+@[simp] lemma cancel_mono_id (f : X ⟶ Y) [mono f] {g : X ⟶ X} : (g ≫ f = f) ↔ g = 𝟙 X :=
+by { convert cancel_mono f, simp, }
+
+instance epi_comp {X Y Z : C} (f : X ⟶ Y) [epi f] (g : Y ⟶ Z) [epi g] : epi (f ≫ g) :=
+begin
+  split, intros Z a b w,
+  apply (cancel_epi g).1,
+  apply (cancel_epi f).1,
+  simpa using w,
+end
+instance mono_comp {X Y Z : C} (f : X ⟶ Y) [mono f] (g : Y ⟶ Z) [mono g] : mono (f ≫ g) :=
+begin
+  split, intros Z a b w,
+  apply (cancel_mono f).1,
+  apply (cancel_mono g).1,
+  simpa using w,
+end
 end
 
 section

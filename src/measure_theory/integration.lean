@@ -74,7 +74,7 @@ begin
   { exact is_measurable.bUnion (countable_finite f.finite)
       (λ b _, is_measurable.inter (h b) (f.measurable_sn _)) },
   ext a, simp,
-  exact ⟨λ h, ⟨_, ⟨a, rfl⟩, h, rfl⟩, λ ⟨_, ⟨a', rfl⟩, h', e⟩, e.symm ▸ h'⟩
+  exact ⟨λ h, ⟨a, ⟨h, rfl⟩⟩, λ ⟨a', ⟨h', e⟩⟩, e.symm ▸ h'⟩
 end
 
 theorem preimage_measurable (f : α →ₛ β) (s) : is_measurable (f ⁻¹' s) :=
@@ -103,7 +103,7 @@ def bind (f : α →ₛ β) (g : β → α →ₛ γ) : α →ₛ γ :=
 ⟨λa, g (f a) a,
  λ c, is_measurable_cut (λa b, g b a ∈ ({c} : set γ)) f (λ b, (g b).measurable_sn c),
  finite_subset (finite_bUnion f.finite (λ b, (g b).finite)) $
- by rintro _ ⟨a, rfl⟩; simp; exact ⟨_, ⟨a, rfl⟩, _, rfl⟩⟩
+ by rintro _ ⟨a, rfl⟩; simp; exact ⟨a, a, rfl⟩⟩
 
 @[simp] theorem bind_apply (f : α →ₛ β) (g : β → α →ₛ γ) (a) :
   f.bind g a = g (f a) a := rfl

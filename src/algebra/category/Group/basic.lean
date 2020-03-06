@@ -55,10 +55,8 @@ instance : unique (1 : Group.{u}) :=
 { default := 1,
   uniq := λ a, begin cases a, refl, end }
 
-@[to_additive, simp]
+@[simp, to_additive]
 lemma one_apply (G H : Group) (g : G) : (1 : G ⟶ H) g = 1 := rfl
-
-attribute [simp] _root_.AddGroup.zero_apply
 
 @[to_additive]
 instance : concrete_category Group := infer_instance -- short-circuit type class inference
@@ -98,10 +96,8 @@ instance : unique (1 : CommGroup.{u}) :=
 { default := 1,
   uniq := λ a, begin cases a, refl, end }
 
-@[to_additive, simp]
+@[simp, to_additive]
 lemma one_apply (G H : CommGroup) (g : G) : (1 : G ⟶ H) g = 1 := rfl
-
-attribute [simp] _root_.AddCommGroup.zero_apply
 
 @[to_additive] instance : concrete_category CommGroup := infer_instance -- short-circuit type class inference
 

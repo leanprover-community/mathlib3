@@ -733,8 +733,6 @@ apply_nolint category_theory.limits.sigma.ι doc_blame
 -- category_theory/limits/shapes/pullbacks.lean
 apply_nolint category_theory.limits.cocone.of_pushout_cocone doc_blame
 apply_nolint category_theory.limits.cone.of_pullback_cone doc_blame
-apply_nolint category_theory.limits.has_pullbacks doc_blame
-apply_nolint category_theory.limits.has_pushouts doc_blame
 apply_nolint category_theory.limits.pullback.fst doc_blame
 apply_nolint category_theory.limits.pullback.lift doc_blame
 apply_nolint category_theory.limits.pullback.snd doc_blame

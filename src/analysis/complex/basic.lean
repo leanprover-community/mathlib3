@@ -40,7 +40,7 @@ instance : normed_field ℂ :=
 { norm := abs,
   dist_eq := λ _ _, rfl,
   norm_mul' := abs_mul,
-  .. complex.discrete_field }
+  .. complex.field }
 
 instance : nondiscrete_normed_field ℂ :=
 { non_trivial := ⟨2, by simp [norm]; norm_num⟩ }

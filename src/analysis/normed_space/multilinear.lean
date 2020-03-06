@@ -174,7 +174,7 @@ begin
             + C * univ.prod (λj, if j = i then ∥m₁ i - m₂ i∥ else max ∥m₁ j∥ ∥m₂ j∥) :
         add_le_add Hrec I
       ... = C * (insert i s).sum (λi, univ.prod (λj, if j = i then ∥m₁ i - m₂ i∥ else max ∥m₁ j∥ ∥m₂ j∥)) :
-        by simp [his, left_distrib] },
+        by simp [his, add_comm, left_distrib] },
   convert A univ,
   simp
 end

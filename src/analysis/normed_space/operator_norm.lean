@@ -110,8 +110,7 @@ begin
         apply_rules [mul_nonneg', norm_nonneg, inv_nonneg.2, norm_nonneg] },
       { let y := x₀ - (f x₀ * (f x)⁻¹ ) • x,
         have fy_zero : f y = 0, by calc
-          f y = f x₀ - (f x₀ * (f x)⁻¹ ) * f x :
-            by { dsimp [y], rw [f.map_add, f.map_neg, f.map_smul], refl }
+          f y = f x₀ - (f x₀ * (f x)⁻¹ ) * f x : by simp [y]
           ... = 0 :
             by { rw [mul_assoc, inv_mul_cancel hx, mul_one, sub_eq_zero_of_eq], refl },
         have A : r * ∥x₀∥ ≤ ∥f x₀∥ * ∥f x∥⁻¹ * ∥x∥, from calc

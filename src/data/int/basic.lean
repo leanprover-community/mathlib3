@@ -110,7 +110,7 @@ begin
   { have : ∀n:ℕ, p (- n),
     { intro n, induction n,
       { simp [hz] },
-      { have := hn _ n_ih, simpa } },
+      { convert hn _ n_ih using 1, simp [sub_eq_neg_add] } },
     exact this (i + 1) }
 end
 
@@ -159,7 +159,7 @@ by cases a; cases b; simp only [(*), int.mul, nat_abs_neg_of_nat, eq_self_iff_tr
 by rw [← int.coe_nat_mul, nat_abs_mul_self]
 
 theorem neg_succ_of_nat_eq' (m : ℕ) : -[1+ m] = -m - 1 :=
-by simp [neg_succ_of_nat_eq]
+by simp [neg_succ_of_nat_eq, sub_eq_neg_add]
 
 lemma nat_abs_ne_zero_of_ne_zero {z : ℤ} (hz : z ≠ 0) : z.nat_abs ≠ 0 :=
 λ h, hz $ int.eq_zero_of_nat_abs_eq_zero h
@@ -1113,15 +1113,18 @@ end
   by rw [add_assoc, ← cast_succ, ← nat.cast_add, add_comm,
          nat.cast_add, cast_succ, neg_add_cancel_left]
 | -[1+ m] -[1+ n] := show -((m + n + 1 + 1 : ℕ) : α) = -(m + 1) + -(n + 1),
-  by rw [← neg_add_rev, ← nat.cast_add_one, ← nat.cast_add_one, ← nat.cast_add];
-     apply congr_arg (λ x:ℕ, -(x:α)); simp
+  begin
+    rw [← neg_add_rev, ← nat.cast_add_one, ← nat.cast_add_one, ← nat.cast_add],
+    apply congr_arg (λ x:ℕ, -(x:α)),
+    ac_refl
+  end
 
 @[simp, move_cast] theorem cast_neg [add_group α] [has_one α] : ∀ n, ((-n : ℤ) : α) = -n
 | (n : ℕ) := cast_neg_of_nat _
 | -[1+ n] := (neg_neg _).symm
 
 @[move_cast] theorem cast_sub [add_group α] [has_one α] (m n) : ((m - n : ℤ) : α) = m - n :=
-by simp
+by simp [sub_eq_add_neg]
 
 @[simp] theorem cast_eq_zero [add_group α] [has_one α] [char_zero α] {n : ℤ} : (n : α) = 0 ↔ n = 0 :=
 ⟨λ h, begin cases n,

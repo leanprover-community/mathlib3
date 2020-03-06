@@ -89,12 +89,12 @@ by unfold lift; apply_instance
 
 end comm_ring
 
-variables [discrete_field α] {f : polynomial α} [irreducible f]
+variables [field α] {f : polynomial α} [irreducible f]
 
 instance is_maximal_span : is_maximal (span {f} : ideal (polynomial α)) :=
 principal_ideal_domain.is_maximal_of_irreducible ‹irreducible f›
 
-noncomputable instance field : discrete_field (adjoin_root f) :=
+noncomputable instance field : field (adjoin_root f) :=
 ideal.quotient.field (span {f} : ideal (polynomial α))
 
 lemma coe_injective : function.injective (coe : α → adjoin_root f) :=

@@ -274,7 +274,7 @@ begin rw insert_eq, simp [bInter_union] end
 
 theorem bInter_pair (a b : α) (s : α → set β) :
   (⋂ x ∈ ({a, b} : set α), s x) = s a ∩ s b :=
-by rw insert_of_has_insert; simp [inter_comm]
+by simp [inter_comm]
 
 theorem bUnion_empty (s : α → set β) : (⋃ x ∈ (∅ : set α), s x) = ∅ :=
 supr_emptyset
@@ -300,7 +300,7 @@ begin rw [insert_eq], simp [bUnion_union] end
 
 theorem bUnion_pair (a b : α) (s : α → set β) :
   (⋃ x ∈ ({a, b} : set α), s x) = s a ∪ s b :=
-by rw insert_of_has_insert; simp [union_comm]
+by simp [union_comm]
 
 @[simp] -- complete_boolean_algebra
 theorem compl_bUnion (s : set α) (t : α → set β) : - (⋃ i ∈ s, t i) = (⋂ i ∈ s, - t i) :=

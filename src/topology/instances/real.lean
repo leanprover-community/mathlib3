@@ -49,8 +49,10 @@ begin
     (le_antisymm refl_le_uniformity $ λ r ru,
       mem_uniformity_dist.2 ⟨1, zero_lt_one, λ a b h,
       mem_principal_sets.1 ru $ dist_le_zero.1 (_ : (abs (a - b) : ℝ) ≤ 0)⟩),
-  simpa using (@int.cast_le ℝ _ _ 0).2 (int.lt_add_one_iff.1 $
-    (@int.cast_lt ℝ _ (abs (a - b)) 1).1 $ by simpa using h)
+  have : (abs (↑a - ↑b) : ℝ) < 1 := h,
+  have : abs (a - b) < 1, by norm_cast at this; assumption,
+  have : abs (a - b) ≤ 0 := (@int.lt_add_one_iff _ 0).mp this,
+  norm_cast, assumption
 end
 end low_prio
 

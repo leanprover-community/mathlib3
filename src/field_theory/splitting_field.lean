@@ -20,7 +20,7 @@ namespace polynomial
 
 noncomputable theory
 open_locale classical
-variables [discrete_field α] [discrete_field β] [discrete_field γ]
+variables [field α] [field β] [field γ]
 open polynomial
 
 section splits

@@ -71,7 +71,8 @@ begin
            zero := ⟨0, by simp [zero_le_one]⟩,
            one := ⟨1, by simp⟩,
            .. };
-  {repeat {rintro ⟨_, _⟩}, simp [mul_assoc, left_distrib, right_distrib, add, mul, neg]}
+  { repeat {rintro ⟨_, _⟩},
+    simp [add_comm, add_left_comm, mul_assoc, left_distrib, right_distrib, add, mul, neg] }
 end
 
 instance : inhabited ℤ_[p] := ⟨0⟩

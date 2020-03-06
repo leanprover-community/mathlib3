@@ -241,7 +241,7 @@ instance [semiring K] [add_comm_monoid β] [semimodule K β] : semimodule K (α 
 instance [ring K] [add_comm_group β] [module K β] : module K (α →ₛ β) :=
 { .. simple_func.semimodule }
 
-instance [discrete_field K] [add_comm_group β] [module K β] : vector_space K (α →ₛ β) :=
+instance [field K] [add_comm_group β] [module K β] : vector_space K (α →ₛ β) :=
 { .. simple_func.module }
 
 lemma smul_apply [has_scalar K β] (k : K) (f : α →ₛ β) (a : α) : (k • f) a = k • f a := rfl

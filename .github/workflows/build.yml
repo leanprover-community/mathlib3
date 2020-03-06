@@ -27,6 +27,7 @@ jobs:
         run: leanpkg build | python scripts/detect_errors.py
 
       - name: configure git setup
+        if: always()
         run: |
           git remote add origin-bot "https://leanprover-community-bot:${{ secrets.DEPLOY_NIGHTLY_GITHUB_TOKEN }}@github.com/leanprover-community/mathlib.git"
           git config user.email "leanprover.community@gmail.com"
@@ -90,11 +91,13 @@ jobs:
           python-version: 3.8
 
       - name: generate docs
-        if: github.repository == 'leanprover-community/mathlib' && github.event_name == 'push' && github.ref == 'refs/heads/master'
         run:
           ./scripts/deploy_docs.sh
         env:
           DEPLOY_NIGHTLY_GITHUB_TOKEN: ${{ secrets.DEPLOY_NIGHTLY_GITHUB_TOKEN }}
+          github_repo: ${{ github.repository }}
+          github_event: ${{ github.event_name }}
+          github_ref: ${{ github.ref }}
 
       - name: update nolints.txt
         if: github.repository == 'leanprover-community/mathlib' && github.event_name == 'push' && github.ref == 'refs/heads/master'

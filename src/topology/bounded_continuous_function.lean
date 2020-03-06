@@ -415,7 +415,7 @@ instance : add_comm_group (α →ᵇ β) :=
   zero_add     := assume f, by ext; simp,
   add_zero     := assume f, by ext; simp,
   add_left_neg := assume f, by ext; simp,
-  add_comm     := assume f g, by ext; simp,
+  add_comm     := assume f g, by ext; simp [add_comm],
   ..bounded_continuous_function.has_add,
   ..bounded_continuous_function.has_neg,
   ..bounded_continuous_function.has_zero }

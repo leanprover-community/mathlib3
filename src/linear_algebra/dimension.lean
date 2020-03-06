@@ -18,7 +18,7 @@ variables {ι : Type w} {ι' : Type w'} {η : Type u''} {φ : η → Type u'}
 open_locale classical
 
 section vector_space
-variables [discrete_field K] [add_comm_group V] [vector_space K V]
+variables [field K] [add_comm_group V] [vector_space K V]
 include K
 open submodule lattice function set
 
@@ -122,7 +122,7 @@ by letI := classical.dec_eq V;
 @[simp] lemma dim_top : dim K (⊤ : submodule K V) = dim K V :=
 linear_equiv.dim_eq (linear_equiv.of_top _ rfl)
 
-lemma dim_of_field (K : Type*) [discrete_field K] : dim K K = 1 :=
+lemma dim_of_field (K : Type*) [field K] : dim K K = 1 :=
 by rw [←cardinal.lift_inj, ← (@is_basis_singleton_one punit K _ _).mk_eq_dim, cardinal.mk_punit]
 
 lemma dim_span {v : ι → V} (hv : linear_independent K v) :
@@ -382,7 +382,7 @@ end vector_space
 section unconstrained_universes
 
 variables {E : Type v'}
-variables [discrete_field K] [add_comm_group V] [vector_space K V]
+variables [field K] [add_comm_group V] [vector_space K V]
           [add_comm_group E] [vector_space K E]
 open vector_space
 

@@ -128,7 +128,7 @@ noncomputable instance : discrete_linear_ordered_field ℝ :=
 { decidable_le := by apply_instance,
   ..real.linear_ordered_comm_ring,
   ..real.domain,
-  ..cau_seq.completion.discrete_field }
+  ..cau_seq.completion.field }
 
 /- Extra instances to short-circuit type class resolution -/
 
@@ -136,8 +136,7 @@ noncomputable instance : linear_ordered_field ℝ    := by apply_instance
 noncomputable instance : decidable_linear_ordered_comm_ring ℝ := by apply_instance
 noncomputable instance : decidable_linear_ordered_semiring ℝ := by apply_instance
 noncomputable instance : decidable_linear_ordered_comm_group ℝ := by apply_instance
-noncomputable instance discrete_field : discrete_field ℝ := by apply_instance
-noncomputable instance : field ℝ                   := by apply_instance
+noncomputable instance field : field ℝ := by apply_instance
 noncomputable instance : division_ring ℝ           := by apply_instance
 noncomputable instance : integral_domain ℝ         := by apply_instance
 noncomputable instance : nonzero_comm_ring ℝ       := by apply_instance
@@ -437,7 +436,7 @@ end,
     have : s < y := (lt_add_iff_pos_right _).2 (div_pos h _30),
     refine not_le_of_lt this (le_Sup S ⟨_, ub⟩ ⟨lt_trans S0 this, _⟩),
     rw [add_mul_self_eq, add_assoc, ← le_sub_iff_add_le', ← add_mul,
-      ← le_div_iff (div_pos h _30), div_div_cancel (ne_of_gt h)],
+      ← le_div_iff (div_pos h _30), field.div_div_cancel (ne_of_gt h)],
     apply add_le_add,
     { simpa using (mul_le_mul_left (@two_pos ℝ _)).2 (Sup_le_ub _ ⟨_, lb⟩ ub) },
     { rw [div_le_one_iff_le _30],

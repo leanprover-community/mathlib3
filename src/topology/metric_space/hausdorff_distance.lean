@@ -229,7 +229,7 @@ ennreal.le_of_forall_epsilon_le $ λε εpos h, begin
   calc inf_edist x t ≤ edist x z : inf_edist_le_edist_of_mem zt
     ... ≤ edist x y + edist y z : edist_triangle _ _ _
     ... ≤ (inf_edist x s + ε/2) + (Hausdorff_edist s t + ε/2) : add_le_add' (le_of_lt dxy) (le_of_lt dyz)
-    ... = inf_edist x s + Hausdorff_edist s t + ε : by simp [ennreal.add_halves, add_comm]
+    ... = inf_edist x s + Hausdorff_edist s t + ε : by simp [ennreal.add_halves, add_comm, add_left_comm]
 end
 
 /-- The Hausdorff edistance is invariant under eisometries -/

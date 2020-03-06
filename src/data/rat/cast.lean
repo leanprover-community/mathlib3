@@ -86,7 +86,7 @@ end
   suffices : (n₁ * (d₂ * (d₂⁻¹ * d₁⁻¹)) +
     n₂ * (d₁ * d₂⁻¹) * d₁⁻¹ : α) = n₁ * d₁⁻¹ + n₂ * d₂⁻¹,
   { rw [cast_mk_of_ne_zero, cast_mk_of_ne_zero, cast_mk_of_ne_zero],
-    { simpa [division_def, left_distrib, right_distrib, mul_inv_eq,
+    { simpa [division_def, left_distrib, right_distrib, mul_inv',
              d₁0, d₂0, division_ring.mul_ne_zero d₁0 d₂0, mul_assoc] },
     all_goals {simp [d₁0, d₂0, division_ring.mul_ne_zero d₁0 d₂0]} },
   rw [← mul_assoc (d₂:α), mul_inv_cancel d₂0, one_mul,
@@ -100,7 +100,7 @@ end
 @[move_cast] theorem cast_sub_of_ne_zero {m n : ℚ}
   (m0 : (m.denom : α) ≠ 0) (n0 : (n.denom : α) ≠ 0) : ((m - n : ℚ) : α) = m - n :=
 have ((-n).denom : α) ≠ 0, by cases n; exact n0,
-by simp [(cast_add_of_ne_zero m0 this)]
+by simp [sub_eq_add_neg, (cast_add_of_ne_zero m0 this)]
 
 @[move_cast] theorem cast_mul_of_ne_zero : ∀ {m n : ℚ},
   (m.denom : α) ≠ 0 → (n.denom : α) ≠ 0 → ((m * n : ℚ) : α) = m * n
@@ -110,7 +110,7 @@ by simp [(cast_add_of_ne_zero m0 this)]
   rw [num_denom', num_denom', mul_def d₁0' d₂0'],
   suffices : (n₁ * ((n₂ * d₂⁻¹) * d₁⁻¹) : α) = n₁ * (d₁⁻¹ * (n₂ * d₂⁻¹)),
   { rw [cast_mk_of_ne_zero, cast_mk_of_ne_zero, cast_mk_of_ne_zero],
-    { simpa [division_def, mul_inv_eq, d₁0, d₂0, division_ring.mul_ne_zero d₁0 d₂0, mul_assoc] },
+    { simpa [division_def, mul_inv', d₁0, d₂0, division_ring.mul_ne_zero d₁0 d₂0, mul_assoc] },
     all_goals {simp [d₁0, d₂0, division_ring.mul_ne_zero d₁0 d₂0]} },
   rw [division_ring.inv_comm_of_comm d₁0 (nat.mul_cast_comm _ _).symm]
 end
@@ -203,20 +203,20 @@ instance is_ring_hom_cast [char_zero α] : is_ring_hom (rat.cast : ℚ → α) :
 
 end with_div_ring
 
-@[move_cast] theorem cast_mk [discrete_field α] [char_zero α] (a b : ℤ) : ((a /. b) : α) = a / b :=
+@[move_cast] theorem cast_mk [field α] [char_zero α] (a b : ℤ) : ((a /. b) : α) = a / b :=
 if b0 : b = 0 then by simp [b0, div_zero]
 else cast_mk_of_ne_zero a b (int.cast_ne_zero.2 b0)
 
-@[simp, move_cast] theorem cast_inv [discrete_field α] [char_zero α] (n) : ((n⁻¹ : ℚ) : α) = n⁻¹ :=
+@[simp, move_cast] theorem cast_inv [field α] [char_zero α] (n) : ((n⁻¹ : ℚ) : α) = n⁻¹ :=
 if n0 : n.num = 0 then
   by simp [show n = 0, by rw [←(@num_denom n), n0]; simp, inv_zero] else
 cast_inv_of_ne_zero (int.cast_ne_zero.2 n0) (nat.cast_ne_zero.2 $ ne_of_gt n.pos)
 
-@[simp, move_cast] theorem cast_div [discrete_field α] [char_zero α] (m n) :
+@[simp, move_cast] theorem cast_div [field α] [char_zero α] (m n) :
   ((m / n : ℚ) : α) = m / n :=
 by rw [division_def, cast_mul, cast_inv, division_def]
 
-@[simp, move_cast] theorem cast_pow [discrete_field α] [char_zero α] (q) (k : ℕ) :
+@[simp, move_cast] theorem cast_pow [field α] [char_zero α] (q) (k : ℕ) :
   ((q ^ k : ℚ) : α) = q ^ k :=
 by induction k; simp only [*, cast_one, cast_mul, pow_zero, pow_succ]
 

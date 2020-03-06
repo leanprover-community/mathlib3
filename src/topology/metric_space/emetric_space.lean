@@ -731,12 +731,11 @@ eq_of_forall_ge_iff $ λ d, by simp only [diam_le_iff_forall_edist_le, ball_inse
   (and_assoc _ _).symm, max_comm (diam s)]
 
 lemma diam_pair : diam ({x, y} : set α) = edist x y :=
-by simp only [set.insert_of_has_insert, supr_singleton, diam_insert, diam_singleton,
-  ennreal.max_zero_left]
+by simp only [supr_singleton, diam_insert, diam_singleton, ennreal.max_zero_left]
 
 lemma diam_triple :
   diam ({x, y, z} : set α) = max (edist x y) (max (edist y z) (edist x z)) :=
-by simp only [set.insert_of_has_insert, diam_insert, supr_insert, supr_singleton, diam_singleton,
+by simp only [diam_insert, supr_insert, supr_singleton, diam_singleton,
   ennreal.max_zero_left, ennreal.sup_eq_max]
 
 /-- The diameter is monotonous with respect to inclusion -/

@@ -317,7 +317,12 @@ We have to put this option inside a section, so that the default priority is the
 @[linter, priority 1460] meta def linter.instance_priority : linter :=
 { test := instance_priority,
   no_errors_found := "All instance priorities are good",
-  errors_found := "DANGEROUS INSTANCE PRIORITIES.\nThe following instances always apply, and therefore should have a priority < 1000.\nIf you don't know what priority to choose, use priority 100.",
+  errors_found := "DANGEROUS INSTANCE PRIORITIES.
+The following instances always apply, and therefore should have a priority < 1000.
+If you don't know what priority to choose, use priority 100.
+
+If this is an automatically generated instance (using the keywords `class` and `extends`),
+see note [lower instance priority] and see note [default priority] for instructions to change the priority",
   auto_decls := tt }
 
 /-- Reports definitions and constants that are missing doc strings -/

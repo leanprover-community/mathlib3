@@ -263,7 +263,7 @@ lemma lipschitz_with.sub {α : Type*} [emetric_space α] {Kf : nnreal} {f : α �
 hf.add hg.neg
 
 lemma antilipschitz_with.add_lipschitz_with {α : Type*} [metric_space α] {Kf : nnreal} {f : α → β}
-  (hf : antilipschitz_with Kf f) {Kg : nnreal} {g : α → β} (hg : lipschitz_with Kg g) 
+  (hf : antilipschitz_with Kf f) {Kg : nnreal} {g : α → β} (hg : lipschitz_with Kg g)
   (hK : Kg < Kf⁻¹) :
   antilipschitz_with (Kf⁻¹ - Kg)⁻¹ (λ x, f x + g x) :=
 begin
@@ -770,11 +770,14 @@ end normed_space
 
 section normed_algebra
 
+section prio
+set_option default_priority 100 -- see Note [default priority]
 /-- A normed algebra `𝕜'` over `𝕜` is an algebra endowed with a norm for which the embedding of
 `𝕜` in `𝕜'` is an isometry. -/
 class normed_algebra (𝕜 : Type*) (𝕜' : Type*) [normed_field 𝕜] [normed_ring 𝕜']
   extends algebra 𝕜 𝕜' :=
 (norm_algebra_map_eq : ∀x:𝕜, ∥algebra_map 𝕜' x∥ = ∥x∥)
+end prio
 
 @[simp] lemma norm_algebra_map_eq {𝕜 : Type*} (𝕜' : Type*) [normed_field 𝕜] [normed_ring 𝕜']
   [h : normed_algebra 𝕜 𝕜'] (x : 𝕜) : ∥algebra_map 𝕜' x∥ = ∥x∥ :=

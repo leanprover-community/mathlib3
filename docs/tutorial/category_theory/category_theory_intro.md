@@ -117,6 +117,7 @@ example [epi g] : g ≫ h = g ≫ h' → h = h' := epi.left_cancellation h h'
 ```
 
 All six examples above can also be proved with `simp`.
+-- TODO we should double check this; I think I just turned the simp lemmas for mono/epi cancellation off. We weren't using them, and they caused constant slow searches for instances of `epi`.
 
 ## Getting started with functors
 

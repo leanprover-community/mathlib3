@@ -36,14 +36,15 @@ polymorphism, the objects of a category might live in one universe `u` and the m
 universe `v`. Note that in many categories showing up in "set-theoretic mathematics", the morphisms
 between two objects often form a set, but the objects themselves may or may not form a set. In Lean
 this corresponds to the two possibilities `u=v` and `u=v+1`, known as `small_category` and
-`large_category` respectively. In the below we stick to the general polymorphic situation with `u`
-and `v` general universes.
+`large_category` respectively. 
+In order to avoid proving the same statements for both small and large categories, we usually stick to the general polymorphic situation with `u`
+and `v` independent universes, and we do this below.
 
 ## Getting started with categories
 
 The structure of a category on a type `C` in Lean is done using typeclasses; terms of `C` then
-correspond to objects in the category. The convention in the category theory library is that `C :
-Type u`, and if `X : C` and `Y : C` then morphisms `X ⟶ Y : Type v` (note the non-standard arrow).
+correspond to objects in the category. The convention in the category theory library is 
+to use universes prefixed with `u` (e.g. `u`, `u₁`, `u₂`) for the objects, and universes prefixed with `v` for morphisms. Thus we have `C : Type u`, and if `X : C` and `Y : C` then morphisms `X ⟶ Y : Type v` (note the non-standard arrow).
 We set this up as follows:
 
 ```lean
@@ -66,10 +67,12 @@ This says "let `C` be a category, let `W`, `X`, `Y`, `Z` be objects of `C`, and 
 unusual things: firstly the typeclass `category C` is explicitly named as `𝒞` (in contrast to group theory,
 where one would just write `[group G]` rather than `[h : group G]`), and secondly we have to
 explicitly tell Lean the universe where the morphisms live, because Lean cannot guess from knowing
-`C` alone. The order which universes are introduced also matters. This might initially look a little
+`C` alone. The order which universes are introduced also matters (the universe level of the objects can nearly always be inferred, so we put that last). This might initially look a little
 inelegant, but the theory works fine if these conventions are kept in mind. The reason that the
 typeclass is given an explicit name `𝒞` (typeset `\McC`) is that one often has to write `include
-𝒞` in code to ensure that Lean includes the typeclass in theorems and definitions.
+𝒞` in code to ensure that Lean includes the typeclass in theorems and definitions. (Lean is not willing to guess the universe level of morphisms, so sometimes won't automatically include the `[category.{v} C]` variable.)
+
+One can use `omit 𝒞` again (or appropriate scoping constructs) to make sure it isn't included in declarations where it isn't needed.
 
 ## Basic notation
 
@@ -127,7 +130,7 @@ functor.
 ```lean
 import category_theory.functor
 
-universes v₁ v₂ v₃ u₁ u₂ u₃ -- the order matters
+universes v₁ v₂ v₃ u₁ u₂ u₃ -- the order matters (recall we put universes for morphisms before universes for objects, which can usually be inferred)
 
 open category_theory
 

@@ -72,7 +72,7 @@ begin
   { intros;
     apply nnreal.eq;
     simp [mul_comm, mul_assoc, add_comm_monoid.add, left_distrib, right_distrib,
-          add_comm_monoid.zero] }
+          add_comm_monoid.zero, add_comm, add_left_comm] }
 end
 
 instance : is_semiring_hom (coe : ℝ≥0 → ℝ) := by refine_struct {..}; intros; refl
@@ -385,7 +385,7 @@ match le_total p r with
   by rw [← nnreal.coe_le, ← nnreal.coe_le, nnreal.coe_sub h, nnreal.coe_add, sub_le_iff_le_add]
 | or.inr h :=
   have r ≤ p + q, from le_add_right h,
-  by simpa [nnreal.coe_le, nnreal.coe_le, sub_eq_zero h]
+  by simpa [nnreal.coe_le, nnreal.coe_le, sub_eq_zero h, add_comm]
 end
 
 @[simp] lemma sub_le_self {r p : ℝ≥0} : r - p ≤ r :=
@@ -448,7 +448,7 @@ by rw [div_def, mul_assoc, mul_inv_cancel h, mul_one]
 @[simp] lemma mul_div_cancel' {r p : ℝ≥0} (h : r ≠ 0) : r * (p / r) = p :=
 by rw [mul_comm, div_mul_cancel h]
 
-@[simp] lemma inv_inv {r : ℝ≥0} : r⁻¹⁻¹ = r := nnreal.eq $ inv_inv' _
+@[simp] lemma inv_inv {r : ℝ≥0} : r⁻¹⁻¹ = r := nnreal.eq inv_inv'
 
 @[simp] lemma inv_le {r p : ℝ≥0} (h : r ≠ 0) : r⁻¹ ≤ p ↔ 1 ≤ r * p :=
 by rw [← mul_le_mul_left (zero_lt_iff_ne_zero.2 h), mul_inv_cancel h]

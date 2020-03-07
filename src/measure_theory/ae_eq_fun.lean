@@ -395,7 +395,7 @@ end module
 
 section vector_space
 
-variables {𝕜 : Type*} [discrete_field 𝕜] [topological_space 𝕜]
+variables {𝕜 : Type*} [field 𝕜] [topological_space 𝕜]
 variables {γ : Type*} [topological_space γ] [second_countable_topology γ] [add_comm_group γ]
           [topological_add_group γ] [vector_space 𝕜 γ] [topological_semimodule 𝕜 γ]
 

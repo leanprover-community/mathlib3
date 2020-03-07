@@ -738,7 +738,7 @@ lemma add_pf_sum_overlap_zero {pps p ps qqs q qs pqs : α} :
   pps = p + ps → qqs = q + qs → p + q = 0 → ps + qs = pqs → pps + qqs = pqs :=
 λ pps_pf qqs_pf pq_pf pqs_pf, calc
   pps + qqs = (p + ps) + (q + qs) : by rw [pps_pf, qqs_pf]
-  ... = (p + q) + (ps + qs) : by simp
+  ... = (p + q) + (ps + qs) : by cc
   ... = 0 + pqs : by rw [pq_pf, pqs_pf]
   ... = pqs : zero_add _
 

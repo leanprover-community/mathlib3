@@ -557,12 +557,6 @@ set_goals [g],
 intros,
 (lhs, rhs) ← target >>= simp_lhs_rhs,
 sls ← simp_lemmas.mk_default,
-let sls := sls.erase [
-  -- remove commutativity lemmas since they may not apply to substitution instances of the lhs
-  ``add_comm, ``bool.bor_comm, ``bool.band_comm, ``bool.bxor_comm,
-  -- TODO: remove once we have moved to Lean 3.6
-  ``sub_eq_add_neg
-  ],
 let sls' := sls.erase [d.to_name],
 -- TODO: should we do something special about rfl-lemmas?
 (lhs', prf1) ← simplify sls [] lhs {fail_if_unchanged := ff},

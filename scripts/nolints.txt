@@ -60,7 +60,6 @@ apply_nolint set.centralizer.add_submonoid doc_blame
 
 -- algebra/direct_limit.lean
 apply_nolint add_comm_group.direct_limit has_inhabited_instance
-apply_nolint field.direct_limit.discrete_field doc_blame
 apply_nolint field.direct_limit.field doc_blame
 apply_nolint field.direct_limit.inv doc_blame
 apply_nolint module.direct_limit unused_arguments has_inhabited_instance
@@ -734,8 +733,6 @@ apply_nolint category_theory.limits.sigma.ι doc_blame
 -- category_theory/limits/shapes/pullbacks.lean
 apply_nolint category_theory.limits.cocone.of_pushout_cocone doc_blame
 apply_nolint category_theory.limits.cone.of_pullback_cone doc_blame
-apply_nolint category_theory.limits.has_pullbacks doc_blame
-apply_nolint category_theory.limits.has_pushouts doc_blame
 apply_nolint category_theory.limits.pullback.fst doc_blame
 apply_nolint category_theory.limits.pullback.lift doc_blame
 apply_nolint category_theory.limits.pullback.snd doc_blame
@@ -1116,7 +1113,6 @@ apply_nolint equiv.comm_monoid doc_blame
 apply_nolint equiv.comm_ring doc_blame
 apply_nolint equiv.comm_semigroup doc_blame
 apply_nolint equiv.comm_semiring doc_blame
-apply_nolint equiv.discrete_field doc_blame
 apply_nolint equiv.division_ring doc_blame
 apply_nolint equiv.domain doc_blame
 apply_nolint equiv.field doc_blame
@@ -1875,7 +1871,7 @@ apply_nolint rat_mul_continuous_lemma ge_or_gt
 
 -- data/real/cau_seq_completion.lean
 apply_nolint cau_seq.completion.Cauchy doc_blame
-apply_nolint cau_seq.completion.discrete_field doc_blame
+apply_nolint cau_seq.completion.field doc_blame
 apply_nolint cau_seq.completion.mk doc_blame
 apply_nolint cau_seq.completion.of_rat doc_blame
 apply_nolint cau_seq.is_complete doc_blame

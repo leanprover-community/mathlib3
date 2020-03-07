@@ -5,6 +5,8 @@ Authors: Jeremy Avigad, Simon Hudon, Mario Carneiro
 -/
 import algebra.group.to_additive logic.function
 
+attribute [simp] sub_neg_eq_add
+
 /-!
 # Extra identities for semigroups, monoids, and groups
 -/
@@ -202,7 +204,11 @@ add_comm _ _
 
 theorem neg_add' (a b : A) : -(a + b) = -a - b := neg_add a b
 
-lemma neg_sub_neg (a b : A) : -a - -b = b - a := by simp
+attribute [simp] zero_sub sub_zero sub_self neg_sub
+
+@[simp]
+lemma neg_sub_neg (a b : A) : -a - -b = b - a :=
+by simp [sub_eq_neg_add, add_comm]
 
 lemma eq_sub_iff_add_eq' : a = b - c ↔ c + a = b :=
 by rw [eq_sub_iff_add_eq, add_comm]
@@ -210,9 +216,14 @@ by rw [eq_sub_iff_add_eq, add_comm]
 lemma sub_eq_iff_eq_add' : a - b = c ↔ a = b + c :=
 by rw [sub_eq_iff_eq_add, add_comm]
 
+attribute [simp] add_sub_cancel sub_add_cancel
+attribute [simp] add_sub_add_left_eq_sub add_sub_add_right_eq_sub
+
+@[simp]
 lemma add_sub_cancel' (a b : A) : a + b - a = b :=
 by rw [sub_eq_neg_add, neg_add_cancel_left]
 
+@[simp]
 lemma add_sub_cancel'_right (a b : A) : a + (b - a) = b :=
 by rw [← add_sub_assoc, add_sub_cancel']
 
@@ -237,9 +248,16 @@ by rw [← sub_add, add_sub_cancel']
 lemma sub_sub_sub_cancel_left (a b c : A) : (c - a) - (c - b) = b - a :=
 by rw [← neg_sub b c, sub_neg_eq_add, add_comm, sub_add_sub_cancel]
 
+lemma sub_eq_sub_iff_add_eq_add {d : A} :
+  a - b = c - d ↔ a + d = c + b :=
+begin
+  rw [sub_eq_iff_eq_add, sub_add_eq_add_sub, eq_comm, sub_eq_iff_eq_add'],
+  simp only [add_comm, eq_comm]
+end
+
 lemma sub_eq_sub_iff_sub_eq_sub {d : A} :
   a - b = c - d ↔ a - c = b - d :=
-⟨λ h, by rw eq_add_of_sub_eq h; simp, λ h, by rw eq_add_of_sub_eq h; simp⟩
+by simp [sub_eq_sub_iff_add_eq_add, add_comm]
 
 end add_comm_group
 
@@ -251,6 +269,15 @@ variables [add_monoid A] {a b c : A}
 by rw [bit1, bit0_zero, zero_add]
 
 end add_monoid
+
+section comm_monoid
+variables [comm_monoid M]
+
+@[to_additive] lemma inv_unique {x y z : M}
+  (hy : x * y = 1) (hz : x * z = 1) : y = z :=
+by rw [←one_mul y, ←hz, mul_comm x, mul_assoc, hy, mul_one]
+
+end comm_monoid
 
 @[to_additive]
 lemma inv_involutive {α} [group α] : function.involutive (has_inv.inv : α → α) := inv_inv

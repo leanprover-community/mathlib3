@@ -277,7 +277,7 @@ if x.val ≤ n / 2 then x.val else x.val - n
 
 @[simp] lemma coe_val_min_abs {n : ℕ+} (x : zmod n) :
   (x.val_min_abs : zmod n) = x :=
-by simp [zmod.val_min_abs]; split_ifs; simp
+by simp [zmod.val_min_abs]; split_ifs; simp [sub_eq_add_neg]
 
 lemma nat_abs_val_min_abs_le {n : ℕ+} (x : zmod n) : x.val_min_abs.nat_abs ≤ n / 2 :=
 have (x.val - n : ℤ) ≤ 0, from sub_nonpos.2 $ int.coe_nat_le.2 $ le_of_lt x.2,
@@ -348,7 +348,7 @@ begin
   rw [← not_le] at hpa,
   simp only [if_neg ha0, zmod.neg_val, hpa, int.coe_nat_sub (le_of_lt a.2)],
   split_ifs,
-  { simp },
+  { simp [sub_eq_add_neg] },
   { rw [← int.nat_abs_neg], simp }
 end
 
@@ -498,13 +498,11 @@ private lemma mul_inv_cancel_aux : ∀ a : zmodp p hp, a ≠ 0 → a * a⁻¹ = 
   simpa [nat.gcd_comm, this]
 end
 
-instance : discrete_field (zmodp p hp) :=
+instance : field (zmodp p hp) :=
 { zero_ne_one := fin.ne_of_vne $ show 0 ≠ 1 % p,
     by rw nat.mod_eq_of_lt hp.one_lt;
       exact zero_ne_one,
   mul_inv_cancel := mul_inv_cancel_aux hp,
-  inv_mul_cancel := λ a, by rw mul_comm; exact mul_inv_cancel_aux hp _,
-  has_decidable_eq := by apply_instance,
   inv_zero := show (gcd_a 0 p : zmodp p hp) = 0,
     by unfold gcd_a xgcd xgcd_aux; refl,
   ..zmodp.comm_ring hp,

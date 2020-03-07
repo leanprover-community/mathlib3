@@ -12,8 +12,6 @@ First a word of warning. In `mathlib`, in the `/src` directory, there is a subdi
 by computer scientists. The directory we will be concerned with here is the `category_theory`
 subdirectory.
 
-The theory was largely developed by Scott Morrison, with the help of (who else to mention? **TODO**)
-
 ## Overview
 
 A category is a collection of objects, and a collection of morphisms (also known as arrows) between

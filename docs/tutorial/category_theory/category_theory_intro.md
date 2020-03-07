@@ -212,7 +212,7 @@ example (X : C) : F.obj X ⟶ G.obj X := α.app X
 F X ---> F Y
  |        |
  |        |
- v       v
+ v        v
 G X --> G Y
 
 commutes

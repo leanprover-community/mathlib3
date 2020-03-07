@@ -86,11 +86,17 @@ variable (f)
 
 namespace is_image
 
+/-- The trivial factorisation of a monomorphism satisfies the universal property. -/
 @[simps]
 def self [mono f] : is_image (mono_factorisation.self f) :=
 { lift := λ F', F'.e }
 
+instance [mono f] : inhabited (is_image (mono_factorisation.self f)) :=
+⟨mono_factorisation.self f⟩
+
 variable {f}
+/-- Two factorisations through monomorphisms satisfying the universal property
+must factor through isomorphic objects. -/
 -- TODO this is another good candidate for a future `unique_up_to_canonical_iso`.
 @[simps]
 def iso_ext {F F' : mono_factorisation f} (hF : is_image F) (hF' : is_image F') : F.I ≅ F'.I :=

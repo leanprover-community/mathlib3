@@ -6,7 +6,7 @@ Authors: Simon Hudon, Patrick Massot
 Pi instances for algebraic structures.
 -/
 import order.basic
-import algebra.module algebra.group
+import algebra.module
 import data.finset
 import ring_theory.subring
 import tactic.pi_instances
@@ -14,7 +14,7 @@ import tactic.pi_instances
 namespace pi
 universes u v w
 variable {I : Type u}     -- The indexing type
-variable {f : I → Type v} -- The family of types already equiped with instances
+variable {f : I → Type v} -- The family of types already equipped with instances
 variables (x y : Π i, f i) (i : I)
 
 instance has_zero [∀ i, has_zero $ f i] : has_zero (Π i : I, f i) := ⟨λ i, 0⟩

@@ -33,10 +33,10 @@ def map (x : X) : open_nhds (f x) ⥤ open_nhds x :=
 
 @[simp] lemma map_obj (x : X) (U) (q) : (map f x).obj ⟨U, q⟩ = ⟨(opens.map f).obj U, by tidy⟩ :=
 rfl
-@[simp] lemma map_id_obj' (x : X) (U) (p) (q) : (map (𝟙 X) x).obj ⟨⟨U, p⟩, q⟩ = ⟨⟨U, p⟩, q⟩ :=
-rfl
 @[simp] lemma map_id_obj (x : X) (U) : (map (𝟙 X) x).obj U = U :=
 by tidy
+@[simp] lemma map_id_obj' (x : X) (U) (p) (q) : (map (𝟙 X) x).obj ⟨⟨U, p⟩, q⟩ = ⟨⟨U, p⟩, q⟩ :=
+rfl
 
 @[simp] lemma map_id_obj_unop (x : X) (U : (open_nhds x)ᵒᵖ) : (map (𝟙 X) x).obj (unop U) = unop U :=
 by simp

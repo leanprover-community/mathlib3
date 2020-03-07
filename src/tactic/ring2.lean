@@ -244,10 +244,10 @@ begin
   simp [show znum.pos k ≠ 0, from dec_trivial],
   induction e with n a x n b A B; simp *,
   { rcases cs with ⟨n, rfl⟩,
-    refine ⟨⟨n + num.pos k, by simp; refl⟩, _⟩,
+    refine ⟨⟨n + num.pos k, by simp [add_comm]; refl⟩, _⟩,
     cases n; simp! },
   { rcases B cs.2 with ⟨csb, h⟩, simp! [*, cs.1],
-    rw [← tactic.ring.horner_add_const, add_comm], refl }
+    rw [← tactic.ring.horner_add_const, add_comm], rw add_comm }
 end
 
 theorem cseval_horner' {α} [comm_semiring α] (t : tree α)
@@ -273,7 +273,7 @@ begin
     simpa using cseval_add_const t n₁ cs₂ },
   induction e₂ with n₂ a₂ x₂ n₂ b₂ A₂ B₂ generalizing n₁ b₁,
   { rcases cs₂ with ⟨n₂, rfl⟩,
-    simp! [cseval_add_const t n₂ cs₁] },
+    simp! [cseval_add_const t n₂ cs₁, add_comm] },
   cases cs₁ with csa₁ csb₁, cases id cs₂ with csa₂ csb₂,
   simp!, have C := pos_num.cmp_to_nat x₁ x₂,
   cases pos_num.cmp x₁ x₂; simp!,
@@ -296,10 +296,9 @@ begin
       rcases cseval_horner' _ _ _ _ _ _ _ with ⟨csh, h⟩,
       { refine ⟨csh, h.trans (eq.symm _)⟩,
         simp *,
-        apply tactic.ring.horner_add_horner_eq; try {refl},
-        simp },
+        apply tactic.ring.horner_add_horner_eq; try {refl} },
       all_goals {simp! *} },
-    { simp [B₁ csb₁ csb₂],
+    { simp [B₁ csb₁ csb₂, add_comm],
       rcases A₂ csa₂ _ _ B0 ⟨csa₁, 0, rfl⟩ with ⟨csh, h⟩,
       refine ⟨csh, eq.symm _⟩,
       rw [show id = add 0, from rfl, h],
@@ -308,7 +307,8 @@ begin
         rw [← int.coe_nat_inj', int.coe_nat_add,
           eq_comm, ← sub_eq_iff_eq_add'],
         simpa using congr_arg (coe : znum → ℤ) e },
-      all_goals { apply add_comm } },
+      { refl },
+      { apply add_comm } },
     { have : (horner a₂ x₁ (num.pos k) 0).is_cs := ⟨csa₂, 0, rfl⟩,
       simp [B₁ csb₁ csb₂, A₁ csa₁ this],
       symmetry, apply tactic.ring.horner_add_horner_lt,
@@ -316,7 +316,7 @@ begin
           rw [← int.coe_nat_inj', int.coe_nat_add,
             eq_comm, ← sub_eq_iff_eq_add', ← neg_inj', neg_sub],
         simpa using congr_arg (coe : znum → ℤ) e },
-      { refl }, { apply add_comm } } },
+      all_goals { refl } } },
   { rcases B₂ csb₂ _ _ B₁ ⟨csa₁, csb₁⟩ with ⟨csh, h⟩,
     refine ⟨⟨csa₂, csh⟩, eq.symm _⟩,
     apply tactic.ring.const_add_horner,

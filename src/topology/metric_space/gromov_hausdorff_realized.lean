@@ -78,7 +78,7 @@ private lemma max_var_bound : dist x y ≤ max_var α β := calc
   ... ≤ diam (inl '' (univ : set α)) + dist (inl (default α)) (inr (default β)) + diam (inr '' (univ : set β)) :
     diam_union (mem_image_of_mem _ (mem_univ _)) (mem_image_of_mem _ (mem_univ _))
   ... = diam (univ : set α) + (dist (default α) (default α) + 1 + dist (default β) (default β)) + diam (univ : set β) :
-    by { rw [isometry.diam_image isometry_on_inl, isometry.diam_image isometry_on_inr], refl }
+    by { rw [isometry_on_inl.diam_image, isometry_on_inr.diam_image], refl }
   ... = 1 * diam (univ : set α) + 1 + 1 * diam (univ : set β) : by simp
   ... ≤ 2 * diam (univ : set α) + 1 + 2 * diam (univ : set β) :
   begin
@@ -144,7 +144,7 @@ calc
   f (x, y) - f(z, t) ≤ f (x, t) + f (t, y) - f (z, t) : add_le_add_right (candidates_triangle fA) _
   ... ≤ (f (x, z) + f (z, t) + f(t, y)) - f (z, t) :
     add_le_add_right (add_le_add_right (candidates_triangle fA) _ ) _
-  ... = f (x, z) + f (t, y) : by simp
+  ... = f (x, z) + f (t, y) : by simp [sub_eq_add_neg]
   ... ≤ max_var α β * dist x z + max_var α β * dist t y :
     add_le_add (candidates_dist_bound fA) (candidates_dist_bound fA)
   ... ≤ max_var α β * max (dist x z) (dist t y) + max_var α β * max (dist x z) (dist t y) :
@@ -161,7 +161,7 @@ calc
 private lemma candidates_lipschitz (fA : f ∈ candidates α β) :
   lipschitz_with (2 * max_var α β) f :=
 begin
-  apply lipschitz_with.of_dist_le,
+  apply lipschitz_with.of_dist_le_mul,
   rintros ⟨x, y⟩ ⟨z, t⟩,
   rw real.dist_eq,
   apply abs_le_of_le_of_neg_le,
@@ -245,7 +245,7 @@ begin
         tendsto_const_nhds.mul tendsto_id,
       simpa using this },
     { assume x y f hf,
-      exact (candidates_lipschitz hf).dist_le _ _ } }
+      exact (candidates_lipschitz hf).dist_le_mul _ _ } }
 end
 
 /-- We will then choose the candidate minimizing the Hausdorff distance. Except that we are not
@@ -347,7 +347,6 @@ begin
     { assume x y hx, simpa },
     { by simpa using HD_bound_aux1 _ 0 } },
   -- deduce the result from the above two steps
-  simp only [add_comm] at Z,
   simpa [E2, E1, function.comp]
 end
 
@@ -381,7 +380,6 @@ begin
     { assume x y hx, simpa },
     { by simpa using HD_bound_aux2 _ 0 } },
   -- deduce the result from the above two steps
-  simp only [add_comm] at Z,
   simpa [E2, E1, function.comp]
 end
 

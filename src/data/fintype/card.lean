@@ -104,3 +104,15 @@ begin
   { intros k hk, rw mem_range at hk,
     exact ⟨⟨k, hk⟩, mem_univ _, rfl⟩ }
 end
+
+@[simp] lemma fintype.card_pi_finset [decidable_eq α] [fintype α]
+  {δ : α → Type*} [decidable_eq (Π a, δ a)] (t : Π a, finset (δ a)) :
+  (fintype.pi_finset t).card = finset.univ.prod (λ a, card (t a)) :=
+begin
+  dsimp [fintype.pi_finset],
+  rw card_image_of_injective,
+  { simp },
+  { assume f g hfg,
+    ext a ha,
+    exact (congr_fun hfg a : _) }
+end

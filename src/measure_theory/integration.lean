@@ -74,7 +74,7 @@ begin
   { exact is_measurable.bUnion (countable_finite f.finite)
       (λ b _, is_measurable.inter (h b) (f.measurable_sn _)) },
   ext a, simp,
-  exact ⟨λ h, ⟨_, ⟨a, rfl⟩, h, rfl⟩, λ ⟨_, ⟨a', rfl⟩, h', e⟩, e.symm ▸ h'⟩
+  exact ⟨λ h, ⟨a, ⟨h, rfl⟩⟩, λ ⟨a', ⟨h', e⟩⟩, e.symm ▸ h'⟩
 end
 
 theorem preimage_measurable (f : α →ₛ β) (s) : is_measurable (f ⁻¹' s) :=
@@ -103,12 +103,12 @@ def bind (f : α →ₛ β) (g : β → α →ₛ γ) : α →ₛ γ :=
 ⟨λa, g (f a) a,
  λ c, is_measurable_cut (λa b, g b a ∈ ({c} : set γ)) f (λ b, (g b).measurable_sn c),
  finite_subset (finite_bUnion f.finite (λ b, (g b).finite)) $
- by rintro _ ⟨a, rfl⟩; simp; exact ⟨_, ⟨a, rfl⟩, _, rfl⟩⟩
+ by rintro _ ⟨a, rfl⟩; simp; exact ⟨a, a, rfl⟩⟩
 
 @[simp] theorem bind_apply (f : α →ₛ β) (g : β → α →ₛ γ) (a) :
   f.bind g a = g (f a) a := rfl
 
-/-- Restrict a simple function `f : α →ₛ β`` to a set `s`. If `s` is measurable,
+/-- Restrict a simple function `f : α →ₛ β` to a set `s`. If `s` is measurable,
 then `f.restrict s a = if a ∈ s then f a else 0`, otherwise `f.restrict s = const α 0`. -/
 def restrict [has_zero β] (f : α →ₛ β) (s : set α) : α →ₛ β :=
 if hs : is_measurable s then ite hs f (const α 0) else const α 0
@@ -241,7 +241,7 @@ instance [semiring K] [add_comm_monoid β] [semimodule K β] : semimodule K (α 
 instance [ring K] [add_comm_group β] [module K β] : module K (α →ₛ β) :=
 { .. simple_func.semimodule }
 
-instance [discrete_field K] [add_comm_group β] [module K β] : vector_space K (α →ₛ β) :=
+instance [field K] [add_comm_group β] [module K β] : vector_space K (α →ₛ β) :=
 { .. simple_func.module }
 
 lemma smul_apply [has_scalar K β] (k : K) (f : α →ₛ β) (a : α) : (k • f) a = k • f a := rfl
@@ -608,7 +608,7 @@ begin
     have : f ⁻¹' {b} ⊆ (f.map g) ⁻¹' {g b},
       rw [coe_map, @preimage_comp _ _ _ f g, preimage_subset_preimage_iff],
       { simp only [set.mem_preimage, set.mem_singleton, set.singleton_subset_iff] },
-      { rw singleton_subset_iff, rw mem_range at b_mem, exact b_mem },
+      { rw set.singleton_subset_iff, rw mem_range at b_mem, exact b_mem },
     exact lt_of_le_of_lt (volume_mono this) (h (g b) gb0) },
   { rw ← preimage_eq_empty_iff at b_mem,
     rw [b_mem, volume_empty],

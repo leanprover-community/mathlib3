@@ -126,7 +126,7 @@ instance [Π i, add_group (β i)] : add_group (Π₀ i, β i) :=
   .. (infer_instance : has_neg (Π₀ i, β i)) }
 
 @[simp] lemma sub_apply [Π i, add_group (β i)] {g₁ g₂ : Π₀ i, β i} {i : ι} : (g₁ - g₂) i = g₁ i - g₂ i :=
-by rw [sub_eq_add_neg]; simp
+by rw [sub_eq_add_neg]; simp [sub_eq_add_neg]
 
 instance [Π i, add_comm_group (β i)] : add_comm_group (Π₀ i, β i) :=
 { add_comm := λ f g, ext $ λ i, by simp only [add_apply, add_comm],
@@ -163,12 +163,12 @@ quotient.sound $ λ i, by simp only [H i]
   f.filter p i = if p i then f i else 0 :=
 quotient.induction_on f $ λ x, rfl
 
-@[simp] lemma filter_apply_pos [Π i, has_zero (β i)]
+lemma filter_apply_pos [Π i, has_zero (β i)]
   {p : ι → Prop} [decidable_pred p] {f : Π₀ i, β i} {i : ι} (h : p i) :
   f.filter p i = f i :=
 by simp only [filter_apply, if_pos h]
 
-@[simp] lemma filter_apply_neg [Π i, has_zero (β i)]
+lemma filter_apply_neg [Π i, has_zero (β i)]
   {p : ι → Prop} [decidable_pred p] {f : Π₀ i, β i} {i : ι} (h : ¬ p i) :
   f.filter p i = 0 :=
 by simp only [filter_apply, if_neg h]
@@ -270,7 +270,7 @@ else dif_neg H
 @[simp] lemma single_eq_same {i b} : (single i b : Π₀ i, β i) i = b :=
 by simp only [single_apply, dif_pos rfl]
 
-@[simp] lemma single_eq_of_ne {i i' b} (h : i ≠ i') : (single i b : Π₀ i, β i) i' = 0 :=
+lemma single_eq_of_ne {i i' b} (h : i ≠ i') : (single i b : Π₀ i, β i) i' = 0 :=
 by simp only [single_apply, dif_neg h]
 
 def erase (i : ι) (f : Π₀ i, β i) : Π₀ i, β i :=
@@ -286,7 +286,7 @@ quotient.induction_on f $ λ x, rfl
 @[simp] lemma erase_same {i : ι} {f : Π₀ i, β i} : (f.erase i) i = 0 :=
 by simp
 
-@[simp] lemma erase_ne {i i' : ι} {f : Π₀ i, β i} (h : i' ≠ i) : (f.erase i) i' = f i' :=
+lemma erase_ne {i i' : ι} {f : Π₀ i, β i} (h : i' ≠ i) : (f.erase i) i' = f i' :=
 by simp [h]
 
 end basic
@@ -445,7 +445,7 @@ by ext i; by_cases h : f i = 0; try {simp at h}; simp [h]
 
 @[simp] lemma support_zero : (0 : Π₀ i, β i).support = ∅ := rfl
 
-@[simp] lemma mem_support_iff (f : Π₀ i, β i) : ∀i:ι, i ∈ f.support ↔ f i ≠ 0 :=
+lemma mem_support_iff (f : Π₀ i, β i) : ∀i:ι, i ∈ f.support ↔ f i ≠ 0 :=
 f.mem_support_to_fun
 
 @[simp] lemma support_eq_empty {f : Π₀ i, β i} : f.support = ∅ ↔ f = 0 :=
@@ -698,8 +698,9 @@ have h_neg : ∀i b, h i (- b) = - h i b,
 have h_add : ∀i b₁ b₂, h i (b₁ + b₂) = h i b₁ + h i b₂,
   from assume i b₁ b₂,
   have h i (b₁ - (- b₂)) = h i b₁ - h i (- b₂), from h_sub i b₁ (-b₂),
-  by simpa [h_neg] using this,
-by simp [@sum_add_index ι β _ γ _ _ _ f (-g) h h_zero h_add];
+  by simpa [h_neg, sub_eq_add_neg] using this,
+by simp [sub_eq_add_neg];
+simp [@sum_add_index ι β _ γ _ _ _ f (-g) h h_zero h_add];
 simp [@sum_neg_index ι β _ γ _ _ _ g h h_zero, h_neg];
 simp [@sum_neg ι β _ γ _ _ _ g h]
 

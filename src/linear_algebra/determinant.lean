@@ -7,6 +7,7 @@ import data.matrix.basic
 import data.matrix.pequiv
 import data.fintype.card
 import group_theory.perm.sign
+import tactic.ring
 
 universes u v
 open equiv equiv.perm finset function
@@ -143,7 +144,7 @@ end
     conv_lhs { rw [←one_mul (sign τ), ←int.units_pow_two (sign σ)] },
     conv_rhs { rw [←mul_assoc, coe_coe, sign_mul, units.coe_mul, int.cast_mul, ←mul_assoc] },
     congr,
-    { norm_num },
+    { simp [pow_two] },
     { ext i, apply pequiv.equiv_to_pequiv_to_matrix } },
   { intros τ τ' _ _, exact (mul_left_inj σ).mp },
   { intros τ _, use σ⁻¹ * τ, use (mem_univ _), exact (mul_inv_cancel_left _ _).symm }

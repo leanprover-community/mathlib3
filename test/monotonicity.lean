@@ -283,7 +283,7 @@ example (x y z k m n i j : ℕ)
 : (m + x + n + i) * z + k = z * (j + n + m + y) + k :=
 begin
   ac_mono^3,
-  simp [h₁],
+  cc
 end
 
 example (x y z k m n i j : ℕ)
@@ -299,7 +299,7 @@ example (x y z k m n i j : ℕ)
 : (m + x + n + i) * z + k = z * (j + n + m + y) + k :=
 begin
   ac_mono*,
-  simp [h₁],
+  cc,
 end
 
 example (x y : ℕ)

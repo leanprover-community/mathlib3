@@ -60,7 +60,7 @@ pow_one a
 
 end field_power
 
-@[simp] lemma ring_hom.map_fpow {α β : Type*} [discrete_field α] [discrete_field β] (f : α →+* β)
+@[simp] lemma ring_hom.map_fpow {α β : Type*} [field α] [field β] (f : α →+* β)
   (a : α) : ∀ (n : ℤ), f (a ^ n) = f a ^ n
 | (n : ℕ) := f.map_pow a n
 | -[1+n] := by simp [fpow_neg_succ_of_nat, f.map_pow, f.map_inv]
@@ -76,7 +76,7 @@ end
 
 namespace is_ring_hom
 
-lemma map_fpow {α β : Type*} [discrete_field α] [discrete_field β] (f : α → β) [is_ring_hom f]
+lemma map_fpow {α β : Type*} [field α] [field β] (f : α → β) [is_ring_hom f]
   (a : α) : ∀ (n : ℤ), f (a ^ n) = f a ^ n :=
 (ring_hom.of f).map_fpow a
 
@@ -86,13 +86,13 @@ lemma map_fpow' {K L : Type*} [division_ring K] [division_ring L] (f : K → L) 
 
 end is_ring_hom
 
-section discrete_field_power
+section field_power
 open int
-variables {K : Type u} [discrete_field K]
+variables {K : Type u} [field K]
 
 lemma zero_fpow : ∀ z : ℤ, z ≠ 0 → (0 : K) ^ z = 0
 | (of_nat n) h := zero_gpow _ $ by rintro rfl; exact h rfl
-| -[1+n] h := show 1/(0*0^n)=(0:K), by rw [zero_mul, one_div_zero]
+| -[1+n] h := show 1/(0*0^n)=(0:K), by simp
 
 lemma fpow_neg (a : K) : ∀ n : ℤ, a ^ (-n) = 1 / a ^ n
 | (0) := by simp
@@ -104,6 +104,7 @@ by rw [sub_eq_add_neg, fpow_add ha, fpow_neg, ←div_eq_mul_one_div]
 
 lemma fpow_mul (a : K) (i j : ℤ) : a ^ (i * j) = (a ^ i) ^ j :=
 begin
+  classical,
   by_cases a = 0,
   { subst h,
     have : ¬ i = 0 → ¬ j = 0 → ¬ i * j = 0, begin rw [mul_eq_zero, not_or_distrib], exact and.intro end,
@@ -120,7 +121,7 @@ lemma mul_fpow (a b : K) : ∀(i : ℤ), (a * b) ^ i = (a ^ i) * (b ^ i)
   by rw [fpow_neg_succ_of_nat, fpow_neg_succ_of_nat, fpow_neg_succ_of_nat,
       mul_pow, div_mul_div, one_mul]
 
-end discrete_field_power
+end field_power
 
 section ordered_field_power
 open int
@@ -212,6 +213,7 @@ begin
   have hxm₀ : x^m ≠ 0 := ne_of_gt hxm,
   suffices : 1 < x^(n-m),
   { replace := mul_lt_mul_of_pos_right this hxm,
+    simp [sub_eq_add_neg] at this,
     simpa [*, fpow_add, mul_assoc, fpow_neg, inv_mul_cancel], },
   apply one_lt_fpow hx, linarith,
 end
@@ -243,7 +245,7 @@ end
 end ordered
 
 section
-variables {K : Type*} [discrete_field K]
+variables {K : Type*} [field K]
 
 @[simp] theorem fpow_neg_mul_fpow_self (n : ℕ) {x : K} (h : x ≠ 0) :
   x^-(n:ℤ) * x^n = 1 :=

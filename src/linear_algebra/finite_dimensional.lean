@@ -65,13 +65,13 @@ open_locale classical
 
 open vector_space cardinal submodule module function
 
-variables {K : Type u} {V : Type v} [discrete_field K] [add_comm_group V] [vector_space K V]
+variables {K : Type u} {V : Type v} [field K] [add_comm_group V] [vector_space K V]
 {V₂ : Type v'} [add_comm_group V₂] [vector_space K V₂]
 
 /-- `finite_dimensional` vector spaces are defined to be noetherian modules.
 Use `finite_dimensional.iff_fg` or `finite_dimensional.of_finite_basis` to prove finite dimension
 from a conventional definition. -/
-@[reducible] def finite_dimensional (K V : Type*) [discrete_field K]
+@[reducible] def finite_dimensional (K V : Type*) [field K]
   [add_comm_group V] [vector_space K V] := is_noetherian K V
 
 namespace finite_dimensional
@@ -97,7 +97,7 @@ end
 
 /-- The dimension of a finite-dimensional vector space, as a cardinal, is strictly less than the
 first infinite cardinal `omega`. -/
-lemma dim_lt_omega (K V : Type*) [discrete_field K] [add_comm_group V] [vector_space K V] :
+lemma dim_lt_omega (K V : Type*) [field K] [add_comm_group V] [vector_space K V] :
   ∀ [finite_dimensional K V], dim K V < omega.{v} :=
 finite_dimensional_iff_dim_lt_omega.1
 
@@ -146,12 +146,12 @@ finite_dimensional_iff_dim_lt_omega.2 (lt_of_le_of_lt (dim_quotient_le _) (dim_l
 
 /-- The dimension of a finite-dimensional vector space as a natural number. Defined by convention to
 be `0` if the space is infinite-dimensional. -/
-noncomputable def findim (K V : Type*) [discrete_field K]
+noncomputable def findim (K V : Type*) [field K]
   [add_comm_group V] [vector_space K V] : ℕ :=
 if h : dim K V < omega.{v} then classical.some (lt_omega.1 h) else 0
 
 /-- In a finite-dimensional space, its dimension (seen as a cardinal) coincides with its `findim`. -/
-lemma findim_eq_dim (K : Type u) (V : Type v) [discrete_field K]
+lemma findim_eq_dim (K : Type u) (V : Type v) [field K]
   [add_comm_group V] [vector_space K V] [finite_dimensional K V] :
   (findim K V : cardinal.{v}) = dim K V :=
 begin

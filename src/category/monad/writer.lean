@@ -150,9 +150,9 @@ variables {ω ω' : Type u} {m m' : Type u → Type v}
 
 /-- Transitivity.
 
-This instance generates the type-class problem bundled_hom ?m (which is why this is marked as
-`[nolint dangerous_instance]`). Currently that is not a problem, as there are almost no instances
-of `bundled_hom`.
+This instance generates the type-class problem with a metavariable argument (which is why this is marked as
+`[nolint dangerous_instance]`).
+Currently that is not a problem, as there are almost no instances of `monad_functor` or `monad_writer_adapter`.
 
 see Note [lower instance priority] -/
 @[nolint dangerous_instance, priority 100]

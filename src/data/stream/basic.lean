@@ -18,10 +18,12 @@ instance {α} [inhabited α] : inhabited (stream α) :=
 namespace stream
 open nat
 
+/-- implementation of `take` -/
 def take_aux {α} : stream α → ℕ → list α → list α
 | s 0 xs := xs.reverse
 | s (succ n) xs := take_aux s.tail n (s.head :: xs)
 
+/-- `take s n` returns a list of the `n` first elements of stream `s` -/
 def take {α} (s : stream α) (n : ℕ) : list α :=
 take_aux s n []
 

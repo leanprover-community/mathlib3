@@ -64,7 +64,7 @@ instance (g : Type) : liftable (rand_g.{u} g) (rand_g.{v} g) :=
 open ulift (hiding inhabited)
 
 /-- Generate one more `ℕ` -/
-def random.next {gen : Type} [random_gen gen] : rand_g gen ℕ :=
+def random.next {g : Type} [random_gen g] : rand_g g ℕ :=
 ⟨ prod.map id up ∘ random_gen.next ∘ down ⟩
 
 local infix ` .. `:41 := set.Icc
@@ -214,11 +214,11 @@ def coerce (x y : bool) (p : x ≤ y) (i : bool) : x .. y := do
   else ⟨ x , le_refl x , p ⟩
 
 open ulift (hiding inhabited)
-variables {gen : Type} [random_gen gen]
+variables {g : Type} [random_gen g]
 
 /-- generate a randomly generated boolean value -/
-protected def get_random : rand_g gen bool :=
-⟨ prod.map id up ∘ @rand_bool gen _ ∘ down ⟩
+protected def get_random : rand_g g bool :=
+⟨ prod.map id up ∘ @rand_bool g _ ∘ down ⟩
 
 end bool
 
@@ -249,10 +249,10 @@ lemma length_approx :
 
 end stream
 
-variables {gen : Type} [random_gen gen]
+variables {g : Type} [random_gen g]
 
 /-- generate a random bit vector of length `n` -/
-def bitvec.random (n : ℕ) : rand_g gen (bitvec n) := do
+def bitvec.random (n : ℕ) : rand_g g (bitvec n) := do
 bs ← random.random_series bool,
 pure ⟨bs.take n, bs.length_take _⟩
 
@@ -354,14 +354,14 @@ parameter {n : ℕ}
 
 /-- `random_aux m k` `m` words worth of random numbers and combine them
 with `k` -/
-protected def random_aux : ℕ → ℕ → rand_g gen (fin (succ n))
+protected def random_aux : ℕ → ℕ → rand_g g (fin (succ n))
 | 0 k := return $ fin.of_nat k
 | (succ n) k :=
 do x ← random.next,
    random_aux n $ x + (k * shift_31l)
 
 /-- generate a `fin` randomly -/
-protected def random : rand_g gen (fin (succ n)) :=
+protected def random : rand_g g (fin (succ n)) :=
 let m := word_size n / 31 + 1 in
 random_aux m 0
 
@@ -423,7 +423,7 @@ have Hy : fin.of_nat r ≤ y,
 ⟨ fin.of_nat r , Hx , Hy ⟩
 
 /-- generate an element of the interval `x .. y` -/
-protected def random_r (x y : fin (succ n)) (p : x ≤ y) : rand_g gen (x .. y) :=
+protected def random_r (x y : fin (succ n)) (p : x ≤ y) : rand_g g (x .. y) :=
 fin.coerce _ _ p <$> fin.random
 
 end fin

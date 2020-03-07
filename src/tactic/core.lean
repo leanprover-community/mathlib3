@@ -2192,24 +2192,6 @@ meta def on_error {α} (tac : tactic α)
        | (result.exception msg pos s') := (hdlr msg pos >> result.exception msg pos) s'
        end
 
-/-- Function to annotate function definitions and help localize errors -/
-meta def trace_scope' (tag : pformat) {α} (tac : tactic α) (n : name . synth_def_name) : tactic α :=
-do tag ← tag,
-   let tag := if ¬ tag.is_nil then format!"{n} ({tag})" else to_fmt n,
-   trace!"begin {tag}",
-   on_error tac (λ msg pos,
-     let msg := msg.get_or_else (λ _, to_fmt "⟨empty⟩") (),
-         pos := match pos with
-                | none := to_fmt ""
-                | (some val) := to_fmt val
-                end in
-     trace!"failed {tag} {pos}\n  {msg}" >> trace_state) <*
-   trace!"end {tag}"
-
-/-- Function to annotate function definitions and help localize errors -/
-meta def trace_scope {α} (tac : tactic α) (n : name . synth_def_name) : tactic α :=
-trace_scope' (pure $ to_fmt "") tac n
-
 end tactic
 
 /--

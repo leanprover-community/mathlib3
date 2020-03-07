@@ -9,7 +9,8 @@ import control.liftable
 
 import data.bitvec
 import data.list.basic
-import data.stream
+import data.set.intervals.basic
+import data.stream.basic
 import tactic.cache
 import data.fin
 
@@ -66,12 +67,7 @@ open ulift (hiding inhabited)
 def random.next {gen : Type} [random_gen gen] : rand_g gen ℕ :=
 ⟨ prod.map id up ∘ random_gen.next ∘ down ⟩
 
-/-- `range i j` is a number between `i` and `j` inclusively -/
-@[nolint has_inhabited_instance]
-def range {α : Type u} [has_le α] (i j : α) :=
-{ x : α // i ≤ x ∧ x ≤ j }
-
-infix ` .. `:41 := range
+local infix ` .. `:41 := set.Icc
 
 open stream
 
@@ -95,6 +91,32 @@ by { introsI,
 dividing by it shifts it right by 31 bits -/
 def shift_31l : ℕ :=
 by apply_normed 2^31
+
+namespace random
+
+variables (α : Type u) [_root_.random α]
+variables {g : Type} [random_gen g]
+
+/-- Use a state monad to generate a stream through corecursion -/
+def corec_state {σ α} (cmd : state σ α) (s : σ) : stream α :=
+stream.corec prod.fst (cmd.run ∘ prod.snd) (cmd.run s)
+
+/-- create a new random number generator distinct from the one stored in the state -/
+def split : rand_g g g := ⟨ prod.map id up ∘ random_gen.split ∘ down ⟩
+
+/-- generate an infinite series of random values of type `α` -/
+def random_series : rand_g g (stream α) :=
+do gen ← liftable.up split,
+   pure $ corec_state (random α g) gen
+
+variables {α}
+
+/-- generate an infinite series of random values of type `α` between `x` and `y` -/
+def random_series_r (x y : α) (h : x ≤ y) : rand_g g (stream (x .. y)) :=
+do gen ← liftable.up split,
+   pure $ corec_state (random_r g x y h) gen
+
+end random
 
 namespace tactic.interactive
 
@@ -136,14 +158,12 @@ def random_r (x y : α) (p : x ≤ y . check_range) : io (x .. y) :=
 io.run_rand (random.random_r _ x y p)
 
 /-- randomly generate an infinite series of value of type α -/
-def random_series : io (stream α) := do
-g ← io.mk_generator,
-return $ random.random_series _ _ g
+def random_series : io (stream α) :=
+io.run_rand (random.random_series _)
 
 /-- randomly generate an infinite series of value of type α between `x` and `y` -/
-def random_series_r (x y : α) (h : x ≤ y . check_range) : io (stream $ x .. y) := do
-g ← io.mk_generator,
-return $ random.random_series_r _ x y h g
+def random_series_r (x y : α) (h : x ≤ y . check_range) : io (stream $ x .. y) :=
+io.run_rand (random.random_series_r x y h)
 
 end io
 
@@ -173,23 +193,16 @@ meta def random_r (x y : α) (p : x ≤ y . check_range) : tactic (x .. y) :=
 run_rand (random.random_r _ x y p)
 
 /-- use `random_series` in the `tactic` monad -/
-meta def random_series : tactic (stream α) := do
-⟨g⟩ ← tactic.up mk_generator,
-return $ random.random_series _ std_gen g
+meta def random_series : tactic (stream α) :=
+run_rand (random.random_series α)
 
 /-- use `random_series_r` in the `tactic` monad -/
-meta def random_series_r (x y : α) (h : x ≤ y . check_range) : tactic (stream $ x .. y) := do
-⟨g⟩ ← tactic.up mk_generator,
-return $ random.random_series_r std_gen x y h g
+meta def random_series_r (x y : α) (h : x ≤ y . check_range) : tactic (stream $ x .. y) :=
+run_rand (random.random_series_r x y h)
 
 end random
 
 end tactic.interactive
-
-instance : preorder bool :=
-{ le := λ p q, p → q,
-  le_refl := by { introv h, apply h },
-  le_trans := by { introv ha hb h, apply hb, apply ha h } }
 
 namespace bool
 
@@ -207,46 +220,15 @@ variables {gen : Type} [random_gen gen]
 protected def get_random : rand_g gen bool :=
 ⟨ prod.map id up ∘ @rand_bool gen _ ∘ down ⟩
 
-/-- generator for a series of bits -/
-@[derive inhabited]
-structure bool_generator (g : Type) :=
-(next : bool)
-(queue : ℕ × ℕ)
-(gen : g)
-
-/-- create a `bool_generator` from `g` -/
-protected def first (g : gen) : bool_generator gen  :=
-let (r,g') := random_gen.next g in
-{ next := r % 2 = 1,
-  queue := (r / 2,30),
-  gen := g' }
-
-/-- get the next bit from a `bool_generator` -/
-protected def next : bool_generator gen → bool_generator gen
-| ⟨_,(_,0),g⟩ := bool.first g
-| ⟨_,(n,k),g⟩ := ⟨(n%2 = 1),(n/2,k-1),g⟩
-
-/-- generate an infinite series of states of a random boolean generator -/
-protected def random_series_aux (g : gen) : stream (bool_generator gen) :=
-stream.iterate bool.next (bool.first g)
-
-/-- generate an infinite series of bits -/
-def random_series (g : gen) : stream bool :=
-stream.map bool.bool_generator.next $ bool.random_series_aux g
-
 end bool
 
 instance : random bool :=
-{ to_has_le := by apply_instance,
+{ to_preorder := by apply_instance,
   random   := λ g, @bool.get_random _,
-  random_r := λ g _inst x y p, bool.coerce _ _ p <$> (@bool.get_random g _inst),
-  random_series   := @bool.random_series,
-  random_series_r := λ gen _inst x y p g, stream.map (bool.coerce _ _ p) $ @bool.random_series _ _inst g }
+  random_r := λ g _inst x y p, bool.coerce _ _ p <$> (@bool.get_random g _inst) }
 
 instance (n : ℕ) : preorder (bitvec n) :=
-{ le := λ x y, x.to_nat ≤ y.to_nat,
-  le_refl  := by { introv, apply nat.le_refl },
-  le_trans := by { introv ha hb, apply nat.le_trans ha hb } }
+preorder.lift bitvec.to_nat (by apply_instance)
 
 lemma bitvec.le_def {n : ℕ} (x y : bitvec n) :
   x ≤ y ↔ x.to_nat ≤ y.to_nat :=
@@ -270,13 +252,9 @@ end stream
 variables {gen : Type} [random_gen gen]
 
 /-- generate a random bit vector of length `n` -/
-def bitvec.random (n : ℕ) : rand_g gen (bitvec n) :=
-⟨ λ ⟨ g ⟩,
-let r := bool.random_series_aux g,
-    v := map bool.bool_generator.next $ stream.approx n r in
-have Hv : length v = n,
-     by { simp [stream.length_approx _ _], },
-⟨ ⟨ v, Hv ⟩ , ⟨ (r.nth $ succ n).gen ⟩ ⟩ ⟩
+def bitvec.random (n : ℕ) : rand_g gen (bitvec n) := do
+bs ← random.random_series bool,
+pure ⟨bs.take n, bs.length_take _⟩
 
 section coerce
 
@@ -357,22 +335,12 @@ have Hy : bitvec.of_nat n r ≤ y,
   end,
 ⟨ bitvec.of_nat _ r , Hx , Hy ⟩
 
-/-- generate an infinite series of bitvectors -/
-protected def bitvec.random_series (n : ℕ) (g : gen) : stream (bitvec n) :=
-stream.corec
-(λ s, ⟨ stream.approx n s, stream.length_approx _ _ ⟩)
-(stream.drop n)
-(@random.random_series bool _ gen _ g)
-
 instance random_bitvec (n : ℕ) : random (bitvec n) :=
-{ to_has_le := by apply_instance,
+{ to_preorder := by apply_instance,
   random := λ _ inst, @bitvec.random _ inst n,
-  random_r := λ _ inst x y p, bitvec.coerce _ _ p <$> @bitvec.random _ inst n,
-  random_series := λ _ inst, @bitvec.random_series _ inst n,
-  random_series_r := λ _ inst x y p g, bitvec.coerce _ _ p ∘ @bitvec.random_series _ inst n g }
+  random_r := λ _ inst x y p, bitvec.coerce _ _ p <$> @bitvec.random _ inst n }
 
 open nat
-
 
 /-- `word_size n` gives us the number of bits required to represent `n` -/
 def word_size (x : ℕ) : ℕ :=
@@ -462,7 +430,7 @@ end fin
 end fin
 
 instance fin_random (n : ℕ) : random (fin (succ n)) :=
-{ to_has_le := by apply_instance,
+{ to_preorder := by apply_instance,
   random := λ g, @fin.random _ g,
   random_r := λ x y p, @fin.random_r n x y p }
 

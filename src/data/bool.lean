@@ -93,6 +93,18 @@ by by_cases p; simp *
 
 theorem coe_bool_iff : ∀ {a b : bool}, (a ↔ b) ↔ a = b := dec_trivial
 
+instance : decidable_linear_order bool :=
+{ le := λ p q, p → q,
+  le_refl := by { introv h, apply h },
+  le_trans := by { introv ha hb h, apply hb, apply ha h },
+  le_antisymm := λ a b h₀ h₁, let h := iff.intro h₀ h₁ in coe_bool_iff.1 h,
+  le_total := λ a b,
+    match b with
+    | tt := or.inl $ λ h, rfl
+    | ff := or.inr $ λ h, bool.no_confusion h
+    end,
+  decidable_le := λ a b, by apply_instance }
+
 theorem eq_tt_of_ne_ff : ∀ {a : bool}, a ≠ ff → a = tt := dec_trivial
 
 theorem eq_ff_of_ne_tt : ∀ {a : bool}, a ≠ tt → a = ff := dec_trivial

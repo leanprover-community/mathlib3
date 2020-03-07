@@ -48,6 +48,8 @@ infer_instance_as $ is_lawful_monad $ reader_t (ulift ℕ) rand
 
 variable (α : Type u)
 
+local infix ` .. `:41 := set.Icc
+
 section random
 
 variable [random α]

@@ -190,7 +190,6 @@ open category_theory
 universes v₁ v₂ u₁ u₂
 
 variables {C : Type u₁} [𝒞 : category.{v₁} C] {D : Type u₂} [𝒟 : category.{v₂} D]
-
 include 𝒞 𝒟
 
 variables (X Y : C)

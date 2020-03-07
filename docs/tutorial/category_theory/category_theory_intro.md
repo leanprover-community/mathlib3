@@ -174,7 +174,7 @@ example : (F ⋙ G).map f = G.map (F.map f) := rfl -- or F.comp_map G X Y f
 
 ```
 
-One can also check that associativity of composition of functors is definitionally true.
+One can also check that associativity of composition of functors is definitionally true, although we've observed that relying on this can result in slow proofs. (One should rather use the natural isomorphisms provided in `src/category_theory/whiskering.lean`.)
 
 ## Getting started with natural transformations
 

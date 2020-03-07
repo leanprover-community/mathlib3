@@ -1,23 +1,50 @@
 # An introduction to category theory in Lean
 
-This is an introduction to the basic usage of category theory (in the mathematical sense) in Lean. We cover how the basic theory of categories, functors and natural transformations is set up in Lean. Most of the below is not hard to read off from the files `category_theory/category.lean`, `category_theory/functor.lean` and `category_theory/natural_transformation.lean`, but it is a bit painful having to constantly have all three files open at once!
+This is an introduction to the basic usage of category theory (in the mathematical sense) in Lean.
+We cover how the basic theory of categories, functors and natural transformations is set up in Lean.
+Most of the below is not hard to read off from the files `category_theory/category.lean`,
+`category_theory/functor.lean` and `category_theory/natural_transformation.lean`, but it is a bit
+painful having to constantly have all three files open at once!
 
 
-First a word of warning. In `mathlib`, in the `/src` directory, there is a subdirectory called `category`. This is *not* where categories, in the sense of mathematics, are defined; it's for use by computer scientists. The directory we will be concerned with here is the `category_theory` subdirectory.
+First a word of warning. In `mathlib`, in the `/src` directory, there is a subdirectory called
+`category`. This is *not* where categories, in the sense of mathematics, are defined; it's for use
+by computer scientists. The directory we will be concerned with here is the `category_theory`
+subdirectory.
 
 The theory was largely developed by Scott Morrison, with the help of (who else to mention? **TODO**)
 
 ## Overview
 
-A category is a collection of objects, and a collection of morphisms (also knows as arrows) between the objects. The objects and morphisms have some extra structure and satisfy some axioms -- see the [definition on Wikipedia](https://en.wikipedia.org/wiki/Category_(mathematics)#Definition) for details.
+A category is a collection of objects, and a collection of morphisms (also knows as arrows) between
+the objects. The objects and morphisms have some extra structure and satisfy some axioms -- see the
+[definition on Wikipedia](https://en.wikipedia.org/wiki/Category_(mathematics)#Definition) for
+details.
 
-One important thing to note is that a morphism in an abstract category may not be an actual map between two types. In particular, there is new notation `⟶` , typed as `\h` in VS Code, for a morphism, and in some fonts this arrow can be virtually indistinguishable from the standard function arrow `→` . (**TODO** -- perhaps say something about how to change font, or point to a resource? kmb would love to know this himself because he cannot tell the difference between the arrows on his laptop; one seems to be one pixel bigger than the other). In particular, usual functional programming techniques for function evaluations (e.g. writing `f x` if `x : X` and `f : X → Y`) are not in general possible when using morphisms in category theory (although sometimes this is possible (**TODO** is it?)).
+One important thing to note is that a morphism in an abstract category may not be an actual map
+between two types. In particular, there is new notation `⟶` , typed as `\h` in VS Code, for a
+morphism, and in some fonts this arrow can be virtually indistinguishable from the standard function
+arrow `→` . (**TODO** -- perhaps say something about how to change font, or point to a resource? kmb
+would love to know this himself because he cannot tell the difference between the arrows on his
+laptop; one seems to be one pixel bigger than the other). In particular, usual functional
+programming techniques for function evaluations (e.g. writing `f x` if `x : X` and `f : X → Y`) are
+not in general possible when using morphisms in category theory (although sometimes this is possible
+(**TODO** is it?)).
 
-Another point of confusion can be universe issues. Following Lean's conventions for universe polymorphism, the objects of a category might live in one universe `u` and the morphisms in another universe `v`. Note that in many categories showing up in "set-theoretic mathematics", the morphisms between two objects often form a set, but the objects themselves may or may not form a set. In Lean this corresponds to the two possibilities `u=v` and `u=v+1`, known as `small_category` and `large_category` respectively. In the below we stick to the general polymorphic situation with `u` and `v` general universes.
+Another point of confusion can be universe issues. Following Lean's conventions for universe
+polymorphism, the objects of a category might live in one universe `u` and the morphisms in another
+universe `v`. Note that in many categories showing up in "set-theoretic mathematics", the morphisms
+between two objects often form a set, but the objects themselves may or may not form a set. In Lean
+this corresponds to the two possibilities `u=v` and `u=v+1`, known as `small_category` and
+`large_category` respectively. In the below we stick to the general polymorphic situation with `u`
+and `v` general universes.
 
 ## Getting started with categories
 
-The structure of a category on a type `C` in Lean is done using typeclasses; terms of `C` then correspond to objects in the category. The convention in the category theory library is that `C : Type u`, and if `X : C` and `Y : C` then morphisms `X ⟶ Y : Type v` (note the non-standard arrow). We set this up as follows:
+The structure of a category on a type `C` in Lean is done using typeclasses; terms of `C` then
+correspond to objects in the category. The convention in the category theory library is that `C :
+Type u`, and if `X : C` and `Y : C` then morphisms `X ⟶ Y : Type v` (note the non-standard arrow).
+We set this up as follows:
 
 ```lean
 import category_theory.category
@@ -32,14 +59,25 @@ variables (W X Y Z : C)
 
 variables (f : W ⟶ X) (g : X ⟶ Y) (h : Y ⟶ Z)
 
-include 𝒞 
+include 𝒞
 ```
 
-This says "let `C` be a category, let `W`, `X`, `Y`, `Z` be objects of `C`, and let `f : W ⟶ X`, `g : X ⟶ Y` and `h : Y ⟶ Z` be morphisms in `C` (with the obvious source and targets)". Note two unusual things: firstly the typeclass `category C` is explicitly named (in contrast to group theory, where one would just write `[group G]` rather than `[h : group G]`), and secondly we have to explicitly tell Lean the universe where the morphisms live, because Lean cannot guess from knowing `C` alone. The order which universes are introduced also matters. This might initially look a little inelegant, but the theory works fine if these conventions are kept in mind. The reason that the typeclass is given an explicit name `𝒞` (typeset `\McC`) is that one often has to write `include 𝒞` in code to ensure that Lean includes the typeclass in theorems and definitions.
+This says "let `C` be a category, let `W`, `X`, `Y`, `Z` be objects of `C`, and let `f : W ⟶ X`, `g
+: X ⟶ Y` and `h : Y ⟶ Z` be morphisms in `C` (with the obvious source and targets)". Note two
+unusual things: firstly the typeclass `category C` is explicitly named (in contrast to group theory,
+where one would just write `[group G]` rather than `[h : group G]`), and secondly we have to
+explicitly tell Lean the universe where the morphisms live, because Lean cannot guess from knowing
+`C` alone. The order which universes are introduced also matters. This might initially look a little
+inelegant, but the theory works fine if these conventions are kept in mind. The reason that the
+typeclass is given an explicit name `𝒞` (typeset `\McC`) is that one often has to write `include
+𝒞` in code to ensure that Lean includes the typeclass in theorems and definitions.
 
 ## Basic notation
 
-In categories, one has morphisms between objects, such as the identity morphism from an object to itself. One can compose morphisms, and there are standard facts about the composition of a morphism with the identity morphism, and the fact that morphism composition is associative. In Lean all of this looks like the following (with the imports and variables above). 
+In categories, one has morphisms between objects, such as the identity morphism from an object to
+itself. One can compose morphisms, and there are standard facts about the composition of a morphism
+with the identity morphism, and the fact that morphism composition is associative. In Lean all of
+this looks like the following (with the imports and variables above).
 
 The identity morphism from `X` to `X` (remember that this is the `\h` arrow):
 
@@ -53,7 +91,8 @@ Function composition `h ∘ g`, a morphism from `X` to `Z`:
 example : X ⟶ Z := g ≫ h
 ```
 
-Note in particular the order! The "maps on the right" convention was chosen; `g ≫ h` means "`g` then `h`". Type `≫ with `\gg` in VS Code. Here are the theorems which ensure that we have a category.
+Note in particular the order! The "maps on the right" convention was chosen; `g ≫ h` means "`g` then
+`h`". Type `≫ with `\gg` in VS Code. Here are the theorems which ensure that we have a category.
 
 ```lean
 open category_theory.category
@@ -79,7 +118,11 @@ All six examples above can also be proved with `simp`.
 
 ## Getting started with functors
 
-A functor is a map between categories. It is implemented as a structure. The notation for a functor from `C` to `D` is `C ⥤ D`. Type `\func` in VS Code for the symbol. Here we demonstrate how to evaluate functors on objects and on morphisms, how to show functors preserve the identity morphism and composition of morphisms, how to compose functors, and show the notation `𝟭` for the identity functor.
+A functor is a map between categories. It is implemented as a structure. The notation for a functor
+from `C` to `D` is `C ⥤ D`. Type `\func` in VS Code for the symbol. Here we demonstrate how to
+evaluate functors on objects and on morphisms, how to show functors preserve the identity morphism
+and composition of morphisms, how to compose functors, and show the notation `𝟭` for the identity
+functor.
 
 
 ```lean
@@ -93,12 +136,12 @@ variables (C : Type u₁) [𝒞 : category.{v₁} C]
 variables (D : Type u₂) [𝒟 : category.{v₂} D]
 variables (E : Type u₃) [ℰ : category.{v₃} E]
 
-include 𝒞 𝒟 ℰ 
+include 𝒞 𝒟 ℰ
 
 variables (X Y Z : C) (f : X ⟶ Y) (g : Y ⟶ Z)
 
 -- functors
-variables (F : C ⥤ D) (G : D ⥤ E) 
+variables (F : C ⥤ D) (G : D ⥤ E)
 
 example : D := F.obj X -- functor F on objects
 example : F.obj Y ⟶ F.obj Z := F.map g -- functor F on morphisms
@@ -133,7 +176,12 @@ One can also check that associativity of composition of functors is definitional
 
 ## Getting started with natural transformations
 
-A natural transformation is a morphism between functors. If `F` and `G` are functors from `C` to `D` then a natural transformation is a map `F X ⟶ G X` for each object `X : C` plus the theorem that if `f : X ⟶ Y` is a functor then the two routes from `F X` to `G Y` are the same. One might imagine that this is now another layer of notation, but fortunately the `category_theory.functor_category` import gives the type of functors from `C` to `D` a category structure, which means that we can just use morphism notation for natural transformations.
+A natural transformation is a morphism between functors. If `F` and `G` are functors from `C` to `D`
+then a natural transformation is a map `F X ⟶ G X` for each object `X : C` plus the theorem that if
+`f : X ⟶ Y` is a functor then the two routes from `F X` to `G Y` are the same. One might imagine
+that this is now another layer of notation, but fortunately the `category_theory.functor_category`
+import gives the type of functors from `C` to `D` a category structure, which means that we can just
+use morphism notation for natural transformations.
 
 ```lean
 import category_theory.functor_category -- imports category_theory.natural_transformation
@@ -155,12 +203,12 @@ variables (F G H : C ⥤ D)
 variables (α : F ⟶ G) (β : G ⟶ H) -- natural transformations
 
 -- composition of natural transformations is just composition of morphisms
-example : F ⟶ H := α ≫ β 
+example : F ⟶ H := α ≫ β
 
 -- Applying natural transformation to an object
 example (X : C) : F.obj X ⟶ G.obj X := α.app X
 
-/- The diagram coming from f and α 
+/- The diagram coming from f and α
 
 F X ---> F Y
  |        |
@@ -173,9 +221,11 @@ commutes
 example : F.map f ≫ α.app Y = (α.app X) ≫ G.map f := α.naturality f
 ```
 
-**TODO**: is there a way to make that diagram a bit nicer? I'm sure I've seen a much nicer one in mathlib somewhere! I'm assuming I can't use LaTeX in .md files.
+**TODO**: is there a way to make that diagram a bit nicer? I'm sure I've seen a much nicer one in
+mathlib somewhere! I'm assuming I can't use LaTeX in .md files.
 
 ## What next?
 
-There are several lean files in the [category theory docs directory of mathlib](https://github.com/leanprover-community/mathlib/tree/master/docs/tutorial/category_theory) which indicate further uses of categories in Lean.
-
+There are several lean files in the [category theory docs directory of
+mathlib](https://github.com/leanprover-community/mathlib/tree/master/docs/tutorial/category_theory)
+which indicate further uses of categories in Lean.

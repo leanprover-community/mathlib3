@@ -16,13 +16,13 @@ The theory was largely developed by Scott Morrison, with the help of (who else t
 
 ## Overview
 
-A category is a collection of objects, and a collection of morphisms (also knows as arrows) between
+A category is a collection of objects, and a collection of morphisms (also known as arrows) between
 the objects. The objects and morphisms have some extra structure and satisfy some axioms -- see the
 [definition on Wikipedia](https://en.wikipedia.org/wiki/Category_(mathematics)#Definition) for
 details.
 
-One important thing to note is that a morphism in an abstract category may not be an actual map
-between two types. In particular, there is new notation `⟶` , typed as `\h` in VS Code, for a
+One important thing to note is that a morphism in an abstract category may not be an actual function
+between two types. In particular, there is new notation `⟶` , typed as `\h` or `\hom` in VS Code, for a
 morphism, and in some fonts this arrow can be virtually indistinguishable from the standard function
 arrow `→` . (**TODO** -- perhaps say something about how to change font, or point to a resource? kmb
 would love to know this himself because he cannot tell the difference between the arrows on his
@@ -49,22 +49,21 @@ We set this up as follows:
 ```lean
 import category_theory.category
 
-universes v u -- the order matters
+universes v u -- the order matters (see below)
 
 open category_theory
 
 variables (C : Type u) [𝒞 : category.{v} C]
+include 𝒞
 
 variables (W X Y Z : C)
 
 variables (f : W ⟶ X) (g : X ⟶ Y) (h : Y ⟶ Z)
-
-include 𝒞
 ```
 
 This says "let `C` be a category, let `W`, `X`, `Y`, `Z` be objects of `C`, and let `f : W ⟶ X`, `g
-: X ⟶ Y` and `h : Y ⟶ Z` be morphisms in `C` (with the obvious source and targets)". Note two
-unusual things: firstly the typeclass `category C` is explicitly named (in contrast to group theory,
+: X ⟶ Y` and `h : Y ⟶ Z` be morphisms in `C` (with the specified source and targets)". Note two
+unusual things: firstly the typeclass `category C` is explicitly named as `𝒞` (in contrast to group theory,
 where one would just write `[group G]` rather than `[h : group G]`), and secondly we have to
 explicitly tell Lean the universe where the morphisms live, because Lean cannot guess from knowing
 `C` alone. The order which universes are introduced also matters. This might initially look a little
@@ -74,7 +73,7 @@ typeclass is given an explicit name `𝒞` (typeset `\McC`) is that one often ha
 
 ## Basic notation
 
-In categories, one has morphisms between objects, such as the identity morphism from an object to
+In categories one has morphisms between objects, such as the identity morphism from an object to
 itself. One can compose morphisms, and there are standard facts about the composition of a morphism
 with the identity morphism, and the fact that morphism composition is associative. In Lean all of
 this looks like the following (with the imports and variables above).
@@ -82,7 +81,7 @@ this looks like the following (with the imports and variables above).
 The identity morphism from `X` to `X` (remember that this is the `\h` arrow):
 
 ```lean
-example : X ⟶ X := 𝟙 X
+example : X ⟶ X := 𝟙 X -- type `𝟙` as `\bb1`
 ```
 
 Function composition `h ∘ g`, a morphism from `X` to `Z`:
@@ -92,7 +91,7 @@ example : X ⟶ Z := g ≫ h
 ```
 
 Note in particular the order! The "maps on the right" convention was chosen; `g ≫ h` means "`g` then
-`h`". Type `≫ with `\gg` in VS Code. Here are the theorems which ensure that we have a category.
+`h`". Type `≫` with `\gg` in VS Code. Here are the theorems which ensure that we have a category.
 
 ```lean
 open category_theory.category
@@ -138,7 +137,7 @@ variables (E : Type u₃) [ℰ : category.{v₃} E]
 
 include 𝒞 𝒟 ℰ
 
-variables (X Y Z : C) (f : X ⟶ Y) (g : Y ⟶ Z)
+variables {X Y Z : C} (f : X ⟶ Y) (g : Y ⟶ Z)
 
 -- functors
 variables (F : C ⥤ D) (G : D ⥤ E)
@@ -184,7 +183,7 @@ import gives the type of functors from `C` to `D` a category structure, which me
 use morphism notation for natural transformations.
 
 ```lean
-import category_theory.functor_category -- imports category_theory.natural_transformation
+import category_theory.functor_category -- this transitively imports category_theory.natural_transformation
 
 open category_theory
 
@@ -200,7 +199,7 @@ variable (f : X ⟶ Y)
 
 variables (F G H : C ⥤ D)
 
-variables (α : F ⟶ G) (β : G ⟶ H) -- natural transformations
+variables (α : F ⟶ G) (β : G ⟶ H) -- natural transformations (note it's the usual `\hom` arrow here)
 
 -- composition of natural transformations is just composition of morphisms
 example : F ⟶ H := α ≫ β
@@ -213,7 +212,7 @@ example (X : C) : F.obj X ⟶ G.obj X := α.app X
 F X ---> F Y
  |        |
  |        |
- \/      \/
+ v       v
 G X --> G Y
 
 commutes

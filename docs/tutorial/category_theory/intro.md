@@ -20,29 +20,32 @@ the objects. The objects and morphisms have some extra structure and satisfy som
 details.
 
 One important thing to note is that a morphism in an abstract category may not be an actual function
-between two types. In particular, there is new notation `⟶` , typed as `\h` or `\hom` in VS Code, for a
-morphism, and in some fonts this arrow can be virtually indistinguishable from the standard function
-arrow `→` . (**TODO** -- perhaps say something about how to change font, or point to a resource? kmb
-would love to know this himself because he cannot tell the difference between the arrows on his
-laptop; one seems to be one pixel bigger than the other). In particular, usual functional
-programming techniques for function evaluations (e.g. writing `f x` if `x : X` and `f : X → Y`) are
-not in general possible when using morphisms in category theory (although sometimes this is possible
-(**TODO** is it?)).
+between two types. In particular, there is new notation `⟶` , typed as `\h` or `\hom` in VS Code,
+for a morphism, and in some fonts this arrow can be virtually indistinguishable from the standard
+function arrow `→` . (**TODO** -- perhaps say something about how to change font, or point to a
+resource? kmb would love to know this himself because he cannot tell the difference between the
+arrows on his laptop; one seems to be one pixel bigger than the other). Nevertheless, in most of the
+"concrete" categories like `Top` and `Ab`, it is still possible to write `f x` when `x : X` and
+`f : X ⟶ Y` is a morphism, as there is an automatic coercion from morphisms to functions. (If the
+coercion doesn't fire automatically, sometimes it is necessary to write `(f : X → Y) x`.)
 
 Another point of confusion can be universe issues. Following Lean's conventions for universe
 polymorphism, the objects of a category might live in one universe `u` and the morphisms in another
 universe `v`. Note that in many categories showing up in "set-theoretic mathematics", the morphisms
 between two objects often form a set, but the objects themselves may or may not form a set. In Lean
 this corresponds to the two possibilities `u=v` and `u=v+1`, known as `small_category` and
-`large_category` respectively. 
-In order to avoid proving the same statements for both small and large categories, we usually stick to the general polymorphic situation with `u`
-and `v` independent universes, and we do this below.
+`large_category` respectively. In order to avoid proving the same statements for both small and
+large categories, we usually stick to the general polymorphic situation with `u` and `v` independent
+universes, and we do this below.
 
 ## Getting started with categories
 
 The structure of a category on a type `C` in Lean is done using typeclasses; terms of `C` then
-correspond to objects in the category. The convention in the category theory library is 
-to use universes prefixed with `u` (e.g. `u`, `u₁`, `u₂`) for the objects, and universes prefixed with `v` for morphisms. Thus we have `C : Type u`, and if `X : C` and `Y : C` then morphisms `X ⟶ Y : Type v` (note the non-standard arrow).
+correspond to objects in the category. The convention in the category theory library is to use
+universes prefixed with `u` (e.g. `u`, `u₁`, `u₂`) for the objects, and universes prefixed with `v`
+for morphisms. Thus we have `C : Type u`, and if `X : C` and `Y : C` then morphisms `X ⟶ Y : Type v`
+(note the non-standard arrow).
+
 We set this up as follows:
 
 ```lean
@@ -55,22 +58,24 @@ open category_theory
 variables (C : Type u) [𝒞 : category.{v} C]
 include 𝒞
 
-variables (W X Y Z : C)
-
+variables {W X Y Z : C}
 variables (f : W ⟶ X) (g : X ⟶ Y) (h : Y ⟶ Z)
 ```
 
-This says "let `C` be a category, let `W`, `X`, `Y`, `Z` be objects of `C`, and let `f : W ⟶ X`, `g
-: X ⟶ Y` and `h : Y ⟶ Z` be morphisms in `C` (with the specified source and targets)". Note two
-unusual things: firstly the typeclass `category C` is explicitly named as `𝒞` (in contrast to group theory,
-where one would just write `[group G]` rather than `[h : group G]`), and secondly we have to
-explicitly tell Lean the universe where the morphisms live, because Lean cannot guess from knowing
-`C` alone. The order which universes are introduced also matters (the universe level of the objects can nearly always be inferred, so we put that last). This might initially look a little
-inelegant, but the theory works fine if these conventions are kept in mind. The reason that the
-typeclass is given an explicit name `𝒞` (typeset `\McC`) is that one often has to write `include
-𝒞` in code to ensure that Lean includes the typeclass in theorems and definitions. (Lean is not willing to guess the universe level of morphisms, so sometimes won't automatically include the `[category.{v} C]` variable.)
+This says "let `C` be a category, let `W`, `X`, `Y`, `Z` be objects of `C`, and let `f : W ⟶ X`,
+`g : X ⟶ Y` and `h : Y ⟶ Z` be morphisms in `C` (with the specified source and targets)".
 
-One can use `omit 𝒞` again (or appropriate scoping constructs) to make sure it isn't included in declarations where it isn't needed.
+Note two unusual things: firstly the typeclass `category C` is explicitly named as `𝒞` (in contrast
+to group theory, where one would just write `[group G]` rather than `[h : group G]`), and secondly
+we have to explicitly tell Lean the universe where the morphisms live (by writing `category.{v} C`),
+because Lean cannot guess from knowing `C` alone. The order which universes are introduced at the
+top of the file also matters (the universe level of the objects can nearly always be inferred, so we
+put that last). The reason that the typeclass is given an explicit name `𝒞` (typeset `\McC`) is
+that one often has to write `include 𝒞` in code to ensure that Lean includes the typeclass in
+theorems and definitions. (Lean is not willing to guess the universe level of morphisms, so
+sometimes won't automatically include the `[category.{v} C]` variable.) One can use `omit 𝒞` again
+(or appropriate scoping constructs) to make sure it isn't included in declarations where it isn't
+needed.
 
 ## Basic notation
 

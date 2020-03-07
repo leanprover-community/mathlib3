@@ -1674,4 +1674,55 @@ lemma decreasing_induction_succ_left {P : ℕ → Sort*} (h : ∀n, P (n+1) → 
 by { rw [subsingleton.elim mn (le_trans (le_succ m) smn), decreasing_induction_trans,
          decreasing_induction_succ'] }
 
+def log (b : ℕ) (hb : b > 1) : ℕ → ℕ
+| n :=
+  if h : n < b then 0
+  else
+    have n / b < n,
+      from div_lt_self
+        (nat.lt_of_lt_of_le (lt_trans zero_lt_one hb)
+          (le_of_not_gt h)) hb,
+    log (n / b) + 1
+
+def log2 := log 2 dec_trivial
+
+lemma exp_le_iff_le_log (x y : ℕ) {b} (hb : b > 1) (hy : 1 ≤ y) :
+  b^x ≤ y ↔ x ≤ log b hb y :=
+begin
+  induction y using nat.strong_induction_on with y
+    generalizing x,
+  rw [log], split_ifs,
+  { split; intros h',
+    have := lt_of_le_of_lt h' h,
+    apply le_of_succ_le_succ,
+    change x < 1, rw [← pow_lt_iff_lt_right hb,pow_one],
+    exact this, replace h' := le_antisymm h' (zero_le _),
+    rw [h',pow_zero], exact hy },
+  { dsimp at y_a,
+    have h'' : 0 < b := lt_of_le_of_lt (zero_le _) hb,
+    replace h := le_of_not_gt h,
+    rw [← nat.sub_le_right_iff_le_add,← y_a (y / b),
+          le_div_iff_mul_le _ _ h'',← pow_succ],
+    cases x; simp [h,hy],
+    { apply div_lt_self; assumption },
+    { rwa [le_div_iff_mul_le _ _ h'',one_mul], } }
+end
+
+lemma log_exp (b x : ℕ) (hb : b > 1) : log b hb (b ^ x) = x :=
+eq_of_forall_le_iff $ λ z,
+by { rwa [← exp_le_iff_le_log,pow_le_iff_le_right],
+     rw ← pow_zero b, apply pow_le_pow_of_le_right,
+     apply lt_of_le_of_lt (zero_le _) hb, apply zero_le }
+
+lemma exp_succ_log_gt_self (b x : ℕ) (hb : b > 1) (hy : 1 ≤ x) :
+  x < b ^ succ (log b hb x) :=
+begin
+  apply lt_of_not_ge,
+  rw [(≥),exp_le_iff_le_log _ _ hb hy],
+  apply not_le_of_lt, apply lt_succ_self,
+end
+
+lemma exp_log_le_self (b x : ℕ) (hb : b > 1) (hx : 1 ≤ x) : b ^ log b hb x ≤ x :=
+by rw [exp_le_iff_le_log _ _ _ hx]
+
 end nat

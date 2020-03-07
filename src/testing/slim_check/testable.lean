@@ -182,7 +182,7 @@ def var_testable [has_to_string α] [arbitrary α] [∀ x, testable (β x)]
                       | none := add_to_counter_example (to_string x) ($ x) r
                       | (some v) := add_var_to_counter_example v x ($ x) r
                       end⟩
-⟩
+
 instance pi_testable [has_to_string α] [arbitrary α] [∀ x, testable (β x)]
 : testable (Π x : α, β x) :=
 var_testable α β

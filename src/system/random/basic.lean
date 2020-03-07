@@ -373,49 +373,12 @@ instance random_bitvec (n : ℕ) : random (bitvec n) :=
 
 open nat
 
-lemma div_two_round_up
-  (x : ℕ)
-  (h₀ : 1 < x)
-: (x + 1) / 2 < x :=
-begin
-  rw [div_lt_iff_lt_mul,norm_num.mul_bit0,mul_one,bit0],
-  apply add_lt_add_left, apply h₀,
-  apply of_as_true, trivial
-end
 
 /-- `word_size n` gives us the number of bits required to represent `n` -/
-def word_size : ℕ → ℕ
-| x :=
-if h : 1 < x then
-  have (x + 1) / 2 < x,
-    from div_two_round_up _ h,
-  succ $ word_size ((x + 1) / 2)
-else 0
+def word_size (x : ℕ) : ℕ :=
+log2 x + 1
 
 local infix ^ := nat.pow
-
-lemma word_size_le_two_pow (n : ℕ)
-: n ≤ 2^word_size n :=
-begin
-  apply nat.strong_induction_on n,
-  clear n, intros n IH,
-  by_cases h : 1 < n,
-  { rw [word_size,if_pos h,nat.pow],
-    cases n with n, { cases not_lt_zero _ h },
-    change n < _,
-    rw ← @div_lt_iff_lt_mul _ _ 2 dec_trivial,
-    have h' := div_two_round_up (succ n) h,
-    specialize IH ((succ n + 1) / 2) h', clear h h',
-    rw [succ_add,← add_succ] at *,
-    simp only [-succ_pos', add_zero] at *,
-    have h : (n + 2 * 1) / 2 = n / 2 + 1 :=
-       add_mul_div_left _ _ dec_trivial,
-    rw [mul_one] at h,
-    rw h at IH ⊢,
-    apply IH },
-  { rw [word_size,if_neg h,nat.pow],
-    apply le_of_not_gt h }
-end
 
 namespace fin
 section fin

@@ -537,7 +537,8 @@ end prod
 
 theorem to_group_eq_prod_map {β : Type v} [group β] {f : α → β} {x} :
   to_group f x = prod (map f x) :=
-eq.symm $ to_group.unique (prod ∘ map f) $ λ _, by simp
+have is_group_hom (prod ∘ map f) := is_group_hom.comp _ _, by exactI
+(eq.symm $ to_group.unique (prod ∘ map f) $ λ _, by simp)
 
 section sum
 

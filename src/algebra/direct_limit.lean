@@ -256,7 +256,8 @@ module.direct_limit.lift_of _ _ _
 @[simp] lemma lift_sub (x y) : lift G f P g Hg (x - y) = lift G f P g Hg x - lift G f P g Hg y := is_add_group_hom.map_sub _ _ _
 
 lemma lift_unique (F : direct_limit G f → P) [is_add_group_hom F] (x) :
-  F x = lift G f P (λ i x, F $ of G f i x) (λ i j hij x, by rw of_f) x :=
+  F x = @lift _ _ _ _ G _ _ f _ _ P _ (λ i x, F $ of G f i x) (λ i, is_add_group_hom.comp _ _)
+    (λ i j hij x, by dsimp; rw of_f) x :=
 direct_limit.induction_on x $ λ i x, by rw lift_of
 
 end direct_limit

@@ -133,11 +133,6 @@ apply_nolint to_additive.value_type doc_blame
 apply_nolint additive doc_blame
 apply_nolint multiplicative doc_blame
 
--- algebra/group/units.lean
-apply_nolint units.inv' doc_blame
-apply_nolint units.mk_of_mul_eq_one doc_blame
-apply_nolint units.mul doc_blame
-
 -- algebra/group/with_one.lean
 apply_nolint with_one doc_blame
 apply_nolint with_one.map doc_blame

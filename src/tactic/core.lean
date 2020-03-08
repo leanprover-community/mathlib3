@@ -6,6 +6,8 @@ Authors: Mario Carneiro, Simon Hudon, Scott Morrison, Keeley Hoek
 import data.dlist.basic category.basic meta.expr meta.rb_map data.bool tactic.library_note
   tactic.derive_inhabited
 
+universe variable u
+
 namespace expr
 open tactic
 
@@ -41,7 +43,7 @@ args.mfoldr (λarg i:expr, do
   inner
 
 /-- `traverse f e` applies the monadic function `f` to the direct descendants of `e`. -/
-meta def {u} traverse {m : Type → Type u} [applicative m]
+meta def traverse {m : Type → Type u} [applicative m]
   {elab elab' : bool} (f : expr elab → m (expr elab')) :
   expr elab → m (expr elab')
  | (var v)  := pure $ var v
@@ -1332,6 +1334,23 @@ open interactive interactive.types
 local postfix `?`:9001 := optional
 local postfix *:9001 := many .
 "
+/-- Applies tactic `t`. If it succeeds, revert the state, and return the value. If it fails,
+  returns the error message. -/
+meta def retrieve_or_report_error {α : Type u} (t : tactic α) : tactic (α ⊕ string) :=
+λ s, match t s with
+| (interaction_monad.result.success a s') := result.success (sum.inl a) s
+| (interaction_monad.result.exception msg' _ s') :=
+  result.success (sum.inr (msg'.iget ()).to_string) s
+end
+
+/-- This tactic succeeds if `t` succeeds or fails with message `msg` such that `p msg` is `tt`.
+-/
+meta def succeeds_or_fails_with_msg {α : Type} (t : tactic α) (p : string → bool) : tactic unit :=
+do x ← retrieve_or_report_error t,
+match x with
+| (sum.inl _) := skip
+| (sum.inr msg) := if p msg then skip else fail msg
+end
 
 /-- `trace_error msg t` executes the tactic `t`. If `t` fails, traces `msg` and the failure message
 of `t`. -/
@@ -1346,7 +1365,7 @@ meta def trace_error (msg : string) (t : tactic α) : tactic α
 This combinator is for testing purposes. It succeeds if `t` fails with message `msg`,
 and fails otherwise.
 -/
-meta def {u} success_if_fail_with_msg {α : Type u} (t : tactic α) (msg : string) : tactic unit :=
+meta def success_if_fail_with_msg {α : Type u} (t : tactic α) (msg : string) : tactic unit :=
 λ s, match t s with
 | (interaction_monad.result.exception msg' _ s') :=
   let expected_msg := (msg'.iget ()).to_string in

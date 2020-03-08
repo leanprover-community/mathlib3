@@ -76,15 +76,17 @@ contrast to group theory, where one would just write `[group G]` rather than `[h
 Secondly, we have to explicitly tell Lean the universe where the morphisms live (by writing
 `category.{v} C`), because Lean cannot guess from knowing `C` alone.
 
-The order which universes are introduced at the top of the file also matters: we put the universes
-for morphisms first (typically `v`, `v₁` and so on), and then universes for objects (typically `u`,
-`u₁` and so on). The universe level of the objects can nearly always be inferred automatically, so
-we put those last so they don't need to be explicitly specified. The reason that the typeclass is
-given an explicit name `𝒞` (typeset `\McC`) is that one often has to write `include 𝒞` in code to
-ensure that Lean includes the typeclass in theorems and definitions. (Lean is not willing to guess
-the universe level of morphisms, so sometimes won't automatically include the `[category.{v} C]`
-variable.) One can use `omit 𝒞` again (or appropriate scoping constructs) to make sure it isn't
-included in declarations where it isn't needed.
+The order in which universes are introduced at the top of the file matters: we put the universes for
+morphisms first (typically `v`, `v₁` and so on), and then universes for objects (typically `u`, `u₁`
+and so on). This ensures that in any new definition we make the universe variables for morphisms
+come first, so that they can be explicitly specified while still allowing the universe levels of the
+objects to be inferred automatically.
+
+The reason that the typeclass is given an explicit name `𝒞` (typeset `\McC`) is that one often has
+to write `include 𝒞` in code to ensure that Lean includes the typeclass in theorems and
+definitions. (Lean is not willing to guess the universe level of morphisms, so sometimes won't
+automatically include the `[category.{v} C]` variable.) One can use `omit 𝒞` again (or appropriate
+scoping constructs) to make sure it isn't included in declarations where it isn't needed.
 
 ## Basic notation
 

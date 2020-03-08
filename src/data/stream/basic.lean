@@ -30,7 +30,7 @@ take_aux s n []
 lemma length_take_aux {α} : Π (n : ℕ) (s : stream α) (xs : list α),
   (take_aux s n xs).length = n + xs.length
 | 0 s xs := by rw [take_aux,list.length_reverse _,nat.zero_add]
-| (succ n) s xs := by simp [take_aux,length_take_aux n,succ_eq_add_one]
+| (succ n) s xs := by simp only [take_aux, length_take_aux n, succ_eq_add_one, add_comm 1, add_assoc, list.length]
 
 lemma length_take {α} (s : stream α) (n : ℕ) : (take s n).length = n :=
 length_take_aux n s []

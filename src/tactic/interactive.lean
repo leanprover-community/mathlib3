@@ -1259,21 +1259,21 @@ add_tactic_doc
 unfolds them in the goal. -/
 meta def unfold_locals (ns : parse ident*) : tactic unit := do
 ns.for_each $ λ n, do
-  e ← resolve_name n >>= to_expr,
-  g ← target,
-  t ← infer_type e,
-  v ← mk_meta_var t,
-  h ← to_expr ``(%%e = (%%v : %%t)) >>= assert `h,
-  solve1 (do
-    tactic.revert e,
-    g ← target,
-    match g with
-     | (expr.elet n _ e b) := tactic.change (expr.instantiate_local n e b)
-     | _ := fail $ to_string n ++ " is not a local definition"
-    end,
-    tactic.intros, reflexivity ),
-  rewrite_target h,
-  tactic.clear h
+  d ← get_local n,
+  v ← local_def_value d,
+  tgt ← target,
+  tgt' ← kabstract tgt d,
+  tactic.change $ tgt'.instantiate_var v
+
+/-- `fold_locals x y z`, with `x`, `y`, `z` being local definitions,
+unfolds them in the goal. -/
+meta def fold_locals (ns : parse ident*) : tactic unit := do
+ns.for_each $ λ n, do
+  d ← get_local n,
+  v ← local_def_value d,
+  tgt ← target,
+  tgt' ← kabstract tgt v,                -- <- those two lines are different from
+  tactic.change $ tgt'.instantiate_var d -- <- unfold_locals: v and d are swapped
 
 end interactive
 end tactic

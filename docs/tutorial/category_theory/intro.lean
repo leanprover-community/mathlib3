@@ -55,11 +55,11 @@ for morphisms. Thus we have `C : Type u`, and if `X : C` and `Y : C` then morphi
 We set this up as follows:
 -/
 
-universes v v₁ v₂ v₃ u u₁ u₂ u₃  -- the order matters (see below)
-
 open category_theory
 
 section category
+
+universes v u  -- the order matters (see below)
 
 variables (C : Type u) [𝒞 : category.{v} C]
 include 𝒞
@@ -134,10 +134,11 @@ functor.
 
 section functor
 
+universes v₁ v₂ v₃ u₁ u₂ u₃  -- recall we put morphism universes (`vᵢ`) before object universes (`uᵢ`)
+
 variables (C : Type u₁) [𝒞 : category.{v₁} C]
 variables (D : Type u₂) [𝒟 : category.{v₂} D]
 variables (E : Type u₃) [ℰ : category.{v₃} E]
-
 include 𝒞 𝒟 ℰ
 
 variables {X Y Z : C} (f : X ⟶ Y) (g : Y ⟶ Z)
@@ -191,6 +192,8 @@ use morphism notation for natural transformations.
 
 section nat_trans
 
+universes v₁ v₂ u₁ u₂
+
 variables {C : Type u₁} [𝒞 : category.{v₁} C] {D : Type u₂} [𝒟 : category.{v₂} D]
 include 𝒞 𝒟
 
@@ -217,7 +220,7 @@ F X ---> F Y
  v        v
 G X ---> G Y
     G(f)
-    
+
 commutes.
 -/
 

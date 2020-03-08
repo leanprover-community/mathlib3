@@ -26,7 +26,7 @@ open lattice submodule
 
 variables {R : Type u} [ring R]
 variables {ι : Type v} [nonempty ι]
-variables [directed_order ι] [decidable_eq ι]
+variables [decidable_eq ι] [directed_order ι]
 variables (G : ι → Type w) [Π i, decidable_eq (G i)]
 
 /-- A directed system is a functor from the category (directed poset) to another category.

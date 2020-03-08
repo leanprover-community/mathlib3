@@ -59,6 +59,8 @@ universes v v₁ v₂ v₃ u u₁ u₂ u₃  -- the order matters (see below)
 
 open category_theory
 
+section category
+
 variables (C : Type u) [𝒞 : category.{v} C]
 include 𝒞
 
@@ -118,6 +120,8 @@ variables (f' : W ⟶ X) (h' : Y ⟶ Z)
 example [mono g] : f ≫ g = f' ≫ g → f = f' := mono.right_cancellation f f'
 example [epi g] : g ≫ h = g ≫ h' → h = h' := epi.left_cancellation h h'
 
+end category -- end of section
+
 /-!
 ## Getting started with functors
 
@@ -128,17 +132,21 @@ and composition of morphisms, how to compose functors, and show the notation `�
 functor.
 -/
 
-variables (D : Type u₁) [𝒟 : category.{v₁} D]
-variables (E : Type u₂) [ℰ : category.{v₂} E]
+section functor
 
-include 𝒟 ℰ
+variables (C : Type u₁) [𝒞 : category.{v₁} C]
+variables (D : Type u₂) [𝒟 : category.{v₂} D]
+variables (E : Type u₃) [ℰ : category.{v₃} E]
+
+include 𝒞 𝒟 ℰ
+
+variables {X Y Z : C} (f : X ⟶ Y) (g : Y ⟶ Z)
 
 -- functors
-
 variables (F : C ⥤ D) (G : D ⥤ E)
 
 example : D := F.obj X -- functor F on objects
-example : F.obj Y ⟶ F.obj Z := F.map h -- functor F on morphisms
+example : F.obj Y ⟶ F.obj Z := F.map g -- functor F on morphisms
 
 -- A functor sends identity objects to identity objects
 example : F.map (𝟙 X) = 𝟙 (F.obj X) := F.map_id X
@@ -164,6 +172,7 @@ example : 𝟭 C ⋙ F = F := F.id_comp
 example : (F ⋙ G).obj X = G.obj (F.obj X) := F.comp_obj G X -- or rfl
 example : (F ⋙ G).map f = G.map (F.map f) := rfl -- or F.comp_map G X Y f
 
+end functor -- end of section
 
 /-!
 One can also check that associativity of composition of functors is definitionally true,
@@ -180,28 +189,41 @@ import gives the type of functors from `C` to `D` a category structure, which me
 use morphism notation for natural transformations.
 -/
 
-variables (H J : C ⥤ D)
+section nat_trans
 
-variables (α : F ⟶ H) (β : H ⟶ J) -- natural transformations (note it's the usual `\hom` arrow here)
+variables {C : Type u₁} [𝒞 : category.{v₁} C] {D : Type u₂} [𝒟 : category.{v₂} D]
+include 𝒞 𝒟
+
+variables (X Y : C)
+
+variable (f : X ⟶ Y)
+
+variables (F G H : C ⥤ D)
+
+variables (α : F ⟶ G) (β : G ⟶ H) -- natural transformations (note it's the usual `\hom` arrow here)
 
 -- Composition of natural transformations is just composition of morphisms:
-example : F ⟶ J := α ≫ β
+example : F ⟶ H := α ≫ β
 
 -- Applying natural transformation to an object:
-example (X : C) : F.obj X ⟶ H.obj X := α.app X
+example (X : C) : F.obj X ⟶ G.obj X := α.app X
 
 /- The diagram coming from g and α
 
+    F(f)
 F X ---> F Y
  |        |
- |        |
+ |α(X)    |α(Y)
  v        v
-H X ---> H Y
-
+G X ---> G Y
+    G(f)
+    
 commutes.
 -/
 
-example : F.map g ≫ α.app Y = (α.app X) ≫ H.map g := α.naturality g
+example : F.map f ≫ α.app Y = (α.app X) ≫ G.map f := α.naturality f
+
+end nat_trans -- section
 
 /-!
 ## Debugging universe problems

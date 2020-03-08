@@ -175,15 +175,16 @@ mem_at_top_sets.mpr $ exists.intro fsts $ assume bs (hbs : fsts ⊆ bs),
       assume c hc, tendsto_infi' c $ tendsto_infi' hc $ by apply tendsto.comp (hf c) tendsto_comap,
   have bs.sum g ∈ s,
     from mem_of_closed_of_tendsto' this hsc $ forall_sets_nonempty_iff_ne_bot.mp $
-      by simp [mem_inf_sets, exists_imp_distrib, and_imp, forall_and_distrib,
-               filter.mem_infi_sets_finset, mem_comap_sets, skolem, mem_at_top_sets,
-               and_comm];
-      from
-        assume s₁ s₂ s₃ hs₁ hs₃ p hs₂ p' hp cs hp',
-        have (⋂b (h : b ∈ bs), (λp:(Πb, finset (γ b)), p b) ⁻¹' {cs' | cs b h ⊆ cs' }) ≤ (⨅b∈bs, p b),
-          from infi_le_infi $ assume b, infi_le_infi $ assume hb,
-            le_trans (set.preimage_mono $ hp' b hb) (hp b hb),
-        (h _).mono (set.subset.trans (set.inter_subset_inter (le_trans this hs₂) hs₃) hs₁),
+      begin
+        simp only [mem_inf_sets, exists_imp_distrib, forall_and_distrib, and_imp,
+               filter.mem_infi_sets_finset, mem_comap_sets, mem_at_top_sets, and_comm,
+               mem_principal_sets, set.preimage_subset_iff, exists_prop, skolem],
+        intros s₁ s₂ s₃ hs₁ hs₃ p hs₂ p' hp cs hp',
+        have : (⋂b (h : b ∈ bs), (λp:(Πb, finset (γ b)), p b) ⁻¹' {cs' | cs b h ⊆ cs' }) ≤ (⨅b∈bs, p b),
+          from (infi_le_infi $ assume b, infi_le_infi $ assume hb,
+            le_trans (set.preimage_mono $ hp' b hb) (hp b hb)),
+        exact (h _).mono (set.subset.trans (set.inter_subset_inter (le_trans this hs₂) hs₃) hs₁)
+      end,
   hss' this
 
 lemma summable_sigma [regular_space α] {γ : β → Type*} {f : (Σb:β, γ b) → α}

@@ -47,21 +47,21 @@ class is_submonoid (s : set M) : Prop :=
 (one_mem : (1:M) ∈ s)
 (mul_mem {a b} : a ∈ s → b ∈ s → a * b ∈ s)
 
-instance additive.is_add_submonoid
+lemma additive.is_add_submonoid
   (s : set M) : ∀ [is_submonoid s], @is_add_submonoid (additive M) _ s
 | ⟨h₁, h₂⟩ := ⟨h₁, @h₂⟩
 
 theorem additive.is_add_submonoid_iff
   {s : set M} : @is_add_submonoid (additive M) _ s ↔ is_submonoid s :=
-⟨λ ⟨h₁, h₂⟩, ⟨h₁, @h₂⟩, λ h, by resetI; apply_instance⟩
+⟨λ ⟨h₁, h₂⟩, ⟨h₁, @h₂⟩, λ h, by exactI additive.is_add_submonoid _⟩
 
-instance multiplicative.is_submonoid
+lemma multiplicative.is_submonoid
   (s : set A) : ∀ [is_add_submonoid s], @is_submonoid (multiplicative A) _ s
 | ⟨h₁, h₂⟩ := ⟨h₁, @h₂⟩
 
 theorem multiplicative.is_submonoid_iff
   {s : set A} : @is_submonoid (multiplicative A) _ s ↔ is_add_submonoid s :=
-⟨λ ⟨h₁, h₂⟩, ⟨h₁, @h₂⟩, λ h, by resetI; apply_instance⟩
+⟨λ ⟨h₁, h₂⟩, ⟨h₁, @h₂⟩, λ h, by exactI multiplicative.is_submonoid _⟩
 
 /-- The intersection of two submonoids of a monoid `M` is a submonoid of `M`. -/
 @[to_additive "The intersection of two `add_submonoid`s of an `add_monoid` `M` is an `add_submonoid` of M."]
@@ -166,7 +166,7 @@ lemma is_submonoid.pow_mem {a : M} [is_submonoid s] (h : a ∈ s) : ∀ {n : ℕ
 /-- An `add_submonoid` is closed under multiplication by naturals. -/
 lemma is_add_submonoid.smul_mem {a : A} [is_add_submonoid t] :
   ∀ (h : a ∈ t) {n : ℕ}, add_monoid.smul n a ∈ t :=
-@is_submonoid.pow_mem (multiplicative A) _ _ _ _
+@is_submonoid.pow_mem (multiplicative A) _ _ _ (multiplicative.is_submonoid _)
 attribute [to_additive smul_mem] is_submonoid.pow_mem
 
 /-- The set of natural number powers of an element of a submonoid is a subset of the submonoid. -/
@@ -177,7 +177,7 @@ assume x ⟨n, hx⟩, hx ▸ is_submonoid.pow_mem h
     `add_submonoid`. -/
 lemma is_add_submonoid.multiple_subset {a : A} [is_add_submonoid t] :
   a ∈ t → multiples a ⊆ t :=
-@is_submonoid.power_subset (multiplicative A) _ _ _ _
+@is_submonoid.power_subset (multiplicative A) _ _ _ (multiplicative.is_submonoid _)
 attribute [to_additive multiple_subset] is_submonoid.power_subset
 
 end powers

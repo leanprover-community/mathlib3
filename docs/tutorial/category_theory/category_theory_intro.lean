@@ -1,10 +1,9 @@
-import category_theory.functor_category -- this transitively imports 
+import category_theory.functor_category -- this transitively imports
 -- category_theory.category
 -- category_theory.functor
 -- category_theory.natural_transformation
 
 /-!
-
 # An introduction to category theory in Lean
 
 This is an introduction to the basic usage of category theory (in the mathematical sense) in Lean.
@@ -26,13 +25,15 @@ details.
 
 One important thing to note is that a morphism in an abstract category may not be an actual function
 between two types. In particular, there is new notation `⟶` , typed as `\h` or `\hom` in VS Code,
-for a morphism, and in some fonts this arrow can be virtually indistinguishable from the standard
-function arrow `→` . (**TODO** -- perhaps say something about how to change font, or point to a
-resource? kmb would love to know this himself because he cannot tell the difference between the
-arrows on his laptop; one seems to be one pixel bigger than the other). Nevertheless, in most of the
-"concrete" categories like `Top` and `Ab`, it is still possible to write `f x` when `x : X` and
-`f : X ⟶ Y` is a morphism, as there is an automatic coercion from morphisms to functions. (If the
-coercion doesn't fire automatically, sometimes it is necessary to write `(f : X → Y) x`.)
+for a morphism. Nevertheless, in most of the "concrete" categories like `Top` and `Ab`, it is still
+possible to write `f x` when `x : X` and `f : X ⟶ Y` is a morphism, as there is an automatic
+coercion from morphisms to functions. (If the coercion doesn't fire automatically, sometimes it is
+necessary to write `(f : X → Y) x`.)
+
+In some fonts the `⟶` morphism arrow can be virtually indistinguishable from the standard function
+arrow `→` . You may want to install the [Deja Vu Sans Mono](https://dejavu-fonts.github.io/) and put
+that at the beginning of the `Font Family` setting in VSCode, to get a nice readable font with
+excellent unicode coverage.
 
 Another point of confusion can be universe issues. Following Lean's conventions for universe
 polymorphism, the objects of a category might live in one universe `u` and the morphisms in another
@@ -52,7 +53,6 @@ for morphisms. Thus we have `C : Type u`, and if `X : C` and `Y : C` then morphi
 (note the non-standard arrow).
 
 We set this up as follows:
-
 -/
 
 universes v v₁ v₂ v₃ u u₁ u₂ u₃  -- the order matters (see below)
@@ -66,20 +66,23 @@ variables {W X Y Z : C}
 variables (f : W ⟶ X) (g : X ⟶ Y) (h : Y ⟶ Z)
 
 /-!
-This says "let `C` be a category, let `W`, `X`, `Y`, `Z` be objects of `C`, and let `f : W ⟶ X`,
-`g : X ⟶ Y` and `h : Y ⟶ Z` be morphisms in `C` (with the specified source and targets)".
+This says "let `C` be a category, let `W`, `X`, `Y`, `Z` be objects of `C`, and let `f : W ⟶ X`, `g
+: X ⟶ Y` and `h : Y ⟶ Z` be morphisms in `C` (with the specified source and targets)".
 
-Note two unusual things: firstly the typeclass `category C` is explicitly named as `𝒞` (in contrast
-to group theory, where one would just write `[group G]` rather than `[h : group G]`), and secondly
-we have to explicitly tell Lean the universe where the morphisms live (by writing `category.{v} C`),
-because Lean cannot guess from knowing `C` alone. The order which universes are introduced at the
-top of the file also matters (the universe level of the objects can nearly always be inferred, so we
-put that last). The reason that the typeclass is given an explicit name `𝒞` (typeset `\McC`) is
-that one often has to write `include 𝒞` in code to ensure that Lean includes the typeclass in
-theorems and definitions. (Lean is not willing to guess the universe level of morphisms, so
-sometimes won't automatically include the `[category.{v} C]` variable.) One can use `omit 𝒞` again
-(or appropriate scoping constructs) to make sure it isn't included in declarations where it isn't
-needed.
+Note two unusual things. Firstly, the typeclass `category C` is explicitly named as `𝒞` (in
+contrast to group theory, where one would just write `[group G]` rather than `[h : group G]`).
+Secondly, we have to explicitly tell Lean the universe where the morphisms live (by writing
+`category.{v} C`), because Lean cannot guess from knowing `C` alone.
+
+The order which universes are introduced at the top of the file also matters: we put the universes
+for morphisms first (typically `v`, `v₁` and so on), and then universes for objects (typically `u`,
+`u₁` and so on). The universe level of the objects can nearly always be inferred automatically, so
+we put those last so they don't need to be explicitly specified. The reason that the typeclass is
+given an explicit name `𝒞` (typeset `\McC`) is that one often has to write `include 𝒞` in code to
+ensure that Lean includes the typeclass in theorems and definitions. (Lean is not willing to guess
+the universe level of morphisms, so sometimes won't automatically include the `[category.{v} C]`
+variable.) One can use `omit 𝒞` again (or appropriate scoping constructs) to make sure it isn't
+included in declarations where it isn't needed.
 
 ## Basic notation
 
@@ -87,8 +90,6 @@ In categories one has morphisms between objects, such as the identity morphism f
 itself. One can compose morphisms, and there are standard facts about the composition of a morphism
 with the identity morphism, and the fact that morphism composition is associative. In Lean all of
 this looks like the following:
-
-
 -/
 
 -- The identity morphism from `X` to `X` (remember that this is the `\h` arrow):
@@ -109,16 +110,13 @@ example : g ≫ 𝟙 Y = g := comp_id C g
 example : (f ≫ g) ≫ h = f ≫ (g ≫ h) := assoc C f g h
 example : (f ≫ g) ≫ h = f ≫ g ≫ h := assoc C f g h -- note \gg is right associative
 
--- **TODO** : can one not do `𝒞.id_comp g` or anything like that? Is there a better way to write this stuff?
+-- All four examples above can also be proved with `simp`.
 
 -- Monomorphisms and epimorphisms are predicates on morphisms and are implemented as typeclasses.
 variables (f' : W ⟶ X) (h' : Y ⟶ Z)
 
 example [mono g] : f ≫ g = f' ≫ g → f = f' := mono.right_cancellation f f'
 example [epi g] : g ≫ h = g ≫ h' → h = h' := epi.left_cancellation h h'
-
--- All six examples above can also be proved with `simp`.
--- TODO we should double check this; I think I just turned the simp lemmas for mono/epi cancellation off. We weren't using them, and they caused constant slow searches for instances of `epi`.
 
 /-!
 ## Getting started with functors
@@ -128,7 +126,6 @@ from `C` to `D` is `C ⥤ D`. Type `\func` in VS Code for the symbol. Here we de
 evaluate functors on objects and on morphisms, how to show functors preserve the identity morphism
 and composition of morphisms, how to compose functors, and show the notation `𝟭` for the identity
 functor.
-
 -/
 
 variables (D : Type u₁) [𝒟 : category.{v₁} D]
@@ -152,18 +149,18 @@ example : F.map (f ≫ g) = (F.map f) ≫ (F.map g) := F.map_comp f g
 -- The identity functor is `𝟭`, currently apparently untypesettable in Lean!
 example : C ⥤ C := 𝟭 C
 
--- The identity functor is (definitionally) the identity on objects and morphisms
+-- The identity functor is (definitionally) the identity on objects and morphisms:
 example : (𝟭 C).obj X = X := category_theory.functor.id_obj X
 example : (𝟭 C).map f = f := category_theory.functor.id_map f
 
--- composition of functors; typeset with `\ggg`; note order
-example : C ⥤ E := F ⋙ G
+-- Composition of functors; note order:
+example : C ⥤ E := F ⋙ G -- typeset with `\ggg`
 
 -- Composition of the identity either way does nothing:
 example : F ⋙ 𝟭 D = F := F.comp_id
 example : 𝟭 C ⋙ F = F := F.id_comp
 
--- Composition of functors definitionally does the right thing on objects and morphisms
+-- Composition of functors definitionally does the right thing on objects and morphisms:
 example : (F ⋙ G).obj X = G.obj (F.obj X) := F.comp_obj G X -- or rfl
 example : (F ⋙ G).map f = G.map (F.map f) := rfl -- or F.comp_map G X Y f
 
@@ -181,17 +178,16 @@ then a natural transformation is a map `F X ⟶ G X` for each object `X : C` plu
 that this is now another layer of notation, but fortunately the `category_theory.functor_category`
 import gives the type of functors from `C` to `D` a category structure, which means that we can just
 use morphism notation for natural transformations.
-
 -/
 
 variables (H J : C ⥤ D)
 
 variables (α : F ⟶ H) (β : H ⟶ J) -- natural transformations (note it's the usual `\hom` arrow here)
 
--- composition of natural transformations is just composition of morphisms
+-- Composition of natural transformations is just composition of morphisms:
 example : F ⟶ J := α ≫ β
 
--- Applying natural transformation to an object
+-- Applying natural transformation to an object:
 example (X : C) : F.obj X ⟶ H.obj X := α.app X
 
 /- The diagram coming from g and α
@@ -200,20 +196,17 @@ F X ---> F Y
  |        |
  |        |
  v        v
-H X --> H Y
+H X ---> H Y
 
-commutes
+commutes.
 -/
 
 example : F.map g ≫ α.app Y = (α.app X) ≫ H.map g := α.naturality g
-
--- **TODO**: is there a way to make that diagram a bit nicer? I'm sure I've seen a much nicer one in
--- mathlib somewhere! I'm assuming I can't use LaTeX in .md files.
 
 /-!
 ## What next?
 
 There are several lean files in the [category theory docs directory of
 mathlib](https://github.com/leanprover-community/mathlib/tree/master/docs/tutorial/category_theory)
-which indicate further uses of categories in Lean.
+which give further examples of using the category theory library in Lean.
 -/

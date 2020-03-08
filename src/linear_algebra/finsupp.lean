@@ -5,7 +5,7 @@ Author: Johannes Hölzl
 
 Linear structures on function with finite support `α →₀ M`.
 -/
-import data.finsupp linear_algebra.basic
+import data.finsupp.convolution linear_algebra.basic
 
 noncomputable theory
 

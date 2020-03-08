@@ -5,7 +5,9 @@ Authors: Chris Hughes, Johannes Hölzl, Jens Wagemaker
 
 Theory of univariate polynomials, represented as `ℕ →₀ α`, where α is a commutative semiring.
 -/
-import data.finsupp algebra.gcd_domain ring_theory.euclidean_domain tactic.ring_exp ring_theory.multiplicity
+import data.finsupp data.finsupp.convolution
+import algebra.gcd_domain ring_theory.euclidean_domain ring_theory.multiplicity
+import tactic.ring_exp
 
 noncomputable theory
 local attribute [instance, priority 100] classical.prop_decidable

@@ -5,7 +5,7 @@ Authors: Johannes Hölzl, Johan Commelin, Mario Carneiro
 -/
 
 import algebra.ring
-import data.finsupp data.polynomial data.equiv.algebra
+import data.polynomial data.equiv.algebra
 
 /-!
 # Multivariate polynomials

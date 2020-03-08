@@ -20,7 +20,7 @@ subdirectory.
 
 A category is a collection of objects, and a collection of morphisms (also known as arrows) between
 the objects. The objects and morphisms have some extra structure and satisfy some axioms -- see the
-[definition on Wikipedia](https://en.wikipedia.org/wiki/Category_(mathematics)#Definition) for
+[definition on Wikipedia](https://en.wikipedia.org/wiki/Category_%28mathematics%29#Definition) for
 details.
 
 One important thing to note is that a morphism in an abstract category may not be an actual function

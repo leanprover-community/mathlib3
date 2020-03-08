@@ -92,7 +92,7 @@ def self [mono f] : is_image (mono_factorisation.self f) :=
 { lift := λ F', F'.e }
 
 instance [mono f] : inhabited (is_image (mono_factorisation.self f)) :=
-⟨mono_factorisation.self f⟩
+⟨self f⟩
 
 variable {f}
 /-- Two factorisations through monomorphisms satisfying the universal property

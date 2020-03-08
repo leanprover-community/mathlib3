@@ -186,7 +186,7 @@ rather use the natural isomorphisms provided in `src/category_theory/whiskering.
 
 A natural transformation is a morphism between functors. If `F` and `G` are functors from `C` to `D`
 then a natural transformation is a map `F X ⟶ G X` for each object `X : C` plus the theorem that if
-`f : X ⟶ Y` is a functor then the two routes from `F X` to `G Y` are the same. One might imagine
+`f : X ⟶ Y` is a morphism then the two routes from `F X` to `G Y` are the same. One might imagine
 that this is now another layer of notation, but fortunately the `category_theory.functor_category`
 import gives the type of functors from `C` to `D` a category structure, which means that we can just
 use morphism notation for natural transformations.

@@ -289,24 +289,20 @@ attribute [instance] polynomial.is_noetherian_ring
 
 namespace mv_polynomial
 
-theorem is_noetherian_ring_fin {n : ℕ} [is_noetherian_ring R] :
-  is_noetherian_ring (mv_polynomial (fin n) R) :=
-begin
-  induction n with n ih,
-  { apply is_noetherian_ring_of_ring_equiv R,
-    refine (mv_polynomial.pempty_ring_equiv R).symm.trans _,
-    refine mv_polynomial.ring_equiv_of_equiv _ _,
-    exact ⟨pempty.elim, fin.elim0, λ x, pempty.elim x, λ x, fin.elim0 x⟩ },
-  resetI,
-  exact @is_noetherian_ring_of_ring_equiv (polynomial (mv_polynomial (fin n) R)) _
-    (mv_polynomial (fin (n+1)) R) _
-    ((mv_polynomial.option_equiv_left _ _).symm.trans (mv_polynomial.ring_equiv_of_equiv _
-      ⟨λ x, option.rec_on x 0 fin.succ, λ x, fin.cases none some x,
-      by rintro ⟨none | x⟩; [refl, exact fin.cases_succ _],
-      λ x, fin.cases rfl (λ i, show (option.rec_on (fin.cases none some (fin.succ i) : option (fin n))
-        0 fin.succ : fin n.succ) = _, by rw fin.cases_succ) x⟩))
-    (by apply_instance)
-end
+lemma is_noetherian_ring_fin_0 [is_noetherian_ring R] :
+  is_noetherian_ring (mv_polynomial (fin 0) R) :=
+is_noetherian_ring_of_ring_equiv R
+  ((mv_polynomial.pempty_ring_equiv R).symm.trans
+   (mv_polynomial.ring_equiv_of_equiv _ fin_zero_equiv'.symm))
+
+theorem is_noetherian_ring_fin [is_noetherian_ring R] :
+  ∀ {n : ℕ}, is_noetherian_ring (mv_polynomial (fin n) R)
+| 0 := is_noetherian_ring_fin_0
+| (n+1) :=
+  @is_noetherian_ring_of_ring_equiv (polynomial (mv_polynomial (fin n) R)) _ _ _
+    ((mv_polynomial.option_equiv_left R (fin n)).symm.trans (mv_polynomial.ring_equiv_of_equiv R
+      (fin_succ_equiv n).symm))
+    (@polynomial.is_noetherian_ring (mv_polynomial (fin n) R) _ (is_noetherian_ring_fin))
 
 /-- The multivariate polynomial ring in finitely many variables over a noetherian ring
 is itself a noetherian ring. -/

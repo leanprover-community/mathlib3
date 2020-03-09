@@ -76,7 +76,7 @@ begin
   refine convex_real_iff.2 _,
   rintros _ _ ⟨a, ha, rfl⟩ ⟨b, hb, rfl⟩ m ⟨hma, hmb⟩,
   cases eq_or_lt_of_le hma with hma hma,
-    by  exact hma ▸ mem_image_of_mem f' ha,
+    by exact hma ▸ mem_image_of_mem f' ha,
   cases eq_or_lt_of_le hmb with hmb hmb,
     by exact hmb.symm ▸ mem_image_of_mem f' hb,
   cases le_total a b with hab hab,
@@ -103,4 +103,3 @@ begin
   exact convex_real_iff.1 (convex_image_has_deriv_at hs hf) (mem_image_of_mem f' ha)
     (mem_image_of_mem f' hb) ⟨hma, hmb⟩
 end
-

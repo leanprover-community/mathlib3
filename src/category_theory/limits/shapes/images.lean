@@ -53,7 +53,7 @@ def self [mono f] : mono_factorisation f :=
   e := 𝟙 X }
 
 -- I'm not sure we really need this, but the linter says that an inhabited instance ought to exist...
-instance [mono f]: inhabited (mono_factorisation f) := ⟨self f⟩
+instance [mono f] : inhabited (mono_factorisation f) := ⟨self f⟩
 
 /-- The morphism `m` in a factorisation `f = e ≫ m` through a monomorphism is uniquely determined. -/
 @[ext]

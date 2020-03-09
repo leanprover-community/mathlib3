@@ -159,10 +159,13 @@ variables {G : Type u} [_root_.add_group G] (N : set G) [normal_add_subgroup N] 
 variables (φ : G → H) [_root_.is_add_group_hom φ]
 
 noncomputable def quotient_ker_equiv_range : (quotient (ker φ)) ≃ set.range φ :=
-@quotient_group.quotient_ker_equiv_range (multiplicative G) _ (multiplicative H) _ φ _
+@quotient_group.quotient_ker_equiv_range (multiplicative G) _ (multiplicative H) _ φ
+  (multiplicative.is_group_hom _)
 
-noncomputable def quotient_ker_equiv_of_surjective (hφ : function.surjective φ) : (quotient (ker φ)) ≃ H :=
-@quotient_group.quotient_ker_equiv_of_surjective (multiplicative G) _ (multiplicative H) _ φ _ hφ
+noncomputable def quotient_ker_equiv_of_surjective (hφ : function.surjective φ) :
+  (quotient (ker φ)) ≃ H :=
+@quotient_group.quotient_ker_equiv_of_surjective (multiplicative G) _ (multiplicative H) _ φ
+  (multiplicative.is_group_hom _) hφ
 
 attribute [to_additive quotient_add_group.quotient_ker_equiv_range] quotient_group.quotient_ker_equiv_range
 attribute [to_additive quotient_add_group.quotient_ker_equiv_of_surjective] quotient_group.quotient_ker_equiv_of_surjective

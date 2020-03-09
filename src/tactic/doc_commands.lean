@@ -190,7 +190,7 @@ do tde ← to_expr ``(%%tde : tactic_doc_entry) >>= eval_expr tactic_doc_entry,
    when (tde.description = "" ∧ tde.inherit_description_from.is_none ∧ tde.decl_names.length ≠ 1) $
      fail "A tactic doc entry must contain either a description or a declaration to inherit a description from",
    tde ← if tde.description = "" then tde.update_description else return tde,
-   let decl_name := tde.name.mk_hashed_name `tactic_doc,
+   let decl_name := (tde.name ++ tde.category.to_string).mk_hashed_name `tactic_doc,
    add_decl $ mk_definition decl_name [] `(tactic_doc_entry) (reflect tde),
    tactic_doc_entry_attr.set decl_name () tt none
 

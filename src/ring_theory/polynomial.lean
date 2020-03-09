@@ -297,7 +297,7 @@ is_noetherian_ring_of_ring_equiv R
 
 def mv_polynomial_fin_succ_equiv (n : ℕ) :
   mv_polynomial (fin (n + 1)) R ≃+* polynomial (mv_polynomial (fin n) R) :=
-(mv_polynomial.ring_equiv_of_equiv R (fin_succ_equiv n).symm).symm.trans
+(mv_polynomial.ring_equiv_of_equiv R (fin_succ_equiv n)).trans
   (mv_polynomial.option_equiv_left R (fin n))
 
 theorem is_noetherian_ring_fin [is_noetherian_ring R] :

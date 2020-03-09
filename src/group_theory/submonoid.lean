@@ -783,6 +783,9 @@ variables (S : submonoid M)
 def restrict {N : Type*} [monoid N] (f : M →* N) : S →* N :=
 ⟨λ s, f s, f.map_one, λ x y, f.map_mul x y⟩
 
+@[simp, to_additive] lemma restrict_eq {N : Type} [monoid N] (f : M →* N) (x) :
+  f.restrict S x = f x := rfl
+
 /-- Restriction of a monoid hom to a submonoid of the codomain. -/
 @[to_additive "Restriction of an `add_monoid` hom to an `add_submonoid` of the codomain."]
 def subtype_mk {N : Type*} [monoid N] (f : N →* M) (h : ∀ x, f x ∈ S) : N →* S :=

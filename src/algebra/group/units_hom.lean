@@ -24,7 +24,8 @@ monoid_hom.mk'
 
 @[simp, to_additive] lemma coe_map (f : M →* N) (x : units M) : ↑(map f x) = f x := rfl
 
-@[simp, to_additive] lemma map_comp (f : M →* N) (g : N →* P) : map (g.comp f) = (map g).comp (map f) := rfl
+@[simp, to_additive] lemma map_comp (f : M →* N) (g : N →* P) :
+  map (g.comp f) = (map g).comp (map f) := rfl
 
 variables (M)
 @[simp, to_additive] lemma map_id : map (monoid_hom.id M) = monoid_hom.id (units M) :=
@@ -41,14 +42,22 @@ variable {M}
 /-- If a map `g : M → units N` agrees with a homomorphism `f : M →* N`, then
 this map is a monoid homomorphism too. -/
 @[to_additive "If a map `g : M → add_units N` agrees with a homomorphism `f : M →+ N`, then this map is an add_monoid homomorphism too."]
-def lift_right (f : M →* N) (g : M → units N) (h : ∀ x, ↑(g x) = f x) :
+def lift_right (f : M →* N) (g : M → units N) (h : ∀ x, f x = g x) :
   M →* units N :=
 { to_fun := g,
-  map_one' := units.ext $ (h 1).symm ▸ f.map_one,
-  map_mul' := λ x y, units.ext $ by simp only [h, coe_mul, f.map_mul] }
+  map_one' := units.ext $ h 1 ▸ f.map_one,
+  map_mul' := λ x y, units.ext $ by simp only [(h _).symm, coe_mul, f.map_mul] }
 
-@[simp, to_additive] lemma coe_lift_right {f : M →* N} {g : M → units N} (h : ∀ x, ↑(g x) = f x) (x) :
-  (lift_right f g h x : N) = f x :=
+@[simp, to_additive] lemma coe_lift_right {f : M →* N} {g : M → units N} (h : ∀ x, f x = g x) (x) :
+  f x = (lift_right f g h x : N) :=
 h x
+
+@[simp, to_additive] lemma mul_lift_right_inv {f : M →* N} {g : M → units N}
+  (h : ∀ x, f x = g x) (x) : f x * ↑(lift_right f g h x)⁻¹ = 1 :=
+by rw [units.mul_inv_eq_iff_eq_mul, one_mul, coe_lift_right]
+
+@[simp, to_additive] lemma lift_right_inv_mul {f : M →* N} {g : M → units N}
+  (h : ∀ x, f x = g x) (x) : ↑(lift_right f g h x)⁻¹ * f x = 1 :=
+by rw [units.inv_mul_eq_iff_eq_mul, mul_one, coe_lift_right]
 
 end units

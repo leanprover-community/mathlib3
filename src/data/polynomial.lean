@@ -10,6 +10,8 @@ import data.finsupp algebra.gcd_domain ring_theory.euclidean_domain tactic.ring_
 noncomputable theory
 local attribute [instance, priority 100] classical.prop_decidable
 
+local attribute [instance, priority 10] is_semiring_hom.comp is_ring_hom.comp
+
 /-- `polynomial α` is the type of univariate polynomials over `α`.
 
 Polynomials should be seen as (semi-)rings with the additional constructor `X`.

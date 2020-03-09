@@ -1251,6 +1251,94 @@ end
 
 end curry_uncurry
 
+section
+
+instance [semiring γ] [add_comm_monoid β] [semimodule γ β] : has_scalar γ (α →₀ β) :=
+⟨λa v, v.map_range ((•) a) (smul_zero _)⟩
+
+variables (α β)
+
+@[simp] lemma smul_apply' {R:semiring γ} [add_comm_monoid β] [semimodule γ β]
+  {a : α} {b : γ} {v : α →₀ β} : (b • v) a = b • (v a) :=
+rfl
+
+instance [semiring γ] [add_comm_monoid β] [semimodule γ β] : semimodule γ (α →₀ β) :=
+{ smul      := (•),
+  smul_add  := λ a x y, ext $ λ _, smul_add _ _ _,
+  add_smul  := λ a x y, ext $ λ _, add_smul _ _ _,
+  one_smul  := λ x, ext $ λ _, one_smul _ _,
+  mul_smul  := λ r s x, ext $ λ _, mul_smul _ _ _,
+  zero_smul := λ x, ext $ λ _, zero_smul _ _,
+  smul_zero := λ x, ext $ λ _, smul_zero _ }
+
+instance [ring γ] [add_comm_group β] [module γ β] : module γ (α →₀ β) :=
+{ ..finsupp.semimodule α β }
+
+instance [field γ] [add_comm_group β] [vector_space γ β] : vector_space γ (α →₀ β) :=
+{ ..finsupp.module α β }
+
+variables {α β}
+lemma support_smul {R:semiring γ} [add_comm_monoid β] [semimodule γ β] {b : γ} {g : α →₀ β} :
+  (b • g).support ⊆ g.support :=
+λ a, by simp only [smul_apply', mem_support_iff, ne.def]; exact mt (λ h, h.symm ▸ smul_zero _)
+
+section
+variables {α' : Type*} [has_zero δ] {p : α → Prop}
+
+@[simp] lemma filter_smul {R : semiring γ} [add_comm_monoid β] [semimodule γ β]
+  {b : γ} {v : α →₀ β} : (b • v).filter p = b • v.filter p :=
+ext $ λ a, begin
+  by_cases p a,
+  { simp only [h, smul_apply', filter_apply_pos] },
+  { simp only [h, smul_apply', not_false_iff, filter_apply_neg, smul_zero] }
+end
+
+end
+
+lemma map_domain_smul {α'} {R : semiring γ} [add_comm_monoid β] [semimodule γ β]
+   {f : α → α'} (b : γ) (v : α →₀ β) : map_domain f (b • v) = b • map_domain f v :=
+begin
+  change map_domain f (map_range _ _ _) = map_range _ _ _,
+  apply finsupp.induction v, { simp only [map_domain_zero, map_range_zero] },
+  intros a b v' hv₁ hv₂ IH,
+  rw [map_range_add, map_domain_add, IH, map_domain_add, map_range_add,
+    map_range_single, map_domain_single, map_domain_single, map_range_single];
+  apply smul_add
+end
+
+@[simp] lemma smul_single {R : semiring γ} [add_comm_monoid β] [semimodule γ β]
+  (c : γ) (a : α) (b : β) : c • finsupp.single a b = finsupp.single a (c • b) :=
+ext $ λ a', by by_cases a = a';
+  [{ subst h, simp only [smul_apply', single_eq_same] },
+   simp only [h, smul_apply', ne.def, not_false_iff, single_eq_of_ne, smul_zero]]
+
+end
+
+@[simp] lemma smul_apply [ring β] {a : α} {b : β} {v : α →₀ β} :
+  (b • v) a = b • (v a) :=
+rfl
+
+lemma sum_smul_index [ring β] [add_comm_monoid γ] {g : α →₀ β} {b : β} {h : α → β → γ}
+  (h0 : ∀i, h i 0 = 0) : (b • g).sum h = g.sum (λi a, h i (b * a)) :=
+finsupp.sum_map_range_index h0
+
+section
+variables [semiring β] [semiring γ]
+
+lemma sum_mul (b : γ) (s : α →₀ β) {f : α → β → γ} :
+  (s.sum f) * b = s.sum (λ a c, (f a (s a)) * b) :=
+by simp only [finsupp.sum, finset.sum_mul]
+
+lemma mul_sum (b : γ) (s : α →₀ β) {f : α → β → γ} :
+  b * (s.sum f) = s.sum (λ a c, b * (f a (s a))) :=
+by simp only [finsupp.sum, finset.mul_sum]
+
+protected lemma eq_zero_of_zero_eq_one
+  (zero_eq_one : (0 : β) = 1) (l : α →₀ β) : l = 0 :=
+by ext i; simp only [eq_zero_of_zero_eq_one β zero_eq_one (l i), finsupp.zero_apply]
+
+end
+
 /-- Given an `add_comm_monoid β` and `s : set α`, `restrict_support_equiv` is the `equiv`
 between the subtype of finitely supported functions with support contained in `s` and
 the type of finitely supported functions from `s`. -/

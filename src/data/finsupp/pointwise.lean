@@ -52,35 +52,6 @@ instance [semiring β] : semigroup (α →₀ β) :=
 { mul       := (*),
   mul_assoc := λ f g h, by { ext, simp only [mul_apply, mul_assoc], }, }
 
--- If `non_unital_semiring` existed in the hierarchy, we could produce one already.
-
-section
-variables [fintype α] [semiring β]
-
-instance : has_one (α →₀ β) := ⟨equiv_fun_on_fintype.inv_fun (λ a : α, (1 : β))⟩
-
-@[simp]
-lemma one_apply {a : α} : (1 : α →₀ β) a = 1 := rfl
-
-instance : monoid (α →₀ β) :=
-begin
-  refine
-  { one       := 1,
-    .. finsupp.semigroup,
-    .. };
-  { intros, ext, simp, }
-end
-
-instance : semiring (α →₀ β) :=
-begin
-  refine
-  { .. finsupp.monoid,
-    .. finsupp.add_comm_monoid,
-    .. };
-  { intros, ext, simp [left_distrib, right_distrib], }
-end
-
--- TODO: provide upgrades when β is a comm_semiring, ring, comm_ring, algebra, etc.
-end
+-- If `non_unital_semiring` existed in the algebraic hierarchy, we could produce one here.
 
 end finsupp

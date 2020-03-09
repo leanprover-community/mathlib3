@@ -1,7 +1,7 @@
 [package]
 name = "mathlib"
 version = "0.1"
-lean_version = "leanprover-community/lean:nightly"
+lean_version = "nightly"
 path = "src"
 
 [dependencies]

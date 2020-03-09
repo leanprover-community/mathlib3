@@ -800,6 +800,6 @@ end find
 
 @[simp] lemma val_of_nat_eq_mod (m n : ℕ) :
   (@fin.of_nat m n).val = n % succ m :=
-by refl
+rfl
 
 end fin

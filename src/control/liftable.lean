@@ -13,11 +13,11 @@ Some functors such as `option` and `list` are universe polymorphic. Unlike
 type polymorphism where `option α` is a function application and reasoning and
 generalizations that apply to functions can be used, `option.{u}` and `option.{v}`
 are not one function applied to two universe names but one polymorphic definition
-instantiated twice. This means that whatever we works `option.{u}` is hard
+instantiated twice. This means that whatever works on `option.{u}` is hard
 to transport over to `option.{v}`. `liftable` is an attempt at improving the situation.
 
 `liftable option.{u} option.{v}` gives us a generic and composable way to use
-`option.{u}` in a context that requires `option.{v}`. It is often used in tendem with
+`option.{u}` in a context that requires `option.{v}`. It is often used in tandem with
 `ulift` but the two are purposefully decoupled.
 
 
@@ -27,10 +27,6 @@ to transport over to `option.{v}`. `liftable` is an attempt at improving the sit
 ## Tags
 
 universe polymorphism functor
-
-## References
-
-  * https://hackage.haskell.org/package/QuickCheck
 
 -/
 

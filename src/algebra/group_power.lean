@@ -11,7 +11,6 @@ a^n is used for the first, but users can locally redefine it to gpow when needed
 
 Note: power adopts the convention that 0^0=1.
 -/
-import algebra.group
 import data.int.basic
 
 variables {M : Type*} {N : Type*} {G : Type*} {H : Type*} {A : Type*} {B : Type*}
@@ -98,9 +97,11 @@ by rw [←pow_add, ←pow_add, add_comm]
 theorem smul_add_comm : ∀ (a : A) (m n : ℕ), m•a + n•a = n•a + m•a :=
 @pow_mul_comm (multiplicative A) _
 
-@[simp] theorem list.prod_repeat (a : M) (n : ℕ) : (list.repeat a n).prod = a ^ n :=
+@[simp, priority 500]
+theorem list.prod_repeat (a : M) (n : ℕ) : (list.repeat a n).prod = a ^ n :=
 by induction n with n ih; [refl, rw [list.repeat_succ, list.prod_cons, ih]]; refl
-@[simp] theorem list.sum_repeat : ∀ (a : A) (n : ℕ), (list.repeat a n).sum = n • a :=
+@[simp, priority 500]
+theorem list.sum_repeat : ∀ (a : A) (n : ℕ), (list.repeat a n).sum = n • a :=
 @list.prod_repeat (multiplicative A) _
 
 theorem monoid_hom.map_pow (f : M →* N) (a : M) : ∀(n : ℕ), f (a ^ n) = (f a) ^ n
@@ -415,15 +416,15 @@ end
 @[field_simps] theorem pow_ne_zero [domain R] {a : R} (n : ℕ) (h : a ≠ 0) : a ^ n ≠ 0 :=
 mt pow_eq_zero h
 
-theorem one_div_pow [division_ring R] {a : R} (ha : a ≠ 0) (n : ℕ) : (1 / a) ^ n = 1 / a ^ n :=
+theorem one_div_pow [division_ring R] {a : R} (n : ℕ) : (1 / a) ^ n = 1 / a ^ n :=
 by induction n with n ih; [exact (div_one _).symm,
   rw [pow_succ', ih, division_ring.one_div_mul_one_div]]; refl
 
-@[simp] theorem division_ring.inv_pow [division_ring R] {a : R} (ha : a ≠ 0) (n : ℕ) : a⁻¹ ^ n = (a ^ n)⁻¹ :=
-by simpa only [inv_eq_one_div] using one_div_pow ha n
+@[simp] theorem division_ring.inv_pow [division_ring R] {a : R} (n : ℕ) : a⁻¹ ^ n = (a ^ n)⁻¹ :=
+by simpa only [inv_eq_one_div] using one_div_pow n
 
-@[simp] theorem div_pow [field R] (a : R) {b : R} (hb : b ≠ 0) (n : ℕ) : (a / b) ^ n = a ^ n / b ^ n :=
-by rw [div_eq_mul_one_div, mul_pow, one_div_pow hb, ← div_eq_mul_one_div]
+@[simp] theorem div_pow [field R] (a : R) {b : R} (n : ℕ) : (a / b) ^ n = a ^ n / b ^ n :=
+by rw [div_eq_mul_one_div, mul_pow, one_div_pow, ← div_eq_mul_one_div]
 
 theorem add_monoid.smul_nonneg [ordered_comm_monoid R] {a : R} (H : 0 ≤ a) : ∀ n : ℕ, 0 ≤ n • a
 | 0     := le_refl _

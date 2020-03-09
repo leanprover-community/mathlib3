@@ -38,7 +38,7 @@ by rw [← int.coe_nat_zero, coe_nat_lt]
 @[simp] theorem coe_nat_eq_zero {n : ℕ} : (n : ℤ) = 0 ↔ n = 0 :=
 by rw [← int.coe_nat_zero, coe_nat_inj']
 
-@[simp] theorem coe_nat_ne_zero {n : ℕ} : (n : ℤ) ≠ 0 ↔ n ≠ 0 :=
+theorem coe_nat_ne_zero {n : ℕ} : (n : ℤ) ≠ 0 ↔ n ≠ 0 :=
 not_congr coe_nat_eq_zero
 
 lemma coe_nat_nonneg (n : ℕ) : 0 ≤ (n : ℤ) := coe_nat_le.2 (nat.zero_le _)
@@ -206,12 +206,14 @@ match a, b, eq_neg_succ_of_lt_zero Ha, eq_succ_of_zero_lt Hb with
 | ._, ._, ⟨m, rfl⟩, ⟨n, rfl⟩ := neg_succ_lt_zero _
 end
 
-@[simp] protected theorem zero_div : ∀ (b : ℤ), 0 / b = 0
+-- Will be generalized to Euclidean domains.
+protected theorem zero_div : ∀ (b : ℤ), 0 / b = 0
 | 0       := rfl
 | (n+1:ℕ) := rfl
 | -[1+ n] := rfl
 
-@[simp] protected theorem div_zero : ∀ (a : ℤ), a / 0 = 0
+local attribute [simp] -- Will be generalized to Euclidean domains.
+protected theorem div_zero : ∀ (a : ℤ), a / 0 = 0
 | 0       := rfl
 | (n+1:ℕ) := rfl
 | -[1+ n] := rfl
@@ -301,14 +303,17 @@ match b, eq_succ_of_zero_lt bpos with ._, ⟨n, rfl⟩ := rfl end
 @[simp] theorem mod_abs (a b : ℤ) : a % (abs b) = a % b :=
 abs_by_cases (λ i, a % i = a % b) rfl (mod_neg _ _)
 
-@[simp] theorem zero_mod (b : ℤ) : 0 % b = 0 :=
+local attribute [simp] -- Will be generalized to Euclidean domains.
+theorem zero_mod (b : ℤ) : 0 % b = 0 :=
 congr_arg of_nat $ nat.zero_mod _
 
-@[simp] theorem mod_zero : ∀ (a : ℤ), a % 0 = a
+local attribute [simp] -- Will be generalized to Euclidean domains.
+theorem mod_zero : ∀ (a : ℤ), a % 0 = a
 | (m : ℕ) := congr_arg of_nat $ nat.mod_zero _
 | -[1+ m] := congr_arg neg_succ_of_nat $ nat.mod_zero _
 
-@[simp] theorem mod_one : ∀ (a : ℤ), a % 1 = 0
+local attribute [simp] -- Will be generalized to Euclidean domains.
+theorem mod_one : ∀ (a : ℤ), a % 1 = 0
 | (m : ℕ) := congr_arg of_nat $ nat.mod_one _
 | -[1+ m] := show (1 - (m % 1).succ : ℤ) = 0, by rw nat.mod_one; refl
 
@@ -405,17 +410,18 @@ by rw [← zero_add (a * b), add_mul_mod_self, zero_mod]
 @[simp] theorem mul_mod_right (a b : ℤ) : (a * b) % a = 0 :=
 by rw [mul_comm, mul_mod_left]
 
-@[simp] theorem mod_self {a : ℤ} : a % a = 0 :=
+local attribute [simp] -- Will be generalized to Euclidean domains.
+theorem mod_self {a : ℤ} : a % a = 0 :=
 by have := mul_mod_left 1 a; rwa one_mul at this
-
-@[simp] theorem mod_mod (a b : ℤ) : a % b % b = a % b :=
-by conv {to_rhs, rw [← mod_add_div a b, add_mul_mod_self_left]}
 
 @[simp] theorem mod_mod_of_dvd (n : int) {m k : int} (h : m ∣ k) : n % k % m = n % m :=
 begin
   conv { to_rhs, rw ←mod_add_div n k },
   rcases h with ⟨t, rfl⟩, rw [mul_assoc, add_mul_mod_self_left]
 end
+
+@[simp] theorem mod_mod (a b : ℤ) : a % b % b = a % b :=
+by conv {to_rhs, rw [← mod_add_div a b, add_mul_mod_self_left]}
 
 /- properties of / and % -/
 
@@ -1133,7 +1139,7 @@ by rw [← sub_eq_zero, ← cast_sub, cast_eq_zero, sub_eq_zero]
 theorem cast_injective [add_group α] [has_one α] [char_zero α] : function.injective (coe : ℤ → α)
 | m n := cast_inj.1
 
-@[simp] theorem cast_ne_zero [add_group α] [has_one α] [char_zero α] {n : ℤ} : (n : α) ≠ 0 ↔ n ≠ 0 :=
+theorem cast_ne_zero [add_group α] [has_one α] [char_zero α] {n : ℤ} : (n : α) ≠ 0 ↔ n ≠ 0 :=
 not_congr cast_eq_zero
 
 @[simp, move_cast] theorem cast_mul [ring α] : ∀ m n, ((m * n : ℤ) : α) = m * n

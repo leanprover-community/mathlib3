@@ -14,16 +14,13 @@ class is_subfield extends is_subring S : Prop :=
 (inv_mem : ∀ {x : F}, x ≠ 0 → x ∈ S → x⁻¹ ∈ S)
 end prio
 
-instance is_subfield.field [is_subfield S] : field S :=
+instance is_subfield.field [decidable_eq F] [is_subfield S] : field S :=
 { inv := λ x, ⟨x⁻¹, if hx0 : x = 0
     then by erw [hx0, inv_zero]; exact is_add_submonoid.zero_mem _
     else is_subfield.inv_mem (λ h, hx0 $ subtype.ext.2 h) x.2⟩,
   zero_ne_one := λ h : 0 = 1, (@zero_ne_one F _) (subtype.ext.1 h),
   mul_inv_cancel := λ a ha, subtype.ext.2 (mul_inv_cancel
     (λ h, ha $ subtype.ext.2 h)),
-  inv_mul_cancel := λ a ha, subtype.ext.2 (inv_mul_cancel
-    (λ h, ha $ subtype.ext.2 h)),
-  has_decidable_eq := by apply_instance,
   inv_zero := subtype.ext.2 inv_zero,
   ..show comm_ring S, by apply_instance }
 
@@ -65,7 +62,11 @@ theorem ring_closure_subset : ring.closure S ⊆ closure S :=
 
 instance closure.is_submonoid : is_submonoid (closure S) :=
 { mul_mem := by rintros _  _ ⟨p, hp, q, hq, hq0, rfl⟩ ⟨r, hr, s, hs, hs0, rfl⟩;
-    exact ⟨p * r, is_submonoid.mul_mem hp hr, q * s, is_submonoid.mul_mem hq hs, mul_ne_zero hq0 hs0, (div_mul_div _ _ hq0 hs0).symm⟩,
+    exact ⟨p * r,
+          is_submonoid.mul_mem hp hr,
+          q * s,
+          is_submonoid.mul_mem hq hs,
+          mul_ne_zero hq0 hs0, (div_mul_div _ _ _ _).symm⟩,
   one_mem := ring_closure_subset $ is_submonoid.one_mem _ }
 
 instance closure.is_subfield : is_subfield (closure S) :=
@@ -81,7 +82,7 @@ instance closure.is_subfield : is_subfield (closure S) :=
   end,
   inv_mem := begin
     rintros _ hp0 ⟨p, hp, q, hq, hq0, rfl⟩,
-    exact ⟨q, hq, p, hp, (div_ne_zero_iff hq0).1 hp0, (inv_div ((div_ne_zero_iff hq0).1 hp0) hq0).symm⟩
+    exact ⟨q, hq, p, hp, (div_ne_zero_iff hq0).1 hp0, inv_div.symm⟩
   end }
 
 theorem mem_closure {a : F} (ha : a ∈ S) : a ∈ closure S :=

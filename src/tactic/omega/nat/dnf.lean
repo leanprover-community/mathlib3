@@ -1,10 +1,8 @@
-/-
-Copyright (c) 2019 Seul Baek. All rights reserved.
+/- Copyright (c) 2019 Seul Baek. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Author: Seul Baek
 
-DNF transformation.
--/
+DNF transformation. -/
 
 import tactic.omega.clause
 import tactic.omega.nat.form
@@ -14,7 +12,7 @@ namespace nat
 
 open_locale omega.nat
 
-@[simp] def dnf_core : form → list clause
+@[simp] def dnf_core : preform → list clause
 | (p ∨* q) := (dnf_core p) ++ (dnf_core q)
 | (p ∧* q) :=
   (list.product (dnf_core p) (dnf_core q)).map
@@ -25,22 +23,22 @@ open_locale omega.nat
 | (¬* _)   := []
 
 lemma exists_clause_holds_core {v : nat → nat} :
-  ∀ {p : form}, p.neg_free → p.sub_free → p.holds v →
+  ∀ {p : preform}, p.neg_free → p.sub_free → p.holds v →
   ∃ c ∈ (dnf_core p), clause.holds (λ x, ↑(v x)) c :=
 begin
-  form.induce `[intros h1 h0 h2],
+  preform.induce `[intros h1 h0 h2],
   { apply list.exists_mem_cons_of,
     constructor, rw list.forall_mem_singleton,
     cases h0 with ht hs,
     simp only [val_canonize ht, val_canonize hs,
-      term.val_sub, form.holds, sub_eq_add_neg] at *,
+      term.val_sub, preform.holds, sub_eq_add_neg] at *,
     rw [h2, add_neg_self], apply list.forall_mem_nil },
   { apply list.exists_mem_cons_of,
     constructor,
     apply list.forall_mem_nil,
     rw list.forall_mem_singleton,
     simp only [val_canonize (h0.left), val_canonize (h0.right),
-      term.val_sub, form.holds, sub_eq_add_neg] at *,
+      term.val_sub, preform.holds, sub_eq_add_neg] at *,
     rw [←sub_eq_add_neg, le_sub, sub_zero, int.coe_nat_le],
     assumption },
   { cases h1 },
@@ -62,6 +60,7 @@ end
 def term.vars_core (is : list int) : list bool :=
 is.map (λ i, if i = 0 then ff else tt)
 
+/-- Return a list of bools that encodes which variables have nonzero coefficients -/
 def term.vars (t : term) : list bool :=
 term.vars_core t.snd
 
@@ -70,6 +69,7 @@ def bools.or : list bool → list bool → list bool
 | bs1       []        := bs1
 | (b1::bs1) (b2::bs2) := (b1 || b2)::(bools.or bs1 bs2)
 
+/-- Return a list of bools that encodes which variables have nonzero coefficients in any one of the input terms -/
 def terms.vars : list term → list bool
 | []      := []
 | (t::ts) := bools.or (term.vars t) (terms.vars ts)
@@ -90,7 +90,8 @@ let ys := terms.vars les in
 let bs := bools.or xs ys in
 (eqs, nonneg_consts bs ++ les)
 
-def dnf (p : form) : list clause :=
+/-- DNF transformation -/
+def dnf (p : preform) : list clause :=
 (dnf_core p).map nonnegate
 
 lemma holds_nonneg_consts_core {v : nat → int} (h1 : ∀ x, 0 ≤ v x) :
@@ -112,7 +113,7 @@ lemma holds_nonneg_consts {v : nat → int} {bs : list bool} :
 | h1 :=
 by apply holds_nonneg_consts_core h1
 
-lemma exists_clause_holds {v : nat → nat} {p : form} :
+lemma exists_clause_holds {v : nat → nat} {p : preform} :
   p.neg_free → p.sub_free → p.holds v →
   ∃ c ∈ (dnf p), clause.holds (λ x, ↑(v x)) c :=
 begin
@@ -130,7 +131,7 @@ begin
   apply int.coe_nat_nonneg
 end
 
-lemma exists_clause_sat {p : form} :
+lemma exists_clause_sat {p : preform} :
   p.neg_free → p.sub_free →
   p.sat → ∃ c ∈ (dnf p), clause.sat c :=
 begin
@@ -139,7 +140,7 @@ begin
   refine ⟨c,h4,_,h5⟩
 end
 
-lemma unsat_of_unsat_dnf (p : form) :
+lemma unsat_of_unsat_dnf (p : preform) :
   p.neg_free → p.sub_free → clauses.unsat (dnf p) → p.unsat :=
 begin
   intros hnf hsf h1 h2, apply h1,

@@ -156,7 +156,8 @@ by rw [val_cast_nat, nat.mod_eq_of_lt h]
 @[simp] lemma cast_mod_nat (n : ℕ+) (a : ℕ) : ((a % n : ℕ) : zmod n) = a :=
 by conv {to_rhs, rw ← nat.mod_add_div a n}; simp
 
-@[simp] lemma cast_mod_nat' {n : ℕ} (hn : 0 < n) (a : ℕ) : ((a % n : ℕ) : zmod ⟨n, hn⟩) = a :=
+@[simp, priority 980]
+lemma cast_mod_nat' {n : ℕ} (hn : 0 < n) (a : ℕ) : ((a % n : ℕ) : zmod ⟨n, hn⟩) = a :=
 cast_mod_nat _ _
 
 @[simp] lemma cast_val {n : ℕ+} (a : zmod n) : (a.val : zmod n) = a :=
@@ -165,7 +166,8 @@ by cases a; simp [mk_eq_cast]
 @[simp] lemma cast_mod_int (n : ℕ+) (a : ℤ) : ((a % (n : ℕ) : ℤ) : zmod n) = a :=
 by conv {to_rhs, rw ← int.mod_add_div a n}; simp
 
-@[simp] lemma cast_mod_int' {n : ℕ} (hn : 0 < n) (a : ℤ) :
+@[simp, priority 980]
+lemma cast_mod_int' {n : ℕ} (hn : 0 < n) (a : ℤ) :
   ((a % (n : ℕ) : ℤ) : zmod ⟨n, hn⟩) = a := cast_mod_int _ _
 
 lemma val_cast_int {n : ℕ+} (a : ℤ) : (a : zmod n).val = (a % (n : ℕ)).nat_abs :=
@@ -275,7 +277,7 @@ if x.val ≤ n / 2 then x.val else x.val - n
 
 @[simp] lemma coe_val_min_abs {n : ℕ+} (x : zmod n) :
   (x.val_min_abs : zmod n) = x :=
-by simp [zmod.val_min_abs]; split_ifs; simp
+by simp [zmod.val_min_abs]; split_ifs; simp [sub_eq_add_neg]
 
 lemma nat_abs_val_min_abs_le {n : ℕ+} (x : zmod n) : x.val_min_abs.nat_abs ≤ n / 2 :=
 have (x.val - n : ℤ) ≤ 0, from sub_nonpos.2 $ int.coe_nat_le.2 $ le_of_lt x.2,
@@ -346,7 +348,7 @@ begin
   rw [← not_le] at hpa,
   simp only [if_neg ha0, zmod.neg_val, hpa, int.coe_nat_sub (le_of_lt a.2)],
   split_ifs,
-  { simp },
+  { simp [sub_eq_add_neg] },
   { rw [← int.nat_abs_neg], simp }
 end
 
@@ -501,8 +503,6 @@ instance : field (zmodp p hp) :=
     by rw nat.mod_eq_of_lt hp.one_lt;
       exact zero_ne_one,
   mul_inv_cancel := mul_inv_cancel_aux hp,
-  inv_mul_cancel := λ a, by rw mul_comm; exact mul_inv_cancel_aux hp _,
-  has_decidable_eq := by apply_instance,
   inv_zero := show (gcd_a 0 p : zmodp p hp) = 0,
     by unfold gcd_a xgcd xgcd_aux; refl,
   ..zmodp.comm_ring hp,

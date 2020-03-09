@@ -279,13 +279,14 @@ meta def compact_decl_aux : list name → binder_info → expr → list expr →
   tactic (list (list name × binder_info × expr))
 | ns bi t [] := pure [(ns.reverse, bi, t)]
 | ns bi t (v'@(local_const n pp bi' t') :: xs) :=
-  do t' ← infer_type v',
+  do t' ← get_local pp >>= infer_type,
      if bi = bi' ∧ t = t'
        then compact_decl_aux (pp :: ns) bi t xs
        else do vs ← compact_decl_aux [pp] bi' t' xs,
                pure $ (ns.reverse, bi, t) :: vs
 | ns bi t (_ :: xs) := compact_decl_aux ns bi t xs
 
+/-- go from (x₀ : t₀) (x₁ : t₀) (x₂ : t₀) to (x₀ x₁ x₂ : t₀) -/
 meta def compact_decl : list expr → tactic (list (list name × binder_info × expr))
 | [] := pure []
 | (v@(local_const n pp bi t) :: xs)  :=
@@ -951,10 +952,10 @@ add_tactic_doc
 `clear_except h₀ h₁` deletes all the assumptions it can except for `h₀` and `h₁`.
 -/
 meta def clear_except (xs : parse ident *) : tactic unit :=
-do let ns := name_set.of_list xs,
-   local_context >>= mmap' (λ h : expr,
-     when (¬ ns.contains h.local_pp_name) $
-       try $ tactic.clear h) ∘ list.reverse
+do n ← xs.mmap (try_core ∘ get_local) >>= revert_lst ∘ list.filter_map id,
+   ls ← local_context,
+   ls.reverse.mmap' $ try ∘ tactic.clear,
+   intron n
 
 add_tactic_doc
 { name       := "clear_except",
@@ -966,30 +967,37 @@ add_tactic_doc
 meta def format_names (ns : list name) : format :=
 format.join $ list.intersperse " " (ns.map to_fmt)
 
+private meta def indent_bindents (l r : string) : option (list name) → expr → tactic format
+| none e :=
+  do e ← pp e,
+     pformat!"{l}{format.nest l.length e}{r}"
+| (some ns) e :=
+  do e ← pp e,
+     let ns := format_names ns,
+     let margin := l.length + ns.to_string.length + " : ".length,
+     pformat!"{l}{ns} : {format.nest margin e}{r}"
+
 private meta def format_binders : list name × binder_info × expr → tactic format
-| (ns, binder_info.default, t) := pformat!"({format_names ns} : {t})"
-| (ns, binder_info.implicit, t) := pformat!"{{{format_names ns} : {t}}"
-| (ns, binder_info.strict_implicit, t) := pformat!"⦃{format_names ns} : {t}⦄"
+| (ns, binder_info.default, t) := indent_bindents "(" ")" ns t
+| (ns, binder_info.implicit, t) := indent_bindents "{" "}" ns t
+| (ns, binder_info.strict_implicit, t) := indent_bindents "⦃" "⦄" ns t
 | ([n], binder_info.inst_implicit, t) :=
   if "_".is_prefix_of n.to_string
-    then pformat!"[{t}]"
-    else pformat!"[{format_names [n]} : {t}]"
-| (ns, binder_info.inst_implicit, t) := pformat!"[{format_names ns} : {t}]"
-| (ns, binder_info.aux_decl, t) := pformat!"({format_names ns} : {t})"
+    then indent_bindents "[" "]" none t
+    else indent_bindents "[" "]" [n] t
+| (ns, binder_info.inst_implicit, t) := indent_bindents "[" "]" ns t
+| (ns, binder_info.aux_decl, t) := indent_bindents "(" ")" ns t
 
-meta def mk_paragraph_aux (right_margin : ℕ) : format → format → ℕ → list format → format
-| par ln len [] := par ++ format.line ++ ln
-| par ln len (x :: xs) :=
-  let len' := x.to_string.length in
-  if len + len' ≤ right_margin then
-    mk_paragraph_aux par (ln ++ x ++ " ") (len + len' + 1) xs
-  else
-    mk_paragraph_aux (par ++ format.line ++ ln) ("  " ++ x ++ " ") len' xs
+private meta def partition_vars' (s : name_set) : list expr → list expr → list expr → tactic (list expr × list expr)
+| [] as bs := pure (as.reverse, bs.reverse)
+| (x :: xs) as bs :=
+do t ← infer_type x,
+   if t.has_local_in s then partition_vars' xs as (x :: bs)
+     else partition_vars' xs (x :: as) bs
 
-/-- `mk_paragraph right_margin ls` packs `ls` into a paragraph where the lines have
-length at most `right_margin` -/
-meta def mk_paragraph (right_margin : ℕ) : list format → format :=
-mk_paragraph_aux right_margin "" "" 0
+private meta def partition_vars : tactic (list expr × list expr) :=
+do ls ← local_context,
+   partition_vars' (name_set.of_list $ ls.map expr.local_uniq_name) ls [] []
 
 /--
 Format the current goal as a stand-alone example. Useful for testing tactic.
@@ -1037,10 +1045,13 @@ end
 ```
 
 -/
-meta def extract_goal (n : parse ident?) (vs : parse with_ident_list) : tactic unit :=
-do (cxt,_) ← solve_aux `(true) $
+meta def extract_goal (print_use : parse $ tt <$ tk "!" <|> pure ff)
+  (n : parse ident?) (vs : parse with_ident_list)
+  : tactic unit :=
+do tgt ← target,
+   ((cxt₀,cxt₁),_) ← solve_aux tgt $
        when (¬ vs.empty) (clear_except vs) >>
-       local_context,
+       partition_vars,
    tgt ← target,
    is_prop ← is_prop tgt,
    let title := match n, is_prop with
@@ -1048,13 +1059,16 @@ do (cxt,_) ← solve_aux `(true) $
                 | (some n), tt := format!"lemma {n}"
                 | (some n), ff := format!"def {n}"
                 end,
-   cxt ← compact_decl cxt,
-   cxt' ← cxt.init.mmap format_binders,
-   cxt'' ← cxt.last'.traverse $ λ x, pformat!"{format_binders x} :",
+   cxt₀ ← compact_decl cxt₀ >>= list.mmap format_binders,
+   cxt₁ ← compact_decl cxt₁ >>= list.mmap format_binders,
    stmt ← pformat!"{tgt} :=",
-   let fmt := mk_paragraph 80 $ title :: cxt' ++ [cxt''.get_or_else ":", stmt],
-   trace fmt,
-   trace!"begin\n  \nend"
+   let fmt :=
+     format.group $ format.nest 2 $
+       title ++ cxt₀.foldl (λ acc x, acc ++ format.group (format.line ++ x)) "" ++
+       format.line ++ format.intercalate format.line cxt₁ ++ " :" ++
+       format.line ++ stmt,
+   trace $ fmt.to_string $ options.mk.set_nat `pp.width 80,
+   trace!"begin\n  admit\nend\n"
 
 add_tactic_doc
 { name       := "extract_goal",

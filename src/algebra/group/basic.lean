@@ -62,7 +62,7 @@ theorem mul_right_surjective (a : G) : function.surjective (λ x, x * a) :=
 theorem eq_of_inv_eq_inv : a⁻¹ = b⁻¹ → a = b :=
 inv_inj'.1
 
-@[simp, to_additive]
+@[to_additive]
 theorem mul_self_iff_eq_one : a * a = a ↔ a = 1 :=
 by have := @mul_left_inj _ _ a a 1; rwa mul_one at this
 
@@ -70,7 +70,7 @@ by have := @mul_left_inj _ _ a a 1; rwa mul_one at this
 theorem inv_eq_one : a⁻¹ = 1 ↔ a = 1 :=
 by rw [← @inv_inj' _ _ a 1, one_inv]
 
-@[simp, to_additive]
+@[to_additive]
 theorem inv_ne_one : a⁻¹ ≠ 1 ↔ a ≠ 1 :=
 not_congr inv_eq_one
 
@@ -269,6 +269,15 @@ variables [add_monoid A] {a b c : A}
 by rw [bit1, bit0_zero, zero_add]
 
 end add_monoid
+
+section comm_monoid
+variables [comm_monoid M]
+
+@[to_additive] lemma inv_unique {x y z : M}
+  (hy : x * y = 1) (hz : x * z = 1) : y = z :=
+by rw [←one_mul y, ←hz, mul_comm x, mul_assoc, hy, mul_one]
+
+end comm_monoid
 
 @[to_additive]
 lemma inv_involutive {α} [group α] : function.involutive (has_inv.inv : α → α) := inv_inv

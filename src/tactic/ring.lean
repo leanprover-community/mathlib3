@@ -83,13 +83,13 @@ open horner_expr
 meta def horner_expr.to_string : horner_expr → string
 | (const e) := to_string e
 | (xadd e a x (_, n) b) :=
-    "(" ++ a.to_string ++ ") * (" ++ to_string x ++ ")^"
+    "(" ++ a.to_string ++ ") * (" ++ to_string x.1 ++ ")^"
         ++ to_string n ++ " + " ++ b.to_string
 
 meta def horner_expr.pp : horner_expr → tactic format
 | (const e) := pp e
 | (xadd e a x (_, n) b) := do
-  pa ← a.pp, pb ← b.pp, px ← pp x,
+  pa ← a.pp, pb ← b.pp, px ← pp x.1,
   return $ "(" ++ pa ++ ") * (" ++ px ++ ")^" ++ to_string n ++ " + " ++ pb
 
 meta instance : has_to_tactic_format horner_expr := ⟨horner_expr.pp⟩
@@ -318,14 +318,14 @@ meta def eval_pow : horner_expr → expr × ℕ → ring_m (horner_expr × expr)
   p ← lift $ mk_app ``pow_one [e],
   return (e, p)
 | (const e) (e₂, m) := do
-  (e', p) ← lift $ mk_app ``monoid.pow [e, e₂] >>= norm_num.derive,
+  (e', p) ← lift $ mk_app ``monoid.pow [e, e₂] >>= norm_num.derive',
   return (const e', p)
 | he@(xadd e a x n b) m := do
   c ← get_cache,
   let N : expr := expr.const `nat [],
   match b.e.to_nat with
   | some 0 := do
-    (n', h₁) ← lift $ mk_app ``has_mul.mul [n.1, m.1] >>= norm_num,
+    (n', h₁) ← lift $ mk_app ``has_mul.mul [n.1, m.1] >>= norm_num.derive',
     (a', h₂) ← eval_pow a m,
     α0 ← lift $ expr.of_nat c.α 0,
     return (xadd' c a' x (n', n.2 * m.2) (const α0),
@@ -392,18 +392,23 @@ meta def eval : expr → ring_m (horner_expr × expr)
   p ← ring_m.mk_app ``norm_num.subst_into_prod ``has_mul [e₁, e₂, e₁', e₂', e', p₁, p₂, p'],
   return (e', p)
 | e@`(has_inv.inv %%_) := (do
-    (e', p) ← lift $ norm_num.derive e,
+    (e', p) ← lift $ norm_num.derive e <|> refl_conv e,
     lift $ e'.to_rat,
     return (const e', p)) <|> eval_atom e
-| `(%%e₁ / %%e₂) := do
-  e₂' ← lift $ mk_app ``has_inv.inv [e₂],
-  e ← lift $ mk_app ``has_mul.mul [e₁, e₂'],
-  (e', p) ← eval e,
-  p' ← ring_m.mk_app ``unfold_div ``division_ring [e₁, e₂, e', p],
-  return (e', p')
+| e@`(@has_div.div _ %%inst %%e₁ %%e₂) := mcond
+  (succeeds (do
+    inst' ← ring_m.mk_app ``division_ring_has_div ``division_ring [],
+    lift $ is_def_eq inst inst'))
+  (do
+    e₂' ← lift $ mk_app ``has_inv.inv [e₂],
+    e ← lift $ mk_app ``has_mul.mul [e₁, e₂'],
+    (e', p) ← eval e,
+    p' ← ring_m.mk_app ``unfold_div ``division_ring [e₁, e₂, e', p],
+    return (e', p'))
+  (eval_atom e)
 | e@`(@has_pow.pow _ _ %%P %%e₁ %%e₂) := do
-  (e₂', p₂) ← eval e₂,
-  match e₂'.e.to_nat, P with
+  (e₂', p₂) ← lift $ norm_num.derive e₂ <|> refl_conv e₂,
+  match e₂'.to_nat, P with
   | some k, `(monoid.has_pow) := do
     (e₁', p₁) ← eval e₁,
     (e', p') ← eval_pow e₁' (e₂, k),

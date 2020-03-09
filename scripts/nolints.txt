@@ -61,7 +61,6 @@ apply_nolint set.centralizer.add_submonoid doc_blame
 -- algebra/direct_limit.lean
 apply_nolint add_comm_group.direct_limit has_inhabited_instance
 apply_nolint field.direct_limit.field doc_blame
-apply_nolint field.direct_limit.field doc_blame
 apply_nolint field.direct_limit.inv doc_blame
 apply_nolint module.direct_limit unused_arguments has_inhabited_instance
 apply_nolint module.direct_limit.totalize unused_arguments doc_blame
@@ -110,10 +109,6 @@ apply_nolint normalize doc_blame
 -- algebra/group/conj.lean
 apply_nolint is_conj doc_blame
 
--- algebra/group/free_monoid.lean
-apply_nolint free_add_monoid doc_blame
-apply_nolint free_monoid doc_blame
-
 -- algebra/group/hom.lean
 apply_nolint add_monoid_hom.add doc_blame
 apply_nolint add_monoid_hom.comp doc_blame
@@ -138,14 +133,8 @@ apply_nolint to_additive.value_type doc_blame
 apply_nolint additive doc_blame
 apply_nolint multiplicative doc_blame
 
--- algebra/group/units.lean
-apply_nolint units.inv' doc_blame
-apply_nolint units.mk_of_mul_eq_one doc_blame
-apply_nolint units.mul doc_blame
-
 -- algebra/group/with_one.lean
 apply_nolint with_one doc_blame
-apply_nolint with_one.lift doc_blame
 apply_nolint with_one.map doc_blame
 apply_nolint with_zero doc_blame
 apply_nolint with_zero.div doc_blame
@@ -232,9 +221,6 @@ apply_nolint prime_spectrum has_inhabited_instance
 -- algebraic_geometry/stalks.lean
 apply_nolint algebraic_geometry.PresheafedSpace.stalk doc_blame
 apply_nolint algebraic_geometry.PresheafedSpace.stalk_map doc_blame
-
--- analysis/calculus/times_cont_diff.lean
-apply_nolint times_cont_diff.times_cont_diff_fderiv_apply unused_arguments
 
 -- analysis/normed_space/basic.lean
 apply_nolint normed_group.tendsto_nhds_zero ge_or_gt
@@ -742,8 +728,6 @@ apply_nolint category_theory.limits.sigma.ι doc_blame
 -- category_theory/limits/shapes/pullbacks.lean
 apply_nolint category_theory.limits.cocone.of_pushout_cocone doc_blame
 apply_nolint category_theory.limits.cone.of_pullback_cone doc_blame
-apply_nolint category_theory.limits.has_pullbacks doc_blame
-apply_nolint category_theory.limits.has_pushouts doc_blame
 apply_nolint category_theory.limits.pullback.fst doc_blame
 apply_nolint category_theory.limits.pullback.lift doc_blame
 apply_nolint category_theory.limits.pullback.snd doc_blame
@@ -1124,7 +1108,6 @@ apply_nolint equiv.comm_monoid doc_blame
 apply_nolint equiv.comm_ring doc_blame
 apply_nolint equiv.comm_semigroup doc_blame
 apply_nolint equiv.comm_semiring doc_blame
-apply_nolint equiv.field doc_blame
 apply_nolint equiv.division_ring doc_blame
 apply_nolint equiv.domain doc_blame
 apply_nolint equiv.field doc_blame
@@ -1335,11 +1318,6 @@ apply_nolint erased.out_type doc_blame
 
 -- data/fin.lean
 apply_nolint fin.add_nat_val unused_arguments
-apply_nolint fin.cases doc_blame
-apply_nolint fin.clamp doc_blame
-apply_nolint fin.succ_rec doc_blame
-apply_nolint fin.succ_rec_on doc_blame
-apply_nolint fin_zero_elim' doc_blame
 
 -- data/finmap.lean
 apply_nolint finmap.all doc_blame
@@ -1348,43 +1326,6 @@ apply_nolint finmap.disjoint unused_arguments doc_blame
 apply_nolint finmap.foldl unused_arguments
 apply_nolint finmap.sdiff doc_blame
 apply_nolint list.to_finmap doc_blame
-
--- data/finset.lean
-apply_nolint finset.attach_fin doc_blame
-apply_nolint finset.choose doc_blame
-apply_nolint finset.choose_x doc_blame
-apply_nolint finset.empty doc_blame
-apply_nolint finset.map doc_blame
-apply_nolint finset.map_embedding doc_blame
-apply_nolint finset.max doc_blame
-apply_nolint finset.max' doc_blame
-apply_nolint finset.min doc_blame
-apply_nolint finset.min' doc_blame
-apply_nolint finset.pi doc_blame
-apply_nolint finset.pi.cons doc_blame
-apply_nolint finset.pi.empty doc_blame
-apply_nolint finset.powerset_len doc_blame
-apply_nolint finset.strong_induction_on doc_blame
-apply_nolint finset.subtype doc_blame
-
--- data/finsupp.lean
-apply_nolint finsupp.antidiagonal doc_blame
-apply_nolint finsupp.comap_domain doc_blame
-apply_nolint finsupp.curry doc_blame
-apply_nolint finsupp.dom_congr doc_blame
-apply_nolint finsupp.equiv_fun_on_fintype doc_blame
-apply_nolint finsupp.equiv_multiset doc_blame
-apply_nolint finsupp.erase doc_blame
-apply_nolint finsupp.finsupp_prod_equiv doc_blame
-apply_nolint finsupp.frange doc_blame
-apply_nolint finsupp.of_multiset doc_blame
-apply_nolint finsupp.restrict_support_equiv doc_blame
-apply_nolint finsupp.split doc_blame
-apply_nolint finsupp.split_comp doc_blame
-apply_nolint finsupp.split_support doc_blame
-apply_nolint finsupp.to_multiset doc_blame
-apply_nolint finsupp.uncurry doc_blame
-apply_nolint multiset.to_finsupp doc_blame
 
 -- data/fintype.lean
 apply_nolint finset.insert_none doc_blame
@@ -2238,15 +2179,13 @@ apply_nolint add_group.in_closure doc_blame
 apply_nolint gmultiples doc_blame
 apply_nolint gpowers doc_blame
 apply_nolint group.in_closure doc_blame
-apply_nolint is_add_group_hom.ker unused_arguments doc_blame
+apply_nolint is_add_group_hom.ker doc_blame
 apply_nolint is_add_subgroup.add_center doc_blame
 apply_nolint is_add_subgroup.add_normalizer doc_blame
-apply_nolint is_add_subgroup.normalizer_is_add_subgroup unused_arguments
 apply_nolint is_add_subgroup.trivial doc_blame
-apply_nolint is_group_hom.ker unused_arguments doc_blame
+apply_nolint is_group_hom.ker doc_blame
 apply_nolint is_subgroup.center doc_blame
 apply_nolint is_subgroup.normalizer doc_blame
-apply_nolint is_subgroup.normalizer_is_subgroup unused_arguments
 apply_nolint normal_add_subgroup doc_blame
 apply_nolint normal_subgroup doc_blame
 apply_nolint simple_add_group doc_blame
@@ -2847,9 +2786,7 @@ apply_nolint principal_seg doc_blame has_inhabited_instance
 apply_nolint principal_seg.equiv_lt doc_blame
 apply_nolint principal_seg.lt_equiv doc_blame
 apply_nolint principal_seg.lt_le doc_blame
-apply_nolint principal_seg.top_lt_top unused_arguments
 apply_nolint principal_seg.trans doc_blame
-apply_nolint principal_seg.trans_top unused_arguments
 
 -- set_theory/ordinal_notation.lean
 apply_nolint onote.oadd_lt_oadd_1 unused_arguments
@@ -3110,7 +3047,6 @@ apply_nolint tactic.interactive.apply_iff_congr_core doc_blame
 apply_nolint tactic.interactive.clean_ids doc_blame
 apply_nolint tactic.interactive.collect_struct doc_blame
 apply_nolint tactic.interactive.collect_struct' doc_blame
-apply_nolint tactic.interactive.compact_decl doc_blame
 apply_nolint tactic.interactive.compact_decl_aux doc_blame
 apply_nolint tactic.interactive.congr_core' doc_blame
 apply_nolint tactic.interactive.convert_to_core doc_blame
@@ -3124,7 +3060,6 @@ apply_nolint tactic.interactive.list_cast_of doc_blame
 apply_nolint tactic.interactive.list_cast_of_aux doc_blame
 apply_nolint tactic.interactive.loc.get_local_pp_names doc_blame
 apply_nolint tactic.interactive.loc.get_local_uniq_names doc_blame
-apply_nolint tactic.interactive.mk_paragraph_aux doc_blame
 apply_nolint tactic.interactive.refine_one doc_blame
 apply_nolint tactic.interactive.refine_recursively doc_blame
 apply_nolint tactic.interactive.return_cast doc_blame
@@ -3356,28 +3291,11 @@ apply_nolint tactic.interactive.apply_normed doc_blame
 apply_nolint tactic.refl_conv doc_blame
 apply_nolint tactic.trans_conv doc_blame
 
--- tactic/omega/clause.lean
-apply_nolint omega.clause doc_blame
-apply_nolint omega.clause.append doc_blame
-apply_nolint omega.clause.holds doc_blame
-apply_nolint omega.clause.sat doc_blame
-apply_nolint omega.clause.unsat doc_blame
-apply_nolint omega.clauses.sat doc_blame
-apply_nolint omega.clauses.unsat doc_blame
-
--- tactic/omega/coeffs.lean
-apply_nolint omega.coeffs.val doc_blame
-apply_nolint omega.coeffs.val_between doc_blame
-apply_nolint omega.coeffs.val_except doc_blame
-
 -- tactic/omega/eq_elim.lean
 apply_nolint omega.cancel doc_blame
 apply_nolint omega.coeffs_reduce doc_blame
-apply_nolint omega.ee doc_blame
 apply_nolint omega.ee.repr doc_blame
-apply_nolint omega.eq_elim doc_blame
 apply_nolint omega.rhs doc_blame
-apply_nolint omega.sgm doc_blame
 apply_nolint omega.subst doc_blame
 apply_nolint omega.sym_sym doc_blame
 apply_nolint omega.symdiv doc_blame
@@ -3385,188 +3303,60 @@ apply_nolint omega.symmod doc_blame
 
 -- tactic/omega/find_ees.lean
 apply_nolint omega.abort doc_blame
-apply_nolint omega.add_ee doc_blame
-apply_nolint omega.ee_commit doc_blame
-apply_nolint omega.ee_state doc_blame
-apply_nolint omega.elim_eq doc_blame
-apply_nolint omega.elim_eqs doc_blame
 apply_nolint omega.eqelim doc_blame
-apply_nolint omega.factor doc_blame
-apply_nolint omega.find_ees doc_blame
-apply_nolint omega.find_min_coeff doc_blame
-apply_nolint omega.find_min_coeff_core doc_blame
-apply_nolint omega.gcd doc_blame
-apply_nolint omega.get_ees doc_blame
-apply_nolint omega.get_eqs doc_blame
-apply_nolint omega.get_gcd doc_blame
-apply_nolint omega.get_les doc_blame
-apply_nolint omega.head_eq doc_blame
 apply_nolint omega.run doc_blame
-apply_nolint omega.set_ees doc_blame
-apply_nolint omega.set_eqs doc_blame
-apply_nolint omega.set_les doc_blame
-
--- tactic/omega/find_scalars.lean
-apply_nolint omega.elim_var doc_blame
-apply_nolint omega.elim_var_aux doc_blame
-apply_nolint omega.find_neg_const doc_blame
-apply_nolint omega.find_scalars doc_blame
-apply_nolint omega.find_scalars_core doc_blame
-apply_nolint omega.trisect doc_blame
 
 -- tactic/omega/int/dnf.lean
-apply_nolint omega.int.dnf doc_blame
 apply_nolint omega.int.dnf_core doc_blame
 apply_nolint omega.int.is_nnf doc_blame
-apply_nolint omega.int.neg_elim doc_blame
-apply_nolint omega.int.neg_free doc_blame
-apply_nolint omega.int.nnf doc_blame
-apply_nolint omega.int.push_neg doc_blame
 
 -- tactic/omega/int/form.lean
-apply_nolint omega.int.form doc_blame
-apply_nolint omega.int.form.equiv doc_blame
-apply_nolint omega.int.form.fresh_index doc_blame
-apply_nolint omega.int.form.holds doc_blame
-apply_nolint omega.int.form.implies doc_blame
-apply_nolint omega.int.form.induce doc_blame
-apply_nolint omega.int.form.repr doc_blame
-apply_nolint omega.int.form.sat doc_blame
-apply_nolint omega.int.form.unsat doc_blame
-apply_nolint omega.int.form.valid doc_blame
-apply_nolint omega.int.univ_close doc_blame
+apply_nolint omega.int.preform.repr doc_blame
 
 -- tactic/omega/int/main.lean
 apply_nolint omega.int.desugar doc_blame
-apply_nolint omega.int.prove_lia doc_blame
-apply_nolint omega.int.prove_univ_close doc_blame
-apply_nolint omega.int.to_form doc_blame
-apply_nolint omega.int.to_form_core doc_blame
-apply_nolint omega.int.to_preterm doc_blame
-apply_nolint omega_int doc_blame
+apply_nolint omega.int.intro_ints doc_blame
+apply_nolint simp_attr.sugar doc_blame
 
 -- tactic/omega/int/preterm.lean
-apply_nolint omega.int.canonize doc_blame
-apply_nolint omega.int.preterm doc_blame
 apply_nolint omega.int.preterm.add_one doc_blame
-apply_nolint omega.int.preterm.fresh_index doc_blame
 apply_nolint omega.int.preterm.repr doc_blame
-apply_nolint omega.int.preterm.val doc_blame
-
--- tactic/omega/lin_comb.lean
-apply_nolint omega.lin_comb doc_blame
-apply_nolint omega.unsat_lin_comb doc_blame
 
 -- tactic/omega/main.lean
-apply_nolint omega.clear_unused_hyp doc_blame
-apply_nolint omega.clear_unused_hyps doc_blame
-apply_nolint omega.form_domain doc_blame
-apply_nolint omega.form_wf doc_blame
-apply_nolint omega.goal_domain doc_blame
 apply_nolint omega.goal_domain_aux doc_blame
-apply_nolint omega.is_lia_form doc_blame
-apply_nolint omega.is_lia_term doc_blame
-apply_nolint omega.is_lna_form doc_blame
-apply_nolint omega.is_lna_term doc_blame
-apply_nolint omega.preprocess doc_blame
-apply_nolint omega.rev_lia doc_blame
-apply_nolint omega.rev_lna doc_blame
-apply_nolint omega.revert_cond doc_blame
-apply_nolint omega.revert_cond_all doc_blame
 apply_nolint omega.select_domain doc_blame
-apply_nolint omega.term_domain doc_blame
 apply_nolint omega.type_domain doc_blame
-
--- tactic/omega/misc.lean
-apply_nolint omega.update doc_blame
-apply_nolint omega.update_zero doc_blame
 
 -- tactic/omega/nat/dnf.lean
 apply_nolint omega.nat.bools.or doc_blame
-apply_nolint omega.nat.dnf doc_blame
 apply_nolint omega.nat.dnf_core doc_blame
 apply_nolint omega.nat.nonneg_consts doc_blame
 apply_nolint omega.nat.nonneg_consts_core doc_blame
 apply_nolint omega.nat.nonnegate doc_blame
-apply_nolint omega.nat.term.vars doc_blame
 apply_nolint omega.nat.term.vars_core doc_blame
-apply_nolint omega.nat.terms.vars doc_blame
 
 -- tactic/omega/nat/form.lean
-apply_nolint omega.nat.form doc_blame
-apply_nolint omega.nat.form.equiv doc_blame
-apply_nolint omega.nat.form.fresh_index doc_blame
-apply_nolint omega.nat.form.holds doc_blame
-apply_nolint omega.nat.form.implies doc_blame
-apply_nolint omega.nat.form.induce doc_blame
-apply_nolint omega.nat.form.neg_free doc_blame
-apply_nolint omega.nat.form.repr doc_blame
-apply_nolint omega.nat.form.sat doc_blame
-apply_nolint omega.nat.form.sub_free doc_blame
-apply_nolint omega.nat.form.unsat doc_blame
-apply_nolint omega.nat.form.valid doc_blame
-apply_nolint omega.nat.univ_close doc_blame
+apply_nolint omega.nat.preform.repr doc_blame
 
 -- tactic/omega/nat/main.lean
 apply_nolint omega.nat.desugar doc_blame
-apply_nolint omega.nat.preterm.prove_sub_free doc_blame
-apply_nolint omega.nat.prove_lna doc_blame
-apply_nolint omega.nat.prove_neg_free doc_blame
-apply_nolint omega.nat.prove_sub_free doc_blame
-apply_nolint omega.nat.prove_univ_close doc_blame
-apply_nolint omega.nat.prove_unsat_neg_free doc_blame
-apply_nolint omega.nat.prove_unsat_sub_free doc_blame
-apply_nolint omega.nat.to_form doc_blame
-apply_nolint omega.nat.to_form_core doc_blame
-apply_nolint omega.nat.to_preterm doc_blame
-apply_nolint omega_nat doc_blame
+apply_nolint omega.nat.intro_nats doc_blame
+apply_nolint simp_attr.sugar_nat doc_blame
 
 -- tactic/omega/nat/neg_elim.lean
-apply_nolint omega.nat.is_nnf doc_blame
-apply_nolint omega.nat.neg_elim doc_blame
 apply_nolint omega.nat.neg_elim_core doc_blame
-apply_nolint omega.nat.nnf doc_blame
-apply_nolint omega.nat.push_neg doc_blame
 
 -- tactic/omega/nat/preterm.lean
-apply_nolint omega.nat.canonize doc_blame
-apply_nolint omega.nat.preterm doc_blame
 apply_nolint omega.nat.preterm.add_one doc_blame
-apply_nolint omega.nat.preterm.fresh_index doc_blame
-apply_nolint omega.nat.preterm.induce doc_blame
 apply_nolint omega.nat.preterm.repr doc_blame
-apply_nolint omega.nat.preterm.sub_free doc_blame
-apply_nolint omega.nat.preterm.val doc_blame
-
--- tactic/omega/nat/sub_elim.lean
-apply_nolint omega.nat.form.sub_subst doc_blame
-apply_nolint omega.nat.form.sub_terms doc_blame
-apply_nolint omega.nat.is_diff doc_blame
-apply_nolint omega.nat.preterm.sub_subst doc_blame
-apply_nolint omega.nat.preterm.sub_terms doc_blame
-apply_nolint omega.nat.sub_elim doc_blame
-apply_nolint omega.nat.sub_elim_core doc_blame
-apply_nolint omega.nat.sub_fresh_index doc_blame
-
--- tactic/omega/prove_unsats.lean
-apply_nolint omega.prove_forall_mem_eq_zero doc_blame
-apply_nolint omega.prove_neg doc_blame
-apply_nolint omega.prove_unsat doc_blame
-apply_nolint omega.prove_unsat_ef doc_blame
-apply_nolint omega.prove_unsat_lin_comb doc_blame
-apply_nolint omega.prove_unsats doc_blame
 
 -- tactic/omega/term.lean
-apply_nolint omega.term doc_blame
 apply_nolint omega.term.add doc_blame
 apply_nolint omega.term.div doc_blame
-apply_nolint omega.term.fresh_index doc_blame
 apply_nolint omega.term.mul doc_blame
 apply_nolint omega.term.neg doc_blame
 apply_nolint omega.term.sub doc_blame
 apply_nolint omega.term.to_string doc_blame
-apply_nolint omega.term.val doc_blame
-apply_nolint omega.terms.fresh_index doc_blame
 
 -- tactic/pi_instances.lean
 apply_nolint tactic.derive_field doc_blame
@@ -3793,7 +3583,6 @@ apply_nolint tactic.tidy.cfg doc_blame
 apply_nolint tactic.tidy.core doc_blame
 apply_nolint tactic.tidy.default_tactics doc_blame
 apply_nolint tactic.tidy.ext1_wrapper doc_blame
-apply_nolint tactic.tidy.name_to_tactic doc_blame
 apply_nolint tactic.tidy.run_tactics doc_blame
 apply_nolint tactic.tidy.tidy_attribute doc_blame
 apply_nolint tactic.tidy_hole_cmd doc_blame

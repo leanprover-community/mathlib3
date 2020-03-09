@@ -1373,7 +1373,7 @@ e.to_linear_map.map_sub a b
 
 @[simp] theorem map_eq_zero_iff (e : M ≃ₗ[R] M₂) {x : M} : e x = 0 ↔ x = 0 :=
 e.to_add_equiv.map_eq_zero_iff
-@[simp] theorem map_ne_zero_iff (e : M ≃ₗ[R] M₂) {x : M} : e x ≠ 0 ↔ x ≠ 0 :=
+theorem map_ne_zero_iff (e : M ≃ₗ[R] M₂) {x : M} : e x ≠ 0 ↔ x ≠ 0 :=
 e.to_add_equiv.map_ne_zero_iff
 
 @[simp] theorem symm_symm (e : M ≃ₗ[R] M₂) : e.symm.symm = e := by { cases e, refl }

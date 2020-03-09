@@ -34,4 +34,5 @@ import
   tactic.apply
   tactic.pi_instances
   tactic.fin_cases
+  tactic.interval_cases
   tactic.reassoc_axiom -- most likely useful only for category_theory

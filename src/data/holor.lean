@@ -70,7 +70,7 @@ lemma drop_take :
 lemma drop_drop :
   ∀ t : holor_index (ds₁ ++ ds₂ ++ ds₃),
   t.assoc_right.drop.drop = t.drop
-| ⟨ is , h ⟩ := subtype.eq (by simp [assoc_right,drop, cast_type, list.drop_drop])
+| ⟨ is , h ⟩ := subtype.eq (by simp [add_comm, assoc_right, drop, cast_type, list.drop_drop])
 
 end holor_index
 

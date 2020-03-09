@@ -140,11 +140,11 @@ by dsimp [of_set]; split_ifs; simp *
 lemma mem_of_set_iff {s : set α} [decidable_pred s] {a b : α} : a ∈ of_set s b ↔ a = b ∧ a ∈ s :=
 by dsimp [of_set]; split_ifs; split; finish
 
-@[simp] lemma of_set_eq_some_self_iff {s : set α} {h : decidable_pred s} {a : α} :
-  of_set s a = some a ↔ a ∈ s := mem_of_set_self_iff
-
 @[simp] lemma of_set_eq_some_iff {s : set α} {h : decidable_pred s} {a b : α} :
   of_set s b = some a ↔ a = b ∧ a ∈ s := mem_of_set_iff
+
+@[simp] lemma of_set_eq_some_self_iff {s : set α} {h : decidable_pred s} {a : α} :
+  of_set s a = some a ↔ a ∈ s := mem_of_set_self_iff
 
 @[simp] lemma of_set_symm : (of_set s).symm = of_set s := rfl
 

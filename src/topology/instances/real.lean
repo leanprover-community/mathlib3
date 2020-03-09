@@ -233,7 +233,7 @@ metric.totally_bounded_iff.2 $ λ ε ε0, begin
   let i : ℕ := ⌊(x - a) / ε⌋.to_nat,
   have : (i : ℤ) = ⌊(x - a) / ε⌋ :=
     int.to_nat_of_nonneg (floor_nonneg.2 $ le_of_lt (div_pos (sub_pos.2 ax) ε0)),
-  simp, refine ⟨_, ⟨i, _, rfl⟩, _⟩,
+  simp, use i, split,
   { rw [← int.coe_nat_lt, this],
     refine int.cast_lt.1 (lt_of_le_of_lt (floor_le _) _),
     rw [int.cast_coe_nat, div_lt_iff' ε0, sub_lt_iff_lt_add'],

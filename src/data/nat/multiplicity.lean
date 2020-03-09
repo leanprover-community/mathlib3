@@ -63,7 +63,7 @@ by rw [int.coe_nat_multiplicity, int.coe_nat_multiplicity,
 
 lemma multiplicity_pow {p m n : ℕ} (hp : p.prime) :
   multiplicity p (m ^ n) = add_monoid.smul n (multiplicity p m) :=
-by induction n; simp [nat.pow_succ, hp.multiplicity_mul, *, hp.multiplicity_one, succ_smul]
+by induction n; simp [nat.pow_succ, hp.multiplicity_mul, *, hp.multiplicity_one, succ_smul, add_comm]
 
 lemma multiplicity_self {p : ℕ} (hp : p.prime) : multiplicity p p = 1 :=
 have h₁ : ¬ is_unit (p : ℤ), from mt is_unit_int.1 (ne_of_gt hp.one_lt),
@@ -121,7 +121,7 @@ have h₁ : multiplicity p (choose n k) + multiplicity p (k.fact * (n - k).fact)
       hp.multiplicity_fact hnb, hp.multiplicity_mul, hp.multiplicity_fact (le_trans hkn hnb),
       hp.multiplicity_fact (le_trans (nat.sub_le_self _ _) hnb),
       multiplicity_choose_aux hp hkn],
-    simp,
+    simp [add_comm],
   end,
 (enat.add_right_cancel_iff
   (enat.ne_top_iff_dom.2 $

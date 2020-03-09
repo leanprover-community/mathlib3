@@ -340,13 +340,32 @@ begin
   exact mem_tangent_cone_of_segment_subset (conv.segment_subset xs zs)
 end
 
+lemma unique_diff_on_Ici (a : ℝ) : unique_diff_on ℝ (Ici a) :=
+unique_diff_on_convex (convex_Ici a) $ by simp only [interior_Ici, nonempty_Ioi]
+
+lemma unique_diff_on_Iic (a : ℝ) : unique_diff_on ℝ (Iic a) :=
+unique_diff_on_convex (convex_Iic a) $ by simp only [interior_Iic, nonempty_Iio]
+
+lemma unique_diff_on_Ioi (a : ℝ) : unique_diff_on ℝ (Ioi a) :=
+unique_diff_on_convex (convex_Ioi a) $ by simp only [interior_Ioi, nonempty_Ioi]
+
+lemma unique_diff_on_Iio (a : ℝ) : unique_diff_on ℝ (Iio a) :=
+unique_diff_on_convex (convex_Iio a) $ by simp only [interior_Iio, nonempty_Iio]
+
+lemma unique_diff_on_Icc {a b : ℝ} (hab : a < b) : unique_diff_on ℝ (Icc a b) :=
+unique_diff_on_convex (convex_Icc a b) $ by simp only [interior_Icc, nonempty_Ioo, hab]
+
+lemma unique_diff_on_Ico {a b : ℝ} (hab : a < b) : unique_diff_on ℝ (Ico a b) :=
+unique_diff_on_convex (convex_Ico a b) $ by simp only [interior_Ico, nonempty_Ioo, hab]
+
+lemma unique_diff_on_Ioc {a b : ℝ} (hab : a < b) : unique_diff_on ℝ (Ioc a b) :=
+unique_diff_on_convex (convex_Ioc a b) $ by simp only [interior_Ioc, nonempty_Ioo, hab]
+
+lemma unique_diff_on_Ioo {a b : ℝ} (hab : a < b) : unique_diff_on ℝ (Ioo a b) :=
+unique_diff_on_convex (convex_Ioo a b) $ by simp only [interior_Ioo, nonempty_Ioo, hab]
+
 /-- The real interval `[0, 1]` is a set of unique differentiability. -/
 lemma unique_diff_on_Icc_zero_one : unique_diff_on ℝ (Icc (0:ℝ) 1) :=
-begin
-  apply unique_diff_on_convex (convex_Icc 0 1),
-  have : (1/(2:ℝ)) ∈ interior (Icc (0:ℝ) 1) :=
-    mem_interior.2 ⟨Ioo (0:ℝ) 1, Ioo_subset_Icc_self, is_open_Ioo, by norm_num, by norm_num⟩,
-  exact ⟨_, this⟩
-end
+unique_diff_on_Icc zero_lt_one
 
 end unique_diff

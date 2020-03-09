@@ -752,7 +752,7 @@ formatted_results ← results.mmap $ λ ⟨linter_name, linter, results⟩,
       end,
     pure $ report_str ++ "/- " ++ linter.errors_found ++ ": -/\n" ++ warnings
   else
-    pure $ if verbose then report_str ++ "/- OK: " ++ linter.no_errors_found ++ ". -/" else format.nil,
+    pure $ if verbose then "/- OK: " ++ linter.no_errors_found ++ ". -/" else format.nil,
 let s := format.intercalate "\n\n" (formatted_results.filter (λ f, ¬ f.is_nil)),
 let s := if ¬ verbose then s else
   "/- Checking " ++ l.length ++ " declarations " ++ where_desc ++ " -/\n\n" ++ s,

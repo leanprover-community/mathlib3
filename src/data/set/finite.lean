@@ -365,7 +365,7 @@ begin
   refine ⟨range f, finite_range f, _⟩,
   rintro x hx,
   simp,
-  exact ⟨_, ⟨_, hx, rfl⟩, hf ⟨x, hx⟩⟩
+  exact ⟨x, ⟨hx, hf _⟩⟩,
 end
 
 lemma finite_range_ite {p : α → Prop} [decidable_pred p] {f g : α → β} (hf : finite (range f))

@@ -778,6 +778,11 @@ namespace monoid_hom
 
 variables (S : submonoid M)
 
+/-- Restriction of a monoid hom to a submonoid of the domain. -/
+@[to_additive "Restriction of an add_monoid hom to an `add_submonoid` of the domain."]
+def restrict {N : Type*} [monoid N] (f : M →* N) : S →* N :=
+⟨λ s, f s, f.map_one, λ x y, f.map_mul x y⟩
+
 /-- Restriction of a monoid hom to a submonoid of the codomain. -/
 @[to_additive "Restriction of an `add_monoid` hom to an `add_submonoid` of the codomain."]
 def subtype_mk {N : Type*} [monoid N] (f : N →* M) (h : ∀ x, f x ∈ S) : N →* S :=

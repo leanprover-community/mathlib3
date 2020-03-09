@@ -170,9 +170,17 @@ lemma add_div' (a b c : α) (hc : c ≠ 0) :
   b + a / c = (b * c + a) / c :=
 by simpa using div_add_div b a one_ne_zero hc
 
+lemma sub_div' (a b c : α) (hc : c ≠ 0) :
+  b - a / c = (b * c - a) / c :=
+by simpa using div_sub_div b a one_ne_zero hc
+
 lemma div_add' (a b c : α) (hc : c ≠ 0) :
   a / c + b = (a + b * c) / c :=
 by rwa [add_comm, add_div', add_comm]
+
+lemma div_sub' (a b c : α) (hc : c ≠ 0) :
+  a / c - b = (a - c * b) / c :=
+by simpa using div_sub_div a b hc one_ne_zero
 
 end
 
@@ -275,6 +283,6 @@ by simp [neg_div]
 
 attribute [field_simps] div_add_div_same inv_eq_one_div div_mul_eq_mul_div div_add' add_div'
 div_div_eq_div_mul mul_div_assoc' div_eq_div_iff div_eq_iff eq_div_iff mul_ne_zero'
-div_div_eq_mul_div neg_div' two_ne_zero
+div_div_eq_mul_div neg_div' two_ne_zero div_sub_div div_sub' sub_div'
 
 end field_simp

@@ -110,10 +110,59 @@ class epi  (f : X ⟶ Y) : Prop :=
 class mono (f : X ⟶ Y) : Prop :=
 (right_cancellation : Π {Z : C} (g h : Z ⟶ X) (w : g ≫ f = h ≫ f), g = h)
 
-@[simp] lemma cancel_epi  (f : X ⟶ Y) [epi f]  {g h : Y ⟶ Z} : (f ≫ g = f ≫ h) ↔ g = h :=
+instance (X : C) : epi.{v} (𝟙 X) :=
+⟨λ Z g h w, by simpa using w⟩
+instance (X : C) : mono.{v} (𝟙 X) :=
+⟨λ Z g h w, by simpa using w⟩
+
+lemma cancel_epi (f : X ⟶ Y) [epi f]  {g h : Y ⟶ Z} : (f ≫ g = f ≫ h) ↔ g = h :=
 ⟨ λ p, epi.left_cancellation g h p, begin intro a, subst a end ⟩
-@[simp] lemma cancel_mono (f : X ⟶ Y) [mono f] {g h : Z ⟶ X} : (g ≫ f = h ≫ f) ↔ g = h :=
+lemma cancel_mono (f : X ⟶ Y) [mono f] {g h : Z ⟶ X} : (g ≫ f = h ≫ f) ↔ g = h :=
 ⟨ λ p, mono.right_cancellation g h p, begin intro a, subst a end ⟩
+
+lemma cancel_epi_id (f : X ⟶ Y) [epi f] {h : Y ⟶ Y} : (f ≫ h = f) ↔ h = 𝟙 Y :=
+by { convert cancel_epi f, simp, }
+lemma cancel_mono_id (f : X ⟶ Y) [mono f] {g : X ⟶ X} : (g ≫ f = f) ↔ g = 𝟙 X :=
+by { convert cancel_mono f, simp, }
+
+instance epi_comp {X Y Z : C} (f : X ⟶ Y) [epi f] (g : Y ⟶ Z) [epi g] : epi (f ≫ g) :=
+begin
+  split, intros Z a b w,
+  apply (cancel_epi g).1,
+  apply (cancel_epi f).1,
+  simpa using w,
+end
+instance mono_comp {X Y Z : C} (f : X ⟶ Y) [mono f] (g : Y ⟶ Z) [mono g] : mono (f ≫ g) :=
+begin
+  split, intros Z a b w,
+  apply (cancel_mono f).1,
+  apply (cancel_mono g).1,
+  simpa using w,
+end
+
+lemma mono_of_mono {X Y Z : C} (f : X ⟶ Y) (g : Y ⟶ Z) [mono (f ≫ g)] : mono f :=
+begin
+  split, intros Z a b w,
+  replace w := congr_arg (λ k, k ≫ g) w,
+  dsimp at w,
+  rw [category.assoc, category.assoc] at w,
+  exact (cancel_mono _).1 w,
+end
+
+lemma mono_of_mono_fac {X Y Z : C} {f : X ⟶ Y} {g : Y ⟶ Z} {h : X ⟶ Z} [mono h] (w : f ≫ g = h) : mono f :=
+by { resetI, subst h, exact mono_of_mono f g, }
+
+lemma epi_of_epi {X Y Z : C} (f : X ⟶ Y) (g : Y ⟶ Z) [epi (f ≫ g)] : epi g :=
+begin
+  split, intros Z a b w,
+  replace w := congr_arg (λ k, f ≫ k) w,
+  dsimp at w,
+  rw [←category.assoc, ←category.assoc] at w,
+  exact (cancel_epi _).1 w,
+end
+
+lemma epi_of_epi_fac {X Y Z : C} {f : X ⟶ Y} {g : Y ⟶ Z} {h : X ⟶ Z} [epi h] (w : f ≫ g = h) : epi g :=
+by { resetI, subst h, exact epi_of_epi f g, }
 end
 
 section

@@ -213,6 +213,18 @@ begin
   erw [t.w inl, ← t.w inr], refl
 end
 
+/-- To check whether a morphism is equalized by the maps of a pullback cone, it suffices to check
+  it for `fst t` and `snd t` -/
+lemma ext (t : pullback_cone f g) {W : C} {k l : W ⟶ t.X}
+  (h₀ : k ≫ fst t = l ≫ fst t)
+  (h₁ : k ≫ snd t = l ≫ snd t) :
+  ∀ (j : walking_cospan), k ≫ t.π.app j = l ≫ t.π.app j
+| left := h₀
+| right := h₁
+| one := calc k ≫ t.π.app one = k ≫ t.π.app left ≫ (cospan f g).map inl : by rw ←t.w
+    ... = l ≫ t.π.app left ≫ (cospan f g).map inl : by rw [←category.assoc, h₀, category.assoc]
+    ... = l ≫ t.π.app one : by rw t.w
+
 end pullback_cone
 
 abbreviation pushout_cocone (f : X ⟶ Y) (g : X ⟶ Z) := cocone (span f g)
@@ -317,6 +329,25 @@ lemma pushout.condition {X Y Z : C} {f : X ⟶ Y} {g : X ⟶ Z} [has_colimit (sp
   f ≫ (pushout.inl : Y ⟶ pushout f g) = g ≫ pushout.inr :=
 (colimit.w (span f g) walking_span.hom.fst).trans
 (colimit.w (span f g) walking_span.hom.snd).symm
+
+@[ext] lemma pullback.hom_ext {X Y Z : C} {f : X ⟶ Z} {g : Y ⟶ Z} [has_limit (cospan f g)]
+  {W : C} {k l : W ⟶ pullback f g} (h₀ : k ≫ pullback.fst = l ≫ pullback.fst)
+  (h₁ : k ≫ pullback.snd = l ≫ pullback.snd) : k = l :=
+limit.hom_ext $ pullback_cone.ext _ h₀ h₁
+
+instance pullback.fst_of_mono {X Y Z : C} {f : X ⟶ Z} {g : Y ⟶ Z} [has_limit (cospan f g)]
+  [mono g] : mono (pullback.fst : pullback f g ⟶ X) :=
+⟨λ Y u v h, pullback.hom_ext h $ (cancel_mono g).1 $
+  calc (u ≫ pullback.snd) ≫ g = u ≫ pullback.fst ≫ f : by rw [category.assoc, pullback.condition]
+    ... = v ≫ pullback.fst ≫ f : by rw [←category.assoc, h, category.assoc]
+    ... = (v ≫ pullback.snd) ≫ g : by rw [pullback.condition, ←category.assoc]⟩
+
+instance pullback.snd_of_mono {X Y Z : C} {f : X ⟶ Z} {g : Y ⟶ Z} [has_limit (cospan f g)]
+  [mono f] : mono (pullback.snd : pullback f g ⟶ Y) :=
+⟨λ Y u v h, pullback.hom_ext ((cancel_mono f).1 $
+  calc (u ≫ pullback.fst) ≫ f = u ≫ pullback.snd ≫ g : by rw [category.assoc, pullback.condition]
+    ... = v ≫ pullback.snd ≫ g : by rw [←category.assoc, h, category.assoc]
+    ... = (v ≫ pullback.fst) ≫ f : by rw [←pullback.condition, ←category.assoc]) h⟩
 
 variables (C)
 

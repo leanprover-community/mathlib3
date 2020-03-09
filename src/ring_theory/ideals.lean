@@ -486,16 +486,17 @@ ideal.quotient.field (nonunits_ideal α)
 variables {α β}
 noncomputable def map (f : α → β) [is_local_ring_hom f] :
   residue_field α → residue_field β :=
-ideal.quotient.lift (nonunits_ideal α) (ideal.quotient.mk _ ∘ f) $
-λ a ha,
+have is_ring_hom (ideal.quotient.mk (nonunits_ideal β) ∘ f) := is_ring_hom.comp _ _, by exactI
+ideal.quotient.lift (nonunits_ideal α) (ideal.quotient.mk _ ∘ f)
 begin
+  intros a ha,
   erw ideal.quotient.eq_zero_iff_mem,
   exact map_nonunit f a ha
 end
 
 instance map.is_ring_hom (f : α → β) [is_local_ring_hom f] :
   is_ring_hom (map f) :=
-ideal.quotient.is_ring_hom
+@ideal.quotient.is_ring_hom _ _ _ _ _ _ (is_ring_hom.comp _ _) _
 
 end residue_field
 

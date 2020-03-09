@@ -1266,7 +1266,9 @@ ns.for_each $ λ n, do
   tactic.change $ tgt'.instantiate_var v
 
 /-- `fold_locals x y z`, with `x`, `y`, `z` being local definitions,
-unfolds them in the goal. -/
+folds occurrences of their values in the goal.
+
+For instance, in the state `x : ℕ := 2 ⊢ 2 = 3`, `fold_locals x` will change the goal to `x = 3`. -/
 meta def fold_locals (ns : parse ident*) : tactic unit := do
 ns.for_each $ λ n, do
   d ← get_local n,

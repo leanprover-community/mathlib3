@@ -5,6 +5,7 @@ Author(s): Simon Hudon
 -/
 import data.lazy_list
 import data.lazy_list2
+import data.tree
 import testing.slim_check.gen
 
 /-!
@@ -35,7 +36,7 @@ namespace slim_check
 
 variables (α : Type u)
 
-/-- `arbitrary α` provides ways of creating examples of type `α`, 
+/-- `arbitrary α` provides ways of creating examples of type `α`,
 and given such an example `x : α`, gives us a way to shrink it
 and find simpler examples.  -/
 class arbitrary :=

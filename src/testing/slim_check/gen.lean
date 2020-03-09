@@ -19,6 +19,10 @@ This is a port of the Haskell QuickCheck library.
 ## Main definitions
   * `gen` monad
 
+## Local notation
+
+ * `i .. j` : `Icc i j`, the set of values between `i` and `j` inclusively;
+
 ## Tags
 
 random testing
@@ -50,6 +54,8 @@ variable (α : Type u)
 
 local infix ` .. `:41 := set.Icc
 
+open random (assumption_or_dec_trivial)
+
 section random
 
 variable [random α]
@@ -66,7 +72,7 @@ def choose_any : gen α :=
 variables {α}
 
 /-- lift `random.random_r` to the `gen` monad -/
-def choose (x y : α) (p : x ≤ y . check_range) : gen (x .. y) :=
+def choose (x y : α) (p : x ≤ y . assumption_or_dec_trivial) : gen (x .. y) :=
 ⟨ λ _, random.random_r _ x y p ⟩
 
 end random
@@ -74,7 +80,7 @@ end random
 open nat (hiding choose)
 
 /-- generate a `nat` example between `x` and `y` -/
-def choose_nat (x y : ℕ) (p : x ≤ y . check_range) : gen (x .. y) := do
+def choose_nat (x y : ℕ) (p : x ≤ y . assumption_or_dec_trivial) : gen (x .. y) := do
 ⟨z,h⟩ ← @choose (fin $ succ y) _ ⟨x,succ_le_succ p⟩ ⟨y,lt_succ_self _⟩ p,
 have h' : x ≤ z.val ∧ z.val ≤ y,
   by { simp [fin.le_def] at h, apply h },
@@ -114,6 +120,6 @@ open ulift
 
 /-- given a list of example generators, choose one to create an example -/
 def one_of (xs : list (gen α)) (pos : 0 < xs.length) : gen α :=
-have _inst : random _ := random_fin_of_pos _ pos, do
+have _inst : random _ := random_fin_of_pos pos, do
 n ← uliftable.up $ @choose_any (fin xs.length) _inst,
 list.nth_le xs (down n).val (down n).is_lt

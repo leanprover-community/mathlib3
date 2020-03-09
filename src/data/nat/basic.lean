@@ -1686,12 +1686,6 @@ def log (b : ℕ) : ℕ → ℕ
     log (n / b) + 1
   else 0
 
-/-- logarithm in base 2 -/
-def log2 := log 2
-
-/-- logarithm in base 10 -/
-def log10 := log 10
-
 lemma exp_le_iff_le_log (x y : ℕ) {b} (hb : 1 < b) (hy : 1 ≤ y) :
   b^x ≤ y ↔ x ≤ log b y :=
 begin
@@ -1715,7 +1709,7 @@ begin
       rw [h',pow_zero], exact hy} },
 end
 
-lemma log_exp (b x : ℕ) (hb : b > 1) : log b (b ^ x) = x :=
+lemma log_exp (b x : ℕ) (hb : 1 < b) : log b (b ^ x) = x :=
 eq_of_forall_le_iff $ λ z,
 by { rwa [← exp_le_iff_le_log _ _ hb,pow_le_iff_le_right],
      rw ← pow_zero b, apply pow_le_pow_of_le_right,

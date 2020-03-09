@@ -37,6 +37,10 @@ defining objects that can be created randomly.
   * `io.run_rand` to run a randomized computation inside the `io` monad;
   * `tactic.run_rand` to run a randomized computation inside the `tactic` monad
 
+## Local notation
+
+ * `i .. j` : `Icc i j`, the set of values between `i` and `j` inclusively;
+
 ## Tags
 
 random monad io
@@ -53,7 +57,7 @@ universes u v w
 
 /-- A monad to generate random objects using the generator type `g` -/
 @[reducible]
-def rand_g (g : Type) := state (ulift g)
+def rand_g (g : Type) (α : Type u) : Type u := state (ulift.{u} g) α
 /-- A monad to generate random objects using the generator type `std_gen` -/
 @[reducible]
 def rand := rand_g std_gen
@@ -64,7 +68,7 @@ instance (g : Type) : uliftable (rand_g.{u} g) (rand_g.{v} g) :=
 open ulift (hiding inhabited)
 
 /-- Generate one more `ℕ` -/
-def random.next {g : Type} [random_gen g] : rand_g g ℕ :=
+def rand_g.next {g : Type} [random_gen g] : rand_g g ℕ :=
 ⟨ prod.map id up ∘ random_gen.next ∘ down ⟩
 
 local infix ` .. `:41 := set.Icc
@@ -116,19 +120,13 @@ def random_series_r (x y : α) (h : x ≤ y) : rand_g g (stream (x .. y)) :=
 do gen ← uliftable.up split,
    pure $ corec_state (random_r g x y h) gen
 
+open tactic
+
+/-- Handy tactic tactic checks that a range taken as an argument is non-empty -/
+meta def assumption_or_dec_trivial : tactic unit :=
+assumption <|> tactic.exact_dec_trivial
+
 end random
-
-namespace tactic.interactive
-
-/-- Some functions require a non-empty range as a parameter. This
-tactic checks that the range is non-empty -/
-meta def check_range : tactic unit :=
-assumption <|> do
-`[apply of_as_true, trivial]
-
-end tactic.interactive
-
-export tactic.interactive (check_range)
 
 namespace io
 
@@ -153,8 +151,10 @@ variable [random α]
 def random : io α :=
 io.run_rand (random.random α _)
 
+open random (assumption_or_dec_trivial)
+
 /-- randomly generate a value of type α between `x` and `y` -/
-def random_r (x y : α) (p : x ≤ y . check_range) : io (x .. y) :=
+def random_r (x y : α) (p : x ≤ y . assumption_or_dec_trivial) : io (x .. y) :=
 io.run_rand (random.random_r _ x y p)
 
 /-- randomly generate an infinite series of value of type α -/
@@ -162,7 +162,7 @@ def random_series : io (stream α) :=
 io.run_rand (random.random_series _)
 
 /-- randomly generate an infinite series of value of type α between `x` and `y` -/
-def random_series_r (x y : α) (h : x ≤ y . check_range) : io (stream $ x .. y) :=
+def random_series_r (x y : α) (h : x ≤ y . assumption_or_dec_trivial) : io (stream $ x .. y) :=
 io.run_rand (random.random_series_r x y h)
 
 end io
@@ -180,6 +180,7 @@ meta def run_rand {α : Type u} (cmd : rand α) : tactic α := do
 return (cmd.run ⟨g⟩).1
 
 section random
+open random (assumption_or_dec_trivial)
 
 variables {α : Type u}
 variable [random α]
@@ -189,7 +190,7 @@ meta def random : tactic α :=
 run_rand (_root_.random.random _ _)
 
 /-- use `random_r` in the `tactic` monad -/
-meta def random_r (x y : α) (p : x ≤ y . check_range) : tactic (x .. y) :=
+meta def random_r (x y : α) (p : x ≤ y . assumption_or_dec_trivial) : tactic (x .. y) :=
 run_rand (random.random_r _ x y p)
 
 /-- use `random_series` in the `tactic` monad -/
@@ -197,7 +198,7 @@ meta def random_series : tactic (stream α) :=
 run_rand (random.random_series α)
 
 /-- use `random_series_r` in the `tactic` monad -/
-meta def random_series_r (x y : α) (h : x ≤ y . check_range) : tactic (stream $ x .. y) :=
+meta def random_series_r (x y : α) (h : x ≤ y . assumption_or_dec_trivial) : tactic (stream $ x .. y) :=
 run_rand (random.random_series_r x y h)
 
 end random
@@ -358,7 +359,7 @@ with `k` -/
 protected def random_aux : ℕ → ℕ → rand_g g (fin (succ n))
 | 0 k := return $ fin.of_nat k
 | (succ n) k :=
-do x ← random.next,
+do x ← rand_g.next,
    random_aux n $ x + (k * shift_31l)
 
 /-- generate a `fin` randomly -/
@@ -437,8 +438,8 @@ instance fin_random (n : ℕ) : random (fin (succ n)) :=
 
 open nat
 
-/-- A value of type `fin n` rather than `fin (succ n)` relying
-instead on a proof that `n` is positive. -/
-def random_fin_of_pos : ∀ (n : ℕ) (h : 0 < n), random (fin n)
+/-- A shortcut for creating a `random (fin n)` instance from
+a proof that `0 < n` rather than on matching on `fin (succ n)`  -/
+def random_fin_of_pos : ∀ {n : ℕ} (h : 0 < n), random (fin n)
 | (succ n) _ := fin_random _
 | 0 h := false.elim (not_lt_zero _ h)

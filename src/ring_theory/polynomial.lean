@@ -315,26 +315,28 @@ trunc.induction_on (fintype.equiv_fin σ) $ λ e,
 @is_noetherian_ring_of_ring_equiv (mv_polynomial (fin (fintype.card σ)) R) _ _ _
   (mv_polynomial.ring_equiv_of_equiv _ e.symm) is_noetherian_ring_fin
 
+lemma is_integral_domain_fin_zero (R : Type u) [comm_ring R] (hR : is_integral_domain R) :
+  is_integral_domain (mv_polynomial (fin 0) R) :=
+ring_equiv.is_integral_domain R hR
+  ((ring_equiv_of_equiv R fin_zero_equiv').trans (mv_polynomial.pempty_ring_equiv R))
+
 /-- Auxilliary lemma:
 Multivariate polynomials over an integral domain
 with variables indexed by `fin n` form an integral domain.
 This fact is proven inductively,
 and then used to prove the general case without any finiteness hypotheses.
 See `mv_polynomial.integral_domain` for the general case. -/
-lemma is_integral_domain_fin (R : Type u) [comm_ring R] (hR : is_integral_domain R) (n : ℕ) :
-  is_integral_domain (mv_polynomial (fin n) R) :=
-begin
-  induction n with n ih,
-  { let e : mv_polynomial (fin 0) R ≃+* R :=
-      (ring_equiv_of_equiv R fin_zero_equiv').trans (mv_polynomial.pempty_ring_equiv R),
-    exact ring_equiv.is_integral_domain R hR e },
+lemma is_integral_domain_fin (R : Type u) [comm_ring R] (hR : is_integral_domain R) :
+  ∀ (n : ℕ), is_integral_domain (mv_polynomial (fin n) R)
+| 0 := is_integral_domain_fin_zero R hR
+| (n+1) :=
   let e : mv_polynomial (fin (n.succ)) R ≃+* polynomial (mv_polynomial (fin n) R) :=
-    (ring_equiv_of_equiv R $ fin_succ_equiv n).trans (option_equiv_left R (fin n)),
-  refine ring_equiv.is_integral_domain (polynomial (mv_polynomial (fin n) R)) _ e,
-  letI _ih := @is_integral_domain.to_integral_domain (mv_polynomial (fin n) R) _ ih,
-  letI _id := @polynomial.integral_domain _ _ih,
-  exact @integral_domain.to_is_integral_domain _ _id,
-end
+    (ring_equiv_of_equiv R $ fin_succ_equiv n).trans (option_equiv_left R (fin n)) in
+  let _ih := @is_integral_domain.to_integral_domain (mv_polynomial (fin n) R) _ (is_integral_domain_fin n) in
+  let _id := @integral_domain.to_is_integral_domain _ (@polynomial.integral_domain _ _ih) in
+  ring_equiv.is_integral_domain
+    (polynomial (mv_polynomial (fin n) R)) _id e
+
 
 lemma is_integral_domain_fintype (R : Type u) (σ : Type v) [comm_ring R] [fintype σ]
   (hR : is_integral_domain R) : is_integral_domain (mv_polynomial σ R) :=

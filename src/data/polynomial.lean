@@ -2461,3 +2461,11 @@ end
 end identities
 
 end polynomial
+
+namespace is_integral_domain
+
+/-- Lift evidence that `is_integral_domain α` to `is_integral_domain (polynomial α)`. -/
+def is_integral_domain.polynomial (h : is_integral_domain α) : is_integral_domain (polynomial α) :=
+@integral_domain.to_is_integral_domain _ (@polynomial.integral_domain _ (h.to_integral_domain _))
+
+end is_integral_domain

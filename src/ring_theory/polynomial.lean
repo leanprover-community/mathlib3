@@ -294,13 +294,17 @@ is_noetherian_ring_of_ring_equiv R
   ((mv_polynomial.pempty_ring_equiv R).symm.trans
    (mv_polynomial.ring_equiv_of_equiv _ fin_zero_equiv'.symm))
 
+def mv_polynomial_fin_succ_equiv (n : ℕ) :
+  mv_polynomial (fin (n + 1)) R ≃+* polynomial (mv_polynomial (fin n) R) :=
+(mv_polynomial.ring_equiv_of_equiv R (fin_succ_equiv n).symm).symm.trans
+  (mv_polynomial.option_equiv_left R (fin n))
+
 theorem is_noetherian_ring_fin [is_noetherian_ring R] :
   ∀ {n : ℕ}, is_noetherian_ring (mv_polynomial (fin n) R)
 | 0 := is_noetherian_ring_fin_0
 | (n+1) :=
   @is_noetherian_ring_of_ring_equiv (polynomial (mv_polynomial (fin n) R)) _ _ _
-    ((mv_polynomial.option_equiv_left R (fin n)).symm.trans (mv_polynomial.ring_equiv_of_equiv R
-      (fin_succ_equiv n).symm))
+    (mv_polynomial_fin_succ_equiv n).symm
     (@polynomial.is_noetherian_ring (mv_polynomial (fin n) R) _ (is_noetherian_ring_fin))
 
 /-- The multivariate polynomial ring in finitely many variables over a noetherian ring
@@ -326,13 +330,8 @@ lemma is_integral_domain_fin (R : Type u) [comm_ring R] (hR : is_integral_domain
   ∀ (n : ℕ), is_integral_domain (mv_polynomial (fin n) R)
 | 0 := is_integral_domain_fin_zero R hR
 | (n+1) :=
-  let e : mv_polynomial (fin (n.succ)) R ≃+* polynomial (mv_polynomial (fin n) R) :=
-    (ring_equiv_of_equiv R $ fin_succ_equiv n).trans (option_equiv_left R (fin n)) in
-  let _ih := @is_integral_domain.to_integral_domain (mv_polynomial (fin n) R) _ (is_integral_domain_fin n) in
-  let _id := @integral_domain.to_is_integral_domain _ (@polynomial.integral_domain _ _ih) in
   ring_equiv.is_integral_domain
-    (polynomial (mv_polynomial (fin n) R)) _id e
-
+    (polynomial (mv_polynomial (fin n) R)) (is_integral_domain_fin n).polynomial (mv_polynomial_fin_succ_equiv n)
 
 lemma is_integral_domain_fintype (R : Type u) (σ : Type v) [comm_ring R] [fintype σ]
   (hR : is_integral_domain R) : is_integral_domain (mv_polynomial σ R) :=

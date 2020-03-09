@@ -106,7 +106,7 @@ begin
   case refl_trans_gen.tail : c d hbc hcd hac { exact hac.tail hcd }
 end
 
-lemma symmetry (h : symmetric r) : symmetric (refl_trans_gen r) :=
+lemma symmetric (h : symmetric r) : symmetric (refl_trans_gen r) :=
 begin
   intros x y h,
   induction h with z w a b c,

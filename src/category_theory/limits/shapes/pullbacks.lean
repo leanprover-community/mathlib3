@@ -215,7 +215,7 @@ end
 
 /-- To check whether a morphism is equalized by the maps of a pullback cone, it suffices to check
   it for `fst t` and `snd t` -/
-lemma ext (t : pullback_cone f g) {W : C} {k l : W ⟶ t.X}
+lemma equalizer_ext (t : pullback_cone f g) {W : C} {k l : W ⟶ t.X}
   (h₀ : k ≫ fst t = l ≫ fst t)
   (h₁ : k ≫ snd t = l ≫ snd t) :
   ∀ (j : walking_cospan), k ≫ t.π.app j = l ≫ t.π.app j
@@ -249,7 +249,7 @@ end
 
 /-- To check whether a morphism is coequalized by the maps of a pushout cocone, it suffices to check
   it for `inl t` and `inr t` -/
-lemma ext (t : pushout_cocone f g) {W : C} {k l : t.X ⟶ W}
+lemma coequalizer_ext (t : pushout_cocone f g) {W : C} {k l : t.X ⟶ W}
   (h₀ : inl t ≫ k = inl t ≫ l)
   (h₁ : inr t ≫ k = inr t ≫ l) :
   ∀ (j : walking_span), t.ι.app j ≫ k = t.ι.app j ≫ l
@@ -347,7 +347,7 @@ lemma pushout.condition {X Y Z : C} {f : X ⟶ Y} {g : X ⟶ Z} [has_colimit (sp
 @[ext] lemma pullback.hom_ext {X Y Z : C} {f : X ⟶ Z} {g : Y ⟶ Z} [has_limit (cospan f g)]
   {W : C} {k l : W ⟶ pullback f g} (h₀ : k ≫ pullback.fst = l ≫ pullback.fst)
   (h₁ : k ≫ pullback.snd = l ≫ pullback.snd) : k = l :=
-limit.hom_ext $ pullback_cone.ext _ h₀ h₁
+limit.hom_ext $ pullback_cone.equalizer_ext _ h₀ h₁
 
 /-- The pullback of a monomorphism is a monomorphism -/
 instance pullback.fst_of_mono {X Y Z : C} {f : X ⟶ Z} {g : Y ⟶ Z} [has_limit (cospan f g)]
@@ -370,7 +370,7 @@ instance pullback.snd_of_mono {X Y Z : C} {f : X ⟶ Z} {g : Y ⟶ Z} [has_limit
 @[ext] lemma pushout.hom_ext {X Y Z : C} {f : X ⟶ Y} {g : X ⟶ Z} [has_colimit (span f g)]
   {W : C} {k l : pushout f g ⟶ W} (h₀ : pushout.inl ≫ k = pushout.inl ≫ l)
   (h₁ : pushout.inr ≫ k = pushout.inr ≫ l) : k = l :=
-colimit.hom_ext $ pushout_cocone.ext _ h₀ h₁
+colimit.hom_ext $ pushout_cocone.coequalizer_ext _ h₀ h₁
 
 /-- The pushout of an epimorphism is an epimorphism -/
 instance pushout.inl_of_epi {X Y Z : C} {f : X ⟶ Y} {g : X ⟶ Z} [has_colimit (span f g)] [epi g] :

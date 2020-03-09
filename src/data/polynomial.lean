@@ -559,6 +559,9 @@ def map : polynomial α → polynomial β := eval₂ (C ∘ f) X
 
 variables [is_semiring_hom f]
 
+instance is_semiring_hom_C_f : is_semiring_hom (C ∘ f) :=
+is_semiring_hom.comp _ _
+
 @[simp] lemma map_C : (C a).map f = C (f a) := eval₂_C _ _
 
 @[simp] lemma map_X : X.map f = X := eval₂_X _ _

@@ -185,8 +185,8 @@ attribute.get_instances `tactic_doc >>=
 It adds a declaration to the environment with `tde` as its body and tags it with the `tactic_doc`
 attribute. If `tde.decl_names` has exactly one entry, and the referenced declaration is missing a
 doc string, it adds `tde.description` as the doc string. -/
-meta def tactic.add_tactic_doc (tde : pexpr) : tactic unit :=
-do tde ← to_expr ``(%%tde : tactic_doc_entry) >>= eval_expr tactic_doc_entry,
+meta def tactic.add_tactic_doc (tde : expr) : tactic unit :=
+do tde ← eval_expr tactic_doc_entry tde,
    when (tde.description = "" ∧ tde.inherit_description_from.is_none ∧ tde.decl_names.length ≠ 1) $
      fail "A tactic doc entry must contain either a description or a declaration to inherit a description from",
    tde ← if tde.description = "" then tde.update_description else return tde,
@@ -194,6 +194,13 @@ do tde ← to_expr ``(%%tde : tactic_doc_entry) >>= eval_expr tactic_doc_entry,
    add_decl $ mk_definition decl_name [] `(tactic_doc_entry) (reflect tde),
    tactic_doc_entry_attr.set decl_name () tt none
 
+/-- Given a `pexpr`, attempt to elaborate it and return either the error message or the result. -/
+private meta def elab_as_tde_or_error_msg (pe : pexpr) : tactic (expr ⊕ string) :=
+λ s, match to_expr ``(%%pe : tactic_doc_entry) ff ff s with
+| interaction_monad.result.success e s := interaction_monad.result.success (sum.inl e) s
+| interaction_monad.result.exception (some msg) _ _ := interaction_monad.result.success (sum.inr (msg ()).to_string) s
+| interaction_monad.result.exception none _ _ := interaction_monad.result.success (sum.inr (format!"{pe} is not a valid tactic doc entry").to_string) s
+end
 
 /--
 A command used to add documentation for a tactic, command, hole command, or attribute.
@@ -230,7 +237,12 @@ messages.
 
 -/
 @[user_command] meta def add_tactic_doc_command (_ : parse $ tk "add_tactic_doc") : parser unit :=
-parser.pexpr >>= of_tactic ∘ tactic.add_tactic_doc .
+do pe ← parser.pexpr,
+   elab ← of_tactic (elab_as_tde_or_error_msg pe),
+   match elab with
+   | sum.inl e := tactic.add_tactic_doc e
+   | sum.inr msg := interaction_monad.fail msg
+   end .
 
 add_tactic_doc
 { name                     := "library_note",

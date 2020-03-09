@@ -163,7 +163,7 @@ to show the user -/
 def minimize [∀ x, testable (β x)] (x : α) (r : test_result (β x)) : lazy_list α → gen (Σ x, test_result (β x))
 | lazy_list.nil := pure ⟨x,r⟩
 | (lazy_list.cons x xs) := do
-  ⟨r⟩ ← liftable.up $ testable.run (β x) tt,
+  ⟨r⟩ ← uliftable.up $ testable.run (β x) tt,
      if is_failure r
        then pure ⟨x, convert_counter_example id r (psum.inl ())⟩
        else minimize $ xs ()
@@ -174,10 +174,10 @@ def var_testable [has_to_string α] [arbitrary α] [∀ x, testable (β x)]
   (var : option string := none)
 : testable (Π x : α, β x) :=
 ⟨ λ min, do
-   liftable.adapt_down (arby α) $
+   uliftable.adapt_down (arby α) $
    λ x, do
      r ← testable.run (β x) ff,
-     liftable.adapt_down (if is_failure r ∧ min then minimize _ _ x r (shrink x) else pure ⟨x,r⟩) $
+     uliftable.adapt_down (if is_failure r ∧ min then minimize _ _ x r (shrink x) else pure ⟨x,r⟩) $
      λ ⟨x,r⟩, return $ match var with
                       | none := add_to_counter_example (to_string x) ($ x) r
                       | (some v) := add_var_to_counter_example v x ($ x) r

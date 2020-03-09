@@ -5,7 +5,7 @@ Author(s): Simon Hudon
 -/
 
 import algebra.group_power
-import control.liftable
+import category.uliftable
 
 import data.bitvec
 import data.list.basic
@@ -58,8 +58,8 @@ def rand_g (g : Type) := state (ulift g)
 @[reducible]
 def rand := rand_g std_gen
 
-instance (g : Type) : liftable (rand_g.{u} g) (rand_g.{v} g) :=
-@state_t.liftable' _ _ _ _ _ (equiv.ulift.trans.{u u u u u} equiv.ulift.symm)
+instance (g : Type) : uliftable (rand_g.{u} g) (rand_g.{v} g) :=
+@state_t.uliftable' _ _ _ _ _ (equiv.ulift.trans.{u u u u u} equiv.ulift.symm)
 
 open ulift (hiding inhabited)
 
@@ -106,14 +106,14 @@ def split : rand_g g g := ⟨ prod.map id up ∘ random_gen.split ∘ down ⟩
 
 /-- generate an infinite series of random values of type `α` -/
 def random_series : rand_g g (stream α) :=
-do gen ← liftable.up split,
+do gen ← uliftable.up split,
    pure $ corec_state (random α g) gen
 
 variables {α}
 
 /-- generate an infinite series of random values of type `α` between `x` and `y` -/
 def random_series_r (x y : α) (h : x ≤ y) : rand_g g (stream (x .. y)) :=
-do gen ← liftable.up split,
+do gen ← uliftable.up split,
    pure $ corec_state (random_r g x y h) gen
 
 end random

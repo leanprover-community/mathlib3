@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Author(s): Simon Hudon
 -/
 
-import control.liftable
+import category.uliftable
 import system.random
 import system.random.basic
 
@@ -84,8 +84,8 @@ open nat
 
 namespace gen
 
-instance : liftable gen.{u} gen.{v} :=
-reader_t.liftable' (equiv.ulift.trans equiv.ulift.symm)
+instance : uliftable gen.{u} gen.{v} :=
+reader_t.uliftable' (equiv.ulift.trans equiv.ulift.symm)
 
 end gen
 
@@ -106,7 +106,7 @@ def vector_of : ∀ (n : ℕ) (cmd : gen α), gen (vector α n)
 by the size parameter of `gen` -/
 def list_of (cmd : gen α) : gen (list α) :=
 sized $ λ sz, do
-do ⟨ n ⟩ ← liftable.up $ choose_nat 0 sz,
+do ⟨ n ⟩ ← uliftable.up $ choose_nat 0 sz,
    v ← vector_of n.val cmd,
    return v.to_list
 
@@ -115,5 +115,5 @@ open ulift
 /-- given a list of example generators, choose one to create an example -/
 def one_of (xs : list (gen α)) (pos : 0 < xs.length) : gen α :=
 have _inst : random _ := random_fin_of_pos _ pos, do
-n ← liftable.up $ @choose_any (fin xs.length) _inst,
+n ← uliftable.up $ @choose_any (fin xs.length) _inst,
 list.nth_le xs (down n).val (down n).is_lt

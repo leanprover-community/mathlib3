@@ -63,7 +63,7 @@ instance id : is_mul_hom (id : α → α) := {map_mul := λ _ _, rfl}
 /-- The composition of maps which preserve multiplication, also preserves multiplication. -/
 -- see Note [low priority instance on morphisms]
 @[priority 10, to_additive "The composition of addition preserving maps also preserves addition"]
-def comp (f : α → β) (g : β → γ) [is_mul_hom f] [hg : is_mul_hom g] : is_mul_hom (g ∘ f) :=
+lemma comp (f : α → β) (g : β → γ) [is_mul_hom f] [hg : is_mul_hom g] : is_mul_hom (g ∘ f) :=
 { map_mul := λ x y, by simp only [function.comp, map_mul f, map_mul g] }
 
 /-- A product of maps which preserve multiplication,
@@ -145,7 +145,7 @@ instance id : is_monoid_hom (@id α) := { map_one := rfl }
 
 /-- The composite of two monoid homomorphisms is a monoid homomorphism. -/
 @[priority 10, to_additive] -- see Note [low priority instance on morphisms]
-def comp {γ} [monoid γ] (g : β → γ) [is_monoid_hom g] :
+lemma comp {γ} [monoid γ] (g : β → γ) [is_monoid_hom g] :
   is_monoid_hom (g ∘ f) :=
 { map_one := show g _ = 1, by rw [map_one f, map_one g], ..is_mul_hom.comp _ _ }
 
@@ -211,7 +211,7 @@ instance id : is_group_hom (@id α) := { }
 
 /-- The composition of two group homomomorphisms is a group homomorphism. -/
 @[priority 10, to_additive] -- see Note [low priority instance on morphisms]
-def comp {γ} [group γ] (g : β → γ) [is_group_hom g] : is_group_hom (g ∘ f) :=
+lemma comp {γ} [group γ] (g : β → γ) [is_group_hom g] : is_group_hom (g ∘ f) :=
 { ..is_mul_hom.comp _ _ }
 
 /-- A group homomorphism is injective iff its kernel is trivial. -/

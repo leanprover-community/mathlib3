@@ -247,6 +247,18 @@ begin
   erw [t.w fst, ← t.w snd], refl
 end
 
+/-- To check whether a morphism is coequalized by the maps of a pushout cocone, it suffices to check
+  it for `inl t` and `inr t` -/
+lemma ext (t : pushout_cocone f g) {W : C} {k l : t.X ⟶ W}
+  (h₀ : inl t ≫ k = inl t ≫ l)
+  (h₁ : inr t ≫ k = inr t ≫ l) :
+  ∀ (j : walking_span), t.ι.app j ≫ k = t.ι.app j ≫ l
+| left := h₀
+| right := h₁
+| zero := calc t.ι.app zero ≫ k = ((span f g).map fst ≫ t.ι.app left) ≫ k : by rw ←t.w
+    ... = ((span f g).map fst ≫ t.ι.app left) ≫ l : by rw [category.assoc, h₀, ←category.assoc]
+    ... = t.ι.app zero ≫ l : by rw t.w
+
 end pushout_cocone
 
 def cone.of_pullback_cone
@@ -330,24 +342,51 @@ lemma pushout.condition {X Y Z : C} {f : X ⟶ Y} {g : X ⟶ Z} [has_colimit (sp
 (colimit.w (span f g) walking_span.hom.fst).trans
 (colimit.w (span f g) walking_span.hom.snd).symm
 
+/-- Two morphisms into a pullback are equal if their compositions with the pullback morphisms are
+    equal -/
 @[ext] lemma pullback.hom_ext {X Y Z : C} {f : X ⟶ Z} {g : Y ⟶ Z} [has_limit (cospan f g)]
   {W : C} {k l : W ⟶ pullback f g} (h₀ : k ≫ pullback.fst = l ≫ pullback.fst)
   (h₁ : k ≫ pullback.snd = l ≫ pullback.snd) : k = l :=
 limit.hom_ext $ pullback_cone.ext _ h₀ h₁
 
+/-- The pullback of a monomorphism is a monomorphism -/
 instance pullback.fst_of_mono {X Y Z : C} {f : X ⟶ Z} {g : Y ⟶ Z} [has_limit (cospan f g)]
   [mono g] : mono (pullback.fst : pullback f g ⟶ X) :=
-⟨λ Y u v h, pullback.hom_ext h $ (cancel_mono g).1 $
+⟨λ W u v h, pullback.hom_ext h $ (cancel_mono g).1 $
   calc (u ≫ pullback.snd) ≫ g = u ≫ pullback.fst ≫ f : by rw [category.assoc, pullback.condition]
     ... = v ≫ pullback.fst ≫ f : by rw [←category.assoc, h, category.assoc]
     ... = (v ≫ pullback.snd) ≫ g : by rw [pullback.condition, ←category.assoc]⟩
 
+/-- The pullback of a monomorphism is a monomorphism -/
 instance pullback.snd_of_mono {X Y Z : C} {f : X ⟶ Z} {g : Y ⟶ Z} [has_limit (cospan f g)]
   [mono f] : mono (pullback.snd : pullback f g ⟶ Y) :=
-⟨λ Y u v h, pullback.hom_ext ((cancel_mono f).1 $
+⟨λ W u v h, pullback.hom_ext ((cancel_mono f).1 $
   calc (u ≫ pullback.fst) ≫ f = u ≫ pullback.snd ≫ g : by rw [category.assoc, pullback.condition]
     ... = v ≫ pullback.snd ≫ g : by rw [←category.assoc, h, category.assoc]
     ... = (v ≫ pullback.fst) ≫ f : by rw [←pullback.condition, ←category.assoc]) h⟩
+
+/-- Two morphisms out of a pushout are equal if their compositions with the pushout morphisms are
+    equal -/
+@[ext] lemma pushout.hom_ext {X Y Z : C} {f : X ⟶ Y} {g : X ⟶ Z} [has_colimit (span f g)]
+  {W : C} {k l : pushout f g ⟶ W} (h₀ : pushout.inl ≫ k = pushout.inl ≫ l)
+  (h₁ : pushout.inr ≫ k = pushout.inr ≫ l) : k = l :=
+colimit.hom_ext $ pushout_cocone.ext _ h₀ h₁
+
+/-- The pushout of an epimorphism is an epimorphism -/
+instance pushout.inl_of_epi {X Y Z : C} {f : X ⟶ Y} {g : X ⟶ Z} [has_colimit (span f g)] [epi g] :
+  epi (pushout.inl : Y ⟶ pushout f g) :=
+⟨λ W u v h, pushout.hom_ext h $ (cancel_epi g).1 $
+  calc g ≫ pushout.inr ≫ u = (f ≫ pushout.inl) ≫ u : by rw [←category.assoc, ←pushout.condition]
+    ... = f ≫ pushout.inl ≫ v : by rw [category.assoc, h]
+    ... = g ≫ pushout.inr ≫ v : by rw [←category.assoc, pushout.condition, category.assoc]⟩
+
+/-- The pushout of an epimorphism is an epimorphism -/
+instance pushout.inr_of_epi {X Y Z : C} {f : X ⟶ Y} {g : X ⟶ Z} [has_colimit (span f g)] [epi f] :
+  epi (pushout.inr : Z ⟶ pushout f g) :=
+⟨λ W u v h, pushout.hom_ext ((cancel_epi f).1 $
+  calc f ≫ pushout.inl ≫ u = (g ≫ pushout.inr) ≫ u : by rw [←category.assoc, pushout.condition]
+    ... = g ≫ pushout.inr ≫ v : by rw [category.assoc, h]
+    ... = f ≫ pushout.inl ≫ v : by rw [←category.assoc, ←pushout.condition, category.assoc]) h⟩
 
 variables (C)
 

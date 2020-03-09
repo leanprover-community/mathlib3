@@ -120,6 +120,9 @@ attribute.get_instances `library_note >>=
 inductive doc_category
 | tactic | cmd | hole_cmd | attr
 
+instance : inhabited doc_category :=
+⟨doc_category.tactic⟩
+
 /-- Format a `doc_category` -/
 meta def doc_category.to_string : doc_category → string
 | doc_category.tactic := "tactic"
@@ -138,6 +141,11 @@ structure tactic_doc_entry :=
 (tags : list string := [])
 (description : string := "")
 (inherit_description_from : option _root_.name := none)
+
+instance : inhabited tactic_doc_entry :=
+⟨{ name := "",
+   category := default _,
+   decl_names := [] }⟩
 
 /-- format a `tactic_doc_entry` -/
 meta def tactic_doc_entry.to_string : tactic_doc_entry → string

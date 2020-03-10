@@ -288,24 +288,19 @@ attribute [instance] polynomial.is_noetherian_ring
 
 namespace mv_polynomial
 
-theorem is_noetherian_ring_fin {n : ℕ} [is_noetherian_ring R] :
-  is_noetherian_ring (mv_polynomial (fin n) R) :=
-begin
-  induction n with n ih,
-  { apply is_noetherian_ring_of_ring_equiv R,
-    refine (mv_polynomial.pempty_ring_equiv R).symm.trans _,
-    refine mv_polynomial.ring_equiv_of_equiv _ _,
-    exact ⟨pempty.elim, fin.elim0, λ x, pempty.elim x, λ x, fin.elim0 x⟩ },
-  resetI,
-  exact @is_noetherian_ring_of_ring_equiv (polynomial (mv_polynomial (fin n) R)) _
-    (mv_polynomial (fin (n+1)) R) _
-    ((mv_polynomial.option_equiv_left _ _).symm.trans (mv_polynomial.ring_equiv_of_equiv _
-      ⟨λ x, option.rec_on x 0 fin.succ, λ x, fin.cases none some x,
-      by rintro ⟨none | x⟩; [refl, exact fin.cases_succ _],
-      λ x, fin.cases rfl (λ i, show (option.rec_on (fin.cases none some (fin.succ i) : option (fin n))
-        0 fin.succ : fin n.succ) = _, by rw fin.cases_succ) x⟩))
-    (by apply_instance)
-end
+lemma is_noetherian_ring_fin_0 [is_noetherian_ring R] :
+  is_noetherian_ring (mv_polynomial (fin 0) R) :=
+is_noetherian_ring_of_ring_equiv R
+  ((mv_polynomial.pempty_ring_equiv R).symm.trans
+   (mv_polynomial.ring_equiv_of_equiv _ fin_zero_equiv'.symm))
+
+theorem is_noetherian_ring_fin [is_noetherian_ring R] :
+  ∀ {n : ℕ}, is_noetherian_ring (mv_polynomial (fin n) R)
+| 0 := is_noetherian_ring_fin_0
+| (n+1) :=
+  @is_noetherian_ring_of_ring_equiv (polynomial (mv_polynomial (fin n) R)) _ _ _
+    (mv_polynomial.fin_succ_equiv _ n).symm
+    (@polynomial.is_noetherian_ring (mv_polynomial (fin n) R) _ (is_noetherian_ring_fin))
 
 /-- The multivariate polynomial ring in finitely many variables over a noetherian ring
 is itself a noetherian ring. -/
@@ -315,26 +310,25 @@ trunc.induction_on (fintype.equiv_fin σ) $ λ e,
 @is_noetherian_ring_of_ring_equiv (mv_polynomial (fin (fintype.card σ)) R) _ _ _
   (mv_polynomial.ring_equiv_of_equiv _ e.symm) is_noetherian_ring_fin
 
+lemma is_integral_domain_fin_zero (R : Type u) [comm_ring R] (hR : is_integral_domain R) :
+  is_integral_domain (mv_polynomial (fin 0) R) :=
+ring_equiv.is_integral_domain R hR
+  ((ring_equiv_of_equiv R fin_zero_equiv').trans (mv_polynomial.pempty_ring_equiv R))
+
 /-- Auxilliary lemma:
 Multivariate polynomials over an integral domain
 with variables indexed by `fin n` form an integral domain.
 This fact is proven inductively,
 and then used to prove the general case without any finiteness hypotheses.
 See `mv_polynomial.integral_domain` for the general case. -/
-lemma is_integral_domain_fin (R : Type u) [comm_ring R] (hR : is_integral_domain R) (n : ℕ) :
-  is_integral_domain (mv_polynomial (fin n) R) :=
-begin
-  induction n with n ih,
-  { let e : mv_polynomial (fin 0) R ≃+* R :=
-      (ring_equiv_of_equiv R fin_zero_equiv').trans (mv_polynomial.pempty_ring_equiv R),
-    exact ring_equiv.is_integral_domain R hR e },
-  let e : mv_polynomial (fin (n.succ)) R ≃+* polynomial (mv_polynomial (fin n) R) :=
-    (ring_equiv_of_equiv R $ fin_succ_equiv n).trans (option_equiv_left R (fin n)),
-  refine ring_equiv.is_integral_domain (polynomial (mv_polynomial (fin n) R)) _ e,
-  letI _ih := @is_integral_domain.to_integral_domain (mv_polynomial (fin n) R) _ ih,
-  letI _id := @polynomial.integral_domain _ _ih,
-  exact @integral_domain.to_is_integral_domain _ _id,
-end
+lemma is_integral_domain_fin (R : Type u) [comm_ring R] (hR : is_integral_domain R) :
+  ∀ (n : ℕ), is_integral_domain (mv_polynomial (fin n) R)
+| 0 := is_integral_domain_fin_zero R hR
+| (n+1) :=
+  ring_equiv.is_integral_domain
+    (polynomial (mv_polynomial (fin n) R))
+    (is_integral_domain_fin n).polynomial
+    (mv_polynomial.fin_succ_equiv _ n)
 
 lemma is_integral_domain_fintype (R : Type u) (σ : Type v) [comm_ring R] [fintype σ]
   (hR : is_integral_domain R) : is_integral_domain (mv_polynomial σ R) :=

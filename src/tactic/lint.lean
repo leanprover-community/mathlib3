@@ -24,10 +24,12 @@ The following linters are run by default:
 8.  `impossible_instance` checks for instances that can never fire.
 9.  `incorrect_type_class_argument` checks for arguments in [square brackets] that are not classes.
 10. `dangerous_instance` checks for instances that generate type-class problems with metavariables.
-11. `inhabited_nonempty` checks for `inhabited` instance arguments that should be changed to `nonempty`.
-12. `simp_nf` checks that the left-hand side of simp lemmas is in simp-normal form.
-13. `simp_var_head` checks that there are no variables as head symbol of left-hand sides of simp lemmas.
-14. `simp_comm` checks that no commutativity lemmas (such as `add_comm`) are marked simp.
+11. `fails_quickly` tests that type-class inference ends (relatively) quickly when applied to variables.
+12. `has_coe_variable` tests that there are no instances of type `has_coe α t` for a variable `α`.
+13. `inhabited_nonempty` checks for `inhabited` instance arguments that should be changed to `nonempty`.
+14. `simp_nf` checks that the left-hand side of simp lemmas is in simp-normal form.
+15. `simp_var_head` checks that there are no variables as head symbol of left-hand sides of simp lemmas.
+16. `simp_comm` checks that no commutativity lemmas (such as `add_comm`) are marked simp.
 
 Another linter, `doc_blame_thm`, checks for missing doc strings on lemmas and theorems.
 This is not run by default.
@@ -407,7 +409,7 @@ meta def incorrect_type_class_argument (d : declaration) : tactic (option string
   _ :: _ ← return bad_arguments | return none,
   (λ s, some $ "These are not classes. " ++ s) <$> print_arguments bad_arguments
 
-/-- A linter object for `impossible_instance`. -/
+/-- A linter object for `incorrect_type_class_argument`. -/
 @[linter, priority 1420] meta def linter.incorrect_type_class_argument : linter :=
 { test := incorrect_type_class_argument,
   no_errors_found := "All declarations have correct type-class arguments",
@@ -432,6 +434,59 @@ meta def dangerous_instance (d : declaration) : tactic (option string) := do
 { test := dangerous_instance,
   no_errors_found := "No dangerous instances",
   errors_found := "DANGEROUS INSTANCES FOUND.\nThese instances are recursive, and create a new type-class problem which will have metavariables. Currently this linter does not check whether the metavariables only occur in arguments marked with `out_param`, in which case this linter gives a false positive." }
+
+/-- Applies expression `e` to local constants, but lifts all the arguments that are `Sort`-valued to
+  `Type`-valued sorts. -/
+meta def apply_to_fresh_variables (e : expr) : tactic expr := do
+t ← infer_type e,
+(xs, b) ← mk_local_pis t,
+xs.mmap' $ λ x, try $ do {
+  u ← mk_meta_univ,
+  tx ← infer_type x,
+  ttx ← infer_type tx,
+  unify ttx (expr.sort u.succ) },
+return $ e.app_of_list xs
+
+/-- Tests whether type-class inference search for a class will end quickly when applied to
+  variables. This tactic succeeds if `mk_instance` succeeds quickly or fails quickly with the error
+  message that it cannot find an instance. It fails if the tactic takes too long, or if any other
+  error message is raised.
+  We make sure that we apply the tactic to variables living in `Type u` instead of `Sort u`,
+  because many instances only apply in that special case, and we do want to catch those loops. -/
+meta def fails_quickly (max_steps : ℕ) (d : declaration) : tactic (option string) := do
+  e ← mk_const d.to_name,
+  tt ← is_class e | return none,
+  e' ← apply_to_fresh_variables e,
+  sum.inr msg ← retrieve_or_report_error $ tactic.try_for max_steps $
+    succeeds_or_fails_with_msg (mk_instance e')
+      $ λ s, "tactic.mk_instance failed to generate instance for".is_prefix_of s | return none,
+  return $ some $
+    if msg = "try_for tactic failed, timeout" then "type-class inference timed out" else msg
+
+/-- A linter object for `fails_quickly`. If we want to increase the maximum number of steps
+  type-class inference is allowed to take, we can increase the number `3000` in the definition.
+  As of 5 Mar 2020 the longest trace (for `is_add_hom`) takes 2900-3000 "heartbeats". -/
+@[linter, priority 1408] meta def linter.fails_quickly : linter :=
+{ test := fails_quickly 3000,
+  no_errors_found := "No time-class searches timed out",
+  errors_found := "TYPE CLASS SEARCHES TIMED OUT.
+For the following classes, there is an instance that causes a loop, or an excessively long search.",
+  is_fast := ff }
+
+/-- Tests whether there is no instance of type `has_coe α t` where `α` is a variable.
+See note [use has_coe_t]. -/
+meta def has_coe_variable (d : declaration) : tactic (option string) := do
+  tt ← is_instance d.to_name | return none,
+  `(has_coe %%a _) ← return d.type.pi_codomain | return none,
+  tt ← return a.is_var | return none,
+  return $ some $ "illegal instance"
+
+/-- A linter object for `has_coe_variable`. -/
+@[linter, priority 1405] meta def linter.has_coe_variable : linter :=
+{ test := has_coe_variable,
+  no_errors_found := "No invalid `has_coe` instances",
+  errors_found := "INVALID `has_coe` INSTANCES.
+Make the following declarations instances of the class `has_coe_t` instead of `has_coe`." }
 
 /-- Checks whether a declaration is prop-valued and takes an `inhabited _` argument that is unused
     elsewhere in the type. In this case, that argument can be replaced with `nonempty _`. -/
@@ -689,12 +744,13 @@ meta def lint_aux (l : list declaration) (group_by_filename : option nat)
   tactic (name_set × format) := do
 results ← lint_core l checks,
 formatted_results ← results.mmap $ λ ⟨linter_name, linter, results⟩,
+  let report_str : format := to_fmt "/- The `" ++ to_fmt linter_name ++ "` linter reports: -/\n" in
   if ¬ results.empty then do
     warnings ← match group_by_filename with
       | none := print_warnings results
       | some dropped := grouped_by_filename results dropped print_warnings
       end,
-    pure $ to_fmt "/- " ++ linter.errors_found ++ ": -/\n" ++ warnings
+    pure $ report_str ++ "/- " ++ linter.errors_found ++ ": -/\n" ++ warnings
   else
     pure $ if verbose then "/- OK: " ++ linter.no_errors_found ++ ". -/" else format.nil,
 let s := format.intercalate "\n\n" (formatted_results.filter (λ f, ¬ f.is_nil)),

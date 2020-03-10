@@ -5,7 +5,7 @@ Authors: Mario Carneiro
 
 Natural homomorphism from the natural numbers into a monoid with one.
 -/
-import data.nat.cast algebra.group algebra.field tactic.wlog
+import data.nat.cast algebra.field tactic.wlog
 
 /-- Typeclass for monoids with characteristic zero.
   (This is usually stated on fields but it makes sense for any additive monoid with 1.) -/

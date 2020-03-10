@@ -292,7 +292,7 @@ limit.lift (parallel_pair f g) (fork.of_ι k h)
 limit.hom_ext $ cone_parallel_pair_ext _ h
 
 /-- An equalizer morphism is a monomorphism -/
-lemma equalizer.ι_mono : mono (equalizer.ι f g) :=
+instance equalizer.ι_mono : mono (equalizer.ι f g) :=
 { right_cancellation := λ Z h k w, equalizer.hom_ext _ _ w }
 
 end
@@ -378,7 +378,7 @@ colimit.desc (parallel_pair f g) (cofork.of_π k h)
 colimit.hom_ext $ cocone_parallel_pair_ext _ h
 
 /-- A coequalizer morphism is an epimorphism -/
-lemma coequalizer.π_epi : epi (coequalizer.π f g) :=
+instance coequalizer.π_epi : epi (coequalizer.π f g) :=
 { left_cancellation := λ Z h k w, coequalizer.hom_ext _ _ w }
 
 end

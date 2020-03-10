@@ -48,7 +48,7 @@ def lift_right (f : M →* N) (g : M → units N) (h : ∀ x, f x = g x) :
   map_one' := units.ext $ h 1 ▸ f.map_one,
   map_mul' := λ x y, units.ext $ by simp only [(h _).symm, coe_mul, f.map_mul] }
 
-@[simp, to_additive] lemma coe_lift_right {f : M →* N} {g : M → units N} (h : ∀ x, f x = g x) (x) :
+@[to_additive] lemma coe_lift_right {f : M →* N} {g : M → units N} (h : ∀ x, f x = g x) (x) :
   f x = (lift_right f g h x : N) :=
 h x
 

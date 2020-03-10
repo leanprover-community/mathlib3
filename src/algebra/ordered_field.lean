@@ -50,7 +50,7 @@ lemma div_le_iff_of_neg (hc : c < 0) : b / c ≤ a ↔ a * c ≤ b :=
 ⟨mul_le_of_div_le_of_neg hc, div_le_of_mul_le_of_neg hc⟩
 
 lemma le_div_iff_of_neg (hc : c < 0) : a ≤ b / c ↔ b ≤ a * c :=
-by rw [← neg_neg c, mul_neg_eq_neg_mul_symm, div_neg _ (ne_of_gt (neg_pos.2 hc)), le_neg,
+by rw [← neg_neg c, mul_neg_eq_neg_mul_symm, div_neg, le_neg,
     div_le_iff (neg_pos.2 hc), neg_mul_eq_neg_mul_symm]
 
 lemma div_lt_iff (hc : 0 < c) : b / c < a ↔ b < a * c :=
@@ -67,10 +67,10 @@ by rw [inv_eq_one_div, div_le_iff ha,
        ← div_eq_inv_mul, one_le_div_iff_le hb]
 
 lemma inv_le (ha : 0 < a) (hb : 0 < b) : a⁻¹ ≤ b ↔ b⁻¹ ≤ a :=
-by rw [← inv_le_inv hb (inv_pos ha), division_ring.inv_inv (ne_of_gt ha)]
+by rw [← inv_le_inv hb (inv_pos ha), inv_inv']
 
 lemma le_inv (ha : 0 < a) (hb : 0 < b) : a ≤ b⁻¹ ↔ b ≤ a⁻¹ :=
-by rw [← inv_le_inv (inv_pos hb) ha, division_ring.inv_inv (ne_of_gt hb)]
+by rw [← inv_le_inv (inv_pos hb) ha, inv_inv']
 
 lemma one_div_le_one_div (ha : 0 < a) (hb : 0 < b) : 1 / a ≤ 1 / b ↔ b ≤ a :=
 by simpa [one_div_eq_inv] using inv_le_inv ha hb
@@ -116,6 +116,9 @@ lemma div_lt_div_iff (b0 : 0 < b) (d0 : 0 < d) :
   a / b < c / d ↔ a * d < c * b :=
 by rw [lt_div_iff d0, div_mul_eq_mul_div, div_lt_iff b0]
 
+lemma div_le_div_iff (b0 : 0 < b) (d0 : 0 < d) : a / b ≤ c / d ↔ a * d ≤ c * b :=
+by rw [le_div_iff d0, div_mul_eq_mul_div, div_le_iff b0]
+
 lemma div_lt_div (hac : a < c) (hbd : d ≤ b) (c0 : 0 ≤ c) (d0 : 0 < d) :
   a / b < c / d :=
 (div_lt_div_iff (lt_of_lt_of_le d0 hbd) d0).2 (mul_lt_mul hac hbd d0 c0)
@@ -132,20 +135,7 @@ lemma half_lt_self : 0 < a → a / 2 < a := div_two_lt_of_pos
 
 lemma one_half_lt_one : (1 / 2 : α) < 1 := half_lt_self zero_lt_one
 
-lemma ivl_translate : (λx, x + c) '' {r:α | a ≤ r ∧ r ≤ b } = {r:α | a + c ≤ r ∧ r ≤ b + c} :=
-calc (λx, x + c) '' {r | a ≤ r ∧ r ≤ b } = (λx, x - c) ⁻¹' {r | a ≤ r ∧ r ≤ b } :
-    congr_fun (set.image_eq_preimage_of_inverse
-      (assume a, add_sub_cancel a c) (assume b, sub_add_cancel b c)) _
-  ... = {r | a + c ≤ r ∧ r ≤ b + c} :
-    set.ext $ by simp [-sub_eq_add_neg, le_sub_iff_add_le, sub_le_iff_le_add]
-
-lemma ivl_stretch (hc : 0 < c) : (λx, x * c) '' {r | a ≤ r ∧ r ≤ b } = {r | a * c ≤ r ∧ r ≤ b * c} :=
-calc (λx, x * c) '' {r | a ≤ r ∧ r ≤ b } = (λx, x / c) ⁻¹' {r | a ≤ r ∧ r ≤ b } :
-    congr_fun (set.image_eq_preimage_of_inverse
-      (assume a, mul_div_cancel _ $ ne_of_gt hc) (assume b, div_mul_cancel _ $ ne_of_gt hc)) _
-  ... = {r | a * c ≤ r ∧ r ≤ b * c} :
-    set.ext $ by simp [le_div_iff, div_le_iff, hc]
-
+@[priority 100] -- see Note [lower instance priority]
 instance linear_ordered_field.to_densely_ordered : densely_ordered α :=
 { dense := assume a₁ a₂ h, ⟨(a₁ + a₂) / 2,
   calc a₁ = (a₁ + a₁) / 2 : (add_self_div_two a₁).symm
@@ -153,9 +143,11 @@ instance linear_ordered_field.to_densely_ordered : densely_ordered α :=
   calc (a₁ + a₂) / 2 < (a₂ + a₂) / 2 : div_lt_div_of_lt_of_pos (add_lt_add_right h _) two_pos
     ... = a₂ : add_self_div_two a₂⟩ }
 
+@[priority 100] -- see Note [lower instance priority]
 instance linear_ordered_field.to_no_top_order : no_top_order α :=
 { no_top := assume a, ⟨a + 1, lt_add_of_le_of_pos (le_refl a) zero_lt_one ⟩ }
 
+@[priority 100] -- see Note [lower instance priority]
 instance linear_ordered_field.to_no_bot_order : no_bot_order α :=
 { no_bot := assume a, ⟨a + -1,
     add_lt_of_le_of_neg (le_refl _) (neg_lt_of_neg_lt $ by simp [zero_lt_one]) ⟩ }
@@ -223,9 +215,7 @@ have h : abs (1 / a) = 1 / abs a,
 by simp [*] at *
 
 lemma inv_neg : (-a)⁻¹ = -(a⁻¹) :=
-if h : a = 0
-then by simp [h, inv_zero]
-else by rwa [inv_eq_one_div, inv_eq_one_div, div_neg_eq_neg_div]
+by rwa [inv_eq_one_div, inv_eq_one_div, div_neg_eq_neg_div]
 
 lemma inv_le_inv_of_le {a b : α} (hb : 0 < b) (h : b ≤ a) : a⁻¹ ≤ b⁻¹ :=
 begin
@@ -235,5 +225,9 @@ end
 
 lemma div_nonneg' {a b : α} (ha : 0 ≤ a) (hb : 0 ≤ b) : 0 ≤ a / b :=
 (lt_or_eq_of_le hb).elim (div_nonneg ha) (λ h, by simp [h.symm])
+
+lemma div_le_div_of_le_of_nonneg {a b c : α} (hab : a ≤ b) (hc : 0 ≤ c) :
+  a / c ≤ b / c :=
+mul_le_mul_of_nonneg_right hab (inv_nonneg.2 hc)
 
 end

@@ -10,7 +10,7 @@ Inspired by:
     The Essence of the Iterator Pattern
     Jeremy Gibbons and Bruno César dos Santos Oliveira
     In Journal of Functional Programming. Vol. 19. No. 3&4. Pages 377−402. 2009.
-    http://www.cs.ox.ac.uk/jeremy.gibbons/publications/iterator.pdf
+    <http://www.cs.ox.ac.uk/jeremy.gibbons/publications/iterator.pdf>
 -/
 
 import tactic.cache

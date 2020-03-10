@@ -20,7 +20,8 @@ export list (tfae)
 
 namespace tfae
 
-@[derive has_reflect] inductive arrow : Type
+@[derive has_reflect, derive inhabited]
+inductive arrow : Type
 | right      : arrow
 | left_right : arrow
 | left       : arrow
@@ -73,16 +74,16 @@ meta def tfae_have
 to prove a goal of the form `tfae [...]`. -/
 meta def tfae_finish : tactic unit :=
 applyc ``tfae_nil <|>
-closure.mk_closure (λ cl,
+closure.with_new_closure (λ cl,
 do impl_graph.mk_scc cl,
    `(tfae %%l) ← target,
    l ← parse_list l,
-   (r,_) ← cl.root l.head,
+   (_,r,_) ← cl.root l.head,
    refine ``(tfae_of_forall %%r _ _),
    thm ← mk_const ``forall_mem_cons,
    l.mmap' (λ e,
      do rewrite_target thm, split,
-        (r',p) ← cl.root e,
+        (_,r',p) ← cl.root e,
         tactic.exact p ),
    applyc ``forall_mem_nil,
    pure ())

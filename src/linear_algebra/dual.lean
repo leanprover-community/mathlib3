@@ -50,6 +50,8 @@ variables [comm_ring R] [add_comm_group M] [module R M]
 
 namespace dual
 
+instance : inhabited (dual R M) := by unfold dual; apply_instance
+
 instance : has_coe_to_fun (dual R M) := ⟨_, linear_map.to_fun⟩
 
 /-- Maps a module M to the dual of the dual of M. See `vector_space.eval_range` and
@@ -68,7 +70,7 @@ end module
 namespace is_basis
 universes u v w
 variables {K : Type u} {V : Type v} {ι : Type w}
-variables [discrete_field K] [add_comm_group V] [vector_space K V]
+variables [field K] [add_comm_group V] [vector_space K V]
 open vector_space module module.dual submodule linear_map cardinal function
 
 instance dual.vector_space : vector_space K (dual K V) := { ..module.dual.inst K V }
@@ -143,7 +145,7 @@ begin
     apply h.ext,
     { intros i,
       rw [h.to_dual_eq_repr _ i, repr_total h],
-      { simpa },
+      { refl },
       { rw [finsupp.mem_supported],
         exact λ _ _, set.mem_univ _ } } },
   { intros a _,
@@ -199,7 +201,7 @@ namespace vector_space
 
 universes u v
 variables {K : Type u} {V : Type v}
-variables [discrete_field K] [add_comm_group V] [vector_space K V]
+variables [field K] [add_comm_group V] [vector_space K V]
 open module module.dual submodule linear_map cardinal is_basis
 
 theorem eval_ker : (eval K V).ker = ⊥ :=
@@ -254,7 +256,7 @@ open vector_space module module.dual linear_map function
 
 universes u v w
 variables {K : Type u} {V : Type v} {ι : Type w} [decidable_eq ι]
-variables [discrete_field K] [add_comm_group V] [vector_space K V]
+variables [field K] [add_comm_group V] [vector_space K V]
 
 local notation `V'` := dual K V
 
@@ -272,7 +274,7 @@ open vector_space module module.dual linear_map function
 
 universes u v w
 variables {K : Type u} {V : Type v} {ι : Type w} [dι : decidable_eq ι]
-variables [discrete_field K] [add_comm_group V] [vector_space K V]
+variables [field K] [add_comm_group V] [vector_space K V]
 variables {e : ι → V} {ε : ι → dual K V} (h : dual_pair e ε)
 
 include h

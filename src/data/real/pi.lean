@@ -63,7 +63,6 @@ begin
       ←nat.cast_mul, ←nat.cast_add, ←nat.cast_mul, nat.cast_le, mul_comm b],
   apply pow_pos, iterate 2 {apply nat.cast_pos.2, apply nat.pos_of_ne_zero, assumption},
   exact nat.cast_ne_zero.2 hb,
-  exact nat.cast_ne_zero.2 hd,
   exact div_nonneg (nat.cast_nonneg _) (nat.cast_pos.2 $ nat.pos_of_ne_zero hd)
 end
 
@@ -78,7 +77,6 @@ begin
       ←nat.cast_mul, ←nat.cast_add, ←nat.cast_mul, nat.cast_le, mul_comm (b ^ 2)],
   swap, apply pow_pos, iterate 2 {apply nat.cast_pos.2, apply nat.pos_of_ne_zero, assumption},
   exact nat.cast_ne_zero.2 hd,
-  exact nat.cast_ne_zero.2 hb
 end
 
 @[simp] lemma cos_pi_over_two_pow : ∀(n : ℕ), cos (pi / 2 ^ (n+1)) = sqrt_two_add_series 0 n / 2
@@ -91,7 +89,7 @@ end
     congr, norm_num,
     rw [mul_comm, pow_two, mul_assoc, ←mul_div_assoc, mul_div_cancel_left, ←mul_div_assoc,
         mul_div_cancel_left],
-    norm_num, norm_num, apply pow_ne_zero, norm_num, norm_num,
+    norm_num, norm_num, norm_num,
     apply add_nonneg, norm_num, apply sqrt_two_add_series_zero_nonneg, norm_num,
     apply le_of_lt, apply mul_pos, apply cos_pos_of_neg_pi_div_two_lt_of_lt_pi_div_two,
     { transitivity (0 : ℝ), rw neg_lt_zero, apply pi_div_two_pos,
@@ -110,7 +108,6 @@ lemma sin_square_pi_over_two_pow_succ (n : ℕ) :
 begin
   rw [sin_square_pi_over_two_pow, sqrt_two_add_series, div_pow, sqr_sqrt, add_div, ←sub_sub],
   congr, norm_num, norm_num, apply add_nonneg, norm_num, apply sqrt_two_add_series_zero_nonneg,
-  norm_num
 end
 
 @[simp] lemma sin_pi_over_two_pow_succ (n : ℕ) :
@@ -179,8 +176,8 @@ begin
       norm_num },
     apply mul_le_of_le_div, apply pow_pos, norm_num,
     refine le_trans ((div_le_div_right _).mpr pi_le_four) _, apply pow_pos, norm_num,
-    rw [pow_succ, pow_succ, ←mul_assoc, ←field.div_div_eq_div_mul],
-    convert le_refl _, norm_num, norm_num, apply pow_ne_zero, norm_num, norm_num,
+    rw [pow_succ, pow_succ, ←mul_assoc, ←div_div_eq_div_mul],
+    convert le_refl _, norm_num, norm_num,
     apply pow_pos, norm_num },
   apply lt_of_lt_of_le this (le_of_eq _), rw [add_mul], congr' 1,
   { rw [pow_succ _ (n+1), ←mul_assoc, div_mul_cancel, mul_comm], norm_num },
@@ -224,7 +221,7 @@ begin
 end
 
 /- A computation of the first 7 digits of pi is given here:
-  https://gist.github.com/fpvandoorn/5b405988bc2e61953d56e3597db16ecf
+  <https://gist.github.com/fpvandoorn/5b405988bc2e61953d56e3597db16ecf>
   This is not included in mathlib, because of slow compilation time.
   -/
 

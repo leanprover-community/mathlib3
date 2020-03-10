@@ -1,5 +1,5 @@
 import tactic data.stream.basic data.set.basic data.finset data.multiset
-       category.traversable.derive
+       category.traversable.derive meta.coinductive_predicates
 
 open tactic
 
@@ -205,6 +205,36 @@ meta structure meta_struct (α : Type u) : Type u :=
   (z : list α)
   (k : list (list α))
   (w : expr)
+
+@[derive [traversable,is_lawful_traversable]]
+inductive my_tree (α : Type)
+| leaf {} : my_tree
+| node : my_tree → my_tree → α → my_tree
+
+section
+open my_tree (hiding traverse)
+
+def x : my_tree (list nat) :=
+node
+  leaf
+  (node
+    (node leaf leaf [1,2,3])
+    leaf
+    [3,2])
+  [1]
+
+/-- demonstrate the nested use of `traverse`. It traverses each node of the tree and
+in each node, traverses each list. For each `ℕ` visited, apply an action `ℕ -> state (list ℕ) unit`
+which adds its argument to the state. -/
+def ex : state (list ℕ) (my_tree $ list unit) :=
+do xs ← traverse (traverse $ λ a, modify $ list.cons a) x,
+   pure xs
+
+example : (ex.run []).1 = node leaf (node (node leaf leaf [(), (), ()]) leaf [(), ()]) [()] := rfl
+example : (ex.run []).2 = [1, 2, 3, 3, 2, 1] := rfl
+example : is_lawful_traversable my_tree := my_tree.is_lawful_traversable
+
+end
 
 /- tests of has_sep on finset -/
 

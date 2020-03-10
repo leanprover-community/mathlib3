@@ -61,7 +61,7 @@ As example, we will take [the tutorial project](https://github.com/leanprover-co
 
 * Type `update-mathlib` to get mathlib ready for use in this project.
 
-* Type `leanpkg build` to compile everything, this will take some time.
+* Type `leanpkg build` to compile everything, this should only take a few seconds.
 
 * launch VScode, either through your application menu or by typing
   `code`

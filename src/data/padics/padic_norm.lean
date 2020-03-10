@@ -34,7 +34,7 @@ by taking (prime p) as a type class argument.
 
 * [F. Q. Gouêva, *p-adic numbers*][gouvea1997]
 * [R. Y. Lewis, *A formal proof of Hensel's lemma over the p-adic integers*][lewis2019]
-* https://en.wikipedia.org/wiki/P-adic_number
+* <https://en.wikipedia.org/wiki/P-adic_number>
 
 ## Tags
 
@@ -154,7 +154,7 @@ begin
   rw [padic_val_rat.defn p (mul_ne_zero hq hr) this],
   conv_rhs { rw [←(@rat.num_denom q), padic_val_rat.defn p hq',
     ←(@rat.num_denom r), padic_val_rat.defn p hr'] },
-  rw [multiplicity.mul' hp', multiplicity.mul' hp']; simp
+  rw [multiplicity.mul' hp', multiplicity.mul' hp']; simp [add_comm, add_left_comm, sub_eq_add_neg]
 end
 
 /--
@@ -163,7 +163,7 @@ A rewrite lemma for `padic_val_rat p (q^k) with condition `q ≠ 0`.
 protected lemma pow {q : ℚ} (hq : q ≠ 0) {k : ℕ} :
     padic_val_rat p (q ^ k) = k * padic_val_rat p q :=
 by induction k; simp [*, padic_val_rat.mul _ hq (pow_ne_zero _ hq),
-  _root_.pow_succ, add_mul]
+  _root_.pow_succ, add_mul, add_comm]
 
 /--
 A rewrite lemma for `padic_val_rat p (q⁻¹)` with condition `q ≠ 0`.
@@ -345,7 +345,7 @@ else if hr : r = 0 then
 else
   have q*r ≠ 0, from mul_ne_zero hq hr,
   have (↑p : ℚ) ≠ 0, by simp [hp.ne_zero],
-  by simp [padic_norm, *, padic_val_rat.mul, fpow_add this]
+  by simp [padic_norm, *, padic_val_rat.mul, fpow_add this, mul_comm]
 
 /--
 The p-adic norm respects division.

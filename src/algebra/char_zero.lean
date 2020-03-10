@@ -5,25 +5,27 @@ Authors: Mario Carneiro
 
 Natural homomorphism from the natural numbers into a monoid with one.
 -/
-import data.nat.cast algebra.group algebra.field
+import data.nat.cast algebra.group algebra.field tactic.wlog
 
 /-- Typeclass for monoids with characteristic zero.
   (This is usually stated on fields but it makes sense for any additive monoid with 1.) -/
 class char_zero (α : Type*) [add_monoid α] [has_one α] : Prop :=
-(cast_inj : ∀ {m n : ℕ}, (m : α) = n ↔ m = n)
+(cast_injective : function.injective (coe : ℕ → α))
 
 theorem char_zero_of_inj_zero {α : Type*} [add_monoid α] [has_one α]
   (add_left_cancel : ∀ a b c : α, a + b = a + c → b = c)
   (H : ∀ n:ℕ, (n:α) = 0 → n = 0) : char_zero α :=
-⟨λ m n, ⟨suffices ∀ {m n : ℕ}, (m:α) = n → m ≤ n,
-  from λ h, le_antisymm (this h) (this h.symm),
-  λ m n h, (le_total m n).elim id $ λ h2, le_of_eq $ begin
-    cases nat.le.dest h2 with k e,
-    suffices : k = 0, {rw [← e, this, add_zero]},
-    apply H, apply add_left_cancel n,
-    rw [← nat.cast_add, e, add_zero, h]
-  end,
-congr_arg _⟩⟩
+⟨λ m n, begin
+   assume h,
+   wlog hle : m ≤ n,
+   cases nat.le.dest hle with k e,
+   suffices : k = 0, by rw [← e, this, add_zero],
+   apply H, apply add_left_cancel n,
+   rw [← h, ← nat.cast_add, e, add_zero, h]
+ end⟩
+
+-- We have no `left_cancel_add_monoid`, so we restate it for `add_group`
+-- and `ordered_cancel_comm_monoid`.
 
 theorem add_group.char_zero_of_inj_zero {α : Type*} [add_group α] [has_one α]
   (H : ∀ n:ℕ, (n:α) = 0 → n = 0) : char_zero α :=
@@ -34,6 +36,7 @@ theorem ordered_cancel_comm_monoid.char_zero_of_inj_zero {α : Type*}
   (H : ∀ n:ℕ, (n:α) = 0 → n = 0) : char_zero α :=
 char_zero_of_inj_zero (@add_left_cancel _ _) H
 
+@[priority 100] -- see Note [lower instance priority]
 instance linear_ordered_semiring.to_char_zero {α : Type*}
   [linear_ordered_semiring α] : char_zero α :=
 ordered_cancel_comm_monoid.char_zero_of_inj_zero $
@@ -43,21 +46,21 @@ ordered_cancel_comm_monoid.char_zero_of_inj_zero $
 namespace nat
 variables {α : Type*} [add_monoid α] [has_one α] [char_zero α]
 
+theorem cast_injective : function.injective (coe : ℕ → α) :=
+char_zero.cast_injective α
+
 @[simp, elim_cast] theorem cast_inj {m n : ℕ} : (m : α) = n ↔ m = n :=
-char_zero.cast_inj _
+cast_injective.eq_iff
 
-theorem cast_injective : function.injective (coe : ℕ → α)
-| m n := cast_inj.1
-
-@[simp] theorem cast_eq_zero {n : ℕ} : (n : α) = 0 ↔ n = 0 :=
+@[simp, elim_cast] theorem cast_eq_zero {n : ℕ} : (n : α) = 0 ↔ n = 0 :=
 by rw [← cast_zero, cast_inj]
 
-@[simp] theorem cast_ne_zero {n : ℕ} : (n : α) ≠ 0 ↔ n ≠ 0 :=
+@[elim_cast] theorem cast_ne_zero {n : ℕ} : (n : α) ≠ 0 ↔ n ≠ 0 :=
 not_congr cast_eq_zero
 
 end nat
 
-lemma two_ne_zero' {α : Type*} [add_monoid α] [has_one α] [char_zero α] : (2:α) ≠ 0 :=
+@[field_simps] lemma two_ne_zero' {α : Type*} [add_monoid α] [has_one α] [char_zero α] : (2:α) ≠ 0 :=
 have ((2:ℕ):α) ≠ 0, from nat.cast_ne_zero.2 dec_trivial,
 by rwa [nat.cast_succ, nat.cast_one] at this
 

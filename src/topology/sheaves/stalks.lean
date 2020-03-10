@@ -51,7 +51,7 @@ begin
 end
 
 -- Here are two other potential solutions, suggested by @fpvandoorn at
--- https://github.com/leanprover-community/mathlib/pull/1018#discussion_r283978240
+-- <https://github.com/leanprover-community/mathlib/pull/1018#discussion_r283978240>
 -- However, I can't get the subsequent two proofs to work with either one.
 
 -- def stalk_pushforward (f : X ⟶ Y) (ℱ : X.presheaf C) (x : X) : (f _* ℱ).stalk (f x) ⟶ ℱ.stalk x :=
@@ -74,12 +74,15 @@ begin
   ext1,
   tactic.op_induction',
   cases j, cases j_val,
-  rw [colim.ι_map_assoc, colim.ι_map, colimit.ι_pre, whisker_left.app, whisker_right.app,
+  rw [colimit.ι_map_assoc, colimit.ι_map, colimit.ι_pre, whisker_left_app, whisker_right_app,
        pushforward.id_hom_app, eq_to_hom_map, eq_to_hom_refl],
   dsimp,
-  rw [category_theory.functor.map_id]
+  -- FIXME A simp lemma which unfortunately doesn't fire:
+  erw [category_theory.functor.map_id],
 end
 
+-- This proof is sadly not at all robust:
+-- having to use `erw` at all is a bad sign.
 @[simp] lemma comp (ℱ : X.presheaf C) (f : X ⟶ Y) (g : Y ⟶ Z) (x : X) :
   ℱ.stalk_pushforward C (f ≫ g) x =
   ((f _* ℱ).stalk_pushforward C g (f x)) ≫ (ℱ.stalk_pushforward C f x) :=
@@ -89,14 +92,13 @@ begin
   op_induction U,
   cases U,
   cases U_val,
-  simp only [colim.ι_map_assoc, colimit.ι_pre_assoc, colimit.ι_pre,
-             whisker_right.app, category.assoc],
+  simp only [colimit.ι_map_assoc, colimit.ι_pre_assoc,
+             whisker_right_app, category.assoc],
   dsimp,
-  simp only [category.id_comp, category_theory.functor.map_id],
-  -- FIXME A simp lemma which unfortunately doesn't fire:
-  rw [category_theory.functor.map_id],
-  dsimp,
-  simp,
+  -- FIXME: Some of these are simp lemmas, but don't fire successfully:
+  erw [category_theory.functor.map_id, category.id_comp, category.id_comp, category.id_comp,
+       colimit.ι_pre, colimit.ι_pre],
+  refl,
 end
 
 end stalk_pushforward

@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Kenny Lau, Johan Commelin
 -/
 
-import group_theory.free_abelian_group data.equiv.algebra data.polynomial
+import algebra.free_monoid group_theory.free_abelian_group data.equiv.algebra data.polynomial
 
 universes u v
 
@@ -16,6 +16,8 @@ namespace free_ring
 variables (α : Type u)
 
 instance : ring (free_ring α) := free_abelian_group.ring _
+
+instance : inhabited (free_ring α) := ⟨0⟩
 
 variables {α}
 def of (x : α) : free_ring α :=
@@ -39,7 +41,7 @@ section lift
 variables {β : Type v} [ring β] (f : α → β)
 
 def lift : free_ring α → β :=
-free_abelian_group.lift $ λ L, (L.map f).prod
+free_abelian_group.lift $ λ L, (list.map f L).prod
 
 @[simp] lemma lift_zero : lift f 0 = 0 := rfl
 

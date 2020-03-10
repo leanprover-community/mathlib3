@@ -480,7 +480,7 @@ end ring
 namespace field
 
 variables [Π i, field (G i)]
-variables (f : Π i j, i ≤ j → G i → G j) [Π i j hij, is_field_hom (f i j hij)]
+variables (f : Π i j, i ≤ j → G i → G j) [Π i j hij, is_ring_hom (f i j hij)]
 variables [directed_system G f]
 
 namespace direct_limit
@@ -516,13 +516,8 @@ by rw [_root_.mul_comm, direct_limit.mul_inv_cancel G f hp]
 protected noncomputable def field : field (ring.direct_limit G f) :=
 { inv := inv G f,
   mul_inv_cancel := λ p, direct_limit.mul_inv_cancel G f,
-  inv_mul_cancel := λ p, direct_limit.inv_mul_cancel G f,
-  .. direct_limit.nonzero_comm_ring G f }
-
-protected noncomputable def discrete_field : discrete_field (ring.direct_limit G f) :=
-{ has_decidable_eq := classical.dec_eq _,
   inv_zero := dif_pos rfl,
-  ..direct_limit.field G f }
+  .. direct_limit.nonzero_comm_ring G f }
 
 end
 

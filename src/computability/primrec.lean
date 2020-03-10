@@ -90,7 +90,7 @@ theorem sub : primrec (unpaired has_sub.sub) :=
 
 theorem mul : primrec (unpaired (*)) :=
 (prec zero (add.comp (pair left (right.comp right)))).of_eq $
-λ p, by simp; induction p.unpair.2; simp [*, mul_succ]
+λ p, by simp; induction p.unpair.2; simp [*, mul_succ, add_comm]
 
 theorem pow : primrec (unpaired (^)) :=
 (prec (const 1) (mul.comp (pair (right.comp right) left))).of_eq $
@@ -100,10 +100,13 @@ end primrec
 
 end nat
 
+section prio
+set_option default_priority 100 -- see Note [default priority]
 /-- A `primcodable` type is an `encodable` type for which
   the encode/decode functions are primitive recursive. -/
 class primcodable (α : Type*) extends encodable α :=
 (prim : nat.primrec (λ n, encodable.encode (decode n)))
+end prio
 
 namespace primcodable
 open nat.primrec
@@ -245,9 +248,8 @@ instance prod {α β} [primcodable α] [primcodable β] : primcodable (α × β)
   (pair right ((primcodable.prim α).comp left))).of_eq $
 λ n, begin
   simp [nat.unpaired],
-  cases decode α n.unpair.1; simp, {refl},
-  cases decode β n.unpair.2; simp, {refl},
-  refl
+  cases decode α n.unpair.1, { simp },
+  cases decode β n.unpair.2; simp
 end⟩
 
 end primcodable

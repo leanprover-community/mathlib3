@@ -26,6 +26,8 @@ variables [comm_ring α] (f : polynomial α)
 
 instance : comm_ring (adjoin_root f) := ideal.quotient.comm_ring _
 
+instance : inhabited (adjoin_root f) := ⟨0⟩
+
 instance : decidable_eq (adjoin_root f) := classical.dec_eq _
 
 variable {f}
@@ -53,7 +55,7 @@ quotient.induction_on' (root : adjoin_root f)
     show finsupp.sum f (λ (e : ℕ) (a : α), mk (C a) * mk g ^ e) = 0,
     by simp only [hg, (is_semiring_hom.map_pow (mk : polynomial α → adjoin_root f) _ _).symm,
          (is_ring_hom.map_mul (mk : polynomial α → adjoin_root f)).symm];
-      rw [finsupp.sum, finset.sum_hom (mk : polynomial α → adjoin_root f),
+      rw [finsupp.sum, f.support.sum_hom (mk : polynomial α → adjoin_root f),
         show finset.sum _ _ = _, from sum_C_mul_X_eq _, mk_self])
   (show (root : adjoin_root f) = mk X, from rfl)
 
@@ -87,21 +89,16 @@ by unfold lift; apply_instance
 
 end comm_ring
 
-variables [discrete_field α] {f : polynomial α} [irreducible f]
+variables [field α] {f : polynomial α} [irreducible f]
 
 instance is_maximal_span : is_maximal (span {f} : ideal (polynomial α)) :=
 principal_ideal_domain.is_maximal_of_irreducible ‹irreducible f›
 
-noncomputable instance field : discrete_field (adjoin_root f) :=
+noncomputable instance field : field (adjoin_root f) :=
 ideal.quotient.field (span {f} : ideal (polynomial α))
 
-instance : is_field_hom (coe : α → adjoin_root f) := by apply_instance
-
-instance lift_is_field_hom [field β] {i : α → β} [is_ring_hom i] {a : β}
-  {h : f.eval₂ i a = 0} : is_field_hom (lift i a h) := by apply_instance
-
 lemma coe_injective : function.injective (coe : α → adjoin_root f) :=
-is_field_hom.injective _
+is_ring_hom.injective _
 
 lemma mul_div_root_cancel (f : polynomial α) [irreducible f] :
   (X - C (root : adjoin_root f)) * (f.map coe / (X - C root)) = f.map coe :=

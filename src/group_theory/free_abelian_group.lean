@@ -19,6 +19,8 @@ additive $ abelianization $ free_group α
 instance : add_comm_group (free_abelian_group α) :=
 @additive.add_comm_group _ $ abelianization.comm_group _
 
+instance : inhabited (free_abelian_group α) := ⟨0⟩
+
 variable {α}
 
 namespace free_abelian_group
@@ -45,7 +47,7 @@ is_add_group_hom.map_neg _ _
 
 @[simp] protected lemma sub (x y : free_abelian_group α) :
   lift f (x - y) = lift f x - lift f y :=
-by simp
+by simp [sub_eq_add_neg]
 
 @[simp] protected lemma zero : lift f 0 = 0 :=
 is_add_group_hom.map_zero _

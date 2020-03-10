@@ -26,7 +26,7 @@ instance : has_coe_to_fun (α ≃. β) := ⟨_, to_fun⟩
 @[simp] lemma coe_mk_apply (f₁ : α → option β) (f₂ : β → option α) (h) (x : α) :
   (pequiv.mk f₁ f₂ h : α → option β) x = f₁ x := rfl
 
-@[extensionality] lemma ext : ∀ {f g : α ≃. β} (h : ∀ x, f x = g x), f = g
+@[ext] lemma ext : ∀ {f g : α ≃. β} (h : ∀ x, f x = g x), f = g
 | ⟨f₁, f₂, hf⟩ ⟨g₁, g₂, hg⟩ h :=
 have h : f₁ = g₁, from funext h,
 have ∀ b, f₂ b = g₂ b,
@@ -140,11 +140,11 @@ by dsimp [of_set]; split_ifs; simp *
 lemma mem_of_set_iff {s : set α} [decidable_pred s] {a b : α} : a ∈ of_set s b ↔ a = b ∧ a ∈ s :=
 by dsimp [of_set]; split_ifs; split; finish
 
-@[simp] lemma of_set_eq_some_self_iff {s : set α} {h : decidable_pred s} {a : α} :
-  of_set s a = some a ↔ a ∈ s := mem_of_set_self_iff
-
 @[simp] lemma of_set_eq_some_iff {s : set α} {h : decidable_pred s} {a b : α} :
   of_set s b = some a ↔ a = b ∧ a ∈ s := mem_of_set_iff
+
+@[simp] lemma of_set_eq_some_self_iff {s : set α} {h : decidable_pred s} {a : α} :
+  of_set s a = some a ↔ a ∈ s := mem_of_set_self_iff
 
 @[simp] lemma of_set_symm : (of_set s).symm = of_set s := rfl
 
@@ -325,5 +325,7 @@ lemma to_pequiv_trans (f : α ≃ β) (g : β ≃ γ) : (f.trans g).to_pequiv =
   f.to_pequiv.trans g.to_pequiv := rfl
 
 lemma to_pequiv_symm (f : α ≃ β) : f.symm.to_pequiv = f.to_pequiv.symm := rfl
+
+lemma to_pequiv_apply (f : α ≃ β) (x : α) : f.to_pequiv x = some (f x) := rfl
 
 end equiv

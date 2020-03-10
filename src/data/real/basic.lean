@@ -128,7 +128,7 @@ noncomputable instance : discrete_linear_ordered_field ℝ :=
 { decidable_le := by apply_instance,
   ..real.linear_ordered_comm_ring,
   ..real.domain,
-  ..cau_seq.completion.discrete_field }
+  ..cau_seq.completion.field }
 
 /- Extra instances to short-circuit type class resolution -/
 
@@ -136,8 +136,7 @@ noncomputable instance : linear_ordered_field ℝ    := by apply_instance
 noncomputable instance : decidable_linear_ordered_comm_ring ℝ := by apply_instance
 noncomputable instance : decidable_linear_ordered_semiring ℝ := by apply_instance
 noncomputable instance : decidable_linear_ordered_comm_group ℝ := by apply_instance
-noncomputable instance discrete_field : discrete_field ℝ := by apply_instance
-noncomputable instance : field ℝ                   := by apply_instance
+noncomputable instance field : field ℝ := by apply_instance
 noncomputable instance : division_ring ℝ           := by apply_instance
 noncomputable instance : integral_domain ℝ         := by apply_instance
 noncomputable instance : nonzero_comm_ring ℝ       := by apply_instance
@@ -344,17 +343,17 @@ noncomputable instance : conditionally_complete_linear_order ℝ :=
     show a ≤ Sup s,
       from le_Sup s ‹bdd_above s› ‹a ∈ s›,
   cSup_le :=
-    assume (s : set ℝ) (a : ℝ) (_ : s ≠ ∅) (H : ∀b∈s, b ≤ a),
+    assume (s : set ℝ) (a : ℝ) (_ : s.nonempty) (H : ∀b∈s, b ≤ a),
     show Sup s ≤ a,
-      from Sup_le_ub s (set.exists_mem_of_ne_empty ‹s ≠ ∅›) H,
+      from Sup_le_ub s ‹s.nonempty› H,
   cInf_le :=
     assume (s : set ℝ) (a : ℝ) (_ : bdd_below s) (_ : a ∈ s),
     show Inf s ≤ a,
       from Inf_le s ‹bdd_below s› ‹a ∈ s›,
   le_cInf :=
-    assume (s : set ℝ) (a : ℝ) (_ : s ≠ ∅) (H : ∀b∈s, a ≤ b),
+    assume (s : set ℝ) (a : ℝ) (_ : s.nonempty) (H : ∀b∈s, a ≤ b),
     show a ≤ Inf s,
-      from lb_le_Inf s (set.exists_mem_of_ne_empty ‹s ≠ ∅›) H,
+      from lb_le_Inf s ‹s.nonempty› H,
   decidable_le := classical.dec_rel _,
  ..real.linear_order, ..real.lattice}
 
@@ -364,15 +363,14 @@ theorem Sup_of_not_bdd_above {s : set ℝ} (hs : ¬ bdd_above s) : lattice.Sup s
 dif_neg $ assume h, hs h.2
 
 theorem Sup_univ : real.Sup set.univ = 0 :=
-real.Sup_of_not_bdd_above $ λ h,
-Exists.dcases_on h $ λ x h', not_le_of_lt (lt_add_one _) $ h' (x + 1) $ set.mem_univ _
+real.Sup_of_not_bdd_above $ λ ⟨x, h⟩, not_le_of_lt (lt_add_one _) $ h (set.mem_univ _)
 
 theorem Inf_empty : lattice.Inf (∅ : set ℝ) = 0 :=
 show Inf ∅ = 0, by simp [Inf]; exact Sup_empty
 
 theorem Inf_of_not_bdd_below {s : set ℝ} (hs : ¬ bdd_below s) : lattice.Inf s = 0 :=
 have bdd_above {x | -x ∈ s} → bdd_below s, from
-  assume ⟨b, hb⟩, ⟨-b, assume x hxs, neg_le.2 $ hb _ $ by simp [hxs]⟩,
+  assume ⟨b, hb⟩, ⟨-b, assume x hxs, neg_le.2 $ hb $ by simp [hxs]⟩,
 have ¬ bdd_above {x | -x ∈ s}, from mt this hs,
 neg_eq_zero.2 $ Sup_of_not_bdd_above $ this
 
@@ -438,7 +436,7 @@ end,
     have : s < y := (lt_add_iff_pos_right _).2 (div_pos h _30),
     refine not_le_of_lt this (le_Sup S ⟨_, ub⟩ ⟨lt_trans S0 this, _⟩),
     rw [add_mul_self_eq, add_assoc, ← le_sub_iff_add_le', ← add_mul,
-      ← le_div_iff (div_pos h _30), div_div_cancel (ne_of_gt h)],
+      ← le_div_iff (div_pos h _30), field.div_div_cancel (ne_of_gt h)],
     apply add_le_add,
     { simpa using (mul_le_mul_left (@two_pos ℝ _)).2 (Sup_le_ub _ ⟨_, lb⟩ ub) },
     { rw [div_le_one_iff_le _30],

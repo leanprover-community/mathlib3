@@ -23,7 +23,7 @@ refer to the function field, ie. S x y = S.bilin x y.
 
 ## References
 
-* https://en.wikipedia.org/wiki/Sesquilinear_form#Over_arbitrary_rings
+* <https://en.wikipedia.org/wiki/Sesquilinear_form#Over_arbitrary_rings>
 
 ## Tags
 
@@ -77,13 +77,13 @@ lemma sub_right (x y z : M) :
 S x (y - z) = S x y - S x z := by rw [sub_eq_add_neg, add_right, neg_right]; refl
 
 variable {D : sesq_form R M I}
-@[extensionality] lemma ext (H : ∀ (x y : M), S x y = D x y) : S = D := by {cases S, cases D, congr, funext, exact H _ _}
+@[ext] lemma ext (H : ∀ (x y : M), S x y = D x y) : S = D := by {cases S, cases D, congr, funext, exact H _ _}
 
 instance : add_comm_group (sesq_form R M I) :=
 { add := λ S D, { sesq := λ x y, S x y + D x y,
-                  sesq_add_left := λ x y z, by {rw add_left, rw add_left, simp},
+                  sesq_add_left := λ x y z, by {rw add_left, rw add_left, ac_refl},
                   sesq_smul_left := λ a x y, by {rw [smul_left, smul_left, mul_add]},
-                  sesq_add_right := λ x y z, by {rw add_right, rw add_right, simp},
+                  sesq_add_right := λ x y z, by {rw add_right, rw add_right, ac_refl},
                   sesq_smul_right := λ a x y, by {rw [smul_right, smul_right, mul_add]} },
   add_assoc := by {intros, ext, unfold coe_fn has_coe_to_fun.coe sesq coe_fn has_coe_to_fun.coe sesq, rw add_assoc},
   zero := { sesq := λ x y, 0,
@@ -100,6 +100,8 @@ instance : add_comm_group (sesq_form R M I) :=
                 sesq_smul_right := λ a x y, by rw [sesq_smul_right, mul_neg_eq_neg_mul_symm] },
   add_left_neg := by {intros, ext, unfold coe_fn has_coe_to_fun.coe sesq, rw neg_add_self},
   add_comm := by {intros, ext, unfold coe_fn has_coe_to_fun.coe sesq, rw add_comm} }
+
+instance : inhabited (sesq_form R M I) := ⟨0⟩
 
 /-- The proposition that two elements of a sesquilinear form space are orthogonal -/
 def is_ortho (S : sesq_form R M I) (x y : M) : Prop :=

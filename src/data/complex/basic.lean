@@ -18,6 +18,7 @@ namespace complex
 @[simp] theorem eta : ∀ z : ℂ, complex.mk z.re z.im = z
 | ⟨a, b⟩ := rfl
 
+@[ext]
 theorem ext : ∀ {z w : ℂ}, z.re = w.re → z.im = w.im → z = w
 | ⟨zr, zi⟩ ⟨_, _⟩ rfl rfl := rfl
 
@@ -42,7 +43,7 @@ instance : inhabited ℂ := ⟨0⟩
 @[simp, squash_cast] lemma of_real_zero : ((0 : ℝ) : ℂ) = 0 := rfl
 
 @[simp] theorem of_real_eq_zero {z : ℝ} : (z : ℂ) = 0 ↔ z = 0 := of_real_inj
-@[simp] theorem of_real_ne_zero {z : ℝ} : (z : ℂ) ≠ 0 ↔ z ≠ 0 := not_congr of_real_eq_zero
+theorem of_real_ne_zero {z : ℝ} : (z : ℂ) ≠ 0 ↔ z ≠ 0 := not_congr of_real_eq_zero
 
 instance : has_one ℂ := ⟨(1 : ℝ)⟩
 
@@ -109,15 +110,16 @@ def conj (z : ℂ) : ℂ := ⟨z.re, -z.im⟩
 @[simp] lemma conj_zero : conj 0 = 0 := ext_iff.2 $ by simp [conj]
 @[simp] lemma conj_one : conj 1 = 1 := ext_iff.2 $ by simp
 @[simp] lemma conj_I : conj I = -I := ext_iff.2 $ by simp
-@[simp] lemma conj_neg_I : conj (-I) = I := ext_iff.2 $ by simp
 
 @[simp] lemma conj_add (z w : ℂ) : conj (z + w) = conj z + conj w :=
-ext_iff.2 $ by simp
+ext_iff.2 $ by simp [add_comm]
 
 @[simp] lemma conj_neg (z : ℂ) : conj (-z) = -conj z := rfl
 
+@[simp] lemma conj_neg_I : conj (-I) = I := ext_iff.2 $ by simp
+
 @[simp] lemma conj_mul (z w : ℂ) : conj (z * w) = conj z * conj w :=
-ext_iff.2 $ by simp
+ext_iff.2 $ by simp [add_comm]
 
 @[simp] lemma conj_conj (z : ℂ) : conj (conj z) = z :=
 ext_iff.2 $ by simp
@@ -180,7 +182,7 @@ lemma im_sq_le_norm_sq (z : ℂ) : z.im * z.im ≤ norm_sq z :=
 le_add_of_nonneg_left (mul_self_nonneg _)
 
 theorem mul_conj (z : ℂ) : z * conj z = norm_sq z :=
-ext_iff.2 $ by simp [norm_sq, mul_comm]
+ext_iff.2 $ by simp [norm_sq, mul_comm, sub_eq_neg_add, add_comm]
 
 theorem add_conj (z : ℂ) : z + conj z = (2 * z.re : ℝ) :=
 ext_iff.2 $ by simp [two_mul]
@@ -203,7 +205,7 @@ by refine { zero := 0, add := (+), neg := has_neg.neg, one := 1, mul := (*), ..}
 by induction n; simp [*, of_real_mul, pow_succ]
 
 theorem sub_conj (z : ℂ) : z - conj z = (2 * z.im : ℝ) * I :=
-ext_iff.2 $ by simp [two_mul]
+ext_iff.2 $ by simp [two_mul, sub_eq_add_neg]
 
 lemma conj_pow (z : ℂ) (n : ℕ) : conj (z ^ n) = conj z ^ n :=
 by induction n; simp [*, conj_mul, pow_succ]
@@ -212,7 +214,7 @@ by induction n; simp [*, conj_mul, pow_succ]
 
 lemma norm_sq_sub (z w : ℂ) : norm_sq (z - w) =
   norm_sq z + norm_sq w - 2 * (z * conj w).re :=
-by rw [sub_eq_add_neg, norm_sq_add]; simp [-mul_re]
+by rw [sub_eq_add_neg, norm_sq_add]; simp [-mul_re, add_comm, add_left_comm, sub_eq_add_neg]
 
 noncomputable instance : has_inv ℂ := ⟨λ z, conj z * ((norm_sq z)⁻¹:ℝ)⟩
 
@@ -234,13 +236,11 @@ protected theorem mul_inv_cancel {z : ℂ} (h : z ≠ 0) : z * z⁻¹ = 1 :=
 by rw [inv_def, ← mul_assoc, mul_conj, ← of_real_mul,
   mul_inv_cancel (mt norm_sq_eq_zero.1 h), of_real_one]
 
-noncomputable instance : discrete_field ℂ :=
+noncomputable instance : field ℂ :=
 { inv := has_inv.inv,
   zero_ne_one := mt (congr_arg re) zero_ne_one,
   mul_inv_cancel := @complex.mul_inv_cancel,
-  inv_mul_cancel := λ z h, by rw [mul_comm, complex.mul_inv_cancel h],
   inv_zero := complex.inv_zero,
-  has_decidable_eq := classical.dec_eq _,
   ..complex.comm_ring }
 
 instance re.is_add_group_hom : is_add_group_hom complex.re :=
@@ -256,15 +256,15 @@ instance of_real.is_ring_hom : is_ring_hom (coe : ℝ → ℂ) :=
 by refine_struct {..}; simp
 
 lemma div_re (z w : ℂ) : (z / w).re = z.re * w.re / norm_sq w + z.im * w.im / norm_sq w :=
-by simp [div_eq_mul_inv, mul_assoc]
+by simp [div_eq_mul_inv, mul_assoc, sub_eq_add_neg, add_comm, add_left_comm]
 lemma div_im (z w : ℂ) : (z / w).im = z.im * w.re / norm_sq w - z.re * w.im / norm_sq w :=
-by simp [div_eq_mul_inv, mul_assoc]
+by simp [div_eq_mul_inv, mul_assoc, sub_eq_add_neg, add_comm, add_left_comm]
 
 @[simp, move_cast] lemma of_real_div (r s : ℝ) : ((r / s : ℝ) : ℂ) = r / s :=
-is_field_hom.map_div coe
+is_ring_hom.map_div coe
 
 @[simp, move_cast] lemma of_real_fpow (r : ℝ) (n : ℤ) : ((r ^ n : ℝ) : ℂ) = (r : ℂ) ^ n :=
-is_field_hom.map_fpow of_real r n
+is_ring_hom.map_fpow of_real r n
 
 @[simp, squash_cast] theorem of_real_int_cast : ∀ n : ℤ, ((n : ℝ) : ℂ) = n :=
 int.eq_cast (λ n, ((n : ℝ) : ℂ))
@@ -274,18 +274,17 @@ int.eq_cast (λ n, ((n : ℝ) : ℂ))
 @[simp, squash_cast] theorem of_real_nat_cast (n : ℕ) : ((n : ℝ) : ℂ) = n :=
 by rw [← int.cast_coe_nat, of_real_int_cast]; refl
 
-@[simp] lemma conj_inv (z : ℂ) : conj z⁻¹ = (conj z)⁻¹ :=
-if h : z = 0 then by simp [h] else
-(domain.mul_left_inj (mt conj_eq_zero.1 h)).1 $
-by rw [← conj_mul]; simp [h, -conj_mul]
-
 @[simp] lemma conj_sub (z w : ℂ) : conj (z - w) = conj z - conj w :=
-by simp
+by simp [sub_eq_add_neg]
+
+@[simp] lemma conj_inv (z : ℂ) : conj z⁻¹ = (conj z)⁻¹ :=
+by ext; simp [neg_div]
 
 @[simp] lemma conj_div (z w : ℂ) : conj (z / w) = conj z / conj w :=
 by rw [division_def, conj_mul, conj_inv]; refl
 
 @[simp] lemma norm_sq_inv (z : ℂ) : norm_sq z⁻¹ = (norm_sq z)⁻¹ :=
+by classical; exact
 if h : z = 0 then by simp [h] else
 (domain.mul_left_inj (mt norm_sq_eq_zero.1 h)).1 $
 by rw [← norm_sq_mul]; simp [h, -norm_sq_mul]
@@ -331,7 +330,7 @@ by simp [abs, norm_sq_of_real, real.sqrt_mul_self_eq_abs]
 lemma abs_of_nonneg {r : ℝ} (h : 0 ≤ r) : abs r = r :=
 (abs_of_real _).trans (abs_of_nonneg h)
 
-@[simp] lemma abs_of_nat (n : ℕ) : complex.abs n = n :=
+lemma abs_of_nat (n : ℕ) : complex.abs n = n :=
 calc complex.abs n = complex.abs (n:ℝ) : by rw [of_real_nat_cast]
   ... = _ : abs_of_nonneg (nat.cast_nonneg n)
 
@@ -406,11 +405,13 @@ lemma abs_le_abs_re_add_abs_im (z : ℂ) : abs z ≤ abs' z.re + abs' z.im :=
 by simpa [re_add_im] using abs_add z.re (z.im * I)
 
 lemma abs_re_div_abs_le_one (z : ℂ) : abs' (z.re / z.abs) ≤ 1 :=
+by classical; exact
 if hz : z = 0 then by simp [hz, zero_le_one]
 else by rw [_root_.abs_div, abs_abs]; exact
   div_le_of_le_mul (abs_pos.2 hz) (by rw mul_one; exact abs_re_le_abs _)
 
 lemma abs_im_div_abs_le_one (z : ℂ) : abs' (z.im / z.abs) ≤ 1 :=
+by classical; exact
 if hz : z = 0 then by simp [hz, zero_le_one]
 else by rw [_root_.abs_div, abs_abs]; exact
   div_le_of_le_mul (abs_pos.2 hz) (by rw mul_one; exact abs_im_le_abs _)

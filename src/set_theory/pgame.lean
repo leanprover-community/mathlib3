@@ -189,6 +189,8 @@ instance : has_zero pgame := ⟨⟨pempty, pempty, pempty.elim, pempty.elim⟩�
 @[simp] lemma zero_left_moves : (0 : pgame).left_moves = pempty := rfl
 @[simp] lemma zero_right_moves : (0 : pgame).right_moves = pempty := rfl
 
+instance : inhabited pgame := ⟨0⟩
+
 /-- The pre-game `one` is defined by `1 = { 0 | }`. -/
 instance : has_one pgame := ⟨⟨punit, pempty, λ _, 0, pempty.elim⟩⟩
 
@@ -503,19 +505,19 @@ instance {x y : pgame} : has_coe (relabelling x y) (x ≈ y) := ⟨equiv_of_rela
 def relabel {x : pgame} {xl' xr'} (el : x.left_moves ≃ xl') (er : x.right_moves ≃ xr') :=
 pgame.mk xl' xr' (λ i, x.move_left (el.symm i)) (λ j, x.move_right (er.symm j))
 
-@[simp] lemma relabel_move_left {x : pgame} {xl' xr'} (el : x.left_moves ≃ xl') (er : x.right_moves ≃ xr') (i : x.left_moves) :
-  move_left (relabel el er) (el i) = x.move_left i :=
-by { dsimp [relabel], simp }
 @[simp] lemma relabel_move_left' {x : pgame} {xl' xr'} (el : x.left_moves ≃ xl') (er : x.right_moves ≃ xr') (i : xl') :
   move_left (relabel el er) i = x.move_left (el.symm i) :=
 rfl
+@[simp] lemma relabel_move_left {x : pgame} {xl' xr'} (el : x.left_moves ≃ xl') (er : x.right_moves ≃ xr') (i : x.left_moves) :
+  move_left (relabel el er) (el i) = x.move_left i :=
+by simp
 
-@[simp] lemma relabel_move_right {x : pgame} {xl' xr'} (el : x.left_moves ≃ xl') (er : x.right_moves ≃ xr') (j : x.right_moves) :
-  move_right (relabel el er) (er j) = x.move_right j :=
-by { dsimp [relabel], simp }
 @[simp] lemma relabel_move_right' {x : pgame} {xl' xr'} (el : x.left_moves ≃ xl') (er : x.right_moves ≃ xr') (j : xr') :
   move_right (relabel el er) j = x.move_right (er.symm j) :=
 rfl
+@[simp] lemma relabel_move_right {x : pgame} {xl' xr'} (el : x.left_moves ≃ xl') (er : x.right_moves ≃ xr') (j : x.right_moves) :
+  move_right (relabel el er) (er j) = x.move_right j :=
+by simp
 
 /-- The game obtained by relabelling the next moves is a relabelling of the original game. -/
 def relabel_relabelling {x : pgame} {xl' xr'} (el : x.left_moves ≃ xl') (er : x.right_moves ≃ xr') :

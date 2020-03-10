@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Mario Carneiro
 
 Evaluate expressions in the language of commutative (semi)rings.
-Based on http://www.cs.ru.nl/~freek/courses/tt-2014/read/10.1.1.61.3041.pdf .
+Based on <http://www.cs.ru.nl/~freek/courses/tt-2014/read/10.1.1.61.3041.pdf> .
 -/
 import algebra.group_power tactic.norm_num
 import tactic.converter.interactive
@@ -78,13 +78,13 @@ open horner_expr
 meta def horner_expr.to_string : horner_expr → string
 | (const e) := to_string e
 | (xadd e a x (_, n) b) :=
-    "(" ++ a.to_string ++ ") * (" ++ to_string x ++ ")^"
+    "(" ++ a.to_string ++ ") * (" ++ to_string x.1 ++ ")^"
         ++ to_string n ++ " + " ++ b.to_string
 
 meta def horner_expr.pp : horner_expr → tactic format
 | (const e) := pp e
 | (xadd e a x (_, n) b) := do
-  pa ← a.pp, pb ← b.pp, px ← pp x,
+  pa ← a.pp, pb ← b.pp, px ← pp x.1,
   return $ "(" ++ pa ++ ") * (" ++ px ++ ")^" ++ to_string n ++ " + " ++ pb
 
 meta instance : has_to_tactic_format horner_expr := ⟨horner_expr.pp⟩
@@ -117,7 +117,7 @@ meta def eval_horner : horner_expr → expr × ℕ → expr × ℕ → horner_ex
 
 theorem const_add_horner {α} [comm_semiring α] (k a x n b b') (h : k + b = b') :
   k + @horner α _ a x n b = horner a x n b' :=
-by simp [h.symm, horner]
+by simp [h.symm, horner]; cc
 
 theorem horner_add_const {α} [comm_semiring α] (a x n b k b') (h : b + k = b') :
   @horner α _ a x n b + k = horner a x n b' :=
@@ -126,17 +126,19 @@ by simp [h.symm, horner]
 theorem horner_add_horner_lt {α} [comm_semiring α] (a₁ x n₁ b₁ a₂ n₂ b₂ k a' b')
   (h₁ : n₁ + k = n₂) (h₂ : (a₁ + horner a₂ x k 0 : α) = a') (h₃ : b₁ + b₂ = b') :
   @horner α _ a₁ x n₁ b₁ + horner a₂ x n₂ b₂ = horner a' x n₁ b' :=
-by simp [h₂.symm, h₃.symm, h₁.symm, horner, pow_add, mul_add, mul_comm, mul_left_comm]
+by simp [h₂.symm, h₃.symm, h₁.symm, horner, pow_add, mul_add, mul_comm, mul_left_comm]; cc
 
 theorem horner_add_horner_gt {α} [comm_semiring α] (a₁ x n₁ b₁ a₂ n₂ b₂ k a' b')
   (h₁ : n₂ + k = n₁) (h₂ : (horner a₁ x k 0 + a₂ : α) = a') (h₃ : b₁ + b₂ = b') :
   @horner α _ a₁ x n₁ b₁ + horner a₂ x n₂ b₂ = horner a' x n₂ b' :=
-by simp [h₂.symm, h₃.symm, h₁.symm, horner, pow_add, mul_add, mul_comm, mul_left_comm]
+by simp [h₂.symm, h₃.symm, h₁.symm, horner, pow_add, mul_add, mul_comm, mul_left_comm]; cc
 
+-- set_option trace.class_instances true
+-- set_option class.instance_max_depth 128
 theorem horner_add_horner_eq {α} [comm_semiring α] (a₁ x n b₁ a₂ b₂ a' b' t)
   (h₁ : a₁ + a₂ = a') (h₂ : b₁ + b₂ = b') (h₃ : horner a' x n b' = t) :
   @horner α _ a₁ x n b₁ + horner a₂ x n b₂ = t :=
-by simp [h₃.symm, h₂.symm, h₁.symm, horner, add_mul, mul_comm]
+by simp [h₃.symm, h₂.symm, h₁.symm, horner, add_mul, mul_comm]; cc
 
 meta def eval_add : horner_expr → horner_expr → ring_m (horner_expr × expr)
 | (const e₁) (const e₂) := do
@@ -198,7 +200,7 @@ meta def eval_add : horner_expr → horner_expr → ring_m (horner_expr × expr)
 theorem horner_neg {α} [comm_ring α] (a x n b a' b')
   (h₁ : -a = a') (h₂ : -b = b') :
   -@horner α _ a x n b = horner a' x n b' :=
-by simp [h₂.symm, h₁.symm, horner]
+by simp [h₂.symm, h₁.symm, horner]; cc
 
 meta def eval_neg : horner_expr → ring_m (horner_expr × expr)
 | (const e) := do
@@ -311,14 +313,14 @@ meta def eval_pow : horner_expr → expr × ℕ → ring_m (horner_expr × expr)
   p ← lift $ mk_app ``pow_one [e],
   return (e, p)
 | (const e) (e₂, m) := do
-  (e', p) ← lift $ mk_app ``monoid.pow [e, e₂] >>= norm_num.derive,
+  (e', p) ← lift $ mk_app ``monoid.pow [e, e₂] >>= norm_num.derive',
   return (const e', p)
 | he@(xadd e a x n b) m := do
   c ← get_cache,
   let N : expr := expr.const `nat [],
   match b.e.to_nat with
   | some 0 := do
-    (n', h₁) ← lift $ mk_app ``has_mul.mul [n.1, m.1] >>= norm_num,
+    (n', h₁) ← lift $ mk_app ``has_mul.mul [n.1, m.1] >>= norm_num.derive',
     (a', h₂) ← eval_pow a m,
     α0 ← lift $ expr.of_nat c.α 0,
     return (xadd' c a' x (n', n.2 * m.2) (const α0),
@@ -364,13 +366,15 @@ meta def eval : expr → ring_m (horner_expr × expr)
   (e', p') ← eval_add e₁' e₂',
   p ← ring_m.mk_app ``norm_num.subst_into_sum ``has_add [e₁, e₂, e₁', e₂', e', p₁, p₂, p'],
   return (e', p)
-| `(%%e₁ - %%e₂) := do
-  c ← get_cache,
-  e₂' ← lift $ mk_app ``has_neg.neg [e₂],
-  e ← lift $ mk_app ``has_add.add [e₁, e₂'],
-  (e', p) ← eval e,
-  p' ← ring_m.mk_app ``unfold_sub ``add_group [e₁, e₂, e', p],
-  return (e', p')
+| e@`(@has_sub.sub %%α %%P %%e₁ %%e₂) :=
+  mcond (succeeds (lift $ mk_app ``comm_ring [α] >>= mk_instance))
+    (do
+      e₂' ← lift $ mk_app ``has_neg.neg [e₂],
+      e ← lift $ mk_app ``has_add.add [e₁, e₂'],
+      (e', p) ← eval e,
+      p' ← ring_m.mk_app ``unfold_sub ``add_group [e₁, e₂, e', p],
+      return (e', p'))
+    (eval_atom e)
 | `(- %%e) := do
   (e₁, p₁) ← eval e,
   (e₂, p₂) ← eval_neg e₁,
@@ -383,18 +387,23 @@ meta def eval : expr → ring_m (horner_expr × expr)
   p ← ring_m.mk_app ``norm_num.subst_into_prod ``has_mul [e₁, e₂, e₁', e₂', e', p₁, p₂, p'],
   return (e', p)
 | e@`(has_inv.inv %%_) := (do
-    (e', p) ← lift $ norm_num.derive e,
+    (e', p) ← lift $ norm_num.derive e <|> refl_conv e,
     lift $ e'.to_rat,
     return (const e', p)) <|> eval_atom e
-| `(%%e₁ / %%e₂) := do
-  e₂' ← lift $ mk_app ``has_inv.inv [e₂],
-  e ← lift $ mk_app ``has_mul.mul [e₁, e₂'],
-  (e', p) ← eval e,
-  p' ← ring_m.mk_app ``unfold_div ``division_ring [e₁, e₂, e', p],
-  return (e', p')
+| e@`(@has_div.div _ %%inst %%e₁ %%e₂) := mcond
+  (succeeds (do
+    inst' ← ring_m.mk_app ``division_ring_has_div ``division_ring [],
+    lift $ is_def_eq inst inst'))
+  (do
+    e₂' ← lift $ mk_app ``has_inv.inv [e₂],
+    e ← lift $ mk_app ``has_mul.mul [e₁, e₂'],
+    (e', p) ← eval e,
+    p' ← ring_m.mk_app ``unfold_div ``division_ring [e₁, e₂, e', p],
+    return (e', p'))
+  (eval_atom e)
 | e@`(@has_pow.pow _ _ %%P %%e₁ %%e₂) := do
-  (e₂', p₂) ← eval e₂,
-  match e₂'.e.to_nat, P with
+  (e₂', p₂) ← lift $ norm_num.derive e₂ <|> refl_conv e₂,
+  match e₂'.to_nat, P with
   | some k, `(monoid.has_pow) := do
     (e₁', p₁) ← eval e₁,
     (e', p') ← eval_pow e₁' (e₂, k),
@@ -433,6 +442,8 @@ theorem add_neg_eq_sub {α} [add_group α] (a b : α) : a + -b = a - b := rfl
 
 @[derive has_reflect]
 inductive normalize_mode | raw | SOP | horner
+
+instance : inhabited normalize_mode := ⟨normalize_mode.horner⟩
 
 meta def normalize (red : transparency) (mode := normalize_mode.horner) (e : expr) : tactic (expr × expr) := do
 pow_lemma ← simp_lemmas.mk.add_simp ``pow_one,
@@ -509,6 +520,8 @@ do ns ← loc.get_locals,
    tt ← tactic.replace_at (normalize transp SOP) ns loc.include_goal
       | fail "ring failed to simplify",
    when loc.include_goal $ try tactic.reflexivity
+
+add_hint_tactic "ring"
 
 end interactive
 end tactic

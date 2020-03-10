@@ -5,6 +5,7 @@ Author: Johannes Hölzl, Mario Carneiro
 -/
 
 import data.set.countable data.quot logic.function set_theory.schroeder_bernstein
+import data.fintype.card
 
 /-!
 # Cardinal Numbers
@@ -24,7 +25,7 @@ We define the order on cardinal numbers, define omega, and do basic cardinal ari
 
 ## References
 
-* https://en.wikipedia.org/wiki/Cardinal_number
+* <https://en.wikipedia.org/wiki/Cardinal_number>
 
 ## Tags
 
@@ -96,7 +97,7 @@ instance : linear_order cardinal.{u} :=
 
 noncomputable instance : decidable_linear_order cardinal.{u} := classical.DLO _
 
-noncomputable instance : distrib_lattice cardinal.{u} := by apply_instance
+noncomputable instance : distrib_lattice cardinal.{u} := by apply_instance -- short-circuit type class inference
 
 instance : has_zero cardinal.{u} := ⟨⟦pempty⟧⟩
 
@@ -732,6 +733,16 @@ match a, b, lt_omega.1 ha, lt_omega.1 hb with
 | _, _, ⟨m, rfl⟩, ⟨n, rfl⟩ := by rw [← nat_cast_pow]; apply nat_lt_omega
 end
 
+lemma eq_one_iff_subsingleton_and_nonempty {α : Type*} :
+  mk α = 1 ↔ (subsingleton α ∧ nonempty α) :=
+calc mk α = 1 ↔ mk α ≤ 1 ∧ ¬mk α < 1 : eq_iff_le_not_lt
+          ... ↔ subsingleton α ∧ nonempty α :
+begin
+  apply and_congr le_one_iff_subsingleton,
+  push_neg,
+  rw [one_le_iff_ne_zero, ne_zero_iff_nonempty]
+end
+
 theorem infinite_iff {α : Type u} : infinite α ↔ omega ≤ mk α :=
 by rw [←not_lt, lt_omega_iff_fintype, not_nonempty_fintype]
 
@@ -797,7 +808,7 @@ fintype_card pempty
 @[simp] theorem mk_plift_of_false {p : Prop} (h : ¬ p) : mk (plift p) = 0 :=
 quotient.sound ⟨equiv.plift.trans $ equiv.equiv_pempty h⟩
 
-@[simp] theorem mk_unit : mk unit = 1 :=
+theorem mk_unit : mk unit = 1 :=
 (fintype_card unit).trans nat.cast_one
 
 @[simp] theorem mk_punit : mk punit = 1 :=

@@ -18,7 +18,7 @@ variables {ι : Type w} {ι' : Type w'} {η : Type u''} {φ : η → Type u'}
 open_locale classical
 
 section vector_space
-variables [discrete_field K] [add_comm_group V] [vector_space K V]
+variables [field K] [add_comm_group V] [vector_space K V]
 include K
 open submodule lattice function set
 
@@ -122,7 +122,7 @@ by letI := classical.dec_eq V;
 @[simp] lemma dim_top : dim K (⊤ : submodule K V) = dim K V :=
 linear_equiv.dim_eq (linear_equiv.of_top _ rfl)
 
-lemma dim_of_field (K : Type*) [discrete_field K] : dim K K = 1 :=
+lemma dim_of_field (K : Type*) [field K] : dim K K = 1 :=
 by rw [←cardinal.lift_inj, ← (@is_basis_singleton_one punit K _ _).mk_eq_dim, cardinal.mk_punit]
 
 lemma dim_span {v : ι → V} (hv : linear_independent K v) :
@@ -168,15 +168,19 @@ begin
       ⟨equiv.ulift.trans (equiv.sum_congr (@equiv.ulift b) (@equiv.ulift c)).symm ⟩),
 end
 
-theorem dim_quotient (p : submodule K V) :
+theorem dim_quotient_add_dim (p : submodule K V) :
   dim K p.quotient + dim K p = dim K V :=
 by classical; exact let ⟨f⟩ := quotient_prod_linear_equiv p in dim_prod.symm.trans f.dim_eq
+
+theorem dim_quotient_le (p : submodule K V) :
+  dim K p.quotient ≤ dim K V :=
+by { rw ← dim_quotient_add_dim p, exact cardinal.le_add_right _ _ }
 
 /-- rank-nullity theorem -/
 theorem dim_range_add_dim_ker (f : V →ₗ[K] V₂) : dim K f.range + dim K f.ker = dim K V :=
 begin
   haveI := λ (p : submodule K V), classical.dec_eq p.quotient,
-  rw [← f.quot_ker_equiv_range.dim_eq, dim_quotient]
+  rw [← f.quot_ker_equiv_range.dim_eq, dim_quotient_add_dim]
 end
 
 lemma dim_range_le (f : V →ₗ[K] V₂) : dim K f.range ≤ dim K V :=
@@ -204,32 +208,12 @@ by rw [dim_eq_surjective f h]; refine le_add_right (le_refl _)
 lemma dim_eq_injective (f : V →ₗ[K] V₂) (h : injective f) : dim K V = dim K f.range :=
 by rw [← dim_range_add_dim_ker f, linear_map.ker_eq_bot.2 h]; simp [dim_bot]
 
-set_option class.instance_max_depth 37
 lemma dim_submodule_le (s : submodule K V) : dim K s ≤ dim K V :=
-begin
-  letI := classical.dec_eq V,
-  rcases exists_is_basis K s with ⟨bs, hbs⟩,
-  have : linear_independent K (λ (i : bs), submodule.subtype s i.val) :=
-    (linear_independent.image hbs.1) (linear_map.disjoint_ker'.2
-        (λ _ _ _ _ h, subtype.val_injective h)),
-  rcases exists_subset_is_basis (this.to_subtype_range) with ⟨b, hbs_b, hb⟩,
-  rw [←cardinal.lift_le, ← is_basis.mk_eq_dim hbs, ← is_basis.mk_eq_dim hb, cardinal.lift_le],
-  have : subtype.val '' bs ⊆ b,
-  { convert hbs_b,
-    rw [@range_comp _ _ _ (λ (i : bs), (i.val)) (submodule.subtype s),
-      ←image_univ, submodule.subtype],
-    simp only [subtype.val_image_univ],
-    refl },
-  calc cardinal.mk ↥bs = cardinal.mk ((subtype.val : s → V) '' bs) :
-      (cardinal.mk_image_eq $ subtype.val_injective).symm
-    ... ≤ cardinal.mk ↥b :
-      nonempty.intro (embedding_of_subset this),
-end
-set_option class.instance_max_depth 32
+by { rw ← dim_quotient_add_dim s, exact cardinal.le_add_left _ _ }
 
 lemma dim_le_injective (f : V →ₗ[K] V₂) (h : injective f) :
   dim K V ≤ dim K V₂ :=
-by rw [dim_eq_injective f h]; exact dim_submodule_le _
+by { rw [dim_eq_injective f h], exact dim_submodule_le _ }
 
 lemma dim_le_of_submodule (s t : submodule K V) (h : s ≤ t) : dim K s ≤ dim K t :=
 dim_le_injective (of_le h) $ assume ⟨x, hx⟩ ⟨y, hy⟩ eq,
@@ -398,7 +382,7 @@ end vector_space
 section unconstrained_universes
 
 variables {E : Type v'}
-variables [discrete_field K] [add_comm_group V] [vector_space K V]
+variables [field K] [add_comm_group V] [vector_space K V]
           [add_comm_group E] [vector_space K E]
 open vector_space
 

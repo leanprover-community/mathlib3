@@ -2,27 +2,21 @@
 Copyright (c) 2018 Johannes Hölzl. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johannes Hölzl, Jens Wagemaker
-
-Associated and irreducible elements.
 -/
-import algebra.group data.multiset
+import algebra.group algebra.group.is_unit data.multiset
+
+/-!
+# Associated, prime, and irreducible elements.
+-/
 
 variables {α : Type*} {β : Type*} {γ : Type*} {δ : Type*}
 open lattice
 
-/-- is unit -/
-def is_unit [monoid α] (a : α) : Prop := ∃u:units α, a = u
-
-@[simp] lemma is_unit_unit [monoid α] (u : units α) : is_unit (u : α) := ⟨u, rfl⟩
-
 theorem is_unit.mk0 [division_ring α] (x : α) (hx : x ≠ 0) : is_unit x := is_unit_unit (units.mk0 x hx)
 
-lemma is_unit.map [monoid α] [monoid β] (f : α →* β) {x : α} (h : is_unit x) : is_unit (f x) :=
-by rcases h with ⟨y, rfl⟩; exact is_unit_unit (units.map f y)
-
-lemma is_unit.map' [monoid α] [monoid β] (f : α → β) {x : α} (h : is_unit x) [is_monoid_hom f] :
-  is_unit (f x) :=
-h.map (monoid_hom.of f)
+theorem is_unit_iff_ne_zero [division_ring α] {x : α} :
+  is_unit x ↔ x ≠ 0 :=
+⟨λ ⟨u, hu⟩, hu.symm ▸ λ h : u.1 = 0, by simpa [h, zero_ne_one] using u.3, is_unit.mk0 x⟩
 
 @[simp] theorem is_unit_zero_iff [semiring α] : is_unit (0 : α) ↔ (0:α) = 1 :=
 ⟨λ ⟨⟨_, a, (a0 : 0 * a = 1), _⟩, rfl⟩, by rwa zero_mul at a0,
@@ -34,37 +28,8 @@ h.map (monoid_hom.of f)
 @[simp] theorem not_is_unit_zero [nonzero_comm_ring α] : ¬ is_unit (0 : α) :=
 mt is_unit_zero_iff.1 zero_ne_one
 
-@[simp] theorem is_unit_one [monoid α] : is_unit (1:α) := ⟨1, rfl⟩
-
-theorem is_unit_of_mul_one [comm_monoid α] (a b : α) (h : a * b = 1) : is_unit a :=
-⟨units.mk_of_mul_eq_one a b h, rfl⟩
-
-theorem is_unit_iff_exists_inv [comm_monoid α] {a : α} : is_unit a ↔ ∃ b, a * b = 1 :=
-⟨by rintro ⟨⟨a, b, hab, _⟩, rfl⟩; exact ⟨b, hab⟩,
- λ ⟨b, hab⟩, is_unit_of_mul_one _ b hab⟩
-
-theorem is_unit_iff_exists_inv' [comm_monoid α] {a : α} : is_unit a ↔ ∃ b, b * a = 1 :=
-by simp [is_unit_iff_exists_inv, mul_comm]
-
 lemma is_unit_pow [monoid α] {a : α} (n : ℕ) : is_unit a → is_unit (a ^ n) :=
 λ ⟨u, hu⟩, ⟨u ^ n, by simp *⟩
-
-@[simp] theorem units.is_unit_mul_units [monoid α] (a : α) (u : units α) :
-  is_unit (a * u) ↔ is_unit a :=
-iff.intro
-  (assume ⟨v, hv⟩,
-    have is_unit (a * ↑u * ↑u⁻¹), by existsi v * u⁻¹; rw [hv, units.coe_mul],
-    by rwa [mul_assoc, units.mul_inv, mul_one] at this)
-  (assume ⟨v, hv⟩, hv.symm ▸ ⟨v * u, (units.coe_mul v u).symm⟩)
-
-theorem is_unit_of_mul_is_unit_left {α} [comm_monoid α] {x y : α}
-  (hu : is_unit (x * y)) : is_unit x :=
-let ⟨z, hz⟩ := is_unit_iff_exists_inv.1 hu in
-is_unit_iff_exists_inv.2 ⟨y * z, by rwa ← mul_assoc⟩
-
-theorem is_unit_of_mul_is_unit_right {α} [comm_monoid α] {x y : α}
-  (hu : is_unit (x * y)) : is_unit y :=
-@is_unit_of_mul_is_unit_left _ _ y x $ by rwa mul_comm
 
 theorem is_unit_iff_dvd_one [comm_semiring α] {x : α} : is_unit x ↔ x ∣ 1 :=
 ⟨by rintro ⟨u, rfl⟩; exact ⟨_, u.mul_inv.symm⟩,
@@ -84,17 +49,12 @@ by rw [mul_comm, mul_dvd_of_is_unit_left h]
 @[simp] lemma unit_mul_dvd_iff [comm_semiring α] {a b : α} {u : units α} : (u : α) * a ∣ b ↔ a ∣ b :=
 mul_dvd_of_is_unit_left (is_unit_unit _)
 
-@[simp] lemma mul_unit_dvd_iff [comm_semiring α] {a b : α} {u : units α} : a * u ∣ b ↔ a ∣ b :=
-mul_dvd_of_is_unit_right (is_unit_unit _)
+lemma mul_unit_dvd_iff [comm_semiring α] {a b : α} {u : units α} : a * u ∣ b ↔ a ∣ b :=
+units.coe_mul_dvd _ _ _
 
 theorem is_unit_of_dvd_unit {α} [comm_semiring α] {x y : α}
   (xy : x ∣ y) (hu : is_unit y) : is_unit x :=
 is_unit_iff_dvd_one.2 $ dvd_trans xy $ is_unit_iff_dvd_one.1 hu
-
-@[simp] theorem is_unit_nat {n : ℕ} : is_unit n ↔ n = 1 :=
-iff.intro
-  (assume ⟨u, hu⟩, match n, u, hu, nat.units_eq_one u with _, _, rfl, rfl := rfl end)
-  (assume h, h.symm ▸ ⟨1, rfl⟩)
 
 theorem is_unit_int {n : ℤ} : is_unit n ↔ n.nat_abs = 1 :=
 ⟨λ ⟨u, hu⟩, (int.units_eq_one_or u).elim (by simp *) (by simp *),
@@ -221,6 +181,8 @@ have hpd : p ∣ x * y, from ⟨z, by rwa [domain.mul_left_inj hp0] at h⟩,
   (λ ⟨d, hd⟩, or.inl ⟨d, by simp [*, _root_.pow_succ, mul_comm, mul_left_comm, mul_assoc]⟩)
   (λ ⟨d, hd⟩, or.inr ⟨d, by simp [*, _root_.pow_succ, mul_comm, mul_left_comm, mul_assoc]⟩)
 
+/-- Two elements of a `monoid` are `associated` if one of them is another one
+multiplied by a unit on the right. -/
 def associated [monoid α] (x y : α) : Prop := ∃u:units α, x * u = y
 
 local infix ` ~ᵤ ` : 50 := associated
@@ -296,9 +258,8 @@ multiset.induction_on s (by simp [mt is_unit_iff_dvd_one.2 hp.not_unit])
 lemma dvd_iff_dvd_of_rel_left [comm_semiring α] {a b c : α} (h : a ~ᵤ b) : a ∣ c ↔ b ∣ c :=
 let ⟨u, hu⟩ := h in hu ▸ mul_unit_dvd_iff.symm
 
-@[simp] lemma dvd_mul_unit_iff [comm_semiring α] {a b : α} {u : units α} : a ∣ b * u ↔ a ∣ b :=
-⟨λ ⟨d, hd⟩, ⟨d * (u⁻¹ : units α), by simp [(mul_assoc _ _ _).symm, hd.symm]⟩,
-  λ h, dvd.trans h (by simp)⟩
+lemma dvd_mul_unit_iff [comm_semiring α] {a b : α} {u : units α} : a ∣ b * u ↔ a ∣ b :=
+units.dvd_coe_mul _ _ _
 
 lemma dvd_iff_dvd_of_rel_right [comm_semiring α] {a b c : α} (h : b ~ᵤ c) : a ∣ b ↔ a ∣ c :=
 let ⟨u, hu⟩ := h in hu ▸ dvd_mul_unit_iff.symm
@@ -358,6 +319,8 @@ open associated
 
 protected def mk {α : Type*} [monoid α] (a : α) : associates α :=
 ⟦ a ⟧
+
+instance [monoid α] : inhabited (associates α) := ⟨⟦1⟧⟩
 
 theorem mk_eq_mk_iff_associated [monoid α] {a b : α} :
   associates.mk a = associates.mk b ↔ a ~ᵤ b :=
@@ -598,7 +561,7 @@ multiset.induction_on s (by simp; exact zero_ne_one.symm) $
 theorem irreducible_mk_iff (a : α) : irreducible (associates.mk a) ↔ irreducible a :=
 begin
   simp [irreducible, is_unit_mk],
-  apply and_congr (iff.refl _),
+  apply and_congr iff.rfl,
   split,
   { assume h x y eq,
     have : is_unit (associates.mk x) ∨ is_unit (associates.mk y),

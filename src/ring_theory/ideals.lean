@@ -14,7 +14,7 @@ open_locale classical
 namespace ideal
 variables [comm_ring α] (I : ideal α)
 
-@[extensionality] lemma ext {I J : ideal α} (h : ∀ x, x ∈ I ↔ x ∈ J) : I = J :=
+@[ext] lemma ext {I J : ideal α} (h : ∀ x, x ∈ I ↔ x ∈ J) : I = J :=
 submodule.ext h
 
 theorem eq_top_of_unit_mem
@@ -131,6 +131,7 @@ theorem is_maximal.is_prime {I : ideal α} (H : I.is_maximal) : I.is_prime :=
   exact I.neg_mem_iff.1 ((I.add_mem_iff_right $ I.mul_mem_left hxy).1 this)
 end⟩
 
+@[priority 100] -- see Note [lower instance priority]
 instance is_maximal.is_prime' (I : ideal α) : ∀ [H : I.is_maximal], I.is_prime := is_maximal.is_prime
 
 theorem exists_le_maximal (I : ideal α) (hI : I ≠ ⊤) :
@@ -153,9 +154,8 @@ theorem mem_span_pair {x y z : α} :
 begin
   simp only [mem_span_insert, mem_span_singleton', exists_prop],
   split,
-  { rintros ⟨a, b, ⟨c, hc⟩, h⟩,
-    exact ⟨c, a, by simp [h, hc]⟩ },
-  { rintro ⟨b, c, e⟩, exact ⟨c, b * x, ⟨b, rfl⟩, by simp [e.symm]⟩ }
+  { rintros ⟨a, b, ⟨c, hc⟩, h⟩, exact ⟨c, a, by cc⟩ },
+  { rintro ⟨b, c, e⟩, exact ⟨c, b * x, ⟨b, rfl⟩, by cc⟩ }
 end
 
 theorem is_coprime_def {x y : α} :
@@ -259,16 +259,12 @@ end
 
 /-- quotient by maximal ideal is a field. def rather than instance, since users will have
 computable inverses in some applications -/
-protected noncomputable def field (I : ideal α) [hI : I.is_maximal] : discrete_field I.quotient :=
+protected noncomputable def field (I : ideal α) [hI : I.is_maximal] : field I.quotient :=
 { inv := λ a, if ha : a = 0 then 0 else classical.some (exists_inv ha),
   mul_inv_cancel := λ a (ha : a ≠ 0), show a * dite _ _ _ = _,
     by rw dif_neg ha;
     exact classical.some_spec (exists_inv ha),
-  inv_mul_cancel := λ a (ha : a ≠ 0), show dite _ _ _ * a = _,
-    by rw [mul_comm, dif_neg ha];
-    exact classical.some_spec (exists_inv ha),
   inv_zero := dif_pos rfl,
-  has_decidable_eq := classical.dec_eq _,
   ..quotient.integral_domain I }
 
 variable [comm_ring β]
@@ -301,7 +297,7 @@ instance : is_ring_hom (lift S f H) :=
 
 end quotient
 
-lemma eq_bot_or_top {K : Type u} [discrete_field K] (I : ideal K) :
+lemma eq_bot_or_top {K : Type u} [field K] (I : ideal K) :
   I = ⊥ ∨ I = ⊤ :=
 begin
   rw classical.or_iff_not_imp_right,
@@ -314,7 +310,7 @@ begin
   simpa [H, h1] using submodule.smul_mem I r⁻¹ hr,
 end
 
-lemma eq_bot_of_prime {K : Type u} [discrete_field K] (I : ideal K) [h : I.is_prime] :
+lemma eq_bot_of_prime {K : Type u} [field K] (I : ideal K) [h : I.is_prime] :
   I = ⊥ :=
 classical.or_iff_not_imp_right.mp I.eq_bot_or_top h.1
 
@@ -351,13 +347,14 @@ begin
   use [I, Imax], apply H, apply ideal.subset_span, exact set.mem_singleton a
 end
 
+section prio
+set_option default_priority 100 -- see Note [default priority]
 class local_ring (α : Type u) extends nonzero_comm_ring α :=
 (is_local : ∀ (a : α), (is_unit a) ∨ (is_unit (1 - a)))
+end prio
 
 namespace local_ring
 variable [local_ring α]
-
-instance : comm_ring α := by apply_instance
 
 lemma is_unit_or_is_unit_one_sub_self (a : α) :
   (is_unit a) ∨ (is_unit (1 - a)) :=
@@ -384,7 +381,7 @@ begin
   rw show (↑u⁻¹ * y) = (1 - ↑u⁻¹ * x),
   { rw eq_sub_iff_add_eq,
     replace hu := congr_arg (λ z, (↑u⁻¹ : α) * z) hu,
-    simpa [mul_add] using hu },
+    simpa [mul_add, add_comm] using hu },
   apply is_unit_one_sub_self_of_mem_nonunits,
   exact mul_mem_nonunits_right hx
 end
@@ -455,8 +452,11 @@ have xmemI : x ∈ I, from ((Iuniq Ix Ixmax) ▸ Hx),
 have ymemI : y ∈ I, from ((Iuniq Iy Iymax) ▸ Hy),
 Imax.1 $ I.eq_top_of_is_unit_mem (I.add_mem xmemI ymemI) H
 
+section prio
+set_option default_priority 100 -- see Note [default priority]
 class is_local_ring_hom [comm_ring α] [comm_ring β] (f : α → β) extends is_ring_hom f : Prop :=
 (map_nonunit : ∀ a, is_unit (f a) → is_unit a)
+end prio
 
 @[simp] lemma is_unit_of_map_unit [comm_ring α] [comm_ring β] (f : α → β) [is_local_ring_hom f]
   (a) (h : is_unit (f a)) : is_unit a :=
@@ -480,7 +480,7 @@ def residue_field := (nonunits_ideal α).quotient
 
 namespace residue_field
 
-noncomputable instance : discrete_field (residue_field α) :=
+noncomputable instance : field (residue_field α) :=
 ideal.quotient.field (nonunits_ideal α)
 
 variables {α β}
@@ -493,21 +493,22 @@ begin
   exact map_nonunit f a ha
 end
 
-instance map.is_field_hom (f : α → β) [is_local_ring_hom f] :
-  is_field_hom (map f) :=
+instance map.is_ring_hom (f : α → β) [is_local_ring_hom f] :
+  is_ring_hom (map f) :=
 ideal.quotient.is_ring_hom
 
 end residue_field
 
 end local_ring
 
-namespace discrete_field
-variables [discrete_field α]
+namespace field
+variables [field α]
 
+@[priority 100] -- see Note [lower instance priority]
 instance : local_ring α :=
 { is_local := λ a,
   if h : a = 0
   then or.inr (by rw [h, sub_zero]; exact is_unit_one)
   else or.inl $ is_unit_of_mul_one a a⁻¹ $ div_self h }
 
-end discrete_field
+end field

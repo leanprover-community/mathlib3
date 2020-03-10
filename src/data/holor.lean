@@ -22,11 +22,11 @@ rank at most 1" if it is a tensor product of one-dimensional holors.
 The CP rank of a holor `x` is the smallest N such that `x` is the sum
 of N holors of rank at most 1.
 
-Based on the tensor library found in https://www.isa-afp.org/entries/Deep_Learning.html.
+Based on the tensor library found in <https://www.isa-afp.org/entries/Deep_Learning.html>
 
 ## References
 
-* https://en.wikipedia.org/wiki/Tensor_rank_decomposition
+* <https://en.wikipedia.org/wiki/Tensor_rank_decomposition>
 -/
 
 universes u
@@ -70,7 +70,7 @@ lemma drop_take :
 lemma drop_drop :
   ∀ t : holor_index (ds₁ ++ ds₂ ++ ds₃),
   t.assoc_right.drop.drop = t.drop
-| ⟨ is , h ⟩ := subtype.eq (by simp [assoc_right,drop, cast_type, list.drop_drop])
+| ⟨ is , h ⟩ := subtype.eq (by simp [add_comm, assoc_right, drop, cast_type, list.drop_drop])
 
 end holor_index
 
@@ -105,7 +105,7 @@ instance [has_mul α] : has_scalar α (holor α ds) :=
 
 instance [ring α] : module α (holor α ds) := pi.module α
 
-instance [discrete_field α] : vector_space α (holor α ds) := ⟨α, holor α ds⟩
+instance [field α] : vector_space α (holor α ds) := ⟨α, holor α ds⟩
 
 /-- The tensor product of two holors. -/
 def mul [s : has_mul α] (x : holor α ds₁) (y : holor α ds₂) : holor α (ds₁ ++ ds₂) :=

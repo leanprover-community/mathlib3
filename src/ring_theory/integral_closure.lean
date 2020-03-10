@@ -90,7 +90,7 @@ begin
   let leval : @linear_map R (polynomial R) A _ _ _ _ _ := (aeval R A x).to_linear_map,
   let D : ℕ → submodule R A := λ n, (degree_le R n).map leval,
   let M := well_founded.min (is_noetherian_iff_well_founded.1 H)
-    (set.range D) (set.ne_empty_of_mem ⟨0, rfl⟩),
+    (set.range D) ⟨_, ⟨0, rfl⟩⟩,
   have HM : M ∈ set.range D := well_founded.min_mem _ _ _,
   cases HM with N HN,
   have HM : ¬M < D (N+1) := well_founded.not_lt_min
@@ -118,10 +118,10 @@ begin
     replace hpx := congr_arg subtype.val hpx,
     refine ⟨p, hpm, eq.trans _ hpx⟩,
     simp only [aeval_def, eval₂, finsupp.sum],
-    rw ← finset.sum_hom subtype.val,
+    rw ← p.support.sum_hom subtype.val,
     { refine finset.sum_congr rfl (λ n hn, _),
       change _ = _ * _,
-      rw is_semiring_hom.map_pow subtype.val, refl,
+      rw is_semiring_hom.map_pow coe, refl,
       split; intros; refl },
     refine { map_add := _, map_zero := _ }; intros; refl },
   refine is_integral_of_noetherian' H ⟨x, hx⟩
@@ -203,7 +203,7 @@ theorem is_integral_of_mem_closure {x y z : A}
   is_integral R z :=
 begin
   have := fg_mul _ _ (fg_adjoin_singleton_of_integral x hx) (fg_adjoin_singleton_of_integral y hy),
-  rw [← algebra.adjoin_union_coe_submodule, set.union_singleton, insert] at this,
+  rw [← algebra.adjoin_union_coe_submodule, set.union_singleton] at this,
   exact is_integral_of_mem_of_fg (algebra.adjoin R {x, y}) this z
     (ring.closure_mono (set.subset_union_right _ _) hz)
 end
@@ -244,7 +244,7 @@ def integral_closure : subalgebra R A :=
     add_mem := λ _ _, is_integral_add,
     neg_mem := λ _, is_integral_neg,
     mul_mem := λ _ _, is_integral_mul },
-  range_le := λ y ⟨x, hx⟩, hx ▸ is_integral_algebra_map }
+  range_le' := λ y ⟨x, hx⟩, hx ▸ is_integral_algebra_map }
 
 theorem mem_integral_closure_iff_mem_fg {r : A} :
   r ∈ integral_closure R A ↔ ∃ M : subalgebra R A, (M : submodule R A).fg ∧ r ∈ M :=

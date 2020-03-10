@@ -5,7 +5,7 @@ Authors: Chris Hughes, Johannes Hölzl, Jens Wagemaker
 
 Theory of univariate polynomials, represented as `ℕ →₀ α`, where α is a commutative semiring.
 -/
-import data.finsupp algebra.gcd_domain ring_theory.euclidean_domain tactic.ring ring_theory.multiplicity
+import data.finsupp algebra.gcd_domain ring_theory.euclidean_domain tactic.ring_exp ring_theory.multiplicity
 
 noncomputable theory
 local attribute [instance, priority 100] classical.prop_decidable
@@ -25,6 +25,7 @@ variables {α : Type u} {β : Type v} {a b : α} {m n : ℕ}
 section comm_semiring
 variables [comm_semiring α] {p q r : polynomial α}
 
+instance : inhabited (polynomial α) := finsupp.inhabited
 instance : has_zero (polynomial α) := finsupp.has_zero
 instance : has_one (polynomial α) := finsupp.has_one
 instance : has_add (polynomial α) := finsupp.has_add
@@ -63,7 +64,7 @@ instance [has_repr α] : has_repr (polynomial α) :=
 theorem ext_iff {p q : polynomial α} : p = q ↔ ∀ n, coeff p n = coeff q n :=
 ⟨λ h n, h ▸ rfl, finsupp.ext⟩
 
-@[extensionality] lemma ext {p q : polynomial α} : (∀ n, coeff p n = coeff q n) → p = q :=
+@[ext] lemma ext {p q : polynomial α} : (∀ n, coeff p n = coeff q n) → p = q :=
 (@ext_iff _ _ p q).2
 
 /-- `degree p` is the degree of the polynomial `p`, i.e. the largest `X`-exponent in `p`.
@@ -153,7 +154,7 @@ by simp [coeff, eq_comm, C, single]; congr
 
 lemma coeff_X : coeff (X : polynomial α) n = if 1 = n then 1 else 0 := coeff_single
 
-@[simp] lemma coeff_C_mul_X (x : α) (k n : ℕ) :
+lemma coeff_C_mul_X (x : α) (k n : ℕ) :
   coeff (C x * X^k : polynomial α) n = if n = k then x else 0 :=
 by rw [← single_eq_C_mul_X]; simp [single, eq_comm, coeff]; congr
 
@@ -170,7 +171,8 @@ begin
   simp
 end
 
-@[simp] lemma coeff_one (n : ℕ) : coeff (1 : polynomial α) n = if 0 = n then 1 else 0 :=
+@[simp, priority 990]
+lemma coeff_one (n : ℕ) : coeff (1 : polynomial α) n = if 0 = n then 1 else 0 :=
 coeff_single
 
 @[simp] lemma coeff_X_pow (k n : ℕ) :
@@ -372,7 +374,7 @@ end
 @[simp] lemma comp_C : p.comp (C a) = C (p.eval a) :=
 begin
   dsimp [comp, eval₂, eval, finsupp.sum],
-  rw [← sum_hom (@C α _)],
+  rw [← p.support.sum_hom (@C α _)],
   apply finset.sum_congr rfl; simp
 end
 
@@ -520,7 +522,7 @@ end
 -- TODO find a home (this file)
 @[simp] lemma finset_sum_coeff (s : finset β) (f : β → polynomial α) (n : ℕ) :
   coeff (s.sum f) n = s.sum (λ b, coeff (f b) n) :=
-(finset.sum_hom (λ q : polynomial α, q.coeff n)).symm
+(s.sum_hom (λ q : polynomial α, q.coeff n)).symm
 
 -- We need the explicit `decidable` argument here because an exotic one shows up in a moment!
 lemma ite_le_nat_degree_coeff (p : polynomial α) (n : ℕ) (I : decidable (n < 1 + nat_degree p)) :
@@ -537,6 +539,15 @@ begin
   ext n,
   simp only [add_comm, coeff_X_pow, coeff_C_mul, finset.mem_range,
     finset.sum_mul_boole, finset_sum_coeff, ite_le_nat_degree_coeff],
+end
+
+lemma monic.as_sum {p : polynomial α} (hp : p.monic) :
+  p = X^(p.nat_degree) + ((finset.range p.nat_degree).sum $ λ i, C (p.coeff i) * X^i) :=
+begin
+  conv_lhs { rw [p.as_sum, finset.sum_range_succ] },
+  suffices : C (p.coeff p.nat_degree) = 1,
+  { rw [this, one_mul] },
+  exact congr_arg C hp
 end
 
 section map
@@ -568,7 +579,7 @@ lemma coeff_map (n : ℕ) : coeff (p.map f) n = f (coeff p n) :=
 begin
   rw [map, eval₂, coeff_sum],
   conv_rhs { rw [← sum_C_mul_X_eq p, coeff_sum, finsupp.sum,
-    ← finset.sum_hom f], },
+    ← p.support.sum_hom f], },
   refine finset.sum_congr rfl (λ x hx, _),
   simp [function.comp, coeff_C_mul_X, is_semiring_hom.map_mul f],
   split_ifs; simp [is_semiring_hom.map_zero f],
@@ -1542,7 +1553,7 @@ else
   have h₁ : r - f %ₘ g = -g * (q - f /ₘ g),
     from eq_of_sub_eq_zero
       (by rw [← sub_eq_zero_of_eq (h.1.trans (mod_by_monic_add_div f hg).symm)];
-        simp [mul_add, mul_comm]),
+        simp [mul_add, mul_comm, sub_eq_add_neg, add_comm, add_left_comm]),
   have h₂ : degree (r - f %ₘ g) = degree (g * (q - f /ₘ g)),
     by simp [h₁],
   have h₄ : degree (r - f %ₘ g) < degree g,
@@ -1996,7 +2007,7 @@ have hq0 : q ≠ 0, from λ hp0, by simpa [hp0] using hq,
 have nat_degree (1 : polynomial α) = nat_degree (p * q),
   from congr_arg _ hq,
 by rw [nat_degree_one, nat_degree_mul_eq hp0 hq0, eq_comm,
-    add_eq_zero_iff, ← with_bot.coe_eq_coe,
+    _root_.add_eq_zero_iff, ← with_bot.coe_eq_coe,
     ← degree_eq_nat_degree hp0] at this;
   exact this.1
 
@@ -2032,7 +2043,7 @@ this.elim
 end integral_domain
 
 section field
-variables [discrete_field α] {p q : polynomial α}
+variables [field α] {p q : polynomial α}
 instance : vector_space α (polynomial α) := finsupp.vector_space _ _
 
 lemma is_unit_iff_degree_eq_zero : is_unit p ↔ degree p = 0 :=
@@ -2165,34 +2176,34 @@ by rw [div_def, mul_comm, degree_mul_leading_coeff_inv _ hq0];
   exact degree_div_by_monic_lt _ (monic_mul_leading_coeff_inv hq0) hp
     (by rw degree_mul_leading_coeff_inv _ hq0; exact hq)
 
-@[simp] lemma degree_map [discrete_field β] (p : polynomial α) (f : α → β) [is_field_hom f] :
+@[simp] lemma degree_map [field β] (p : polynomial α) (f : α → β) [is_ring_hom f] :
   degree (p.map f) = degree p :=
-p.degree_map_eq_of_injective (is_field_hom.injective f)
+p.degree_map_eq_of_injective (is_ring_hom.injective f)
 
-@[simp] lemma nat_degree_map [discrete_field β] (f : α → β) [is_field_hom f] :
+@[simp] lemma nat_degree_map [field β] (f : α → β) [is_ring_hom f] :
   nat_degree (p.map f) = nat_degree p :=
 nat_degree_eq_of_degree_eq (degree_map _ f)
 
-@[simp] lemma leading_coeff_map [discrete_field β] (f : α → β) [is_field_hom f] :
+@[simp] lemma leading_coeff_map [field β] (f : α → β) [is_ring_hom f] :
   leading_coeff (p.map f) = f (leading_coeff p) :=
 by simp [leading_coeff, coeff_map f]
 
-lemma map_div [discrete_field β] (f : α → β) [is_field_hom f] :
+lemma map_div [field β] (f : α → β) [is_ring_hom f] :
   (p / q).map f = p.map f / q.map f :=
 if hq0 : q = 0 then by simp [hq0]
 else
 by rw [div_def, div_def, map_mul, map_div_by_monic f (monic_mul_leading_coeff_inv hq0)];
-  simp [is_field_hom.map_inv f, leading_coeff, coeff_map f]
+  simp [is_ring_hom.map_inv f, leading_coeff, coeff_map f]
 
-lemma map_mod [discrete_field β] (f : α → β) [is_field_hom f] :
+lemma map_mod [field β] (f : α → β) [is_ring_hom f] :
   (p % q).map f = p.map f % q.map f :=
 if hq0 : q = 0 then by simp [hq0]
-else by rw [mod_def, mod_def, leading_coeff_map f, ← is_field_hom.map_inv f, ← map_C f,
+else by rw [mod_def, mod_def, leading_coeff_map f, ← is_ring_hom.map_inv f, ← map_C f,
   ← map_mul f, map_mod_by_monic f (monic_mul_leading_coeff_inv hq0)]
 
-@[simp] lemma map_eq_zero [discrete_field β] (f : α → β) [is_field_hom f] :
+@[simp] lemma map_eq_zero [field β] (f : α → β) [is_ring_hom f] :
   p.map f = 0 ↔ p = 0 :=
-by simp [polynomial.ext_iff, is_field_hom.map_eq_zero f, coeff_map]
+by simp [polynomial.ext_iff, is_ring_hom.map_eq_zero f, coeff_map]
 
 lemma exists_root_of_degree_eq_one (h : degree p = 1) : ∃ x, is_root p x :=
 ⟨-(p.coeff 0 / p.coeff 1),
@@ -2298,7 +2309,7 @@ instance : is_add_monoid_hom (derivative : polynomial α → polynomial α) :=
 
 @[simp] lemma derivative_sum {s : finset β} {f : β → polynomial α} :
   derivative (s.sum f) = s.sum (λb, derivative (f b)) :=
-(finset.sum_hom derivative).symm
+(s.sum_hom derivative).symm
 
 @[simp] lemma derivative_mul {f g : polynomial α} :
   derivative (f * g) = derivative f * g + f * derivative g :=
@@ -2378,10 +2389,11 @@ def pow_add_expansion {α : Type*} [comm_semiring α] (x y : α) : ∀ (n : ℕ)
 | (n+2) :=
   begin
     cases pow_add_expansion (n+1) with z hz,
-    rw [_root_.pow_succ, hz],
-    existsi (x*z + (n+1)*x^n+z*y),
-    simp [_root_.pow_succ],
-    ring
+    existsi x*z + (n+1)*x^n+z*y,
+    calc (x + y) ^ (n + 2) = (x + y) * (x + y) ^ (n + 1) : by ring_exp
+    ... = (x + y) * (x ^ (n + 1) + ↑(n + 1) * x ^ (n + 1 - 1) * y + z * y ^ 2) : by rw hz
+    ... = x ^ (n + 2) + ↑(n + 2) * x ^ (n + 1) * y + (x*z + (n+1)*x^n+z*y) * y ^ 2 :
+      by { push_cast, ring_exp! }
   end
 
 variables [comm_ring α]
@@ -2423,12 +2435,12 @@ def pow_sub_pow_factor (x y : α) : Π {i : ℕ},{z : α // x^i - y^i = z*(x - y
 | 1 := ⟨1, by simp⟩
 | (k+2) :=
   begin
-    cases pow_sub_pow_factor with z hz,
+    cases @pow_sub_pow_factor (k+1) with z hz,
     existsi z*x + y^(k+1),
-    rw [_root_.pow_succ x, _root_.pow_succ y, ←sub_add_sub_cancel (x*x^(k+1)) (x*y^(k+1)),
-        ←mul_sub x, hz],
-    simp only [_root_.pow_succ],
-    ring
+    calc x ^ (k + 2) - y ^ (k + 2)
+        = x * (x ^ (k + 1) - y ^ (k + 1)) + (x * y ^ (k + 1) - y ^ (k + 2)) : by ring_exp
+    ... = x * (z * (x - y)) + (x * y ^ (k + 1) - y ^ (k + 2)) : by rw hz
+    ... = (z * x + y ^ (k + 1)) * (x - y) : by ring_exp
   end
 
 def eval_sub_factor (f : polynomial α) (x y : α) :
@@ -2443,7 +2455,7 @@ begin
   rw this,
   congr, ext e a,
   rw [mul_assoc, ←(pow_sub_pow_factor x y).property],
-  simp [left_distrib]
+  simp [mul_sub]
 end
 
 end identities

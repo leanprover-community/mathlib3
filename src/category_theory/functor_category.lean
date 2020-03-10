@@ -14,6 +14,7 @@ open nat_trans category category_theory.functor
 variables (C : Type u₁) [𝒞 : category.{v₁} C] (D : Type u₂) [𝒟 : category.{v₂} D]
 include 𝒞 𝒟
 
+local attribute [simp] vcomp_app
 /--
 `functor.category C D` gives the category structure on functors and natural transformations
 between categories `C` and `D`.
@@ -35,6 +36,9 @@ namespace nat_trans
 
 @[simp] lemma vcomp_eq_comp (α : F ⟶ G) (β : G ⟶ H) : vcomp α β = α ≫ β := rfl
 
+lemma vcomp_app' (α : F ⟶ G) (β : G ⟶ H) (X : C) :
+  (α ≫ β).app X = (α.app X) ≫ (β.app X) := rfl
+
 lemma congr_app {α β : F ⟶ G} (h : α = β) (X : C) : α.app X = β.app X := by rw h
 @[simp] lemma id_app (F : C ⥤ D) (X : C) : (𝟙 F : F ⟶ F).app X = 𝟙 (F.obj X) := rfl
 @[simp] lemma comp_app {F G H : C ⥤ D} (α : F ⟶ G) (β : G ⟶ H) (X : C) :
@@ -53,10 +57,11 @@ congr_fun (congr_arg app (T.naturality f)) Z
 /-- `hcomp α β` is the horizontal composition of natural transformations. -/
 def hcomp {H I : D ⥤ E} (α : F ⟶ G) (β : H ⟶ I) : (F ⋙ H) ⟶ (G ⋙ I) :=
 { app         := λ X : C, (β.app (F.obj X)) ≫ (I.map (α.app X)),
-  naturality' := begin
-                   intros, rw [functor.comp_map, functor.comp_map, assoc_symm, naturality, assoc],
-                   rw [← map_comp I, naturality, map_comp, assoc]
-                 end }
+  naturality' := λ X Y f,
+  begin
+    rw [functor.comp_map, functor.comp_map, ←assoc, naturality, assoc,
+        ←map_comp I, naturality, map_comp, assoc]
+  end }
 
 infix ` ◫ `:80 := hcomp
 
@@ -70,7 +75,7 @@ infix ` ◫ `:80 := hcomp
 
 lemma exchange {I J K : D ⥤ E} (α : F ⟶ G) (β : G ⟶ H)
   (γ : I ⟶ J) (δ : J ⟶ K) : (α ≫ β) ◫ (γ ≫ δ) = (α ◫ γ) ≫ (β ◫ δ) :=
-by { ext, dsimp, rw [assoc, assoc, map_comp, assoc_symm (δ.app _), ← naturality, assoc] }
+by { ext, dsimp, rw [assoc, assoc, map_comp, ←assoc _ (δ.app _), ← naturality, assoc] }
 
 end nat_trans
 open nat_trans

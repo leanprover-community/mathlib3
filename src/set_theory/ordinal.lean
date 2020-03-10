@@ -26,13 +26,14 @@ local infix ` ≼i `:25 := initial_seg
 namespace initial_seg
 
 instance : has_coe (r ≼i s) (r ≼o s) := ⟨initial_seg.to_order_embedding⟩
+instance : has_coe_to_fun (r ≼i s) := ⟨λ _, α → β, λ f x, (f : r ≼o s) x⟩
 
 @[simp] theorem coe_fn_mk (f : r ≼o s) (o) :
   (@initial_seg.mk _ _ r s f o : α → β) = f := rfl
 
 @[simp] theorem coe_fn_to_order_embedding (f : r ≼i s) : (f.to_order_embedding : α → β) = f := rfl
 
-theorem coe_coe_fn (f : r ≼i s) : ((f : r ≼o s) : α → β) = f := rfl
+@[simp] theorem coe_coe_fn (f : r ≼i s) : ((f : r ≼o s) : α → β) = f := rfl
 
 theorem init' (f : r ≼i s) {a : α} {b : β} : s b (f a) → ∃ a', f a' = b :=
 f.init _ _
@@ -57,7 +58,7 @@ def of_iso (f : r ≃o s) : r ≼i s :=
   rcases f.2 _ _ h with ⟨a', rfl⟩, exact ⟨a', rfl⟩
 end⟩
 
-@[simp] theorem of_iso_apply (f : r ≃o s) (x : α) : of_iso f x = f x := rfl
+@[simp] theorem of_iso_apply (f : r ≃o s) (x : α) : (f : r ≼o s) x = f x := rfl
 
 @[simp] theorem refl_apply (x : α) : initial_seg.refl r x = x := rfl
 
@@ -131,13 +132,14 @@ local infix ` ≺i `:25 := principal_seg
 namespace principal_seg
 
 instance : has_coe (r ≺i s) (r ≼o s) := ⟨principal_seg.to_order_embedding⟩
+instance : has_coe_to_fun (r ≺i s) := ⟨λ _, α → β, λ f, f⟩
 
 @[simp] theorem coe_fn_mk (f : r ≼o s) (t o) :
   (@principal_seg.mk _ _ r s f t o : α → β) = f := rfl
 
 @[simp] theorem coe_fn_to_order_embedding (f : r ≺i s) : (f.to_order_embedding : α → β) = f := rfl
 
-theorem coe_coe_fn (f : r ≺i s) : ((f : r ≼o s) : α → β) = f := rfl
+@[simp] theorem coe_coe_fn (f : r ≺i s) : ((f : r ≼o s) : α → β) = f := rfl
 
 theorem down' (f : r ≺i s) {b : β} : s b f.top ↔ ∃ a, f a = b :=
 f.down _
@@ -154,7 +156,7 @@ instance has_coe_initial_seg [is_trans β s] : has_coe (r ≺i s) (r ≼i s) :=
 theorem coe_coe_fn' [is_trans β s] (f : r ≺i s) : ((f : r ≼i s) : α → β) = f := rfl
 
 theorem init_iff [is_trans β s] (f : r ≺i s) {a : α} {b : β} : s b (f a) ↔ ∃ a', f a' = b ∧ r a' a :=
-initial_seg.init_iff f
+@initial_seg.init_iff α β r s f a b
 
 theorem irrefl (r : α → α → Prop) [is_well_order α r] (f : r ≺i r) : false :=
 begin
@@ -169,7 +171,7 @@ def lt_le (f : r ≺i s) (g : s ≼i t) : r ≺i t :=
  by simp only [g.init_iff, f.down', exists_and_distrib_left.symm,
    exists_swap, order_embedding.trans_apply, exists_eq_right']; refl⟩
 
-@[simp] theorem lt_le_apply [is_trans β s] [is_trans γ t] (f : r ≺i s) (g : s ≼i t) (a : α) : (f.lt_le g) a = g (f a) :=
+@[simp] theorem lt_le_apply (f : r ≺i s) (g : s ≼i t) (a : α) : (f.lt_le g) a = g (f a) :=
 order_embedding.trans_apply _ _ _
 
 @[simp] theorem lt_le_top (f : r ≺i s) (g : s ≼i t) : (f.lt_le g).top = g f.top := rfl
@@ -177,15 +179,16 @@ order_embedding.trans_apply _ _ _
 @[trans] protected def trans [is_trans γ t] (f : r ≺i s) (g : s ≺i t) : r ≺i t :=
 lt_le f g
 
-@[simp] theorem trans_apply [is_trans β s] [is_trans γ t] (f : r ≺i s) (g : s ≺i t) (a : α) : (f.trans g) a = g (f a) :=
+@[simp] theorem trans_apply [is_trans γ t] (f : r ≺i s) (g : s ≺i t) (a : α) : (f.trans g) a = g (f a) :=
 lt_le_apply _ _ _
 
-@[simp] theorem trans_top [is_trans β s] [is_trans γ t] (f : r ≺i s) (g : s ≺i t) : (f.trans g).top = g f.top := rfl
+@[simp] theorem trans_top [is_trans γ t] (f : r ≺i s) (g : s ≺i t) : (f.trans g).top = g f.top := rfl
 
 def equiv_lt (f : r ≃o s) (g : s ≺i t) : r ≺i t :=
 ⟨@order_embedding.trans _ _ _ r s t f g, g.top, λ c,
- by simp only [g.down', coe_fn_coe_base, order_embedding.trans_apply]; exact
- ⟨λ ⟨b, h⟩, ⟨f.symm b, by simp only [h, order_iso.apply_symm_apply, order_iso.coe_coe_fn]⟩, λ ⟨a, h⟩, ⟨f a, h⟩⟩⟩
+ suffices (∃ (a : β), g a = c) ↔ ∃ (a : α), g (f a) = c, by simpa [g.down],
+ ⟨λ ⟨b, h⟩, ⟨f.symm b, by simp only [h, order_iso.apply_symm_apply, order_iso.coe_coe_fn]⟩,
+  λ ⟨a, h⟩, ⟨f a, h⟩⟩⟩
 
 def lt_equiv {r : α → α → Prop} {s : β → β → Prop} {t : γ → γ → Prop}
   (f : principal_seg r s) (g : s ≃o t) : principal_seg r t :=
@@ -198,7 +201,7 @@ def lt_equiv {r : α → α → Prop} {s : β → β → Prop} {t : γ → γ �
     intro y, exact ⟨congr_arg g, λ h, g.to_equiv.bijective.1 h⟩
   end⟩
 
-@[simp] theorem equiv_lt_apply [is_trans γ t] (f : r ≃o s) (g : s ≺i t) (a : α) : (equiv_lt f g) a = g (f a) :=
+@[simp] theorem equiv_lt_apply (f : r ≃o s) (g : s ≺i t) (a : α) : (equiv_lt f g) a = g (f a) :=
 order_embedding.trans_apply _ _ _
 
 @[simp] theorem equiv_lt_top (f : r ≃o s) (g : s ≺i t) : (equiv_lt f g).top = g.top := rfl
@@ -220,7 +223,7 @@ theorem top_eq [is_well_order γ t]
 by rw subsingleton.elim f (principal_seg.equiv_lt e g); refl
 
 lemma top_lt_top {r : α → α → Prop} {s : β → β → Prop} {t : γ → γ → Prop}
-  [is_trans β s] [is_well_order γ t]
+  [is_well_order γ t]
   (f : principal_seg r s) (g : principal_seg s t) (h : principal_seg r t) : t h.top g.top :=
 by { rw [subsingleton.elim h (f.trans g)], apply principal_seg.lt_top }
 
@@ -229,7 +232,7 @@ def of_element {α : Type*} (r : α → α → Prop) (a : α) : subrel r {b | r 
 ⟨subrel.order_embedding _ _, a, λ b,
   ⟨λ h, ⟨⟨_, h⟩, rfl⟩, λ ⟨⟨_, h⟩, rfl⟩, h⟩⟩
 
-@[simp] theorem of_element_apply {α : Type*} (r : α → α → Prop) [is_well_order α r] (a : α) (b) :
+@[simp] theorem of_element_apply {α : Type*} (r : α → α → Prop) (a : α) (b) :
   of_element r a b = b.1 := rfl
 
 @[simp] theorem of_element_top {α : Type*} (r : α → α → Prop) (a : α) :
@@ -254,23 +257,13 @@ if h : surjective f then sum.inr (order_iso.of_surjective f h) else
 have h' : _, from (initial_seg.eq_or_principal f).resolve_left h,
 sum.inl ⟨f, classical.some h', classical.some_spec h'⟩
 
-@[simp] theorem initial_seg.lt_or_eq_apply_left [is_well_order β s]
-  (f : r ≼i s) {g} (h : f.lt_or_eq = sum.inl g) (a : α) : g a = f a :=
-begin
-  unfold initial_seg.lt_or_eq at h,
-  by_cases sj : surjective f,
-  { rw dif_pos sj at h, cases h },
-  { rw dif_neg sj at h, cases h, refl }
-end
+theorem initial_seg.lt_or_eq_apply_left [is_well_order β s]
+  (f : r ≼i s) (g : r ≺i s) (a : α) : g a = f a :=
+@initial_seg.eq α β r s _ g f a
 
-@[simp] theorem initial_seg.lt_or_eq_apply_right [is_well_order β s]
-  (f : r ≼i s) {g} (h : f.lt_or_eq = sum.inr g) (a : α) : g a = f a :=
-begin
-  unfold initial_seg.lt_or_eq at h,
-  by_cases sj : surjective f,
-  {rw dif_pos sj at h, cases h, refl},
-  {rw dif_neg sj at h, cases h}
-end
+theorem initial_seg.lt_or_eq_apply_right [is_well_order β s]
+  (f : r ≼i s) (g : r ≃o s) (a : α) : g a = f a :=
+initial_seg.eq (initial_seg.of_iso g) f a
 
 def initial_seg.le_lt [is_well_order β s] [is_trans γ t] (f : r ≼i s) (g : s ≺i t) : r ≺i t :=
 match f.lt_or_eq with
@@ -282,8 +275,8 @@ end
   (f : r ≼i s) (g : s ≺i t) (a : α) : (f.le_lt g) a = g (f a) :=
 begin
   delta initial_seg.le_lt, cases h : f.lt_or_eq with f' f',
-  { simp only [principal_seg.trans_apply, f.lt_or_eq_apply_left h] },
-  { simp only [principal_seg.equiv_lt_apply, f.lt_or_eq_apply_right h] }
+  { simp only [principal_seg.trans_apply, f.lt_or_eq_apply_left] },
+  { simp only [principal_seg.equiv_lt_apply, f.lt_or_eq_apply_right] }
 end
 
 namespace order_embedding
@@ -294,7 +287,7 @@ def collapse_F [is_well_order β s] (f : r ≼o s) : Π a, {b // ¬ s (f a) b} :
   have : f a ∈ S, from λ a' h, ((trichotomous _ _)
     .resolve_left $ λ h', (IH a' h).2 $ trans (f.ord'.1 h) h')
     .resolve_left $ λ h', (IH a' h).2 $ h' ▸ f.ord'.1 h,
-  exact ⟨(is_well_order.wf s).min S (set.ne_empty_of_mem this),
+  exact ⟨(is_well_order.wf s).min S ⟨_, this⟩,
    (is_well_order.wf s).not_lt_min _ _ this⟩
 end
 
@@ -320,7 +313,7 @@ by haveI := order_embedding.is_well_order f; exact
   (λ a, (collapse_F f a).1) (λ a b, collapse_F.lt f),
 λ a b, acc.rec_on ((is_well_order.wf s).apply b) (λ b H IH a h, begin
   let S := {a | ¬ s (collapse_F f a).1 b},
-  have : S ≠ ∅ := set.ne_empty_of_mem (asymm h),
+  have : S.nonempty := ⟨_, asymm h⟩,
   existsi (is_well_order.wf r).min S this,
   refine ((@trichotomous _ s _ _ _).resolve_left _).resolve_right _,
   { exact (is_well_order.wf r).min_mem S this },
@@ -362,6 +355,12 @@ structure Well_order : Type (u+1) :=
 (wo : is_well_order α r)
 
 attribute [instance] Well_order.wo
+
+namespace Well_order
+
+instance : inhabited Well_order := ⟨⟨pempty, _, empty_relation.is_well_order⟩⟩
+
+end Well_order
 
 instance ordinal.is_equivalent : setoid Well_order :=
 { r     := λ ⟨α, r, wo⟩ ⟨β, s, wo'⟩, nonempty (r ≃o s),
@@ -602,6 +601,8 @@ induction_on o₁ $ λ α r _, induction_on o₂ $ λ β s _ ⟨⟨⟨f, _⟩, _
 
 instance : has_zero ordinal :=
 ⟨⟦⟨pempty, empty_relation, by apply_instance⟩⟧⟩
+
+instance : inhabited ordinal := ⟨0⟩
 
 theorem zero_eq_type_empty : 0 = @type empty empty_relation _ :=
 quotient.sound ⟨⟨empty_equiv_pempty.symm, λ _ _, iff.rfl⟩⟩
@@ -963,7 +964,7 @@ by simp only [le_antisymm_iff, add_le_add_iff_right]
   exact ⟨f punit.star⟩
 end, λ e, by simp only [e, card_zero]⟩
 
-@[simp] theorem type_ne_zero_iff_nonempty [is_well_order α r] : type r ≠ 0 ↔ nonempty α :=
+theorem type_ne_zero_iff_nonempty [is_well_order α r] : type r ≠ 0 ↔ nonempty α :=
 (not_congr (@card_eq_zero (type r))).symm.trans ne_zero_iff_nonempty
 
 @[simp] theorem type_eq_zero_iff_empty [is_well_order α r] : type r = 0 ↔ ¬ nonempty α :=
@@ -1244,7 +1245,7 @@ def typein.principal_seg {α : Type u} (r : α → α → Prop) [is_well_order �
 
 /-- The minimal element of a nonempty family of ordinals -/
 def min {ι} (I : nonempty ι) (f : ι → ordinal) : ordinal :=
-wf.min (set.range f) (let ⟨i⟩ := I in set.ne_empty_of_mem (set.mem_range_self i))
+wf.min (set.range f) (let ⟨i⟩ := I in ⟨_, set.mem_range_self i⟩)
 
 theorem min_eq {ι} (I) (f : ι → ordinal) : ∃ i, min I f = f i :=
 let ⟨i, e⟩ := wf.min_mem (set.range f) _ in ⟨i, e.symm⟩
@@ -1392,7 +1393,8 @@ begin
     [cases H, exact nat.succ_pos _, exact nat.succ_lt_succ H] }
 end
 
-@[simp] theorem one_add_of_omega_le {o} (h : omega ≤ o) : 1 + o = o :=
+@[simp, priority 990]
+theorem one_add_of_omega_le {o} (h : omega ≤ o) : 1 + o = o :=
 by rw [← add_sub_cancel_of_le h, ← add_assoc, one_add_omega]
 
 instance : monoid ordinal.{u} :=
@@ -1572,8 +1574,8 @@ instance : has_div ordinal := ⟨ordinal.div⟩
 
 @[simp] theorem div_zero (a : ordinal) : a / 0 = 0 := dif_pos rfl
 
--- TODO(lint): This should be a theorem but Lean fails to synthesize the placeholder
-@[nolint] def div_def (a) {b : ordinal} (h : b ≠ 0) :
+@[nolint def_lemma doc_blame] -- TODO: This should be a theorem but Lean fails to synthesize the placeholder
+def div_def (a) {b : ordinal} (h : b ≠ 0) :
   a / b = omin {o | a < b * succ o} _ := dif_neg h
 
 theorem lt_mul_succ_div (a) {b : ordinal} (h : b ≠ 0) : a < b * succ (a / b) :=
@@ -1748,8 +1750,8 @@ begin
   exact ordinal.min_le (λ i:ι α, ⟦⟨α, i.1, i.2⟩⟧) ⟨_, _⟩
 end
 
--- TODO(lint): This should be a theorem but Lean fails to synthesize the placeholders
-@[nolint] def ord_eq_min (α : Type u) : ord (mk α) =
+@[nolint def_lemma doc_blame] -- TODO: This should be a theorem but Lean fails to synthesize the placeholder
+def ord_eq_min (α : Type u) : ord (mk α) =
   @ordinal.min _ _ (λ i:{r // is_well_order α r}, ⟦⟨α, i.1, i.2⟩⟧) := rfl
 
 theorem ord_eq (α) : ∃ (r : α → α → Prop) [wo : is_well_order α r],
@@ -2257,7 +2259,7 @@ by simp only [le_antisymm_iff, nat_cast_le]
 @[simp] theorem nat_cast_eq_zero {n : ℕ} : (n : ordinal) = 0 ↔ n = 0 :=
 @nat_cast_inj n 0
 
-@[simp] theorem nat_cast_ne_zero {n : ℕ} : (n : ordinal) ≠ 0 ↔ n ≠ 0 :=
+theorem nat_cast_ne_zero {n : ℕ} : (n : ordinal) ≠ 0 ↔ n ≠ 0 :=
 not_congr nat_cast_eq_zero
 
 @[simp] theorem nat_cast_pos {n : ℕ} : (0 : ordinal) < n ↔ 0 < n :=

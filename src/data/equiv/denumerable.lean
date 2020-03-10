@@ -10,11 +10,14 @@ from nat, where the functions are known inverses of each other.
 import data.equiv.encodable data.sigma data.fintype data.list.min_max
 open nat
 
+section prio
+set_option default_priority 100 -- see Note [default priority]
 /-- A denumerable type is one which is (constructively) bijective with ℕ.
   Although we already have a name for this property, namely `α ≃ ℕ`,
   we are here interested in using it as a typeclass. -/
 class denumerable (α : Type*) extends encodable α :=
 (decode_inv : ∀ n, ∃ a ∈ decode n, encode a = n)
+end prio
 
 namespace denumerable
 
@@ -22,7 +25,7 @@ section
 variables {α : Type*} {β : Type*} [denumerable α] [denumerable β]
 open encodable
 
-@[simp] theorem decode_is_some (α) [denumerable α] (n : ℕ) :
+theorem decode_is_some (α) [denumerable α] (n : ℕ) :
   (decode α n).is_some :=
 option.is_some_iff_exists.2 $
 (decode_inv α n).imp $ λ a, Exists.fst
@@ -30,7 +33,8 @@ option.is_some_iff_exists.2 $
 def of_nat (α) [f : denumerable α] (n : ℕ) : α :=
 option.get (decode_is_some α n)
 
-@[simp] theorem decode_eq_of_nat (α) [denumerable α] (n : ℕ) :
+@[simp, priority 900]
+theorem decode_eq_of_nat (α) [denumerable α] (n : ℕ) :
   decode α n = some (of_nat α n) :=
 option.eq_some_of_is_some _
 

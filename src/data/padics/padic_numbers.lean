@@ -5,7 +5,7 @@ Authors: Robert Y. Lewis
 
 -/
 
-import data.real.cau_seq_completion topology.metric_space.cau_seq_filter
+import data.real.cau_seq_completion
 import data.padics.padic_norm algebra.archimedean analysis.normed_space.basic
 import tactic.norm_cast
 
@@ -19,7 +19,7 @@ p-adic norm. We show that the p-adic norm on ℚ extends to ℚ_p, that ℚ is e
 ## Important definitions
 
 * `padic` : the type of p-adic numbers
-* `padic_norm_e` : the rational ralued p-adic norm on ℚ_p
+* `padic_norm_e` : the rational valued p-adic norm on ℚ_p
 
 ## Notation
 
@@ -48,7 +48,7 @@ Coercions from ℚ to ℚ_p are set up to work with the `norm_cast` tactic.
 
 * [F. Q. Gouêva, *p-adic numbers*][gouvea1997]
 * [R. Y. Lewis, *A formal proof of Hensel's lemma over the p-adic integers*][lewis2019]
-* https://en.wikipedia.org/wiki/P-adic_number
+* <https://en.wikipedia.org/wiki/P-adic_number>
 
 ## Tags
 
@@ -88,8 +88,8 @@ let ⟨ε, hε, N1, hN1⟩ := this,
     rw ←padic_norm.neg p (f m) at hne,
     have hnam := add_eq_max_of_ne p hne,
     rw [padic_norm.neg, max_comm] at hnam,
-    rw ←hnam at this,
-    apply _root_.lt_irrefl _ (by simp at this; exact this)
+    rw [←hnam, sub_eq_add_neg, add_comm] at this,
+    apply _root_.lt_irrefl _ this
   end ⟩
 
 /-- For all n ≥ stationary_point f hf, the p-adic norm of f n is the same. -/
@@ -403,8 +403,10 @@ section completion
 variables {p : ℕ} [nat.prime p]
 
 /-- The discrete field structure on ℚ_p is inherited from the Cauchy completion construction. -/
-instance discrete_field : discrete_field (ℚ_[p]) :=
-cau_seq.completion.discrete_field
+instance field : field (ℚ_[p]) :=
+cau_seq.completion.field
+
+instance : inhabited ℚ_[p] := ⟨0⟩
 
 -- short circuits
 
@@ -473,7 +475,7 @@ lemma cast_eq_of_rat : ∀ (q : ℚ), (↑q : ℚ_[p]) = of_rat p q
 @[move_cast] lemma coe_div : ∀ {x y : ℚ}, (↑(x / y) : ℚ_[p]) = ↑x / ↑y := by simp [cast_eq_of_rat]
 
 @[squash_cast] lemma coe_one : (↑1 : ℚ_[p]) = 1 := rfl
-@[squash_cast] lemma coe_zero : (↑1 : ℚ_[p]) = 1 := rfl
+@[squash_cast] lemma coe_zero : (↑0 : ℚ_[p]) = 0 := rfl
 
 lemma const_equiv {q r : ℚ} : const (padic_norm p) q ≈ const (padic_norm p) r ↔ q = r :=
 ⟨ λ heq : lim_zero (const (padic_norm p) (q - r)),
@@ -487,7 +489,7 @@ lemma of_rat_eq {q r : ℚ} : of_rat p q = of_rat p r ↔ q = r :=
 by simp [cast_eq_of_rat, of_rat_eq]
 
 instance : char_zero ℚ_[p] :=
-⟨λ m n, by { rw ← rat.cast_coe_nat, norm_cast }⟩
+⟨λ m n, by { rw ← rat.cast_coe_nat, norm_cast, exact id }⟩
 
 end completion
 end padic
@@ -657,7 +659,7 @@ begin
       rw this,
       apply add_lt_add,
       { suffices : padic_norm_e ((↑(lim_seq f j) - f j) + (f j - f (max N N2))) < ε / 3 + ε / 3,
-          by simpa,
+          by simpa [sub_eq_add_neg],
         apply lt_of_le_of_lt,
         { apply padic_norm_e.add },
         { apply add_lt_add,
@@ -727,8 +729,8 @@ instance : normed_field ℚ_[p] :=
 
 instance : is_absolute_value (λ a : ℚ_[p], ∥a∥) :=
 { abv_nonneg := norm_nonneg,
-  abv_eq_zero := norm_eq_zero,
-  abv_add := norm_triangle,
+  abv_eq_zero := λ _, norm_eq_zero,
+  abv_add := norm_add_le,
   abv_mul := by simp [has_norm.norm, padic_norm_e.mul'] }
 
 theorem rat_dense {p : ℕ} {hp : p.prime} (q : ℚ_[p]) {ε : ℝ} (hε : ε > 0) :

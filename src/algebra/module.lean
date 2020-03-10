@@ -327,6 +327,9 @@ instance : has_scalar α p := ⟨λ c x, ⟨c • x.1, smul_mem _ c x.2⟩⟩
 @[simp, elim_cast] lemma coe_zero : ((0 : p) : β) = 0 := rfl
 @[simp, move_cast] lemma coe_neg (x : p) : ((-x : p) : β) = -x := rfl
 @[simp, move_cast] lemma coe_smul (r : α) (x : p) : ((r • x : p) : β) = r • ↑x := rfl
+@[simp, elim_cast] lemma coe_mk (x : β) (hx : x ∈ p) : ((⟨x, hx⟩ : p) : β) = x := rfl
+
+@[simp] protected lemma eta (x : p) (hx : (x : β) ∈ p) : (⟨x, hx⟩ : p) = x := subtype.eta x hx
 
 instance : add_comm_group p :=
 by refine {add := (+), zero := 0, neg := has_neg.neg, ..};
@@ -337,8 +340,7 @@ instance submodule_is_add_subgroup : is_add_subgroup (p : set β) :=
   add_mem  := p.add,
   neg_mem  := λ _, p.neg_mem }
 
-@[simp, move_cast] lemma coe_sub (x y : p) : (↑(x - y) : β) = ↑x - ↑y :=
-by simp [sub_eq_add_neg]
+@[simp, move_cast] lemma coe_sub (x y : p) : (↑(x - y) : β) = ↑x - ↑y := rfl
 
 instance : module α p :=
 by refine {smul := (•), ..};

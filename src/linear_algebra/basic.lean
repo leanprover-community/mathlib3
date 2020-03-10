@@ -349,16 +349,18 @@ by rw [lt_iff_le_not_le, not_le_iff_exists]
 /-- If two submodules p and p' satisfy p ⊆ p', then `of_le p p'` is the linear map version of this
 inclusion. -/
 def of_le (h : p ≤ p') : p →ₗ[R] p' :=
-linear_map.cod_restrict _ p.subtype $ λ ⟨x, hx⟩, h hx
+p.subtype.cod_restrict p' $ λ ⟨x, hx⟩, h hx
 
-@[simp] theorem of_le_apply (h : p ≤ p')
-  (x : p) : (of_le h x : M) = x := rfl
+@[simp] theorem coe_of_le (h : p ≤ p') (x : p) :
+  (of_le h x : M) = x := rfl
+
+@[simp] theorem of_le_apply (h : p ≤ p') (x : p) : of_le h x = ⟨x, h x.2⟩ := rfl
 
 variables (p p')
 
 lemma subtype_comp_of_le (p q : submodule R M) (h : p ≤ q) :
-  (submodule.subtype q).comp (of_le h) = submodule.subtype p :=
-by ext ⟨b, hb⟩; simp
+  q.subtype.comp (of_le h) = p.subtype :=
+by { ext ⟨b, hb⟩, refl }
 
 /-- The set `{0}` is the bottom element of the lattice of submodules. -/
 instance : has_bot (submodule R M) :=

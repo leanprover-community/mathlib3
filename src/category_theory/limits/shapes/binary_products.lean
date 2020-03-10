@@ -35,6 +35,7 @@ instance fintype_walking_pair : fintype walking_pair :=
 { elems := [walking_pair.left, walking_pair.right].to_finset,
   complete := λ x, by { cases x; simp } }
 
+@[simp]
 def pair_function {C : Type u} (X Y : C) : walking_pair → C
 | walking_pair.left := X
 | walking_pair.right := Y
@@ -63,8 +64,11 @@ include 𝒟
 
 @[simps]
 def pair_comp (X Y : C) (F : C ⥤ D) : pair X Y ⋙ F ≅ pair (F.obj X) (F.obj Y) :=
-{ hom := { app := begin cases j, exact 𝟙 _ end },
-  inv := { app := begin cases j, exact 𝟙 _ end }, }
+{ hom := { app := begin rintro ⟨j⟩; exact 𝟙 _, end },
+  inv := { app := begin rintro ⟨j⟩; exact 𝟙 _, end },
+  -- TODO by automation:
+  hom_inv_id' := begin ext j, cases j; { dsimp, simp, } end,
+  inv_hom_id' := begin ext j, cases j; { dsimp, simp, } end }
 
 end
 

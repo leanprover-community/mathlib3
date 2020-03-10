@@ -46,6 +46,12 @@ instance : inhabited (Module R) := ⟨of R punit⟩
 
 lemma of_apply (X : Type u) [add_comm_group X] [module R X] : (of R X : Type u) = X := rfl
 
+variables {R}
+
+@[simps]
+def of_self_iso (M : Module R) : Module.of R M ≅ M :=
+{ hom := 𝟙 M, inv := 𝟙 M }
+
 instance : subsingleton (of R punit) :=
 by { rw of_apply R punit, apply_instance }
 
@@ -70,6 +76,18 @@ variables (M N U : Module R)
 instance hom_is_module_hom {M₁ M₂ : Module R} (f : M₁ ⟶ M₂) :
   is_linear_map R (f : M₁ → M₂) := linear_map.is_linear _
 
+
+-- TODO do this like in Group/basic.lean
+@[simps]
+def iso_of_linear_equiv
+  {X₁ : Type u} {g₁ : add_comm_group X₁} {m₁ : module R X₁}
+  {X₂ : Type u} {g₂ : add_comm_group X₂} {m₁ : module R X₂}
+  (e : X₁ ≃ₗ[R] X₂) : Module.of R X₁ ≅ Module.of R X₂ :=
+{ hom := (e : X₁ →ₗ[R] X₂),
+  inv := (e.symm : X₂ →ₗ[R] X₁),
+  hom_inv_id' := begin ext, exact e.left_inv x, end,
+  inv_hom_id' := begin ext, exact e.right_inv x, end, }
+
 section kernel
 variable (f : M ⟶ N)
 
@@ -87,7 +105,7 @@ def kernel_cone : cone (parallel_pair f 0) :=
     naturality' := λ j j' g, by { cases j; cases j'; cases g; tidy } } }
 
 /-- The kernel of a linear map is a kernel in the categorical sense -/
-def kernel_is_limit : is_limit (kernel_cone _ _ _ f) :=
+def kernel_is_limit : is_limit (kernel_cone _ _ f) :=
 { lift := λ s, linear_map.cod_restrict f.ker (fork.ι s) (λ c, linear_map.mem_ker.2 $
   by { erw [←@function.comp_apply _ _ _ f (fork.ι s) c, ←coe_comp, fork.condition,
     has_zero_morphisms.comp_zero _ (fork.ι s) N], refl }),
@@ -99,7 +117,7 @@ def kernel_is_limit : is_limit (kernel_cone _ _ _ f) :=
     { rw [←cone_parallel_pair_right, ←cone_parallel_pair_right], refl }
   end,
   uniq' := λ s m h, linear_map.ext $ λ x, subtype.ext.2 $
-    have h₁ : (m ≫ (kernel_cone _ _ _ f).π.app zero).to_fun = (s.π.app zero).to_fun,
+    have h₁ : (m ≫ (kernel_cone _ _ f).π.app zero).to_fun = (s.π.app zero).to_fun,
     by { congr, exact h zero },
     by convert @congr_fun _ _ _ _ h₁ x }
 
@@ -108,7 +126,7 @@ end kernel
 local attribute [instance] has_zero_object.zero_morphisms_of_zero_object
 
 instance : has_kernels.{u} (Module R) :=
-⟨λ _ _ f, ⟨kernel_cone _ _ _ f, kernel_is_limit _ _ _ f⟩⟩
+⟨λ _ _ f, ⟨kernel_cone _ _ f, kernel_is_limit _ _ f⟩⟩
 
 end Module
 

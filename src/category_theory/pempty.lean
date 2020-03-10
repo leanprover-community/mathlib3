@@ -29,6 +29,17 @@ include 𝒞
 /-- The unique functor from the empty category to any target category. -/
 def empty : pempty.{v+1} ⥤ C := by tidy
 
+section
+variables {C} {D : Type u} [𝒟 : category.{v} D]
+include 𝒟
+
+@[simps]
+def empty_comp (F : C ⥤ D) : empty C ⋙ F ≅ empty D :=
+{ hom := { app := λ j, by cases j },
+  inv := { app := λ j, by cases j } }
+
+end
+
 end functor
 
 /-- The category `pempty` is equivalent to the category `discrete pempty`. -/

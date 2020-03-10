@@ -324,7 +324,7 @@ def limit_cone_parallel_pair_self_is_iso (c : cone (parallel_pair f f)) (h : is_
   is_iso (c.π.app zero) :=
   let c' := cone_parallel_pair_self f,
     z : c ≅ c' := is_limit.unique_up_to_iso h (is_limit_cone_parallel_pair_self f) in
-  is_iso.of_iso (functor.map_iso cones.forget z)
+  is_iso.of_iso (functor.map_iso (cones.forget _) z)
 
 /-- The equalizer of (f, f) is an isomorphism -/
 def equalizer.ι_of_self [has_limit (parallel_pair f f)] : is_iso (equalizer.ι f f) :=
@@ -418,7 +418,7 @@ def colimit_cocone_parallel_pair_self_is_iso (c : cocone (parallel_pair f f)) (h
   is_iso (c.ι.app one) :=
   let c' := cocone_parallel_pair_self f,
     z : c' ≅ c := is_colimit.unique_up_to_iso (is_colimit_cocone_parallel_pair_self f) h in
-  is_iso.of_iso $ functor.map_iso cocones.forget z
+  is_iso.of_iso $ functor.map_iso (cocones.forget _) z
 
 /-- The coequalizer of (f, f) is an isomorphism -/
 def coequalizer.π_of_self [has_colimit (parallel_pair f f)] : is_iso (coequalizer.π f f) :=

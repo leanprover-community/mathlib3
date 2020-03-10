@@ -1263,6 +1263,15 @@ def option_equiv_right : mv_polynomial (option β) α ≃+* mv_polynomial β (po
 (sum_ring_equiv α β unit).trans $
 ring_equiv_congr (mv_polynomial unit α) (punit_ring_equiv α)
 
+/--
+The ring isomorphism between multivariable polynomials in `fin (n + 1)` and
+multivariable polynomials in `fin n` with coefficients in polynomials.
+-/
+def fin_succ_equiv (n : ℕ) :
+  mv_polynomial (fin (n + 1)) R ≃+* polynomial (mv_polynomial (fin n) R) :=
+(ring_equiv_of_equiv R (fin_succ_equiv n)).trans
+  (option_equiv_left R (fin n))
+
 end
 
 end equiv

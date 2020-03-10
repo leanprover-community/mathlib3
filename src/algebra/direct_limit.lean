@@ -469,6 +469,7 @@ instance lift.is_ring_hom : is_ring_hom (lift G f P g Hg) :=
 @[simp] lemma lift_mul (x y) : lift G f P g Hg (x * y) = lift G f P g Hg x * lift G f P g Hg y := is_ring_hom.map_mul _
 @[simp] lemma lift_pow (x) (n : ℕ) : lift G f P g Hg (x ^ n) = lift G f P g Hg x ^ n := is_semiring_hom.map_pow _ _ _
 
+local attribute [instance, priority 100] is_ring_hom.comp
 theorem lift_unique (F : direct_limit G f → P) [is_ring_hom F] (x) :
   F x = lift G f P (λ i x, F $ of G f i x) (λ i j hij x, by rw [of_f]) x :=
 direct_limit.induction_on x $ λ i x, by rw lift_of

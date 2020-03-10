@@ -185,6 +185,10 @@ def cofork.of_π {P : C} (π : Y ⟶ P) (w : f ≫ π = g ≫ π) : cofork f g :
   (fork.of_ι ι w).π.app zero = ι := rfl
 @[simp] lemma fork.of_ι_app_one {P : C} (ι : P ⟶ X) (w : ι ≫ f = ι ≫ g) :
   (fork.of_ι ι w).π.app one = ι ≫ f := rfl
+@[simp] lemma cofork.of_π_app_zero {P : C} (π : Y ⟶ P) (w : f ≫ π = g ≫ π) :
+  (cofork.of_π π w).ι.app zero = f ≫ π := rfl
+@[simp] lemma cofork.of_π_app_one {P : C} (π : Y ⟶ P) (w : f ≫ π = g ≫ π) :
+  (cofork.of_π π w).ι.app one = π := rfl
 
 def fork.ι (t : fork f g) := t.π.app zero
 def cofork.π (t : cofork f g) := t.ι.app one

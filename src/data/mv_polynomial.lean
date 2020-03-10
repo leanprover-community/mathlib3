@@ -1265,7 +1265,7 @@ ring_equiv_congr (mv_polynomial unit α) (punit_ring_equiv α)
 
 /--
 The ring isomorphism between multivariable polynomials in `fin (n + 1)` and
-multivariable polynomials in `fin n` with coefficients in polynomials.
+polynomials over multivariable polynomials in `fin n`.
 -/
 def fin_succ_equiv (n : ℕ) :
   mv_polynomial (fin (n + 1)) α ≃+* polynomial (mv_polynomial (fin n) α) :=

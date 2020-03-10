@@ -8,12 +8,21 @@ import data.finsupp
 /-!
 # The convolution product on `finsupp`.
 
-When the domain of a `finsupp` has an additive structure, we can define
-the convolution product.
+When the domain of a `finsupp` has a multiplicative or additive structure, we can define
+a convolution product.
 
-TODO per issue #1864: we intend to introduce a new type tag for
-this product, probably `add_monoid_algebra`, and instead provide
-pointwise multiplication as the default multiplication on `finsupp`.
+When the domain is additive, this is used to define polynomials:
+```
+polynomial α := add_monoid_algebra ℕ α
+mv_polynominal σ α := add_monoid_algebra (σ →₀ ℕ) α
+```
+
+When the domain is multiplicative, e.g. a group, this will be used to define the group ring.
+
+## Implementation note
+Unfortunately because additive and multiplicative structures both appear in both cases,
+it doesn't appear to be possible to make much use of `to_additive`, and we just settle for
+saying everything twice.
 -/
 
 noncomputable theory
@@ -43,7 +52,7 @@ local attribute [reducible] monoid_algebra
 section
 variables [monoid α] [semiring β]
 
-/-! ### Declarations about the convolution product on `finsupp`s -/
+/-! ### Declarations about the convolution product on `finsupp`s with multiplicative domain. -/
 
 /-- The product of `f g : α →₀ β` is the finitely supported function
   whose value at `a` is the sum of `f x * g y` over all pairs `x, y`
@@ -157,7 +166,7 @@ local attribute [reducible] add_monoid_algebra
 section
 variables [add_monoid α] [semiring β]
 
-/-! ### Declarations about the convolution product on `finsupp`s -/
+/-! ### Declarations about the convolution product on `finsupp`s with additive domain. -/
 
 /-- The product of `f g : α →₀ β` is the finitely supported function
   whose value at `a` is the sum of `f x * g y` over all pairs `x, y`

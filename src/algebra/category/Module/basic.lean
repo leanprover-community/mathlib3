@@ -44,6 +44,7 @@ def of (X : Type u) [add_comm_group X] [module R X] : Module R := ⟨R, X⟩
 
 instance : inhabited (Module R) := ⟨of R punit⟩
 
+@[simp]
 lemma of_apply (X : Type u) [add_comm_group X] [module R X] : (of R X : Type u) = X := rfl
 
 instance : subsingleton (of R punit) :=
@@ -60,18 +61,19 @@ instance : has_zero_object.{u} (Module R) :=
   { default := (0 : X →ₗ[R] punit),
     uniq := λ _, linear_map.ext $ λ x, subsingleton.elim _ _ } }
 
-variables (M N U : Module R)
+variables {R} {M N U : Module R}
 
 @[simp] lemma id_apply (m : M) : (𝟙 M : M → M) m = m := rfl
 
 @[simp] lemma coe_comp (f : M ⟶ N) (g : N ⟶ U) :
   ((f ≫ g) : M → U) = g ∘ f := rfl
 
-instance hom_is_module_hom {M₁ M₂ : Module R} (f : M₁ ⟶ M₂) :
-  is_linear_map R (f : M₁ → M₂) := linear_map.is_linear _
+instance hom_is_module_hom (f : M ⟶ N) :
+  is_linear_map R (f : M → N) := linear_map.is_linear _
 
 end Module
 
+variables {R}
 variables {X₁ X₂ : Type u}
 
 /-- Build an isomorphism in the category `Module R` from a `linear_equiv` between `module`s. -/

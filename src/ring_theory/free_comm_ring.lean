@@ -79,13 +79,14 @@ begin
   { intros y1 y2 ih1 ih2, rw [mul_add, lift_add, lift_add, mul_add, ih1, ih2] },
 end
 
-instance : is_ring_hom (lift f) :=
-{ map_one := lift_one f,
-  map_mul := lift_mul f,
-  map_add := lift_add f }
+/-- Lift of a map `f : α → β` to `free_comm_ring α` as a ring homomorphism.
+We don't use it as the canonical form because Lean fails to coerce it to a function. -/
+def lift_hom : free_comm_ring α →+* β := ⟨lift f, lift_one f, lift_mul f, lift_zero f, lift_add f⟩
+
+@[simp] lemma coe_lift_hom : ⇑(lift_hom f : free_comm_ring α →+* β) = lift f := rfl
 
 @[simp] lemma lift_pow (x) (n : ℕ) : lift f (x ^ n) = lift f x ^ n :=
-is_semiring_hom.map_pow _ x n
+(lift_hom f).map_pow _ _
 
 @[simp] lemma lift_comp_of (f : free_comm_ring α → β) [is_ring_hom f] : lift (f ∘ of) = f :=
 funext $ λ x, free_comm_ring.induction_on x
@@ -296,8 +297,6 @@ def free_comm_ring_equiv_mv_polynomial_int :
   free_comm_ring α ≃+* mv_polynomial α ℤ :=
 { to_fun  := free_comm_ring.lift $ λ a, mv_polynomial.X a,
   inv_fun := mv_polynomial.eval₂ coe free_comm_ring.of,
-  map_mul' := λ _ _, is_ring_hom.map_mul _,
-  map_add' := λ _ _, is_ring_hom.map_add _,
   left_inv :=
   begin
     intro x,
@@ -340,7 +339,8 @@ def free_comm_ring_equiv_mv_polynomial_int :
     { intros p a ih,
       rw [mv_polynomial.eval₂_mul, mv_polynomial.eval₂_X,
         free_comm_ring.lift_mul, free_comm_ring.lift_of, ih] }
-  end }
+  end,
+  .. free_comm_ring.lift_hom $ λ a, mv_polynomial.X a }
 
 def free_comm_ring_pempty_equiv_int : free_comm_ring pempty.{u+1} ≃+* ℤ :=
 ring_equiv.trans (free_comm_ring_equiv_mv_polynomial_int _) (mv_polynomial.pempty_ring_equiv _)

@@ -642,26 +642,21 @@ end, congr_arg X⟩
 end nonzero_comm_ring
 
 section local_ring
-variables {β : Type*} [local_ring α] [local_ring β] (f : α →+* β) [is_local_ring_hom f]
+variables {β : Type*} [local_ring α] [local_ring β] (f : α →+* β) [ring_hom.is_local f]
 
 instance : local_ring (mv_power_series σ α) :=
 local_of_is_local_ring $ is_local_ring ⟨zero_ne_one, local_ring.is_local⟩
 
-instance map.is_local_ring_hom :
-  is_local_ring_hom (map σ f : mv_power_series σ α → mv_power_series σ β) :=
-{ map_one := (map σ f).map_one,
-  map_mul := (map σ f).map_mul,
-  map_add := (map σ f).map_add,
-  map_nonunit :=
-  begin
-    rintros φ ⟨ψ, h⟩,
-    replace h := congr_arg (constant_coeff σ β) h,
-    rw constant_coeff_map at h,
-    have : is_unit (constant_coeff σ β ↑ψ) := @is_unit_constant_coeff σ β _ (↑ψ) (is_unit_unit ψ),
-    rw ← h at this,
-    rcases is_unit_of_map_unit f _ this with ⟨c, hc⟩,
-    exact is_unit_of_mul_one φ (inv_of_unit φ c) (mul_inv_of_unit φ c hc)
-  end }
+instance map.is_local_ring_hom : ring_hom.is_local (map σ f) :=
+⟨begin
+  rintros φ ⟨ψ, h⟩,
+  replace h := congr_arg (constant_coeff σ β) h,
+  rw constant_coeff_map at h,
+  have : is_unit (constant_coeff σ β ↑ψ) := @is_unit_constant_coeff σ β _ (↑ψ) (is_unit_unit ψ),
+  rw ← h at this,
+  rcases is_unit_of_map_unit f _ this with ⟨c, hc⟩,
+  exact is_unit_of_mul_one φ (inv_of_unit φ c) (mul_inv_of_unit φ c hc)
+end⟩
 
 end local_ring
 
@@ -1190,13 +1185,13 @@ mv_power_series.is_local_ring h
 end local_ring
 
 section local_ring
-variables {β : Type*} [local_ring α] [local_ring β] (f : α →+* β) [is_local_ring_hom f]
+variables {β : Type*} [local_ring α] [local_ring β] (f : α →+* β) [ring_hom.is_local f]
 
 instance : local_ring (power_series α) :=
 mv_power_series.local_ring
 
 instance map.is_local_ring_hom :
-  is_local_ring_hom (map f) :=
+  ring_hom.is_local (map f) :=
 mv_power_series.map.is_local_ring_hom f
 
 end local_ring

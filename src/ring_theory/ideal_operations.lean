@@ -182,9 +182,9 @@ begin
     { split_ifs with h, { apply hg1 }, rw sub_self, exact (f i).zero_mem },
     { intros hjs hji, rw dif_pos, { apply hg2 }, exact ⟨hjs, hji⟩ } },
   rcases this with ⟨g, hgi, hgj⟩, use (s.erase i).prod g, split,
-  { rw [← quotient.eq, quotient.mk_one, ← finset.prod_hom _ (quotient.mk (f i))],
+  { rw [← quotient.eq, quotient.mk_one, quotient.mk_prod],
     apply finset.prod_eq_one, intros, rw [← quotient.mk_one, quotient.eq], apply hgi },
-  intros j hjs hji, rw [← quotient.eq_zero_iff_mem, ← finset.prod_hom _ (quotient.mk (f j))],
+  intros j hjs hji, rw [← quotient.eq_zero_iff_mem, quotient.mk_prod],
   refine finset.prod_eq_zero (finset.mem_erase_of_ne_of_mem hji hjs) _,
   rw quotient.eq_zero_iff_mem, exact hgj j hjs hji
 end
@@ -201,7 +201,7 @@ begin
   rcases this with ⟨φ, hφ1, hφ2⟩,
   use finset.univ.sum (λ i, g i * φ i),
   intros i,
-  rw [← quotient.eq, ← finset.univ.sum_hom (quotient.mk (f i))],
+  rw [← quotient.eq, quotient.mk_sum],
   refine eq.trans (finset.sum_eq_single i _ _) _,
   { intros j _ hji, rw quotient.eq_zero_iff_mem, exact (f i).mul_mem_left (hφ2 j i hji) },
   { intros hi, exact (hi $ finset.mem_univ i).elim },
@@ -210,15 +210,16 @@ begin
 end
 
 def quotient_inf_to_pi_quotient (f : ι → ideal R) :
-  (⨅ i, f i).quotient → Π i, (f i).quotient :=
-@@quotient.lift _ _ (⨅ i, f i) (λ r i, ideal.quotient.mk (f i) r)
-  (@pi.is_ring_hom_pi ι (λ i, (f i).quotient) _ R _ _ _)
-  (λ r hr, funext $ λ i, quotient.eq_zero_iff_mem.2 $ (submodule.mem_infi _).1 hr i)
-
-theorem is_ring_hom_quotient_inf_to_pi_quotient (f : ι → ideal R) :
-  is_ring_hom (quotient_inf_to_pi_quotient f) :=
-@@quotient.is_ring_hom _ _ _
-  (@pi.is_ring_hom_pi ι (λ i, (f i).quotient) _ R _ _ _) _
+  (⨅ i, f i).quotient →+* Π i, (f i).quotient :=
+begin
+  refine quotient.lift (⨅ i, f i) _ _,
+  { convert @@pi.ring_hom (λ i, quotient (f i)) (λ i, ring.to_semiring) ring.to_semiring
+      (λ i, quotient.mk_hom (f i)) },
+  { intros r hr,
+    rw submodule.mem_infi at hr,
+    ext i,
+    exact quotient.eq_zero_iff_mem.2 (hr i) }
+end
 
 theorem bijective_quotient_inf_to_pi_quotient [fintype ι] {f : ι → ideal R}
   (hf : ∀ i j, i ≠ j → f i ⊔ f j = ⊤) :
@@ -233,9 +234,8 @@ theorem bijective_quotient_inf_to_pi_quotient [fintype ι] {f : ι → ideal R}
 noncomputable def quotient_inf_ring_equiv_pi_quotient [fintype ι] (f : ι → ideal R)
   (hf : ∀ i j, i ≠ j → f i ⊔ f j = ⊤) :
   (⨅ i, f i).quotient ≃+* Π i, (f i).quotient :=
-by haveI : is_ring_hom (equiv.of_bijective (bijective_quotient_inf_to_pi_quotient hf)) :=
-  is_ring_hom_quotient_inf_to_pi_quotient f;
-    exact ring_equiv.of (equiv.of_bijective (bijective_quotient_inf_to_pi_quotient hf))
+{ .. equiv.of_bijective (bijective_quotient_inf_to_pi_quotient hf),
+  .. quotient_inf_to_pi_quotient f }
 
 end chinese_remainder
 
@@ -412,7 +412,7 @@ end mul_and_radical
 
 section map_and_comap
 variables {R : Type u} {S : Type v} [comm_ring R] [comm_ring S]
-variables (f : R → S) [is_ring_hom f]
+variables (f : R →+* S)
 variables {I J : ideal R} {K L : ideal S}
 
 def map (I : ideal R) : ideal S :=
@@ -485,7 +485,7 @@ le_antisymm (λ r ⟨n, hfrnk⟩, ⟨n, show f (r ^ n) ∈ K,
 (λ r ⟨n, hfrnk⟩, ⟨n, is_semiring_hom.map_pow f r n ▸ hfrnk⟩)
 
 @[simp] lemma map_quotient_self :
-  map (quotient.mk I) I = ⊥ :=
+  map (quotient.mk_hom I) I = ⊥ :=
 lattice.eq_bot_iff.2 $ ideal.map_le_iff_le_comap.2 $ λ x hx,
 (submodule.mem_bot I.quotient).2 $ ideal.quotient.eq_zero_iff_mem.2 hx
 
@@ -558,10 +558,10 @@ end ideal
 
 namespace is_ring_hom
 
-variables {R : Type u} {S : Type v} (f : R → S) [comm_ring R]
+variables {R : Type u} {S : Type v} [comm_ring R]
 
 section comm_ring
-variables [comm_ring S] [is_ring_hom f]
+variables [comm_ring S] (f : R →+* S)
 
 def ker : ideal R := ideal.comap f ⊥
 
@@ -583,11 +583,11 @@ is_add_group_hom.injective_iff f
 end comm_ring
 
 /-- If the target is not the zero ring, then one is not in the kernel.-/
-lemma not_one_mem_ker [nonzero_comm_ring S] [is_ring_hom f] : (1:R) ∉ ker f :=
+lemma not_one_mem_ker [nonzero_comm_ring S] (f : R →+* S) : (1:R) ∉ ker f :=
 by { rw [mem_ker, is_ring_hom.map_one f], exact one_ne_zero }
 
 /-- The kernel of a homomorphism to an integral domain is a prime ideal.-/
-lemma ker_is_prime [integral_domain S] [is_ring_hom f] :
+lemma ker_is_prime [integral_domain S] (f : R →+* S) :
   (ker f).is_prime :=
 ⟨by { rw [ne.def, ideal.eq_top_iff_one], exact not_one_mem_ker f },
 λ x y, by simpa only [mem_ker, is_ring_hom.map_mul f] using eq_zero_or_eq_zero_of_mul_eq_zero⟩

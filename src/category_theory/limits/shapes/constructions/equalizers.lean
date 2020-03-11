@@ -34,28 +34,22 @@ pullback (prod.lift (𝟙 _) (F.map walking_parallel_pair_hom.left))
          (prod.lift (𝟙 _) (F.map walking_parallel_pair_hom.right))
 
 /-- Define the equalizing morphism -/
-@[reducible]
-def construct_ι (F : walking_parallel_pair ⥤ C) :
+abbreviation pullback_fst (F : walking_parallel_pair ⥤ C) :
   construct_equalizer F ⟶ F.obj walking_parallel_pair.zero :=
 pullback.fst
 
-lemma construct_ι_eq_snd (F : walking_parallel_pair ⥤ C) : construct_ι F = pullback.snd :=
-begin
-  have l: (pullback.fst ≫ prod.lift (𝟙 _) (F.map walking_parallel_pair_hom.left)) ≫ limits.prod.fst = (pullback.snd ≫ prod.lift (𝟙 _) (F.map walking_parallel_pair_hom.right)) ≫ limits.prod.fst,
-    rw pullback.condition,
-  erw [assoc, assoc, limit.lift_π, limit.lift_π, comp_id, comp_id] at l, exact l
-end
+lemma pullback_fst_eq_pullback_snd (F : walking_parallel_pair ⥤ C) :
+  pullback_fst F = pullback.snd :=
+by convert pullback.condition =≫ limits.prod.fst; simp
 
 /-- Define the equalizing cone -/
 @[reducible]
 def equalizer_cone (F : walking_parallel_pair ⥤ C) : cone F :=
 cone.of_fork
-  (fork.of_ι (construct_ι F)
+  (fork.of_ι (pullback_fst F)
     (begin
-      have r: (pullback.fst ≫ prod.lift (𝟙 _) (F.map walking_parallel_pair_hom.left)) ≫ limits.prod.snd = (pullback.snd ≫ prod.lift (𝟙 _) (F.map walking_parallel_pair_hom.right)) ≫ limits.prod.snd,
-        rw pullback.condition,
-      simp only [limit.lift_π, assoc] at r,
-      erw r, rw construct_ι_eq_snd, refl
+      conv_rhs { rw pullback_fst_eq_pullback_snd, },
+      convert pullback.condition =≫ limits.prod.snd using 1; simp
      end))
 
 /-- Show the equalizing cone is a limit -/
@@ -64,23 +58,22 @@ def equalizer_cone_is_limit (F : walking_parallel_pair ⥤ C) : is_limit (equali
   begin
     intro c, apply pullback.lift (c.π.app _) (c.π.app _),
     apply limit.hom_ext,
-    rintro (_ | _), all_goals { simp [assoc, limit.lift_π] }
+    rintro (_ | _); simp
   end,
   fac' :=
   begin
-    intro c, rintro (_ | _),
+    rintros c (_ | _),
     { simp, refl },
     { simp, exact c.w _ }
   end,
   uniq' :=
   begin
     intros c _ J,
-    have J1 := J walking_parallel_pair.zero, simp at J1,
+    have J0 := J walking_parallel_pair.zero, simp at J0,
     apply pullback.hom_ext,
     { rwa limit.lift_π },
-    { erw [limit.lift_π, ← J1, construct_ι_eq_snd] }
-  end
-}
+    { erw [limit.lift_π, ← J0, pullback_fst_eq_pullback_snd] }
+  end }
 
 end has_equalizers_of_pullbacks_and_binary_products
 

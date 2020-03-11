@@ -31,7 +31,7 @@ def trivial : GroupModule AddCommGroup G :=
 { V := 0,
   ρ := 1, }
 
-instance : inhabited (GroupModule AddCommGroup G) := ⟨trivial AddCommGroup G⟩
+instance : inhabited (GroupModule AddCommGroup G) := ⟨trivial G⟩
 end
 
 variables {G 𝕍}

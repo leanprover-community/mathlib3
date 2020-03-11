@@ -5,6 +5,8 @@ Authors: Johan Commelin, Reid Barton
 -/
 import category_theory.comma
 import category_theory.limits.preserves
+import category_theory.limits.shapes.pullbacks
+import category_theory.limits.shapes.binary_products
 
 universes v u -- declare the `v`'s first; see `category_theory.category` for an explanation
 
@@ -83,6 +85,126 @@ instance forget_preserves_colimits [has_colimits.{v} C] {X : C} :
 { preserves_colimits_of_shape := λ J 𝒥,
   { preserves_colimit := λ F, by exactI
     preserves_colimit_of_preserves_colimit_cocone (colimit.is_colimit F) (forget_colimit_is_colimit F) } }
+
+def over_product_of_pullbacks (B : C) (F : discrete walking_pair ⥤ over B)
+[q : has_limit (cospan (F.obj walking_pair.left).hom (F.obj walking_pair.right).hom)]
+: has_limit F :=
+{ cone :=
+  begin
+    refine ⟨_, _⟩,
+    exact @over.mk _ _ B (pullback (F.obj walking_pair.left).hom (F.obj walking_pair.right).hom) (pullback.fst ≫ (F.obj walking_pair.left).hom),
+    apply nat_trans.of_homs, intro i, cases i,
+    apply over.hom_mk _ _, apply pullback.fst, dsimp, refl,
+    apply over.hom_mk _ _, apply pullback.snd, exact pullback.condition.symm
+  end,
+  is_limit :=
+  { lift := λ s,
+      begin
+        apply over.hom_mk _ _,
+          apply pullback.lift _ _ _,
+              exact (s.π.app walking_pair.left).left,
+            exact (s.π.app walking_pair.right).left,
+          erw over.w (s.π.app walking_pair.left),
+          erw over.w (s.π.app walking_pair.right),
+          refl,
+        dsimp, erw ← category.assoc, simp,
+      end,
+    fac' := λ s j,
+      begin
+        ext,
+        cases j,
+        { simp [nat_trans.of_homs] },
+        { simp [nat_trans.of_homs] }
+      end,
+    uniq' := λ s m j,
+      begin
+        ext,
+        { erw ← j walking_pair.left, simp },
+        { erw ← j walking_pair.right, simp }
+      end } }
+
+instance (B : C) : has_terminal.{v} (over B) :=
+{ has_limits_of_shape :=
+  { has_limit := λ F,
+    { cone :=
+      { X := over.mk (𝟙 _),
+        π := { app := λ p, pempty.elim p } },
+      is_limit :=
+        { lift := λ s, over.hom_mk _,
+          fac' := λ _ j, j.elim,
+          uniq' := λ s m _,
+            begin
+              ext,
+              rw over.hom_mk_left,
+              have := m.w,
+              dsimp at this,
+              rwa [category.comp_id, category.comp_id] at this
+            end } } } }
+
+-- TODO: this should work for any connected limit, not just pullbacks
+instance {B : C} [has_pullbacks.{v} C] : has_pullbacks.{v} (over B) :=
+begin
+  refine ⟨⟨λ F, _⟩⟩,
+  let X : over B := F.obj walking_cospan.one,
+  let Y : over B := F.obj walking_cospan.left,
+  let Z : over B := F.obj walking_cospan.right,
+  let f : Y ⟶ X := (F.map walking_cospan.hom.inl),
+  let g : Z ⟶ X := (F.map walking_cospan.hom.inr),
+  let L : over B := over.mk (pullback.fst ≫ Y.hom : pullback f.left g.left ⟶ B),
+  let π₁ : L ⟶ Y := over.hom_mk pullback.fst,
+  let π₂ : L ⟶ Z, refine @over.hom_mk _ _ _ L Z (pullback.snd : L.left ⟶ Z.left) _,
+    simp,
+    rw [← over.w f, ← category.assoc, pullback.condition, category.assoc,  over.w g],
+  refine {cone := cone.of_pullback_cone (pullback_cone.mk π₁ π₂ _), is_limit := {lift := _, fac' := _, uniq' := _}},
+    ext, simp, erw pullback.condition,
+  intro s,
+  apply over.hom_mk _ _,
+  apply pullback.lift (s.π.app walking_cospan.left).left (s.π.app walking_cospan.right).left,
+  rw ← over.comp_left, rw ← over.comp_left,
+  rw s.w, rw s.w, simp,
+  show pullback.lift (((s.π).app walking_cospan.left).left) (((s.π).app walking_cospan.right).left) _ ≫
+    (pullback.fst ≫ Y.hom : pullback f.left g.left ⟶ B) = (s.X).hom, simp, refl,
+  intros s j, simp, ext1, dsimp,
+  cases j, simp, simp, simp,
+  show _ ≫ (((pullback_cone.mk π₁ π₂ _).π).app walking_cospan.one).left = ((s.π).app walking_cospan.one).left,
+  dunfold pullback_cone.mk, dsimp,
+  show pullback.lift (((s.π).app walking_cospan.left).left) (((s.π).app walking_cospan.right).left) _ ≫
+    pullback.fst ≫ f.left =
+  ((s.π).app walking_cospan.one).left, simp, rw ← over.comp_left, rw ← s.w walking_cospan.hom.inl,
+  intros s m J, apply over.over_morphism.ext, simp, apply pullback.hom_ext,
+  simp at J, dsimp at J,
+  have := J walking_cospan.left, dsimp at this, simp, rw ← this, simp,
+  have := J walking_cospan.right, dsimp at this, simp, rw ← this, simp
+end
+
+instance over_has_prods_of_pullback [has_pullbacks.{v} C] (B : C) :
+  has_binary_products.{v} (over B) :=
+{has_limits_of_shape := {has_limit := λ F, over_product_of_pullbacks B F}}
+
+@[simp]
+lemma over_prod_is_pullback [has_pullbacks.{v} C] {B : C} (F : discrete walking_pair ⥤ over B) :
+  limits.limit F = @over.mk _ _ B (pullback (F.obj walking_pair.left).hom (F.obj walking_pair.right).hom) (pullback.fst ≫ (F.obj walking_pair.left).hom) := rfl
+
+@[simp]
+lemma over_prod_pair [has_pullbacks.{v} C] {B : C} (f g : over B) :
+  prod f g = @over.mk _ _ B (pullback f.hom g.hom) (pullback.fst ≫ f.hom) := rfl
+
+@[simp]
+lemma over_prod_fst [has_pullbacks.{v} C] {B : C} (f g : over B) :
+  limits.prod.fst = (over.hom_mk pullback.fst : prod f g ⟶ f) := rfl
+
+@[simp]
+lemma over_prod_snd [has_pullbacks.{v} C] {B : C} (f g : over B) :
+  limits.prod.snd = (over.hom_mk pullback.snd pullback.condition.symm : prod f g ⟶ g) := rfl
+
+@[simp]
+lemma over_prod_map [has_pullbacks.{v} C] {B : C} (f g h : over B) (k : g ⟶ h) :
+  (limits.prod.map (𝟙 f) k : f ⨯ g ⟶ f ⨯ h) = over.hom_mk (pullback.lift pullback.fst (pullback.snd ≫ k.left) (by dsimp; simp; apply pullback.condition)) (begin tidy end) :=
+begin
+  ext1, rw limit.map_π, ext, cases j,
+  { erw category.comp_id, dsimp, erw limit.lift_π, refl },
+  { dsimp, erw limit.lift_π, refl }
+end
 
 end category_theory.over
 

@@ -22,6 +22,9 @@ structure GroupModule (G : Group.{u₁}) :=
 namespace GroupModule
 variable (G : Group.{u₁})
 
+section
+omit 𝒱
+
 /-- The trivial representation of a group. -/
 -- TODO What is the correct generalisation for an arbitrary `𝕍`?
 def trivial : GroupModule AddCommGroup G :=
@@ -29,6 +32,7 @@ def trivial : GroupModule AddCommGroup G :=
   ρ := 1, }
 
 instance : inhabited (GroupModule AddCommGroup G) := ⟨trivial AddCommGroup G⟩
+end
 
 variables {G 𝕍}
 
@@ -77,6 +81,11 @@ rfl
 
 section forget
 
+/-- (implementation) The forgetful functor from modules to the underlying objects.
+
+Use the `category_theory.forget` API provided by the `concrete_category` instance below,
+rather than using this directly.
+-/
 def forget : GroupModule 𝕍 G ⥤ 𝕍 :=
 { obj := λ M, M.V,
   map := λ M N f, f.hom, }

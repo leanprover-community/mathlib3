@@ -215,7 +215,7 @@ end
 
 /-- To check whether a morphism is equalized by the maps of a pullback cone, it suffices to check
   it for `fst t` and `snd t` -/
-lemma equalizer_ext (t : pullback_cone f g) {W : C} {k l : W ⟶ t.X}
+lemma pullback_ext (t : pullback_cone f g) {W : C} {k l : W ⟶ t.X}
   (h₀ : k ≫ fst t = l ≫ fst t)
   (h₁ : k ≫ snd t = l ≫ snd t) :
   ∀ (j : walking_cospan), k ≫ t.π.app j = l ≫ t.π.app j
@@ -249,7 +249,7 @@ end
 
 /-- To check whether a morphism is coequalized by the maps of a pushout cocone, it suffices to check
   it for `inl t` and `inr t` -/
-lemma coequalizer_ext (t : pushout_cocone f g) {W : C} {k l : t.X ⟶ W}
+lemma pushout_ext (t : pushout_cocone f g) {W : C} {k l : t.X ⟶ W}
   (h₀ : inl t ≫ k = inl t ≫ l)
   (h₁ : inr t ≫ k = inr t ≫ l) :
   ∀ (j : walking_span), t.ι.app j ≫ k = t.ι.app j ≫ l

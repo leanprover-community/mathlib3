@@ -34,8 +34,10 @@ universes u₁ u₂
 variables (α : Type u₁) (β : Type u₂)
 
 section
-variables [monoid α] [semiring β]
+variables [semiring β]
 
+/-- a type synonym for `finsupp α β`, on which we define a multiplication by convolution -/
+@[derive inhabited]
 def monoid_algebra := α →₀ β
 
 variables {α β}
@@ -120,7 +122,7 @@ instance [comm_monoid α] [comm_semiring β] : comm_semiring (monoid_algebra α 
   end,
   .. monoid_algebra.semiring }
 
-instance [monoid α] [ring β] : has_neg (monoid_algebra α β) :=
+instance [ring β] : has_neg (monoid_algebra α β) :=
 by apply_instance
 
 instance [monoid α] [ring β] : ring (monoid_algebra α β) :=
@@ -148,8 +150,10 @@ finset.induction_on s rfl $ λ a s has ih, by rw [prod_insert has, ih,
 end monoid_algebra
 
 section
-variables [add_monoid α] [semiring β]
+variables [semiring β]
 
+/-- a type synonym for `finsupp α β`, on which we define a multiplication by convolution -/
+@[derive inhabited]
 def add_monoid_algebra := α →₀ β
 
 variables {α β}
@@ -234,7 +238,7 @@ instance [add_comm_monoid α] [comm_semiring β] : comm_semiring (add_monoid_alg
   end,
   .. add_monoid_algebra.semiring }
 
-instance [add_monoid α] [ring β] : has_neg (add_monoid_algebra α β) :=
+instance [ring β] : has_neg (add_monoid_algebra α β) :=
 by apply_instance
 
 instance [add_monoid α] [ring β] : ring (add_monoid_algebra α β) :=

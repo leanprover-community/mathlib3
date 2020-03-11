@@ -388,6 +388,9 @@ end
 end UMP
 
 variables {M N}
+section
+variables (R M)
+
 /--
 The base ring is a left identity for the tensor product of modules, up to linear equivalence.
 -/
@@ -395,13 +398,17 @@ protected def lid : R ⊗ M ≃ₗ M :=
 linear_equiv.of_linear (lift $ linear_map.lsmul R M) (mk R R M 1)
   (linear_map.ext $ λ _, by simp)
   (ext $ λ r m, by simp; rw [← tmul_smul, ← smul_tmul, smul_eq_mul, mul_one])
+end
 
 @[simp] theorem lid_tmul (m : M) (r : R) :
-  ((@tensor_product.lid R _ M _ _) : (R ⊗ M → M)) (r ⊗ₜ m) = r • m :=
+  ((tensor_product.lid R M) : (R ⊗ M → M)) (r ⊗ₜ m) = r • m :=
 begin
   dsimp [tensor_product.lid],
   simp,
 end
+
+section
+variables (R M N)
 
 /--
 The tensor product of modules is commutative, up to linear equivalence.
@@ -410,20 +417,29 @@ protected def comm : M ⊗ N ≃ₗ N ⊗ M :=
 linear_equiv.of_linear (lift (mk R N M).flip) (lift (mk R M N).flip)
   (ext $ λ m n, rfl)
   (ext $ λ m n, rfl)
+end
+
+section
+variables (R M)
 
 /--
 The base ring is a right identity for the tensor product of modules, up to linear equivalence.
 -/
-protected def rid : M ⊗ R ≃ₗ M := linear_equiv.trans tensor_product.comm tensor_product.lid
+protected def rid : M ⊗[R] R ≃ₗ M := linear_equiv.trans (tensor_product.comm R M R) (tensor_product.lid R M)
+end
 
 @[simp] theorem rid_tmul (m : M) (r : R) :
-  ((@tensor_product.rid R _ M _ _) : (M ⊗ R → M)) (m ⊗ₜ r) = r • m :=
+  ((tensor_product.rid R M) : (M ⊗ R → M)) (m ⊗ₜ r) = r • m :=
 begin
   dsimp [tensor_product.rid, tensor_product.comm, tensor_product.lid],
   simp,
 end
 
 open linear_map
+section
+variables (R M N P)
+
+/-- The associator for tensor product of R-modules, as a linear equivalence. -/
 protected def assoc : (M ⊗[R] N) ⊗[R] P ≃ₗ[R] M ⊗[R] (N ⊗[R] P) :=
 begin
   refine linear_equiv.of_linear
@@ -435,9 +451,10 @@ begin
     rw mk_apply <|> rw flip_apply <|> rw lcurry_apply <|>
     rw uncurry_apply <|> rw curry_apply <|> rw id_apply }
 end
+end
 
 @[simp] theorem assoc_tmul (m : M) (n : N) (p : P) :
-  ((@tensor_product.assoc R _ M N P _ _ _ _ _ _) : (M ⊗[R] N) ⊗[R] P → M ⊗[R] (N ⊗[R] P)) ((m ⊗ₜ n) ⊗ₜ p) = m ⊗ₜ (n ⊗ₜ p) :=
+  ((tensor_product.assoc R M N P) : (M ⊗[R] N) ⊗[R] P → M ⊗[R] (N ⊗[R] P)) ((m ⊗ₜ n) ⊗ₜ p) = m ⊗ₜ (n ⊗ₜ p) :=
 rfl
 
 def map (f : M →ₗ[R] P) (g : N →ₗ Q) : M ⊗ N →ₗ P ⊗ Q :=

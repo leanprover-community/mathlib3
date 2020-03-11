@@ -74,6 +74,7 @@ do names ← attribute.get_instances `hint_tactic,
 namespace interactive
 
 /-- report a list of tactics that can make progress against the current goal
+
 ---
 `hint` lists possible tactics which will make progress (that is, not fail) against the current goal.
 

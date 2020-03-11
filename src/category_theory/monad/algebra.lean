@@ -1,7 +1,7 @@
 /-
 Copyright (c) 2019 Scott Morrison. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Authors: Scott Morrison
+Authors: Scott Morrison, Bhavik Mehta
 -/
 import category_theory.monad.basic
 import category_theory.adjunction.basic
@@ -111,5 +111,86 @@ adjunction.mk_of_hom_equiv
     end }}
 
 end monad
+
+namespace comonad
+
+/-- An Eilenberg-Moore coalgebra for a comonad `T`. -/
+structure coalgebra (G : C ⥤ C) [comonad.{v₁} G] : Type (max u₁ v₁) :=
+(A : C)
+(a : A ⟶ G.obj A)
+(counit' : a ≫ (ε_ G).app A = 𝟙 A . obviously)
+(coassoc' : (a ≫ (δ_ G).app A) = (a ≫ G.map a) . obviously)
+
+restate_axiom coalgebra.counit'
+restate_axiom coalgebra.coassoc'
+
+namespace coalgebra
+variables {G : C ⥤ C} [comonad.{v₁} G]
+
+@[ext] structure hom (A B : coalgebra G) :=
+(f : A.A ⟶ B.A)
+(h' : A.a ≫ G.map f = f ≫ B.a . obviously)
+
+restate_axiom hom.h'
+attribute [simp] hom.h
+
+namespace hom
+
+@[simps] def id (A : coalgebra G) : hom A A :=
+{ f := 𝟙 A.A }
+
+@[simps] def comp {P Q R : coalgebra G} (f : hom P Q) (g : hom Q R) : hom P R :=
+{ f := f.f ≫ g.f,
+  h' := by rw [functor.map_comp, ← category.assoc, f.h, category.assoc, g.h, category.assoc] }
+
+end hom
+
+/-- The category of Eilenberg-Moore coalgebras for a comonad. -/
+@[simps] instance EilenbergMoore : category (coalgebra G) :=
+{ hom := hom,
+  id := hom.id,
+  comp := @hom.comp _ _ _ _ }
+
+end coalgebra
+
+variables (G : C ⥤ C) [comonad.{v₁} G]
+
+@[simps] def forget : coalgebra G ⥤ C :=
+{ obj := λ A, A.A,
+  map := λ A B f, f.f }
+
+@[simps] def cofree : C ⥤ coalgebra G :=
+{ obj := λ X,
+  { A := G.obj X,
+    a := (δ_ G).app X,
+    coassoc' := (comonad.coassoc G _).symm },
+  map := λ X Y f,
+  { f := G.map f,
+    h' := by erw (δ_ G).naturality; refl} }
+
+/-- The adjunction between the cofree and forgetful constructions for Eilenberg-Moore coalgebras for a comonad. -/
+def adj : forget G ⊣ cofree G :=
+adjunction.mk_of_hom_equiv
+{ hom_equiv := λ X Y,
+  { to_fun := λ f,
+    { f := X.a ≫ G.map f,
+      h' := by { rw [functor.map_comp, ← category.assoc, ← coalgebra.coassoc], simp } },
+    inv_fun := λ g, g.f ≫ (ε_ G).app Y,
+    left_inv := λ f,
+    begin
+      dsimp,
+      rw [category.assoc, (ε_ G).naturality,
+          functor.id_map, ← category.assoc, X.counit, id_comp],
+    end,
+    right_inv := λ g,
+    begin
+      ext1, dsimp,
+      rw [functor.map_comp, ← category.assoc, coalgebra.hom.h, assoc,
+          cofree_obj_a, comonad.right_counit],
+      dsimp, simp
+    end
+    }}
+
+end comonad
 
 end category_theory

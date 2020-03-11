@@ -7,7 +7,6 @@ Authors: Amelia Livingston
 import group_theory.congruence
 import algebra.associated
 import algebra.punit_instances
-import order.galois_connection
 
 /-!
 # Localizations of commutative monoids

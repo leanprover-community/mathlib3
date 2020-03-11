@@ -44,6 +44,7 @@ def of (X : Type u) [add_comm_group X] [module R X] : Module R := ⟨R, X⟩
 
 instance : inhabited (Module R) := ⟨of R punit⟩
 
+@[simp]
 lemma of_apply (X : Type u) [add_comm_group X] [module R X] : (of R X : Type u) = X := rfl
 
 variables {R}
@@ -66,15 +67,52 @@ instance : has_zero_object.{u} (Module R) :=
   { default := (0 : X →ₗ[R] punit),
     uniq := λ _, linear_map.ext $ λ x, subsingleton.elim _ _ } }
 
-variables (M N U : Module R)
+variables {R} {M N U : Module R}
 
 @[simp] lemma id_apply (m : M) : (𝟙 M : M → M) m = m := rfl
 
 @[simp] lemma coe_comp (f : M ⟶ N) (g : N ⟶ U) :
   ((f ≫ g) : M → U) = g ∘ f := rfl
 
-instance hom_is_module_hom {M₁ M₂ : Module R} (f : M₁ ⟶ M₂) :
-  is_linear_map R (f : M₁ → M₂) := linear_map.is_linear _
+instance hom_is_module_hom (f : M ⟶ N) :
+  is_linear_map R (f : M → N) := linear_map.is_linear _
+
+end Module
+
+variables {R}
+variables {X₁ X₂ : Type u}
+
+/-- Build an isomorphism in the category `Module R` from a `linear_equiv` between `module`s. -/
+@[simps]
+def linear_equiv.to_Module_iso
+  {g₁ : add_comm_group X₁} {g₂ : add_comm_group X₂} {m₁ : module R X₂} (e : X₁ ≃ₗ[R] X₂) :
+  Group.of X ≅ Group.of Y :=
+{ hom := (e : X₁ →ₗ[R] X₂),
+  inv := (e.symm : X₂ →ₗ[R] X₁),
+  hom_inv_id' := begin ext, exact e.left_inv x, end,
+  inv_hom_id' := begin ext, exact e.right_inv x, end, }
+
+namespace category_theory.iso
+
+/-- Build a `linear_equiv` from an isomorphism in the category `Module R`. -/
+@[simps]
+def to_linear_equiv {X Y : Module.{u} R} (i : X ≅ Y) : X ≃ₗ[R] Y :=
+{ to_fun    := i.hom,
+  inv_fun   := i.inv,
+  left_inv  := by tidy,
+  right_inv := by tidy,
+  map_mul'  := by tidy }.
+
+end category_theory.iso
+
+/-- linear equivalences between `module`s are the same as (isomorphic to) isomorphisms in `Module` -/
+@[simps]
+def linear_equiv_iso_Group_iso {X Y : Type u} [add_comm_group X] [add_comm_group Y] [module R X] [module R Y] :
+  (X ≃ₗ[R] Y) ≅ (Module.of X ≅ Module.of Y) :=
+{ hom := λ e, e.to_Module_iso,
+  inv := λ i, i.Module_iso_to_linear_equiv, }
+
+namespace Module
 
 
 -- TODO do this like in Group/basic.lean

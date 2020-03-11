@@ -1,7 +1,7 @@
 /-
 Copyright (c) 2018 Johan Commelin. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Authors: Johan Commelin, Reid Barton
+Authors: Johan Commelin, Reid Barton, Bhavik Mehta
 -/
 import category_theory.comma
 import category_theory.limits.preserves
@@ -112,10 +112,7 @@ def over_product_of_pullbacks (B : C) (F : discrete walking_pair ⥤ over B)
       end,
     fac' := λ s j,
       begin
-        ext,
-        cases j,
-        { simp [nat_trans.of_homs] },
-        { simp [nat_trans.of_homs] }
+        ext, cases j; simp [nat_trans.of_homs]
       end,
     uniq' := λ s m j,
       begin

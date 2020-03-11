@@ -1,7 +1,7 @@
 /-
 Copyright (c) 2018 Scott Morrison. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Authors: Scott Morrison, Johan Commelin
+Authors: Scott Morrison, Johan Commelin, Bhavik Mehta
 -/
 import category_theory.isomorphism
 import category_theory.equivalence
@@ -234,31 +234,29 @@ section iterated_slice
 variables (f : over X)
 
 /-- Given f : Y ⟶ X, this is the obvious functor from (T/X)/f to T/Y -/
-@[reducible]
+@[simps]
 def iterated_slice_forward : over f ⥤ over f.left :=
 { obj := λ α, over.mk α.hom.left,
   map := λ α β κ, over.hom_mk κ.left.left (begin rw auto_param_eq, rw ← over.w κ, refl end)}
 
-/-- Given f : A ⟶ B, this is the obvious functor from T/Y to (T/X)/f -/
-@[reducible]
+/-- Given f : Y ⟶ X, this is the obvious functor from T/Y to (T/X)/f -/
+@[simps]
 def iterated_slice_backward : over f.left ⥤ over f :=
-{ obj := λ g, over.mk (over.hom_mk g.hom (by simp) : over.mk (g.hom ≫ f.hom) ⟶ _),
-  map := λ g h α, @over.hom_mk _ _ f
-              (over.mk (@over.hom_mk _ _ X (over.mk (g.hom ≫ f.hom)) f g.hom (by simp) : _ ⟶ f))
-              (over.mk (@over.hom_mk _ _ X (over.mk (h.hom ≫ f.hom)) f h.hom (by simp) : _ ⟶ f))
-              (over.hom_mk α.left (over.w_assoc α f.hom)) (over.over_morphism.ext (over.w α)) }
+{ obj := λ g, over.mk (over.hom_mk g.hom (by simp) : over.mk (g.hom ≫ f.hom) ⟶ f),
+  map := λ g h α, over.hom_mk (over.hom_mk α.left (over.w_assoc α f.hom))
+                              (over.over_morphism.ext (over.w α)) }
 
-/-- Given f : A ⟶ B, we have an equivalence between (T/X)/f and T/Y -/
+/-- Given f : Y ⟶ X, we have an equivalence between (T/X)/f and T/Y -/
 def iterated_slice_equiv : over f ≌ over f.left :=
 equivalence.mk (iterated_slice_forward f) (iterated_slice_backward f)
 (nat_iso.of_components
   (λ g, ⟨over.hom_mk (over.hom_mk (𝟙 g.left.left)) (by apply_auto_param),
          over.hom_mk (over.hom_mk (𝟙 g.left.left)) (by apply_auto_param),
-         by ext; dsimp; simp, by ext; dsimp; simp⟩) (λ X Y g, by ext; dsimp; simp))
+         by { ext, dsimp, simp }, by { ext, dsimp, simp }⟩) (λ X Y g, by { ext, dsimp, simp }))
 (nat_iso.of_components
   (λ g, ⟨over.hom_mk (𝟙 g.left) (by apply_auto_param),
          over.hom_mk (𝟙 g.left) (by apply_auto_param),
-         by ext; dsimp; simp, by ext; dsimp; simp⟩) (λ X Y g, by ext; dsimp; simp))
+         by { ext, dsimp, simp }, by { ext, dsimp, simp }⟩) (λ X Y g, by { ext, dsimp, simp }))
 
 @[simp]
 lemma iterated_slice_equiv_functor :

@@ -17,16 +17,23 @@ TODO: provide the dual result.
 -/
 universes v u
 
-open category_theory category_theory.category category_theory.limits
+open category_theory category_theory.category
+
+namespace category_theory.limits
 
 variables {C : Type u} [𝒞 : category.{v} C] [has_binary_products.{v} C] [has_pullbacks.{v} C]
 include 𝒞
 
+-- We hide the "implementation details" inside a namespace
+namespace has_equalizers_of_pullbacks_and_binary_products
+
+/-- Define the equalizing object -/
 @[reducible]
 def construct_equalizer (F : walking_parallel_pair ⥤ C) : C :=
 pullback (prod.lift (𝟙 _) (F.map walking_parallel_pair_hom.left))
          (prod.lift (𝟙 _) (F.map walking_parallel_pair_hom.right))
 
+/-- Define the equalizing morphism -/
 abbreviation pullback_fst (F : walking_parallel_pair ⥤ C) :
   construct_equalizer F ⟶ F.obj walking_parallel_pair.zero :=
 pullback.fst
@@ -35,6 +42,7 @@ lemma pullback_fst_eq_pullback_snd (F : walking_parallel_pair ⥤ C) :
   pullback_fst F = pullback.snd :=
 by convert pullback.condition =≫ limits.prod.fst; simp
 
+/-- Define the equalizing cone -/
 @[reducible]
 def equalizer_cone (F : walking_parallel_pair ⥤ C) : cone F :=
 cone.of_fork
@@ -44,6 +52,7 @@ cone.of_fork
       convert pullback.condition =≫ limits.prod.snd using 1; simp
      end))
 
+/-- Show the equalizing cone is a limit -/
 def equalizer_cone_is_limit (F : walking_parallel_pair ⥤ C) : is_limit (equalizer_cone F) :=
 { lift :=
   begin
@@ -66,9 +75,16 @@ def equalizer_cone_is_limit (F : walking_parallel_pair ⥤ C) : is_limit (equali
     { erw [limit.lift_π, ← J0, pullback_fst_eq_pullback_snd] }
   end }
 
-def has_equalizers_of_pullbacks_and_binary_products
-  (C : Type u) [𝒞 : category.{v} C] [has_binary_products.{v} C] [has_pullbacks.{v} C] :
+end has_equalizers_of_pullbacks_and_binary_products
+
+open has_equalizers_of_pullbacks_and_binary_products
+/-- Any category with pullbacks and binary products, has equalizers. -/
+-- This is not an instance, as it is not always how one wants to construct equalizers!
+def has_equalizers_of_pullbacks_and_binary_products :
   has_equalizers.{v} C :=
 { has_limits_of_shape :=
   { has_limit := λ F,
-    { cone := equalizer_cone F, is_limit := equalizer_cone_is_limit F } } }
+    { cone := equalizer_cone F,
+      is_limit := equalizer_cone_is_limit F } } }
+
+end category_theory.limits

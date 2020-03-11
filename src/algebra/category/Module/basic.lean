@@ -5,10 +5,12 @@ Authors: Robert A. Spencer, Markus Himmel
 -/
 import algebra.module
 import algebra.punit_instances
+import algebra.category.Group
 import category_theory.concrete_category
 import category_theory.limits.shapes.zero
 import category_theory.limits.shapes.kernels
 import linear_algebra.basic
+
 open category_theory
 open category_theory.limits
 open category_theory.limits.walking_parallel_pair

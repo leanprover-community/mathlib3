@@ -911,9 +911,6 @@ lemma comap_mono : monotone (comap m) := (gc_map_comap m).monotone_u
 @[simp] lemma map_supr {f : ι → filter α} : map m (⨆i, f i) = (⨆i, map m (f i)) :=
 (gc_map_comap m).l_supr
 
-lemma ne_bot_of_map_ne_bot (f : α → β) {F : filter α} (h : map f F ≠ ⊥) : F ≠ ⊥ :=
-λ H, h (H.symm ▸ map_bot)
-
 @[simp] lemma comap_top : comap m ⊤ = ⊤ := (gc_map_comap m).u_top
 @[simp] lemma comap_inf : comap m (g₁ ⊓ g₂) = comap m g₁ ⊓ comap m g₂ := (gc_map_comap m).u_inf
 @[simp] lemma comap_infi {f : ι → filter β} : comap m (⨅i, f i) = (⨅i, comap m (f i)) :=
@@ -1052,6 +1049,9 @@ ne_bot_of_le_ne_bot (comap_inf_principal_ne_bot_of_image_mem hf hs) inf_le_left
 lemma map_ne_bot (hf : f ≠ ⊥) : map m f ≠ ⊥ :=
 assume h, hf $ by rwa [map_eq_bot_iff] at h
 
+lemma map_ne_bot_iff (f : α → β) {F : filter α} : map f F ≠ ⊥ ↔ F ≠ ⊥ :=
+by rw [not_iff_not, map_eq_bot_iff]
+
 lemma sInter_comap_sets (f : α → β) (F : filter β) :
   ⋂₀(comap f F).sets = ⋂ U ∈ F, f ⁻¹' U :=
 begin
@@ -1145,7 +1145,7 @@ lemma le_map {f : filter α} {m : α → β} {g : filter β} (h : ∀s∈ f, m '
 assume s hs, mem_sets_of_superset (h _ hs) $ image_preimage_subset _ _
 
 protected lemma push_pull (f : α → β) (F : filter α) (G : filter β) :
-map f (F ⊓ comap f G) = map f F ⊓ G :=
+  map f (F ⊓ comap f G) = map f F ⊓ G :=
 begin
   apply le_antisymm,
   { calc map f (F ⊓ comap f G) ≤ map f F ⊓ (map f $ comap f G) : map_inf_le
@@ -1160,7 +1160,7 @@ begin
 end
 
 protected lemma push_pull' {α : Type*} {β : Type*} (f : α → β) (F : filter α) (G : filter β) :
-map f (comap f G ⊓ F) = G ⊓ map f F :=
+  map f (comap f G ⊓ F) = G ⊓ map f F :=
 by simp only [filter.push_pull, inf_comm]
 
 section applicative

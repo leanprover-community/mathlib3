@@ -118,7 +118,7 @@ variables {x y : free_comm_ring α} {s t : set α}
 
 theorem is_supported_upwards (hs : is_supported x s) (hst : s ⊆ t) :
   is_supported x t :=
-ring.closure_mono (set.mono_image hst) hs
+ring.closure_mono (set.monotone_image hst) hs
 
 theorem is_supported_add (hxs : is_supported x s) (hys : is_supported y s) :
   is_supported (x + y) s :=

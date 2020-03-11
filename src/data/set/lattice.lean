@@ -36,13 +36,9 @@ instance lattice_set : complete_lattice (set α) :=
 instance : distrib_lattice (set α) :=
 { le_sup_inf := λ s t u x, or_and_distrib_left.2, ..set.lattice_set }
 
+/-- Image is monotone. See `set.image_image` for the statement in terms of `⊆`. -/
 lemma monotone_image {f : α → β} : monotone (image f) :=
 assume s t, assume h : s ⊆ t, image_subset _ h
-
-lemma image_inter_subset (f : α → β) (s t : set α) :
-  f '' (s ∩ t) ⊆ f '' s ∩ f '' t :=
-show f '' (s ⊓ t) ≤ f '' s ⊓ f '' t,
-from monotone.map_inf_le monotone_image _ _
 
 theorem monotone_inter [preorder β] {f g : β → set α}
   (hf : monotone f) (hg : monotone g) : monotone (λx, f x ∩ g x) :=
@@ -61,20 +57,6 @@ variables {f : α → β}
 
 protected lemma image_preimage : galois_connection (image f) (preimage f) :=
 assume a b, image_subset_iff
-
-protected lemma push_pull {α : Type*} {β : Type*} (f : α → β) (s : set α) (t : set β) :
-f '' (s ∩ f ⁻¹' t) = f '' s ∩ t :=
-begin
-  apply subset.antisymm,
-  { calc f '' (s ∩ f ⁻¹' t) ⊆ f '' s ∩ (f '' (f⁻¹' t)) : image_inter_subset _ _ _
-  ... ⊆ f '' s ∩ t : inter_subset_inter_right _ (image_preimage_subset f t) },
-  { rintros _ ⟨⟨x, h', rfl⟩, h⟩,
-    exact ⟨x, ⟨h', h⟩, rfl⟩ }
-end
-
-protected lemma push_pull' {α : Type*} {β : Type*} (f : α → β) (s : set α) (t : set β) :
-f '' (f ⁻¹' t ∩ s) = t ∩ f '' s :=
-by simp only [inter_comm, set.push_pull]
 
 def kern_image (f : α → β) (s : set α) : set β := {y | ∀x, f x = y → x ∈ s}
 

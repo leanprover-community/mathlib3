@@ -433,7 +433,7 @@ begin
     from cluster_point_of_compact this,
   refine ⟨⟨x, y⟩, _, by simp [πY]⟩,
   apply hC,
-  apply filter.ne_bot_of_map_ne_bot πX,
+  rw ← filter.map_ne_bot_iff πX,
   calc map πX (𝓝 (x, y) ⊓ 𝓟 C)
       = map πX (comap πX (𝓝 x) ⊓ comap πY (𝓝 y) ⊓ 𝓟 C) : by rw [nhds_prod_eq, filter.prod]
   ... = map πX (comap πY (𝓝 y) ⊓ 𝓟 C ⊓ comap πX (𝓝 x)) : by ac_refl

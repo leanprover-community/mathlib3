@@ -26,7 +26,7 @@ to make the process of contributing as smooth as possible.
    leanproject get-cache
    git checkout -b my_new_feature
    ```
-   - See [Caching compilation](#caching-compilation) for commands to do this automatically.
+   - See [Caching compilation](#caching-compilation) for commands to automatically call `leanproject get-cache`.
 
 
 ## The nursery
@@ -48,3 +48,5 @@ leanproject hooks
 This will install the `leanproject` tool.  The call to `leanproject hooks`
 sets up git hooks that will call cache the olean files when making a commit
 and fetching the olean files when checking out a branch.
+See the [mathlib-tools documentation](https://github.com/leanprover-community/mathlib-tools/blob/master/README.md)
+for more information.

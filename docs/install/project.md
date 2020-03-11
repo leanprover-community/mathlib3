@@ -1,6 +1,6 @@
 # Creating a Lean project
 
-Lean files are organized in projects called packages. The tool `leanpkg`
+Lean files are organized in projects called packages. The tool `leanproject`
 manages project creation and dependencies. We will now create a new
 project depending on mathlib. The following commands should be typed in a
 terminal.
@@ -12,13 +12,13 @@ terminal.
   `my_project`, and type:
         ```bash
         leanproject new my_project
-        cd my_project
         ```
 
 * launch VScode, either through your application menu or by typing
-  `code`
+  `code my_project`
 
-* On the main screen, or in the File menu, click "Open folder" (on a Mac, just "Open"), and
+* If you launched VScode through a menu: on the main screen, or in the
+  File menu, click "Open folder" (on a Mac, just "Open"), and
   choose the folder `my_project` (*not* one of its subfolders).
 
 * Your Lean code should now be put inside files with extension `.lean` living in `my_project/src/` or a subfolder thereof. In the file explorer on the left-hand side of VScode, you can right-click on `src`, choose `New file`, and type a filename to create a file there.
@@ -53,10 +53,12 @@ As example, we will take [the tutorial project](https://github.com/leanprover-co
 * Run `leanproject get tutorials`
 
 * launch VScode, either through your application menu or by typing
-  `code`
+  `code tutorials` (MacOS users need to take a one-off
+  [extra step](https://code.visualstudio.com/docs/setup/mac#_launching-from-the-command-line)
+   to be able to launch VScode from the command line)
 
-* On the main screen, or in the File menu, click "Open folder" (just "Open" on a Mac), and
-  choose the folder `tutorials` (*not* one of its subfolders).
+* If you launched VScode from a menu, on the main screen, or in the File menu, click "Open folder" (just "Open" on
+a Mac), and choose the folder `tutorials` (*not* one of its subfolders).
 
 * Using the file explorer on the left-hand side, explore everthing you want in
   `tutorials/src`

@@ -9,7 +9,7 @@ If you get stuck, please come to [the chat room](https://leanprover.zulipchat.co
 ## Installing Lean and mathlib
 
 Here we will discuss the fast way, assuming a lot of trust from you. It
-will install Lean, with supporting tools `elan` and `leanpkg`,
+will install Lean, with the supporting tool `elan`,
 the supporting tool `leanproject` for Lean's mathematical
 library, as well as the code editor VScode and its Lean plugin, and
 other dependencies you probably already have, like `curl`, `git`,

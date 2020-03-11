@@ -24,13 +24,16 @@ namespace category_theory.limits
 variables {C : Type u} [𝒞 : category.{v} C] [has_binary_products.{v} C] [has_pullbacks.{v} C]
 include 𝒞
 
+-- We hide the "implementation details" inside a namespace
 namespace has_equalizers_of_pullbacks_and_binary_products
 
+/-- Define the equalizing object -/
 @[reducible]
 def construct_equalizer (F : walking_parallel_pair ⥤ C) : C :=
 pullback (prod.lift (𝟙 _) (F.map walking_parallel_pair_hom.left))
          (prod.lift (𝟙 _) (F.map walking_parallel_pair_hom.right))
 
+/-- Define the equalizing morphism -/
 @[reducible]
 def construct_ι (F : walking_parallel_pair ⥤ C) :
   construct_equalizer F ⟶ F.obj walking_parallel_pair.zero :=
@@ -43,6 +46,7 @@ begin
   erw [assoc, assoc, limit.lift_π, limit.lift_π, comp_id, comp_id] at l, exact l
 end
 
+/-- Define the equalizing cone -/
 @[reducible]
 def equalizer_cone (F : walking_parallel_pair ⥤ C) : cone F :=
 cone.of_fork
@@ -54,6 +58,7 @@ cone.of_fork
       erw r, rw construct_ι_eq_snd, refl
      end))
 
+/-- Show the equalizing cone is a limit -/
 def equalizer_cone_is_limit (F : walking_parallel_pair ⥤ C) : is_limit (equalizer_cone F) :=
 { lift :=
   begin

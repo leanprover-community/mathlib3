@@ -91,10 +91,10 @@ variables {C : Type u} [𝒞 : category.{v} C] {X Y Z : C}
 include 𝒞
 
 /-- postcompose an equation between morphisms by another morphism -/
-def eq_whisker {f g : X ⟶ Y} (w : f = g) (h : Y ⟶ Z) : f ≫ h = g ≫ h :=
+lemma eq_whisker {f g : X ⟶ Y} (w : f = g) (h : Y ⟶ Z) : f ≫ h = g ≫ h :=
 by rw w
 /-- precompose an equation between morphisms by another morphism -/
-def whisker_eq (f : X ⟶ Y) {g h : Y ⟶ Z} (w : g = h) : f ≫ g = f ≫ h :=
+lemma whisker_eq (f : X ⟶ Y) {g h : Y ⟶ Z} (w : g = h) : f ≫ g = f ≫ h :=
 by rw w
 
 infixr ` =≫ `:80 := eq_whisker

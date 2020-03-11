@@ -234,7 +234,8 @@ If only one related declaration is listed in `decl_names` and it does not have a
 can select the one to be used by passing a name to the `inherit_description_from` field.
 
 If you prefer a tactic to have a doc string that is different then the doc entry, then between
-the `/--` `-/` markers, write the desired doc string first, then `---`, then the doc entry.
+the `/--` `-/` markers, write the desired doc string first, then `---` surrounded by new lines,
+and then the doc entry.
 
 Note that providing a badly formed `tactic_doc_entry` to the command can result in strange error
 messages.

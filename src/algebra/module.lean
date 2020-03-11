@@ -474,6 +474,47 @@ begin
     rw [add_smul, add_smul, one_smul, ih, one_smul] }
 end
 
+lemma module.add_monoid_smul_eq_smul {R : Type*} [ring R] {β : Type*} [add_comm_group β] [module R β]
+  (n : ℕ) (b : β) : add_monoid.smul n b = (n : R) • b :=
+module.smul_eq_smul n b
+
+lemma module.gsmul_eq_smul_cast {R : Type*} [ring R] {β : Type*} [add_comm_group β] [module R β]
+  (n : ℤ) (b : β) : gsmul n b = (n : R) • b :=
+begin
+  cases n,
+  { dsimp,
+    apply module.add_monoid_smul_eq_smul, },
+  { dsimp,
+    rw module.add_monoid_smul_eq_smul (n.succ) b,
+    push_cast,
+    rw neg_smul, }
+end
+
+lemma module.gsmul_eq_smul {β : Type*} [add_comm_group β] [module ℤ β]
+  (n : ℤ) (b : β) : gsmul n b = n • b :=
+begin
+  convert module.gsmul_eq_smul_cast n b,
+  simp,
+end
+
+lemma add_monoid_hom.map_int_module_smul
+  {α : Type*} {β : Type*} [add_comm_group α] [add_comm_group β]
+  [module ℤ α] [module ℤ β] (f : α →+ β) (x : ℤ) (a : α) : f (x • a) = x • f a :=
+begin
+  rw ←module.gsmul_eq_smul,
+  rw ←module.gsmul_eq_smul,
+  rw add_monoid_hom.map_gsmul,
+end
+
+lemma add_monoid_hom.map_smul_cast
+  {R : Type*} [ring R] {α : Type*} {β : Type*} [add_comm_group α] [add_comm_group β]
+  [module R α] [module R β] (f : α →+ β) (x : ℤ) (a : α) : f ((x : R) • a) = (x : R) • f a :=
+begin
+  rw ←module.gsmul_eq_smul_cast,
+  rw ←module.gsmul_eq_smul_cast,
+  rw add_monoid_hom.map_gsmul,
+end
+
 lemma nat.smul_def {M : Type*} [add_comm_monoid M] (n : ℕ) (x : M) :
   n • x = add_monoid.smul n x :=
 rfl

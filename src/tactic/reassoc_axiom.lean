@@ -95,7 +95,7 @@ do d ← get_decl n,
    let c := @expr.const tt n ls,
    (t'',pr') ← prove_reassoc c,
    add_decl $ declaration.thm n' d.univ_params t'' (pure pr'),
-   copy_attribute `simp n tt n'
+   copy_attribute `simp n n'
 
 /--
 On the following lemma:

@@ -23,7 +23,7 @@ variables {R : Type u} [comm_ring R]
 
 namespace monoidal_category
 -- The definitions inside this namespace are essentially private.
--- Aftrer we build the `monoidal_category (Module R)` instance,
+-- After we build the `monoidal_category (Module R)` instance,
 -- you should use that API.
 
 open_locale tensor_product

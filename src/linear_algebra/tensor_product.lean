@@ -322,6 +322,7 @@ eq.symm $ lift.unique $ λ x y, by simp
 theorem lift_mk_compr₂ (f : M ⊗ N →ₗ P) : lift ((mk R M N).compr₂ f) = f :=
 by rw [lift_compr₂, lift_mk, linear_map.comp_id]
 
+@[ext]
 theorem ext {g h : (M ⊗[R] N) →ₗ[R] P}
   (H : ∀ x y, g (x ⊗ₜ y) = h (x ⊗ₜ y)) : g = h :=
 by rw ← lift_mk_compr₂ h; exact lift.unique H
@@ -361,6 +362,29 @@ def curry (f : M ⊗ N →ₗ P) : M →ₗ N →ₗ P := lcurry R M N P f
 @[simp] theorem curry_apply (f : M ⊗ N →ₗ[R] P) (m : M) (n : N) :
   curry f m n = f (m ⊗ₜ n) := rfl
 
+@[ext]
+theorem ext_threefold {g h : (M ⊗[R] N) ⊗[R] P →ₗ[R] Q}
+  (H : ∀ x y z, g ((x ⊗ₜ y) ⊗ₜ z) = h ((x ⊗ₜ y) ⊗ₜ z)) : g = h :=
+begin
+  let e := linear_equiv.to_equiv (lift.equiv R (M ⊗[R] N) P Q),
+  apply e.symm.injective,
+  ext x y z,
+  exact H x y z,
+end
+
+variables {S : Type*} [add_comm_group S] [module R S]
+
+-- We'll need this one for checking the pentagon identity!
+@[ext]
+theorem ext_fourfold {g h : ((M ⊗[R] N) ⊗[R] P) ⊗[R] Q →ₗ[R] S}
+  (H : ∀ w x y z, g (((w ⊗ₜ x) ⊗ₜ y) ⊗ₜ z) = h (((w ⊗ₜ x) ⊗ₜ y) ⊗ₜ z)) : g = h :=
+begin
+  let e := linear_equiv.to_equiv (lift.equiv R ((M ⊗[R] N) ⊗[R] P) Q S),
+  apply e.symm.injective,
+  ext w x y z,
+  exact H w x y z,
+end
+
 end UMP
 
 variables {M N}
@@ -371,6 +395,13 @@ protected def lid : R ⊗ M ≃ₗ M :=
 linear_equiv.of_linear (lift $ linear_map.lsmul R M) (mk R R M 1)
   (linear_map.ext $ λ _, by simp)
   (ext $ λ r m, by simp; rw [← tmul_smul, ← smul_tmul, smul_eq_mul, mul_one])
+
+@[simp] theorem lid_tmul (m : M) (r : R) :
+  ((@tensor_product.lid R _ M _ _) : (R ⊗ M → M)) (r ⊗ₜ m) = r • m :=
+begin
+  dsimp [tensor_product.lid],
+  simp,
+end
 
 /--
 The tensor product of modules is commutative, up to linear equivalence.
@@ -385,6 +416,13 @@ The base ring is a right identity for the tensor product of modules, up to linea
 -/
 protected def rid : M ⊗ R ≃ₗ M := linear_equiv.trans tensor_product.comm tensor_product.lid
 
+@[simp] theorem rid_tmul (m : M) (r : R) :
+  ((@tensor_product.rid R _ M _ _) : (M ⊗ R → M)) (m ⊗ₜ r) = r • m :=
+begin
+  dsimp [tensor_product.rid, tensor_product.comm, tensor_product.lid],
+  simp,
+end
+
 open linear_map
 protected def assoc : (M ⊗[R] N) ⊗[R] P ≃ₗ[R] M ⊗[R] (N ⊗[R] P) :=
 begin
@@ -397,6 +435,10 @@ begin
     rw mk_apply <|> rw flip_apply <|> rw lcurry_apply <|>
     rw uncurry_apply <|> rw curry_apply <|> rw id_apply }
 end
+
+@[simp] theorem assoc_tmul (m : M) (n : N) (p : P) :
+  ((@tensor_product.assoc R _ M N P _ _ _ _ _ _) : (M ⊗[R] N) ⊗[R] P → M ⊗[R] (N ⊗[R] P)) ((m ⊗ₜ n) ⊗ₜ p) = m ⊗ₜ (n ⊗ₜ p) :=
+rfl
 
 def map (f : M →ₗ[R] P) (g : N →ₗ Q) : M ⊗ N →ₗ P ⊗ Q :=
 lift $ comp (compl₂ (mk _ _ _) g) f

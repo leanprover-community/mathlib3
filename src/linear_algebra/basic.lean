@@ -1345,22 +1345,26 @@ section
 variable (M)
 
 /-- The identity map is a linear equivalence. -/
-@[refl] def refl : M ≃ₗ[R] M := { .. linear_map.id, .. equiv.refl M }
+@[refl]
+def refl : M ≃ₗ[R] M := { .. linear_map.id, .. equiv.refl M }
 end
 
 /-- Linear equivalences are symmetric. -/
-@[symm] def symm (e : M ≃ₗ[R] M₂) : M₂ ≃ₗ[R] M :=
+@[symm]
+def symm (e : M ≃ₗ[R] M₂) : M₂ ≃ₗ[R] M :=
 { .. e.to_linear_map.inverse e.inv_fun e.left_inv e.right_inv,
   .. e.to_equiv.symm }
 
 /-- Linear equivalences are transitive. -/
-@[trans] def trans (e₁ : M ≃ₗ[R] M₂) (e₂ : M₂ ≃ₗ[R] M₃) : M ≃ₗ[R] M₃ :=
+@[trans]
+def trans (e₁ : M ≃ₗ[R] M₂) (e₂ : M₂ ≃ₗ[R] M₃) : M ≃ₗ[R] M₃ :=
 { .. e₂.to_linear_map.comp e₁.to_linear_map,
   .. e₁.to_equiv.trans e₂.to_equiv }
 
 /-- A linear equivalence is an additive equivalence. -/
 def to_add_equiv (e : M ≃ₗ[R] M₂) : M ≃+ M₂ := { map_add' := e.add, .. e }
 
+@[simp] theorem trans_apply (e₁ : M ≃ₗ[R] M₂) (e₂ : M₂ ≃ₗ[R] M₃) (c : M) : (e₁.trans e₂) c = e₂ (e₁ c) := rfl
 @[simp] theorem apply_symm_apply (e : M ≃ₗ[R] M₂) (c : M₂) : e (e.symm c) = c := e.6 c
 @[simp] theorem symm_apply_apply (e : M ≃ₗ[R] M₂) (b : M) : e.symm (e b) = b := e.5 b
 

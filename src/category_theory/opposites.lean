@@ -229,6 +229,15 @@ protected definition op (α : F ≅ G) : G.op ≅ F.op :=
 @[simp] lemma op_hom (α : F ≅ G) : (nat_iso.op α).hom = nat_trans.op α.hom := rfl
 @[simp] lemma op_inv (α : F ≅ G) : (nat_iso.op α).inv = nat_trans.op α.inv := rfl
 
+protected definition unop (α : F.op ≅ G.op) : G ≅ F :=
+{ hom := nat_trans.unop α.hom,
+  inv := nat_trans.unop α.inv,
+  hom_inv_id' := begin ext, dsimp, rw ←unop_comp, rw inv_hom_id_app, refl, end,
+  inv_hom_id' := begin ext, dsimp, rw ←unop_comp, rw hom_inv_id_app, refl, end }
+
+@[simp] lemma unop_hom (α : F.op ≅ G.op) : (nat_iso.unop α).hom = nat_trans.unop α.hom := rfl
+@[simp] lemma unop_inv (α : F.op ≅ G.op) : (nat_iso.unop α).inv = nat_trans.unop α.inv := rfl
+
 end nat_iso
 
 end category_theory

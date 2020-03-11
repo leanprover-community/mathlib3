@@ -103,7 +103,7 @@ def kernel.is_limit_cone_zero_cone [mono f] : is_limit (kernel.zero_cone f) :=
 
 /-- The kernel of a monomorphism is isomorphic to the zero object -/
 def kernel.of_mono [has_limit (parallel_pair f 0)] [mono f] : kernel f ≅ 0 :=
-functor.map_iso cones.forget $ is_limit.unique_up_to_iso
+functor.map_iso (cones.forget _) $ is_limit.unique_up_to_iso
   (limit.is_limit (parallel_pair f 0)) (kernel.is_limit_cone_zero_cone f)
 
 /-- The kernel morphism of a monomorphism is a zero morphism -/
@@ -169,7 +169,7 @@ def cokernel.is_colimit_cocone_zero_cocone [epi f] : is_colimit (cokernel.zero_c
 
 /-- The cokernel of an epimorphism is isomorphic to the zero object -/
 def cokernel.of_epi [has_colimit (parallel_pair f 0)] [epi f] : cokernel f ≅ 0 :=
-functor.map_iso cocones.forget $ is_colimit.unique_up_to_iso
+functor.map_iso (cocones.forget _) $ is_colimit.unique_up_to_iso
   (colimit.is_colimit (parallel_pair f 0)) (cokernel.is_colimit_cocone_zero_cocone f)
 
 /-- The cokernel morphism if an epimorphism is a zero morphism -/
@@ -196,12 +196,12 @@ local attribute [instance] zero_of_zero_object
 local attribute [instance] has_zero_object.zero_morphisms_of_zero_object
 
 /-- The kernel of the cokernel of an epimorphism is an isomorphism -/
-def kernel.of_cokernel_of_epi [has_colimit (parallel_pair f 0)]
+instance kernel.of_cokernel_of_epi [has_colimit (parallel_pair f 0)]
   [has_limit (parallel_pair (cokernel.π f) 0)] [epi f] : is_iso (kernel.ι (cokernel.π f)) :=
 equalizer.ι_of_self' _ _ $ cokernel.π_of_epi f
 
 /-- The cokernel of the kernel of a monomorphism is an isomorphism -/
-def cokernel.of_kernel_of_mono [has_limit (parallel_pair f 0)]
+instance cokernel.of_kernel_of_mono [has_limit (parallel_pair f 0)]
   [has_colimit (parallel_pair (kernel.ι f) 0)] [mono f] : is_iso (cokernel.π (kernel.ι f)) :=
 coequalizer.π_of_self' _ _ $ kernel.ι_of_mono f
 

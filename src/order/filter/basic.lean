@@ -1159,7 +1159,7 @@ begin
     rwa set.push_pull at this }
 end
 
-protected lemma push_pull' {α : Type*} {β : Type*} (f : α → β) (F : filter α) (G : filter β) :
+protected lemma push_pull' (f : α → β) (F : filter α) (G : filter β) :
   map f (comap f G ⊓ F) = G ⊓ map f F :=
 by simp only [filter.push_pull, inf_comm]
 

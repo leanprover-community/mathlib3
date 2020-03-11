@@ -1155,8 +1155,8 @@ iff.intro
   (assume eq, by rw [← @image_preimage_eq β α f s hf, ← @image_preimage_eq β α f t hf, eq])
   (assume eq, eq ▸ rfl)
 
-protected lemma push_pull {α : Type*} {β : Type*} (f : α → β) (s : set α) (t : set β) :
-f '' (s ∩ f ⁻¹' t) = f '' s ∩ t :=
+protected lemma push_pull (f : α → β) (s : set α) (t : set β) :
+  f '' (s ∩ f ⁻¹' t) = f '' s ∩ t :=
 begin
   apply subset.antisymm,
   { calc f '' (s ∩ f ⁻¹' t) ⊆ f '' s ∩ (f '' (f⁻¹' t)) : image_inter_subset _ _ _
@@ -1165,8 +1165,8 @@ begin
     exact ⟨x, ⟨h', h⟩, rfl⟩ }
 end
 
-protected lemma push_pull' {α : Type*} {β : Type*} (f : α → β) (s : set α) (t : set β) :
-f '' (f ⁻¹' t ∩ s) = t ∩ f '' s :=
+protected lemma push_pull' (f : α → β) (s : set α) (t : set β) :
+  f '' (f ⁻¹' t ∩ s) = t ∩ f '' s :=
 by simp only [inter_comm, set.push_pull]
 
 lemma surjective_preimage {f : β → α} (hf : surjective f) : injective (preimage f) :=

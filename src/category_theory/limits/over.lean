@@ -86,6 +86,7 @@ instance forget_preserves_colimits [has_colimits.{v} C] {X : C} :
   { preserves_colimit := λ F, by exactI
     preserves_colimit_of_preserves_colimit_cocone (colimit.is_colimit F) (forget_colimit_is_colimit F) } }
 
+/-- Given the appropriate pullback in C, construct a product in the over category -/
 def over_product_of_pullbacks (B : C) (F : discrete walking_pair ⥤ over B)
 [q : has_limit (cospan (F.obj walking_pair.left).hom (F.obj walking_pair.right).hom)]
 : has_limit F :=
@@ -123,6 +124,7 @@ def over_product_of_pullbacks (B : C) (F : discrete walking_pair ⥤ over B)
         { erw ← j walking_pair.right, simp }
       end } }
 
+/-- Construct terminal object in the over category. -/
 instance (B : C) : has_terminal.{v} (over B) :=
 { has_limits_of_shape :=
   { has_limit := λ F,
@@ -142,6 +144,7 @@ instance (B : C) : has_terminal.{v} (over B) :=
             end } } } }
 
 -- TODO: this should work for any connected limit, not just pullbacks
+/-- Given pullbacks in C, we have pullbacks in C/B -/
 instance {B : C} [has_pullbacks.{v} C] : has_pullbacks.{v} (over B) :=
 begin
   refine ⟨⟨λ F, _⟩⟩,
@@ -177,17 +180,19 @@ begin
   have := J walking_cospan.right, dsimp at this, simp, rw ← this, simp
 end
 
+/-- Given pullbacks in C, we have binary products in any over category -/
 instance over_has_prods_of_pullback [has_pullbacks.{v} C] (B : C) :
   has_binary_products.{v} (over B) :=
 {has_limits_of_shape := {has_limit := λ F, over_product_of_pullbacks B F}}
 
+-- A collection of simp lemmas to decompose products in the over category
 @[simp]
 lemma over_prod_is_pullback [has_pullbacks.{v} C] {B : C} (F : discrete walking_pair ⥤ over B) :
   limits.limit F = @over.mk _ _ B (pullback (F.obj walking_pair.left).hom (F.obj walking_pair.right).hom) (pullback.fst ≫ (F.obj walking_pair.left).hom) := rfl
 
 @[simp]
 lemma over_prod_pair [has_pullbacks.{v} C] {B : C} (f g : over B) :
-  prod f g = @over.mk _ _ B (pullback f.hom g.hom) (pullback.fst ≫ f.hom) := rfl
+  (f ⨯ g) = @over.mk _ _ B (pullback f.hom g.hom) (pullback.fst ≫ f.hom) := rfl
 
 @[simp]
 lemma over_prod_fst [has_pullbacks.{v} C] {B : C} (f g : over B) :
@@ -198,11 +203,11 @@ lemma over_prod_snd [has_pullbacks.{v} C] {B : C} (f g : over B) :
   limits.prod.snd = (over.hom_mk pullback.snd pullback.condition.symm : prod f g ⟶ g) := rfl
 
 @[simp]
-lemma over_prod_map [has_pullbacks.{v} C] {B : C} (f g h : over B) (k : g ⟶ h) :
-  (limits.prod.map (𝟙 f) k : f ⨯ g ⟶ f ⨯ h) = over.hom_mk (pullback.lift pullback.fst (pullback.snd ≫ k.left) (by dsimp; simp; apply pullback.condition)) (begin tidy end) :=
+lemma over_prod_map [has_pullbacks.{v} C] {B : C} (f g h k : over B) (α : f ⟶ g) (β : h ⟶ k) :
+  limits.prod.map α β = over.hom_mk (pullback.lift (pullback.fst ≫ α.left) (pullback.snd ≫ β.left) (by rw category.assoc; erw over.w α; rw category.assoc; erw over.w β; apply pullback.condition)) (by tidy) :=
 begin
   ext1, rw limit.map_π, ext, cases j,
-  { erw category.comp_id, dsimp, erw limit.lift_π, refl },
+  { dsimp, erw limit.lift_π, refl },
   { dsimp, erw limit.lift_π, refl }
 end
 

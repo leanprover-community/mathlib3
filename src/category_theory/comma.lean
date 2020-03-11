@@ -239,7 +239,7 @@ def iterated_slice_forward : over f ⥤ over f.left :=
 { obj := λ α, over.mk α.hom.left,
   map := λ α β κ, over.hom_mk κ.left.left (begin rw auto_param_eq, rw ← over.w κ, refl end)}
 
-/-- Given f : A ⟶ B, this is the obvious functor from T/A to (T/B)/f -/
+/-- Given f : A ⟶ B, this is the obvious functor from T/Y to (T/X)/f -/
 @[reducible]
 def iterated_slice_backward : over f.left ⥤ over f :=
 { obj := λ g, over.mk (over.hom_mk g.hom (by simp) : over.mk (g.hom ≫ f.hom) ⟶ _),
@@ -248,6 +248,7 @@ def iterated_slice_backward : over f.left ⥤ over f :=
               (over.mk (@over.hom_mk _ _ X (over.mk (h.hom ≫ f.hom)) f h.hom (by simp) : _ ⟶ f))
               (over.hom_mk α.left (over.w_assoc α f.hom)) (over.over_morphism.ext (over.w α)) }
 
+/-- Given f : A ⟶ B, we have an equivalence between (T/X)/f and T/Y -/
 def iterated_slice_equiv : over f ≌ over f.left :=
 equivalence.mk (iterated_slice_forward f) (iterated_slice_backward f)
 (nat_iso.of_components
@@ -260,11 +261,21 @@ equivalence.mk (iterated_slice_forward f) (iterated_slice_backward f)
          by ext; dsimp; simp, by ext; dsimp; simp⟩) (λ X Y g, by ext; dsimp; simp))
 
 @[simp]
-lemma iterated_slice_equiv_functor : (iterated_slice_equiv f).functor = iterated_slice_forward f :=
+lemma iterated_slice_equiv_functor :
+  (iterated_slice_equiv f).functor = iterated_slice_forward f :=
 rfl
 
 @[simp]
-lemma iterated_slice_equiv_inverse : (iterated_slice_equiv f).inverse = iterated_slice_backward f :=
+lemma iterated_slice_equiv_inverse :
+  (iterated_slice_equiv f).inverse = iterated_slice_backward f :=
+rfl
+
+lemma iterated_slice_forward_forget :
+  iterated_slice_forward f ⋙ forget = forget ⋙ forget :=
+rfl
+
+lemma iterated_slice_backward_forget_forget :
+  iterated_slice_backward f ⋙ forget ⋙ forget = forget :=
 rfl
 
 end iterated_slice

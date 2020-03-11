@@ -4,7 +4,9 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Bhavik Mehta
 -/
 
-import category_theory.limits.shapes
+import category_theory.limits.shapes.equalizers
+import category_theory.limits.shapes.binary_products
+import category_theory.limits.shapes.pullbacks
 
 /-!
 # Constructing equalizers from pullbacks and binary products.
@@ -15,10 +17,14 @@ TODO: provide the dual result.
 -/
 universes v u
 
-open category_theory category_theory.category category_theory.limits
+open category_theory category_theory.category
+
+namespace category_theory.limits
 
 variables {C : Type u} [𝒞 : category.{v} C] [has_binary_products.{v} C] [has_pullbacks.{v} C]
 include 𝒞
+
+namespace has_equalizers_of_pullbacks_and_binary_products
 
 @[reducible]
 def construct_equalizer (F : walking_parallel_pair ⥤ C) : C :=
@@ -71,9 +77,16 @@ def equalizer_cone_is_limit (F : walking_parallel_pair ⥤ C) : is_limit (equali
   end
 }
 
-def has_equalizers_of_pullbacks_and_binary_products
-  (C : Type u) [𝒞 : category.{v} C] [has_binary_products.{v} C] [has_pullbacks.{v} C] :
+end has_equalizers_of_pullbacks_and_binary_products
+
+open has_equalizers_of_pullbacks_and_binary_products
+/-- Any category with pullbacks and binary products, has equalizers. -/
+-- This is not an instance, as it is not always how one wants to construct equalizers!
+def has_equalizers_of_pullbacks_and_binary_products :
   has_equalizers.{v} C :=
 { has_limits_of_shape :=
   { has_limit := λ F,
-    { cone := equalizer_cone F, is_limit := equalizer_cone_is_limit F } } }
+    { cone := equalizer_cone F,
+      is_limit := equalizer_cone_is_limit F } } }
+
+end category_theory.limits

@@ -2,6 +2,17 @@ import category_theory.monoidal.category
 import algebra.category.Module.basic
 import linear_algebra.tensor_product
 
+/-!
+# The monoidal category structure on R-modules
+
+Mostly this uses existing machinery in `linear_algebra.tensor_product`.
+We just need to provide a few small missing pieces to build the
+`monoidal_category` instance.
+
+If you're happy using the bundled `Module R`, it may be possible to mostly
+use this as an interface and not need to interact much with the implementation details.
+-/
+
 universe u
 
 open category_theory
@@ -11,10 +22,15 @@ namespace Module
 variables {R : Type u} [comm_ring R]
 
 namespace monoidal_category
+-- The definitions inside this namespace are essentially private.
+-- Aftrer we build the `monoidal_category (Module R)` instance,
+-- you should use that API.
 
 open_locale tensor_product
 
+/-- (implementation) tensor product of R-modules -/
 def tensor_obj (M N : Module R) : Module R := Module.of R (M ⊗[R] N)
+/-- (implementation) tensor product of morphisms R-modules -/
 def tensor_hom {M N M' N' : Module R} (f : M ⟶ N) (g : M' ⟶ N') : tensor_obj M M' ⟶ tensor_obj N N' :=
 tensor_product.map f g
 
@@ -26,8 +42,9 @@ lemma tensor_comp {X₁ Y₁ Z₁ X₂ Y₂ Z₂ : Module R}
     tensor_hom (f₁ ≫ g₁) (f₂ ≫ g₂) = tensor_hom f₁ f₂ ≫ tensor_hom g₁ g₂ :=
 by tidy
 
+/-- (implementation) the associator for R-modules -/
 def associator (M N K : Module R) : tensor_obj (tensor_obj M N) K ≅ tensor_obj M (tensor_obj N K) :=
-Module.iso_of_linear_equiv tensor_product.assoc
+linear_equiv.to_Module_iso tensor_product.assoc
 
 lemma associator_naturality {X₁ X₂ X₃ Y₁ Y₂ Y₃ : Module R}
   (f₁ : X₁ ⟶ Y₁) (f₂ : X₂ ⟶ Y₂) (f₃ : X₃ ⟶ Y₃) :
@@ -40,6 +57,9 @@ lemma pentagon (W X Y Z : Module R) :
     (associator (tensor_obj W X) Y Z).hom ≫ (associator W X (tensor_obj Y Z)).hom :=
 by tidy
 
+/-- (implementation) the left unitor for R-modules -/
+-- I tried building these using `linear_equiv.to_Module_iso tensor_product.lid`,
+-- but couldn't get it to work
 @[simps]
 def left_unitor (M : Module R) : Module.of R (R ⊗[R] M) ≅ M :=
 { hom := (tensor_product.lid : R ⊗[R] M ≃ₗ[R] M).to_linear_map,
@@ -55,6 +75,7 @@ begin
   exact (linear_map.smul _ x y).symm, -- TODO why doesn't `rw linear_map.smul` work?
 end
 
+/-- (implementation) the right unitor for R-modules -/
 @[simps]
 def right_unitor (M : Module R) : Module.of R (M ⊗[R] R) ≅ M :=
 { hom := (tensor_product.rid : M ⊗[R] R ≃ₗ[R] M).to_linear_map,

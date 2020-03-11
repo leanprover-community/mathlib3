@@ -70,17 +70,41 @@ variables (M N U : Module R)
 instance hom_is_module_hom {M₁ M₂ : Module R} (f : M₁ ⟶ M₂) :
   is_linear_map R (f : M₁ → M₂) := linear_map.is_linear _
 
+end Module
 
--- TODO do this like in Group/basic.lean
+variables {X₁ X₂ : Type u}
+
+/-- Build an isomorphism in the category `Module R` from a `linear_equiv` between `module`s. -/
 @[simps]
-def iso_of_linear_equiv
-  {X₁ : Type u} {g₁ : add_comm_group X₁} {m₁ : module R X₁}
-  {X₂ : Type u} {g₂ : add_comm_group X₂} {m₁ : module R X₂}
-  (e : X₁ ≃ₗ[R] X₂) : Module.of R X₁ ≅ Module.of R X₂ :=
+def linear_equiv.to_Module_iso
+  {g₁ : add_comm_group X₁} {g₂ : add_comm_group X₂} {m₁ : module R X₂} (e : X₁ ≃ₗ[R] X₂) :
+  Group.of X ≅ Group.of Y :=
 { hom := (e : X₁ →ₗ[R] X₂),
   inv := (e.symm : X₂ →ₗ[R] X₁),
   hom_inv_id' := begin ext, exact e.left_inv x, end,
   inv_hom_id' := begin ext, exact e.right_inv x, end, }
+
+namespace category_theory.iso
+
+/-- Build a `linear_equiv` from an isomorphism in the category `Module R`. -/
+@[simps]
+def to_linear_equiv {X Y : Module.{u} R} (i : X ≅ Y) : X ≃ₗ[R] Y :=
+{ to_fun    := i.hom,
+  inv_fun   := i.inv,
+  left_inv  := by tidy,
+  right_inv := by tidy,
+  map_mul'  := by tidy }.
+
+end category_theory.iso
+
+/-- linear equivalences between `module`s are the same as (isomorphic to) isomorphisms in `Module` -/
+@[simps]
+def linear_equiv_iso_Group_iso {X Y : Type u} [add_comm_group X] [add_comm_group Y] [module R X] [module R Y] :
+  (X ≃ₗ[R] Y) ≅ (Module.of X ≅ Module.of Y) :=
+{ hom := λ e, e.to_Module_iso,
+  inv := λ i, i.Module_iso_to_linear_equiv, }
+
+namespace Module
 
 section kernel
 variable (f : M ⟶ N)

@@ -165,4 +165,4 @@ add_tactic_doc
 { name                     := "simps",
   category                 := doc_category.attr,
   decl_names               := [`simps_attr],
-  tags                     := ["simp"] }
+  tags                     := ["simplification"] }

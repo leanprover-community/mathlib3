@@ -1684,6 +1684,6 @@ add_tactic_doc
 { name                     := "mk_simp_attribute",
   category                 := doc_category.cmd,
   decl_names               := [`tactic.mk_simp_attribute_cmd],
-  tags                     := ["simp"] }
+  tags                     := ["simplification"] }
 
 end tactic

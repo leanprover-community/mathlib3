@@ -6,13 +6,13 @@ universe u
 
 open category_theory
 
-variables (R : Type u) [comm_ring R]
+namespace Module
 
-section
+variables {R : Type u} [comm_ring R]
+
+namespace monoidal_category
+
 open_locale tensor_product
-
-section
-variables {R}
 
 def tensor_obj (M N : Module R) : Module R := Module.of R (M ⊗[R] N)
 def tensor_hom {M N M' N' : Module R} (f : M ⟶ N) (g : M' ⟶ N') : tensor_obj M M' ⟶ tensor_obj N N' :=
@@ -65,7 +65,7 @@ def right_unitor (M : Module R) : Module.of R (M ⊗[R] R) ≅ M :=
 lemma right_unitor_naturality {M N : Module R} (f : M ⟶ N) :
   tensor_hom f (𝟙 (Module.of R R)) ≫ (right_unitor N).hom = (right_unitor M).hom ≫ f :=
 begin
-  intros, ext x y, simp, dsimp [right_unitor],
+  ext x y, simp, dsimp [right_unitor],
   erw [tensor_product.rid_tmul, tensor_product.rid_tmul], -- TODO these are simp lemmas, why don't they fire?
   exact (linear_map.smul _ y x).symm, -- TODO why doesn't `rw linear_map.smul` work?
 end
@@ -80,21 +80,25 @@ begin
   apply (tensor_product.smul_tmul _ _ _).symm
 end
 
-end
+end monoidal_category
+
+open monoidal_category
 
 instance : monoidal_category (Module.{u} R) :=
-{ tensor_obj   := λ M N, tensor_obj M N,
-  tensor_hom   := λ M N M' N' f g, tensor_hom f g,
+{ -- data
+  tensor_obj   := tensor_obj,
+  tensor_hom   := @tensor_hom _ _,
   tensor_unit  := Module.of R R,
-  associator   := λ M N K, associator M N K,
+  associator   := associator,
   left_unitor  := left_unitor,
   right_unitor := right_unitor,
-  tensor_id' := tensor_id,
-  tensor_comp' := λ M N K M' N' K' f g h, tensor_comp f g h,
-  associator_naturality' := λ M N K M' N' K' f g h, associator_naturality f g h,
-  left_unitor_naturality' := λ M N f, left_unitor_naturality f,
+  -- properties
+  tensor_id'               := λ M N, tensor_id M N,
+  tensor_comp'             := λ M N K M' N' K' f g h, tensor_comp f g h,
+  associator_naturality'   := λ M N K M' N' K' f g h, associator_naturality f g h,
+  left_unitor_naturality'  := λ M N f, left_unitor_naturality f,
   right_unitor_naturality' := λ M N f, right_unitor_naturality f,
-  pentagon' := pentagon,
-  triangle' := triangle, }
+  pentagon'                := λ M N K L, pentagon M N K L,
+  triangle'                := λ M N, triangle M N, }
 
-end
+end Module

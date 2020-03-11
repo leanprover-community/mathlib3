@@ -2469,7 +2469,7 @@ namespace is_integral_domain
 variables {α : Type*} [comm_ring α]
 
 /-- Lift evidence that `is_integral_domain α` to `is_integral_domain (polynomial α)`. -/
-def polynomial (h : is_integral_domain α) : is_integral_domain (polynomial α) :=
+lemma polynomial (h : is_integral_domain α) : is_integral_domain (polynomial α) :=
 @integral_domain.to_is_integral_domain _ (@polynomial.integral_domain _ (h.to_integral_domain _))
 
 end is_integral_domain

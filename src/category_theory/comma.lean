@@ -220,7 +220,7 @@ def forget : (over X) ⥤ T := comma.fst _ _
 @[simp] lemma forget_obj {U : over X} : forget.obj U = U.left := rfl
 @[simp] lemma forget_map {U V : over X} {f : U ⟶ V} : forget.map f = f.left := rfl
 
-def map {Y : T} (f : X ⟶ Y) : over X ⥤ over Y := comma.map_right _ $ functor.of.map f
+def map {Y : T} (f : X ⟶ Y) : over X ⥤ over Y := comma.map_right _ $ (functor.const punit).map f
 
 section
 variables {Y : T} {f : X ⟶ Y} {U V : over X} {g : U ⟶ V}
@@ -283,7 +283,7 @@ def forget : (under X) ⥤ T := comma.snd _ _
 @[simp] lemma forget_obj {U : under X} : forget.obj U = U.right := rfl
 @[simp] lemma forget_map {U V : under X} {f : U ⟶ V} : forget.map f = f.right := rfl
 
-def map {Y : T} (f : X ⟶ Y) : under Y ⥤ under X := comma.map_left _ $ functor.of.map f
+def map {Y : T} (f : X ⟶ Y) : under Y ⥤ under X := comma.map_left _ $ (functor.const punit).map f
 
 section
 variables {Y : T} {f : X ⟶ Y} {U V : under Y} {g : U ⟶ V}

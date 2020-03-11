@@ -22,7 +22,7 @@ meta def tidy_attribute : user_attribute := {
 }
 
 add_tactic_doc
-{ name                     := "tidy attribute", -- TODO name conflict
+{ name                     := "tidy",
   category                 := doc_category.attr,
   decl_names               := [`tactic.tidy.tidy_attribute],
   tags                     := ["search"] }
@@ -118,7 +118,7 @@ the same name, replacing the hole with the tactic script `tidy` produces.
     return [("begin " ++ (", ".intercalate script) ++ " end", "by tidy")] }
 
 add_tactic_doc
-{ name                     := "tidy_hole_cmd", -- TODO name conflict
+{ name                     := "tidy",
   category                 := doc_category.hole_cmd,
   decl_names               := [`tactic.tidy_hole_cmd],
   tags                     := ["search"] }

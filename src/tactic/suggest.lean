@@ -420,7 +420,7 @@ nat.one_pos
     return [((script.mk_iterator.remove 6).to_string, "by library_search")] }
 
 add_tactic_doc
-{ name        := "library_search hole command", -- TODO name conflict
+{ name        := "library_search",
   category    := doc_category.hole_cmd,
   decl_names  := [`tactic.library_search_hole_cmd],
   tags        := ["search", "Try this"] }

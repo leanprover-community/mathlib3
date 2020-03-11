@@ -185,6 +185,15 @@ by rw [← zero_smul α, map_smul f 0 0, zero_smul]
 
 instance : is_add_group_hom f := { map_add := map_add f }
 
+/-- convert a linear map to an additive map -/
+def to_add_monoid_hom (f : β →ₗ[α] γ) : β →+ γ :=
+{ to_fun := f,
+  map_zero' := by simp,
+  map_add' := by simp, }
+
+@[simp] lemma to_add_monoid_hom_coe (f : β →ₗ[α] γ) :
+  ((f.to_add_monoid_hom) : β → γ) = (f : β → γ) := rfl
+
 @[simp] lemma map_neg (x : β) : f (- x) = - f x :=
 by rw [← neg_one_smul α, map_smul, neg_one_smul]
 

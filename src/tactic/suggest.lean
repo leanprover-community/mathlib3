@@ -309,6 +309,7 @@ The default for `num` is `50`.
 For performance reasons `suggest` uses monadic lazy lists (`mllist`). This means that
 `suggest` might miss some results if `num` is not large enough. However, because
 `suggest` uses monadic lazy lists, smaller values of `num` run faster than larger values.
+
 ---
 `suggest` lists possible usages of the `refine` tactic and leaves the tactic state unchanged.
 It is intended as a complement of the search function in your editor, the `#find` tactic, and
@@ -365,6 +366,7 @@ matches the goal, and then discharge any new goals using `solve_by_elim`.
 
 If it succeeds, it prints a trace message `exact ...` which can replace the invocation
 of `library_search`.
+
 ---
 `library_search` is a tactic to identify existing lemmas in the library. It tries to close the
 current goal by applying a lemma from the library, then discharging any new goals using

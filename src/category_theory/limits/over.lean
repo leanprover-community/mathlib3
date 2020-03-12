@@ -88,8 +88,8 @@ instance forget_preserves_colimits [has_colimits.{v} C] {X : C} :
 
 /-- Given the appropriate pullback in C, construct a product in the over category -/
 def over_product_of_pullbacks (B : C) (F : discrete walking_pair ⥤ over B)
-[q : has_limit (cospan (F.obj walking_pair.left).hom (F.obj walking_pair.right).hom)]
-: has_limit F :=
+  [q : has_limit (cospan (F.obj walking_pair.left).hom (F.obj walking_pair.right).hom)] :
+has_limit F :=
 { cone :=
   begin
     refine ⟨_, _⟩,

@@ -460,6 +460,8 @@ that respect the directed system structure (i.e. make some diagram commute) give
 to a unique map out of the direct limit. -/
 def lift : direct_limit G f → P := lift_hom G f P g Hg
 
+instance lift_is_ring_hom : is_ring_hom (lift G f P g Hg) := (lift_hom G f P g Hg).is_ring_hom
+
 variables {G f}
 omit Hg
 

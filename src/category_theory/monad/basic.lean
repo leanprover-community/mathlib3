@@ -13,6 +13,13 @@ universes v₁ u₁ -- declare the `v`'s first; see `category_theory.category` f
 variables {C : Type u₁} [𝒞 : category.{v₁} C]
 include 𝒞
 
+/--
+The data of a monad on C consists of an endofunctor T together with natural transformations
+η : 𝟭 C ⟶ T and μ : T ⋙ T ⟶ T satisfying three equations:
+- T μ_X ≫ μ_X = μ_(TX) ≫ μ_X (associativity)
+- η_(TX) ≫ μ_X = 1_X (left unit)
+- Tη_X ≫ μ_X = 1_X (right unit)
+-/
 class monad (T : C ⥤ C) :=
 (η : 𝟭 _ ⟶ T)
 (μ : T ⋙ T ⟶ T)
@@ -28,6 +35,13 @@ attribute [simp] monad.left_unit monad.right_unit
 notation `η_` := monad.η
 notation `μ_` := monad.μ
 
+/--
+The data of a comonad on C consists of an endofunctor G together with natural transformations
+ε : G ⟶ 𝟭 C and δ : G ⟶ G ⋙ G satisfying three equations:
+- δ_X ≫ G δ_X = δ_X ≫ δ_(GX) (coassociativity)
+- δ_X ≫ ε_(GX) = 1_X (left counit)
+- δ_X ≫ G ε_X = 1_X (right counit)
+-/
 class comonad (G : C ⥤ C) :=
 (ε : G ⟶ 𝟭 _)
 (δ : G ⟶ (G ⋙ G))

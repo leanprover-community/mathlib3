@@ -11,7 +11,7 @@ import category_theory.adjunction.basic
 
 This file defines Eilenberg-Moore (co)algebras for a (co)monad, and provides the category instance for them.
 Further it defines the adjoint pair of free and forgetful functors, respectively
-from and to the original category, as well as the adjoint pair of forgetful and 
+from and to the original category, as well as the adjoint pair of forgetful and
 cofree functors, respectively from and to the original category.
 
 ## References
@@ -143,11 +143,11 @@ attribute [simp] hom.h
 
 namespace hom
 
-/-- The identity coalgebra homomorphism. -/
+/-- The identity homomorphism for an Eilenberg–Moore coalgebra. -/
 @[simps] def id (A : coalgebra G) : hom A A :=
 { f := 𝟙 A.A }
 
-/-- Composition of coalgebra homomorphisms. -/
+/-- Composition of Eilenberg–Moore coalgebra homomorphisms. -/
 @[simps] def comp {P Q R : coalgebra G} (f : hom P Q) (g : hom Q R) : hom P R :=
 { f := f.f ≫ g.f,
   h' := by rw [functor.map_comp, ← category.assoc, f.h, category.assoc, g.h, category.assoc] }

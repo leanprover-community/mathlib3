@@ -452,18 +452,18 @@ Imax.1 $ I.eq_top_of_is_unit_mem (I.add_mem xmemI ymemI) H
 
 section prio
 set_option default_priority 100 -- see Note [default priority]
-class ring_hom.is_local [semiring α] [semiring β] (f : α →+* β) : Prop :=
+class is_local_ring_hom [semiring α] [semiring β] (f : α →+* β) : Prop :=
 (map_nonunit : ∀ a, is_unit (f a) → is_unit a)
 end prio
 
-@[simp] lemma is_unit_of_map_unit [semiring α] [semiring β] (f : α →+* β) [ring_hom.is_local f]
+@[simp] lemma is_unit_of_map_unit [semiring α] [semiring β] (f : α →+* β) [is_local_ring_hom f]
   (a) (h : is_unit (f a)) : is_unit a :=
-ring_hom.is_local.map_nonunit a h
+is_local_ring_hom.map_nonunit a h
 
 section
 open local_ring
 variables [local_ring α] [local_ring β]
-variables (f : α →+* β) [ring_hom.is_local f]
+variables (f : α →+* β) [is_local_ring_hom f]
 
 lemma map_nonunit (a) (h : a ∈ nonunits_ideal α) : f a ∈ nonunits_ideal β :=
 λ H, h $ is_unit_of_map_unit f a H
@@ -482,7 +482,7 @@ noncomputable instance : field (residue_field α) :=
 ideal.quotient.field (nonunits_ideal α)
 
 variables {α β}
-noncomputable def map (f : α →+* β) [ring_hom.is_local f] :
+noncomputable def map (f : α →+* β) [is_local_ring_hom f] :
   residue_field α →+* residue_field β :=
 ideal.quotient.lift (nonunits_ideal α) ((ideal.quotient.mk_hom _).comp f) $
 λ a ha,

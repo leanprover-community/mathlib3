@@ -642,12 +642,12 @@ end, congr_arg X⟩
 end nonzero_comm_ring
 
 section local_ring
-variables {β : Type*} [local_ring α] [local_ring β] (f : α →+* β) [ring_hom.is_local f]
+variables {β : Type*} [local_ring α] [local_ring β] (f : α →+* β) [is_local_ring_hom f]
 
 instance : local_ring (mv_power_series σ α) :=
 local_of_is_local_ring $ is_local_ring ⟨zero_ne_one, local_ring.is_local⟩
 
-instance map.is_local_ring_hom : ring_hom.is_local (map σ f) :=
+instance map.is_local_ring_hom : is_local_ring_hom (map σ f) :=
 ⟨begin
   rintros φ ⟨ψ, h⟩,
   replace h := congr_arg (constant_coeff σ β) h,
@@ -1185,13 +1185,13 @@ mv_power_series.is_local_ring h
 end local_ring
 
 section local_ring
-variables {β : Type*} [local_ring α] [local_ring β] (f : α →+* β) [ring_hom.is_local f]
+variables {β : Type*} [local_ring α] [local_ring β] (f : α →+* β) [is_local_ring_hom f]
 
 instance : local_ring (power_series α) :=
 mv_power_series.local_ring
 
 instance map.is_local_ring_hom :
-  ring_hom.is_local (map f) :=
+  is_local_ring_hom (map f) :=
 mv_power_series.map.is_local_ring_hom f
 
 end local_ring

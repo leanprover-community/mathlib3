@@ -8,6 +8,10 @@ open category_theory
 
 set_option pp.universes true
 
+-- Err...?
+instance : category (bundled (λ (α : Type u₁), comm_ring α)) :=
+(by apply_instance : category CommRing)
+
 -- TODO Can we express that `0` and `1` are isomorphism invariant?
 instance hygienic_zero_eq_one : bundled_hygienic.{u₁} (λ (α : Type u₁) [comm_ring α], by exactI (0 : α) = (1 : α)) :=
 begin
@@ -40,10 +44,18 @@ begin
   exact congr_fun t y,
 end
 
+@[simp] lemma coe_coe' (X Y : CommRing.{u₁}) (f : X ⟶ Y) (x : X) :
+  (f : X →* Y) x = f x := rfl
+
+-- set_option profiler true
 instance iso_functorial_units : iso_functorial.{u₁ u₁} (λ (X : CommRing.{u₁}), units (X.α)) :=
 { map := λ X Y f,
   { hom := λ u, units.map (f.hom : X →* Y) u,
-    inv := λ u, units.map (f.inv : Y →* X) u } }.
+    inv := λ u, units.map (f.inv : Y →* X) u,
+    hom_inv_id' := by { ext x, squeeze_simp, },
+    inv_hom_id' := sorry, },
+  map_id' := sorry,
+  map_comp' := sorry }.
 
 instance iso_functorial_units_1 : iso_functorial.{u₁ u₁} (λ (X : (forget CommRing.{u₁}).elements), units ((X.1).α)) :=
 begin

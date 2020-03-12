@@ -30,6 +30,7 @@ variables [comm_semiring α] {p q r : polynomial α}
 instance : inhabited (polynomial α) := finsupp.inhabited
 instance : comm_semiring (polynomial α) := add_monoid_algebra.comm_semiring
 
+/-- the coercion turning a `polynomial` into the function which reports the coefficient of a given monomial `X^n` -/
 def coeff_coe_to_fun : has_coe_to_fun (polynomial α) :=
 finsupp.has_coe_to_fun
 

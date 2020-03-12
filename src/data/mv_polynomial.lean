@@ -111,6 +111,7 @@ instance decidable_eq_mv_polynomial [decidable_eq σ] [decidable_eq α] :
 instance : comm_semiring (mv_polynomial σ α) := add_monoid_algebra.comm_semiring
 instance : inhabited (mv_polynomial σ α) := ⟨0⟩
 
+/-- the coercion turning an `mv_polynomial` into the function which reports the coefficient of a given monomial -/
 def coeff_coe_to_fun : has_coe_to_fun (mv_polynomial σ α) :=
 finsupp.has_coe_to_fun
 

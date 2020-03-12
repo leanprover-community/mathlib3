@@ -813,7 +813,6 @@ apply_nolint category_theory.has_hom.hom.op doc_blame
 apply_nolint category_theory.has_hom.hom.unop doc_blame
 apply_nolint category_theory.is_iso_of_op doc_blame
 apply_nolint category_theory.iso.op doc_blame
-apply_nolint category_theory.nat_iso.op doc_blame
 apply_nolint category_theory.nat_trans.left_op doc_blame
 apply_nolint category_theory.nat_trans.op doc_blame
 apply_nolint category_theory.nat_trans.right_op doc_blame

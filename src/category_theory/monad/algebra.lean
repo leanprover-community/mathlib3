@@ -7,11 +7,12 @@ import category_theory.monad.basic
 import category_theory.adjunction.basic
 
 /-!
-# Eilenberg-Moore algebras for a monad
+# Eilenberg-Moore (co)algebras for a (co)monad
 
-This file defines Eilenberg-Moore algebras for a monad, and provides the category instance for them.
+This file defines Eilenberg-Moore (co)algebras for a (co)monad, and provides the category instance for them.
 Further it defines the adjoint pair of free and forgetful functors, respectively
-from and to the original category.
+from and to the original category, as well as the adjoint pair of forgetful and 
+cofree functors, respectively from and to the original category.
 
 ## References
 * [Riehl, *Category theory in context*, Section 5.2.4][riehl2017]

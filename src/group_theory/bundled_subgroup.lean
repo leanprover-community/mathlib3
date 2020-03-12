@@ -53,7 +53,7 @@ Definitions in the file:
 
 * `inf H K` : the inf of `H` and `K` is their intersection.
 
-* `complete_lattics (subgroup G)` : the subgroups of `G` form a complete lattice.
+* `complete_lattice (subgroup G)` : the subgroups of `G` form a complete lattice.
 
 * `comap f H` : the preimage of a subgroup `H` along the group homomorphism `f` is also a subgroup
 
@@ -546,5 +546,4 @@ def subgroup_congr (h : H = K) : H ≃* K :=
 { map_mul' :=  λ _ _, rfl, ..equiv.set_congr $ subgroup.ext'_iff.2 h }
 
 end mul_equiv
-
 

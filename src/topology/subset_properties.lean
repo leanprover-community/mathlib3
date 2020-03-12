@@ -368,6 +368,10 @@ class compact_space (α : Type*) [topological_space α] : Prop :=
 
 lemma compact_univ [h : compact_space α] : compact (univ : set α) := h.compact_univ
 
+lemma cluster_point_of_compact [compact_space α]
+  {f : filter α} (h : f ≠ ⊥) : ∃ x, f ⊓ 𝓝 x ≠ ⊥ :=
+by simpa using compact_univ f h (by simpa using f.univ_sets)
+
 theorem compact_space_of_finite_subfamily_closed {α : Type u} [topological_space α]
   (h : Π {ι : Type u} (Z : ι → (set α)), (∀ i, is_closed (Z i)) →
     (⋂ i, Z i) = ∅ → (∃ (t : finset ι), (⋂ i ∈ t, Z i) = ∅)) :
@@ -404,6 +408,38 @@ hs.image_of_continuous_on hf.continuous_on
 lemma compact_range [compact_space α] {f : α → β} (hf : continuous f) :
   compact (range f) :=
 by rw ← image_univ; exact compact_univ.image hf
+
+local notation `𝓟` := principal
+
+/-- If X is compact then pr₂ : X × Y → Y is a closed map -/
+theorem is_closed_proj_of_compact
+  {X : Type*} [topological_space X] [compact_space X]
+  {Y : Type*} [topological_space Y]  :
+  is_closed_map (prod.snd : X × Y → Y) :=
+begin
+  set πX := (prod.fst : X × Y → X),
+  set πY := (prod.snd : X × Y → Y),
+  assume C (hC : is_closed C),
+  rw is_closed_iff_nhds at hC ⊢,
+  assume y (y_closure : 𝓝 y ⊓ 𝓟 (πY '' C) ≠ ⊥),
+  have : map πX (comap πY (𝓝 y) ⊓ 𝓟 C) ≠ ⊥,
+  { suffices : map πY (comap πY (𝓝 y) ⊓ 𝓟 C) ≠ ⊥,
+      from map_ne_bot (λ h, this $  by rw h ; exact map_bot ),
+    calc map πY (comap πY (𝓝 y) ⊓ 𝓟 C) =
+       𝓝 y ⊓ map πY (𝓟 C) : filter.push_pull' _ _ _
+      ... = 𝓝 y ⊓ 𝓟 (πY '' C) : by rw map_principal
+      ... ≠ ⊥ : y_closure },
+  obtain ⟨x, hx⟩ : ∃ x, map πX (comap πY (𝓝 y) ⊓ 𝓟 C) ⊓ 𝓝 x ≠ ⊥,
+    from cluster_point_of_compact this,
+  refine ⟨⟨x, y⟩, _, by simp [πY]⟩,
+  apply hC,
+  rw ← filter.map_ne_bot_iff πX,
+  calc map πX (𝓝 (x, y) ⊓ 𝓟 C)
+      = map πX (comap πX (𝓝 x) ⊓ comap πY (𝓝 y) ⊓ 𝓟 C) : by rw [nhds_prod_eq, filter.prod]
+  ... = map πX (comap πY (𝓝 y) ⊓ 𝓟 C ⊓ comap πX (𝓝 x)) : by ac_refl
+  ... = map πX (comap πY (𝓝 y) ⊓ 𝓟 C) ⊓ 𝓝 x            : by rw filter.push_pull
+  ... ≠ ⊥ : hx,
+end
 
 lemma embedding.compact_iff_compact_image {s : set α} {f : α → β} (hf : embedding f) :
   compact s ↔ compact (f '' s) :=

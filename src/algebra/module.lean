@@ -110,10 +110,10 @@ variables {α}
 by rw [← neg_one_smul α, ← mul_smul, mul_neg_one, neg_smul]
 
 theorem smul_sub (r : α) (x y : β) : r • (x - y) = r • x - r • y :=
-by simp [smul_add]; rw smul_neg
+by simp [smul_add, sub_eq_add_neg]; rw smul_neg
 
 theorem sub_smul (r s : α) (y : β) : (r - s) • y = r • y - s • y :=
-by simp [add_smul]
+by simp [add_smul, sub_eq_add_neg]
 
 end module
 
@@ -189,7 +189,7 @@ instance : is_add_group_hom f := { map_add := map_add f }
 by rw [← neg_one_smul α, map_smul, neg_one_smul]
 
 @[simp] lemma map_sub (x y : β) : f (x - y) = f x - f y :=
-by simp [map_neg, map_add]
+by simp [map_neg, map_add, sub_eq_add_neg]
 
 @[simp] lemma map_sum {ι} {t : finset ι} {g : ι → β} :
   f (t.sum g) = t.sum (λi, f (g i)) :=
@@ -255,7 +255,7 @@ lemma map_neg (x : β) : f (- x) = - f x :=
 by rw [← neg_one_smul α, lin.smul, neg_one_smul]
 
 lemma map_sub (x y : β) : f (x - y) = f x - f y :=
-by simp [lin.map_neg, lin.map_add]
+by simp [lin.map_neg, lin.map_add, sub_eq_add_neg]
 
 end is_linear_map
 
@@ -330,14 +330,15 @@ instance : has_scalar α p := ⟨λ c x, ⟨c • x.1, smul_mem _ c x.2⟩⟩
 
 instance : add_comm_group p :=
 by refine {add := (+), zero := 0, neg := has_neg.neg, ..};
-  { intros, apply set_coe.ext, simp }
+  { intros, apply set_coe.ext, simp [add_comm, add_left_comm] }
 
 instance submodule_is_add_subgroup : is_add_subgroup (p : set β) :=
 { zero_mem := p.zero,
   add_mem  := p.add,
   neg_mem  := λ _, p.neg_mem }
 
-@[move_cast] lemma coe_sub (x y : p) : (↑(x - y) : β) = ↑x - ↑y := by simp
+@[simp, move_cast] lemma coe_sub (x y : p) : (↑(x - y) : β) = ↑x - ↑y :=
+by simp [sub_eq_add_neg]
 
 instance : module α p :=
 by refine {smul := (•), ..};
@@ -393,24 +394,24 @@ The solution is to extend `module` instead."
   This is the traditional generalization of spaces like `ℝ^n`, which have a natural
   addition operation and a way to multiply them by real numbers, but no multiplication
   operation between vectors. -/
-abbreviation vector_space (α : Type u) (β : Type v) [discrete_field α] [add_comm_group β] :=
+abbreviation vector_space (α : Type u) (β : Type v) [field α] [add_comm_group β] :=
 module α β
 
-instance discrete_field.to_vector_space {α : Type*} [discrete_field α] : vector_space α α :=
+instance field.to_vector_space {α : Type*} [field α] : vector_space α α :=
 { .. ring.to_module }
 
 /-- Subspace of a vector space. Defined to equal `submodule`. -/
 @[reducible] def subspace (α : Type u) (β : Type v)
-  [discrete_field α] [add_comm_group β] [vector_space α β] : Type v :=
+  [field α] [add_comm_group β] [vector_space α β] : Type v :=
 submodule α β
 
 instance subspace.vector_space {α β}
-  {f : discrete_field α} [add_comm_group β] [vector_space α β]
+  {f : field α} [add_comm_group β] [vector_space α β]
   (p : subspace α β) : vector_space α p := {..submodule.module p}
 
 namespace submodule
 
-variables {R:discrete_field α} [add_comm_group β] [add_comm_group γ]
+variables {R:field α} [add_comm_group β] [add_comm_group γ]
 variables [vector_space α β] [vector_space α γ]
 variables (p p' : submodule α β)
 variables {r : α} {x y : β}

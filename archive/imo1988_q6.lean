@@ -255,7 +255,7 @@ begin
     apply eq_iff_eq_cancel_right.2,
     simp, ring, },
   { -- Show that the solution set is symmetric in a and b.
-    intros x y, simp [mul_comm], },
+    cc },
   { -- Show that the claim is true if b = 0.
     simp },
   { -- Show that the claim is true if a = b.

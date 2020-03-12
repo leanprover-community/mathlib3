@@ -149,8 +149,6 @@ instance decidable_set_of (p : α → Prop) [H : decidable_pred p] : decidable_p
 
 @[simp] lemma sep_set_of {α} {p q : α → Prop} : {a ∈ {a | p a } | q a} = {a | p a ∧ q a} := rfl
 
-@[simp] lemma set_of_mem {α} {s : set α} : {a | a ∈ s} = s := rfl
-
 /-! ### Lemmas about subsets -/
 
 -- TODO(Jeremy): write a tactic to unfold specific instances of generic notation?
@@ -514,8 +512,6 @@ ext (assume x, and_or_distrib_right)
 
 theorem insert_def (x : α) (s : set α) : insert x s = { y | y = x ∨ y ∈ s } := rfl
 
-@[simp] theorem insert_of_has_insert (x : α) (s : set α) : has_insert.insert x s = insert x s := rfl
-
 @[simp] theorem subset_insert (x : α) (s : set α) : s ⊆ insert x s :=
 assume y ys, or.inr ys
 
@@ -683,7 +679,8 @@ by finish [ext_iff]
 @[simp] theorem compl_union (s t : set α) : -(s ∪ t) = -s ∩ -t :=
 by finish [ext_iff]
 
-@[simp] theorem compl_compl (s : set α) : -(-s) = s :=
+local attribute [simp] -- Will be generalized to lattices in `lattice.neg_neg`
+theorem compl_compl (s : set α) : -(-s) = s :=
 by finish [ext_iff]
 
 -- ditto
@@ -979,7 +976,7 @@ theorem ball_image_of_ball {f : α → β} {s : set α} {p : β → Prop}
   (h : ∀ x ∈ s, p (f x)) : ∀ y ∈ f '' s, p y :=
 by finish [mem_image_eq]
 
-@[simp] theorem ball_image_iff {f : α → β} {s : set α} {p : β → Prop} :
+theorem ball_image_iff {f : α → β} {s : set α} {p : β → Prop} :
   (∀ y ∈ f '' s, p y) ↔ (∀ x ∈ s, p (f x)) :=
 iff.intro
   (assume h a ha, h _ $ mem_image_of_mem _ ha)
@@ -1071,10 +1068,10 @@ begin
   intro x, split; { intro e, subst e, simp }
 end
 
-@[simp] theorem image_id (s : set α) : id '' s = s := ext $ by simp
-
 /-- A variant of `image_id` -/
-@[simp] lemma image_id' (s : set α) : (λx, x) '' s = s := image_id s
+@[simp] lemma image_id' (s : set α) : (λx, x) '' s = s := ext $ by simp
+
+theorem image_id (s : set α) : id '' s = s := by simp
 
 theorem compl_compl_image (S : set (set α)) :
   compl '' (compl '' S) = S :=
@@ -1085,7 +1082,7 @@ theorem image_insert_eq {f : α → β} {a : α} {s : set α} :
 ext $ by simp [and_or_distrib_left, exists_or_distrib, eq_comm, or_comm, and_comm]
 
 theorem image_pair (f : α → β) (a b : α) : f '' {a, b} = {f a, f b} :=
-by simp only [insert_of_has_insert, image_insert_eq, image_singleton]
+by simp only [image_insert_eq, image_singleton]
 
 theorem image_subset_preimage_of_inverse {f : α → β} {g : β → α}
   (I : left_inverse g f) (s : set α) : f '' s ⊆ g ⁻¹' s :=
@@ -1423,11 +1420,11 @@ set.ext $ assume a,
 ⟨assume ⟨⟨a', ha'⟩, in_s, h_eq⟩, h_eq ▸ ⟨ha', in_s⟩,
   assume ⟨ha, in_s⟩, ⟨⟨a, ha⟩, in_s, rfl⟩⟩
 
-@[simp] lemma val_range {p : α → Prop} :
+lemma val_range {p : α → Prop} :
   set.range (@subtype.val _ p) = {x | p x} :=
 by rw ← set.image_univ; simp [-set.image_univ, val_image]
 
-@[simp] lemma range_val (s : set α) : range (subtype.val : s → α) = s :=
+lemma range_val (s : set α) : range (subtype.val : s → α) = s :=
 val_range
 
 theorem val_image_subset (s : set α) (t : set (subtype s)) : t.image val ⊆ s :=
@@ -1471,7 +1468,7 @@ variable {α : Type*}
 
 @[simp] lemma subtype.val_range {p : α → Prop} :
   range (@subtype.val _ p) = {x | p x} :=
-by rw ← image_univ; simp [-image_univ, subtype.val_image]
+subtype.val_range
 
 @[simp] lemma range_coe_subtype (s : set α) : range (coe : s → α) = s :=
 subtype.val_range

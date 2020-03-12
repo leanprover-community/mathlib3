@@ -3,7 +3,7 @@ Copyright (c) 2018 Johannes Hölzl. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johannes Hölzl, Jens Wagemaker
 -/
-import algebra.group algebra.group.is_unit data.multiset
+import algebra.group.is_unit data.multiset
 
 /-!
 # Associated, prime, and irreducible elements.
@@ -49,8 +49,8 @@ by rw [mul_comm, mul_dvd_of_is_unit_left h]
 @[simp] lemma unit_mul_dvd_iff [comm_semiring α] {a b : α} {u : units α} : (u : α) * a ∣ b ↔ a ∣ b :=
 mul_dvd_of_is_unit_left (is_unit_unit _)
 
-@[simp] lemma mul_unit_dvd_iff [comm_semiring α] {a b : α} {u : units α} : a * u ∣ b ↔ a ∣ b :=
-mul_dvd_of_is_unit_right (is_unit_unit _)
+lemma mul_unit_dvd_iff [comm_semiring α] {a b : α} {u : units α} : a * u ∣ b ↔ a ∣ b :=
+units.coe_mul_dvd _ _ _
 
 theorem is_unit_of_dvd_unit {α} [comm_semiring α] {x y : α}
   (xy : x ∣ y) (hu : is_unit y) : is_unit x :=
@@ -258,9 +258,8 @@ multiset.induction_on s (by simp [mt is_unit_iff_dvd_one.2 hp.not_unit])
 lemma dvd_iff_dvd_of_rel_left [comm_semiring α] {a b c : α} (h : a ~ᵤ b) : a ∣ c ↔ b ∣ c :=
 let ⟨u, hu⟩ := h in hu ▸ mul_unit_dvd_iff.symm
 
-@[simp] lemma dvd_mul_unit_iff [comm_semiring α] {a b : α} {u : units α} : a ∣ b * u ↔ a ∣ b :=
-⟨λ ⟨d, hd⟩, ⟨d * (u⁻¹ : units α), by simp [(mul_assoc _ _ _).symm, hd.symm]⟩,
-  λ h, dvd.trans h (by simp)⟩
+lemma dvd_mul_unit_iff [comm_semiring α] {a b : α} {u : units α} : a ∣ b * u ↔ a ∣ b :=
+units.dvd_coe_mul _ _ _
 
 lemma dvd_iff_dvd_of_rel_right [comm_semiring α] {a b c : α} (h : b ~ᵤ c) : a ∣ b ↔ a ∣ c :=
 let ⟨u, hu⟩ := h in hu ▸ dvd_mul_unit_iff.symm

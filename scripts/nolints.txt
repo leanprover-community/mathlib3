@@ -60,7 +60,6 @@ apply_nolint set.centralizer.add_submonoid doc_blame
 
 -- algebra/direct_limit.lean
 apply_nolint add_comm_group.direct_limit has_inhabited_instance
-apply_nolint field.direct_limit.discrete_field doc_blame
 apply_nolint field.direct_limit.field doc_blame
 apply_nolint field.direct_limit.inv doc_blame
 apply_nolint module.direct_limit unused_arguments has_inhabited_instance
@@ -110,10 +109,6 @@ apply_nolint normalize doc_blame
 -- algebra/group/conj.lean
 apply_nolint is_conj doc_blame
 
--- algebra/group/free_monoid.lean
-apply_nolint free_add_monoid doc_blame
-apply_nolint free_monoid doc_blame
-
 -- algebra/group/hom.lean
 apply_nolint add_monoid_hom.add doc_blame
 apply_nolint add_monoid_hom.comp doc_blame
@@ -138,14 +133,8 @@ apply_nolint to_additive.value_type doc_blame
 apply_nolint additive doc_blame
 apply_nolint multiplicative doc_blame
 
--- algebra/group/units.lean
-apply_nolint units.inv' doc_blame
-apply_nolint units.mk_of_mul_eq_one doc_blame
-apply_nolint units.mul doc_blame
-
 -- algebra/group/with_one.lean
 apply_nolint with_one doc_blame
-apply_nolint with_one.lift doc_blame
 apply_nolint with_one.map doc_blame
 apply_nolint with_zero doc_blame
 apply_nolint with_zero.div doc_blame
@@ -739,8 +728,6 @@ apply_nolint category_theory.limits.sigma.ι doc_blame
 -- category_theory/limits/shapes/pullbacks.lean
 apply_nolint category_theory.limits.cocone.of_pushout_cocone doc_blame
 apply_nolint category_theory.limits.cone.of_pullback_cone doc_blame
-apply_nolint category_theory.limits.has_pullbacks doc_blame
-apply_nolint category_theory.limits.has_pushouts doc_blame
 apply_nolint category_theory.limits.pullback.fst doc_blame
 apply_nolint category_theory.limits.pullback.lift doc_blame
 apply_nolint category_theory.limits.pullback.snd doc_blame
@@ -1121,7 +1108,6 @@ apply_nolint equiv.comm_monoid doc_blame
 apply_nolint equiv.comm_ring doc_blame
 apply_nolint equiv.comm_semigroup doc_blame
 apply_nolint equiv.comm_semiring doc_blame
-apply_nolint equiv.discrete_field doc_blame
 apply_nolint equiv.division_ring doc_blame
 apply_nolint equiv.domain doc_blame
 apply_nolint equiv.field doc_blame
@@ -1332,11 +1318,6 @@ apply_nolint erased.out_type doc_blame
 
 -- data/fin.lean
 apply_nolint fin.add_nat_val unused_arguments
-apply_nolint fin.cases doc_blame
-apply_nolint fin.clamp doc_blame
-apply_nolint fin.succ_rec doc_blame
-apply_nolint fin.succ_rec_on doc_blame
-apply_nolint fin_zero_elim' doc_blame
 
 -- data/finmap.lean
 apply_nolint finmap.all doc_blame
@@ -1345,24 +1326,6 @@ apply_nolint finmap.disjoint unused_arguments doc_blame
 apply_nolint finmap.foldl unused_arguments
 apply_nolint finmap.sdiff doc_blame
 apply_nolint list.to_finmap doc_blame
-
--- data/finset.lean
-apply_nolint finset.attach_fin doc_blame
-apply_nolint finset.choose doc_blame
-apply_nolint finset.choose_x doc_blame
-apply_nolint finset.empty doc_blame
-apply_nolint finset.map doc_blame
-apply_nolint finset.map_embedding doc_blame
-apply_nolint finset.max doc_blame
-apply_nolint finset.max' doc_blame
-apply_nolint finset.min doc_blame
-apply_nolint finset.min' doc_blame
-apply_nolint finset.pi doc_blame
-apply_nolint finset.pi.cons doc_blame
-apply_nolint finset.pi.empty doc_blame
-apply_nolint finset.powerset_len doc_blame
-apply_nolint finset.strong_induction_on doc_blame
-apply_nolint finset.subtype doc_blame
 
 -- data/fintype.lean
 apply_nolint finset.insert_none doc_blame
@@ -1903,7 +1866,7 @@ apply_nolint rat_mul_continuous_lemma ge_or_gt
 
 -- data/real/cau_seq_completion.lean
 apply_nolint cau_seq.completion.Cauchy doc_blame
-apply_nolint cau_seq.completion.discrete_field doc_blame
+apply_nolint cau_seq.completion.field doc_blame
 apply_nolint cau_seq.completion.mk doc_blame
 apply_nolint cau_seq.completion.of_rat doc_blame
 apply_nolint cau_seq.is_complete doc_blame
@@ -2216,15 +2179,13 @@ apply_nolint add_group.in_closure doc_blame
 apply_nolint gmultiples doc_blame
 apply_nolint gpowers doc_blame
 apply_nolint group.in_closure doc_blame
-apply_nolint is_add_group_hom.ker unused_arguments doc_blame
+apply_nolint is_add_group_hom.ker doc_blame
 apply_nolint is_add_subgroup.add_center doc_blame
 apply_nolint is_add_subgroup.add_normalizer doc_blame
-apply_nolint is_add_subgroup.normalizer_is_add_subgroup unused_arguments
 apply_nolint is_add_subgroup.trivial doc_blame
-apply_nolint is_group_hom.ker unused_arguments doc_blame
+apply_nolint is_group_hom.ker doc_blame
 apply_nolint is_subgroup.center doc_blame
 apply_nolint is_subgroup.normalizer doc_blame
-apply_nolint is_subgroup.normalizer_is_subgroup unused_arguments
 apply_nolint normal_add_subgroup doc_blame
 apply_nolint normal_subgroup doc_blame
 apply_nolint simple_add_group doc_blame
@@ -2825,9 +2786,7 @@ apply_nolint principal_seg doc_blame has_inhabited_instance
 apply_nolint principal_seg.equiv_lt doc_blame
 apply_nolint principal_seg.lt_equiv doc_blame
 apply_nolint principal_seg.lt_le doc_blame
-apply_nolint principal_seg.top_lt_top unused_arguments
 apply_nolint principal_seg.trans doc_blame
-apply_nolint principal_seg.trans_top unused_arguments
 
 -- set_theory/ordinal_notation.lean
 apply_nolint onote.oadd_lt_oadd_1 unused_arguments
@@ -3088,7 +3047,6 @@ apply_nolint tactic.interactive.apply_iff_congr_core doc_blame
 apply_nolint tactic.interactive.clean_ids doc_blame
 apply_nolint tactic.interactive.collect_struct doc_blame
 apply_nolint tactic.interactive.collect_struct' doc_blame
-apply_nolint tactic.interactive.compact_decl doc_blame
 apply_nolint tactic.interactive.compact_decl_aux doc_blame
 apply_nolint tactic.interactive.congr_core' doc_blame
 apply_nolint tactic.interactive.convert_to_core doc_blame
@@ -3102,7 +3060,6 @@ apply_nolint tactic.interactive.list_cast_of doc_blame
 apply_nolint tactic.interactive.list_cast_of_aux doc_blame
 apply_nolint tactic.interactive.loc.get_local_pp_names doc_blame
 apply_nolint tactic.interactive.loc.get_local_uniq_names doc_blame
-apply_nolint tactic.interactive.mk_paragraph_aux doc_blame
 apply_nolint tactic.interactive.refine_one doc_blame
 apply_nolint tactic.interactive.refine_recursively doc_blame
 apply_nolint tactic.interactive.return_cast doc_blame

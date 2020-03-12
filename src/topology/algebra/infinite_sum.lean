@@ -372,7 +372,7 @@ lemma summable_neg (hf : summable f) : summable (λb, - f b) :=
 summable_spec $ has_sum_neg $ has_sum_tsum $ hf
 
 lemma has_sum_sub (hf : has_sum f a₁) (hg : has_sum g a₂) : has_sum (λb, f b - g b) (a₁ - a₂) :=
-by simp; exact has_sum_add hf (has_sum_neg hg)
+by simp [sub_eq_add_neg]; exact has_sum_add hf (has_sum_neg hg)
 
 lemma summable_sub (hf : summable f) (hg : summable g) : summable (λb, f b - g b) :=
 summable_spec $ has_sum_sub (has_sum_tsum hf) (has_sum_tsum hg)

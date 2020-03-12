@@ -1,8 +1,6 @@
 /-
 Copyright (c) 2018 Patrick Massot. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Normed spaces.
-
 Authors: Patrick Massot, Johannes Hölzl
 -/
 
@@ -10,6 +8,12 @@ import algebra.pi_instances
 import linear_algebra.basic
 import topology.instances.nnreal topology.instances.complex
 import topology.algebra.module
+import topology.metric_space.lipschitz
+import topology.metric_space.antilipschitz
+
+/-!
+# Normed spaces
+-/
 
 variables {α : Type*} {β : Type*} {γ : Type*} {ι : Type*}
 
@@ -70,7 +74,7 @@ noncomputable def normed_group.of_core (α : Type*) [add_comm_group α] [has_nor
   dist_self := assume x, (C.norm_eq_zero_iff (x - x)).mpr (show x - x = 0, by simp),
   eq_of_dist_eq_zero := assume x y h, show (x = y), from sub_eq_zero.mp $ (C.norm_eq_zero_iff (x - y)).mp h,
   dist_triangle := assume x y z,
-    calc ∥x - z∥ = ∥x - y + (y - z)∥ : by simp
+    calc ∥x - z∥ = ∥x - y + (y - z)∥ : by simp [sub_eq_add_neg]
             ... ≤ ∥x - y∥ + ∥y - z∥  : C.triangle _ _,
   dist_comm := assume x y,
     calc ∥x - y∥ = ∥ -(y - x)∥ : by simp
@@ -132,6 +136,11 @@ lemma dist_sub_sub_le_of_le {g₁ g₂ h₁ h₂ : α} {d₁ d₂ : ℝ}
   dist (g₁ - g₂) (h₁ - h₂) ≤ d₁ + d₂ :=
 le_trans (dist_sub_sub_le g₁ g₂ h₁ h₂) (add_le_add H₁ H₂)
 
+lemma abs_dist_sub_le_dist_add_add (g₁ g₂ h₁ h₂ : α) :
+  abs (dist g₁ h₁ - dist g₂ h₂) ≤ dist (g₁ + g₂) (h₁ + h₂) :=
+by simpa only [dist_add_left, dist_add_right, dist_comm h₂]
+  using abs_dist_sub_le (g₁ + g₂) (h₁ + h₂) (h₁ + g₂)
+
 @[simp] lemma norm_nonneg (g : α) : 0 ≤ ∥g∥ :=
 by { rw[←dist_zero_right], exact dist_nonneg }
 
@@ -178,14 +187,14 @@ set.ext $ assume a, by simp
 lemma norm_le_of_mem_closed_ball {g h : α} {r : ℝ} (H : h ∈ closed_ball g r) :
   ∥h∥ ≤ ∥g∥ + r :=
 calc
-  ∥h∥ = ∥g + (h - g)∥ : by { congr' 1, abel }
+  ∥h∥ = ∥g + (h - g)∥ : by rw [add_sub_cancel'_right]
   ... ≤ ∥g∥ + ∥h - g∥  : norm_add_le _ _
   ... ≤ ∥g∥ + r : by { apply add_le_add_left, rw ← dist_eq_norm, exact H }
 
 lemma norm_lt_of_mem_ball {g h : α} {r : ℝ} (H : h ∈ ball g r) :
   ∥h∥ < ∥g∥ + r :=
 calc
-  ∥h∥ = ∥g + (h - g)∥ : by { congr' 1, abel }
+  ∥h∥ = ∥g + (h - g)∥ : by rw [add_sub_cancel'_right]
   ... ≤ ∥g∥ + ∥h - g∥  : norm_add_le _ _
   ... < ∥g∥ + r : by { apply add_lt_add_left, rw ← dist_eq_norm, exact H }
 
@@ -223,7 +232,49 @@ ennreal.of_real_eq_coe_nnreal _
 lemma edist_eq_coe_nnnorm (x : β) : edist x 0 = (nnnorm x : ennreal) :=
 by { rw [edist_dist, dist_eq_norm, _root_.sub_zero, of_real_norm_eq_coe_nnnorm] }
 
+lemma nndist_add_add_le (g₁ g₂ h₁ h₂ : α) :
+  nndist (g₁ + g₂) (h₁ + h₂) ≤ nndist g₁ h₁ + nndist g₂ h₂ :=
+nnreal.coe_le.2 $ dist_add_add_le g₁ g₂ h₁ h₂
+
+lemma edist_add_add_le (g₁ g₂ h₁ h₂ : α) :
+  edist (g₁ + g₂) (h₁ + h₂) ≤ edist g₁ h₁ + edist g₂ h₂ :=
+by { simp only [edist_nndist], norm_cast, apply nndist_add_add_le }
+
 end nnnorm
+
+lemma lipschitz_with.neg {α : Type*} [emetric_space α] {K : nnreal} {f : α → β}
+  (hf : lipschitz_with K f) : lipschitz_with K (λ x, -f x) :=
+λ x y, by simpa only [edist_dist, dist_neg_neg] using hf x y
+
+lemma lipschitz_with.add {α : Type*} [emetric_space α] {Kf : nnreal} {f : α → β}
+  (hf : lipschitz_with Kf f) {Kg : nnreal} {g : α → β} (hg : lipschitz_with Kg g) :
+  lipschitz_with (Kf + Kg) (λ x, f x + g x) :=
+λ x y,
+calc edist (f x + g x) (f y + g y) ≤ edist (f x) (f y) + edist (g x) (g y) :
+  edist_add_add_le _ _ _ _
+... ≤ Kf * edist x y + Kg * edist x y :
+  add_le_add' (hf x y) (hg x y)
+... = (Kf + Kg) * edist x y :
+  (add_mul _ _ _).symm
+
+lemma lipschitz_with.sub {α : Type*} [emetric_space α] {Kf : nnreal} {f : α → β}
+  (hf : lipschitz_with Kf f) {Kg : nnreal} {g : α → β} (hg : lipschitz_with Kg g) :
+  lipschitz_with (Kf + Kg) (λ x, f x - g x) :=
+hf.add hg.neg
+
+lemma antilipschitz_with.add_lipschitz_with {α : Type*} [metric_space α] {Kf : nnreal} {f : α → β}
+  (hf : antilipschitz_with Kf f) {Kg : nnreal} {g : α → β} (hg : lipschitz_with Kg g) 
+  (hK : Kg < Kf⁻¹) :
+  antilipschitz_with (Kf⁻¹ - Kg)⁻¹ (λ x, f x + g x) :=
+begin
+  refine antilipschitz_with.of_le_mul_dist (λ x y, _),
+  rw [nnreal.coe_inv, ← div_eq_inv_mul],
+  apply le_div_of_mul_le (nnreal.coe_pos.2 $ nnreal.sub_pos.2 hK),
+  rw [mul_comm, nnreal.coe_sub (le_of_lt hK), sub_mul],
+  calc ↑Kf⁻¹ * dist x y - Kg * dist x y ≤ dist (f x) (f y) - dist (g x) (g y) :
+    sub_le_sub (hf.mul_le_dist x y) (hg.dist_le_mul x y)
+  ... ≤ _ : le_trans (le_abs_self _) (abs_dist_sub_le_dist_add_add _ _ _ _)
+end
 
 /-- A submodule of a normed group is also a normed group, with the restriction of the norm.
 As all instances can be inferred from the submodule `s`, they are put as implicit instead of
@@ -303,16 +354,14 @@ lemma filter.tendsto.nnnorm {β : Type*} {l : filter β} {f : β → α} {a : α
 tendsto.comp continuous_nnnorm.continuous_at h
 
 /-- If `∥y∥→∞`, then we can assume `y≠x` for any fixed `x`. -/
-lemma ne_mem_of_tendsto_norm_at_top {l : filter γ} {f : γ → α}
+lemma eventually_ne_of_tendsto_norm_at_top {l : filter γ} {f : γ → α}
   (h : tendsto (λ y, ∥f y∥) l at_top) (x : α) :
   ∀ᶠ y in l, f y ≠ x :=
 begin
   have : ∀ᶠ y in l, 1 + ∥x∥ ≤ ∥f y∥ := h (mem_at_top (1 + ∥x∥)),
-  apply mem_sets_of_superset this,
-  assume y hy hxy,
+  refine this.mono (λ y hy hxy, _),
   subst x,
-  simp at hy,
-  exact not_le_of_lt zero_lt_one hy
+  exact not_le_of_lt zero_lt_one (add_le_iff_nonpos_left.1 hy)
 end
 
 /-- A normed group is a uniform additive group, i.e., addition and subtraction are uniformly
@@ -322,7 +371,8 @@ instance normed_uniform_group : uniform_add_group α :=
 begin
   refine ⟨metric.uniform_continuous_iff.2 $ assume ε hε, ⟨ε / 2, half_pos hε, assume a b h, _⟩⟩,
   rw [prod.dist_eq, max_lt_iff, dist_eq_norm, dist_eq_norm] at h,
-  calc dist (a.1 - a.2) (b.1 - b.2) = ∥(a.1 - b.1) - (a.2 - b.2)∥  : by simp [dist_eq_norm]
+  calc dist (a.1 - a.2) (b.1 - b.2) = ∥(a.1 - b.1) - (a.2 - b.2)∥ :
+      by simp [dist_eq_norm, sub_eq_add_neg]; abel
     ... ≤ ∥a.1 - b.1∥ + ∥a.2 - b.2∥ : norm_sub_le _ _
     ... < ε / 2 + ε / 2 : add_lt_add h.1 h.2
     ... = ε : add_halves _
@@ -414,7 +464,7 @@ instance normed_top_ring [normed_ring α] : topological_ring α :=
 section prio
 set_option default_priority 100 -- see Note [default priority]
 /-- A normed field is a field with a norm satisfying ∥x y∥ = ∥x∥ ∥y∥. -/
-class normed_field (α : Type*) extends has_norm α, discrete_field α, metric_space α :=
+class normed_field (α : Type*) extends has_norm α, field α, metric_space α :=
 (dist_eq : ∀ x y, dist x y = norm (x - y))
 (norm_mul' : ∀ a b, norm (a * b) = norm a * norm b)
 
@@ -450,8 +500,9 @@ is_monoid_hom.map_pow norm a
 eq.symm (s.prod_hom norm)
 
 @[simp] lemma norm_div {α : Type*} [normed_field α] (a b : α) : ∥a/b∥ = ∥a∥/∥b∥ :=
-if hb : b = 0 then by simp [hb] else
 begin
+  classical,
+  by_cases hb : b = 0, {simp [hb]},
   apply eq_div_of_mul_eq,
   { apply ne_of_gt, apply norm_pos_iff.mpr hb },
   { rw [←normed_field.norm_mul, div_mul_cancel _ hb] }
@@ -520,7 +571,7 @@ begin
       exact le_trans hx (min_le_right _ _)
     end
     ... ≤ ∥r - (r - x)∥ : norm_sub_norm_le r (r - x)
-    ... = ∥x∥ : by simp,
+    ... = ∥x∥ : by simp [sub_sub_cancel],
   have norm_x_pos : 0 < ∥x∥ := lt_of_lt_of_le (half_pos norm_r_pos) rx,
   have : x⁻¹ - r⁻¹ = (r - x) * x⁻¹ * r⁻¹,
     by rw [sub_mul, sub_mul, mul_inv_cancel (norm_pos_iff.mp norm_x_pos), one_mul, mul_comm,
@@ -534,8 +585,7 @@ begin
       by { rw [← dist_eq_norm, dist_comm], exact le_trans hx (min_le_left _ _) },
     show ∥x∥⁻¹ ≤ 2 * ∥r∥⁻¹,
     { convert (inv_le_inv norm_x_pos (half_pos norm_r_pos)).2 rx,
-      rw [inv_div (ne.symm (ne_of_lt norm_r_pos)), div_eq_inv_mul, mul_comm],
-      norm_num },
+      rw [inv_div, div_eq_inv_mul, mul_comm] },
     show (0 : ℝ) ≤ 2, by norm_num
   end
   ... = ε * (∥r∥ * ∥r∥⁻¹)^2 : by { generalize : ∥r∥⁻¹ = u, ring }

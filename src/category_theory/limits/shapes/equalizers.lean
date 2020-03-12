@@ -5,6 +5,7 @@ Authors: Scott Morrison, Markus Himmel
 -/
 import data.fintype
 import category_theory.limits.limits
+import category_theory.limits.shapes.finite_limits
 
 /-!
 # Equalizers and coequalizers
@@ -62,12 +63,20 @@ instance fintype_walking_parallel_pair : fintype walking_parallel_pair :=
 open walking_parallel_pair
 
 /-- The type family of morphisms for the diagram indexing a (co)equalizer. -/
-inductive walking_parallel_pair_hom : walking_parallel_pair → walking_parallel_pair → Type v
+@[derive _root_.decidable_eq] inductive walking_parallel_pair_hom :
+  walking_parallel_pair → walking_parallel_pair → Type v
 | left : walking_parallel_pair_hom zero one
 | right : walking_parallel_pair_hom zero one
 | id : Π X : walking_parallel_pair.{v}, walking_parallel_pair_hom X X
 
 open walking_parallel_pair_hom
+
+instance (j j' : walking_parallel_pair) : fintype (walking_parallel_pair_hom j j') :=
+{ elems := walking_parallel_pair.rec_on j
+    (walking_parallel_pair.rec_on j' [walking_parallel_pair_hom.id zero].to_finset
+      [left, right].to_finset)
+    (walking_parallel_pair.rec_on j' ∅ [walking_parallel_pair_hom.id one].to_finset),
+  complete := by tidy }
 
 def walking_parallel_pair_hom.comp :
   Π (X Y Z : walking_parallel_pair)
@@ -82,6 +91,8 @@ instance walking_parallel_pair_hom_category : small_category.{v} walking_paralle
 { hom  := walking_parallel_pair_hom,
   id   := walking_parallel_pair_hom.id,
   comp := walking_parallel_pair_hom.comp }
+
+instance : fin_category.{v} walking_parallel_pair.{v} := { }
 
 lemma walking_parallel_pair_hom_id (X : walking_parallel_pair.{v}) :
   walking_parallel_pair_hom.id X = 𝟙 X :=
@@ -119,21 +130,35 @@ variables {f g : X ⟶ Y}
 
 @[simp] lemma cone_parallel_pair_left (s : cone (parallel_pair f g)) :
   (s.π).app zero ≫ f = (s.π).app one :=
-by { conv { to_lhs, congr, skip, rw ←parallel_pair_map_left f g }, rw s.w }
+by { conv_lhs { congr, skip, rw ←parallel_pair_map_left f g }, rw s.w }
 
 @[simp] lemma cone_parallel_pair_right (s : cone (parallel_pair f g)) :
   (s.π).app zero ≫ g = (s.π).app one :=
-by { conv { to_lhs, congr, skip, rw ←parallel_pair_map_right f g }, rw s.w }
+by { conv_lhs { congr, skip, rw ←parallel_pair_map_right f g }, rw s.w }
+
+@[simp] lemma cocone_parallel_pair_left (s : cocone (parallel_pair f g)) :
+  f ≫ (s.ι).app one = (s.ι).app zero :=
+by { conv_lhs { congr, rw ←parallel_pair_map_left f g }, rw s.w }
+
+@[simp] lemma cocone_parallel_pair_right (s : cocone (parallel_pair f g)) :
+  g ≫ (s.ι).app one = (s.ι).app zero :=
+by { conv_lhs { congr, rw ←parallel_pair_map_right f g }, rw s.w }
 
 /-- To check whether two maps are equalized by both maps of a fork, it suffices to check it for the
     first map -/
 lemma cone_parallel_pair_ext (s : cone (parallel_pair f g)) {W : C} {k l : W ⟶ s.X}
-  (h : k ≫ s.π.app zero = l ≫ s.π.app zero) (j : walking_parallel_pair) :
-  k ≫ s.π.app j = l ≫ s.π.app j :=
-match j with
+  (h : k ≫ s.π.app zero = l ≫ s.π.app zero) : ∀ (j : walking_parallel_pair),
+    k ≫ s.π.app j = l ≫ s.π.app j
 | zero := h
 | one := by { rw [←cone_parallel_pair_left, ←category.assoc, ←category.assoc], congr, exact h }
-end
+
+/-- To check whether two maps are coequalized by both maps of a cofork, it suffices to check it for
+    the second map -/
+lemma cocone_parallel_pair_ext (s : cocone (parallel_pair f g)) {W : C} {k l : s.X ⟶ W}
+  (h : s.ι.app one ≫ k = s.ι.app one ≫ l) : ∀ (j : walking_parallel_pair),
+    s.ι.app j ≫ k = s.ι.app j ≫ l
+| zero := by { rw [←cocone_parallel_pair_right, category.assoc, category.assoc], congr, exact h }
+| one := h
 
 attribute [simp] walking_parallel_pair_hom_id
 
@@ -145,7 +170,7 @@ def fork.of_ι {P : C} (ι : P ⟶ X) (w : ι ≫ f = ι ≫ g) : fork f g :=
     begin
       cases X; cases Y; cases f; dsimp; simp,
       exact w
-    end }}
+    end } }
 def cofork.of_π {P : C} (π : Y ⟶ P) (w : f ≫ π = g ≫ π) : cofork f g :=
 { X := P,
   ι :=
@@ -154,12 +179,16 @@ def cofork.of_π {P : C} (π : Y ⟶ P) (w : f ≫ π = g ≫ π) : cofork f g :
     begin
       cases X; cases Y; cases f; dsimp; simp,
       exact eq.symm w
-    end }}
+    end } }
 
 @[simp] lemma fork.of_ι_app_zero {P : C} (ι : P ⟶ X) (w : ι ≫ f = ι ≫ g) :
   (fork.of_ι ι w).π.app zero = ι := rfl
 @[simp] lemma fork.of_ι_app_one {P : C} (ι : P ⟶ X) (w : ι ≫ f = ι ≫ g) :
   (fork.of_ι ι w).π.app one = ι ≫ f := rfl
+@[simp] lemma cofork.of_π_app_zero {P : C} (π : Y ⟶ P) (w : f ≫ π = g ≫ π) :
+  (cofork.of_π π w).ι.app zero = f ≫ π := rfl
+@[simp] lemma cofork.of_π_app_one {P : C} (π : Y ⟶ P) (w : f ≫ π = g ≫ π) :
+  (cofork.of_π π w).ι.app one = π := rfl
 
 def fork.ι (t : fork f g) := t.π.app zero
 def cofork.π (t : cofork f g) := t.ι.app one
@@ -175,15 +204,13 @@ end
 section
 local attribute [ext] cone
 
-/-- The fork induced by the ι map of some fork t is the same as t -/
+/-- The fork induced by the ι map of some fork `t` is the same as `t` -/
 lemma fork.eq_of_ι_ι (t : fork f g) : t = fork.of_ι (fork.ι t) (fork.condition t) :=
 begin
-  have h : t.π = (fork.of_ι (fork.ι t) (fork.condition t)).π :=
-  begin
-    ext j, cases j,
+  have h : t.π = (fork.of_ι (fork.ι t) (fork.condition t)).π,
+  { ext j, cases j,
     { refl },
-    { rw ←cone_parallel_pair_left, refl }
-  end,
+    { rw ←cone_parallel_pair_left, refl } },
   tidy
 end
 
@@ -196,17 +223,27 @@ def cone.of_fork
   { app := λ X, t.π.app X ≫ eq_to_hom (by tidy),
     naturality' := λ j j' g, by { cases j; cases j'; cases g; dsimp; simp } } }
 
+section
+local attribute [ext] cocone
+
+/-- The cofork induced by the π map of some fork `t` is the same as `t` -/
+lemma cofork.eq_of_π_π (t : cofork f g) : t = cofork.of_π (cofork.π t) (cofork.condition t) :=
+begin
+  have h : t.ι = (cofork.of_π (cofork.π t) (cofork.condition t)).ι,
+  { ext j, cases j,
+    { rw ←cocone_parallel_pair_left, refl },
+    { refl } },
+  tidy
+end
+
+end
+
 def cocone.of_cofork
   {F : walking_parallel_pair.{v} ⥤ C} (t : cofork (F.map left) (F.map right)) : cocone F :=
 { X := t.X,
   ι :=
   { app := λ X, eq_to_hom (by tidy) ≫ t.ι.app X,
-    naturality' := λ j j' g,
-    begin
-      cases j; cases j'; cases g; dsimp; simp,
-      { erw ← t.w left, refl },
-      { erw ← t.w right, refl }
-    end } }
+    naturality' := λ j j' g, by { cases j; cases j'; cases g; dsimp; simp } } }
 
 @[simp] lemma cone.of_fork_π
   {F : walking_parallel_pair.{v} ⥤ C} (t : fork (F.map left) (F.map right)) (j) :
@@ -241,16 +278,13 @@ abbreviation equalizer.ι : equalizer f g ⟶ X :=
 limit.π (parallel_pair f g) zero
 
 @[simp] lemma equalizer.ι.fork :
-  fork.ι (limits.limit.cone (parallel_pair f g)) = equalizer.ι f g := rfl
+  fork.ι (limit.cone (parallel_pair f g)) = equalizer.ι f g := rfl
 
 @[simp] lemma equalizer.ι.eq_app_zero :
   (limit.cone (parallel_pair f g)).π.app zero = equalizer.ι f g := rfl
 
 @[reassoc] lemma equalizer.condition : equalizer.ι f g ≫ f = equalizer.ι f g ≫ g :=
-begin
-  erw limit.w (parallel_pair f g) walking_parallel_pair_hom.left,
-  erw limit.w (parallel_pair f g) walking_parallel_pair_hom.right
-end
+fork.condition $ limit.cone $ parallel_pair f g
 
 abbreviation equalizer.lift {W : C} (k : W ⟶ X) (h : k ≫ f = k ≫ g) : W ⟶ equalizer f g :=
 limit.lift (parallel_pair f g) (fork.of_ι k h)
@@ -262,15 +296,17 @@ limit.lift (parallel_pair f g) (fork.of_ι k h)
 limit.hom_ext $ cone_parallel_pair_ext _ h
 
 /-- An equalizer morphism is a monomorphism -/
-lemma equalizer.ι_mono : mono (equalizer.ι f g) :=
+instance equalizer.ι_mono : mono (equalizer.ι f g) :=
 { right_cancellation := λ Z h k w, equalizer.hom_ext _ _ w }
+
 end
 
+section
 /-- The identity determines a cone on the equalizer diagram of f and f -/
 def cone_parallel_pair_self : cone (parallel_pair f f) :=
 { X := X,
   π :=
-  { app := λ j, match j with | zero := 𝟙 X | one := f end }}
+  { app := λ j, match j with | zero := 𝟙 X | one := f end } }
 
 @[simp] lemma cone_parallel_pair_self_π_app_zero : (cone_parallel_pair_self f).π.app zero = 𝟙 X :=
 rfl
@@ -292,17 +328,31 @@ def limit_cone_parallel_pair_self_is_iso (c : cone (parallel_pair f f)) (h : is_
   is_iso (c.π.app zero) :=
   let c' := cone_parallel_pair_self f,
     z : c ≅ c' := is_limit.unique_up_to_iso h (is_limit_cone_parallel_pair_self f) in
-  is_iso.of_iso (functor.map_iso cones.forget z)
+  is_iso.of_iso (functor.map_iso (cones.forget _) z)
+
+/-- The equalizer of (f, f) is an isomorphism -/
+def equalizer.ι_of_self [has_limit (parallel_pair f f)] : is_iso (equalizer.ι f f) :=
+limit_cone_parallel_pair_self_is_iso _ _ $ limit.is_limit _
+
+/-- Every equalizer of (f, g), where f = g, is an isomorphism -/
+def limit_cone_parallel_pair_self_is_iso' (c : cone (parallel_pair f g)) (h₀ : is_limit c)
+  (h₁ : f = g) : is_iso (c.π.app zero) :=
+begin
+  rw fork.eq_of_ι_ι c at *,
+  have h₂ : is_limit (fork.of_ι (c.π.app zero) rfl : fork f f), by convert h₀,
+  exact limit_cone_parallel_pair_self_is_iso f (fork.of_ι (c.π.app zero) rfl) h₂
+end
+
+/-- The equalizer of (f, g), where f = g, is an isomorphism -/
+def equalizer.ι_of_self' [has_limit (parallel_pair f g)] (h : f = g) : is_iso (equalizer.ι f g) :=
+limit_cone_parallel_pair_self_is_iso' _ _ _ (limit.is_limit _) h
 
 /-- An equalizer that is an epimorphism is an isomorphism -/
 def epi_limit_cone_parallel_pair_is_iso (c : cone (parallel_pair f g))
   (h : is_limit c) [epi (c.π.app zero)] : is_iso (c.π.app zero) :=
-begin
-  have t : f = g, from (cancel_epi (c.π.app zero)).1 (fork.condition c),
-  let h₁ := fork.eq_of_ι_ι c,
-  rw h₁ at h,
-  have h₂ : is_limit (fork.of_ι (c.π.app zero) rfl : fork f f), by convert h,
-  exact limit_cone_parallel_pair_self_is_iso f (fork.of_ι (c.π.app zero) rfl) h₂
+limit_cone_parallel_pair_self_is_iso' f g c h $
+  (cancel_epi (c.π.app zero)).1 (fork.condition c)
+
 end
 
 section
@@ -313,14 +363,91 @@ abbreviation coequalizer := colimit (parallel_pair f g)
 abbreviation coequalizer.π : Y ⟶ coequalizer f g :=
 colimit.ι (parallel_pair f g) one
 
+@[simp] lemma coequalizer.π.cofork :
+  cofork.π (colimit.cocone (parallel_pair f g)) = coequalizer.π f g := rfl
+
+@[simp] lemma coequalizer.π.eq_app_one :
+  (colimit.cocone (parallel_pair f g)).ι.app one = coequalizer.π f g := rfl
+
 @[reassoc] lemma coequalizer.condition : f ≫ coequalizer.π f g = g ≫ coequalizer.π f g :=
-begin
-  erw colimit.w (parallel_pair f g) walking_parallel_pair_hom.left,
-  erw colimit.w (parallel_pair f g) walking_parallel_pair_hom.right
-end
+cofork.condition $ colimit.cocone $ parallel_pair f g
 
 abbreviation coequalizer.desc {W : C} (k : Y ⟶ W) (h : f ≫ k = g ≫ k) : coequalizer f g ⟶ W :=
 colimit.desc (parallel_pair f g) (cofork.of_π k h)
+
+/-- Two maps from a coequalizer are equal if they are equal when composed with the coequalizer
+    map -/
+@[ext] lemma coequalizer.hom_ext {W : C} {k l : coequalizer f g ⟶ W}
+  (h : coequalizer.π f g ≫ k = coequalizer.π f g ≫ l) : k = l :=
+colimit.hom_ext $ cocone_parallel_pair_ext _ h
+
+/-- A coequalizer morphism is an epimorphism -/
+instance coequalizer.π_epi : epi (coequalizer.π f g) :=
+{ left_cancellation := λ Z h k w, coequalizer.hom_ext _ _ w }
+
+end
+
+section
+
+/-- The identity determines a cocone on the coequalizer diagram of f and f -/
+def cocone_parallel_pair_self : cocone (parallel_pair f f) :=
+{ X := Y,
+  ι :=
+  { app := λ j, match j with | zero := f | one := 𝟙 Y end,
+    naturality' := λ j j' g,
+    begin
+      cases g,
+      { refl },
+      { erw category.comp_id _ f },
+      { dsimp, simp }
+    end } }
+
+@[simp] lemma cocone_parallel_pair_self_ι_app_one : (cocone_parallel_pair_self f).ι.app one = 𝟙 Y :=
+rfl
+
+@[simp] lemma cocone_parallel_pair_self_X : (cocone_parallel_pair_self f).X  = Y := rfl
+
+/-- The identity on Y is a colimit of (f, f) -/
+def is_colimit_cocone_parallel_pair_self : is_colimit (cocone_parallel_pair_self f) :=
+{ desc := λ s, s.ι.app one,
+  fac' := λ s j,
+  match j with
+  | zero := by erw cocone_parallel_pair_right
+  | one := by erw category.id_comp
+  end,
+  uniq' := λ s m w, by { convert w one, erw category.id_comp } }
+
+/-- Every coequalizer of (f, f) is an isomorphism -/
+def colimit_cocone_parallel_pair_self_is_iso (c : cocone (parallel_pair f f)) (h : is_colimit c) :
+  is_iso (c.ι.app one) :=
+  let c' := cocone_parallel_pair_self f,
+    z : c' ≅ c := is_colimit.unique_up_to_iso (is_colimit_cocone_parallel_pair_self f) h in
+  is_iso.of_iso $ functor.map_iso (cocones.forget _) z
+
+/-- The coequalizer of (f, f) is an isomorphism -/
+def coequalizer.π_of_self [has_colimit (parallel_pair f f)] : is_iso (coequalizer.π f f) :=
+colimit_cocone_parallel_pair_self_is_iso _ _ $ colimit.is_colimit _
+
+/-- Every coequalizer of (f, g), where f = g, is an isomorphism -/
+def colimit_cocone_parallel_pair_self_is_iso' (c : cocone (parallel_pair f g)) (h₀ : is_colimit c)
+  (h₁ : f = g) : is_iso (c.ι.app one) :=
+begin
+  rw cofork.eq_of_π_π c at *,
+  have h₂ : is_colimit (cofork.of_π (c.ι.app one) rfl : cofork f f), by convert h₀,
+  exact colimit_cocone_parallel_pair_self_is_iso f (cofork.of_π (c.ι.app one) rfl) h₂
+end
+
+/-- The coequalizer of (f, g), where f = g, is an isomorphism -/
+def coequalizer.π_of_self' [has_colimit (parallel_pair f g)] (h : f = g) :
+  is_iso (coequalizer.π f g) :=
+colimit_cocone_parallel_pair_self_is_iso' _ _ _ (colimit.is_colimit _) h
+
+/-- A coequalizer that is a monomorphism is an isomorphism -/
+def mono_limit_cocone_parallel_pair_is_iso (c : cocone (parallel_pair f g))
+  (h : is_colimit c) [mono (c.ι.app one)] : is_iso (c.ι.app one) :=
+colimit_cocone_parallel_pair_self_is_iso' f g c h $
+  (cancel_mono (c.ι.app one)).1 (cofork.condition c)
+
 end
 
 variables (C)
@@ -334,5 +461,14 @@ class has_coequalizers :=
 (has_colimits_of_shape : has_colimits_of_shape.{v} walking_parallel_pair C)
 
 attribute [instance] has_equalizers.has_limits_of_shape has_coequalizers.has_colimits_of_shape
+
+/-- Equalizers are finite limits, so if `C` has all finite limits, it also has all equalizers -/
+def has_equalizers_of_has_finite_limits [has_finite_limits.{v} C] : has_equalizers.{v} C :=
+{ has_limits_of_shape := infer_instance }
+
+/-- Coequalizers are finite colimits, of if `C` has all finite colimits, it also has all
+    coequalizers -/
+def has_coequalizers_of_has_finite_colimits [has_finite_colimits.{v} C] : has_coequalizers.{v} C :=
+{ has_colimits_of_shape := infer_instance }
 
 end category_theory.limits

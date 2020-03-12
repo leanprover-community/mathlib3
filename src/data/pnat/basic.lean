@@ -98,7 +98,7 @@ instance : add_right_cancel_semigroup ℕ+ :=
 
 @[simp] theorem ne_zero (n : ℕ+) : (n : ℕ) ≠ 0 := ne_of_gt n.2
 
-@[simp] theorem to_pnat'_coe {n : ℕ} : 0 < n → (n.to_pnat' : ℕ) = n := succ_pred_eq_of_pos
+theorem to_pnat'_coe {n : ℕ} : 0 < n → (n.to_pnat' : ℕ) = n := succ_pred_eq_of_pos
 
 @[simp] theorem coe_to_pnat' (n : ℕ+) : (n : ℕ).to_pnat' = n := eq (to_pnat'_coe n.pos)
 
@@ -110,7 +110,39 @@ instance : comm_monoid ℕ+ :=
   mul_one   := λ a, subtype.eq (mul_one _),
   mul_comm  := λ a b, subtype.eq (mul_comm _ _) }
 
+theorem lt_add_one_iff : ∀ {a b : ℕ+}, a < b + 1 ↔ a ≤ b :=
+λ a b, nat.lt_add_one_iff
+
+theorem add_one_le_iff : ∀ {a b : ℕ+}, a + 1 ≤ b ↔ a < b :=
+λ a b, nat.add_one_le_iff
+
+@[simp] lemma one_le (n : ℕ+) : (1 : ℕ+) ≤ n := n.2
+
+instance : lattice.order_bot ℕ+ :=
+{ bot := 1,
+  bot_le := λ a, a.property,
+  ..(by apply_instance : partial_order ℕ+) }
+
+@[simp] lemma bot_eq_zero : (⊥ : ℕ+) = 1 := rfl
+
 instance : inhabited ℕ+ := ⟨1⟩
+
+-- Some lemmas that rewrite `pnat.mk n h`, for `n` an explicit numeral, into explicit numerals.
+@[simp] lemma mk_one {h} : (⟨1, h⟩ : ℕ+) = (1 : ℕ+) := rfl
+@[simp] lemma mk_bit0 (n) {h} : (⟨bit0 n, h⟩ : ℕ+) = (bit0 ⟨n, pos_of_bit0_pos h⟩ : ℕ+) := rfl
+@[simp] lemma mk_bit1 (n) {h} {k} : (⟨bit1 n, h⟩ : ℕ+) = (bit1 ⟨n, k⟩ : ℕ+) := rfl
+
+-- Some lemmas that rewrite inequalities between explicit numerals in `pnat`
+-- into the corresponding inequalities in `nat`.
+-- TODO: perhaps this should not be attempted by `simp`,
+-- and instead we should expect `norm_num` to take care of these directly?
+-- TODO: these lemmas are perhaps incomplete:
+-- * 1 is not represented as a bit0 or bit1
+-- * strict inequalities?
+@[simp] lemma bit0_le_bit0 (n m : ℕ+) : (bit0 n) ≤ (bit0 m) ↔ (bit0 (n : ℕ)) ≤ (bit0 (m : ℕ)) := iff.refl _
+@[simp] lemma bit0_le_bit1 (n m : ℕ+) : (bit0 n) ≤ (bit1 m) ↔ (bit0 (n : ℕ)) ≤ (bit1 (m : ℕ)) := iff.refl _
+@[simp] lemma bit1_le_bit0 (n m : ℕ+) : (bit1 n) ≤ (bit0 m) ↔ (bit1 (n : ℕ)) ≤ (bit0 (m : ℕ)) := iff.refl _
+@[simp] lemma bit1_le_bit1 (n m : ℕ+) : (bit1 n) ≤ (bit1 m) ↔ (bit1 (n : ℕ)) ≤ (bit1 (m : ℕ)) := iff.refl _
 
 @[simp] theorem one_coe : ((1 : ℕ+) : ℕ) = 1 := rfl
 @[simp] theorem mul_coe (m n : ℕ+) : ((m * n : ℕ+) : ℕ) = m * n := rfl

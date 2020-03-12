@@ -55,7 +55,8 @@ theorem xgcd_aux_P {r r'} : ∀ {s t s' t'}, P (r, s, t) → P (r', s', t') → 
 gcd.induction r r' (by simp) $ λ x y h IH s t s' t' p p', begin
   rw [xgcd_aux_rec h], refine IH _ p, dsimp [P] at *,
   rw [int.mod_def], generalize : (y / x : ℤ) = k,
-  rw [p, p'], simp [mul_add, mul_comm, mul_left_comm]
+  rw [p, p'],
+  simp [mul_add, mul_comm, mul_left_comm, add_comm, add_left_comm, sub_eq_neg_add]
 end
 
 theorem gcd_eq_gcd_ab : (gcd a b : ℤ) = a * gcd_a a b + b * gcd_b a b :=
@@ -70,8 +71,7 @@ namespace int
 theorem nat_abs_div (a b : ℤ) (H : b ∣ a) : nat_abs (a / b) = (nat_abs a) / (nat_abs b) :=
 begin
   cases (nat.eq_zero_or_pos (nat_abs b)),
-  rw eq_zero_of_nat_abs_eq_zero h,
-  simp,
+  {rw eq_zero_of_nat_abs_eq_zero h, simp [int.div_zero]},
   calc
   nat_abs (a / b) = nat_abs (a / b) * 1 : by rw mul_one
     ... = nat_abs (a / b) * (nat_abs b / nat_abs b) : by rw nat.div_self h

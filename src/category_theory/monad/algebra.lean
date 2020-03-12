@@ -42,7 +42,7 @@ restate_axiom algebra.assoc'
 namespace algebra
 variables {T : C ⥤ C} [monad.{v₁} T]
 
-/-- A morphism of Eilenberg-Moore algebras for the monad `T`. -/
+/-- A morphism of Eilenberg–Moore algebras for the monad `T`. -/
 @[ext] structure hom (A B : algebra T) :=
 (f : A.A ⟶ B.A)
 (h' : T.map f ≫ B.a = A.a ≫ f . obviously)

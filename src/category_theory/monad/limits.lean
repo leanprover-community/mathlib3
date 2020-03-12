@@ -24,13 +24,13 @@ include 𝒥
 namespace forget_creates_limits
 variables (D : J ⥤ algebra T) [has_limit.{v₁} (D ⋙ forget T)]
 
-@[simps] def γ : (D ⋙ forget T ⋙ T) ⟶ (D ⋙ forget T) := { app := λ j, (D.obj j).a }
+@[simps, nolint doc_blame] def γ : (D ⋙ forget T ⋙ T) ⟶ (D ⋙ forget T) := { app := λ j, (D.obj j).a }
 
-@[simps] def c : cone (D ⋙ forget T) :=
+@[simps, nolint doc_blame] def c : cone (D ⋙ forget T) :=
 { X := T.obj (limit (D ⋙ forget T)),
   π := (functor.const_comp _ _ T).inv ≫ whisker_right (limit.cone (D ⋙ forget T)).π T ≫ (γ D) }
 
-@[simps] def cone_point (D : J ⥤ algebra T) [has_limit.{v₁} (D ⋙ forget T)] : algebra T :=
+@[simps, nolint doc_blame] def cone_point (D : J ⥤ algebra T) [has_limit.{v₁} (D ⋙ forget T)] : algebra T :=
 { A := limit (D ⋙ forget T),
   a := limit.lift _ (c D),
   unit' :=
@@ -62,6 +62,7 @@ variables (D : J ⥤ algebra T) [has_limit.{v₁} (D ⋙ forget T)]
 end forget_creates_limits
 
 -- Theorem 5.6.5 from [Riehl][riehl2017]
+/-- The forgetful functor from the Eilenberg-Moore category creates limits. -/
 def forget_creates_limits (D : J ⥤ algebra T) [has_limit (D ⋙ forget T)] : has_limit D :=
 { cone :=
   { X := forget_creates_limits.cone_point D,
@@ -82,70 +83,67 @@ def forget_creates_limits (D : J ⥤ algebra T) [has_limit (D ⋙ forget T)] : h
       end },
     uniq' := λ s m w, by { ext1, ext1, simpa using congr_arg algebra.hom.f (w j) } } }
 
-@[simps] def γ (D : J ⥤ algebra T) [has_colimit.{v₁} (D ⋙ forget T)] :
-  ((D ⋙ forget T) ⋙ T) ⟶ (D ⋙ forget T) := { app := λ j, (D.obj j).a }
+namespace forget_creates_colimits
+
+variables (D : J ⥤ algebra T) [has_colimit.{v₁} (D ⋙ forget T)]
+
+@[simps] def γ : ((D ⋙ forget T) ⋙ T) ⟶ (D ⋙ forget T) := { app := λ j, (D.obj j).a }
 
 @[simps]
-def c (D : J ⥤ algebra T) [has_colimit.{v₁} (D ⋙ forget T)] : cocone ((D ⋙ forget T) ⋙ T) :=
+def c : cocone ((D ⋙ forget T) ⋙ T) :=
 { X := colimit (D ⋙ forget T),
   ι := γ D ≫ (colimit.cocone (D ⋙ forget T)).ι }
 
-@[reducible]
-def lambda [preserves_colimits_of_shape J T] (D : J ⥤ algebra T) [has_colimit.{v₁} (D ⋙ forget T)] :=
+variable [preserves_colimits_of_shape J T]
+
+@[reducible, nolint doc_blame]
+def lambda :=
 (preserves_colimit.preserves T (colimit.is_colimit (D ⋙ forget T))).desc (c D)
 
-lemma commuting
-  [preserves_colimits_of_shape J T] (D : J ⥤ algebra T) [has_colimit.{v₁} (D ⋙ forget T)] (j : J) :
+@[nolint doc_blame]
+lemma commuting (j : J) :
 T.map (colimit.ι (D ⋙ forget T) j) ≫ lambda D = (D.obj j).a ≫ colimit.ι (D ⋙ forget T) j :=
 is_colimit.fac (preserves_colimit.preserves T (colimit.is_colimit (D ⋙ forget T))) (c D) j
 
-@[simps] def cocone_point
-  [preserves_colimits_of_shape J T] (D : J ⥤ algebra T) [has_colimit.{v₁} (D ⋙ forget T)] :
+@[simps, nolint doc_blame] def cocone_point :
 algebra T :=
 { A := colimit (D ⋙ forget T),
   a := lambda D,
   unit' :=
   begin
     ext1,
-    rw comp_id,
-    rw ← category.assoc,
-    erw nat_trans.naturality' (η_ T),
-    rw category.assoc,
-    erw commuting,
-    erw ← category.assoc,
-    erw algebra.unit,
-    apply id_comp
+    erw [comp_id, ← category.assoc, (η_ T).naturality, category.assoc, commuting, ← category.assoc],
+    erw algebra.unit, apply id_comp
   end,
   assoc' :=
   begin
     apply is_colimit.hom_ext (preserves_colimit.preserves T (preserves_colimit.preserves T (colimit.is_colimit (D ⋙ forget T)))),
     intro j,
+    erw [← category.assoc, nat_trans.naturality (μ_ T), ← functor.map_cocone_ι, category.assoc,
+         is_colimit.fac _ (c D) j],
     rw ← category.assoc,
-    erw nat_trans.naturality (μ_ T),
-    rw ← functor.map_cocone_ι,
-    erw category.assoc,
-    rw is_colimit.fac _ (c D) j,
-    rw ← category.assoc,
-    erw ← functor.map_comp,
-    rw is_colimit.fac _ (c D) j,
-    rw ← functor.map_cocone_ι,
+    erw [← functor.map_comp, commuting],
     dsimp,
-    rw ← category.assoc, rw algebra.assoc, rw category.assoc,
-    rw functor.map_comp,
-    rw category.assoc,
-    erw is_colimit.fac (preserves_colimit.preserves T (colimit.is_colimit (D ⋙ forget T))) (c D) j,
-    refl
+    erw [← category.assoc, algebra.assoc, category.assoc, functor.map_comp, category.assoc, commuting]
   end
 }
 
+end forget_creates_colimits
+
+-- TODO: the converse of this is true as well
+-- TODO: generalise to monadic functors, as for creating limits
+/--
+The forgetful functor from the Eilenberg-Moore category for a monad creates any colimit
+which the monad itself preserves.
+-/
 def forget_creates_colimits_of_monad_preserves
   [preserves_colimits_of_shape J T] (D : J ⥤ algebra T) [has_colimit (D ⋙ forget T)] :
 has_colimit D :=
 { cocone :=
-  { X := cocone_point D,
+  { X := forget_creates_colimits.cocone_point D,
     ι :=
     { app := λ j, { f := colimit.ι (D ⋙ forget T) j,
-                    h' := commuting _ _ },
+                    h' := forget_creates_colimits.commuting _ _ },
       naturality' := λ A B f, by { ext1, dsimp, erw [comp_id, colimit.w (D ⋙ forget T)] } } },
   is_colimit :=
   { desc := λ s,
@@ -157,7 +155,7 @@ has_colimit D :=
         intro j,
         rw ← category.assoc, erw ← functor.map_comp,
         erw colimit.ι_desc,
-        rw ← category.assoc, erw commuting,
+        rw ← category.assoc, erw forget_creates_colimits.commuting,
         rw category.assoc, rw colimit.ι_desc,
         apply algebra.hom.h
       end },
@@ -183,6 +181,7 @@ instance comp_comparison_has_limit
   has_limit (F ⋙ monad.comparison R) :=
 monad.forget_creates_limits (F ⋙ monad.comparison R)
 
+/-- Any monadic functor creates limits. -/
 def monadic_creates_limits (F : J ⥤ D) (R : D ⥤ C) [monadic_right_adjoint R] [has_limit.{v₁} (F ⋙ R)] :
   has_limit F :=
 adjunction.has_limit_of_comp_equivalence _ (monad.comparison R)

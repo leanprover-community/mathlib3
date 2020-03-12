@@ -57,6 +57,11 @@ def map_pair {W X Y Z : C} (f : W ⟶ Y) (g : X ⟶ Z) : pair W X ⟶ pair Y Z :
 @[simp] lemma map_pair_left {W X Y Z : C} (f : W ⟶ Y) (g : X ⟶ Z) : (map_pair f g).app walking_pair.left = f := rfl
 @[simp] lemma map_pair_right {W X Y Z : C} (f : W ⟶ Y) (g : X ⟶ Z) : (map_pair f g).app walking_pair.right = g := rfl
 
+/-- Every functor indexing a (co)product is naturally isomorphic (actually, equal) to a `pair` -/
+def pair_of_diagram {F : discrete walking_pair ⥤ C} :
+  F ≅ pair (F.obj walking_pair.left) (F.obj walking_pair.right) :=
+nat_iso.of_components (λ j, eq_to_iso $ by cases j; refl) $ by tidy
+
 abbreviation binary_fan (X Y : C) := cone (pair X Y)
 abbreviation binary_cofan (X Y : C) := cocone (pair X Y)
 
@@ -120,6 +125,16 @@ instance [has_finite_products.{v} C] : has_binary_products.{v} C :=
 @[priority 100] -- see Note [lower instance priority]
 instance [has_finite_coproducts.{v} C] : has_binary_coproducts.{v} C :=
 { has_colimits_of_shape := by apply_instance }
+
+/-- If `C` has all limits of diagrams `pair X Y`, then it has all binary products -/
+def has_binary_products_of_has_limit_pair [Π {X Y : C}, has_limit (pair X Y)] :
+  has_binary_products.{v} C :=
+{ has_limits_of_shape := { has_limit := λ F, has_limit_of_iso pair_of_diagram.symm } }
+
+/-- If `C` has all colimits of diagrams `pair X Y`, then it has all binary coproducts -/
+def has_binary_coproducts_of_has_colimit_pair [Π {X Y : C}, has_colimit (pair X Y)] :
+  has_binary_coproducts.{v} C :=
+{ has_colimits_of_shape := { has_colimit := λ F, has_colimit_of_iso pair_of_diagram } }
 
 section
 

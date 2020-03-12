@@ -52,7 +52,7 @@ attribute [simp] hom.h
 
 namespace hom
 
-/-- The identity algebra homomorphism. -/
+/-- The identity homomorphism for an Eilenberg–Moore algebra. -/
 @[simps] def id (A : algebra T) : hom A A :=
 { f := 𝟙 A.A }
 

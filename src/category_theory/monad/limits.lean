@@ -62,7 +62,7 @@ variables (D : J ⥤ algebra T) [has_limit.{v₁} (D ⋙ forget T)]
 end forget_creates_limits
 
 -- Theorem 5.6.5 from [Riehl][riehl2017]
-def forget_creates_limits (D : J ⥤ algebra T) [has_limit.{v₁} (D ⋙ forget T)] : has_limit D :=
+def forget_creates_limits (D : J ⥤ algebra T) [has_limit (D ⋙ forget T)] : has_limit D :=
 { cone :=
   { X := forget_creates_limits.cone_point D,
     π :=
@@ -81,6 +81,89 @@ def forget_creates_limits (D : J ⥤ algebra T) [has_limit.{v₁} (D ⋙ forget 
         simp only [limit.lift_π, monad.forget_map, algebra.hom.h, functor.map_cone_π],
       end },
     uniq' := λ s m w, by { ext1, ext1, simpa using congr_arg algebra.hom.f (w j) } } }
+
+@[simps] def γ (D : J ⥤ algebra T) [has_colimit.{v₁} (D ⋙ forget T)] :
+  ((D ⋙ forget T) ⋙ T) ⟶ (D ⋙ forget T) := { app := λ j, (D.obj j).a }
+
+@[simps]
+def c (D : J ⥤ algebra T) [has_colimit.{v₁} (D ⋙ forget T)] : cocone ((D ⋙ forget T) ⋙ T) :=
+{ X := colimit (D ⋙ forget T),
+  ι := γ D ≫ (colimit.cocone (D ⋙ forget T)).ι }
+
+@[reducible]
+def lambda [preserves_colimits_of_shape J T] (D : J ⥤ algebra T) [has_colimit.{v₁} (D ⋙ forget T)] :=
+(preserves_colimit.preserves T (colimit.is_colimit (D ⋙ forget T))).desc (c D)
+
+lemma commuting
+  [preserves_colimits_of_shape J T] (D : J ⥤ algebra T) [has_colimit.{v₁} (D ⋙ forget T)] (j : J) :
+T.map (colimit.ι (D ⋙ forget T) j) ≫ lambda D = (D.obj j).a ≫ colimit.ι (D ⋙ forget T) j :=
+is_colimit.fac (preserves_colimit.preserves T (colimit.is_colimit (D ⋙ forget T))) (c D) j
+
+@[simps] def cocone_point
+  [preserves_colimits_of_shape J T] (D : J ⥤ algebra T) [has_colimit.{v₁} (D ⋙ forget T)] :
+algebra T :=
+{ A := colimit (D ⋙ forget T),
+  a := lambda D,
+  unit' :=
+  begin
+    ext1,
+    rw comp_id,
+    rw ← category.assoc,
+    erw nat_trans.naturality' (η_ T),
+    rw category.assoc,
+    erw commuting,
+    erw ← category.assoc,
+    erw algebra.unit,
+    apply id_comp
+  end,
+  assoc' :=
+  begin
+    apply is_colimit.hom_ext (preserves_colimit.preserves T (preserves_colimit.preserves T (colimit.is_colimit (D ⋙ forget T)))),
+    intro j,
+    rw ← category.assoc,
+    erw nat_trans.naturality (μ_ T),
+    rw ← functor.map_cocone_ι,
+    erw category.assoc,
+    rw is_colimit.fac _ (c D) j,
+    rw ← category.assoc,
+    erw ← functor.map_comp,
+    rw is_colimit.fac _ (c D) j,
+    rw ← functor.map_cocone_ι,
+    dsimp,
+    rw ← category.assoc, rw algebra.assoc, rw category.assoc,
+    rw functor.map_comp,
+    rw category.assoc,
+    erw is_colimit.fac (preserves_colimit.preserves T (colimit.is_colimit (D ⋙ forget T))) (c D) j,
+    refl
+  end
+}
+
+def forget_creates_colimits_of_monad_preserves
+  [preserves_colimits_of_shape J T] (D : J ⥤ algebra T) [has_colimit (D ⋙ forget T)] :
+has_colimit D :=
+{ cocone :=
+  { X := cocone_point D,
+    ι :=
+    { app := λ j, { f := colimit.ι (D ⋙ forget T) j,
+                    h' := commuting _ _ },
+      naturality' := λ A B f, by { ext1, dsimp, erw [comp_id, colimit.w (D ⋙ forget T)] } } },
+  is_colimit :=
+  { desc := λ s,
+    { f := colimit.desc _ ((forget T).map_cocone s),
+      h' :=
+      begin
+        dsimp,
+        apply is_colimit.hom_ext (preserves_colimit.preserves T (colimit.is_colimit (D ⋙ forget T))),
+        intro j,
+        rw ← category.assoc, erw ← functor.map_comp,
+        erw colimit.ι_desc,
+        rw ← category.assoc, erw commuting,
+        rw category.assoc, rw colimit.ι_desc,
+        apply algebra.hom.h
+      end },
+    uniq' := λ s m J, by { ext1, ext1, simpa using congr_arg algebra.hom.f (J j) }
+  }
+}
 
 end monad
 

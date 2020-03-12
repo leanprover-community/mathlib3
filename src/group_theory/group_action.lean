@@ -193,6 +193,9 @@ class distrib_mul_action (α : Type u) (β : Type v) [monoid α] [add_monoid β]
 (smul_zero {} : ∀(r : α), r • (0 : β) = 0)
 end prio
 
+-- FIXME: this now times out:
+-- example {M : Type*} [add_comm_group M] : has_scalar ℤ M := infer_instance
+
 section
 variables [monoid α] [add_monoid β] [distrib_mul_action α β]
 

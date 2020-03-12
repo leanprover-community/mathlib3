@@ -23,9 +23,11 @@ instance : full (forget₂ (Module ℤ) AddCommGroup) :=
     add := λ x y, add_monoid_hom.map_add f x y,
     smul := λ n x, add_monoid_hom.map_int_module_smul f n x, } }
 
+local attribute [instance] add_comm_group.int_module
+
 instance : ess_surj (forget₂ (Module ℤ) AddCommGroup) :=
 { obj_preimage := λ A, Module.of ℤ A,
-  iso' := by tidy }
+  iso' := λ A, { hom := 𝟙 _, inv := 𝟙 _, } }
 
 instance : is_equivalence (forget₂ (Module ℤ) AddCommGroup) :=
 equivalence_of_fully_faithfully_ess_surj (forget₂ (Module ℤ) AddCommGroup)

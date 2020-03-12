@@ -438,7 +438,10 @@ open add_monoid
 
 variables {M : Type*} [add_comm_monoid M]
 
-instance : semimodule ℕ M :=
+/-- The natural ℕ-semimodule structure on any `add_comm_monoid`. -/
+-- We don't make this a global instance, as it results in too many instances,
+-- and confusing ambiguity in the notation `n • x` when `n : ℕ`.
+def nat_semimodule : semimodule ℕ M :=
 { smul := smul,
   smul_add := λ _ _ _, smul_add _ _ _,
   add_smul := λ _ _ _, add_smul _ _ _,
@@ -453,7 +456,10 @@ namespace add_comm_group
 
 variables {M : Type*} [add_comm_group M]
 
-instance : module ℤ M :=
+/-- The natural ℤ-module structure on any `add_comm_group`. -/
+-- We don't make this a global instance, as it results in too many instances,
+-- and confusing ambiguity in the notation `n • x` when `n : ℤ`.
+def int_module : module ℤ M :=
 { smul := gsmul,
   smul_add := λ _ _ _, gsmul_add _ _ _,
   add_smul := λ _ _ _, add_gsmul _ _ _,
@@ -464,15 +470,8 @@ instance : module ℤ M :=
 
 end add_comm_group
 
-lemma gsmul_eq_smul {M : Type*} [add_comm_group M] (n : ℤ) (x : M) : gsmul n x = n • x := rfl
-
-def is_add_group_hom.to_linear_map [add_comm_group α] [add_comm_group β]
-  (f : α → β) [is_add_group_hom f] : α →ₗ[ℤ] β :=
-{ to_fun := f,
-  add := is_add_hom.map_add f,
-  smul := λ i x, int.induction_on i (by rw [zero_smul, zero_smul, is_add_group_hom.map_zero f])
-    (λ i ih, by rw [add_smul, add_smul, is_add_hom.map_add f, ih, one_smul, one_smul])
-    (λ i ih, by rw [sub_smul, sub_smul, is_add_group_hom.map_sub f, ih, one_smul, one_smul]) }
+section
+local attribute [instance] add_comm_monoid.nat_semimodule
 
 lemma module.smul_eq_smul {R : Type*} [ring R] {β : Type*} [add_comm_group β] [module R β]
   (n : ℕ) (b : β) : n • b = (n : R) • b :=
@@ -486,6 +485,25 @@ end
 lemma module.add_monoid_smul_eq_smul {R : Type*} [ring R] {β : Type*} [add_comm_group β] [module R β]
   (n : ℕ) (b : β) : add_monoid.smul n b = (n : R) • b :=
 module.smul_eq_smul n b
+
+lemma nat.smul_def {M : Type*} [add_comm_monoid M] (n : ℕ) (x : M) :
+  n • x = add_monoid.smul n x :=
+rfl
+
+end
+
+section
+local attribute [instance] add_comm_group.int_module
+
+lemma gsmul_eq_smul {M : Type*} [add_comm_group M] (n : ℤ) (x : M) : gsmul n x = n • x := rfl
+
+def is_add_group_hom.to_linear_map [add_comm_group α] [add_comm_group β]
+  (f : α → β) [is_add_group_hom f] : α →ₗ[ℤ] β :=
+{ to_fun := f,
+  add := is_add_hom.map_add f,
+  smul := λ i x, int.induction_on i (by rw [zero_smul, zero_smul, is_add_group_hom.map_zero f])
+    (λ i ih, by rw [add_smul, add_smul, is_add_hom.map_add f, ih, one_smul, one_smul])
+    (λ i ih, by rw [sub_smul, sub_smul, is_add_group_hom.map_sub f, ih, one_smul, one_smul]) }
 
 lemma module.gsmul_eq_smul_cast {R : Type*} [ring R] {β : Type*} [add_comm_group β] [module R β]
   (n : ℤ) (b : β) : gsmul n b = (n : R) • b :=
@@ -506,6 +524,10 @@ begin
   simp,
 end
 
+end
+
+-- We prove this without using the `add_comm_group.int_module` instance, so the `•`s here
+-- come from whatever the local `module ℤ` structure actually is.
 lemma add_monoid_hom.map_int_module_smul
   {α : Type*} {β : Type*} [add_comm_group α] [add_comm_group β]
   [module ℤ α] [module ℤ β] (f : α →+ β) (x : ℤ) (a : α) : f (x • a) = x • f a :=
@@ -524,9 +546,7 @@ begin
   rw add_monoid_hom.map_gsmul,
 end
 
-lemma nat.smul_def {M : Type*} [add_comm_monoid M] (n : ℕ) (x : M) :
-  n • x = add_monoid.smul n x :=
-rfl
+
 
 namespace finset
 
@@ -538,10 +558,11 @@ by rw [finset.sum_const, ← module.smul_eq_smul]; refl
 variables {M : Type*} [decidable_linear_ordered_cancel_comm_monoid M]
   {s : finset α} (f : α → M)
 
+local attribute [instance] add_comm_monoid.nat_semimodule
+
 theorem exists_card_smul_le_sum (hs : s.nonempty) :
   ∃ i ∈ s, s.card • f i ≤ s.sum f :=
 exists_le_of_sum_le hs $ by rw [sum_const, ← nat.smul_def, smul_sum]
-
 
 theorem exists_card_smul_ge_sum (hs : s.nonempty) :
   ∃ i ∈ s, s.sum f ≤ s.card • f i :=

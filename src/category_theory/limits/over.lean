@@ -182,7 +182,7 @@ instance over_has_prods_of_pullback [has_pullbacks.{v} C] (B : C) :
   has_binary_products.{v} (over B) :=
 {has_limits_of_shape := {has_limit := λ F, over_product_of_pullbacks B F}}
 
--- A collection of lemmas to decompose products in the over category
+/-! A collection of lemmas to decompose products in the over category -/
 lemma over_prod_is_pullback [has_pullbacks.{v} C] {B : C} (F : discrete walking_pair ⥤ over B) :
   limits.limit F = @over.mk _ _ B (pullback (F.obj walking_pair.left).hom (F.obj walking_pair.right).hom) (pullback.fst ≫ (F.obj walking_pair.left).hom) := rfl
 

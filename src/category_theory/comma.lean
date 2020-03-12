@@ -247,26 +247,22 @@ def iterated_slice_backward : over f.left ⥤ over f :=
                               (over.over_morphism.ext (over.w α)) }
 
 /-- Given f : Y ⟶ X, we have an equivalence between (T/X)/f and T/Y -/
+@[simps]
 def iterated_slice_equiv : over f ≌ over f.left :=
-equivalence.mk (iterated_slice_forward f) (iterated_slice_backward f)
-(nat_iso.of_components
-  (λ g, ⟨over.hom_mk (over.hom_mk (𝟙 g.left.left)) (by apply_auto_param),
-         over.hom_mk (over.hom_mk (𝟙 g.left.left)) (by apply_auto_param),
-         by { ext, dsimp, simp }, by { ext, dsimp, simp }⟩) (λ X Y g, by { ext, dsimp, simp }))
-(nat_iso.of_components
-  (λ g, ⟨over.hom_mk (𝟙 g.left) (by apply_auto_param),
-         over.hom_mk (𝟙 g.left) (by apply_auto_param),
-         by { ext, dsimp, simp }, by { ext, dsimp, simp }⟩) (λ X Y g, by { ext, dsimp, simp }))
-
-@[simp]
-lemma iterated_slice_equiv_functor :
-  (iterated_slice_equiv f).functor = iterated_slice_forward f :=
-rfl
-
-@[simp]
-lemma iterated_slice_equiv_inverse :
-  (iterated_slice_equiv f).inverse = iterated_slice_backward f :=
-rfl
+{ functor := iterated_slice_forward f,
+  inverse := iterated_slice_backward f,
+  unit_iso :=
+    nat_iso.of_components
+    (λ g, ⟨over.hom_mk (over.hom_mk (𝟙 g.left.left)) (by apply_auto_param),
+           over.hom_mk (over.hom_mk (𝟙 g.left.left)) (by apply_auto_param),
+           by { ext, dsimp, simp }, by { ext, dsimp, simp }⟩)
+    (λ X Y g, by { ext, dsimp, simp }),
+  counit_iso :=
+    nat_iso.of_components
+    (λ g, ⟨over.hom_mk (𝟙 g.left) (by apply_auto_param),
+          over.hom_mk (𝟙 g.left) (by apply_auto_param),
+          by { ext, dsimp, simp }, by { ext, dsimp, simp }⟩)
+    (λ X Y g, by { ext, dsimp, simp }) }
 
 lemma iterated_slice_forward_forget :
   iterated_slice_forward f ⋙ forget = forget ⋙ forget :=

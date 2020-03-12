@@ -220,6 +220,8 @@ variables {D : Type u₂} [𝒟 : category.{v₂} D]
 include 𝒟
 variables {F G : C ⥤ D}
 
+/-- The natural isomorphism between opposite functors `G.op ≅ F.op` induced by a natural
+isomorphism between the original functors `F ≅ G`. -/
 protected definition op (α : F ≅ G) : G.op ≅ F.op :=
 { hom := nat_trans.op α.hom,
   inv := nat_trans.op α.inv,
@@ -229,6 +231,8 @@ protected definition op (α : F ≅ G) : G.op ≅ F.op :=
 @[simp] lemma op_hom (α : F ≅ G) : (nat_iso.op α).hom = nat_trans.op α.hom := rfl
 @[simp] lemma op_inv (α : F ≅ G) : (nat_iso.op α).inv = nat_trans.op α.inv := rfl
 
+/-- The natural isomorphism between functors `G ≅ F` induced by a natural isomorphism
+between the opposite functors `F.op ≅ G.op`. -/
 protected definition unop (α : F.op ≅ G.op) : G ≅ F :=
 { hom := nat_trans.unop α.hom,
   inv := nat_trans.unop α.inv,

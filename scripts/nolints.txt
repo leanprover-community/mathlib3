@@ -760,7 +760,7 @@ apply_nolint category_theory.limits.types.colimit doc_blame
 apply_nolint category_theory.limits.types.colimit_is_colimit doc_blame
 apply_nolint category_theory.limits.types.limit doc_blame
 apply_nolint category_theory.limits.types.limit_is_limit doc_blame
-apply_nolint category_theory.limits.types.types_colimit_pre unused_arguments
+apply_nolint category_theory.limits.types.image has_inhabited_instance
 
 -- category_theory/monad/adjunction.lean
 apply_nolint category_theory.monad.comparison doc_blame

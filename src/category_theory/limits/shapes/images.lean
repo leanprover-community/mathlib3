@@ -169,11 +169,15 @@ begin
   simp,
 end
 
+section
+variables (C)
+
 /-- `has_images` represents a choice of image for every morphism -/
 class has_images :=
 (has_image : Π {X Y : C} (f : X ⟶ Y), has_image.{v} f)
 
 attribute [instance] has_images.has_image
+end
 
 variable (f)
 /-- The image of a monomorphism is isomorphic to the source. -/
@@ -192,7 +196,8 @@ end
 
 -- This is the proof from https://en.wikipedia.org/wiki/Image_(category_theory), which is taken from:
 -- Mitchell, Barry (1965), Theory of categories, MR 0202787, p.12, Proposition 10.1
-instance [has_equalizers.{v} C] : epi (factor_thru_image f) :=
+instance [Π {Z : C} (g h : image f ⟶ Z), has_limit.{v} (parallel_pair g h)] :
+  epi (factor_thru_image f) :=
 ⟨λ Z g h w,
 begin
   let q := equalizer.ι g h,

@@ -91,6 +91,43 @@ induced_category.has_forget₂ (λ G : CommGroup, CommMon.of G)
 
 end CommGroup
 
+namespace AddCommGroup
+
+/-- Any element of an additive commutative group gives a unique morphism from `ℤ` sending
+`1` to that element. -/
+-- TODO allow other universe levels
+-- this will require writing a `ulift_instances.lean` file
+def as_hom {G : AddCommGroup.{0}} (g : G) : (AddCommGroup.of ℤ) ⟶ G :=
+{ to_fun := λ i : ℤ, i • g,
+  map_zero' := rfl,
+  map_add' := λ a b, gpow_add g a b }
+
+@[ext]
+lemma int_hom_ext
+  {G : AddCommGroup.{0}} (f g : (AddCommGroup.of ℤ) ⟶ G) (w : f (1 : ℤ) = g (1 : ℤ)) : f = g :=
+begin
+  ext,
+  change ℤ at x,
+  rw ←gsmul_int_one x,
+  rw [add_monoid_hom.map_gsmul, add_monoid_hom.map_gsmul, w],
+end
+
+lemma injective_of_mono {G H : AddCommGroup.{0}} (f : G ⟶ H) [mono f] : function.injective f :=
+λ g₁ g₂ h,
+begin
+  have t0 : as_hom g₁ ≫ f = as_hom g₂ ≫ f :=
+  begin
+    ext,
+    dsimp [as_hom],
+    simpa using h,
+  end,
+  have t1 : as_hom g₁ = as_hom g₂ := (cancel_mono _).1 t0,
+  have t2 := congr_arg (λ k : (AddCommGroup.of ℤ) ⟶ G, (k : ℤ → G) (1 : ℤ)) t1,
+  dsimp [as_hom] at t2,
+  simpa using t2,
+end
+
+end AddCommGroup
 
 variables {X Y : Type u}
 

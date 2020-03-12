@@ -59,7 +59,7 @@ In order to use mathlib supporting tools, you need to [get python](https://www.p
 ### Configure Git
 
 * Run `git config --global core.autocrlf input` in Git Bash
-  * Alternatively, you can set it to `false`. If it is set to `true`, you might run into issues when running `update-mathlib` or `cache-olean --fetch`.
+  * Alternatively, you can set it to `false`. If it is set to `true`, you might run into issues when using `leanproject`.
 
 ### Get Scripts
 

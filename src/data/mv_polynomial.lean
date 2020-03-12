@@ -98,7 +98,7 @@ variables {α : Type u} {β : Type v} {γ : Type w} {δ : Type x}
 
 /-- Multivariate polynomial, where `σ` is the index set of the variables and
   `α` is the coefficient ring -/
-def mv_polynomial (σ : Type*) (α : Type*) [comm_semiring α] := add_monoid_algebra (σ →₀ ℕ) α
+def mv_polynomial (σ : Type*) (α : Type*) [comm_semiring α] := add_monoid_algebra α (σ →₀ ℕ)
 
 namespace mv_polynomial
 variables {σ : Type*} {a a' a₁ a₂ : α} {e : ℕ} {n m : σ} {s : σ →₀ ℕ}

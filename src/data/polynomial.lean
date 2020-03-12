@@ -16,7 +16,7 @@ local attribute [instance, priority 100] classical.prop_decidable
 
 Polynomials should be seen as (semi-)rings with the additional constructor `X`.
 The embedding from α is called `C`. -/
-def polynomial (α : Type*) [comm_semiring α] := add_monoid_algebra ℕ α
+def polynomial (α : Type*) [comm_semiring α] := add_monoid_algebra α ℕ
 
 open finsupp finset lattice add_monoid_algebra
 

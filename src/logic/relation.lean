@@ -106,6 +106,14 @@ begin
   case refl_trans_gen.tail : c d hbc hcd hac { exact hac.tail hcd }
 end
 
+lemma symmetric (h : symmetric r) : symmetric (refl_trans_gen r) :=
+begin
+  intros x y h,
+  induction h with z w a b c,
+  { refl },
+  { apply relation.refl_trans_gen.head (h b) c }
+end
+
 lemma cases_tail : refl_trans_gen r a b → b = a ∨ (∃c, refl_trans_gen r a c ∧ r c b) :=
 (cases_tail_iff r a b).1
 

@@ -69,6 +69,8 @@ variables {n m : ℕ} {a b : fin n}
 @[simp] protected lemma eta (a : fin n) (h : a.1 < n) : (⟨a.1, h⟩ : fin n) = a :=
 by cases a; refl
 
+attribute [ext] eq_of_veq
+
 protected lemma ext_iff (a b : fin n) : a = b ↔ a.val = b.val :=
 iff.intro (congr_arg _) fin.eq_of_veq
 

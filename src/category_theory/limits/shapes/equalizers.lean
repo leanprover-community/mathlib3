@@ -185,6 +185,10 @@ def cofork.of_π {P : C} (π : Y ⟶ P) (w : f ≫ π = g ≫ π) : cofork f g :
   (fork.of_ι ι w).π.app zero = ι := rfl
 @[simp] lemma fork.of_ι_app_one {P : C} (ι : P ⟶ X) (w : ι ≫ f = ι ≫ g) :
   (fork.of_ι ι w).π.app one = ι ≫ f := rfl
+@[simp] lemma cofork.of_π_app_zero {P : C} (π : Y ⟶ P) (w : f ≫ π = g ≫ π) :
+  (cofork.of_π π w).ι.app zero = f ≫ π := rfl
+@[simp] lemma cofork.of_π_app_one {P : C} (π : Y ⟶ P) (w : f ≫ π = g ≫ π) :
+  (cofork.of_π π w).ι.app one = π := rfl
 
 def fork.ι (t : fork f g) := t.π.app zero
 def cofork.π (t : cofork f g) := t.ι.app one
@@ -292,7 +296,7 @@ limit.lift (parallel_pair f g) (fork.of_ι k h)
 limit.hom_ext $ cone_parallel_pair_ext _ h
 
 /-- An equalizer morphism is a monomorphism -/
-lemma equalizer.ι_mono : mono (equalizer.ι f g) :=
+instance equalizer.ι_mono : mono (equalizer.ι f g) :=
 { right_cancellation := λ Z h k w, equalizer.hom_ext _ _ w }
 
 end
@@ -324,7 +328,7 @@ def limit_cone_parallel_pair_self_is_iso (c : cone (parallel_pair f f)) (h : is_
   is_iso (c.π.app zero) :=
   let c' := cone_parallel_pair_self f,
     z : c ≅ c' := is_limit.unique_up_to_iso h (is_limit_cone_parallel_pair_self f) in
-  is_iso.of_iso (functor.map_iso cones.forget z)
+  is_iso.of_iso (functor.map_iso (cones.forget _) z)
 
 /-- The equalizer of (f, f) is an isomorphism -/
 def equalizer.ι_of_self [has_limit (parallel_pair f f)] : is_iso (equalizer.ι f f) :=
@@ -378,7 +382,7 @@ colimit.desc (parallel_pair f g) (cofork.of_π k h)
 colimit.hom_ext $ cocone_parallel_pair_ext _ h
 
 /-- A coequalizer morphism is an epimorphism -/
-lemma coequalizer.π_epi : epi (coequalizer.π f g) :=
+instance coequalizer.π_epi : epi (coequalizer.π f g) :=
 { left_cancellation := λ Z h k w, coequalizer.hom_ext _ _ w }
 
 end
@@ -418,7 +422,7 @@ def colimit_cocone_parallel_pair_self_is_iso (c : cocone (parallel_pair f f)) (h
   is_iso (c.ι.app one) :=
   let c' := cocone_parallel_pair_self f,
     z : c' ≅ c := is_colimit.unique_up_to_iso (is_colimit_cocone_parallel_pair_self f) h in
-  is_iso.of_iso $ functor.map_iso cocones.forget z
+  is_iso.of_iso $ functor.map_iso (cocones.forget _) z
 
 /-- The coequalizer of (f, f) is an isomorphism -/
 def coequalizer.π_of_self [has_colimit (parallel_pair f f)] : is_iso (coequalizer.π f f) :=

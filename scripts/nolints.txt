@@ -146,11 +146,6 @@ apply_nolint to_additive.value_type doc_blame
 apply_nolint additive doc_blame
 apply_nolint multiplicative doc_blame
 
--- algebra/group/units.lean
-apply_nolint units.inv' doc_blame
-apply_nolint units.mk_of_mul_eq_one doc_blame
-apply_nolint units.mul doc_blame
-
 -- algebra/group/with_one.lean
 apply_nolint with_one doc_blame
 apply_nolint with_one.map doc_blame
@@ -831,7 +826,6 @@ apply_nolint category_theory.has_hom.hom.op doc_blame
 apply_nolint category_theory.has_hom.hom.unop doc_blame
 apply_nolint category_theory.is_iso_of_op doc_blame
 apply_nolint category_theory.iso.op doc_blame
-apply_nolint category_theory.nat_iso.op doc_blame
 apply_nolint category_theory.nat_trans.left_op doc_blame
 apply_nolint category_theory.nat_trans.op doc_blame
 apply_nolint category_theory.nat_trans.right_op doc_blame
@@ -2197,15 +2191,13 @@ apply_nolint add_group.in_closure doc_blame
 apply_nolint gmultiples doc_blame
 apply_nolint gpowers doc_blame
 apply_nolint group.in_closure doc_blame
-apply_nolint is_add_group_hom.ker unused_arguments doc_blame
+apply_nolint is_add_group_hom.ker doc_blame
 apply_nolint is_add_subgroup.add_center doc_blame
 apply_nolint is_add_subgroup.add_normalizer doc_blame
-apply_nolint is_add_subgroup.normalizer_is_add_subgroup unused_arguments
 apply_nolint is_add_subgroup.trivial doc_blame
-apply_nolint is_group_hom.ker unused_arguments doc_blame
+apply_nolint is_group_hom.ker doc_blame
 apply_nolint is_subgroup.center doc_blame
 apply_nolint is_subgroup.normalizer doc_blame
-apply_nolint is_subgroup.normalizer_is_subgroup unused_arguments
 apply_nolint normal_add_subgroup doc_blame
 apply_nolint normal_subgroup doc_blame
 apply_nolint simple_add_group doc_blame
@@ -2518,16 +2510,6 @@ apply_nolint lattice.infi_eq_bot ge_or_gt
 -- order/conditionally_complete_lattice.lean
 apply_nolint lattice.conditionally_complete_linear_order doc_blame
 apply_nolint lattice.conditionally_complete_linear_order_bot doc_blame
-
--- order/filter/basic.lean
-apply_nolint filter doc_blame
-apply_nolint filter.gi_generate doc_blame
-apply_nolint filter.hyperfilter doc_blame
-apply_nolint filter.mk_of_closure doc_blame
-apply_nolint filter.monad doc_blame
-apply_nolint filter.ultrafilter.bind doc_blame
-apply_nolint filter.ultrafilter.map doc_blame
-apply_nolint filter.ultrafilter.pure doc_blame
 
 -- order/filter/partial.lean
 apply_nolint filter.pcomap' doc_blame

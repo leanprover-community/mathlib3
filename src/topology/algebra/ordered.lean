@@ -362,8 +362,9 @@ lemma tendsto_order {f : β → α} {a : α} {x : filter β} :
   tendsto f x (𝓝 a) ↔ (∀ a' < a, ∀ᶠ b in x, a' < f b) ∧ (∀ a' > a, ∀ᶠ b in x, f b < a') :=
 by simp [nhds_eq_order a, tendsto_inf, tendsto_infi, tendsto_principal]
 
-/-- Also known as squeeze or sandwich theorem. -/
-lemma tendsto_of_tendsto_of_tendsto_of_le_of_le {f g h : β → α} {b : filter β} {a : α}
+/-- Also known as squeeze or sandwich theorem. This version assumes that inequalities hold
+eventually for the filter. -/
+lemma tendsto_of_tendsto_of_tendsto_of_le_of_le' {f g h : β → α} {b : filter β} {a : α}
   (hg : tendsto g b (𝓝 a)) (hh : tendsto h b (𝓝 a))
   (hgf : ∀ᶠ b in b, g b ≤ f b) (hfh : ∀ᶠ b in b, f b ≤ h b) :
   tendsto f b (𝓝 a) :=
@@ -374,6 +375,14 @@ tendsto_order.2
     assume a' h',
     have ∀ᶠ b in b, h b < a', from (tendsto_order.1 hh).right a' h',
     by filter_upwards [this, hfh] assume a h₁ h₂, lt_of_le_of_lt h₂ h₁⟩
+
+/-- Also known as squeeze or sandwich theorem. This version assumes that inequalities hold
+everywhere. -/
+lemma tendsto_of_tendsto_of_tendsto_of_le_of_le {f g h : β → α} {b : filter β} {a : α}
+  (hg : tendsto g b (𝓝 a)) (hh : tendsto h b (𝓝 a)) (hgf : g ≤ f) (hfh : f ≤ h) :
+  tendsto f b (𝓝 a) :=
+tendsto_of_tendsto_of_tendsto_of_le_of_le' hg hh
+  (eventually_of_forall _ hgf) (eventually_of_forall _ hfh)
 
 lemma nhds_order_unbounded {a : α} (hu : ∃u, a < u) (hl : ∃l, l < a) :
   𝓝 a = (⨅l (h₂ : l < a) u (h₂ : a < u), principal (Ioo l u)) :=
@@ -859,7 +868,7 @@ by rw [preimage_neg]; exact
     calc closure ((λ (r : α), -r) '' s) = (λr, -r) '' ((λr, -r) '' closure ((λ (r : α), -r) '' s)) :
         by rw [←image_comp, this, image_id]
       ... ⊆ (λr, -r) '' closure ((λr, -r) '' ((λ (r : α), -r) '' s)) :
-        mono_image $ image_closure_subset_closure_image continuous_neg
+        monotone_image $ image_closure_subset_closure_image continuous_neg
       ... = _ : by rw [←image_comp, this, image_id])
 
 end topological_add_group

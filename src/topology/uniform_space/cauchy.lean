@@ -293,8 +293,8 @@ let ⟨c, hfc, hct⟩ := hs _ this in
   begin
     simp [image_subset_iff],
     simp [subset_def] at hct,
-    intros x hx, simp [-mem_image],
-    exact let ⟨i, hi, ht⟩ := hct x hx in ⟨f i, mem_image_of_mem f hi, ht⟩
+    intros x hx, simp,
+    exact hct x hx
   end⟩
 
 lemma cauchy_of_totally_bounded_of_ultrafilter {s : set α} {f : filter α}

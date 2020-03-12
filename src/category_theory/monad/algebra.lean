@@ -42,6 +42,7 @@ restate_axiom algebra.assoc'
 namespace algebra
 variables {T : C ⥤ C} [monad.{v₁} T]
 
+/-- A morphism of Eilenberg-Moore algebras for the monad `T`. -/
 @[ext] structure hom (A B : algebra T) :=
 (f : A.A ⟶ B.A)
 (h' : T.map f ≫ B.a = A.a ≫ f . obviously)
@@ -51,9 +52,11 @@ attribute [simp] hom.h
 
 namespace hom
 
+/-- The identity algebra homomorphism. -/
 @[simps] def id (A : algebra T) : hom A A :=
 { f := 𝟙 A.A }
 
+/-- Composition of algebra homomorphisms. -/
 @[simps] def comp {P Q R : algebra T} (f : hom P Q) (g : hom Q R) : hom P R :=
 { f := f.f ≫ g.f,
   h' := by rw [functor.map_comp, category.assoc, g.h, ←category.assoc, f.h, category.assoc] }
@@ -71,10 +74,12 @@ end algebra
 
 variables (T : C ⥤ C) [monad.{v₁} T]
 
+/-- The forgetful functor from the Eilenberg-Moore category, forgetting the algebraic structure. -/
 @[simps] def forget : algebra T ⥤ C :=
 { obj := λ A, A.A,
   map := λ A B f, f.f }
 
+/-- The free functor from the Eilenberg-Moore category, constructing an algebra for any object. -/
 @[simps] def free : C ⥤ algebra T :=
 { obj := λ X,
   { A := T.obj X,
@@ -128,6 +133,7 @@ restate_axiom coalgebra.coassoc'
 namespace coalgebra
 variables {G : C ⥤ C} [comonad.{v₁} G]
 
+/-- A morphism of Eilenberg-Moore coalgebras for the comonad `G`. -/
 @[ext] structure hom (A B : coalgebra G) :=
 (f : A.A ⟶ B.A)
 (h' : A.a ≫ G.map f = f ≫ B.a . obviously)
@@ -137,9 +143,11 @@ attribute [simp] hom.h
 
 namespace hom
 
+/-- The identity coalgebra homomorphism. -/
 @[simps] def id (A : coalgebra G) : hom A A :=
 { f := 𝟙 A.A }
 
+/-- Composition of coalgebra homomorphisms. -/
 @[simps] def comp {P Q R : coalgebra G} (f : hom P Q) (g : hom Q R) : hom P R :=
 { f := f.f ≫ g.f,
   h' := by rw [functor.map_comp, ← category.assoc, f.h, category.assoc, g.h, category.assoc] }
@@ -156,10 +164,12 @@ end coalgebra
 
 variables (G : C ⥤ C) [comonad.{v₁} G]
 
+/-- The forgetful functor from the Eilenberg-Moore category, forgetting the coalgebraic structure. -/
 @[simps] def forget : coalgebra G ⥤ C :=
 { obj := λ A, A.A,
   map := λ A B f, f.f }
 
+/-- The cofree functor from the Eilenberg-Moore category, constructing a coalgebra for any object. -/
 @[simps] def cofree : C ⥤ coalgebra G :=
 { obj := λ X,
   { A := G.obj X,
@@ -169,7 +179,10 @@ variables (G : C ⥤ C) [comonad.{v₁} G]
   { f := G.map f,
     h' := by erw (δ_ G).naturality; refl} }
 
-/-- The adjunction between the cofree and forgetful constructions for Eilenberg-Moore coalgebras for a comonad. -/
+/--
+The adjunction between the cofree and forgetful constructions for Eilenberg-Moore coalgebras
+for a comonad.
+-/
 def adj : forget G ⊣ cofree G :=
 adjunction.mk_of_hom_equiv
 { hom_equiv := λ X Y,

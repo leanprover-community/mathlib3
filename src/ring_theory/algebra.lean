@@ -583,7 +583,7 @@ def alg_hom_int
   ..ring_hom.of f }
 
 /-- CRing ⥤ ℤ-Alg -/
-def algebra_int : algebra ℤ R :=
+instance algebra_int : algebra ℤ R :=
 { to_fun := coe,
   commutes' := λ _ _, mul_comm _ _,
   smul_def' := λ _ _, gsmul_eq_mul _ _ }

@@ -1159,10 +1159,10 @@ instance : integral_domain (power_series α) :=
  over an integral domain is a prime ideal.-/
 lemma span_X_is_prime : (ideal.span ({X} : set (power_series α))).is_prime :=
 begin
-  suffices : ideal.span ({X} : set (power_series α)) = is_ring_hom.ker (constant_coeff α),
-  { rw this, exact is_ring_hom.ker_is_prime _ },
+  suffices : ideal.span ({X} : set (power_series α)) = (constant_coeff α).ker,
+  { rw this, exact ring_hom.ker_is_prime _ },
   apply ideal.ext, intro φ,
-  rw [is_ring_hom.mem_ker, ideal.mem_span_singleton, X_dvd_iff]
+  rw [ring_hom.mem_ker, ideal.mem_span_singleton, X_dvd_iff]
 end
 
 /-- The variable of the power series ring over an integral domain is prime.-/

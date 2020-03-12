@@ -132,6 +132,9 @@ end
 @[simp] lemma lie_neg (x y : L) :
   ⁅x, -y⁆ = -⁅x, y⁆ := by { rw [←lie_skew, ←lie_skew], simp, }
 
+section
+local attribute [instance] add_comm_group.int_module
+
 @[simp] lemma gsmul_lie (x y : L) (n : ℤ) :
   ⁅n • x, y⁆ = n • ⁅x, y⁆ :=
 add_monoid_hom.map_gsmul ⟨λ x, ⁅x, y⁆, zero_lie y, λ _ _, add_lie _ _ _⟩ _ _
@@ -141,6 +144,7 @@ add_monoid_hom.map_gsmul ⟨λ x, ⁅x, y⁆, zero_lie y, λ _ _, add_lie _ _ _�
 begin
   rw [←lie_skew, ←lie_skew x, gsmul_lie],
   unfold has_scalar.smul, rw gsmul_neg,
+end
 end
 
 /--

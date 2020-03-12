@@ -11,7 +11,7 @@ an equivalence of categories.
 
 TODO:
 either use this equivalence to transport the monoidal structure from `Module ℤ` to `Ab`,
-or, having constructing it directly, show this functor is monoidal.
+or, having constructed that monoidal structure directly, show this functor is monoidal.
 -/
 
 open category_theory
@@ -22,9 +22,11 @@ instance : full (forget₂ (Module ℤ) AddCommGroup) :=
 { preimage := λ A B f,
   { to_fun := f,
     add := λ x y, add_monoid_hom.map_add f x y,
-    smul := λ n x, add_monoid_hom.map_int_module_smul f n x, } }
-
-local attribute [instance] add_comm_group.int_module
+    smul := λ n x,
+    begin
+      convert add_monoid_hom.map_int_module_smul f n x,
+      apply congr_arg, congr,
+    end } }
 
 /-- The forgetful functor from `ℤ` modules to `AddCommGroup` is essentially surjective. -/
 instance : ess_surj (forget₂ (Module ℤ) AddCommGroup) :=

@@ -80,6 +80,23 @@ set_option default_priority 100 -- see Note [default priority]
 class module (α : Type u) (β : Type v) [ring α] [add_comm_group β] extends semimodule α β
 end prio
 
+/--
+To prove two module structures on a fixed `add_comm_group` agree,
+it suffices to check the scalar multiplications agree.
+-/
+-- We'll later use this to show `module ℤ M` is a subsingleton.
+@[ext]
+lemma module_ext {R : Type*} [ring R] {M : Type*} [add_comm_group M] (P Q : module R M)
+  (w : ∀ (r : R) (m : M), by { haveI := P, exact r • m } = by { haveI := Q, exact r • m }) :
+  P = Q :=
+begin
+  resetI,
+  rcases P with ⟨⟨⟨⟨⟨P⟩⟩⟩⟩⟩, rcases Q with ⟨⟨⟨⟨⟨Q⟩⟩⟩⟩⟩, congr,
+  funext r m,
+  exact w r m,
+  all_goals { apply proof_irrel_heq },
+end
+
 structure module.core (α β) [ring α] [add_comm_group β] extends has_scalar α β :=
 (smul_add : ∀(r : α) (x y : β), r • (x + y) = r • x + r • y)
 (add_smul : ∀(r s : α) (x : β), (r + s) • x = r • x + s • x)
@@ -457,8 +474,10 @@ namespace add_comm_group
 variables {M : Type*} [add_comm_group M]
 
 /-- The natural ℤ-module structure on any `add_comm_group`. -/
--- We don't make this a global instance, as it results in too many instances,
+-- We don't immediately make this a global instance, as it results in too many instances,
 -- and confusing ambiguity in the notation `n • x` when `n : ℤ`.
+-- We do turn it into a global instance, but only at the end of this file,
+-- and I remain dubious whether this is a good idea.
 def int_module : module ℤ M :=
 { smul := gsmul,
   smul_add := λ _ _ _, gsmul_add _ _ _,
@@ -467,6 +486,31 @@ def int_module : module ℤ M :=
   one_smul := one_gsmul,
   zero_smul := zero_gsmul,
   smul_zero := gsmul_zero }
+
+instance : subsingleton (module ℤ M) :=
+begin
+  split,
+  intros P Q,
+  ext,
+  -- isn't that lovely: `r • m = r • m`
+  have one_smul : by { haveI := P, exact (1 : ℤ) • m } = by { haveI := Q, exact (1 : ℤ) • m },
+    begin
+      rw [@one_smul ℤ _ _ (by { haveI := P, apply_instance, }) m],
+      rw [@one_smul ℤ _ _ (by { haveI := Q, apply_instance, }) m],
+    end,
+  have nat_smul : ∀ n : ℕ, by { haveI := P, exact (n : ℤ) • m } = by { haveI := Q, exact (n : ℤ) • m },
+    begin
+      intro n,
+      induction n with n ih,
+      { erw [zero_smul, zero_smul], },
+      { rw [int.coe_nat_succ, add_smul, add_smul],
+        erw ih,
+        rw [one_smul], }
+    end,
+  cases r,
+  { rw [int.of_nat_eq_coe, nat_smul], },
+  { rw [int.neg_succ_of_nat_coe, neg_smul, neg_smul, nat_smul], }
+end
 
 end add_comm_group
 
@@ -569,3 +613,5 @@ theorem exists_card_smul_ge_sum (hs : s.nonempty) :
 exists_le_of_sum_le hs $ by rw [sum_const, ← nat.smul_def, smul_sum]
 
 end finset
+
+attribute [instance] add_comm_group.int_module

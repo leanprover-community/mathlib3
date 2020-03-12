@@ -582,11 +582,20 @@ def alg_hom_int
         rw [is_ring_hom.map_sub f, is_ring_hom.map_one f, ih]),
   ..ring_hom.of f }
 
+section
+local attribute [instance] add_comm_group.int_module
+
 /-- CRing ⥤ ℤ-Alg -/
-instance algebra_int : algebra ℤ R :=
+-- We don't make this a global instance, because it seems likely to cause
+-- alternative solutions to typeclass search.
+def algebra_int : algebra ℤ R :=
 { to_fun := coe,
   commutes' := λ _ _, mul_comm _ _,
   smul_def' := λ _ _, gsmul_eq_mul _ _ }
+end
+
+section
+local attribute [instance] algebra_int
 
 variables {R}
 /-- CRing ⥤ ℤ-Alg -/
@@ -617,6 +626,8 @@ set.subset.antisymm (λ x hx, span_induction hx
 by rw [span_int_eq_add_group_closure, add_group.closure_add_subgroup]
 
 end span_int
+
+end
 
 end int
 

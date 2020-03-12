@@ -17,6 +17,7 @@ or, having constructing it directly, show this functor is monoidal.
 open category_theory
 open category_theory.equivalence
 
+/-- The forgetful functor from `ℤ` modules to `AddCommGroup` is full. -/
 instance : full (forget₂ (Module ℤ) AddCommGroup) :=
 { preimage := λ A B f,
   { to_fun := f,
@@ -25,6 +26,7 @@ instance : full (forget₂ (Module ℤ) AddCommGroup) :=
 
 local attribute [instance] add_comm_group.int_module
 
+/-- The forgetful functor from `ℤ` modules to `AddCommGroup` is essentially surjective. -/
 instance : ess_surj (forget₂ (Module ℤ) AddCommGroup) :=
 { obj_preimage := λ A, Module.of ℤ A,
   iso' := λ A, { hom := 𝟙 _, inv := 𝟙 _, } }

@@ -52,6 +52,12 @@ instance [semiring β] : semigroup (α →₀ β) :=
 { mul       := (*),
   mul_assoc := λ f g h, by { ext, simp only [mul_apply, mul_assoc], }, }
 
+instance [ring β] : distrib (α →₀ β) :=
+{ left_distrib := λ f g h, by { ext, simp only [mul_apply, add_apply, left_distrib], },
+  right_distrib := λ f g h, by { ext, simp only [mul_apply, add_apply, right_distrib], },
+  ..(infer_instance : semigroup (α →₀ β)),
+  ..(infer_instance : add_comm_group (α →₀ β)) }
+
 -- If `non_unital_semiring` existed in the algebraic hierarchy, we could produce one here.
 
 end finsupp

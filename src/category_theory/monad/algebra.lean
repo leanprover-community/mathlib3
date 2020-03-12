@@ -56,7 +56,7 @@ namespace hom
 @[simps] def id (A : algebra T) : hom A A :=
 { f := 𝟙 A.A }
 
-/-- Composition of algebra homomorphisms. -/
+/-- Composition of Eilenberg–Moore algebra homomorphisms. -/
 @[simps] def comp {P Q R : algebra T} (f : hom P Q) (g : hom Q R) : hom P R :=
 { f := f.f ≫ g.f,
   h' := by rw [functor.map_comp, category.assoc, g.h, ←category.assoc, f.h, category.assoc] }

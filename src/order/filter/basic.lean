@@ -226,7 +226,7 @@ lemma mk_of_closure_sets {s : set (set α)} {hs : (generate s).sets = s} :
 filter.ext $ assume u,
 show u ∈ (filter.mk_of_closure s hs).sets ↔ u ∈ (generate s).sets, from hs.symm ▸ iff.rfl
 
-/-- Galois insertion from sets of sets into a filters. -/
+/-- Galois insertion from sets of sets into filters. -/
 def gi_generate (α : Type*) :
   @galois_insertion (set (set α)) (order_dual (filter α)) _ _ filter.generate filter.sets :=
 { gc        := assume s f, sets_iff_generate,

@@ -14,7 +14,7 @@ class is_subfield extends is_subring S : Prop :=
 (inv_mem : ∀ {x : F}, x ∈ S → x⁻¹ ∈ S)
 end prio
 
-instance is_subfield.field [decidable_eq F] [is_subfield S] : field S :=
+instance is_subfield.field [is_subfield S] : field S :=
 { inv := λ x, ⟨x⁻¹, is_subfield.inv_mem x.2⟩,
   zero_ne_one := λ h : 0 = 1, (@zero_ne_one F _) (subtype.ext.1 h),
   mul_inv_cancel := λ a ha, subtype.ext.2 (mul_inv_cancel

@@ -22,6 +22,7 @@ import data.set.finite
 
 * `∀ᶠ x in f, p x` : `f.eventually p`;
 * `∃ᶠ x in f, p x` : `f.frequently p`.
+* `f ×ᶠ g` : `filter.prod f g`, localized in `filter`.
 -/
 open lattice set
 
@@ -55,6 +56,8 @@ assume ⟨a, ha⟩ ⟨b, hb⟩, classical.by_cases
     (λ h : r (f a) (f b), ⟨⟨b, hb⟩, h, refl _⟩)
     (λ h : r (f b) (f a), ⟨⟨a, ha⟩, refl _, h⟩))
 
+/-- A filter `F` on a type `α` is a collection of sets of `α` which contains the whole `α`,
+is upwards-closed, and is stable under intersection, -/
 structure filter (α : Type*) :=
 (sets                   : set (set α))
 (univ_sets              : set.univ ∈ sets)
@@ -210,6 +213,8 @@ iff.intro
     (assume x y _ hxy hx, mem_sets_of_superset hx hxy)
     (assume x y _ _ hx hy, inter_mem_sets hx hy))
 
+/-- `mk_of_closure s hs` constructs a filter on `α` whose elements set is exactly
+`s : set (set α)`, provided one gives the assumption `hs : (generate s).sets = s`. -/
 protected def mk_of_closure (s : set (set α)) (hs : (generate s).sets = s) : filter α :=
 { sets             := s,
   univ_sets        := hs ▸ (univ_mem_sets : univ ∈ generate s),
@@ -221,7 +226,7 @@ lemma mk_of_closure_sets {s : set (set α)} {hs : (generate s).sets = s} :
 filter.ext $ assume u,
 show u ∈ (filter.mk_of_closure s hs).sets ↔ u ∈ (generate s).sets, from hs.symm ▸ iff.rfl
 
-/- Galois insertion from sets of sets into a filters. -/
+/-- Galois insertion from sets of sets into filters. -/
 def gi_generate (α : Type*) :
   @galois_insertion (set (set α)) (order_dual (filter α)) _ _ filter.generate filter.sets :=
 { gc        := assume s f, sets_iff_generate,
@@ -846,6 +851,7 @@ by simp only [has_bind.bind, bind, map_pure, join_pure]
 
 section
 -- this section needs to be before applicative, otherwise the wrong instance will be chosen
+/-- The monad structure on filters. -/
 protected def monad : monad filter := { map := @filter.map }
 
 local attribute [instance] filter.monad
@@ -1043,6 +1049,9 @@ ne_bot_of_le_ne_bot (comap_inf_principal_ne_bot_of_image_mem hf hs) inf_le_left
 lemma map_ne_bot (hf : f ≠ ⊥) : map m f ≠ ⊥ :=
 assume h, hf $ by rwa [map_eq_bot_iff] at h
 
+lemma map_ne_bot_iff (f : α → β) {F : filter α} : map f F ≠ ⊥ ↔ F ≠ ⊥ :=
+by rw [not_iff_not, map_eq_bot_iff]
+
 lemma sInter_comap_sets (f : α → β) (F : filter β) :
   ⋂₀(comap f F).sets = ⋂ U ∈ F, f ⁻¹' U :=
 begin
@@ -1134,6 +1143,25 @@ map_eq_comap_of_inverse prod.swap_swap_eq prod.swap_swap_eq
 lemma le_map {f : filter α} {m : α → β} {g : filter β} (h : ∀s∈ f, m '' s ∈ g) :
   g ≤ f.map m :=
 assume s hs, mem_sets_of_superset (h _ hs) $ image_preimage_subset _ _
+
+protected lemma push_pull (f : α → β) (F : filter α) (G : filter β) :
+  map f (F ⊓ comap f G) = map f F ⊓ G :=
+begin
+  apply le_antisymm,
+  { calc map f (F ⊓ comap f G) ≤ map f F ⊓ (map f $ comap f G) : map_inf_le
+      ... ≤ map f F ⊓ G : inf_le_inf_right (map f F) map_comap_le },
+  { rintros U ⟨V, V_in, W, ⟨Z, Z_in, hZ⟩, h⟩,
+    rw ← image_subset_iff at h,
+    use [f '' V, image_mem_map V_in, Z, Z_in],
+    refine subset.trans _ h,
+    have : f '' (V ∩ f ⁻¹' Z) ⊆ f '' (V ∩ W),
+      from  image_subset _ (inter_subset_inter_right _ ‹_›),
+    rwa set.push_pull at this }
+end
+
+protected lemma push_pull' (f : α → β) (F : filter α) (G : filter β) :
+  map f (comap f G ⊓ F) = G ⊓ map f F :=
+by simp only [filter.push_pull, inf_comm]
 
 section applicative
 
@@ -1497,12 +1525,14 @@ variables {s : set α} {t : set β} {f : filter α} {g : filter β}
 protected def prod (f : filter α) (g : filter β) : filter (α × β) :=
 f.comap prod.fst ⊓ g.comap prod.snd
 
+localized "infix ` ×ᶠ `:60 := filter.prod" in filter
+
 lemma prod_mem_prod {s : set α} {t : set β} {f : filter α} {g : filter β}
-  (hs : s ∈ f) (ht : t ∈ g) : set.prod s t ∈ filter.prod f g :=
+  (hs : s ∈ f) (ht : t ∈ g) : set.prod s t ∈ f ×ᶠ g :=
 inter_mem_inf_sets (preimage_mem_comap hs) (preimage_mem_comap ht)
 
 lemma mem_prod_iff {s : set (α×β)} {f : filter α} {g : filter β} :
-  s ∈ filter.prod f g ↔ (∃ t₁ ∈ f, ∃ t₂ ∈ g, set.prod t₁ t₂ ⊆ s) :=
+  s ∈ f ×ᶠ g ↔ (∃ t₁ ∈ f, ∃ t₂ ∈ g, set.prod t₁ t₂ ⊆ s) :=
 begin
   simp only [filter.prod],
   split,
@@ -1512,43 +1542,43 @@ begin
     ⟨prod.fst ⁻¹' t₁, ⟨t₁, ht₁, subset.refl _⟩, prod.snd ⁻¹' t₂, ⟨t₂, ht₂, subset.refl _⟩, h⟩
 end
 
-lemma tendsto_fst {f : filter α} {g : filter β} : tendsto prod.fst (filter.prod f g) f :=
+lemma tendsto_fst {f : filter α} {g : filter β} : tendsto prod.fst (f ×ᶠ g) f :=
 tendsto_inf_left tendsto_comap
 
-lemma tendsto_snd {f : filter α} {g : filter β} : tendsto prod.snd (filter.prod f g) g :=
+lemma tendsto_snd {f : filter α} {g : filter β} : tendsto prod.snd (f ×ᶠ g) g :=
 tendsto_inf_right tendsto_comap
 
 lemma tendsto.prod_mk {f : filter α} {g : filter β} {h : filter γ} {m₁ : α → β} {m₂ : α → γ}
-  (h₁ : tendsto m₁ f g) (h₂ : tendsto m₂ f h) : tendsto (λx, (m₁ x, m₂ x)) f (filter.prod g h) :=
+  (h₁ : tendsto m₁ f g) (h₂ : tendsto m₂ f h) : tendsto (λx, (m₁ x, m₂ x)) f (g ×ᶠ h) :=
 tendsto_inf.2 ⟨tendsto_comap_iff.2 h₁, tendsto_comap_iff.2 h₂⟩
 
 lemma prod_infi_left {f : ι → filter α} {g : filter β} (i : ι) :
-  filter.prod (⨅i, f i) g = (⨅i, filter.prod (f i) g) :=
+  (⨅i, f i) ×ᶠ g = (⨅i, (f i) ×ᶠ g) :=
 by rw [filter.prod, comap_infi, infi_inf i]; simp only [filter.prod, eq_self_iff_true]
 
 lemma prod_infi_right {f : filter α} {g : ι → filter β} (i : ι) :
-  filter.prod f (⨅i, g i) = (⨅i, filter.prod f (g i)) :=
+  f ×ᶠ (⨅i, g i) = (⨅i, f ×ᶠ (g i)) :=
 by rw [filter.prod, comap_infi, inf_infi i]; simp only [filter.prod, eq_self_iff_true]
 
 lemma prod_mono {f₁ f₂ : filter α} {g₁ g₂ : filter β} (hf : f₁ ≤ f₂) (hg : g₁ ≤ g₂) :
-  filter.prod f₁ g₁ ≤ filter.prod f₂ g₂ :=
+  f₁ ×ᶠ g₁ ≤ f₂ ×ᶠ g₂ :=
 inf_le_inf (comap_mono hf) (comap_mono hg)
 
 lemma prod_comap_comap_eq {α₁ : Type u} {α₂ : Type v} {β₁ : Type w} {β₂ : Type x}
   {f₁ : filter α₁} {f₂ : filter α₂} {m₁ : β₁ → α₁} {m₂ : β₂ → α₂} :
-  filter.prod (comap m₁ f₁) (comap m₂ f₂) = comap (λp:β₁×β₂, (m₁ p.1, m₂ p.2)) (filter.prod f₁ f₂) :=
+  (comap m₁ f₁) ×ᶠ (comap m₂ f₂) = comap (λp:β₁×β₂, (m₁ p.1, m₂ p.2)) (f₁ ×ᶠ f₂) :=
 by simp only [filter.prod, comap_comap_comp, eq_self_iff_true, comap_inf]
 
-lemma prod_comm' : filter.prod f g = comap (prod.swap) (filter.prod g f) :=
+lemma prod_comm' : f ×ᶠ g = comap (prod.swap) (g ×ᶠ f) :=
 by simp only [filter.prod, comap_comap_comp, (∘), inf_comm, prod.fst_swap,
   eq_self_iff_true, prod.snd_swap, comap_inf]
 
-lemma prod_comm : filter.prod f g = map (λp:β×α, (p.2, p.1)) (filter.prod g f) :=
+lemma prod_comm : f ×ᶠ g = map (λp:β×α, (p.2, p.1)) (g ×ᶠ f) :=
 by rw [prod_comm', ← map_swap_eq_comap_swap]; refl
 
 lemma prod_map_map_eq {α₁ : Type u} {α₂ : Type v} {β₁ : Type w} {β₂ : Type x}
   {f₁ : filter α₁} {f₂ : filter α₂} {m₁ : α₁ → β₁} {m₂ : α₂ → β₂} :
-  filter.prod (map m₁ f₁) (map m₂ f₂) = map (λp:α₁×α₂, (m₁ p.1, m₂ p.2)) (filter.prod f₁ f₂) :=
+  (map m₁ f₁) ×ᶠ (map m₂ f₂) = map (λp:α₁×α₂, (m₁ p.1, m₂ p.2)) (f₁ ×ᶠ f₂) :=
 le_antisymm
   (assume s hs,
     let ⟨s₁, hs₁, s₂, hs₂, h⟩ := mem_prod_iff.mp hs in
@@ -1572,20 +1602,20 @@ lemma prod_eq {f : filter α} {g : filter β} : f.prod g = (f.map prod.mk).seq g
 have h : _ := map_prod id f g, by rwa [map_id] at h
 
 lemma prod_inf_prod {f₁ f₂ : filter α} {g₁ g₂ : filter β} :
-  filter.prod f₁ g₁ ⊓ filter.prod f₂ g₂ = filter.prod (f₁ ⊓ f₂) (g₁ ⊓ g₂) :=
+  (f₁ ×ᶠ g₁) ⊓ (f₂ ×ᶠ g₂) = (f₁ ⊓ f₂) ×ᶠ (g₁ ⊓ g₂) :=
 by simp only [filter.prod, comap_inf, inf_comm, inf_assoc, lattice.inf_left_comm]
 
-@[simp] lemma prod_bot {f : filter α} : filter.prod f (⊥ : filter β) = ⊥ := by simp [filter.prod]
-@[simp] lemma bot_prod {g : filter β} : filter.prod (⊥ : filter α) g = ⊥ := by simp [filter.prod]
+@[simp] lemma prod_bot {f : filter α} : f ×ᶠ (⊥ : filter β) = ⊥ := by simp [filter.prod]
+@[simp] lemma bot_prod {g : filter β} : (⊥ : filter α) ×ᶠ g = ⊥ := by simp [filter.prod]
 
 @[simp] lemma prod_principal_principal {s : set α} {t : set β} :
-  filter.prod (principal s) (principal t) = principal (set.prod s t) :=
+  (principal s) ×ᶠ (principal t) = principal (set.prod s t) :=
 by simp only [filter.prod, comap_principal, principal_eq_iff_eq, comap_principal, inf_principal]; refl
 
-@[simp] lemma prod_pure_pure {a : α} {b : β} : filter.prod (pure a) (pure b) = pure (a, b) :=
+@[simp] lemma prod_pure_pure {a : α} {b : β} : (pure a) ×ᶠ (pure b) = pure (a, b) :=
 by simp [pure_eq_principal]
 
-lemma prod_eq_bot {f : filter α} {g : filter β} : filter.prod f g = ⊥ ↔ (f = ⊥ ∨ g = ⊥) :=
+lemma prod_eq_bot {f : filter α} {g : filter β} : f ×ᶠ g = ⊥ ↔ (f = ⊥ ∨ g = ⊥) :=
 begin
   split,
   { assume h,
@@ -1599,11 +1629,11 @@ begin
     exact prod_bot }
 end
 
-lemma prod_ne_bot {f : filter α} {g : filter β} : filter.prod f g ≠ ⊥ ↔ (f ≠ ⊥ ∧ g ≠ ⊥) :=
+lemma prod_ne_bot {f : filter α} {g : filter β} : f ×ᶠ g ≠ ⊥ ↔ (f ≠ ⊥ ∧ g ≠ ⊥) :=
 by rw [(≠), prod_eq_bot, not_or_distrib]
 
 lemma tendsto_prod_iff {f : α × β → γ} {x : filter α} {y : filter β} {z : filter γ} :
-  filter.tendsto f (filter.prod x y) z ↔
+  filter.tendsto f (x ×ᶠ y) z ↔
   ∀ W ∈ z, ∃ U ∈ x,  ∃ V ∈ y, ∀ x y, x ∈ U → y ∈ V → f (x, y) ∈ W :=
 by simp only [tendsto_def, mem_prod_iff, prod_sub_preimage_iff, exists_prop, iff_self]
 
@@ -1768,6 +1798,8 @@ tendsto_at_top_add_right_of_le' l C hf (univ_mem_sets' $ λ _, le_refl C)
 
 end ordered_group
 
+open_locale filter
+
 @[nolint ge_or_gt]
 lemma tendsto_at_top' [nonempty α] [semilattice_sup α] (f : α → β) (l : filter β) :
   tendsto f at_top l ↔ (∀s ∈ l, ∃a, ∀b≥a, f b ∈ s) :=
@@ -1820,14 +1852,14 @@ have j ∘ i = id, from funext h,
   ⟨s.image i, by simp only [finset.image_image, this, finset.image_id, le_refl]⟩
 
 lemma prod_at_top_at_top_eq {β₁ β₂ : Type*} [nonempty β₁] [nonempty β₂] [semilattice_sup β₁]
-  [semilattice_sup β₂] : filter.prod (@at_top β₁ _) (@at_top β₂ _) = @at_top (β₁ × β₂) _ :=
+  [semilattice_sup β₂] : (@at_top β₁ _) ×ᶠ (@at_top β₂ _) = @at_top (β₁ × β₂) _ :=
 by inhabit β₁; inhabit β₂;
   simp [at_top, prod_infi_left (default β₁), prod_infi_right (default β₂), infi_prod];
     exact infi_comm
 
 lemma prod_map_at_top_eq {α₁ α₂ β₁ β₂ : Type*} [nonempty β₁] [nonempty β₂]
   [semilattice_sup β₁] [semilattice_sup β₂] (u₁ : β₁ → α₁) (u₂ : β₂ → α₂) :
-  filter.prod (map u₁ at_top) (map u₂ at_top) = map (prod.map u₁ u₂) at_top :=
+  (map u₁ at_top) ×ᶠ (map u₂ at_top) = map (prod.map u₁ u₂) at_top :=
 by rw [prod_map_map_eq, prod_at_top_at_top_eq, prod.map_def]
 
 /-- A function `f` maps upwards closed sets (at_top sets) to upwards closed sets when it is a
@@ -2049,11 +2081,15 @@ lemma tendsto_iff_ultrafilter (f : α → β) (l₁ : filter α) (l₂ : filter 
   restriction of the one on filters. -/
 def ultrafilter (α : Type u) : Type u := {f : filter α // is_ultrafilter f}
 
+/-- Push-forward for ultra-filters. -/
 def ultrafilter.map (m : α → β) (u : ultrafilter α) : ultrafilter β :=
 ⟨u.val.map m, ultrafilter_map u.property⟩
 
+/-- The principal ultra-filter associated to a point `x`. -/
 def ultrafilter.pure (x : α) : ultrafilter α := ⟨pure x, ultrafilter_pure⟩
 
+/-- Monadic bind for ultra-filters, coming from the one on filters
+defined in terms of map and join.-/
 def ultrafilter.bind (u : ultrafilter α) (m : α → ultrafilter β) : ultrafilter β :=
 ⟨u.val.bind (λ a, (m a).val), ultrafilter_bind u.property (λ a, (m a).property)⟩
 
@@ -2064,6 +2100,7 @@ instance ultrafilter.monad : monad ultrafilter := { map := @ultrafilter.map }
 
 instance ultrafilter.inhabited [inhabited α] : inhabited (ultrafilter α) := ⟨pure (default _)⟩
 
+/-- The ultra-filter extending the cofinite filter. -/
 noncomputable def hyperfilter : filter α := ultrafilter_of cofinite
 
 lemma hyperfilter_le_cofinite : @hyperfilter α ≤ cofinite :=

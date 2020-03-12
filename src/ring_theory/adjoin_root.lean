@@ -50,9 +50,9 @@ quotient.sound' (mem_span_singleton.2 $ by simp)
 
 instance : is_ring_hom (coe : R → adjoin_root f) := (of f).is_ring_hom
 
-lemma mk_C (x : R) : mk f (C x) = x := rfl
+@[simp] lemma mk_C (x : R) : mk f (C x) = x := rfl
 
-lemma eval₂_root (f : polynomial R) : f.eval₂ coe (root f) = 0 :=
+@[simp] lemma eval₂_root (f : polynomial R) : f.eval₂ coe (root f) = 0 :=
 quotient.induction_on' (root f)
   (λ (g : polynomial R) (hg : mk f g = mk f X),
     show finsupp.sum f (λ (e : ℕ) (a : R), mk f (C a) * mk f g ^ e) = 0,

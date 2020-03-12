@@ -195,13 +195,9 @@ lemma over_prod_fst [has_pullbacks.{v} C] {B : C} (f g : over B) :
 lemma over_prod_snd [has_pullbacks.{v} C] {B : C} (f g : over B) :
   limits.prod.snd = (over.hom_mk pullback.snd pullback.condition.symm : prod f g ⟶ g) := rfl
 
-lemma over_prod_map [has_pullbacks.{v} C] {B : C} (f g h k : over B) (α : f ⟶ g) (β : h ⟶ k) :
-  limits.prod.map α β = over.hom_mk (pullback.lift (pullback.fst ≫ α.left) (pullback.snd ≫ β.left) (by { erw [category.assoc, over.w α, category.assoc, over.w β], apply pullback.condition })) (by { erw [limit.lift_π_assoc, pullback_cone.mk_left, category.assoc], dsimp, simp only [w], refl }) :=
-begin
-  ext1, rw limit.map_π, ext, cases j,
-  { dsimp, erw limit.lift_π, refl },
-  { dsimp, erw limit.lift_π, refl }
-end
+lemma over_prod_map_left [has_pullbacks.{v} C] {B : C} (f g h k : over B) (α : f ⟶ g) (β : h ⟶ k) :
+  (limits.prod.map α β).left = pullback.lift (pullback.fst ≫ α.left) (pullback.snd ≫ β.left) (by { simp only [category.assoc], convert pullback.condition; apply over.w }) :=
+rfl
 
 end category_theory.over
 

@@ -65,7 +65,7 @@ instance limit_add_comm_group (F : J ⥤ AddCommGroup.{u}) :
 @subtype.add_comm_group ((Π (j : J), (F ⋙ forget _).obj j)) (by apply_instance) _
   (by convert (AddCommGroup.sections_add_subgroup F))
 
-instance limit_π_is_ring_hom (F : J ⥤ AddCommGroup.{u}) (j) :
+instance limit_π_is_add_group_hom (F : J ⥤ AddCommGroup.{u}) (j) :
   is_add_group_hom (limit.π (F ⋙ forget AddCommGroup) j) :=
 { map_add := λ x y, by { simp only [types.types_limit_π], refl } }
 

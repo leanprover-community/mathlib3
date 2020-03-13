@@ -211,7 +211,7 @@ add its documentation as follows.
 add_tactic_doc
 { name := "display name of the tactic",
   category := cat,
-  decl_names := [`dcl_1, dcl_2],
+  decl_names := [`dcl_1, `dcl_2],
   tags := ["tag_1", "tag_2"],
   description := "describe what the command does here"
 }

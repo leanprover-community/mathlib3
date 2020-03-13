@@ -193,7 +193,6 @@ class distrib_mul_action (α : Type u) (β : Type v) [monoid α] [add_monoid β]
 (smul_zero {} : ∀(r : α), r • (0 : β) = 0)
 end prio
 
-
 section
 variables [monoid α] [add_monoid β] [distrib_mul_action α β]
 

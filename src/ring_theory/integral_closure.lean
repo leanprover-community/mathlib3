@@ -18,6 +18,8 @@ variables (R : Type u) {A : Type v}
 variables [comm_ring R] [comm_ring A]
 variables [algebra R A]
 
+/-- An element `x` of an algebra `A` over a commutative ring `R` is said to be *integral*,
+if it is a root of some monic polynomial `p : polynomial R`. -/
 def is_integral (x : A) : Prop :=
 ∃ p : polynomial R, monic p ∧ aeval R A x p = 0
 

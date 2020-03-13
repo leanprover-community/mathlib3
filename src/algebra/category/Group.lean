@@ -112,6 +112,10 @@ begin
   rw [add_monoid_hom.map_gsmul, add_monoid_hom.map_gsmul, w],
 end
 
+-- TODO: a better approach would be to assemble this from
+-- the forgetful functor AddCommGroup ⥤ Type is a right adjoint,
+-- `right_adjoint_preserves_mono`
+-- monomorphisms in Type are the injective functions
 lemma injective_of_mono {G H : AddCommGroup.{0}} (f : G ⟶ H) [mono f] : function.injective f :=
 λ g₁ g₂ h,
 begin

@@ -755,13 +755,6 @@ apply_nolint category_theory.limits.walking_span.hom.comp doc_blame
 apply_nolint category_theory.limits.initial doc_blame
 apply_nolint category_theory.limits.terminal doc_blame
 
--- category_theory/limits/types.lean
-apply_nolint category_theory.limits.types.colimit doc_blame
-apply_nolint category_theory.limits.types.colimit_is_colimit doc_blame
-apply_nolint category_theory.limits.types.limit doc_blame
-apply_nolint category_theory.limits.types.limit_is_limit doc_blame
-apply_nolint category_theory.limits.types.image has_inhabited_instance
-
 -- category_theory/monad/adjunction.lean
 apply_nolint category_theory.monad.comparison doc_blame
 apply_nolint category_theory.monad.comparison_forget doc_blame

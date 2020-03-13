@@ -149,11 +149,11 @@ declaration.thm n ls t (task.pure e)
 /-- `add_theorem_by n ls type tac` uses `tac` to synthesize a term with type `type`, and adds this
 to the environment as a theorem with name `n` and universe parameters `ls`. -/
 meta def add_theorem_by (n : name) (ls : list name) (type : expr) (tac : tactic unit) :
-  tactic expr := do
-  ((), body) ← solve_aux type tac,
-  body ← instantiate_mvars body,
-  add_decl $ mk_theorem n ls type body,
-  return $ expr.const n $ ls.map level.param
+  tactic expr :=
+do ((), body) ← solve_aux type tac,
+   body ← instantiate_mvars body,
+   add_decl $ mk_theorem n ls type body,
+   return $ expr.const n $ ls.map level.param
 
 /-- `eval_expr' α e` attempts to evaluate the expression `e` in the type `α`.
 This is a variant of `eval_expr` in core. Due to unexplained behavior in the VM, in rare

@@ -12,6 +12,10 @@ import category_theory.limits.limits
 This file uses a "pre-automated" approach, just as for `Mon/colimits.lean`.
 It is a very uniform approach, that conceivably could be synthesised directly
 by a tactic that analyses the shape of `add_comm_group` and `monoid_hom`.
+
+TODO:
+In fact, in `AddCommGroup` there is a much nicer model of colimits as quotients
+of finitely supported functions, and we really should implement this as well (or instead).
 -/
 
 universes u v

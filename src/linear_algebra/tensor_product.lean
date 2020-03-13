@@ -11,10 +11,11 @@ import group_theory.free_abelian_group
 import linear_algebra.direct_sum_module
 
 variables {R : Type*} [comm_ring R]
-variables {M : Type*} {N : Type*} {P : Type*} {Q : Type*}
-variables [add_comm_group M] [add_comm_group N] [add_comm_group P] [add_comm_group Q]
-variables [module R M] [module R N] [module R P] [module R Q]
+variables {M : Type*} {N : Type*} {P : Type*} {Q : Type*} {S : Type*}
+variables [add_comm_group M] [add_comm_group N] [add_comm_group P] [add_comm_group Q] [add_comm_group S]
+variables [module R M] [module R N] [module R P] [module R Q] [module R S]
 include R
+
 
 set_option class.instance_max_depth 100
 
@@ -362,7 +363,6 @@ def curry (f : M ⊗ N →ₗ P) : M →ₗ N →ₗ P := lcurry R M N P f
 @[simp] theorem curry_apply (f : M ⊗ N →ₗ[R] P) (m : M) (n : N) :
   curry f m n = f (m ⊗ₜ n) := rfl
 
-@[ext]
 theorem ext_threefold {g h : (M ⊗[R] N) ⊗[R] P →ₗ[R] Q}
   (H : ∀ x y z, g ((x ⊗ₜ y) ⊗ₜ z) = h ((x ⊗ₜ y) ⊗ₜ z)) : g = h :=
 begin
@@ -372,17 +372,16 @@ begin
   exact H x y z,
 end
 
-variables {S : Type*} [add_comm_group S] [module R S]
-
 -- We'll need this one for checking the pentagon identity!
-@[ext]
 theorem ext_fourfold {g h : ((M ⊗[R] N) ⊗[R] P) ⊗[R] Q →ₗ[R] S}
   (H : ∀ w x y z, g (((w ⊗ₜ x) ⊗ₜ y) ⊗ₜ z) = h (((w ⊗ₜ x) ⊗ₜ y) ⊗ₜ z)) : g = h :=
 begin
   let e := linear_equiv.to_equiv (lift.equiv R ((M ⊗[R] N) ⊗[R] P) Q S),
   apply e.symm.injective,
-  ext w x y z,
-  exact H w x y z,
+  apply ext_threefold,
+  intros x y z,
+  ext w,
+  exact H x y z w,
 end
 
 end UMP
@@ -457,6 +456,7 @@ end
   ((tensor_product.assoc R M N P) : (M ⊗[R] N) ⊗[R] P → M ⊗[R] (N ⊗[R] P)) ((m ⊗ₜ n) ⊗ₜ p) = m ⊗ₜ (n ⊗ₜ p) :=
 rfl
 
+/-- The tensor product of a pair of linear maps between modules. -/
 def map (f : M →ₗ[R] P) (g : N →ₗ Q) : M ⊗ N →ₗ P ⊗ Q :=
 lift $ comp (compl₂ (mk _ _ _) g) f
 

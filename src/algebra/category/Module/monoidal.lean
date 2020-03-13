@@ -51,56 +51,55 @@ lemma associator_naturality {X₁ X₂ X₃ Y₁ Y₂ Y₃ : Module R}
     tensor_hom (tensor_hom f₁ f₂) f₃ ≫ (associator Y₁ Y₂ Y₃).hom =
     (associator X₁ X₂ X₃).hom ≫ tensor_hom f₁ (tensor_hom f₂ f₃) :=
 begin
-  ext1,
+  apply tensor_product.ext_threefold,
+  intros x y z,
+  refl
 end
 
-#exit
 lemma pentagon (W X Y Z : Module R) :
   tensor_hom (associator W X Y).hom (𝟙 Z) ≫ (associator W (tensor_obj X Y) Z).hom ≫ tensor_hom (𝟙 W) (associator X Y Z).hom =
     (associator (tensor_obj W X) Y Z).hom ≫ (associator W X (tensor_obj Y Z)).hom :=
-by tidy
+begin
+  apply tensor_product.ext_fourfold,
+  intros w x y z,
+  refl
+end
 
 /-- (implementation) the left unitor for R-modules -/
--- I tried building these using `linear_equiv.to_Module_iso tensor_product.lid`,
--- but couldn't get it to work
-@[simps]
 def left_unitor (M : Module R) : Module.of R (R ⊗[R] M) ≅ M :=
-{ hom := (tensor_product.lid R M : R ⊗[R] M ≃ₗ[R] M).to_linear_map,
-  inv := (tensor_product.lid R M : R ⊗[R] M ≃ₗ[R] M).symm.to_linear_map,
-  hom_inv_id' := begin ext x y, exact (tensor_product.lid R M).to_equiv.left_inv (x ⊗ₜ[R] y), end,
-  inv_hom_id' := begin ext x, exact (tensor_product.lid R M).to_equiv.right_inv x, end, }
+(linear_equiv.to_Module_iso (tensor_product.lid R M) : of R (R ⊗ M) ≅ of R M).trans (of_self R M)
 
 lemma left_unitor_naturality {M N : Module R} (f : M ⟶ N) :
   tensor_hom (𝟙 (Module.of R R)) f ≫ (left_unitor N).hom = (left_unitor M).hom ≫ f :=
 begin
-  ext x y, simp, dsimp [left_unitor],
-  erw [tensor_product.lid_tmul, tensor_product.lid_tmul], -- TODO these are simp lemmas, why don't they fire?
-  exact (linear_map.smul _ x y).symm, -- TODO why doesn't `rw linear_map.smul` work?
+  ext x y, simp,
+  erw [tensor_product.lid_tmul, tensor_product.lid_tmul],
+  rw linear_map.map_smul,
+  refl,
 end
 
 /-- (implementation) the right unitor for R-modules -/
-@[simps]
 def right_unitor (M : Module R) : Module.of R (M ⊗[R] R) ≅ M :=
-{ hom := (tensor_product.rid R M : M ⊗[R] R ≃ₗ[R] M).to_linear_map,
-  inv := (tensor_product.rid R M : M ⊗[R] R ≃ₗ[R] M).symm.to_linear_map,
-  hom_inv_id' := begin ext x y, exact (tensor_product.rid R M).to_equiv.left_inv (x ⊗ₜ[R] y), end,
-  inv_hom_id' := begin ext x, exact (tensor_product.rid R M).to_equiv.right_inv x, end, }
+(linear_equiv.to_Module_iso (tensor_product.rid R M) : of R (M ⊗ R) ≅ of R M).trans (of_self R M)
 
 lemma right_unitor_naturality {M N : Module R} (f : M ⟶ N) :
   tensor_hom f (𝟙 (Module.of R R)) ≫ (right_unitor N).hom = (right_unitor M).hom ≫ f :=
 begin
-  ext x y, simp, dsimp [right_unitor],
-  erw [tensor_product.rid_tmul, tensor_product.rid_tmul], -- TODO these are simp lemmas, why don't they fire?
-  exact (linear_map.smul _ y x).symm, -- TODO why doesn't `rw linear_map.smul` work?
+  ext x y, simp,
+  erw [tensor_product.rid_tmul, tensor_product.rid_tmul],
+  rw linear_map.map_smul,
+  refl,
 end
 
 lemma triangle (M N : Module R) :
   (associator M (Module.of R R) N).hom ≫ tensor_hom (𝟙 M) (left_unitor N).hom =
     tensor_hom (right_unitor M).hom (𝟙 N) :=
 begin
-  ext, change R at y,
+  apply tensor_product.ext_threefold,
+  intros x y z,
+  change R at y,
   dsimp [tensor_hom, associator],
-  erw [tensor_product.lid_tmul, tensor_product.rid_tmul], -- TODO these are simp lemmas, why don't they fire?
+  erw [tensor_product.lid_tmul, tensor_product.rid_tmul],
   apply (tensor_product.smul_tmul _ _ _).symm
 end
 

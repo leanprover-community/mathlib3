@@ -125,7 +125,7 @@ end
 
 /-- Every functor indexing a (co)equalizer is naturally isomorphic (actually, equal) to a
     `parallel_pair` -/
-def parallel_pair_of_diagram {F : walking_parallel_pair.{v} ⥤ C} :
+def diagram_iso_parallel_pair (F : walking_parallel_pair.{v} ⥤ C) :
   F ≅ parallel_pair (F.map left) (F.map right) :=
 nat_iso.of_components (λ j, eq_to_iso $ by cases j; tidy) $ by tidy
 
@@ -480,11 +480,11 @@ def has_coequalizers_of_has_finite_colimits [has_finite_colimits.{v} C] : has_co
 /-- If `C` has all limits of diagrams `parallel_pair f g`, then it has all equalizers -/
 def has_equalizers_of_has_limit_parallel_pair
   [Π {X Y : C} {f g : X ⟶ Y}, has_limit (parallel_pair f g)] : has_equalizers.{v} C :=
-{ has_limits_of_shape := { has_limit := λ F, has_limit_of_iso parallel_pair_of_diagram.symm } }
+{ has_limits_of_shape := { has_limit := λ F, has_limit_of_iso (diagram_iso_parallel_pair F).symm } }
 
 /-- If `C` has all colimits of diagrams `parallel_pair f g`, then it has all coequalizers -/
 def has_coequalizers_of_has_colimit_parallel_pair
   [Π {X Y : C} {f g : X ⟶ Y}, has_colimit (parallel_pair f g)] : has_coequalizers.{v} C :=
-{ has_colimits_of_shape := { has_colimit := λ F, has_colimit_of_iso parallel_pair_of_diagram } }
+{ has_colimits_of_shape := { has_colimit := λ F, has_colimit_of_iso (diagram_iso_parallel_pair F) } }
 
 end category_theory.limits

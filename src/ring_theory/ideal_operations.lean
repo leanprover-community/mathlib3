@@ -563,6 +563,7 @@ variables {R : Type u} {S : Type v} [comm_ring R]
 section comm_ring
 variables [comm_ring S] (f : R →+* S)
 
+/-- Kernel of a ring homomorphism as an ideal of the domain. -/
 def ker : ideal R := ideal.comap f ⊥
 
 /-- An element is in the kernel if and only if it maps to zero.-/

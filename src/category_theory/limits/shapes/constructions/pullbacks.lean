@@ -65,9 +65,9 @@ let ι₁ : Y ⟶ Y ⨿ Z := coprod.inl, ι₂ : Z ⟶ Y ⨿ Z := coprod.inr,
       (s.ι.app walking_span.right)) $ by
         rw [category.assoc, colimit.ι_desc, category.assoc, colimit.ι_desc];
         exact pushout_cocone.condition _)
-  (by simp) (by simp) $ λ s m h, by
-    ext; simp only [colimit.ι_desc, cofork.of_π_app_one]; rw [←category.assoc];
-    exact walking_pair.cases_on j (h walking_span.left) (h walking_span.right) }
+    (by simp) (by simp) $ λ s m h, by
+      ext; simp only [colimit.ι_desc, cofork.of_π_app_one]; rw [←category.assoc];
+      exact walking_pair.cases_on j (h walking_span.left) (h walking_span.right) }
 
 section
 

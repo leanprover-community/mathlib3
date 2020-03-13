@@ -65,9 +65,12 @@ instance limit_add_comm_group (F : J ⥤ AddCommGroup.{u}) :
 @subtype.add_comm_group ((Π (j : J), (F ⋙ forget _).obj j)) (by apply_instance) _
   (by convert (AddCommGroup.sections_add_subgroup F))
 
-instance limit_π_is_add_group_hom (F : J ⥤ AddCommGroup.{u}) (j) :
-  is_add_group_hom (limit.π (F ⋙ forget AddCommGroup) j) :=
-{ map_add := λ x y, by { simp only [types.types_limit_π], refl } }
+/-- `limit.π (F ⋙ forget AddCommGroup) j` as a `add_monoid_hom`. -/
+def limit_π_add_monoid_hom (F : J ⥤ CommRing.{u}) (j) :
+  limit (F ⋙ forget AddCommGroup) →+ (F ⋙ forget AddCommGroup).obj j :=
+{ to_fun := limit.π (F ⋙ forget AddCommGroup) j,
+  map_zero' := by { simp only [types.types_limit_π], refl },
+  map_add' := λ x y, by { simp only [types.types_limit_π], refl } }
 
 namespace AddCommGroup_has_limits
 -- The next two definitions are used in the construction of `has_limits AddCommGroup`.
@@ -81,7 +84,7 @@ Construction of a limit cone in `AddCommGroup`.
 def limit (F : J ⥤ AddCommGroup.{u}) : cone F :=
 { X := ⟨limit (F ⋙ forget _), by apply_instance⟩,
   π :=
-  { app := λ j, add_monoid_hom.of $ limit.π (F ⋙ forget _) j,
+  { app := limit_π_add_monoid_hom,
     naturality' := λ j j' f,
       add_monoid_hom.coe_inj ((limit.cone (F ⋙ forget _)).π.naturality f) } }
 

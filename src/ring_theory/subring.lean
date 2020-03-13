@@ -42,6 +42,16 @@ instance is_subring_set_range {R : Type u} {S : Type v} [ring R] [ring S]
 
 end is_ring_hom
 
+/-- Restrict the codomain of a ring homomorphism to a subring that includes the range. -/
+def ring_hom.cod_restrict {R : Type u} {S : Type v} [ring R] [ring S] (f : R →+* S)
+  (s : set S) [is_subring s] (h : ∀ x, f x ∈ s) :
+  R →+* s :=
+{ to_fun := λ x, ⟨f x, h x⟩,
+  map_add' := λ x y, subtype.eq $ f.map_add x y,
+  map_zero' := subtype.eq f.map_zero,
+  map_mul' := λ x y, subtype.eq $ f.map_mul x y,
+  map_one' := subtype.eq f.map_one }
+
 instance subtype_val.is_ring_hom {s : set R} [is_subring s] :
   is_ring_hom (subtype.val : s → R) :=
 { ..subtype_val.is_add_group_hom, ..subtype_val.is_monoid_hom }

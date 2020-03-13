@@ -439,34 +439,45 @@ open free_comm_ring
 variables (G f)
 /-- The universal property of the direct limit: maps from the components to another ring
 that respect the directed system structure (i.e. make some diagram commute) give rise
-to a unique map out of the direct limit. -/
-def lift : direct_limit G f → P :=
-ideal.quotient.lift _ (free_comm_ring.lift $ λ x, g x.1 x.2) begin
+to a unique map out of the direct limit.
+
+We don't use this function as the canonical form because Lean 3 fails to automatically coerce
+it to a function; use `lift` instead. -/
+def lift_hom : direct_limit G f →+* P :=
+ideal.quotient.lift _ (free_comm_ring.lift_hom $ λ x, g x.1 x.2) begin
   suffices : ideal.span _ ≤
-    ideal.comap (free_comm_ring.lift (λ (x : Σ (i : ι), G i), g (x.fst) (x.snd))) ⊥,
+    ideal.comap (free_comm_ring.lift_hom (λ (x : Σ (i : ι), G i), g (x.fst) (x.snd))) ⊥,
   { intros x hx, exact (mem_bot P).1 (this hx) },
   rw ideal.span_le, intros x hx,
   rw [mem_coe, ideal.mem_comap, mem_bot],
   rcases hx with ⟨i, j, hij, x, rfl⟩ | ⟨i, rfl⟩ | ⟨i, x, y, rfl⟩ | ⟨i, x, y, rfl⟩;
-  simp only [lift_sub, lift_of, Hg, lift_one, lift_add, lift_mul,
+  simp only [coe_lift_hom, lift_sub, lift_of, Hg, lift_one, lift_add, lift_mul,
       is_ring_hom.map_one (g i), is_ring_hom.map_add (g i), is_ring_hom.map_mul (g i), sub_self]
 end
+
+/-- The universal property of the direct limit: maps from the components to another ring
+that respect the directed system structure (i.e. make some diagram commute) give rise
+to a unique map out of the direct limit. -/
+def lift : direct_limit G f → P := lift_hom G f P g Hg
+
+instance lift_is_ring_hom : is_ring_hom (lift G f P g Hg) := (lift_hom G f P g Hg).is_ring_hom
+
 variables {G f}
 omit Hg
 
-instance lift.is_ring_hom : is_ring_hom (lift G f P g Hg) :=
-⟨free_comm_ring.lift_one _,
-λ x y, quotient.induction_on₂' x y $ λ p q, free_comm_ring.lift_mul _ _ _,
-λ x y, quotient.induction_on₂' x y $ λ p q, free_comm_ring.lift_add _ _ _⟩
-
 @[simp] lemma lift_of (i x) : lift G f P g Hg (of G f i x) = g i x := free_comm_ring.lift_of _ _
-@[simp] lemma lift_zero : lift G f P g Hg 0 = 0 := is_ring_hom.map_zero _
-@[simp] lemma lift_one : lift G f P g Hg 1 = 1 := is_ring_hom.map_one _
-@[simp] lemma lift_add (x y) : lift G f P g Hg (x + y) = lift G f P g Hg x + lift G f P g Hg y := is_ring_hom.map_add _
-@[simp] lemma lift_neg (x) : lift G f P g Hg (-x) = -lift G f P g Hg x := is_ring_hom.map_neg _
-@[simp] lemma lift_sub (x y) : lift G f P g Hg (x - y) = lift G f P g Hg x - lift G f P g Hg y := is_ring_hom.map_sub _
-@[simp] lemma lift_mul (x y) : lift G f P g Hg (x * y) = lift G f P g Hg x * lift G f P g Hg y := is_ring_hom.map_mul _
-@[simp] lemma lift_pow (x) (n : ℕ) : lift G f P g Hg (x ^ n) = lift G f P g Hg x ^ n := is_semiring_hom.map_pow _ _ _
+@[simp] lemma lift_zero : lift G f P g Hg 0 = 0 := (lift_hom G f P g Hg).map_zero
+@[simp] lemma lift_one : lift G f P g Hg 1 = 1 := (lift_hom G f P g Hg).map_one
+@[simp] lemma lift_add (x y) : lift G f P g Hg (x + y) = lift G f P g Hg x + lift G f P g Hg y :=
+(lift_hom G f P g Hg).map_add x y
+@[simp] lemma lift_neg (x) : lift G f P g Hg (-x) = -lift G f P g Hg x :=
+(lift_hom G f P g Hg).map_neg x
+@[simp] lemma lift_sub (x y) : lift G f P g Hg (x - y) = lift G f P g Hg x - lift G f P g Hg y :=
+(lift_hom G f P g Hg).map_sub x y
+@[simp] lemma lift_mul (x y) : lift G f P g Hg (x * y) = lift G f P g Hg x * lift G f P g Hg y :=
+(lift_hom G f P g Hg).map_mul x y
+@[simp] lemma lift_pow (x) (n : ℕ) : lift G f P g Hg (x ^ n) = lift G f P g Hg x ^ n :=
+(lift_hom G f P g Hg).map_pow x n
 
 theorem lift_unique (F : direct_limit G f → P) [is_ring_hom F] (x) :
   F x = lift G f P (λ i x, F $ of G f i x) (λ i j hij x, by rw [of_f]) x :=

@@ -210,8 +210,8 @@ instance (I : ideal α) : comm_ring I.quotient :=
     λ a b c, congr_arg (mk _) (right_distrib a b c),
   ..submodule.quotient.add_comm_group I }
 
-instance is_ring_hom_mk (I : ideal α) : is_ring_hom (mk I) :=
-⟨rfl, λ _ _, rfl, λ _ _, rfl⟩
+/-- `ideal.quotient.mk` as a `ring_hom` -/
+def mk_hom (I : ideal α) : α →+* I.quotient := ⟨mk I, rfl, λ _ _, rfl, rfl, λ _ _, rfl⟩
 
 def map_mk (I J : ideal α) : ideal I.quotient :=
 { carrier := mk I '' J,
@@ -226,7 +226,15 @@ def map_mk (I J : ideal α) : ideal I.quotient :=
 @[simp] lemma mk_neg (I : ideal α) (a : α) : mk I (-a : α) = -mk I a := rfl
 @[simp] lemma mk_sub (I : ideal α) (a b : α) : mk I (a - b : α) = mk I a - mk I b := rfl
 @[simp] lemma mk_pow (I : ideal α) (a : α) (n : ℕ) : mk I (a ^ n : α) = mk I a ^ n :=
-by induction n; simp [*, pow_succ]
+(mk_hom I).map_pow a n
+
+lemma mk_prod {ι} (I : ideal α) (s : finset ι) (f : ι → α) :
+  mk I (s.prod f) = s.prod (λ i, mk I (f i)) :=
+(mk_hom I).map_prod f s
+
+lemma mk_sum {ι} (I : ideal α) (s : finset ι) (f : ι → α) :
+  mk I (s.sum f) = s.sum (λ i, mk I (f i)) :=
+(mk_hom I).map_sum f s
 
 lemma eq_zero_iff_mem {I : ideal α} : mk I a = 0 ↔ a ∈ I :=
 by conv {to_rhs, rw ← sub_zero a }; exact quotient.eq'
@@ -269,34 +277,23 @@ protected noncomputable def field (I : ideal α) [hI : I.is_maximal] : field I.q
 
 variable [comm_ring β]
 
-def lift (S : ideal α) (f : α → β) [is_ring_hom f] (H : ∀ (a : α), a ∈ S → f a = 0) :
-  quotient S → β :=
-λ x, quotient.lift_on' x f $ λ (a b) (h : _ ∈ _),
-eq_of_sub_eq_zero (by simpa only [is_ring_hom.map_sub f] using H _ h)
+/-- Given a ring homomorphism `f : α →+* β` sending all elements of an ideal to zero,
+lift it to the quotient by this ideal. -/
+def lift (S : ideal α) (f : α →+* β) (H : ∀ (a : α), a ∈ S → f a = 0) :
+  quotient S →+* β :=
+{ to_fun := λ x, quotient.lift_on' x f $ λ (a b) (h : _ ∈ _),
+    eq_of_sub_eq_zero $ by rw [← f.map_sub, H _ h],
+  map_one' := f.map_one,
+  map_zero' := f.map_zero,
+  map_add' := λ a₁ a₂, quotient.induction_on₂' a₁ a₂ f.map_add,
+  map_mul' := λ a₁ a₂, quotient.induction_on₂' a₁ a₂ f.map_mul }
 
-variables {S : ideal α} {f : α → β} [is_ring_hom f] {H : ∀ (a : α), a ∈ S → f a = 0}
-
-@[simp] lemma lift_mk : lift S f H (mk S a) = f a := rfl
-
-instance : is_ring_hom (lift S f H) :=
-{ map_one := by show lift S f H (mk S 1) = 1; simp [is_ring_hom.map_one f, - mk_one],
-  map_add := λ a₁ a₂, quotient.induction_on₂' a₁ a₂ $ λ a₁ a₂, begin
-    show lift S f H (mk S a₁ + mk S a₂) = lift S f H (mk S a₁) + lift S f H (mk S a₂),
-    have := ideal.quotient.is_ring_hom_mk S,
-    rw ← this.map_add,
-    show lift S f H (mk S (a₁ + a₂)) = lift S f H (mk S a₁) + lift S f H (mk S a₂),
-    simp only [lift_mk, is_ring_hom.map_add f],
-  end,
-  map_mul := λ a₁ a₂, quotient.induction_on₂' a₁ a₂ $ λ a₁ a₂, begin
-    show lift S f H (mk S a₁ * mk S a₂) = lift S f H (mk S a₁) * lift S f H (mk S a₂),
-    have := ideal.quotient.is_ring_hom_mk S,
-    rw ← this.map_mul,
-    show lift S f H (mk S (a₁ * a₂)) = lift S f H (mk S a₁) * lift S f H (mk S a₂),
-    simp only [lift_mk, is_ring_hom.map_mul f],
-  end }
+@[simp] lemma lift_mk (S : ideal α) (f : α →+* β) (H : ∀ (a : α), a ∈ S → f a = 0) :
+  lift S f H (mk S a) = f a := rfl
 
 end quotient
 
+/-- All ideals in a field are trivial. -/
 lemma eq_bot_or_top {K : Type u} [field K] (I : ideal K) :
   I = ⊥ ∨ I = ⊤ :=
 begin
@@ -316,6 +313,7 @@ classical.or_iff_not_imp_right.mp I.eq_bot_or_top h.1
 
 end ideal
 
+/-- The set of non-invertible elements of a monoid. -/
 def nonunits (α : Type u) [monoid α] : set α := { a | ¬is_unit a }
 
 @[simp] theorem mem_nonunits_iff [comm_monoid α] : a ∈ nonunits α ↔ ¬ is_unit a := iff.rfl
@@ -454,18 +452,18 @@ Imax.1 $ I.eq_top_of_is_unit_mem (I.add_mem xmemI ymemI) H
 
 section prio
 set_option default_priority 100 -- see Note [default priority]
-class is_local_ring_hom [comm_ring α] [comm_ring β] (f : α → β) extends is_ring_hom f : Prop :=
+class is_local_ring_hom [semiring α] [semiring β] (f : α →+* β) : Prop :=
 (map_nonunit : ∀ a, is_unit (f a) → is_unit a)
 end prio
 
-@[simp] lemma is_unit_of_map_unit [comm_ring α] [comm_ring β] (f : α → β) [is_local_ring_hom f]
+@[simp] lemma is_unit_of_map_unit [semiring α] [semiring β] (f : α →+* β) [is_local_ring_hom f]
   (a) (h : is_unit (f a)) : is_unit a :=
 is_local_ring_hom.map_nonunit a h
 
 section
 open local_ring
 variables [local_ring α] [local_ring β]
-variables (f : α → β) [is_local_ring_hom f]
+variables (f : α →+* β) [is_local_ring_hom f]
 
 lemma map_nonunit (a) (h : a ∈ nonunits_ideal α) : f a ∈ nonunits_ideal β :=
 λ H, h $ is_unit_of_map_unit f a H
@@ -484,18 +482,14 @@ noncomputable instance : field (residue_field α) :=
 ideal.quotient.field (nonunits_ideal α)
 
 variables {α β}
-noncomputable def map (f : α → β) [is_local_ring_hom f] :
-  residue_field α → residue_field β :=
-ideal.quotient.lift (nonunits_ideal α) (ideal.quotient.mk _ ∘ f) $
+noncomputable def map (f : α →+* β) [is_local_ring_hom f] :
+  residue_field α →+* residue_field β :=
+ideal.quotient.lift (nonunits_ideal α) ((ideal.quotient.mk_hom _).comp f) $
 λ a ha,
 begin
   erw ideal.quotient.eq_zero_iff_mem,
   exact map_nonunit f a ha
 end
-
-instance map.is_ring_hom (f : α → β) [is_local_ring_hom f] :
-  is_ring_hom (map f) :=
-ideal.quotient.is_ring_hom
 
 end residue_field
 

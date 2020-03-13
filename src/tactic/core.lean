@@ -82,21 +82,6 @@ end interaction_monad
 namespace lean.parser
 open lean interaction_monad.result
 
-/-- `of_tactic' tac` lifts the tactic `tac` into the parser monad.
-This replaces `of_tactic` in core, which has a buggy implementation. -/
-meta def of_tactic' {α} (tac : tactic α) : parser α :=
-do r ← of_tactic (interaction_monad.get_result tac),
-match r with
-| (success a _) := return a
-| (exception f pos _) := exception f pos
-end
-
-/-- Override the builtin `lean.parser.of_tactic` coe, which is broken.
-(See test/tactics.lean for a failure case.) -/
-@[priority 2000]
-meta instance has_coe' {α} : has_coe (tactic α) (parser α) :=
-⟨of_tactic'⟩
-
 /-- `emit_command_here str` behaves as if the string `str` were placed as a user command at the
 current line. -/
 meta def emit_command_here (str : string) : lean.parser string :=

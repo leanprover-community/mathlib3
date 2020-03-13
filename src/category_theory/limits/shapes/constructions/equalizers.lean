@@ -62,9 +62,7 @@ def equalizer_cone_is_limit (F : walking_parallel_pair ⥤ C) : is_limit (equali
   end,
   fac' :=
   begin
-    rintros c (_ | _),
-    { simp, refl },
-    { simp, exact c.w _ }
+    rintros c (_ | _); simp
   end,
   uniq' :=
   begin

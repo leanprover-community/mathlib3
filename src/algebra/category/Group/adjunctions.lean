@@ -38,14 +38,12 @@ def free : Type u ⥤ AddCommGroup.{u} :=
 @[simp] lemma free_map_coe {α β : Type u} {f : α → β} (x : free_abelian_group α) :
   (free.map f) x = f <$> x := rfl
 
-local attribute [ext] add_monoid_hom.ext -- TODO mark this globally?
-
 /--
 The free-forgetful adjunction for abelian groups.
 -/
 def adj : free ⊣ forget AddCommGroup :=
 adjunction.mk_of_hom_equiv
 { hom_equiv := λ X G, free_abelian_group.hom_equiv X G,
-  hom_equiv_naturality_left_symm' := by {intros, ext, dsimp at *, simp,} }
+  hom_equiv_naturality_left_symm' := by {intros, ext, dsimp at *, simp [free_abelian_group.lift_comp],} }
 
 end AddCommGroup

@@ -84,8 +84,8 @@ end lift
 
 section
 variables (X : Type*) (G : Type*) [add_comm_group G]
-local attribute [ext] add_monoid_hom.ext
 
+/-- The bijection underlying the free-forgetful adjunction for abelian groups.-/
 def hom_equiv : (free_abelian_group X →+ G) ≃ (X → G) :=
 { to_fun := λ f, f.1 ∘ of,
   inv_fun := λ f, add_monoid_hom.of (lift f),
@@ -164,7 +164,7 @@ lift.sub _ _ _
 
 @[simp] lemma map_of (f : α → β) (y : α) : f <$> of y = of (f y) := rfl
 
-@[simp] lemma lift_comp {α} {β} {γ} [add_comm_group γ]
+lemma lift_comp {α} {β} {γ} [add_comm_group γ]
   (f : α → β)
   (g : β → γ)
   (x : free_abelian_group α) :

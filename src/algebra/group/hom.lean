@@ -84,9 +84,11 @@ lemma coe_mk (f : M → N) (h1 hmul) : ⇑(monoid_hom.mk f h1 hmul) = f := rfl
 lemma coe_inj ⦃f g : M →* N⦄ (h : (f : M → N) = g) : f = g :=
 by cases f; cases g; cases h; refl
 
-@[ext, to_additive]
+@[ext]
 lemma ext ⦃f g : M →* N⦄ (h : ∀ x, f x = g x) : f = g :=
 coe_inj (funext h)
+
+attribute [ext] _root_.add_monoid_hom.ext
 
 @[to_additive]
 lemma ext_iff {f g : M →* N} : f = g ↔ ∀ x, f x = g x :=

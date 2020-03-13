@@ -291,6 +291,13 @@ instance : module R (M →ₗ[R] M₂) :=
 module.of_core $ by refine { smul := (•), ..};
   intros; ext; simp [smul_add, add_smul, smul_smul]
 
+/-- Composition by `f : M₂ → M₃` is a linear map from the space of linear maps `M → M₂` to the space of
+linear maps `M₂ → M₃`. -/
+def comp_right (f : M₂ →ₗ[R] M₃) : (M →ₗ[R] M₂) →ₗ[R] (M →ₗ[R] M₃) :=
+⟨linear_map.comp f,
+λ _ _, linear_map.ext $ λ _, f.2 _ _,
+λ _ _, linear_map.ext $ λ _, f.3 _ _⟩
+
 theorem smul_comp (g : M₂ →ₗ[R] M₃) (a : R) : (a • g).comp f = a • (g.comp f) :=
 rfl
 

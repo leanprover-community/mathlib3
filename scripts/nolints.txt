@@ -2572,13 +2572,6 @@ apply_nolint algebra.adjoin_eq_range unused_arguments
 apply_nolint algebra.adjoin_singleton_eq_range unused_arguments
 apply_nolint subalgebra.fg doc_blame
 
--- ring_theory/adjoin_root.lean
-apply_nolint adjoin_root doc_blame
-apply_nolint adjoin_root.lift doc_blame
-apply_nolint adjoin_root.mk doc_blame
-apply_nolint adjoin_root.of doc_blame
-apply_nolint adjoin_root.root doc_blame
-
 -- ring_theory/algebra.lean
 apply_nolint alg_hom has_inhabited_instance
 apply_nolint alg_hom.comp doc_blame
@@ -2608,8 +2601,6 @@ apply_nolint subalgebra.val doc_blame
 -- ring_theory/free_comm_ring.lean
 apply_nolint free_comm_ring doc_blame
 apply_nolint free_comm_ring.is_supported doc_blame
-apply_nolint free_comm_ring.lift doc_blame
-apply_nolint free_comm_ring.map doc_blame
 apply_nolint free_comm_ring.of doc_blame
 apply_nolint free_comm_ring.restriction doc_blame
 apply_nolint free_comm_ring_equiv_mv_polynomial_int doc_blame
@@ -2629,9 +2620,8 @@ apply_nolint free_ring.of doc_blame
 -- ring_theory/ideal_operations.lean
 apply_nolint ideal.le_order_embedding_of_surjective doc_blame
 apply_nolint ideal.lt_order_embedding_of_surjective doc_blame
-apply_nolint ideal.map unused_arguments doc_blame
+apply_nolint ideal.map doc_blame
 apply_nolint ideal.quotient_inf_to_pi_quotient doc_blame
-apply_nolint is_ring_hom.ker doc_blame
 apply_nolint submodule.annihilator doc_blame
 apply_nolint submodule.colon doc_blame
 
@@ -2640,7 +2630,6 @@ apply_nolint ideal.is_coprime doc_blame
 apply_nolint ideal.is_maximal doc_blame
 apply_nolint ideal.is_prime doc_blame
 apply_nolint ideal.quotient doc_blame has_inhabited_instance
-apply_nolint ideal.quotient.lift doc_blame
 apply_nolint ideal.quotient.map_mk doc_blame
 apply_nolint ideal.quotient.mk doc_blame
 apply_nolint ideal.quotient.nonzero_comm_ring doc_blame
@@ -2655,11 +2644,9 @@ apply_nolint local_ring doc_blame
 apply_nolint local_ring.nonunits_ideal doc_blame
 apply_nolint local_ring.residue_field doc_blame has_inhabited_instance
 apply_nolint local_ring.residue_field.map doc_blame
-apply_nolint nonunits doc_blame
 
 -- ring_theory/integral_closure.lean
 apply_nolint integral_closure doc_blame
-apply_nolint is_integral doc_blame
 
 -- ring_theory/localization.lean
 apply_nolint localization.at_prime doc_blame

@@ -813,7 +813,6 @@ apply_nolint category_theory.has_hom.hom.op doc_blame
 apply_nolint category_theory.has_hom.hom.unop doc_blame
 apply_nolint category_theory.is_iso_of_op doc_blame
 apply_nolint category_theory.iso.op doc_blame
-apply_nolint category_theory.nat_iso.op doc_blame
 apply_nolint category_theory.nat_trans.left_op doc_blame
 apply_nolint category_theory.nat_trans.op doc_blame
 apply_nolint category_theory.nat_trans.right_op doc_blame
@@ -2498,16 +2497,6 @@ apply_nolint lattice.infi_eq_bot ge_or_gt
 -- order/conditionally_complete_lattice.lean
 apply_nolint lattice.conditionally_complete_linear_order doc_blame
 apply_nolint lattice.conditionally_complete_linear_order_bot doc_blame
-
--- order/filter/basic.lean
-apply_nolint filter doc_blame
-apply_nolint filter.gi_generate doc_blame
-apply_nolint filter.hyperfilter doc_blame
-apply_nolint filter.mk_of_closure doc_blame
-apply_nolint filter.monad doc_blame
-apply_nolint filter.ultrafilter.bind doc_blame
-apply_nolint filter.ultrafilter.map doc_blame
-apply_nolint filter.ultrafilter.pure doc_blame
 
 -- order/filter/partial.lean
 apply_nolint filter.pcomap' doc_blame

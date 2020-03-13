@@ -73,9 +73,9 @@ def binary_cofan.mk {P : C} (ι₁ : X ⟶ P) (ι₂ : Y ⟶ P) : binary_cofan X
   (binary_fan.mk π₁ π₂).π.app walking_pair.left = π₁ := rfl
 @[simp] lemma binary_fan.mk_π_app_right {P : C} (π₁ : P ⟶ X) (π₂ : P ⟶ Y) :
   (binary_fan.mk π₁ π₂).π.app walking_pair.right = π₂ := rfl
-@[simp] lemma binary_cofan.mk_π_app_left {P : C} (ι₁ : X ⟶ P) (ι₂ : Y ⟶ P) :
+@[simp] lemma binary_cofan.mk_ι_app_left {P : C} (ι₁ : X ⟶ P) (ι₂ : Y ⟶ P) :
   (binary_cofan.mk ι₁ ι₂).ι.app walking_pair.left = ι₁ := rfl
-@[simp] lemma binary_cofan.mk_π_app_right {P : C} (ι₁ : X ⟶ P) (ι₂ : Y ⟶ P) :
+@[simp] lemma binary_cofan.mk_ι_app_right {P : C} (ι₁ : X ⟶ P) (ι₂ : Y ⟶ P) :
   (binary_cofan.mk ι₁ ι₂).ι.app walking_pair.right = ι₂ := rfl
 
 abbreviation prod (X Y : C) [has_limit (pair X Y)] := limit (pair X Y)

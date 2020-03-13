@@ -590,7 +590,8 @@ begin
   rw add_monoid_hom.map_gsmul,
 end
 
-
+-- We finally turn on these instances globally:
+attribute [instance] add_comm_monoid.nat_semimodule add_comm_group.int_module
 
 namespace finset
 
@@ -602,8 +603,6 @@ by rw [finset.sum_const, ← module.smul_eq_smul]; refl
 variables {M : Type*} [decidable_linear_ordered_cancel_comm_monoid M]
   {s : finset α} (f : α → M)
 
-local attribute [instance] add_comm_monoid.nat_semimodule
-
 theorem exists_card_smul_le_sum (hs : s.nonempty) :
   ∃ i ∈ s, s.card • f i ≤ s.sum f :=
 exists_le_of_sum_le hs $ by rw [sum_const, ← nat.smul_def, smul_sum]
@@ -613,5 +612,3 @@ theorem exists_card_smul_ge_sum (hs : s.nonempty) :
 exists_le_of_sum_le hs $ by rw [sum_const, ← nat.smul_def, smul_sum]
 
 end finset
-
-attribute [instance] add_comm_group.int_module

@@ -174,9 +174,9 @@ begin
     -- map
     { rw cocone.naturality_concrete, },
     -- mul
-    { rw is_monoid_hom.map_mul ⇑((s.ι).app r_j) },
+    { rw monoid_hom.map_mul ((s.ι).app r_j) },
     -- one
-    { erw is_monoid_hom.map_one ⇑((s.ι).app r), refl },
+    { erw monoid_hom.map_one ((s.ι).app r), refl },
     -- mul_1
     { rw r_ih, },
     -- mul_2
@@ -205,10 +205,10 @@ def colimit_is_colimit : is_colimit (colimit_cocone F) :=
       erw w',
       refl, },
     { simp only [desc_morphism, quot_one],
-      erw is_monoid_hom.map_one ⇑m,
+      erw monoid_hom.map_one m,
       refl, },
     { simp only [desc_morphism, quot_mul],
-      erw is_monoid_hom.map_mul ⇑m,
+      erw monoid_hom.map_mul m,
       rw [x_ih_a, x_ih_a_1],
       refl, },
     refl

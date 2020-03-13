@@ -165,9 +165,7 @@ lift.sub _ _ _
 @[simp] lemma map_of (f : α → β) (y : α) : f <$> of y = of (f y) := rfl
 
 lemma lift_comp {α} {β} {γ} [add_comm_group γ]
-  (f : α → β)
-  (g : β → γ)
-  (x : free_abelian_group α) :
+  (f : α → β) (g : β → γ) (x : free_abelian_group α) :
   lift (g ∘ f) x = lift g (f <$> x) :=
 begin
   apply free_abelian_group.induction_on x,

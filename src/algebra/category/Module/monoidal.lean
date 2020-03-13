@@ -44,14 +44,17 @@ by tidy
 
 /-- (implementation) the associator for R-modules -/
 def associator (M N K : Module R) : tensor_obj (tensor_obj M N) K ≅ tensor_obj M (tensor_obj N K) :=
-linear_equiv.to_Module_iso tensor_product.assoc
+linear_equiv.to_Module_iso (tensor_product.assoc R M N K)
 
 lemma associator_naturality {X₁ X₂ X₃ Y₁ Y₂ Y₃ : Module R}
   (f₁ : X₁ ⟶ Y₁) (f₂ : X₂ ⟶ Y₂) (f₃ : X₃ ⟶ Y₃) :
     tensor_hom (tensor_hom f₁ f₂) f₃ ≫ (associator Y₁ Y₂ Y₃).hom =
     (associator X₁ X₂ X₃).hom ≫ tensor_hom f₁ (tensor_hom f₂ f₃) :=
-by tidy
+begin
+  ext1,
+end
 
+#exit
 lemma pentagon (W X Y Z : Module R) :
   tensor_hom (associator W X Y).hom (𝟙 Z) ≫ (associator W (tensor_obj X Y) Z).hom ≫ tensor_hom (𝟙 W) (associator X Y Z).hom =
     (associator (tensor_obj W X) Y Z).hom ≫ (associator W X (tensor_obj Y Z)).hom :=
@@ -62,10 +65,10 @@ by tidy
 -- but couldn't get it to work
 @[simps]
 def left_unitor (M : Module R) : Module.of R (R ⊗[R] M) ≅ M :=
-{ hom := (tensor_product.lid : R ⊗[R] M ≃ₗ[R] M).to_linear_map,
-  inv := (tensor_product.lid : R ⊗[R] M ≃ₗ[R] M).symm.to_linear_map,
-  hom_inv_id' := begin ext x y, exact tensor_product.lid.to_equiv.left_inv (x ⊗ₜ[R] y), end,
-  inv_hom_id' := begin ext x, exact tensor_product.lid.to_equiv.right_inv x, end, }
+{ hom := (tensor_product.lid R M : R ⊗[R] M ≃ₗ[R] M).to_linear_map,
+  inv := (tensor_product.lid R M : R ⊗[R] M ≃ₗ[R] M).symm.to_linear_map,
+  hom_inv_id' := begin ext x y, exact (tensor_product.lid R M).to_equiv.left_inv (x ⊗ₜ[R] y), end,
+  inv_hom_id' := begin ext x, exact (tensor_product.lid R M).to_equiv.right_inv x, end, }
 
 lemma left_unitor_naturality {M N : Module R} (f : M ⟶ N) :
   tensor_hom (𝟙 (Module.of R R)) f ≫ (left_unitor N).hom = (left_unitor M).hom ≫ f :=
@@ -78,10 +81,10 @@ end
 /-- (implementation) the right unitor for R-modules -/
 @[simps]
 def right_unitor (M : Module R) : Module.of R (M ⊗[R] R) ≅ M :=
-{ hom := (tensor_product.rid : M ⊗[R] R ≃ₗ[R] M).to_linear_map,
-  inv := (tensor_product.rid : M ⊗[R] R ≃ₗ[R] M).symm.to_linear_map,
-  hom_inv_id' := begin ext x y, exact tensor_product.rid.to_equiv.left_inv (x ⊗ₜ[R] y), end,
-  inv_hom_id' := begin ext x, exact tensor_product.rid.to_equiv.right_inv x, end, }
+{ hom := (tensor_product.rid R M : M ⊗[R] R ≃ₗ[R] M).to_linear_map,
+  inv := (tensor_product.rid R M : M ⊗[R] R ≃ₗ[R] M).symm.to_linear_map,
+  hom_inv_id' := begin ext x y, exact (tensor_product.rid R M).to_equiv.left_inv (x ⊗ₜ[R] y), end,
+  inv_hom_id' := begin ext x, exact (tensor_product.rid R M).to_equiv.right_inv x, end, }
 
 lemma right_unitor_naturality {M N : Module R} (f : M ⟶ N) :
   tensor_hom f (𝟙 (Module.of R R)) ≫ (right_unitor N).hom = (right_unitor M).hom ≫ f :=

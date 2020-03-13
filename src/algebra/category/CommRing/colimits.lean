@@ -322,15 +322,15 @@ begin
     -- map
     { rw cocone.naturality_concrete, },
     -- zero
-    { erw is_ring_hom.map_zero ⇑((s.ι).app r), refl },
+    { erw ring_hom.map_zero ((s.ι).app r), refl },
     -- one
-    { erw is_ring_hom.map_one ⇑((s.ι).app r), refl },
+    { erw ring_hom.map_one ((s.ι).app r), refl },
     -- neg
-    { rw is_ring_hom.map_neg ⇑((s.ι).app r_j) },
+    { rw ring_hom.map_neg ((s.ι).app r_j) },
     -- add
-    { rw is_ring_hom.map_add ⇑((s.ι).app r_j) },
+    { rw ring_hom.map_add ((s.ι).app r_j) },
     -- mul
-    { rw is_ring_hom.map_mul ⇑((s.ι).app r_j) },
+    { rw ring_hom.map_mul ((s.ι).app r_j) },
     -- neg_1
     { rw r_ih, },
     -- add_1
@@ -384,21 +384,21 @@ def colimit_is_colimit : is_colimit (colimit_cocone F) :=
       erw w',
       refl, },
     { simp only [desc_morphism, quot_zero],
-      erw is_ring_hom.map_zero ⇑m,
+      erw ring_hom.map_zero m,
       refl, },
     { simp only [desc_morphism, quot_one],
-      erw is_ring_hom.map_one ⇑m,
+      erw ring_hom.map_one m,
       refl, },
     { simp only [desc_morphism, quot_neg],
-      erw is_ring_hom.map_neg ⇑m,
+      erw ring_hom.map_neg m,
       rw [x_ih],
       refl, },
     { simp only [desc_morphism, quot_add],
-      erw is_ring_hom.map_add ⇑m,
+      erw ring_hom.map_add m,
       rw [x_ih_a, x_ih_a_1],
       refl, },
     { simp only [desc_morphism, quot_mul],
-      erw is_ring_hom.map_mul ⇑m,
+      erw ring_hom.map_mul m,
       rw [x_ih_a, x_ih_a_1],
       refl, },
     refl

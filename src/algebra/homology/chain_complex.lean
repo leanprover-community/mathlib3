@@ -107,14 +107,15 @@ kernel.lift _ (kernel.ι _ ≫ f.f i)
 -- At this level of generality, it's just not true(!?) that a chain map
 -- induces maps on boundaries
 -- What extra conditions do we need to add?
-def induced_map_on_boundaries {C C' : chain_complex.{v} V} (f : C ⟶ C') (i : ℤ) :
-  image (C.d i) ⟶ image (C'.d i) :=
-sorry
 
-lemma induced_maps_commute {C C' : chain_complex.{v} V} (f : C ⟶ C') (i : ℤ) :
-image_to_kernel_map C i ≫ induced_map_on_cycles f (i-1) =
-  induced_map_on_boundaries f i ≫ image_to_kernel_map C' i :=
-sorry
+-- def induced_map_on_boundaries {C C' : chain_complex.{v} V} (f : C ⟶ C') (i : ℤ) :
+--   image (C.d i) ⟶ image (C'.d i) :=
+-- sorry
+
+-- lemma induced_maps_commute {C C' : chain_complex.{v} V} (f : C ⟶ C') (i : ℤ) :
+-- image_to_kernel_map C i ≫ induced_map_on_cycles f (i-1) =
+--   induced_map_on_boundaries f i ≫ image_to_kernel_map C' i :=
+-- sorry
 
 variables [has_cokernels.{v} V]
 
@@ -122,20 +123,20 @@ variables [has_cokernels.{v} V]
 def homology_group (C : chain_complex.{v} V) (i : ℤ) : V :=
 cokernel (image_to_kernel_map C i)
 
-def induced_map_on_homology {C C' : chain_complex.{v} V} (f : C ⟶ C') (i : ℤ) :
-  C.homology_group i ⟶ C'.homology_group i :=
-cokernel.desc _ (induced_map_on_cycles f (i-1) ≫ cokernel.π _)
-begin
-  rw [←category.assoc, induced_maps_commute, category.assoc, cokernel.condition],
-  erw [has_zero_morphisms.comp_zero],
-end
+-- def induced_map_on_homology {C C' : chain_complex.{v} V} (f : C ⟶ C') (i : ℤ) :
+--   C.homology_group i ⟶ C'.homology_group i :=
+-- cokernel.desc _ (induced_map_on_cycles f (i-1) ≫ cokernel.π _)
+-- begin
+--   rw [←category.assoc, induced_maps_commute, category.assoc, cokernel.condition],
+--   erw [has_zero_morphisms.comp_zero],
+-- end
 
-/-- The homology functor from chain complexes to `ℤ` graded objects in `V`. -/
-def homology : chain_complex.{v} V ⥤ (ulift.{u} ℤ → V) :=
-{ obj := λ C i, homology_group C i.down,
-  map := λ C C' f i, induced_map_on_homology f i.down,
-  map_id' := sorry,
-  map_comp' := sorry, }
+-- /-- The homology functor from chain complexes to `ℤ` graded objects in `V`. -/
+-- def homology : chain_complex.{v} V ⥤ (ulift.{u} ℤ → V) :=
+-- { obj := λ C i, homology_group C i.down,
+--   map := λ C C' f i, induced_map_on_homology f i.down,
+--   map_id' := sorry,
+--   map_comp' := sorry, }
 
 end chain_complex
 

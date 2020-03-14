@@ -9,7 +9,7 @@ namespace Module
 
 -- set_option pp.notation false
 -- set_option pp.implicit true
-instance : concrete_monoidal_category (Module ℤ) :=
+instance foo : concrete_monoidal_category (Module ℤ) :=
 { lax_monoidal :=
   { ε := λ x, (1 : ℤ), -- err, 0, or 1?
     μ := λ G H p,
@@ -21,6 +21,18 @@ instance : concrete_monoidal_category (Module ℤ) :=
     left_unitality' := λ X, begin ext, dsimp,  end,
     right_unitality' := sorry, }}
 
+instance bar : concrete_monoidal_category (Module ℤ) :=
+{ lax_monoidal :=
+  { ε := λ _, 0,
+    μ := λ A B X, (X.1 limits.walking_pair.left) ⊗ₜ (X.1 limits.walking_pair.right),
+    μ_natural' := λ X Y X' Y' f g, sorry,
+--    associativity' := λ X Y Z, automation does this,
+    left_unitality' := sorry,
+    right_unitality' := sorry
+  }
+}
+
+#exit
 example : enriched_over (Module ℤ) (Module ℤ) :=
 { e_hom := λ X Y, Module.of ℤ (X ⟶ Y),
   e_id := λ X, sorry,

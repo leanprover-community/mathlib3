@@ -359,6 +359,8 @@ def of (f : α → β) [is_semiring_hom f] : α →+* β :=
 
 @[simp] lemma coe_of (f : α → β) [is_semiring_hom f] : ⇑(of f) = f := rfl
 
+@[simp] lemma coe_mk (f : α → β) (h₁ h₂ h₃ h₄) : ⇑(⟨f, h₁, h₂, h₃, h₄⟩ : α →+* β) = f := rfl
+
 variables (f : α →+* β) {x y : α} {rα rβ}
 
 theorem coe_inj ⦃f g : α →+* β⦄ (h : (f : α → β) = g) : f = g :=

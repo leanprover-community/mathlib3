@@ -36,6 +36,7 @@ instance lattice_set : complete_lattice (set α) :=
 instance : distrib_lattice (set α) :=
 { le_sup_inf := λ s t u x, or_and_distrib_left.2, ..set.lattice_set }
 
+/-- Image is monotone. See `set.image_image` for the statement in terms of `⊆`. -/
 lemma monotone_image {f : α → β} : monotone (image f) :=
 assume s t, assume h : s ⊆ t, image_subset _ h
 

@@ -189,6 +189,15 @@ lemma cospan_map_id {X Y Z : C} (f : X ⟶ Z) (g : Y ⟶ Z) (w : walking_cospan)
 lemma span_map_id {X Y Z : C} (f : X ⟶ Y) (g : X ⟶ Z) (w : walking_span) :
   (span f g).map (walking_span.hom.id w) = 𝟙 _ := rfl
 
+/-- Every diagram indexing an equalizer is naturally isomorphic (actually, equal) to a `cospan` -/
+def diagram_iso_cospan (F : walking_cospan ⥤ C) :
+  F ≅ cospan (F.map inl) (F.map inr) :=
+nat_iso.of_components (λ j, eq_to_iso $ by cases j; tidy) $ by tidy
+
+/-- Every diagram indexing a coequalizer naturally isomorphic (actually, equal) to a `span` -/
+def diagram_iso_span (F : walking_span ⥤ C) :
+  F ≅ span (F.map fst) (F.map snd) :=
+nat_iso.of_components (λ j, eq_to_iso $ by cases j; tidy) $ by tidy
 
 variables {X Y Z : C}
 
@@ -412,5 +421,17 @@ def has_pullbacks_of_has_finite_limits [has_finite_limits.{v} C] : has_pullbacks
 /-- Pushouts are finite colimits, so if `C` has all finite colimits, it also has all pushouts -/
 def has_pushouts_of_has_finite_colimits [has_finite_colimits.{v} C] : has_pushouts.{v} C :=
 { has_colimits_of_shape := infer_instance }
+
+/-- If `C` has all limits of diagrams `cospan f g`, then it has all pullbacks -/
+def has_pullbacks_of_has_limit_cospan
+  [Π {X Y Z : C} {f : X ⟶ Z} {g : Y ⟶ Z}, has_limit (cospan f g)] :
+  has_pullbacks.{v} C :=
+{ has_limits_of_shape := { has_limit := λ F, has_limit_of_iso (diagram_iso_cospan F).symm } }
+
+/-- If `C` has all colimits of diagrams `span f g`, then it has all pushouts -/
+def has_pushouts_of_has_colimit_span
+  [Π {X Y Z : C} {f : X ⟶ Y} {g : X ⟶ Z}, has_colimit (span f g)] :
+  has_pushouts.{v} C :=
+{ has_colimits_of_shape := { has_colimit := λ F, has_colimit_of_iso (diagram_iso_span F) } }
 
 end category_theory.limits

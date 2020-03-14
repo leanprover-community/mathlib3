@@ -7,8 +7,8 @@ open category_theory
 
 namespace Module
 
-set_option pp.notation false
-set_option pp.implicit true
+-- set_option pp.notation false
+-- set_option pp.implicit true
 instance : concrete_monoidal_category (Module ℤ) :=
 { lax_monoidal :=
   { ε := λ x, (1 : ℤ), -- err, 0, or 1?

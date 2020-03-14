@@ -107,7 +107,7 @@ end monoidal_category
 
 open monoidal_category
 
-instance : monoidal_category (Module.{u} R) :=
+instance Module.monoidal_category : monoidal_category (Module.{u} R) :=
 { -- data
   tensor_obj   := tensor_obj,
   tensor_hom   := @tensor_hom _ _,
@@ -129,14 +129,22 @@ namespace monoidal_category
 
 def foo (M : Module R) : has_coe_to_fun ((Module.of R R ⊗ M : Module R) →ₗ[R] M) := by apply_instance
 
-@[simp]
-lemma t {M : Module R} (r : R) (m : M) : r • m = 0 := rfl
-
 -- set_option trace.class_instances true
+-- set_option pp.notation false
 @[simp]
-lemma left_unitor_hom {M : Module R} (r : R) (m : M) : (@coe_fn _ (foo M) ((λ_ M).hom)) (r ⊗ₜ[R] m) = r • m := rfl
+lemma left_unitor_hom {M : Module R} (r : R) (m : M) : (@coe_fn _ (foo M) ((λ_ M).hom)) (r ⊗ₜ[R] m) = r • m :=
+begin
+  dunfold Module.monoidal_category,
+  dsimp,
+  dunfold left_unitor,
+  erw [iso.trans_hom],
+  erw [Module.coe_comp],
+  sorry,
+  -- what's going on? dsimp times out
+  -- dsimp,
+end
 @[simp]
-lemma right_unitor_hom {M : Module R} (r : R) (m : M) : (ρ_ M) (m ⊗ₜ r) = r • m := rfl
+lemma right_unitor_hom {M : Module R} (r : R) (m : M) : (ρ_ M).hom (m ⊗ₜ r) = r • m := rfl
 @[simp]
 lemma associator_hom {M N K : Module R} (m : M) : (ρ_ M) (m ⊗ₜ r) = r • m := rfl
 

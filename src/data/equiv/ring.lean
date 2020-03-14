@@ -67,7 +67,7 @@ variable (R)
 
 variables {R}
 
-/-- The inverse of a ring isomorphism is a ring isomorphis. -/
+/-- The inverse of a ring isomorphism is a ring isomorphism. -/
 @[symm] protected def symm (e : R ≃+* S) : S ≃+* R :=
 { .. e.to_mul_equiv.symm, .. e.to_add_equiv.symm }
 

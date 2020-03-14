@@ -8,10 +8,16 @@ universes v u
 open category_theory
 open category_theory.limits
 
+/--
+A chain complex in the category `V` consists of
+* a collection of objects `C` indexed by `ℤ`
+* a differential `d i : C i ⟶ C (i-1)`
+* so d^2 = 0
+ -/
 structure chain_complex (V : Type u) [𝒱 : category.{v} V] [has_zero_morphisms.{v} V] :=
 (C : ℤ → V)
-(d : Π i, C i ⟶ C (i+1))
-(d_squared : ∀ i, d i ≫ d (i+1) = 0)
+(d : Π i, C i ⟶ C (i-1))
+(d_squared : ∀ i, d i ≫ d (i-1) = 0)
 
 attribute [simp] chain_complex.d_squared
 
@@ -20,10 +26,13 @@ namespace chain_complex
 variables {V : Type u} [𝒱 : category.{v} V] [has_zero_morphisms.{v} V]
 include 𝒱
 
+/--
+A chain map is a collection of morphisms commuting with the differentials.
+-/
 @[ext]
 structure hom (C D : chain_complex.{v} V) :=
 (f : Π i, C.C i ⟶ D.C i)
-(comm' : ∀ i, f i ≫ D.d i = C.d i ≫ f (i + 1) . obviously)
+(comm' : ∀ i, f i ≫ D.d i = C.d i ≫ f (i-1) . obviously)
 
 restate_axiom hom.comm'
 
@@ -39,6 +48,7 @@ def comp {C D E : chain_complex.{v} V} (f : hom C D) (g : hom D E) : hom C E :=
 
 end hom
 
+/-- The category of chain complexes and chain maps. -/
 instance : category (chain_complex.{v} V) :=
 { hom  := hom,
   id   := hom.id,
@@ -54,6 +64,9 @@ rfl
 section
 variables (V) [has_coproducts.{v} V]
 
+/--
+The total object of a chain complex is the coproduct of the chain groups.
+-/
 def total : chain_complex.{v} V ⥤ V :=
 { obj := λ C, ∐ (λ i : ulift ℤ, C.C i.down),
   map := λ C C' f, limits.sigma.map (λ i, f.f i.down) }.
@@ -75,8 +88,9 @@ end
 
 variables [has_images.{v} V] [has_equalizers.{v} V]
 
+/-- The connecting morphism from the image of `d i` to the kernel of `d (i-1)`. -/
 def image_to_kernel_hom (C : chain_complex.{v} V) (i : ℤ) :
-image (C.d i) ⟶ kernel (C.d (i+1)) :=
+image (C.d i) ⟶ kernel (C.d (i-1)) :=
 kernel.lift (image.ι (C.d i))
 begin
   apply @epi.left_cancellation _ _ _ _ (factor_thru_image (C.d i)) _ _ _ _ _,
@@ -85,6 +99,7 @@ end
 
 variables [has_cokernels.{v} V]
 
+/-- The `i`-th homology group of a chain complex `C`. -/
 def homology (C : chain_complex.{v} V) (i : ℤ) : V :=
 cokernel (image_to_kernel_hom C i)
 

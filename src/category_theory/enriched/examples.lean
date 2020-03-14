@@ -18,7 +18,7 @@ instance foo : concrete_monoidal_category (Module ℤ) :=
     ((limits.prod.snd : ((forget (Module ℤ)).obj G) ⨯ ((forget (Module ℤ)).obj H) ⟶ ((forget (Module ℤ)).obj H)) p),
     μ_natural' := λ X Y X' Y' f g, sorry,
     associativity' := λ X Y Z, sorry,
-    left_unitality' := λ X, begin ext, dsimp,  end,
+    left_unitality' := λ X, begin ext, dsimp, erw Module.monoidal_category.left_unitor_hom,  end,
     right_unitality' := sorry, }}
 
 instance bar : concrete_monoidal_category (Module ℤ) :=

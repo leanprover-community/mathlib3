@@ -454,6 +454,9 @@ ext.2 $ λ _, mem_inter.trans $ and_false _
 @[simp] theorem empty_inter (s : finset α) : ∅ ∩ s = ∅ :=
 ext.2 $ λ _, mem_inter.trans $ false_and _
 
+@[simp] lemma inter_union_self (s t : finset α) : s ∩ (t ∪ s) = s :=
+by rw [inter_comm, union_inter_cancel_right]
+
 @[simp] theorem insert_inter_of_mem {s₁ s₂ : finset α} {a : α} (h : a ∈ s₂) :
   insert a s₁ ∩ s₂ = insert a (s₁ ∩ s₂) :=
 ext.2 $ λ x, have x = a ∨ x ∈ s₂ ↔ x ∈ s₂, from or_iff_right_of_imp $ by rintro rfl; exact h,
@@ -534,6 +537,8 @@ theorem union_distrib_left (s t u : finset α) : s ∪ (t ∩ u) = (s ∪ t) ∩
 
 theorem union_distrib_right (s t u : finset α) : (s ∩ t) ∪ u = (s ∪ u) ∩ (t ∪ u) := sup_inf_right
 
+lemma union_eq_empty_iff (A B : finset α) : A ∪ B = ∅ ↔ A = ∅ ∧ B = ∅ := sup_eq_bot_iff
+
 /-! ### erase -/
 
 /-- `erase s a` is the set `s - {a}`, that is, the elements of `s` which are
@@ -598,6 +603,9 @@ instance : has_sdiff (finset α) := ⟨λs₁ s₂, ⟨s₁.1 - s₂.1, nodup_of
 @[simp] theorem mem_sdiff {a : α} {s₁ s₂ : finset α} :
   a ∈ s₁ \ s₂ ↔ a ∈ s₁ ∧ a ∉ s₂ := mem_sub_of_nodup s₁.2
 
+lemma not_mem_sdiff_of_mem_right {a : α} {s t : finset α} (h : a ∈ t) : a ∉ s \ t :=
+by simp only [mem_sdiff, h, not_true, not_false_iff, and_false]
+
 theorem sdiff_union_of_subset {s₁ s₂ : finset α} (h : s₁ ⊆ s₂) : (s₂ \ s₁) ∪ s₁ = s₂ :=
 ext.2 $ λ a, by simpa only [mem_sdiff, mem_union, or_comm,
   or_and_distrib_left, dec_em, and_true] using or_iff_right_of_imp (@h a)
@@ -654,6 +662,12 @@ by rw [union_comm, union_sdiff_self_eq_union, union_comm]
 lemma union_sdiff_symm {s t : finset α} : s ∪ (t \ s) = t ∪ (s \ t) :=
 by rw [union_sdiff_self_eq_union, union_sdiff_self_eq_union, union_comm]
 
+lemma sdiff_union_inter (s t : finset α) : (s \ t) ∪ (s ∩ t) = s :=
+by simp only [ext, mem_union, mem_sdiff, mem_inter]; tauto
+
+@[simp] lemma sdiff_idem (s t : finset α) : s \ t \ t = s \ t :=
+by simp only [ext, mem_sdiff]; tauto
+
 lemma sdiff_eq_empty_iff_subset {s t : finset α} : s \ t = ∅ ↔ s ⊆ t :=
 by rw [subset_iff, ext]; simp
 
@@ -676,6 +690,24 @@ end
 
 @[simp] lemma sdiff_subset (s t : finset α) : s \ t ⊆ s :=
 by simp [subset_iff, mem_sdiff] {contextual := tt}
+
+lemma union_sdiff_distrib (s₁ s₂ t : finset α) : (s₁ ∪ s₂) \ t = s₁ \ t ∪ s₂ \ t :=
+by simp only [ext, mem_sdiff, mem_union]; tauto
+
+lemma sdiff_union_distrib (s t₁ t₂ : finset α) : s \ (t₁ ∪ t₂) = (s \ t₁) ∩ (s \ t₂) :=
+by simp only [ext, mem_union, mem_sdiff, mem_inter]; tauto
+
+lemma union_sdiff_self (s t : finset α) : (s ∪ t) \ t = s \ t :=
+by rw [union_sdiff_distrib, sdiff_self, union_empty]
+
+lemma sdiff_singleton_eq_erase (a : α) (s : finset α) : s \ singleton a = erase s a :=
+begin ext, rw [mem_erase, mem_sdiff, mem_singleton], tauto end
+
+lemma sdiff_sdiff_self_left (s t : finset α) : s \ (s \ t) = s ∩ t :=
+by simp only [ext, mem_sdiff, mem_inter]; tauto
+
+lemma sdiff_partially_injective {s t₁ t₂ : finset α} : s \ t₁ = s \ t₂ → s ∩ t₁ = s ∩ t₂ :=
+by { simp [ext], intros b c, replace b := b c, split; tauto }
 
 end decidable_eq
 
@@ -1489,6 +1521,15 @@ have ∀b a, a ∈ s → b ∈ t₁ a → (∃ (a : α), a ∈ s ∧ b ∈ t₂ 
   from assume b a ha hb, ⟨a, ha, finset.mem_of_subset (h a ha) hb⟩,
 by simpa only [subset_iff, mem_bind, exists_imp_distrib, and_imp, exists_prop]
 
+lemma bind_sub_bind_of_sub_left {α : Type*} {s₁ s₂ : finset α}
+  (t : α → finset β) (h : s₁ ⊆ s₂) : s₁.bind t ⊆ s₂.bind t :=
+begin
+  intro x,
+  simp only [and_imp, mem_bind, exists_prop, exists_imp_distrib],
+  intros y hy hty,
+  refine ⟨y, h hy, hty⟩
+end
+
 lemma bind_singleton {f : α → β} : s.bind (λa, {f a}) = s.image f :=
 ext.2 $ λ x, by simp only [mem_bind, mem_image, insert_empty_eq_singleton, mem_singleton, eq_comm]
 
@@ -2048,6 +2089,13 @@ theorem le_max_of_mem {s : finset α} {a b : α} (h₁ : a ∈ s) (h₂ : b ∈ 
 by rcases @le_sup (with_bot α) _ _ _ _ _ h₁ _ rfl with ⟨b', hb, ab⟩;
    cases h₂.symm.trans hb; assumption
 
+lemma exists_max (s : finset β) (f : β → α) (h : s.nonempty) : ∃ x ∈ s, ∀ x' ∈ s, f x' ≤ f x :=
+begin
+  cases max_of_nonempty (h.image f) with y hy,
+  rcases mem_image.mp (mem_of_max hy) with ⟨x, hx, rfl⟩,
+  exact ⟨x, hx, λ x' hx', le_max_of_mem (mem_image_of_mem f hx') hy⟩,
+end
+
 /-- Let `s` be a finset in a linear order. Then `s.min` is the minimum of `s` if `s` is not empty,
 and `none` otherwise. It belongs to `option α`. If you want to get an element of `α`, see
 `s.min'`. -/
@@ -2103,6 +2151,26 @@ end
 
 end max_min
 
+/-- An alternate version of `exists_max` with different typeclass requirements. -/
+lemma exists_max_of_decidable_range [linear_order α] [decidable_eq β] (s : finset β) (f : β → α) :
+  s.nonempty → ∃ x ∈ s, ∀ y ∈ s, f y ≤ f x :=
+begin
+  apply finset.induction_on s,
+    intro a, exfalso, simp only [finset.nonempty, exists_false, not_mem_empty] at a,
+    assumption,
+  intros i B hi ih _, cases eq_empty_or_nonempty B,
+    rw h, refine ⟨i, mem_insert_self _ _, λ t th, _⟩,
+    rw [mem_insert] at th, rw or.resolve_right th (not_mem_empty t),
+  specialize ih h, rcases ih with ⟨k, kB, q⟩,
+  cases (le_total (f i) (f k)) with ik ki,
+    refine ⟨k, mem_insert_of_mem kB, λ t th, _⟩,
+    rw mem_insert at th, cases th,
+      rwa th,
+    apply q _ th,
+  refine ⟨i, mem_insert_self _ _,  λ t th, _⟩,
+  rw mem_insert at th, cases th, rwa th, apply trans (q _ th) ki,
+end
+
 /-! ### sort -/
 section sort
 variables (r : α → α → Prop) [decidable_rel r]
@@ -2144,6 +2212,9 @@ disjoint_left
 
 theorem disjoint_iff_inter_eq_empty {s t : finset α} : disjoint s t ↔ s ∩ t = ∅ :=
 disjoint_iff
+
+instance decidable_disjoint (U V : finset α) : decidable (disjoint U V) :=
+decidable_of_decidable_of_iff (by apply_instance) eq_bot_iff
 
 theorem disjoint_right {s t : finset α} : disjoint s t ↔ ∀ {a}, a ∈ t → a ∉ s :=
 by rw [disjoint.comm, disjoint_left]
@@ -2188,6 +2259,18 @@ disjoint_left.2 $ assume a ha, (mem_sdiff.1 ha).2
 
 lemma disjoint_sdiff {s t : finset α} : disjoint s (t \ s) :=
 sdiff_disjoint.symm
+
+lemma disjoint_sdiff_inter (s t : finset α) : disjoint (s \ t) (s ∩ t) :=
+disjoint_of_subset_right (inter_subset_right _ _) sdiff_disjoint
+
+lemma sdiff_eq_self_iff_disjoint {s t : finset α} : s \ t = s ↔ disjoint s t :=
+by rw [sdiff_eq_self, subset_empty, disjoint_iff_inter_eq_empty]
+
+lemma sdiff_eq_self_of_disjoint {s t : finset α} (h : disjoint s t) : s \ t = s :=
+sdiff_eq_self_iff_disjoint.2 h
+
+lemma disjoint_self_iff_empty (s : finset α) : disjoint s s ↔ s = ∅ :=
+disjoint_self
 
 lemma disjoint_bind_left {ι : Type*} [decidable_eq ι]
   (s : finset ι) (f : ι → finset α) (t : finset α) :
@@ -2319,6 +2402,17 @@ begin
     have H6 := le_max' s H i H1,
     apply lt_of_le_of_lt H5,
     apply lt_of_lt_of_le H4 H6 }
+end
+
+/--
+If there's more than 1 element, the min' is different to the max'. An alternate version of
+`min'_lt_max'` which is sometimes more convenient.
+-/
+lemma min_ne_max_of_card (h₂ : 1 < card s) : s.min' H ≠ s.max' H :=
+begin
+  intro, apply not_le_of_lt h₂ (le_of_eq _), rw card_eq_one,
+  use max' s H, rw eq_singleton_iff_unique_mem,
+  exact ⟨max'_mem _ _, λ t Ht, le_antisymm (le_max' s H t Ht) (a ▸ min'_le s H t Ht)⟩
 end
 
 end decidable_linear_order

@@ -41,6 +41,11 @@ instance : concrete_category (Module.{u} R) :=
   forget := { obj := λ R, R, map := λ R S f, (f : R → S) },
   forget_faithful := { } }
 
+instance has_forget_to_AddCommGroup : has_forget₂ (Module R) AddCommGroup :=
+{ forget₂ :=
+  { obj := λ M, AddCommGroup.of M,
+    map := λ M₁ M₂ f, linear_map.to_add_monoid_hom f } }
+
 /-- The object in the category of R-modules associated to an R-module -/
 def of (X : Type u) [add_comm_group X] [module R X] : Module R := ⟨R, X⟩
 
@@ -117,18 +122,6 @@ def linear_equiv_iso_Group_iso {X Y : Type u} [add_comm_group X] [add_comm_group
   inv := λ i, i.to_linear_equiv, }
 
 namespace Module
-
-
--- TODO do this like in Group/basic.lean
-@[simps]
-def iso_of_linear_equiv
-  {X₁ : Type u} {g₁ : add_comm_group X₁} {m₁ : module R X₁}
-  {X₂ : Type u} {g₂ : add_comm_group X₂} {m₁ : module R X₂}
-  (e : X₁ ≃ₗ[R] X₂) : Module.of R X₁ ≅ Module.of R X₂ :=
-{ hom := (e : X₁ →ₗ[R] X₂),
-  inv := (e.symm : X₂ →ₗ[R] X₁),
-  hom_inv_id' := begin ext, exact e.left_inv x, end,
-  inv_hom_id' := begin ext, exact e.right_inv x, end, }
 
 section kernel
 variables {R} {M N : Module R} (f : M ⟶ N)

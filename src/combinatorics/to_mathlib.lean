@@ -79,8 +79,8 @@ section finset
     induction k with k ih,
       intros A BsubA cards, exact ⟨A, BsubA, subset.refl _, cards.symm⟩,
     intros A BsubA cards,
-    have: ∃ i, i ∈ A \ B,
-      rw [exists_mem_iff_ne_empty, ← ne, ← card_pos, card_sdiff BsubA,
+    have: (A \ B).nonempty,
+      rw [← card_pos, card_sdiff BsubA,
           ← cards, nat.add_right_comm, nat.add_sub_cancel, nat.add_succ],
       apply nat.succ_pos,
     rcases this with ⟨a, ha⟩,
@@ -104,11 +104,10 @@ section finset
 
   /-- A flipped version of exists_min from data.finset. -/
   lemma exists_max {α β : Type*} [decidable_linear_order α] (s : finset β) (f : β → α)
-    (h : s ≠ ∅) : ∃ x ∈ s, ∀ x' ∈ s, f x' ≤ f x :=
+    (h : s.nonempty) : ∃ x ∈ s, ∀ x' ∈ s, f x' ≤ f x :=
   begin
-    have : s.image f ≠ ∅,
-      rwa [ne, image_eq_empty, ← ne.def],
-    cases max_of_ne_empty this with y hy,
+    have : (s.image f).nonempty := nonempty.image h _,
+    cases max_of_nonempty this with y hy,
     rcases mem_image.mp (mem_of_max hy) with ⟨x, hx, rfl⟩,
     exact ⟨x, hx, λ x' hx', le_max_of_mem (mem_image_of_mem f hx') hy⟩,
   end
@@ -167,6 +166,7 @@ section big_operators
     rw sum_range_succ',
     rw sum_range_succ _ (nat.succ n),
     simp [ih],
+    apply add_comm
   end
 end big_operators
 

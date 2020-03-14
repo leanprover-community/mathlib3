@@ -432,6 +432,15 @@ lemma prod_nat_pow (s : finset α) (n : ℕ) (f : α → ℕ) :
 by haveI := classical.dec_eq α; exact
 finset.induction_on s (by simp) (by simp [nat.mul_pow] {contextual := tt})
 
+lemma prod_flip {n : ℕ} (f : ℕ → β) :
+  (range (nat.succ n)).prod (λ r, f (n - r)) = (range (nat.succ n)).prod f :=
+begin
+  induction n with n ih,
+    rw [prod_range_one, prod_range_one],
+  rw prod_range_succ', rw prod_range_succ _ (nat.succ n),
+  rw [mul_comm], simp [← ih]
+end
+
 @[to_additive]
 lemma prod_involution {s : finset α} {f : α → β} :
   ∀ (g : Π a ∈ s, α)
@@ -546,10 +555,22 @@ attribute [to_additive sum_smul'] prod_pow
 @prod_const _ (multiplicative β) _ _ _
 attribute [to_additive] prod_const
 
+lemma sum_const_on_nat {m : ℕ} {f : α → ℕ} (h₁ : ∀x ∈ s, f x = m) :
+  s.sum f = card s * m :=
+begin
+  rw [← nat.smul_eq_mul, ← sum_const],
+  apply sum_congr rfl h₁
+end
+
 lemma sum_range_succ' [add_comm_monoid β] (f : ℕ → β) :
   ∀ n : ℕ, (range (nat.succ n)).sum f = (range n).sum (f ∘ nat.succ) + f 0 :=
 @prod_range_succ' (multiplicative β) _ _
 attribute [to_additive] prod_range_succ'
+
+lemma sum_flip [add_comm_monoid β] {n : ℕ} (f : ℕ → β) :
+  sum (range (n+1)) (λ r, f (n - r)) = sum (range (n+1)) f :=
+@prod_flip (multiplicative β) _ _ _
+attribute [to_additive] prod_flip
 
 lemma sum_nat_cast [add_comm_monoid β] [has_one β] (s : finset α) (f : α → ℕ) :
   ↑(s.sum f) = s.sum (λa, f a : α → β) :=
@@ -655,6 +676,11 @@ lemma sum_boole_mul [decidable_eq α] (s : finset α) (f : α → β) (a : α) :
 by simp
 
 end semiring
+
+lemma sum_div [division_ring β] {s : finset α} {f : α → β} {b : β} :
+  s.sum f / b = s.sum (λx, f x / b) :=
+calc s.sum f / b = s.sum (λ x, f x * (1 / b)) : by rw [div_eq_mul_one_div, sum_mul]
+     ...         = s.sum (λ x, f x / b) : by { congr, ext, rw ← div_eq_mul_one_div (f x) b }
 
 section comm_semiring
 variables [decidable_eq α] [comm_semiring β]
@@ -771,6 +797,15 @@ begin
   rcases Hlt with ⟨i, hi, hlt⟩,
   rw [← insert_erase hi, sum_insert (not_mem_erase _ _), sum_insert (not_mem_erase _ _)],
   exact add_lt_add_of_lt_of_le hlt (sum_le_sum $ λ j hj, Hle j  $ mem_of_mem_erase hj)
+end
+
+lemma sum_lt_sum_of_nonempty (hs : s.nonempty) (Hlt : ∀ x ∈ s, f x < g x) :
+  s.sum f < s.sum g :=
+begin
+  apply sum_lt_sum,
+    intros i hi, apply le_of_lt (Hlt i hi),
+  cases hs with i hi,
+  exact ⟨i, hi, Hlt i hi⟩,
 end
 
 end ordered_cancel_comm_monoid

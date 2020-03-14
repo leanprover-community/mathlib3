@@ -195,7 +195,7 @@ instance over_has_prods_of_pullback [has_pullbacks.{v} C] (B : C) :
 @[simp] lemma over_prod_snd_left [has_pullbacks.{v} C] {B : C} (f g : over B) :
   (limits.prod.snd : f ⨯ g ⟶ g).left = pullback.snd := rfl
 
-@[simp] lemma over_prod_map_left [has_pullbacks.{v} C] {B : C} (f g h k : over B) (α : f ⟶ g) (β : h ⟶ k) :
+lemma over_prod_map_left [has_pullbacks.{v} C] {B : C} (f g h k : over B) (α : f ⟶ g) (β : h ⟶ k) :
   (limits.prod.map α β).left = pullback.lift (pullback.fst ≫ α.left) (pullback.snd ≫ β.left) (by { simp only [category.assoc], convert pullback.condition; apply over.w }) :=
 rfl
 

@@ -2095,7 +2095,6 @@ apply_nolint eckmann_hilton.is_unital doc_blame
 -- group_theory/free_abelian_group.lean
 apply_nolint free_abelian_group doc_blame
 apply_nolint free_abelian_group.lift doc_blame
-apply_nolint free_abelian_group.lift.universal doc_blame
 apply_nolint free_abelian_group.of doc_blame
 
 -- group_theory/free_group.lean

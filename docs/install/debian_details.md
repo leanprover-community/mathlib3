@@ -37,7 +37,7 @@ reading the bash script that will be downloaded below:
 
   The alternative is to use Emacs, and its [lean-mode](https://github.com/leanprover/lean-mode).
 
-* Then we install a small tool called `update-mathlib` that which will handle
+* Then we install a small tool called `leanproject` that will handle
   updating mathlib according to the needs of your current project.
   ```bash
   sudo pip3 install mathlibtools

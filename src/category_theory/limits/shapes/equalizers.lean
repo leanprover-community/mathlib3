@@ -123,6 +123,12 @@ begin
   cases j; refl
 end
 
+/-- Every functor indexing a (co)equalizer is naturally isomorphic (actually, equal) to a
+    `parallel_pair` -/
+def diagram_iso_parallel_pair (F : walking_parallel_pair.{v} ⥤ C) :
+  F ≅ parallel_pair (F.map left) (F.map right) :=
+nat_iso.of_components (λ j, eq_to_iso $ by cases j; tidy) $ by tidy
+
 abbreviation fork (f g : X ⟶ Y) := cone (parallel_pair f g)
 abbreviation cofork (f g : X ⟶ Y) := cocone (parallel_pair f g)
 
@@ -328,7 +334,7 @@ def limit_cone_parallel_pair_self_is_iso (c : cone (parallel_pair f f)) (h : is_
   is_iso (c.π.app zero) :=
   let c' := cone_parallel_pair_self f,
     z : c ≅ c' := is_limit.unique_up_to_iso h (is_limit_cone_parallel_pair_self f) in
-  is_iso.of_iso (functor.map_iso cones.forget z)
+  is_iso.of_iso (functor.map_iso (cones.forget _) z)
 
 /-- The equalizer of (f, f) is an isomorphism -/
 def equalizer.ι_of_self [has_limit (parallel_pair f f)] : is_iso (equalizer.ι f f) :=
@@ -422,7 +428,7 @@ def colimit_cocone_parallel_pair_self_is_iso (c : cocone (parallel_pair f f)) (h
   is_iso (c.ι.app one) :=
   let c' := cocone_parallel_pair_self f,
     z : c' ≅ c := is_colimit.unique_up_to_iso (is_colimit_cocone_parallel_pair_self f) h in
-  is_iso.of_iso $ functor.map_iso cocones.forget z
+  is_iso.of_iso $ functor.map_iso (cocones.forget _) z
 
 /-- The coequalizer of (f, f) is an isomorphism -/
 def coequalizer.π_of_self [has_colimit (parallel_pair f f)] : is_iso (coequalizer.π f f) :=
@@ -470,5 +476,15 @@ def has_equalizers_of_has_finite_limits [has_finite_limits.{v} C] : has_equalize
     coequalizers -/
 def has_coequalizers_of_has_finite_colimits [has_finite_colimits.{v} C] : has_coequalizers.{v} C :=
 { has_colimits_of_shape := infer_instance }
+
+/-- If `C` has all limits of diagrams `parallel_pair f g`, then it has all equalizers -/
+def has_equalizers_of_has_limit_parallel_pair
+  [Π {X Y : C} {f g : X ⟶ Y}, has_limit (parallel_pair f g)] : has_equalizers.{v} C :=
+{ has_limits_of_shape := { has_limit := λ F, has_limit_of_iso (diagram_iso_parallel_pair F).symm } }
+
+/-- If `C` has all colimits of diagrams `parallel_pair f g`, then it has all coequalizers -/
+def has_coequalizers_of_has_colimit_parallel_pair
+  [Π {X Y : C} {f g : X ⟶ Y}, has_colimit (parallel_pair f g)] : has_coequalizers.{v} C :=
+{ has_colimits_of_shape := { has_colimit := λ F, has_colimit_of_iso (diagram_iso_parallel_pair F) } }
 
 end category_theory.limits

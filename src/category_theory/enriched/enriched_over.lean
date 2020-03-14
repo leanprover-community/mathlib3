@@ -24,7 +24,7 @@ monoidal structure, forgetting to `Type`, equipped with cartesian products as th
 structure. Observe that we have a map (in `Type`) `V × W → V ⊗ W`, which is the lax tensorator, but
 there is not a map in the other direction.
 -/
-class concrete_monoidal_category (C : Type (u+1)) extends concrete_category.{u} C, monoidal_category.{u} C :=
+class concrete_monoidal_category (C : Type (u+1)) [category.{u} C] [concrete_category.{u} C] [monoidal_category.{u} C] :=
 (lax_monoidal : lax_monoidal.{u u} (concrete_category.forget C).obj)
 
 attribute [instance] concrete_monoidal_category.lax_monoidal
@@ -33,7 +33,7 @@ instance : concrete_monoidal_category (Type u) :=
 { lax_monoidal := category_theory.lax_monoidal_id }
 
 section
-variables (V : Type (v+1)) [𝒱 : concrete_monoidal_category.{v} V]
+variables (V : Type (v+1)) [category.{v} V] [concrete_category.{v} V] [monoidal_category.{v} V] [𝒱 : concrete_monoidal_category.{v} V]
 include 𝒱
 
 def forget.lax : lax_monoidal_functor.{v v} V (Type v) := lax_monoidal_functor.of (forget V).obj
@@ -56,7 +56,7 @@ end
 
 open concrete_monoidal_category
 
-variables (V : Type (v+1)) [𝒱 : concrete_monoidal_category.{v} V]
+variables (V : Type (v+1)) [category.{v} V] [concrete_category.{v} V] [monoidal_category.{v} V] [𝒱 : concrete_monoidal_category.{v} V]
 variables (C : Type u) [𝒞 : category.{v} C]
 include 𝒱 𝒞
 

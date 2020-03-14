@@ -54,11 +54,13 @@ section
 variables {E : Type u₃} [ℰ : category.{v₃} E]
 include ℰ
 
-instance functorial_comp (F : C → D) [functorial.{v₁ v₂} F] (G : D → E) [functorial.{v₂ v₃} G] :
+-- This is now longer viable as an instance in Lean 3.7
+def functorial_comp (F : C → D) [functorial.{v₁ v₂} F] (G : D → E) [functorial.{v₂ v₃} G] :
   functorial.{v₁ v₃} (G ∘ F) :=
 { ..(functor.of F ⋙ functor.of G) }
 
-instance functorial_lambda_comp (F : C → D) [functorial.{v₁ v₂} F] (G : D → E) [functorial.{v₂ v₃} G] :
+-- This is now longer viable as an instance in Lean 3.7
+def functorial_lambda_comp (F : C → D) [functorial.{v₁ v₂} F] (G : D → E) [functorial.{v₂ v₃} G] :
   functorial.{v₁ v₃} (λ X, G (F X)) :=
 { ..(functor.of F ⋙ functor.of G) }
 

@@ -755,13 +755,6 @@ apply_nolint category_theory.limits.walking_span.hom.comp doc_blame
 apply_nolint category_theory.limits.initial doc_blame
 apply_nolint category_theory.limits.terminal doc_blame
 
--- category_theory/limits/types.lean
-apply_nolint category_theory.limits.types.colimit doc_blame
-apply_nolint category_theory.limits.types.colimit_is_colimit doc_blame
-apply_nolint category_theory.limits.types.limit doc_blame
-apply_nolint category_theory.limits.types.limit_is_limit doc_blame
-apply_nolint category_theory.limits.types.types_colimit_pre unused_arguments
-
 -- category_theory/monad/adjunction.lean
 apply_nolint category_theory.monad.comparison doc_blame
 apply_nolint category_theory.monad.comparison_forget doc_blame
@@ -2102,7 +2095,6 @@ apply_nolint eckmann_hilton.is_unital doc_blame
 -- group_theory/free_abelian_group.lean
 apply_nolint free_abelian_group doc_blame
 apply_nolint free_abelian_group.lift doc_blame
-apply_nolint free_abelian_group.lift.universal doc_blame
 apply_nolint free_abelian_group.of doc_blame
 
 -- group_theory/free_group.lean
@@ -2261,7 +2253,6 @@ apply_nolint linear_map.llcomp doc_blame
 apply_nolint linear_map.lsmul doc_blame
 apply_nolint linear_map.mk₂ doc_blame
 apply_nolint tensor_product doc_blame
-apply_nolint tensor_product.assoc doc_blame
 apply_nolint tensor_product.congr doc_blame
 apply_nolint tensor_product.curry doc_blame
 apply_nolint tensor_product.direct_sum doc_blame
@@ -2269,7 +2260,6 @@ apply_nolint tensor_product.lcurry doc_blame
 apply_nolint tensor_product.lift doc_blame
 apply_nolint tensor_product.lift.equiv doc_blame
 apply_nolint tensor_product.lift_aux doc_blame
-apply_nolint tensor_product.map doc_blame
 apply_nolint tensor_product.mk doc_blame
 apply_nolint tensor_product.relators doc_blame
 apply_nolint tensor_product.smul.aux doc_blame

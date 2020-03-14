@@ -8,6 +8,7 @@ import algebra.category.Group
 import category_theory.fully_faithful
 import algebra.ring
 import data.int.basic
+import data.equiv.ring
 
 /-!
 # Category instances for semiring, ring, comm_semiring, and comm_ring.

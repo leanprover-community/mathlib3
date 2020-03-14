@@ -91,27 +91,18 @@ instance : has_colimits.{u} (Type u) :=
 
 variables {α β : Type u} (f : α ⟶ β)
 
-local attribute [ext] subtype.eq'
-
-section -- implementation of `add_image`
+section -- implementation of `has_image`
 /-- the image of a morphism in Type is just `set.range f` -/
 def image : Type u := set.range f
-/-- the inclusion of `image f` into the target -/
--- TODO it would be nicer to reuse existing unbundled machinery here: does it exist?
-def image.ι : image f ⟶ β := subtype.val
-instance : mono (image.ι f) :=
-begin
-  split, intros, ext,
-  convert congr_arg (λ k : Z → β, k x) w,
-end
-/-- the corestriction map to the image -/
--- TODO it would be nicer to reuse existing unbundled machinery here: does it exist?
-def factor_thru_image : α ⟶ image f :=
-(λ g, ⟨f g, ⟨g, rfl⟩⟩ : α → image f)
-lemma image.fac : factor_thru_image f ≫ image.ι f = f :=
-by { ext, refl, }
 
-local attribute [simp] image.fac
+instance [inhabited α] : inhabited (image f) :=
+{ default := ⟨f (default α), ⟨_, rfl⟩⟩ }
+
+/-- the inclusion of `image f` into the target -/
+def image.ι : image f ⟶ β := subtype.val
+
+instance : mono (image.ι f) :=
+(mono_iff_injective _).2 subtype.val_injective
 
 variables {f}
 
@@ -132,7 +123,7 @@ end
 def mono_factorisation : mono_factorisation f :=
 { I := image f,
   m := image.ι f,
-  e := factor_thru_image f }
+  e := set.range_factorization f }
 
 noncomputable instance : has_image f :=
 { F := mono_factorisation f,

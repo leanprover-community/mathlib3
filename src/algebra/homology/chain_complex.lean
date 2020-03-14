@@ -60,9 +60,19 @@ def total : chain_complex.{0} V ⥤ V :=
 { obj := λ C, ∐ C.C,
   map := λ C C' f, limits.sigma.map f.f }.
 
--- TODO we'll need to know the coprojections are monomorphisms
+/--
+The `total` functor taking a chain complex to the coproduct of its chain groups is faithful.
+To prove this, we need to know that the coprojections into the coproduct are monomorphisms,
+which follows from the fact we have zero morphisms.
+-/
 instance : faithful (total V) :=
-sorry
+{ injectivity' := λ C C' f g w,
+  begin
+    ext i,
+    replace w := sigma.ι C.C i ≫= w,
+    erw [colimit.ι_map, colimit.ι_map] at w,
+    exact mono.right_cancellation _ _ w,
+  end }
 
 end chain_complex
 

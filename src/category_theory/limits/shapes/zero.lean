@@ -61,21 +61,21 @@ class has_zero_object :=
 (unique_to : Π X : C, unique (zero ⟶ X))
 (unique_from : Π X : C, unique (X ⟶ zero))
 
-variables [has_zero_object.{v} C]
-
 variables {C}
+
+namespace has_zero_object
+
+variables [has_zero_object.{v} C]
 
 /--
 Construct a `has_zero C` for a category with a zero object.
 This can not be a global instance as it will trigger for every `has_zero C` typeclass search.
 -/
-def zero_of_zero_object : has_zero C :=
+def has_zero : has_zero C :=
 { zero := has_zero_object.zero.{v} C }
 
-local attribute [instance] zero_of_zero_object
+local attribute [instance] has_zero
 local attribute [instance] has_zero_object.unique_to has_zero_object.unique_from
-
-namespace has_zero_object
 
 /-- A category with a zero object has zero morphisms. -/
 def zero_morphisms_of_zero_object : has_zero_morphisms.{v} C :=
@@ -109,12 +109,14 @@ has_terminal_of_unique 0
 
 end has_zero_object
 
+/-- In the presence of zero morphisms, coprojections into a coproduct are (split) monomorphisms. -/
 instance
   {β : Type v} [decidable_eq β]
   [has_zero_morphisms.{v} C]
   (f : β → C) [has_colimit (functor.of_function f)] (b : β) : split_mono (sigma.ι f b) :=
 { retraction := sigma.desc (λ b', if h : b' = b then eq_to_hom (congr_arg f h) else 0), }
 
+/-- In the presence of zero morphisms, projections into a product are (split) epimorphisms. -/
 instance
   {β : Type v} [decidable_eq β]
   [has_zero_morphisms.{v} C]

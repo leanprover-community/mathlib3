@@ -1,5 +1,7 @@
 import category_theory.limits.shapes.zero
 import category_theory.limits.shapes.products
+import category_theory.limits.shapes.images
+import category_theory.limits.shapes.kernels
 
 universes v u
 
@@ -14,6 +16,7 @@ structure chain_complex (V : Type u) [𝒱 : category.{v} V] [has_zero_morphisms
 attribute [simp] chain_complex.d_squared
 
 namespace chain_complex
+
 variables {V : Type u} [𝒱 : category.{v} V] [has_zero_morphisms.{v} V]
 include 𝒱
 
@@ -32,7 +35,7 @@ def id (C : chain_complex.{v} V) : hom C C :=
 @[simps]
 def comp {C D E : chain_complex.{v} V} (f : hom C D) (g : hom D E) : hom C E :=
 { f := λ i, f.f i ≫ g.f i,
-  comm' := sorry }
+  comm' := λ i, by rw [category.assoc, g.comm, ←category.assoc, f.comm, category.assoc], }
 
 end hom
 
@@ -48,17 +51,12 @@ lemma comp_hom {C D E : chain_complex.{v} V} (f : C ⟶ D) (g : D ⟶ E) (i) :
   (f ≫ g : hom C E).f i = f.f i ≫ g.f i :=
 rfl
 
-end chain_complex
+section
+variables (V) [has_coproducts.{v} V]
 
-namespace chain_complex
-variables
-  (V : Type) [𝒱 : category.{0} V]
-  [has_zero_morphisms.{0} V] [has_coproducts.{0} V]
-include 𝒱
-
-def total : chain_complex.{0} V ⥤ V :=
-{ obj := λ C, ∐ C.C,
-  map := λ C C' f, limits.sigma.map f.f }.
+def total : chain_complex.{v} V ⥤ V :=
+{ obj := λ C, ∐ (λ i : ulift ℤ, C.C i.down),
+  map := λ C C' f, limits.sigma.map (λ i, f.f i.down) }.
 
 /--
 The `total` functor taking a chain complex to the coproduct of its chain groups is faithful.
@@ -69,39 +67,40 @@ instance : faithful (total V) :=
 { injectivity' := λ C C' f g w,
   begin
     ext i,
-    replace w := sigma.ι C.C i ≫= w,
+    replace w := sigma.ι (λ i : ulift ℤ, C.C i.down) ⟨i⟩ ≫= w,
     erw [colimit.ι_map, colimit.ι_map] at w,
     exact mono.right_cancellation _ _ w,
   end }
+end
+
+variables [has_images.{v} V] [has_equalizers.{v} V]
+
+def image_to_kernel_hom (C : chain_complex.{v} V) (i : ℤ) :
+image (C.d i) ⟶ kernel (C.d (i+1)) :=
+kernel.lift (image.ι (C.d i))
+begin
+  apply @epi.left_cancellation _ _ _ _ (factor_thru_image (C.d i)) _ _ _ _ _,
+  simp,
+end
+
+variables [has_cokernels.{v} V]
+
+def homology (C : chain_complex.{v} V) (i : ℤ) : V :=
+cokernel (image_to_kernel_hom C i)
 
 end chain_complex
 
 namespace chain_complex
 variables
   {V : Type (u+1)} [𝒱 : concrete_category V]
-  [has_zero_morphisms.{u} V]
+  [has_zero_morphisms.{u} V] [has_coproducts.{u} V]
 include 𝒱
 
-def forget : chain_complex.{u} V ⥤ Type u :=
-{ obj := λ C, Π i, (forget V).obj (C.C i),
-  map := λ C D f, λ g i, (forget V).map (f.f i) (g i) }
-
 instance : concrete_category (chain_complex.{u} V) :=
-{ forget := forget,
-  forget_faithful :=
-  { injectivity' := λ X Y f g w,
-    begin
-      ext i,
-      apply faithful.injectivity (category_theory.forget V),
-      ext x,
-      dsimp [forget] at w,
-      have w' := congr_fun (congr_fun w (λ j, if h : j = i then by { subst h, exact x } else sorry)) i,
-      dsimp at w',
-      rw [dif_pos rfl] at w',
-      exact w',
-    end }, }
+{ forget := total V ⋙ forget V }
 
--- TODO, using [has_coproducts.{u} V], define the "total object" functor to V?
+instance : has_forget₂ (chain_complex.{u} V) V :=
+{ forget₂ := total V }
 
 end chain_complex
 

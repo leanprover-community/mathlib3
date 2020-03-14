@@ -577,7 +577,7 @@ end fraction_ring
 section ideals
 
 theorem map_comap (J : ideal (localization α S)) :
-  ideal.map coe (ideal.comap (coe : α → localization α S) J) = J :=
+  ideal.map (ring_hom.of coe) (ideal.comap (ring_hom.of (coe : α → localization α S)) J) = J :=
 le_antisymm (ideal.map_le_iff_le_comap.2 (le_refl _)) $ λ x,
 localization.induction_on x $ λ r s hJ, (submodule.mem_coe _).2 $
 mul_one r ▸ coe_mul_mk r 1 s ▸ (ideal.mul_mem_right _ $ ideal.mem_map_of_mem $
@@ -587,7 +587,7 @@ by rwa [coe_coe, coe_mul_mk, mk_mul_cancel_left] at this)
 def le_order_embedding :
   ((≤) : ideal (localization α S) → ideal (localization α S) → Prop) ≼o
   ((≤) : ideal α → ideal α → Prop) :=
-{ to_fun := λ J, ideal.comap coe J,
+{ to_fun := λ J, ideal.comap (ring_hom.of coe) J,
   inj := function.injective_of_left_inverse (map_comap α),
   ord := λ J₁ J₂, ⟨ideal.comap_mono, λ hJ,
     map_comap α J₁ ▸ map_comap α J₂ ▸ ideal.map_mono hJ⟩ }

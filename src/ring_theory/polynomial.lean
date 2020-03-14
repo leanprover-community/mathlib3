@@ -213,7 +213,6 @@ begin
   simp only [mem_leading_coeff_nth],
   { split, { rintro ⟨i, p, hpI, hpdeg, rfl⟩, exact ⟨p, hpI, rfl⟩ },
     rintro ⟨p, hpI, rfl⟩, exact ⟨nat_degree p, p, hpI, degree_le_nat_degree, rfl⟩ },
-  { exact ⟨0⟩ },
   intros i j, exact ⟨i + j, I.leading_coeff_nth_mono (nat.le_add_right _ _),
     I.leading_coeff_nth_mono (nat.le_add_left _ _)⟩
 end

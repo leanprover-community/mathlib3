@@ -54,10 +54,25 @@ lemma faithful_reflects_mono (F : C ⥤ D) [faithful F] {X Y : C} {f : X ⟶ Y}
   by rw [←cancel_mono (F.map f), ←F.map_comp, ←F.map_comp, H]⟩
 end
 
+/--
+A split monomorphism is a morphism `f : X ⟶ Y` admitting a retraction `retraction f : Y ⟶ X`
+such that `f ≫ retraction f = 𝟙 X`.
+
+Every split monomorphism is a monomorphism.
+-/
+-- TODO:
+-- Every split monomorphism is also a regular monomorphism,
+-- and this should be proved when they are introduced.
 class split_mono {X Y : C} (f : X ⟶ Y) :=
 (retraction : Y ⟶ X)
 (id' : f ≫ retraction = 𝟙 X . obviously)
 
+/--
+A split epimorphism is a morphism `f : X ⟶ Y` admitting a section `section_ f : Y ⟶ X`
+such that `section_ f ≫ f = 𝟙 X`.
+
+Every split epimorphism is an epimorphism.
+-/
 class split_epi {X Y : C} (f : X ⟶ Y) :=
 (section_ : Y ⟶ X)
 (id' : section_ ≫ f = 𝟙 Y . obviously)
@@ -68,16 +83,29 @@ def retraction {X Y : C} (f : X ⟶ Y) [split_mono f] : Y ⟶ X := split_mono.re
 lemma split_mono.id {X Y : C} (f : X ⟶ Y) [split_mono f] : f ≫ retraction f = 𝟙 X :=
 split_mono.id' f
 
-/-- The chosen retraction of a split monomorphism. -/
+/--
+The chosen retraction of a split monomorphism.
+(Note that `section` is a reserved keyword, so we append an underscore.)
+-/
 def section_ {X Y : C} (f : X ⟶ Y) [split_epi f] : Y ⟶ X := split_epi.section_.{v₁} f
 @[simp, reassoc]
 lemma split_epi.id {X Y : C} (f : X ⟶ Y) [split_epi f] : section_ f ≫ f = 𝟙 Y :=
 split_epi.id' f
 
-instance mono_of_split_mono {X Y : C} (f : X ⟶ Y) [split_mono f] : mono f :=
+/-- Every iso is a split mono. -/
+instance split_mono.of_iso {X Y : C} (f : X ⟶ Y) [is_iso f] : split_mono f :=
+{ retraction := inv f }
+
+/-- Every iso is a split epi. -/
+instance split_epi.of_iso {X Y : C} (f : X ⟶ Y) [is_iso f] : split_epi f :=
+{ section_ := inv f }
+
+/-- Every split mono is a mono. -/
+instance split_mono.mono {X Y : C} (f : X ⟶ Y) [split_mono f] : mono f :=
 { right_cancellation := λ Z g h w, begin replace w := w =≫ retraction f, simpa using w, end }
 
-instance epi_of_split_epi {X Y : C} (f : X ⟶ Y) [split_epi f] : epi f :=
+/-- Every split epi is an epi. -/
+instance split_epi.epi {X Y : C} (f : X ⟶ Y) [split_epi f] : epi f :=
 { left_cancellation := λ Z g h w, begin replace w := section_ f ≫= w, simpa using w, end }
 
 section

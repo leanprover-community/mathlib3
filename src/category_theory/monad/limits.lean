@@ -24,13 +24,13 @@ include 𝒥
 namespace forget_creates_limits
 variables (D : J ⥤ algebra T) [has_limit.{v₁} (D ⋙ forget T)]
 
-@[simps, nolint doc_blame] def γ : (D ⋙ forget T ⋙ T) ⟶ (D ⋙ forget T) := { app := λ j, (D.obj j).a }
+@[simps] def γ : (D ⋙ forget T ⋙ T) ⟶ (D ⋙ forget T) := { app := λ j, (D.obj j).a }
 
-@[simps, nolint doc_blame] def c : cone (D ⋙ forget T) :=
+@[simps] def c : cone (D ⋙ forget T) :=
 { X := T.obj (limit (D ⋙ forget T)),
   π := (functor.const_comp _ _ T).inv ≫ whisker_right (limit.cone (D ⋙ forget T)).π T ≫ (γ D) }
 
-@[simps, nolint doc_blame] def cone_point (D : J ⥤ algebra T) [has_limit.{v₁} (D ⋙ forget T)] : algebra T :=
+@[simps] def cone_point (D : J ⥤ algebra T) [has_limit.{v₁} (D ⋙ forget T)] : algebra T :=
 { A := limit (D ⋙ forget T),
   a := limit.lift _ (c D),
   unit' :=
@@ -84,28 +84,50 @@ def forget_creates_limits (D : J ⥤ algebra T) [has_limit (D ⋙ forget T)] : h
     uniq' := λ s m w, by { ext1, ext1, simpa using congr_arg algebra.hom.f (w j) } } }
 
 namespace forget_creates_colimits
+-- Let's hide the implementation details in a namespace
+variables (D : J ⥤ algebra T) [has_colimit.{v₁} (D ⋙ forget T)] [preserves_colimits_of_shape J T]
+-- We have a diagram D of shape J in the category of algebras, and we assume that its image
+-- D ⋙ forget T under the forgetful functor has a colimit (written L).
 
-variables (D : J ⥤ algebra T) [has_colimit.{v₁} (D ⋙ forget T)]
+-- We'll construct a colimiting coalgebra for D, whose carrier will also be L.
+-- To do this, we must find a map TL ⟶ L. Since T preserves colimits, TL is also a colimit.
+-- In particular, it is a colimit for the diagram `(D ⋙ forget T) ⋙ T`
+-- so to construct a map TL ⟶ L it suffices to show that L is the apex of a cocone for this diagram.
+-- In other words, we need a natural transformation from const L to `(D ⋙ forget T) ⋙ T`.
+-- But we already know that L is the apex of a cocone for the diagram `D ⋙ forget T`, so it
+-- suffices to give a natural transformation `((D ⋙ forget T) ⋙ T) ⟶ (D ⋙ forget T)`:
 
+/--
+The natural transformation given by the algebra structure maps, used to construct a cocone `c` with
+apex `colimit (D ⋙ forget T)`.
+ -/
 @[simps] def γ : ((D ⋙ forget T) ⋙ T) ⟶ (D ⋙ forget T) := { app := λ j, (D.obj j).a }
 
+/--
+A cocone for the diagram `(D ⋙ forget T) ⋙ T` found by composing the above natural transformation
+with the colimiting cocone for `D ⋙ forget T`.
+-/
 @[simps]
 def c : cocone ((D ⋙ forget T) ⋙ T) :=
 { X := colimit (D ⋙ forget T),
   ι := γ D ≫ (colimit.cocone (D ⋙ forget T)).ι }
 
-variable [preserves_colimits_of_shape J T]
-
-@[reducible, nolint doc_blame]
-def lambda :=
+/-- We can now easily construct our map `λ : TL ⟶ L`. -/
+@[reducible]
+def lambda : (functor.map_cocone T (colimit.cocone (D ⋙ forget T))).X ⟶ colimit (D ⋙ forget T) :=
 (preserves_colimit.preserves T (colimit.is_colimit (D ⋙ forget T))).desc (c D)
 
-@[nolint doc_blame]
+/-- The key property defining the map `λ : TL ⟶ L`. -/
 lemma commuting (j : J) :
 T.map (colimit.ι (D ⋙ forget T) j) ≫ lambda D = (D.obj j).a ≫ colimit.ι (D ⋙ forget T) j :=
 is_colimit.fac (preserves_colimit.preserves T (colimit.is_colimit (D ⋙ forget T))) (c D) j
 
-@[simps, nolint doc_blame] def cocone_point :
+/--
+Construct the colimiting algebra from the map `λ : TL ⟶ L` above. We are required to show it
+satisfies the two algebra laws, which follow from the algebra laws for the image of `D` and
+our `commuting` lemma.
+-/
+@[simps] def cocone_point :
 algebra T :=
 { A := colimit (D ⋙ forget T),
   a := lambda D,
@@ -135,6 +157,9 @@ end forget_creates_colimits
 /--
 The forgetful functor from the Eilenberg-Moore category for a monad creates any colimit
 which the monad itself preserves.
+
+The colimiting algebra itself has been constructed above, we now must show it actually forms
+a cocone, and that this is colimiting.
 -/
 def forget_creates_colimits_of_monad_preserves
   [preserves_colimits_of_shape J T] (D : J ⥤ algebra T) [has_colimit (D ⋙ forget T)] :

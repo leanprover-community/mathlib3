@@ -52,6 +52,22 @@ end chain_complex
 
 namespace chain_complex
 variables
+  (V : Type) [𝒱 : category.{0} V]
+  [has_zero_morphisms.{0} V] [has_coproducts.{0} V]
+include 𝒱
+
+def total : chain_complex.{0} V ⥤ V :=
+{ obj := λ C, ∐ C.C,
+  map := λ C C' f, limits.sigma.map f.f }.
+
+-- TODO we'll need to know the coprojections are monomorphisms
+instance : faithful (total V) :=
+sorry
+
+end chain_complex
+
+namespace chain_complex
+variables
   {V : Type (u+1)} [𝒱 : concrete_category V]
   [has_zero_morphisms.{u} V]
 include 𝒱

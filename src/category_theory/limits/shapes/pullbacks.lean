@@ -246,7 +246,7 @@ lemma equalizer_ext (t : pullback_cone f g) {W : C} {k l : W ⟶ t.X}
     ... = l ≫ t.π.app left ≫ (cospan f g).map inl : by rw [←category.assoc, h₀, category.assoc]
     ... = l ≫ t.π.app one : by rw t.w
 
-/-- This is a slightly more conventient method to verify that a pullback cone is a limit cone. It
+/-- This is a slightly more convenient method to verify that a pullback cone is a limit cone. It
     only asks for a proof of facts that carry any mathematical content -/
 def is_limit.mk (t : pullback_cone f g) (lift : Π (s : cone (cospan f g)), s.X ⟶ t.X)
   (fac_left : ∀ (s : cone (cospan f g)), lift s ≫ t.π.app left = s.π.app left)
@@ -300,7 +300,7 @@ lemma coequalizer_ext (t : pushout_cocone f g) {W : C} {k l : t.X ⟶ W}
     ... = ((span f g).map fst ≫ t.ι.app left) ≫ l : by rw [category.assoc, h₀, ←category.assoc]
     ... = t.ι.app zero ≫ l : by rw t.w
 
-/-- This is a slightly more conventient method to verify that a pushout cocone is a colimit cocone.
+/-- This is a slightly more convenient method to verify that a pushout cocone is a colimit cocone.
     It only asks for a proof of facts that carry any mathematical content -/
 def is_colimit.mk (t : pushout_cocone f g) (desc : Π (s : cocone (span f g)), t.X ⟶ s.X)
   (fac_left : ∀ (s : cocone (span f g)), t.ι.app left ≫ desc s = s.ι.app left)

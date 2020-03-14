@@ -224,10 +224,15 @@ def mk {W : C} (fst : W ⟶ X) (snd : W ⟶ Y) (eq : fst ≫ f = snd ≫ g) : pu
 @[simp] lemma mk_π_app_one {W : C} (fst : W ⟶ X) (snd : W ⟶ Y) (eq : fst ≫ f = snd ≫ g) :
   (mk fst snd eq).π.app one = fst ≫ f := rfl
 
-@[reassoc] lemma condition (t : pullback_cone f g) : (fst t) ≫ f = (snd t) ≫ g :=
+@[reassoc] lemma condition (t : pullback_cone f g) : fst t ≫ f = snd t ≫ g :=
 begin
   erw [t.w inl, ← t.w inr], refl
 end
+
+@[simp] lemma mk_left {L : C} {lx : L ⟶ X} {ly : L ⟶ Y} {e : lx ≫ f = ly ≫ g} :
+  (pullback_cone.mk lx ly e).π.app left = lx := rfl
+@[simp] lemma mk_right {L : C} {lx : L ⟶ X} {ly : L ⟶ Y} {e : lx ≫ f = ly ≫ g} :
+  (pullback_cone.mk lx ly e).π.app right = ly := rfl
 
 /-- To check whether a morphism is equalized by the maps of a pullback cone, it suffices to check
   it for `fst t` and `snd t` -/

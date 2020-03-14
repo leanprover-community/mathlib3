@@ -16,8 +16,12 @@ universes v₁ v₂ u₁ u₂
 
 namespace category_theory
 
-variables {C : Type u₁} [𝒞 : category.{v₁} C] {D : Type u₂} [𝒟 : category.{v₂} D]
-include 𝒞 𝒟
+variables {C : Type u₁} [𝒞 : category.{v₁} C]
+include 𝒞
+
+section
+variables {D : Type u₂} [𝒟 : category.{v₂} D]
+include 𝒟
 
 lemma left_adjoint_preserves_epi {F : C ⥤ D} {G : D ⥤ C} (adj : F ⊣ G)
   {X Y : C} {f : X ⟶ Y} (hf : epi f) : epi (F.map f) :=
@@ -48,5 +52,47 @@ lemma faithful_reflects_mono (F : C ⥤ D) [faithful F] {X Y : C} {f : X ⟶ Y}
   (hf : mono (F.map f)) : mono f :=
 ⟨λ Z g h H, F.injectivity $
   by rw [←cancel_mono (F.map f), ←F.map_comp, ←F.map_comp, H]⟩
+end
+
+class split_mono {X Y : C} (f : X ⟶ Y) :=
+(retraction : Y ⟶ X)
+(id' : f ≫ retraction = 𝟙 X . obviously)
+
+class split_epi {X Y : C} (f : X ⟶ Y) :=
+(section_ : Y ⟶ X)
+(id' : section_ ≫ f = 𝟙 Y . obviously)
+
+/-- The chosen retraction of a split monomorphism. -/
+def retraction {X Y : C} (f : X ⟶ Y) [split_mono f] : Y ⟶ X := split_mono.retraction.{v₁} f
+@[simp, reassoc]
+lemma split_mono.id {X Y : C} (f : X ⟶ Y) [split_mono f] : f ≫ retraction f = 𝟙 X :=
+split_mono.id' f
+
+/-- The chosen retraction of a split monomorphism. -/
+def section_ {X Y : C} (f : X ⟶ Y) [split_epi f] : Y ⟶ X := split_epi.section_.{v₁} f
+@[simp, reassoc]
+lemma split_epi.id {X Y : C} (f : X ⟶ Y) [split_epi f] : section_ f ≫ f = 𝟙 Y :=
+split_epi.id' f
+
+instance mono_of_split_mono {X Y : C} (f : X ⟶ Y) [split_mono f] : mono f :=
+{ right_cancellation := λ Z g h w, begin replace w := w =≫ retraction f, simpa using w, end }
+
+instance epi_of_split_epi {X Y : C} (f : X ⟶ Y) [split_epi f] : epi f :=
+{ left_cancellation := λ Z g h w, begin replace w := section_ f ≫= w, simpa using w, end }
+
+section
+variables {D : Type u₂} [𝒟 : category.{v₂} D]
+include 𝒟
+
+/-- Split monomorphisms are also absolute monomorphisms. -/
+instance {X Y : C} (f : X ⟶ Y) [split_mono f] (F : C ⥤ D) : split_mono (F.map f) :=
+{ retraction := F.map (retraction f),
+  id' := by { rw [←functor.map_comp, split_mono.id, functor.map_id], } }
+
+/-- Split epimorphisms are also absolute epimorphisms. -/
+instance {X Y : C} (f : X ⟶ Y) [split_epi f] (F : C ⥤ D) : split_epi (F.map f) :=
+{ section_ := F.map (section_ f),
+  id' := by { rw [←functor.map_comp, split_epi.id, functor.map_id], } }
+end
 
 end category_theory

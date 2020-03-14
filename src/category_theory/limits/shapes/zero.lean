@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Scott Morrison
 -/
 import category_theory.limits.shapes.terminal
+import category_theory.epi_mono
 
 /-!
 # Zero morphisms and zero objects
@@ -107,5 +108,17 @@ def has_terminal_of_has_zero_object : has_terminal.{v} C :=
 has_terminal_of_unique 0
 
 end has_zero_object
+
+instance
+  {β : Type v} [decidable_eq β]
+  [has_zero_morphisms.{v} C]
+  (f : β → C) [has_colimit (functor.of_function f)] (b : β) : split_mono (sigma.ι f b) :=
+{ retraction := sigma.desc (λ b', if h : b' = b then eq_to_hom (congr_arg f h) else 0), }
+
+instance
+  {β : Type v} [decidable_eq β]
+  [has_zero_morphisms.{v} C]
+  (f : β → C) [has_limit (functor.of_function f)] (b : β) : split_epi (pi.π f b) :=
+{ section_ := pi.lift (λ b', if h : b = b' then eq_to_hom (congr_arg f h) else 0), }
 
 end category_theory.limits

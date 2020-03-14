@@ -29,9 +29,9 @@ open category_theory.limits
 
 namespace AddCommGroup.colimits
 /-!
-We build the colimit of a diagram in `Mon` by constructing the
-free monoid on the disjoint union of all the monoids in the diagram,
-then taking the quotient by the monoid laws within each monoid,
+We build the colimit of a diagram in `AddCommGroup` by constructing the
+free group on the disjoint union of all the abelian groups in the diagram,
+then taking the quotient by the abelian group laws within each abelian group,
 and the identifications given by the morphisms in the diagram.
 -/
 
@@ -53,7 +53,7 @@ open prequotient
 
 /--
 The relation on `prequotient` saying when two expressions are equal
-because of the group laws, or
+because of the abelian group laws, or
 because one element is mapped to another by a morphism in the diagram.
 -/
 inductive relation : prequotient F → prequotient F → Prop
@@ -79,7 +79,7 @@ inductive relation : prequotient F → prequotient F → Prop
 | add_assoc     : Π (x y z), relation (add (add x y) z) (add x (add y z))
 
 /--
-The setoid corresponding to group expressions modulo group relations and identifications.
+The setoid corresponding to group expressions modulo abelian group relations and identifications.
 -/
 def colimit_setoid : setoid (prequotient F) :=
 { r := relation F, iseqv := ⟨relation.refl, relation.symm, relation.trans⟩ }

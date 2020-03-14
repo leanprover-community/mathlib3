@@ -9,7 +9,7 @@ import category_theory.limits.preserves
 import algebra.pi_instances
 
 /-!
-# The category of commutative additive groups has all limits
+# The category of abelian groups has all limits
 
 Further, these limits are preserved by the forgetful functor --- that is,
 the underlying types are just the limits in the category of types.
@@ -66,7 +66,7 @@ instance limit_add_comm_group (F : J ⥤ AddCommGroup.{u}) :
   (by convert (AddCommGroup.sections_add_subgroup F))
 
 /-- `limit.π (F ⋙ forget AddCommGroup) j` as a `add_monoid_hom`. -/
-def limit_π_add_monoid_hom (F : J ⥤ CommRing.{u}) (j) :
+def limit_π_add_monoid_hom (F : J ⥤ AddCommGroup.{u}) (j) :
   limit (F ⋙ forget AddCommGroup) →+ (F ⋙ forget AddCommGroup).obj j :=
 { to_fun := limit.π (F ⋙ forget AddCommGroup) j,
   map_zero' := by { simp only [types.types_limit_π], refl },
@@ -84,7 +84,7 @@ Construction of a limit cone in `AddCommGroup`.
 def limit (F : J ⥤ AddCommGroup.{u}) : cone F :=
 { X := ⟨limit (F ⋙ forget _), by apply_instance⟩,
   π :=
-  { app := limit_π_add_monoid_hom,
+  { app := limit_π_add_monoid_hom F,
     naturality' := λ j j' f,
       add_monoid_hom.coe_inj ((limit.cone (F ⋙ forget _)).π.naturality f) } }
 
@@ -106,7 +106,7 @@ end
 end AddCommGroup_has_limits
 open AddCommGroup_has_limits
 
-/-- The category of additive commutative groups has all limits. -/
+/-- The category of abelian groups has all limits. -/
 instance AddCommGroup_has_limits : has_limits.{u} AddCommGroup.{u} :=
 { has_limits_of_shape := λ J 𝒥,
   { has_limit := λ F, by exactI
@@ -114,7 +114,7 @@ instance AddCommGroup_has_limits : has_limits.{u} AddCommGroup.{u} :=
       is_limit := limit_is_limit F } } }
 
 /--
-The forgetful functor from additive commutative groups to types preserves all limits. (That is, the underlying
+The forgetful functor from abelian groups to types preserves all limits. (That is, the underlying
 types could have been computed instead as limits in the category of types.)
 -/
 instance forget_preserves_limits : preserves_limits (forget AddCommGroup.{u}) :=

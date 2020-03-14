@@ -49,6 +49,8 @@ inductive prequotient
 | neg : prequotient → prequotient
 | add : prequotient → prequotient → prequotient
 
+instance : inhabited (prequotient F) := ⟨prequotient.zero⟩
+
 open prequotient
 
 /--
@@ -88,6 +90,7 @@ attribute [instance] colimit_setoid
 /--
 The underlying type of the colimit of a diagram in `AddCommGroup`.
 -/
+@[derive inhabited]
 def colimit_type : Type v := quotient (colimit_setoid F)
 
 instance : add_comm_group (colimit_type F) :=

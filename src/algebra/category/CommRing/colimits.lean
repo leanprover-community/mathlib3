@@ -70,6 +70,8 @@ inductive prequotient
 | add : prequotient → prequotient → prequotient
 | mul : prequotient → prequotient → prequotient
 
+instance : inhabited (prequotient F) := ⟨prequotient.zero⟩
+
 open prequotient
 
 /--
@@ -119,6 +121,7 @@ attribute [instance] colimit_setoid
 /--
 The underlying type of the colimit of a diagram in `CommRing`.
 -/
+@[derive inhabited]
 def colimit_type : Type v := quotient (colimit_setoid F)
 
 instance : comm_ring (colimit_type F) :=

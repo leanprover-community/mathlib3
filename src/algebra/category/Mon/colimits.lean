@@ -53,6 +53,8 @@ inductive prequotient
 | one {} : prequotient
 | mul : prequotient → prequotient → prequotient
 
+instance : inhabited (prequotient F) := ⟨prequotient.one⟩
+
 open prequotient
 
 /--
@@ -88,6 +90,7 @@ attribute [instance] colimit_setoid
 /--
 The underlying type of the colimit of a diagram in `Mon`.
 -/
+@[derive inhabited]
 def colimit_type : Type v := quotient (colimit_setoid F)
 
 instance monoid_colimit_type : monoid (colimit_type F) :=

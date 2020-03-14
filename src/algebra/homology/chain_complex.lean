@@ -1,3 +1,4 @@
+import category_theory.graded_objects
 import category_theory.limits.shapes.zero
 import category_theory.limits.shapes.products
 import category_theory.limits.shapes.images
@@ -89,19 +90,52 @@ end
 variables [has_images.{v} V] [has_equalizers.{v} V]
 
 /-- The connecting morphism from the image of `d i` to the kernel of `d (i-1)`. -/
-def image_to_kernel_hom (C : chain_complex.{v} V) (i : ℤ) :
+def image_to_kernel_map (C : chain_complex.{v} V) (i : ℤ) :
 image (C.d i) ⟶ kernel (C.d (i-1)) :=
-kernel.lift (image.ι (C.d i))
+kernel.lift _ (image.ι (C.d i))
 begin
   apply @epi.left_cancellation _ _ _ _ (factor_thru_image (C.d i)) _ _ _ _ _,
   simp,
 end
 
+def induced_map_on_cycles {C C' : chain_complex.{v} V} (f : C ⟶ C') (i : ℤ) :
+  kernel (C.d i) ⟶ kernel (C'.d i) :=
+kernel.lift _ (kernel.ι _ ≫ f.f i)
+(by rw [category.assoc, f.comm, ←category.assoc, kernel.condition, has_zero_morphisms.zero_comp])
+
+-- TODO:
+-- At this level of generality, it's just not true(!?) that a chain map
+-- induces maps on boundaries
+-- What extra conditions do we need to add?
+def induced_map_on_boundaries {C C' : chain_complex.{v} V} (f : C ⟶ C') (i : ℤ) :
+  image (C.d i) ⟶ image (C'.d i) :=
+sorry
+
+lemma induced_maps_commute {C C' : chain_complex.{v} V} (f : C ⟶ C') (i : ℤ) :
+image_to_kernel_map C i ≫ induced_map_on_cycles f (i-1) =
+  induced_map_on_boundaries f i ≫ image_to_kernel_map C' i :=
+sorry
+
 variables [has_cokernels.{v} V]
 
-/-- The `i`-th homology group of a chain complex `C`. -/
-def homology (C : chain_complex.{v} V) (i : ℤ) : V :=
-cokernel (image_to_kernel_hom C i)
+/-- The `i`-th homology group of the chain complex `C`. -/
+def homology_group (C : chain_complex.{v} V) (i : ℤ) : V :=
+cokernel (image_to_kernel_map C i)
+
+def induced_map_on_homology {C C' : chain_complex.{v} V} (f : C ⟶ C') (i : ℤ) :
+  C.homology_group i ⟶ C'.homology_group i :=
+cokernel.desc _ (induced_map_on_cycles f (i-1) ≫ cokernel.π _)
+begin
+  rw [←category.assoc, induced_maps_commute, category.assoc, cokernel.condition],
+  erw [has_zero_morphisms.comp_zero],
+end
+
+/-- The homology functor from chain complexes to `ℤ` graded objects in `V`. -/
+def homology : chain_complex.{v} V ⥤ (ulift.{u} ℤ → V) :=
+{ obj := λ C i, homology_group C i.down,
+  map := λ C C' f i, induced_map_on_homology f i.down,
+  map_id' := sorry,
+  map_comp' := sorry, }
 
 end chain_complex
 

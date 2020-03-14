@@ -128,6 +128,8 @@ instance : mono (image.ι f) := (image.mono_factorisation f).m_mono
 
 /-- The map from the source to the image of a morphism. -/
 def factor_thru_image : X ⟶ image f := (image.mono_factorisation f).e
+@[simp]
+lemma as_factor_thru_image : (image.mono_factorisation f).e = factor_thru_image f := rfl
 @[simp, reassoc]
 lemma image.fac : factor_thru_image f ≫ image.ι f = f := (image.mono_factorisation f).fac'
 

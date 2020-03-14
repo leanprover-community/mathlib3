@@ -124,4 +124,22 @@ instance : monoidal_category (Module.{u} R) :=
   pentagon'                := λ M N K L, pentagon M N K L,
   triangle'                := λ M N, triangle M N, }
 
+namespace monoidal_category
+-- open_locale tensor_product
+
+def foo (M : Module R) : has_coe_to_fun ((Module.of R R ⊗ M : Module R) →ₗ[R] M) := by apply_instance
+
+@[simp]
+lemma t {M : Module R} (r : R) (m : M) : r • m = 0 := rfl
+
+-- set_option trace.class_instances true
+@[simp]
+lemma left_unitor_hom {M : Module R} (r : R) (m : M) : (@coe_fn _ (foo M) ((λ_ M).hom)) (r ⊗ₜ[R] m) = r • m := rfl
+@[simp]
+lemma right_unitor_hom {M : Module R} (r : R) (m : M) : (ρ_ M) (m ⊗ₜ r) = r • m := rfl
+@[simp]
+lemma associator_hom {M N K : Module R} (m : M) : (ρ_ M) (m ⊗ₜ r) = r • m := rfl
+
+end monoidal_category
+
 end Module

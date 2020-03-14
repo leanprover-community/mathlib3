@@ -19,16 +19,15 @@ although this is also sometimes used to mean a finitely complete category.
 As this works with either products or coproducts, we don't set up either construct as an instance.
 -/
 
-open category_theory.limits
-
 universes v u
 
 namespace category_theory
+open category_theory.limits
 
-section
 variables (C : Type u) [𝒞 : category.{v} C]
 include 𝒞
 
+section
 local attribute [tidy] tactic.case_bash
 
 /-- A category with a terminal object and binary products has a natural monoidal structure. -/
@@ -42,6 +41,27 @@ def monoidal_of_has_finite_products [has_terminal.{v} C] [has_binary_products.{v
   pentagon'    := prod.pentagon,
   triangle'    := prod.triangle,
   associator_naturality' := @prod.associator_naturality _ _ _, }
+end
+
+namespace monoidal_of_has_finite_products
+variables [has_terminal.{v} C] [has_binary_products.{v} C]
+local attribute [instance] monoidal_of_has_finite_products
+
+@[simp]
+lemma left_unitor_hom (X : C) : (λ_ X).hom = limits.prod.snd := rfl
+@[simp]
+lemma right_unitor_hom (X : C) : (ρ_ X).hom = limits.prod.fst := rfl
+@[simp]
+lemma associator_hom (X Y Z : C) :
+  (α_ X Y Z).hom =
+  prod.lift
+    (limits.prod.fst ≫ limits.prod.fst)
+    (prod.lift (limits.prod.fst ≫ limits.prod.snd) limits.prod.snd) := rfl
+
+end monoidal_of_has_finite_products
+
+section
+local attribute [tidy] tactic.case_bash
 
 /-- A category with an initial object and binary coproducts has a natural monoidal structure. -/
 def monoidal_of_has_finite_coproducts [has_initial.{v} C] [has_binary_coproducts.{v} C] : monoidal_category C :=
@@ -54,7 +74,6 @@ def monoidal_of_has_finite_coproducts [has_initial.{v} C] [has_binary_coproducts
   pentagon'    := coprod.pentagon,
   triangle'    := coprod.triangle,
   associator_naturality' := @coprod.associator_naturality _ _ _, }
-
 end
 
 end category_theory

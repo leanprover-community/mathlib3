@@ -90,14 +90,16 @@ lemma init_seg_total [decidable_eq α] [linear_order α]
   (h₁ : is_init_seg_of_colex 𝒜₁ r) (h₂ : is_init_seg_of_colex 𝒜₂ r) :
   𝒜₁ ⊆ 𝒜₂ ∨ 𝒜₂ ⊆ 𝒜₁ :=
 begin
-  rw [← sdiff_eq_empty_iff_subset, ← sdiff_eq_empty_iff_subset], by_contra a,
+  rw [← sdiff_eq_empty_iff_subset, ← sdiff_eq_empty_iff_subset],
+  by_contra a,
   push_neg at a,
-  simp [exists_mem_iff_ne_empty.symm, exists_mem_iff_ne_empty.symm] at a,
-  rcases a with ⟨⟨A, Ah₁, Ah₂⟩, ⟨B, Bh₁, Bh₂⟩⟩,
+  rw [← ne, ← nonempty_iff_ne_empty, ← ne, ← nonempty_iff_ne_empty] at a,
+  rcases a with ⟨⟨A, Ah⟩, ⟨B, Bh⟩⟩,
+  rw mem_sdiff at Ah Bh,
   rcases trichotomous_of (<ᶜ) A B with lt | rfl | gt,
-    { exact Ah₂ (h₂.2 B Bh₁ A ⟨lt, h₁.1 A Ah₁⟩) },
-    { exact Bh₂ Ah₁ },
-    { exact Bh₂ (h₁.2 A Ah₁ B ⟨gt, h₂.1 B Bh₁⟩) },
+    { exact Ah.2 (h₂.2 B Bh.1 A ⟨lt, h₁.1 A Ah.1⟩) },
+    { exact Bh.2 Ah.1 },
+    { exact Bh.2 (h₁.2 A Ah.1 B ⟨gt, h₂.1 B Bh.1⟩) },
 end
 
 namespace UV
@@ -107,7 +109,7 @@ section
   since a portion of the set is being shifted 'down' as max U < max V.
   -/
   lemma compression_reduces_set [decidable_linear_order α] {U V : finset α}
-    {hU : U ≠ ∅} {hV : V ≠ ∅} (A : finset α) (h : max' U hU < max' V hV):
+    {hU : U.nonempty} {hV : V.nonempty} (A : finset α) (h : max' U hU < max' V hV):
     compress U V A ≠ A → compress U V A <ᶜ A :=
   begin
     rw compress, split_ifs with h₁; intro h₂,
@@ -131,7 +133,7 @@ section
   "compress until we can't any more" is a terminating process
   -/
   lemma compression_reduces_family {U V : finset (fin n)}
-    {hU : U ≠ ∅} {hV : V ≠ ∅} (h : max' U hU < max' V hV)
+    {hU : U.nonempty} {hV : V.nonempty} (h : max' U hU < max' V hV)
     {𝒜 : finset (finset (fin n))} (a : compress_family U V 𝒜 ≠ 𝒜) :
     family_measure (compress_family U V 𝒜) < family_measure 𝒜 :=
   begin
@@ -163,7 +165,7 @@ section
   of a family of sets
   -/
   def useful_compression [decidable_linear_order α] (U V : finset α) : Prop :=
-  ∃ (HU : U ≠ ∅), ∃ (HV : V ≠ ∅), disjoint U V ∧ finset.card U = finset.card V
+  ∃ (HU : U.nonempty), ∃ (HV : V.nonempty), disjoint U V ∧ finset.card U = finset.card V
     ∧ max' U HU < max' V HV
 
   /--
@@ -205,9 +207,12 @@ section
     apply is_compressed_empty
   end
 
+  instance [decidable_eq α] (s : finset α) : decidable (s.nonempty) :=
+  by { rw nonempty_iff_ne_empty, apply_instance }
+
   instance thing2 [decidable_linear_order α] (U V : finset α) :
     decidable (useful_compression U V) :=
-  by rw useful_compression; apply_instance
+  by { rw useful_compression, apply_instance }
 
   /--
   The main KK helper: use induction with our measure to keep compressing until
@@ -234,7 +239,7 @@ section
       apply z ⟨U,V⟩,
       simp [a, k], exact ⟨subset_univ _, subset_univ _⟩,
     -- Yes. Then apply the compression, then keep going
-    rcases exists_min usable (λ t, t.1.card) ((nonempty_iff_ne_empty _).2 z)
+    rcases exists_min usable (λ t, t.1.card) (nonempty_iff_ne_empty.2 z)
       with ⟨⟨U,V⟩, uvh, t⟩,
     rw mem_filter at uvh,
     have h₂: ∀ U₁ V₁, useful_compression U₁ V₁ ∧ U₁.card < U.card → is_compressed U₁ V₁ A,
@@ -250,7 +255,6 @@ section
     { apply compression_reduces_family max_lt uvh.2.2 },
     { apply compress_family_sized same_size h }
   end
-
 
   /--
   If we're compressed by all useful compressions, we're an initial segment.
@@ -279,12 +283,14 @@ section
       apply union_eq_left_of_subset, intro t,
       simp only [and_imp, not_and, mem_sdiff, not_not], exact (λ x y, y x) },
     have: card A = card B := trans sizeA (h₁ B Bh).symm,
-    have hU: U ≠ ∅,
-      { intro t, rw sdiff_eq_empty_iff_subset at t,
+    have hU: U.nonempty,
+      { rw nonempty_iff_ne_empty,
+        intro t, rw sdiff_eq_empty_iff_subset at t,
         have: A = B := eq_of_subset_of_card_le t (ge_of_eq ‹_›),
         rw this at a, exact a Bh },
-    have hV: V ≠ ∅,
-      { intro t, rw sdiff_eq_empty_iff_subset at t,
+    have hV: V.nonempty,
+      { rw nonempty_iff_ne_empty,
+        intro t, rw sdiff_eq_empty_iff_subset at t,
         have: B = A := eq_of_subset_of_card_le t (le_of_eq ‹_›),
         rw ← this at a, exact a Bh },
     have disj: disjoint U V,
@@ -364,7 +370,7 @@ section
   `everything_up_to`
   -/
   lemma IS_iff_le_max (𝒜 : finset (finset α)) (r : ℕ) :
-    𝒜 ≠ ∅ ∧ is_init_seg_of_colex 𝒜 r ↔
+    𝒜.nonempty ∧ is_init_seg_of_colex 𝒜 r ↔
     ∃ (A : finset α), A ∈ 𝒜 ∧ A.card = r ∧ 𝒜 = everything_up_to A :=
   begin
     rw is_init_seg_of_colex, split,
@@ -375,7 +381,8 @@ section
         refine ⟨rfl, le_max' _ ne _ p⟩,
       rintro ⟨cards, le⟩, rcases le with p | rfl,
       apply IS _ Ah _ ⟨p, cards ▸ layer _ Ah⟩, exact Ah },
-    { rintro ⟨A, Ah, Ac, rfl⟩, refine ⟨ne_empty_of_mem Ah, λ B Bh, _, _⟩,
+    { rintro ⟨A, Ah, Ac, rfl⟩, refine ⟨_, λ B Bh, _, _⟩,
+      rw nonempty_iff_ne_empty, apply ne_empty_of_mem Ah,
       rw mem_everything_up_to at Bh, rwa ← Bh.1, intros B₁ Bh₁ B₂ Bh₂,
       rw mem_everything_up_to, split, rwa Bh₂.2,
       rw mem_everything_up_to at Bh₁, exact trans (or.inl Bh₂.1) Bh₁.2 }
@@ -393,7 +400,7 @@ section
   This is important for iterating KK: the shadow of an everything_up_to
   is also an everything_up_to. This is useful in particular for the next lemma.
   -/
-  lemma shadow_of_everything_up_to (A : finset α) (hA : A ≠ ∅) :
+  lemma shadow_of_everything_up_to (A : finset α) (hA : A.nonempty) :
     ∂ (everything_up_to A) = everything_up_to (erase A (min' A hA)) :=
   begin
     -- This is a pretty painful proof, with lots of cases.
@@ -443,7 +450,9 @@ section
     -- Now show that if B ≤ A - min A, there is j such that B ∪ j ≤ A
     -- We choose j as the smallest thing not in B
     rintro ⟨cards', ⟨k, z, _, _⟩ | rfl⟩,
-      set j := min' (univ \ B) (ne_empty_of_mem (mem_sdiff.2 ⟨complete _, ‹_›⟩)),
+      have notB: (univ \ B).nonempty,
+        refine ⟨k, mem_sdiff.2 ⟨complete _, ‹k ∉ B›⟩⟩,
+      set j := min' (univ \ B) notB,
       -- Assume first B < A - min A, and take k as the colex witness for this
       have r: j ≤ k := min'_le _ _ _ _,
       have: j ∉ B, have: j ∈ univ \ B := min'_mem _ _,
@@ -452,7 +461,7 @@ section
       { rw [card_insert_of_not_mem ‹j ∉ B›, ← ‹_ = card B›,
             card_erase_of_mem (min'_mem _ _), nat.pred_eq_sub_one,
             nat.sub_add_cancel],
-      apply nat.pos_of_ne_zero, rw ne, rw card_eq_zero, exact hA },
+        apply nat.pos_of_ne_zero, rwa [ne, card_eq_zero, ← ne, ← nonempty_iff_ne_empty] },
       refine ⟨j, ‹_›, cards, _⟩,
       rcases lt_or_eq_of_le r with r | r₁, -- cases on j < k or j = k
         -- if j < k, k is our colex witness for B ∪ j < A
@@ -487,7 +496,7 @@ section
       have := shadow_monotone this,
       simp only [all_removals, shadow, subset_empty, singleton_bind, image_empty] at this,
       simp [shadow, this, is_init_seg_of_colex, all_sized],
-    by_cases h₂: 𝒜 = ∅,
+    cases eq_empty_or_nonempty 𝒜 with h₂ h₂,
       rw h₂, rw shadow_empty, rw is_init_seg_of_colex, rw all_sized, simp,
     replace h₁ := and.intro h₂ h₁, rw IS_iff_le_max at h₁,
     rcases h₁ with ⟨B, _, rfl, rfl⟩,

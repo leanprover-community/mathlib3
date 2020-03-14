@@ -59,6 +59,7 @@ instance add_monoid         [∀ i, add_monoid         $ f i] : add_monoid      
 instance add_comm_monoid    [∀ i, add_comm_monoid    $ f i] : add_comm_monoid    (Π i : I, f i) := by pi_instance
 instance add_group          [∀ i, add_group          $ f i] : add_group          (Π i : I, f i) := by pi_instance
 instance add_comm_group     [∀ i, add_comm_group     $ f i] : add_comm_group     (Π i : I, f i) := by pi_instance
+instance semiring           [∀ i, semiring           $ f i] : semiring           (Π i : I, f i) := by pi_instance
 instance ring               [∀ i, ring               $ f i] : ring               (Π i : I, f i) := by pi_instance
 instance comm_ring          [∀ i, comm_ring          $ f i] : comm_ring          (Π i : I, f i) := by pi_instance
 
@@ -133,18 +134,24 @@ lemma finset_prod_apply {α : Type*} {β : α → Type*} {γ} [∀a, comm_monoid
 show (s.val.map g).prod a = (s.val.map (λc, g c a)).prod,
   by rw [multiset_prod_apply, multiset.map_map]
 
+/-- A family of ring homomorphisms `f a : γ →+* β a` defines a ring homomorphism
+`pi.ring_hom f : γ →+* Π a, β a` given by `pi.ring_hom f x b = f b x`. -/
+protected def ring_hom
+  {α : Type u} {β : α → Type v} [R : Π a : α, semiring (β a)]
+  {γ : Type w} [semiring γ] (f : Π a : α, γ →+* β a) :
+  γ →+* Π a, β a :=
+{ to_fun := λ x b, f b x,
+  map_add' := λ x y, funext $ λ z, (f z).map_add x y,
+  map_mul' := λ x y, funext $ λ z, (f z).map_mul x y,
+  map_one' := funext $ λ z, (f z).map_one,
+  map_zero' := funext $ λ z, (f z).map_zero }
+
 instance is_ring_hom_pi
   {α : Type u} {β : α → Type v} [R : Π a : α, ring (β a)]
   {γ : Type w} [ring γ]
   (f : Π a : α, γ → β a) [Rh : Π a : α, is_ring_hom (f a)] :
   is_ring_hom (λ x b, f b x) :=
-begin
-  split,
-  -- It's a pity that these can't be done using `simp` lemmas.
-  { ext, rw [is_ring_hom.map_one (f x)], refl, },
-  { intros x y, ext1 z, rw [is_ring_hom.map_mul (f z)], refl, },
-  { intros x y, ext1 z, rw [is_ring_hom.map_add (f z)], refl, }
-end
+(show γ →+* Π a, β a, from pi.ring_hom (λ a, ring_hom.of (f a))).is_ring_hom
 
 end pi
 

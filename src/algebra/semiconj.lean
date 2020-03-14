@@ -5,7 +5,7 @@ Authors: Yury Kudryashov
 
 Some proofs and docs came from `algebra/commute` (c) Neil Strickland
 -/
-import algebra.ring algebra.group_power data.equiv.algebra
+import algebra.ring algebra.group_power data.equiv.mul_add
 
 /-!
 # Semiconjugate elements of a semigroup

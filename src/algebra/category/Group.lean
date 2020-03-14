@@ -53,6 +53,12 @@ instance : inhabited Group := ⟨1⟩
 @[to_additive]
 instance : concrete_category Group := infer_instance -- short-circuit type class inference
 
+@[to_additive,ext]
+lemma ext (G H : Group) (f₁ f₂ : G ⟶ H) (w : ∀ x, f₁ x = f₂ x) : f₁ = f₂ :=
+by { ext1, apply w }
+
+attribute [ext] AddGroup.ext
+
 @[to_additive has_forget_to_AddMon]
 instance has_forget_to_Mon : has_forget₂ Group Mon := infer_instance -- short-circuit type class inference
 
@@ -81,6 +87,12 @@ instance (G : CommGroup) : comm_group G := G.str
 @[to_additive] instance : inhabited CommGroup := ⟨1⟩
 
 @[to_additive] instance : concrete_category CommGroup := infer_instance -- short-circuit type class inference
+
+@[to_additive,ext]
+lemma ext (G H : CommGroup) (f₁ f₂ : G ⟶ H) (w : ∀ x, f₁ x = f₂ x) : f₁ = f₂ :=
+by { ext1, apply w }
+
+attribute [ext] AddCommGroup.ext
 
 @[to_additive has_forget_to_AddGroup]
 instance has_forget_to_Group : has_forget₂ CommGroup Group := infer_instance -- short-circuit type class inference

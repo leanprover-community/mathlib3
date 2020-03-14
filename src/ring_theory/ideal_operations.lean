@@ -8,7 +8,7 @@ More operations on modules and ideals.
 
 import ring_theory.ideals data.nat.choose order.zorn
 import linear_algebra.tensor_product
-import data.equiv.algebra
+import data.equiv.ring
 import ring_theory.algebra_operations
 
 universes u v w x

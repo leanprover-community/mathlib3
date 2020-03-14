@@ -250,10 +250,9 @@ theorem is_noetherian_iff_well_founded
   have hN' : ∀ {a b}, a ≤ b → N a ≤ N b :=
     λ a b, (strict_mono.le_iff_le (λ _ _, hN.1)).2,
   have : t ⊆ ⋃ i, (N i : set β),
-  { rw [← submodule.Union_coe_of_directed _ N _],
+  { rw [← submodule.coe_supr_of_directed N _],
     { show t ⊆ M, rw ← h₂,
       apply submodule.subset_span },
-    { apply_instance },
     { exact λ i j, ⟨max i j,
         hN' (le_max_left _ _),
         hN' (le_max_right _ _)⟩ } },

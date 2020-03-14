@@ -142,7 +142,8 @@ begin
     cases h J J0 (le_of_lt hJ), exact lt_irrefl _ hJ },
   { intros S SC cC I IS,
     refine ⟨Sup S, λ H, _, λ _, le_Sup⟩,
-    rcases submodule.mem_Sup_of_directed ((eq_top_iff_one _).1 H) I IS cC.directed_on with ⟨J, JS, J0⟩,
+    obtain ⟨J, JS, J0⟩ : ∃ J ∈ S, (1 : α) ∈ J,
+      from (submodule.mem_Sup_of_directed ⟨I, IS⟩ cC.directed_on).1 ((eq_top_iff_one _).1 H),
     exact SC JS ((eq_top_iff_one _).2 J0) }
 end
 

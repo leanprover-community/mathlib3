@@ -90,6 +90,16 @@ section
 variables {C : Type u} [𝒞 : category.{v} C] {X Y Z : C}
 include 𝒞
 
+/-- postcompose an equation between morphisms by another morphism -/
+lemma eq_whisker {f g : X ⟶ Y} (w : f = g) (h : Y ⟶ Z) : f ≫ h = g ≫ h :=
+by rw w
+/-- precompose an equation between morphisms by another morphism -/
+lemma whisker_eq (f : X ⟶ Y) {g h : Y ⟶ Z} (w : g = h) : f ≫ g = f ≫ h :=
+by rw w
+
+infixr ` =≫ `:80 := eq_whisker
+infixr ` ≫= `:80 := whisker_eq
+
 lemma eq_of_comp_left_eq {f g : X ⟶ Y} (w : ∀ {Z : C} (h : Y ⟶ Z), f ≫ h = g ≫ h) : f = g :=
 by { convert w (𝟙 Y), tidy }
 lemma eq_of_comp_right_eq {f g : Y ⟶ Z} (w : ∀ {X : C} (h : X ⟶ Y), h ≫ f = h ≫ g) : f = g :=

@@ -51,6 +51,7 @@ lemma of_apply (X : Type u) [add_comm_group X] [module R X] : (of R X : Type u) 
 
 variables {R}
 
+/-- Forgetting to the underlying type and then building the bundled object returns the original module. -/
 @[simps]
 def of_self_iso (M : Module R) : Module.of R M ≅ M :=
 { hom := 𝟙 M, inv := 𝟙 M }

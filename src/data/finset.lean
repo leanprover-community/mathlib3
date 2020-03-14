@@ -663,13 +663,13 @@ lemma union_sdiff_symm {s t : finset α} : s ∪ (t \ s) = t ∪ (s \ t) :=
 by rw [union_sdiff_self_eq_union, union_sdiff_self_eq_union, union_comm]
 
 lemma sdiff_union_inter (s t : finset α) : (s \ t) ∪ (s ∩ t) = s :=
-by simp only [ext, mem_union, mem_sdiff, mem_inter]; tauto
+by { simp only [ext, mem_union, mem_sdiff, mem_inter], tauto }
 
 @[simp] lemma sdiff_idem (s t : finset α) : s \ t \ t = s \ t :=
-by simp only [ext, mem_sdiff]; tauto
+by { simp only [ext, mem_sdiff], tauto }
 
 lemma sdiff_eq_empty_iff_subset {s t : finset α} : s \ t = ∅ ↔ s ⊆ t :=
-by rw [subset_iff, ext]; simp
+by { rw [subset_iff, ext], simp }
 
 @[simp] lemma empty_sdiff (s : finset α) : ∅ \ s = ∅ :=
 by { rw sdiff_eq_empty_iff_subset, exact empty_subset _ }
@@ -692,22 +692,22 @@ end
 by simp [subset_iff, mem_sdiff] {contextual := tt}
 
 lemma union_sdiff_distrib (s₁ s₂ t : finset α) : (s₁ ∪ s₂) \ t = s₁ \ t ∪ s₂ \ t :=
-by simp only [ext, mem_sdiff, mem_union]; tauto
+by { simp only [ext, mem_sdiff, mem_union], tauto }
 
 lemma sdiff_union_distrib (s t₁ t₂ : finset α) : s \ (t₁ ∪ t₂) = (s \ t₁) ∩ (s \ t₂) :=
-by simp only [ext, mem_union, mem_sdiff, mem_inter]; tauto
+by { simp only [ext, mem_union, mem_sdiff, mem_inter], tauto }
 
 lemma union_sdiff_self (s t : finset α) : (s ∪ t) \ t = s \ t :=
 by rw [union_sdiff_distrib, sdiff_self, union_empty]
 
 lemma sdiff_singleton_eq_erase (a : α) (s : finset α) : s \ singleton a = erase s a :=
-begin ext, rw [mem_erase, mem_sdiff, mem_singleton], tauto end
+by { ext, rw [mem_erase, mem_sdiff, mem_singleton], tauto }
 
 lemma sdiff_sdiff_self_left (s t : finset α) : s \ (s \ t) = s ∩ t :=
-by simp only [ext, mem_sdiff, mem_inter]; tauto
+by { simp only [ext, mem_sdiff, mem_inter], tauto }
 
 lemma sdiff_partially_injective {s t₁ t₂ : finset α} : s \ t₁ = s \ t₂ → s ∩ t₁ = s ∩ t₂ :=
-by { simp [ext], intros b c, replace b := b c, split; tauto }
+by { simp only [ext, mem_sdiff, mem_inter], intros b c, replace b := b c, split; tauto }
 
 end decidable_eq
 

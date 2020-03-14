@@ -7,6 +7,7 @@ Authors: Johan Commelin
 import algebra.punit_instances
 import algebra.category.Mon.basic
 import category_theory.endomorphism
+import category_theory.epi_mono
 
 /-!
 # Category instances for group, add_group, comm_group, and add_comm_group.
@@ -105,7 +106,7 @@ end CommGroup
 
 namespace AddCommGroup
 
-/-- Any element of an additive commutative group gives a unique morphism from `ℤ` sending
+/-- Any element of an abelian group gives a unique morphism from `ℤ` sending
 `1` to that element. -/
 -- TODO allow other universe levels
 -- this will require writing a `ulift_instances.lean` file
@@ -113,6 +114,12 @@ def as_hom {G : AddCommGroup.{0}} (g : G) : (AddCommGroup.of ℤ) ⟶ G :=
 { to_fun := λ i : ℤ, i • g,
   map_zero' := rfl,
   map_add' := λ a b, gpow_add g a b }
+
+@[simp]
+lemma as_hom_apply {G : AddCommGroup.{0}} (g : G) (i : ℤ) : (as_hom g) i = i • g := rfl
+
+lemma as_hom_injective {G : AddCommGroup.{0}} : function.injective (@as_hom G) :=
+λ h k w, by convert congr_arg (λ k : (AddCommGroup.of ℤ) ⟶ G, (k : ℤ → G) (1 : ℤ)) w; simp
 
 @[ext]
 lemma int_hom_ext
@@ -124,10 +131,6 @@ begin
   rw [add_monoid_hom.map_gsmul, add_monoid_hom.map_gsmul, w],
 end
 
--- TODO: a better approach would be to assemble this from
--- the forgetful functor AddCommGroup ⥤ Type is a right adjoint,
--- `right_adjoint_preserves_mono`
--- monomorphisms in Type are the injective functions
 lemma injective_of_mono {G H : AddCommGroup.{0}} (f : G ⟶ H) [mono f] : function.injective f :=
 λ g₁ g₂ h,
 begin
@@ -138,9 +141,7 @@ begin
     simpa using h,
   end,
   have t1 : as_hom g₁ = as_hom g₂ := (cancel_mono _).1 t0,
-  have t2 := congr_arg (λ k : (AddCommGroup.of ℤ) ⟶ G, (k : ℤ → G) (1 : ℤ)) t1,
-  dsimp [as_hom] at t2,
-  simpa using t2,
+  apply as_hom_injective t1,
 end
 
 end AddCommGroup

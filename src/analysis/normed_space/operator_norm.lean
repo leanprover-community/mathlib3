@@ -382,8 +382,11 @@ open filter
 complete. -/
 instance [complete_space F] : complete_space (E →L[𝕜] F) :=
 begin
+  -- We show that every Cauchy sequence converges.
   refine metric.complete_of_cauchy_seq_tendsto (λ f hf, _),
-  rcases cauchy_seq_iff_le_tendsto_0.1 hf with ⟨b, b0, b_bound, b_lim⟩,
+  -- We now expand out the definition of a Cauchy sequence,
+  rcases cauchy_seq_iff_le_tendsto_0.1 hf with ⟨b, b0, b_bound, b_lim⟩, clear hf,
+  -- and establish that the evaluation at any point `v : E` is Cauchy.
   have cau : ∀ v, cauchy_seq (λ n, f n v),
   { assume v,
     apply cauchy_seq_iff_le_tendsto_0.2 ⟨λ n, b n * ∥v∥, λ n, _, _, _⟩,
@@ -393,21 +396,26 @@ begin
       apply le_trans ((f n - f m).le_op_norm v) _,
       exact mul_le_mul_of_nonneg_right (b_bound n m N hn hm) (norm_nonneg v) },
     { simpa using b_lim.mul tendsto_const_nhds } },
+  -- We assemble the limits points of those Cauchy sequences
+  -- (which exist as `F` is complete)
+  -- into a function which we call `G`.
   choose G hG using λv, cauchy_seq_tendsto_of_complete (cau v),
+  -- Next, we show that this `G` is linear,
   let Glin : E →ₗ[𝕜] F :=
   { to_fun := G,
     add := λ v w, begin
       have A := hG (v + w),
       have B := (hG v).add (hG w),
-      simp at A B,
+      simp only [map_add] at A B,
       exact tendsto_nhds_unique filter.at_top_ne_bot A B,
     end,
     smul := λ c v, begin
       have A := hG (c • v),
       have B := filter.tendsto.smul (@tendsto_const_nhds _ ℕ _ c _) (hG v),
-      simp at A B,
+      simp only [map_smul] at A B,
       exact tendsto_nhds_unique filter.at_top_ne_bot A B
     end },
+  -- and that `G` has norm at most `(b 0 + ∥f 0∥)`.
   have Gnorm : ∀ v, ∥G v∥ ≤ (b 0 + ∥f 0∥) * ∥v∥,
   { assume v,
     have A : ∀ n, ∥f n v∥ ≤ (b 0 + ∥f 0∥) * ∥v∥,
@@ -421,8 +429,10 @@ begin
         simpa [dist_eq_norm] using b_bound n 0 0 (zero_le _) (zero_le _)
       end },
     exact le_of_tendsto at_top_ne_bot (hG v).norm (eventually_of_forall _ A) },
+  -- Thus `G` is continuous, and we propose that as the limit point of our original Cauchy sequence.
   let Gcont := Glin.mk_continuous _ Gnorm,
   use Gcont,
+  -- Our last task is to establish convergence to `G` in norm.
   have : ∀ n, ∥f n - Gcont∥ ≤ b n,
   { assume n,
     apply op_norm_le_bound _ (b0 n) (λ v, _),

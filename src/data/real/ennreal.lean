@@ -717,7 +717,7 @@ begin
     { subst a, simp },
     { subst b, simp [zero_lt_iff_ne_zero, lt_top_iff_ne_top, inv_ne_top] },
     { rw [← coe_inv (ne_of_gt ha), ← coe_inv (ne_of_gt hb), coe_lt_coe, coe_lt_coe],
-      simp only [nnreal.coe_lt.symm] at *,
+      simp only [nnreal.coe_lt_coe.symm] at *,
       exact inv_lt_inv ha hb } }
 end
 
@@ -810,7 +810,7 @@ forall_ennreal.2 $ and.intro
     (assume h, le_top))
   (assume r hr,
     have ((1 / 2 : nnreal) : ennreal) * ⊤ ≤ r :=
-      hr _ (coe_lt_coe.2 ((@nnreal.coe_lt (1/2) 1).1 one_half_lt_one)),
+      hr _ (coe_lt_coe.2 ((@nnreal.coe_lt_coe (1/2) 1).1 one_half_lt_one)),
     have ne : ((1 / 2 : nnreal) : ennreal) ≠ 0,
     begin
       rw [(≠), coe_eq_zero],

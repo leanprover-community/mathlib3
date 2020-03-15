@@ -52,6 +52,26 @@ include 𝒞
 variables {X Y : C} (f : X ⟶ Y)
 
 section
+variables [has_zero_morphisms.{v} C]
+
+/-- A kernel fork is just a fork where the second morphism is a zero morphism. -/
+abbreviation kernel_fork := fork f 0
+
+variables {f}
+
+@[simp, reassoc] lemma kernel_fork.condition (s : kernel_fork f) : fork.ι s ≫ f = 0 :=
+by erw [fork.condition, has_zero_morphisms.comp_zero]
+
+@[simp] lemma kernel_fork.app_one (s : kernel_fork f) : s.π.app one = 0 :=
+by erw [←cone_parallel_pair_left, kernel_fork.condition]; refl
+
+/-- A morphism `ι` satisfying `ι ≫ f = 0` determines a kernel fork over `f`. -/
+abbreviation kernel_fork.of_ι {Z : C} (ι : Z ⟶ X) (w : ι ≫ f = 0) : kernel_fork f :=
+fork.of_ι ι $ by rw [w, has_zero_morphisms.comp_zero]
+
+end
+
+section
 variables [has_zero_morphisms.{v} C] [has_limit (parallel_pair f 0)]
 
 /-- The kernel of a morphism, expressed as the equalizer with the 0 morphism. -/
@@ -61,11 +81,11 @@ abbreviation kernel : C := equalizer f 0
 abbreviation kernel.ι : kernel f ⟶ X := equalizer.ι f 0
 
 @[simp, reassoc] lemma kernel.condition : kernel.ι f ≫ f = 0 :=
-by simp [equalizer.condition]
+kernel_fork.condition _
 
 /-- Given any morphism `k` so `k ≫ f = 0`, `k` factors through `kernel f`. -/
 abbreviation kernel.lift {W : C} (k : W ⟶ X) (h : k ≫ f = 0) : W ⟶ kernel f :=
-limit.lift (parallel_pair f 0) (fork.of_ι k (by simpa))
+limit.lift (parallel_pair f 0) (kernel_fork.of_ι k h)
 
 /-- Every kernel of the zero morphism is an isomorphism -/
 def kernel.ι_zero_is_iso [has_limit (parallel_pair (0 : X ⟶ Y) 0)] :
@@ -115,6 +135,26 @@ end
 end has_zero_object
 
 section
+variables [has_zero_morphisms.{v} C]
+
+/-- A cokernel cofork is just a cofork where the second morphism is a zero morphism. -/
+abbreviation cokernel_cofork := cofork f 0
+
+variables {f}
+
+@[simp, reassoc] lemma cokernel_cofork.condition (s : cokernel_cofork f) : f ≫ cofork.π s = 0 :=
+by erw [cofork.condition, has_zero_morphisms.zero_comp]
+
+@[simp] lemma cokernel_cofork.app_zero (s : cokernel_cofork f) : s.ι.app zero = 0 :=
+by erw [←cocone_parallel_pair_left, cokernel_cofork.condition]; refl
+
+/-- A morphism `π` satisfying `f ≫ π = 0` determines a cokernel cofork on `f`. -/
+abbreviation cokernel_cofork.of_π {Z : C} (π : Y ⟶ Z) (w : f ≫ π = 0) : cokernel_cofork f :=
+cofork.of_π π $ by rw [w, has_zero_morphisms.zero_comp]
+
+end
+
+section
 variables [has_zero_morphisms.{v} C] [has_colimit (parallel_pair f 0)]
 
 /-- The cokernel of a morphism, expressed as the coequalizer with the 0 morphism. -/
@@ -124,11 +164,11 @@ abbreviation cokernel : C := coequalizer f 0
 abbreviation cokernel.π : Y ⟶ cokernel f := coequalizer.π f 0
 
 @[simp, reassoc] lemma cokernel.condition : f ≫ cokernel.π f = 0 :=
-by simp [coequalizer.condition]
+cokernel_cofork.condition _
 
 /-- Given any morphism `k` so `f ≫ k = 0`, `k` factors through `cokernel f`. -/
 abbreviation cokernel.desc {W : C} (k : Y ⟶ W) (h : f ≫ k = 0) : cokernel f ⟶ W :=
-colimit.desc (parallel_pair f 0) (cofork.of_π k (by simpa))
+colimit.desc (parallel_pair f 0) (cokernel_cofork.of_π k h)
 end
 
 section has_zero_object

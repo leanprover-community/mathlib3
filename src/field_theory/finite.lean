@@ -159,3 +159,20 @@ let ⟨a, b, hab⟩ := zmodp.sum_two_squares (show nat.prime n,
 end⟩
 
 end char_p
+
+open_locale nat
+open zmod
+
+@[simp] lemma zmod.pow_totient {n : ℕ+} (x : units (zmod n)) : x ^ φ n = 1 :=
+by rw [← card_units_eq_totient, pow_card_eq_one]
+
+lemma nat.pow_totient' {x n : ℕ} (h : nat.coprime x n) : x ^ φ n ≡ 1 [MOD n] :=
+begin
+  rcases nat.eq_zero_or_pos n with rfl | h₁, {simp},
+  let n' : ℕ+ := ⟨n, h₁⟩,
+  let x' : units (zmod n') := zmod.unit_of_coprime _ h,
+  have := zmod.pow_totient x',
+  apply (zmod.eq_iff_modeq_nat' h₁).1,
+  apply_fun (coe:units (zmod n') → zmod n') at this,
+  simpa [show (x':zmod n') = x, from rfl],
+end

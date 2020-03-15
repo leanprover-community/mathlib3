@@ -706,7 +706,7 @@ by { ext, rw [mem_erase, mem_sdiff, mem_singleton], tauto }
 lemma sdiff_sdiff_self_left (s t : finset α) : s \ (s \ t) = s ∩ t :=
 by { simp only [ext, mem_sdiff, mem_inter], tauto }
 
-lemma sdiff_partially_injective {s t₁ t₂ : finset α} : s \ t₁ = s \ t₂ → s ∩ t₁ = s ∩ t₂ :=
+lemma inter_eq_inter_of_sdiff_eq_sdiff {s t₁ t₂ : finset α} : s \ t₁ = s \ t₂ → s ∩ t₁ = s ∩ t₂ :=
 by { simp only [ext, mem_sdiff, mem_inter], intros b c, replace b := b c, split; tauto }
 
 end decidable_eq
@@ -1521,13 +1521,13 @@ have ∀b a, a ∈ s → b ∈ t₁ a → (∃ (a : α), a ∈ s ∧ b ∈ t₂ 
   from assume b a ha hb, ⟨a, ha, finset.mem_of_subset (h a ha) hb⟩,
 by simpa only [subset_iff, mem_bind, exists_imp_distrib, and_imp, exists_prop]
 
-lemma bind_sub_bind_of_sub_left {α : Type*} {s₁ s₂ : finset α}
+lemma bind_subset_bind_of_subset_left {α : Type*} {s₁ s₂ : finset α}
   (t : α → finset β) (h : s₁ ⊆ s₂) : s₁.bind t ⊆ s₂.bind t :=
 begin
   intro x,
   simp only [and_imp, mem_bind, exists_prop, exists_imp_distrib],
   intros y hy hty,
-  refine ⟨y, h hy, hty⟩
+  exact ⟨y, h hy, hty⟩
 end
 
 lemma bind_singleton {f : α → β} : s.bind (λa, {f a}) = s.image f :=
@@ -2410,8 +2410,11 @@ If there's more than 1 element, the min' is different to the max'. An alternate 
 -/
 lemma min_ne_max_of_card (h₂ : 1 < card s) : s.min' H ≠ s.max' H :=
 begin
-  intro, apply not_le_of_lt h₂ (le_of_eq _), rw card_eq_one,
-  use max' s H, rw eq_singleton_iff_unique_mem,
+  intro a,
+  apply not_le_of_lt h₂ (le_of_eq _),
+  rw card_eq_one,
+  use max' s H,
+  rw eq_singleton_iff_unique_mem,
   exact ⟨max'_mem _ _, λ t Ht, le_antisymm (le_max' s H t Ht) (a ▸ min'_le s H t Ht)⟩
 end
 

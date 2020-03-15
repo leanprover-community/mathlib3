@@ -1944,7 +1944,7 @@ lemma ultrafilter_iff_compl_mem_iff_not_mem :
     assume hs,
       have f ≤ principal (-s), from
         le_of_ultrafilter hf $ assume h, hs $ mem_sets_of_eq_bot $
-          by simp only [h, eq_self_iff_true, _root_.compl_compl],
+          by simp only [h, eq_self_iff_true, compl_compl],
       by simp only [le_principal_iff] at this; assumption⟩,
  assume hf,
    ⟨mt empty_in_sets_eq_bot.mpr ((hf ∅).mp (by convert f.univ_sets; rw [compl_empty])),
@@ -2112,7 +2112,7 @@ theorem nmem_hyperfilter_of_finite [infinite α] {s : set α} (hf : s.finite) :
 λ hy,
 have hx : -s ∉ hyperfilter :=
   λ hs, (ultrafilter_iff_compl_mem_iff_not_mem.mp is_ultrafilter_hyperfilter s).mp hs hy,
-have ht : -s ∈ cofinite.sets := by show -s ∈ {s | _}; rwa [set.mem_set_of_eq, set.compl_compl],
+have ht : -s ∈ cofinite.sets := by show -s ∈ {s | _}; rwa [set.mem_set_of_eq, compl_compl],
 hx $ hyperfilter_le_cofinite ht
 
 theorem compl_mem_hyperfilter_of_finite [infinite α] {s : set α} (hf : set.finite s) :

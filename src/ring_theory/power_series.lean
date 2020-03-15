@@ -1297,7 +1297,7 @@ by { contrapose! h, exact order_le _ _ h }
 lemma order_eq_top {φ : power_series α} :
   φ.order = ⊤ ↔ φ = 0 :=
 begin
-  rw eq_top_iff,
+  rw multiplicity.eq_top_iff,
   split,
   { intro h, ext n, specialize h (n+1), rw X_pow_dvd_iff at h, exact h n (lt_add_one _) },
   { rintros rfl n, exact dvd_zero _ }

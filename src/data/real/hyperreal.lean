@@ -156,9 +156,9 @@ theorem not_infinite_of_exists_st {x : ℝ*} : (∃ r : ℝ, is_st x r) → ¬ i
    (λ hip, not_lt_of_lt (hr 2 two_pos).2 (hip $ r + 2))
    (λ hin, not_lt_of_lt (hr 2 two_pos).1 (hin $ r - 2))
 
-theorem is_st_Sup {x : ℝ*} (hni : ¬ infinite x) : is_st x (real.Sup {y : ℝ | of y < x}) :=
+theorem is_st_Sup {x : ℝ*} (hni : ¬ infinite x) : is_st x (Sup {y : ℝ | of y < x}) :=
 let S : set ℝ := {y : ℝ | of y < x} in
-let R : _ := real.Sup S in
+let R : _ := Sup S in
 have hnile : _ := not_forall.mp (not_or_distrib.mp hni).1,
 have hnige : _ := not_forall.mp (not_or_distrib.mp hni).2,
 Exists.dcases_on hnile $ Exists.dcases_on hnige $ λ r₁ hr₁ r₂ hr₂,
@@ -176,9 +176,9 @@ have HR₂ : ∃ z : ℝ, ∀ y ∈ S, y ≤ z :=
       not_lt_of_le (real.le_Sup _ HR₂ hc) $ (lt_add_iff_pos_right _).mpr $ half_pos hδ⟩
 
 theorem exists_st_of_not_infinite {x : ℝ*} (hni : ¬ infinite x) : ∃ r : ℝ, is_st x r :=
-⟨ real.Sup {y : ℝ | of y < x}, is_st_Sup hni ⟩
+⟨ Sup {y : ℝ | of y < x}, is_st_Sup hni ⟩
 
-theorem st_eq_Sup {x : ℝ*} : st x = real.Sup {y : ℝ | of y < x} :=
+theorem st_eq_Sup {x : ℝ*} : st x = Sup {y : ℝ | of y < x} :=
 begin
 unfold st, split_ifs,
 { exact is_st_unique (classical.some_spec h) (is_st_Sup (not_infinite_of_exists_st h)) },

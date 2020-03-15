@@ -277,13 +277,17 @@ theorem exists_sup (S : set ℝ) : (∃ x, x ∈ S) → (∃ x, ∀ y ∈ S, y �
     (lt_of_le_of_lt hy $ sub_lt_iff_lt_add.1 $ hf₂ _ k0 _ yS)
 end
 
-noncomputable def Sup (S : set ℝ) : ℝ :=
-if h : (∃ x, x ∈ S) ∧ (∃ x, ∀ y ∈ S, y ≤ x)
-then classical.some (exists_sup S h.1 h.2) else 0
+noncomputable instance : has_Sup ℝ :=
+⟨λ S, if h : (∃ x, x ∈ S) ∧ (∃ x, ∀ y ∈ S, y ≤ x)
+  then classical.some (exists_sup S h.1 h.2) else 0⟩
+
+lemma Sup_def (S : set ℝ) :
+  Sup S = if h : (∃ x, x ∈ S) ∧ (∃ x, ∀ y ∈ S, y ≤ x)
+    then classical.some (exists_sup S h.1 h.2) else 0 := rfl
 
 theorem Sup_le (S : set ℝ) (h₁ : ∃ x, x ∈ S) (h₂ : ∃ x, ∀ y ∈ S, y ≤ x)
   {y} : Sup S ≤ y ↔ ∀ z ∈ S, z ≤ y :=
-by simp [Sup, h₁, h₂]; exact
+by simp [Sup_def, h₁, h₂]; exact
 classical.some_spec (exists_sup S h₁ h₂) y
 
 section
@@ -305,7 +309,9 @@ protected lemma is_lub_Sup {s : set ℝ} {a b : ℝ} (ha : a ∈ s) (hb : b ∈ 
 ⟨λ x xs, real.le_Sup s ⟨_, hb⟩ xs,
  λ u h, real.Sup_le_ub _ ⟨_, ha⟩ h⟩
 
-noncomputable def Inf (S : set ℝ) : ℝ := -Sup {x | -x ∈ S}
+noncomputable instance : has_Inf ℝ := ⟨λ S, -Sup {x | -x ∈ S}⟩
+
+lemma Inf_def (S : set ℝ) : Inf S = -Sup {x | -x ∈ S} := rfl
 
 theorem le_Inf (S : set ℝ) (h₁ : ∃ x, x ∈ S) (h₂ : ∃ x, ∀ y ∈ S, x ≤ y)
   {y} : y ≤ Inf S ↔ ∀ z ∈ S, y ≤ z :=
@@ -333,8 +339,8 @@ theorem lb_le_Inf (S : set ℝ) (h₁ : ∃ x, x ∈ S) {lb} (h₂ : ∀ y ∈ S
 (le_Inf S h₁ ⟨_, h₂⟩).2 h₂
 
 noncomputable instance : conditionally_complete_linear_order ℝ :=
-{ Sup := real.Sup,
-  Inf := real.Inf,
+{ Sup := has_Sup.Sup,
+  Inf := has_Inf.Inf,
   le_cSup :=
     assume (s : set ℝ) (a : ℝ) (_ : bdd_above s) (_ : a ∈ s),
     show a ≤ Sup s,
@@ -359,11 +365,11 @@ theorem Sup_empty : Sup (∅ : set ℝ) = 0 := dif_neg $ by simp
 theorem Sup_of_not_bdd_above {s : set ℝ} (hs : ¬ bdd_above s) : Sup s = 0 :=
 dif_neg $ assume h, hs h.2
 
-theorem Sup_univ : real.Sup set.univ = 0 :=
+theorem Sup_univ : Sup (@set.univ ℝ) = 0 :=
 real.Sup_of_not_bdd_above $ λ ⟨x, h⟩, not_le_of_lt (lt_add_one _) $ h (set.mem_univ _)
 
 theorem Inf_empty : Inf (∅ : set ℝ) = 0 :=
-show Inf ∅ = 0, by simp [Inf]; exact Sup_empty
+by simp [Inf_def, Sup_empty]
 
 theorem Inf_of_not_bdd_below {s : set ℝ} (hs : ¬ bdd_below s) : Inf s = 0 :=
 have bdd_above {x | -x ∈ s} → bdd_below s, from

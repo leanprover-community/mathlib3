@@ -914,7 +914,7 @@ lemma lintegral_le_lintegral_ae {f g : α → ennreal} (h : ∀ₘ a, f a ≤ g 
 begin
   rcases exists_is_measurable_superset_of_measure_eq_zero h with ⟨t, hts, ht, ht0⟩,
   have : - t ∈ (@measure_space.μ α _).a_e,
-  { rw [measure.mem_a_e_iff, lattice.neg_neg, ht0] },
+  { rw [measure.mem_a_e_iff, compl_compl, ht0] },
   refine (supr_le $ assume s, supr_le $ assume hfs,
     le_supr_of_le (s.restrict (- t)) $ le_supr_of_le _ _),
   { assume a,

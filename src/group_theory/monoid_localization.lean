@@ -81,7 +81,7 @@ namespace localization
     `(x₁, y₁) ∼ (x₂, y₂)` by `s`. -/
 @[to_additive "The congruence relation on `M × S`, `M` an `add_comm_monoid` and `S` an `add_submonoid` of `M`, whose quotient is the localization of `M` at `S`, defined as the unique congruence relation on `M × S` such that for any other congruence relation `s` on `M × S` where for all `y ∈ S`, `(0, 0) ∼ (y, y)` under `s`, we have that `(x₁, y₁) ∼ (x₂, y₂)` by `r` implies `(x₁, y₁) ∼ (x₂, y₂)` by `s`."]
 def r (S : submonoid M) : con (M × S) :=
-lattice.Inf {c | ∀ y : S, c 1 (y, y)}
+Inf {c | ∀ y : S, c 1 (y, y)}
 
 /-- An alternate form of the congruence relation on `M × S`, `M` a `comm_monoid` and `S` a
     submonoid of `M`, whose quotient is the localization of `M` at `S`. Its equivalence to `r` can

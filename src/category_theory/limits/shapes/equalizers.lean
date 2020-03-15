@@ -207,6 +207,33 @@ begin
   erw [t.w left, ← t.w right], refl
 end
 
+/-- This is a slightly more convenient method to verify that a fork is a limit cone. It
+    only asks for a proof of facts that carry any mathematical content -/
+def fork.is_limit.mk (t : fork f g)
+  (lift : Π (s : fork f g), s.X ⟶ t.X)
+  (fac : ∀ (s : fork f g), lift s ≫ fork.ι t = fork.ι s)
+  (uniq : ∀ (s : fork f g) (m : s.X ⟶ t.X)
+    (w : ∀ j : walking_parallel_pair, m ≫ t.π.app j = s.π.app j),
+  m = lift s) : is_limit t :=
+{ lift := lift,
+  fac' := λ s j, walking_parallel_pair.cases_on j (fac s) $
+    by erw [←s.w left, ←t.w left, ←category.assoc, fac]; refl,
+  uniq' := uniq }
+
+/-- This is a slightly more convenient method to verify that a cofork is a colimit cocone. It
+    only asks for a proof of facts that carry any mathematical content -/
+def cofork.is_colimit.mk (t : cofork f g)
+  (desc : Π (s : cofork f g), t.X ⟶ s.X)
+  (fac : ∀ (s : cofork f g),
+    cofork.π t ≫ desc s = cofork.π s)
+  (uniq : ∀ (s : cofork f g) (m : t.X ⟶ s.X)
+    (w : ∀ j : walking_parallel_pair, t.ι.app j ≫ m = s.ι.app j),
+  m = desc s) : is_colimit t :=
+{ desc := desc,
+  fac' := λ s j, walking_parallel_pair.cases_on j
+    (by erw [←s.w left, ←t.w left, category.assoc, fac]; refl) (fac s),
+  uniq' := uniq }
+
 section
 local attribute [ext] cone
 

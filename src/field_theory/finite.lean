@@ -166,7 +166,7 @@ open zmod
 @[simp] lemma zmod.pow_totient {n : ℕ+} (x : units (zmod n)) : x ^ φ n = 1 :=
 by rw [← card_units_eq_totient, pow_card_eq_one]
 
-lemma nat.pow_totient' {x n : ℕ} (h : nat.coprime x n) : x ^ φ n ≡ 1 [MOD n] :=
+lemma nat.modeq.pow_totient {x n : ℕ} (h : nat.coprime x n) : x ^ φ n ≡ 1 [MOD n] :=
 begin
   rcases nat.eq_zero_or_pos n with rfl | h₁, {simp},
   let n' : ℕ+ := ⟨n, h₁⟩,

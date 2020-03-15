@@ -253,6 +253,8 @@ let ⟨k , hk⟩ := h in
 zmod.eq_iff_modeq_nat.2 (nat.modeq.modeq_of_modeq_mul_right k
     (by rw [← hk, zmod.val_cast_nat]; exact nat.mod_mod _ _))
 
+/-- `unit_of_coprime` makes an element of `units (zmod n)` given
+  a natural number `x` and a proof that `x` is coprime to `n`  -/
 def unit_of_coprime {n : ℕ+} (x : ℕ) (h : nat.coprime x n) : units (zmod n) :=
 have (x * gcd_a x ↑n : zmod n) = 1,
   by rw [← int.cast_coe_nat, ← int.cast_one, ← int.cast_mul,

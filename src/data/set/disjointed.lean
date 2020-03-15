@@ -80,7 +80,7 @@ lemma disjointed_of_mono {f : ℕ → set α} {n : ℕ} (hf : monotone f) :
 have (⋂i (h : i < n + 1), -f i) = - f n,
   from le_antisymm
     (infi_le_of_le n $ infi_le_of_le (nat.lt_succ_self _) $ subset.refl _)
-    (le_infi $ assume i, le_infi $ assume hi, neg_le_neg $ hf $ nat.le_of_succ_le_succ hi),
+    (le_infi $ assume i, le_infi $ assume hi, compl_le_compl $ hf $ nat.le_of_succ_le_succ hi),
 by simp [disjointed, this, diff_eq]
 
 lemma Union_disjointed_of_mono {f : ℕ → set α} (hf : monotone f) :

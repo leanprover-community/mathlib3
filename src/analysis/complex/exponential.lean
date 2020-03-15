@@ -1904,8 +1904,8 @@ lemma has_deriv_within_at.rexp {f : ℝ → ℝ} {f' x : ℝ} {s : set ℝ}
 namespace nnreal
 
 /-- The nonnegative real power function `x^y`, defined for `x : nnreal` and `y : ℝ ` as the
-restriction of the real power function. For `x > 0`, it is equal to `exp(y log x)`. For `x = 0`,
-one sets `0^0=1` and `0^y=0` for `y ≠ 0`. -/
+restriction of the real power function. For `x > 0`, it is equal to `exp (y log x)`. For `x = 0`,
+one sets `0 ^ 0 = 1` and `0 ^ y = 0` for `y ≠ 0`. -/
 noncomputable def rpow (x : nnreal) (y : ℝ) : nnreal :=
 ⟨(x : ℝ) ^ y, real.rpow_nonneg_of_nonneg x.2 y⟩
 
@@ -1916,7 +1916,7 @@ noncomputable instance : has_pow nnreal ℝ := ⟨rpow⟩
 @[simp] lemma rpow_zero (x : nnreal) : x ^ (0 : ℝ) = 1 :=
 by { rw ← nnreal.coe_eq, exact real.rpow_zero _ }
 
-@[simp] lemma rpow_eq_zero_iff {x : nnreal } {y : ℝ} : x ^ y = 0 ↔ x = 0 ∧ y ≠ 0 :=
+@[simp] lemma rpow_eq_zero_iff {x : nnreal} {y : ℝ} : x ^ y = 0 ↔ x = 0 ∧ y ≠ 0 :=
 begin
   rw [← nnreal.coe_eq, coe_rpow, ← nnreal.coe_eq_zero],
   exact real.rpow_eq_zero_iff_of_nonneg x.2

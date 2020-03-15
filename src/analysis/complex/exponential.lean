@@ -1782,7 +1782,7 @@ continuous_within_at.continuous_at
   (continuous_on_iff_continuous_restrict.2 continuous_rpow_aux3 _ hy)
   (mem_nhds_sets (by { convert is_open_prod is_open_univ (is_open_lt' (0:ℝ)), ext, finish }) hy)
 
-lemma continuous_at_rpow {x y : ℝ} (h : x ≠ 0 ∨ y > 0) :
+lemma continuous_at_rpow {x y : ℝ} (h : x ≠ 0 ∨ 0 < y) :
   continuous_at (λp:ℝ×ℝ, p.1^p.2) (x, y) :=
 by { cases h, exact continuous_at_rpow_of_ne_zero h _, exact continuous_at_rpow_of_pos h x }
 
@@ -1986,7 +1986,7 @@ lemma rpow_nat_inv_pow_nat (x : nnreal) {n : ℕ} (hn : 0 < n) :
   (x ^ (n⁻¹ : ℝ)) ^ n = x :=
 by { rw [← nnreal.coe_eq, coe_pow, coe_rpow], exact real.rpow_nat_inv_pow_nat x.2 hn }
 
-lemma continuous_at_rpow {x : nnreal} {y : ℝ} (h : x ≠ 0 ∨ y > 0) :
+lemma continuous_at_rpow {x : nnreal} {y : ℝ} (h : x ≠ 0 ∨ 0 < y) :
   continuous_at (λp:nnreal×ℝ, p.1^p.2) (x, y) :=
 begin
   have : (λp:nnreal×ℝ, p.1^p.2) = nnreal.of_real ∘ (λp:ℝ×ℝ, p.1^p.2) ∘ (λp:nnreal × ℝ, (p.1.1, p.2)),
@@ -2005,6 +2005,6 @@ end
 end nnreal
 
 lemma filter.tendsto.nnrpow {α : Type*} {f : filter α} {u : α → nnreal} {v : α → ℝ} {x : nnreal} {y : ℝ}
-  (hx : tendsto u f (𝓝 x)) (hy : tendsto v f (𝓝 y)) (h : x ≠ 0 ∨ y > 0) :
+  (hx : tendsto u f (𝓝 x)) (hy : tendsto v f (𝓝 y)) (h : x ≠ 0 ∨ 0 < y) :
   tendsto (λ a, (u a) ^ (v a)) f (𝓝 (x ^ y)) :=
 tendsto.comp (nnreal.continuous_at_rpow h) (tendsto.prod_mk_nhds hx hy)

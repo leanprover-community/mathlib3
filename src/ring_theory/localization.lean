@@ -3,7 +3,7 @@ Copyright (c) 2018 Kenny Lau. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Kenny Lau, Mario Carneiro, Johan Commelin
 -/
-import tactic.ring data.quot data.equiv.algebra ring_theory.ideal_operations group_theory.submonoid
+import tactic.ring data.quot data.equiv.ring ring_theory.ideal_operations group_theory.submonoid
 
 universes u v
 

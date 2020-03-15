@@ -229,11 +229,6 @@ begin
   erw [t.w inl, ← t.w inr], refl
 end
 
-@[simp] lemma mk_left {L : C} {lx : L ⟶ X} {ly : L ⟶ Y} {e : lx ≫ f = ly ≫ g} :
-  (pullback_cone.mk lx ly e).π.app left = lx := rfl
-@[simp] lemma mk_right {L : C} {lx : L ⟶ X} {ly : L ⟶ Y} {e : lx ≫ f = ly ≫ g} :
-  (pullback_cone.mk lx ly e).π.app right = ly := rfl
-
 /-- To check whether a morphism is equalized by the maps of a pullback cone, it suffices to check
   it for `fst t` and `snd t` -/
 lemma equalizer_ext (t : pullback_cone f g) {W : C} {k l : W ⟶ t.X}

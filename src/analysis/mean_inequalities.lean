@@ -71,7 +71,7 @@ end
 theorem nnreal.am_gm_weighted (w z : ι → ℝ≥0) (hw' : s.sum w = 1) :
   s.prod (λ i, (z i) ^ (w i:ℝ)) ≤ s.sum (λ i, w i * z i) :=
 begin
-  rw [← nnreal.coe_le, nnreal.coe_prod, nnreal.coe_sum],
+  rw [← nnreal.coe_le_coe, nnreal.coe_prod, nnreal.coe_sum],
   refine real.am_gm_weighted _ _ _ (λ i _, (w i).coe_nonneg) _ (λ i _, (z i).coe_nonneg),
   assumption_mod_cast
 end
@@ -105,16 +105,16 @@ end
 
 /-- Young's inequality, `ℝ≥0` version -/
 theorem nnreal.young_inequality (a b : ℝ≥0) {p q : ℝ≥0} (hp : 1 < p) (hq : 1 < q)
-  (hpq : 1/p + 1/q = 1) :
-  a * b ≤ a^(p:ℝ) / p + b^(q:ℝ) / q :=
+  (hpq : 1/p + 1/q = 1) : a * b ≤ a^(p:ℝ) / p + b^(q:ℝ) / q :=
 begin
   have := nnreal.am_gm2_weighted (1/p) (1/q) (a^(p:ℝ)) (b^(q:ℝ)) hpq,
-  simp [← nnreal.rpow_mul] at this,
-
-/-  simp only [nnreal.coe_mk, nnreal.coe_div, nnreal.coe_one, one_div_eq_inv,
-    (rpow_mul (nnreal.coe_nonneg _) _ _).symm, div_eq_inv_mul.symm] at this, -/
+  simp only [← nnreal.rpow_mul, one_div_eq_inv, nnreal.coe_div, nnreal.coe_one] at this,
   rw [mul_inv_cancel, mul_inv_cancel, nnreal.rpow_one, nnreal.rpow_one] at this,
-    -- refine ne_of_gt (lt_trans zero_lt_one _); assumption
+  { ring at ⊢ this,
+    convert this;
+    { rw [nnreal.div_def, nnreal.div_def], ring } },
+  { exact ne_of_gt (lt_trans zero_lt_one hq) },
+  { exact ne_of_gt (lt_trans zero_lt_one hp) }
 end
 
 /-- Young's inequality, `ℝ` version -/

@@ -255,7 +255,7 @@ agrees with the one step comparison map
  -/
 lemma image.pre_comp_comp {W : C} (h : Z ⟶ W)
   [has_image (g ≫ h)] [has_image (f ≫ g ≫ h)]
-  [has_image g] [has_image h] [has_image ((f ≫ g) ≫ h)] :
+  [has_image h] [has_image ((f ≫ g) ≫ h)] :
 image.pre_comp f (g ≫ h) ≫ image.pre_comp g h = image.eq_to_hom (category.assoc C f g h).symm ≫ (image.pre_comp (f ≫ g) h) :=
 begin
   apply (cancel_mono (image.ι h)).1,

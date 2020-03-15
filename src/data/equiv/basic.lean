@@ -978,7 +978,7 @@ end quotient
 
 /-- If a function is a bijection between `univ` and a set `s` in the target type, it induces an
 equivalence between the original type and the type `↑s`. -/
-noncomputable def set.bij_on.equiv {α : Type*} {β : Type*} {s : set β} {f : α → β}
+noncomputable def set.bij_on.equiv {α : Type*} {β : Type*} {s : set β} (f : α → β)
   (h : set.bij_on f set.univ s) : α ≃ s :=
 begin
   have : function.bijective (λ (x : α), (⟨f x, begin exact h.maps_to (set.mem_univ x) end⟩ : s)),

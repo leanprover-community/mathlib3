@@ -735,7 +735,7 @@ apply_nolint category_theory.monad.comparison_forget doc_blame
 
 -- category_theory/monad/algebra.lean
 apply_nolint category_theory.monad.algebra has_inhabited_instance
-apply_nolint category_theory.monad.algebra.hom doc_blame has_inhabited_instance
+apply_nolint category_theory.monad.algebra.hom has_inhabited_instance
 
 -- category_theory/monad/limits.lean
 apply_nolint category_theory.has_limits_of_reflective doc_blame

@@ -226,6 +226,9 @@ instance (n : ℕ) : fintype (fin n) :=
 @[simp] theorem fintype.card_fin (n : ℕ) : fintype.card (fin n) = n :=
 list.length_fin_range n
 
+@[simp] lemma finset.card_fin (n : ℕ) : finset.card (finset.univ : finset (fin n)) = n :=
+by rw [finset.card_univ, fintype.card_fin]
+
 lemma fin.univ_succ (n : ℕ) :
   (univ : finset (fin $ n+1)) = insert 0 (univ.image fin.succ) :=
 begin
@@ -529,6 +532,10 @@ fintype.of_surjective quotient.mk (λ x, quotient.induction_on x (λ x, ⟨x, rf
 
 instance finset.fintype [fintype α] : fintype (finset α) :=
 ⟨univ.powerset, λ x, finset.mem_powerset.2 (finset.subset_univ _)⟩
+
+@[simp] lemma fintype.card_finset [fintype α] :
+  fintype.card (finset α) = 2 ^ (fintype.card α) :=
+finset.card_powerset finset.univ
 
 instance subtype.fintype [fintype α] (p : α → Prop) [decidable_pred p] : fintype {x // p x} :=
 set_fintype _

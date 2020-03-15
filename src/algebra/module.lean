@@ -80,6 +80,23 @@ set_option default_priority 100 -- see Note [default priority]
 class module (α : Type u) (β : Type v) [ring α] [add_comm_group β] extends semimodule α β
 end prio
 
+/--
+To prove two module structures on a fixed `add_comm_group` agree,
+it suffices to check the scalar multiplications agree.
+-/
+-- We'll later use this to show `module ℤ M` is a subsingleton.
+@[ext]
+lemma module_ext {R : Type*} [ring R] {M : Type*} [add_comm_group M] (P Q : module R M)
+  (w : ∀ (r : R) (m : M), by { haveI := P, exact r • m } = by { haveI := Q, exact r • m }) :
+  P = Q :=
+begin
+  resetI,
+  rcases P with ⟨⟨⟨⟨⟨P⟩⟩⟩⟩⟩, rcases Q with ⟨⟨⟨⟨⟨Q⟩⟩⟩⟩⟩, congr,
+  funext r m,
+  exact w r m,
+  all_goals { apply proof_irrel_heq },
+end
+
 structure module.core (α β) [ring α] [add_comm_group β] extends has_scalar α β :=
 (smul_add : ∀(r : α) (x y : β), r • (x + y) = r • x + r • y)
 (add_smul : ∀(r s : α) (x : β), (r + s) • x = r • x + s • x)
@@ -184,6 +201,15 @@ theorem ext_iff {f g : β →ₗ[α] γ} : f = g ↔ ∀ x, f x = g x :=
 by rw [← zero_smul α, map_smul f 0 0, zero_smul]
 
 instance : is_add_group_hom f := { map_add := map_add f }
+
+/-- convert a linear map to an additive map -/
+def to_add_monoid_hom (f : β →ₗ[α] γ) : β →+ γ :=
+{ to_fun := f,
+  map_zero' := by simp,
+  map_add' := by simp, }
+
+@[simp] lemma to_add_monoid_hom_coe (f : β →ₗ[α] γ) :
+  ((f.to_add_monoid_hom) : β → γ) = (f : β → γ) := rfl
 
 @[simp] lemma map_neg (x : β) : f (- x) = - f x :=
 by rw [← neg_one_smul α, map_smul, neg_one_smul]
@@ -429,7 +455,10 @@ open add_monoid
 
 variables {M : Type*} [add_comm_monoid M]
 
-instance : semimodule ℕ M :=
+/-- The natural ℕ-semimodule structure on any `add_comm_monoid`. -/
+-- We don't make this a global instance, as it results in too many instances,
+-- and confusing ambiguity in the notation `n • x` when `n : ℕ`.
+def nat_semimodule : semimodule ℕ M :=
 { smul := smul,
   smul_add := λ _ _ _, smul_add _ _ _,
   add_smul := λ _ _ _, add_smul _ _ _,
@@ -444,7 +473,12 @@ namespace add_comm_group
 
 variables {M : Type*} [add_comm_group M]
 
-instance : module ℤ M :=
+/-- The natural ℤ-module structure on any `add_comm_group`. -/
+-- We don't immediately make this a global instance, as it results in too many instances,
+-- and confusing ambiguity in the notation `n • x` when `n : ℤ`.
+-- We do turn it into a global instance, but only at the end of this file,
+-- and I remain dubious whether this is a good idea.
+def int_module : module ℤ M :=
 { smul := gsmul,
   smul_add := λ _ _ _, gsmul_add _ _ _,
   add_smul := λ _ _ _, add_gsmul _ _ _,
@@ -453,7 +487,57 @@ instance : module ℤ M :=
   zero_smul := zero_gsmul,
   smul_zero := gsmul_zero }
 
+instance : subsingleton (module ℤ M) :=
+begin
+  split,
+  intros P Q,
+  ext,
+  -- isn't that lovely: `r • m = r • m`
+  have one_smul : by { haveI := P, exact (1 : ℤ) • m } = by { haveI := Q, exact (1 : ℤ) • m },
+    begin
+      rw [@one_smul ℤ _ _ (by { haveI := P, apply_instance, }) m],
+      rw [@one_smul ℤ _ _ (by { haveI := Q, apply_instance, }) m],
+    end,
+  have nat_smul : ∀ n : ℕ, by { haveI := P, exact (n : ℤ) • m } = by { haveI := Q, exact (n : ℤ) • m },
+    begin
+      intro n,
+      induction n with n ih,
+      { erw [zero_smul, zero_smul], },
+      { rw [int.coe_nat_succ, add_smul, add_smul],
+        erw ih,
+        rw [one_smul], }
+    end,
+  cases r,
+  { rw [int.of_nat_eq_coe, nat_smul], },
+  { rw [int.neg_succ_of_nat_coe, neg_smul, neg_smul, nat_smul], }
+end
+
 end add_comm_group
+
+section
+local attribute [instance] add_comm_monoid.nat_semimodule
+
+lemma module.smul_eq_smul {R : Type*} [ring R] {β : Type*} [add_comm_group β] [module R β]
+  (n : ℕ) (b : β) : n • b = (n : R) • b :=
+begin
+  induction n with n ih,
+  { rw [nat.cast_zero, zero_smul, zero_smul] },
+  { change (n + 1) • b = (n + 1 : R) • b,
+    rw [add_smul, add_smul, one_smul, ih, one_smul] }
+end
+
+lemma module.add_monoid_smul_eq_smul {R : Type*} [ring R] {β : Type*} [add_comm_group β] [module R β]
+  (n : ℕ) (b : β) : add_monoid.smul n b = (n : R) • b :=
+module.smul_eq_smul n b
+
+lemma nat.smul_def {M : Type*} [add_comm_monoid M] (n : ℕ) (x : M) :
+  n • x = add_monoid.smul n x :=
+rfl
+
+end
+
+section
+local attribute [instance] add_comm_group.int_module
 
 lemma gsmul_eq_smul {M : Type*} [add_comm_group M] (n : ℤ) (x : M) : gsmul n x = n • x := rfl
 
@@ -465,18 +549,49 @@ def is_add_group_hom.to_linear_map [add_comm_group α] [add_comm_group β]
     (λ i ih, by rw [add_smul, add_smul, is_add_hom.map_add f, ih, one_smul, one_smul])
     (λ i ih, by rw [sub_smul, sub_smul, is_add_group_hom.map_sub f, ih, one_smul, one_smul]) }
 
-lemma module.smul_eq_smul {R : Type*} [ring R] {β : Type*} [add_comm_group β] [module R β]
-  (n : ℕ) (b : β) : n • b = (n : R) • b :=
+lemma module.gsmul_eq_smul_cast {R : Type*} [ring R] {β : Type*} [add_comm_group β] [module R β]
+  (n : ℤ) (b : β) : gsmul n b = (n : R) • b :=
 begin
-  induction n with n ih,
-  { rw [nat.cast_zero, zero_smul, zero_smul] },
-  { change (n + 1) • b = (n + 1 : R) • b,
-    rw [add_smul, add_smul, one_smul, ih, one_smul] }
+  cases n,
+  { dsimp,
+    apply module.add_monoid_smul_eq_smul, },
+  { dsimp,
+    rw module.add_monoid_smul_eq_smul (n.succ) b,
+    push_cast,
+    rw neg_smul, }
 end
 
-lemma nat.smul_def {M : Type*} [add_comm_monoid M] (n : ℕ) (x : M) :
-  n • x = add_monoid.smul n x :=
-rfl
+lemma module.gsmul_eq_smul {β : Type*} [add_comm_group β] [module ℤ β]
+  (n : ℤ) (b : β) : gsmul n b = n • b :=
+begin
+  convert module.gsmul_eq_smul_cast n b,
+  simp,
+end
+
+end
+
+-- We prove this without using the `add_comm_group.int_module` instance, so the `•`s here
+-- come from whatever the local `module ℤ` structure actually is.
+lemma add_monoid_hom.map_int_module_smul
+  {α : Type*} {β : Type*} [add_comm_group α] [add_comm_group β]
+  [module ℤ α] [module ℤ β] (f : α →+ β) (x : ℤ) (a : α) : f (x • a) = x • f a :=
+begin
+  rw ←module.gsmul_eq_smul,
+  rw ←module.gsmul_eq_smul,
+  rw add_monoid_hom.map_gsmul,
+end
+
+lemma add_monoid_hom.map_smul_cast
+  {R : Type*} [ring R] {α : Type*} {β : Type*} [add_comm_group α] [add_comm_group β]
+  [module R α] [module R β] (f : α →+ β) (x : ℤ) (a : α) : f ((x : R) • a) = (x : R) • f a :=
+begin
+  rw ←module.gsmul_eq_smul_cast,
+  rw ←module.gsmul_eq_smul_cast,
+  rw add_monoid_hom.map_gsmul,
+end
+
+-- We finally turn on these instances globally:
+attribute [instance] add_comm_monoid.nat_semimodule add_comm_group.int_module
 
 namespace finset
 
@@ -491,7 +606,6 @@ variables {M : Type*} [decidable_linear_ordered_cancel_comm_monoid M]
 theorem exists_card_smul_le_sum (hs : s.nonempty) :
   ∃ i ∈ s, s.card • f i ≤ s.sum f :=
 exists_le_of_sum_le hs $ by rw [sum_const, ← nat.smul_def, smul_sum]
-
 
 theorem exists_card_smul_ge_sum (hs : s.nonempty) :
   ∃ i ∈ s, s.sum f ≤ s.card • f i :=

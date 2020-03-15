@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johannes Hölzl, Mario Carneiro, Kevin Buzzard
 -/
 
-import algebra.pi_instances data.finsupp data.equiv.algebra order.order_iso
+import algebra.pi_instances data.finsupp data.equiv.mul_add order.order_iso
 
 /-!
 # Linear algebra

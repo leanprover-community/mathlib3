@@ -6,7 +6,7 @@ Authors: Scott Morrison
 
 import category_theory.concrete_category
 import algebra.group.hom
-import data.equiv.algebra
+import data.equiv.mul_add
 import algebra.punit_instances
 
 /-!

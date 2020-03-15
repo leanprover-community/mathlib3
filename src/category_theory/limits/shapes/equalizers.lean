@@ -500,19 +500,6 @@ section
 -- In this section we show that a split mono `f` equalizes `(retraction f ≫ f)` and `(𝟙 Y)`.
 variables {C} [split_mono f]
 
--- @[simp]
--- lemma cone_parallel_pair_id_one {f : X ⟶ X} (s : cone (parallel_pair f (𝟙 X))) :
---   s.π.app one = eq_to_hom (by simp) ≫ s.π.app zero ≫ eq_to_hom (by simp) :=
--- begin
---   -- How is this so painful?
---   have t := s.π.naturality right,
---   conv at t { to_lhs, simp, dsimp, simp, },
---   rw t,
---   simp only [parallel_pair_map_right],
---   dsimp,
---   simp only [category.comp_id, category.id_comp],
--- end
-
 /--
 A split mono `f` equalizes `(retraction f ≫ f)` and `(𝟙 Y)`.
 Here we build the cone, and show in `split_mono_equalizes` that it is a limit cone.

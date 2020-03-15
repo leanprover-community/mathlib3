@@ -517,15 +517,10 @@ end
 A split mono `f` equalizes `(retraction f ≫ f)` and `(𝟙 Y)`.
 Here we build the cone, and show in `split_mono_equalizes` that it is a limit cone.
 -/
-def cone_of_split_mono  : cone (parallel_pair (retraction f ≫ f) (𝟙 Y)) :=
-cone.of_fork (fork.of_ι f (by tidy))
+def cone_of_split_mono : cone (parallel_pair (retraction f ≫ f) (𝟙 Y)) :=
+fork.of_ι f (by tidy)
 
-@[simp] lemma cone_of_split_mono_π_app_zero :
-  (cone_of_split_mono f).π.app zero = f :=
-begin
- dsimp [cone_of_split_mono],
- simp,
-end
+@[simp] lemma cone_of_split_mono_π_app_zero : (cone_of_split_mono f).π.app zero = f := rfl
 
 /--
 A split mono `f` equalizes `(retraction f ≫ f)` and `(𝟙 Y)`.
@@ -533,7 +528,7 @@ A split mono `f` equalizes `(retraction f ≫ f)` and `(𝟙 Y)`.
 def split_mono_equalizes {X Y : C} (f : X ⟶ Y) [split_mono f] : is_limit (cone_of_split_mono f) :=
 { lift := λ s, s.π.app zero ≫ retraction f,
   fac' := λ s, begin rintros (⟨⟩|⟨⟩); simp, end,
-  uniq' := λ s m w, begin rw ← w zero, simp, end, }
+  uniq' := λ s m w, begin rw ←(w zero), simp, end, }
 
 end
 

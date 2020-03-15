@@ -132,7 +132,7 @@ theorem real.pow_am_le_am_pow (w z : ι → ℝ) (hw : ∀ i ∈ s, 0 ≤ w i)
 theorem nnreal.pow_am_le_am_pow (w z : ι → ℝ≥0) (hw' : s.sum w = 1) (n : ℕ) :
   (s.sum (λ i, w i * z i)) ^ n ≤ s.sum (λ i, w i * z i ^ n) :=
 begin
-  rw [← nnreal.coe_le],
+  rw [← nnreal.coe_le_coe],
   push_cast,
   refine (convex_on_pow n).map_sum_le (λ i _, (w i).coe_nonneg) _ (λ i _, (z i).coe_nonneg),
   assumption_mod_cast

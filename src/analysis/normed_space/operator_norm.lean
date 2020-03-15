@@ -373,6 +373,72 @@ begin
       by rwa [mul_one] }
 end
 
+section completeness
+
+open_locale topological_space
+open filter
+
+/-- If the target space is complete, the space of continuous linear maps with its norm is also
+complete. -/
+instance [complete_space F] : complete_space (E →L[𝕜] F) :=
+begin
+  refine metric.complete_of_cauchy_seq_tendsto (λ f hf, _),
+  rcases cauchy_seq_iff_le_tendsto_0.1 hf with ⟨b, b0, b_bound, b_lim⟩,
+  have cau : ∀ v, cauchy_seq (λ n, f n v),
+  { assume v,
+    apply cauchy_seq_iff_le_tendsto_0.2 ⟨λ n, b n * ∥v∥, λ n, _, _, _⟩,
+    { exact mul_nonneg (b0 n) (norm_nonneg _) },
+    { assume n m N hn hm,
+      rw dist_eq_norm,
+      apply le_trans ((f n - f m).le_op_norm v) _,
+      exact mul_le_mul_of_nonneg_right (b_bound n m N hn hm) (norm_nonneg v) },
+    { simpa using b_lim.mul tendsto_const_nhds } },
+  choose G hG using λv, cauchy_seq_tendsto_of_complete (cau v),
+  let Glin : E →ₗ[𝕜] F :=
+  { to_fun := G,
+    add := λ v w, begin
+      have A := hG (v + w),
+      have B := (hG v).add (hG w),
+      simp at A B,
+      exact tendsto_nhds_unique filter.at_top_ne_bot A B,
+    end,
+    smul := λ c v, begin
+      have A := hG (c • v),
+      have B := filter.tendsto.smul (@tendsto_const_nhds _ ℕ _ c _) (hG v),
+      simp at A B,
+      exact tendsto_nhds_unique filter.at_top_ne_bot A B
+    end },
+  have Gnorm : ∀ v, ∥G v∥ ≤ (b 0 + ∥f 0∥) * ∥v∥,
+  { assume v,
+    have A : ∀ n, ∥f n v∥ ≤ (b 0 + ∥f 0∥) * ∥v∥,
+    { assume n,
+      apply le_trans ((f n).le_op_norm _) _,
+      apply mul_le_mul_of_nonneg_right _ (norm_nonneg v),
+      calc ∥f n∥ = ∥(f n - f 0) + f 0∥ : by { congr' 1, abel }
+      ... ≤ ∥f n - f 0∥ + ∥f 0∥ : norm_add_le _ _
+      ... ≤ b 0 + ∥f 0∥ : begin
+        apply add_le_add_right,
+        simpa [dist_eq_norm] using b_bound n 0 0 (zero_le _) (zero_le _)
+      end },
+    exact le_of_tendsto at_top_ne_bot (hG v).norm (eventually_of_forall _ A) },
+  let Gcont := Glin.mk_continuous _ Gnorm,
+  use Gcont,
+  have : ∀ n, ∥f n - Gcont∥ ≤ b n,
+  { assume n,
+    apply op_norm_le_bound _ (b0 n) (λ v, _),
+    have A : ∀ᶠ m in at_top, ∥(f n - f m) v∥ ≤ b n * ∥v∥,
+    { refine eventually_at_top.2 ⟨n, λ m hm, _⟩,
+      apply le_trans ((f n - f m).le_op_norm _) _,
+      exact mul_le_mul_of_nonneg_right (b_bound n m n (le_refl _) hm) (norm_nonneg v) },
+    have B : tendsto (λ m, ∥(f n - f m) v∥) at_top (𝓝 (∥(f n - Gcont) v∥)) :=
+      tendsto.norm (tendsto_const_nhds.sub (hG v)),
+    exact le_of_tendsto at_top_ne_bot B A },
+  erw tendsto_iff_norm_tendsto_zero,
+  exact squeeze_zero (λ n, norm_nonneg _) this b_lim,
+end
+
+end completeness
+
 section uniformly_extend
 
 variables [complete_space F] (e : E →L[𝕜] G) (h_dense : dense_range e)

@@ -47,7 +47,7 @@ variables [fintype α] [integral_domain α]
 open finset polynomial
 
 /-- The cardinality of a field is at most n times the cardinality of the image of a degree n
-  polnyomial -/
+  polynomial -/
 lemma card_image_polynomial_eval [decidable_eq α] {p : polynomial α} (hp : 0 < p.degree) :
   fintype.card α ≤ nat_degree p * (univ.image (λ x, eval x p)).card :=
 finset.card_le_mul_card_image _ _

@@ -1330,10 +1330,13 @@ to_equiv_injective (equiv.eq_of_to_fun_eq h)
 section
 variable (M)
 
+variable (R)
 /-- The identity map is a linear equivalence. -/
 @[refl]
 def refl : M ≃ₗ[R] M := { .. linear_map.id, .. equiv.refl M }
 end
+
+variable {R}
 
 /-- Linear equivalences are symmetric. -/
 @[symm]
@@ -1461,7 +1464,7 @@ def arrow_congr {R M₁ M₂ M₂₁ M₂₂ : Sort*} [comm_ring R]
 
 /-- If M₂ and M₃ are linearly isomorphic then the two spaces of linear maps from M into M₂ and
 M into M₃ are linearly isomorphic. -/
-def congr_right (f : M₂ ≃ₗ[R] M₃) : (M →ₗ[R] M₂) ≃ₗ (M →ₗ M₃) := arrow_congr (linear_equiv.refl M) f
+def congr_right (f : M₂ ≃ₗ[R] M₃) : (M →ₗ[R] M₂) ≃ₗ (M →ₗ M₃) := arrow_congr (linear_equiv.refl R M) f
 
 /-- If M and M₂ are linearly isomorphic then the two spaces of linear maps from M and M₂ to themselves
 are linearly isomorphic. -/
@@ -1768,7 +1771,7 @@ variables (R M)
 
 instance automorphism_group : group (M ≃ₗ[R] M) :=
 { mul := λ f g, g.trans f,
-  one := linear_equiv.refl M,
+  one := linear_equiv.refl R M,
   inv := λ f, f.symm,
   mul_assoc := λ f g h, by {ext, refl},
   mul_one := λ f, by {ext, refl},

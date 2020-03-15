@@ -16,13 +16,13 @@ namespace category_theory.limits.types
 variables {J : Type u} [small_category J]
 
 /-- (internal implementation) the limit cone of a functor, implemented as flat sections of a pi type -/
-def limit (F : J ⥤ Type u) : cone F :=
+def limit_ (F : J ⥤ Type u) : cone F :=
 { X := F.sections,
   π := { app := λ j u, u.val j } }
 
 local attribute [elab_simple] congr_fun
 /-- (internal implementation) the fact that the proposed limit cone is the limit -/
-def limit_is_limit (F : J ⥤ Type u) : is_limit (limit F) :=
+def limit_is_limit_ (F : J ⥤ Type u) : is_limit (limit_ F) :=
 { lift := λ s v, ⟨λ j, s.π.app j v, λ j j' f, congr_fun (cone.w s f) _⟩,
   uniq' :=
   begin
@@ -51,7 +51,7 @@ instance : has_limits.{u} (Type u) :=
 rfl
 
 /-- (internal implementation) the limit cone of a functor, implemented as a quotient of a sigma type -/
-def colimit (F : J ⥤ Type u) : cocone F :=
+def colimit_ (F : J ⥤ Type u) : cocone F :=
 { X := @quot (Σ j, F.obj j) (λ p p', ∃ f : p.1 ⟶ p'.1, p'.2 = F.map f p.2),
   ι :=
   { app := λ j x, quot.mk _ ⟨j, x⟩,
@@ -60,7 +60,7 @@ def colimit (F : J ⥤ Type u) : cocone F :=
 local attribute [elab_with_expected_type] quot.lift
 
 /-- (internal implementation) the fact that the proposed colimit cocone is the colimit -/
-def colimit_is_colimit (F : J ⥤ Type u) : is_colimit (colimit F) :=
+def colimit_is_colimit_ (F : J ⥤ Type u) : is_colimit (colimit_ F) :=
 { desc := λ s, quot.lift (λ (p : Σ j, F.obj j), s.ι.app p.1 p.2)
     (assume ⟨j, x⟩ ⟨j', x'⟩ ⟨f, hf⟩, by rw hf; exact (congr_fun (cocone.w s f) x).symm) }
 

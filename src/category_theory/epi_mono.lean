@@ -99,18 +99,22 @@ instance section_split_mono {X Y : C} (f : X ⟶ Y) [split_epi f] : split_mono (
 { retraction := f }
 
 /-- Every iso is a split mono. -/
+@[priority 100]
 instance split_mono.of_iso {X Y : C} (f : X ⟶ Y) [is_iso f] : split_mono f :=
 { retraction := inv f }
 
 /-- Every iso is a split epi. -/
+@[priority 100]
 instance split_epi.of_iso {X Y : C} (f : X ⟶ Y) [is_iso f] : split_epi f :=
 { section_ := inv f }
 
 /-- Every split mono is a mono. -/
+@[priority 100]
 instance split_mono.mono {X Y : C} (f : X ⟶ Y) [split_mono f] : mono f :=
 { right_cancellation := λ Z g h w, begin replace w := w =≫ retraction f, simpa using w, end }
 
 /-- Every split epi is an epi. -/
+@[priority 100]
 instance split_epi.epi {X Y : C} (f : X ⟶ Y) [split_epi f] : epi f :=
 { left_cancellation := λ Z g h w, begin replace w := section_ f ≫= w, simpa using w, end }
 

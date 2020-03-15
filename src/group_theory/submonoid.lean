@@ -604,8 +604,6 @@ partial_order.lift (coe : submonoid M → set M) (λ a b, ext') (by apply_instan
 @[to_additive]
 lemma le_def (p p' : submonoid M) : p ≤ p' ↔ ∀ x ∈ p, x ∈ p' := iff.rfl
 
-open lattice
-
 @[to_additive]
 instance : has_bot (submonoid M) := ⟨submonoid.bot⟩
 
@@ -669,7 +667,7 @@ lemma mem_Inf {S : set (submonoid M)} {x : M} : x ∈ Inf S ↔ ∀ p ∈ S, x �
 
 /-- Submonoids of a monoid form a lattice. -/
 @[to_additive "The `add_submonoid`s of an `add_monoid` form a lattice."]
-instance lattice.lattice : lattice (submonoid M) :=
+instance : lattice (submonoid M) :=
 { sup          := λ a b, Inf {x | a ≤ x ∧ b ≤ x},
   le_sup_left  := λ a b, le_Inf' $ λ x ⟨ha, hb⟩, ha,
   le_sup_right := λ a b, le_Inf' $ λ x ⟨ha, hb⟩, hb,
@@ -688,9 +686,9 @@ instance : complete_lattice (submonoid M) :=
   Inf          := Inf,
   le_Inf       := λ s a, le_Inf',
   Inf_le       := λ s a, Inf_le',
-  ..submonoid.lattice.order_top,
-  ..submonoid.lattice.order_bot,
-  ..submonoid.lattice.lattice}
+  ..submonoid.order_top,
+  ..submonoid.order_bot,
+  ..submonoid.lattice}
 
 /-- Submonoids of a monoid form an `add_comm_monoid`. -/
 @[to_additive "The `add_submonoid`s of an `add_monoid` form an `add_comm_monoid`."]

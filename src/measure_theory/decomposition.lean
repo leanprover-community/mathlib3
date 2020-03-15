@@ -11,7 +11,7 @@ TODO:
 -/
 import measure_theory.measure_space
 
-open set lattice filter
+open set filter
 open_locale classical topological_space
 
 namespace measure_theory

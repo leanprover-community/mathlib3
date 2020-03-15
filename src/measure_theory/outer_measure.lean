@@ -12,7 +12,7 @@ import algebra.big_operators algebra.module
 
 noncomputable theory
 
-open set lattice finset function filter encodable
+open set finset function filter encodable
 open_locale classical
 
 namespace measure_theory
@@ -492,9 +492,9 @@ lemma Inf_eq_of_function_Inf_gen (m : set (outer_measure α)) :
 begin
   refine le_antisymm
     (assume t', le_of_function.2 (assume t, _) _)
-    (lattice.le_Inf $ assume μ hμ t, le_trans (outer_measure.of_function_le _ _ _) _);
+    (le_Inf $ assume μ hμ t, le_trans (outer_measure.of_function_le _ _ _) _);
     cases t.eq_empty_or_nonempty with ht ht; simp [ht, Inf_gen_nonempty1],
-  { assume μ hμ, exact (show Inf m ≤ μ, from lattice.Inf_le hμ) t },
+  { assume μ hμ, exact (show Inf m ≤ μ, from Inf_le hμ) t },
   { exact infi_le_of_le μ (infi_le _ hμ) }
 end
 

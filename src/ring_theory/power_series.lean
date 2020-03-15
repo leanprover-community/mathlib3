@@ -1324,7 +1324,7 @@ lemma order_ge (φ : power_series α) (n : enat) (h : ∀ i : ℕ, ↑i < n → 
   order φ ≥ n :=
 begin
   induction n using enat.cases_on,
-  { show _ ≤ _, rw [lattice.top_le_iff, order_eq_top],
+  { show _ ≤ _, rw [top_le_iff, order_eq_top],
     ext i, exact h _ (enat.coe_lt_top i) },
   { apply order_ge_nat, simpa only [enat.coe_lt_coe] using h }
 end
@@ -1368,7 +1368,7 @@ private lemma order_add_of_order_eq.aux (φ ψ : power_series α)
   order (φ + ψ) ≤ order φ ⊓ order ψ :=
 begin
   suffices : order (φ + ψ) = order φ,
-  { rw [lattice.le_inf_iff, this], exact ⟨le_refl _, le_of_lt H⟩ },
+  { rw [le_inf_iff, this], exact ⟨le_refl _, le_of_lt H⟩ },
   { rw order_eq, split,
     { intros i hi, rw [(coeff _ _).map_add, coeff_of_lt_order ψ i (hi.symm ▸ H), add_zero],
       exact (order_eq_nat.1 hi.symm).1 },
@@ -1386,7 +1386,7 @@ begin
   by_cases H₁ : order φ < order ψ,
   { apply order_add_of_order_eq.aux _ _ h H₁ },
   by_cases H₂ : order ψ < order φ,
-  { simpa only [add_comm, lattice.inf_comm] using order_add_of_order_eq.aux _ _ h.symm H₂ },
+  { simpa only [add_comm, inf_comm] using order_add_of_order_eq.aux _ _ h.symm H₂ },
   exfalso, exact h (le_antisymm (not_lt.1 H₂) (not_lt.1 H₁))
 end
 

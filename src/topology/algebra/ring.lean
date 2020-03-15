@@ -8,7 +8,7 @@ Theory of topological rings.
 
 import topology.algebra.group ring_theory.ideals
 
-open classical set lattice filter topological_space
+open classical set filter topological_space
 open_locale classical
 
 section topological_ring

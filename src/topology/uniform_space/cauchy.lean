@@ -9,7 +9,7 @@ import topology.uniform_space.basic topology.bases data.set.intervals
 
 universes u v
 
-open filter topological_space lattice set classical
+open filter topological_space set classical
 open_locale classical
 variables {α : Type u} {β : Type v} [uniform_space α]
 
@@ -190,8 +190,8 @@ lemma cauchy_prod [uniform_space β] {f : filter α} {g : filter β} :
   let p_α := λp:(α×β)×(α×β), (p.1.1, p.2.1), p_β := λp:(α×β)×(α×β), (p.1.2, p.2.2) in
   suffices (f.prod f).comap p_α ⊓ (g.prod g).comap p_β ≤ (𝓤 α).comap p_α ⊓ (𝓤 β).comap p_β,
     by simpa [uniformity_prod, filter.prod, filter.comap_inf, filter.comap_comap_comp, (∘),
-        lattice.inf_assoc, lattice.inf_comm, lattice.inf_left_comm],
-  lattice.inf_le_inf (filter.comap_mono hf) (filter.comap_mono hg)⟩
+        inf_assoc, inf_comm, inf_left_comm],
+  inf_le_inf (filter.comap_mono hf) (filter.comap_mono hg)⟩
 
 instance complete_space.prod [uniform_space β] [complete_space α] [complete_space β] :
   complete_space (α × β) :=

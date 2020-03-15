@@ -11,7 +11,7 @@ import topology.instances.ennreal
 noncomputable theory
 open_locale classical topological_space
 
-open classical function lattice filter finset metric
+open classical function filter finset metric
 
 variables {α : Type*} {β : Type*} {ι : Type*}
 

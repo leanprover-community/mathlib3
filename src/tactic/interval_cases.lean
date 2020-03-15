@@ -8,7 +8,7 @@ Case bashing on variables in finite intervals.
 In particular, `interval_cases n`
 1) inspects hypotheses looking for lower and upper bounds of the form `a ≤ n` and `n < b`
    (although in `ℕ`, `ℤ`, and `ℕ+` bounds of the form `a < n` and `n ≤ b` are also allowed),
-   and also makes use of lower and upper bounds found via `lattice.le_top` and `lattice.bot_le`
+   and also makes use of lower and upper bounds found via `le_top` and `bot_le`
    (so for example if `n : ℕ`, then the bound `0 ≤ n` is found automatically), then
 2) calls `fin_cases` on the synthesised hypothesis `n ∈ set.Ico a b`,
    assuming an appropriate `fintype` instance can be found for the type of `n`.
@@ -16,8 +16,8 @@ In particular, `interval_cases n`
 The variable `n` can belong to any type `α`, with the following restrictions:
 * only bounds on which `expr.to_rat` succeeds will be considered "explicit" (TODO: generalise this?)
 * an instance of `decidable_eq α` is available,
-* an explicit lower bound can be found amongst the hypotheses, or from `lattice.bot_le n`,
-* an explicit upper bound can be found amongst the hypotheses, or from `lattice.le_top n`,
+* an explicit lower bound can be found amongst the hypotheses, or from `bot_le n`,
+* an explicit upper bound can be found amongst the hypotheses, or from `le_top n`,
 * if multiple bounds are located, an instance of `decidable_linear_order α` is available, and
 * an instance of `fintype set.Ico l u` is available for the relevant bounds.
 
@@ -131,10 +131,10 @@ do nlb ← try_core $ gives_lower_bound n e,
    return (clb, cub)
 
 /--
-Attempt to find a lower bound for the variable `n`, by evaluating `lattice.bot_le n`.
+Attempt to find a lower bound for the variable `n`, by evaluating `bot_le n`.
 -/
 meta def initial_lower_bound (n : expr) : tactic expr :=
-do e ← to_expr ``(@lattice.bot_le _ _ %%n),
+do e ← to_expr ``(@bot_le _ _ %%n),
    t ← infer_type e,
    match t with
    | `(%%b ≤ %%n) := do return e
@@ -142,10 +142,10 @@ do e ← to_expr ``(@lattice.bot_le _ _ %%n),
    end
 
 /--
-Attempt to find an upper bound for the variable `n`, by evaluating `lattice.le_top n`.
+Attempt to find an upper bound for the variable `n`, by evaluating `le_top n`.
 -/
 meta def initial_upper_bound (n : expr) : tactic expr :=
-do e ← to_expr ``(@lattice.le_top _ _ %%n),
+do e ← to_expr ``(@le_top _ _ %%n),
    match e with
    | `(%%n ≤ %%b) := do
      tn ← infer_type n,

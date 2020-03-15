@@ -110,8 +110,8 @@ end
     (see `localization.r'`). -/
 @[to_additive "The additive congruence relation used to localize an `add_comm_monoid` at a submonoid can be expressed equivalently as an infimum (see `localization.r`) or explicitly (see `localization.r'`)."]
 theorem r_eq_r' : r S = r' S :=
-le_antisymm (lattice.Inf_le $ λ _, ⟨1, by simp⟩) $
-  lattice.le_Inf $ λ b H ⟨p, q⟩ y ⟨t, ht⟩,
+le_antisymm (Inf_le $ λ _, ⟨1, by simp⟩) $
+  le_Inf $ λ b H ⟨p, q⟩ y ⟨t, ht⟩,
     begin
       rw [← mul_one (p, q), ← mul_one y],
       refine b.trans (b.mul (b.refl _) (H (y.2 * t))) _,

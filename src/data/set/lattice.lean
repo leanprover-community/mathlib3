@@ -9,7 +9,7 @@ import logic.basic data.set.basic data.equiv.basic
 import order.complete_boolean_algebra category.basic
 import tactic.finish data.sigma.basic order.galois_connection
 
-open function tactic set lattice auto
+open function tactic set auto
 
 universes u v w x y
 variables {α : Type u} {β : Type v} {γ : Type w} {ι : Sort x} {ι' : Sort y}
@@ -490,9 +490,9 @@ set.ext $ λ x, by simp [bool.forall_bool, and_comm]
 instance : complete_boolean_algebra (set α) :=
 { neg                 := compl,
   sub                 := (\),
-  inf_neg_eq_bot      := assume s, ext $ assume x, ⟨assume ⟨h, nh⟩, nh h, false.elim⟩,
-  sup_neg_eq_top      := assume s, ext $ assume x, ⟨assume h, trivial, assume _, classical.em $ x ∈ s⟩,
   le_sup_inf          := distrib_lattice.le_sup_inf,
+  inf_compl_eq_bot      := assume s, ext $ assume x, ⟨assume ⟨h, nh⟩, nh h, false.elim⟩,
+  sup_compl_eq_top      := assume s, ext $ assume x, ⟨assume h, trivial, assume _, classical.em $ x ∈ s⟩,
   sub_eq              := assume x y, rfl,
   infi_sup_le_sup_Inf := assume s t x, show x ∈ (⋂ b ∈ t, s ∪ b) → x ∈ s ∪ (⋂₀ t),
     by simp; exact assume h,

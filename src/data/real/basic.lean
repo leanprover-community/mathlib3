@@ -141,12 +141,12 @@ noncomputable instance : division_ring ℝ           := by apply_instance
 noncomputable instance : integral_domain ℝ         := by apply_instance
 noncomputable instance : nonzero_comm_ring ℝ       := by apply_instance
 noncomputable instance : decidable_linear_order ℝ  := by apply_instance
-noncomputable instance : lattice.distrib_lattice ℝ := by apply_instance
-noncomputable instance : lattice.lattice ℝ         := by apply_instance
-noncomputable instance : lattice.semilattice_inf ℝ := by apply_instance
-noncomputable instance : lattice.semilattice_sup ℝ := by apply_instance
-noncomputable instance : lattice.has_inf ℝ         := by apply_instance
-noncomputable instance : lattice.has_sup ℝ         := by apply_instance
+noncomputable instance : distrib_lattice ℝ := by apply_instance
+noncomputable instance : lattice ℝ         := by apply_instance
+noncomputable instance : semilattice_inf ℝ := by apply_instance
+noncomputable instance : semilattice_sup ℝ := by apply_instance
+noncomputable instance : has_inf ℝ         := by apply_instance
+noncomputable instance : has_sup ℝ         := by apply_instance
 
 lemma le_of_forall_epsilon_le {a b : real} (h : ∀ε, ε > 0 → a ≤ b + ε) : a ≤ b :=
 le_of_forall_le_of_dense $ assume x hxb,
@@ -332,9 +332,6 @@ theorem Inf_le (S : set ℝ) (h₂ : ∃ x, ∀ y ∈ S, x ≤ y) {x} (xS : x �
 theorem lb_le_Inf (S : set ℝ) (h₁ : ∃ x, x ∈ S) {lb} (h₂ : ∀ y ∈ S, lb ≤ y) : lb ≤ Inf S :=
 (le_Inf S h₁ ⟨_, h₂⟩).2 h₂
 
-open lattice
-noncomputable instance lattice : lattice ℝ := by apply_instance
-
 noncomputable instance : conditionally_complete_linear_order ℝ :=
 { Sup := real.Sup,
   Inf := real.Inf,
@@ -357,18 +354,18 @@ noncomputable instance : conditionally_complete_linear_order ℝ :=
   decidable_le := classical.dec_rel _,
  ..real.linear_order, ..real.lattice}
 
-theorem Sup_empty : lattice.Sup (∅ : set ℝ) = 0 := dif_neg $ by simp
+theorem Sup_empty : Sup (∅ : set ℝ) = 0 := dif_neg $ by simp
 
-theorem Sup_of_not_bdd_above {s : set ℝ} (hs : ¬ bdd_above s) : lattice.Sup s = 0 :=
+theorem Sup_of_not_bdd_above {s : set ℝ} (hs : ¬ bdd_above s) : Sup s = 0 :=
 dif_neg $ assume h, hs h.2
 
 theorem Sup_univ : real.Sup set.univ = 0 :=
 real.Sup_of_not_bdd_above $ λ ⟨x, h⟩, not_le_of_lt (lt_add_one _) $ h (set.mem_univ _)
 
-theorem Inf_empty : lattice.Inf (∅ : set ℝ) = 0 :=
+theorem Inf_empty : Inf (∅ : set ℝ) = 0 :=
 show Inf ∅ = 0, by simp [Inf]; exact Sup_empty
 
-theorem Inf_of_not_bdd_below {s : set ℝ} (hs : ¬ bdd_below s) : lattice.Inf s = 0 :=
+theorem Inf_of_not_bdd_below {s : set ℝ} (hs : ¬ bdd_below s) : Inf s = 0 :=
 have bdd_above {x | -x ∈ s} → bdd_below s, from
   assume ⟨b, hb⟩, ⟨-b, assume x hxs, neg_le.2 $ hb $ by simp [hxs]⟩,
 have ¬ bdd_above {x | -x ∈ s}, from mt this hs,

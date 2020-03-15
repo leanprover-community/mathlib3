@@ -5,8 +5,6 @@ Authors: Mario Carneiro
 -/
 import algebra.ordered_group order.lattice
 
-open lattice
-
 universes u v
 variables {α : Type u} {β : Type v}
 

@@ -11,7 +11,7 @@ noncomputable theory
 
 open_locale classical
 
-open lattice set linear_map submodule
+open set linear_map submodule
 
 namespace mv_polynomial
 universes u v

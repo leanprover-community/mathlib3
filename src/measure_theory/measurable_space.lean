@@ -57,7 +57,7 @@ measurable space, measurable function, dynkin system
 -/
 
 local attribute [instance] classical.prop_decidable
-open set lattice encodable
+open set encodable
 open_locale classical
 
 universes u v w x
@@ -535,13 +535,13 @@ instance measurable_space.pi {α : Type u} {β : α → Type v} [m : Πa, measur
 
 lemma measurable_pi_apply {α : Type u} {β : α → Type v} [Πa, measurable_space (β a)] (a : α) :
   measurable (λf:Πa, β a, f a) :=
-measurable_space.comap_le_iff_le_map.1 $ lattice.le_supr _ a
+measurable_space.comap_le_iff_le_map.1 $ le_supr _ a
 
 lemma measurable_pi_lambda {α : Type u} {β : α → Type v} {γ : Type w}
   [Πa, measurable_space (β a)] [measurable_space γ]
   (f : γ → Πa, β a) (hf : ∀a, measurable (λc, f c a)) :
   measurable f :=
-lattice.supr_le $ assume a, measurable_space.comap_le_iff_le_map.2 (hf a)
+supr_le $ assume a, measurable_space.comap_le_iff_le_map.2 (hf a)
 
 end pi
 

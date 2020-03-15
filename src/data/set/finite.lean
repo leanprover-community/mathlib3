@@ -9,7 +9,7 @@ import logic.function
 import data.nat.basic data.fintype data.set.lattice data.set.function
 import algebra.big_operators
 
-open set lattice function
+open set function
 
 universes u v w x
 variables {α : Type u} {β : Type v} {ι : Sort w} {γ : Type x}

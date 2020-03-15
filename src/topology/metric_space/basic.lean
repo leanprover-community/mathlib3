@@ -10,7 +10,7 @@ topological spaces. For example:
   open and closed sets, compactness, completeness, continuity and uniform continuity
 -/
 import data.real.nnreal topology.metric_space.emetric_space topology.algebra.ordered
-open lattice set filter classical topological_space
+open set filter classical topological_space
 noncomputable theory
 
 open_locale uniformity
@@ -940,7 +940,7 @@ by simpa only [closure_eq_of_is_closed hs] using @mem_closure_iff _ _ s a
 end metric
 
 section pi
-open finset lattice
+open finset
 variables {π : β → Type*} [fintype β] [∀b, metric_space (π b)]
 
 /-- A finite product of metric spaces is a metric space, with the sup distance. -/

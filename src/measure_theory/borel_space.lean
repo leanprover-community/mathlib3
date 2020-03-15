@@ -17,7 +17,7 @@ Unfortunately, this only holds if t₁ and t₂ are second-countable topologies.
 import measure_theory.measurable_space topology.instances.ennreal analysis.normed_space.basic
 noncomputable theory
 
-open classical set lattice real
+open classical set real
 open_locale classical
 
 universes u v w x y

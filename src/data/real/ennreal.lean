@@ -7,7 +7,7 @@ Extended non-negative reals
 -/
 import data.real.nnreal order.bounds data.set.intervals tactic.norm_num
 noncomputable theory
-open classical set lattice
+open classical set
 
 open_locale classical
 variables {α : Type*} {β : Type*}
@@ -1078,7 +1078,7 @@ end infi
 section supr
 
 lemma supr_coe_nat : (⨆n:ℕ, (n : ennreal)) = ⊤ :=
-(lattice.supr_eq_top _).2 $ assume b hb, ennreal.exists_nat_gt (lt_top_iff_ne_top.1 hb)
+(supr_eq_top _).2 $ assume b hb, ennreal.exists_nat_gt (lt_top_iff_ne_top.1 hb)
 
 end supr
 

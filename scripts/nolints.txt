@@ -2428,12 +2428,12 @@ apply_nolint with_bot doc_blame
 apply_nolint with_top doc_blame
 
 -- order/complete_lattice.lean
-apply_nolint lattice.Inf_eq_bot ge_or_gt
-apply_nolint lattice.infi_eq_bot ge_or_gt
+apply_nolint Inf_eq_bot ge_or_gt
+apply_nolint infi_eq_bot ge_or_gt
 
 -- order/conditionally_complete_lattice.lean
-apply_nolint lattice.conditionally_complete_linear_order doc_blame
-apply_nolint lattice.conditionally_complete_linear_order_bot doc_blame
+apply_nolint conditionally_complete_linear_order doc_blame
+apply_nolint conditionally_complete_linear_order_bot doc_blame
 
 -- order/filter/partial.lean
 apply_nolint filter.pcomap' doc_blame
@@ -2455,11 +2455,11 @@ apply_nolint filter.pointwise_one doc_blame
 apply_nolint filter.pointwise_zero doc_blame
 
 -- order/fixed_points.lean
-apply_nolint lattice.fixed_points doc_blame
-apply_nolint lattice.fixed_points.next doc_blame
-apply_nolint lattice.fixed_points.next_fixed doc_blame
-apply_nolint lattice.fixed_points.prev doc_blame
-apply_nolint lattice.fixed_points.prev_fixed doc_blame
+apply_nolint fixed_points doc_blame
+apply_nolint fixed_points.next doc_blame
+apply_nolint fixed_points.next_fixed doc_blame
+apply_nolint fixed_points.prev doc_blame
+apply_nolint fixed_points.prev_fixed doc_blame
 
 -- order/galois_connection.lean
 apply_nolint galois_insertion has_inhabited_instance

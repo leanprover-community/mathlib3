@@ -13,7 +13,7 @@ import
   measure_theory.measure_space
   measure_theory.borel_space
 noncomputable theory
-open lattice set filter
+open set filter
 open_locale classical topological_space
 
 namespace measure_theory
@@ -278,13 +278,13 @@ instance [semilattice_sup β] : semilattice_sup (α →ₛ β) :=
   .. simple_func.partial_order }
 
 instance [semilattice_sup_bot β] : semilattice_sup_bot (α →ₛ β) :=
-{ .. simple_func.lattice.semilattice_sup,.. simple_func.lattice.order_bot }
+{ .. simple_func.semilattice_sup,.. simple_func.order_bot }
 
 instance [lattice β] : lattice (α →ₛ β) :=
-{ .. simple_func.lattice.semilattice_sup,.. simple_func.lattice.semilattice_inf }
+{ .. simple_func.semilattice_sup,.. simple_func.semilattice_inf }
 
 instance [bounded_lattice β] : bounded_lattice (α →ₛ β) :=
-{ .. simple_func.lattice.lattice, .. simple_func.lattice.order_bot, .. simple_func.lattice.order_top }
+{ .. simple_func.lattice, .. simple_func.order_bot, .. simple_func.order_top }
 
 lemma finset_sup_apply [semilattice_sup_bot β] {f : γ → α →ₛ β} (s : finset γ) (a : α) :
   s.sup f a = s.sup (λc, f c a) :=

@@ -6,7 +6,7 @@ Authors: Johannes Hölzl
 Disjointed sets
 -/
 import data.set.lattice data.nat.basic tactic.wlog
-open set classical lattice
+open set classical
 open_locale classical
 
 universes u v w x

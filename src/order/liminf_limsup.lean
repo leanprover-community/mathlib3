@@ -33,7 +33,7 @@ theorems in complete lattices (usually with less assumptions).
 -/
 
 import order.filter order.conditionally_complete_lattice order.bounds
-open lattice filter set
+open filter set
 
 variables {α : Type*} {β : Type*}
 namespace filter

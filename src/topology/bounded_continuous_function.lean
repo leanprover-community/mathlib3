@@ -13,7 +13,7 @@ noncomputable theory
 local attribute [instance] classical.decidable_inhabited classical.prop_decidable
 open_locale topological_space
 
-open set lattice filter metric
+open set filter metric
 
 universes u v w
 variables {α : Type u} {β : Type v} {γ : Type w}

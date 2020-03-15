@@ -2184,7 +2184,7 @@ theorem sort_sorted_lt (s : finset α) :
   list.sorted (<) (sort (≤) s) :=
 (sort_sorted _ _).imp₂ (@lt_of_le_of_ne _ _) (sort_nodup _ _)
 
-lemma finset.sorted_zero_eq_min' (s : finset α) (h : 0 < (s.sort (≤)).length) (H : s.nonempty) :
+lemma sorted_zero_eq_min' (s : finset α) (h : 0 < (s.sort (≤)).length) (H : s.nonempty) :
   (s.sort (≤)).nth_le 0 h = s.min' H :=
 begin
   let l := s.sort (≤),
@@ -2198,7 +2198,7 @@ begin
     exact s.min'_le H _ this }
 end
 
-lemma finset.sorted_last_eq_max' (s : finset α) (h : (s.sort (≤)).length - 1 < (s.sort (≤)).length)
+lemma sorted_last_eq_max' (s : finset α) (h : (s.sort (≤)).length - 1 < (s.sort (≤)).length)
   (H : s.nonempty) : (s.sort (≤)).nth_le ((s.sort (≤)).length - 1) h = s.max' H :=
 begin
   let l := s.sort (≤),

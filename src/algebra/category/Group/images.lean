@@ -26,20 +26,13 @@ local attribute [ext] subtype.eq'
 section -- implementation details of `has_image` for AddCommGroup; use the API, not these
 /-- the image of a morphism in AddCommGroup is just the bundling of `set.range f` -/
 def image : AddCommGroup := AddCommGroup.of (set.range f)
+
 /-- the inclusion of `image f` into the target -/
--- TODO it would be nicer to reuse existing unbundled machinery here: does it exist?
-def image.ι : image f ⟶ H := (⟨subtype.val, rfl, by { intros, refl }⟩ : image f →+ H)
-instance : mono (image.ι f) :=
-begin
-  split, intros, ext,
-  convert congr_arg (λ k : Z ⟶ H, (k : _ →+ _) x) w,
-end
+def image.ι : image f ⟶ H := f.range_subtype_val
+instance : mono (image.ι f) := concrete_category.mono_of_injective f subtype.val_injective
+
 /-- the corestriction map to the image -/
--- TODO it would be nicer to reuse existing unbundled machinery here: does it exist?
-def factor_thru_image : G ⟶ image f :=
-{ to_fun := λ g, ⟨f g, ⟨g, rfl⟩⟩,
-  map_zero' := by { ext, dsimp, erw add_monoid_hom.map_zero f, refl, },
-  map_add' := by { intros, ext, dsimp, erw add_monoid_hom.map_add f, refl, } }
+def factor_thru_image : G ⟶ image f := add_monoid_hom.range_factorization f
 lemma image.fac : factor_thru_image f ≫ image.ι f = f :=
 by { ext, refl, }
 

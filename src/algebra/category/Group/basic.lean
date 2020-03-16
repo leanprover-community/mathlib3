@@ -150,6 +150,8 @@ begin
   rw [add_monoid_hom.map_gsmul, add_monoid_hom.map_gsmul, w],
 end
 
+-- TODO: this argument should be generalised to the situation where
+-- the forgetful functor is representable.
 lemma injective_of_mono {G H : AddCommGroup.{0}} (f : G ⟶ H) [mono f] : function.injective f :=
 λ g₁ g₂ h,
 begin

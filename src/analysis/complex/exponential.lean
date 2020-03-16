@@ -1409,6 +1409,8 @@ if x = 0
 
 noncomputable instance : has_pow ℂ ℂ := ⟨cpow⟩
 
+@[simp] lemma cpow_eq_pow (x y : ℂ) : cpow x y = x ^ y := rfl
+
 lemma cpow_def (x y : ℂ) : x ^ y =
   if x = 0
     then if y = 0
@@ -1419,7 +1421,7 @@ lemma cpow_def (x y : ℂ) : x ^ y =
 @[simp] lemma cpow_zero (x : ℂ) : x ^ (0 : ℂ) = 1 := by simp [cpow_def]
 
 @[simp] lemma cpow_eq_zero_iff (x y : ℂ) : x ^ y = 0 ↔ x = 0 ∧ y ≠ 0 :=
-by { simp [cpow_def], split_ifs; simp [*, exp_ne_zero] }
+by { simp only [cpow_def], split_ifs; simp [*, exp_ne_zero] }
 
 @[simp] lemma zero_cpow {x : ℂ} (h : x ≠ 0) : (0 : ℂ) ^ x = 0 :=
 by simp [cpow_def, *]
@@ -1494,6 +1496,8 @@ noncomputable def rpow (x y : ℝ) := ((x : ℂ) ^ (y : ℂ)).re
 
 noncomputable instance : has_pow ℝ ℝ := ⟨rpow⟩
 
+@[simp] lemma rpow_eq_pow (x y : ℝ) : rpow x y = x ^ y := rfl
+
 lemma rpow_def (x y : ℝ) : x ^ y = ((x : ℂ) ^ (y : ℂ)).re := rfl
 
 lemma rpow_def_of_nonneg {x : ℝ} (hx : 0 ≤ x) (y : ℝ) : x ^ y =
@@ -1511,7 +1515,7 @@ lemma rpow_def_of_pos {x : ℝ} (hx : 0 < x) (y : ℝ) : x ^ y = exp (log x * y)
 by rw [rpow_def_of_nonneg (le_of_lt hx), if_neg (ne_of_gt hx)]
 
 lemma rpow_eq_zero_iff_of_nonneg {x y : ℝ} (hx : 0 ≤ x) : x ^ y = 0 ↔ x = 0 ∧ y ≠ 0 :=
-by { simp [rpow_def_of_nonneg hx], split_ifs; simp [*, exp_ne_zero] }
+by { simp only [rpow_def_of_nonneg hx], split_ifs; simp [*, exp_ne_zero] }
 
 open_locale real
 
@@ -1911,7 +1915,9 @@ noncomputable def rpow (x : nnreal) (y : ℝ) : nnreal :=
 
 noncomputable instance : has_pow nnreal ℝ := ⟨rpow⟩
 
-@[simp, push_cast] lemma coe_rpow (x : nnreal) (y : ℝ) : ((x ^ y : nnreal) : ℝ) = (x : ℝ) ^ y := rfl
+@[simp] lemma rpow_eq_pow (x : nnreal) (y : ℝ) : rpow x y = x ^ y := rfl
+
+@[simp, move_cast] lemma coe_rpow (x : nnreal) (y : ℝ) : ((x ^ y : nnreal) : ℝ) = (x : ℝ) ^ y := rfl
 
 @[simp] lemma rpow_zero (x : nnreal) : x ^ (0 : ℝ) = 1 :=
 by { rw ← nnreal.coe_eq, exact real.rpow_zero _ }

@@ -2765,7 +2765,6 @@ apply_nolint tactic.get_ancestors doc_blame
 
 -- tactic/alias.lean
 apply_nolint tactic.alias.alias_attr doc_blame
-apply_nolint tactic.alias.alias_cmd doc_blame
 apply_nolint tactic.alias.alias_direct doc_blame
 apply_nolint tactic.alias.alias_iff doc_blame
 apply_nolint tactic.alias.get_alias_target doc_blame
@@ -2891,7 +2890,6 @@ apply_nolint tactic.explode.head' doc_blame
 apply_nolint tactic.explode.may_be_proof doc_blame
 apply_nolint tactic.explode.pad_right doc_blame
 apply_nolint tactic.explode.status doc_blame
-apply_nolint tactic.explode_cmd doc_blame
 apply_nolint tactic.explode_expr doc_blame
 
 -- tactic/ext.lean
@@ -2912,35 +2910,22 @@ apply_nolint tactic.fin_cases_at_aux doc_blame
 
 -- tactic/find.lean
 apply_nolint expr.get_pis doc_blame
-apply_nolint find_cmd doc_blame
 apply_nolint pexpr.get_uninst_pis doc_blame
 
 -- tactic/finish.lean
-apply_nolint auto.add_conjuncts doc_blame
 apply_nolint auto.add_simps doc_blame
-apply_nolint auto.auto_config doc_blame
 apply_nolint auto.case_hyp doc_blame
 apply_nolint auto.case_option doc_blame
 apply_nolint auto.case_some_hyp doc_blame
 apply_nolint auto.case_some_hyp_aux doc_blame
 apply_nolint auto.classical_normalize_lemma_names doc_blame
 apply_nolint auto.common_normalize_lemma_names doc_blame
-apply_nolint auto.do_subst doc_blame
 apply_nolint auto.do_substs doc_blame
-apply_nolint auto.eelim doc_blame
-apply_nolint auto.eelims doc_blame
-apply_nolint auto.mk_hinst_lemmas doc_blame
 apply_nolint auto.normalize_hyp doc_blame
 apply_nolint auto.normalize_hyps doc_blame
 apply_nolint auto.normalize_negations doc_blame
 apply_nolint auto.preprocess_goal doc_blame
-apply_nolint auto.preprocess_hyps doc_blame
-apply_nolint auto.split_hyp doc_blame
-apply_nolint auto.split_hyps doc_blame
-apply_nolint auto.split_hyps_aux doc_blame
 apply_nolint auto.whnf_reducible doc_blame
-apply_nolint tactic.assert_fresh doc_blame
-apply_nolint tactic.assertv_fresh doc_blame
 apply_nolint tactic.interactive.revert_all doc_blame
 
 -- tactic/generalize_proofs.lean
@@ -2979,7 +2964,6 @@ apply_nolint tactic.using_texpr doc_blame
 apply_nolint linarith.add_exprs doc_blame
 apply_nolint linarith.add_exprs_aux doc_blame
 apply_nolint linarith.add_neg_eq_pfs doc_blame
-apply_nolint linarith.cast_expr doc_blame
 apply_nolint linarith.comp.add doc_blame
 apply_nolint linarith.comp.coeff_of doc_blame
 apply_nolint linarith.comp.is_contr doc_blame
@@ -3191,7 +3175,6 @@ apply_nolint norm_num.prove_lt unused_arguments doc_blame
 apply_nolint norm_num.prove_min_fac doc_blame
 apply_nolint norm_num.prove_non_prime doc_blame
 apply_nolint norm_num.prove_pos doc_blame
-apply_nolint tactic.interactive.apply_normed doc_blame
 apply_nolint tactic.refl_conv doc_blame
 apply_nolint tactic.trans_conv doc_blame
 
@@ -3323,7 +3306,7 @@ apply_nolint tactic.unprime doc_blame
 apply_nolint tactic.valid_types doc_blame
 
 -- tactic/restate_axiom.lean
-apply_nolint restate_axiom_cmd unused_arguments doc_blame
+apply_nolint restate_axiom_cmd unused_arguments
 
 -- tactic/rewrite.lean
 apply_nolint tactic.assoc_refl doc_blame
@@ -3449,14 +3432,12 @@ apply_nolint tactic.interactive.auto_simp_lemma doc_blame
 apply_nolint tactic.interactive.parse_config doc_blame
 apply_nolint tactic.interactive.rec.to_tactic_format doc_blame
 apply_nolint tactic.interactive.record_lit doc_blame
-apply_nolint tactic.interactive.squeeze_simp doc_blame
 apply_nolint tactic.interactive.squeeze_simpa doc_blame
 
 -- tactic/subtype_instance.lean
 apply_nolint tactic.derive_field_subtype doc_blame
 
 -- tactic/suggest.lean
-apply_nolint tactic.library_search_hole_cmd doc_blame
 apply_nolint tactic.suggest.decl_data doc_blame
 
 -- tactic/tauto.lean
@@ -3488,8 +3469,6 @@ apply_nolint tactic.tidy.core doc_blame
 apply_nolint tactic.tidy.default_tactics doc_blame
 apply_nolint tactic.tidy.ext1_wrapper doc_blame
 apply_nolint tactic.tidy.run_tactics doc_blame
-apply_nolint tactic.tidy.tidy_attribute doc_blame
-apply_nolint tactic.tidy_hole_cmd doc_blame
 
 -- tactic/transfer.lean
 apply_nolint tactic.transfer doc_blame
@@ -3538,7 +3517,7 @@ apply_nolint where.trace_nl doc_blame
 apply_nolint where.trace_opens doc_blame
 apply_nolint where.trace_variables doc_blame
 apply_nolint where.trace_where doc_blame
-apply_nolint where.where_cmd unused_arguments doc_blame
+apply_nolint where.where_cmd unused_arguments
 
 -- tactic/wlog.lean
 apply_nolint tactic.wlog doc_blame

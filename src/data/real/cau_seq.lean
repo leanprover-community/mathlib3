@@ -59,7 +59,7 @@ theorem abv_sub (a b : β) : abv (a - b) = abv (b - a) :=
 by rw [← neg_sub, abv_neg abv]
 
 theorem abv_inv
-  {β : Type*} [discrete_field β] (abv : β → α) [is_absolute_value abv]
+  {β : Type*} [field β] (abv : β → α) [is_absolute_value abv]
   (a : β) : abv a⁻¹ = (abv a)⁻¹ :=
 classical.by_cases
   (λ h : a = 0, by simp [h, abv_zero abv])
@@ -67,12 +67,12 @@ classical.by_cases
     by rw [← abv_mul abv]; simp [h, mt (abv_eq_zero abv).1 h, abv_one abv])
 
 theorem abv_div
-  {β : Type*} [discrete_field β] (abv : β → α) [is_absolute_value abv]
+  {β : Type*} [field β] (abv : β → α) [is_absolute_value abv]
   (a b : β) : abv (a / b) = abv a / abv b :=
 by rw [division_def, abv_mul abv, abv_inv abv]; refl
 
 lemma abv_sub_le (a b c : β) : abv (a - c) ≤ abv (a - b) + abv (b - c) :=
-by simpa using abv_add abv (a - b) (b - c)
+by simpa [sub_eq_add_neg] using abv_add abv (a - b) (b - c)
 
 lemma sub_abv_le_abv_sub (a b : β) : abv a - abv b ≤ abv (a - b) :=
 sub_le_iff_le_add.2 $ by simpa using abv_add abv (a - b) b
@@ -111,7 +111,8 @@ theorem rat_add_continuous_lemma
   {ε : α} (ε0 : 0 < ε) : ∃ δ > 0, ∀ {a₁ a₂ b₁ b₂ : β},
   abv (a₁ - b₁) < δ → abv (a₂ - b₂) < δ → abv (a₁ + a₂ - (b₁ + b₂)) < ε :=
 ⟨ε / 2, half_pos ε0, λ a₁ a₂ b₁ b₂ h₁ h₂,
-  by simpa [add_halves] using lt_of_le_of_lt (abv_add abv _ _) (add_lt_add h₁ h₂)⟩
+  by simpa [add_halves, sub_eq_add_neg, add_comm, add_left_comm]
+    using lt_of_le_of_lt (abv_add abv _ _) (add_lt_add h₁ h₂)⟩
 
 theorem rat_mul_continuous_lemma
   {ε K₁ K₂ : α} (ε0 : 0 < ε) :
@@ -127,11 +128,12 @@ begin
     (mul_lt_mul' (le_of_lt h₁) hb₂ (abv_nonneg abv _) εK)
     (mul_lt_mul' (le_of_lt h₂) ha₁ (abv_nonneg abv _) εK),
   rw [← abv_mul abv, mul_comm, div_mul_cancel _ (ne_of_gt K0), ← abv_mul abv, add_halves] at this,
-  simpa [mul_add, add_mul] using lt_of_le_of_lt (abv_add abv _ _) this
+  simpa [mul_add, add_mul, sub_eq_add_neg, add_comm, add_left_comm]
+    using lt_of_le_of_lt (abv_add abv _ _) this
 end
 
 theorem rat_inv_continuous_lemma
-  {β : Type*} [discrete_field β] (abv : β → α) [is_absolute_value abv]
+  {β : Type*} [field β] (abv : β → α) [is_absolute_value abv]
   {ε K : α} (ε0 : 0 < ε) (K0 : 0 < K) :
   ∃ δ > 0, ∀ {a b : β}, K ≤ abv a → K ≤ abv b →
   abv (a - b) < δ → abv (a⁻¹ - b⁻¹) < ε :=
@@ -286,7 +288,7 @@ ext $ λ i, rfl
 
 instance : ring (cau_seq β abv) :=
 by refine {neg := has_neg.neg, add := (+), zero := 0, mul := (*), one := 1, ..};
-   { intros, apply ext, simp [mul_add, mul_assoc, add_mul] }
+   { intros, apply ext, simp [mul_add, mul_assoc, add_mul, add_comm, add_left_comm] }
 
 instance {β : Type*} [comm_ring β] {abv : β → α} [is_absolute_value abv] : comm_ring (cau_seq β abv) :=
 { mul_comm := by intros; apply ext; simp [mul_left_comm, mul_comm],
@@ -344,7 +346,7 @@ instance equiv : setoid (cau_seq β abv) :=
 ⟨λ f g, lim_zero (f - g),
 ⟨λ f, by simp [zero_lim_zero],
  λ f g h, by simpa using neg_lim_zero h,
- λ f g h fg gh, by simpa using add_lim_zero fg gh⟩⟩
+ λ f g h fg gh, by simpa [sub_eq_add_neg] using add_lim_zero fg gh⟩⟩
 
 theorem equiv_def₃ {f g : cau_seq β abv} (h : f ≈ g) {ε:α} (ε0 : 0 < ε) :
   ∃ i, ∀ j ≥ i, ∀ k ≥ j, abv (f k - g j) < ε :=
@@ -446,8 +448,8 @@ absurd this one_ne_zero
 
 end integral_domain
 
-section discrete_field
-variables {β : Type*} [discrete_field β] {abv : β → α} [is_absolute_value abv]
+section field
+variables {β : Type*} [field β] {abv : β → α} [is_absolute_value abv]
 
 theorem inv_aux {f : cau_seq β abv} (hf : ¬ lim_zero f) :
   ∀ ε > 0, ∃ i, ∀ j ≥ i, abv ((f j)⁻¹ - (f i)⁻¹) < ε | ε ε0 :=
@@ -469,7 +471,7 @@ theorem inv_mul_cancel {f : cau_seq β abv} (hf) : inv f hf * f ≈ 1 :=
 theorem const_inv {x : β} (hx : x ≠ 0) : const abv (x⁻¹) = inv (const abv x) (by rwa const_lim_zero) :=
 ext (assume n, by simp[inv_apply, const_apply])
 
-end discrete_field
+end field
 
 section abs
 local notation `const` := const abs
@@ -534,7 +536,7 @@ instance : has_le (cau_seq α abs) := ⟨λ f g, f < g ∨ f ≈ g⟩
 
 theorem lt_of_lt_of_eq {f g h : cau_seq α abs}
   (fg : f < g) (gh : g ≈ h) : f < h :=
-by simpa using pos_add_lim_zero fg (neg_lim_zero gh)
+by simpa [sub_eq_add_neg, add_comm, add_left_comm] using pos_add_lim_zero fg (neg_lim_zero gh)
 
 theorem lt_of_eq_of_lt {f g h : cau_seq α abs}
   (fg : f ≈ g) (gh : g < h) : f < h :=
@@ -542,7 +544,7 @@ by have := pos_add_lim_zero gh (neg_lim_zero fg);
    rwa [← sub_eq_add_neg, sub_sub_sub_cancel_right] at this
 
 theorem lt_trans {f g h : cau_seq α abs} (fg : f < g) (gh : g < h) : f < h :=
-by simpa using add_pos fg gh
+by simpa [sub_eq_add_neg, add_comm, add_left_comm] using add_pos fg gh
 
 theorem lt_irrefl {f : cau_seq α abs} : ¬ f < f
 | h := not_lim_zero_of_pos h (by simp [zero_lim_zero])

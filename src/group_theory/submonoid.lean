@@ -6,7 +6,7 @@ Authors: Johannes Hölzl, Kenny Lau, Johan Commelin, Mario Carneiro, Kevin Buzza
 
 import algebra.big_operators
 import data.finset
-import data.equiv.algebra
+import data.equiv.mul_add
 
 /-!
 # Submonoids
@@ -777,6 +777,11 @@ end submonoid
 namespace monoid_hom
 
 variables (S : submonoid M)
+
+/-- Restriction of a monoid hom to a submonoid of the domain. -/
+@[to_additive "Restriction of an add_monoid hom to an `add_submonoid` of the domain."]
+def restrict {N : Type*} [monoid N] (f : M →* N) : S →* N :=
+⟨λ s, f s, f.map_one, λ x y, f.map_mul x y⟩
 
 /-- Restriction of a monoid hom to a submonoid of the codomain. -/
 @[to_additive "Restriction of an `add_monoid` hom to an `add_submonoid` of the codomain."]

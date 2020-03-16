@@ -74,7 +74,7 @@ noncomputable def normed_group.of_core (α : Type*) [add_comm_group α] [has_nor
   dist_self := assume x, (C.norm_eq_zero_iff (x - x)).mpr (show x - x = 0, by simp),
   eq_of_dist_eq_zero := assume x y h, show (x = y), from sub_eq_zero.mp $ (C.norm_eq_zero_iff (x - y)).mp h,
   dist_triangle := assume x y z,
-    calc ∥x - z∥ = ∥x - y + (y - z)∥ : by simp
+    calc ∥x - z∥ = ∥x - y + (y - z)∥ : by simp [sub_eq_add_neg]
             ... ≤ ∥x - y∥ + ∥y - z∥  : C.triangle _ _,
   dist_comm := assume x y,
     calc ∥x - y∥ = ∥ -(y - x)∥ : by simp
@@ -218,13 +218,13 @@ by simp only [nnreal.eq_iff.symm, nnreal.coe_zero, coe_nnnorm, norm_eq_zero]
 nnreal.eq norm_zero
 
 lemma nnnorm_add_le (g h : α) : nnnorm (g + h) ≤ nnnorm g + nnnorm h :=
-nnreal.coe_le.2 $ norm_add_le g h
+nnreal.coe_le_coe.2 $ norm_add_le g h
 
 @[simp] lemma nnnorm_neg (g : α) : nnnorm (-g) = nnnorm g :=
 nnreal.eq $ norm_neg g
 
 lemma nndist_nnnorm_nnnorm_le (g h : α) : nndist (nnnorm g) (nnnorm h) ≤ nnnorm (g - h) :=
-nnreal.coe_le.2 $ dist_norm_norm_le g h
+nnreal.coe_le_coe.2 $ dist_norm_norm_le g h
 
 lemma of_real_norm_eq_coe_nnnorm (x : β) : ennreal.of_real ∥x∥ = (nnnorm x : ennreal) :=
 ennreal.of_real_eq_coe_nnreal _
@@ -234,7 +234,7 @@ by { rw [edist_dist, dist_eq_norm, _root_.sub_zero, of_real_norm_eq_coe_nnnorm] 
 
 lemma nndist_add_add_le (g₁ g₂ h₁ h₂ : α) :
   nndist (g₁ + g₂) (h₁ + h₂) ≤ nndist g₁ h₁ + nndist g₂ h₂ :=
-nnreal.coe_le.2 $ dist_add_add_le g₁ g₂ h₁ h₂
+nnreal.coe_le_coe.2 $ dist_add_add_le g₁ g₂ h₁ h₂
 
 lemma edist_add_add_le (g₁ g₂ h₁ h₂ : α) :
   edist (g₁ + g₂) (h₁ + h₂) ≤ edist g₁ h₁ + edist g₂ h₂ :=
@@ -371,7 +371,8 @@ instance normed_uniform_group : uniform_add_group α :=
 begin
   refine ⟨metric.uniform_continuous_iff.2 $ assume ε hε, ⟨ε / 2, half_pos hε, assume a b h, _⟩⟩,
   rw [prod.dist_eq, max_lt_iff, dist_eq_norm, dist_eq_norm] at h,
-  calc dist (a.1 - a.2) (b.1 - b.2) = ∥(a.1 - b.1) - (a.2 - b.2)∥  : by simp [dist_eq_norm]
+  calc dist (a.1 - a.2) (b.1 - b.2) = ∥(a.1 - b.1) - (a.2 - b.2)∥ :
+      by simp [dist_eq_norm, sub_eq_add_neg]; abel
     ... ≤ ∥a.1 - b.1∥ + ∥a.2 - b.2∥ : norm_sub_le _ _
     ... < ε / 2 + ε / 2 : add_lt_add h.1 h.2
     ... = ε : add_halves _
@@ -463,7 +464,7 @@ instance normed_top_ring [normed_ring α] : topological_ring α :=
 section prio
 set_option default_priority 100 -- see Note [default priority]
 /-- A normed field is a field with a norm satisfying ∥x y∥ = ∥x∥ ∥y∥. -/
-class normed_field (α : Type*) extends has_norm α, discrete_field α, metric_space α :=
+class normed_field (α : Type*) extends has_norm α, field α, metric_space α :=
 (dist_eq : ∀ x y, dist x y = norm (x - y))
 (norm_mul' : ∀ a b, norm (a * b) = norm a * norm b)
 
@@ -499,8 +500,9 @@ is_monoid_hom.map_pow norm a
 eq.symm (s.prod_hom norm)
 
 @[simp] lemma norm_div {α : Type*} [normed_field α] (a b : α) : ∥a/b∥ = ∥a∥/∥b∥ :=
-if hb : b = 0 then by simp [hb] else
 begin
+  classical,
+  by_cases hb : b = 0, {simp [hb]},
   apply eq_div_of_mul_eq,
   { apply ne_of_gt, apply norm_pos_iff.mpr hb },
   { rw [←normed_field.norm_mul, div_mul_cancel _ hb] }
@@ -569,7 +571,7 @@ begin
       exact le_trans hx (min_le_right _ _)
     end
     ... ≤ ∥r - (r - x)∥ : norm_sub_norm_le r (r - x)
-    ... = ∥x∥ : by simp,
+    ... = ∥x∥ : by simp [sub_sub_cancel],
   have norm_x_pos : 0 < ∥x∥ := lt_of_lt_of_le (half_pos norm_r_pos) rx,
   have : x⁻¹ - r⁻¹ = (r - x) * x⁻¹ * r⁻¹,
     by rw [sub_mul, sub_mul, mul_inv_cancel (norm_pos_iff.mp norm_x_pos), one_mul, mul_comm,
@@ -583,8 +585,7 @@ begin
       by { rw [← dist_eq_norm, dist_comm], exact le_trans hx (min_le_left _ _) },
     show ∥x∥⁻¹ ≤ 2 * ∥r∥⁻¹,
     { convert (inv_le_inv norm_x_pos (half_pos norm_r_pos)).2 rx,
-      rw [inv_div (ne.symm (ne_of_lt norm_r_pos)), div_eq_inv_mul, mul_comm],
-      norm_num },
+      rw [inv_div, div_eq_inv_mul, mul_comm] },
     show (0 : ℝ) ≤ 2, by norm_num
   end
   ... = ε * (∥r∥ * ∥r∥⁻¹)^2 : by { generalize : ∥r∥⁻¹ = u, ring }

@@ -218,9 +218,8 @@ lemma has_sum_geometric_two' (a : ℝ) : has_sum (λn:ℕ, (a / 2) / 2 ^ n) a :=
 begin
   convert has_sum_mul_left (a / 2) (has_sum_geometric
     (le_of_lt one_half_pos) one_half_lt_one),
-  { funext n, simp,
-    rw ← pow_inv; [refl, exact two_ne_zero] },
-  { norm_num, rw div_mul_cancel _ two_ne_zero }
+  { funext n, simp, refl, },
+  { norm_num, rw div_mul_cancel, norm_num }
 end
 
 lemma summable_geometric_two' (a : ℝ) : summable (λ n:ℕ, (a / 2) / 2 ^ n) :=
@@ -429,9 +428,9 @@ theorem exists_pos_sum_of_encodable {ε : nnreal} (hε : 0 < ε) (ι) [encodable
   ∃ ε' : ι → nnreal, (∀ i, 0 < ε' i) ∧ ∃c, has_sum ε' c ∧ c < ε :=
 let ⟨a, a0, aε⟩ := dense hε in
 let ⟨ε', hε', c, hc, hcε⟩ := pos_sum_of_encodable a0 ι in
-⟨ λi, ⟨ε' i, le_of_lt $ hε' i⟩, assume i, nnreal.coe_lt.2 $ hε' i,
+⟨ λi, ⟨ε' i, le_of_lt $ hε' i⟩, assume i, nnreal.coe_lt_coe.2 $ hε' i,
   ⟨c, has_sum_le (assume i, le_of_lt $ hε' i) has_sum_zero hc ⟩, nnreal.has_sum_coe.1 hc,
-   lt_of_le_of_lt (nnreal.coe_le.1 hcε) aε ⟩
+   lt_of_le_of_lt (nnreal.coe_le_coe.1 hcε) aε ⟩
 
 end nnreal
 

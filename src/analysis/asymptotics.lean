@@ -951,6 +951,7 @@ have eq₂ : is_o (λ x, f x / g x * g x) g l,
 have eq₃ : is_O f (λ x, f x / g x * g x) l,
   begin
     refine is_O_of_le _ (λ x, _),
+    classical,
     by_cases H : g x = 0,
     { simp only [H, hgf _ H, mul_zero] },
     { simp only [div_mul_cancel _ H] }

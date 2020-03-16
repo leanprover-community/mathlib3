@@ -224,13 +224,13 @@ by simp only [nnreal.eq_iff.symm, (dist_nndist _ _).symm, imp_self, nnreal.coe_z
 
 /--Triangle inequality for the nonnegative distance-/
 theorem nndist_triangle (x y z : α) : nndist x z ≤ nndist x y + nndist y z :=
-by simpa [nnreal.coe_le] using dist_triangle x y z
+by simpa [nnreal.coe_le_coe] using dist_triangle x y z
 
 theorem nndist_triangle_left (x y z : α) : nndist x y ≤ nndist z x + nndist z y :=
-by simpa [nnreal.coe_le] using dist_triangle_left x y z
+by simpa [nnreal.coe_le_coe] using dist_triangle_left x y z
 
 theorem nndist_triangle_right (x y z : α) : nndist x y ≤ nndist x z + nndist y z :=
-by simpa [nnreal.coe_le] using dist_triangle_right x y z
+by simpa [nnreal.coe_le_coe] using dist_triangle_right x y z
 
 /--Express `dist` in terms of `edist`-/
 lemma dist_edist (x y : α) : dist x y = (edist x y).to_real :=
@@ -652,7 +652,7 @@ section real
 instance real.metric_space : metric_space ℝ :=
 { dist               := λx y, abs (x - y),
   dist_self          := by simp [abs_zero],
-  eq_of_dist_eq_zero := by simp [add_neg_eq_zero],
+  eq_of_dist_eq_zero := by simp [sub_eq_zero],
   dist_comm          := assume x y, abs_sub _ _,
   dist_triangle      := assume x y z, abs_sub_le _ _ _ }
 
@@ -678,13 +678,10 @@ by ext y; rw [mem_closed_ball, dist_comm, real.dist_eq,
   abs_sub_le_iff, mem_Icc, ← sub_le_iff_le_add', sub_le]
 
 /-- Special case of the sandwich theorem; see `tendsto_of_tendsto_of_tendsto_of_le_of_le`
-for the general case. -/
+and  `tendsto_of_tendsto_of_tendsto_of_le_of_le'` for the general case. -/
 lemma squeeze_zero {α} {f g : α → ℝ} {t₀ : filter α} (hf : ∀t, 0 ≤ f t) (hft : ∀t, f t ≤ g t)
   (g0 : tendsto g t₀ (𝓝 0)) : tendsto f t₀ (𝓝 0) :=
-begin
-  apply tendsto_of_tendsto_of_tendsto_of_le_of_le (tendsto_const_nhds) g0;
-  simp [*]; exact filter.univ_mem_sets
-end
+tendsto_of_tendsto_of_tendsto_of_le_of_le tendsto_const_nhds g0 hf hft
 
 theorem metric.uniformity_eq_comap_nhds_zero :
   𝓤 α = comap (λp:α×α, dist p.1 p.2) (𝓝 (0 : ℝ)) :=
@@ -818,7 +815,7 @@ begin
     rw [nnreal.sub_eq_zero h, max_eq_right (zero_le $ b - a), ← dist_nndist, nnreal.dist_eq,
       nnreal.coe_sub h, abs, neg_sub],
     apply max_eq_right,
-    linarith [nnreal.coe_le.2 h] },
+    linarith [nnreal.coe_le_coe.2 h] },
   rwa [nndist_comm, max_comm]
 end
 end nnreal

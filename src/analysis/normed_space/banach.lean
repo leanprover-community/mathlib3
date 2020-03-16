@@ -17,7 +17,7 @@ open_locale classical topological_space
 variables {𝕜 : Type*} [nondiscrete_normed_field 𝕜]
 {E : Type*} [normed_group E] [normed_space 𝕜 E]
 {F : Type*} [normed_group F] [normed_space 𝕜 F]
-{f : E → F}
+(f : E →L[𝕜] F)
 include 𝕜
 
 set_option class.instance_max_depth 70
@@ -31,10 +31,10 @@ Rescaling everything, it follows that any `y ∈ F` is arbitrarily well approach
 images of elements of norm at most `C * ∥y∥`.
 For further use, we will only need such an element whose image
 is within distance `∥y∥/2` of `y`, to apply an iterative process. -/
-lemma exists_approx_preimage_norm_le (hf : is_bounded_linear_map 𝕜 f) (surj : surjective f) :
-  ∃C, 0 ≤ C ∧ ∀y, ∃x, dist (f x) y ≤ 1/2 * ∥y∥ ∧ ∥x∥ ≤ C * ∥y∥ :=
+@[nolint ge_or_gt] -- see Note [nolint_ge]
+lemma exists_approx_preimage_norm_le (surj : surjective f) :
+  ∃C ≥ 0, ∀y, ∃x, dist (f x) y ≤ 1/2 * ∥y∥ ∧ ∥x∥ ≤ C * ∥y∥ :=
 begin
-  have lin := hf.to_is_linear_map,
   haveI : nonempty F := ⟨0⟩,
   have A : (⋃n:ℕ, closure (f '' (ball 0 n))) = univ,
   { refine subset.antisymm (subset_univ _) (λy hy, _),
@@ -52,7 +52,7 @@ begin
     refine inv_nonneg.2 (div_nonneg' (le_of_lt εpos) (by norm_num)),
     exact nat.cast_nonneg n },
   { by_cases hy : y = 0,
-    { use 0, simp [hy, lin.map_zero] },
+    { use 0, simp [hy] },
     { rcases rescale_to_shell hc (half_pos εpos) hy with ⟨d, hd, ydle, leyd, dinv⟩,
       let δ := ∥d∥ * ∥y∥/4,
       have δpos : 0 < δ :=
@@ -71,7 +71,7 @@ begin
       let x := x₁ - x₂,
       have I : ∥f x - d • y∥ ≤ 2 * δ := calc
         ∥f x - d • y∥ = ∥f x₁ - (a + d • y) - (f x₂ - a)∥ :
-          by { congr' 1, simp only [x, lin.map_sub], abel }
+          by { congr' 1, simp only [x, f.map_sub], abel }
         ... ≤ ∥f x₁ - (a + d • y)∥ + ∥f x₂ - a∥ :
           norm_sub_le _ _
         ... ≤ δ + δ : begin
@@ -82,7 +82,7 @@ begin
         ... = 2 * δ : (two_mul _).symm,
       have J : ∥f (d⁻¹ • x) - y∥ ≤ 1/2 * ∥y∥ := calc
         ∥f (d⁻¹ • x) - y∥ = ∥d⁻¹ • f x - (d⁻¹ * d) • y∥ :
-          by rwa [lin.smul, inv_mul_cancel, one_smul]
+          by rwa [f.map_smul _, inv_mul_cancel, one_smul]
         ... = ∥d⁻¹ • (f x - d • y)∥ : by rw [mul_smul, smul_sub]
         ... = ∥d∥⁻¹ * ∥f x - d • y∥ : by rw [norm_smul, normed_field.norm_inv]
         ... ≤ ∥d∥⁻¹ * (2 * δ) : begin
@@ -110,11 +110,11 @@ variable [complete_space E]
 
 /-- The Banach open mapping theorem: if a bounded linear map between Banach spaces is onto, then
 any point has a preimage with controlled norm. -/
-theorem exists_preimage_norm_le (hf : is_bounded_linear_map 𝕜 f) (surj : surjective f) :
-  ∃C, 0 < C ∧ ∀y, ∃x, f x = y ∧ ∥x∥ ≤ C * ∥y∥ :=
+@[nolint ge_or_gt] -- see Note [nolint_ge]
+theorem exists_preimage_norm_le (surj : surjective f) :
+  ∃C > 0, ∀y, ∃x, f x = y ∧ ∥x∥ ≤ C * ∥y∥ :=
 begin
-  have lin := hf.to_is_linear_map,
-  obtain ⟨C, C0, hC⟩ := exists_approx_preimage_norm_le hf surj,
+  obtain ⟨C, C0, hC⟩ := exists_approx_preimage_norm_le f surj,
   /- Second step of the proof: starting from `y`, we want an exact preimage of `y`. Let `g y` be
   the approximate preimage of `y` given by the first step, and `h y = y - f(g y)` the part that
   has no preimage yet. We will iterate this process, taking the approximate preimage of `h y`,
@@ -160,13 +160,13 @@ begin
   have fsumeq : ∀n:ℕ, f((range n).sum u) = y - (h^[n]) y,
   { assume n,
     induction n with n IH,
-    { simp [lin.map_zero] },
-    { rw [sum_range_succ, lin.add, IH, nat.iterate_succ'],
-      simp [u, h] } },
+    { simp [f.map_zero] },
+    { rw [sum_range_succ, f.map_add, IH, nat.iterate_succ'],
+      simp [u, h, sub_eq_add_neg, add_comm, add_left_comm] } },
   have : tendsto (λn, (range n).sum u) at_top (𝓝 x) :=
     tendsto_sum_nat_of_has_sum (has_sum_tsum su),
   have L₁ : tendsto (λn, f((range n).sum u)) at_top (𝓝 (f x)) :=
-    tendsto.comp (hf.continuous.tendsto _) this,
+    (f.continuous.tendsto _).comp this,
   simp only [fsumeq] at L₁,
   have L₂ : tendsto (λn, y - (h^[n]) y) at_top (𝓝 (y - 0)),
   { refine tendsto_const_nhds.sub _,
@@ -185,17 +185,16 @@ begin
 end
 
 /-- The Banach open mapping theorem: a surjective bounded linear map between Banach spaces is open. -/
-theorem open_mapping (hf : is_bounded_linear_map 𝕜 f) (surj : surjective f) : is_open_map f :=
+theorem open_mapping (surj : surjective f) : is_open_map f :=
 begin
   assume s hs,
-  have lin := hf.to_is_linear_map,
-  rcases exists_preimage_norm_le hf surj with ⟨C, Cpos, hC⟩,
+  rcases exists_preimage_norm_le f surj with ⟨C, Cpos, hC⟩,
   refine is_open_iff.2 (λy yfs, _),
   rcases mem_image_iff_bex.1 yfs with ⟨x, xs, fxy⟩,
   rcases is_open_iff.1 hs x xs with ⟨ε, εpos, hε⟩,
   refine ⟨ε/C, div_pos εpos Cpos, λz hz, _⟩,
   rcases hC (z-y) with ⟨w, wim, wnorm⟩,
-  have : f (x + w) = z, by { rw [lin.add, wim, fxy], abel },
+  have : f (x + w) = z, by { rw [f.map_add, wim, fxy, add_sub_cancel'_right] },
   rw ← this,
   have : x + w ∈ ball x ε := calc
     dist (x+w) x = ∥w∥ : by { rw dist_eq_norm, simp }
@@ -209,17 +208,17 @@ begin
 end
 
 /-- If a bounded linear map is a bijection, then its inverse is also a bounded linear map. -/
-theorem linear_equiv.is_bounded_inv (e : E ≃ₗ[𝕜] F) (h : is_bounded_linear_map 𝕜 e.to_fun) :
-  is_bounded_linear_map 𝕜 e.inv_fun :=
-{ bound := begin
-    have : surjective e.to_fun := (equiv.bijective e.to_equiv).2,
-    rcases exists_preimage_norm_le h this with ⟨M, Mpos, hM⟩,
-    refine ⟨M, Mpos, λy, _⟩,
-    rcases hM y with ⟨x, hx, xnorm⟩,
-    have : x = e.inv_fun y, by { rw ← hx, exact (e.symm_apply_apply _).symm },
-    rwa ← this
-  end,
-  ..e.symm }
+theorem linear_equiv.continuous_symm (e : E ≃ₗ[𝕜] F) (h : continuous e) :
+  continuous e.symm :=
+begin
+  obtain ⟨M, Mpos, hM⟩ : ∃ M > 0, ∀ (y : F), ∃ (x : E), e x = y ∧ ∥x∥ ≤ M * ∥y∥,
+    from exists_preimage_norm_le (continuous_linear_map.mk e.to_linear_map h) e.to_equiv.surjective,
+  refine e.symm.to_linear_map.continuous_of_bound M (λ y, _),
+  rcases hM y with ⟨x, hx, xnorm⟩,
+  convert xnorm,
+  rw ← hx,
+  apply e.symm_apply_apply
+end
 
 /-- Associating to a linear equivalence between Banach spaces a continuous linear equivalence when
 the direct map is continuous, thanks to the Banach open mapping theorem that ensures that the
@@ -227,6 +226,5 @@ inverse map is also continuous. -/
 def linear_equiv.to_continuous_linear_equiv_of_continuous (e : E ≃ₗ[𝕜] F) (h : continuous e) :
   E ≃L[𝕜] F :=
 { continuous_to_fun := h,
-  continuous_inv_fun :=
-    let f : E →L[𝕜] F := { cont := h, ..e} in (e.is_bounded_inv f.is_bounded_linear_map).continuous,
+  continuous_inv_fun := e.continuous_symm h,
   ..e }

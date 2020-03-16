@@ -1553,7 +1553,7 @@ else
   have h₁ : r - f %ₘ g = -g * (q - f /ₘ g),
     from eq_of_sub_eq_zero
       (by rw [← sub_eq_zero_of_eq (h.1.trans (mod_by_monic_add_div f hg).symm)];
-        simp [mul_add, mul_comm]),
+        simp [mul_add, mul_comm, sub_eq_add_neg, add_comm, add_left_comm]),
   have h₂ : degree (r - f %ₘ g) = degree (g * (q - f /ₘ g)),
     by simp [h₁],
   have h₄ : degree (r - f %ₘ g) < degree g,
@@ -2043,7 +2043,7 @@ this.elim
 end integral_domain
 
 section field
-variables [discrete_field α] {p q : polynomial α}
+variables [field α] {p q : polynomial α}
 instance : vector_space α (polynomial α) := finsupp.vector_space _ _
 
 lemma is_unit_iff_degree_eq_zero : is_unit p ↔ degree p = 0 :=
@@ -2176,32 +2176,32 @@ by rw [div_def, mul_comm, degree_mul_leading_coeff_inv _ hq0];
   exact degree_div_by_monic_lt _ (monic_mul_leading_coeff_inv hq0) hp
     (by rw degree_mul_leading_coeff_inv _ hq0; exact hq)
 
-@[simp] lemma degree_map [discrete_field β] (p : polynomial α) (f : α → β) [is_ring_hom f] :
+@[simp] lemma degree_map [field β] (p : polynomial α) (f : α → β) [is_ring_hom f] :
   degree (p.map f) = degree p :=
 p.degree_map_eq_of_injective (is_ring_hom.injective f)
 
-@[simp] lemma nat_degree_map [discrete_field β] (f : α → β) [is_ring_hom f] :
+@[simp] lemma nat_degree_map [field β] (f : α → β) [is_ring_hom f] :
   nat_degree (p.map f) = nat_degree p :=
 nat_degree_eq_of_degree_eq (degree_map _ f)
 
-@[simp] lemma leading_coeff_map [discrete_field β] (f : α → β) [is_ring_hom f] :
+@[simp] lemma leading_coeff_map [field β] (f : α → β) [is_ring_hom f] :
   leading_coeff (p.map f) = f (leading_coeff p) :=
 by simp [leading_coeff, coeff_map f]
 
-lemma map_div [discrete_field β] (f : α → β) [is_ring_hom f] :
+lemma map_div [field β] (f : α → β) [is_ring_hom f] :
   (p / q).map f = p.map f / q.map f :=
 if hq0 : q = 0 then by simp [hq0]
 else
 by rw [div_def, div_def, map_mul, map_div_by_monic f (monic_mul_leading_coeff_inv hq0)];
   simp [is_ring_hom.map_inv f, leading_coeff, coeff_map f]
 
-lemma map_mod [discrete_field β] (f : α → β) [is_ring_hom f] :
+lemma map_mod [field β] (f : α → β) [is_ring_hom f] :
   (p % q).map f = p.map f % q.map f :=
 if hq0 : q = 0 then by simp [hq0]
 else by rw [mod_def, mod_def, leading_coeff_map f, ← is_ring_hom.map_inv f, ← map_C f,
   ← map_mul f, map_mod_by_monic f (monic_mul_leading_coeff_inv hq0)]
 
-@[simp] lemma map_eq_zero [discrete_field β] (f : α → β) [is_ring_hom f] :
+@[simp] lemma map_eq_zero [field β] (f : α → β) [is_ring_hom f] :
   p.map f = 0 ↔ p = 0 :=
 by simp [polynomial.ext_iff, is_ring_hom.map_eq_zero f, coeff_map]
 
@@ -2455,9 +2455,19 @@ begin
   rw this,
   congr, ext e a,
   rw [mul_assoc, ←(pow_sub_pow_factor x y).property],
-  simp [left_distrib]
+  simp [mul_sub]
 end
 
 end identities
 
 end polynomial
+
+namespace is_integral_domain
+
+variables {α : Type*} [comm_ring α]
+
+/-- Lift evidence that `is_integral_domain α` to `is_integral_domain (polynomial α)`. -/
+lemma polynomial (h : is_integral_domain α) : is_integral_domain (polynomial α) :=
+@integral_domain.to_is_integral_domain _ (@polynomial.integral_domain _ (h.to_integral_domain _))
+
+end is_integral_domain

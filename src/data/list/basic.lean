@@ -449,6 +449,11 @@ by cases n; refl
 @[simp] theorem join_repeat_nil (n : ℕ) : join (repeat [] n) = @nil α :=
 by induction n; [refl, simp only [*, repeat, join, append_nil]]
 
+/- pure -/
+
+@[simp] theorem mem_pure {α} (x y : α) :
+  x ∈ (pure y : list α) ↔ x = y := by simp! [pure,list.ret]
+
 /- bind -/
 
 @[simp] theorem bind_eq_bind {α β} (f : α → list β) (l : list α) :
@@ -1247,7 +1252,7 @@ theorem drop_take : ∀ (m : ℕ) (n : ℕ) (l : list α),
 | 0     n _      := by simp
 | (m+1) n nil    := by simp
 | (m+1) n (_::l) :=
-  have h: m + 1 + n = (m+n) + 1, by simp,
+  have h: m + 1 + n = (m+n) + 1, by ac_refl,
   by simpa [take_cons, h] using drop_take m n l
 
 theorem modify_nth_tail_eq_take_drop (f : list α → list α) (H : f [] = []) :
@@ -3292,16 +3297,23 @@ by simp only [enum, enum_from_nth, zero_add]; intros; refl
 @[simp] theorem enum_map_snd : ∀ (l : list α),
   map prod.snd (enum l) = l := enum_from_map_snd _
 
-theorem mem_enum_from {x : α} {i : ℕ} : Π {j : ℕ} (xs : list α), (i, x) ∈ xs.enum_from j → j ≤ i ∧ i < j + xs.length ∧ x ∈ xs
+theorem mem_enum_from {x : α} {i : ℕ} :
+   ∀ {j : ℕ} (xs : list α), (i, x) ∈ xs.enum_from j → j ≤ i ∧ i < j + xs.length ∧ x ∈ xs
 | j [] := by simp [enum_from]
-| j (y :: ys) := by { simp [enum_from,mem_enum_from ys],
-                      rintro (h|h),
-                      { refine ⟨le_of_eq h.1.symm,h.1 ▸ _,or.inl h.2⟩,
-                        apply lt_of_lt_of_le (nat.lt_add_of_pos_right zero_lt_one),
-                        apply nat.add_le_add_left, apply nat.le_add_right },
-                      { replace h := mem_enum_from _ h,
-                        simp at h, revert h, apply and_implies _ (and_implies id or.inr),
-                        intro h, transitivity j+1, apply nat.le_add_right, exact h } }
+| j (y :: ys) :=
+suffices i = j ∧ x = y ∨ (i, x) ∈ enum_from (j + 1) ys →
+    j ≤ i ∧ i < j + (length ys + 1) ∧ (x = y ∨ x ∈ ys),
+  by simpa [enum_from, mem_enum_from ys],
+begin
+  rintro (h|h),
+  { refine ⟨le_of_eq h.1.symm,h.1 ▸ _,or.inl h.2⟩,
+    apply nat.lt_add_of_pos_right; simp },
+  { obtain ⟨hji, hijlen, hmem⟩ := mem_enum_from _ h,
+    refine ⟨_, _, _⟩,
+    { exact le_trans (nat.le_succ _) hji },
+    { convert hijlen using 1, ac_refl },
+    { simp [hmem] } }
+end
 
 /- product -/
 

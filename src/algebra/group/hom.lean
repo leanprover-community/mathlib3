@@ -88,6 +88,8 @@ by cases f; cases g; cases h; refl
 lemma ext ⦃f g : M →* N⦄ (h : ∀ x, f x = g x) : f = g :=
 coe_inj (funext h)
 
+attribute [ext] _root_.add_monoid_hom.ext
+
 @[to_additive]
 lemma ext_iff {f g : M →* N} : f = g ↔ ∀ x, f x = g x :=
 ⟨λ h x, h ▸ rfl, λ h, ext h⟩
@@ -124,6 +126,25 @@ def comp (hnp : N →* P) (hmn : M →* N) : M →* P :=
 /-- Composition of monoid homomorphisms is associative. -/
 @[to_additive] lemma comp_assoc {Q : Type*} [monoid Q] (f : M →* N) (g : N →* P) (h : P →* Q) :
   (h.comp g).comp f = h.comp (g.comp f) := rfl
+
+/-- Given a monoid homomorphism `f : M →* N` and a set `S ⊆ M` such that `f` maps elements of
+    `S` to invertible elements of `N`, any monoid homomorphism `g : N →* P` maps elements of
+    `f(S)` to invertible elements of `P`. -/
+@[to_additive "Given an add_monoid homomorphism `f : M →+ N` and a set `S ⊆ M` such that `f` maps elements of `S` to invertible elements of `N`, any add_monoid homomorphism `g : N →+ P` maps elements of `f(S)` to invertible elements of `P`."]
+lemma exists_inv_of_comp_exists_inv {S : set M} {f : M →* N}
+  (hf : ∀ s ∈ S, ∃ b, f s * b = 1) (g : N →* P) (s ∈ S) :
+  ∃ x : P, g.comp f s * x = 1 :=
+let ⟨c, hc⟩ := hf s H in ⟨g c, show g _ * _ = _, by rw [←g.map_mul, hc, g.map_one]⟩
+
+@[to_additive]
+lemma cancel_right {g₁ g₂ : N →* P} {f : M →* N} (hf : function.surjective f) :
+  g₁.comp f = g₂.comp f ↔ g₁ = g₂ :=
+⟨λ h, monoid_hom.ext $ (forall_iff_forall_surj hf).1 (ext_iff.1 h), λ h, h ▸ rfl⟩
+
+@[to_additive]
+lemma cancel_left {g : N →* P} {f₁ f₂ : M →* N} (hg : function.injective g) :
+  g.comp f₁ = g.comp f₂ ↔ f₁ = f₂ :=
+⟨λ h, monoid_hom.ext $ λ x, hg $ by rw [← comp_apply, h, comp_apply], λ h, h ▸ rfl⟩
 
 omit mP
 variables [mM] [mN]

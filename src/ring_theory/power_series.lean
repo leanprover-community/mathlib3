@@ -523,7 +523,7 @@ begin
         { exact zero_mul _ } },
       { classical, contrapose! H, ext t,
         by_cases hst : s = t,
-        { subst t, simpa using nat.add_sub_cancel' H },
+        { subst t, simpa using nat.sub_add_cancel H },
         { simp [finsupp.single_apply, hst] } } } }
 end
 
@@ -647,26 +647,21 @@ variables {β : Type*} [local_ring α] [local_ring β] (f : α →+* β) [is_loc
 instance : local_ring (mv_power_series σ α) :=
 local_of_is_local_ring $ is_local_ring ⟨zero_ne_one, local_ring.is_local⟩
 
-instance map.is_local_ring_hom :
-  is_local_ring_hom (map σ f : mv_power_series σ α → mv_power_series σ β) :=
-{ map_one := (map σ f).map_one,
-  map_mul := (map σ f).map_mul,
-  map_add := (map σ f).map_add,
-  map_nonunit :=
-  begin
-    rintros φ ⟨ψ, h⟩,
-    replace h := congr_arg (constant_coeff σ β) h,
-    rw constant_coeff_map at h,
-    have : is_unit (constant_coeff σ β ↑ψ) := @is_unit_constant_coeff σ β _ (↑ψ) (is_unit_unit ψ),
-    rw ← h at this,
-    rcases is_unit_of_map_unit f _ this with ⟨c, hc⟩,
-    exact is_unit_of_mul_one φ (inv_of_unit φ c) (mul_inv_of_unit φ c hc)
-  end }
+instance map.is_local_ring_hom : is_local_ring_hom (map σ f) :=
+⟨begin
+  rintros φ ⟨ψ, h⟩,
+  replace h := congr_arg (constant_coeff σ β) h,
+  rw constant_coeff_map at h,
+  have : is_unit (constant_coeff σ β ↑ψ) := @is_unit_constant_coeff σ β _ (↑ψ) (is_unit_unit ψ),
+  rw ← h at this,
+  rcases is_unit_of_map_unit f _ this with ⟨c, hc⟩,
+  exact is_unit_of_mul_one φ (inv_of_unit φ c) (mul_inv_of_unit φ c hc)
+end⟩
 
 end local_ring
 
-section discrete_field
-variables [discrete_field α]
+section field
+variables [field α]
 
 protected def inv (φ : mv_power_series σ α) : mv_power_series σ α :=
 inv.aux (constant_coeff σ α φ)⁻¹ φ
@@ -707,7 +702,7 @@ by rw [← inv_of_unit_eq φ h, mul_inv_of_unit φ (units.mk0 _ h) rfl]
   φ⁻¹ * φ = 1 :=
 by rw [mul_comm, φ.mul_inv h]
 
-end discrete_field
+end field
 
 end mv_power_series
 
@@ -1164,10 +1159,10 @@ instance : integral_domain (power_series α) :=
  over an integral domain is a prime ideal.-/
 lemma span_X_is_prime : (ideal.span ({X} : set (power_series α))).is_prime :=
 begin
-  suffices : ideal.span ({X} : set (power_series α)) = is_ring_hom.ker (constant_coeff α),
-  { rw this, exact is_ring_hom.ker_is_prime _ },
+  suffices : ideal.span ({X} : set (power_series α)) = (constant_coeff α).ker,
+  { rw this, exact ring_hom.ker_is_prime _ },
   apply ideal.ext, intro φ,
-  rw [is_ring_hom.mem_ker, ideal.mem_span_singleton, X_dvd_iff]
+  rw [ring_hom.mem_ker, ideal.mem_span_singleton, X_dvd_iff]
 end
 
 /-- The variable of the power series ring over an integral domain is prime.-/
@@ -1201,8 +1196,8 @@ mv_power_series.map.is_local_ring_hom f
 
 end local_ring
 
-section discrete_field
-variables [discrete_field α]
+section field
+variables [field α]
 
 protected def inv : power_series α → power_series α :=
 mv_power_series.inv
@@ -1242,7 +1237,7 @@ mv_power_series.mul_inv φ h
   φ⁻¹ * φ = 1 :=
 mv_power_series.inv_mul φ h
 
-end discrete_field
+end field
 
 end power_series
 

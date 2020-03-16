@@ -5,7 +5,8 @@ Authors: Mario Carneiro, Johannes Hölzl
 
 Ordered monoids and groups.
 -/
-import algebra.group order.bounded_lattice tactic.basic
+import algebra.group.units algebra.group.with_one algebra.group.type_tags
+import order.bounded_lattice tactic.basic
 
 universe u
 variable {α : Type u}
@@ -551,15 +552,19 @@ lemma lt_neg : a < -b ↔ b < -a :=
 have -(-a) < -b ↔ b < -a, from neg_lt_neg_iff,
 by rwa neg_neg at this
 
+@[simp]
 lemma sub_le_sub_iff_left (a : α) {b c : α} : a - b ≤ a - c ↔ c ≤ b :=
 (add_le_add_iff_left _).trans neg_le_neg_iff
 
+@[simp]
 lemma sub_le_sub_iff_right (c : α) : a - c ≤ b - c ↔ a ≤ b :=
 add_le_add_iff_right _
 
+@[simp]
 lemma sub_lt_sub_iff_left (a : α) {b c : α} : a - b < a - c ↔ c < b :=
 (add_lt_add_iff_left _).trans neg_lt_neg_iff
 
+@[simp]
 lemma sub_lt_sub_iff_right (c : α) : a - c < b - c ↔ a < b :=
 add_lt_add_iff_right _
 

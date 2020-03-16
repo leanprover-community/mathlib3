@@ -49,8 +49,10 @@ begin
     (le_antisymm refl_le_uniformity $ λ r ru,
       mem_uniformity_dist.2 ⟨1, zero_lt_one, λ a b h,
       mem_principal_sets.1 ru $ dist_le_zero.1 (_ : (abs (a - b) : ℝ) ≤ 0)⟩),
-  simpa using (@int.cast_le ℝ _ _ 0).2 (int.lt_add_one_iff.1 $
-    (@int.cast_lt ℝ _ (abs (a - b)) 1).1 $ by simpa using h)
+  have : (abs (↑a - ↑b) : ℝ) < 1 := h,
+  have : abs (a - b) < 1, by norm_cast at this; assumption,
+  have : abs (a - b) ≤ 0 := (@int.lt_add_one_iff _ 0).mp this,
+  norm_cast, assumption
 end
 end low_prio
 
@@ -231,7 +233,7 @@ metric.totally_bounded_iff.2 $ λ ε ε0, begin
   let i : ℕ := ⌊(x - a) / ε⌋.to_nat,
   have : (i : ℤ) = ⌊(x - a) / ε⌋ :=
     int.to_nat_of_nonneg (floor_nonneg.2 $ le_of_lt (div_pos (sub_pos.2 ax) ε0)),
-  simp, refine ⟨_, ⟨i, _, rfl⟩, _⟩,
+  simp, use i, split,
   { rw [← int.coe_nat_lt, this],
     refine int.cast_lt.1 (lt_of_le_of_lt (floor_le _) _),
     rw [int.cast_coe_nat, div_lt_iff' ε0, sub_lt_iff_lt_add'],

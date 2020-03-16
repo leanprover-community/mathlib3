@@ -6,7 +6,6 @@ Authors: Johannes Hölzl, Mario Carneiro, Patrick Massot
 Theory of topological groups.
 
 -/
-import data.equiv.algebra
 import algebra.pointwise order.filter.pointwise
 import group_theory.quotient_group
 import topology.algebra.monoid topology.homeomorph
@@ -242,7 +241,7 @@ variables [topological_space α] [add_group α]
 
 lemma continuous.sub [topological_add_group α] [topological_space β] {f : β → α} {g : β → α}
   (hf : continuous f) (hg : continuous g) : continuous (λx, f x - g x) :=
-by simp; exact hf.add hg.neg
+by simp [sub_eq_add_neg]; exact hf.add hg.neg
 
 lemma continuous_sub [topological_add_group α] : continuous (λp:α×α, p.1 - p.2) :=
 continuous_fst.sub continuous_snd
@@ -253,7 +252,7 @@ continuous_sub.comp_continuous_on (hf.prod hg)
 
 lemma filter.tendsto.sub [topological_add_group α] {f : β → α} {g : β → α} {x : filter β} {a b : α}
   (hf : tendsto f x (𝓝 a)) (hg : tendsto g x (𝓝 b)) : tendsto (λx, f x - g x) x (𝓝 (a - b)) :=
-by simp; exact hf.add hg.neg
+by simp [sub_eq_add_neg]; exact hf.add hg.neg
 
 lemma nhds_translation [topological_add_group α] (x : α) : comap (λy:α, y - x) (𝓝 0) = 𝓝 x :=
 nhds_translation_add_neg x
@@ -294,7 +293,7 @@ by simpa
 
 lemma add_Z : tendsto (λp:α×α, p.1 + p.2) ((Z α).prod (Z α)) (Z α) :=
 suffices tendsto (λp:α×α, p.1 - -p.2) ((Z α).prod (Z α)) (Z α),
-  by simpa,
+  by simpa [sub_eq_add_neg],
 sub_Z.comp (tendsto.prod_mk tendsto_fst (neg_Z.comp tendsto_snd))
 
 lemma exists_Z_half {s : set α} (hs : s ∈ Z α) : ∃ V ∈ Z α, ∀ v w ∈ V, v + w ∈ s :=
@@ -330,7 +329,7 @@ instance : topological_add_monoid α :=
       tendsto_map'_iff],
     suffices :  tendsto ((λx:α, (a + b) + x) ∘ (λp:α×α,p.1 + p.2)) (filter.prod (Z α) (Z α))
       (map (λx:α, (a + b) + x) (Z α)),
-    { simpa [(∘)] },
+    { simpa [(∘), add_comm, add_left_comm] },
     exact tendsto_map.comp add_Z
   end⟩
 
@@ -340,7 +339,7 @@ instance : topological_add_group α :=
   begin
     rw [continuous_at, nhds_eq, nhds_eq, tendsto_map'_iff],
     suffices : tendsto ((λx:α, x - a) ∘ (λx:α, -x)) (Z α) (map (λx:α, x - a) (Z α)),
-    { simpa [(∘)] },
+    { simpa [(∘), add_comm, sub_eq_add_neg] using this },
     exact tendsto_map.comp neg_Z
   end⟩
 

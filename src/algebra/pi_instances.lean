@@ -6,7 +6,7 @@ Authors: Simon Hudon, Patrick Massot
 Pi instances for algebraic structures.
 -/
 import order.basic
-import algebra.module algebra.group
+import algebra.module
 import data.finset
 import ring_theory.subring
 import tactic.pi_instances
@@ -14,7 +14,7 @@ import tactic.pi_instances
 namespace pi
 universes u v w
 variable {I : Type u}     -- The indexing type
-variable {f : I → Type v} -- The family of types already equiped with instances
+variable {f : I → Type v} -- The family of types already equipped with instances
 variables (x y : Π i, f i) (i : I)
 
 instance has_zero [∀ i, has_zero $ f i] : has_zero (Π i : I, f i) := ⟨λ i, 0⟩
@@ -59,6 +59,7 @@ instance add_monoid         [∀ i, add_monoid         $ f i] : add_monoid      
 instance add_comm_monoid    [∀ i, add_comm_monoid    $ f i] : add_comm_monoid    (Π i : I, f i) := by pi_instance
 instance add_group          [∀ i, add_group          $ f i] : add_group          (Π i : I, f i) := by pi_instance
 instance add_comm_group     [∀ i, add_comm_group     $ f i] : add_comm_group     (Π i : I, f i) := by pi_instance
+instance semiring           [∀ i, semiring           $ f i] : semiring           (Π i : I, f i) := by pi_instance
 instance ring               [∀ i, ring               $ f i] : ring               (Π i : I, f i) := by pi_instance
 instance comm_ring          [∀ i, comm_ring          $ f i] : comm_ring          (Π i : I, f i) := by pi_instance
 
@@ -114,6 +115,8 @@ attribute [to_additive add_comm_group]             pi.comm_group
 attribute [to_additive add_left_cancel_semigroup]  pi.left_cancel_semigroup
 attribute [to_additive add_right_cancel_semigroup] pi.right_cancel_semigroup
 
+@[simp] lemma sub_apply [∀ i, add_group $ f i] : (x - y) i = x i - y i := rfl
+
 @[to_additive]
 lemma list_prod_apply {α : Type*} {β : α → Type*} [∀a, monoid (β a)] (a : α) :
   ∀ (l : list (Πa, β a)), l.prod a = (l.map (λf:Πa, β a, f a)).prod
@@ -131,18 +134,24 @@ lemma finset_prod_apply {α : Type*} {β : α → Type*} {γ} [∀a, comm_monoid
 show (s.val.map g).prod a = (s.val.map (λc, g c a)).prod,
   by rw [multiset_prod_apply, multiset.map_map]
 
+/-- A family of ring homomorphisms `f a : γ →+* β a` defines a ring homomorphism
+`pi.ring_hom f : γ →+* Π a, β a` given by `pi.ring_hom f x b = f b x`. -/
+protected def ring_hom
+  {α : Type u} {β : α → Type v} [R : Π a : α, semiring (β a)]
+  {γ : Type w} [semiring γ] (f : Π a : α, γ →+* β a) :
+  γ →+* Π a, β a :=
+{ to_fun := λ x b, f b x,
+  map_add' := λ x y, funext $ λ z, (f z).map_add x y,
+  map_mul' := λ x y, funext $ λ z, (f z).map_mul x y,
+  map_one' := funext $ λ z, (f z).map_one,
+  map_zero' := funext $ λ z, (f z).map_zero }
+
 instance is_ring_hom_pi
   {α : Type u} {β : α → Type v} [R : Π a : α, ring (β a)]
   {γ : Type w} [ring γ]
   (f : Π a : α, γ → β a) [Rh : Π a : α, is_ring_hom (f a)] :
   is_ring_hom (λ x b, f b x) :=
-begin
-  split,
-  -- It's a pity that these can't be done using `simp` lemmas.
-  { ext, rw [is_ring_hom.map_one (f x)], refl, },
-  { intros x y, ext1 z, rw [is_ring_hom.map_mul (f z)], refl, },
-  { intros x y, ext1 z, rw [is_ring_hom.map_add (f z)], refl, }
-end
+(show γ →+* Π a, β a, from pi.ring_hom (λ a, ring_hom.of (f a))).is_ring_hom
 
 end pi
 
@@ -239,6 +248,9 @@ lemma fst.is_monoid_hom [monoid α] [monoid β] : is_monoid_hom (prod.fst : α �
 lemma snd.is_monoid_hom [monoid α] [monoid β] : is_monoid_hom (prod.snd : α × β → β) :=
 { map_mul := λ _ _, rfl, map_one := rfl }
 
+@[simp] lemma fst_sub [add_group α] [add_group β] : (p - q).1 = p.1 - q.1 := rfl
+@[simp] lemma snd_sub [add_group α] [add_group β] : (p - q).2 = p.2 - q.2 := rfl
+
 /-- Given monoids `α, β`, the natural projection homomorphism from `α × β` to `α`. -/
 @[to_additive prod.add_monoid_hom.fst "Given add_monoids `α, β`, the natural projection homomorphism from `α × β` to `α`."]
 def monoid_hom.fst [monoid α] [monoid β] : α × β →* α :=
@@ -248,6 +260,16 @@ def monoid_hom.fst [monoid α] [monoid β] : α × β →* α :=
 @[to_additive prod.add_monoid_hom.snd "Given add_monoids `α, β`, the natural projection homomorphism from `α × β` to `β`."]
 def monoid_hom.snd [monoid α] [monoid β] : α × β →* β :=
 ⟨λ x, x.2, rfl, λ _ _, prod.snd_mul⟩
+
+/-- Given monoids `α, β`, the natural inclusion homomorphism from `α` to `α × β`. -/
+@[to_additive prod.add_monoid_hom.inl "Given add_monoids `α, β`, the natural inclusion homomorphism from `α` to `α × β`. There is an unbundled version, `prod.inl`, for arbitrary `α, β` such that `β` has a zero."]
+def monoid_hom.inl [monoid α] [monoid β] : α →* α × β :=
+⟨λ x, (x, 1), rfl, λ x y, show _ = (_, _), by rw mul_one⟩
+
+/-- Given monoids `α, β`, the natural inclusion homomorphism from `β` to `α × β`. -/
+@[to_additive prod.add_monoid_hom.inr "Given add_monoids `α, β`, the natural inclusion homomorphism from `β` to `α × β`. There is an unbundled version, `prod.inr`, for arbitrary `α, β` such that `α` has a zero."]
+def monoid_hom.inr [monoid α] [monoid β] : β →* α × β :=
+⟨λ x, (1, x), rfl, λ x y, show _ = (_, _), by rw mul_one⟩
 
 @[to_additive is_add_group_hom]
 lemma fst.is_group_hom [group α] [group β] : is_group_hom (prod.fst : α × β → α) :=

@@ -512,10 +512,6 @@ ext (assume x, and_or_distrib_right)
 
 theorem insert_def (x : α) (s : set α) : insert x s = { y | y = x ∨ y ∈ s } := rfl
 
--- TODO: remove in Lean 3.6
-@[simp]
-theorem insert_of_has_insert (x : α) (s : set α) : has_insert.insert x s = insert x s := rfl
-
 @[simp] theorem subset_insert (x : α) (s : set α) : s ⊆ insert x s :=
 assume y ys, or.inr ys
 
@@ -986,9 +982,6 @@ iff.intro
   (assume h a ha, h _ $ mem_image_of_mem _ ha)
   (assume h b ⟨a, ha, eq⟩, eq ▸ h a ha)
 
-theorem mono_image {f : α → β} {s t : set α} (h : s ⊆ t) : f '' s ⊆ f '' t :=
-assume x ⟨y, hy, y_eq⟩, y_eq ▸ mem_image_of_mem _ $ h hy
-
 theorem mem_image_elim {f : α → β} {s : set α} {C : β → Prop} (h : ∀ (x : α), x ∈ s → C (f x)) :
  ∀{y : β}, y ∈ f '' s → C y
 | ._ ⟨a, a_in, rfl⟩ := h a a_in
@@ -1021,6 +1014,8 @@ end -/
 lemma image_image (g : β → γ) (f : α → β) (s : set α) : g '' (f '' s) = (λ x, g (f x)) '' s :=
 (image_comp g f s).symm
 
+/-- Image is monotone with respect to `⊆`. See `set.monotone_image` for the statement in
+terms of `≤`. -/
 theorem image_subset {a b : set α} (f : α → β) (h : a ⊆ b) : f '' a ⊆ f '' b :=
 by finish [subset_def, mem_image_eq]
 
@@ -1030,13 +1025,17 @@ by finish [ext_iff, iff_def, mem_image_eq]
 
 @[simp] theorem image_empty (f : α → β) : f '' ∅ = ∅ := ext $ by simp
 
+lemma image_inter_subset (f : α → β) (s t : set α) :
+  f '' (s ∩ t) ⊆ f '' s ∩ f '' t :=
+subset_inter (image_subset _ $ inter_subset_left _ _) (image_subset _ $ inter_subset_right _ _)
+
 theorem image_inter_on {f : α → β} {s t : set α} (h : ∀x∈t, ∀y∈s, f x = f y → x = y) :
   f '' s ∩ f '' t = f '' (s ∩ t) :=
 subset.antisymm
   (assume b ⟨⟨a₁, ha₁, h₁⟩, ⟨a₂, ha₂, h₂⟩⟩,
     have a₂ = a₁, from h _ ha₂ _ ha₁ (by simp *),
     ⟨a₁, ⟨ha₁, this ▸ ha₂⟩, h₁⟩)
-  (subset_inter (mono_image $ inter_subset_left _ _) (mono_image $ inter_subset_right _ _))
+  (image_inter_subset _ _ _)
 
 theorem image_inter {f : α → β} {s t : set α} (H : injective f) :
   f '' s ∩ f '' t = f '' (s ∩ t) :=
@@ -1083,7 +1082,7 @@ theorem image_insert_eq {f : α → β} {a : α} {s : set α} :
 ext $ by simp [and_or_distrib_left, exists_or_distrib, eq_comm, or_comm, and_comm]
 
 theorem image_pair (f : α → β) (a b : α) : f '' {a, b} = {f a, f b} :=
-by simp only [insert_of_has_insert, image_insert_eq, image_singleton]
+by simp only [image_insert_eq, image_singleton]
 
 theorem image_subset_preimage_of_inverse {f : α → β} {g : β → α}
   (I : left_inverse g f) (s : set α) : f '' s ⊆ g ⁻¹' s :=
@@ -1152,6 +1151,20 @@ lemma preimage_eq_preimage {f : β → α} (hf : surjective f) : f ⁻¹' s = pr
 iff.intro
   (assume eq, by rw [← @image_preimage_eq β α f s hf, ← @image_preimage_eq β α f t hf, eq])
   (assume eq, eq ▸ rfl)
+
+protected lemma push_pull (f : α → β) (s : set α) (t : set β) :
+  f '' (s ∩ f ⁻¹' t) = f '' s ∩ t :=
+begin
+  apply subset.antisymm,
+  { calc f '' (s ∩ f ⁻¹' t) ⊆ f '' s ∩ (f '' (f⁻¹' t)) : image_inter_subset _ _ _
+  ... ⊆ f '' s ∩ t : inter_subset_inter_right _ (image_preimage_subset f t) },
+  { rintros _ ⟨⟨x, h', rfl⟩, h⟩,
+    exact ⟨x, ⟨h', h⟩, rfl⟩ }
+end
+
+protected lemma push_pull' (f : α → β) (s : set α) (t : set β) :
+  f '' (f ⁻¹' t ∩ s) = t ∩ f '' s :=
+by simp only [inter_comm, set.push_pull]
 
 lemma surjective_preimage {f : β → α} (hf : surjective f) : injective (preimage f) :=
 assume s t, (preimage_eq_preimage hf).1

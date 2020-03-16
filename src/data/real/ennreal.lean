@@ -717,7 +717,7 @@ begin
     { subst a, simp },
     { subst b, simp [zero_lt_iff_ne_zero, lt_top_iff_ne_top, inv_ne_top] },
     { rw [← coe_inv (ne_of_gt ha), ← coe_inv (ne_of_gt hb), coe_lt_coe, coe_lt_coe],
-      simp only [nnreal.coe_lt.symm] at *,
+      simp only [nnreal.coe_lt_coe.symm] at *,
       exact inv_lt_inv ha hb } }
 end
 
@@ -810,7 +810,7 @@ forall_ennreal.2 $ and.intro
     (assume h, le_top))
   (assume r hr,
     have ((1 / 2 : nnreal) : ennreal) * ⊤ ≤ r :=
-      hr _ (coe_lt_coe.2 ((@nnreal.coe_lt (1/2) 1).1 one_half_lt_one)),
+      hr _ (coe_lt_coe.2 ((@nnreal.coe_lt_coe (1/2) 1).1 one_half_lt_one)),
     have ne : ((1 / 2 : nnreal) : ennreal) ≠ 0,
     begin
       rw [(≠), coe_eq_zero],
@@ -1044,14 +1044,14 @@ lemma sub_infi : a - (⨅i, f i) = (⨆i, a - f i) :=
 begin
   refine (eq_of_forall_ge_iff $ λ c, _),
   rw [ennreal.sub_le_iff_le_add, add_comm, infi_add],
-  simp [ennreal.sub_le_iff_le_add]
+  simp [ennreal.sub_le_iff_le_add, sub_eq_add_neg, add_comm],
 end
 
 lemma Inf_add {s : set ennreal} : Inf s + a = ⨅b∈s, b + a :=
 by simp [Inf_eq_infi, infi_add]
 
 lemma add_infi {a : ennreal} : a + infi f = ⨅b, a + f b :=
-by rw [add_comm, infi_add]; simp
+by rw [add_comm, infi_add]; simp [add_comm]
 
 lemma infi_add_infi (h : ∀i j, ∃k, f k + g k ≤ f i + g j) : infi f + infi g = (⨅a, f a + g a) :=
 suffices (⨅a, f a + g a) ≤ infi f + infi g,

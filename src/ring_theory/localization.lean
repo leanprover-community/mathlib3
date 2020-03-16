@@ -3,7 +3,7 @@ Copyright (c) 2018 Kenny Lau. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Kenny Lau, Mario Carneiro, Johan Commelin
 -/
-import tactic.ring data.quot data.equiv.algebra ring_theory.ideal_operations group_theory.submonoid
+import tactic.ring data.quot data.equiv.ring ring_theory.ideal_operations group_theory.submonoid
 
 universes u v
 
@@ -30,8 +30,7 @@ theorem trans : ∀ (x y z : α × S), x ≈ y → y ≈ z → x ≈ z :=
 λ ⟨r₁, s₁, hs₁⟩ ⟨r₂, s₂, hs₂⟩ ⟨r₃, s₃, hs₃⟩ ⟨t, hts, ht⟩ ⟨t', hts', ht'⟩,
 ⟨s₂ * t' * t, is_submonoid.mul_mem (is_submonoid.mul_mem hs₂ hts') hts,
   calc (s₁ * r₃ - s₃ * r₁) * (s₂ * t' * t) =
-    t' * s₃ * ((s₁ * r₂ - s₂ * r₁) * t) + t * s₁ * ((s₂ * r₃ - s₃ * r₂) * t') :
-      by simp [mul_left_comm, mul_add, mul_comm]
+    t' * s₃ * ((s₁ * r₂ - s₂ * r₁) * t) + t * s₁ * ((s₂ * r₃ - s₃ * r₂) * t') : by ring
     ... = 0 : by simp only [subtype.coe_mk] at ht ht'; rw [ht, ht']; simp⟩
 
 instance : setoid (α × S) :=
@@ -70,7 +69,7 @@ instance : has_mul (localization α S) :=
   quotient.sound ⟨t₆ * t₅, is_submonoid.mul_mem hts₆ hts₅,
     calc ((s₁ * s₂) * (r₃ * r₄) - (s₃ * s₄) * (r₁ * r₂)) * (t₆ * t₅) =
       t₆ * ((s₁ * r₃ - s₃ * r₁) * t₅) * r₂ * s₄ + t₅ * ((s₂ * r₄ - s₄ * r₂) * t₆) * r₃ * s₁ :
-        by simp [mul_left_comm, mul_add, mul_comm]
+        by ring
       ... = 0 : by simp only [subtype.coe_mk] at ht₅ ht₆; rw [ht₅, ht₆]; simp⟩⟩
 
 variables {α S}
@@ -103,13 +102,14 @@ by refine
   try {rcases b with ⟨r₂, s₂, hs₂⟩},
   try {rcases c with ⟨r₃, s₃, hs₃⟩},
   refine (quotient.sound $ r_of_eq _),
-  simp [mul_left_comm, mul_add, mul_comm] }
+  simp only [is_submonoid.coe_mul, is_submonoid.coe_one, subtype.coe_mk],
+  ring }
 
 instance : inhabited (localization α S) := ⟨0⟩
 
 instance of.is_ring_hom : is_ring_hom (of : α → localization α S) :=
-{ map_add := λ x y, quotient.sound $ by simp,
-  map_mul := λ x y, quotient.sound $ by simp,
+{ map_add := λ x y, quotient.sound $ by simp [add_comm],
+  map_mul := λ x y, quotient.sound $ by simp [add_comm],
   map_one := rfl }
 
 variables {S}
@@ -501,15 +501,13 @@ from decidable_of_iff (s₁ * r₂ - s₂ * r₁ = 0)
 λ ⟨t, ht1, ht2⟩, or.resolve_right (mul_eq_zero.1 ht2) $ λ ht,
   one_ne_zero (ht1 1 ((one_mul t).symm ▸ ht))⟩
 
-instance : discrete_field (fraction_ring β) :=
+instance : field (fraction_ring β) :=
 by refine
 { inv            := has_inv.inv,
   zero_ne_one    := λ hzo,
     let ⟨t, hts, ht⟩ := quotient.exact hzo in
     zero_ne_one (by simpa using hts _ ht : 0 = 1),
   mul_inv_cancel := quotient.ind _,
-  inv_mul_cancel := quotient.ind _,
-  has_decidable_eq := fraction_ring.decidable_eq β,
   inv_zero := dif_pos rfl,
   .. localization.comm_ring };
 { intros x hnx,
@@ -579,7 +577,7 @@ end fraction_ring
 section ideals
 
 theorem map_comap (J : ideal (localization α S)) :
-  ideal.map coe (ideal.comap (coe : α → localization α S) J) = J :=
+  ideal.map (ring_hom.of coe) (ideal.comap (ring_hom.of (coe : α → localization α S)) J) = J :=
 le_antisymm (ideal.map_le_iff_le_comap.2 (le_refl _)) $ λ x,
 localization.induction_on x $ λ r s hJ, (submodule.mem_coe _).2 $
 mul_one r ▸ coe_mul_mk r 1 s ▸ (ideal.mul_mem_right _ $ ideal.mem_map_of_mem $
@@ -589,7 +587,7 @@ by rwa [coe_coe, coe_mul_mk, mk_mul_cancel_left] at this)
 def le_order_embedding :
   ((≤) : ideal (localization α S) → ideal (localization α S) → Prop) ≼o
   ((≤) : ideal α → ideal α → Prop) :=
-{ to_fun := λ J, ideal.comap coe J,
+{ to_fun := λ J, ideal.comap (ring_hom.of coe) J,
   inj := function.injective_of_left_inverse (map_comap α),
   ord := λ J₁ J₂, ⟨ideal.comap_mono, λ hJ,
     map_comap α J₁ ▸ map_comap α J₂ ▸ ideal.map_mono hJ⟩ }

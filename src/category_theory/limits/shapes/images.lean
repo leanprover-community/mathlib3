@@ -173,7 +173,7 @@ end
 class has_images :=
 (has_image : Π {X Y : C} (f : X ⟶ Y), has_image.{v} f)
 
-attribute [instance] has_images.has_image
+attribute [instance, priority 100] has_images.has_image
 
 variable (f)
 /-- The image of a monomorphism is isomorphic to the source. -/

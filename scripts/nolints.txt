@@ -739,11 +739,9 @@ apply_nolint category_theory.monad.algebra.hom has_inhabited_instance
 
 -- category_theory/monad/limits.lean
 apply_nolint category_theory.has_limits_of_reflective doc_blame
-apply_nolint category_theory.monad.forget_creates_limits doc_blame
 apply_nolint category_theory.monad.forget_creates_limits.c doc_blame
 apply_nolint category_theory.monad.forget_creates_limits.cone_point doc_blame
 apply_nolint category_theory.monad.forget_creates_limits.γ unused_arguments doc_blame
-apply_nolint category_theory.monadic_creates_limits doc_blame
 
 -- category_theory/monoidal/functor.lean
 apply_nolint category_theory.lax_monoidal_functor has_inhabited_instance

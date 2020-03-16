@@ -15,7 +15,7 @@ the equality of all non-propositional projections.
 
 On the following:
 
-```
+```lean
 @[ext]
 structure foo (α : Type*) :=
 (x y : ℕ)
@@ -26,9 +26,11 @@ structure foo (α : Type*) :=
 
 `derive_struct_lemma` generates:
 
-```
-lemma foo.ext : ∀ {α : Type u_1} (x y : foo α), x.x = y.x → x.y = y.y → x.z == y.z → x.k = y.k → x = y
-lemma foo.ext_iff : ∀ {α : Type u_1} (x y : foo α), x = y ↔ x.x = y.x ∧ x.y = y.y ∧ x.z == y.z ∧ x.k = y.k
+```lean
+lemma foo.ext : ∀ {α : Type u_1} (x y : foo α),
+  x.x = y.x → x.y = y.y → x.z == y.z → x.k = y.k → x = y
+lemma foo.ext_iff : ∀ {α : Type u_1} (x y : foo α),
+  x = y ↔ x.x = y.x ∧ x.y = y.y ∧ x.z == y.z ∧ x.k = y.k
 ```
 
 -/
@@ -148,89 +150,92 @@ do e  ← saturate_fun n,
    unify e e' <|> fail format!"{n} and {n'} are not definitionally equal types"
 
 /--
- Tag lemmas of the form:
+Tag lemmas of the form:
 
- ```
- @[ext]
- lemma my_collection.ext (a b : my_collection)
-   (h : ∀ x, a.lookup x = b.lookup y) :
-   a = b := ...
- ```
+```lean
+@[ext]
+lemma my_collection.ext (a b : my_collection)
+  (h : ∀ x, a.lookup x = b.lookup y) :
+  a = b := ...
+```
 
- The attribute indexes extensionality lemma using the type of the
- objects (i.e. `my_collection`) which it gets from the statement of
- the lemma.  In some cases, the same lemma can be used to state the
- extensionality of multiple types that are definitionally equivalent.
+The attribute indexes extensionality lemma using the type of the
+objects (i.e. `my_collection`) which it gets from the statement of
+the lemma.  In some cases, the same lemma can be used to state the
+extensionality of multiple types that are definitionally equivalent.
 
- ```
- attribute [ext [(→),thunk,stream]] funext
- ```
+```lean
+attribute [ext [(→),thunk,stream]] funext
+```
 
- Those parameters are cumulative. The following are equivalent:
+Those parameters are cumulative. The following are equivalent:
 
- ```
- attribute [ext [(→),thunk]] funext
- attribute [ext [stream]] funext
- ```
- and
- ```
- attribute [ext [(→),thunk,stream]] funext
- ```
+```lean
+attribute [ext [(→),thunk]] funext
+attribute [ext [stream]] funext
+```
+and
+```lean
+attribute [ext [(→),thunk,stream]] funext
+```
 
- One removes type names from the list for one lemma with:
- ```
- attribute [ext [-stream,-thunk]] funext
-  ```
+One removes type names from the list for one lemma with:
+```lean
+attribute [ext [-stream,-thunk]] funext
+```
 
- Also, the following:
+Also, the following:
 
- ```
- @[ext]
- lemma my_collection.ext (a b : my_collection)
-   (h : ∀ x, a.lookup x = b.lookup y) :
-   a = b := ...
- ```
+```lean
+@[ext]
+lemma my_collection.ext (a b : my_collection)
+  (h : ∀ x, a.lookup x = b.lookup y) :
+  a = b := ...
+```
 
- is equivalent to
+is equivalent to
 
- ```
- @[ext *]
- lemma my_collection.ext (a b : my_collection)
-   (h : ∀ x, a.lookup x = b.lookup y) :
-   a = b := ...
- ```
+```lean
+@[ext *]
+lemma my_collection.ext (a b : my_collection)
+  (h : ∀ x, a.lookup x = b.lookup y) :
+  a = b := ...
+```
 
- This allows us specify type synonyms along with the type
- that referred to in the lemma statement.
+This allows us specify type synonyms along with the type
+that is referred to in the lemma statement.
 
- ```
- @[ext [*,my_type_synonym]]
- lemma my_collection.ext (a b : my_collection)
-   (h : ∀ x, a.lookup x = b.lookup y) :
-   a = b := ...
- ```
+```lean
+@[ext [*,my_type_synonym]]
+lemma my_collection.ext (a b : my_collection)
+  (h : ∀ x, a.lookup x = b.lookup y) :
+  a = b := ...
+```
 
- Attribute `ext` can be applied to a structure to generate its extensionality lemma:
+The `ext` attribute can be applied to a structure to generate its extensionality lemmas:
 
- ```
- @[ext]
- structure foo (α : Type*) :=
- (x y : ℕ)
- (z : {z // z < x})
- (k : α)
- (h : x < y)
- ```
+```lean
+@[ext]
+structure foo (α : Type*) :=
+(x y : ℕ)
+(z : {z // z < x})
+(k : α)
+(h : x < y)
+```
 
- will generate:
+will generate:
 
- ```
- @[ext] lemma foo.ext : ∀ {α : Type u_1} (x y : foo α), x.x = y.x → x.y = y.y → x.z == y.z → x.k = y.k → x = y
- lemma foo.ext_iff : ∀ {α : Type u_1} (x y : foo α), x = y ↔ x.x = y.x ∧ x.y = y.y ∧ x.z == y.z ∧ x.k = y.k
- ```
+```lean
+@[ext] lemma foo.ext : ∀ {α : Type u_1} (x y : foo α),
+x.x = y.x → x.y = y.y → x.z == y.z → x.k = y.k → x = y
+lemma foo.ext_iff : ∀ {α : Type u_1} (x y : foo α),
+x = y ↔ x.x = y.x ∧ x.y = y.y ∧ x.z == y.z ∧ x.k = y.k
+```
 
- -/
+-/
 @[user_attribute]
-meta def extensional_attribute : user_attribute (name_map name) (bool × list ext_param_type × list name × list (name × name)) :=
+meta def extensional_attribute : user_attribute (name_map name)
+  (bool × list ext_param_type × list name × list (name × name)) :=
 { name := `ext,
   descr := "lemmas usable by `ext` tactic",
   cache_cfg := { mk_cache := λ ls,
@@ -252,10 +257,17 @@ meta def extensional_attribute : user_attribute (name_map name) (bool × list ex
        s ← mk_const n >>= infer_type >>= get_ext_subject,
        let (rs,ls'') := if ls.empty
                            then ([],[s])
-                           else ls.partition_map (sum.map (flip option.get_or_else s) (flip option.get_or_else s)),
+                           else ls.partition_map (sum.map (flip option.get_or_else s)
+                                                    (flip option.get_or_else s)),
        ls''.mmap' (equiv_type_constr s),
        let l := ls'' ∪ (ls'.filter $ λ l, prod.snd l = n).map prod.fst \ rs,
        extensional_attribute.set n (tt,[],l,[]) b }
+
+add_tactic_doc
+{ name                     := "ext",
+  category                 := doc_category.attr,
+  decl_names               := [`extensional_attribute],
+  tags                     := [] }
 
 attribute [ext] array.ext propext prod.ext
 attribute [ext [(→),thunk]] _root_.funext
@@ -304,44 +316,84 @@ local postfix `?`:9001 := optional
 local postfix *:9001 := many
 
 /--
-  `ext1 id` selects and apply one extensionality lemma (with attribute
-  `ext`), using `id`, if provided, to name a local constant
-  introduced by the lemma. If `id` is omitted, the local constant is
-  named automatically, as per `intro`.
- -/
+`ext1 id` selects and apply one extensionality lemma (with attribute
+`ext`), using `id`, if provided, to name a local constant
+introduced by the lemma. If `id` is omitted, the local constant is
+named automatically, as per `intro`.
+-/
 meta def interactive.ext1 (xs : parse ext_parse) : tactic unit :=
 ext1 xs $> ()
 
 /--
-  - `ext` applies as many extensionality lemmas as possible;
-  - `ext ids`, with `ids` a list of identifiers, finds extentionality and applies them
-    until it runs out of identifiers in `ids` to name the local constants.
+- `ext` applies as many extensionality lemmas as possible;
+- `ext ids`, with `ids` a list of identifiers, finds extentionality and applies them
+  until it runs out of identifiers in `ids` to name the local constants.
 
-  When trying to prove:
+When trying to prove:
 
-  ```
-  α β : Type,
-  f g : α → set β
-  ⊢ f = g
-  ```
+```lean
+α β : Type,
+f g : α → set β
+⊢ f = g
+```
 
-  applying `ext x y` yields:
+applying `ext x y` yields:
 
-  ```
-  α β : Type,
-  f g : α → set β,
-  x : α,
-  y : β
-  ⊢ y ∈ f x ↔ y ∈ f x
-  ```
+```lean
+α β : Type,
+f g : α → set β,
+x : α,
+y : β
+⊢ y ∈ f x ↔ y ∈ f x
+```
 
-  by applying functional extensionality and set extensionality.
+by applying functional extensionality and set extensionality.
 
-  A maximum depth can be provided with `ext x y z : 3`.
-  -/
+A maximum depth can be provided with `ext x y z : 3`.
+-/
 meta def interactive.ext : parse ext_parse → parse (tk ":" *> small_nat)? → tactic unit
  | [] (some n) := iterate_range 1 n (ext1 [] $> ())
  | [] none     := repeat1 (ext1 [] $> ())
  | xs n        := tactic.ext xs n
+
+add_tactic_doc
+{ name        := "ext1 / ext",
+  category    := doc_category.tactic,
+  decl_names  := [`tactic.interactive.ext1, `tactic.interactive.ext],
+  tags        := [],
+  description :=
+"
+ * `ext1 id` selects and apply one extensionality lemma (with
+    attribute `ext`), using `id`, if provided, to name a
+    local constant introduced by the lemma. If `id` is omitted, the
+    local constant is named automatically, as per `intro`.
+
+ * `ext` applies as many extensionality lemmas as possible;
+ * `ext ids`, with `ids` a list of identifiers, finds extensionality lemmas
+    and applies them until it runs out of identifiers in `ids` to name
+    the local constants.
+
+When trying to prove:
+
+```lean
+α β : Type,
+f g : α → set β
+⊢ f = g
+```
+
+applying `ext x y` yields:
+
+```lean
+α β : Type,
+f g : α → set β,
+x : α,
+y : β
+⊢ y ∈ f x ↔ y ∈ g x
+```
+
+by applying functional extensionality and set extensionality.
+
+A maximum depth can be provided with `ext x y z : 3`.
+" }
 
 end tactic

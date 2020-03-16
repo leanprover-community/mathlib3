@@ -107,19 +107,11 @@ def kernel.zero_cone : cone (parallel_pair f 0) :=
 
 /-- The map from the zero object is a kernel of a monomorphism -/
 def kernel.is_limit_cone_zero_cone [mono f] : is_limit (kernel.zero_cone f) :=
-{ lift := λ s, 0,
-  fac' := λ s j,
-  begin
-    cases j,
-    { erw has_zero_morphisms.zero_comp,
-      convert (@zero_of_comp_mono _ _ _ _ _ _ _ f _ _).symm,
-      erw fork.condition,
-      convert has_zero_morphisms.comp_zero.{v} _ (s.π.app zero) _ },
-    { rw ←cone_parallel_pair_right s,
-      simp only [has_zero_morphisms.zero_comp],
-      convert (has_zero_morphisms.comp_zero.{v} _ (s.π.app zero) _).symm },
-  end,
-  uniq' := λ _ m _, has_zero_object.zero_of_to_zero m }
+fork.is_limit.mk _ (λ s, 0)
+  (λ s, by { erw has_zero_morphisms.zero_comp,
+    convert (@zero_of_comp_mono _ _ _ _ _ _ _ f _ _).symm,
+    exact kernel_fork.condition _ })
+  (λ _ _ _, has_zero_object.zero_of_to_zero _)
 
 /-- The kernel of a monomorphism is isomorphic to the zero object -/
 def kernel.of_mono [has_limit (parallel_pair f 0)] [mono f] : kernel f ≅ 0 :=
@@ -192,20 +184,11 @@ def cokernel.zero_cocone : cocone (parallel_pair f 0) :=
 
 /-- The morphism to the zero object is a cokernel of an epimorphism -/
 def cokernel.is_colimit_cocone_zero_cocone [epi f] : is_colimit (cokernel.zero_cocone f) :=
-{ desc := λ s, 0,
-  fac' := λ s j,
-  begin
-    cases j,
-    { erw [←cocone_parallel_pair_left s,
-        has_zero_morphisms.comp_zero _ ((cokernel.zero_cocone f).ι.app zero) _, cofork.condition,
-        has_zero_morphisms.zero_comp],
-      refl },
-    { erw has_zero_morphisms.zero_comp,
-      convert (@zero_of_comp_epi _ _ _ _ _ _ f _ _ _).symm,
-      erw [cofork.condition, has_zero_morphisms.zero_comp],
-      refl },
-  end,
-  uniq' := λ _ m _, has_zero_object.zero_of_from_zero m }
+cofork.is_colimit.mk _ (λ s, 0)
+  (λ s, by { erw has_zero_morphisms.zero_comp,
+    convert (@zero_of_comp_epi _ _ _ _ _ _ f _ _ _).symm,
+    exact cokernel_cofork.condition _ })
+  (λ _ _ _, has_zero_object.zero_of_from_zero _)
 
 /-- The cokernel of an epimorphism is isomorphic to the zero object -/
 def cokernel.of_epi [has_colimit (parallel_pair f 0)] [epi f] : cokernel f ≅ 0 :=

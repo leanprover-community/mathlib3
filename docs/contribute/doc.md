@@ -1,7 +1,9 @@
 # Documentation style
 
 We are in the process of implementing new documentation requirements for mathlib. All future pull
-requests must meet the following standards.
+requests must meet the following standards. See
+[the `doc-gen` repo](https://github.com/leanprover-community/doc-gen) for information about the
+[automatically generated doc pages](https://leanprover-community.github.io/mathlib_docs/).
 
 ## Header comment
 
@@ -12,7 +14,7 @@ Each mathlib file should start with:
 
 (See the example below.)
 
-Headers use atx-style headers (with hash signs, no underlying dash). 
+Headers use atx-style headers (with hash signs, no underlying dash).
 The open and close delimiters `/-!` and `-/` should appear on their own lines.
 
 The mandatory title of the file is a first level header. It is followed by a summary of the content
@@ -32,7 +34,7 @@ References should refer to bibtex entries in [the mathlib citations file](../ref
 
 The following code block is an example of a file header.
 
-```
+```lean
 /-
 Copyright (c) 2018 Robert Y. Lewis. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
@@ -76,15 +78,18 @@ p-adic, p adic, padic, norm, valuation
 -/
 ```
 
-## Docstrings
+## Doc strings
 
 Every definition and major theorem is required to have a doc string.
 (Doc strings on lemmas are also encouraged, particularly if the lemma has any mathematical content
 or might be useful in another file.)
 These are introduced using `/--` and closed by `-/` above the definition.
-They can contain some markdown, e.g. backtick quotes.
-They should convey the mathematical meaning of the definition. It is allowed to lie slightly
-about the actual implementation. The following is a docstring example:
+They can contain some markdown, e.g. backtick quotes. LaTeX can be included between single dollar
+signs `$ ... $` to be rendered inline or double dollar signs `$$ ... $$` to be rendered in "display
+mode" by MathJax in [the online mathlib docs](https://leanprover-community.github.io/mathlib_docs/).
+
+Doc strings should convey the mathematical meaning of the definition. They are allowed to lie
+slightly about the actual implementation. The following is a doc string example:
 
 ```lean
 /--
@@ -117,6 +122,46 @@ else 0
 The `#doc_blame` command can be run at the bottom of a file to list all definitions that do not have
 doc strings. `#doc_blame!` will also list theorems and lemmas.
 
+## Tactic doc entries
+
+Interactive tactics, user commands, hole commands and user attributes should have doc strings
+explaining how they can be used. The `add_tactic_doc` command should be invoked afterwards to add a
+doc entry to the appropriate page in the online docs.
+
+Example:
+```lean
+add_tactic_doc
+{ name := "display name of the tactic",
+  category := cat,
+  decl_names := [`dcl_1, `dcl_2],
+  tags := ["tag_1", "tag_2"],
+  description := "describe what the command does here"
+}
+```
+
+The argument to `add_tactic_doc` is a structure of type `tactic_doc_entry`.
+* `name` refers to the display name of the tactic; it is used as the header of the doc entry.
+* `cat` refers to the category of doc entry.
+  Options: `doc_category.tactic`, `doc_category.cmd`, `doc_category.hole_cmd`, `doc_category.attr`
+* `decl_names` is a list of the declarations associated with this doc. For instance,
+  the entry for `linarith` would set ``decl_names := [`tactic.interactive.linarith]``.
+  Some entries may cover multiple declarations.
+  It is only necessary to list the interactive versions of tactics.
+* `tags` is an optional list of strings used to categorize entries.
+* `description` is the body of the entry. Like doc strings, it can be formatted with markdown.
+  What you are reading now is taken from the description of `add_tactic_doc`.
+
+If only one related declaration is listed in `decl_names` and it does not have a doc string,
+`description` will be automatically added as its doc string. If there are multiple declarations, you
+can select the one to be used by passing a name to the `inherit_description_from` field.
+
+If you prefer a tactic to have a doc string that is different then the doc entry, then between
+the `/--` `-/` markers, write the desired doc string first, then `---` surrounded by new lines,
+and then the doc entry.
+
+Note that providing a badly formed `tactic_doc_entry` to the command can result in strange error
+messages.
+
 ## Sectioning comments
 
 It is common to structure a file in sections, where each section contains related declarations.
@@ -131,7 +176,8 @@ Sectioning comments are for display and readability only. They have no semantic 
 
 Third-level headers `###` should be used for titles inside sectioning comments.
 
-If the comment is more than one line long, the delimiters `/-!` and `-/` should appear on their own lines.
+If the comment is more than one line long, the delimiters `/-!` and `-/` should appear on their own
+lines.
 
 See [meta/expr.lean](../../src/meta/expr.lean) for an example in practice.
 

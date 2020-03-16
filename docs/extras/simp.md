@@ -2,7 +2,7 @@
 
 The `simp` tactic works by applying a conditional term rewriting system to try and prove, or at least simplify, your goal. What this basically means is that `simp` is equipped with a list of lemmas (those tagged with the `simp` attribute), many of which are of the form `X = Y` or `X iff Y`, and attempts to match subterms of the goal with the left hand side of a rule, and then replaces the subterm with the right hand side. The system is conditional in the sense that lemmas are allowed to have preconditions (`P -> (X = Y)`) and in these cases it will try and prove the precondition using its simp lemmas before applying `X = Y`.
 
-You can watch simp in action by using `set_option trace.simplify true` in your code. For example
+You can watch `simp` in action by using `set_option trace.simplify true` in your code. For example
 
 ```lean
 namespace hidden
@@ -22,13 +22,13 @@ end
 end hidden
 ```
 
-If you do this exercise you will discover firstly that simp spends a lot of its time trying random lemmas and then giving up very shortly afterwards, and also that the `unfold` command is also underlined in green -- Lean seems to apply simp when you do an unfold as well (apparently unfold just asks simp to do its dirty work for it -- `unfold X` is close to `simp only [X]`).
+If you do this exercise you will discover firstly that simp spends a lot of its time trying random lemmas and then giving up very shortly afterwards, and also that the `unfold` command is also underlined in green -- Lean seems to apply `simp` when you do an unfold as well (apparently `unfold` just asks `simp` to do its dirty work for it -- `unfold X` is close to `simp only [X]`).
 
 If you only want to see what worked rather than all the things that didn't, you could try `set_option trace.simplify.rewrite true`.
 
 ## Simp lemmas
 
-In case you want to train simp to use certain extra lemmas (for example because they're coming up again and again in your work) you can add new lemmas for yourself. For example in mathlib in `algebra/field.lean` we find the line
+In case you want to train `simp` to use certain extra lemmas (for example because they're coming up again and again in your work) you can add new lemmas for yourself. For example in mathlib in `algebra/ring.lean` we find the line
 
 ```lean
 @[simp] theorem ne_zero (u : units α) : (u : α) ≠ 0
@@ -59,9 +59,9 @@ Recall that `simp` lemmas are almost all of the form `X = Y` or `X ↔ Y`. Hence
 
 ## Simp options
 
-The behaviour of `simp` can be tweaked by simp variants and also by passing options to the algorithm. A good place to start is to look at the docstring for simp (write simp in VS Code and hover your mouse over it to see the docstring). Here are some examples, some of which are covered by the docstring and some of whichare not.
+The behaviour of `simp` can be tweaked by `simp` variants and also by passing options to the algorithm. A good place to start is to look at the docstring for `simp` (write `simp` in VS Code and hover your mouse over it to see the docstring). Here are some examples, some of which are covered by the docstring and some of which are not.
 
-1) `simp only [H1, H2, H3]` uses only lemmas `H1`, `H2`, and `H3` rather than `simp`s full collection of lemmas. Whyever might one want to do this in practice? Because sometimes simp simplifies things too much -- it might unfold things that you wanted to keep folded, for example.
+1) `simp only [H1, H2, H3]` uses only lemmas `H1`, `H2`, and `H3` rather than `simp`s full collection of lemmas. Whyever might one want to do this in practice? Because sometimes `simp` simplifies things too much -- it might unfold things that you wanted to keep folded, for example. Another reason is that using `simp only` can speed up slow `simp` calls significantly.
 
 2) `simp [-X]` stops `simp` from using lemma `X`. One could imagine using this as another solution when one finds `simp` doing more than you would like. Recall from above that `set_option trace.simplify.rewrite true` shows you exactly which lemmas `simp` is using.
 
@@ -93,8 +93,8 @@ We see from the changelog that setting `constructor_eq` to true will reduce equa
 
 ## Cutting edge simp facts
 
-If you want to find out the most recent tweaks to simp, a very good place to look is [the changelog](https://github.com/leanprover/lean/blob/master/doc/changes.md).
+If you want to find out the most recent tweaks to `simp`, a very good place to look is [the changelog](https://github.com/leanprover/lean/blob/master/doc/changes.md).
 
 ## Something that could be added later on
 
-"Re: documentation. If you mention congruence, you could show off simp's support for congruence relations. If you show reflexivity and transitivity for cong, and have congruence lemmas for +, etc., then you can rewrite with congruences as if they were equations."
+"Re: documentation. If you mention congruence, you could show off `simp`'s support for congruence relations. If you show reflexivity and transitivity for cong, and have congruence lemmas for +, etc., then you can rewrite with congruences as if they were equations."

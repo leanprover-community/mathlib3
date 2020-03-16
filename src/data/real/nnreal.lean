@@ -65,7 +65,7 @@ max_eq_left $ le_sub.2 $ by simp [show (r₂ : ℝ) ≤ r₁, from h]
 -- TODO: setup semifield!
 @[simp] protected lemma zero_div (r : ℝ≥0) : 0 / r = 0 := nnreal.eq (zero_div _)
 @[simp] protected lemma coe_eq_zero (r : ℝ≥0) : ↑r = (0 : ℝ) ↔ r = 0 := @nnreal.eq_iff r 0
-lemma coe_ne_zero {r : ℝ≥0} : (r : ℝ) ≠ 0 ↔ r ≠ 0 := by simp
+@[elim_cast] lemma coe_ne_zero {r : ℝ≥0} : (r : ℝ) ≠ 0 ↔ r ≠ 0 := by simp
 
 instance : comm_semiring ℝ≥0 :=
 begin

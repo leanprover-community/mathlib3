@@ -2,11 +2,16 @@
 Copyright (c) 2018 Mario Carneiro. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Author: Mario Carneiro
+-/
+
+import tactic.core
+/-!
+# `#explode` command
 
 Displays a proof term in a line by line format somewhat akin to a Fitch style
 proof or the Metamath proof style.
 -/
-import tactic.core
+
 open expr tactic
 
 namespace tactic
@@ -137,11 +142,37 @@ do const n _ ← resolve_name n | fail "cannot resolve name",
 
 open interactive lean lean.parser interaction_monad.result
 
+/--
+`#explode decl_name` displays a proof term in a line by line format somewhat akin to a Fitch style
+proof or the Metamath proof style.
+
+`#explode iff_true_intro` produces
+
+```lean
+iff_true_intro : ∀ {a : Prop}, a → (a ↔ true)
+0│   │ a         ├ Prop
+1│   │ h         ├ a
+2│   │ hl        │ ┌ a
+3│   │ trivial   │ │ true
+4│2,3│ ∀I        │ a → true
+5│   │ hr        │ ┌ true
+6│5,1│ ∀I        │ true → a
+7│4,6│ iff.intro │ a ↔ true
+8│1,7│ ∀I        │ a → (a ↔ true)
+9│0,8│ ∀I        │ ∀ {a : Prop}, a → (a ↔ true)
+```
+-/
 @[user_command]
 meta def explode_cmd (_ : parse $ tk "#explode") : parser unit :=
 do n ← ident,
   explode n
 .
+
+add_tactic_doc
+{ name                     := "#explode",
+  category                 := doc_category.cmd,
+  decl_names               := [`tactic.explode_cmd],
+  tags                     := ["proof display"] }
 
 -- #explode iff_true_intro
 -- #explode nat.strong_rec_on

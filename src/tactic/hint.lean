@@ -10,11 +10,18 @@ namespace tactic
 
 namespace hint
 
-/-- An attribute marking a `tactic unit` or `tactic string` which should be used by the `hint` tactic. -/
+/-- An attribute marking a `tactic unit` or `tactic string` which should be used by the `hint`
+tactic. -/
 @[user_attribute] meta def hint_tactic_attribute : user_attribute := {
   name := `hint_tactic,
   descr := "A tactic that should be tried by `hint`."
 }
+
+add_tactic_doc
+{ name                     := "hint_tactic",
+  category                 := doc_category.attr,
+  decl_names               := [`tactic.hint.hint_tactic_attribute],
+  tags                     := ["rewrite", "search"] }
 
 open lean lean.parser interactive
 
@@ -38,6 +45,12 @@ do n ← parser.pexpr,
    t ← to_expr ``(do %%t, pure %%n),
    add_tactic_hint h t.
 
+add_tactic_doc
+{ name                     := "add_hint_tactic",
+  category                 := doc_category.cmd,
+  decl_names               := [`tactic.hint.add_hint_tactic],
+  tags                     := ["rewrite", "search"] }
+
 add_hint_tactic "refl"
 add_hint_tactic "exact dec_trivial"
 add_hint_tactic "assumption"
@@ -60,7 +73,31 @@ do names ← attribute.get_instances `hint_tactic,
 
 namespace interactive
 
-/-- report a list of tactics that can make progress against the current goal -/
+/-- report a list of tactics that can make progress against the current goal
+
+---
+`hint` lists possible tactics which will make progress (that is, not fail) against the current goal.
+
+```lean
+example {P Q : Prop} (p : P) (h : P → Q) : Q :=
+begin
+  hint,
+  /- the following tactics make progress:
+     ----
+     Try this: solve_by_elim
+     Try this: finish
+     Try this: tauto
+  -/
+  solve_by_elim,
+end
+```
+
+You can add a tactic to the list that `hint` tries by either using
+1. `attribute [hint_tactic] my_tactic`, if `my_tactic` is already of type `tactic string`
+(`tactic unit` is allowed too, in which case the printed string will be the name of the
+tactic), or
+2. `add_hint_tactic "my_tactic"`, specifying a string which works as an interactive tactic.
+-/
 meta def hint : tactic unit :=
 do hints ← tactic.hint,
    if hints.length = 0 then
@@ -68,6 +105,12 @@ do hints ← tactic.hint,
    else
      do trace "the following tactics make progress:\n----",
         hints.mmap' (λ s, tactic.trace format!"Try this: {s}")
+
+add_tactic_doc
+{ name        := "hint",
+  category    := doc_category.tactic,
+  decl_names  := [`tactic.interactive.hint],
+  tags        := ["rewrite", "search", "Try this"] }
 
 end interactive
 

@@ -51,7 +51,21 @@ instance : has_one Group := ⟨Group.of punit⟩
 instance : inhabited Group := ⟨1⟩
 
 @[to_additive]
+instance : unique (1 : Group.{u}) :=
+{ default := 1,
+  uniq := λ a, begin cases a, refl, end }
+
+@[simp, to_additive]
+lemma one_apply (G H : Group) (g : G) : (1 : G ⟶ H) g = 1 := rfl
+
+@[to_additive]
 instance : concrete_category Group := infer_instance -- short-circuit type class inference
+
+@[to_additive,ext]
+lemma ext (G H : Group) (f₁ f₂ : G ⟶ H) (w : ∀ x, f₁ x = f₂ x) : f₁ = f₂ :=
+by { ext1, apply w }
+
+attribute [ext] AddGroup.ext
 
 @[to_additive has_forget_to_AddMon]
 instance has_forget_to_Mon : has_forget₂ Group Mon := infer_instance -- short-circuit type class inference
@@ -63,6 +77,9 @@ end Group
 @[to_additive AddCommGroup]
 def CommGroup : Type (u+1) := induced_category Group (bundled.map comm_group.to_group)
 
+/-- `Ab` is an abbreviation for `AddCommGroup`, for the sake of mathematicians' sanity. -/
+abbreviation Ab := AddCommGroup
+
 namespace CommGroup
 
 /-- Construct a bundled CommGroup from the underlying type and typeclass. -/
@@ -73,14 +90,28 @@ local attribute [reducible] CommGroup
 @[to_additive]
 instance : has_coe_to_sort CommGroup := infer_instance -- short-circuit type class inference
 
-@[to_additive add_comm_group]
-instance (G : CommGroup) : comm_group G := G.str
+@[to_additive add_comm_group_instance]
+instance comm_group_instance (G : CommGroup) : comm_group G := G.str
 
 @[to_additive] instance : has_one CommGroup := ⟨CommGroup.of punit⟩
 
 @[to_additive] instance : inhabited CommGroup := ⟨1⟩
 
+@[to_additive]
+instance : unique (1 : CommGroup.{u}) :=
+{ default := 1,
+  uniq := λ a, begin cases a, refl, end }
+
+@[simp, to_additive]
+lemma one_apply (G H : CommGroup) (g : G) : (1 : G ⟶ H) g = 1 := rfl
+
 @[to_additive] instance : concrete_category CommGroup := infer_instance -- short-circuit type class inference
+
+@[to_additive,ext]
+lemma ext (G H : CommGroup) (f₁ f₂ : G ⟶ H) (w : ∀ x, f₁ x = f₂ x) : f₁ = f₂ :=
+by { ext1, apply w }
+
+attribute [ext] AddCommGroup.ext
 
 @[to_additive has_forget_to_AddGroup]
 instance has_forget_to_Group : has_forget₂ CommGroup Group := infer_instance -- short-circuit type class inference

@@ -97,7 +97,7 @@ end
 section has_zero_object
 variables [has_zero_object.{v} C]
 
-local attribute [instance] zero_of_zero_object
+local attribute [instance] has_zero_object.has_zero
 local attribute [instance] has_zero_object.zero_morphisms_of_zero_object
 
 /-- The morphism from the zero object determines a cone on a kernel diagram -/
@@ -174,7 +174,7 @@ end
 section has_zero_object
 variables [has_zero_object.{v} C]
 
-local attribute [instance] zero_of_zero_object
+local attribute [instance] has_zero_object.has_zero
 local attribute [instance] has_zero_object.zero_morphisms_of_zero_object
 
 /-- The morphism to the zero object determines a cocone on a cokernel diagram -/
@@ -215,7 +215,7 @@ end has_zero_object
 section has_zero_object
 variables [has_zero_object.{v} C]
 
-local attribute [instance] zero_of_zero_object
+local attribute [instance] has_zero_object.has_zero
 local attribute [instance] has_zero_object.zero_morphisms_of_zero_object
 
 /-- The kernel of the cokernel of an epimorphism is an isomorphism -/

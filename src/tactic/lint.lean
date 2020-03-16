@@ -748,12 +748,13 @@ meta def lint_aux (l : list declaration) (group_by_filename : option nat)
   tactic (name_set × format) := do
 results ← lint_core l checks,
 formatted_results ← results.mmap $ λ ⟨linter_name, linter, results⟩,
+  let report_str : format := to_fmt "/- The `" ++ to_fmt linter_name ++ "` linter reports: -/\n" in
   if ¬ results.empty then do
     warnings ← match group_by_filename with
       | none := print_warnings results
       | some dropped := grouped_by_filename results dropped print_warnings
       end,
-    pure $ to_fmt "/- " ++ linter.errors_found ++ ": -/\n" ++ warnings
+    pure $ report_str ++ "/- " ++ linter.errors_found ++ ": -/\n" ++ warnings
   else
     pure $ if verbose then "/- OK: " ++ linter.no_errors_found ++ ". -/" else format.nil,
 let s := format.intercalate "\n\n" (formatted_results.filter (λ f, ¬ f.is_nil)),

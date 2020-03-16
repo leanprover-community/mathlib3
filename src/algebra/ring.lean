@@ -359,6 +359,8 @@ def of (f : α → β) [is_semiring_hom f] : α →+* β :=
 
 @[simp] lemma coe_of (f : α → β) [is_semiring_hom f] : ⇑(of f) = f := rfl
 
+@[simp] lemma coe_mk (f : α → β) (h₁ h₂ h₃ h₄) : ⇑(⟨f, h₁, h₂, h₃, h₄⟩ : α →+* β) = f := rfl
+
 variables (f : α →+* β) {x y : α} {rα rβ}
 
 theorem coe_inj ⦃f g : α →+* β⦄ (h : (f : α → β) = g) : f = g :=
@@ -420,6 +422,14 @@ lemma comp_assoc {δ} {rδ: semiring δ} (f : α →+* β) (g : β →+* γ) (h 
 
 lemma comp_apply (hnp : β →+* γ) (hmn : α →+* β) (x : α) : (hnp.comp hmn : α → γ) x =
   (hnp (hmn x)) := rfl
+
+lemma cancel_right {g₁ g₂ : β →+* γ} {f : α →+* β} (hf : function.surjective f) :
+  g₁.comp f = g₂.comp f ↔ g₁ = g₂ :=
+⟨λ h, ring_hom.ext $ (forall_iff_forall_surj hf).1 (ext_iff.1 h), λ h, h ▸ rfl⟩
+
+lemma cancel_left {g : β →+* γ} {f₁ f₂ : α →+* β} (hg : function.injective g) :
+  g.comp f₁ = g.comp f₂ ↔ f₁ = f₂ :=
+⟨λ h, ring_hom.ext $ λ x, hg $ by rw [← comp_apply, h, comp_apply], λ h, h ▸ rfl⟩
 
 omit rα rβ rγ
 

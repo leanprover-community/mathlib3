@@ -5,7 +5,7 @@ Authors: Johannes Hölzl, Johan Commelin, Mario Carneiro
 -/
 
 import algebra.ring
-import data.finsupp data.polynomial data.equiv.algebra
+import data.finsupp data.polynomial data.equiv.ring data.equiv.fin
 
 /-!
 # Multivariate polynomials
@@ -1262,6 +1262,15 @@ def option_equiv_right : mv_polynomial (option β) α ≃+* mv_polynomial β (po
 (ring_equiv_of_equiv α $ equiv.option_equiv_sum_punit.{0} β).trans $
 (sum_ring_equiv α β unit).trans $
 ring_equiv_congr (mv_polynomial unit α) (punit_ring_equiv α)
+
+/--
+The ring isomorphism between multivariable polynomials in `fin (n + 1)` and
+polynomials over multivariable polynomials in `fin n`.
+-/
+def fin_succ_equiv (n : ℕ) :
+  mv_polynomial (fin (n + 1)) α ≃+* polynomial (mv_polynomial (fin n) α) :=
+(ring_equiv_of_equiv α (fin_succ_equiv n)).trans
+  (option_equiv_left α (fin n))
 
 end
 

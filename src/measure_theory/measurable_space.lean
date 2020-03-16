@@ -272,6 +272,28 @@ show s ∈ (⋂m∈ms, {t | @is_measurable _ m t }) ↔ _, by simp
   @is_measurable _ (infi m) s ↔ ∀ i, @is_measurable _ (m i) s :=
 show s ∈ (λm, {s | @is_measurable _ m s }) (infi m) ↔ _, by rw (@gi_generate_from α).gc.u_infi; simp; refl
 
+theorem is_measurable_sup {m₁ m₂ : measurable_space α} {s : set α} :
+  @is_measurable _ (m₁ ⊔ m₂) s ↔ generate_measurable (m₁.is_measurable ∪ m₂.is_measurable) s :=
+iff.refl _
+
+theorem is_measurable_Sup {ms : set (measurable_space α)} {s : set α} :
+  @is_measurable _ (Sup ms) s ↔ generate_measurable (⋃₀ (measurable_space.is_measurable '' ms)) s :=
+begin
+  change @is_measurable _ (generate_from _) _ ↔ _,
+  dsimp [generate_from],
+  rw (show (⨆ (b : measurable_space α) (H : b ∈ ms), set_of (is_measurable b)) = (⋃₀(is_measurable '' ms)),
+  { ext,
+    simp only [exists_prop, mem_Union, sUnion_image, mem_set_of_eq],
+    refl, })
+end
+
+theorem is_measurable_supr {ι} {m : ι → measurable_space α} {s : set α} :
+  @is_measurable _ (supr m) s ↔ generate_measurable (⋃i, (m i).is_measurable) s :=
+begin
+  convert @is_measurable_Sup _ (range m) s,
+  simp,
+end
+
 end complete_lattice
 
 section functors

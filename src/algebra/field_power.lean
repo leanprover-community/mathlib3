@@ -60,29 +60,16 @@ pow_one a
 
 end field_power
 
-@[simp] lemma ring_hom.map_fpow {α β : Type*} [field α] [field β] (f : α →+* β)
-  (a : α) : ∀ (n : ℤ), f (a ^ n) = f a ^ n
+@[simp] lemma ring_hom.map_fpow {K L : Type*} [division_ring K] [division_ring L] (f : K →+* L)
+  (a : K) : ∀ (n : ℤ), f (a ^ n) = f a ^ n
 | (n : ℕ) := f.map_pow a n
-| -[1+n] := by simp [fpow_neg_succ_of_nat, f.map_pow, f.map_inv]
-
-lemma ring_hom.map_fpow' {K L : Type*} [division_ring K] [division_ring L] (f : K →+* L)
-  (a : K) (ha : a ≠ 0) : ∀ (n : ℤ), f (a ^ n) = f a ^ n
-| (n : ℕ) := f.map_pow a n
-| -[1+ n] :=
-begin
-  have : a^(n+1) ≠ 0 := mt pow_eq_zero ha,
-  simp [fpow_neg_succ_of_nat, f.map_pow, f.map_inv' this],
-end
+| -[1+n] := by simp only [fpow_neg_succ_of_nat, f.map_pow, f.map_div, f.map_one]
 
 namespace is_ring_hom
 
-lemma map_fpow {α β : Type*} [field α] [field β] (f : α → β) [is_ring_hom f]
-  (a : α) : ∀ (n : ℤ), f (a ^ n) = f a ^ n :=
+lemma map_fpow {K L : Type*} [division_ring K] [division_ring L] (f : K → L) [is_ring_hom f]
+  (a : K) : ∀ (n : ℤ), f (a ^ n) = f a ^ n :=
 (ring_hom.of f).map_fpow a
-
-lemma map_fpow' {K L : Type*} [division_ring K] [division_ring L] (f : K → L) [is_ring_hom f]
-  (a : K) (ha : a ≠ 0) : ∀ (n : ℤ), f (a ^ n) = f a ^ n :=
-(ring_hom.of f).map_fpow' a ha
 
 end is_ring_hom
 

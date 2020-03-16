@@ -123,6 +123,12 @@ begin
   cases j; refl
 end
 
+/-- Every functor indexing a (co)equalizer is naturally isomorphic (actually, equal) to a
+    `parallel_pair` -/
+def diagram_iso_parallel_pair (F : walking_parallel_pair.{v} ⥤ C) :
+  F ≅ parallel_pair (F.map left) (F.map right) :=
+nat_iso.of_components (λ j, eq_to_iso $ by cases j; tidy) $ by tidy
+
 abbreviation fork (f g : X ⟶ Y) := cone (parallel_pair f g)
 abbreviation cofork (f g : X ⟶ Y) := cocone (parallel_pair f g)
 
@@ -200,6 +206,32 @@ lemma cofork.condition (t : cofork f g) : f ≫ (cofork.π t) = g ≫ (cofork.π
 begin
   erw [t.w left, ← t.w right], refl
 end
+
+/-- This is a slightly more convenient method to verify that a fork is a limit cone. It
+    only asks for a proof of facts that carry any mathematical content -/
+def fork.is_limit.mk (t : fork f g)
+  (lift : Π (s : fork f g), s.X ⟶ t.X)
+  (fac : ∀ (s : fork f g), lift s ≫ fork.ι t = fork.ι s)
+  (uniq : ∀ (s : fork f g) (m : s.X ⟶ t.X)
+    (w : ∀ j : walking_parallel_pair, m ≫ t.π.app j = s.π.app j), m = lift s) :
+  is_limit t :=
+{ lift := lift,
+  fac' := λ s j, walking_parallel_pair.cases_on j (fac s) $
+    by erw [←s.w left, ←t.w left, ←category.assoc, fac]; refl,
+  uniq' := uniq }
+
+/-- This is a slightly more convenient method to verify that a cofork is a colimit cocone. It
+    only asks for a proof of facts that carry any mathematical content -/
+def cofork.is_colimit.mk (t : cofork f g)
+  (desc : Π (s : cofork f g), t.X ⟶ s.X)
+  (fac : ∀ (s : cofork f g), cofork.π t ≫ desc s = cofork.π s)
+  (uniq : ∀ (s : cofork f g) (m : t.X ⟶ s.X)
+    (w : ∀ j : walking_parallel_pair, t.ι.app j ≫ m = s.ι.app j), m = desc s) :
+  is_colimit t :=
+{ desc := desc,
+  fac' := λ s j, walking_parallel_pair.cases_on j
+    (by erw [←s.w left, ←t.w left, category.assoc, fac]; refl) (fac s),
+  uniq' := uniq }
 
 section
 local attribute [ext] cone
@@ -470,5 +502,15 @@ def has_equalizers_of_has_finite_limits [has_finite_limits.{v} C] : has_equalize
     coequalizers -/
 def has_coequalizers_of_has_finite_colimits [has_finite_colimits.{v} C] : has_coequalizers.{v} C :=
 { has_colimits_of_shape := infer_instance }
+
+/-- If `C` has all limits of diagrams `parallel_pair f g`, then it has all equalizers -/
+def has_equalizers_of_has_limit_parallel_pair
+  [Π {X Y : C} {f g : X ⟶ Y}, has_limit (parallel_pair f g)] : has_equalizers.{v} C :=
+{ has_limits_of_shape := { has_limit := λ F, has_limit_of_iso (diagram_iso_parallel_pair F).symm } }
+
+/-- If `C` has all colimits of diagrams `parallel_pair f g`, then it has all coequalizers -/
+def has_coequalizers_of_has_colimit_parallel_pair
+  [Π {X Y : C} {f g : X ⟶ Y}, has_colimit (parallel_pair f g)] : has_coequalizers.{v} C :=
+{ has_colimits_of_shape := { has_colimit := λ F, has_colimit_of_iso (diagram_iso_parallel_pair F) } }
 
 end category_theory.limits

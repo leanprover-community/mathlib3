@@ -6,7 +6,7 @@ Authors: Johannes Hölzl, Kenny Lau, Johan Commelin, Mario Carneiro, Kevin Buzza
 
 import algebra.big_operators
 import data.finset
-import data.equiv.algebra
+import data.equiv.mul_add
 
 /-!
 # Submonoids

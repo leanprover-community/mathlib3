@@ -124,6 +124,19 @@ quot.rec_on_subsingleton (@univ α _).1
 theorem exists_equiv_fin (α) [fintype α] : ∃ n, nonempty (α ≃ fin n) :=
 by haveI := classical.dec_eq α; exact ⟨card α, nonempty_of_trunc (equiv_fin α)⟩
 
+/-- Given a linearly ordered fintype `α` of cardinal `k`, the equiv `mono_equiv_of_fin α h`
+is the increasing bijection between `fin k` and `α`. Here, `h` is a proof that
+the cardinality of `s` is `k`. We use this instead of a map `fin s.card → α` to avoid
+casting issues in further uses of this function. -/
+noncomputable def mono_equiv_of_fin (α) [fintype α] [decidable_linear_order α] {k : ℕ}
+  (h : fintype.card α = k) : fin k ≃ α :=
+have A : bijective (mono_of_fin univ h) := begin
+  apply set.bijective_iff_bij_on_univ.2,
+  rw ← @coe_univ α _,
+  exact bij_on_mono_of_fin (univ : finset α) h
+end,
+equiv.of_bijective A
+
 instance (α : Type*) : subsingleton (fintype α) :=
 ⟨λ ⟨s₁, h₁⟩ ⟨s₂, h₂⟩, by congr; simp [finset.ext, h₁, h₂]⟩
 

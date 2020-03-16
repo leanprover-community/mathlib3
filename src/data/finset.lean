@@ -2244,7 +2244,8 @@ end
 is the increasing bijection between `fin k` and `s` as an `s`-valued map. Here, `h` is a proof that
 the cardinality of `s` is `k`. We use this instead of a map `fin s.card → α` to avoid
 casting issues in further uses of this function. -/
-noncomputable def mono_equiv_of_fin (s : finset α) {k : ℕ} (h : s.card = k) : fin k ≃ s.to_set :=
+noncomputable def mono_equiv_of_fin (s : finset α) {k : ℕ} (h : s.card = k) :
+  fin k ≃ {x // x ∈ s} :=
 (s.bij_on_mono_of_fin h).equiv _
 
 end sort_linear_order

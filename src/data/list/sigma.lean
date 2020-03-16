@@ -318,15 +318,18 @@ erasep $ λ s, a = s.1
 @[simp] theorem kerase_nil {a} : @kerase _ β _ a [] = [] :=
 rfl
 
-@[simp] theorem kerase_cons_eq {a} {s : sigma β} {l : list (sigma β)} (h : a = s.1) :
+@[simp, priority 990]
+theorem kerase_cons_eq {a} {s : sigma β} {l : list (sigma β)} (h : a = s.1) :
   kerase a (s :: l) = l :=
 by simp [kerase, h]
 
-@[simp] theorem kerase_cons_ne {a} {s : sigma β} {l : list (sigma β)} (h : a ≠ s.1) :
+@[simp, priority 990]
+theorem kerase_cons_ne {a} {s : sigma β} {l : list (sigma β)} (h : a ≠ s.1) :
   kerase a (s :: l) = s :: kerase a l :=
 by simp [kerase, h]
 
-@[simp] theorem kerase_of_not_mem_keys {a} {l : list (sigma β)} (h : a ∉ l.keys) :
+@[simp, priority 980]
+theorem kerase_of_not_mem_keys {a} {l : list (sigma β)} (h : a ∉ l.keys) :
   kerase a l = l :=
 by induction l with _ _ ih;
    [refl, { simp [not_or_distrib] at h, simp [h.1, ih h.2] }]
@@ -363,7 +366,8 @@ begin
                by rw h₂; refl, by simp [e, h₃]⟩ } } }
 end
 
-@[simp] theorem mem_keys_kerase_of_ne {a₁ a₂} {l : list (sigma β)} (h : a₁ ≠ a₂) :
+@[simp, priority 990]
+theorem mem_keys_kerase_of_ne {a₁ a₂} {l : list (sigma β)} (h : a₁ ≠ a₂) :
   a₁ ∈ (kerase a₂ l).keys ↔ a₁ ∈ l.keys :=
 iff.intro mem_keys_of_mem_keys_kerase $ λ p,
   if q : a₂ ∈ l.keys then
@@ -473,7 +477,7 @@ def kinsert (a : α) (b : β a) (l : list (sigma β)) : list (sigma β) :=
 @[simp] theorem kinsert_def {a} {b : β a} {l : list (sigma β)} :
   kinsert a b l = ⟨a, b⟩ :: kerase a l := rfl
 
-@[simp] theorem mem_keys_kinsert {a a'} {b' : β a'} {l : list (sigma β)} :
+theorem mem_keys_kinsert {a a'} {b' : β a'} {l : list (sigma β)} :
   a ∈ (kinsert a' b' l).keys ↔ a = a' ∨ a ∈ l.keys :=
 by by_cases h : a = a'; simp [h]
 
@@ -485,13 +489,13 @@ theorem perm_kinsert {a} {b : β a} {l₁ l₂ : list (sigma β)} (nd₁ : l₁.
   (p : l₁ ~ l₂) : kinsert a b l₁ ~ kinsert a b l₂ :=
 perm.skip ⟨a, b⟩ $ perm_kerase nd₁ p
 
-@[simp] theorem lookup_kinsert {a} {b : β a} (l : list (sigma β)) :
+theorem lookup_kinsert {a} {b : β a} (l : list (sigma β)) :
   lookup a (kinsert a b l) = some b :=
 by simp only [kinsert, lookup_cons_eq]
 
-@[simp] theorem lookup_kinsert_ne {a a'} {b' : β a'} {l : list (sigma β)} (h : a ≠ a') :
+theorem lookup_kinsert_ne {a a'} {b' : β a'} {l : list (sigma β)} (h : a ≠ a') :
   lookup a (kinsert a' b' l) = lookup a l :=
-by simp [h, lookup_cons_ne _ ⟨a', b'⟩ h]
+by simp [h]
 
 /- kextract -/
 

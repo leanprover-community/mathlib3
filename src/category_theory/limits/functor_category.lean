@@ -3,7 +3,7 @@ Copyright (c) 2018 Scott Morrison. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Scott Morrison
 -/
-import category_theory.products
+import category_theory.products.basic
 import category_theory.limits.preserves
 
 open category_theory category_theory.category
@@ -12,7 +12,7 @@ namespace category_theory.limits
 
 universes v u -- declare the `v`'s first; see `category_theory.category` for an explanation
 
-variables {C : Type u} [𝒞 : category.{v+1} C]
+variables {C : Type u} [𝒞 : category.{v} C]
 include 𝒞
 
 variables {J K : Type v} [small_category J] [small_category K]
@@ -25,7 +25,7 @@ by convert ←nat_trans.congr_app (c.π.naturality f).symm k; apply id_comp
   (F.map f).app k ≫ (c.ι.app j').app k = (c.ι.app j).app k :=
 by convert ←nat_trans.congr_app (c.ι.naturality f) k; apply comp_id
 
-@[simp] def functor_category_limit_cone [has_limits_of_shape J C] (F : J ⥤ K ⥤ C) :
+@[simps] def functor_category_limit_cone [has_limits_of_shape J C] (F : J ⥤ K ⥤ C) :
   cone F :=
 { X := F.flip ⋙ lim,
   π :=
@@ -34,7 +34,7 @@ by convert ←nat_trans.congr_app (c.ι.naturality f) k; apply comp_id
       naturality' := λ j j' f,
         by ext k; convert (limit.w (F.flip.obj k) _).symm using 1; apply id_comp } }
 
-@[simp] def functor_category_colimit_cocone [has_colimits_of_shape J C] (F : J ⥤ K ⥤ C) :
+@[simps] def functor_category_colimit_cocone [has_colimits_of_shape J C] (F : J ⥤ K ⥤ C) :
   cocone F :=
 { X := F.flip ⋙ colim,
   ι :=
@@ -61,7 +61,7 @@ def functor_category_is_limit_cone [has_limits_of_shape J C] (F : J ⥤ K ⥤ C)
   { app := λ k, limit.lift (F.flip.obj k) (((evaluation K C).obj k).map_cone s) },
   uniq' := λ s m w,
   begin
-    ext1 k,
+    ext1, ext1 k,
     exact is_limit.uniq _
       (((evaluation K C).obj k).map_cone s) (m.app k) (λ j, nat_trans.congr_app (w j) k)
   end }
@@ -72,7 +72,7 @@ def functor_category_is_colimit_cocone [has_colimits_of_shape.{v} J C] (F : J �
   { app := λ k, colimit.desc (F.flip.obj k) (((evaluation K C).obj k).map_cocone s) },
   uniq' := λ s m w,
   begin
-    ext1 k,
+    ext1, ext1 k,
     exact is_colimit.uniq _
       (((evaluation K C).obj k).map_cocone s) (m.app k) (λ j, nat_trans.congr_app (w j) k)
   end }

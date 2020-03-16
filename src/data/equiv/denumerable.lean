@@ -10,11 +10,14 @@ from nat, where the functions are known inverses of each other.
 import data.equiv.encodable data.sigma data.fintype data.list.min_max
 open nat
 
+section prio
+set_option default_priority 100 -- see Note [default priority]
 /-- A denumerable type is one which is (constructively) bijective with ℕ.
   Although we already have a name for this property, namely `α ≃ ℕ`,
   we are here interested in using it as a typeclass. -/
 class denumerable (α : Type*) extends encodable α :=
 (decode_inv : ∀ n, ∃ a ∈ decode n, encode a = n)
+end prio
 
 namespace denumerable
 
@@ -22,7 +25,7 @@ section
 variables {α : Type*} {β : Type*} [denumerable α] [denumerable β]
 open encodable
 
-@[simp] theorem decode_is_some (α) [denumerable α] (n : ℕ) :
+theorem decode_is_some (α) [denumerable α] (n : ℕ) :
   (decode α n).is_some :=
 option.is_some_iff_exists.2 $
 (decode_inv α n).imp $ λ a, Exists.fst
@@ -30,7 +33,8 @@ option.is_some_iff_exists.2 $
 def of_nat (α) [f : denumerable α] (n : ℕ) : α :=
 option.get (decode_is_some α n)
 
-@[simp] theorem decode_eq_of_nat (α) [denumerable α] (n : ℕ) :
+@[simp, priority 900]
+theorem decode_eq_of_nat (α) [denumerable α] (n : ℕ) :
   decode α n = some (of_nat α n) :=
 option.eq_some_of_is_some _
 
@@ -166,16 +170,20 @@ lemma of_nat_surjective_aux : ∀ {x : ℕ} (hx : x ∈ s), ∃ n, of_nat s n = 
   (λ (y : ℕ) (hy : y ∈ s), ⟨y, hy⟩) (by simp) in
 have hmt : ∀ {y : s}, y ∈ t ↔ y < ⟨x, hx⟩,
   by simp [list.mem_filter, subtype.ext, t]; intros; refl,
-if ht : t = [] then ⟨0, le_antisymm (@bot_le s _ _)
-  (le_of_not_gt (λ h, list.not_mem_nil ⊥ $
-    by rw [← ht, hmt]; exact h))⟩
-else by letI : inhabited s := ⟨⊥⟩;
-  exact have wf : (list.maximum t).1 < x, by simpa [hmt] using list.maximum_mem ht,
-  let ⟨a, ha⟩ := of_nat_surjective_aux (list.maximum t).2 in
-  ⟨a + 1, le_antisymm
-    (by rw of_nat; exact succ_le_of_lt (by rw ha; exact wf)) $
-    by rw of_nat; exact le_succ_of_forall_lt_le
-      (λ z hz, by rw ha; exact list.le_maximum_of_mem (hmt.2 hz))⟩
+have wf : ∀ m : s, list.maximum t = m → m.1 < x,
+  from λ m hmax, by simpa [hmt] using list.maximum_mem hmax,
+begin
+  cases hmax : list.maximum t with m,
+  { exact ⟨0, le_antisymm (@bot_le s _ _)
+      (le_of_not_gt (λ h, list.not_mem_nil (⊥ : s) $
+        by rw [← list.maximum_eq_none.1 hmax, hmt]; exact h))⟩ },
+  { cases of_nat_surjective_aux m.2 with a ha,
+    exact ⟨a + 1, le_antisymm
+      (by rw of_nat; exact succ_le_of_lt (by rw ha; exact wf _ hmax)) $
+      by rw of_nat; exact le_succ_of_forall_lt_le
+        (λ z hz, by rw ha; cases m; exact list.le_maximum_of_mem (hmt.2 hz) hmax)⟩ }
+end
+using_well_founded {dec_tac := `[tauto]}
 
 lemma of_nat_surjective : surjective (of_nat s) :=
 λ ⟨x, hx⟩, of_nat_surjective_aux hx

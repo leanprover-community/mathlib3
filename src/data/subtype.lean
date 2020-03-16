@@ -3,6 +3,7 @@ Copyright (c) 2017 Johannes Hölzl. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Author: Johannes Hölzl
 -/
+import tactic.lint
 
 -- Lean complains if this section is turned into a namespace
 open function
@@ -12,6 +13,13 @@ variables {α : Sort*} {p : α → Prop}
 @[simp] theorem subtype.forall {q : {a // p a} → Prop} :
   (∀ x, q x) ↔ (∀ a b, q ⟨a, b⟩) :=
 ⟨assume h a b, h ⟨a, b⟩, assume h ⟨a, b⟩, h a b⟩
+
+/-- An alternative version of `subtype.forall`. This one is useful if Lean cannot figure out `q`
+  when using `subtype.forall` from right to left. -/
+theorem subtype.forall' {q : ∀x, p x → Prop} :
+  (∀ x h, q x h) ↔ (∀ x : {a // p a}, q x.1 x.2) :=
+(@subtype.forall _ _ (λ x, q x.1 x.2)).symm
+
 
 @[simp] theorem subtype.exists {q : {a // p a} → Prop} :
   (∃ x, q x) ↔ (∃ a b, q ⟨a, b⟩) :=
@@ -34,11 +42,11 @@ ext
 theorem val_injective : injective (@val _ p) :=
 λ a b, subtype.eq'
 
-/- Restrict a (dependent) function to a subtype -/
-def restrict {α} {β : α → Type*} (f : ∀x, β x) (p : α → Prop) (x : subtype p) : β x.1 :=
+/-- Restrict a (dependent) function to a subtype -/
+def restrict {α} {β : α → Type*} (f : Πx, β x) (p : α → Prop) (x : subtype p) : β x.1 :=
 f x.1
 
-lemma restrict_apply {α} {β : α → Type*} (f : ∀x, β x) (p : α → Prop) (x : subtype p) :
+lemma restrict_apply {α} {β : α → Type*} (f : Πx, β x) (p : α → Prop) (x : subtype p) :
   restrict f p x = f x.1 :=
 by refl
 
@@ -109,7 +117,8 @@ variables {α : Type*} {β : Type*} {γ : Type*} {p : α → Prop}
 @[simp] theorem coe_mk {α : Type*} {p : α → Prop}
  (a h) : (@mk α p a h : α) = a := rfl
 
-@[simp] theorem mk_eq_mk {α : Type*} {p : α → Prop}
+@[simp, nolint simp_nf] -- built-in reduction doesn't always work
+theorem mk_eq_mk {α : Type*} {p : α → Prop}
  {a h a' h'} : @mk α p a h = @mk α p a' h' ↔ a = a' :=
 ⟨λ H, by injection H, λ H, by congr; assumption⟩
 

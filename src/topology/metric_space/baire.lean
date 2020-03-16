@@ -2,8 +2,14 @@
 Copyright (c) 2019 Sébastien Gouëzel. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Sébastien Gouëzel
+-/
 
-Baire theorem: in a complete metric space, a countable intersection of dense open subsets is dense.
+import topology.metric_space.basic analysis.specific_limits
+
+/-!
+# Baire theorem
+
+In a complete metric space, a countable intersection of dense open subsets is dense.
 
 The good concept underlying the theorem is that of a Gδ set, i.e., a countable intersection
 of open sets. Then Baire theorem can also be formulated as the fact that a countable
@@ -14,9 +20,9 @@ covered by a countable union of closed sets, then the union of their interiors i
 The names of the theorems do not contain the string "Baire", but are instead built from the form of
 the statement. "Baire" is however in the docstring of all the theorems, to facilitate grep searches.
 -/
-import topology.metric_space.basic analysis.specific_limits
+
 noncomputable theory
-local attribute [instance] classical.prop_decidable
+open_locale classical
 
 open filter lattice encodable set
 
@@ -94,7 +100,7 @@ begin
   { assume n x δ,
     by_cases δpos : δ > 0,
     { have : x ∈ closure (f n) := by simpa only [(hd n).symm] using mem_univ x,
-      rcases mem_closure_iff'.1 this (δ/2) (half_pos δpos) with ⟨y, ys, xy⟩,
+      rcases metric.mem_closure_iff.1 this (δ/2) (half_pos δpos) with ⟨y, ys, xy⟩,
       rw dist_comm at xy,
       rcases is_open_iff.1 (ho n) y ys with ⟨r, rpos, hr⟩,
       refine ⟨y, min (min (δ/2) (r/2)) (B (n+1)), λ_, ⟨_, _, λz hz, ⟨_, _⟩⟩⟩,
@@ -114,7 +120,7 @@ begin
   choose center radius H using this,
 
   refine subset.antisymm (subset_univ _) (λx hx, _),
-  refine metric.mem_closure_iff'.2 (λε εpos, _),
+  refine metric.mem_closure_iff.2 (λε εpos, _),
   /- ε is positive. We have to find a point in the ball of radius ε around x belonging to all `f n`.
   For this, we construct inductively a sequence `F n = (c n, r n)` such that the closed ball
   `closed_ball (c n) (r n)` is included in the previous ball and in `f n`, and such that
@@ -181,7 +187,7 @@ end
 theorem dense_sInter_of_open {S : set (set α)} (ho : ∀s∈S, is_open s) (hS : countable S)
   (hd : ∀s∈S, closure s = univ) : closure (⋂₀S) = univ :=
 begin
-  by_cases h : S = ∅,
+  cases S.eq_empty_or_nonempty with h h,
   { simp [h] },
   { rcases exists_surjective_of_countable h hS with ⟨f, hf⟩,
     have F : ∀n, f n ∈ S := λn, by rw hf; exact mem_range_self _,
@@ -312,17 +318,17 @@ end
 
 /-- One of the most useful consequences of Baire theorem: if a countable union of closed sets
 covers the space, then one of the sets has nonempty interior. -/
-theorem nonempty_interior_of_Union_of_closed [n : nonempty α] [encodable β] {f : β → set α}
+theorem nonempty_interior_of_Union_of_closed [nonempty α] [encodable β] {f : β → set α}
   (hc : ∀s, is_closed (f s)) (hU : (⋃s, f s) = univ) : ∃s x ε, ε > 0 ∧ ball x ε ⊆ f s :=
 begin
-  have : ∃s, interior (f s) ≠ ∅,
+  have : ∃s, (interior (f s)).nonempty,
   { by_contradiction h,
-    simp only [not_exists_not, ne.def] at h,
+    simp only [not_exists, not_nonempty_iff_eq_empty] at h,
     have := calc ∅ = closure (⋃s, interior (f s)) : by simp [h]
                  ... = univ : dense_Union_interior_of_closed hc hU,
-    exact nonempty_iff_univ_ne_empty.1 n this.symm },
+    exact univ_nonempty.ne_empty this.symm },
   rcases this with ⟨s, hs⟩,
-  rcases ne_empty_iff_exists_mem.1 hs with ⟨x, hx⟩,
+  rcases hs with ⟨x, hx⟩,
   rcases mem_nhds_iff.1 (mem_interior_iff_mem_nhds.1 hx) with ⟨ε, εpos, hε⟩,
   exact ⟨s, x, ε, εpos, hε⟩,
 end

@@ -44,6 +44,12 @@ mt (assume h, hf h)
 def injective.decidable_eq [decidable_eq β] (I : injective f) : decidable_eq α
 | a b := decidable_of_iff _ I.eq_iff
 
+lemma injective.of_comp {γ : Sort w} {g : γ → α} (I : injective (f ∘ g)) : injective g :=
+λ x y h, I $ show f (g x) = f (g y), from congr_arg f h
+
+lemma surjective.of_comp {γ : Sort w} {g : γ → α} (S : surjective (f ∘ g)) : surjective f :=
+λ y, let ⟨x, h⟩ := S y in ⟨g x, h⟩
+
 instance decidable_eq_pfun (p : Prop) [decidable p] (α : p → Type*)
   [Π hp, decidable_eq (α hp)] : decidable_eq (Π hp, α hp)
 | f g := decidable_of_iff (∀ hp, f hp = g hp) funext_iff.symm
@@ -88,7 +94,7 @@ theorem right_inverse.comp {γ} {f : α → β} {g : β → α} {h : β → γ} 
   (hf : right_inverse f g) (hh : right_inverse h i) : right_inverse (h ∘ f) (g ∘ i) :=
 left_inverse.comp hh hf
 
-local attribute [instance] classical.prop_decidable
+local attribute [instance, priority 10] classical.prop_decidable
 
 /-- We can use choice to construct explicitly a partial inverse for
   a given injective function `f`. -/
@@ -111,13 +117,13 @@ is_partial_inv_left (partial_inv_of_injective I)
 end
 
 section inv_fun
-variables {α : Type u} [inhabited α] {β : Sort v} {f : α → β} {s : set α} {a : α} {b : β}
-
-local attribute [instance] classical.prop_decidable
+variables {α : Type u} [n : nonempty α] {β : Sort v} {f : α → β} {s : set α} {a : α} {b : β}
+include n
+local attribute [instance, priority 10] classical.prop_decidable
 
 /-- Construct the inverse for a function `f` on domain `s`. -/
 noncomputable def inv_fun_on (f : α → β) (s : set α) (b : β) : α :=
-if h : ∃a, a ∈ s ∧ f a = b then classical.some h else default α
+if h : ∃a, a ∈ s ∧ f a = b then classical.some h else classical.choice n
 
 theorem inv_fun_on_pos (h : ∃a∈s, f a = b) : inv_fun_on f s b ∈ s ∧ f (inv_fun_on f s b) = b :=
 by rw [bex_def] at h; rw [inv_fun_on, dif_pos h]; exact classical.some_spec h
@@ -131,7 +137,7 @@ theorem inv_fun_on_eq' (h : ∀ x y ∈ s, f x = f y → x = y) (ha : a ∈ s) :
 have ∃a'∈s, f a' = f a, from ⟨a, ha, rfl⟩,
 h _ _ (inv_fun_on_mem this) ha (inv_fun_on_eq this)
 
-theorem inv_fun_on_neg (h : ¬ ∃a∈s, f a = b) : inv_fun_on f s b = default α :=
+theorem inv_fun_on_neg (h : ¬ ∃a∈s, f a = b) : inv_fun_on f s b = classical.choice n :=
 by rw [bex_def] at h; rw [inv_fun_on, dif_neg h]
 
 /-- The inverse of a function (which is a left inverse if `f` is injective
@@ -141,7 +147,7 @@ noncomputable def inv_fun (f : α → β) : β → α := inv_fun_on f set.univ
 theorem inv_fun_eq (h : ∃a, f a = b) : f (inv_fun f b) = b :=
 inv_fun_on_eq $ let ⟨a, ha⟩ := h in ⟨a, trivial, ha⟩
 
-lemma inv_fun_neg (h : ¬ ∃ a, f a = b) : inv_fun f b = default α :=
+lemma inv_fun_neg (h : ¬ ∃ a, f a = b) : inv_fun f b = classical.choice n :=
 by refine inv_fun_on_neg (mt _ h); exact assume ⟨a, _, ha⟩, ⟨a, ha⟩
 
 theorem inv_fun_eq_of_injective_of_right_inverse {g : β → α}
@@ -162,6 +168,12 @@ lemma inv_fun_surjective (hf : injective f) : surjective (inv_fun f) :=
 surjective_of_has_right_inverse ⟨_, left_inverse_inv_fun hf⟩
 
 lemma inv_fun_comp (hf : injective f) : inv_fun f ∘ f = id := funext $ left_inverse_inv_fun hf
+
+end inv_fun
+
+section inv_fun
+variables {α : Type u} [i : nonempty α] {β : Sort v} {f : α → β}
+include i
 
 lemma injective.has_left_inverse (hf : injective f) : has_left_inverse f :=
 ⟨inv_fun f, left_inverse_inv_fun hf⟩
@@ -202,16 +214,43 @@ injective_of_has_left_inverse ⟨f, right_inverse_surj_inv h⟩
 end surj_inv
 
 section update
-variables {α : Sort u} {β : α → Sort v} [decidable_eq α]
+variables {α : Sort u} {β : α → Sort v} {α' : Sort w} [decidable_eq α] [decidable_eq α']
 
+/-- Replacing the value of a function at a given point by a given value. -/
 def update (f : Πa, β a) (a' : α) (v : β a') (a : α) : β a :=
 if h : a = a' then eq.rec v h.symm else f a
 
-@[simp] lemma update_same {a : α} {v : β a} {f : Πa, β a} : update f a v a = v :=
+@[simp] lemma update_same (a : α) (v : β a) (f : Πa, β a) : update f a v a = v :=
 dif_pos rfl
 
-@[simp] lemma update_noteq {a a' : α} {v : β a'} {f : Πa, β a} (h : a ≠ a') : update f a' v a = f a :=
+@[simp] lemma update_noteq {a a' : α} (h : a ≠ a') (v : β a') (f : Πa, β a) : update f a' v a = f a :=
 dif_neg h
+
+@[simp] lemma update_eq_self (a : α) (f : Πa, β a) : update f a (f a) = f :=
+begin
+  refine funext (λi, _),
+  by_cases h : i = a,
+  { rw h, simp },
+  { simp [h] }
+end
+
+lemma update_comp {β : Sort v} (f : α → β) {g : α' → α} (hg : injective g) (a : α') (v : β) :
+  (update f (g a) v) ∘ g = update (f ∘ g) a v :=
+begin
+  refine funext (λi, _),
+  by_cases h : i = a,
+  { rw h, simp },
+  { simp [h, hg.ne] }
+end
+
+lemma comp_update {α' : Sort*} {β : Sort*} (f : α' → β) (g : α → α') (i : α) (v : α') :
+  f ∘ (update g i v) = update (f ∘ g) i (f v) :=
+begin
+  refine funext (λj, _),
+  by_cases h : j = i,
+  { rw h, simp },
+  { simp [h] }
+end
 
 end update
 
@@ -253,4 +292,27 @@ lemma uncurry'_bicompr (f : α → β → γ) (g : γ → δ) :
   uncurry' (g ∘₂ f) = (g ∘ uncurry' f) := rfl
 end bicomp
 
+/-- A function is involutive, if `f ∘ f = id`. -/
+def involutive {α} (f : α → α) : Prop := ∀ x, f (f x) = x
+
+lemma involutive_iff_iter_2_eq_id {α} {f : α → α} : involutive f ↔ (f^[2] = id) :=
+funext_iff.symm
+
+namespace involutive
+variables {α : Sort u} {f : α → α} (h : involutive f)
+
+protected lemma left_inverse : left_inverse f f := h
+protected lemma right_inverse : right_inverse f f := h
+
+protected lemma injective : injective f := injective_of_left_inverse h.left_inverse
+protected lemma surjective : surjective f := λ x, ⟨f x, h x⟩
+protected lemma bijective : bijective f := ⟨h.injective, h.surjective⟩
+
+end involutive
+
 end function
+
+/-- `s.piecewise f g` is the function equal to `f` on the set `s`, and to `g` on its complement. -/
+def set.piecewise {α : Type u} {β : α → Sort v} (s : set α) (f g : Πi, β i) [∀j, decidable (j ∈ s)] :
+  Πi, β i :=
+λi, if i ∈ s then f i else g i

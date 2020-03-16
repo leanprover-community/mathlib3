@@ -49,6 +49,8 @@ def op_obj_unop (X : Cᵒᵖ) :
 @[simp] lemma op_obj_unop_hom_app (X : Cᵒᵖ) (j : Jᵒᵖ) : (op_obj_unop.{v₁ v₂} X).hom.app j = 𝟙 _ := rfl
 @[simp] lemma op_obj_unop_inv_app (X : Cᵒᵖ) (j : Jᵒᵖ) : (op_obj_unop.{v₁ v₂} X).inv.app j = 𝟙 _ := rfl
 
+@[simp] lemma unop_functor_op_obj_map (X : Cᵒᵖ) {j₁ j₂ : J} (f : j₁ ⟶ j₂) :
+  (unop ((functor.op (const J)).obj X)).map f = 𝟙 (unop X) := rfl
 end const
 
 
@@ -60,16 +62,10 @@ include 𝒟
 /-- These are actually equal, of course, but not definitionally equal
   (the equality requires F.map (𝟙 _) = 𝟙 _). A natural isomorphism is
   more convenient than an equality between functors (compare id_to_iso). -/
-@[simp] def const_comp (X : C) (F : C ⥤ D) :
+@[simps] def const_comp (X : C) (F : C ⥤ D) :
   (const J).obj X ⋙ F ≅ (const J).obj (F.obj X) :=
 { hom := { app := λ _, 𝟙 _ },
   inv := { app := λ _, 𝟙 _ } }
-
-@[simp] lemma const_comp_hom_app (X : C) (F : C ⥤ D) (j : J) :
-  (const_comp J X F).hom.app j = 𝟙 _ := rfl
-
-@[simp] lemma const_comp_inv_app (X : C) (F : C ⥤ D) (j : J) :
-  (const_comp J X F).inv.app j = 𝟙 _ := rfl
 
 end
 

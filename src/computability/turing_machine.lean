@@ -15,10 +15,13 @@ namespace turing
 
 /-- A direction for the turing machine `move` command, either
   left or right. -/
-@[derive decidable_eq]
+@[derive decidable_eq, derive inhabited]
 inductive dir | left | right
 
 def tape (Γ) := Γ × list Γ × list Γ
+
+instance {Γ} [inhabited Γ] : inhabited (tape Γ) :=
+⟨by constructor; apply default⟩
 
 def tape.mk {Γ} [inhabited Γ] (l : list Γ) : tape Γ :=
 (l.head, [], l.tail)
@@ -329,6 +332,7 @@ parameters (Λ : Type*) [inhabited Λ] -- type of "labels" or TM states
 
 /-- A Turing machine "statement" is just a command to either move
   left or right, or write a symbol on the tape. -/
+@[derive inhabited]
 inductive stmt
 | move {} : dir → stmt
 | write {} : Γ → stmt
@@ -338,17 +342,20 @@ inductive stmt
   the tape head `a : Γ`, either halts (returns `none`) or returns
   a new state `q' : Λ` and a `stmt` describing what to do,
   either a move left or right, or a write command.
-  
+
   Both `Λ` and `Γ` are required to be inhabited; the default value
   for `Γ` is the "blank" tape value, and the default value of `Λ` is
   the initial state. -/
 def machine := Λ → Γ → option (Λ × stmt)
+
+instance machine.inhabited : inhabited machine := by unfold machine; apply_instance
 
 /-- The configuration state of a Turing machine during operation
   consists of a label (machine state), and a tape, represented in
   the form `(a, L, R)` meaning the tape looks like `L.rev ++ [a] ++ R`
   with the machine currently reading the `a`. The lists are
   automatically extended with blanks as the machine moves around. -/
+@[derive inhabited]
 structure cfg :=
 (q : Λ)
 (tape : tape Γ)
@@ -421,7 +428,7 @@ def machine.map : machine Γ' Λ'
 theorem machine.map_step {S} (ss : supports M S)
   [pointed_map f₁] (f₂₁ : function.right_inverse f₁ f₂)
   (g₂₁ : ∀ q ∈ S, g₂ (g₁ q) = q) :
-  ∀ c : cfg Γ Λ, c.q ∈ S → 
+  ∀ c : cfg Γ Λ, c.q ∈ S →
     (step M c).map (cfg.map f₁ g₁) =
     step (M.map f₁ f₂ g₁ g₂) (cfg.map f₁ g₁ c)
 | ⟨q, T⟩ h := begin
@@ -481,8 +488,11 @@ inductive stmt
 | halt {} : stmt
 open stmt
 
+instance stmt.inhabited : inhabited stmt := ⟨halt⟩
+
 /-- The configuration of a TM1 machine is given by the currently
   evaluating statement, the variable store value, and the tape. -/
+@[derive inhabited]
 structure cfg :=
 (l : option Λ)
 (var : σ)
@@ -525,7 +535,7 @@ def supports_stmt (S : finset Λ) : stmt → Prop
 def supports (M : Λ → stmt) (S : finset Λ) :=
 default Λ ∈ S ∧ ∀ q ∈ S, supports_stmt S (M q)
 
-local attribute [instance] classical.dec
+open_locale classical
 noncomputable def stmts₁ : stmt → finset stmt
 | Q@(move d q)       := insert Q (stmts₁ q)
 | Q@(write a q)      := insert Q (stmts₁ q)
@@ -667,7 +677,7 @@ variables [fintype Γ] [fintype σ]
 noncomputable def tr_stmts (S : finset Λ) : finset Λ' :=
 (TM1.stmts M S).product finset.univ
 
-local attribute [instance] classical.dec
+open_locale classical
 local attribute [simp] TM1.stmts₁_self
 theorem tr_supports {S : finset Λ} (ss : TM1.supports M S) :
   TM0.supports tr (↑(tr_stmts S)) :=
@@ -976,7 +986,7 @@ fun_respects.2 $ λ ⟨l₁, v, (a, L, R)⟩, begin
     change (tape.mk' L R).1 with R.head,
     cases p R.head v; [apply IH₂, apply IH₁] },
   case TM1.stmt.goto : l {
-    simp only [tr_normal, step_aux_read enc dec enc0 encdec, step_aux], 
+    simp only [tr_normal, step_aux_read enc dec enc0 encdec, step_aux],
     apply refl_trans_gen.refl },
   case TM1.stmt.halt {
     simp only [tr_normal, step_aux, tr_cfg, step_aux_move enc enc0,
@@ -985,7 +995,7 @@ fun_respects.2 $ λ ⟨l₁, v, (a, L, R)⟩, begin
 end
 
 omit enc0 encdec
-local attribute [instance] classical.dec
+open_locale classical
 parameters [fintype Γ]
 noncomputable def writes : stmt₁ → finset Λ'
 | (stmt.move d q)       := writes q
@@ -1154,10 +1164,15 @@ inductive stmt
 | halt {} : stmt
 open stmt
 
+instance stmt.inhabited : inhabited stmt := ⟨halt⟩
+
 structure cfg :=
 (l : option Λ)
 (var : σ)
 (stk : ∀ k, list (Γ k))
+
+instance cfg.inhabited [inhabited σ] [∀ k, inhabited (Γ k)] : inhabited cfg :=
+⟨by constructor; intros; apply default⟩
 
 parameters {Γ Λ σ K}
 def step_aux : stmt → σ → (∀ k, list (Γ k)) → cfg
@@ -1197,7 +1212,7 @@ def supports_stmt (S : finset Λ) : stmt → Prop
 def supports (M : Λ → stmt) (S : finset Λ) :=
 default Λ ∈ S ∧ ∀ q ∈ S, supports_stmt S (M q)
 
-local attribute [instance] classical.dec
+open_locale classical
 noncomputable def stmts₁ : stmt → finset stmt
 | Q@(push k f q)     := insert Q (stmts₁ q)
 | Q@(peek k f q)     := insert Q (stmts₁ q)
@@ -1304,11 +1319,11 @@ instance stackel.inhabited (k) : inhabited (stackel k) :=
 
 def stackel.is_bottom {k} : stackel k → bool
 | (stackel.bottom _) := tt
-| _ := ff 
+| _ := ff
 
 def stackel.is_top {k} : stackel k → bool
 | (stackel.top _) := tt
-| _ := ff 
+| _ := ff
 
 def stackel.get {k} : stackel k → option (Γ k)
 | (stackel.val a) := some a
@@ -1345,6 +1360,9 @@ inductive st_act (k : K)
 section
 open st_act
 
+instance st_act.inhabited {k} : inhabited (st_act k) :=
+⟨pop (default _) (λ s _, s)⟩
+
 def st_run {k : K} : st_act k → stmt₂ → stmt₂
 | (push f)   := TM2.stmt.push k f
 | (pop ff f) := TM2.stmt.peek k f
@@ -1359,7 +1377,7 @@ def st_write {k : K} (v : σ) (l : list (Γ k)) : st_act k → list (Γ k)
 | (pop ff f) := l
 | (pop tt f) := l.tail
 
-@[elab_as_eliminator] theorem {l} stmt_st_rec
+@[elab_as_eliminator] def {l} stmt_st_rec
   {C : stmt₂ → Sort l}
   (H₁ : Π k (s : st_act k) q (IH : C q), C (st_run s q))
   (H₂ : Π a q (IH : C q), C (TM2.stmt.load a q))
@@ -1649,7 +1667,7 @@ begin
 end
 
 variables [fintype K] [∀ k, fintype (Γ k)] [fintype σ]
-local attribute [instance] classical.dec
+open_locale classical
 local attribute [simp] TM2.stmts₁_self
 
 noncomputable def tr_stmts₁ : stmt₂ → finset Λ'
@@ -1686,7 +1704,7 @@ theorem tr_supports {S} (ss : TM2.supports M S) :
   { -- stack op
     rw TM2to1.supports_run at ss',
     simp only [TM2to1.tr_stmts₁_run, finset.mem_union,
-      finset.has_insert_eq_insert, finset.insert_empty_eq_singleton,
+      finset.insert_empty_eq_singleton,
       finset.mem_insert, finset.mem_singleton] at sub,
     have hgo := sub _ (or.inl $ or.inr rfl),
     have hret := sub _ (or.inl $ or.inl rfl),
@@ -1694,7 +1712,7 @@ theorem tr_supports {S} (ss : TM2.supports M S) :
     refine ⟨by simp only [tr_normal_run, TM1.supports_stmt]; intros; exact hgo, λ l h, _⟩,
     rw [tr_stmts₁_run] at h,
     simp only [TM2to1.tr_stmts₁_run, finset.mem_union,
-      finset.has_insert_eq_insert, finset.insert_empty_eq_singleton,
+      finset.insert_empty_eq_singleton,
       finset.mem_insert, finset.mem_singleton] at h,
     rcases h with ⟨rfl | rfl⟩ | h,
     { unfold TM1.supports_stmt TM2to1.tr,

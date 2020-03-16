@@ -379,7 +379,7 @@ meta def find_rule (ls : list name) : mono_law → tactic (list expr)
 
 universes u v
 
-lemma apply_rel {α : Sort u} (R : α → α → Sort v) {x y : α}
+def apply_rel {α : Sort u} (R : α → α → Sort v) {x y : α}
   (x' y' : α)
   (h : R x y)
   (hx : x = x')
@@ -405,7 +405,7 @@ open monad
 
 /-- tactic-facing function, similar to `interactive.tactic.generalize` with the
 exception that meta variables -/
-meta def generalize' (h : name) (v : expr) (x : name) : tactic (expr × expr) :=
+private meta def monotonicity.generalize' (h : name) (v : expr) (x : name) : tactic (expr × expr) :=
 do tgt ← target,
    t ← infer_type v,
    tgt' ← do {
@@ -427,7 +427,7 @@ do tgt ← target >>= instantiate_mvars,
    vs' ← mmap (λ v,
              do h ← get_unused_name `h,
                 x ← get_unused_name `x,
-                prod.snd <$> generalize' h v x) vs,
+                prod.snd <$> monotonicity.generalize' h v x) vs,
      tac ctx;
      vs'.mmap' (try ∘ tactic.subst)
 
@@ -488,13 +488,18 @@ do t ← target >>= instantiate_mvars,
    for `x + y < w + z` could be broken down into either
     - left:  `x ≤ w` and `y < z` or
     - right: `x < w` and `y ≤ z`
+- `mono using [rule1,rule2]` calls `simp [rule1,rule2]` before applying mono.
+- The general syntax is `mono '*'? ('with' hyp | 'with' [hyp1,hyp2])? ('using' [hyp1,hyp2])? mono_cfg?
 -/
-meta def mono (many : parse (tk "*")?) (dir : parse side)
+meta def mono (many : parse (tk "*")?)
+  (dir : parse side)
   (hyps : parse $ tk "with" *> pexpr_list_or_texpr <|> pure [])
+  (simp_rules : parse $ tk "using" *> simp_arg_list <|> pure [])
   (cfg : mono_cfg := { mono_cfg . }) :
   tactic unit :=
 do hyps ← hyps.mmap (λ p, to_expr p >>= mk_meta_var),
    hyps.mmap' (λ pr, do h ← get_unused_name `h, note h none pr),
+   when (¬ simp_rules.empty) (simp_core { } failed tt simp_rules [] (loc.ns [none])),
    if many.is_some
      then repeat $ mono_aux dir cfg
      else mono_aux dir cfg,
@@ -550,7 +555,7 @@ meta def repeat_until_or_at_most : nat → tactic unit → tactic unit → tacti
 meta def repeat_until : tactic unit → tactic unit → tactic unit :=
 repeat_until_or_at_most 100000
 
-@[derive _root_.has_reflect]
+@[derive _root_.has_reflect, derive _root_.inhabited]
 inductive rep_arity : Type
 | one | exactly (n : ℕ) | many
 

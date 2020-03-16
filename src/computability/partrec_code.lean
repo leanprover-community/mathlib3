@@ -45,6 +45,8 @@ namespace nat.partrec.code
 open nat (mkpair unpair)
 open nat.partrec (code)
 
+instance : inhabited code := ⟨zero⟩
+
 protected def const : ℕ → code
 | 0     := zero
 | (n+1) := comp succ (const n)
@@ -558,6 +560,7 @@ def evaln : ∀ k : ℕ, code → ℕ → option ℕ
   x ← evaln (k+1) cf (mkpair a m),
   if x = 0 then pure m else
   evaln k (rfind' cf) (mkpair a (m+1)))
+using_well_founded wf_tacs
 
 theorem evaln_bound : ∀ {k c n x}, x ∈ evaln k c n → n < k
 | 0     c n x h := by simp [evaln] at h; cases h
@@ -628,11 +631,12 @@ theorem evaln_sound : ∀ {k c n x}, x ∈ evaln k c n → x ∈ eval c n
         by injection h₂ with h₂; simp [h₂]⟩ },
     { have := evaln_sound h₂, simp [eval] at this,
       rcases this with ⟨y, ⟨hy₁, hy₂⟩, rfl⟩,
-      refine ⟨y+1, ⟨by simpa using hy₁, λ i im, _⟩, by simp⟩,
+      refine ⟨ y+1, ⟨by simpa [add_comm, add_left_comm] using hy₁, λ i im, _⟩,
+               by simp [add_comm, add_left_comm] ⟩,
       cases i with i,
       { exact ⟨m, by simpa using hf _ _ h₁, m0⟩ },
       { rcases hy₂ (nat.lt_of_succ_lt_succ im) with ⟨z, hz, z0⟩,
-        exact ⟨z, by simpa [nat.succ_eq_add_one] using hz, z0⟩ } } }
+        exact ⟨z, by simpa [nat.succ_eq_add_one, add_comm, add_left_comm] using hz, z0⟩ } } }
 end
 
 theorem evaln_complete {c n x} : x ∈ eval c n ↔ ∃ k, x ∈ evaln k c n :=
@@ -682,15 +686,17 @@ theorem evaln_complete {c n x} : x ∈ eval c n ↔ ∃ k, x ∈ evaln k c n :=
     { rcases hy₂ (nat.succ_pos _) with ⟨a, ha, a0⟩,
       rcases hf ha with ⟨k₁, hk₁⟩,
       rcases IH m.succ
-          (by simpa [nat.succ_eq_add_one] using hy₁)
-          (λ i hi, by simpa [nat.succ_eq_add_one] using hy₂ (nat.succ_lt_succ hi))
+          (by simpa [nat.succ_eq_add_one, add_comm, add_left_comm] using hy₁)
+          (λ i hi, by simpa [nat.succ_eq_add_one, add_comm, add_left_comm] using
+            hy₂ (nat.succ_lt_succ hi))
         with ⟨k₂, hk₂⟩,
-      simp at hk₁,
-      exact ⟨(max k₁ k₂).succ, nat.le_succ_of_le $
-        le_max_left_of_le $ nat.le_of_lt_succ $ evaln_bound hk₁, a,
-        evaln_mono (nat.succ_le_succ $ nat.le_succ_of_le $ le_max_left _ _) hk₁,
-        by simpa [nat.succ_eq_add_one, a0, -max_eq_left, -max_eq_right] using
-          evaln_mono (nat.succ_le_succ $ le_max_right _ _) hk₂⟩ } }
+      use (max k₁ k₂).succ,
+      rw [zero_add] at hk₁,
+      use (nat.le_succ_of_le $ le_max_left_of_le $ nat.le_of_lt_succ $ evaln_bound hk₁),
+      use a,
+      use evaln_mono (nat.succ_le_succ $ nat.le_succ_of_le $ le_max_left _ _) hk₁,
+      simpa [nat.succ_eq_add_one, a0, -max_eq_left, -max_eq_right, add_comm, add_left_comm] using
+          evaln_mono (nat.succ_le_succ $ le_max_right _ _) hk₂ } }
 end, λ ⟨k, h⟩, evaln_sound h⟩
 
 section
@@ -808,7 +814,7 @@ private lemma evaln_map (k c n) :
 begin
   by_cases kn : n < k,
   { simp [list.nth_range kn] },
-  { rw list.nth_ge_len,
+  { rw list.nth_len_le,
     { cases e : evaln k c n, {refl},
       exact kn.elim (evaln_bound e) },
     simpa using kn }

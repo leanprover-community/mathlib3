@@ -2,6 +2,11 @@
 Copyright (c) 2018 Robert Y. Lewis. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Author: Robert Y. Lewis
+-/
+
+import tactic.ring data.nat.gcd data.list.defs meta.rb_map data.tree
+
+/-!
 
 A tactic for discharging linear arithmetic goals using Fourier-Motzkin elimination.
 
@@ -10,8 +15,6 @@ A tactic for discharging linear arithmetic goals using Fourier-Motzkin eliminati
 @TODO: investigate storing comparisons in a list instead of a set, for possible efficiency gains
 @TODO: delay proofs of denominator normalization and nat casting until after contradiction is found
 -/
-
-import tactic.ring data.nat.gcd data.list.basic meta.rb_map
 
 meta def nat.to_pexpr : ℕ → pexpr
 | 0 := ``(0)
@@ -64,7 +67,7 @@ neg_of_neg_pos (by simpa)
 
 lemma mul_nonpos {α} [ordered_ring α] {a b : α} (ha : a ≤ 0) (hb : b > 0) : b * a ≤ 0 :=
 have (-b)*a ≥ 0, from mul_nonneg_of_nonpos_of_nonpos (le_of_lt (neg_neg_of_pos hb)) ha,
-nonpos_of_neg_nonneg (by simp at this; exact this)
+(by simpa)
 
 lemma mul_eq {α} [ordered_semiring α] {a b : α} (ha : a = 0) (hb : b > 0) : b * a = 0 :=
 by simp *
@@ -76,7 +79,7 @@ lemma add_subst {α} [ring α] {n e1 e2 t1 t2 : α} (h1 : n * e1 = t1) (h2 : n *
       n * (e1 + e2) = t1 + t2 := by simp [left_distrib, *]
 
 lemma sub_subst {α} [ring α] {n e1 e2 t1 t2 : α} (h1 : n * e1 = t1) (h2 : n * e2 = t2) :
-      n * (e1 - e2) = t1 - t2 := by simp [left_distrib, *]
+      n * (e1 - e2) = t1 - t2 := by simp [left_distrib, *, sub_eq_add_neg]
 
 lemma neg_subst {α} [ring α] {n e t : α} (h1 : n * e = t) : n * (-e) = -t := by simp *
 
@@ -95,7 +98,7 @@ end lemmas
 
 section datatypes
 
-@[derive decidable_eq]
+@[derive decidable_eq, derive inhabited]
 inductive ineq
 | eq | le | lt
 
@@ -126,11 +129,10 @@ instance : has_to_string ineq := ⟨ineq.to_string⟩
   The represented term is coeffs.keys.sum (λ i, coeffs.find i * Var[i]).
   str determines the direction of the comparison -- is it < 0, ≤ 0, or = 0?
 -/
+@[derive _root_.inhabited]
 meta structure comp :=
 (str : ineq)
 (coeffs : rb_map ℕ int)
-
-meta instance : inhabited comp := ⟨⟨ineq.eq, mk_rb_map⟩⟩
 
 meta inductive comp_source
 | assump : ℕ → comp_source
@@ -163,6 +165,7 @@ meta def comp.lt (c1 c2 : comp) : bool :=
 
 meta instance comp.has_lt : has_lt comp := ⟨λ a b, comp.lt a b⟩
 meta instance pcomp.has_lt : has_lt pcomp := ⟨λ p1 p2, p1.c < p2.c⟩
+ -- short-circuit type class inference
 meta instance pcomp.has_lt_dec : decidable_rel ((<) : pcomp → pcomp → Prop) := by apply_instance
 
 meta def comp.coeff_of (c : comp) (a : ℕ) : ℤ :=
@@ -541,16 +544,6 @@ meta def is_numeric : expr → option ℚ
 | `(-%%e) := rat.neg <$> is_numeric e
 | e := e.to_rat
 
-inductive {u} tree (α : Type u) : Type u
-| nil {} : tree
-| node : α → tree → tree → tree
-
-def tree.repr {α} [has_repr α] : tree α → string
-| tree.nil := "nil"
-| (tree.node a t1 t2) := "tree.node " ++ repr a ++ " (" ++ tree.repr t1 ++ ") (" ++ tree.repr t2 ++ ")"
-
-instance {α} [has_repr α] : has_repr (tree α) := ⟨tree.repr⟩
-
 meta def find_cancel_factor : expr → ℕ × tree ℕ
 | `(%%e1 + %%e2) :=
   let (v1, t1) := find_cancel_factor e1, (v2, t2) := find_cancel_factor e2, lcm := v1.lcm v2 in
@@ -640,6 +633,7 @@ meta def get_contr_lemma_name : expr → option name
 | `(%%a < %%b) := return `lt_of_not_ge
 | `(%%a ≤ %%b) := return `le_of_not_gt
 | `(%%a = %%b) := return ``eq_of_not_lt_of_not_gt
+| `(%%a ≠ %%b) := return `not.intro
 | `(%%a ≥ %%b) := return `le_of_not_gt
 | `(%%a > %%b) := return `lt_of_not_ge
 | `(¬ %%a < %%b) := return `not.intro
@@ -761,13 +755,14 @@ do l' ← replace_nat_pfs l,
    ls ← list.reduce_option <$> l''.mmap (λ h, (do s ← norm_hyp h, return (some s)) <|> return none)
           >>= partition_by_type,
    pref_type ← (unify pref_type.iget `(ℕ) >> return (some `(ℤ) : option expr)) <|> return pref_type,
-   match cfg.restrict_type, ls.values, pref_type with
+   match cfg.restrict_type, rb_map.values ls, pref_type with
    | some rtp, _, _ :=
       do m ← mk_mvar, unify `(some %%m : option Type) cfg.restrict_type_reflect, m ← instantiate_mvars m,
          prove_false_by_linarith1 cfg (ls.ifind m)
    | none, [ls'], _ := prove_false_by_linarith1 cfg ls'
    | none, ls', none := try_linarith_on_lists cfg ls'
-   | none, _, (some t) := prove_false_by_linarith1 cfg (ls.ifind t) <|> try_linarith_on_lists cfg (ls.erase t).values
+   | none, _, (some t) := prove_false_by_linarith1 cfg (ls.ifind t) <|>
+      try_linarith_on_lists cfg (rb_map.values (ls.erase t))
    end
 
 end normalize
@@ -839,5 +834,7 @@ do t ← target,
    | none := if cfg.exfalso then exfalso >> linarith.interactive_aux cfg none restr.is_some hyps
              else fail "linarith failed: target type is not an inequality."
    end
+
+add_hint_tactic "linarith"
 
 end

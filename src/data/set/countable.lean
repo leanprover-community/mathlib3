@@ -12,7 +12,7 @@ noncomputable theory
 open function set encodable
 
 open classical (hiding some)
-local attribute [instance] prop_decidable
+open_locale classical
 universes u v w
 variables {α : Type u} {β : Type v} {γ : Type w}
 
@@ -40,9 +40,9 @@ countable_iff_exists_injective.trans
      hf $ by simpa [as, bs] using h⟩,
  λ ⟨f, hf⟩, ⟨_, inj_on_iff_injective.1 hf⟩⟩
 
-lemma countable_iff_exists_surjective [ne : inhabited α] {s : set α} :
+lemma countable_iff_exists_surjective [ne : nonempty α] {s : set α} :
   countable s ↔ ∃f:ℕ → α, s ⊆ range f :=
-⟨λ ⟨h⟩, by exactI ⟨λ n, ((decode s n).map subtype.val).iget,
+⟨λ ⟨h⟩, by inhabit α; exactI ⟨λ n, ((decode s n).map subtype.val).iget,
   λ a as, ⟨encode (⟨a, as⟩ : s), by simp [encodek]⟩⟩,
  λ ⟨f, hf⟩, ⟨⟨
   λ x, inv_fun f x.1,
@@ -51,6 +51,20 @@ lemma countable_iff_exists_surjective [ne : inhabited α] {s : set α} :
     have := inv_fun_eq (hf hx), dsimp at this ⊢,
     simp [this, hx]
   end⟩⟩⟩
+
+/--
+A non-empty set is countable iff there exists a surjection from the
+natural numbers onto the subtype induced by the set.
+-/
+lemma countable_iff_exists_surjective_to_subtype {s : set α} (hs : s.nonempty) :
+  countable s ↔ ∃ f : ℕ → s, surjective f :=
+have inhabited s, from ⟨classical.choice hs.to_subtype⟩,
+have countable s → ∃ f : ℕ → s, surjective f, from assume ⟨h⟩,
+  by exactI ⟨λ n, (decode s n).iget, λ a, ⟨encode a, by simp [encodek]⟩⟩,
+have (∃ f : ℕ → s, surjective f) → countable s, from assume ⟨f, fsurj⟩,
+  ⟨⟨inv_fun f, option.some ∘ f,
+    by intro h; simp [(inv_fun_eq (fsurj h) : f (inv_fun f h) = h)]⟩⟩,
+by split; assumption
 
 def countable.to_encodable {s : set α} : countable s → encodable s :=
 classical.choice
@@ -61,10 +75,10 @@ lemma countable_encodable' (s : set α) [H : encodable s] : countable s :=
 lemma countable_encodable [encodable α] (s : set α) : countable s :=
 ⟨by apply_instance⟩
 
-lemma exists_surjective_of_countable {s : set α} (hs : s ≠ ∅) (hc : countable s) :
+lemma exists_surjective_of_countable {s : set α} (hs : s.nonempty) (hc : countable s) :
   ∃f:ℕ → α, s = range f :=
 begin
-  rcases ne_empty_iff_exists_mem.1 hs with ⟨x, hx⟩,
+  rcases hs with ⟨x, hx⟩,
   letI : encodable s := countable.to_encodable hc,
   letI : inhabited s := ⟨⟨x, hx⟩⟩,
   have : countable (univ : set s) := countable_encodable _,
@@ -95,7 +109,7 @@ by rw ← image_univ; exact countable_image _ (countable_encodable _)
 lemma countable_of_injective_of_countable_image {s : set α} {f : α → β}
   (hf : inj_on f s) (hs : countable (f '' s)) : countable s :=
 let ⟨g, hg⟩ := countable_iff_exists_inj_on.1 hs in
-countable_iff_exists_inj_on.2 ⟨g ∘ f, inj_on_comp (maps_to_image _ _) hg hf⟩
+countable_iff_exists_inj_on.2 ⟨g ∘ f, hg.comp hf (maps_to_image _ _)⟩
 
 lemma countable_Union {t : α → set β} [encodable α] (ht : ∀a, countable (t a)) :
   countable (⋃a, t a) :=

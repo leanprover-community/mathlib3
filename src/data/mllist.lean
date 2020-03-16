@@ -1,7 +1,7 @@
 /-
 Copyright (c) 2018 Scott Morrison. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Author: Mario Carnerio, Keeley Hoek, Simon Hudon, Scott Morrison
+Author: Mario Carneiro, Keeley Hoek, Simon Hudon, Scott Morrison
 
 Monadic lazy lists.
 
@@ -10,7 +10,7 @@ This isn't so bad, as the typical use is with the tactic monad, in any case.
 
 As we're in meta anyway, we don't bother with proofs about these constructions.
 -/
-import data.option.basic
+import data.option.defs
 universes u v
 
 namespace tactic -- We hide this away in the tactic namespace, just because it's all meta.
@@ -69,7 +69,7 @@ meta def take {α} : mllist m α → ℕ → m (list α)
 | _ 0 := pure []
 | (cons l) (n+1) :=
   do (x, xs) ← l,
-     some x ← pure x | take xs n,
+     some x ← pure x | take xs (n+1),
      (::) x <$> (take xs n)
 
 meta def map {α β : Type u} (f : α → β) : mllist m α → mllist m β
@@ -142,6 +142,8 @@ cons $ do (a, r) ← l,
 
 meta def enum {α : Type u} : mllist m α → mllist m (ℕ × α) := enum_from 0
 
+meta def range {m : Type → Type} [alternative m] : mllist m ℕ := mllist.fix (λ n, pure (n + 1)) 0
+
 meta def concat {α : Type u} : mllist m α → α → mllist m α
 | L a := (mllist.of_list [L, mllist.of_list [a]]).join
 
@@ -153,6 +155,13 @@ cons $ do (x, xs) ← ll,
           return (none, append (f x) (bind_ xs f))
 
 meta def monad_lift {α} (x : m α) : mllist m α := cons $ (flip prod.mk nil ∘ some) <$> x
+
+meta def head [alternative m] {α} (L : mllist m α) : m α :=
+do some (r, _) ← L.uncons | failure,
+   return r
+
+meta def mfirst [alternative m] {α β} (L : mllist m α) (f : α → m β) : m β :=
+(L.mfilter_map f).head
 
 end mllist
 

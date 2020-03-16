@@ -6,6 +6,7 @@ Authors: Scott Morrison
 import logic.basic
 import tactic.core
 import data.option.defs
+import tactic.hint
 
 open tactic
 
@@ -15,6 +16,7 @@ do t' ← infer_type h,
   let use_cases := match t' with
   | `(empty)     := tt
   | `(pempty)    := tt
+  | `(false)     := tt
   | `(unit)      := tt
   | `(punit)     := tt
   | `(ulift _)   := tt
@@ -22,6 +24,7 @@ do t' ← infer_type h,
   | `(prod _ _)  := tt
   | `(and _ _)   := tt
   | `(sigma _)   := tt
+  | `(psigma _)  := tt
   | `(subtype _) := tt
   | `(Exists _)  := tt
   | `(fin 0)     := tt
@@ -42,6 +45,7 @@ do t' ← infer_type h,
     end
 
 /-- Applies `cases` or `induction` on certain hypotheses. -/
+@[hint_tactic]
 meta def auto_cases : tactic string :=
 do l ← local_context,
    results ← successes (l.reverse.map(λ h, auto_cases_at h)),

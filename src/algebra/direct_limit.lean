@@ -105,7 +105,7 @@ theorem lift_unique (F : direct_limit G f →ₗ[R] P) (x) :
 direct_limit.induction_on x $ λ i x, by rw lift_of; refl
 
 section totalize
-local attribute [instance, priority 0] classical.dec
+open_locale classical
 variables (G f)
 noncomputable def totalize : Π i j, G i →ₗ[R] G j :=
 λ i j, if h : i ≤ j then f i j h else 0
@@ -123,7 +123,8 @@ lemma to_module_totalize_of_le {x : direct_sum ι G} {i j : ι}
   direct_sum.to_module R ι (G j) (λ k, totalize G f k j) x =
   f i j hij (direct_sum.to_module R ι (G i) (λ k, totalize G f k i) x) :=
 begin
-  rw [← @dfinsupp.sum_single ι G _ _ _ x, dfinsupp.sum],
+  rw [← @dfinsupp.sum_single ι G _ _ _ x],
+  unfold dfinsupp.sum,
   simp only [linear_map.map_sum],
   refine finset.sum_congr rfl (λ k hk, _),
   rw direct_sum.single_eq_lof R k (x k),
@@ -194,7 +195,7 @@ namespace direct_limit
 variables (f : Π i j, i ≤ j → G i → G j)
 variables [Π i j hij, is_add_group_hom (f i j hij)] [directed_system G f]
 
-def directed_system : module.directed_system G (λ i j hij, is_add_group_hom.to_linear_map $ f i j hij) :=
+lemma directed_system : module.directed_system G (λ i j hij, is_add_group_hom.to_linear_map $ f i j hij) :=
 ⟨directed_system.map_self f, directed_system.map_map f⟩
 
 local attribute [instance] directed_system
@@ -328,7 +329,7 @@ quotient.induction_on' z $ λ x, free_abelian_group.induction_on x
 let ⟨i, x, hx⟩ := exists_of z in hx ▸ ih i x
 
 section of_zero_exact
-local attribute [instance, priority 0] classical.dec
+open_locale classical
 variables (G f)
 lemma of.zero_exact_aux2 {x : free_comm_ring Σ i, G i} {s t} (hxs : is_supported x s) {j k}
   (hj : ∀ z : Σ i, G i, z ∈ s → z.1 ≤ j) (hk : ∀ z : Σ i, G i, z ∈ t → z.1 ≤ k)
@@ -438,34 +439,45 @@ open free_comm_ring
 variables (G f)
 /-- The universal property of the direct limit: maps from the components to another ring
 that respect the directed system structure (i.e. make some diagram commute) give rise
-to a unique map out of the direct limit. -/
-def lift : direct_limit G f → P :=
-ideal.quotient.lift _ (free_comm_ring.lift $ λ x, g x.1 x.2) begin
+to a unique map out of the direct limit.
+
+We don't use this function as the canonical form because Lean 3 fails to automatically coerce
+it to a function; use `lift` instead. -/
+def lift_hom : direct_limit G f →+* P :=
+ideal.quotient.lift _ (free_comm_ring.lift_hom $ λ x, g x.1 x.2) begin
   suffices : ideal.span _ ≤
-    ideal.comap (free_comm_ring.lift (λ (x : Σ (i : ι), G i), g (x.fst) (x.snd))) ⊥,
+    ideal.comap (free_comm_ring.lift_hom (λ (x : Σ (i : ι), G i), g (x.fst) (x.snd))) ⊥,
   { intros x hx, exact (mem_bot P).1 (this hx) },
   rw ideal.span_le, intros x hx,
   rw [mem_coe, ideal.mem_comap, mem_bot],
   rcases hx with ⟨i, j, hij, x, rfl⟩ | ⟨i, rfl⟩ | ⟨i, x, y, rfl⟩ | ⟨i, x, y, rfl⟩;
-  simp only [lift_sub, lift_of, Hg, lift_one, lift_add, lift_mul,
+  simp only [coe_lift_hom, lift_sub, lift_of, Hg, lift_one, lift_add, lift_mul,
       is_ring_hom.map_one (g i), is_ring_hom.map_add (g i), is_ring_hom.map_mul (g i), sub_self]
 end
+
+/-- The universal property of the direct limit: maps from the components to another ring
+that respect the directed system structure (i.e. make some diagram commute) give rise
+to a unique map out of the direct limit. -/
+def lift : direct_limit G f → P := lift_hom G f P g Hg
+
+instance lift_is_ring_hom : is_ring_hom (lift G f P g Hg) := (lift_hom G f P g Hg).is_ring_hom
+
 variables {G f}
 omit Hg
 
-instance lift.is_ring_hom : is_ring_hom (lift G f P g Hg) :=
-⟨free_comm_ring.lift_one _,
-λ x y, quotient.induction_on₂' x y $ λ p q, free_comm_ring.lift_mul _ _ _,
-λ x y, quotient.induction_on₂' x y $ λ p q, free_comm_ring.lift_add _ _ _⟩
-
 @[simp] lemma lift_of (i x) : lift G f P g Hg (of G f i x) = g i x := free_comm_ring.lift_of _ _
-@[simp] lemma lift_zero : lift G f P g Hg 0 = 0 := is_ring_hom.map_zero _
-@[simp] lemma lift_one : lift G f P g Hg 1 = 1 := is_ring_hom.map_one _
-@[simp] lemma lift_add (x y) : lift G f P g Hg (x + y) = lift G f P g Hg x + lift G f P g Hg y := is_ring_hom.map_add _
-@[simp] lemma lift_neg (x) : lift G f P g Hg (-x) = -lift G f P g Hg x := is_ring_hom.map_neg _
-@[simp] lemma lift_sub (x y) : lift G f P g Hg (x - y) = lift G f P g Hg x - lift G f P g Hg y := is_ring_hom.map_sub _
-@[simp] lemma lift_mul (x y) : lift G f P g Hg (x * y) = lift G f P g Hg x * lift G f P g Hg y := is_ring_hom.map_mul _
-@[simp] lemma lift_pow (x) (n : ℕ) : lift G f P g Hg (x ^ n) = lift G f P g Hg x ^ n := is_semiring_hom.map_pow _ _ _
+@[simp] lemma lift_zero : lift G f P g Hg 0 = 0 := (lift_hom G f P g Hg).map_zero
+@[simp] lemma lift_one : lift G f P g Hg 1 = 1 := (lift_hom G f P g Hg).map_one
+@[simp] lemma lift_add (x y) : lift G f P g Hg (x + y) = lift G f P g Hg x + lift G f P g Hg y :=
+(lift_hom G f P g Hg).map_add x y
+@[simp] lemma lift_neg (x) : lift G f P g Hg (-x) = -lift G f P g Hg x :=
+(lift_hom G f P g Hg).map_neg x
+@[simp] lemma lift_sub (x y) : lift G f P g Hg (x - y) = lift G f P g Hg x - lift G f P g Hg y :=
+(lift_hom G f P g Hg).map_sub x y
+@[simp] lemma lift_mul (x y) : lift G f P g Hg (x * y) = lift G f P g Hg x * lift G f P g Hg y :=
+(lift_hom G f P g Hg).map_mul x y
+@[simp] lemma lift_pow (x) (n : ℕ) : lift G f P g Hg (x ^ n) = lift G f P g Hg x ^ n :=
+(lift_hom G f P g Hg).map_pow x n
 
 theorem lift_unique (F : direct_limit G f → P) [is_ring_hom F] (x) :
   F x = lift G f P (λ i x, F $ of G f i x) (λ i j hij x, by rw [of_f]) x :=
@@ -479,7 +491,7 @@ end ring
 namespace field
 
 variables [Π i, field (G i)]
-variables (f : Π i j, i ≤ j → G i → G j) [Π i j hij, is_field_hom (f i j hij)]
+variables (f : Π i j, i ≤ j → G i → G j) [Π i j hij, is_ring_hom (f i j hij)]
 variables [directed_system G f]
 
 namespace direct_limit
@@ -501,7 +513,7 @@ ring.direct_limit.induction_on p $ λ i x H,
     ring.direct_limit.of_one]⟩
 
 section
-local attribute [instance, priority 0] classical.dec
+open_locale classical
 
 noncomputable def inv (p : ring.direct_limit G f) : ring.direct_limit G f :=
 if H : p = 0 then 0 else classical.some (direct_limit.exists_inv G f H)
@@ -515,13 +527,8 @@ by rw [_root_.mul_comm, direct_limit.mul_inv_cancel G f hp]
 protected noncomputable def field : field (ring.direct_limit G f) :=
 { inv := inv G f,
   mul_inv_cancel := λ p, direct_limit.mul_inv_cancel G f,
-  inv_mul_cancel := λ p, direct_limit.inv_mul_cancel G f,
-  .. direct_limit.nonzero_comm_ring G f }
-
-protected noncomputable def discrete_field : discrete_field (ring.direct_limit G f) :=
-{ has_decidable_eq := classical.dec_eq _,
   inv_zero := dif_pos rfl,
-  ..direct_limit.field G f }  
+  .. direct_limit.nonzero_comm_ring G f }
 
 end
 

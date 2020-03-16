@@ -9,7 +9,7 @@ Generation function for iff rules for inductives, like for `list.chain`:
       chain R a l ↔ l = [] ∨ ∃{b : α} {l' : list α}, R a b ∧ chain R b l ∧ l = b :: l'
 
 -/
-import meta.coinductive_predicates
+import tactic.core
 
 namespace tactic
 
@@ -110,13 +110,13 @@ match s.length with
   focus ((cs.zip (r.zip s)).map $ λ⟨constr_name, h, bs, e⟩, do
     let n := (bs.filter_map id).length,
     match e with
-    | sum.inl e := elim_gen_prod (n - 1) h [] >> skip
+    | sum.inl e := elim_gen_prod (n - 1) h [] [] >> skip
     | sum.inr 0 := do
-      (hs, h) ← elim_gen_prod n h [],
+      (hs, h, _) ← elim_gen_prod n h [] [],
       clear h
     | sum.inr (e + 1) := do
-      (hs, h) ← elim_gen_prod n h [],
-      (es, eq) ← elim_gen_prod e h [],
+      (hs, h, _) ← elim_gen_prod n h [] [],
+      (es, eq, _) ← elim_gen_prod e h [] [],
       let es := es ++ [eq],
       /- `es.mmap' subst`: fails when we have dependent equalities (heq). `subst will change the
         dependent hypotheses, so that the uniq local names in `es` are wrong afterwards. Instead

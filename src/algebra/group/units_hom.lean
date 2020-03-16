@@ -2,32 +2,53 @@
 Copyright (c) 2018 Johan Commelin All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johan Commelin, Chris Hughes, Kevin Buzzard
-
-Lift monoid homomorphisms to group homomorphisms of their units subgroups.
 -/
 import algebra.group.units algebra.group.hom
+/-!
+# Lift monoid homomorphisms to group homomorphisms of their units subgroups.
+-/
+
+universes u v w
 
 namespace units
-variables {α : Type*} {β : Type*}
+variables {M : Type u} {N : Type v} {P : Type w} [monoid M] [monoid N] [monoid P]
 
-variables {γ : Type*} [monoid α] [monoid β] [monoid γ] (f : α → β) (g : β → γ)
-[is_monoid_hom f] [is_monoid_hom g]
+/-- The group homomorphism on units induced by a `monoid_hom`. -/
+@[to_additive "The `add_group` homomorphism on `add_unit`s induced by an `add_monoid_hom`."]
+def map (f : M →* N) : units M →* units N :=
+monoid_hom.mk'
+  (λ u, ⟨f u.val, f u.inv,
+                  by rw [← f.map_mul, u.val_inv, f.map_one],
+                  by rw [← f.map_mul, u.inv_val, f.map_one]⟩)
+  (λ x y, ext (f.map_mul x y))
 
-definition map : units α → units β :=
-λ u, ⟨f u.val, f u.inv,
-      by rw [← is_monoid_hom.map_mul f, u.val_inv, is_monoid_hom.map_one f],
-      by rw [← is_monoid_hom.map_mul f, u.inv_val, is_monoid_hom.map_one f] ⟩
+@[simp, to_additive] lemma coe_map (f : M →* N) (x : units M) : ↑(map f x) = f x := rfl
 
-instance : is_group_hom (units.map f) :=
-{ map_mul := λ a b, by ext; exact is_monoid_hom.map_mul f a b }
+@[simp, to_additive] lemma map_comp (f : M →* N) (g : N →* P) : map (g.comp f) = (map g).comp (map f) := rfl
 
-instance coe_is_monoid_hom : is_monoid_hom (coe : units α → α) :=
-{ map_one := rfl, map_mul := by simp }
+variables (M)
+@[simp, to_additive] lemma map_id : map (monoid_hom.id M) = monoid_hom.id (units M) :=
+by ext; refl
 
-@[simp] lemma coe_map (u : units α) : (map f u : β) = f u := rfl
+/-- Coercion `units M → M` as a monoid homomorphism. -/
+@[to_additive "Coercion `add_units M → M` as an add_monoid homomorphism."]
+def coe_hom : units M →* M := ⟨coe, coe_one, coe_mul⟩
 
-@[simp] lemma map_id : map (id : α → α) = id := by ext; refl
+variable {M}
 
-lemma map_comp : map (g ∘ f) = map g ∘ map f := rfl
+@[simp, to_additive] lemma coe_hom_apply (x : units M) : coe_hom M x = ↑x := rfl
+
+/-- If a map `g : M → units N` agrees with a homomorphism `f : M →* N`, then
+this map is a monoid homomorphism too. -/
+@[to_additive "If a map `g : M → add_units N` agrees with a homomorphism `f : M →+ N`, then this map is an add_monoid homomorphism too."]
+def lift_right (f : M →* N) (g : M → units N) (h : ∀ x, ↑(g x) = f x) :
+  M →* units N :=
+{ to_fun := g,
+  map_one' := units.ext $ (h 1).symm ▸ f.map_one,
+  map_mul' := λ x y, units.ext $ by simp only [h, coe_mul, f.map_mul] }
+
+@[simp, to_additive] lemma coe_lift_right {f : M →* N} {g : M → units N} (h : ∀ x, ↑(g x) = f x) (x) :
+  (lift_right f g h x : N) = f x :=
+h x
 
 end units

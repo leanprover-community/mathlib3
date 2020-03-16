@@ -8,7 +8,7 @@ Probability mass function -- discrete probability measures
 import topology.instances.nnreal topology.instances.ennreal topology.algebra.infinite_sum
 noncomputable theory
 variables {α : Type*} {β : Type*} {γ : Type*}
-local attribute [instance] classical.prop_decidable
+open_locale classical
 
 /-- Probability mass functions, i.e. discrete probability measures -/
 def {u} pmf (α : Type u) : Type u := { f : α → nnreal // has_sum f 1 }
@@ -17,7 +17,7 @@ namespace pmf
 
 instance : has_coe_to_fun (pmf α) := ⟨λp, α → nnreal, λp a, p.1 a⟩
 
-@[extensionality] protected lemma ext : ∀{p q : pmf α}, (∀a, p a = q a) → p = q
+@[ext] protected lemma ext : ∀{p q : pmf α}, (∀a, p a = q a) → p = q
 | ⟨f, hf⟩ ⟨g, hg⟩ eq :=  subtype.eq $ funext eq
 
 lemma has_sum_coe_one (p : pmf α) : has_sum p 1 := p.2
@@ -47,17 +47,18 @@ end
 def bind (p : pmf α) (f : α → pmf β) : pmf β :=
 ⟨λb, (∑a, p a * f a b),
   begin
-    simp [ennreal.has_sum_coe.symm, (ennreal.tsum_coe (bind.summable p f _)).symm],
+    apply ennreal.has_sum_coe.1,
+    simp only [ennreal.coe_tsum (bind.summable p f _)],
     rw [has_sum_iff_of_summable ennreal.summable, ennreal.tsum_comm],
-    simp [ennreal.mul_tsum, (ennreal.tsum_coe (f _).summable_coe),
-      ennreal.tsum_coe p.summable_coe]
+    simp [ennreal.mul_tsum, (ennreal.coe_tsum (f _).summable_coe).symm,
+      (ennreal.coe_tsum p.summable_coe).symm]
   end⟩
 
 @[simp] lemma bind_apply (p : pmf α) (f : α → pmf β) (b : β) : p.bind f b = (∑a, p a * f a b) := rfl
 
 lemma coe_bind_apply (p : pmf α) (f : α → pmf β) (b : β) :
   (p.bind f b : ennreal) = (∑a, p a * f a b) :=
-eq.trans (ennreal.tsum_coe $ bind.summable p f b).symm $ by simp
+eq.trans (ennreal.coe_tsum $ bind.summable p f b) $ by simp
 
 @[simp] lemma pure_bind (a : α) (f : α → pmf β) : (pure a).bind f = f a :=
 have ∀b a', ite (a' = a) 1 0 * f a' b = ite (a' = a) (f a b) 0, from
@@ -106,7 +107,7 @@ def of_multiset (s : multiset α) (hs : s ≠ 0) : pmf α :=
   have s.to_finset.sum (λa, (s.count a : ℝ) / s.card) = 1,
     by simp [div_eq_inv_mul, finset.mul_sum.symm, (finset.sum_nat_cast _ _).symm, hs],
   have s.to_finset.sum (λa, (s.count a : nnreal) / s.card) = 1,
-    by rw [← nnreal.eq_iff, nnreal.coe_one, ← this, nnreal.sum_coe]; simp,
+    by rw [← nnreal.eq_iff, nnreal.coe_one, ← this, nnreal.coe_sum]; simp,
   begin
     rw ← this,
     apply has_sum_sum_of_ne_finset_zero,

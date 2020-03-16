@@ -7,9 +7,8 @@ Hausdorff properties of uniform spaces. Separation quotient.
 -/
 import topology.uniform_space.basic
 
-
 open filter topological_space lattice set classical
-local attribute [instance, priority 0] prop_decidable
+open_locale classical topological_space
 noncomputable theory
 set_option eqn_compiler.zeta true
 
@@ -17,7 +16,7 @@ universes u v w
 variables {α : Type u} {β : Type v} {γ : Type w}
 variables [uniform_space α] [uniform_space β] [uniform_space γ]
 
-local notation `𝓤` := uniformity
+open_locale uniformity
 
 /- separated uniformity -/
 
@@ -52,14 +51,15 @@ theorem separated_def' {α : Type u} [uniform_space α] :
 separated_def.trans $ forall_congr $ λ x, forall_congr $ λ y,
 by rw ← not_imp_not; simp [classical.not_forall]
 
+@[priority 100] -- see Note [lower instance priority]
 instance separated_t2 [s : separated α] : t2_space α :=
 ⟨assume x y, assume h : x ≠ y,
 let ⟨d, hd, (hxy : (x, y) ∉ d)⟩ := separated_def'.1 s x y h in
 let ⟨d', hd', (hd'd' : comp_rel d' d' ⊆ d)⟩ := comp_mem_uniformity_sets hd in
-have {y | (x, y) ∈ d'} ∈ nhds x,
+have {y | (x, y) ∈ d'} ∈ 𝓝 x,
   from mem_nhds_left x hd',
 let ⟨u, hu₁, hu₂, hu₃⟩ := mem_nhds_sets_iff.mp this in
-have {x | (x, y) ∈ d'} ∈ nhds y,
+have {x | (x, y) ∈ d'} ∈ 𝓝 y,
   from mem_nhds_right y hd',
 let ⟨v, hv₁, hv₂, hv₃⟩ := mem_nhds_sets_iff.mp this in
 have u ∩ v = ∅, from
@@ -69,9 +69,10 @@ have u ∩ v = ∅, from
   hxy $ hd'd' this,
 ⟨u, v, hu₂, hv₂, hu₃, hv₃, this⟩⟩
 
+@[priority 100] -- see Note [lower instance priority]
 instance separated_regular [separated α] : regular_space α :=
 { regular := λs a hs ha,
-    have -s ∈ nhds a,
+    have -s ∈ 𝓝 a,
       from mem_nhds_sets hs ha,
     have {p : α × α | p.1 = a → p.2 ∈ -s} ∈ 𝓤 α,
       from mem_nhds_uniformity_iff.mp this,
@@ -89,8 +90,8 @@ instance separated_regular [separated α] : regular_space α :=
         let ⟨x, (hx : (a, x) ∈ d), y, ⟨hx₁, hx₂⟩, (hy : (y, _) ∈ d)⟩ := @this ⟨a, a'⟩ ⟨hae, ha'⟩ in
         have (a, a') ∈ comp_rel d d, from ⟨y, hx₂, hy⟩,
         h this rfl,
-    have closure e ∈ nhds a, from (nhds a).sets_of_superset (mem_nhds_left a hd) subset_closure,
-    have nhds a ⊓ principal (-closure e) = ⊥,
+    have closure e ∈ 𝓝 a, from (𝓝 a).sets_of_superset (mem_nhds_left a hd) subset_closure,
+    have 𝓝 a ⊓ principal (-closure e) = ⊥,
       from (@inf_eq_bot_iff_le_compl _ _ _ (principal (- closure e)) (principal (closure e))
         (by simp [principal_univ, union_comm]) (by simp)).mpr (by simp [this]),
     ⟨- closure e, is_closed_closure, assume x h₁ h₂, @e_subset x h₂ h₁, this⟩,
@@ -103,7 +104,8 @@ def separation_setoid (α : Type u) [uniform_space α] : setoid α :=
 
 local attribute [instance] separation_setoid
 
-instance {α : Type u} [u : uniform_space α] : uniform_space (quotient (separation_setoid α)) :=
+instance separation_setoid.uniform_space {α : Type u} [u : uniform_space α] :
+  uniform_space (quotient (separation_setoid α)) :=
 { to_topological_space := u.to_topological_space.coinduced (λx, ⟦x⟧),
   uniformity := map (λp:(α×α), (⟦p.1⟧, ⟦p.2⟧)) u.uniformity,
   refl := le_trans (by simp [quotient.exists_rep]) (filter.map_mono refl_le_uniformity),
@@ -162,7 +164,7 @@ lemma uniform_continuous_quotient_lift
   (hf : uniform_continuous f) : uniform_continuous (λa, quotient.lift f h a) :=
 uniform_continuous_quotient hf
 
-lemma uniform_continuous_quotient_lift₂ [uniform_space γ]
+lemma uniform_continuous_quotient_lift₂
   {f : α → β → γ} {h : ∀a c b d, (a, b) ∈ separation_rel α → (c, d) ∈ separation_rel β → f a c = f b d}
   (hf : uniform_continuous (λp:α×β, f p.1 p.2)) :
   uniform_continuous (λp:_×_, quotient.lift₂ f h p.1 p.2) :=
@@ -218,6 +220,8 @@ def separation_quotient (α : Type*) [uniform_space α] := quotient (separation_
 namespace separation_quotient
 instance : uniform_space (separation_quotient α) := by dunfold separation_quotient ; apply_instance
 instance : separated (separation_quotient α) := by dunfold separation_quotient ; apply_instance
+instance [inhabited α] : inhabited (separation_quotient α) :=
+by unfold separation_quotient; apply_instance
 
 def lift [separated β] (f : α → β) : (separation_quotient α → β) :=
 if h : uniform_continuous f then

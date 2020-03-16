@@ -1,7 +1,7 @@
 /-
 Copyright (c) 2017 Microsoft Corporation. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Authors: Leonardo de Moura, Keeley Hoek
+Authors: Lucas Allen, Keeley Hoek, Leonardo de Moura
 
 Converter monad for building simplifiers.
 -/
@@ -88,10 +88,10 @@ namespace interactive
 open interactive
 open tactic.interactive (rw_rules)
 
-/-- The zoom tactic is essentially a conv within a conv. It allows the user to return to a 
+/-- The `conv` tactic provides a `conv` within a `conv`. It allows the user to return to a
 previous state of the outer conv block to continue editing an expression without having to
 start a new conv block. -/
-meta def zoom (t : conv.interactive.itactic) : conv unit :=
+protected meta def conv (t : conv.interactive.itactic) : conv unit :=
 do transitivity,
    a :: rest ← get_goals,
    set_goals [a],

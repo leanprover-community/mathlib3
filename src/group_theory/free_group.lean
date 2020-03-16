@@ -14,8 +14,8 @@ and proof that its join is an equivalence relation.
 Then we introduce `free_group α` as a quotient over `free_group.red.step`.
 -/
 import logic.relation
-import algebra.group algebra.group_power
-import data.fintype data.list.basic
+import algebra.group_power
+import data.fintype
 import group_theory.subgroup
 open relation
 
@@ -159,7 +159,7 @@ iff.intro
   cons_cons
 
 lemma append_append_left_iff : ∀L, red (L ++ L₁) (L ++ L₂) ↔ red L₁ L₂
-| []       := iff.refl _
+| []       := iff.rfl
 | (p :: L) := by simp [append_append_left_iff L, cons_cons_iff]
 
 lemma append_append (h₁ : red L₁ L₃) (h₂ : red L₂ L₄) : red (L₁ ++ L₂) (L₃ ++ L₄) :=
@@ -328,6 +328,8 @@ quot.lift_on (mk L) f H = f L := rfl
 
 instance : has_one (free_group α) := ⟨mk []⟩
 lemma one_eq_mk : (1 : free_group α) = mk [] := rfl
+
+instance : inhabited (free_group α) := ⟨1⟩
 
 instance : has_mul (free_group α) :=
 ⟨λ x y, quot.lift_on x
@@ -560,7 +562,7 @@ prod.of
 instance sum.is_group_hom : is_group_hom (@sum α _) :=
 prod.is_group_hom
 
-@[simp] lemma sum.sum : sum (x * y) = sum x + sum y :=
+@[simp] lemma sum.mul : sum (x * y) = sum x + sum y :=
 prod.mul
 
 @[simp] lemma sum.one : sum (1:free_group α) = 0 :=
@@ -584,7 +586,7 @@ def free_group_unit_equiv_int : free_group unit ≃ int :=
     (λ ⟨⟨⟩, b⟩ tl ih, by cases b; simp [gpow_add] at ih ⊢; rw ih; refl),
   right_inv := λ x, int.induction_on x (by simp)
     (λ i ih, by simp at ih; simp [gpow_add, ih])
-    (λ i ih, by simp at ih; simp [gpow_add, ih]) }
+    (λ i ih, by simp at ih; simp [gpow_add, ih, sub_eq_add_neg]) }
 
 section category
 
@@ -766,10 +768,10 @@ group to its maximal reduction. -/
 def to_word : free_group α → list (α × bool) :=
 quot.lift reduce $ λ L₁ L₂ H, reduce.step.eq H
 
-def to_word.mk : ∀{x : free_group α}, mk (to_word x) = x :=
+lemma to_word.mk : ∀{x : free_group α}, mk (to_word x) = x :=
 by rintros ⟨L⟩; exact reduce.self
 
-def to_word.inj : ∀(x y : free_group α), to_word x = to_word y → x = y :=
+lemma to_word.inj : ∀(x y : free_group α), to_word x = to_word y → x = y :=
 by rintros ⟨L₁⟩ ⟨L₂⟩; exact reduce.exact
 
 /-- Constructive Church-Rosser theorem (compare `church_rosser`). -/

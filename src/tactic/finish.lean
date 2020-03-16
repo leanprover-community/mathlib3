@@ -1,7 +1,13 @@
 /-
 Copyright (c) 2017 Jeremy Avigad. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Authors: Jeremy Avigad
+Authors: Jeremy Avigad, Jesse Michael Han
+-/
+
+import logic.basic tactic.core tactic.hint
+
+/-!
+# The `finish` family of tactics
 
 These tactics do straightforward things: they call the simplifier, split conjunctive assumptions,
 eliminate existential quantifiers on the left, and look for contradictions. They rely on ematching
@@ -10,26 +16,33 @@ and congruence closure to try to finish off a goal at the end.
 The procedures *do* split on disjunctions and recreate the smt state for each terminal call, so
 they are only meant to be used on small, straightforward problems.
 
+## Main definitions
+
 We provide the following tactics:
 
-  finish  -- solves the goal or fails
-  clarify -- makes as much progress as possible while not leaving more than one goal
-  safe    -- splits freely, finishes off whatever subgoals it can, and leaves the rest
+  `finish`  -- solves the goal or fails
+  `clarify` -- makes as much progress as possible while not leaving more than one goal
+  `safe`    -- splits freely, finishes off whatever subgoals it can, and leaves the rest
 
 All accept an optional list of simplifier rules, typically definitions that should be expanded.
 (The equations and identities should not refer to the local context.)
 
-The variants ifinish, iclarify, and isafe restrict to intuitionistic logic. They do not work
-well with the current heuristic instantiation method used by ematch, so they should be revisited
-when the API changes.
+## Implementation notes
+
+The variants `ifinish`, `iclarify`, and `isafe` try to restrict to intuitionistic logic. But the
+`done` tactic leaks classical logic:
+
+```
+example {P : Prop} : ¬¬P → P :=
+by using_smt (do smt_tactic.intros, smt_tactic.close)
+```
+
+They also do not work well with the current heuristic instantiation method used by `ematch`.
+So they are left here mainly for reference.
 -/
-import logic.basic
 
 declare_trace auto.done
 declare_trace auto.finish
-
--- TODO(Jeremy): move these
-
 
 namespace tactic
 
@@ -67,7 +80,7 @@ meta def add_simps : simp_lemmas → list name → tactic simp_lemmas
 /-
   Configuration information for the auto tactics.
 -/
-
+@[derive decidable_eq, derive inhabited]
 structure auto_config : Type :=
 (use_simp := tt)           -- call the simplifier
 (classical := tt)          -- use classical logic
@@ -111,7 +124,7 @@ variable  {α : Type u}
 variables (p q : Prop)
 variable  (s : α → Prop)
 
-local attribute [instance] classical.prop_decidable
+local attribute [instance, priority 10] classical.prop_decidable
 theorem not_not_eq : (¬ ¬ p) = p := propext not_not
 theorem not_and_eq : (¬ (p ∧ q)) = (¬ p ∨ ¬ q) := propext not_and_distrib
 theorem not_or_eq : (¬ (p ∨ q)) = (¬ p ∧ ¬ q) := propext not_or_distrib
@@ -138,7 +151,8 @@ do e ← whnf_reducible e,
    | `(¬ %%ne) :=
       (do ne ← whnf_reducible ne,
       match ne with
-      | `(¬ %%a)      := do pr ← mk_app ``not_not_eq [a],
+      | `(¬ %%a)      := if ¬ cfg.classical then return none
+                         else do pr ← mk_app ``not_not_eq [a],
                             return (some (a, pr))
       | `(%%a ∧ %%b)  := do pr ← mk_app ``not_and_eq [a, b],
                             return (some (`(¬ %%a ∨ ¬ %%b), pr))
@@ -305,7 +319,40 @@ meta def mk_hinst_lemmas : list expr → smt_tactic hinst_lemmas
                   | _ := return his
                   end
 
-meta def done (cfg : auto_config := {}) : tactic unit :=
+private meta def report_invalid_em_lemma {α : Type} (n : name) : smt_tactic α :=
+fail format!"invalid ematch lemma '{n}'"
+
+private meta def add_hinst_lemma_from_name (md : transparency) (lhs_lemma : bool) (n : name)
+  (hs : hinst_lemmas) (ref : pexpr) : smt_tactic hinst_lemmas :=
+do p ← resolve_name n,
+   match p with
+   | expr.const n _ := (do h ← hinst_lemma.mk_from_decl_core md n lhs_lemma,
+                           tactic.save_const_type_info n ref, return $ hs.add h) <|>
+                       (do hs₁ ← smt_tactic.mk_ematch_eqn_lemmas_for_core md n,
+                           tactic.save_const_type_info n ref, return $ hs.merge hs₁) <|>
+                        report_invalid_em_lemma n
+   | _              := (do e ← to_expr p, h ← hinst_lemma.mk_core md e lhs_lemma,
+                        try (tactic.save_type_info e ref), return $ hs.add h) <|>
+                        report_invalid_em_lemma n
+   end
+
+private meta def add_hinst_lemma_from_pexpr (md : transparency) (lhs_lemma : bool) (hs : hinst_lemmas)
+  : pexpr → smt_tactic hinst_lemmas
+| p@(expr.const c [])          := add_hinst_lemma_from_name md lhs_lemma c hs p
+| p@(expr.local_const c _ _ _) := add_hinst_lemma_from_name md lhs_lemma c hs p
+| p                          := do new_e ← to_expr p, h ← hinst_lemma.mk_core md new_e lhs_lemma,
+                                   return $ hs.add h
+
+private meta def add_hinst_lemmas_from_pexprs (md : transparency) (lhs_lemma : bool)
+  (ps : list pexpr) (hs : hinst_lemmas) : smt_tactic hinst_lemmas :=
+list.mfoldl (add_hinst_lemma_from_pexpr md lhs_lemma) hs ps
+
+/--
+`done` first attempts to close the goal using `contradiction`. If this fails, it creates an
+SMT state and will repeatedly use `ematch` (using `ematch` lemmas in the environment,
+universally quantified assumptions, and the supplied lemmas `ps`) and congruence closure.
+-/
+meta def done (ps : list pexpr) (cfg : auto_config := {}) : tactic unit :=
 do when_tracing `auto.done (trace "entering done" >> trace_state),
    contradiction <|>
    (solve1 $
@@ -314,13 +361,13 @@ do when_tracing `auto.done (trace "entering done" >> trace_state),
          (do smt_tactic.intros,
              ctx ← local_context,
              hs ← mk_hinst_lemmas ctx,
+             hs' ← add_hinst_lemmas_from_pexprs reducible ff ps hs,
              smt_tactic.iterate_at_most cfg.max_ematch_rounds
-               (smt_tactic.ematch_using hs >> smt_tactic.try smt_tactic.close))))
-
+               (smt_tactic.ematch_using hs' >> smt_tactic.try smt_tactic.close))))
 /-
   Tactics that perform case splits.
 -/
-
+@[derive decidable_eq, derive inhabited]
 inductive case_option
 | force        -- fail unless all goals are solved
 | at_most_one  -- leave at most one goal
@@ -360,7 +407,23 @@ local_context >>= case_some_hyp_aux s cont
   The main tactics.
 -/
 
-meta def safe_core (s : simp_lemmas × list name) (cfg : auto_config) : case_option → tactic unit :=
+/--
+  `safe_core s ps cfg opt` negates the goal, normalizes hypotheses
+  (by splitting conjunctions, eliminating existentials, pushing negations inwards,
+  and calling `simp` with the supplied lemmas `s`), and then tries `contradiction`.
+
+  If this fails, it will create an SMT state and repeatedly use `ematch`
+  (using `ematch` lemmas in the environment, universally quantified assumptions,
+  and the supplied lemmas `ps`) and congruence closure.
+
+  `safe_core` is complete for propositional logic. Depending on the form of `opt`
+  it will:
+
+  - (if `opt` is `case_option.force`) fail if it does not close the goal,
+  - (if `opt` is `case_option.at_most_one`) fail if it produces more than one goal, and
+  - (if `opt` is `case_option.accept`) ignore the number of goals it produces.
+-/
+meta def safe_core (s : simp_lemmas × list name) (ps : list pexpr) (cfg : auto_config) : case_option → tactic unit :=
 λ co, focus1 $
 do when_tracing `auto.finish (trace "entering safe_core" >> trace_state),
    if cfg.use_simp then do
@@ -372,28 +435,56 @@ do when_tracing `auto.finish (trace "entering safe_core" >> trace_state),
    do when_tracing `auto.finish (trace "preprocessing hypotheses"),
       preprocess_hyps cfg,
       when_tracing `auto.finish (trace "result:" >> trace_state),
-      done cfg <|>
+      done ps cfg <|>
         (mcond (case_some_hyp co safe_core)
           skip
           (match co with
-            | case_option.force       := done cfg
-            | case_option.at_most_one := try (done cfg)
-            | case_option.accept      := try (done cfg)
+            | case_option.force       := done ps cfg
+            | case_option.at_most_one := try (done ps cfg)
+            | case_option.accept      := try (done ps cfg)
             end))
 
-meta def clarify (s : simp_lemmas × list name) (cfg : auto_config := {}) : tactic unit :=
-  safe_core s cfg case_option.at_most_one
-meta def safe (s : simp_lemmas × list name) (cfg : auto_config := {}) : tactic unit :=
-  safe_core s cfg case_option.accept
-meta def finish (s : simp_lemmas × list name) (cfg : auto_config := {}) : tactic unit :=
-  safe_core s cfg case_option.force
+/--
+  `clarify` is `safe_core`, but with the `(opt : case_option)`
+  parameter fixed at `case_option.at_most_one`.
+-/
+meta def clarify (s : simp_lemmas × list name) (ps : list pexpr)
+  (cfg : auto_config := {}) : tactic unit := safe_core s ps cfg case_option.at_most_one
 
-meta def iclarify (s : simp_lemmas × list name) (cfg : auto_config := {}) : tactic unit :=
-  clarify s {classical := ff, ..cfg}
-meta def isafe (s : simp_lemmas × list name) (cfg : auto_config := {}) : tactic unit :=
-  safe s {classical := ff, ..cfg}
-meta def ifinish (s : simp_lemmas × list name) (cfg : auto_config := {}) : tactic unit :=
-  finish s {classical := ff, ..cfg}
+/--
+  `safe` is `safe_core`, but with the `(opt : case_option)`
+  parameter fixed at `case_option.accept`.
+-/
+meta def safe (s : simp_lemmas × list name) (ps : list pexpr)
+  (cfg : auto_config := {}) : tactic unit := safe_core s ps cfg case_option.accept
+
+/--
+  `finish` is `safe_core`, but with the `(opt : case_option)`
+  parameter fixed at `case_option.force`.
+-/
+meta def finish (s : simp_lemmas × list name) (ps : list pexpr)
+  (cfg : auto_config := {}) : tactic unit := safe_core s ps cfg case_option.force
+
+/--
+  `iclarify` is like `clarify`, but in some places restricts to intuitionistic logic.
+  Classical logic still leaks, so this tactic is deprecated.
+-/
+meta def iclarify (s : simp_lemmas × list name) (ps : list pexpr)
+  (cfg : auto_config := {}) : tactic unit := clarify s ps {classical := ff, ..cfg}
+
+/--
+  `isafe` is like `safe`, but in some places restricts to intuitionistic logic.
+  Classical logic still leaks, so this tactic is deprecated.
+-/
+meta def isafe (s : simp_lemmas × list name) (ps : list pexpr)
+  (cfg : auto_config := {}) : tactic unit := safe s ps {classical := ff, ..cfg}
+
+/--
+  `ifinish` is like `finish`, but in some places restricts to intuitionistic logic.
+  Classical logic still leaks, so this tactic is deprecated.
+-/
+meta def ifinish (s : simp_lemmas × list name) (ps : list pexpr) (cfg : auto_config := {}) : tactic unit :=
+  finish s ps {classical := ff, ..cfg}
 
 end auto
 
@@ -409,29 +500,91 @@ open lean lean.parser interactive interactive.types
 local postfix `?`:9001 := optional
 local postfix *:9001 := many
 
-meta def clarify (hs : parse simp_arg_list) (cfg : auto_config := {}) : tactic unit :=
-do s ← mk_simp_set ff [] hs,
-   auto.clarify s cfg
+/--
+  `clarify [h1,...,hn] using [e1,...,en]` negates the goal, normalizes hypotheses
+  (by splitting conjunctions, eliminating existentials, pushing negations inwards,
+  and calling `simp` with the supplied lemmas `h1,...,hn`), and then tries `contradiction`.
 
-meta def safe (hs : parse simp_arg_list) (cfg : auto_config := {}) : tactic unit :=
-do s ← mk_simp_set ff [] hs,
-   auto.safe s cfg
+  If this fails, it will create an SMT state and repeatedly use `ematch`
+  (using `ematch` lemmas in the environment, universally quantified assumptions,
+  and the supplied lemmas `e1,...,en`) and congruence closure.
 
-meta def finish (hs : parse simp_arg_list) (cfg : auto_config := {}) : tactic unit :=
-do s ← mk_simp_set ff [] hs,
-   auto.finish s cfg
+  `clarify` is complete for propositional logic.
 
-meta def iclarify (hs : parse simp_arg_list) (cfg : auto_config := {}) : tactic unit :=
-do s ← mk_simp_set ff [] hs,
-   auto.iclarify s cfg
+  Either of the supplied simp lemmas or the supplied ematch lemmas are optional.
 
-meta def isafe (hs : parse simp_arg_list) (cfg : auto_config := {}) : tactic unit :=
+  `clarify` will fail if it produces more than one goal.
+-/
+meta def clarify (hs : parse simp_arg_list) (ps : parse (tk "using" *> pexpr_list_or_texpr)?)
+  (cfg : auto_config := {}) : tactic unit :=
 do s ← mk_simp_set ff [] hs,
-   auto.isafe s cfg
+   auto.clarify s (ps.get_or_else []) cfg
 
-meta def ifinish (hs : parse simp_arg_list) (cfg : auto_config := {}) : tactic unit :=
+/--
+  `safe [h1,...,hn] using [e1,...,en]` negates the goal, normalizes hypotheses
+  (by splitting conjunctions, eliminating existentials, pushing negations inwards,
+  and calling `simp` with the supplied lemmas `h1,...,hn`), and then tries `contradiction`.
+
+  If this fails, it will create an SMT state and repeatedly use `ematch`
+  (using `ematch` lemmas in the environment, universally quantified assumptions,
+  and the supplied lemmas `e1,...,en`) and congruence closure.
+
+  `safe` is complete for propositional logic.
+
+  Either of the supplied simp lemmas or the supplied ematch lemmas are optional.
+
+  `safe` ignores the number of goals it produces, and should never fail.
+-/
+meta def safe (hs : parse simp_arg_list) (ps : parse (tk "using" *> pexpr_list_or_texpr)?)
+  (cfg : auto_config := {}) : tactic unit :=
 do s ← mk_simp_set ff [] hs,
-   auto.ifinish s cfg
+   auto.safe s (ps.get_or_else []) cfg
+
+/--
+  `finish [h1,...,hn] using [e1,...,en]` negates the goal, normalizes hypotheses
+  (by splitting conjunctions, eliminating existentials, pushing negations inwards,
+  and calling `simp` with the supplied lemmas `h1,...,hn`), and then tries `contradiction`.
+
+  If this fails, it will create an SMT state and repeatedly use `ematch`
+  (using `ematch` lemmas in the environment, universally quantified assumptions,
+  and the supplied lemmas `e1,...,en`) and congruence closure.
+
+  `finish` is complete for propositional logic.
+
+  Either of the supplied simp lemmas or the supplied ematch lemmas are optional.
+
+  `finish` will fail if it does not close the goal.
+-/
+meta def finish (hs : parse simp_arg_list) (ps : parse (tk "using" *> pexpr_list_or_texpr)?)
+  (cfg : auto_config := {}) : tactic unit :=
+do s ← mk_simp_set ff [] hs,
+   auto.finish s (ps.get_or_else []) cfg
+
+add_hint_tactic "finish"
+
+/--
+  `iclarify` is like `clarify`, but only uses intuitionistic logic.
+-/
+meta def iclarify (hs : parse simp_arg_list) (ps : parse (tk "using" *> pexpr_list_or_texpr)?)
+  (cfg : auto_config := {}) : tactic unit :=
+do s ← mk_simp_set ff [] hs,
+   auto.iclarify s (ps.get_or_else []) cfg
+
+/--
+  `isafe` is like `safe`, but only uses intuitionistic logic.
+-/
+meta def isafe (hs : parse simp_arg_list) (ps : parse (tk "using" *> pexpr_list_or_texpr)?)
+  (cfg : auto_config := {}) : tactic unit :=
+do s ← mk_simp_set ff [] hs,
+   auto.isafe s (ps.get_or_else []) cfg
+
+/--
+  `ifinish` is like `finish`, but only uses intuitionistic logic.
+-/
+meta def ifinish (hs : parse simp_arg_list) (ps : parse (tk "using" *> pexpr_list_or_texpr)?)
+  (cfg : auto_config := {}) : tactic unit :=
+do s ← mk_simp_set ff [] hs,
+   auto.ifinish s (ps.get_or_else []) cfg
 
 end interactive
 end tactic

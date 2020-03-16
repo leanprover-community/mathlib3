@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Chris Hughes
 -/
 import data.fintype
+import algebra.big_operators
 
 universes u v
 open equiv function fintype finset
@@ -158,11 +159,18 @@ end
 lemma mul_swap_eq_swap_mul (f : perm α) (x y : α) : f * swap x y = swap (f x) (f y) * f :=
 by rw [swap_mul_eq_mul_swap, inv_apply_self, inv_apply_self]
 
-@[simp] lemma swap_mul_self (i j : α) : equiv.swap i j * equiv.swap i j = 1 :=
-equiv.swap_swap i j
+/-- Multiplying a permutation with `swap i j` twice gives the original permutation.
 
-@[simp] lemma swap_swap_apply (i j k : α) : equiv.swap i j (equiv.swap i j k) = k :=
-equiv.swap_core_swap_core k i j
+  This specialization of `swap_mul_self` is useful when using cosets of permutations.
+-/
+@[simp]
+lemma swap_mul_self_mul (i j : α) (σ : perm α) : equiv.swap i j * (equiv.swap i j * σ) = σ :=
+by rw [←mul_assoc (swap i j) (swap i j) σ, equiv.swap_mul_self, one_mul]
+
+lemma swap_mul_eq_iff {i j : α} {σ : perm α} : swap i j * σ = σ ↔ i = j :=
+⟨(assume h, have swap_id : swap i j = 1 := mul_right_cancel (trans h (one_mul σ).symm),
+  by {rw [←swap_apply_right i j, swap_id], refl}),
+(assume h, by erw [h, swap_self, one_mul])⟩
 
 lemma is_swap_of_subtype {p : α → Prop} [decidable_pred p]
   {f : perm (subtype p)} (h : is_swap f) : is_swap (of_subtype f) :=
@@ -388,7 +396,7 @@ lemma sign_aux_swap : ∀ {n : ℕ} {x y : fin n} (hxy : x ≠ y),
 | (n+2) := λ x y hxy,
 have h2n : 2 ≤ n + 2 := dec_trivial,
 by rw [← is_conj_iff_eq, ← sign_aux_swap_zero_one h2n];
-  exact is_group_hom.is_conj _ (is_conj_swap hxy dec_trivial)
+  exact (monoid_hom.of sign_aux).map_is_conj (is_conj_swap hxy dec_trivial)
 
 def sign_aux2 : list α → perm α → units ℤ
 | []     f := 1
@@ -501,13 +509,13 @@ have h₁ : l.map sign = list.repeat (-1) l.length :=
   list.eq_repeat.2 ⟨by simp, λ u hu,
   let ⟨g, hg⟩ := list.mem_map.1 hu in
   hg.2 ▸ sign_eq_of_is_swap (hl _ hg.1)⟩,
-by rw [← list.prod_repeat, ← h₁, ← is_group_hom.map_prod (@sign α _ _)]
+by rw [← list.prod_repeat, ← h₁, list.prod_hom _ (@sign α _ _)]
 
 lemma sign_surjective (hα : 1 < fintype.card α) : function.surjective (sign : perm α → units ℤ) :=
 λ a, (int.units_eq_one_or a).elim
   (λ h, ⟨1, by simp [h]⟩)
   (λ h, let ⟨x⟩ := fintype.card_pos_iff.1 (lt_trans zero_lt_one hα) in
-    let ⟨y, hxy⟩ := fintype.exists_ne_of_card_gt_one hα x in
+    let ⟨y, hxy⟩ := fintype.exists_ne_of_one_lt_card hα x in
     ⟨swap y x, by rw [sign_swap hxy, h]⟩ )
 
 lemma eq_sign_of_surjective_hom {s : perm α → units ℤ}
@@ -516,20 +524,20 @@ have ∀ {f}, is_swap f → s f = -1 :=
   λ f ⟨x, y, hxy, hxy'⟩, hxy'.symm ▸ by_contradiction (λ h,
     have ∀ f, is_swap f → s f = 1 := λ f ⟨a, b, hab, hab'⟩,
       by rw [← is_conj_iff_eq, ← or.resolve_right (int.units_eq_one_or _) h, hab'];
-        exact is_group_hom.is_conj _ (is_conj_swap hab hxy),
+        exact (monoid_hom.of s).map_is_conj (is_conj_swap hab hxy),
   let ⟨g, hg⟩ := hs (-1) in
   let ⟨l, hl⟩ := trunc.out (trunc_swap_factors g) in
   have ∀ a ∈ l.map s, a = (1 : units ℤ) := λ a ha,
     let ⟨g, hg⟩ := list.mem_map.1 ha in hg.2 ▸ this _ (hl.2 _ hg.1),
   have s l.prod = 1,
-    by rw [is_group_hom.map_prod s, list.eq_repeat'.2 this, list.prod_repeat, one_pow],
+    by rw [← l.prod_hom s, list.eq_repeat'.2 this, list.prod_repeat, one_pow],
   by rw [hl.1, hg] at this;
     exact absurd this dec_trivial),
 funext $ λ f,
 let ⟨l, hl₁, hl₂⟩ := trunc.out (trunc_swap_factors f) in
 have hsl : ∀ a ∈ l.map s, a = (-1 : units ℤ) := λ a ha,
   let ⟨g, hg⟩ := list.mem_map.1 ha in hg.2 ▸  this (hl₂ _ hg.1),
-by rw [← hl₁, is_group_hom.map_prod s, list.eq_repeat'.2 hsl, list.length_map,
+by rw [← hl₁, ← l.prod_hom s, list.eq_repeat'.2 hsl, list.length_map,
      list.prod_repeat, sign_prod_list_swap hl₂]
 
 lemma sign_subtype_perm (f : perm α) {p : α → Prop} [decidable_pred p]
@@ -540,7 +548,7 @@ have hl' : ∀ g' ∈ l.1.map of_subtype, is_swap g' :=
   let ⟨g, hg⟩ := list.mem_map.1 hg' in
   hg.2 ▸ is_swap_of_subtype (l.2.2 _ hg.1),
 have hl'₂ : (l.1.map of_subtype).prod = f,
-  by rw [← is_group_hom.map_prod of_subtype l.1, l.2.1, of_subtype_subtype_perm _ h₂],
+  by rw [l.1.prod_hom of_subtype, l.2.1, of_subtype_subtype_perm _ h₂],
 by conv {congr, rw ← l.2.1, skip, rw ← hl'₂};
   rw [sign_prod_list_swap l.2.2, sign_prod_list_swap hl', list.length_map]
 
@@ -707,4 +715,4 @@ lemma finset.sum_univ_perm [fintype α] [add_comm_monoid β] {f : α → β} (σ
   (univ : finset α).sum f = univ.sum (λ z, f (σ z)) :=
 @finset.prod_univ_perm _ (multiplicative β) _ _ f σ
 
-attribute [to_additive finset.sum_univ_perm] finset.prod_univ_perm
+attribute [to_additive] finset.prod_univ_perm

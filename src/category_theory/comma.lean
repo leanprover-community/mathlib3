@@ -1,9 +1,10 @@
 /-
 Copyright (c) 2018 Scott Morrison. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Authors: Scott Morrison, Johan Commelin
+Authors: Scott Morrison, Johan Commelin, Bhavik Mehta
 -/
 import category_theory.isomorphism
+import category_theory.equivalence
 import category_theory.punit
 
 namespace category_theory
@@ -21,23 +22,13 @@ structure comma (L : A ⥤ T) (R : B ⥤ T) : Type (max u₁ u₂ v₃) :=
 
 variables {L : A ⥤ T} {R : B ⥤ T}
 
-structure comma_morphism (X Y : comma L R) :=
+@[ext] structure comma_morphism (X Y : comma L R) :=
 (left : X.left ⟶ Y.left . obviously)
 (right : X.right ⟶ Y.right . obviously)
 (w' : L.map left ≫ Y.hom = X.hom ≫ R.map right . obviously)
 
 restate_axiom comma_morphism.w'
 attribute [simp] comma_morphism.w
-
-namespace comma_morphism
-@[extensionality] lemma ext
-  {X Y : comma L R} {f g : comma_morphism X Y}
-  (l : f.left = g.left) (r : f.right = g.right) : f = g :=
-begin
-  cases f, cases g,
-  congr; assumption
-end
-end comma_morphism
 
 instance comma_category : category (comma L R) :=
 { hom := comma_morphism,
@@ -108,7 +99,7 @@ variables {X Y : comma L₂ R} {f : X ⟶ Y} {l : L₁ ⟶ L₂}
 @[simp] lemma map_left_map_right : ((map_left R l).map f).right = f.right               := rfl
 end
 
-def map_left_id : map_left R (𝟙 L) ≅ functor.id _ :=
+def map_left_id : map_left R (𝟙 L) ≅ 𝟭 _ :=
 { hom :=
   { app := λ X, { left := 𝟙 _, right := 𝟙 _ } },
   inv :=
@@ -156,7 +147,7 @@ variables {X Y : comma L R₁} {f : X ⟶ Y} {r : R₁ ⟶ R₂}
 @[simp] lemma map_right_map_right : ((map_right L r).map f).right = f.right                := rfl
 end
 
-def map_right_id : map_right L (𝟙 R) ≅ functor.id _ :=
+def map_right_id : map_right L (𝟙 R) ≅ 𝟭 _ :=
 { hom :=
   { app := λ X, { left := 𝟙 _, right := 𝟙 _ } },
   inv :=
@@ -190,15 +181,14 @@ end comma
 
 omit 𝒜 ℬ
 
-def over (X : T) := comma.{v₃ 1 v₃} (functor.id T) (functor.of.obj X)
+@[derive category]
+def over (X : T) := comma.{v₃ 0 v₃} (𝟭 T) ((functor.const punit).obj X)
 
 namespace over
 
 variables {X : T}
 
-instance category : category (over X) := by delta over; apply_instance
-
-@[extensionality] lemma over_morphism.ext {X : T} {U V : over X} {f g : U ⟶ V}
+@[ext] lemma over_morphism.ext {X : T} {U V : over X} {f g : U ⟶ V}
   (h : f.left = g.left) : f = g :=
 by tidy
 
@@ -209,7 +199,7 @@ by tidy
 @[simp] lemma comp_left (a b c : over X) (f : a ⟶ b) (g : b ⟶ c) :
   (f ≫ g).left = f.left ≫ g.left := rfl
 
-@[simp] lemma w {A B : over X} (f : A ⟶ B) : f.left ≫ B.hom = A.hom :=
+@[simp, reassoc] lemma w {A B : over X} (f : A ⟶ B) : f.left ≫ B.hom = A.hom :=
 by have := f.w; tidy
 
 def mk {X Y : T} (f : Y ⟶ X) : over X :=
@@ -231,7 +221,7 @@ def forget : (over X) ⥤ T := comma.fst _ _
 @[simp] lemma forget_obj {U : over X} : forget.obj U = U.left := rfl
 @[simp] lemma forget_map {U V : over X} {f : U ⟶ V} : forget.map f = f.left := rfl
 
-def map {Y : T} (f : X ⟶ Y) : over X ⥤ over Y := comma.map_right _ $ functor.of.map f
+def map {Y : T} (f : X ⟶ Y) : over X ⥤ over Y := comma.map_right _ $ (functor.const punit).map f
 
 section
 variables {Y : T} {f : X ⟶ Y} {U V : over X} {g : U ⟶ V}
@@ -239,6 +229,50 @@ variables {Y : T} {f : X ⟶ Y} {U V : over X} {g : U ⟶ V}
 @[simp] lemma map_obj_hom  : ((map f).obj U).hom  = U.hom ≫ f := rfl
 @[simp] lemma map_map_left : ((map f).map g).left = g.left := rfl
 end
+
+section iterated_slice
+variables (f : over X)
+
+/-- Given f : Y ⟶ X, this is the obvious functor from (T/X)/f to T/Y -/
+@[simps]
+def iterated_slice_forward : over f ⥤ over f.left :=
+{ obj := λ α, over.mk α.hom.left,
+  map := λ α β κ, over.hom_mk κ.left.left (by { rw auto_param_eq, rw ← over.w κ, refl }) }
+
+/-- Given f : Y ⟶ X, this is the obvious functor from T/Y to (T/X)/f -/
+@[simps]
+def iterated_slice_backward : over f.left ⥤ over f :=
+{ obj := λ g, over.mk (over.hom_mk g.hom (by simp) : over.mk (g.hom ≫ f.hom) ⟶ f),
+  map := λ g h α, over.hom_mk (over.hom_mk α.left (over.w_assoc α f.hom))
+                              (over.over_morphism.ext (over.w α)) }
+
+/-- Given f : Y ⟶ X, we have an equivalence between (T/X)/f and T/Y -/
+@[simps]
+def iterated_slice_equiv : over f ≌ over f.left :=
+{ functor := iterated_slice_forward f,
+  inverse := iterated_slice_backward f,
+  unit_iso :=
+    nat_iso.of_components
+    (λ g, ⟨over.hom_mk (over.hom_mk (𝟙 g.left.left)) (by apply_auto_param),
+           over.hom_mk (over.hom_mk (𝟙 g.left.left)) (by apply_auto_param),
+           by { ext, dsimp, simp }, by { ext, dsimp, simp }⟩)
+    (λ X Y g, by { ext, dsimp, simp }),
+  counit_iso :=
+    nat_iso.of_components
+    (λ g, ⟨over.hom_mk (𝟙 g.left) (by apply_auto_param),
+          over.hom_mk (𝟙 g.left) (by apply_auto_param),
+          by { ext, dsimp, simp }, by { ext, dsimp, simp }⟩)
+    (λ X Y g, by { ext, dsimp, simp }) }
+
+lemma iterated_slice_forward_forget :
+  iterated_slice_forward f ⋙ forget = forget ⋙ forget :=
+rfl
+
+lemma iterated_slice_backward_forget_forget :
+  iterated_slice_backward f ⋙ forget ⋙ forget = forget :=
+rfl
+
+end iterated_slice
 
 section
 variables {D : Type u₃} [𝒟 : category.{v₃} D]
@@ -254,15 +288,14 @@ end
 
 end over
 
-def under (X : T) := comma.{1 v₃ v₃} (functor.of.obj X) (functor.id T)
+@[derive category]
+def under (X : T) := comma.{0 v₃ v₃} ((functor.const punit).obj X) (𝟭 T)
 
 namespace under
 
 variables {X : T}
 
-instance : category (under X) := by delta under; apply_instance
-
-@[extensionality] lemma under_morphism.ext {X : T} {U V : under X} {f g : U ⟶ V}
+@[ext] lemma under_morphism.ext {X : T} {U V : under X} {f g : U ⟶ V}
   (h : f.right = g.right) : f = g :=
 by tidy
 
@@ -295,7 +328,7 @@ def forget : (under X) ⥤ T := comma.snd _ _
 @[simp] lemma forget_obj {U : under X} : forget.obj U = U.right := rfl
 @[simp] lemma forget_map {U V : under X} {f : U ⟶ V} : forget.map f = f.right := rfl
 
-def map {Y : T} (f : X ⟶ Y) : under Y ⥤ under X := comma.map_left _ $ functor.of.map f
+def map {Y : T} (f : X ⟶ Y) : under Y ⥤ under X := comma.map_left _ $ (functor.const punit).map f
 
 section
 variables {Y : T} {f : X ⟶ Y} {U V : under Y} {g : U ⟶ V}

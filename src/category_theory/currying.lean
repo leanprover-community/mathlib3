@@ -12,9 +12,9 @@ namespace category_theory
 
 universes v₁ v₂ v₃ u₁ u₂ u₃
 
-variables {C : Type u₁} [𝒞 : category.{v₁+1} C]
-          {D : Type u₂} [𝒟 : category.{v₂+1} D]
-          {E : Type u₃} [ℰ : category.{v₃+1} E]
+variables {C : Type u₁} [𝒞 : category.{v₁} C]
+          {D : Type u₂} [𝒟 : category.{v₂} D]
+          {E : Type u₃} [ℰ : category.{v₃} E]
 include 𝒞 𝒟 ℰ
 
 def uncurry : (C ⥤ (D ⥤ E)) ⥤ ((C × D) ⥤ E) :=

@@ -12,10 +12,21 @@ to make the process of contributing as smooth as possible.
 2. Adhere to the guidelines:
    - The [style guide](style.md) for contributors.
    - The explanation of [naming conventions](naming.md).
+   - The [documentation guidelines](doc.md).
    - The [git commit conventions](https://github.com/leanprover/lean/blob/master/doc/commit_convention.md).
 3. Create a pull request from a feature branch on your personal fork,
    as explained in the link above, or from a branch of the main repository if you have commit access (you can ask for access on Zulip).
 4. If you've made a lot of changes/additions, try to make many PRs containing small, self-contained pieces. This helps you get feedback as you go along, and it is much easier to review. This is especially important for new contributors.
+5. You can use `leanproject get-cache` to fetch `.olean` binaries.
+  The `.olean` binaries take two hours to generate, so they might not yet be available if you're on the master branch.
+  If you checkout the remote branch `lean-3.6.1` then you can always get olean binaries:
+   ```
+   git fetch --all
+   git checkout origin/lean-3.6.1
+   leanproject get-cache
+   git checkout -b my_new_feature
+   ```
+   - See [Caching compilation](#caching-compilation) for commands to automatically call `leanproject get-cache`.
 
 
 ## The nursery
@@ -30,14 +41,12 @@ for more details.
 In the `mathlib` git repository, you can run the following in a terminal:
 
 ```sh
-$ curl https://raw.githubusercontent.com/leanprover-community/mathlib-tools/master/scripts/remote-install-update-mathlib.sh -sSf | bash
-$ source ~/.profile
-$ setup-lean-git-hooks
+sudo pip3 install mathlibtools
+leanproject hooks
 ```
 
-It will install scripts including `update-mathlib` and `cache-olean`
-and setup git hooks that will call `cache-olean` when making a commit
-and `cache-olean --fetch` and `update-mathlib` when checking out a
-branch. `update-mathlib` will fetch a compiled version of `mathlib`
-and `cache-olean` will store and fetch the compiled binaries of the
-branches you work.
+This will install the `leanproject` tool.  The call to `leanproject hooks`
+sets up git hooks that will call cache the olean files when making a commit
+and fetching the olean files when checking out a branch.
+See the [mathlib-tools documentation](https://github.com/leanprover-community/mathlib-tools/blob/master/README.md)
+for more information.

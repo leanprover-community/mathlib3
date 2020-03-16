@@ -374,11 +374,11 @@ section comm_monoid
 open list
 variable [comm_monoid α]
 
-@[to_additive list.sum_eq_of_perm]
+@[to_additive]
 lemma prod_eq_of_perm {l₁ l₂ : list α} (h : perm l₁ l₂) : prod l₁ = prod l₂ :=
 by induction h; simp [*, mul_left_comm]
 
-@[to_additive list.sum_reverse]
+@[to_additive]
 lemma prod_reverse (l : list α) : prod l.reverse = prod l :=
 prod_eq_of_perm $ reverse_perm l
 
@@ -860,7 +860,10 @@ theorem length_foldr_permutations_aux2' (t : α) (ts : list α) (r L : list (lis
 begin
   rw [length_foldr_permutations_aux2, (_ : sum (map length L) = n * length L)],
   induction L with l L ih, {simp},
-  simp [ih (λ l m, H l (mem_cons_of_mem _ m)), H l (mem_cons_self _ _), mul_add]
+  have sum_map : sum (map length L) = n * length L :=
+    ih (λ l m, H l (mem_cons_of_mem _ m)),
+  have length_l : length l = n := H _ (mem_cons_self _ _),
+  simp [sum_map, length_l, mul_add, add_comm]
 end
 
 theorem perm_of_mem_permutations_aux :

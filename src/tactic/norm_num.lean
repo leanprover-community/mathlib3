@@ -6,35 +6,10 @@ Authors: Simon Hudon, Mario Carneiro
 Evaluating arithmetic expressions including *, +, -, ^, ≤
 -/
 
-import algebra.group_power data.rat data.nat.prime
+import algebra.group_power data.rat.order data.rat.cast data.rat.meta_defs data.nat.prime
 import tactic.interactive tactic.converter.interactive
 
 universes u v w
-
-namespace expr
-
-protected meta def to_pos_rat : expr → option ℚ
-| `(%%e₁ / %%e₂) := do m ← e₁.to_nat, n ← e₂.to_nat, some (rat.mk m n)
-| e              := do n ← e.to_nat, return (rat.of_int n)
-
-protected meta def to_rat : expr → option ℚ
-| `(has_neg.neg %%e) := do q ← e.to_pos_rat, some (-q)
-| e                  := e.to_pos_rat
-
-protected meta def of_rat (α : expr) : ℚ → tactic expr
-| ⟨(n:ℕ), d, h, c⟩   := do
-  e₁ ← expr.of_nat α n,
-  if d = 1 then return e₁ else
-  do e₂ ← expr.of_nat α d,
-  tactic.mk_app ``has_div.div [e₁, e₂]
-| ⟨-[1+n], d, h, c⟩ := do
-  e₁ ← expr.of_nat α (n+1),
-  e ← (if d = 1 then return e₁ else do
-    e₂ ← expr.of_nat α d,
-    tactic.mk_app ``has_div.div [e₁, e₂]),
-  tactic.mk_app ``has_neg.neg [e]
-
-end expr
 
 namespace tactic
 
@@ -110,16 +85,21 @@ meta def eval_pow (simp : expr → tactic (expr × expr)) : expr → tactic (exp
   e ← mk_app ``monoid.pow [e₁, e₂],
   (e', p) ← simp e,
   p' ← mk_app ``norm_num.pow_bit0_helper [e₁, e', e₂, p],
-  e'' ← to_expr ``(%%e' * %%e'),
-  return (e'', p')
+  e'' ← mk_app ``has_mul.mul [e', e'],
+  (e'', p₂) ← simp e'',
+  p'' ← mk_eq_trans p' p₂,
+  return (e'', p'')
 | `(monoid.pow %%e₁ (bit1 %%e₂)) := do
   e ← mk_app ``monoid.pow [e₁, e₂],
   (e', p) ← simp e,
   p' ← mk_app ``norm_num.pow_bit1_helper [e₁, e', e₂, p],
-  e'' ← to_expr ``(%%e' * %%e' * %%e₁),
-  return (e'', p')
+  e'' ← mk_app ``has_mul.mul [e', e'],
+  e'' ← mk_app ``has_mul.mul [e'', e₁],
+  (e'', p₂) ← simp e'',
+  p'' ← mk_eq_trans p' p₂,
+  return (e'', p'')
 | `(nat.pow %%e₁ %%e₂) := do
-  p₁ ← mk_app ``nat.pow_eq_pow [e₁, e₂],
+  p₁ ← mk_app ``nat.pow_eq_pow [e₁, e₂] >>= mk_eq_symm,
   e ← mk_app ``monoid.pow [e₁, e₂],
   (e', p₂) ← simp e,
   p ← mk_eq_trans p₁ p₂,
@@ -475,6 +455,9 @@ do e ← instantiate_mvars e,
       `eq e,
     return (e', pr)
 
+/-- This version of `derive` does not fail when the input is already a numeral -/
+meta def derive' : expr → tactic (expr × expr) := derive1 derive
+
 end norm_num
 
 namespace tactic.interactive
@@ -489,11 +472,16 @@ do ns ← loc.get_locals,
    when (¬ ns.empty) $ try tactic.contradiction
 
 /-- Normalize numerical expressions. Supports the operations
-  `+` `-` `*` `/` `^` `<` `≤` over ordered fields (or other
-  appropriate classes), as well as `-` `/` `%` over `ℤ` and `ℕ`. -/
+  `+` `-` `*` `/` `^` and `%` over numerical types such as
+`ℕ`, `ℤ`, `ℚ`, `ℝ`, `ℂ` and some general algebraic types,
+and can prove goals of the form `A = B`, `A ≠ B`, `A < B` and `A ≤ B`,
+where `A` and `B` are numerical expressions.
+It also has a relatively simple primality prover. -/
 meta def norm_num (hs : parse simp_arg_list) (l : parse location) : tactic unit :=
 repeat1 $ orelse' (norm_num1 l) $
 simp_core {} (norm_num1 (loc.ns [none])) ff hs [] l
+
+add_hint_tactic "norm_num"
 
 meta def apply_normed (x : parse texpr) : tactic unit :=
 do x₁ ← to_expr x,

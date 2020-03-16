@@ -2,11 +2,94 @@
 Copyright (c) 2017 Johannes Hölzl. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johannes Hölzl, Johan Commelin, Mario Carneiro
-
-Multivariate Polynomial
 -/
+
 import algebra.ring
-import data.finsupp data.polynomial data.equiv.algebra
+import data.finsupp data.polynomial data.equiv.ring data.equiv.fin
+
+/-!
+# Multivariate polynomials
+
+This file defines polynomial rings over a base ring (or even semiring),
+with variables from a general type `σ` (which could be infinite).
+
+## Important definitions
+
+Let `R` be a commutative ring (or a semiring) and let `σ` be an arbitrary
+type. This file creates the type `mv_polynomial σ R`, which mathematicians
+might denote `R[X_i : i ∈ σ]`. It is the type of multivariate
+(a.k.a. multivariable) polynomials, with variables
+corresponding to the terms in `σ`, and coefficients in `R`.
+
+### Notation
+
+In the definitions below, we use the following notation:
+
++ `σ : Type*` (indexing the variables)
+
++ `R : Type*` `[comm_semiring R]` (the coefficients)
+
++ `s : σ →₀ ℕ`, a function from `σ` to `ℕ` which is zero away from a finite set.
+This will give rise to a monomial in `mv_polynomial σ R` which mathematicians might call `X^s`
+
++ `a : R`
+
++ `i : σ`, with corresponding monomial `X i`, often denoted `X_i` by mathematicians
+
++ `p : mv_polynomial σ R`
+
+### Definitions
+
+* `mv_polynomial σ R` : the type of polynomials with variables of type `σ` and coefficients
+  in the commutative semiring `R`
+
+* `monomial s a` : the monomial which mathematically would be denoted `a * X^s`
+
+* `C a` : the constant polynomial with value `a`
+
+* `X i` : the degree one monomial corresponding to i; mathematically this might be denoted `Xᵢ`.
+
+* `coeff s p` : the coefficient of `s` in `p`.
+
+* `eval₂ (f : R → S) (g : σ → S) p` : given a semiring homomorphism from `R` to another
+  semiring `S`, and a map `σ → S`, evaluates `p` at this valuation, returning a term of type `S`.
+  Note that `eval₂` can be made using `eval` and `map` (see below), and it has been suggested
+  that sticking to `eval` and `map` might make the code less brittle.
+
+* `eval (g : σ → R) p` : given a map `σ → R`, evaluates `p` at this valuation,
+  returning a term of type `R`
+
+* `map (f : R → S) p` : returns the multivariate polynomial obtained from `p` by the change of
+  coefficient semiring corresponding to `f`
+
+* `degrees p` : the multiset of variables representing the union of the multisets corresponding
+  to each non-zero monomial in `p`. For example if `7 ≠ 0` in `R` and `p = x²y+7y³` then
+  `degrees p = {x, x, y, y, y}`
+
+* `vars p` : the finset of variables occurring in `p`. For example if `p = x⁴y+yz` then
+  `vars p = {x, y, z}`
+
+* `degree_of n p : ℕ` -- the total degree of `p` with respect to the variable `n`. For example
+  if `p = x⁴y+yz` then `degree_of y p = 1`.
+
+* `total_degree p : ℕ` -- the max of the sizes of the multisets `s` whose monomials `X^s` occur
+  in `p`. For example if `p = x⁴y+yz` then `total_degree p = 5`.
+
+## Implementation notes
+
+Recall that if `Y` has a zero, then `X →₀ Y` is the type of functions from `X` to `Y` with finite
+support, i.e. such that only finitely many elements of `X` get sent to non-zero terms in `Y`.
+The definition of `mv_polynomial σ α` is `(σ →₀ ℕ) →₀ α` ; here `σ →₀ ℕ` denotes the space of all
+monomials in the variables, and the function to α sends a monomial to its coefficient in
+the polynomial being represented.
+
+## Tags
+
+polynomial, multivariate polynomial, multivariable polynomial
+-/
+
+noncomputable theory
+local attribute [instance, priority 100] classical.prop_decidable
 
 open set function finsupp lattice
 
@@ -20,17 +103,17 @@ def mv_polynomial (σ : Type*) (α : Type*) [comm_semiring α] := (σ →₀ ℕ
 namespace mv_polynomial
 variables {σ : Type*} {a a' a₁ a₂ : α} {e : ℕ} {n m : σ} {s : σ →₀ ℕ}
 
-variables [decidable_eq σ] [decidable_eq α]
-
 section comm_semiring
 variables [comm_semiring α] {p q : mv_polynomial σ α}
 
-instance : decidable_eq (mv_polynomial σ α) := finsupp.decidable_eq
+instance decidable_eq_mv_polynomial [decidable_eq σ] [decidable_eq α] :
+  decidable_eq (mv_polynomial σ α) := finsupp.decidable_eq
 instance : has_zero (mv_polynomial σ α) := finsupp.has_zero
 instance : has_one (mv_polynomial σ α) := finsupp.has_one
 instance : has_add (mv_polynomial σ α) := finsupp.has_add
 instance : has_mul (mv_polynomial σ α) := finsupp.has_mul
 instance : comm_semiring (mv_polynomial σ α) := finsupp.comm_semiring
+instance : inhabited (mv_polynomial σ α) := ⟨0⟩
 
 /-- `monomial s a` is the monomial `a * X^s` -/
 def monomial (s : σ →₀ ℕ) (a : α) : mv_polynomial σ α := single s a
@@ -38,7 +121,7 @@ def monomial (s : σ →₀ ℕ) (a : α) : mv_polynomial σ α := single s a
 /-- `C a` is the constant polynomial with value `a` -/
 def C (a : α) : mv_polynomial σ α := monomial 0 a
 
-/-- `X n` is the polynomial with value X_n -/
+/-- `X n` is the degree `1` monomial `1*n` -/
 def X (n : σ) : mv_polynomial σ α := monomial (single n 1) 1
 
 @[simp] lemma C_0 : C 0 = (0 : mv_polynomial σ α) := by simp [C, monomial]; refl
@@ -69,7 +152,7 @@ begin
   induction e,
   { simp [X], refl },
   { simp [pow_succ, e_ih],
-    simp [X, monomial, single_mul_single, nat.succ_eq_add_one] }
+    simp [X, monomial, single_mul_single, nat.succ_eq_add_one, add_comm] }
 end
 
 lemma monomial_add_single : monomial (s + single n e) a = (monomial s a * X n ^ e) :=
@@ -80,21 +163,21 @@ by rw [X_pow_eq_single, monomial, monomial, monomial, single_mul_single]; simp
 
 lemma monomial_eq : monomial s a = C a * (s.prod $ λn e, X n ^ e : mv_polynomial σ α) :=
 begin
-  apply @finsupp.induction σ ℕ _ _ _ _ s,
+  apply @finsupp.induction σ ℕ _ _ s,
   { simp [C, prod_zero_index]; exact (mul_one _).symm },
   { assume n e s hns he ih,
-    simp [prod_add_index, prod_single_index, pow_zero, pow_add, (mul_assoc _ _ _).symm, ih.symm,
-      monomial_add_single] }
+    simp [prod_add_index, prod_single_index, pow_zero, pow_add, (mul_assoc _ _ _).symm, ih,
+      monomial_single_add, mul_comm, mul_left_comm]  }
 end
 
-@[recursor 7]
+@[recursor 5]
 lemma induction_on {M : mv_polynomial σ α → Prop} (p : mv_polynomial σ α)
   (h_C : ∀a, M (C a)) (h_add : ∀p q, M p → M q → M (p + q)) (h_X : ∀p n, M p → M (p * X n)) :
   M p :=
 have ∀s a, M (monomial s a),
 begin
   assume s a,
-  apply @finsupp.induction σ ℕ _ _ _ _ s,
+  apply @finsupp.induction σ ℕ _ _ s,
   { show M (monomial 0 a), from h_C a, },
   { assume n e p hpn he ih,
     have : ∀e:ℕ, M (monomial p a * X n ^ e),
@@ -102,7 +185,7 @@ begin
       induction e,
       { simp [ih] },
       { simp [ih, pow_succ', (mul_assoc _ _ _).symm, h_X, e_ih] } },
-    simp [monomial_add_single, this] }
+    simp [add_comm, monomial_add_single, this] }
 end,
 finsupp.induction p
   (by have : M (C 0) := h_C 0; rwa [C_0] at this)
@@ -123,11 +206,13 @@ hom_eq_hom f id hf is_semiring_hom.id hC hX p
 
 section coeff
 
-def tmp.coe : has_coe_to_fun (mv_polynomial σ α) := by delta mv_polynomial; apply_instance
+section
+-- While setting up `coeff`, we make `mv_polynomial` reducible so we can treat it as a function.
+local attribute [reducible] mv_polynomial
 
-local attribute [instance] tmp.coe
-
+/-- The coefficient of the monomial `m` in the multi-variable polynomial `p`. -/
 def coeff (m : σ →₀ ℕ) (p : mv_polynomial σ α) : α := p m
+end
 
 lemma ext (p q : mv_polynomial σ α) :
   (∀ m, coeff m p = coeff m q) → p = q := ext
@@ -142,7 +227,8 @@ lemma ext_iff (p q : mv_polynomial σ α) :
 @[simp] lemma coeff_zero (m : σ →₀ ℕ) :
   coeff m (0 : mv_polynomial σ α) = 0 := rfl
 
-@[simp] lemma coeff_zero_X (i : σ) : coeff 0 (X i : mv_polynomial σ α) = 0 := rfl
+@[simp] lemma coeff_zero_X (i : σ) : coeff 0 (X i : mv_polynomial σ α) = 0 :=
+single_eq_of_ne (λ h, by cases single_eq_zero.1 h)
 
 instance coeff.is_add_monoid_hom (m : σ →₀ ℕ) :
   is_add_monoid_hom (coeff m : mv_polynomial σ α → α) :=
@@ -151,24 +237,24 @@ instance coeff.is_add_monoid_hom (m : σ →₀ ℕ) :
 
 lemma coeff_sum {X : Type*} (s : finset X) (f : X → mv_polynomial σ α) (m : σ →₀ ℕ) :
   coeff m (s.sum f) = s.sum (λ x, coeff m (f x)) :=
-(finset.sum_hom _).symm
+(s.sum_hom _).symm
 
 lemma monic_monomial_eq (m) : monomial m (1:α) = (m.prod $ λn e, X n ^ e : mv_polynomial σ α) :=
 by simp [monomial_eq]
 
 @[simp] lemma coeff_monomial (m n) (a) :
   coeff m (monomial n a : mv_polynomial σ α) = if n = m then a else 0 :=
-single_apply
+by convert single_apply
 
 @[simp] lemma coeff_C (m) (a) :
   coeff m (C a : mv_polynomial σ α) = if 0 = m then a else 0 :=
-single_apply
+by convert single_apply
 
 lemma coeff_X_pow (i : σ) (m) (k : ℕ) :
   coeff m (X i ^ k : mv_polynomial σ α) = if single i k = m then 1 else 0 :=
 begin
   have := coeff_monomial m (finsupp.single i k) (1:α),
-  rwa [@monomial_eq _ _ (1:α) (finsupp.single i k) _ _ _,
+  rwa [@monomial_eq _ _ (1:α) (finsupp.single i k) _,
     C_1, one_mul, finsupp.prod_single_index] at this,
   exact pow_zero _
 end
@@ -202,7 +288,7 @@ begin
   convert this.symm using 1; clear this,
   { rw [coeff],
     repeat {rw sum_apply, apply finset.sum_congr rfl, intros, dsimp only},
-    exact single_apply },
+    convert single_apply },
   { have : (antidiagonal n).support.filter (λ x, x.1 ∈ p.support ∧ x.2 ∈ q.support) ⊆
            (antidiagonal n).support := finset.filter_subset _,
     rw [← finset.sum_sdiff this, finset.sum_eq_zero, zero_add], swap,
@@ -260,7 +346,7 @@ begin
     delta X monomial at hi', rw mem_support_single at hi', cases hi', subst i',
     erw finset.mem_singleton at H, subst m,
     rw [mem_support_iff, add_apply, single_apply, if_pos rfl],
-    intro H, rw [add_eq_zero_iff] at H, exact one_ne_zero H.2 }
+    intro H, rw [_root_.add_eq_zero_iff] at H, exact one_ne_zero H.2 }
 end
 
 end coeff
@@ -277,6 +363,7 @@ p.sum (λs a, f a * s.prod (λn e, g n ^ e))
 @[simp] lemma eval₂_zero : (0 : mv_polynomial σ α).eval₂ f g = 0 :=
 finsupp.sum_zero_index
 
+section
 variables [is_semiring_hom f]
 
 @[simp] lemma eval₂_add : (p + q).eval₂ f g = p.eval₂ f g + q.eval₂ f g :=
@@ -329,6 +416,7 @@ instance eval₂.is_semiring_hom : is_semiring_hom (eval₂ f g) :=
   map_one := eval₂_one _ _,
   map_add := λ p q, eval₂_add _ _,
   map_mul := λ p q, eval₂_mul _ _ }
+end
 
 lemma eval₂_comp_left {γ} [comm_semiring γ]
   (k : β → γ) [is_semiring_hom k]
@@ -354,17 +442,19 @@ begin
   rwa finsupp.mem_support_iff at hc
 end
 
-@[simp] lemma eval₂_prod [decidable_eq γ] (s : finset γ) (p : γ → mv_polynomial σ α) :
+variables [is_semiring_hom f]
+
+@[simp] lemma eval₂_prod (s : finset γ) (p : γ → mv_polynomial σ α) :
   eval₂ f g (s.prod p) = s.prod (λ x, eval₂ f g $ p x) :=
-(finset.prod_hom _).symm
+(s.prod_hom _).symm
 
-@[simp] lemma eval₂_sum [decidable_eq γ] (s : finset γ) (p : γ → mv_polynomial σ α) :
+@[simp] lemma eval₂_sum (s : finset γ) (p : γ → mv_polynomial σ α) :
   eval₂ f g (s.sum p) = s.sum (λ x, eval₂ f g $ p x) :=
-(finset.sum_hom _).symm
+(s.sum_hom _).symm
 
-attribute [to_additive mv_polynomial.eval₂_sum] eval₂_prod
+attribute [to_additive] eval₂_prod
 
-lemma eval₂_assoc [decidable_eq γ] (q : γ → mv_polynomial σ α) (p : mv_polynomial γ α) :
+lemma eval₂_assoc (q : γ → mv_polynomial σ α) (p : mv_polynomial γ α) :
   eval₂ f (λ t, eval₂ f g (q t)) p = eval₂ f g (eval₂ C q p) :=
 by { rw eval₂_comp_left (eval₂ f g), congr, funext, simp }
 
@@ -392,7 +482,7 @@ eval₂_monomial _ _
 instance eval.is_semiring_hom : is_semiring_hom (eval f) :=
 eval₂.is_semiring_hom _ _
 
-theorem eval_assoc {τ} [decidable_eq τ]
+theorem eval_assoc {τ}
   (f : σ → mv_polynomial τ α) (g : τ → α)
   (p : mv_polynomial σ α) :
   p.eval (eval g ∘ f) = (eval₂ C f p).eval g :=
@@ -404,11 +494,13 @@ end
 end eval
 
 section map
-variables [comm_semiring β] [decidable_eq β]
-variables (f : α → β) [is_semiring_hom f]
+variables [comm_semiring β]
+variables (f : α → β)
 
 /-- `map f p` maps a polynomial `p` across a ring hom `f` -/
 def map : mv_polynomial σ α → mv_polynomial σ β := eval₂ (C ∘ f) X
+
+variables [is_semiring_hom f]
 
 @[simp] theorem map_monomial (s : σ →₀ ℕ) (a : α) : map f (monomial s a) = monomial s (f a) :=
 (eval₂_monomial _ _).trans monomial_eq.symm
@@ -434,7 +526,7 @@ eval₂.is_semiring_hom _ _
 
 theorem map_id : ∀ (p : mv_polynomial σ α), map id p = p := eval₂_eta
 
-theorem map_map [comm_semiring γ] [decidable_eq γ]
+theorem map_map [comm_semiring γ]
   (g : β → γ) [is_semiring_hom g]
   (p : mv_polynomial σ α) :
   map g (map f p) = map (g ∘ f) p :=
@@ -461,8 +553,7 @@ begin
     rw [eval₂_mul, is_semiring_hom.map_mul k, map_mul, eval₂_mul, map_X, hp, eval₂_X, eval₂_X] }
 end
 
-lemma map_eval₂ [decidable_eq γ] [decidable_eq δ]
-  (f : α → β) [is_semiring_hom f] (g : γ → mv_polynomial δ α) (p : mv_polynomial γ α) :
+lemma map_eval₂ (f : α → β) [is_semiring_hom f] (g : γ → mv_polynomial δ α) (p : mv_polynomial γ α) :
   map f (eval₂ C g p) = eval₂ C (map f ∘ g) (map f p) :=
 begin
   apply mv_polynomial.induction_on p,
@@ -499,6 +590,11 @@ section degrees
 
 section comm_semiring
 
+/--
+The maximal degrees of each variable in a multi-variable polynomial, expressed as a multiset.
+
+(For example, `degrees (x^2 * y + y^3)` would be `{x, x, y, y, y}`.)
+-/
 def degrees (p : mv_polynomial σ α) : multiset σ :=
 p.support.sup (λs:σ →₀ ℕ, s.to_multiset)
 
@@ -522,19 +618,21 @@ multiset.le_zero.1 $ degrees_monomial _ _
 lemma degrees_X (n : σ) : degrees (X n : mv_polynomial σ α) ≤ {n} :=
 le_trans (degrees_monomial _ _) $ le_of_eq $ to_multiset_single _ _
 
-lemma degrees_zero : degrees (0 : mv_polynomial σ α) = 0 := degrees_C 0
+lemma degrees_zero : degrees (0 : mv_polynomial σ α) = 0 :=
+by { rw ← C_0, exact degrees_C 0 }
 
 lemma degrees_one : degrees (1 : mv_polynomial σ α) = 0 := degrees_C 1
 
 lemma degrees_add (p q : mv_polynomial σ α) : (p + q).degrees ≤ p.degrees ⊔ q.degrees :=
 begin
   refine finset.sup_le (assume b hb, _),
-  cases finset.mem_union.1 (finsupp.support_add hb),
-  { exact le_sup_left_of_le (finset.le_sup h) },
-  { exact le_sup_right_of_le (finset.le_sup h) },
+  have := finsupp.support_add hb, rw finset.mem_union at this,
+  cases this,
+  { exact le_sup_left_of_le (finset.le_sup this) },
+  { exact le_sup_right_of_le (finset.le_sup this) },
 end
 
-lemma degrees_sum {ι : Type*} [decidable_eq ι] (s : finset ι) (f : ι → mv_polynomial σ α) :
+lemma degrees_sum {ι : Type*} (s : finset ι) (f : ι → mv_polynomial σ α) :
   (s.sum f).degrees ≤ s.sup (λi, (f i).degrees) :=
 begin
   refine s.induction _ _,
@@ -554,7 +652,7 @@ begin
   exact add_le_add (finset.le_sup h₁) (finset.le_sup h₂)
 end
 
-lemma degrees_prod {ι : Type*} [decidable_eq ι] (s : finset ι) (f : ι → mv_polynomial σ α) :
+lemma degrees_prod {ι : Type*} (s : finset ι) (f : ι → mv_polynomial σ α) :
   (s.prod f).degrees ≤ s.sum (λi, (f i).degrees) :=
 begin
   refine s.induction _ _,
@@ -638,9 +736,10 @@ lemma total_degree_add (a b : mv_polynomial σ α) :
 finset.sup_le $ assume n hn,
   have _ := finsupp.support_add hn,
   begin
-    rcases finset.mem_union.1 this,
-    { exact le_max_left_of_le (finset.le_sup h) },
-    { exact le_max_right_of_le (finset.le_sup h) }
+    rw finset.mem_union at this,
+    cases this,
+    { exact le_max_left_of_le (finset.le_sup this) },
+    { exact le_max_right_of_le (finset.le_sup this) }
   end
 
 lemma total_degree_mul (a b : mv_polynomial σ α) :
@@ -703,6 +802,9 @@ lemma C_sub : (C (a - a') : mv_polynomial σ α) = C a - C a' := is_ring_hom.map
 
 @[simp] lemma C_neg : (C (-a) : mv_polynomial σ α) = -C a := is_ring_hom.map_neg _
 
+@[simp] lemma coeff_neg (m : σ →₀ ℕ) (p : mv_polynomial σ α) :
+  coeff m (-p) = -coeff m p := finsupp.neg_apply
+
 @[simp] lemma coeff_sub (m : σ →₀ ℕ) (p q : mv_polynomial σ α) :
   coeff m (p - q) = coeff m p - coeff m q := finsupp.sub_apply
 
@@ -737,10 +839,10 @@ by rw [smul_eq_C_mul, eval_mul, eval_C]
 
 section degrees
 
-lemma degrees_neg [comm_ring α] (p : mv_polynomial σ α) : (- p).degrees = p.degrees :=
+lemma degrees_neg (p : mv_polynomial σ α) : (- p).degrees = p.degrees :=
 by rw [degrees, finsupp.support_neg]; refl
 
-lemma degrees_sub [comm_ring α] (p q : mv_polynomial σ α) :
+lemma degrees_sub (p q : mv_polynomial σ α) :
   (p - q).degrees ≤ p.degrees ⊔ q.degrees :=
 le_trans (degrees_add p (-q)) $ by rw [degrees_neg]
 
@@ -761,15 +863,23 @@ lemma eval₂_sub : (p - q).eval₂ f g = p.eval₂ f g - q.eval₂ f g := is_ri
 lemma hom_C (f : mv_polynomial σ ℤ → β) [is_ring_hom f] (n : ℤ) : f (C n) = (n : β) :=
 congr_fun (int.eq_cast' (f ∘ C)) n
 
-/-- A ring homomorphism f : Z[X_1, X_2, ...] -> R
+/-- A ring homomorphism f : Z[X_1, X_2, ...] → R
 is determined by the evaluations f(X_1), f(X_2), ... -/
-@[simp] lemma eval₂_hom_X {α : Type u} [decidable_eq α] (c : ℤ → β) [is_ring_hom c]
+@[simp] lemma eval₂_hom_X {α : Type u} (c : ℤ → β) [is_ring_hom c]
   (f : mv_polynomial α ℤ → β) [is_ring_hom f] (x : mv_polynomial α ℤ) :
   eval₂ c (f ∘ X) x = f x :=
 mv_polynomial.induction_on x
 (λ n, by { rw [hom_C f, eval₂_C, int.eq_cast' c], refl })
 (λ p q hp hq, by { rw [eval₂_add, hp, hq], exact (is_ring_hom.map_add f).symm })
 (λ p n hp, by { rw [eval₂_mul, eval₂_X, hp], exact (is_ring_hom.map_mul f).symm })
+
+/-- Ring homomorphisms out of integer polynomials on a type `σ` are the same as
+functions out of the type `σ`, -/
+def hom_equiv : (mv_polynomial σ ℤ →+* β) ≃ (σ → β) :=
+{ to_fun := λ f, ⇑f ∘ X,
+  inv_fun := λ f, ring_hom.of (eval₂ (λ n : ℤ, (n : β)) f),
+  left_inv := λ f, ring_hom.ext  $ eval₂_hom_X _ _,
+  right_inv := λ f, funext $ λ x, by simp only [ring_hom.coe_of, function.comp_app, eval₂_X] }
 
 end eval₂
 
@@ -787,7 +897,7 @@ end eval
 
 section map
 
-variables [decidable_eq β] [comm_ring β]
+variables [comm_ring β]
 variables (f : α → β) [is_ring_hom f]
 
 instance map.is_ring_hom : is_ring_hom (map f : mv_polynomial σ α → mv_polynomial σ β) :=
@@ -802,8 +912,9 @@ end map
 end comm_ring
 
 section rename
-variables {α} [comm_semiring α] [decidable_eq α] [decidable_eq β] [decidable_eq γ] [decidable_eq δ]
+variables {α} [comm_semiring α]
 
+/-- Rename all the variables in a multivariable polynomial. -/
 def rename (f : β → γ) : mv_polynomial β α → mv_polynomial γ α :=
 eval₂ C (X ∘ f)
 
@@ -829,7 +940,12 @@ eval₂_one _ _
   rename f (p + q) = rename f p + rename f q :=
 eval₂_add _ _
 
-@[simp] lemma rename_sub {α} [comm_ring α] [decidable_eq α]
+@[simp] lemma rename_neg {α} [comm_ring α]
+  (f : β → γ) (p : mv_polynomial β α) :
+  rename f (-p) = -rename f p :=
+eval₂_neg _ _ _
+
+@[simp] lemma rename_sub {α} [comm_ring α]
   (f : β → γ) (p q : mv_polynomial β α) :
   rename f (p - q) = rename f p - rename f q :=
 eval₂_sub _ _ _
@@ -895,7 +1011,8 @@ finset.sup_le $ assume b,
     assume h,
     rw rename_eq at h,
     have h' := finsupp.map_domain_support h,
-    rcases finset.mem_image.1 h' with ⟨s, hs, rfl⟩,
+    rw finset.mem_image at h',
+    rcases h' with ⟨s, hs, rfl⟩,
     rw finsupp.sum_map_domain_index,
     exact le_trans (le_refl _) (finset.le_sup hs),
     exact assume _, rfl,
@@ -927,9 +1044,37 @@ eval₂_rename_prodmk id _ _ _
 
 end
 
+/-- Every polynomial is a polynomial in finitely many variables. -/
+theorem exists_finset_rename (p : mv_polynomial γ α) :
+  ∃ (s : finset γ) (q : mv_polynomial {x // x ∈ s} α), p = q.rename coe :=
+begin
+  apply induction_on p,
+  { intro r, exact ⟨∅, C r, by rw rename_C⟩ },
+  { rintro p q ⟨s, p, rfl⟩ ⟨t, q, rfl⟩,
+    refine ⟨s ∪ t, ⟨_, _⟩⟩,
+    { exact rename (subtype.map id (finset.subset_union_left s t)) p +
+            rename (subtype.map id (finset.subset_union_right s t)) q },
+    { rw [rename_add, rename_rename, rename_rename], refl } },
+  { rintro p n ⟨s, p, rfl⟩,
+    refine ⟨insert n s, ⟨_, _⟩⟩,
+  { exact rename (subtype.map id (finset.subset_insert n s)) p * X ⟨n, s.mem_insert_self n⟩ },
+    { rw [rename_mul, rename_X, rename_rename], refl } }
+end
+
+/-- Every polynomial is a polynomial in finitely many variables. -/
+theorem exists_fin_rename (p : mv_polynomial γ α) :
+  ∃ (n : ℕ) (f : fin n → γ) (hf : injective f) (q : mv_polynomial (fin n) α), p = q.rename f :=
+begin
+  obtain ⟨s, q, rfl⟩ := exists_finset_rename p,
+  obtain ⟨n, ⟨e⟩⟩ := fintype.exists_equiv_fin {x // x ∈ s},
+  refine ⟨n, coe ∘ e.symm, injective_comp subtype.val_injective e.symm.injective, q.rename e, _⟩,
+  rw [← rename_rename, rename_rename e],
+  simp only [function.comp, equiv.symm_apply_apply, rename_rename]
+end
+
 end rename
 
-lemma eval₂_cast_comp {β : Type u} {γ : Type v} [decidable_eq β] [decidable_eq γ] (f : γ → β)
+lemma eval₂_cast_comp {β : Type u} {γ : Type v} (f : γ → β)
   {α : Type w} [comm_ring α] (c : ℤ → α) [is_ring_hom c] (g : β → α) (x : mv_polynomial γ ℤ) :
   eval₂ c (g ∘ f) x = eval₂ c g (rename f x) :=
 mv_polynomial.induction_on x
@@ -938,26 +1083,29 @@ mv_polynomial.induction_on x
 (λ p n hp, by simp only [hp, rename, eval₂_X, eval₂_mul])
 
 instance rename.is_ring_hom
-  {α} [comm_ring α] [decidable_eq α] [decidable_eq β] [decidable_eq γ] (f : β → γ) :
+  {α} [comm_ring α] (f : β → γ) :
   is_ring_hom (rename f : mv_polynomial β α → mv_polynomial γ α) :=
 @is_ring_hom.of_semiring (mv_polynomial β α) (mv_polynomial γ α) _ _ (rename f)
   (rename.is_semiring_hom f)
 
 section equiv
 
-variables (α) [comm_ring α]
-variables [decidable_eq β] [decidable_eq γ] [decidable_eq δ]
+variables (α) [comm_semiring α]
 
-set_option class.instance_max_depth 40
-
-def pempty_ring_equiv : mv_polynomial pempty α ≃r α :=
+/-- The ring isomorphism between multivariable polynomials in no variables and the ground ring. -/
+def pempty_ring_equiv : mv_polynomial pempty α ≃+* α :=
 { to_fun    := mv_polynomial.eval₂ id $ pempty.elim,
   inv_fun   := C,
   left_inv  := is_id _ (by apply_instance) (assume a, by rw [eval₂_C]; refl) (assume a, a.elim),
   right_inv := λ r, eval₂_C _ _ _,
-  hom       := eval₂.is_ring_hom _ _ }
+  map_mul'  := λ _ _, eval₂_mul _ _,
+  map_add'  := λ _ _, eval₂_add _ _ }
 
-def punit_ring_equiv : mv_polynomial punit α ≃r polynomial α :=
+/--
+The ring isomorphism between multivariable polynomials in a single variable and
+polynomials over the ground ring.
+-/
+def punit_ring_equiv : mv_polynomial punit α ≃+* polynomial α :=
 { to_fun    := eval₂ polynomial.C (λu:punit, polynomial.X),
   inv_fun   := polynomial.eval₂ mv_polynomial.C (X punit.star),
   left_inv  :=
@@ -973,34 +1121,43 @@ def punit_ring_equiv : mv_polynomial punit α ≃r polynomial α :=
     (assume p n hp,
       by rw [polynomial.eval₂_mul, polynomial.eval₂_pow, polynomial.eval₂_X, polynomial.eval₂_C,
         eval₂_mul, eval₂_C, eval₂_pow, eval₂_X]),
-  hom       := eval₂.is_ring_hom _ _ }
+  map_mul'  := λ _ _, eval₂_mul _ _,
+  map_add'  := λ _ _, eval₂_add _ _ }
 
-def ring_equiv_of_equiv (e : β ≃ γ) : mv_polynomial β α ≃r mv_polynomial γ α :=
+/-- The ring isomorphism between multivariable polynomials induced by an equivalence of the variables.  -/
+def ring_equiv_of_equiv (e : β ≃ γ) : mv_polynomial β α ≃+* mv_polynomial γ α :=
 { to_fun    := rename e,
   inv_fun   := rename e.symm,
   left_inv  := λ p, by simp only [rename_rename, (∘), e.symm_apply_apply]; exact rename_id p,
   right_inv := λ p, by simp only [rename_rename, (∘), e.apply_symm_apply]; exact rename_id p,
-  hom       := rename.is_ring_hom e }
+  map_mul'  := rename_mul e,
+  map_add'  := rename_add e }
 
-def ring_equiv_congr [comm_ring γ] (e : α ≃r γ) : mv_polynomial β α ≃r mv_polynomial β γ :=
-{ to_fun    := map e.to_equiv,
-  inv_fun   := map e.symm.to_equiv,
+/-- The ring isomorphism between multivariable polynomials induced by a ring isomorphism of the ground ring. -/
+def ring_equiv_congr [comm_semiring γ] (e : α ≃+* γ) : mv_polynomial β α ≃+* mv_polynomial β γ :=
+{ to_fun    := map e,
+  inv_fun   := map e.symm,
   left_inv  := assume p,
-    have (e.symm.to_equiv ∘ e.to_equiv) = id,
-    { ext a, exact e.to_equiv.symm_apply_apply a },
+    have (e.symm ∘ e) = id,
+    { ext a, exact e.symm_apply_apply a },
     by simp only [map_map, this, map_id],
   right_inv := assume p,
-    have (e.to_equiv ∘ e.symm.to_equiv) = id,
-    { ext a, exact e.to_equiv.apply_symm_apply a },
+    have (e ∘ e.symm) = id,
+    { ext a, exact e.apply_symm_apply a },
     by simp only [map_map, this, map_id],
-  hom       := map.is_ring_hom e.to_fun }
+  map_mul'  := map_mul _,
+  map_add'  := map_add _ }
 
 section
 variables (β γ δ)
 
-instance ring_on_sum : ring (mv_polynomial (β ⊕ γ) α) := by apply_instance
-instance ring_on_iter : ring (mv_polynomial β (mv_polynomial γ α)) := by apply_instance
+/--
+The function from multivariable polynomials in a sum of two types,
+to multivariable polynomials in one of the types,
+with coefficents in multivariable polynomials in the other type.
 
+See `sum_ring_equiv` for the ring isomorphism.
+-/
 def sum_to_iter : mv_polynomial (β ⊕ γ) α → mv_polynomial β (mv_polynomial γ α) :=
 eval₂ (C ∘ C) (λbc, sum.rec_on bc X (C ∘ X))
 
@@ -1020,15 +1177,18 @@ eval₂_X _ _ (sum.inl b)
 lemma sum_to_iter_Xr (c : γ) : sum_to_iter α β γ (X (sum.inr c)) = C (X c) :=
 eval₂_X _ _ (sum.inr c)
 
+/--
+The function from multivariable polynomials in one type,
+with coefficents in multivariable polynomials in another type,
+to multivariable polynomials in the sum of the two types.
+
+See `sum_ring_equiv` for the ring isomorphism.
+-/
 def iter_to_sum : mv_polynomial β (mv_polynomial γ α) → mv_polynomial (β ⊕ γ) α :=
 eval₂ (eval₂ C (X ∘ sum.inr)) (X ∘ sum.inl)
 
-section
-
 instance is_semiring_hom_iter_to_sum : is_semiring_hom (iter_to_sum α β γ) :=
 eval₂.is_semiring_hom _ _
-
-end
 
 lemma iter_to_sum_C_C (a : α) : iter_to_sum α β γ (C (C a)) = C a :=
 eq.trans (eval₂_C _ _ (C a)) (eval₂_C _ _ _)
@@ -1039,25 +1199,32 @@ eval₂_X _ _ _
 lemma iter_to_sum_C_X (c : γ) : iter_to_sum α β γ (C (X c)) = X (sum.inr c) :=
 eq.trans (eval₂_C _ _ (X c)) (eval₂_X _ _ _)
 
-def mv_polynomial_equiv_mv_polynomial [comm_ring δ]
+/-- A helper function for `sum_ring_equiv`. -/
+def mv_polynomial_equiv_mv_polynomial [comm_semiring δ]
   (f : mv_polynomial β α → mv_polynomial γ δ) (hf : is_semiring_hom f)
   (g : mv_polynomial γ δ → mv_polynomial β α) (hg : is_semiring_hom g)
   (hfgC : ∀a, f (g (C a)) = C a)
   (hfgX : ∀n, f (g (X n)) = X n)
   (hgfC : ∀a, g (f (C a)) = C a)
   (hgfX : ∀n, g (f (X n)) = X n) :
-  mv_polynomial β α ≃r mv_polynomial γ δ :=
+  mv_polynomial β α ≃+* mv_polynomial γ δ :=
 { to_fun    := f, inv_fun := g,
   left_inv  := is_id _ (is_semiring_hom.comp _ _) hgfC hgfX,
   right_inv := is_id _ (is_semiring_hom.comp _ _) hfgC hfgX,
-  hom       := is_ring_hom.of_semiring f }
+  map_mul'  := hf.map_mul,
+  map_add'  := hf.map_add }
 
-def sum_ring_equiv : mv_polynomial (β ⊕ γ) α ≃r mv_polynomial β (mv_polynomial γ α) :=
+/--
+The ring isomorphism between multivariable polynomials in a sum of two types,
+and multivariable polynomials in one of the types,
+with coefficents in multivariable polynomials in the other type.
+-/
+def sum_ring_equiv : mv_polynomial (β ⊕ γ) α ≃+* mv_polynomial β (mv_polynomial γ α) :=
 begin
-  apply @mv_polynomial_equiv_mv_polynomial α (β ⊕ γ) _ _ _ _ _ _ _ _
+  apply @mv_polynomial_equiv_mv_polynomial α (β ⊕ γ) _ _ _ _
     (sum_to_iter α β γ) _ (iter_to_sum α β γ) _,
   { assume p,
-    apply @hom_eq_hom _ _ _ _ _ _ _ _ _ _ _ _ _ p,
+    apply hom_eq_hom _ _ _ _ _ _ p,
     apply_instance,
     { apply @is_semiring_hom.comp _ _ _ _ _ _ _ _ _ _,
       apply_instance,
@@ -1078,24 +1245,32 @@ begin
   { apply mv_polynomial.is_semiring_hom_iter_to_sum α β γ }
 end
 
-instance option_ring : ring (mv_polynomial (option β) α) :=
-mv_polynomial.ring
-
-instance polynomial_ring : ring (polynomial (mv_polynomial β α)) :=
-@comm_ring.to_ring _ polynomial.comm_ring
-
-instance polynomial_ring2 : ring (mv_polynomial β (polynomial α)) :=
-by apply_instance
-
-def option_equiv_left : mv_polynomial (option β) α ≃r polynomial (mv_polynomial β α) :=
+/--
+The ring isomorphism between multivariable polynomials in `option β` and
+polynomials with coefficients in `mv_polynomial β α`.
+-/
+def option_equiv_left : mv_polynomial (option β) α ≃+* polynomial (mv_polynomial β α) :=
 (ring_equiv_of_equiv α $ (equiv.option_equiv_sum_punit β).trans (equiv.sum_comm _ _)).trans $
 (sum_ring_equiv α _ _).trans $
 punit_ring_equiv _
 
-def option_equiv_right : mv_polynomial (option β) α ≃r mv_polynomial β (polynomial α) :=
+/--
+The ring isomorphism between multivariable polynomials in `option β` and
+multivariable polynomials with coefficients in polynomials.
+-/
+def option_equiv_right : mv_polynomial (option β) α ≃+* mv_polynomial β (polynomial α) :=
 (ring_equiv_of_equiv α $ equiv.option_equiv_sum_punit.{0} β).trans $
 (sum_ring_equiv α β unit).trans $
 ring_equiv_congr (mv_polynomial unit α) (punit_ring_equiv α)
+
+/--
+The ring isomorphism between multivariable polynomials in `fin (n + 1)` and
+polynomials over multivariable polynomials in `fin n`.
+-/
+def fin_succ_equiv (n : ℕ) :
+  mv_polynomial (fin (n + 1)) α ≃+* polynomial (mv_polynomial (fin n) α) :=
+(ring_equiv_of_equiv α (fin_succ_equiv n)).trans
+  (option_equiv_left α (fin n))
 
 end
 

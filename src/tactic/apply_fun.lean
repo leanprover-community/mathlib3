@@ -41,13 +41,28 @@ do {
 } <|> fail ("failed to apply " ++ to_string e ++ " at " ++ to_string h)
 
 namespace tactic.interactive
-/-- Apply a function to some local assumptions which are either equalities or
-    inequalities. For instance, if the context contains `h : a = b` and
-    some function `f` then `apply_fun f at h` turns `h` into `h : f a = f b`.
-    When the assumption is an inequality `h : a ≤ b`, a side goal `monotone f`
-    is created, unless this condition is provided using
-    `apply_fun f at h using P` where `P : monotone f`, or the `mono` tactic can
-    prove it. -/
+/--
+Apply a function to some local assumptions which are either equalities
+or inequalities. For instance, if the context contains `h : a = b` and
+some function `f` then `apply_fun f at h` turns `h` into
+`h : f a = f b`. When the assumption is an inequality `h : a ≤ b`, a side
+goal `monotone f` is created, unless this condition is provided using
+`apply_fun f at h using P` where `P : monotone f`, or the `mono` tactic
+can prove it.
+
+Typical usage is:
+```lean
+open function
+
+example (X Y Z : Type) (f : X → Y) (g : Y → Z) (H : injective $ g ∘ f) :
+  injective f :=
+begin
+  intros x x' h,
+  apply_fun g at h,
+  exact H h
+end
+```
+ -/
 meta def apply_fun (q : parse texpr) (locs : parse location)
   (lem : parse (tk "using" *> texpr)?) : tactic unit :=
 --do e ← tactic.i_to_expr q,
@@ -61,3 +76,9 @@ meta def apply_fun (q : parse texpr) (locs : parse location)
                     ctx.mmap' (λ h, apply_fun_name q h.local_pp_name lem)
    end
 end tactic.interactive
+
+add_tactic_doc
+{ name       := "apply_fun",
+  category   := doc_category.tactic,
+  decl_names := [`tactic.interactive.apply_fun],
+  tags       := ["context management"] }

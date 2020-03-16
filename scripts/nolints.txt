@@ -16,20 +16,7 @@ apply_nolint finset.prod_ite unused_arguments
 apply_nolint finset.sum doc_blame
 apply_nolint finset.sum_ite unused_arguments
 
--- algebra/category/CommRing/colimits.lean
-apply_nolint CommRing.colimits.cocone_fun doc_blame
-apply_nolint CommRing.colimits.cocone_morphism doc_blame
-apply_nolint CommRing.colimits.colimit doc_blame
-apply_nolint CommRing.colimits.colimit_cocone doc_blame
-apply_nolint CommRing.colimits.colimit_is_colimit doc_blame
-apply_nolint CommRing.colimits.colimit_type doc_blame has_inhabited_instance
-apply_nolint CommRing.colimits.desc_fun doc_blame
-apply_nolint CommRing.colimits.desc_fun_lift doc_blame
-apply_nolint CommRing.colimits.desc_morphism doc_blame
-apply_nolint CommRing.colimits.prequotient doc_blame has_inhabited_instance
-apply_nolint CommRing.colimits.relation doc_blame
-
--- algebra/category/Group.lean
+-- algebra/category/Group/basic.lean
 apply_nolint AddCommGroup doc_blame
 apply_nolint AddCommGroup.of doc_blame
 apply_nolint AddGroup doc_blame
@@ -40,19 +27,6 @@ apply_nolint AddCommMon doc_blame
 apply_nolint AddCommMon.of doc_blame
 apply_nolint AddMon doc_blame
 apply_nolint AddMon.of doc_blame
-
--- algebra/category/Mon/colimits.lean
-apply_nolint Mon.colimits.cocone_fun doc_blame
-apply_nolint Mon.colimits.cocone_morphism doc_blame
-apply_nolint Mon.colimits.colimit doc_blame
-apply_nolint Mon.colimits.colimit_cocone doc_blame
-apply_nolint Mon.colimits.colimit_is_colimit doc_blame
-apply_nolint Mon.colimits.colimit_type doc_blame has_inhabited_instance
-apply_nolint Mon.colimits.desc_fun doc_blame
-apply_nolint Mon.colimits.desc_fun_lift doc_blame
-apply_nolint Mon.colimits.desc_morphism doc_blame
-apply_nolint Mon.colimits.prequotient doc_blame has_inhabited_instance
-apply_nolint Mon.colimits.relation doc_blame
 
 -- algebra/commute.lean
 apply_nolint centralizer.add_submonoid doc_blame
@@ -761,22 +735,13 @@ apply_nolint category_theory.monad.comparison_forget doc_blame
 
 -- category_theory/monad/algebra.lean
 apply_nolint category_theory.monad.algebra has_inhabited_instance
-apply_nolint category_theory.monad.algebra.hom doc_blame has_inhabited_instance
-apply_nolint category_theory.monad.algebra.hom.comp doc_blame
-apply_nolint category_theory.monad.algebra.hom.id doc_blame
-apply_nolint category_theory.monad.forget doc_blame
-apply_nolint category_theory.monad.free doc_blame
-
--- category_theory/monad/basic.lean
-apply_nolint category_theory.monad doc_blame
+apply_nolint category_theory.monad.algebra.hom has_inhabited_instance
 
 -- category_theory/monad/limits.lean
 apply_nolint category_theory.has_limits_of_reflective doc_blame
-apply_nolint category_theory.monad.forget_creates_limits doc_blame
 apply_nolint category_theory.monad.forget_creates_limits.c doc_blame
 apply_nolint category_theory.monad.forget_creates_limits.cone_point doc_blame
 apply_nolint category_theory.monad.forget_creates_limits.γ unused_arguments doc_blame
-apply_nolint category_theory.monadic_creates_limits doc_blame
 
 -- category_theory/monoidal/functor.lean
 apply_nolint category_theory.lax_monoidal_functor has_inhabited_instance

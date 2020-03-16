@@ -117,13 +117,13 @@ is_partial_inv_left (partial_inv_of_injective I)
 end
 
 section inv_fun
-variables {α : Type u} [inhabited α] {β : Sort v} {f : α → β} {s : set α} {a : α} {b : β}
-
+variables {α : Type u} [n : nonempty α] {β : Sort v} {f : α → β} {s : set α} {a : α} {b : β}
+include n
 local attribute [instance, priority 10] classical.prop_decidable
 
 /-- Construct the inverse for a function `f` on domain `s`. -/
 noncomputable def inv_fun_on (f : α → β) (s : set α) (b : β) : α :=
-if h : ∃a, a ∈ s ∧ f a = b then classical.some h else default α
+if h : ∃a, a ∈ s ∧ f a = b then classical.some h else classical.choice n
 
 theorem inv_fun_on_pos (h : ∃a∈s, f a = b) : inv_fun_on f s b ∈ s ∧ f (inv_fun_on f s b) = b :=
 by rw [bex_def] at h; rw [inv_fun_on, dif_pos h]; exact classical.some_spec h
@@ -137,7 +137,7 @@ theorem inv_fun_on_eq' (h : ∀ x y ∈ s, f x = f y → x = y) (ha : a ∈ s) :
 have ∃a'∈s, f a' = f a, from ⟨a, ha, rfl⟩,
 h _ _ (inv_fun_on_mem this) ha (inv_fun_on_eq this)
 
-theorem inv_fun_on_neg (h : ¬ ∃a∈s, f a = b) : inv_fun_on f s b = default α :=
+theorem inv_fun_on_neg (h : ¬ ∃a∈s, f a = b) : inv_fun_on f s b = classical.choice n :=
 by rw [bex_def] at h; rw [inv_fun_on, dif_neg h]
 
 /-- The inverse of a function (which is a left inverse if `f` is injective
@@ -147,7 +147,7 @@ noncomputable def inv_fun (f : α → β) : β → α := inv_fun_on f set.univ
 theorem inv_fun_eq (h : ∃a, f a = b) : f (inv_fun f b) = b :=
 inv_fun_on_eq $ let ⟨a, ha⟩ := h in ⟨a, trivial, ha⟩
 
-lemma inv_fun_neg (h : ¬ ∃ a, f a = b) : inv_fun f b = default α :=
+lemma inv_fun_neg (h : ¬ ∃ a, f a = b) : inv_fun f b = classical.choice n :=
 by refine inv_fun_on_neg (mt _ h); exact assume ⟨a, _, ha⟩, ⟨a, ha⟩
 
 theorem inv_fun_eq_of_injective_of_right_inverse {g : β → α}
@@ -176,8 +176,7 @@ variables {α : Type u} [i : nonempty α] {β : Sort v} {f : α → β}
 include i
 
 lemma injective.has_left_inverse (hf : injective f) : has_left_inverse f :=
-nonempty.elim_to_inhabited $ λ i : inhabited α,
-by { tactic.unfreeze_local_instances, exact ⟨inv_fun f, left_inverse_inv_fun hf⟩ }
+⟨inv_fun f, left_inverse_inv_fun hf⟩
 
 lemma injective_iff_has_left_inverse : injective f ↔ has_left_inverse f :=
 ⟨injective.has_left_inverse, injective_of_has_left_inverse⟩

@@ -69,7 +69,7 @@ class split_mono {X Y : C} (f : X ⟶ Y) :=
 
 /--
 A split epimorphism is a morphism `f : X ⟶ Y` admitting a section `section_ f : Y ⟶ X`
-such that `section_ f ≫ f = 𝟙 X`.
+such that `section_ f ≫ f = 𝟙 Y`.
 
 Every split epimorphism is an epimorphism.
 -/

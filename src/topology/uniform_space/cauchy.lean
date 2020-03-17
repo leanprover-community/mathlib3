@@ -132,6 +132,20 @@ lemma cauchy_seq_iff_tendsto [nonempty β] [semilattice_sup β] {u : β → α} 
 cauchy_map_iff.trans $ (and_iff_right at_top_ne_bot).trans $
   by simp only [prod_at_top_at_top_eq, prod.map_def]
 
+/-- If a Cauchy sequence has a convergent subsequence, then it converges. -/
+lemma tendsto_nhds_of_cauchy_seq_of_subseq
+  [semilattice_sup β] {u : β → α} (hu : cauchy_seq u)
+  {ι : Type*} {f : ι → β} {p : filter ι} (hp : p ≠ ⊥)
+  (hf : tendsto f p at_top) {a : α} (ha : tendsto (λ i, u (f i)) p (𝓝 a)) :
+  tendsto u at_top (𝓝 a) :=
+begin
+  apply le_nhds_of_cauchy_adhp hu,
+  rw ← lattice.bot_lt_iff_ne_bot,
+  have : ⊥ < map (λ i, u (f i)) p ⊓ 𝓝 a,
+    by { rw [lattice.bot_lt_iff_ne_bot, lattice.inf_of_le_left ha], exact map_ne_bot hp },
+  exact lt_of_lt_of_le this (lattice.inf_le_inf (map_mono hf) (le_refl _))
+end
+
 @[nolint ge_or_gt] -- see Note [nolint_ge]
 lemma filter.has_basis.cauchy_seq_iff {γ} [nonempty β] [semilattice_sup β] {u : β → α}
   {p : γ → Prop} {s : γ → set (α × α)} (h : (𝓤 α).has_basis p s) :

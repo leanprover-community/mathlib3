@@ -229,8 +229,11 @@ nnreal.coe_le_coe.2 $ dist_norm_norm_le g h
 lemma of_real_norm_eq_coe_nnnorm (x : β) : ennreal.of_real ∥x∥ = (nnnorm x : ennreal) :=
 ennreal.of_real_eq_coe_nnreal _
 
+lemma edist_eq_coe_nnnorm_sub (x y : β) : edist x y = (nnnorm (x - y) : ennreal) :=
+by rw [edist_dist, dist_eq_norm, of_real_norm_eq_coe_nnnorm]
+
 lemma edist_eq_coe_nnnorm (x : β) : edist x 0 = (nnnorm x : ennreal) :=
-by { rw [edist_dist, dist_eq_norm, _root_.sub_zero, of_real_norm_eq_coe_nnnorm] }
+by rw [edist_eq_coe_nnnorm_sub, _root_.sub_zero]
 
 lemma nndist_add_add_le (g₁ g₂ h₁ h₂ : α) :
   nndist (g₁ + g₂) (h₁ + h₂) ≤ nndist g₁ h₁ + nndist g₂ h₂ :=
@@ -806,12 +809,12 @@ end restrict_scalars
 section summable
 open_locale classical
 open finset filter
-variables [normed_group α] [complete_space α]
+variables [normed_group α]
 
-lemma summable_iff_vanishing_norm {f : ι → α} :
-  summable f ↔ ∀ε > 0, ∃s:finset ι, ∀t, disjoint t s → ∥ t.sum f ∥ < ε :=
+lemma cauchy_seq_finset_iff_vanishing_norm {f : ι → α} :
+  cauchy_seq (λ s : finset ι, s.sum f) ↔ ∀ε > 0, ∃s:finset ι, ∀t, disjoint t s → ∥ t.sum f ∥ < ε :=
 begin
-  simp only [summable_iff_vanishing, metric.mem_nhds_iff, exists_imp_distrib],
+  simp only [cauchy_seq_finset_iff_vanishing, metric.mem_nhds_iff, exists_imp_distrib],
   split,
   { assume h ε hε, refine h {x | ∥x∥ < ε} ε hε _, rw [ball_0_eq ε] },
   { assume h s ε hε hs,
@@ -821,24 +824,54 @@ begin
     exact ht u hu }
 end
 
-lemma summable_of_norm_bounded {f : ι → α} (g : ι → ℝ) (hf : summable g) (h : ∀i, ∥f i∥ ≤ g i) :
-  summable f :=
-summable_iff_vanishing_norm.2 $ assume ε hε,
-  let ⟨s, hs⟩ := summable_iff_vanishing_norm.1 hf ε hε in
+lemma summable_iff_vanishing_norm [complete_space α] {f : ι → α} :
+  summable f ↔ ∀ε > 0, ∃s:finset ι, ∀t, disjoint t s → ∥ t.sum f ∥ < ε :=
+by rw [summable_iff_cauchy_seq_finset, cauchy_seq_finset_iff_vanishing_norm]
+
+lemma cauchy_seq_finset_of_norm_bounded {f : ι → α} (g : ι → ℝ) (hg : summable g)
+  (h : ∀i, ∥f i∥ ≤ g i) : cauchy_seq (λ s : finset ι, s.sum f) :=
+cauchy_seq_finset_iff_vanishing_norm.2 $ assume ε hε,
+  let ⟨s, hs⟩ := summable_iff_vanishing_norm.1 hg ε hε in
   ⟨s, assume t ht,
     have ∥t.sum g∥ < ε := hs t ht,
     have nn : 0 ≤ t.sum g := finset.sum_nonneg (assume a _, le_trans (norm_nonneg _) (h a)),
     lt_of_le_of_lt (norm_sum_le_of_le t (λ i _, h i)) $
       by rwa [real.norm_eq_abs, abs_of_nonneg nn] at this⟩
 
+lemma cauchy_seq_finset_of_summable_norm {f : ι → α} (hf : summable (λa, ∥f a∥)) :
+  cauchy_seq (λ s : finset ι, s.sum f) :=
+cauchy_seq_finset_of_norm_bounded _ hf (assume i, le_refl _)
+
+/-- If a function `f` is summable in norm, and along some sequence of finsets exhausting the space
+its sum is converging to a limit `a`, then this holds along all finsets, i.e., `f` is summable
+with sum `a`. -/
+lemma has_sum_of_subseq_of_summable {f : ι → α} (hf : summable (λa, ∥f a∥))
+  {s : β → finset ι} {p : filter β} (hp : p ≠ ⊥)
+  (hs : tendsto s p at_top) {a : α} (ha : tendsto (λ b, (s b).sum f) p (𝓝 a)) :
+  has_sum f a :=
+tendsto_nhds_of_cauchy_seq_of_subseq (cauchy_seq_finset_of_summable_norm hf) hp hs ha
+
+variable [complete_space α]
+
+lemma summable_of_norm_bounded {f : ι → α} (g : ι → ℝ) (hg : summable g) (h : ∀i, ∥f i∥ ≤ g i) :
+  summable f :=
+by { rw summable_iff_cauchy_seq_finset, exact cauchy_seq_finset_of_norm_bounded g hg h }
+
+lemma summable_of_nnnorm_bounded {f : ι → α} (g : ι → nnreal) (hg : summable g)
+  (h : ∀i, nnnorm (f i) ≤ g i) : summable f :=
+summable_of_norm_bounded (λ i, (g i : ℝ)) (nnreal.summable_coe.2 hg) (λ i, by exact_mod_cast h i)
+
 lemma summable_of_summable_norm {f : ι → α} (hf : summable (λa, ∥f a∥)) : summable f :=
 summable_of_norm_bounded _ hf (assume i, le_refl _)
 
+lemma summable_of_summable_nnnorm {f : ι → α} (hf : summable (λa, nnnorm (f a))) : summable f :=
+summable_of_nnnorm_bounded _ hf (assume i, le_refl _)
+
 lemma norm_tsum_le_tsum_norm {f : ι → α} (hf : summable (λi, ∥f i∥)) : ∥(∑i, f i)∥ ≤ (∑ i, ∥f i∥) :=
 have h₁ : tendsto (λs:finset ι, ∥s.sum f∥) at_top (𝓝 ∥(∑ i, f i)∥) :=
-  (continuous_norm.tendsto _).comp (has_sum_tsum $ summable_of_summable_norm hf),
+  (continuous_norm.tendsto _).comp (summable_of_summable_norm hf).has_sum,
 have h₂ : tendsto (λs:finset ι, s.sum (λi, ∥f i∥)) at_top (𝓝 (∑ i, ∥f i∥)) :=
-  has_sum_tsum hf,
+  hf.has_sum,
 le_of_tendsto_of_tendsto at_top_ne_bot h₁ h₂ $ univ_mem_sets' $ assume s, norm_sum_le _ _
 
 end summable

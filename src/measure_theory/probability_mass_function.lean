@@ -22,7 +22,7 @@ instance : has_coe_to_fun (pmf α) := ⟨λp, α → nnreal, λp a, p.1 a⟩
 
 lemma has_sum_coe_one (p : pmf α) : has_sum p 1 := p.2
 
-lemma summable_coe (p : pmf α) : summable p := summable_spec p.has_sum_coe_one
+lemma summable_coe (p : pmf α) : summable p := (p.has_sum_coe_one).summable
 
 @[simp] lemma tsum_coe (p : pmf α) : (∑a, p a) = 1 := tsum_eq_has_sum p.has_sum_coe_one
 
@@ -50,7 +50,7 @@ def bind (p : pmf α) (f : α → pmf β) : pmf β :=
     apply ennreal.has_sum_coe.1,
     simp only [ennreal.coe_tsum (bind.summable p f _)],
     rw [has_sum_iff_of_summable ennreal.summable, ennreal.tsum_comm],
-    simp [ennreal.mul_tsum, (ennreal.coe_tsum (f _).summable_coe).symm,
+    simp [ennreal.tsum_mul_left, (ennreal.coe_tsum (f _).summable_coe).symm,
       (ennreal.coe_tsum p.summable_coe).symm]
   end⟩
 
@@ -74,7 +74,8 @@ by ext b; simp [this]
   (p.bind f).bind g = p.bind (λa, (f a).bind g) :=
 begin
   ext b,
-  simp only [ennreal.coe_eq_coe.symm, coe_bind_apply, ennreal.mul_tsum.symm, ennreal.tsum_mul.symm],
+  simp only [ennreal.coe_eq_coe.symm, coe_bind_apply, ennreal.tsum_mul_left.symm,
+             ennreal.tsum_mul_right.symm],
   rw [ennreal.tsum_comm],
   simp [mul_assoc, mul_left_comm, mul_comm]
 end
@@ -83,7 +84,8 @@ lemma bind_comm (p : pmf α) (q : pmf β) (f : α → β → pmf γ) :
   p.bind (λa, q.bind (f a)) = q.bind (λb, p.bind (λa, f a b)) :=
 begin
   ext b,
-  simp only [ennreal.coe_eq_coe.symm, coe_bind_apply, ennreal.mul_tsum.symm, ennreal.tsum_mul.symm],
+  simp only [ennreal.coe_eq_coe.symm, coe_bind_apply, ennreal.tsum_mul_left.symm,
+             ennreal.tsum_mul_right.symm],
   rw [ennreal.tsum_comm],
   simp [mul_assoc, mul_left_comm, mul_comm]
 end

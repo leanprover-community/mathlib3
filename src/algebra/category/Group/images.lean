@@ -29,7 +29,7 @@ def image : AddCommGroup := AddCommGroup.of (set.range f)
 
 /-- the inclusion of `image f` into the target -/
 def image.ι : image f ⟶ H := f.range_subtype_val
-instance : mono (image.ι f) := concrete_category.mono_of_injective f subtype.val_injective
+instance : mono (image.ι f) := concrete_category.mono_of_injective (image.ι f) subtype.val_injective
 
 /-- the corestriction map to the image -/
 def factor_thru_image : G ⟶ image f := add_monoid_hom.range_factorization f

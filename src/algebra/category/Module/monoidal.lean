@@ -125,12 +125,11 @@ instance Module.monoidal_category : monoidal_category (Module.{u} R) :=
   triangle'                := λ M N, triangle M N, }
 
 namespace monoidal_category
--- open_locale tensor_product
 
-def foo (M : Module R) : has_coe_to_fun ((Module.of R R ⊗ M : Module R) →ₗ[R] M) := by apply_instance
-
+-- FIXME as far as I can see, the type ascription around the `(λ_ M).hom` in the statement
+-- of the next lemma is exactly its usual type. But without it, the coercion to a function fails?
 @[simp]
-lemma left_unitor_hom {M : Module.{u} R} (r : R) (m : M) : (@coe_fn _ (foo M) ((λ_ M).hom)) (r ⊗ₜ[R] m) = r • m :=
+lemma left_unitor_hom {M : Module.{u} R} (r : R) (m : M) : ((λ_ M).hom : 𝟙_ (Module R) ⊗ M ⟶ M) (r ⊗ₜ[R] m) = r • m :=
 begin
   -- This is just weird and messed up.
   dunfold Module.monoidal_category,
@@ -138,14 +137,19 @@ begin
   dunfold left_unitor,
   erw [iso.trans_hom],
   erw [Module.coe_comp],
+  -- dsimp, -- FIXME Inserting this dsimp causes a timeout. That's not good.
   change ((of_self_iso M).hom) (((linear_equiv.to_Module_iso (tensor_product.lid.{u} R M)).hom) (r ⊗ₜ[R] m)) = _,
   erw linear_equiv.to_Module_iso_hom,
   erw tensor_product.lid_tmul,
 end
 @[simp]
-lemma right_unitor_hom {M : Module R} (r : R) (m : M) : (ρ_ M).hom (m ⊗ₜ r) = r • m := rfl
+lemma right_unitor_hom {M : Module R} (r : R) (m : M) :
+  ((ρ_ M).hom : M ⊗ 𝟙_ (Module R) ⟶ M) (m ⊗ₜ r) = r • m :=
+sorry
 @[simp]
-lemma associator_hom {M N K : Module R} (m : M) : (ρ_ M) (m ⊗ₜ r) = r • m := rfl
+lemma associator_hom {M N K : Module R} (m : M) (n : N) (k : K) :
+  ((α_ M N K).hom : (M ⊗ N) ⊗ K ⟶ M ⊗ (N ⊗ K)) ((m ⊗ₜ n) ⊗ₜ k) = (m ⊗ₜ (n ⊗ₜ k)) :=
+sorry
 
 end monoidal_category
 

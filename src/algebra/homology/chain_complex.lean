@@ -104,9 +104,11 @@ kernel.lift _ (kernel.ι _ ≫ f.f i)
 (by rw [category.assoc, f.comm, ←category.assoc, kernel.condition, has_zero_morphisms.zero_comp])
 
 -- TODO:
--- At this level of generality, it's just not true(!?) that a chain map
+-- At this level of generality, it's just not true that a chain map
 -- induces maps on boundaries
--- What extra conditions do we need to add?
+--
+-- Let's add these later, with appropriate (but hopefully fairly minimal)
+-- assumptions; perhaps that the category is regular.
 
 -- def induced_map_on_boundaries {C C' : chain_complex.{v} V} (f : C ⟶ C') (i : ℤ) :
 --   image (C.d i) ⟶ image (C'.d i) :=
@@ -122,6 +124,10 @@ variables [has_cokernels.{v} V]
 /-- The `i`-th homology group of the chain complex `C`. -/
 def homology_group (C : chain_complex.{v} V) (i : ℤ) : V :=
 cokernel (image_to_kernel_map C i)
+
+-- As noted above, as we don't get induced maps on boundaries with this generality,
+-- we can't assemble the homology groups into a functor. Hopefully, however,
+-- the commented out code will work (with whatever added assumptions are needed above.)
 
 -- def induced_map_on_homology {C C' : chain_complex.{v} V} (f : C ⟶ C') (i : ℤ) :
 --   C.homology_group i ⟶ C'.homology_group i :=

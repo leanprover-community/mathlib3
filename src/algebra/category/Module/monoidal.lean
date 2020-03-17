@@ -124,6 +124,9 @@ instance Module.monoidal_category : monoidal_category (Module.{u} R) :=
   pentagon'                := λ M N K L, pentagon M N K L,
   triangle'                := λ M N, triangle M N, }
 
+/-- Remind ourselves that the monoidal unit, being just `R`, is still a commutative ring. -/
+instance : comm_ring ((𝟙_ (Module R) : Module R) : Type u) := (by apply_instance : comm_ring R)
+
 namespace monoidal_category
 
 -- FIXME as far as I can see, the type ascription around the `(λ_ M).hom` in the statement

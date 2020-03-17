@@ -67,18 +67,19 @@ class enriched_over :=
 (notation ` 𝟙[V] ` := e_id)
 (e_comp  : Π X Y Z : C, (X ⟶[V] Y) ⊗ (Y ⟶[V] Z) ⟶ (X ⟶[V] Z))
 (e_hom_forget : Π X Y : C, (forget V).obj (X ⟶[V] Y) ≃ (X ⟶ Y))
-(e_id_forget  : Π X : C, e_hom_forget X X (as_term (𝟙[V] X)) = 𝟙 X . obviously)
-(e_comp_forget : Π (X Y Z : C) (f : (forget V).obj (X ⟶[V] Y)) (g : (forget V).obj (Y ⟶[V] Z)),
+(e_id_forget'  : Π X : C, e_hom_forget X X (as_term (𝟙[V] X)) = 𝟙 X . obviously)
+(e_comp_forget' : Π (X Y Z : C) (f : (forget V).obj (X ⟶[V] Y)) (g : (forget V).obj (Y ⟶[V] Z)),
   e_hom_forget X Y f ≫ e_hom_forget Y Z g = e_hom_forget X Z ((forget V).map (e_comp X Y Z) (forget.μ f g)) . obviously)
 
-restate_axiom enriched_over.e_id_forget
-restate_axiom enriched_over.e_comp_forget
+restate_axiom enriched_over.e_id_forget'
+restate_axiom enriched_over.e_comp_forget'
 
 -- We check that we can construct the trivial enrichment of `Type` in `Type`:
 example : enriched_over (Type u) (Type u) :=
 { e_hom := λ X Y, X ⟶ Y,
   e_id := λ X, λ _, 𝟙 _,
-  e_comp := λ X Y Z p, p.val (limits.walking_pair.left) ≫ p.val (limits.walking_pair.right), -- that was ugly...
+  -- This is ugly. It relies on the particular model of binary product we've built today in Type.
+  e_comp := λ X Y Z p, p.val (limits.walking_pair.left) ≫ p.val (limits.walking_pair.right),
   e_hom_forget := λ X Y, equiv.refl _ }
 
 

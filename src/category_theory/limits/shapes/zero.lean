@@ -109,14 +109,14 @@ begin
   rw (has_zero_object.unique_to.{v} X).uniq (0 : 0 ⟶ X)
 end
 
+end
+
 /-- A zero object is in particular initial. -/
 def has_initial_of_has_zero_object : has_initial.{v} C :=
 has_initial_of_unique 0
 /-- A zero object is in particular terminal. -/
 def has_terminal_of_has_zero_object : has_terminal.{v} C :=
 has_terminal_of_unique 0
-
-end
 
 end has_zero_object
 

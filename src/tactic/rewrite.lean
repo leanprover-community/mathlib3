@@ -202,5 +202,12 @@ propagate_tags (assoc_rw_core q l)
 meta def assoc_rw (q : parse rw_rules) (l : parse location) : tactic unit :=
 assoc_rewrite q l
 
+add_tactic_doc
+{ name                     := "assoc_rewrite",
+  category                 := doc_category.tactic,
+  decl_names               := [`tactic.interactive.assoc_rewrite, `tactic.interactive.assoc_rw],
+  tags                     := ["rewrite"],
+  inherit_description_from := `tactic.interactive.assoc_rewrite }
+
 end interactive
 end tactic

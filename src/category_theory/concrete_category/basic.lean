@@ -78,7 +78,7 @@ def concrete_category.has_coe_to_fun {X Y : C} : has_coe_to_fun (X ⟶ Y) :=
 
 local attribute [instance] concrete_category.has_coe_to_fun
 
-def concrete_category.ext {X Y : C} (f g : X ⟶ Y) (w : ∀ x : X, f x  = g x) : f = g :=
+def concrete_category.hom_ext {X Y : C} (f g : X ⟶ Y) (w : ∀ x : X, f x  = g x) : f = g :=
 begin
   apply faithful.injectivity (forget C),
   ext,
@@ -101,9 +101,9 @@ congr_fun ((forget C).map_iso f).hom_inv_id x
   f.hom (f.inv y) = y :=
 congr_fun ((forget C).map_iso f).inv_hom_id y
 
-local attribute [ext] concrete_category.ext
+local attribute [ext] concrete_category.hom_ext
 
-def mono_of_injective {X Y : C} (f : X ⟶ Y) (i : function.injective f) : mono f :=
+def concrete_category.mono_of_injective {X Y : C} (f : X ⟶ Y) (i : function.injective f) : mono f :=
 ⟨λ Z g h w,
   begin
     ext z,

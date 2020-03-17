@@ -22,8 +22,7 @@ import logic.function algebra.big_operators data.set.lattice data.finset
 
 noncomputable theory
 open lattice finset filter function classical
-open_locale topological_space
-open_locale classical
+open_locale topological_space classical
 
 /-- given an element of `a : option α`, a default element `b : β` and a function `α → β`, apply this
 function to `a` if it comes from `α`, and return `b` otherwise. -/

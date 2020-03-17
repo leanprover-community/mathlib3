@@ -811,6 +811,7 @@ open_locale classical
 open finset filter
 variables [normed_group α]
 
+@[nolint ge_or_gt] -- see Note [nolint_ge]
 lemma cauchy_seq_finset_iff_vanishing_norm {f : ι → α} :
   cauchy_seq (λ s : finset ι, s.sum f) ↔ ∀ε > 0, ∃s:finset ι, ∀t, disjoint t s → ∥ t.sum f ∥ < ε :=
 begin
@@ -824,6 +825,7 @@ begin
     exact ht u hu }
 end
 
+@[nolint ge_or_gt] -- see Note [nolint_ge]
 lemma summable_iff_vanishing_norm [complete_space α] {f : ι → α} :
   summable f ↔ ∀ε > 0, ∃s:finset ι, ∀t, disjoint t s → ∥ t.sum f ∥ < ε :=
 by rw [summable_iff_cauchy_seq_finset, cauchy_seq_finset_iff_vanishing_norm]
@@ -851,6 +853,18 @@ lemma has_sum_of_subseq_of_summable {f : ι → α} (hf : summable (λa, ∥f a�
   has_sum f a :=
 tendsto_nhds_of_cauchy_seq_of_subseq (cauchy_seq_finset_of_summable_norm hf) hp hs ha
 
+lemma norm_tsum_le_tsum_norm {f : ι → α} (hf : summable (λi, ∥f i∥)) : ∥(∑i, f i)∥ ≤ (∑ i, ∥f i∥) :=
+begin
+  by_cases h : summable f,
+  { have h₁ : tendsto (λs:finset ι, ∥s.sum f∥) at_top (𝓝 ∥(∑ i, f i)∥) :=
+      (continuous_norm.tendsto _).comp h.has_sum,
+    have h₂ : tendsto (λs:finset ι, s.sum (λi, ∥f i∥)) at_top (𝓝 (∑ i, ∥f i∥)) :=
+      hf.has_sum,
+    exact le_of_tendsto_of_tendsto at_top_ne_bot h₁ h₂ (univ_mem_sets' (assume s, norm_sum_le _ _)) },
+  { rw tsum_eq_zero_of_not_summable h,
+    simp [tsum_nonneg] }
+end
+
 variable [complete_space α]
 
 lemma summable_of_norm_bounded {f : ι → α} (g : ι → ℝ) (hg : summable g) (h : ∀i, ∥f i∥ ≤ g i) :
@@ -866,12 +880,5 @@ summable_of_norm_bounded _ hf (assume i, le_refl _)
 
 lemma summable_of_summable_nnnorm {f : ι → α} (hf : summable (λa, nnnorm (f a))) : summable f :=
 summable_of_nnnorm_bounded _ hf (assume i, le_refl _)
-
-lemma norm_tsum_le_tsum_norm {f : ι → α} (hf : summable (λi, ∥f i∥)) : ∥(∑i, f i)∥ ≤ (∑ i, ∥f i∥) :=
-have h₁ : tendsto (λs:finset ι, ∥s.sum f∥) at_top (𝓝 ∥(∑ i, f i)∥) :=
-  (continuous_norm.tendsto _).comp (summable_of_summable_norm hf).has_sum,
-have h₂ : tendsto (λs:finset ι, s.sum (λi, ∥f i∥)) at_top (𝓝 (∑ i, ∥f i∥)) :=
-  hf.has_sum,
-le_of_tendsto_of_tendsto at_top_ne_bot h₁ h₂ $ univ_mem_sets' $ assume s, norm_sum_le _ _
 
 end summable

@@ -2458,21 +2458,6 @@ apply_nolint galois_insertion has_inhabited_instance
 -- order/lexicographic.lean
 apply_nolint lex doc_blame
 
--- order/liminf_limsup.lean
-apply_nolint filter.Liminf doc_blame
-apply_nolint filter.Limsup doc_blame
-apply_nolint filter.is_bounded_default doc_blame
-apply_nolint filter.is_bounded_ge_of_bot ge_or_gt
-apply_nolint filter.is_bounded_under doc_blame
-apply_nolint filter.is_bounded_under_inf ge_or_gt
-apply_nolint filter.is_cobounded_ge_of_top ge_or_gt
-apply_nolint filter.is_cobounded_under doc_blame
-apply_nolint filter.is_trans_ge ge_or_gt
-apply_nolint filter.liminf doc_blame
-apply_nolint filter.liminf_eq_supr_infi_of_nat ge_or_gt
-apply_nolint filter.limsup doc_blame
-apply_nolint filter.limsup_eq_infi_supr_of_nat ge_or_gt
-
 -- order/order_iso.lean
 apply_nolint order_embedding has_inhabited_instance
 apply_nolint order_embedding.lt_embedding_of_le_embedding doc_blame

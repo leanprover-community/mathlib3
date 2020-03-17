@@ -175,7 +175,7 @@ end
 class has_images :=
 (has_image : Π {X Y : C} (f : X ⟶ Y), has_image.{v} f)
 
-attribute [instance] has_images.has_image
+attribute [instance, priority 100] has_images.has_image
 
 section
 variables (f) [has_image f]

@@ -199,7 +199,7 @@ instance [has_equalizers.{v} C] : epi (factor_thru_image f) :=
 ⟨λ Z g h w,
 begin
   let q := equalizer.ι g h,
-  let e' := equalizer.lift _ _ _ w, -- TODO make more of the arguments to equalizer.lift implicit?
+  let e' := equalizer.lift _ w,
   let F' : mono_factorisation f :=
   { I := equalizer g h,
     m := q ≫ image.ι f,

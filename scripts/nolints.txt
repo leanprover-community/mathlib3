@@ -3609,8 +3609,6 @@ apply_nolint lebesgue_number_lemma_of_metric_sUnion ge_or_gt
 apply_nolint metric.cauchy_iff ge_or_gt
 apply_nolint metric.cauchy_seq_iff ge_or_gt
 apply_nolint metric.cauchy_seq_iff' ge_or_gt
-apply_nolint metric.continuous_iff ge_or_gt
-apply_nolint metric.continuous_iff' ge_or_gt
 apply_nolint metric.exists_ball_subset_ball ge_or_gt
 apply_nolint metric.is_open_iff ge_or_gt
 apply_nolint metric.mem_closure_range_iff ge_or_gt

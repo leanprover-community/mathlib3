@@ -45,35 +45,6 @@ attribute [simp] has_zero_morphisms.comp_zero
 restate_axiom has_zero_morphisms.zero_comp'
 attribute [simp, reassoc] has_zero_morphisms.zero_comp
 
-namespace has_zero_morphisms
-variables {C}
-
-lemma ext' (I J : has_zero_morphisms.{v} C)
-  (w : ∀ X Y : C, (@has_zero_morphisms.has_zero.{v} _ _ I X Y).zero = (@has_zero_morphisms.has_zero.{v} _ _ J X Y).zero) : I = J :=
-begin
-  resetI,
-  cases I, cases J,
-  congr,
-  ext X Y,
-  exact w X Y,
-  apply proof_irrel_heq,
-  apply proof_irrel_heq,
-end
-
-@[ext]
-lemma ext (I J : has_zero_morphisms.{v} C) : I = J :=
-begin
-  apply ext',
-  intros X Y,
-  rw ←@has_zero_morphisms.comp_zero _ _ I X X (@has_zero_morphisms.has_zero _ _ J X X).zero,
-  rw @has_zero_morphisms.zero_comp _ _ J,
-end
-
-instance : subsingleton (has_zero_morphisms.{v} C) :=
-⟨λ I J, ext I J⟩
-
-end has_zero_morphisms
-
 section
 variables {C} [has_zero_morphisms.{v} C]
 
@@ -82,27 +53,6 @@ by { rw [←has_zero_morphisms.zero_comp.{v} C X g, cancel_mono] at h, exact h }
 
 lemma zero_of_comp_epi {X Y Z : C} {f : X ⟶ Y} {g : Y ⟶ Z} [epi f] (h : f ≫ g = 0) : g = 0 :=
 by { rw [←has_zero_morphisms.comp_zero.{v} C f Z, cancel_epi] at h, exact h }
-
-end
-
-section
-universes v' u'
-variables (D : Type u') [𝒟 : category.{v'} D]
-include 𝒟
-
-variables [has_zero_morphisms.{v} C] [has_zero_morphisms.{v'} D]
-
-@[simp] lemma equivalence_preserves_zero_morphisms (F : C ≌ D) (X Y : C) :
-  F.functor.map (0 : X ⟶ Y) = (0 : F.functor.obj X ⟶ F.functor.obj Y) :=
-begin
-  have t : F.functor.map (0 : X ⟶ Y) = F.functor.map (0 : X ⟶ Y) ≫ (0 : F.functor.obj Y ⟶ F.functor.obj Y),
-  { apply faithful.injectivity (F.inverse),
-    simp only [functor.map_comp],
-    simp,
-    dsimp,
-    simp, },
-  exact t.trans (by simp)
-end
 
 end
 

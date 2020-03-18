@@ -147,6 +147,10 @@ lemma cancel_left {g : N →* P} {f₁ f₂ : M →* N} (hg : function.injective
 ⟨λ h, monoid_hom.ext $ λ x, hg $ by rw [← comp_apply, h, comp_apply], λ h, h ▸ rfl⟩
 
 omit mP
+
+@[simp, to_additive] lemma comp_id (f : M →* N) : f.comp (id M) = f := ext $ λ x, rfl
+@[simp, to_additive] lemma id_comp (f : M →* N) : (id N).comp f = f := ext $ λ x, rfl
+
 variables [mM] [mN]
 
 @[to_additive]

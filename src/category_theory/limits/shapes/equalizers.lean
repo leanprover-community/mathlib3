@@ -346,7 +346,7 @@ end
 
 section
 variables {f g}
-/-- The equaliser morphism in any limit cone is a monomorphism. -/
+/-- The equalizer morphism in any limit cone is a monomorphism. -/
 def mono_of_is_limit_parallel_pair {c : cone (parallel_pair f g)} (i : is_limit c) : mono (c.π.app zero) :=
 { right_cancellation := λ Z h k w, i.hom_ext $ cone_parallel_pair_ext _ w }
 
@@ -443,7 +443,7 @@ end
 section
 variables {f g}
 
-/-- The coequaliser morphism in any colimit cocone is n epimorphism. -/
+/-- The coequalizer morphism in any colimit cocone is an epimorphism. -/
 def epi_of_is_colimit_parallel_pair {c : cocone (parallel_pair f g)} (i : is_colimit c) : epi (c.ι.app one) :=
 { left_cancellation := λ Z h k w, i.hom_ext $ cocone_parallel_pair_ext _ w }
 

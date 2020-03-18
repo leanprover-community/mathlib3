@@ -67,7 +67,7 @@ instance normal_mono.regular_mono (f : X ⟶ Y) [I : normal_mono f] : regular_mo
   ..I }
 end
 
-/-- A regular epimorphisms is a morphism which is the coequalizer of some parallel pair. -/
+/-- A regular epimorphism is a morphism which is the coequalizer of some parallel pair. -/
 class regular_epi (f : X ⟶ Y) :=
 (W : C)
 (left right : W ⟶ X)

@@ -27,15 +27,6 @@ universes v u
 
 open category_theory
 
-@[ext]
-lemma has_zero.ext {α : Type*} {I J : has_zero α} (w : (by { haveI := I, exact (0 : α)}) = (by { haveI := J, exact (0 : α)})) : I = J :=
-begin
-  resetI,
-  cases I, cases J,
-  congr,
-  exact w,
-end
-
 namespace category_theory.limits
 
 variables (C : Type u) [𝒞 : category.{v} C]

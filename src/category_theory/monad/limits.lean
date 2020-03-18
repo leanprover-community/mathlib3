@@ -222,7 +222,7 @@ omit 𝒥
 
 section
 
-def has_limits_of_reflective (R : D ⥤ C) [reflective R] [has_limits.{v₁} C] : has_limits.{v₁} D :=
+def has_limits_of_reflective (R : D ⥤ C) [has_limits.{v₁} C] [reflective R] : has_limits.{v₁} D :=
 { has_limits_of_shape := λ J 𝒥, by exactI
   { has_limit := λ F, monadic_creates_limits F R } }
 

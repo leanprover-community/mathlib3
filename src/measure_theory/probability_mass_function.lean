@@ -49,7 +49,7 @@ def bind (p : pmf α) (f : α → pmf β) : pmf β :=
   begin
     apply ennreal.has_sum_coe.1,
     simp only [ennreal.coe_tsum (bind.summable p f _)],
-    rw [has_sum_iff_of_summable ennreal.summable, ennreal.tsum_comm],
+    rw [ennreal.summable.has_sum_iff, ennreal.tsum_comm],
     simp [ennreal.tsum_mul_left, (ennreal.coe_tsum (f _).summable_coe).symm,
       (ennreal.coe_tsum p.summable_coe).symm]
   end⟩

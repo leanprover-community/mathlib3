@@ -275,7 +275,7 @@ begin
   have hf : has_sum f ε := has_sum_geometric_two' _,
   have f0 : ∀ n, 0 < f n := λ n, div_pos (half_pos hε) (pow_pos two_pos _),
   refine ⟨f ∘ encodable.encode, λ i, f0 _, _⟩,
-  rcases summable_comp_of_summable_of_injective f hf.summable (@encodable.encode_injective ι _)
+  rcases hf.summable.summable_comp_of_injective (@encodable.encode_injective ι _)
     with ⟨c, hg⟩,
   refine ⟨c, hg, has_sum_le_inj _ (@encodable.encode_injective ι _) _ _ hg hf⟩,
   { assume i _, exact le_of_lt (f0 _) },

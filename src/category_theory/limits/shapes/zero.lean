@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Scott Morrison
 -/
 import category_theory.limits.shapes.terminal
+import category_theory.limits.shapes.binary_products
 import category_theory.epi_mono
 
 /-!
@@ -130,20 +131,28 @@ variables [has_zero_object.{v} C]
 Construct a `has_zero C` for a category with a zero object.
 This can not be a global instance as it will trigger for every `has_zero C` typeclass search.
 -/
-def has_zero : has_zero C :=
+protected def has_zero : has_zero C :=
 { zero := has_zero_object.zero.{v} C }
 
-local attribute [instance] has_zero
+local attribute [instance] has_zero_object.has_zero
 local attribute [instance] has_zero_object.unique_to has_zero_object.unique_from
 
-/-- A category with a zero object has zero morphisms. -/
+/-- A category with a zero object has zero morphisms.
+
+    It is rarely a good idea to use this. Many categories that have a zero object have zero
+    morphisms for some other reason, for example from additivity. Library code that uses
+    `zero_morphisms_of_zero_object` will then be incompatible with these categories because
+    the `has_zero_morphisms` instances will not be definitionally equal. For this reason library
+    code should generally ask for an instance of `has_zero_morphisms` separately, even if it already
+    asks for an instance of `has_zero_objects`. -/
 def zero_morphisms_of_zero_object : has_zero_morphisms.{v} C :=
 { has_zero := λ X Y,
   { zero := inhabited.default (X ⟶ 0) ≫ inhabited.default (0 ⟶ Y) },
   zero_comp' := λ X Y Z f, by { dunfold has_zero.zero, rw category.assoc, congr, },
   comp_zero' := λ X Y Z f, by { dunfold has_zero.zero, rw ←category.assoc, congr, }}
 
-local attribute [instance] zero_morphisms_of_zero_object
+section
+variable [has_zero_morphisms.{v} C]
 
 /--  An arrow ending in the zero object is zero -/
 @[ext]
@@ -161,6 +170,8 @@ begin
   rw (has_zero_object.unique_to.{v} X).uniq (0 : 0 ⟶ X)
 end
 
+end
+
 /-- A zero object is in particular initial. -/
 def has_initial_of_has_zero_object : has_initial.{v} C :=
 has_initial_of_unique 0
@@ -171,17 +182,39 @@ has_terminal_of_unique 0
 end has_zero_object
 
 /-- In the presence of zero morphisms, coprojections into a coproduct are (split) monomorphisms. -/
-instance
+instance split_mono_sigma_ι
   {β : Type v} [decidable_eq β]
   [has_zero_morphisms.{v} C]
   (f : β → C) [has_colimit (functor.of_function f)] (b : β) : split_mono (sigma.ι f b) :=
 { retraction := sigma.desc (λ b', if h : b' = b then eq_to_hom (congr_arg f h) else 0), }
 
 /-- In the presence of zero morphisms, projections into a product are (split) epimorphisms. -/
-instance
+instance split_epi_pi_π
   {β : Type v} [decidable_eq β]
   [has_zero_morphisms.{v} C]
   (f : β → C) [has_limit (functor.of_function f)] (b : β) : split_epi (pi.π f b) :=
 { section_ := pi.lift (λ b', if h : b = b' then eq_to_hom (congr_arg f h) else 0), }
+
+/-- In the presence of zero morphisms, coprojections into a coproduct are (split) monomorphisms. -/
+instance split_mono_coprod_inl
+  [has_zero_morphisms.{v} C] {X Y : C} [has_colimit (pair X Y)] :
+  split_mono (coprod.inl : X ⟶ X ⨿ Y) :=
+{ retraction := coprod.desc (𝟙 X) 0, }
+/-- In the presence of zero morphisms, coprojections into a coproduct are (split) monomorphisms. -/
+instance split_mono_coprod_inr
+  [has_zero_morphisms.{v} C] {X Y : C} [has_colimit (pair X Y)] :
+  split_mono (coprod.inr : Y ⟶ X ⨿ Y) :=
+{ retraction := coprod.desc 0 (𝟙 Y), }
+
+/-- In the presence of zero morphisms, projections into a product are (split) epimorphisms. -/
+instance split_epi_prod_fst
+  [has_zero_morphisms.{v} C] {X Y : C} [has_limit (pair X Y)] :
+  split_epi (prod.fst : X ⨯ Y ⟶ X) :=
+{ section_ := prod.lift (𝟙 X) 0, }
+/-- In the presence of zero morphisms, projections into a product are (split) epimorphisms. -/
+instance split_epi_prod_snd
+  [has_zero_morphisms.{v} C] {X Y : C} [has_limit (pair X Y)] :
+  split_epi (prod.snd : X ⨯ Y ⟶ Y) :=
+{ section_ := prod.lift 0 (𝟙 Y), }
 
 end category_theory.limits

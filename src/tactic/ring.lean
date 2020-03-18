@@ -2,12 +2,17 @@
 Copyright (c) 2018 Mario Carneiro. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Mario Carneiro
+-/
+
+import algebra.group_power tactic.norm_num
+import tactic.converter.interactive
+
+/-!
+# `ring`
 
 Evaluate expressions in the language of commutative (semi)rings.
 Based on <http://www.cs.ru.nl/~freek/courses/tt-2014/read/10.1.1.61.3041.pdf> .
 -/
-import algebra.group_power tactic.norm_num
-import tactic.converter.interactive
 
 namespace tactic
 namespace ring
@@ -504,12 +509,17 @@ do mode ← ident?, match mode with
 end
 
 /-- Tactic for solving equations in the language of *commutative* (semi)rings.
-  Attempts to prove the goal outright if there is no `at`
-  specifier and the target is an equality, but if this
-  fails it falls back to rewriting all ring expressions
-  into a normal form. When writing a normal form,
-  `ring SOP` will use sum-of-products form instead of horner form.
-  `ring!` will use a more aggressive reducibility setting to identify atoms. -/
+Attempts to prove the goal outright if there is no `at`
+specifier and the target is an equality, but if this
+fails it falls back to rewriting all ring expressions
+into a normal form. When writing a normal form,
+`ring SOP` will use sum-of-products form instead of horner form.
+`ring!` will use a more aggressive reducibility setting to identify atoms.
+
+Based on [Proving Equalities in a Commutative Ring Done Right
+in Coq](http://www.cs.ru.nl/~freek/courses/tt-2014/read/10.1.1.61.3041.pdf) by Benjamin Grégoire
+and Assia Mahboubi.
+-/
 meta def ring (red : parse (tk "!")?) (SOP : parse ring.mode) (loc : parse location) : tactic unit :=
 match loc with
 | interactive.loc.ns [none] := instantiate_mvars_in_target >> ring1 red
@@ -522,6 +532,12 @@ do ns ← loc.get_locals,
    when loc.include_goal $ try tactic.reflexivity
 
 add_hint_tactic "ring"
+
+add_tactic_doc
+{ name        := "ring",
+  category    := doc_category.tactic,
+  decl_names  := [`tactic.interactive.ring],
+  tags        := ["arithmetic", "decision procedure"] }
 
 end interactive
 end tactic

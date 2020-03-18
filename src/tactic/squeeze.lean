@@ -80,6 +80,56 @@ meta def parse_config : option pexpr → tactic (simp_config_ext × format)
 
 meta def auto_simp_lemma := [``eq_self_iff_true]
 
+/--
+`squeeze_simp` and `squeeze_simpa` perform the same task with
+the difference that `squeeze_simp` relates to `simp` while
+`squeeze_simpa` relates to `simpa`. The following applies to both
+`squeeze_simp` and `squeeze_simpa`.
+
+`squeeze_simp` behaves like `simp` (including all its arguments)
+and prints a `simp only` invokation to skip the search through the
+`simp` lemma list.
+
+For instance, the following is easily solved with `simp`:
+
+```lean
+example : 0 + 1 = 1 + 0 := by simp
+```
+
+To guide the proof search and speed it up, we may replace `simp`
+with `squeeze_simp`:
+
+```lean
+example : 0 + 1 = 1 + 0 := by squeeze_simp
+-- prints:
+-- Try this: simp only [add_zero, eq_self_iff_true, zero_add]
+```
+
+`squeeze_simp` suggests a replacement which we can use instead of
+`squeeze_simp`.
+
+```lean
+example : 0 + 1 = 1 + 0 := by simp only [add_zero, eq_self_iff_true, zero_add]
+```
+
+`squeeze_simp only` prints nothing as it already skips the `simp` list.
+
+This tactic is useful for speeding up the compilation of a complete file.
+Steps:
+
+   1. search and replace ` simp` with ` squeeze_simp` (the space helps avoid the
+      replacement of `simp` in `@[simp]`) throughout the file.
+   2. Starting at the beginning of the file, go to each printout in turn, copy
+      the suggestion in place of `squeeze_simp`.
+   3. after all the suggestions were applied, search and replace `squeeze_simp` with
+      `simp` to remove the occurrences of `squeeze_simp` that did not produce a suggestion.
+
+Known limitation(s):
+  * in cases where `squeeze_simp` is used after a `;` (e.g. `cases x; squeeze_simp`),
+    `squeeze_simp` will produce as many suggestions as the number of goals it is applied to.
+    It is likely that none of the suggestion is a good replacement but they can all be
+    combined by concatenating their list of lemmas.
+-/
 meta def squeeze_simp
   (use_iota_eqn : parse (tk "!")?) (no_dflt : parse only_flag) (hs : parse simp_arg_list)
   (attr_names : parse with_ident_list) (locat : parse location)
@@ -122,3 +172,10 @@ do g ← main_goal,
 
 end interactive
 end tactic
+
+add_tactic_doc
+{ name       := "squeeze_simp / squeeze_simpa",
+  category   := doc_category.tactic,
+  decl_names := [`tactic.interactive.squeeze_simp, `tactic.interactive.squeeze_simpa],
+  tags       := ["simplification"],
+  inherit_description_from := `tactic.interactive.squeeze_simp }

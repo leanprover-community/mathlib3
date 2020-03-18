@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Mario Carneiro
 -/
 
-import data.buffer.parser meta.expr
+import data.buffer.parser meta.expr tactic.core
 
 /-!
 # The `alias` command
@@ -156,8 +156,7 @@ meta def get_lambda_body : expr → expr
 | a                  := a
 
 meta def get_alias_target (n : name) : tactic (option name) :=
-do attr ← try_core (has_attribute `alias n),
-  option.cases_on attr (pure none) $ λ_, do
+do tt ← has_attribute' `alias n | pure none,
   d ← get_decl n,
   let (head, args) := (get_lambda_body d.value).get_app_fn_args,
   let head := if head.is_constant_of `iff.mp ∨ head.is_constant_of `iff.mpr then

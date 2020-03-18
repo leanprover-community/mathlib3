@@ -82,21 +82,6 @@ end interaction_monad
 namespace lean.parser
 open lean interaction_monad.result
 
-/-- `of_tactic' tac` lifts the tactic `tac` into the parser monad.
-This replaces `of_tactic` in core, which has a buggy implementation. -/
-meta def of_tactic' {α} (tac : tactic α) : parser α :=
-do r ← of_tactic (interaction_monad.get_result tac),
-match r with
-| (success a _) := return a
-| (exception f pos _) := exception f pos
-end
-
-/-- Override the builtin `lean.parser.of_tactic` coe, which is broken.
-(See test/tactics.lean for a failure case.) -/
-@[priority 2000]
-meta instance has_coe' {α} : has_coe (tactic α) (parser α) :=
-⟨of_tactic'⟩
-
 /-- `emit_command_here str` behaves as if the string `str` were placed as a user command at the
 current line. -/
 meta def emit_command_here (str : string) : lean.parser string :=
@@ -171,10 +156,9 @@ meta def mk_user_fresh_name : tactic name :=
 do nm ← mk_fresh_name,
    return $ `user__ ++ nm.pop_prefix.sanitize_name ++ `user__
 
-
-/-- `has_attribute n n'` checks whether `n'` has attribute `n`. -/
-meta def has_attribute' : name → name → tactic bool | n n' :=
-succeeds (has_attribute n n')
+/-- `has_attribute' attr_name decl_name` checks whether `decl_name` has attribute `attr_name`. -/
+meta def has_attribute' (attr_name decl_name : name) : tactic bool :=
+succeeds (has_attribute attr_name decl_name)
 
 /-- Checks whether the name is a simp lemma -/
 meta def is_simp_lemma : name → tactic bool :=
@@ -1299,8 +1283,8 @@ form `f ∘ g = h` for reasoning about higher-order functions.",
        lmm' ← higher_order_attr.get_param lmm,
        lmm' ← (flip name.update_prefix lmm.get_prefix <$> lmm') <|> pure lmm.add_prime,
        add_decl $ declaration.thm lmm' lvls t' (pure pr),
-       copy_attribute `simp lmm tt lmm',
-       copy_attribute `functor_norm lmm tt lmm' }
+       copy_attribute `simp lmm lmm',
+       copy_attribute `functor_norm lmm lmm' }
 
 add_tactic_doc
 { name                     := "higher_order",

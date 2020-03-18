@@ -97,7 +97,7 @@ do d ← get_decl n,
    let c := @expr.const tt n ls,
    (t'',pr') ← prove_reassoc c,
    add_decl $ declaration.thm n' d.univ_params t'' (pure pr'),
-   copy_attribute `simp n tt n'
+   copy_attribute `simp n n'
 
 /--
 The `reassoc` attribute can be applied to a lemma
@@ -160,7 +160,7 @@ attribute [simp, reassoc] some_class.bar
 @[user_command]
 meta def reassoc_cmd (_ : parse $ tk "reassoc_axiom") : lean.parser unit :=
 do n ← ident,
-   of_tactic' $
+   of_tactic $
    do n ← resolve_constant n,
       reassoc_axiom n
 

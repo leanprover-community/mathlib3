@@ -114,4 +114,10 @@ meta def fin_cases : parse hyp → parse (tk "with" *> texpr)? → tactic unit
 
 end interactive
 
+add_tactic_doc
+{ name       := "fin_cases",
+  category   := doc_category.tactic,
+  decl_names := [`tactic.interactive.fin_cases],
+  tags       := ["case bashing"] }
+
 end tactic

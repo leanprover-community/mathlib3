@@ -14,10 +14,18 @@ import tactic.interactive
 namespace tactic
 
 namespace tidy
+/-- Tag interactive tactics (locally) with `[tidy]` to add them to the list of default tactics
+called by `tidy`. -/
 meta def tidy_attribute : user_attribute := {
   name := `tidy,
   descr := "A tactic that should be called by `tidy`."
 }
+
+add_tactic_doc
+{ name                     := "tidy",
+  category                 := doc_category.attr,
+  decl_names               := [`tactic.tidy.tidy_attribute],
+  tags                     := ["search"] }
 
 run_cmd attribute.register ``tidy_attribute
 
@@ -74,7 +82,15 @@ namespace interactive
 open lean.parser interactive
 
 /-- Use a variety of conservative tactics to solve goals.
-`tidy?` reports back the tactic script it found.
+
+`tidy?` reports back the tactic script it found. As an example
+```lean
+example : ∀ x : unit, x = unit.star :=
+begin
+  tidy? -- Prints the trace message: "Try this: intros x, exact dec_trivial"
+end
+```
+
 The default list of tactics is stored in `tactic.tidy.default_tidy_tactics`.
 This list can be overridden using `tidy { tactics := ... }`.
 (The list must be a `list` of `tactic string`, so that `tidy?`
@@ -86,9 +102,25 @@ meta def tidy (trace : parse $ optional (tk "?")) (cfg : tidy.cfg := {}) :=
 tactic.tidy { trace_result := trace.is_some, ..cfg }
 end interactive
 
+add_tactic_doc
+{ name                     := "tidy",
+  category                 := doc_category.tactic,
+  decl_names               := [`tactic.interactive.tidy],
+  tags                     := ["search", "Try this"] }
+
+/-- Invoking the hole command `tidy` ("Use `tidy` to complete the goal") runs the tactic of
+the same name, replacing the hole with the tactic script `tidy` produces.
+-/
 @[hole_command] meta def tidy_hole_cmd : hole_command :=
 { name := "tidy",
   descr := "Use `tidy` to complete the goal.",
-  action := λ _, do script ← tidy.core, return [("begin " ++ (", ".intercalate script) ++ " end", "by tidy")] }
+  action := λ _, do script ← tidy.core,
+    return [("begin " ++ (", ".intercalate script) ++ " end", "by tidy")] }
+
+add_tactic_doc
+{ name                     := "tidy",
+  category                 := doc_category.hole_cmd,
+  decl_names               := [`tactic.tidy_hole_cmd],
+  tags                     := ["search"] }
 
 end tactic

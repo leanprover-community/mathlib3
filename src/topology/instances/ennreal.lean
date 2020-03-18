@@ -240,7 +240,6 @@ begin
   cases a, {simp [none_eq_top] at hb, simp [none_eq_top, ht b hb, top_mul, hb] },
   cases b, {
     simp [none_eq_top] at ha,
-    have ha' : a ≠ 0, from mt coe_eq_coe.2 ha,
     simp [*, nhds_swap (a : ennreal) ⊤, none_eq_top, some_eq_coe, top_mul, tendsto_map'_iff, (∘), mul_comm] },
   simp [some_eq_coe, nhds_coe_coe, tendsto_map'_iff, (∘)],
   simp only [coe_mul.symm, tendsto_coe, tendsto_mul]
@@ -559,7 +558,7 @@ let f' (b : β) : nnreal := ⟨f b, le_trans (hg b) (hgf b)⟩ in
 let g' (b : β) : nnreal := ⟨g b, hg b⟩ in
 have summable f', from nnreal.summable_coe.1 hf,
 have summable g', from
-  nnreal.summable_of_le (assume b, (@nnreal.coe_le (g' b) (f' b)).2 $ hgf b) this,
+  nnreal.summable_of_le (assume b, (@nnreal.coe_le_coe (g' b) (f' b)).2 $ hgf b) this,
 show summable (λb, g' b : β → ℝ), from nnreal.summable_coe.2 this
 
 lemma has_sum_iff_tendsto_nat_of_nonneg {f : ℕ → ℝ} (hf : ∀i, 0 ≤ f i) (r : ℝ) :

@@ -19,8 +19,8 @@ universes u v w
 variables {α : Type u} {β : Type v} {γ : Type w}
 
 section uniform_limit
-/-! ###
-Continuity of uniform limits
+/-!
+### Continuity of uniform limits
 
 In this section, we discuss variations around the continuity of a uniform limit of continuous
 functions when the target space is a metric space. Specifically, we provide statements giving the

@@ -298,7 +298,7 @@ theorem ball_eq_empty_iff_nonpos : ε ≤ 0 ↔ ball x ε = ∅ :=
 ⟨λ h, le_of_not_gt $ λ ε0, h _ $ mem_ball_self ε0,
  λ ε0 y h, not_lt_of_le ε0 $ pos_of_mem_ball h⟩).symm
 
-@[simp] lemma ball_empty : ball x 0 = ∅ :=
+@[simp] lemma ball_zero : ball x 0 = ∅ :=
 by rw [← metric.ball_eq_empty_iff_nonpos]
 
 theorem uniformity_basis_dist :

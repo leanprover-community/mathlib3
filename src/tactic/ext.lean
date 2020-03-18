@@ -274,7 +274,16 @@ attribute [ext] array.ext propext prod.ext
 attribute [ext [(→),thunk]] _root_.funext
 
 -- We create some extensionality lemmas for existing structures.
-attribute [ext] ulift plift
+attribute [ext] ulift
+
+namespace plift
+-- This is stronger than the one generated automatically.
+@[ext] lemma ext {P : Prop} (a b : plift P) : a = b :=
+begin
+  cases a, cases b, refl
+end
+end plift
+
 -- Conservatively, we'll only add extensionality lemmas for `has_*` structures
 -- as they become useful.
 attribute [ext] has_zero

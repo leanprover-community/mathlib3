@@ -100,7 +100,7 @@ include 𝒞
 @[simp] lemma functor_map_id
   (F : discrete J ⥤ C) {j : discrete J} (f : j ⟶ j) : F.map f = 𝟙 (F.obj j) :=
 begin
-  have h : f = 𝟙 j, cases f, cases f, ext,
+  have h : f = 𝟙 j, { cases f, cases f, ext, } ,
   rw h,
   simp,
 end

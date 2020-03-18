@@ -395,6 +395,11 @@ by rw [gsmul_eq_mul', gsmul_eq_mul', mul_assoc]
 theorem mul_gsmul_assoc [ring R] (a b : R) (n : ℤ) : n •ℤ (a * b) = n •ℤ a * b :=
 by rw [gsmul_eq_mul, gsmul_eq_mul, mul_assoc]
 
+@[simp]
+lemma gsmul_int_int (a b : ℤ) : a •ℤ b = a * b := by simp [gsmul_eq_mul]
+
+lemma gsmul_int_one (n : ℤ) : n •ℤ 1 = n := by simp
+
 @[simp, move_cast] theorem int.cast_pow [ring R] (n : ℤ) (m : ℕ) : (↑(n ^ m) : R) = ↑n ^ m :=
 by induction m with m ih; [exact int.cast_one,
   rw [pow_succ, pow_succ, int.cast_mul, ih]]

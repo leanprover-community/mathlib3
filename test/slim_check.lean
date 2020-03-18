@@ -1,5 +1,5 @@
 
-import testing.slim_check.tactics
+import tactic.slim_check
 
 namespace slim_check.examples
 

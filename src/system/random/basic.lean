@@ -346,7 +346,7 @@ open nat
 
 /-- `word_size n` gives us the number of bits required to represent `n` -/
 def word_size (x : ℕ) : ℕ :=
-log2 x + 1
+log 2 x + 1
 
 local infix ^ := nat.pow
 

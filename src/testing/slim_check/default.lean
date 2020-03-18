@@ -6,4 +6,4 @@ Author(s): Simon Hudon
 The slim_check library, a port of the Haskell QuickCheck library.
 -/
 
-import testing.slim_check.tactics
+import testing.slim_check.testable

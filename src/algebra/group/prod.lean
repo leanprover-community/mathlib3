@@ -177,7 +177,7 @@ end prod
 
 section prod_map
 
-variables {M' : Type*} {N' : Type*} [monoid M] [monoid N] [monoid M'] [monoid N'] [monoid P]
+variables {M' : Type*} {N' : Type*} [monoid M'] [monoid N'] [monoid P]
   (f : M →* M') (g : N →* N')
 
 /-- `prod.map` as a `monoid_hom`. -/

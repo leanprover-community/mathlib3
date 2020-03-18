@@ -459,10 +459,10 @@ instance : has_mem M (submonoid M) := ⟨λ m S, m ∈ (S:set M)⟩
 @[simp, to_additive]
 lemma mem_coe {S : submonoid M} {m : M} : m ∈ (S : set M) ↔ m ∈ S := iff.rfl
 
-@[simp, squash_cast, to_additive]
-lemma coe_coe (s : submonoid M) : ((s : set M) : Type*) = s := rfl
+@[simp, squash_cast, to_additive, nolint simp_nf] -- `simp_nf: timeout`
+lemma coe_coe (s : submonoid M) : ↥(s : set M) = s := rfl
 
-attribute [squash_cast] add_submonoid.coe_coe
+attribute [squash_cast, nolint simp_nf] add_submonoid.coe_coe
 
 @[to_additive]
 instance is_submonoid (S : submonoid M) : is_submonoid (S : set M) := ⟨S.2, S.3⟩
@@ -526,7 +526,7 @@ end
     submonoid. -/
 @[to_additive "Sum of elements in an `add_submonoid` of an `add_comm_monoid` indexed by a `finset` is in the `add_submonoid`."]
 lemma prod_mem {M : Type*} [comm_monoid M] (S : submonoid M)
-  {ι : Type*} [decidable_eq ι] {t : finset ι} {f : ι → M} (h : ∀c ∈ t, f c ∈ S) :
+  {ι : Type*} {t : finset ι} {f : ι → M} (h : ∀c ∈ t, f c ∈ S) :
   t.prod f ∈ S :=
 S.multiset_prod_mem (t.1.map f) $ λ x hx, let ⟨i, hi, hix⟩ := multiset.mem_map.1 hx in hix ▸ h i hi
 
@@ -985,7 +985,7 @@ lemma mem_ker {f : M →* N} {x : M} : x ∈ f.ker ↔ f x = 1 := submonoid.mem_
 lemma comap_ker (g : N →* P) (f : M →* N) : g.ker.comap f = (g.comp f).ker := rfl
 
 /-- The submonoid of elements `x : M` such that `f x = g x` -/
-@[to_additive]
+@[to_additive "The additive submonoid of elements `x : M` such that `f x = g x`"]
 def eq_locus (f g : M →* N) : submonoid M :=
 { carrier := {x | f x = g x},
   one_mem' := by rw [set.mem_set_of_eq, f.map_one, g.map_one],
@@ -1045,7 +1045,7 @@ end free_monoid
 
 namespace submonoid
 
-variables {N : Type*} [monoid M] [monoid N]
+variables {N : Type*} [monoid N]
 
 open monoid_hom lattice
 

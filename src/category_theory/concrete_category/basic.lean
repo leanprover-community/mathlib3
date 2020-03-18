@@ -78,6 +78,14 @@ def concrete_category.has_coe_to_fun {X Y : C} : has_coe_to_fun (X ⟶ Y) :=
 
 local attribute [instance] concrete_category.has_coe_to_fun
 
+/-- In any concrete category, we can test equality of morphisms by pointwise evaluations.-/
+lemma concrete_category.hom_ext {X Y : C} (f g : X ⟶ Y) (w : ∀ x : X, f x  = g x) : f = g :=
+begin
+  apply faithful.injectivity (forget C),
+  ext,
+  exact w x,
+end
+
 @[simp] lemma forget_map_eq_coe {X Y : C} (f : X ⟶ Y) : (forget C).map f = f := rfl
 
 @[simp] lemma coe_id {X : C} (x : X) : ((𝟙 X) : X → X) x = x :=
@@ -93,6 +101,20 @@ congr_fun ((forget C).map_iso f).hom_inv_id x
 @[simp] lemma coe_inv_hom_id {X Y : C} (f : X ≅ Y) (y : Y) :
   f.hom (f.inv y) = y :=
 congr_fun ((forget C).map_iso f).inv_hom_id y
+
+local attribute [ext] concrete_category.hom_ext
+
+/--
+In any concrete category, injective morphisms are monomorphisms,
+by extensionality.
+-/
+lemma concrete_category.mono_of_injective {X Y : C} (f : X ⟶ Y) (i : function.injective f) : mono f :=
+⟨λ Z g h w,
+  begin
+    ext z,
+    apply i,
+    convert congr_arg (λ k : Z ⟶ Y, (k : Z → Y) z) w; simp only [coe_comp],
+  end⟩
 
 end
 

@@ -56,7 +56,7 @@ class normal_mono (f : X ⟶ Y) :=
 (Z : C)
 (g : Y ⟶ Z)
 (w : f ≫ g = 0)
-(is_limit : is_limit (fork.of_ι f (by simpa) : cone (parallel_pair g 0)))
+(is_limit : is_limit (kernel_fork.of_ι f w))
 
 /-- Every normal monomorphism is a regular monomorphism. -/
 @[priority 100]
@@ -96,7 +96,7 @@ class normal_epi (f : X ⟶ Y) :=
 (W : C)
 (g : W ⟶ X)
 (w : g ≫ f = 0)
-(is_colimit : is_colimit (cofork.of_π f (by simpa) : cocone (parallel_pair g 0)))
+(is_colimit : is_colimit (cokernel_cofork.of_π f w))
 
 /-- Every normal epimorphism is a regular epimorphism. -/
 @[priority 100]

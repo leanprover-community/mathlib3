@@ -340,7 +340,7 @@ instance int.euclidean_domain : euclidean_domain ℤ :=
     exact mul_le_mul_of_nonneg_left (int.nat_abs_pos_of_ne_zero b0) (nat.zero_le _) }
 
 @[priority 100] -- see Note [lower instance priority]
-instance field.to_euclidean_domain {K : Type u} [field K] [decidable_eq K] : euclidean_domain K :=
+instance field.to_euclidean_domain {K : Type u} [decidable_eq K] [field K] : euclidean_domain K :=
 { quotient := (/),
   remainder := λ a b, if b = 0 then a else 0,
   quotient_zero := div_zero,

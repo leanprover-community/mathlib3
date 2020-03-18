@@ -256,20 +256,95 @@ lemma snd.is_monoid_hom [monoid α] [monoid β] : is_monoid_hom (prod.snd : α �
 def monoid_hom.fst [monoid α] [monoid β] : α × β →* α :=
 ⟨λ x, x.1, rfl, λ _ _, prod.fst_mul⟩
 
+@[simp, to_additive prod.add_monoid_hom.fst_apply]
+lemma monoid_hom.fst_apply [monoid α] [monoid β] (p : α × β) :
+  ((monoid_hom.fst : α × β →* α) : α × β → α) p = p.1 := rfl
+
 /-- Given monoids `α, β`, the natural projection homomorphism from `α × β` to `β`.-/
 @[to_additive prod.add_monoid_hom.snd "Given add_monoids `α, β`, the natural projection homomorphism from `α × β` to `β`."]
 def monoid_hom.snd [monoid α] [monoid β] : α × β →* β :=
 ⟨λ x, x.2, rfl, λ _ _, prod.snd_mul⟩
+
+@[simp, to_additive prod.add_monoid_hom.snd_apply]
+lemma monoid_hom.snd_apply [monoid α] [monoid β] (p : α × β) :
+  ((monoid_hom.snd : α × β →* β) : α × β → β) p = p.2 := rfl
 
 /-- Given monoids `α, β`, the natural inclusion homomorphism from `α` to `α × β`. -/
 @[to_additive prod.add_monoid_hom.inl "Given add_monoids `α, β`, the natural inclusion homomorphism from `α` to `α × β`. There is an unbundled version, `prod.inl`, for arbitrary `α, β` such that `β` has a zero."]
 def monoid_hom.inl [monoid α] [monoid β] : α →* α × β :=
 ⟨λ x, (x, 1), rfl, λ x y, show _ = (_, _), by rw mul_one⟩
 
+@[simp, to_additive prod.add_monoid_hom.inl_apply]
+lemma monoid_hom.inl_apply [monoid α] [monoid β] (a : α) :
+  (((monoid_hom.inl : α →* α × β) : α → α × β) a) = (a, 1) := rfl
+
 /-- Given monoids `α, β`, the natural inclusion homomorphism from `β` to `α × β`. -/
 @[to_additive prod.add_monoid_hom.inr "Given add_monoids `α, β`, the natural inclusion homomorphism from `β` to `α × β`. There is an unbundled version, `prod.inr`, for arbitrary `α, β` such that `α` has a zero."]
 def monoid_hom.inr [monoid α] [monoid β] : β →* α × β :=
 ⟨λ x, (1, x), rfl, λ x y, show _ = (_, _), by rw mul_one⟩
+
+@[simp, to_additive prod.add_monoid_hom.inr_apply]
+lemma monoid_hom.inr_apply [monoid α] [monoid β] (b : β) :
+  (((monoid_hom.inr : β →* α × β) : β → α × β) b) = (1, b) := rfl
+
+/--
+Given two monoid homomorphisms, `f : α →* γ` and `g : β →* δ`,
+the natural product homomorphism `α × β →* γ × δ`.
+-/
+@[to_additive prod.add_monoid_hom.map "Given two additive monoid homomorphisms, `f : α →+ γ` and `g : β →+ δ`, the natural product homomorphism `α × β →+ γ × δ`."]
+def monoid_hom.map [monoid α] [monoid β] [monoid γ] [monoid δ] (f : α →* γ) (g : β →* δ) : α × β →* γ × δ :=
+⟨λ x, (f x.1, g x.2), by { ext; { dsimp, rw monoid_hom.map_one, } }, λ x y, by { ext; { dsimp, rw monoid_hom.map_mul, } }⟩
+
+@[simp, to_additive prod.add_monoid_hom.map_apply]
+lemma monoid_hom.map_apply [monoid α] [monoid β] [monoid γ] [monoid δ] (f : α →* γ) (g : β →* δ) (p : α × β) :
+  ((monoid_hom.map f g) p) = (f p.1, g p.2) := rfl
+
+/--
+The diagonal map `λ x, (x, x)` as a monoid homomorphism.
+-/
+@[to_additive prod.add_monoid_hom.diag "The diagonal map `λ x, (x, x)` as an additive monoid homomorphism."]
+def monoid_hom.diag (α) [monoid α] : α →* α × α :=
+⟨λ x, (x, x), rfl, λ x y, rfl⟩
+
+@[simp, to_additive prod.add_monoid_hom.diag_apply]
+lemma monoid_hom.diag_apply [monoid α] (a : α) :
+  ((monoid_hom.diag α) a) = (a, a) := rfl
+
+/--
+The multiplication map `λ x, x.1 * x.2` as a homomorphism of commutative monoids.
+-/
+@[to_additive prod.add_monoid_hom.add "The addition map `λ x, x.1 + x.2` as a homomorphism of commutative additive monoids."]
+def monoid_hom.mul (α) [comm_monoid α] : α × α →* α :=
+⟨λ x, x.1 * x.2, by simp,
+ λ x y, by { dsimp, rw [mul_assoc, ←mul_assoc y.fst, mul_comm y.fst, mul_assoc, mul_assoc], }⟩
+
+@[simp, to_additive prod.add_monoid_hom.add_apply]
+lemma monoid_hom.mul_apply [comm_monoid α] (p : α × α) :
+  (monoid_hom.mul α) p = p.1 * p.2 := rfl
+
+/--
+Given monoid homomorphisms `f : α →* β` and `g : α →* γ`,
+`lift f g` is the monoid homomorphism `α →* β × γ` sending `a` to `(f a, g a)`.
+-/
+@[to_additive prod.add_monoid_hom.lift "Given additive monoid homomorphisms `f : α →+ β` and `g : α →+ γ`, `lift f g` is the additive monoid homomorphism `α →+ β × γ` sending `a` to `(f a, g a)`."]
+def monoid_hom.lift [monoid α] [monoid β] [monoid γ] (f : α →* β) (g : α →* γ) : α →* β × γ :=
+(monoid_hom.map f g).comp (monoid_hom.diag α)
+
+@[simp, to_additive prod.add_monoid_hom.lift_apply]
+lemma monoid_hom.lift_apply [monoid α] [monoid β] [monoid γ] (f : α →* β) (g : α →* γ) (a : α) :
+  ((monoid_hom.lift f g) a) = (f a, g a) := rfl
+
+/--
+Given monoid homomorphisms `f : α →* γ` and `g : β →* γ` into a commutative monoid `γ`,
+`desc f g` is the monoid homomorphism `α × β →* γ` sending `(a, b)` to `f a * g b`.
+-/
+@[to_additive prod.add_monoid_hom.desc "Given additive monoid homomorphisms `f : α →+ γ` and `g : β →+ γ` into an additive commutative monoid `γ`, `desc f g` is the monoid homomorphism `α × β →+ γ` sending `(a, b)` to `f a + g b`."]
+def monoid_hom.desc [monoid α] [monoid β] [comm_monoid γ] (f : α →* γ) (g : β →* γ) : α × β →* γ :=
+(monoid_hom.mul γ).comp (monoid_hom.map f g)
+
+@[simp, to_additive prod.add_monoid_hom.desc_apply]
+lemma monoid_hom.desc_apply [monoid α] [monoid β] [comm_monoid γ] (f : α →* γ) (g : β →* γ) (p : α × β) :
+  ((monoid_hom.desc f g) p) = f p.1 * g p.2 := rfl
 
 @[to_additive is_add_group_hom]
 lemma fst.is_group_hom [group α] [group β] : is_group_hom (prod.fst : α × β → α) :=

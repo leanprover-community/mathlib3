@@ -9,7 +9,7 @@ import category_theory.limits.shapes.kernels
 /-!
 # Definitions and basic properties of regular and normal monomorphisms and epimorphisms.
 
-A regular monomorphism is a morphism that is the equaliser of some parallel pair.
+A regular monomorphism is a morphism that is the equalizer of some parallel pair.
 A normal monomorphism is a morphism that is the kernel of some other morphism.
 
 We give the constructions

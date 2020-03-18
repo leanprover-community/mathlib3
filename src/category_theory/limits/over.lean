@@ -166,11 +166,8 @@ begin
     (pullback.fst ≫ Y.hom : pullback f.left g.left ⟶ B) = (s.X).hom, simp, refl,
   intros s j, simp, ext1, dsimp,
   cases j, simp, simp, simp,
-  show _ ≫ (((pullback_cone.mk π₁ π₂ _).π).app walking_cospan.one).left = ((s.π).app walking_cospan.one).left,
   dunfold pullback_cone.mk, dsimp,
-  show pullback.lift (((s.π).app walking_cospan.left).left) (((s.π).app walking_cospan.right).left) _ ≫
-    pullback.fst ≫ f.left =
-  ((s.π).app walking_cospan.one).left, simp, rw ← over.comp_left, rw ← s.w walking_cospan.hom.inl,
+  simp, rw ← over.comp_left, rw ← s.w walking_cospan.hom.inl,
   intros s m J, apply over.over_morphism.ext, simp, apply pullback.hom_ext,
   simp at J, dsimp at J,
   have := J walking_cospan.left, dsimp at this, simp, rw ← this, simp,

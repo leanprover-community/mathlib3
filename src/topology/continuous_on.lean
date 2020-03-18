@@ -219,6 +219,10 @@ lemma continuous_within_at.tendsto {f : α → β} {s : set α} {x : α} (h : co
 when it's continuous at every point of `s` within `s`. -/
 def continuous_on (f : α → β) (s : set α) : Prop := ∀ x ∈ s, continuous_within_at f s x
 
+lemma continuous_on.continuous_within_at {f : α → β} {s : set α} {x : α} (hf : continuous_on f s)
+  (hx : x ∈ s) : continuous_within_at f s x :=
+hf x hx
+
 theorem continuous_within_at_univ (f : α → β) (x : α) :
   continuous_within_at f set.univ x ↔ continuous_at f x :=
 by rw [continuous_at, continuous_within_at, nhds_within_univ]
@@ -260,7 +264,7 @@ have ∀ t, is_open (function.restrict f s ⁻¹' t) ↔ ∃ (u : set α), is_op
   end,
 by rw [continuous_on_iff_continuous_restrict, continuous]; simp only [this]
 
-theorem continuous_on_iff_is_closed  {f : α → β} {s : set α} :
+theorem continuous_on_iff_is_closed {f : α → β} {s : set α} :
   continuous_on f s ↔ ∀ t : set β, is_closed t → ∃ u, is_closed u ∧ f ⁻¹' t ∩ s = u ∩ s :=
 have ∀ t, is_closed (function.restrict f s ⁻¹' t) ↔ ∃ (u : set α), is_closed u ∧ f ⁻¹' t ∩ s = u ∩ s,
   begin
@@ -269,6 +273,9 @@ have ∀ t, is_closed (function.restrict f s ⁻¹' t) ↔ ∃ (u : set α), is_
     simp only [subtype.preimage_val_eq_preimage_val_iff]
   end,
 by rw [continuous_on_iff_continuous_restrict, continuous_iff_is_closed]; simp only [this]
+
+lemma continuous_on_empty (f : α → β) : continuous_on f ∅ :=
+λ x, false.elim
 
 theorem nhds_within_le_comap {x : α} {s : set α} {f : α → β} (ctsf : continuous_within_at f s x) :
   nhds_within x s ≤ comap f (nhds_within (f x) (f '' s)) :=
@@ -373,6 +380,10 @@ begin
   have : s = univ ∩ s, by rw univ_inter,
   rwa [this, continuous_within_at_inter hs, continuous_within_at_univ] at h
 end
+
+lemma continuous_on.continuous_at {f : α → β} {s : set α} {x : α}
+  (h : continuous_on f s) (hx : s ∈ 𝓝 x) : continuous_at f x :=
+(h x (mem_of_nhds hx)).continuous_at hx
 
 lemma continuous_within_at.comp {g : β → γ} {f : α → β} {s : set α} {t : set β} {x : α}
   (hg : continuous_within_at g t (f x)) (hf : continuous_within_at f s x) (h : s ⊆ f ⁻¹' t) :

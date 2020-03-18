@@ -219,6 +219,24 @@ You can also explicitly specify a lower and upper bound to use,
 as `interval_cases using hl hu`.
 The hypotheses should be in the form `hl : a ≤ n` and `hu : n < b`,
 in which case `interval_cases` calls `fin_cases` on the resulting fact `n ∈ set.Ico a b`.
+
+---
+
+In particular, `interval_cases n`
+1) inspects hypotheses looking for lower and upper bounds of the form `a ≤ n` and `n < b`
+   (although in `ℕ`, `ℤ`, and `ℕ+` bounds of the form `a < n` and `n ≤ b` are also allowed),
+   and also makes use of lower and upper bounds found via `lattice.le_top` and `lattice.bot_le`
+   (so for example if `n : ℕ`, then the bound `0 ≤ n` is found automatically), then
+2) calls `fin_cases` on the synthesised hypothesis `n ∈ set.Ico a b`,
+   assuming an appropriate `fintype` instance can be found for the type of `n`.
+
+The variable `n` can belong to any type `α`, with the following restrictions:
+* only bounds on which `expr.to_rat` succeeds will be considered "explicit" (TODO: generalise this?)
+* an instance of `decidable_eq α` is available,
+* an explicit lower bound can be found amongst the hypotheses, or from `lattice.bot_le n`,
+* an explicit upper bound can be found amongst the hypotheses, or from `lattice.le_top n`,
+* if multiple bounds are located, an instance of `decidable_linear_order α` is available, and
+* an instance of `fintype set.Ico l u` is available for the relevant bounds.
 -/
 meta def interval_cases (n : parse texpr?) (bounds : parse (tk "using" *> (prod.mk <$> ident <*> ident))?) : tactic unit :=
 do
@@ -232,6 +250,12 @@ do
     tactic.interval_cases_using hl hu)
   else
     fail "Call `interval_cases n` (specifying a variable), or `interval_cases lb ub` (specifying a lower bound and upper bound on the same variable)."
+
+add_tactic_doc
+{ name       := "interval_cases",
+  category   := doc_category.tactic,
+  decl_names := [`tactic.interactive.interval_cases],
+  tags       := ["case bashing"] }
 
 end interactive
 

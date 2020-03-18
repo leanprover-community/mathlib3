@@ -346,7 +346,6 @@ def to_decidable_linear_ordered_comm_ring
   [comm : @is_commutative α (*)]
   : decidable_linear_ordered_comm_ring α :=
 { decidable_le := by apply_instance,
-  decidable_eq := by apply_instance,
   decidable_lt := by apply_instance,
   mul_comm := is_commutative.comm (*),
   ..@linear_nonneg_ring.to_linear_ordered_ring _ s }

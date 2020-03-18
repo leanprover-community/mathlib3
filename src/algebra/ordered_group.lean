@@ -743,7 +743,6 @@ def to_decidable_linear_ordered_comm_group
   le_antisymm := @le_antisymm _ _,
   le_total := nonneg_total_iff.1 nonneg_total,
   decidable_le := by apply_instance,
-  decidable_eq := by apply_instance,
   decidable_lt := by apply_instance,
   ..@nonneg_comm_group.to_ordered_comm_group _ s }
 

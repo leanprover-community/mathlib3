@@ -217,15 +217,17 @@ def mk {W : C} (fst : W ⟶ X) (snd : W ⟶ Y) (eq : fst ≫ f = snd ≫ g) : pu
   { app := λ j, walking_cospan.cases_on j fst snd (fst ≫ f),
     naturality' := λ j j' f, by cases f; obviously } }
 
+@[simp] lemma mk_π_app_left {W : C} (fst : W ⟶ X) (snd : W ⟶ Y) (eq : fst ≫ f = snd ≫ g) :
+  (mk fst snd eq).π.app left = fst := rfl
+@[simp] lemma mk_π_app_right {W : C} (fst : W ⟶ X) (snd : W ⟶ Y) (eq : fst ≫ f = snd ≫ g) :
+  (mk fst snd eq).π.app right = snd := rfl
+@[simp] lemma mk_π_app_one {W : C} (fst : W ⟶ X) (snd : W ⟶ Y) (eq : fst ≫ f = snd ≫ g) :
+  (mk fst snd eq).π.app one = fst ≫ f := rfl
+
 @[reassoc] lemma condition (t : pullback_cone f g) : fst t ≫ f = snd t ≫ g :=
 begin
   erw [t.w inl, ← t.w inr], refl
 end
-
-@[simp] lemma mk_left {L : C} {lx : L ⟶ X} {ly : L ⟶ Y} {e : lx ≫ f = ly ≫ g} :
-  (pullback_cone.mk lx ly e).π.app left = lx := rfl
-@[simp] lemma mk_right {L : C} {lx : L ⟶ X} {ly : L ⟶ Y} {e : lx ≫ f = ly ≫ g} :
-  (pullback_cone.mk lx ly e).π.app right = ly := rfl
 
 /-- To check whether a morphism is equalized by the maps of a pullback cone, it suffices to check
   it for `fst t` and `snd t` -/
@@ -238,6 +240,19 @@ lemma equalizer_ext (t : pullback_cone f g) {W : C} {k l : W ⟶ t.X}
 | one := calc k ≫ t.π.app one = k ≫ t.π.app left ≫ (cospan f g).map inl : by rw ←t.w
     ... = l ≫ t.π.app left ≫ (cospan f g).map inl : by rw [←category.assoc, h₀, category.assoc]
     ... = l ≫ t.π.app one : by rw t.w
+
+/-- This is a slightly more convenient method to verify that a pullback cone is a limit cone. It
+    only asks for a proof of facts that carry any mathematical content -/
+def is_limit.mk (t : pullback_cone f g) (lift : Π (s : cone (cospan f g)), s.X ⟶ t.X)
+  (fac_left : ∀ (s : cone (cospan f g)), lift s ≫ t.π.app left = s.π.app left)
+  (fac_right : ∀ (s : cone (cospan f g)), lift s ≫ t.π.app right = s.π.app right)
+  (uniq : ∀ (s : cone (cospan f g)) (m : s.X ⟶ t.X)
+    (w : ∀ j : walking_cospan, m ≫ t.π.app j = s.π.app j), m = lift s) :
+  is_limit t :=
+{ lift := lift,
+  fac' := λ s j, walking_cospan.cases_on j (fac_left s) (fac_right s) $
+    by rw [←t.w inl, ←s.w inl, ←fac_left s, category.assoc],
+  uniq' := uniq }
 
 end pullback_cone
 
@@ -256,6 +271,13 @@ def mk {W : C} (inl : Y ⟶ W) (inr : Z ⟶ W) (eq : f ≫ inl = g ≫ inr) : pu
   { app := λ j, walking_span.cases_on j (f ≫ inl) inl inr,
     naturality' := λ j j' f, by cases f; obviously } }
 
+@[simp] lemma mk_ι_app_left {W : C} (inl : Y ⟶ W) (inr : Z ⟶ W) (eq : f ≫ inl = g ≫ inr) :
+  (mk inl inr eq).ι.app left = inl := rfl
+@[simp] lemma mk_ι_app_right {W : C} (inl : Y ⟶ W) (inr : Z ⟶ W) (eq : f ≫ inl = g ≫ inr) :
+  (mk inl inr eq).ι.app right = inr := rfl
+@[simp] lemma mk_ι_app_zero {W : C} (inl : Y ⟶ W) (inr : Z ⟶ W) (eq : f ≫ inl = g ≫ inr) :
+  (mk inl inr eq).ι.app zero = f ≫ inl := rfl
+
 @[reassoc] lemma condition (t : pushout_cocone f g) : f ≫ (inl t) = g ≫ (inr t) :=
 begin
   erw [t.w fst, ← t.w snd], refl
@@ -272,6 +294,19 @@ lemma coequalizer_ext (t : pushout_cocone f g) {W : C} {k l : t.X ⟶ W}
 | zero := calc t.ι.app zero ≫ k = ((span f g).map fst ≫ t.ι.app left) ≫ k : by rw ←t.w
     ... = ((span f g).map fst ≫ t.ι.app left) ≫ l : by rw [category.assoc, h₀, ←category.assoc]
     ... = t.ι.app zero ≫ l : by rw t.w
+
+/-- This is a slightly more convenient method to verify that a pushout cocone is a colimit cocone.
+    It only asks for a proof of facts that carry any mathematical content -/
+def is_colimit.mk (t : pushout_cocone f g) (desc : Π (s : cocone (span f g)), t.X ⟶ s.X)
+  (fac_left : ∀ (s : cocone (span f g)), t.ι.app left ≫ desc s = s.ι.app left)
+  (fac_right : ∀ (s : cocone (span f g)), t.ι.app right ≫ desc s = s.ι.app right)
+  (uniq : ∀ (s : cocone (span f g)) (m : t.X ⟶ s.X)
+    (w : ∀ j : walking_span, t.ι.app j ≫ m = s.ι.app j), m = desc s) :
+  is_colimit t :=
+{ desc := desc,
+  fac' := λ s j, walking_span.cases_on j (by rw [←s.w fst, ←t.w fst, category.assoc, fac_left s])
+    (fac_left s) (fac_right s),
+  uniq' := uniq }
 
 end pushout_cocone
 

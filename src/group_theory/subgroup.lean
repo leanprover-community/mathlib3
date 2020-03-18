@@ -423,6 +423,18 @@ instance set_inclusion.is_group_hom [group G] {s t : set G}
   [is_subgroup s] [is_subgroup t] (h : s ⊆ t) : is_group_hom (set.inclusion h) :=
 subtype_mk.is_group_hom _ _
 
+/-- `subtype.val : set.range f → H` as a monoid homomorphism, when `f` is a monoid homomorphism. -/
+@[to_additive "`subtype.val : set.range f → H` as an additive monoid homomorphism, when `f` is an additive monoid homomorphism."]
+def monoid_hom.range_subtype_val [monoid G] [monoid H] (f : G →* H) : (set.range f) →* H :=
+monoid_hom.of subtype.val
+
+/-- `set.range_factorization f : G → set.range f` as a monoid homomorphism, when `f` is a monoid homomorphism. -/
+@[to_additive "`set.range_factorization f : G → set.range f` as an additive monoid homomorphism, when `f` is an additive monoid homomorphism."]
+def monoid_hom.range_factorization [monoid G] [monoid H] (f : G →* H) : G →* (set.range f) :=
+{ to_fun := set.range_factorization f,
+  map_one' := by { dsimp [set.range_factorization], simp, refl, },
+  map_mul' := by { intros, dsimp [set.range_factorization], simp, refl, } }
+
 namespace add_group
 
 variables [add_group A]

@@ -78,14 +78,22 @@ protected def has_zero : has_zero C :=
 local attribute [instance] has_zero_object.has_zero
 local attribute [instance] has_zero_object.unique_to has_zero_object.unique_from
 
-/-- A category with a zero object has zero morphisms. -/
+/-- A category with a zero object has zero morphisms.
+
+    It is rarely a good idea to use this. Many categories that have a zero object have zero
+    morphisms for some other reason, for example from additivity. Library code that uses
+    `zero_morphisms_of_zero_object` will then be incompatible with these categories because
+    the `has_zero_morphisms` instances will not be definitionally equal. For this reason library
+    code should generally ask for an instance of `has_zero_morphisms` separately, even if it already
+    asks for an instance of `has_zero_objects`. -/
 def zero_morphisms_of_zero_object : has_zero_morphisms.{v} C :=
 { has_zero := λ X Y,
   { zero := inhabited.default (X ⟶ 0) ≫ inhabited.default (0 ⟶ Y) },
   zero_comp' := λ X Y Z f, by { dunfold has_zero.zero, rw category.assoc, congr, },
   comp_zero' := λ X Y Z f, by { dunfold has_zero.zero, rw ←category.assoc, congr, }}
 
-local attribute [instance] zero_morphisms_of_zero_object
+section
+variable [has_zero_morphisms.{v} C]
 
 /--  An arrow ending in the zero object is zero -/
 lemma zero_of_to_zero {X : C} (f : X ⟶ 0) : f = 0 :=
@@ -99,6 +107,8 @@ lemma zero_of_from_zero {X : C} (f : 0 ⟶ X) : f = 0 :=
 begin
   rw (has_zero_object.unique_to.{v} X).uniq f,
   rw (has_zero_object.unique_to.{v} X).uniq (0 : 0 ⟶ X)
+end
+
 end
 
 /-- A zero object is in particular initial. -/

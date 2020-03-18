@@ -176,9 +176,9 @@ variables (C)
 /-- `has_images` represents a choice of image for every morphism -/
 class has_images :=
 (has_image : Π {X Y : C} (f : X ⟶ Y), has_image.{v} f)
-end
 
 attribute [instance, priority 100] has_images.has_image
+end
 
 section
 variables (f) [has_image f]

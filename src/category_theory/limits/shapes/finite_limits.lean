@@ -35,7 +35,9 @@ class has_finite_limits :=
 class has_finite_colimits :=
 (has_colimits_of_shape : Π (J : Type v) [small_category J] [fin_category J], has_colimits_of_shape.{v} J C)
 
-attribute [instance] has_finite_limits.has_limits_of_shape has_finite_colimits.has_colimits_of_shape
+attribute [instance, priority 100] -- see Note [lower instance priority]
+  has_finite_limits.has_limits_of_shape
+  has_finite_colimits.has_colimits_of_shape
 
 @[priority 100] -- see Note [lower instance priority]
 instance [has_limits.{v} C] : has_finite_limits.{v} C :=

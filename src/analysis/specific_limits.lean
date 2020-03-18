@@ -183,6 +183,13 @@ tendsto_inv_at_top_zero.comp (tendsto_coe_nat_real_at_top_iff.2 tendsto_id)
 lemma tendsto_const_div_at_top_nhds_0_nat (C : ℝ) : tendsto (λ n : ℕ, C / n) at_top (𝓝 0) :=
 by simpa only [mul_zero] using tendsto_const_nhds.mul tendsto_inverse_at_top_nhds_0_nat
 
+lemma nnreal.tendsto_inverse_at_top_nhds_0_nat : tendsto (λ n : ℕ, (n : nnreal)⁻¹) at_top (𝓝 0) :=
+by { rw ← nnreal.tendsto_coe, convert tendsto_inverse_at_top_nhds_0_nat, simp }
+
+lemma nnreal.tendsto_const_div_at_top_nhds_0_nat (C : nnreal) :
+  tendsto (λ n : ℕ, C / n) at_top (𝓝 0) :=
+by simpa using tendsto_const_nhds.mul nnreal.tendsto_inverse_at_top_nhds_0_nat
+
 lemma tendsto_one_div_add_at_top_nhds_0_nat :
   tendsto (λ n : ℕ, 1 / ((n : ℝ) + 1)) at_top (𝓝 0) :=
 suffices tendsto (λ n : ℕ, 1 / (↑(n + 1) : ℝ)) at_top (𝓝 0), by simpa,
@@ -216,7 +223,7 @@ tsum_eq_has_sum has_sum_geometric_two
 
 lemma has_sum_geometric_two' (a : ℝ) : has_sum (λn:ℕ, (a / 2) / 2 ^ n) a :=
 begin
-  convert has_sum_mul_left (a / 2) (has_sum_geometric
+  convert has_sum.mul_left (a / 2) (has_sum_geometric
     (le_of_lt one_half_pos) one_half_lt_one),
   { funext n, simp, refl, },
   { norm_num, rw div_mul_cancel, norm_num }
@@ -268,7 +275,7 @@ begin
   have hf : has_sum f ε := has_sum_geometric_two' _,
   have f0 : ∀ n, 0 < f n := λ n, div_pos (half_pos hε) (pow_pos two_pos _),
   refine ⟨f ∘ encodable.encode, λ i, f0 _, _⟩,
-  rcases summable_comp_of_summable_of_injective f (summable_spec hf) (@encodable.encode_injective ι _)
+  rcases hf.summable.summable_comp_of_injective (@encodable.encode_injective ι _)
     with ⟨c, hg⟩,
   refine ⟨c, hg, has_sum_le_inj _ (@encodable.encode_injective ι _) _ _ hg hf⟩,
   { assume i _, exact le_of_lt (f0 _) },
@@ -287,7 +294,7 @@ then `f` is a Cauchy sequence.-/
 lemma cauchy_seq_of_edist_le_geometric : cauchy_seq f :=
 begin
   refine cauchy_seq_of_edist_le_of_tsum_ne_top _ hu _,
-  rw [ennreal.mul_tsum, ennreal.tsum_geometric],
+  rw [ennreal.tsum_mul_left, ennreal.tsum_geometric],
   refine ennreal.mul_ne_top hC (ennreal.inv_ne_top.2 _),
   exact ne_of_gt (ennreal.zero_lt_sub_iff_lt.2 hr)
 end
@@ -300,7 +307,7 @@ lemma edist_le_of_edist_le_geometric_of_tendsto {a : α} (ha : tendsto f at_top 
   edist (f n) a ≤ (C * r^n) / (1 - r) :=
 begin
   convert edist_le_tsum_of_edist_le_of_tendsto _ hu ha _,
-  simp only [pow_add, ennreal.mul_tsum, ennreal.tsum_geometric, ennreal.div_def, mul_assoc]
+  simp only [pow_add, ennreal.tsum_mul_left, ennreal.tsum_geometric, ennreal.div_def, mul_assoc]
 end
 
 /-- If `edist (f n) (f (n+1))` is bounded by `C * r^n`, then the distance from
@@ -363,13 +370,13 @@ begin
   { simp [has_sum_zero] },
   { have rnonneg: r ≥ 0, from nonneg_of_mul_nonneg_left
       (by simpa only [pow_one] using le_trans dist_nonneg (hu 1)) Cpos,
-    refine has_sum_mul_left C _,
+    refine has_sum.mul_left C _,
     by simpa using has_sum_geometric rnonneg hr }
 end
 
 variables (r C)
 
-/-- If `edist (f n) (f (n+1))` is bounded by `C * r^n`, `r < 1`, then `f` is a Cauchy sequence.
+/-- If `dist (f n) (f (n+1))` is bounded by `C * r^n`, `r < 1`, then `f` is a Cauchy sequence.
 Note that this lemma does not assume `0 ≤ C` or `0 ≤ r`. -/
 lemma cauchy_seq_of_le_geometric : cauchy_seq f :=
 cauchy_seq_of_dist_le_of_summable _ hu ⟨_, aux_has_sum_of_le_geometric hr hu⟩
@@ -390,7 +397,7 @@ begin
   convert dist_le_tsum_of_dist_le_of_tendsto _ hu ⟨_, this⟩ ha n,
   simp only [pow_add, mul_left_comm C, mul_div_right_comm],
   rw [mul_comm],
-  exact (eq.symm $ tsum_eq_has_sum $ has_sum_mul_left _ this)
+  exact (eq.symm $ tsum_eq_has_sum $ this.mul_left _)
 end
 
 omit hr hu
@@ -417,10 +424,43 @@ begin
   convert dist_le_tsum_of_dist_le_of_tendsto _ hu₂ (summable_geometric_two' C) ha n,
   simp only [add_comm n, pow_add, (div_div_eq_div_mul _ _ _).symm],
   symmetry,
-  exact tsum_eq_has_sum (has_sum_mul_right _ $ has_sum_geometric_two' C)
+  exact tsum_eq_has_sum (has_sum.mul_right _ $ has_sum_geometric_two' C)
 end
 
 end le_geometric
+
+section summable_le_geometric
+
+variables [normed_group α] {r C : ℝ} {f : ℕ → α}
+
+lemma dist_partial_sum_le_of_le_geometric (hf : ∀n, ∥f n∥ ≤ C * r^n) (n : ℕ) :
+  dist ((finset.range n).sum f) ((finset.range (n+1)).sum f) ≤ C * r ^ n :=
+begin
+  rw [sum_range_succ, dist_eq_norm, ← norm_neg],
+  convert hf n,
+  abel
+end
+
+/-- If `∥f n∥ ≤ C * r ^ n` for all `n : ℕ` and some `r < 1`, then the partial sums of `f` form a
+Cauchy sequence. This lemma does not assume `0 ≤ r` or `0 ≤ C`. -/
+lemma cauchy_seq_finset_of_geometric_bound (hr : r < 1) (hf : ∀n, ∥f n∥ ≤ C * r^n) :
+  cauchy_seq (λ s : finset (ℕ), s.sum f) :=
+cauchy_seq_finset_of_norm_bounded _
+  (aux_has_sum_of_le_geometric hr (dist_partial_sum_le_of_le_geometric hf)).summable hf
+
+/-- If `∥f n∥ ≤ C * r ^ n` for all `n : ℕ` and some `r < 1`, then the partial sums of `f` are within
+distance `C * r ^ n / (1 - r)` of the sum of the series. This lemma does not assume `0 ≤ r` or
+`0 ≤ C`. -/
+lemma norm_sub_le_of_geometric_bound_of_has_sum (hr : r < 1) (hf : ∀n, ∥f n∥ ≤ C * r^n)
+  {a : α} (ha : has_sum f a) (n : ℕ) :
+  ∥(finset.range n).sum f - a∥ ≤ (C * r ^ n) / (1 - r) :=
+begin
+  rw ← dist_eq_norm,
+  apply dist_le_of_le_geometric_of_tendsto r C hr (dist_partial_sum_le_of_le_geometric hf),
+  exact ha.tendsto_sum_nat
+end
+
+end summable_le_geometric
 
 namespace nnreal
 

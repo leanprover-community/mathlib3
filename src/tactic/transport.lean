@@ -14,7 +14,7 @@ do
     (decl.type.list_names_with_prefix pre).mfold () (λ n _, transport_with_prefix_fun_aux n),
     (decl.value.list_names_with_prefix pre).mfold () (λ n _, transport_with_prefix_fun_aux n),
     add_decl (decl.update_with_fun (name.map_prefix f) tgt),
-    attrs.mmap' (λ n, copy_attribute n src tt tgt)
+    attrs.mmap' (λ n, copy_attribute n src tgt)
 
 meta def transport_with_prefix_fun (f : name → option name) (src tgt : name) (attrs : list name) :
   command :=

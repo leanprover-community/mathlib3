@@ -26,7 +26,7 @@ open native
 
 /-- Runs when called with `lean --run` -/
 meta def main : io unit := do
-e ← run_tactic get_env,
+e ← run_tactic tactic.get_env,
 decls ← run_tactic lint_mathlib_decls,
 let non_auto_decls := decls.filter (λ d, ¬ d.to_name.is_internal ∧ ¬ d.is_auto_generated e),
 linters ← run_tactic $ get_linters mathlib_linters,

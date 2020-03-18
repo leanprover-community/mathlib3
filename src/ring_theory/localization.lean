@@ -7,6 +7,8 @@ import tactic.ring data.quot data.equiv.ring ring_theory.ideal_operations group_
 
 universes u v
 
+local attribute [instance, priority 10] is_ring_hom.comp
+
 namespace localization
 variables (α : Type u) [comm_ring α] (S : set α) [is_submonoid S]
 

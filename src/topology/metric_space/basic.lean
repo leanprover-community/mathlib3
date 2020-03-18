@@ -298,6 +298,9 @@ theorem ball_eq_empty_iff_nonpos : ε ≤ 0 ↔ ball x ε = ∅ :=
 ⟨λ h, le_of_not_gt $ λ ε0, h _ $ mem_ball_self ε0,
  λ ε0 y h, not_lt_of_le ε0 $ pos_of_mem_ball h⟩).symm
 
+@[simp] lemma ball_zero : ball x 0 = ∅ :=
+by rw [← metric.ball_eq_empty_iff_nonpos]
+
 theorem uniformity_basis_dist :
   (𝓤 α).has_basis (λ ε : ℝ, 0 < ε) (λ ε, {p:α×α | dist p.1 p.2 < ε}) :=
 (metric_space.uniformity_dist α).symm ▸ has_basis_binfi_principal
@@ -496,15 +499,47 @@ theorem continuous_at_iff [metric_space β] {f : α → β} {a : α} :
     ∀ ε > 0, ∃ δ > 0, ∀{x:α}, dist x a < δ → dist (f x) (f a) < ε :=
 by rw [continuous_at, tendsto_nhds_nhds]
 
+@[nolint ge_or_gt] -- see Note [nolint_ge]
+theorem continuous_within_at_iff [metric_space β] {f : α → β} {a : α} {s : set α} :
+  continuous_within_at f s a ↔
+  ∀ ε > 0, ∃ δ > 0, ∀{x:α}, x ∈ s → dist x a < δ → dist (f x) (f a) < ε :=
+by rw [continuous_within_at, tendsto_nhds_within_nhds]
+
+@[nolint ge_or_gt] -- see Note [nolint_ge]
+theorem continuous_on_iff [metric_space β] {f : α → β} {s : set α} :
+  continuous_on f s ↔
+  ∀ (b ∈ s) (ε > 0), ∃ δ > 0, ∀a ∈ s, dist a b < δ → dist (f a) (f b) < ε :=
+by simp [continuous_on, continuous_within_at_iff]
+
+@[nolint ge_or_gt] -- see Note [nolint_ge]
 theorem continuous_iff [metric_space β] {f : α → β} :
   continuous f ↔
-    ∀b (ε > 0), ∃ δ > 0, ∀a, dist a b < δ → dist (f a) (f b) < ε :=
+  ∀b (ε > 0), ∃ δ > 0, ∀a, dist a b < δ → dist (f a) (f b) < ε :=
 continuous_iff_continuous_at.trans $ forall_congr $ λ b, tendsto_nhds_nhds
 
 theorem tendsto_nhds {f : filter β} {u : β → α} {a : α} :
   tendsto u f (𝓝 a) ↔ ∀ ε > 0, ∀ᶠ x in f, dist (u x) a < ε :=
 nhds_basis_ball.tendsto_right_iff
 
+@[nolint ge_or_gt] -- see Note [nolint_ge]
+theorem continuous_at_iff' [topological_space β] {f : β → α} {b : β} :
+  continuous_at f b ↔
+  ∀ ε > 0, ∀ᶠ x in 𝓝 b, dist (f x) (f b) < ε :=
+by rw [continuous_at, tendsto_nhds]
+
+@[nolint ge_or_gt] -- see Note [nolint_ge]
+theorem continuous_within_at_iff' [topological_space β] {f : β → α} {b : β} {s : set β} :
+  continuous_within_at f s b ↔
+  ∀ ε > 0, ∀ᶠ x in nhds_within b s, dist (f x) (f b) < ε :=
+by rw [continuous_within_at, tendsto_nhds]
+
+@[nolint ge_or_gt] -- see Note [nolint_ge]
+theorem continuous_on_iff' [topological_space β] {f : β → α} {s : set β} :
+  continuous_on f s ↔
+  ∀ (b ∈ s) (ε > 0), ∀ᶠ x in nhds_within b s, dist (f x) (f b) < ε  :=
+by simp [continuous_on, continuous_within_at_iff']
+
+@[nolint ge_or_gt] -- see Note [nolint_ge]
 theorem continuous_iff' [topological_space β] {f : β → α} :
   continuous f ↔ ∀a (ε > 0), ∀ᶠ x in 𝓝 a, dist (f x) (f a) < ε :=
 continuous_iff_continuous_at.trans $ forall_congr $ λ b, tendsto_nhds

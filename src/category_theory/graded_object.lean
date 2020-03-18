@@ -102,7 +102,7 @@ end
 instance has_shift {β : Type w} [add_comm_group β] [has_one β] : has_shift.{(max w v)} (graded_object β C) :=
 { shift := comap_equiv C
   { to_fun := λ b, b-1,
-    inv_fun := λb, b+1,
+    inv_fun := λ b, b+1,
     left_inv := λ x, (by simp),
     right_inv := λ x, (by simp), } }
 
@@ -113,9 +113,9 @@ instance has_zero_morphisms [has_zero_morphisms.{v} C] (β : Type w) :
 
 section
 local attribute [instance] has_zero_object.has_zero
-local attribute [instance] has_zero_object.zero_morphisms_of_zero_object
 
-instance has_zero_object [has_zero_object.{v} C] (β : Type w) : has_zero_object.{(max w v)} (graded_object β C) :=
+instance has_zero_object [has_zero_object.{v} C] [has_zero_morphisms.{v} C] (β : Type w) :
+  has_zero_object.{(max w v)} (graded_object β C) :=
 { zero := λ b, (0 : C),
   unique_to := λ X, ⟨⟨λ b, 0⟩, λ f, (by ext)⟩,
   unique_from := λ X, ⟨⟨λ b, 0⟩, λ f, (by ext)⟩, }

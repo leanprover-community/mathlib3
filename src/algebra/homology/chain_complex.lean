@@ -37,15 +37,20 @@ lemma category_theory.differential_object.hom.comm_at {X Y : differential_object
 end
 
 namespace chain_complex
-variables (V : Type u) [𝒱 : category.{v} V]
+variables {V : Type u} [𝒱 : category.{v} V]
 include 𝒱
 
 variables [has_zero_morphisms.{v} V]
 
 @[simp]
-lemma chain_complex.d_squared (C : chain_complex.{v} V) (i : ℤ) :
+lemma d_squared (C : chain_complex.{v} V) (i : ℤ) :
   C.d i ≫ C.d (i+1) = 0 :=
 congr_fun (C.d_squared) i
+
+-- FIXME why doesn't this work `by simp`?
+example (C : chain_complex V) : C.d 5 ≫ C.d 6 = 0 := C.d_squared 5
+
+variables (V)
 
 instance category_of_chain_complexes : category.{v} (chain_complex V) :=
 by { dsimp [chain_complex], apply_instance }.
@@ -65,27 +70,10 @@ differential_object.forget_faithful _
 instance has_zero_morphisms : has_zero_morphisms.{v} (chain_complex V) :=
 by { dsimp [chain_complex], apply_instance }.
 
-end chain_complex
-
-namespace chain_complex
-variables (V : Type u) [𝒱 : category.{v} V]
-include 𝒱
-
 variables [has_zero_object.{v} V]
 
-private def has_zero_morphisms_V : has_zero_morphisms.{v} V := has_zero_object.zero_morphisms_of_zero_object
-local attribute [instance] has_zero_morphisms_V
-
 instance has_zero_object : has_zero_object.{v} (chain_complex V) :=
-begin
-  dsimp [chain_complex],
-  -- FIXME this should just be `apply_instance`, but a `has_zero_morphisms` instance has gone wrong.
-  -- We fix it below, knowing that `subsingleton (has_zero_morphisms C)`.
-  convert differential_object.has_zero_object.{v} (graded_object ℤ V),
-  dsimp [chain_complex.category_of_chain_complexes],
-  congr,
-  apply subsingleton.elim,
-end
+by { dsimp [chain_complex], apply_instance, }
 
 end chain_complex
 

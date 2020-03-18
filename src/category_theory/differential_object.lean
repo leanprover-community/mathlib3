@@ -93,10 +93,9 @@ namespace differential_object
 variables (C : Type u) [𝒞 : category.{v} C]
 include 𝒞
 
-variables [has_zero_object.{v} C] [has_shift.{v} C]
+variables [has_zero_object.{v} C] [has_zero_morphisms.{v} C] [has_shift.{v} C]
 
 local attribute [instance] has_zero_object.has_zero
-local attribute [instance] has_zero_object.zero_morphisms_of_zero_object
 
 instance has_zero_object : has_zero_object.{v} (differential_object.{v} C) :=
 { zero :=

@@ -26,9 +26,11 @@ open native
 
 /-- Runs when called with `lean --run` -/
 meta def main : io unit := do
+e ← run_tactic tactic.get_env,
 decls ← run_tactic lint_mathlib_decls,
+let non_auto_decls := decls.filter (λ d, ¬ d.to_name.is_internal ∧ ¬ d.is_auto_generated e),
 linters ← run_tactic $ get_linters mathlib_linters,
-results ← run_tactic $ lint_core decls linters,
+results ← run_tactic $ lint_core decls non_auto_decls linters,
 env ← run_tactic tactic.get_env,
 mathlib_path_len ← string.length <$> run_tactic tactic.get_mathlib_dir,
 let failed_decls_by_file := rb_lmap.of_list (do

@@ -102,12 +102,15 @@ signifies a passing test. Returning `some msg` reports a failing test with error
 when at least one test is positive.
 
 If `is_fast` is false, this test will be omitted from `#lint-`.
+
+If `auto_decls` is true, this test will also be executed on automatically generated declarations.
 -/
 meta structure linter :=
 (test : declaration → tactic (option string))
 (no_errors_found : string)
 (errors_found : string)
 (is_fast : bool := tt)
+(auto_decls : bool := ff)
 
 /-- Takes a list of names that resolve to declarations of type `linter`,
 and produces a list of linters. -/
@@ -259,7 +262,6 @@ such as `∀ ε > 0`. Such statements should be marked with the attribute `nolin
 failures."
 
 /-- checks whether an instance that always applies has priority ≥ 1000. -/
--- TODO: instance_priority should also be tested on automatically-generated declarations
 meta def instance_priority (d : declaration) : tactic (option string) := do
   let nm := d.to_name,
   b ← is_instance nm,
@@ -314,7 +316,11 @@ This is in the default linter set. -/
   no_errors_found := "All instance priorities are good",
   errors_found := "DANGEROUS INSTANCE PRIORITIES.
 The following instances always apply, and therefore should have a priority < 1000.
-If you don't know what priority to choose, use priority 100." }
+If you don't know what priority to choose, use priority 100.
+
+If this is an automatically generated instance (using the keywords `class` and `extends`),
+see note [lower instance priority] and see note [default priority] for instructions to change the priority",
+  auto_decls := tt }
 
 /-- Reports definitions and constants that are missing doc strings -/
 meta def doc_blame_report_defn : declaration → tactic (option string)
@@ -364,7 +370,7 @@ else
 @[linter, priority 1440]
 meta def linter.has_inhabited_instance : linter :=
 { test := has_inhabited_instance,
-  no_errors_found := "No types have missing inhabited instances.",
+  no_errors_found := "No types have missing inhabited instances",
   errors_found := "TYPES ARE MISSING INHABITED INSTANCES",
   is_fast := ff }
 
@@ -424,8 +430,11 @@ meta def dangerous_instance (d : declaration) : tactic (option string) := do
 @[linter, priority 1410] meta def linter.dangerous_instance : linter :=
 { test := dangerous_instance,
   no_errors_found := "No dangerous instances",
-  errors_found := "DANGEROUS INSTANCES FOUND
-These instances are recursive, and create a new type-class problem which will have metavariables. Currently this linter does not check whether the metavariables only occur in arguments marked with `out_param`, in which case this linter gives a false positive." }
+  errors_found := "DANGEROUS INSTANCES FOUND.\nThese instances are recursive, and create a new type-class problem which will have metavariables.
+  Possible solution: remove the instance attribute or make it a local instance instead.
+
+  Currently this linter does not check whether the metavariables only occur in arguments marked with `out_param`, in which case this linter gives a false positive.",
+  auto_decls := tt }
 
 /-- Applies expression `e` to local constants, but lifts all the arguments that are `Sort`-valued to
   `Type`-valued sorts. -/
@@ -632,7 +641,7 @@ and which hence never fire.
 @[linter, priority 1389] meta def linter.simp_var_head : linter :=
 { test := simp_var_head,
   no_errors_found :=
-    "No left-hand sides of a simp lemma has a variable as head symbol.",
+    "No left-hand sides of a simp lemma has a variable as head symbol",
   errors_found := "LEFT-HAND SIDE HAS VARIABLE AS HEAD SYMBOL.\n" ++
     "Some simp lemmas have a variable as head symbol of the left-hand side" }
 
@@ -653,7 +662,7 @@ pure $ "should not be marked simp"
 /-- A linter for commutativity lemmas that are marked simp. -/
 @[linter, priority 1385] meta def linter.simp_comm : linter :=
 { test := simp_comm,
-  no_errors_found := "No commutativity lemma is marked simp.",
+  no_errors_found := "No commutativity lemma is marked simp",
   errors_found := "COMMUTATIVITY LEMMA IS SIMP.\n" ++
     "Some commutativity lemmas are simp lemmas" }
 
@@ -677,18 +686,21 @@ e ← get_env,
 pure $ ¬ e.contains (mk_nolint_decl_name decl linter)
 
 /--
-`lint_core decls checks` applies the linters `checks` to the list of declarations `decls`.
+`lint_core all_decls non_auto_decls checks` applies the linters `checks` to the list of declarations.
+If `auto_decls` is false for a linter (default) the linter is applied to `non_auto_decls`.
+If `auto_decls` is true, then it is applied to `all_decls`.
 The resulting list has one element for each linter, containing the linter as
 well as a map from declaration name to warning.
 -/
-meta def lint_core (decls : list declaration) (checks : list (name × linter)) :
-  tactic (list (name × linter × rb_map name string)) :=
+meta def lint_core (all_decls non_auto_decls : list declaration) (checks : list (name × linter)) :
+  tactic (list (name × linter × rb_map name string)) := do
 checks.mmap $ λ ⟨linter_name, linter⟩, do
-results ← decls.mfoldl (λ (results : rb_map name string) decl, do
-  tt ← should_be_linted linter_name decl.to_name | pure results,
-  some linter_warning ← linter.test decl | pure results,
-  pure $ results.insert decl.to_name linter_warning) mk_rb_map,
-pure (linter_name, linter, results)
+  let test_decls := if linter.auto_decls then all_decls else non_auto_decls,
+  results ← test_decls.mfoldl (λ (results : rb_map name string) decl, do
+    tt ← should_be_linted linter_name decl.to_name | pure results,
+    some linter_warning ← linter.test decl | pure results,
+    pure $ results.insert decl.to_name linter_warning) mk_rb_map,
+  pure (linter_name, linter, results)
 
 /-- Sorts a map with declaration keys as names by line number. -/
 meta def sort_results {α} (results : rb_map name α) : tactic (list (name × α)) := do
@@ -719,9 +731,10 @@ let results := results.fold (rb_map.mk string (rb_map name string)) $
     let fn := (e.decl_olean decl_name).get_or_else "" in
     results.insert fn (((results.find fn).get_or_else mk_rb_map).insert
       decl_name linter_warning),
-format.intercalate "\n\n" <$> results.to_list.reverse.mmap (λ ⟨fn, results⟩, do
+l ← results.to_list.reverse.mmap (λ ⟨fn, results⟩, do
   formatted ← formatter results,
-  pure $ "-- " ++ fn.popn drop_fn_chars ++ "\n" ++ formatted)
+  pure ("-- " ++ fn.popn drop_fn_chars ++ "\n" ++ formatted : format)),
+return $ format.intercalate "\n\n" l ++ "\n"
 
 /-- The common denominator of `#lint[|mathlib|all]`.
 The different commands have different configurations for `l`,
@@ -732,10 +745,12 @@ By setting `checks` you can customize which checks are performed.
 
 Returns a `name_set` containing the names of all declarations that fail any check in `check`,
 and a `format` object describing the failures. -/
-meta def lint_aux (l : list declaration) (group_by_filename : option nat)
+meta def lint_aux (decls : list declaration) (group_by_filename : option nat)
     (where_desc : string) (slow verbose : bool) (checks : list (name × linter)) :
   tactic (name_set × format) := do
-results ← lint_core l checks,
+e ← get_env,
+let non_auto_decls := decls.filter (λ d, ¬ d.to_name.is_internal ∧ ¬ d.is_auto_generated e),
+results ← lint_core decls non_auto_decls checks,
 formatted_results ← results.mmap $ λ ⟨linter_name, linter, results⟩,
   let report_str : format := to_fmt "/- The `" ++ to_fmt linter_name ++ "` linter reports: -/\n" in
   if ¬ results.empty then do
@@ -743,12 +758,12 @@ formatted_results ← results.mmap $ λ ⟨linter_name, linter, results⟩,
       | none := print_warnings results
       | some dropped := grouped_by_filename results dropped print_warnings
       end,
-    pure $ report_str ++ "/- " ++ linter.errors_found ++ ": -/\n" ++ warnings
+      pure $ report_str ++ "/- " ++ linter.errors_found ++ ": -/\n" ++ warnings ++ "\n"
   else
     pure $ if verbose then "/- OK: " ++ linter.no_errors_found ++ ". -/" else format.nil,
-let s := format.intercalate "\n\n" (formatted_results.filter (λ f, ¬ f.is_nil)),
+let s := format.intercalate "\n" (formatted_results.filter (λ f, ¬ f.is_nil)),
 let s := if ¬ verbose then s else
-  "/- Checking " ++ l.length ++ " declarations " ++ where_desc ++ " -/\n\n" ++ s,
+  format!"/- Checking {non_auto_decls.length} declarations (plus {decls.length - non_auto_decls.length} automatically generated ones) {where_desc} -/\n\n" ++ s,
 let s := if slow then s else s ++ "/- (slow tests skipped) -/\n",
 let ns := name_set.of_list (do (_,_,rs) ← results, rs.keys),
 pure (ns, s)
@@ -758,16 +773,14 @@ meta def lint (slow : bool := tt) (verbose : bool := tt) (extra : list name := [
   (use_only : bool := ff) : tactic (name_set × format) := do
   checks ← get_checks slow extra use_only,
   e ← get_env,
-  let l := e.filter (λ d,
-    e.in_current_file' d.to_name ∧ ¬ d.to_name.is_internal ∧ ¬ d.is_auto_generated e),
+  let l := e.filter (λ d, e.in_current_file' d.to_name),
   lint_aux l none "in the current file" slow verbose checks
 
 /-- Returns the declarations considered by the mathlib linter. -/
 meta def lint_mathlib_decls : tactic (list declaration) := do
 e ← get_env,
 ml ← get_mathlib_dir,
-pure $ e.filter $ λ d,
-  e.is_prefix_of_file ml d.to_name ∧ ¬ d.to_name.is_internal ∧ ¬ d.is_auto_generated e
+pure $ e.filter $ λ d, e.is_prefix_of_file ml d.to_name
 
 /-- Return the message printed by `#lint_mathlib` and a `name_set` containing all declarations
 that fail. -/
@@ -784,7 +797,7 @@ meta def lint_all (slow : bool := tt) (verbose : bool := tt) (extra : list name 
   (use_only : bool := ff) : tactic (name_set × format) := do
   checks ← get_checks slow extra use_only,
   e ← get_env,
-  let l := e.filter (λ d, ¬ d.to_name.is_internal ∧ ¬ d.is_auto_generated e),
+  let l := e.get_decls,
   lint_aux l (some 0) "in all imported files (including this one)" slow verbose checks
 
 /-- Parses an optional `only`, followed by a sequence of zero or more identifiers.

@@ -23,6 +23,7 @@ variables {F : J ⥤ C}
 
 /-- A cone `t` on `F` is a limit cone if each cone on `F` admits a unique
   cone morphism to `t`. -/
+@[nolint has_inhabited_instance]
 structure is_limit (t : cone F) :=
 (lift  : Π (s : cone F), s.X ⟶ t.X)
 (fac'  : ∀ (s : cone F) (j : J), lift s ≫ t.π.app j = s.π.app j . obviously)
@@ -226,6 +227,7 @@ end is_limit
 
 /-- A cocone `t` on `F` is a colimit cocone if each cocone on `F` admits a unique
   cocone morphism from `t`. -/
+@[nolint has_inhabited_instance]
 structure is_colimit (t : cocone F) :=
 (desc  : Π (s : cocone F), t.X ⟶ s.X)
 (fac'  : ∀ (s : cocone F) (j : J), t.ι.app j ≫ desc s = s.ι.app j . obviously)
@@ -1058,4 +1060,3 @@ by { constructor, intro F, apply has_colimit_of_equivalence_comp e, apply_instan
 end colimit
 
 end category_theory.limits
-#lint

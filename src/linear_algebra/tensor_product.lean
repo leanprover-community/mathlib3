@@ -11,10 +11,11 @@ import group_theory.free_abelian_group
 import linear_algebra.direct_sum_module
 
 variables {R : Type*} [comm_ring R]
-variables {M : Type*} {N : Type*} {P : Type*} {Q : Type*}
-variables [add_comm_group M] [add_comm_group N] [add_comm_group P] [add_comm_group Q]
-variables [module R M] [module R N] [module R P] [module R Q]
+variables {M : Type*} {N : Type*} {P : Type*} {Q : Type*} {S : Type*}
+variables [add_comm_group M] [add_comm_group N] [add_comm_group P] [add_comm_group Q] [add_comm_group S]
+variables [module R M] [module R N] [module R P] [module R Q] [module R S]
 include R
+
 
 set_option class.instance_max_depth 100
 
@@ -322,6 +323,7 @@ eq.symm $ lift.unique $ λ x y, by simp
 theorem lift_mk_compr₂ (f : M ⊗ N →ₗ P) : lift ((mk R M N).compr₂ f) = f :=
 by rw [lift_compr₂, lift_mk, linear_map.comp_id]
 
+@[ext]
 theorem ext {g h : (M ⊗[R] N) →ₗ[R] P}
   (H : ∀ x y, g (x ⊗ₜ y) = h (x ⊗ₜ y)) : g = h :=
 by rw ← lift_mk_compr₂ h; exact lift.unique H
@@ -361,9 +363,33 @@ def curry (f : M ⊗ N →ₗ P) : M →ₗ N →ₗ P := lcurry R M N P f
 @[simp] theorem curry_apply (f : M ⊗ N →ₗ[R] P) (m : M) (n : N) :
   curry f m n = f (m ⊗ₜ n) := rfl
 
+theorem ext_threefold {g h : (M ⊗[R] N) ⊗[R] P →ₗ[R] Q}
+  (H : ∀ x y z, g ((x ⊗ₜ y) ⊗ₜ z) = h ((x ⊗ₜ y) ⊗ₜ z)) : g = h :=
+begin
+  let e := linear_equiv.to_equiv (lift.equiv R (M ⊗[R] N) P Q),
+  apply e.symm.injective,
+  ext x y z,
+  exact H x y z,
+end
+
+-- We'll need this one for checking the pentagon identity!
+theorem ext_fourfold {g h : ((M ⊗[R] N) ⊗[R] P) ⊗[R] Q →ₗ[R] S}
+  (H : ∀ w x y z, g (((w ⊗ₜ x) ⊗ₜ y) ⊗ₜ z) = h (((w ⊗ₜ x) ⊗ₜ y) ⊗ₜ z)) : g = h :=
+begin
+  let e := linear_equiv.to_equiv (lift.equiv R ((M ⊗[R] N) ⊗[R] P) Q S),
+  apply e.symm.injective,
+  apply ext_threefold,
+  intros x y z,
+  ext w,
+  exact H x y z w,
+end
+
 end UMP
 
 variables {M N}
+section
+variables (R M)
+
 /--
 The base ring is a left identity for the tensor product of modules, up to linear equivalence.
 -/
@@ -371,6 +397,17 @@ protected def lid : R ⊗ M ≃ₗ M :=
 linear_equiv.of_linear (lift $ linear_map.lsmul R M) (mk R R M 1)
   (linear_map.ext $ λ _, by simp)
   (ext $ λ r m, by simp; rw [← tmul_smul, ← smul_tmul, smul_eq_mul, mul_one])
+end
+
+@[simp] theorem lid_tmul (m : M) (r : R) :
+  ((tensor_product.lid R M) : (R ⊗ M → M)) (r ⊗ₜ m) = r • m :=
+begin
+  dsimp [tensor_product.lid],
+  simp,
+end
+
+section
+variables (R M N)
 
 /--
 The tensor product of modules is commutative, up to linear equivalence.
@@ -379,13 +416,29 @@ protected def comm : M ⊗ N ≃ₗ N ⊗ M :=
 linear_equiv.of_linear (lift (mk R N M).flip) (lift (mk R M N).flip)
   (ext $ λ m n, rfl)
   (ext $ λ m n, rfl)
+end
+
+section
+variables (R M)
 
 /--
 The base ring is a right identity for the tensor product of modules, up to linear equivalence.
 -/
-protected def rid : M ⊗ R ≃ₗ M := linear_equiv.trans tensor_product.comm tensor_product.lid
+protected def rid : M ⊗[R] R ≃ₗ M := linear_equiv.trans (tensor_product.comm R M R) (tensor_product.lid R M)
+end
+
+@[simp] theorem rid_tmul (m : M) (r : R) :
+  ((tensor_product.rid R M) : (M ⊗ R → M)) (m ⊗ₜ r) = r • m :=
+begin
+  dsimp [tensor_product.rid, tensor_product.comm, tensor_product.lid],
+  simp,
+end
 
 open linear_map
+section
+variables (R M N P)
+
+/-- The associator for tensor product of R-modules, as a linear equivalence. -/
 protected def assoc : (M ⊗[R] N) ⊗[R] P ≃ₗ[R] M ⊗[R] (N ⊗[R] P) :=
 begin
   refine linear_equiv.of_linear
@@ -397,7 +450,13 @@ begin
     rw mk_apply <|> rw flip_apply <|> rw lcurry_apply <|>
     rw uncurry_apply <|> rw curry_apply <|> rw id_apply }
 end
+end
 
+@[simp] theorem assoc_tmul (m : M) (n : N) (p : P) :
+  ((tensor_product.assoc R M N P) : (M ⊗[R] N) ⊗[R] P → M ⊗[R] (N ⊗[R] P)) ((m ⊗ₜ n) ⊗ₜ p) = m ⊗ₜ (n ⊗ₜ p) :=
+rfl
+
+/-- The tensor product of a pair of linear maps between modules. -/
 def map (f : M →ₗ[R] P) (g : N →ₗ Q) : M ⊗ N →ₗ P ⊗ Q :=
 lift $ comp (compl₂ (mk _ _ _) g) f
 

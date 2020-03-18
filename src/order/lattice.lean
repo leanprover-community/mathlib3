@@ -201,6 +201,12 @@ by apply le_antisymm; finish
 theorem inf_le_inf (h₁ : a ≤ b) (h₂ : c ≤ d) : a ⊓ c ≤ b ⊓ d :=
 by finish
 
+lemma inf_le_inf_left (a : α) {b c: α} (h : b ≤ c): b ⊓ a ≤ c ⊓ a :=
+by finish
+
+lemma inf_le_inf_right (a : α) {b c: α} (h : b ≤ c): a ⊓ b ≤ a ⊓ c :=
+by finish
+
 theorem le_of_inf_eq (h : a ⊓ b = a) : a ≤ b :=
 by finish
 

@@ -2,10 +2,17 @@
 Copyright (c) 2018 Mario Carneiro. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Mario Carneiro
+-/
+
+import algebra.group_power tactic.norm_num
+
+/-!
+# The `abel` tactic
 
 Evaluate expressions in the language of additive, commutative monoids and groups.
+
+
 -/
-import algebra.group_power tactic.norm_num
 
 namespace tactic
 namespace abel
@@ -291,9 +298,9 @@ open tactic.abel
 local postfix `?`:9001 := optional
 
 /-- Tactic for solving equations in the language of
-  *additive*, commutative monoids and groups.
-  This version of `abel` fails if the target is not an equality
-  that is provable by the axioms of commutative monoids/groups. -/
+*additive*, commutative monoids and groups.
+This version of `abel` fails if the target is not an equality
+that is provable by the axioms of commutative monoids/groups. -/
 meta def abel1 : tactic unit :=
 do `(%%e₁ = %%e₂) ← target,
   c ← mk_cache e₁,
@@ -313,11 +320,25 @@ do mode ← ident?, match mode with
 end
 
 /-- Tactic for solving equations in the language of
-  *additive*, commutative monoids and groups.
-  Attempts to prove the goal outright if there is no `at`
-  specifier and the target is an equality, but if this
-  fails it falls back to rewriting all monoid expressions
-  into a normal form. -/
+*additive*, commutative monoids and groups.
+Attempts to prove the goal outright if there is no `at`
+specifier and the target is an equality, but if this
+fails it falls back to rewriting all monoid expressions
+into a normal form.
+
+---
+Evaluate expressions in the language of *additive*, commutative monoids and groups.
+It attempts to prove the goal outright if there is no `at`
+specifier and the target is an equality, but if this
+fails, it falls back to rewriting all monoid expressions into a normal form.
+If there is an `at` specifier, it rewrites the given target into a normal form.
+```lean
+example {α : Type*} {a b : α} [add_comm_monoid α] : a + (b + a) = a + a + b := by abel
+example {α : Type*} {a b : α} [add_comm_group α] : (a + b) - ((b + a) + a) = -a := by abel
+example {α : Type*} {a b : α} [add_comm_group α] (hyp : a + a - a = b - b) : a = 0 :=
+by { abel at hyp, exact hyp }
+```
+-/
 meta def abel (SOP : parse abel.mode) (loc : parse location) : tactic unit :=
 match loc with
 | interactive.loc.ns [none] := abel1
@@ -327,6 +348,12 @@ do ns ← loc.get_locals,
    tt ← tactic.replace_at (normalize SOP) ns loc.include_goal
       | fail "abel failed to simplify",
    when loc.include_goal $ try tactic.reflexivity
+
+add_tactic_doc
+{ name        := "abel",
+  category    := doc_category.tactic,
+  decl_names  := [`tactic.interactive.abel],
+  tags        := ["arithmetic", "decision procedure"] }
 
 end interactive
 end tactic

@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Scott Morrison, Markus Himmel
 -/
 import data.fintype
+import category_theory.epi_mono
 import category_theory.limits.limits
 import category_theory.limits.shapes.finite_limits
 
@@ -94,6 +95,7 @@ instance walking_parallel_pair_hom_category : small_category.{v} walking_paralle
 
 instance : fin_category.{v} walking_parallel_pair.{v} := { }
 
+@[simp]
 lemma walking_parallel_pair_hom_id (X : walking_parallel_pair.{v}) :
   walking_parallel_pair_hom.id X = 𝟙 X :=
 rfl
@@ -111,7 +113,12 @@ def parallel_pair (f g : X ⟶ Y) : walking_parallel_pair.{v} ⥤ C :=
   | _, _, (id _) := 𝟙 _
   | _, _, left := f
   | _, _, right := g
-  end }.
+  end,
+  -- `tidy` can cope with this, but it's too slow:
+  map_comp' := begin rintros (⟨⟩|⟨⟩) (⟨⟩|⟨⟩) (⟨⟩|⟨⟩) ⟨⟩⟨⟩; { unfold_aux, simp, refl, }, end, }.
+
+@[simp] lemma parallel_pair_obj_zero (f g : X ⟶ Y) : (parallel_pair f g).obj zero = X := rfl
+@[simp] lemma parallel_pair_obj_one (f g : X ⟶ Y) : (parallel_pair f g).obj one = Y := rfl
 
 @[simp] lemma parallel_pair_map_left (f g : X ⟶ Y) : (parallel_pair f g).map left = f := rfl
 @[simp] lemma parallel_pair_map_right (f g : X ⟶ Y) : (parallel_pair f g).map right = g := rfl
@@ -122,6 +129,12 @@ def parallel_pair (f g : X ⟶ Y) : walking_parallel_pair.{v} ⥤ C :=
 begin
   cases j; refl
 end
+
+/-- Every functor indexing a (co)equalizer is naturally isomorphic (actually, equal) to a
+    `parallel_pair` -/
+def diagram_iso_parallel_pair (F : walking_parallel_pair.{v} ⥤ C) :
+  F ≅ parallel_pair (F.map left) (F.map right) :=
+nat_iso.of_components (λ j, eq_to_iso $ by cases j; tidy) $ by tidy
 
 abbreviation fork (f g : X ⟶ Y) := cone (parallel_pair f g)
 abbreviation cofork (f g : X ⟶ Y) := cocone (parallel_pair f g)
@@ -160,8 +173,6 @@ lemma cocone_parallel_pair_ext (s : cocone (parallel_pair f g)) {W : C} {k l : s
 | zero := by { rw [←cocone_parallel_pair_right, category.assoc, category.assoc], congr, exact h }
 | one := h
 
-attribute [simp] walking_parallel_pair_hom_id
-
 def fork.of_ι {P : C} (ι : P ⟶ X) (w : ι ≫ f = ι ≫ g) : fork f g :=
 { X := P,
   π :=
@@ -169,7 +180,9 @@ def fork.of_ι {P : C} (ι : P ⟶ X) (w : ι ≫ f = ι ≫ g) : fork f g :=
     naturality' := λ X Y f,
     begin
       cases X; cases Y; cases f; dsimp; simp,
-      exact w
+      { dsimp, simp, }, -- TODO If someone could decipher why these aren't done on the previous line, that would be great
+      { exact w },
+      { dsimp, simp, }, -- TODO idem
     end } }
 def cofork.of_π {P : C} (π : Y ⟶ P) (w : f ≫ π = g ≫ π) : cofork f g :=
 { X := P,
@@ -178,13 +191,19 @@ def cofork.of_π {P : C} (π : Y ⟶ P) (w : f ≫ π = g ≫ π) : cofork f g :
     naturality' := λ X Y f,
     begin
       cases X; cases Y; cases f; dsimp; simp,
-      exact eq.symm w
+      { dsimp, simp, }, -- TODO idem
+      { exact w.symm },
+      { dsimp, simp, }, -- TODO idem
     end } }
 
 @[simp] lemma fork.of_ι_app_zero {P : C} (ι : P ⟶ X) (w : ι ≫ f = ι ≫ g) :
   (fork.of_ι ι w).π.app zero = ι := rfl
 @[simp] lemma fork.of_ι_app_one {P : C} (ι : P ⟶ X) (w : ι ≫ f = ι ≫ g) :
   (fork.of_ι ι w).π.app one = ι ≫ f := rfl
+@[simp] lemma cofork.of_π_app_zero {P : C} (π : Y ⟶ P) (w : f ≫ π = g ≫ π) :
+  (cofork.of_π π w).ι.app zero = f ≫ π := rfl
+@[simp] lemma cofork.of_π_app_one {P : C} (π : Y ⟶ P) (w : f ≫ π = g ≫ π) :
+  (cofork.of_π π w).ι.app one = π := rfl
 
 def fork.ι (t : fork f g) := t.π.app zero
 def cofork.π (t : cofork f g) := t.ι.app one
@@ -196,6 +215,32 @@ lemma cofork.condition (t : cofork f g) : f ≫ (cofork.π t) = g ≫ (cofork.π
 begin
   erw [t.w left, ← t.w right], refl
 end
+
+/-- This is a slightly more convenient method to verify that a fork is a limit cone. It
+    only asks for a proof of facts that carry any mathematical content -/
+def fork.is_limit.mk (t : fork f g)
+  (lift : Π (s : fork f g), s.X ⟶ t.X)
+  (fac : ∀ (s : fork f g), lift s ≫ fork.ι t = fork.ι s)
+  (uniq : ∀ (s : fork f g) (m : s.X ⟶ t.X)
+    (w : ∀ j : walking_parallel_pair, m ≫ t.π.app j = s.π.app j), m = lift s) :
+  is_limit t :=
+{ lift := lift,
+  fac' := λ s j, walking_parallel_pair.cases_on j (fac s) $
+    by erw [←s.w left, ←t.w left, ←category.assoc, fac]; refl,
+  uniq' := uniq }
+
+/-- This is a slightly more convenient method to verify that a cofork is a colimit cocone. It
+    only asks for a proof of facts that carry any mathematical content -/
+def cofork.is_colimit.mk (t : cofork f g)
+  (desc : Π (s : cofork f g), t.X ⟶ s.X)
+  (fac : ∀ (s : cofork f g), cofork.π t ≫ desc s = cofork.π s)
+  (uniq : ∀ (s : cofork f g) (m : t.X ⟶ s.X)
+    (w : ∀ j : walking_parallel_pair, t.ι.app j ≫ m = s.ι.app j), m = desc s) :
+  is_colimit t :=
+{ desc := desc,
+  fac' := λ s j, walking_parallel_pair.cases_on j
+    (by erw [←s.w left, ←t.w left, category.assoc, fac]; refl) (fac s),
+  uniq' := uniq }
 
 section
 local attribute [ext] cone
@@ -324,7 +369,7 @@ def limit_cone_parallel_pair_self_is_iso (c : cone (parallel_pair f f)) (h : is_
   is_iso (c.π.app zero) :=
   let c' := cone_parallel_pair_self f,
     z : c ≅ c' := is_limit.unique_up_to_iso h (is_limit_cone_parallel_pair_self f) in
-  is_iso.of_iso (functor.map_iso cones.forget z)
+  is_iso.of_iso (functor.map_iso (cones.forget _) z)
 
 /-- The equalizer of (f, f) is an isomorphism -/
 def equalizer.ι_of_self [has_limit (parallel_pair f f)] : is_iso (equalizer.ι f f) :=
@@ -418,7 +463,7 @@ def colimit_cocone_parallel_pair_self_is_iso (c : cocone (parallel_pair f f)) (h
   is_iso (c.ι.app one) :=
   let c' := cocone_parallel_pair_self f,
     z : c' ≅ c := is_colimit.unique_up_to_iso (is_colimit_cocone_parallel_pair_self f) h in
-  is_iso.of_iso $ functor.map_iso cocones.forget z
+  is_iso.of_iso $ functor.map_iso (cocones.forget _) z
 
 /-- The coequalizer of (f, f) is an isomorphism -/
 def coequalizer.π_of_self [has_colimit (parallel_pair f f)] : is_iso (coequalizer.π f f) :=
@@ -466,5 +511,77 @@ def has_equalizers_of_has_finite_limits [has_finite_limits.{v} C] : has_equalize
     coequalizers -/
 def has_coequalizers_of_has_finite_colimits [has_finite_colimits.{v} C] : has_coequalizers.{v} C :=
 { has_colimits_of_shape := infer_instance }
+
+/-- If `C` has all limits of diagrams `parallel_pair f g`, then it has all equalizers -/
+def has_equalizers_of_has_limit_parallel_pair
+  [Π {X Y : C} {f g : X ⟶ Y}, has_limit (parallel_pair f g)] : has_equalizers.{v} C :=
+{ has_limits_of_shape := { has_limit := λ F, has_limit_of_iso (diagram_iso_parallel_pair F).symm } }
+
+/-- If `C` has all colimits of diagrams `parallel_pair f g`, then it has all coequalizers -/
+def has_coequalizers_of_has_colimit_parallel_pair
+  [Π {X Y : C} {f g : X ⟶ Y}, has_colimit (parallel_pair f g)] : has_coequalizers.{v} C :=
+{ has_colimits_of_shape := { has_colimit := λ F, has_colimit_of_iso (diagram_iso_parallel_pair F) } }
+
+section
+-- In this section we show that a split mono `f` equalizes `(retraction f ≫ f)` and `(𝟙 Y)`.
+variables {C} [split_mono f]
+
+/--
+A split mono `f` equalizes `(retraction f ≫ f)` and `(𝟙 Y)`.
+Here we build the cone, and show in `split_mono_equalizes` that it is a limit cone.
+-/
+def cone_of_split_mono : cone (parallel_pair (𝟙 Y) (retraction f ≫ f)) :=
+fork.of_ι f (by tidy)
+
+@[simp] lemma cone_of_split_mono_π_app_zero : (cone_of_split_mono f).π.app zero = f := rfl
+@[simp] lemma cone_of_split_mono_π_app_one : (cone_of_split_mono f).π.app one = f ≫ 𝟙 Y := rfl
+
+/--
+A split mono `f` equalizes `(retraction f ≫ f)` and `(𝟙 Y)`.
+-/
+def split_mono_equalizes {X Y : C} (f : X ⟶ Y) [split_mono f] : is_limit (cone_of_split_mono f) :=
+{ lift := λ s, s.π.app zero ≫ retraction f,
+  fac' := λ s,
+  begin
+    rintros (⟨⟩|⟨⟩),
+    { rw [cone_of_split_mono_π_app_zero],
+      erw [category.assoc, ← s.π.naturality right, s.π.naturality left, category.comp_id], },
+    { erw [cone_of_split_mono_π_app_one, category.comp_id, category.assoc,
+            ← s.π.naturality right, category.id_comp], }
+  end,
+  uniq' := λ s m w, begin rw ←(w zero), simp, end, }
+
+end
+
+section
+-- In this section we show that a split epi `f` coequalizes `(f ≫ section_ f)` and `(𝟙 X)`.
+variables {C} [split_epi f]
+
+/--
+A split epi `f` coequalizes `(f ≫ section_ f)` and `(𝟙 X)`.
+Here we build the cocone, and show in `split_epi_coequalizes` that it is a colimit cocone.
+-/
+def cocone_of_split_epi : cocone (parallel_pair (𝟙 X) (f ≫ section_ f)) :=
+cofork.of_π f (by tidy)
+
+@[simp] lemma cocone_of_split_epi_ι_app_one : (cocone_of_split_epi f).ι.app one = f := rfl
+@[simp] lemma cocone_of_split_epi_ι_app_zero : (cocone_of_split_epi f).ι.app zero = 𝟙 X ≫ f := rfl
+
+/--
+A split epi `f` coequalizes `(f ≫ section_ f)` and `(𝟙 X)`.
+-/
+def split_epi_coequalizes {X Y : C} (f : X ⟶ Y) [split_epi f] : is_colimit (cocone_of_split_epi f) :=
+{ desc := λ s, section_ f ≫ s.ι.app one,
+  fac' := λ s,
+  begin
+    rintros (⟨⟩|⟨⟩),
+    { erw [cocone_of_split_epi_ι_app_zero, category.assoc, category.id_comp, ←category.assoc,
+            s.ι.naturality right, functor.const.obj_map, category.comp_id], },
+    { erw [cocone_of_split_epi_ι_app_one, ←category.assoc, s.ι.naturality right,
+            ←s.ι.naturality left, category.id_comp] }
+  end,
+  uniq' := λ s m w, begin rw ←(w one), simp, end, }
+
+end
 
 end category_theory.limits

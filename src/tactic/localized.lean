@@ -9,26 +9,30 @@ import tactic.core meta.rb_map
 /-!
 # Localized notation
 
-This consists of two user-commands which allow you to declare notation and commands localized to a namespace.
+This consists of two user-commands which allow you to declare notation and commands localized to a
+namespace.
 
 * Declare notation which is localized to a namespace using:
-```
-localized "infix ` ⊹ `:60 := my_add" in my.add
-```
-* After this command it will be available in the same section/namespace/file, just as if you wrote `local infix ` ⊹ `:60 := my_add`
-* You can open it in other places. The following command will declare the notation again as local notation in that section/namespace/files:
-```
-open_locale my.add
-```
+  ```lean
+  localized "infix ` ⊹ `:60 := my_add" in my.add
+  ```
+* After this command it will be available in the same section/namespace/file, just as if you wrote
+  `local infix ` ⊹ `:60 := my_add`
+* You can open it in other places. The following command will declare the notation again as local
+  notation in that section/namespace/files:
+  ```lean
+  open_locale my.add
+  ```
 * More generally, the following will declare all localized notation in the specified namespaces.
-```
-open_locale namespace1 namespace2 ...
-```
+  ```lean
+  open_locale namespace1 namespace2 ...
+  ```
 * You can also declare other localized commands, like local attributes
-```
-localized "attribute [simp] le_refl" in le
-```
-The code is inspired by code from Gabriel Ebner from the hott3 repository.
+  ```lean
+  localized "attribute [simp] le_refl" in le
+  ```
+The code is inspired by code from Gabriel Ebner from the
+[hott3 repository](https://github.com/gebner/hott3).
 -/
 
 open lean lean.parser interactive tactic native
@@ -71,6 +75,60 @@ do cmd ← parser.pexpr, cmd ← i_to_expr cmd, cmd ← eval_expr string cmd,
    add_decl (declaration.defn dummy_decl_name [] `(name × string)
     (reflect (⟨nm, cmd⟩ : name × string)) (reducibility_hints.regular 1 tt) ff),
    localized_attr.set dummy_decl_name unit.star tt
+
+add_tactic_doc
+{ name                     := "localized notation",
+  category                 := doc_category.cmd,
+  decl_names               := [`localized_cmd, `open_locale_cmd],
+  tags                     := ["localized", "notation", "type classes"],
+  description :=
+"
+This consists of two user-commands which allow you to declare notation and commands localized to a
+namespace.
+
+* Declare notation which is localized to a namespace using:
+  ```lean
+  localized \"infix ` ⊹ `:60 := my_add\" in my.add
+  ```
+
+* After this command it will be available in the same section/namespace/file, just as if you wrote
+  `local infix ` ⊹ `:60 := my_add`
+
+* You can open it in other places. The following command will declare the notation again as local
+  notation in that section/namespace/files:
+  ```lean
+  open_locale my.add
+  ```
+
+* More generally, the following will declare all localized notation in the specified namespaces.
+  ```lean
+  open_locale namespace1 namespace2 ...
+  ```
+
+* You can also declare other localized commands, like local attributes
+  ```lean
+  localized \"attribute [simp] le_refl\" in le
+  ```
+
+* To see all localized commands in a given namespace, run:
+  ```lean
+  run_cmd print_localized_commands [`my.add].
+  ```
+
+* To see a list of all namespaces with localized commands, run:
+  ```lean
+  run_cmd do
+    m ← localized_attr.get_cache,
+    tactic.trace m.keys -- change to `tactic.trace m.to_list`
+    -- to list all the commands in each namespace
+  ```
+
+* Warning 1: as a limitation on user commands, you cannot put `open_locale` directly after your
+  imports. You have to write another command first (e.g. `open`, `namespace`, `universe variables`,
+  `noncomputable theory`, `run_cmd tactic.skip`, ...).
+* Warning 2: You have to fully specify the names used in localized notation, so that the localized
+  notation also works when the appropriate namespaces are not opened.
+" }
 
 /-- Print all commands in a given notation namespace -/
 meta def print_localized_commands (ns : list name) : tactic unit :=

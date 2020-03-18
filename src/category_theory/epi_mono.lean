@@ -60,7 +60,7 @@ such that `f ≫ retraction f = 𝟙 X`.
 
 Every split monomorphism is a monomorphism.
 -/
--- TODO:	
+-- TODO:
 -- Every split monomorphism is also a regular monomorphism,
 -- and this should be proved when they are introduced.
 class split_mono {X Y : C} (f : X ⟶ Y) :=

@@ -144,7 +144,8 @@ begin
   change ((of_self_iso M).hom) (((linear_equiv.to_Module_iso (tensor_product.lid.{u} R M)).hom) (r ⊗ₜ[R] m)) = _,
   erw linear_equiv.to_Module_iso_hom,
   erw tensor_product.lid_tmul,
-end
+end.
+
 @[simp]
 lemma right_unitor_hom {M : Module R} (r : R) (m : M) :
   ((ρ_ M).hom : M ⊗ 𝟙_ (Module R) ⟶ M) (m ⊗ₜ r) = r • m :=
@@ -177,7 +178,7 @@ begin
     r • m,
   squeeze_simp, -- tensor_product.lift.tmul'
   refl,
-end
+end.
 
 -- alternative proof with added weird metavariable goals
 @[simp]
@@ -204,7 +205,7 @@ begin
   { intros, congr', intros, ext, squeeze_simp, apply tensor_product.tmul_add},
   recover, -- two goals!
   intros, rw tensor_product.smul_tmul c x m_1, simp, intros, apply tensor_product.add_tmul,
-end
+end.
 
 @[simp]
 lemma associator_hom {M N K : Module R} (m : M) (n : N) (k : K) :

@@ -5,7 +5,7 @@ Authors: Robert A. Spencer, Markus Himmel
 -/
 import algebra.module
 import algebra.punit_instances
-import algebra.category.Group
+import algebra.category.Group.basic
 import category_theory.concrete_category
 import category_theory.limits.shapes.zero
 import category_theory.limits.shapes.kernels
@@ -33,12 +33,13 @@ namespace Module
 instance : has_coe_to_sort (Module R) :=
 { S := Type u, coe := Module.carrier }
 
+instance : category (Module.{u} R) :=
+{ hom   := λ M N, M →ₗ[R] N,
+  id    := λ M, 1,
+  comp  := λ A B C f g, g.comp f }
+
 instance : concrete_category (Module.{u} R) :=
-{ to_category :=
-  { hom   := λ M N, M →ₗ[R] N,
-    id    := λ M, 1,
-    comp  := λ A B C f g, g.comp f },
-  forget := { obj := λ R, R, map := λ R S f, (f : R → S) },
+{ forget := { obj := λ R, R, map := λ R S f, (f : R → S) },
   forget_faithful := { } }
 
 instance has_forget_to_AddCommGroup : has_forget₂ (Module R) AddCommGroup :=
@@ -54,8 +55,11 @@ instance : inhabited (Module R) := ⟨of R punit⟩
 @[simp]
 lemma of_apply (X : Type u) [add_comm_group X] [module R X] : (of R X : Type u) = X := rfl
 
-/-- Forgetting the underlying type and then building the bundled object returns the original module. -/
-def of_self (M : Module R) : Module.of R M ≅ M :=
+variables {R}
+
+/-- Forgetting to the underlying type and then building the bundled object returns the original module. -/
+@[simps]
+def of_self_iso (M : Module R) : Module.of R M ≅ M :=
 { hom := 𝟙 M, inv := 𝟙 M }
 
 instance : subsingleton (of R punit) :=

@@ -1761,8 +1761,6 @@ apply_nolint rat.sqrt doc_blame
 
 -- data/real/basic.lean
 apply_nolint real doc_blame
-apply_nolint real.Inf doc_blame
-apply_nolint real.Sup doc_blame
 apply_nolint real.comm_ring_aux doc_blame
 apply_nolint real.le doc_blame
 apply_nolint real.mk doc_blame
@@ -2445,7 +2443,6 @@ apply_nolint filter.pointwise_one doc_blame
 apply_nolint filter.pointwise_zero doc_blame
 
 -- order/fixed_points.lean
-apply_nolint fixed_points doc_blame
 apply_nolint fixed_points.next doc_blame
 apply_nolint fixed_points.next_fixed doc_blame
 apply_nolint fixed_points.prev doc_blame

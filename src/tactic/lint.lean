@@ -686,6 +686,13 @@ e ← get_env,
 pure $ ¬ e.contains (mk_nolint_decl_name decl linter)
 
 /--
+`env.is_auto_decl d` returns true iff `d` is an automatically-generated
+declaration that should be ignored by (some) linters.
+-/
+meta def environment.is_auto_decl (env : environment) (d : declaration) : bool :=
+d.to_name.is_internal || d.is_auto_generated env
+
+/--
 `lint_core all_decls non_auto_decls checks` applies the linters `checks` to the list of declarations.
 If `auto_decls` is false for a linter (default) the linter is applied to `non_auto_decls`.
 If `auto_decls` is true, then it is applied to `all_decls`.
@@ -749,7 +756,7 @@ meta def lint_aux (decls : list declaration) (group_by_filename : option nat)
     (where_desc : string) (slow verbose : bool) (checks : list (name × linter)) :
   tactic (name_set × format) := do
 e ← get_env,
-let non_auto_decls := decls.filter (λ d, ¬ d.to_name.is_internal ∧ ¬ d.is_auto_generated e),
+let non_auto_decls := decls.filter (λ d, ¬ e.is_auto_decl d),
 results ← lint_core decls non_auto_decls checks,
 formatted_results ← results.mmap $ λ ⟨linter_name, linter, results⟩,
   let report_str : format := to_fmt "/- The `" ++ to_fmt linter_name ++ "` linter reports: -/\n" in

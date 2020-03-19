@@ -10,6 +10,8 @@ import data.finsupp algebra.gcd_domain ring_theory.euclidean_domain tactic.ring_
 noncomputable theory
 local attribute [instance, priority 100] classical.prop_decidable
 
+local attribute [instance, priority 10] is_semiring_hom.comp is_ring_hom.comp
+
 /-- `polynomial α` is the type of univariate polynomials over `α`.
 
 Polynomials should be seen as (semi-)rings with the additional constructor `X`.
@@ -558,6 +560,9 @@ variables (f : α → β)
 def map : polynomial α → polynomial β := eval₂ (C ∘ f) X
 
 variables [is_semiring_hom f]
+
+instance is_semiring_hom_C_f : is_semiring_hom (C ∘ f) :=
+is_semiring_hom.comp _ _
 
 @[simp] lemma map_C : (C a).map f = C (f a) := eval₂_C _ _
 

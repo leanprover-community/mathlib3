@@ -165,7 +165,7 @@ begin
   split,
   { rintro ⟨p, ⟨hpdeg, hpI⟩, rfl⟩,
     cases lt_or_eq_of_le hpdeg with hpdeg hpdeg,
-    { refine ⟨0, I.zero_mem, lattice.bot_le, _⟩,
+    { refine ⟨0, I.zero_mem, bot_le, _⟩,
       rw [leading_coeff_zero, eq_comm],
       exact coeff_eq_zero_of_degree_lt hpdeg },
     { refine ⟨p, hpI, le_of_eq hpdeg, _⟩,

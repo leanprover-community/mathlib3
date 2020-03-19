@@ -346,7 +346,6 @@ def to_decidable_linear_ordered_comm_ring
   [comm : @is_commutative α (*)]
   : decidable_linear_ordered_comm_ring α :=
 { decidable_le := by apply_instance,
-  decidable_eq := by apply_instance,
   decidable_lt := by apply_instance,
   mul_comm := is_commutative.comm (*),
   ..@linear_nonneg_ring.to_linear_ordered_ring _ s }
@@ -517,8 +516,8 @@ by rw [←coe_nat n]; apply top_ne_coe
 
 lemma add_one_le_of_lt {i n : with_top ℕ} (h : i < n) : i + 1 ≤ n :=
 begin
-  cases n, { exact lattice.le_top },
-  cases i, { exact (not_le_of_lt h lattice.le_top).elim },
+  cases n, { exact le_top },
+  cases i, { exact (not_le_of_lt h le_top).elim },
   exact with_top.coe_le_coe.2 (with_top.coe_lt_coe.1 h)
 end
 

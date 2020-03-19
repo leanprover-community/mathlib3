@@ -9,7 +9,7 @@ import data.monoid_algebra linear_algebra.basic
 
 noncomputable theory
 
-open lattice set linear_map submodule
+open set linear_map submodule
 
 open_locale classical
 

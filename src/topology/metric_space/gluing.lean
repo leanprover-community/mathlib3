@@ -52,14 +52,13 @@ noncomputable theory
 universes u v w
 variables {α : Type u} {β : Type v} {γ : Type w}
 
-open function set premetric lattice
+open function set premetric
 
 namespace metric
 section approx_gluing
 
 variables [metric_space α] [metric_space β]
           {Φ : γ → α} {Ψ : γ → β} {ε : ℝ}
-open lattice
 open sum (inl inr)
 
 /-- Define a predistance on α ⊕ β, for which Φ p and Ψ p are at distance ε -/

@@ -23,7 +23,7 @@ equivalence relations on the same type.
 The complete lattice instance for equivalence relations could have been defined by lifting
 the Galois insertion of equivalence relations on α into binary relations on α, and then using
 `complete_lattice.copy` to define a complete lattice instance with more appropriate
-definitional equalities (a similar example is `filter.lattice.complete_lattice` in
+definitional equalities (a similar example is `filter.complete_lattice` in
 `order/filter/basic.lean`). This does not save space, however, and is less clear.
 
 Partitions are not defined as a separate structure here; users are encouraged to
@@ -36,7 +36,6 @@ class
 -/
 variables {α : Type*} {β : Type*}
 
-open lattice
 
 /-- A version of `setoid.r` that takes the equivalence relation as an explicit argument. -/
 def setoid.rel (r : setoid α) : α → α → Prop := @setoid.r _ r
@@ -516,8 +515,7 @@ variables {α}
 
 /-- A complete lattice instance for partitions; there is more infrastructure for the
     equivalent complete lattice on equivalence relations. -/
-instance partition.complete_lattice :
-  _root_.lattice.complete_lattice (subtype (@is_partition α)) :=
+instance partition.complete_lattice : complete_lattice (subtype (@is_partition α)) :=
 galois_insertion.lift_complete_lattice $ @order_iso.to_galois_insertion
 _ (subtype (@is_partition α)) _ (partial_order.to_preorder _) $ partition.order_iso α
 

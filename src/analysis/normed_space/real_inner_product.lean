@@ -43,7 +43,7 @@ The Coq code is available at the following address: <http://www.lri.fr/~sboldo/e
 
 noncomputable theory
 
-open real set lattice
+open real set
 open_locale topological_space
 
 universes u v w
@@ -57,16 +57,6 @@ class has_inner (α : Type*) := (inner : α → α → ℝ)
 export has_inner (inner)
 
 section prio
-
-/-- A local instance providing a `has_sizeof (module α β)` instance, without
-initiating any typeclass search. -/
--- HACK: work around automatically generated module.has_sizeof instance
--- with [ring α] and [add_comm_group β] arguments
-protected def module.has_sizeof' {α β} {r : ring α} {g : add_comm_group β} :
-  has_sizeof (module α β) :=
-⟨λ _, 0⟩
-
-local attribute [instance] module.has_sizeof'
 
 set_option default_priority 100 -- see Note [default priority]
 -- see Note[vector space definition] for why we extend `module`.

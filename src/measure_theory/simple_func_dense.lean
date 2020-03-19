@@ -10,7 +10,7 @@ both pointwise and in L¹ norm, by a sequence of simple functions.
 import measure_theory.l1_space
 
 noncomputable theory
-open lattice set filter topological_space
+open set filter topological_space
 open_locale classical topological_space
 
 universes u v

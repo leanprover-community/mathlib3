@@ -60,7 +60,13 @@ begin
   { apply proof_irrel_heq }
 end
 
-@[ext]
+/--
+If you're tempted to use this lemma "in the wild", you should probably
+carefully consider whether you've made a mistake in allowing two
+instances of `has_zero_morphisms` to exist at all.
+
+See, particularly, the note on `zero_morphisms_of_zero_object` below.
+-/
 lemma ext (I J : has_zero_morphisms.{v} C) : I = J :=
 begin
   apply ext',

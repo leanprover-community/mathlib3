@@ -58,7 +58,11 @@ local attribute [instance] monoidal_of_has_finite_products
 @[simp]
 lemma left_unitor_hom (X : C) : (λ_ X).hom = limits.prod.snd := rfl
 @[simp]
+lemma left_unitor_inv (X : C) : (λ_ X).inv = prod.lift (terminal.from X) (𝟙 _) := rfl
+@[simp]
 lemma right_unitor_hom (X : C) : (ρ_ X).hom = limits.prod.fst := rfl
+@[simp]
+lemma right_unitor_inv (X : C) : (ρ_ X).inv = prod.lift (𝟙 _) (terminal.from X) := rfl
 -- We don't mark this as a simp lemma, even though in many particular
 -- categories the right hand side will simplify significantly further.
 -- For now, we'll plan to create specialised simp lemmas in each particular category.
@@ -91,17 +95,21 @@ variables [has_initial.{v} C] [has_binary_coproducts.{v} C]
 local attribute [instance] monoidal_of_has_finite_coproducts
 
 @[simp]
-lemma left_unitor_hom (X : C) : (λ_ X).hom = limits.coprod.inr := rfl
+lemma left_unitor_hom (X : C) : (λ_ X).hom = coprod.desc (initial.to X) (𝟙 _) := rfl
 @[simp]
-lemma right_unitor_hom (X : C) : (ρ_ X).hom = limits.coprod.inl := rfl
+lemma right_unitor_hom (X : C) : (ρ_ X).hom = coprod.desc (𝟙 _) (initial.to X) := rfl
+@[simp]
+lemma left_unitor_inv (X : C) : (λ_ X).inv = limits.coprod.inr := rfl
+@[simp]
+lemma right_unitor_inv (X : C) : (ρ_ X).inv = limits.coprod.inl := rfl
 -- We don't mark this as a simp lemma, even though in many particular
 -- categories the right hand side will simplify significantly further.
 -- For now, we'll plan to create specialised simp lemmas in each particular category.
 lemma associator_hom (X Y Z : C) :
   (α_ X Y Z).hom =
-  coprod.lift
-    (limits.coprod.inl ≫ limits.coprod.inl)
-    (coprod.lift (limits.coprod.inl ≫ limits.coprod.inr) limits.coprod.inr) := rfl
+  coprod.desc
+    (coprod.desc coprod.inl (coprod.inl ≫ coprod.inr))
+    (coprod.inr ≫ coprod.inr) := rfl
 
 end monoidal_of_has_finite_coproducts
 

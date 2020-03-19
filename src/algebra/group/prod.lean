@@ -139,11 +139,6 @@ variables {M N}
 @[simp, to_additive] lemma fst_comp_inr : (fst M N).comp (inr M N) = 1 := rfl
 @[simp, to_additive] lemma snd_comp_inr : (snd M N).comp (inr M N) = id N := rfl
 
-@[simp, to_additive] lemma fst_inl (x) : (inl M N x).1 = x := rfl
-@[simp, to_additive] lemma snd_inl (x) : (inl M N x).2 = 1 := rfl
-@[simp, to_additive] lemma fst_inr (y) : (inr M N y).1 = 1 := rfl
-@[simp, to_additive] lemma snd_inr (y) : (inr M N y).2 = y := rfl
-
 section prod
 
 variable [monoid P]

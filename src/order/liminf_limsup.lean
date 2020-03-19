@@ -307,10 +307,10 @@ lemma liminf_const {α : Type*} [conditionally_complete_lattice β] {f : filter 
 begin
   rw liminf_eq,
   apply le_antisymm,
-  { refine lattice.cSup_le ⟨b, by simp [le_refl]⟩ (λ a ha, _),
+  { refine cSup_le ⟨b, by simp [le_refl]⟩ (λ a ha, _),
     obtain ⟨n, hn⟩ : ∃ n, a ≤ b := eventually.exists ha hf,
     exact hn },
-  { refine lattice.le_cSup ⟨b, λ a ha, _⟩ (by simp [le_refl]),
+  { refine le_cSup ⟨b, λ a ha, _⟩ (by simp [le_refl]),
     obtain ⟨n, hn⟩ : ∃ n, a ≤ b := eventually.exists ha hf,
     exact hn }
 end

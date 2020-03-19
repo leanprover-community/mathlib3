@@ -222,7 +222,7 @@ section
 variables {I : Type*} [decidable_eq I] {Z : I → Type*}
 variables [Π i, add_comm_monoid (Z i)]
 
-lemma finset.sum_single [fintype I] (f : Π i, Z i) :
+lemma finset.univ_sum_single [fintype I] (f : Π i, Z i) :
   finset.univ.sum (λ i, pi.single i (f i)) = f :=
 begin
   ext a,
@@ -275,7 +275,7 @@ lemma add_monoid_hom.functions_ext [fintype I] (G : Type*) [add_comm_monoid G] (
   (w : ∀ (i : I) (x : f i), g (single i x) = h (single i x)) : g = h :=
 begin
   ext k,
-  rw [←finset.sum_single k, add_monoid_hom.map_sum, add_monoid_hom.map_sum],
+  rw [←finset.univ_sum_single k, add_monoid_hom.map_sum, add_monoid_hom.map_sum],
   apply finset.sum_congr rfl,
   intros,
   apply w,

@@ -1413,7 +1413,7 @@ def of_top (p : submodule R M) (h : p = ⊤) : p ≃ₗ[R] M :=
   of_top p h x = x := rfl
 
 @[simp] theorem of_top_symm_apply (p : submodule R M) {h} (x : M) :
-  ↑((of_top p h).symm x) = x := rfl
+  (of_top p h).symm x = ⟨x, h.symm ▸ trivial⟩ := rfl
 
 lemma eq_bot_of_equiv (p : submodule R M) (e : p ≃ₗ[R] (⊥ : submodule R M₂)) :
   p = ⊥ :=

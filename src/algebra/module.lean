@@ -103,6 +103,8 @@ structure module.core (α β) [ring α] [add_comm_group β] extends has_scalar �
 (mul_smul : ∀(r s : α) (x : β), (r * s) • x = r • s • x)
 (one_smul : ∀x : β, (1 : α) • x = x)
 
+/-- Define `module` without proving `zero_smul` and `smul_zero` by using an auxiliary
+structure `module.core`. -/
 def module.of_core {α β} [ring α] [add_comm_group β] (M : module.core α β) : module α β :=
 by letI := M.to_has_scalar; exact
 { zero_smul := λ x,
@@ -131,6 +133,13 @@ by simp [smul_add, sub_eq_add_neg]; rw smul_neg
 
 theorem sub_smul (r s : α) (y : β) : (r - s) • y = r • y - s • y :=
 by simp [add_smul, sub_eq_add_neg]
+
+theorem smul_eq_zero {R E : Type*} [division_ring R] [add_comm_group E] [module R E]
+  {c : R} {x : E} :
+  c • x = 0 ↔ c = 0 ∨ x = 0 :=
+⟨λ h, classical.by_cases or.inl
+  (λ hc, or.inr $ by rw [← one_smul R x, ← inv_mul_cancel hc, mul_smul, h, smul_zero]),
+  λ h, h.elim (λ hc, hc.symm ▸ zero_smul R x) (λ hx, hx.symm ▸ smul_zero c)⟩
 
 end module
 
@@ -439,10 +448,8 @@ instance subspace.vector_space {α β}
 
 namespace submodule
 
-variables {R:field α} [add_comm_group β] [add_comm_group γ]
-variables [vector_space α β] [vector_space α γ]
-variables (p p' : submodule α β)
-variables {r : α} {x y : β}
+variables {R : division_ring α} [add_comm_group β] [module α β]
+variables (p : submodule α β) {r : α} {x y : β}
 include R
 
 set_option class.instance_max_depth 36

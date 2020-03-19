@@ -426,5 +426,3 @@ end
 end conditionally_complete_linear_order
 
 end filter
-
-#lint

@@ -29,7 +29,7 @@ def has_limit_cospan_of_has_limit_pair_of_has_limit_parallel_pair
 let π₁ : X ⨯ Y ⟶ X := prod.fst, π₂ : X ⨯ Y ⟶ Y := prod.snd, e := equalizer.ι (π₁ ≫ f) (π₂ ≫ g) in
 { cone := pullback_cone.mk (e ≫ π₁) (e ≫ π₂) $ by simp only [category.assoc, equalizer.condition],
   is_limit := pullback_cone.is_limit.mk _
-    (λ s, equalizer.lift (π₁ ≫ f) (π₂ ≫ g) (prod.lift (s.π.app walking_cospan.left)
+    (λ s, equalizer.lift (prod.lift (s.π.app walking_cospan.left)
       (s.π.app walking_cospan.right)) $ by
         rw [←category.assoc, limit.lift_π, ←category.assoc, limit.lift_π];
         exact pullback_cone.condition _)
@@ -61,7 +61,7 @@ let ι₁ : Y ⟶ Y ⨿ Z := coprod.inl, ι₂ : Z ⟶ Y ⨿ Z := coprod.inr,
 { cocone := pushout_cocone.mk (ι₁ ≫ c) (ι₂ ≫ c) $
     by rw [←category.assoc, ←category.assoc, coequalizer.condition],
   is_colimit := pushout_cocone.is_colimit.mk _
-    (λ s, coequalizer.desc (f ≫ ι₁) (g ≫ ι₂) (coprod.desc (s.ι.app walking_span.left)
+    (λ s, coequalizer.desc (coprod.desc (s.ι.app walking_span.left)
       (s.ι.app walking_span.right)) $ by
         rw [category.assoc, colimit.ι_desc, category.assoc, colimit.ι_desc];
         exact pushout_cocone.condition _)

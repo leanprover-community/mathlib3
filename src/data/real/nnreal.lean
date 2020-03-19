@@ -8,7 +8,6 @@ Nonnegative real numbers.
 import data.real.basic order.lattice algebra.field
 
 noncomputable theory
-open lattice
 
 open_locale classical
 
@@ -145,16 +144,16 @@ instance : canonically_ordered_monoid ℝ≥0 :=
           nnreal.eq $ show b = a + (b - a), by rw [add_sub_cancel'_right]⟩)
       (assume ⟨⟨c, hc⟩, eq⟩, eq.symm ▸ show a ≤ a + c, from (le_add_iff_nonneg_right a).2 hc),
   ..nnreal.comm_semiring,
-  ..nnreal.lattice.order_bot,
+  ..nnreal.order_bot,
   ..nnreal.decidable_linear_order }
 
 instance : distrib_lattice ℝ≥0 := by apply_instance
 
 instance : semilattice_inf_bot ℝ≥0 :=
-{ .. nnreal.lattice.order_bot, .. nnreal.lattice.distrib_lattice }
+{ .. nnreal.order_bot, .. nnreal.distrib_lattice }
 
 instance : semilattice_sup_bot ℝ≥0 :=
-{ .. nnreal.lattice.order_bot, .. nnreal.lattice.distrib_lattice }
+{ .. nnreal.order_bot, .. nnreal.distrib_lattice }
 
 instance : linear_ordered_semiring ℝ≥0 :=
 { add_left_cancel            := assume a b c h, nnreal.eq $ @add_left_cancel ℝ _ a b c (nnreal.eq_iff.2 h),
@@ -225,8 +224,8 @@ instance : conditionally_complete_linear_order_bot ℝ≥0 :=
     le_cInf (by simp [hs]) $ assume r ⟨b, hb, eq⟩, eq ▸ h hb,
   cSup_empty := nnreal.eq $ by simp [coe_Sup, real.Sup_empty]; refl,
   decidable_le := begin assume x y, apply classical.dec end,
-  .. nnreal.linear_ordered_semiring, .. lattice.lattice_of_decidable_linear_order,
-  .. nnreal.lattice.order_bot }
+  .. nnreal.linear_ordered_semiring, .. lattice_of_decidable_linear_order,
+  .. nnreal.order_bot }
 
 instance : archimedean nnreal :=
 ⟨ assume x y pos_y,

@@ -13,7 +13,7 @@ noncomputable theory
 open_locale uniformity topological_space
 
 section
-open filter lattice uniform_space
+open filter uniform_space
 universe u
 variables {ι : Type*} (α : ι → Type u) [U : Πi, uniform_space (α i)]
 include U

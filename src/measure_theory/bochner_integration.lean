@@ -167,7 +167,7 @@ end simple_func
 end measure_theory
 
 namespace measure_theory
-open set lattice filter topological_space ennreal emetric
+open set filter topological_space ennreal emetric
 
 universes u v w
 variables {α : Type u} [measure_space α] {β : Type v} {γ : Type w}

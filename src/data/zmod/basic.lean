@@ -444,6 +444,14 @@ instance : fintype (zmodp p hp) := @zmod.fintype ⟨p, hp.pos⟩
 
 instance decidable_eq : decidable_eq (zmodp p hp) := fin.decidable_eq _
 
+instance (h : prime 2) : subsingleton (units (zmodp 2 h)) :=
+⟨λ x y, begin
+  cases x with x xi,
+  cases y with y yi,
+  revert x y xi yi,
+  exact dec_trivial
+end⟩
+
 instance : has_repr (zmodp p hp) := fin.has_repr _
 
 @[simp] lemma card_zmodp : fintype.card (zmodp p hp) = p :=

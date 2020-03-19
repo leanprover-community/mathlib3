@@ -568,48 +568,6 @@ apply_nolint category_theory.limits.functor_category_is_colimit_cocone doc_blame
 apply_nolint category_theory.limits.functor_category_is_limit_cone doc_blame
 apply_nolint category_theory.limits.functor_category_limit_cone doc_blame
 
--- category_theory/limits/limits.lean
-apply_nolint category_theory.limits.colim_coyoneda doc_blame
-apply_nolint category_theory.limits.colimit doc_blame
-apply_nolint category_theory.limits.colimit.cocone doc_blame
-apply_nolint category_theory.limits.colimit.cocone_morphism doc_blame
-apply_nolint category_theory.limits.colimit.desc doc_blame
-apply_nolint category_theory.limits.colimit.hom_iso doc_blame
-apply_nolint category_theory.limits.colimit.hom_iso' doc_blame
-apply_nolint category_theory.limits.colimit.is_colimit doc_blame
-apply_nolint category_theory.limits.colimit.post doc_blame
-apply_nolint category_theory.limits.colimit.pre doc_blame
-apply_nolint category_theory.limits.colimit.ι doc_blame
-apply_nolint category_theory.limits.has_colimit_of_equivalence_comp doc_blame
-apply_nolint category_theory.limits.has_colimit_of_iso doc_blame
-apply_nolint category_theory.limits.has_colimits_of_shape_of_equivalence doc_blame
-apply_nolint category_theory.limits.has_limit_of_equivalence_comp doc_blame
-apply_nolint category_theory.limits.has_limit_of_iso doc_blame
-apply_nolint category_theory.limits.has_limits_of_shape_of_equivalence doc_blame
-apply_nolint category_theory.limits.is_colimit has_inhabited_instance
-apply_nolint category_theory.limits.is_colimit.desc_cocone_morphism doc_blame
-apply_nolint category_theory.limits.is_colimit.hom_iso' doc_blame
-apply_nolint category_theory.limits.is_colimit.iso_unique_cocone_morphism doc_blame
-apply_nolint category_theory.limits.is_colimit.mk_cocone_morphism doc_blame
-apply_nolint category_theory.limits.is_colimit.of_iso_colimit doc_blame
-apply_nolint category_theory.limits.is_limit has_inhabited_instance
-apply_nolint category_theory.limits.is_limit.hom_iso' doc_blame
-apply_nolint category_theory.limits.is_limit.iso_unique_cone_morphism doc_blame
-apply_nolint category_theory.limits.is_limit.lift_cone_morphism doc_blame
-apply_nolint category_theory.limits.is_limit.mk_cone_morphism doc_blame
-apply_nolint category_theory.limits.is_limit.of_iso_limit doc_blame
-apply_nolint category_theory.limits.lim_yoneda doc_blame
-apply_nolint category_theory.limits.limit doc_blame
-apply_nolint category_theory.limits.limit.cone doc_blame
-apply_nolint category_theory.limits.limit.cone_morphism doc_blame
-apply_nolint category_theory.limits.limit.hom_iso doc_blame
-apply_nolint category_theory.limits.limit.hom_iso' doc_blame
-apply_nolint category_theory.limits.limit.is_limit doc_blame
-apply_nolint category_theory.limits.limit.lift doc_blame
-apply_nolint category_theory.limits.limit.post doc_blame
-apply_nolint category_theory.limits.limit.pre doc_blame
-apply_nolint category_theory.limits.limit.π doc_blame
-
 -- category_theory/limits/over.lean
 apply_nolint category_theory.functor.to_cocone doc_blame
 apply_nolint category_theory.functor.to_cone doc_blame

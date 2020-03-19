@@ -957,3 +957,5 @@ add_tactic_doc
   category                 := doc_category.hole_cmd,
   decl_names               := [`lint_hole_cmd],
   tags                     := ["linting"] }
+
+def should_fail_linting := eq.refl 0

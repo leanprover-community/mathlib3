@@ -61,7 +61,7 @@ instance category_of_differential_objects : category.{v} (differential_object.{v
   comp := λ X Y Z f g, hom.comp f g, }
 
 @[simp]
-lemma id_f (X : differential_object.{v} C) : ((𝟙 X) : hom X X).f = 𝟙 (X.X) := rfl
+lemma id_f (X : differential_object.{v} C) : ((𝟙 X) : X ⟶ X).f = 𝟙 (X.X) := rfl
 
 @[simp]
 lemma comp_f {X Y Z : differential_object.{v} C} (f : X ⟶ Y) (g : Y ⟶ Z) :

@@ -47,9 +47,6 @@ lemma d_squared (C : chain_complex.{v} V) (i : ℤ) :
   C.d i ≫ C.d (i+1) = 0 :=
 congr_fun (C.d_squared) i
 
--- FIXME why doesn't this work `by simp`?
-example (C : chain_complex V) : C.d 5 ≫ C.d 6 = 0 := C.d_squared 5
-
 variables (V)
 
 instance category_of_chain_complexes : category.{v} (chain_complex V) :=

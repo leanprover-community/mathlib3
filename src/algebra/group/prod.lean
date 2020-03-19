@@ -160,7 +160,7 @@ def prod (f : M →* N) (g : M →* P) : M →* N × P :=
 @[to_additive prod_apply]
 lemma prod_apply (f : M →* N) (g : M →* P) (x) : f.prod g x = (f x, g x) := rfl
 
-@[to_additive fst_compm_prod]
+@[to_additive fst_comp_prod]
 lemma fst_comp_prod (f : M →* N) (g : M →* P) : (fst N P).comp (f.prod g) = f :=
 ext $ λ x, rfl
 

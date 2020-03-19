@@ -208,8 +208,7 @@ end
 
 @[simp]
 lemma associator_hom {M N K : Module R} (m : M) (n : N) (k : K) :
-  ((α_ M N K).hom : (M ⊗ N) ⊗ K ⟶ M ⊗ (N ⊗ K)) ((m ⊗ₜ n) ⊗ₜ k) = (m ⊗ₜ (n ⊗ₜ k)) :=
-sorry
+  ((α_ M N K).hom : (M ⊗ N) ⊗ K ⟶ M ⊗ (N ⊗ K)) ((m ⊗ₜ n) ⊗ₜ k) = (m ⊗ₜ (n ⊗ₜ k)) := rfl
 
 end monoidal_category
 

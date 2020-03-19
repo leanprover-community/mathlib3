@@ -76,9 +76,9 @@ instance preserves_colimits_of_shape_subsingleton (J : Type v) [small_category J
 by { split, intros, cases a, cases b, congr }
 
 instance preserves_limits_subsingleton (F : C ⥤ D) : subsingleton (preserves_limits F) :=
-by { split, intros, cases a, cases b, congr, funext J 𝒥, resetI, apply subsingleton.elim }
+by { split, intros, cases a, cases b, cc }
 instance preserves_colimits_subsingleton (F : C ⥤ D) : subsingleton (preserves_colimits F) :=
-by { split, intros, cases a, cases b, congr, funext J 𝒥, resetI, apply subsingleton.elim }
+by { split, intros, cases a, cases b, cc }
 
 omit 𝒟
 instance id_preserves_limits : preserves_limits (𝟭 C) :=
@@ -159,9 +159,9 @@ instance reflects_colimits_of_shape_subsingleton (J : Type v) [small_category J]
 by { split, intros, cases a, cases b, congr }
 
 instance reflects_limits_subsingleton (F : C ⥤ D) : subsingleton (reflects_limits F) :=
-by { split, intros, cases a, cases b, congr, funext J 𝒥, resetI, apply subsingleton.elim }
+by { split, intros, cases a, cases b, cc }
 instance reflects_colimits_subsingleton (F : C ⥤ D) : subsingleton (reflects_colimits F) :=
-by { split, intros, cases a, cases b, congr, funext J 𝒥, resetI, apply subsingleton.elim }
+by { split, intros, cases a, cases b, cc }
 
 @[priority 100] -- see Note [lower instance priority]
 instance reflects_limit_of_reflects_limits_of_shape (K : J ⥤ C) (F : C ⥤ D)

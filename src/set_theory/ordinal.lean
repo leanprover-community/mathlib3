@@ -1412,7 +1412,7 @@ instance : monoid ordinal.{u} :=
     end⟩⟩,
   mul_one := λ a, induction_on a $ λ α r _, quotient.sound
     ⟨⟨punit_prod _, λ a b, by rcases a with ⟨⟨⟨⟩⟩, a⟩; rcases b with ⟨⟨⟨⟩⟩, b⟩;
-    simp only [prod.lex_def, empty_relation, false_or]; dsimp only;
+    simp only [prod.lex_def, empty_relation, false_or];
     simp only [eq_self_iff_true, true_and]; refl⟩⟩,
   one_mul := λ a, induction_on a $ λ α r _, quotient.sound
     ⟨⟨prod_punit _, λ a b, by rcases a with ⟨a, ⟨⟨⟩⟩⟩; rcases b with ⟨b, ⟨⟨⟩⟩⟩;

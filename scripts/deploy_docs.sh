@@ -3,6 +3,8 @@ DEPLOY_NIGHTLY_GITHUB_USER=leanprover-community-bot
 set -e
 set -x
 
+lean_version="$(sed '/^lean_version/!d;s/.*"\(.*\)".*/\1/' leanpkg.toml)"
+
 git_hash="$(git log -1 --pretty=format:%h)"
 git clone https://github.com/leanprover-community/doc-gen.git
 cd doc-gen
@@ -17,8 +19,7 @@ rm -rf mathlib_docs/docs/
 # Force doc_gen project to match the Lean version used in CI.
 # If they are incompatible, something in doc_gen will fail to compile,
 # but this is better than trying to recompile all of mathlib.
-# short_lean_version is of the form 3.5.1 and set earlier in CI.
-elan override set "leanprover-community/lean:$short_lean_version"
+elan override set "$lean_version"
 
 python3 -m pip install --upgrade pip
 pip3 install markdown2 toml

@@ -86,23 +86,18 @@ by cases α; refl
 ⟨λ h, symm_symm_eq α ▸ symm_symm_eq β ▸ congr_arg symm h, congr_arg symm⟩
 
 /-- Identity isomorphism. -/
-@[refl] def refl (X : C) : X ≅ X :=
+@[refl, simps] def refl (X : C) : X ≅ X :=
 { hom := 𝟙 X,
   inv := 𝟙 X }
 
-@[simp] lemma refl_hom (X : C) : (iso.refl X).hom = 𝟙 X := rfl
-@[simp] lemma refl_inv (X : C) : (iso.refl X).inv = 𝟙 X := rfl
 @[simp] lemma refl_symm (X : C) : (iso.refl X).symm = iso.refl X := rfl
 
 /-- Composition of two isomorphisms -/
-@[trans] def trans (α : X ≅ Y) (β : Y ≅ Z) : X ≅ Z :=
+@[trans, simps] def trans (α : X ≅ Y) (β : Y ≅ Z) : X ≅ Z :=
 { hom := α.hom ≫ β.hom,
   inv := β.inv ≫ α.inv }
 
 infixr ` ≪≫ `:80 := iso.trans -- type as `\ll \gg`.
-
-@[simp] lemma trans_hom (α : X ≅ Y) (β : Y ≅ Z) : (α ≪≫ β).hom = α.hom ≫ β.hom := rfl
-@[simp] lemma trans_inv (α : X ≅ Y) (β : Y ≅ Z) : (α ≪≫ β).inv = β.inv ≫ α.inv := rfl
 
 @[simp] lemma trans_mk {X Y Z : C}
   (hom : X ⟶ Y) (inv : Y ⟶ X) (hom_inv_id) (inv_hom_id)

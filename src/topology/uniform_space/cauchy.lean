@@ -140,10 +140,10 @@ lemma tendsto_nhds_of_cauchy_seq_of_subseq
   tendsto u at_top (𝓝 a) :=
 begin
   apply le_nhds_of_cauchy_adhp hu,
-  rw ← lattice.bot_lt_iff_ne_bot,
+  rw ← bot_lt_iff_ne_bot,
   have : ⊥ < map (λ i, u (f i)) p ⊓ 𝓝 a,
-    by { rw [lattice.bot_lt_iff_ne_bot, lattice.inf_of_le_left ha], exact map_ne_bot hp },
-  exact lt_of_lt_of_le this (lattice.inf_le_inf (map_mono hf) (le_refl _))
+    by { rw [bot_lt_iff_ne_bot, inf_of_le_left ha], exact map_ne_bot hp },
+  exact lt_of_lt_of_le this (inf_le_inf (map_mono hf) (le_refl _))
 end
 
 @[nolint ge_or_gt] -- see Note [nolint_ge]

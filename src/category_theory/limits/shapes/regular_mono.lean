@@ -49,6 +49,15 @@ instance regular_mono.of_split_mono (f : X ⟶ Y) [split_mono f] : regular_mono 
   w     := by tidy,
   is_limit := split_mono_equalizes f }
 
+instance regular_mono.equalizer_ι (f g : X ⟶ Y) [has_limit (parallel_pair f g)] :
+  regular_mono (equalizer.ι f g) :=
+{ Z := Y,
+  left := f,
+  right := g,
+  w := equalizer.condition f g,
+  is_limit := is_limit.of_iso_limit (limit.is_limit (parallel_pair f g))
+    sorry, }
+
 section
 variables [has_zero_morphisms.{v₁} C]
 /-- A normal monomorphism is a morphism which is the kernel of some morphism. -/
@@ -88,6 +97,15 @@ instance regular_epi.of_split_epi (f : X ⟶ Y) [split_epi f] : regular_epi f :=
   w     := by tidy,
   is_colimit := split_epi_coequalizes f }
 
+
+instance regular_epi.coequalizer_π (f g : X ⟶ Y) [has_colimit (parallel_pair f g)] :
+  regular_epi (coequalizer.π f g) :=
+{ W := X,
+  left := f,
+  right := g,
+  w := coequalizer.condition f g,
+  is_colimit := is_colimit.of_iso_colimit (colimit.is_colimit (parallel_pair f g))
+    sorry, }
 
 section
 variables [has_zero_morphisms.{v₁} C]

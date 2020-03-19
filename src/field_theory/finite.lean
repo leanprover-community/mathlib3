@@ -87,10 +87,6 @@ end polynomial
 section
 variables [field α] [fintype α]
 
-instance [decidable_eq α] : fintype (units α) :=
-by haveI := set_fintype {a : α | a ≠ 0}; exact
-fintype.of_equiv _ (equiv.units_equiv_ne_zero α).symm
-
 lemma card_units [decidable_eq α] : fintype.card (units α) = fintype.card α - 1 :=
 begin
   rw [eq_comm, nat.sub_eq_iff_eq_add (fintype.card_pos_iff.2 ⟨(0 : α)⟩)],
@@ -163,9 +159,13 @@ end char_p
 open_locale nat
 open zmod
 
+/-- The Fermat-Euler totient theorem. `nat.modeq.pow_totient` is an alternative statement
+  of the same theorem. -/
 @[simp] lemma zmod.pow_totient {n : ℕ+} (x : units (zmod n)) : x ^ φ n = 1 :=
 by rw [← card_units_eq_totient, pow_card_eq_one]
 
+/-- The Fermat-Euler totient theorem. `zmod.pow_totient` is an alternative statement
+  of the same theorem. -/
 lemma nat.modeq.pow_totient {x n : ℕ} (h : nat.coprime x n) : x ^ φ n ≡ 1 [MOD n] :=
 begin
   rcases nat.eq_zero_or_pos n with rfl | h₁, {simp},

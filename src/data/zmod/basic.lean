@@ -277,9 +277,6 @@ def units_equiv_coprime {n : ℕ+} : units (zmod n) ≃ {x : zmod n // nat.copri
   left_inv := λ ⟨_, _, _, _⟩, units.ext (by simp),
   right_inv := λ ⟨_, _⟩, by simp }
 
-instance units.fintype {n : ℕ+} : fintype (units (zmod n)) :=
-fintype.of_equiv _ zmod.units_equiv_coprime.symm
-
 /-- `val_min_abs x` returns the integer in the same equivalence class as `x` that is closest to `0`,
   The result will be in the interval `(-n/2, n/2]` -/
 def val_min_abs {n : ℕ+} (x : zmod n) : ℤ :=

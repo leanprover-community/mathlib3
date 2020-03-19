@@ -290,6 +290,9 @@ instance multiplicative.fintype : Π [fintype α], fintype (multiplicative α) :
 
 @[simp] theorem fintype.card_units_int : fintype.card (units ℤ) = 2 := rfl
 
+noncomputable instance [monoid α] [fintype α] : fintype (units α) :=
+by classical; exact fintype.of_injective units.val units.ext
+
 @[simp] theorem fintype.card_bool : fintype.card bool = 2 := rfl
 
 def finset.insert_none (s : finset α) : finset (option α) :=

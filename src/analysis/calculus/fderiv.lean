@@ -278,7 +278,7 @@ h.mono hL
 
 theorem has_fderiv_at.has_fderiv_within_at
   (h : has_fderiv_at f f' x) : has_fderiv_within_at f f' s x :=
-h.has_fderiv_at_filter lattice.inf_le_left
+h.has_fderiv_at_filter inf_le_left
 
 lemma has_fderiv_within_at.differentiable_within_at (h : has_fderiv_within_at f f' s x) :
   differentiable_within_at 𝕜 f s x :=
@@ -1127,7 +1127,7 @@ end
 
 theorem has_fderiv_within_at.continuous_within_at
   (h : has_fderiv_within_at f f' s x) : continuous_within_at f s x :=
-has_fderiv_at_filter.tendsto_nhds lattice.inf_le_left h
+has_fderiv_at_filter.tendsto_nhds inf_le_left h
 
 theorem has_fderiv_at.continuous_at (h : has_fderiv_at f f' x) :
   continuous_at f x :=

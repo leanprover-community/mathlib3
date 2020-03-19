@@ -266,7 +266,7 @@ begin
   rw [← univ_subset_iff, ← h.1],
   rw [mem_closure_iff_nhds_within_ne_bot] at h ⊢,
   exact ⟨closure_mono (submodule.span_mono (tangent_cone_mono_nhds st)),
-    lattice.ne_bot_of_le_ne_bot h.2 st⟩
+    ne_bot_of_le_ne_bot h.2 st⟩
 end
 
 lemma unique_diff_within_at.mono (h : unique_diff_within_at 𝕜 s x) (st : s ⊆ t) :

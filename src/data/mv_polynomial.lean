@@ -91,7 +91,7 @@ polynomial, multivariate polynomial, multivariable polynomial
 noncomputable theory
 local attribute [instance, priority 100] classical.prop_decidable
 
-open set function finsupp lattice
+open set function finsupp
 
 universes u v w x
 variables {α : Type u} {β : Type v} {γ : Type w} {δ : Type x}

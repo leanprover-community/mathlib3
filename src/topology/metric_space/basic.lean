@@ -10,7 +10,7 @@ topological spaces. For example:
   open and closed sets, compactness, completeness, continuity and uniform continuity
 -/
 import data.real.nnreal topology.metric_space.emetric_space topology.algebra.ordered
-open lattice set filter classical topological_space
+open set filter classical topological_space
 noncomputable theory
 
 open_locale uniformity
@@ -793,12 +793,12 @@ lemma cauchy_seq_iff_le_tendsto_0 {s : ℕ → α} : cauchy_seq s ↔ ∃ b : �
   { rcases cauchy_seq_bdd hs with ⟨R, R0, hR⟩,
     use R, rintro _ ⟨⟨m, n⟩, rfl⟩, exact le_of_lt (hR m n) },
   -- Prove that it bounds the distances of points in the Cauchy sequence
-  have ub : ∀ m n N, N ≤ m → N ≤ n → dist (s m) (s n) ≤ real.Sup (S N) :=
+  have ub : ∀ m n N, N ≤ m → N ≤ n → dist (s m) (s n) ≤ Sup (S N) :=
     λ m n N hm hn, real.le_Sup _ (hS N) ⟨⟨_, _⟩, ⟨hm, hn⟩, rfl⟩,
   have S0m : ∀ n, (0:ℝ) ∈ S n := λ n, ⟨⟨n, n⟩, ⟨le_refl _, le_refl _⟩, dist_self _⟩,
   have S0 := λ n, real.le_Sup _ (hS n) (S0m n),
   -- Prove that it tends to `0`, by using the Cauchy property of `s`
-  refine ⟨λ N, real.Sup (S N), S0, ub, metric.tendsto_at_top.2 (λ ε ε0, _)⟩,
+  refine ⟨λ N, Sup (S N), S0, ub, metric.tendsto_at_top.2 (λ ε ε0, _)⟩,
   refine (metric.cauchy_seq_iff.1 hs (ε/2) (half_pos ε0)).imp (λ N hN n hn, _),
   rw [real.dist_0_eq_abs, abs_of_nonneg (S0 n)],
   refine lt_of_le_of_lt (real.Sup_le_ub _ ⟨_, S0m _⟩ _) (half_lt_self ε0),
@@ -975,7 +975,7 @@ by simpa only [closure_eq_of_is_closed hs] using @mem_closure_iff _ _ s a
 end metric
 
 section pi
-open finset lattice
+open finset
 variables {π : β → Type*} [fintype β] [∀b, metric_space (π b)]
 
 /-- A finite product of metric spaces is a metric space, with the sup distance. -/

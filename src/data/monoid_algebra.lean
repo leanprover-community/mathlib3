@@ -51,7 +51,7 @@ It is the type of finite formal `k`-linear combinations of terms of `G`,
 endowed with the convolution product.
 -/
 @[derive [inhabited, add_comm_monoid]]
-def monoid_algebra := G →₀ k
+def monoid_algebra : Type (max u₁ u₂) := G →₀ k
 
 end
 

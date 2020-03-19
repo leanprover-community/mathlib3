@@ -64,6 +64,9 @@ section
 variables {E : Type u₃} [ℰ : category.{v₃} E]
 include ℰ
 
+/--
+`G ∘ F` is a functorial if both `F` and `G` are.
+-/
 -- This is no longer viable as an instance in Lean 3.7,
 -- #lint reports an instance loop
 -- Will this be a problem?

@@ -15,7 +15,7 @@ variables [has_zero_morphisms.{v} C] [has_shift.{v} C]
 /--
 A differential object in a category with zero morphisms and a shift is
 an object `X` equipped with
-a morphism `d : X ⟶ X[1]`, so `d^2 = 0`.
+a morphism `d : X ⟶ X[1]`, such that `d^2 = 0`.
 -/
 @[nolint has_inhabited_instance]
 structure differential_object :=

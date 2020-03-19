@@ -70,7 +70,7 @@ begin
 end
 
 instance : subsingleton (has_zero_morphisms.{v} C) :=
-⟨λ I J, ext I J⟩
+⟨ext⟩
 
 end has_zero_morphisms
 

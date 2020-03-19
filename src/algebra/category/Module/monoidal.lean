@@ -140,7 +140,7 @@ lemma left_unitor_hom {M : Module.{u} R} (r : R) (m : M) :
 tensor_product.lid_tmul m r
 
 @[simp]
-lemma right_unitor_hom {M : Module R} (r : R) (m : M) :
+lemma right_unitor_hom {M : Module R} (m : M) (r : R) :
   ((ρ_ M).hom : M ⊗ 𝟙_ (Module R) ⟶ M) (m ⊗ₜ r) = r • m :=
 tensor_product.rid_tmul m r
 

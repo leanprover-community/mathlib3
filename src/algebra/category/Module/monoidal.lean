@@ -148,7 +148,64 @@ end
 @[simp]
 lemma right_unitor_hom {M : Module R} (r : R) (m : M) :
   ((ρ_ M).hom : M ⊗ 𝟙_ (Module R) ⟶ M) (m ⊗ₜ r) = r • m :=
-sorry
+begin
+  show (linear_equiv.to_linear_map (tensor_product.rid R ↥M)) (m ⊗ₜ[R] r) = r • m,
+  dunfold tensor_product.rid,
+  dunfold tensor_product.comm,
+  unfold_coes,
+  unfold linear_map.flip,
+  unfold_coes,
+  unfold linear_map.mk₂,
+  unfold tensor_product.mk,
+  dsimp,
+  unfold_coes,
+  unfold linear_equiv.of_linear,
+  unfold linear_equiv.trans,
+  dunfold linear_equiv.to_linear_map,
+  dsimp,
+  unfold tensor_product.lid,
+  unfold linear_equiv.of_linear,
+  dsimp,
+  unfold_coes,
+  unfold linear_map.lsmul,
+  unfold linear_map.mk₂,
+  dsimp,
+  squeeze_simp, -- tensor_product.lift.tmul used here
+  show (tensor_product.lift
+       {to_fun := λ (a : R), {to_fun := λ (m : ↥M), a • m, add := _, smul := _}, add := _, smul := _}).to_fun
+      (r ⊗ₜ[R] m) =
+    r • m,
+  squeeze_simp, -- tensor_product.lift.tmul'
+  refl,
+end
+
+-- alternative proof with added weird metavariable goals
+@[simp]
+lemma right_unitor_hom' {M : Module R} (r : R) (m : M) :
+  ((ρ_ M).hom : M ⊗ 𝟙_ (Module R) ⟶ M) (m ⊗ₜ r) = r • m :=
+begin
+  show (tensor_product.lift
+       {to_fun := λ (a : R), {to_fun := λ (m : ↥M), a • m, add := _, smul := _}, add := _, smul := _}).to_fun
+      ((tensor_product.lift
+          {to_fun := λ (m : ↥M), {to_fun := λ (m_1 : R), m_1 ⊗ₜ[R] m, add := _, smul := _},
+           add := _,
+           smul := _}).to_fun
+         (m ⊗ₜ[R] r)) =
+    r • m,
+  rw tensor_product.lift.tmul',
+  show (tensor_product.lift
+       {to_fun := λ (a : R), {to_fun := λ (m : ↥M), a • m, add := _, smul := _}, add := _, smul := _}).to_fun
+      (r ⊗ₜ[R] m) =
+    r • m,
+  rw tensor_product.lift.tmul',
+  refl, -- no goals!
+  recover, -- four goals!
+  { simp},
+  { intros, congr', intros, ext, squeeze_simp, apply tensor_product.tmul_add},
+  recover, -- two goals!
+  intros, rw tensor_product.smul_tmul c x m_1, simp, intros, apply tensor_product.add_tmul,
+end
+
 @[simp]
 lemma associator_hom {M N K : Module R} (m : M) (n : N) (k : K) :
   ((α_ M N K).hom : (M ⊗ N) ⊗ K ⟶ M ⊗ (N ⊗ K)) ((m ⊗ₜ n) ⊗ₜ k) = (m ⊗ₜ (n ⊗ₜ k)) :=

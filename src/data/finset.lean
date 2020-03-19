@@ -9,7 +9,7 @@ import logic.embedding algebra.order_functions
   data.multiset data.sigma.basic data.set.lattice
   tactic.monotonicity tactic.apply
 
-open multiset subtype nat lattice
+open multiset subtype nat
 
 variables {α : Type*} {β : Type*} {γ : Type*}
 
@@ -515,16 +515,16 @@ instance : lattice (finset α) :=
 @[simp] theorem inf_eq_inter (s t : finset α) : s ⊓ t = s ∩ t := rfl
 
 instance : semilattice_inf_bot (finset α) :=
-{ bot := ∅, bot_le := empty_subset, ..finset.lattice.lattice }
+{ bot := ∅, bot_le := empty_subset, ..finset.lattice }
 
 instance {α : Type*} [decidable_eq α] : semilattice_sup_bot (finset α) :=
-{ ..finset.lattice.semilattice_inf_bot, ..finset.lattice.lattice }
+{ ..finset.semilattice_inf_bot, ..finset.lattice }
 
 instance : distrib_lattice (finset α) :=
 { le_sup_inf := assume a b c, show (a ∪ b) ∩ (a ∪ c) ⊆ a ∪ b ∩ c,
     by simp only [subset_iff, mem_inter, mem_union, and_imp, or_imp_distrib] {contextual:=tt};
     simp only [true_or, imp_true_iff, true_and, or_true],
-  ..finset.lattice.lattice }
+  ..finset.lattice }
 
 theorem inter_distrib_left (s t u : finset α) : s ∩ (t ∪ u) = (s ∩ t) ∪ (s ∩ u) := inf_sup_left
 
@@ -2572,7 +2572,7 @@ congr_arg card $ (@multiset.erase_dup_eq_self α _ l).2 h
 
 end list
 
-namespace lattice
+section lattice
 variables {ι : Sort*} [complete_lattice α] [decidable_eq ι]
 
 lemma supr_eq_supr_finset (s : ι → α) : (⨆i, s i) = (⨆t:finset (plift ι), ⨆i∈t, s (plift.down i)) :=
@@ -2594,11 +2594,11 @@ variables {ι : Sort*} [decidable_eq ι]
 
 lemma Union_eq_Union_finset (s : ι → set α) :
   (⋃i, s i) = (⋃t:finset (plift ι), ⋃i∈t, s (plift.down i)) :=
-lattice.supr_eq_supr_finset s
+supr_eq_supr_finset s
 
 lemma Inter_eq_Inter_finset (s : ι → set α) :
   (⋂i, s i) = (⋂t:finset (plift ι), ⋂i∈t, s (plift.down i)) :=
-lattice.infi_eq_infi_finset s
+infi_eq_infi_finset s
 
 end set
 

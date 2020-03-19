@@ -7,7 +7,7 @@ Lift filters along filter and set functions.
 -/
 import order.filter.basic
 
-open lattice set
+open set
 
 open_locale classical
 

@@ -20,7 +20,7 @@ open_locale classical
 section vector_space
 variables [field K] [add_comm_group V] [vector_space K V]
 include K
-open submodule lattice function set
+open submodule function set
 
 variables (K V)
 def vector_space.dim : cardinal :=

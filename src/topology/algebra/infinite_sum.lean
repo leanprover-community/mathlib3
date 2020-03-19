@@ -21,7 +21,7 @@ import logic.function algebra.big_operators data.set.lattice data.finset
        topology.algebra.ordered topology.instances.real
 
 noncomputable theory
-open lattice finset filter function classical
+open finset filter function classical
 open_locale topological_space classical
 
 variables {α : Type*} {β : Type*} {γ : Type*}

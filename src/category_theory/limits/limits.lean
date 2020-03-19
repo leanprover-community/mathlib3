@@ -256,7 +256,7 @@ def unique_up_to_iso {s t : cocone F} (P : is_colimit s) (Q : is_colimit t) : s 
   hom_inv_id' := P.uniq_cocone_morphism,
   inv_hom_id' := Q.uniq_cocone_morphism }
 
-/-- Limits of `F` are unique up to isomorphism. -/
+/-- Colimits of `F` are unique up to isomorphism. -/
 -- We may later want to prove the coherence of these isomorphisms.
 def cone_point_unique_up_to_iso {s t : cocone F} (P : is_colimit s) (Q : is_colimit t) : s.X ≅ t.X :=
 (cocones.forget F).map_iso (unique_up_to_iso P Q)

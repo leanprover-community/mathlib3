@@ -7,7 +7,7 @@ Extended non-negative reals
 -/
 import topology.instances.nnreal data.real.ennreal
 noncomputable theory
-open classical set lattice filter metric
+open classical set filter metric
 open_locale classical
 open_locale topological_space
 variables {α : Type*} {β : Type*} {γ : Type*}
@@ -610,7 +610,7 @@ le_antisymm
 
 section
 variables [emetric_space β]
-open lattice ennreal filter emetric
+open ennreal filter emetric
 
 /-- In an emetric ball, the distance between points is everywhere finite -/
 lemma edist_ne_top_of_mem_ball {a : β} {r : ennreal} (x y : ball a r) : edist x.1 y.1 ≠ ⊤ :=

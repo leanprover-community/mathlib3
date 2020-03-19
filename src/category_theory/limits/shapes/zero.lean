@@ -97,8 +97,7 @@ variables [has_zero_morphisms.{v} C] [has_zero_morphisms.{v'} D]
 begin
   have t : F.functor.map (0 : X ⟶ Y) = F.functor.map (0 : X ⟶ Y) ≫ (0 : F.functor.obj Y ⟶ F.functor.obj Y),
   { apply faithful.injectivity (F.inverse),
-    simp only [functor.map_comp],
-    simp,
+    simp only [functor.map_comp, equivalence.unit, equivalence.unit_inv, equivalence.inv_fun_map, category.assoc],
     dsimp,
     simp, },
   exact t.trans (by simp)

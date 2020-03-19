@@ -294,10 +294,10 @@ lemma limsup_const {α : Type*} [conditionally_complete_lattice β] {f : filter 
 begin
   rw limsup_eq,
   apply le_antisymm,
-  { refine lattice.cInf_le ⟨b, λ a ha, _⟩ (by simp [le_refl]),
+  { refine cInf_le ⟨b, λ a ha, _⟩ (by simp [le_refl]),
     obtain ⟨n, hn⟩ : ∃ n, b ≤ a := eventually.exists ha hf,
     exact hn },
-  { refine lattice.le_cInf ⟨b, by simp [le_refl]⟩ (λ a ha, _),
+  { refine le_cInf ⟨b, by simp [le_refl]⟩ (λ a ha, _),
     obtain ⟨n, hn⟩ : ∃ n, b ≤ a := eventually.exists ha hf,
     exact hn }
 end

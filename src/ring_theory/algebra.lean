@@ -293,7 +293,7 @@ set_option class.instance_max_depth 40
 instance comap.algebra : algebra R (comap R S A) :=
 { smul := λ r x, (algebra_map S r • x : A),
   to_fun := (algebra_map A : S → A) ∘ algebra_map S,
-  hom := by letI : is_ring_hom (algebra_map A) := _inst_5.hom; apply_instance,
+  hom := @is_ring_hom.comp _ _ _ _ _ _ _ _ _ _inst_5.hom,
   commutes' := λ r x, algebra.commutes _ _,
   smul_def' := λ _ _, algebra.smul_def _ _ }
 

@@ -32,7 +32,8 @@ end prio
 
 lemma additive.is_add_subgroup
   (s : set G) [is_subgroup s] : @is_add_subgroup (additive G) _ s :=
-⟨@is_subgroup.inv_mem _ _ _ _⟩
+@is_add_subgroup.mk (additive G) _ _ (additive.is_add_submonoid _)
+  (@is_subgroup.inv_mem _ _ _ _)
 
 theorem additive.is_add_subgroup_iff
   {s : set G} : @is_add_subgroup (additive G) _ s ↔ is_subgroup s :=
@@ -41,7 +42,8 @@ theorem additive.is_add_subgroup_iff
 
 lemma multiplicative.is_subgroup
   (s : set A) [is_add_subgroup s] : @is_subgroup (multiplicative A) _ s :=
-⟨@is_add_subgroup.neg_mem _ _ _ _⟩
+@is_subgroup.mk (multiplicative A) _ _ (multiplicative.is_submonoid _)
+  (@is_add_subgroup.neg_mem _ _ _ _)
 
 theorem multiplicative.is_subgroup_iff
   {s : set A} : @is_subgroup (multiplicative A) _ s ↔ is_add_subgroup s :=

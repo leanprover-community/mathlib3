@@ -693,6 +693,16 @@ meta def environment.is_auto_decl (env : environment) (d : declaration) : bool :
 d.to_name.is_internal || d.is_auto_generated env
 
 /--
+Maps a tactic-valued function over a list with parallel execution.
+
+Note: in Lean 3, VM functions executed in tasks need to copy their whole closure and return values
+twice. Therefore you should only use this for expensive functions.
+-/
+meta def list.mmap_async {α β} (xs : list α) (f : α → tactic β) : tactic (list β) := do
+async_bs ← xs.mmap (λ a, run_async (f a)),
+pure $ async_bs.map task.get
+
+/--
 `lint_core all_decls non_auto_decls checks` applies the linters `checks` to the list of declarations.
 If `auto_decls` is false for a linter (default) the linter is applied to `non_auto_decls`.
 If `auto_decls` is true, then it is applied to `all_decls`.
@@ -701,7 +711,7 @@ well as a map from declaration name to warning.
 -/
 meta def lint_core (all_decls non_auto_decls : list declaration) (checks : list (name × linter)) :
   tactic (list (name × linter × rb_map name string)) := do
-checks.mmap $ λ ⟨linter_name, linter⟩, do
+checks.mmap_async $ λ ⟨linter_name, linter⟩, do
   let test_decls := if linter.auto_decls then all_decls else non_auto_decls,
   results ← test_decls.mfoldl (λ (results : rb_map name string) decl, do
     tt ← should_be_linted linter_name decl.to_name | pure results,

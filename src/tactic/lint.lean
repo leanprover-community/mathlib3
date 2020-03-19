@@ -864,12 +864,6 @@ ls ← get_checks tt [] ff,
 let ls := ls.map (λ ⟨n, _⟩, `linter ++ n),
 exact (reflect ls)
 
-/-- `lint_mathlib_ci` runs the linters for the CI. -/
-meta def lint_mathlib_ci : tactic unit := do
-(failed, s) ← lint_mathlib tt tt mathlib_linters tt,
-trace s,
-when (¬ failed.empty) $ fail "Linting did not succeed"
-
 /-- The command `#lint_all` checks all imported files for certain mistakes.
 Usage: `#lint_all`, `#lint_all linter_1 linter_2`, `#lint_all only linter_1 linter_2`.
 `#lint_all-` will suppress the output of passing checks.
@@ -887,24 +881,10 @@ let ns := env.decl_filter_map $ λ dcl,
      b ← has_attribute' `linter n,
      trace $ n.pop_prefix.to_string ++ if b then " (*)" else ""
 
-/-- Tries to apply the `nolint` attribute to a list of declarations. Always succeeds, even if some
-of the declarations don't exist. -/
-meta def apply_nolint_tac (decl : name) (linters : list name) : tactic unit :=
-try $ nolint_attr.set decl linters tt
-
-/-- `apply_nolint decl linter1 linter2 ...` tries to apply
-the `nolint linter1 linter2 ...` attribute to `decl`, ...
-It will always succeed, even if some of the declarations do not exist. -/
-@[user_command] meta def apply_nolint_cmd (_ : parse $ tk "apply_nolint") : parser unit := do
-decl_name ← ident,
-linter_names ← ident*,
-apply_nolint_tac decl_name linter_names
-
 add_tactic_doc
 { name                     := "linting commands",
   category                 := doc_category.cmd,
-  decl_names               := [`lint_cmd, `lint_mathlib_cmd, `lint_all_cmd, `list_linters,
-                               `apply_nolint_cmd],
+  decl_names               := [`lint_cmd, `lint_mathlib_cmd, `lint_all_cmd, `list_linters],
   tags                     := ["linting"],
   description              :=
 "User commands to spot common mistakes in the code

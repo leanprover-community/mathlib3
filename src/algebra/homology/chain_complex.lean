@@ -1,5 +1,26 @@
+/-
+Copyright (c) 2020 Scott Morrison. All rights reserved.
+Released under Apache 2.0 license as described in the file LICENSE.
+Authors: Scott Morrison
+-/
 import category_theory.graded_object
 import category_theory.differential_object
+
+/-!
+# Chain complexes
+
+We define a chain complex in `V` as a differential `ℤ`-graded object in `V`.
+
+This is fancy language for the obvious definition,
+and it seems we can use it straightforwardly:
+
+```
+example (C : chain_complex V) : C.X 5 ⟶ C.X 6 := C.d 5
+```
+
+We define the forgetful functor to `ℤ`-graded objects, and show that
+`chain_complex V` is concrete when `V` is, and `V` has coproducts.
+-/
 
 universes v u
 

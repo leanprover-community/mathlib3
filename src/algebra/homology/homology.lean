@@ -1,6 +1,24 @@
+/-
+Copyright (c) 2020 Scott Morrison. All rights reserved.
+Released under Apache 2.0 license as described in the file LICENSE.
+Authors: Scott Morrison
+-/
 import algebra.homology.chain_complex
 import category_theory.limits.shapes.images
 import category_theory.limits.shapes.kernels
+
+/-!
+# Non-functorial homology groups for chain complexes
+
+We setup that part of the theory of homology groups which works in
+any category with kernels and images.
+
+We define the homology groups themselves, and while we can show that
+chain maps induce maps on the kernels, at this level of generality
+chain maps do not induce maps on the images, and so not on the homology groups.
+
+We'll do this with stronger assumptions, later.
+-/
 
 universes v u
 

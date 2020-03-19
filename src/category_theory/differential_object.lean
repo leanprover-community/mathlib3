@@ -1,5 +1,21 @@
+/-
+Copyright (c) 2020 Scott Morrison. All rights reserved.
+Released under Apache 2.0 license as described in the file LICENSE.
+Authors: Scott Morrison
+-/
 import category_theory.limits.shapes.zero
 import category_theory.shift
+
+/-!
+# Differential objects in a category.
+
+A differential object in a category with zero morphisms and a shift is
+an object `X` equipped with
+a morphism `d : X ⟶ X[1]`, such that `d^2 = 0`.
+
+We build the category of differential objects, and some basic constructions
+such as the forgetful functor, and zero morphisms and zero objects.
+-/
 
 open category_theory.limits
 

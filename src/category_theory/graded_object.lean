@@ -1,5 +1,25 @@
+/-
+Copyright (c) 2020 Scott Morrison. All rights reserved.
+Released under Apache 2.0 license as described in the file LICENSE.
+Authors: Scott Morrison
+-/
 import category_theory.shift
 import category_theory.limits.shapes.zero
+
+/-!
+# The category of graded objects
+
+A `β`-graded object is just a function `β → C` into the objects of some other category.
+We define the category structure on these.
+
+We describe the `comap` functors obtained by precomposing with functions `β → γ`.
+
+As a consequence a fixed element (e.g. `1`) in an additive group `β` provides a shift
+functor on `β`-graded objects
+
+When `C` has coproducts we construct the `total` functor `graded_object β C ⥤ C`,
+show that it is faithful, and deduce that when `C` is concrete so is `graded_object β C`.
+-/
 
 open category_theory.limits
 

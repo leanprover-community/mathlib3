@@ -66,7 +66,6 @@ include 𝒟
 def pair_comp (X Y : C) (F : C ⥤ D) : pair X Y ⋙ F ≅ pair (F.obj X) (F.obj Y) :=
 { hom := { app := begin rintro ⟨j⟩; exact 𝟙 _, end },
   inv := { app := begin rintro ⟨j⟩; exact 𝟙 _, end },
-  -- TODO by automation:
   hom_inv_id' := begin ext j, cases j; { dsimp, simp, } end,
   inv_hom_id' := begin ext j, cases j; { dsimp, simp, } end }
 

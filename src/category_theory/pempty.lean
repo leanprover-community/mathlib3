@@ -29,16 +29,11 @@ include 𝒞
 /-- The unique functor from the empty category to any target category. -/
 def empty : pempty.{v+1} ⥤ C := by tidy
 
-section
-variables {C} {D : Type u} [𝒟 : category.{v} D]
-include 𝒟
-
+/-- The natural isomorphism between any two functors out of the empty category. -/
 @[simps]
-def empty_comp (F : C ⥤ D) : empty C ⋙ F ≅ empty D :=
+def empty_ext (F G : pempty.{v+1} ⥤ C) : F ≅ G :=
 { hom := { app := λ j, by cases j },
   inv := { app := λ j, by cases j } }
-
-end
 
 end functor
 

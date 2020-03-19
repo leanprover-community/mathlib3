@@ -35,16 +35,12 @@ instance fintype_walking_pair : fintype walking_pair :=
 { elems := [walking_pair.left, walking_pair.right].to_finset,
   complete := λ x, by { cases x; simp } }
 
-@[simp]
-def pair_function {C : Type u} (X Y : C) : walking_pair → C
-| walking_pair.left := X
-| walking_pair.right := Y
-
 variables {C : Type u} [𝒞 : category.{v} C]
 include 𝒞
 
+/-- The diagram on the walking pair, sending the two points to `X` and `Y`. -/
 def pair (X Y : C) : discrete walking_pair ⥤ C :=
-functor.of_function (pair_function X Y)
+functor.of_function (λ j, walking_pair.rec j X Y)
 
 @[simp] lemma pair_obj_left (X Y : C) : (pair X Y).obj walking_pair.left = X := rfl
 @[simp] lemma pair_obj_right (X Y : C) : (pair X Y).obj walking_pair.right = Y := rfl
@@ -62,6 +58,7 @@ section
 variables {D : Type u} [𝒟 : category.{v} D]
 include 𝒟
 
+/-- The natural isomorphism between `pair X Y ⋙ F` and `pair (F.obj X) (F.obj Y)`. -/
 @[simps]
 def pair_comp (X Y : C) (F : C ⥤ D) : pair X Y ⋙ F ≅ pair (F.obj X) (F.obj Y) :=
 { hom := { app := begin rintro ⟨j⟩; exact 𝟙 _, end },

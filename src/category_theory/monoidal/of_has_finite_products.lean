@@ -59,7 +59,9 @@ local attribute [instance] monoidal_of_has_finite_products
 lemma left_unitor_hom (X : C) : (λ_ X).hom = limits.prod.snd := rfl
 @[simp]
 lemma right_unitor_hom (X : C) : (ρ_ X).hom = limits.prod.fst := rfl
-@[simp]
+-- We don't mark this as a simp lemma, even though in many particular
+-- categories the right hand side will simplify significantly further.
+-- For now, we'll plan to create specialised simp lemmas in each particular category.
 lemma associator_hom (X Y Z : C) :
   (α_ X Y Z).hom =
   prod.lift
@@ -92,7 +94,9 @@ local attribute [instance] monoidal_of_has_finite_coproducts
 lemma left_unitor_hom (X : C) : (λ_ X).hom = limits.coprod.inr := rfl
 @[simp]
 lemma right_unitor_hom (X : C) : (ρ_ X).hom = limits.coprod.inl := rfl
-@[simp]
+-- We don't mark this as a simp lemma, even though in many particular
+-- categories the right hand side will simplify significantly further.
+-- For now, we'll plan to create specialised simp lemmas in each particular category.
 lemma associator_hom (X Y Z : C) :
   (α_ X Y Z).hom =
   coprod.lift

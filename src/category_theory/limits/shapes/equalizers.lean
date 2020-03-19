@@ -327,6 +327,8 @@ limit.π (parallel_pair f g) zero
 @[reassoc] lemma equalizer.condition : equalizer.ι f g ≫ f = equalizer.ι f g ≫ g :=
 fork.condition $ limit.cone $ parallel_pair f g
 
+variables {f g}
+
 abbreviation equalizer.lift {W : C} (k : W ⟶ X) (h : k ≫ f = k ≫ g) : W ⟶ equalizer f g :=
 limit.lift (parallel_pair f g) (fork.of_ι k h)
 
@@ -338,7 +340,15 @@ limit.hom_ext $ cone_parallel_pair_ext _ h
 
 /-- An equalizer morphism is a monomorphism -/
 instance equalizer.ι_mono : mono (equalizer.ι f g) :=
-{ right_cancellation := λ Z h k w, equalizer.hom_ext _ _ w }
+{ right_cancellation := λ Z h k w, equalizer.hom_ext w }
+
+end
+
+section
+variables {f g}
+/-- The equalizer morphism in any limit cone is a monomorphism. -/
+lemma mono_of_is_limit_parallel_pair {c : cone (parallel_pair f g)} (i : is_limit c) : mono (c.π.app zero) :=
+{ right_cancellation := λ Z h k w, i.hom_ext $ cone_parallel_pair_ext _ w }
 
 end
 
@@ -413,6 +423,8 @@ colimit.ι (parallel_pair f g) one
 @[reassoc] lemma coequalizer.condition : f ≫ coequalizer.π f g = g ≫ coequalizer.π f g :=
 cofork.condition $ colimit.cocone $ parallel_pair f g
 
+variables {f g}
+
 abbreviation coequalizer.desc {W : C} (k : Y ⟶ W) (h : f ≫ k = g ≫ k) : coequalizer f g ⟶ W :=
 colimit.desc (parallel_pair f g) (cofork.of_π k h)
 
@@ -424,7 +436,16 @@ colimit.hom_ext $ cocone_parallel_pair_ext _ h
 
 /-- A coequalizer morphism is an epimorphism -/
 instance coequalizer.π_epi : epi (coequalizer.π f g) :=
-{ left_cancellation := λ Z h k w, coequalizer.hom_ext _ _ w }
+{ left_cancellation := λ Z h k w, coequalizer.hom_ext w }
+
+end
+
+section
+variables {f g}
+
+/-- The coequalizer morphism in any colimit cocone is an epimorphism. -/
+lemma epi_of_is_colimit_parallel_pair {c : cocone (parallel_pair f g)} (i : is_colimit c) : epi (c.ι.app one) :=
+{ left_cancellation := λ Z h k w, i.hom_ext $ cocone_parallel_pair_ext _ w }
 
 end
 

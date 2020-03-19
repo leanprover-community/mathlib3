@@ -64,7 +64,7 @@ def unique_up_to_iso {s t : cone F} (P : is_limit s) (Q : is_limit t) : s ≅ t 
   inv_hom_id' := Q.uniq_cone_morphism }
 
 /-- Limits of `F` are unique up to isomorphism. -/
--- TODO name, docstring, dualise
+-- We may later want to prove the coherence of these isomorphisms.
 def cone_point_unique_up_to_iso {s t : cone F} (P : is_limit s) (Q : is_limit t) : s.X ≅ t.X :=
 (cones.forget F).map_iso (unique_up_to_iso P Q)
 
@@ -255,6 +255,11 @@ def unique_up_to_iso {s t : cocone F} (P : is_colimit s) (Q : is_colimit t) : s 
   inv := Q.desc_cocone_morphism s,
   hom_inv_id' := P.uniq_cocone_morphism,
   inv_hom_id' := Q.uniq_cocone_morphism }
+
+/-- Limits of `F` are unique up to isomorphism. -/
+-- We may later want to prove the coherence of these isomorphisms.
+def cone_point_unique_up_to_iso {s t : cocone F} (P : is_colimit s) (Q : is_colimit t) : s.X ≅ t.X :=
+(cocones.forget F).map_iso (unique_up_to_iso P Q)
 
 def of_iso_colimit {r t : cocone F} (P : is_colimit r) (i : r ≅ t) : is_colimit t :=
 is_colimit.mk_cocone_morphism

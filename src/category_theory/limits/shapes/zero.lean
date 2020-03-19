@@ -48,7 +48,8 @@ attribute [simp, reassoc] has_zero_morphisms.zero_comp
 namespace has_zero_morphisms
 variables {C}
 
-lemma ext' (I J : has_zero_morphisms.{v} C)
+/-- This lemma will be immediately superseded by `ext`, below. -/
+private lemma ext_aux (I J : has_zero_morphisms.{v} C)
   (w : ∀ X Y : C, (@has_zero_morphisms.has_zero.{v} _ _ I X Y).zero = (@has_zero_morphisms.has_zero.{v} _ _ J X Y).zero) : I = J :=
 begin
   resetI,
@@ -69,7 +70,7 @@ See, particularly, the note on `zero_morphisms_of_zero_object` below.
 -/
 lemma ext (I J : has_zero_morphisms.{v} C) : I = J :=
 begin
-  apply ext',
+  apply ext_aux,
   intros X Y,
   rw ←@has_zero_morphisms.comp_zero _ _ I X X (@has_zero_morphisms.has_zero _ _ J X X).zero,
   rw @has_zero_morphisms.zero_comp _ _ J,

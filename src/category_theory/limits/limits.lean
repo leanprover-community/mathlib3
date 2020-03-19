@@ -256,7 +256,7 @@ this.trans this.symm
 
 /--
 Alternative constructor for `is_colimit`,
-providing a morphism of cocones rather than a morphism between the cone points
+providing a morphism of cocones rather than a morphism between the cocone points
 and separately the factorisation condition.
 -/
 def mk_cocone_morphism {t : cocone F}
@@ -766,10 +766,10 @@ has_colimits.has_colimits_of_shape C J
 
 /- Interface to the `has_colimit` class. -/
 
-/-- The chosen limit cone of a functor. -/
+/-- The chosen colimit cocone of a functor. -/
 def colimit.cocone (F : J ⥤ C) [has_colimit F] : cocone F := has_colimit.cocone F
 
-/-- The chosen limit object of a functor. -/
+/-- The chosen colimit object of a functor. -/
 def colimit (F : J ⥤ C) [has_colimit F] := (colimit.cocone F).X
 
 /-- The coprojection from a value of the functor to the chosen colimit object. -/
@@ -883,8 +883,8 @@ variables (F) [has_colimit F] (E : K ⥤ J) [has_colimit (E ⋙ F)]
 
 /--
 The canonical morphism
-from the chosen limit of `E ⋙ F`
-to the chosen limit of `F`.
+from the chosen colimit of `E ⋙ F`
+to the chosen colimit of `F`.
 -/
 def colimit.pre : colimit (E ⋙ F) ⟶ colimit F :=
 colimit.desc (E ⋙ F)

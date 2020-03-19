@@ -54,10 +54,10 @@ begin
   resetI,
   cases I, cases J,
   congr,
-  ext X Y,
-  exact w X Y,
-  apply proof_irrel_heq,
-  apply proof_irrel_heq,
+  { ext X Y,
+    exact w X Y },
+  { apply proof_irrel_heq },
+  { apply proof_irrel_heq }
 end
 
 @[ext]

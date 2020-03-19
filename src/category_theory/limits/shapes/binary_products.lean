@@ -35,6 +35,7 @@ instance fintype_walking_pair : fintype walking_pair :=
 { elems := [walking_pair.left, walking_pair.right].to_finset,
   complete := λ x, by { cases x; simp } }
 
+@[simp]
 def pair_function {C : Type u} (X Y : C) : walking_pair → C
 | walking_pair.left := X
 | walking_pair.right := Y
@@ -56,6 +57,20 @@ def map_pair {W X Y Z : C} (f : W ⟶ Y) (g : X ⟶ Z) : pair W X ⟶ pair Y Z :
 
 @[simp] lemma map_pair_left {W X Y Z : C} (f : W ⟶ Y) (g : X ⟶ Z) : (map_pair f g).app walking_pair.left = f := rfl
 @[simp] lemma map_pair_right {W X Y Z : C} (f : W ⟶ Y) (g : X ⟶ Z) : (map_pair f g).app walking_pair.right = g := rfl
+
+section
+variables {D : Type u} [𝒟 : category.{v} D]
+include 𝒟
+
+@[simps]
+def pair_comp (X Y : C) (F : C ⥤ D) : pair X Y ⋙ F ≅ pair (F.obj X) (F.obj Y) :=
+{ hom := { app := begin rintro ⟨j⟩; exact 𝟙 _, end },
+  inv := { app := begin rintro ⟨j⟩; exact 𝟙 _, end },
+  -- TODO by automation:
+  hom_inv_id' := begin ext j, cases j; { dsimp, simp, } end,
+  inv_hom_id' := begin ext j, cases j; { dsimp, simp, } end }
+
+end
 
 /-- Every functor indexing a (co)product is naturally isomorphic (actually, equal) to a `pair` -/
 def diagram_iso_pair (F : discrete walking_pair ⥤ C) :

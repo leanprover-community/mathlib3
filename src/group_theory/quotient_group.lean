@@ -111,7 +111,7 @@ instance is_group_hom_quotient_lift  :
 @[to_additive quotient_add_group.map_is_add_group_hom]
 instance map_is_group_hom (M : set H) [normal_subgroup M]
 (f : G → H) [is_group_hom f] (h : N ⊆ f ⁻¹' M) : is_group_hom (map N M f h) :=
-quotient_group.is_group_hom_quotient_lift _ _ _
+@quotient_group.is_group_hom_quotient_lift _ _ _ _ _ _ _ (is_group_hom.comp _ _) _
 
 open function is_group_hom
 

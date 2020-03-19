@@ -554,6 +554,15 @@ lemma eventually.mono {p q : α → Prop} {f : filter α} (hp : ∀ᶠ x in f, p
   ∀ᶠ x in f, q x :=
 hp.mp (f.eventually_of_forall hq)
 
+lemma eventually.congr {f : filter α} {β : Type*} {u v : α → β} {p : β → Prop}
+  (h : ∀ᶠ a in f, u a = v a) (h' : ∀ᶠ a in f, p (u a)) : ∀ᶠ a in f, p (v a) :=
+h'.mp (h.mono (by simp {contextual := tt}))
+
+lemma eventually.congr_iff {f : filter α} {β : Type*} {u v : α → β}
+  (h : ∀ᶠ a in f, u a = v a) (p : β → Prop) :
+  (∀ᶠ a in f, p (u a)) ↔ (∀ᶠ a in f, p (v a)) :=
+⟨h.congr, eventually.congr (h.mp (by simp {contextual := tt}))⟩
+
 @[simp]
 lemma eventually_bot {p : α → Prop} : ∀ᶠ x in ⊥, p x := ⟨⟩
 

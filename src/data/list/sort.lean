@@ -55,6 +55,15 @@ end
 
 @[simp] theorem sorted_singleton (a : α) : sorted r [a] := pairwise_singleton _ _
 
+lemma nth_le_of_sorted_of_le [is_refl α r] {l : list α}
+  (h : l.sorted r) {a b : ℕ} {ha : a < l.length} {hb : b < l.length} (hab : a ≤ b) :
+  r (l.nth_le a ha) (l.nth_le b hb) :=
+begin
+  cases eq_or_lt_of_le hab with H H,
+  { induction H, exact refl _ },
+  { exact list.pairwise_iff_nth_le.1 h a b hb H }
+end
+
 end sorted
 
 /-

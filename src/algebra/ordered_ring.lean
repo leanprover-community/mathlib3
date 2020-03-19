@@ -516,8 +516,8 @@ by rw [←coe_nat n]; apply top_ne_coe
 
 lemma add_one_le_of_lt {i n : with_top ℕ} (h : i < n) : i + 1 ≤ n :=
 begin
-  cases n, { exact lattice.le_top },
-  cases i, { exact (not_le_of_lt h lattice.le_top).elim },
+  cases n, { exact le_top },
+  cases i, { exact (not_le_of_lt h le_top).elim },
   exact with_top.coe_le_coe.2 (with_top.coe_lt_coe.1 h)
 end
 

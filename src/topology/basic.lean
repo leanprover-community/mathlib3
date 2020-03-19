@@ -35,7 +35,7 @@ Topology in mathlib heavily uses filters (even more than in Bourbaki). See expla
 topological space, interior, closure, frontier, neighborhood, continuity, continuous function
 -/
 
-open set filter lattice classical
+open set filter classical
 open_locale classical
 
 universes u v w
@@ -358,7 +358,7 @@ by rw [closure_compl, frontier, diff_eq]
 
 /-- The complement of a set has the same frontier as the original set. -/
 @[simp] lemma frontier_compl (s : set α) : frontier (-s) = frontier s :=
-by simp only [frontier_eq_closure_inter_closure, lattice.neg_neg, inter_comm]
+by simp only [frontier_eq_closure_inter_closure, compl_compl, inter_comm]
 
 lemma frontier_inter_subset (s t : set α) :
   frontier (s ∩ t) ⊆ (frontier s ∩ closure t) ∪ (closure s ∩ frontier t) :=

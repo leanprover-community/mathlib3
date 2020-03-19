@@ -9,7 +9,7 @@ Subtype of open subsets in a topological space.
 import topology.bases topology.separation
 import order.copy
 
-open filter lattice
+open filter
 variables {α : Type*} {β : Type*} [topological_space α] [topological_space β]
 
 namespace topological_space
@@ -70,7 +70,7 @@ def gi : @galois_insertion (order_dual (set α)) (order_dual (opens α)) _ _ int
 
 instance : complete_lattice (opens α) :=
 complete_lattice.copy
-(@order_dual.lattice.complete_lattice _
+(@order_dual.complete_lattice _
   (@galois_insertion.lift_complete_lattice
     (order_dual (set α)) (order_dual (opens α)) interior (subtype.val : opens α → set α) _ _ gi))
 /- le  -/ (λ U V, U.1 ⊆ V.1) rfl

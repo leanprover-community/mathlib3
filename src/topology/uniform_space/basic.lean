@@ -26,7 +26,7 @@ A major difference is that this formalization is heavily based on the filter lib
 -/
 import order.filter.basic order.filter.lift topology.separation
 
-open set lattice filter classical
+open set filter classical
 open_locale classical topological_space
 
 set_option eqn_compiler.zeta true

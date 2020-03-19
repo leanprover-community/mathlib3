@@ -18,7 +18,7 @@ Polynomials should be seen as (semi-)rings with the additional constructor `X`.
 The embedding from α is called `C`. -/
 def polynomial (α : Type*) [comm_semiring α] := ℕ →₀ α
 
-open finsupp finset lattice
+open finsupp finset
 
 namespace polynomial
 universes u v
@@ -1205,7 +1205,7 @@ calc (div_X p).degree < (div_X p * X + C (p.coeff 0)).degree :
   then begin
       have h' : C (p.coeff 0) ≠ 0, by rwa [← eq_C_of_degree_le_zero h],
       rw [eq_C_of_degree_le_zero h, div_X_C, degree_zero, zero_mul, zero_add],
-      exact lt_of_le_of_ne lattice.bot_le (ne.symm (mt degree_eq_bot.1 $
+      exact lt_of_le_of_ne bot_le (ne.symm (mt degree_eq_bot.1 $
         by simp [h'])),
     end
   else
@@ -1265,7 +1265,7 @@ rec_on_horner p
     then hX h0 (ih h0)
     else by rw [eq_C_of_degree_le_zero (le_of_not_gt h0)] at *;
       exact hC (λ h : coeff p 0 = 0,
-        by simpa [h, not_lt.2 (@lattice.bot_le (  ℕ) _ _)] using h0'))
+        by simpa [h, nat.not_lt_zero] using h0'))
   h0
 
 end comm_semiring

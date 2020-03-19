@@ -1,7 +1,7 @@
 /-
 Copyright (c) 2019 Reid Barton. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
-Authors: Reid Barton
+Authors: Reid Barton, Scott Morrison
 
 Facts about epimorphisms and monomorphisms.
 
@@ -60,9 +60,6 @@ such that `f ≫ retraction f = 𝟙 X`.
 
 Every split monomorphism is a monomorphism.
 -/
--- TODO:
--- Every split monomorphism is also a regular monomorphism,
--- and this should be proved when they are introduced.
 class split_mono {X Y : C} (f : X ⟶ Y) :=
 (retraction : Y ⟶ X)
 (id' : f ≫ retraction = 𝟙 X . obviously)

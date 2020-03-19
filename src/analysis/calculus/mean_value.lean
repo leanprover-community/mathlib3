@@ -60,7 +60,7 @@ set_option class.instance_max_depth 120
 variables {E : Type*} [normed_group E] [normed_space ℝ E]
           {F : Type*} [normed_group F] [normed_space ℝ F]
 
-open metric set lattice asymptotics continuous_linear_map filter
+open metric set asymptotics continuous_linear_map filter
 open_locale classical topological_space
 
 /-! ### One-dimensional fencing inequalities -/

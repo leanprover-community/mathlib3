@@ -28,7 +28,7 @@ and in particular
 https://ncatlab.org/nlab/show/too+simple+to+be+simple#relationship_to_biased_definitions.
 -/
 
-open set filter lattice classical
+open set filter classical
 open_locale classical topological_space
 
 universes u v
@@ -116,7 +116,7 @@ classical.by_contradiction $ assume h,
   in
   have f ≤ principal (- U i),
     from infi_le_of_le {i} $ principal_mono.mpr $ show s - _ ⊆ - U i, by simp [diff_subset_iff],
-  have is_closed (- U i), from is_open_compl_iff.mp $ by rw lattice.neg_neg; exact hUo i,
+  have is_closed (- U i), from is_open_compl_iff.mp $ by rw compl_compl; exact hUo i,
   have a ∈ - U i, from is_closed_iff_nhds.mp this _ $ ne_bot_of_le_ne_bot h $
     le_inf inf_le_right (inf_le_left_of_le ‹f ≤ principal (- U i)›),
   this ‹a ∈ U i›

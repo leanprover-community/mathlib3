@@ -170,13 +170,49 @@ def find (p : α → Prop) [decidable_pred p] : list α → option α
 def mfind {α} {m : Type → Type u} [monad m] [alternative m] (tac : α → m unit) : list α → m α :=
 list.mfirst $ λ a, tac a $> a
 
-def find_indexes_aux (p : α → Prop) [decidable_pred p] : list α → nat → list nat
-| []     n := []
-| (a::l) n := let t := find_indexes_aux l (succ n) in if p a then n :: t else t
+/-- Auxiliary definition for `foldl_with_index`. -/
+def foldl_with_index_aux (f : ℕ → α → β → α) : ℕ → α → list β → α
+| _ a [] := a
+| i a (b :: l) := foldl_with_index_aux (i + 1) (f i a b) l
+
+/-- Fold a list from left to right as with `foldl`, but the combining function
+also receives each element's index. -/
+def foldl_with_index (f : ℕ → α → β → α) (a : α) (l : list β) : α :=
+foldl_with_index_aux f 0 a l
+
+/-- Auxiliary definition for `foldr_with_index`. -/
+def foldr_with_index_aux (f : ℕ → α → β → β) : ℕ → β → list α → β
+| _ b [] := b
+| i b (a :: l) := f i a (foldr_with_index_aux (i + 1) b l)
+
+/-- Fold a list from right to left as with `foldr`, but the combining function
+also receives each element's index. -/
+def foldr_with_index (f : ℕ → α → β → β) (b : β) (l : list α) : β :=
+foldr_with_index_aux f 0 b l
+
+/-- `indexes l` is the list of indexes of `l`, i.e. `[0 .. l.length - 1]`. -/
+def indexes (l : list α) : list ℕ :=
+l.foldr_with_index (λ i _ is, i :: is) []
+
+/-- `indexed l` is `l` but every element is annotated with its index.
+
+     indexed l = zip (indexes l) l -/
+def indexed (l : list α) : list (ℕ × α) :=
+l.foldr_with_index (λ i a out, (i, a) :: out) []
 
 /-- `find_indexes p l` is the list of indexes of elements of `l` that satisfy `p`. -/
 def find_indexes (p : α → Prop) [decidable_pred p] (l : list α) : list nat :=
-find_indexes_aux p l 0
+foldr_with_index (λ i a is, if p a then i :: is else is) [] l
+
+/-- Returns the elements of `l` that satisfy `p` together with their indexes in
+`l`. The returned list is ordered by index. -/
+def indexes_values (p : α → Prop) [decidable_pred p] (l : list α) : list (ℕ × α) :=
+foldr_with_index (λ i a l, if p a then (i , a) :: l else l) [] l
+
+/-- `indexes_of a l` is the list of all indexes of `a` in `l`.
+
+     indexes_of a [a, b, a, a] = [0, 2, 3] -/
+def indexes_of [decidable_eq α] (a : α) : list α → list nat := find_indexes (eq a)
 
 /-- `lookmap` is a combination of `lookup` and `filter_map`.
   `lookmap f l` will apply `f : α → option α` to each element of the list,
@@ -188,21 +224,6 @@ def lookmap (f : α → option α) : list α → list α
   | some b := b :: l
   | none   := a :: lookmap l
   end
-
-/-- `indexes_of a l` is the list of all indexes of `a` in `l`.
-
-     indexes_of a [a, b, a, a] = [0, 2, 3] -/
-def indexes_of [decidable_eq α] (a : α) : list α → list nat := find_indexes (eq a)
-
-/-- Auxilliary definition for `indexes_values`. -/
-def indexes_values_aux {α} (f : α → bool) : list α → ℕ → list (ℕ × α)
-| []      n := []
-| (x::xs) n := let ns := indexes_values_aux xs (n+1) in if f x then (n, x)::ns else ns
-
-/-- Returns `(l.find_indexes f).zip l`, i.e. pairs of `(n, x)` such that `f x = tt` and
-  `l.nth = some x`, in increasing order of first arguments. -/
-def indexes_values {α} (l : list α) (f : α → bool) : list (ℕ × α) :=
-indexes_values_aux f l 0
 
 /-- `countp p l` is the number of elements of `l` that satisfy `p`. -/
 def countp (p : α → Prop) [decidable_pred p] : list α → nat

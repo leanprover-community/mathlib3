@@ -217,6 +217,14 @@ instance (n : ℕ+) : has_repr (zmod n) := fin.has_repr _
 
 lemma card_zmod (n : ℕ+) : fintype.card (zmod n) = n := fintype.card_fin n
 
+instance : subsingleton (units (zmod 2)) :=
+⟨λ x y, begin
+  cases x with x xi,
+  cases y with y yi,
+  revert x y xi yi,
+  exact dec_trivial
+end⟩
+
 lemma le_div_two_iff_lt_neg {n : ℕ+} (hn : (n : ℕ) % 2 = 1)
   {x : zmod n} (hx0 : x ≠ 0) : x.1 ≤ (n / 2 : ℕ) ↔ (n / 2 : ℕ) < (-x).1 :=
 have hn2 : (n : ℕ) / 2 < n := nat.div_lt_of_lt_mul ((lt_mul_iff_one_lt_left n.pos).2 dec_trivial),
@@ -444,13 +452,8 @@ instance : fintype (zmodp p hp) := @zmod.fintype ⟨p, hp.pos⟩
 
 instance decidable_eq : decidable_eq (zmodp p hp) := fin.decidable_eq _
 
-instance (h : prime 2) : subsingleton (units (zmodp 2 h)) :=
-⟨λ x y, begin
-  cases x with x xi,
-  cases y with y yi,
-  revert x y xi yi,
-  exact dec_trivial
-end⟩
+instance X (h : prime 2) : subsingleton (units (zmodp 2 h)) :=
+zmod.subsingleton
 
 instance : has_repr (zmodp p hp) := fin.has_repr _
 

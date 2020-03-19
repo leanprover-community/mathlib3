@@ -145,13 +145,13 @@ begin
          ... = (1 / 2) ^ n * (C * ∥y∥) : by ring },
   have sNu : summable (λn, ∥u n∥),
   { refine summable_of_nonneg_of_le (λn, norm_nonneg _) ule _,
-    exact summable_mul_right _ (summable_geometric (by norm_num) (by norm_num)) },
+    exact summable.mul_right _ (summable_geometric (by norm_num) (by norm_num)) },
   have su : summable u := summable_of_summable_norm sNu,
   let x := tsum u,
   have x_ineq : ∥x∥ ≤ (2 * C + 1) * ∥y∥ := calc
     ∥x∥ ≤ (∑n, ∥u n∥) : norm_tsum_le_tsum_norm sNu
     ... ≤ (∑n, (1/2)^n * (C * ∥y∥)) :
-      tsum_le_tsum ule sNu (summable_mul_right _ summable_geometric_two)
+      tsum_le_tsum ule sNu (summable.mul_right _ summable_geometric_two)
     ... = (∑n, (1/2)^n) * (C * ∥y∥) : by { rw tsum_mul_right, exact summable_geometric_two }
     ... = 2 * (C * ∥y∥) : by rw tsum_geometric_two
     ... = 2 * C * ∥y∥ + 0 : by rw [add_zero, mul_assoc]
@@ -164,7 +164,7 @@ begin
     { rw [sum_range_succ, f.map_add, IH, nat.iterate_succ'],
       simp [u, h, sub_eq_add_neg, add_comm, add_left_comm] } },
   have : tendsto (λn, (range n).sum u) at_top (𝓝 x) :=
-    tendsto_sum_nat_of_has_sum (has_sum_tsum su),
+    su.has_sum.tendsto_sum_nat,
   have L₁ : tendsto (λn, f((range n).sum u)) at_top (𝓝 (f x)) :=
     (f.continuous.tendsto _).comp this,
   simp only [fsumeq] at L₁,

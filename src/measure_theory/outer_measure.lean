@@ -234,7 +234,7 @@ instance : has_scalar ennreal (outer_measure α) :=
   measure_of := λs, a * m s,
   empty := by simp,
   mono := λ s t h, canonically_ordered_semiring.mul_le_mul (le_refl _) (m.mono' h),
-  Union_nat := λ s, by rw ennreal.mul_tsum; exact
+  Union_nat := λ s, by rw ennreal.tsum_mul_left; exact
     canonically_ordered_semiring.mul_le_mul (le_refl _) (m.Union_nat _) }⟩
 
 @[simp] theorem smul_apply (a : ennreal) (m : outer_measure α) (s : set α) :

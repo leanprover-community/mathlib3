@@ -267,7 +267,7 @@ meta def instance_priority (d : declaration) : tactic (option string) := do
   b ← is_instance nm,
   /- return `none` if `d` is not an instance -/
   if ¬ b then return none else do
-  prio ← has_attribute `instance nm,
+  (is_persistent, prio) ← has_attribute `instance nm,
   /- return `none` if `d` is has low priority -/
   if prio < 1000 then return none else do
   let (fn, args) := d.type.pi_codomain.get_app_fn_args,
@@ -389,18 +389,6 @@ meta def impossible_instance (d : declaration) : tactic (option string) := do
   errors_found := "IMPOSSIBLE INSTANCES FOUND.
 These instances have an argument that cannot be found during type-class resolution, and therefore can never succeed. Either mark the arguments with square brackets (if it is a class), or don't make it an instance" }
 
-/-- Checks whether the definition `nm` unfolds to a class. -/
-/- Note: Caching the result of `unfolds_to_class` by giving it an attribute
-(so that e.g. `vector_space` or `decidable_eq` would not be repeatedly unfold to check whether it is
-a class), did not speed up this tactic when executed on all of mathlib (and instead significantly
-slowed it down) -/
-meta def unfolds_to_class : name → tactic bool | nm :=
-if nm = `has_reflect then return tt else
-succeeds $ has_attribute `class nm <|> do
-  d ← get_decl nm,
-  tt ← unfolds_to_class d.value.lambda_body.pi_codomain.get_app_fn.const_name,
-  return 0 -- We do anything that succeeds here. We return a `ℕ` because of `has_attribute`.
-
 /-- Checks whether an instance can never be applied. -/
 meta def incorrect_type_class_argument (d : declaration) : tactic (option string) := do
   (binders, _) ← get_pi_binders d.type,
@@ -409,9 +397,10 @@ meta def incorrect_type_class_argument (d : declaration) : tactic (option string
   /- the head of the type should either unfold to a class, or be a local constant.
   A local constant is allowed, because that could be a class when applied to the
   proper arguments. -/
-  bad_arguments ← instance_arguments.mfilter $
-    λ⟨_, b⟩, let head := b.type.erase_annotations.pi_codomain.get_app_fn in
-      if head.is_local_constant then return ff else bnot <$> unfolds_to_class head.const_name,
+  bad_arguments ← instance_arguments.mfilter (λ ⟨_, b⟩, do
+    (_, head) ← mk_local_pis b.type,
+    if head.get_app_fn.is_local_constant then return ff else do
+    bnot <$> is_class head),
   _ :: _ ← return bad_arguments | return none,
   (λ s, some $ "These are not classes. " ++ s) <$> print_arguments bad_arguments
 

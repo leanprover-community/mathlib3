@@ -860,7 +860,7 @@ lemma mem_prod {s : submonoid M} {t : submonoid N} {p : M × N} :
   p ∈ s.prod t ↔ p.1 ∈ s ∧ p.2 ∈ t := iff.rfl
 
 @[to_additive prod_mono]
-lemma prod_mono : ((≤) ⇒  (≤) ⇒ (≤)) (@prod M _ N _) (@prod M _ N _) :=
+lemma prod_mono : ((≤) ⇒ (≤) ⇒ (≤)) (@prod M _ N _) (@prod M _ N _) :=
 λ s s' hs t t' ht, set.prod_mono hs ht
 
 @[to_additive prod_mono_right]

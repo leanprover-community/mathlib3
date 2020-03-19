@@ -2,7 +2,7 @@ import analysis.convex.basic order.zorn
 
 universes u v
 
-open set lattice (hiding neg_neg neg_le_neg) linear_map
+open set linear_map
 open_locale classical
 
 set_option class.instance_max_depth 60

@@ -7,7 +7,7 @@ import algebra.associated linear_algebra.basic order.zorn
 
 universes u v
 variables {α : Type u} {β : Type v} {a b : α}
-open set function lattice
+open set function
 
 open_locale classical
 

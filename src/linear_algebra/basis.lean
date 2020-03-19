@@ -61,7 +61,7 @@ linearly dependent, linear dependence, linearly independent, linear independence
 
 noncomputable theory
 
-open function lattice set submodule
+open function set submodule
 open_locale classical
 
 variables {ι : Type*} {ι' : Type*} {R : Type*} {K : Type*}

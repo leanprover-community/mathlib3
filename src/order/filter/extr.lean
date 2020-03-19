@@ -75,7 +75,7 @@ universes u v w x
 
 variables {α : Type u} {β : Type v} {γ : Type w} {δ : Type x}
 
-open set lattice filter
+open set filter
 
 section preorder
 

@@ -16,7 +16,7 @@ by Marius Stekelenburg, particularly section 5.
 
 noncomputable theory
 
-open filter lattice set
+open filter set
 open_locale topological_space
 
 universes u v
@@ -67,7 +67,7 @@ lemma ultrafilter_converges_iff {u : ultrafilter (ultrafilter α)} {x : ultrafil
 begin
   rw [eq_comm, ultrafilter.eq_iff_val_le_val],
   change u.val ≤ 𝓝 x ↔ x.val.sets ⊆ {a | {v : ultrafilter α | a ∈ v.val} ∈ u.val},
-  simp only [topological_space.nhds_generate_from, lattice.le_infi_iff, ultrafilter_basis,
+  simp only [topological_space.nhds_generate_from, le_infi_iff, ultrafilter_basis,
     le_principal_iff],
   split; intro h,
   { intros a ha, exact h _ ⟨ha, a, rfl⟩ },
@@ -90,8 +90,8 @@ begin
   simp only [comap_infi, comap_principal],
   intros s hs,
   rw ←le_principal_iff,
-  refine lattice.infi_le_of_le {u | s ∈ u.val} _,
-  refine lattice.infi_le_of_le ⟨hs, ⟨s, rfl⟩⟩ _,
+  refine infi_le_of_le {u | s ∈ u.val} _,
+  refine infi_le_of_le ⟨hs, ⟨s, rfl⟩⟩ _,
   exact principal_mono.2 (λ a, id)
 end
 

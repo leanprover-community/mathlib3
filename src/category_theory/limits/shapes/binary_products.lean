@@ -101,8 +101,8 @@ def binary_cofan.mk {P : C} (ι₁ : X ⟶ P) (ι₂ : Y ⟶ P) : binary_cofan X
 abbreviation prod (X Y : C) [has_limit (pair X Y)] := limit (pair X Y)
 abbreviation coprod (X Y : C) [has_colimit (pair X Y)] := colimit (pair X Y)
 
-notation X `⨯`:20 Y:20 := prod X Y
-notation X `⨿`:20 Y:20 := coprod X Y
+notation X ` ⨯ `:20 Y:20 := prod X Y
+notation X ` ⨿ `:20 Y:20 := coprod X Y
 
 abbreviation prod.fst {X Y : C} [has_limit (pair X Y)] : X ⨯ Y ⟶ X :=
 limit.π (pair X Y) walking_pair.left

@@ -711,7 +711,7 @@ well as a map from declaration name to warning.
 -/
 meta def lint_core (all_decls non_auto_decls : list declaration) (checks : list (name × linter)) :
   tactic (list (name × linter × rb_map name string)) := do
-checks.mmap_async $ λ ⟨linter_name, linter⟩, do
+checks.mmap $ λ ⟨linter_name, linter⟩, do
   let test_decls := if linter.auto_decls then all_decls else non_auto_decls,
   results ← test_decls.mfoldl (λ (results : rb_map name string) decl, do
     tt ← should_be_linted linter_name decl.to_name | pure results,

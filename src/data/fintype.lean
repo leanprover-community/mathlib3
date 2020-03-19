@@ -49,37 +49,37 @@ open finset function
 
 namespace fintype
 
-instance decidable_pi_fintype {α} {β : α → Type*} [fintype α] [∀a, decidable_eq (β a)] :
+instance decidable_pi_fintype {α} {β : α → Type*} [∀a, decidable_eq (β a)] [fintype α] :
   decidable_eq (Πa, β a) :=
 assume f g, decidable_of_iff (∀ a ∈ fintype.elems α, f a = g a)
   (by simp [function.funext_iff, fintype.complete])
 
-instance decidable_forall_fintype [fintype α] {p : α → Prop} [decidable_pred p] :
+instance decidable_forall_fintype {p : α → Prop} [decidable_pred p] [fintype α] :
   decidable (∀ a, p a) :=
 decidable_of_iff (∀ a ∈ @univ α _, p a) (by simp)
 
-instance decidable_exists_fintype [fintype α] {p : α → Prop} [decidable_pred p] :
+instance decidable_exists_fintype {p : α → Prop} [decidable_pred p] [fintype α] :
   decidable (∃ a, p a) :=
 decidable_of_iff (∃ a ∈ @univ α _, p a) (by simp)
 
-instance decidable_eq_equiv_fintype [fintype α] [decidable_eq β] :
+instance decidable_eq_equiv_fintype [decidable_eq β] [fintype α] :
   decidable_eq (α ≃ β) :=
 λ a b, decidable_of_iff (a.1 = b.1) ⟨λ h, equiv.ext _ _ (congr_fun h), congr_arg _⟩
 
-instance decidable_injective_fintype [fintype α] [decidable_eq α] [decidable_eq β] :
+instance decidable_injective_fintype [decidable_eq α] [decidable_eq β] [fintype α] :
   decidable_pred (injective : (α → β) → Prop) := λ x, by unfold injective; apply_instance
 
-instance decidable_surjective_fintype [fintype α] [fintype β] [decidable_eq β] :
+instance decidable_surjective_fintype [decidable_eq β] [fintype α] [fintype β] :
   decidable_pred (surjective : (α → β) → Prop) := λ x, by unfold surjective; apply_instance
 
-instance decidable_bijective_fintype [fintype α] [decidable_eq α] [fintype β] [decidable_eq β] :
+instance decidable_bijective_fintype [decidable_eq α] [decidable_eq β] [fintype α] [fintype β] :
   decidable_pred (bijective : (α → β) → Prop) := λ x, by unfold bijective; apply_instance
 
-instance decidable_left_inverse_fintype [fintype α] [decidable_eq α] (f : α → β) (g : β → α) :
+instance decidable_left_inverse_fintype [decidable_eq α] [fintype α] (f : α → β) (g : β → α) :
   decidable (function.right_inverse f g) :=
 show decidable (∀ x, g (f x) = x), by apply_instance
 
-instance decidable_right_inverse_fintype [fintype β] [decidable_eq β] (f : α → β) (g : β → α) :
+instance decidable_right_inverse_fintype [decidable_eq β] [fintype β] (f : α → β) (g : β → α) :
   decidable (function.left_inverse f g) :=
 show decidable (∀ x, f (g x) = x), by apply_instance
 
@@ -466,7 +466,7 @@ fintype.subtype (univ.filter (∈ s)) (by simp)
 
 /-- A dependent product of fintypes, indexed by a fintype, is a fintype. -/
 instance pi.fintype {α : Type*} {β : α → Type*}
-  [fintype α] [decidable_eq α] [∀a, fintype (β a)] : fintype (Πa, β a) :=
+  [decidable_eq α] [fintype α] [∀a, fintype (β a)] : fintype (Πa, β a) :=
 @fintype.of_equiv _ _
   ⟨univ.pi $ λa:α, @univ (β a) _,
     λ f, finset.mem_pi.2 $ λ a ha, mem_univ _⟩
@@ -530,7 +530,7 @@ fintype.of_surjective quotient.mk (λ x, quotient.induction_on x (λ x, ⟨x, rf
 instance finset.fintype [fintype α] : fintype (finset α) :=
 ⟨univ.powerset, λ x, finset.mem_powerset.2 (finset.subset_univ _)⟩
 
-instance subtype.fintype [fintype α] (p : α → Prop) [decidable_pred p] : fintype {x // p x} :=
+instance subtype.fintype (p : α → Prop) [decidable_pred p] [fintype α] : fintype {x // p x} :=
 set_fintype _
 
 theorem fintype.card_subtype_le [fintype α] (p : α → Prop) [decidable_pred p] :
@@ -546,12 +546,12 @@ instance psigma.fintype {α : Type*} {β : α → Type*} [fintype α] [∀ a, fi
   fintype (Σ' a, β a) :=
 fintype.of_equiv _ (equiv.psigma_equiv_sigma _).symm
 
-instance psigma.fintype_prop_left {α : Prop} {β : α → Type*} [∀ a, fintype (β a)] [decidable α] :
+instance psigma.fintype_prop_left {α : Prop} {β : α → Type*} [decidable α] [∀ a, fintype (β a)] :
   fintype (Σ' a, β a) :=
 if h : α then fintype.of_equiv (β h) ⟨λ x, ⟨h, x⟩, psigma.snd, λ _, rfl, λ ⟨_, _⟩, rfl⟩
 else ⟨∅, λ x, h x.1⟩
 
-instance psigma.fintype_prop_right {α : Type*} {β : α → Prop} [fintype α] [∀ a, decidable (β a)] :
+instance psigma.fintype_prop_right {α : Type*} {β : α → Prop} [∀ a, decidable (β a)] [fintype α] :
   fintype (Σ' a, β a) :=
 fintype.of_equiv {a // β a} ⟨λ ⟨x, y⟩, ⟨x, y⟩, λ ⟨x, y⟩, ⟨x, y⟩, λ ⟨x, y⟩, rfl, λ ⟨x, y⟩, rfl⟩
 
@@ -559,7 +559,7 @@ instance psigma.fintype_prop_prop {α : Prop} {β : α → Prop} [decidable α] 
   fintype (Σ' a, β a) :=
 if h : ∃ a, β a then ⟨{⟨h.fst, h.snd⟩}, λ ⟨_, _⟩, by simp⟩ else ⟨∅, λ ⟨x, y⟩, h ⟨x, y⟩⟩
 
-instance set.fintype [fintype α] [decidable_eq α] : fintype (set α) :=
+instance set.fintype [decidable_eq α] [fintype α] : fintype (set α) :=
 pi.fintype
 
 instance pfun_fintype (p : Prop) [decidable p] (α : p → Type*)

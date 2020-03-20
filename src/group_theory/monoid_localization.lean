@@ -397,7 +397,7 @@ begin
   erw [←j.map_mul, sec_spec' f.3],
 end
 
-@[to_additive] lemma eq_of_comp_eq {j k : N →* P}
+@[to_additive] lemma epic_of_localization_map {j k : N →* P}
   (h : ∀ a, j.comp f.1 a = k.comp f.1 a) : j = k :=
 begin
   rw [←f.lift_of_comp j, ←f.lift_of_comp k],

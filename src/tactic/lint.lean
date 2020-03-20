@@ -686,16 +686,6 @@ e ← get_env,
 pure $ ¬ e.contains (mk_nolint_decl_name decl linter)
 
 /--
-Maps a tactic-valued function over a list with parallel execution.
-
-Note: in Lean 3, VM functions executed in tasks need to copy their whole closure and return values
-twice. Therefore you should only use this for expensive functions.
--/
-meta def list.mmap_async {α β} (xs : list α) (f : α → tactic β) : tactic (list β) := do
-async_bs ← xs.mmap (λ a, run_async (f a)),
-pure $ async_bs.map task.get
-
-/--
 `lint_core all_decls non_auto_decls checks` applies the linters `checks` to the list of declarations.
 If `auto_decls` is false for a linter (default) the linter is applied to `non_auto_decls`.
 If `auto_decls` is true, then it is applied to `all_decls`.

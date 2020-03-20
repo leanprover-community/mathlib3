@@ -6,7 +6,7 @@ Author: Johannes Hölzl
 Galois connections - order theoretic adjoints.
 -/
 import order.complete_lattice order.bounds order.order_iso
-open function set lattice
+open function set
 
 universes u v w x
 variables {α : Type u} {β : Type v} {γ : Type w} {ι : Sort x} {a a₁ a₂ : α} {b b₁ b₂ : β}
@@ -214,7 +214,6 @@ def galois_connection.lift_order_bot {α β : Type*} [order_bot α] [partial_ord
   .. ‹partial_order β› }
 
 namespace galois_insertion
-open lattice
 
 variables {l : α → β} {u : β → α}
 

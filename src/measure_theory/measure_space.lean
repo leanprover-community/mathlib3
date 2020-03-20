@@ -24,7 +24,7 @@ a complete measure.
 
 noncomputable theory
 
-open classical set lattice filter finset function
+open classical set filter finset function
 open_locale classical topological_space
 
 universes u v w x
@@ -586,7 +586,7 @@ instance : complete_lattice (measure α) :=
   inf_le_left  := assume a b, Inf_le $ by simp,
   inf_le_right := assume a b, Inf_le $ by simp,
   le_inf       := assume a b c hac hbc, le_Inf $ by simp [*, or_imp_distrib] {contextual := tt},
-  .. measure.partial_order, .. measure.lattice.order_top, .. measure.lattice.order_bot }
+  .. measure.partial_order, .. measure.order_top, .. measure.order_bot }
 
 end
 

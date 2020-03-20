@@ -89,7 +89,7 @@ namespace localization
     `(x₁, y₁) ∼ (x₂, y₂)` by `s`. -/
 @[to_additive "The congruence relation on `M × S`, `M` an `add_comm_monoid` and `S` an `add_submonoid` of `M`, whose quotient is the localization of `M` at `S`, defined as the unique congruence relation on `M × S` such that for any other congruence relation `s` on `M × S` where for all `y ∈ S`, `(0, 0) ∼ (y, y)` under `s`, we have that `(x₁, y₁) ∼ (x₂, y₂)` by `r` implies `(x₁, y₁) ∼ (x₂, y₂)` by `s`."]
 def r (S : submonoid M) : con (M × S) :=
-lattice.Inf {c | ∀ y : S, c 1 (y, y)}
+Inf {c | ∀ y : S, c 1 (y, y)}
 
 /-- An alternate form of the congruence relation on `M × S`, `M` a `comm_monoid` and `S` a
     submonoid of `M`, whose quotient is the localization of `M` at `S`. Its equivalence to `r` can
@@ -118,8 +118,8 @@ end
     (see `localization.r'`). -/
 @[to_additive "The additive congruence relation used to localize an `add_comm_monoid` at a submonoid can be expressed equivalently as an infimum (see `localization.r`) or explicitly (see `localization.r'`)."]
 theorem r_eq_r' : r S = r' S :=
-le_antisymm (lattice.Inf_le $ λ _, ⟨1, by simp⟩) $
-  lattice.le_Inf $ λ b H ⟨p, q⟩ y ⟨t, ht⟩,
+le_antisymm (Inf_le $ λ _, ⟨1, by simp⟩) $
+  le_Inf $ λ b H ⟨p, q⟩ y ⟨t, ht⟩,
     begin
       rw [← mul_one (p, q), ← mul_one y],
       refine b.trans (b.mul (b.refl _) (H (y.2 * t))) _,

@@ -8,7 +8,7 @@ Bases of topologies. Countability axioms.
 
 import topology.constructions data.set.countable
 
-open set filter lattice classical
+open set filter classical
 open_locale topological_space
 
 namespace filter
@@ -36,7 +36,7 @@ begin
   cases B.eq_empty_or_nonempty with hB Bnonempty, { use λ n, set.univ, simp [principal_univ, *] },
   rw countable_iff_exists_surjective_to_subtype Bnonempty at Bcbl,
   rcases Bcbl with ⟨g, gsurj⟩,
-  rw lattice.infi_subtype',
+  rw infi_subtype',
   use (λ n, g n), apply le_antisymm; rw le_infi_iff,
   { intro i, apply infi_le_of_le (g i) _, apply le_refl _ },
   { intros a, rcases gsurj a with i, apply infi_le_of_le i _, subst h, apply le_refl _ }

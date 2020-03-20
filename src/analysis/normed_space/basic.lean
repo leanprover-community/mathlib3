@@ -218,23 +218,26 @@ by simp only [nnreal.eq_iff.symm, nnreal.coe_zero, coe_nnnorm, norm_eq_zero]
 nnreal.eq norm_zero
 
 lemma nnnorm_add_le (g h : α) : nnnorm (g + h) ≤ nnnorm g + nnnorm h :=
-nnreal.coe_le.2 $ norm_add_le g h
+nnreal.coe_le_coe.2 $ norm_add_le g h
 
 @[simp] lemma nnnorm_neg (g : α) : nnnorm (-g) = nnnorm g :=
 nnreal.eq $ norm_neg g
 
 lemma nndist_nnnorm_nnnorm_le (g h : α) : nndist (nnnorm g) (nnnorm h) ≤ nnnorm (g - h) :=
-nnreal.coe_le.2 $ dist_norm_norm_le g h
+nnreal.coe_le_coe.2 $ dist_norm_norm_le g h
 
 lemma of_real_norm_eq_coe_nnnorm (x : β) : ennreal.of_real ∥x∥ = (nnnorm x : ennreal) :=
 ennreal.of_real_eq_coe_nnreal _
 
+lemma edist_eq_coe_nnnorm_sub (x y : β) : edist x y = (nnnorm (x - y) : ennreal) :=
+by rw [edist_dist, dist_eq_norm, of_real_norm_eq_coe_nnnorm]
+
 lemma edist_eq_coe_nnnorm (x : β) : edist x 0 = (nnnorm x : ennreal) :=
-by { rw [edist_dist, dist_eq_norm, _root_.sub_zero, of_real_norm_eq_coe_nnnorm] }
+by rw [edist_eq_coe_nnnorm_sub, _root_.sub_zero]
 
 lemma nndist_add_add_le (g₁ g₂ h₁ h₂ : α) :
   nndist (g₁ + g₂) (h₁ + h₂) ≤ nndist g₁ h₁ + nndist g₂ h₂ :=
-nnreal.coe_le.2 $ dist_add_add_le g₁ g₂ h₁ h₂
+nnreal.coe_le_coe.2 $ dist_add_add_le g₁ g₂ h₁ h₂
 
 lemma edist_add_add_le (g₁ g₂ h₁ h₂ : α) :
   edist (g₁ + g₂) (h₁ + h₂) ≤ edist g₁ h₁ + edist g₂ h₂ :=
@@ -263,7 +266,7 @@ lemma lipschitz_with.sub {α : Type*} [emetric_space α] {Kf : nnreal} {f : α �
 hf.add hg.neg
 
 lemma antilipschitz_with.add_lipschitz_with {α : Type*} [metric_space α] {Kf : nnreal} {f : α → β}
-  (hf : antilipschitz_with Kf f) {Kg : nnreal} {g : α → β} (hg : lipschitz_with Kg g) 
+  (hf : antilipschitz_with Kf f) {Kg : nnreal} {g : α → β} (hg : lipschitz_with Kg g)
   (hK : Kg < Kf⁻¹) :
   antilipschitz_with (Kf⁻¹ - Kg)⁻¹ (λ x, f x + g x) :=
 begin
@@ -771,11 +774,14 @@ end normed_space
 
 section normed_algebra
 
+section prio
+set_option default_priority 100 -- see Note [default priority]
 /-- A normed algebra `𝕜'` over `𝕜` is an algebra endowed with a norm for which the embedding of
 `𝕜` in `𝕜'` is an isometry. -/
 class normed_algebra (𝕜 : Type*) (𝕜' : Type*) [normed_field 𝕜] [normed_ring 𝕜']
   extends algebra 𝕜 𝕜' :=
 (norm_algebra_map_eq : ∀x:𝕜, ∥algebra_map 𝕜' x∥ = ∥x∥)
+end prio
 
 @[simp] lemma norm_algebra_map_eq {𝕜 : Type*} (𝕜' : Type*) [normed_field 𝕜] [normed_ring 𝕜']
   [h : normed_algebra 𝕜 𝕜'] (x : 𝕜) : ∥algebra_map 𝕜' x∥ = ∥x∥ :=
@@ -803,12 +809,13 @@ end restrict_scalars
 section summable
 open_locale classical
 open finset filter
-variables [normed_group α] [complete_space α]
+variables [normed_group α]
 
-lemma summable_iff_vanishing_norm {f : ι → α} :
-  summable f ↔ ∀ε > 0, ∃s:finset ι, ∀t, disjoint t s → ∥ t.sum f ∥ < ε :=
+@[nolint ge_or_gt] -- see Note [nolint_ge]
+lemma cauchy_seq_finset_iff_vanishing_norm {f : ι → α} :
+  cauchy_seq (λ s : finset ι, s.sum f) ↔ ∀ε > 0, ∃s:finset ι, ∀t, disjoint t s → ∥ t.sum f ∥ < ε :=
 begin
-  simp only [summable_iff_vanishing, metric.mem_nhds_iff, exists_imp_distrib],
+  simp only [cauchy_seq_finset_iff_vanishing, metric.mem_nhds_iff, exists_imp_distrib],
   split,
   { assume h ε hε, refine h {x | ∥x∥ < ε} ε hε _, rw [ball_0_eq ε] },
   { assume h s ε hε hs,
@@ -818,24 +825,60 @@ begin
     exact ht u hu }
 end
 
-lemma summable_of_norm_bounded {f : ι → α} (g : ι → ℝ) (hf : summable g) (h : ∀i, ∥f i∥ ≤ g i) :
-  summable f :=
-summable_iff_vanishing_norm.2 $ assume ε hε,
-  let ⟨s, hs⟩ := summable_iff_vanishing_norm.1 hf ε hε in
+@[nolint ge_or_gt] -- see Note [nolint_ge]
+lemma summable_iff_vanishing_norm [complete_space α] {f : ι → α} :
+  summable f ↔ ∀ε > 0, ∃s:finset ι, ∀t, disjoint t s → ∥ t.sum f ∥ < ε :=
+by rw [summable_iff_cauchy_seq_finset, cauchy_seq_finset_iff_vanishing_norm]
+
+lemma cauchy_seq_finset_of_norm_bounded {f : ι → α} (g : ι → ℝ) (hg : summable g)
+  (h : ∀i, ∥f i∥ ≤ g i) : cauchy_seq (λ s : finset ι, s.sum f) :=
+cauchy_seq_finset_iff_vanishing_norm.2 $ assume ε hε,
+  let ⟨s, hs⟩ := summable_iff_vanishing_norm.1 hg ε hε in
   ⟨s, assume t ht,
     have ∥t.sum g∥ < ε := hs t ht,
     have nn : 0 ≤ t.sum g := finset.sum_nonneg (assume a _, le_trans (norm_nonneg _) (h a)),
     lt_of_le_of_lt (norm_sum_le_of_le t (λ i _, h i)) $
       by rwa [real.norm_eq_abs, abs_of_nonneg nn] at this⟩
 
+lemma cauchy_seq_finset_of_summable_norm {f : ι → α} (hf : summable (λa, ∥f a∥)) :
+  cauchy_seq (λ s : finset ι, s.sum f) :=
+cauchy_seq_finset_of_norm_bounded _ hf (assume i, le_refl _)
+
+/-- If a function `f` is summable in norm, and along some sequence of finsets exhausting the space
+its sum is converging to a limit `a`, then this holds along all finsets, i.e., `f` is summable
+with sum `a`. -/
+lemma has_sum_of_subseq_of_summable {f : ι → α} (hf : summable (λa, ∥f a∥))
+  {s : β → finset ι} {p : filter β} (hp : p ≠ ⊥)
+  (hs : tendsto s p at_top) {a : α} (ha : tendsto (λ b, (s b).sum f) p (𝓝 a)) :
+  has_sum f a :=
+tendsto_nhds_of_cauchy_seq_of_subseq (cauchy_seq_finset_of_summable_norm hf) hp hs ha
+
+lemma norm_tsum_le_tsum_norm {f : ι → α} (hf : summable (λi, ∥f i∥)) : ∥(∑i, f i)∥ ≤ (∑ i, ∥f i∥) :=
+begin
+  by_cases h : summable f,
+  { have h₁ : tendsto (λs:finset ι, ∥s.sum f∥) at_top (𝓝 ∥(∑ i, f i)∥) :=
+      (continuous_norm.tendsto _).comp h.has_sum,
+    have h₂ : tendsto (λs:finset ι, s.sum (λi, ∥f i∥)) at_top (𝓝 (∑ i, ∥f i∥)) :=
+      hf.has_sum,
+    exact le_of_tendsto_of_tendsto at_top_ne_bot h₁ h₂ (univ_mem_sets' (assume s, norm_sum_le _ _)) },
+  { rw tsum_eq_zero_of_not_summable h,
+    simp [tsum_nonneg] }
+end
+
+variable [complete_space α]
+
+lemma summable_of_norm_bounded {f : ι → α} (g : ι → ℝ) (hg : summable g) (h : ∀i, ∥f i∥ ≤ g i) :
+  summable f :=
+by { rw summable_iff_cauchy_seq_finset, exact cauchy_seq_finset_of_norm_bounded g hg h }
+
+lemma summable_of_nnnorm_bounded {f : ι → α} (g : ι → nnreal) (hg : summable g)
+  (h : ∀i, nnnorm (f i) ≤ g i) : summable f :=
+summable_of_norm_bounded (λ i, (g i : ℝ)) (nnreal.summable_coe.2 hg) (λ i, by exact_mod_cast h i)
+
 lemma summable_of_summable_norm {f : ι → α} (hf : summable (λa, ∥f a∥)) : summable f :=
 summable_of_norm_bounded _ hf (assume i, le_refl _)
 
-lemma norm_tsum_le_tsum_norm {f : ι → α} (hf : summable (λi, ∥f i∥)) : ∥(∑i, f i)∥ ≤ (∑ i, ∥f i∥) :=
-have h₁ : tendsto (λs:finset ι, ∥s.sum f∥) at_top (𝓝 ∥(∑ i, f i)∥) :=
-  (continuous_norm.tendsto _).comp (has_sum_tsum $ summable_of_summable_norm hf),
-have h₂ : tendsto (λs:finset ι, s.sum (λi, ∥f i∥)) at_top (𝓝 (∑ i, ∥f i∥)) :=
-  has_sum_tsum hf,
-le_of_tendsto_of_tendsto at_top_ne_bot h₁ h₂ $ univ_mem_sets' $ assume s, norm_sum_le _ _
+lemma summable_of_summable_nnnorm {f : ι → α} (hf : summable (λa, nnnorm (f a))) : summable f :=
+summable_of_nnnorm_bounded _ hf (assume i, le_refl _)
 
 end summable

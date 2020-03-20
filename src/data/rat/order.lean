@@ -116,16 +116,16 @@ instance : decidable_linear_order ℚ :=
   decidable_le    := assume a b, rat.decidable_nonneg (b - a) }
 
 /- Extra instances to short-circuit type class resolution -/
-instance : has_lt ℚ                  := by apply_instance
-instance : lattice.distrib_lattice ℚ := by apply_instance
-instance : lattice.lattice ℚ         := by apply_instance
-instance : lattice.semilattice_inf ℚ := by apply_instance
-instance : lattice.semilattice_sup ℚ := by apply_instance
-instance : lattice.has_inf ℚ         := by apply_instance
-instance : lattice.has_sup ℚ         := by apply_instance
-instance : linear_order ℚ            := by apply_instance
-instance : partial_order ℚ           := by apply_instance
-instance : preorder ℚ                := by apply_instance
+instance : has_lt ℚ          := by apply_instance
+instance : distrib_lattice ℚ := by apply_instance
+instance : lattice ℚ         := by apply_instance
+instance : semilattice_inf ℚ := by apply_instance
+instance : semilattice_sup ℚ := by apply_instance
+instance : has_inf ℚ         := by apply_instance
+instance : has_sup ℚ         := by apply_instance
+instance : linear_order ℚ    := by apply_instance
+instance : partial_order ℚ   := by apply_instance
+instance : preorder ℚ        := by apply_instance
 
 protected lemma le_def' {p q : ℚ} : p ≤ q ↔ p.num * q.denom ≤ q.num * p.denom :=
 begin

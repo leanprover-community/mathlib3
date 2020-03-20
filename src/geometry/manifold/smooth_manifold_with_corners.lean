@@ -330,7 +330,7 @@ local homeomorphisms -/
 lemma times_cont_diff_groupoid_zero_eq :
   times_cont_diff_groupoid 0 I = continuous_groupoid H :=
 begin
-  apply le_antisymm lattice.le_top,
+  apply le_antisymm le_top,
   assume u hu,
   -- we have to check that every local homeomorphism belongs to `times_cont_diff_groupoid 0 I`,
   -- by unfolding its definition

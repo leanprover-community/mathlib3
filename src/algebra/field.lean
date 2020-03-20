@@ -192,9 +192,6 @@ attribute [simp] inv_zero div_zero
 @[simp] lemma inv_eq_zero {a : α} : a⁻¹ = 0 ↔ a = 0 :=
 classical.by_cases (assume : a = 0, by simp [*])(assume : a ≠ 0, by simp [*, inv_ne_zero])
 
-lemma neg_inv' (a : α) : (-a)⁻¹ = - a⁻¹ :=
-neg_inv.symm
-
 end
 
 namespace ring_hom
@@ -210,12 +207,15 @@ lemma map_ne_zero : f x ≠ 0 ↔ x ≠ 0 :=
 lemma map_eq_zero : f x = 0 ↔ x = 0 :=
 by haveI := classical.dec; exact not_iff_not.1 f.map_ne_zero
 
-lemma map_inv' (h : x ≠ 0) : f x⁻¹ = (f x)⁻¹ :=
-(domain.mul_left_inj (f.map_ne_zero.2 h)).1 $
-by rw [mul_inv_cancel (f.map_ne_zero.2 h), ← f.map_mul, mul_inv_cancel h, f.map_one]
+lemma map_inv : f x⁻¹ = (f x)⁻¹ :=
+begin
+  classical, by_cases h : x = 0, by simp [h],
+  apply (domain.mul_left_inj (f.map_ne_zero.2 h)).1,
+  rw [mul_inv_cancel (f.map_ne_zero.2 h), ← f.map_mul, mul_inv_cancel h, f.map_one]
+end
 
-lemma map_div' (h : y ≠ 0) : f (x / y) = f x / f y :=
-(f.map_mul _ _).trans $ congr_arg _ $ f.map_inv' h
+lemma map_div : f (x / y) = f x / f y :=
+(f.map_mul _ _).trans $ congr_arg _ $ f.map_inv
 
 lemma injective : function.injective f :=
 f.injective_iff.2
@@ -225,17 +225,6 @@ f.injective_iff.2
 
 end
 
-section
-
-variables {β : Type*} [field α] [field β] (f : α →+* β) {x y : α}
-
-lemma map_inv : f x⁻¹ = (f x)⁻¹ :=
-classical.by_cases (by rintro rfl; simp only [map_zero f, inv_zero]) (map_inv' f)
-
-lemma map_div : f (x / y) = f x / f y :=
-(f.map_mul _ _).trans $ congr_arg _ $ map_inv f
-
-end
 end ring_hom
 
 namespace is_ring_hom
@@ -249,21 +238,11 @@ variables (f : α → β) [is_ring_hom f] {x y : α}
 
 @[simp] lemma map_eq_zero : f x = 0 ↔ x = 0 := (of f).map_eq_zero
 
-lemma map_inv' (h : x ≠ 0) : f x⁻¹ = (f x)⁻¹ := (of f).map_inv' h
-
-lemma map_div' (h : y ≠ 0) : f (x / y) = f x / f y := (of f).map_div' h
-
-lemma injective : function.injective f := (of f).injective
-
-end
-
-section
-variables {β : Type*} [field α] [field β]
-variables (f : α → β) [is_ring_hom f] {x y : α}
-
 lemma map_inv : f x⁻¹ = (f x)⁻¹ := (of f).map_inv
 
 lemma map_div : f (x / y) = f x / f y := (of f).map_div
+
+lemma injective : function.injective f := (of f).injective
 
 end
 

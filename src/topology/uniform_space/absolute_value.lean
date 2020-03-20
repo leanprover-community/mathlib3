@@ -30,7 +30,7 @@ the current file does not depend on real numbers. TODO: extract absolute values 
 absolute value, uniform spaces
 -/
 
-open set function lattice filter uniform_space
+open set function filter uniform_space
 
 namespace is_absolute_value
 variables {𝕜 : Type*} [discrete_linear_ordered_field 𝕜]

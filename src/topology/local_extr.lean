@@ -102,21 +102,21 @@ lemma is_local_extr_on.inter (hf : is_local_extr_on f s a) (t) : is_local_extr_o
 hf.on_subset (inter_subset_left s t)
 
 lemma is_min_on.localize (hf : is_min_on f s a) : is_local_min_on f s a :=
-hf.filter_mono $ lattice.inf_le_right
+hf.filter_mono $ inf_le_right
 
 lemma is_max_on.localize (hf : is_max_on f s a) : is_local_max_on f s a :=
-hf.filter_mono $ lattice.inf_le_right
+hf.filter_mono $ inf_le_right
 
 lemma is_extr_on.localize (hf : is_extr_on f s a) : is_local_extr_on f s a :=
-hf.filter_mono $ lattice.inf_le_right
+hf.filter_mono $ inf_le_right
 
 lemma is_local_min_on.is_local_min (hf : is_local_min_on f s a) (hs : s ∈ 𝓝 a) : is_local_min f a :=
 have 𝓝 a ≤ principal s, from le_principal_iff.2 hs,
-hf.filter_mono $ lattice.le_inf (le_refl _) this
+hf.filter_mono $ le_inf (le_refl _) this
 
 lemma is_local_max_on.is_local_max (hf : is_local_max_on f s a) (hs : s ∈ 𝓝 a) : is_local_max f a :=
 have 𝓝 a ≤ principal s, from le_principal_iff.2 hs,
-hf.filter_mono $ lattice.le_inf (le_refl _) this
+hf.filter_mono $ le_inf (le_refl _) this
 
 lemma is_local_extr_on.is_local_extr (hf : is_local_extr_on f s a) (hs : s ∈ 𝓝 a) : is_local_extr f a :=
 hf.elim (λ hf, (hf.is_local_min hs).is_extr) (λ hf, (hf.is_local_max hs).is_extr)
@@ -318,7 +318,6 @@ hf.sub hg
 
 end ordered_comm_group
 
-open lattice
 
 /-! ### Pointwise `sup`/`inf` -/
 

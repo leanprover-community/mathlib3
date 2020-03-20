@@ -88,7 +88,7 @@ definition `preorder.topology α` though, that can be registered as an instance 
 for specific types.
 -/
 
-open classical set lattice filter topological_space
+open classical set filter topological_space
 open_locale topological_space classical
 
 universes u v w
@@ -868,7 +868,7 @@ by rw [preimage_neg]; exact
     calc closure ((λ (r : α), -r) '' s) = (λr, -r) '' ((λr, -r) '' closure ((λ (r : α), -r) '' s)) :
         by rw [←image_comp, this, image_id]
       ... ⊆ (λr, -r) '' closure ((λr, -r) '' ((λ (r : α), -r) '' s)) :
-        mono_image $ image_closure_subset_closure_image continuous_neg
+        monotone_image $ image_closure_subset_closure_image continuous_neg
       ... = _ : by rw [←image_comp, this, image_id])
 
 end topological_add_group

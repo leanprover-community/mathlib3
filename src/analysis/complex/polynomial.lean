@@ -5,7 +5,7 @@ Authors: Chris Hughes
 -/
 import data.polynomial topology.algebra.polynomial analysis.complex.exponential
 
-open complex polynomial metric filter is_absolute_value set lattice
+open complex polynomial metric filter is_absolute_value set
 
 namespace complex
 

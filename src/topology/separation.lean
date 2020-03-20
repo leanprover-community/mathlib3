@@ -8,7 +8,7 @@ Separation properties of topological spaces.
 
 import topology.subset_properties
 
-open set filter lattice
+open set filter
 open_locale topological_space
 local attribute [instance] classical.prop_decidable -- TODO: use "open_locale classical"
 
@@ -171,7 +171,7 @@ t2_iff_nhds.trans
   ⟨assume h f x y u fx fy, h $ ne_bot_of_le_ne_bot u.1 (le_inf fx fy),
    assume h x y xy,
      let ⟨f, hf, uf⟩ := exists_ultrafilter xy in
-     h f uf (le_trans hf lattice.inf_le_left) (le_trans hf lattice.inf_le_right)⟩
+     h f uf (le_trans hf inf_le_left) (le_trans hf inf_le_right)⟩
 
 @[simp] lemma nhds_eq_nhds_iff {a b : α} [t2_space α] : 𝓝 a = 𝓝 b ↔ a = b :=
 ⟨assume h, eq_of_nhds_ne_bot $ by rw [h, inf_idem]; exact nhds_ne_bot, assume h, h ▸ rfl⟩
@@ -317,7 +317,7 @@ have ∃t, is_open t ∧ -s' ⊆ t ∧ 𝓝 a ⊓ principal t = ⊥,
   from regular_space.regular (is_closed_compl_iff.mpr h₂) (not_not_intro h₃),
 let ⟨t, ht₁, ht₂, ht₃⟩ := this in
 ⟨-t,
-  mem_sets_of_eq_bot $ by rwa [lattice.neg_neg],
+  mem_sets_of_eq_bot $ by rwa [compl_compl],
   subset.trans (compl_subset_comm.1 ht₂) h₁,
   is_closed_compl_iff.mpr ht₁⟩
 

@@ -34,7 +34,7 @@ end
 
 -- PROJECT
 -- Much more ambitiously, we could analyse whether types have been constructed functorially,
--- and perform eq_rw under functors.
+-- and perform equiv_rw under functors.
 -- PROJECT
 -- Of course this applies in arbitrary categories, not just `Type`.
 example : is_lawful_functor option := by apply_instance

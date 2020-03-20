@@ -504,7 +504,7 @@ theorem mul_mem {x y : M} : x ∈ S → y ∈ S → x * y ∈ S := submonoid.mul
 
 /-- Product of a list of elements in a submonoid is in the submonoid. -/
 @[to_additive "Sum of a list of elements in an `add_submonoid` is in the `add_submonoid`."]
-lemma list_prod_mem : ∀ {l : list M}, (∀x∈l, x ∈ S) → l.prod ∈ S
+lemma list_prod_mem : ∀ {l : list M}, (∀x ∈ l, x ∈ S) → l.prod ∈ S
 | []     h := S.one_mem
 | (a::l) h :=
   suffices a * l.prod ∈ S, by rwa [list.prod_cons],

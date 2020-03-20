@@ -330,8 +330,7 @@ end
 lemma comp_eq_of_eq {T : submonoid P} {Q : Type*} [comm_monoid Q]
   (hg : ∀ y : S, g y ∈ T) (k : localization_map T Q)
   {x y} (h : f.1 x = f.1 y) : k.1 (g x) = k.1 (g y) :=
-let ⟨c, hc⟩ := (f.4 _ _).1 h in (k.4 _ _).2
-  ⟨⟨g c, hg c⟩, show g _ * g _ = g _ * g _, by rw [←g.map_mul, hc, g.map_mul]⟩
+f.eq_of_eq (λ y : S, show is_unit (k.1.comp g y), from k.2 ⟨g y, hg y⟩) h
 
 variables (hg : ∀ y : S, is_unit (g y))
 

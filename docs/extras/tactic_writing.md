@@ -485,8 +485,8 @@ you can hack together a tactic like this:
 ```lean
 meta def crunch : tactic unit := do
 `[intros],
-`[rw [eq_iff_re_eq_and_im_eq]],
-`[split;simp [add_mul,mul_add,mul_assoc]]
+`[rw eq_iff_re_eq_and_im_eq],
+`[split; simp [add_mul, mul_add, mul_assoc]]
 ```
 
 or this:

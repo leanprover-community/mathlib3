@@ -1,5 +1,5 @@
 /-
-Copyright (c) 2019 Sébastien Gouëzel. All rights reserved.
+Copyright (c) 2020 Sébastien Gouëzel. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Sébastien Gouëzel
 -/
@@ -35,19 +35,19 @@ for `n : ℕ`.
 
 Additionally, let `f` be a function from `E` to `F`.
 
-* `has_fpower_series_on_ball f p x r` means that, on the ball of center `x` with radius `r`,
+* `has_fpower_series_on_ball f p x r`: on the ball of center `x` with radius `r`,
   `f (x + y) = ∑_n pₙ yⁿ`.
-* `has_fpower_series_at f p x` means that, on some ball of center `x` with positive radius, holds
+* `has_fpower_series_at f p x`: on some ball of center `x` with positive radius, holds
   `has_fpower_series_on_ball f p x r`.
-* `analytic_at 𝕜 f x` means that there exists a power series `p` such that holds
+* `analytic_at 𝕜 f x`: there exists a power series `p` such that holds
   `has_fpower_series_at f p x`.
 
 We develop the basic properties of these notions, notably:
-* If a function admits a power series, it is continuous (in
+* If a function admits a power series, it is continuous (see
   `has_fpower_series_on_ball.continuous_on` and `has_fpower_series_at.continuous_at` and
   `analytic_at.continuous_at`).
 * In a complete space, the sum of a formal power series with positive radius is well defined on the
-  disk of convergence, in `formal_multilinear_series.has_fpower_series_on_ball`.
+  disk of convergence, see `formal_multilinear_series.has_fpower_series_on_ball`.
 -/
 
 noncomputable theory

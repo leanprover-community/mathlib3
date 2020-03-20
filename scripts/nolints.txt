@@ -602,9 +602,6 @@ apply_nolint category_theory.limits.coprod.inr doc_blame
 apply_nolint category_theory.limits.coprod.map doc_blame
 apply_nolint category_theory.limits.has_binary_coproducts doc_blame
 apply_nolint category_theory.limits.has_binary_products doc_blame
-apply_nolint category_theory.limits.map_pair doc_blame
-apply_nolint category_theory.limits.pair doc_blame
-apply_nolint category_theory.limits.pair_function doc_blame
 apply_nolint category_theory.limits.prod doc_blame
 apply_nolint category_theory.limits.prod.fst doc_blame
 apply_nolint category_theory.limits.prod.lift doc_blame

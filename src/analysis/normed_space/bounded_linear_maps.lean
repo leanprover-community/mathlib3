@@ -133,7 +133,7 @@ let ⟨M, hMp, hM⟩ := h.bound in
 
 theorem is_O_comp {E : Type*} {g : F → G} (hg : is_bounded_linear_map 𝕜 g)
   {f : E → F} (l : filter E) : is_O (λ x', g (f x')) f l :=
-(hg.is_O_id ⊤).comp_tendsto lattice.le_top
+(hg.is_O_id ⊤).comp_tendsto le_top
 
 theorem is_O_sub {f : E → F} (h : is_bounded_linear_map 𝕜 f)
   (l : filter E) (x : E) : is_O (λ x', f (x' - x)) (λ x', x' - x) l :=

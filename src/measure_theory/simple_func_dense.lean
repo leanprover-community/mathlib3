@@ -10,7 +10,7 @@ both pointwise and in L¹ norm, by a sequence of simple functions.
 import measure_theory.l1_space
 
 noncomputable theory
-open lattice set filter topological_space
+open set filter topological_space
 open_locale classical topological_space
 
 universes u v
@@ -244,7 +244,7 @@ have h_bound : ∀ n, ∀ₘ x, G n x ≤ g x := λ n, all_ae_of_all $ λ x, coe
     nndist (F n x) (f x) ≤ nndist (F n x) 0 + nndist 0 (f x) : nndist_triangle _ _ _
     ... = nnnorm (F n x) + nnnorm (f x) : by simp [nndist_eq_nnnorm]
     ... ≤ nnnorm (f x) + nnnorm (f x) + nnnorm (f x) :
-      by { simp [nnreal.coe_le.symm, (hF x).2, add_comm] },
+      by { simp [nnreal.coe_le_coe.symm, (hF x).2, add_comm] },
 have h_finite : lintegral g < ⊤ :=
   calc
     (∫⁻ x, nnnorm (f x) + nnnorm (f x) + nnnorm (f x)) =

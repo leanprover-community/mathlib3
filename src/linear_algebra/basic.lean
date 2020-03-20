@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johannes Hölzl, Mario Carneiro, Kevin Buzzard
 -/
 
-import algebra.pi_instances data.finsupp data.equiv.algebra order.order_iso
+import algebra.pi_instances data.finsupp data.equiv.mul_add order.order_iso
 
 /-!
 # Linear algebra
@@ -51,7 +51,7 @@ linear algebra, vector space, module
 
 -/
 
-open function lattice
+open function
 
 reserve infix ` ≃ₗ `:25
 
@@ -326,7 +326,7 @@ variables [ring R] [add_comm_group M] [add_comm_group M₂] [add_comm_group M₃
 variables [module R M] [module R M₂] [module R M₃]
 variables (p p' : submodule R M) (q q' : submodule R M₂)
 variables {r : R} {x y : M}
-open set lattice
+open set
 
 instance : partial_order (submodule R M) :=
 partial_order.lift (coe : submodule R M → set M) (λ a b, ext') (by apply_instance)
@@ -429,8 +429,8 @@ instance : complete_lattice (submodule R M) :=
   Inf          := Inf,
   le_Inf       := λ s a, le_Inf',
   Inf_le       := λ s a, Inf_le',
-  ..submodule.lattice.order_top,
-  ..submodule.lattice.order_bot }
+  ..submodule.order_top,
+  ..submodule.order_bot }
 
 instance : add_comm_monoid (submodule R M) :=
 { add := (⊔),
@@ -736,7 +736,7 @@ by apply span_induction h H; simp {contextual := tt}
 lemma supr_eq_span {ι : Sort w} (p : ι → submodule R M) :
   (⨆ (i : ι), p i) = submodule.span R (⋃ (i : ι), ↑(p i)) :=
 le_antisymm
-  (lattice.supr_le $ assume i, subset.trans (assume m hm, set.mem_Union.mpr ⟨i, hm⟩) subset_span)
+  (supr_le $ assume i, subset.trans (assume m hm, set.mem_Union.mpr ⟨i, hm⟩) subset_span)
   (span_le.mpr $ Union_subset_iff.mpr $ assume i m hm, mem_supr_of_mem _ i hm)
 
 lemma span_singleton_le_iff_mem (m : M) (p : submodule R M) :
@@ -1331,22 +1331,26 @@ section
 variable (M)
 
 /-- The identity map is a linear equivalence. -/
-@[refl] def refl : M ≃ₗ[R] M := { .. linear_map.id, .. equiv.refl M }
+@[refl]
+def refl : M ≃ₗ[R] M := { .. linear_map.id, .. equiv.refl M }
 end
 
 /-- Linear equivalences are symmetric. -/
-@[symm] def symm (e : M ≃ₗ[R] M₂) : M₂ ≃ₗ[R] M :=
+@[symm]
+def symm (e : M ≃ₗ[R] M₂) : M₂ ≃ₗ[R] M :=
 { .. e.to_linear_map.inverse e.inv_fun e.left_inv e.right_inv,
   .. e.to_equiv.symm }
 
 /-- Linear equivalences are transitive. -/
-@[trans] def trans (e₁ : M ≃ₗ[R] M₂) (e₂ : M₂ ≃ₗ[R] M₃) : M ≃ₗ[R] M₃ :=
+@[trans]
+def trans (e₁ : M ≃ₗ[R] M₂) (e₂ : M₂ ≃ₗ[R] M₃) : M ≃ₗ[R] M₃ :=
 { .. e₂.to_linear_map.comp e₁.to_linear_map,
   .. e₁.to_equiv.trans e₂.to_equiv }
 
 /-- A linear equivalence is an additive equivalence. -/
 def to_add_equiv (e : M ≃ₗ[R] M₂) : M ≃+ M₂ := { map_add' := e.add, .. e }
 
+@[simp] theorem trans_apply (e₁ : M ≃ₗ[R] M₂) (e₂ : M₂ ≃ₗ[R] M₃) (c : M) : (e₁.trans e₂) c = e₂ (e₁ c) := rfl
 @[simp] theorem apply_symm_apply (e : M ≃ₗ[R] M₂) (c : M₂) : e (e.symm c) = c := e.6 c
 @[simp] theorem symm_apply_apply (e : M ≃ₗ[R] M₂) (b : M) : e.symm (e b) = b := e.5 b
 

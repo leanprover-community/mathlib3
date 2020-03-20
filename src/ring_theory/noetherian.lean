@@ -4,13 +4,12 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Mario Carneiro, Kevin Buzzard
 -/
 
-import data.equiv.algebra
 import linear_algebra.finsupp
 import ring_theory.ideal_operations
 import ring_theory.subring
 import linear_algebra.basis
 
-open set lattice
+open set
 
 namespace submodule
 variables {α : Type*} {β : Type*} [ring α] [add_comm_group β] [module α β]

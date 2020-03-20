@@ -56,7 +56,7 @@ open_locale classical topological_space
 set_option class.instance_max_depth 100
 
 namespace measure_theory
-open set lattice filter topological_space ennreal emetric
+open set filter topological_space ennreal emetric
 
 universes u v w
 variables {α : Type u} [measure_space α]

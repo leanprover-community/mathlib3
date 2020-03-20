@@ -78,10 +78,14 @@ theorem fg_adjoin_of_finite {s : set A} (hfs : s.finite)
   (his : ∀ x ∈ s, is_integral R x) : (algebra.adjoin R s : submodule R A).fg :=
 set.finite.induction_on hfs (λ _, ⟨finset.singleton 1, le_antisymm
   (span_le.2 $ set.singleton_subset_iff.2 $ is_submonoid.one_mem _)
-  (show ring.closure _ ⊆ _, by rw set.union_empty; exact
-    set.subset.trans (ring.closure_subset (set.subset.refl _))
-    (λ y ⟨x, hx⟩, hx ▸ mul_one (algebra_map A x) ▸ algebra.smul_def x (1:A) ▸ (mem_coe _).2
-      (submodule.smul_mem _ x $ subset_span $ or.inl rfl)))⟩)
+  begin
+    change ring.closure _ ⊆ _,
+    simp only [set.union_empty, finset.coe_singleton, span_singleton_eq_range,
+      algebra.smul_def, mul_one],
+    -- TODO drop the next `rw` once `algebra_map` will be a bundled `ring_hom`
+    rw [← ring_hom.coe_of (algebra_map A)]; try { apply_instance },
+    exact ring.closure_subset (set.subset.refl _)
+  end⟩)
 (λ a s has hs ih his, by rw [← set.union_singleton, algebra.adjoin_union_coe_submodule]; exact
   fg_mul _ _ (ih $ λ i hi, his i $ set.mem_insert_of_mem a hi)
     (fg_adjoin_singleton_of_integral _ $ his a $ set.mem_insert a s)) his
@@ -255,7 +259,7 @@ theorem mem_integral_closure_iff_mem_fg {r : A} :
 
 theorem integral_closure_idem : integral_closure (integral_closure R A : set A) A = ⊥ :=
 begin
-  rw lattice.eq_bot_iff, intros r hr,
+  rw eq_bot_iff, intros r hr,
   rcases is_integral_iff_is_integral_closure_finite.1 hr with ⟨s, hfs, hr⟩,
   apply algebra.mem_bot.2, refine ⟨⟨_, _⟩, rfl⟩,
   refine (mem_integral_closure_iff_mem_fg _ _).2 ⟨algebra.adjoin _ (subtype.val '' s ∪ {r}),

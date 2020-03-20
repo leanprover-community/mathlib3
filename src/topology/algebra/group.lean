@@ -6,12 +6,11 @@ Authors: Johannes Hölzl, Mario Carneiro, Patrick Massot
 Theory of topological groups.
 
 -/
-import data.equiv.algebra
 import algebra.pointwise order.filter.pointwise
 import group_theory.quotient_group
 import topology.algebra.monoid topology.homeomorph
 
-open classical set lattice filter topological_space
+open classical set filter topological_space
 open_locale classical topological_space
 
 universes u v w

@@ -241,7 +241,7 @@ lemma has_ftaylor_series_up_to_on.of_le {m n : with_top ℕ}
 lemma has_ftaylor_series_up_to_on.continuous_on {n : with_top ℕ}
   (h : has_ftaylor_series_up_to_on n f p s) : continuous_on f s :=
 begin
-  have := (h.cont 0 lattice.bot_le).congr (λ x hx, (h.zero_eq' hx).symm),
+  have := (h.cont 0 bot_le).congr (λ x hx, (h.zero_eq' hx).symm),
   rwa continuous_linear_equiv.comp_continuous_on_iff at this
 end
 
@@ -249,9 +249,9 @@ lemma has_ftaylor_series_up_to_on_zero_iff :
   has_ftaylor_series_up_to_on 0 f p s ↔ continuous_on f s ∧ (∀ x ∈ s, (p x 0).uncurry0 = f x) :=
 begin
   refine ⟨λ H, ⟨H.continuous_on, H.zero_eq⟩,
-          λ H, ⟨H.2, λ m hm, false.elim (not_le.2 hm lattice.bot_le), _⟩⟩,
+          λ H, ⟨H.2, λ m hm, false.elim (not_le.2 hm bot_le), _⟩⟩,
   assume m hm,
-  have : (m : with_top ℕ) = ((0 : ℕ) : with_bot ℕ) := le_antisymm hm lattice.bot_le,
+  have : (m : with_top ℕ) = ((0 : ℕ) : with_bot ℕ) := le_antisymm hm bot_le,
   rw with_top.coe_eq_coe at this,
   rw this,
   have : ∀ x ∈ s, p x 0 = (continuous_multilinear_curry_fin0 𝕜 E F).symm (f x),
@@ -264,7 +264,7 @@ lemma has_ftaylor_series_up_to_on_top_iff :
   (has_ftaylor_series_up_to_on ⊤ f p s) ↔ (∀ (n : ℕ), has_ftaylor_series_up_to_on n f p s) :=
 begin
   split,
-  { assume H n, exact H.of_le lattice.le_top },
+  { assume H n, exact H.of_le le_top },
   { assume H,
     split,
     { exact (H 0).zero_eq },
@@ -430,7 +430,7 @@ lemma times_cont_diff_on_top :
 begin
   split,
   { assume H n m hm x hx,
-    rcases H m lattice.le_top x hx with ⟨u, hu, p, hp⟩,
+    rcases H m le_top x hx with ⟨u, hu, p, hp⟩,
     exact ⟨u, hu, p, hp⟩ },
   { assume H m hm x hx,
     rcases H m m (le_refl _) x hx with ⟨u, hu, p, hp⟩,
@@ -441,7 +441,7 @@ lemma times_cont_diff_on.continuous_on {n : with_top ℕ}
   (h : times_cont_diff_on 𝕜 n f s) : continuous_on f s :=
 begin
   apply continuous_on_of_locally_continuous_on (λ x hx, _),
-  rcases h 0 lattice.bot_le x hx with ⟨u, hu, p, H⟩,
+  rcases h 0 bot_le x hx with ⟨u, hu, p, H⟩,
   rcases mem_nhds_within.1 hu with ⟨t, t_open, xt, tu⟩,
   refine ⟨t, t_open, xt, _⟩,
   rw inter_comm at tu,
@@ -702,7 +702,7 @@ iterated_fderiv_within_inter' (mem_nhds_within_of_mem_nhds hu) hs xs
 begin
   refine ⟨λ H, H.continuous_on, λ H, _⟩,
   assume m hm x hx,
-  have : (m : with_top ℕ) = 0 := le_antisymm hm lattice.bot_le,
+  have : (m : with_top ℕ) = 0 := le_antisymm hm bot_le,
   rw this,
   refine ⟨s, self_mem_nhds_within, ftaylor_series_within 𝕜 f s, _⟩,
   rw has_ftaylor_series_up_to_on_zero_iff,
@@ -858,12 +858,12 @@ theorem times_cont_diff_on_top_iff_fderiv_within (hs : unique_diff_on 𝕜 s) :
 begin
   split,
   { assume h,
-    refine ⟨h.differentiable_on lattice.le_top, _⟩,
+    refine ⟨h.differentiable_on le_top, _⟩,
     apply times_cont_diff_on_top.2 (λ n, ((times_cont_diff_on_succ_iff_fderiv_within hs).1 _).2),
-    exact h.of_le lattice.le_top },
+    exact h.of_le le_top },
   { assume h,
     refine times_cont_diff_on_top.2 (λ n, _),
-    have A : (n : with_top ℕ) ≤ ⊤ := lattice.le_top,
+    have A : (n : with_top ℕ) ≤ ⊤ := le_top,
     apply ((times_cont_diff_on_succ_iff_fderiv_within hs).2 ⟨h.1, h.2.of_le A⟩).of_le,
     exact with_top.coe_le_coe.2 (nat.le_succ n) }
 end
@@ -1032,7 +1032,7 @@ times_cont_diff_on_univ.1 $ (times_cont_diff_on_univ.2 h).of_le hmn
 
 lemma times_cont_diff.continuous {n : with_top ℕ}
   (h : times_cont_diff 𝕜 n f) : continuous f :=
-times_cont_diff_zero.1 (h.of_le lattice.bot_le)
+times_cont_diff_zero.1 (h.of_le bot_le)
 
 /-- If a function is `C^n` with `n ≥ 1`, then it is differentiable. -/
 lemma times_cont_diff.differentiable {n : with_top ℕ}
@@ -1204,7 +1204,7 @@ Constants are `C^∞`.
 -/
 lemma times_cont_diff_const {n : with_top ℕ} {c : F} : times_cont_diff 𝕜 n (λx : E, c) :=
 begin
-  suffices h : times_cont_diff 𝕜 ⊤ (λx : E, c), by exact h.of_le lattice.le_top,
+  suffices h : times_cont_diff 𝕜 ⊤ (λx : E, c), by exact h.of_le le_top,
   rw times_cont_diff_top_iff_fderiv,
   refine ⟨differentiable_const c, _⟩,
   rw fderiv_const,
@@ -1223,7 +1223,7 @@ Unbundled bounded linear functions are `C^∞`.
 lemma is_bounded_linear_map.times_cont_diff {n : with_top ℕ} (hf : is_bounded_linear_map 𝕜 f) :
   times_cont_diff 𝕜 n f :=
 begin
-  suffices h : times_cont_diff 𝕜 ⊤ f, by exact h.of_le lattice.le_top,
+  suffices h : times_cont_diff 𝕜 ⊤ f, by exact h.of_le le_top,
   rw times_cont_diff_top_iff_fderiv,
   refine ⟨hf.differentiable, _⟩,
   simp [hf.fderiv],
@@ -1258,7 +1258,7 @@ Bilinear functions are `C^∞`.
 lemma is_bounded_bilinear_map.times_cont_diff {n : with_top ℕ} (hb : is_bounded_bilinear_map 𝕜 b) :
   times_cont_diff 𝕜 n b :=
 begin
-  suffices h : times_cont_diff 𝕜 ⊤ b, by exact h.of_le lattice.le_top,
+  suffices h : times_cont_diff 𝕜 ⊤ b, by exact h.of_le le_top,
   rw times_cont_diff_top_iff_fderiv,
   refine ⟨hb.differentiable, _⟩,
   simp [hb.fderiv],

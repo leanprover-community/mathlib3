@@ -8,12 +8,11 @@ More operations on modules and ideals.
 
 import ring_theory.ideals data.nat.choose order.zorn
 import linear_algebra.tensor_product
-import data.equiv.algebra
+import data.equiv.ring
 import ring_theory.algebra_operations
 
 universes u v w x
 
-open lattice
 
 namespace submodule
 
@@ -311,7 +310,7 @@ lemma pow_le_pow {m n : ℕ} (h : m ≤ n) :
 begin
   cases nat.exists_eq_add_of_le h with k hk,
   rw [hk, pow_add],
-  exact le_trans (mul_le_inf) (lattice.inf_le_left)
+  exact le_trans (mul_le_inf) (inf_le_left)
 end
 
 /-- The radical of an ideal `I` consists of the elements `r` such that `r^n ∈ I` for some `n`. -/
@@ -486,7 +485,7 @@ le_antisymm (λ r ⟨n, hfrnk⟩, ⟨n, show f (r ^ n) ∈ K,
 
 @[simp] lemma map_quotient_self :
   map (quotient.mk_hom I) I = ⊥ :=
-lattice.eq_bot_iff.2 $ ideal.map_le_iff_le_comap.2 $ λ x hx,
+eq_bot_iff.2 $ ideal.map_le_iff_le_comap.2 $ λ x hx,
 (submodule.mem_bot I.quotient).2 $ ideal.quotient.eq_zero_iff_mem.2 hx
 
 variables {I J K L}

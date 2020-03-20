@@ -7,7 +7,7 @@ Lebesgue measure on the real line
 -/
 import measure_theory.measure_space measure_theory.borel_space
 noncomputable theory
-open classical set lattice filter
+open classical set filter
 open nnreal (of_real)
 
 namespace measure_theory

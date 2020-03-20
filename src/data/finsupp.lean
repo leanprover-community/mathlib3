@@ -888,32 +888,6 @@ end
 
 end comap_domain
 
-/-! ### Declarations about the product of `finsupp`s -/
-
-/-- The product of `f g : α →₀ β` is the finitely supported function
-  whose value at `a` is the sum of `f x * g y` over all pairs `x, y`
-  such that `x + y = a`. (Think of the product of multivariate
-  polynomials where `α` is the monoid of monomial exponents.) -/
-instance [has_add α] [semiring β] : has_mul (α →₀ β) :=
-⟨λf g, f.sum $ λa₁ b₁, g.sum $ λa₂ b₂, single (a₁ + a₂) (b₁ * b₂)⟩
-
-lemma mul_def [has_add α] [semiring β] {f g : α →₀ β} :
-  f * g = (f.sum $ λa₁ b₁, g.sum $ λa₂ b₂, single (a₁ + a₂) (b₁ * b₂)) :=
-rfl
-
-lemma support_mul [has_add α] [semiring β] (a b : α →₀ β) :
-  (a * b).support ⊆ a.support.bind (λa₁, b.support.bind $ λa₂, {a₁ + a₂}) :=
-subset.trans support_sum $ bind_mono $ assume a₁ _,
-  subset.trans support_sum $ bind_mono $ assume a₂ _, support_single_subset
-
-/-- The unit of the multiplication is `single 0 1`, i.e. the function
-  that is `1` at `0` and zero elsewhere. -/
-instance [has_zero α] [has_zero β] [has_one β] : has_one (α →₀ β) :=
-⟨single 0 1⟩
-
-lemma one_def [has_zero α] [has_zero β] [has_one β] : 1 = (single 0 1 : α →₀ β) :=
-rfl
-
 /-! ### Declarations about `filter` -/
 
 section filter
@@ -1276,77 +1250,6 @@ begin
 end
 
 end curry_uncurry
-
-/-!
-### Declarations related to semirings
-
-When `α` is an `add_monoid` and `β` is a `semiring`, there is a `semiring` instance on
-`α →₀ β`.
--/
-
-section
-variables [add_monoid α] [semiring β]
-
--- TODO: the simplifier unfolds 0 in the instance proof!
-private lemma zero_mul (f : α →₀ β) : 0 * f = 0 :=
-by simp only [mul_def, sum_zero_index]
-
-private lemma mul_zero (f : α →₀ β) : f * 0 = 0 :=
-by simp only [mul_def, sum_zero_index, sum_zero]
-
-private lemma left_distrib (a b c : α →₀ β) : a * (b + c) = a * b + a * c :=
-by simp only [mul_def, sum_add_index, mul_add, _root_.mul_zero, single_zero, single_add,
-  eq_self_iff_true, forall_true_iff, forall_3_true_iff, sum_add]
-
-private lemma right_distrib (a b c : α →₀ β) : (a + b) * c = a * c + b * c :=
-by simp only [mul_def, sum_add_index, add_mul, _root_.mul_zero, _root_.zero_mul, single_zero,
-  single_add, eq_self_iff_true, forall_true_iff, forall_3_true_iff, sum_zero, sum_add]
-
-instance : semiring (α →₀ β) :=
-{ one       := 1,
-  mul       := (*),
-  one_mul   := assume f, by simp only [mul_def, one_def, sum_single_index, _root_.zero_mul,
-    single_zero, sum_zero, zero_add, one_mul, sum_single],
-  mul_one   := assume f, by simp only [mul_def, one_def, sum_single_index, _root_.mul_zero,
-    single_zero, sum_zero, add_zero, mul_one, sum_single],
-  zero_mul  := zero_mul,
-  mul_zero  := mul_zero,
-  mul_assoc := assume f g h, by simp only [mul_def, sum_sum_index, sum_zero_index, sum_add_index,
-    sum_single_index, single_zero, single_add, eq_self_iff_true, forall_true_iff, forall_3_true_iff,
-    add_mul, mul_add, add_assoc, mul_assoc, _root_.zero_mul, _root_.mul_zero, sum_zero, sum_add],
-  left_distrib  := left_distrib,
-  right_distrib := right_distrib,
-  .. finsupp.add_comm_monoid }
-
-end
-
-instance [add_comm_monoid α] [comm_semiring β] : comm_semiring (α →₀ β) :=
-{ mul_comm := assume f g,
-  begin
-    simp only [mul_def, finsupp.sum, mul_comm],
-    rw [finset.sum_comm],
-    simp only [add_comm]
-  end,
-  .. finsupp.semiring }
-
-instance [add_monoid α] [ring β] : ring (α →₀ β) :=
-{ neg := has_neg.neg,
-  add_left_neg := add_left_neg,
-  .. finsupp.semiring }
-
-instance [add_comm_monoid α] [comm_ring β] : comm_ring (α →₀ β) :=
-{ mul_comm := mul_comm, .. finsupp.ring}
-
-lemma single_mul_single [has_add α] [semiring β] {a₁ a₂ : α} {b₁ b₂ : β}:
-  single a₁ b₁ * single a₂ b₂ = single (a₁ + a₂) (b₁ * b₂) :=
-(sum_single_index (by simp only [_root_.zero_mul, single_zero, sum_zero])).trans
-  (sum_single_index (by rw [_root_.mul_zero, single_zero]))
-
-lemma prod_single [add_comm_monoid α] [comm_semiring β]
-  {s : finset ι} {a : ι → α} {b : ι → β} :
-  s.prod (λi, single (a i) (b i)) = single (s.sum a) (s.prod b) :=
-finset.induction_on s rfl $ λ a s has ih, by rw [prod_insert has, ih,
-  single_mul_single, sum_insert has, prod_insert has]
 
 section
 

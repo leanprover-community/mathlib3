@@ -1468,8 +1468,6 @@ instance coe_to_power_series : has_coe (polynomial α) (power_series α) :=
   power_series.coeff α n φ = coeff φ n :=
 congr_arg (coeff φ) (finsupp.single_eq_same)
 
-@[reducible] def monomial (n : ℕ) (a : α) : polynomial α := single n a
-
 @[simp, elim_cast] lemma coe_monomial (n : ℕ) (a : α) :
   (monomial n a : power_series α) = power_series.monomial α n a :=
 power_series.ext $ λ m,

@@ -15,7 +15,7 @@ A function is analytic in one dimension around `0` if it can be written as a con
 requiring that `pₙ` is a continuous `n`-multilinear map. In general, `pₙ` is not unique (in two
 dimensions, taking `p₂ (x, y) (x', y') = x y'` or `y x'` gives the same map when applied to a
 vector `(x, y) (x, y)`). A way to guarantee uniqueness is to take a symmetric `pₙ`, but this is not
-always positive in nonzero characteristic (in characteristic 2, the previous example has no
+always possible in nonzero characteristic (in characteristic 2, the previous example has no
 symmetric representative). Therefore, we do not insist on symmetry or uniqueness in the definition,
 and we only require the existence of a converging series.
 

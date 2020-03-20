@@ -12,11 +12,11 @@ open tactic
 
 universes u v
 
-namespace category_theory.monoidal
+namespace category_theory
 
 local attribute [instance] monoidal_of_has_finite_products
-instance types : monoidal_category.{u} (Type u) := by apply_instance
+instance monoidal_category_of_types : monoidal_category.{u} (Type u) := by apply_instance
 
 -- TODO Once we add braided/symmetric categories, include the braiding/symmetry.
 
-end category_theory.monoidal
+end category_theory

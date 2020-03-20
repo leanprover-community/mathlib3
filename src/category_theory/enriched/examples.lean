@@ -1,14 +1,20 @@
+/-
+Copyright (c) 2019 Scott Morrison. All rights reserved.
+Released under Apache 2.0 license as described in the file LICENSE.
+Authors: Scott Morrison
+-/
 import category_theory.enriched.enriched_over
 import algebra.category.Module.monoidal
 
-universes u
+universes v u
 
 open category_theory
 
 namespace Module
 
--- TODO these next two lemmas are true in any concrete category?
-
+-- PROJECT
+-- These next two lemmas are true in any concrete category whose forgetful functor creates limits.
+-- Perhaps when we do algebraic theories this should be generalised.
 @[simp]
 lemma fst_tensor_hom_apply {α β γ δ : Type u} (f : α ⟶ β) (g : γ ⟶ δ) (x : α ⊗ γ) :
   (limits.prod.fst : β ⊗ δ ⟶ β) (((f ⊗ g) : α ⊗ γ ⟶ β ⊗ δ) x) = (f ((limits.prod.fst : α ⊗ γ ⟶ α) x)) :=
@@ -40,6 +46,26 @@ instance : concrete_monoidal_category (Module ℤ) :=
       simp [one_smul],
     end, }}.
 
+section
+variables (C : Type 1) [𝒞 : large_category C]
+include 𝒞
+
+instance [enriched_over (Module ℤ) C] (X Y : C) : add_comm_group (X ⟶ Y) :=
+begin
+  have : add_comm_group ((X ⟶[Module ℤ] Y) : Module ℤ),
+  apply_instance,
+  convert this,
+end
+
+instance [enriched_over (Module ℤ) C] (X Y : C) : module ℤ (X ⟶ Y) :=
+begin
+  change module ℤ (X ⟶[Module ℤ] Y),
+  apply_instance,
+end
+
+-- How do we want to express the linearity of morphisms?
+end
+
 @[simp]
 lemma as_term_eq {M : Module ℤ} (f : 𝟙_ (Module ℤ) ⟶ M) : as_term f = f (1 : ℤ) := rfl
 
@@ -48,8 +74,8 @@ lemma forget.μ_eq {M N : Module ℤ} (m : (forget (Module ℤ)).obj M) (n : (fo
   forget.μ m n = m ⊗ₜ n :=
 rfl
 
--- TODO mumble forgetful functor is representable mumble
-def enriched_id (X : Module ℤ)  : 𝟙_ (Module ℤ) ⟶ of ℤ (X ⟶ X) :=
+-- TODO this would be easier if we noticed that the forgetful functor is representable
+def enriched_id (X : Module ℤ) : 𝟙_ (Module ℤ) ⟶ of ℤ (X ⟶ X) :=
 begin
   fsplit,
   intro i,
@@ -94,7 +120,7 @@ begin
   refl,
 end
 
-example : enriched_over (Module ℤ) (Module ℤ) :=
+instance : enriched_over (Module ℤ) (Module ℤ) :=
 { e_hom := λ X Y, Module.of ℤ (X ⟶ Y),
   e_id := λ X, enriched_id X,
   e_comp := λ X Y Z, enriched_comp X Y Z,

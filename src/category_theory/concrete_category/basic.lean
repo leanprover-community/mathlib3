@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Scott Morrison, Johannes Hölzl, Reid Barton, Sean Leather, Yury Kudryashov
 -/
 import category_theory.types category_theory.full_subcategory
+import category_theory.eq_to_hom
 
 /-!
 # Concrete categories
@@ -134,6 +135,21 @@ class has_forget₂ (C D : Type (u+1)) [category.{u} C] [concrete_category C] [c
 @[reducible] def forget₂ (C D : Type (u+1)) [category.{u} C] [concrete_category C] [category.{u} D] [concrete_category D]
   [has_forget₂ C D] : C ⥤ D :=
 has_forget₂.forget₂ C D
+
+section
+variables (C D : Type (u+1)) [category.{u} C] [concrete_category C] [category.{u} D] [concrete_category D]
+variables [has_forget₂ C D]
+
+@[simp]
+lemma forget_obj_forget₂_obj (X : C) : (forget D).obj ((forget₂ C D).obj X) = (forget C).obj X :=
+functor.congr_obj (has_forget₂.forget_comp C D) X
+
+@[simp]
+lemma forget_map_forget₂_map {X Y : C} (f : X ⟶ Y) :
+  (forget D).map ((forget₂ C D).map f) =
+  eq_to_hom (forget_obj_forget₂_obj _ _ _) ≫ (forget C).map f ≫ eq_to_hom (forget_obj_forget₂_obj _ _ _).symm :=
+functor.congr_hom (has_forget₂.forget_comp C D) f
+end
 
 instance forget_faithful (C D : Type (u+1)) [category.{u} C] [concrete_category C] [category.{u} D] [concrete_category D]
   [has_forget₂ C D] : faithful (forget₂ C D) :=

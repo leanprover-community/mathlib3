@@ -473,12 +473,20 @@ end
 open_locale topological_space
 open filter
 
+/-- If the target space is complete, the space of continuous multilinear maps with its norm is also
+complete. The proof is essentially the same as for the space of continuous linear maps (modulo the
+addition of `finset.prod` where needed. The duplication could be avoided by deducing the linear
+case from the multilinear case via a currying isomorphism. However, this would mess up imports,
+and it is more satisfactory to have the simplest case as a standalone proof. -/
 instance [complete_space E₂] : complete_space (continuous_multilinear_map 𝕜 E₁ E₂) :=
 begin
   have nonneg : ∀ (v : Π i, E₁ i), 0 ≤ finset.univ.prod (λ i, ∥v i∥) :=
     λ v, finset.prod_nonneg (λ i hi, norm_nonneg _),
+  -- We show that every Cauchy sequence converges.
   refine metric.complete_of_cauchy_seq_tendsto (λ f hf, _),
+  -- We now expand out the definition of a Cauchy sequence,
   rcases cauchy_seq_iff_le_tendsto_0.1 hf with ⟨b, b0, b_bound, b_lim⟩,
+  -- and establish that the evaluation at any point `v : Π i, E₁ i` is Cauchy.
   have cau : ∀ v, cauchy_seq (λ n, f n v),
   { assume v,
     apply cauchy_seq_iff_le_tendsto_0.2 ⟨λ n, b n * finset.univ.prod (λ i, ∥v i∥), λ n, _, _, _⟩,
@@ -488,14 +496,18 @@ begin
       apply le_trans ((f n - f m).le_op_norm v) _,
       exact mul_le_mul_of_nonneg_right (b_bound n m N hn hm) (nonneg v) },
     { simpa using b_lim.mul tendsto_const_nhds } },
+  -- We assemble the limits points of those Cauchy sequences
+  -- (which exist as `E₂` is complete)
+  -- into a function which we call `F`.
   choose F hF using λv, cauchy_seq_tendsto_of_complete (cau v),
+  -- Next, we show that this `F` is multilinear,
   let Fmult : multilinear_map 𝕜 E₁ E₂ :=
   { to_fun := F,
     add := λ v i x y, begin
       have A := hF (function.update v i (x + y)),
       have B := (hF (function.update v i x)).add (hF (function.update v i y)),
       simp at A B,
-      exact tendsto_nhds_unique filter.at_top_ne_bot A B,
+      exact tendsto_nhds_unique filter.at_top_ne_bot A B
     end,
     smul := λ v i c x, begin
       have A := hF (function.update v i (c • x)),
@@ -503,6 +515,7 @@ begin
       simp at A B,
       exact tendsto_nhds_unique filter.at_top_ne_bot A B
     end },
+  -- and that `F` has norm at most `(b 0 + ∥f 0∥)`.
   have Fnorm : ∀ v, ∥F v∥ ≤ (b 0 + ∥f 0∥) * finset.univ.prod (λ i, ∥v i∥),
   { assume v,
     have A : ∀ n, ∥f n v∥ ≤ (b 0 + ∥f 0∥) * finset.univ.prod (λ i, ∥v i∥),
@@ -516,8 +529,10 @@ begin
         simpa [dist_eq_norm] using b_bound n 0 0 (zero_le _) (zero_le _)
       end },
     exact le_of_tendsto at_top_ne_bot (hF v).norm (eventually_of_forall _ A) },
+  -- Thus `F` is continuous, and we propose that as the limit point of our original Cauchy sequence.
   let Fcont := Fmult.mk_continuous _ Fnorm,
   use Fcont,
+  -- Our last task is to establish convergence to `F` in norm.
   have : ∀ n, ∥f n - Fcont∥ ≤ b n,
   { assume n,
     apply op_norm_le_bound _ (b0 n) (λ v, _),

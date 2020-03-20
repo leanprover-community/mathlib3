@@ -258,6 +258,7 @@ lemma map_sum_finset_aux {n : ℕ} (h : finset.univ.sum (λ i, (A i).card) = n) 
 begin
   unfreezeI,
   induction n using nat.strong_induction_on with n IH generalizing A,
+  -- If one of the sets is empty, then all the sums are zero
   by_cases Ai_empty : ∃ i, A i = ∅,
   { rcases Ai_empty with ⟨i, hi⟩,
     have : (A i).sum (λ j, g i j) = 0, by convert sum_empty,
@@ -268,6 +269,8 @@ begin
       rwa hi at this },
     convert sum_empty.symm },
   push_neg at Ai_empty,
+  -- Otherwise, if all sets are at most singletons, then they are exactly singletons and the result
+  -- is again straightforward
   by_cases Ai_singleton : ∀ i, (A i).card ≤ 1,
   { have Ai_card : ∀ i, (A i).card = 1,
     { assume i,
@@ -287,6 +290,10 @@ begin
       simp only [finset.sum_congr rfl this, finset.mem_univ, finset.sum_const, Ai_card i,
                  add_monoid.one_smul] },
     simp [finset.sum_congr rfl this, Ai_card], },
+  -- Remains the interesting case where one of the `A i`, say `A i₀`, has cardinality at least 2.
+  -- We will split into two parts `B i₀` and `C i₀` of smaller cardinality, let `B i = C i = A i`
+  -- for `i ≠ i₀`, apply the inductive assumption to `B` and `C`, and add up the corresponding
+  -- parts to get the sum for `A`.
   push_neg at Ai_singleton,
   obtain ⟨i₀, hi₀⟩ : ∃ i, 1 < (A i).card := Ai_singleton,
   obtain ⟨j₁, j₂, hj₁, hj₂, j₁_ne_j₂⟩ : ∃ j₁ j₂, (j₁ ∈ A i₀) ∧ (j₂ ∈ A i₀) ∧ j₁ ≠ j₂ :=
@@ -303,6 +310,7 @@ begin
     by_cases hi : i = i₀,
     { rw hi, simp [C, hj₂] },
     { simp [hi, C] } },
+  -- split the sum at `i₀` as the sum over `B i₀` plus the sum over `C i₀`, to use additivity.
   have A_eq_BC : (λ i, (A i).sum (g i)) =
     function.update (λ i, (A i).sum (g i)) i₀ ((B i₀).sum (g i₀) + (C i₀).sum (g i₀)),
   { ext i,
@@ -334,6 +342,7 @@ begin
     by_cases hi : i = i₀,
     { rw hi, simp [C] },
     { simp [hi, C] } },
+  -- Express the inductive assumption for `B`
   have Brec : f (λ i, finset.sum (B i) (g i)) = (pi_finset B).sum (λ r, f (λ i, g i (r i))),
   { have : finset.univ.sum (λ i, finset.card (B i)) < finset.univ.sum (λ i, finset.card (A i)),
     { refine finset.sum_lt_sum (λ i hi, finset.card_le_of_subset (B_subset_A i))
@@ -344,6 +353,7 @@ begin
       exact nat.pred_lt (ne_of_gt (lt_trans zero_lt_one hi₀)) },
     rw h at this,
     exact IH _ this B rfl },
+  -- Express the inductive assumption for `C`
   have Crec : f (λ i, finset.sum (C i) (g i)) = (pi_finset C).sum (λ r, f (λ i, g i (r i))),
   { have : finset.univ.sum (λ i, finset.card (C i)) < finset.univ.sum (λ i, finset.card (A i)) :=
       finset.sum_lt_sum (λ i hi, finset.card_le_of_subset (C_subset_A i))

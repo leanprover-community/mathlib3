@@ -126,13 +126,12 @@ def image : C := (image.mono_factorisation f).I
 def image.ι : image f ⟶ Y := (image.mono_factorisation f).m
 @[simp] lemma image.as_ι : (image.mono_factorisation f).m = image.ι f := rfl
 instance : mono (image.ι f) := (image.mono_factorisation f).m_mono
-/-- The 'corestriction' morphism from the source to the image. -/
-def image.c : X ⟶ image f := (image.mono_factorisation f).e
-@[simp] lemma image.as_c : (image.mono_factorisation f).e = image.c f := rfl
-@[simp] lemma image.c_ι : image.c f ≫ image.ι f = f := by erw (image.mono_factorisation f).fac
 
 /-- The map from the source to the image of a morphism. -/
 def factor_thru_image : X ⟶ image f := (image.mono_factorisation f).e
+/-- Rewrite in terms of the `factor_thru_image` interface. -/
+@[simp]
+lemma as_factor_thru_image : (image.mono_factorisation f).e = factor_thru_image f := rfl
 @[simp, reassoc]
 lemma image.fac : factor_thru_image f ≫ image.ι f = f := (image.mono_factorisation f).fac'
 
@@ -204,7 +203,7 @@ instance [Π {Z : C} (g h : image f ⟶ Z), has_limit.{v} (parallel_pair g h)] :
 ⟨λ Z g h w,
 begin
   let q := equalizer.ι g h,
-  let e' := equalizer.lift _ _ _ w, -- TODO make more of the arguments to equalizer.lift implicit?
+  let e' := equalizer.lift _ w,
   let F' : mono_factorisation f :=
   { I := equalizer g h,
     m := q ≫ image.ι f,

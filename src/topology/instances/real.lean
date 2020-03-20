@@ -25,7 +25,7 @@ import topology.metric_space.basic topology.algebra.uniform_group
        topology.algebra.ring tactic.linarith
 
 noncomputable theory
-open classical set lattice filter topological_space metric
+open classical set filter topological_space metric
 open_locale classical
 open_locale topological_space
 

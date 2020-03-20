@@ -75,6 +75,7 @@ lemma map_hom {α β γ} [add_comm_group β] [add_comm_group γ]
   g (a.lift f) = a.lift (g ∘ f) :=
 show (g ∘ lift f) a = a.lift (g ∘ f),
 begin
+  haveI : is_add_group_hom (g ∘ lift f) := is_add_group_hom.comp _ _,
   apply @lift.unique,
   assume a,
   simp only [(∘), lift.of]

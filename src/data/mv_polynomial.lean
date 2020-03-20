@@ -91,7 +91,7 @@ polynomial, multivariate polynomial, multivariable polynomial
 noncomputable theory
 local attribute [instance, priority 100] classical.prop_decidable
 
-open set function finsupp lattice
+open set function finsupp
 
 universes u v w x
 variables {α : Type u} {β : Type v} {γ : Type w} {δ : Type x}
@@ -418,6 +418,8 @@ instance eval₂.is_semiring_hom : is_semiring_hom (eval₂ f g) :=
   map_mul := λ p q, eval₂_mul _ _ }
 end
 
+section
+local attribute [instance, priority 10] is_semiring_hom.comp
 lemma eval₂_comp_left {γ} [comm_semiring γ]
   (k : β → γ) [is_semiring_hom k]
   (f : α → β) [is_semiring_hom f] (g : σ → β)
@@ -425,6 +427,7 @@ lemma eval₂_comp_left {γ} [comm_semiring γ]
 by apply mv_polynomial.induction_on p; simp [
   eval₂_add, is_semiring_hom.map_add k,
   eval₂_mul, is_semiring_hom.map_mul k] {contextual := tt}
+end
 
 @[simp] lemma eval₂_eta (p : mv_polynomial σ α) : eval₂ C X p = p :=
 by apply mv_polynomial.induction_on p;
@@ -501,6 +504,10 @@ variables (f : α → β)
 def map : mv_polynomial σ α → mv_polynomial σ β := eval₂ (C ∘ f) X
 
 variables [is_semiring_hom f]
+
+instance is_semiring_hom_C_f :
+  is_semiring_hom ((C : β → mv_polynomial σ β) ∘ f) :=
+is_semiring_hom.comp _ _
 
 @[simp] theorem map_monomial (s : σ →₀ ℕ) (a : α) : map f (monomial s a) = monomial s (f a) :=
 (eval₂_monomial _ _).trans monomial_eq.symm
@@ -861,7 +868,7 @@ lemma eval₂_sub : (p - q).eval₂ f g = p.eval₂ f g - q.eval₂ f g := is_ri
 @[simp] lemma eval₂_neg : (-p).eval₂ f g = -(p.eval₂ f g) := is_ring_hom.map_neg _
 
 lemma hom_C (f : mv_polynomial σ ℤ → β) [is_ring_hom f] (n : ℤ) : f (C n) = (n : β) :=
-congr_fun (int.eq_cast' (f ∘ C)) n
+congr_fun (@int.eq_cast' _ _ (f ∘ C) (is_ring_hom.comp _ _)) n
 
 /-- A ring homomorphism f : Z[X_1, X_2, ...] → R
 is determined by the evaluations f(X_1), f(X_2), ... -/
@@ -899,6 +906,9 @@ section map
 
 variables [comm_ring β]
 variables (f : α → β) [is_ring_hom f]
+
+instance is_ring_hom_C_f : is_ring_hom ((C : β → mv_polynomial σ β) ∘ f) :=
+is_ring_hom.comp _ _
 
 instance map.is_ring_hom : is_ring_hom (map f : mv_polynomial σ α → mv_polynomial σ β) :=
 eval₂.is_ring_hom _ _

@@ -245,6 +245,42 @@ def mk_continuous (C : ℝ) (H : ∀ m, ∥f m∥ ≤ C * univ.prod (λi, ∥m i
   continuous_multilinear_map 𝕜 E₁ E₂ :=
 { cont := f.continuous_of_bound C H, ..f }
 
+lemma restr_norm_le {k n : ℕ} (f : multilinear_map 𝕜 (λ i : fin n, G) E₂)
+  (s : finset (fin n)) (hk : s.card = k) (z : G) {C : ℝ}
+  (H : ∀ m, ∥f m∥ ≤ C * finset.univ.prod (λi, ∥m i∥)) (v : fin k → G) :
+  ∥@multilinear_map.restr 𝕜 E₂ G _ _ _ _ _ _ _ f s hk z v∥ ≤
+    C * ∥z∥ ^ (n - k) * finset.univ.prod (λi, ∥v i∥) :=
+begin
+  calc ∥@multilinear_map.restr 𝕜 E₂ G _ _ _ _ _ _ _ f s hk z v∥
+  ≤ C * finset.univ.prod (λ (j : fin n),
+          ∥(if h : j ∈ s then v ((s.mono_equiv_of_fin hk).symm ⟨j, h⟩) else z)∥) : H _
+  ... = C * ((finset.univ \ s).prod (λ (j : fin n),
+          ∥(if h : j ∈ s then v ((s.mono_equiv_of_fin hk).symm ⟨j, h⟩) else z)∥)
+        * s.prod (λ (j : fin n),
+          ∥(if h : j ∈ s then v ((s.mono_equiv_of_fin hk).symm ⟨j, h⟩) else z)∥)) :
+    by rw ← finset.prod_sdiff (finset.subset_univ _)
+  ... = C * (∥z∥ ^ (n - k) * finset.univ.prod (λi, ∥v i∥)) :
+    begin
+      congr' 2,
+      { have : ∥z∥ ^ (n - k) = (finset.univ \ s).prod (λ (j : fin n), ∥z∥),
+          by simp [finset.card_sdiff  (finset.subset_univ _), hk],
+        rw this,
+        exact finset.prod_congr rfl (λ i hi, by rw dif_neg (finset.mem_sdiff.1 hi).2) },
+      { apply finset.prod_bij (λ (i : fin n) (hi : i ∈ s), (s.mono_equiv_of_fin hk).symm ⟨i, hi⟩),
+        { exact λ _ _, finset.mem_univ _ },
+        { exact λ i hi, by simp [hi] },
+        { exact λ i j hi hi hij, subtype.mk.inj ((s.mono_equiv_of_fin hk).symm.injective hij) },
+        { assume i hi,
+          rcases (s.mono_equiv_of_fin hk).symm.surjective i with ⟨j, hj⟩,
+          refine ⟨j.1, j.2, _⟩,
+          unfold_coes,
+          convert hj.symm,
+          rw subtype.ext } }
+    end
+  ... = C * ∥z∥ ^ (n - k) * finset.univ.prod (λi, ∥v i∥) : by rw mul_assoc
+end
+
+
 end multilinear_map
 
 /-!
@@ -420,6 +456,82 @@ begin
               + univ.prod (λi, ∥p.2 i∥)) * dist q p : by { rw dist_eq_norm, ring }
 end
 
+lemma continuous_eval_left (m : Π i, E₁ i) :
+  continuous (λ (p : (continuous_multilinear_map 𝕜 E₁ E₂)), (p : (Π i, E₁ i) → E₂) m) :=
+continuous_eval.comp (continuous.prod_mk continuous_id continuous_const)
+
+lemma has_sum_eval
+  {α : Type*} {p : α → continuous_multilinear_map 𝕜 E₁ E₂} {q : continuous_multilinear_map 𝕜 E₁ E₂}
+  (h : has_sum p q) (m : Π i, E₁ i) : has_sum (λ a, p a m) (q m) :=
+begin
+  dsimp [has_sum] at h ⊢,
+  convert ((continuous_eval_left m).tendsto _).comp h,
+  ext s,
+  simp
+end
+
+open_locale topological_space
+open filter
+
+instance [complete_space E₂] : complete_space (continuous_multilinear_map 𝕜 E₁ E₂) :=
+begin
+  have nonneg : ∀ (v : Π i, E₁ i), 0 ≤ finset.univ.prod (λ i, ∥v i∥) :=
+    λ v, finset.prod_nonneg (λ i hi, norm_nonneg _),
+  refine metric.complete_of_cauchy_seq_tendsto (λ f hf, _),
+  rcases cauchy_seq_iff_le_tendsto_0.1 hf with ⟨b, b0, b_bound, b_lim⟩,
+  have cau : ∀ v, cauchy_seq (λ n, f n v),
+  { assume v,
+    apply cauchy_seq_iff_le_tendsto_0.2 ⟨λ n, b n * finset.univ.prod (λ i, ∥v i∥), λ n, _, _, _⟩,
+    { exact mul_nonneg (b0 n) (nonneg v) },
+    { assume n m N hn hm,
+      rw dist_eq_norm,
+      apply le_trans ((f n - f m).le_op_norm v) _,
+      exact mul_le_mul_of_nonneg_right (b_bound n m N hn hm) (nonneg v) },
+    { simpa using b_lim.mul tendsto_const_nhds } },
+  choose F hF using λv, cauchy_seq_tendsto_of_complete (cau v),
+  let Fmult : multilinear_map 𝕜 E₁ E₂ :=
+  { to_fun := F,
+    add := λ v i x y, begin
+      have A := hF (function.update v i (x + y)),
+      have B := (hF (function.update v i x)).add (hF (function.update v i y)),
+      simp at A B,
+      exact tendsto_nhds_unique filter.at_top_ne_bot A B,
+    end,
+    smul := λ v i c x, begin
+      have A := hF (function.update v i (c • x)),
+      have B := filter.tendsto.smul (@tendsto_const_nhds _ ℕ _ c _) (hF (function.update v i x)),
+      simp at A B,
+      exact tendsto_nhds_unique filter.at_top_ne_bot A B
+    end },
+  have Fnorm : ∀ v, ∥F v∥ ≤ (b 0 + ∥f 0∥) * finset.univ.prod (λ i, ∥v i∥),
+  { assume v,
+    have A : ∀ n, ∥f n v∥ ≤ (b 0 + ∥f 0∥) * finset.univ.prod (λ i, ∥v i∥),
+    { assume n,
+      apply le_trans ((f n).le_op_norm _) _,
+      apply mul_le_mul_of_nonneg_right _ (nonneg v),
+      calc ∥f n∥ = ∥(f n - f 0) + f 0∥ : by { congr' 1, abel }
+      ... ≤ ∥f n - f 0∥ + ∥f 0∥ : norm_add_le _ _
+      ... ≤ b 0 + ∥f 0∥ : begin
+        apply add_le_add_right,
+        simpa [dist_eq_norm] using b_bound n 0 0 (zero_le _) (zero_le _)
+      end },
+    exact le_of_tendsto at_top_ne_bot (hF v).norm (eventually_of_forall _ A) },
+  let Fcont := Fmult.mk_continuous _ Fnorm,
+  use Fcont,
+  have : ∀ n, ∥f n - Fcont∥ ≤ b n,
+  { assume n,
+    apply op_norm_le_bound _ (b0 n) (λ v, _),
+    have A : ∀ᶠ m in at_top, ∥(f n - f m) v∥ ≤ b n * finset.prod univ (λ (i : ι), ∥v i∥),
+    { refine eventually_at_top.2 ⟨n, λ m hm, _⟩,
+      apply le_trans ((f n - f m).le_op_norm _) _,
+      exact mul_le_mul_of_nonneg_right (b_bound n m n (le_refl _) hm) (nonneg v) },
+    have B : tendsto (λ m, ∥(f n - f m) v∥) at_top (𝓝 (∥(f n - Fcont) v∥)) :=
+      tendsto.norm (tendsto_const_nhds.sub (hF v)),
+    exact le_of_tendsto at_top_ne_bot B A },
+  erw tendsto_iff_norm_tendsto_zero,
+  exact squeeze_zero (λ n, norm_nonneg _) this b_lim,
+end
+
 end continuous_multilinear_map
 
 /-- If a continuous multilinear map is constructed from a multilinear map via the constructor
@@ -438,6 +550,24 @@ instance : normed_group (continuous_multilinear_map 𝕜 (λ (i : ι), 𝕜) E�
 
 instance : normed_space 𝕜 (continuous_multilinear_map 𝕜 (λ (i : ι), 𝕜) E₂) :=
   @continuous_multilinear_map.to_normed_space 𝕜 ι (λ (i : ι), 𝕜) E₂ _ _ _ _ _ _ _
+
+/-- Given a continuous multilinear map `f` on `n` variables (parameterized by `fin n`) and a subset
+`s` of `k` of these variables, one gets a new continuous multilinear map on `fin k` by varying
+these variables, and fixing the other ones equal to a given value `z`. It is denoted by
+`f.restr s hk z`, where `hk` is a proof that the cardinality of `s` is `k`. The implicit
+identification between `fin k` and `s` that we use is the canonical (increasing) bijection. -/
+def restr {k n : ℕ} (f : G [×n]→L[𝕜] E₂)
+  (s : finset (fin n)) (hk : s.card = k) (z : G) : G [×k]→L[𝕜] E₂ :=
+(@multilinear_map.restr 𝕜 E₂ G _ _ _ _ _ _ _ f.to_multilinear_map s hk z).mk_continuous
+(∥f∥ * ∥z∥^(n-k)) $ λ v, multilinear_map.restr_norm_le _ _ _ _ f.le_op_norm _
+
+lemma norm_restr {k n : ℕ} (f : G [×n]→L[𝕜] E₂)
+  (s : finset (fin n)) (hk : s.card = k) (z : G) :
+  ∥f.restr s hk z∥ ≤ ∥f∥ * ∥z∥ ^ (n - k) :=
+begin
+  apply multilinear_map.mk_continuous_norm_le,
+  exact mul_nonneg (norm_nonneg _) (pow_nonneg (norm_nonneg _) _)
+end
 
 variables (𝕜 ι)
 

@@ -11,7 +11,7 @@ import algebra.pointwise
 
 universes u v w
 
-open lattice submodule ring
+open submodule ring
 
 namespace algebra
 

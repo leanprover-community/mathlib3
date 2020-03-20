@@ -198,7 +198,6 @@ apply_nolint algebraic_geometry.PresheafedSpace.stalk_map doc_blame
 
 -- analysis/normed_space/basic.lean
 apply_nolint normed_group.tendsto_nhds_zero ge_or_gt
-apply_nolint summable_iff_vanishing_norm ge_or_gt
 
 -- analysis/normed_space/real_inner_product.lean
 apply_nolint has_inner doc_blame
@@ -568,48 +567,6 @@ apply_nolint category_theory.limits.functor_category_colimit_cocone doc_blame
 apply_nolint category_theory.limits.functor_category_is_colimit_cocone doc_blame
 apply_nolint category_theory.limits.functor_category_is_limit_cone doc_blame
 apply_nolint category_theory.limits.functor_category_limit_cone doc_blame
-
--- category_theory/limits/limits.lean
-apply_nolint category_theory.limits.colim_coyoneda doc_blame
-apply_nolint category_theory.limits.colimit doc_blame
-apply_nolint category_theory.limits.colimit.cocone doc_blame
-apply_nolint category_theory.limits.colimit.cocone_morphism doc_blame
-apply_nolint category_theory.limits.colimit.desc doc_blame
-apply_nolint category_theory.limits.colimit.hom_iso doc_blame
-apply_nolint category_theory.limits.colimit.hom_iso' doc_blame
-apply_nolint category_theory.limits.colimit.is_colimit doc_blame
-apply_nolint category_theory.limits.colimit.post doc_blame
-apply_nolint category_theory.limits.colimit.pre doc_blame
-apply_nolint category_theory.limits.colimit.ι doc_blame
-apply_nolint category_theory.limits.has_colimit_of_equivalence_comp doc_blame
-apply_nolint category_theory.limits.has_colimit_of_iso doc_blame
-apply_nolint category_theory.limits.has_colimits_of_shape_of_equivalence doc_blame
-apply_nolint category_theory.limits.has_limit_of_equivalence_comp doc_blame
-apply_nolint category_theory.limits.has_limit_of_iso doc_blame
-apply_nolint category_theory.limits.has_limits_of_shape_of_equivalence doc_blame
-apply_nolint category_theory.limits.is_colimit has_inhabited_instance
-apply_nolint category_theory.limits.is_colimit.desc_cocone_morphism doc_blame
-apply_nolint category_theory.limits.is_colimit.hom_iso' doc_blame
-apply_nolint category_theory.limits.is_colimit.iso_unique_cocone_morphism doc_blame
-apply_nolint category_theory.limits.is_colimit.mk_cocone_morphism doc_blame
-apply_nolint category_theory.limits.is_colimit.of_iso_colimit doc_blame
-apply_nolint category_theory.limits.is_limit has_inhabited_instance
-apply_nolint category_theory.limits.is_limit.hom_iso' doc_blame
-apply_nolint category_theory.limits.is_limit.iso_unique_cone_morphism doc_blame
-apply_nolint category_theory.limits.is_limit.lift_cone_morphism doc_blame
-apply_nolint category_theory.limits.is_limit.mk_cone_morphism doc_blame
-apply_nolint category_theory.limits.is_limit.of_iso_limit doc_blame
-apply_nolint category_theory.limits.lim_yoneda doc_blame
-apply_nolint category_theory.limits.limit doc_blame
-apply_nolint category_theory.limits.limit.cone doc_blame
-apply_nolint category_theory.limits.limit.cone_morphism doc_blame
-apply_nolint category_theory.limits.limit.hom_iso doc_blame
-apply_nolint category_theory.limits.limit.hom_iso' doc_blame
-apply_nolint category_theory.limits.limit.is_limit doc_blame
-apply_nolint category_theory.limits.limit.lift doc_blame
-apply_nolint category_theory.limits.limit.post doc_blame
-apply_nolint category_theory.limits.limit.pre doc_blame
-apply_nolint category_theory.limits.limit.π doc_blame
 
 -- category_theory/limits/over.lean
 apply_nolint category_theory.functor.to_cocone doc_blame
@@ -1762,8 +1719,6 @@ apply_nolint rat.sqrt doc_blame
 
 -- data/real/basic.lean
 apply_nolint real doc_blame
-apply_nolint real.Inf doc_blame
-apply_nolint real.Sup doc_blame
 apply_nolint real.comm_ring_aux doc_blame
 apply_nolint real.le doc_blame
 apply_nolint real.mk doc_blame
@@ -2419,12 +2374,12 @@ apply_nolint with_bot doc_blame
 apply_nolint with_top doc_blame
 
 -- order/complete_lattice.lean
-apply_nolint lattice.Inf_eq_bot ge_or_gt
-apply_nolint lattice.infi_eq_bot ge_or_gt
+apply_nolint Inf_eq_bot ge_or_gt
+apply_nolint infi_eq_bot ge_or_gt
 
 -- order/conditionally_complete_lattice.lean
-apply_nolint lattice.conditionally_complete_linear_order doc_blame
-apply_nolint lattice.conditionally_complete_linear_order_bot doc_blame
+apply_nolint conditionally_complete_linear_order doc_blame
+apply_nolint conditionally_complete_linear_order_bot doc_blame
 
 -- order/filter/partial.lean
 apply_nolint filter.pcomap' doc_blame
@@ -2446,11 +2401,10 @@ apply_nolint filter.pointwise_one doc_blame
 apply_nolint filter.pointwise_zero doc_blame
 
 -- order/fixed_points.lean
-apply_nolint lattice.fixed_points doc_blame
-apply_nolint lattice.fixed_points.next doc_blame
-apply_nolint lattice.fixed_points.next_fixed doc_blame
-apply_nolint lattice.fixed_points.prev doc_blame
-apply_nolint lattice.fixed_points.prev_fixed doc_blame
+apply_nolint fixed_points.next doc_blame
+apply_nolint fixed_points.next_fixed doc_blame
+apply_nolint fixed_points.prev doc_blame
+apply_nolint fixed_points.prev_fixed doc_blame
 
 -- order/galois_connection.lean
 apply_nolint galois_insertion has_inhabited_instance
@@ -3515,9 +3469,6 @@ apply_nolint homeomorph.mul_left doc_blame
 apply_nolint homeomorph.mul_right doc_blame
 apply_nolint homeomorph.neg doc_blame
 
--- topology/algebra/infinite_sum.lean
-apply_nolint option.cases_on' doc_blame
-
 -- topology/algebra/module.lean
 apply_nolint continuous_linear_equiv has_inhabited_instance
 
@@ -3609,8 +3560,6 @@ apply_nolint lebesgue_number_lemma_of_metric_sUnion ge_or_gt
 apply_nolint metric.cauchy_iff ge_or_gt
 apply_nolint metric.cauchy_seq_iff ge_or_gt
 apply_nolint metric.cauchy_seq_iff' ge_or_gt
-apply_nolint metric.continuous_iff ge_or_gt
-apply_nolint metric.continuous_iff' ge_or_gt
 apply_nolint metric.exists_ball_subset_ball ge_or_gt
 apply_nolint metric.is_open_iff ge_or_gt
 apply_nolint metric.mem_closure_range_iff ge_or_gt

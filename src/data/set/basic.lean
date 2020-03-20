@@ -679,7 +679,7 @@ by finish [ext_iff]
 @[simp] theorem compl_union (s t : set α) : -(s ∪ t) = -s ∩ -t :=
 by finish [ext_iff]
 
-local attribute [simp] -- Will be generalized to lattices in `lattice.neg_neg`
+local attribute [simp] -- Will be generalized to lattices in `compl_compl'`
 theorem compl_compl (s : set α) : -(-s) = s :=
 by finish [ext_iff]
 

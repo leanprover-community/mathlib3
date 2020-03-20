@@ -24,7 +24,7 @@ the statement. "Baire" is however in the docstring of all the theorems, to facil
 noncomputable theory
 open_locale classical
 
-open filter lattice encodable set
+open filter encodable set
 
 variables {α : Type*} {β : Type*} {γ : Type*}
 

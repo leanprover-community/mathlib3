@@ -10,7 +10,6 @@ import order.bounded_lattice order.bounds data.set.basic tactic.pi_instances tac
 set_option old_structure_cmd true
 open set
 
-namespace lattice
 universes u v w w₂
 variables {α : Type u} {β : Type v} {ι : Sort w} {ι₂ : Sort w₂}
 
@@ -60,19 +59,11 @@ theorem le_Inf : (∀b∈s, a ≤ b) → a ≤ Inf s := complete_lattice.le_Inf 
 
 lemma is_lub_Sup (s : set α) : is_lub s (Sup s) := ⟨assume x, le_Sup, assume x, Sup_le⟩
 
--- Use `private lemma` + `alias` to escape `namespace lattice` without closing it
-
-private lemma is_lub.Sup_eq (h : is_lub s a) : Sup s = a := (is_lub_Sup s).unique h
-
-/-- If `a` is the least upper bound of `s`, then `Sup s = a` -/
-alias is_lub.Sup_eq ← is_lub.Sup_eq
+lemma is_lub.Sup_eq (h : is_lub s a) : Sup s = a := (is_lub_Sup s).unique h
 
 lemma is_glb_Inf (s : set α) : is_glb s (Inf s) := ⟨assume a, Inf_le, assume a, le_Inf⟩
 
-private lemma is_glb.Inf_eq (h : is_glb s a) : Inf s = a := (is_glb_Inf s).unique h
-
-/-- If `a` is the greatest lower bound of `s`, then `Inf s = a` -/
-alias is_glb.Inf_eq ← is_glb.Inf_eq
+lemma is_glb.Inf_eq (h : is_glb s a) : Inf s = a := (is_glb_Inf s).unique h
 
 theorem le_Sup_of_le (hb : b ∈ s) (h : a ≤ b) : a ≤ Sup s :=
 le_trans h (le_Sup hb)
@@ -211,15 +202,11 @@ le_Sup ⟨i, rfl⟩
 
 lemma is_lub_supr : is_lub (range s) (⨆j, s j) := is_lub_Sup _
 
-private lemma is_lub.supr_eq (h : is_lub (range s) a) : (⨆j, s j) = a := h.Sup_eq
-
-alias is_lub.supr_eq ← is_lub.supr_eq
+lemma is_lub.supr_eq (h : is_lub (range s) a) : (⨆j, s j) = a := h.Sup_eq
 
 lemma is_glb_infi : is_glb (range s) (⨅j, s j) := is_glb_Inf _
 
-private lemma is_glb.infi_eq (h : is_glb (range s) a) : (⨅j, s j) = a := h.Inf_eq
-
-alias is_glb.infi_eq ← is_glb.infi_eq
+lemma is_glb.infi_eq (h : is_glb (range s) a) : (⨅j, s j) = a := h.Inf_eq
 
 theorem le_supr_of_le (i : ι) (h : a ≤ s i) : a ≤ supr s :=
 le_trans h (le_supr _ i)
@@ -708,7 +695,7 @@ instance complete_lattice_Prop : complete_lattice Prop :=
   Inf    := λs, ∀a:Prop, a∈s → a,
   Inf_le := assume s a h p, p a h,
   le_Inf := assume s a h p b hb, h b hb p,
-  ..lattice.bounded_lattice_Prop }
+  ..bounded_lattice_Prop }
 
 lemma Inf_Prop_eq {s : set Prop} : Inf s = (∀p ∈ s, p) := rfl
 
@@ -758,7 +745,6 @@ assume x y h, le_Inf $ assume x' ⟨f, f_in, fx_eq⟩, Inf_le_of_le ⟨f, f_in, 
 end complete_lattice
 
 section ord_continuous
-open lattice
 variables [complete_lattice α] [complete_lattice β]
 
 /-- A function `f` between complete lattices is order-continuous
@@ -775,11 +761,9 @@ calc f a₁ ≤ f a₁ ⊔ f a₂ : le_sup_left
   ... = _ : by rw [sup_of_le_right h]
 
 end ord_continuous
-end lattice
 
 namespace order_dual
-open lattice
-variable (α : Type*)
+variable (α)
 
 instance [has_Inf α] : has_Sup (order_dual α) := ⟨(Inf : set α → α)⟩
 instance [has_Sup α] : has_Inf (order_dual α) := ⟨(Sup : set α → α)⟩
@@ -789,16 +773,15 @@ instance [complete_lattice α] : complete_lattice (order_dual α) :=
   Sup_le := @complete_lattice.le_Inf α _,
   Inf_le := @complete_lattice.le_Sup α _,
   le_Inf := @complete_lattice.Sup_le α _,
-  .. order_dual.lattice.bounded_lattice α, ..order_dual.lattice.has_Sup α, ..order_dual.lattice.has_Inf α }
+  .. order_dual.bounded_lattice α, ..order_dual.has_Sup α, ..order_dual.has_Inf α }
 
 instance [complete_linear_order α] : complete_linear_order (order_dual α) :=
-{ .. order_dual.lattice.complete_lattice α, .. order_dual.decidable_linear_order α }
+{ .. order_dual.complete_lattice α, .. order_dual.decidable_linear_order α }
 
 end order_dual
 
 namespace prod
-open lattice
-variables (α : Type*) (β : Type*)
+variables (α β)
 
 instance [has_Inf α] [has_Inf β] : has_Inf (α × β) :=
 ⟨λs, (Inf (prod.fst '' s), Inf (prod.snd '' s))⟩
@@ -815,8 +798,8 @@ instance [complete_lattice α] [complete_lattice β] : complete_lattice (α × �
   le_Inf := assume s p h,
     ⟨ le_Inf $ ball_image_of_ball $ assume p hp, (h p hp).1,
       le_Inf $ ball_image_of_ball $ assume p hp, (h p hp).2⟩,
-  .. prod.lattice.bounded_lattice α β,
-  .. prod.lattice.has_Sup α β,
-  .. prod.lattice.has_Inf α β }
+  .. prod.bounded_lattice α β,
+  .. prod.has_Sup α β,
+  .. prod.has_Inf α β }
 
 end prod

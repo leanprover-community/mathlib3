@@ -34,7 +34,7 @@ the definitions of Limsup and Liminf.
 In complete lattices, however, it coincides with the `Inf Sup` definition.
 -/
 
-open lattice filter set
+open filter set
 
 variables {α : Type*} {β : Type*}
 namespace filter
@@ -294,10 +294,10 @@ lemma limsup_const {α : Type*} [conditionally_complete_lattice β] {f : filter 
 begin
   rw limsup_eq,
   apply le_antisymm,
-  { refine lattice.cInf_le ⟨b, λ a ha, _⟩ (by simp [le_refl]),
+  { refine cInf_le ⟨b, λ a ha, _⟩ (by simp [le_refl]),
     obtain ⟨n, hn⟩ : ∃ n, b ≤ a := eventually.exists ha hf,
     exact hn },
-  { refine lattice.le_cInf ⟨b, by simp [le_refl]⟩ (λ a ha, _),
+  { refine le_cInf ⟨b, by simp [le_refl]⟩ (λ a ha, _),
     obtain ⟨n, hn⟩ : ∃ n, b ≤ a := eventually.exists ha hf,
     exact hn }
 end
@@ -307,10 +307,10 @@ lemma liminf_const {α : Type*} [conditionally_complete_lattice β] {f : filter 
 begin
   rw liminf_eq,
   apply le_antisymm,
-  { refine lattice.cSup_le ⟨b, by simp [le_refl]⟩ (λ a ha, _),
+  { refine cSup_le ⟨b, by simp [le_refl]⟩ (λ a ha, _),
     obtain ⟨n, hn⟩ : ∃ n, a ≤ b := eventually.exists ha hf,
     exact hn },
-  { refine lattice.le_cSup ⟨b, λ a ha, _⟩ (by simp [le_refl]),
+  { refine le_cSup ⟨b, λ a ha, _⟩ (by simp [le_refl]),
     obtain ⟨n, hn⟩ : ∃ n, a ≤ b := eventually.exists ha hf,
     exact hn }
 end
@@ -426,5 +426,3 @@ end
 end conditionally_complete_linear_order
 
 end filter
-
-#lint

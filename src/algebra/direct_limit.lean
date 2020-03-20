@@ -22,11 +22,11 @@ import ring_theory.ideal_operations
 
 universes u v w u₁
 
-open lattice submodule
+open submodule
 
 variables {R : Type u} [ring R]
 variables {ι : Type v} [nonempty ι]
-variables [directed_order ι] [decidable_eq ι]
+variables [decidable_eq ι] [directed_order ι]
 variables (G : ι → Type w) [Π i, decidable_eq (G i)]
 
 /-- A directed system is a functor from the category (directed poset) to another category.
@@ -256,7 +256,8 @@ module.direct_limit.lift_of _ _ _
 @[simp] lemma lift_sub (x y) : lift G f P g Hg (x - y) = lift G f P g Hg x - lift G f P g Hg y := is_add_group_hom.map_sub _ _ _
 
 lemma lift_unique (F : direct_limit G f → P) [is_add_group_hom F] (x) :
-  F x = lift G f P (λ i x, F $ of G f i x) (λ i j hij x, by rw of_f) x :=
+  F x = @lift _ _ _ _ G _ _ f _ _ P _ (λ i x, F $ of G f i x) (λ i, is_add_group_hom.comp _ _)
+    (λ i j hij x, by dsimp; rw of_f) x :=
 direct_limit.induction_on x $ λ i x, by rw lift_of
 
 end direct_limit
@@ -479,6 +480,7 @@ omit Hg
 @[simp] lemma lift_pow (x) (n : ℕ) : lift G f P g Hg (x ^ n) = lift G f P g Hg x ^ n :=
 (lift_hom G f P g Hg).map_pow x n
 
+local attribute [instance, priority 100] is_ring_hom.comp
 theorem lift_unique (F : direct_limit G f → P) [is_ring_hom F] (x) :
   F x = lift G f P (λ i x, F $ of G f i x) (λ i j hij x, by rw [of_f]) x :=
 direct_limit.induction_on x $ λ i x, by rw lift_of

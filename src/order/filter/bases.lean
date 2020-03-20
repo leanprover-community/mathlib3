@@ -43,7 +43,7 @@ with the case `p = λ _, true`.
 namespace filter
 variables {α : Type*} {β : Type*} {γ : Type*} {ι : Type*} {ι' : Type*}
 
-open set lattice
+open set
 
 /-- We say that a filter `l` has a basis `s : ι → set α` bounded by `p : ι → Prop`,
 if `t ∈ l` if and only if `t` includes `s i` for some `i` such that `p i`. -/

@@ -32,17 +32,16 @@ begin
   exact b,
 end
 
--- PROJECT
--- Much more ambitiously, we could analyse whether types have been constructed functorially,
--- and perform equiv_rw under functors.
--- PROJECT
--- Of course this applies in arbitrary categories, not just `Type`.
-example : is_lawful_functor option := by apply_instance
-
+-- We can rewrite the goal under functors.
 example {α β : Type} (e : α ≃ β) (b : β) : option α :=
 begin
-  -- equiv_rw e, -- fails, but could be made to work!
-  apply option.some,
   equiv_rw e,
-  exact b,
+  exact some b,
+end
+
+-- Even under multiple functors.
+example {α β : Type} (e : α ≃ β) (b : β) : list (option α) :=
+begin
+  equiv_rw e,
+  exact [none, some b],
 end

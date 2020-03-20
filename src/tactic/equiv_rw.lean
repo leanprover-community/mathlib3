@@ -42,6 +42,13 @@ do x' ← get_local x,
    rename j x,
    skip
 
+/--
+`unroll_functors` will run the tactic `t`,
+calling `apply functor.map` as many times as necessary first.
+-/
+meta def unroll_functors (t : tactic unit) :=
+t <|> (`[apply functor.map] >> unroll_functors)
+
 end tactic
 
 
@@ -57,10 +64,14 @@ local postfix `?`:9001 := optional
 will attempt to transport `h` along `e`, producing a new hypothesis `h : β`,
 with all occurrences of `h` in other hypotheses and the goal replaced with `e.symm h`.
 
-`equiv_rw e` is simply `apply e.inv_fun`, i.e. with `e : α ≃ β`, it turns a goal
-of `⊢ α` into `⊢ β`.
+`equiv_rw e` tries `apply e.inv_fun`,
+so with `e : α ≃ β`, it turns a goal of `⊢ α` into `⊢ β`.
+It will also try rewriting under functors, so it can also turn
+a goal of `⊢ option α` into `⊢ option β`.
+
+(Note that rewriting hypotheses does not understand functors.)
 -/
--- PROJECT Can we `equiv_rw` under lawful (type-level) functors?
+-- PROJECT Rewriting hypotheses under functors.
 -- PROJECT More generally, rewriting along isomorphisms, under functors.
 -- (See the `hygienic` branch of mathlib.)
 meta def equiv_rw (e : parse texpr) (loc : parse $ (tk "at" *> ident)?) : itactic :=
@@ -68,8 +79,7 @@ do e ← to_expr e,
    match loc with
    | (some hyp) := tactic.equiv_rw_hyp hyp e
    | none := do s ← to_expr ``(equiv.inv_fun %%e),
-                tactic.apply s,
-                skip
+                unroll_functors (tactic.apply s >> skip)
    end
 
 add_tactic_doc

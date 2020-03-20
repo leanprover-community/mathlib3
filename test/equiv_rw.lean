@@ -32,6 +32,13 @@ begin
   exact b,
 end
 
+-- Fail if the equivalence can't be used.
+example {α β γ : Type} (e : β ≃ γ) (a : α) : α :=
+begin
+  success_if_fail { equiv_rw e },
+  exact a,
+end
+
 -- We can rewrite the goal under functors.
 example {α β : Type} (e : α ≃ β) (b : β) : option α :=
 begin
@@ -40,14 +47,28 @@ begin
 end
 
 -- Check that we can rewrite in the target position of function types.
-example {α β γ : Type} (e : α ≃ β) (b : γ → β) : γ → α :=
+example {α β γ : Type} (e : α ≃ β) (f : γ → β) : γ → α :=
 begin
   equiv_rw e,
-  exact b,
+  exact f,
+end
+
+-- Check that we can rewrite in the source position of function types.
+example {α β γ : Type} (e : α ≃ β) (f : β → γ) : α → γ :=
+begin
+  equiv_rw e,
+  exact f,
 end
 
 -- Rewriting under multiple functors.
 example {α β : Type} (e : α ≃ β) (b : β) : list (option α) :=
+begin
+  equiv_rw e,
+  exact [none, some b],
+end
+
+-- Rewriting the other way under multiple functors.
+example {α β : Type} (e : β ≃ α) (b : β) : list (option α) :=
 begin
   equiv_rw e,
   exact [none, some b],

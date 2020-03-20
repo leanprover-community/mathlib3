@@ -13,18 +13,6 @@ Really, we would like to be able to be able to rewrite under functors,
 but this will require more tooling.
 -/
 
-namespace functor
-
-/-- The functor sending a type `β` to the functions `α → β`. -/
--- Note that this can't be found using typeclass search,
--- because of the way matching handles functions.
--- TODO Is this already in the library somewhere?
-def functions_from (α : Type*) : functor (λ β : Type*, α → β) :=
-{ map := λ β γ f g, f ∘ g }
-
-end functor
-
-
 namespace tactic
 
 /--
@@ -55,13 +43,23 @@ do x' ← get_local x,
    skip
 
 /--
+`apply function.comp` if the goal is a function type.
+-/
+meta def apply_function_comp : tactic unit :=
+do
+  `(_ → _) ← target,
+  no_mvars_in_target, -- make sure we don't go off into the wilds
+  `[eapply function.comp]
+
+/--
 `unroll_functors` will run the tactic `t`,
 calling `apply functor.map` as many times as necessary first.
 -/
 meta def unroll_functors (t : tactic unit) :=
 t <|>
-((`[apply functor.map] <|>
-  `[apply @functor.map _ (@functor.functions_from _)]) >> unroll_functors)
+(`[eapply functor.map] >> unroll_functors) <|>
+(apply_function_comp >> unroll_functors) <|>
+(apply_function_comp >> swap >> unroll_functors)
 
 end tactic
 
@@ -95,8 +93,12 @@ meta def equiv_rw (e : parse texpr) (loc : parse $ (tk "at" *> ident)?) : itacti
 do e ← to_expr e,
    match loc with
    | (some hyp) := tactic.equiv_rw_hyp hyp e
-   | none := do s ← to_expr ``(equiv.inv_fun %%e),
-                unroll_functors (tactic.apply s >> skip)
+   | none := do `(%%α ≃ %%β) ← infer_type e,
+                s₁ ← to_expr ``(equiv.to_fun %%e),
+                s₂ ← to_expr ``(equiv.inv_fun %%e),
+                unroll_functors ((tactic.eapply s₁ <|> tactic.eapply s₂) >> skip)
+                  <|> (do α_pp ← to_string <$> pp α,
+                       fail ("goal is not of type " ++ α_pp ++ ", nor observably functorial in it."))
    end
 
 add_tactic_doc

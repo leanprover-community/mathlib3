@@ -128,21 +128,17 @@ def inr : N →* M × N :=
 
 variables {M N}
 
-@[to_additive] lemma coe_fst : ⇑(fst M N) = prod.fst := rfl
-@[to_additive] lemma coe_snd : ⇑(snd M N) = prod.snd := rfl
+@[simp, to_additive] lemma coe_fst : ⇑(fst M N) = prod.fst := rfl
+@[simp, to_additive] lemma coe_snd : ⇑(snd M N) = prod.snd := rfl
 
-@[to_additive] lemma inl_apply (x) : inl M N x = (x, 1) := rfl
-@[to_additive] lemma inr_apply (y) : inr M N y = (1, y) := rfl
+@[simp, to_additive] lemma inl_apply (x) : inl M N x = (x, 1) := rfl
+@[simp, to_additive] lemma inr_apply (y) : inr M N y = (1, y) := rfl
 
 @[simp, to_additive] lemma fst_comp_inl : (fst M N).comp (inl M N) = id M := rfl
 @[simp, to_additive] lemma snd_comp_inl : (snd M N).comp (inl M N) = 1 := rfl
 @[simp, to_additive] lemma fst_comp_inr : (fst M N).comp (inr M N) = 1 := rfl
 @[simp, to_additive] lemma snd_comp_inr : (snd M N).comp (inr M N) = id N := rfl
 
-@[simp, to_additive] lemma fst_inl (x) : (inl M N x).1 = x := rfl
-@[simp, to_additive] lemma snd_inl (x) : (inl M N x).2 = 1 := rfl
-@[simp, to_additive] lemma fst_inr (y) : (inr M N y).1 = 1 := rfl
-@[simp, to_additive] lemma snd_inr (y) : (inr M N y).2 = y := rfl
 
 section prod
 
@@ -157,7 +153,7 @@ def prod (f : M →* N) (g : M →* P) : M →* N × P :=
   map_one' := prod.ext f.map_one g.map_one,
   map_mul' := λ x y, prod.ext (f.map_mul x y) (g.map_mul x y) }
 
-@[to_additive prod_apply]
+@[simp, to_additive prod_apply]
 lemma prod_apply (f : M →* N) (g : M →* P) (x) : f.prod g x = (f x, g x) := rfl
 
 @[to_additive fst_comp_prod]
@@ -188,7 +184,7 @@ def prod_map : M × N →* M' × N' := (f.comp (fst M N)).prod (g.comp (snd M N)
 lemma prod_map_def : prod_map f g = (f.comp (fst M N)).prod (g.comp (snd M N)) := rfl
 
 -- TODO : use `rfl` once we redefine `prod.map` in stdlib
-@[to_additive coe_prod_map]
+@[simp, to_additive coe_prod_map]
 lemma coe_prod_map : ⇑(prod_map f g) = prod.map f g := funext $ λ ⟨x, y⟩, rfl
 
 @[to_additive prod_comp_prod_map]
@@ -208,7 +204,7 @@ variables [comm_monoid P] (f : M →* P) (g : N →* P)
 `f.coprod g (p : M × N) = f p.1 + g p.2`."]
 def coprod : M × N →* P := f.comp (fst M N) * g.comp (snd M N)
 
-@[to_additive]
+@[simp, to_additive]
 lemma coprod_apply (p : M × N) : f.coprod g p = f p.1 * g p.2 := rfl
 
 @[simp, to_additive]

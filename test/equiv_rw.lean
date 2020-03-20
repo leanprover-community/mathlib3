@@ -39,9 +39,23 @@ begin
   exact some b,
 end
 
--- Even under multiple functors.
+-- Check that we can rewrite in the target position of function types.
+example {α β γ : Type} (e : α ≃ β) (b : γ → β) : γ → α :=
+begin
+  equiv_rw e,
+  exact b,
+end
+
+-- Rewriting under multiple functors.
 example {α β : Type} (e : α ≃ β) (b : β) : list (option α) :=
 begin
   equiv_rw e,
   exact [none, some b],
+end
+
+-- Rewriting under multiple functors, including functions.
+example {α β γ : Type} (e : α ≃ β) (b : β) : γ → list (option α) :=
+begin
+  equiv_rw e,
+  exact (λ g, [none, some b]),
 end

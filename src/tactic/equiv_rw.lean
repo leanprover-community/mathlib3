@@ -13,6 +13,18 @@ Really, we would like to be able to be able to rewrite under functors,
 but this will require more tooling.
 -/
 
+namespace functor
+
+/-- The functor sending a type `β` to the functions `α → β`. -/
+-- Note that this can't be found using typeclass search,
+-- because of the way matching handles functions.
+-- TODO Is this already in the library somewhere?
+def functions_from (α : Type*) : functor (λ β : Type*, α → β) :=
+{ map := λ β γ f g, f ∘ g }
+
+end functor
+
+
 namespace tactic
 
 /--
@@ -47,7 +59,9 @@ do x' ← get_local x,
 calling `apply functor.map` as many times as necessary first.
 -/
 meta def unroll_functors (t : tactic unit) :=
-t <|> (`[apply functor.map] >> unroll_functors)
+t <|>
+((`[apply functor.map] <|>
+  `[apply @functor.map _ (@functor.functions_from _)]) >> unroll_functors)
 
 end tactic
 
@@ -72,7 +86,10 @@ a goal of `⊢ option α` into `⊢ option β`.
 (Note that rewriting hypotheses does not understand functors.)
 -/
 -- PROJECT Rewriting hypotheses under functors.
--- PROJECT More generally, rewriting along isomorphisms, under functors.
+-- PROJECT
+-- Many constructions are not strictly functorial,
+-- but are functorial with respect to `≃`.
+-- PROJECT More generally, rewriting along categorical isomorphisms, under functors.
 -- (See the `hygienic` branch of mathlib.)
 meta def equiv_rw (e : parse texpr) (loc : parse $ (tk "at" *> ident)?) : itactic :=
 do e ← to_expr e,

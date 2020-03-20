@@ -6,7 +6,8 @@ Authors: Scott Morrison
 import tactic.equiv_rw
 
 -- Rewriting a hypothesis along an equivalence.
-example {α β : Type} (e : α ≃ β) (f : α → ℕ) (h : ∀ b : β, f (e.symm b) = 0) (i : α) : f i = 0 :=
+example {α β : Type} (e : α ≃ β)
+  (f : α → ℕ) (h : ∀ b : β, f (e.symm b) = 0) (i : α) : f i = 0 :=
 begin
   equiv_rw e at i,
   apply h,
@@ -18,6 +19,8 @@ example {α β : Type} (e : α ≃ β) (Z : α → Type) (f : Π a, Z a → ℕ)
   (i : α) (x : Z i) : f i x = 0 :=
 begin
   equiv_rw e at i,
+  guard_hyp i := β,
+  guard_target f (e.symm i) x = 0,
   guard_hyp x := Z ((e.symm) i),
   exact h i x,
 end

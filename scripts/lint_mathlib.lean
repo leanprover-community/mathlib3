@@ -79,7 +79,7 @@ env ← tactic.get_env,
 decls ← lint_mathlib_decls,
 linters ← get_linters mathlib_linters,
 mathlib_path_len ← string.length <$> tactic.get_mathlib_dir,
-let non_auto_decls := decls.filter (λ d, ¬ env.is_auto_decl d),
+let non_auto_decls := decls.filter (λ d, ¬ d.is_auto_or_internal env),
 results₀ ← lint_core decls non_auto_decls linters,
 nolint_file ← read_nolints_file,
 let results := (do

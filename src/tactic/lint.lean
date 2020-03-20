@@ -686,13 +686,6 @@ e ← get_env,
 pure $ ¬ e.contains (mk_nolint_decl_name decl linter)
 
 /--
-`env.is_auto_decl d` returns true iff `d` is an automatically-generated
-declaration that should be ignored by (some) linters.
--/
-meta def environment.is_auto_decl (env : environment) (d : declaration) : bool :=
-d.to_name.is_internal || d.is_auto_generated env
-
-/--
 Maps a tactic-valued function over a list with parallel execution.
 
 Note: in Lean 3, VM functions executed in tasks need to copy their whole closure and return values
@@ -788,7 +781,7 @@ meta def lint_aux (decls : list declaration) (group_by_filename : option nat)
     (where_desc : string) (slow verbose : bool) (checks : list (name × linter)) :
   tactic (name_set × format) := do
 e ← get_env,
-let non_auto_decls := decls.filter (λ d, ¬ e.is_auto_decl d),
+let non_auto_decls := decls.filter (λ d, ¬ d.is_auto_or_internal e),
 results ← lint_core decls non_auto_decls checks,
 let s := format_linter_results e results decls non_auto_decls
   group_by_filename where_desc slow verbose,

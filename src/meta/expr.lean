@@ -642,6 +642,12 @@ e.is_constructor d.to_name ∨
   "rec", "rec_on", "no_confusion", "no_confusion_type", "sizeof", "ibelow", "has_sizeof_inst"]) ∨
 d.to_name.has_prefix (λ nm, e.is_ginductive' nm)
 
+/--
+Returns true iff `d` is an automatically-generated or internal declaration.
+-/
+meta def is_auto_or_internal (env : environment) (d : declaration) : bool :=
+d.to_name.is_internal || d.is_auto_generated env
+
 /-- Returns the list of universe levels of a declaration. -/
 meta def univ_levels (d : declaration) : list level :=
 d.univ_params.map level.param

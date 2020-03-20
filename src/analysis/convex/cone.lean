@@ -1,4 +1,17 @@
+/-
+Copyright (c) 2020 Yury Kudryashov All rights reserved.
+Released under Apache 2.0 license as described in the file LICENSE.
+Authors: Yury Kudryashov
+-/
 import linear_algebra.linear_pmap analysis.convex.basic order.zorn
+
+/-!
+# Convex cones
+
+We define convex cones, prove that they form a `complete_lattice`, define `map`/`comap`
+operations in the obvious way, and prove
+[M. Riesz extension theorem](https://en.wikipedia.org/wiki/M._Riesz_extension_theorem).
+-/
 
 universes u v
 
@@ -11,6 +24,8 @@ variables (E : Type*) [add_comm_group E] [vector_space ℝ E]
   {F : Type*} [add_comm_group F] [vector_space ℝ F]
   {G : Type*} [add_comm_group G] [vector_space ℝ G]
 
+/-- A convex cone is a subset `s` of a vector space over `ℝ` such that `a • x + b • y ∈ s`
+whenever `a, b > 0` and `x, y ∈ s`. -/
 structure convex_cone :=
 (carrier : set E)
 (smul_mem' : ∀ ⦃c : ℝ⦄, 0 < c → ∀ ⦃x : E⦄, x ∈ carrier → c • x ∈ carrier)
@@ -31,6 +46,8 @@ instance : has_le (convex_cone E) := ⟨λ S T, S.carrier ⊆ T.carrier⟩
 instance : has_lt (convex_cone E) := ⟨λ S T, S.carrier ⊂ T.carrier⟩
 
 @[simp, elim_cast] lemma mem_coe {x : E} : x ∈ (S : set E) ↔ x ∈ S := iff.rfl
+
+@[simp] lemma mem_mk {s : set E} {h₁ h₂ x} : x ∈ mk s h₁ h₂ ↔ x ∈ s := iff.rfl
 
 /-- Two `convex_cone`s are equal if the underlying subsets are equal. -/
 theorem ext' {S T : convex_cone E} (h : (S : set E) = T) : S = T :=
@@ -157,7 +174,7 @@ open submodule
 variables (s : convex_cone E) (f : linear_pmap ℝ E ℝ)
 
 /-- Induction step in M. Riesz extension theorem. -/
-lemma step_pmap (nonneg : ∀ x : f.domain, (x : E) ∈ s → 0 ≤ f x)
+lemma step (nonneg : ∀ x : f.domain, (x : E) ∈ s → 0 ≤ f x)
   (dense : ∀ y, ∃ x : f.domain, (x : E) + y ∈ s) (hdom : f.domain ≠ ⊤) :
   ∃ g, f < g ∧ ∀ x : g.domain, (x : E) ∈ s → 0 ≤ g x :=
 begin
@@ -221,7 +238,7 @@ begin
   obtain ⟨q, hqs, hpq, hq⟩ := zorn.zorn_partial_order₀ _ _ _ hp_nonneg,
   { refine ⟨q, hpq, _, hqs⟩,
     contrapose! hq,
-    rcases step_pmap s q hqs _ hq with ⟨r, hqr, hr⟩,
+    rcases step s q hqs _ hq with ⟨r, hqr, hr⟩,
     { exact ⟨r, hr, le_of_lt hqr, ne_of_gt hqr⟩ },
     { exact λ y, let ⟨x, hx⟩ := hp_dense y in ⟨of_le hpq.left x, hx⟩ } },
   { intros c hcs c_chain y hy,
@@ -239,17 +256,60 @@ end
 
 end riesz_extension
 
-theorem riesz_extension (s : convex_cone E) (p : submodule ℝ E) (f : p →ₗ[ℝ] ℝ)
-  (nonneg : ∀ x : p, (x : E) ∈ s → 0 ≤ f x) (dense : ∀ y, ∃ x : p, (x : E) + y ∈ s) :
-  ∃ g : E →ₗ[ℝ] ℝ, (∀ x : p, f x = g x) ∧ (∀ x ∈ s, 0 ≤ g x) :=
+/-- M. Riesz extension theorem: given a convex cone `s` in a vector space `E`, a submodule `p`,
+and a linear `f : p → ℝ`, assume that `f` is nonnegative on `p ∩ s` and `p + s = E`. Then
+there exists a globally defined linear function `g : E → ℝ` that agrees with `f` on `p`,
+and is nonnegative on `s`. -/
+theorem riesz_extension (s : convex_cone E) (f : linear_pmap ℝ E ℝ)
+  (nonneg : ∀ x : f.domain, (x : E) ∈ s → 0 ≤ f x) (dense : ∀ y, ∃ x : f.domain, (x : E) + y ∈ s) :
+  ∃ g : E →ₗ[ℝ] ℝ, (∀ x : f.domain, g x = f x) ∧ (∀ x ∈ s, 0 ≤ g x) :=
 begin
-  rcases riesz_extension.exists_top s ⟨p, f⟩ nonneg dense with ⟨⟨g_dom, g⟩, ⟨hpg, hfg⟩, htop, hgs⟩,
+  rcases riesz_extension.exists_top s f nonneg dense with ⟨⟨g_dom, g⟩, ⟨hpg, hfg⟩, htop, hgs⟩,
   clear hpg,
   dsimp at hfg hgs htop ⊢,
   refine ⟨g.comp (linear_equiv.of_top _ htop).symm, _, _⟩;
     simp only [comp_apply, linear_equiv.coe_apply, linear_equiv.of_top_symm_apply],
-  { intro s, apply hfg, refl },
+  { intro s, refine (hfg _).symm, refl },
   { intros x hx,
     apply hgs,
     exact hx }
+end
+
+/-- Hahn-Banach theorem: if `N : E → ℝ` is a sublinear map, `f` is a linear map
+defined on a subspace of `E`, and `f x ≤ N x` for all `x` in the domain of `f`,
+then `f` can be extended to the whole space to a linear map `g` such that `g x ≤ N x`
+for all `x`. -/
+theorem exists_extension_of_le_sublinear (f : linear_pmap ℝ E ℝ) (N : E → ℝ)
+  (N_hom : ∀ (c : ℝ), 0 < c → ∀ x, N (c • x) = c * N x)
+  (N_add : ∀ x y, N (x + y) ≤ N x + N y)
+  (hf : ∀ x : f.domain, f x ≤ N x) :
+  ∃ g : E →ₗ[ℝ] ℝ, (∀ x : f.domain, g x = f x) ∧ (∀ x, g x ≤ N x) :=
+begin
+  let s : convex_cone (E × ℝ) :=
+  { carrier := {p : E × ℝ | N p.1 ≤ p.2 },
+    smul_mem' := λ c hc p hp,
+      calc N (c • p.1) = c * N p.1 : N_hom c hc p.1
+      ... ≤ c * p.2 : mul_le_mul_of_nonneg_left hp (le_of_lt hc),
+    add_mem' := λ x hx y hy, le_trans (N_add _ _) (add_le_add hx hy) },
+  obtain ⟨g, g_eq, g_nonneg⟩ :=
+    riesz_extension s ((-f).coprod (linear_map.id.to_pmap ⊤)) _ _;
+    simp only [linear_pmap.coprod_apply, to_pmap_apply, id_apply,
+      linear_pmap.neg_apply, ← sub_eq_neg_add, sub_nonneg, subtype.coe_mk] at *,
+  replace g_eq : ∀ (x : f.domain) (y : ℝ), g (x, y) = y - f x,
+  { intros x y,
+    simpa only [subtype.coe_mk, subtype.coe_eta] using g_eq ⟨(x, y), ⟨x.2, trivial⟩⟩ },
+  { refine ⟨-g.comp (inl ℝ E ℝ), _, _⟩; simp only [neg_apply, inl_apply, comp_apply],
+    { intro x, simp  [g_eq x 0] },
+    { intro x,
+      have A : (x, N x) = (x, 0) + (0, N x), by simp,
+      have B := g_nonneg ⟨x, N x⟩ (le_refl (N x)),
+      rw [A, map_add, ← neg_le_iff_add_nonneg] at B,
+      have C := g_eq 0 (N x),
+      simp only [submodule.coe_zero, f.map_zero, sub_zero] at C,
+      rwa ← C } },
+  { exact λ x hx, le_trans (hf _) hx },
+  { rintros ⟨x, y⟩,
+    refine ⟨⟨(0, N x - y), ⟨f.domain.zero_mem, trivial⟩⟩, _⟩,
+    simp only [convex_cone.mem_mk, mem_set_of_eq, subtype.coe_mk, prod.fst_add, prod.snd_add,
+      zero_add, sub_add_cancel] }
 end

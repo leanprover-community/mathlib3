@@ -31,10 +31,11 @@ structure linear_pmap (R : Type u) [ring R] (E : Type v) [add_comm_group E] [mod
 (domain : submodule R E)
 (to_fun : domain →ₗ[R] F)
 
-namespace linear_pmap
-
 variables {R : Type*} [ring R] {E : Type*} [add_comm_group E] [module R E]
   {F : Type*} [add_comm_group F] [module R F]
+  {G : Type*} [add_comm_group G] [module R G]
+
+namespace linear_pmap
 
 open submodule
 
@@ -103,6 +104,27 @@ end
   linear_pmap K E F :=
 mk_span_singleton' x y $ λ c hc, (smul_eq_zero.1 hc).elim
   (λ hc, by rw [hc, zero_smul]) (λ hx', absurd hx' hx)
+
+/-- Projection to the first coordinate as a `linear_pmap` -/
+protected def fst (p : submodule R E) (p' : submodule R F) : linear_pmap R (E × F) E :=
+{ domain := p.prod p',
+  to_fun := (linear_map.fst R E F).comp (p.prod p').subtype }
+
+@[simp] lemma fst_apply (p : submodule R E) (p' : submodule R F) (x : p.prod p') :
+  linear_pmap.fst p p' x = (x : E × F).1 := rfl
+
+/-- Projection to the second coordinate as a `linear_pmap` -/
+protected def snd (p : submodule R E) (p' : submodule R F) : linear_pmap R (E × F) F :=
+{ domain := p.prod p',
+  to_fun := (linear_map.snd R E F).comp (p.prod p').subtype }
+
+@[simp] lemma snd_apply (p : submodule R E) (p' : submodule R F) (x : p.prod p') :
+  linear_pmap.snd p p' x = (x : E × F).2 := rfl
+
+instance : has_neg (linear_pmap R E F) :=
+⟨λ f, ⟨f.domain, -f.to_fun⟩⟩
+
+@[simp] lemma neg_apply (f : linear_pmap R E F) (x) : (-f) x = -(f x) := rfl
 
 instance : has_le (linear_pmap R E F) :=
 ⟨λ f g, f.domain ≤ g.domain ∧ ∀ ⦃x : f.domain⦄ ⦃y : g.domain⦄ (h : (x:E) = y), f x = g y⟩
@@ -193,13 +215,6 @@ begin
     rw [smul_add, ← map_smul, ← map_smul],
     apply fg_eq,
     simp only [coe_smul, coe_mk, ← smul_add, hxy] },
-/-
-  refine ⟨⟨fg, _, _⟩, ⟨le_sup_left, _⟩, ⟨le_sup_right, _⟩⟩,
-  { intros z₁ z₂ hz,
-    simp only [mk_apply, linear_map.coe_mk],
-    rw [← zero_add (g _), ← f.map_zero],
-    refine (fg_eq _ _ _ _).symm,
-    simpa } -/
 end
 
 /-- Given two partial linear maps that agree on the intersection of their domains,
@@ -306,5 +321,52 @@ protected lemma Sup_le {c : set (linear_pmap R E F)} (hc : directed_on (≤) c)
 le_of_eq_locus_ge $ Sup_le $ λ _ ⟨f, hf, eq⟩, eq ▸
 have f ≤ (linear_pmap.Sup c hc) ⊓ g, from le_inf (linear_pmap.le_Sup _ hf) (hg f hf),
 this.1
+
+end linear_pmap
+
+namespace linear_map
+
+/-- Restrict a linear map to a submodule, reinterpreting the result as a `linear_pmap`. -/
+def to_pmap (f : E →ₗ[R] F) (p : submodule R E) : linear_pmap R E F :=
+⟨p, f.comp p.subtype⟩
+
+@[simp] lemma to_pmap_apply (f : E →ₗ[R] F) (p : submodule R E) (x : p) :
+  f.to_pmap p x = f x := rfl
+
+/-- Compose a linear map with a `linear_pmap` -/
+def comp_pmap (g : F →ₗ[R] G) (f : linear_pmap R E F) : linear_pmap R E G :=
+{ domain := f.domain,
+  to_fun := g.comp f.to_fun }
+
+@[simp] lemma comp_pmap_apply (g : F →ₗ[R] G) (f : linear_pmap R E F) (x) :
+  g.comp_pmap f x = g (f x) := rfl
+
+end linear_map
+
+namespace linear_pmap
+
+/-- Restrict codomain of a `linear_pmap` -/
+def cod_restrict (f : linear_pmap R E F) (p : submodule R F) (H : ∀ x, f x ∈ p) :
+  linear_pmap R E p :=
+{ domain := f.domain,
+  to_fun := f.to_fun.cod_restrict p H }
+
+/-- Compose two `linear_pmap`s -/
+def comp (g : linear_pmap R F G) (f : linear_pmap R E F)
+  (H : ∀ x : f.domain, f x ∈ g.domain) :
+  linear_pmap R E G :=
+g.to_fun.comp_pmap $ f.cod_restrict _ H
+
+/-- `f.coprod g` is the partially defined linear map defined on `f.domain × g.domain`,
+and sending `p` to `f p.1 + g p.2`. -/
+def coprod (f : linear_pmap R E G) (g : linear_pmap R F G) :
+  linear_pmap R (E × F) G :=
+{ domain := f.domain.prod g.domain,
+  to_fun := (f.comp (linear_pmap.fst f.domain g.domain) (λ x, x.2.1)).to_fun +
+    (g.comp (linear_pmap.snd f.domain g.domain) (λ x, x.2.2)).to_fun }
+
+@[simp] lemma coprod_apply (f : linear_pmap R E G) (g : linear_pmap R F G) (x) :
+  f.coprod g x = f ⟨(x : E × F).1, x.2.1⟩ + g ⟨(x : E × F).2, x.2.2⟩ :=
+rfl
 
 end linear_pmap

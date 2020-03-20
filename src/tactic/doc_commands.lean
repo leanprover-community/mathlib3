@@ -4,6 +4,8 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Robert Y. Lewis
 -/
 
+import tactic.fix_reflect_string
+
 /-!
 # Documentation commands
 
@@ -181,26 +183,17 @@ meta def tactic.get_tactic_doc_entries : tactic (list tactic_doc_entry) :=
 attribute.get_instances `tactic_doc >>=
   list.mmap (λ dcl, mk_const dcl >>= eval_expr tactic_doc_entry)
 
-/-- `add_tactic_doc tde` assumes `tde : pexpr` represents a term of type `tactic_doc_entry`.
-It adds a declaration to the environment with `tde` as its body and tags it with the `tactic_doc`
+/-- `add_tactic_doc tde` adds a declaration to the environment
+with `tde` as its body and tags it with the `tactic_doc`
 attribute. If `tde.decl_names` has exactly one entry, and the referenced declaration is missing a
 doc string, it adds `tde.description` as the doc string. -/
-meta def tactic.add_tactic_doc (tde : expr) : tactic unit :=
-do tde ← eval_expr tactic_doc_entry tde,
-   when (tde.description = "" ∧ tde.inherit_description_from.is_none ∧ tde.decl_names.length ≠ 1) $
+meta def tactic.add_tactic_doc (tde : tactic_doc_entry) : tactic unit :=
+do when (tde.description = "" ∧ tde.inherit_description_from.is_none ∧ tde.decl_names.length ≠ 1) $
      fail "A tactic doc entry must contain either a description or a declaration to inherit a description from",
    tde ← if tde.description = "" then tde.update_description else return tde,
    let decl_name := (tde.name ++ tde.category.to_string).mk_hashed_name `tactic_doc,
    add_decl $ mk_definition decl_name [] `(tactic_doc_entry) (reflect tde),
    tactic_doc_entry_attr.set decl_name () tt none
-
-/-- Given a `pexpr`, attempt to elaborate it and return either the error message or the result. -/
-private meta def elab_as_tde_or_error_msg (pe : pexpr) : tactic (expr ⊕ string) :=
-λ s, match to_expr ``(%%pe : tactic_doc_entry) ff ff s with
-| interaction_monad.result.success e s := interaction_monad.result.success (sum.inl e) s
-| interaction_monad.result.exception (some msg) _ _ := interaction_monad.result.success (sum.inr (msg ()).to_string) s
-| interaction_monad.result.exception none _ _ := interaction_monad.result.success (sum.inr (format!"{pe} is not a valid tactic doc entry").to_string) s
-end
 
 /--
 A command used to add documentation for a tactic, command, hole command, or attribute.
@@ -241,13 +234,16 @@ Note that providing a badly formed `tactic_doc_entry` to the command can result 
 messages.
 
 -/
-@[user_command] meta def add_tactic_doc_command (_ : parse $ tk "add_tactic_doc") : parser unit :=
-do pe ← parser.pexpr,
-   elab ← of_tactic (elab_as_tde_or_error_msg pe),
-   match elab with
-   | sum.inl e := tactic.add_tactic_doc e
-   | sum.inr msg := interaction_monad.fail msg
-   end .
+@[user_command] meta def add_tactic_doc_command (mi : interactive.decl_meta_info)
+  (_ : parse $ tk "add_tactic_doc") : parser unit := do
+pe ← parser.pexpr,
+elab ← to_expr ``(%%pe : tactic_doc_entry) ff ff,
+e ← eval_expr tactic_doc_entry elab,
+let e : tactic_doc_entry := match mi.doc_string with
+  | some desc := { description := desc, ..e }
+  | none := e
+  end,
+tactic.add_tactic_doc e .
 
 add_tactic_doc
 { name                     := "library_note",
@@ -265,13 +261,8 @@ add_tactic_doc
 
 -- add docs to core tactics
 
-add_tactic_doc
-{ name := "cc (congruence closure)",
-  category := doc_category.tactic,
-  decl_names := [`tactic.interactive.cc],
-  tags := ["core", "finishing"],
-  description :=
-"The congruence closure tactic `cc` tries to solve the goal by chaining
+/--
+The congruence closure tactic `cc` tries to solve the goal by chaining
 equalities from context and applying congruence (i.e. if `a = b`, then `f a = f b`).
 It is a finishing tactic, i.e. it is meant to close
 the current goal, not to make some inconclusive progress.
@@ -310,15 +301,15 @@ Journal of the ACM (1980)
 * The congruence lemmas for dependent type theory as used in Lean are described in
 [Congruence closure in intensional type theory](https://leanprover.github.io/papers/congr.pdf)
 (de Moura, Selsam IJCAR 2016).
-" }
-
+--/
 add_tactic_doc
-{ name := "conv",
+{ name := "cc (congruence closure)",
   category := doc_category.tactic,
-  decl_names := [`tactic.interactive.conv],
-  tags := ["core"],
-  description :=
-"`conv {...}` allows the user to perform targeted rewriting on a goal or hypothesis,
+  decl_names := [`tactic.interactive.cc],
+  tags := ["core", "finishing"] }
+
+/--
+`conv {...}` allows the user to perform targeted rewriting on a goal or hypothesis,
 by focusing on particular subexpressions.
 
 See <https://leanprover-community.github.io/mathlib_docs/conv.html> for more details.
@@ -363,7 +354,12 @@ begin
 end
 ```
 and likewise for `to_rhs`.
-" }
+-/
+add_tactic_doc
+{ name := "conv",
+  category := doc_category.tactic,
+  decl_names := [`tactic.interactive.conv],
+  tags := ["core"] }
 
 add_tactic_doc
 { name := "simp",

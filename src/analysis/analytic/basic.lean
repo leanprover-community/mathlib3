@@ -22,12 +22,35 @@ and we only require the existence of a converging series.
 The general framework is important to say that the exponential map on bounded operators on a Banach
 space is analytic, as well as the inverse on invertible operators.
 
+## Main definitions
+
+Let `p` be a formal multilinear series from `E` to `F`, i.e., `p n` is a multilinear map on `E^n`
+for `n : ℕ`.
+
+* `p.radius`: the largest `r : ennreal` such that `∥p n∥ * r^n` grows subexponentially, defined as
+  a liminf.
+* `p.le_radius_of_bound`, `p.bound_of_lt_radius`, `p.geometric_bound_of_lt_radius`: relating the
+  value of the radius with the growth of `∥p n∥ * r^n`.
+* `p.partial_sum n x`: the sum `∑_{i = 0}^{n-1} pᵢ xⁱ`.
+
+Additionally, let `f` be a function from `E` to `F`.
+
+* `has_fpower_series_on_ball f p x r` means that, on the ball of center `x` with radius `r`,
+  `f (x + y) = ∑_n pₙ yⁿ`.
+* `has_fpower_series_at f p x` means that, on some ball of center `x` with positive radius, holds
+  `has_fpower_series_on_ball f p x r`.
+* `analytic_at 𝕜 f x` means that there exists a power series `p` such that holds
+  `has_fpower_series_at f p x`.
+
+We develop the basic properties of these notions, notably:
+* If a function admits a power series, it is continuous (in
+  `has_fpower_series_on_ball.continuous_on` and `has_fpower_series_at.continuous_at` and
+  `analytic_at.continuous_at`).
+* In a complete space, the sum of a formal power series with positive radius is well defined on the
+  disk of convergence, in `formal_multilinear_series.has_fpower_series_on_ball`.
 -/
 
 noncomputable theory
-
-universes u v
-
 
 variables {𝕜 : Type*} [nondiscrete_normed_field 𝕜]
 {E : Type*} [normed_group E] [normed_space 𝕜 E]
@@ -37,6 +60,8 @@ variables {𝕜 : Type*} [nondiscrete_normed_field 𝕜]
 open_locale topological_space classical
 open filter
 
+/-! ### The radius of a formal multilinear series -/
+
 namespace formal_multilinear_series
 
 /-- The radius of a formal multilinear series is the largest `r` such that the sum `Σ pₙ yⁿ`
@@ -44,7 +69,7 @@ converges for all `∥y∥ < r`. -/
 def radius (p : formal_multilinear_series 𝕜 E F) : ennreal :=
 liminf at_top (λ n, 1/((nnnorm (p n)) ^ (1 / (n : ℝ)) : nnreal))
 
-/--If `rⁿ ∥pₙ∥` is bounded in `n`, then the radius of `p` is at least `r`. -/
+/--If `∥pₙ∥ rⁿ` is bounded in `n`, then the radius of `p` is at least `r`. -/
 lemma le_radius_of_bound (p : formal_multilinear_series 𝕜 E F) (C : nnreal) {r : nnreal}
   (h : ∀ (n : ℕ), nnnorm (p n) * r^n ≤ C) : (r : ennreal) ≤ p.radius :=
 begin
@@ -160,11 +185,12 @@ continuous_finset_sum (finset.range n) $ λ k hk, (p k).cont.comp (continuous_pi
 end formal_multilinear_series
 
 
+/-! ### Expanding a function as a power series -/
 
 variables {f g : E → F} {p pf pg : formal_multilinear_series 𝕜 E F} {x : E} {r r' : ennreal}
 
 /-- Given a function `f : E → F` and a formal multilinear series `p`, we say that `f` has `p` as
-a power series on the ball of radius `r` around `x` if `f (x + y) = ∑ pₙ yⁿ` for all `∥y∥ < r`. -/
+a power series on the ball of radius `r > 0` around `x` if `f (x + y) = ∑ pₙ yⁿ` for all `∥y∥ < r`. -/
 structure has_fpower_series_on_ball
   (f : E → F) (p : formal_multilinear_series 𝕜 E F) (x : E) (r : ennreal) : Prop :=
 (r_le    : r ≤ p.radius)

@@ -54,8 +54,11 @@ instance : inhabited (Module R) := ⟨of R punit⟩
 @[simp]
 lemma of_apply (X : Type u) [add_comm_group X] [module R X] : (of R X : Type u) = X := rfl
 
-/-- Forgetting the underlying type and then building the bundled object returns the original module. -/
-def of_self (M : Module R) : Module.of R M ≅ M :=
+variables {R}
+
+/-- Forgetting to the underlying type and then building the bundled object returns the original module. -/
+@[simps]
+def of_self_iso (M : Module R) : Module.of R M ≅ M :=
 { hom := 𝟙 M, inv := 𝟙 M }
 
 instance : subsingleton (of R punit) :=

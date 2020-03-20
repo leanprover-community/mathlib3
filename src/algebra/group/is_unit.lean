@@ -78,17 +78,17 @@ to `f : M →* units N`. See also `units.lift_right` for a computable version. -
 @[to_additive "If a homomorphism `f : M →+ N` sends each element to an `is_add_unit`, then it can be lifted to `f : M →+ add_units N`. See also `add_units.lift_right` for a computable version."]
 noncomputable def is_unit.lift_right [monoid M] [monoid N] (f : M →* N)
   (hf : ∀ x, is_unit (f x)) : M →* units N :=
-units.lift_right f (λ x, classical.some (hf x)) $ λ x, classical.some_spec (hf x)
+units.lift_right f (λ x, classical.some (hf x)) $ λ x, (classical.some_spec (hf x)).symm
 
 @[to_additive] lemma is_unit.coe_lift_right [monoid M] [monoid N] (f : M →* N)
   (hf : ∀ x, is_unit (f x)) (x) :
-  f x = (is_unit.lift_right f hf x : N) :=
-units.coe_lift_right (λ y, classical.some_spec $ hf y) x
+  (is_unit.lift_right f hf x : N) = f x :=
+units.coe_lift_right _ x
 
 @[simp, to_additive] lemma is_unit.mul_lift_right_inv [monoid M] [monoid N] (f : M →* N)
   (h : ∀ x, is_unit (f x)) (x) : f x * ↑(is_unit.lift_right f h x)⁻¹ = 1 :=
-units.mul_lift_right_inv (λ y, classical.some_spec $ h y) x
+units.mul_lift_right_inv (λ y, (classical.some_spec $ h y).symm) x
 
 @[simp, to_additive] lemma is_unit.lift_right_inv_mul [monoid M] [monoid N] (f : M →* N)
   (h : ∀ x, is_unit (f x)) (x) : ↑(is_unit.lift_right f h x)⁻¹ * f x = 1 :=
-units.lift_right_inv_mul (λ y, classical.some_spec $ h y) x
+units.lift_right_inv_mul (λ y, (classical.some_spec $ h y).symm) x

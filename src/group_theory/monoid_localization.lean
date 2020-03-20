@@ -183,7 +183,7 @@ by rw [mul_comm, sec_spec h]
 @[to_additive] lemma mul_inv_left {f : M →* N} (h : ∀ y : S, is_unit (f y))
   (y : S) (w z) : w * ↑(is_unit.lift_right (f.restrict S) h y)⁻¹ = z ↔ w = f y * z :=
 by rw mul_comm; convert units.inv_mul_eq_iff_eq_mul _;
-  exact is_unit.coe_lift_right (f.restrict S) h _
+  exact (is_unit.coe_lift_right (f.restrict S) h _).symm
 
 @[to_additive] lemma mul_inv_right {f : M →* N} (h : ∀ y : S, is_unit (f y))
   (y : S) (w z) : z = w * ↑(is_unit.lift_right (f.restrict S) h y)⁻¹ ↔ z * f y = w :=
@@ -199,7 +199,7 @@ by rw [mul_inv_right h, mul_assoc, mul_comm _ (f y₂), ←mul_assoc, mul_inv_le
   (h : (is_unit.lift_right (f.restrict S) hf y)⁻¹ = (is_unit.lift_right (f.restrict S) hf z)⁻¹) :
   f y = f z :=
 by rw [←mul_one (f y), eq_comm, ←mul_inv_left hf y (f z) 1, h];
-  convert units.inv_mul _; exact is_unit.coe_lift_right (f.restrict S) hf _
+  convert units.inv_mul _; exact (is_unit.coe_lift_right (f.restrict S) hf _).symm
 
 @[to_additive] lemma inv_unique {f : M →* N} (h : ∀ y : S, is_unit (f y)) {y : S}
   {z} (H : f y * z = 1) : ↑(is_unit.lift_right (f.restrict S) h y)⁻¹ = z :=
@@ -307,13 +307,12 @@ by rw [←mul_mk'_one_eq_mk', f.1.map_mul, mul_assoc, mul_mk'_one_eq_mk', mk'_se
   f.mk' ((y : M) * x) y = f.1 x :=
 by rw [mul_comm, mk'_mul_cancel_right]
 
-variables {g : M →* P}
+@[to_additive] lemma is_unit_comp (j : N →* P) (y : S) :
+  is_unit (j.comp f.1 y) :=
+⟨units.map j $ is_unit.lift_right (f.1.restrict S) f.2 y,
+  show j _ = j _, from congr_arg j $ (is_unit.coe_lift_right (f.1.restrict S) f.2 _).symm⟩
 
-@[to_additive] lemma comp_eq_of_eq {T : submonoid P} {Q : Type*} [comm_monoid Q]
-  (hg : ∀ y : S, g y ∈ T) (k : localization_map T Q)
-  {x y} (h : f.1 x = f.1 y) : k.1 (g x) = k.1 (g y) :=
-let ⟨c, hc⟩ := (f.4 _ _).1 h in (k.4 _ _).2
-  ⟨⟨g c, hg c⟩, show g _ * g _ = g _ * g _, by rw [←g.map_mul, hc, g.map_mul]⟩
+variables {g : M →* P}
 
 @[to_additive] lemma eq_of_eq (hg : ∀ y : S, is_unit (g y)) {x y} (h : f.1 x = f.1 y) :
   g x = g y :=
@@ -323,6 +322,16 @@ begin
   show _ * (g _ * _) = _,
   rw [←mul_assoc, ←g.map_mul, hc, mul_inv_left hg, g.map_mul, mul_comm],
 end
+
+/-- Given `comm_monoid`s `M, P`, localization maps `f : M →* N, k : P →* Q` for submonoids
+    `S, T` respectively, and `g : M →* P` such that `g(S) ⊆ T`, `f(x) = f(y)` implies
+    `k (g x) = k (g y)`. -/
+@[to_additive "Given `add_comm_monoid`s `M, P`, localization maps `f : M →+ N, k : P →+ Q` for submonoids `S, T` respectively, and `g : M →+ P` such that `g(S) ⊆ T`, `f(x) = f(y)` implies `k (g x) = k (g y)`."]
+lemma comp_eq_of_eq {T : submonoid P} {Q : Type*} [comm_monoid Q]
+  (hg : ∀ y : S, g y ∈ T) (k : localization_map T Q)
+  {x y} (h : f.1 x = f.1 y) : k.1 (g x) = k.1 (g y) :=
+let ⟨c, hc⟩ := (f.4 _ _).1 h in (k.4 _ _).2
+  ⟨⟨g c, hg c⟩, show g _ * g _ = g _ * g _, by rw [←g.map_mul, hc, g.map_mul]⟩
 
 variables (hg : ∀ y : S, is_unit (g y))
 
@@ -369,7 +378,7 @@ show _ * _ * _ = _, by erw [mul_assoc, is_unit.lift_right_inv_mul, mul_one]
   g (sec S f.1 z).2 * f.lift hg z = g (sec S f.1 z).1 :=
 by rw [mul_comm, lift_mul_right]
 
-@[to_additive] lemma lift_of (x : M) :
+@[simp, to_additive] lemma lift_eq (x : M) :
   f.lift hg (f.1 x) = g x :=
 by rw [lift_spec, ←g.map_mul]; exact f.eq_of_eq hg (by rw [sec_spec' f.3, f.1.map_mul])
 
@@ -377,15 +386,10 @@ by rw [lift_spec, ←g.map_mul]; exact f.eq_of_eq hg (by rw [sec_spec' f.3, f.1.
   f.lift hg (f.mk' x.1 x.2) = f.lift hg (f.mk' y.1 y.2) ↔ g (x.1 * y.2) = g (y.1 * x.2) :=
 by rw [lift_mk', lift_mk', mul_inv hg]
 
-@[simp, to_additive] lemma  lift_comp_of : (f.lift hg).comp f.1 = g :=
-by ext; exact f.lift_of hg _
+@[simp, to_additive] lemma  lift_comp : (f.lift hg).comp f.1 = g :=
+by ext; exact f.lift_eq hg _
 
-@[to_additive] lemma is_unit_comp (j : N →* P) (y : S) :
-  is_unit (j.comp f.1 y) :=
-⟨units.map j $ is_unit.lift_right (f.1.restrict S) f.2 y,
-  show j _ = j _, from congr_arg j $ is_unit.coe_lift_right (f.1.restrict S) f.2 _⟩
-
-@[simp, to_additive] lemma lift_apply_of (j : N →* P) :
+@[simp, to_additive] lemma lift_of_comp (j : N →* P) :
   f.lift (f.is_unit_comp j) = j :=
 begin
   ext,
@@ -394,10 +398,10 @@ begin
   erw [←j.map_mul, sec_spec' f.3],
 end
 
-@[to_additive] lemma funext {j k : N →* P}
+@[to_additive] lemma eq_of_comp_eq {j k : N →* P}
   (h : ∀ a, j.comp f.1 a = k.comp f.1 a) : j = k :=
 begin
-  rw [←f.lift_apply_of j, ←f.lift_apply_of k],
+  rw [←f.lift_of_comp j, ←f.lift_of_comp k],
   congr' 1,
   ext,
   exact h x,
@@ -413,9 +417,9 @@ begin
 end
 
 @[simp, to_additive] lemma lift_id (x) : f.lift f.2 x = x :=
-monoid_hom.ext_iff.1 (f.lift_apply_of $ monoid_hom.id N) x
+monoid_hom.ext_iff.1 (f.lift_of_comp $ monoid_hom.id N) x
 
-@[to_additive] lemma lift_inv {k : localization_map S P} (z : N) :
+@[simp, to_additive] lemma lift_inv {k : localization_map S P} (z : N) :
   k.lift f.2 (f.lift k.2 z) = z :=
 begin
   rw lift_spec,
@@ -455,7 +459,7 @@ begin
       split,
         { exact f.eq_of_eq hg },
       { intro h,
-        rw [←f.lift_of hg, ←f.lift_of hg] at h,
+        rw [←f.lift_eq hg, ←f.lift_eq hg] at h,
         exact H h }},
   { intros H z w h,
     obtain ⟨x, hx⟩ := f.3 z,
@@ -478,13 +482,13 @@ noncomputable def map : N →* Q :=
 
 variables {k}
 
-@[to_additive] lemma map_of (x) :
-  f.map hy k (f.1 x) = k.1 (g x) := f.lift_of (λ y, k.2 ⟨g y, hy y⟩) x
+@[to_additive] lemma map_eq (x) :
+  f.map hy k (f.1 x) = k.1 (g x) := f.lift_eq (λ y, k.2 ⟨g y, hy y⟩) x
 
-@[simp, to_additive] lemma map_comp_of :
-  (f.map hy k).comp f.1 = k.1.comp g := f.lift_comp_of $ λ y, k.2 ⟨g y, hy y⟩
+@[simp, to_additive] lemma map_comp :
+  (f.map hy k).comp f.1 = k.1.comp g := f.lift_comp $ λ y, k.2 ⟨g y, hy y⟩
 
-@[to_additive] lemma map_mk (x) (y : S) :
+@[to_additive] lemma map_mk' (x) (y : S) :
   f.map hy k (f.mk' x y) = k.mk' (g x) ⟨g y, hy y⟩ :=
 begin
   rw [map, lift_mk', mul_inv_left],
@@ -518,7 +522,7 @@ begin
   { rw [mul_inv_left, ←mul_assoc, mul_inv_right],
     show j.1 _ * j.1 (l (g _)) = j.1 (l _) * _,
     rw [←j.1.map_mul, ←j.1.map_mul, ←l.map_mul, ←l.map_mul],
-    exact comp_eq_of_eq k hl j
+    exact k.comp_eq_of_eq hl j
       (by rw [k.1.map_mul, k.1.map_mul, sec_spec' k.3, mul_assoc, map_mul_right]) },
 end
 
@@ -536,6 +540,12 @@ noncomputable def mul_equiv_of_localizations
   (k : localization_map S P) : N ≃* P :=
 ⟨f.lift k.2, k.lift f.2, f.lift_inv, k.lift_inv, monoid_hom.map_mul _⟩
 
+@[to_additive, simp] lemma mul_equiv_of_localizations_apply
+  {k : localization_map S P} {x} : f.mul_equiv_of_localizations k x = f.lift k.2 x := rfl
+
+@[to_additive, simp] lemma mul_equiv_of_localizations_symm_apply
+  {k : localization_map S P} {x} : (f.mul_equiv_of_localizations k).symm x = k.lift f.2 x := rfl
+
 /-- If `f : M →* N` is a localization map for a submonoid `S` and `k : N ≃* P` is an isomorphism
     of `comm_monoid`s, `k ∘ f` is a localization map for `M` at `S`. -/
 @[to_additive "If `f : M →+ N` is a localization map for a submonoid `S` and `k : N ≃+ P` is an isomorphism of `add_comm_monoid`s, `k ∘ f` is a localization map for `M` at `S`."]
@@ -550,6 +560,9 @@ def mul_equiv_map (k : N ≃* P) :
 @[to_additive, simp] lemma mul_equiv_map_apply {k : N ≃* P} (x) :
   (f.mul_equiv_map k).1 x = k (f.1 x) := rfl
 
+@[to_additive, simp] lemma mul_equiv_map_eq {k : N ≃* P} :
+  (f.mul_equiv_map k).1 = k.to_monoid_hom.comp f.1 := rfl
+
 @[to_additive] lemma symm_mul_equiv_map_apply {k : N ≃* P} (x) :
   k.symm ((f.mul_equiv_map k).1 x) = f.1 x := k.symm_apply_apply (f.1 x)
 
@@ -562,11 +575,27 @@ k.to_equiv.eq_symm_apply.symm
 
 @[to_additive] lemma mul_equiv_of_mul_equiv_map (k : localization_map S P) :
   f.mul_equiv_map (f.mul_equiv_of_localizations k) = k :=
-to_fun_inj $ f.lift_comp_of k.2
+to_fun_inj $ f.lift_comp k.2
+
+@[to_additive] lemma mul_equiv_of_mul_equiv_map_apply {k : localization_map S P} {x} :
+  (f.mul_equiv_map (f.mul_equiv_of_localizations k)).1 x = k.1 x :=
+ext_iff.1 (f.mul_equiv_of_mul_equiv_map k) x
 
 @[to_additive] lemma mul_equiv_map_of_mul_equiv (k : N ≃* P) :
   f.mul_equiv_of_localizations (f.mul_equiv_map k) = k :=
-mul_equiv.ext $ monoid_hom.ext_iff.1 $ f.lift_apply_of k.to_monoid_hom
+mul_equiv.ext $ monoid_hom.ext_iff.1 $ f.lift_of_comp k.to_monoid_hom
+
+@[to_additive] lemma mul_equiv_map_of_mul_equiv_apply {k : N ≃* P} (x) :
+  f.mul_equiv_of_localizations (f.mul_equiv_map k) x = k x :=
+by rw mul_equiv_map_of_mul_equiv
+
+@[simp, to_additive] lemma mul_equiv_map_id :
+  f.mul_equiv_map (mul_equiv.refl N) = f :=
+by ext; refl
+
+@[to_additive] lemma mul_equiv_map_comp {k : N ≃* P} {j : P ≃* Q} :
+  (f.mul_equiv_map (k.trans j)).1 = j.to_monoid_hom.comp (f.mul_equiv_map k).1 :=
+by ext; refl
 
 /-- Given `comm_monoid`s `M, P` and submonoids `S ⊆ M, T ⊆ P`, if `f : M →* N` is a localization
     map for `S` and `k : P ≃* M` is an isomorphism of `comm_monoid`s such that `k(T) = S`, `f ∘ k`
@@ -590,6 +619,9 @@ let H' : k.to_monoid_hom.comap S = T :=
 @[to_additive, simp] lemma mul_equiv_comap_apply {k : P ≃* M} (H : k.to_monoid_hom.map T = S) (x) :
   (f.mul_equiv_comap H).1 x = f.1 (k x) := rfl
 
+@[to_additive, simp] lemma mul_equiv_comap_eq {k : P ≃* M} (H : k.to_monoid_hom.map T = S) :
+  (f.mul_equiv_comap H).1 = f.1.comp k.to_monoid_hom := rfl
+
 @[to_additive] lemma symm_mul_equiv_comap_apply {k : P ≃* M}
   (H : k.to_monoid_hom.map T = S) (x) :
   (f.mul_equiv_comap H).1 (k.symm x) = f.1 x := congr_arg f.1 $ k.apply_symm_apply x
@@ -597,6 +629,18 @@ let H' : k.to_monoid_hom.comap S = T :=
 @[to_additive, simp] lemma comp_mul_equiv_symm_comap_apply {k : M ≃* P}
   (H : k.symm.to_monoid_hom.map T = S) (x) :
   (f.mul_equiv_comap H).1 (k x) = f.1 x := congr_arg f.1 $ k.symm_apply_apply x
+
+@[simp, to_additive] lemma mul_equiv_comap_id :
+  f.mul_equiv_comap (show (mul_equiv.refl M).to_monoid_hom.map S = S, from
+    submonoid.ext $ λ x, ⟨λ ⟨y, hy, h⟩, h ▸ hy, λ h, ⟨x, h, rfl⟩⟩) = f :=
+by ext; refl
+
+@[to_additive] lemma mul_equiv_comap_comp {T' : submonoid Q} {k : P ≃* M} {j : Q ≃* P}
+  (Hk : k.to_monoid_hom.map T = S) (Hj : j.to_monoid_hom.map T' = T) :
+  (f.mul_equiv_comap $ show (j.trans k).to_monoid_hom.map T' = S, by
+    rw [←Hk, ←Hj]; exact submonoid.ext'_iff.1 (set.image_comp k j ↑(T'))).1
+  = (f.mul_equiv_comap Hk).1.comp j.to_monoid_hom :=
+by ext; refl
 
 /-- Given localization maps `f : M →* N, k : P →* U` for submonoids `S, T` respectively, an
     isomorphism `j : M ≃* P` such that `j(S) = T` induces an isomorphism of localizations
@@ -607,15 +651,35 @@ noncomputable def mul_equiv_of_mul_equiv
   N ≃* Q :=
 f.mul_equiv_of_localizations $ k.mul_equiv_comap H
 
-@[to_additive, simp] lemma mul_equiv_of_mul_equiv_eq_map
+@[to_additive, simp] lemma mul_equiv_of_mul_equiv_eq_map_apply
   {k : localization_map T Q} {j : M ≃* P} (H : j.to_monoid_hom.map S = T) (x) :
   f.mul_equiv_of_mul_equiv k H x =
     f.map (λ y : S, show j.to_monoid_hom y ∈ T, from H ▸ set.mem_image_of_mem j y.2) k x := rfl
+
+@[to_additive, simp] lemma mul_equiv_of_mul_equiv_eq_map
+  {k : localization_map T Q} {j : M ≃* P} (H : j.to_monoid_hom.map S = T) :
+  (f.mul_equiv_of_mul_equiv k H).to_monoid_hom =
+    f.map (λ y : S, show j.to_monoid_hom y ∈ T, from H ▸ set.mem_image_of_mem j y.2) k := rfl
+
+@[to_additive, simp] lemma mul_equiv_of_mul_equiv_on_beta {k : localization_map T Q}
+  {j : M ≃* P} (H : j.to_monoid_hom.map S = T) (x) :
+  f.mul_equiv_of_mul_equiv k H (f.1 x) = k.1 (j x) :=
+f.map_eq (λ y : S, H ▸ set.mem_image_of_mem j y.2) _
+
+@[to_additive] lemma mul_equiv_of_mul_equiv_mk' {k : localization_map T Q}
+  {j : M ≃* P} (H : j.to_monoid_hom.map S = T) (x y) :
+  f.mul_equiv_of_mul_equiv k H (f.mk' x y) = k.mk' (j x) ⟨j y, H ▸ set.mem_image_of_mem j y.2⟩ :=
+f.map_mk' (λ y : S, H ▸ set.mem_image_of_mem j y.2) _ _
 
 @[to_additive, simp] lemma mul_equiv_map_of_mul_equiv_of_mul_equiv_apply
   {k : localization_map T Q} {j : M ≃* P} (H : j.to_monoid_hom.map S = T) (x) :
   (f.mul_equiv_map (f.mul_equiv_of_mul_equiv k H)).1 x = k.1 (j x) :=
 ext_iff.1 (f.mul_equiv_of_mul_equiv_map (k.mul_equiv_comap H)) x
+
+@[to_additive, simp] lemma mul_equiv_map_of_mul_equiv_of_mul_equiv
+  {k : localization_map T Q} {j : M ≃* P} (H : j.to_monoid_hom.map S = T) :
+  (f.mul_equiv_map (f.mul_equiv_of_mul_equiv k H)).1 = k.1.comp j.to_monoid_hom :=
+monoid_hom.ext $ f.mul_equiv_map_of_mul_equiv_of_mul_equiv_apply H
 
 end localization_map
 end submonoid

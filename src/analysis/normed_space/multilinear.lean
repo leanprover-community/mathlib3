@@ -245,6 +245,9 @@ def mk_continuous (C : ℝ) (H : ∀ m, ∥f m∥ ≤ C * univ.prod (λi, ∥m i
   continuous_multilinear_map 𝕜 E₁ E₂ :=
 { cont := f.continuous_of_bound C H, ..f }
 
+/-- Given a multilinear map in `n` variables, if one restricts it to `k` variables putting `z` on
+the other coordinates, then the resulting restricted function satisfies an inequality
+`∥f.restr v∥ ≤ C * ∥z∥^(n-k) * Π ∥v i∥` if the original function satisfies `∥f v∥ ≤ C * Π ∥v i∥`. -/
 lemma restr_norm_le {k n : ℕ} (f : multilinear_map 𝕜 (λ i : fin n, G) E₂)
   (s : finset (fin n)) (hk : s.card = k) (z : G) {C : ℝ}
   (H : ∀ m, ∥f m∥ ≤ C * finset.univ.prod (λi, ∥m i∥)) (v : fin k → G) :

@@ -128,10 +128,21 @@ meta def add_prime : name → name
 | (name.mk_string s p) := name.mk_string (s ++ "'") p
 | n := (name.mk_string "x'" n)
 
+/--
+Returns the last non-numerical component of a name, or `"[anonymous]"` otherwise.
+-/
 def last_string : name → string
 | anonymous        := "[anonymous]"
 | (mk_string s _)  := s
 | (mk_numeral _ n) := last_string n
+
+/--
+Constructs a (non-simple) name from a string.
+
+Example: ``name.from_string "foo.bar" = `foo.bar``
+-/
+meta def from_string (s : string) : name :=
+from_components $ s.split (= '.')
 
 end name
 

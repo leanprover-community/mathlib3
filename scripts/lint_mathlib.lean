@@ -49,7 +49,7 @@ rb_lmap.of_list $ do
 line ← lines,
 guard $ line.front = 'a',
 _ :: decl :: linters ← pure $ line.split (= ' ') | [],
-let decl := name.from_components $ decl.split (= '.'),
+let decl := name.from_string decl,
 linter ← linters,
 pure (linter, decl)
 

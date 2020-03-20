@@ -67,7 +67,7 @@ end
 
 /-- (implementation) the left unitor for R-modules -/
 def left_unitor (M : Module R) : Module.of R (R ⊗[R] M) ≅ M :=
-(linear_equiv.to_Module_iso (tensor_product.lid R M) : of R (R ⊗ M) ≅ of R M).trans (of_self R M)
+(linear_equiv.to_Module_iso (tensor_product.lid R M) : of R (R ⊗ M) ≅ of R M).trans (of_self_iso M)
 
 lemma left_unitor_naturality {M N : Module R} (f : M ⟶ N) :
   tensor_hom (𝟙 (Module.of R R)) f ≫ (left_unitor N).hom = (left_unitor M).hom ≫ f :=
@@ -80,7 +80,7 @@ end
 
 /-- (implementation) the right unitor for R-modules -/
 def right_unitor (M : Module R) : Module.of R (M ⊗[R] R) ≅ M :=
-(linear_equiv.to_Module_iso (tensor_product.rid R M) : of R (M ⊗ R) ≅ of R M).trans (of_self R M)
+(linear_equiv.to_Module_iso (tensor_product.rid R M) : of R (M ⊗ R) ≅ of R M).trans (of_self_iso M)
 
 lemma right_unitor_naturality {M N : Module R} (f : M ⟶ N) :
   tensor_hom f (𝟙 (Module.of R R)) ≫ (right_unitor N).hom = (right_unitor M).hom ≫ f :=

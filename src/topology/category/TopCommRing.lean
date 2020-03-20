@@ -32,7 +32,7 @@ instance : category TopCommRing.{u} :=
     begin -- TODO automate
       cases f, cases g,
       dsimp, apply continuous.comp ; assumption
-    end⟩ },
+    end⟩ }
 
 instance : concrete_category TopCommRing.{u} :=
 { forget := { obj := λ R, R, map := λ R S f, f.val },

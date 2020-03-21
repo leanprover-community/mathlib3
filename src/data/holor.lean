@@ -70,7 +70,7 @@ lemma drop_take :
 lemma drop_drop :
   ∀ t : holor_index (ds₁ ++ ds₂ ++ ds₃),
   t.assoc_right.drop.drop = t.drop
-| ⟨ is , h ⟩ := subtype.eq (by simp [assoc_right,drop, cast_type, list.drop_drop])
+| ⟨ is , h ⟩ := subtype.eq (by simp [add_comm, assoc_right, drop, cast_type, list.drop_drop])
 
 end holor_index
 
@@ -105,7 +105,7 @@ instance [has_mul α] : has_scalar α (holor α ds) :=
 
 instance [ring α] : module α (holor α ds) := pi.module α
 
-instance [discrete_field α] : vector_space α (holor α ds) := ⟨α, holor α ds⟩
+instance [field α] : vector_space α (holor α ds) := ⟨α, holor α ds⟩
 
 /-- The tensor product of two holors. -/
 def mul [s : has_mul α] (x : holor α ds₁) (y : holor α ds₂) : holor α (ds₁ ++ ds₂) :=

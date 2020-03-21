@@ -7,8 +7,9 @@ Finite sets.
 -/
 import logic.embedding algebra.order_functions
   data.multiset data.sigma.basic data.set.lattice
+  tactic.monotonicity tactic.apply
 
-open multiset subtype nat lattice
+open multiset subtype nat
 
 variables {α : Type*} {β : Type*} {γ : Type*}
 
@@ -81,6 +82,12 @@ theorem subset_def {s₁ s₂ : finset α} : s₁ ⊆ s₂ ↔ s₁.1 ⊆ s₂.1
 
 theorem subset.trans {s₁ s₂ s₃ : finset α} : s₁ ⊆ s₂ → s₂ ⊆ s₃ → s₁ ⊆ s₃ := subset.trans
 
+theorem superset.trans {s₁ s₂ s₃ : finset α} : s₁ ⊇ s₂ → s₂ ⊇ s₃ → s₁ ⊇ s₃ :=
+λ h' h, subset.trans h h'
+
+-- TODO: these should be global attributes, but this will require fixing other files
+local attribute [trans] subset.trans superset.trans
+
 theorem mem_of_subset {s₁ s₂ : finset α} {a : α} : s₁ ⊆ s₂ → a ∈ s₁ → a ∈ s₂ := mem_of_subset
 
 theorem subset.antisymm {s₁ s₂ : finset α} (H₁ : s₁ ⊆ s₂) (H₂ : s₂ ⊆ s₁) : s₁ = s₂ :=
@@ -130,6 +137,8 @@ lemma nonempty.mono {s t : finset α} (hst : s ⊆ t) (hs : s.nonempty) : t.none
 set.nonempty.mono hst hs
 
 /-! ### empty -/
+
+/-- The empty finset -/
 protected def empty : finset α := ⟨0, nodup_zero⟩
 
 instance : has_emptyc (finset α) := ⟨finset.empty⟩
@@ -202,14 +211,16 @@ end
 lemma singleton_iff_unique_mem (s : finset α) : (∃ a, s = finset.singleton a) ↔ ∃! a, a ∈ s :=
 by simp only [eq_singleton_iff_unique_mem, exists_unique]
 
+@[simp] lemma singleton_subset_iff {s : finset α} {a : α} :
+  singleton a ⊆ s ↔ a ∈ s :=
+set.singleton_subset_iff
+
 /-! ### insert -/
 section decidable_eq
 variables [decidable_eq α]
 
 /-- `insert a s` is the set `{a} ∪ s` containing `a` and the elements of `s`. -/
 instance : has_insert α (finset α) := ⟨λ a s, ⟨_, nodup_ndinsert a s.2⟩⟩
-
-@[simp] theorem has_insert_eq_insert (a : α) (s : finset α) : has_insert.insert a s = insert a s := rfl
 
 theorem insert_def (a : α) (s : finset α) : insert a s = ⟨_, nodup_ndinsert a s.2⟩ := rfl
 
@@ -287,9 +298,9 @@ then it holds for the `finset` obtained by inserting a new element.
   (s : finset α) (h₁ : p ∅) (h₂ : ∀ ⦃a : α⦄ {s : finset α}, a ∉ s → p s → p (insert a s)) : p s :=
 finset.induction h₁ h₂ s
 
-@[simp] theorem singleton_eq_singleton (a : α) : _root_.singleton a = ι a := rfl
+@[simp] theorem singleton_eq_singleton (a : α) : {a} = ι a := rfl
 
-@[simp] theorem insert_empty_eq_singleton (a : α) : {a} = ι a := rfl
+theorem insert_empty_eq_singleton (a : α) : {a} = ι a := rfl
 
 theorem insert_singleton_self_eq (a : α) : ({a, a} : finset α) = ι a :=
 insert_eq_of_mem $ mem_singleton_self _
@@ -346,7 +357,7 @@ ext.2 $ λ _, by simp only [mem_union, or.left_comm]
 theorem union_right_comm (s₁ s₂ s₃ : finset α) : (s₁ ∪ s₂) ∪ s₃ = (s₁ ∪ s₃) ∪ s₂ :=
 ext.2 $ λ x, by simp only [mem_union, or_assoc, or_comm (x ∈ s₂)]
 
-@[simp] theorem union_self (s : finset α) : s ∪ s = s := union_idempotent s
+theorem union_self (s : finset α) : s ∪ s = s := union_idempotent s
 
 @[simp] theorem union_empty (s : finset α) : s ∪ ∅ = s :=
 ext.2 $ λ x, mem_union.trans $ or_false _
@@ -365,6 +376,28 @@ by simp only [insert_eq, union_left_comm]
 theorem insert_union_distrib (a : α) (s t : finset α) : insert a (s ∪ t) = insert a s ∪ insert a t :=
 by simp only [insert_union, union_insert, insert_idem]
 
+@[simp] lemma union_eq_left_iff_subset {s t : finset α} :
+  s ∪ t = s ↔ t ⊆ s :=
+begin
+  split,
+  { assume h,
+    have : t ⊆ s ∪ t := subset_union_right _ _,
+    rwa h at this },
+  { assume h,
+    exact subset.antisymm (union_subset (subset.refl _) h) (subset_union_left _ _) }
+end
+
+@[simp] lemma left_eq_union_iff_subset {s t : finset α} :
+  s = s ∪ t ↔ t ⊆ s :=
+by rw [← union_eq_left_iff_subset, eq_comm]
+
+@[simp] lemma union_eq_right_iff_subset {s t : finset α} :
+  t ∪ s = s ↔ t ⊆ s :=
+by rw [union_comm, union_eq_left_iff_subset]
+
+@[simp] lemma right_eq_union_iff_subset {s t : finset α} :
+  s = t ∪ s ↔ t ⊆ s :=
+by rw [← union_eq_right_iff_subset, eq_comm]
 
 /-! ### inter -/
 
@@ -451,6 +484,7 @@ by rw [inter_comm, singleton_inter_of_mem h]
 @[simp] theorem inter_singleton_of_not_mem {a : α} {s : finset α} (h : a ∉ s) : s ∩ ι a = ∅ :=
 by rw [inter_comm, singleton_inter_of_not_mem h]
 
+@[mono]
 lemma inter_subset_inter {x y s t : finset α} (h : x ⊆ y) (h' : s ⊆ t) : x ∩ s ⊆ y ∩ t :=
 begin
   intros a a_in,
@@ -481,16 +515,16 @@ instance : lattice (finset α) :=
 @[simp] theorem inf_eq_inter (s t : finset α) : s ⊓ t = s ∩ t := rfl
 
 instance : semilattice_inf_bot (finset α) :=
-{ bot := ∅, bot_le := empty_subset, ..finset.lattice.lattice }
+{ bot := ∅, bot_le := empty_subset, ..finset.lattice }
 
 instance {α : Type*} [decidable_eq α] : semilattice_sup_bot (finset α) :=
-{ ..finset.lattice.semilattice_inf_bot, ..finset.lattice.lattice }
+{ ..finset.semilattice_inf_bot, ..finset.lattice }
 
 instance : distrib_lattice (finset α) :=
 { le_sup_inf := assume a b c, show (a ∪ b) ∩ (a ∪ c) ⊆ a ∪ b ∩ c,
     by simp only [subset_iff, mem_inter, mem_union, and_imp, or_imp_distrib] {contextual:=tt};
     simp only [true_or, imp_true_iff, true_and, or_true],
-  ..finset.lattice.lattice }
+  ..finset.lattice }
 
 theorem inter_distrib_left (s t u : finset α) : s ∩ (t ∪ u) = (s ∩ t) ∪ (s ∩ u) := inf_sup_left
 
@@ -564,11 +598,11 @@ instance : has_sdiff (finset α) := ⟨λs₁ s₂, ⟨s₁.1 - s₂.1, nodup_of
 @[simp] theorem mem_sdiff {a : α} {s₁ s₂ : finset α} :
   a ∈ s₁ \ s₂ ↔ a ∈ s₁ ∧ a ∉ s₂ := mem_sub_of_nodup s₁.2
 
-@[simp] theorem sdiff_union_of_subset {s₁ s₂ : finset α} (h : s₁ ⊆ s₂) : (s₂ \ s₁) ∪ s₁ = s₂ :=
+theorem sdiff_union_of_subset {s₁ s₂ : finset α} (h : s₁ ⊆ s₂) : (s₂ \ s₁) ∪ s₁ = s₂ :=
 ext.2 $ λ a, by simpa only [mem_sdiff, mem_union, or_comm,
   or_and_distrib_left, dec_em, and_true] using or_iff_right_of_imp (@h a)
 
-@[simp] theorem union_sdiff_of_subset {s₁ s₂ : finset α} (h : s₁ ⊆ s₂) : s₁ ∪ (s₂ \ s₁) = s₂ :=
+theorem union_sdiff_of_subset {s₁ s₂ : finset α} (h : s₁ ⊆ s₂) : s₁ ∪ (s₂ \ s₁) = s₂ :=
 (union_comm _ _).trans (sdiff_union_of_subset h)
 
 theorem inter_sdiff (s t u : finset α) : s ∩ (t \ u) = s ∩ t \ u :=
@@ -581,8 +615,28 @@ by simp only [mem_inter, mem_sdiff]; rintro x ⟨h, _, hn⟩; exact hn h
 @[simp] theorem sdiff_inter_self (s₁ s₂ : finset α) : (s₂ \ s₁) ∩ s₁ = ∅ :=
 (inter_comm _ _).trans (inter_sdiff_self _ _)
 
+@[simp] theorem sdiff_self (s₁ : finset α) : s₁ \ s₁ = ∅ :=
+by ext; simp
+
+theorem sdiff_inter_distrib_right (s₁ s₂ s₃ : finset α) : s₁ \ (s₂ ∩ s₃) = (s₁ \ s₂) ∪ (s₁ \ s₃) :=
+by ext; simp only [and_or_distrib_left, mem_union, classical.not_and_distrib, mem_sdiff, mem_inter]
+
+@[simp] theorem sdiff_inter_self_left (s₁ s₂ : finset α) : s₁ \ (s₁ ∩ s₂) = s₁ \ s₂ :=
+by simp only [sdiff_inter_distrib_right, sdiff_self, empty_union]
+
+@[simp] theorem sdiff_inter_self_right (s₁ s₂ : finset α) : s₁ \ (s₂ ∩ s₁) = s₁ \ s₂ :=
+by simp only [sdiff_inter_distrib_right, sdiff_self, union_empty]
+
+@[simp] theorem sdiff_empty {s₁ : finset α} : s₁ \ ∅ = s₁ :=
+ext.2 (by simp)
+
+@[mono]
 theorem sdiff_subset_sdiff {s₁ s₂ t₁ t₂ : finset α} (h₁ : t₁ ⊆ t₂) (h₂ : s₂ ⊆ s₁) : t₁ \ s₁ ⊆ t₂ \ s₂ :=
 by simpa only [subset_iff, mem_sdiff, and_imp] using λ a m₁ m₂, and.intro (h₁ m₁) (mt (@h₂ _) m₂)
+
+theorem sdiff_subset_self {s₁ s₂ : finset α} : s₁ \ s₂ ⊆ s₁ :=
+suffices s₁ \ s₂ ⊆ s₁ \ ∅, by simpa [sdiff_empty] using this,
+sdiff_subset_sdiff (subset.refl _) (empty_subset _)
 
 @[simp] lemma coe_sdiff (s₁ s₂ : finset α) : ↑(s₁ \ s₂) = (↑s₁ \ ↑s₂ : set α) :=
 set.ext $ λ _, mem_sdiff
@@ -619,6 +673,9 @@ begin
   rw [← coe_inj, coe_sdiff, coe_sdiff, coe_insert],
   exact set.insert_diff_of_mem ↑s h
 end
+
+@[simp] lemma sdiff_subset (s t : finset α) : s \ t ⊆ s :=
+by simp [subset_iff, mem_sdiff] {contextual := tt}
 
 end decidable_eq
 
@@ -657,13 +714,16 @@ variable [∀j, decidable (j ∈ s)]
   (↑s : set α).piecewise f g = s.piecewise f g :=
 by { ext, congr }
 
-@[simp] lemma piecewise_eq_of_mem {i : α} (hi : i ∈ s) : s.piecewise f g i = f i :=
+@[simp, priority 980]
+lemma piecewise_eq_of_mem {i : α} (hi : i ∈ s) : s.piecewise f g i = f i :=
 by simp [piecewise, hi]
 
-@[simp] lemma piecewise_eq_of_not_mem {i : α} (hi : i ∉ s) : s.piecewise f g i = g i :=
+@[simp, priority 980]
+lemma piecewise_eq_of_not_mem {i : α} (hi : i ∉ s) : s.piecewise f g i = g i :=
 by simp [piecewise, hi]
 
-@[simp] lemma piecewise_insert_of_ne [decidable_eq α] {i j : α} [∀i, decidable (i ∈ insert j s)]
+@[simp, priority 990]
+lemma piecewise_insert_of_ne [decidable_eq α] {i j : α} [∀i, decidable (i ∈ insert j s)]
   (h : i ≠ j) : (insert j s).piecewise f g i = s.piecewise f g i :=
 by { simp [piecewise, h], congr }
 
@@ -778,6 +838,16 @@ ext.2 $ by simpa only [mem_filter, mem_sdiff, and_comm, not_and] using λ a, and
 
 theorem sdiff_eq_filter (s₁ s₂ : finset α) :
   s₁ \ s₂ = filter (∉ s₂) s₁ := ext.2 $ λ _, by simp only [mem_sdiff, mem_filter]
+
+theorem sdiff_eq_self (s₁ s₂ : finset α) :
+  s₁ \ s₂ = s₁ ↔ s₁ ∩ s₂ ⊆ ∅ :=
+by { simp [subset.antisymm_iff,sdiff_subset_self],
+     split; intro h,
+     { transitivity' ((s₁ \ s₂) ∩ s₂), mono, simp },
+     { calc  s₁ \ s₂
+           ⊇ s₁ \ (s₁ ∩ s₂) : by simp [(⊇)]
+       ... ⊇ s₁ \ ∅         : by mono using [(⊇)]
+       ... ⊇ s₁             : by simp [(⊇)] } }
 
 theorem filter_union_filter_neg_eq (s : finset α) : s.filter p ∪ s.filter (λa, ¬ p a) = s :=
 by simp only [filter_not, union_sdiff_of_subset (filter_subset s)]
@@ -988,6 +1058,8 @@ namespace finset
 section map
 open function
 
+/-- When `f` is an embedding of `α` in `β` and `s` is a finset in `α`, then `s.map f` is the image
+finset in `β`. The embedding condition guarantees that there are no duplicates in the image. -/
 def map (f : α ↪ β) (s : finset α) : finset β :=
 ⟨s.1.map f, nodup_map f.2 s.2⟩
 
@@ -1003,7 +1075,7 @@ mem_map.trans $ by simp only [exists_prop]; refl
 theorem mem_map' (f : α ↪ β) {a} {s : finset α} : f a ∈ s.map f ↔ a ∈ s :=
 mem_map_of_inj f.2
 
-@[simp] theorem mem_map_of_mem (f : α ↪ β) {a} {s : finset α} : a ∈ s → f a ∈ s.map f :=
+theorem mem_map_of_mem (f : α ↪ β) {a} {s : finset α} : a ∈ s → f a ∈ s.map f :=
 (mem_map' _).2
 
 theorem map_to_finset [decidable_eq α] [decidable_eq β] {s : multiset α} :
@@ -1023,6 +1095,8 @@ theorem map_subset_map {s₁ s₂ : finset α} : s₁.map f ⊆ s₂.map f ↔ s
 theorem map_inj {s₁ s₂ : finset α} : s₁.map f = s₂.map f ↔ s₁ = s₂ :=
 by simp only [subset.antisymm_iff, map_subset_map]
 
+/-- Associate to an embedding `f` from `α` to `β` the embedding that maps a finset to its image
+under `f`. -/
 def map_embedding (f : α ↪ β) : finset α ↪ finset β := ⟨map f, λ s₁ s₂, map_inj.1⟩
 
 @[simp] theorem map_embedding_apply : map_embedding f s = map f s := rfl
@@ -1080,7 +1154,7 @@ variables {f : α → β} {s : finset α}
 @[simp] theorem mem_image {b : β} : b ∈ s.image f ↔ ∃ a ∈ s, f a = b :=
 by simp only [mem_def, image_val, mem_erase_dup, multiset.mem_map, exists_prop]
 
-@[simp] theorem mem_image_of_mem (f : α → β) {a} {s : finset α} (h : a ∈ s) : f a ∈ s.image f :=
+theorem mem_image_of_mem (f : α → β) {a} {s : finset α} (h : a ∈ s) : f a ∈ s.image f :=
 mem_image.2 ⟨_, h, rfl⟩
 
 @[simp] lemma coe_image {f : α → β} : ↑(s.image f) = f '' ↑s :=
@@ -1092,7 +1166,7 @@ let ⟨a, ha⟩ := h in ⟨f a, mem_image_of_mem f ha⟩
 theorem image_to_finset [decidable_eq α] {s : multiset α} : s.to_finset.image f = (s.map f).to_finset :=
 ext.2 $ λ _, by simp only [mem_image, multiset.mem_to_finset, exists_prop, multiset.mem_map]
 
-@[simp] theorem image_val_of_inj_on (H : ∀x∈s, ∀y∈s, f x = f y → x = y) : (image f s).1 = s.1.map f :=
+theorem image_val_of_inj_on (H : ∀x∈s, ∀y∈s, f x = f y → x = y) : (image f s).1 = s.1.map f :=
 multiset.erase_dup_eq_self.2 (nodup_map_on H s.2)
 
 theorem image_id [decidable_eq α] : s.image id = s :=
@@ -1149,6 +1223,8 @@ lemma image_const {s : finset α} (h : s.nonempty) (b : β) : s.image (λa, b) =
 ext.2 $ assume b', by simp only [mem_image, exists_prop, exists_and_distrib_right,
   h.bex, true_and, mem_singleton, eq_comm]
 
+/-- Given a finset `s` and a predicate `p`, `s.subtype p` is the finset of `subtype p` whose
+elements belong to `s`.  -/
 protected def subtype {α} (p : α → Prop) [decidable_pred p] (s : finset α) : finset (subtype p) :=
 (s.filter p).attach.map ⟨λ x, ⟨x.1, (finset.mem_filter.1 x.2).2⟩,
 λ x y H, subtype.eq $ subtype.mk.inj H⟩
@@ -1278,6 +1354,9 @@ calc n = card (range n) : (card_range n).symm
     (by simpa only [mem_range])
     (by simp only [mem_range]; exact assume a₁ h₁ a₂ h₂, f_inj a₁ a₂ h₁ h₂)
 
+/-- Suppose that, given objects defined on all strict subsets of any finset `s`, one knows how to
+define an object on `s`. Then one can inductively define an object on all finsets, starting from
+the empty set and iterating. This can be used either to define data, or to prove properties. -/
 @[elab_as_eliminator] def strong_induction_on {p : finset α → Sort*} :
   ∀ (s : finset α), (∀s, (∀t ⊂ s, p t) → p s) → p s
 | ⟨s, nd⟩ ih := multiset.strong_induction_on s
@@ -1302,7 +1381,7 @@ calc s.card = s.attach.card : card_attach.symm
 
 lemma card_union_add_card_inter [decidable_eq α] (s t : finset α) :
   (s ∪ t).card + (s ∩ t).card = s.card + t.card :=
-finset.induction_on t (by simp) (λ a, by by_cases a ∈ s; simp * {contextual := tt})
+finset.induction_on t (by simp) $ λ a r har, by by_cases a ∈ s; simp *; cc
 
 lemma card_union_le [decidable_eq α] (s t : finset α) :
   (s ∪ t).card ≤ s.card + t.card :=
@@ -1471,6 +1550,9 @@ end sigma
 section pi
 variables {δ : α → Type*} [decidable_eq α]
 
+/-- Given a finset `s` of `α` and for all `a : α` a finset `t a` of `δ a`, then one can define the
+finset `s.pi t` of all functions defined on elements of `s` taking values in `t a` for `a ∈ s`.
+Note that the elements of `s.pi t` are only partially defined, on `s`. -/
 def pi (s : finset α) (t : Πa, finset (δ a)) : finset (Πa∈s, δ a) :=
 ⟨s.1.pi (λ a, (t a).1), nodup_pi s.2 (λ a _, (t a).2)⟩
 
@@ -1481,9 +1563,15 @@ def pi (s : finset α) (t : Πa, finset (δ a)) : finset (Πa∈s, δ a) :=
   f ∈ s.pi t ↔ (∀a (h : a ∈ s), f a h ∈ t a) :=
 mem_pi _ _ _
 
+/-- The empty dependent product function, defined on the emptyset. The assumption `a ∈ ∅` is never
+satisfied. -/
 def pi.empty (β : α → Sort*) (a : α) (h : a ∈ (∅ : finset α)) : β a :=
 multiset.pi.empty β a h
 
+/-- Given a function `f` defined on a finset `s`, define a new function on the finset `s ∪ {a}`,
+equal to `f` on `s` and sending `a` to a given value `b`. This function is denoted
+`s.pi.cons a b f`. If `a` already belongs to `s`, the new function takes the value `b` at `a`
+anyway. -/
 def pi.cons (s : finset α) (a : α) (b : δ a) (f : Πa, a ∈ s → δ a) (a' : α) (h : a' ∈ insert a s) : δ a' :=
 multiset.pi.cons s.1 a b f _ (multiset.mem_cons.2 $ mem_insert.symm.2 h)
 
@@ -1522,6 +1610,10 @@ begin
   rw multiset.erase_dup_eq_self.2,
   exact multiset.nodup_map (multiset.injective_pi_cons ha) (pi s t).2,
 end
+
+lemma pi_subset {s : finset α} (t₁ t₂ : Πa, finset (δ a)) (h : ∀ a ∈ s, t₁ a ⊆ t₂ a) :
+  s.pi t₁ ⊆ s.pi t₂ :=
+λ g hg, mem_pi.2 $ λ a ha, h a ha (mem_pi.mp hg a ha)
 
 end pi
 
@@ -1581,6 +1673,8 @@ end powerset
 
 section powerset_len
 
+/-- Given an integer `n` and a finset `s`, then `powerset_len n s` is the finset of subsets of `s`
+of cardinality `n`.-/
 def powerset_len (n : ℕ) (s : finset α) : finset (finset α) :=
 ⟨(s.1.powerset_len n).pmap finset.mk
   (λ t h, nodup_of_le (mem_powerset_len.1 h).1 s.2),
@@ -1909,6 +2003,9 @@ le_antisymm
 section max_min
 variables [decidable_linear_order α]
 
+/-- Let `s` be a finset in a linear order. Then `s.max` is the maximum of `s` if `s` is not empty,
+and `none` otherwise. It belongs to `option α`. If you want to get an element of `α`, see
+`s.max'`. -/
 protected def max : finset α → option α :=
 fold (option.lift_or_get max) none some
 
@@ -1951,6 +2048,9 @@ theorem le_max_of_mem {s : finset α} {a b : α} (h₁ : a ∈ s) (h₂ : b ∈ 
 by rcases @le_sup (with_bot α) _ _ _ _ _ h₁ _ rfl with ⟨b', hb, ab⟩;
    cases h₂.symm.trans hb; assumption
 
+/-- Let `s` be a finset in a linear order. Then `s.min` is the minimum of `s` if `s` is not empty,
+and `none` otherwise. It belongs to `option α`. If you want to get an element of `α`, see
+`s.min'`. -/
 protected def min : finset α → option α :=
 fold (option.lift_or_get min) none some
 
@@ -2001,6 +2101,50 @@ begin
   exact ⟨x, hx, λ x' hx', min_le_of_mem (mem_image_of_mem f hx') hy⟩
 end
 
+/-- Given a nonempty finset `s` in a linear order `α `, then `s.min' h` is its minimum, as an
+element of `α`, where `h` is a proof of nonemptiness. Without this assumption, use instead `s.min`,
+taking values in `option α`. -/
+def min' (s : finset α) (H : s.nonempty) : α :=
+@option.get _ s.min $
+  let ⟨k, hk⟩ := H in
+  let ⟨b, hb⟩ := min_of_mem hk in by simp at hb; simp [hb]
+
+/-- Given a nonempty finset `s` in a linear order `α `, then `s.max' h` is its maximum, as an
+element of `α`, where `h` is a proof of nonemptiness. Without this assumption, use instead `s.max`,
+taking values in `option α`. -/
+def max' (s : finset α) (H : s.nonempty) : α :=
+@option.get _ s.max $
+  let ⟨k, hk⟩ := H in
+  let ⟨b, hb⟩ := max_of_mem hk in by simp at hb; simp [hb]
+
+variables (s : finset α) (H : s.nonempty)
+
+theorem min'_mem : s.min' H ∈ s := mem_of_min $ by simp [min']
+
+theorem min'_le (x) (H2 : x ∈ s) : s.min' H ≤ x := min_le_of_mem H2 $ option.get_mem _
+
+theorem le_min' (x) (H2 : ∀ y ∈ s, x ≤ y) : x ≤ s.min' H := H2 _ $ min'_mem _ _
+
+theorem max'_mem : s.max' H ∈ s := mem_of_max $ by simp [max']
+
+theorem le_max' (x) (H2 : x ∈ s) : x ≤ s.max' H := le_max_of_mem H2 $ option.get_mem _
+
+theorem max'_le (x) (H2 : ∀ y ∈ s, y ≤ x) : s.max' H ≤ x := H2 _ $ max'_mem _ _
+
+theorem min'_lt_max' {i j} (H1 : i ∈ s) (H2 : j ∈ s) (H3 : i ≠ j) : s.min' H < s.max' H :=
+begin
+  rcases lt_trichotomy i j with H4 | H4 | H4,
+  { have H5 := min'_le s H i H1,
+    have H6 := le_max' s H j H2,
+    apply lt_of_le_of_lt H5,
+    apply lt_of_lt_of_le H4 H6 },
+  { cc },
+  { have H5 := min'_le s H j H2,
+    have H6 := le_max' s H i H1,
+    apply lt_of_le_of_lt H5,
+    apply lt_of_lt_of_le H4 H6 }
+end
+
 end max_min
 
 /-! ### sort -/
@@ -2031,6 +2175,80 @@ multiset.mem_sort _
 multiset.length_sort _
 
 end sort
+
+section sort_linear_order
+
+variables [decidable_linear_order α]
+
+theorem sort_sorted_lt (s : finset α) :
+  list.sorted (<) (sort (≤) s) :=
+(sort_sorted _ _).imp₂ (@lt_of_le_of_ne _ _) (sort_nodup _ _)
+
+lemma sorted_zero_eq_min' (s : finset α) (h : 0 < (s.sort (≤)).length) (H : s.nonempty) :
+  (s.sort (≤)).nth_le 0 h = s.min' H :=
+begin
+  let l := s.sort (≤),
+  apply le_antisymm,
+  { have : s.min' H ∈ l := (finset.mem_sort (≤)).mpr (s.min'_mem H),
+    obtain ⟨i, i_lt, hi⟩ : ∃ i (hi : i < l.length), l.nth_le i hi = s.min' H :=
+      list.mem_iff_nth_le.1 this,
+    rw ← hi,
+    exact list.nth_le_of_sorted_of_le (s.sort_sorted (≤)) (nat.zero_le i) },
+  { have : l.nth_le 0 h ∈ s := (finset.mem_sort (≤)).1 (list.nth_le_mem l 0 h),
+    exact s.min'_le H _ this }
+end
+
+lemma sorted_last_eq_max' (s : finset α) (h : (s.sort (≤)).length - 1 < (s.sort (≤)).length)
+  (H : s.nonempty) : (s.sort (≤)).nth_le ((s.sort (≤)).length - 1) h = s.max' H :=
+begin
+  let l := s.sort (≤),
+  apply le_antisymm,
+  { have : l.nth_le ((s.sort (≤)).length - 1) h ∈ s :=
+      (finset.mem_sort (≤)).1 (list.nth_le_mem l _ h),
+    exact s.le_max' H _ this },
+  { have : s.max' H ∈ l := (finset.mem_sort (≤)).mpr (s.max'_mem H),
+    obtain ⟨i, i_lt, hi⟩ : ∃ i (hi : i < l.length), l.nth_le i hi = s.max' H :=
+      list.mem_iff_nth_le.1 this,
+    rw ← hi,
+    have : i ≤ l.length - 1 := nat.le_pred_of_lt i_lt,
+    exact list.nth_le_of_sorted_of_le (s.sort_sorted (≤)) (nat.le_pred_of_lt i_lt) },
+end
+
+/-- Given a finset `s` of cardinal `k` in a linear order `α`, the map `mono_of_fin s h`
+is the increasing bijection between `fin k` and `s` as an `α`-valued map. Here, `h` is a proof that
+the cardinality of `s` is `k`. We use this instead of a map `fin s.card → α` to avoid
+casting issues in further uses of this function. -/
+def mono_of_fin (s : finset α) {k : ℕ} (h : s.card = k) (i : fin k) : α :=
+have A : (i : ℕ) < (s.sort (≤)).length, by simpa [h] using i.2,
+(s.sort (≤)).nth_le i A
+
+lemma bij_on_mono_of_fin (s : finset α) {k : ℕ} (h : s.card = k) :
+  set.bij_on (s.mono_of_fin h) set.univ ↑s :=
+begin
+  have A : ∀ j, j ∈ s ↔ j ∈ (s.sort (≤)) := λ j, by simp,
+  apply set.bij_on.mk,
+  { assume i hi,
+    simp only [mono_of_fin, set.mem_preimage, mem_coe, list.nth_le, A],
+    exact list.nth_le_mem _ _ _ },
+  { refine (strict_mono.injective (λ i j hij, _)).inj_on _,
+    exact list.pairwise_iff_nth_le.1 s.sort_sorted_lt _ _ _ hij },
+  { assume x hx,
+    simp only [mem_coe, A] at hx,
+    obtain ⟨i, il, hi⟩ : ∃ (i : ℕ) (h : i < (s.sort (≤)).length), (s.sort (≤)).nth_le i h = x :=
+      list.nth_le_of_mem hx,
+    simp [h] at il,
+    exact ⟨⟨i, il⟩, set.mem_univ _, hi⟩ }
+end
+
+/-- Given a finset `s` of cardinal `k` in a linear order `α`, the equiv `mono_equiv_of_fin s h`
+is the increasing bijection between `fin k` and `s` as an `s`-valued map. Here, `h` is a proof that
+the cardinality of `s` is `k`. We use this instead of a map `fin s.card → α` to avoid
+casting issues in further uses of this function. -/
+noncomputable def mono_equiv_of_fin (s : finset α) {k : ℕ} (h : s.card = k) :
+  fin k ≃ {x // x ∈ s} :=
+(s.bij_on_mono_of_fin h).equiv _
+
+end sort_linear_order
 
 /-! ### disjoint -/
 section disjoint
@@ -2116,14 +2334,20 @@ lemma disjoint_filter {s : finset α} {p q : α → Prop} [decidable_pred p] [de
     disjoint (s.filter p) (s.filter q) ↔ (∀ x ∈ s, p x → ¬ q x) :=
 by split; simp [disjoint_left] {contextual := tt}
 
-end disjoint
+lemma pi_disjoint_of_disjoint {δ : α → Type*} [∀a, decidable_eq (δ a)]
+  {s : finset α} [decidable_eq (Πa∈s, δ a)]
+  (t₁ t₂ : Πa, finset (δ a)) {a : α} (ha : a ∈ s) (h : disjoint (t₁ a) (t₂ a)) :
+  disjoint (s.pi t₁) (s.pi t₂) :=
+disjoint_iff_ne.2 $ λ f₁ hf₁ f₂ hf₂ eq₁₂,
+  disjoint_iff_ne.1 h (f₁ a ha) (mem_pi.mp hf₁ a ha) (f₂ a ha) (mem_pi.mp hf₂ a ha)
+  $ congr_fun (congr_fun eq₁₂ a) ha
 
-theorem sort_sorted_lt [decidable_linear_order α] (s : finset α) :
-  list.sorted (<) (sort (≤) s) :=
-(sort_sorted _ _).imp₂ (@lt_of_le_of_ne _ _) (sort_nodup _ _)
+end disjoint
 
 instance [has_repr α] : has_repr (finset α) := ⟨λ s, repr s.1⟩
 
+/-- Given a finset `s` of `ℕ` contained in `{0,..., n-1}`, the corresponding finset in `fin n`
+is `s.attach_fin h` where `h` is a proof that all elements of `s` are less than `n`. -/
 def attach_fin (s : finset ℕ) {n : ℕ} (h : ∀ m ∈ s, m < n) : finset (fin n) :=
 ⟨s.1.pmap (λ a ha, ⟨a, ha⟩) h, multiset.nodup_pmap (λ _ _ _ _, fin.mk.inj) s.2⟩
 
@@ -2139,9 +2363,13 @@ def attach_fin (s : finset ℕ) {n : ℕ} (h : ∀ m ∈ s, m < n) : finset (fin
 section choose
 variables (p : α → Prop) [decidable_pred p] (l : finset α)
 
+/-- Given a finset `l` and a predicate `p`, associate to a proof that there is a unique element of
+`l` satisfying `p` this unique element, as an element of the corresponding subtype. -/
 def choose_x (hp : (∃! a, a ∈ l ∧ p a)) : { a // a ∈ l ∧ p a } :=
 multiset.choose_x p l.val hp
 
+/-- Given a finset `l` and a predicate `p`, associate to a proof that there is a unique element of
+`l` satisfying `p` this unique element, as an element of the ambient type. -/
 def choose (hp : ∃! a, a ∈ l ∧ p a) : α := choose_x p l hp
 
 lemma choose_spec (hp : ∃! a, a ∈ l ∧ p a) : choose p l hp ∈ l ∧ p (choose p l hp) :=
@@ -2163,43 +2391,6 @@ section decidable_linear_order
 
 variables {α} [decidable_linear_order α]
 
-def min' (S : finset α) (H : S.nonempty) : α :=
-@option.get _ S.min $
-  let ⟨k, hk⟩ := H in
-  let ⟨b, hb⟩ := min_of_mem hk in by simp at hb; simp [hb]
-
-def max' (S : finset α) (H : S.nonempty) : α :=
-@option.get _ S.max $
-  let ⟨k, hk⟩ := H in
-  let ⟨b, hb⟩ := max_of_mem hk in by simp at hb; simp [hb]
-
-variables (S : finset α) (H : S.nonempty)
-
-theorem min'_mem : S.min' H ∈ S := mem_of_min $ by simp [min']
-
-theorem min'_le (x) (H2 : x ∈ S) : S.min' H ≤ x := min_le_of_mem H2 $ option.get_mem _
-
-theorem le_min' (x) (H2 : ∀ y ∈ S, x ≤ y) : x ≤ S.min' H := H2 _ $ min'_mem _ _
-
-theorem max'_mem : S.max' H ∈ S := mem_of_max $ by simp [max']
-
-theorem le_max' (x) (H2 : x ∈ S) : x ≤ S.max' H := le_max_of_mem H2 $ option.get_mem _
-
-theorem max'_le (x) (H2 : ∀ y ∈ S, y ≤ x) : S.max' H ≤ x := H2 _ $ max'_mem _ _
-
-theorem min'_lt_max' {i j} (H1 : i ∈ S) (H2 : j ∈ S) (H3 : i ≠ j) : S.min' H < S.max' H :=
-begin
-  rcases lt_trichotomy i j with H4 | H4 | H4,
-  { have H5 := min'_le S H i H1,
-    have H6 := le_max' S H j H2,
-    apply lt_of_le_of_lt H5,
-    apply lt_of_lt_of_le H4 H6 },
-  { cc },
-  { have H5 := min'_le S H j H2,
-    have H6 := le_max' S H i H1,
-    apply lt_of_le_of_lt H5,
-    apply lt_of_lt_of_le H4 H6 }
-end
 
 end decidable_linear_order
 
@@ -2344,9 +2535,7 @@ def Ico_ℤ (l u : ℤ) : finset ℤ :=
   { to_fun := λ n, n + l,
     inj := λ n m h, by simpa using h }
 
-namespace Ico_ℤ
-
-@[simp] lemma mem {n m l : ℤ} : l ∈ Ico_ℤ n m ↔ n ≤ l ∧ l < m :=
+@[simp] lemma Ico_ℤ.mem {n m l : ℤ} : l ∈ Ico_ℤ n m ↔ n ≤ l ∧ l < m :=
 begin
   dsimp [Ico_ℤ],
   simp only [int.lt_to_nat, exists_prop, mem_range, add_comm, function.embedding.coe_fn_mk, mem_map],
@@ -2357,8 +2546,6 @@ begin
     use (l - n).to_nat,
     split; simp [h₁, h₂], }
 end
-
-end Ico_ℤ
 
 end finset
 
@@ -2385,7 +2572,7 @@ congr_arg card $ (@multiset.erase_dup_eq_self α _ l).2 h
 
 end list
 
-namespace lattice
+section lattice
 variables {ι : Sort*} [complete_lattice α] [decidable_eq ι]
 
 lemma supr_eq_supr_finset (s : ι → α) : (⨆i, s i) = (⨆t:finset (plift ι), ⨆i∈t, s (plift.down i)) :=
@@ -2407,11 +2594,11 @@ variables {ι : Sort*} [decidable_eq ι]
 
 lemma Union_eq_Union_finset (s : ι → set α) :
   (⋃i, s i) = (⋃t:finset (plift ι), ⋃i∈t, s (plift.down i)) :=
-lattice.supr_eq_supr_finset s
+supr_eq_supr_finset s
 
 lemma Inter_eq_Inter_finset (s : ι → set α) :
   (⋂i, s i) = (⋂t:finset (plift ι), ⋂i∈t, s (plift.down i)) :=
-lattice.infi_eq_infi_finset s
+infi_eq_infi_finset s
 
 end set
 

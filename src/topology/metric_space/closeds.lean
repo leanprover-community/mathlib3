@@ -26,7 +26,7 @@ open_locale classical
 open_locale topological_space
 
 universe u
-open classical lattice set function topological_space filter
+open classical set function topological_space filter
 
 namespace emetric
 section
@@ -53,7 +53,7 @@ begin
   ... ≤ (inf_edist y (t.val) + edist x y) + Hausdorff_edist (t.val) (s.val) :
     add_le_add_right' inf_edist_le_inf_edist_add_edist
   ... = inf_edist y (t.val) + (edist x y + Hausdorff_edist (s.val) (t.val)) :
-    by simp [add_comm, Hausdorff_edist_comm]
+    by simp [add_comm, add_left_comm, Hausdorff_edist_comm]
   ... ≤ inf_edist y (t.val) + (edist (x, s) (y, t) + edist (x, s) (y, t)) :
     add_le_add_left' (add_le_add' (by simp [edist, le_refl]) (by simp [edist, le_refl]))
   ... = inf_edist y (t.val) + 2 * edist (x, s) (y, t) :
@@ -364,7 +364,7 @@ begin
       have Dtc : Hausdorff_edist t.val c < ε := lt_of_le_of_lt this δlt,
       -- the set `c` is not empty, as it is well approximated by a nonempty set
       have hc : c.nonempty,
-        from nonempty_of_Hausdorff_edist_ne_top t.property.1 (lattice.ne_top_of_lt Dtc),
+        from nonempty_of_Hausdorff_edist_ne_top t.property.1 (ne_top_of_lt Dtc),
       -- let `d` be the version of `c` in the type `nonempty_compacts α`
       let d : nonempty_compacts α := ⟨c, ⟨hc, ‹finite c›.compact⟩⟩,
       have : c ⊆ s,

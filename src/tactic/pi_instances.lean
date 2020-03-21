@@ -2,11 +2,15 @@
 Copyright (c) 2018 Simon Hudon All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Author: Simon Hudon
-
-Automation for creating instances of mathematical structures for pi types
 -/
 
 import tactic.solve_by_elim order.basic
+
+/-!
+# `pi_instance`
+
+Automation for creating instances of mathematical structures for pi types
+-/
 
 namespace tactic
 
@@ -38,7 +42,9 @@ do b ← target >>= is_prop,
      xs ← (iota expl_arity).mmap $ λ _, intro1,
      x ← intro1,
      applyc field,
-     xs.mmap' (λ h, try $ () <$ (apply (h x) <|> apply h) <|> refine ``(set.image ($ %%x) %%h)) <|> fail "args",
+     xs.mmap' (λ h, try $
+      () <$ (apply (h x) <|> apply h) <|>
+      refine ``(set.image ($ %%x) %%h)) <|> fail "args",
      return ()
 
 /--
@@ -52,5 +58,11 @@ refine_struct ``( {  ..pi.partial_order, .. } );
   propagate_tags (try (derive_field ; done))
 
 run_cmd add_interactive [`pi_instance]
+
+add_tactic_doc
+{ name                     := "pi_instance",
+  category                 := doc_category.tactic,
+  decl_names               := [`tactic.interactive.pi_instance],
+  tags                     := ["instances"] }
 
 end tactic

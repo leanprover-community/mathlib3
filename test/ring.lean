@@ -32,7 +32,7 @@ begin
 end
 
 example (a b c d x y : ℚ) (hx : x ≠ 0) (hy : y ≠ 0) :
-  a + b / x + c / x^2 + d / x^3 = a + x⁻¹ * (y * b / y + (d / x + c) / x) :=
+  a + b / x - c / x^2 + d / x^3 = a + x⁻¹ * (y * b / y + (d / x - c) / x) :=
 begin
   field_simp [hx, hy],
   ring

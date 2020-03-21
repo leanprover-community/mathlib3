@@ -22,7 +22,7 @@ topological spaces. For example:
 The class `emetric_space` therefore extends `uniform_space` (and `topological_space`).
 -/
 
-open lattice set filter classical
+open set filter classical
 noncomputable theory
 
 open_locale uniformity topological_space
@@ -510,7 +510,7 @@ begin
   have : 0 < ε - edist y x := by simpa using h,
   refine ⟨ε - edist y x, this, ball_subset _ _⟩,
   { rw ennreal.add_sub_cancel_of_le (le_of_lt h), apply le_refl _},
-  { have : edist y x ≠ ⊤ := lattice.ne_top_of_lt h, apply lt_top_iff_ne_top.2 this }
+  { have : edist y x ≠ ⊤ := ne_top_of_lt h, apply lt_top_iff_ne_top.2 this }
 end
 
 theorem ball_eq_empty_iff : ball x ε = ∅ ↔ ε = 0 :=
@@ -524,6 +524,9 @@ def edist_lt_top_setoid : setoid α :=
   iseqv := ⟨λ x, by { rw edist_self, exact ennreal.coe_lt_top },
     λ x y h, by rwa edist_comm,
     λ x y z hxy hyz, lt_of_le_of_lt (edist_triangle x y z) (ennreal.add_lt_top.2 ⟨hxy, hyz⟩)⟩ }
+
+@[simp] lemma ball_zero : ball x 0 = ∅ :=
+by rw [emetric.ball_eq_empty_iff]
 
 theorem nhds_basis_eball : (𝓝 x).has_basis (λ ε:ennreal, 0 < ε) (ball x) :=
 nhds_basis_uniformity uniformity_basis_edist
@@ -738,12 +741,11 @@ eq_of_forall_ge_iff $ λ d, by simp only [diam_le_iff_forall_edist_le, ball_inse
   (and_assoc _ _).symm, max_comm (diam s)]
 
 lemma diam_pair : diam ({x, y} : set α) = edist x y :=
-by simp only [set.insert_of_has_insert, supr_singleton, diam_insert, diam_singleton,
-  ennreal.max_zero_left]
+by simp only [supr_singleton, diam_insert, diam_singleton, ennreal.max_zero_left]
 
 lemma diam_triple :
   diam ({x, y, z} : set α) = max (edist x y) (max (edist y z) (edist x z)) :=
-by simp only [set.insert_of_has_insert, diam_insert, supr_insert, supr_singleton, diam_singleton,
+by simp only [diam_insert, supr_insert, supr_singleton, diam_singleton,
   ennreal.max_zero_left, ennreal.sup_eq_max]
 
 /-- The diameter is monotonous with respect to inclusion -/

@@ -11,7 +11,6 @@ a^n is used for the first, but users can locally redefine it to gpow when needed
 
 Note: power adopts the convention that 0^0=1.
 -/
-import algebra.group
 import data.int.basic
 
 variables {M : Type*} {N : Type*} {G : Type*} {H : Type*} {A : Type*} {B : Type*}
@@ -98,9 +97,11 @@ by rw [←pow_add, ←pow_add, add_comm]
 theorem smul_add_comm : ∀ (a : A) (m n : ℕ), m•a + n•a = n•a + m•a :=
 @pow_mul_comm (multiplicative A) _
 
-@[simp] theorem list.prod_repeat (a : M) (n : ℕ) : (list.repeat a n).prod = a ^ n :=
+@[simp, priority 500]
+theorem list.prod_repeat (a : M) (n : ℕ) : (list.repeat a n).prod = a ^ n :=
 by induction n with n ih; [refl, rw [list.repeat_succ, list.prod_cons, ih]]; refl
-@[simp] theorem list.sum_repeat : ∀ (a : A) (n : ℕ), (list.repeat a n).sum = n • a :=
+@[simp, priority 500]
+theorem list.sum_repeat : ∀ (a : A) (n : ℕ), (list.repeat a n).sum = n • a :=
 @list.prod_repeat (multiplicative A) _
 
 theorem monoid_hom.map_pow (f : M →* N) (a : M) : ∀(n : ℕ), f (a ^ n) = (f a) ^ n
@@ -394,6 +395,11 @@ by rw [gsmul_eq_mul', gsmul_eq_mul', mul_assoc]
 theorem mul_gsmul_assoc [ring R] (a b : R) (n : ℤ) : n •ℤ (a * b) = n •ℤ a * b :=
 by rw [gsmul_eq_mul, gsmul_eq_mul, mul_assoc]
 
+@[simp]
+lemma gsmul_int_int (a b : ℤ) : a •ℤ b = a * b := by simp [gsmul_eq_mul]
+
+lemma gsmul_int_one (n : ℤ) : n •ℤ 1 = n := by simp
+
 @[simp, move_cast] theorem int.cast_pow [ring R] (n : ℤ) (m : ℕ) : (↑(n ^ m) : R) = ↑n ^ m :=
 by induction m with m ih; [exact int.cast_one,
   rw [pow_succ, pow_succ, int.cast_mul, ih]]
@@ -415,15 +421,15 @@ end
 @[field_simps] theorem pow_ne_zero [domain R] {a : R} (n : ℕ) (h : a ≠ 0) : a ^ n ≠ 0 :=
 mt pow_eq_zero h
 
-theorem one_div_pow [division_ring R] {a : R} (ha : a ≠ 0) (n : ℕ) : (1 / a) ^ n = 1 / a ^ n :=
+theorem one_div_pow [division_ring R] {a : R} (n : ℕ) : (1 / a) ^ n = 1 / a ^ n :=
 by induction n with n ih; [exact (div_one _).symm,
-  rw [pow_succ', ih, division_ring.one_div_mul_one_div (pow_ne_zero _ ha) ha]]; refl
+  rw [pow_succ', ih, division_ring.one_div_mul_one_div]]; refl
 
-@[simp] theorem division_ring.inv_pow [division_ring R] {a : R} (ha : a ≠ 0) (n : ℕ) : a⁻¹ ^ n = (a ^ n)⁻¹ :=
-by simpa only [inv_eq_one_div] using one_div_pow ha n
+@[simp] theorem division_ring.inv_pow [division_ring R] {a : R} (n : ℕ) : a⁻¹ ^ n = (a ^ n)⁻¹ :=
+by simpa only [inv_eq_one_div] using one_div_pow n
 
-@[simp] theorem div_pow [field R] (a : R) {b : R} (hb : b ≠ 0) (n : ℕ) : (a / b) ^ n = a ^ n / b ^ n :=
-by rw [div_eq_mul_one_div, mul_pow, one_div_pow hb, ← div_eq_mul_one_div]
+@[simp] theorem div_pow [field R] (a : R) {b : R} (n : ℕ) : (a / b) ^ n = a ^ n / b ^ n :=
+by rw [div_eq_mul_one_div, mul_pow, one_div_pow, ← div_eq_mul_one_div]
 
 theorem add_monoid.smul_nonneg [ordered_comm_monoid R] {a : R} (H : 0 ≤ a) : ∀ n : ℕ, 0 ≤ n • a
 | 0     := le_refl _
@@ -436,15 +442,15 @@ by induction n with n ih; [exact (abs_one).symm,
 lemma abs_neg_one_pow [decidable_linear_ordered_comm_ring R] (n : ℕ) : abs ((-1 : R)^n) = 1 :=
 by rw [←pow_abs, abs_neg, abs_one, one_pow]
 
-@[field_simps] lemma inv_pow' [discrete_field R] (a : R) (n : ℕ) : a⁻¹ ^ n = (a ^ n)⁻¹ :=
+@[field_simps] lemma inv_pow' [field R] (a : R) (n : ℕ) : a⁻¹ ^ n = (a ^ n)⁻¹ :=
 by induction n; simp [*, pow_succ, mul_inv', mul_comm]
 
-@[field_simps] lemma pow_div [discrete_field R] (a b : R) (n : ℕ) : (a / b)^n = a^n / b^n :=
+@[field_simps] lemma pow_div [field R] (a b : R) (n : ℕ) : (a / b)^n = a^n / b^n :=
 by simp [div_eq_mul_inv, mul_pow, inv_pow']
 
 lemma pow_inv [division_ring R] (a : R) : ∀ n : ℕ, a ≠ 0 → (a^n)⁻¹ = (a⁻¹)^n
 | 0     ha := inv_one
-| (n+1) ha := by rw [pow_succ, pow_succ', mul_inv_eq (pow_ne_zero _ ha) ha, pow_inv _ ha]
+| (n+1) ha := by rw [pow_succ, pow_succ', mul_inv', pow_inv _ ha]
 
 namespace add_monoid
 variable [ordered_comm_monoid A]
@@ -523,7 +529,7 @@ theorem one_add_mul_le_pow' {a : R} (Hsqr : 0 ≤ a * a) (H : 0 ≤ 1 + a) :
 | 0     := le_of_eq $ add_zero _
 | (n+1) :=
 calc 1 + (n + 1) • a ≤ (1 + a) * (1 + n • a) :
-  by simpa [succ_smul, mul_add, add_mul, add_monoid.mul_smul_left]
+  by simpa [succ_smul, mul_add, add_mul, add_monoid.mul_smul_left, add_comm, add_left_comm]
     using add_monoid.smul_nonneg Hsqr n
 ... ≤ (1 + a)^(n+1) : mul_le_mul_of_nonneg_left (one_add_mul_le_pow' n) H
 

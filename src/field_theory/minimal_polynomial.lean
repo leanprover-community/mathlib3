@@ -58,7 +58,7 @@ le_of_not_lt $ well_founded.not_lt_min degree_lt_wf _ hx ⟨pmonic, hp⟩
 end ring
 
 section field
-variables [discrete_field α] [discrete_field β] [algebra α β]
+variables [field α] [field β] [algebra α β]
 variables {x : β} (hx : is_integral α x)
 
 /--A minimal polynomial is nonzero.-/

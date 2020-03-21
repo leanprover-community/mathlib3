@@ -199,7 +199,7 @@ begin
   cases archimedean_iff_nat_lt.1 (by apply_instance) (1/ε) with n hn,
   existsi n,
   apply div_lt_of_mul_lt_of_pos,
-  { simp, apply add_pos_of_pos_of_nonneg zero_lt_one, apply nat.cast_nonneg },
+  { simp, apply add_pos_of_nonneg_of_pos, apply nat.cast_nonneg, apply zero_lt_one },
   { apply (div_lt_iff' hε).1,
     transitivity,
     { exact hn },

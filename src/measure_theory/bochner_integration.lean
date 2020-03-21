@@ -167,7 +167,7 @@ end simple_func
 end measure_theory
 
 namespace measure_theory
-open set lattice filter topological_space ennreal emetric
+open set filter topological_space ennreal emetric
 
 universes u v w
 variables {α : Type u} [measure_space α] {β : Type v} {γ : Type w}
@@ -985,8 +985,8 @@ local notation `Integral` := @integral_clm α _ β _ _ _ _
 local notation `sIntegral` := @simple_func.integral_clm α _ β _ _ _
 
 lemma norm_Integral_le_one : ∥Integral∥ ≤ 1 :=
-calc ∥Integral∥ ≤ 1 * ∥sIntegral∥ :
-  op_norm_extend_le _ _ _ $ λs, by {rw one_mul, refl}
+calc ∥Integral∥ ≤ (1 : nnreal) * ∥sIntegral∥ :
+  op_norm_extend_le _ _ _ $ λs, by {rw [nnreal.coe_one, one_mul], refl}
   ... = ∥sIntegral∥ : one_mul _
   ... ≤ 1 : norm_Integral_le_one
 

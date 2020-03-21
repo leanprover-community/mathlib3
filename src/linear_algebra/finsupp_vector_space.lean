@@ -9,7 +9,7 @@ import data.finsupp data.mv_polynomial linear_algebra.dimension
 noncomputable theory
 local attribute [instance, priority 100] classical.prop_decidable
 
-open lattice set linear_map submodule
+open set linear_map submodule
 
 namespace finsupp
 
@@ -44,7 +44,7 @@ end module
 
 section vector_space
 variables {K : Type*} {V : Type*} {ι : Type*}
-variables [discrete_field K] [add_comm_group V] [vector_space K V]
+variables [field K] [add_comm_group V] [vector_space K V]
 
 open linear_map submodule
 
@@ -65,7 +65,7 @@ end vector_space
 section dim
 universes u v
 variables {K : Type u} {V : Type v} {ι : Type v}
-variables [discrete_field K] [add_comm_group V] [vector_space K V]
+variables [field K] [add_comm_group V] [vector_space K V]
 
 lemma dim_eq : vector_space.dim K (ι →₀ V) = cardinal.mk ι * vector_space.dim K V :=
 begin
@@ -87,7 +87,7 @@ section vector_space
    same section. -/
 universe variables u v w
 variables {K : Type u} {V V₁ V₂ : Type v} {V' : Type w}
-variables [discrete_field K]
+variables [field K]
 variables [add_comm_group V] [vector_space K V]
 variables [add_comm_group V₁] [vector_space K V₁]
 variables [add_comm_group V₂] [vector_space K V₂]
@@ -160,7 +160,7 @@ open vector_space
 set_option class.instance_max_depth 50
 local attribute [instance] submodule.module
 
-variables {K V : Type u} [discrete_field K] [add_comm_group V] [vector_space K V]
+variables {K V : Type u} [field K] [add_comm_group V] [vector_space K V]
 
 set_option pp.universes false
 lemma cardinal_mk_eq_cardinal_mk_field_pow_dim (h : dim K V < cardinal.omega) :

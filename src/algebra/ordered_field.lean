@@ -50,7 +50,7 @@ lemma div_le_iff_of_neg (hc : c < 0) : b / c ≤ a ↔ a * c ≤ b :=
 ⟨mul_le_of_div_le_of_neg hc, div_le_of_mul_le_of_neg hc⟩
 
 lemma le_div_iff_of_neg (hc : c < 0) : a ≤ b / c ↔ b ≤ a * c :=
-by rw [← neg_neg c, mul_neg_eq_neg_mul_symm, div_neg _ (ne_of_gt (neg_pos.2 hc)), le_neg,
+by rw [← neg_neg c, mul_neg_eq_neg_mul_symm, div_neg, le_neg,
     div_le_iff (neg_pos.2 hc), neg_mul_eq_neg_mul_symm]
 
 lemma div_lt_iff (hc : 0 < c) : b / c < a ↔ b < a * c :=
@@ -67,10 +67,10 @@ by rw [inv_eq_one_div, div_le_iff ha,
        ← div_eq_inv_mul, one_le_div_iff_le hb]
 
 lemma inv_le (ha : 0 < a) (hb : 0 < b) : a⁻¹ ≤ b ↔ b⁻¹ ≤ a :=
-by rw [← inv_le_inv hb (inv_pos ha), division_ring.inv_inv (ne_of_gt ha)]
+by rw [← inv_le_inv hb (inv_pos ha), inv_inv']
 
 lemma le_inv (ha : 0 < a) (hb : 0 < b) : a ≤ b⁻¹ ↔ b ≤ a⁻¹ :=
-by rw [← inv_le_inv (inv_pos hb) ha, division_ring.inv_inv (ne_of_gt hb)]
+by rw [← inv_le_inv (inv_pos hb) ha, inv_inv']
 
 lemma one_div_le_one_div (ha : 0 < a) (hb : 0 < b) : 1 / a ≤ 1 / b ↔ b ≤ a :=
 by simpa [one_div_eq_inv] using inv_le_inv ha hb
@@ -215,9 +215,7 @@ have h : abs (1 / a) = 1 / abs a,
 by simp [*] at *
 
 lemma inv_neg : (-a)⁻¹ = -(a⁻¹) :=
-if h : a = 0
-then by simp [h, inv_zero]
-else by rwa [inv_eq_one_div, inv_eq_one_div, div_neg_eq_neg_div]
+by rwa [inv_eq_one_div, inv_eq_one_div, div_neg_eq_neg_div]
 
 lemma inv_le_inv_of_le {a b : α} (hb : 0 < b) (h : b ≤ a) : a⁻¹ ≤ b⁻¹ :=
 begin

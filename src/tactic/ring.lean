@@ -2,12 +2,17 @@
 Copyright (c) 2018 Mario Carneiro. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Mario Carneiro
+-/
+
+import algebra.group_power tactic.norm_num
+import tactic.converter.interactive
+
+/-!
+# `ring`
 
 Evaluate expressions in the language of commutative (semi)rings.
 Based on <http://www.cs.ru.nl/~freek/courses/tt-2014/read/10.1.1.61.3041.pdf> .
 -/
-import algebra.group_power tactic.norm_num
-import tactic.converter.interactive
 
 namespace tactic
 namespace ring
@@ -117,7 +122,7 @@ meta def eval_horner : horner_expr → expr × ℕ → expr × ℕ → horner_ex
 
 theorem const_add_horner {α} [comm_semiring α] (k a x n b b') (h : k + b = b') :
   k + @horner α _ a x n b = horner a x n b' :=
-by simp [h.symm, horner]
+by simp [h.symm, horner]; cc
 
 theorem horner_add_const {α} [comm_semiring α] (a x n b k b') (h : b + k = b') :
   @horner α _ a x n b + k = horner a x n b' :=
@@ -126,19 +131,19 @@ by simp [h.symm, horner]
 theorem horner_add_horner_lt {α} [comm_semiring α] (a₁ x n₁ b₁ a₂ n₂ b₂ k a' b')
   (h₁ : n₁ + k = n₂) (h₂ : (a₁ + horner a₂ x k 0 : α) = a') (h₃ : b₁ + b₂ = b') :
   @horner α _ a₁ x n₁ b₁ + horner a₂ x n₂ b₂ = horner a' x n₁ b' :=
-by simp [h₂.symm, h₃.symm, h₁.symm, horner, pow_add, mul_add, mul_comm, mul_left_comm]
+by simp [h₂.symm, h₃.symm, h₁.symm, horner, pow_add, mul_add, mul_comm, mul_left_comm]; cc
 
 theorem horner_add_horner_gt {α} [comm_semiring α] (a₁ x n₁ b₁ a₂ n₂ b₂ k a' b')
   (h₁ : n₂ + k = n₁) (h₂ : (horner a₁ x k 0 + a₂ : α) = a') (h₃ : b₁ + b₂ = b') :
   @horner α _ a₁ x n₁ b₁ + horner a₂ x n₂ b₂ = horner a' x n₂ b' :=
-by simp [h₂.symm, h₃.symm, h₁.symm, horner, pow_add, mul_add, mul_comm, mul_left_comm]
+by simp [h₂.symm, h₃.symm, h₁.symm, horner, pow_add, mul_add, mul_comm, mul_left_comm]; cc
 
 -- set_option trace.class_instances true
 -- set_option class.instance_max_depth 128
 theorem horner_add_horner_eq {α} [comm_semiring α] (a₁ x n b₁ a₂ b₂ a' b' t)
   (h₁ : a₁ + a₂ = a') (h₂ : b₁ + b₂ = b') (h₃ : horner a' x n b' = t) :
   @horner α _ a₁ x n b₁ + horner a₂ x n b₂ = t :=
-by simp [h₃.symm, h₂.symm, h₁.symm, horner, add_mul, mul_comm]
+by simp [h₃.symm, h₂.symm, h₁.symm, horner, add_mul, mul_comm]; cc
 
 meta def eval_add : horner_expr → horner_expr → ring_m (horner_expr × expr)
 | (const e₁) (const e₂) := do
@@ -200,7 +205,7 @@ meta def eval_add : horner_expr → horner_expr → ring_m (horner_expr × expr)
 theorem horner_neg {α} [comm_ring α] (a x n b a' b')
   (h₁ : -a = a') (h₂ : -b = b') :
   -@horner α _ a x n b = horner a' x n b' :=
-by simp [h₂.symm, h₁.symm, horner]
+by simp [h₂.symm, h₁.symm, horner]; cc
 
 meta def eval_neg : horner_expr → ring_m (horner_expr × expr)
 | (const e) := do
@@ -504,12 +509,17 @@ do mode ← ident?, match mode with
 end
 
 /-- Tactic for solving equations in the language of *commutative* (semi)rings.
-  Attempts to prove the goal outright if there is no `at`
-  specifier and the target is an equality, but if this
-  fails it falls back to rewriting all ring expressions
-  into a normal form. When writing a normal form,
-  `ring SOP` will use sum-of-products form instead of horner form.
-  `ring!` will use a more aggressive reducibility setting to identify atoms. -/
+Attempts to prove the goal outright if there is no `at`
+specifier and the target is an equality, but if this
+fails it falls back to rewriting all ring expressions
+into a normal form. When writing a normal form,
+`ring SOP` will use sum-of-products form instead of horner form.
+`ring!` will use a more aggressive reducibility setting to identify atoms.
+
+Based on [Proving Equalities in a Commutative Ring Done Right
+in Coq](http://www.cs.ru.nl/~freek/courses/tt-2014/read/10.1.1.61.3041.pdf) by Benjamin Grégoire
+and Assia Mahboubi.
+-/
 meta def ring (red : parse (tk "!")?) (SOP : parse ring.mode) (loc : parse location) : tactic unit :=
 match loc with
 | interactive.loc.ns [none] := instantiate_mvars_in_target >> ring1 red
@@ -522,6 +532,12 @@ do ns ← loc.get_locals,
    when loc.include_goal $ try tactic.reflexivity
 
 add_hint_tactic "ring"
+
+add_tactic_doc
+{ name        := "ring",
+  category    := doc_category.tactic,
+  decl_names  := [`tactic.interactive.ring],
+  tags        := ["arithmetic", "decision procedure"] }
 
 end interactive
 end tactic

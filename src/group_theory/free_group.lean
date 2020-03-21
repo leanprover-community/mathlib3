@@ -14,7 +14,7 @@ and proof that its join is an equivalence relation.
 Then we introduce `free_group α` as a quotient over `free_group.red.step`.
 -/
 import logic.relation
-import algebra.group algebra.group_power
+import algebra.group_power
 import data.fintype
 import group_theory.subgroup
 open relation
@@ -537,7 +537,8 @@ end prod
 
 theorem to_group_eq_prod_map {β : Type v} [group β] {f : α → β} {x} :
   to_group f x = prod (map f x) :=
-eq.symm $ to_group.unique (prod ∘ map f) $ λ _, by simp
+have is_group_hom (prod ∘ map f) := is_group_hom.comp _ _, by exactI
+(eq.symm $ to_group.unique (prod ∘ map f) $ λ _, by simp)
 
 section sum
 
@@ -586,7 +587,7 @@ def free_group_unit_equiv_int : free_group unit ≃ int :=
     (λ ⟨⟨⟩, b⟩ tl ih, by cases b; simp [gpow_add] at ih ⊢; rw ih; refl),
   right_inv := λ x, int.induction_on x (by simp)
     (λ i ih, by simp at ih; simp [gpow_add, ih])
-    (λ i ih, by simp at ih; simp [gpow_add, ih]) }
+    (λ i ih, by simp at ih; simp [gpow_add, ih, sub_eq_add_neg]) }
 
 section category
 

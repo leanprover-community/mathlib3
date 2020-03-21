@@ -388,13 +388,16 @@ begin
   { by_cases h' : i ∈ s; simp [h, h'] }
 end
 
-@[simp] lemma piecewise_eq_of_mem {i : α} (hi : i ∈ s) : s.piecewise f g i = f i :=
+@[simp, priority 990]
+lemma piecewise_eq_of_mem {i : α} (hi : i ∈ s) : s.piecewise f g i = f i :=
 by simp [piecewise, hi]
 
-@[simp] lemma piecewise_eq_of_not_mem {i : α} (hi : i ∉ s) : s.piecewise f g i = g i :=
+@[simp, priority 990]
+lemma piecewise_eq_of_not_mem {i : α} (hi : i ∉ s) : s.piecewise f g i = g i :=
 by simp [piecewise, hi]
 
-@[simp] lemma piecewise_insert_of_ne {i j : α} (h : i ≠ j) [∀i, decidable (i ∈ insert j s)] :
+@[simp, priority 990]
+lemma piecewise_insert_of_ne {i j : α} (h : i ≠ j) [∀i, decidable (i ∈ insert j s)] :
   (insert j s).piecewise f g i = s.piecewise f g i :=
 by { simp [piecewise, h], congr }
 
@@ -417,4 +420,3 @@ lemma surjective.surj_on (hf : surjective f) (s : set β) :
 (surjective_iff_surj_on_univ.1 hf).mono (subset.refl _) (subset_univ _)
 
 end function
-

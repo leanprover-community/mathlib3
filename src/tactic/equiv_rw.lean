@@ -30,8 +30,10 @@ def equiv_congr_lemmas : list name :=
  -- this is technically a bifunctor `Typeᵒᵖ → Type → Type`, but the pattern matcher will never see this.
  `equiv.arrow_congr,
  `equiv.sigma_congr_left', -- allows rewriting in the argument of a sigma-type
- `equiv.Pi_congr_left, -- allows rewriting in the argument of a pi-type -- TODO employ `equiv.pi_congr?
+ `equiv.Pi_congr_left', -- allows rewriting in the argument of a pi-type -- TODO employ `equiv.pi_congr?
  `functor.map_equiv]
+
+declare_trace adapt_equiv
 
 /--
 Helper function for `adapt_equiv`.
@@ -53,7 +55,7 @@ do
       let apply_and_adapt (n : name) : tactic (expr × bool) := (do
         -- Apply the named lemma
         mk_const n >>= tactic.eapply,
-        all_goals (intros >> skip),
+        all_goals (intros >> skip), -- TODO explain why?
         -- Collect the resulting goals, then restore the original context before proceeding
         gs ← get_goals,
         set_goals initial_goals,

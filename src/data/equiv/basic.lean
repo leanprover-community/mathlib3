@@ -916,6 +916,11 @@ section
 variables
   (W : α → Sort w) (Z : β → Sort z) (h₁ : α ≃ β) (h₂ : Π a : α, (W a ≃ Z (h₁ a)))
 
+/--
+Transport dependent functions through
+an equivalence of the base spaces and a family
+of equivalences of the matching fibres.
+-/
 def pi_congr : (Π a, W a) ≃ (Π b, Z b) :=
 { to_fun := λ f b, by { rw ← h₁.apply_symm_apply b, exact h₂ (h₁.symm b) (f (h₁.symm b)), },
   inv_fun := λ g a, (h₂ a).symm (g (h₁ a)),
@@ -942,6 +947,7 @@ end
 section
 variables (P : α → Sort w) (e : α ≃ β)
 
+/-- Transport dependent functions through an equivalence of the base space. -/
 def pi_congr_left : (Π a, P a) ≃ (Π b, P (e.symm b)) :=
 { to_fun := λ f x, f (e.symm x),
   inv_fun := λ f x, begin rw [← e.symm_apply_apply x], exact f (e x)  end,
@@ -963,7 +969,6 @@ rfl
 --     pi_congr P (λ b, P (e.symm b)) e (λ a, (by simp)) :=
 -- sorry
 end
-
 
 end equiv
 

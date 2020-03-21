@@ -5,6 +5,8 @@ Authors: Scott Morrison
 -/
 import tactic.equiv_rw
 
+set_option trace.adapt_equiv true
+
 -- Rewriting a hypothesis along an equivalence.
 example {α β : Type} (e : α ≃ β)
   (f : α → ℕ) (h : ∀ b : β, f (e.symm b) = 0) (i : α) : f i = 0 :=

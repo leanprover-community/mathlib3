@@ -921,7 +921,7 @@ Transport dependent functions through
 an equivalence of the base spaces and a family
 of equivalences of the matching fibres.
 -/
-def pi_congr : (Π a, W a) ≃ (Π b, Z b) :=
+def Pi_congr : (Π a, W a) ≃ (Π b, Z b) :=
 { to_fun := λ f b, by { rw ← h₁.apply_symm_apply b, exact h₂ (h₁.symm b) (f (h₁.symm b)), },
   inv_fun := λ g a, (h₂ a).symm (g (h₁ a)),
   left_inv := λ f, funext $ λ a,
@@ -934,13 +934,13 @@ def pi_congr : (Π a, W a) ≃ (Π b, Z b) :=
     eq_of_heq ((eq_rec_heq _ _).trans (by { rw (h₂ (h₁.symm b)).apply_symm_apply, congr, simp, })), }
 
 @[simp]
-lemma pi_congr_apply (f : Π a, W a) (b : β) :
-  ((pi_congr W Z h₁ h₂) f) b = (by { convert h₂ (h₁.symm b) (f (h₁.symm b)), simp }) :=
+lemma Pi_congr_apply (f : Π a, W a) (b : β) :
+  ((Pi_congr W Z h₁ h₂) f) b = (by { convert h₂ (h₁.symm b) (f (h₁.symm b)), simp }) :=
 rfl
 
 @[simp]
-lemma pi_congr_symm_apply (g : Π b, Z b) (a : α) :
-  ((pi_congr W Z h₁ h₂).symm g) a = (h₂ a).symm (g (h₁ a)) :=
+lemma Pi_congr_symm_apply (g : Π b, Z b) (a : α) :
+  ((Pi_congr W Z h₁ h₂).symm g) a = (h₂ a).symm (g (h₁ a)) :=
 rfl
 end
 
@@ -948,25 +948,25 @@ section
 variables (P : α → Sort w) (e : α ≃ β)
 
 /-- Transport dependent functions through an equivalence of the base space. -/
-def pi_congr_left : (Π a, P a) ≃ (Π b, P (e.symm b)) :=
+def Pi_congr_left : (Π a, P a) ≃ (Π b, P (e.symm b)) :=
 { to_fun := λ f x, f (e.symm x),
   inv_fun := λ f x, begin rw [← e.symm_apply_apply x], exact f (e x)  end,
   left_inv := λ f, funext $ λ x, eq_of_heq ((eq_rec_heq _ _).trans (by { dsimp, rw e.symm_apply_apply })),
   right_inv := λ f, funext $ λ x, eq_of_heq ((eq_rec_heq _ _).trans (by { rw e.apply_symm_apply })) }
 
 @[simp]
-lemma pi_congr_left_apply (f : Π a, P a) (b : β) : ((pi_congr_left P e) f) b = f (e.symm b) :=
+lemma Pi_congr_left_apply (f : Π a, P a) (b : β) : ((Pi_congr_left P e) f) b = f (e.symm b) :=
 rfl
 
 @[simp]
-lemma pi_congr_left_symm_apply (g : Π b, P (e.symm b)) (a : α) :
-  ((pi_congr_left P e).symm g) a = (by { convert g (e a), simp }) :=
+lemma Pi_congr_left_symm_apply (g : Π b, P (e.symm b)) (a : α) :
+  ((Pi_congr_left P e).symm g) a = (by { convert g (e a), simp }) :=
 rfl
 
 -- TODO Perhaps we should show these agree:
--- lemma pi_congr_left_eq :
---   pi_congr_left P e =
---     pi_congr P (λ b, P (e.symm b)) e (λ a, (by simp)) :=
+-- lemma Pi_congr_left_eq :
+--   Pi_congr_left P e =
+--     Pi_congr P (λ b, P (e.symm b)) e (λ a, (by simp)) :=
 -- sorry
 end
 

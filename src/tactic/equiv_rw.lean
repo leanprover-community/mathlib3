@@ -28,6 +28,7 @@ def equiv_congr_lemmas : list name :=
  `equiv.sum_congr, `equiv.prod_congr,
  -- this is technically a bifunctor `Typeᵒᵖ → Type → Type`, but the pattern matcher will never see this.
  `equiv.arrow_congr,
+ `equiv.pi_congr_left, -- allows rewriting in the argument of a pi-type -- TODO employ `equiv.pi_congr?
  `functor.map_equiv]
 
 /--
@@ -95,13 +96,12 @@ do
   -- attempting to replace all occurrences of `e x`,
   -- calling it for now `j : β`, with `k : x = e.symm j`.
   generalize ex (by apply_opt_param) transparency.none,
-  j ← mk_fresh_name,
-  intro j,
+  -- Reintroduce `x` (now of type `b`).
+  intro x,
   k ← mk_fresh_name,
   -- Finally, we subst along `k`, hopefully removing all the occurrences of the original `x`,
   intro k >>= subst,
-  -- and then rename `j` back to `x`.
-  rename j x,
+  `[try { simp only [equiv.symm_symm, equiv.apply_symm_apply, equiv.symm_apply_apply] }],
   skip
 
 /-- Rewrite the goal using an equiv `e`. -/

@@ -42,7 +42,7 @@ by rw [← units.mk0_val ha, ← @units.coe_one (zmodp p hp), ← units.coe_pow,
 lemma euler_criterion_units {x : units (zmodp p hp)} :
   (∃ y : units (zmodp p hp), y ^ 2 = x) ↔ x ^ (p / 2) = 1 :=
 hp.eq_two_or_odd.elim
-  (λ h, by resetI; subst h; revert x; exact dec_trivial)
+  (λ h, by resetI; subst h; exact iff_of_true ⟨1, subsingleton.elim _ _⟩ (subsingleton.elim _ _))
   (λ hp1, let ⟨g, hg⟩ := is_cyclic.exists_generator (units (zmodp p hp)) in
     let ⟨n, hn⟩ := show x ∈ powers g, from (powers_eq_gpowers g).symm ▸ hg x in
     ⟨λ ⟨y, hy⟩, by rw [← hy, ← pow_mul, two_mul_odd_div_two hp1,

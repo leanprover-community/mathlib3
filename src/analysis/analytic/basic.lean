@@ -48,6 +48,13 @@ We develop the basic properties of these notions, notably:
   `analytic_at.continuous_at`).
 * In a complete space, the sum of a formal power series with positive radius is well defined on the
   disk of convergence, see `formal_multilinear_series.has_fpower_series_on_ball`.
+
+## Implementation details
+
+We only introduce the radius of convergence of a power series, as `p.radius`.
+For a power series in finitely many dimensions, there is a finer (directional, coordinate-dependent)
+notion, describing the polydisk of convergence. This notion is more specific, and not necessary to
+build the general theory. We do not define it here.
 -/
 
 noncomputable theory

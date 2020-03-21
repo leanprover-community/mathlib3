@@ -12,13 +12,15 @@ import data.equiv.functor
 namespace tactic
 
 /-- A hard-coded list of names of lemmas used for constructing congruence equivalences. -/
+
 -- PROJECT this should not be a hard-coded list.
 -- We could accommodate most of them with `equiv_functor`, or `equiv_bifunctor` instances.
 -- Moreover, these instances can typically be `derive`d.
+-- (Scott): I will add these in future PRs.
+
 -- Even better, they would be `category_theory.functorial` instances
--- (at that point, we could write along an isomorphism of rings `R ≅ S` and
---  automatically have `mv_polynomial.ring_equiv_congr`
---  produce an isomorphism of polynomials with those coefficients.).
+-- (at that point, we could rewrite along an isomorphism of rings `R ≅ S` and
+--  turn an `x : mv_polynomial σ R` into an `x : mv_polynomial σ S`.).
 def equiv_congr_lemmas : list name :=
 [-- these are functorial w.r.t equiv, and so could be subsumed by a `equiv_functor.map`
  `equiv.perm_congr, `equiv.equiv_congr, `equiv.unique_congr,
@@ -73,7 +75,7 @@ do (e, n) ← adapt_equiv' eq ty,
    return e
 
 /--
-Attempt to replace the hypothesis with name `x : α`
+Attempt to replace the hypothesis with name `x`
 by transporting it along the equivalence in `e : α ≃ β`.
 -/
 meta def equiv_rw_hyp : Π (x : name) (e : expr), tactic unit
@@ -102,6 +104,15 @@ do
   rename j x,
   skip
 
+/-- Rewrite the goal using an equiv `e`. -/
+meta def equiv_rw_target (e : expr) : tactic unit :=
+do
+  t ← target,
+  e ← adapt_equiv t e,
+  s ← to_expr ``(equiv.inv_fun %%e),
+  tactic.eapply s,
+  skip
+
 end tactic
 
 
@@ -119,26 +130,16 @@ with all occurrences of `h` in other hypotheses and the goal replaced with `e.sy
 
 `equiv_rw e` tries `apply e.inv_fun`,
 so with `e : α ≃ β`, it turns a goal of `⊢ α` into `⊢ β`.
-It will also try rewriting under functors, so it can also turn
-a goal of `⊢ option α` into `⊢ option β`.
 
-(Note that rewriting hypotheses does not understand functors.)
+`equiv_rw` will also try rewriting under functors, so can turn
+a hypothesis `h : list α` into `h : list β` or
+a goal `⊢ option α` into `⊢ option β`.
 -/
--- PROJECT Rewriting hypotheses under functors.
--- PROJECT
--- Many constructions are not strictly functorial,
--- but are functorial with respect to `≃`.
--- PROJECT More generally, rewriting along categorical isomorphisms, under functors.
--- (See the `hygienic` branch of mathlib.)
 meta def equiv_rw (e : parse texpr) (loc : parse $ (tk "at" *> ident)?) : itactic :=
 do e ← to_expr e,
    match loc with
    | (some hyp) := tactic.equiv_rw_hyp hyp e
-   | none := do t ← target,
-                e ← adapt_equiv t e,
-                s ← to_expr ``(equiv.inv_fun %%e),
-                tactic.eapply s,
-                skip
+   | none := tactic.equiv_rw_target e
    end
 
 add_tactic_doc

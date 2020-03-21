@@ -112,6 +112,7 @@ class has_image (f : X ⟶ Y) :=
 (F : mono_factorisation f)
 (is_image : is_image F)
 
+section
 variable [has_image f]
 
 /-- The chosen factorisation of `f` through a monomorphism. -/
@@ -125,13 +126,12 @@ def image : C := (image.mono_factorisation f).I
 def image.ι : image f ⟶ Y := (image.mono_factorisation f).m
 @[simp] lemma image.as_ι : (image.mono_factorisation f).m = image.ι f := rfl
 instance : mono (image.ι f) := (image.mono_factorisation f).m_mono
-/-- The 'corestriction' morphism from the source to the image. -/
-def image.c : X ⟶ image f := (image.mono_factorisation f).e
-@[simp] lemma image.as_c : (image.mono_factorisation f).e = image.c f := rfl
-@[simp] lemma image.c_ι : image.c f ≫ image.ι f = f := by erw (image.mono_factorisation f).fac
 
 /-- The map from the source to the image of a morphism. -/
 def factor_thru_image : X ⟶ image f := (image.mono_factorisation f).e
+/-- Rewrite in terms of the `factor_thru_image` interface. -/
+@[simp]
+lemma as_factor_thru_image : (image.mono_factorisation f).e = factor_thru_image f := rfl
 @[simp, reassoc]
 lemma image.fac : factor_thru_image f ≫ image.ι f = f := (image.mono_factorisation f).fac'
 
@@ -168,14 +168,20 @@ begin
   rw w,
   simp,
 end
+end
+
+section
+variables (C)
 
 /-- `has_images` represents a choice of image for every morphism -/
 class has_images :=
 (has_image : Π {X Y : C} (f : X ⟶ Y), has_image.{v} f)
 
-attribute [instance] has_images.has_image
+attribute [instance, priority 100] has_images.has_image
+end
 
-variable (f)
+section
+variables (f) [has_image f]
 /-- The image of a monomorphism is isomorphic to the source. -/
 def image_mono_iso_source [mono f] : image f ≅ X :=
 is_image.iso_ext (image.is_image f) (is_image.self f)
@@ -192,11 +198,12 @@ end
 
 -- This is the proof from https://en.wikipedia.org/wiki/Image_(category_theory), which is taken from:
 -- Mitchell, Barry (1965), Theory of categories, MR 0202787, p.12, Proposition 10.1
-instance [has_equalizers.{v} C] : epi (factor_thru_image f) :=
+instance [Π {Z : C} (g h : image f ⟶ Z), has_limit.{v} (parallel_pair g h)] :
+  epi (factor_thru_image f) :=
 ⟨λ Z g h w,
 begin
   let q := equalizer.ι g h,
-  let e' := equalizer.lift _ _ _ w, -- TODO make more of the arguments to equalizer.lift implicit?
+  let e' := equalizer.lift _ w,
   let F' : mono_factorisation f :=
   { I := equalizer g h,
     m := q ≫ image.ι f,
@@ -213,5 +220,56 @@ begin
      ... = 𝟙 (image f) ≫ h : by rw [←category.assoc, t]
      ... = h                : by rw [category.id_comp]
 end⟩
+end
+
+section
+variables {f} {f' : X ⟶ Y} [has_image f] [has_image f']
+
+/-- An equation between morphisms gives a comparison map between the images (which momentarily we prove is an iso). -/
+def image.eq_to_hom (h : f = f') : image f ⟶ image f' :=
+image.lift.{v}
+{ I := image f',
+  m := image.ι f',
+  e := factor_thru_image f', }.
+
+instance (h : f = f') : is_iso (image.eq_to_hom h) :=
+{ inv := image.eq_to_hom h.symm,
+  hom_inv_id' := begin apply (cancel_mono (image.ι f)).1, dsimp [image.eq_to_hom], simp, end,
+  inv_hom_id' := begin apply (cancel_mono (image.ι f')).1, dsimp [image.eq_to_hom], simp, end, }
+
+/-- An equation between morphisms gives an isomorphism between the images. -/
+def image.eq_to_iso (h : f = f') : image f ≅ image f' := as_iso (image.eq_to_hom h)
+end
+
+section
+variables {Z : C} (g : Y ⟶ Z)
+
+/-- The comparison map `image (f ≫ g) ⟶ image g`. -/
+def image.pre_comp [has_image g] [has_image (f ≫ g)] : image (f ≫ g) ⟶ image g :=
+image.lift.{v}
+{ I := image g,
+  m := image.ι g,
+  e := f ≫ factor_thru_image g }
+
+/--
+The two step comparison map
+  `image (f ≫ (g ≫ h)) ⟶ image (g ≫ h) ⟶ image h`
+agrees with the one step comparison map
+  `image (f ≫ (g ≫ h)) ≅ image ((f ≫ g) ≫ h) ⟶ image h`.
+ -/
+lemma image.pre_comp_comp {W : C} (h : Z ⟶ W)
+  [has_image (g ≫ h)] [has_image (f ≫ g ≫ h)]
+  [has_image h] [has_image ((f ≫ g) ≫ h)] :
+image.pre_comp f (g ≫ h) ≫ image.pre_comp g h = image.eq_to_hom (category.assoc C f g h).symm ≫ (image.pre_comp (f ≫ g) h) :=
+begin
+  apply (cancel_mono (image.ι h)).1,
+  dsimp [image.pre_comp, image.eq_to_hom],
+  simp,
+end
+
+-- Note that in general we don't have the other comparison map you might expect
+-- `image f ⟶ image (f ≫ g)`.
+
+end
 
 end category_theory.limits

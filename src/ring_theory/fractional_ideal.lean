@@ -153,7 +153,6 @@ section lattice
   and ports the lattice structure on submodules to fractional ideals.
 -/
 
-open lattice
 
 instance : partial_order (fractional_ideal R S) :=
 { le := λ I J, I.1 ≤ J.1,
@@ -269,10 +268,10 @@ lemma mul_right_mono (I : fractional_ideal R S) : monotone (λ J, J * I) :=
 λ J J' h, mul_le.mpr (λ x hx y hy, mul_mem_mul (h hx) hy)
 
 instance add_comm_monoid : add_comm_monoid (fractional_ideal R S) :=
-{ add_assoc := λ I J K, lattice.sup_assoc,
-  add_comm := λ I J, lattice.sup_comm,
-  add_zero := λ I, lattice.sup_bot_eq,
-  zero_add := λ I, lattice.bot_sup_eq,
+{ add_assoc := λ I J K, sup_assoc,
+  add_comm := λ I J, sup_comm,
+  add_zero := λ I, sup_bot_eq,
+  zero_add := λ I, bot_sup_eq,
   ..fractional_ideal.has_zero,
   ..fractional_ideal.has_add }
 
@@ -346,7 +345,7 @@ lemma fractional_div_of_nonzero {I J : fractional_ideal R (non_zero_divisors R)}
 begin
   rcases I with ⟨I, aI, haI, hI⟩,
   rcases J with ⟨J, aJ, haJ, hJ⟩,
-  obtain ⟨y, mem_J, not_mem_zero⟩ := exists_of_lt (lattice.bot_lt_iff_ne_bot.mpr h),
+  obtain ⟨y, mem_J, not_mem_zero⟩ := exists_of_lt (bot_lt_iff_ne_bot.mpr h),
   obtain ⟨y', hy'⟩ := hJ y mem_J,
   use (aI * y'),
   split,

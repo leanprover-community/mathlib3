@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Johannes Hölzl, Mario Carneiro, Kevin Buzzard
 -/
 
-import algebra.pi_instances data.finsupp data.equiv.algebra order.order_iso
+import algebra.pi_instances data.finsupp data.equiv.mul_add order.order_iso
 
 /-!
 # Linear algebra
@@ -51,7 +51,7 @@ linear algebra, vector space, module
 
 -/
 
-open function lattice
+open function
 
 reserve infix ` ≃ₗ `:25
 
@@ -293,7 +293,7 @@ module.of_core $ by refine { smul := (•), ..};
 
 /-- Composition by `f : M₂ → M₃` is a linear map from the space of linear maps `M → M₂` to the space of
 linear maps `M₂ → M₃`. -/
-def congr_right (f : M₂ →ₗ[R] M₃) : (M →ₗ[R] M₂) →ₗ[R] (M →ₗ[R] M₃) :=
+def comp_right (f : M₂ →ₗ[R] M₃) : (M →ₗ[R] M₂) →ₗ[R] (M →ₗ[R] M₃) :=
 ⟨linear_map.comp f,
 λ _ _, linear_map.ext $ λ _, f.2 _ _,
 λ _ _, linear_map.ext $ λ _, f.3 _ _⟩
@@ -326,7 +326,7 @@ variables [ring R] [add_comm_group M] [add_comm_group M₂] [add_comm_group M₃
 variables [module R M] [module R M₂] [module R M₃]
 variables (p p' : submodule R M) (q q' : submodule R M₂)
 variables {r : R} {x y : M}
-open set lattice
+open set
 
 instance : partial_order (submodule R M) :=
 partial_order.lift (coe : submodule R M → set M) (λ a b, ext') (by apply_instance)
@@ -429,8 +429,8 @@ instance : complete_lattice (submodule R M) :=
   Inf          := Inf,
   le_Inf       := λ s a, le_Inf',
   Inf_le       := λ s a, Inf_le',
-  ..submodule.lattice.order_top,
-  ..submodule.lattice.order_bot }
+  ..submodule.order_top,
+  ..submodule.order_bot }
 
 instance : add_comm_monoid (submodule R M) :=
 { add := (⊔),
@@ -626,20 +626,20 @@ lemma span_union (s t : set M) : span R (s ∪ t) = span R s ⊔ span R t :=
 lemma span_Union {ι} (s : ι → set M) : span R (⋃ i, s i) = ⨆ i, span R (s i) :=
 (submodule.gi R M).gc.l_supr
 
-@[simp] theorem Union_coe_of_directed {ι} (hι : nonempty ι)
-  (S : ι → submodule R M)
-  (H : ∀ i j, ∃ k, S i ≤ S k ∧ S j ≤ S k) :
+@[simp] theorem coe_supr_of_directed {ι} [hι : nonempty ι]
+  (S : ι → submodule R M) (H : directed (≤) S) :
   ((supr S : submodule R M) : set M) = ⋃ i, S i :=
 begin
   refine subset.antisymm _ (Union_subset $ le_supr S),
-  rw [show supr S = ⨆ i, span R (S i), by simp, ← span_Union],
-  unfreezeI,
-  refine λ x hx, span_induction hx (λ _, id) _ _ _,
-  { cases hι with i, exact mem_Union.2 ⟨i, by simp⟩ },
-  { simp, intros x y i hi j hj,
+  suffices : (span R (⋃ i, (S i : set M)) : set M) ⊆ ⋃ (i : ι), ↑(S i),
+    by simpa only [span_Union, span_eq] using this,
+  refine (λ x hx, span_induction hx (λ _, id) _ _ _);
+    simp only [mem_Union, exists_imp_distrib],
+  { exact hι.elim (λ i, ⟨i, (S i).zero_mem⟩) },
+  { intros x y i hi j hj,
     rcases H i j with ⟨k, ik, jk⟩,
     exact ⟨k, add_mem _ (ik hi) (jk hj)⟩ },
-  { simp [-mem_coe]; exact λ a x i hi, ⟨i, smul_mem _ a hi⟩ },
+  { exact λ a x i hi, ⟨i, smul_mem _ a hi⟩ },
 end
 
 lemma mem_supr_of_mem {ι : Sort*} {b : M} (p : ι → submodule R M) (i : ι) (h : b ∈ p i) :
@@ -647,32 +647,18 @@ lemma mem_supr_of_mem {ι : Sort*} {b : M} (p : ι → submodule R M) (i : ι) (
 have p i ≤ (⨆i, p i) := le_supr p i,
 @this b h
 
-@[simp] theorem mem_supr_of_directed {ι} (hι : nonempty ι)
-  (S : ι → submodule R M)
-  (H : ∀ i j, ∃ k, S i ≤ S k ∧ S j ≤ S k) {x} :
+@[simp] theorem mem_supr_of_directed {ι} [nonempty ι]
+  (S : ι → submodule R M) (H : directed (≤) S) {x} :
   x ∈ supr S ↔ ∃ i, x ∈ S i :=
-by rw [← mem_coe, Union_coe_of_directed hι S H, mem_Union]; refl
+by { rw [← mem_coe, coe_supr_of_directed S H, mem_Union], refl }
 
 theorem mem_Sup_of_directed {s : set (submodule R M)}
-  {z} (hzs : z ∈ Sup s) (x ∈ s)
-  (hdir : ∀ i ∈ s, ∀ j ∈ s, ∃ k ∈ s, i ≤ k ∧ j ≤ k) :
-  ∃ y ∈ s, z ∈ y :=
+  {z} (hs : s.nonempty) (hdir : directed_on (≤) s) :
+  z ∈ Sup s ↔ ∃ y ∈ s, z ∈ y :=
 begin
-  haveI := classical.dec, rw Sup_eq_supr at hzs,
-  have : ∃ (i : submodule R M), z ∈ ⨆ (H : i ∈ s), i,
-  { refine (mem_supr_of_directed ⟨⊥⟩ _ (λ i j, _)).1 hzs,
-    by_cases his : i ∈ s; by_cases hjs : j ∈ s,
-    { rcases hdir i his j hjs with ⟨k, hks, hik, hjk⟩,
-        exact ⟨k, le_supr_of_le hks (supr_le $ λ _, hik),
-          le_supr_of_le hks (supr_le $ λ _, hjk)⟩ },
-    { exact ⟨i, le_refl _, supr_le $ hjs.elim⟩ },
-    { exact ⟨j, supr_le $ his.elim, le_refl _⟩ },
-    { exact ⟨⊥, supr_le $ his.elim, supr_le $ hjs.elim⟩ } },
-  cases this with N hzn, by_cases hns : N ∈ s,
-  { have : (⨆ (H : N ∈ s), N) ≤ N := supr_le (λ _, le_refl _),
-    exact ⟨N, hns, this hzn⟩ },
-  { have : (⨆ (H : N ∈ s), N) ≤ ⊥ := supr_le hns.elim,
-    cases (mem_bot R).1 (this hzn), exact ⟨x, H, x.zero_mem⟩ }
+  haveI : nonempty s := hs.to_subtype,
+  rw [Sup_eq_supr, supr_subtype', mem_supr_of_directed, subtype.exists],
+  exact (directed_on_iff_directed _).1 hdir
 end
 
 section
@@ -750,7 +736,7 @@ by apply span_induction h H; simp {contextual := tt}
 lemma supr_eq_span {ι : Sort w} (p : ι → submodule R M) :
   (⨆ (i : ι), p i) = submodule.span R (⋃ (i : ι), ↑(p i)) :=
 le_antisymm
-  (lattice.supr_le $ assume i, subset.trans (assume m hm, set.mem_Union.mpr ⟨i, hm⟩) subset_span)
+  (supr_le $ assume i, subset.trans (assume m hm, set.mem_Union.mpr ⟨i, hm⟩) subset_span)
   (span_le.mpr $ Union_subset_iff.mpr $ assume i m hm, mem_supr_of_mem _ i hm)
 
 lemma span_singleton_le_iff_mem (m : M) (p : submodule R M) :
@@ -1345,22 +1331,26 @@ section
 variable (M)
 
 /-- The identity map is a linear equivalence. -/
-@[refl] def refl : M ≃ₗ[R] M := { .. linear_map.id, .. equiv.refl M }
+@[refl]
+def refl : M ≃ₗ[R] M := { .. linear_map.id, .. equiv.refl M }
 end
 
 /-- Linear equivalences are symmetric. -/
-@[symm] def symm (e : M ≃ₗ[R] M₂) : M₂ ≃ₗ[R] M :=
+@[symm]
+def symm (e : M ≃ₗ[R] M₂) : M₂ ≃ₗ[R] M :=
 { .. e.to_linear_map.inverse e.inv_fun e.left_inv e.right_inv,
   .. e.to_equiv.symm }
 
 /-- Linear equivalences are transitive. -/
-@[trans] def trans (e₁ : M ≃ₗ[R] M₂) (e₂ : M₂ ≃ₗ[R] M₃) : M ≃ₗ[R] M₃ :=
+@[trans]
+def trans (e₁ : M ≃ₗ[R] M₂) (e₂ : M₂ ≃ₗ[R] M₃) : M ≃ₗ[R] M₃ :=
 { .. e₂.to_linear_map.comp e₁.to_linear_map,
   .. e₁.to_equiv.trans e₂.to_equiv }
 
 /-- A linear equivalence is an additive equivalence. -/
 def to_add_equiv (e : M ≃ₗ[R] M₂) : M ≃+ M₂ := { map_add' := e.add, .. e }
 
+@[simp] theorem trans_apply (e₁ : M ≃ₗ[R] M₂) (e₂ : M₂ ≃ₗ[R] M₃) (c : M) : (e₁.trans e₂) c = e₂ (e₁ c) := rfl
 @[simp] theorem apply_symm_apply (e : M ≃ₗ[R] M₂) (c : M₂) : e (e.symm c) = c := e.6 c
 @[simp] theorem symm_apply_apply (e : M ≃ₗ[R] M₂) (b : M) : e.symm (e b) = b := e.5 b
 
@@ -1475,7 +1465,7 @@ def congr_right (f : M₂ ≃ₗ[R] M₃) : (M →ₗ[R] M₂) ≃ₗ (M →ₗ 
 
 /-- If M and M₂ are linearly isomorphic then the two spaces of linear maps from M and M₂ to themselves
 are linearly isomorphic. -/
-def conj (e : M ≃ₗ[R] M₂) : (M →ₗ[R] M) ≃ₗ[R] (M₂ →ₗ[R] M₂) := arrow_congr e e
+def conj (e : M ≃ₗ[R] M₂) : (module.End R M) ≃ₗ[R] (module.End R M₂) := arrow_congr e e
 
 end comm_ring
 

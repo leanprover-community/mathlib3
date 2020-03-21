@@ -230,7 +230,7 @@ class is_Z_bilin (f : α × β → γ) : Prop :=
 
 variables (f : α × β → γ) [is_Z_bilin f]
 
-instance is_Z_bilin.comp_hom {g : γ → δ} [add_comm_group δ] [is_add_group_hom g] :
+lemma is_Z_bilin.comp_hom {g : γ → δ} [add_comm_group δ] [is_add_group_hom g] :
   is_Z_bilin (g ∘ f) :=
 by constructor; simp [(∘), is_Z_bilin.add_left f, is_Z_bilin.add_right f, is_add_hom.map_add g]
 

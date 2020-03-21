@@ -8,7 +8,7 @@ Theory of topological rings with uniform structure.
 
 import topology.algebra.group_completion topology.algebra.ring
 
-open classical set lattice filter topological_space add_comm_group
+open classical set filter topological_space add_comm_group
 open_locale classical
 noncomputable theory
 
@@ -125,7 +125,8 @@ instance top_ring_compl : topological_ring (completion α) :=
 /-- The completion map is a ring morphism.
 This cannot be an instance, since it depends on the continuity of `f`. -/
 protected lemma is_ring_hom_map : is_ring_hom (completion.map f) :=
-(completion.is_ring_hom_extension $ (continuous_coe β).comp hf : _)
+@completion.is_ring_hom_extension _ _ _ _ _ _ _ _ _ _ _ (is_ring_hom.comp _ _)
+  ((continuous_coe β).comp hf) _ _
 
 variables (R : Type*) [comm_ring R] [uniform_space R] [uniform_add_group R] [topological_ring R]
 

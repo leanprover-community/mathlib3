@@ -647,21 +647,16 @@ variables {β : Type*} [local_ring α] [local_ring β] (f : α →+* β) [is_loc
 instance : local_ring (mv_power_series σ α) :=
 local_of_is_local_ring $ is_local_ring ⟨zero_ne_one, local_ring.is_local⟩
 
-instance map.is_local_ring_hom :
-  is_local_ring_hom (map σ f : mv_power_series σ α → mv_power_series σ β) :=
-{ map_one := (map σ f).map_one,
-  map_mul := (map σ f).map_mul,
-  map_add := (map σ f).map_add,
-  map_nonunit :=
-  begin
-    rintros φ ⟨ψ, h⟩,
-    replace h := congr_arg (constant_coeff σ β) h,
-    rw constant_coeff_map at h,
-    have : is_unit (constant_coeff σ β ↑ψ) := @is_unit_constant_coeff σ β _ (↑ψ) (is_unit_unit ψ),
-    rw ← h at this,
-    rcases is_unit_of_map_unit f _ this with ⟨c, hc⟩,
-    exact is_unit_of_mul_one φ (inv_of_unit φ c) (mul_inv_of_unit φ c hc)
-  end }
+instance map.is_local_ring_hom : is_local_ring_hom (map σ f) :=
+⟨begin
+  rintros φ ⟨ψ, h⟩,
+  replace h := congr_arg (constant_coeff σ β) h,
+  rw constant_coeff_map at h,
+  have : is_unit (constant_coeff σ β ↑ψ) := @is_unit_constant_coeff σ β _ (↑ψ) (is_unit_unit ψ),
+  rw ← h at this,
+  rcases is_unit_of_map_unit f _ this with ⟨c, hc⟩,
+  exact is_unit_of_mul_one φ (inv_of_unit φ c) (mul_inv_of_unit φ c hc)
+end⟩
 
 end local_ring
 
@@ -1164,10 +1159,10 @@ instance : integral_domain (power_series α) :=
  over an integral domain is a prime ideal.-/
 lemma span_X_is_prime : (ideal.span ({X} : set (power_series α))).is_prime :=
 begin
-  suffices : ideal.span ({X} : set (power_series α)) = is_ring_hom.ker (constant_coeff α),
-  { rw this, exact is_ring_hom.ker_is_prime _ },
+  suffices : ideal.span ({X} : set (power_series α)) = (constant_coeff α).ker,
+  { rw this, exact ring_hom.ker_is_prime _ },
   apply ideal.ext, intro φ,
-  rw [is_ring_hom.mem_ker, ideal.mem_span_singleton, X_dvd_iff]
+  rw [ring_hom.mem_ker, ideal.mem_span_singleton, X_dvd_iff]
 end
 
 /-- The variable of the power series ring over an integral domain is prime.-/
@@ -1302,7 +1297,7 @@ by { contrapose! h, exact order_le _ _ h }
 lemma order_eq_top {φ : power_series α} :
   φ.order = ⊤ ↔ φ = 0 :=
 begin
-  rw eq_top_iff,
+  rw multiplicity.eq_top_iff,
   split,
   { intro h, ext n, specialize h (n+1), rw X_pow_dvd_iff at h, exact h n (lt_add_one _) },
   { rintros rfl n, exact dvd_zero _ }
@@ -1329,7 +1324,7 @@ lemma order_ge (φ : power_series α) (n : enat) (h : ∀ i : ℕ, ↑i < n → 
   order φ ≥ n :=
 begin
   induction n using enat.cases_on,
-  { show _ ≤ _, rw [lattice.top_le_iff, order_eq_top],
+  { show _ ≤ _, rw [top_le_iff, order_eq_top],
     ext i, exact h _ (enat.coe_lt_top i) },
   { apply order_ge_nat, simpa only [enat.coe_lt_coe] using h }
 end
@@ -1373,7 +1368,7 @@ private lemma order_add_of_order_eq.aux (φ ψ : power_series α)
   order (φ + ψ) ≤ order φ ⊓ order ψ :=
 begin
   suffices : order (φ + ψ) = order φ,
-  { rw [lattice.le_inf_iff, this], exact ⟨le_refl _, le_of_lt H⟩ },
+  { rw [le_inf_iff, this], exact ⟨le_refl _, le_of_lt H⟩ },
   { rw order_eq, split,
     { intros i hi, rw [(coeff _ _).map_add, coeff_of_lt_order ψ i (hi.symm ▸ H), add_zero],
       exact (order_eq_nat.1 hi.symm).1 },
@@ -1391,7 +1386,7 @@ begin
   by_cases H₁ : order φ < order ψ,
   { apply order_add_of_order_eq.aux _ _ h H₁ },
   by_cases H₂ : order ψ < order φ,
-  { simpa only [add_comm, lattice.inf_comm] using order_add_of_order_eq.aux _ _ h.symm H₂ },
+  { simpa only [add_comm, inf_comm] using order_add_of_order_eq.aux _ _ h.symm H₂ },
   exfalso, exact h (le_antisymm (not_lt.1 H₂) (not_lt.1 H₁))
 end
 
@@ -1472,8 +1467,6 @@ instance coe_to_power_series : has_coe (polynomial α) (power_series α) :=
 @[simp, elim_cast] lemma coeff_coe (φ : polynomial α) (n) :
   power_series.coeff α n φ = coeff φ n :=
 congr_arg (coeff φ) (finsupp.single_eq_same)
-
-@[reducible] def monomial (n : ℕ) (a : α) : polynomial α := single n a
 
 @[simp, elim_cast] lemma coe_monomial (n : ℕ) (a : α) :
   (monomial n a : power_series α) = power_series.monomial α n a :=

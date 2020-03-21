@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Kenny Lau, Johan Commelin
 -/
 
-import algebra.free_monoid group_theory.free_abelian_group data.equiv.algebra data.polynomial
+import algebra.free_monoid group_theory.free_abelian_group data.polynomial
 
 universes u v
 

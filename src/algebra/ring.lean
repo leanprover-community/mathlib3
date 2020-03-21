@@ -155,8 +155,8 @@ variables (f : α → β) [is_semiring_hom f] {x y : α}
 instance id : is_semiring_hom (@id α) := by refine {..}; intros; refl
 
 /-- The composition of two semiring homomorphisms is a semiring homomorphism. -/
-@[priority 10] -- see Note [low priority instance on morphisms]
-instance comp {γ} [semiring γ] (g : β → γ) [is_semiring_hom g] :
+-- see Note [no instance on morphisms]
+lemma comp {γ} [semiring γ] (g : β → γ) [is_semiring_hom g] :
   is_semiring_hom (g ∘ f) :=
 { map_zero := by simp [map_zero f]; exact map_zero g,
   map_one := by simp [map_one f]; exact map_one g,
@@ -303,8 +303,8 @@ by simp [sub_eq_add_neg, map_add f, map_neg f]
 instance id : is_ring_hom (@id α) := by refine {..}; intros; refl
 
 /-- The composition of two ring homomorphisms is a ring homomorphism. -/
-@[priority 10] -- see Note [low priority instance on morphisms]
-instance comp {γ} [ring γ] (g : β → γ) [is_ring_hom g] :
+-- see Note [no instance on morphisms]
+lemma comp {γ} [ring γ] (g : β → γ) [is_ring_hom g] :
   is_ring_hom (g ∘ f) :=
 { map_add := λ x y, by simp [map_add f]; rw map_add g; refl,
   map_mul := λ x y, by simp [map_mul f]; rw map_mul g; refl,
@@ -358,6 +358,8 @@ def of (f : α → β) [is_semiring_hom f] : α →+* β :=
   .. add_monoid_hom.of f }
 
 @[simp] lemma coe_of (f : α → β) [is_semiring_hom f] : ⇑(of f) = f := rfl
+
+@[simp] lemma coe_mk (f : α → β) (h₁ h₂ h₃ h₄) : ⇑(⟨f, h₁, h₂, h₃, h₄⟩ : α →+* β) = f := rfl
 
 variables (f : α →+* β) {x y : α} {rα rβ}
 

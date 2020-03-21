@@ -2,11 +2,13 @@
 Copyright (c) 2019 Scott Morrison. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Scott Morrison
-
-Unbundled functors
 -/
 
 import category_theory.functor
+
+/-!
+# Unbundled functors, as a typeclass decorating the object-level function.
+-/
 
 namespace category_theory
 
@@ -16,7 +18,7 @@ variables {C : Type u₁} [𝒞 : category.{v₁} C] {D : Type u₂} [𝒟 : cat
 include 𝒞 𝒟
 
 /-- A unbundled functor. -/
--- Perhaps in the future we'll redefine `functor` in terms of this, but that isn't the
+-- Perhaps in the future we could redefine `functor` in terms of this, but that isn't the
 -- immediate plan.
 class functorial (F : C → D) : Type (max v₁ v₂ u₁ u₂) :=
 (map       : Π {X Y : C}, (X ⟶ Y) → ((F X) ⟶ (F Y)))
@@ -28,10 +30,18 @@ attribute [simp] functorial.map_id
 restate_axiom functorial.map_comp'
 attribute [simp] functorial.map_comp
 
-def map (F : C → D) [functorial.{v₁ v₂} F] {X Y : C} (f : X ⟶ Y) : F X ⟶ F Y := functorial.map.{v₁ v₂} F f
+/--
+If `F : C → D` (just a function) has `[functorial F]`,
+we can write `map F f  : F X ⟶ F Y` for the action of `F` on a morphism `f : X ⟶ Y`.
+-/
+def map (F : C → D) [functorial.{v₁ v₂} F] {X Y : C} (f : X ⟶ Y) : F X ⟶ F Y :=
+functorial.map.{v₁ v₂} F f
 
 namespace functor
 
+/--
+Bundle a functorial function as a functor.
+-/
 def of (F : C → D) [I : functorial.{v₁ v₂} F] : C ⥤ D :=
 { obj := F,
   ..I }
@@ -54,14 +64,14 @@ section
 variables {E : Type u₃} [ℰ : category.{v₃} E]
 include ℰ
 
--- This is now longer viable as an instance in Lean 3.7
+/--
+`G ∘ F` is a functorial if both `F` and `G` are.
+-/
+-- This is no longer viable as an instance in Lean 3.7,
+-- #lint reports an instance loop
+-- Will this be a problem?
 def functorial_comp (F : C → D) [functorial.{v₁ v₂} F] (G : D → E) [functorial.{v₂ v₃} G] :
   functorial.{v₁ v₃} (G ∘ F) :=
-{ ..(functor.of F ⋙ functor.of G) }
-
--- This is now longer viable as an instance in Lean 3.7
-def functorial_lambda_comp (F : C → D) [functorial.{v₁ v₂} F] (G : D → E) [functorial.{v₂ v₃} G] :
-  functorial.{v₁ v₃} (λ X, G (F X)) :=
 { ..(functor.of F ⋙ functor.of G) }
 
 end

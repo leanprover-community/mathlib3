@@ -2189,7 +2189,6 @@ apply_nolint function.embedding.trans doc_blame
 -- logic/function.lean
 apply_nolint function.bicompl doc_blame
 apply_nolint function.bicompr doc_blame
-apply_nolint function.injective.decidable_eq doc_blame
 apply_nolint function.restrict doc_blame
 apply_nolint function.uncurry' doc_blame
 
@@ -2315,7 +2314,6 @@ apply_nolint tactic.mono doc_blame
 
 -- meta/expr.lean
 apply_nolint declaration.update_with_fun doc_blame
-apply_nolint name.last_string doc_blame
 
 -- number_theory/dioph.lean
 apply_nolint dioph.pell_dioph ge_or_gt

@@ -3,63 +3,104 @@ Copyright (c) 2019 Scott Morrison. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Scott Morrison
 -/
-import data.equiv.basic
+import data.equiv.functor
 
 /-!
 # The `equiv_rw` tactic, which transports goals or hypotheses along equivalences.
-
-This is a very preliminary implementation.
-Really, we would like to be able to be able to rewrite under functors,
-but this will require more tooling.
 -/
 
 namespace tactic
+
+/-- A hard-coded list of names of lemmas used for constructing congruence equivalences. -/
+-- PROJECT this should not be a hard-coded list.
+-- We could accommodate most of them with `equiv_functor`, or `equiv_bifunctor` instances.
+-- Moreover, these instances can typically be `derive`d.
+-- Even better, they would be `category_theory.functorial` instances
+-- (at that point, we could write along an isomorphism of rings `R ≅ S` and
+--  automatically have `mv_polynomial.ring_equiv_congr`
+--  produce an isomorphism of polynomials with those coefficients.).
+def equiv_congr_lemmas : list name :=
+[-- these are functorial w.r.t equiv, and so could be subsumed by a `equiv_functor.map`
+ `equiv.perm_congr, `equiv.equiv_congr, `equiv.unique_congr,
+ -- these are bifunctors, and so could be subsumed by a `bifunctor.map_equiv`
+ `equiv.sum_congr, `equiv.prod_congr,
+ -- this is technically a bifunctor `Typeᵒᵖ → Type → Type`, but the pattern matcher will never see this.
+ `equiv.arrow_congr,
+ `functor.map_equiv]
+
+/--
+Helper function for `adapt_equiv`.
+Attempts to adapt the equivalence `eq` so that the left-hand-side is `ty`.
+-/
+meta def adapt_equiv' (eq : expr) : Π (ty : expr), tactic (expr × bool)
+| ty :=
+do
+  `(%%α ≃ %%β) ← infer_type eq | fail format!"{eq} must be an `equiv`",
+  if ty = α then
+    return (eq, tt)
+  else
+    if ¬ α.occurs ty then
+      (λ e, (e, ff)) <$> to_expr ``(equiv.refl %%ty)
+    else (do
+      initial_goals ← get_goals,
+      g ← to_expr ``(%%ty ≃ _) >>= mk_meta_var,
+      set_goals [g],
+      let apply_and_adapt (n : name) : tactic (expr × bool) := (do
+        -- Apply the named lemma
+        mk_const n >>= tactic.eapply,
+        -- Collect the resulting goals, then restore the original context before proceeding
+        gs ← get_goals,
+        set_goals initial_goals,
+        -- For each of the subsidiary goals, check it is of the form `_ ≃ _`,
+        -- and then if we can recursively solve it using `adapt_equiv'`.
+        ns ← gs.mmap (λ g, do
+          `(%%p ≃ _) ← infer_type g,
+          (e, n) ← adapt_equiv' p,
+          unify g e,
+          return n),
+        -- If so, return the new equivalence constructed via `apply`.
+        g ← instantiate_mvars g,
+        return (g, tt ∈ ns)),
+      equiv_congr_lemmas.any_of apply_and_adapt) <|>
+    fail format!"could not adapt {eq} to the form `{ty} ≃ _`"
+
+/--
+`adapt_equiv t e` "adapts" the equivalence `e`, producing a new equivalence with left-hand-side `t`.
+-/
+meta def adapt_equiv (ty : expr) (eq : expr) : tactic expr :=
+do (e, n) ← adapt_equiv' eq ty,
+   guard n,
+   return e
 
 /--
 Attempt to replace the hypothesis with name `x : α`
 by transporting it along the equivalence in `e : α ≃ β`.
 -/
-meta def equiv_rw_hyp (x : name) (e : expr) : tactic unit :=
-do x' ← get_local x,
-   ty ← infer_type x',
-   -- We establish `h : x = e.symm (e x)`.
-   eq ← to_expr ``(%%x' = equiv.symm %%e (%%e %%x')),
-   prf ← to_expr ``((equiv.symm_apply_apply %%e %%x').symm),
-   h ← assertv_fresh eq prf,
-   -- Revert the new hypothesis, so it is also part of the goal.
-   revert h,
-   ex ← to_expr ``(%%e %%x'),
-   -- Now call `generalize`,
-   -- attempting to replace all occurrences of `e x`,
-   -- calling it for now `j : β`, with `k : x = e.symm j`.
-   generalize ex (by apply_opt_param) transparency.none,
-   j ← mk_fresh_name,
-   intro j,
-   k ← mk_fresh_name,
-   -- Finally, we subst along `k`, hopefully removing all the occurrences of the original `x`,
-   intro k >>= subst,
-   -- and then rename `j` back to `x`.
-   rename j x,
-   skip
-
-/--
-`apply function.comp` if the goal is a function type.
--/
-meta def apply_function_comp : tactic unit :=
+meta def equiv_rw_hyp : Π (x : name) (e : expr), tactic unit
+| x e :=
 do
-  `(_ → _) ← target,
-  no_mvars_in_target, -- make sure we don't go off into the wilds
-  `[eapply function.comp]
-
-/--
-`unroll_functors` will run the tactic `t`,
-calling `apply functor.map` as many times as necessary first.
--/
-meta def unroll_functors (t : tactic unit) :=
-t <|>
-(`[eapply functor.map] >> unroll_functors) <|>
-(apply_function_comp >> unroll_functors) <|>
-(apply_function_comp >> swap >> unroll_functors)
+  x' ← get_local x,
+  x_ty ← infer_type x',
+  -- Adapt `e` to an equivalence with left-hand-sidee `x_ty`
+  e ← adapt_equiv x_ty e,
+  eq ← to_expr ``(%%x' = equiv.symm %%e (equiv.to_fun %%e %%x')),
+  prf ← to_expr ``((equiv.symm_apply_apply %%e %%x').symm),
+  h ← assertv_fresh eq prf,
+  -- Revert the new hypothesis, so it is also part of the goal.
+  revert h,
+  ex ← to_expr ``(equiv.to_fun %%e %%x'),
+  -- Now call `generalize`,
+  -- attempting to replace all occurrences of `e x`,
+  -- calling it for now `j : β`, with `k : x = e.symm j`.
+  generalize ex (by apply_opt_param) transparency.none,
+  j ← mk_fresh_name,
+  intro j,
+  k ← mk_fresh_name,
+  -- Finally, we subst along `k`, hopefully removing all the occurrences of the original `x`,
+  intro k >>= subst,
+  -- and then rename `j` back to `x`.
+  rename j x,
+  skip
 
 end tactic
 
@@ -93,12 +134,11 @@ meta def equiv_rw (e : parse texpr) (loc : parse $ (tk "at" *> ident)?) : itacti
 do e ← to_expr e,
    match loc with
    | (some hyp) := tactic.equiv_rw_hyp hyp e
-   | none := do `(%%α ≃ %%β) ← infer_type e,
-                s₁ ← to_expr ``(equiv.to_fun %%e),
-                s₂ ← to_expr ``(equiv.inv_fun %%e),
-                unroll_functors ((tactic.eapply s₁ <|> tactic.eapply s₂) >> skip)
-                  <|> (do α_pp ← to_string <$> pp α,
-                       fail ("goal is not of type " ++ α_pp ++ ", nor observably functorial in it."))
+   | none := do t ← target,
+                e ← adapt_equiv t e,
+                s ← to_expr ``(equiv.inv_fun %%e),
+                tactic.eapply s,
+                skip
    end
 
 add_tactic_doc

@@ -35,6 +35,7 @@ end
 -- Fail if the equivalence can't be used.
 example {α β γ : Type} (e : β ≃ γ) (a : α) : α :=
 begin
+  success_if_fail { equiv_rw e at a },
   success_if_fail { equiv_rw e },
   exact a,
 end
@@ -45,6 +46,21 @@ begin
   equiv_rw e,
   exact some b,
 end
+
+-- We can rewrite hypotheses under functors.
+example {α β : Type} (e : α ≃ β) (b : option α) : option β :=
+begin
+  equiv_rw e at b,
+  exact b,
+end
+
+-- We can rewrite hypotheses under compositions of functors.
+example {α β : Type} (e : α ≃ β) (b : list (list α)) : list β :=
+begin
+  equiv_rw e at b,
+  exact b.join,
+end
+
 
 -- Check that we can rewrite in the target position of function types.
 example {α β γ : Type} (e : α ≃ β) (f : γ → β) : γ → α :=
@@ -67,16 +83,40 @@ begin
   exact [none, some b],
 end
 
--- Rewriting the other way under multiple functors.
-example {α β : Type} (e : β ≃ α) (b : β) : list (option α) :=
-begin
-  equiv_rw e,
-  exact [none, some b],
-end
-
 -- Rewriting under multiple functors, including functions.
 example {α β γ : Type} (e : α ≃ β) (b : β) : γ → list (option α) :=
 begin
   equiv_rw e,
   exact (λ g, [none, some b]),
+end
+
+-- Rewriting in multiple positions.
+example {α β : Type} [has_add β] (e : α ≃ β) : α → α → α :=
+begin
+  equiv_rw e,
+  exact (+),
+end
+
+example {α β γ : Type} (e : α ≃ β) (s : β ⊕ γ) : α ⊕ γ :=
+begin
+  equiv_rw e,
+  exact s,
+end
+
+example {α β γ : Type} (e : α ≃ β) (s : β ⊕ γ) : (α ⊕ γ) × (γ ⊕ α) :=
+begin
+  equiv_rw e,
+  exact (s, s.swap),
+end
+
+example {α β γ : Type} (e : α ≃ β) (s : α ⊕ γ) : (β ⊕ γ) × (γ ⊕ β) :=
+begin
+  equiv_rw e at s,
+  exact (s, s.swap),
+end
+
+example {α β γ : Type} (e : α ≃ β) (s : (α ⊕ γ) × β) : (β ⊕ γ) :=
+begin
+  equiv_rw e at s,
+  exact s.1,
 end

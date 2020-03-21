@@ -714,8 +714,51 @@ theorem bit_lt_bit0 : ∀ (b) {n m : ℕ}, n < m → bit b n < bit0 m
 theorem bit_lt_bit (a b) {n m : ℕ} (h : n < m) : bit a n < bit b m :=
 lt_of_lt_of_le (bit_lt_bit0 _ h) (bit0_le_bit _ (le_refl _))
 
+@[simp] lemma bit0_le_bit0_iff : bit0 k ≤ bit0 n ↔ k ≤ n :=
+strict_mono.le_iff_le $ λ _ _, nat.bit0_lt
+
+@[simp] lemma bit0_lt_bit0_iff : bit0 k < bit0 n ↔ k < n :=
+strict_mono.lt_iff_lt $ λ _ _, nat.bit0_lt
+
+@[simp] lemma bit1_le_bit1_iff : bit1 k ≤ bit1 n ↔ k ≤ n :=
+strict_mono.le_iff_le $ λ _ _, nat.bit1_lt
+
+@[simp] lemma bit1_lt_bit1_iff : bit1 k < bit1 n ↔ k < n :=
+strict_mono.lt_iff_lt $ λ _ _, nat.bit1_lt
+
+@[simp] lemma bit0_le_bit1_iff : bit0 k ≤ bit1 n ↔ k ≤ n :=
+⟨λ h, by rwa [← nat.lt_succ_iff, n.bit1_eq_succ_bit0, ← n.bit0_succ_eq,
+  nat.bit0_lt_bit0_iff, nat.lt_succ_iff] at h, λ h, le_of_lt (nat.bit0_lt_bit1 h)⟩
+
+@[simp] lemma bit0_lt_bit1_iff : bit0 k < bit1 n ↔ k ≤ n :=
+⟨λ h, bit0_le_bit1_iff.1 (le_of_lt h), nat.bit0_lt_bit1⟩
+
+@[simp] lemma bit1_le_bit0_iff : bit1 k ≤ bit0 n ↔ k < n :=
+⟨λ h, by rwa [k.bit1_eq_succ_bit0, succ_le_iff, bit0_lt_bit0_iff] at h,
+  λ h, le_of_lt (nat.bit1_lt_bit0 h)⟩
+
+@[simp] lemma bit1_lt_bit0_iff : bit1 k < bit0 n ↔ k < n :=
+⟨λ h, bit1_le_bit0_iff.1 (le_of_lt h), nat.bit1_lt_bit0⟩
+
+@[simp] lemma bit_le_bit_iff : ∀ {b : bool}, bit b k ≤ bit b n ↔ k ≤ n
+| ff := bit0_le_bit0_iff
+| tt := bit1_le_bit1_iff
+
+@[simp] lemma bit_lt_bit_iff : ∀ {b : bool}, bit b k < bit b n ↔ k < n
+| ff := bit0_lt_bit0_iff
+| tt := bit1_lt_bit1_iff
+
+@[simp] lemma bit_le_bit1_iff : ∀ {b : bool}, bit b k ≤ bit1 n ↔ k ≤ n
+| ff := bit0_le_bit1_iff
+| tt := bit1_le_bit1_iff
+
 lemma pos_of_bit0_pos {n : ℕ} (h : 0 < bit0 n) : 0 < n :=
 by { cases n, cases h, apply succ_pos, }
+
+/-- Define a function on `ℕ` depending on parity of the argument. -/
+@[elab_as_eliminator]
+def bit_cases {C : ℕ → Sort*} (H : Π b n, C (bit b n)) (n : ℕ) : C n :=
+n.bit_decomp ▸ H _ _
 
 /- partial subtraction -/
 

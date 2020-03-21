@@ -1328,15 +1328,12 @@ lemma to_equiv_injective : function.injective (to_equiv : (M ≃ₗ[R] M₂) →
 to_equiv_injective (equiv.eq_of_to_fun_eq h)
 
 section
-variable (M)
+variables (M R)
 
-variable (R)
 /-- The identity map is a linear equivalence. -/
 @[refl]
 def refl : M ≃ₗ[R] M := { .. linear_map.id, .. equiv.refl M }
 end
-
-variable {R}
 
 /-- Linear equivalences are symmetric. -/
 @[symm]

@@ -34,12 +34,12 @@ theorem nhds_within_eq (a : α) (s : set α) :
   nhds_within a s = ⨅ t ∈ {t : set α | a ∈ t ∧ is_open t}, principal (t ∩ s) :=
 have set.univ ∈ {s : set α | a ∈ s ∧ is_open s}, from ⟨set.mem_univ _, is_open_univ⟩,
 begin
-  rw [nhds_within, nhds, lattice.binfi_inf]; try { exact this },
+  rw [nhds_within, nhds, binfi_inf]; try { exact this },
   simp only [inf_principal]
 end
 
 theorem nhds_within_univ (a : α) : nhds_within a set.univ = 𝓝 a :=
-by rw [nhds_within, principal_univ, lattice.inf_top_eq]
+by rw [nhds_within, principal_univ, inf_top_eq]
 
 lemma nhds_within_has_basis {p : β → Prop} {s : β → set α} {a : α} (h : (𝓝 a).has_basis p s)
   (t : set α) :
@@ -70,13 +70,17 @@ theorem inter_mem_nhds_within (s : set α) {t : set α} {a : α} (h : t ∈ 𝓝
 inter_mem_sets (mem_inf_sets_of_right (mem_principal_self s)) (mem_inf_sets_of_left h)
 
 theorem nhds_within_mono (a : α) {s t : set α} (h : s ⊆ t) : nhds_within a s ≤ nhds_within a t :=
-lattice.inf_le_inf (le_refl _) (principal_mono.mpr h)
+inf_le_inf (le_refl _) (principal_mono.mpr h)
+
+lemma mem_of_mem_nhds_within {a : α} {s t : set α} (ha : a ∈ s) (ht : t ∈ nhds_within a s) :
+  a ∈ t :=
+let ⟨u, hu, H⟩ := mem_nhds_within.1 ht in H.2 ⟨H.1, ha⟩
 
 theorem nhds_within_restrict'' {a : α} (s : set α) {t : set α} (h : t ∈ nhds_within a s) :
   nhds_within a s = nhds_within a (s ∩ t) :=
 le_antisymm
-  (lattice.le_inf lattice.inf_le_left (le_principal_iff.mpr (inter_mem_sets self_mem_nhds_within h)))
-  (lattice.inf_le_inf (le_refl _) (principal_mono.mpr (set.inter_subset_left _ _)))
+  (le_inf inf_le_left (le_principal_iff.mpr (inter_mem_sets self_mem_nhds_within h)))
+  (inf_le_inf (le_refl _) (principal_mono.mpr (set.inter_subset_left _ _)))
 
 theorem nhds_within_restrict' {a : α} (s : set α) {t : set α} (h : t ∈ 𝓝 a) :
   nhds_within a s = nhds_within a (s ∩ t) :=
@@ -106,20 +110,20 @@ by rw [←nhds_within_univ]; apply nhds_within_eq_nhds_within h₀ h₁;
      rw [set.univ_inter, set.inter_self]
 
 @[simp] theorem nhds_within_empty (a : α) : nhds_within a {} = ⊥ :=
-by rw [nhds_within, principal_empty, lattice.inf_bot_eq]
+by rw [nhds_within, principal_empty, inf_bot_eq]
 
 theorem nhds_within_union (a : α) (s t : set α) :
   nhds_within a (s ∪ t) = nhds_within a s ⊔ nhds_within a t :=
-by unfold nhds_within; rw [←lattice.inf_sup_left, sup_principal]
+by unfold nhds_within; rw [←inf_sup_left, sup_principal]
 
 theorem nhds_within_inter (a : α) (s t : set α) :
   nhds_within a (s ∩ t) = nhds_within a s ⊓ nhds_within a t :=
-by unfold nhds_within; rw [lattice.inf_left_comm, lattice.inf_assoc, inf_principal,
-                             ←lattice.inf_assoc, lattice.inf_idem]
+by unfold nhds_within; rw [inf_left_comm, inf_assoc, inf_principal,
+                             ←inf_assoc, inf_idem]
 
 theorem nhds_within_inter' (a : α) (s t : set α) :
   nhds_within a (s ∩ t) = (nhds_within a s) ⊓ principal t :=
-by { unfold nhds_within, rw [←inf_principal, lattice.inf_assoc] }
+by { unfold nhds_within, rw [←inf_principal, inf_assoc] }
 
 lemma nhds_within_prod_eq {α : Type*} [topological_space α] {β : Type*} [topological_space β]
   (a : α) (b : β) (s : set α) (t : set β) :
@@ -215,6 +219,10 @@ lemma continuous_within_at.tendsto {f : α → β} {s : set α} {x : α} (h : co
 when it's continuous at every point of `s` within `s`. -/
 def continuous_on (f : α → β) (s : set α) : Prop := ∀ x ∈ s, continuous_within_at f s x
 
+lemma continuous_on.continuous_within_at {f : α → β} {s : set α} {x : α} (hf : continuous_on f s)
+  (hx : x ∈ s) : continuous_within_at f s x :=
+hf x hx
+
 theorem continuous_within_at_univ (f : α → β) (x : α) :
   continuous_within_at f set.univ x ↔ continuous_at f x :=
 by rw [continuous_at, continuous_within_at, nhds_within_univ]
@@ -256,7 +264,7 @@ have ∀ t, is_open (function.restrict f s ⁻¹' t) ↔ ∃ (u : set α), is_op
   end,
 by rw [continuous_on_iff_continuous_restrict, continuous]; simp only [this]
 
-theorem continuous_on_iff_is_closed  {f : α → β} {s : set α} :
+theorem continuous_on_iff_is_closed {f : α → β} {s : set α} :
   continuous_on f s ↔ ∀ t : set β, is_closed t → ∃ u, is_closed u ∧ f ⁻¹' t ∩ s = u ∩ s :=
 have ∀ t, is_closed (function.restrict f s ⁻¹' t) ↔ ∃ (u : set α), is_closed u ∧ f ⁻¹' t ∩ s = u ∩ s,
   begin
@@ -265,6 +273,9 @@ have ∀ t, is_closed (function.restrict f s ⁻¹' t) ↔ ∃ (u : set α), is_
     simp only [subtype.preimage_val_eq_preimage_val_iff]
   end,
 by rw [continuous_on_iff_continuous_restrict, continuous_iff_is_closed]; simp only [this]
+
+lemma continuous_on_empty (f : α → β) : continuous_on f ∅ :=
+λ x, false.elim
 
 theorem nhds_within_le_comap {x : α} {s : set α} {f : α → β} (ctsf : continuous_within_at f s x) :
   nhds_within x s ≤ comap f (nhds_within (f x) (f '' s)) :=
@@ -293,7 +304,7 @@ by simp [continuous_within_at, nhds_within_restrict' s h]
 lemma continuous_within_at.union {f : α → β} {s t : set α} {x : α}
   (hs : continuous_within_at f s x) (ht : continuous_within_at f t x) :
   continuous_within_at f (s ∪ t) x :=
-by simp only [continuous_within_at, nhds_within_union, tendsto, map_sup, lattice.sup_le_iff.2 ⟨hs, ht⟩]
+by simp only [continuous_within_at, nhds_within_union, tendsto, map_sup, sup_le_iff.2 ⟨hs, ht⟩]
 
 lemma continuous_within_at.mem_closure_image  {f : α → β} {s : set α} {x : α}
   (h : continuous_within_at f s x) (hx : x ∈ closure s) : f x ∈ closure (f '' s) :=
@@ -370,6 +381,10 @@ begin
   rwa [this, continuous_within_at_inter hs, continuous_within_at_univ] at h
 end
 
+lemma continuous_on.continuous_at {f : α → β} {s : set α} {x : α}
+  (h : continuous_on f s) (hx : s ∈ 𝓝 x) : continuous_at f x :=
+(h x (mem_of_nhds hx)).continuous_at hx
+
 lemma continuous_within_at.comp {g : β → γ} {f : α → β} {s : set α} {t : set β} {x : α}
   (hg : continuous_within_at g t (f x)) (hf : continuous_within_at f s x) (h : s ⊆ f ⁻¹' t) :
   continuous_within_at (g ∘ f) s x :=
@@ -377,7 +392,7 @@ begin
   have : tendsto f (principal s) (principal t),
     by { rw tendsto_principal_principal, exact λx hx, h hx },
   have : tendsto f (nhds_within x s) (principal t) :=
-    tendsto_le_left lattice.inf_le_right this,
+    tendsto_le_left inf_le_right this,
   have : tendsto f (nhds_within x s) (nhds_within (f x) t) :=
     tendsto_inf.2 ⟨hf, this⟩,
   exact tendsto.comp hg this
@@ -401,7 +416,7 @@ end
 
 lemma continuous.continuous_within_at {f : α → β} {s : set α} {x : α} (h : continuous f) :
   continuous_within_at f s x :=
-tendsto_le_left lattice.inf_le_left (h.tendsto x)
+tendsto_le_left inf_le_left (h.tendsto x)
 
 lemma continuous.comp_continuous_on {g : β → γ} {f : α → β} {s : set α}
   (hg : continuous g) (hf : continuous_on f s) :

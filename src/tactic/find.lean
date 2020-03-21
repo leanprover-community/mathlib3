@@ -61,6 +61,22 @@ try $ do
   ty ← pp ty,
   trace format!"{n}: {ty}"
 
+/--
+The `find` command from `tactic.find` allows to find definitions lemmas using
+pattern matching on the type. For instance:
+
+```lean
+import tactic.find
+
+run_cmd tactic.skip
+
+#find _ + _ = _ + _
+#find (_ : ℕ) + _ = _ + _
+#find ℕ → ℕ
+```
+
+The tactic `library_search` is an alternate way to find lemmas in the library.
+-/
 @[user_command]
 meta def find_cmd (_ : parse $ tk "#find") : lean.parser unit :=
 do pat ← lean.parser.pexpr 0,
@@ -71,6 +87,12 @@ do pat ← lean.parser.pexpr 0,
      | declaration.defn n _ ty _ _ _ := trace_match pat ty n
      | _ := skip
      end
+
+add_tactic_doc
+{ name                     := "#find",
+  category                 := doc_category.cmd,
+  decl_names               := [`find_cmd],
+  tags                     := ["search"] }
 
 -- #find (_ : nat) + _ = _ + _
 -- #find _ + _ = _ + _

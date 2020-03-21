@@ -255,7 +255,7 @@ begin
     apply eq_iff_eq_cancel_right.2,
     simp, ring, },
   { -- Show that the solution set is symmetric in a and b.
-    intros x y, simp [mul_comm], },
+    cc },
   { -- Show that the claim is true if b = 0.
     simp },
   { -- Show that the claim is true if a = b.
@@ -291,5 +291,5 @@ begin
       have y_dvd : y ∣ y * k := dvd_mul_right y k,
       rw [← h, ← add_assoc, nat.dvd_add_left (dvd_mul_left y y)] at y_dvd,
       obtain rfl|rfl : y = 1 ∨ y = 2 := nat.prime_two.2 y y_dvd,
-      all_goals {omega} } }
+      all_goals { ring at h, omega } } }
 end

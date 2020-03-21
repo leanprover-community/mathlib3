@@ -35,6 +35,11 @@ universes v u -- declare the `v`'s first; see `category_theory.category` for an 
 namespace category_theory
 open category
 
+/-- An isomorphism (a.k.a. an invertible morphism) between two objects of a category.
+The inverse morphism is bundled.
+
+See also `category_theory.core` for the category with the same objects and isomorphisms playing
+the role of morphisms. -/
 structure iso {C : Type u} [category.{v} C] (X Y : C) :=
 (hom : X ⟶ Y)
 (inv : Y ⟶ X)
@@ -60,6 +65,7 @@ calc α.inv
 ... = (α.inv ≫ α.hom) ≫ β.inv : by rw [category.assoc, ←w]
 ... = β.inv                   : by rw [iso.inv_hom_id, category.id_comp]
 
+/-- Inverse isomorphism. -/
 @[symm] def symm (I : X ≅ Y) : Y ≅ X :=
 { hom := I.inv,
   inv := I.hom,
@@ -79,22 +85,19 @@ by cases α; refl
 @[simp] lemma symm_eq_iff {X Y : C} {α β : X ≅ Y} : α.symm = β.symm ↔ α = β :=
 ⟨λ h, symm_symm_eq α ▸ symm_symm_eq β ▸ congr_arg symm h, congr_arg symm⟩
 
-@[refl] def refl (X : C) : X ≅ X :=
+/-- Identity isomorphism. -/
+@[refl, simps] def refl (X : C) : X ≅ X :=
 { hom := 𝟙 X,
   inv := 𝟙 X }
 
-@[simp] lemma refl_hom (X : C) : (iso.refl X).hom = 𝟙 X := rfl
-@[simp] lemma refl_inv (X : C) : (iso.refl X).inv = 𝟙 X := rfl
 @[simp] lemma refl_symm (X : C) : (iso.refl X).symm = iso.refl X := rfl
 
-@[trans] def trans (α : X ≅ Y) (β : Y ≅ Z) : X ≅ Z :=
+/-- Composition of two isomorphisms -/
+@[trans, simps] def trans (α : X ≅ Y) (β : Y ≅ Z) : X ≅ Z :=
 { hom := α.hom ≫ β.hom,
   inv := β.inv ≫ α.inv }
 
 infixr ` ≪≫ `:80 := iso.trans -- type as `\ll \gg`.
-
-@[simp] lemma trans_hom (α : X ≅ Y) (β : Y ≅ Z) : (α ≪≫ β).hom = α.hom ≫ β.hom := rfl
-@[simp] lemma trans_inv (α : X ≅ Y) (β : Y ≅ Z) : (α ≪≫ β).inv = β.inv ≫ α.inv := rfl
 
 @[simp] lemma trans_mk {X Y Z : C}
   (hom : X ⟶ Y) (inv : Y ⟶ X) (hom_inv_id) (inv_hom_id)
@@ -158,6 +161,7 @@ class is_iso (f : X ⟶ Y) :=
 
 export is_iso (inv)
 
+/-- Reinterpret a morphism `f` with an `is_iso f` instance as an `iso`. -/
 def as_iso (f : X ⟶ Y) [h : is_iso f] : X ≅ Y := { hom := f, ..h }
 
 @[simp] lemma as_iso_hom (f : X ⟶ Y) [is_iso f] : (as_iso f).hom = f := rfl
@@ -238,6 +242,7 @@ variables {D : Type u₂}
 variables [𝒟 : category.{v₂} D]
 include 𝒟
 
+/-- A functor `F : C ⥤ D` sends isomorphisms `i : X ≅ Y` to isomorphisms `F.obj X ≅ F.obj Y` -/
 def map_iso (F : C ⥤ D) {X Y : C} (i : X ≅ Y) : F.obj X ≅ F.obj Y :=
 { hom := F.map i.hom,
   inv := F.map i.inv,

@@ -5,7 +5,7 @@ Author: Mario Carneiro
 
 Finite types.
 -/
-import data.finset algebra.big_operators data.array.lemmas logic.unique
+import data.finset data.array.lemmas logic.unique
 import tactic.wlog
 universes u v
 
@@ -49,37 +49,37 @@ open finset function
 
 namespace fintype
 
-instance decidable_pi_fintype {α} {β : α → Type*} [fintype α] [∀a, decidable_eq (β a)] :
+instance decidable_pi_fintype {α} {β : α → Type*} [∀a, decidable_eq (β a)] [fintype α] :
   decidable_eq (Πa, β a) :=
 assume f g, decidable_of_iff (∀ a ∈ fintype.elems α, f a = g a)
   (by simp [function.funext_iff, fintype.complete])
 
-instance decidable_forall_fintype [fintype α] {p : α → Prop} [decidable_pred p] :
+instance decidable_forall_fintype {p : α → Prop} [decidable_pred p] [fintype α] :
   decidable (∀ a, p a) :=
 decidable_of_iff (∀ a ∈ @univ α _, p a) (by simp)
 
-instance decidable_exists_fintype [fintype α] {p : α → Prop} [decidable_pred p] :
+instance decidable_exists_fintype {p : α → Prop} [decidable_pred p] [fintype α] :
   decidable (∃ a, p a) :=
 decidable_of_iff (∃ a ∈ @univ α _, p a) (by simp)
 
-instance decidable_eq_equiv_fintype [fintype α] [decidable_eq β] :
+instance decidable_eq_equiv_fintype [decidable_eq β] [fintype α] :
   decidable_eq (α ≃ β) :=
 λ a b, decidable_of_iff (a.1 = b.1) ⟨λ h, equiv.ext _ _ (congr_fun h), congr_arg _⟩
 
-instance decidable_injective_fintype [fintype α] [decidable_eq α] [decidable_eq β] :
+instance decidable_injective_fintype [decidable_eq α] [decidable_eq β] [fintype α] :
   decidable_pred (injective : (α → β) → Prop) := λ x, by unfold injective; apply_instance
 
-instance decidable_surjective_fintype [fintype α] [fintype β] [decidable_eq β] :
+instance decidable_surjective_fintype [decidable_eq β] [fintype α] [fintype β] :
   decidable_pred (surjective : (α → β) → Prop) := λ x, by unfold surjective; apply_instance
 
-instance decidable_bijective_fintype [fintype α] [decidable_eq α] [fintype β] [decidable_eq β] :
+instance decidable_bijective_fintype [decidable_eq α] [decidable_eq β] [fintype α] [fintype β] :
   decidable_pred (bijective : (α → β) → Prop) := λ x, by unfold bijective; apply_instance
 
-instance decidable_left_inverse_fintype [fintype α] [decidable_eq α] (f : α → β) (g : β → α) :
+instance decidable_left_inverse_fintype [decidable_eq α] [fintype α] (f : α → β) (g : β → α) :
   decidable (function.right_inverse f g) :=
 show decidable (∀ x, g (f x) = x), by apply_instance
 
-instance decidable_right_inverse_fintype [fintype β] [decidable_eq β] (f : α → β) (g : β → α) :
+instance decidable_right_inverse_fintype [decidable_eq β] [fintype β] (f : α → β) (g : β → α) :
   decidable (function.left_inverse f g) :=
 show decidable (∀ x, f (g x) = x), by apply_instance
 
@@ -123,6 +123,19 @@ quot.rec_on_subsingleton (@univ α _).1
 
 theorem exists_equiv_fin (α) [fintype α] : ∃ n, nonempty (α ≃ fin n) :=
 by haveI := classical.dec_eq α; exact ⟨card α, nonempty_of_trunc (equiv_fin α)⟩
+
+/-- Given a linearly ordered fintype `α` of cardinal `k`, the equiv `mono_equiv_of_fin α h`
+is the increasing bijection between `fin k` and `α`. Here, `h` is a proof that
+the cardinality of `s` is `k`. We use this instead of a map `fin s.card → α` to avoid
+casting issues in further uses of this function. -/
+noncomputable def mono_equiv_of_fin (α) [fintype α] [decidable_linear_order α] {k : ℕ}
+  (h : fintype.card α = k) : fin k ≃ α :=
+have A : bijective (mono_of_fin univ h) := begin
+  apply set.bijective_iff_bij_on_univ.2,
+  rw ← @coe_univ α _,
+  exact bij_on_mono_of_fin (univ : finset α) h
+end,
+equiv.of_bijective A
 
 instance (α : Type*) : subsingleton (fintype α) :=
 ⟨λ ⟨s₁, h₁⟩ ⟨s₂, h₂⟩, by congr; simp [finset.ext, h₁, h₂]⟩
@@ -196,9 +209,6 @@ def of_subsingleton (a : α) [subsingleton α] : fintype α :=
 @[simp] theorem card_of_subsingleton (a : α) [subsingleton α] :
   @fintype.card _ (of_subsingleton a) = 1 := rfl
 
-lemma card_eq_sum_ones {α} [fintype α] : fintype.card α = (finset.univ : finset α).sum (λ _, 1) :=
-finset.card_eq_sum_ones _
-
 end fintype
 
 namespace set
@@ -229,6 +239,9 @@ instance (n : ℕ) : fintype (fin n) :=
 @[simp] theorem fintype.card_fin (n : ℕ) : fintype.card (fin n) = n :=
 list.length_fin_range n
 
+@[simp] lemma finset.card_fin (n : ℕ) : finset.card (finset.univ : finset (fin n)) = n :=
+by rw [finset.card_univ, fintype.card_fin]
+
 lemma fin.univ_succ (n : ℕ) :
   (univ : finset (fin $ n+1)) = insert 0 (univ.image fin.succ) :=
 begin
@@ -236,22 +249,6 @@ begin
   simp only [mem_univ, mem_insert, true_iff, mem_image, exists_prop],
   exact fin.cases (or.inl rfl) (λ i, or.inr ⟨i, trivial, rfl⟩) m
 end
-
-theorem fin.prod_univ_succ [comm_monoid β] {n:ℕ} (f : fin n.succ → β) :
-  univ.prod f = f 0 * univ.prod (λ i:fin n, f i.succ) :=
-begin
-  rw [fin.univ_succ, prod_insert, prod_image],
-  { intros x _ y _ hxy, exact fin.succ.inj hxy },
-  { simpa using fin.succ_ne_zero }
-end
-
-@[simp, to_additive] theorem fin.prod_univ_zero [comm_monoid β] (f : fin 0 → β) : univ.prod f = 1 := rfl
-
-theorem fin.sum_univ_succ [add_comm_monoid β] {n:ℕ} (f : fin n.succ → β) :
-  univ.sum f = f 0 + univ.sum (λ i:fin n, f i.succ) :=
-by apply @fin.prod_univ_succ (multiplicative β)
-
-attribute [to_additive] fin.prod_univ_succ
 
 lemma fin.univ_cast_succ (n : ℕ) :
   (univ : finset (fin $ n+1)) = insert (fin.last n) (univ.image fin.cast_succ) :=
@@ -265,19 +262,6 @@ begin
   { left,
     exact fin.eq_last_of_not_lt h }
 end
-
-theorem fin.prod_univ_cast_succ [comm_monoid β] {n:ℕ} (f : fin n.succ → β) :
-  univ.prod f = univ.prod (λ i:fin n, f i.cast_succ) * f (fin.last n) :=
-begin
-  rw [fin.univ_cast_succ, prod_insert, prod_image, mul_comm],
-  { intros x _ y _ hxy, exact fin.cast_succ_inj.mp hxy },
-  { simpa using fin.cast_succ_ne_last }
-end
-
-theorem fin.sum_univ_cast_succ [add_comm_monoid β] {n:ℕ} (f : fin n.succ → β) :
-  univ.sum f = univ.sum (λ i:fin n, f i.cast_succ) + f (fin.last n) :=
-by apply @fin.prod_univ_cast_succ (multiplicative β)
-attribute [to_additive] fin.prod_univ_cast_succ
 
 @[instance, priority 10] def unique.fintype {α : Type*} [unique α] : fintype α :=
 ⟨finset.singleton (default α), λ x, by rw [unique.eq_default x]; simp⟩
@@ -299,9 +283,9 @@ instance : fintype pempty := ⟨∅, pempty.rec _⟩
 
 instance : fintype unit := fintype.of_subsingleton ()
 
-@[simp] theorem fintype.univ_unit : @univ unit _ = {()} := rfl
+theorem fintype.univ_unit : @univ unit _ = {()} := rfl
 
-@[simp] theorem fintype.card_unit : fintype.card unit = 1 := rfl
+theorem fintype.card_unit : fintype.card unit = 1 := rfl
 
 instance : fintype punit := fintype.of_subsingleton punit.star
 
@@ -321,6 +305,9 @@ instance additive.fintype : Π [fintype α], fintype (additive α) := id
 instance multiplicative.fintype : Π [fintype α], fintype (multiplicative α) := id
 
 @[simp] theorem fintype.card_units_int : fintype.card (units ℤ) = 2 := rfl
+
+noncomputable instance [monoid α] [fintype α] : fintype (units α) :=
+by classical; exact fintype.of_injective units.val units.ext
 
 @[simp] theorem fintype.card_bool : fintype.card bool = 2 := rfl
 
@@ -346,11 +333,6 @@ instance {α : Type*} [fintype α] : fintype (option α) :=
 instance {α : Type*} (β : α → Type*)
   [fintype α] [∀ a, fintype (β a)] : fintype (sigma β) :=
 ⟨univ.sigma (λ _, univ), λ ⟨a, b⟩, by simp⟩
-
-@[simp] theorem fintype.card_sigma {α : Type*} (β : α → Type*)
-  [fintype α] [∀ a, fintype (β a)] :
-  fintype.card (sigma β) = univ.sum (λ a, fintype.card (β a)) :=
-card_sigma _ _
 
 instance (α β : Type*) [fintype α] [fintype β] : fintype (α × β) :=
 ⟨univ.product univ, λ ⟨a, b⟩, by simp⟩
@@ -380,10 +362,6 @@ instance (α : Type u) (β : Type v) [fintype α] [fintype β] : fintype (α ⊕
     (λ b, by cases b; apply ulift.fintype))
   ((equiv.sum_equiv_sigma_bool _ _).symm.trans
     (equiv.sum_congr equiv.ulift equiv.ulift))
-
-@[simp] theorem fintype.card_sum (α β : Type*) [fintype α] [fintype β] :
-  fintype.card (α ⊕ β) = fintype.card α + fintype.card β :=
-by rw [sum.fintype, fintype.of_equiv_card]; simp
 
 lemma fintype.card_le_of_injective [fintype α] [fintype β] (f : α → β)
   (hf : function.injective f) : fintype.card α ≤ fintype.card β :=
@@ -469,6 +447,29 @@ finset.subtype.fintype s
 @[simp] lemma fintype.card_coe (s : finset α) :
   fintype.card (↑s : set α) = s.card := card_attach
 
+lemma finset.card_le_one_iff {s : finset α} :
+  s.card ≤ 1 ↔ ∀ {x y}, x ∈ s → y ∈ s → x = y :=
+begin
+  let t : set α := ↑s,
+  letI : fintype t := finset_coe.fintype s,
+  have : fintype.card t = s.card := fintype.card_coe s,
+  rw [← this, fintype.card_le_one_iff],
+  split,
+  { assume H x y hx hy,
+    exact subtype.mk.inj (H ⟨x, hx⟩ ⟨y, hy⟩) },
+  { assume H x y,
+    exact subtype.eq (H x.2 y.2) }
+end
+
+lemma finset.one_lt_card_iff {s : finset α} :
+  1 < s.card ↔ ∃ x y, (x ∈ s) ∧ (y ∈ s) ∧ x ≠ y :=
+begin
+  classical,
+  rw ← not_iff_not,
+  push_neg,
+  simpa [classical.or_iff_not_imp_left] using finset.card_le_one_iff
+end
+
 instance plift.fintype (p : Prop) [decidable p] : fintype (plift p) :=
 ⟨if h : p then finset.singleton ⟨h⟩ else ∅, λ ⟨h⟩, by simp [h]⟩
 
@@ -479,24 +480,57 @@ instance Prop.fintype : fintype Prop :=
 def set_fintype {α} [fintype α] (s : set α) [decidable_pred s] : fintype s :=
 fintype.subtype (univ.filter (∈ s)) (by simp)
 
+
+/-! ### pi -/
+
+/-- A dependent product of fintypes, indexed by a fintype, is a fintype. -/
 instance pi.fintype {α : Type*} {β : α → Type*}
-  [fintype α] [decidable_eq α] [∀a, fintype (β a)] : fintype (Πa, β a) :=
+  [decidable_eq α] [fintype α] [∀a, fintype (β a)] : fintype (Πa, β a) :=
 @fintype.of_equiv _ _
   ⟨univ.pi $ λa:α, @univ (β a) _,
     λ f, finset.mem_pi.2 $ λ a ha, mem_univ _⟩
   ⟨λ f a, f a (mem_univ _), λ f a _, f a, λ f, rfl, λ f, rfl⟩
 
-@[simp] lemma fintype.card_pi {β : α → Type*} [fintype α] [decidable_eq α]
-  [f : Π a, fintype (β a)] : fintype.card (Π a, β a) = univ.prod (λ a, fintype.card (β a)) :=
-by letI f' : fintype (Πa∈univ, β a) :=
-  ⟨(univ.pi $ λa, univ), assume f, finset.mem_pi.2 $ assume a ha, mem_univ _⟩;
-exact calc fintype.card (Π a, β a) = fintype.card (Π a ∈ univ, β a) : fintype.card_congr
-  ⟨λ f a ha, f a, λ f a, f a (mem_univ a), λ _, rfl, λ _, rfl⟩
-... = univ.prod (λ a, fintype.card (β a)) : finset.card_pi _ _
+namespace fintype
 
-@[simp] lemma fintype.card_fun [fintype α] [decidable_eq α] [fintype β] :
-  fintype.card (α → β) = fintype.card β ^ fintype.card α :=
-by rw [fintype.card_pi, finset.prod_const, nat.pow_eq_pow]; refl
+variables [fintype α] [decidable_eq α] {δ : α → Type*} [decidable_eq (Π a, δ a)]
+
+/-- Given for all `a : α` a finset `t a` of `δ a`, then one can define the
+finset `fintype.pi_finset t` of all functions taking values in `t a` for all `a`. This is the
+analogue of `finset.pi` where the base finset is `univ` (but formally they are not the same, as
+there is an additional condition `i ∈ finset.univ` in the `finset.pi` definition). -/
+def pi_finset (t : Πa, finset (δ a)) : finset (Πa, δ a) :=
+(finset.univ.pi t).image (λ f a, f a (mem_univ a))
+
+@[simp] lemma mem_pi_finset {t : Πa, finset (δ a)} {f : Πa, δ a} :
+  f ∈ pi_finset t ↔ (∀a, f a ∈ t a) :=
+begin
+  split,
+  { simp only [pi_finset, mem_image, and_imp, forall_prop_of_true, exists_prop, mem_univ,
+               exists_imp_distrib, mem_pi],
+    assume g hg hgf a,
+    rw ← hgf,
+    exact hg a },
+  { simp only [pi_finset, mem_image, forall_prop_of_true, exists_prop, mem_univ, mem_pi],
+    assume hf,
+    exact ⟨λ a ha, f a, hf, rfl⟩ }
+end
+
+lemma pi_finset_subset (t₁ t₂ : Πa, finset (δ a)) (h : ∀ a, t₁ a ⊆ t₂ a) :
+  pi_finset t₁ ⊆ pi_finset t₂ :=
+λ g hg, mem_pi_finset.2 $ λ a, h a $ mem_pi_finset.1 hg a
+
+lemma pi_finset_disjoint_of_disjoint [∀ a, decidable_eq (δ a)]
+  (t₁ t₂ : Πa, finset (δ a)) {a : α} (h : disjoint (t₁ a) (t₂ a)) :
+  disjoint (pi_finset t₁) (pi_finset t₂) :=
+disjoint_iff_ne.2 $ λ f₁ hf₁ f₂ hf₂ eq₁₂,
+disjoint_iff_ne.1 h (f₁ a) (mem_pi_finset.1 hf₁ a) (f₂ a) (mem_pi_finset.1 hf₂ a) (congr_fun eq₁₂ a)
+
+@[simp] lemma pi_finset_univ [∀ a, fintype (δ a)]:
+  pi_finset (λ a : α, (finset.univ : finset (δ a))) = (finset.univ : finset (Π a, δ a)) :=
+by { ext f, simp }
+
+end fintype
 
 instance d_array.fintype {n : ℕ} {α : fin n → Type*}
   [∀n, fintype (α n)] : fintype (d_array n α) :=
@@ -508,10 +542,6 @@ d_array.fintype
 instance vector.fintype {α : Type*} [fintype α] {n : ℕ} : fintype (vector α n) :=
 fintype.of_equiv _ (equiv.vector_equiv_fin _ _).symm
 
-@[simp] lemma card_vector [fintype α] (n : ℕ) :
-  fintype.card (vector α n) = fintype.card α ^ n :=
-by rw fintype.of_equiv_card; simp
-
 instance quotient.fintype [fintype α] (s : setoid α)
   [decidable_rel ((≈) : α → α → Prop)] : fintype (quotient s) :=
 fintype.of_surjective quotient.mk (λ x, quotient.induction_on x (λ x, ⟨x, rfl⟩))
@@ -519,7 +549,11 @@ fintype.of_surjective quotient.mk (λ x, quotient.induction_on x (λ x, ⟨x, rf
 instance finset.fintype [fintype α] : fintype (finset α) :=
 ⟨univ.powerset, λ x, finset.mem_powerset.2 (finset.subset_univ _)⟩
 
-instance subtype.fintype [fintype α] (p : α → Prop) [decidable_pred p] : fintype {x // p x} :=
+@[simp] lemma fintype.card_finset [fintype α] :
+  fintype.card (finset α) = 2 ^ (fintype.card α) :=
+finset.card_powerset finset.univ
+
+instance subtype.fintype (p : α → Prop) [decidable_pred p] [fintype α] : fintype {x // p x} :=
 set_fintype _
 
 theorem fintype.card_subtype_le [fintype α] (p : α → Prop) [decidable_pred p] :
@@ -535,12 +569,12 @@ instance psigma.fintype {α : Type*} {β : α → Type*} [fintype α] [∀ a, fi
   fintype (Σ' a, β a) :=
 fintype.of_equiv _ (equiv.psigma_equiv_sigma _).symm
 
-instance psigma.fintype_prop_left {α : Prop} {β : α → Type*} [∀ a, fintype (β a)] [decidable α] :
+instance psigma.fintype_prop_left {α : Prop} {β : α → Type*} [decidable α] [∀ a, fintype (β a)] :
   fintype (Σ' a, β a) :=
 if h : α then fintype.of_equiv (β h) ⟨λ x, ⟨h, x⟩, psigma.snd, λ _, rfl, λ ⟨_, _⟩, rfl⟩
 else ⟨∅, λ x, h x.1⟩
 
-instance psigma.fintype_prop_right {α : Type*} {β : α → Prop} [fintype α] [∀ a, decidable (β a)] :
+instance psigma.fintype_prop_right {α : Type*} {β : α → Prop} [∀ a, decidable (β a)] [fintype α] :
   fintype (Σ' a, β a) :=
 fintype.of_equiv {a // β a} ⟨λ ⟨x, y⟩, ⟨x, y⟩, λ ⟨x, y⟩, ⟨x, y⟩, λ ⟨x, y⟩, rfl, λ ⟨x, y⟩, rfl⟩
 
@@ -548,7 +582,7 @@ instance psigma.fintype_prop_prop {α : Prop} {β : α → Prop} [decidable α] 
   fintype (Σ' a, β a) :=
 if h : ∃ a, β a then ⟨{⟨h.fst, h.snd⟩}, λ ⟨_, _⟩, by simp⟩ else ⟨∅, λ ⟨x, y⟩, h ⟨x, y⟩⟩
 
-instance set.fintype [fintype α] [decidable_eq α] : fintype (set α) :=
+instance set.fintype [decidable_eq α] [fintype α] : fintype (set α) :=
 pi.fintype
 
 instance pfun_fintype (p : Prop) [decidable p] (α : p → Type*)
@@ -614,24 +648,6 @@ begin
   simp [this], exact setoid.refl _
 end
 
-@[simp, to_additive]
-lemma finset.prod_attach_univ [fintype α] [comm_monoid β] (f : {a : α // a ∈ @univ α _} → β) :
-  univ.attach.prod (λ x, f x) = univ.prod (λ x, f ⟨x, (mem_univ _)⟩) :=
-prod_bij (λ x _, x.1) (λ _ _, mem_univ _) (λ _ _ , by simp) (by simp) (λ b _, ⟨⟨b, mem_univ _⟩, by simp⟩)
-
-@[to_additive]
-lemma finset.range_prod_eq_univ_prod [comm_monoid β] (n : ℕ) (f : ℕ → β) :
-  (range n).prod f = univ.prod (λ (k : fin n), f k) :=
-begin
-  symmetry,
-  refine prod_bij (λ k hk, k) _ _ _ _,
-  { rintro ⟨k, hk⟩ _, simp * },
-  { rintro ⟨k, hk⟩ _, simp * },
-  { intros, rwa fin.eq_iff_veq },
-  { intros k hk, rw mem_range at hk,
-    exact ⟨⟨k, hk⟩, mem_univ _, rfl⟩ }
-end
-
 section equiv
 
 open list equiv equiv.perm
@@ -644,8 +660,12 @@ def perms_of_list : list α → list (perm α)
 
 lemma length_perms_of_list : ∀ l : list α, length (perms_of_list l) = l.length.fact
 | []       := rfl
-| (a :: l) := by rw [length_cons, nat.fact_succ];
-  simp [perms_of_list, length_bind, length_perms_of_list, function.comp, nat.succ_mul]
+| (a :: l) :=
+begin
+  rw [length_cons, nat.fact_succ],
+  simp [perms_of_list, length_bind, length_perms_of_list, function.comp, nat.succ_mul],
+  cc
+end
 
 lemma mem_perms_of_list_of_mem : ∀ {l : list α} {f : perm α} (h : ∀ x, f x ≠ x → x ∈ l), f ∈ perms_of_list l
 | []     f h := list.mem_singleton.2 $ equiv.ext _ _$ λ x, by simp [imp_false, *] at *

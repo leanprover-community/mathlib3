@@ -7,32 +7,33 @@ import tactic.ext
 import tactic.auto_cases
 import tactic.chain
 import tactic.solve_by_elim
+import tactic.norm_cast
+import tactic.hint
 import tactic.interactive
 
 namespace tactic
 
 namespace tidy
+/-- Tag interactive tactics (locally) with `[tidy]` to add them to the list of default tactics
+called by `tidy`. -/
 meta def tidy_attribute : user_attribute := {
   name := `tidy,
   descr := "A tactic that should be called by `tidy`."
 }
 
-run_cmd attribute.register ``tidy_attribute
+add_tactic_doc
+{ name                     := "tidy",
+  category                 := doc_category.attr,
+  decl_names               := [`tactic.tidy.tidy_attribute],
+  tags                     := ["search"] }
 
-meta def name_to_tactic (n : name) : tactic string :=
-do d ← get_decl n,
-   e ← mk_const n,
-   let t := d.type,
-   if (t =ₐ `(tactic unit)) then
-     (eval_expr (tactic unit) e) >>= (λ t, t >> (name.to_string <$> strip_prefix n))
-   else if (t =ₐ `(tactic string)) then
-     (eval_expr (tactic string) e) >>= (λ t, t)
-   else fail "invalid type for @[tidy] tactic"
+run_cmd attribute.register ``tidy_attribute
 
 meta def run_tactics : tactic string :=
 do names ← attribute.get_instances `tidy,
    first (names.map name_to_tactic) <|> fail "no @[tidy] tactics succeeded"
 
+@[hint_tactic]
 meta def ext1_wrapper : tactic string :=
 do ng ← num_goals,
    ext1 [] {apply_cfg . new_goals := new_goals.all},
@@ -54,6 +55,7 @@ meta def default_tactics : list (tactic string) :=
   fsplit                                      >> pure "fsplit",
   injections_and_clear                        >> pure "injections_and_clear",
   propositional_goal >> (`[solve_by_elim])    >> pure "solve_by_elim",
+  `[norm_cast]                                >> pure "norm_cast",
   `[unfold_coes]                              >> pure "unfold_coes",
   `[unfold_aux]                               >> pure "unfold_aux",
   tidy.run_tactics ]
@@ -80,7 +82,15 @@ namespace interactive
 open lean.parser interactive
 
 /-- Use a variety of conservative tactics to solve goals.
-`tidy?` reports back the tactic script it found.
+
+`tidy?` reports back the tactic script it found. As an example
+```lean
+example : ∀ x : unit, x = unit.star :=
+begin
+  tidy? -- Prints the trace message: "Try this: intros x, exact dec_trivial"
+end
+```
+
 The default list of tactics is stored in `tactic.tidy.default_tidy_tactics`.
 This list can be overridden using `tidy { tactics := ... }`.
 (The list must be a `list` of `tactic string`, so that `tidy?`
@@ -92,9 +102,25 @@ meta def tidy (trace : parse $ optional (tk "?")) (cfg : tidy.cfg := {}) :=
 tactic.tidy { trace_result := trace.is_some, ..cfg }
 end interactive
 
+add_tactic_doc
+{ name                     := "tidy",
+  category                 := doc_category.tactic,
+  decl_names               := [`tactic.interactive.tidy],
+  tags                     := ["search", "Try this"] }
+
+/-- Invoking the hole command `tidy` ("Use `tidy` to complete the goal") runs the tactic of
+the same name, replacing the hole with the tactic script `tidy` produces.
+-/
 @[hole_command] meta def tidy_hole_cmd : hole_command :=
 { name := "tidy",
   descr := "Use `tidy` to complete the goal.",
-  action := λ _, do script ← tidy.core, return [("begin " ++ (", ".intercalate script) ++ " end", "by tidy")] }
+  action := λ _, do script ← tidy.core,
+    return [("begin " ++ (", ".intercalate script) ++ " end", "by tidy")] }
+
+add_tactic_doc
+{ name                     := "tidy",
+  category                 := doc_category.hole_cmd,
+  decl_names               := [`tactic.tidy_hole_cmd],
+  tags                     := ["search"] }
 
 end tactic

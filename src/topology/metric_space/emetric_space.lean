@@ -22,7 +22,7 @@ topological spaces. For example:
 The class `emetric_space` therefore extends `uniform_space` (and `topological_space`).
 -/
 
-open lattice set filter classical
+open set filter classical
 noncomputable theory
 
 open_locale uniformity topological_space
@@ -510,13 +510,16 @@ begin
   have : 0 < ε - edist y x := by simpa using h,
   refine ⟨ε - edist y x, this, ball_subset _ _⟩,
   { rw ennreal.add_sub_cancel_of_le (le_of_lt h), apply le_refl _},
-  { have : edist y x ≠ ⊤ := lattice.ne_top_of_lt h, apply lt_top_iff_ne_top.2 this }
+  { have : edist y x ≠ ⊤ := ne_top_of_lt h, apply lt_top_iff_ne_top.2 this }
 end
 
 theorem ball_eq_empty_iff : ball x ε = ∅ ↔ ε = 0 :=
 eq_empty_iff_forall_not_mem.trans
 ⟨λh, le_bot_iff.1 (le_of_not_gt (λ ε0, h _ (mem_ball_self ε0))),
 λε0 y h, not_lt_of_le (le_of_eq ε0) (pos_of_mem_ball h)⟩
+
+@[simp] lemma ball_zero : ball x 0 = ∅ :=
+by rw [emetric.ball_eq_empty_iff]
 
 theorem nhds_basis_eball : (𝓝 x).has_basis (λ ε:ennreal, 0 < ε) (ball x) :=
 nhds_basis_uniformity uniformity_basis_edist
@@ -540,7 +543,7 @@ theorem ball_mem_nhds (x : α) {ε : ennreal} (ε0 : 0 < ε) : ball x ε ∈ �
 mem_nhds_sets is_open_ball (mem_ball_self ε0)
 
 /-- ε-characterization of the closure in emetric spaces -/
-@[nolint] -- see Note [nolint_ge]
+@[nolint ge_or_gt] -- see Note [nolint_ge]
 theorem mem_closure_iff :
   x ∈ closure s ↔ ∀ε>0, ∃y ∈ s, edist x y < ε :=
 (mem_closure_iff_nhds_basis nhds_basis_eball).trans $
@@ -731,12 +734,11 @@ eq_of_forall_ge_iff $ λ d, by simp only [diam_le_iff_forall_edist_le, ball_inse
   (and_assoc _ _).symm, max_comm (diam s)]
 
 lemma diam_pair : diam ({x, y} : set α) = edist x y :=
-by simp only [set.insert_of_has_insert, supr_singleton, diam_insert, diam_singleton,
-  ennreal.max_zero_left]
+by simp only [supr_singleton, diam_insert, diam_singleton, ennreal.max_zero_left]
 
 lemma diam_triple :
   diam ({x, y, z} : set α) = max (edist x y) (max (edist y z) (edist x z)) :=
-by simp only [set.insert_of_has_insert, diam_insert, supr_insert, supr_singleton, diam_singleton,
+by simp only [diam_insert, supr_insert, supr_singleton, diam_singleton,
   ennreal.max_zero_left, ennreal.sup_eq_max]
 
 /-- The diameter is monotonous with respect to inclusion -/

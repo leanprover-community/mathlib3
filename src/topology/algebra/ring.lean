@@ -8,7 +8,7 @@ Theory of topological rings.
 
 import topology.algebra.group ring_theory.ideals
 
-open classical set lattice filter topological_space
+open classical set filter topological_space
 open_locale classical
 
 section topological_ring
@@ -37,6 +37,7 @@ instance topological_ring.to_topological_semiring : topological_semiring α := {
 
 @[priority 100] -- see Note [lower instance priority]
 instance topological_ring.to_topological_add_group : topological_add_group α := {..t}
+
 end topological_ring
 
 section topological_comm_ring

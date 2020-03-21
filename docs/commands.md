@@ -115,8 +115,12 @@ The following linters are run by default:
 8.  `impossible_instance` checks for instances that can never fire.
 9.  `incorrect_type_class_argument` checks for arguments in [square brackets] that are not classes.
 10. `dangerous_instance` checks for instances that generate type-class problems with metavariables.
-11. `inhabited_nonempty` checks for `inhabited` instance arguments that should be changed to `nonempty`.
-12. `simp_nf` checks that arguments of the left-hand side of simp lemmas are in simp-normal form.
+11. `fails_quickly` tests that type-class inference ends (relatively) quickly when applied to variables.
+12. `has_coe_variable` tests that there are no instances of type `has_coe α t` for a variable `α`.
+13. `inhabited_nonempty` checks for `inhabited` instance arguments that should be changed to `nonempty`.
+14. `simp_nf` checks that the left-hand side of simp lemmas is in simp-normal form.
+15. `simp_var_head` checks that there are no variables as head symbol of left-hand sides of simp lemmas.
+16. `simp_comm` checks that no commutativity lemmas (such as `add_comm`) are marked simp.
 
 Another linter, `doc_blame_thm`, checks for missing doc strings on lemmas and theorems.
 This is not run by default.
@@ -140,7 +144,8 @@ A linter defined with the name `linter.my_new_check` can be run with `#lint my_n
 or `lint only my_new_check`.
 If you add the attribute `@[linter]` to `linter.my_new_check` it will run by default.
 
-Adding the attribute `@[nolint]` to a declaration omits it from all linter checks.
+Adding the attribute `@[nolint doc_blame unused_arguments]` to a declaration
+omits it from only the specified linter checks.
 
 ## mk_simp_attribute
 

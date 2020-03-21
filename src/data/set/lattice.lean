@@ -9,7 +9,7 @@ import logic.basic data.set.basic data.equiv.basic
 import order.complete_boolean_algebra category.basic
 import tactic.finish data.sigma.basic order.galois_connection
 
-open function tactic set lattice auto
+open function tactic set auto
 
 universes u v w x y
 variables {α : Type u} {β : Type v} {γ : Type w} {ι : Sort x} {ι' : Sort y}
@@ -36,6 +36,7 @@ instance lattice_set : complete_lattice (set α) :=
 instance : distrib_lattice (set α) :=
 { le_sup_inf := λ s t u x, or_and_distrib_left.2, ..set.lattice_set }
 
+/-- Image is monotone. See `set.image_image` for the statement in terms of `⊆`. -/
 lemma monotone_image {f : α → β} : monotone (image f) :=
 assume s t, assume h : s ⊆ t, image_subset _ h
 
@@ -274,7 +275,7 @@ begin rw insert_eq, simp [bInter_union] end
 
 theorem bInter_pair (a b : α) (s : α → set β) :
   (⋂ x ∈ ({a, b} : set α), s x) = s a ∩ s b :=
-by rw insert_of_has_insert; simp [inter_comm]
+by simp [inter_comm]
 
 theorem bUnion_empty (s : α → set β) : (⋃ x ∈ (∅ : set α), s x) = ∅ :=
 supr_emptyset
@@ -300,7 +301,7 @@ begin rw [insert_eq], simp [bUnion_union] end
 
 theorem bUnion_pair (a b : α) (s : α → set β) :
   (⋃ x ∈ ({a, b} : set α), s x) = s a ∪ s b :=
-by rw insert_of_has_insert; simp [union_comm]
+by simp [union_comm]
 
 @[simp] -- complete_boolean_algebra
 theorem compl_bUnion (s : set α) (t : α → set β) : - (⋃ i ∈ s, t i) = (⋂ i ∈ s, - t i) :=
@@ -331,7 +332,7 @@ theorem mem_sUnion_of_mem {x : α} {t : set α} {S : set (set α)} (hx : x ∈ t
   x ∈ ⋃₀ S :=
 ⟨t, ⟨ht, hx⟩⟩
 
-@[simp] theorem mem_sUnion {x : α} {S : set (set α)} : x ∈ ⋃₀ S ↔ ∃t ∈ S, x ∈ t := iff.rfl
+theorem mem_sUnion {x : α} {S : set (set α)} : x ∈ ⋃₀ S ↔ ∃t ∈ S, x ∈ t := iff.rfl
 
 -- is this theorem really necessary?
 theorem not_mem_of_not_mem_sUnion {x : α} {t : set α} {S : set (set α)}
@@ -382,10 +383,10 @@ theorem sInter_union (S T : set (set α)) : ⋂₀ (S ∪ T) = ⋂₀ S ∩ ⋂�
 @[simp] theorem sInter_insert (s : set α) (T : set (set α)) : ⋂₀ (insert s T) = s ∩ ⋂₀ T := Inf_insert
 
 theorem sUnion_pair (s t : set α) : ⋃₀ {s, t} = s ∪ t :=
-(sUnion_insert _ _).trans $ by rw [union_comm, sUnion_singleton]
+Sup_pair
 
 theorem sInter_pair (s t : set α) : ⋂₀ {s, t} = s ∩ t :=
-(sInter_insert _ _).trans $ by rw [inter_comm, sInter_singleton]
+Inf_pair
 
 @[simp] theorem sUnion_image (f : α → set β) (s : set α) : ⋃₀ (f '' s) = ⋃ x ∈ s, f x := Sup_image
 
@@ -489,9 +490,9 @@ set.ext $ λ x, by simp [bool.forall_bool, and_comm]
 instance : complete_boolean_algebra (set α) :=
 { neg                 := compl,
   sub                 := (\),
-  inf_neg_eq_bot      := assume s, ext $ assume x, ⟨assume ⟨h, nh⟩, nh h, false.elim⟩,
-  sup_neg_eq_top      := assume s, ext $ assume x, ⟨assume h, trivial, assume _, classical.em $ x ∈ s⟩,
   le_sup_inf          := distrib_lattice.le_sup_inf,
+  inf_compl_eq_bot      := assume s, ext $ assume x, ⟨assume ⟨h, nh⟩, nh h, false.elim⟩,
+  sup_compl_eq_top      := assume s, ext $ assume x, ⟨assume h, trivial, assume _, classical.em $ x ∈ s⟩,
   sub_eq              := assume x y, rfl,
   infi_sup_le_sup_Inf := assume s t x, show x ∈ (⋂ b ∈ t, s ∪ b) → x ∈ s ∪ (⋂₀ t),
     by simp; exact assume h,
@@ -603,18 +604,18 @@ set.ext $ assume a, by simp [@eq_comm α a]
 lemma image_eq_Union (f : α → β) (s : set α) : f '' s = (⋃i∈s, {f i}) :=
 set.ext $ assume b, by simp [@eq_comm β b]
 
-lemma bUnion_range {f : ι → α} {g : α → set β} : (⋃x ∈ range f, g x) = (⋃y, g (f y)) :=
+@[simp] lemma bUnion_range {f : ι → α} {g : α → set β} : (⋃x ∈ range f, g x) = (⋃y, g (f y)) :=
 by rw [← sUnion_image, ← range_comp, sUnion_range]
 
-lemma bInter_range {f : ι → α} {g : α → set β} : (⋂x ∈ range f, g x) = (⋂y, g (f y)) :=
+@[simp] lemma bInter_range {f : ι → α} {g : α → set β} : (⋂x ∈ range f, g x) = (⋂y, g (f y)) :=
 by rw [← sInter_image, ← range_comp, sInter_range]
 
 variables {s : set γ} {f : γ → α} {g : α → set β}
 
-lemma bUnion_image : (⋃x∈ (f '' s), g x) = (⋃y ∈ s, g (f y)) :=
+@[simp] lemma bUnion_image : (⋃x∈ (f '' s), g x) = (⋃y ∈ s, g (f y)) :=
 by rw [← sUnion_image, ← image_comp, sUnion_image]
 
-lemma bInter_image : (⋂x∈ (f '' s), g x) = (⋂y ∈ s, g (f y)) :=
+@[simp] lemma bInter_image : (⋂x∈ (f '' s), g x) = (⋂y ∈ s, g (f y)) :=
 by rw [← sInter_image, ← image_comp, sInter_image]
 
 end image

@@ -16,7 +16,6 @@ noncomputable theory
 
 universes u v w u₁ v₁
 
-open lattice
 open_locale tensor_product
 
 section prio
@@ -273,7 +272,7 @@ include R S A
     `algebra ?m_1 A -/
 /- The `nolint` attribute is added because it has unused arguments `R` and `S`, but these are necessary for synthesizing the
      appropriate type classes -/
-@[nolint] def comap : Type w := A
+@[nolint unused_arguments] def comap : Type w := A
 def comap.to_comap : A → comap R S A := id
 def comap.of_comap : comap R S A → A := id
 
@@ -293,7 +292,7 @@ set_option class.instance_max_depth 40
 instance comap.algebra : algebra R (comap R S A) :=
 { smul := λ r x, (algebra_map S r • x : A),
   to_fun := (algebra_map A : S → A) ∘ algebra_map S,
-  hom := by letI : is_ring_hom (algebra_map A) := _inst_5.hom; apply_instance,
+  hom := @is_ring_hom.comp _ _ _ _ _ _ _ _ _ _inst_5.hom,
   commutes' := λ r x, algebra.commutes _ _,
   smul_def' := λ _ _, algebra.smul_def _ _ }
 
@@ -431,7 +430,7 @@ iff.rfl
 by cases S; cases T; congr; ext x; exact h x
 
 theorem ext_iff {S T : subalgebra R A} : S = T ↔ ∀ x : A, x ∈ S ↔ x ∈ T :=
-⟨λ h x, by rw h, ext⟩ 
+⟨λ h x, by rw h, ext⟩
 
 variables (S : subalgebra R A)
 

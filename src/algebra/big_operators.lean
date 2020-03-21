@@ -5,8 +5,7 @@ Authors: Johannes Hölzl
 
 Some big operators for lists and finite sets.
 -/
-import tactic.tauto data.list.basic data.finset data.nat.enat
-import algebra.group algebra.ordered_group algebra.group_power
+import tactic.tauto data.list.defs data.finset data.nat.enat
 
 universes u v w
 variables {α : Type u} {β : Type v} {γ : Type w}
@@ -38,6 +37,26 @@ protected def prod [comm_monoid β] (s : finset α) (f : α → β) : β := (s.1
 @[to_additive]
 theorem prod_eq_fold [comm_monoid β] (s : finset α) (f : α → β) : s.prod f = s.fold (*) 1 f := rfl
 
+end finset
+
+@[to_additive]
+lemma monoid_hom.map_prod [comm_monoid β] [comm_monoid γ] (g : β →* γ) (f : α → β) (s : finset α) :
+  g (s.prod f) = s.prod (λx, g (f x)) :=
+by simp only [finset.prod_eq_multiset_prod, g.map_multiset_prod, multiset.map_map]
+
+lemma ring_hom.map_prod [comm_semiring β] [comm_semiring γ]
+  (g : β →+* γ) (f : α → β) (s : finset α) :
+  g (s.prod f) = s.prod (λx, g (f x)) :=
+g.to_monoid_hom.map_prod f s
+
+lemma ring_hom.map_sum [comm_semiring β] [comm_semiring γ]
+  (g : β →+* γ) (f : α → β) (s : finset α) :
+  g (s.sum f) = s.sum (λx, g (f x)) :=
+g.to_add_monoid_hom.map_sum f s
+
+namespace finset
+variables {s s₁ s₂ : finset α} {a : α} {f g : α → β}
+
 section comm_monoid
 variables [comm_monoid β]
 
@@ -56,9 +75,10 @@ lemma prod_pair [decidable_eq α] {a b : α} (h : a ≠ b) :
   ({a, b} : finset α).prod f = f a * f b :=
 by simp [prod_insert (not_mem_singleton.2 h.symm), mul_comm]
 
-@[simp] lemma prod_const_one : s.prod (λx, (1 : β)) = 1 :=
+@[simp, priority 1100] lemma prod_const_one : s.prod (λx, (1 : β)) = 1 :=
 by simp only [finset.prod, multiset.map_const, multiset.prod_repeat, one_pow]
-@[simp] lemma sum_const_zero {β} {s : finset α} [add_comm_monoid β] : s.sum (λx, (0 : β)) = 0 :=
+@[simp, priority 1100] lemma sum_const_zero {β} {s : finset α} [add_comm_monoid β] :
+  s.sum (λx, (0 : β)) = 0 :=
 @prod_const_one _ (multiplicative β) _ _
 attribute [to_additive] prod_const_one
 
@@ -178,7 +198,7 @@ finset.induction_on s (by simp only [prod_empty, prod_const_one]) $
 @[to_additive]
 lemma prod_hom [comm_monoid γ] (s : finset α) {f : α → β} (g : β → γ) [is_monoid_hom g] :
   s.prod (λx, g (f x)) = g (s.prod f) :=
-by { delta finset.prod, rw [← multiset.map_map, multiset.prod_hom _ g] }
+((monoid_hom.of g).map_prod f s).symm
 
 @[to_additive]
 lemma prod_hom_rel [comm_monoid γ] {r : β → γ → Prop} {f : α → β} {g : α → γ} {s : finset α}
@@ -868,12 +888,6 @@ theorem inv_prod : ∀ l : list α, (prod l)⁻¹ = prod (map (λ x, x⁻¹) (re
 λ l, @is_group_anti_hom.map_prod _ _ _ _ _ inv_is_group_anti_hom l -- TODO there is probably a cleaner proof of this
 
 end group
-
-@[to_additive]
-lemma monoid_hom.map_prod [comm_monoid β] [comm_monoid γ] (g : β →* γ) (f : α → β) (s : finset α) :
-  g (s.prod f) = s.prod (λx, g (f x)) :=
-(s.prod_hom g).symm
-
 
 @[to_additive is_add_group_hom_finset_sum]
 lemma is_group_hom_finset_prod {α β γ} [group α] [comm_group β] (s : finset γ)

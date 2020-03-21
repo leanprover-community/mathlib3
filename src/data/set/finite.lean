@@ -7,8 +7,9 @@ Finite sets.
 -/
 import logic.function
 import data.nat.basic data.fintype data.set.lattice data.set.function
+import algebra.big_operators
 
-open set lattice function
+open set function
 
 universes u v w x
 variables {α : Type u} {β : Type v} {ι : Sort w} {γ : Type x}
@@ -364,7 +365,7 @@ begin
   refine ⟨range f, finite_range f, _⟩,
   rintro x hx,
   simp,
-  exact ⟨_, ⟨_, hx, rfl⟩, hf ⟨x, hx⟩⟩
+  exact ⟨x, ⟨hx, hf _⟩⟩,
 end
 
 lemma finite_range_ite {p : α → Prop} [decidable_pred p] {f g : α → β} (hf : finite (range f))
@@ -449,19 +450,14 @@ variables [semilattice_sup α] [nonempty α] {s : set α}
 
 /--A finite set is bounded above.-/
 lemma bdd_above_finite (hs : finite s) : bdd_above s :=
-finite.induction_on hs bdd_above_empty $ λ a s _ _, bdd_above_insert.2
+finite.induction_on hs bdd_above_empty $ λ a s _ _ h, h.insert a
 
 /--A finite union of sets which are all bounded above is still bounded above.-/
 lemma bdd_above_finite_union {I : set β} {S : β → set α} (H : finite I) :
-(bdd_above (⋃i∈I, S i)) ↔ (∀i ∈ I, bdd_above (S i)) :=
-⟨λ (bdd : bdd_above (⋃i∈I, S i)) i (hi : i ∈ I),
-  bdd_above_subset (subset_bUnion_of_mem hi) bdd,
-show (∀i ∈ I, bdd_above (S i)) → (bdd_above (⋃i∈I, S i)), from
+  (bdd_above (⋃i∈I, S i)) ↔ (∀i ∈ I, bdd_above (S i)) :=
 finite.induction_on H
-  (λ _, by rw bUnion_empty; exact bdd_above_empty)
-  (λ x s hn hf IH h, by simp only [
-      set.mem_insert_iff, or_imp_distrib, forall_and_distrib, forall_eq] at h;
-    rw [set.bUnion_insert, bdd_above_union]; exact ⟨h.1, IH h.2⟩)⟩
+  (by simp only [bUnion_empty, bdd_above_empty, ball_empty_iff])
+  (λ a s ha _ hs, by simp only [bUnion_insert, ball_insert_iff, bdd_above_union, hs])
 
 end
 
@@ -471,19 +467,12 @@ variables [semilattice_inf α] [nonempty α] {s : set α}
 
 /--A finite set is bounded below.-/
 lemma bdd_below_finite (hs : finite s) : bdd_below s :=
-finite.induction_on hs bdd_below_empty $ λ a s _ _, bdd_below_insert.2
+finite.induction_on hs bdd_below_empty $ λ a s _ _ h, h.insert a
 
 /--A finite union of sets which are all bounded below is still bounded below.-/
 lemma bdd_below_finite_union {I : set β} {S : β → set α} (H : finite I) :
-(bdd_below (⋃i∈I, S i)) ↔ (∀i ∈ I, bdd_below (S i)) :=
-⟨λ (bdd : bdd_below (⋃i∈I, S i)) i (hi : i ∈ I),
-  bdd_below_subset (subset_bUnion_of_mem hi) bdd,
-show (∀i ∈ I, bdd_below (S i)) → (bdd_below (⋃i∈I, S i)), from
-finite.induction_on H
-  (λ _, by rw bUnion_empty; exact bdd_below_empty)
-  (λ x s hn hf IH h, by simp only [
-      set.mem_insert_iff, or_imp_distrib, forall_and_distrib, forall_eq] at h;
-    rw [set.bUnion_insert, bdd_below_union]; exact ⟨h.1, IH h.2⟩)⟩
+  (bdd_below (⋃i∈I, S i)) ↔ (∀i ∈ I, bdd_below (S i)) :=
+@bdd_above_finite_union (order_dual α) _ _ _ _ _ H
 
 end
 

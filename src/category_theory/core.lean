@@ -2,9 +2,6 @@
 Copyright (c) 2019 Scott Morrison All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Scott Morrison
-
-The core of a category C is the groupoid whose morphisms are all the
-isomorphisms of C.
 -/
 
 import category_theory.groupoid
@@ -14,6 +11,8 @@ namespace category_theory
 
 universes v₁ v₂ u₁ u₂ -- declare the `v`'s first; see `category_theory.category` for an explanation
 
+/-- The core of a category C is the groupoid whose morphisms are all the
+isomorphisms of C. -/
 def core (C : Type u₁) := C
 def as_core {C : Type u₁} (X : C) : core C := X
 def of_core {C : Type u₁} (X : core C) : C := X
@@ -38,6 +37,7 @@ def lift_iso {X Y : C} (f : X ≅ Y) : (as_core X) ≅ (as_core Y) :=
 
 section
 variables (C)
+/-- The core of a category is naturally included in the category. -/
 def inclusion : core C ⥤ C :=
 { obj := of_core,
   map := λ X Y f, f.hom }

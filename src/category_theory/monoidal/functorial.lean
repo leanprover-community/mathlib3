@@ -6,6 +6,29 @@ Authors: Scott Morrison
 import category_theory.monoidal.functor
 import category_theory.functorial
 
+/-!
+# Unbundled lax monoidal functors
+
+## Design considerations
+The essential problem I've encountered that requires unbundled functors is
+having an existing (non-monoidal) functor `F : C ⥤ D` between monoidal categories,
+and wanting to assert that it has an extension to a lax monoidal functor.
+
+The two options seem to be
+1. Construct a separate `F' : lax_monoidal_functor C D`,
+   and assert `F'.to_functor ≅ F`.
+2. Introduce unbundled functors and unbundled lax monoidal functors,
+   and construct `lax_monoidal F.obj`, then construct `F' := lax_monoidal_functor.of F.obj`.
+
+Both have costs, but as for option 2. the cost is in library design,
+while in option 1. the cost is users having to carry around additional isomorphisms forever,
+I wanted to introduce unbundled functors.
+
+TODO:
+later, we may want to do this for strong monoidal functors as well,
+but the immediate application, for enriched categories, only requires this notion.
+-/
+
 open category_theory
 
 universes v₁ v₂ v₃ u₁ u₂ u₃
@@ -22,8 +45,8 @@ variables {C : Type u₁} [category.{v₁} C] [𝒞 : monoidal_category.{v₁} C
 include 𝒞 𝒟
 
 /-- An unbundled description of lax monoidal functors. -/
--- Perhaps in the future we'll redefine `lax_monoidal_functor` in terms of this, but that isn't the
--- immediate plan.
+-- Perhaps in the future we'll redefine `lax_monoidal_functor` in terms of this,
+-- but that isn't the immediate plan.
 class lax_monoidal (F : C → D) [functorial.{v₁ v₂} F] :=
 -- unit morphism
 (ε               : 𝟙_ D ⟶ F (𝟙_ C))
@@ -59,7 +82,12 @@ attribute [simp] lax_monoidal.associativity
 
 namespace lax_monoidal_functor
 
-def of (F : C → D) [I₁ : functorial.{v₁ v₂} F] [I₂ : lax_monoidal.{v₁ v₂} F] : lax_monoidal_functor.{v₁ v₂} C D :=
+/--
+Construct a bundled `lax_monoidal_functor` from the object level function
+and `functorial` and `lax_monoidal` typeclasses.
+-/
+def of (F : C → D) [I₁ : functorial.{v₁ v₂} F] [I₂ : lax_monoidal.{v₁ v₂} F] :
+  lax_monoidal_functor.{v₁ v₂} C D :=
 { obj := F,
   ..I₁, ..I₂ }
 
@@ -67,8 +95,18 @@ end lax_monoidal_functor
 
 instance (F : lax_monoidal_functor.{v₁ v₂} C D) : lax_monoidal.{v₁ v₂} (F.obj) := { .. F }
 
--- TODO instances for identity and composition
+section
+omit 𝒟
 
--- TODO monoidal, as well as lax monoidal (... but it seems for enriched categories I'll only need unbundled lax monoidal functors at first)
+instance lax_monoidal_id : lax_monoidal.{v₁ v₁} (id : C → C) :=
+{ ε := 𝟙 _,
+  μ := λ X Y, 𝟙 _ }
+
+end
+
+-- TODO instances for composition, as required
+
+-- TODO `strong_monoidal`, as well as `lax_monoidal`
+-- (... but it seems for enriched categories I'll only need unbundled lax monoidal functors at first)
 
 end category_theory

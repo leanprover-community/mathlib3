@@ -128,10 +128,21 @@ meta def add_prime : name → name
 | (name.mk_string s p) := name.mk_string (s ++ "'") p
 | n := (name.mk_string "x'" n)
 
+/--
+Returns the last non-numerical component of a name, or `"[anonymous]"` otherwise.
+-/
 def last_string : name → string
 | anonymous        := "[anonymous]"
 | (mk_string s _)  := s
 | (mk_numeral _ n) := last_string n
+
+/--
+Constructs a (non-simple) name from a string.
+
+Example: ``name.from_string "foo.bar" = `foo.bar``
+-/
+meta def from_string (s : string) : name :=
+from_components $ s.split (= '.')
 
 end name
 
@@ -513,6 +524,10 @@ meta def mfold {α : Type} {m : Type → Type} [monad m] (e : environment) (x : 
 e.fold (return x) (λ d t, t >>= fn d)
 
 /-- Filters all declarations in the environment. -/
+meta def filter (e : environment) (test : declaration → bool) : list declaration :=
+e.fold [] $ λ d ds, if test d then d::ds else ds
+
+/-- Filters all declarations in the environment. -/
 meta def mfilter (e : environment) (test : declaration → tactic bool) : tactic (list declaration) :=
 e.mfold [] $ λ d ds, do b ← test d, return $ if b then d::ds else ds
 
@@ -637,6 +652,12 @@ e.is_constructor d.to_name ∨
   d.to_name.last ∈ ["below", "binduction_on", "brec_on", "cases_on", "dcases_on", "drec_on", "drec",
   "rec", "rec_on", "no_confusion", "no_confusion_type", "sizeof", "ibelow", "has_sizeof_inst"]) ∨
 d.to_name.has_prefix (λ nm, e.is_ginductive' nm)
+
+/--
+Returns true iff `d` is an automatically-generated or internal declaration.
+-/
+meta def is_auto_or_internal (env : environment) (d : declaration) : bool :=
+d.to_name.is_internal || d.is_auto_generated env
 
 /-- Returns the list of universe levels of a declaration. -/
 meta def univ_levels (d : declaration) : list level :=

@@ -5,6 +5,7 @@ Authors: Johannes Hölzl, Mario Carneiro, Alexander Bentkamp
 -/
 
 import linear_algebra.basic linear_algebra.finsupp order.zorn
+import data.fintype.card
 
 /-!
 
@@ -60,7 +61,7 @@ linearly dependent, linear dependence, linearly independent, linear independence
 
 noncomputable theory
 
-open function lattice set submodule
+open function set submodule
 open_locale classical
 
 variables {ι : Type*} {ι' : Type*} {R : Type*} {K : Type*}
@@ -795,7 +796,7 @@ constr_eq hv $ by simp [constr_basis hv] {contextual := tt}
 
 lemma constr_sub {g f : ι → M'} (hs : is_basis R v) :
   hv.constr (λi, f i - g i) = hs.constr f - hs.constr g :=
-by simp [constr_add, constr_neg]
+by simp [sub_eq_add_neg, constr_add, constr_neg]
 
 -- this only works on functions if `R` is a commutative ring
 lemma constr_smul {ι R M M'} [comm_ring R]
@@ -938,7 +939,7 @@ end module
 section vector_space
 variables
   {v : ι → V}
-  [discrete_field K] [add_comm_group V] [add_comm_group V']
+  [field K] [add_comm_group V] [add_comm_group V']
   [vector_space K V] [vector_space K V']
   {s t : set V} {x y z : V}
 include K
@@ -1084,7 +1085,7 @@ assume t, finset.induction_on t
           by rw [span_insert_eq_span hb₁] at hb₃; simpa using hb₃,
         let ⟨u, hust, hsu, eq⟩ := ih _ (by simp [insert_subset, hb₂s, hs']) hst this in
         ⟨u, subset.trans hust $ union_subset_union (subset.refl _) (by simp [subset_insert]),
-          hsu, by rw [finset.union_comm] at hb₂t'; simp [eq, hb₂t', hb₁t, hb₁s']⟩)),
+          hsu, by simp [eq, hb₂t', hb₁t, hb₁s']⟩)),
 begin
   letI := classical.dec_pred (λx, x ∈ s),
   have eq : t.filter (λx, x ∈ s) ∪ t.filter (λx, x ∉ s) = t,
@@ -1158,7 +1159,7 @@ begin
     (by ext; simp) _⟩,
   ext ⟨⟨x⟩, y, hy⟩; simp,
   { apply (submodule.quotient.eq p).2,
-    simpa using sub_mem p hy (fp x) },
+    simpa [sub_eq_add_neg, add_left_comm] using sub_mem p hy (fp x) },
   { refine subtype.coe_ext.2 _,
     simp [mkf, (submodule.quotient.mk_eq_zero p).2 hy] }
 end

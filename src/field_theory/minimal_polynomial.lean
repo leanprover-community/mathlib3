@@ -58,7 +58,7 @@ le_of_not_lt $ well_founded.not_lt_min degree_lt_wf _ hx ⟨pmonic, hp⟩
 end ring
 
 section field
-variables [discrete_field α] [discrete_field β] [algebra α β]
+variables [field α] [field β] [algebra α β]
 variables {x : β} (hx : is_integral α x)
 
 /--A minimal polynomial is nonzero.-/
@@ -192,16 +192,19 @@ begin
   { rw ← polynomial.degree_eq_iff_nat_degree_eq_of_pos (nat.zero_lt_one),
     exact degree_eq_one_of_irreducible_of_root (irreducible hx) h },
   have coeff_one : (minimal_polynomial hx).coeff 1 = 1,
-  { simpa [ndeg_one, leading_coeff] using (monic hx).leading_coeff },
+  { simpa only [ndeg_one, leading_coeff] using (monic hx).leading_coeff },
   have hy : y = - coeff (minimal_polynomial hx) 0,
   { rw (minimal_polynomial hx).as_sum at h,
     apply eq_neg_of_add_eq_zero,
-    simpa [ndeg_one, finset.sum_range_succ, coeff_one] using h },
+    simpa only [ndeg_one, coeff_one, C_1, eval_C, eval_X, eval_add, mul_one, one_mul, pow_zero, pow_one,
+      is_root.def, finset.sum_range_succ, finset.insert_empty_eq_singleton, finset.sum_singleton, finset.range_one] using h, },
   subst y,
   rw [algebra.map_neg, neg_eq_iff_add_eq_zero],
   have H := aeval hx,
   rw (minimal_polynomial hx).as_sum at H,
-  simpa [ndeg_one, finset.sum_range_succ, coeff_one, aeval_def] using H
+  simpa only [ndeg_one, coeff_one, aeval_def, C_1, eval₂_add, eval₂_C, eval₂_X,
+    mul_one, one_mul, pow_one, pow_zero, add_comm,
+    finset.sum_range_succ, finset.insert_empty_eq_singleton, finset.sum_singleton, finset.range_one] using H,
 end
 
 /--The constant coefficient of the minimal polynomial of x is 0

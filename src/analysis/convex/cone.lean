@@ -122,7 +122,7 @@ instance : complete_lattice (convex_cone E) :=
 
 instance : inhabited (convex_cone E) := ⟨⊥⟩
 
-/-- Image of a convex cone under an `ℝ`-linear map is a convex cone. -/
+/-- The image of a convex cone under an `ℝ`-linear map is a convex cone. -/
 def map (f : E →ₗ[ℝ] F) (S : convex_cone E) : convex_cone F :=
 { carrier := f '' S,
   smul_mem' := λ c hc y ⟨x, hx, hy⟩, hy ▸ f.map_smul c x ▸ mem_image_of_mem f (S.smul_mem hc hx),
@@ -135,7 +135,7 @@ ext' $ image_image g f S
 
 @[simp] lemma map_id : S.map linear_map.id = S := ext' $ image_id _
 
-/-- Preimage of a convex cone under an `ℝ`-linear map is a convex cone. -/
+/-- The preimage of a convex cone under an `ℝ`-linear map is a convex cone. -/
 def comap (f : E →ₗ[ℝ] F) (S : convex_cone F) : convex_cone E :=
 { carrier := f ⁻¹' S,
   smul_mem' := λ c hc x hx, by { rw [mem_preimage, f.map_smul c], exact S.smul_mem hc hx },
@@ -152,7 +152,7 @@ ext' $ preimage_comp.symm
 
 end convex_cone
 
-/-- The set of vectors proportional to those in a convex set form a convex cone. -/
+/-- The set of vectors proportional to those in a convex set forms a convex cone. -/
 def convex.to_cone (s : set E) (hs : convex s) :
   convex_cone E :=
 convex_cone.mk {x : E | ∃ (c : ℝ) (hC : 0 < c), c • x ∈ s}

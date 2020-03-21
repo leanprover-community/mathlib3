@@ -1413,7 +1413,7 @@ meta def trace_error (msg : string) (t : tactic α) : tactic α
 only if tracing is enabled for the name `n`.
 
 Create new names registered for tracing with `declare_trace n`.
-Then use `set_option trace.n true/false` to enabled or disable tracing for `n`.
+Then use `set_option trace.n true/false` to enable or disable tracing for `n`.
 -/
 meta def trace_for
   (n : name) {α : Type u} [has_to_tactic_format α] (msg : α) : tactic unit :=

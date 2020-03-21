@@ -219,8 +219,9 @@ do g :: _ ← get_goals,
    defs ← library_defs (head_symbol t),
    -- Sort by length; people like short proofs
    let defs := defs.qsort(λ d₁ d₂, d₁.l ≤ d₂.l),
-   trace_for `suggest format!"Found {defs.length} relevant lemmas:",
-   trace_for `suggest $ defs.map (λ ⟨d, n, m, l⟩, (n, m.to_string)),
+   when (is_trace_enabled_for `suggest) $ (do
+     trace format!"Found {defs.length} relevant lemmas:",
+     trace $ defs.map (λ ⟨d, n, m, l⟩, (n, m.to_string))),
 
    -- Try applying each lemma against the goal,
    -- then record the number of remaining goals, and number of local hypotheses used.
@@ -343,11 +344,13 @@ Try this: refine lt_of_not_ge _
 -/
 meta def suggest (n : parse (with_desc "n" small_nat)?) : tactic unit :=
 do L ← tactic.suggest_scripts (n.get_or_else 50),
-  when_tracing `silence_suggest
-    (if L.length = 0 then
+  if is_trace_enabled_for `silence_suggest then
+    skip
+  else
+    if L.length = 0 then
       fail "There are no applicable declarations"
     else
-      L.mmap trace >> skip)
+      L.mmap trace >> skip
 
 add_tactic_doc
 { name        := "suggest",

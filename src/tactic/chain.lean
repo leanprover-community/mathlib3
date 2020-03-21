@@ -139,7 +139,9 @@ do tgt ← target,
    pure r
 
 meta def chain (tactics : list (tactic α)) : tactic (list string) :=
-chain_core
-  (if is_trace_enabled_for `chain then (tactics.map trace_output) else tactics)
+if is_trace_enabled_for `chain then
+  chain_core (tactics.map trace_output)
+else
+  chain_core tactics
 
 end tactic

@@ -913,38 +913,6 @@ protected lemma forall_congr_left {p : α → Prop} (f : α ≃ β) :
 equiv.forall_congr f (λx, by simp)
 
 section
-variables
-  (W : α → Sort w) (Z : β → Sort z) (h₁ : α ≃ β) (h₂ : Π a : α, (W a ≃ Z (h₁ a)))
-
-/--
-Transport dependent functions through
-an equivalence of the base spaces and a family
-of equivalences of the matching fibres.
--/
-def Pi_congr : (Π a, W a) ≃ (Π b, Z b) :=
-{ to_fun := λ f b, by { rw ← h₁.apply_symm_apply b, exact h₂ (h₁.symm b) (f (h₁.symm b)), },
-  inv_fun := λ g a, (h₂ a).symm (g (h₁ a)),
-  left_inv := λ f, funext $ λ a,
-  begin
-    rw ←(h₂ a).symm_apply_apply (f a),
-    dsimp,
-    exact congr_arg _ (eq_of_heq ((eq_rec_heq _ _).trans (by rw h₁.symm_apply_apply))),
-  end,
-  right_inv := λ g, funext $ λ b,
-    eq_of_heq ((eq_rec_heq _ _).trans (by { rw (h₂ (h₁.symm b)).apply_symm_apply, congr, simp, })), }
-
-@[simp]
-lemma Pi_congr_apply (f : Π a, W a) (b : β) :
-  ((Pi_congr W Z h₁ h₂) f) b = (by { convert h₂ (h₁.symm b) (f (h₁.symm b)), simp }) :=
-rfl
-
-@[simp]
-lemma Pi_congr_symm_apply (g : Π b, Z b) (a : α) :
-  ((Pi_congr W Z h₁ h₂).symm g) a = (h₂ a).symm (g (h₁ a)) :=
-rfl
-end
-
-section
 variables (P : α → Sort w) (e : α ≃ β)
 
 /-- Transport dependent functions through an equivalence of the base space. -/
@@ -963,13 +931,20 @@ lemma Pi_congr_left_symm_apply (g : Π b, P (e.symm b)) (a : α) :
   ((Pi_congr_left P e).symm g) a = (by { convert g (e a), simp }) :=
 rfl
 
--- TODO Perhaps we should show these agree:
--- lemma Pi_congr_left_eq :
---   Pi_congr_left P e =
---     Pi_congr P (λ b, P (e.symm b)) e (λ a, (by simp)) :=
--- sorry
 end
 
+section
+variables
+  (W : α → Sort w) (Z : β → Sort z) (h₁ : α ≃ β) (h₂ : Π a : α, (W a ≃ Z (h₁ a)))
+
+/--
+Transport dependent functions through
+an equivalence of the base spaces and a family
+of equivalences of the matching fibres.
+-/
+def Pi_congr : (Π a, W a) ≃ (Π b, Z b) :=
+(equiv.Pi_congr_right h₂).trans (equiv.Pi_congr_left _ h₁.symm).symm
+end
 end equiv
 
 instance {α} [subsingleton α] : subsingleton (ulift α) := equiv.ulift.subsingleton

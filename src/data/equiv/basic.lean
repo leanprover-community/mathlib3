@@ -917,29 +917,45 @@ begin
   { rw [←f.right_inv x], apply h.mp, apply h₂ },
   apply h.mpr, apply h₂
 end
-protected lemma forall_congr_left {p : α → Prop} (f : α ≃ β) :
+protected lemma forall_congr_left' {p : α → Prop} (f : α ≃ β) :
   (∀x, p x) ↔ (∀y, p (f.symm y)) :=
 equiv.forall_congr f (λx, by simp)
+protected lemma forall_congr_left {p : β → Prop} (f : α ≃ β) :
+  (∀x, p (f x)) ↔ (∀y, p y) :=
+(equiv.forall_congr_left' f.symm).symm
 
 section
 variables (P : α → Sort w) (e : α ≃ β)
 
-/-- Transport dependent functions through an equivalence of the base space. -/
-def Pi_congr_left : (Π a, P a) ≃ (Π b, P (e.symm b)) :=
+/--
+Transport dependent functions through an equivalence of the base space.
+-/
+def Pi_congr_left' : (Π a, P a) ≃ (Π b, P (e.symm b)) :=
 { to_fun := λ f x, f (e.symm x),
   inv_fun := λ f x, begin rw [← e.symm_apply_apply x], exact f (e x)  end,
   left_inv := λ f, funext $ λ x, eq_of_heq ((eq_rec_heq _ _).trans (by { dsimp, rw e.symm_apply_apply })),
   right_inv := λ f, funext $ λ x, eq_of_heq ((eq_rec_heq _ _).trans (by { rw e.apply_symm_apply })) }
 
 @[simp]
-lemma Pi_congr_left_apply (f : Π a, P a) (b : β) : ((Pi_congr_left P e) f) b = f (e.symm b) :=
+lemma Pi_congr_left'_apply (f : Π a, P a) (b : β) : ((Pi_congr_left' P e) f) b = f (e.symm b) :=
 rfl
 
 @[simp]
-lemma Pi_congr_left_symm_apply (g : Π b, P (e.symm b)) (a : α) :
-  ((Pi_congr_left P e).symm g) a = (by { convert g (e a), simp }) :=
+lemma Pi_congr_left'_symm_apply (g : Π b, P (e.symm b)) (a : α) :
+  ((Pi_congr_left' P e).symm g) a = (by { convert g (e a), simp }) :=
 rfl
 
+end
+
+section
+variables (P : β → Sort w) (e : α ≃ β)
+
+/--
+Transporting dependent functions through an equivalence of the base,
+expressed as a "simplification".
+-/
+def Pi_congr_left : (Π a, P (e a)) ≃ (Π b, P b) :=
+(Pi_congr_left' P e.symm).symm
 end
 
 section
@@ -952,7 +968,7 @@ an equivalence of the base spaces and a family
 of equivalences of the matching fibres.
 -/
 def Pi_congr : (Π a, W a) ≃ (Π b, Z b) :=
-(equiv.Pi_congr_right h₂).trans (equiv.Pi_congr_left _ h₁.symm).symm
+(equiv.Pi_congr_right h₂).trans (equiv.Pi_congr_left _ h₁)
 end
 end equiv
 

@@ -19,10 +19,11 @@ to make the process of contributing as smooth as possible.
 4. If you've made a lot of changes/additions, try to make many PRs containing small, self-contained pieces. This helps you get feedback as you go along, and it is much easier to review. This is especially important for new contributors.
 5. You can use `leanproject get-cache` to fetch `.olean` binaries.
   The `.olean` binaries take two hours to generate, so they might not yet be available if you're on the master branch.
-  If you checkout the remote branch `lean-3.6.1` then you can always get olean binaries:
+  If you checkout the remote branch `lean-3.X.Y` (where `3.X.Y` stands for the version in mathlib's `leanpkg.toml`)
+  then you can always get olean binaries:
    ```
    git fetch --all
-   git checkout origin/lean-3.6.1
+   git checkout origin/lean-3.X.Y
    leanproject get-cache
    git checkout -b my_new_feature
    ```

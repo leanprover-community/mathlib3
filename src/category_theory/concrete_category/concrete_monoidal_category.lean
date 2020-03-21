@@ -14,6 +14,11 @@ open category_theory.monoidal_category
 
 namespace category_theory
 
+
+-- TODO name, location
+def mk_pair {X Y : Type v} (x : X) (y : Y) : (X ⊗ Y : Type v) :=
+by { fsplit, rintros ⟨⟩, exact x, exact y, tidy, }
+
 /--
 A concrete monoidal category is a monoidal category whose forgetful functor to `Type` is lax
 monoidal. A prototypical example to think about is `Vec`, equipped with tensor products as the
@@ -43,7 +48,7 @@ def forget.ε : (forget V).obj (𝟙_ V) := (forget.lax.{v} V).ε (by tidy)
 variables {V}
 
 def forget.μ {X Y : V} (x : (forget V).obj X) (y : (forget V).obj Y) : (forget V).obj (X ⊗ Y) :=
-(forget.lax.{v} V).μ X Y (by { fsplit, rintros ⟨⟩, exact x, exact y, tidy, })
+(forget.lax.{v} V).μ X Y (mk_pair x y)
 
 /--
 Convert a morphism from the monoidal unit of `V` to `X` into a term of the underlying type of `X`.

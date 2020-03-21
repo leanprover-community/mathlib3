@@ -63,6 +63,11 @@ def of (F : C → D) [I₁ : functorial.{v₁ v₂} F] [I₂ : lax_monoidal.{v�
 { obj := F,
   ..I₁, ..I₂ }
 
+@[simp]
+lemma of_mu (F : C → D) [I₁ : functorial.{v₁ v₂} F] [I₂ : lax_monoidal.{v₁ v₂} F] :
+  (lax_monoidal_functor.of.{v₁ v₂} F).μ = @lax_monoidal.μ _ _ _ _ _ _ F I₁ I₂ :=
+rfl
+
 end lax_monoidal_functor
 
 instance (F : lax_monoidal_functor.{v₁ v₂} C D) : lax_monoidal.{v₁ v₂} (F.obj) := { .. F }

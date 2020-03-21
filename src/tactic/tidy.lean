@@ -70,8 +70,8 @@ declare_trace tidy
 meta def core (cfg : cfg := {}) : tactic (list string) :=
 do
   results ← chain cfg.tactics,
-  when (cfg.trace_result ∨ is_trace_enabled_for `tidy) $
-    trace (cfg.trace_result_prefix ++ (", ".intercalate results)),
+  when (cfg.trace_result) $
+    trace_for `tidy (cfg.trace_result_prefix ++ (", ".intercalate results)),
   return results
 
 end tidy

@@ -201,12 +201,14 @@ A command used to add documentation for a tactic, command, hole command, or attr
 Usage: after defining an interactive tactic, command, or attribute,
 add its documentation as follows.
 ```lean
+/--
+describe what the command does here
+-/
 add_tactic_doc
 { name := "display name of the tactic",
   category := cat,
   decl_names := [`dcl_1, `dcl_2],
-  tags := ["tag_1", "tag_2"],
-  description := "describe what the command does here"
+  tags := ["tag_1", "tag_2"]
 }
 ```
 
@@ -219,7 +221,7 @@ The argument to `add_tactic_doc` is a structure of type `tactic_doc_entry`.
   Some entries may cover multiple declarations.
   It is only necessary to list the interactive versions of tactics.
 * `tags` is an optional list of strings used to categorize entries.
-* `description` is the body of the entry. Like doc strings, it can be formatted with markdown.
+* The doc string is the body of the entry, it can be formatted with markdown.
   What you are reading now is the description of `add_tactic_doc`.
 
 If only one related declaration is listed in `decl_names` and it does not have a doc string,

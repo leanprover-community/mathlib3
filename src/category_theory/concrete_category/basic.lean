@@ -149,6 +149,21 @@ lemma forget_map_forget₂_map {X Y : C} (f : X ⟶ Y) :
   (forget D).map ((forget₂ C D).map f) =
   eq_to_hom (forget_obj_forget₂_obj _ _ _) ≫ (forget C).map f ≫ eq_to_hom (forget_obj_forget₂_obj _ _ _).symm :=
 functor.congr_hom (has_forget₂.forget_comp C D) f
+
+local attribute [instance] concrete_category.has_coe_to_sort
+local attribute [instance] concrete_category.has_coe_to_fun
+
+@[simp]
+lemma coe_forget₂_map {X Y : C} (f : X ⟶ Y) (x : (forget₂ C D).obj X) :
+  ((forget₂ C D).map f) x = (forget_obj_forget₂_obj C D Y).mpr (f ((forget_obj_forget₂_obj C D X).mp x)) :=
+begin
+  have t := congr_arg
+    (λ f : (forget D).obj ((forget₂ C D).obj X) ⟶ (forget D).obj ((forget₂ C D).obj Y), (f : (forget₂ C D).obj X → (forget₂ C D).obj Y) x)
+    (forget_map_forget₂_map C D f),
+  dsimp at t,
+  convert t,
+  sorry,
+end
 end
 
 instance forget_faithful (C D : Type (u+1)) [category.{u} C] [concrete_category C] [category.{u} D] [concrete_category D]

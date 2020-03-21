@@ -10,7 +10,8 @@ Authors: Gabriel Ebner
 
 The default `has_reflect string` instance in Lean only work for strings up to
 few thousand characters.  Anything larger than that will trigger a stack overflow because
-the string is represented as a very deeply nested expression.
+the string is represented as a very deeply nested expression:
+https://github.com/leanprover-community/lean/issues/144
 
 This file adds a higher-priority instance for `has_reflect string`, which
 behaves exactly the same for small strings (up to 256 characters). Larger

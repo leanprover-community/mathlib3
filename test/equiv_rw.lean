@@ -136,6 +136,14 @@ begin
   exact h _,
 end
 
+-- rewriting in the base of a dependent pair
+example {α β : Type} (P : α → Type) (h : Σ a, P a) (e : α ≃ β) : β :=
+begin
+  equiv_rw e at h,
+  dsimp at h,
+  exact h.1
+end
+
 -- TODO we still can't rewrite in the argument of a dependent function
 -- example {α β γ : Type} (e : α ≃ β) (P : α → Sort*) (h : Π a : α, (P a) × (option α)) (b : β) : option β :=
 -- begin
@@ -143,3 +151,5 @@ end
 --   dsimp at h,
 --   exact (h b).2,
 -- end
+
+-- TODO second position of a dependent pair?

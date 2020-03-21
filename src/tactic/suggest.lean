@@ -343,7 +343,7 @@ Try this: refine lt_of_not_ge _
 -/
 meta def suggest (n : parse (with_desc "n" small_nat)?) : tactic unit :=
 do L ← tactic.suggest_scripts (n.get_or_else 50),
-  when_tracing `silence_suggest
+  when (¬ is_trace_enabled_for `silence_suggest)
     (if L.length = 0 then
       fail "There are no applicable declarations"
     else

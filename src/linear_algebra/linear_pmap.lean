@@ -156,6 +156,8 @@ instance : has_inf (linear_pmap R E F) :=
 
 instance : has_bot (linear_pmap R E F) := ⟨⟨⊥, 0⟩⟩
 
+instance : inhabited (linear_pmap R E F) := ⟨⊥⟩
+
 instance : semilattice_inf_bot (linear_pmap R E F) :=
 { le := (≤),
   le_refl := λ f, ⟨le_refl f.domain, λ x y h, subtype.eq h ▸ rfl⟩,

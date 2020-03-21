@@ -120,6 +120,8 @@ instance : complete_lattice (convex_cone E) :=
   Inf_le       := λ s a ha x hx, mem_Inf.1 hx _ ha,
   .. partial_order.lift (coe : convex_cone E → set E) (λ a b, ext') (by apply_instance) }
 
+instance : inhabited (convex_cone E) := ⟨⊥⟩
+
 /-- Image of a convex cone under an `ℝ`-linear map is a convex cone. -/
 def map (f : E →ₗ[ℝ] F) (S : convex_cone E) : convex_cone F :=
 { carrier := f '' S,

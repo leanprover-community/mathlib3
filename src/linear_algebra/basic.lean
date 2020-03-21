@@ -354,7 +354,7 @@ p.subtype.cod_restrict p' $ λ ⟨x, hx⟩, h hx
 @[simp] theorem coe_of_le (h : p ≤ p') (x : p) :
   (of_le h x : M) = x := rfl
 
-@[simp] theorem of_le_apply (h : p ≤ p') (x : p) : of_le h x = ⟨x, h x.2⟩ := rfl
+theorem of_le_apply (h : p ≤ p') (x : p) : of_le h x = ⟨x, h x.2⟩ := rfl
 
 variables (p p')
 

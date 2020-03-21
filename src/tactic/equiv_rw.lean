@@ -52,6 +52,7 @@ do
       let apply_and_adapt (n : name) : tactic (expr × bool) := (do
         -- Apply the named lemma
         mk_const n >>= tactic.eapply,
+        all_goals (intros >> skip),
         -- Collect the resulting goals, then restore the original context before proceeding
         gs ← get_goals,
         set_goals initial_goals,

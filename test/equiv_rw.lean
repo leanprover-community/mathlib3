@@ -135,3 +135,11 @@ begin
   dsimp at h,
   exact h _,
 end
+
+-- TODO we still can't rewrite in the argument of a dependent function
+-- example {α β γ : Type} (e : α ≃ β) (P : α → Sort*) (h : Π a : α, (P a) × (option α)) (b : β) : option β :=
+-- begin
+--   equiv_rw e at h,
+--   dsimp at h,
+--   exact (h b).2,
+-- end

@@ -301,7 +301,7 @@ Journal of the ACM (1980)
 * The congruence lemmas for dependent type theory as used in Lean are described in
 [Congruence closure in intensional type theory](https://leanprover.github.io/papers/congr.pdf)
 (de Moura, Selsam IJCAR 2016).
---/
+-/
 add_tactic_doc
 { name := "cc (congruence closure)",
   category := doc_category.tactic,

@@ -248,13 +248,12 @@ def mk_continuous (C : ℝ) (H : ∀ m, ∥f m∥ ≤ C * univ.prod (λi, ∥m i
 /-- Given a multilinear map in `n` variables, if one restricts it to `k` variables putting `z` on
 the other coordinates, then the resulting restricted function satisfies an inequality
 `∥f.restr v∥ ≤ C * ∥z∥^(n-k) * Π ∥v i∥` if the original function satisfies `∥f v∥ ≤ C * Π ∥v i∥`. -/
-lemma restr_norm_le {k n : ℕ} (f : multilinear_map 𝕜 (λ i : fin n, G) E₂)
+lemma restr_norm_le {k n : ℕ} (f : (multilinear_map 𝕜 (λ i : fin n, G) E₂ : _))
   (s : finset (fin n)) (hk : s.card = k) (z : G) {C : ℝ}
   (H : ∀ m, ∥f m∥ ≤ C * finset.univ.prod (λi, ∥m i∥)) (v : fin k → G) :
-  ∥@multilinear_map.restr 𝕜 E₂ G _ _ _ _ _ _ _ f s hk z v∥ ≤
-    C * ∥z∥ ^ (n - k) * finset.univ.prod (λi, ∥v i∥) :=
+  ∥f.restr s hk z v∥ ≤ C * ∥z∥ ^ (n - k) * finset.univ.prod (λi, ∥v i∥) :=
 begin
-  calc ∥@multilinear_map.restr 𝕜 E₂ G _ _ _ _ _ _ _ f s hk z v∥
+  calc ∥f.restr s hk z v∥
   ≤ C * finset.univ.prod (λ (j : fin n),
           ∥(if h : j ∈ s then v ((s.mono_equiv_of_fin hk).symm ⟨j, h⟩) else z)∥) : H _
   ... = C * ((finset.univ \ s).prod (λ (j : fin n),
@@ -282,7 +281,6 @@ begin
     end
   ... = C * ∥z∥ ^ (n - k) * finset.univ.prod (λi, ∥v i∥) : by rw mul_assoc
 end
-
 
 end multilinear_map
 
@@ -574,13 +572,12 @@ instance : normed_space 𝕜 (continuous_multilinear_map 𝕜 (λ (i : ι), 𝕜
 these variables, and fixing the other ones equal to a given value `z`. It is denoted by
 `f.restr s hk z`, where `hk` is a proof that the cardinality of `s` is `k`. The implicit
 identification between `fin k` and `s` that we use is the canonical (increasing) bijection. -/
-def restr {k n : ℕ} (f : G [×n]→L[𝕜] E₂)
+def restr {k n : ℕ} (f : (G [×n]→L[𝕜] E₂ : _))
   (s : finset (fin n)) (hk : s.card = k) (z : G) : G [×k]→L[𝕜] E₂ :=
-(@multilinear_map.restr 𝕜 E₂ G _ _ _ _ _ _ _ f.to_multilinear_map s hk z).mk_continuous
+(f.to_multilinear_map.restr s hk z).mk_continuous
 (∥f∥ * ∥z∥^(n-k)) $ λ v, multilinear_map.restr_norm_le _ _ _ _ f.le_op_norm _
 
-lemma norm_restr {k n : ℕ} (f : G [×n]→L[𝕜] E₂)
-  (s : finset (fin n)) (hk : s.card = k) (z : G) :
+lemma norm_restr {k n : ℕ} (f : G [×n]→L[𝕜] E₂) (s : finset (fin n)) (hk : s.card = k) (z : G) :
   ∥f.restr s hk z∥ ≤ ∥f∥ * ∥z∥ ^ (n - k) :=
 begin
   apply multilinear_map.mk_continuous_norm_le,

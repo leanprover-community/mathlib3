@@ -1665,7 +1665,6 @@ apply_nolint pnat.xgcd_type.z doc_blame
 
 -- data/polynomial.lean
 apply_nolint polynomial.binom_expansion doc_blame
-apply_nolint polynomial.coeff_coe_to_fun doc_blame
 apply_nolint polynomial.comp doc_blame
 apply_nolint polynomial.decidable_dvd_monic doc_blame
 apply_nolint polynomial.div doc_blame
@@ -2554,7 +2553,6 @@ apply_nolint well_founded_submodule_gt ge_or_gt
 -- ring_theory/power_series.lean
 apply_nolint mv_power_series.inv doc_blame
 apply_nolint mv_power_series.trunc_fun doc_blame
-apply_nolint polynomial.monomial doc_blame
 apply_nolint power_series.inv doc_blame
 apply_nolint power_series.inv.aux doc_blame
 apply_nolint power_series.mk unused_arguments

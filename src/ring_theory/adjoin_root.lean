@@ -12,7 +12,7 @@ import data.polynomial ring_theory.principal_ideal_domain
 # Adjoining roots of polynomials
 
 This file defines the commutative ring `adjoin_root f`, the ring R[X]/(f) obtained from a
-commutative ring R and a polynomial f : R[X]. If furthermore `R` is a field and `f` is
+commutative ring `R` and a polynomial `f : R[X]`. If furthermore `R` is a field and `f` is
 irreducible, the field structure on `adjoin_root f` is constructed.
 
 ## Main definitions and results

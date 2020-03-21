@@ -224,9 +224,11 @@ The argument to `add_tactic_doc` is a structure of type `tactic_doc_entry`.
 * The doc string is the body of the entry, it can be formatted with markdown.
   What you are reading now is the description of `add_tactic_doc`.
 
-If only one related declaration is listed in `decl_names` and it does not have a doc string,
-`description` will be automatically added as its doc string. If there are multiple declarations, you
-can select the one to be used by passing a name to the `inherit_description_from` field.
+If only one related declaration is listed in `decl_names` and if this
+invocation of `add_tactic_doc` does not have a doc string, the doc string of
+that declaration will become the body of the tactic doc entry. If there are
+multiple declarations, you can select the one to be used by passing a name to
+the `inherit_description_from` field.
 
 If you prefer a tactic to have a doc string that is different then the doc entry, then between
 the `/--` `-/` markers, write the desired doc string first, then `---` surrounded by new lines,

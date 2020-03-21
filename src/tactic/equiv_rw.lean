@@ -29,7 +29,7 @@ def equiv_congr_lemmas : list name :=
  `equiv.sum_congr, `equiv.prod_congr,
  -- this is technically a bifunctor `Typeᵒᵖ → Type → Type`, but the pattern matcher will never see this.
  `equiv.arrow_congr,
- `equiv.pi_congr_left, -- allows rewriting in the argument of a pi-type -- TODO employ `equiv.pi_congr?
+ `equiv.Pi_congr_left, -- allows rewriting in the argument of a pi-type -- TODO employ `equiv.pi_congr?
  `functor.map_equiv]
 
 /--

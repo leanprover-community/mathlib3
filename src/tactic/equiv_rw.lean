@@ -23,6 +23,7 @@ namespace tactic
 --  turn an `x : mv_polynomial σ R` into an `x : mv_polynomial σ S`.).
 def equiv_congr_lemmas : list name :=
 [-- these are functorial w.r.t equiv, and so could be subsumed by a `equiv_functor.map`
+ -- many more could be added
  `equiv.perm_congr, `equiv.equiv_congr, `equiv.unique_congr,
  -- these are bifunctors, and so could be subsumed by a `bifunctor.map_equiv`
  `equiv.sum_congr, `equiv.prod_congr,

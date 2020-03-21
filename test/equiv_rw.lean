@@ -130,7 +130,7 @@ end
 example {α β : Type} (e : α ≃ β) (P : α → Sort*) (h : Π a : α, P a) (b : β) : P (e.symm b) :=
 begin
   -- this is a bit perverse, as `equiv_rw e.symm at b` is more natural,
-  -- but this tests rewriting inside dependent functions
+  -- but this tests rewriting in the argument of a dependent function
   equiv_rw e at h,
   dsimp at h,
   exact h _,

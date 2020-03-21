@@ -1409,6 +1409,26 @@ meta def trace_error (msg : string) (t : tactic α) : tactic α
        end
 
 /--
+``trace_for `n msg`` traces the message `msg`
+only if tracing is enabled for the name `n`.
+
+Create new names registered for tracing with `declare_trace n`.
+Then use `set_option trace.n true/false` to enabled or disable tracing for `n`.
+-/
+meta def trace_for
+  (n : name) {α : Type u} [has_to_tactic_format α] (msg : α) : tactic unit :=
+when_tracing n (trace msg)
+
+/--
+``trace_state_for `n msg`` prints the tactic state,
+preceded by the optional string `msg`,
+only if tracing is enabled for the name `n`.
+-/
+meta def trace_state_for
+  (n : name) (msg : string := "") : tactic unit :=
+when_tracing n ((if msg = "" then skip else trace msg) >> trace_state)
+
+/--
 This combinator is for testing purposes. It succeeds if `t` fails with message `msg`,
 and fails otherwise.
 -/

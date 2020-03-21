@@ -9,7 +9,7 @@ import ring_theory.ideal_operations
 import ring_theory.subring
 import linear_algebra.basis
 
-open set lattice
+open set
 
 namespace submodule
 variables {α : Type*} {β : Type*} [ring α] [add_comm_group β] [module α β]

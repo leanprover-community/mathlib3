@@ -118,7 +118,7 @@ end
 end denumerable
 
 namespace nat.subtype
-open function encodable lattice
+open function encodable
 
 variables {s : set ℕ} [decidable_pred s] [infinite s]
 

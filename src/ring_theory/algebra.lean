@@ -16,7 +16,6 @@ noncomputable theory
 
 universes u v w u₁ v₁
 
-open lattice
 open_locale tensor_product
 
 section prio

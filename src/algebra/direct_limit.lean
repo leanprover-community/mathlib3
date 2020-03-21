@@ -22,7 +22,7 @@ import ring_theory.ideal_operations
 
 universes u v w u₁
 
-open lattice submodule
+open submodule
 
 variables {R : Type u} [ring R]
 variables {ι : Type v} [nonempty ι]

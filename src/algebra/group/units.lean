@@ -48,59 +48,19 @@ variables [monoid α]
   a = b ↔ (a : α) = b :=
 ext.eq_iff.symm
 
-instance [decidable_eq α] : decidable_eq (units α)
-| a b := decidable_of_iff' _ ext_iff
+@[to_additive] instance [decidable_eq α] : decidable_eq (units α) := λ a b, decidable_of_iff' _ ext_iff
 
-/-- The unit group inherits the multiplication of the monoid. -/
-protected def mul (u₁ u₂ : units α) : units α :=
-⟨u₁.val * u₂.val, u₂.inv * u₁.inv,
-  have u₁.val * (u₂.val * u₂.inv) * u₁.inv = 1,
-    by rw [u₂.val_inv]; rw [mul_one, u₁.val_inv],
-  by simpa only [mul_assoc],
-  have u₂.inv * (u₁.inv * u₁.val) * u₂.val = 1,
-    by rw [u₁.inv_val]; rw [mul_one, u₂.inv_val],
-  by simpa only [mul_assoc]⟩
-
-/-- The inverse of a unit. -/
-protected def inv' (u : units α) : units α :=
-⟨u.inv, u.val, u.inv_val, u.val_inv⟩
-
-end units
-namespace add_units
-
-variables [add_monoid α]
-
-instance [decidable_eq α] : decidable_eq (add_units α)
-| a b := decidable_of_iff' _ ext_iff
-
-attribute [to_additive add_units.decidable_eq] units.decidable_eq
-
-/-- The add_unit group inherits the addition of the add_monoid. -/
-protected def add (u₁ u₂ : add_units α) : add_units α :=
-⟨u₁.val + u₂.val, u₂.neg + u₁.neg,
-  have u₁.val + (u₂.val + u₂.neg) + u₁.neg = 0,
-    by rw [u₂.val_neg]; rw [add_zero, u₁.val_neg],
-  by simpa only [add_assoc],
-  have u₂.neg + (u₁.neg + u₁.val) + u₂.val = 0,
-    by rw [u₁.neg_val]; rw [add_zero, u₂.neg_val],
-  by simpa only [add_assoc]⟩
-
-attribute [to_additive add_units.add] units.mul
-
-/-- The additive inverse of an add_unit. -/
-protected def neg' (u : add_units α) : add_units α :=
-⟨u.neg, u.val, u.neg_val, u.val_neg⟩
-
-attribute [to_additive add_units.neg'] units.inv'
-
-end add_units
-namespace units
-
-variables [monoid α]
-
-@[to_additive] instance : has_mul (units α) := ⟨units.mul⟩
-@[to_additive] instance : has_one (units α) := ⟨⟨1, 1, mul_one 1, one_mul 1⟩⟩
-@[to_additive] instance : has_inv (units α) := ⟨units.inv'⟩
+/-- Units of a monoid form a group. -/
+@[to_additive] instance : group (units α) :=
+{ mul := λ u₁ u₂, ⟨u₁.val * u₂.val, u₂.inv * u₁.inv,
+    by rw [mul_assoc, ← mul_assoc u₂.val, val_inv, one_mul, val_inv],
+    by rw [mul_assoc, ← mul_assoc u₁.inv, inv_val, one_mul, inv_val]⟩,
+  one := ⟨1, 1, one_mul 1, one_mul 1⟩,
+  mul_one := λ u, ext $ mul_one u,
+  one_mul := λ u, ext $ one_mul u,
+  mul_assoc := λ u₁ u₂ u₃, ext $ mul_assoc u₁ u₂ u₃,
+  inv := λ u, ⟨u.2, u.1, u.4, u.3⟩,
+  mul_left_inv := λ u, ext u.inv_val }
 
 variables (a b : units α) {c : units α}
 @[simp, to_additive] lemma coe_mul : (↑(a * b) : α) = a * b := rfl
@@ -121,11 +81,6 @@ by rw [mul_assoc, mul_inv, mul_one]
 
 @[simp, to_additive] lemma inv_mul_cancel_right (a : α) (b : units α) : a * ↑b⁻¹ * b = a :=
 by rw [mul_assoc, inv_mul, mul_one]
-
-@[to_additive] instance : group (units α) :=
-by refine {mul := (*), one := 1, inv := has_inv.inv, ..};
-  { intros, apply ext, simp only [coe_mul, coe_one,
-      mul_assoc, one_mul, mul_one, inv_mul] }
 
 @[to_additive] instance : inhabited (units α) := ⟨1⟩
 
@@ -157,7 +112,7 @@ end units
 theorem nat.units_eq_one (u : units ℕ) : u = 1 :=
 units.ext $ nat.eq_one_of_dvd_one ⟨u.inv, u.val_inv.symm⟩
 
-theorem nat.add_units_eq_one (u : add_units ℕ) : u = 0 :=
+theorem nat.add_units_eq_zero (u : add_units ℕ) : u = 0 :=
 add_units.ext $ (nat.eq_zero_of_add_eq_zero u.val_neg).1
 
 /-- For `a, b` in a `comm_monoid` such that `a * b = 1`, makes a unit out of `a`. -/

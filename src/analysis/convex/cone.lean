@@ -8,9 +8,37 @@ import linear_algebra.linear_pmap analysis.convex.basic order.zorn
 /-!
 # Convex cones
 
-We define convex cones, prove that they form a `complete_lattice`, define `map`/`comap`
-operations in the obvious way, and prove
-[M. Riesz extension theorem](https://en.wikipedia.org/wiki/M._Riesz_extension_theorem).
+In a vector space `E` over `ℝ`, we define a convex cone as a subset `s` such that
+`a • x + b • y ∈ s` whenever `x, y ∈ s` and `a, b > 0`. We prove that convex cones form
+a `complete_lattice`, and define their images (`convex_cone.map`) and preimages
+(`convex_cone.comap`) under linear maps.
+
+We also define `convex.to_cone` to be the minimal cone that includes a given convex set.
+
+## Main statements
+
+We prove two extension theorems:
+
+* `riesz_extension`:
+  [M. Riesz extension theorem](https://en.wikipedia.org/wiki/M._Riesz_extension_theorem) says that
+  if `s` is a convex cone
+
+* `exists_extension_of_le_sublinear`:
+  Hahn-Banach theorem: if `N : E → ℝ` is a sublinear map, `f` is a linear map
+  defined on a subspace of `E`, and `f x ≤ N x` for all `x` in the domain of `f`,
+  then `f` can be extended to the whole space to a linear map `g` such that `g x ≤ N x`
+  for all `x`
+
+## Implementation notes
+
+While `convex` is a predicate on sets, `convex_cone` is a bundled convex cone.
+
+## TODO
+
+* Define predicates `blunt`, `pointed`, `flat`, `sailent`, see
+  [Wikipedia](https://en.wikipedia.org/wiki/Convex_cone#Blunt,_pointed,_flat,_salient,_and_proper_cones)
+
+* Define the dual cone.
 -/
 
 universes u v
@@ -18,11 +46,13 @@ universes u v
 open set linear_map
 open_locale classical
 
-set_option class.instance_max_depth 60
-
 variables (E : Type*) [add_comm_group E] [vector_space ℝ E]
   {F : Type*} [add_comm_group F] [vector_space ℝ F]
   {G : Type*} [add_comm_group G] [vector_space ℝ G]
+
+/-!
+### Definition of `convex_cone` and basic properties
+-/
 
 /-- A convex cone is a subset `s` of a vector space over `ℝ` such that `a • x + b • y ∈ s`
 whenever `a, b > 0` and `x, y ∈ s`. -/
@@ -152,30 +182,98 @@ ext' $ preimage_comp.symm
 
 end convex_cone
 
+/-!
+### Cone over a convex set
+-/
+
+namespace convex
+
+local attribute [instance] smul_set
+
 /-- The set of vectors proportional to those in a convex set forms a convex cone. -/
-def convex.to_cone (s : set E) (hs : convex s) :
-  convex_cone E :=
-convex_cone.mk {x : E | ∃ (c : ℝ) (hC : 0 < c), c • x ∈ s}
+def to_cone (s : set E) (hs : convex s) : convex_cone E :=
 begin
-  rintros c c_pos x ⟨c', c'_pos, hc'⟩,
-  refine ⟨c' / c, div_pos c'_pos c_pos, _⟩,
-  rwa [smul_smul, div_mul_cancel _ (ne_of_gt c_pos)]
-end
-begin
-  rintros x ⟨cx, cx_pos, hcx⟩ y ⟨cy, cy_pos, hcy⟩,
-  refine ⟨cx * cy / (cy + cx), div_pos (mul_pos cx_pos cy_pos) (add_pos cy_pos cx_pos), _⟩,
-  rw [smul_add, ← mul_div_assoc', mul_comm, mul_smul, div_mul_comm, mul_smul],
-  exact convex_iff_div.1 hs hcx hcy (le_of_lt cy_pos) (le_of_lt cx_pos) (add_pos cy_pos cx_pos)
+  apply convex_cone.mk (⋃ c > 0, (c : ℝ) • s);
+    simp only [mem_Union, mem_smul_set],
+  { rintros c c_pos _ ⟨c', c'_pos, x, hx, rfl⟩,
+    exact ⟨c * c', mul_pos c_pos c'_pos, x, hx, smul_smul _ _ _⟩ },
+  { rintros _ ⟨cx, cx_pos, x, hx, rfl⟩ _ ⟨cy, cy_pos, y, hy, rfl⟩,
+    have : 0 < cx + cy, from add_pos cx_pos cy_pos,
+    refine ⟨_, this, _, convex_iff_div.1 hs hx hy (le_of_lt cx_pos) (le_of_lt cy_pos) this, _⟩,
+    simp only [smul_add, smul_smul, mul_div_assoc', mul_div_cancel_left _ (ne_of_gt this)] }
 end
 
--- Hide lemmas / definition for M. Riesz extension theorem into a namespace
+variables {s : set E} (hs : convex s) {x : E}
+
+@[nolint ge_or_gt]
+lemma mem_to_cone : x ∈ hs.to_cone s ↔ ∃ (c > 0) (y ∈ s), (c : ℝ) • y = x :=
+by simp only [to_cone, convex_cone.mem_mk, mem_Union, mem_smul_set, eq_comm]
+
+@[nolint ge_or_gt]
+lemma mem_to_cone' : x ∈ hs.to_cone s ↔ ∃ c > 0, (c : ℝ) • x ∈ s :=
+begin
+  refine hs.mem_to_cone.trans ⟨_, _⟩,
+  { rintros ⟨c, hc, y, hy, rfl⟩,
+    exact ⟨c⁻¹, inv_pos hc, by rwa [smul_smul, inv_mul_cancel (ne_of_gt hc), one_smul]⟩ },
+  { rintros ⟨c, hc, hcx⟩,
+    exact ⟨c⁻¹, inv_pos hc, _, hcx, by rw [smul_smul, inv_mul_cancel (ne_of_gt hc), one_smul]⟩ }
+end
+
+lemma subset_to_cone : s ⊆ hs.to_cone s :=
+λ x hx, hs.mem_to_cone'.2 ⟨1, zero_lt_one, by rwa one_smul⟩
+
+/-- `hs.to_cone s` is the least cone that includes `s`. -/
+lemma to_cone_is_least : is_least { t : convex_cone E | s ⊆ t } (hs.to_cone s) :=
+begin
+  refine ⟨hs.subset_to_cone, λ t ht x hx, _⟩,
+  rcases hs.mem_to_cone.1 hx with ⟨c, hc, y, hy, rfl⟩,
+  exact t.smul_mem hc (ht hy)
+end
+
+lemma to_cone_eq_Inf : hs.to_cone s = Inf { t : convex_cone E | s ⊆ t } :=
+hs.to_cone_is_least.is_glb.Inf_eq.symm
+
+end convex
+
+lemma convex_hull_to_cone_is_least (s : set E) :
+  is_least {t : convex_cone E | s ⊆ t} ((convex_convex_hull s).to_cone _) :=
+begin
+  convert (convex_convex_hull s).to_cone_is_least,
+  ext t,
+  exact ⟨λ h, convex_hull_min h t.convex, λ h, subset.trans (subset_convex_hull s) h⟩
+end
+
+lemma convex_hull_to_cone_eq_Inf (s : set E) :
+  (convex_convex_hull s).to_cone _ = Inf {t : convex_cone E | s ⊆ t} :=
+(convex_hull_to_cone_is_least s).is_glb.Inf_eq.symm
+
+/-!
+### M. Riesz extension theorem
+
+Given a convex cone `s` in a vector space `E`, a submodule `p`, and a linear `f : p → ℝ`, assume
+that `f` is nonnegative on `p ∩ s` and `p + s = E`. Then there exists a globally defined linear
+function `g : E → ℝ` that agrees with `f` on `p`, and is nonnegative on `s`.
+
+We prove this theorem using Zorn's lemma. In `riesz_extension.step` is the main part of the proof.
+It says that if the domain `p` of `f` is not the whole space, then `f` can be extended to a largern
+subspace `p ⊔ span ℝ {y}` without breaking the non-negativity condition.
+
+In `riesz_extension.exists_top` we use Zorn's lemma to prove that we can extend `f`
+to a linear map `g` on `⊤ : submodule E`. Mathematically this is the same as a linear map on `E`
+but in Lean `⊤ : submodule E` is isomorphic but is not equal to `E`. In `riesz_extension`
+we use this isomorphism to prove the theorem.
+-/
+
 namespace riesz_extension
 
 open submodule
 
 variables (s : convex_cone E) (f : linear_pmap ℝ E ℝ)
 
-/-- Induction step in M. Riesz extension theorem. -/
+/-- Induction step in M. Riesz extension theorem. Given a convex cone `s` in a vector space `E`,
+a partially defined linear map `f : f.domain → ℝ`, assume that `f` is nonnegative on `f.domain ∩ p`
+and `p + s = E`. If `f.domain` is not defined on the whole `E`, then we can extend it to a larger
+submodule without breaking the non-negativity condition. -/
 lemma step (nonneg : ∀ x : f.domain, (x : E) ∈ s → 0 ≤ f x)
   (dense : ∀ y, ∃ x : f.domain, (x : E) + y ∈ s) (hdom : f.domain ≠ ⊤) :
   ∃ g, f < g ∧ ∀ x : g.domain, (x : E) ∈ s → 0 ≤ g x :=
